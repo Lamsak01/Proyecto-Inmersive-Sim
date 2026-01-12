@@ -1,7 +1,1 @@
-<<<<<<< HEAD
-# Auto detect text files and perform LF normalization
 * text=auto
-=======
-# Normalize EOL for all files that Git considers text files.
-* text=auto eol=lf
->>>>>>> a1f3664 (Initial project setup)
