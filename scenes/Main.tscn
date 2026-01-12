@@ -1,0 +1,22 @@
+[gd_scene load_steps=4 format=3 uid="uid://dsoiuct8kdsk3"]
+
+[ext_resource type="Texture2D" uid="uid://bgq52ewwow464" path="res://assests/sprites/Vero_pro.png" id="1_elqb8"]
+[ext_resource type="Script" uid="uid://d2e3lu2huuetr" path="res://scripts/Player.gd" id="2_rvslj"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_rvslj"]
+size = Vector2(840, 801)
+
+[node name="Node2D" type="Node2D"]
+
+[node name="Player" type="CharacterBody2D" parent="."]
+position = Vector2(564.54706, -33.96408)
+script = ExtResource("2_rvslj")
+
+[node name="Sprite2D" type="Sprite2D" parent="Player"]
+position = Vector2(-69.54706, 143.96408)
+scale = Vector2(1, 0.93539)
+texture = ExtResource("1_elqb8")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Player"]
+position = Vector2(-69.54706, 142.4641)
+shape = SubResource("RectangleShape2D_rvslj")

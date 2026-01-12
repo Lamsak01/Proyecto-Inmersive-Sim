@@ -1,0 +1,30 @@
+# Godot
+.import/
+.export/
+*.translation
+
+# Godot 4
+.godot/
+
+# Mono / C#
+.mono/
+data_*/
+crash_*/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Editor
+.vscode/
+.idea/
+
+# Windows user junk (MUY IMPORTANTE)
+AppData/
+Documents/
+Configuración local/
+Cookies/
+Datos de programa/
+Menú Inicio/
+Reciente/
+SendTo/
