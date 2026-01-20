@@ -1,0 +1,24 @@
+[remap]
+
+importer="wav"
+type="AudioStreamWAV"
+uid="uid://dx5c1idgfjyr7"
+path="res://.godot/imported/menu_select.wav-15439e930edcbf8c5d2d97d7c03422c9.sample"
+
+[deps]
+
+source_file="res://assests/YouTube Action RPG Resources/music_and_sounds/menu_select.wav"
+dest_files=["res://.godot/imported/menu_select.wav-15439e930edcbf8c5d2d97d7c03422c9.sample"]
+
+[params]
+
+force/8_bit=false
+force/mono=false
+force/max_rate=false
+force/max_rate_hz=44100
+edit/trim=false
+edit/normalize=false
+edit/loop_mode=0
+edit/loop_begin=0
+edit/loop_end=-1
+compress/mode=2
