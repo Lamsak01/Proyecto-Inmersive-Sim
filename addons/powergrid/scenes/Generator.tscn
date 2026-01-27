@@ -1,0 +1,13 @@
+[gd_scene load_steps=3 format=3 uid="uid://bimlltbmsr3gw"]
+
+[ext_resource type="Script" uid="uid://ciujrq1efbmn4" path="res://addons/powergrid/ports/Port.gd" id="1_6mgo4"]
+
+[sub_resource type="PlaceholderTexture2D" id="PlaceholderTexture2D_2isyr"]
+
+[node name="Generator" type="Node2D"]
+
+[node name="PortOut" type="Marker2D" parent="."]
+script = ExtResource("1_6mgo4")
+
+[node name="Sprite2D" type="Sprite2D" parent="PortOut"]
+texture = SubResource("PlaceholderTexture2D_2isyr")

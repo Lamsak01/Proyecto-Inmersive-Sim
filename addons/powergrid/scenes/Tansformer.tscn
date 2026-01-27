@@ -1,0 +1,11 @@
+[gd_scene load_steps=2 format=3 uid="uid://db1pwabwa8lr8"]
+
+[ext_resource type="Script" uid="uid://ciujrq1efbmn4" path="res://addons/powergrid/ports/Port.gd" id="1_gbfa6"]
+
+[node name="Transformer" type="Node2D"]
+
+[node name="PortIn" type="Marker2D" parent="."]
+script = ExtResource("1_gbfa6")
+
+[node name="PortOut" type="Marker2D" parent="."]
+script = ExtResource("1_gbfa6")

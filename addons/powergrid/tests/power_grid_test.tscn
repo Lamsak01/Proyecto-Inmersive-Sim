@@ -1,0 +1,67 @@
+[gd_scene load_steps=6 format=3 uid="uid://bp1u4vuca1s5f"]
+
+[ext_resource type="Script" uid="uid://dm66yxl2ahfre" path="res://addons/powergrid/components/Generator.gd" id="2_2wvgi"]
+[ext_resource type="Script" uid="uid://ciujrq1efbmn4" path="res://addons/powergrid/ports/Port.gd" id="2_uhyd5"]
+[ext_resource type="Script" uid="uid://ceh42qw185q0s" path="res://addons/powergrid/components/Transformer.gd" id="3_uhyd5"]
+[ext_resource type="Script" uid="uid://cmdepelajt7ri" path="res://addons/powergrid/components/Load.gd" id="4_lfrik"]
+[ext_resource type="PackedScene" uid="uid://bcourrcxeftr3" path="res://addons/powergrid/scenes/Cable.tscn" id="5_2wvgi"]
+
+[node name="Power grid test" type="Node2D"]
+
+[node name="Generator" type="Node2D" parent="."]
+position = Vector2(1, 2)
+script = ExtResource("2_2wvgi")
+metadata/_custom_type_script = "uid://dm66yxl2ahfre"
+
+[node name="PortOut" type="Marker2D" parent="Generator"]
+script = ExtResource("2_uhyd5")
+level = 0
+
+[node name="Transformer1" type="Node2D" parent="."]
+position = Vector2(4, -1)
+script = ExtResource("3_uhyd5")
+metadata/_custom_type_script = "uid://ceh42qw185q0s"
+
+[node name="PortIn" type="Marker2D" parent="Transformer1"]
+script = ExtResource("2_uhyd5")
+level = 0
+
+[node name="PortOut" type="Marker2D" parent="Transformer1"]
+script = ExtResource("2_uhyd5")
+level = 1
+
+[node name="Transformer2" type="Node2D" parent="."]
+position = Vector2(2, -2)
+script = ExtResource("3_uhyd5")
+type = 1
+metadata/_custom_type_script = "uid://ceh42qw185q0s"
+
+[node name="PortIn" type="Marker2D" parent="Transformer2"]
+script = ExtResource("2_uhyd5")
+level = 1
+
+[node name="PortOut" type="Marker2D" parent="Transformer2"]
+script = ExtResource("2_uhyd5")
+
+[node name="Load" type="Node2D" parent="."]
+position = Vector2(3, 1)
+script = ExtResource("4_lfrik")
+metadata/_custom_type_script = "uid://cmdepelajt7ri"
+
+[node name="PortIn" type="Marker2D" parent="Load"]
+script = ExtResource("2_uhyd5")
+
+[node name="Cable" parent="." instance=ExtResource("5_2wvgi")]
+position = Vector2(7, -4)
+port_a_path = NodePath("../Generator/PortOut")
+port_b_path = NodePath("../Transformer1/PortIn")
+
+[node name="Cable2" parent="." instance=ExtResource("5_2wvgi")]
+position = Vector2(9, -2)
+port_a_path = NodePath("../Transformer1/PortOut")
+port_b_path = NodePath("../Transformer2/PortIn")
+
+[node name="Cable3" parent="." instance=ExtResource("5_2wvgi")]
+position = Vector2(6, 1)
+port_a_path = NodePath("../Transformer2/PortOut")
+port_b_path = NodePath("../Load/PortIn")

@@ -1093,6 +1093,8 @@ sprite_frames = SubResource("SpriteFrames_44lqw")
 animation = &"idle"
 frame_progress = 0.8195581
 
+[node name="Node2D" type="Node2D" parent="Npc"]
+
 [node name="UI" type="CanvasLayer" parent="."]
 
 [node name="UIRoot" type="Control" parent="UI"]
