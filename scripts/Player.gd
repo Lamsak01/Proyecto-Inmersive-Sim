@@ -8,8 +8,7 @@ extends CharacterBody2D
 
 var last_dir := "down"
 var keys: Array[String] = []
-var inventory: Array[String] = []
-
+var inventory: Inventory
 
 func _play_walk(dir: Vector2) -> void:
 	if abs(dir.x) > abs(dir.y):
@@ -52,6 +51,11 @@ func _physics_process(_delta: float) -> void:
 func _ready() -> void:
 	if hint_label:
 		hint_label.text = ""
+	
+	# Initialize Inventory
+	inventory = Inventory.new()
+	inventory.name = "Inventory"
+	add_child(inventory)
 
 
 
@@ -81,10 +85,11 @@ func _process(_delta: float) -> void:
 
 
 func add_item(item_name: String) -> void:
-	inventory.append(item_name)
-	print("Inventario:", inventory)
+	inventory.add_item(item_name)
+	print("Inventario:", inventory.items)
+
 func has_item(item_name: String) -> bool:
-	return inventory.has(item_name)
+	return inventory.has_item(item_name)
 
 func show_hint(text: String) -> void:
 	if hint_label:

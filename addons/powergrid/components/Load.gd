@@ -20,10 +20,10 @@ func is_powered() -> bool:
 func get_input_port() -> PowerPort:
 	return input_port
 
-func _pm():
+func _pm() -> Node:
 	return get_node_or_null("/root/PowerManager")
 
-func _ready():
+func _ready() -> void:
 	if input_port == null:
 		input_port = PowerPort.new()
 		input_port.name = "PortIn"
@@ -35,6 +35,6 @@ func _ready():
 	var pm = _pm()
 	if pm: pm.register_component(self)
 
-func _exit_tree():
+func _exit_tree() -> void:
 	var pm = _pm()
 	if pm: pm.unregister_component(self)

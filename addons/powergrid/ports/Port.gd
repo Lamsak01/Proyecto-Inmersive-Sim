@@ -5,7 +5,7 @@ enum Level { HV, MV, LV }
 
 @export var level: Level = Level.LV
 var _energized := false
-var _connected_ports: Array = []
+var _connected_ports: Array[PowerPort] = []
 var _owner_component: Node = null
 
 func is_power_port() -> bool:
@@ -31,7 +31,7 @@ func connect_to(other: PowerPort) -> void:
 func disconnect_from(other: PowerPort) -> void:
 	_connected_ports.erase(other)
 
-func get_connected_ports() -> Array:
+func get_connected_ports() -> Array[PowerPort]:
 	return _connected_ports
 
 func _pm():
