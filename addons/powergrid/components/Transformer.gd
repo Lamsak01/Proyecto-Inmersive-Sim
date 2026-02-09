@@ -16,7 +16,6 @@ func _pm():
 	return get_node_or_null("/root/PowerManager")
 
 func _ready():
-	# Si no existen puertos en escena, créalos
 	if port_in == null:
 		port_in = PowerPort.new()
 		port_in.name = "PortIn"

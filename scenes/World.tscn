@@ -1,4 +1,4 @@
-[gd_scene load_steps=110 format=4 uid="uid://dsoiuct8kdsk3"]
+[gd_scene format=4 uid="uid://dsoiuct8kdsk3"]
 
 [ext_resource type="Texture2D" uid="uid://degrfxbqdhgys" path="res://assests/sprites/Grass.png" id="1_7g83o"]
 [ext_resource type="Texture2D" uid="uid://b8tl3r2f6b41s" path="res://assests/YouTube Action RPG Resources/world/grass_background.png" id="1_d1c63"]
@@ -22,6 +22,15 @@
 [ext_resource type="Script" uid="uid://5m5k1lccnbiq" path="res://scenes/npc.gd" id="13_i4b1j"]
 [ext_resource type="Texture2D" uid="uid://tw7qqecoq4k8" path="res://assests/YouTube Action RPG Resources/enemies/bat.png" id="14_c0d7e"]
 [ext_resource type="Script" uid="uid://dncqyijaf270" path="res://scenes/interact_area.gd" id="15_c0d7e"]
+[ext_resource type="Script" uid="uid://fhtdltmjrhss" path="res://scenes/ui_root.gd" id="23_rm3lh"]
+[ext_resource type="PackedScene" uid="uid://weaponpickup" path="res://scenes/items/WeaponPickup.tscn" id="24_yncth"]
+[ext_resource type="PackedScene" uid="uid://dummyenemy" path="res://scenes/enemies/DummyEnemy.tscn" id="25_jgbtq"]
+[ext_resource type="Script" uid="uid://jo77r6tbpb4s" path="res://scripts/obstacles/DestructibleObject.gd" id="26_door_script"]
+[ext_resource type="Script" uid="uid://bq0toefgnjkw4" path="res://scripts/systems/combat/HealthComponent.gd" id="26_health"]
+[ext_resource type="Script" uid="uid://bgl1cdostwaba" path="res://scripts/World.gd" id="26_world"]
+[ext_resource type="PackedScene" path="res://scenes/obstacles/Crate.tscn" id="27_crate"]
+[ext_resource type="PackedScene" path="res://scenes/obstacles/Barrel.tscn" id="28_barrel"]
+[ext_resource type="PackedScene" path="res://scenes/obstacles/WeakWall.tscn" id="29_wall"]
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_n2fr6"]
 atlas = ExtResource("4_dgldv")
@@ -516,9 +525,10 @@ animations = [{
 
 [sub_resource type="CapsuleShape2D" id="CapsuleShape2D_rvslj"]
 radius = 6.0
-height = 16.0
+height = 24.0
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_hlk0d"]
+size = Vector2(48, 48)
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_0uv0p"]
 size = Vector2(51.375, 40.75)
@@ -962,25 +972,28 @@ animations = [{
 }]
 
 [sub_resource type="SystemFont" id="SystemFont_c0d7e"]
+subpixel_positioning = 0
 
 [sub_resource type="Theme" id="Theme_o1tcx"]
 default_font = SubResource("SystemFont_c0d7e")
 default_font_size = 8
 
 [sub_resource type="SystemFont" id="SystemFont_i4b1j"]
+subpixel_positioning = 0
 
-[node name="World" type="Node2D"]
+[node name="World" type="Node2D" unique_id=2107211921]
+script = ExtResource("26_world")
 
-[node name="dialogue_manager" type="Node" parent="." node_paths=PackedStringArray("dialogue_box", "dialogue_text", "choices_box")]
+[node name="dialogue_manager" type="Node" parent="." unique_id=2052732196 node_paths=PackedStringArray("dialogue_box", "dialogue_text", "choices_box")]
 script = ExtResource("12_7c4bj")
 dialogue_box = NodePath("../UI/UIRoot/DialogueBox_NEW")
 dialogue_text = NodePath("../UI/UIRoot/DialogueBox_NEW/Margin/Layout/DialogueText_NEW")
 choices_box = NodePath("../UI/UIRoot/DialogueBox_NEW/Margin/Layout/ChoisesBox_New")
 
-[node name="Parallax2D" type="Parallax2D" parent="."]
+[node name="Parallax2D" type="Parallax2D" parent="." unique_id=1058059729]
 repeat_size = Vector2(320, 192)
 
-[node name="TextureRect" type="TextureRect" parent="Parallax2D"]
+[node name="TextureRect" type="TextureRect" parent="Parallax2D" unique_id=992508683]
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
@@ -993,121 +1006,136 @@ grow_vertical = 2
 texture = ExtResource("1_d1c63")
 stretch_mode = 1
 
-[node name="Player" type="CharacterBody2D" parent="." node_paths=PackedStringArray("dialogue_manager", "hint_label")]
+[node name="Player" type="CharacterBody2D" parent="." unique_id=1753339774 node_paths=PackedStringArray("dialogue_manager", "hint_label")]
 position = Vector2(211, 59)
+collision_layer = 2
+collision_mask = 5
 script = ExtResource("2_d1c63")
 dialogue_manager = NodePath("../dialogue_manager")
 hint_label = NodePath("../UI/UIRoot/HintLabel")
 
-[node name="Animations" type="AnimatedSprite2D" parent="Player"]
+[node name="Animations" type="AnimatedSprite2D" parent="Player" unique_id=536013240]
 texture_filter = 1
 position = Vector2(1, 1)
 sprite_frames = SubResource("SpriteFrames_yncth")
 animation = &"walk_down"
 
-[node name="CollisionShape2D" type="CollisionShape2D" parent="Player" groups=["interactable"]]
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Player" unique_id=527511965 groups=["interactable"]]
 shape = SubResource("CapsuleShape2D_rvslj")
 
-[node name="Camera2D" type="Camera2D" parent="Player"]
+[node name="Camera2D" type="Camera2D" parent="Player" unique_id=1733742922]
 zoom = Vector2(3, 3)
 rotation_smoothing_enabled = true
 
-[node name="InteractArea" type="Area2D" parent="Player" groups=["interactable"]]
+[node name="InteractArea" type="Area2D" parent="Player" unique_id=164254288 groups=["interactable"]]
 rotation = -0.007075112
+collision_layer = 0
+collision_mask = 5
 
-[node name="CollisionShape2D" type="CollisionShape2D" parent="Player/InteractArea" groups=["interactable"]]
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Player/InteractArea" unique_id=830955869 groups=["interactable"]]
 shape = SubResource("RectangleShape2D_hlk0d")
 
-[node name="Arbusto Raro" type="Area2D" parent="." groups=["interactable"]]
+[node name="Arbusto Raro" type="Area2D" parent="." unique_id=1191555652 groups=["interactable"]]
 
-[node name="CollisionShape2D" type="CollisionShape2D" parent="Arbusto Raro" groups=["interactable"]]
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Arbusto Raro" unique_id=518622562 groups=["interactable"]]
 position = Vector2(113, 28)
 shape = SubResource("RectangleShape2D_0uv0p")
 
-[node name="Door" type="Node2D" parent="." groups=["interactable"]]
+[node name="Door" type="Node2D" parent="." unique_id=1234176223 groups=["interactable"]]
 position = Vector2(337, 80)
 
-[node name="DoorSprite" type="Sprite2D" parent="Door"]
+[node name="DoorSprite" type="Sprite2D" parent="Door" unique_id=441326000]
 position = Vector2(0, -3.0517578e-05)
 scale = Vector2(0.033412892, 0.0453125)
 texture = ExtResource("10_h1bdy")
 
-[node name="DoorBody" type="StaticBody2D" parent="Door" groups=["interactable"]]
+[node name="DoorBody" type="StaticBody2D" parent="Door" unique_id=638731925 node_paths=PackedStringArray("visual_node", "root_to_free") groups=["destructible", "interactable"]]
 position = Vector2(0, 0.9999695)
 scale = Vector2(0.033412892, 0.0453125)
+script = ExtResource("26_door_script")
+vulnerability = 2
+visual_node = NodePath("../DoorSprite")
+root_to_free = NodePath("..")
 
-[node name="DoorBlockCollision" type="CollisionShape2D" parent="Door/DoorBody" groups=["interactable"]]
+[node name="HealthComponent" type="Node" parent="Door/DoorBody" unique_id=1455321755]
+script = ExtResource("26_health")
+max_health = 40.0
+
+[node name="DoorBlockCollision" type="CollisionShape2D" parent="Door/DoorBody" unique_id=1863207320 groups=["interactable"]]
 position = Vector2(0, -22.06836)
 scale = Vector2(1, 0.9999999)
 shape = SubResource("RectangleShape2D_7c4bj")
 
-[node name="DoorInteract" type="Area2D" parent="Door" groups=["interactable"]]
+[node name="DoorInteract" type="Area2D" parent="Door" unique_id=1020937489 groups=["interactable"]]
 position = Vector2(-1, 0.9999695)
 scale = Vector2(0.033412892, 0.045312498)
 script = ExtResource("10_pdh0q")
 
-[node name="DoorInteractCollision" type="CollisionShape2D" parent="Door/DoorInteract" groups=["interactable"]]
+[node name="DoorInteractCollision" type="CollisionShape2D" parent="Door/DoorInteract" unique_id=749548142 groups=["interactable"]]
 position = Vector2(-14.96582, -55.171753)
 scale = Vector2(1, 0.9999999)
 shape = SubResource("RectangleShape2D_nrtoj")
 
-[node name="Key" type="Area2D" parent="." groups=["interactable"]]
+[node name="Key" type="Area2D" parent="." unique_id=1458574334 groups=["interactable"]]
 script = ExtResource("8_ygioq")
 
-[node name="Key" type="Sprite2D" parent="Key"]
+[node name="Key" type="Sprite2D" parent="Key" unique_id=640588920]
 position = Vector2(4.617778, -3.9338841)
 scale = Vector2(0.2977778, 0.41322315)
 texture = ExtResource("8_b3faq")
 
-[node name="KeyCollision" type="CollisionShape2D" parent="Key"]
+[node name="KeyCollision" type="CollisionShape2D" parent="Key" unique_id=1210516628]
 position = Vector2(5, -4)
 shape = SubResource("CircleShape2D_b3faq")
 
-[node name="Obstacles" type="TileMapLayer" parent="."]
+[node name="Obstacles" type="TileMapLayer" parent="." unique_id=582507862 groups=["nav_source"]]
 position = Vector2(2, -2)
 tile_map_data = PackedByteArray("AAAGAAEABgAAAAAAAAAGAAIABgAAAAEAAAAHAAEABgABAAAAAAAHAAIABgABAAEAAAAGAAMABgAAAAAAAAAGAAQABgAAAAEAAAAHAAMABgABAAAAAAAHAAQABgABAAEAAAAGAAUABgAAAAAAAAAGAAYABgAAAAEAAAAHAAUABgABAAAAAAAHAAYABgABAAEAAAAGAAcABgAAAAAAAAAGAAgABgAAAAEAAAAHAAcABgABAAAAAAAHAAgABgABAAEAAAAIAAEABgAAAAAAAAAIAAIABgAAAAEAAAAJAAEABgABAAAAAAAJAAIABgABAAEAAAAIAAMABgAAAAAAAAAIAAQABgAAAAEAAAAJAAMABgABAAAAAAAJAAQABgABAAEAAAAIAAUABgAAAAAAAAAIAAYABgAAAAEAAAAJAAUABgABAAAAAAAJAAYABgABAAEAAAAIAAcABgAAAAAAAAAIAAgABgAAAAEAAAAJAAcABgABAAAAAAAJAAgABgABAAEAAAAKAAEABgAAAAAAAAAKAAIABgAAAAEAAAALAAEABgABAAAAAAALAAIABgABAAEAAAD3/woABgAAAAAAAAD4/woABgABAAAAAAD3/wsABgAAAAEAAAD3/wwABgAAAAAAAAD3/w0ABgAAAAEAAAD4/wsABgABAAEAAAD4/wwABgABAAAAAAD4/w0ABgABAAEAAAD3/wYABgAAAAAAAAD3/wcABgAAAAEAAAD3/wgABgAAAAAAAAD3/wkABgAAAAEAAAD4/wYABgABAAAAAAD4/wcABgABAAEAAAD4/wgABgABAAAAAAD4/wkABgABAAEAAAD3/wIABgAAAAAAAAD3/wMABgAAAAEAAAD3/wQABgAAAAAAAAD3/wUABgAAAAEAAAD4/wIABgABAAAAAAD4/wMABgABAAEAAAD4/wQABgABAAAAAAD4/wUABgABAAEAAAD3//7/BgAAAAAAAAD3////BgAAAAEAAAD3/wAABgAAAAAAAAD3/wEABgAAAAEAAAD4//7/BgABAAAAAAD4////BgABAAEAAAD4/wAABgABAAAAAAD4/wEABgABAAEAAAAUAAoABgAAAAAAAAAUAAsABgAAAAEAAAAUAAwABgAAAAAAAAAUAA0ABgAAAAEAAAAVAAoABgABAAAAAAAVAAsABgABAAEAAAAVAAwABgABAAAAAAAVAA0ABgABAAEAAAAUAAYABgAAAAAAAAAUAAcABgAAAAEAAAAUAAgABgAAAAAAAAAUAAkABgAAAAEAAAAVAAYABgABAAAAAAAVAAcABgABAAEAAAAVAAgABgABAAAAAAAVAAkABgABAAEAAAAUAAIABgAAAAAAAAAUAAMABgAAAAEAAAAVAAIABgABAAAAAAAVAAMABgABAAEAAAAUAP7/BgAAAAAAAAAUAP//BgAAAAEAAAAUAAAABgAAAAAAAAAUAAEABgAAAAEAAAAVAP7/BgABAAAAAAAVAP//BgABAAEAAAAVAAAABgABAAAAAAAVAAEABgABAAEAAAD3//z/BgAAAAAAAAD3//3/BgAAAAEAAAD4//z/BgABAAAAAAD4//3/BgABAAEAAAD5/wwABgAAAAAAAAD5/w0ABgAAAAEAAAD6/wwABgABAAAAAAD6/w0ABgABAAEAAAD7/wwABgAAAAAAAAD7/w0ABgAAAAEAAAD8/wwABgABAAAAAAD8/w0ABgABAAEAAAD9/wwABgAAAAAAAAD9/w0ABgAAAAEAAAD+/wwABgABAAAAAAD+/w0ABgABAAEAAAD//wwABgAAAAAAAAD//w0ABgAAAAEAAAAAAAwABgABAAAAAAAAAA0ABgABAAEAAAABAAwABgAAAAAAAAABAA0ABgAAAAEAAAACAAwABgABAAAAAAACAA0ABgABAAEAAAADAAwABgAAAAAAAAADAA0ABgAAAAEAAAAEAAwABgABAAAAAAAEAA0ABgABAAEAAAAFAAwABgAAAAAAAAAFAA0ABgAAAAEAAAAGAAwABgABAAAAAAAGAA0ABgABAAEAAAAHAAwABgAAAAAAAAAHAA0ABgAAAAEAAAAIAAwABgABAAAAAAAIAA0ABgABAAEAAAAJAAwABgAAAAAAAAAJAA0ABgAAAAEAAAAKAAwABgABAAAAAAAKAA0ABgABAAEAAAALAAwABgAAAAAAAAALAA0ABgAAAAEAAAAMAAwABgABAAAAAAAMAA0ABgABAAEAAAANAAwABgAAAAAAAAANAA0ABgAAAAEAAAAOAAwABgABAAAAAAAOAA0ABgABAAEAAAAPAAwABgAAAAAAAAAPAA0ABgAAAAEAAAAQAAwABgABAAAAAAAQAA0ABgABAAEAAAARAAwABgAAAAAAAAARAA0ABgAAAAEAAAASAAwABgABAAAAAAASAA0ABgABAAEAAAASAPz/BgAAAAAAAAASAP3/BgAAAAEAAAATAPz/BgABAAAAAAATAP3/BgABAAEAAAAUAPz/BgAAAAAAAAAUAP3/BgAAAAEAAAAVAPz/BgABAAAAAAAVAP3/BgABAAEAAAAOAPz/BgAAAAAAAAAOAP3/BgAAAAEAAAAPAPz/BgABAAAAAAAPAP3/BgABAAEAAAAQAPz/BgAAAAAAAAAQAP3/BgAAAAEAAAARAPz/BgABAAAAAAARAP3/BgABAAEAAAAKAPz/BgAAAAAAAAAKAP3/BgAAAAEAAAALAPz/BgABAAAAAAALAP3/BgABAAEAAAAMAPz/BgAAAAAAAAAMAP3/BgAAAAEAAAANAPz/BgABAAAAAAANAP3/BgABAAEAAAAGAPz/BgAAAAAAAAAGAP3/BgAAAAEAAAAHAPz/BgABAAAAAAAHAP3/BgABAAEAAAAIAPz/BgAAAAAAAAAIAP3/BgAAAAEAAAAJAPz/BgABAAAAAAAJAP3/BgABAAEAAAACAPz/BgAAAAAAAAACAP3/BgAAAAEAAAADAPz/BgABAAAAAAADAP3/BgABAAEAAAAEAPz/BgAAAAAAAAAEAP3/BgAAAAEAAAAFAPz/BgABAAAAAAAFAP3/BgABAAEAAAD+//z/BgAAAAAAAAD+//3/BgAAAAEAAAD///z/BgABAAAAAAD///3/BgABAAEAAAAAAPz/BgAAAAAAAAAAAP3/BgAAAAEAAAABAPz/BgABAAAAAAABAP3/BgABAAEAAAD6//z/BgAAAAAAAAD6//3/BgAAAAEAAAD7//z/BgABAAAAAAD7//3/BgABAAEAAAD8//z/BgAAAAAAAAD8//3/BgAAAAEAAAD9//z/BgABAAAAAAD9//3/BgABAAEAAAD4//r/BgAAAAAAAAD4//v/BgAAAAEAAAD5//r/BgABAAAAAAD5//v/BgABAAEAAAASAA4ABgAAAAAAAAASAA8ABgAAAAEAAAATAA4ABgABAAAAAAATAA8ABgABAAEAAAAUAA4ABgAAAAAAAAAUAA8ABgAAAAEAAAAVAA4ABgABAAAAAAAVAA8ABgABAAEAAAD6//r/BgAAAAAAAAD6//v/BgAAAAEAAAD7//r/BgABAAAAAAD7//v/BgABAAEAAAASAAIABgAAAAAAAAASAAMABgAAAAEAAAATAAIABgABAAAAAAATAAMABgABAAEAAAAKAAcAAAAAAAAAAAAKAAgAAAAAAAEAAAALAAcAAAABAAAAAAALAAgAAAABAAEAAAAMAAcAAAAAAAAAAAAMAAgAAAAAAAEAAAANAAcAAAABAAAAAAANAAgAAAABAAEAAAA=")
 tile_set = SubResource("TileSet_vcsgt")
 
-[node name="Npc" type="CharacterBody2D" parent="." node_paths=PackedStringArray("dialogue_manager") groups=["interactable"]]
+[node name="Npc" type="CharacterBody2D" parent="." unique_id=909967902 node_paths=PackedStringArray("dialogue_manager") groups=["interactable"]]
 position = Vector2(264, 53)
 script = ExtResource("13_i4b1j")
 dialogue_manager = NodePath("../dialogue_manager")
 
-[node name="InteractArea" type="Area2D" parent="Npc" groups=["interactable"]]
+[node name="InteractArea" type="Area2D" parent="Npc" unique_id=1363807873 groups=["interactable"]]
 position = Vector2(7, 5)
 script = ExtResource("15_c0d7e")
 
-[node name="NpcInteractCollision" type="CollisionShape2D" parent="Npc/InteractArea" groups=["interactable"]]
+[node name="NpcInteractCollision" type="CollisionShape2D" parent="Npc/InteractArea" unique_id=878757309 groups=["interactable"]]
 position = Vector2(1, 0)
 shape = SubResource("CapsuleShape2D_i4b1j")
 
-[node name="cuerpo solido" type="CollisionShape2D" parent="Npc"]
+[node name="cuerpo solido" type="CollisionShape2D" parent="Npc" unique_id=917713848]
 position = Vector2(8, 5)
 scale = Vector2(1, 0.9999999)
 shape = SubResource("CircleShape2D_i4b1j")
 
-[node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="Npc"]
+[node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="Npc" unique_id=1530797226]
 position = Vector2(8, 9)
 scale = Vector2(1.25, 1)
 sprite_frames = SubResource("SpriteFrames_44lqw")
 animation = &"idle"
 frame_progress = 0.8195581
 
-[node name="Node2D" type="Node2D" parent="Npc"]
+[node name="Node2D" type="Node2D" parent="Npc" unique_id=818963039]
 
-[node name="UI" type="CanvasLayer" parent="."]
+[node name="UI" type="CanvasLayer" parent="." unique_id=1423720545]
 
-[node name="UIRoot" type="Control" parent="UI"]
+[node name="UIRoot" type="Control" parent="UI" unique_id=1679563547]
 layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_top = -3.0
-offset_bottom = -3.0
+offset_left = 2.0
+offset_top = 3.0
+offset_right = 2.0
+offset_bottom = 3.0
 grow_horizontal = 2
 grow_vertical = 2
+script = ExtResource("23_rm3lh")
 
-[node name="HintLabel" type="Label" parent="UI/UIRoot"]
+[node name="HintLabel" type="Label" parent="UI/UIRoot" unique_id=165917158]
 custom_minimum_size = Vector2(100, 50)
 layout_mode = 0
 offset_left = -17.0
@@ -1115,7 +1143,7 @@ offset_top = 2.0
 offset_right = 15.0
 offset_bottom = 25.0
 
-[node name="DialogueBox_NEW" type="Panel" parent="UI/UIRoot"]
+[node name="DialogueBox_NEW" type="Panel" parent="UI/UIRoot" unique_id=1085227257]
 custom_minimum_size = Vector2(100, 50)
 layout_mode = 1
 anchors_preset = 12
@@ -1126,7 +1154,7 @@ grow_horizontal = 2
 grow_vertical = 0
 theme = SubResource("Theme_o1tcx")
 
-[node name="Margin" type="MarginContainer" parent="UI/UIRoot/DialogueBox_NEW"]
+[node name="Margin" type="MarginContainer" parent="UI/UIRoot/DialogueBox_NEW" unique_id=1085874874]
 custom_minimum_size = Vector2(100, 50)
 layout_mode = 1
 anchors_preset = 15
@@ -1141,12 +1169,12 @@ theme_override_constants/margin_top = 8
 theme_override_constants/margin_right = 8
 theme_override_constants/margin_bottom = 8
 
-[node name="Layout" type="VBoxContainer" parent="UI/UIRoot/DialogueBox_NEW/Margin"]
+[node name="Layout" type="VBoxContainer" parent="UI/UIRoot/DialogueBox_NEW/Margin" unique_id=2106160495]
 custom_minimum_size = Vector2(100, 50)
 layout_mode = 2
 alignment = 1
 
-[node name="DialogueText_NEW" type="Label" parent="UI/UIRoot/DialogueBox_NEW/Margin/Layout"]
+[node name="DialogueText_NEW" type="Label" parent="UI/UIRoot/DialogueBox_NEW/Margin/Layout" unique_id=806418426]
 custom_minimum_size = Vector2(0, 40)
 layout_mode = 2
 theme_override_colors/font_color = Color(1, 1, 1, 1)
@@ -1155,9 +1183,26 @@ theme_override_fonts/font = SubResource("SystemFont_i4b1j")
 theme_override_font_sizes/font_size = 18
 autowrap_mode = 3
 
-[node name="ChoisesBox_New" type="VBoxContainer" parent="UI/UIRoot/DialogueBox_NEW/Margin/Layout"]
+[node name="ChoisesBox_New" type="VBoxContainer" parent="UI/UIRoot/DialogueBox_NEW/Margin/Layout" unique_id=705303972]
 custom_minimum_size = Vector2(100, 50)
 layout_mode = 2
 size_flags_horizontal = 4
 size_flags_vertical = 4
 theme_override_constants/separation = 6
+
+[node name="WeaponPickup" parent="." unique_id=2027530117 instance=ExtResource("24_yncth")]
+position = Vector2(211, 100)
+
+[node name="DummyEnemy" parent="." unique_id=1713658462 instance=ExtResource("25_jgbtq")]
+position = Vector2(464, 72)
+
+[node name="DestructibleObjects" type="Node2D" parent="." unique_id=927464254]
+
+[node name="Crate" parent="DestructibleObjects" unique_id=1855212024 instance=ExtResource("27_crate")]
+position = Vector2(216, -13)
+
+[node name="Barrel" parent="DestructibleObjects" unique_id=303902927 instance=ExtResource("28_barrel")]
+position = Vector2(268, -13)
+
+[node name="WeakWall" parent="DestructibleObjects" unique_id=1351388070 instance=ExtResource("29_wall")]
+position = Vector2(55, 22)

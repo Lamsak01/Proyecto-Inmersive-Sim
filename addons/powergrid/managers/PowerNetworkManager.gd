@@ -3,93 +3,97 @@ extends Node
 signal network_recalculated
 
 var _dirty := false
-var _ports: Array = []
-var _loads: Array = []
-var _generators: Array = []
-var _transformers: Array = []
-var _cables: Array = []
+var _ports: Array[PowerPort] = []
+var _loads: Array[PowerLoad] = []
+var _generators: Array[PowerGenerator] = []
+var _transformers: Array[Node] = []
+var _cables: Array[PowerCable] = []
 
-func register_component(c):
+func register_component(c: Node) -> void:
 	if c == null: return
-	if c.has_method("is_power_port"):
-		return
-	if c.has_method("is_power_load") and not _loads.has(c):
+	
+	if c is PowerPort:
+		return 
+		
+	if c is PowerLoad and not _loads.has(c):
 		_loads.append(c)
-	if c.has_method("is_power_generator") and not _generators.has(c):
+	elif c is PowerGenerator and not _generators.has(c):
 		_generators.append(c)
-	if c.has_method("is_power_transformer") and not _transformers.has(c):
+	elif c is PowerTransformer and not _transformers.has(c):
 		_transformers.append(c)
-	if c.has_method("is_power_cable") and not _cables.has(c):
+	elif c is PowerCable and not _cables.has(c):
 		_cables.append(c)
+		
 	mark_dirty()
 
-func unregister_component(c):
-	_loads.erase(c)
-	_generators.erase(c)
-	_transformers.erase(c)
-	_cables.erase(c)
+func unregister_component(c: Node) -> void:
+	if c is PowerLoad:
+		_loads.erase(c)
+	elif c is PowerGenerator:
+		_generators.erase(c)
+	elif c.has_method("is_power_transformer"):
+		_transformers.erase(c)
+	elif c is PowerCable:
+		_cables.erase(c)
 	mark_dirty()
 
-func register_port(p):
+func register_port(p: PowerPort) -> void:
 	if p == null: return
 	if not _ports.has(p):
 		_ports.append(p)
 		mark_dirty()
 
-func unregister_port(p):
+func unregister_port(p: PowerPort) -> void:
 	_ports.erase(p)
 	mark_dirty()
 
-func mark_dirty():
+func mark_dirty() -> void:
 	if _dirty: return
 	_dirty = true
 	call_deferred("_recalc_if_dirty")
 
-func _recalc_if_dirty():
+func _recalc_if_dirty() -> void:
 	if not _dirty: return
 	_dirty = false
 	recalc_network()
 
-func recalc_network():
+func recalc_network() -> void:
 	for p in _ports:
-		if p and p.has_method("set_energized"):
-			p.set_energized(false)
+		p.set_energized(false)
 
 	for l in _loads:
-		if l and l.has_method("set_powered"):
-			l.set_powered(false)
+		l.set_powered(false)
 
 	for g in _generators:
-		if g == null: continue
-		if not g.has_method("is_enabled") or not g.is_enabled():
+		if not g.is_enabled():
 			continue
 		var out_port = g.get_output_port()
 		if out_port == null: continue
 		_bfs_from_port(out_port)
 
-	emit_signal("network_recalculated")
+	network_recalculated.emit()
 
-func _bfs_from_port(start_port):
-	var q: Array = [start_port]
-	var visited := {}
-	while q.size() > 0:
+func _bfs_from_port(start_port: PowerPort) -> void:
+	if start_port.is_energized(): return
+	
+	var q: Array[PowerPort] = [start_port]
+	start_port.set_energized(true)
+	
+	while not q.is_empty():
 		var p = q.pop_front()
-		if p == null: continue
-		var id = p.get_instance_id()
-		if visited.has(id): continue
-		visited[id] = true
-
-		p.set_energized(true)
-
+		
 		var owner = p.get_owner_component()
-		if owner and owner.has_method("is_power_transformer") and owner.is_power_transformer():
-			var out_p = owner.get_output_port_if_input(p)
-			if out_p != null:
-				q.append(out_p)
-
-		if owner and owner.has_method("is_power_load") and owner.is_power_load():
-			owner.set_powered(true)
+		if owner:
+			if owner.has_method("is_power_transformer") and owner.is_power_transformer():
+				var out_p = owner.get_output_port_if_input(p)
+				if out_p and not out_p.is_energized():
+					out_p.set_energized(true)
+					q.append(out_p)
+			
+			if owner is PowerLoad:
+				owner.set_powered(true)
 
 		for n in p.get_connected_ports():
-			if n != null:
+			if n and not n.is_energized():
+				n.set_energized(true)
 				q.append(n)

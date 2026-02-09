@@ -1,0 +1,137 @@
+[gd_scene load_steps=16 format=3 uid="uid://dummyenemy"]
+
+[ext_resource type="Script" path="res://scripts/enemies/DummyEnemy.gd" id="1_script"]
+[ext_resource type="Texture2D" uid="uid://tw7qqecoq4k8" path="res://assests/YouTube Action RPG Resources/enemies/bat.png" id="2_sprite"]
+[ext_resource type="Script" path="res://scripts/systems/combat/HealthComponent.gd" id="3_health"]
+[ext_resource type="Script" path="res://scripts/systems/combat/ArmorComponent.gd" id="4_armor"]
+[ext_resource type="Script" path="res://scripts/systems/ai/EnemyAI.gd" id="5_ai"]
+[ext_resource type="Script" path="res://scripts/ui/AlertIndicator.gd" id="6_alert"]
+[ext_resource type="Script" path="res://scripts/ui/VisionCone2D.gd" id="7_cone"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_fly1"]
+atlas = ExtResource("2_sprite")
+region = Rect2(0, 0, 16, 24)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_fly2"]
+atlas = ExtResource("2_sprite")
+region = Rect2(16, 0, 16, 24)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_fly3"]
+atlas = ExtResource("2_sprite")
+region = Rect2(32, 0, 16, 24)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_fly4"]
+atlas = ExtResource("2_sprite")
+region = Rect2(48, 0, 16, 24)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_fly5"]
+atlas = ExtResource("2_sprite")
+region = Rect2(64, 0, 16, 24)
+
+[sub_resource type="SpriteFrames" id="SpriteFrames_bat"]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_fly1")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_fly2")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_fly3")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_fly4")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_fly5")
+}],
+"loop": true,
+"name": &"fly",
+"speed": 10.0
+}]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_collision"]
+radius = 6.0
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_bg"]
+bg_color = Color(0, 0, 0, 0.5)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_fill"]
+bg_color = Color(1, 1, 1, 1)
+
+[node name="DummyEnemy" type="CharacterBody2D" groups=["enemies"]]
+collision_layer = 4
+collision_mask = 3
+script = ExtResource("1_script")
+
+[node name="VisionCone2D" type="Node2D" parent="."]
+position = Vector2(0, -12)
+script = ExtResource("7_cone")
+radius = 150.0
+angle_deg = 90.0
+color = Color(0, 1, 0, 0.2)
+
+[node name="PromptLabel" type="Label" parent="."]
+visible = false
+offset_left = -20.0
+offset_top = -60.0
+offset_right = 20.0
+offset_bottom = -37.0
+text = "[E]"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="."]
+modulate = Color(1, 0, 0, 1)
+sprite_frames = SubResource("SpriteFrames_bat")
+animation = &"fly"
+autoplay = "fly"
+offset = Vector2(0, -12)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+position = Vector2(0, -12)
+shape = SubResource("CircleShape2D_collision")
+
+[node name="HealthComponent" type="Node" parent="."]
+script = ExtResource("3_health")
+max_health = 50.0
+
+[node name="ArmorComponent" type="Node" parent="."]
+script = ExtResource("4_armor")
+
+[node name="EnemyAI" type="Node" parent="."]
+script = ExtResource("5_ai")
+detection_range = 150.0
+attack_range = 30.0
+chase_speed = 50.0
+attack_cooldown = 1.5
+attack_damage = 5.0
+awareness_fill_time = 2.0
+awareness_drain_time = 3.0
+
+[node name="AlertIndicator" type="Node2D" parent="."]
+position = Vector2(0, -32)
+script = ExtResource("6_alert")
+
+[node name="ProgressBar" type="ProgressBar" parent="AlertIndicator"]
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -10.0
+offset_top = -2.0
+offset_right = 10.0
+offset_bottom = 2.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_styles/background = SubResource("StyleBoxFlat_bg")
+theme_override_styles/fill = SubResource("StyleBoxFlat_fill")
+value = 50.0
+show_percentage = false
+
+[node name="NavigationAgent2D" type="NavigationAgent2D" parent="."]
+path_desired_distance = 15.0
+target_desired_distance = 20.0
+path_max_distance = 50.0

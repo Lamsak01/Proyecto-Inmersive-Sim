@@ -15,11 +15,10 @@ func is_enabled() -> bool:
 func get_output_port() -> PowerPort:
 	return output_port
 
-func _pm():
+func _pm() -> Node:
 	return get_node_or_null("/root/PowerManager")
 
-func _ready():
-	# Si no existe PortOut en escena, crea uno
+func _ready() -> void:
 	if output_port == null:
 		output_port = PowerPort.new()
 		output_port.name = "PortOut"
@@ -31,6 +30,6 @@ func _ready():
 	var pm = _pm()
 	if pm: pm.register_component(self)
 
-func _exit_tree():
+func _exit_tree() -> void:
 	var pm = _pm()
 	if pm: pm.unregister_component(self)

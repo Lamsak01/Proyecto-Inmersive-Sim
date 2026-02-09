@@ -1,8 +1,8 @@
-[gd_scene load_steps=2 format=3 uid="uid://b18y3wv42j0rl"]
+[gd_scene format=3 uid="uid://b18y3wv42j0rl"]
 
 [ext_resource type="Script" uid="uid://ciujrq1efbmn4" path="res://addons/powergrid/ports/Port.gd" id="1_f76on"]
 
-[node name="Load" type="Node2D"]
+[node name="Load" type="Node2D" unique_id=1966468785]
 
-[node name="PortIn" type="Marker2D" parent="."]
+[node name="PortIn" type="Marker2D" parent="." unique_id=549617323]
 script = ExtResource("1_f76on")

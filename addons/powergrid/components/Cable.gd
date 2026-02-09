@@ -21,19 +21,22 @@ func set_endpoints(a: PowerPort, b: PowerPort) -> bool:
 		return false
 	if a.level != b.level:
 		return false
+	
+	disconnect_endpoints()
+	
 	port_a = a
 	port_b = b
 	_refresh_links()
 	return true
 
-func _refresh_links():
+func _refresh_links() -> void:
 	if port_a and port_b:
 		port_a.connect_to(port_b)
 		port_b.connect_to(port_a)
 	var pm = _pm()
 	if pm: pm.mark_dirty()
 
-func disconnect_endpoints():
+func disconnect_endpoints() -> void:
 	if port_a and port_b:
 		port_a.disconnect_from(port_b)
 		port_b.disconnect_from(port_a)
