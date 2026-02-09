@@ -12,7 +12,7 @@ enum Type { HV_TO_MV, MV_TO_LV }
 func is_power_transformer() -> bool:
 	return true
 
-func _pm():
+func _pm() -> Node:
 	return get_node_or_null("/root/PowerManager")
 
 func _ready():
@@ -32,7 +32,7 @@ func _ready():
 	var pm = _pm()
 	if pm: pm.register_component(self)
 
-func _apply_levels():
+func _apply_levels() -> void:
 	if type == Type.HV_TO_MV:
 		port_in.level = PowerPort.Level.HV
 		port_out.level = PowerPort.Level.MV
@@ -46,6 +46,6 @@ func get_output_port_if_input(p: PowerPort) -> PowerPort:
 		return port_out
 	return null
 
-func _exit_tree():
+func _exit_tree() -> void:
 	var pm = _pm()
 	if pm: pm.unregister_component(self)
