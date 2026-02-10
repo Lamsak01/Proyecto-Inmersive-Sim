@@ -1,7 +1,7 @@
 [gd_scene load_steps=16 format=3 uid="uid://dummyenemy"]
 
 [ext_resource type="Script" path="res://scripts/enemies/DummyEnemy.gd" id="1_script"]
-[ext_resource type="Texture2D" uid="uid://tw7qqecoq4k8" path="res://assests/YouTube Action RPG Resources/enemies/bat.png" id="2_sprite"]
+[ext_resource type="Texture2D" path="res://assests/enemies/bat_fixed.png" id="2_sprite"]
 [ext_resource type="Script" path="res://scripts/systems/combat/HealthComponent.gd" id="3_health"]
 [ext_resource type="Script" path="res://scripts/systems/combat/ArmorComponent.gd" id="4_armor"]
 [ext_resource type="Script" path="res://scripts/systems/ai/EnemyAI.gd" id="5_ai"]
@@ -109,6 +109,7 @@ attack_cooldown = 1.5
 attack_damage = 5.0
 awareness_fill_time = 2.0
 awareness_drain_time = 3.0
+flee_health_threshold = 0.0
 
 [node name="AlertIndicator" type="Node2D" parent="."]
 position = Vector2(0, -32)

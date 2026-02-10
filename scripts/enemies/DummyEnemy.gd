@@ -45,6 +45,18 @@ func _physics_process(delta: float) -> void:
 	if velocity.x != 0:
 		anim.flip_h = velocity.x < 0
 	
+	# Animation State Management
+	if anim.sprite_frames.has_animation("run"):
+		if velocity.length() > 5.0:
+			if anim.animation != "run":
+				anim.play("run")
+		elif anim.sprite_frames.has_animation("idle"): # Only switch to idle if we have it
+			if anim.animation != "idle":
+				anim.play("idle")
+	elif anim.sprite_frames.has_animation("fly"):
+		if anim.animation != "fly":
+			anim.play("fly")
+	
 	# Rotate vision cone to match AI facing direction
 	# Rotate vision cone to match AI facing direction
 	if vision_cone and ai and is_instance_valid(ai):

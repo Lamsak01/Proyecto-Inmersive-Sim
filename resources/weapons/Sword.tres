@@ -2,7 +2,7 @@
 
 [ext_resource type="Script" path="res://scripts/systems/combat/DamageData.gd" id="1_damage"]
 [ext_resource type="Script" path="res://scripts/systems/combat/WeaponData.gd" id="2_weapon"]
-[ext_resource type="Texture2D" path="res://assests/YouTube Action RPG Resources/ui/heart_ui_full.png" id="3_icon"]
+[ext_resource type="Texture2D" path="res://assests/items/iron_sword.png" id="3_icon"]
 
 [sub_resource type="Resource" id="Resource_damage"]
 script = ExtResource("1_damage")

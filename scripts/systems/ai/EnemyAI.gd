@@ -1,7 +1,7 @@
 extends Node
 class_name EnemyAI
 
-enum State { IDLE, ALERT, CHASE, ATTACK, SEARCH, RETURN }
+enum State { IDLE, ALERT, CHASE, ATTACK, SEARCH, RETURN, FLEE }
 
 signal attack_triggered(damage_data: DamageData)
 signal state_changed(new_state: State)
@@ -10,11 +10,12 @@ signal awareness_changed(level: float, is_alerted: bool)
 @export var detection_range: float = 150.0
 @export var attack_range: float = 20.0 # Reduced from 30.0 to fix "far away" attack feel
 @export var chase_speed: float = 80.0
+@export var flee_health_threshold: float = 0.0 # 0.0 = Never flee, 0.3 = Flee at 30% health
 @export var attack_cooldown: float = 1.5
 @export var attack_damage: float = 5.0
 @export var awareness_fill_time: float = 2.0
 @export var awareness_drain_time: float = 3.0
-@export var search_duration: float = 5.0
+@export var search_duration: float = 2.0
 
 var current_state: State = State.IDLE
 var target: Node2D = null
@@ -52,6 +53,11 @@ func _ready() -> void:
 		nav_agent.path_desired_distance = 16.0
 		nav_agent.target_desired_distance = 16.0
 		nav_agent.max_speed = chase_speed
+	
+	# Connect to parent's HealthComponent if available
+	var health_comp = parent.get_node_or_null("HealthComponent")
+	if health_comp:
+		health_comp.health_changed.connect(_on_health_changed)
 
 var facing_direction: Vector2 = Vector2.RIGHT
 
@@ -59,11 +65,15 @@ func _physics_process(delta: float) -> void:
 	# Update facing direction
 	if parent.velocity.length() > 0.1:
 		facing_direction = parent.velocity.normalized()
-	elif target != null and (current_state == State.CHASE or current_state == State.ATTACK):
+	elif target != null and (current_state == State.CHASE or current_state == State.ATTACK or current_state == State.FLEE):
 		# Turn towards target even if standing still (essential for attacking)
-		var diff = (target.global_position - parent.global_position)
+		# In FLEE, we want to look away? Handled by movement naturally.
+		var diff = (target.global_position - parent.global_position) if target else Vector2.ZERO
 		if diff.length_squared() > 1.0: # Prevent jitter when extremely close
-			facing_direction = diff.normalized()
+			if current_state == State.FLEE:
+				facing_direction = -diff.normalized() # Face away when fleeing
+			else:
+				facing_direction = diff.normalized()
 
 	# Update attack cooldown
 	if attack_timer > 0:
@@ -83,12 +93,15 @@ func _physics_process(delta: float) -> void:
 			_process_search(delta)
 		State.RETURN:
 			_process_return()
+		State.FLEE:
+			_process_flee()
 	
 	# Safety clamp
 	if parent.velocity.length() > chase_speed:
 		parent.velocity = parent.velocity.limit_length(chase_speed)
 
 func _process_idle(_delta: float) -> void:
+	parent.velocity = Vector2.ZERO
 	# Look for player
 	var player = _find_player_in_range(detection_range)
 	if player:
@@ -114,6 +127,7 @@ func _is_in_fov(target_node: Node2D) -> bool:
 	return facing_direction.dot(dir_to_target) > 0.0 # Wide 180 FOV for now based on user request "forward" cone
 
 func _process_alert(delta: float) -> void:
+	parent.velocity = Vector2.ZERO
 	if not target:
 		_change_state(State.IDLE)
 		return
@@ -178,11 +192,8 @@ func _process_chase() -> void:
 	var next_path_pos = nav_agent.get_next_path_position()
 	var desired_direction = (next_path_pos - parent.global_position).normalized()
 	
-	print("AI Debug: Pos:", parent.global_position, " Next:", next_path_pos, " Dir:", desired_direction)
-	
 	# FALLBACK: If navigation is broken/missing (returns current pos), move directly to target
 	if desired_direction == Vector2.ZERO:
-		print("AI Pathfinding Failed (No NavMesh?). Using direct movement.")
 		desired_direction = (target.global_position - parent.global_position).normalized()
 	
 	var final_direction = _get_avoidance_direction(desired_direction)
@@ -276,9 +287,11 @@ func _process_return() -> void:
 			awareness_level = 0.5
 			return
 
-	_set_movement_target(spawn_position)
+	if current_state == State.RETURN: # Optimization: Only check if in return state
+		_set_movement_target(spawn_position)
 	
 	if nav_agent.is_navigation_finished():
+		print("Return finished. Snapping to spawn.")
 		parent.velocity = Vector2.ZERO
 		parent.global_position = spawn_position # Snap to exact pos
 		_change_state(State.IDLE)
@@ -286,8 +299,60 @@ func _process_return() -> void:
 	
 	var next_path_pos = nav_agent.get_next_path_position()
 	var dir = (next_path_pos - parent.global_position).normalized()
+	
+	# Fallback: If NavAgent returns current pos (stuck?), move direct to spawn
+	if dir == Vector2.ZERO and parent.global_position.distance_to(spawn_position) > nav_agent.target_desired_distance:
+		dir = (spawn_position - parent.global_position).normalized()
+	
 	var final_dir = _get_avoidance_direction(dir)
+	
+	# Double Fallback: If avoidance returns zero (trapped?), force movement
+	if final_dir == Vector2.ZERO:
+		final_dir = dir
+		
 	parent.velocity = final_dir * (chase_speed * 0.5) # Return slower
+
+func _process_flee() -> void:
+	# If no target, try to find one to flee FROM
+	if not target:
+		target = _find_player_in_range(detection_range * 1.5)
+	
+	if not target:
+		# If still no target, we are safe? Return to IDLE or SEARCH?
+		# Let's just keep running blindly or return if nothing near.
+		_change_state(State.RETURN)
+		return
+		
+	# Move AWAY from target
+	var dir_away = (parent.global_position - target.global_position).normalized()
+	
+	# Use navigation to find a path away? 
+	# For simplicity: Set target position far away in the opposite direction
+	var flee_dest = parent.global_position + (dir_away * 300.0)
+	
+	_set_movement_target(flee_dest)
+	
+	var next_path_pos = nav_agent.get_next_path_position()
+	var desired_direction = (next_path_pos - parent.global_position).normalized()
+	
+	# If nav fails, just run straight away
+	if desired_direction == Vector2.ZERO:
+		desired_direction = dir_away
+		
+	var final_direction = _get_avoidance_direction(desired_direction)
+	# Flee fast!
+	parent.velocity = final_direction * (chase_speed * 1.2) 
+
+func _on_health_changed(current: float, max_health: float) -> void:
+	if flee_health_threshold > 0.0:
+		var percent = current / max_health
+		if percent <= flee_health_threshold:
+			# Trigger Flee State
+			if current_state != State.FLEE and current_state != State.IDLE: # Only flee if active? Or always?
+				# Find player to flee from if we don't have one
+				if not target:
+					target = _find_player_in_range(detection_range)
+				_change_state(State.FLEE)
 
 func _find_player_in_range(max_range: float) -> Node2D:
 	# Get all nodes in "player" group

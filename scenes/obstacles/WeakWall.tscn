@@ -1,7 +1,7 @@
 [gd_scene load_steps=5 format=3 uid="uid://weak_wall_object"]
 
 [ext_resource type="PackedScene" uid="uid://destructible_base" path="res://scenes/obstacles/DestructibleObject.tscn" id="1_base"]
-[ext_resource type="Texture2D" path="res://assests/YouTube Action RPG Resources/world/tree.png" id="2_sprite"]
+[ext_resource type="Texture2D" path="res://assests/world/tree.png" id="2_sprite"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_wall"]
 size = Vector2(32, 64)

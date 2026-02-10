@@ -1,7 +1,7 @@
 [gd_resource type="Resource" script_class="InventoryItem" format=3 uid="uid://b1lgo13pk5cpn"]
 
 [ext_resource type="Script" uid="uid://dcagrni1suivl" path="res://scripts/resources/InventoryItem.gd" id="1_hammer"]
-[ext_resource type="Texture2D" uid="uid://c6vqu37t4hwyn" path="res://assests/YouTube Action RPG Resources/ui/heart_ui_full.png" id="2_xbrmx"]
+[ext_resource type="Texture2D" uid="uid://c6vqu37t4hwyn" path="res://assests/ui/heart_ui_full.png" id="2_xbrmx"]
 
 [resource]
 script = ExtResource("1_hammer")

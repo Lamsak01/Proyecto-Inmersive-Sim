@@ -10,7 +10,7 @@ func _init():
 	sword.name = "Sword"
 	sword.handedness = 0 # ONE_HAND
 	sword.damage_data = damage
-	sword.icon = load("res://assests/generated/sword.png")
+	sword.icon = load("res://assests/items/sword.png")
 	
 	var err = ResourceSaver.save(sword, "res://resources/weapons/Sword.tres")
 	if err == OK:
