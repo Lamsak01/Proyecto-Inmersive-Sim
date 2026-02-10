@@ -2,12 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://uj3ucgob4bls"
-valid=false
+uid="uid://bu0vjxltggqqf"
+path="res://.godot/imported/roguelikeSheet_magenta.png-a53b904f04b6b4e1dd09b768fc439cc2.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
-source_file="res://assests/generated/sword.png"
+source_file="res://assests/kenney_roguelike-rpg-pack/Spritesheet/roguelikeSheet_magenta.png"
+dest_files=["res://.godot/imported/roguelikeSheet_magenta.png-a53b904f04b6b4e1dd09b768fc439cc2.ctex"]
 
 [params]
 

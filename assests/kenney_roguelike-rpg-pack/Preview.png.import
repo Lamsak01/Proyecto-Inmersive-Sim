@@ -2,12 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://uj3ucgob4bls"
-valid=false
+uid="uid://c216iakgssn8c"
+path="res://.godot/imported/Preview.png-6bf3ca68d0b55b73d0fc4ad77727d99a.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
-source_file="res://assests/generated/sword.png"
+source_file="res://assests/kenney_roguelike-rpg-pack/Preview.png"
+dest_files=["res://.godot/imported/Preview.png-6bf3ca68d0b55b73d0fc4ad77727d99a.ctex"]
 
 [params]
 

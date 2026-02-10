@@ -1,0 +1,11 @@
+[gd_resource type="Resource" script_class="InventoryItem" format=3 uid="uid://8rviwcqem4ts"]
+
+[ext_resource type="Script" uid="uid://dcagrni1suivl" path="res://scripts/resources/InventoryItem.gd" id="1_sword"]
+[ext_resource type="Texture2D" uid="uid://c6vqu37t4hwyn" path="res://assests/YouTube Action RPG Resources/ui/heart_ui_full.png" id="2_5ptq8"]
+
+[resource]
+script = ExtResource("1_sword")
+name = "Iron Sword"
+description = "A sturdy iron blade for combat"
+texture = ExtResource("2_5ptq8")
+grid_size = Vector2i(1, 3)

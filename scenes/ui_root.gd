@@ -3,6 +3,7 @@ extends Control
 @export var player: CharacterBody2D
 @export var health_bar: ProgressBar
 @export var stamina_bar: ProgressBar
+@export var inventory_ui: Control
 
 func _ready() -> void:
 	# 1. Find Player if not assigned
@@ -42,6 +43,10 @@ func _ready() -> void:
 		stamina_bar.value = stamina.current_stamina
 	
 	setup_hint_label()
+	
+	# 4. Find inventory UI if not assigned
+	if not inventory_ui:
+		inventory_ui = get_node_or_null("InventoryUI")
 
 func setup_hint_label() -> void:
 	var hint = get_node_or_null("HintLabel")
@@ -54,6 +59,21 @@ func setup_hint_label() -> void:
 		hint.autowrap_mode = TextServer.AUTOWRAP_WORD
 		hint.custom_minimum_size = Vector2(300, 50)
 		hint.grow_horizontal = Control.GROW_DIRECTION_BOTH
+
+func _input(event: InputEvent) -> void:
+	# Toggle inventory with 'I' key
+	# Toggle inventory with 'I' key or 'Tab'
+	if event is InputEventKey:
+		# print("Debug Input: ", event.as_text())
+		if event.pressed and not event.echo:
+			if event.keycode == KEY_I or event.keycode == KEY_TAB:
+				print("UI: Toggle Inventory Request!")
+				if inventory_ui:
+					inventory_ui.visible = not inventory_ui.visible
+					print("UI: Inventory visible? ", inventory_ui.visible)
+					get_viewport().set_input_as_handled()
+				else:
+					print("UI: Error - InventoryUI node is missing!")
 
 func _on_health_changed(current: float, max_val: float) -> void:
 	health_bar.value = current

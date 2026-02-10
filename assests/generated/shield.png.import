@@ -2,12 +2,12 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://uj3ucgob4bls"
+uid="uid://ci08whxca352x"
 valid=false
 
 [deps]
 
-source_file="res://assests/generated/sword.png"
+source_file="res://assests/generated/shield.png"
 
 [params]
 

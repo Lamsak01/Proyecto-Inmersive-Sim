@@ -30,6 +30,10 @@ func take_damage(data: DamageData) -> void:
 		var bleed_amount = data.amount * 0.2
 		modify_blood(-bleed_amount)
 
+func heal(amount: float) -> void:
+	current_health = clamp(current_health + amount, 0, max_health)
+	health_changed.emit(current_health, max_health)
+
 func modify_blood(amount: float) -> void:
 	current_blood = clamp(current_blood + amount, 0, max_blood)
 	blood_changed.emit(current_blood, max_blood)

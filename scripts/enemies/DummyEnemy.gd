@@ -44,9 +44,14 @@ func _physics_process(delta: float) -> void:
 	# Flip sprite based on movement direction
 	if velocity.x != 0:
 		anim.flip_h = velocity.x < 0
-		# Rotate vision cone
-		if vision_cone:
-			vision_cone.rotation = PI if velocity.x < 0 else 0.0
+	
+	# Rotate vision cone to match AI facing direction
+	# Rotate vision cone to match AI facing direction
+	if vision_cone and ai and is_instance_valid(ai):
+		# Default to right if zero (avoid weird angles)
+		var dir = ai.facing_direction
+		if dir.length_squared() > 0.001:
+			vision_cone.rotation = dir.angle()
 			
 	# Dynamic Cone Size based on Player Stealth (Always update)
 	if vision_cone and ai:

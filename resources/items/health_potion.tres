@@ -1,0 +1,10 @@
+[gd_resource type="Resource" script_class="InventoryItem" format=3 uid="uid://csv3lvn16d5s5"]
+
+[ext_resource type="Script" uid="uid://dcagrni1suivl" path="res://scripts/resources/InventoryItem.gd" id="1_potion"]
+[ext_resource type="Texture2D" uid="uid://bhljjy6rycq4b" path="res://assests/YouTube Action RPG Resources/effects/hit_effect.png" id="2_tip3f"]
+
+[resource]
+script = ExtResource("1_potion")
+name = "Health Potion"
+description = "Restores 50 HP"
+texture = ExtResource("2_tip3f")

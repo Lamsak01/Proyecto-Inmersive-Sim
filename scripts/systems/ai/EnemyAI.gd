@@ -8,7 +8,7 @@ signal state_changed(new_state: State)
 signal awareness_changed(level: float, is_alerted: bool)
 
 @export var detection_range: float = 150.0
-@export var attack_range: float = 30.0
+@export var attack_range: float = 20.0 # Reduced from 30.0 to fix "far away" attack feel
 @export var chase_speed: float = 80.0
 @export var attack_cooldown: float = 1.5
 @export var attack_damage: float = 5.0
@@ -59,6 +59,11 @@ func _physics_process(delta: float) -> void:
 	# Update facing direction
 	if parent.velocity.length() > 0.1:
 		facing_direction = parent.velocity.normalized()
+	elif target != null and (current_state == State.CHASE or current_state == State.ATTACK):
+		# Turn towards target even if standing still (essential for attacking)
+		var diff = (target.global_position - parent.global_position)
+		if diff.length_squared() > 1.0: # Prevent jitter when extremely close
+			facing_direction = diff.normalized()
 
 	# Update attack cooldown
 	if attack_timer > 0:
@@ -159,14 +164,26 @@ func _process_chase() -> void:
 	
 	# Check if in attack range
 	if distance <= attack_range:
-		_change_state(State.ATTACK)
-		return
+		# Only switch to attack if we are actually facing the target
+		var dir_to_target = (target.global_position - parent.global_position).normalized()
+		var is_facing = facing_direction.dot(dir_to_target) > 0.5
+		
+		if is_facing:
+			_change_state(State.ATTACK)
+			return
+		# If not facing, continue chasing (which will rotate us via movement)
 	
 	_set_movement_target(target.global_position)
 	
-	# Move towards target using pathfinding + context steering
 	var next_path_pos = nav_agent.get_next_path_position()
 	var desired_direction = (next_path_pos - parent.global_position).normalized()
+	
+	print("AI Debug: Pos:", parent.global_position, " Next:", next_path_pos, " Dir:", desired_direction)
+	
+	# FALLBACK: If navigation is broken/missing (returns current pos), move directly to target
+	if desired_direction == Vector2.ZERO:
+		print("AI Pathfinding Failed (No NavMesh?). Using direct movement.")
+		desired_direction = (target.global_position - parent.global_position).normalized()
 	
 	var final_direction = _get_avoidance_direction(desired_direction)
 	parent.velocity = final_direction * chase_speed
@@ -353,6 +370,7 @@ func _get_avoidance_direction(desired_dir: Vector2) -> Vector2:
 
 func _change_state(new_state: State) -> void:
 	if current_state != new_state:
+		print("AI State: ", State.keys()[current_state], " -> ", State.keys()[new_state])
 		current_state = new_state
 		state_changed.emit(new_state)
 		

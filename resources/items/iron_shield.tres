@@ -1,0 +1,11 @@
+[gd_resource type="Resource" script_class="InventoryItem" format=3 uid="uid://cxllhm0m4182k"]
+
+[ext_resource type="Script" uid="uid://dcagrni1suivl" path="res://scripts/resources/InventoryItem.gd" id="1_shield"]
+[ext_resource type="Texture2D" uid="uid://ci8miprm71njj" path="res://assests/sprites/Vero_Prot2.png" id="2_sa30h"]
+
+[resource]
+script = ExtResource("1_shield")
+name = "Iron Shield"
+description = "Provides basic protection"
+texture = ExtResource("2_sa30h")
+grid_size = Vector2i(2, 2)

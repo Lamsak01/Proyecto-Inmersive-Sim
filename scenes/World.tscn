@@ -1,6 +1,7 @@
 [gd_scene format=4 uid="uid://dsoiuct8kdsk3"]
 
 [ext_resource type="Texture2D" uid="uid://degrfxbqdhgys" path="res://assests/sprites/Grass.png" id="1_7g83o"]
+[ext_resource type="Script" uid="uid://cpfptoc3dt44g" path="res://scripts/systems/GridInventory.gd" id="1_128ka"]
 [ext_resource type="Texture2D" uid="uid://b8tl3r2f6b41s" path="res://assests/YouTube Action RPG Resources/world/grass_background.png" id="1_d1c63"]
 [ext_resource type="Script" uid="uid://d2e3lu2huuetr" path="res://scripts/Player.gd" id="2_d1c63"]
 [ext_resource type="Texture2D" uid="uid://di5awkwv1sq3g" path="res://assests/sprites/Sprites Npc/IDLE/idle_down.png" id="4_dgldv"]
@@ -27,10 +28,11 @@
 [ext_resource type="PackedScene" uid="uid://dummyenemy" path="res://scenes/enemies/DummyEnemy.tscn" id="25_jgbtq"]
 [ext_resource type="Script" uid="uid://jo77r6tbpb4s" path="res://scripts/obstacles/DestructibleObject.gd" id="26_door_script"]
 [ext_resource type="Script" uid="uid://bq0toefgnjkw4" path="res://scripts/systems/combat/HealthComponent.gd" id="26_health"]
-[ext_resource type="Script" uid="uid://bgl1cdostwaba" path="res://scripts/World.gd" id="26_world"]
+[ext_resource type="PackedScene" path="res://scenes/ui/InventoryUI.tscn" id="27_b64vv"]
 [ext_resource type="PackedScene" path="res://scenes/obstacles/Crate.tscn" id="27_crate"]
 [ext_resource type="PackedScene" path="res://scenes/obstacles/Barrel.tscn" id="28_barrel"]
 [ext_resource type="PackedScene" path="res://scenes/obstacles/WeakWall.tscn" id="29_wall"]
+[ext_resource type="Script" uid="uid://c0do5qlyly5vy" path="res://scripts/tests/InventoryTestHelper.gd" id="33_agajo"]
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_n2fr6"]
 atlas = ExtResource("4_dgldv")
@@ -982,7 +984,7 @@ default_font_size = 8
 subpixel_positioning = 0
 
 [node name="World" type="Node2D" unique_id=2107211921]
-script = ExtResource("26_world")
+script = ExtResource("1_128ka")
 
 [node name="dialogue_manager" type="Node" parent="." unique_id=2052732196 node_paths=PackedStringArray("dialogue_box", "dialogue_text", "choices_box")]
 script = ExtResource("12_7c4bj")
@@ -1034,6 +1036,9 @@ collision_mask = 5
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="Player/InteractArea" unique_id=830955869 groups=["interactable"]]
 shape = SubResource("RectangleShape2D_hlk0d")
+
+[node name="GridInventory" type="Node" parent="Player" unique_id=1003266064]
+script = ExtResource("1_128ka")
 
 [node name="Arbusto Raro" type="Area2D" parent="." unique_id=1191555652 groups=["interactable"]]
 
@@ -1122,7 +1127,7 @@ frame_progress = 0.8195581
 
 [node name="UI" type="CanvasLayer" parent="." unique_id=1423720545]
 
-[node name="UIRoot" type="Control" parent="UI" unique_id=1679563547]
+[node name="UIRoot" type="Control" parent="UI" unique_id=1679563547 node_paths=PackedStringArray("inventory_ui")]
 layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
@@ -1134,6 +1139,7 @@ offset_bottom = 3.0
 grow_horizontal = 2
 grow_vertical = 2
 script = ExtResource("23_rm3lh")
+inventory_ui = NodePath("InventoryUI")
 
 [node name="HintLabel" type="Label" parent="UI/UIRoot" unique_id=165917158]
 custom_minimum_size = Vector2(100, 50)
@@ -1190,6 +1196,10 @@ size_flags_horizontal = 4
 size_flags_vertical = 4
 theme_override_constants/separation = 6
 
+[node name="InventoryUI" parent="UI/UIRoot" unique_id=1467416713 node_paths=PackedStringArray("grid_inventory") instance=ExtResource("27_b64vv")]
+layout_mode = 1
+grid_inventory = NodePath("../../../Player/GridInventory")
+
 [node name="WeaponPickup" parent="." unique_id=2027530117 instance=ExtResource("24_yncth")]
 position = Vector2(211, 100)
 
@@ -1206,3 +1216,7 @@ position = Vector2(268, -13)
 
 [node name="WeakWall" parent="DestructibleObjects" unique_id=1351388070 instance=ExtResource("29_wall")]
 position = Vector2(55, 22)
+
+[node name="InventoryTestHelper" type="Node" parent="." unique_id=1951592911 node_paths=PackedStringArray("grid_inventory")]
+script = ExtResource("33_agajo")
+grid_inventory = NodePath("../Player/GridInventory")

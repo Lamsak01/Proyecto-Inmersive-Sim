@@ -87,7 +87,7 @@ modulate = Color(1, 0, 0, 1)
 sprite_frames = SubResource("SpriteFrames_bat")
 animation = &"fly"
 autoplay = "fly"
-offset = Vector2(0, -12)
+offset = Vector2(0, -6)
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="."]
 position = Vector2(0, -12)

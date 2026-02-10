@@ -179,6 +179,22 @@ func has_key(id: String) -> bool:
 @onready var stun_comp: StunComponent = StunComponent.new()
 @onready var armor_comp: ArmorComponent = ArmorComponent.new()
 @onready var equipment_comp: EquipmentComponent = EquipmentComponent.new()
+@onready var grid_inventory: GridInventory = $GridInventory
+
+func add_inventory_item(item: InventoryItem) -> void:
+	if item == null:
+		print("Error: add_inventory_item called with null item")
+		return
+
+	if grid_inventory:
+		# Auto-placement logic:
+		for y in range(grid_inventory.height):
+			for x in range(grid_inventory.width):
+				if grid_inventory.try_place_item(item, Vector2i(x, y)):
+					print("Item added to grid inventory: ", item.name)
+					return
+						
+		print("Inventory full! Could not add: ", item.name)
 
 func _ready_combat_components() -> void:
 	health_comp.name = "HealthComponent"
@@ -253,15 +269,48 @@ func is_stealthing() -> bool:
 var equipped_weapon: WeaponData
 
 func _unhandled_input(event: InputEvent) -> void:
-	if event is InputEventKey:
-		if event.pressed and event.keycode == KEY_1:
-			if inventory.has_item("Sword"):
-				equip_weapon("Sword")
-		if event.pressed and event.keycode == KEY_2:
-			equip_weapon("Hammer")
+	if event is InputEventKey and event.pressed:
+		if event.keycode >= KEY_1 and event.keycode <= KEY_9:
+			var slot_index = event.keycode - KEY_0
+			_try_equip_quick_slot(slot_index)
 
 	if event.is_action_pressed("ui_accept"): # Space bar by default
 		attack()
+
+func _try_equip_quick_slot(index: int) -> void:
+	if not grid_inventory:
+		return
+		
+	var item_instance = grid_inventory.get_quick_slot(index)
+	if item_instance:
+		var item_name = item_instance["item"].name
+		# Map item name to weapon/equipment logic
+		# This part needs to be flexible. For now, hardcode known weapons.
+		if item_name == "Iron Sword":
+			equip_weapon("Sword")
+		elif item_name == "War Hammer":
+			equip_weapon("Hammer")
+		elif item_name == "Health Potion":
+			print("Attempting to use potion. Health: ", health_comp.current_health, " / ", health_comp.max_health)
+			if health_comp.current_health < health_comp.max_health:
+				health_comp.heal(25.0) # Heal 25 HP
+				print("Used Health Potion! New Health: ", health_comp.current_health)
+				grid_inventory.remove_item(item_instance)
+				# Refresh quick slots in case we used the last item in a stack or similar
+				# (Though currently items are unique instances)
+			else:
+				print("Health is full!")
+				
+		else:
+			print("Equipped/Used: ", item_name)
+	else:
+		# Fallback to old hardcoded logic for 1 and 2 if no quick slot assigned
+		if index == 1 and inventory.has_item("Sword"):
+			equip_weapon("Sword")
+		elif index == 2 and inventory.has_item("Hammer"):
+			equip_weapon("Hammer")
+
+
 
 # --- Visuals ---
 var weapon_pivot: Node2D
