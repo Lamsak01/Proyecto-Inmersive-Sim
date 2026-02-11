@@ -24,3 +24,35 @@ Hoy se han realizado mejoras críticas en el sistema de Inventario y en la IA de
 
 ---
 *Cambios aplicados por Antigravity (Assistant).*
+
+# Registro de Cambios - 10/02/2026
+
+Hoy se ha implementado el **Sistema de Misiones** y se ha integrado el **Sistema de Energía (PowerGrid)**, añadiendo mecánicas sistémicas al juego.
+
+## 📜 Sistema de Misiones y Objetivos
+- **HUD de Objetivos:** Se creó una interfaz visual (`ObjectiveHUD`) que muestra las misiones activas en pantalla.
+- **Gestor de Objetivos:** Implementación de `ObjectiveManager` (Autoload) para gestionar el estado de las misiones globalmente.
+- **Misión de Prueba:** "Find the Iron Sword" - Una misión funcional que se completa automáticamente al recoger el ítem específico.
+
+## ⚡ Sistema de Energía (PowerGrid)
+- **Integración del Addon:** Se incorporó el sistema de redes de energía.
+- **Nuevos Componentes Interactivos:**
+    - **Generador (`Generator.tscn`):**
+        - Textura procedural metálica con efecto de brillo al activarse.
+        - Área de interacción y colisión ajustadas a su tamaño visual (64x64).
+        - Interactuable por el jugador (ON/OFF).
+    - **Puerta Electrónica (`PoweredDoor.tscn`):**
+        - Se abre automáticamente cuando recibe energía.
+        - **Indicador de Estado:** Luz roja (sin energía) / Luz verde (con energía).
+        - **Ajuste de Escala:** Redimensionada para coincidir con las puertas estándar del juego.
+    - **Cable (`Cable.tscn`):**
+        - Conexión visual entre componentes.
+        - Efecto de pulso de energía (cyan) animado mediante shader/código.
+
+## 🔧 Correcciones Técnicas
+- **Autoloads:** Se solucionaron conflictos de nombres de clases globales (`ObjectiveManager`).
+- **Escenas:** Se corrigieron errores de sintaxis y dependencias en `World.tscn` y `PoweredDoor.tscn`.
+- **Validación:** Se actualizó `InventoryTestHelper` para verificar automáticamente el estado del sistema de energía al inicio.
+
+---
+*Cambios aplicados por Antigravity (Assistant).*
