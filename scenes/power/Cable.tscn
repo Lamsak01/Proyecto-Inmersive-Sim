@@ -1,0 +1,8 @@
+[gd_scene load_steps=2 format=3 uid="uid://cable_proto"]
+
+[ext_resource type="Script" path="res://scripts/power/VisualCable.gd" id="1_cable"]
+
+[node name="Cable" type="Line2D"]
+width = 5.0
+default_color = Color(0.2, 1.0, 1.0, 1)
+script = ExtResource("1_cable")

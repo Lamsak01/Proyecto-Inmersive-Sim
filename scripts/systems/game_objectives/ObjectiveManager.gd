@@ -1,4 +1,5 @@
 extends Node
+class_name ObjectiveManagerGlobal
 
 signal objective_added(objective: Objective)
 signal objective_completed(objective: Objective)

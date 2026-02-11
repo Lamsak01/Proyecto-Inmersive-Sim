@@ -1,0 +1,27 @@
+[gd_scene load_steps=5 format=3 uid="uid://powered_door_proto"]
+
+[ext_resource type="Script" path="res://scripts/power/PoweredDoor.gd" id="1_door"]
+[ext_resource type="Texture2D" uid="uid://knjve04ml7ja" path="res://assests/world/Door_Prot.png" id="2_door_tex"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_door"]
+size = Vector2(32, 32)
+
+[node name="PoweredDoor" type="Node2D"]
+script = ExtResource("1_door")
+required_kw = 5.0
+
+[node name="PowerIndicator" type="ColorRect" parent="."]
+offset_left = -14.0
+offset_top = -14.0
+offset_right = -10.0
+offset_bottom = -10.0
+color = Color(1, 0, 0, 1)
+
+[node name="Sprite2D" type="Sprite2D" parent="."]
+texture = ExtResource("2_door_tex")
+scale = Vector2(0.04, 0.057)
+
+[node name="StaticBody2D" type="StaticBody2D" parent="."]
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="StaticBody2D"]
+shape = SubResource("RectangleShape2D_door")

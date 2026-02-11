@@ -1,0 +1,9 @@
+[gd_resource type="Resource" script_class="Objective" load_steps=2 format=3 uid="uid://b1c2d3e4f5g6"]
+
+[ext_resource type="Script" path="res://scripts/systems/game_objectives/Objective.gd" id="1_objxv"]
+
+[resource]
+script = ExtResource("1_objxv")
+id = "obj_find_sword"
+description = "Find the Iron Sword"
+is_optional = false

@@ -21,19 +21,23 @@
 [ext_resource type="Texture2D" uid="uid://dxcat462yd5la" path="res://assests/player/sprites/RUN/run_up.png" id="11_aqlsr"]
 [ext_resource type="Script" uid="uid://cwop1x02ky2mn" path="res://scenes/dialogue_manager.gd" id="12_7c4bj"]
 [ext_resource type="Script" uid="uid://5m5k1lccnbiq" path="res://scenes/npc.gd" id="13_i4b1j"]
-[ext_resource type="Texture2D" path="res://assests/enemies/bat_fixed.png" id="14_c0d7e"]
+[ext_resource type="Texture2D" uid="uid://k01sasvg3f6n" path="res://assests/enemies/bat_fixed.png" id="14_c0d7e"]
 [ext_resource type="Script" uid="uid://dncqyijaf270" path="res://scenes/interact_area.gd" id="15_c0d7e"]
 [ext_resource type="Script" uid="uid://fhtdltmjrhss" path="res://scenes/ui_root.gd" id="23_rm3lh"]
 [ext_resource type="PackedScene" uid="uid://weaponpickup" path="res://scenes/items/WeaponPickup.tscn" id="24_yncth"]
 [ext_resource type="PackedScene" uid="uid://dummyenemy" path="res://scenes/enemies/DummyEnemy.tscn" id="25_jgbtq"]
 [ext_resource type="Script" uid="uid://jo77r6tbpb4s" path="res://scripts/obstacles/DestructibleObject.gd" id="26_door_script"]
 [ext_resource type="Script" uid="uid://bq0toefgnjkw4" path="res://scripts/systems/combat/HealthComponent.gd" id="26_health"]
-[ext_resource type="PackedScene" path="res://scenes/enemies/FastEnemy.tscn" id="30_fast"]
 [ext_resource type="PackedScene" path="res://scenes/ui/InventoryUI.tscn" id="27_b64vv"]
 [ext_resource type="PackedScene" path="res://scenes/obstacles/Crate.tscn" id="27_crate"]
 [ext_resource type="PackedScene" path="res://scenes/obstacles/Barrel.tscn" id="28_barrel"]
 [ext_resource type="PackedScene" path="res://scenes/obstacles/WeakWall.tscn" id="29_wall"]
+[ext_resource type="PackedScene" uid="uid://fastenemy001" path="res://scenes/enemies/FastEnemy.tscn" id="30_fast"]
 [ext_resource type="Script" uid="uid://c0do5qlyly5vy" path="res://scripts/tests/InventoryTestHelper.gd" id="33_agajo"]
+[ext_resource type="PackedScene" path="res://scenes/power/Cable.tscn" id="Cable_Proto"]
+[ext_resource type="PackedScene" path="res://scenes/power/PoweredDoor.tscn" id="Door_Proto"]
+[ext_resource type="PackedScene" path="res://scenes/power/Generator.tscn" id="Gen_Proto"]
+[ext_resource type="PackedScene" uid="uid://c8q4j5k6l7m8n" path="res://scenes/ui/ObjectiveHUD.tscn" id="HUD_Objective"]
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_n2fr6"]
 atlas = ExtResource("4_dgldv")
@@ -1201,13 +1205,16 @@ theme_override_constants/separation = 6
 layout_mode = 1
 grid_inventory = NodePath("../../../Player/GridInventory")
 
+[node name="ObjectiveHUD" parent="UI/UIRoot" unique_id=1238914588 instance=ExtResource("HUD_Objective")]
+layout_mode = 1
+
 [node name="WeaponPickup" parent="." unique_id=2027530117 instance=ExtResource("24_yncth")]
 position = Vector2(211, 100)
 
 [node name="DummyEnemy" parent="." unique_id=1713658462 instance=ExtResource("25_jgbtq")]
 position = Vector2(464, 72)
 
-[node name="FastEnemy" parent="." instance=ExtResource("30_fast")]
+[node name="FastEnemy" parent="." unique_id=138097458 instance=ExtResource("30_fast")]
 position = Vector2(400, 150)
 
 [node name="DestructibleObjects" type="Node2D" parent="." unique_id=927464254]
@@ -1220,6 +1227,18 @@ position = Vector2(268, -13)
 
 [node name="WeakWall" parent="DestructibleObjects" unique_id=1351388070 instance=ExtResource("29_wall")]
 position = Vector2(55, 22)
+
+[node name="PowerSystem" type="Node2D" parent="." unique_id=344894060]
+
+[node name="Generator" parent="PowerSystem" unique_id=1673762969 instance=ExtResource("Gen_Proto")]
+position = Vector2(299, 301)
+
+[node name="PoweredDoor" parent="PowerSystem" unique_id=75755037 instance=ExtResource("Door_Proto")]
+position = Vector2(474, 321)
+
+[node name="Cable" parent="PowerSystem" unique_id=1099887079 instance=ExtResource("Cable_Proto")]
+port_a_path = NodePath("../Generator")
+port_b_path = NodePath("../PoweredDoor")
 
 [node name="InventoryTestHelper" type="Node" parent="." unique_id=1951592911 node_paths=PackedStringArray("grid_inventory")]
 script = ExtResource("33_agajo")

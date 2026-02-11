@@ -82,7 +82,7 @@ func _get_drag_data(at_position: Vector2) -> Variant:
 	print("Starting drag for: ", item_data.name)
 	
 	# Create a container for the preview that will help with positioning
-	# To fix the "giant" issue, we ensure the size is explicitly set.
+	# To fix the "giant" issue, we ensurei the size is explicitly set.
 	var preview_texture = TextureRect.new()
 	preview_texture.texture = item_data.texture
 	preview_texture.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
