@@ -460,3 +460,14 @@ func get_move_direction() -> Vector2:
 func _set_movement_target(target_pos: Vector2) -> void:
 	if nav_agent:
 		nav_agent.target_position = target_pos
+
+func notify_damage(attacker: Node2D) -> void:
+	"""Called when the enemy takes damage. Instantly aggro."""
+	if not attacker: return
+	
+	target = attacker
+	awareness_level = 1.0
+	awareness_changed.emit(awareness_level, true)
+	
+	if current_state != State.CHASE and current_state != State.ATTACK:
+		_change_state(State.CHASE)

@@ -385,7 +385,9 @@ func attack() -> void:
 			
 			# Dot product > 0.5 means within ~60 degrees cone in front
 			if dir_to_target.dot(facing_dir) > 0.5:
-				b.take_damage(equipped_weapon.damage_data)
+				var data = equipped_weapon.damage_data.copy()
+				data.source = self
+				b.take_damage(data)
 
 func _on_died() -> void:
 	print("Player Died!")

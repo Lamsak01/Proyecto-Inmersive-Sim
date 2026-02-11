@@ -18,3 +18,7 @@
 - Verified "Eliminate Frogs" quest updates when killing `FastEnemy` (Frog).
 - Verified "Find Iron Sword" quest completes on pickup.
 - Verified Generator toggles and operates the Door.
+
+## 🧠 AI Improvements
+- **Instant Aggro**: Implemented `notify_damage` in `EnemyAI`.
+- **Damage Source Tracking**: Updated `Player.gd` to correctly assign `data.source = self` when attacking. This ensures enemies know who hit them and can retaliate immediately, bypassing the suspicion phase.

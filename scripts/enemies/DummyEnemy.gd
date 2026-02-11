@@ -107,6 +107,11 @@ func take_damage(data: DamageData) -> void:
 
 	if health_comp:
 		health_comp.take_damage(data)
+		
+	# Notify AI of attack
+	if ai and data.source:
+		if ai.has_method("notify_damage"):
+			ai.notify_damage(data.source)
 
 	
 	# Visual Flash
