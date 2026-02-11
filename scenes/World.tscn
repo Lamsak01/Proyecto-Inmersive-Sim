@@ -1212,10 +1212,10 @@ layout_mode = 1
 position = Vector2(211, 100)
 
 [node name="DummyEnemy" parent="." unique_id=1713658462 instance=ExtResource("25_jgbtq")]
-position = Vector2(464, 72)
+position = Vector2(709, -81)
 
 [node name="FastEnemy" parent="." unique_id=138097458 instance=ExtResource("30_fast")]
-position = Vector2(400, 150)
+position = Vector2(694, 168)
 
 [node name="DestructibleObjects" type="Node2D" parent="." unique_id=927464254]
 
@@ -1243,3 +1243,9 @@ port_b_path = NodePath("../PoweredDoor")
 [node name="InventoryTestHelper" type="Node" parent="." unique_id=1951592911 node_paths=PackedStringArray("grid_inventory")]
 script = ExtResource("33_agajo")
 grid_inventory = NodePath("../Player/GridInventory")
+
+[node name="FrogEnemy" parent="." unique_id=1572768814 instance=ExtResource("30_fast")]
+position = Vector2(652, 253)
+
+[node name="FrogEnemy2" parent="." unique_id=1135446713 instance=ExtResource("30_fast")]
+position = Vector2(715, 227)

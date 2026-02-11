@@ -22,7 +22,7 @@ func _ready() -> void:
 	if output_port == null:
 		output_port = PowerPort.new()
 		output_port.name = "PortOut"
-		output_port.level = PowerPort.Level.HV
+		output_port.level = PowerPort.Level.LV
 		add_child(output_port)
 
 	output_port.set_owner_component(self)

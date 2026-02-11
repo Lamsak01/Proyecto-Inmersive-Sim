@@ -37,3 +37,9 @@ func complete_objective(id: String) -> void:
 func _on_objective_completed(objective: Objective) -> void:
 	print("Objective Completed: ", objective.description)
 	objective_completed.emit(objective)
+
+func progress_objective(type: int, target_id: String, amount: int = 1) -> void:
+	for obj in active_objectives:
+		if not obj.is_completed and obj.type == type and obj.target_id == target_id:
+			obj.current_count += amount
+			print("Progress update for ", obj.description, ": ", obj.current_count, "/", obj.target_count)

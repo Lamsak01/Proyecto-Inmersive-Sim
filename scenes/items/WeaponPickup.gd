@@ -25,6 +25,12 @@ func _process(_delta: float) -> void:
 			# Prefer new method
 			player_in_range.add_inventory_item(item_resource)
 			print("Picked up: ", item_resource.name if item_resource else weapon_name)
+			
+			# Quest Progress
+			if ObjectiveManager:
+				var obj_id = item_resource.name if item_resource else weapon_name
+				ObjectiveManager.progress_objective(1, obj_id, 1) # 1 = COLLECT
+				
 			queue_free()
 		elif player_in_range.has_method("add_item"):
 			# Fallback

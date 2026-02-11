@@ -143,7 +143,13 @@ func _on_ai_awareness_changed(level: float, is_alerted: bool) -> void:
 	if alert_indicator:
 		alert_indicator.update_awareness(level, is_alerted)
 
+@export var enemy_id: String = "generic_enemy"
+
 func _on_died() -> void:
+	# Quest Progress
+	if ObjectiveManager:
+		ObjectiveManager.progress_objective(0, enemy_id, 1) # 0 = KILL
+
 	# Disable logic
 	set_physics_process(false)
 	ai.set_physics_process(false)

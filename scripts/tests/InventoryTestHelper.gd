@@ -74,6 +74,10 @@ func _create_test_items() -> void:
 	var objective = load("res://resources/objectives/obj_find_sword.tres")
 	if objective:
 		ObjectiveManager.add_objective(objective)
+
+	var kill_obj = load("res://resources/objectives/obj_kill_frogs.tres")
+	if kill_obj:
+		ObjectiveManager.add_objective(kill_obj)
 		
 	# Connect to inventory to check for completion
 	if grid_inventory:

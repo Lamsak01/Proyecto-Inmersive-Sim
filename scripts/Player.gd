@@ -159,9 +159,13 @@ func _handle_interactions() -> void:
 
 	var overlaps := interact_area.get_overlapping_areas()
 	for a in overlaps:
-		if a.is_in_group("interactable") and a.has_method("interact"):
-			a.interact(self)
-			return
+		if a.is_in_group("interactable"):
+			if a.has_method("interact"):
+				a.interact(self)
+				return
+			elif a.get_parent().has_method("interact"):
+				a.get_parent().interact(self)
+				return
 
 func show_hint(_text: String) -> void:
 	pass

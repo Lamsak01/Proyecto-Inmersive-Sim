@@ -1,0 +1,16 @@
+# Session Summary - 2026-02-09
+
+## Key Accomplishments
+1.  **Refactoring**: Completely reorganized the `assests` folder into `enemies`, `player`, `world`, `items`, `ui`, `audio`, and `effects`. Updated all project references.
+2.  **Bug Fixes**:
+    -   Resolved "Frog Skin on Bat" visual glitch by fixing valid/invalid cache states in Godot.
+    -   Fixed a crash on launch caused by the missing `bat.png`.
+    -   Fixed "Freezing AI" where enemies would get stuck when returning to spawn.
+3.  **Features**:
+    -   Implemented a "Running" animation for the Frog enemy (using the correct sprite row).
+    -   Added smart animation switching (Idle/Run based on movement).
+    -   Pushed all changes to GitHub.
+
+## Next Objectives
+-   **Level Design**: Create a test level using the new organized assets.
+-   **Combat System**: Add hit reactions, knockback, and sound effects.

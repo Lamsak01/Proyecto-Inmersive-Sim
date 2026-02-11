@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="Objective" load_steps=2 format=3 uid="uid://kill_frogs"]
+
+[ext_resource type="Script" path="res://scripts/systems/game_objectives/Objective.gd" id="1_obj"]
+
+[resource]
+script = ExtResource("1_obj")
+id = "obj_kill_frogs"
+description = "Eliminate Frogs"
+is_optional = false
+type = 0
+target_id = "frog"
+target_count = 3
+current_count = 0
