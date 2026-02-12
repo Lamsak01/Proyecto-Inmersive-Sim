@@ -1,6 +1,7 @@
 [gd_scene load_steps=5 format=3 uid="uid://generator_proto"]
 
 [ext_resource type="Script" path="res://scripts/power/InteractiveGenerator.gd" id="1_gen"]
+[ext_resource type="Texture2D" path="res://assets/world/objects/generator_reclamation.png" id="2_tex"]
 
 [sub_resource type="Gradient" id="Gradient_gen"]
 offsets = PackedFloat32Array(0, 0.6, 1)
@@ -14,16 +15,17 @@ fill = 1
 fill_from = Vector2(0.5, 0.5)
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_gen"]
-radius = 40.0
+radius = 20.0
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_solid"]
-size = Vector2(60, 60)
+size = Vector2(30, 30)
 
 [node name="Generator" type="Node2D"]
 script = ExtResource("1_gen")
 
 [node name="Sprite2D" type="Sprite2D" parent="."]
-texture = SubResource("GradientTexture2D_gen")
+texture = ExtResource("2_tex")
+scale = Vector2(0.5, 0.5)
 
 [node name="InteractionArea" type="Area2D" parent="." groups=["interactable"]]
 

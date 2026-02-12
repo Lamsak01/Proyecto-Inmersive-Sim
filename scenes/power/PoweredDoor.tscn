@@ -1,7 +1,7 @@
 [gd_scene load_steps=5 format=3 uid="uid://powered_door_proto"]
 
 [ext_resource type="Script" path="res://scripts/power/PoweredDoor.gd" id="1_door"]
-[ext_resource type="Texture2D" uid="uid://knjve04ml7ja" path="res://assests/world/Door_Prot.png" id="2_door_tex"]
+[ext_resource type="Texture2D" path="res://assets/world/objects/wooden_door.png" id="2_door_tex"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_door"]
 size = Vector2(32, 32)
@@ -19,7 +19,7 @@ color = Color(1, 0, 0, 1)
 
 [node name="Sprite2D" type="Sprite2D" parent="."]
 texture = ExtResource("2_door_tex")
-scale = Vector2(0.04, 0.057)
+scale = Vector2(0.5, 0.5)
 
 [node name="StaticBody2D" type="StaticBody2D" parent="."]
 

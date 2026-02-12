@@ -1,0 +1,19 @@
+[gd_scene load_steps=5 format=3 uid="uid://woodendoor_proto"]
+
+[ext_resource type="Script" path="res://scripts/obstacles/DestructibleObject.gd" id="1_door"]
+[ext_resource type="Texture2D" uid="uid://woodendoor_tex" path="res://assets/world/objects/wooden_door.png" id="2_tex"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_door"]
+size = Vector2(32, 64)
+
+[node name="WoodenDoor" type="StaticBody2D"]
+script = ExtResource("1_door")
+max_health = 40.0
+
+[node name="Sprite2D" type="Sprite2D" parent="."]
+texture = ExtResource("2_tex")
+offset = Vector2(0, -16)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+position = Vector2(0, -16)
+shape = SubResource("RectangleShape2D_door")
