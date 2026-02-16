@@ -1,0 +1,17 @@
+[gd_scene format=3 uid="uid://housewallint"]
+
+[ext_resource type="Texture2D" uid="uid://bnxgd0j0rbyh0" path="res://assests/world/house_wall_int.png" id="1_tex"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_col"]
+size = Vector2(32, 2)
+
+[node name="HouseWallInt" type="StaticBody2D" unique_id=1030747549]
+y_sort_enabled = true
+
+[node name="Sprite2D" type="Sprite2D" parent="." unique_id=834459669]
+texture = ExtResource("1_tex")
+offset = Vector2(0, -48)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=1937796383]
+position = Vector2(0, -17)
+shape = SubResource("RectangleShape2D_col")

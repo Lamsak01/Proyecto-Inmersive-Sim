@@ -18,7 +18,7 @@
 [ext_resource type="Script" uid="uid://dxxs6ep7fs2mv" path="res://scenes/door_interact_collision.gd" id="10_pdh0q"]
 [ext_resource type="Texture2D" uid="uid://cuqdqfvg8dp3" path="res://assests/player/sprites/RUN/run_right.png" id="10_uni40"]
 [ext_resource type="Texture2D" uid="uid://dxcat462yd5la" path="res://assests/player/sprites/RUN/run_up.png" id="11_aqlsr"]
-[ext_resource type="Texture2D" path="res://assets/world/objects/wooden_door.png" id="11_woodendoor"]
+[ext_resource type="Texture2D" uid="uid://c1kqyint2ks5x" path="res://assets/world/objects/wooden_door.png" id="11_woodendoor"]
 [ext_resource type="Script" uid="uid://cwop1x02ky2mn" path="res://scenes/dialogue_manager.gd" id="12_7c4bj"]
 [ext_resource type="Script" uid="uid://5m5k1lccnbiq" path="res://scenes/npc.gd" id="13_i4b1j"]
 [ext_resource type="Texture2D" uid="uid://k01sasvg3f6n" path="res://assests/enemies/bat_fixed.png" id="14_c0d7e"]
@@ -26,17 +26,21 @@
 [ext_resource type="Script" uid="uid://fhtdltmjrhss" path="res://scenes/ui_root.gd" id="23_rm3lh"]
 [ext_resource type="PackedScene" uid="uid://weaponpickup" path="res://scenes/items/WeaponPickup.tscn" id="24_yncth"]
 [ext_resource type="PackedScene" uid="uid://dummyenemy" path="res://scenes/enemies/DummyEnemy.tscn" id="25_jgbtq"]
+[ext_resource type="Script" uid="uid://b81sbakbycvb2" path="res://scripts/systems/ai/EnemyAI.gd" id="26_1bdwf"]
 [ext_resource type="Script" uid="uid://jo77r6tbpb4s" path="res://scripts/obstacles/DestructibleObject.gd" id="26_door_script"]
 [ext_resource type="Script" uid="uid://bq0toefgnjkw4" path="res://scripts/systems/combat/HealthComponent.gd" id="26_health"]
 [ext_resource type="PackedScene" path="res://scenes/ui/InventoryUI.tscn" id="27_b64vv"]
 [ext_resource type="PackedScene" path="res://scenes/obstacles/Crate.tscn" id="27_crate"]
 [ext_resource type="PackedScene" path="res://scenes/obstacles/Barrel.tscn" id="28_barrel"]
+[ext_resource type="Script" uid="uid://dqry6bpv4rq78" path="res://scripts/systems/combat/ArmorComponent.gd" id="28_cgwb4"]
 [ext_resource type="PackedScene" path="res://scenes/obstacles/WeakWall.tscn" id="29_wall"]
 [ext_resource type="PackedScene" uid="uid://fastenemy001" path="res://scenes/enemies/FastEnemy.tscn" id="30_fast"]
 [ext_resource type="Script" uid="uid://c0do5qlyly5vy" path="res://scripts/tests/InventoryTestHelper.gd" id="33_agajo"]
+[ext_resource type="PackedScene" uid="uid://housewallint" path="res://scenes/world/HouseWallInt.tscn" id="42_lffjk"]
 [ext_resource type="PackedScene" path="res://scenes/power/Cable.tscn" id="Cable_Proto"]
 [ext_resource type="PackedScene" path="res://scenes/power/PoweredDoor.tscn" id="Door_Proto"]
 [ext_resource type="PackedScene" path="res://scenes/power/Generator.tscn" id="Gen_Proto"]
+[ext_resource type="PackedScene" uid="uid://housewallext" path="res://scenes/world/HouseWallExt.tscn" id="housewallext_scene"]
 [ext_resource type="PackedScene" uid="uid://c8q4j5k6l7m8n" path="res://scenes/ui/ObjectiveHUD.tscn" id="HUD_Objective"]
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_n2fr6"]
@@ -531,23 +535,11 @@ animations = [{
 }]
 
 [sub_resource type="CapsuleShape2D" id="CapsuleShape2D_rvslj"]
-radius = 6.0
-height = 24.0
+radius = 5.0
+height = 28.0
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_hlk0d"]
 size = Vector2(48, 48)
-
-[sub_resource type="RectangleShape2D" id="RectangleShape2D_0uv0p"]
-size = Vector2(51.375, 40.75)
-
-[sub_resource type="RectangleShape2D" id="RectangleShape2D_7c4bj"]
-size = Vector2(718.28644, 739.31036)
-
-[sub_resource type="RectangleShape2D" id="RectangleShape2D_nrtoj"]
-size = Vector2(823.0355, 860.6899)
-
-[sub_resource type="CircleShape2D" id="CircleShape2D_b3faq"]
-radius = 2.0
 
 [sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_rarhs"]
 texture = ExtResource("1_7g83o")
@@ -928,6 +920,18 @@ sources/4 = SubResource("TileSetAtlasSource_b3faq")
 sources/6 = SubResource("TileSetAtlasSource_ygioq")
 sources/7 = SubResource("TileSetAtlasSource_pdh0q")
 
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_0uv0p"]
+size = Vector2(51.375, 40.75)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_7c4bj"]
+size = Vector2(718.28644, 739.31036)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_nrtoj"]
+size = Vector2(823.0355, 860.6899)
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_b3faq"]
+radius = 2.0
+
 [sub_resource type="CapsuleShape2D" id="CapsuleShape2D_i4b1j"]
 radius = 15.0
 height = 32.0
@@ -989,6 +993,40 @@ default_font_size = 8
 subpixel_positioning = 0
 
 [node name="World" type="Node2D" unique_id=2107211921]
+y_sort_enabled = true
+script = ExtResource("1_128ka")
+
+[node name="Player" type="CharacterBody2D" parent="." unique_id=2143824581 node_paths=PackedStringArray("dialogue_manager", "hint_label")]
+position = Vector2(211, 59)
+collision_layer = 2
+collision_mask = 5
+script = ExtResource("2_d1c63")
+dialogue_manager = NodePath("../dialogue_manager")
+hint_label = NodePath("../UI/UIRoot/HintLabel")
+
+[node name="Animations" type="AnimatedSprite2D" parent="Player" unique_id=277737517]
+texture_filter = 1
+position = Vector2(1, -15)
+sprite_frames = SubResource("SpriteFrames_yncth")
+animation = &"walk_down"
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Player" unique_id=832925050 groups=["interactable"]]
+position = Vector2(1, -6)
+shape = SubResource("CapsuleShape2D_rvslj")
+
+[node name="Camera2D" type="Camera2D" parent="Player" unique_id=1530901318]
+zoom = Vector2(3, 3)
+rotation_smoothing_enabled = true
+
+[node name="InteractArea" type="Area2D" parent="Player" unique_id=275972295 groups=["interactable"]]
+rotation = -0.007075112
+collision_layer = 0
+collision_mask = 5
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Player/InteractArea" unique_id=228063155 groups=["interactable"]]
+shape = SubResource("RectangleShape2D_hlk0d")
+
+[node name="GridInventory" type="Node" parent="Player" unique_id=212467440]
 script = ExtResource("1_128ka")
 
 [node name="dialogue_manager" type="Node" parent="." unique_id=2052732196 node_paths=PackedStringArray("dialogue_box", "dialogue_text", "choices_box")]
@@ -997,6 +1035,11 @@ dialogue_box = NodePath("../UI/UIRoot/DialogueBox_NEW")
 dialogue_text = NodePath("../UI/UIRoot/DialogueBox_NEW/Margin/Layout/DialogueText_NEW")
 choices_box = NodePath("../UI/UIRoot/DialogueBox_NEW/Margin/Layout/ChoisesBox_New")
 
+[node name="Obstacles" type="TileMapLayer" parent="." unique_id=582507862 groups=["nav_source"]]
+position = Vector2(2, -2)
+tile_map_data = PackedByteArray("AAAGAAEABgAAAAAAAAAGAAIABgAAAAEAAAAHAAEABgABAAAAAAAHAAIABgABAAEAAAAGAAMABgAAAAAAAAAGAAQABgAAAAEAAAAHAAMABgABAAAAAAAHAAQABgABAAEAAAAGAAUABgAAAAAAAAAGAAYABgAAAAEAAAAHAAUABgABAAAAAAAHAAYABgABAAEAAAAGAAcABgAAAAAAAAAGAAgABgAAAAEAAAAHAAcABgABAAAAAAAHAAgABgABAAEAAAAIAAEABgAAAAAAAAAIAAIABgAAAAEAAAAJAAEABgABAAAAAAAJAAIABgABAAEAAAAIAAMABgAAAAAAAAAIAAQABgAAAAEAAAAJAAMABgABAAAAAAAJAAQABgABAAEAAAAIAAUABgAAAAAAAAAIAAYABgAAAAEAAAAJAAUABgABAAAAAAAJAAYABgABAAEAAAAIAAcABgAAAAAAAAAIAAgABgAAAAEAAAAJAAcABgABAAAAAAAJAAgABgABAAEAAAAKAAEABgAAAAAAAAAKAAIABgAAAAEAAAALAAEABgABAAAAAAALAAIABgABAAEAAAAUAAoABgAAAAAAAAAUAAsABgAAAAEAAAAVAAoABgABAAAAAAAVAAsABgABAAEAAAAUAAYABgAAAAAAAAAUAAcABgAAAAEAAAAUAAgABgAAAAAAAAAUAAkABgAAAAEAAAAVAAYABgABAAAAAAAVAAcABgABAAEAAAAVAAgABgABAAAAAAAVAAkABgABAAEAAAAUAAIABgAAAAAAAAAUAAMABgAAAAEAAAAVAAIABgABAAAAAAAVAAMABgABAAEAAAAUAP7/BgAAAAAAAAAUAP//BgAAAAEAAAAUAAAABgAAAAAAAAAUAAEABgAAAAEAAAAVAP7/BgABAAAAAAAVAP//BgABAAEAAAAVAAAABgABAAAAAAAVAAEABgABAAEAAAASAAIABgAAAAAAAAASAAMABgAAAAEAAAATAAIABgABAAAAAAATAAMABgABAAEAAAAKAAcAAAAAAAAAAAAKAAgAAAAAAAEAAAALAAcAAAABAAAAAAALAAgAAAABAAEAAAAMAAcAAAAAAAAAAAAMAAgAAAAAAAEAAAANAAcAAAABAAAAAAANAAgAAAABAAEAAAA=")
+tile_set = SubResource("TileSet_vcsgt")
+
 [node name="Parallax2D" type="Parallax2D" parent="." unique_id=1058059729]
 repeat_size = Vector2(320, 192)
 
@@ -1004,46 +1047,14 @@ repeat_size = Vector2(320, 192)
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_left = -645.0
-offset_top = -553.0
-offset_right = 1355.0
-offset_bottom = 1446.9999
+offset_left = -531.0
+offset_top = -613.0
+offset_right = 1469.0
+offset_bottom = 1386.9999
 grow_horizontal = 2
 grow_vertical = 2
 texture = ExtResource("1_d1c63")
 stretch_mode = 1
-
-[node name="Player" type="CharacterBody2D" parent="." unique_id=1753339774 node_paths=PackedStringArray("dialogue_manager", "hint_label")]
-position = Vector2(211, 59)
-collision_layer = 2
-collision_mask = 5
-script = ExtResource("2_d1c63")
-dialogue_manager = NodePath("../dialogue_manager")
-hint_label = NodePath("../UI/UIRoot/HintLabel")
-
-[node name="Animations" type="AnimatedSprite2D" parent="Player" unique_id=536013240]
-texture_filter = 1
-position = Vector2(1, 1)
-sprite_frames = SubResource("SpriteFrames_yncth")
-animation = &"walk_down"
-
-[node name="CollisionShape2D" type="CollisionShape2D" parent="Player" unique_id=527511965 groups=["interactable"]]
-shape = SubResource("CapsuleShape2D_rvslj")
-
-[node name="Camera2D" type="Camera2D" parent="Player" unique_id=1733742922]
-zoom = Vector2(3, 3)
-rotation_smoothing_enabled = true
-
-[node name="InteractArea" type="Area2D" parent="Player" unique_id=164254288 groups=["interactable"]]
-rotation = -0.007075112
-collision_layer = 0
-collision_mask = 5
-
-[node name="CollisionShape2D" type="CollisionShape2D" parent="Player/InteractArea" unique_id=830955869 groups=["interactable"]]
-shape = SubResource("RectangleShape2D_hlk0d")
-
-[node name="GridInventory" type="Node" parent="Player" unique_id=1003266064]
-script = ExtResource("1_128ka")
 
 [node name="Arbusto Raro" type="Area2D" parent="." unique_id=1191555652 groups=["interactable"]]
 
@@ -1098,15 +1109,11 @@ texture = ExtResource("8_b3faq")
 position = Vector2(5, -4)
 shape = SubResource("CircleShape2D_b3faq")
 
-[node name="Obstacles" type="TileMapLayer" parent="." unique_id=582507862 groups=["nav_source"]]
-position = Vector2(2, -2)
-tile_map_data = PackedByteArray("AAAGAAEABgAAAAAAAAAGAAIABgAAAAEAAAAHAAEABgABAAAAAAAHAAIABgABAAEAAAAGAAMABgAAAAAAAAAGAAQABgAAAAEAAAAHAAMABgABAAAAAAAHAAQABgABAAEAAAAGAAUABgAAAAAAAAAGAAYABgAAAAEAAAAHAAUABgABAAAAAAAHAAYABgABAAEAAAAGAAcABgAAAAAAAAAGAAgABgAAAAEAAAAHAAcABgABAAAAAAAHAAgABgABAAEAAAAIAAEABgAAAAAAAAAIAAIABgAAAAEAAAAJAAEABgABAAAAAAAJAAIABgABAAEAAAAIAAMABgAAAAAAAAAIAAQABgAAAAEAAAAJAAMABgABAAAAAAAJAAQABgABAAEAAAAIAAUABgAAAAAAAAAIAAYABgAAAAEAAAAJAAUABgABAAAAAAAJAAYABgABAAEAAAAIAAcABgAAAAAAAAAIAAgABgAAAAEAAAAJAAcABgABAAAAAAAJAAgABgABAAEAAAAKAAEABgAAAAAAAAAKAAIABgAAAAEAAAALAAEABgABAAAAAAALAAIABgABAAEAAAD3/woABgAAAAAAAAD4/woABgABAAAAAAD3/wsABgAAAAEAAAD3/wwABgAAAAAAAAD3/w0ABgAAAAEAAAD4/wsABgABAAEAAAD4/wwABgABAAAAAAD4/w0ABgABAAEAAAD3/wYABgAAAAAAAAD3/wcABgAAAAEAAAD3/wgABgAAAAAAAAD3/wkABgAAAAEAAAD4/wYABgABAAAAAAD4/wcABgABAAEAAAD4/wgABgABAAAAAAD4/wkABgABAAEAAAD3/wIABgAAAAAAAAD3/wMABgAAAAEAAAD3/wQABgAAAAAAAAD3/wUABgAAAAEAAAD4/wIABgABAAAAAAD4/wMABgABAAEAAAD4/wQABgABAAAAAAD4/wUABgABAAEAAAD3//7/BgAAAAAAAAD3////BgAAAAEAAAD3/wAABgAAAAAAAAD3/wEABgAAAAEAAAD4//7/BgABAAAAAAD4////BgABAAEAAAD4/wAABgABAAAAAAD4/wEABgABAAEAAAAUAAoABgAAAAAAAAAUAAsABgAAAAEAAAAUAAwABgAAAAAAAAAUAA0ABgAAAAEAAAAVAAoABgABAAAAAAAVAAsABgABAAEAAAAVAAwABgABAAAAAAAVAA0ABgABAAEAAAAUAAYABgAAAAAAAAAUAAcABgAAAAEAAAAUAAgABgAAAAAAAAAUAAkABgAAAAEAAAAVAAYABgABAAAAAAAVAAcABgABAAEAAAAVAAgABgABAAAAAAAVAAkABgABAAEAAAAUAAIABgAAAAAAAAAUAAMABgAAAAEAAAAVAAIABgABAAAAAAAVAAMABgABAAEAAAAUAP7/BgAAAAAAAAAUAP//BgAAAAEAAAAUAAAABgAAAAAAAAAUAAEABgAAAAEAAAAVAP7/BgABAAAAAAAVAP//BgABAAEAAAAVAAAABgABAAAAAAAVAAEABgABAAEAAAD3//z/BgAAAAAAAAD3//3/BgAAAAEAAAD4//z/BgABAAAAAAD4//3/BgABAAEAAAD5/wwABgAAAAAAAAD5/w0ABgAAAAEAAAD6/wwABgABAAAAAAD6/w0ABgABAAEAAAD7/wwABgAAAAAAAAD7/w0ABgAAAAEAAAD8/wwABgABAAAAAAD8/w0ABgABAAEAAAD9/wwABgAAAAAAAAD9/w0ABgAAAAEAAAD+/wwABgABAAAAAAD+/w0ABgABAAEAAAD//wwABgAAAAAAAAD//w0ABgAAAAEAAAAAAAwABgABAAAAAAAAAA0ABgABAAEAAAABAAwABgAAAAAAAAABAA0ABgAAAAEAAAACAAwABgABAAAAAAACAA0ABgABAAEAAAADAAwABgAAAAAAAAADAA0ABgAAAAEAAAAEAAwABgABAAAAAAAEAA0ABgABAAEAAAAFAAwABgAAAAAAAAAFAA0ABgAAAAEAAAAGAAwABgABAAAAAAAGAA0ABgABAAEAAAAHAAwABgAAAAAAAAAHAA0ABgAAAAEAAAAIAAwABgABAAAAAAAIAA0ABgABAAEAAAAJAAwABgAAAAAAAAAJAA0ABgAAAAEAAAAKAAwABgABAAAAAAAKAA0ABgABAAEAAAALAAwABgAAAAAAAAALAA0ABgAAAAEAAAAMAAwABgABAAAAAAAMAA0ABgABAAEAAAANAAwABgAAAAAAAAANAA0ABgAAAAEAAAAOAAwABgABAAAAAAAOAA0ABgABAAEAAAAPAAwABgAAAAAAAAAPAA0ABgAAAAEAAAAQAAwABgABAAAAAAAQAA0ABgABAAEAAAARAAwABgAAAAAAAAARAA0ABgAAAAEAAAASAAwABgABAAAAAAASAA0ABgABAAEAAAASAPz/BgAAAAAAAAASAP3/BgAAAAEAAAATAPz/BgABAAAAAAATAP3/BgABAAEAAAAUAPz/BgAAAAAAAAAUAP3/BgAAAAEAAAAVAPz/BgABAAAAAAAVAP3/BgABAAEAAAAOAPz/BgAAAAAAAAAOAP3/BgAAAAEAAAAPAPz/BgABAAAAAAAPAP3/BgABAAEAAAAQAPz/BgAAAAAAAAAQAP3/BgAAAAEAAAARAPz/BgABAAAAAAARAP3/BgABAAEAAAAKAPz/BgAAAAAAAAAKAP3/BgAAAAEAAAALAPz/BgABAAAAAAALAP3/BgABAAEAAAAMAPz/BgAAAAAAAAAMAP3/BgAAAAEAAAANAPz/BgABAAAAAAANAP3/BgABAAEAAAAGAPz/BgAAAAAAAAAGAP3/BgAAAAEAAAAHAPz/BgABAAAAAAAHAP3/BgABAAEAAAAIAPz/BgAAAAAAAAAIAP3/BgAAAAEAAAAJAPz/BgABAAAAAAAJAP3/BgABAAEAAAACAPz/BgAAAAAAAAACAP3/BgAAAAEAAAADAPz/BgABAAAAAAADAP3/BgABAAEAAAAEAPz/BgAAAAAAAAAEAP3/BgAAAAEAAAAFAPz/BgABAAAAAAAFAP3/BgABAAEAAAD+//z/BgAAAAAAAAD+//3/BgAAAAEAAAD///z/BgABAAAAAAD///3/BgABAAEAAAAAAPz/BgAAAAAAAAAAAP3/BgAAAAEAAAABAPz/BgABAAAAAAABAP3/BgABAAEAAAD6//z/BgAAAAAAAAD6//3/BgAAAAEAAAD7//z/BgABAAAAAAD7//3/BgABAAEAAAD8//z/BgAAAAAAAAD8//3/BgAAAAEAAAD9//z/BgABAAAAAAD9//3/BgABAAEAAAD4//r/BgAAAAAAAAD4//v/BgAAAAEAAAD5//r/BgABAAAAAAD5//v/BgABAAEAAAASAA4ABgAAAAAAAAASAA8ABgAAAAEAAAATAA4ABgABAAAAAAATAA8ABgABAAEAAAAUAA4ABgAAAAAAAAAUAA8ABgAAAAEAAAAVAA4ABgABAAAAAAAVAA8ABgABAAEAAAD6//r/BgAAAAAAAAD6//v/BgAAAAEAAAD7//r/BgABAAAAAAD7//v/BgABAAEAAAASAAIABgAAAAAAAAASAAMABgAAAAEAAAATAAIABgABAAAAAAATAAMABgABAAEAAAAKAAcAAAAAAAAAAAAKAAgAAAAAAAEAAAALAAcAAAABAAAAAAALAAgAAAABAAEAAAAMAAcAAAAAAAAAAAAMAAgAAAAAAAEAAAANAAcAAAABAAAAAAANAAgAAAABAAEAAAA=")
-tile_set = SubResource("TileSet_vcsgt")
-
-[node name="Npc" type="CharacterBody2D" parent="." unique_id=909967902 node_paths=PackedStringArray("dialogue_manager") groups=["interactable"]]
+[node name="Npc" type="CharacterBody2D" parent="." unique_id=909967902 node_paths=PackedStringArray("dialogue_manager", "enemy_ai") groups=["interactable"]]
 position = Vector2(264, 53)
 script = ExtResource("13_i4b1j")
 dialogue_manager = NodePath("../dialogue_manager")
+enemy_ai = NodePath("EnemyAI")
 
 [node name="InteractArea" type="Area2D" parent="Npc" unique_id=1363807873 groups=["interactable"]]
 position = Vector2(7, 5)
@@ -1130,10 +1137,79 @@ frame_progress = 0.8195581
 
 [node name="Node2D" type="Node2D" parent="Npc" unique_id=818963039]
 
+[node name="EnemyAI" type="Node" parent="Npc" unique_id=477078885]
+script = ExtResource("26_1bdwf")
+metadata/_custom_type_script = "uid://b81sbakbycvb2"
+
+[node name="NavigationAgent2D" type="NavigationAgent2D" parent="Npc" unique_id=121458529]
+
+[node name="HealthComponent" type="Node" parent="Npc" unique_id=773469754]
+script = ExtResource("26_health")
+max_health = 50.0
+
+[node name="ArmorComponent" type="Node" parent="Npc" unique_id=243332798]
+script = ExtResource("28_cgwb4")
+
+[node name="WeaponPickup" parent="." unique_id=2027530117 instance=ExtResource("24_yncth")]
+position = Vector2(211, 100)
+
+[node name="DummyEnemy" parent="." unique_id=1713658462 instance=ExtResource("25_jgbtq")]
+position = Vector2(709, -81)
+
+[node name="FastEnemy" parent="." unique_id=138097458 instance=ExtResource("30_fast")]
+position = Vector2(694, 168)
+
+[node name="Crate" parent="." unique_id=1855212024 instance=ExtResource("27_crate")]
+position = Vector2(216, -13)
+
+[node name="Barrel" parent="." unique_id=303902927 instance=ExtResource("28_barrel")]
+position = Vector2(268, -13)
+
+[node name="WeakWall" parent="." unique_id=1351388070 instance=ExtResource("29_wall")]
+position = Vector2(55, 22)
+
+[node name="PowerSystem" type="Node2D" parent="." unique_id=344894060]
+
+[node name="Generator" parent="PowerSystem" unique_id=1673762969 instance=ExtResource("Gen_Proto")]
+position = Vector2(299, 301)
+scale = Vector2(0.1, 0.1)
+
+[node name="PoweredDoor" parent="PowerSystem" unique_id=75755037 instance=ExtResource("Door_Proto")]
+position = Vector2(438, 332)
+scale = Vector2(0.1, 0.1)
+
+[node name="Cable" parent="PowerSystem" unique_id=1099887079 instance=ExtResource("Cable_Proto")]
+port_a_path = NodePath("../Generator")
+port_b_path = NodePath("../PoweredDoor")
+
+[node name="InventoryTestHelper" type="Node" parent="." unique_id=1951592911 node_paths=PackedStringArray("grid_inventory")]
+script = ExtResource("33_agajo")
+grid_inventory = NodePath("../Player/GridInventory")
+
+[node name="FrogEnemy" parent="." unique_id=1572768814 instance=ExtResource("30_fast")]
+position = Vector2(652, 253)
+
+[node name="FrogEnemy2" parent="." unique_id=1135446713 instance=ExtResource("30_fast")]
+position = Vector2(715, 227)
+
+[node name="HouseWallExt" parent="." unique_id=724815575 instance=ExtResource("housewallext_scene")]
+position = Vector2(-168, 144)
+
+[node name="HouseWallInt" parent="." unique_id=1762897026 instance=ExtResource("42_lffjk")]
+position = Vector2(-200, 144)
+
+[node name="HouseWallInt2" parent="." unique_id=1030747549 instance=ExtResource("42_lffjk")]
+position = Vector2(-232, 144)
+
+[node name="HouseWallInt3" parent="." unique_id=30127064 instance=ExtResource("42_lffjk")]
+position = Vector2(-264, 144)
+
+[node name="HouseWallInt4" parent="." unique_id=290632200 instance=ExtResource("42_lffjk")]
+position = Vector2(-295, 144)
+
 [node name="UI" type="CanvasLayer" parent="." unique_id=1423720545]
 
 [node name="UIRoot" type="Control" parent="UI" unique_id=1679563547 node_paths=PackedStringArray("inventory_ui")]
-visible = true
 layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
@@ -1208,47 +1284,7 @@ grid_inventory = NodePath("../../../Player/GridInventory")
 
 [node name="ObjectiveHUD" parent="UI/UIRoot" unique_id=1238914588 instance=ExtResource("HUD_Objective")]
 layout_mode = 1
-
-[node name="WeaponPickup" parent="." unique_id=2027530117 instance=ExtResource("24_yncth")]
-position = Vector2(211, 100)
-
-[node name="DummyEnemy" parent="." unique_id=1713658462 instance=ExtResource("25_jgbtq")]
-position = Vector2(709, -81)
-
-[node name="FastEnemy" parent="." unique_id=138097458 instance=ExtResource("30_fast")]
-position = Vector2(694, 168)
-
-[node name="DestructibleObjects" type="Node2D" parent="." unique_id=927464254]
-
-[node name="Crate" parent="DestructibleObjects" unique_id=1855212024 instance=ExtResource("27_crate")]
-position = Vector2(216, -13)
-
-[node name="Barrel" parent="DestructibleObjects" unique_id=303902927 instance=ExtResource("28_barrel")]
-position = Vector2(268, -13)
-
-[node name="WeakWall" parent="DestructibleObjects" unique_id=1351388070 instance=ExtResource("29_wall")]
-position = Vector2(55, 22)
-
-[node name="PowerSystem" type="Node2D" parent="." unique_id=344894060]
-
-[node name="Generator" parent="PowerSystem" unique_id=1673762969 instance=ExtResource("Gen_Proto")]
-position = Vector2(299, 301)
-scale = Vector2(0.1, 0.1)
-
-[node name="PoweredDoor" parent="PowerSystem" unique_id=75755037 instance=ExtResource("Door_Proto")]
-position = Vector2(438, 332)
-scale = Vector2(0.1, 0.1)
-
-[node name="Cable" parent="PowerSystem" unique_id=1099887079 instance=ExtResource("Cable_Proto")]
-port_a_path = NodePath("../Generator")
-port_b_path = NodePath("../PoweredDoor")
-
-[node name="InventoryTestHelper" type="Node" parent="." unique_id=1951592911 node_paths=PackedStringArray("grid_inventory")]
-script = ExtResource("33_agajo")
-grid_inventory = NodePath("../Player/GridInventory")
-
-[node name="FrogEnemy" parent="." unique_id=1572768814 instance=ExtResource("30_fast")]
-position = Vector2(652, 253)
-
-[node name="FrogEnemy2" parent="." unique_id=1135446713 instance=ExtResource("30_fast")]
-position = Vector2(715, 227)
+offset_left = -16.0
+offset_top = -36.0
+offset_right = -16.0
+offset_bottom = -36.0

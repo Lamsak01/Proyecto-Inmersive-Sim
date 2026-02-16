@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://caj0p6hgei4v0"
-path="res://.godot/imported/iron_sword.png-711c407493100ced7a8b7529c3c06316.ctex"
+uid="uid://c6msk67ild2x7"
+path="res://.godot/imported/house_wall_side.png-5c75c06ed597ddec226f4d735c88400c.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assests/items/iron_sword.png"
-dest_files=["res://.godot/imported/iron_sword.png-711c407493100ced7a8b7529c3c06316.ctex"]
+source_file="res://assests/world/house_wall_side.png"
+dest_files=["res://.godot/imported/house_wall_side.png-5c75c06ed597ddec226f4d735c88400c.ctex"]
 
 [params]
 

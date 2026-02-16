@@ -1,10 +1,11 @@
 [gd_resource type="Resource" script_class="InventoryItem" format=3 uid="uid://csv3lvn16d5s5"]
 
 [ext_resource type="Script" uid="uid://dcagrni1suivl" path="res://scripts/resources/InventoryItem.gd" id="1_potion"]
-[ext_resource type="Texture2D" uid="uid://bhljjy6rycq4b" path="res://assests/effects/hit_effect.png" id="2_tip3f"]
+[ext_resource type="Texture2D" path="res://assests/items/potion.png" id="2_tip3f"]
 
 [resource]
 script = ExtResource("1_potion")
 name = "Health Potion"
-description = "Restores 50 HP"
+description = "Restores health when consumed."
 texture = ExtResource("2_tip3f")
+grid_size = Vector2i(1, 1)

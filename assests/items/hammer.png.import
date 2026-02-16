@@ -2,12 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://cvc4m2p5p24lv"
-valid=false
+uid="uid://bxtmkv0155ny2"
+path="res://.godot/imported/hammer.png-e126ffa339f3c8b1db11a3bc9d63c8b6.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
-source_file="res://assests/generated/hammer.png"
+source_file="res://assests/items/hammer.png"
+dest_files=["res://.godot/imported/hammer.png-e126ffa339f3c8b1db11a3bc9d63c8b6.ctex"]
 
 [params]
 

@@ -1,21 +1,21 @@
-[gd_scene load_steps=5 format=3 uid="uid://weak_wall_object"]
+[gd_scene load_steps=5 format=3]
 
 [ext_resource type="PackedScene" uid="uid://destructible_base" path="res://scenes/obstacles/DestructibleObject.tscn" id="1_base"]
-[ext_resource type="Texture2D" path="res://assests/world/tree.png" id="2_sprite"]
+[ext_resource type="Texture2D" path="res://assests/world/weak_wall.png" id="2_sprite"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_wall"]
-size = Vector2(32, 64)
+size = Vector2(64, 2)
 
 [node name="WeakWall" instance=ExtResource("1_base")]
 vulnerability = 2
 
 [node name="Sprite2D" parent="." index="0"]
 texture = ExtResource("2_sprite")
-position = Vector2(0, -16)
-modulate = Color(0.4, 0.4, 0.4, 1)
+offset = Vector2(0, -48)
+modulate = Color(1, 1, 1, 1)
 
 [node name="CollisionShape2D" parent="." index="1"]
-position = Vector2(0, -16)
+position = Vector2(0, -17)
 shape = SubResource("RectangleShape2D_wall")
 
 [node name="HealthComponent" parent="." index="2"]

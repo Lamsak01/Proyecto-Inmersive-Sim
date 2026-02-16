@@ -30,3 +30,16 @@ func close_door() -> void:
 	if sprite: sprite.modulate.a = 1.0 # Opaque/Closed visual
 	if indicator: indicator.color = Color.RED
 	print("Door Closed!")
+
+func take_damage(data: DamageData) -> void:
+	# Allow breaking the door with BLUNT weapons (Hammer)
+	if data.type == CombatConstants.DamageType.BLUNT:
+		print("Door smashed open!")
+		break_door()
+
+func break_door() -> void:
+	if collision: collision.set_deferred("disabled", true)
+	if sprite: 
+		sprite.modulate = Color(0.5, 0.5, 0.5, 1.0) # Greyed out / broken
+		sprite.rotation_degrees = 15 # Skewed
+	if indicator: indicator.color = Color.BLACK # No power/broken

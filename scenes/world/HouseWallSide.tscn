@@ -1,0 +1,18 @@
+[gd_scene load_steps=4 format=3 uid="uid://housewallside"]
+
+[ext_resource type="Texture2D" path="res://assests/world/house_wall_side.png" id="1_tex"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_col"]
+size = Vector2(10, 20)
+
+[node name="HouseWallSide" type="StaticBody2D"]
+y_sort_enabled = true
+
+[node name="Sprite2D" type="Sprite2D" parent="."]
+texture = ExtResource("1_tex")
+offset = Vector2(0, -48)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+position = Vector2(0, -17)
+shape = SubResource("RectangleShape2D_col")
+debug_color = Color(0, 0.6, 0.7, 0.42)

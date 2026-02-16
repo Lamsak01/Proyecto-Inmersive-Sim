@@ -1,0 +1,38 @@
+[gd_scene load_steps=6 format=3]
+
+[ext_resource type="Texture2D" path="res://assests/world/house_door_side.png" id="1_tex"]
+[ext_resource type="Script" path="res://scripts/obstacles/DestructibleObject.gd" id="2_destruct"]
+[ext_resource type="Script" path="res://scripts/systems/combat/HealthComponent.gd" id="3_health"]
+[ext_resource type="Script" path="res://scripts/world/OverheadFader.gd" id="4_fader"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_col"]
+size = Vector2(16, 16)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_fade"]
+size = Vector2(32, 96)
+
+[node name="HouseDoorSide" type="StaticBody2D"]
+y_sort_enabled = true
+script = ExtResource("2_destruct")
+vulnerability = 2
+
+[node name="Sprite2D" type="Sprite2D" parent="."]
+position = Vector2(0, -48)
+texture = ExtResource("1_tex")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+position = Vector2(0, -8)
+shape = SubResource("RectangleShape2D_col")
+debug_color = Color(0, 0.6, 0.7, 0.42)
+
+[node name="HealthComponent" type="Node" parent="."]
+script = ExtResource("3_health")
+max_health = 20.0
+
+[node name="OverheadArea" type="Area2D" parent="."]
+script = ExtResource("4_fader")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="OverheadArea"]
+position = Vector2(0, -48)
+shape = SubResource("RectangleShape2D_fade")
+debug_color = Color(0.7, 0, 0.7, 0.42)

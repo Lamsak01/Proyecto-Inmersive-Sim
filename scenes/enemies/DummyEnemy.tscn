@@ -1,12 +1,12 @@
-[gd_scene load_steps=16 format=3 uid="uid://dummyenemy"]
+[gd_scene format=3 uid="uid://dummyenemy"]
 
-[ext_resource type="Script" path="res://scripts/enemies/DummyEnemy.gd" id="1_script"]
-[ext_resource type="Texture2D" path="res://assests/enemies/bat_fixed.png" id="2_sprite"]
-[ext_resource type="Script" path="res://scripts/systems/combat/HealthComponent.gd" id="3_health"]
-[ext_resource type="Script" path="res://scripts/systems/combat/ArmorComponent.gd" id="4_armor"]
-[ext_resource type="Script" path="res://scripts/systems/ai/EnemyAI.gd" id="5_ai"]
-[ext_resource type="Script" path="res://scripts/ui/AlertIndicator.gd" id="6_alert"]
-[ext_resource type="Script" path="res://scripts/ui/VisionCone2D.gd" id="7_cone"]
+[ext_resource type="Script" uid="uid://bfqhfgm7hp6oj" path="res://scripts/enemies/DummyEnemy.gd" id="1_script"]
+[ext_resource type="Texture2D" uid="uid://k01sasvg3f6n" path="res://assests/enemies/bat_fixed.png" id="2_sprite"]
+[ext_resource type="Script" uid="uid://bq0toefgnjkw4" path="res://scripts/systems/combat/HealthComponent.gd" id="3_health"]
+[ext_resource type="Script" uid="uid://dqry6bpv4rq78" path="res://scripts/systems/combat/ArmorComponent.gd" id="4_armor"]
+[ext_resource type="Script" uid="uid://b81sbakbycvb2" path="res://scripts/systems/ai/EnemyAI.gd" id="5_ai"]
+[ext_resource type="Script" uid="uid://cv6yrhvau1lih" path="res://scripts/ui/AlertIndicator.gd" id="6_alert"]
+[ext_resource type="Script" uid="uid://b37cpqxetfqiq" path="res://scripts/ui/VisionCone2D.gd" id="7_cone"]
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_fly1"]
 atlas = ExtResource("2_sprite")
@@ -60,19 +60,18 @@ bg_color = Color(0, 0, 0, 0.5)
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_fill"]
 bg_color = Color(1, 1, 1, 1)
 
-[node name="DummyEnemy" type="CharacterBody2D" groups=["enemies"]]
+[node name="DummyEnemy" type="CharacterBody2D" unique_id=1284806797 groups=["enemies"]]
+position = Vector2(175, 165)
 collision_layer = 4
 collision_mask = 3
 script = ExtResource("1_script")
 
-[node name="VisionCone2D" type="Node2D" parent="."]
+[node name="VisionCone2D" type="Node2D" parent="." unique_id=382375447]
 position = Vector2(0, -12)
 script = ExtResource("7_cone")
-radius = 150.0
 angle_deg = 90.0
-color = Color(0, 1, 0, 0.2)
 
-[node name="PromptLabel" type="Label" parent="."]
+[node name="PromptLabel" type="Label" parent="." unique_id=70227390]
 visible = false
 offset_left = -20.0
 offset_top = -60.0
@@ -82,40 +81,34 @@ text = "[E]"
 horizontal_alignment = 1
 vertical_alignment = 1
 
-[node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="."]
+[node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="." unique_id=2002663316]
 modulate = Color(1, 0, 0, 1)
 sprite_frames = SubResource("SpriteFrames_bat")
 animation = &"fly"
 autoplay = "fly"
 offset = Vector2(0, -6)
 
-[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+[node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=1979526802]
 position = Vector2(0, -12)
 shape = SubResource("CircleShape2D_collision")
 
-[node name="HealthComponent" type="Node" parent="."]
+[node name="HealthComponent" type="Node" parent="." unique_id=1700887574]
 script = ExtResource("3_health")
 max_health = 50.0
 
-[node name="ArmorComponent" type="Node" parent="."]
+[node name="ArmorComponent" type="Node" parent="." unique_id=792091395]
 script = ExtResource("4_armor")
 
-[node name="EnemyAI" type="Node" parent="."]
+[node name="EnemyAI" type="Node" parent="." unique_id=1896956555]
 script = ExtResource("5_ai")
-detection_range = 150.0
 attack_range = 30.0
 chase_speed = 50.0
-attack_cooldown = 1.5
-attack_damage = 5.0
-awareness_fill_time = 2.0
-awareness_drain_time = 3.0
-flee_health_threshold = 0.0
 
-[node name="AlertIndicator" type="Node2D" parent="."]
+[node name="AlertIndicator" type="Node2D" parent="." unique_id=926471501]
 position = Vector2(0, -32)
 script = ExtResource("6_alert")
 
-[node name="ProgressBar" type="ProgressBar" parent="AlertIndicator"]
+[node name="ProgressBar" type="ProgressBar" parent="AlertIndicator" unique_id=1637902602]
 anchors_preset = 8
 anchor_left = 0.5
 anchor_top = 0.5
@@ -131,8 +124,9 @@ theme_override_styles/background = SubResource("StyleBoxFlat_bg")
 theme_override_styles/fill = SubResource("StyleBoxFlat_fill")
 value = 50.0
 show_percentage = false
+metadata/_edit_use_anchors_ = true
 
-[node name="NavigationAgent2D" type="NavigationAgent2D" parent="."]
+[node name="NavigationAgent2D" type="NavigationAgent2D" parent="." unique_id=2046003557]
 path_desired_distance = 15.0
 target_desired_distance = 20.0
 path_max_distance = 50.0

@@ -4,6 +4,8 @@ extends Node
 @export var dialogue_text: Label
 @export var choices_box: VBoxContainer
 
+signal dialogue_finished(last_id: String)
+
 var graph: Dictionary = {}
 var current_id: String = ""
 var active: bool = false
@@ -47,6 +49,7 @@ func start_dialogue(new_graph: Dictionary, start_id: String) -> void:
 
 func end_dialogue() -> void:
 	active = false
+	dialogue_finished.emit(current_id)
 	if dialogue_box:
 		dialogue_box.visible = false
 	if choices_box:

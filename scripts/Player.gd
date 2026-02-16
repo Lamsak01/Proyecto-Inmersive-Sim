@@ -32,6 +32,13 @@ func _play_idle() -> void:
 
 
 func _physics_process(delta: float) -> void:
+	# Block movement interactions if dialogue is active
+	if dialogue_manager and dialogue_manager.has_method("is_active") and dialogue_manager.call("is_active"):
+		velocity = Vector2.ZERO
+		_play_idle()
+		move_and_slide()
+		return
+
 	handle_sprint(delta)
 	
 	var input := Vector2(
@@ -292,7 +299,7 @@ func _try_equip_quick_slot(index: int) -> void:
 		# This part needs to be flexible. For now, hardcode known weapons.
 		if item_name == "Iron Sword":
 			equip_weapon("Sword")
-		elif item_name == "War Hammer":
+		elif item_name == "Sledgehammer" or item_name == "War Hammer":
 			equip_weapon("Hammer")
 		elif item_name == "Health Potion":
 			print("Attempting to use potion. Health: ", health_comp.current_health, " / ", health_comp.max_health)
@@ -352,9 +359,17 @@ func equip_weapon(weapon_name: String) -> void:
 			
 			# Color feedback requested by user
 			if weapon_name == "Hammer":
-				weapon_sprite.modulate = Color(0.2, 0.2, 1.0) # Blue for Hammer
+				weapon_sprite.modulate = Color(0.8, 0.8, 0.8) # Reset color
+				# Hammer Adjustment:
+				# Image is Head Up, Handle Bottom.
+				# We want to hold it by the Handle (Bottom).
+				# Pivot is at (0,0). So we need to shift the texture UP by its height (approx).
+				weapon_sprite.offset = Vector2(-16, -80) # Shift Center-X (-16), Bottom-Y (-80 approx for 96px height)
+				weapon_sprite.rotation_degrees = 0 # Upright
 			else:
-				weapon_sprite.modulate = Color.WHITE # Normal for others
+				weapon_sprite.modulate = Color.WHITE
+				weapon_sprite.offset = Vector2(0, -8) # Default Sword Offset
+				weapon_sprite.rotation_degrees = -45
 
 func attack() -> void:
 	if not equipped_weapon: return
@@ -371,6 +386,8 @@ func attack() -> void:
 	
 	# Detect enemies
 	var bodies = interact_area.get_overlapping_bodies()
+	print("Attacking! Found ", bodies.size(), " bodies in range.")
+	
 	for b in bodies:
 		if b != self and b.has_method("take_damage"):
 			# Directional Check
@@ -383,11 +400,15 @@ func attack() -> void:
 				"left": facing_dir = Vector2.LEFT
 				"right": facing_dir = Vector2.RIGHT
 			
+			var dot = dir_to_target.dot(facing_dir)
+			print("Target: ", b.name, " | Dot: ", dot, " | Required: > 0.5")
+			
 			# Dot product > 0.5 means within ~60 degrees cone in front
-			if dir_to_target.dot(facing_dir) > 0.5:
+			if dot > 0.5:
 				var data = equipped_weapon.damage_data.copy()
 				data.source = self
 				b.take_damage(data)
+				print("Hit registered on: ", b.name)
 
 func _on_died() -> void:
 	print("Player Died!")
