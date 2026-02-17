@@ -1166,6 +1166,7 @@ position = Vector2(216, -13)
 position = Vector2(268, -13)
 
 [node name="WeakWall" parent="." unique_id=1351388070 instance=ExtResource("29_wall")]
+persistence_id = "weak_wall_tutorial_01"
 position = Vector2(55, 22)
 
 [node name="PowerSystem" type="Node2D" parent="." unique_id=344894060]

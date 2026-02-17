@@ -17,6 +17,7 @@ config/icon="res://icon.svg"
 
 [autoload]
 
+GameManager="*res://scripts/systems/GameManager.gd"
 PowerManager="*res://addons/powergrid/managers/PowerNetworkManager.gd"
 ObjectiveManager="*res://scripts/systems/game_objectives/ObjectiveManager.gd"
 

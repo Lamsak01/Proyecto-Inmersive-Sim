@@ -13,10 +13,19 @@ enum Vulnerability {
 @export var visual_node: Node2D
 @export var root_to_free: Node
 
+@export var persistence_id: String = ""
+
 # We use the standard HealthComponent to track HP
 @onready var health_comp: HealthComponent = $HealthComponent
 
 func _ready() -> void:
+	# Check persistence
+	if persistence_id != "":
+		if GameManager.get_flag(persistence_id, false) == true:
+			print("Persisted object ", persistence_id, " remains destroyed.")
+			queue_free()
+			return
+
 	add_to_group("destructible")
 	if health_comp:
 		health_comp.died.connect(_on_died)
@@ -65,6 +74,11 @@ func _play_deflect_effect() -> void:
 
 func _on_died() -> void:
 	print(name, " DESTROYED!")
+	
+	if persistence_id != "":
+		GameManager.set_flag(persistence_id, true)
+		print("Persistence saved for ", persistence_id)
+
 	# Spawn debris/particles here if needed
 	if root_to_free:
 		root_to_free.queue_free()
