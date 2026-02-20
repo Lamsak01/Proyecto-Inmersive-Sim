@@ -6,12 +6,8 @@ extends Area2D
 var player_in_range: Node2D = null
 
 func _ready() -> void:
-	# Connect signals slightly differently for Area2D vs Body
-	# If Player is CharacterBody2D, use body_entered
 	body_entered.connect(_on_body_entered)
 	body_exited.connect(_on_body_exited)
-	
-	# Also connect area_entered in case Player uses an Area for detection (redundancy)
 	area_entered.connect(_on_area_entered)
 	area_exited.connect(_on_area_exited)
 
@@ -25,13 +21,28 @@ func change_scene() -> void:
 		push_error("SceneTeleporter: No target scene path set!")
 		return
 	
+	# Save player state BEFORE changing scene
+	if player_in_range:
+		var player = player_in_range
+		if player.has_node("GridInventory"):
+			print("DEBUG: Saving player state from: ", player.name)
+			GameState.save_player_state(player)
+		elif player.get_parent() and player.get_parent().has_node("GridInventory"):
+			print("DEBUG: Saving player state from parent: ", player.get_parent().name)
+			GameState.save_player_state(player.get_parent())
+		else:
+			print("DEBUG: Could not find GridInventory on player!")
+	
 	call_deferred("_deferred_change_scene")
 
 func _deferred_change_scene() -> void:
 	get_tree().change_scene_to_file(target_scene_path)
 
+func _is_player(node: Node) -> bool:
+	return node.is_in_group("player") or node.name == "Player" or node.name == "PlayerGood"
+
 func _on_body_entered(body: Node2D) -> void:
-	if body.is_in_group("player") or body.name == "Player":
+	if _is_player(body):
 		player_in_range = body
 		print("DEBUG: Player entered teleporter: ", name)
 
@@ -41,15 +52,13 @@ func _on_body_exited(body: Node2D) -> void:
 		print("DEBUG: Player exited teleporter: ", name)
 
 func _on_area_entered(area: Area2D) -> void:
-	# Check if the area belongs to the player
 	var parent = area.get_parent()
-	if parent and (parent.is_in_group("player") or parent.name == "Player"):
+	if parent and _is_player(parent):
 		player_in_range = parent
 		print("DEBUG: Player Area entered teleporter: ", name)
 
 func _on_area_exited(area: Area2D) -> void:
 	var parent = area.get_parent()
 	if parent == player_in_range:
-		# Double check we aren't clearing it if the Body is still there
-		# But simple logic for now:
 		player_in_range = null
+

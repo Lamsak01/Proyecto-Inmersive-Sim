@@ -18,6 +18,10 @@ func _ready() -> void:
 	grid_inventory.item_placed.connect(_on_item_placed)
 	grid_inventory.item_removed.connect(_on_item_removed)
 	
+	# Load any already existing items (e.g., restored by GameState)
+	for item_instance in grid_inventory.placed_items.values():
+		_on_item_placed(item_instance["item"], item_instance["position"])
+		
 	# Initially hide the inventory
 	visible = false
 	

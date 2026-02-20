@@ -131,6 +131,9 @@ func _ready() -> void:
 	
 	_ready_combat_components()
 	_ready_visuals()
+	
+	# Restore inventory from previous scene (if any)
+	GameState.restore_player_state(self)
 
 
 

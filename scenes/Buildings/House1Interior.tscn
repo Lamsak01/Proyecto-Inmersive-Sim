@@ -15,6 +15,10 @@
 [ext_resource type="Texture2D" path="res://assests/Comprados/Epic RPG World - Village(interiors) V1.3/assets/Interiors_tilesets.png" id="13_22g31"]
 [ext_resource type="Texture2D" path="res://assests/Comprados/Epic RPG World - Village(interiors) V1.3/assets/furniture_and_props.png" id="14_qva8s"]
 [ext_resource type="Texture2D" path="res://assests/Comprados/Epic RPG World - The Village V2.1/NPCs/Vendor/vendor-idle.png" id="15_qva8s"]
+[ext_resource type="Script" uid="uid://fhtdltmjrhss" path="res://scenes/ui_root.gd" id="ui_root_script"]
+[ext_resource type="Script" uid="uid://cwop1x02ky2mn" path="res://scenes/dialogue_manager.gd" id="dialogue_script"]
+[ext_resource type="PackedScene" path="res://scenes/ui/InventoryUI.tscn" id="inventory_ui_scene"]
+[ext_resource type="PackedScene" uid="uid://c8q4j5k6l7m8n" path="res://scenes/ui/ObjectiveHUD.tscn" id="objective_hud_scene"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_boundary_h"]
 size = Vector2(239, 15.75)
@@ -18225,11 +18229,13 @@ metadata/_edit_lock_ = true
 position = Vector2(0.5625, 16.5)
 shape = SubResource("RectangleShape2D_a3xw4")
 
-[node name="Player" type="CharacterBody2D" parent="." unique_id=95454369]
+[node name="Player" type="CharacterBody2D" parent="." unique_id=95454369 node_paths=PackedStringArray("dialogue_manager", "hint_label")]
 position = Vector2(17, 80)
 collision_layer = 2
 collision_mask = 5
 script = ExtResource("3_v0qra")
+dialogue_manager = NodePath("../Systems/dialogue_manager")
+hint_label = NodePath("../UI/UIRoot/HintLabel")
 
 [node name="Animations" type="AnimatedSprite2D" parent="Player" unique_id=83666127]
 texture_filter = 1
@@ -18280,3 +18286,82 @@ sprite_frames = SubResource("SpriteFrames_lq7uq")
 animation = &"idle"
 autoplay = "idle"
 frame_progress = 0.14399877
+
+[node name="Systems" type="Node" parent="."]
+
+[node name="dialogue_manager" type="Node" parent="Systems" node_paths=PackedStringArray("dialogue_box", "dialogue_text", "choices_box")]
+script = ExtResource("dialogue_script")
+dialogue_box = NodePath("../../UI/UIRoot/DialogueBox_NEW")
+dialogue_text = NodePath("../../UI/UIRoot/DialogueBox_NEW/Margin/Layout/DialogueText_NEW")
+choices_box = NodePath("../../UI/UIRoot/DialogueBox_NEW/Margin/Layout/ChoisesBox_New")
+
+[node name="UI" type="CanvasLayer" parent="."]
+
+[node name="UIRoot" type="Control" parent="UI" node_paths=PackedStringArray("inventory_ui")]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("ui_root_script")
+inventory_ui = NodePath("InventoryUI")
+
+[node name="HintLabel" type="Label" parent="UI/UIRoot"]
+custom_minimum_size = Vector2(100, 50)
+layout_mode = 0
+offset_right = 40.0
+offset_bottom = 23.0
+
+[node name="DialogueBox_NEW" type="Panel" parent="UI/UIRoot"]
+custom_minimum_size = Vector2(100, 50)
+layout_mode = 1
+anchors_preset = 12
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 0
+
+[node name="Margin" type="MarginContainer" parent="UI/UIRoot/DialogueBox_NEW"]
+custom_minimum_size = Vector2(100, 50)
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/margin_left = 8
+theme_override_constants/margin_top = 8
+theme_override_constants/margin_right = 8
+theme_override_constants/margin_bottom = 8
+
+[node name="Layout" type="VBoxContainer" parent="UI/UIRoot/DialogueBox_NEW/Margin"]
+custom_minimum_size = Vector2(100, 50)
+layout_mode = 2
+alignment = 1
+
+[node name="DialogueText_NEW" type="Label" parent="UI/UIRoot/DialogueBox_NEW/Margin/Layout"]
+custom_minimum_size = Vector2(0, 40)
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_font_sizes/font_size = 18
+autowrap_mode = 3
+
+[node name="ChoisesBox_New" type="VBoxContainer" parent="UI/UIRoot/DialogueBox_NEW/Margin/Layout"]
+custom_minimum_size = Vector2(100, 50)
+layout_mode = 2
+size_flags_horizontal = 4
+size_flags_vertical = 4
+theme_override_constants/separation = 6
+
+[node name="InventoryUI" parent="UI/UIRoot" node_paths=PackedStringArray("grid_inventory") instance=ExtResource("inventory_ui_scene")]
+layout_mode = 1
+grid_inventory = NodePath("../../../Player/GridInventory")
+
+[node name="ObjectiveHUD" parent="UI/UIRoot" instance=ExtResource("objective_hud_scene")]
+layout_mode = 1
+offset_left = -4.0
+offset_top = -58.0
+offset_right = -4.0
+offset_bottom = -58.0
