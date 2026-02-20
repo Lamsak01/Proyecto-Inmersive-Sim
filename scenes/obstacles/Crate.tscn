@@ -1,17 +1,16 @@
-[gd_scene load_steps=5 format=3 uid="uid://crate_object"]
+[gd_scene format=3 uid="uid://ri7b62co8c0p"]
 
-[ext_resource type="PackedScene" uid="uid://destructible_base" path="res://scenes/obstacles/DestructibleObject.tscn" id="1_base"]
-[ext_resource type="Texture2D" uid="uid://dc1ogeoxqpjpu" path="res://assests/world/bush.png" id="2_sprite"]
+[ext_resource type="PackedScene" path="res://scenes/obstacles/DestructibleObject.tscn" id="1_base"]
+[ext_resource type="Texture2D" uid="uid://gwg70rjcxb0b" path="res://assests/Comprados/Epic RPG World - The Village V2.1/tilesets and props/props-sprites/crates_0.png" id="2_166pd"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_crate"]
-size = Vector2(28, 28)
+size = Vector2(28, 32)
 
-[node name="Crate" instance=ExtResource("1_base")]
-vulnerability = 0
+[node name="Crate" unique_id=1421496330 instance=ExtResource("1_base")]
 
 [node name="Sprite2D" parent="." index="0"]
-texture = ExtResource("2_sprite")
 modulate = Color(0.6, 0.4, 0.2, 1)
+texture = ExtResource("2_166pd")
 
 [node name="CollisionShape2D" parent="." index="1"]
 shape = SubResource("RectangleShape2D_crate")

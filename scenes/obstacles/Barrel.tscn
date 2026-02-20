@@ -1,18 +1,19 @@
-[gd_scene load_steps=5 format=3 uid="uid://barrel_object"]
+[gd_scene format=3 uid="uid://byiokpn7rbqrq"]
 
-[ext_resource type="PackedScene" uid="uid://destructible_base" path="res://scenes/obstacles/DestructibleObject.tscn" id="1_base"]
-[ext_resource type="Texture2D" uid="uid://dc1ogeoxqpjpu" path="res://assests/world/bush.png" id="2_sprite"]
+[ext_resource type="PackedScene" path="res://scenes/obstacles/DestructibleObject.tscn" id="1_base"]
+[ext_resource type="Texture2D" uid="uid://c0cj40is1uoko" path="res://assests/Comprados/Epic RPG World - The Village V2.1/tilesets and props/props-sprites/barrels_0.png" id="2_bljec"]
 
 [sub_resource type="CapsuleShape2D" id="CapsuleShape2D_barrel"]
-radius = 12.0
-height = 28.0
+radius = 14.0
+height = 36.0
 
-[node name="Barrel" instance=ExtResource("1_base")]
+[node name="Barrel" unique_id=81620218 instance=ExtResource("1_base")]
 vulnerability = 2
 
 [node name="Sprite2D" parent="." index="0"]
-texture = ExtResource("2_sprite")
 modulate = Color(0.5, 0.5, 0.5, 1)
+position = Vector2(0, -12)
+texture = ExtResource("2_bljec")
 
 [node name="CollisionShape2D" parent="." index="1"]
 shape = SubResource("CapsuleShape2D_barrel")

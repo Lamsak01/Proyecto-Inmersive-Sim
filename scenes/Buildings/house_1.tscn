@@ -1,0 +1,51 @@
+[gd_scene format=3 uid="uid://d2n0jklfuyduf"]
+
+[ext_resource type="Texture2D" uid="uid://biao6mhmupkew" path="res://assests/Comprados/Epic RPG World - The Village V2.1/buildings/Premade_houses3.png" id="1_fmp4r"]
+[ext_resource type="Script" uid="uid://dkcak0k8fah3y" path="res://scripts/resources/SceneTeleporter.gd" id="2_teleport"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_puerta"]
+size = Vector2(42, 57)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_ventana"]
+size = Vector2(34, 28.5)
+
+[node name="House1" type="StaticBody2D" unique_id=1554766417]
+
+[node name="Sprite2D" type="Sprite2D" parent="." unique_id=1137045180]
+position = Vector2(1.4600002, -223.14001)
+scale = Vector2(1.407316, 1.2666935)
+texture = ExtResource("1_fmp4r")
+region_enabled = true
+region_rect = Rect2(1673.0579, 24.121422, 366.94128, 495.03555)
+
+[node name="CollisionPolygon2D" type="CollisionPolygon2D" parent="." unique_id=849581220]
+position = Vector2(-666, -569)
+polygon = PackedVector2Array(435, 497, 433, 569, 503, 570, 502, 591, 613, 591, 617, 617, 631, 617, 631, 611, 702, 611, 702, 617, 717, 617, 721, 592, 833, 592, 833, 569, 901, 569, 898, 502, 843, 403, 669, 391, 500, 408)
+one_way_collision_margin = 29.0
+
+[node name="FrontDoor" type="Area2D" parent="." unique_id=149904685]
+position = Vector2(-439, -148)
+collision_mask = 2
+script = ExtResource("2_teleport")
+target_scene_path = "res://scenes/Buildings/House1Interior.tscn"
+groups=["interactable"]
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="FrontDoor" unique_id=567890123]
+position = Vector2(440, 181)
+shape = SubResource("RectangleShape2D_puerta")
+
+[node name="Window1" type="Area2D" parent="." unique_id=444385117]
+position = Vector2(-665, -579)
+groups=["interactable"]
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Window1" unique_id=678901234]
+position = Vector2(770, 572.5)
+shape = SubResource("RectangleShape2D_ventana")
+
+[node name="Window2" type="Area2D" parent="." unique_id=1206394515]
+position = Vector2(-665, -579)
+groups=["interactable"]
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Window2" unique_id=789012345]
+position = Vector2(562, 572.75)
+shape = SubResource("RectangleShape2D_ventana")

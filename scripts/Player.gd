@@ -119,6 +119,7 @@ func _check_stealth_takedown() -> void:
 func _ready() -> void:
 	# Add to group for enemy detection
 	add_to_group("player")
+	print("DEBUG: Player Ready. InteractArea: ", interact_area, " | Monitoring: ", interact_area.monitoring, " | Monitorable: ", interact_area.monitorable)
 	
 	if hint_label:
 		hint_label.text = ""
@@ -161,18 +162,24 @@ func _handle_interactions() -> void:
 		return
 
 	# 2) Solo interactúa cuando presionas la tecla
-	if not Input.is_action_just_pressed("Interact"):
-		return
-
-	var overlaps := interact_area.get_overlapping_areas()
-	for a in overlaps:
-		if a.is_in_group("interactable"):
-			if a.has_method("interact"):
-				a.interact(self)
-				return
-			elif a.get_parent().has_method("interact"):
-				a.get_parent().interact(self)
-				return
+	if Input.is_action_just_pressed("Interact"):
+		print("DEBUG: Interact key pressed!")
+		var overlaps := interact_area.get_overlapping_areas()
+		print("DEBUG: Overlapping areas count: ", overlaps.size())
+		
+		for a in overlaps:
+			print("DEBUG: Checking area: ", a.name, " | Groups: ", a.get_groups())
+			if a.is_in_group("interactable"):
+				if a.has_method("interact"):
+					print("DEBUG: Calling interact() on ", a.name)
+					a.interact(self)
+					return
+				elif a.get_parent().has_method("interact"):
+					print("DEBUG: Calling parent interact() on ", a.get_parent().name)
+					a.get_parent().interact(self)
+					return
+			else:
+				print("DEBUG: Area ", a.name, " is NOT in interactable group.")
 
 func show_hint(_text: String) -> void:
 	pass
@@ -287,6 +294,10 @@ func _unhandled_input(event: InputEvent) -> void:
 
 	if event.is_action_pressed("ui_accept"): # Space bar by default
 		attack()
+
+	if event.is_action_pressed("Interact"):
+		print("DEBUG: Interact pressed in _unhandled_input. Calling _handle_interactions manually.")
+		_handle_interactions()
 
 func _try_equip_quick_slot(index: int) -> void:
 	if not grid_inventory:
