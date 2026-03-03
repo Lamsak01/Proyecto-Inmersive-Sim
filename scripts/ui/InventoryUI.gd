@@ -22,6 +22,9 @@ func _ready() -> void:
 	for item_instance in grid_inventory.placed_items.values():
 		_on_item_placed(item_instance["item"], item_instance["position"])
 		
+	# Refresh UI for quick slots restored by GameState
+	refresh_quick_slots()
+		
 	# Initially hide the inventory
 	visible = false
 	

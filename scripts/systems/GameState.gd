@@ -10,6 +10,7 @@ var saved_inventory: Array[Dictionary] = []
 var saved_quick_slots: Dictionary = {}
 var saved_keys: Array[String] = []
 var saved_equipped_weapon: String = ""
+var next_spawn_direction: String = ""
 var has_saved_data: bool = false
 
 func save_player_state(player: Node) -> void:
@@ -95,5 +96,9 @@ func restore_player_state(player: Node) -> void:
 		var weapon_data = load(saved_equipped_weapon)
 		if weapon_data:
 			player.equipped_weapon = weapon_data
+			
+	if next_spawn_direction != "":
+		player.set("last_dir", next_spawn_direction)
+		next_spawn_direction = ""
 	
 	print("GameState: Player state restored. Items: ", saved_inventory.size())

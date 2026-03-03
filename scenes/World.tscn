@@ -44,6 +44,13 @@
 [ext_resource type="PackedScene" path="res://scenes/power/Generator.tscn" id="Gen_Proto"]
 [ext_resource type="PackedScene" uid="uid://d2n0jklfuyduf" path="res://scenes/Buildings/house_1.tscn" id="House1_Scene"]
 [ext_resource type="PackedScene" uid="uid://c8q4j5k6l7m8n" path="res://scenes/ui/ObjectiveHUD.tscn" id="HUD_Objective"]
+[ext_resource type="Script" uid="uid://ctg1p0fk3av0g" path="res://scripts/PlayerCombatController.gd" id="p_combat_ctrl"]
+[ext_resource type="Script" uid="uid://d11qs7wjr53kg" path="res://scripts/systems/combat/EquipmentComponent.gd" id="p_equip_comp"]
+[ext_resource type="Script" path="res://scripts/enemies/DetectionArea.gd" id="p_detect_comp"]
+[ext_resource type="Script" uid="uid://clphih8x2p40r" path="res://scripts/systems/combat/Hurtbox.gd" id="p_hurt_comp"]
+[ext_resource type="Script" uid="uid://pt5tc5urgcpy" path="res://scripts/PlayerMovementController.gd" id="p_move_ctrl"]
+[ext_resource type="Script" uid="uid://bogdy26s07ujr" path="res://scripts/systems/combat/StaminaComponent.gd" id="p_stam_comp"]
+[ext_resource type="Script" uid="uid://c3o7b38f2j6n8" path="res://scripts/systems/combat/StunComponent.gd" id="p_stun_comp"]
 
 [sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_jot8m"]
 texture = ExtResource("10_302v5")
@@ -29896,6 +29903,36 @@ shape = SubResource("RectangleShape2D_hlk0d")
 [node name="GridInventory" type="Node" parent="Entities/PlayerGood" unique_id=212467440]
 script = ExtResource("1_128ka")
 
+[node name="PlayerMovementController" type="Node" parent="Entities/PlayerGood" unique_id=1202392998]
+script = ExtResource("p_move_ctrl")
+
+[node name="PlayerCombatController" type="Node" parent="Entities/PlayerGood" unique_id=315561220]
+script = ExtResource("p_combat_ctrl")
+
+[node name="HealthComponent" type="Node" parent="Entities/PlayerGood" unique_id=42952094]
+script = ExtResource("26_health")
+
+[node name="StaminaComponent" type="Node" parent="Entities/PlayerGood" unique_id=592251155]
+script = ExtResource("p_stam_comp")
+
+[node name="StunComponent" type="Node" parent="Entities/PlayerGood" unique_id=1238584718]
+script = ExtResource("p_stun_comp")
+
+[node name="ArmorComponent" type="Node" parent="Entities/PlayerGood" unique_id=40767251]
+script = ExtResource("28_cgwb4")
+
+[node name="EquipmentComponent" type="Node" parent="Entities/PlayerGood" unique_id=375807115]
+script = ExtResource("p_equip_comp")
+
+[node name="Hurtbox" type="Area2D" parent="Entities/PlayerGood" unique_id=1766272865]
+collision_layer = 2
+collision_mask = 0
+script = ExtResource("p_hurt_comp")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Entities/PlayerGood/Hurtbox" unique_id=1542278323]
+position = Vector2(1, -13)
+shape = SubResource("CapsuleShape2D_rvslj")
+
 [node name="Guia" type="CharacterBody2D" parent="Entities" unique_id=909967902 node_paths=PackedStringArray("dialogue_manager", "enemy_ai") groups=["interactable"]]
 position = Vector2(264, 53)
 script = ExtResource("13_i4b1j")
@@ -29927,6 +29964,24 @@ frame_progress = 0.8195581
 [node name="EnemyAI" type="Node" parent="Entities/Guia" unique_id=477078885]
 script = ExtResource("26_1bdwf")
 metadata/_custom_type_script = "uid://b81sbakbycvb2"
+
+[node name="DetectionArea" type="Area2D" parent="Entities/Guia" unique_id=1742517262]
+collision_layer = 0
+collision_mask = 2
+script = ExtResource("p_detect_comp")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Entities/Guia/DetectionArea" unique_id=236813773]
+position = Vector2(0, -9)
+shape = SubResource("CapsuleShape2D_rvslj")
+
+[node name="Hurtbox" type="Area2D" parent="Entities/Guia" unique_id=1781018610]
+collision_layer = 4
+collision_mask = 0
+script = ExtResource("p_hurt_comp")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Entities/Guia/Hurtbox" unique_id=52095126]
+position = Vector2(0, -9)
+shape = SubResource("CapsuleShape2D_rvslj")
 
 [node name="NavigationAgent2D" type="NavigationAgent2D" parent="Entities/Guia" unique_id=121458529]
 

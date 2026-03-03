@@ -5,6 +5,9 @@ extends CharacterBody2D
 @onready var ai: EnemyAI = $EnemyAI
 @onready var alert_indicator: AlertIndicator = $AlertIndicator
 @onready var anim: AnimatedSprite2D = $AnimatedSprite2D
+@onready var hurtbox: Hurtbox = get_node_or_null("Hurtbox")
+
+const FloatingTextScene = preload("res://scenes/ui/FloatingText.tscn")
 
 func _ready() -> void:
 	# Add to player detection group
@@ -23,6 +26,9 @@ func _ready() -> void:
 		ai.attack_triggered.connect(_on_ai_attack)
 		ai.state_changed.connect(_on_ai_state_changed)
 		ai.awareness_changed.connect(_on_ai_awareness_changed)
+	
+	if hurtbox:
+		hurtbox.hit_received.connect(take_damage)
 
 @export var weight: float = 10.0
 var push_velocity: Vector2 = Vector2.ZERO
@@ -94,16 +100,12 @@ func take_damage(data: DamageData) -> void:
 	if ai and (ai.current_state == EnemyAI.State.IDLE or ai.current_state == EnemyAI.State.SEARCH):
 		data.amount *= 3.0
 		# Visual Critical Feedback
-		var label = Label.new()
-		label.text = "CRITICAL!"
-		label.modulate = Color.YELLOW
-		label.scale = Vector2(0.5, 0.5)
-		label.global_position = Vector2(0, -40)
-		add_child(label)
-		var tween = create_tween()
-		tween.tween_property(label, "position:y", -60.0, 0.5)
-		tween.tween_property(label, "modulate:a", 0.0, 0.5)
-		tween.tween_callback(label.queue_free)
+		if FloatingTextScene:
+			var floating_text = FloatingTextScene.instantiate()
+			floating_text.start_text = "CRITICAL!"
+			floating_text.text_color = Color.YELLOW
+			floating_text.global_position = global_position + Vector2(0, -40)
+			get_tree().current_scene.add_child(floating_text)
 
 	if health_comp:
 		health_comp.take_damage(data)

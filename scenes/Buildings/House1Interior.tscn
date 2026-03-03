@@ -19,6 +19,14 @@
 [ext_resource type="PackedScene" path="res://scenes/ui/InventoryUI.tscn" id="inventory_ui_scene"]
 [ext_resource type="PackedScene" uid="uid://c8q4j5k6l7m8n" path="res://scenes/ui/ObjectiveHUD.tscn" id="objective_hud_scene"]
 [ext_resource type="Script" uid="uid://fhtdltmjrhss" path="res://scenes/ui_root.gd" id="ui_root_script"]
+[ext_resource type="Script" path="res://scripts/PlayerMovementController.gd" id="p_move_ctrl"]
+[ext_resource type="Script" path="res://scripts/PlayerCombatController.gd" id="p_combat_ctrl"]
+[ext_resource type="Script" path="res://scripts/systems/combat/HealthComponent.gd" id="p_hlth_comp"]
+[ext_resource type="Script" path="res://scripts/systems/combat/StaminaComponent.gd" id="p_stam_comp"]
+[ext_resource type="Script" path="res://scripts/systems/combat/StunComponent.gd" id="p_stun_comp"]
+[ext_resource type="Script" uid="uid://dqry6bpv4rq78" path="res://scripts/systems/combat/ArmorComponent.gd" id="p_armr_comp"]
+[ext_resource type="Script" path="res://scripts/systems/combat/EquipmentComponent.gd" id="p_equip_comp"]
+[ext_resource type="Script" path="res://scripts/systems/combat/Hurtbox.gd" id="p_hurt_comp"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_boundary_h"]
 size = Vector2(239, 15.75)
@@ -18261,6 +18269,37 @@ collision_mask = 5
 shape = SubResource("RectangleShape2D_lq7uq")
 
 [node name="GridInventory" type="Node" parent="Player" unique_id=1004778027]
+script = ExtResource("12_1g20e")
+
+[node name="PlayerMovementController" type="Node" parent="Player"]
+script = ExtResource("p_move_ctrl")
+
+[node name="PlayerCombatController" type="Node" parent="Player"]
+script = ExtResource("p_combat_ctrl")
+
+[node name="HealthComponent" type="Node" parent="Player"]
+script = ExtResource("p_hlth_comp")
+
+[node name="StaminaComponent" type="Node" parent="Player"]
+script = ExtResource("p_stam_comp")
+
+[node name="StunComponent" type="Node" parent="Player"]
+script = ExtResource("p_stun_comp")
+
+[node name="ArmorComponent" type="Node" parent="Player"]
+script = ExtResource("p_armr_comp")
+
+[node name="EquipmentComponent" type="Node" parent="Player"]
+script = ExtResource("p_equip_comp")
+
+[node name="Hurtbox" type="Area2D" parent="Player"]
+collision_layer = 2
+collision_mask = 0
+script = ExtResource("p_hurt_comp")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Player/Hurtbox"]
+position = Vector2(1, -13)
+shape = SubResource("CapsuleShape2D_re7s6")
 script = ExtResource("12_1g20e")
 
 [node name="Tiles" type="Node2D" parent="." unique_id=253682510]

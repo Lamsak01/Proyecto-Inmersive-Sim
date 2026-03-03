@@ -56,3 +56,20 @@ Hoy se ha implementado el **Sistema de Misiones** y se ha integrado el **Sistema
 
 ---
 *Cambios aplicados por Antigravity (Assistant).*
+
+# Registro de Cambios - 03/03/2026
+
+Hoy se realizaron ajustes de usabilidad, persistencia de interfaz y correcciones vitales para las transiciones de escena.
+
+## 🛠️ Sistemas de Persistencia e Interfaz
+- **Hotkeys de Inventario:** Se solucionó el problema por el cual los atajos rápidos del inventario (numéricos) no se refrescaban visualmente en la interfaz después de cambiar de mapa. Añadido el recálculo visual en la inicialización post-restauración del `GameState`.
+- **Orientación Dinámica del Jugador:** 
+    - Se añadió una nueva variable persistente `next_spawn_direction` en el `GameState`.
+    - Ahora, el jugador conservará su orientación base por defecto (mirando hacia abajo, `down`) al reaparecer en el mundo libre.
+    - Sin embargo, al transicionar directamente al interior de las casas (`House1Interior.tscn`), el motor detectará el destino y forzará al jugador a aparecer mirando hacia arriba (`up`), de espaldas a la cámara, simulando que acaba de entrar por la puerta.
+
+## ⚡ Rendimiento de Transiciones
+- **Corrección de Cuasi-Deadlocks (Congelamiento):** Se revirtió temporalmente la carga asíncrona de Background en hilos secundaria a través del `SceneTeleporter` debido a un cuello de botella de inicialización térmica y lógica (`ResourceLoader`). Se re-estableció el flujo directo y determinístico que evita crasheos y bloqueos totales en hardware especifico durante las recargas del árbol gráfico.
+
+---
+*Cambios aplicados por Antigravity (Assistant).*

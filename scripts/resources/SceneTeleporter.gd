@@ -33,6 +33,12 @@ func change_scene() -> void:
 		else:
 			print("DEBUG: Could not find GridInventory on player!")
 	
+	# Setup target direction based on the destination scene
+	if target_scene_path.get_file() == "House1Interior.tscn":
+		GameState.next_spawn_direction = "up"
+	elif target_scene_path.get_file() == "World.tscn":
+		GameState.next_spawn_direction = "down"
+
 	call_deferred("_deferred_change_scene")
 
 func _deferred_change_scene() -> void:
@@ -61,4 +67,3 @@ func _on_area_exited(area: Area2D) -> void:
 	var parent = area.get_parent()
 	if parent == player_in_range:
 		player_in_range = null
-

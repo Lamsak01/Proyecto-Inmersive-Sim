@@ -31,11 +31,12 @@ var danger_map: Array[float] = []
 var num_rays: int = 8
 var look_ahead: float = 50.0
 
-@onready var parent: CharacterBody2D = get_parent()
-@onready var nav_agent: NavigationAgent2D = $"../NavigationAgent2D"
+@onready var parent: CharacterBody2D = get_parent() as CharacterBody2D
+@onready var nav_agent: NavigationAgent2D = get_node_or_null("../NavigationAgent2D")
+@onready var detection_area: DetectionArea = get_node_or_null("../DetectionArea")
 
 func _ready() -> void:
-	if not parent is CharacterBody2D:
+	if parent == null:
 		push_error("EnemyAI must be child of CharacterBody2D")
 	spawn_position = parent.global_position
 	
@@ -355,14 +356,13 @@ func _on_health_changed(current: float, max_health: float) -> void:
 				_change_state(State.FLEE)
 
 func _find_player_in_range(max_range: float) -> Node2D:
-	# Get all nodes in "player" group
-	var players = get_tree().get_nodes_in_group("player")
+	if not detection_area:
+		# Fallback if detection area not assigned, wait, we MUST assign it
+		return null
 	
-	for p in players:
-		if p is Node2D:
-			var distance = parent.global_position.distance_to(p.global_position)
-			if distance <= max_range:
-				return p
+	var closest = detection_area.get_closest_target(parent.global_position)
+	if closest and parent.global_position.distance_to(closest.global_position) <= max_range:
+		return closest
 	
 	return null
 

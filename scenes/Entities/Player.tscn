@@ -9,8 +9,15 @@
 [ext_resource type="Texture2D" uid="uid://byec1uwm2b0av" path="res://assests/player/sprites/RUN/run_left.png" id="7_run_left"]
 [ext_resource type="Texture2D" uid="uid://cuqdqfvg8dp3" path="res://assests/player/sprites/RUN/run_right.png" id="8_run_right"]
 [ext_resource type="Texture2D" uid="uid://dxcat462yd5la" path="res://assests/player/sprites/RUN/run_up.png" id="9_run_up"]
-[ext_resource type="Script" uid="uid://cpfptoc3dt44g" path="res://scripts/systems/GridInventory.gd" id="10_inv"]
-
+[ext_resource type="Script" path="res://scripts/systems/GridInventory.gd" id="10_inv"]
+[ext_resource type="Script" path="res://scripts/PlayerMovementController.gd" id="11_move"]
+[ext_resource type="Script" path="res://scripts/PlayerCombatController.gd" id="12_combat"]
+[ext_resource type="Script" path="res://scripts/systems/combat/HealthComponent.gd" id="13_hc"]
+[ext_resource type="Script" path="res://scripts/systems/combat/StaminaComponent.gd" id="14_sc"]
+[ext_resource type="Script" path="res://scripts/systems/combat/StunComponent.gd" id="15_stc"]
+[ext_resource type="Script" path="res://scripts/systems/combat/ArmorComponent.gd" id="16_ac"]
+[ext_resource type="Script" path="res://scripts/systems/combat/EquipmentComponent.gd" id="17_ec"]
+[ext_resource type="Script" path="res://scripts/systems/combat/Hurtbox.gd" id="18_hurtbox"]
 [sub_resource type="AtlasTexture" id="AtlasTexture_n2fr6"]
 atlas = ExtResource("2_idle_down")
 region = Rect2(0, 0, 96, 80)
@@ -541,3 +548,33 @@ shape = SubResource("RectangleShape2D_lq7uq")
 
 [node name="GridInventory" type="Node" parent="." unique_id=1002740653]
 script = ExtResource("10_inv")
+
+[node name="PlayerMovementController" type="Node" parent="."]
+script = ExtResource("11_move")
+
+[node name="PlayerCombatController" type="Node" parent="."]
+script = ExtResource("12_combat")
+
+[node name="HealthComponent" type="Node" parent="."]
+script = ExtResource("13_hc")
+
+[node name="StaminaComponent" type="Node" parent="."]
+script = ExtResource("14_sc")
+
+[node name="StunComponent" type="Node" parent="."]
+script = ExtResource("15_stc")
+
+[node name="ArmorComponent" type="Node" parent="."]
+script = ExtResource("16_ac")
+
+[node name="EquipmentComponent" type="Node" parent="."]
+script = ExtResource("17_ec")
+
+[node name="Hurtbox" type="Area2D" parent="."]
+collision_layer = 2
+collision_mask = 0
+script = ExtResource("18_hurtbox")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Hurtbox"]
+position = Vector2(1, -13)
+shape = SubResource("CapsuleShape2D_re7s6")

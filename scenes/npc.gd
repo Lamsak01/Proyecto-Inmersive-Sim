@@ -2,6 +2,7 @@ extends CharacterBody2D
 
 @export var dialogue_manager: Node
 @onready var anim: AnimatedSprite2D = $AnimatedSprite2D
+@onready var hurtbox: Hurtbox = get_node_or_null("Hurtbox")
 
 @export var enemy_ai: Node # Using generic Node, will cast to EnemyAI if needed
 @export var hostility_threshold: int = 2
@@ -33,6 +34,9 @@ func _ready() -> void:
 			enemy_ai.attack_triggered.connect(_on_enemy_ai_attack)
 		
 	_setup_health()
+	
+	if hurtbox:
+		hurtbox.hit_received.connect(take_damage)
 
 # --- Combat / Health ---
 @onready var health_comp: HealthComponent = HealthComponent.new()

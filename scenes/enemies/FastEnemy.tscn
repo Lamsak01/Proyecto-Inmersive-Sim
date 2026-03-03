@@ -7,6 +7,9 @@
 [ext_resource type="Script" uid="uid://b81sbakbycvb2" path="res://scripts/systems/ai/EnemyAI.gd" id="5_ai"]
 [ext_resource type="Script" uid="uid://cv6yrhvau1lih" path="res://scripts/ui/AlertIndicator.gd" id="6_alert"]
 [ext_resource type="Script" uid="uid://b37cpqxetfqiq" path="res://scripts/ui/VisionCone2D.gd" id="7_cone"]
+[ext_resource type="Script" path="res://scripts/enemies/DetectionArea.gd" id="8_detect"]
+[ext_resource type="Script" path="res://scripts/systems/combat/Hurtbox.gd" id="9_hurtbox"]
+
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_idle1"]
 atlas = ExtResource("2_sprite")
@@ -158,3 +161,20 @@ show_percentage = false
 path_desired_distance = 15.0
 target_desired_distance = 20.0
 path_max_distance = 50.0
+
+[node name="DetectionArea" type="Area2D" parent="."]
+collision_layer = 0
+collision_mask = 2
+script = ExtResource("8_detect")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="DetectionArea"]
+shape = SubResource("CircleShape2D_collision")
+
+[node name="Hurtbox" type="Area2D" parent="."]
+collision_layer = 4
+collision_mask = 0
+script = ExtResource("9_hurtbox")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Hurtbox"]
+shape = SubResource("CircleShape2D_collision")
+
