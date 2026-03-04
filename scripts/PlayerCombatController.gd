@@ -133,9 +133,7 @@ func _check_stealth_takedown() -> void:
         if b.is_in_group("enemies") and b.has_method("knockout") and b.get_node_or_null("EnemyAI"):
             var ai = b.get_node("EnemyAI")
             if ai.current_state == 0 or ai.current_state == 4: # IDLE or SEARCH
-                var enemy_facing = Vector2.DOWN
-                if b.velocity.length() > 0:
-                    enemy_facing = b.velocity.normalized()
+                var enemy_facing = ai.facing_direction
                 
                 var dir_to_player = (player.global_position - b.global_position).normalized()
                 if enemy_facing.dot(dir_to_player) < -0.5:

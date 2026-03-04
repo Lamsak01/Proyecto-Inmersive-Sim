@@ -9,7 +9,6 @@ class_name PlayerMovementController
 var is_sprinting: bool = false
 var is_stealthing: bool = false
 var current_speed: float = 120.0
-var _c_pressed_last_frame: bool = false
 
 @onready var player: CharacterBody2D = get_parent()
 @onready var anim: AnimatedSprite2D = $"../Animations"
@@ -35,6 +34,11 @@ func _physics_process(delta: float) -> void:
     player.move_and_slide()
     _handle_push()
 
+func _unhandled_input(event: InputEvent) -> void:
+    if event is InputEventKey and event.pressed and not event.echo:
+        if event.keycode == KEY_C:
+            is_stealthing = !is_stealthing
+
 func _handle_input(delta: float) -> void:
     var is_sprint_pressed = Input.is_action_pressed("sprint")
     var input := Vector2(
@@ -44,12 +48,6 @@ func _handle_input(delta: float) -> void:
     
     if is_instance_valid(stamina_comp):
         stamina_comp.is_input_blocking = is_sprint_pressed
-    
-    # Toggle Stealth
-    var c_pressed = Input.is_key_pressed(KEY_C)
-    if c_pressed and not _c_pressed_last_frame:
-        is_stealthing = !is_stealthing
-    _c_pressed_last_frame = c_pressed
 
     if is_stealthing:
         is_sprinting = false

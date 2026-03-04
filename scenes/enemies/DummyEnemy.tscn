@@ -56,6 +56,9 @@ animations = [{
 [sub_resource type="CircleShape2D" id="CircleShape2D_collision"]
 radius = 6.0
 
+[sub_resource type="CircleShape2D" id="CircleShape2D_detection"]
+radius = 30.0
+
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_bg"]
 bg_color = Color(0, 0, 0, 0.5)
 
@@ -139,7 +142,7 @@ collision_mask = 2
 script = ExtResource("8_detect")
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="DetectionArea"]
-shape = SubResource("CircleShape2D_collision")
+shape = SubResource("CircleShape2D_detection")
 
 [node name="Hurtbox" type="Area2D" parent="."]
 collision_layer = 4

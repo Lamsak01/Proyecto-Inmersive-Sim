@@ -71,7 +71,7 @@ func restore_player_state(player: Node) -> void:
 	
 	# Restore items
 	for saved in saved_inventory:
-		var item: InventoryItem = load(saved["resource_path"]).duplicate()
+		var item: InventoryItem = load(saved["resource_path"])
 		var pos = Vector2i(saved["position_x"], saved["position_y"])
 		if item:
 			var placed = grid_inv.try_place_item(item, pos, saved["rotated"])

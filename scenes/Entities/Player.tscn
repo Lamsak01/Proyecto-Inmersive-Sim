@@ -514,7 +514,7 @@ radius = 5.0
 height = 28.0
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_lq7uq"]
-size = Vector2(48, 48)
+size = Vector2(80, 80)
 
 [node name="Player" type="CharacterBody2D" unique_id=633451323]
 position = Vector2(17, 80)
