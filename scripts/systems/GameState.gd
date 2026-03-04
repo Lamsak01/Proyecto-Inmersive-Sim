@@ -12,6 +12,13 @@ var saved_keys: Array[String] = []
 var saved_equipped_weapon: String = ""
 var next_spawn_direction: String = ""
 var has_saved_data: bool = false
+var saved_scene_path: String = ""
+var player_health: float = 100.0
+
+# Track states of interactive objects in the world (Generators, Doors, etc.)
+var saved_world_states: Dictionary = {}
+
+const SAVE_PATH = "user://savegame.json"
 
 func save_player_state(player: Node) -> void:
 	saved_inventory.clear()
@@ -102,3 +109,80 @@ func restore_player_state(player: Node) -> void:
 		next_spawn_direction = ""
 	
 	print("GameState: Player state restored. Items: ", saved_inventory.size())
+
+# --- Disk Serialization ---
+
+func save_to_disk() -> void:
+	var save_dict = {
+		"player_health": player_health,
+		"saved_inventory": saved_inventory,
+		"saved_quick_slots": saved_quick_slots,
+		"world_objects": []
+	}
+	
+	for node in get_tree().get_nodes_in_group("saveable"):
+		if node.scene_file_path == "":
+			continue
+			
+		var node_data = {
+			"scene_file_path": node.scene_file_path,
+			"parent_path": str(node.get_parent().get_path()),
+			"pos_x": node.global_position.x,
+			"pos_y": node.global_position.y,
+			"rot": node.global_rotation
+		}
+		
+		if node.has_method("save_state"):
+			node_data["custom_state"] = node.save_state()
+			
+		save_dict["world_objects"].append(node_data)
+		
+	var file = FileAccess.open(SAVE_PATH, FileAccess.WRITE)
+	if file:
+		file.store_string(JSON.stringify(save_dict, "\t"))
+		file.close()
+		print("GameState: Successfully saved to " + SAVE_PATH)
+
+func load_from_disk() -> bool:
+	if not FileAccess.file_exists(SAVE_PATH):
+		print("GameState: No save file found at " + SAVE_PATH)
+		return false
+		
+	var file = FileAccess.open(SAVE_PATH, FileAccess.READ)
+	var json_string = file.get_as_text()
+	file.close()
+	
+	var json = JSON.new()
+	if json.parse(json_string) != OK:
+		push_error("GameState: JSON Parse Error in save file!")
+		return false
+		
+	var data = json.get_data()
+	
+	# Restore memory variables
+	player_health = data.get("player_health", 100.0)
+	saved_inventory = data.get("saved_inventory", []) as Array[Dictionary]
+	saved_quick_slots = data.get("saved_quick_slots", {}) as Dictionary
+	
+	# Clean up current saveables
+	for node in get_tree().get_nodes_in_group("saveable"):
+		node.queue_free()
+		
+	# Reinstantiate saved objects
+	for obj_data in data.get("world_objects", []):
+		var scene_res = load(obj_data["scene_file_path"])
+		if scene_res:
+			var node = scene_res.instantiate()
+			var parent = get_node_or_null(obj_data["parent_path"])
+			if parent:
+				parent.add_child(node)
+				node.global_position = Vector2(obj_data["pos_x"], obj_data["pos_y"])
+				node.global_rotation = obj_data["rot"]
+				node.add_to_group("saveable")
+				
+				if node.has_method("load_state") and obj_data.has("custom_state"):
+					node.load_state(obj_data["custom_state"])
+					
+	has_saved_data = true
+	print("GameState: Successfully loaded from disk!")
+	return true

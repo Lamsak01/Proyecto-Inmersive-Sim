@@ -76,9 +76,16 @@ func _physics_process(delta: float) -> void:
 		var player = get_tree().get_first_node_in_group("player")
 		if player and player.has_method("is_stealthing"):
 			if player.is_stealthing():
+				# Agachado: radio y ángulo reducidos
 				vision_cone.radius = ai.detection_range * 0.5
+				vision_cone.angle_deg = 60.0
 			else:
+				# Normal: ángulo real de _is_in_fov (dot > 0.5 = 120° total)
 				vision_cone.radius = ai.detection_range
+				vision_cone.angle_deg = 120.0
+		else:
+			vision_cone.radius = ai.detection_range
+			vision_cone.angle_deg = 120.0
 
 func show_prompt() -> void:
 	if prompt_label:
@@ -122,6 +129,11 @@ func take_damage(data: DamageData) -> void:
 	modulate = Color(1, 0, 0) # Return to Red
 
 func knockout() -> void:
+	# Instantly disable AI to prevent alerting others during the same frame
+	if is_instance_valid(ai):
+		ai.set_physics_process(false)
+		ai.current_state = EnemyAI.State.IDLE
+
 	if health_comp:
 		# Instant kill
 		var data = DamageData.new()

@@ -9,9 +9,19 @@ func set_powered(val: bool) -> void:
 	super.set_powered(val) # Update internal state
 	_update_door_state()
 
+var is_broken: bool = false
+
 func _ready() -> void:
 	super._ready()
+	add_to_group("saveable")
 	_update_door_state()
+
+func save_state() -> Dictionary:
+	return { "is_broken": is_broken }
+
+func load_state(data: Dictionary) -> void:
+	if data.has("is_broken") and data["is_broken"]:
+		break_door()
 
 func _update_door_state() -> void:
 	if is_powered():
@@ -38,6 +48,7 @@ func take_damage(data: DamageData) -> void:
 		break_door()
 
 func break_door() -> void:
+	is_broken = true
 	if collision: collision.set_deferred("disabled", true)
 	if sprite: 
 		sprite.modulate = Color(0.5, 0.5, 0.5, 1.0) # Greyed out / broken

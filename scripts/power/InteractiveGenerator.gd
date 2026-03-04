@@ -5,7 +5,18 @@ extends PowerGenerator
 
 func _ready() -> void:
 	super._ready() # Initialize PowerGenerator logic
+	add_to_group("saveable")
 	update_visuals()
+
+func save_state() -> Dictionary:
+	return { "enabled": enabled }
+
+func load_state(data: Dictionary) -> void:
+	if data.has("enabled"):
+		enabled = data["enabled"]
+		update_visuals()
+		var pm = _pm()
+		if pm: pm.mark_dirty()
 
 func interact(_player) -> void:
 	enabled = !enabled

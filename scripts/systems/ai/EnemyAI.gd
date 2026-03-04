@@ -17,6 +17,7 @@ signal awareness_changed(level: float, is_alerted: bool)
 @export var awareness_drain_time: float = 3.0
 @export var search_duration: float = 5.0
 @export var hearing_range: float = 60.0
+@export var separation_weight: float = 40.0 # Fuerza de separación entre enemigos
 
 var current_state: State = State.IDLE
 var target: Node2D = null
@@ -41,6 +42,15 @@ var cached_los_target: Node2D = null
 var cached_avoidance_input_dir: Vector2 = Vector2.ZERO
 
 var ghost_instance: Sprite2D = null
+var on_screen_notifier: VisibleOnScreenNotifier2D = null
+
+# Cooldown para _broadcast_alert
+var alert_cooldown_timer: float = 0.0
+const ALERT_COOLDOWN_MAX: float = 3.0
+
+# Timer de gracia tras recibir alerta por radio (evita caer a SEARCH por falta de LOS)
+var broadcast_chase_timer: float = 0.0
+const BROADCAST_CHASE_GRACE: float = 5.0
 
 @onready var parent: CharacterBody2D = get_parent() as CharacterBody2D
 @onready var nav_agent: NavigationAgent2D = get_node_or_null("../NavigationAgent2D")
@@ -71,6 +81,11 @@ func _ready() -> void:
 	if health_comp:
 		health_comp.health_changed.connect(_on_health_changed)
 
+	# Optimization: Create Visibility Notifier to disable raycasts when off-screen
+	on_screen_notifier = VisibleOnScreenNotifier2D.new()
+	on_screen_notifier.rect = Rect2(-30, -30, 60, 60) # Cover common enemy sizes
+	parent.add_child.call_deferred(on_screen_notifier)
+
 var facing_direction: Vector2 = Vector2.RIGHT
 var target_facing_direction: Vector2 = Vector2.RIGHT
 
@@ -80,6 +95,10 @@ func _physics_process(delta: float) -> void:
 		vision_timer -= delta
 	if avoidance_timer > 0:
 		avoidance_timer -= delta
+	if alert_cooldown_timer > 0:
+		alert_cooldown_timer -= delta
+	if broadcast_chase_timer > 0:
+		broadcast_chase_timer -= delta
 		
 	# Update target facing direction based on movement
 	if parent.velocity.length() > 0.1:
@@ -139,11 +158,15 @@ func _process_idle(_delta: float) -> void:
 			_change_state(State.ALERT)
 			return
 
-	# 2. Auditory Detection (Close proximity globally)
-	if distance <= hearing_range and not (player.has_method("is_stealthing") and player.is_stealthing()):
-		# Heard something! Smoothly snap to face it. Next frame visual detection will catch it.
-		target_facing_direction = (player.global_position - parent.global_position).normalized()
-		# We don't change state yet, we just look at them so the vision cone catches them
+	# 2. Auditory Detection (With Physical Raycast Occlusion)
+	if not (player.has_method("is_stealthing") and player.is_stealthing()):
+		# Integración del nuevo método de oclusión acústica
+		var effective_hearing = calculate_auditory_radius(player.global_position)
+		
+		if distance <= effective_hearing:
+			# Heard something! Smoothly snap to face it. Next frame visual detection will catch it.
+			target_facing_direction = (player.global_position - parent.global_position).normalized()
+			# We don't change state yet, we just look at them so the vision cone catches them
 
 func _get_global_player() -> Node2D:
 	return get_tree().get_first_node_in_group("player")
@@ -198,17 +221,41 @@ func _process_chase() -> void:
 	
 	var distance = parent.global_position.distance_to(target.global_position)
 	
-	# Check if lost line of sight OR left FOV entirely
-	var in_fov = _is_in_fov(target)
-	if not _has_line_of_sight(target) or distance > detection_range * 1.5 or not in_fov:
-		# Lost sight! Spawn ghost where we LAST saw them this exact frame
+	# Mantener registro de quién tiene LOS activo al jugador
+	var los_ok = broadcast_chase_timer > 0 or _has_line_of_sight(target)
+	
+	if los_ok and distance <= detection_range * 1.5:
+		# Tenemos LOS real: actualizar posición conocida y registrarse en el grupo global
+		last_known_position = target.global_position
+		if not parent.is_in_group("has_los_to_player"):
+			parent.add_to_group("has_los_to_player")
+	else:
+		# Perdimos LOS o el jugador está demasiado lejos
+		parent.remove_from_group("has_los_to_player")
 		
-		# Always spawn the ghost if we were tracking them and lost them
-		# But omit if they literally teleported thousands of pixels away
-		if distance <= detection_range * 2.5:
-			_spawn_ghost(target.global_position, target)
+		var last_pos = last_known_position if last_known_position != Vector2.ZERO else target.global_position
+		roam_target = last_pos
 		
-		roam_target = target.global_position
+		# ¿Somos el último enemigo con LOS? Solo entonces generamos el fantasma compartido
+		var still_tracking = get_tree().get_nodes_in_group("has_los_to_player")
+		if still_tracking.is_empty() and distance <= detection_range * 2.5:
+			# Generar fantasma único en la última posición conocida
+			_spawn_ghost(last_pos, target)
+			
+			# Notificar a todos los aliados en CHASE o SEARCH con la misma posición
+			for ally in get_tree().get_nodes_in_group("enemies"):
+				if ally == parent: continue
+				var ally_ai = ally.get_node_or_null("EnemyAI")
+				if ally_ai and ally_ai is EnemyAI:
+					if ally_ai.current_state in [State.CHASE, State.SEARCH]:
+						ally_ai.last_known_position = last_pos
+						ally_ai.roam_target = last_pos
+						# Si estaban persiguiendo con un blanco inválido, mandamos a SEARCH
+						if ally_ai.current_state == State.CHASE:
+							ally_ai.target = null
+							ally_ai.broadcast_chase_timer = 0.0
+							ally_ai._change_state(State.SEARCH)
+		
 		target = null
 		_change_state(State.SEARCH)
 		return
@@ -234,7 +281,8 @@ func _process_chase() -> void:
 		desired_direction = (target.global_position - parent.global_position).normalized()
 	
 	var final_direction = _get_avoidance_direction(desired_direction)
-	parent.velocity = final_direction * chase_speed
+	var separation = _calculate_separation_vector()
+	parent.velocity = final_direction * chase_speed + separation * separation_weight
 
 	# Update last known position continuously while chasing
 	last_known_position = target.global_position
@@ -275,30 +323,46 @@ func _process_search(delta: float) -> void:
 		if distance <= detection_range and _is_in_fov(player) and _has_line_of_sight(player):
 			target = player
 			_clear_ghost()
-			_change_state(State.ALERT)
-			awareness_level = 0.5 
+			# Ya estaba buscando; volver a ver al jugador = persecución inmediata
+			awareness_level = 1.0
+			_change_state(State.CHASE)
 			return
 
-	# 2. Auditory Detection Check
+	# 2. Auditory Detection Check (With Physical Raycast Occlusion)
 	var distance_to_player = parent.global_position.distance_to(player.global_position) if player else INF
-	if distance_to_player <= hearing_range and player and not (player.has_method("is_stealthing") and player.is_stealthing()):
-		target_facing_direction = (player.global_position - parent.global_position).normalized()
-		roam_target = player.global_position # Go investigate noise
-		_clear_ghost() # Noise overrides ghost
+	if player and not (player.has_method("is_stealthing") and player.is_stealthing()):
+		# Integración del nuevo método de oclusión acústica
+		var effective_hearing = calculate_auditory_radius(player.global_position)
+		
+		if distance_to_player <= effective_hearing:
+			target_facing_direction = (player.global_position - parent.global_position).normalized()
+			roam_target = player.global_position # Go investigate noise
+			_clear_ghost() # Noise overrides ghost
 
-	# Move towards roam target (ghost or last known pos)
-	if nav_agent.is_navigation_finished() or parent.global_position.distance_to(roam_target) < 20.0:
-		# Randomly pick a new roam point nearby, otherwise spin and wait
-		if randf() < 0.015: # ~1.5% chance per frame (~1 new point every second)
-			var random_offset = Vector2(randf_range(-60, 60), randf_range(-60, 60))
-			roam_target = last_known_position + random_offset
-		else:
-			parent.velocity = Vector2.ZERO
-			target_facing_direction = target_facing_direction.rotated(delta * 2.0) # Spin slowly
+	# Mover hacia el punto de búsqueda actual
+	var arrived = nav_agent.is_navigation_finished() or \
+				  parent.global_position.distance_to(roam_target) < 24.0
+	
+	if arrived:
+		# Elegir el siguiente punto de patrulla alrededor de la última posición conocida
+		# Generamos puntos en un abanico para cubrir el área (N, NE, E, SE, etc.)
+		var search_radius: float = 80.0
+		var points_count: int = 6
+		var angle_step = TAU / points_count
+		
+		# Usar el search_timer como índice de qué punto visitar
+		var point_index = int((search_duration - search_timer) / (search_duration / points_count)) % points_count
+		var angle = point_index * angle_step + PI / 4.0  # Desfase de 45° para que no sea simétrico
+		var offset = Vector2(cos(angle), sin(angle)) * search_radius
+		
+		roam_target = last_known_position + offset
+		target_facing_direction = (roam_target - parent.global_position).normalized()
 	else:
 		_set_movement_target(roam_target)
 		var next_path_pos = nav_agent.get_next_path_position()
 		var dir = (next_path_pos - parent.global_position).normalized()
+		if dir == Vector2.ZERO:
+			dir = (roam_target - parent.global_position).normalized()
 		var final_dir = _get_avoidance_direction(dir)
 		parent.velocity = final_dir * (chase_speed * 0.5)
 	
@@ -320,12 +384,16 @@ func _process_return() -> void:
 			awareness_level = 0.5
 			return
 
-	# 2. Auditory Detection Check
+	# 2. Auditory Detection Check (With Physical Raycast Occlusion)
 	var distance_to_player = parent.global_position.distance_to(player.global_position) if player else INF
-	if distance_to_player <= hearing_range and player and not (player.has_method("is_stealthing") and player.is_stealthing()):
-		target_facing_direction = (player.global_position - parent.global_position).normalized()
-		# We hear them! Turn around and let vision pick them up next frame
-		return
+	if player and not (player.has_method("is_stealthing") and player.is_stealthing()):
+		# Integración del nuevo método de oclusión acústica
+		var effective_hearing = calculate_auditory_radius(player.global_position)
+		
+		if distance_to_player <= effective_hearing:
+			target_facing_direction = (player.global_position - parent.global_position).normalized()
+			# We hear them! Turn around and let vision pick them up next frame
+			return
 
 	if current_state == State.RETURN: # Optimization: Only check if in return state
 		_set_movement_target(spawn_position)
@@ -408,6 +476,25 @@ func _find_player_in_range(max_range: float) -> Node2D:
 	
 	return null
 
+func _calculate_separation_vector() -> Vector2:
+	"""Soft flocking separation: repels this enemy from nearby allies."""
+	const SEPARATION_RADIUS: float = 50.0
+	var separation = Vector2.ZERO
+	
+	for ally in get_tree().get_nodes_in_group("enemies"):
+		if ally == parent: continue
+		
+		var diff = parent.global_position - ally.global_position
+		var dist = diff.length()
+		
+		if dist < SEPARATION_RADIUS and dist > 0.001:
+			# Más separación cuanto más cerca (inverso proporcional a la distancia)
+			separation += diff.normalized() / dist
+			
+	if separation.length_squared() > 0.001:
+		return separation.normalized()
+	return Vector2.ZERO
+
 func _has_line_of_sight(target_node: Node2D) -> bool:
 	"""Check if there's a clear line of sight to target (no walls). Throttled for performance."""
 	if not target_node:
@@ -437,9 +524,37 @@ func _has_line_of_sight(target_node: Node2D) -> bool:
 	cached_los_result = result.is_empty()
 	return cached_los_result
 
+func calculate_auditory_radius(sound_origin: Vector2) -> float:
+	"""
+	Calcula el radio efectivo de audición evaluando si existe oclusión directa.
+	Se usa un raycast exclusivo contra la capa de entorno.
+	"""
+	var query = PhysicsRayQueryParameters2D.create(parent.global_position, sound_origin)
+	
+	# Excluir el propio cuerpo del enemigo por seguridad
+	query.exclude = [parent.get_rid()]
+	
+	# Asignar estrictamente la máscara para la capa de entorno estático (paredes)
+	# Layer 1 es usualmente la arquitectura/mundo solido
+	query.collision_mask = 1 
+	
+	var space_state = parent.get_world_2d().direct_space_state
+	var result = space_state.intersect_ray(query)
+	
+	# Si hubo impacto con una pared, el entorno bloquea y ahoga el sonido
+	if not result.is_empty():
+		return 20.0 # Radio atenuado gravemente
+		
+	# Si no hubo impacto, hay línea de audición limpia
+	return hearing_range # Máximo alcance normal (e.g. 60.0)
+
 func _get_avoidance_direction(desired_dir: Vector2) -> Vector2:
 	"""Context Steering: 8 rays, Interest - Danger. Throttled for performance."""
 	
+	if is_instance_valid(on_screen_notifier) and not on_screen_notifier.is_on_screen():
+		# Optimization: If off-screen, skip context steering completely and just move directly
+		return desired_dir
+
 	if desired_dir == cached_avoidance_input_dir and avoidance_timer > 0:
 		return cached_avoidance_dir
 		
@@ -492,6 +607,7 @@ func _get_avoidance_direction(desired_dir: Vector2) -> Vector2:
 func _change_state(new_state: State) -> void:
 	if current_state != new_state:
 		print("AI State: ", State.keys()[current_state], " -> ", State.keys()[new_state])
+		var prev_state = current_state
 		current_state = new_state
 		state_changed.emit(new_state)
 		
@@ -499,13 +615,72 @@ func _change_state(new_state: State) -> void:
 		if new_state == State.IDLE:
 			awareness_level = 0.0
 			awareness_changed.emit(0.0, false)
+			parent.remove_from_group("has_los_to_player")
 		elif new_state == State.CHASE or new_state == State.ATTACK:
 			awareness_level = 1.0
 			awareness_changed.emit(1.0, true)
+			
+			if new_state == State.CHASE and prev_state != State.ATTACK:
+				_broadcast_alert()
+				
 		elif new_state == State.SEARCH:
+			parent.remove_from_group("has_los_to_player")
 			search_timer = search_duration
 			last_known_position = parent.global_position if last_known_position == Vector2.ZERO else last_known_position
 			roam_target = last_known_position
+
+func _broadcast_alert() -> void:
+	if alert_cooldown_timer > 0:
+		return
+		
+	alert_cooldown_timer = ALERT_COOLDOWN_MAX
+	
+	var alert_radius: float = 300.0
+	var allies = get_tree().get_nodes_in_group("enemies")
+	
+	for ally in allies:
+		if ally == parent: continue
+		
+		# Skip stunned/dead allies (basic check, assume if physics is off they are dead/stunned)
+		if not ally.is_physics_processing(): continue
+		
+		var distance = parent.global_position.distance_to(ally.global_position)
+		if distance > alert_radius: continue
+		
+		var ally_ai = ally.get_node_or_null("EnemyAI")
+		if ally_ai and ally_ai is EnemyAI:
+			# Evitar thrashing o interrupción de rutinas críticas
+			if ally_ai.current_state in [State.CHASE, State.ATTACK, State.FLEE]:
+				continue
+			
+			# Si el aliado también acaba de gritar o tiene bloqueo, no lo forcemos en bucle
+			if ally_ai.alert_cooldown_timer > 0:
+				continue
+				
+			# Check occlusion from shouting enemy to ally
+			var space_state = parent.get_world_2d().direct_space_state
+			var query = PhysicsRayQueryParameters2D.create(parent.global_position, ally.global_position)
+			query.collision_mask = 1 # Environment layer
+			query.exclude = [parent.get_rid(), ally.get_rid()]
+			
+			var result = space_state.intersect_ray(query)
+			var effective_range = alert_radius if result.is_empty() else 100.0 # Occluded shout is muffled
+			
+			if distance <= effective_range or ally_ai._has_line_of_sight(parent):
+				ally_ai.target_facing_direction = (parent.global_position - ally.global_position).normalized()
+				if target:
+					ally_ai.target = target
+					ally_ai.last_known_position = target.global_position
+					ally_ai.roam_target = target.global_position
+					ally_ai.awareness_level = 1.0
+					ally_ai.broadcast_chase_timer = BROADCAST_CHASE_GRACE # <-- gracia de persecución
+					ally_ai._change_state(State.CHASE)
+				else:
+					ally_ai.last_known_position = parent.global_position
+					ally_ai.roam_target = parent.global_position
+					ally_ai.awareness_level = 0.5
+					ally_ai._change_state(State.SEARCH)
+
 
 func _spawn_ghost(pos: Vector2, target_node: Node2D) -> void:
 	_clear_ghost() # Only one ghost at a time

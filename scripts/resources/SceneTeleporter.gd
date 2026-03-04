@@ -20,6 +20,12 @@ func change_scene() -> void:
 	if target_scene_path == "":
 		push_error("SceneTeleporter: No target scene path set!")
 		return
+		
+	# Force cancel any active drag operations before saving/changing scene to prevent memory leaks
+	var vp = get_viewport()
+	if vp and vp.gui_is_dragging():
+		vp.gui_cancel_drag()
+		print("SceneTeleporter: Cancelled active UI drag.")
 	
 	# Save player state BEFORE changing scene
 	if player_in_range:

@@ -31,6 +31,16 @@ func _ready() -> void:
 	# Update position when visibility changes
 	visibility_changed.connect(_update_grid_position)
 
+func _exit_tree() -> void:
+	cleanup_drag()
+
+func cleanup_drag() -> void:
+	if is_inside_tree():
+		var vp = get_viewport()
+		if vp and vp.gui_is_dragging():
+			vp.gui_cancel_drag()
+			print("InventoryUI: Cancelled active drag during cleanup to prevent memory leaks.")
+
 func _update_grid_position() -> void:
 	# Force InventoryUI to fill the screen so we catch drag events everywhere
 	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
