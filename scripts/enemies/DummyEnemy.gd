@@ -122,6 +122,10 @@ func take_damage(data: DamageData) -> void:
 		if ai.has_method("notify_damage"):
 			ai.notify_damage(data.source)
 
+	# Knockback
+	if "knockback_force" in data and data.source:
+		var knockback_dir = (global_position - data.source.global_position).normalized()
+		apply_push(knockback_dir * data.knockback_force)
 	
 	# Visual Flash
 	modulate = Color(10, 10, 10) # Flash White
@@ -195,3 +199,17 @@ func _on_died() -> void:
 	tween.tween_interval(10.0) # Stay as corpse for 10s
 	tween.tween_property(self, "modulate:a", 0.0, 2.0)
 	tween.tween_callback(queue_free)
+
+func play_attack_anticipation(duration: float) -> void:
+	var original_modulate = modulate
+	modulate = Color(1.0, 0.5, 0.0) # Orange warning color
+	
+	# Little scale bump for anticipation
+	var tween = create_tween()
+	var orig_scale = scale
+	tween.tween_property(self, "scale", orig_scale * 1.1, duration * 0.5)
+	tween.tween_property(self, "scale", orig_scale, duration * 0.5)
+	
+	await get_tree().create_timer(duration).timeout
+	if modulate == Color(1.0, 0.5, 0.0): # Revert if not changed by damage
+		modulate = original_modulate

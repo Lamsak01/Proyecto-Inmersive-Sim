@@ -17,7 +17,8 @@ signal awareness_changed(level: float, is_alerted: bool)
 @export var awareness_drain_time: float = 3.0
 @export var search_duration: float = 5.0
 @export var hearing_range: float = 60.0
-@export var separation_weight: float = 40.0 # Fuerza de separación entre enemigos
+@export var separation_weight: float = 40.0
+@export var attack_windup_time: float = 0.4 # New telegraph delay
 
 var current_state: State = State.IDLE
 var target: Node2D = null
@@ -27,6 +28,8 @@ var spawn_position: Vector2
 var last_known_position: Vector2
 var search_timer: float = 0.0
 var roam_target: Vector2
+var is_winding_up: bool = false
+var wind_up_timer: float = 0.0
 var ray_directions: Array[Vector2] = []
 var interest_map: Array[float] = []
 var danger_map: Array[float] = []
@@ -132,7 +135,7 @@ func _physics_process(delta: float) -> void:
 		State.CHASE:
 			_process_chase()
 		State.ATTACK:
-			_process_attack()
+			_process_attack(delta)
 		State.SEARCH:
 			_process_search(delta)
 		State.RETURN:
@@ -287,15 +290,21 @@ func _process_chase() -> void:
 	# Update last known position continuously while chasing
 	last_known_position = target.global_position
 
-func _process_attack() -> void:
+func _process_attack(delta: float) -> void:
 	if not target:
+		is_winding_up = false
 		_change_state(State.IDLE)
 		return
 	
 	var distance = parent.global_position.distance_to(target.global_position)
 	
 	# Check if target moved out of attack range
-	if distance > attack_range * 1.3: # Hysteresis
+	if distance > attack_range * 1.5 and not is_winding_up:
+		_change_state(State.CHASE)
+		return
+	elif distance > attack_range * 2.5 and is_winding_up:
+		# Player escaped the attack entirely during windup
+		is_winding_up = false
 		_change_state(State.CHASE)
 		return
 	
@@ -303,9 +312,18 @@ func _process_attack() -> void:
 	parent.velocity = Vector2.ZERO
 	
 	# Try to attack
-	if attack_timer <= 0:
-		_perform_attack()
-		attack_timer = attack_cooldown
+	if is_winding_up:
+		wind_up_timer -= delta
+		if wind_up_timer <= 0:
+			is_winding_up = false
+			_perform_attack()
+			attack_timer = attack_cooldown
+	else:
+		if attack_timer <= 0:
+			is_winding_up = true
+			wind_up_timer = attack_windup_time
+			if parent.has_method("play_attack_anticipation"):
+				parent.play_attack_anticipation(attack_windup_time)
 
 func _perform_attack() -> void:
 	var damage = DamageData.new()
@@ -609,6 +627,7 @@ func _change_state(new_state: State) -> void:
 		print("AI State: ", State.keys()[current_state], " -> ", State.keys()[new_state])
 		var prev_state = current_state
 		current_state = new_state
+		is_winding_up = false # Cancel any windup if state changes
 		state_changed.emit(new_state)
 		
 		# Reset awareness when entering/leaving relevant states

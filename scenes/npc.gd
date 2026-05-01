@@ -10,14 +10,21 @@ extends CharacterBody2D
 enum State { NEUTRAL, FRIENDLY, ANGRY, ATTACK }
 var current_state: State = State.NEUTRAL
 var hostility_meter: int = 0
+var push_velocity: Vector2 = Vector2.ZERO
+
+func apply_push(force: Vector2) -> void:
+	push_velocity = force
 
 func _physics_process(_delta: float) -> void:
-	if current_state == State.ATTACK and enemy_ai:
-		# If AI is active, let it control movement (it sets parent.velocity)
-		move_and_slide()
-	else:
-		# Normal NPC physics (gravity/idle)
-		move_and_slide()
+	if push_velocity.length() > 0:
+		push_velocity = push_velocity.move_toward(Vector2.ZERO, 500 * _delta)
+		
+	if current_state != State.ATTACK or not enemy_ai:
+		velocity = Vector2.ZERO
+		
+	velocity += push_velocity
+	
+	move_and_slide()
 
 func _ready() -> void:
 	anim.play("idle")
@@ -56,6 +63,17 @@ func take_damage(data: DamageData) -> void:
 		_on_dialogue_finished("bad_end") # Force hostile state logic
 
 	health_comp.take_damage(data)
+
+	# Knockback
+	if "knockback_force" in data and data.source:
+		var knockback_dir = (global_position - data.source.global_position).normalized()
+		apply_push(knockback_dir * data.knockback_force)
+
+	# Visual Flash
+	var old_mod = modulate
+	modulate = Color(10, 10, 10) # Flash White
+	await get_tree().create_timer(0.1).timeout
+	modulate = old_mod
 
 func _on_health_changed(current_health: float, _max_health: float) -> void:
 	print("NPC Health changed to: ", current_health)
@@ -121,6 +139,20 @@ func _on_enemy_ai_attack(damage_data: DamageData) -> void:
 		if enemy_ai.target.has_method("take_damage"):
 			damage_data.source = self
 			enemy_ai.target.take_damage(damage_data)
+
+func play_attack_anticipation(duration: float) -> void:
+	var original_modulate = modulate
+	modulate = Color(1.0, 0.5, 0.0) # Orange warning color
+	
+	# Little scale bump for anticipation
+	var tween = create_tween()
+	var orig_scale = scale
+	tween.tween_property(self, "scale", orig_scale * 1.1, duration * 0.5)
+	tween.tween_property(self, "scale", orig_scale, duration * 0.5)
+	
+	await get_tree().create_timer(duration).timeout
+	if modulate == Color(1.0, 0.5, 0.0): # Revert if not changed by damage
+		modulate = original_modulate
 
 func interact(_player: Node) -> void:
 	if current_state == State.ATTACK:
