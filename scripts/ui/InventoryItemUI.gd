@@ -70,13 +70,6 @@ func _update_slot_display() -> void:
 	else:
 		slot_label.text = ""
 
-# Input handling moved to InventoryUI.gd for better reliability
-func _gui_input(_event: InputEvent) -> void:
-	pass 
-
-func _assign_quick_slot(_index: int) -> void:
-	# Deprecated, logic moved to InventoryUI
-	pass 
 
 func _get_drag_data(at_position: Vector2) -> Variant:
 	print("Starting drag for: ", item_data.name)

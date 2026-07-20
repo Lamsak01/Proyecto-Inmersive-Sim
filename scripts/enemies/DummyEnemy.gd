@@ -64,7 +64,6 @@ func _physics_process(delta: float) -> void:
 			anim.play("fly")
 	
 	# Rotate vision cone to match AI facing direction
-	# Rotate vision cone to match AI facing direction
 	if vision_cone and ai and is_instance_valid(ai):
 		# Default to right if zero (avoid weird angles)
 		var dir = ai.facing_direction
@@ -128,9 +127,10 @@ func take_damage(data: DamageData) -> void:
 		apply_push(knockback_dir * data.knockback_force)
 	
 	# Visual Flash
+	var original_mod = modulate
 	modulate = Color(10, 10, 10) # Flash White
 	await get_tree().create_timer(0.1).timeout
-	modulate = Color(1, 0, 0) # Return to Red
+	modulate = original_mod
 
 func knockout() -> void:
 	# Instantly disable AI to prevent alerting others during the same frame
@@ -175,7 +175,8 @@ func _on_died() -> void:
 
 	# Disable logic
 	set_physics_process(false)
-	ai.set_physics_process(false)
+	if ai:
+		ai.set_physics_process(false)
 	
 	# Visuals: Fall and Gray
 	anim.stop()

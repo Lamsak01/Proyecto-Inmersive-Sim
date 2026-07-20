@@ -34,20 +34,36 @@ func calculate_mitigation(data: DamageData) -> DamageData:
 					new_data.bleed_chance *= 0.1
 					
 		CombatConstants.DamageType.ELECTRIC:
+			var metal_count = get_metal_piece_count()
+			if metal_count > 0:
+				new_data.amount *= 1.0 + (0.25 * metal_count)
+				
+		CombatConstants.DamageType.THERMAL:
+			var has_cloth = false
+			for slot in equipped_armor:
+				if equipped_armor[slot] == CombatConstants.ArmorMaterial.CLOTH:
+					has_cloth = true
+					break
+			if has_cloth:
+				new_data.amount *= 1.5 # Cloth burns easily
+			
+		CombatConstants.DamageType.BLUNT:
 			var has_metal = false
 			for slot in equipped_armor:
 				if equipped_armor[slot] == CombatConstants.ArmorMaterial.METAL:
 					has_metal = true
 					break
 			if has_metal:
-				new_data.amount *= 1.25
-				
-		CombatConstants.DamageType.THERMAL:
-			pass
+				new_data.amount *= 0.8 # Metal slightly mitigates blunt
 			
-		CombatConstants.DamageType.BLUNT:
-			pass
-
+		CombatConstants.DamageType.COLD:
+			var has_leather = false
+			for slot in equipped_armor:
+				if equipped_armor[slot] == CombatConstants.ArmorMaterial.LEATHER:
+					has_leather = true
+					break
+			if has_leather:
+				new_data.amount *= 0.7 # Leather insulates well
 	return new_data
 
 func get_metal_piece_count() -> int:

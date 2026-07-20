@@ -66,6 +66,43 @@ func try_place_item(item: InventoryItem, position: Vector2i, rotated: bool = fal
 	item_placed.emit(item, position)
 	return true
 
+# Move an item in-place in the inventory
+func move_item(item_instance, new_position: Vector2i, rotated: bool = false) -> bool:
+	if not placed_items.has(item_instance):
+		return false
+	
+	var item: InventoryItem = item_instance["item"]
+	var old_position: Vector2i = item_instance["position"]
+	var old_rotated: bool = item_instance["rotated"]
+	
+	# 1. Temporarily clear old cells
+	var old_size = item.grid_size if not old_rotated else Vector2i(item.grid_size.y, item.grid_size.x)
+	for y in range(old_position.y, old_position.y + old_size.y):
+		for x in range(old_position.x, old_position.x + old_size.x):
+			grid[y][x] = null
+			
+	# 2. Check if it can be placed at the new position (ignoring itself)
+	if not can_place_item(item, new_position, rotated, item_instance):
+		# Revert to old position
+		for y in range(old_position.y, old_position.y + old_size.y):
+			for x in range(old_position.x, old_position.x + old_size.x):
+				grid[y][x] = item_instance
+		return false
+		
+	# 3. Update the existing dictionary in-place
+	item_instance["position"] = new_position
+	item_instance["rotated"] = rotated
+	
+	# 4. Mark new grid cells as occupied
+	var new_size = item.grid_size if not rotated else Vector2i(item.grid_size.y, item.grid_size.x)
+	for y in range(new_position.y, new_position.y + new_size.y):
+		for x in range(new_position.x, new_position.x + new_size.x):
+			grid[y][x] = item_instance
+			
+	item_placed.emit(item, new_position)
+	return true
+
+
 # Remove an item from the inventory
 func remove_item(item_instance) -> bool:
 	if not placed_items.has(item_instance):

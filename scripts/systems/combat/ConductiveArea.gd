@@ -49,10 +49,11 @@ func _physics_process(_delta: float) -> void:
 		if is_instance_valid(source):
 			valid_sources.append(source)
 			# Generators and Cables have 'is_powered()' or 'enabled'
-			if source.has_method("is_powered") and source.is_powered():
-				is_energized = true
-			elif "enabled" in source and source.enabled:
-				is_energized = true
+			if is_wet:
+				if source.has_method("is_powered") and source.is_powered():
+					is_energized = true
+				elif "enabled" in source and source.enabled:
+					is_energized = true
 				
 	power_sources = valid_sources
 	

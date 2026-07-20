@@ -28,6 +28,8 @@ func _physics_process(delta: float) -> void:
         
     # Check bounds or stun
     if player.has_method("is_stunned") and player.is_stunned():
+        player.velocity = player.velocity.move_toward(Vector2.ZERO, 300.0 * delta)
+        player.move_and_slide()
         return
         
     _handle_input(delta)
@@ -70,7 +72,7 @@ func _handle_input(delta: float) -> void:
             anim.speed_scale = 1.0
             
     # Weakness override
-    if player.get("is_weak"):
+    if player.is_weak:
         current_speed = max_walk_speed * 0.5
         
     if input != Vector2.ZERO:
@@ -85,7 +87,7 @@ func _handle_push() -> void:
         var c = player.get_slide_collision(i)
         var collider = c.get_collider()
         if collider is CharacterBody2D and "weight" in collider and collider.has_method("apply_push"):
-            if player.get("weight") and player.weight > collider.weight:
+            if player.weight > collider.weight:
                 var push_dir = (collider.global_position - player.global_position).normalized()
                 collider.apply_push(push_dir * push_force)
 
@@ -93,18 +95,19 @@ func _play_walk(dir: Vector2) -> void:
     if abs(dir.x) > abs(dir.y):
         if dir.x > 0:
             anim.play("walk_right")
-            player.set("last_dir", "right")
+            player.last_dir = "right"
         else:
             anim.play("walk_left")
-            player.set("last_dir", "left")
+            player.last_dir = "left"
     else:
         if dir.y > 0:
             anim.play("walk_down")
-            player.set("last_dir", "down")
+            player.last_dir = "down"
         else:
             anim.play("walk_up")
-            player.set("last_dir", "up")
+            player.last_dir = "up"
 
 func _play_idle() -> void:
-    if player.get("last_dir") != null:
-        anim.play("idle_" + player.get("last_dir"))
+    var dir = player.last_dir
+    if dir != null:
+        anim.play("idle_" + dir)

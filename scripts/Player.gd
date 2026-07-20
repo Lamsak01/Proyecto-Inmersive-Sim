@@ -18,7 +18,7 @@ extends CharacterBody2D
 
 var last_dir := "down"
 var keys: Array[String] = []
-var inventory: Inventory
+
 var equipped_weapon: WeaponData
 
 # Status variables for controllers
@@ -31,10 +31,6 @@ func _ready() -> void:
 	if hint_label:
 		hint_label.text = ""
 	
-	inventory = Inventory.new()
-	inventory.name = "Inventory"
-	add_child(inventory)
-	
 	health_comp.died.connect(_on_died)
 	health_comp.weakness_changed.connect(_on_weakness_changed)
 	stun_comp.stunned.connect(_on_stunned)
@@ -45,25 +41,31 @@ func _ready() -> void:
 	GameState.restore_player_state(self)
 
 func _process(_delta: float) -> void:
-	_handle_interactions()
+	pass
 
 func _handle_interactions() -> void:
 	if dialogue_manager and dialogue_manager.call("is_active"):
 		return
 
-	if Input.is_action_just_pressed("Interact"):
-		var overlaps := interact_area.get_overlapping_areas()
-		for a in overlaps:
-			if a.is_in_group("interactable"):
-				if a.has_method("interact"):
-					a.interact(self)
-					return
-				elif a.get_parent().has_method("interact"):
-					a.get_parent().interact(self)
-					return
+	var overlaps := interact_area.get_overlapping_areas()
+	for a in overlaps:
+		if a.is_in_group("interactable"):
+			if a.has_method("interact"):
+				a.interact(self)
+				get_viewport().set_input_as_handled()
+				return
+			elif a.get_parent().has_method("interact"):
+				a.get_parent().interact(self)
+				get_viewport().set_input_as_handled()
+				return
 
-func show_hint(_text: String) -> void:
-	pass
+func show_hint(text: String) -> void:
+	if hint_label:
+		hint_label.text = text
+		# Auto-clear after 3 seconds
+		get_tree().create_timer(3.0).timeout.connect(func(): 
+			if hint_label and hint_label.text == text:
+				hint_label.text = "")
 
 func add_key(id: String) -> void:
 	if not keys.has(id):
@@ -73,10 +75,12 @@ func has_key(id: String) -> bool:
 	return keys.has(id)
 
 func has_item(item_name: String) -> bool:
-	return inventory.has_item(item_name)
+	if grid_inventory:
+		return grid_inventory.has_item_by_name(item_name)
+	return false
 
 func add_item(item_name: String) -> void:
-	inventory.add_item(item_name)
+	pass # Logic for adding string-based items is deprecated, use add_inventory_item with resource instead.
 
 func add_inventory_item(item: InventoryItem) -> void:
 	if item == null: return
@@ -91,30 +95,20 @@ func _unhandled_input(event: InputEvent) -> void:
 		if event.keycode >= KEY_1 and event.keycode <= KEY_9:
 			var slot_index = event.keycode - KEY_0
 			_try_equip_quick_slot(slot_index)
-
+			
 	if event.is_action_pressed("Interact"):
 		_handle_interactions()
 
 func _try_equip_quick_slot(index: int) -> void:
 	if not grid_inventory: return
 	var item_instance = grid_inventory.get_quick_slot(index)
-	var combat_ctrl = get_node_or_null("PlayerCombatController")
 	
 	if item_instance:
-		var item_name = item_instance["item"].name
-		if item_name == "Iron Sword":
-			if combat_ctrl: combat_ctrl.equip_weapon(load("res://resources/weapons/Sword.tres"))
-		elif item_name == "Sledgehammer" or item_name == "War Hammer":
-			if combat_ctrl: combat_ctrl.equip_weapon(load("res://resources/weapons/Hammer.tres"))
-		elif item_name == "Health Potion":
-			if health_comp.current_health < health_comp.max_health:
-				health_comp.heal(25.0)
-				grid_inventory.remove_item(item_instance)
-	else:
-		if index == 1 and inventory.has_item("Sword"):
-			if combat_ctrl: combat_ctrl.equip_weapon(load("res://resources/weapons/Sword.tres"))
-		elif index == 2 and inventory.has_item("Hammer"):
-			if combat_ctrl: combat_ctrl.equip_weapon(load("res://resources/weapons/Hammer.tres"))
+		var item: InventoryItem = item_instance["item"]
+		if item.has_method("use"):
+			if item.use(self):
+				if item.is_consumable:
+					grid_inventory.remove_item(item_instance)
 
 func _on_died() -> void:
 	set_physics_process(false)

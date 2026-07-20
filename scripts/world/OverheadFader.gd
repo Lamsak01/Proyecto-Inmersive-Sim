@@ -25,11 +25,11 @@ func _ready():
 	connect("body_exited", _on_body_exited)
 
 func _on_body_entered(body):
-	if body.name == "Player":
+	if body.is_in_group("player"):
 		fade_to(transparency)
 
 func _on_body_exited(body):
-	if body.name == "Player":
+	if body.is_in_group("player"):
 		fade_to(1.0)
 
 func fade_to(target_alpha: float):

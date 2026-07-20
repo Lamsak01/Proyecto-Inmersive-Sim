@@ -21,6 +21,7 @@ AudioManager="*res://scripts/systems/AudioManager.gd"
 GameManager="*res://scripts/systems/GameManager.gd"
 PowerManager="*res://addons/powergrid/managers/PowerNetworkManager.gd"
 ObjectiveManager="*res://scripts/systems/game_objectives/ObjectiveManager.gd"
+ItemDatabase="*res://scripts/systems/ItemDatabase.gd"
 GameState="*res://scripts/systems/GameState.gd"
 
 [display]

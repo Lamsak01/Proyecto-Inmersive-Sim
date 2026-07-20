@@ -46,9 +46,10 @@ func _ready() -> void:
 		hurtbox.hit_received.connect(take_damage)
 
 # --- Combat / Health ---
-@onready var health_comp: HealthComponent = HealthComponent.new()
+var health_comp: HealthComponent
 
 func _setup_health() -> void:
+	health_comp = HealthComponent.new()
 	health_comp.name = "HealthComponent"
 	health_comp.max_health = 50.0
 	health_comp.current_health = 50.0

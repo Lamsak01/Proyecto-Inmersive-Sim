@@ -88,9 +88,3 @@ func _on_item_placed(item: InventoryItem, _pos: Vector2i) -> void:
 	if item.name == "Iron Sword": # Verify exact name in resource
 		ObjectiveManager.complete_objective("obj_find_sword")
 		print("Objective 'Find Sword' Completed!")
-
-func _create_colored_texture(width: int, height: int, color: Color) -> ImageTexture:
-	# Keep this function in case we need it later
-	var image = Image.create(width, height, false, Image.FORMAT_RGBA8)
-	image.fill(color)
-	return ImageTexture.create_from_image(image)

@@ -22,7 +22,7 @@ func _init():
 	gm.set_flag("test_wall", true)
 	
 	# Verify File
-	var save_path = "user://savegame.json"
+	var save_path = "user://game_flags.json"
 	if FileAccess.file_exists(save_path):
 		print("Save file created successfully.")
 		var file = FileAccess.open(save_path, FileAccess.READ)

@@ -30,7 +30,7 @@
 [ext_resource type="PackedScene" path="res://scenes/obstacles/WeakWall.tscn" id="29_wall"]
 [ext_resource type="PackedScene" uid="uid://fastenemy001" path="res://scenes/enemies/FastEnemy.tscn" id="30_fast"]
 [ext_resource type="Script" uid="uid://c0do5qlyly5vy" path="res://scripts/tests/InventoryTestHelper.gd" id="33_agajo"]
-[ext_resource type="PackedScene" path="res://scenes/Entities/PlayerGood.tscn" id="4766_player"]
+[ext_resource type="PackedScene" uid="uid://bveigq8j8vw5v" path="res://scenes/Entities/Player.tscn" id="4766_player"]
 [ext_resource type="PackedScene" path="res://scenes/power/Cable.tscn" id="Cable_Proto"]
 [ext_resource type="PackedScene" path="res://scenes/power/PoweredDoor.tscn" id="Door_Proto"]
 [ext_resource type="PackedScene" path="res://scenes/power/Generator.tscn" id="Gen_Proto"]

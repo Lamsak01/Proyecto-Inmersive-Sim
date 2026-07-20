@@ -55,9 +55,6 @@ func _update_grid_position() -> void:
 	)
 	grid_container.position = (viewport_size - grid_size) / 2.0
 	
-	# Debug Sizes
-	print("InventoryUI Debug: Viewport: ", viewport_size, " | GridContainer Pos: ", grid_container.position, " | My Size: ", size, " | Parent Size: ", get_parent().size if get_parent() is Control else "N/A")
-	
 	queue_redraw()
 
 func _setup_grid() -> void:
@@ -79,11 +76,9 @@ func _setup_grid() -> void:
 	grid_container.position = (viewport_size - grid_size) / 2.0
 
 func _draw() -> void:
-	if grid_inventory == null or grid_container == null:
-		return
+	if not grid_inventory or not grid_container: return
 	
 	var offset = grid_container.position
-	print("InventoryUI _draw called. Offset: ", offset, " Visible: ", visible)
 	
 	# Draw grid background
 	var grid_rect = Rect2(offset, Vector2(
@@ -114,6 +109,20 @@ func _on_item_placed(item: InventoryItem, grid_pos: Vector2i) -> void:
 	if item_instance == null:
 		return
 	
+	# If we already have a UI for this instance, just update its position and slot display
+	if item_uis.has(item_instance):
+		var item_ui = item_uis[item_instance]
+		var is_rot = item_instance.get("rotated", false)
+		var item_size = Vector2(item.grid_size.x * cell_size, item.grid_size.y * cell_size) if not is_rot else Vector2(item.grid_size.y * cell_size, item.grid_size.x * cell_size)
+		item_ui.custom_minimum_size = item_size
+		item_ui.size = item_size
+		if item_ui.texture_rect:
+			item_ui.texture_rect.size = item_size
+		item_ui.position = Vector2(grid_pos.x * cell_size, grid_pos.y * cell_size)
+		item_ui._update_slot_display()
+		queue_redraw()
+		return
+	
 	# Create UI for the item
 	var item_ui = preload("res://scripts/ui/InventoryItemUI.gd").new()
 	item_ui.setup(item, item_instance, self)
@@ -127,10 +136,10 @@ func _on_item_placed(item: InventoryItem, grid_pos: Vector2i) -> void:
 	queue_redraw()
 
 func _on_item_removed(item: InventoryItem) -> void:
-	# Find and remove the UI
+	# Find and remove the UI for the instance that is no longer in grid_inventory.placed_items
 	var to_remove = []
 	for instance in item_uis.keys():
-		if item_uis[instance].item_data == item:
+		if not grid_inventory.placed_items.has(instance):
 			to_remove.append(instance)
 	
 	for instance in to_remove:
@@ -141,34 +150,9 @@ func _on_item_removed(item: InventoryItem) -> void:
 	queue_redraw()
 
 func _can_drop_data(at_position: Vector2, data: Variant) -> bool:
-	# print("Can drop data check...") # Verbose debug
 	if not (data is Dictionary and data.has("item_instance")):
 		return false
 	
-	var item_instance = data["item_instance"]
-	var item: InventoryItem = item_instance["item"]
-	var rotated: bool = item_instance.get("rotated", false)
-	
-	# Calculate grid position relative to the grid container
-	# We also need to account for where *inside* the item we clicked (drag_offset)
-	# so that the item's top-left corner snaps to the grid, not the mouse cursor.
-	var drag_offset = Vector2.ZERO
-	if data.has("drag_offset"):
-		drag_offset = data["drag_offset"]
-		
-	var local_pos = at_position - grid_container.position - drag_offset
-	var grid_pos = Vector2i(
-		floor(local_pos.x / cell_size), # Use floor for correct top-left alignment
-		floor(local_pos.y / cell_size)
-	)
-	
-	# Temporarily remove the item if it's already in this inventory
-	# Optimization: Don't remove/add, just check collision ignoring self
-	var can_place = grid_inventory.can_place_item(item, grid_pos, rotated, item_instance)
-	
-	return can_place
-
-func _drop_data(at_position: Vector2, data: Variant) -> void:
 	var item_instance = data["item_instance"]
 	var item: InventoryItem = item_instance["item"]
 	var rotated: bool = item_instance.get("rotated", false)
@@ -184,17 +168,29 @@ func _drop_data(at_position: Vector2, data: Variant) -> void:
 		floor(local_pos.y / cell_size)
 	)
 	
-	# Remove from current position
-	var removed = grid_inventory.remove_item(item_instance)
-	print("Drop: Removed item first? ", removed)
+	var can_place = grid_inventory.can_place_item(item, grid_pos, rotated, item_instance)
+	return can_place
+
+func _drop_data(at_position: Vector2, data: Variant) -> void:
+	var item_instance = data["item_instance"]
+	var rotated: bool = item_instance.get("rotated", false)
 	
-	# Try to place at new position
-	if grid_inventory.try_place_item(item, grid_pos, rotated):
-		print("Drop: Placed successfully at ", grid_pos)
+	# Calculate grid position relative to the grid container
+	var drag_offset = Vector2.ZERO
+	if data.has("drag_offset"):
+		drag_offset = data["drag_offset"]
+		
+	var local_pos = at_position - grid_container.position - drag_offset
+	var grid_pos = Vector2i(
+		floor(local_pos.x / cell_size),
+		floor(local_pos.y / cell_size)
+	)
+	
+	# Move the item in-place
+	if grid_inventory.move_item(item_instance, grid_pos, rotated):
+		print("Drop: Moved successfully to ", grid_pos)
 	else:
-		print("Drop: Failed to place at ", grid_pos, ". Reverting to ", item_instance["position"])
-		# If placement fails, try to put it back where it was
-		grid_inventory.try_place_item(item, item_instance["position"], rotated)
+		print("Drop: Failed to move to ", grid_pos)
 
 func _input(event: InputEvent) -> void:
 	if not visible:

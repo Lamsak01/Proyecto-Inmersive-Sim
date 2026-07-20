@@ -1,19 +1,23 @@
 extends Node
 
 var game_data: Dictionary = {}
-const SAVE_PATH = "user://savegame.json"
+const SAVE_PATH = "user://game_flags.json"
+var _is_dirty: bool = false
 
 func _ready():
 	load_game()
 
 func set_flag(id: String, value: Variant):
 	game_data[id] = value
-	save_game()
+	if not _is_dirty:
+		_is_dirty = true
+		call_deferred("save_game")
 
 func get_flag(id: String, default: Variant = null) -> Variant:
 	return game_data.get(id, default)
 
 func save_game():
+	_is_dirty = false
 	var file = FileAccess.open(SAVE_PATH, FileAccess.WRITE)
 	if file:
 		var json_string = JSON.stringify(game_data)

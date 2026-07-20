@@ -24,6 +24,8 @@ func load_state(data: Dictionary) -> void:
 		break_door()
 
 func _update_door_state() -> void:
+	if is_broken:
+		return
 	if is_powered():
 		open_door()
 	else:

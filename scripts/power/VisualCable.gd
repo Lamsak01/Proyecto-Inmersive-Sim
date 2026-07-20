@@ -42,6 +42,8 @@ func get_power_cable() -> PowerCable:
     return cable
 
 func _process(_delta: float) -> void:
+    if not is_visible_in_tree(): return
+    
     # Simple pulse effect
     var time = Time.get_ticks_msec() / 200.0
     var alpha = 0.5 + 0.5 * sin(time)

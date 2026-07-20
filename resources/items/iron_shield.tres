@@ -5,6 +5,7 @@
 
 [resource]
 script = ExtResource("1_shield")
+id = "wooden_shield"
 name = "Wooden Shield"
 description = "A sturdy wooden shield for basic defense."
 texture = ExtResource("2_sa30h")

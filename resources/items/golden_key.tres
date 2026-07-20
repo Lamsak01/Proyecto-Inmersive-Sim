@@ -5,6 +5,7 @@
 
 [resource]
 script = ExtResource("1_key")
+id = "golden_key"
 name = "Golden Key"
 description = "An ornate golden key. It might open something valuable."
 texture = ExtResource("2_keytex")

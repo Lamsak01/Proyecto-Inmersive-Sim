@@ -154,8 +154,8 @@ func _process_idle(_delta: float) -> void:
 	if not player: return
 
 	# 1. Visual Detection
-	var distance = parent.global_position.distance_to(player.global_position)
-	if distance <= detection_range:
+	var distance_sq = parent.global_position.distance_squared_to(player.global_position)
+	if distance_sq <= detection_range * detection_range:
 		if _is_in_fov(player) and _has_line_of_sight(player):
 			target = player
 			_change_state(State.ALERT)
@@ -166,7 +166,7 @@ func _process_idle(_delta: float) -> void:
 		# Integración del nuevo método de oclusión acústica
 		var effective_hearing = calculate_auditory_radius(player.global_position)
 		
-		if distance <= effective_hearing:
+		if distance_sq <= effective_hearing * effective_hearing:
 			# Heard something! Smoothly snap to face it. Next frame visual detection will catch it.
 			target_facing_direction = (player.global_position - parent.global_position).normalized()
 			# We don't change state yet, we just look at them so the vision cone catches them
@@ -187,8 +187,8 @@ func _process_alert(delta: float) -> void:
 		_change_state(State.IDLE)
 		return
 		
-	var distance = parent.global_position.distance_to(target.global_position)
-	var has_los = _has_line_of_sight(target) and distance <= detection_range and _is_in_fov(target)
+	var distance_sq = parent.global_position.distance_squared_to(target.global_position)
+	var has_los = _has_line_of_sight(target) and distance_sq <= detection_range * detection_range and _is_in_fov(target)
 	
 	# If player visible within range AND FOV, increase awareness
 	if has_los:
@@ -222,12 +222,12 @@ func _process_chase() -> void:
 		_change_state(State.IDLE)
 		return
 	
-	var distance = parent.global_position.distance_to(target.global_position)
+	var distance_sq = parent.global_position.distance_squared_to(target.global_position)
 	
 	# Mantener registro de quién tiene LOS activo al jugador
 	var los_ok = broadcast_chase_timer > 0 or _has_line_of_sight(target)
 	
-	if los_ok and distance <= detection_range * 1.5:
+	if los_ok and distance_sq <= detection_range * detection_range * 2.25: # 1.5 squared
 		# Tenemos LOS real: actualizar posición conocida y registrarse en el grupo global
 		last_known_position = target.global_position
 		if not parent.is_in_group("has_los_to_player"):
@@ -241,30 +241,33 @@ func _process_chase() -> void:
 		
 		# ¿Somos el último enemigo con LOS? Solo entonces generamos el fantasma compartido
 		var still_tracking = get_tree().get_nodes_in_group("has_los_to_player")
-		if still_tracking.is_empty() and distance <= detection_range * 2.5:
+		if still_tracking.is_empty() and distance_sq <= detection_range * detection_range * 6.25: # 2.5 squared
 			# Generar fantasma único en la última posición conocida
 			_spawn_ghost(last_pos, target)
 			
-			# Notificar a todos los aliados en CHASE o SEARCH con la misma posición
+			# Notificar a todos los aliados en CHASE o SEARCH con la misma posición, verificando la distancia
 			for ally in get_tree().get_nodes_in_group("enemies"):
 				if ally == parent: continue
-				var ally_ai = ally.get_node_or_null("EnemyAI")
-				if ally_ai and ally_ai is EnemyAI:
-					if ally_ai.current_state in [State.CHASE, State.SEARCH]:
-						ally_ai.last_known_position = last_pos
-						ally_ai.roam_target = last_pos
+				var dist_sq = parent.global_position.distance_squared_to(ally.global_position)
+				if dist_sq <= 360000.0: # 600.0 squared (Alert radius)
+					var ai = ally.get_node_or_null("EnemyAI")
+					if ai and (ai.current_state == State.CHASE or ai.current_state == State.SEARCH):
+						ai.roam_target = last_pos
+						# Spawn ghost solo si ellos también lo ven relevante
+						if dist_sq <= 100000.0: # Solo los más cercanos generan su propia investigación intensa
+							ai._spawn_ghost(last_pos, target)
 						# Si estaban persiguiendo con un blanco inválido, mandamos a SEARCH
-						if ally_ai.current_state == State.CHASE:
-							ally_ai.target = null
-							ally_ai.broadcast_chase_timer = 0.0
-							ally_ai._change_state(State.SEARCH)
+						if ai.current_state == State.CHASE:
+							ai.target = null
+							ai.broadcast_chase_timer = 0.0
+							ai._change_state(State.SEARCH)
 		
 		target = null
 		_change_state(State.SEARCH)
 		return
 	
 	# Check if in attack range
-	if distance <= attack_range:
+	if distance_sq <= attack_range * attack_range:
 		# Only switch to attack if we are actually facing the target
 		var dir_to_target = (target.global_position - parent.global_position).normalized()
 		var is_facing = facing_direction.dot(dir_to_target) > 0.5

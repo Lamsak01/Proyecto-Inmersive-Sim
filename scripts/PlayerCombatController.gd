@@ -28,6 +28,14 @@ func _process(delta: float) -> void:
 func _unhandled_input(event: InputEvent) -> void:
 	if event.is_action_pressed("ui_accept"):
 		attack()
+	elif event.is_action_pressed("Interact"):
+		if current_prompt_target:
+			current_prompt_target.knockout()
+			current_prompt_target.hide_prompt()
+			current_prompt_target = null
+			if player.has_method("show_hint"):
+				player.show_hint("Takedown!")
+			get_viewport().set_input_as_handled()
 
 func _setup_visuals() -> void:
 	weapon_pivot = Node2D.new()
@@ -78,7 +86,7 @@ func _update_weapon_visuals() -> void:
 		weapon_pivot.z_index = 0
 
 func equip_weapon(weapon_data: WeaponData) -> void:
-	player.set("equipped_weapon", weapon_data)
+	player.equipped_weapon = weapon_data
 	if weapon_sprite and weapon_data.icon:
 		weapon_sprite.texture = weapon_data.icon
 		weapon_sprite.visible = true
@@ -93,7 +101,7 @@ func equip_weapon(weapon_data: WeaponData) -> void:
 			weapon_sprite.rotation_degrees = -45
 
 func attack() -> void:
-	var equipped = player.get("equipped_weapon")
+	var equipped = player.equipped_weapon
 	if not equipped: return
 	if stamina_comp and stamina_comp.current_stamina < 15.0: return
 	if attack_timer > 0: return
@@ -156,7 +164,7 @@ func _check_stealth_takedown() -> void:
 	for b in bodies:
 		if b.is_in_group("enemies") and b.has_method("knockout") and b.get_node_or_null("EnemyAI"):
 			var ai = b.get_node("EnemyAI")
-			if ai.current_state == 0 or ai.current_state == 4: # IDLE or SEARCH
+			if ai.current_state == EnemyAI.State.IDLE or ai.current_state == EnemyAI.State.SEARCH:
 				var enemy_facing = ai.facing_direction
 				
 				var dir_to_player = (player.global_position - b.global_position).normalized()
@@ -173,11 +181,3 @@ func _check_stealth_takedown() -> void:
 	else:
 		if current_prompt_target and current_prompt_target.has_method("show_prompt"):
 			current_prompt_target.show_prompt()
-
-	if current_prompt_target:
-		if Input.is_action_just_pressed("Interact"):
-			current_prompt_target.knockout()
-			current_prompt_target.hide_prompt()
-			current_prompt_target = null
-			if player.has_method("show_hint"):
-				player.show_hint("Takedown!")

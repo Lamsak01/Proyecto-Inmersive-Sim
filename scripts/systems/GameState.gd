@@ -29,12 +29,11 @@ func save_player_state(player: Node) -> void:
 	if grid_inv and grid_inv is GridInventory:
 		for item_instance in grid_inv.placed_items.values():
 			var item: InventoryItem = item_instance["item"]
-			var path = item.resource_path
-			if path == "":
-				print("GameState WARNING: Item '", item.name, "' has no resource_path, skipping!")
-				continue
+			var id = item.id if item.get("id") else item.resource_path
+			
 			saved_inventory.append({
-				"resource_path": path,
+				"id": id,
+				"resource_path": item.resource_path, # Fallback
 				"position_x": item_instance["position"].x,
 				"position_y": item_instance["position"].y,
 				"rotated": item_instance["rotated"]
@@ -44,8 +43,9 @@ func save_player_state(player: Node) -> void:
 		# Save quick slots
 		for slot_idx in grid_inv.quick_slots.keys():
 			var qi = grid_inv.quick_slots[slot_idx]
-			if qi and qi.has("item") and qi["item"].resource_path != "":
-				saved_quick_slots[slot_idx] = qi["item"].resource_path
+			if qi and qi.has("item"):
+				var q_item = qi["item"]
+				saved_quick_slots[slot_idx] = q_item.id if q_item.get("id") else q_item.resource_path
 	else:
 		print("GameState WARNING: GridInventory not found on player!")
 	
@@ -78,19 +78,32 @@ func restore_player_state(player: Node) -> void:
 	
 	# Restore items
 	for saved in saved_inventory:
-		var item: InventoryItem = load(saved["resource_path"])
+		var item: InventoryItem = null
+		if saved.has("id") and ItemDatabase.has_method("get_item"):
+			item = ItemDatabase.get_item(saved["id"])
+			
+		if not item and saved.has("resource_path"):
+			var path = saved["resource_path"]
+			if path.begins_with("res://"):
+				var fallback_id = path.get_file().get_basename()
+				if ItemDatabase.has_method("get_item"):
+					item = ItemDatabase.get_item(fallback_id)
+			if not item:
+				item = load(saved["resource_path"])
+				
 		var pos = Vector2i(saved["position_x"], saved["position_y"])
 		if item:
 			var placed = grid_inv.try_place_item(item, pos, saved["rotated"])
 			print("GameState: Restored item '", item.name, "' at ", pos, " -> ", placed)
 		else:
-			print("GameState WARNING: Could not load item: ", saved["resource_path"])
+			print("GameState WARNING: Could not load item: ", saved.get("id", saved.get("resource_path")))
 	
 	# Restore quick slots
 	for slot_idx in saved_quick_slots.keys():
-		var item_path = saved_quick_slots[slot_idx]
+		var saved_ref = saved_quick_slots[slot_idx]
 		for item_instance in grid_inv.placed_items.values():
-			if item_instance["item"].resource_path == item_path:
+			var it = item_instance["item"]
+			if (it.get("id") and it.id == saved_ref) or it.resource_path == saved_ref:
 				grid_inv.assign_quick_slot(slot_idx, item_instance)
 				break
 	

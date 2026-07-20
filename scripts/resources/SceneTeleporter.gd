@@ -2,10 +2,13 @@ extends Area2D
 
 @export_file("*.tscn") var target_scene_path: String
 @export var target_position: Vector2 = Vector2.ZERO 
+@export var spawn_direction: String = ""
 
 var player_in_range: Node2D = null
+var _is_loading: bool = false
 
 func _ready() -> void:
+	set_process(false)
 	body_entered.connect(_on_body_entered)
 	body_exited.connect(_on_body_exited)
 	area_entered.connect(_on_area_entered)
@@ -39,16 +42,40 @@ func change_scene() -> void:
 		else:
 			print("DEBUG: Could not find GridInventory on player!")
 	
-	# Setup target direction based on the destination scene
-	if target_scene_path.get_file() == "House1Interior.tscn":
-		GameState.next_spawn_direction = "up"
-	elif target_scene_path.get_file() == "World.tscn":
-		GameState.next_spawn_direction = "down"
+	# Setup target direction based on export var
+	if spawn_direction != "":
+		GameState.next_spawn_direction = spawn_direction
 
 	call_deferred("_deferred_change_scene")
 
 func _deferred_change_scene() -> void:
-	get_tree().change_scene_to_file(target_scene_path)
+	if ResourceLoader.has_cached(target_scene_path):
+		get_tree().change_scene_to_file(target_scene_path)
+	else:
+		ResourceLoader.load_threaded_request(target_scene_path)
+		_is_loading = true
+		set_process(true)
+		
+		var overlay = CanvasLayer.new()
+		overlay.layer = 100
+		var color_rect = ColorRect.new()
+		color_rect.color = Color(0, 0, 0, 1)
+		color_rect.set_anchors_preset(Control.PRESET_FULL_RECT)
+		overlay.add_child(color_rect)
+		add_child(overlay)
+
+func _process(_delta: float) -> void:
+	if _is_loading:
+		var status = ResourceLoader.load_threaded_get_status(target_scene_path)
+		if status == ResourceLoader.THREAD_LOAD_LOADED:
+			_is_loading = false
+			set_process(false)
+			var packed_scene = ResourceLoader.load_threaded_get(target_scene_path)
+			get_tree().change_scene_to_packed(packed_scene)
+		elif status == ResourceLoader.THREAD_LOAD_FAILED or status == ResourceLoader.THREAD_LOAD_INVALID_RESOURCE:
+			push_error("SceneTeleporter: Failed to load scene asynchronously.")
+			_is_loading = false
+			set_process(false)
 
 func _is_player(node: Node) -> bool:
 	return node.is_in_group("player") or node.name == "Player" or node.name == "PlayerGood"

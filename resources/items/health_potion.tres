@@ -5,7 +5,10 @@
 
 [resource]
 script = ExtResource("1_potion")
+id = "health_potion"
 name = "Health Potion"
 description = "Restores health when consumed."
 texture = ExtResource("2_tip3f")
 grid_size = Vector2i(1, 1)
+is_consumable = true
+heal_amount = 25.0
