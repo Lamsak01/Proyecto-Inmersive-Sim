@@ -29761,17 +29761,16 @@ tile_set = SubResource("TileSet_vcsgt")
 
 [node name="Parallax2D" type="Parallax2D" parent="Environment" unique_id=1058059729]
 z_index = -100
-repeat_size = Vector2(320, 192)
 metadata/_edit_lock_ = true
 
 [node name="TextureRect" type="TextureRect" parent="Environment/Parallax2D" unique_id=992508683]
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_left = -531.0
-offset_top = -613.0
-offset_right = 1469.0
-offset_bottom = 1386.9999
+offset_left = -3500.0
+offset_top = -3500.0
+offset_right = 5500.0
+offset_bottom = 5500.0
 grow_horizontal = 2
 grow_vertical = 2
 texture = ExtResource("1_d1c63")

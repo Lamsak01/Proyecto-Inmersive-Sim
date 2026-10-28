@@ -51,6 +51,10 @@ func _ready() -> void:
 
 	if WorldClock:
 		WorldClock.day_passed.connect(_on_day_passed)
+	if GameManager:
+		GameManager.game_loaded.connect(_on_game_loaded)
+
+	_load_saved_state()
 
 func _build_fence_enclosure() -> void:
 	# Suelo de tierra suave del gallinero
@@ -357,6 +361,40 @@ func _refresh_coop_visuals() -> void:
 		south_fence_gap.visible = not is_breached
 	if breach_marker:
 		breach_marker.visible = is_breached
+	_save_state()
+
+func _save_state() -> void:
+	if not GameManager:
+		return
+	GameManager.set_flag("player_chicken_coop", {
+		"feeder": feeder_level,
+		"eggs": eggs_in_nest,
+		"breached": is_breached,
+		"fence_hp": fence_hp,
+		"chickens": chickens.size()
+	})
+
+func _load_saved_state() -> void:
+	if not GameManager:
+		return
+	var saved: Variant = GameManager.get_flag("player_chicken_coop", null)
+	if typeof(saved) == TYPE_DICTIONARY:
+		feeder_level = int(saved.get("feeder", 1))
+		eggs_in_nest = int(saved.get("eggs", 2))
+		is_breached = bool(saved.get("breached", false))
+		fence_hp = float(saved.get("fence_hp", MAX_FENCE_HP))
+		var target_c: int = clampi(int(saved.get("chickens", 3)), 0, 6)
+		while chickens.size() > target_c:
+			var removed: Dictionary = chickens.pop_back()
+			var spr: Sprite2D = removed.get("sprite")
+			if is_instance_valid(spr):
+				spr.queue_free()
+		while chickens.size() < target_c:
+			_add_chicken()
+		_refresh_coop_visuals()
+
+func _on_game_loaded(_filepath: String) -> void:
+	_load_saved_state()
 
 func _get_coop_prompt() -> String:
 	if is_breached:

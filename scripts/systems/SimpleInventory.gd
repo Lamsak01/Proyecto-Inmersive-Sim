@@ -130,6 +130,33 @@ const CATALOG: Dictionary = {
 		"restore_stamina": 35.0,
 		"restore_hunger": 38.0
 	},
+	"river_trout": {
+		"name": "Trucha de Río",
+		"category": "Pesca",
+		"desc": "Pez de aguas frescas capturado de día. Cocínalo en la cacerola o véndelo en el pueblo.",
+		"usable": false
+	},
+	"golden_carp": {
+		"name": "Carpa Dorada",
+		"category": "Pesca",
+		"desc": "Pez brillante y cotizado del lago. Cocínalo o véndelo a buen precio.",
+		"usable": false
+	},
+	"night_catfish": {
+		"name": "Siluro Nocturno",
+		"category": "Pesca",
+		"desc": "Gran pez de fondo que solo pica al atardecer y de noche. Muy valioso.",
+		"usable": false
+	},
+	"cooked_fish": {
+		"name": "Pescado Cocido",
+		"category": "Alimento",
+		"desc": "Filete de pescado recién hecho en la cacerola (+36 HP, +55 STM, +52 Hambre).",
+		"usable": true,
+		"heal_hp": 36.0,
+		"restore_stamina": 55.0,
+		"restore_hunger": 52.0
+	},
 	"country_stew": {
 		"name": "Estofado Campesino",
 		"category": "Alimento",

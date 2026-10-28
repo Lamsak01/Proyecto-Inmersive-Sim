@@ -1,9 +1,13 @@
 extends Node2D
 class_name Crosshair2D
 
-## Punto de Mira Dinámico (Estilo Enter the Gungeon / Zero Sievert / Nuclear Throne)
-## Sigue al cursor del ratón en el mundo (y también soporta las Flechas del teclado por si se juega con Touchpad en Linux),
-## reacciona al movimiento/disparo (spread) y cambia de color al apuntar sobre enemigos, animales o recursos.
+## Punto de Mira Dinámico Híbrido (Ratón 360° + Modo ThinkPad/Teclado sin ratón)
+## - Si mueves el ratón/TrackPoint, apunta exactamente al cursor en el mundo.
+## - Si juegas solo con teclado (sin tocar el ratón):
+##   * Al moverte con W/A/S/D (incluyendo diagonales), el punto de mira acompaña automáticamente
+##     la dirección en la que caminas/miras.
+##   * Puedes ajustar el apuntado con precisión usando las Flechas del Teclado (↑ ↓ ← →).
+## - Muestra el cursor del sistema automáticamente al abrir la Mochila [I], Rueda [Tab] o Diálogos.
 
 var player: CharacterBody2D = null
 var current_gap: float = 4.0
@@ -14,17 +18,16 @@ var is_ranged_mode: bool = false
 var is_drawing_bow: bool = false
 var bow_tension: float = 0.0 # 0.0 (sin tensar) a 1.0 (máxima tensión)
 
-# Offset relativo al jugador para que el punto de mira acompañe al jugador al caminar
-var aim_offset: Vector2 = Vector2(45, 0)
-var _last_mouse_local: Vector2 = Vector2.ZERO
+var aim_offset: Vector2 = Vector2(0, 48)
+var _last_screen_mouse: Vector2 = Vector2.ZERO
+var _mouse_active_timer: float = 0.0
+var _arrow_active_timer: float = 0.0
 
 func _ready() -> void:
 	z_index = 100
 	top_level = true
-	if is_instance_valid(player):
-		_last_mouse_local = player.get_local_mouse_position()
-		if _last_mouse_local.length_squared() > 4.0:
-			aim_offset = _last_mouse_local
+	if get_viewport():
+		_last_screen_mouse = get_viewport().get_mouse_position()
 
 func add_recoil(amount: float = 5.0) -> void:
 	recoil_impulse = min(10.0, recoil_impulse + amount)
@@ -38,13 +41,16 @@ func _process(delta: float) -> void:
 	if not is_instance_valid(player):
 		return
 
-	# Si hay un menú o diálogo abierto, mostrar el cursor del sistema y ocultar el punto de mira
+	# 1. Si hay un menú, rueda radial o diálogo abierto, mostrar el cursor del sistema y ocultar la cruceta
 	var ui_open := false
 	var dm = player.get("dialogue_manager")
 	if dm and dm.has_method("is_active") and dm.call("is_active"):
 		ui_open = true
 	var inv_panel = get_tree().root.find_child("InventoryPanel", true, false)
 	if inv_panel and inv_panel.visible:
+		ui_open = true
+	var wheel_panel = get_tree().root.find_child("ToolWheelUI", true, false)
+	if wheel_panel and wheel_panel.visible:
 		ui_open = true
 
 	if ui_open:
@@ -57,30 +63,58 @@ func _process(delta: float) -> void:
 			Input.set_mouse_mode(Input.MOUSE_MODE_HIDDEN)
 		visible = true
 
-	# 1. Seguir movimiento del ratón (relativo al jugador para que no se quede atrás al caminar)
-	var cur_mouse_local: Vector2 = player.get_local_mouse_position() - Vector2(0, -10)
-	if cur_mouse_local.distance_squared_to(_last_mouse_local) > 0.5:
-		_last_mouse_local = cur_mouse_local
-		aim_offset = cur_mouse_local
+	if _mouse_active_timer > 0.0:
+		_mouse_active_timer -= delta
+	if _arrow_active_timer > 0.0:
+		_arrow_active_timer -= delta
 
-	# 2. Soporte adicional con Flechas del Teclado (por si el Touchpad de Linux bloquea el ratón al pulsar WASD)
+	# 2. Detectar si el jugador movió físicamente el ratón/touchpad en la pantalla
+	var screen_mouse: Vector2 = get_viewport().get_mouse_position()
+	if screen_mouse.distance_squared_to(_last_screen_mouse) > 2.0:
+		_last_screen_mouse = screen_mouse
+		_mouse_active_timer = 2.5
+		var cur_mouse_local: Vector2 = player.get_local_mouse_position() - Vector2(0, -10)
+		if cur_mouse_local.length_squared() > 4.0:
+			aim_offset = cur_mouse_local
+
+	# 3. Apuntado con Flechas del Teclado (↑ ↓ ← →) — Prioridad manual en teclado
 	var arrow_input := Vector2(
-		Input.get_action_strength("ui_right") - Input.get_action_strength("ui_left"),
-		Input.get_action_strength("ui_down") - Input.get_action_strength("ui_up")
+		float(Input.is_key_pressed(KEY_RIGHT)) - float(Input.is_key_pressed(KEY_LEFT)),
+		float(Input.is_key_pressed(KEY_DOWN)) - float(Input.is_key_pressed(KEY_UP))
 	)
 	if arrow_input.length_squared() > 0.01:
-		aim_offset += arrow_input.normalized() * 160.0 * delta
+		_arrow_active_timer = 3.0
+		_mouse_active_timer = 0.0
+		aim_offset += arrow_input.normalized() * 145.0 * delta
 		aim_offset = aim_offset.limit_length(150.0)
+		if aim_offset.length() < 18.0:
+			aim_offset = arrow_input.normalized() * 24.0
+
+	# 4. Modo ThinkPad sin ratón: si no estás moviendo el ratón ni las flechas, orientar con W/A/S/D
+	elif _mouse_active_timer <= 0.0 and _arrow_active_timer <= 0.0:
+		var wasd_dir := Input.get_vector("move_left", "move_right", "move_up", "move_down")
+		var target_dist: float = 75.0 if is_ranged_mode else 42.0
+		if wasd_dir.length_squared() > 0.04:
+			var desired_offset: Vector2 = wasd_dir.normalized() * target_dist
+			aim_offset = aim_offset.lerp(desired_offset, clampf(14.0 * delta, 0.0, 1.0))
+		elif "last_dir" in player:
+			var facing_vec := Vector2.DOWN
+			match str(player.last_dir):
+				"up": facing_vec = Vector2.UP
+				"down": facing_vec = Vector2.DOWN
+				"left": facing_vec = Vector2.LEFT
+				"right": facing_vec = Vector2.RIGHT
+			if aim_offset.length_squared() < 100.0:
+				aim_offset = facing_vec * target_dist
 
 	global_position = get_aim_world_position()
 
-	# 3. Calcular apertura dinámica de la cruceta según tensión del arco, movimiento, clic derecho y retroceso
+	# 5. Apertura dinámica de la cruceta según tensión del arco, movimiento y retroceso
 	var base_gap: float = 4.0 if is_ranged_mode else 3.0
 	if is_drawing_bow:
-		# Al tensar el arco, la cruceta empieza abierta (7.0) y se cierra al máximo (1.8) al llegar al 100% de tensión
 		base_gap = lerpf(7.0, 1.8, bow_tension)
 	elif Input.is_mouse_button_pressed(MOUSE_BUTTON_RIGHT):
-		base_gap = 2.0 # Mayor precisión al apuntar con Clic Derecho
+		base_gap = 2.0
 	elif player.velocity.length_squared() > 100.0:
 		base_gap += 2.2
 
@@ -88,7 +122,7 @@ func _process(delta: float) -> void:
 	target_gap = base_gap + recoil_impulse
 	current_gap = lerpf(current_gap, target_gap, clampf(18.0 * delta, 0.0, 1.0))
 
-	# 4. Detectar si el punto de mira está sobre un enemigo/animal o recurso para cambiar de color
+	# 6. Detectar si el punto de mira está sobre un enemigo, animal o recurso
 	reticle_color = _detect_target_color()
 	queue_redraw()
 
@@ -97,15 +131,15 @@ func _detect_target_color() -> Color:
 	for enemy in get_tree().get_nodes_in_group("enemies"):
 		if is_instance_valid(enemy) and enemy is Node2D:
 			if enemy.global_position.distance_squared_to(mouse_pos) <= 256.0:
-				return Color(1.0, 0.28, 0.28, 0.98) # Rojo sobre enemigos
+				return Color(1.0, 0.28, 0.28, 0.98)
 	for animal in get_tree().get_nodes_in_group("wild_animals"):
 		if is_instance_valid(animal) and animal is Node2D and animal.visible:
 			if animal.global_position.distance_squared_to(mouse_pos) <= 225.0:
-				return Color(1.0, 0.35, 0.25, 0.98) # Rojo/Naranja sobre animales de caza
+				return Color(1.0, 0.35, 0.25, 0.98)
 	for res in get_tree().get_nodes_in_group("destructible"):
 		if is_instance_valid(res) and res is Node2D and res.visible:
 			if res.global_position.distance_squared_to(mouse_pos) <= 324.0:
-				return Color(1.0, 0.85, 0.35, 0.95) # Dorado sobre árboles/rocas/cajas
+				return Color(1.0, 0.85, 0.35, 0.95)
 	return Color(0.55, 0.95, 1.0, 0.95) if is_ranged_mode else Color(0.98, 0.96, 0.88, 0.92)
 
 func _draw() -> void:
@@ -113,11 +147,9 @@ func _draw() -> void:
 	var g := roundf(current_gap)
 	var tick_len: float = 4.0 if is_ranged_mode else 3.0
 
-	# 1. Punto central nítido (con borde oscuro)
 	draw_rect(Rect2(-1.5, -1.5, 3.0, 3.0), outline)
 	draw_rect(Rect2(-0.5, -0.5, 1.0, 1.0), reticle_color)
 
-	# 2. Las 4 patillas de la cruceta (Arriba, Abajo, Izquierda, Derecha)
 	var dirs := [Vector2.UP, Vector2.DOWN, Vector2.LEFT, Vector2.RIGHT]
 	for d in dirs:
 		var start: Vector2 = d * g
@@ -125,7 +157,6 @@ func _draw() -> void:
 		draw_line(start, end_pt, outline, 3.0)
 		draw_line(start, end_pt, reticle_color, 1.2)
 
-	# 3. Barra de Tensión del Arco bajo el Punto de Mira mientras tensas la cuerda
 	if is_drawing_bow:
 		var bar_w := 16.0
 		var bar_h := 2.5

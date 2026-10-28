@@ -350,6 +350,15 @@ func _interact_pot(player: Node2D) -> void:
 			player._spawn_floating_text("🍲 Cacerola: +1 Carne Cocida", Color.ORANGE, -42.0)
 		return
 
+	for fish_id in ["night_catfish", "golden_carp", "river_trout"]:
+		if inv.has_item(fish_id, 1):
+			var f_name := inv.get_item_name(fish_id)
+			inv.remove_item(fish_id, 1)
+			inv.add_item("cooked_fish", 1)
+			if player.has_method("_spawn_floating_text"):
+				player._spawn_floating_text("🍲 Cacerola (%s): +1 Pescado Cocido" % f_name, Color.AQUA, -42.0)
+			return
+
 	for veg_id in ["cabbage", "carrot", "mushroom"]:
 		if inv.has_item(veg_id, 1):
 			var v_name := inv.get_item_name(veg_id)
@@ -380,6 +389,9 @@ func _get_pot_prompt() -> String:
 	if inv:
 		if inv.has_item("raw_meat", 1):
 			return "🍲 Hoguera [E: Cocinar Carne Cruda]"
+		for fish_id in ["night_catfish", "golden_carp", "river_trout"]:
+			if inv.has_item(fish_id, 1):
+				return "🍲 Hoguera [E: Cocinar %s]" % inv.get_item_name(fish_id)
 		for veg_id in ["cabbage", "carrot", "mushroom"]:
 			if inv.has_item(veg_id, 1):
 				return "🍲 Hoguera [E: Cocinar %s]" % inv.get_item_name(veg_id)

@@ -27,6 +27,12 @@ var hammer_weapon: WeaponData = load("res://resources/weapons/Hammer.tres")
 var axe_weapon: WeaponData = null
 var pickaxe_weapon: WeaponData = null
 var bow_weapon: WeaponData = null
+var sickle_weapon: WeaponData = null
+var watering_can_weapon: WeaponData = null
+var fishing_rod_weapon: WeaponData = null
+
+const MAX_WATER_CHARGES: int = 6
+var watering_can_charges: int = 6
 
 # Status variables for controllers
 var is_weak: bool = false
@@ -91,6 +97,40 @@ func _setup_tools() -> void:
 	bow_dmg.mining_efficiency = 0.0
 	bow_weapon.damage_data = bow_dmg
 
+	# [6] Hoz de Cosecha (+1 Cultivo extra al cosechar plantas maduras)
+	sickle_weapon = WeaponData.new()
+	sickle_weapon.name = "Sickle"
+	sickle_weapon.icon = _load_tool_tex("res://assests/items/tools/sickle_tool.png")
+	var sickle_dmg := DamageData.new()
+	sickle_dmg.amount = 7.0
+	sickle_dmg.type = CombatConstants.DamageType.CUT
+	sickle_dmg.bleed_buildup = 15.0
+	sickle_dmg.logging_efficiency = 0.25
+	sickle_dmg.mining_efficiency = 0.0
+	sickle_weapon.damage_data = sickle_dmg
+
+	# [7] Regadera Agrícola (Riego del huerto con cargas de agua recargables en Pozo o Lago)
+	watering_can_weapon = WeaponData.new()
+	watering_can_weapon.name = "WateringCan"
+	watering_can_weapon.icon = _load_tool_tex("res://assests/items/tools/watering_can.png")
+	var can_dmg := DamageData.new()
+	can_dmg.amount = 2.0
+	can_dmg.type = CombatConstants.DamageType.BLUNT
+	can_dmg.logging_efficiency = 0.0
+	can_dmg.mining_efficiency = 0.0
+	watering_can_weapon.damage_data = can_dmg
+
+	# [8] Caña de Pescar (Pesca en el Lago del Oeste)
+	fishing_rod_weapon = WeaponData.new()
+	fishing_rod_weapon.name = "FishingRod"
+	fishing_rod_weapon.icon = _load_tool_tex("res://assests/items/tools/fishing_rod.png")
+	var rod_dmg := DamageData.new()
+	rod_dmg.amount = 2.0
+	rod_dmg.type = CombatConstants.DamageType.BLUNT
+	rod_dmg.logging_efficiency = 0.0
+	rod_dmg.mining_efficiency = 0.0
+	fishing_rod_weapon.damage_data = rod_dmg
+
 func _ready() -> void:
 	motion_mode = CharacterBody2D.MOTION_MODE_FLOATING
 	add_to_group("player")
@@ -133,6 +173,45 @@ func equip_weapon(weapon_data: WeaponData) -> void:
 	if combat_ctrl and combat_ctrl.has_method("equip_weapon"):
 		combat_ctrl.equip_weapon(weapon_data)
 
+func equip_tool_by_index(idx: int) -> void:
+	match idx:
+		0:
+			equip_weapon(sword_weapon)
+			show_hint("[1] Espada (Combate: Corte/Sangrado | Tala lenta 35%)")
+		1:
+			equip_weapon(hammer_weapon)
+			show_hint("[2] Martillo (Combate: Stun | Minería lenta 35%)")
+		2:
+			equip_weapon(axe_weapon)
+			show_hint("[3] Hacha de Leñador (Especialista en Tala 180%)")
+		3:
+			equip_weapon(pickaxe_weapon)
+			show_hint("[4] Pico de Minero (Especialista en Minería 180%)")
+		4:
+			equip_weapon(bow_weapon)
+			show_hint("[5] Arco de Caza (Disparo a distancia con Clic Izquierdo)")
+		5:
+			equip_weapon(sickle_weapon)
+			show_hint("[6] Hoz de Cosecha (+1 Cultivo extra al cosechar plantas maduras)")
+		6:
+			equip_weapon(watering_can_weapon)
+			show_hint("[7] Regadera Agrícola (Agua: %d/%d — Recárgala en el Pozo o Lago)" % [watering_can_charges, MAX_WATER_CHARGES])
+		7:
+			equip_weapon(fishing_rod_weapon)
+			show_hint("[8] Caña de Pescar (Pesca en el Lago del Oeste con [E])")
+
+func refill_watering_can() -> void:
+	watering_can_charges = MAX_WATER_CHARGES
+	_spawn_floating_text("💧 Regadera llena (%d/%d)" % [watering_can_charges, MAX_WATER_CHARGES], Color.AQUA, -40.0)
+	show_hint("💧 Regadera recargada al 100%% (%d/%d usos de riego)." % [watering_can_charges, MAX_WATER_CHARGES])
+
+func consume_water_charge() -> bool:
+	if watering_can_charges <= 0:
+		show_hint("⚠️ Tu Regadera está vacía (0/%d). Llénala en el Pozo junto al huerto o en el Lago del Oeste." % MAX_WATER_CHARGES)
+		return false
+	watering_can_charges -= 1
+	return true
+
 func _handle_interactions() -> void:
 	if dialogue_manager and dialogue_manager.call("is_active"):
 		return
@@ -172,20 +251,21 @@ func _unhandled_input(event: InputEvent) -> void:
 
 	if event is InputEventKey and event.pressed and not event.echo:
 		if event.keycode == KEY_1:
-			equip_weapon(sword_weapon)
-			show_hint("[1] Espada (Combate: Corte/Sangrado | Tala lenta 35%)")
+			equip_tool_by_index(0)
 		elif event.keycode == KEY_2:
-			equip_weapon(hammer_weapon)
-			show_hint("[2] Martillo (Combate: Stun | Minería lenta 35%)")
+			equip_tool_by_index(1)
 		elif event.keycode == KEY_3:
-			equip_weapon(axe_weapon)
-			show_hint("[3] Hacha de Leñador (Especialista en Tala 180%)")
+			equip_tool_by_index(2)
 		elif event.keycode == KEY_4:
-			equip_weapon(pickaxe_weapon)
-			show_hint("[4] Pico de Minero (Especialista en Minería 180%)")
+			equip_tool_by_index(3)
 		elif event.keycode == KEY_5:
-			equip_weapon(bow_weapon)
-			show_hint("[5] Arco de Caza (Disparo a distancia con Clic Izquierdo o Espacio)")
+			equip_tool_by_index(4)
+		elif event.keycode == KEY_6:
+			equip_tool_by_index(5)
+		elif event.keycode == KEY_7:
+			equip_tool_by_index(6)
+		elif event.keycode == KEY_8:
+			equip_tool_by_index(7)
 		elif event.keycode == KEY_R and inventory:
 			var next_seed := inventory.cycle_selected_seed()
 			var s_name := inventory.get_item_name(next_seed)
@@ -268,6 +348,12 @@ func to_save_dict() -> Dictionary:
 		weapon_id = "pickaxe"
 	elif equipped_weapon == bow_weapon:
 		weapon_id = "bow"
+	elif equipped_weapon == sickle_weapon:
+		weapon_id = "sickle"
+	elif equipped_weapon == watering_can_weapon:
+		weapon_id = "watering_can"
+	elif equipped_weapon == fishing_rod_weapon:
+		weapon_id = "fishing_rod"
 	return {
 		"pos_x": global_position.x,
 		"pos_y": global_position.y,
@@ -277,6 +363,7 @@ func to_save_dict() -> Dictionary:
 		"stamina": stam_comp.current_stamina if stam_comp else 100.0,
 		"hunger": survival_comp.current_hunger if survival_comp else 100.0,
 		"sleep": survival_comp.current_sleep if survival_comp else 100.0,
+		"watering_can_charges": watering_can_charges,
 		"weapon": weapon_id,
 		"inventory": inventory.to_dict() if inventory else {}
 	}
@@ -300,12 +387,17 @@ func from_save_dict(data: Dictionary) -> void:
 		if data.has("sleep"):
 			survival_comp.current_sleep = clampf(float(data["sleep"]), 0.0, survival_comp.max_sleep)
 		survival_comp._emit_all()
+	if data.has("watering_can_charges"):
+		watering_can_charges = clampi(int(data["watering_can_charges"]), 0, MAX_WATER_CHARGES)
 	var weapon_id: String = str(data.get("weapon", "sword"))
 	match weapon_id:
 		"hammer": equip_weapon(hammer_weapon)
 		"axe": equip_weapon(axe_weapon)
 		"pickaxe": equip_weapon(pickaxe_weapon)
 		"bow": equip_weapon(bow_weapon)
+		"sickle": equip_weapon(sickle_weapon)
+		"watering_can": equip_weapon(watering_can_weapon)
+		"fishing_rod": equip_weapon(fishing_rod_weapon)
 		_: equip_weapon(sword_weapon)
 	if inventory and data.has("inventory"):
 		inventory.from_dict(data["inventory"])

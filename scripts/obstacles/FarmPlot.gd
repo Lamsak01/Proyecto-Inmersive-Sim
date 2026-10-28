@@ -182,30 +182,39 @@ func interact(player: Node) -> void:
 			player._spawn_floating_text("🌱 Plantado: %s" % CROP_DATA[crop_type]["name"], Color.SPRING_GREEN, -38.0)
 		return
 
-	# 2. Cultivo maduro -> Cosechar producto + recuperar semillas
+	# 2. Cultivo maduro -> Cosechar producto + recuperar semillas (+1 extra si usas la Hoz [6])
 	if is_mature():
 		var info: Dictionary = CROP_DATA[crop_type]
 		var prod_id: String = str(info["product_id"])
 		var seed_id: String = str(info["seed_id"])
-		var yield_amt: int = int(info["base_yield"]) + (1 if is_fertilized else 0)
+		var has_sickle: bool = ("equipped_weapon" in player) and player.equipped_weapon != null and player.equipped_weapon.name == "Sickle"
+		var yield_amt: int = int(info["base_yield"]) + (1 if is_fertilized else 0) + (1 if has_sickle else 0)
 		var seed_amt: int = int(info["seed_return"])
 
 		inv.add_item(prod_id, yield_amt)
 		inv.add_item(seed_id, seed_amt)
 
 		if player.has_method("_spawn_floating_text"):
-			player._spawn_floating_text("🌾 Cosechado: +%d %s, +%d Semillas" % [yield_amt, inv.get_item_name(prod_id), seed_amt], Color.GOLD, -42.0)
+			var sickle_tag := " (¡Bono Hoz!)" if has_sickle else ""
+			player._spawn_floating_text("🌾 Cosechado%s: +%d %s, +%d Semillas" % [sickle_tag, yield_amt, inv.get_item_name(prod_id), seed_amt], Color.GOLD, -42.0)
 
 		_reset_plot()
 		return
 
-	# 3. Cultivo en crecimiento pero Seco -> Regar con [E]
+	# 3. Cultivo en crecimiento pero Seco -> Regar con [E] (usa carga de la Regadera [7] si está equipada)
 	if not is_watered:
+		var has_can: bool = ("equipped_weapon" in player) and player.equipped_weapon != null and player.equipped_weapon.name == "WateringCan"
+		if has_can and player.has_method("consume_water_charge"):
+			if not player.call("consume_water_charge"):
+				return
 		is_watered = true
 		_refresh_visuals()
 		_save_state()
 		if player.has_method("_spawn_floating_text"):
-			player._spawn_floating_text("💧 Tierra regada", Color.AQUA, -38.0)
+			if has_can and "watering_can_charges" in player and "MAX_WATER_CHARGES" in player:
+				player._spawn_floating_text("💧 Tierra regada (%d/%d agua)" % [int(player.watering_can_charges), int(player.MAX_WATER_CHARGES)], Color.AQUA, -38.0)
+			else:
+				player._spawn_floating_text("💧 Tierra regada", Color.AQUA, -38.0)
 		return
 
 	# 4. Cultivo ya regado y sin abonar -> Abonar con [E] si tienes Abono Orgánico

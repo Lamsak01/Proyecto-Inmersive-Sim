@@ -16,6 +16,7 @@ var inv_panel: PanelContainer = null
 var inv_gold_label: Label = null
 var inv_items_box: VBoxContainer = null
 var inv_recipes_box: VBoxContainer = null
+var tool_wheel: ToolWheelUI = null
 
 func _ready() -> void:
 	# 1. Find Player if not assigned
@@ -85,6 +86,7 @@ func _ready() -> void:
 	setup_hint_label()
 	_setup_clock_ui()
 	_setup_inventory_ui()
+	_setup_tool_wheel_ui()
 	_init_default_objectives()
 
 	if "inventory" in player and player.inventory:
@@ -109,13 +111,40 @@ func _bind_survival_component() -> void:
 		surv._emit_all()
 
 func _unhandled_input(event: InputEvent) -> void:
-	if event is InputEventKey and event.pressed and not event.echo:
-		if event.physical_keycode == KEY_I or event.keycode == KEY_TAB:
-			_toggle_inventory()
+	if event is InputEventKey and not event.echo:
+		if event.keycode == KEY_TAB:
+			if event.pressed:
+				if tool_wheel and tool_wheel.visible:
+					tool_wheel.close_wheel(true)
+				elif tool_wheel:
+					if inv_panel and inv_panel.visible:
+						inv_panel.visible = false
+					tool_wheel.open_wheel()
+			else:
+				if tool_wheel and tool_wheel.visible:
+					tool_wheel.handle_tab_release()
 			get_viewport().set_input_as_handled()
-		elif event.keycode == KEY_ESCAPE and inv_panel and inv_panel.visible:
-			inv_panel.visible = false
-			get_viewport().set_input_as_handled()
+			return
+
+		if event.pressed:
+			if event.physical_keycode == KEY_I:
+				if tool_wheel and tool_wheel.visible:
+					tool_wheel.close_wheel(false)
+				_toggle_inventory()
+				get_viewport().set_input_as_handled()
+			elif event.keycode == KEY_ESCAPE:
+				if tool_wheel and tool_wheel.visible:
+					tool_wheel.close_wheel(false)
+					get_viewport().set_input_as_handled()
+				elif inv_panel and inv_panel.visible:
+					inv_panel.visible = false
+					get_viewport().set_input_as_handled()
+
+func _setup_tool_wheel_ui() -> void:
+	tool_wheel = ToolWheelUI.new()
+	tool_wheel.name = "ToolWheelUI"
+	tool_wheel.player = player
+	add_child(tool_wheel)
 
 func _toggle_inventory() -> void:
 	if not inv_panel:
@@ -433,7 +462,7 @@ func _on_clock_time_updated(_day: int, _hour: int, _minute: int) -> void:
 	var gold_val := 25
 	if player and "inventory" in player and player.inventory:
 		gold_val = player.inventory.gold
-	clock_sub_label.text = "💰 %d Oro | Visión: %d%% | [I] Mochila | [F5/F9] Guardar/Cargar" % [gold_val, vis_pct]
+	clock_sub_label.text = "💰 %d Oro | Visión: %d%% | [TAB] Rueda | [I] Mochila | [F5/F9] Guardar/Cargar" % [gold_val, vis_pct]
 
 func _init_default_objectives() -> void:
 	if not ObjectiveManager:

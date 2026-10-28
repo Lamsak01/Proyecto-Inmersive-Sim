@@ -69,13 +69,12 @@ Una vez que los 4 pilares se sienten genial, convertimos el mapa de pruebas en e
   - *(Ideas guardadas para expansión futura del inventario:*
     1. ***Rueda de Herramientas y Armas estilo Red Dead Redemption (`Tool Wheel`):** Separar por completo las herramientas/armas (Espada, Martillo, Hacha, Pico, Arco, Pala, Hoz, Regadera) en una **Rueda Radial** al mantener presionado `Tab` (o con teclas numéricas), dejando la **Mochila/Bolsa (`[I]`)** exclusivamente para materiales, cosechas, pieles y consumibles.*
     2. ***Sistema de Mochilas estilo Kenshi/Outward:** Empezar con una bolsa pequeña y comprar/craftear mochilas de cuero de distintos tamaños para ampliar la capacidad máxima, mostrando el sprite de la mochila en la espalda).*
-- [ ] **2.3. Sistema de Puestos de Trabajo (`Workplace`), Stock y Sucesión:**
-  - Crear la estructura de las **5 casas/oficios** (ej. Carnicero/Cazador, Herrero/Minero, Carpintero/Leñador, Agricultor/Herborista, Tabernero/Comerciante).
-  - Implementar stock real por negocio (`stock`, `produccion_diaria`, `consumo_diario`).
-  - Implementar **Sucesión**: lista de herederos/aprendices que asumen el puesto días después si el titular muere o queda incapacitado, afectando la calidad/cantidad de productos en el pueblo.
-- [ ] **2.4. Rutinas de NPCs y Relaciones Profundas:**
-  - Horarios diarios conectados al `WorldClock` (ir a trabajar, comer, socializar, dormir en su cama).
-  - Sistema de relaciones e historial: los aliados recuerdan tus favores, regalos, robos o agresiones, desbloqueando mejores precios, ayuda en combate o enemistad.
+- [x] **2.3. Sistema de Puestos de Trabajo (`VillageManager.gd`, `VillageNPC.gd`), Stock, Taberna Aparte y Sucesión:**
+  - Creados los **5 Oficios Especializados** de la aldea con `shop_stock` real y reposición diaria: *Garrick* (Carnicero y Peletero), *Thoran* (Herrero), *Bram* (Carpintero), *Elena* (Herborista y Agricultora) y *Marlo* (Pescador y Molinero).
+  - Creada la **Taberna y Posada "El Jabalí Dorado"** aparte de los 5 oficios, regentada por *Marta* (vende comida caliente y alquila cama por `8 Oro`), con **4 camas** donde duermen los **3 NPCs sin oficio** (*Aldric el Viajero*, *Sora la Forastera* y *Darío el Jornalero*).
+  - **Sucesión Orgánica:** Si cualquiera de los 5 artesanos muere, al amanecer siguiente (`WorldClock.day_passed`) uno de los NPCs sin oficio de la Taberna hereda su puesto de trabajo y stock (`promote_to_trade`).
+- [x] **2.4. Rutinas de NPCs y Relaciones Profundas (`VillageNPC.gd`):**
+  - Horarios diarios conectados a `WorldClock` (trabajo o socialización en la plaza/taberna de día y descanso en su cama asignada de `20:00 a 06:00`), con afinidad dinámica (`-100 a +100`), comercio y reacción al combate/KO.
 
 ---
 
@@ -120,8 +119,12 @@ El jugador pasa de sobrevivir al día a construir su hogar y producir sus propio
     - **🌾 Trigo (`wheat_seeds` $\rightarrow$ `wheat`):** Crece en **4 días** (o **3 días** con abono); permite hornear Pan en `[I]`.
   - **Bucle de Cuidado (`[E]` y `[R]`):** Alterna semilla activa con **`[R]`** (o en `[I]`), planta con **`[E]`**, riega la tierra seca con **`[E]`**, abona con **Abono Orgánico (`fertilizer`)** con **`[E]`** (`+1 día` inmediato y `+1 cosecha extra`) y cosecha con **`[E]`** (recuperando además semillas para replantar). Conectado al grupo `"farm_crops"` para incursiones de fauna del bosque.
   - *(Expansión futura preparada en código con `require_farming_tools`: **Herramientas Agrícolas dedicadas** — **Regadera** con recarga de agua en pozo/río, **Hoz / Guadaña** para cosechar más rápido y **Compostador / Saco de Abono** para almacenar y fermentar abono en el huerto).*
-- [ ] **4.3. Pesca:**
-  - Zonas de pesca en el río/lago con mecánica interactiva y variedades de peces según la hora del día.
+- [x] **4.3. Pesca e Hidrología (`FishingSpot.gd`):**
+  - **Lago del Oeste (`WestFishingLake` en `Vector2(-65, 105)`):** Cuenta con muelle de madera, ondas animadas y minijuego interactivo de picada (`[E]` para lanzar la caña y `[E]` cuando pica el pez).
+  - **Especies Diurnas y Nocturnas:** De día (`06:00 - 17:59`) pican **Truchas de Río (`river_trout`)** y **Carpas Doradas (`golden_carp`)**; al atardecer y noche (`18:00 - 05:59`) aparece el **Siluro Nocturno (`night_catfish`)**. Pueden cocinarse en la Hoguera (`cooked_fish`) o venderse a *Marlo*.
+- [x] **4.4. Rueda Radial de Herramientas estilo *Red Dead Redemption* (`ToolWheelUI.gd`) y Herramientas Agrícolas:**
+  - **`[Tab]` Rueda Radial Independiente:** Separa las **8 herramientas y armas** (`[1]` Espada, `[2]` Martillo, `[3]` Hacha, `[4]` Pico, `[5]` Arco, `[6]` Hoz, `[7]` Regadera con `6/6` cargas de agua, `[8]` Caña de Pescar) de la **Mochila de Recursos (`[I]`)**.
+  - **Pozo de Agua (`WaterWell`) y Compostador (`CompostBin`):** Ubicados junto al huerto (`x = 184`) para recargar la Regadera al `100%` y fermentar Abono Orgánico con hierbas/hongos.
 
 ---
 
