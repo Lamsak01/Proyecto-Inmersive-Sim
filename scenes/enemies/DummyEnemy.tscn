@@ -3,7 +3,6 @@
 [ext_resource type="Script" uid="uid://bfqhfgm7hp6oj" path="res://scripts/enemies/DummyEnemy.gd" id="1_script"]
 [ext_resource type="Texture2D" uid="uid://k01sasvg3f6n" path="res://assests/enemies/bat_fixed.png" id="2_sprite"]
 [ext_resource type="Script" uid="uid://bq0toefgnjkw4" path="res://scripts/systems/combat/HealthComponent.gd" id="3_health"]
-[ext_resource type="Script" uid="uid://dqry6bpv4rq78" path="res://scripts/systems/combat/ArmorComponent.gd" id="4_armor"]
 [ext_resource type="Script" uid="uid://b81sbakbycvb2" path="res://scripts/systems/ai/EnemyAI.gd" id="5_ai"]
 [ext_resource type="Script" uid="uid://cv6yrhvau1lih" path="res://scripts/ui/AlertIndicator.gd" id="6_alert"]
 [ext_resource type="Script" uid="uid://b37cpqxetfqiq" path="res://scripts/ui/VisionCone2D.gd" id="7_cone"]
@@ -100,9 +99,6 @@ shape = SubResource("CircleShape2D_collision")
 [node name="HealthComponent" type="Node" parent="." unique_id=1700887574]
 script = ExtResource("3_health")
 max_health = 50.0
-
-[node name="ArmorComponent" type="Node" parent="." unique_id=792091395]
-script = ExtResource("4_armor")
 
 [node name="EnemyAI" type="Node" parent="." unique_id=1896956555]
 script = ExtResource("5_ai")

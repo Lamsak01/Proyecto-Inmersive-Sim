@@ -13,6 +13,8 @@ var hitbox_shape: CollisionShape2D
 
 var current_prompt_target: Node2D = null
 var attack_timer: float = 0.0
+var _takedown_check_timer: float = 0.0
+var _last_weapon_dir: String = ""
 
 func _ready() -> void:
 	_setup_visuals()
@@ -20,16 +22,25 @@ func _ready() -> void:
 
 func _process(delta: float) -> void:
 	_update_weapon_visuals()
-	_check_stealth_takedown()
 	
-	if attack_timer > 0:
+	if _takedown_check_timer > 0.0:
+		_takedown_check_timer -= delta
+	else:
+		_takedown_check_timer = 0.08
+		_check_stealth_takedown()
+	
+	if attack_timer > 0.0:
 		attack_timer -= delta
 
 func _unhandled_input(event: InputEvent) -> void:
+	var dm = player.get("dialogue_manager") if player else null
+	if dm and dm.has_method("is_active") and dm.call("is_active"):
+		return
+
 	if event.is_action_pressed("ui_accept"):
 		attack()
 	elif event.is_action_pressed("Interact"):
-		if current_prompt_target:
+		if is_instance_valid(current_prompt_target):
 			current_prompt_target.knockout()
 			current_prompt_target.hide_prompt()
 			current_prompt_target = null
@@ -54,9 +65,8 @@ func _setup_visuals() -> void:
 func _setup_hitbox() -> void:
 	hitbox_area = Hitbox.new()
 	hitbox_area.name = "WeaponHitbox"
-	# Typically set collision mask to enemies layers
 	hitbox_area.collision_layer = 0
-	hitbox_area.collision_mask = 4 # Assuming layer 3 is enemies, adjust as needed or use groups
+	hitbox_area.collision_mask = 5 # Layers 1 (destructibles/environment) + 3 (enemies/hurtboxes)
 	
 	hitbox_shape = CollisionShape2D.new()
 	var circle = CircleShape2D.new()
@@ -69,25 +79,27 @@ func _setup_hitbox() -> void:
 	weapon_pivot.add_child(hitbox_area)
 	
 	hitbox_area.area_entered.connect(_on_hitbox_entered)
+	hitbox_area.body_entered.connect(_on_hitbox_body_entered)
 
 func _update_weapon_visuals() -> void:
 	if not is_instance_valid(weapon_pivot): return
 	
 	var last_dir = player.get("last_dir")
+	if last_dir == _last_weapon_dir:
+		return
+	_last_weapon_dir = last_dir
+	
 	match last_dir:
 		"down": weapon_pivot.rotation_degrees = 90
 		"up": weapon_pivot.rotation_degrees = -90
 		"left": weapon_pivot.rotation_degrees = 180
 		"right": weapon_pivot.rotation_degrees = 0
 		
-	if last_dir == "up":
-		weapon_pivot.z_index = -1
-	else:
-		weapon_pivot.z_index = 0
+	weapon_pivot.z_index = -1 if last_dir == "up" else 0
 
 func equip_weapon(weapon_data: WeaponData) -> void:
 	player.equipped_weapon = weapon_data
-	if weapon_sprite and weapon_data.icon:
+	if weapon_sprite and weapon_data and weapon_data.icon:
 		weapon_sprite.texture = weapon_data.icon
 		weapon_sprite.visible = true
 		
@@ -104,7 +116,7 @@ func attack() -> void:
 	var equipped = player.equipped_weapon
 	if not equipped: return
 	if stamina_comp and stamina_comp.current_stamina < 15.0: return
-	if attack_timer > 0: return
+	if attack_timer > 0.0: return
 		
 	if stamina_comp:
 		stamina_comp.use_stamina(15.0)
@@ -115,18 +127,6 @@ func attack() -> void:
 		var tween = create_tween()
 		tween.tween_property(weapon_sprite, "rotation_degrees", 45, 0.1)
 		tween.tween_property(weapon_sprite, "rotation_degrees", -45, 0.2)
-		
-	# Attack lunge
-	var lunge_dir = Vector2.ZERO
-	match player.get("last_dir"):
-		"down": lunge_dir = Vector2.DOWN
-		"up": lunge_dir = Vector2.UP
-		"left": lunge_dir = Vector2.LEFT
-		"right": lunge_dir = Vector2.RIGHT
-	
-	if lunge_dir != Vector2.ZERO:
-		var lunge_tween = create_tween()
-		lunge_tween.tween_property(player, "global_position", player.global_position + (lunge_dir * 15.0), 0.1)
 	
 	# Enable hitbox briefly
 	hitbox_area.damage_data = equipped.damage_data.copy()
@@ -134,7 +134,8 @@ func attack() -> void:
 	
 	hitbox_shape.disabled = false
 	await get_tree().create_timer(0.2).timeout
-	hitbox_shape.disabled = true
+	if is_instance_valid(hitbox_shape):
+		hitbox_shape.disabled = true
 
 func _on_hitbox_entered(area: Area2D) -> void:
 	if area is Hurtbox:
@@ -142,9 +143,14 @@ func _on_hitbox_entered(area: Area2D) -> void:
 		_apply_hitstop()
 		_apply_camera_shake()
 
+func _on_hitbox_body_entered(body: Node2D) -> void:
+	if body != player and body.is_in_group("destructible") and body.has_method("take_damage"):
+		body.take_damage(hitbox_area.damage_data)
+		_apply_hitstop()
+		_apply_camera_shake()
+
 func _apply_hitstop() -> void:
 	Engine.time_scale = 0.1
-	# Use ignore_time_scale = true so the timer isn't affected by the slowed time
 	await get_tree().create_timer(0.05, true, false, true).timeout
 	Engine.time_scale = 1.0
 
@@ -159,25 +165,23 @@ func _apply_camera_shake() -> void:
 func _check_stealth_takedown() -> void:
 	if not interact_area: return
 	var bodies = interact_area.get_overlapping_bodies()
-	var new_target = null
+	var new_target: Node2D = null
 	
 	for b in bodies:
 		if b.is_in_group("enemies") and b.has_method("knockout") and b.get_node_or_null("EnemyAI"):
+			if b.get("is_stunned_flag") == true:
+				continue
 			var ai = b.get_node("EnemyAI")
 			if ai.current_state == EnemyAI.State.IDLE or ai.current_state == EnemyAI.State.SEARCH:
 				var enemy_facing = ai.facing_direction
-				
 				var dir_to_player = (player.global_position - b.global_position).normalized()
 				if enemy_facing.dot(dir_to_player) < -0.5:
 					new_target = b
 					break
 	
 	if new_target != current_prompt_target:
-		if current_prompt_target and current_prompt_target.has_method("hide_prompt"):
+		if is_instance_valid(current_prompt_target) and current_prompt_target.has_method("hide_prompt"):
 			current_prompt_target.hide_prompt()
-		if new_target and new_target.has_method("show_prompt"):
+		if is_instance_valid(new_target) and new_target.has_method("show_prompt"):
 			new_target.show_prompt()
 		current_prompt_target = new_target
-	else:
-		if current_prompt_target and current_prompt_target.has_method("show_prompt"):
-			current_prompt_target.show_prompt()

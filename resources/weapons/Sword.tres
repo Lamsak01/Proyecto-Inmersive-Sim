@@ -8,6 +8,8 @@
 script = ExtResource("1_damage")
 amount = 10.0
 type = 0
+bleed_buildup = 40.0
+stun_buildup = 0.0
 bleed_chance = 0.0
 
 [resource]
@@ -15,5 +17,4 @@ script = ExtResource("2_weapon")
 name = "Sword"
 handedness = 0
 damage_data = SubResource("Resource_damage")
-scene_path = ""
 icon = ExtResource("3_icon")

@@ -39,13 +39,16 @@ func _ready() -> void:
 func take_damage(data: DamageData) -> void:
 	# 1. Check vulnerabilities
 	if not _is_damage_effective(data.type):
-		# Optional: Play "clink" or "thud" sound for ineffective hit
+		if AudioManager:
+			AudioManager.emit_noise(global_position, 110.0)
 		if visual_node: _play_deflect_effect()
 		return
 
 	# 2. Apply damage
 	if health_comp:
 		health_comp.take_damage(data)
+		if health_comp.current_health > 0 and AudioManager:
+			AudioManager.emit_noise(global_position, 100.0)
 		if visual_node: _play_hit_effect()
 
 func _is_damage_effective(type: int) -> bool:
@@ -74,6 +77,8 @@ func _play_deflect_effect() -> void:
 
 func _on_died() -> void:
 	print(name, " DESTROYED!")
+	if AudioManager:
+		AudioManager.emit_noise(global_position, 220.0)
 	
 	if persistence_id != "":
 		GameManager.set_flag(persistence_id, true)

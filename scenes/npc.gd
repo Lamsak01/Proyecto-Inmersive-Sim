@@ -1,141 +1,182 @@
 extends CharacterBody2D
+## NPC Aldeano con sistema de Afinidad/Relación (-100 a +100), Combate (Sangrado y Stun/KO) y Diálogo Contextual.
 
+@export var npc_name: String = "Aldeano Guía"
+@export var npc_role: String = "Vigía de la Aldea"
 @export var dialogue_manager: Node
+@export var enemy_ai: Node
+@export var affinity: int = 0 ## -100 (Enemigo mortal) a +100 (Aliado fiel)
+@export var hostility_threshold: int = -30 ## Si la afinidad baja de este valor, se vuelve hostil
+
 @onready var anim: AnimatedSprite2D = $AnimatedSprite2D
 @onready var hurtbox: Hurtbox = get_node_or_null("Hurtbox")
+@onready var health_comp: HealthComponent = get_node_or_null("HealthComponent")
+@onready var stun_comp: StunComponent = get_node_or_null("StunComponent")
 
-@export var enemy_ai: Node # Using generic Node, will cast to EnemyAI if needed
-@export var hostility_threshold: int = 2
+const FloatingTextScene = preload("res://scenes/ui/FloatingText.tscn")
 
-enum State { NEUTRAL, FRIENDLY, ANGRY, ATTACK }
-var current_state: State = State.NEUTRAL
-var hostility_meter: int = 0
+enum Attitude { HOSTILE, UNFRIENDLY, NEUTRAL, FRIENDLY, ALLY }
+var current_attitude: Attitude = Attitude.NEUTRAL
+var is_attacking: bool = false
+var is_stunned_flag: bool = false
 var push_velocity: Vector2 = Vector2.ZERO
+@export var weight: float = 25.0
+
+func _ready() -> void:
+	motion_mode = CharacterBody2D.MOTION_MODE_FLOATING
+	anim.play("idle")
+	_update_attitude_from_affinity()
+
+	if enemy_ai:
+		enemy_ai.set_process(false)
+		enemy_ai.set_physics_process(false)
+		if enemy_ai.has_signal("attack_triggered"):
+			enemy_ai.attack_triggered.connect(_on_enemy_ai_attack)
+
+	if not health_comp:
+		health_comp = HealthComponent.new()
+		health_comp.name = "HealthComponent"
+		health_comp.max_health = 60.0
+		add_child(health_comp)
+	health_comp.died.connect(_on_died)
+	health_comp.bleed_triggered.connect(_on_bleed_triggered)
+
+	if not stun_comp:
+		stun_comp = StunComponent.new()
+		stun_comp.name = "StunComponent"
+		stun_comp.max_stun = 100.0
+		stun_comp.stun_duration = 4.0
+		add_child(stun_comp)
+	stun_comp.stunned.connect(_on_stunned)
+
+	if hurtbox:
+		hurtbox.hit_received.connect(take_damage)
 
 func apply_push(force: Vector2) -> void:
 	push_velocity = force
 
 func _physics_process(_delta: float) -> void:
-	if push_velocity.length() > 0:
-		push_velocity = push_velocity.move_toward(Vector2.ZERO, 500 * _delta)
-		
-	if current_state != State.ATTACK or not enemy_ai:
+	if is_stunned_flag or not is_attacking or not enemy_ai:
 		velocity = Vector2.ZERO
-		
-	velocity += push_velocity
-	
+		return
+
 	move_and_slide()
 
-func _ready() -> void:
-	anim.play("idle")
-	if dialogue_manager and dialogue_manager.has_signal("dialogue_finished"):
-		if not dialogue_manager.dialogue_finished.is_connected(_on_dialogue_finished):
-			dialogue_manager.dialogue_finished.connect(_on_dialogue_finished)
+func _spawn_floating_text(text: String, color: Color, offset_y: float = -36.0) -> void:
+	if FloatingTextScene:
+		var ft = FloatingTextScene.instantiate()
+		ft.start_text = text
+		ft.text_color = color
+		ft.global_position = global_position + Vector2(0, offset_y)
+		get_tree().current_scene.add_child(ft)
 
-	if enemy_ai:
-		# Disable AI by default (Neutral state)
-		enemy_ai.set_process(false)
-		enemy_ai.set_physics_process(false)
-		
-		if enemy_ai.has_signal("attack_triggered"):
-			enemy_ai.attack_triggered.connect(_on_enemy_ai_attack)
-		
-	_setup_health()
-	
-	if hurtbox:
-		hurtbox.hit_received.connect(take_damage)
+# --- Sistema de Relación / Afinidad ---
 
-# --- Combat / Health ---
-var health_comp: HealthComponent
+func modify_affinity(delta_amount: int) -> void:
+	if delta_amount == 0:
+		return
+	affinity = clamp(affinity + delta_amount, -100, 100)
+	_update_attitude_from_affinity()
 
-func _setup_health() -> void:
-	health_comp = HealthComponent.new()
-	health_comp.name = "HealthComponent"
-	health_comp.max_health = 50.0
-	health_comp.current_health = 50.0
-	add_child(health_comp)
-	health_comp.died.connect(_on_died)
-	health_comp.health_changed.connect(_on_health_changed)
+	var sign_str := "+" if delta_amount > 0 else ""
+	var col := Color.SPRING_GREEN if delta_amount > 0 else Color.CORAL
+	_spawn_floating_text("%s%d Relación" % [sign_str, delta_amount], col, -42.0)
+
+func _update_attitude_from_affinity() -> void:
+	if affinity <= hostility_threshold:
+		current_attitude = Attitude.HOSTILE
+	elif affinity <= -10:
+		current_attitude = Attitude.UNFRIENDLY
+	elif affinity < 20:
+		current_attitude = Attitude.NEUTRAL
+	elif affinity < 50:
+		current_attitude = Attitude.FRIENDLY
+	else:
+		current_attitude = Attitude.ALLY
+
+func get_relationship_status_text() -> String:
+	var state_str := "Neutral"
+	match current_attitude:
+		Attitude.HOSTILE: state_str = "Hostil"
+		Attitude.UNFRIENDLY: state_str = "Desconfiado"
+		Attitude.NEUTRAL: state_str = "Neutral"
+		Attitude.FRIENDLY: state_str = "Amistoso"
+		Attitude.ALLY: state_str = "Aliado"
+	return "%s | %s (%d)" % [npc_role, state_str, affinity]
+
+func get_relationship_color() -> Color:
+	match current_attitude:
+		Attitude.HOSTILE: return Color.RED
+		Attitude.UNFRIENDLY: return Color.ORANGE
+		Attitude.NEUTRAL: return Color(0.8, 0.85, 0.9)
+		Attitude.FRIENDLY: return Color.LIGHT_GREEN
+		Attitude.ALLY: return Color.CYAN
+	return Color.WHITE
+
+# --- Combate / Daño / Stun / Sangrado ---
 
 func take_damage(data: DamageData) -> void:
-	if current_state != State.ATTACK:
-		# Aggro on first hit!
-		hostility_meter = hostility_threshold + 5
-		_on_dialogue_finished("bad_end") # Force hostile state logic
+	# Si un aldeano es atacado, la relación cae drásticamente y se defiende
+	modify_affinity(-40)
+	if dialogue_manager and dialogue_manager.has_method("is_active") and dialogue_manager.call("is_active"):
+		dialogue_manager.call("end_dialogue")
 
-	health_comp.take_damage(data)
+	if not is_attacking:
+		_trigger_attack()
 
-	# Knockback
-	if "knockback_force" in data and data.source:
-		var knockback_dir = (global_position - data.source.global_position).normalized()
-		apply_push(knockback_dir * data.knockback_force)
+	if health_comp:
+		health_comp.take_damage(data)
+	if stun_comp and health_comp and health_comp.current_health > 0:
+		stun_comp.take_damage(data)
 
-	# Visual Flash
 	var old_mod = modulate
-	modulate = Color(10, 10, 10) # Flash White
+	modulate = Color(10, 10, 10)
 	await get_tree().create_timer(0.1).timeout
-	modulate = old_mod
+	if is_instance_valid(self) and health_comp and health_comp.current_health > 0:
+		modulate = Color(0.5, 0.6, 1.0) if is_stunned_flag else old_mod
 
-func _on_health_changed(current_health: float, _max_health: float) -> void:
-	print("NPC Health changed to: ", current_health)
-	# Optional: Flash red or play hurt anim
+func _on_bleed_triggered(_dps: float) -> void:
+	_spawn_floating_text("BLEEDING!", Color.CRIMSON, -28.0)
+
+func _on_stunned(stunned: bool) -> void:
+	is_stunned_flag = stunned
+	if enemy_ai and is_attacking:
+		enemy_ai.set_physics_process(not stunned)
+	if stunned:
+		anim.stop()
+		rotation_degrees = 90
+		modulate = Color(0.5, 0.6, 1.0)
+		_spawn_floating_text("STUNNED!", Color.AQUA, -48.0)
+	else:
+		rotation_degrees = 0
+		modulate = Color.WHITE
+		anim.play("idle")
 
 func _on_died() -> void:
-	print("NPC Died!")
 	set_physics_process(false)
 	set_process(false)
-	
 	if enemy_ai:
 		enemy_ai.set_process(false)
 		enemy_ai.set_physics_process(false)
-	
-	# Disable collisions to prevent further hits
+
 	$InteractArea/NpcInteractCollision.set_deferred("disabled", true)
 	$"cuerpo solido".set_deferred("disabled", true)
-	
-	# Visual feedback since we don't have a "dead" animation yet
-	anim.modulate = Color(0.5, 0.5, 0.5, 0.5) # Fade out / Grey
-	
-	# Remove after a short delay
-	await get_tree().create_timer(1.0).timeout
-	queue_free()
 
-func _on_dialogue_finished(last_id: String) -> void:
-	match last_id:
-		"nice_end":
-			current_state = State.FRIENDLY
-			hostility_meter = max(0, hostility_meter - 1) # Being nice reduces hostility
-			print("NPC is now FRIENDLY")
-			
-		"bad_end", "neutral_end", "fight":
-			current_state = State.ANGRY
-			hostility_meter += 1
-			print("NPC is now ANGRY. Hostility: ", hostility_meter)
-			
-			if hostility_meter >= hostility_threshold:
-				_trigger_attack()
+	rotation_degrees = 90
+	anim.modulate = Color(0.45, 0.45, 0.45, 0.8)
 
 func _trigger_attack() -> void:
-	current_state = State.ATTACK
-	print("NPC is ATTACKING!")
-	
+	is_attacking = true
+	current_attitude = Attitude.HOSTILE
+	add_to_group("enemies")
 	if enemy_ai:
-		# Enable AI
 		enemy_ai.set_process(true)
 		enemy_ai.set_physics_process(true)
-		
-		# Force Aggro on Player
-		var players = get_tree().get_nodes_in_group("player")
-		if players.size() > 0:
-			if enemy_ai.has_method("notify_damage"):
-				enemy_ai.notify_damage(players[0])
-			elif enemy_ai.has_method("_change_state"):
-				enemy_ai.call("notify_damage", players[0]) 
-	else:
-		push_warning("NPC: No EnemyAI assigned, cannot attack properly.")
+		var player = get_tree().get_first_node_in_group("player")
+		if player and enemy_ai.has_method("notify_damage"):
+			enemy_ai.notify_damage(player)
 
 func _on_enemy_ai_attack(damage_data: DamageData) -> void:
-	print("NPC Attacking Player!")
 	if enemy_ai and "target" in enemy_ai and enemy_ai.target:
 		if enemy_ai.target.has_method("take_damage"):
 			damage_data.source = self
@@ -143,91 +184,114 @@ func _on_enemy_ai_attack(damage_data: DamageData) -> void:
 
 func play_attack_anticipation(duration: float) -> void:
 	var original_modulate = modulate
-	modulate = Color(1.0, 0.5, 0.0) # Orange warning color
-	
-	# Little scale bump for anticipation
+	modulate = Color(1.0, 0.5, 0.0)
 	var tween = create_tween()
 	var orig_scale = scale
 	tween.tween_property(self, "scale", orig_scale * 1.1, duration * 0.5)
 	tween.tween_property(self, "scale", orig_scale, duration * 0.5)
-	
 	await get_tree().create_timer(duration).timeout
-	if modulate == Color(1.0, 0.5, 0.0): # Revert if not changed by damage
+	if is_instance_valid(self) and modulate == Color(1.0, 0.5, 0.0):
 		modulate = original_modulate
 
+# --- Interacción y Diálogo ---
+
 func interact(_player: Node) -> void:
-	if current_state == State.ATTACK:
-		print("NPC is hostile and refuses to talk!")
+	if is_stunned_flag:
 		return
-		
-	print("NPC: interact | State: ", current_state)
-	
-	var dialogue_data = {}
-	
-	match current_state:
-		State.NEUTRAL:
-			dialogue_data = _get_neutral_dialogue()
-		State.FRIENDLY:
-			dialogue_data = _get_friendly_dialogue()
-		State.ANGRY:
-			dialogue_data = _get_angry_dialogue()
+	if is_attacking:
+		if _player and _player.has_method("show_hint"):
+			_player.show_hint(npc_name + " es hostil y no quiere hablar.")
+		return
 
+	var dialogue_data: Dictionary = _build_dialogue_for_attitude()
 	if dialogue_manager:
-		dialogue_manager.call("start_dialogue", dialogue_data, "start")
-	else:
-		push_warning("NPC: dialogue_manager no asignado")
+		dialogue_manager.call("start_dialogue", dialogue_data, "start", self)
 
-func _get_neutral_dialogue() -> Dictionary:
-	return {
-		"start": {
-			"text": "Hey you! You look lost.",
-			"choices": [
-				{"label": "Can you help me?", "next": "nice_branch"},
-				{"label": "Get out of my way.", "next": "rude_branch"},
-				{"label": "...", "next": "END"}
-			]
-		},
-		"nice_branch": {
-			"text": "Sure. I saw a key hidden behind the big rock to the east.",
-			"choices": [
-				{"label": "Thanks!", "next": "nice_end"},
-				{"label": "Is that all?", "next": "neutral_end"}
-			]
-		},
-		"nice_end": {"text": "Good luck.", "choices": [{"label": "[End]", "next": "END"}]},
-		"neutral_end": {"text": "Don't push it.", "choices": [{"label": "[End]", "next": "END"}]},
-		"rude_branch": {
-			"text": "Rude! I'm not telling you anything then.",
-			"choices": [{"label": "Whatever.", "next": "bad_end"}, {"label": "Sorry!", "next": "start"}]
-		},
-		"bad_end": {"text": "Hmph!", "choices": [{"label": "[End]", "next": "END"}]}
-	}
+func on_dialogue_action(action_id: String) -> void:
+	match action_id:
+		"start_ combat", "provoke_fight":
+			_trigger_attack()
+		"heal_player":
+			var player = get_tree().get_first_node_in_group("player")
+			if player and player.has_node("HealthComponent"):
+				var hc: HealthComponent = player.get_node("HealthComponent")
+				hc.heal(30.0)
+				hc.modify_blood(100.0)
+				_spawn_floating_text("Curado +30 HP", Color.GREEN, -48.0)
 
-func _get_friendly_dialogue() -> Dictionary:
-	return {
-		"start": {
-			"text": "Oh, hello again friend! Did you find that key?",
-			"choices": [
-				{"label": "Not yet.", "next": "encouragement"},
-				{"label": "Yes, thanks!", "next": "congrats"}
-			]
-		},
-		"encouragement": {"text": "Keep looking near the rocks!", "choices": [{"label": "Okay.", "next": "END"}]},
-		"congrats": {"text": "Great job! Be careful out there.", "choices": [{"label": "Bye!", "next": "END"}]}
-	}
+func _build_dialogue_for_attitude() -> Dictionary:
+	match current_attitude:
+		Attitude.FRIENDLY, Attitude.ALLY:
+			return {
+				"start": {
+					"text": "¡Me alegra verte! La aldea es pequeña, pero la gente trabajadora siempre es bienvenida. ¿Necesitas algo?",
+					"choices": [
+						{"label": "¿Puedes vendar mis heridas?", "next": "healed", "action": "heal_player"},
+						{"label": "Háblame de los peligros del este.", "next": "frogs_info"},
+						{"label": "Solo pasaba a saludar. [Salir]", "next": "END"}
+					]
+				},
+				"healed": {
+					"text": "Listo, eso detendrá el sangrado y recuperará tus fuerzas. Ten más cuidado ahí fuera.",
+					"choices": [
+						{"label": "¡Muchas gracias! [Salir]", "next": "END"}
+					]
+				},
+				"frogs_info": {
+					"text": "Las ranas mutantes del este son rápidas. Si usas un arma contundente ([2] Martillo) podrás aturdirlas, o acércate en sigilo ([C]) por detrás.",
+					"choices": [
+						{"label": "Buen consejo, me encargaré de ellas.", "next": "END", "affinity": 5}
+					]
+				}
+			}
 
-func _get_angry_dialogue() -> Dictionary:
-	return {
-		"start": {
-			"text": "You again? I told you to get lost.",
-			"choices": [
-				{"label": "I'm sorry about before.", "next": "forgive"},
-				{"label": "Make me.", "next": "fight"}
-			]
-		},
-		"forgive": {
-			"text": "Review: Fine... just don't be rude again.", 
-			"choices": [{"label": "I won't.", "next": "nice_end"}] # Resets to Friendly via nice_end logic!
-		},
-		"fight": {"text": "I'm ignoring you!", "choices": [{"label": "...", "next": "END"}]}
-	}
+		Attitude.UNFRIENDLY, Attitude.HOSTILE:
+			return {
+				"start": {
+					"text": "No me gusta tu actitud, forastero. Más vale que no causes problemas en nuestra aldea o te pesará.",
+					"choices": [
+						{"label": "Disculpa, empecemos de nuevo.", "next": "apology", "affinity": 15},
+						{"label": "Intenta detenerme si puedes. [Pelear]", "next": "END", "affinity": -30, "action": "provoke_fight"},
+						{"label": "[Alejarse en silencio]", "next": "END"}
+					]
+				},
+				"apology": {
+					"text": "Hmph... Está bien. Mientras respetes a la gente del pueblo y ayudes con las plagas, no tendremos problemas.",
+					"choices": [
+						{"label": "Entendido. [Salir]", "next": "END"}
+					]
+				}
+			}
+
+		_: # NEUTRAL
+			return {
+				"start": {
+					"text": "Alto ahí. Eres el nuevo residente que llegó a la parcela vacía, ¿verdad? Aquí cada casa se gana el pan trabajando.",
+					"choices": [
+						{"label": "Quiero ganarme mi lugar. ¿En qué puedo ayudar?", "next": "help_branch", "affinity": 15},
+						{"label": "¿Qué sabes de las armas y recursos de por aquí?", "next": "tips_branch"},
+						{"label": "Apártate de mi camino, viejo.", "next": "rude_branch", "affinity": -20},
+						{"label": "Nos vemos luego. [Salir]", "next": "END"}
+					]
+				},
+				"help_branch": {
+					"text": "Esa es la actitud. Al sur dejé una espada cerca del camino, y al este hay ranas amenazando el linde. Límpialas y todos confiarán en ti.",
+					"choices": [
+						{"label": "Cuenta conmigo.", "next": "END", "affinity": 10},
+						{"label": "Veré qué puedo hacer.", "next": "END"}
+					]
+				},
+				"tips_branch": {
+					"text": "Con [1] usas la Espada para causar sangrado y con [2] el Martillo para aturdir o derribar barriles y muros agrietados.",
+					"choices": [
+						{"label": "Gracias por la información.", "next": "start", "affinity": 5}
+					]
+				},
+				"rude_branch": {
+					"text": "Cuidado con esa lengua. En una aldea de cinco casas todo se sabe muy rápido, y nadie le vende comida a un bravucón.",
+					"choices": [
+						{"label": "Tienes razón, disculpa.", "next": "start", "affinity": 15},
+						{"label": "No me importa. [Salir]", "next": "END", "affinity": -10}
+					]
+				}
+			}

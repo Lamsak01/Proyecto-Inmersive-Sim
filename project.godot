@@ -12,17 +12,14 @@ config_version=5
 
 config/name="Inmersive_Sim_Proto (4.5)"
 run/main_scene="uid://dsoiuct8kdsk3"
-config/features=PackedStringArray("4.6", "Forward Plus")
+config/features=PackedStringArray("4.7", "GL Compatibility")
 config/icon="res://icon.svg"
 
 [autoload]
 
 AudioManager="*res://scripts/systems/AudioManager.gd"
 GameManager="*res://scripts/systems/GameManager.gd"
-PowerManager="*res://addons/powergrid/managers/PowerNetworkManager.gd"
 ObjectiveManager="*res://scripts/systems/game_objectives/ObjectiveManager.gd"
-ItemDatabase="*res://scripts/systems/ItemDatabase.gd"
-GameState="*res://scripts/systems/GameState.gd"
 
 [display]
 
@@ -75,5 +72,7 @@ sprint={
 [rendering]
 
 textures/canvas_textures/default_texture_filter=0
+renderer/rendering_method="gl_compatibility"
+renderer/rendering_method.mobile="gl_compatibility"
 2d/snap/snap_2d_transforms_to_pixel=true
 2d/snap/snap_2d_vertices_to_pixel=true
