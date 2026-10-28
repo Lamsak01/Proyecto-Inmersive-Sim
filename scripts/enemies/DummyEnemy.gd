@@ -81,20 +81,16 @@ func _physics_process(_delta: float) -> void:
 		if dir.length_squared() > 0.001:
 			vision_cone.rotation = dir.angle()
 			
-		# Dynamic Cone Size based on Player Stealth (Only update when stealth state changes)
+		# Dynamic Cone Size based on Time of Day (WorldClock) & Player Stealth
 		if not is_instance_valid(_player_ref):
 			_player_ref = get_tree().get_first_node_in_group("player")
 		var stealth_now := 0
 		if _player_ref and _player_ref.has_method("is_stealthing") and _player_ref.is_stealthing():
 			stealth_now = 1
+		vision_cone.radius = ai.get_effective_detection_range()
 		if stealth_now != _last_stealth_state:
 			_last_stealth_state = stealth_now
-			if stealth_now == 1:
-				vision_cone.radius = ai.detection_range * 0.5
-				vision_cone.angle_deg = 60.0
-			else:
-				vision_cone.radius = ai.detection_range
-				vision_cone.angle_deg = 120.0
+			vision_cone.angle_deg = 60.0 if stealth_now == 1 else 120.0
 
 func show_prompt() -> void:
 	if prompt_label and not prompt_label.visible:

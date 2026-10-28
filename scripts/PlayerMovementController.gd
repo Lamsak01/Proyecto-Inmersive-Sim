@@ -13,8 +13,16 @@ var current_speed: float = 120.0
 
 @onready var player: CharacterBody2D = get_parent()
 @onready var anim: AnimatedSprite2D = $"../Animations"
+@onready var cam: Camera2D = get_node_or_null("../Camera2D")
 @onready var stamina_comp: StaminaComponent = $"../StaminaComponent"
 @onready var dialogue_manager: Node = player.get("dialogue_manager")
+
+@export var camera_look_ahead_ratio: float = 0.28 ## Qué tanto se desplaza la cámara hacia el punto de mira
+@export var max_camera_offset: float = 55.0       ## Desplazamiento máximo normal de la cámara
+@export var max_aim_camera_offset: float = 95.0   ## Desplazamiento al mantener Clic Derecho (Apuntar lejos)
+@export var camera_smooth_speed: float = 8.0      ## Velocidad de suavizado de la cámara
+
+var _aim_screen_offset: Vector2 = Vector2.ZERO
 
 func _physics_process(delta: float) -> void:
 	if not is_instance_valid(player) or not is_instance_valid(anim):
@@ -34,9 +42,32 @@ func _physics_process(delta: float) -> void:
 		_update_visual_state()
 		return
 
+	_update_aim_and_camera(delta)
 	_handle_input(delta)
 	player.move_and_slide()
 	_update_visual_state()
+
+func _update_aim_and_camera(delta: float) -> void:
+	var pivot_pos: Vector2 = player.global_position + Vector2(0, -10)
+	var ch: Crosshair2D = player.get_node_or_null("Crosshair2D")
+	var aim_world: Vector2 = ch.get_aim_world_position() if ch else player.get_global_mouse_position()
+	var aim_vec: Vector2 = aim_world - pivot_pos
+
+	# Actualizar hacia dónde mira el personaje según el Punto de Mira
+	if aim_vec.length_squared() > 4.0:
+		if abs(aim_vec.x) >= abs(aim_vec.y):
+			player.last_dir = "right" if aim_vec.x >= 0.0 else "left"
+		else:
+			player.last_dir = "down" if aim_vec.y >= 0.0 else "up"
+
+	# Desplazar suavemente la cámara hacia donde estás mirando/apuntando (estilo Enter the Gungeon / Zero Sievert)
+	# Funciona en todo momento, incluso mientras caminas con WASD en cualquier dirección.
+	if is_instance_valid(cam):
+		var is_peeking: bool = Input.is_mouse_button_pressed(MOUSE_BUTTON_RIGHT)
+		var look_mult: float = (camera_look_ahead_ratio * 1.65) if is_peeking else camera_look_ahead_ratio
+		var limit_dist: float = max_aim_camera_offset if is_peeking else max_camera_offset
+		var desired_offset: Vector2 = (aim_vec * look_mult).limit_length(limit_dist)
+		cam.offset = cam.offset.lerp(desired_offset, clampf(camera_smooth_speed * delta, 0.0, 1.0))
 
 func _unhandled_input(event: InputEvent) -> void:
 	if event is InputEventKey and event.pressed and not event.echo:
@@ -94,23 +125,9 @@ func _update_visual_state() -> void:
 	else:
 		player.modulate = Color(1.0, 1.0, 1.0, target_alpha)
 
-func _play_walk(dir: Vector2) -> void:
-	var target_anim: String
-	if abs(dir.x) > abs(dir.y):
-		if dir.x > 0.0:
-			target_anim = "walk_right"
-			player.last_dir = "right"
-		else:
-			target_anim = "walk_left"
-			player.last_dir = "left"
-	else:
-		if dir.y > 0.0:
-			target_anim = "walk_down"
-			player.last_dir = "down"
-		else:
-			target_anim = "walk_up"
-			player.last_dir = "up"
-
+func _play_walk(_dir: Vector2) -> void:
+	var facing: String = player.last_dir if player.last_dir != "" else "down"
+	var target_anim := "walk_" + facing
 	if anim.animation != target_anim or not anim.is_playing():
 		anim.play(target_anim)
 

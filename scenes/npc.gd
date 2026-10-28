@@ -24,6 +24,7 @@ var push_velocity: Vector2 = Vector2.ZERO
 
 func _ready() -> void:
 	motion_mode = CharacterBody2D.MOTION_MODE_FLOATING
+	add_to_group("npcs")
 	anim.play("idle")
 	_update_attitude_from_affinity()
 
@@ -208,16 +209,32 @@ func interact(_player: Node) -> void:
 		dialogue_manager.call("start_dialogue", dialogue_data, "start", self)
 
 func on_dialogue_action(action_id: String) -> void:
+	var player = get_tree().get_first_node_in_group("player")
 	match action_id:
 		"start_ combat", "provoke_fight":
 			_trigger_attack()
 		"heal_player":
-			var player = get_tree().get_first_node_in_group("player")
 			if player and player.has_node("HealthComponent"):
 				var hc: HealthComponent = player.get_node("HealthComponent")
 				hc.heal(30.0)
-				hc.modify_blood(100.0)
+				hc.stop_bleeding()
 				_spawn_floating_text("Curado +30 HP", Color.GREEN, -48.0)
+		"sell_wood":
+			if player and "inventory" in player and player.inventory:
+				if player.inventory.remove_item("wood", 1):
+					player.inventory.add_gold(8)
+					modify_affinity(8)
+					_spawn_floating_text("+8 Oro (Madera entregada)", Color.GOLD, -48.0)
+				else:
+					_spawn_floating_text("No tienes Madera", Color.ORANGE_RED, -48.0)
+		"buy_bandage":
+			if player and "inventory" in player and player.inventory:
+				if player.inventory.gold >= 6:
+					player.inventory.add_gold(-6)
+					player.inventory.add_item("bandage", 1)
+					_spawn_floating_text("+1 Vendaje (-6 Oro)", Color.LIGHT_GREEN, -48.0)
+				else:
+					_spawn_floating_text("Oro insuficiente (6 Oro)", Color.ORANGE_RED, -48.0)
 
 func _build_dialogue_for_attitude() -> Dictionary:
 	match current_attitude:
@@ -227,6 +244,8 @@ func _build_dialogue_for_attitude() -> Dictionary:
 					"text": "¡Me alegra verte! La aldea es pequeña, pero la gente trabajadora siempre es bienvenida. ¿Necesitas algo?",
 					"choices": [
 						{"label": "¿Puedes vendar mis heridas?", "next": "healed", "action": "heal_player"},
+						{"label": "Te traje Madera para el pueblo (+8 Oro, +8 Relación)", "next": "start", "action": "sell_wood"},
+						{"label": "Comprar Vendaje Limpio (-6 Oro)", "next": "start", "action": "buy_bandage"},
 						{"label": "Háblame de los peligros del este.", "next": "frogs_info"},
 						{"label": "Solo pasaba a saludar. [Salir]", "next": "END"}
 					]
@@ -269,6 +288,8 @@ func _build_dialogue_for_attitude() -> Dictionary:
 					"text": "Alto ahí. Eres el nuevo residente que llegó a la parcela vacía, ¿verdad? Aquí cada casa se gana el pan trabajando.",
 					"choices": [
 						{"label": "Quiero ganarme mi lugar. ¿En qué puedo ayudar?", "next": "help_branch", "affinity": 15},
+						{"label": "Vender 1 Madera (+8 Oro, +8 Relación)", "next": "start", "action": "sell_wood"},
+						{"label": "Comprar Vendaje Limpio (-6 Oro)", "next": "start", "action": "buy_bandage"},
 						{"label": "¿Qué sabes de las armas y recursos de por aquí?", "next": "tips_branch"},
 						{"label": "Apártate de mi camino, viejo.", "next": "rude_branch", "affinity": -20},
 						{"label": "Nos vemos luego. [Salir]", "next": "END"}
@@ -295,3 +316,39 @@ func _build_dialogue_for_attitude() -> Dictionary:
 					]
 				}
 			}
+
+func to_save_dict() -> Dictionary:
+	return {
+		"npc_name": npc_name,
+		"pos_x": global_position.x,
+		"pos_y": global_position.y,
+		"affinity": affinity,
+		"hp": health_comp.current_health if health_comp else 60.0,
+		"is_dead": (health_comp.current_health <= 0.0) if health_comp else false,
+		"is_attacking": is_attacking
+	}
+
+func from_save_dict(data: Dictionary) -> void:
+	if data.has("pos_x") and data.has("pos_y"):
+		global_position = Vector2(float(data["pos_x"]), float(data["pos_y"]))
+	affinity = int(data.get("affinity", affinity))
+	_update_attitude_from_affinity()
+	if health_comp and data.has("hp"):
+		health_comp.current_health = float(data["hp"])
+		if bool(data.get("is_dead", false)) or health_comp.current_health <= 0.0:
+			_on_died()
+		else:
+			set_physics_process(true)
+			set_process(true)
+			rotation_degrees = 0
+			anim.modulate = Color.WHITE
+			$InteractArea/NpcInteractCollision.set_deferred("disabled", false)
+			$"cuerpo solido".set_deferred("disabled", false)
+	if bool(data.get("is_attacking", false)) and (not health_comp or health_comp.current_health > 0.0):
+		_trigger_attack()
+	else:
+		is_attacking = false
+		remove_from_group("enemies")
+		if enemy_ai:
+			enemy_ai.set_process(false)
+			enemy_ai.set_physics_process(false)

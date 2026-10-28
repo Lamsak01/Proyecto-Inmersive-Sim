@@ -1,8 +1,22 @@
 extends Node
-## Gestor ligero de estado en memoria para la sesión actual (ej. objetos destructibles).
-## El sistema de guardado en disco anterior fue eliminado para rehacerlo desde cero más adelante.
+
+## Gestor Global de Estado y Sistema de Guardado/Cargado desde Cero — Fase 2.2
+## Guarda y restaura el estado completo de la aldea (Reloj, Jugador, Inventario, NPCs y Objetos Destruidos) en JSON limpio.
+
+signal game_saved(filepath: String)
+signal game_loaded(filepath: String)
+
+const SAVE_FILE_PATH: String = "user://village_save.json"
 
 var game_data: Dictionary = {}
+var workplaces_data: Dictionary = {} # Listo para Paso 2.3 (Puestos de Trabajo y Sucesión)
+
+func _unhandled_input(event: InputEvent) -> void:
+	if event is InputEventKey and event.pressed and not event.echo:
+		if event.keycode == KEY_F5:
+			save_game()
+		elif event.keycode == KEY_F9:
+			load_game()
 
 func set_flag(id: String, value: Variant) -> void:
 	game_data[id] = value
@@ -12,3 +26,94 @@ func get_flag(id: String, default: Variant = null) -> Variant:
 
 func reset_save() -> void:
 	game_data.clear()
+	workplaces_data.clear()
+
+func has_save_file(filepath: String = SAVE_FILE_PATH) -> bool:
+	return FileAccess.file_exists(filepath)
+
+func save_game(filepath: String = SAVE_FILE_PATH) -> bool:
+	var player = get_tree().get_first_node_in_group("player")
+	var npcs_dict: Dictionary = {}
+	for npc in get_tree().get_nodes_in_group("npcs"):
+		if is_instance_valid(npc) and npc.has_method("to_save_dict"):
+			npcs_dict[str(npc.get_path())] = npc.to_save_dict()
+
+	var payload: Dictionary = {
+		"version": 2,
+		"saved_at": Time.get_datetime_string_from_system(),
+		"world_clock": WorldClock.to_dict() if WorldClock else {},
+		"world_flags": game_data.duplicate(),
+		"workplaces": workplaces_data.duplicate(true),
+		"player": player.to_save_dict() if (player and player.has_method("to_save_dict")) else {},
+		"npcs": npcs_dict
+	}
+
+	var file := FileAccess.open(filepath, FileAccess.WRITE)
+	if not file:
+		push_error("GameManager: No se pudo abrir para guardar: " + filepath)
+		return false
+
+	file.store_string(JSON.stringify(payload, "\t"))
+	file.close()
+
+	if player and player.has_method("show_hint"):
+		var time_str := WorldClock.get_formatted_time() if WorldClock else ""
+		player.show_hint("💾 Partida Guardada — %s" % time_str)
+
+	game_saved.emit(filepath)
+	return true
+
+func load_game(filepath: String = SAVE_FILE_PATH) -> bool:
+	if not FileAccess.file_exists(filepath):
+		var p = get_tree().get_first_node_in_group("player")
+		if p and p.has_method("show_hint"):
+			p.show_hint("⚠ No existe partida guardada aún ([F5] para guardar).")
+		return false
+
+	var file := FileAccess.open(filepath, FileAccess.READ)
+	if not file:
+		return false
+
+	var raw_text := file.get_as_text()
+	file.close()
+
+	var parsed: Variant = JSON.parse_string(raw_text)
+	if typeof(parsed) != TYPE_DICTIONARY:
+		push_error("GameManager: Archivo de guardado corrupto.")
+		return false
+
+	var data: Dictionary = parsed
+
+	# 1. Restaurar flags del mundo y objetos destructibles
+	game_data = data.get("world_flags", {}).duplicate()
+	workplaces_data = data.get("workplaces", {}).duplicate(true)
+
+	for obj in get_tree().get_nodes_in_group("destructible"):
+		if is_instance_valid(obj) and not (obj is HarvestableNode) and "persistence_id" in obj and obj.persistence_id != "":
+			var flag_val = get_flag(obj.persistence_id, false)
+			if typeof(flag_val) == TYPE_BOOL and flag_val == true:
+				obj.queue_free()
+
+	# 2. Restaurar Reloj del Mundo e iluminación
+	if WorldClock and data.has("world_clock"):
+		WorldClock.from_dict(data["world_clock"])
+
+	# 3. Restaurar Jugador e Inventario
+	var player = get_tree().get_first_node_in_group("player")
+	if player and player.has_method("from_save_dict") and data.has("player"):
+		player.from_save_dict(data["player"])
+
+	# 4. Restaurar NPCs de la aldea
+	var saved_npcs: Dictionary = data.get("npcs", {})
+	for npc in get_tree().get_nodes_in_group("npcs"):
+		if is_instance_valid(npc) and npc.has_method("from_save_dict"):
+			var path_key := str(npc.get_path())
+			if saved_npcs.has(path_key):
+				npc.from_save_dict(saved_npcs[path_key])
+
+	if player and player.has_method("show_hint"):
+		var time_str := WorldClock.get_formatted_time() if WorldClock else ""
+		player.show_hint("📂 Partida Cargada — %s" % time_str)
+
+	game_loaded.emit(filepath)
+	return true

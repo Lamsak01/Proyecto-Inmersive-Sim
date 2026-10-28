@@ -19,12 +19,13 @@ enum Vulnerability {
 @onready var health_comp: HealthComponent = $HealthComponent
 
 func _ready() -> void:
+	if persistence_id == "":
+		persistence_id = "destructible_" + str(get_path())
+	
 	# Check persistence
-	if persistence_id != "":
-		if GameManager.get_flag(persistence_id, false) == true:
-			print("Persisted object ", persistence_id, " remains destroyed.")
-			queue_free()
-			return
+	if GameManager.get_flag(persistence_id, false) == true:
+		queue_free()
+		return
 
 	add_to_group("destructible")
 	if health_comp:
@@ -76,15 +77,20 @@ func _play_deflect_effect() -> void:
 	tween.tween_property(visual_node, "position:x", -2, 0.05).as_relative()
 
 func _on_died() -> void:
-	print(name, " DESTROYED!")
 	if AudioManager:
 		AudioManager.emit_noise(global_position, 220.0)
 	
 	if persistence_id != "":
 		GameManager.set_flag(persistence_id, true)
-		print("Persistence saved for ", persistence_id)
 
-	# Spawn debris/particles here if needed
+	# Entregar recursos al inventario del jugador según el objeto destruido
+	var player = get_tree().get_first_node_in_group("player")
+	if player and "inventory" in player and player.inventory:
+		var drop_id := "stone" if vulnerability == Vulnerability.BLUNT_ONLY else "wood"
+		player.inventory.add_item(drop_id, 1)
+		if player.has_method("_spawn_floating_text"):
+			player._spawn_floating_text("+1 %s" % player.inventory.get_item_name(drop_id), Color.WHEAT, -40.0)
+
 	if root_to_free:
 		root_to_free.queue_free()
 	else:

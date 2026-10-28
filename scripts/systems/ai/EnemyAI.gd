@@ -158,15 +158,25 @@ func _physics_process(delta: float) -> void:
 	if parent.velocity.length_squared() > chase_speed * chase_speed:
 		parent.velocity = parent.velocity.limit_length(chase_speed)
 
+func get_effective_detection_range() -> float:
+	var eff: float = detection_range
+	if WorldClock:
+		eff *= WorldClock.get_vision_multiplier()
+	var player := _get_global_player()
+	if player and player.has_method("is_stealthing") and player.is_stealthing():
+		eff *= 0.5
+	return eff
+
 func _process_idle(_delta: float) -> void:
 	parent.velocity = Vector2.ZERO
 	
 	var player = _get_global_player()
 	if not player: return
 
-	# 1. Visual Detection
+	# 1. Visual Detection (afectado por hora del día y sigilo del jugador)
+	var eff_range := get_effective_detection_range()
 	var distance_sq = parent.global_position.distance_squared_to(player.global_position)
-	if distance_sq <= detection_range * detection_range:
+	if distance_sq <= eff_range * eff_range:
 		if _is_in_fov(player) and _has_line_of_sight(player):
 			target = player
 			_change_state(State.ALERT)
@@ -200,8 +210,9 @@ func _process_alert(delta: float) -> void:
 		_change_state(State.IDLE)
 		return
 		
+	var eff_range := get_effective_detection_range()
 	var distance_sq = parent.global_position.distance_squared_to(target.global_position)
-	var has_los = distance_sq <= detection_range * detection_range and _is_in_fov(target) and _has_line_of_sight(target)
+	var has_los = distance_sq <= eff_range * eff_range and _is_in_fov(target) and _has_line_of_sight(target)
 	
 	if has_los:
 		awareness_level += delta / awareness_fill_time
@@ -329,9 +340,10 @@ func _perform_attack() -> void:
 func _process_search(delta: float) -> void:
 	var player = _get_global_player()
 	if player:
+		var eff_range := get_effective_detection_range()
 		var distance_sq = parent.global_position.distance_squared_to(player.global_position)
 		# 1. Visual Detection Check
-		if distance_sq <= detection_range * detection_range and _is_in_fov(player) and _has_line_of_sight(player):
+		if distance_sq <= eff_range * eff_range and _is_in_fov(player) and _has_line_of_sight(player):
 			target = player
 			_clear_ghost()
 			awareness_level = 1.0
@@ -379,9 +391,10 @@ func _process_search(delta: float) -> void:
 func _process_return() -> void:
 	var player = _get_global_player()
 	if player:
+		var eff_range := get_effective_detection_range()
 		var distance_sq = parent.global_position.distance_squared_to(player.global_position)
 		# 1. Visual Detection Check
-		if distance_sq <= detection_range * detection_range and _is_in_fov(player) and _has_line_of_sight(player):
+		if distance_sq <= eff_range * eff_range and _is_in_fov(player) and _has_line_of_sight(player):
 			target = player
 			_change_state(State.ALERT)
 			awareness_level = 0.5

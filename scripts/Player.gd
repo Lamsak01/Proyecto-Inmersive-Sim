@@ -15,20 +15,98 @@ extends CharacterBody2D
 @onready var combat_ctrl: PlayerCombatController = get_node_or_null("PlayerCombatController")
 @onready var move_ctrl: PlayerMovementController = get_node_or_null("PlayerMovementController")
 
-const SWORD_WEAPON: WeaponData = preload("res://resources/weapons/Sword.tres")
-const HAMMER_WEAPON: WeaponData = preload("res://resources/weapons/Hammer.tres")
 const FloatingTextScene = preload("res://scenes/ui/FloatingText.tscn")
 
 var last_dir := "down"
 var equipped_weapon: WeaponData
+var inventory: SimpleInventory = null
+var survival_comp: SurvivalComponent = null
+
+var sword_weapon: WeaponData = load("res://resources/weapons/Sword.tres")
+var hammer_weapon: WeaponData = load("res://resources/weapons/Hammer.tres")
+var axe_weapon: WeaponData = null
+var pickaxe_weapon: WeaponData = null
+var bow_weapon: WeaponData = null
 
 # Status variables for controllers
 var is_weak: bool = false
 var is_stunned_flag: bool = false
 
+func _load_tool_tex(res_path: String) -> Texture2D:
+	if ResourceLoader.exists(res_path):
+		var t = load(res_path)
+		if t is Texture2D:
+			return t
+	var abs_path := ProjectSettings.globalize_path(res_path)
+	if FileAccess.file_exists(abs_path):
+		var img := Image.load_from_file(abs_path)
+		if img and not img.is_empty():
+			return ImageTexture.create_from_image(img)
+	return null
+
+func _setup_tools() -> void:
+	# Limpiar el ícono gigante del Martillo por nuestro sprite 16x16 limpio
+	var clean_ham_tex := _load_tool_tex("res://assests/items/tools/hammer_clean.png")
+	if clean_ham_tex and hammer_weapon:
+		hammer_weapon.icon = clean_ham_tex
+	if hammer_weapon and hammer_weapon.damage_data:
+		hammer_weapon.damage_data.mining_efficiency = 0.35
+	if sword_weapon and sword_weapon.damage_data:
+		sword_weapon.damage_data.logging_efficiency = 0.35
+
+	# [3] Hacha de Leñador (Alta eficiencia en Tala = 1.8x)
+	axe_weapon = WeaponData.new()
+	axe_weapon.name = "Axe"
+	axe_weapon.icon = _load_tool_tex("res://assests/items/tools/axe_tool.png")
+	var axe_dmg := DamageData.new()
+	axe_dmg.amount = 10.0
+	axe_dmg.type = CombatConstants.DamageType.CUT
+	axe_dmg.bleed_buildup = 25.0
+	axe_dmg.logging_efficiency = 1.8
+	axe_dmg.mining_efficiency = 0.1
+	axe_weapon.damage_data = axe_dmg
+
+	# [4] Pico de Minero (Alta eficiencia en Minería = 1.8x)
+	pickaxe_weapon = WeaponData.new()
+	pickaxe_weapon.name = "Pickaxe"
+	pickaxe_weapon.icon = _load_tool_tex("res://assests/items/tools/pickaxe_tool.png")
+	var pick_dmg := DamageData.new()
+	pick_dmg.amount = 10.0
+	pick_dmg.type = CombatConstants.DamageType.BLUNT
+	pick_dmg.stun_buildup = 20.0
+	pick_dmg.mining_efficiency = 1.8
+	pick_dmg.logging_efficiency = 0.1
+	pickaxe_weapon.damage_data = pick_dmg
+
+	# [5] Arco de Caza (Ataque a distancia silencioso para cacería)
+	bow_weapon = WeaponData.new()
+	bow_weapon.name = "Bow"
+	bow_weapon.is_ranged = true
+	bow_weapon.icon = _load_tool_tex("res://assests/items/tools/bow_weapon.png")
+	var bow_dmg := DamageData.new()
+	bow_dmg.amount = 14.0
+	bow_dmg.type = CombatConstants.DamageType.CUT
+	bow_dmg.bleed_buildup = 35.0
+	bow_dmg.logging_efficiency = 0.0
+	bow_dmg.mining_efficiency = 0.0
+	bow_weapon.damage_data = bow_dmg
+
 func _ready() -> void:
 	motion_mode = CharacterBody2D.MOTION_MODE_FLOATING
 	add_to_group("player")
+	_setup_tools()
+	
+	inventory = get_node_or_null("SimpleInventory")
+	if not inventory:
+		inventory = SimpleInventory.new()
+		inventory.name = "SimpleInventory"
+		add_child(inventory)
+
+	survival_comp = get_node_or_null("SurvivalComponent")
+	if not survival_comp:
+		survival_comp = SurvivalComponent.new()
+		survival_comp.name = "SurvivalComponent"
+		add_child(survival_comp)
 	
 	if hint_label:
 		hint_label.text = ""
@@ -44,7 +122,7 @@ func _ready() -> void:
 		hurtbox.hit_received.connect(take_damage)
 	
 	# Equip default weapon so combat works out of the box (1 = Sword, 2 = Hammer)
-	call_deferred("equip_weapon", SWORD_WEAPON)
+	call_deferred("equip_weapon", sword_weapon)
 
 func equip_weapon(weapon_data: WeaponData) -> void:
 	if not weapon_data:
@@ -60,16 +138,26 @@ func _handle_interactions() -> void:
 		return
 
 	var overlaps := interact_area.get_overlapping_areas()
+	var best_area: Area2D = null
+	var best_dist_sq: float = INF
+	var mouse_pos := get_global_mouse_position()
+	var use_mouse_bias := global_position.distance_squared_to(mouse_pos) <= 55.0 * 55.0
+	var ref_pos := mouse_pos if use_mouse_bias else global_position
+
 	for a in overlaps:
 		if a.is_in_group("interactable"):
-			if a.has_method("interact"):
-				a.interact(self)
-				get_viewport().set_input_as_handled()
-				return
-			elif a.get_parent().has_method("interact"):
-				a.get_parent().interact(self)
-				get_viewport().set_input_as_handled()
-				return
+			var d_sq := ref_pos.distance_squared_to(a.global_position)
+			if d_sq < best_dist_sq:
+				best_dist_sq = d_sq
+				best_area = a
+
+	if best_area:
+		if best_area.has_method("interact"):
+			best_area.interact(self)
+			get_viewport().set_input_as_handled()
+		elif best_area.get_parent().has_method("interact"):
+			best_area.get_parent().interact(self)
+			get_viewport().set_input_as_handled()
 
 func show_hint(text: String) -> void:
 	if hint_label:
@@ -84,11 +172,26 @@ func _unhandled_input(event: InputEvent) -> void:
 
 	if event is InputEventKey and event.pressed and not event.echo:
 		if event.keycode == KEY_1:
-			equip_weapon(SWORD_WEAPON)
-			show_hint("Arma: Espada (Corte / Sangrado)")
+			equip_weapon(sword_weapon)
+			show_hint("[1] Espada (Combate: Corte/Sangrado | Tala lenta 35%)")
 		elif event.keycode == KEY_2:
-			equip_weapon(HAMMER_WEAPON)
-			show_hint("Arma: Martillo (Contundente / Stun)")
+			equip_weapon(hammer_weapon)
+			show_hint("[2] Martillo (Combate: Stun | Minería lenta 35%)")
+		elif event.keycode == KEY_3:
+			equip_weapon(axe_weapon)
+			show_hint("[3] Hacha de Leñador (Especialista en Tala 180%)")
+		elif event.keycode == KEY_4:
+			equip_weapon(pickaxe_weapon)
+			show_hint("[4] Pico de Minero (Especialista en Minería 180%)")
+		elif event.keycode == KEY_5:
+			equip_weapon(bow_weapon)
+			show_hint("[5] Arco de Caza (Disparo a distancia con Clic Izquierdo o Espacio)")
+		elif event.keycode == KEY_R and inventory:
+			var next_seed := inventory.cycle_selected_seed()
+			var s_name := inventory.get_item_name(next_seed)
+			var s_count := inventory.get_count(next_seed)
+			_spawn_floating_text("🌱 %s (%d)" % [s_name, s_count], Color.SPRING_GREEN, -40.0)
+			show_hint("[R] Semilla activa para sembrar: %s (Tienes %d)" % [s_name, s_count])
 			
 	if event.is_action_pressed("Interact"):
 		_handle_interactions()
@@ -153,3 +256,56 @@ func take_damage(data: DamageData) -> void:
 		health_comp.take_damage(data)
 	if stun_comp:
 		stun_comp.take_damage(data)
+
+func to_save_dict() -> Dictionary:
+	var stam_comp: StaminaComponent = get_node_or_null("StaminaComponent")
+	var weapon_id := "sword"
+	if equipped_weapon == hammer_weapon:
+		weapon_id = "hammer"
+	elif equipped_weapon == axe_weapon:
+		weapon_id = "axe"
+	elif equipped_weapon == pickaxe_weapon:
+		weapon_id = "pickaxe"
+	elif equipped_weapon == bow_weapon:
+		weapon_id = "bow"
+	return {
+		"pos_x": global_position.x,
+		"pos_y": global_position.y,
+		"hp": health_comp.current_health if health_comp else 100.0,
+		"blood": health_comp.current_blood if health_comp else 0.0,
+		"is_bleeding": health_comp.is_bleeding if health_comp else false,
+		"stamina": stam_comp.current_stamina if stam_comp else 100.0,
+		"hunger": survival_comp.current_hunger if survival_comp else 100.0,
+		"sleep": survival_comp.current_sleep if survival_comp else 100.0,
+		"weapon": weapon_id,
+		"inventory": inventory.to_dict() if inventory else {}
+	}
+
+func from_save_dict(data: Dictionary) -> void:
+	if data.has("pos_x") and data.has("pos_y"):
+		global_position = Vector2(float(data["pos_x"]), float(data["pos_y"]))
+	if health_comp:
+		health_comp.current_health = clamp(float(data.get("hp", health_comp.max_health)), 1.0, health_comp.max_health)
+		health_comp.current_blood = clamp(float(data.get("blood", 0.0)), 0.0, health_comp.max_blood)
+		health_comp.is_bleeding = bool(data.get("is_bleeding", false))
+		health_comp.health_changed.emit(health_comp.current_health, health_comp.max_health)
+		health_comp.blood_changed.emit(health_comp.current_blood, health_comp.max_blood)
+	var stam_comp: StaminaComponent = get_node_or_null("StaminaComponent")
+	if stam_comp and data.has("stamina"):
+		stam_comp.current_stamina = clamp(float(data["stamina"]), 0.0, stam_comp.max_stamina)
+		stam_comp.stamina_changed.emit(stam_comp.current_stamina, stam_comp.max_stamina)
+	if survival_comp:
+		if data.has("hunger"):
+			survival_comp.current_hunger = clampf(float(data["hunger"]), 0.0, survival_comp.max_hunger)
+		if data.has("sleep"):
+			survival_comp.current_sleep = clampf(float(data["sleep"]), 0.0, survival_comp.max_sleep)
+		survival_comp._emit_all()
+	var weapon_id: String = str(data.get("weapon", "sword"))
+	match weapon_id:
+		"hammer": equip_weapon(hammer_weapon)
+		"axe": equip_weapon(axe_weapon)
+		"pickaxe": equip_weapon(pickaxe_weapon)
+		"bow": equip_weapon(bow_weapon)
+		_: equip_weapon(sword_weapon)
+	if inventory and data.has("inventory"):
+		inventory.from_dict(data["inventory"])

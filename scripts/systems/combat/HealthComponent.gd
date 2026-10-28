@@ -104,9 +104,19 @@ func heal(amount: float) -> void:
 	current_health = clamp(current_health + amount, 0.0, max_health)
 	health_changed.emit(current_health, max_health)
 
+func stop_bleeding() -> void:
+	is_bleeding = false
+	_bleed_timer = 0.0
+	_bleed_dps = 0.0
+	current_blood = 0.0
+	blood_changed.emit(current_blood, max_blood)
+	if is_weak:
+		is_weak = false
+		weakness_changed.emit(false)
+
 func modify_blood(amount: float) -> void:
 	if amount > 0.0:
-		current_blood = max(0.0, current_blood - amount)
+		stop_bleeding()
 	else:
 		add_bleed_buildup(-amount, 10.0)
 	blood_changed.emit(current_blood, max_blood)

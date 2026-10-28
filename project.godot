@@ -20,6 +20,7 @@ config/icon="res://icon.svg"
 AudioManager="*res://scripts/systems/AudioManager.gd"
 GameManager="*res://scripts/systems/GameManager.gd"
 ObjectiveManager="*res://scripts/systems/game_objectives/ObjectiveManager.gd"
+WorldClock="*res://scripts/systems/WorldClock.gd"
 
 [display]
 
