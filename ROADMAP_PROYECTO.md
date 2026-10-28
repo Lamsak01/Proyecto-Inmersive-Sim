@@ -1,6 +1,6 @@
 # Hoja de Ruta Maestra (Roadmap) — Proyecto Immersive Sim 2D ("Placa de Petri")
 
-> **Propósito de este documento:** Mantener registrada de forma permanente la visión de diseño, los referentes, la arquitectura de sistemas y el orden exacto de implementación paso a paso. Cualquier desarrollador o modelo de IA que trabaje en este repositorio debe consultar este documento junto con `REFACTOR_AND_OPTIMIZATION_PLAN.md`.
+> **Propósito de este documento:** Mantener registrada de forma permanente la visión de diseño, los referentes, la arquitectura de sistemas y el orden exacto de implementación paso a paso. Cualquier desarrollador o modelo de IA que trabaje en este repositorio debe consultar este documento junto con `SESSION_CONTEXT_LOG.md` y `REFACTOR_AND_OPTIMIZATION_PLAN.md`.
 
 ---
 
