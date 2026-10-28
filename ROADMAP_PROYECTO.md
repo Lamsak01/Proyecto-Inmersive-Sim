@@ -69,12 +69,18 @@ Una vez que los 4 pilares se sienten genial, convertimos el mapa de pruebas en e
   - *(Ideas guardadas para expansión futura del inventario:*
     1. ***Rueda de Herramientas y Armas estilo Red Dead Redemption (`Tool Wheel`):** Separar por completo las herramientas/armas (Espada, Martillo, Hacha, Pico, Arco, Pala, Hoz, Regadera) en una **Rueda Radial** al mantener presionado `Tab` (o con teclas numéricas), dejando la **Mochila/Bolsa (`[I]`)** exclusivamente para materiales, cosechas, pieles y consumibles.*
     2. ***Sistema de Mochilas estilo Kenshi/Outward:** Empezar con una bolsa pequeña y comprar/craftear mochilas de cuero de distintos tamaños para ampliar la capacidad máxima, mostrando el sprite de la mochila en la espalda).*
-- [x] **2.3. Sistema de Puestos de Trabajo (`VillageManager.gd`, `VillageNPC.gd`), Stock, Taberna Aparte y Sucesión:**
-  - Creados los **5 Oficios Especializados** de la aldea con `shop_stock` real y reposición diaria: *Garrick* (Carnicero y Peletero), *Thoran* (Herrero), *Bram* (Carpintero), *Elena* (Herborista y Agricultora) y *Marlo* (Pescador y Molinero).
-  - Creada la **Taberna y Posada "El Jabalí Dorado"** aparte de los 5 oficios, regentada por *Marta* (vende comida caliente y alquila cama por `8 Oro`), con **4 camas** donde duermen los **3 NPCs sin oficio** (*Aldric el Viajero*, *Sora la Forastera* y *Darío el Jornalero*).
-  - **Sucesión Orgánica:** Si cualquiera de los 5 artesanos muere, al amanecer siguiente (`WorldClock.day_passed`) uno de los NPCs sin oficio de la Taberna hereda su puesto de trabajo y stock (`promote_to_trade`).
-- [x] **2.4. Rutinas de NPCs y Relaciones Profundas (`VillageNPC.gd`):**
-  - Horarios diarios conectados a `WorldClock` (trabajo o socialización en la plaza/taberna de día y descanso en su cama asignada de `20:00 a 06:00`), con afinidad dinámica (`-100 a +100`), comercio y reacción al combate/KO.
+- [x] **2.3. Sistema de Casas Familiares, Puestos de Trabajo (`VillageManager.gd`, `VillageNPC.gd`), Stock, Taberna Aparte y Sucesión en 2 Niveles:**
+  - Creadas las **5 Casas Familiares** completas (suelo, paredes con puerta abierta, 2 camas, mesa de comedor familiar y taller delantero) para las 5 familias de artesanos:
+    1. **Familia Colmillo (Carnicería):** *Garrick* (Maestro Carnicero) + *Lina* (Esposa y Curtidora).
+    2. **Familia Yunque Gris (Herrería):** *Thoran* (Maestro Herrero) + *Kael* (Hijo y Aprendiz de Forja).
+    3. **Familia Roble Viejo (Carpintería):** *Bram* (Maestro Carpintero) + *Mila* (Hermana y Ebanista).
+    4. **Familia Raíz Verde (Herboristería):** *Elena* (Herborista y Agricultora) + *Tomás* (Esposo y Hortelano).
+    5. **Familia Aguas Claras (Pescadería y Molino):** *Marlo* (Pescador y Molinero) + *Nora* (Hija y Redera).
+  - Creada la **Taberna y Posada "El Jabalí Dorado"** aparte de las 5 casas, con comedor social, *Marta* (Tabernera), 1 cama de alquiler para el jugador y 3 camas para los **3 Viajeros sin Oficio** (*Aldric*, *Sora*, *Darío*).
+  - **Sucesión Orgánica en 2 Niveles:** Si un maestro muere, primero hereda el oficio su **Familiar directo** (`Herencia Familiar`); si falta toda la familia, uno de los viajeros sin oficio de la Taberna se muda a la casa y asume el puesto.
+- [x] **2.4. Sub-stats de Necesidades y Rutinas Dinámicas de IA de Utilidad (`VillageNPC.gd`):**
+  - En lugar de horarios fijos rígidos, cada NPC tiene **3 Sub-stats dinámicos (`0%` a `100%`)** con ritmos metabólicos individuales: **🍖 Hambre (`need_hunger`)**, **💤 Energía/Descanso (`need_energy`)** y **💬 Socialización (`need_social`)**.
+  - Los NPCs toman decisiones autónomas en tiempo real (`WORKING`, `EATING`, `SOCIALIZING`, `SLEEPING`): dejan el taller para ir a comer a la mesa de su casa o a la Taberna cuando tienen hambre, buscan a su familia o vecinos para charlar (`💬`) cuando necesitan socializar, y van a su cama cuando se agota su energía.
 
 ---
 

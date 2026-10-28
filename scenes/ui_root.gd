@@ -17,6 +17,7 @@ var inv_gold_label: Label = null
 var inv_items_box: VBoxContainer = null
 var inv_recipes_box: VBoxContainer = null
 var tool_wheel: ToolWheelUI = null
+var tavern_games: TavernGamesUI = null
 
 func _ready() -> void:
 	# 1. Find Player if not assigned
@@ -87,6 +88,7 @@ func _ready() -> void:
 	_setup_clock_ui()
 	_setup_inventory_ui()
 	_setup_tool_wheel_ui()
+	_setup_tavern_games_ui()
 	_init_default_objectives()
 
 	if "inventory" in player and player.inventory:
@@ -145,6 +147,20 @@ func _setup_tool_wheel_ui() -> void:
 	tool_wheel.name = "ToolWheelUI"
 	tool_wheel.player = player
 	add_child(tool_wheel)
+
+func _setup_tavern_games_ui() -> void:
+	tavern_games = TavernGamesUI.new()
+	tavern_games.name = "TavernGamesUI"
+	tavern_games.player = player
+	add_child(tavern_games)
+
+func open_tavern_games() -> void:
+	if inv_panel and inv_panel.visible:
+		inv_panel.visible = false
+	if tool_wheel and tool_wheel.visible:
+		tool_wheel.close_wheel(false)
+	if tavern_games:
+		tavern_games.open_games()
 
 func _toggle_inventory() -> void:
 	if not inv_panel:

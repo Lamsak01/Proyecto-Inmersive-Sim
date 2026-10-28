@@ -52,6 +52,9 @@ func _process(delta: float) -> void:
 	var wheel_panel = get_tree().root.find_child("ToolWheelUI", true, false)
 	if wheel_panel and wheel_panel.visible:
 		ui_open = true
+	var games_panel = get_tree().root.find_child("TavernGamesUI", true, false)
+	if games_panel and games_panel.visible:
+		ui_open = true
 
 	if ui_open:
 		if Input.get_mouse_mode() != Input.MOUSE_MODE_VISIBLE:
