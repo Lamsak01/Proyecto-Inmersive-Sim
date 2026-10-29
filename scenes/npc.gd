@@ -241,12 +241,12 @@ func _build_dialogue_for_attitude() -> Dictionary:
 		Attitude.FRIENDLY, Attitude.ALLY:
 			return {
 				"start": {
-					"text": "¡Me alegra verte! La aldea es pequeña, pero la gente trabajadora siempre es bienvenida. ¿Necesitas algo?",
+					"text": "¡Me alegra verte! Vigilo el paso entre la Granja y la Llanura Salvaje del Oeste. ¿Necesitas algo?",
 					"choices": [
 						{"label": "¿Puedes vendar mis heridas?", "next": "healed", "action": "heal_player"},
-						{"label": "Te traje Madera para el pueblo (+8 Oro, +8 Relación)", "next": "start", "action": "sell_wood"},
+						{"label": "Te traje Madera para el puesto (+8 Oro, +8 Relación)", "next": "start", "action": "sell_wood"},
 						{"label": "Comprar Vendaje Limpio (-6 Oro)", "next": "start", "action": "buy_bandage"},
-						{"label": "Háblame de los peligros del este.", "next": "frogs_info"},
+						{"label": "Háblame de la Llanura Salvaje y la Ciénaga.", "next": "frogs_info"},
 						{"label": "Solo pasaba a saludar. [Salir]", "next": "END"}
 					]
 				},
@@ -257,7 +257,7 @@ func _build_dialogue_for_attitude() -> Dictionary:
 					]
 				},
 				"frogs_info": {
-					"text": "Las ranas mutantes del este son rápidas. Si usas un arma contundente ([2] Martillo) podrás aturdirlas, o acércate en sigilo ([C]) por detrás.",
+					"text": "Aquí en la Llanura del Oeste hay ruinas hostiles al noroeste y la Ciénaga de las Ranas al suroeste. Usa el Martillo ([2]) para aturdirlas o acércate en sigilo ([C]).",
 					"choices": [
 						{"label": "Buen consejo, me encargaré de ellas.", "next": "END", "affinity": 5}
 					]
@@ -285,25 +285,25 @@ func _build_dialogue_for_attitude() -> Dictionary:
 		_: # NEUTRAL
 			return {
 				"start": {
-					"text": "Alto ahí. Eres el nuevo residente que llegó a la parcela vacía, ¿verdad? Aquí cada casa se gana el pan trabajando.",
+					"text": "Alto ahí. Estás entrando en la Llanura Salvaje del Oeste. Más allá de este puesto hay ruinas hostiles y la ciénaga de las ranas.",
 					"choices": [
 						{"label": "Quiero ganarme mi lugar. ¿En qué puedo ayudar?", "next": "help_branch", "affinity": 15},
 						{"label": "Vender 1 Madera (+8 Oro, +8 Relación)", "next": "start", "action": "sell_wood"},
 						{"label": "Comprar Vendaje Limpio (-6 Oro)", "next": "start", "action": "buy_bandage"},
-						{"label": "¿Qué sabes de las armas y recursos de por aquí?", "next": "tips_branch"},
+						{"label": "¿Cómo se dividen las zonas del valle?", "next": "tips_branch"},
 						{"label": "Apártate de mi camino, viejo.", "next": "rude_branch", "affinity": -20},
 						{"label": "Nos vemos luego. [Salir]", "next": "END"}
 					]
 				},
 				"help_branch": {
-					"text": "Esa es la actitud. Al sur dejé una espada cerca del camino, y al este hay ranas amenazando el linde. Límpialas y todos confiarán en ti.",
+					"text": "Aquí mismo a mi izquierda dejé una espada. Al suroeste de esta llanura está la Ciénaga de las Ranas y al noroeste el campamento hostil. Límpialos y el pueblo te respetará.",
 					"choices": [
 						{"label": "Cuenta conmigo.", "next": "END", "affinity": 10},
 						{"label": "Veré qué puedo hacer.", "next": "END"}
 					]
 				},
 				"tips_branch": {
-					"text": "Con [1] usas la Espada para causar sangrado y con [2] el Martillo para aturdir o derribar barriles y muros agrietados.",
+					"text": "Al este tienes tu Granja y la Aldea con sus talleres, casas y la Posada-Casino. Siguiendo el sendero largo del sur llegarás al Bosque Profundo, dividido en Pradera de Conejos (Oeste), Claros de Venados (Sur) y Cantera de Zorros (Este).",
 					"choices": [
 						{"label": "Gracias por la información.", "next": "start", "affinity": 5}
 					]

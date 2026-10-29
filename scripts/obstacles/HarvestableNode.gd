@@ -1,3 +1,4 @@
+@tool
 extends StaticBody2D
 class_name HarvestableNode
 
@@ -47,12 +48,12 @@ func _ready() -> void:
 	else:
 		add_to_group("wild_flora")
 
-	if WorldClock:
-		WorldClock.day_passed.connect(_on_day_passed)
-	if GameManager:
-		GameManager.game_loaded.connect(_on_game_loaded)
-
-	_check_saved_state()
+	if not Engine.is_editor_hint():
+		if WorldClock:
+			WorldClock.day_passed.connect(_on_day_passed)
+		if GameManager:
+			GameManager.game_loaded.connect(_on_game_loaded)
+		_check_saved_state()
 
 func setup_visuals(tex_active: Texture2D, tex_depleted: Texture2D = null, tint: Color = Color.WHITE, spr_scale: Vector2 = Vector2.ONE, col_radius: float = 12.0) -> void:
 	_active_texture = tex_active
@@ -106,7 +107,8 @@ func setup_visuals(tex_active: Texture2D, tex_depleted: Texture2D = null, tint: 
 	_update_prompt_text()
 	add_child(prompt_label)
 
-	_check_saved_state()
+	if not Engine.is_editor_hint():
+		_check_saved_state()
 
 func _update_prompt_text() -> void:
 	if not prompt_label:
@@ -137,6 +139,14 @@ func interact(player: Node) -> void:
 		_give_drop(player, bonus_item_id, bonus_amount, -54.0)
 	_deplete_node()
 
+## Permite que la Herborista (`HERBALIST`) coseche físicamente la planta durante su expedición matutina, dejando 1 planta menos hoy
+func harvest_by_npc(_npc: Node = null) -> bool:
+	if is_depleted or harvest_type != HarvestType.FORAGE:
+		return false
+	_play_shake(false)
+	_deplete_node()
+	return true
+
 ## Permite que los herbívoros del ecosistema coman hasta 2 brotes de esta planta antes de agotarla
 func consume_by_animal() -> bool:
 	if is_depleted or harvest_type != HarvestType.FORAGE:
@@ -154,7 +164,8 @@ func take_damage(data: DamageData) -> void:
 	if is_depleted or harvest_type == HarvestType.FORAGE:
 		return
 
-	var player = get_tree().get_first_node_in_group("player")
+	var is_npc_harvester: bool = (data != null and is_instance_valid(data.source) and data.source.is_in_group("village_npcs"))
+	var player = null if is_npc_harvester else get_tree().get_first_node_in_group("player")
 	var effective := false
 	var tool_efficiency: float = 0.35
 
@@ -186,14 +197,20 @@ func take_damage(data: DamageData) -> void:
 
 	# Solo la herramienta especializada (Hacha/Pico con eficiencia >= 1.0) da material extra en cada golpe
 	if tool_efficiency >= 1.0:
-		_give_drop(player, primary_item_id, 1)
+		var hit_drop: int = 1
+		if tool_efficiency >= 3.2:
+			hit_drop = 3
+		elif tool_efficiency >= 2.2:
+			hit_drop = 2
+		_give_drop(player, primary_item_id, hit_drop)
 
 	if current_hp <= 0.0:
-		# Al derribar el árbol o romper la veta: la herramienta adecuada rinde el total, la improvisada la mitad
-		var final_yield: int = primary_amount if tool_efficiency >= 1.0 else max(1, int(primary_amount / 2))
+		# Al derribar el árbol o romper la veta: la herramienta adecuada rinde el total (+bono por tier), la improvisada la mitad
+		var tier_bonus: int = 2 if tool_efficiency >= 3.2 else (1 if tool_efficiency >= 2.2 else 0)
+		var final_yield: int = (primary_amount + tier_bonus) if tool_efficiency >= 1.0 else max(1, int(primary_amount / 2))
 		_give_drop(player, primary_item_id, final_yield, -44.0)
 		if bonus_item_id != "" and bonus_amount > 0 and tool_efficiency >= 1.0:
-			_give_drop(player, bonus_item_id, bonus_amount, -58.0)
+			_give_drop(player, bonus_item_id, bonus_amount + (1 if tool_efficiency >= 2.2 else 0), -58.0)
 		if AudioManager:
 			AudioManager.emit_noise(global_position, 200.0)
 		_deplete_node()
@@ -260,10 +277,11 @@ func _on_day_passed(new_day: int) -> void:
 		_regrow_node()
 
 func _on_game_loaded(_filepath: String) -> void:
-	_check_saved_state()
+	if not Engine.is_editor_hint():
+		_check_saved_state()
 
 func _check_saved_state() -> void:
-	if not GameManager or persistence_id == "":
+	if Engine.is_editor_hint() or not GameManager or persistence_id == "":
 		return
 	var saved_val: Variant = GameManager.get_flag(persistence_id, -1)
 	var saved_day: int = int(saved_val) if typeof(saved_val) in [TYPE_INT, TYPE_FLOAT] else -1

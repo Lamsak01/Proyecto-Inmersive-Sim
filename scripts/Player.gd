@@ -31,12 +31,99 @@ var sickle_weapon: WeaponData = null
 var watering_can_weapon: WeaponData = null
 var fishing_rod_weapon: WeaponData = null
 
-const MAX_WATER_CHARGES: int = 6
+## Niveles de Mejora de Herramientas y Armas estilo Stardew Valley (1 = Básico, 2 = Hierro Forjado, 3 = Acero Maestro)
+var tool_tiers: Dictionary = {
+	"sword": 1,
+	"hammer": 1,
+	"axe": 1,
+	"pickaxe": 1,
+	"bow": 1,
+	"sickle": 1,
+	"watering_can": 1,
+	"fishing_rod": 1
+}
+
+const TIER_NAMES: Dictionary = {
+	1: "Básico",
+	2: "Hierro",
+	3: "Acero Maestro"
+}
+
+const TOOL_UPGRADE_CATALOG: Dictionary = {
+	"sword": {
+		"title": "Espada",
+		"tiers": {
+			2: {"gold": 25, "mats": {"iron_ore": 2, "wood": 1}},
+			3: {"gold": 55, "mats": {"steel_ingot": 2, "wood": 2}}
+		}
+	},
+	"hammer": {
+		"title": "Martillo",
+		"tiers": {
+			2: {"gold": 25, "mats": {"iron_ore": 2, "wood": 1}},
+			3: {"gold": 55, "mats": {"steel_ingot": 2, "wood": 2}}
+		}
+	},
+	"axe": {
+		"title": "Hacha",
+		"tiers": {
+			2: {"gold": 22, "mats": {"iron_ore": 2, "wood": 2}},
+			3: {"gold": 48, "mats": {"steel_ingot": 2, "wood": 2}}
+		}
+	},
+	"pickaxe": {
+		"title": "Pico",
+		"tiers": {
+			2: {"gold": 22, "mats": {"iron_ore": 2, "wood": 2}},
+			3: {"gold": 48, "mats": {"steel_ingot": 2, "wood": 2}}
+		}
+	},
+	"bow": {
+		"title": "Arco de Caza",
+		"tiers": {
+			2: {"gold": 26, "mats": {"wood": 3, "leather": 2}},
+			3: {"gold": 56, "mats": {"steel_ingot": 1, "wood": 3, "fox_pelt": 1}}
+		}
+	},
+	"sickle": {
+		"title": "Hoz Agrícola",
+		"tiers": {
+			2: {"gold": 18, "mats": {"iron_ore": 1, "wood": 1}},
+			3: {"gold": 40, "mats": {"steel_ingot": 1, "wood": 2}}
+		}
+	},
+	"watering_can": {
+		"title": "Regadera",
+		"tiers": {
+			2: {"gold": 18, "mats": {"iron_ore": 2}},
+			3: {"gold": 40, "mats": {"steel_ingot": 2}}
+		}
+	},
+	"fishing_rod": {
+		"title": "Caña de Pescar",
+		"tiers": {
+			2: {"gold": 20, "mats": {"wood": 3, "iron_ore": 1}},
+			3: {"gold": 45, "mats": {"steel_ingot": 1, "wood": 3, "feather": 2}}
+		}
+	}
+}
+
+var max_water_charges: int = 6
 var watering_can_charges: int = 6
+var armor_speed_multiplier: float = 1.0
+var speed_tonic_timer: float = 0.0
+var _armor_visual_overlay: Node2D = null
 
 # Status variables for controllers
 var is_weak: bool = false
 var is_stunned_flag: bool = false
+var last_damage_source: Node = null
+var _hit_flash_timer: float = 0.0
+
+func _get(property: StringName) -> Variant:
+	if property == &"MAX_WATER_CHARGES":
+		return max_water_charges
+	return null
 
 func _load_tool_tex(res_path: String) -> Texture2D:
 	if ResourceLoader.exists(res_path):
@@ -51,85 +138,170 @@ func _load_tool_tex(res_path: String) -> Texture2D:
 	return null
 
 func _setup_tools() -> void:
-	# Limpiar el ícono gigante del Martillo por nuestro sprite 16x16 limpio
 	var clean_ham_tex := _load_tool_tex("res://assests/items/tools/hammer_clean.png")
 	if clean_ham_tex and hammer_weapon:
 		hammer_weapon.icon = clean_ham_tex
-	if hammer_weapon and hammer_weapon.damage_data:
-		hammer_weapon.damage_data.mining_efficiency = 0.35
-	if sword_weapon and sword_weapon.damage_data:
-		sword_weapon.damage_data.logging_efficiency = 0.35
 
-	# [3] Hacha de Leñador (Alta eficiencia en Tala = 1.8x)
+	# [3] Hacha de Leñador
 	axe_weapon = WeaponData.new()
 	axe_weapon.name = "Axe"
 	axe_weapon.icon = _load_tool_tex("res://assests/items/tools/axe_tool.png")
 	var axe_dmg := DamageData.new()
-	axe_dmg.amount = 10.0
 	axe_dmg.type = CombatConstants.DamageType.CUT
-	axe_dmg.bleed_buildup = 25.0
-	axe_dmg.logging_efficiency = 1.8
-	axe_dmg.mining_efficiency = 0.1
 	axe_weapon.damage_data = axe_dmg
 
-	# [4] Pico de Minero (Alta eficiencia en Minería = 1.8x)
+	# [4] Pico de Minero
 	pickaxe_weapon = WeaponData.new()
 	pickaxe_weapon.name = "Pickaxe"
 	pickaxe_weapon.icon = _load_tool_tex("res://assests/items/tools/pickaxe_tool.png")
 	var pick_dmg := DamageData.new()
-	pick_dmg.amount = 10.0
 	pick_dmg.type = CombatConstants.DamageType.BLUNT
-	pick_dmg.stun_buildup = 20.0
-	pick_dmg.mining_efficiency = 1.8
-	pick_dmg.logging_efficiency = 0.1
 	pickaxe_weapon.damage_data = pick_dmg
 
-	# [5] Arco de Caza (Ataque a distancia silencioso para cacería)
+	# [5] Arco de Caza
 	bow_weapon = WeaponData.new()
 	bow_weapon.name = "Bow"
 	bow_weapon.is_ranged = true
 	bow_weapon.icon = _load_tool_tex("res://assests/items/tools/bow_weapon.png")
 	var bow_dmg := DamageData.new()
-	bow_dmg.amount = 14.0
 	bow_dmg.type = CombatConstants.DamageType.CUT
-	bow_dmg.bleed_buildup = 35.0
-	bow_dmg.logging_efficiency = 0.0
-	bow_dmg.mining_efficiency = 0.0
 	bow_weapon.damage_data = bow_dmg
 
-	# [6] Hoz de Cosecha (+1 Cultivo extra al cosechar plantas maduras)
+	# [6] Hoz de Cosecha
 	sickle_weapon = WeaponData.new()
 	sickle_weapon.name = "Sickle"
 	sickle_weapon.icon = _load_tool_tex("res://assests/items/tools/sickle_tool.png")
 	var sickle_dmg := DamageData.new()
-	sickle_dmg.amount = 7.0
 	sickle_dmg.type = CombatConstants.DamageType.CUT
-	sickle_dmg.bleed_buildup = 15.0
-	sickle_dmg.logging_efficiency = 0.25
-	sickle_dmg.mining_efficiency = 0.0
 	sickle_weapon.damage_data = sickle_dmg
 
-	# [7] Regadera Agrícola (Riego del huerto con cargas de agua recargables en Pozo o Lago)
+	# [7] Regadera Agrícola
 	watering_can_weapon = WeaponData.new()
 	watering_can_weapon.name = "WateringCan"
 	watering_can_weapon.icon = _load_tool_tex("res://assests/items/tools/watering_can.png")
 	var can_dmg := DamageData.new()
-	can_dmg.amount = 2.0
 	can_dmg.type = CombatConstants.DamageType.BLUNT
-	can_dmg.logging_efficiency = 0.0
-	can_dmg.mining_efficiency = 0.0
 	watering_can_weapon.damage_data = can_dmg
 
-	# [8] Caña de Pescar (Pesca en el Lago del Oeste)
+	# [8] Caña de Pescar
 	fishing_rod_weapon = WeaponData.new()
 	fishing_rod_weapon.name = "FishingRod"
 	fishing_rod_weapon.icon = _load_tool_tex("res://assests/items/tools/fishing_rod.png")
 	var rod_dmg := DamageData.new()
-	rod_dmg.amount = 2.0
 	rod_dmg.type = CombatConstants.DamageType.BLUNT
-	rod_dmg.logging_efficiency = 0.0
-	rod_dmg.mining_efficiency = 0.0
 	fishing_rod_weapon.damage_data = rod_dmg
+
+	_apply_tool_tiers()
+
+func _normalize_tool_key(tool_key: String) -> String:
+	var k := tool_key.to_lower()
+	if k == "wateringcan":
+		return "watering_can"
+	if k == "fishingrod":
+		return "fishing_rod"
+	return k
+
+func get_tool_tier(tool_key: String) -> int:
+	var nk := _normalize_tool_key(tool_key)
+	return clampi(int(tool_tiers.get(nk, 1)), 1, 3)
+
+func get_tool_tier_label(tool_key: String) -> String:
+	var t := get_tool_tier(tool_key)
+	return str(TIER_NAMES.get(t, "Básico"))
+
+func get_sickle_bonus() -> int:
+	return get_tool_tier("sickle") # +1 en Tier 1, +2 en Tier 2, +3 en Tier 3
+
+func get_fishing_bar_multiplier() -> float:
+	var t := get_tool_tier("fishing_rod")
+	if t == 2:
+		return 1.28
+	elif t >= 3:
+		return 1.55
+	return 1.0
+
+func upgrade_tool(tool_key: String, consume_resources: bool = true) -> bool:
+	var nk := _normalize_tool_key(tool_key)
+	var cur := get_tool_tier(nk)
+	if cur >= 3:
+		_spawn_floating_text("¡Esta herramienta ya está al Nivel Máximo!", Color.GOLD, -42.0)
+		return false
+
+	var next_tier: int = cur + 1
+	var meta: Dictionary = TOOL_UPGRADE_CATALOG.get(nk, {})
+	var t_title: String = str(meta.get("title", nk))
+	var tier_cost: Dictionary = meta.get("tiers", {}).get(next_tier, {})
+
+	if consume_resources and inventory and not tier_cost.is_empty():
+		var req_gold: int = int(tier_cost.get("gold", 20))
+		var req_mats: Dictionary = tier_cost.get("mats", {})
+		if inventory.gold < req_gold:
+			_spawn_floating_text("Necesitas %d Oro para mejorar %s" % [req_gold, t_title], Color.ORANGE_RED, -42.0)
+			return false
+		for m_id in req_mats.keys():
+			var req_cnt: int = int(req_mats[m_id])
+			if not inventory.has_item(str(m_id), req_cnt):
+				_spawn_floating_text("Falta %d %s" % [req_cnt, inventory.get_item_name(str(m_id))], Color.ORANGE_RED, -42.0)
+				return false
+		inventory.add_gold(-req_gold)
+		for m_id in req_mats.keys():
+			inventory.remove_item(str(m_id), int(req_mats[m_id]))
+
+	tool_tiers[nk] = next_tier
+	_apply_tool_tiers()
+	if nk == "watering_can":
+		watering_can_charges = max_water_charges
+	_spawn_floating_text("⚒️ ¡%s mejorada a Nivel %d (%s)!" % [t_title, next_tier, get_tool_tier_label(nk)], Color.CYAN, -44.0)
+	return true
+
+func _apply_tool_tiers() -> void:
+	# 1. Espada
+	var t_sword := get_tool_tier("sword")
+	if sword_weapon and sword_weapon.damage_data:
+		sword_weapon.damage_data.amount = 12.0 if t_sword == 1 else (19.0 if t_sword == 2 else 28.0)
+		sword_weapon.damage_data.bleed_buildup = 35.0 if t_sword == 1 else (52.0 if t_sword == 2 else 75.0)
+		sword_weapon.damage_data.logging_efficiency = 0.35 if t_sword == 1 else (0.50 if t_sword == 2 else 0.70)
+
+	# 2. Martillo
+	var t_ham := get_tool_tier("hammer")
+	if hammer_weapon and hammer_weapon.damage_data:
+		hammer_weapon.damage_data.amount = 15.0 if t_ham == 1 else (23.0 if t_ham == 2 else 34.0)
+		hammer_weapon.damage_data.stun_buildup = 42.0 if t_ham == 1 else (62.0 if t_ham == 2 else 85.0)
+		hammer_weapon.damage_data.mining_efficiency = 0.35 if t_ham == 1 else (0.50 if t_ham == 2 else 0.70)
+
+	# 3. Hacha
+	var t_axe := get_tool_tier("axe")
+	if axe_weapon and axe_weapon.damage_data:
+		axe_weapon.damage_data.amount = 10.0 if t_axe == 1 else (15.0 if t_axe == 2 else 22.0)
+		axe_weapon.damage_data.bleed_buildup = 25.0 if t_axe == 1 else (38.0 if t_axe == 2 else 55.0)
+		axe_weapon.damage_data.logging_efficiency = 1.80 if t_axe == 1 else (2.70 if t_axe == 2 else 3.80)
+		axe_weapon.damage_data.mining_efficiency = 0.10
+
+	# 4. Pico
+	var t_pick := get_tool_tier("pickaxe")
+	if pickaxe_weapon and pickaxe_weapon.damage_data:
+		pickaxe_weapon.damage_data.amount = 10.0 if t_pick == 1 else (15.0 if t_pick == 2 else 22.0)
+		pickaxe_weapon.damage_data.stun_buildup = 22.0 if t_pick == 1 else (35.0 if t_pick == 2 else 50.0)
+		pickaxe_weapon.damage_data.mining_efficiency = 1.80 if t_pick == 1 else (2.70 if t_pick == 2 else 3.80)
+		pickaxe_weapon.damage_data.logging_efficiency = 0.10
+
+	# 5. Arco
+	var t_bow := get_tool_tier("bow")
+	if bow_weapon and bow_weapon.damage_data:
+		bow_weapon.damage_data.amount = 14.0 if t_bow == 1 else (22.0 if t_bow == 2 else 32.0)
+		bow_weapon.damage_data.bleed_buildup = 35.0 if t_bow == 1 else (55.0 if t_bow == 2 else 80.0)
+
+	# 6. Hoz
+	var t_sickle := get_tool_tier("sickle")
+	if sickle_weapon and sickle_weapon.damage_data:
+		sickle_weapon.damage_data.amount = 7.0 if t_sickle == 1 else (11.0 if t_sickle == 2 else 16.0)
+		sickle_weapon.damage_data.bleed_buildup = 15.0 if t_sickle == 1 else (25.0 if t_sickle == 2 else 40.0)
+		sickle_weapon.damage_data.logging_efficiency = 0.25
+
+	# 7. Regadera
+	var t_can := get_tool_tier("watering_can")
+	max_water_charges = 6 if t_can == 1 else (12 if t_can == 2 else 20)
+	watering_can_charges = mini(watering_can_charges, max_water_charges)
 
 func _ready() -> void:
 	motion_mode = CharacterBody2D.MOTION_MODE_FLOATING
@@ -141,12 +313,17 @@ func _ready() -> void:
 		inventory = SimpleInventory.new()
 		inventory.name = "SimpleInventory"
 		add_child(inventory)
+	if not inventory.armor_changed.is_connected(apply_armor_stats):
+		inventory.armor_changed.connect(apply_armor_stats)
 
 	survival_comp = get_node_or_null("SurvivalComponent")
 	if not survival_comp:
 		survival_comp = SurvivalComponent.new()
 		survival_comp.name = "SurvivalComponent"
 		add_child(survival_comp)
+
+	_setup_armor_visual_placeholder()
+	apply_armor_stats()
 	
 	if hint_label:
 		hint_label.text = ""
@@ -161,8 +338,94 @@ func _ready() -> void:
 	if hurtbox:
 		hurtbox.hit_received.connect(take_damage)
 	
-	# Equip default weapon so combat works out of the box (1 = Sword, 2 = Hammer)
 	call_deferred("equip_weapon", sword_weapon)
+
+func _setup_armor_visual_placeholder() -> void:
+	_armor_visual_overlay = Node2D.new()
+	_armor_visual_overlay.name = "ArmorPlaceholderOverlay"
+	_armor_visual_overlay.z_index = 2
+	add_child(_armor_visual_overlay)
+
+	# Placeholder visual modular para Casco, Pecho, Piernas y Botas sobre el sprite del jugador
+	var helm_poly := Polygon2D.new()
+	helm_poly.name = "HelmVis"
+	helm_poly.polygon = PackedVector2Array([Vector2(-4, -24), Vector2(4, -24), Vector2(5, -20), Vector2(-5, -20)])
+	helm_poly.visible = false
+	_armor_visual_overlay.add_child(helm_poly)
+
+	var chest_poly := Polygon2D.new()
+	chest_poly.name = "ChestVis"
+	chest_poly.polygon = PackedVector2Array([Vector2(-5, -15), Vector2(5, -15), Vector2(4, -9), Vector2(-4, -9)])
+	chest_poly.visible = false
+	_armor_visual_overlay.add_child(chest_poly)
+
+	var legs_poly := Polygon2D.new()
+	legs_poly.name = "LegsVis"
+	legs_poly.polygon = PackedVector2Array([Vector2(-4, -9), Vector2(4, -9), Vector2(4, -5), Vector2(-4, -5)])
+	legs_poly.visible = false
+	_armor_visual_overlay.add_child(legs_poly)
+
+	var boots_poly := Polygon2D.new()
+	boots_poly.name = "BootsVis"
+	boots_poly.polygon = PackedVector2Array([Vector2(-4, -4), Vector2(4, -4), Vector2(4, -1), Vector2(-4, -1)])
+	boots_poly.visible = false
+	_armor_visual_overlay.add_child(boots_poly)
+
+func _tier_to_armor_color(tier: int) -> Color:
+	match tier:
+		1: return Color(0.68, 0.44, 0.24, 0.82) # Cuero Curtido
+		2: return Color(0.75, 0.80, 0.88, 0.86) # Hierro Forjado
+		3: return Color(0.45, 0.82, 1.00, 0.90) # Acero Templado
+	return Color.TRANSPARENT
+
+func apply_speed_tonic(duration: float = 35.0) -> void:
+	speed_tonic_timer = maxf(speed_tonic_timer, duration)
+	apply_armor_stats()
+	_spawn_floating_text("⚡ Tónico de Velocidad (+25% Vel por %ds)" % int(duration), Color.AQUA, -44.0)
+
+func _process(delta: float) -> void:
+	if speed_tonic_timer > 0.0:
+		speed_tonic_timer -= delta
+		if speed_tonic_timer <= 0.0:
+			speed_tonic_timer = 0.0
+			apply_armor_stats()
+	if _hit_flash_timer > 0.0:
+		_hit_flash_timer -= delta
+		if _hit_flash_timer <= 0.0 and anim:
+			anim.modulate = Color.WHITE
+
+func apply_armor_stats() -> void:
+	if not inventory:
+		return
+	var stats: Dictionary = inventory.get_total_armor_stats()
+	if health_comp:
+		health_comp.armor_defense = float(stats.get("defense", 0.0))
+		health_comp.armor_bleed_resistance = float(stats.get("bleed_res", 0.0))
+	if stun_comp:
+		stun_comp.armor_stun_resistance = float(stats.get("stun_res", 0.0))
+	var tonic_bonus: float = 0.25 if speed_tonic_timer > 0.0 else 0.0
+	armor_speed_multiplier = 1.0 + float(stats.get("speed_bonus", 0.0)) + tonic_bonus
+
+	if _armor_visual_overlay:
+		var slot_map := {
+			"HEAD": "HelmVis",
+			"CHEST": "ChestVis",
+			"LEGS": "LegsVis",
+			"BOOTS": "BootsVis"
+		}
+		for slot_key in slot_map.keys():
+			var node_name: String = slot_map[slot_key]
+			var poly := _armor_visual_overlay.get_node_or_null(node_name) as Polygon2D
+			if not poly:
+				continue
+			var item_id: String = str(inventory.equipped_armor.get(slot_key, ""))
+			if item_id == "":
+				poly.visible = false
+			else:
+				var info: Dictionary = inventory.get_item_info(item_id)
+				var t: int = int(info.get("armor_tier", 1))
+				poly.color = _tier_to_armor_color(t)
+				poly.visible = true
 
 func equip_weapon(weapon_data: WeaponData) -> void:
 	if not weapon_data:
@@ -177,37 +440,37 @@ func equip_tool_by_index(idx: int) -> void:
 	match idx:
 		0:
 			equip_weapon(sword_weapon)
-			show_hint("[1] Espada (Combate: Corte/Sangrado | Tala lenta 35%)")
+			show_hint("[1] Espada (%s) — Daño: %d | Sangrado: %d" % [get_tool_tier_label("sword"), int(sword_weapon.damage_data.amount), int(sword_weapon.damage_data.bleed_buildup)])
 		1:
 			equip_weapon(hammer_weapon)
-			show_hint("[2] Martillo (Combate: Stun | Minería lenta 35%)")
+			show_hint("[2] Martillo (%s) — Daño: %d | Stun: %d" % [get_tool_tier_label("hammer"), int(hammer_weapon.damage_data.amount), int(hammer_weapon.damage_data.stun_buildup)])
 		2:
 			equip_weapon(axe_weapon)
-			show_hint("[3] Hacha de Leñador (Especialista en Tala 180%)")
+			show_hint("[3] Hacha (%s) — Eficiencia Tala: %d%%" % [get_tool_tier_label("axe"), int(round(axe_weapon.damage_data.logging_efficiency * 100.0))])
 		3:
 			equip_weapon(pickaxe_weapon)
-			show_hint("[4] Pico de Minero (Especialista en Minería 180%)")
+			show_hint("[4] Pico (%s) — Eficiencia Minería: %d%%" % [get_tool_tier_label("pickaxe"), int(round(pickaxe_weapon.damage_data.mining_efficiency * 100.0))])
 		4:
 			equip_weapon(bow_weapon)
-			show_hint("[5] Arco de Caza (Disparo a distancia con Clic Izquierdo)")
+			show_hint("[5] Arco (%s) — Daño a distancia: %d (Mantén Clic Izq.)" % [get_tool_tier_label("bow"), int(bow_weapon.damage_data.amount)])
 		5:
 			equip_weapon(sickle_weapon)
-			show_hint("[6] Hoz de Cosecha (+1 Cultivo extra al cosechar plantas maduras)")
+			show_hint("[6] Hoz (%s) — Bono Cosecha: +%d cultivos extra" % [get_tool_tier_label("sickle"), get_sickle_bonus()])
 		6:
 			equip_weapon(watering_can_weapon)
-			show_hint("[7] Regadera Agrícola (Agua: %d/%d — Recárgala en el Pozo o Lago)" % [watering_can_charges, MAX_WATER_CHARGES])
+			show_hint("[7] Regadera (%s) — Agua: %d/%d (Recarga en Pozo o Lago)" % [get_tool_tier_label("watering_can"), watering_can_charges, max_water_charges])
 		7:
 			equip_weapon(fishing_rod_weapon)
-			show_hint("[8] Caña de Pescar (Pesca en el Lago del Oeste con [E])")
+			show_hint("[8] Caña de Pescar (%s) — Barra de Pesca: %d%%" % [get_tool_tier_label("fishing_rod"), int(round(get_fishing_bar_multiplier() * 100.0))])
 
 func refill_watering_can() -> void:
-	watering_can_charges = MAX_WATER_CHARGES
-	_spawn_floating_text("💧 Regadera llena (%d/%d)" % [watering_can_charges, MAX_WATER_CHARGES], Color.AQUA, -40.0)
-	show_hint("💧 Regadera recargada al 100%% (%d/%d usos de riego)." % [watering_can_charges, MAX_WATER_CHARGES])
+	watering_can_charges = max_water_charges
+	_spawn_floating_text("💧 Regadera llena (%d/%d)" % [watering_can_charges, max_water_charges], Color.AQUA, -40.0)
+	show_hint("💧 Regadera recargada al 100%% (%d/%d usos de riego)." % [watering_can_charges, max_water_charges])
 
 func consume_water_charge() -> bool:
 	if watering_can_charges <= 0:
-		show_hint("⚠️ Tu Regadera está vacía (0/%d). Llénala en el Pozo junto al huerto o en el Lago del Oeste." % MAX_WATER_CHARGES)
+		show_hint("⚠️ Tu Regadera está vacía (0/%d). Llénala en el Pozo junto al huerto o en el Lago del Oeste." % max_water_charges)
 		return false
 	watering_can_charges -= 1
 	return true
@@ -216,10 +479,18 @@ func _handle_interactions() -> void:
 	if dialogue_manager and dialogue_manager.call("is_active"):
 		return
 
+	var vm = get_tree().get_first_node_in_group("village_manager")
+	var mouse_pos := get_global_mouse_position()
+	# Prioridad de salida/puerta cerrada (referencia Stardew Valley / Baldur's Gate 3):
+	# Si el jugador está ante una puerta cerrada o apunta a una puerta, nunca queda atrapado aunque haya un NPC parado junto al marco.
+	if vm and vm.has_method("try_priority_door_or_corpse_interaction"):
+		if bool(vm.call("try_priority_door_or_corpse_interaction", self, mouse_pos)):
+			get_viewport().set_input_as_handled()
+			return
+
 	var overlaps := interact_area.get_overlapping_areas()
 	var best_area: Area2D = null
 	var best_dist_sq: float = INF
-	var mouse_pos := get_global_mouse_position()
 	var use_mouse_bias := global_position.distance_squared_to(mouse_pos) <= 55.0 * 55.0
 	var ref_pos := mouse_pos if use_mouse_bias else global_position
 
@@ -277,10 +548,30 @@ func _unhandled_input(event: InputEvent) -> void:
 		_handle_interactions()
 
 func _on_died() -> void:
-	set_physics_process(false)
-	if move_ctrl: move_ctrl.set_physics_process(false)
-	if combat_ctrl: combat_ctrl.set_process(false)
-	anim.stop()
+	var vm = get_tree().get_first_node_in_group("village_manager")
+	var knocked_by_police := false
+	if is_instance_valid(last_damage_source) and (last_damage_source is VillageNPC):
+		var v_src := last_damage_source as VillageNPC
+		if v_src.trade_role in [VillageNPC.TradeRole.SHERIFF, VillageNPC.TradeRole.GUARD]:
+			knocked_by_police = true
+	if vm and (int(vm.get("wanted_level")) > 0 or bool(vm.get("is_resisting_arrest")) or knocked_by_police):
+		if health_comp:
+			health_comp.stop_bleeding()
+			health_comp.heal(health_comp.max_health * 0.50)
+		is_stunned_flag = false
+		if vm.has_method("capture_knocked_out_player_to_jail"):
+			vm.call("capture_knocked_out_player_to_jail", self)
+		return
+
+	# Si cae abatido fuera de persecución policial, es trasladado de urgencia al Hospital del Dr. Valen
+	if health_comp:
+		health_comp.stop_bleeding()
+		health_comp.heal(health_comp.max_health * 0.60)
+	is_stunned_flag = false
+	velocity = Vector2.ZERO
+	global_position = Vector2(710, 132)
+	_spawn_floating_text("🚑 ¡Rescatado de urgencia en el Hospital!", Color.SPRING_GREEN, -46.0)
+	show_hint("🏥 Caíste inconsciente y el Dr. Valen te estabilizó en la Sala de Urgencias del Hospital.")
 
 func _on_weakness_changed(weak: bool) -> void:
 	is_weak = weak
@@ -301,12 +592,14 @@ func apply_push(force: Vector2) -> void:
 		move_ctrl.apply_impulse(force)
 
 func _spawn_floating_text(text: String, color: Color, offset_y: float = -36.0) -> void:
-	if FloatingTextScene:
-		var ft = FloatingTextScene.instantiate()
-		ft.start_text = text
-		ft.text_color = color
-		ft.global_position = global_position + Vector2(0, offset_y)
-		get_tree().current_scene.add_child(ft)
+	if FloatingTextScene and is_inside_tree():
+		var parent_scene: Node = get_tree().current_scene if get_tree().current_scene else get_parent()
+		if parent_scene:
+			var ft = FloatingTextScene.instantiate()
+			ft.start_text = text
+			ft.text_color = color
+			ft.global_position = global_position + Vector2(0, offset_y)
+			parent_scene.add_child(ft)
 
 func is_stunned() -> bool:
 	return is_stunned_flag
@@ -319,23 +612,37 @@ func is_stealthing() -> bool:
 	return false
 
 func get_noise_multiplier() -> float:
-	"""Devuelve el multiplicador de ruido actual según el movimiento (0 = silencio, 1 = caminar, 1.8 = correr)."""
 	if velocity.length_squared() < 4.0:
 		return 0.0
+	var weather_mult: float = 1.0
+	if WorldClock and WorldClock.has_method("get_noise_weather_multiplier"):
+		weather_mult = float(WorldClock.call("get_noise_weather_multiplier"))
 	if not move_ctrl:
 		move_ctrl = get_node_or_null("PlayerMovementController")
 	if move_ctrl:
 		if move_ctrl.is_stealthing:
 			return 0.0
 		if move_ctrl.is_sprinting:
-			return 1.8
-	return 1.0
+			return 1.8 * weather_mult
+	return 1.0 * weather_mult
 
 func take_damage(data: DamageData) -> void:
+	var vm: Node = get_tree().get_first_node_in_group("village_manager")
+	if vm and ((("player_being_escorted_to_jail" in vm) and vm.player_being_escorted_to_jail) or (("player_in_jail" in vm) and vm.player_in_jail)):
+		return
+	if data and is_instance_valid(data.source):
+		last_damage_source = data.source
+	var hp_before: float = health_comp.current_health if health_comp else 100.0
 	if health_comp:
 		health_comp.take_damage(data)
-	if stun_comp:
+	if stun_comp and health_comp and health_comp.current_health > 0.0:
 		stun_comp.take_damage(data)
+	var hp_lost: float = maxf(0.0, hp_before - (health_comp.current_health if health_comp else hp_before))
+	if hp_lost > 0.1:
+		_spawn_floating_text("-%d HP" % maxi(1, int(round(hp_lost))), Color(1.0, 0.35, 0.35), -38.0)
+		if anim:
+			anim.modulate = Color(1.35, 0.45, 0.45)
+			_hit_flash_timer = 0.18
 
 func to_save_dict() -> Dictionary:
 	var stam_comp: StaminaComponent = get_node_or_null("StaminaComponent")
@@ -364,6 +671,7 @@ func to_save_dict() -> Dictionary:
 		"hunger": survival_comp.current_hunger if survival_comp else 100.0,
 		"sleep": survival_comp.current_sleep if survival_comp else 100.0,
 		"watering_can_charges": watering_can_charges,
+		"tool_tiers": tool_tiers.duplicate(),
 		"weapon": weapon_id,
 		"inventory": inventory.to_dict() if inventory else {}
 	}
@@ -371,6 +679,12 @@ func to_save_dict() -> Dictionary:
 func from_save_dict(data: Dictionary) -> void:
 	if data.has("pos_x") and data.has("pos_y"):
 		global_position = Vector2(float(data["pos_x"]), float(data["pos_y"]))
+	if data.has("tool_tiers") and typeof(data["tool_tiers"]) == TYPE_DICTIONARY:
+		var saved_tiers: Dictionary = data["tool_tiers"]
+		for k in tool_tiers.keys():
+			if saved_tiers.has(k):
+				tool_tiers[k] = clampi(int(saved_tiers[k]), 1, 3)
+		_apply_tool_tiers()
 	if health_comp:
 		health_comp.current_health = clamp(float(data.get("hp", health_comp.max_health)), 1.0, health_comp.max_health)
 		health_comp.current_blood = clamp(float(data.get("blood", 0.0)), 0.0, health_comp.max_blood)
@@ -388,7 +702,7 @@ func from_save_dict(data: Dictionary) -> void:
 			survival_comp.current_sleep = clampf(float(data["sleep"]), 0.0, survival_comp.max_sleep)
 		survival_comp._emit_all()
 	if data.has("watering_can_charges"):
-		watering_can_charges = clampi(int(data["watering_can_charges"]), 0, MAX_WATER_CHARGES)
+		watering_can_charges = clampi(int(data["watering_can_charges"]), 0, max_water_charges)
 	var weapon_id: String = str(data.get("weapon", "sword"))
 	match weapon_id:
 		"hammer": equip_weapon(hammer_weapon)
@@ -401,3 +715,4 @@ func from_save_dict(data: Dictionary) -> void:
 		_: equip_weapon(sword_weapon)
 	if inventory and data.has("inventory"):
 		inventory.from_dict(data["inventory"])
+	apply_armor_stats()

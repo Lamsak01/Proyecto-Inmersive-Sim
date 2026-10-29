@@ -10,6 +10,7 @@ signal stun_changed(current, max)
 
 var current_stun: float = 0.0
 var is_stunned: bool = false
+var armor_stun_resistance: float = 0.0 ## Reducción de acumulación de stun por casco/armadura (0.0 a 0.80)
 var _stun_timer: float = 0.0
 var _active_duration: float = 3.0
 
@@ -40,6 +41,7 @@ func take_damage(data: DamageData) -> void:
 		elif data.type == CombatConstants.DamageType.ELECTRIC:
 			buildup = data.amount * 1.0
 
+	buildup *= clampf(1.0 - armor_stun_resistance, 0.15, 1.0)
 	if buildup > 0.0:
 		add_stun(buildup)
 

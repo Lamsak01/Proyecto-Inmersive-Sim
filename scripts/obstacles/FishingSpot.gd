@@ -1,3 +1,4 @@
+@tool
 extends Node2D
 class_name FishingSpot
 
@@ -9,12 +10,24 @@ class_name FishingSpot
 ##   * Atardecer / Noche (18:00 - 05:59): Siluro Nocturno (70%) y Carpa Dorada (30%).
 ## - También permite rellenar la Regadera [7] al 100% en la orilla del lago.
 
-enum FishState { IDLE, WAITING_BITE, BITE_ACTIVE }
+enum FishState { IDLE, WAITING_BITE, BITE_ACTIVE, MINIGAME }
 
 var state: FishState = FishState.IDLE
 var _timer: float = 0.0
 var _wave_time: float = 0.0
 var _active_fisher: Node2D = null
+
+# Variables del Minijuego de Precisión (Estilo Stardew Valley)
+var _hooked_fish_id: String = "river_trout"
+var _fish_pos: float = 0.5
+var _fish_target: float = 0.5
+var _fish_vel: float = 0.0
+var _fish_ai_timer: float = 0.0
+var _bar_pos: float = 0.35
+var _bar_vel: float = 0.0
+var _bar_size: float = 0.30
+var _catch_progress: float = 0.35
+var _is_fish_inside: bool = false
 
 var dock_pos: Vector2 = Vector2(36, 0)
 var interact_area: Area2D = null
@@ -27,6 +40,7 @@ var ripple_base_positions: Array[Vector2] = []
 const FloatingTextScene = preload("res://scenes/ui/FloatingText.tscn")
 
 func _ready() -> void:
+	set_process(not Engine.is_editor_hint())
 	add_to_group("fishing_spots")
 	_build_lake_visuals()
 	_build_interaction_zone()
@@ -191,6 +205,11 @@ func _process(delta: float) -> void:
 			if _timer <= 0.0:
 				_cancel_fishing("💨 ¡El pez se soltó del anzuelo!")
 				return
+		elif state == FishState.MINIGAME:
+			bobber_poly.position = Vector2(-10 + sin(_wave_time * 14.0) * 2.5, cos(_wave_time * 12.0) * 2.5)
+			bobber_poly.color = Color(0.30, 0.90, 1.0, 1.0)
+			_update_minigame(delta)
+			queue_redraw()
 
 	_update_status_label(player, dock_world)
 
@@ -206,8 +225,18 @@ func _update_status_label(player: Node2D, dock_world: Vector2) -> void:
 		status_label.visible = true
 		return
 	elif state == FishState.BITE_ACTIVE:
-		status_label.text = "🐟 ¡¡PICÓ UN PEZ!! ¡Pulsa [E] AHORA! (%.1fs)" % maxf(0.0, _timer)
+		status_label.text = "🐟 ¡¡PICÓ UN PEZ!! ¡Pulsa [E] para enganchar! (%.1fs)" % maxf(0.0, _timer)
 		status_label.add_theme_color_override("font_color", Color(0.40, 1.0, 0.45))
+		status_label.visible = true
+		return
+	elif state == FishState.MINIGAME:
+		var fish_title: String = "Trucha"
+		if _hooked_fish_id == "golden_carp":
+			fish_title = "Carpa Dorada"
+		elif _hooked_fish_id == "night_catfish":
+			fish_title = "Siluro Nocturno"
+		status_label.text = "🎣 [%s] Mantén [E / Espacio / Clic] para subir la barra (%d%%)" % [fish_title, int(round(_catch_progress * 100.0))]
+		status_label.add_theme_color_override("font_color", Color(0.45, 1.0, 0.65) if _is_fish_inside else Color(1.0, 0.72, 0.35))
 		status_label.visible = true
 		return
 
@@ -252,40 +281,157 @@ func interact(player: Node2D) -> void:
 		return
 
 	if state == FishState.BITE_ACTIVE:
-		_complete_catch(player)
-
-func _complete_catch(player: Node2D) -> void:
-	state = FishState.IDLE
-	if bobber_poly:
-		bobber_poly.visible = false
-	if fishing_line:
-		fishing_line.visible = false
-
-	var inv: SimpleInventory = player.get("inventory")
-	if not inv:
+		_start_minigame(player)
 		return
+
+	if state == FishState.MINIGAME:
+		# Durante el minijuego, mantener [E] impulsa la barra hacia arriba (no cancela)
+		return
+
+func _start_minigame(player: Node2D) -> void:
+	state = FishState.MINIGAME
+	_active_fisher = player
 
 	var is_night_fish := false
 	if WorldClock:
 		var h: int = WorldClock.current_hour
 		is_night_fish = (h >= 18 or h < 6)
 
-	var caught_id := "river_trout"
 	var roll := randf()
 	if is_night_fish:
-		caught_id = "night_catfish" if roll < 0.70 else "golden_carp"
+		_hooked_fish_id = "night_catfish" if roll < 0.70 else "golden_carp"
 	else:
-		caught_id = "river_trout" if roll < 0.65 else "golden_carp"
+		_hooked_fish_id = "river_trout" if roll < 0.65 else "golden_carp"
 
+	var rod_mult: float = 1.0
+	if player and player.has_method("get_fishing_bar_multiplier"):
+		rod_mult = float(player.call("get_fishing_bar_multiplier"))
+	_bar_size = clampf(0.28 * rod_mult, 0.24, 0.52)
+	_bar_pos = 0.30
+	_bar_vel = 0.0
+	_fish_pos = 0.35
+	_fish_target = 0.65
+	_fish_vel = 0.0
+	_fish_ai_timer = 0.4
+	_catch_progress = 0.36
+	_is_fish_inside = true
+	_spawn_floating_text("🎣 ¡Enganchado! ¡Mantén al pez en la barra verde!", Color.SPRING_GREEN, -26.0)
+	queue_redraw()
+
+func _update_minigame(delta: float) -> void:
+	# 1. Control de la Barra Verde por el jugador (Mantener [E], [Espacio] o Clic Izquierdo)
+	var thrust_pressed: bool = (
+		Input.is_key_pressed(KEY_E)
+		or Input.is_key_pressed(KEY_SPACE)
+		or Input.is_mouse_button_pressed(MOUSE_BUTTON_LEFT)
+	)
+	var accel: float = 1.85 if thrust_pressed else -1.55
+	_bar_vel = clampf(_bar_vel + accel * delta, -1.15, 1.15)
+	_bar_pos += _bar_vel * delta
+
+	var half_bar: float = _bar_size * 0.5
+	if _bar_pos < half_bar:
+		_bar_pos = half_bar
+		_bar_vel = maxf(0.0, -_bar_vel * 0.28)
+	elif _bar_pos > 1.0 - half_bar:
+		_bar_pos = 1.0 - half_bar
+		_bar_vel = minf(0.0, -_bar_vel * 0.25)
+
+	# 2. Movimiento del Pez según su especie
+	_fish_ai_timer -= delta
+	if _fish_ai_timer <= 0.0:
+		match _hooked_fish_id:
+			"river_trout":
+				_fish_ai_timer = randf_range(0.75, 1.35)
+				_fish_target = clampf(_fish_pos + randf_range(-0.32, 0.32), 0.10, 0.90)
+			"golden_carp":
+				_fish_ai_timer = randf_range(0.48, 0.95)
+				_fish_target = randf_range(0.12, 0.88)
+			"night_catfish":
+				_fish_ai_timer = randf_range(0.32, 0.72)
+				_fish_target = randf_range(0.08, 0.92)
+
+	var fish_speed: float = 0.58
+	if _hooked_fish_id == "golden_carp":
+		fish_speed = 0.82
+	elif _hooked_fish_id == "night_catfish":
+		fish_speed = 1.12
+
+	_fish_pos = move_toward(_fish_pos, _fish_target, fish_speed * delta)
+
+	# 3. Comprobar si el pez está dentro de la barra verde
+	_is_fish_inside = absf(_fish_pos - _bar_pos) <= (half_bar + 0.03)
+	if _is_fish_inside:
+		_catch_progress += 0.42 * delta
+	else:
+		_catch_progress -= 0.20 * delta
+
+	_catch_progress = clampf(_catch_progress, 0.0, 1.0)
+	if _catch_progress >= 1.0:
+		_complete_catch(_active_fisher)
+	elif _catch_progress <= 0.0:
+		_cancel_fishing("💨 ¡El pez se escapó de la barra!")
+
+func _draw() -> void:
+	if state != FishState.MINIGAME:
+		return
+	var panel_pos := Vector2(56, -56)
+	var col_w: float = 16.0
+	var col_h: float = 104.0
+
+	# Marco exterior
+	draw_rect(Rect2(panel_pos - Vector2(4, 4), Vector2(col_w + 18.0, col_h + 8.0)), Color(0.08, 0.09, 0.13, 0.95), true)
+	draw_rect(Rect2(panel_pos - Vector2(4, 4), Vector2(col_w + 18.0, col_h + 8.0)), Color(0.78, 0.64, 0.34, 1.0), false, 1.6)
+
+	# Columna de agua
+	draw_rect(Rect2(panel_pos, Vector2(col_w, col_h)), Color(0.10, 0.26, 0.46, 0.95), true)
+
+	# Barra verde del jugador (invertida en Y: 0.0 abajo, 1.0 arriba)
+	var bar_h: float = _bar_size * col_h
+	var bar_center_y: float = panel_pos.y + (1.0 - _bar_pos) * col_h
+	var bar_rect := Rect2(Vector2(panel_pos.x + 1.0, bar_center_y - bar_h * 0.5), Vector2(col_w - 2.0, bar_h))
+	var bar_col: Color = Color(0.32, 0.95, 0.45, 0.88) if _is_fish_inside else Color(0.85, 0.72, 0.28, 0.75)
+	draw_rect(bar_rect, bar_col, true)
+	draw_rect(bar_rect, Color(0.92, 1.0, 0.92, 0.95), false, 1.2)
+
+	# Icono del pez dentro de la columna
+	var fish_y: float = panel_pos.y + (1.0 - _fish_pos) * col_h
+	var fish_center := Vector2(panel_pos.x + col_w * 0.5, fish_y)
+	var fish_col: Color = Color(0.95, 0.78, 0.22) if _hooked_fish_id == "golden_carp" else (Color(0.68, 0.45, 0.95) if _hooked_fish_id == "night_catfish" else Color(1.0, 0.52, 0.32))
+	draw_circle(fish_center, 4.5, fish_col)
+	draw_circle(fish_center + Vector2(1.5, -1.0), 1.2, Color.BLACK)
+
+	# Barra lateral de progreso de captura (0% a 100%)
+	var prog_x: float = panel_pos.x + col_w + 4.0
+	var prog_w: float = 6.0
+	draw_rect(Rect2(Vector2(prog_x, panel_pos.y), Vector2(prog_w, col_h)), Color(0.18, 0.18, 0.22, 0.95), true)
+	var fill_h: float = _catch_progress * col_h
+	var prog_col: Color = Color(0.25, 0.95, 0.42) if _catch_progress >= 0.6 else (Color(0.95, 0.80, 0.25) if _catch_progress >= 0.3 else Color(0.95, 0.32, 0.28))
+	draw_rect(Rect2(Vector2(prog_x, panel_pos.y + col_h - fill_h), Vector2(prog_w, fill_h)), prog_col, true)
+
+func _complete_catch(player: Node2D) -> void:
+	state = FishState.IDLE
+	queue_redraw()
+	if bobber_poly:
+		bobber_poly.visible = false
+	if fishing_line:
+		fishing_line.visible = false
+
+	var inv: SimpleInventory = player.get("inventory") if player else null
+	if not inv:
+		return
+
+	var caught_id: String = _hooked_fish_id if _hooked_fish_id != "" else "river_trout"
 	inv.add_item(caught_id, 1)
 	var fish_name: String = inv.get_item_name(caught_id)
 	if player.has_method("_spawn_floating_text"):
 		player._spawn_floating_text("🐟 ¡Pescaste: %s!" % fish_name, Color.GOLD, -42.0)
 	if player.has_method("show_hint"):
-		player.show_hint("🎣 Has pescado 1 %s. Puedes cocinarlo en la Hoguera de tu campamento o vendérselo a Marlo en la aldea." % fish_name)
+		player.show_hint("🎣 ¡Captura perfecta! Has pescado 1 %s. Puedes cocinarlo en la Hoguera o vendérselo a Marlo." % fish_name)
 
 func _cancel_fishing(msg: String) -> void:
 	state = FishState.IDLE
+	queue_redraw()
 	if bobber_poly:
 		bobber_poly.visible = false
 	if fishing_line:

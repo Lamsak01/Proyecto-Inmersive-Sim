@@ -139,8 +139,85 @@ Sistemas de largo plazo para cuando el núcleo del juego esté completo.
 
 - [x] **5.1. Ganadería Básica — El Gallinero y Ataques Nocturnos de Zorros (`ChickenCoop.gd`, `WildAnimal.gd`):**
   - **Cercado Cuadrado con Gallinas (`ChickenCoop.gd`):** Incluye un **Comedero de 2 toques (`[E]` `0/2` $\rightarrow$ `1/2` $\rightarrow$ `2/2`)** y un **Nido de Huevos (`[E]` Recoger `Huevo Fresco`)**. Las gallinas alimentadas ponen huevos cada mañana y se reproducen hasta llenar el gallinero.
+  - **Gallinas Interactivas y Atacables (`Hurtbox` + Modal `[E]`):** Cada gallina cuenta con su propia `Hurtbox` (puedes atacarla con armas o arco) y un menú contextual al acercarte y pulsar `[E]` (`[1] Coger pollo para comer (+1 Pollo Crudo, +1 Pluma)` o `[2] Acariciar gallina`). El `Pollo Crudo` se puede asar en la Hoguera o en `[I]` para obtener `Pollo Asado Crujiente`.
   - **Incursión Nocturna de Zorros Hambrientos:** Si un zorro del bosque no consiguió comer durante el día, sube de noche al Gallinero, muerde la cerca hasta **abrir un agujero (`is_breached = true`)**, entra y se lleva una gallina. El jugador recibe avisos y puede ahuyentar/cazar al zorro o **reparar el agujero con `[E]`**.
-- [ ] **5.2. Breeding (Cruce y Genética de Animales):**
-  - Sistema de herencia de estadísticas al cruzar dos animales de la misma especie (mejorar velocidad, resistencia, producción o fuerza generación tras generación).
-- [ ] **5.3. Tecnología Anacrónica (Reactivación de `archived_systems/power_system/`):**
-  - Integrar generadores antiguos, cables y máquinas reparables para automatizar o electrificar partes de tu asentamiento o de la aldea.
+
+---
+
+### FASE 6: Gran Expansión de Urbanismo, Herrería/Armaduras, Mejora de Herramientas, Psicología *RimWorld*, Mascotas y Casino Visual *(COMPLETADA)*
+
+- [x] **6.1. Pantalla Completa por Defecto y Vista en Editor 2D (`@tool`):**
+  - El juego arranca directamente en **Pantalla Completa (`window/size/mode=3`)** con `[F11]` para alternar modo ventana.
+  - Todos los sistemas procedurales (`World.gd`, `VillageManager.gd`, `EcosystemManager.gd`, `FarmPlot.gd`, `CampSite.gd`, `ChickenCoop.gd`, `FishingSpot.gd`, `DomesticPet.gd`) cuentan con `@tool` para previsualizarse directamente en el visor 2D de Godot Editor.
+- [x] **6.2. Urbanismo Expandido, Biomas Separados y Hábitats de Fauna (`VillageManager.gd`, `EcosystemManager.gd`, `WildAnimal.gd`, `World.tscn`):**
+  - **Red de Caminos de Tierra y Plaza Central Empedrada** conectando la Llanura Salvaje del Oeste, el Lago de Pesca, la Granja del Jugador, la Plaza Central, la Gran Posada, el Distrito Comercial, el Barrio Residencial Este y el Sendero Largo al Bosque Profundo (`y = 575..1240`).
+  - **Bioma Separado al Oeste — 🌾 Llanura Salvaje y Ciénaga de Ranas (`x = -860..-390, y = -210..150`):**
+    - Conectada por el camino del Oeste y custodiada en la entrada por el Vigía (`Guia` en `(-415, 18)`).
+    - Reúne todos los enemigos hostiles y props de combate fuera de la aldea: **Campamento/Ruinas Hostiles al Noroeste** (`DummyEnemy`, `FastEnemy`, `Crate`, `Barrel`, `WeakWall`, `Obstacles Small/Large`) y **Ciénaga de Ranas al Suroeste** (`FrogEnemy` y `FrogEnemy2` sobre su propia charca pantanosa).
+  - **Bioma Separado al Sur — 🌲 Bosque Profundo con 3 Hábitats de Especies No Mezclados (`y = 575..1240`):**
+    - Conectado por un largo sendero desde la Plaza Central y la Granja con carteles direccionales y cruce de caminos en `y = 606..630`.
+    - **Hábitat 1 (Oeste del Bosque, `x = -470..-130, y = 600..900`): 🐇 Pradera de Madrigueras y Hierbas Medicinales** (3 madrigueras + 12 hierbas locales para que los conejos pasten en su propia pradera).
+    - **Hábitat 2 (Centro-Sur del Bosque, `x = -50..320, y = 800..1180`): 🦌 Claros de Pinos y Hongos Silvestres** (2 claros de manada + 10 hongos locales para que los venados vivan separados).
+    - **Hábitat 3 (Este del Bosque, `x = 460..830, y = 610..960`): 🦊 Cantera de Hierro y Guaridas de Zorros** (2 guaridas + 8 vetas de mineral; los zorros patrullan su cantera y regresan a su territorio tras cazar).
+  - **4 Locales Comerciales Cerrados Independientes:**
+    1. ⚒️ **Herrería y Armería "Yunque Gris"** (con fragua encendida y yunque interior).
+    2. 🥩 **Carnicería y Peletería "El Colmillo"**.
+    3. 🪚 **Carpintería y Aserradero "Roble Viejo"**.
+    4. 🐟 **Pescadería y Molino "Aguas Claras"**.
+  - **4 Casas Residenciales Familiares Separadas (`112×78 px`)** en el Barrio Residencial del Este (con 2 camas, mesa de comedor y alfombra para cada familia).
+  - **2 Grandes Edificios Mixtos (Tienda Pública + Vivienda Privada):**
+    1. 🌿 **Botica y Casa-Jardín "Raíz Verde"** (Elena y Tomás viven en la parte trasera separada por tabique interior y atienden la botica delante).
+    2. 🍺 **Gran Posada, Taberna y Casino "El Jabalí Dorado" (`260×145 px`)** con barra de cocina, comedor, sala de casino con mesa de Póker y mesa de Billar, cuarto privado de Marta y 4 camas en el ala de huéspedes.
+- [x] **6.3. Casino Visual, Billar 2D, Pausa de Tiempo y Asiento Físico de NPCs (`TavernGamesUI.gd`, `WorldClock.gd`):**
+  - Al abrir la mesa de juegos, **el reloj del mundo y el drenaje de hambre/sueño se congelan (`WorldClock.set_activity_pause(true)`)** para no alterar ninguna rutina de la IA.
+  - Los 2 NPCs rivales se **sientan físicamente en las sillas de la mesa de la Taberna** mientras dura la partida.
+  - Interfaz con **Retratos Visuales de los NPCs**, insignias de rasgos, expresiones en vivo, **Cartas Gráficas animadas** y el 4.º juego **`[F4]` 🎱 Billar de la Posada** con física de bolas 2D, ángulo de taco y barra de potencia.
+- [x] **6.4. Minijuego de Pesca de Precisión estilo *Stardew Valley* (`FishingSpot.gd`):**
+  - Barra vertical de precisión donde controlas el rectángulo verde manteniendo **`[E]` / `[Espacio]` / `Clic Izquierdo`** para seguir el movimiento único de cada especie (*Trucha de Río* suave, *Carpa Dorada* saltarina, *Siluro Nocturno* agresivo) hasta llenar el `100%` de captura.
+- [x] **6.5. Iconos Visuales (`16×16`) en Inventario/Crafteo y Sistema de Armaduras en 4 Slots (`SimpleInventory.gd`, `scenes/ui_root.gd`, `Player.gd`):**
+  - Todos los objetos y recetas muestran su **icono pixel-art `16×16`** en la Mochila (`[I]`).
+  - **4 Slots de Armadura (`🪖 Casco`, `🦺 Pecho`, `👖 Piernas`, `🥾 Botas`)** en 3 Tiers (**Cuero Curtido**, **Hierro Forjado**, **Acero Maestro**), comprables en la Herrería o fabricables en `[I]`, que otorgan reducción real de daño físico (`armor_defense`), resistencia al sangrado (`armor_bleed_resistance`), resistencia al stun (`armor_stun_resistance`) y overlay visual modular sobre el personaje.
+- [x] **6.6. Mejora de Armas y Herramientas por Niveles (`Nv.1 Básico` $\rightarrow$ `Nv.2 Hierro` $\rightarrow$ `Nv.3 Acero Maestro`):**
+  - En el diálogo de *Thoran* (Maestro Herrero) puedes fundir `Lingotes de Acero` y mejorar las **8 herramientas y armas** con Oro + Materiales, subiendo su daño, eficiencia de tala/minería (`180%` $\rightarrow$ `270%` $\rightarrow$ `380%`), bono de cosecha de la Hoz (`+1` $\rightarrow$ `+2` $\rightarrow$ `+3`), capacidad de la Regadera (`6` $\rightarrow$ `12` $\rightarrow$ `20`) y tamaño de la barra de pesca (`100%` $\rightarrow$ `128%` $\rightarrow$ `155%`).
+- [x] **6.7. Skins de Oficio Personalizadas, Psicología estilo *RimWorld* y Mascotas Domésticas (`VillageNPC.gd`, `DomesticPet.gd`):**
+  - Skins pixel-art distintivas por oficio (Marta con gorro blanco de Chef y delantal, Garrick con delantal de carnicero, Thoran con gafas de forja y delantal de cuero, etc.).
+  - Cada NPC posee **Rasgos de Personalidad (`traits`)**, **Objeto Favorito (`favorite_item`)**, **Humor (`mood 0–100%`)** y **Registro de Pensamientos (`thoughts`)** visibles al pasar el ratón y al conversar.
+  - **6 Mascotas Domésticas (`DomesticPet.gd` — 3 Perros y 3 Gatos):** Interactuables con `[E]` para acariciar o alimentar. El perro guardián **🐕 Toby** vigila el Gallinero por la noche y ahuyenta a ladridos a los zorros hambrientos antes de que rompan la cerca.
+- [x] **6.8. Mapa Cartográfico Interactivo (`[M]`) + Minimapa en Vivo (`ValleyMapUI.gd`):**
+  - Minimapa siempre visible en la esquina superior derecha y **Mapa Completo del Valle (`[M]`)** con las 4 regiones coloreadas, los 10 edificios con nombre, caminos, posición pulsante del jugador, puntos en vivo de todos los aldeanos (con inspector al pasar el ratón), fauna activa del bosque y hostiles de la Llanura.
+- [x] **6.9. Expediciones Físicas Matutinas de los 5 Maestros Artesanos (`06:30–09:30 AM` en `VillageNPC.gd`):**
+  - Cada mañana entre las `06:30` y las `09:30 AM`, los 5 maestros artesanos caminan físicamente por los senderos hasta el bosque, el lago o la cantera para recolectar su materia prima antes de regresar a abrir su local comercial.
+- [x] **6.10. Botín Único, Cocina y Reaparición en la Llanura Salvaje + Guardado Total (`[F5]/[F9]`):**
+  - Nuevos ítems con iconos `16×16`: **`frog_legs` (*Ancas de Rana Crudas*)**, **`fried_frog_legs` (*Ancas de Rana al Ajillo*, `+50 HP, +70 STM, +65 Hambre`)** y **`bandit_scrap` (*Reliquia y Chatarra de Bandido*)**.
+  - Las ranas y bandidos de la Llanura sueltan botín + oro al morir y **reaparecen cada 2 días** (`DummyEnemy.gd`).
+  - `GameManager.gd` guarda y restaura el 100% del mundo: parcelas del Huerto (`FarmPlot`), Gallinero (`ChickenCoop`), Ecosistema completo (`EcosystemManager` + `WildAnimal`) y enemigos de la Llanura (`plains_hostiles`).
+
+---
+
+### FASE 7: Expansión Integral en 10 Bloques + Rediseño Visual y Físico de Edificios (Completada ✅)
+- [x] **7.0. Paredes Sólidas con Colisión (`StaticBody2D`), Suelos Texturizados en Mosaico y Mobiliario (`VillageManager.gd`):**
+  - Todos los **12 edificios de la aldea** dejaron de ser simples polígonos planos con líneas y ahora se construyen mediante `_construct_solid_building(...)` con **suelos texturizados en mosaico (`floor_wood_planks.png`, `floor_stone_forge.png`, `floor_hospital_tile.png`)**, **muros texturizados (`wall_timber_h/v.png`, `wall_stone_h/v.png`)**, **colisiones físicas reales (`StaticBody2D` en capa 1)** con **puertas de `40–50 px`**, navegación por umbrales (`get_navigation_waypoint`) y mobiliario decorativo de `assests/Comprados/ Packs/Cute_Fantasy/`.
+- [x] **7.1. 🏥 Hospital de Urgencias, ⚰️ Morgue Forense y Estado "Agonizando" (`VillageManager.gd`, `VillageNPC.gd`):**
+  - Edificio clínico (`Vector2(745, 148)`) dirigido por el **Dr. Valen (`TradeRole.DOCTOR`)** con **2 Camas de Urgencias** delante y **3 Mesas de Autopsia en la Morgue Forense** detrás.
+  - Cuando un `VillageNPC` cae a `0 HP`, entra primero en estado **`is_downed = true` (`🩸 ¡AGONIZANDO!`)** con una cuenta atrás (`34s` corte/espada, `58s` normal, `90s` contundente). El jugador o el Dr. Valen pueden salvarle la vida pulsando `[E]` o usando un `Botiquín Quirúrgico` (`+25 Oro` y `+40` Afinidad Familiar).
+  - Si el tiempo se agota o es rematado, el cuerpo pasa a una **Mesa de Autopsia de la Morgue Forense** con un dictamen forense inspeccionable (`[E]`): víctima, hora exacta, escena del crimen, causa de la herida y cruce con testigos.
+- [x] **7.2. 🚓 Comisaría, 🔒 Cárcel y Sistema Realista de Testigos (*"Me vieron entrar a la casa"*) (`VillageManager.gd`, `VillageNPC.gd`):**
+  - Edificio fortificado (`Vector2(915, 148)`) con el **Comisario Vane (`TradeRole.SHERIFF`)**, el **Guardia Rodric (`TradeRole.GUARD`)** y **2 Celdas con Rejas de Hierro (`jail_bars_h/v.png`)**.
+  - **Registro de Testigos de Entrada (`sighting_log`):** Si entras o sales de un edificio sin usar Sigilo (`[C]`) y un vecino consciente está dentro del rango visual, recuerda tu entrada y la hora. Si luego aparece un cadáver en la Morgue de ese edificio, la policía cruza el registro con la autopsia y emite una **Orden de Arresto (`wanted_level`, `bounty_gold`)**. Si entraste en Sigilo (`[C]`) sin testigos, el caso queda como *"Sospechoso Desconocido (Caso sin resolver)"*.
+  - Al ser interceptado por la guardia o acudir a la Comisaría puedes **`[1]` Entregarte y cumplir condena en la Celda hasta las 06:00 AM**, **`[2]` Pagar Fianza/Multa en Oro** o **`[3]` Forzar los barrotes para fugarte**.
+- [x] **7.3. 🔓 Sigilo Doméstico, Cerraduras y Cofres en las Casas (`house_chests` en `VillageManager.gd`):**
+  - Cofres privados (`house_chest_closed.png`) dentro de las casas residenciales y tiendas. Abrirlos en sigilo sin testigos otorga Oro y objetos raros; ser visto dispara alarma de robo y caída de reputación familiar.
+- [x] **7.4. 💬 Memoria Social, Rumores y Reputación por Familias (`modify_family_reputation`):**
+  - Salvar o ayudar a un miembro sube la afinidad de toda su familia (`affinity >= 45` desbloquea **`-20%` de descuento de Aliado Familiar** en su tienda). Agraviar o robar a una familia (`affinity <= -35`) bloquea su comercio hasta pagar una **Compensación Familiar (`-20 Oro`)**.
+- [x] **7.5. 📋 Tablón de Encargos, Urgencias Médicas y Cazarrecompensas en la Plaza (`Vector2(465, 24)`):**
+  - Tablón interactivo (`questboard_1.png`) en la Plaza Central con 3 contratos diarios renovables: **Encargo de Gremios**, **Urgencia del Hospital** y **Recompensa Policial**.
+- [x] **7.6. 🏡 Construcción y Expansión de la Casa Propia del Jugador (`CampSite.gd`):**
+  - Mejora tu vivienda desde **Nv.1 Tienda de Campaña** $\rightarrow$ **Nv.2 Cabaña de Madera Propia** $\rightarrow$ **Nv.3 Casa de Piedra con Cofre Personal** (con paredes sólidas, suelo en mosaico, cama interior y cofre privado para guardar Oro protegido de multas), disponible hablando con *Bram* en la Carpintería o desde la **Mesa de Obras** de tu campamento.
+- [x] **7.7. 🌦️ Clima Dinámico y Eventos del Valle (`WorldClock.gd`, `World.gd`, `FarmPlot.gd`):**
+  - Clima diario (**`☀️ Despejado`**, **`🌧️ Lluvia`**, **`🌫️ Niebla`**, alternable al instante con **`[F7]`**): la lluvia riega automáticamente todo el huerto 3x3 y amortigua el ruido de tus pasos un `35%`, mientras que la niebla reduce un `35%` el rango de visión de testigos, guardias y fauna.
+- [x] **7.8. 🦴 Despiece Anatómico Avanzado y Alquimia/Somníferos en la Botica (`WildAnimal.gd`, `SimpleInventory.gd`):**
+  - Activado el despiece anatómico (`bones`, `antlers`, `sinew_viscera`, `animal_fat`) y añadidas recetas de Alquimia en `[I]` y en la Botica de *Elena*: **🧪 Somnífero Nocturno (`sleeping_draught`, duerme a un NPC 40s sin matarlo)**, **⚡ Tónico de Ligereza (`speed_tonic`, `+30%` velocidad)** y **🩺 Botiquín Quirúrgico (`surgical_kit`, revive agonizantes o cura `+85 HP`)**.
+- [x] **7.9. 🧬 Crianza Selectiva y Genética de Animales (`WildAnimal.gd`, `EcosystemManager.gd`, `ChickenCoop.gd`):**
+  - Cuando animales o gallinas bien alimentados se reproducen, su descendencia hereda **`Genética Nv.1 -> Nv.2 -> Nv.3`**, otorgando más carne/pieles y **🥚✨ Huevos Dorados (`golden_egg`)** en el Gallinero.
+- [x] **7.10. ⚡ Tecnología Anacrónica: Electricidad, Generador, Farolas Eléctricas y Aspersor Automático (`CampSite.gd`, `VillageManager.gd`):**
+  - **Generador Eléctrico Antiguo (`ancient_generator.png`)** y **Aspersor Automático (`auto_sprinkler.png`)** en el centro del Huerto 3x3 (`Vector2(139, 99)`), además de **6 Farolas Eléctricas (`lamp-post1.png`)** que iluminan las calles de la aldea por la noche.

@@ -67,6 +67,21 @@ func _unhandled_input(event: InputEvent) -> void:
 			_cancel_bow_draw()
 		return
 
+	# Si hay un objetivo válido de Sigilo por la Espalda (Civil o Enemigo):
+	# - Opción NO LETAL (Aturdir): [E] (Interact) o [Q]
+	# - Opción LETAL (Asesinar): [Clic Izq.], [ui_accept] o [V]
+	if is_instance_valid(current_prompt_target):
+		var is_non_lethal_key: bool = event.is_action_pressed("Interact") or (event is InputEventKey and event.pressed and not event.echo and event.physical_keycode == KEY_Q)
+		var is_lethal_key: bool = event.is_action_pressed("ui_accept") or (event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT) or (event is InputEventKey and event.pressed and not event.echo and event.physical_keycode == KEY_V)
+		if is_non_lethal_key:
+			_execute_stealth_takedown(current_prompt_target, false)
+			get_viewport().set_input_as_handled()
+			return
+		elif is_lethal_key:
+			_execute_stealth_takedown(current_prompt_target, true)
+			get_viewport().set_input_as_handled()
+			return
+
 	var equipped: WeaponData = player.equipped_weapon
 	var is_bow: bool = equipped != null and equipped.is_ranged
 
@@ -82,14 +97,34 @@ func _unhandled_input(event: InputEvent) -> void:
 		attack(false)
 	elif event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
 		attack(true)
-	elif event.is_action_pressed("Interact"):
-		if is_instance_valid(current_prompt_target):
-			current_prompt_target.knockout()
-			current_prompt_target.hide_prompt()
-			current_prompt_target = null
-			if player.has_method("show_hint"):
-				player.show_hint("Takedown!")
-			get_viewport().set_input_as_handled()
+
+func _execute_stealth_takedown(target: Node2D, lethal: bool) -> void:
+	if not is_instance_valid(target):
+		return
+	if target.has_method("hide_prompt"):
+		target.hide_prompt()
+	current_prompt_target = null
+
+	if lethal:
+		if target.has_method("stealth_assassinate"):
+			target.call("stealth_assassinate", player)
+		elif target.has_method("take_damage"):
+			var kill_dmg := DamageData.new()
+			kill_dmg.amount = 999.0
+			kill_dmg.type = CombatConstants.DamageType.CUT
+			kill_dmg.source = player
+			target.call("take_damage", kill_dmg)
+			if player and player.has_method("show_hint"):
+				player.show_hint("🗡️ ¡Eliminación letal en sigilo!")
+	else:
+		if target.has_method("stealth_knockout"):
+			target.call("stealth_knockout", player)
+		elif target.has_method("knockout"):
+			target.call("knockout")
+			if player and player.has_method("show_hint"):
+				player.show_hint("💤 ¡Derribo no letal en sigilo!")
+	_apply_hitstop()
+	_apply_camera_shake()
 
 func _setup_visuals() -> void:
 	weapon_pivot = Node2D.new()
@@ -318,22 +353,37 @@ func _apply_camera_shake() -> void:
 		shake_tween.tween_property(cam, "position", Vector2.ZERO, 0.03)
 
 func _check_stealth_takedown() -> void:
-	if not interact_area: return
-	var bodies = interact_area.get_overlapping_bodies()
+	if not interact_area or not is_instance_valid(player):
+		return
 	var new_target: Node2D = null
-	
-	for b in bodies:
-		if b.is_in_group("enemies") and b.has_method("knockout") and b.get_node_or_null("EnemyAI"):
-			if b.get("is_stunned_flag") == true:
-				continue
-			var ai = b.get_node("EnemyAI")
-			if ai.current_state == EnemyAI.State.IDLE or ai.current_state == EnemyAI.State.SEARCH:
-				var enemy_facing = ai.facing_direction
-				var dir_to_player = (player.global_position - b.global_position).normalized()
-				if enemy_facing.dot(dir_to_player) < -0.5:
-					new_target = b
-					break
-	
+
+	# 1. Comprobar civiles / NPCs de la aldea cuando el jugador va en Sigilo ([C]) por su espalda
+	if player.has_method("is_stealthing") and bool(player.call("is_stealthing")):
+		var best_dist_sq: float = 29.0 * 29.0
+		for n in get_tree().get_nodes_in_group("village_npcs"):
+			if n is Node2D and n.has_method("can_be_stealth_targeted"):
+				var npc_node := n as Node2D
+				if bool(npc_node.call("can_be_stealth_targeted", player)):
+					var d2: float = player.global_position.distance_squared_to(npc_node.global_position)
+					if d2 <= best_dist_sq:
+						best_dist_sq = d2
+						new_target = npc_node
+
+	# 2. Comprobar enemigos de bosque (EnemyAI) por la espalda
+	if new_target == null:
+		var bodies = interact_area.get_overlapping_bodies()
+		for b in bodies:
+			if b.is_in_group("enemies") and b.has_method("knockout") and b.get_node_or_null("EnemyAI"):
+				if b.get("is_stunned_flag") == true:
+					continue
+				var ai = b.get_node("EnemyAI")
+				if ai.current_state == EnemyAI.State.IDLE or ai.current_state == EnemyAI.State.SEARCH:
+					var enemy_facing = ai.facing_direction
+					var dir_to_player = (player.global_position - b.global_position).normalized()
+					if enemy_facing.dot(dir_to_player) < -0.5:
+						new_target = b
+						break
+
 	if new_target != current_prompt_target:
 		if is_instance_valid(current_prompt_target) and current_prompt_target.has_method("hide_prompt"):
 			current_prompt_target.hide_prompt()

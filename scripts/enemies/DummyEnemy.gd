@@ -17,12 +17,20 @@ const FloatingTextScene = preload("res://scenes/ui/FloatingText.tscn")
 var push_velocity: Vector2 = Vector2.ZERO
 var is_stunned_flag: bool = false
 var is_weak_flag: bool = false
+var is_dead_flag: bool = false
+var respawn_on_day: int = -1
+var home_spawn_pos: Vector2 = Vector2.ZERO
 var _player_ref: Node2D = null
 var _last_stealth_state: int = -1 # -1 = uninitialized, 0 = normal, 1 = stealthing
 
 func _ready() -> void:
 	motion_mode = CharacterBody2D.MOTION_MODE_FLOATING
+	home_spawn_pos = global_position
 	add_to_group("enemies")
+	add_to_group("plains_hostiles")
+
+	if WorldClock and not WorldClock.day_passed.is_connected(_on_day_passed):
+		WorldClock.day_passed.connect(_on_day_passed)
 	
 	# Setup Health & Bleed
 	if health_comp:
@@ -189,32 +197,127 @@ func _on_ai_awareness_changed(level: float, is_alerted: bool) -> void:
 		alert_indicator.update_awareness(level, is_alerted)
 
 func _on_died() -> void:
+	if is_dead_flag:
+		return
+	is_dead_flag = true
+	var cur_day: int = WorldClock.current_day if WorldClock else 1
+	respawn_on_day = cur_day + 2
+
 	if ObjectiveManager:
 		ObjectiveManager.progress_objective(0, enemy_id, 1) # 0 = KILL
+
+	_grant_plains_loot()
 
 	set_physics_process(false)
 	if ai:
 		ai.set_physics_process(false)
 		ai._clear_ghost()
-	
+
 	anim.stop()
 	rotation_degrees = 90
 	modulate = Color.GRAY
-	
-	if vision_cone: vision_cone.queue_free()
-	if prompt_label: prompt_label.queue_free()
-	if alert_indicator: alert_indicator.queue_free()
-	
+
+	if vision_cone:
+		vision_cone.visible = false
+	if prompt_label:
+		prompt_label.visible = false
+	if alert_indicator:
+		alert_indicator.visible = false
+
 	collision_layer = 0
 	collision_mask = 0
-	
+
 	remove_from_group("enemies")
 	remove_from_group("has_los_to_player")
-	
+
 	var tween = create_tween()
-	tween.tween_interval(10.0)
-	tween.tween_property(self, "modulate:a", 0.0, 2.0)
-	tween.tween_callback(queue_free)
+	tween.tween_interval(6.0)
+	tween.tween_property(self, "modulate:a", 0.0, 1.5)
+	tween.tween_callback(func():
+		if is_dead_flag:
+			visible = false
+	)
+
+func _grant_plains_loot() -> void:
+	var player = get_tree().get_first_node_in_group("player")
+	if not player or not ("inventory" in player) or not player.inventory:
+		return
+	var inv: SimpleInventory = player.inventory
+	var is_frog: bool = (enemy_id == "frog" or name.begins_with("Frog"))
+	if is_frog:
+		inv.add_item("frog_legs", 2)
+		inv.add_gold(6)
+		_spawn_floating_text("🐸 Botín Ciénaga: +2 Ancas de Rana, +6 Oro", Color.SPRING_GREEN, -46.0)
+	else:
+		inv.add_item("bandit_scrap", 1)
+		inv.add_gold(15)
+		_spawn_floating_text("⚔️ Botín Llanura: +1 Chatarra/Reliquia, +15 Oro", Color.GOLD, -46.0)
+
+func _on_day_passed(new_day: int) -> void:
+	if is_dead_flag and respawn_on_day > 0 and new_day >= respawn_on_day:
+		_respawn_enemy()
+
+func _respawn_enemy() -> void:
+	is_dead_flag = false
+	is_stunned_flag = false
+	is_weak_flag = false
+	respawn_on_day = -1
+	global_position = home_spawn_pos
+	rotation_degrees = 0
+	modulate = Color.WHITE
+	visible = true
+	collision_layer = 4
+	collision_mask = 3
+	if not is_in_group("enemies"):
+		add_to_group("enemies")
+	if health_comp:
+		health_comp.current_health = health_comp.max_health
+		health_comp.current_blood = 0.0
+		health_comp.is_bleeding = false
+	if stun_comp:
+		stun_comp.current_stun = 0.0
+	if vision_cone:
+		vision_cone.visible = true
+	if alert_indicator:
+		alert_indicator.visible = true
+	if ai:
+		ai.current_state = EnemyAI.State.IDLE
+		ai.target = null
+		ai.awareness_level = 0.0
+		ai.set_physics_process(true)
+	set_physics_process(true)
+	if anim and anim.sprite_frames:
+		if anim.sprite_frames.has_animation("idle"):
+			anim.play("idle")
+		elif anim.sprite_frames.has_animation("fly"):
+			anim.play("fly")
+
+func to_save_dict() -> Dictionary:
+	return {
+		"dead": is_dead_flag,
+		"respawn_day": respawn_on_day,
+		"hp": health_comp.current_health if health_comp else 50.0,
+		"pos_x": global_position.x,
+		"pos_y": global_position.y
+	}
+
+func from_save_dict(data: Dictionary) -> void:
+	is_dead_flag = bool(data.get("dead", false))
+	respawn_on_day = int(data.get("respawn_day", -1))
+	if is_dead_flag:
+		set_physics_process(false)
+		if ai:
+			ai.set_physics_process(false)
+		visible = false
+		collision_layer = 0
+		collision_mask = 0
+		remove_from_group("enemies")
+	else:
+		_respawn_enemy()
+		if data.has("pos_x") and data.has("pos_y"):
+			global_position = Vector2(float(data["pos_x"]), float(data["pos_y"]))
+		if health_comp and data.has("hp"):
+			health_comp.current_health = clampf(float(data["hp"]), 1.0, health_comp.max_health)
 
 func play_attack_anticipation(duration: float) -> void:
 	var original_modulate = modulate

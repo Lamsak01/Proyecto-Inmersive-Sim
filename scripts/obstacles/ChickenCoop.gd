@@ -1,3 +1,4 @@
+@tool
 extends Node2D
 class_name ChickenCoop
 
@@ -11,6 +12,7 @@ class_name ChickenCoop
 
 var feeder_level: int = 1 # 0 = Vacío, 1 = Mitad (1/2), 2 = Lleno (2/2)
 var eggs_in_nest: int = 2
+var golden_eggs_in_nest: int = 0
 var is_breached: bool = false
 var fence_hp: float = 3.0
 const MAX_FENCE_HP: float = 3.0
@@ -35,6 +37,10 @@ var _player_near: bool = false
 var _eat_timer: float = 0.0
 var _warn_cooldown: float = 0.0
 
+var chicken_action_layer: CanvasLayer = null
+var chicken_action_panel: PanelContainer = null
+var _selected_chicken: Dictionary = {}
+
 func _ready() -> void:
 	add_to_group("chicken_coop")
 	_tex_feeder_empty = _load_tex("res://assests/world/camp/coop_feeder_empty.png")
@@ -49,12 +55,15 @@ func _ready() -> void:
 	_spawn_initial_chickens(3)
 	_refresh_coop_visuals()
 
-	if WorldClock:
-		WorldClock.day_passed.connect(_on_day_passed)
-	if GameManager:
-		GameManager.game_loaded.connect(_on_game_loaded)
-
-	_load_saved_state()
+	if not Engine.is_editor_hint():
+		_setup_chicken_action_ui()
+		if WorldClock:
+			WorldClock.day_passed.connect(_on_day_passed)
+		if GameManager:
+			GameManager.game_loaded.connect(_on_game_loaded)
+		_load_saved_state()
+	set_process(not Engine.is_editor_hint())
+	set_process_unhandled_input(not Engine.is_editor_hint())
 
 func _build_fence_enclosure() -> void:
 	# Suelo de tierra suave del gallinero
@@ -150,22 +159,163 @@ func _spawn_initial_chickens(count: int) -> void:
 	for i in range(count):
 		_add_chicken()
 
-func _add_chicken() -> void:
+func _add_chicken(gen_tier: int = 1) -> void:
 	if chickens.size() >= 6:
 		return
+	var g_tier: int = clampi(gen_tier, 1, 3)
 	var spr := Sprite2D.new()
 	spr.texture = _tex_chicken
-	spr.scale = Vector2(1.05, 1.05)
+	var sc: float = 1.05 + float(g_tier - 1) * 0.05
+	spr.scale = Vector2(sc, sc)
+	if g_tier >= 3:
+		spr.modulate = Color(1.12, 1.04, 0.76, 1.0)
 	spr.position = Vector2(randf_range(-24.0, 24.0), randf_range(-8.0, 18.0))
 	add_child(spr)
 
-	chickens.append({
+	var chk_data: Dictionary = {
 		"sprite": spr,
 		"target": spr.position,
 		"timer": randf_range(0.5, 2.2),
 		"fed": true,
-		"hop": randf() * TAU
-	})
+		"hop": randf() * TAU,
+		"hp": 14.0 + float(g_tier - 1) * 4.0,
+		"genetics": g_tier
+	}
+
+	if not Engine.is_editor_hint():
+		var hbox := Hurtbox.new()
+		hbox.collision_layer = 4
+		hbox.collision_mask = 0
+		var hcol := CollisionShape2D.new()
+		var hcircle := CircleShape2D.new()
+		hcircle.radius = 9.0
+		hcol.shape = hcircle
+		hbox.add_child(hcol)
+		spr.add_child(hbox)
+		hbox.hit_received.connect(func(dmg_data: DamageData):
+			_on_chicken_attacked(chk_data, dmg_data)
+		)
+
+	chickens.append(chk_data)
+
+func _on_chicken_attacked(chk_data: Dictionary, dmg_data: DamageData) -> void:
+	if not chickens.has(chk_data):
+		return
+	var spr: Sprite2D = chk_data.get("sprite")
+	var dmg: float = dmg_data.amount if dmg_data else 10.0
+	chk_data["hp"] = float(chk_data.get("hp", 14.0)) - dmg
+	if is_instance_valid(spr):
+		var tw := create_tween()
+		tw.tween_property(spr, "modulate", Color(2.2, 0.4, 0.4), 0.06)
+		tw.tween_property(spr, "modulate", Color.WHITE, 0.08)
+	if float(chk_data["hp"]) <= 0.0:
+		var attacker: Node = dmg_data.source if (dmg_data and is_instance_valid(dmg_data.source)) else get_tree().get_first_node_in_group("player")
+		_harvest_chicken(chk_data, attacker, true)
+
+func _harvest_chicken(chk_data: Dictionary, player: Node, by_attack: bool = false) -> void:
+	if not chickens.has(chk_data):
+		return
+	var gen_tier: int = int(chk_data.get("genetics", 1))
+	chickens.erase(chk_data)
+	var spr: Sprite2D = chk_data.get("sprite")
+	if is_instance_valid(spr):
+		spr.queue_free()
+	var yield_amt: int = 2 if gen_tier >= 2 else 1
+	if player and "inventory" in player and player.inventory:
+		var inv: SimpleInventory = player.inventory
+		inv.add_item("raw_chicken", yield_amt)
+		inv.add_item("feather", yield_amt)
+	if player and player.has_method("_spawn_floating_text"):
+		var prefix: String = "🐔⚔️ Gallina cazada" if by_attack else "🍗 Gallina sacrificada"
+		player._spawn_floating_text("%s (🧬Nv.%d): +%d Pollo Crudo, +%d Pluma" % [prefix, gen_tier, yield_amt, yield_amt], Color.ORANGE, -44.0)
+	_save_state()
+
+func _setup_chicken_action_ui() -> void:
+	chicken_action_layer = CanvasLayer.new()
+	chicken_action_layer.layer = 31
+	add_child(chicken_action_layer)
+
+	chicken_action_panel = PanelContainer.new()
+	chicken_action_panel.visible = false
+	chicken_action_panel.set_anchors_and_offsets_preset(Control.PRESET_CENTER)
+	chicken_action_panel.offset_left = -195.0
+	chicken_action_panel.offset_top = -82.0
+	chicken_action_panel.offset_right = 195.0
+	chicken_action_panel.offset_bottom = 82.0
+
+	var style := StyleBoxFlat.new()
+	style.bg_color = Color(0.08, 0.09, 0.13, 0.96)
+	style.border_color = Color(0.85, 0.68, 0.34, 1.0)
+	style.set_border_width_all(2)
+	style.set_corner_radius_all(8)
+	style.content_margin_left = 16
+	style.content_margin_right = 16
+	style.content_margin_top = 12
+	style.content_margin_bottom = 12
+	chicken_action_panel.add_theme_stylebox_override("panel", style)
+	chicken_action_layer.add_child(chicken_action_panel)
+
+	var vbox := VBoxContainer.new()
+	vbox.add_theme_constant_override("separation", 8)
+	chicken_action_panel.add_child(vbox)
+
+	var lbl := Label.new()
+	lbl.text = "🐔 Gallina del Corral\n¿Qué quieres hacer con esta gallina?"
+	lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	lbl.add_theme_font_size_override("font_size", 13)
+	lbl.add_theme_color_override("font_color", Color(0.98, 0.92, 0.76))
+	vbox.add_child(lbl)
+
+	var btn_grab := Button.new()
+	btn_grab.text = "[1] 🍗 Coger pollo para comer (+1 Pollo Crudo, +1 Pluma)"
+	btn_grab.pressed.connect(_on_chicken_grab_confirmed)
+	vbox.add_child(btn_grab)
+
+	var btn_pet := Button.new()
+	btn_pet.text = "[2] ❤️ Acariciar gallina (Calmar y alimentar)"
+	btn_pet.pressed.connect(_on_chicken_pet_confirmed)
+	vbox.add_child(btn_pet)
+
+	var btn_cancel := Button.new()
+	btn_cancel.text = "[3 / ESC] Dejarla tranquila"
+	btn_cancel.pressed.connect(func(): chicken_action_panel.visible = false)
+	vbox.add_child(btn_cancel)
+
+func _unhandled_input(event: InputEvent) -> void:
+	if chicken_action_panel and chicken_action_panel.visible:
+		if event is InputEventKey and event.pressed and not event.echo:
+			if event.keycode == KEY_1:
+				_on_chicken_grab_confirmed()
+				get_viewport().set_input_as_handled()
+			elif event.keycode == KEY_2:
+				_on_chicken_pet_confirmed()
+				get_viewport().set_input_as_handled()
+			elif event.keycode in [KEY_3, KEY_ESCAPE]:
+				chicken_action_panel.visible = false
+				get_viewport().set_input_as_handled()
+
+func _on_chicken_grab_confirmed() -> void:
+	if chicken_action_panel:
+		chicken_action_panel.visible = false
+	var player = get_tree().get_first_node_in_group("player")
+	if not _selected_chicken.is_empty() and chickens.has(_selected_chicken):
+		_harvest_chicken(_selected_chicken, player, false)
+	_selected_chicken = {}
+
+func _on_chicken_pet_confirmed() -> void:
+	if chicken_action_panel:
+		chicken_action_panel.visible = false
+	var player = get_tree().get_first_node_in_group("player")
+	if not _selected_chicken.is_empty() and chickens.has(_selected_chicken):
+		_selected_chicken["fed"] = true
+		var spr: Sprite2D = _selected_chicken.get("sprite")
+		if is_instance_valid(spr):
+			var tw := create_tween()
+			tw.tween_property(spr, "scale", Vector2(1.25, 1.25), 0.08)
+			tw.tween_property(spr, "scale", Vector2(1.05, 1.05), 0.08)
+	if player and player.has_method("_spawn_floating_text"):
+		player._spawn_floating_text("🐔❤️ ¡Clo-clo! (Gallina feliz)", Color.PINK, -40.0)
+	_selected_chicken = {}
 
 func has_live_chickens() -> bool:
 	return not chickens.is_empty()
@@ -285,18 +435,37 @@ func interact(player: Node2D) -> void:
 			player._spawn_floating_text("🔨 Agujero del Gallinero reparado", Color.SPRING_GREEN, -42.0)
 		return
 
-	# 2. Si hay huevos en el nido y el jugador está más cerca del nido (derecha) o el comedero ya está lleno
+	# 1.5 Si el jugador está justo al lado de una gallina (<= 15 px), abrir opción de Coger/Comer o Acariciar
+	var nearest_chk: Dictionary = _find_nearest_chicken(player.global_position, 15.5)
 	var d_feeder: float = player.global_position.distance_squared_to(global_position + Vector2(-18, -16))
 	var d_nest: float = player.global_position.distance_squared_to(global_position + Vector2(18, -16))
+	if not nearest_chk.is_empty():
+		var chk_spr: Sprite2D = nearest_chk.get("sprite")
+		var d_chk: float = player.global_position.distance_squared_to(chk_spr.global_position) if is_instance_valid(chk_spr) else 99999.0
+		if d_chk < d_feeder and d_chk < d_nest:
+			_selected_chicken = nearest_chk
+			if chicken_action_panel:
+				chicken_action_panel.visible = true
+			return
 
-	if eggs_in_nest > 0 and (d_nest <= d_feeder or feeder_level >= 2):
+	# 2. Si hay huevos en el nido y el jugador está más cerca del nido (derecha) o el comedero ya está lleno
+
+	if (eggs_in_nest > 0 or golden_eggs_in_nest > 0) and (d_nest <= d_feeder or feeder_level >= 2):
 		var collected := eggs_in_nest
+		var collected_gold := golden_eggs_in_nest
 		eggs_in_nest = 0
+		golden_eggs_in_nest = 0
 		if inv:
-			inv.add_item("egg", collected)
+			if collected > 0:
+				inv.add_item("egg", collected)
+			if collected_gold > 0:
+				inv.add_item("golden_egg", collected_gold)
 		_refresh_coop_visuals()
 		if player.has_method("_spawn_floating_text"):
-			player._spawn_floating_text("🥚 Recogido: +%d Huevo Fresco" % collected, Color.GOLD, -42.0)
+			var msg: String = "🥚 Recogido: +%d Huevo" % collected
+			if collected_gold > 0:
+				msg += " | 🥚✨ +%d Huevo Dorado (Genética Nv.3)" % collected_gold
+			player._spawn_floating_text(msg, Color.GOLD, -42.0)
 		return
 
 	# 3. Llenar el Comedero (sistema de 2 toques [E]: 0/2 -> 1/2 -> 2/2)
@@ -313,35 +482,76 @@ func interact(player: Node2D) -> void:
 		return
 
 	# 4. Si el comedero ya está 2/2 y aún quedaban huevos
-	if eggs_in_nest > 0:
+	if eggs_in_nest > 0 or golden_eggs_in_nest > 0:
 		var collected := eggs_in_nest
+		var collected_gold := golden_eggs_in_nest
 		eggs_in_nest = 0
+		golden_eggs_in_nest = 0
 		if inv:
-			inv.add_item("egg", collected)
+			if collected > 0:
+				inv.add_item("egg", collected)
+			if collected_gold > 0:
+				inv.add_item("golden_egg", collected_gold)
 		_refresh_coop_visuals()
 		if player.has_method("_spawn_floating_text"):
-			player._spawn_floating_text("🥚 Recogido: +%d Huevo Fresco" % collected, Color.GOLD, -42.0)
+			var msg2: String = "🥚 Recogido: +%d Huevo" % collected
+			if collected_gold > 0:
+				msg2 += " | 🥚✨ +%d Huevo Dorado" % collected_gold
+			player._spawn_floating_text(msg2, Color.GOLD, -42.0)
+		return
+
+	if not nearest_chk.is_empty():
+		_selected_chicken = nearest_chk
+		if chicken_action_panel:
+			chicken_action_panel.visible = true
 		return
 
 	if player.has_method("show_hint"):
-		player.show_hint("🐔 Gallinero al día: %d Gallinas | Comedero Lleno (2/2) | Sin huevos por recoger." % chickens.size())
+		player.show_hint("🐔 Gallinero al día: %d Gallinas | Comedero Lleno (2/2) | Acércate a una gallina y pulsa [E] o atácala si quieres carne de pollo." % chickens.size())
+
+func _find_nearest_chicken(world_pos: Vector2, max_dist: float) -> Dictionary:
+	var best: Dictionary = {}
+	var best_d2: float = max_dist * max_dist
+	for chk in chickens:
+		var spr: Sprite2D = chk.get("sprite")
+		if is_instance_valid(spr):
+			var d2: float = world_pos.distance_squared_to(spr.global_position)
+			if d2 <= best_d2:
+				best_d2 = d2
+				best = chk
+	return best
 
 func _on_day_passed(_new_day: int) -> void:
 	var fed_count := 0
+	var max_gen: int = 1
 	for chk in chickens:
+		var g_tier: int = int(chk.get("genetics", 1))
+		max_gen = maxi(max_gen, g_tier)
 		if chk["fed"] or feeder_level > 0:
 			if not chk["fed"] and feeder_level > 0:
 				feeder_level -= 1
 			chk["fed"] = true
 			fed_count += 1
+			if g_tier >= 3:
+				golden_eggs_in_nest = mini(4, golden_eggs_in_nest + 1)
 		chk["fed"] = false
 
 	# Cada gallina alimentada pone 1 huevo al amanecer (máx 6 en el nido)
 	if fed_count > 0:
 		eggs_in_nest = mini(6, eggs_in_nest + fed_count)
-	# Si al menos 2 gallinas comieron bien y hay espacio, nace un polluelo/gallina nueva
-	if fed_count >= 2 and chickens.size() < 5:
-		_add_chicken()
+	# Crianza Selectiva (Paso 9): Si al menos 2 gallinas comieron bien, nace cría con Genética superior o mejora linaje
+	if fed_count >= 2:
+		if chickens.size() < 5:
+			_add_chicken(mini(3, max_gen + 1))
+		else:
+			for chk in chickens:
+				var cur_g: int = int(chk.get("genetics", 1))
+				if cur_g < 3:
+					chk["genetics"] = cur_g + 1
+					var spr: Sprite2D = chk.get("sprite")
+					if is_instance_valid(spr) and cur_g + 1 >= 3:
+						spr.modulate = Color(1.12, 1.04, 0.76, 1.0)
+					break
 
 	_refresh_coop_visuals()
 
@@ -355,7 +565,7 @@ func _refresh_coop_visuals() -> void:
 			feeder_sprite.texture = _tex_feeder_full
 
 	if nest_sprite:
-		nest_sprite.texture = _tex_nest_eggs if eggs_in_nest > 0 else _tex_nest_empty
+		nest_sprite.texture = _tex_nest_eggs if (eggs_in_nest > 0 or golden_eggs_in_nest > 0) else _tex_nest_empty
 
 	if south_fence_gap:
 		south_fence_gap.visible = not is_breached
@@ -364,14 +574,19 @@ func _refresh_coop_visuals() -> void:
 	_save_state()
 
 func _save_state() -> void:
-	if not GameManager:
+	if Engine.is_editor_hint() or not GameManager:
 		return
+	var max_gen: int = 1
+	for chk in chickens:
+		max_gen = maxi(max_gen, int(chk.get("genetics", 1)))
 	GameManager.set_flag("player_chicken_coop", {
 		"feeder": feeder_level,
 		"eggs": eggs_in_nest,
+		"golden_eggs": golden_eggs_in_nest,
 		"breached": is_breached,
 		"fence_hp": fence_hp,
-		"chickens": chickens.size()
+		"chickens": chickens.size(),
+		"max_genetics": max_gen
 	})
 
 func _load_saved_state() -> void:
@@ -381,8 +596,10 @@ func _load_saved_state() -> void:
 	if typeof(saved) == TYPE_DICTIONARY:
 		feeder_level = int(saved.get("feeder", 1))
 		eggs_in_nest = int(saved.get("eggs", 2))
+		golden_eggs_in_nest = int(saved.get("golden_eggs", 0))
 		is_breached = bool(saved.get("breached", false))
 		fence_hp = float(saved.get("fence_hp", MAX_FENCE_HP))
+		var saved_gen: int = clampi(int(saved.get("max_genetics", 1)), 1, 3)
 		var target_c: int = clampi(int(saved.get("chickens", 3)), 0, 6)
 		while chickens.size() > target_c:
 			var removed: Dictionary = chickens.pop_back()
@@ -390,7 +607,7 @@ func _load_saved_state() -> void:
 			if is_instance_valid(spr):
 				spr.queue_free()
 		while chickens.size() < target_c:
-			_add_chicken()
+			_add_chicken(saved_gen)
 		_refresh_coop_visuals()
 
 func _on_game_loaded(_filepath: String) -> void:
@@ -399,14 +616,21 @@ func _on_game_loaded(_filepath: String) -> void:
 func _get_coop_prompt() -> String:
 	if is_breached:
 		return "⚠️ Gallinero Con Agujero (%d 🐔) [E: Reparar Cerca]" % chickens.size()
+	var max_gen: int = 1
+	for chk in chickens:
+		max_gen = maxi(max_gen, int(chk.get("genetics", 1)))
 	var parts: Array[String] = []
 	if feeder_level < 2:
 		parts.append("E: Llenar Comedero (%d/2)" % feeder_level)
 	else:
 		parts.append("Comedero 2/2")
-	if eggs_in_nest > 0:
-		parts.append("E: Recoger %d Huevos" % eggs_in_nest)
-	return "🐔 Gallinero (%d) [%s]" % [chickens.size(), " | ".join(parts)]
+	if eggs_in_nest > 0 or golden_eggs_in_nest > 0:
+		if golden_eggs_in_nest > 0:
+			parts.append("E: Recoger %d🥚+%d🥚✨" % [eggs_in_nest, golden_eggs_in_nest])
+		else:
+			parts.append("E: Recoger %d Huevos" % eggs_in_nest)
+	parts.append("E en 🐔: Coger/Acariciar")
+	return "🐔 Gallinero (%d | 🧬Nv.%d) [%s]" % [chickens.size(), max_gen, " | ".join(parts)]
 
 func _load_tex(res_path: String) -> Texture2D:
 	if ResourceLoader.exists(res_path):

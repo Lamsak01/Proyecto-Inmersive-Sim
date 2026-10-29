@@ -1,3 +1,4 @@
+@tool
 extends Node2D
 class_name FarmPlot
 
@@ -62,6 +63,7 @@ var _tex_soil_wet: Texture2D = null
 var _tex_sprout: Texture2D = null
 
 func _ready() -> void:
+	add_to_group("farm_plots")
 	if persistence_id == "":
 		persistence_id = "farmplot_" + name + "_" + str(int(global_position.x)) + "_" + str(int(global_position.y))
 
@@ -108,15 +110,18 @@ func _ready() -> void:
 	status_label.z_index = 20
 	add_child(status_label)
 
-	if WorldClock:
-		WorldClock.day_passed.connect(_on_day_passed)
-	if GameManager:
-		GameManager.game_loaded.connect(_on_game_loaded)
-
-	_load_saved_state()
+	if not Engine.is_editor_hint():
+		if WorldClock:
+			WorldClock.day_passed.connect(_on_day_passed)
+		if GameManager:
+			GameManager.game_loaded.connect(_on_game_loaded)
+		_load_saved_state()
+	set_process(not Engine.is_editor_hint())
 	_refresh_visuals()
 
 func _process(_delta: float) -> void:
+	if Engine.is_editor_hint():
+		return
 	if not status_label:
 		return
 	var mouse_near := global_position.distance_squared_to(get_global_mouse_position()) <= 16.0 * 16.0
@@ -182,20 +187,23 @@ func interact(player: Node) -> void:
 			player._spawn_floating_text("🌱 Plantado: %s" % CROP_DATA[crop_type]["name"], Color.SPRING_GREEN, -38.0)
 		return
 
-	# 2. Cultivo maduro -> Cosechar producto + recuperar semillas (+1 extra si usas la Hoz [6])
+	# 2. Cultivo maduro -> Cosechar producto + recuperar semillas (+1/+2/+3 extra si usas la Hoz [6])
 	if is_mature():
 		var info: Dictionary = CROP_DATA[crop_type]
 		var prod_id: String = str(info["product_id"])
 		var seed_id: String = str(info["seed_id"])
 		var has_sickle: bool = ("equipped_weapon" in player) and player.equipped_weapon != null and player.equipped_weapon.name == "Sickle"
-		var yield_amt: int = int(info["base_yield"]) + (1 if is_fertilized else 0) + (1 if has_sickle else 0)
+		var s_bonus: int = 0
+		if has_sickle:
+			s_bonus = int(player.call("get_sickle_bonus")) if player.has_method("get_sickle_bonus") else 1
+		var yield_amt: int = int(info["base_yield"]) + (1 if is_fertilized else 0) + s_bonus
 		var seed_amt: int = int(info["seed_return"])
 
 		inv.add_item(prod_id, yield_amt)
 		inv.add_item(seed_id, seed_amt)
 
 		if player.has_method("_spawn_floating_text"):
-			var sickle_tag := " (¡Bono Hoz!)" if has_sickle else ""
+			var sickle_tag := (" (¡Bono Hoz +%d!)" % s_bonus) if has_sickle else ""
 			player._spawn_floating_text("🌾 Cosechado%s: +%d %s, +%d Semillas" % [sickle_tag, yield_amt, inv.get_item_name(prod_id), seed_amt], Color.GOLD, -42.0)
 
 		_reset_plot()
@@ -253,14 +261,21 @@ func _reset_plot() -> void:
 	_refresh_visuals()
 	_save_state()
 
+func water_from_rain_or_sprinkler() -> void:
+	if crop_type == CropType.NONE or is_watered:
+		return
+	is_watered = true
+	_refresh_visuals()
+	_save_state()
+
 func _on_day_passed(_new_day: int) -> void:
 	if crop_type == CropType.NONE:
 		return
 	var req_days: int = int(CROP_DATA[crop_type]["days"])
 	if is_watered and days_grown < req_days:
 		days_grown = min(req_days, days_grown + 1)
-	# La tierra vuelve a secarse para el nuevo día
-	is_watered = false
+	# La tierra vuelve a secarse salvo que hoy amanezca con lluvia
+	is_watered = (WorldClock != null and int(WorldClock.get("current_weather")) == 1)
 	_refresh_visuals()
 	_save_state()
 

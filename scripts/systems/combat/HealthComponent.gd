@@ -17,6 +17,8 @@ var current_health: float
 var current_blood: float = 0.0 ## Acumulación actual de sangrado (0 a max_blood)
 var is_bleeding: bool = false
 var is_weak: bool = false
+var armor_defense: float = 0.0 ## Reducción porcentual de daño físico por armadura (0.0 a 0.75)
+var armor_bleed_resistance: float = 0.0 ## Reducción de acumulación de sangrado (0.0 a 0.85)
 
 var _bleed_timer: float = 0.0
 var _bleed_dps: float = 0.0
@@ -61,8 +63,10 @@ func take_damage(data: DamageData) -> void:
 	if current_health <= 0.0:
 		return
 
-	# 1. Aplicar daño directo a la vida
-	current_health = max(0.0, current_health - data.amount)
+	# 1. Aplicar daño directo a la vida (mitigado por la armadura equipada)
+	var dmg_mult: float = clampf(1.0 - armor_defense, 0.20, 1.0)
+	var final_damage: float = maxf(1.0, data.amount * dmg_mult)
+	current_health = max(0.0, current_health - final_damage)
 	health_changed.emit(current_health, max_health)
 	
 	if current_health <= 0.0:
@@ -70,13 +74,14 @@ func take_damage(data: DamageData) -> void:
 		died.emit()
 		return
 	
-	# 2. Acumular sangrado según la estadística del arma
+	# 2. Acumular sangrado según la estadística del arma (mitigado por resistencia al sangrado de armadura)
 	var buildup: float = data.bleed_buildup
 	if buildup <= 0.0 and data.type == CombatConstants.DamageType.CUT and data.bleed_chance > 0.0:
 		buildup = data.amount * 3.0
 
+	buildup *= clampf(1.0 - armor_bleed_resistance, 0.10, 1.0)
 	if buildup > 0.0:
-		add_bleed_buildup(buildup, data.amount)
+		add_bleed_buildup(buildup, final_damage)
 
 func add_bleed_buildup(buildup_amount: float, weapon_damage: float) -> void:
 	var weapon_bleed_dps = max(1.5, weapon_damage * bleed_damage_multiplier)

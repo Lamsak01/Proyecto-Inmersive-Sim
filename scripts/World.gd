@@ -1,27 +1,35 @@
+@tool
 extends Node2D
 
 var ambient_modulate: CanvasModulate = null
 var ecosystem_manager: EcosystemManager = null
 var village_manager: VillageManager = null
+var _weather_layer: CanvasLayer = null
+var _weather_canvas: Control = null
+var _weather_anim_time: float = 0.0
 
 func _ready() -> void:
-	# 0. Asegurar que al maximizar o poner Pantalla Completa el juego ocupe el 100% del monitor sin bordes ni recortes
-	var win := get_window()
-	if win:
-		win.content_scale_mode = Window.CONTENT_SCALE_MODE_CANVAS_ITEMS
-		win.content_scale_aspect = Window.CONTENT_SCALE_ASPECT_EXPAND
-		win.content_scale_stretch = Window.CONTENT_SCALE_STRETCH_FRACTIONAL
+	var in_editor := Engine.is_editor_hint()
+	set_process_unhandled_input(not in_editor)
 
-	# 1. Setup Day/Night Ambient Lighting (CanvasModulate)
-	ambient_modulate = get_node_or_null("AmbientLight") as CanvasModulate
-	if not ambient_modulate:
-		ambient_modulate = CanvasModulate.new()
-		ambient_modulate.name = "AmbientLight"
-		add_child(ambient_modulate)
-	
-	if WorldClock:
-		ambient_modulate.color = WorldClock.get_ambient_color()
-		WorldClock.time_updated.connect(_on_world_time_updated)
+	# 0. Asegurar que al maximizar o poner Pantalla Completa el juego ocupe el 100% del monitor sin bordes ni recortes
+	if not in_editor:
+		var win := get_window()
+		if win:
+			win.content_scale_mode = Window.CONTENT_SCALE_MODE_CANVAS_ITEMS
+			win.content_scale_aspect = Window.CONTENT_SCALE_ASPECT_EXPAND
+			win.content_scale_stretch = Window.CONTENT_SCALE_STRETCH_FRACTIONAL
+
+		# 1. Setup Day/Night Ambient Lighting (CanvasModulate)
+		ambient_modulate = get_node_or_null("AmbientLight") as CanvasModulate
+		if not ambient_modulate:
+			ambient_modulate = CanvasModulate.new()
+			ambient_modulate.name = "AmbientLight"
+			add_child(ambient_modulate)
+		
+		if WorldClock:
+			ambient_modulate.color = WorldClock.get_ambient_color()
+			WorldClock.time_updated.connect(_on_world_time_updated)
 
 	# 2. Ampliar fondo de hierba sin el recorte de 320x192 de Parallax2D para cubrir toda la pantalla y todo el mapa
 	var parallax := get_node_or_null("Environment/Parallax2D") as Parallax2D
@@ -35,29 +43,30 @@ func _ready() -> void:
 		grass_rect.offset_bottom = 5500.0
 
 	# Ajustar zoom inicial de la cámara para ver un área más amplia y cómoda en pantalla completa
-	var player_cam := get_node_or_null("Entities/PlayerGood/Camera2D") as Camera2D
-	if player_cam:
-		player_cam.zoom = Vector2(2.4, 2.4)
+	if not in_editor:
+		var player_cam := get_node_or_null("Entities/PlayerGood/Camera2D") as Camera2D
+		if player_cam:
+			player_cam.zoom = Vector2(2.4, 2.4)
 
-	# 3. Create NavigationRegion2D dynamically
-	var nav_region = NavigationRegion2D.new()
-	nav_region.name = "RuntimeNavigationRegion"
-	add_child(nav_region)
-	
-	# Setup NavigationPolygon
-	var nav_poly = NavigationPolygon.new()
-	nav_poly.agent_radius = 16.0 # Approximate enemy radius
-	
-	var outline = PackedVector2Array([
-		Vector2(-2500, -2500),
-		Vector2(4500, -2500),
-		Vector2(4500, 4500),
-		Vector2(-2500, 4500)
-	])
-	nav_poly.vertices = outline
-	nav_poly.add_polygon(PackedInt32Array([0, 1, 2, 3]))
-	
-	nav_region.navigation_polygon = nav_poly
+		# 3. Create NavigationRegion2D dynamically
+		var nav_region = NavigationRegion2D.new()
+		nav_region.name = "RuntimeNavigationRegion"
+		add_child(nav_region)
+		
+		# Setup NavigationPolygon
+		var nav_poly = NavigationPolygon.new()
+		nav_poly.agent_radius = 16.0 # Approximate enemy radius
+		
+		var outline = PackedVector2Array([
+			Vector2(-2500, -2500),
+			Vector2(4500, -2500),
+			Vector2(4500, 4500),
+			Vector2(-2500, 4500)
+		])
+		nav_poly.vertices = outline
+		nav_poly.add_polygon(PackedInt32Array([0, 1, 2, 3]))
+		
+		nav_region.navigation_polygon = nav_poly
 
 	# 4. Inicializar el Huerto, Campamento, Gallinero y Lago de Pesca del Jugador
 	var entities_root: Node = get_node_or_null("Entities")
@@ -76,6 +85,55 @@ func _ready() -> void:
 	ecosystem_manager.name = "EcosystemManager"
 	add_child(ecosystem_manager)
 	ecosystem_manager.setup_ecosystem(entities_root)
+
+	if not in_editor:
+		set_process(true)
+		_setup_weather_overlay()
+
+func _setup_weather_overlay() -> void:
+	_weather_layer = CanvasLayer.new()
+	_weather_layer.name = "WeatherCanvasLayer"
+	_weather_layer.layer = 5
+	add_child(_weather_layer)
+
+	_weather_canvas = Control.new()
+	_weather_canvas.name = "WeatherOverlayControl"
+	_weather_canvas.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	_weather_canvas.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_weather_canvas.draw.connect(_draw_weather_overlay)
+	_weather_layer.add_child(_weather_canvas)
+
+func _process(delta: float) -> void:
+	if Engine.is_editor_hint() or not _weather_canvas:
+		return
+	var w_mode: int = int(WorldClock.get("current_weather")) if WorldClock else 0
+	if w_mode == 0:
+		if _weather_canvas.visible:
+			_weather_canvas.visible = false
+		return
+	_weather_canvas.visible = true
+	_weather_anim_time += delta
+	_weather_canvas.queue_redraw()
+
+func _draw_weather_overlay() -> void:
+	if not _weather_canvas or not WorldClock:
+		return
+	var w_mode: int = int(WorldClock.get("current_weather"))
+	var sz: Vector2 = _weather_canvas.size
+	if w_mode == 1: # RAIN
+		_weather_canvas.draw_rect(Rect2(Vector2.ZERO, sz), Color(0.12, 0.22, 0.36, 0.10), true)
+		var drop_col := Color(0.68, 0.85, 1.0, 0.42)
+		for i in range(55):
+			var seed_x: float = fmod(float(i) * 97.3 + _weather_anim_time * 180.0, maxf(100.0, sz.x))
+			var seed_y: float = fmod(float(i) * 63.7 + _weather_anim_time * 520.0, maxf(100.0, sz.y))
+			var p1 := Vector2(seed_x, seed_y)
+			var p2 := p1 + Vector2(-6.0, 18.0)
+			_weather_canvas.draw_line(p1, p2, drop_col, 1.4)
+	elif w_mode == 2: # FOG
+		_weather_canvas.draw_rect(Rect2(Vector2.ZERO, sz), Color(0.76, 0.82, 0.86, 0.18), true)
+		for b in range(6):
+			var band_y: float = (sz.y / 6.0) * float(b) + sin(_weather_anim_time * 0.6 + float(b)) * 18.0
+			_weather_canvas.draw_rect(Rect2(Vector2(0.0, band_y), Vector2(sz.x, 38.0)), Color(0.84, 0.88, 0.92, 0.08), true)
 
 func _spawn_player_garden(entities_root: Node) -> void:
 	# A. Huerto de 3x3 parcelas

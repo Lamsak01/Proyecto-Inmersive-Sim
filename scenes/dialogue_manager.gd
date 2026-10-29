@@ -37,7 +37,8 @@ func _process(delta: float) -> void:
 		_input_cooldown -= delta
 
 func _build_clean_ui() -> void:
-	var ui_parent: Node = get_tree().current_scene.get_node_or_null("UI/UIRoot")
+	var cs := get_tree().current_scene
+	var ui_parent: Node = cs.get_node_or_null("UI/UIRoot") if cs else null
 	if not ui_parent:
 		ui_parent = get_parent()
 
@@ -252,6 +253,9 @@ func _on_choice_pressed(index: int) -> void:
 		choice_action_triggered.emit(action_id, current_speaker)
 		if is_instance_valid(current_speaker) and current_speaker.has_method("on_dialogue_action"):
 			current_speaker.on_dialogue_action(action_id)
+		if is_instance_valid(current_speaker) and current_speaker.has_method("_build_dialogue"):
+			graph = current_speaker.call("_build_dialogue")
+			_update_header()
 
 	var next_id := str(chosen.get("next", "END"))
 	if next_id == "" or next_id == "END":

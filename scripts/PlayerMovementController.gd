@@ -28,8 +28,8 @@ func _physics_process(delta: float) -> void:
 	if not is_instance_valid(player) or not is_instance_valid(anim):
 		return
 
-	# Block movement if dialogue active
-	if dialogue_manager and dialogue_manager.has_method("is_active") and dialogue_manager.call("is_active"):
+	# Block movement if dialogue active or tavern minigame time freeze is active
+	if (dialogue_manager and dialogue_manager.has_method("is_active") and dialogue_manager.call("is_active")) or (WorldClock and WorldClock.has_method("is_time_frozen") and WorldClock.is_time_frozen()):
 		player.velocity = Vector2.ZERO
 		_play_idle()
 		player.move_and_slide()
@@ -105,6 +105,9 @@ func _handle_input(delta: float) -> void:
 	if player.is_weak:
 		current_speed *= 0.6
 		target_anim_scale *= 0.7
+
+	if "armor_speed_multiplier" in player:
+		current_speed *= float(player.get("armor_speed_multiplier"))
 
 	anim.speed_scale = target_anim_scale
 

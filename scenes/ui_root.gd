@@ -14,10 +14,15 @@ var clock_sub_label: Label = null
 
 var inv_panel: PanelContainer = null
 var inv_gold_label: Label = null
+var inv_armor_stats_label: Label = null
+var inv_armor_slots_box: HBoxContainer = null
 var inv_items_box: VBoxContainer = null
 var inv_recipes_box: VBoxContainer = null
+const ValleyMapUIScript = preload("res://scripts/ui/ValleyMapUI.gd")
+
 var tool_wheel: ToolWheelUI = null
 var tavern_games: TavernGamesUI = null
+var valley_map: Control = null
 
 func _ready() -> void:
 	# 1. Find Player if not assigned
@@ -89,10 +94,15 @@ func _ready() -> void:
 	_setup_inventory_ui()
 	_setup_tool_wheel_ui()
 	_setup_tavern_games_ui()
+	_setup_valley_map_ui()
 	_init_default_objectives()
 
 	if "inventory" in player and player.inventory:
 		player.inventory.inventory_changed.connect(_on_inventory_changed)
+		if not player.inventory.armor_changed.is_connected(_on_inventory_changed):
+			player.inventory.armor_changed.connect(_on_inventory_changed)
+		if not player.inventory.gold_changed.is_connected(_on_gold_changed):
+			player.inventory.gold_changed.connect(_on_gold_changed)
 		_on_inventory_changed()
 	else:
 		call_deferred("_bind_player_inventory")
@@ -101,7 +111,14 @@ func _bind_player_inventory() -> void:
 	if player and "inventory" in player and player.inventory:
 		if not player.inventory.inventory_changed.is_connected(_on_inventory_changed):
 			player.inventory.inventory_changed.connect(_on_inventory_changed)
+		if not player.inventory.armor_changed.is_connected(_on_inventory_changed):
+			player.inventory.armor_changed.connect(_on_inventory_changed)
+		if not player.inventory.gold_changed.is_connected(_on_gold_changed):
+			player.inventory.gold_changed.connect(_on_gold_changed)
 		_on_inventory_changed()
+
+func _on_gold_changed(_new_gold: int) -> void:
+	_on_inventory_changed()
 
 func _bind_survival_component() -> void:
 	if player and player.has_node("SurvivalComponent"):
@@ -132,11 +149,24 @@ func _unhandled_input(event: InputEvent) -> void:
 			if event.physical_keycode == KEY_I:
 				if tool_wheel and tool_wheel.visible:
 					tool_wheel.close_wheel(false)
+				if valley_map and bool(valley_map.get("is_full_map_open")):
+					valley_map.call("close_full_map")
 				_toggle_inventory()
+				get_viewport().set_input_as_handled()
+			elif event.physical_keycode == KEY_M:
+				if tool_wheel and tool_wheel.visible:
+					tool_wheel.close_wheel(false)
+				if inv_panel and inv_panel.visible:
+					inv_panel.visible = false
+				if valley_map and valley_map.has_method("toggle_full_map"):
+					valley_map.call("toggle_full_map")
 				get_viewport().set_input_as_handled()
 			elif event.keycode == KEY_ESCAPE:
 				if tool_wheel and tool_wheel.visible:
 					tool_wheel.close_wheel(false)
+					get_viewport().set_input_as_handled()
+				elif valley_map and bool(valley_map.get("is_full_map_open")):
+					valley_map.call("close_full_map")
 					get_viewport().set_input_as_handled()
 				elif inv_panel and inv_panel.visible:
 					inv_panel.visible = false
@@ -153,6 +183,12 @@ func _setup_tavern_games_ui() -> void:
 	tavern_games.name = "TavernGamesUI"
 	tavern_games.player = player
 	add_child(tavern_games)
+
+func _setup_valley_map_ui() -> void:
+	valley_map = ValleyMapUIScript.new()
+	valley_map.name = "ValleyMapUI"
+	valley_map.set("player", player)
+	add_child(valley_map)
 
 func open_tavern_games() -> void:
 	if inv_panel and inv_panel.visible:
@@ -181,10 +217,10 @@ func _setup_inventory_ui() -> void:
 	inv_panel.visible = false
 	inv_panel.layout_mode = 1
 	inv_panel.set_anchors_and_offsets_preset(Control.PRESET_CENTER)
-	inv_panel.offset_left = -380.0
-	inv_panel.offset_top = -210.0
-	inv_panel.offset_right = 380.0
-	inv_panel.offset_bottom = 210.0
+	inv_panel.offset_left = -430.0
+	inv_panel.offset_top = -250.0
+	inv_panel.offset_right = 430.0
+	inv_panel.offset_bottom = 250.0
 
 	var style := StyleBoxFlat.new()
 	style.bg_color = Color(0.07, 0.08, 0.11, 0.96)
@@ -198,14 +234,14 @@ func _setup_inventory_ui() -> void:
 	inv_panel.add_theme_stylebox_override("panel", style)
 
 	var main_vbox := VBoxContainer.new()
-	main_vbox.add_theme_constant_override("separation", 10)
+	main_vbox.add_theme_constant_override("separation", 8)
 	inv_panel.add_child(main_vbox)
 
 	var header := HBoxContainer.new()
 	main_vbox.add_child(header)
 
 	var title := Label.new()
-	title.text = "🎒 Mochila y Taller de Crafteo"
+	title.text = "🎒 Mochila, Armadura y Taller de Crafteo"
 	title.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	title.add_theme_font_size_override("font_size", 18)
 	title.add_theme_color_override("font_color", Color(0.96, 0.88, 0.65))
@@ -216,6 +252,34 @@ func _setup_inventory_ui() -> void:
 	inv_gold_label.add_theme_font_size_override("font_size", 16)
 	inv_gold_label.add_theme_color_override("font_color", Color.GOLD)
 	header.add_child(inv_gold_label)
+
+	# Panel de Equipamiento de Armadura (4 Slots: Casco, Pecho, Piernas, Botas)
+	var armor_panel := PanelContainer.new()
+	var armor_style := StyleBoxFlat.new()
+	armor_style.bg_color = Color(0.11, 0.13, 0.18, 0.95)
+	armor_style.border_color = Color(0.45, 0.55, 0.72, 0.85)
+	armor_style.set_border_width_all(1)
+	armor_style.set_corner_radius_all(6)
+	armor_style.content_margin_left = 10
+	armor_style.content_margin_right = 10
+	armor_style.content_margin_top = 6
+	armor_style.content_margin_bottom = 6
+	armor_panel.add_theme_stylebox_override("panel", armor_style)
+	main_vbox.add_child(armor_panel)
+
+	var armor_vbox := VBoxContainer.new()
+	armor_vbox.add_theme_constant_override("separation", 4)
+	armor_panel.add_child(armor_vbox)
+
+	inv_armor_stats_label = Label.new()
+	inv_armor_stats_label.text = "🛡️ Armadura Equipada: Sin armadura (0% Defensa)"
+	inv_armor_stats_label.add_theme_font_size_override("font_size", 12)
+	inv_armor_stats_label.add_theme_color_override("font_color", Color(0.75, 0.90, 1.0))
+	armor_vbox.add_child(inv_armor_stats_label)
+
+	inv_armor_slots_box = HBoxContainer.new()
+	inv_armor_slots_box.add_theme_constant_override("separation", 8)
+	armor_vbox.add_child(inv_armor_slots_box)
 
 	var sep := HSeparator.new()
 	main_vbox.add_child(sep)
@@ -308,12 +372,79 @@ func _refresh_inventory_list() -> void:
 	if inv_gold_label:
 		inv_gold_label.text = "💰 %d Oro" % inv.gold
 
+	# Actualizar panel de 4 Slots de Armadura
+	if inv_armor_stats_label:
+		var a_stats: Dictionary = inv.get_total_armor_stats()
+		var def_pct: int = int(round(float(a_stats.get("defense", 0.0)) * 100.0))
+		var bleed_pct: int = int(round(float(a_stats.get("bleed_res", 0.0)) * 100.0))
+		var stun_pct: int = int(round(float(a_stats.get("stun_res", 0.0)) * 100.0))
+		var spd_pct: int = int(round(float(a_stats.get("speed_mult", 1.0)) * 100.0))
+		inv_armor_stats_label.text = "🛡️ Armadura Equipada — Defensa: -%d%% Daño | Res. Sangrado: -%d%% | Res. Stun: -%d%% | Velocidad: %d%%" % [def_pct, bleed_pct, stun_pct, spd_pct]
+
+	if inv_armor_slots_box:
+		for child in inv_armor_slots_box.get_children():
+			child.queue_free()
+		var slot_titles: Dictionary = {
+			"HEAD": "🪖 Casco",
+			"CHEST": "🦺 Pecho",
+			"LEGS": "👖 Piernas",
+			"BOOTS": "🥾 Botas"
+		}
+		for slot_key in SimpleInventory.ARMOR_SLOTS:
+			var eq_id: String = str(inv.equipped_armor.get(slot_key, ""))
+			var slot_card := PanelContainer.new()
+			slot_card.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+			var sc_style := StyleBoxFlat.new()
+			sc_style.bg_color = Color(0.16, 0.20, 0.26, 0.95) if eq_id != "" else Color(0.09, 0.10, 0.13, 0.85)
+			sc_style.border_color = Color(0.55, 0.78, 0.95, 0.9) if eq_id != "" else Color(0.28, 0.30, 0.36, 0.6)
+			sc_style.set_border_width_all(1)
+			sc_style.set_corner_radius_all(4)
+			sc_style.content_margin_left = 6
+			sc_style.content_margin_right = 6
+			sc_style.content_margin_top = 4
+			sc_style.content_margin_bottom = 4
+			slot_card.add_theme_stylebox_override("panel", sc_style)
+
+			var sc_hbox := HBoxContainer.new()
+			sc_hbox.add_theme_constant_override("separation", 6)
+			slot_card.add_child(sc_hbox)
+
+			if eq_id != "":
+				var icon_tex: Texture2D = inv.get_item_icon(eq_id)
+				if icon_tex:
+					var tr := TextureRect.new()
+					tr.texture = icon_tex
+					tr.custom_minimum_size = Vector2(22, 22)
+					tr.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+					tr.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+					tr.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+					sc_hbox.add_child(tr)
+
+			var sc_lbl := Label.new()
+			sc_lbl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+			sc_lbl.text = "%s:\n%s" % [str(slot_titles.get(slot_key, slot_key)), inv.get_item_name(eq_id) if eq_id != "" else "Vacío"]
+			sc_lbl.add_theme_font_size_override("font_size", 10)
+			sc_lbl.add_theme_color_override("font_color", Color(0.95, 0.95, 0.85) if eq_id != "" else Color(0.55, 0.58, 0.65))
+			sc_hbox.add_child(sc_lbl)
+
+			if eq_id != "":
+				var un_btn := Button.new()
+				un_btn.text = "✖"
+				un_btn.tooltip_text = "Desequipar"
+				var cap_slot: String = str(slot_key)
+				un_btn.pressed.connect(func():
+					inv.unequip_armor_slot(cap_slot, player)
+				)
+				sc_hbox.add_child(un_btn)
+
+			inv_armor_slots_box.add_child(slot_card)
+
 	for child in inv_items_box.get_children():
 		child.queue_free()
 
 	if inv.items.is_empty():
 		var empty_lbl := Label.new()
-		empty_lbl.text = "Tu mochila está vacía.\nTala árboles ([1]), pica rocas ([2]) o recoge plantas ([E])."
+		empty_lbl.text = "Tu mochila está vacía.\nTala árboles ([3]), pica rocas ([4]), pesca ([8]) o recoge plantas ([E])."
 		empty_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		empty_lbl.add_theme_color_override("font_color", Color(0.65, 0.65, 0.7))
 		inv_items_box.add_child(empty_lbl)
@@ -322,7 +453,7 @@ func _refresh_inventory_list() -> void:
 			var count: int = int(inv.items[item_id])
 			if count <= 0:
 				continue
-			var info: Dictionary = inv.get_item_info(item_id)
+			var info: Dictionary = inv.get_item_info(str(item_id))
 			var row := PanelContainer.new()
 			var row_style := StyleBoxFlat.new()
 			row_style.bg_color = Color(0.13, 0.15, 0.20, 0.9)
@@ -334,8 +465,18 @@ func _refresh_inventory_list() -> void:
 			row.add_theme_stylebox_override("panel", row_style)
 
 			var hbox := HBoxContainer.new()
-			hbox.add_theme_constant_override("separation", 8)
+			hbox.add_theme_constant_override("separation", 10)
 			row.add_child(hbox)
+
+			var item_tex: Texture2D = inv.get_item_icon(str(item_id))
+			if item_tex:
+				var icon_rect := TextureRect.new()
+				icon_rect.texture = item_tex
+				icon_rect.custom_minimum_size = Vector2(28, 28)
+				icon_rect.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+				icon_rect.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+				icon_rect.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+				hbox.add_child(icon_rect)
 
 			var text_vbox := VBoxContainer.new()
 			text_vbox.size_flags_horizontal = Control.SIZE_EXPAND_FILL
@@ -356,7 +497,13 @@ func _refresh_inventory_list() -> void:
 
 			if info.get("usable", false):
 				var use_btn := Button.new()
-				use_btn.text = "Usar"
+				var cat_str: String = str(info.get("category", ""))
+				if info.has("armor_slot") or cat_str.begins_with("Armadura"):
+					use_btn.text = "🛡️ Equipar"
+				elif info.get("is_seed", false):
+					use_btn.text = "🌱 Semilla"
+				else:
+					use_btn.text = "🍽️ Usar"
 				var captured_id := str(item_id)
 				use_btn.pressed.connect(func():
 					inv.use_item(captured_id, player)
@@ -365,7 +512,7 @@ func _refresh_inventory_list() -> void:
 
 			inv_items_box.add_child(row)
 
-	# Poblar Recetas de Crafteo
+	# Poblar Recetas de Crafteo con Iconos Visuales
 	if inv_recipes_box:
 		for child in inv_recipes_box.get_children():
 			child.queue_free()
@@ -388,8 +535,18 @@ func _refresh_inventory_list() -> void:
 			r_row.add_theme_stylebox_override("panel", r_style)
 
 			var r_hbox := HBoxContainer.new()
-			r_hbox.add_theme_constant_override("separation", 8)
+			r_hbox.add_theme_constant_override("separation", 10)
 			r_row.add_child(r_hbox)
+
+			var rec_tex: Texture2D = inv.get_item_icon(res_id)
+			if rec_tex:
+				var rec_icon := TextureRect.new()
+				rec_icon.texture = rec_tex
+				rec_icon.custom_minimum_size = Vector2(28, 28)
+				rec_icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+				rec_icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+				rec_icon.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+				r_hbox.add_child(rec_icon)
 
 			var r_vbox := VBoxContainer.new()
 			r_vbox.size_flags_horizontal = Control.SIZE_EXPAND_FILL
@@ -478,7 +635,7 @@ func _on_clock_time_updated(_day: int, _hour: int, _minute: int) -> void:
 	var gold_val := 25
 	if player and "inventory" in player and player.inventory:
 		gold_val = player.inventory.gold
-	clock_sub_label.text = "💰 %d Oro | Visión: %d%% | [TAB] Rueda | [I] Mochila | [F5/F9] Guardar/Cargar" % [gold_val, vis_pct]
+	clock_sub_label.text = "💰 %d Oro | Visión: %d%% | [TAB] Rueda | [I] Mochila | [M] Mapa | [F5/F9] Guardar/Cargar" % [gold_val, vis_pct]
 
 func _init_default_objectives() -> void:
 	if not ObjectiveManager:

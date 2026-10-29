@@ -99,3 +99,147 @@
 2. **Pantalla Completa y Cámara (`project.godot` y `scripts/World.gd`):**
    * Configurado con `window/stretch/aspect="expand"`, `window/stretch/scale_mode="fractional"` y `Parallax2D.repeat_size = Vector2.ZERO` para que en pantallas `1080p`/monitores grandes se vea a pantalla completa sin bordes ni recortes.
    * Zoom de cámara en vivo con **Rueda del Ratón** o teclas **`[+]` / `[-]`**, y Pantalla Completa con **`[F11]`**.
+
+---
+
+### Bloque F — Gran Expansión de 10 Bloques (Urbanismo, Herrería/Armaduras, Mejora de Herramientas, Pesca Stardew, Casino Visual + Billar, Psicología RimWorld y Mascotas)
+1. **Pantalla Completa por Defecto y Editor 2D (`project.godot`, `scripts/World.gd`):**
+   * `window/size/mode=3` en `project.godot` para iniciar siempre en **Pantalla Completa** (`[F11]` alterna ventana/pantalla completa).
+   * Activado `@tool` con guardias `Engine.is_editor_hint()` en todos los gestores y nodos del mundo para ver la aldea, granja y bosque directamente en el visor 2D del editor.
+2. **Urbanismo Expandido, Separación de Biomas y Hábitats de Fauna (`scripts/systems/VillageManager.gd`, `scripts/systems/EcosystemManager.gd`, `scripts/enemies/WildAnimal.gd`, `scenes/World.tscn`):**
+   * **Caminos y Plaza Empedrada:** Red de caminos conectando la Llanura Salvaje del Oeste (`x = -465`) $\rightarrow$ Lago de Pesca (`-65`) $\rightarrow$ Granja (`140`) $\rightarrow$ Plaza Central (`x = 395..535, y = 10..88`) $\rightarrow$ Posada, Tiendas, Barrio Residencial Este y Sendero Largo al Bosque Profundo (`y = 575..1240`).
+   * **Bioma Separado al Oeste — 🌾 Llanura Salvaje y Ciénaga de Ranas (`x = -860..-390, y = -210..150`):**
+     * Se movieron todos los enemigos hostiles y objetos del prototipo fuera de la aldea hacia la Llanura del Oeste: `Guia` (`(-415, 18)`), `WeaponPickup` (`(-445, 18)`), `Crate` (`(-520, -45)`), `Barrel` (`(-548, -45)`), `WeakWall` (`(-575, -80)`), `DummyEnemy` (`(-615, -75)`), `FastEnemy` (`(-685, -50)`), `FrogEnemy` (`(-565, 78)`), `FrogEnemy2` (`(-645, 92)`) y los `TileMapLayer` antiguos (`Obstacles Small/Large` desplazados a `(-520, -160)`).
+   * **Bioma Separado al Sur — 🌲 Bosque Profundo con 3 Hábitats No Mezclados (`y = 575..1240`):**
+     * **Oeste del Bosque (`x = -470..-130, y = 600..900`): 🐇 Pradera de Madrigueras y Hierbas** (3 madrigueras + 12 hierbas medicinales).
+     * **Centro-Sur del Bosque (`x = -50..320, y = 800..1180`): 🦌 Claros de los Venados y Hongos** (2 claros + 10 hongos silvestres).
+     * **Este del Bosque (`x = 460..830, y = 610..960`): 🦊 Cantera de Hierro y Guaridas de Zorros** (2 guaridas + 8 vetas de mineral).
+     * En `WildAnimal.gd`, los herbívoros priorizan la flora dentro de `270 px` de su `home_position` y cualquier animal saciado que esté a `> 115 px` de su territorio regresa a su zona (`RETURN_HOME`) para que las especies no se mezclen.
+   * **4 Locales Comerciales Cerrados Independientes:**
+     * ⚒️ **Herrería y Armería "Yunque Gris"** (`(335, -36)`): Edificio cerrado con fragua ardiente, yunque y mostrador de *Thoran*.
+     * 🥩 **Carnicería y Peletería "El Colmillo"** (`(585, -36)`): Local cerrado de *Garrick*.
+     * 🪚 **Carpintería y Aserradero "Roble Viejo"** (`(585, 148)`): Local cerrado de *Bram*.
+     * 🐟 **Pescadería y Molino "Aguas Claras"** (`(465, 148)`): Local cerrado de *Marlo*.
+   * **4 Casas Residenciales Familiares Separadas (`112×78 px`)** en el Barrio Residencial Este (`(745, -195)`, `(905, -195)`, `(745, -36)`, `(905, -36)`).
+   * **2 Grandes Edificios Mixtos (Tienda Delante + Dormitorio Detrás):**
+     * 🌿 **Botica y Casa-Jardín "Raíz Verde"** (`(325, 155)`, `128×96 px`): *Elena* y *Tomás* atienden delante y duermen en su cuarto trasero.
+     * 🍺 **Gran Posada, Taberna y Casino "El Jabalí Dorado"** (`x = 310..570, y = -280..-135`, `260×145 px`): Barra de cocina de *Marta*, comedor, Sala de Casino (Mesa de Póker con 4 sillas + Mesa de Billar), cuarto privado de *Marta* y 4 camas de huéspedes.
+3. **Casino Visual, Billar 2D, Congelación del Reloj y Asiento Físico de NPCs (`scripts/ui/TavernGamesUI.gd`, `scripts/systems/WorldClock.gd`):**
+   * Al abrir `TavernGamesUI`, se activa `WorldClock.set_activity_pause(true)` congelando el reloj y el drenaje de hambre/sueño del jugador y de los NPCs.
+   * Los 2 NPCs rivales se **sientan físicamente en las sillas de la mesa de la Taberna** (`set_poker_seating(true, seat_pos)`) mientras juegas.
+   * Añadidos **Retratos Visuales de los NPCs** con sus skins de oficio, rasgos *RimWorld* y reacciones en vivo, **Cartas Gráficas animadas** con `Tween`, y el 4.º minijuego **`[F4]` 🎱 Billar de la Posada** (con física 2D de bolas, troneras, apuntado `[A/D]` o `[1]/[2]` y barra de potencia oscilante `[Espacio]` o `[3]`).
+4. **Minijuego de Pesca de Precisión estilo *Stardew Valley* (`scripts/obstacles/FishingSpot.gd`):**
+   * Al enganchar un pez con `[E]`, aparece la columna vertical de agua con la **barra verde de captura** (controlada manteniendo `[E]`, `[Espacio]` o `Clic Izquierdo`) y el marcador del pez con movimiento según especie (*Trucha*, *Carpa Dorada*, *Siluro Nocturno*).
+5. **Gallinas Interactivas y Atacables (`scripts/obstacles/ChickenCoop.gd`, `scripts/obstacles/CampSite.gd`):**
+   * Cada gallina tiene `Hurtbox` (atacable con armas/arco) y al acercarte y pulsar `[E]` abre un menú para **`[1] 🍗 Coger pollo para comer (+1 Pollo Crudo, +1 Pluma)`** o **`[2] ❤️ Acariciar gallina`**. El `Pollo Crudo` se puede cocinar en la Hoguera o en `[I]` para obtener `Pollo Asado Crujiente`.
+6. **Iconos Visuales (`16×16`) en Inventario/Crafteo y Sistema de Armaduras en 4 Slots (`scripts/systems/SimpleInventory.gd`, `scenes/ui_root.gd`, `scripts/Player.gd`):**
+   * Generados **48 iconos pixel-art `16×16`** (`assests/items/icons/*.png` y `assests/items/armor/*.png`) visibles junto a cada ítem y receta en `[I]`.
+   * **4 Slots de Armadura (`🪖 Casco`, `🦺 Pecho`, `👖 Piernas`, `🥾 Botas`)** en 3 Tiers (`Cuero Curtido`, `Hierro Forjado`, `Acero Maestro`), equipables en `[I]` o al comprarlas en la Herrería, aplicando reducción real de daño, sangrado y stun + placeholder visual en el jugador.
+7. **Mejora de Armas y Herramientas estilo *Stardew Valley* (`Nv.1` $\rightarrow$ `Nv.2 Hierro` $\rightarrow$ `Nv.3 Acero Maestro`):**
+   * En el diálogo de *Thoran* (`TradeRole.BLACKSMITH`) puedes fundir `Lingote de Acero` y mejorar las 8 herramientas/armas (`Espada`, `Martillo`, `Hacha`, `Pico`, `Arco`, `Hoz`, `Regadera`, `Caña de Pescar`), actualizando sus estadísticas y su insignia en `ToolWheelUI.gd`.
+8. **Skins de Oficio, Psicología *RimWorld* y Mascotas Domésticas (`scripts/enemies/VillageNPC.gd`, `scripts/enemies/DomesticPet.gd`):**
+   * Skins distintivas para *Marta* (Chef con gorro blanco), *Garrick* (Carnicero), *Thoran* (Herrero), *Bram* (Carpintero), *Elena* (Herborista) y *Marlo* (Pescador).
+   * Psicología *RimWorld* en cada NPC (`traits`, `favorite_item`, `mood`, `thoughts`).
+   * **6 Mascotas Domésticas (`DomesticPet.gd` — 3 Perros y 3 Gatos):** Interactuables con `[E]` para acariciar/alimentar; el perro guardián **🐕 Toby** protege el Gallinero por la noche ahuyentando a los zorros.
+9. **Las 4 Mejoras de Cierre (Mapa Cartográfico `[M]`, Guardado 100%, Expediciones Físicas de Artesanos y Botín/Reaparición en la Llanura Salvaje):**
+   * **Mapa Cartográfico Interactivo (`[M]`) + Minimapa en Vivo (`scripts/ui/ValleyMapUI.gd`):** Minimapa en esquina superior derecha y Mapa Completo con `[M]` mostrando las 4 regiones, caminos, los 10 edificios, posición del jugador, aldeanos en tiempo real (con inspector de actividad y humor al pasar el ratón), fauna activa del bosque y hostiles de la Llanura.
+   * **Expediciones Físicas Matutinas (`06:30–09:30 AM` en `scripts/enemies/VillageNPC.gd`):** Los 5 maestros artesanos caminan físicamente por los senderos cada mañana hacia el Bosque, el Lago o la Cantera para recolectar su materia prima (+2 de stock diario) antes de regresar a abrir sus tiendas.
+   * **Botín Único, Cocina y Reaparición en la Llanura Salvaje (`scripts/enemies/DummyEnemy.gd`, `scripts/systems/SimpleInventory.gd`, `scripts/obstacles/CampSite.gd`):** Añadidos `frog_legs` (*Ancas de Rana Crudas*), `fried_frog_legs` (*Ancas de Rana al Ajillo*, `+50 HP, +70 STM, +65 Hambre`) y `bandit_scrap` (*Reliquia y Chatarra de Bandido*) con sus iconos `16×16`, venta en tiendas y reaparición automática de ranas y bandidos cada 2 días.
+   * **Persistencia Total en `[F5]` / `[F9]` (`scripts/systems/GameManager.gd`):** Guardado y restauración completa de Huerto (`FarmPlot`), Gallinero (`ChickenCoop`), Ecosistema del Bosque (`EcosystemManager` + `WildAnimal`) y Enemigos de la Llanura (`plains_hostiles`).
+10. **Fase 7 — Expansión Integral en 10 Bloques + Rediseño Visual y Físico de Edificios:**
+    * **Paredes Sólidas con Colisión (`StaticBody2D`) y Suelos Texturizados en los 12 Edificios (`scripts/systems/VillageManager.gd`):** Todos los edificios tienen suelos en mosaico (`floor_wood_planks.png`, `floor_stone_forge.png`, `floor_hospital_tile.png`), muros texturizados (`wall_timber_h/v.png`, `wall_stone_h/v.png`), colisión física real en capa 1 con puertas abiertas de `40–50 px`, navegación de NPCs por umbrales (`get_navigation_waypoint`) y mobiliario de `Cute_Fantasy`.
+    * **Paso 1 — 🏥 Hospital de Urgencias, ⚰️ Morgue Forense y Estado "Agonizando":** Edificio en `Vector2(745, 148)` con el **Dr. Valen**, 2 camas de urgencias y 3 mesas de autopsia. Al caer a `0 HP`, los NPCs entran en estado **`is_downed = true` (`🩸 ¡AGONIZANDO!`)** pudiendo ser salvados con `[E]` o `surgical_kit` (`+25 Oro`, `+40 Afinidad Familiar`). Si mueren, su cuerpo aparece en una mesa de la Morgue con dictamen forense inspeccionable (`[E]`).
+    * **Paso 2 — 🚓 Comisaría, 🔒 Cárcel y Testigos Realistas (*"Me vieron entrar a la casa"*):** Edificio en `Vector2(915, 148)` con **Comisario Vane**, **Guardia Rodric** y 2 celdas con barrotes (`jail_bars_h/v.png`). Si entras a un edificio sin Sigilo `[C]` y un vecino consciente te ve, se registra en `sighting_log`; si luego hay un asesinato ahí, la Morgue y la Policía cruzan el registro y emiten orden de arresto (`wanted_level`, `bounty_gold`).
+    * **Paso 3 — 🔓 Sigilo Doméstico y Cofres en las Casas (`house_chests`):** 10 cofres privados en casas y tiendas para forzar en sigilo `[C]`.
+    * **Paso 4 — 💬 Reputación por Familias (`modify_family_reputation`):** Descuento de `-20%` con Familias Aliadas (`>= 45`) y bloqueo comercial con Familias Agraviadas (`<= -35`, reconciliable pagando compensación).
+    * **Paso 5 — 📋 Tablón de Encargos en la Plaza (`Vector2(465, 24)`):** 3 contratos diarios (Gremios, Hospital y Cazarrecompensas).
+    * **Paso 6 — 🏡 Construcción de Casa Propia (`CampSite.gd`):** Mejora `Nv.1 Tienda` $\rightarrow$ `Nv.2 Cabaña de Madera` $\rightarrow$ `Nv.3 Casa de Piedra con Cofre Personal` con paredes sólidas y suelo texturizado.
+    * **Paso 7 — 🌦️ Clima Dinámico (`WorldClock.gd`, `[F7]`):** `☀️ Despejado`, `🌧️ Lluvia` (riega el huerto y reduce `-35%` ruido de pasos) y `🌫️ Niebla` (`-35%` visión de testigos y fauna).
+    * **Paso 8 — 🦴 Despiece Anatómico y Alquimia (`SimpleInventory.gd`, `WildAnimal.gd`):** `bones`, `antlers`, `sinew_viscera`, `animal_fat`, `sleeping_draught` (Somnífero Nocturno que duerme NPCs 40s), `speed_tonic` y `surgical_kit`.
+    * **Paso 9 — 🧬 Crianza Selectiva y Genética (`Nv.1 -> Nv.3`):** Herencia genética en animales del bosque y gallinas del corral, produciendo **🥚✨ Huevos Dorados (`golden_egg`)** en Genética Nv.3.
+    * **Paso 10 — ⚡ Tecnología Anacrónica (`CampSite.gd`, `VillageManager.gd`):** **Generador Eléctrico Antiguo (`ancient_generator.png`)**, **Aspersor Automático (`auto_sprinkler.png`)** en el centro del huerto 3x3 y **6 Farolas Eléctricas (`lamp-post1.png`)** en las calles del pueblo.
+
+* **28/10/2026 — Correcciones de IA Policial (Negociación -> Pistola y Porra + Captura a 0 HP), Cadáveres Persistentes con Descomposición de Días, Oclusión de Visión por Paredes y Navegación de Puertas:**
+  * **Daño Policial, Negociación Previa, Pistola/Porra y Arresto a 0 HP (`VillageNPC.gd`, `VillageManager.gd`, `Player.gd`):**
+    * Cuando `wanted_level > 0` y el jugador no se está resistiendo (`not is_resisting_arrest`), el **Comisario Vane** y el **Guardia Rodric** primero se acercan e intentan **negociar** abriendo el modal policial (`[1] Entregarse`, `[2] Pagar fianza`, `[3] Resistirse`).
+    * Si el jugador elige `[3] Resistirse` (o ataca a la policía), se activa `is_resisting_arrest = true` y los agentes persiguen al jugador atacando con **Pistola Reglamentaria a distancia (`36 px < dist <= 195 px`, `16 HP` de daño + traza de disparo `Line2D`)** y **Porra Policial cuerpo a cuerpo (`dist <= 36 px`, `14 HP` de daño + aturdimiento)**.
+    * Si la salud del jugador cae a `0 HP` frente a la policía, `Player._on_died()` intercepta la muerte, restaura el `50%` de vida y llama a `capture_knocked_out_player_to_jail()`, encerrando al jugador vivo en la **Celda de la Comisaría (`Vector2(886, 172)`)**.
+  * **Cadáveres Persistentes en el Lugar, Descomposición de Días y Traslado Físico Natural a la Morgue (`VillageNPC.gd`, `VillageManager.gd`):**
+    * Al morir un NPC (`_confirm_true_death()`), el cuerpo **permanece físicamente en el suelo donde murió (`corpse_on_ground = true`)** y ya no se teletransporta al instante a la Morgue.
+    * Si nadie entra en la casa o nadie tiene línea de visión hacia el cuerpo, el cadáver permanece allí durante horas o días enteros pudriéndose (`corpse_rot_hours`, cambiando a tono verdoso y mostrando `"🦠🪰 PUDRIÉNDOSE EN EL LUGAR (X días, Yh)"`).
+    * Solo cuando otro NPC consciente pasa a `<= 105 px` con **línea de visión directa (`has_line_of_sight`)** durante su rutina natural, descubre el cadáver (`corpse_discovered = true`) y el **Dr. Valen** (o un guardia/vecino) camina físicamente hasta el cuerpo, lo recoge (`corpse_being_carried = true`), lo transporta por las calles hasta la **Morgue del Hospital (`Vector2(745, 174)`)** y registra la autopsia forense.
+  * **Oclusión Estricta de Visión por Paredes (`has_line_of_sight` en `VillageManager.gd`):**
+    * Todas las paredes sólidas opacas (`_wall_occluder_rects`) bloquean la línea de visión (`has_line_of_sight(from_pos, to_pos)`), impidiendo que guardias o testigos detecten al jugador, crímenes o cadáveres a través de los muros.
+  * **Navegación por Pasillos de Puertas y Separación entre NPCs (`get_navigation_waypoint` y `_move_towards_point`):**
+    * Corregido el orden de evaluación de edificios (salir primero del edificio actual antes de enrutar al edificio destino), añadido pasillo interior/exterior con carril por NPC (`lane_shift`), soporte para el tabique interior del Hospital (`Urgencias <-> Morgue`), separación suave entre NPCs (`sep_vec`) y desatasco lateral automático (`_stuck_timer`).
+
+* **28/10/2026 — Sistema de Puertas Físicas, Cerrojos (`[B]`), Cerraduras Nocturnas según Nivel de Seguridad/Desconfianza de la Aldea y Ventanas Forzables (`VillageManager.gd`):**
+  * **Puertas Físicas Interactivas (`building_doors`):** Todos los edificios cuentan ahora con puerta física (`StaticBody2D` + texturas `door_wood_closed.png`, `door_wood_locked.png`, `door_wood_open.png`).
+    * **`[E]` Abrir / Cerrar Puerta:** Al cerrar una puerta, se activa su colisión y su `occluder_rect` bloquea `has_line_of_sight`, impidiendo que los guardias o vecinos en la calle vean lo que ocurre dentro de la casa.
+    * **`[B]` Bloquear / Echar Cerrojo (`toggle_bar_door_by_player`):** Permite trancar cualquier puerta desde dentro o fuera (`locked_by_player = true`), impidiendo la entrada de NPCs y bloqueando la visión (si la policía te persigue, tarda `2.2s` en derribar una puerta trancada).
+    * **Cierre con Llave según Hora y Nivel de Seguridad/Desconfianza (`get_village_security_level()`, `_apply_hourly_door_security_schedule`):** A medida que suben los crímenes, cadáveres hallados en la Morgue o allanamientos (`recent_breakins_count`), la aldea pasa de `🟢 Tranquila` a `🟡 Desconfiada` y `🔴 Alerta Máxima`: las tiendas echan la llave fuera de horario comercial y las casas cierran con llave más temprano por la noche (o incluso de día si la familia desconfía del jugador).
+    * **Forzado de Cerraduras (`[E]` en puerta con llave):** Permite forzar la cerradura (en sigilo `[C]` sin hacer ruido o de pie arriesgándose a ser visto).
+    * **Paso Fluido de NPCs con Llave (`npc_pass_timer`):** Los aldeanos abren y cierran automáticamente las puertas al cruzarlas en sus rutinas sin quedarse atascados.
+  * **Ventanas Forzables en Fachadas (`building_windows`, `window_glass_open.png` / `window_shutter_closed.png`):** Cada edificio tiene una ventana lateral por la que el jugador puede colarse o escapar con `[E]` (forzando el postigo si está cerrada de noche o por alta desconfianza).
+  * **Interacción Activa de NPCs con Puertas y Navegación sin Atascos (`npc_interact_with_door`, `get_navigation_waypoint`, `_route_internal_building_partitions`, `_avoid_outdoor_buildings`):**
+    - Los NPCs llaman activamente a `npc_interact_with_door` al acercarse a `<= 24 px` de cualquier puerta cerrada: abren visualmente la hoja de la puerta (`spr_open.visible = true`, burbuja flotante `"🚪"` / `"🔑🚪"`), cruzan el umbral y la puerta vuelve a cerrarse automáticamente tras `1.45s`.
+    - Si el jugador tranca una puerta con cerrojo `[B]` (`locked_by_player = true`), los aldeanos se detienen frente a ella tocando la puerta (`"🚪✊ ¡Puerta trancada!"`), mientras que la Policía en persecución la derriba tras `2.0s` (`"🚓💥 ¡Puerta derribada!"`).
+    - Se corrigió el enrutamiento de tabiques internos (Gran Posada, Botica-Vivienda Mixta, Hospital/Morgue y Comisaría) y la fusión de manzanas contiguas (`merged_rect`) para que ningún NPC intente atravesar muros traseros ni rendijas entre edificios.
+    - Las puertas permanecen cerradas por defecto (`is_open = false`) y `npc_interact_with_door` verifica `crossing_this_door` (`npc_inside != dest_inside`) para que nunca se queden abiertas cuando un NPC está trabajando, comiendo o deambulando en el centro de la habitación.
+  * **Temporizador de Recontratación de Policía y Médicos (`_update_authority_rehiring`, `_spawn_authority_replacement`):** Si el jugador mata al Médico/Forense (`DOCTOR`), al Comisario (`SHERIFF`) o al Guardia de Patrulla (`GUARD`), queda una ventana táctica de `75s` (acelerada `+25s` por cada hora de juego) tras la cual el Gremio Médico o la Prefectura contrata un nuevo profesional (`Dra. Valeria`, `Dr. Silvano`, `Comisario Thorne`, `Guardia Kaelen`, etc.) que llega caminando por el camino principal hacia su puesto.
+
+
+---
+
+## Actualización 2026-10-28 (Parte 5): Escolta Física a Prisión, Avance Orgánico del Tiempo, Puertas con Intención Estricta, Reporte Físico de Cadáveres y Colisión Blanda Jugador-NPC
+
+### Referencias de Diseño en Juegos Existentes y Soluciones Aplicadas
+1. **Escolta Física Policial + Estancia Obligatoria en Celda antes del Camastro** (*Kenshi* / *The Escapists* / *Red Dead Redemption 2*):
+   - Al entregarse o caer a `0 HP` ante la policía, ya no hay teletransporte instantáneo a la celda: se activa `start_police_escort_to_jail` (`player_being_escorted_to_jail = true`), donde el agente esposa al jugador y camina físicamente con él por las calles y puertas de la Comisaría hasta encerrarlo en `_jail_cell_pos` (`complete_police_escort_to_jail`).
+   - Al entrar en la celda se inicia un temporizador obligatorio de reclusión (`JAIL_MANDATORY_STAY_SECONDS = 20.0s`, `jail_mandatory_stay_timer`) antes de que el jugador pueda decidir acostarse en el camastro de la prisión (`[1] / [E]`) para cumplir la condena.
+2. **Paso del Tiempo Orgánico en el Mundo sin Time-Skips Artificiales** (*RimWorld* / *Kenshi* / *The Sims*):
+   - En `WorldClock.gd`, al dormir en el camastro de la prisión, en la cama de la posada o al usar `[T]`, se reemplazó el salto instantáneo de reloj por `start_organic_fast_forward` (`Engine.time_scale = 14.0`). Así todos los NPCs (leñadores, mineros, huéspedes) y los animales de la granja caminan físicamente, regresan del bosque, comen en sus comederos y cumplen sus rutinas de forma orgánica hasta las `06:00 AM` (pudiendo cancelarse con `[ESC]` fuera de prisión).
+3. **Intención Estricta al Abrir Puertas (`npc_interact_with_door` y `clamp_point_outside_buildings`)**:
+   - Se eliminó la apertura por proximidad exterior en `VillageManager.npc_interact_with_door`, exigiendo `target_pos != Vector2.INF` y estrictamente `npc_inside != dest_inside` respecto al `building_rect` de ese edificio, además de `clamp_point_outside_buildings` para que los paseos aleatorios de los independientes (`UNEMPLOYED`) y guardias nunca caigan dentro de casas vecinas ni abran puertas al pasar por la acera.
+4. **Médico sin Telepatía + Cadena Física de Reporte de Testigos y Reporte Manual de Cadáveres (`[E]`)** (*Hitman* / *Streets of Rogue* / *Among Us*):
+   - Se corrigió `VillageNPC._find_downed_npc()` para que el Dr. Valen solo atienda a un NPC agonizando si lo ve directamente con línea de visión (`<= 115 px` + `has_line_of_sight`) o si ya está dentro del Hospital (`Rect2(704, 110, 82, 80)`).
+   - En `_process_corpse_state` y `_process_witness_corpse_reporting`, cuando un vecino descubre un cadáver (`corpse_discovered = true`), el médico sigue sin saberlo (`corpse_reported = false`) hasta que ese testigo corre físicamente a avisar a una autoridad viva (`<= 34 px`) o hasta que el propio **Jugador** presiona `[E]` sobre el cadáver (`report_corpse_by_player` / `try_priority_door_or_corpse_interaction`).
+5. **Solución de Colisión Isométrica Jugador-NPC en Puertas y Umbrales** (*Stardew Valley* / *RimWorld* / *Baldur's Gate 3*):
+   - Se aplicó colisión física blanda en NPCs pacíficos (`body_col.disabled = not is_hostile`, manteniendo activas `Hurtbox` e `InteractArea`), empuje lateral suave al paso del jugador (`_apply_player_and_doorway_yield`), despeje automático de marcos de puerta (`get_doorway_clearance_nudge`) y prioridad de interacción `[E]` sobre puertas cerradas (`try_priority_door_or_corpse_interaction` en `Player.gd`).
+
+
+---
+
+## Actualización 2026-10-28 (Parte 6): Teclas Separadas (`[E]` vs `[F]`), Salida Natural de Comisaría, Casino con Probabilidades Reales, Recolección Física con Equilibrio Ecológico ($N_{\text{min}}$), Jabalíes Salvajes y Tells Sutiles de Póker
+
+1. **Separación de Teclas: `[E]` Abrir/Cerrar Puerta Normal vs. `[F]` Forzar Cerradura (`project.godot`, `Player.gd`, `VillageManager.gd`):**
+   - Se añadió la acción de entrada `Lockpick` asignada a la tecla **`[F]`** (`KEY_F` = `70`).
+   - Pulsar **`[E]`** (`Interact`) sobre una puerta desbloqueada la abre o cierra normalmente; si está cerrada con llave, muestra un aviso indicando que requiere **`[F]`** para forzar la cerradura (`try_lockpick_interaction`).
+2. **Salida Física Natural de la Comisaría tras Cumplir Condena o Pagar Fianza (`VillageManager.gd`):**
+   - Se eliminó el teletransporte artificial a la puerta exterior al salir de prisión (`_on_police_serve_sentence` y `_on_police_pay_fine`).
+   - Ahora se abre físicamente la reja de barrotes de la celda (`set_jail_cell_gate_locked(false)`) y se desbloquea la puerta principal de la Comisaría para que el jugador salga caminando por su propio pie.
+3. **Casino Realista con Reglas y Probabilidades Reales (`scripts/ui/TavernGamesUI.gd`):**
+   - **🎡 Ruleta Europea de 37 Casillas (`0` a `36`, ventaja de la casa exacta del $2.70\%$):** Soporte completo de apuestas internas y externas con sus pagos reales: **Pleno (`35:1`)**, **Caballo / Split (`17:1`)**, **Calle / Street (`11:1`)**, **Esquina / Corner (`8:1`)**, **Seisena / Six Line (`5:1`)**, **Docenas y Columnas (`2:1`)** y **Sencillas (`1:1`: Rojo/Negro, Par/Impar, `1–18`/`19–36`)**.
+   - **🃏 Blackjack 21 de Casino (`S17`, pago `3:2`):** Baraja estándar barajada sin sesgos artificiales, Blackjack natural pagado `3:2`, opción de **Doblar (`Double Down`)** y crupier obligado a pedir hasta `16` y plantarse en todo `17` (`S17`).
+   - **♠️ Póker Texas Hold'em Real (Mejor mano de 5 entre 7 cartas):** Evaluador combinatorio exacto de las $\binom{7}{5} = 21$ combinaciones de 5 cartas con desempate por *kickers*.
+4. **Recolección y Caza Física Matutina de los Artesanos + Equilibrio Ecológico ($N_{\text{min}}$) (`EcosystemManager.gd`, `VillageNPC.gd`):**
+   - Durante la expedición matutina (`06:30–09:30 AM`), los maestros artesanos (*Bram*, *Thoran*, *Elena*, *Garrick*) caminan hasta un nodo o presa real del bosque, ejecutan golpes físicos reales (`hit_by_villager(1)`) hasta talar el árbol, picar la veta, recolectar la planta o abatir y desollar la presa (`harvest_carcass()`), dejando 1 recurso menos en el bosque hasta su regeneración natural.
+   - **Umbrales Matemáticos de Conservación ($N_{\text{min}}$):** `EcosystemManager` calcula la población viva y bloquea la extracción aldeana si el recurso está en o por debajo del umbral de equilibrio (`MIN_SAFE_TREES = 16`, `MIN_SAFE_ROCKS = 5`, `MIN_SAFE_PLANTS = 16`, `MIN_SAFE_RABBITS = 5`, `MIN_SAFE_DEER = 3`, `MIN_SAFE_FOXES = 2`, `MIN_SAFE_BOARS = 2`), evitando la sobreexplotación del bosque.
+5. **🐗 Jabalíes Salvajes en el Bosque (`SpeciesType.BOAR` en `WildAnimal.gd` y `EcosystemManager.gd`):**
+   - Nueva especie herbívora pacífica por defecto (3 piaras en el Bosque Profundo con sprite `assests/world/harvest/wild_boar.png`).
+   - Si el jugador los ataca, se vuelven agresivos (`CHARGE_ATTACK`), embisten a alta velocidad (`122 px/s`, daño + empuje + aturdimiento) y **aguantan siempre un mínimo de 3 golpes** (`min_hits_required = 3`, `85 HP`) antes de caer abatidos.
+6. **Tells Sutiles de Personalidad en el Póker (`_generate_subtle_poker_tell` en `TavernGamesUI.gd`):**
+   - Cada aldeano tiene un arquetipo psicológico determinista (`STOIC`, `HABITUAL_TIC`, `VERBOSE`, `CAUTIOUS`) que genera micro-gestos sutiles en la mesa de póker sin revelar de forma obvia si lleva farol o mano fuerte.
+
+---
+
+## Actualización 2026-10-28 (Parte 7): Ataques Sigilosos a Civiles (No Letal y Letal) y Pacificación de Civiles Durante Escolta Policial y en Celda
+
+1. **Ataques Sigilosos por la Espalda a Civiles (`VillageNPC.gd`, `PlayerCombatController.gd`):**
+   - Al ir en **Sigilo (`[C]`)** y colocarse detrás de un civil (o junto a un NPC dormido/sedado), aparece el indicador contextual:
+     `🕵️ SIGILO POR LA ESPALDA — [E / Q: 💤 Aturdir (No Letal) | Clic Izq. / V: 🗡️ Matar (Letal)]`.
+   - **Opción No Letal (`[E]` o `[Q]` $\rightarrow$ `stealth_knockout`):** Deja inconsciente al civil durante **25 segundos** sin matarlo ni alertar a la policía (salvo que un tercer testigo consciente tenga línea de visión directa).
+   - **Opción Letal (`[Clic Izq.]` o `[V]` $\rightarrow$ `stealth_assassinate`):** Ejecución silenciosa instantánea (`_confirm_true_death()`) que deja el cadáver persistente en el suelo sin entrar en el estado ruidoso de agonía.
+2. **Pacificación Inmediata de Civiles al Intervenir la Policía (`VillageManager.gd`, `VillageNPC.gd`, `Player.gd`):**
+   - `VillageManager.clear_police_hostility()` ahora limpia `is_hostile = false`, `_civilian_hostile_timer = 0.0`, `velocity = Vector2.ZERO` y retira del grupo `"enemies"` a **todos** los `VillageNPC` (incluidos los civiles) al iniciar la negociación policial, durante la escolta física a la comisaría y al entrar en la celda.
+   - `VillageNPC._process_hostile_combat()` detiene inmediatamente cualquier persecución si `player_being_escorted_to_jail` o `player_in_jail` están activos o si el civil llega al perímetro de la Comisaría (`Rect2(832, 92, 166, 108)`), y `Player.take_damage()` protege al jugador de cualquier daño mientras está esposado o dentro de la celda.

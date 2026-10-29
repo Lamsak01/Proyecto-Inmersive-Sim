@@ -33,19 +33,46 @@ func has_save_file(filepath: String = SAVE_FILE_PATH) -> bool:
 
 func save_game(filepath: String = SAVE_FILE_PATH) -> bool:
 	var player = get_tree().get_first_node_in_group("player")
+	for plot in get_tree().get_nodes_in_group("farm_plots"):
+		if is_instance_valid(plot) and plot.has_method("_save_state"):
+			plot.call("_save_state")
+	for coop in get_tree().get_nodes_in_group("chicken_coop"):
+		if is_instance_valid(coop) and coop.has_method("_save_state"):
+			coop.call("_save_state")
+	for camp in get_tree().get_nodes_in_group("campsite"):
+		if is_instance_valid(camp) and camp.has_method("_save_state"):
+			camp.call("_save_state")
+	var vm = get_tree().get_first_node_in_group("village_manager")
+	if vm:
+		set_flag("village_crime_state", {
+			"wanted_level": int(vm.get("wanted_level")),
+			"bounty_gold": int(vm.get("bounty_gold")),
+			"corpse_records": vm.get("corpse_records")
+		})
+
 	var npcs_dict: Dictionary = {}
 	for npc in get_tree().get_nodes_in_group("npcs"):
 		if is_instance_valid(npc) and npc.has_method("to_save_dict"):
 			npcs_dict[str(npc.get_path())] = npc.to_save_dict()
 
+	var hostiles_dict: Dictionary = {}
+	for h in get_tree().get_nodes_in_group("plains_hostiles"):
+		if is_instance_valid(h) and h.has_method("to_save_dict"):
+			hostiles_dict[str(h.get_path())] = h.to_save_dict()
+
+	var eco = get_tree().get_first_node_in_group("ecosystem_manager")
+	var eco_dict: Dictionary = eco.to_save_dict() if (eco and eco.has_method("to_save_dict")) else {}
+
 	var payload: Dictionary = {
-		"version": 2,
+		"version": 3,
 		"saved_at": Time.get_datetime_string_from_system(),
 		"world_clock": WorldClock.to_dict() if WorldClock else {},
 		"world_flags": game_data.duplicate(),
 		"workplaces": workplaces_data.duplicate(true),
 		"player": player.to_save_dict() if (player and player.has_method("to_save_dict")) else {},
-		"npcs": npcs_dict
+		"npcs": npcs_dict,
+		"plains_hostiles": hostiles_dict,
+		"ecosystem": eco_dict
 	}
 
 	var file := FileAccess.open(filepath, FileAccess.WRITE)
@@ -110,6 +137,29 @@ func load_game(filepath: String = SAVE_FILE_PATH) -> bool:
 			var path_key := str(npc.get_path())
 			if saved_npcs.has(path_key):
 				npc.from_save_dict(saved_npcs[path_key])
+
+	# 5. Restaurar Enemigos de la Llanura Salvaje y Ciénaga
+	var saved_hostiles: Dictionary = data.get("plains_hostiles", {})
+	for h in get_tree().get_nodes_in_group("plains_hostiles"):
+		if is_instance_valid(h) and h.has_method("from_save_dict"):
+			var h_key := str(h.get_path())
+			if saved_hostiles.has(h_key):
+				h.from_save_dict(saved_hostiles[h_key])
+
+	# 6. Restaurar Ecosistema del Bosque Profundo y Estado Policial/Morgue
+	var eco = get_tree().get_first_node_in_group("ecosystem_manager")
+	if eco and eco.has_method("from_save_dict") and data.has("ecosystem") and typeof(data["ecosystem"]) == TYPE_DICTIONARY:
+		eco.from_save_dict(data["ecosystem"])
+	var vm = get_tree().get_first_node_in_group("village_manager")
+	var c_state: Variant = get_flag("village_crime_state", null)
+	if vm and typeof(c_state) == TYPE_DICTIONARY:
+		vm.wanted_level = int(c_state.get("wanted_level", 0))
+		vm.bounty_gold = int(c_state.get("bounty_gold", 0))
+		if c_state.has("corpse_records") and typeof(c_state["corpse_records"]) == TYPE_ARRAY:
+			vm.corpse_records.clear()
+			for r in c_state["corpse_records"]:
+				if typeof(r) == TYPE_DICTIONARY:
+					vm.corpse_records.append(r)
 
 	if player and player.has_method("show_hint"):
 		var time_str := WorldClock.get_formatted_time() if WorldClock else ""

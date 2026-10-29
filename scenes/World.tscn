@@ -29751,11 +29751,12 @@ z_index = -1
 tile_set = SubResource("TileSet_302v5")
 
 [node name="Obstacles Small" type="TileMapLayer" parent="Environment" unique_id=524275372]
+position = Vector2(-520, -160)
 tile_map_data = PackedByteArray("AADn/wsAAAAqAA0AAADn/wwAAAAqAA4AAADn/w0AAAAqAA8AAADo/wsAAAArAA0AAADo/wwAAAArAA4AAADo/w0AAAArAA8AAADp/wsAAAAsAA0AAADp/wwAAAAsAA4AAADp/w0AAAAsAA8AAADq/wwAAAAtAA4AAADq/w0AAAAtAA8AAADr/wsAAAAuAA0AAADr/wwAAAAuAA4AAADr/w0AAAAuAA8AAADs/wsAAAAvAA0AAADs/wwAAAAvAA4AAADs/w0AAAAvAA8AAAA=")
 tile_set = SubResource("TileSet_jot8m")
 
 [node name="Obstacles Large" type="TileMapLayer" parent="Environment" unique_id=582507862 groups=["nav_source"]]
-position = Vector2(2, -2)
+position = Vector2(-520, -160)
 tile_map_data = PackedByteArray("AADy//T/FwAZAC0AAADy//X/FwAZAC4AAADy//b/FwAZAC8AAADy//f/FwAZADAAAADz//H/FwAaACoAAADz//L/FwAaACsAAADz//P/FwAaACwAAADz//T/FwAaAC0AAADz//X/FwAaAC4AAADz//b/FwAaAC8AAADz//f/FwAaADAAAAD0/+//FwAbACgAAAD0//D/FwAbACkAAAD0//H/FwAbACoAAAD0//L/FwAbACsAAAD0//P/FwAbACwAAAD0//T/FwAbAC0AAAD0//X/FwAbAC4AAAD0//b/FwAbAC8AAAD0//f/FwAbADAAAAD0//j/FwAbADEAAAD0//n/FwAbADIAAAD1/+//FwAcACgAAAD1//D/FwAcACkAAAD1//H/FwAcACoAAAD1//L/FwAcACsAAAD1//P/FwAcACwAAAD1//T/FwAcAC0AAAD1//X/FwAcAC4AAAD1//b/FwAcAC8AAAD1//f/FwAcADAAAAD1//j/FwAcADEAAAD1//n/FwAcADIAAAD2//L/FwAdACsAAAD2//P/FwAdACwAAAD2//T/FwAdAC0AAAD2//X/FwAdAC4AAAD2//b/FwAdAC8AAAD2//f/FwAdADAAAAD3//X/FwAeAC4AAAD3//b/FwAeAC8AAAD3//f/FwAeADAAAADt//j/FwAZAC0AAADt//n/FwAZAC4AAADt//r/FwAZAC8AAADt//v/FwAZADAAAADu//X/FwAaACoAAADu//b/FwAaACsAAADu//f/FwAaACwAAADu//j/FwAaAC0AAADu//n/FwAaAC4AAADu//r/FwAaAC8AAADu//v/FwAaADAAAADv//P/FwAbACgAAADv//T/FwAbACkAAADv//X/FwAbACoAAADv//b/FwAbACsAAADv//f/FwAbACwAAADv//j/FwAbAC0AAADv//n/FwAbAC4AAADv//r/FwAbAC8AAADv//v/FwAbADAAAADv//z/FwAbADEAAADv//3/FwAbADIAAADw//P/FwAcACgAAADw//T/FwAcACkAAADw//X/FwAcACoAAADw//b/FwAcACsAAADw//f/FwAcACwAAADw//j/FwAcAC0AAADw//n/FwAcAC4AAADw//r/FwAcAC8AAADw//v/FwAcADAAAADw//z/FwAcADEAAADw//3/FwAcADIAAADx//b/FwAdACsAAADx//f/FwAdACwAAADx//j/FwAdAC0AAADx//n/FwAdAC4AAADx//r/FwAdAC8AAADx//v/FwAdADAAAADy//n/FwAeAC4AAADy//r/FwAeAC8AAADy//v/FwAeADAAAADu/wEADQBNAAUAAAD3////DQBWAAMAAAD8/w0AFwAqABgAAAD8/w4AFwAqABkAAAD8/w8AFwAqABoAAAD8/xAAFwAqABsAAAD9/xEAFwASABgAAAD9/xIAFwASABkAAAD+/xEAFwATABgAAAD+/xIAFwATABkAAAD//xEAFwASABgAAAD//xIAFwASABkAAAAAABEAFwATABgAAAAAABIAFwATABkAAADn/woAFwAkAA0AAADn/wsAFwAkAA4AAADn/wwAFwAkAA8AAADo/woAFwAlAA0AAADo/wsAFwAlAA4AAADo/wwAFwAlAA8AAADp/wsAFwAmAA4AAADq/wsAFwAnAA4AAADr/woAFwAoAA0AAADr/wsAFwAoAA4AAADr/wwAFwAoAA8AAADn/w0AFwAqAAkAAADn/w4AFwAqAAoAAADn/w8AFwAqAAsAAADo/w0AFwArAAkAAADo/w4AFwArAAoAAADo/w8AFwArAAsAAADp/w4AFwAsAAoAAADp/w8AFwAsAAsAAADq/w4AFwAtAAoAAADq/w8AFwAtAAsAAADr/w0AFwAuAAkAAADr/w4AFwAuAAoAAADr/w8AFwAuAAsAAADs/w4AFwAvAAoAAADs/w8AFwAvAAsAAAD9/w0AFwArABgAAAD9/w4AFwArABkAAAD9/w8AFwArABoAAAD9/xAAFwArABsAAAD+/w0AFwAsABgAAAD+/w4AFwAsABkAAAD+/w8AFwAsABoAAAD+/xAAFwAsABsAAAD//w0AFwAtABgAAAD//w4AFwAtABkAAAD//w8AFwAtABoAAAD//xAAFwAtABsAAAAAAA4AFwAuABkAAAAAAA8AFwAuABoAAAAAABAAFwAuABsAAAA=")
 tile_set = SubResource("TileSet_vcsgt")
 
@@ -29778,19 +29779,19 @@ stretch_mode = 1
 metadata/_edit_lock_ = true
 
 [node name="Crate" parent="Environment" unique_id=1855212024 instance=ExtResource("27_crate")]
-position = Vector2(216, -13)
+position = Vector2(-520, -45)
 
 [node name="Barrel" parent="Environment" unique_id=303902927 instance=ExtResource("28_barrel")]
-position = Vector2(268, -13)
+position = Vector2(-548, -45)
 
 [node name="WeakWall" parent="Environment" unique_id=1351388070 instance=ExtResource("29_wall")]
-position = Vector2(166, -141)
+position = Vector2(-575, -80)
 persistence_id = "weak_wall_tutorial_01"
 
 [node name="Items" type="Node2D" parent="." unique_id=643454969]
 
 [node name="WeaponPickup" parent="Items" unique_id=2027530117 instance=ExtResource("24_yncth")]
-position = Vector2(211, 100)
+position = Vector2(-445, 18)
 
 [node name="Entities" type="Node2D" parent="." unique_id=1825073484]
 y_sort_enabled = true
@@ -29850,7 +29851,7 @@ position = Vector2(1, -13)
 shape = SubResource("CapsuleShape2D_rvslj")
 
 [node name="Guia" type="CharacterBody2D" parent="Entities" unique_id=909967902 node_paths=PackedStringArray("dialogue_manager", "enemy_ai") groups=["interactable"]]
-position = Vector2(264, 53)
+position = Vector2(-415, 18)
 script = ExtResource("13_i4b1j")
 dialogue_manager = NodePath("../../Systems/dialogue_manager")
 enemy_ai = NodePath("EnemyAI")
@@ -29906,16 +29907,16 @@ script = ExtResource("26_health")
 max_health = 50.0
 
 [node name="DummyEnemy" parent="Entities" unique_id=1713658462 instance=ExtResource("25_jgbtq")]
-position = Vector2(709, -81)
+position = Vector2(-615, -75)
 
 [node name="FastEnemy" parent="Entities" unique_id=138097458 instance=ExtResource("30_fast")]
-position = Vector2(694, 168)
+position = Vector2(-685, -50)
 
 [node name="FrogEnemy" parent="Entities" unique_id=1572768814 instance=ExtResource("30_fast")]
-position = Vector2(652, 253)
+position = Vector2(-565, 78)
 
 [node name="FrogEnemy2" parent="Entities" unique_id=1135446713 instance=ExtResource("30_fast")]
-position = Vector2(715, 227)
+position = Vector2(-645, 92)
 
 [node name="UI" type="CanvasLayer" parent="." unique_id=1423720545]
 metadata/_edit_lock_ = true

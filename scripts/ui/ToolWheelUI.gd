@@ -131,6 +131,17 @@ func handle_tab_release() -> void:
 	if elapsed >= 0.22 or moved_to_sector:
 		close_wheel(true)
 
+func _get_tool_tier(tool_id: String) -> int:
+	if player and player.has_method("get_tool_tier"):
+		return int(player.call("get_tool_tier", tool_id))
+	return 1
+
+func _get_tier_badge(tier: int) -> String:
+	match tier:
+		2: return " [Nv.2 Hierro]"
+		3: return " [Nv.3 Acero★]"
+		_: return " [Nv.1]"
+
 func _get_tool_entries() -> Array[Dictionary]:
 	var water_charges: int = 6
 	var max_water: int = 6
@@ -139,53 +150,74 @@ func _get_tool_entries() -> Array[Dictionary]:
 	if player and "MAX_WATER_CHARGES" in player:
 		max_water = int(player.MAX_WATER_CHARGES)
 
+	var t_sword: int = _get_tool_tier("Sword")
+	var t_hammer: int = _get_tool_tier("Hammer")
+	var t_axe: int = _get_tool_tier("Axe")
+	var t_pick: int = _get_tool_tier("Pickaxe")
+	var t_bow: int = _get_tool_tier("Bow")
+	var t_sickle: int = _get_tool_tier("Sickle")
+	var t_can: int = _get_tool_tier("WateringCan")
+	var t_rod: int = _get_tool_tier("FishingRod")
+
+	var sickle_bonus: int = 1
+	if player and player.has_method("get_sickle_bonus"):
+		sickle_bonus = int(player.call("get_sickle_bonus"))
+
 	return [
 		{
 			"key": "1",
-			"title": "Espada",
-			"desc": "Arma de filo: corte rápido y acumulación de sangrado.\n(Tala improvisada: 35%)",
+			"tier": t_sword,
+			"title": "Espada" + _get_tier_badge(t_sword),
+			"desc": "Arma de filo: corte rápido y acumulación de sangrado.\nMejorable en la Herrería de Thoran.",
 			"weapon": player.get("sword_weapon") if player else null
 		},
 		{
 			"key": "2",
-			"title": "Martillo",
-			"desc": "Arma contundente: alto empuje y aturdimiento (KO).\n(Minería improvisada: 35%)",
+			"tier": t_hammer,
+			"title": "Martillo" + _get_tier_badge(t_hammer),
+			"desc": "Arma contundente: alto empuje y aturdimiento (KO).\nMejorable en la Herrería de Thoran.",
 			"weapon": player.get("hammer_weapon") if player else null
 		},
 		{
 			"key": "3",
-			"title": "Hacha",
-			"desc": "Herramienta especialista en Tala de Árboles.\nEficiencia de tala: 180%",
+			"tier": t_axe,
+			"title": "Hacha" + _get_tier_badge(t_axe),
+			"desc": "Herramienta especialista en Tala de Árboles.\nEficiencia de tala: %d%%" % int(round((1.8 if t_axe == 1 else (2.6 if t_axe == 2 else 3.6)) * 100.0)),
 			"weapon": player.get("axe_weapon") if player else null
 		},
 		{
 			"key": "4",
-			"title": "Pico",
-			"desc": "Herramienta especialista en Minería de Rocas y Hierro.\nEficiencia minera: 180%",
+			"tier": t_pick,
+			"title": "Pico" + _get_tier_badge(t_pick),
+			"desc": "Herramienta especialista en Minería de Rocas y Hierro.\nEficiencia minera: %d%%" % int(round((1.8 if t_pick == 1 else (2.6 if t_pick == 2 else 3.6)) * 100.0)),
 			"weapon": player.get("pickaxe_weapon") if player else null
 		},
 		{
 			"key": "5",
-			"title": "Arco de Caza",
+			"tier": t_bow,
+			"title": "Arco de Caza" + _get_tier_badge(t_bow),
 			"desc": "Disparo a distancia silencioso para cazar sin espantar.\nMantén Clic Izquierdo para tensar.",
 			"weapon": player.get("bow_weapon") if player else null
 		},
 		{
 			"key": "6",
-			"title": "Hoz",
-			"desc": "Herramienta de cosecha agrícola.\nOtorga +1 cultivo extra al cosechar plantas maduras.",
+			"tier": t_sickle,
+			"title": "Hoz" + _get_tier_badge(t_sickle),
+			"desc": "Herramienta de cosecha agrícola.\nOtorga +%d cultivo(s) extra al cosechar plantas maduras." % sickle_bonus,
 			"weapon": player.get("sickle_weapon") if player else null
 		},
 		{
 			"key": "7",
-			"title": "Regadera (%d/%d)" % [water_charges, max_water],
+			"tier": t_can,
+			"title": "Regadera (%d/%d)%s" % [water_charges, max_water, _get_tier_badge(t_can)],
 			"desc": "Herramienta de riego agrícola (Agua: %d/%d).\nRecárgala en el Pozo o en el Lago del Oeste." % [water_charges, max_water],
 			"weapon": player.get("watering_can_weapon") if player else null
 		},
 		{
 			"key": "8",
-			"title": "Caña de Pescar",
-			"desc": "Herramienta de pesca para el Lago del Oeste.\nTruchas/Carpas de día y Siluros de noche.",
+			"tier": t_rod,
+			"title": "Caña de Pescar" + _get_tier_badge(t_rod),
+			"desc": "Herramienta de pesca con barra de precisión.\nTamaño de barra: %d%%." % int(round((1.0 if t_rod == 1 else (1.28 if t_rod == 2 else 1.55)) * 100.0)),
 			"weapon": player.get("fishing_rod_weapon") if player else null
 		}
 	]
@@ -249,9 +281,14 @@ func _draw() -> void:
 		var is_hovered: bool = (i == hovered_index)
 		var is_equipped: bool = (i == equipped_idx)
 
+		var slot_tier: int = int(entries[i].get("tier", 1))
 		var bg_col := Color(0.15, 0.17, 0.22, 0.95)
-		var border_col := Color(0.42, 0.45, 0.52, 0.85)
-		var border_w: float = 1.6
+		var border_col := Color(0.55, 0.45, 0.34, 0.85)
+		if slot_tier == 2:
+			border_col = Color(0.68, 0.78, 0.92, 0.92)
+		elif slot_tier >= 3:
+			border_col = Color(0.35, 0.90, 1.0, 0.98)
+		var border_w: float = 1.8 if slot_tier == 1 else 2.2
 
 		if is_hovered:
 			bg_col = Color(0.30, 0.25, 0.14, 0.98)
