@@ -411,10 +411,18 @@ func _update_chickens_motion(delta: float) -> void:
 
 		var target: Vector2 = chk["target"]
 		var diff := target - spr.position
-		if diff.length() > 2.0:
-			var step := diff.normalized() * 18.0 * delta
-			spr.position += step
-			spr.flip_h = diff.x > 0.0
+		var p_node := get_tree().get_first_node_in_group("player") as Node2D
+		var push_step := Vector2.ZERO
+		if is_instance_valid(p_node):
+			var d_p: float = spr.global_position.distance_to(p_node.global_position)
+			if d_p < 13.0:
+				var away_c: Vector2 = (spr.global_position - p_node.global_position).normalized() if d_p > 0.01 else Vector2.RIGHT
+				push_step = away_c * ((13.0 - d_p) / 13.0) * 34.0 * delta
+		if diff.length() > 2.0 or push_step.length_squared() > 0.001:
+			var step := (diff.normalized() * 18.0 * delta if diff.length() > 2.0 else Vector2.ZERO) + push_step
+			spr.position.x = clampf(spr.position.x + step.x, -28.0, 28.0)
+			spr.position.y = clampf(spr.position.y + step.y, -10.0, 20.0)
+			spr.flip_h = step.x > 0.0
 			chk["hop"] = float(chk["hop"]) + delta * 14.0
 			spr.offset.y = -abs(sin(float(chk["hop"]))) * 2.0
 		else:

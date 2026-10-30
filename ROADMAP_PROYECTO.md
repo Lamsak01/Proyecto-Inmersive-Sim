@@ -221,3 +221,29 @@ Sistemas de largo plazo para cuando el núcleo del juego esté completo.
   - Cuando animales o gallinas bien alimentados se reproducen, su descendencia hereda **`Genética Nv.1 -> Nv.2 -> Nv.3`**, otorgando más carne/pieles y **🥚✨ Huevos Dorados (`golden_egg`)** en el Gallinero.
 - [x] **7.10. ⚡ Tecnología Anacrónica: Electricidad, Generador, Farolas Eléctricas y Aspersor Automático (`CampSite.gd`, `VillageManager.gd`):**
   - **Generador Eléctrico Antiguo (`ancient_generator.png`)** y **Aspersor Automático (`auto_sprinkler.png`)** en el centro del Huerto 3x3 (`Vector2(139, 99)`), además de **6 Farolas Eléctricas (`lamp-post1.png`)** que iluminan las calles de la aldea por la noche.
+
+---
+
+### FASE 8: Economía Dinámica de Oferta y Demanda, Consumo Real de Alimentos, Sabotaje Industrial y Propiedad Híbrida de Negocios (Completada ✅)
+- [x] **8.1. 📊 Precios Dinámicos de Oferta y Demanda en Tiempo Real (`VillageManager.gd`, `VillageNPC.gd`):**
+  - El multiplicador de mercado (`get_trade_market_multiplier`) de cada uno de los 5 gremios (**Herrería**, **Carnicería**, **Carpintería**, **Pescadería** y **Botica**) + **Posada** fluctúa en vivo según el stock real del mostrador y el estado de producción:
+    - **`📉 Excedente (-20%, 0.80x)`** cuando el mostrador acumula $\ge 12$ unidades.
+    - **`⚖️ Estable (100%, 1.00x)`** en condiciones normales de abastecimiento ($4\text{–}11$ unidades).
+    - **`📈 Escasez (+55%, 1.55x)`** cuando quedan $\le 3$ unidades en el mostrador.
+    - **`🔥 Crisis de Suministro (+125%, 2.25x)`** cuando el stock cae a $0$, el maestro artesano está muerto/incapacitado o el taller ha sido saboteado.
+- [x] **8.2. 🍽️ Consumo Real de Comida del Pueblo (`consume_village_meal_for_npc`):**
+  - Cada vez que un aldeano se sienta a comer en su mesa familiar o en la Posada (`ActivityState.EATING`), consume **1 ración real de comida** del stock de las tiendas de alimentación del valle (Pescadería/Molino, Carnicería, Botica o Posada).
+  - Si el jugador es **Socio** o **Dueño Único** de esa tienda, las compras diarias de los vecinos ingresan **Oro real automáticamente en la Caja Registradora (`vault_gold`)**. Si todas las tiendas se quedan sin comida, los aldeanos sufren pensamientos negativos de escasez (`"¡Escasez de comida en el pueblo! (-12)"`) y el precio de los alimentos se dispara a `2.25x`.
+- [x] **8.3. 💣 Sabotaje Industrial de Talleres con `[F]` (`sabotage_shop_stall`):**
+  - Acercarse al mostrador/taller de cualquiera de los 5 comercios y pulsar **`[F]`** (o el botón `[4]` del modal del negocio) permite **sabotear la maquinaria del taller**:
+    - Bloquea la expedición matutina y la producción del maestro artesano durante **2 días** (`sabotaged_days = 2`), reduce el stock del local un `60%`, otorga `1` material saqueado y dispara el precio de sus mercancías a **`2.25x` (Crisis)**.
+    - Además, pone el negocio en estado de **Liquidación**, reduciendo el precio de compra de su escritura al contado a **`65 Oro`**.
+    - Si lo haces en **Sigilo (`[C]`)** sin testigos con línea de visión (`has_line_of_sight`), es un crimen perfecto; si un vecino te ve, sube tu `wanted_level`, añade `+35 Oro` de multa policial y baja `-40` la reputación con esa familia.
+- [x] **8.4. 📜 Modelo Híbrido de Propiedad de Negocios, Abastecimiento y Contratación (`open_business_management_ui`):**
+  - Interactuar con **`[E]`** en el mostrador de cualquier negocio o elegir `"📜 Negocio, Escritura de Propiedad y Caja Registradora"` en el diálogo del artesano abre el **Panel de Gestión Comercial**:
+    - **`[1]` Compra Híbrida de Escritura / Recaudación:**
+      - **Comprar Acciones de Socio (`110 Oro`, o `85 Oro` si eres Aliado Familiar):** Conservas al artesano trabajando, obtienes **`-30%` de descuento permanente** en la tienda y cobras dividendos diarios + comisión por ventas en la **Caja Registradora (`vault_gold`)**.
+      - **Comprar Escritura en Liquidación (`65 Oro` si el local está vacante, sin stock o saboteado) o Adquirir el 100% (`+55 Oro` desde Socio):** Te conviertes en **Dueño Único (`SOLE_OWNER`)**, recibiendo el `100%` de las ventas vecinales en la Caja Registradora.
+    - **`[2]` Abastecer Mostrador desde tu Mochila:** Coloca tus propios recursos cosechados/cazados/forjados directamente en el mostrador para que se vendan automáticamente a los aldeanos (o cóbralos al contado a precio de escasez si el local aún no es tuyo).
+    - **`[3]` Contratar Nuevo Encargado (`-30 Oro`):** Si el maestro artesano murió y el negocio quedó vacante, puedes contratar a un nuevo encargado desde el propio mostrador para reanudar las expediciones matutinas y la producción diaria.
+    - **`[4]` Sabotear Taller (`[F]`) o Reparar Maquinaria Saboteada (`-1 Madera` o `-12 Oro`):** Permite sabotear a la competencia o reparar tu propio taller tras adquirirlo en liquidación.

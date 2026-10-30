@@ -47,13 +47,21 @@ func save_game(filepath: String = SAVE_FILE_PATH) -> bool:
 		set_flag("village_crime_state", {
 			"wanted_level": int(vm.get("wanted_level")),
 			"bounty_gold": int(vm.get("bounty_gold")),
-			"corpse_records": vm.get("corpse_records")
+			"corpse_records": vm.get("corpse_records"),
+			"morgue_active_corpses": vm.get("morgue_active_corpses"),
+			"buried_graves": vm.get("buried_graves"),
+			"economy": vm.get_economy_save_dict() if vm.has_method("get_economy_save_dict") else {}
 		})
 
 	var npcs_dict: Dictionary = {}
 	for npc in get_tree().get_nodes_in_group("npcs"):
 		if is_instance_valid(npc) and npc.has_method("to_save_dict"):
 			npcs_dict[str(npc.get_path())] = npc.to_save_dict()
+
+	var pets_dict: Dictionary = {}
+	for pet in get_tree().get_nodes_in_group("domestic_pets"):
+		if is_instance_valid(pet) and pet.has_method("to_save_dict"):
+			pets_dict[str(pet.get_path())] = pet.to_save_dict()
 
 	var hostiles_dict: Dictionary = {}
 	for h in get_tree().get_nodes_in_group("plains_hostiles"):
@@ -71,6 +79,7 @@ func save_game(filepath: String = SAVE_FILE_PATH) -> bool:
 		"workplaces": workplaces_data.duplicate(true),
 		"player": player.to_save_dict() if (player and player.has_method("to_save_dict")) else {},
 		"npcs": npcs_dict,
+		"domestic_pets": pets_dict,
 		"plains_hostiles": hostiles_dict,
 		"ecosystem": eco_dict
 	}
@@ -130,13 +139,20 @@ func load_game(filepath: String = SAVE_FILE_PATH) -> bool:
 	if player and player.has_method("from_save_dict") and data.has("player"):
 		player.from_save_dict(data["player"])
 
-	# 4. Restaurar NPCs de la aldea
+	# 4. Restaurar NPCs y Mascotas de la aldea
 	var saved_npcs: Dictionary = data.get("npcs", {})
 	for npc in get_tree().get_nodes_in_group("npcs"):
 		if is_instance_valid(npc) and npc.has_method("from_save_dict"):
 			var path_key := str(npc.get_path())
 			if saved_npcs.has(path_key):
 				npc.from_save_dict(saved_npcs[path_key])
+
+	var saved_pets: Dictionary = data.get("domestic_pets", {})
+	for pet in get_tree().get_nodes_in_group("domestic_pets"):
+		if is_instance_valid(pet) and pet.has_method("from_save_dict"):
+			var p_key := str(pet.get_path())
+			if saved_pets.has(p_key):
+				pet.from_save_dict(saved_pets[p_key])
 
 	# 5. Restaurar Enemigos de la Llanura Salvaje y Ciénaga
 	var saved_hostiles: Dictionary = data.get("plains_hostiles", {})
@@ -160,6 +176,27 @@ func load_game(filepath: String = SAVE_FILE_PATH) -> bool:
 			for r in c_state["corpse_records"]:
 				if typeof(r) == TYPE_DICTIONARY:
 					vm.corpse_records.append(r)
+		if c_state.has("morgue_active_corpses") and typeof(c_state["morgue_active_corpses"]) == TYPE_ARRAY:
+			vm.morgue_active_corpses.clear()
+			for mr in c_state["morgue_active_corpses"]:
+				if typeof(mr) == TYPE_DICTIONARY:
+					vm.morgue_active_corpses.append(mr)
+			if vm.has_method("_refresh_morgue_table_sprites"):
+				vm.call("_refresh_morgue_table_sprites")
+		if c_state.has("buried_graves") and typeof(c_state["buried_graves"]) == TYPE_ARRAY:
+			for g_n in vm.get("_cemetery_grave_nodes"):
+				if is_instance_valid(g_n):
+					g_n.queue_free()
+			vm._cemetery_grave_nodes.clear()
+			vm.buried_graves.clear()
+			for bg in c_state["buried_graves"]:
+				if typeof(bg) == TYPE_DICTIONARY:
+					var g_idx: int = vm.buried_graves.size()
+					vm.buried_graves.append(bg)
+					if vm.has_method("_spawn_physical_grave_marker"):
+						vm.call("_spawn_physical_grave_marker", g_idx, bg)
+		if c_state.has("economy") and typeof(c_state["economy"]) == TYPE_DICTIONARY and vm.has_method("load_economy_save_dict"):
+			vm.load_economy_save_dict(c_state["economy"])
 
 	if player and player.has_method("show_hint"):
 		var time_str := WorldClock.get_formatted_time() if WorldClock else ""

@@ -19,7 +19,10 @@ var current_choices: Array = []
 
 # Nodos de UI construidos/gestionados limpiamente
 var _panel: PanelContainer
+var _portrait_frame: PanelContainer
+var _portrait_rect: TextureRect
 var _speaker_label: Label
+var _tagline_label: Label
 var _relation_label: Label
 var _body_label: Label
 var _choices_container: VBoxContainer
@@ -78,23 +81,60 @@ func _build_clean_ui() -> void:
 	main_vbox.add_theme_constant_override("separation", 10)
 	_panel.add_child(main_vbox)
 
-	# Cabecera: Nombre del NPC a la izquierda, Estado de Relación a la derecha
+	# Cabecera con Retrato 64x64 a la izquierda + Nombre, Relación y Contexto Personal a la derecha
 	var header_hbox := HBoxContainer.new()
+	header_hbox.add_theme_constant_override("separation", 14)
 	main_vbox.add_child(header_hbox)
+
+	_portrait_frame = PanelContainer.new()
+	_portrait_frame.custom_minimum_size = Vector2(72, 72)
+	var p_style := StyleBoxFlat.new()
+	p_style.bg_color = Color(0.11, 0.12, 0.16, 0.98)
+	p_style.border_color = Color(0.85, 0.72, 0.42, 0.95)
+	p_style.set_border_width_all(2)
+	p_style.set_corner_radius_all(6)
+	p_style.content_margin_left = 4
+	p_style.content_margin_right = 4
+	p_style.content_margin_top = 4
+	p_style.content_margin_bottom = 4
+	_portrait_frame.add_theme_stylebox_override("panel", p_style)
+	header_hbox.add_child(_portrait_frame)
+
+	_portrait_rect = TextureRect.new()
+	_portrait_rect.custom_minimum_size = Vector2(64, 64)
+	_portrait_rect.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	_portrait_rect.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	_portrait_rect.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+	_portrait_frame.add_child(_portrait_rect)
+
+	var header_info_vbox := VBoxContainer.new()
+	header_info_vbox.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	header_info_vbox.add_theme_constant_override("separation", 3)
+	header_hbox.add_child(header_info_vbox)
+
+	var title_row := HBoxContainer.new()
+	header_info_vbox.add_child(title_row)
 
 	_speaker_label = Label.new()
 	_speaker_label.text = "NPC"
 	_speaker_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	_speaker_label.add_theme_font_size_override("font_size", 18)
 	_speaker_label.add_theme_color_override("font_color", Color(1.0, 0.85, 0.45))
-	header_hbox.add_child(_speaker_label)
+	title_row.add_child(_speaker_label)
 
 	_relation_label = Label.new()
 	_relation_label.text = "Neutral (0)"
 	_relation_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
 	_relation_label.add_theme_font_size_override("font_size", 14)
 	_relation_label.add_theme_color_override("font_color", Color(0.75, 0.8, 0.85))
-	header_hbox.add_child(_relation_label)
+	title_row.add_child(_relation_label)
+
+	_tagline_label = Label.new()
+	_tagline_label.text = ""
+	_tagline_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	_tagline_label.add_theme_font_size_override("font_size", 12)
+	_tagline_label.add_theme_color_override("font_color", Color(0.84, 0.78, 0.62))
+	header_info_vbox.add_child(_tagline_label)
 
 	var sep := HSeparator.new()
 	main_vbox.add_child(sep)
@@ -103,7 +143,7 @@ func _build_clean_ui() -> void:
 	_body_label = Label.new()
 	_body_label.custom_minimum_size = Vector2(680, 48)
 	_body_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	_body_label.add_theme_font_size_override("font_size", 17)
+	_body_label.add_theme_font_size_override("font_size", 16)
 	_body_label.add_theme_color_override("font_color", Color(0.95, 0.95, 0.95))
 	main_vbox.add_child(_body_label)
 
@@ -144,15 +184,32 @@ func _update_header() -> void:
 		return
 	if is_instance_valid(current_speaker):
 		var npc_name: String = current_speaker.get("npc_name") if "npc_name" in current_speaker else current_speaker.name
-		_speaker_label.text = npc_name
+		var npc_role: String = str(current_speaker.get("npc_role")) if "npc_role" in current_speaker else ""
+		_speaker_label.text = ("%s — %s" % [npc_name, npc_role]) if npc_role != "" else npc_name
 		if current_speaker.has_method("get_relationship_status_text"):
 			_relation_label.text = current_speaker.get_relationship_status_text()
 			_relation_label.modulate = current_speaker.get_relationship_color()
 		else:
 			_relation_label.text = ""
+		if _tagline_label:
+			var tag_txt: String = str(current_speaker.call("get_character_tagline")) if current_speaker.has_method("get_character_tagline") else ""
+			_tagline_label.text = "📜 " + tag_txt if tag_txt != "" else ""
+			_tagline_label.visible = (tag_txt != "")
+		if _portrait_rect and _portrait_frame:
+			var p_tex: Texture2D = null
+			if current_speaker.has_method("get_portrait_texture"):
+				p_tex = current_speaker.call("get_portrait_texture") as Texture2D
+			elif "sprite" in current_speaker and current_speaker.sprite:
+				p_tex = current_speaker.sprite.texture
+			_portrait_rect.texture = p_tex
+			_portrait_frame.visible = (p_tex != null)
 	else:
 		_speaker_label.text = "Diálogo"
 		_relation_label.text = ""
+		if _tagline_label:
+			_tagline_label.visible = false
+		if _portrait_frame:
+			_portrait_frame.visible = false
 
 func end_dialogue() -> void:
 	active = false
@@ -254,7 +311,10 @@ func _on_choice_pressed(index: int) -> void:
 		if is_instance_valid(current_speaker) and current_speaker.has_method("on_dialogue_action"):
 			current_speaker.on_dialogue_action(action_id)
 		if is_instance_valid(current_speaker) and current_speaker.has_method("_build_dialogue"):
-			graph = current_speaker.call("_build_dialogue")
+			var raw_g: Dictionary = current_speaker.call("_build_dialogue")
+			if current_speaker.has_method("_inject_character_lore_into_dialogue"):
+				raw_g = current_speaker.call("_inject_character_lore_into_dialogue", raw_g)
+			graph = raw_g
 			_update_header()
 
 	var next_id := str(chosen.get("next", "END"))

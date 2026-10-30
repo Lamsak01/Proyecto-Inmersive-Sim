@@ -62,10 +62,20 @@ func _physics_process(_delta: float) -> void:
 		velocity = Vector2.ZERO
 		return
 
+	if not is_instance_valid(_player_ref):
+		_player_ref = get_tree().get_first_node_in_group("player") as Node2D
+	var far_offscreen: bool = is_instance_valid(_player_ref) and global_position.distance_squared_to(_player_ref.global_position) > 520.0 * 520.0
+
+	if far_offscreen and velocity.length_squared() < 0.01:
+		if vision_cone and vision_cone.visible:
+			vision_cone.visible = false
+		return
+
 	if is_weak_flag:
 		velocity *= 0.5
 
-	move_and_slide()
+	if velocity.length_squared() > 0.01:
+		move_and_slide()
 	
 	# Flip sprite based on movement direction
 	if velocity.x != 0:
@@ -85,20 +95,20 @@ func _physics_process(_delta: float) -> void:
 	
 	# Rotate vision cone to match AI facing direction
 	if vision_cone and ai and is_instance_valid(ai):
-		var dir = ai.facing_direction
-		if dir.length_squared() > 0.001:
-			vision_cone.rotation = dir.angle()
-			
-		# Dynamic Cone Size based on Time of Day (WorldClock) & Player Stealth
-		if not is_instance_valid(_player_ref):
-			_player_ref = get_tree().get_first_node_in_group("player")
-		var stealth_now := 0
-		if _player_ref and _player_ref.has_method("is_stealthing") and _player_ref.is_stealthing():
-			stealth_now = 1
-		vision_cone.radius = ai.get_effective_detection_range()
-		if stealth_now != _last_stealth_state:
-			_last_stealth_state = stealth_now
-			vision_cone.angle_deg = 60.0 if stealth_now == 1 else 120.0
+		vision_cone.visible = not far_offscreen
+		if not far_offscreen:
+			var dir = ai.facing_direction
+			if dir.length_squared() > 0.001:
+				vision_cone.rotation = dir.angle()
+				
+			# Dynamic Cone Size based on Time of Day (WorldClock) & Player Stealth
+			var stealth_now := 0
+			if _player_ref and _player_ref.has_method("is_stealthing") and _player_ref.is_stealthing():
+				stealth_now = 1
+			vision_cone.radius = ai.get_effective_detection_range()
+			if stealth_now != _last_stealth_state:
+				_last_stealth_state = stealth_now
+				vision_cone.angle_deg = 60.0 if stealth_now == 1 else 120.0
 
 func show_prompt() -> void:
 	if prompt_label and not prompt_label.visible:

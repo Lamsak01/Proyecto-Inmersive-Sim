@@ -18,6 +18,8 @@ var hover_info_label: Label = null
 var census_label: Label = null
 
 var _pulse_phase: float = 0.0
+var _minimap_redraw_timer: float = 0.0
+var _fullmap_redraw_timer: float = 0.0
 
 const WORLD_RECT := Rect2(Vector2(-920.0, -340.0), Vector2(1920.0, 1640.0))
 
@@ -32,10 +34,16 @@ func _process(delta: float) -> void:
 	if not is_instance_valid(player):
 		player = get_tree().get_first_node_in_group("player") as Node2D
 	if minimap_canvas and minimap_panel and minimap_panel.visible:
-		minimap_canvas.queue_redraw()
+		_minimap_redraw_timer -= delta
+		if _minimap_redraw_timer <= 0.0:
+			_minimap_redraw_timer = 0.18
+			minimap_canvas.queue_redraw()
 	if full_map_canvas and full_map_panel and full_map_panel.visible:
-		full_map_canvas.queue_redraw()
-		_update_census_and_hover()
+		_fullmap_redraw_timer -= delta
+		if _fullmap_redraw_timer <= 0.0:
+			_fullmap_redraw_timer = 0.08
+			full_map_canvas.queue_redraw()
+			_update_census_and_hover()
 
 func toggle_full_map() -> void:
 	is_full_map_open = not is_full_map_open
@@ -245,7 +253,9 @@ func _draw_valley_cartography(canvas: Control, detailed: bool) -> void:
 		{"rect": Rect2(Vector2(689, -75), Vector2(112, 78)), "col": Color(0.52, 0.38, 0.26), "label": "🏠 Casa Carpintero"},
 		{"rect": Rect2(Vector2(849, -75), Vector2(112, 78)), "col": Color(0.52, 0.38, 0.26), "label": "🏠 Casa Pescador"},
 		{"rect": Rect2(Vector2(676, 100), Vector2(138, 96)), "col": Color(0.22, 0.64, 0.58), "label": "🏥 Hospital y Morgue"},
-		{"rect": Rect2(Vector2(844, 100), Vector2(142, 96)), "col": Color(0.26, 0.42, 0.72), "label": "🚓 Comisaría y Cárcel"}
+		{"rect": Rect2(Vector2(844, 100), Vector2(142, 96)), "col": Color(0.26, 0.42, 0.72), "label": "🚓 Comisaría y Cárcel"},
+		{"rect": Rect2(Vector2(679, 266), Vector2(132, 92)), "col": Color(0.52, 0.36, 0.68), "label": "⛪ Capilla San Cipriano"},
+		{"rect": Rect2(Vector2(826, 262), Vector2(166, 98)), "col": Color(0.32, 0.42, 0.36), "label": "🪦 Cementerio Parroquial"}
 	]
 	var font: Font = ThemeDB.fallback_font
 	for b in buildings:
@@ -274,6 +284,8 @@ func _draw_valley_cartography(canvas: Control, detailed: bool) -> void:
 				acol = Color(0.90, 0.76, 0.48)
 			elif animal.species == WildAnimal.SpeciesType.FOX:
 				acol = Color(1.0, 0.48, 0.28)
+			elif animal.species == WildAnimal.SpeciesType.BOAR:
+				acol = Color(0.76, 0.42, 0.62)
 			canvas.draw_circle(ap, 2.8 if detailed else 1.6, acol)
 
 	# 8. Puntos en Vivo de Enemigos Hostiles de la Llanura
@@ -311,12 +323,14 @@ func _update_census_and_hover() -> void:
 	var r_alive := 0
 	var d_alive := 0
 	var f_alive := 0
+	var b_alive := 0
 	for a in get_tree().get_nodes_in_group("wild_animals"):
 		if a is WildAnimal and a.is_alive_in_ecosystem():
 			match a.species:
 				WildAnimal.SpeciesType.RABBIT: r_alive += 1
 				WildAnimal.SpeciesType.DEER: d_alive += 1
 				WildAnimal.SpeciesType.FOX: f_alive += 1
+				WildAnimal.SpeciesType.BOAR: b_alive += 1
 
 	var h_alive := 0
 	for h in get_tree().get_nodes_in_group("plains_hostiles"):
@@ -329,16 +343,43 @@ func _update_census_and_hover() -> void:
 			npc_alive += 1
 
 	if census_label:
-		census_label.text = "👥 Aldeanos activos: %d   |   🐇 Conejos: %d   |   🦌 Venados: %d   |   🦊 Zorros: %d   |   ⚔️ Hostiles Llanura/Ciénaga: %d" % [
-			npc_alive, r_alive, d_alive, f_alive, h_alive
+		census_label.text = "👥 Aldeanos: %d  |  🐇 Conejos: %d  |  🦌 Venados: %d  |  🦊 Zorros: %d  |  🐗 Jabalíes: %d  |  ⚔️ Hostiles Llanura: %d" % [
+			npc_alive, r_alive, d_alive, f_alive, b_alive, h_alive
 		]
 
 	if not hover_info_label:
 		return
 	var mpos := full_map_canvas.get_local_mouse_position()
 	var csize := full_map_canvas.size
-	var best_txt := "💡 Leyenda: 🔵 Tú | 🟡 Maestro Artesano | 🟢 Familiar | 🔹 Huésped | 🔴 Hostil Llanura | 🐇🦌🦊 Fauna del Bosque"
+	var best_txt := "💡 Leyenda: 🔵 Tú | 🟡 Maestro Artesano | 🟢 Familiar | 🔹 Huésped | 🔴 Hostil Llanura | 🐇🦌🦊🐗 Fauna del Bosque"
 	var best_d2: float = 14.0 * 14.0
+
+	var vm = get_tree().get_first_node_in_group("village_manager")
+	if vm and "shop_businesses" in vm:
+		var shop_rects: Array[Dictionary] = [
+			{"role": 1, "rect": Rect2(Vector2(277, -74), Vector2(116, 76))},
+			{"role": 2, "rect": Rect2(Vector2(527, -74), Vector2(116, 76))},
+			{"role": 3, "rect": Rect2(Vector2(527, 110), Vector2(116, 76))},
+			{"role": 4, "rect": Rect2(Vector2(407, 110), Vector2(116, 76))},
+			{"role": 5, "rect": Rect2(Vector2(261, 107), Vector2(128, 96))}
+		]
+		for sr in shop_rects:
+			var r_id: int = int(sr["role"])
+			var mr: Rect2 = _world_rect_to_map(sr["rect"], csize)
+			if mr.has_point(mpos) and vm.shop_businesses.has(r_id):
+				var b: Dictionary = vm.shop_businesses[r_id]
+				var own_mode: String = str(b.get("owner_mode", "NPC"))
+				var own_str: String = "Gremio Familiar"
+				if own_mode == "PARTNER":
+					own_str = "🤝 Eres Socio"
+				elif own_mode == "SOLE_OWNER":
+					own_str = "👑 Dueño Único"
+				var vault_g: int = int(b.get("vault_gold", 0))
+				var m_stat: String = str(vm.call("get_trade_market_status_text", r_id)) if vm.has_method("get_trade_market_status_text") else "Estable"
+				var stk_tot: int = int(vm.call("get_trade_total_stock", r_id)) if vm.has_method("get_trade_total_stock") else 0
+				best_txt = "🏪 %s — Propiedad: %s | %s | Stock: %d | 💰 Caja: %d Oro" % [
+					str(b.get("title", "Negocio")), own_str, m_stat, stk_tot, vault_g
+				]
 
 	for n in get_tree().get_nodes_in_group("village_npcs"):
 		if n is VillageNPC and not n.is_dead:

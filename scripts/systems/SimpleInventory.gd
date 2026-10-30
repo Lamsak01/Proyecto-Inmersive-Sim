@@ -365,6 +365,53 @@ const CATALOG: Dictionary = {
 		"usable": false,
 		"icon": "res://assests/items/icons/copper_coil.png"
 	},
+	"royal_safe_conduct": {
+		"name": "Salvoconducto Real Sellado",
+		"category": "Documento de la Corona",
+		"desc": "Cédula oficial con sello de lacre del Reino que autoriza a cruzar las fronteras del valle. ¡Cuidado: si un Investigador Real te lo encuentra encima tras la muerte de un mercader, será prueba irrefutable!",
+		"usable": false
+	},
+	"royal_ration": {
+		"name": "Conserva Real de Extramuros",
+		"category": "Importación Exótica",
+		"desc": "Ración militar especiada traída de la capital por mercaderes con salvoconducto (+60 HP, +80 STM, +90 Hambre).",
+		"usable": true,
+		"heal_hp": 60.0,
+		"restore_stamina": 80.0,
+		"restore_hunger": 90.0
+	},
+	"master_lockpick": {
+		"name": "Ganzúa Maestra de Relojero",
+		"category": "Herramienta Real (Casimir)",
+		"desc": "Instrumental de precisión de las Tierras Reales. Mientras la lleves en el inventario, reduces un 65% el radio de detección de testigos al forzar puertas ([F]) o cofres privados ([E]).",
+		"usable": true,
+		"is_passive_tool": true,
+		"icon": "res://assests/items/icons/master_lockpick.png"
+	},
+	"steel_bear_trap": {
+		"name": "Cepo de Acero de Frontera",
+		"category": "Trampa Táctica (Casimir)",
+		"desc": "Trampa mecánica dentada de las Tierras Reales. Úsala en el inventario para desplegarla en el suelo: atrapa al primer animal salvaje o enemigo hostil que la pise (35 Daño, Sangrado y 100 Stun).",
+		"usable": true,
+		"is_bear_trap": true,
+		"icon": "res://assests/items/icons/steel_bear_trap.png"
+	},
+	"ranger_camo_cloak": {
+		"name": "Manto de Camuflaje Montaraz",
+		"category": "Equipo de Sigilo (Valeria)",
+		"desc": "Capa mimética de las Tierras Reales. Mientras la lleves en el inventario, reduce un 40% la distancia a la que te detectan guardias, animales salvajes y el Investigador Real.",
+		"usable": true,
+		"is_passive_tool": true,
+		"icon": "res://assests/items/icons/ranger_camo_cloak.png"
+	},
+	"royal_paralytic_venom": {
+		"name": "Veneno Paralizante de Extramuros",
+		"category": "Alquimia Exótica (Valeria)",
+		"desc": "Destilado neurotóxico de las Tierras Reales. Impregna tu arma o flechas durante 60s: cada impacto aplica +50 de Stun/Parálisis adicional.",
+		"usable": true,
+		"venom_buff_duration": 60.0,
+		"icon": "res://assests/items/icons/royal_paralytic_venom.png"
+	},
 
 	# --- ARMADURAS TIER 1: CUERO CURTIDO ---
 	"helm_leather": {
@@ -869,6 +916,31 @@ func use_item(item_id: String, player: Node) -> bool:
 			player._spawn_floating_text("🌱 Semilla activa: %s" % get_item_name(item_id), Color.SPRING_GREEN, -42.0)
 		return true
 
+	# Herramientas pasivas de Tierras Reales (Ganzúa Maestra / Manto de Camuflaje)
+	if info.get("is_passive_tool", false):
+		if item_id == "master_lockpick":
+			if player.has_method("_spawn_floating_text"):
+				player._spawn_floating_text("🗝️ Ganzúa Maestra lista (-65% detección al forzar puertas/cofres)", Color.GOLD, -42.0)
+			if player.has_method("show_hint"):
+				player.call("show_hint", "🗝️ Ganzúa Maestra de Relojero activa pasivamente: tienes -65% riesgo de ser visto al forzar puertas ([F]) o cofres ([E]).")
+		elif item_id == "ranger_camo_cloak":
+			if player.has_method("_spawn_floating_text"):
+				player._spawn_floating_text("🧥 Manto Montaraz activo (-40% detección visual y de sigilo)", Color.SPRING_GREEN, -42.0)
+			if player.has_method("show_hint"):
+				player.call("show_hint", "🧥 Manto de Camuflaje Montaraz activo pasivamente: guardias, animales y el Investigador Real te detectan un 40% menos.")
+		return true
+
+	# Desplegar Cepo de Acero de Frontera en el suelo
+	if info.get("is_bear_trap", false) and player is Node2D:
+		var p_node_trap: Node2D = player as Node2D
+		var vm_trap = p_node_trap.get_tree().get_first_node_in_group("village_manager")
+		if vm_trap and vm_trap.has_method("deploy_steel_bear_trap"):
+			remove_item(item_id, 1)
+			vm_trap.call("deploy_steel_bear_trap", p_node_trap.global_position, player)
+			if player.has_method("_spawn_floating_text"):
+				player._spawn_floating_text("🪤 Cepo de Acero desplegado en el suelo", Color(0.95, 0.78, 0.32), -44.0)
+			return true
+
 	# Si es un Somnífero Nocturno, aplicarlo al NPC más cercano (<= 52 px) sin causar daño ni alerta
 	if info.get("is_sleeping_draught", false) and player is Node2D:
 		var p_node: Node2D = player as Node2D
@@ -909,6 +981,10 @@ func use_item(item_id: String, player: Node) -> bool:
 
 	if info.has("speed_buff_duration") and player.has_method("apply_speed_tonic"):
 		player.call("apply_speed_tonic", float(info["speed_buff_duration"]))
+		used = true
+
+	if info.has("venom_buff_duration") and player.has_method("apply_paralytic_venom"):
+		player.call("apply_paralytic_venom", float(info["venom_buff_duration"]))
 		used = true
 
 	if info.get("stop_bleed", false) and health_comp:

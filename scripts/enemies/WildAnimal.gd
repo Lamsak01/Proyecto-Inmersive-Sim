@@ -107,7 +107,8 @@ var status_label: Label = null
 func _ready() -> void:
 	set_physics_process(not Engine.is_editor_hint())
 	motion_mode = CharacterBody2D.MOTION_MODE_FLOATING
-	collision_layer = 4
+	# Sin Body Block contra el jugador (layer 0), manteniendo Hurtbox en layer 4 para combate/caza
+	collision_layer = 0
 	collision_mask = 1
 	if home_position == Vector2.ZERO:
 		home_position = global_position
@@ -190,6 +191,8 @@ func setup_animal(tex: Texture2D, spr_scale: Vector2 = Vector2.ONE, col_radius: 
 
 	_check_saved_state()
 
+var _cached_player: Node2D = null
+
 func is_alive_in_ecosystem() -> bool:
 	return state != AnimalState.CARCASS and state != AnimalState.BUTCHERED
 
@@ -214,18 +217,29 @@ func _physics_process(delta: float) -> void:
 		_process_in_burrow(delta)
 		return
 
+	if not is_instance_valid(_cached_player):
+		_cached_player = get_tree().get_first_node_in_group("player") as Node2D
+	var far_offscreen: bool = is_instance_valid(_cached_player) and global_position.distance_squared_to(_cached_player.global_position) > 500.0 * 500.0
+
 	if state == AnimalState.POUNCE:
 		_process_pounce(delta)
-		move_and_slide()
-		_update_sprite_motion(delta)
+		if far_offscreen:
+			global_position += velocity * delta
+		else:
+			move_and_slide()
+			_update_sprite_motion(delta)
 		return
 
 	_ai_tick_timer -= delta
 	if _ai_tick_timer <= 0.0:
-		_ai_tick_timer = 0.16
+		_ai_tick_timer = 0.45 if far_offscreen else 0.16
 		_check_threats()
 		_evaluate_life_schedule()
-		_update_observation_label()
+		if far_offscreen:
+			if status_label and status_label.visible:
+				status_label.visible = false
+		else:
+			_update_observation_label()
 
 	match state:
 		AnimalState.GRAZE:
@@ -249,8 +263,20 @@ func _physics_process(delta: float) -> void:
 		AnimalState.FLEE:
 			_process_flee(delta)
 
-	move_and_slide()
-	_update_sprite_motion(delta)
+	if far_offscreen:
+		if velocity.length_squared() > 0.1:
+			global_position += velocity * delta
+	else:
+		if state != AnimalState.SLEEP and is_instance_valid(_cached_player):
+			var min_r: float = 15.0 if (species == SpeciesType.RABBIT or species == SpeciesType.FOX) else 18.0
+			var d_sq: float = global_position.distance_squared_to(_cached_player.global_position)
+			if d_sq < min_r * min_r:
+				var d: float = sqrt(d_sq)
+				var away: Vector2 = (global_position - _cached_player.global_position) / maxf(0.01, d) if d >= 0.01 else Vector2.RIGHT
+				var push_spd: float = 60.0 if (species == SpeciesType.RABBIT or species == SpeciesType.FOX) else 38.0
+				velocity += away * ((min_r - d) / min_r) * push_spd
+		move_and_slide()
+		_update_sprite_motion(delta)
 
 func _update_sprite_motion(delta: float) -> void:
 	if not sprite:

@@ -337,11 +337,13 @@ func _refresh_portraits_bar() -> void:
 		card.add_child(hbox)
 
 		var portrait := TextureRect.new()
-		portrait.custom_minimum_size = Vector2(34, 34)
+		portrait.custom_minimum_size = Vector2(54, 54)
 		portrait.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 		portrait.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 		portrait.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
-		if npc and npc.sprite and npc.sprite.texture:
+		if npc and npc.has_method("get_portrait_texture"):
+			portrait.texture = npc.get_portrait_texture()
+		elif npc and npc.sprite and npc.sprite.texture:
 			portrait.texture = npc.sprite.texture
 		hbox.add_child(portrait)
 

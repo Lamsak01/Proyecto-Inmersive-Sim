@@ -7,6 +7,7 @@ var village_manager: VillageManager = null
 var _weather_layer: CanvasLayer = null
 var _weather_canvas: Control = null
 var _weather_anim_time: float = 0.0
+var _weather_redraw_timer: float = 0.0
 
 func _ready() -> void:
 	var in_editor := Engine.is_editor_hint()
@@ -31,16 +32,17 @@ func _ready() -> void:
 			ambient_modulate.color = WorldClock.get_ambient_color()
 			WorldClock.time_updated.connect(_on_world_time_updated)
 
-	# 2. Ampliar fondo de hierba sin el recorte de 320x192 de Parallax2D para cubrir toda la pantalla y todo el mapa
+	# 2. Ajustar fondo de hierba al tamaño real del valle (-920..1000 x -340..1300) con margen de cámara
+	# (Evita generar 81 millones de píxeles en mosaico que saturan la GPU integrada de laptops)
 	var parallax := get_node_or_null("Environment/Parallax2D") as Parallax2D
 	if parallax:
 		parallax.repeat_size = Vector2.ZERO
 	var grass_rect := get_node_or_null("Environment/Parallax2D/TextureRect") as TextureRect
 	if grass_rect:
-		grass_rect.offset_left = -3500.0
-		grass_rect.offset_top = -3500.0
-		grass_rect.offset_right = 5500.0
-		grass_rect.offset_bottom = 5500.0
+		grass_rect.offset_left = -1450.0
+		grass_rect.offset_top = -850.0
+		grass_rect.offset_right = 1550.0
+		grass_rect.offset_bottom = 1650.0
 
 	# Ajustar zoom inicial de la cámara para ver un área más amplia y cómoda en pantalla completa
 	if not in_editor:
@@ -53,15 +55,15 @@ func _ready() -> void:
 		nav_region.name = "RuntimeNavigationRegion"
 		add_child(nav_region)
 		
-		# Setup NavigationPolygon
+		# Setup NavigationPolygon ajustado a los límites reales del Valle
 		var nav_poly = NavigationPolygon.new()
 		nav_poly.agent_radius = 16.0 # Approximate enemy radius
 		
 		var outline = PackedVector2Array([
-			Vector2(-2500, -2500),
-			Vector2(4500, -2500),
-			Vector2(4500, 4500),
-			Vector2(-2500, 4500)
+			Vector2(-1250, -650),
+			Vector2(1350, -650),
+			Vector2(1350, 1550),
+			Vector2(-1250, 1550)
 		])
 		nav_poly.vertices = outline
 		nav_poly.add_polygon(PackedInt32Array([0, 1, 2, 3]))
@@ -113,7 +115,10 @@ func _process(delta: float) -> void:
 		return
 	_weather_canvas.visible = true
 	_weather_anim_time += delta
-	_weather_canvas.queue_redraw()
+	_weather_redraw_timer -= delta
+	if _weather_redraw_timer <= 0.0:
+		_weather_redraw_timer = 0.035
+		_weather_canvas.queue_redraw()
 
 func _draw_weather_overlay() -> void:
 	if not _weather_canvas or not WorldClock:

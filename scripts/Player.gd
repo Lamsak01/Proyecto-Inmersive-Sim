@@ -112,6 +112,7 @@ var max_water_charges: int = 6
 var watering_can_charges: int = 6
 var armor_speed_multiplier: float = 1.0
 var speed_tonic_timer: float = 0.0
+var paralytic_venom_timer: float = 0.0
 var _armor_visual_overlay: Node2D = null
 
 # Status variables for controllers
@@ -383,12 +384,26 @@ func apply_speed_tonic(duration: float = 35.0) -> void:
 	apply_armor_stats()
 	_spawn_floating_text("⚡ Tónico de Velocidad (+25% Vel por %ds)" % int(duration), Color.AQUA, -44.0)
 
+func apply_paralytic_venom(duration: float = 60.0) -> void:
+	paralytic_venom_timer = maxf(paralytic_venom_timer, duration)
+	_spawn_floating_text("🧪🐍 Veneno Paralizante (+50 Stun en impactos por %ds)" % int(duration), Color(0.55, 1.0, 0.35), -44.0)
+
+func get_stealth_detection_multiplier() -> float:
+	if inventory and inventory.has_item("ranger_camo_cloak", 1):
+		return 0.60
+	return 1.0
+
+func has_master_lockpick() -> bool:
+	return inventory != null and inventory.has_item("master_lockpick", 1)
+
 func _process(delta: float) -> void:
 	if speed_tonic_timer > 0.0:
 		speed_tonic_timer -= delta
 		if speed_tonic_timer <= 0.0:
 			speed_tonic_timer = 0.0
 			apply_armor_stats()
+	if paralytic_venom_timer > 0.0:
+		paralytic_venom_timer = maxf(0.0, paralytic_venom_timer - delta)
 	if _hit_flash_timer > 0.0:
 		_hit_flash_timer -= delta
 		if _hit_flash_timer <= 0.0 and anim:

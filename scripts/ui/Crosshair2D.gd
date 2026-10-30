@@ -23,6 +23,18 @@ var _last_screen_mouse: Vector2 = Vector2.ZERO
 var _mouse_active_timer: float = 0.0
 var _arrow_active_timer: float = 0.0
 
+var _cached_inv_panel: Control = null
+var _cached_wheel_panel: Control = null
+var _cached_games_panel: Control = null
+var _ui_lookup_cooldown: float = 0.0
+var _target_color_timer: float = 0.0
+
+var _last_drawn_gap: float = -1.0
+var _last_drawn_color: Color = Color.TRANSPARENT
+var _last_drawn_ranged: bool = false
+var _last_drawn_bow: bool = false
+var _last_drawn_tension: float = -1.0
+
 func _ready() -> void:
 	z_index = 100
 	top_level = true
@@ -37,23 +49,40 @@ func get_aim_world_position() -> Vector2:
 		return player.global_position + Vector2(0, -10) + aim_offset
 	return global_position
 
+func _refresh_cached_ui_panels(delta: float) -> void:
+	if _ui_lookup_cooldown > 0.0:
+		_ui_lookup_cooldown -= delta
+		return
+	if is_instance_valid(_cached_inv_panel) and is_instance_valid(_cached_wheel_panel) and is_instance_valid(_cached_games_panel):
+		_ui_lookup_cooldown = 1.0
+		return
+	_ui_lookup_cooldown = 0.5
+	var root_node: Window = get_tree().root
+	if not root_node:
+		return
+	if not is_instance_valid(_cached_inv_panel):
+		_cached_inv_panel = root_node.find_child("InventoryPanel", true, false) as Control
+	if not is_instance_valid(_cached_wheel_panel):
+		_cached_wheel_panel = root_node.find_child("ToolWheelUI", true, false) as Control
+	if not is_instance_valid(_cached_games_panel):
+		_cached_games_panel = root_node.find_child("TavernGamesUI", true, false) as Control
+
 func _process(delta: float) -> void:
 	if not is_instance_valid(player):
 		return
+
+	_refresh_cached_ui_panels(delta)
 
 	# 1. Si hay un menú, rueda radial o diálogo abierto, mostrar el cursor del sistema y ocultar la cruceta
 	var ui_open := false
 	var dm = player.get("dialogue_manager")
 	if dm and dm.has_method("is_active") and dm.call("is_active"):
 		ui_open = true
-	var inv_panel = get_tree().root.find_child("InventoryPanel", true, false)
-	if inv_panel and inv_panel.visible:
+	if is_instance_valid(_cached_inv_panel) and _cached_inv_panel.visible:
 		ui_open = true
-	var wheel_panel = get_tree().root.find_child("ToolWheelUI", true, false)
-	if wheel_panel and wheel_panel.visible:
+	if is_instance_valid(_cached_wheel_panel) and _cached_wheel_panel.visible:
 		ui_open = true
-	var games_panel = get_tree().root.find_child("TavernGamesUI", true, false)
-	if games_panel and games_panel.visible:
+	if is_instance_valid(_cached_games_panel) and _cached_games_panel.visible:
 		ui_open = true
 
 	if ui_open:
@@ -125,9 +154,20 @@ func _process(delta: float) -> void:
 	target_gap = base_gap + recoil_impulse
 	current_gap = lerpf(current_gap, target_gap, clampf(18.0 * delta, 0.0, 1.0))
 
-	# 6. Detectar si el punto de mira está sobre un enemigo, animal o recurso
-	reticle_color = _detect_target_color()
-	queue_redraw()
+	# 6. Detectar si el punto de mira está sobre un enemigo, animal o recurso (throttled a ~12 Hz)
+	_target_color_timer -= delta
+	if _target_color_timer <= 0.0:
+		_target_color_timer = 0.08
+		reticle_color = _detect_target_color()
+
+	var rounded_gap := roundf(current_gap)
+	if rounded_gap != _last_drawn_gap or not reticle_color.is_equal_approx(_last_drawn_color) or is_ranged_mode != _last_drawn_ranged or is_drawing_bow != _last_drawn_bow or absf(bow_tension - _last_drawn_tension) > 0.01:
+		_last_drawn_gap = rounded_gap
+		_last_drawn_color = reticle_color
+		_last_drawn_ranged = is_ranged_mode
+		_last_drawn_bow = is_drawing_bow
+		_last_drawn_tension = bow_tension
+		queue_redraw()
 
 func _detect_target_color() -> Color:
 	var mouse_pos := global_position

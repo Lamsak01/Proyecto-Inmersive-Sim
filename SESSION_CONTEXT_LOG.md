@@ -243,3 +243,62 @@
 2. **Pacificación Inmediata de Civiles al Intervenir la Policía (`VillageManager.gd`, `VillageNPC.gd`, `Player.gd`):**
    - `VillageManager.clear_police_hostility()` ahora limpia `is_hostile = false`, `_civilian_hostile_timer = 0.0`, `velocity = Vector2.ZERO` y retira del grupo `"enemies"` a **todos** los `VillageNPC` (incluidos los civiles) al iniciar la negociación policial, durante la escolta física a la comisaría y al entrar en la celda.
    - `VillageNPC._process_hostile_combat()` detiene inmediatamente cualquier persecución si `player_being_escorted_to_jail` o `player_in_jail` están activos o si el civil llega al perímetro de la Comisaría (`Rect2(832, 92, 166, 108)`), y `Player.take_damage()` protege al jugador de cualquier daño mientras está esposado o dentro de la celda.
+
+---
+
+## Actualización 2026-10-29 (Fase 8): Economía Dinámica de Oferta y Demanda, Consumo Real de Alimentos, Sabotaje Industrial y Propiedad Híbrida de Negocios
+
+1. **Precios Dinámicos de Oferta y Demanda (`get_trade_market_multiplier`, `_get_dynamic_sell_price`, `_get_dynamic_buy_price` en `VillageManager.gd` y `VillageNPC.gd`):**
+   - Cada uno de los 5 gremios (**Herrería**, **Carnicería**, **Carpintería**, **Pescadería**, **Botica**) y la **Posada** calcula su multiplicador de precios en vivo según el inventario real del mostrador (`get_trade_total_stock`) y el estado operativo del taller:
+     - `0.80x` (`📉 Excedente -20%`) con $\ge 12$ unidades en stock.
+     - `1.00x` (`⚖️ Estable 100%`) con $4\text{–}11$ unidades en stock.
+     - `1.55x` (`📈 Escasez +55%`) con $\le 3$ unidades en stock.
+     - `2.25x` (`🔥 Crisis +125%`) cuando el stock llega a $0$, el maestro artesano ha muerto/caído o el taller está saboteado.
+2. **Consumo Real de Comida del Pueblo (`consume_village_meal_for_npc` en `VillageManager.gd` y `VillageNPC.gd`):**
+   - Cuando cualquier aldeano llega a su mesa de comedor o a la Posada para comer (`ActivityState.EATING`), consume `1` unidad real de comida de las tiendas de la aldea (`FISHMONGER`, `BUTCHER`, `HERBALIST` o `INNKEEPER`).
+   - Si el jugador es **Socio (`PARTNER`)** o **Dueño Único (`SOLE_OWNER`)** de esa tienda, cada comida comprada por un vecino deposita Oro real en la **Caja Registradora (`vault_gold`)**.
+3. **Sabotaje Industrial con `[F]` (`sabotage_shop_stall` en `VillageManager.gd`):**
+   - Acercarse al mostrador de cualquiera de los 5 talleres y pulsar **`[F]`** (o el botón `[4]` del panel de gestión) sabotea la maquinaria durante **2 días** (`sabotaged_days = 2`), bloquea la expedición matutina del artesano, reduce el stock un `60%`, entrega `1` material saqueado, dispara los precios del gremio a **`2.25x`** y permite comprar el negocio en **Liquidación por `65 Oro`**.
+   - Respeta el sistema de **Sigilo (`[C]`)** y línea de visión (`_find_conscious_witness_near`).
+4. **Propiedad Híbrida de Negocios, Abastecimiento de Mostrador y Contratación (`open_business_management_ui` en `VillageManager.gd`):**
+   - Accesible pulsando **`[E]`** frente a cualquier mostrador comercial o mediante la opción `"📜 Negocio, Escritura de Propiedad y Caja Registradora"` al hablar con el artesano:
+     - **`[1]` Comprar Escritura de Socio (`110 Oro`, o `85 Oro` si eres Aliado Familiar) / Comprar en Liquidación (`65 Oro` si está vacante, sin stock o saboteado) / Recaudar Caja Registradora (`vault_gold`)**.
+     - **`[2]` Abastecer Mostrador con tu Mochila:** Deposita productos de tu inventario en el mostrador para su venta automática a los vecinos (o cobro inmediato a precio de mercado).
+     - **`[3]` Contratar Nuevo Encargado (`-30 Oro`):** Si el local quedó vacante tras la muerte del maestro, permite contratar a un nuevo encargado desde el mostrador.
+     - **`[4]` Sabotear Taller (`[F]`) o Reparar Maquinaria (`-1 Madera` o `-12 Oro`)**.
+5. **Persistencia Completa y Mapa Cartográfico (`GameManager.gd`, `ValleyMapUI.gd`):**
+   - `GameManager.gd` guarda y carga `vm.get_economy_save_dict()` / `vm.load_economy_save_dict(...)`.
+   - `ValleyMapUI.gd` muestra en el censo los `🐗 Jabalíes` y permite inspeccionar al pasar el ratón sobre cualquiera de las 5 tiendas su estado de propiedad, multiplicador de Oferta/Demanda, stock total y oro acumulado en la Caja Registradora.
+6. **Corrección de Horario de Puertas con Alerta Baja (`_on_hour_passed` y `_apply_hourly_door_security_schedule` en `VillageManager.gd`):**
+   - Corregido el orden de argumentos de `_on_hour_passed(_day: int, new_hour: int)` respecto a `WorldClock.hour_passed(day, hour)`.
+   - Cuando `sec_lvl == 0` (**🟢 Tranquila**) y la familia no está enemistada (`fam_aff >= 0`), las puertas de las casas (`house_`) y viviendas mixtas (`mixed_`) permanecen cerradas pero **sin llave** (`is_locked = false`), abriéndose normalmente con **`[E]`**.
+7. **Sprites y Retratos Únicos en `64×64` px + Historias Personales Estructuradas para los 17 Aldeanos (`assests/world/village/npcs_64/`, `VillageNPC.gd`, `scenes/dialogue_manager.gd`, `TavernGamesUI.gd`):**
+   - Generados **18 sprites de cuerpo completo (`64×64`)** y **18 retratos faciales detallados (`64×64`)** con rasgos únicos para cada habitante (*Thoran*, *Kael*, *Garrick*, *Lina*, *Bram*, *Mila*, *Marlo*, *Nora*, *Elena*, *Tomás*, *Marta*, *Dr. Valen*, *Comisario Vane*, *Guardia Rodric*, *Aldric*, *Sora*, *Darío* y *Guía*).
+   - `dialogue_manager.gd` muestra el retrato `64×64` enmarcado a la izquierda junto al contexto narrativo (`character_tagline`), y todos los NPCs incluyen las ramas de conversación **`📖 Conocer la historia personal y el pasado`** (`character_lore`) y **`🔍 Preguntar por lo que calla o ha observado en el valle`** (`character_secret`).
+
+---
+
+## Actualización 2026-10-30 (Fase 9 y 10): Animaciones para los 21 NPCs, Crafteo en Tiempo Real con Compras entre Vecinos, Ítems de las Tierras Reales e IA Deductiva del Inquisidor Real Alistair
+
+1. **Mascotas y Animales Pequeños sin Body-Block (`scripts/enemies/DomesticPet.gd`, `scripts/obstacles/ChickenCoop.gd`, `scripts/enemies/WildAnimal.gd`):**
+   - Eliminadas las colisiones sólidas (`collision_layer = 0`, `collision_mask = 0`) en perros, gatos, gallinas y animales salvajes pacíficos para que el jugador y los NPCs puedan atravesarlos con fluidez sin quedar bloqueados en puertas o pasillos.
+   - Añadido reflejo suave de *Auto-Step-Aside* en `DomesticPet.gd` y `ChickenCoop.gd` para que las mascotas y gallinas se aparten ligeramente cuando el jugador pasa junto a ellas.
+2. **Skins Exclusivas, Retratos `64×64` y Hojas de Animación (`320×64`, 5 frames) para los 21 NPCs (`assests/world/village/npcs_64/`, `scripts/enemies/VillageNPC.gd`):**
+   - Creados sprites únicos, retratos `64×64` y hojas de animación de 5 columnas (`Idle 0`, `Idle 1`, `Walk A`, `Walk B`, `Action / Trabajo / Interrogatorio`) para **todos los 21 NPCs** del valle, incluyendo a los mercaderes viajeros **`Maese Casimir`** y **`Valeria la Tratante`** y al **`Inquisidor Real Alistair`**.
+   - Motor de animación por frames (`_update_visual_animation` en `VillageNPC.gd`) sincronizado con movimiento, trabajo de taller, conversación e interrogatorios.
+3. **Crafteo Artesanal en Tiempo Real con Barra de Progreso y Compras Físicas entre Tiendas Vecinas (`scripts/enemies/VillageNPC.gd`, `scripts/systems/VillageManager.gd`):**
+   - Durante su horario laboral en el taller (`WORK`), los 5 maestros artesanos (*Thoran*, *Bram*, *Garrick*, *Marlo*, *Elena*) muestran una barra de progreso visual sobre su cabeza (`🔨 Fabricando ... XX%`) y al llegar al `100%` suman `+1` unidad real del producto refinado al stock de su tienda (`shop_stock`).
+   - Cuando un artesano necesita insumos de otro gremio (ej. *Thoran* necesita `wood` de la Carpintería para forjar espadas/picos, o *Bram* necesita `iron_ore` de la Herrería para muebles reforzados), sale caminando físicamente a la tienda vecina (`_start_neighbor_supply_run`), compra el insumo pagando oro real a la caja del vecino (`npc_buy_material_from_shop`) y regresa a su taller para continuar fabricando.
+4. **Ítems Exclusivos de las Tierras Reales y Persistencia Completa (`SimpleInventory.gd`, `PlayerCombatController.gd`, `Player.gd`, `VillageManager.gd`, `VillageNPC.gd`):**
+   - **`royal_paralytic_venom` (Veneno Paralizante Real):** Imbuye tu arma por 3 golpes, aplicando sedación profunda (`18 s`) en combate o sigilo sin matar a la víctima.
+   - **`master_lockpick` (Ganzúa Maestra de Corte):** Abre silenciosamente puertas y cofres cerrados sin romperse (`100%` de éxito).
+   - **`ranger_camo_cloak` (Capa de Camuflaje Real):** Reduce un `35%` el radio de detección visual de todos los testigos y guardias al ir en sigilo (`get_stealth_detection_multiplier()`).
+   - **`steel_bear_trap` (Cepo de Acero Desplegable):** Coloca una trampa física en el suelo (`deploy_steel_bear_trap`) que inflige `35` de daño de corte, sangrado y aturdimiento al primer animal salvaje o enemigo hostil que la pise.
+   - Guardado y carga completos (`get_economy_save_dict` / `load_economy_save_dict`) del estado de los mercaderes viajeros, el embargo comercial (`20–30 días`), la investigación activa del Inquisidor Real Alistair, el historial de arrestos/órdenes de captura y las mascotas domésticas.
+5. **Atención Presencial de los NPCs al Hablar con el Jugador o con el Inquisidor (`VillageNPC.gd`):**
+   - Cuando el jugador abre diálogo con cualquier NPC (`dialogue_manager.active` y `current_speaker == self`), el NPC se detiene inmediatamente (`velocity = Vector2.ZERO`), pausa su barra de crafteo, gira hacia el jugador y mantiene su animación de conversación hasta que termina la charla.
+   - Cuando el `Inquisidor Real Alistair` interroga a un aldeano (`hold_for_interview`), el aldeano también detiene su caminata o trabajo y atiende cara a cara al Inquisidor.
+6. **IA Deductiva Multidiaria del Inquisidor Real Alistair Integrada con la Comisaría y la Morgue (`VillageManager.gd`):**
+   - **Conexión con el Comisario Vane y la Morgue Forense:** Registro persistente de arrestos y órdenes de captura (`player_arrests_count`, `player_murder_warrants_count`), notificación directa al expediente de Alistair (`_notify_inquisitor_of_police_crime`) y cruce con el Libro de Autopsias (`_cross_check_morgue_and_police_records`).
+   - **Distinción entre Testigos Oculares y Sospechosos:** Los aldeanos que presenciaron el crimen o vieron al jugador junto al mercader (`saw_player_near` / `murder_witness_name`) quedan registrados como **Testigos Oculares (`0%` sospecha propia)** en vez de sospechosos, y al ser interrogados declaran contra el jugador (`+38%` sospecha al Jugador). Los aldeanos a `> 360 px` quedan descartados por distancia física (`0%`).
+   - **Interrogatorio al Jugador (`INITIAL_PLAYER_INTERVIEW`) y Ritmo de `6+` Entrevistas Físicas por Día:** Tras revisar la escena del crimen y la Morgue en el Día 1 (o de inmediato si el jugador cae preso en la celda de la Comisaría), Alistair acude físicamente a interrogar al jugador. Después interroga cara a cara a todos los habitantes a un ritmo de **`6+` personas por día** (`07:00–20:00`) y, en cuanto termina la lista, pasa directamente a `PLAYER_CHECK` y emite su `VERDICT` sin alargar artificialmente el caso.

@@ -295,6 +295,8 @@ func attack(_aim_with_mouse: bool = true) -> void:
 	
 	# Enable hitbox briefly in the exact 360° mouse aim direction
 	hitbox_area.damage_data = equipped.damage_data.copy()
+	if "paralytic_venom_timer" in player and float(player.get("paralytic_venom_timer")) > 0.0:
+		hitbox_area.damage_data.stun_buildup += 50.0
 	hitbox_area.damage_data.source = player
 	
 	hitbox_shape.disabled = false
@@ -324,6 +326,8 @@ func _fire_bow(equipped: WeaponData, tension: float = 1.0) -> void:
 	arrow.shooter = player
 	arrow.damage_data = equipped.damage_data.copy()
 	arrow.damage_data.amount = equipped.damage_data.amount * lerpf(0.55, 1.4, tension)
+	if "paralytic_venom_timer" in player and float(player.get("paralytic_venom_timer")) > 0.0:
+		arrow.damage_data.stun_buildup += 50.0
 	arrow.damage_data.source = player
 	player.get_tree().current_scene.add_child(arrow)
 
