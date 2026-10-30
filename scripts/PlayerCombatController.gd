@@ -338,6 +338,7 @@ func _fire_bow(equipped: WeaponData, tension: float = 1.0) -> void:
 	arrow.speed = lerpf(190.0, 380.0, tension)
 	arrow.shooter = player
 	arrow.damage_data = equipped.damage_data.copy()
+	arrow.damage_data.weapon_tag = "Impacto de Flecha (Arco)"
 	arrow.damage_data.amount = equipped.damage_data.amount * lerpf(0.55, 1.4, tension)
 	if "paralytic_venom_timer" in player and float(player.get("paralytic_venom_timer")) > 0.0:
 		arrow.damage_data.stun_buildup += 50.0

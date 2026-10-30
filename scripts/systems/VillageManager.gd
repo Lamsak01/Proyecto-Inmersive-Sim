@@ -5032,13 +5032,17 @@ func on_traveling_merchant_murdered(merchant: VillageNPC, cause_text: String = "
 	var player_in_stealth: bool = player != null and player.has_method("is_stealthing") and bool(player.call("is_stealthing"))
 
 	for v in all_living:
-		# ¿Tenía coartada mutua real? (Estaba a <= 115 px de otro aldeano consciente Y con línea de visión directa sin muros)
+		# Memoria privada de cada habitante en el instante del crimen (el Inquisidor NO la conoce hasta interrogarlo)
 		var alibi_partner: String = ""
+		var seen_near_villager: String = ""
 		for other in all_living:
-			if other != v and not other.is_downed and not other.is_sleeping and v.global_position.distance_to(other.global_position) <= 115.0:
-				if has_line_of_sight(v.global_position, other.global_position):
-					alibi_partner = other.npc_name
-					break
+			if other == v or other.is_downed or other.is_sleeping:
+				continue
+			var d_other: float = v.global_position.distance_to(other.global_position)
+			if alibi_partner == "" and d_other <= 115.0 and has_line_of_sight(v.global_position, other.global_position):
+				alibi_partner = other.npc_name
+			elif seen_near_villager == "" and d_other <= 220.0 and other.global_position.distance_to(crime_pos) <= 280.0 and has_line_of_sight(v.global_position, other.global_position):
+				seen_near_villager = other.npc_name
 
 		var dist_to_crime: float = v.global_position.distance_to(crime_pos)
 		var saw_player_near: bool = (direct_murder_witness != "" and v.npc_name == direct_murder_witness)
@@ -5049,55 +5053,29 @@ func on_traveling_merchant_murdered(merchant: VillageNPC, cause_text: String = "
 				if has_line_of_sight(v.global_position, player.global_position):
 					saw_player_near = true
 
-		# Puntuación inicial estrictamente filtrada:
-		# - Si el aldeano fue TESTIGO OCULAR (`saw_player_near == true`), su sospecha es 0 (es un testigo que vio al Forastero, ¡no un sospechoso!).
-		# - Si estaba lejos (> 360 px), su sospecha es 0.
-		var init_npc_score: int = 0
-		var init_status_note: String = ""
-		var dist_m: int = int(round(dist_to_crime / 16.0))
-		if saw_player_near:
-			init_npc_score = 0
-			init_status_note = "Testigo ocular (vio al Forastero en la escena a %dm)" % dist_m
-		elif dist_to_crime > 360.0:
-			init_npc_score = 0
-			init_status_note = "Lejos de la escena (%dm)" % dist_m
-		elif alibi_partner != "":
-			init_npc_score = 6 if dist_to_crime <= 180.0 else 2
-			init_status_note = "Cerca (%dm) pero con coartada (%s)" % [dist_m, alibi_partner]
-		else:
-			if dist_to_crime <= 150.0:
-				init_npc_score = 34
-				init_status_note = "En la escena (%dm) y SIN coartada" % dist_m
-			elif dist_to_crime <= 250.0:
-				init_npc_score = 22
-				init_status_note = "Próximo a la escena (%dm) y SIN coartada" % dist_m
-			else:
-				init_npc_score = 12
-				init_status_note = "En el perímetro (%dm) y SIN coartada" % dist_m
-			if (v.trade_role == VillageNPC.TradeRole.UNEMPLOYED or v.is_vagrant_camper) and dist_to_crime <= 340.0:
-				init_npc_score += 8 # Prejuicio contra vagabundos/forasteros solo si merodeaban cerca del crimen
-
 		suspects_dict[v.npc_name] = {
 			"name": v.npc_name,
 			"is_player": false,
-			"score": init_npc_score,
-			"alibi_partner": alibi_partner,
-			"dist_to_crime": dist_to_crime,
-			"saw_player_near": saw_player_near,
+			"score": 10,
+			"known_dist": -1.0,
+			"mem_alibi_partner": alibi_partner,
+			"mem_dist_to_crime": dist_to_crime,
+			"mem_saw_player_near": saw_player_near,
+			"mem_player_dist": player_dist_at_crime if saw_player_near else -1.0,
+			"mem_seen_villager": seen_near_villager,
+			"is_vagrant": (v.trade_role == VillageNPC.TradeRole.UNEMPLOYED or v.is_vagrant_camper),
 			"interviewed": false,
-			"status_note": init_status_note
+			"status_note": "Paradero pendiente de interrogar"
 		}
 		npcs_to_interview.append(v.npc_name)
 
-	# Puntuación inicial del Jugador (integrada con la Comisaría Local, la Morgue y los testigos presenciales)
-	var player_init_score: int = 16
-	var p_dist_m: int = int(round(player_dist_at_crime / 16.0))
-	var p_note: String = "Forastero en el valle (%dm de la escena)" % p_dist_m
-	if player_dist_at_crime <= 115.0 and not player_in_stealth:
-		player_init_score += 24
-		p_note = "Visto sin sigilo junto a la escena (%dm)" % p_dist_m
+	# Expediente inicial del Jugador: sin omnisciencia mágica (Alistair solo sabe lo que conste en actas de la Guardia o declaren testigos)
+	var player_init_score: int = 10
+	var player_known_dist: float = -1.0
+	var p_note: String = "Forastero en el valle (paradero aún no confirmado)"
 	if direct_murder_witness != "":
 		player_init_score += 45
+		player_known_dist = player_dist_at_crime
 		p_note = "Denunciado a la Guardia por testigo presencial (%s)" % direct_murder_witness
 	if player_in_jail or player_being_escorted_to_jail or wanted_level > 0 or player_murder_warrants_count > 0:
 		player_init_score += 35
@@ -5107,9 +5085,7 @@ func on_traveling_merchant_murdered(merchant: VillageNPC, cause_text: String = "
 		"name": "El Forastero (Jugador)",
 		"is_player": true,
 		"score": player_init_score,
-		"alibi_partner": "",
-		"dist_to_crime": player_dist_at_crime,
-		"saw_player_near": false,
+		"known_dist": player_known_dist,
 		"interviewed": false,
 		"status_note": p_note
 	}
@@ -5638,44 +5614,66 @@ func _evaluate_npc_interview(inv_npc: VillageNPC, witness: VillageNPC, suspects:
 		return
 	var entry: Dictionary = suspects[witness.npc_name]
 	entry["interviewed"] = true
-	var alibi: String = str(entry.get("alibi_partner", ""))
-	var dist_to_crime: float = float(entry.get("dist_to_crime", 999.0))
+	var alibi: String = str(entry.get("mem_alibi_partner", entry.get("alibi_partner", "")))
+	var dist_to_crime: float = float(entry.get("mem_dist_to_crime", entry.get("dist_to_crime", 999.0)))
+	entry["known_dist"] = dist_to_crime
 	var dist_m: int = int(round(dist_to_crime / 16.0))
-	var is_eyewitness: bool = bool(entry.get("saw_player_near", false))
+	var is_eyewitness: bool = bool(entry.get("mem_saw_player_near", entry.get("saw_player_near", false)))
 
 	if is_eyewitness and suspects.has("Jugador"):
-		# ¡Corrección clave! Si el aldeano vio al Jugador cometer el crimen o merodear en la escena, es un TESTIGO OCULAR DE CARGO (0% sospecha propia)
 		entry["score"] = 0
-		entry["status_note"] = "Testigo ocular de cargo contra el Forastero"
+		entry["status_note"] = "Testigo ocular de cargo contra el Forastero (%dm)" % dist_m
 		var p_entry: Dictionary = suspects["Jugador"]
-		p_entry["score"] = int(p_entry.get("score", 16)) + 38
-		p_entry["status_note"] = "Acusado por el testigo ocular %s" % witness.npc_name
-		clues.append("Testimonio ocular de %s: declaró haber visto al Forastero junto al mercader en el momento del crimen (+38%% sospecha al Jugador)." % witness.npc_name)
+		var p_dist: float = float(entry.get("mem_player_dist", 32.0))
+		if p_dist >= 0.0:
+			p_entry["known_dist"] = p_dist
+		p_entry["score"] = int(p_entry.get("score", 10)) + 38
+		p_entry["status_note"] = "Visto junto a la escena por %s" % witness.npc_name
+		clues.append("Testimonio de %s: declaró haber visto al Forastero junto al mercader en el momento del crimen (+38%% sospecha al Jugador)." % witness.npc_name)
 		witness._spawn_floating_text("🗣️👁️ ¡Lo vi! ¡El Forastero estaba junto al mercader!", Color.ORANGE_RED, -36.0)
 		if is_instance_valid(inv_npc):
 			inv_npc._spawn_floating_text("📝👁️ Testigo clave: %s vio al Forastero en la escena" % witness.npc_name, Color.ORANGE_RED, -38.0)
 		return
 
 	if alibi != "":
-		entry["score"] = maxi(0, int(entry.get("score", 6)) - 25)
-		entry["status_note"] = "Coartada confirmada con %s" % alibi
-		clues.append("%s tiene coartada confirmada junto a %s (Descartado)." % [witness.npc_name, alibi])
+		entry["score"] = 0
+		entry["status_note"] = "Coartada confirmada con %s (%dm)" % [alibi, dist_m]
+		if suspects.has(alibi):
+			var p_alibi: Dictionary = suspects[alibi]
+			p_alibi["known_dist"] = float(p_alibi.get("mem_dist_to_crime", dist_to_crime))
+			if not bool(p_alibi.get("interviewed", false)):
+				p_alibi["score"] = 2
+				p_alibi["status_note"] = "Coartada corroborada por %s" % witness.npc_name
+		clues.append("%s declaró que estaba junto a %s a %d m de la escena (Coartada confirmada)." % [witness.npc_name, alibi, dist_m])
 		if is_instance_valid(inv_npc):
 			inv_npc._spawn_floating_text("📝✅ %s tiene coartada con %s" % [witness.npc_name, alibi], Color.SPRING_GREEN, -36.0)
 	elif dist_to_crime > 360.0:
-		# Si el aldeano estaba lejos de la escena (> 360 px), NO suma sospecha por estar solo: queda descartado por distancia física.
 		entry["score"] = 0
 		entry["status_note"] = "Descartado por distancia (%dm de la escena)" % dist_m
-		clues.append("%s estaba en la otra punta del pueblo (a %d m de la escena) — Descartado por distancia." % [witness.npc_name, dist_m])
+		clues.append("%s declaró estar en la otra punta del pueblo (a %d m de la escena — Descartado)." % [witness.npc_name, dist_m])
 		if is_instance_valid(inv_npc):
-			inv_npc._spawn_floating_text("📝📍 %s estaba lejos (%dm de la escena — Descartado)" % [witness.npc_name, dist_m], Color(0.65, 0.92, 1.0), -36.0)
+			inv_npc._spawn_floating_text("📝📍 %s estaba lejos (%dm — Descartado)" % [witness.npc_name, dist_m], Color(0.65, 0.92, 1.0), -36.0)
 	else:
-		var add_sc: int = 18 if dist_to_crime <= 180.0 else 10
-		entry["score"] = int(entry.get("score", 12)) + add_sc
-		entry["status_note"] = "Estaba cerca (%dm) y SIN coartada" % dist_m
-		clues.append("%s estaba a %d m de la escena y SIN coartada (+%d%% sospecha)." % [witness.npc_name, dist_m, add_sc])
+		var new_sc: int = 48 if dist_to_crime <= 150.0 else (34 if dist_to_crime <= 250.0 else 22)
+		if bool(entry.get("is_vagrant", false)):
+			new_sc += 8
+		entry["score"] = maxi(int(entry.get("score", 10)), new_sc)
+		entry["status_note"] = "Estaba a %dm de la escena SIN coartada" % dist_m
+		clues.append("%s admitió estar a %d m de la escena y SIN coartada (%d%% sospecha)." % [witness.npc_name, dist_m, int(entry["score"])])
 		if is_instance_valid(inv_npc):
-			inv_npc._spawn_floating_text("📝⚠️ %s estaba a %dm sin coartada (+%d%% sospecha)" % [witness.npc_name, dist_m, add_sc], Color.GOLD, -36.0)
+			inv_npc._spawn_floating_text("📝⚠️ %s estaba a %dm sin coartada (%d%% sospecha)" % [witness.npc_name, dist_m, int(entry["score"])], Color.GOLD, -36.0)
+
+	# Fragmento adicional: si este vecino vio a otro aldeano merodeando cerca del crimen sin coartada, lo aporta al expediente
+	var seen_v: String = str(entry.get("mem_seen_villager", ""))
+	if seen_v != "" and suspects.has(seen_v):
+		var sv_entry: Dictionary = suspects[seen_v]
+		var sv_dist: float = float(sv_entry.get("mem_dist_to_crime", 200.0))
+		sv_entry["known_dist"] = sv_dist
+		if str(sv_entry.get("mem_alibi_partner", "")) == "" and sv_dist <= 360.0:
+			sv_entry["score"] = int(sv_entry.get("score", 10)) + 12
+			if not bool(sv_entry.get("interviewed", false)):
+				sv_entry["status_note"] = "Situado cerca (%dm) por %s" % [int(round(sv_dist / 16.0)), witness.npc_name]
+			clues.append("%s declaró haber visto a %s merodeando solo a %d m del crimen (+12%% sospecha a %s)." % [witness.npc_name, seen_v, int(round(sv_dist / 16.0)), seen_v])
 
 func _evaluate_player_inspection(inv_npc: VillageNPC, player: Node2D, suspects: Dictionary, clues: Array, is_initial_interview: bool = false) -> void:
 	if not suspects.has("Jugador") or not player:
@@ -5719,11 +5717,13 @@ func _conclude_royal_investigation_with_mandatory_verdict(inv_npc: VillageNPC) -
 		var s_entry: Dictionary = suspects[k]
 		var is_p: bool = bool(s_entry.get("is_player", false))
 		var sc: int = int(s_entry.get("score", 0))
-		var dist_c: float = float(s_entry.get("dist_to_crime", 9999.0))
+		var kd: float = float(s_entry.get("known_dist", s_entry.get("dist_to_crime", -1.0)))
+		var dist_c: float = kd if kd >= 0.0 else 9999.0
 		# Ningún NPC que haya muerto, que sea testigo ocular (sc <= 0) o que estuviera lejos de la escena (> 360 px) puede ser elegido como culpable
 		if not is_p:
 			var npc_node: VillageNPC = _find_npc_by_name(str(k))
-			if npc_node == null or npc_node.is_dead or dist_c > 360.0 or sc <= 0:
+			var real_d: float = float(s_entry.get("mem_dist_to_crime", dist_c))
+			if npc_node == null or npc_node.is_dead or real_d > 360.0 or sc <= 0:
 				continue
 		if sc > best_score or (sc == best_score and dist_c < best_dist):
 			best_score = sc
@@ -5761,7 +5761,7 @@ func _conclude_royal_investigation_with_mandatory_verdict(inv_npc: VillageNPC) -
 	else:
 		# ¡CHIVO EXPIATORIO CERCANO (`Scapegoat`)! El jugador ocultó sus pruebas y había otro aldeano SIN coartada cerca de la escena (`<= 360 px`).
 		# Alistair camina físicamente hasta donde esté ese aldeano (`HUNTING_SCAPEGOAT`) para arrestarlo y ejecutarlo en persona.
-		var sc_dist_m: int = int(round(float(chosen.get("dist_to_crime", 120.0)) / 16.0))
+		var sc_dist_m: int = int(round(float(chosen.get("known_dist", chosen.get("mem_dist_to_crime", 120.0))) / 16.0))
 		active_royal_investigation["verdict_reason"] = "Condenado por estar a %d m de la escena sin coartada (%d%% sospecha)." % [sc_dist_m, clampi(best_score, 35, 95)]
 		active_royal_investigation["scapegoat_key"] = best_key
 		active_royal_investigation["stage"] = "HUNTING_SCAPEGOAT"
@@ -5810,24 +5810,26 @@ func get_royal_investigation_dialogue_summary() -> String:
 	var m_days: int = int(active_royal_investigation.get("max_days", 18))
 	var suspects: Dictionary = active_royal_investigation.get("suspects", {})
 
-	var top_name: String = "En evaluación"
-	var top_score: int = 0
+	var top_name: String = "Sin determinar (reuniendo testimonios)"
+	var top_score: int = 10
 	var top_dist: float = 999999.0
 	for k in suspects.keys():
 		var se: Dictionary = suspects[k]
 		var sc: int = int(se.get("score", 0))
-		var dc: float = float(se.get("dist_to_crime", 9999.0))
-		if not bool(se.get("is_player", false)) and dc > 360.0:
+		var kd: float = float(se.get("known_dist", se.get("dist_to_crime", -1.0)))
+		var dc: float = kd if kd >= 0.0 else 9999.0
+		if not bool(se.get("is_player", false)) and kd > 360.0:
 			continue
-		if sc > top_score or (sc == top_score and dc < top_dist):
+		if sc > top_score or (sc == top_score and sc > 10 and dc < top_dist):
 			top_score = sc
 			top_dist = dc
 			top_name = str(se.get("name", k))
 
+	var dist_txt: String = ("a %d m de la escena" % int(round(top_dist / 16.0))) if top_dist < 9000.0 else "paradero aún no confirmado"
 	var clues: Array = active_royal_investigation.get("clues_log", [])
 	var last_clue: String = str(clues[clues.size() - 1]) if not clues.is_empty() else "Reuniendo testimonios."
-	return "📋 EXPEDIENTE DEL INQUISIDOR REAL (Víctima: %s | Arma Forense: %s)\n• Día %d de %d (Plazo máx. antes de fin de embargo) | Pueblo interrogado: %d/%d habitantes\n• Principal sospechoso actual: %s (%d%% prob. · a %d m de la escena)\n• Última pista: %s" % [
-		v_name, w_used, d_inv, m_days, done_i, max_i, top_name, clampi(top_score, 10, 100), int(round(top_dist / 16.0)), last_clue
+	return "📋 EXPEDIENTE DEL INQUISIDOR REAL (Víctima: %s | Arma Forense: %s)\n• Día %d de %d (Plazo máx. antes de fin de embargo) | Pueblo interrogado: %d/%d habitantes\n• Principal sospechoso actual: %s (%d%% prob. · %s)\n• Última pista: %s" % [
+		v_name, w_used, d_inv, m_days, done_i, max_i, top_name, clampi(top_score, 10, 100), dist_txt, last_clue
 	]
 
 func get_royal_investigation_detailed_suspects_text() -> String:
@@ -5846,7 +5848,9 @@ func get_royal_investigation_detailed_suspects_text() -> String:
 		var sb: int = int(b.get("score", 0))
 		if sa != sb:
 			return sa > sb
-		return float(a.get("dist_to_crime", 9999.0)) < float(b.get("dist_to_crime", 9999.0))
+		var da: float = float(a.get("known_dist", -1.0))
+		var db: float = float(b.get("known_dist", -1.0))
+		return (da if da >= 0.0 else 9999.0) < (db if db >= 0.0 else 9999.0)
 	)
 	var lines: Array[String] = [
 		"📋 REGISTRO INQUISITORIAL DE SOSPECHOSOS Y COARTADAS (Día %d/%d · %d/%d Interrogados):" % [d_inv, m_days, done_i, max_i]
@@ -5856,10 +5860,11 @@ func get_royal_investigation_detailed_suspects_text() -> String:
 		var s: Dictionary = arr[i]
 		var s_name: String = str(s.get("name", ""))
 		var sc: int = int(s.get("score", 0))
-		var dist_m: int = int(round(float(s.get("dist_to_crime", 0.0)) / 16.0))
+		var kd: float = float(s.get("known_dist", s.get("dist_to_crime", -1.0)))
+		var dist_tag: String = ("A %d m de la escena" % int(round(kd / 16.0))) if kd >= 0.0 else "Paradero desconocido"
 		var iv_tag: String = "✅Interrogado" if bool(s.get("interviewed", false)) else "⏳Pendiente"
 		var note: String = str(s.get("status_note", ""))
-		lines.append("• #%d %s — %d%% sospecha | A %d m de la escena | [%s] %s" % [i + 1, s_name, sc, dist_m, iv_tag, note])
+		lines.append("• #%d %s — %d%% sospecha | %s | [%s] %s" % [i + 1, s_name, sc, dist_tag, iv_tag, note])
 	return "\n".join(lines)
 
 func deploy_steel_bear_trap(pos: Vector2, _player: Node = null) -> void:
@@ -6064,12 +6069,12 @@ func load_economy_save_dict(data: Dictionary) -> void:
 				var w_spr: Sprite2D = w_entry.get("sprite")
 				if is_instance_valid(w_spr):
 					w_spr.texture = tex_win_shut if shut else tex_win_open
+	for tr in _deployed_bear_traps:
+		var tr_n: Node2D = tr.get("node") as Node2D
+		if is_instance_valid(tr_n):
+			tr_n.queue_free()
+	_deployed_bear_traps.clear()
 	if data.has("deployed_bear_traps") and typeof(data["deployed_bear_traps"]) == TYPE_ARRAY:
-		for tr in _deployed_bear_traps:
-			var tr_n: Node2D = tr.get("node") as Node2D
-			if is_instance_valid(tr_n):
-				tr_n.queue_free()
-		_deployed_bear_traps.clear()
 		for t_item in (data["deployed_bear_traps"] as Array):
 			if typeof(t_item) == TYPE_DICTIONARY:
 				var td: Dictionary = t_item

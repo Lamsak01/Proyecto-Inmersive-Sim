@@ -999,13 +999,13 @@ func use_item(item_id: String, player: Node) -> bool:
 			used = true
 
 	var restore_stam: float = float(info.get("restore_stamina", 0.0))
-	if restore_stam > 0.0 and stamina_comp:
+	if restore_stam > 0.0 and stamina_comp and stamina_comp.current_stamina < stamina_comp.max_stamina - 0.1:
 		stamina_comp.current_stamina = min(stamina_comp.max_stamina, stamina_comp.current_stamina + restore_stam)
 		stamina_comp.stamina_changed.emit(stamina_comp.current_stamina, stamina_comp.max_stamina)
 		used = true
 
 	var restore_hun: float = float(info.get("restore_hunger", 0.0))
-	if restore_hun > 0.0 and survival_comp:
+	if restore_hun > 0.0 and survival_comp and survival_comp.current_hunger < survival_comp.max_hunger - 0.1:
 		survival_comp.restore_hunger(restore_hun)
 		used = true
 
@@ -1013,8 +1013,8 @@ func use_item(item_id: String, player: Node) -> bool:
 		remove_item(item_id, 1)
 		if player.has_method("_spawn_floating_text"):
 			player._spawn_floating_text("Usado: %s" % get_item_name(item_id), Color.LIGHT_GREEN, -42.0)
-	elif (heal_hp > 0.0 or bool(info.get("stop_bleed", false))) and player.has_method("_spawn_floating_text"):
-		player._spawn_floating_text("🏥 Salud al 100% (No necesitas curación)", Color.LIGHT_GRAY, -42.0)
+	elif player.has_method("_spawn_floating_text"):
+		player._spawn_floating_text("✨ Estadísticas al 100% (No hace falta consumirlo)", Color.LIGHT_GRAY, -42.0)
 	return used
 
 # --- Sistema de Crafteo ---

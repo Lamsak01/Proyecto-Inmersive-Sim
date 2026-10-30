@@ -2683,7 +2683,9 @@ func take_damage(data: DamageData) -> void:
 		elif data.source.is_in_group("player"):
 			last_hit_by_player = true
 			var eq_w: Variant = data.source.get("equipped_weapon")
-			if eq_w == data.source.get("bow_weapon"):
+			if data.weapon_tag != "":
+				last_hit_weapon_name = data.weapon_tag
+			elif eq_w == data.source.get("bow_weapon"):
 				last_hit_weapon_name = "Impacto de Flecha (Arco)"
 			elif eq_w == data.source.get("hammer_weapon"):
 				last_hit_weapon_name = "Traumatismo Contundente (Martillo)"

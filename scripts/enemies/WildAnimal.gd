@@ -319,22 +319,32 @@ func _update_sprite_motion(delta: float) -> void:
 
 ## Detecta amenazas (los conejos casi no detectan al zorro si este se acerca en modo sigilo STALK_PREY; los jabalíes no huyen salvo ser provocados)
 func _check_threats() -> void:
-	if state in [AnimalState.IN_BURROW, AnimalState.CARCASS, AnimalState.BUTCHERED, AnimalState.POUNCE, AnimalState.CHARGE_ATTACK]:
+	if state in [AnimalState.IN_BURROW, AnimalState.CARCASS, AnimalState.BUTCHERED, AnimalState.POUNCE, AnimalState.CHARGE_ATTACK, AnimalState.EATING]:
 		return
 	if species == SpeciesType.BOAR:
+		# Baja probabilidad (~1.5%) de disputa territorial entre Jabalíes y Zorros cercanos
+		if attack_cooldown <= 0.0 and randf() < 0.015:
+			for fx in get_tree().get_nodes_in_group("ecosystem_foxes"):
+				if fx is WildAnimal and fx.is_alive_in_ecosystem() and fx.visible and global_position.distance_squared_to(fx.global_position) <= 54.0 * 54.0:
+					_start_boar_aggro(fx)
+					if randf() < 0.55 and fx.attack_cooldown <= 0.0:
+						var bite := DamageData.new()
+						bite.amount = 10.0
+						bite.type = CombatConstants.DamageType.BLUNT
+						bite.source = fx
+						take_damage(bite)
+					break
 		return
 
-	# 1. Los conejos detectan a los Zorros cercanos (pero si el zorro está en sigilo STALK_PREY o lleno, no se asustan de lejos)
+	# 1. Los conejos detectan a los Zorros cercanos (si el zorro acecha en STALK_PREY, tienen margen de alerta de 46 px para intentar escapar)
 	if species == SpeciesType.RABBIT:
 		var predators := get_tree().get_nodes_in_group("predators")
 		for pred in predators:
 			if pred is WildAnimal and pred.is_alive_in_ecosystem() and pred.visible:
-				# Si el zorro ya está lleno (2/2 o en reserva), camina tranquilo y no caza
 				if pred.is_fully_satiated() and pred.state == AnimalState.GRAZE:
 					continue
 				var d_sq := global_position.distance_squared_to(pred.global_position)
-				# Si el zorro usa sigilo (STALK_PREY), recorta distancia hasta 16 px sin ser detectado
-				var pred_alert: float = 16.0 if pred.state == AnimalState.STALK_PREY else (alert_radius * 0.95)
+				var pred_alert: float = 46.0 if pred.state == AnimalState.STALK_PREY else (alert_radius * 0.95)
 				if d_sq <= pred_alert * pred_alert:
 					_start_flee_from(pred.global_position)
 					return
@@ -422,7 +432,7 @@ func _evaluate_life_schedule() -> void:
 				state = AnimalState.STALK_PREY
 			else:
 				state = AnimalState.SEEK_FOOD
-		elif not fed_today and days_hungry >= 1:
+		elif species != SpeciesType.FOX and not fed_today and days_hungry >= 1:
 			is_raiding_farm = true
 			state = AnimalState.SEEK_FOOD
 
@@ -486,9 +496,13 @@ func _find_best_food_target() -> Node2D:
 		if best_node:
 			return best_node
 
+		var all_foxes := get_tree().get_nodes_in_group("ecosystem_foxes")
 		for rab in get_tree().get_nodes_in_group("herbivore_prey"):
 			if rab is WildAnimal and rab.is_alive_in_ecosystem() and rab.state != AnimalState.IN_BURROW and rab.visible:
 				var d_sq := global_position.distance_squared_to(rab.global_position)
+				for fx in all_foxes:
+					if fx != self and fx is WildAnimal and fx.food_target == rab:
+						d_sq += 650.0 * 650.0
 				if d_sq < best_dist_sq:
 					best_dist_sq = d_sq
 					best_node = rab
@@ -499,6 +513,7 @@ func _find_best_food_target() -> Node2D:
 				best_node = coop
 				is_raiding_farm = true
 			else:
+				is_raiding_farm = false
 				for poultry in get_tree().get_nodes_in_group("livestock_prey"):
 					if poultry is Node2D and poultry.visible:
 						var d_sq := global_position.distance_squared_to(poultry.global_position)
@@ -557,6 +572,8 @@ func _process_seek_food(_delta: float) -> void:
 		return
 
 	if not is_instance_valid(food_target) or not food_target.visible:
+		if species == SpeciesType.FOX:
+			is_raiding_farm = false
 		if is_raiding_farm:
 			var to_farm := farm_target_pos - global_position
 			if to_farm.length() > 35.0:
@@ -567,7 +584,7 @@ func _process_seek_food(_delta: float) -> void:
 			return
 		food_target = _find_best_food_target()
 		if not is_instance_valid(food_target):
-			state = AnimalState.GRAZE
+			state = AnimalState.RETURN_HOME if global_position.distance_to(home_position) > 95.0 else AnimalState.GRAZE
 			velocity = Vector2.ZERO
 			return
 
@@ -581,7 +598,7 @@ func _process_seek_food(_delta: float) -> void:
 		if not food_target.has_live_chickens():
 			food_target = null
 			is_raiding_farm = false
-			state = AnimalState.GRAZE
+			state = AnimalState.RETURN_HOME
 			return
 		if not food_target.is_breached:
 			var breach_pos: Vector2 = food_target.get_breach_world_position()
@@ -734,8 +751,9 @@ func _process_eating(delta: float) -> void:
 			if food_target is HarvestableNode and food_target.has_method("consume_by_animal"):
 				if food_target.consume_by_animal():
 					ate_successfully = true
-			elif food_target is WildAnimal and food_target.state == AnimalState.CARCASS:
-				food_target.consume_by_predator()
+			elif food_target is WildAnimal and food_target.state in [AnimalState.CARCASS, AnimalState.BUTCHERED]:
+				if food_target.state == AnimalState.CARCASS:
+					food_target.consume_by_predator()
 				ate_successfully = true
 			elif food_target is ChickenCoop:
 				if food_target.steal_chicken_by_fox():
@@ -794,7 +812,10 @@ func _process_return_home(_delta: float) -> void:
 	var to_home := home_position - global_position
 	if to_home.length() <= 14.0:
 		velocity = Vector2.ZERO
-		if species == SpeciesType.RABBIT:
+		var is_night: bool = WorldClock != null and (WorldClock.current_hour >= 20 or WorldClock.current_hour < 6)
+		if not is_night:
+			state = AnimalState.GRAZE
+		elif species == SpeciesType.RABBIT:
 			_enter_burrow(0.0)
 		else:
 			state = AnimalState.SLEEP
@@ -873,7 +894,7 @@ func _start_boar_aggro(attacker: Node2D) -> void:
 
 func _process_boar_charge_attack(delta: float) -> void:
 	boar_aggro_timer -= delta
-	var target_dead: bool = (not is_instance_valid(boar_aggressor)) or ("is_dead" in boar_aggressor and bool(boar_aggressor.get("is_dead")))
+	var target_dead: bool = (not is_instance_valid(boar_aggressor)) or ("is_dead" in boar_aggressor and bool(boar_aggressor.get("is_dead"))) or (boar_aggressor is WildAnimal and not (boar_aggressor as WildAnimal).is_alive_in_ecosystem())
 	if boar_aggro_timer <= 0.0 or target_dead or global_position.distance_to(boar_aggressor.global_position) > 275.0:
 		boar_aggressor = null
 		boar_charge_windup = 0.0

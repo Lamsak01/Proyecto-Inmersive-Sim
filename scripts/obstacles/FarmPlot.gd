@@ -179,7 +179,9 @@ func interact(player: Node) -> void:
 		inv.remove_item(seed_id, 1)
 		crop_type = new_crop
 		days_grown = 0
-		is_watered = false
+		var camp_st: Variant = GameManager.get_flag("player_campsite_state", null) if GameManager else null
+		var sprk_on: bool = (typeof(camp_st) == TYPE_DICTIONARY) and bool((camp_st as Dictionary).get("sprinkler_installed", false)) and bool((camp_st as Dictionary).get("generator_active", false))
+		is_watered = (WorldClock != null and int(WorldClock.get("current_weather")) == 1) or sprk_on
 		is_fertilized = false
 		_refresh_visuals()
 		_save_state()

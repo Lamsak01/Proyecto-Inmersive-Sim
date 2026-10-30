@@ -353,9 +353,13 @@ func steal_chicken_by_fox() -> bool:
 	if chickens.is_empty():
 		return false
 	var victim: Dictionary = chickens.pop_back()
+	if _selected_chicken == victim and is_instance_valid(chicken_action_panel):
+		chicken_action_panel.visible = false
+		_selected_chicken = {}
 	var spr: Sprite2D = victim.get("sprite")
 	if is_instance_valid(spr):
 		spr.queue_free()
+	_save_state()
 	var player = get_tree().get_first_node_in_group("player")
 	if player and player.has_method("show_hint"):
 		player.show_hint("🐔💀 ¡Un Zorro se ha llevado una gallina del Gallinero! (%d restantes)" % chickens.size())
