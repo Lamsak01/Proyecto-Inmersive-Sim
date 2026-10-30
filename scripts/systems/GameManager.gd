@@ -33,6 +33,20 @@ func has_save_file(filepath: String = SAVE_FILE_PATH) -> bool:
 
 func save_game(filepath: String = SAVE_FILE_PATH) -> bool:
 	var player = get_tree().get_first_node_in_group("player")
+	var vm = get_tree().get_first_node_in_group("village_manager")
+	if (WorldClock and bool(WorldClock.get("is_fast_forwarding"))) or (vm and bool(vm.get("player_being_escorted_to_jail"))):
+		if player and player.has_method("show_hint"):
+			player.show_hint("⏳ Espera a que termine la escolta o el descanso antes de guardar [F5].")
+		return false
+	var scene_root := get_tree().current_scene
+	if scene_root:
+		var ui := scene_root.get_node_or_null("UI/UIRoot")
+		if not ui:
+			ui = scene_root.get_node_or_null("UIRoot")
+		if ui:
+			var tg = ui.get("tavern_games")
+			if tg and tg.visible and tg.has_method("_close_games"):
+				tg.call("_close_games")
 	for plot in get_tree().get_nodes_in_group("farm_plots"):
 		if is_instance_valid(plot) and plot.has_method("_save_state"):
 			plot.call("_save_state")
@@ -42,7 +56,6 @@ func save_game(filepath: String = SAVE_FILE_PATH) -> bool:
 	for camp in get_tree().get_nodes_in_group("campsite"):
 		if is_instance_valid(camp) and camp.has_method("_save_state"):
 			camp.call("_save_state")
-	var vm = get_tree().get_first_node_in_group("village_manager")
 	if vm:
 		set_flag("village_crime_state", {
 			"wanted_level": int(vm.get("wanted_level")),
@@ -219,6 +232,9 @@ func load_game(filepath: String = SAVE_FILE_PATH) -> bool:
 					npc.remove_from_group("village_npcs")
 					npc.remove_from_group("npcs")
 					npc.remove_from_group("enemies")
+					npc.name = "_freed_npc_" + str(npc.get_instance_id())
+					if npc.get_parent():
+						npc.get_parent().remove_child(npc)
 					npc.queue_free()
 
 	if vm and vm.has_method("spawn_dynamic_npc_from_save"):

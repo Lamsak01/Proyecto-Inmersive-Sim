@@ -822,6 +822,8 @@ func _exit_burrow() -> void:
 	state = AnimalState.GRAZE
 	global_position = home_position + Vector2.RIGHT.rotated(randf() * TAU) * 10.0
 	visible = true
+	if not is_in_group("wild_animals"):
+		add_to_group("wild_animals")
 	if body_col:
 		body_col.set_deferred("disabled", false)
 	if hurtbox and hurtbox.get_child_count() > 0:
@@ -1118,6 +1120,8 @@ func _finish_butchering() -> void:
 func _apply_hidden_state(hidden_state: bool) -> void:
 	visible = not hidden_state
 	set_physics_process(not hidden_state and not Engine.is_editor_hint())
+	if hidden_state and state == AnimalState.BUTCHERED:
+		remove_from_group("wild_animals")
 	if status_label:
 		status_label.visible = false
 	if body_col:
@@ -1216,19 +1220,21 @@ func from_save_dict(data: Dictionary) -> void:
 	offspring_genetics_tier = clampi(int(data.get("offspring_genetics_tier", 1)), 1, 3)
 	days_hungry = int(data.get("days_hungry", 0))
 	respawn_on_day = int(data.get("respawn_on_day", -1))
-	if data.has("pos_x") and data.has("pos_y"):
-		global_position = Vector2(float(data["pos_x"]), float(data["pos_y"]))
 
 	if st == int(AnimalState.BUTCHERED):
 		state = AnimalState.BUTCHERED
 		_apply_hidden_state(true)
 	elif st == int(AnimalState.CARCASS):
+		if data.has("pos_x") and data.has("pos_y"):
+			global_position = Vector2(float(data["pos_x"]), float(data["pos_y"]))
 		_apply_hidden_state(false)
 		_become_carcass()
 	else:
 		if state == AnimalState.IN_BURROW:
 			_exit_burrow()
 		state = AnimalState.GRAZE
+		if data.has("pos_x") and data.has("pos_y"):
+			global_position = Vector2(float(data["pos_x"]), float(data["pos_y"]))
 		boar_aggressor = null
 		boar_aggro_timer = 0.0
 		boar_charge_windup = 0.0

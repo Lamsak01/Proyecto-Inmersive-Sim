@@ -397,15 +397,15 @@ func _unhandled_input(event: InputEvent) -> void:
 		return
 
 	# Tecla [B]: Echar o quitar el cerrojo / bloquear la puerta más cercana
-	if event is InputEventKey and event.pressed and not event.echo and event.keycode == KEY_B:
+	if event is InputEventKey and event.pressed and not event.echo and event.keycode in [KEY_B, KEY_F]:
 		var player = get_tree().get_first_node_in_group("player") as Node2D
-		if player and toggle_bar_door_by_player(player):
+		if not is_instance_valid(player) or player_being_escorted_to_jail:
+			return
+		if (player.has_method("is_stunned") and bool(player.call("is_stunned"))) or (player.has_method("is_any_ui_modal_open") and bool(player.call("is_any_ui_modal_open"))):
+			return
+		if event.keycode == KEY_B and toggle_bar_door_by_player(player):
 			get_viewport().set_input_as_handled()
-
-	# Tecla [F]: Forzar cerradura de puerta cerrada con llave, postigo de ventana o barrotes de celda (Separada de [E])
-	if event is InputEventKey and event.pressed and not event.echo and event.keycode == KEY_F:
-		var player = get_tree().get_first_node_in_group("player") as Node2D
-		if player and force_lock_or_shutter_by_player(player):
+		elif event.keycode == KEY_F and force_lock_or_shutter_by_player(player):
 			get_viewport().set_input_as_handled()
 
 # ==============================================================================
@@ -2196,6 +2196,7 @@ func report_assault_crime(victim: VillageNPC) -> void:
 		var w_name: String = witness.npc_name if witness != null else victim.npc_name
 		var msg := "👁️🚨 ¡%s presenció el ataque a %s! (+25 Oro de multa policial)" % [w_name, victim.npc_name]
 		crime_history.push_front(msg)
+		_notify_inquisitor_of_police_crime(msg, 24)
 		var player = get_tree().get_first_node_in_group("player")
 		if player and player.has_method("show_hint"):
 			player.show_hint(msg)
@@ -2214,6 +2215,7 @@ func report_pet_assault_crime(pet: Node2D) -> void:
 			modify_family_reputation(fam_id, -25, "Atacó a su mascota " + p_name)
 		var msg := "🐾🚨 ¡%s te vio atacar a %s! (+18 Oro de multa por crueldad)" % [witness.npc_name, p_name]
 		crime_history.push_front(msg)
+		_notify_inquisitor_of_police_crime(msg, 14)
 		var player = get_tree().get_first_node_in_group("player")
 		if player and player.has_method("show_hint"):
 			player.show_hint(msg)
@@ -2228,6 +2230,7 @@ func report_theft_crime(fam_id: String, reason: String, crime_pos: Vector2) -> v
 			modify_family_reputation(fam_id, -20, reason)
 		var msg := "🕵️🚨 ¡%s te vio cometer robo (%s)! (+20 Oro de multa policial)" % [witness.npc_name, reason]
 		crime_history.push_front(msg)
+		_notify_inquisitor_of_police_crime(msg, 16)
 		var player = get_tree().get_first_node_in_group("player")
 		if player and player.has_method("show_hint"):
 			player.show_hint(msg)
@@ -2642,7 +2645,7 @@ func _find_nearest_police_officer(pos: Vector2) -> VillageNPC:
 		for n in get_tree().get_nodes_in_group("village_npcs"):
 			if n is VillageNPC:
 				var v := n as VillageNPC
-				if v.trade_role in [VillageNPC.TradeRole.SHERIFF, VillageNPC.TradeRole.GUARD] and not v.is_dead and not v.is_downed:
+				if v.trade_role in [VillageNPC.TradeRole.SHERIFF, VillageNPC.TradeRole.GUARD, VillageNPC.TradeRole.ROYAL_INVESTIGATOR] and not v.is_dead and not v.is_downed:
 					var d2: float = pos.distance_to(v.global_position)
 					if d2 < best_d:
 						best_d = d2
@@ -2653,13 +2656,13 @@ func _find_nearest_police_officer(pos: Vector2) -> VillageNPC:
 func start_police_escort_to_jail(player: Node2D, officer: VillageNPC = null) -> void:
 	if not player:
 		return
-	clear_police_hostility()
-	if police_panel:
-		police_panel.visible = false
 	var chosen_officer: VillageNPC = officer if (officer != null and is_instance_valid(officer) and not officer.is_dead and not officer.is_downed and not officer.is_stunned_flag and officer.sedated_timer <= 0.0) else _find_nearest_police_officer(player.global_position)
 	player_being_escorted_to_jail = true
 	player_in_jail = false
 	escorting_officer = chosen_officer
+	clear_police_hostility()
+	if police_panel:
+		police_panel.visible = false
 	if "velocity" in player:
 		player.velocity = Vector2.ZERO
 	if chosen_officer != null:
@@ -4347,6 +4350,7 @@ func sabotage_shop_stall(player: Node2D, role_id: int) -> void:
 		modify_family_reputation(fam_id, -40, "Sabotaje del taller visto por " + witness.npc_name)
 		var msg := "🚨👁️ ¡%s te vio sabotear %s! (+35 Oro de multa policial)" % [witness.npc_name, b_title]
 		crime_history.push_front(msg)
+		_notify_inquisitor_of_police_crime(msg, 22)
 		if player.has_method("_spawn_floating_text"):
 			player._spawn_floating_text(msg, Color.ORANGE_RED, -46.0)
 
@@ -4776,7 +4780,7 @@ func _spawn_or_update_vagrant_camp_visual(npc: VillageNPC, camp_pos: Vector2) ->
 ## Comprueba cada mañana (07:00 AM) si hoy toca visita de uno de los 2 Mercaderes Semanales de Extramuros:
 ## - Día 3 de cada semana (`day % 7 == 3`): Maese Casimir (Liga Minera, presupuesto variable `168..196 Oro`).
 ## - Día 6 de cada semana (`day % 7 == 6`): Valeria la Tratante (Gremio de Caza y Pieles, presupuesto variable `214..248 Oro`).
-func _check_weekly_merchant_arrival(current_day: int, ignore_suspension: bool = false) -> void:
+func _check_weekly_merchant_arrival(current_day: int, ignore_suspension: bool = false, silent: bool = false) -> void:
 	if is_instance_valid(_active_traveling_merchant) and not _active_traveling_merchant.is_dead:
 		return
 
@@ -4799,10 +4803,20 @@ func _check_weekly_merchant_arrival(current_day: int, ignore_suspension: bool = 
 
 	# Limpiar cualquier cadáver antiguo del mismo mercader antes de crear su nueva instancia tras expirar el embargo
 	if is_instance_valid(_active_traveling_merchant) and _active_traveling_merchant.is_dead:
+		_active_traveling_merchant.remove_from_group("village_npcs")
+		_active_traveling_merchant.remove_from_group("npcs")
+		_active_traveling_merchant.name = "_freed_merchant_" + str(_active_traveling_merchant.get_instance_id())
+		if _active_traveling_merchant.get_parent():
+			_active_traveling_merchant.get_parent().remove_child(_active_traveling_merchant)
 		_active_traveling_merchant.queue_free()
 		_active_traveling_merchant = null
 	for old_n in get_tree().get_nodes_in_group("village_npcs"):
 		if old_n is VillageNPC and (old_n as VillageNPC).merchant_id == m_id and (old_n as VillageNPC).is_dead:
+			old_n.remove_from_group("village_npcs")
+			old_n.remove_from_group("npcs")
+			old_n.name = "_freed_merchant_" + str(old_n.get_instance_id())
+			if old_n.get_parent():
+				old_n.get_parent().remove_child(old_n)
 			old_n.queue_free()
 
 	var m_npc := VillageNPC.new()
@@ -4853,9 +4867,10 @@ func _check_weekly_merchant_arrival(current_day: int, ignore_suspension: bool = 
 	m_npc.global_position = Vector2(-900, 48) if m_id == "casimir" else Vector2(990, 48)
 	_active_traveling_merchant = m_npc
 
-	var p = get_tree().get_first_node_in_group("player")
-	if p and p.has_method("show_hint"):
-		p.show_hint("🐎👑 ¡Ha llegado %s (%s) con %d Oro y Salvoconducto Real! Comprará producción local hasta las 19:00." % [m_npc.npc_name, m_npc.npc_role, m_npc.personal_gold])
+	if not silent:
+		var p = get_tree().get_first_node_in_group("player")
+		if p and p.has_method("show_hint"):
+			p.show_hint("🐎👑 ¡Ha llegado %s (%s) con %d Oro y Salvoconducto Real! Comprará producción local hasta las 19:00." % [m_npc.npc_name, m_npc.npc_role, m_npc.personal_gold])
 
 ## IA física de los 2 Mercaderes Semanales: recorren las tiendas de su especialidad comprando solo lo que hay en stock
 ## (inyectando oro externo real a los artesanos y cazadores) y se marchan por el camino principal a las 19:00.
@@ -5147,6 +5162,8 @@ func _spawn_royal_investigator() -> void:
 		if "_police_alerted_timer" in _royal_investigator_npc:
 			_royal_investigator_npc._police_alerted_timer = 0.0
 		return
+	if is_instance_valid(_royal_investigator_npc) and _royal_investigator_npc.is_dead:
+		_royal_investigator_npc.name = "NPC_Royal_Investigator_Corpse_" + str(_royal_investigator_npc.get_instance_id())
 	var inv_npc := VillageNPC.new()
 	inv_npc.name = "NPC_Royal_Investigator_Alistair"
 	inv_npc.npc_name = "Inquisidor Real Alistair"
@@ -5175,6 +5192,13 @@ func _advance_royal_investigation_day(_new_day: int) -> void:
 	if active_royal_investigation.is_empty() or not bool(active_royal_investigation.get("active", false)):
 		return
 	var stg: String = str(active_royal_investigation.get("stage", "CRIME_SCENE"))
+	# Si el Inquisidor Real fue abatido/asesinado mientras la investigación o persecución seguía activa, la Corona envía un nuevo Inquisidor al amanecer
+	if stg != "DEPARTING" and (not is_instance_valid(_royal_investigator_npc) or _royal_investigator_npc.is_dead):
+		_spawn_royal_investigator()
+		if stg == "HUNTING_PLAYER" and is_instance_valid(_royal_investigator_npc):
+			_royal_investigator_npc.is_hostile = true
+			if not _royal_investigator_npc.is_in_group("enemies"):
+				_royal_investigator_npc.add_to_group("enemies")
 	if stg in ["DEPARTING", "HUNTING_SCAPEGOAT", "HUNTING_PLAYER"]:
 		return
 
@@ -6015,23 +6039,30 @@ func load_economy_save_dict(data: Dictionary) -> void:
 			if is_instance_valid(_active_traveling_merchant):
 				_active_traveling_merchant.remove_from_group("village_npcs")
 				_active_traveling_merchant.remove_from_group("npcs")
+				_active_traveling_merchant.name = "_freed_merchant_" + str(_active_traveling_merchant.get_instance_id())
+				if _active_traveling_merchant.get_parent():
+					_active_traveling_merchant.get_parent().remove_child(_active_traveling_merchant)
 				_active_traveling_merchant.queue_free()
 				_active_traveling_merchant = null
 		else:
 			var m_id_saved: String = str(m_data.get("merchant_id", "casimir"))
-			if is_instance_valid(_active_traveling_merchant) and (_active_traveling_merchant.merchant_id != m_id_saved or _active_traveling_merchant.is_dead):
+			if is_instance_valid(_active_traveling_merchant) and _active_traveling_merchant.merchant_id != m_id_saved:
 				_active_traveling_merchant.remove_from_group("village_npcs")
 				_active_traveling_merchant.remove_from_group("npcs")
+				_active_traveling_merchant.name = "_freed_merchant_" + str(_active_traveling_merchant.get_instance_id())
+				if _active_traveling_merchant.get_parent():
+					_active_traveling_merchant.get_parent().remove_child(_active_traveling_merchant)
 				_active_traveling_merchant.queue_free()
 				_active_traveling_merchant = null
 			if not is_instance_valid(_active_traveling_merchant):
-				_check_weekly_merchant_arrival(3 if m_id_saved == "casimir" else 6, true)
+				_check_weekly_merchant_arrival(3 if m_id_saved == "casimir" else 6, true, true)
 			if is_instance_valid(_active_traveling_merchant):
 				_active_traveling_merchant.from_save_dict(m_data)
 	if data.has("active_royal_investigation") and typeof(data["active_royal_investigation"]) == TYPE_DICTIONARY:
 		active_royal_investigation = (data["active_royal_investigation"] as Dictionary).duplicate(true)
 		if bool(active_royal_investigation.get("active", false)):
-			_spawn_royal_investigator()
+			if not is_instance_valid(_royal_investigator_npc):
+				_spawn_royal_investigator()
 			if is_instance_valid(_royal_investigator_npc) and data.has("royal_investigator_npc") and typeof(data["royal_investigator_npc"]) == TYPE_DICTIONARY:
 				var inv_data: Dictionary = data["royal_investigator_npc"] as Dictionary
 				if not inv_data.is_empty():
@@ -6047,6 +6078,9 @@ func load_economy_save_dict(data: Dictionary) -> void:
 			if is_instance_valid(_royal_investigator_npc):
 				_royal_investigator_npc.remove_from_group("village_npcs")
 				_royal_investigator_npc.remove_from_group("npcs")
+				_royal_investigator_npc.name = "_freed_inquisitor_" + str(_royal_investigator_npc.get_instance_id())
+				if _royal_investigator_npc.get_parent():
+					_royal_investigator_npc.get_parent().remove_child(_royal_investigator_npc)
 				_royal_investigator_npc.queue_free()
 				_royal_investigator_npc = null
 	if data.has("domestic_pets") and typeof(data["domestic_pets"]) == TYPE_ARRAY:
@@ -6119,6 +6153,8 @@ func reconcile_npc_registries_after_load() -> void:
 	family_npcs.clear()
 	unemployed_npcs.clear()
 	authority_npcs.clear()
+	for slot in _authority_slots:
+		slot["npc"] = null
 	for n in get_tree().get_nodes_in_group("village_npcs"):
 		if n is VillageNPC:
 			var v := n as VillageNPC

@@ -573,13 +573,43 @@ func _resolve_unique_64_visuals_and_lore(fallback_tex: Texture2D = null) -> void
 			character_lore = "«No soy un comisario rural como Vane. Cuando un portador de Salvoconducto Real cae asesinado en la frontera, la Cancillería me envía con plenos poderes de vida y muerte.\n\nInterrogo a cada vecino, cruzo coartadas hora por hora, examino las heridas forenses y registro quién merodeaba la escena. Y ten algo muy claro, forastero: un Inquisidor Real jamás regresa a la capital con las manos vacías. Cuando termine mi expediente, alguien pagará con su cuello.»"
 			character_secret = "«Mi filosofía es el orden absoluto de la Corona: si las pruebas señalan sin duda al asesino, lo ejecutaré yo mismo; pero si el verdadero criminal ocultó sus rastros, condenaré al aldeano sin coartada que acumule mayor probabilidad. La Corona exige un culpable, no excusas.»"
 		_:
-			if trade_role == TradeRole.HERBALIST or clean_name.ends_with("a"):
-				key = "mila"
-			else:
-				key = "bram"
-			character_tagline = "Artesano profesional llegado de los valles vecinos para hacerse cargo del taller y mantener viva la economía local."
-			character_lore = "«Llegué al valle tras escuchar que el gremio necesitaba manos expertas. No vengo a hacer preguntas sobre lo que le ocurrió a mi predecesor: mientras el taller esté en pie y corra el oro en el mostrador, cumpliré mi jornada de sol a sol.»"
-			character_secret = "«En este pueblo las paredes oyen y las puertas cerradas guardan más de un secreto. Conviene llevarse bien con las familias si quieres buenos precios.»"
+			var fem: bool = clean_name.ends_with("a")
+			match trade_role:
+				TradeRole.DOCTOR:
+					key = "valen"
+					character_tagline = "Médico forense y cirujano rural enviado por el Colegio Médico para mantener operativo el Hospital y la Morgue del valle."
+				TradeRole.SHERIFF:
+					key = "vane"
+					character_tagline = "Comisario de frontera designado para restablecer la ley, investigar crímenes y dirigir las patrullas del valle."
+				TradeRole.GUARD:
+					key = "rodric"
+					character_tagline = "Centinela de guardia asignado a la comisaría local para vigilar las calles, entradas y comercios de la aldea."
+				TradeRole.INNKEEPER:
+					key = "marta"
+					character_tagline = "Regente de 'El Jabalí Dorado'; sirve platos calientes y administra las mesas de juego del salón."
+				TradeRole.BLACKSMITH:
+					key = "kiera" if fem else "thoran"
+					character_tagline = "Maestro forjador llegado de los valles vecinos para mantener encendida la fragua y abastecer de herramientas al pueblo."
+				TradeRole.BUTCHER:
+					key = "lina" if fem else "garrick"
+					character_tagline = "Cazador y maestro carnicero encargado de abastecer de carne fresca y cuero curado a la aldea."
+				TradeRole.CARPENTER:
+					key = "mila" if fem else "bram"
+					character_tagline = "Maestro ebanista y carpintero llegado para mantener en pie el aserradero y los talleres locales."
+				TradeRole.FISHMONGER:
+					key = "nora" if fem else "marlo"
+					character_tagline = "Pescador y molinero encargado de las redes del lago y de la molienda de grano para el valle."
+				TradeRole.HERBALIST:
+					key = "elena" if fem else "tomas"
+					character_tagline = "Herborista y botánico rural dedicado al cultivo de semillas y a la preparación de cataplasmas medicinales."
+				TradeRole.FAMILY_MEMBER, TradeRole.UNEMPLOYED:
+					key = "sora" if fem else "aldric"
+					character_tagline = "Viajero independiente recién llegado a la frontera en busca de fortuna y de un oficio estable en el valle."
+				_:
+					key = "mila" if fem else "bram"
+					character_tagline = "Artesano profesional llegado de los valles vecinos para hacerse cargo del taller y mantener viva la economía local."
+			character_lore = "«Llegué al valle tras escuchar que la comunidad necesitaba manos expertas. No vengo a hacer preguntas sobre lo que le ocurrió a mi predecesor: mientras haya trabajo y corra el oro, cumpliré mi jornada de sol a sol.»"
+			character_secret = "«En este pueblo las paredes oyen y las puertas cerradas guardan más de un secreto. Conviene llevarse bien con los vecinos si quieres prosperar aquí.»"
 
 	var anim_64 := _load_64_tex("res://assests/world/village/npcs_64/anim_%s.png" % key)
 	var spr_64 := _load_64_tex("res://assests/world/village/npcs_64/sprite_%s.png" % key)
@@ -613,6 +643,9 @@ func add_thought(thought_text: String, mood_delta: float) -> void:
 var _pre_poker_pos: Vector2 = Vector2.ZERO
 
 func set_poker_seating(active: bool, seat_world_pos: Vector2 = Vector2.ZERO) -> void:
+	_is_actively_crafting = false
+	if _craft_bar_root:
+		_craft_bar_root.visible = false
 	if active:
 		if not is_at_poker_table:
 			_pre_poker_pos = global_position
@@ -636,6 +669,9 @@ func set_poker_seating(active: bool, seat_world_pos: Vector2 = Vector2.ZERO) -> 
 func apply_sleeping_draught(duration: float = 40.0) -> void:
 	if is_dead or is_downed:
 		return
+	_is_actively_crafting = false
+	if _craft_bar_root:
+		_craft_bar_root.visible = false
 	sedated_timer = maxf(sedated_timer, duration)
 	is_sleeping = true
 	is_hostile = false
@@ -653,12 +689,18 @@ func _physics_process(delta: float) -> void:
 		return
 	if is_dead:
 		velocity = Vector2.ZERO
+		_is_actively_crafting = false
+		if _craft_bar_root:
+			_craft_bar_root.visible = false
 		_process_corpse_state(delta)
 		return
 
 	# Paso 1: Estado "Agonizando" (`is_downed`) antes de morir definitivamente
 	if is_downed:
 		velocity = Vector2.ZERO
+		_is_actively_crafting = false
+		if _craft_bar_root:
+			_craft_bar_root.visible = false
 		bleedout_timer -= delta
 		if sprite:
 			sprite.rotation_degrees = 82.0
@@ -676,6 +718,9 @@ func _physics_process(delta: float) -> void:
 	if sedated_timer > 0.0:
 		sedated_timer -= delta
 		velocity = Vector2.ZERO
+		_is_actively_crafting = false
+		if _craft_bar_root:
+			_craft_bar_root.visible = false
 		is_sleeping = true
 		if status_label:
 			status_label.text = "💤 %s — Inconsciente / Dormido (%ds)" % [npc_name, maxi(1, int(ceil(sedated_timer)))]
@@ -691,6 +736,9 @@ func _physics_process(delta: float) -> void:
 
 	if is_stunned_flag:
 		velocity = Vector2.ZERO
+		_is_actively_crafting = false
+		if _craft_bar_root:
+			_craft_bar_root.visible = false
 		return
 
 	# Si está sentado jugando Póker/Billar o el reloj está congelado por minijuego, no drenar necesidades ni romper rutina
@@ -698,6 +746,9 @@ func _physics_process(delta: float) -> void:
 		if poker_seat_pos != Vector2.ZERO and global_position.distance_to(poker_seat_pos) > 3.0:
 			global_position = poker_seat_pos
 		velocity = Vector2.ZERO
+		_is_actively_crafting = false
+		if _craft_bar_root:
+			_craft_bar_root.visible = false
 		_update_visual_animation(delta)
 		_update_hover_label()
 		return
@@ -1058,6 +1109,8 @@ func _process_corpse_morgue_transport(delta: float) -> bool:
 			target_corpse.sprite.visible = false
 		if target_corpse.status_label:
 			target_corpse.status_label.visible = false
+		if target_corpse._craft_bar_root:
+			target_corpse._craft_bar_root.visible = false
 		if target_corpse.interact_area and target_corpse.interact_area.get_child_count() > 0:
 			var ic := target_corpse.interact_area.get_child(0) as CollisionShape2D
 			if ic:
@@ -1875,7 +1928,7 @@ func _process_artisan_workshop_crafting_and_supply_runs(delta: float) -> void:
 		var supplier_npc: VillageNPC = null
 		if vm and "trade_npcs" in vm and vm.trade_npcs.has(_supply_run_target_role):
 			var cand = vm.trade_npcs[_supply_run_target_role]
-			if cand is VillageNPC and is_instance_valid(cand) and not cand.is_dead and not cand.is_downed:
+			if cand is VillageNPC and is_instance_valid(cand) and not cand.is_dead and not cand.is_downed and not cand.is_sleeping and not cand.is_stunned_flag and cand.sedated_timer <= 0.0 and not cand.is_hostile:
 				supplier_npc = cand as VillageNPC
 
 		if supplier_npc == null:
@@ -1903,12 +1956,22 @@ func _process_artisan_workshop_crafting_and_supply_runs(delta: float) -> void:
 					_craft_bar_root.visible = false
 			return
 
-		# Ha llegado físicamente al mostrador del vecino: verifica stock y realiza la compra de materia prima
+		# Ha llegado físicamente al mostrador del vecino: verifica que el artesano esté atendiendo su puesto, tenga stock y realiza la compra
 		velocity = Vector2.ZERO
-		if int(supplier_npc.shop_stock.get(_supply_run_item_id, 0)) > 0:
+		if supplier_npc.is_at_shop_counter() and int(supplier_npc.shop_stock.get(_supply_run_item_id, 0)) > 0:
 			var buy_cost: int = 6
 			personal_gold = maxi(0, personal_gold - buy_cost)
-			supplier_npc.personal_gold = maxi(0, supplier_npc.personal_gold) + buy_cost
+			var biz_mode: String = "NPC"
+			if vm and "shop_businesses" in vm and vm.shop_businesses.has(_supply_run_target_role):
+				biz_mode = str(vm.shop_businesses[_supply_run_target_role].get("owner_mode", "NPC"))
+			if biz_mode == "SOLE_OWNER":
+				vm.shop_businesses[_supply_run_target_role]["vault_gold"] = int(vm.shop_businesses[_supply_run_target_role].get("vault_gold", 0)) + buy_cost
+			elif biz_mode == "PARTNER":
+				var player_cut: int = int(buy_cost / 2)
+				vm.shop_businesses[_supply_run_target_role]["vault_gold"] = int(vm.shop_businesses[_supply_run_target_role].get("vault_gold", 0)) + player_cut
+				supplier_npc.personal_gold = maxi(0, supplier_npc.personal_gold) + (buy_cost - player_cut)
+			else:
+				supplier_npc.personal_gold = maxi(0, supplier_npc.personal_gold) + buy_cost
 			supplier_npc.shop_stock[_supply_run_item_id] = int(supplier_npc.shop_stock[_supply_run_item_id]) - 1
 			if vm and "shop_businesses" in vm and vm.shop_businesses.has(_supply_run_target_role):
 				vm.shop_businesses[_supply_run_target_role]["stock_override"] = supplier_npc.shop_stock.duplicate()
@@ -1967,12 +2030,12 @@ func _process_artisan_workshop_crafting_and_supply_runs(delta: float) -> void:
 	var cur_mat_count: int = int(workshop_materials.get(req_input, 0))
 	var player_near_counter: bool = is_instance_valid(_cached_player) and _cached_player.global_position.distance_squared_to(work_position) <= 60.0 * 60.0
 
-	# Si se quedó sin el material que vende el vecino, tiene oro suficiente, el vecino tiene stock y no está saboteado, va a comprarlo
+	# Si se quedó sin el material que vende el vecino, tiene oro suficiente, el vecino está atendiendo su mostrador, tiene stock y no está saboteado, va a comprarlo
 	if cur_mat_count <= 0 and _craft_progress < 8.0 and _supply_run_cooldown <= 0.0 and personal_gold >= 8 and not player_near_counter and sup_role != 0:
 		if vm and "trade_npcs" in vm and vm.trade_npcs.has(sup_role):
 			var sup_sabotaged: bool = vm.has_method("is_trade_sabotaged") and bool(vm.call("is_trade_sabotaged", sup_role))
 			var sup_cand = vm.trade_npcs[sup_role]
-			if not sup_sabotaged and sup_cand is VillageNPC and is_instance_valid(sup_cand) and not sup_cand.is_dead and not sup_cand.is_downed and int(sup_cand.shop_stock.get(req_input, 0)) > 0:
+			if not sup_sabotaged and sup_cand is VillageNPC and is_instance_valid(sup_cand) and sup_cand.is_at_shop_counter() and int(sup_cand.shop_stock.get(req_input, 0)) > 0:
 				_supply_run_target_role = sup_role
 				_supply_run_item_id = req_input
 				_supply_run_input_label = in_label
@@ -2295,6 +2358,11 @@ func _process_traveling_merchant_routine(delta: float) -> void:
 ## 4º Filosofía Real: Nunca se va con las manos vacías; condena al sospechoso con mayor puntuación (el Jugador o un aldeano Chivo Expiatorio).
 func _process_royal_investigator_ai(delta: float) -> void:
 	var vm = _cached_vm if is_instance_valid(_cached_vm) else get_tree().get_first_node_in_group("village_manager")
+	if vm and bool(vm.get("player_being_escorted_to_jail")) and vm.get("escorting_officer") == self:
+		is_hostile = false
+		remove_from_group("enemies")
+		if _process_police_law_enforcement(delta, vm):
+			return
 	if is_hostile and vm:
 		if bool(vm.get("player_in_jail")) or bool(vm.get("player_being_escorted_to_jail")):
 			is_hostile = false
@@ -2618,6 +2686,14 @@ func take_damage(data: DamageData) -> void:
 	_civilian_hostile_timer = 14.0
 	is_sleeping = false
 	sedated_timer = 0.0
+	_is_actively_crafting = false
+	if _craft_bar_root:
+		_craft_bar_root.visible = false
+	if not (stun_comp and stun_comp.is_stunned):
+		is_stunned_flag = false
+		if sprite and not is_dead and not is_downed:
+			sprite.rotation_degrees = 0.0
+			sprite.modulate = Color.WHITE
 	current_activity = ActivityState.WORKING
 	add_to_group("enemies")
 	if trade_role == TradeRole.ROYAL_INVESTIGATOR and vm and "active_royal_investigation" in vm:
@@ -2637,7 +2713,7 @@ func take_damage(data: DamageData) -> void:
 
 ## Comprueba si el jugador en Sigilo (`[C]`) está situado por la espalda del NPC (o junto a un NPC dormido) para ejecutar un ataque sigiloso (No Letal o Letal)
 func can_be_stealth_targeted(player: Node2D) -> bool:
-	if player == null or is_dead or is_downed or is_hostile or is_at_poker_table or trade_role == TradeRole.ROYAL_INVESTIGATOR:
+	if player == null or is_dead or is_downed or is_hostile or is_at_poker_table or is_stunned_flag or sedated_timer > 0.0 or trade_role == TradeRole.ROYAL_INVESTIGATOR:
 		return false
 	if not player.has_method("is_stealthing") or not bool(player.call("is_stealthing")):
 		return false
@@ -2645,7 +2721,7 @@ func can_be_stealth_targeted(player: Node2D) -> bool:
 	var dist_sq: float = to_player.length_squared()
 	if dist_sq > 29.0 * 29.0 or dist_sq < 0.01:
 		return false
-	if is_sleeping or sedated_timer > 0.0:
+	if is_sleeping:
 		return true
 	var dir_to_player: Vector2 = to_player.normalized()
 	var face_vec: Vector2 = facing_direction
@@ -2659,9 +2735,14 @@ func stealth_knockout(player: Node = null) -> void:
 	if is_dead or is_downed or is_stunned_flag or sedated_timer > 0.0:
 		return
 	hide_prompt()
+	_is_actively_crafting = false
+	if _craft_bar_root:
+		_craft_bar_root.visible = false
 	is_hostile = false
 	_civilian_hostile_timer = 0.0
 	remove_from_group("enemies")
+	if body_col:
+		body_col.set_deferred("disabled", true)
 	velocity = Vector2.ZERO
 	sedated_timer = maxf(sedated_timer, 25.0)
 	is_sleeping = true
@@ -2719,9 +2800,14 @@ func _on_stunned(stunned: bool) -> void:
 		return
 	is_stunned_flag = stunned
 	if stunned:
+		_is_actively_crafting = false
+		if _craft_bar_root:
+			_craft_bar_root.visible = false
 		is_hostile = false
 		_civilian_hostile_timer = 0.0
 		remove_from_group("enemies")
+		if body_col:
+			body_col.set_deferred("disabled", true)
 		velocity = Vector2.ZERO
 	if sprite:
 		sprite.rotation_degrees = 90.0 if stunned else 0.0
@@ -2736,6 +2822,12 @@ func _on_died() -> void:
 		is_hostile = false
 		is_sleeping = false
 		sedated_timer = 0.0
+		is_stunned_flag = false
+		_is_actively_crafting = false
+		if _craft_bar_root:
+			_craft_bar_root.visible = false
+		if body_col:
+			body_col.set_deferred("disabled", true)
 		velocity = Vector2.ZERO
 		remove_from_group("enemies")
 		if last_hit_weapon_name.contains("Martillo"):
@@ -2803,6 +2895,9 @@ func _confirm_true_death() -> void:
 	bleedout_timer = 0.0
 	is_dead = true
 	is_hostile = false
+	_is_actively_crafting = false
+	if _craft_bar_root:
+		_craft_bar_root.visible = false
 	corpse_on_ground = true
 	corpse_discovered = false
 	corpse_discovered_by = ""
@@ -2949,11 +3044,11 @@ func interact(player: Node) -> void:
 	if is_downed:
 		revive_from_downed(player, false)
 		return
-	if player is Node2D and can_be_stealth_targeted(player as Node2D):
-		stealth_knockout(player)
-		return
 	if is_stunned_flag or sedated_timer > 0.0:
 		loot_npc_pockets(player)
+		return
+	if player is Node2D and can_be_stealth_targeted(player as Node2D):
+		stealth_knockout(player)
 		return
 	if is_hostile:
 		return
@@ -3655,6 +3750,7 @@ func to_save_dict() -> Dictionary:
 	for rk in ["route_Bought_smith", "route_Bought_carp", "route_Bought_butcher", "route_Bought_fish", "route_Bought_herb"]:
 		if has_meta(rk):
 			route_bought_flags[rk] = bool(get_meta(rk))
+	var save_pos: Vector2 = _pre_poker_pos if (is_at_poker_table and _pre_poker_pos != Vector2.ZERO and not is_dead) else global_position
 	return {
 		"npc_name": npc_name,
 		"npc_role": npc_role,
@@ -3692,8 +3788,8 @@ func to_save_dict() -> Dictionary:
 		"death_hour": death_hour,
 		"death_minute": death_minute,
 		"is_hostile": is_hostile,
-		"pos_x": global_position.x,
-		"pos_y": global_position.y,
+		"pos_x": save_pos.x,
+		"pos_y": save_pos.y,
 		"work_x": work_position.x,
 		"work_y": work_position.y,
 		"bed_x": bed_position.x,
@@ -3705,6 +3801,7 @@ func to_save_dict() -> Dictionary:
 		"workshop_materials": workshop_materials.duplicate(),
 		"craft_progress": _craft_progress,
 		"crafting_recipe_idx": _crafting_recipe_idx,
+		"completed_expedition_day": _completed_expedition_day,
 		"route_bought_flags": route_bought_flags
 	}
 
@@ -3717,6 +3814,20 @@ func from_save_dict(data: Dictionary) -> void:
 		_craft_progress = clampf(float(data["craft_progress"]), 0.0, 99.0)
 	if data.has("crafting_recipe_idx"):
 		_crafting_recipe_idx = maxi(0, int(data["crafting_recipe_idx"]))
+	_completed_expedition_day = int(data.get("completed_expedition_day", -1))
+	_supply_run_target_role = 0
+	_supply_run_item_id = ""
+	_supply_run_input_label = ""
+	_supply_run_timer = 0.0
+	_is_actively_crafting = false
+	_expedition_target_node = null
+	_expedition_gather_timer = 0.0
+	_is_amateur_foraging = false
+	_amateur_forage_timer = 0.0
+	_being_interviewed_timer = 0.0
+	_interviewer_node = null
+	if _craft_bar_root:
+		_craft_bar_root.visible = false
 	for rk in ["route_Bought_smith", "route_Bought_carp", "route_Bought_butcher", "route_Bought_fish", "route_Bought_herb"]:
 		if has_meta(rk):
 			remove_meta(rk)
@@ -3724,6 +3835,8 @@ func from_save_dict(data: Dictionary) -> void:
 		var rbf: Dictionary = data["route_bought_flags"]
 		for rk in rbf.keys():
 			set_meta(str(rk), bool(rbf[rk]))
+	is_at_poker_table = false
+	poker_seat_pos = Vector2.ZERO
 	_pre_poker_pos = Vector2.ZERO
 	corpse_being_carried = false
 	corpse_carrier = null
@@ -3777,6 +3890,7 @@ func from_save_dict(data: Dictionary) -> void:
 		home_table_pos = Vector2(float(data["table_x"]), float(data["table_y"]))
 	if data.has("shop_stock") and typeof(data["shop_stock"]) == TYPE_DICTIONARY:
 		shop_stock = data["shop_stock"].duplicate()
+	_resolve_unique_64_visuals_and_lore()
 	var dead_saved: bool = bool(data.get("is_dead", false))
 	if dead_saved:
 		is_downed = false
@@ -3843,7 +3957,6 @@ func from_save_dict(data: Dictionary) -> void:
 			var ic := interact_area.get_child(0) as CollisionShape2D
 			if ic:
 				ic.set_deferred("disabled", false)
-		_resolve_unique_64_visuals_and_lore()
 		if sprite:
 			sprite.visible = true
 			sprite.z_index = 0
