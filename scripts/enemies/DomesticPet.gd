@@ -371,6 +371,8 @@ func _on_stunned(stunned: bool) -> void:
 func _on_died(silent: bool = false) -> void:
 	if is_dead:
 		return
+	if health_comp:
+		health_comp.stop_bleeding()
 	is_dead = true
 	is_hostile = false
 	is_sleeping = false

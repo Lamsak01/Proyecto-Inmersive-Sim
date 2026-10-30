@@ -137,7 +137,7 @@ func take_damage(data: DamageData) -> void:
 	var dmg = data.copy()
 	
 	# Stealth Critical Hit
-	if ai and (ai.current_state == EnemyAI.State.IDLE or ai.current_state == EnemyAI.State.SEARCH):
+	if ai and dmg.source and dmg.source.is_in_group("player") and (ai.current_state == EnemyAI.State.IDLE or ai.current_state == EnemyAI.State.SEARCH):
 		dmg.amount *= 3.0
 		_spawn_floating_text("CRITICAL!", Color.YELLOW, -40.0)
 
@@ -150,7 +150,8 @@ func take_damage(data: DamageData) -> void:
 	# Notify AI of attack
 	if ai and dmg.source and not is_stunned_flag:
 		if ai.has_method("notify_damage"):
-			ai.notify_damage(dmg.source)
+			var notify_target: Node2D = get_tree().get_first_node_in_group("player") as Node2D if dmg.source.is_in_group("player_trap") else (dmg.source as Node2D)
+			ai.notify_damage(notify_target)
 	
 	# Visual Flash
 	modulate = Color(10, 10, 10)

@@ -1023,7 +1023,9 @@ func take_damage(data: DamageData) -> void:
 	if current_hp <= 0.0:
 		_become_carcass()
 	else:
-		var attacker_node: Node2D = data.source as Node2D if (data and is_instance_valid(data.source) and data.source is Node2D) else (get_tree().get_first_node_in_group("player") as Node2D)
+		if data and data.stun_buildup >= 50.0:
+			pounce_recovery_timer = maxf(pounce_recovery_timer, 3.0)
+		var attacker_node: Node2D = data.source as Node2D if (data and is_instance_valid(data.source) and data.source is Node2D and not data.source.is_in_group("player_trap")) else (get_tree().get_first_node_in_group("player") as Node2D)
 		if species == SpeciesType.BOAR and is_instance_valid(attacker_node):
 			_start_boar_aggro(attacker_node)
 		else:

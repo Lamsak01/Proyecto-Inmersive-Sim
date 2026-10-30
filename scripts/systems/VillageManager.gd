@@ -2141,8 +2141,7 @@ func _track_player_building_sightings(player: Node2D) -> void:
 	# Si el jugador entra o sale en Sigilo [C], pasa desapercibido salvo que un NPC esté pegado a menos de 34 px
 	var in_stealth: bool = player.has_method("is_stealthing") and bool(player.call("is_stealthing"))
 	var cloak_mult: float = float(player.call("get_stealth_detection_multiplier")) if player.has_method("get_stealth_detection_multiplier") else 1.0
-	var vision_mult: float = WorldClock.get_weather_vision_multiplier() if (WorldClock and WorldClock.has_method("get_weather_vision_multiplier")) else 1.0
-	var max_witness_dist: float = (34.0 if in_stealth else 160.0) * vision_mult * cloak_mult
+	var max_witness_dist: float = (34.0 if in_stealth else 160.0) * cloak_mult
 
 	var door_watch_pos: Vector2 = entered_b.get("door_pos", player.global_position)
 	var witness: VillageNPC = _find_conscious_witness_near(door_watch_pos, max_witness_dist, null)
@@ -4210,7 +4209,7 @@ func consume_village_meal_for_npc(npc: VillageNPC) -> bool:
 		var is_own_family_pantry: bool = (npc.family_id != "none" and npc.family_id == shop_fam_id)
 
 		if not is_own_family_pantry:
-			if not is_instance_valid(holder) or not holder.is_at_shop_counter():
+			if is_trade_sabotaged(r_id) or not is_instance_valid(holder) or not holder.is_at_shop_counter():
 				continue
 		else:
 			if not is_instance_valid(holder) or holder.is_dead:
@@ -4226,8 +4225,6 @@ func consume_village_meal_for_npc(npc: VillageNPC) -> bool:
 			var cur_q: int = int(st.get(f_key, 0))
 			if cur_q > 0:
 				st[f_key] = cur_q - 1
-				if shop_businesses.has(r_id):
-					shop_businesses[r_id]["stock_override"] = st.duplicate()
 				if not is_own_family_pantry:
 					npc.personal_gold = maxi(0, npc.personal_gold - raw_price)
 					holder.personal_gold += raw_price
@@ -4237,6 +4234,8 @@ func consume_village_meal_for_npc(npc: VillageNPC) -> bool:
 						npc.personal_gold = maxi(0, npc.personal_gold - raw_price)
 						holder.personal_gold += raw_price
 						house_pantry[p_key] = int(house_pantry.get(p_key, 0)) + 1
+				if shop_businesses.has(r_id):
+					shop_businesses[r_id]["stock_override"] = st.duplicate()
 				var food_name: String = str(SimpleInventory.CATALOG.get(f_key, {}).get("name", f_key))
 				npc.add_thought("Cocinó %s comprado en el mercado (-%d Oro, +6)" % [food_name, raw_price], 6.0)
 				npc._spawn_floating_text("🥖🏠 %s (-%d Oro | Bolsillo: %d)" % [food_name, raw_price, npc.personal_gold], Color(0.75, 1.0, 0.75), -32.0)
@@ -4332,7 +4331,7 @@ func sabotage_shop_stall(player: Node2D, role_id: int) -> void:
 	var b_title: String = str(biz.get("title", "Taller"))
 	var cur_day: int = WorldClock.current_day if WorldClock else 1
 
-	if int(biz.get("sabotaged_days", 0)) > 0 and int(biz.get("sabotaged_today_day", -1)) == cur_day:
+	if int(biz.get("sabotaged_days", 0)) > 0 or int(biz.get("sabotaged_today_day", -1)) == cur_day:
 		if player.has_method("_spawn_floating_text"):
 			player._spawn_floating_text("🔧💥 Este taller ya fue saboteado hoy", Color.GOLD, -42.0)
 		return
@@ -4638,7 +4637,8 @@ func _on_business_action_4(player: Node2D) -> void:
 		biz["sabotaged_days"] = 0
 		_refresh_shop_stall_visual(_active_business_role)
 		var fam_id: String = str(biz.get("family_id", "none"))
-		modify_family_reputation(fam_id, 15, "Reparó el taller saboteado")
+		if int(biz.get("sabotaged_today_day", -1)) != (WorldClock.current_day if WorldClock else 1):
+			modify_family_reputation(fam_id, 15, "Reparó el taller saboteado")
 		player._spawn_floating_text("🔧✨ ¡Maquinaria de %s reparada y lista para producir!" % str(biz.get("title", "")), Color.SPRING_GREEN, -44.0)
 		open_business_management_ui(_active_business_role)
 	else:
@@ -5191,8 +5191,11 @@ func _spawn_royal_investigator() -> void:
 		if "_police_alerted_timer" in _royal_investigator_npc:
 			_royal_investigator_npc._police_alerted_timer = 0.0
 		return
-	if is_instance_valid(_royal_investigator_npc) and _royal_investigator_npc.is_dead:
-		_royal_investigator_npc.name = "NPC_Royal_Investigator_Corpse_" + str(_royal_investigator_npc.get_instance_id())
+	for n in get_tree().get_nodes_in_group("village_npcs"):
+		if n is VillageNPC and (n as VillageNPC).trade_role == VillageNPC.TradeRole.ROYAL_INVESTIGATOR and (n as VillageNPC).is_dead:
+			if not str(n.name).begins_with("NPC_Royal_Investigator_Corpse_"):
+				n.name = "NPC_Royal_Investigator_Corpse_" + str(n.get_instance_id())
+	_royal_investigator_npc = null
 	var inv_npc := VillageNPC.new()
 	inv_npc.name = "NPC_Royal_Investigator_Alistair"
 	inv_npc.npc_name = "Inquisidor Real Alistair"
@@ -5617,15 +5620,15 @@ func _cross_check_morgue_and_police_records(inv_npc: VillageNPC, suspects: Dicti
 		var r_clue: String = str(rec.get("witness_clue", ""))
 		if r_susp.begins_with("Jugador"):
 			if r_victim == v_name:
-				p_entry["score"] = int(p_entry.get("score", 16)) + 50
-				p_entry["status_note"] = "Identificado en el Libro Forense (%s)" % r_clue
 				var c_msg: String = "Registro Forense de la Morgue: %s (%s)." % [r_susp, r_clue]
 				if not (c_msg in clues):
+					p_entry["score"] = int(p_entry.get("score", 16)) + 50
+					p_entry["status_note"] = "Identificado en el Libro Forense (%s)" % r_clue
 					clues.append(c_msg)
 			else:
-				p_entry["score"] = int(p_entry.get("score", 16)) + 25
 				var c_msg2: String = "Antecedente de homicidio en la Morgue (%s): %s." % [r_victim, r_clue]
 				if not (c_msg2 in clues):
+					p_entry["score"] = int(p_entry.get("score", 16)) + 25
 					clues.append(c_msg2)
 	if is_instance_valid(inv_npc) and int(p_entry.get("score", 0)) >= 50:
 		inv_npc._spawn_floating_text("⚖️📔 ¡El Libro Forense y la Guardia vinculan al Forastero con el crimen!", Color.ORANGE_RED, -42.0)
@@ -5691,7 +5694,7 @@ func _evaluate_player_inspection(inv_npc: VillageNPC, player: Node2D, suspects: 
 				inv_npc._spawn_floating_text("👑📜 ¡Llevas el Salvoconducto Real del difunto!", Color.ORANGE_RED, -42.0)
 		var w_used: String = str(active_royal_investigation.get("weapon_used", "")).to_lower()
 		var eq_w: Variant = player.get("equipped_weapon")
-		var holding_matching_weapon: bool = (("espada" in w_used or "cuchillo" in w_used) and eq_w == player.get("sword_weapon")) or ("martillo" in w_used and eq_w == player.get("hammer_weapon")) or ("hacha" in w_used and eq_w == player.get("axe_weapon")) or ("arco" in w_used and eq_w == player.get("bow_weapon"))
+		var holding_matching_weapon: bool = (("espada" in w_used or "cuchillo" in w_used) and eq_w == player.get("sword_weapon")) or ("martillo" in w_used and eq_w == player.get("hammer_weapon")) or ("hacha" in w_used and eq_w == player.get("axe_weapon")) or ("arco" in w_used and eq_w == player.get("bow_weapon")) or ("pico" in w_used and eq_w == player.get("pickaxe_weapon")) or ("hoz" in w_used and eq_w == player.get("sickle_weapon"))
 		if w_used != "" and not already_inspected and holding_matching_weapon:
 			p_entry["score"] = int(p_entry.get("score", 16)) + 16
 			clues.append("El Forastero empuña abiertamente armamento compatible con la herida forense (%s)." % w_used)
@@ -5866,6 +5869,7 @@ func deploy_steel_bear_trap(pos: Vector2, _player: Node = null) -> void:
 	trap_root.name = "DeployedBearTrap_%d" % _deployed_bear_traps.size()
 	trap_root.global_position = pos
 	trap_root.z_index = -1
+	trap_root.add_to_group("player_trap")
 	entities_root.add_child(trap_root)
 
 	var spr := Sprite2D.new()
@@ -5940,10 +5944,10 @@ func get_economy_save_dict() -> Dictionary:
 			"stock_override": get_trade_stock_dict(role_int).duplicate()
 		}
 	var saved_merchant: Dictionary = {}
-	if is_instance_valid(_active_traveling_merchant):
+	if is_instance_valid(_active_traveling_merchant) and not _active_traveling_merchant.is_dead:
 		saved_merchant = _active_traveling_merchant.to_save_dict()
 	var saved_investigator: Dictionary = {}
-	if is_instance_valid(_royal_investigator_npc):
+	if is_instance_valid(_royal_investigator_npc) and not _royal_investigator_npc.is_dead:
 		saved_investigator = _royal_investigator_npc.to_save_dict()
 	var saved_pets: Array[Dictionary] = []
 	for p in domestic_pets:
@@ -6078,7 +6082,7 @@ func load_economy_save_dict(data: Dictionary) -> void:
 	reconcile_npc_registries_after_load()
 	if data.has("active_traveling_merchant") and typeof(data["active_traveling_merchant"]) == TYPE_DICTIONARY:
 		var m_data: Dictionary = data["active_traveling_merchant"] as Dictionary
-		if m_data.is_empty():
+		if m_data.is_empty() or bool(m_data.get("is_dead", false)):
 			if is_instance_valid(_active_traveling_merchant) and not _active_traveling_merchant.is_dead:
 				_active_traveling_merchant.remove_from_group("village_npcs")
 				_active_traveling_merchant.remove_from_group("npcs")
@@ -6103,12 +6107,12 @@ func load_economy_save_dict(data: Dictionary) -> void:
 				_active_traveling_merchant.from_save_dict(m_data)
 	if data.has("active_royal_investigation") and typeof(data["active_royal_investigation"]) == TYPE_DICTIONARY:
 		active_royal_investigation = (data["active_royal_investigation"] as Dictionary).duplicate(true)
+		var inv_data: Dictionary = data.get("royal_investigator_npc", {}) if typeof(data.get("royal_investigator_npc", {})) == TYPE_DICTIONARY else {}
 		if bool(active_royal_investigation.get("active", false)):
-			if not is_instance_valid(_royal_investigator_npc):
-				_spawn_royal_investigator()
-			if is_instance_valid(_royal_investigator_npc) and data.has("royal_investigator_npc") and typeof(data["royal_investigator_npc"]) == TYPE_DICTIONARY:
-				var inv_data: Dictionary = data["royal_investigator_npc"] as Dictionary
-				if not inv_data.is_empty():
+			if not inv_data.is_empty() and not bool(inv_data.get("is_dead", false)):
+				if not is_instance_valid(_royal_investigator_npc):
+					_spawn_royal_investigator()
+				if is_instance_valid(_royal_investigator_npc):
 					_royal_investigator_npc.from_save_dict(inv_data)
 			if str(active_royal_investigation.get("stage", "")) == "HUNTING_PLAYER" and not player_in_jail and not player_being_escorted_to_jail:
 				is_resisting_arrest = true

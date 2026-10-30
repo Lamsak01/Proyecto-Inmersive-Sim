@@ -506,7 +506,7 @@ func _has_line_of_sight(target_node: Node2D) -> bool:
 		parent.global_position,
 		target_node.global_position
 	)
-	query.exclude = [parent.get_rid(), target_node.get_rid()]
+	query.exclude = [parent.get_rid(), target_node.get_rid()] if target_node is CollisionObject2D else [parent.get_rid()]
 	query.collision_mask = 1
 	
 	var result = space_state.intersect_ray(query)

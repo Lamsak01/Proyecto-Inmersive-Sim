@@ -875,6 +875,8 @@ func _physics_process(delta: float) -> void:
 	if is_hostile:
 		_process_hostile_combat(delta)
 		move_and_slide()
+		_update_visual_animation(delta)
+		_update_hover_label()
 		return
 
 	_update_needs_and_decisions(delta)
@@ -2675,15 +2677,24 @@ func take_damage(data: DamageData) -> void:
 
 	# Identificar arma y atacante para la autopsia forense (Paso 1 y Paso 2)
 	if data and is_instance_valid(data.source):
-		if data.source.is_in_group("player"):
+		if data.source.is_in_group("player_trap"):
 			last_hit_by_player = true
-			var eq_tool: int = int(data.source.get("equipped_tool")) if "equipped_tool" in data.source else 0
-			match eq_tool:
-				0: last_hit_weapon_name = "Corte de Espada"
-				1: last_hit_weapon_name = "Traumatismo Contundente (Martillo)"
-				2: last_hit_weapon_name = "Tajo Profundo de Hacha"
-				4: last_hit_weapon_name = "Impacto de Flecha (Arco)"
-				_: last_hit_weapon_name = "Arma de Herramienta"
+			last_hit_weapon_name = "Cepo de Acero"
+		elif data.source.is_in_group("player"):
+			last_hit_by_player = true
+			var eq_w: Variant = data.source.get("equipped_weapon")
+			if eq_w == data.source.get("bow_weapon"):
+				last_hit_weapon_name = "Impacto de Flecha (Arco)"
+			elif eq_w == data.source.get("hammer_weapon"):
+				last_hit_weapon_name = "Traumatismo Contundente (Martillo)"
+			elif eq_w == data.source.get("axe_weapon"):
+				last_hit_weapon_name = "Tajo Profundo de Hacha"
+			elif eq_w == data.source.get("pickaxe_weapon"):
+				last_hit_weapon_name = "Impacto de Pico Minero"
+			elif eq_w == data.source.get("sickle_weapon"):
+				last_hit_weapon_name = "Corte de Hoz Agrícola"
+			else:
+				last_hit_weapon_name = "Corte de Espada"
 		else:
 			last_hit_by_player = false
 			last_hit_weapon_name = "Desgarro por Animal/Asaltante"
@@ -2823,8 +2834,8 @@ func hide_prompt() -> void:
 func _on_stunned(stunned: bool) -> void:
 	if is_dead or is_downed:
 		return
-	is_stunned_flag = stunned
-	if stunned:
+	is_stunned_flag = stunned or (sedated_timer > 0.0)
+	if is_stunned_flag:
 		_is_actively_crafting = false
 		if _craft_bar_root:
 			_craft_bar_root.visible = false
@@ -2835,7 +2846,7 @@ func _on_stunned(stunned: bool) -> void:
 			body_col.set_deferred("disabled", true)
 		velocity = Vector2.ZERO
 	if sprite:
-		if stunned or sedated_timer > 0.0 or is_sleeping:
+		if is_stunned_flag:
 			sprite.rotation_degrees = 90.0
 			sprite.modulate = Color(0.55, 0.65, 1.0)
 		else:
@@ -3090,6 +3101,9 @@ func interact(player: Node) -> void:
 		return
 	if is_hostile:
 		return
+	_start_npc_dialogue(player)
+
+func _start_npc_dialogue(player: Node) -> void:
 	# Al conversar con el jugador, el NPC detiene lo que está haciendo, mira al jugador y satisface parte de su necesidad social
 	velocity = Vector2.ZERO
 	_is_actively_crafting = false
@@ -3934,6 +3948,13 @@ func from_save_dict(data: Dictionary) -> void:
 	if data.has("shop_stock") and typeof(data["shop_stock"]) == TYPE_DICTIONARY:
 		shop_stock = data["shop_stock"].duplicate()
 	_resolve_unique_64_visuals_and_lore()
+	last_hit_weapon_name = str(data.get("last_hit_weapon_name", last_hit_weapon_name))
+	last_hit_by_player = bool(data.get("last_hit_by_player", false))
+	murder_witness_name = str(data.get("murder_witness_name", ""))
+	if stun_comp:
+		stun_comp.clear_stun()
+	if health_comp:
+		health_comp.stop_bleeding()
 	var dead_saved: bool = bool(data.get("is_dead", false))
 	if dead_saved:
 		is_downed = false
@@ -3941,15 +3962,14 @@ func from_save_dict(data: Dictionary) -> void:
 		is_dead = true
 		is_hostile = false
 		remove_from_group("enemies")
+		if health_comp:
+			health_comp.current_health = 0.0
 		corpse_on_ground = bool(data.get("corpse_on_ground", true))
 		corpse_discovered = bool(data.get("corpse_discovered", false))
 		corpse_discovered_by = str(data.get("corpse_discovered_by", ""))
 		corpse_reported = bool(data.get("corpse_reported", false))
 		corpse_in_morgue = bool(data.get("corpse_in_morgue", false))
 		corpse_rot_hours = float(data.get("corpse_rot_hours", 0.0))
-		last_hit_weapon_name = str(data.get("last_hit_weapon_name", last_hit_weapon_name))
-		last_hit_by_player = bool(data.get("last_hit_by_player", false))
-		murder_witness_name = str(data.get("murder_witness_name", ""))
 		if data.has("death_world_pos_x") and data.has("death_world_pos_y"):
 			death_world_pos = Vector2(float(data["death_world_pos_x"]), float(data["death_world_pos_y"]))
 		else:
@@ -4012,9 +4032,5 @@ func from_save_dict(data: Dictionary) -> void:
 			else:
 				sprite.rotation_degrees = 0.0
 				sprite.modulate = Color.WHITE
-		if stun_comp:
-			stun_comp.clear_stun()
-		if health_comp:
-			health_comp.stop_bleeding()
-			if data.has("hp"):
-				health_comp.current_health = clampf(float(data["hp"]), 1.0, health_comp.max_health)
+		if health_comp and data.has("hp"):
+			health_comp.current_health = clampf(float(data["hp"]), 1.0, health_comp.max_health)
