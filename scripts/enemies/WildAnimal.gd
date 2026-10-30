@@ -462,6 +462,7 @@ func _find_ready_mate() -> WildAnimal:
 func _find_best_food_target() -> Node2D:
 	var best_node: Node2D = null
 	var best_dist_sq: float = 1250.0 * 1250.0
+	is_raiding_farm = false
 
 	if species in [SpeciesType.RABBIT, SpeciesType.DEER, SpeciesType.BOAR]:
 		# Primero priorizar la flora dentro de su propio hábitat (<= 270 px de su madriguera/claro) para que las especies no se mezclen

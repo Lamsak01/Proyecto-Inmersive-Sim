@@ -26,3 +26,12 @@ Este archivo registra únicamente **bugs reales de jugabilidad/lógica** detecta
   - `scripts/systems/ai/EnemyAI.gd` (`líneas 103-106`)
 - **Descripción del fallo real:** Mientras el reloj del mundo está congelado por jugar Póker/Billar en la Taberna (`WorldClock.is_time_frozen()`), el sangrado activo (`HealthComponent._process`) seguía drenando vida (pudiendo matar al jugador en plena partida de cartas), el temporizador de agonía (`bleedout_timer`) y de aturdimiento (`StunComponent`) seguían corriendo, y `EnemyAI` seguía procesando movimiento/ataques.
 - **Solución aplicada:** Pausar el tick en `HealthComponent._process`, `StunComponent._process`, `EnemyAI._physics_process` y el descuento de `bleedout_timer` en `VillageNPC._physics_process` cuando `WorldClock.is_time_frozen()` es `true`.
+
+---
+
+## Iteración 2 — Commit Base para Rollback: `9083cfa`
+
+### 4. Flag `is_raiding_farm` Persistía Activo Cuando `_find_best_food_target()` Elegía un Conejo o Arbusto del Bosque
+- **Archivo y líneas afectadas:** `scripts/enemies/WildAnimal.gd` (`líneas 462-466`)
+- **Descripción del fallo real:** Detectado por el test de ejecución real en Godot Headless: cuando un zorro (u otro animal) tenía `is_raiding_farm = true` y llamaba a `_find_best_food_target()`, si encontraba un conejo salvaje (`best_node = rab`), no entraba en las ramas `if not best_node`, dejando `is_raiding_farm = true` aunque su objetivo ya no fuera el gallinero ni la granja.
+- **Solución aplicada:** Resetear `is_raiding_farm = false` al inicio de `_find_best_food_target()`, de modo que solo valga `true` si el objetivo elegido en esa búsqueda es realmente el gallinero o un cultivo de la granja.
