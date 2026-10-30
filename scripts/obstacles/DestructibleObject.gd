@@ -17,6 +17,7 @@ enum Vulnerability {
 
 # We use the standard HealthComponent to track HP
 @onready var health_comp: HealthComponent = $HealthComponent
+var _base_modulate: Color = Color.WHITE
 
 func _ready() -> void:
 	if persistence_id == "":
@@ -29,6 +30,8 @@ func _ready() -> void:
 	# Default assignments if not set in editor
 	if not visual_node and has_node("Sprite2D"):
 		visual_node = $Sprite2D
+	if visual_node:
+		_base_modulate = visual_node.modulate
 	if not root_to_free:
 		root_to_free = self
 
@@ -67,7 +70,7 @@ func _play_hit_effect() -> void:
 	# Visual feedback for taking damage (shake, flash, etc)
 	var tween = create_tween()
 	tween.tween_property(visual_node, "modulate", Color(3, 3, 3), 0.05) # Flash white
-	tween.tween_property(visual_node, "modulate", Color.WHITE, 0.05)
+	tween.tween_property(visual_node, "modulate", _base_modulate, 0.05)
 
 func _play_deflect_effect() -> void:
 	# Visual feedback for ineffective hit (e.g., sparks, rigid shake)
@@ -107,5 +110,8 @@ func set_destroyed_state(destroyed: bool) -> void:
 			for sub in a.get_children():
 				if sub is CollisionShape2D:
 					(sub as CollisionShape2D).set_deferred("disabled", destroyed)
-	if not destroyed and health_comp:
-		health_comp.current_health = health_comp.max_health
+	if not destroyed:
+		if visual_node:
+			visual_node.modulate = _base_modulate
+		if health_comp:
+			health_comp.current_health = health_comp.max_health

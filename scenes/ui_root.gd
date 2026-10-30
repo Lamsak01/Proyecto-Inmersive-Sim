@@ -129,9 +129,33 @@ func _bind_survival_component() -> void:
 			surv.sleep_changed.connect(_on_sleep_changed)
 		surv._emit_all()
 
+func _is_external_world_modal_open() -> bool:
+	if WorldClock and bool(WorldClock.get("is_fast_forwarding")):
+		return true
+	if player and player.has_method("is_stunned") and bool(player.call("is_stunned")):
+		return true
+	var vm = get_tree().get_first_node_in_group("village_manager")
+	if vm:
+		for p_name in ["business_panel", "morgue_panel", "jail_panel", "board_panel", "police_panel", "pantry_panel", "church_panel"]:
+			var p_ctrl = vm.get(p_name)
+			if p_ctrl is Control and p_ctrl.visible:
+				return true
+	var camp = get_tree().current_scene.find_child("PlayerCampSite", true, false) if get_tree().current_scene else null
+	if camp:
+		for c_panel in ["sleep_confirm_panel", "upgrade_panel", "chest_panel"]:
+			var cp = camp.get(c_panel)
+			if cp is Control and cp.visible:
+				return true
+	var coop = get_tree().get_first_node_in_group("chicken_coop")
+	if coop:
+		var coop_p = coop.get("chicken_action_panel")
+		if coop_p is Control and coop_p.visible:
+			return true
+	return false
+
 func _unhandled_input(event: InputEvent) -> void:
 	var dm = player.get("dialogue_manager") if player else null
-	if (dm and dm.has_method("is_active") and bool(dm.call("is_active"))) or (tavern_games and tavern_games.visible):
+	if (dm and dm.has_method("is_active") and bool(dm.call("is_active"))) or (tavern_games and tavern_games.visible) or _is_external_world_modal_open():
 		return
 	if event is InputEventKey and not event.echo:
 		if event.keycode == KEY_TAB:

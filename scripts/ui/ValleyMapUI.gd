@@ -89,7 +89,11 @@ func _build_minimap_ui() -> void:
 	header_btn.flat = true
 	header_btn.add_theme_font_size_override("font_size", 11)
 	header_btn.add_theme_color_override("font_color", Color(0.96, 0.88, 0.62))
-	header_btn.pressed.connect(toggle_full_map)
+	header_btn.pressed.connect(func():
+		if not is_full_map_open and is_instance_valid(player) and player.has_method("is_any_ui_modal_open") and bool(player.call("is_any_ui_modal_open")):
+			return
+		toggle_full_map()
+	)
 	vbox.add_child(header_btn)
 
 	minimap_canvas = Control.new()
@@ -99,6 +103,8 @@ func _build_minimap_ui() -> void:
 	minimap_canvas.clip_contents = true
 	minimap_canvas.gui_input.connect(func(ev: InputEvent):
 		if ev is InputEventMouseButton and ev.pressed and ev.button_index == MOUSE_BUTTON_LEFT:
+			if not is_full_map_open and is_instance_valid(player) and player.has_method("is_any_ui_modal_open") and bool(player.call("is_any_ui_modal_open")):
+				return
 			toggle_full_map()
 	)
 	minimap_canvas.draw.connect(func():

@@ -247,6 +247,10 @@ func _apply_depleted_visuals() -> void:
 		prompt_label.visible = false
 	if body_collision:
 		body_collision.set_deferred("disabled", true)
+	if interact_area and interact_area.get_child_count() > 0:
+		var icol := interact_area.get_child(0) as CollisionShape2D
+		if icol:
+			icol.set_deferred("disabled", true)
 	if sprite:
 		if _depleted_texture:
 			sprite.texture = _depleted_texture
@@ -265,6 +269,10 @@ func _regrow_node() -> void:
 		GameManager.set_flag(persistence_id, -1)
 	if body_collision and harvest_type != HarvestType.FORAGE:
 		body_collision.set_deferred("disabled", false)
+	if interact_area and interact_area.get_child_count() > 0:
+		var icol_r := interact_area.get_child(0) as CollisionShape2D
+		if icol_r:
+			icol_r.set_deferred("disabled", false)
 	if sprite:
 		sprite.visible = true
 		sprite.texture = _active_texture

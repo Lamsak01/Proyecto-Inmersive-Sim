@@ -48,7 +48,9 @@ func save_game(filepath: String = SAVE_FILE_PATH) -> bool:
 			"wanted_level": int(vm.get("wanted_level")),
 			"bounty_gold": int(vm.get("bounty_gold")),
 			"player_in_jail": bool(vm.get("player_in_jail")),
+			"is_resisting_arrest": bool(vm.get("is_resisting_arrest")),
 			"jail_mandatory_stay_timer": float(vm.get("jail_mandatory_stay_timer")),
+			"crime_history": vm.get("crime_history"),
 			"sighting_log": vm.get("sighting_log"),
 			"completed_contracts_today": vm.get("completed_contracts_today"),
 			"corpse_records": vm.get("corpse_records"),
@@ -173,7 +175,7 @@ func load_game(filepath: String = SAVE_FILE_PATH) -> bool:
 			coop_p.visible = false
 	var vm_pre = get_tree().get_first_node_in_group("village_manager")
 	if vm_pre:
-		for vp_name in ["business_panel", "morgue_panel", "board_panel", "police_panel", "church_panel"]:
+		for vp_name in ["business_panel", "morgue_panel", "jail_panel", "board_panel", "police_panel", "pantry_panel", "church_panel"]:
 			var vp = vm_pre.get(vp_name)
 			if vp is Control:
 				vp.visible = false
@@ -202,11 +204,14 @@ func load_game(filepath: String = SAVE_FILE_PATH) -> bool:
 		player.from_save_dict(data["player"])
 
 	# 4. Restaurar NPCs y Mascotas de la aldea
+	var vm = get_tree().get_first_node_in_group("village_manager")
 	var saved_npcs: Dictionary = data.get("npcs", {})
+	var matched_npc_keys: Dictionary = {}
 	for npc in get_tree().get_nodes_in_group("npcs"):
 		if is_instance_valid(npc) and npc.has_method("from_save_dict"):
 			var path_key := str(npc.get_path())
 			if saved_npcs.has(path_key):
+				matched_npc_keys[path_key] = true
 				npc.from_save_dict(saved_npcs[path_key])
 			else:
 				var n_str := str(npc.name)
@@ -215,6 +220,14 @@ func load_game(filepath: String = SAVE_FILE_PATH) -> bool:
 					npc.remove_from_group("npcs")
 					npc.remove_from_group("enemies")
 					npc.queue_free()
+
+	if vm and vm.has_method("spawn_dynamic_npc_from_save"):
+		for s_key in saved_npcs.keys():
+			var sk_str := str(s_key)
+			if not matched_npc_keys.has(sk_str) and typeof(saved_npcs[s_key]) == TYPE_DICTIONARY:
+				var n_name := sk_str.get_file()
+				if n_name.begins_with("NPC_Newcomer_") or n_name.begins_with("NPC_Hired_") or n_name.begins_with("NPC_Traveler_") or n_name.begins_with("NPC_Rehired_") or n_name.begins_with("NPC_Innkeeper_"):
+					vm.call("spawn_dynamic_npc_from_save", n_name, saved_npcs[s_key])
 
 	var saved_pets: Dictionary = data.get("domestic_pets", {})
 	for pet in get_tree().get_nodes_in_group("domestic_pets"):
@@ -237,20 +250,21 @@ func load_game(filepath: String = SAVE_FILE_PATH) -> bool:
 		eco.from_save_dict(data["ecosystem"])
 	if ObjectiveManager and ObjectiveManager.has_method("from_save_dict") and data.has("objectives") and typeof(data["objectives"]) == TYPE_DICTIONARY:
 		ObjectiveManager.from_save_dict(data["objectives"])
-	var vm = get_tree().get_first_node_in_group("village_manager")
 	var c_state: Variant = get_flag("village_crime_state", null)
 	if vm and typeof(c_state) == TYPE_DICTIONARY:
-		if vm.has_method("clear_police_hostility"):
-			vm.call("clear_police_hostility")
 		vm.player_being_escorted_to_jail = false
 		vm.escorting_officer = null
-		vm.is_resisting_arrest = false
+		vm.is_resisting_arrest = bool(c_state.get("is_resisting_arrest", false))
 		vm.wanted_level = int(c_state.get("wanted_level", 0))
 		vm.bounty_gold = int(c_state.get("bounty_gold", 0))
 		vm.player_in_jail = bool(c_state.get("player_in_jail", false))
 		vm.jail_mandatory_stay_timer = float(c_state.get("jail_mandatory_stay_timer", 0.0))
 		if vm.has_method("set_jail_cell_gate_locked"):
 			vm.call("set_jail_cell_gate_locked", vm.player_in_jail)
+		if c_state.has("crime_history") and typeof(c_state["crime_history"]) == TYPE_ARRAY:
+			vm.crime_history.clear()
+			for ch_e in c_state["crime_history"]:
+				vm.crime_history.append(str(ch_e))
 		if c_state.has("sighting_log") and typeof(c_state["sighting_log"]) == TYPE_ARRAY:
 			vm.sighting_log.clear()
 			for s_item in c_state["sighting_log"]:

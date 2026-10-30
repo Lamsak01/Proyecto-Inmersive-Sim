@@ -534,12 +534,12 @@ func _update_label(delta: float = 0.016) -> void:
 	else:
 		status_label.visible = false
 
-func _spawn_floating_text(text: String, color: Color) -> void:
+func _spawn_floating_text(text: String, color: Color, offset_y: float = -24.0) -> void:
 	if FloatingTextScene:
 		var ft = FloatingTextScene.instantiate()
 		ft.start_text = text
 		ft.text_color = color
-		ft.global_position = global_position + Vector2(0, -24)
+		ft.global_position = global_position + Vector2(0, offset_y)
 		get_tree().current_scene.add_child(ft)
 
 func _load_tex(res_path: String) -> Texture2D:

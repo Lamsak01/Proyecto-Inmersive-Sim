@@ -162,7 +162,7 @@ func setup_animal(tex: Texture2D, spr_scale: Vector2 = Vector2.ONE, col_radius: 
 	hurtbox.hit_received.connect(take_damage)
 	add_child(hurtbox)
 
-	# Área de interacción para Desollar el cadáver con [E]
+	# Área de interacción para Desollar el cadáver con [E] (solo activa cuando `state == AnimalState.CARCASS`)
 	butcher_area = Area2D.new()
 	butcher_area.name = "ButcherArea"
 	butcher_area.collision_layer = 1
@@ -172,6 +172,7 @@ func setup_animal(tex: Texture2D, spr_scale: Vector2 = Vector2.ONE, col_radius: 
 	var bcircle := CircleShape2D.new()
 	bcircle.radius = col_radius + 16.0
 	bcol.shape = bcircle
+	bcol.disabled = (state != AnimalState.CARCASS)
 	butcher_area.add_child(bcol)
 	butcher_area.body_entered.connect(_on_butcher_body_entered)
 	butcher_area.body_exited.connect(_on_butcher_body_exited)
@@ -1038,6 +1039,10 @@ func _become_carcass() -> void:
 		var hcol := hurtbox.get_child(0) as CollisionShape2D
 		if hcol:
 			hcol.set_deferred("disabled", true)
+	if butcher_area and butcher_area.get_child_count() > 0:
+		var bcol := butcher_area.get_child(0) as CollisionShape2D
+		if bcol:
+			bcol.set_deferred("disabled", false)
 
 	if sprite:
 		sprite.position = Vector2(0, 3)
@@ -1121,6 +1126,10 @@ func _apply_hidden_state(hidden_state: bool) -> void:
 		var hcol := hurtbox.get_child(0) as CollisionShape2D
 		if hcol:
 			hcol.set_deferred("disabled", hidden_state)
+	if butcher_area and butcher_area.get_child_count() > 0:
+		var bcol_h := butcher_area.get_child(0) as CollisionShape2D
+		if bcol_h:
+			bcol_h.set_deferred("disabled", hidden_state or state != AnimalState.CARCASS)
 
 func respawn_from_ecosystem(new_genetics: int = 1) -> void:
 	genetics_tier = clampi(new_genetics, 1, 3)
@@ -1164,7 +1173,7 @@ func _on_game_loaded(_filepath: String) -> void:
 	_check_saved_state()
 
 func _check_saved_state() -> void:
-	if Engine.is_editor_hint() or not GameManager or persistence_id == "":
+	if Engine.is_editor_hint() or managed_by_ecosystem or not GameManager or persistence_id == "":
 		return
 	var saved_val: Variant = GameManager.get_flag(persistence_id, -1)
 	var saved_day: int = int(saved_val) if typeof(saved_val) in [TYPE_INT, TYPE_FLOAT] else -1
@@ -1187,6 +1196,7 @@ func to_save_dict() -> Dictionary:
 		"is_on_reserve_day": is_on_reserve_day,
 		"mated_today": mated_today,
 		"pending_offspring": pending_offspring,
+		"offspring_genetics_tier": offspring_genetics_tier,
 		"days_hungry": days_hungry,
 		"respawn_on_day": respawn_on_day,
 		"pos_x": global_position.x,
@@ -1203,6 +1213,7 @@ func from_save_dict(data: Dictionary) -> void:
 	is_on_reserve_day = bool(data.get("is_on_reserve_day", false))
 	mated_today = bool(data.get("mated_today", false))
 	pending_offspring = bool(data.get("pending_offspring", false))
+	offspring_genetics_tier = clampi(int(data.get("offspring_genetics_tier", 1)), 1, 3)
 	days_hungry = int(data.get("days_hungry", 0))
 	respawn_on_day = int(data.get("respawn_on_day", -1))
 	if data.has("pos_x") and data.has("pos_y"):
@@ -1220,6 +1231,14 @@ func from_save_dict(data: Dictionary) -> void:
 		state = AnimalState.GRAZE
 		boar_aggressor = null
 		boar_aggro_timer = 0.0
+		boar_charge_windup = 0.0
+		boar_charge_timer = 0.0
+		pounce_timer = 0.0
+		pounce_recovery_timer = 0.0
+		flee_timer = 0.0
+		eat_timer = 0.0
+		mate_timer = 0.0
+		is_raiding_farm = false
 		hits_taken_count = 0
 		food_target = null
 		mate_target = null

@@ -610,10 +610,14 @@ func add_thought(thought_text: String, mood_delta: float) -> void:
 		thoughts.pop_back()
 	mood = clampf(mood + mood_delta, 0.0, 100.0)
 
+var _pre_poker_pos: Vector2 = Vector2.ZERO
+
 func set_poker_seating(active: bool, seat_world_pos: Vector2 = Vector2.ZERO) -> void:
-	is_at_poker_table = active
-	poker_seat_pos = seat_world_pos
 	if active:
+		if not is_at_poker_table:
+			_pre_poker_pos = global_position
+		is_at_poker_table = true
+		poker_seat_pos = seat_world_pos
 		is_sleeping = false
 		velocity = Vector2.ZERO
 		if seat_world_pos != Vector2.ZERO:
@@ -622,6 +626,11 @@ func set_poker_seating(active: bool, seat_world_pos: Vector2 = Vector2.ZERO) -> 
 			sprite.rotation_degrees = 0.0
 		add_thought("Jugando en la mesa del casino (+10)", 10.0)
 	else:
+		if is_at_poker_table and _pre_poker_pos != Vector2.ZERO and not is_dead:
+			global_position = _pre_poker_pos
+		is_at_poker_table = false
+		poker_seat_pos = Vector2.ZERO
+		_pre_poker_pos = Vector2.ZERO
 		velocity = Vector2.ZERO
 
 func apply_sleeping_draught(duration: float = 40.0) -> void:
@@ -630,6 +639,9 @@ func apply_sleeping_draught(duration: float = 40.0) -> void:
 	sedated_timer = maxf(sedated_timer, duration)
 	is_sleeping = true
 	is_hostile = false
+	remove_from_group("enemies")
+	if body_col:
+		body_col.set_deferred("disabled", true)
 	velocity = Vector2.ZERO
 	if sprite:
 		sprite.rotation_degrees = 90.0
@@ -3110,7 +3122,7 @@ func _build_dialogue() -> Dictionary:
 	var discount_tag: String = " [🌟 Aliado Familiar: -20% Dto]" if affinity >= 45 else ""
 
 	# Paso 4: Si la familia está agraviada (`affinity <= -35`) por robo o agresión, exige compensación antes de comerciar
-	if affinity <= -35 and not (trade_role in [TradeRole.SHERIFF, TradeRole.GUARD, TradeRole.DOCTOR]):
+	if affinity <= -35 and not (trade_role in [TradeRole.SHERIFF, TradeRole.GUARD, TradeRole.DOCTOR, TradeRole.ROYAL_INVESTIGATOR, TradeRole.TRAVELING_MERCHANT]):
 		return {
 			"start": {
 				"text": "😠 ¡Soy %s de la %s! Has agraviado a nuestra familia (Afinidad: %d).\nNo comerciaremos contigo hasta que repares el daño o cumplas con la ley." % [npc_name, family_name, affinity],
@@ -3639,6 +3651,10 @@ func _spawn_floating_text(text: String, color: Color, offset_y: float = -36.0) -
 			parent_scene.add_child(ft)
 
 func to_save_dict() -> Dictionary:
+	var route_bought_flags: Dictionary = {}
+	for rk in ["route_Bought_smith", "route_Bought_carp", "route_Bought_butcher", "route_Bought_fish", "route_Bought_herb"]:
+		if has_meta(rk):
+			route_bought_flags[rk] = bool(get_meta(rk))
 	return {
 		"npc_name": npc_name,
 		"npc_role": npc_role,
@@ -3688,16 +3704,33 @@ func to_save_dict() -> Dictionary:
 		"shop_stock": shop_stock.duplicate(),
 		"workshop_materials": workshop_materials.duplicate(),
 		"craft_progress": _craft_progress,
-		"crafting_recipe_idx": _crafting_recipe_idx
+		"crafting_recipe_idx": _crafting_recipe_idx,
+		"route_bought_flags": route_bought_flags
 	}
 
 func from_save_dict(data: Dictionary) -> void:
+	if data.has("npc_name"):
+		npc_name = str(data["npc_name"])
 	if data.has("workshop_materials") and typeof(data["workshop_materials"]) == TYPE_DICTIONARY:
 		workshop_materials = data["workshop_materials"].duplicate()
 	if data.has("craft_progress"):
 		_craft_progress = clampf(float(data["craft_progress"]), 0.0, 99.0)
 	if data.has("crafting_recipe_idx"):
 		_crafting_recipe_idx = maxi(0, int(data["crafting_recipe_idx"]))
+	for rk in ["route_Bought_smith", "route_Bought_carp", "route_Bought_butcher", "route_Bought_fish", "route_Bought_herb"]:
+		if has_meta(rk):
+			remove_meta(rk)
+	if data.has("route_bought_flags") and typeof(data["route_bought_flags"]) == TYPE_DICTIONARY:
+		var rbf: Dictionary = data["route_bought_flags"]
+		for rk in rbf.keys():
+			set_meta(str(rk), bool(rbf[rk]))
+	_pre_poker_pos = Vector2.ZERO
+	corpse_being_carried = false
+	corpse_carrier = null
+	corpse_reporter_npc = null
+	_carrying_corpse_target = null
+	_reporting_corpse_target = null
+	_active_downed_patient = null
 	if data.has("npc_role"):
 		npc_role = str(data["npc_role"])
 	if data.has("family_id"):

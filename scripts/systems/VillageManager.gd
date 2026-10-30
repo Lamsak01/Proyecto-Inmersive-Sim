@@ -2633,11 +2633,20 @@ func _find_nearest_police_officer(pos: Vector2) -> VillageNPC:
 	for n in get_tree().get_nodes_in_group("village_npcs"):
 		if n is VillageNPC:
 			var v := n as VillageNPC
-			if v.trade_role in [VillageNPC.TradeRole.SHERIFF, VillageNPC.TradeRole.GUARD] and not v.is_dead and not v.is_downed:
+			if v.trade_role in [VillageNPC.TradeRole.SHERIFF, VillageNPC.TradeRole.GUARD] and not v.is_dead and not v.is_downed and not v.is_stunned_flag and v.sedated_timer <= 0.0:
 				var d: float = pos.distance_to(v.global_position)
 				if d < best_d:
 					best_d = d
 					best = v
+	if best == null:
+		for n in get_tree().get_nodes_in_group("village_npcs"):
+			if n is VillageNPC:
+				var v := n as VillageNPC
+				if v.trade_role in [VillageNPC.TradeRole.SHERIFF, VillageNPC.TradeRole.GUARD] and not v.is_dead and not v.is_downed:
+					var d2: float = pos.distance_to(v.global_position)
+					if d2 < best_d:
+						best_d = d2
+						best = v
 	return best
 
 ## Inicia la escolta física del jugador esposado caminando por las calles y puertas hasta la celda (Estilo Kenshi / RDR2)
@@ -2647,13 +2656,19 @@ func start_police_escort_to_jail(player: Node2D, officer: VillageNPC = null) -> 
 	clear_police_hostility()
 	if police_panel:
 		police_panel.visible = false
-	var chosen_officer: VillageNPC = officer if (officer != null and is_instance_valid(officer) and not officer.is_dead) else _find_nearest_police_officer(player.global_position)
+	var chosen_officer: VillageNPC = officer if (officer != null and is_instance_valid(officer) and not officer.is_dead and not officer.is_downed and not officer.is_stunned_flag and officer.sedated_timer <= 0.0) else _find_nearest_police_officer(player.global_position)
 	player_being_escorted_to_jail = true
 	player_in_jail = false
 	escorting_officer = chosen_officer
 	if "velocity" in player:
 		player.velocity = Vector2.ZERO
 	if chosen_officer != null:
+		chosen_officer.is_sleeping = false
+		chosen_officer.sedated_timer = 0.0
+		chosen_officer.is_stunned_flag = false
+		if chosen_officer.sprite:
+			chosen_officer.sprite.rotation_degrees = 0.0
+			chosen_officer.sprite.modulate = Color.WHITE
 		if chosen_officer.global_position.distance_to(player.global_position) > 48.0:
 			chosen_officer.global_position = player.global_position + Vector2(14, 0)
 		chosen_officer._spawn_floating_text("🚔⛓️ ¡Esposado! En marcha hacia la Celda de la Comisaría", Color.SKY_BLUE, -42.0)
@@ -5913,6 +5928,9 @@ func get_economy_save_dict() -> Dictionary:
 		"player_arrests_count": player_arrests_count,
 		"player_murder_warrants_count": player_murder_warrants_count,
 		"recent_breakins_count": recent_breakins_count,
+		"crime_history": crime_history.duplicate(),
+		"arrivals_today_count": arrivals_today_count,
+		"rehire_counter": _rehire_counter,
 		"house_chests": saved_chests,
 		"building_doors": saved_doors,
 		"building_windows": saved_windows,
@@ -5924,6 +5942,12 @@ func load_economy_save_dict(data: Dictionary) -> void:
 	player_arrests_count = int(data.get("player_arrests_count", 0))
 	player_murder_warrants_count = int(data.get("player_murder_warrants_count", 0))
 	recent_breakins_count = int(data.get("recent_breakins_count", 0))
+	arrivals_today_count = int(data.get("arrivals_today_count", 0))
+	_rehire_counter = maxi(_rehire_counter, int(data.get("rehire_counter", _rehire_counter)))
+	if data.has("crime_history") and typeof(data["crime_history"]) == TYPE_ARRAY:
+		crime_history.clear()
+		for ch_item in (data["crime_history"] as Array):
+			crime_history.append(str(ch_item))
 	if data.has("house_chests") and typeof(data["house_chests"]) == TYPE_DICTIONARY:
 		var sc: Dictionary = data["house_chests"]
 		var cur_d: int = WorldClock.current_day if WorldClock else 1
@@ -6012,6 +6036,13 @@ func load_economy_save_dict(data: Dictionary) -> void:
 				var inv_data: Dictionary = data["royal_investigator_npc"] as Dictionary
 				if not inv_data.is_empty():
 					_royal_investigator_npc.from_save_dict(inv_data)
+			if str(active_royal_investigation.get("stage", "")) == "HUNTING_PLAYER":
+				is_resisting_arrest = true
+				alert_police_to_resist()
+				if is_instance_valid(_royal_investigator_npc) and not _royal_investigator_npc.is_dead:
+					_royal_investigator_npc.is_hostile = true
+					if not _royal_investigator_npc.is_in_group("enemies"):
+						_royal_investigator_npc.add_to_group("enemies")
 		else:
 			if is_instance_valid(_royal_investigator_npc):
 				_royal_investigator_npc.remove_from_group("village_npcs")
@@ -6028,6 +6059,9 @@ func load_economy_save_dict(data: Dictionary) -> void:
 					if is_instance_valid(pet_node) and pet_node.pet_name == p_name_target and pet_node.has_method("from_save_dict"):
 						pet_node.from_save_dict(p_dict)
 						break
+	# Reconciliar primero los registros de NPCs vivos para que `trade_npcs` apunte a los titulares actuales antes de aplicar `stock_override`
+	reconcile_npc_registries_after_load()
+
 	var b_dict: Variant = data.get("businesses", {})
 	if typeof(b_dict) != TYPE_DICTIONARY:
 		return
@@ -6047,13 +6081,44 @@ func load_economy_save_dict(data: Dictionary) -> void:
 				if is_instance_valid(holder) and not holder.is_dead:
 					holder.shop_stock = (entry["stock_override"] as Dictionary).duplicate()
 			_refresh_shop_stall_visual(role_int)
-	# Reconciliar diccionarios `trade_npcs`, `family_npcs`, `unemployed_npcs` y campamentos rústicos tras cargar partida
-	reconcile_npc_registries_after_load()
+
+func spawn_dynamic_npc_from_save(node_name: String, npc_data: Dictionary) -> VillageNPC:
+	if not is_instance_valid(entities_root):
+		return null
+	var existing := entities_root.get_node_or_null(node_name) as VillageNPC
+	if is_instance_valid(existing):
+		existing.from_save_dict(npc_data)
+		return existing
+	var dyn_npc := VillageNPC.new()
+	dyn_npc.name = node_name
+	dyn_npc.npc_name = str(npc_data.get("npc_name", "Aldeano"))
+	dyn_npc.npc_role = str(npc_data.get("npc_role", "Habitante"))
+	dyn_npc.trade_role = int(npc_data.get("trade_role", int(VillageNPC.TradeRole.UNEMPLOYED))) as VillageNPC.TradeRole
+	dyn_npc.linked_trade = int(npc_data.get("linked_trade", int(dyn_npc.trade_role))) as VillageNPC.TradeRole
+	dyn_npc.tavern_social_pos = _tavern_social_pos
+	entities_root.add_child(dyn_npc)
+	var default_tex := _load_tex("res://assests/world/village/villager_traveler.png")
+	dyn_npc.setup_npc(
+		default_tex,
+		Vector2(float(npc_data.get("work_x", 440.0)), float(npc_data.get("work_y", 44.0))),
+		Vector2(float(npc_data.get("bed_x", 435.0)), float(npc_data.get("bed_y", -252.0))),
+		{},
+		Vector2(float(npc_data.get("table_x", _tavern_social_pos.x)), float(npc_data.get("table_y", _tavern_social_pos.y))),
+		str(npc_data.get("family_id", "none")),
+		str(npc_data.get("family_name", "Independiente"))
+	)
+	dyn_npc.from_save_dict(npc_data)
+	return dyn_npc
 
 func reconcile_npc_registries_after_load() -> void:
+	for camp_key in vagrant_camp_nodes.keys():
+		var c_node: Node2D = vagrant_camp_nodes[camp_key]
+		if is_instance_valid(c_node):
+			c_node.visible = false
 	trade_npcs.clear()
 	family_npcs.clear()
 	unemployed_npcs.clear()
+	authority_npcs.clear()
 	for n in get_tree().get_nodes_in_group("village_npcs"):
 		if n is VillageNPC:
 			var v := n as VillageNPC
@@ -6070,10 +6135,17 @@ func reconcile_npc_registries_after_load() -> void:
 				family_npcs[int(v.linked_trade)] = v
 			elif v.trade_role == VillageNPC.TradeRole.UNEMPLOYED and not v.is_dead:
 				unemployed_npcs.append(v)
+			elif v.trade_role == VillageNPC.TradeRole.INNKEEPER and not v.is_dead:
+				_innkeeper_npc = v
+			elif v.trade_role in [VillageNPC.TradeRole.DOCTOR, VillageNPC.TradeRole.SHERIFF, VillageNPC.TradeRole.GUARD] and not v.is_dead:
+				authority_npcs.append(v)
+				for slot in _authority_slots:
+					if int(slot.get("role", -1)) == r_int:
+						slot["npc"] = v
+						slot["rehire_timer"] = 0.0
+						slot["vacancy_announced"] = false
 			if v.is_vagrant_camper and not v.is_dead:
 				_spawn_or_update_vagrant_camp_visual(v, v.vagrant_camp_pos)
-			elif vagrant_camp_nodes.has(v.npc_name) and is_instance_valid(vagrant_camp_nodes[v.npc_name]):
-				vagrant_camp_nodes[v.npc_name].visible = false
 
 func _make_station_label(pos: Vector2, txt: String) -> Label:
 	var lbl := Label.new()
