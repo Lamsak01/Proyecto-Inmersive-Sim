@@ -1982,6 +1982,9 @@ func _spawn_physical_grave_marker(grave_idx: int, rec: Dictionary) -> void:
 func _rebuild_cemetery_graves_from_save() -> void:
 	for g_n in _cemetery_grave_nodes:
 		if is_instance_valid(g_n):
+			g_n.name = "_freed_grave_" + str(g_n.get_instance_id())
+			if g_n.get_parent():
+				g_n.get_parent().remove_child(g_n)
 			g_n.queue_free()
 	_cemetery_grave_nodes.clear()
 	for i in range(buried_graves.size()):
@@ -2609,6 +2612,12 @@ func alert_police_to_resist(player: Node2D = null) -> void:
 					v._police_alerted_timer = 14.0
 				if player != null and "_last_seen_player_pos" in v:
 					v._last_seen_player_pos = player.global_position
+	if bool(active_royal_investigation.get("active", false)) and str(active_royal_investigation.get("stage", "")) == "HUNTING_PLAYER":
+		if is_instance_valid(_royal_investigator_npc) and not _royal_investigator_npc.is_dead and not _royal_investigator_npc.is_downed:
+			_royal_investigator_npc.is_hostile = true
+			_royal_investigator_npc._police_alerted_timer = 45.0
+			if not _royal_investigator_npc.is_in_group("enemies"):
+				_royal_investigator_npc.add_to_group("enemies")
 
 func trigger_police_confrontation(officer: VillageNPC = null) -> void:
 	if _police_confront_cooldown > 0.0 or not police_panel:
@@ -2636,7 +2645,7 @@ func _find_nearest_police_officer(pos: Vector2) -> VillageNPC:
 	for n in get_tree().get_nodes_in_group("village_npcs"):
 		if n is VillageNPC:
 			var v := n as VillageNPC
-			if v.trade_role in [VillageNPC.TradeRole.SHERIFF, VillageNPC.TradeRole.GUARD] and not v.is_dead and not v.is_downed and not v.is_stunned_flag and v.sedated_timer <= 0.0:
+			if v.trade_role in [VillageNPC.TradeRole.SHERIFF, VillageNPC.TradeRole.GUARD, VillageNPC.TradeRole.ROYAL_INVESTIGATOR] and not v.is_dead and not v.is_downed and not v.is_stunned_flag and v.sedated_timer <= 0.0:
 				var d: float = pos.distance_to(v.global_position)
 				if d < best_d:
 					best_d = d
@@ -2775,6 +2784,12 @@ func release_player_from_jail_after_sentence(player: Node2D) -> void:
 	wanted_level = 0
 	bounty_gold = 0
 	set_jail_cell_gate_locked(false)
+	if bool(active_royal_investigation.get("active", false)) and str(active_royal_investigation.get("stage", "")) == "HUNTING_PLAYER":
+		active_royal_investigation["stage"] = "DEPARTING"
+		active_royal_investigation["stage_timer"] = 0.0
+		if is_instance_valid(_royal_investigator_npc):
+			_royal_investigator_npc.is_hostile = false
+			_royal_investigator_npc.remove_from_group("enemies")
 	if player and is_instance_valid(player):
 		# Salida 100% natural: NO se teletransporta al jugador fuera de la comisaría; se abre la reja de la celda para que salga caminando por su pie
 		var surv: SurvivalComponent = player.get_node_or_null("SurvivalComponent")
@@ -2816,6 +2831,12 @@ func pay_bounty_fine(player: Node2D) -> void:
 	if player_in_jail:
 		player_in_jail = false
 		set_jail_cell_gate_locked(false)
+	if bool(active_royal_investigation.get("active", false)) and str(active_royal_investigation.get("stage", "")) == "HUNTING_PLAYER":
+		active_royal_investigation["stage"] = "DEPARTING"
+		active_royal_investigation["stage_timer"] = 0.0
+		if is_instance_valid(_royal_investigator_npc):
+			_royal_investigator_npc.is_hostile = false
+			_royal_investigator_npc.remove_from_group("enemies")
 	if police_panel:
 		police_panel.visible = false
 	if player.has_method("_spawn_floating_text"):
@@ -4500,6 +4521,9 @@ func _on_business_action_2(player: Node2D) -> void:
 		if inv.has_item(item_id, 1):
 			inv.remove_item(item_id, 1)
 			st[item_id] = int(st.get(item_id, 0)) + 1
+			var holder_sup: VillageNPC = trade_npcs.get(_active_business_role)
+			if is_instance_valid(holder_sup) and item_id in ["wood", "iron_ore", "leather", "herbal_poultice", "bread", "fertilizer", "cooked_meat"]:
+				holder_sup.workshop_materials[item_id] = int(holder_sup.workshop_materials.get(item_id, 0)) + 1
 			var i_name: String = str(SimpleInventory.CATALOG.get(item_id, {}).get("name", item_id))
 			if owner_mode in ["PARTNER", "SOLE_OWNER"]:
 				# Como dueño/socio, reabasteces el stock físico de tu propio mostrador para que se venda a los vecinos y genere caja real
@@ -4801,23 +4825,14 @@ func _check_weekly_merchant_arrival(current_day: int, ignore_suspension: bool = 
 			p_emb.show_hint("🚫⚖️ Ruta Comercial Suspendida: %s NO ha venido hoy al pueblo por el asesinato previo (Quedan %d días de embargo económico)." % [emb_name, susp_left])
 		return
 
-	# Limpiar cualquier cadáver antiguo del mismo mercader antes de crear su nueva instancia tras expirar el embargo
+	# Si el mercader anterior murió, conservar su cadáver en el mundo/morgue renombrándolo para que no colisione con el nuevo mercader
 	if is_instance_valid(_active_traveling_merchant) and _active_traveling_merchant.is_dead:
-		_active_traveling_merchant.remove_from_group("village_npcs")
-		_active_traveling_merchant.remove_from_group("npcs")
-		_active_traveling_merchant.name = "_freed_merchant_" + str(_active_traveling_merchant.get_instance_id())
-		if _active_traveling_merchant.get_parent():
-			_active_traveling_merchant.get_parent().remove_child(_active_traveling_merchant)
-		_active_traveling_merchant.queue_free()
+		_active_traveling_merchant.name = "NPC_Merchant_Corpse_" + str(_active_traveling_merchant.get_instance_id())
 		_active_traveling_merchant = null
 	for old_n in get_tree().get_nodes_in_group("village_npcs"):
 		if old_n is VillageNPC and (old_n as VillageNPC).merchant_id == m_id and (old_n as VillageNPC).is_dead:
-			old_n.remove_from_group("village_npcs")
-			old_n.remove_from_group("npcs")
-			old_n.name = "_freed_merchant_" + str(old_n.get_instance_id())
-			if old_n.get_parent():
-				old_n.get_parent().remove_child(old_n)
-			old_n.queue_free()
+			if not str(old_n.name).begins_with("NPC_Merchant_Corpse_"):
+				old_n.name = "NPC_Merchant_Corpse_" + str(old_n.get_instance_id())
 
 	var m_npc := VillageNPC.new()
 	m_npc.trade_role = VillageNPC.TradeRole.TRAVELING_MERCHANT
@@ -4938,8 +4953,9 @@ func update_traveling_merchant_ai(merchant: VillageNPC, delta: float) -> void:
 
 func _merchant_buy_from_local_shop(merchant: VillageNPC, role_id: int, wanted_keys: Array, unit_pay: int, max_spend_here: int) -> void:
 	var holder: VillageNPC = trade_npcs.get(role_id)
-	if not is_instance_valid(holder) or holder.is_dead or holder.is_downed:
+	if not is_instance_valid(holder) or holder.is_dead or holder.is_downed or is_trade_sabotaged(role_id) or not holder.is_at_shop_counter():
 		return
+	var owner_mode_m: String = str(shop_businesses.get(role_id, {}).get("owner_mode", "NPC"))
 	var spent: int = 0
 	var bought_units: int = 0
 	for k in wanted_keys:
@@ -4950,12 +4966,20 @@ func _merchant_buy_from_local_shop(merchant: VillageNPC, role_id: int, wanted_ke
 			holder.shop_stock[key_s] = q
 			merchant.shop_stock[key_s] = int(merchant.shop_stock.get(key_s, 0)) + 1
 			merchant.personal_gold -= unit_pay
-			holder.personal_gold += unit_pay
+			if owner_mode_m == "SOLE_OWNER" and shop_businesses.has(role_id):
+				shop_businesses[role_id]["vault_gold"] = int(shop_businesses[role_id].get("vault_gold", 0)) + unit_pay
+			elif owner_mode_m == "PARTNER" and shop_businesses.has(role_id):
+				var p_cut: int = int(ceil(float(unit_pay) * 0.5))
+				shop_businesses[role_id]["vault_gold"] = int(shop_businesses[role_id].get("vault_gold", 0)) + p_cut
+				holder.personal_gold += (unit_pay - p_cut)
+			else:
+				holder.personal_gold += unit_pay
 			spent += unit_pay
 			bought_units += 1
 	if shop_businesses.has(role_id):
 		shop_businesses[role_id]["stock_override"] = holder.shop_stock.duplicate()
 	if spent > 0:
+		_refresh_shop_stall_visual(role_id)
 		# Además, los viajeros del pueblo que ayudan a cargar los fardos reciben una propina de 6 Oro del mercader
 		for g in unemployed_npcs:
 			if is_instance_valid(g) and not g.is_dead and merchant.personal_gold >= 6:
@@ -5522,6 +5546,14 @@ func update_royal_investigator_ai(inv_npc: VillageNPC, delta: float) -> void:
 					p_h.show_hint("⚖️👑 ¡EJECUCIÓN INQUISITORIAL! Tras interrogar a todo el pueblo (%d/%d), el Inquisidor Real Alistair ajustició en persona a %s (el sospechoso cercano sin coartada con mayor probabilidad: %d%%)." % [done_cnt, max_cnt, chosen_name, clampi(best_sc, 35, 95)])
 				active_royal_investigation["stage"] = "DEPARTING"
 				active_royal_investigation["stage_timer"] = 0.0
+		"HUNTING_PLAYER":
+			if player_in_jail or player_being_escorted_to_jail:
+				inv_npc.velocity = Vector2.ZERO
+			elif not inv_npc.is_hostile and not inv_npc.is_downed and not inv_npc.is_stunned_flag and inv_npc.sedated_timer <= 0.0:
+				inv_npc.is_hostile = true
+				inv_npc._police_alerted_timer = 45.0
+				if not inv_npc.is_in_group("enemies"):
+					inv_npc.add_to_group("enemies")
 		"DEPARTING":
 			inv_npc.is_sleeping = false
 			var exit_pos := Vector2(1000, 48)
@@ -6067,7 +6099,7 @@ func load_economy_save_dict(data: Dictionary) -> void:
 				var inv_data: Dictionary = data["royal_investigator_npc"] as Dictionary
 				if not inv_data.is_empty():
 					_royal_investigator_npc.from_save_dict(inv_data)
-			if str(active_royal_investigation.get("stage", "")) == "HUNTING_PLAYER":
+			if str(active_royal_investigation.get("stage", "")) == "HUNTING_PLAYER" and not player_in_jail and not player_being_escorted_to_jail:
 				is_resisting_arrest = true
 				alert_police_to_resist()
 				if is_instance_valid(_royal_investigator_npc) and not _royal_investigator_npc.is_dead:
@@ -6153,11 +6185,16 @@ func reconcile_npc_registries_after_load() -> void:
 	family_npcs.clear()
 	unemployed_npcs.clear()
 	authority_npcs.clear()
+	_innkeeper_npc = null
 	for slot in _authority_slots:
 		slot["npc"] = null
 	for n in get_tree().get_nodes_in_group("village_npcs"):
 		if n is VillageNPC:
 			var v := n as VillageNPC
+			if v.trade_role == VillageNPC.TradeRole.ROYAL_INVESTIGATOR and not str(v.name).begins_with("NPC_Royal_Investigator_Corpse_"):
+				_royal_investigator_npc = v
+			elif v.trade_role == VillageNPC.TradeRole.TRAVELING_MERCHANT and not str(v.name).begins_with("NPC_Merchant_Corpse_"):
+				_active_traveling_merchant = v
 			var r_int: int = int(v.trade_role)
 			if r_int in [
 				int(VillageNPC.TradeRole.BLACKSMITH),

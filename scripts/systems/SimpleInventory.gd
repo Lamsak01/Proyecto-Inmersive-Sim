@@ -947,7 +947,7 @@ func use_item(item_id: String, player: Node) -> bool:
 		var best_npc: Node2D = null
 		var best_d2: float = 52.0 * 52.0
 		for n in p_node.get_tree().get_nodes_in_group("village_npcs"):
-			if n is Node2D and not bool(n.get("is_dead")) and not bool(n.get("is_downed")):
+			if n is Node2D and not bool(n.get("is_dead")) and not bool(n.get("is_downed")) and not bool(n.get("is_stunned_flag")) and float(n.get("sedated_timer") if n.get("sedated_timer") != null else 0.0) <= 0.0 and not bool(n.get("is_at_poker_table")):
 				var d2: float = p_node.global_position.distance_squared_to(n.global_position)
 				if d2 <= best_d2:
 					best_d2 = d2

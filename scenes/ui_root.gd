@@ -136,6 +136,8 @@ func _is_external_world_modal_open() -> bool:
 		return true
 	var vm = get_tree().get_first_node_in_group("village_manager")
 	if vm:
+		if bool(vm.get("player_being_escorted_to_jail")):
+			return true
 		for p_name in ["business_panel", "morgue_panel", "jail_panel", "board_panel", "police_panel", "pantry_panel", "church_panel"]:
 			var p_ctrl = vm.get(p_name)
 			if p_ctrl is Control and p_ctrl.visible:

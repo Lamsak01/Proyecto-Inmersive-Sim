@@ -723,7 +723,11 @@ func _physics_process(delta: float) -> void:
 			_craft_bar_root.visible = false
 		is_sleeping = true
 		if status_label:
-			status_label.text = "💤 %s — Inconsciente / Dormido (%ds)" % [npc_name, maxi(1, int(ceil(sedated_timer)))]
+			var loot_hint_s: String = ""
+			if not corpse_pocket_looted and (personal_gold > 0 or carries_royal_safe_conduct):
+				var seal_tag: String = " + 📜 Salvoconducto Real" if carries_royal_safe_conduct else ""
+				loot_hint_s = "\n[E: 💰 Saquear Bolsillos (%d Oro%s)]" % [maxi(0, personal_gold), seal_tag]
+			status_label.text = "💤 %s — Inconsciente / Dormido (%ds)%s" % [npc_name, maxi(1, int(ceil(sedated_timer))), loot_hint_s]
 			status_label.add_theme_color_override("font_color", Color(0.78, 0.65, 1.0))
 			status_label.visible = true
 		if sedated_timer <= 0.0:
@@ -739,6 +743,14 @@ func _physics_process(delta: float) -> void:
 		_is_actively_crafting = false
 		if _craft_bar_root:
 			_craft_bar_root.visible = false
+		if status_label:
+			var loot_hint_st: String = ""
+			if not corpse_pocket_looted and (personal_gold > 0 or carries_royal_safe_conduct):
+				var seal_tag2: String = " + 📜 Salvoconducto Real" if carries_royal_safe_conduct else ""
+				loot_hint_st = "\n[E: 💰 Saquear Bolsillos (%d Oro%s)]" % [maxi(0, personal_gold), seal_tag2]
+			status_label.text = "💫 %s — Aturdido%s" % [npc_name, loot_hint_st]
+			status_label.add_theme_color_override("font_color", Color(0.75, 0.85, 1.0))
+			status_label.visible = true
 		return
 
 	# Si está sentado jugando Póker/Billar o el reloj está congelado por minijuego, no drenar necesidades ni romper rutina
@@ -899,9 +911,11 @@ func _process_corpse_state(delta: float) -> void:
 
 	# Si está siendo cargado físicamente hacia la Morgue por el Dr. Valen o un vecino/guardia
 	if corpse_being_carried:
-		if is_instance_valid(corpse_carrier) and not corpse_carrier.is_dead and not corpse_carrier.is_downed:
+		if is_instance_valid(corpse_carrier) and not corpse_carrier.is_dead and not corpse_carrier.is_downed and not corpse_carrier.is_stunned_flag and corpse_carrier.sedated_timer <= 0.0 and not corpse_carrier.is_sleeping and not corpse_carrier.is_hostile:
 			global_position = corpse_carrier.global_position + Vector2(0, -8)
 		else:
+			if is_instance_valid(corpse_carrier) and corpse_carrier._carrying_corpse_target == self:
+				corpse_carrier._carrying_corpse_target = null
 			corpse_being_carried = false
 			corpse_carrier = null
 	else:
@@ -3698,6 +3712,8 @@ func on_dialogue_action(action_id: String) -> void:
 			else:
 				personal_gold = maxi(0, personal_gold - int(ceil(float(price) * 0.5)))
 			shop_stock[item_id] = int(shop_stock.get(item_id, 0)) + 1
+			if item_id in ["wood", "iron_ore", "leather", "herbal_poultice", "bread", "fertilizer", "cooked_meat"]:
+				workshop_materials[item_id] = int(workshop_materials.get(item_id, 0)) + 1
 			if vm and "shop_businesses" in vm and vm.shop_businesses.has(int(trade_role)):
 				vm.shop_businesses[int(trade_role)]["stock_override"] = shop_stock.duplicate()
 			modify_affinity(4)

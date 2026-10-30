@@ -45,8 +45,8 @@ func save_game(filepath: String = SAVE_FILE_PATH) -> bool:
 			ui = scene_root.get_node_or_null("UIRoot")
 		if ui:
 			var tg = ui.get("tavern_games")
-			if tg and tg.visible and tg.has_method("_close_games"):
-				tg.call("_close_games")
+			if tg and tg.visible and tg.has_method("close_games"):
+				tg.call("close_games")
 	for plot in get_tree().get_nodes_in_group("farm_plots"):
 		if is_instance_valid(plot) and plot.has_method("_save_state"):
 			plot.call("_save_state")
@@ -228,7 +228,7 @@ func load_game(filepath: String = SAVE_FILE_PATH) -> bool:
 				npc.from_save_dict(saved_npcs[path_key])
 			else:
 				var n_str := str(npc.name)
-				if n_str.begins_with("NPC_Newcomer_") or n_str.begins_with("NPC_Hired_") or n_str.begins_with("NPC_Traveler_") or n_str.begins_with("NPC_Rehired_") or n_str.begins_with("NPC_Innkeeper_"):
+				if n_str.begins_with("NPC_Newcomer_") or n_str.begins_with("NPC_Hired_") or n_str.begins_with("NPC_Traveler_") or n_str.begins_with("NPC_Rehired_") or n_str.begins_with("NPC_Innkeeper_") or n_str.begins_with("NPC_Royal_Investigator_") or n_str.begins_with("NPC_Merchant_"):
 					npc.remove_from_group("village_npcs")
 					npc.remove_from_group("npcs")
 					npc.remove_from_group("enemies")
@@ -242,7 +242,7 @@ func load_game(filepath: String = SAVE_FILE_PATH) -> bool:
 			var sk_str := str(s_key)
 			if not matched_npc_keys.has(sk_str) and typeof(saved_npcs[s_key]) == TYPE_DICTIONARY:
 				var n_name := sk_str.get_file()
-				if n_name.begins_with("NPC_Newcomer_") or n_name.begins_with("NPC_Hired_") or n_name.begins_with("NPC_Traveler_") or n_name.begins_with("NPC_Rehired_") or n_name.begins_with("NPC_Innkeeper_"):
+				if n_name.begins_with("NPC_Newcomer_") or n_name.begins_with("NPC_Hired_") or n_name.begins_with("NPC_Traveler_") or n_name.begins_with("NPC_Rehired_") or n_name.begins_with("NPC_Innkeeper_") or n_name.begins_with("NPC_Royal_Investigator_") or n_name.begins_with("NPC_Merchant_"):
 					vm.call("spawn_dynamic_npc_from_save", n_name, saved_npcs[s_key])
 
 	var saved_pets: Dictionary = data.get("domestic_pets", {})

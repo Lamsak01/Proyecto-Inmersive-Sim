@@ -38,6 +38,10 @@ func _ready() -> void:
 func _process(delta: float) -> void:
 	if _input_cooldown > 0.0:
 		_input_cooldown -= delta
+	if active and current_speaker != null:
+		var sed_val: float = float(current_speaker.get("sedated_timer")) if (is_instance_valid(current_speaker) and "sedated_timer" in current_speaker) else 0.0
+		if not is_instance_valid(current_speaker) or bool(current_speaker.get("is_dead")) or bool(current_speaker.get("is_downed")) or bool(current_speaker.get("is_hostile")) or bool(current_speaker.get("is_stunned_flag")) or sed_val > 0.0:
+			end_dialogue()
 
 func _build_clean_ui() -> void:
 	var cs := get_tree().current_scene

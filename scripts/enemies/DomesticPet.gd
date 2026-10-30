@@ -340,20 +340,20 @@ func take_damage(data: DamageData) -> void:
 	if attacker_is_player:
 		affection = maxf(0.0, affection - 45.0)
 		var vm = get_tree().get_first_node_in_group("village_manager")
-		if vm:
-			if family_id != "none" and vm.has_method("modify_family_reputation"):
-				vm.call("modify_family_reputation", family_id, -25, "Atacó a la mascota " + pet_name)
-			if vm.has_method("_find_conscious_witness_near"):
-				var w = vm.call("_find_conscious_witness_near", global_position, 145.0, null)
-				if w != null:
-					vm.wanted_level = clampi(int(vm.wanted_level) + 1, 1, 5)
-					vm.bounty_gold = int(vm.bounty_gold) + 20
-					var pet_crime_msg := "🚨👁️ ¡%s vio al Forastero atacar a la mascota %s! (+20 Oro de multa)" % [w.npc_name, pet_name]
-					if "crime_history" in vm and typeof(vm.crime_history) == TYPE_ARRAY:
-						vm.crime_history.push_front(pet_crime_msg)
-					if vm.has_method("_notify_inquisitor_of_police_crime"):
-						vm.call("_notify_inquisitor_of_police_crime", pet_crime_msg, 12)
-					_spawn_floating_text("🚨👁️ ¡%s te vio atacar a %s! (+20 Oro multa)" % [w.npc_name, pet_name], Color.ORANGE_RED)
+		if vm and vm.has_method("_find_conscious_witness_near"):
+			var vis_mult: float = WorldClock.get_weather_vision_multiplier() if (WorldClock and WorldClock.has_method("get_weather_vision_multiplier")) else 1.0
+			var w = vm.call("_find_conscious_witness_near", global_position, 145.0 * vis_mult, null)
+			if w != null:
+				if family_id != "none" and vm.has_method("modify_family_reputation"):
+					vm.call("modify_family_reputation", family_id, -25, "Atacó a la mascota " + pet_name)
+				vm.wanted_level = clampi(int(vm.wanted_level) + 1, 1, 5)
+				vm.bounty_gold = int(vm.bounty_gold) + 20
+				var pet_crime_msg := "🚨👁️ ¡%s vio al Forastero atacar a la mascota %s! (+20 Oro de multa)" % [w.npc_name, pet_name]
+				if "crime_history" in vm and typeof(vm.crime_history) == TYPE_ARRAY:
+					vm.crime_history.push_front(pet_crime_msg)
+				if vm.has_method("_notify_inquisitor_of_police_crime"):
+					vm.call("_notify_inquisitor_of_police_crime", pet_crime_msg, 12)
+				_spawn_floating_text("🚨👁️ ¡%s te vio atacar a %s! (+20 Oro multa)" % [w.npc_name, pet_name], Color.ORANGE_RED)
 
 	if pet_type == PetType.DOG:
 		is_hostile = true
@@ -374,12 +374,13 @@ func _on_stunned(stunned: bool) -> void:
 	is_stunned_flag = stunned
 	if stunned:
 		is_hostile = false
+		remove_from_group("enemies")
 		velocity = Vector2.ZERO
 	if sprite:
 		sprite.rotation_degrees = 90.0 if stunned else 0.0
 		sprite.modulate = Color(0.65, 0.75, 1.0) if stunned else tint_color
 
-func _on_died() -> void:
+func _on_died(silent: bool = false) -> void:
 	if is_dead:
 		return
 	is_dead = true
@@ -395,7 +396,8 @@ func _on_died() -> void:
 		sprite.rotation_degrees = 90.0
 		sprite.offset.y = 0.0
 		sprite.modulate = Color(0.62, 0.45, 0.45, 0.96)
-	_spawn_floating_text("💀 %s ha muerto" % pet_name, Color.CRIMSON)
+	if not silent:
+		_spawn_floating_text("💀 %s ha muerto" % pet_name, Color.CRIMSON)
 
 func _check_for_fox_intruders() -> void:
 	var coop := get_tree().get_first_node_in_group("chicken_coop") as Node2D
@@ -434,6 +436,9 @@ func interact(player: Node2D) -> void:
 			var ic := interact_area.get_child(0) as CollisionShape2D
 			if ic:
 				ic.set_deferred("disabled", true)
+		var vm_skin = get_tree().get_first_node_in_group("village_manager")
+		if vm_skin and vm_skin.has_method("report_pet_assault_crime"):
+			vm_skin.call("report_pet_assault_crime", self)
 		if inv:
 			inv.add_item("raw_meat", 1)
 			if pet_type == PetType.DOG:
@@ -579,7 +584,7 @@ func from_save_dict(data: Dictionary) -> void:
 		global_position = Vector2(float(data["pos_x"]), float(data["pos_y"]))
 	var dead_s: bool = bool(data.get("is_dead", false))
 	if dead_s:
-		_on_died()
+		_on_died(true)
 		corpse_looted = bool(data.get("corpse_looted", false))
 		visible = not corpse_looted
 		if interact_area and interact_area.get_child_count() > 0:

@@ -147,8 +147,8 @@ func _get_tool_entries() -> Array[Dictionary]:
 	var max_water: int = 6
 	if player and "watering_can_charges" in player:
 		water_charges = int(player.watering_can_charges)
-	if player and "MAX_WATER_CHARGES" in player:
-		max_water = int(player.MAX_WATER_CHARGES)
+	if player and "max_water_charges" in player:
+		max_water = int(player.max_water_charges)
 
 	var t_sword: int = _get_tool_tier("Sword")
 	var t_hammer: int = _get_tool_tier("Hammer")

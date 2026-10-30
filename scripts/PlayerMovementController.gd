@@ -28,14 +28,19 @@ func _physics_process(delta: float) -> void:
 	if not is_instance_valid(player) or not is_instance_valid(anim):
 		return
 
-	# Block movement if dialogue active, modal open, tavern minigame time freeze, sitting on camp log, or in fishing minigame
+	# Block movement if dialogue active, modal open, tavern minigame time freeze, sitting on camp log, in fishing minigame, or handcuffed in police escort
 	var lake = get_tree().current_scene.find_child("WestFishingLake", true, false) if get_tree().current_scene else null
 	var in_fishing_minigame: bool = lake != null and int(lake.get("state")) == 3
 	var camp = get_tree().current_scene.find_child("PlayerCampSite", true, false) if get_tree().current_scene else null
 	var sitting_on_log: bool = camp != null and bool(camp.get("is_player_sitting"))
-	if (dialogue_manager and dialogue_manager.has_method("is_active") and dialogue_manager.call("is_active")) or (WorldClock and WorldClock.has_method("is_time_frozen") and WorldClock.is_time_frozen()) or (player.has_method("is_any_ui_modal_open") and bool(player.call("is_any_ui_modal_open"))) or in_fishing_minigame or sitting_on_log:
+	var vm = get_tree().get_first_node_in_group("village_manager")
+	var being_escorted: bool = vm != null and bool(vm.get("player_being_escorted_to_jail"))
+	if (dialogue_manager and dialogue_manager.has_method("is_active") and dialogue_manager.call("is_active")) or (WorldClock and WorldClock.has_method("is_time_frozen") and WorldClock.is_time_frozen()) or (player.has_method("is_any_ui_modal_open") and bool(player.call("is_any_ui_modal_open"))) or in_fishing_minigame or sitting_on_log or being_escorted:
 		if is_instance_valid(stamina_comp):
 			stamina_comp.is_input_blocking = false
+		if being_escorted:
+			is_stealthing = false
+			is_sprinting = false
 		player.velocity = Vector2.ZERO
 		_play_idle()
 		player.move_and_slide()
@@ -80,7 +85,8 @@ func _update_aim_and_camera(delta: float) -> void:
 func _unhandled_input(event: InputEvent) -> void:
 	if not is_instance_valid(player):
 		return
-	if (player.has_method("is_stunned") and player.is_stunned()) or (player.has_method("is_any_ui_modal_open") and bool(player.call("is_any_ui_modal_open"))):
+	var vm = get_tree().get_first_node_in_group("village_manager")
+	if (player.has_method("is_stunned") and player.is_stunned()) or (player.has_method("is_any_ui_modal_open") and bool(player.call("is_any_ui_modal_open"))) or (vm != null and bool(vm.get("player_being_escorted_to_jail"))):
 		return
 	if event is InputEventKey and event.pressed and not event.echo:
 		if event.keycode == KEY_C:
