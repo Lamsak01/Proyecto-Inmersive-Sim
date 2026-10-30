@@ -70,6 +70,9 @@ var facing_direction: Vector2 = Vector2.RIGHT
 var target_facing_direction: Vector2 = Vector2.RIGHT
 
 func _ready() -> void:
+	if Engine.is_editor_hint():
+		set_physics_process(false)
+		return
 	if parent == null:
 		push_error("EnemyAI must be child of CharacterBody2D")
 		return
@@ -101,7 +104,7 @@ func _ready() -> void:
 	parent.add_child.call_deferred(on_screen_notifier)
 
 func _physics_process(delta: float) -> void:
-	if WorldClock and WorldClock.has_method("is_time_frozen") and WorldClock.is_time_frozen():
+	if Engine.is_editor_hint() or (WorldClock and WorldClock.has_method("is_time_frozen") and WorldClock.is_time_frozen()):
 		if parent:
 			parent.velocity = Vector2.ZERO
 		return

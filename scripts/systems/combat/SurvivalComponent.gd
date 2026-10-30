@@ -23,10 +23,13 @@ var _ui_emit_tick: float = 0.0
 func _ready() -> void:
 	current_hunger = max_hunger
 	current_sleep = max_sleep
+	if Engine.is_editor_hint():
+		set_process(false)
+		return
 	call_deferred("_emit_all")
 
 func _process(delta: float) -> void:
-	if WorldClock and ((WorldClock.has_method("is_time_frozen") and WorldClock.is_time_frozen()) or bool(WorldClock.get("is_fast_forwarding"))):
+	if Engine.is_editor_hint() or (WorldClock and ((WorldClock.has_method("is_time_frozen") and WorldClock.is_time_frozen()) or bool(WorldClock.get("is_fast_forwarding")))):
 		return
 	var prev_h := current_hunger
 	var prev_s := current_sleep

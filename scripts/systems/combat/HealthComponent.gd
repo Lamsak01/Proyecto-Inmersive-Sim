@@ -26,9 +26,11 @@ var _bleed_dps: float = 0.0
 func _ready() -> void:
 	current_health = max_health
 	current_blood = 0.0
+	if Engine.is_editor_hint():
+		set_process(false)
 
 func _process(delta: float) -> void:
-	if current_health <= 0.0 or (WorldClock and WorldClock.has_method("is_time_frozen") and WorldClock.is_time_frozen()):
+	if Engine.is_editor_hint() or current_health <= 0.0 or (WorldClock and WorldClock.has_method("is_time_frozen") and WorldClock.is_time_frozen()):
 		return
 
 	if is_bleeding:

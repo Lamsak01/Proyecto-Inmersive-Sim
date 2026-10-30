@@ -14,8 +14,12 @@ var armor_stun_resistance: float = 0.0 ## Reducción de acumulación de stun por
 var _stun_timer: float = 0.0
 var _active_duration: float = 3.0
 
+func _ready() -> void:
+	if Engine.is_editor_hint():
+		set_process(false)
+
 func _process(delta: float) -> void:
-	if WorldClock and WorldClock.has_method("is_time_frozen") and WorldClock.is_time_frozen():
+	if Engine.is_editor_hint() or (WorldClock and WorldClock.has_method("is_time_frozen") and WorldClock.is_time_frozen()):
 		return
 	if is_stunned:
 		_stun_timer -= delta

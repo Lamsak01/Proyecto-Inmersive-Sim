@@ -2076,6 +2076,8 @@ func _spawn_electric_streetlights() -> void:
 		streetlights.append({"sprite": l_spr, "glow": glow, "pos": l_pos})
 
 func _update_streetlights_glow() -> void:
+	if Engine.is_editor_hint():
+		return
 	var is_night: bool = WorldClock != null and (WorldClock.current_hour >= 19 or WorldClock.current_hour < 6)
 	var grid_on: bool = GameManager != null and bool(GameManager.get_flag("electric_grid_active", false))
 	for sl in streetlights:

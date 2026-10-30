@@ -35,3 +35,17 @@ Este archivo registra únicamente **bugs reales de jugabilidad/lógica** detecta
 - **Archivo y líneas afectadas:** `scripts/enemies/WildAnimal.gd` (`líneas 462-466`)
 - **Descripción del fallo real:** Detectado por el test de ejecución real en Godot Headless: cuando un zorro (u otro animal) tenía `is_raiding_farm = true` y llamaba a `_find_best_food_target()`, si encontraba un conejo salvaje (`best_node = rab`), no entraba en las ramas `if not best_node`, dejando `is_raiding_farm = true` aunque su objetivo ya no fuera el gallinero ni la granja.
 - **Solución aplicada:** Resetear `is_raiding_farm = false` al inicio de `_find_best_food_target()`, de modo que solo valga `true` si el objetivo elegido en esa búsqueda es realmente el gallinero o un cultivo de la granja.
+
+---
+
+## Iteración 3 — Commit Base para Rollback: `9a7d122`
+
+### 5. Error en Consola del Editor de Godot (`Attempt to call a method on a placeholder instance`) en Componentes Instanciados por Scripts `@tool`
+- **Archivos y líneas afectadas:**
+  - `scripts/systems/combat/HealthComponent.gd` (`líneas 26-34`)
+  - `scripts/systems/combat/StunComponent.gd` (`líneas 17-24`)
+  - `scripts/systems/combat/SurvivalComponent.gd` (`líneas 23-34`)
+  - `scripts/systems/ai/EnemyAI.gd` (`líneas 72-76, 106-110`)
+  - `scripts/systems/VillageManager.gd` (`líneas 2078-2081`)
+- **Descripción del fallo real:** Como `VillageManager.gd`, `VillageNPC.gd` y `DomesticPet.gd` son scripts `@tool` (para visualizar la aldea en el visor 2D del Editor), al abrir `World.tscn` en el Editor instancian `HealthComponent.new()` y `StunComponent.new()`. Aunque esos componentes no tienen `@tool`, Godot ejecuta su `_process(delta)` dentro del Editor cuando son creados con `.new()`. Como el autoload `WorldClock` no es `@tool`, en el Editor existe como *placeholder instance* y llamar a `WorldClock.is_time_frozen()` lanzaba en bucle: `Invalid call function 'is_time_frozen' in base 'Node (WorldClock.gd)': Attempt to call a method on a placeholder instance`.
+- **Solución aplicada:** Desactivar `_process` / `_physics_process` en `_ready()` cuando `Engine.is_editor_hint()` es `true` y añadir la guarda `if Engine.is_editor_hint()` al inicio de `_process` / `_physics_process` en `HealthComponent.gd`, `StunComponent.gd`, `SurvivalComponent.gd`, `EnemyAI.gd` y `VillageManager._update_streetlights_glow()`.
