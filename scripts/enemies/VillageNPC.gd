@@ -154,6 +154,11 @@ var _last_seen_player_pos: Vector2 = Vector2.ZERO
 var _stuck_timer: float = 0.0
 var _last_frame_pos: Vector2 = Vector2.ZERO
 var facing_direction: Vector2 = Vector2.DOWN
+var facing_dir: Vector2:
+	get:
+		return facing_direction
+	set(v):
+		facing_direction = v
 var _showing_stealth_prompt: bool = false
 
 var sprite: Sprite2D = null
@@ -798,6 +803,12 @@ func _physics_process(delta: float) -> void:
 
 	# Paso 1: Si un NPC sufre heridas (`HP < 75%`) y NO está muriendo de hambre (`need_hunger > 5%`), camina hacia la Sala de Urgencias del Hospital (`Vector2(718, 136)`) para curarse
 	if health_comp and health_comp.current_health < health_comp.max_health * 0.75 and need_hunger > 5.0:
+		if is_sleeping:
+			is_sleeping = false
+			if sprite:
+				sprite.rotation_degrees = 0.0
+		if _craft_bar_root:
+			_craft_bar_root.visible = false
 		var hosp_bed_pos := Vector2(718, 136)
 		if global_position.distance_to(hosp_bed_pos) > 18.0:
 			_move_towards_point(hosp_bed_pos, 46.0, delta)
@@ -2597,6 +2608,16 @@ func take_damage(data: DamageData) -> void:
 	sedated_timer = 0.0
 	current_activity = ActivityState.WORKING
 	add_to_group("enemies")
+	if trade_role == TradeRole.ROYAL_INVESTIGATOR and vm and "active_royal_investigation" in vm:
+		var inv_dict: Dictionary = vm.active_royal_investigation
+		if bool(inv_dict.get("active", false)) and str(inv_dict.get("stage", "")) != "HUNTING_PLAYER":
+			inv_dict["stage"] = "HUNTING_PLAYER"
+			inv_dict["verdict_target"] = "Jugador"
+			inv_dict["verdict_reason"] = "Agresión directa al Inquisidor Real Alistair."
+			vm.wanted_level = 5
+			vm.bounty_gold = int(vm.bounty_gold) + 250
+			vm.is_resisting_arrest = true
+			_police_alerted_timer = 65.0
 	if health_comp:
 		health_comp.take_damage(data)
 	if stun_comp and health_comp and health_comp.current_health > 0.0:
@@ -3357,9 +3378,8 @@ func on_dialogue_action(action_id: String) -> void:
 		inv.add_gold(-10)
 		var health: HealthComponent = player.get_node_or_null("HealthComponent")
 		if health:
+			health.stop_bleeding()
 			health.heal(health.max_health)
-		if "bleed_stacks" in player:
-			player.bleed_stacks = 0
 		_spawn_floating_text("🏥 Curación Completa en el Hospital (-10 Oro)", Color.SPRING_GREEN, -44.0)
 		return
 

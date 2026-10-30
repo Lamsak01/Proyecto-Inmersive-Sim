@@ -382,6 +382,10 @@ func _on_died() -> void:
 	is_sleeping = false
 	remove_from_group("enemies")
 	velocity = Vector2.ZERO
+	if hurtbox and hurtbox.get_child_count() > 0:
+		var hcol := hurtbox.get_child(0) as CollisionShape2D
+		if hcol:
+			hcol.set_deferred("disabled", true)
 	if sprite:
 		sprite.rotation_degrees = 90.0
 		sprite.offset.y = 0.0
@@ -576,6 +580,14 @@ func from_save_dict(data: Dictionary) -> void:
 			visible = false
 	else:
 		is_dead = false
+		corpse_looted = false
 		visible = true
+		if hurtbox and hurtbox.get_child_count() > 0:
+			var hcol := hurtbox.get_child(0) as CollisionShape2D
+			if hcol:
+				hcol.set_deferred("disabled", false)
+		if sprite:
+			sprite.rotation_degrees = 0.0
+			sprite.modulate = tint_color
 		if health_comp and data.has("hp"):
 			health_comp.current_health = clampf(float(data["hp"]), 1.0, health_comp.max_health)

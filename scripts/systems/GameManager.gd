@@ -125,6 +125,45 @@ func load_game(filepath: String = SAVE_FILE_PATH) -> bool:
 
 	var data: Dictionary = parsed
 
+	# 0. Cerrar cualquier diálogo, juego de taberna o modal activo antes de restaurar la partida
+	var scene_root := get_tree().current_scene
+	if scene_root:
+		var dm = scene_root.get_node_or_null("Systems/dialogue_manager")
+		if dm and dm.has_method("is_active") and bool(dm.call("is_active")) and dm.has_method("end_dialogue"):
+			dm.call("end_dialogue")
+		var ui_root = scene_root.get_node_or_null("UI")
+		if ui_root:
+			var tg = ui_root.get("tavern_games")
+			if tg and tg.visible and tg.has_method("close_games"):
+				tg.call("close_games")
+			var inv_p = ui_root.get("inv_panel")
+			if inv_p is Control:
+				inv_p.visible = false
+			var v_map = ui_root.get("valley_map")
+			if v_map and "is_full_map_open" in v_map:
+				v_map.is_full_map_open = false
+		var camp_node = scene_root.find_child("PlayerCampSite", true, false)
+		if camp_node:
+			if "is_player_sitting" in camp_node:
+				camp_node.is_player_sitting = false
+			for cp_name in ["sleep_confirm_panel", "upgrade_panel", "chest_panel"]:
+				var cp = camp_node.get(cp_name)
+				if cp is Control:
+					cp.visible = false
+	var coop_node = get_tree().get_first_node_in_group("chicken_coop")
+	if coop_node:
+		var coop_p = coop_node.get("chicken_action_panel")
+		if coop_p is Control:
+			coop_p.visible = false
+	var vm_pre = get_tree().get_first_node_in_group("village_manager")
+	if vm_pre:
+		for vp_name in ["business_panel", "morgue_panel", "board_panel", "police_panel", "church_panel"]:
+			var vp = vm_pre.get(vp_name)
+			if vp is Control:
+				vp.visible = false
+	if WorldClock and "_activity_pause_locks" in WorldClock:
+		WorldClock._activity_pause_locks = 0
+
 	# 1. Restaurar flags del mundo y objetos destructibles
 	game_data = data.get("world_flags", {}).duplicate()
 	workplaces_data = data.get("workplaces", {}).duplicate(true)

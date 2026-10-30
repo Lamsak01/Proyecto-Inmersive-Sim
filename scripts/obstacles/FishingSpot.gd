@@ -256,8 +256,8 @@ func interact(player: Node2D) -> void:
 
 	# Si el jugador lleva la Regadera equipada y no está llena, llenarla primero
 	if "equipped_weapon" in player and player.equipped_weapon and player.equipped_weapon.name == "WateringCan":
-		if "watering_can_charges" in player and "MAX_WATER_CHARGES" in player:
-			if int(player.watering_can_charges) < int(player.MAX_WATER_CHARGES):
+		if "watering_can_charges" in player and "max_water_charges" in player:
+			if int(player.watering_can_charges) < int(player.max_water_charges):
 				if player.has_method("refill_watering_can"):
 					player.call("refill_watering_can")
 					return

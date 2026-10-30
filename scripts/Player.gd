@@ -548,7 +548,7 @@ func is_any_ui_modal_open() -> bool:
 			return true
 	var vm = get_tree().get_first_node_in_group("village_manager")
 	if vm:
-		for p_name in ["business_panel", "morgue_panel", "jail_panel", "board_panel", "police_panel", "pantry_panel"]:
+		for p_name in ["business_panel", "morgue_panel", "jail_panel", "board_panel", "police_panel", "pantry_panel", "church_panel"]:
 			var p_ctrl = vm.get(p_name)
 			if p_ctrl is Control and p_ctrl.visible:
 				return true
@@ -590,7 +590,7 @@ func _unhandled_input(event: InputEvent) -> void:
 			_handle_interactions()
 		return
 	var lake = get_tree().current_scene.find_child("WestFishingLake", true, false) if get_tree().current_scene else null
-	if lake and int(lake.get("state")) == 2: # FishState.MINIGAME
+	if lake and int(lake.get("state")) == 3: # FishState.MINIGAME
 		return
 
 	if event is InputEventKey and event.pressed and not event.echo:
@@ -625,7 +625,7 @@ func _on_died() -> void:
 	var knocked_by_police := false
 	if is_instance_valid(last_damage_source) and (last_damage_source is VillageNPC):
 		var v_src := last_damage_source as VillageNPC
-		if v_src.trade_role in [VillageNPC.TradeRole.SHERIFF, VillageNPC.TradeRole.GUARD]:
+		if v_src.trade_role in [VillageNPC.TradeRole.SHERIFF, VillageNPC.TradeRole.GUARD, VillageNPC.TradeRole.ROYAL_INVESTIGATOR]:
 			knocked_by_police = true
 	if vm and (int(vm.get("wanted_level")) > 0 or bool(vm.get("is_resisting_arrest")) or knocked_by_police):
 		if health_comp:

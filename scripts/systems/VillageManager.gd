@@ -2562,10 +2562,14 @@ func _on_church_pray_action(player: Node2D) -> void:
 	_open_church_registry_ui()
 
 func clear_police_hostility() -> void:
-	is_resisting_arrest = false
+	var hunting_player_royally: bool = bool(active_royal_investigation.get("active", false)) and str(active_royal_investigation.get("stage", "")) == "HUNTING_PLAYER" and not player_in_jail and not player_being_escorted_to_jail
+	if not hunting_player_royally:
+		is_resisting_arrest = false
 	for n in get_tree().get_nodes_in_group("village_npcs"):
 		if n is VillageNPC:
 			var v := n as VillageNPC
+			if v.trade_role == VillageNPC.TradeRole.ROYAL_INVESTIGATOR and hunting_player_royally:
+				continue
 			v.is_hostile = false
 			v.remove_from_group("enemies")
 			v.velocity = Vector2.ZERO
@@ -2591,7 +2595,8 @@ func alert_police_to_resist(player: Node2D = null) -> void:
 func trigger_police_confrontation(officer: VillageNPC = null) -> void:
 	if _police_confront_cooldown > 0.0 or not police_panel:
 		return
-	clear_police_hostility()
+	if player_in_jail or not is_resisting_arrest:
+		clear_police_hostility()
 	_police_confront_cooldown = 4.0
 	if officer != null:
 		_last_confronting_officer = officer
@@ -2747,6 +2752,10 @@ func release_player_from_jail_after_sentence(player: Node2D) -> void:
 
 func pay_bounty_fine(player: Node2D) -> void:
 	if not player or not ("inventory" in player) or not player.inventory:
+		return
+	if bool(active_royal_investigation.get("active", false)) and str(active_royal_investigation.get("stage", "")) == "HUNTING_PLAYER" and not player_in_jail:
+		if player.has_method("_spawn_floating_text"):
+			player._spawn_floating_text("⚖️👑 Orden de Captura Real activa: debes entregarte en la Celda [1] antes de pagar fianza", Color.ORANGE_RED, -44.0)
 		return
 	var inv: SimpleInventory = player.inventory
 	var fine: int = maxi(15, bounty_gold) if wanted_level > 0 else 0
@@ -3726,6 +3735,7 @@ func _on_day_passed(_new_day: int) -> void:
 					cfg["tex"]
 				)
 				trade_npcs[role_key] = kin_candidate
+				family_npcs.erase(role_key)
 				var p1 = get_tree().get_first_node_in_group("player")
 				if p1 and p1.has_method("show_hint"):
 					p1.show_hint("🏠 Herencia Familiar: %s (%s) asumió el puesto de %s como Aprendiz (54%% Eficiencia · 5 días para Maestro)." % [kin_candidate.npc_name, str(cfg["family_name"]), str(cfg["title"])])
@@ -4505,6 +4515,8 @@ func _on_business_action_3(player: Node2D) -> void:
 			str(cfg.get("family_name", "Gremio"))
 		)
 		trade_npcs[_active_business_role] = candidate
+		if family_npcs.get(_active_business_role) == candidate:
+			family_npcs.erase(_active_business_role)
 		player._spawn_floating_text("🤝⚒️ ¡Contrataste a %s (%s) como encargado de %s! (-30 Oro)" % [candidate.npc_name, candidate.get_job_efficiency_label(), str(biz.get("title", ""))], Color.SPRING_GREEN, -46.0)
 	else:
 		# Si no quedan viajeros libres en la posada, llega un nuevo artesano novato caminando desde el borde del mapa (máx. 2 llegadas/día)
@@ -5088,6 +5100,11 @@ func _notify_inquisitor_of_police_crime(clue_text: String, suspicion_boost: int)
 
 func _spawn_royal_investigator() -> void:
 	if is_instance_valid(_royal_investigator_npc) and not _royal_investigator_npc.is_dead:
+		_royal_investigator_npc.is_hostile = false
+		_royal_investigator_npc.is_sleeping = false
+		_royal_investigator_npc.remove_from_group("enemies")
+		if "_police_alerted_timer" in _royal_investigator_npc:
+			_royal_investigator_npc._police_alerted_timer = 0.0
 		return
 	var inv_npc := VillageNPC.new()
 	inv_npc.name = "NPC_Royal_Investigator_Alistair"
@@ -5135,6 +5152,10 @@ func _advance_royal_investigation_day(_new_day: int) -> void:
 	var calc_quota: int = int(ceil(float(rem_to_interview) / float(rem_days)))
 	active_royal_investigation["daily_quota"] = maxi(6, calc_quota)
 
+	# Si el Inquisidor Real fue abatido/asesinado mientras la investigación seguía activa, la Corona envía un nuevo Inquisidor al amanecer
+	if not is_instance_valid(_royal_investigator_npc) or _royal_investigator_npc.is_dead:
+		_spawn_royal_investigator()
+
 	# Solo si se alcanza el Día Límite (`max_days`, <= 18 días) se fuerza el cierre inmediato antes del regreso del mercader
 	if days_inv >= max_days and stg in ["CRIME_SCENE", "MORGUE", "INITIAL_PLAYER_INTERVIEW", "INTERVIEWS", "PLAYER_CHECK"]:
 		if not is_instance_valid(_royal_investigator_npc) or _royal_investigator_npc.is_dead:
@@ -5181,9 +5202,9 @@ func update_royal_investigator_ai(inv_npc: VillageNPC, delta: float) -> void:
 	var done_cnt: int = int(active_royal_investigation.get("interviews_done", 0))
 	var max_cnt: int = int(active_royal_investigation.get("max_interviews", 18))
 
-	# Si el jugador ya fue encarcelado o pagó su condena tras haber sido declarado culpable (`HUNTING_PLAYER`), Alistair da el caso por cerrado y regresa a la Corte
+	# Si el jugador ya fue encarcelado tras haber sido declarado culpable (`HUNTING_PLAYER`), Alistair da el caso por cerrado y regresa a la Corte
 	if stage == "HUNTING_PLAYER":
-		if player_in_jail or player_being_escorted_to_jail or (wanted_level == 0 and not is_resisting_arrest):
+		if player_in_jail or player_being_escorted_to_jail:
 			inv_npc.is_hostile = false
 			inv_npc.remove_from_group("enemies")
 			active_royal_investigation["stage"] = "DEPARTING"
@@ -5290,11 +5311,18 @@ func update_royal_investigator_ai(inv_npc: VillageNPC, delta: float) -> void:
 			# Si el jugador está encerrado en la Celda de la Comisaría, Alistair camina hasta la reja del calabozo (`Vector2(902, 144)`)
 			var target_pt: Vector2 = Vector2(902, 144) if player_in_jail else player.global_position
 			var dist_to_target: float = inv_npc.global_position.distance_to(target_pt)
-			if dist_to_target > 36.0 and s_timer < 14.0:
+			if dist_to_target > 36.0:
 				inv_npc._move_towards_point(target_pt, 96.0, delta)
-				s_timer += delta * 0.35
-				active_royal_investigation["stage_timer"] = s_timer
+				var walk_t: float = float(active_royal_investigation.get("walk_timer", 0.0)) + delta
+				active_royal_investigation["walk_timer"] = walk_t
+				# Si el jugador está fuera del pueblo (p. ej. en el Bosque Profundo) tras 24s de búsqueda, posponer su interrogatorio hasta `PLAYER_CHECK` sin inspeccionarlo por telepatía
+				if walk_t >= 24.0 and not player_in_jail and dist_to_target > 240.0:
+					active_royal_investigation["walk_timer"] = 0.0
+					active_royal_investigation["stage_timer"] = 0.0
+					active_royal_investigation["stage"] = "INTERVIEWS"
+					inv_npc._spawn_floating_text("🕵️‍♂️📜 El Forastero no está en la aldea; interrogaré primero a los habitantes.", Color.AQUA, -38.0)
 			else:
+				active_royal_investigation["walk_timer"] = 0.0
 				inv_npc.velocity = Vector2.ZERO
 				var dir_to_p: Vector2 = (player.global_position - inv_npc.global_position)
 				if dir_to_p.length_squared() > 1.0:
@@ -5302,9 +5330,10 @@ func update_royal_investigator_ai(inv_npc: VillageNPC, delta: float) -> void:
 				if inv_npc.sprite:
 					inv_npc.sprite.flip_h = (player.global_position.x < inv_npc.global_position.x)
 				inv_npc.trigger_action_animation(1.2)
+				var prev_s: float = s_timer
 				s_timer += delta
 				active_royal_investigation["stage_timer"] = s_timer
-				if int(s_timer * 10.0) == 8:
+				if prev_s < 0.6 and s_timer >= 0.6:
 					if player_in_jail:
 						inv_npc._spawn_floating_text("⚖️⛓️ Interrogándote en la celda: el Comisario Vane ya me entregó tus cargos...", Color.ORANGE_RED, -40.0)
 					else:
@@ -5340,7 +5369,7 @@ func update_royal_investigator_ai(inv_npc: VillageNPC, delta: float) -> void:
 				active_royal_investigation["current_interview_target"] = cur_target_name
 
 			var target_npc: VillageNPC = _find_npc_by_name(cur_target_name)
-			if target_npc == null or target_npc.is_dead:
+			if target_npc == null or target_npc.is_dead or target_npc.is_downed or target_npc.is_stunned_flag or target_npc.sedated_timer > 0.0:
 				active_royal_investigation["current_interview_target"] = ""
 				active_royal_investigation["interviews_done"] = done_cnt + 1
 				return
@@ -5361,9 +5390,10 @@ func update_royal_investigator_ai(inv_npc: VillageNPC, delta: float) -> void:
 				if inv_npc.sprite:
 					inv_npc.sprite.flip_h = (target_npc.global_position.x < inv_npc.global_position.x)
 				inv_npc.trigger_action_animation(1.0)
+				var prev_s_npc: float = s_timer
 				s_timer += delta
 				active_royal_investigation["stage_timer"] = s_timer
-				if int(s_timer * 10.0) == 8:
+				if prev_s_npc < 0.6 and s_timer >= 0.6:
 					inv_npc._spawn_floating_text("🕵️‍♂️📜 Interrogando a %s (%d/%d)..." % [target_npc.npc_name, done_cnt + 1, max_cnt], Color(1.0, 0.90, 0.52), -36.0)
 				if s_timer >= 4.6:
 					active_royal_investigation["stage_timer"] = 0.0
@@ -5381,13 +5411,19 @@ func update_royal_investigator_ai(inv_npc: VillageNPC, delta: float) -> void:
 				active_royal_investigation["stage"] = "VERDICT"
 				return
 			var check_pt: Vector2 = Vector2(902, 144) if player_in_jail else player.global_position
+			var dist_chk: float = inv_npc.global_position.distance_to(check_pt)
 			inv_npc._move_towards_point(check_pt, 98.0, delta)
 			s_timer += delta
 			active_royal_investigation["stage_timer"] = s_timer
-			if inv_npc.global_position.distance_to(check_pt) <= 38.0 or s_timer >= 14.0:
+			if dist_chk <= 38.0:
 				inv_npc.velocity = Vector2.ZERO
 				inv_npc.trigger_action_animation(3.5)
 				_evaluate_player_inspection(inv_npc, player, suspects, clues, false)
+				active_royal_investigation["stage"] = "VERDICT"
+				active_royal_investigation["stage_timer"] = 0.0
+			elif s_timer >= 24.0:
+				# Si el jugador está escondido lejos del pueblo, Alistair emite el veredicto con las pruebas forenses y testimonios ya reunidos sin inspeccionarlo por telepatía
+				inv_npc.velocity = Vector2.ZERO
 				active_royal_investigation["stage"] = "VERDICT"
 				active_royal_investigation["stage_timer"] = 0.0
 		"VERDICT":
@@ -5405,7 +5441,7 @@ func update_royal_investigator_ai(inv_npc: VillageNPC, delta: float) -> void:
 			if inv_npc.global_position.distance_to(scapegoat.global_position) <= 46.0:
 				scapegoat.hold_for_interview(inv_npc, 1.0)
 			inv_npc._move_towards_point(scapegoat.global_position, 104.0, delta)
-			if inv_npc.global_position.distance_to(scapegoat.global_position) <= 28.0 or s_timer >= 28.0:
+			if inv_npc.global_position.distance_to(scapegoat.global_position) <= 28.0:
 				inv_npc.velocity = Vector2.ZERO
 				scapegoat.velocity = Vector2.ZERO
 				inv_npc.trigger_action_animation(3.5)
@@ -5809,24 +5845,26 @@ func get_economy_save_dict() -> Dictionary:
 			saved_pets.append(p.to_save_dict())
 	var saved_chests: Dictionary = {}
 	for ch in house_chests:
-		var ch_id: String = str(ch.get("id", ""))
+		var ch_id: String = str(ch.get("family_id", ch.get("id", "")))
 		if ch_id != "":
 			saved_chests[ch_id] = int(ch.get("looted_day", -1))
 	var saved_doors: Dictionary = {}
 	for d_entry in building_doors:
-		var d_id: String = str(d_entry.get("id", ""))
+		var d_id: String = str(d_entry.get("building_id", d_entry.get("id", "")))
 		if d_id != "":
 			saved_doors[d_id] = {
+				"is_open": bool(d_entry.get("is_open", false)),
 				"is_locked": bool(d_entry.get("is_locked", false)),
+				"locked_by_player": bool(d_entry.get("locked_by_player", false)),
 				"picked_until_hour": int(d_entry.get("picked_until_hour", -1)),
 				"picked_day": int(d_entry.get("picked_day", -1))
 			}
 	var saved_windows: Dictionary = {}
 	for w_entry in building_windows:
-		var w_id: String = str(w_entry.get("id", ""))
+		var w_id: String = str(w_entry.get("building_id", w_entry.get("id", "")))
 		if w_id != "":
 			saved_windows[w_id] = {
-				"is_locked": bool(w_entry.get("is_locked", true)),
+				"is_shuttered": bool(w_entry.get("is_shuttered", false)),
 				"picked_until_hour": int(w_entry.get("picked_until_hour", -1)),
 				"picked_day": int(w_entry.get("picked_day", -1))
 			}
@@ -5862,7 +5900,7 @@ func load_economy_save_dict(data: Dictionary) -> void:
 		var sc: Dictionary = data["house_chests"]
 		var cur_d: int = WorldClock.current_day if WorldClock else 1
 		for ch in house_chests:
-			var ch_id: String = str(ch.get("id", ""))
+			var ch_id: String = str(ch.get("family_id", ch.get("id", "")))
 			if sc.has(ch_id):
 				ch["looted_day"] = int(sc[ch_id])
 				var spr: Sprite2D = ch.get("sprite")
@@ -5872,21 +5910,30 @@ func load_economy_save_dict(data: Dictionary) -> void:
 	if data.has("building_doors") and typeof(data["building_doors"]) == TYPE_DICTIONARY:
 		var sd: Dictionary = data["building_doors"]
 		for d_entry in building_doors:
-			var d_id: String = str(d_entry.get("id", ""))
+			var d_id: String = str(d_entry.get("building_id", d_entry.get("id", "")))
 			if sd.has(d_id) and typeof(sd[d_id]) == TYPE_DICTIONARY:
 				var de: Dictionary = sd[d_id]
+				d_entry["is_open"] = bool(de.get("is_open", false))
 				d_entry["is_locked"] = bool(de.get("is_locked", false))
+				d_entry["locked_by_player"] = bool(de.get("locked_by_player", false))
 				d_entry["picked_until_hour"] = int(de.get("picked_until_hour", -1))
 				d_entry["picked_day"] = int(de.get("picked_day", -1))
+				_refresh_door_visual_and_collision(d_entry)
 	if data.has("building_windows") and typeof(data["building_windows"]) == TYPE_DICTIONARY:
 		var sw: Dictionary = data["building_windows"]
+		var tex_win_open := _load_tex("res://assests/world/village/window_wood_open.png")
+		var tex_win_shut := _load_tex("res://assests/world/village/window_wood_shuttered.png")
 		for w_entry in building_windows:
-			var w_id: String = str(w_entry.get("id", ""))
+			var w_id: String = str(w_entry.get("building_id", w_entry.get("id", "")))
 			if sw.has(w_id) and typeof(sw[w_id]) == TYPE_DICTIONARY:
 				var we: Dictionary = sw[w_id]
-				w_entry["is_locked"] = bool(we.get("is_locked", true))
+				var shut: bool = bool(we.get("is_shuttered", we.get("is_locked", false)))
+				w_entry["is_shuttered"] = shut
 				w_entry["picked_until_hour"] = int(we.get("picked_until_hour", -1))
 				w_entry["picked_day"] = int(we.get("picked_day", -1))
+				var w_spr: Sprite2D = w_entry.get("sprite")
+				if is_instance_valid(w_spr):
+					w_spr.texture = tex_win_shut if shut else tex_win_open
 	if data.has("deployed_bear_traps") and typeof(data["deployed_bear_traps"]) == TYPE_ARRAY:
 		for tr in _deployed_bear_traps:
 			var tr_n: Node2D = tr.get("node") as Node2D

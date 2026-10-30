@@ -28,8 +28,12 @@ func _physics_process(delta: float) -> void:
 	if not is_instance_valid(player) or not is_instance_valid(anim):
 		return
 
-	# Block movement if dialogue active, modal open, or tavern minigame time freeze is active
-	if (dialogue_manager and dialogue_manager.has_method("is_active") and dialogue_manager.call("is_active")) or (WorldClock and WorldClock.has_method("is_time_frozen") and WorldClock.is_time_frozen()) or (player.has_method("is_any_ui_modal_open") and bool(player.call("is_any_ui_modal_open"))):
+	# Block movement if dialogue active, modal open, tavern minigame time freeze, sitting on camp log, or in fishing minigame
+	var lake = get_tree().current_scene.find_child("WestFishingLake", true, false) if get_tree().current_scene else null
+	var in_fishing_minigame: bool = lake != null and int(lake.get("state")) == 3
+	var camp = get_tree().current_scene.find_child("PlayerCampSite", true, false) if get_tree().current_scene else null
+	var sitting_on_log: bool = camp != null and bool(camp.get("is_player_sitting"))
+	if (dialogue_manager and dialogue_manager.has_method("is_active") and dialogue_manager.call("is_active")) or (WorldClock and WorldClock.has_method("is_time_frozen") and WorldClock.is_time_frozen()) or (player.has_method("is_any_ui_modal_open") and bool(player.call("is_any_ui_modal_open"))) or in_fishing_minigame or sitting_on_log:
 		if is_instance_valid(stamina_comp):
 			stamina_comp.is_input_blocking = false
 		player.velocity = Vector2.ZERO
