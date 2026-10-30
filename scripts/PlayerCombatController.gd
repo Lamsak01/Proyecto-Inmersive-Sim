@@ -21,6 +21,7 @@ var current_aim_dir: Vector2 = Vector2.RIGHT
 var is_drawing_bow: bool = false
 var bow_tension: float = 0.0
 const BOW_DRAW_DURATION: float = 0.85
+var _swing_hit_targets: Array[Node] = []
 
 func _ready() -> void:
 	_setup_visuals()
@@ -38,7 +39,7 @@ func _process(delta: float) -> void:
 			if stamina_comp:
 				stamina_comp.use_stamina(6.0 * delta)
 				if stamina_comp.current_stamina <= 0.5:
-					_release_bow_shot()
+					_release_bow_shot(true)
 			if is_drawing_bow:
 				if weapon_sprite:
 					weapon_sprite.visible = true
@@ -61,8 +62,15 @@ func _process(delta: float) -> void:
 		attack_timer -= delta
 
 func _unhandled_input(event: InputEvent) -> void:
-	var dm = player.get("dialogue_manager") if player else null
-	if dm and dm.has_method("is_active") and dm.call("is_active"):
+	if not is_instance_valid(player):
+		return
+	var dm = player.get("dialogue_manager")
+	if (dm and dm.has_method("is_active") and dm.call("is_active")) or (player.has_method("is_stunned") and player.is_stunned()) or (player.has_method("is_any_ui_modal_open") and bool(player.call("is_any_ui_modal_open"))) or (player.has_method("is_fishing_or_sitting") and bool(player.call("is_fishing_or_sitting"))):
+		if is_drawing_bow:
+			_cancel_bow_draw()
+		return
+	var vm = get_tree().get_first_node_in_group("village_manager")
+	if vm and (bool(vm.get("player_in_jail")) or bool(vm.get("player_being_escorted_to_jail"))):
 		if is_drawing_bow:
 			_cancel_bow_draw()
 		return
@@ -71,6 +79,10 @@ func _unhandled_input(event: InputEvent) -> void:
 	# - Opción NO LETAL (Aturdir): [E] (Interact) o [Q]
 	# - Opción LETAL (Asesinar): [Clic Izq.], [ui_accept] o [V]
 	if is_instance_valid(current_prompt_target):
+		if event.is_action_pressed("Interact") and vm and vm.has_method("try_priority_door_or_corpse_interaction"):
+			if bool(vm.call("try_priority_door_or_corpse_interaction", player, player.get_global_mouse_position())):
+				get_viewport().set_input_as_handled()
+				return
 		var is_non_lethal_key: bool = event.is_action_pressed("Interact") or (event is InputEventKey and event.pressed and not event.echo and event.physical_keycode == KEY_Q)
 		var is_lethal_key: bool = event.is_action_pressed("ui_accept") or (event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT) or (event is InputEventKey and event.pressed and not event.echo and event.physical_keycode == KEY_V)
 		if is_non_lethal_key:
@@ -225,7 +237,7 @@ func _cancel_bow_draw() -> void:
 		crosshair.is_drawing_bow = false
 		crosshair.bow_tension = 0.0
 
-func _release_bow_shot() -> void:
+func _release_bow_shot(skip_release_cost: bool = false) -> void:
 	if not is_drawing_bow:
 		return
 	var equipped: WeaponData = player.equipped_weapon
@@ -243,7 +255,7 @@ func _release_bow_shot() -> void:
 			weapon_sprite.visible = false
 		return
 
-	if stamina_comp:
+	if stamina_comp and not skip_release_cost and stamina_comp.current_stamina >= 4.0:
 		stamina_comp.use_stamina(4.0)
 
 	attack_timer = 0.25
@@ -294,6 +306,7 @@ func attack(_aim_with_mouse: bool = true) -> void:
 		)
 	
 	# Enable hitbox briefly in the exact 360° mouse aim direction
+	_swing_hit_targets.clear()
 	hitbox_area.damage_data = equipped.damage_data.copy()
 	if "paralytic_venom_timer" in player and float(player.get("paralytic_venom_timer")) > 0.0:
 		hitbox_area.damage_data.stun_buildup += 50.0
@@ -333,12 +346,19 @@ func _fire_bow(equipped: WeaponData, tension: float = 1.0) -> void:
 
 func _on_hitbox_entered(area: Area2D) -> void:
 	if area is Hurtbox:
+		var target_entity: Node = area.get_parent() if area.get_parent() else area
+		if target_entity in _swing_hit_targets:
+			return
+		_swing_hit_targets.append(target_entity)
 		hitbox_area.apply_damage(area)
 		_apply_hitstop()
 		_apply_camera_shake()
 
 func _on_hitbox_body_entered(body: Node2D) -> void:
 	if body != player and (body.is_in_group("destructible") or body.is_in_group("wild_animals")) and body.has_method("take_damage"):
+		if body in _swing_hit_targets:
+			return
+		_swing_hit_targets.append(body)
 		body.take_damage(hitbox_area.damage_data)
 		_apply_hitstop()
 		_apply_camera_shake()
@@ -376,8 +396,8 @@ func _check_stealth_takedown() -> void:
 						best_dist_sq = d2
 						new_target = npc_node
 
-	# 2. Comprobar enemigos de bosque (EnemyAI) por la espalda
-	if new_target == null:
+	# 2. Comprobar enemigos de bosque (EnemyAI) por la espalda en modo Sigilo ([C])
+	if new_target == null and player.has_method("is_stealthing") and bool(player.call("is_stealthing")):
 		var bodies = interact_area.get_overlapping_bodies()
 		for b in bodies:
 			if b.is_in_group("enemies") and b.has_method("knockout") and b.get_node_or_null("EnemyAI"):

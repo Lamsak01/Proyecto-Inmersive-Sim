@@ -130,6 +130,9 @@ func _bind_survival_component() -> void:
 		surv._emit_all()
 
 func _unhandled_input(event: InputEvent) -> void:
+	var dm = player.get("dialogue_manager") if player else null
+	if (dm and dm.has_method("is_active") and bool(dm.call("is_active"))) or (tavern_games and tavern_games.visible):
+		return
 	if event is InputEventKey and not event.echo:
 		if event.keycode == KEY_TAB:
 			if event.pressed:
@@ -138,6 +141,8 @@ func _unhandled_input(event: InputEvent) -> void:
 				elif tool_wheel:
 					if inv_panel and inv_panel.visible:
 						inv_panel.visible = false
+					if valley_map and bool(valley_map.get("is_full_map_open")):
+						valley_map.call("close_full_map")
 					tool_wheel.open_wheel()
 			else:
 				if tool_wheel and tool_wheel.visible:
@@ -195,6 +200,8 @@ func open_tavern_games() -> void:
 		inv_panel.visible = false
 	if tool_wheel and tool_wheel.visible:
 		tool_wheel.close_wheel(false)
+	if valley_map and bool(valley_map.get("is_full_map_open")):
+		valley_map.call("close_full_map")
 	if tavern_games:
 		tavern_games.open_games()
 

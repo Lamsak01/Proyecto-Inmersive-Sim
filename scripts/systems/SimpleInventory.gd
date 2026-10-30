@@ -968,7 +968,7 @@ func use_item(item_id: String, player: Node) -> bool:
 		var p_node2: Node2D = player as Node2D
 		for n in p_node2.get_tree().get_nodes_in_group("village_npcs"):
 			if n is Node2D and bool(n.get("is_downed")) and not bool(n.get("is_dead")):
-				if p_node2.global_position.distance_squared_to(n.global_position) <= 46.0 * 46.0:
+				if p_node2.global_position.distance_squared_to(n.global_position) <= 64.0 * 64.0:
 					if n.has_method("revive_from_downed"):
 						remove_item(item_id, 1)
 						n.call("revive_from_downed", player, true)
@@ -988,13 +988,15 @@ func use_item(item_id: String, player: Node) -> bool:
 		used = true
 
 	if info.get("stop_bleed", false) and health_comp:
-		health_comp.stop_bleeding()
-		used = true
+		if health_comp.is_bleeding or health_comp.current_blood > 0.1:
+			health_comp.stop_bleeding()
+			used = true
 
 	var heal_hp: float = float(info.get("heal_hp", 0.0))
 	if heal_hp > 0.0 and health_comp:
-		health_comp.heal(heal_hp)
-		used = true
+		if health_comp.current_health < health_comp.max_health - 0.1:
+			health_comp.heal(heal_hp)
+			used = true
 
 	var restore_stam: float = float(info.get("restore_stamina", 0.0))
 	if restore_stam > 0.0 and stamina_comp:
@@ -1011,6 +1013,8 @@ func use_item(item_id: String, player: Node) -> bool:
 		remove_item(item_id, 1)
 		if player.has_method("_spawn_floating_text"):
 			player._spawn_floating_text("Usado: %s" % get_item_name(item_id), Color.LIGHT_GREEN, -42.0)
+	elif (heal_hp > 0.0 or bool(info.get("stop_bleed", false))) and player.has_method("_spawn_floating_text"):
+		player._spawn_floating_text("🏥 Salud al 100% (No necesitas curación)", Color.LIGHT_GRAY, -42.0)
 	return used
 
 # --- Sistema de Crafteo ---
@@ -1049,7 +1053,9 @@ func to_dict() -> Dictionary:
 
 func from_dict(data: Dictionary) -> void:
 	gold = int(data.get("gold", 45))
-	selected_seed_id = str(data.get("selected_seed_id", "wheat_seed"))
+	selected_seed_id = str(data.get("selected_seed_id", "wheat_seeds"))
+	if selected_seed_id == "wheat_seed":
+		selected_seed_id = "wheat_seeds"
 	items.clear()
 	var saved_items: Dictionary = data.get("items", {})
 	for k in saved_items.keys():

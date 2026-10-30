@@ -97,13 +97,19 @@ func _on_area_entered(area: Area2D) -> void:
 	if _is_grounded or area.get_parent() == shooter:
 		return
 	if area is Hurtbox and damage_data:
+		_is_grounded = true
+		if _col_shape:
+			_col_shape.set_deferred("disabled", true)
 		area.receive_damage(damage_data)
 		queue_free()
 
 func _on_body_entered(body: Node2D) -> void:
 	if _is_grounded or body == shooter:
 		return
-	if body.is_in_group("wild_animals") and body.has_method("take_damage") and damage_data:
+	if (body.is_in_group("wild_animals") or body.is_in_group("destructible")) and body.has_method("take_damage") and damage_data:
+		_is_grounded = true
+		if _col_shape:
+			_col_shape.set_deferred("disabled", true)
 		body.take_damage(damage_data)
 		queue_free()
 	elif body is StaticBody2D or body is TileMapLayer:

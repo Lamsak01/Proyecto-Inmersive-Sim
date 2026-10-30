@@ -28,8 +28,10 @@ func _physics_process(delta: float) -> void:
 	if not is_instance_valid(player) or not is_instance_valid(anim):
 		return
 
-	# Block movement if dialogue active or tavern minigame time freeze is active
-	if (dialogue_manager and dialogue_manager.has_method("is_active") and dialogue_manager.call("is_active")) or (WorldClock and WorldClock.has_method("is_time_frozen") and WorldClock.is_time_frozen()):
+	# Block movement if dialogue active, modal open, or tavern minigame time freeze is active
+	if (dialogue_manager and dialogue_manager.has_method("is_active") and dialogue_manager.call("is_active")) or (WorldClock and WorldClock.has_method("is_time_frozen") and WorldClock.is_time_frozen()) or (player.has_method("is_any_ui_modal_open") and bool(player.call("is_any_ui_modal_open"))):
+		if is_instance_valid(stamina_comp):
+			stamina_comp.is_input_blocking = false
 		player.velocity = Vector2.ZERO
 		_play_idle()
 		player.move_and_slide()
@@ -37,6 +39,8 @@ func _physics_process(delta: float) -> void:
 
 	# Block movement if stunned
 	if player.has_method("is_stunned") and player.is_stunned():
+		if is_instance_valid(stamina_comp):
+			stamina_comp.is_input_blocking = false
 		player.velocity = Vector2.ZERO
 		player.move_and_slide()
 		_update_visual_state()
@@ -70,9 +74,17 @@ func _update_aim_and_camera(delta: float) -> void:
 		cam.offset = cam.offset.lerp(desired_offset, clampf(camera_smooth_speed * delta, 0.0, 1.0))
 
 func _unhandled_input(event: InputEvent) -> void:
+	if not is_instance_valid(player):
+		return
+	if (player.has_method("is_stunned") and player.is_stunned()) or (player.has_method("is_any_ui_modal_open") and bool(player.call("is_any_ui_modal_open"))):
+		return
 	if event is InputEventKey and event.pressed and not event.echo:
 		if event.keycode == KEY_C:
 			is_stealthing = not is_stealthing
+
+func apply_impulse(force: Vector2) -> void:
+	if is_instance_valid(player):
+		player.velocity += force
 
 func _handle_input(delta: float) -> void:
 	var is_sprint_pressed = Input.is_action_pressed("sprint")

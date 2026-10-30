@@ -520,9 +520,59 @@ func _handle_interactions() -> void:
 		if best_area.has_method("interact"):
 			best_area.interact(self)
 			get_viewport().set_input_as_handled()
-		elif best_area.get_parent().has_method("interact"):
+		elif best_area.get_parent() and best_area.get_parent().has_method("interact"):
 			best_area.get_parent().interact(self)
 			get_viewport().set_input_as_handled()
+		elif best_area.get_parent() and best_area.get_parent().get_parent() and best_area.get_parent().get_parent().has_method("interact"):
+			best_area.get_parent().get_parent().interact(self)
+			get_viewport().set_input_as_handled()
+
+func is_any_ui_modal_open() -> bool:
+	if dialogue_manager and dialogue_manager.has_method("is_active") and bool(dialogue_manager.call("is_active")):
+		return true
+	if WorldClock and WorldClock.has_method("is_time_frozen") and WorldClock.is_time_frozen():
+		return true
+	var ui_root = get_tree().current_scene.get_node_or_null("UI/UIRoot") if get_tree().current_scene else null
+	if ui_root:
+		var inv_p = ui_root.get("inv_panel")
+		if inv_p is Control and inv_p.visible:
+			return true
+		var tw_p = ui_root.get("tool_wheel")
+		if tw_p is Control and tw_p.visible:
+			return true
+		var tg_p = ui_root.get("tavern_games")
+		if tg_p is Control and tg_p.visible:
+			return true
+		var vm_ui = ui_root.get("valley_map")
+		if vm_ui and bool(vm_ui.get("is_full_map_open")):
+			return true
+	var vm = get_tree().get_first_node_in_group("village_manager")
+	if vm:
+		for p_name in ["business_panel", "morgue_panel", "jail_panel", "board_panel", "police_panel", "pantry_panel"]:
+			var p_ctrl = vm.get(p_name)
+			if p_ctrl is Control and p_ctrl.visible:
+				return true
+	var camp = get_tree().current_scene.find_child("PlayerCampSite", true, false) if get_tree().current_scene else null
+	if camp:
+		for c_panel in ["sleep_confirm_panel", "upgrade_panel", "chest_panel"]:
+			var cp = camp.get(c_panel)
+			if cp is Control and cp.visible:
+				return true
+	var coop = get_tree().get_first_node_in_group("chicken_coop")
+	if coop:
+		var coop_p = coop.get("chicken_action_panel")
+		if coop_p is Control and coop_p.visible:
+			return true
+	return false
+
+func is_fishing_or_sitting() -> bool:
+	var camp = get_tree().current_scene.find_child("PlayerCampSite", true, false) if get_tree().current_scene else null
+	if camp and bool(camp.get("is_player_sitting")):
+		return true
+	var lake = get_tree().current_scene.find_child("WestFishingLake", true, false) if get_tree().current_scene else null
+	if lake and int(lake.get("state")) != 0:
+		return true
+	return false
 
 func show_hint(text: String) -> void:
 	if hint_label:
@@ -532,7 +582,15 @@ func show_hint(text: String) -> void:
 				hint_label.text = "")
 
 func _unhandled_input(event: InputEvent) -> void:
-	if dialogue_manager and dialogue_manager.has_method("is_active") and dialogue_manager.call("is_active"):
+	if is_stunned_flag or is_any_ui_modal_open():
+		return
+	var vm = get_tree().get_first_node_in_group("village_manager")
+	if vm and (bool(vm.get("player_in_jail")) or bool(vm.get("player_being_escorted_to_jail"))):
+		if event.is_action_pressed("Interact"):
+			_handle_interactions()
+		return
+	var lake = get_tree().current_scene.find_child("WestFishingLake", true, false) if get_tree().current_scene else null
+	if lake and int(lake.get("state")) == 2: # FishState.MINIGAME
 		return
 
 	if event is InputEventKey and event.pressed and not event.echo:
@@ -573,6 +631,8 @@ func _on_died() -> void:
 		if health_comp:
 			health_comp.stop_bleeding()
 			health_comp.heal(health_comp.max_health * 0.50)
+		if stun_comp and stun_comp.has_method("clear_stun"):
+			stun_comp.clear_stun()
 		is_stunned_flag = false
 		if vm.has_method("capture_knocked_out_player_to_jail"):
 			vm.call("capture_knocked_out_player_to_jail", self)
@@ -582,6 +642,8 @@ func _on_died() -> void:
 	if health_comp:
 		health_comp.stop_bleeding()
 		health_comp.heal(health_comp.max_health * 0.60)
+	if stun_comp and stun_comp.has_method("clear_stun"):
+		stun_comp.clear_stun()
 	is_stunned_flag = false
 	velocity = Vector2.ZERO
 	global_position = Vector2(710, 132)
@@ -704,10 +766,25 @@ func from_save_dict(data: Dictionary) -> void:
 			if saved_tiers.has(k):
 				tool_tiers[k] = clampi(int(saved_tiers[k]), 1, 3)
 		_apply_tool_tiers()
+	if stun_comp and stun_comp.has_method("clear_stun"):
+		stun_comp.clear_stun()
+	is_stunned_flag = false
 	if health_comp:
 		health_comp.current_health = clamp(float(data.get("hp", health_comp.max_health)), 1.0, health_comp.max_health)
 		health_comp.current_blood = clamp(float(data.get("blood", 0.0)), 0.0, health_comp.max_blood)
 		health_comp.is_bleeding = bool(data.get("is_bleeding", false))
+		if health_comp.is_bleeding:
+			health_comp._bleed_timer = health_comp.bleed_duration
+			health_comp._bleed_dps = 2.0
+			health_comp.is_weak = true
+			is_weak = true
+			health_comp.weakness_changed.emit(true)
+		else:
+			health_comp._bleed_timer = 0.0
+			health_comp._bleed_dps = 0.0
+			health_comp.is_weak = false
+			is_weak = false
+			health_comp.weakness_changed.emit(false)
 		health_comp.health_changed.emit(health_comp.current_health, health_comp.max_health)
 		health_comp.blood_changed.emit(health_comp.current_blood, health_comp.max_blood)
 	var stam_comp: StaminaComponent = get_node_or_null("StaminaComponent")

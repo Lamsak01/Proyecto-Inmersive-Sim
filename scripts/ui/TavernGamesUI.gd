@@ -293,7 +293,7 @@ func _select_and_seat_table_npcs() -> void:
 	for node in get_tree().get_nodes_in_group("village_npcs"):
 		if node is VillageNPC:
 			var npc: VillageNPC = node as VillageNPC
-			if not npc.is_dead and not npc.is_hostile and npc.trade_role != VillageNPC.TradeRole.INNKEEPER:
+			if not npc.is_dead and not npc.is_downed and not npc.is_hostile and not npc.is_stunned_flag and npc.sedated_timer <= 0.0 and not (npc.trade_role in [VillageNPC.TradeRole.INNKEEPER, VillageNPC.TradeRole.TRAVELING_MERCHANT, VillageNPC.TradeRole.ROYAL_INVESTIGATOR]):
 				if not npc._is_mandatory_work_hours():
 					candidates.push_front(npc)
 				else:
@@ -472,6 +472,15 @@ func _create_card_row(row_title: String, cards: Array[Dictionary], hide_all: boo
 func _switch_tab(new_tab: GameTab) -> void:
 	if roulette_spinning:
 		return
+	if current_tab != new_tab:
+		if poker_stage != PokerStage.IDLE and poker_stage != PokerStage.SHOWDOWN and poker_pot > 0:
+			_add_player_gold(maxi(0, int(poker_pot / 3)))
+			poker_stage = PokerStage.IDLE
+			poker_pot = 0
+		if bj_stage == BJStage.PLAYER_TURN and bj_bet > 0:
+			_add_player_gold(bj_bet)
+			bj_stage = BJStage.IDLE
+			bj_bet = 0
 	current_tab = new_tab
 	_refresh_header()
 	if pool_canvas:

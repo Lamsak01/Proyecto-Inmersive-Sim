@@ -65,7 +65,7 @@ func take_damage(data: DamageData) -> void:
 
 	# 1. Aplicar daño directo a la vida (mitigado por la armadura equipada)
 	var dmg_mult: float = clampf(1.0 - armor_defense, 0.20, 1.0)
-	var final_damage: float = maxf(1.0, data.amount * dmg_mult)
+	var final_damage: float = maxf(1.0, data.amount * dmg_mult) if data.amount > 0.0 else 0.0
 	current_health = max(0.0, current_health - final_damage)
 	health_changed.emit(current_health, max_health)
 	
@@ -124,4 +124,3 @@ func modify_blood(amount: float) -> void:
 		stop_bleeding()
 	else:
 		add_bleed_buildup(-amount, 10.0)
-	blood_changed.emit(current_blood, max_blood)

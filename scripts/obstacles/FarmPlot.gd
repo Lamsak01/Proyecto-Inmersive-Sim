@@ -209,18 +209,22 @@ func interact(player: Node) -> void:
 		_reset_plot()
 		return
 
-	# 3. Cultivo en crecimiento pero Seco -> Regar con [E] (usa carga de la Regadera [7] si está equipada)
+	# 3. Cultivo en crecimiento pero Seco -> Regar con [E] (usa carga de la Regadera [7])
 	if not is_watered:
 		var has_can: bool = ("equipped_weapon" in player) and player.equipped_weapon != null and player.equipped_weapon.name == "WateringCan"
-		if has_can and player.has_method("consume_water_charge"):
+		if not has_can:
+			if player.has_method("show_hint"):
+				player.show_hint("💧 Equipa tu Regadera [7] para regar esta parcela.")
+			return
+		if player.has_method("consume_water_charge"):
 			if not player.call("consume_water_charge"):
 				return
 		is_watered = true
 		_refresh_visuals()
 		_save_state()
 		if player.has_method("_spawn_floating_text"):
-			if has_can and "watering_can_charges" in player and "MAX_WATER_CHARGES" in player:
-				player._spawn_floating_text("💧 Tierra regada (%d/%d agua)" % [int(player.watering_can_charges), int(player.MAX_WATER_CHARGES)], Color.AQUA, -38.0)
+			if "watering_can_charges" in player and "max_water_charges" in player:
+				player._spawn_floating_text("💧 Tierra regada (%d/%d agua)" % [int(player.watering_can_charges), int(player.max_water_charges)], Color.AQUA, -38.0)
 			else:
 				player._spawn_floating_text("💧 Tierra regada", Color.AQUA, -38.0)
 		return
@@ -332,8 +336,9 @@ func _update_status_text() -> void:
 		status_label.add_theme_color_override("font_color", Color(0.45, 1.0, 0.55))
 		return
 
-	var water_txt := "💧 Regada" if is_watered else "⚠️ Seca (E: Regar)"
-	var fert_txt := " | ✨ Abonada" if is_fertilized else (" | E: Abonar" if is_watered else "")
+	var has_fert: bool = inv != null and inv.has_item("fertilizer", 1)
+	var water_txt := "💧 Regada" if is_watered else "⚠️ Seca (E: Regar [7])"
+	var fert_txt := " | ✨ Abonada" if is_fertilized else (" | E: Abonar" if (is_watered and has_fert) else "")
 	status_label.text = "%s (%d/%d d) [%s%s]" % [c_name, days_grown, req_days, water_txt, fert_txt]
 	status_label.add_theme_color_override("font_color", Color(0.55, 0.9, 1.0) if is_watered else Color(1.0, 0.85, 0.45))
 

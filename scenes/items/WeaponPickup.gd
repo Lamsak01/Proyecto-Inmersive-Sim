@@ -5,6 +5,10 @@ extends Area2D
 var player_in_range: Node2D = null
 
 func _ready() -> void:
+	var flag_key := "weapon_pickup_" + str(name)
+	if GameManager and bool(GameManager.get_flag(flag_key, false)):
+		queue_free()
+		return
 	add_to_group("interactable")
 	body_entered.connect(_on_body_entered)
 	body_exited.connect(_on_body_exited)
@@ -22,13 +26,19 @@ func interact(player: Node) -> void:
 	_pickup(player)
 
 func _unhandled_input(event: InputEvent) -> void:
-	if player_in_range and event.is_action_pressed("Interact"):
+	if not is_instance_valid(player_in_range):
+		return
+	if (player_in_range.has_method("is_stunned") and player_in_range.is_stunned()) or (player_in_range.has_method("is_any_ui_modal_open") and bool(player_in_range.call("is_any_ui_modal_open"))):
+		return
+	if event.is_action_pressed("Interact"):
 		_pickup(player_in_range)
 		get_viewport().set_input_as_handled()
 
 func _pickup(player: Node) -> void:
 	if not player:
 		return
+	if GameManager:
+		GameManager.set_flag("weapon_pickup_" + str(name), true)
 	if player.has_method("equip_weapon") and weapon_data != null:
 		player.equip_weapon(weapon_data)
 		if player.has_method("show_hint"):

@@ -182,14 +182,14 @@ func _get_tool_entries() -> Array[Dictionary]:
 			"key": "3",
 			"tier": t_axe,
 			"title": "Hacha" + _get_tier_badge(t_axe),
-			"desc": "Herramienta especialista en Tala de Árboles.\nEficiencia de tala: %d%%" % int(round((1.8 if t_axe == 1 else (2.6 if t_axe == 2 else 3.6)) * 100.0)),
+			"desc": "Herramienta especialista en Tala de Árboles.\nEficiencia de tala: %d%%" % int(round((1.8 if t_axe == 1 else (2.7 if t_axe == 2 else 3.8)) * 100.0)),
 			"weapon": player.get("axe_weapon") if player else null
 		},
 		{
 			"key": "4",
 			"tier": t_pick,
 			"title": "Pico" + _get_tier_badge(t_pick),
-			"desc": "Herramienta especialista en Minería de Rocas y Hierro.\nEficiencia minera: %d%%" % int(round((1.8 if t_pick == 1 else (2.6 if t_pick == 2 else 3.6)) * 100.0)),
+			"desc": "Herramienta especialista en Minería de Rocas y Hierro.\nEficiencia minera: %d%%" % int(round((1.8 if t_pick == 1 else (2.7 if t_pick == 2 else 3.8)) * 100.0)),
 			"weapon": player.get("pickaxe_weapon") if player else null
 		},
 		{

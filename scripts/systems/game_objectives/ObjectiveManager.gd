@@ -42,3 +42,24 @@ func progress_objective(type: int, target_id: String, amount: int = 1) -> void:
 		if not obj.is_completed and obj.type == type and obj.target_id == target_id:
 			obj.current_count += amount
 			print("Progress update for ", obj.description, ": ", obj.current_count, "/", obj.target_count)
+
+func to_save_dict() -> Dictionary:
+	var out: Dictionary = {}
+	for obj in active_objectives:
+		if obj and obj.id != "":
+			out[obj.id] = {
+				"current_count": obj.current_count,
+				"is_completed": obj.is_completed
+			}
+	return out
+
+func from_save_dict(data: Dictionary) -> void:
+	for obj in active_objectives:
+		if obj and data.has(obj.id) and typeof(data[obj.id]) == TYPE_DICTIONARY:
+			var d: Dictionary = data[obj.id]
+			obj.is_completed = bool(d.get("is_completed", false))
+			obj.current_count = int(d.get("current_count", 0))
+			if obj.is_completed:
+				objective_completed.emit(obj)
+			else:
+				obj.updated.emit()

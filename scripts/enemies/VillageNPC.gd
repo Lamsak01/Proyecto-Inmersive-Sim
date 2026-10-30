@@ -1074,8 +1074,9 @@ func _process_police_law_enforcement(delta: float, vm: Node) -> bool:
 
 	var dist_p: float = global_position.distance_to(player.global_position)
 	var in_stealth: bool = player.has_method("is_stealthing") and bool(player.call("is_stealthing"))
+	var cloak_mult: float = float(player.call("get_stealth_detection_multiplier")) if player.has_method("get_stealth_detection_multiplier") else 1.0
 	var eff_pol: float = get_job_efficiency()
-	var detect_range: float = (95.0 if in_stealth else 235.0) * lerpf(0.68, 1.0, eff_pol) * get_sleep_vision_multiplier()
+	var detect_range: float = (95.0 if in_stealth else 235.0) * cloak_mult * lerpf(0.68, 1.0, eff_pol) * get_sleep_vision_multiplier()
 	var can_see_player: bool = (not vm.has_method("has_line_of_sight")) or bool(vm.call("has_line_of_sight", global_position, player.global_position))
 
 	if can_see_player and dist_p <= detect_range:
@@ -2681,6 +2682,8 @@ func hide_prompt() -> void:
 		status_label.visible = false
 
 func _on_stunned(stunned: bool) -> void:
+	if is_dead or is_downed:
+		return
 	is_stunned_flag = stunned
 	if stunned:
 		is_hostile = false

@@ -397,10 +397,12 @@ func _update_chickens_motion(delta: float) -> void:
 		var spr: Sprite2D = chk["sprite"]
 		if not is_instance_valid(spr):
 			continue
+		var g_tier: int = clampi(int(chk.get("genetics", 1)), 1, 3)
+		var base_sc: float = 1.05 + float(g_tier - 1) * 0.05
 		if is_night:
 			spr.scale.y = 0.85
 			continue
-		spr.scale.y = 1.05
+		spr.scale.y = base_sc
 		chk["timer"] = float(chk["timer"]) - delta
 		if float(chk["timer"]) <= 0.0:
 			chk["timer"] = randf_range(1.4, 3.2)
@@ -616,6 +618,13 @@ func _load_saved_state() -> void:
 				spr.queue_free()
 		while chickens.size() < target_c:
 			_add_chicken(saved_gen)
+		var sc: float = 1.05 + float(saved_gen - 1) * 0.05
+		for chk in chickens:
+			chk["genetics"] = saved_gen
+			var spr: Sprite2D = chk.get("sprite")
+			if is_instance_valid(spr):
+				spr.scale = Vector2(sc, sc)
+				spr.modulate = Color(1.0, 0.96, 0.78) if saved_gen >= 3 else (Color(1.0, 0.98, 0.90) if saved_gen == 2 else Color.WHITE)
 		_refresh_coop_visuals()
 
 func _on_game_loaded(_filepath: String) -> void:

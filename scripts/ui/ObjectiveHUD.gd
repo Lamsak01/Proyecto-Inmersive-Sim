@@ -43,11 +43,8 @@ func _on_objective_added(objective: Objective) -> void:
 
 func _on_objective_updated(objective: Objective) -> void:
     var label = objectives_container.get_node_or_null(objective.id)
-    if label:
+    if label and not objective.is_completed:
         _update_label_text(label, objective)
-        
-        if objective.is_completed:
-            _on_objective_completed(objective)
 
 func _update_label_text(label: Label, objective: Objective) -> void:
     var text = "- " + objective.description
@@ -57,7 +54,8 @@ func _update_label_text(label: Label, objective: Objective) -> void:
 
 func _on_objective_completed(objective: Objective) -> void:
     var label = objectives_container.get_node_or_null(objective.id)
-    if label:
+    if label and not label.has_meta("completed_anim_started"):
+        label.set_meta("completed_anim_started", true)
         label.modulate = Color.GREEN
         _update_label_text(label, objective)
         label.text = "✔ " + label.text.substr(2) # Replace "- " with check

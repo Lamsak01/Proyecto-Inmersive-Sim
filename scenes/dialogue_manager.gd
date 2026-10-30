@@ -292,8 +292,24 @@ func _unhandled_input(event: InputEvent) -> void:
 			if idx >= 0 and idx < current_choices.size():
 				get_viewport().set_input_as_handled()
 				_on_choice_pressed(idx)
+		elif event.physical_keycode == KEY_W or event.physical_keycode == KEY_S:
+			if _choices_container and _choices_container.get_child_count() > 0:
+				var focused := get_viewport().gui_get_focus_owner()
+				var cur_idx: int = 0
+				for i in range(_choices_container.get_child_count()):
+					if _choices_container.get_child(i) == focused:
+						cur_idx = i
+						break
+				var delta_i: int = -1 if event.physical_keycode == KEY_W else 1
+				var next_idx: int = posmod(cur_idx + delta_i, _choices_container.get_child_count())
+				var next_btn := _choices_container.get_child(next_idx) as Control
+				if next_btn:
+					next_btn.grab_focus()
+					get_viewport().set_input_as_handled()
 
 func _on_choice_pressed(index: int) -> void:
+	if not active or _input_cooldown > 0.0:
+		return
 	if index < 0 or index >= current_choices.size():
 		return
 

@@ -19,11 +19,14 @@ enum Attitude { HOSTILE, UNFRIENDLY, NEUTRAL, FRIENDLY, ALLY }
 var current_attitude: Attitude = Attitude.NEUTRAL
 var is_attacking: bool = false
 var is_stunned_flag: bool = false
+var is_dead: bool = false
 var push_velocity: Vector2 = Vector2.ZERO
 @export var weight: float = 25.0
 
 func _ready() -> void:
 	motion_mode = CharacterBody2D.MOTION_MODE_FLOATING
+	collision_layer = 4
+	collision_mask = 3
 	add_to_group("npcs")
 	anim.play("idle")
 	_update_attitude_from_affinity()
@@ -56,7 +59,15 @@ func _ready() -> void:
 func apply_push(force: Vector2) -> void:
 	push_velocity = force
 
-func _physics_process(_delta: float) -> void:
+func _physics_process(delta: float) -> void:
+	if is_dead:
+		velocity = Vector2.ZERO
+		return
+	if push_velocity.length_squared() > 1.0:
+		velocity = push_velocity
+		push_velocity = push_velocity.move_toward(Vector2.ZERO, 320.0 * delta)
+		move_and_slide()
+		return
 	if is_stunned_flag or not is_attacking or not enemy_ai:
 		velocity = Vector2.ZERO
 		return
@@ -117,6 +128,8 @@ func get_relationship_color() -> Color:
 # --- Combate / Daño / Stun / Sangrado ---
 
 func take_damage(data: DamageData) -> void:
+	if is_dead:
+		return
 	# Si un aldeano es atacado, la relación cae drásticamente y se defiende
 	modify_affinity(-40)
 	if dialogue_manager and dialogue_manager.has_method("is_active") and dialogue_manager.call("is_active"):
@@ -130,15 +143,18 @@ func take_damage(data: DamageData) -> void:
 	if stun_comp and health_comp and health_comp.current_health > 0:
 		stun_comp.take_damage(data)
 
-	modulate = Color(10, 10, 10)
-	await get_tree().create_timer(0.1).timeout
-	if is_instance_valid(self) and health_comp and health_comp.current_health > 0:
-		modulate = Color(0.5, 0.6, 1.0) if is_stunned_flag else Color.WHITE
+	if not is_dead:
+		modulate = Color(10, 10, 10)
+		await get_tree().create_timer(0.1).timeout
+		if is_instance_valid(self) and not is_dead and health_comp and health_comp.current_health > 0:
+			modulate = Color(0.5, 0.6, 1.0) if is_stunned_flag else Color.WHITE
 
 func _on_bleed_triggered(_dps: float) -> void:
 	_spawn_floating_text("BLEEDING!", Color.CRIMSON, -28.0)
 
 func _on_stunned(stunned: bool) -> void:
+	if is_dead:
+		return
 	is_stunned_flag = stunned
 	if enemy_ai and is_attacking:
 		enemy_ai.set_physics_process(not stunned)
@@ -153,16 +169,25 @@ func _on_stunned(stunned: bool) -> void:
 		anim.play("idle")
 
 func _on_died() -> void:
+	if is_dead:
+		return
+	is_dead = true
+	is_attacking = false
+	remove_from_group("enemies")
 	set_physics_process(false)
 	set_process(false)
 	if enemy_ai:
 		enemy_ai.set_process(false)
 		enemy_ai.set_physics_process(false)
+	if hurtbox:
+		hurtbox.set_deferred("monitoring", false)
+		hurtbox.set_deferred("monitorable", false)
 
 	$InteractArea/NpcInteractCollision.set_deferred("disabled", true)
 	$"cuerpo solido".set_deferred("disabled", true)
 
 	rotation_degrees = 90
+	modulate = Color.WHITE
 	anim.modulate = Color(0.45, 0.45, 0.45, 0.8)
 
 func _trigger_attack() -> void:
@@ -234,6 +259,9 @@ func on_dialogue_action(action_id: String) -> void:
 					_spawn_floating_text("+1 Vendaje (-6 Oro)", Color.LIGHT_GREEN, -48.0)
 				else:
 					_spawn_floating_text("Oro insuficiente (6 Oro)", Color.ORANGE_RED, -48.0)
+
+func _build_dialogue() -> Dictionary:
+	return _build_dialogue_for_attitude()
 
 func _build_dialogue_for_attitude() -> Dictionary:
 	match current_attitude:

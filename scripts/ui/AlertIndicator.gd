@@ -8,6 +8,7 @@ const COLOR_CHASE = Color(1, 0, 0)
 
 var _is_red: bool = false
 var _hide_timer: SceneTreeTimer = null
+var _hide_gen: int = 0
 
 func _ready() -> void:
 	if not progress_bar:
@@ -44,9 +45,11 @@ func update_awareness(level: float, is_alerted: bool) -> void:
 		_is_red = false
 
 func _start_hide_timer() -> void:
+	_hide_gen += 1
+	var my_gen: int = _hide_gen
 	_hide_timer = get_tree().create_timer(1.0)
 	await _hide_timer.timeout
-	if is_instance_valid(self) and _is_red:
+	if is_instance_valid(self) and _is_red and my_gen == _hide_gen:
 		visible = false
 		set_process(false)
 

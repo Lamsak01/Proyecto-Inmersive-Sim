@@ -1001,6 +1001,8 @@ func _load_saved_state() -> void:
 		_rebuild_house_visuals()
 
 func _on_game_loaded(_filepath: String) -> void:
+	if is_player_sitting:
+		_stand_up_player()
 	_load_saved_state()
 
 func _create_label(pos: Vector2, col: Color) -> Label:

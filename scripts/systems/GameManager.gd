@@ -85,7 +85,8 @@ func save_game(filepath: String = SAVE_FILE_PATH) -> bool:
 		"npcs": npcs_dict,
 		"domestic_pets": pets_dict,
 		"plains_hostiles": hostiles_dict,
-		"ecosystem": eco_dict
+		"ecosystem": eco_dict,
+		"objectives": ObjectiveManager.to_save_dict() if (ObjectiveManager and ObjectiveManager.has_method("to_save_dict")) else {}
 	}
 
 	var file := FileAccess.open(filepath, FileAccess.WRITE)
@@ -170,6 +171,8 @@ func load_game(filepath: String = SAVE_FILE_PATH) -> bool:
 	var eco = get_tree().get_first_node_in_group("ecosystem_manager")
 	if eco and eco.has_method("from_save_dict") and data.has("ecosystem") and typeof(data["ecosystem"]) == TYPE_DICTIONARY:
 		eco.from_save_dict(data["ecosystem"])
+	if ObjectiveManager and ObjectiveManager.has_method("from_save_dict") and data.has("objectives") and typeof(data["objectives"]) == TYPE_DICTIONARY:
+		ObjectiveManager.from_save_dict(data["objectives"])
 	var vm = get_tree().get_first_node_in_group("village_manager")
 	var c_state: Variant = get_flag("village_crime_state", null)
 	if vm and typeof(c_state) == TYPE_DICTIONARY:

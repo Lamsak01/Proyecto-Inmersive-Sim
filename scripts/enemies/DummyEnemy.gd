@@ -22,6 +22,7 @@ var respawn_on_day: int = -1
 var home_spawn_pos: Vector2 = Vector2.ZERO
 var _player_ref: Node2D = null
 var _last_stealth_state: int = -1 # -1 = uninitialized, 0 = normal, 1 = stealthing
+var _death_tween: Tween = null
 
 func _ready() -> void:
 	motion_mode = CharacterBody2D.MOTION_MODE_FLOATING
@@ -131,6 +132,8 @@ func _spawn_floating_text(text: String, color: Color, offset_y: float = -40.0) -
 		get_tree().current_scene.add_child(floating_text)
 
 func take_damage(data: DamageData) -> void:
+	if is_dead_flag:
+		return
 	var dmg = data.copy()
 	
 	# Stealth Critical Hit
@@ -164,6 +167,8 @@ func _on_weakness_changed(weak: bool) -> void:
 		modulate = Color(1.0, 0.55, 0.55) if weak else Color.WHITE
 
 func _on_stunned(stunned: bool) -> void:
+	if is_dead_flag:
+		return
 	is_stunned_flag = stunned
 	if ai:
 		ai.set_physics_process(not stunned)
@@ -235,14 +240,19 @@ func _on_died() -> void:
 
 	collision_layer = 0
 	collision_mask = 0
+	if hurtbox:
+		hurtbox.set_deferred("monitoring", false)
+		hurtbox.set_deferred("monitorable", false)
 
 	remove_from_group("enemies")
 	remove_from_group("has_los_to_player")
 
-	var tween = create_tween()
-	tween.tween_interval(6.0)
-	tween.tween_property(self, "modulate:a", 0.0, 1.5)
-	tween.tween_callback(func():
+	if _death_tween and _death_tween.is_valid():
+		_death_tween.kill()
+	_death_tween = create_tween()
+	_death_tween.tween_interval(6.0)
+	_death_tween.tween_property(self, "modulate:a", 0.0, 1.5)
+	_death_tween.tween_callback(func():
 		if is_dead_flag:
 			visible = false
 	)
@@ -267,6 +277,9 @@ func _on_day_passed(new_day: int) -> void:
 		_respawn_enemy()
 
 func _respawn_enemy() -> void:
+	if _death_tween and _death_tween.is_valid():
+		_death_tween.kill()
+		_death_tween = null
 	is_dead_flag = false
 	is_stunned_flag = false
 	is_weak_flag = false
@@ -277,6 +290,9 @@ func _respawn_enemy() -> void:
 	visible = true
 	collision_layer = 4
 	collision_mask = 3
+	if hurtbox:
+		hurtbox.set_deferred("monitoring", true)
+		hurtbox.set_deferred("monitorable", true)
 	if not is_in_group("enemies"):
 		add_to_group("enemies")
 	if health_comp:

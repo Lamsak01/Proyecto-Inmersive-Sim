@@ -73,8 +73,10 @@ func _process(delta: float) -> void:
 
 	_refresh_cached_ui_panels(delta)
 
-	# 1. Si hay un menú, rueda radial o diálogo abierto, mostrar el cursor del sistema y ocultar la cruceta
+	# 1. Si hay un menú, rueda radial, mapa o diálogo abierto, mostrar el cursor del sistema y ocultar la cruceta
 	var ui_open := false
+	if player.has_method("is_any_ui_modal_open") and bool(player.call("is_any_ui_modal_open")):
+		ui_open = true
 	var dm = player.get("dialogue_manager")
 	if dm and dm.has_method("is_active") and dm.call("is_active"):
 		ui_open = true

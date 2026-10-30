@@ -26,7 +26,7 @@ func _ready() -> void:
 	call_deferred("_emit_all")
 
 func _process(delta: float) -> void:
-	if WorldClock and WorldClock.has_method("is_time_frozen") and WorldClock.is_time_frozen():
+	if WorldClock and ((WorldClock.has_method("is_time_frozen") and WorldClock.is_time_frozen()) or bool(WorldClock.get("is_fast_forwarding"))):
 		return
 	var prev_h := current_hunger
 	var prev_s := current_sleep

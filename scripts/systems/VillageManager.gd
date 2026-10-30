@@ -2131,8 +2131,9 @@ func _track_player_building_sightings(player: Node2D) -> void:
 
 	# Si el jugador entra o sale en Sigilo [C], pasa desapercibido salvo que un NPC esté pegado a menos de 34 px
 	var in_stealth: bool = player.has_method("is_stealthing") and bool(player.call("is_stealthing"))
+	var cloak_mult: float = float(player.call("get_stealth_detection_multiplier")) if player.has_method("get_stealth_detection_multiplier") else 1.0
 	var vision_mult: float = WorldClock.get_weather_vision_multiplier() if (WorldClock and WorldClock.has_method("get_weather_vision_multiplier")) else 1.0
-	var max_witness_dist: float = (34.0 if in_stealth else 160.0) * vision_mult
+	var max_witness_dist: float = (34.0 if in_stealth else 160.0) * vision_mult * cloak_mult
 
 	var door_watch_pos: Vector2 = entered_b.get("door_pos", player.global_position)
 	var witness: VillageNPC = _find_conscious_witness_near(door_watch_pos, max_witness_dist, null)
@@ -3562,12 +3563,22 @@ func _use_hospital_emergency_bed(player: Node2D) -> void:
 				return
 
 	var health: HealthComponent = player.get_node_or_null("HealthComponent")
+	if health and health.current_health >= health.max_health - 0.1 and not health.is_bleeding and health.current_blood <= 0.1:
+		if player.has_method("_spawn_floating_text"):
+			player._spawn_floating_text("🏥 Tu salud ya está al 100% y no tienes sangrado", Color.LIGHT_GRAY, -42.0)
+		return
+	var inv: SimpleInventory = player.get("inventory") if "inventory" in player else null
+	if inv and inv.gold < 10:
+		if player.has_method("_spawn_floating_text"):
+			player._spawn_floating_text("❌ Necesitas 10 Oro para usar la Cama de Urgencias", Color.ORANGE_RED, -42.0)
+		return
+	if inv:
+		inv.add_gold(-10)
 	if health:
+		health.stop_bleeding()
 		health.heal(health.max_health)
-	if "bleed_stacks" in player:
-		player.bleed_stacks = 0
 	if player.has_method("_spawn_floating_text"):
-		player._spawn_floating_text("🏥 Cama de Urgencias: Salud restaurada al 100%", Color.SPRING_GREEN, -44.0)
+		player._spawn_floating_text("🏥 Cama de Urgencias (-10 Oro): Salud y Sangrado curados al 100%", Color.SPRING_GREEN, -44.0)
 
 func _use_tavern_games_table(start_tab: int = 0) -> void:
 	var games_ui = get_tree().root.find_child("TavernGamesUI", true, false)
@@ -4269,7 +4280,8 @@ func sabotage_shop_stall(player: Node2D, role_id: int) -> void:
 	var loot_name: String = str(SimpleInventory.CATALOG.get(loot_id, {}).get("name", loot_id))
 
 	var in_stealth: bool = player.has_method("is_stealthing") and bool(player.call("is_stealthing"))
-	var detect_rad: float = 48.0 if in_stealth else 145.0
+	var cloak_mult: float = float(player.call("get_stealth_detection_multiplier")) if player.has_method("get_stealth_detection_multiplier") else 1.0
+	var detect_rad: float = (48.0 if in_stealth else 145.0) * cloak_mult
 	var witness: VillageNPC = _find_conscious_witness_near(biz.get("stall_pos", player.global_position), detect_rad, null)
 
 	if witness == null:
@@ -5795,6 +5807,34 @@ func get_economy_save_dict() -> Dictionary:
 	for p in domestic_pets:
 		if is_instance_valid(p) and p.has_method("to_save_dict"):
 			saved_pets.append(p.to_save_dict())
+	var saved_chests: Dictionary = {}
+	for ch in house_chests:
+		var ch_id: String = str(ch.get("id", ""))
+		if ch_id != "":
+			saved_chests[ch_id] = int(ch.get("looted_day", -1))
+	var saved_doors: Dictionary = {}
+	for d_entry in building_doors:
+		var d_id: String = str(d_entry.get("id", ""))
+		if d_id != "":
+			saved_doors[d_id] = {
+				"is_locked": bool(d_entry.get("is_locked", false)),
+				"picked_until_hour": int(d_entry.get("picked_until_hour", -1)),
+				"picked_day": int(d_entry.get("picked_day", -1))
+			}
+	var saved_windows: Dictionary = {}
+	for w_entry in building_windows:
+		var w_id: String = str(w_entry.get("id", ""))
+		if w_id != "":
+			saved_windows[w_id] = {
+				"is_locked": bool(w_entry.get("is_locked", true)),
+				"picked_until_hour": int(w_entry.get("picked_until_hour", -1)),
+				"picked_day": int(w_entry.get("picked_day", -1))
+			}
+	var saved_traps: Array[Dictionary] = []
+	for tr in _deployed_bear_traps:
+		var tr_node: Node2D = tr.get("node") as Node2D
+		if is_instance_valid(tr_node):
+			saved_traps.append({"x": tr_node.global_position.x, "y": tr_node.global_position.y})
 	return {
 		"businesses": out,
 		"village_food_shortage_days": village_food_shortage_days,
@@ -5805,13 +5845,58 @@ func get_economy_save_dict() -> Dictionary:
 		"royal_investigator_npc": saved_investigator,
 		"domestic_pets": saved_pets,
 		"player_arrests_count": player_arrests_count,
-		"player_murder_warrants_count": player_murder_warrants_count
+		"player_murder_warrants_count": player_murder_warrants_count,
+		"recent_breakins_count": recent_breakins_count,
+		"house_chests": saved_chests,
+		"building_doors": saved_doors,
+		"building_windows": saved_windows,
+		"deployed_bear_traps": saved_traps
 	}
 
 func load_economy_save_dict(data: Dictionary) -> void:
 	village_food_shortage_days = int(data.get("village_food_shortage_days", 0))
 	player_arrests_count = int(data.get("player_arrests_count", 0))
 	player_murder_warrants_count = int(data.get("player_murder_warrants_count", 0))
+	recent_breakins_count = int(data.get("recent_breakins_count", 0))
+	if data.has("house_chests") and typeof(data["house_chests"]) == TYPE_DICTIONARY:
+		var sc: Dictionary = data["house_chests"]
+		var cur_d: int = WorldClock.current_day if WorldClock else 1
+		for ch in house_chests:
+			var ch_id: String = str(ch.get("id", ""))
+			if sc.has(ch_id):
+				ch["looted_day"] = int(sc[ch_id])
+				var spr: Sprite2D = ch.get("sprite")
+				if is_instance_valid(spr):
+					var is_open: bool = (int(ch["looted_day"]) == cur_d)
+					spr.texture = _load_tex("res://assests/world/village/house_chest_open.png" if is_open else "res://assests/world/village/house_chest_closed.png")
+	if data.has("building_doors") and typeof(data["building_doors"]) == TYPE_DICTIONARY:
+		var sd: Dictionary = data["building_doors"]
+		for d_entry in building_doors:
+			var d_id: String = str(d_entry.get("id", ""))
+			if sd.has(d_id) and typeof(sd[d_id]) == TYPE_DICTIONARY:
+				var de: Dictionary = sd[d_id]
+				d_entry["is_locked"] = bool(de.get("is_locked", false))
+				d_entry["picked_until_hour"] = int(de.get("picked_until_hour", -1))
+				d_entry["picked_day"] = int(de.get("picked_day", -1))
+	if data.has("building_windows") and typeof(data["building_windows"]) == TYPE_DICTIONARY:
+		var sw: Dictionary = data["building_windows"]
+		for w_entry in building_windows:
+			var w_id: String = str(w_entry.get("id", ""))
+			if sw.has(w_id) and typeof(sw[w_id]) == TYPE_DICTIONARY:
+				var we: Dictionary = sw[w_id]
+				w_entry["is_locked"] = bool(we.get("is_locked", true))
+				w_entry["picked_until_hour"] = int(we.get("picked_until_hour", -1))
+				w_entry["picked_day"] = int(we.get("picked_day", -1))
+	if data.has("deployed_bear_traps") and typeof(data["deployed_bear_traps"]) == TYPE_ARRAY:
+		for tr in _deployed_bear_traps:
+			var tr_n: Node2D = tr.get("node") as Node2D
+			if is_instance_valid(tr_n):
+				tr_n.queue_free()
+		_deployed_bear_traps.clear()
+		for t_item in (data["deployed_bear_traps"] as Array):
+			if typeof(t_item) == TYPE_DICTIONARY:
+				var td: Dictionary = t_item
+				deploy_steel_bear_trap(Vector2(float(td.get("x", 0.0)), float(td.get("y", 0.0))))
 	if data.has("house_pantry") and typeof(data["house_pantry"]) == TYPE_DICTIONARY:
 		house_pantry = (data["house_pantry"] as Dictionary).duplicate()
 	if data.has("merchant_suspension_days") and typeof(data["merchant_suspension_days"]) == TYPE_DICTIONARY:

@@ -357,11 +357,11 @@ func _update_census_and_hover() -> void:
 	var vm = get_tree().get_first_node_in_group("village_manager")
 	if vm and "shop_businesses" in vm:
 		var shop_rects: Array[Dictionary] = [
-			{"role": 1, "rect": Rect2(Vector2(277, -74), Vector2(116, 76))},
-			{"role": 2, "rect": Rect2(Vector2(527, -74), Vector2(116, 76))},
-			{"role": 3, "rect": Rect2(Vector2(527, 110), Vector2(116, 76))},
-			{"role": 4, "rect": Rect2(Vector2(407, 110), Vector2(116, 76))},
-			{"role": 5, "rect": Rect2(Vector2(261, 107), Vector2(128, 96))}
+			{"role": int(VillageNPC.TradeRole.BLACKSMITH), "rect": Rect2(Vector2(277, -74), Vector2(116, 76))},
+			{"role": int(VillageNPC.TradeRole.BUTCHER), "rect": Rect2(Vector2(527, -74), Vector2(116, 76))},
+			{"role": int(VillageNPC.TradeRole.CARPENTER), "rect": Rect2(Vector2(527, 110), Vector2(116, 76))},
+			{"role": int(VillageNPC.TradeRole.FISHMONGER), "rect": Rect2(Vector2(407, 110), Vector2(116, 76))},
+			{"role": int(VillageNPC.TradeRole.HERBALIST), "rect": Rect2(Vector2(261, 107), Vector2(128, 96))}
 		]
 		for sr in shop_rects:
 			var r_id: int = int(sr["role"])

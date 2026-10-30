@@ -63,3 +63,10 @@ func apply_knockout(duration: float) -> void:
 	current_stun = max_stun
 	stun_changed.emit(current_stun, max_stun)
 	stunned.emit(true)
+
+func clear_stun() -> void:
+	is_stunned = false
+	_stun_timer = 0.0
+	current_stun = 0.0
+	stun_changed.emit(current_stun, max_stun)
+	stunned.emit(false)
