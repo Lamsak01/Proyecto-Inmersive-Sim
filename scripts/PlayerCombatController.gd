@@ -346,7 +346,10 @@ func _on_hitbox_body_entered(body: Node2D) -> void:
 func _apply_hitstop() -> void:
 	Engine.time_scale = 0.1
 	await get_tree().create_timer(0.05, true, false, true).timeout
-	Engine.time_scale = 1.0
+	if WorldClock and WorldClock.is_fast_forwarding:
+		Engine.time_scale = WorldClock.fast_forward_speed
+	else:
+		Engine.time_scale = 1.0
 
 func _apply_camera_shake() -> void:
 	var cam = get_viewport().get_camera_2d()

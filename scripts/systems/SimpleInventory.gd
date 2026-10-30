@@ -1042,12 +1042,14 @@ func craft_recipe(recipe: Dictionary, player: Node = null) -> bool:
 func to_dict() -> Dictionary:
 	return {
 		"gold": gold,
+		"selected_seed_id": selected_seed_id,
 		"items": items.duplicate(),
 		"equipped_armor": equipped_armor.duplicate()
 	}
 
 func from_dict(data: Dictionary) -> void:
 	gold = int(data.get("gold", 45))
+	selected_seed_id = str(data.get("selected_seed_id", "wheat_seed"))
 	items.clear()
 	var saved_items: Dictionary = data.get("items", {})
 	for k in saved_items.keys():

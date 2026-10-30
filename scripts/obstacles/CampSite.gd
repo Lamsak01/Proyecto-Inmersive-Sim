@@ -16,7 +16,7 @@ const POT_OFFSET := Vector2(4, 6)
 const SEAT_OFFSET := Vector2(28, 6)
 const UPGRADE_SIGN_OFFSET := Vector2(-6, -24)
 const GENERATOR_OFFSET := Vector2(36, -20)
-const SPRINKLER_OFFSET := Vector2(51, 37) # Global Vector2(139, 99) -> centro del Huerto 3x3
+const SPRINKLER_OFFSET := Vector2(-29, 75) # Global Vector2(139, 99) -> centro del Huerto 3x3 relativo a (168, 24)
 const CHEST_OFFSET := Vector2(-64, -30)
 
 var house_tier: int = 1 # 1 = Tienda, 2 = Cabaña de Madera, 3 = Casa de Piedra con Cofre
@@ -662,8 +662,8 @@ func _open_chest_ui() -> void:
 func _on_chest_deposit_gold() -> void:
 	var player = get_tree().get_first_node_in_group("player")
 	var inv: SimpleInventory = player.get("inventory") if player else null
-	if inv and inv.has_item("gold_coin", 20):
-		inv.remove_item("gold_coin", 20)
+	if inv and inv.gold >= 20:
+		inv.add_gold(-20)
 		chest_gold_stored += 20
 		_save_state()
 		_open_chest_ui()
@@ -678,7 +678,7 @@ func _on_chest_withdraw_gold() -> void:
 	if inv and chest_gold_stored > 0:
 		var amt: int = chest_gold_stored
 		chest_gold_stored = 0
-		inv.add_item("gold_coin", amt)
+		inv.add_gold(amt)
 		_save_state()
 		_open_chest_ui()
 		if player.has_method("_spawn_floating_text"):
@@ -704,16 +704,16 @@ func _on_upgrade_house_pressed() -> void:
 	var wood_need: int = 3 if house_tier == 1 else 5
 	var paid: bool = false
 	if inv:
-		if inv.has_item("wood_bundle", wood_need) and inv.has_item("gold_coin", cost_gold - 15):
-			inv.remove_item("wood_bundle", wood_need)
-			inv.remove_item("gold_coin", cost_gold - 15)
+		if inv.has_item("wood", wood_need) and inv.gold >= (cost_gold - 15):
+			inv.remove_item("wood", wood_need)
+			inv.add_gold(-(cost_gold - 15))
 			paid = true
-		elif inv.has_item("gold_coin", cost_gold):
-			inv.remove_item("gold_coin", cost_gold)
+		elif inv.gold >= cost_gold:
+			inv.add_gold(-cost_gold)
 			paid = true
 	if not paid:
 		if player and player.has_method("_spawn_floating_text"):
-			player._spawn_floating_text("❌ Necesitas %d Oro (o %dx Leña + %d Oro)" % [cost_gold, wood_need, cost_gold - 15], Color.ORANGE_RED, -42.0)
+			player._spawn_floating_text("❌ Necesitas %d Oro (o %dx Madera + %d Oro)" % [cost_gold, wood_need, cost_gold - 15], Color.ORANGE_RED, -42.0)
 		return
 	upgrade_player_house(house_tier + 1)
 	if upgrade_panel and upgrade_panel.visible:
@@ -732,8 +732,8 @@ func _on_build_generator_pressed() -> void:
 		elif inv and inv.has_item("copper_coil", 1):
 			inv.remove_item("copper_coil", 1)
 			can_power = true
-		elif inv and inv.has_item("gold_coin", 18):
-			inv.remove_item("gold_coin", 18)
+		elif inv and inv.gold >= 18:
+			inv.add_gold(-18)
 			can_power = true
 		if not can_power:
 			if player and player.has_method("_spawn_floating_text"):
@@ -766,8 +766,8 @@ func _on_build_sprinkler_pressed() -> void:
 	if inv and inv.has_item("copper_coil", 1):
 		inv.remove_item("copper_coil", 1)
 		paid = true
-	elif inv and inv.has_item("gold_coin", 15):
-		inv.remove_item("gold_coin", 15)
+	elif inv and inv.gold >= 15:
+		inv.add_gold(-15)
 		paid = true
 	if not paid:
 		if player and player.has_method("_spawn_floating_text"):

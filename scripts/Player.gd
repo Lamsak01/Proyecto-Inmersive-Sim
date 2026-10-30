@@ -686,6 +686,8 @@ func to_save_dict() -> Dictionary:
 		"hunger": survival_comp.current_hunger if survival_comp else 100.0,
 		"sleep": survival_comp.current_sleep if survival_comp else 100.0,
 		"watering_can_charges": watering_can_charges,
+		"speed_tonic_timer": speed_tonic_timer,
+		"paralytic_venom_timer": paralytic_venom_timer,
 		"tool_tiers": tool_tiers.duplicate(),
 		"weapon": weapon_id,
 		"inventory": inventory.to_dict() if inventory else {}
@@ -694,6 +696,8 @@ func to_save_dict() -> Dictionary:
 func from_save_dict(data: Dictionary) -> void:
 	if data.has("pos_x") and data.has("pos_y"):
 		global_position = Vector2(float(data["pos_x"]), float(data["pos_y"]))
+	speed_tonic_timer = float(data.get("speed_tonic_timer", 0.0))
+	paralytic_venom_timer = float(data.get("paralytic_venom_timer", 0.0))
 	if data.has("tool_tiers") and typeof(data["tool_tiers"]) == TYPE_DICTIONARY:
 		var saved_tiers: Dictionary = data["tool_tiers"]
 		for k in tool_tiers.keys():

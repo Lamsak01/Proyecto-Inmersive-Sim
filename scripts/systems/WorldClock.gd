@@ -137,7 +137,7 @@ func _advance_one_minute() -> void:
 		if _fast_forward_target_minutes > 0:
 			if _fast_forward_elapsed_minutes >= _fast_forward_target_minutes:
 				stop_organic_fast_forward(true)
-		elif _fast_forward_elapsed_minutes >= 30 and current_hour == fast_forward_target_hour and current_minute == 0:
+		elif _fast_forward_elapsed_minutes >= 5 and current_hour == fast_forward_target_hour and current_minute == 0:
 			stop_organic_fast_forward(true)
 
 ## Inicia un avance rápido orgánico del mundo (`Engine.time_scale`) hasta la hora objetivo (por defecto 06:00 AM),
@@ -323,6 +323,8 @@ func to_dict() -> Dictionary:
 	}
 
 func from_dict(data: Dictionary) -> void:
+	stop_organic_fast_forward(false)
+	is_paused_by_activity = false
 	current_day = int(data.get("day", 1))
 	current_hour = clampi(int(data.get("hour", 8)), 0, 23)
 	current_minute = clampi(int(data.get("minute", 0)), 0, 59)

@@ -212,7 +212,7 @@ func _ready() -> void:
 	if not Engine.is_editor_hint() and WorldClock and not WorldClock.hour_passed.is_connected(_on_hour_passed):
 		WorldClock.hour_passed.connect(_on_hour_passed)
 
-func _on_hour_passed(_new_hour: int, _new_day: int = 1) -> void:
+func _on_hour_passed(_day: int, _new_hour: int = 0) -> void:
 	if is_dead and corpse_on_ground and not corpse_in_morgue:
 		corpse_rot_hours += 1.0
 
@@ -777,6 +777,10 @@ func _physics_process(delta: float) -> void:
 
 	# Paso 2c: Inquisidor Real Alistair (Investigación Deductiva + Filosofía de Culpable Obligatorio)
 	if trade_role == TradeRole.ROYAL_INVESTIGATOR:
+		if is_hostile:
+			_police_alerted_timer = maxf(_police_alerted_timer, 25.0)
+			if is_instance_valid(_cached_player):
+				_last_seen_player_pos = _cached_player.global_position
 		_process_royal_investigator_ai(delta)
 		return
 
@@ -1601,7 +1605,7 @@ func _update_needs_and_decisions(delta: float) -> void:
 				# 8 horas de sueño nocturno (22:00 a 06:00 = 120s reales):
 				# En cama recupera +1.10%/s (~16.5%/hora) llegando al 100% al amanecer; en campamento rústico recupera un 40% más lento con tope de 74% (62% bajo lluvia).
 				if is_vagrant_camper:
-					var raining: bool = (vm_slp != null and int(vm_slp.get("current_weather")) == 1)
+					var raining: bool = (WorldClock != null and int(WorldClock.current_weather) == 1)
 					var max_camp_energy: float = 62.0 if raining else 74.0
 					need_energy = minf(max_camp_energy, need_energy + 0.72 * delta)
 				else:
@@ -1852,7 +1856,10 @@ func _process_artisan_workshop_crafting_and_supply_runs(delta: float) -> void:
 
 		if supplier_npc == null:
 			_supply_run_target_role = 0
+			_supply_run_timer = 0.0
 			_supply_run_cooldown = 28.0
+			if _craft_bar_root:
+				_craft_bar_root.visible = false
 			return
 
 		var supplier_counter: Vector2 = supplier_npc.work_position + Vector2(0, 12)
@@ -1860,30 +1867,38 @@ func _process_artisan_workshop_crafting_and_supply_runs(delta: float) -> void:
 		var trip_ratio: float = clampf(1.0 - (dist_to_sup / 240.0), 0.12, 0.95)
 		_update_craft_bar_visual(trip_ratio, "🛒 A %s (%s)" % [supplier_npc.npc_name, _supply_run_input_label], Color(0.35, 0.86, 1.0, 0.95))
 
-		if dist_to_sup > 26.0 and _supply_run_timer < 24.0:
-			_move_towards_point(supplier_counter, 54.0, delta)
+		if dist_to_sup > 28.0:
+			if _supply_run_timer < 24.0:
+				_move_towards_point(supplier_counter, 54.0, delta)
+			else:
+				# Si hubo puerta bloqueada o demora excesiva, cancelar compra sin ejecutarla a distancia
+				_supply_run_target_role = 0
+				_supply_run_timer = 0.0
+				_supply_run_cooldown = 32.0
+				if _craft_bar_root:
+					_craft_bar_root.visible = false
 			return
 
-		# Ha llegado al mostrador del vecino: realiza la compra física de materia prima
+		# Ha llegado físicamente al mostrador del vecino: verifica stock y realiza la compra de materia prima
 		velocity = Vector2.ZERO
-		var buy_cost: int = 6
-		personal_gold = maxi(0, personal_gold - buy_cost)
-		supplier_npc.personal_gold = maxi(0, supplier_npc.personal_gold) + buy_cost
 		if int(supplier_npc.shop_stock.get(_supply_run_item_id, 0)) > 0:
+			var buy_cost: int = 6
+			personal_gold = maxi(0, personal_gold - buy_cost)
+			supplier_npc.personal_gold = maxi(0, supplier_npc.personal_gold) + buy_cost
 			supplier_npc.shop_stock[_supply_run_item_id] = int(supplier_npc.shop_stock[_supply_run_item_id]) - 1
 			if vm and "shop_businesses" in vm and vm.shop_businesses.has(_supply_run_target_role):
 				vm.shop_businesses[_supply_run_target_role]["stock_override"] = supplier_npc.shop_stock.duplicate()
-		workshop_materials[_supply_run_item_id] = int(workshop_materials.get(_supply_run_item_id, 0)) + 2
-		trigger_action_animation(2.2)
-		supplier_npc.trigger_action_animation(2.2)
-		_spawn_floating_text("🛒🤝 Compró +2 %s a %s (-%d Oro)" % [_supply_run_input_label, supplier_npc.npc_name, buy_cost], Color(0.45, 0.95, 1.0), -42.0)
-		supplier_npc._spawn_floating_text("💰 +%d Oro (Suministro a %s)" % [buy_cost, npc_name], Color.GOLD, -36.0)
-		add_thought("Compró suministros de taller a %s (+5)" % supplier_npc.npc_name, 5.0)
+			workshop_materials[_supply_run_item_id] = int(workshop_materials.get(_supply_run_item_id, 0)) + 2
+			trigger_action_animation(2.2)
+			supplier_npc.trigger_action_animation(2.2)
+			_spawn_floating_text("🛒🤝 Compró +2 %s a %s (-%d Oro)" % [_supply_run_input_label, supplier_npc.npc_name, buy_cost], Color(0.45, 0.95, 1.0), -42.0)
+			supplier_npc._spawn_floating_text("💰 +%d Oro (Suministro a %s)" % [buy_cost, npc_name], Color.GOLD, -36.0)
+			add_thought("Compró suministros de taller a %s (+5)" % supplier_npc.npc_name, 5.0)
+			if vm and vm.has_method("_refresh_shop_stall_visual"):
+				vm.call("_refresh_shop_stall_visual", _supply_run_target_role)
 		_supply_run_target_role = 0
 		_supply_run_timer = 0.0
 		_supply_run_cooldown = randf_range(38.0, 56.0)
-		if vm and vm.has_method("_refresh_all_shop_visuals"):
-			vm.call("_refresh_all_shop_visuals")
 		return
 
 	# 2. Regresar o permanecer en su propio puesto de trabajo (`work_position`)
@@ -1928,11 +1943,12 @@ func _process_artisan_workshop_crafting_and_supply_runs(delta: float) -> void:
 	var cur_mat_count: int = int(workshop_materials.get(req_input, 0))
 	var player_near_counter: bool = is_instance_valid(_cached_player) and _cached_player.global_position.distance_squared_to(work_position) <= 60.0 * 60.0
 
-	# Si se quedó sin el material que vende el vecino, tiene oro suficiente y el jugador no está en su mostrador, va a comprarlo
+	# Si se quedó sin el material que vende el vecino, tiene oro suficiente, el vecino tiene stock y no está saboteado, va a comprarlo
 	if cur_mat_count <= 0 and _craft_progress < 8.0 and _supply_run_cooldown <= 0.0 and personal_gold >= 8 and not player_near_counter and sup_role != 0:
 		if vm and "trade_npcs" in vm and vm.trade_npcs.has(sup_role):
+			var sup_sabotaged: bool = vm.has_method("is_trade_sabotaged") and bool(vm.call("is_trade_sabotaged", sup_role))
 			var sup_cand = vm.trade_npcs[sup_role]
-			if sup_cand is VillageNPC and is_instance_valid(sup_cand) and not sup_cand.is_dead and not sup_cand.is_downed:
+			if not sup_sabotaged and sup_cand is VillageNPC and is_instance_valid(sup_cand) and not sup_cand.is_dead and not sup_cand.is_downed and int(sup_cand.shop_stock.get(req_input, 0)) > 0:
 				_supply_run_target_role = sup_role
 				_supply_run_item_id = req_input
 				_supply_run_input_label = in_label
@@ -1959,8 +1975,8 @@ func _process_artisan_workshop_crafting_and_supply_runs(delta: float) -> void:
 		shop_stock[out_id] = int(shop_stock.get(out_id, 0)) + 1
 		if vm and "shop_businesses" in vm and vm.shop_businesses.has(int(trade_role)):
 			vm.shop_businesses[int(trade_role)]["stock_override"] = shop_stock.duplicate()
-		if vm and vm.has_method("_refresh_all_shop_visuals"):
-			vm.call("_refresh_all_shop_visuals")
+		if vm and vm.has_method("_refresh_shop_stall_visual"):
+			vm.call("_refresh_shop_stall_visual", int(trade_role))
 		_spawn_floating_text("⚒️✨ ¡%s fabricó +1 %s!" % [npc_name, out_label], Color(0.55, 1.0, 0.68), -40.0)
 		add_thought("Elaboró +1 %s en su taller (+4)" % out_label, 4.0)
 		_crafting_recipe_idx = (_crafting_recipe_idx + 1) % recipes.size()
@@ -2558,6 +2574,12 @@ func take_damage(data: DamageData) -> void:
 	# Si ya está agonizando en el suelo y vuelven a golpearlo -> Rematar (muerte definitiva)
 	if is_downed:
 		_confirm_true_death()
+		var vm_exec = get_tree().get_first_node_in_group("village_manager")
+		if vm_exec and last_hit_by_player:
+			if vm_exec.has_method("modify_family_reputation") and family_id != "none":
+				vm_exec.call("modify_family_reputation", family_id, -35, "Ejecución de " + npc_name, self)
+			if murder_witness_name != "" and vm_exec.has_method("report_assault_crime"):
+				vm_exec.call("report_assault_crime", self)
 		return
 
 	modify_affinity(-35)
@@ -2581,7 +2603,7 @@ func take_damage(data: DamageData) -> void:
 
 ## Comprueba si el jugador en Sigilo (`[C]`) está situado por la espalda del NPC (o junto a un NPC dormido) para ejecutar un ataque sigiloso (No Letal o Letal)
 func can_be_stealth_targeted(player: Node2D) -> bool:
-	if player == null or is_dead or is_downed or is_hostile or is_at_poker_table:
+	if player == null or is_dead or is_downed or is_hostile or is_at_poker_table or trade_role == TradeRole.ROYAL_INVESTIGATOR:
 		return false
 	if not player.has_method("is_stealthing") or not bool(player.call("is_stealthing")):
 		return false
@@ -2793,7 +2815,14 @@ func promote_to_trade(
 	if new_family_name != "":
 		family_name = new_family_name
 	shop_stock = inherited_stock.duplicate()
+	is_vagrant_camper = false
+	_init_workshop_materials()
 	_resolve_unique_64_visuals_and_lore(new_tex)
+	var vm_prom = _cached_vm if is_instance_valid(_cached_vm) else get_tree().get_first_node_in_group("village_manager")
+	if vm_prom and "vagrant_camp_nodes" in vm_prom and vm_prom.vagrant_camp_nodes.has(npc_name):
+		var c_node = vm_prom.vagrant_camp_nodes[npc_name]
+		if is_instance_valid(c_node):
+			c_node.visible = false
 
 func _inject_character_lore_into_dialogue(diag: Dictionary) -> Dictionary:
 	if not diag.has("start") or typeof(diag["start"]) != TYPE_DICTIONARY:
@@ -3603,8 +3632,18 @@ func to_save_dict() -> Dictionary:
 		"is_dead": is_dead,
 		"corpse_on_ground": corpse_on_ground,
 		"corpse_discovered": corpse_discovered,
+		"corpse_discovered_by": corpse_discovered_by,
+		"corpse_reported": corpse_reported,
 		"corpse_in_morgue": corpse_in_morgue,
 		"corpse_rot_hours": corpse_rot_hours,
+		"last_hit_weapon_name": last_hit_weapon_name,
+		"last_hit_by_player": last_hit_by_player,
+		"murder_witness_name": murder_witness_name,
+		"death_world_pos_x": death_world_pos.x,
+		"death_world_pos_y": death_world_pos.y,
+		"death_day": death_day,
+		"death_hour": death_hour,
+		"death_minute": death_minute,
 		"is_hostile": is_hostile,
 		"pos_x": global_position.x,
 		"pos_y": global_position.y,
@@ -3676,15 +3715,46 @@ func from_save_dict(data: Dictionary) -> void:
 		shop_stock = data["shop_stock"].duplicate()
 	var dead_saved: bool = bool(data.get("is_dead", false))
 	if dead_saved:
-		_confirm_true_death()
+		is_downed = false
+		bleedout_timer = 0.0
+		is_dead = true
+		is_hostile = false
+		remove_from_group("enemies")
 		corpse_on_ground = bool(data.get("corpse_on_ground", true))
 		corpse_discovered = bool(data.get("corpse_discovered", false))
+		corpse_discovered_by = str(data.get("corpse_discovered_by", ""))
+		corpse_reported = bool(data.get("corpse_reported", false))
 		corpse_in_morgue = bool(data.get("corpse_in_morgue", false))
 		corpse_rot_hours = float(data.get("corpse_rot_hours", 0.0))
-		if corpse_in_morgue and sprite:
-			sprite.visible = false
+		last_hit_weapon_name = str(data.get("last_hit_weapon_name", last_hit_weapon_name))
+		last_hit_by_player = bool(data.get("last_hit_by_player", false))
+		murder_witness_name = str(data.get("murder_witness_name", ""))
+		if data.has("death_world_pos_x") and data.has("death_world_pos_y"):
+			death_world_pos = Vector2(float(data["death_world_pos_x"]), float(data["death_world_pos_y"]))
+		else:
+			death_world_pos = global_position
+		death_day = int(data.get("death_day", 1))
+		death_hour = int(data.get("death_hour", 12))
+		death_minute = int(data.get("death_minute", 0))
+		if body_col:
+			body_col.set_deferred("disabled", true)
+		if interact_area and interact_area.get_child_count() > 0:
+			var ic := interact_area.get_child(0) as CollisionShape2D
+			if ic:
+				ic.set_deferred("disabled", corpse_in_morgue)
+		if sprite:
+			sprite.rotation_degrees = 90.0
+			sprite.modulate = Color(0.68, 0.54, 0.54, 0.96)
+			sprite.z_index = -1
+			sprite.visible = not corpse_in_morgue
 	else:
 		is_dead = false
+		is_downed = false
+		bleedout_timer = 0.0
+		corpse_on_ground = false
+		corpse_discovered = false
+		corpse_reported = false
+		corpse_in_morgue = false
 		is_hostile = bool(data.get("is_hostile", false))
 		if body_col:
 			body_col.set_deferred("disabled", false)
@@ -3693,6 +3763,8 @@ func from_save_dict(data: Dictionary) -> void:
 			if ic:
 				ic.set_deferred("disabled", false)
 		if sprite:
+			sprite.visible = true
+			sprite.z_index = 0
 			sprite.rotation_degrees = 0.0
 			sprite.modulate = Color.WHITE
 		if health_comp and data.has("hp"):

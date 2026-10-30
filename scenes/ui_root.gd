@@ -378,7 +378,7 @@ func _refresh_inventory_list() -> void:
 		var def_pct: int = int(round(float(a_stats.get("defense", 0.0)) * 100.0))
 		var bleed_pct: int = int(round(float(a_stats.get("bleed_res", 0.0)) * 100.0))
 		var stun_pct: int = int(round(float(a_stats.get("stun_res", 0.0)) * 100.0))
-		var spd_pct: int = int(round(float(a_stats.get("speed_mult", 1.0)) * 100.0))
+		var spd_pct: int = int(round((1.0 + float(a_stats.get("speed_bonus", 0.0))) * 100.0))
 		inv_armor_stats_label.text = "🛡️ Armadura Equipada — Defensa: -%d%% Daño | Res. Sangrado: -%d%% | Res. Stun: -%d%% | Velocidad: %d%%" % [def_pct, bleed_pct, stun_pct, spd_pct]
 
 	if inv_armor_slots_box:

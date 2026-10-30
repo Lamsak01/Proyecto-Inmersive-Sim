@@ -397,13 +397,13 @@ func _check_for_fox_intruders() -> void:
 			continue
 		var anim_node: Node2D = node as Node2D
 		var sp_val: int = int(anim_node.get("species")) if "species" in anim_node else -1
-		var is_dead_flag: bool = bool(anim_node.get("is_dead")) if "is_dead" in anim_node else false
-		if sp_val == 1 and not is_dead_flag:
+		var is_alive_flag: bool = bool(anim_node.call("is_alive_in_ecosystem")) if anim_node.has_method("is_alive_in_ecosystem") else true
+		if sp_val == 2 and is_alive_flag:
 			var dist_to_coop: float = anim_node.global_position.distance_to(guard_center)
 			if dist_to_coop <= 98.0:
 				_wander_target = anim_node.global_position
-				if anim_node.has_method("_enter_flee"):
-					anim_node.call("_enter_flee", global_position)
+				if anim_node.has_method("_start_flee_from"):
+					anim_node.call("_start_flee_from", global_position)
 				if _bark_cooldown <= 0.0:
 					_bark_cooldown = 4.5
 					_spawn_floating_text("🐕💢 ¡GUAU GUAU! (Zorro ahuyentado)", Color.GOLD)

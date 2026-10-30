@@ -268,6 +268,17 @@ func open_games(initial_tab: int = 0) -> void:
 func close_games() -> void:
 	if not visible:
 		return
+	# Si el jugador cierra el salón con ESC mientras había una mano/giro en curso, reembolsar su apuesta activa
+	if poker_stage in [PokerStage.PRE_FLOP, PokerStage.FLOP, PokerStage.TURN, PokerStage.RIVER] and poker_pot > 0:
+		var refund_p: int = maxi(5, int(poker_pot / 3))
+		_add_player_gold(refund_p)
+		poker_stage = PokerStage.IDLE
+		poker_pot = 0
+	if bj_stage == BJStage.PLAYER_TURN and bj_bet > 0:
+		_add_player_gold(bj_bet)
+		bj_stage = BJStage.IDLE
+	if roulette_spinning and roulette_bet_amt > 0:
+		_add_player_gold(roulette_bet_amt)
 	roulette_spinning = false
 	pool_balls_moving = false
 	_unseat_table_npcs()
@@ -894,9 +905,14 @@ func _resolve_poker_showdown() -> void:
 
 	_reward_social_with_table_npcs(3, "Gran partida de Póker con vecinos (+10)")
 
-	if p_score >= n1_score and p_score >= n2_score:
+	if p_score > n1_score and p_score > n2_score:
 		_add_player_gold(poker_pot)
 		status_msg_lbl.text = "🏆 ¡GANASTE EL BOTE (+%d Oro) con %s! (Rivales: %s | %s)" % [poker_pot, p_hand_name, n1_name, n2_name]
+	elif p_score >= n1_score and p_score >= n2_score and (p_score == n1_score or p_score == n2_score):
+		var ties_cnt: int = 1 + (1 if p_score == n1_score else 0) + (1 if p_score == n2_score else 0)
+		var split_gold: int = int(ceil(float(poker_pot) / float(ties_cnt)))
+		_add_player_gold(split_gold)
+		status_msg_lbl.text = "🤝 ¡EMPATE EN EL SHOWDOWN! Bote dividido (+%d Oro con %s)." % [split_gold, p_hand_name]
 	elif n1_score >= n2_score:
 		status_msg_lbl.text = "💸 %s gana el bote (%d Oro) con %s. (Tu mano: %s)" % [_get_npc_name(0), poker_pot, n1_name, p_hand_name]
 	else:

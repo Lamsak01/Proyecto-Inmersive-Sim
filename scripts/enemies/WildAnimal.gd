@@ -352,6 +352,8 @@ func _check_threats() -> void:
 
 	if player.has_method("is_stealthing") and player.is_stealthing():
 		eff_alert *= 0.35
+		if player.has_method("get_stealth_detection_multiplier"):
+			eff_alert *= float(player.call("get_stealth_detection_multiplier"))
 	elif player.has_method("get_noise_multiplier"):
 		var noise: float = player.get_noise_multiplier()
 		if noise > 1.2:
@@ -1216,8 +1218,10 @@ func from_save_dict(data: Dictionary) -> void:
 		if state == AnimalState.IN_BURROW:
 			_exit_burrow()
 		state = AnimalState.GRAZE
+		if not is_in_group("wild_animals"):
+			add_to_group("wild_animals")
 		if sprite:
 			sprite.position = Vector2.ZERO
 			sprite.rotation_degrees = 0.0
-			sprite.modulate = Color.WHITE
+			sprite.modulate = Color(1.08, 1.04, 0.88) if genetics_tier >= 2 else Color.WHITE
 		_apply_hidden_state(false)

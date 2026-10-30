@@ -150,11 +150,10 @@ func take_damage(data: DamageData) -> void:
 			ai.notify_damage(dmg.source)
 	
 	# Visual Flash
-	var original_mod = modulate
 	modulate = Color(10, 10, 10)
 	await get_tree().create_timer(0.1).timeout
 	if is_instance_valid(self) and health_comp and health_comp.current_health > 0:
-		modulate = Color(0.5, 0.5, 1.0) if is_stunned_flag else original_mod
+		modulate = Color(0.5, 0.5, 1.0) if is_stunned_flag else (Color(1.0, 0.55, 0.55) if is_weak_flag else Color.WHITE)
 
 func _on_bleed_triggered(_dps_amount: float) -> void:
 	_spawn_floating_text("BLEEDING!", Color.CRIMSON, -28.0)

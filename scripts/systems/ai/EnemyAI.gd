@@ -165,6 +165,8 @@ func get_effective_detection_range() -> float:
 	var player := _get_global_player()
 	if player and player.has_method("is_stealthing") and player.is_stealthing():
 		eff *= 0.5
+		if player.has_method("get_stealth_detection_multiplier"):
+			eff *= float(player.call("get_stealth_detection_multiplier"))
 	return eff
 
 func _process_idle(_delta: float) -> void:

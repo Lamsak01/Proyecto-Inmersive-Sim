@@ -47,6 +47,10 @@ func save_game(filepath: String = SAVE_FILE_PATH) -> bool:
 		set_flag("village_crime_state", {
 			"wanted_level": int(vm.get("wanted_level")),
 			"bounty_gold": int(vm.get("bounty_gold")),
+			"player_in_jail": bool(vm.get("player_in_jail")),
+			"jail_mandatory_stay_timer": float(vm.get("jail_mandatory_stay_timer")),
+			"sighting_log": vm.get("sighting_log"),
+			"completed_contracts_today": vm.get("completed_contracts_today"),
 			"corpse_records": vm.get("corpse_records"),
 			"morgue_active_corpses": vm.get("morgue_active_corpses"),
 			"buried_graves": vm.get("buried_graves"),
@@ -169,8 +173,27 @@ func load_game(filepath: String = SAVE_FILE_PATH) -> bool:
 	var vm = get_tree().get_first_node_in_group("village_manager")
 	var c_state: Variant = get_flag("village_crime_state", null)
 	if vm and typeof(c_state) == TYPE_DICTIONARY:
+		if vm.has_method("clear_police_hostility"):
+			vm.call("clear_police_hostility")
+		vm.player_being_escorted_to_jail = false
+		vm.escorting_officer = null
+		vm.is_resisting_arrest = false
 		vm.wanted_level = int(c_state.get("wanted_level", 0))
 		vm.bounty_gold = int(c_state.get("bounty_gold", 0))
+		vm.player_in_jail = bool(c_state.get("player_in_jail", false))
+		vm.jail_mandatory_stay_timer = float(c_state.get("jail_mandatory_stay_timer", 0.0))
+		if vm.has_method("set_jail_cell_gate_locked"):
+			vm.call("set_jail_cell_gate_locked", vm.player_in_jail)
+		if c_state.has("sighting_log") and typeof(c_state["sighting_log"]) == TYPE_ARRAY:
+			vm.sighting_log.clear()
+			for s_item in c_state["sighting_log"]:
+				if typeof(s_item) == TYPE_DICTIONARY:
+					vm.sighting_log.append(s_item)
+		if c_state.has("completed_contracts_today") and typeof(c_state["completed_contracts_today"]) == TYPE_DICTIONARY:
+			vm.completed_contracts_today.clear()
+			var saved_c: Dictionary = c_state["completed_contracts_today"]
+			for ck in saved_c.keys():
+				vm.completed_contracts_today[int(str(ck))] = int(saved_c[ck])
 		if c_state.has("corpse_records") and typeof(c_state["corpse_records"]) == TYPE_ARRAY:
 			vm.corpse_records.clear()
 			for r in c_state["corpse_records"]:
@@ -184,17 +207,12 @@ func load_game(filepath: String = SAVE_FILE_PATH) -> bool:
 			if vm.has_method("_refresh_morgue_table_sprites"):
 				vm.call("_refresh_morgue_table_sprites")
 		if c_state.has("buried_graves") and typeof(c_state["buried_graves"]) == TYPE_ARRAY:
-			for g_n in vm.get("_cemetery_grave_nodes"):
-				if is_instance_valid(g_n):
-					g_n.queue_free()
-			vm._cemetery_grave_nodes.clear()
 			vm.buried_graves.clear()
 			for bg in c_state["buried_graves"]:
 				if typeof(bg) == TYPE_DICTIONARY:
-					var g_idx: int = vm.buried_graves.size()
 					vm.buried_graves.append(bg)
-					if vm.has_method("_spawn_physical_grave_marker"):
-						vm.call("_spawn_physical_grave_marker", g_idx, bg)
+			if vm.has_method("_rebuild_cemetery_graves_from_save"):
+				vm.call("_rebuild_cemetery_graves_from_save")
 		if c_state.has("economy") and typeof(c_state["economy"]) == TYPE_DICTIONARY and vm.has_method("load_economy_save_dict"):
 			vm.load_economy_save_dict(c_state["economy"])
 

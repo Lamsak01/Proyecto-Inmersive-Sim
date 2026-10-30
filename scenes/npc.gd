@@ -130,11 +130,10 @@ func take_damage(data: DamageData) -> void:
 	if stun_comp and health_comp and health_comp.current_health > 0:
 		stun_comp.take_damage(data)
 
-	var old_mod = modulate
 	modulate = Color(10, 10, 10)
 	await get_tree().create_timer(0.1).timeout
 	if is_instance_valid(self) and health_comp and health_comp.current_health > 0:
-		modulate = Color(0.5, 0.6, 1.0) if is_stunned_flag else old_mod
+		modulate = Color(0.5, 0.6, 1.0) if is_stunned_flag else Color.WHITE
 
 func _on_bleed_triggered(_dps: float) -> void:
 	_spawn_floating_text("BLEEDING!", Color.CRIMSON, -28.0)
@@ -211,7 +210,7 @@ func interact(_player: Node) -> void:
 func on_dialogue_action(action_id: String) -> void:
 	var player = get_tree().get_first_node_in_group("player")
 	match action_id:
-		"start_ combat", "provoke_fight":
+		"start_combat", "start_ combat", "provoke_fight":
 			_trigger_attack()
 		"heal_player":
 			if player and player.has_node("HealthComponent"):

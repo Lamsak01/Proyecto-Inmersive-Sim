@@ -1973,6 +1973,15 @@ func _spawn_physical_grave_marker(grave_idx: int, rec: Dictionary) -> void:
 	g_lbl.add_theme_color_override("font_color", Color(0.86, 0.90, 1.0))
 	grave_node.add_child(g_lbl)
 
+func _rebuild_cemetery_graves_from_save() -> void:
+	for g_n in _cemetery_grave_nodes:
+		if is_instance_valid(g_n):
+			g_n.queue_free()
+	_cemetery_grave_nodes.clear()
+	for i in range(buried_graves.size()):
+		if typeof(buried_graves[i]) == TYPE_DICTIONARY:
+			_spawn_physical_grave_marker(i, buried_graves[i])
+
 # ==============================================================================
 # PASO 3: 🔓 COFRES DOMÉSTICOS Y ROBO EN SIGILO
 # ==============================================================================
@@ -2171,10 +2180,10 @@ func report_assault_crime(victim: VillageNPC) -> void:
 		return
 	var vision_mult: float = WorldClock.get_weather_vision_multiplier() if (WorldClock and WorldClock.has_method("get_weather_vision_multiplier")) else 1.0
 	var witness: VillageNPC = _find_conscious_witness_near(victim.global_position, 155.0 * vision_mult, victim)
-	if witness != null or victim.trade_role in [VillageNPC.TradeRole.SHERIFF, VillageNPC.TradeRole.GUARD]:
+	if witness != null or victim.trade_role in [VillageNPC.TradeRole.SHERIFF, VillageNPC.TradeRole.GUARD, VillageNPC.TradeRole.ROYAL_INVESTIGATOR]:
 		wanted_level = clampi(wanted_level + 1, 1, 5)
 		bounty_gold += 25
-		if victim.trade_role in [VillageNPC.TradeRole.SHERIFF, VillageNPC.TradeRole.GUARD]:
+		if victim.trade_role in [VillageNPC.TradeRole.SHERIFF, VillageNPC.TradeRole.GUARD, VillageNPC.TradeRole.ROYAL_INVESTIGATOR]:
 			is_resisting_arrest = true
 			alert_police_to_resist(get_tree().get_first_node_in_group("player") as Node2D)
 		var w_name: String = witness.npc_name if witness != null else victim.npc_name
@@ -2656,7 +2665,14 @@ func complete_police_escort_to_jail(player: Node2D) -> void:
 	_notify_inquisitor_of_police_crime("El Comisario Vane encarceló al Forastero en el calabozo municipal.", 42)
 	if not active_royal_investigation.is_empty() and bool(active_royal_investigation.get("active", false)):
 		var cur_stg: String = str(active_royal_investigation.get("stage", ""))
-		if cur_stg in ["CRIME_SCENE", "MORGUE", "INTERVIEWS"]:
+		# Si Alistair ya pasó la Morgue y estaba interrogando al pueblo, acude de inmediato a los barrotes de la celda;
+		# si aún está en CRIME_SCENE o MORGUE, primero termina la autopsia (~10s) y luego va directo a INITIAL_PLAYER_INTERVIEW.
+		if cur_stg == "INTERVIEWS":
+			var cur_t: String = str(active_royal_investigation.get("current_interview_target", ""))
+			if cur_t != "":
+				var q_arr: Array = active_royal_investigation.get("interview_queue", [])
+				q_arr.push_front(cur_t)
+				active_royal_investigation["current_interview_target"] = ""
 			active_royal_investigation["stage"] = "INITIAL_PLAYER_INTERVIEW"
 			active_royal_investigation["stage_timer"] = 0.0
 	if player:
@@ -2745,8 +2761,9 @@ func pay_bounty_fine(player: Node2D) -> void:
 			player._spawn_floating_text("❌ Necesitas %d Oro para pagar la fianza" % cost, Color.ORANGE_RED, -42.0)
 		return
 	inv.add_gold(-cost)
-	player_arrests_count += 1
-	_notify_inquisitor_of_police_crime("El Forastero pagó %d Oro de fianza policial tras ser detenido por la Guardia." % cost, 30)
+	if not player_in_jail:
+		player_arrests_count += 1
+		_notify_inquisitor_of_police_crime("El Forastero pagó %d Oro de fianza policial tras ser detenido por la Guardia." % cost, 30)
 	clear_police_hostility()
 	player_being_escorted_to_jail = false
 	escorting_officer = null
@@ -4418,14 +4435,14 @@ func _on_business_action_2(player: Node2D) -> void:
 			st[item_id] = int(st.get(item_id, 0)) + 1
 			var i_name: String = str(SimpleInventory.CATALOG.get(item_id, {}).get("name", item_id))
 			if owner_mode in ["PARTNER", "SOLE_OWNER"]:
-				# Como dueño/socio, abastecer tu propio mostrador genera margen comercial superior en tu caja registradora
-				var est_val: int = maxi(8, int(round(12.0 * mkt_mult)))
-				biz["vault_gold"] = int(biz.get("vault_gold", 0)) + est_val
-				player._spawn_floating_text("📦💰 Abasteciste 1 %s en tu mostrador (+%d Oro en Caja por venta)" % [i_name, est_val], Color.SPRING_GREEN, -46.0)
+				# Como dueño/socio, reabasteces el stock físico de tu propio mostrador para que se venda a los vecinos y genere caja real
+				_refresh_shop_stall_visual(_active_business_role)
+				player._spawn_floating_text("📦✨ Abasteciste +1 %s en el mostrador de tu negocio (Stock actualizado)" % i_name, Color.SPRING_GREEN, -46.0)
 			else:
 				# Si abasteces un negocio ajeno en escasez, te pagan al contado al precio dinámico de mercado
 				var instant_pay: int = maxi(6, int(round(9.0 * mkt_mult)))
 				inv.add_gold(instant_pay)
+				_refresh_shop_stall_visual(_active_business_role)
 				var fam_id: String = str(biz.get("family_id", "none"))
 				modify_family_reputation(fam_id, 6, "Suministró mercancía al mostrador")
 				player._spawn_floating_text("📦🤝 Suministraste 1 %s al mostrador (+%d Oro al contado)" % [i_name, instant_pay], Color.GOLD, -44.0)
@@ -4594,7 +4611,8 @@ func _process_nightly_tavern_rent_and_vagrant_camps() -> void:
 			guest.personal_gold -= rent_cost
 			_innkeeper_npc.personal_gold += rent_cost
 			guest.is_vagrant_camper = false
-			guest.bed_position = Vector2(468, -252)
+			var guest_beds: Array[Vector2] = [Vector2(435, -252), Vector2(468, -252), Vector2(502, -252)]
+			guest.bed_position = guest_beds[abs(guest.npc_name.hash()) % guest_beds.size()]
 			if vagrant_camp_nodes.has(guest.npc_name) and is_instance_valid(vagrant_camp_nodes[guest.npc_name]):
 				vagrant_camp_nodes[guest.npc_name].visible = false
 			guest.add_thought("Volvió a pagar cama caliente en la Posada (+8)", 8.0)
@@ -4693,7 +4711,7 @@ func _spawn_or_update_vagrant_camp_visual(npc: VillageNPC, camp_pos: Vector2) ->
 ## Comprueba cada mañana (07:00 AM) si hoy toca visita de uno de los 2 Mercaderes Semanales de Extramuros:
 ## - Día 3 de cada semana (`day % 7 == 3`): Maese Casimir (Liga Minera, presupuesto variable `168..196 Oro`).
 ## - Día 6 de cada semana (`day % 7 == 6`): Valeria la Tratante (Gremio de Caza y Pieles, presupuesto variable `214..248 Oro`).
-func _check_weekly_merchant_arrival(current_day: int) -> void:
+func _check_weekly_merchant_arrival(current_day: int, ignore_suspension: bool = false) -> void:
 	if is_instance_valid(_active_traveling_merchant) and not _active_traveling_merchant.is_dead:
 		return
 
@@ -4707,12 +4725,20 @@ func _check_weekly_merchant_arrival(current_day: int) -> void:
 		return
 
 	var susp_left: int = int(merchant_suspension_days.get(m_id, 0))
-	if susp_left > 0:
+	if susp_left > 0 and not ignore_suspension:
 		var p_emb = get_tree().get_first_node_in_group("player")
 		if p_emb and p_emb.has_method("show_hint"):
 			var emb_name: String = "Maese Casimir" if m_id == "casimir" else "Valeria la Tratante"
 			p_emb.show_hint("🚫⚖️ Ruta Comercial Suspendida: %s NO ha venido hoy al pueblo por el asesinato previo (Quedan %d días de embargo económico)." % [emb_name, susp_left])
 		return
+
+	# Limpiar cualquier cadáver antiguo del mismo mercader antes de crear su nueva instancia tras expirar el embargo
+	if is_instance_valid(_active_traveling_merchant) and _active_traveling_merchant.is_dead:
+		_active_traveling_merchant.queue_free()
+		_active_traveling_merchant = null
+	for old_n in get_tree().get_nodes_in_group("village_npcs"):
+		if old_n is VillageNPC and (old_n as VillageNPC).merchant_id == m_id and (old_n as VillageNPC).is_dead:
+			old_n.queue_free()
 
 	var m_npc := VillageNPC.new()
 	m_npc.trade_role = VillageNPC.TradeRole.TRAVELING_MERCHANT
@@ -4996,7 +5022,8 @@ func on_traveling_merchant_murdered(merchant: VillageNPC, cause_text: String = "
 		"victim_name": merchant.npc_name,
 		"victim_id": m_id,
 		"embargo_days": embargo_days,
-		"crime_pos": crime_pos,
+		"crime_pos_x": crime_pos.x,
+		"crime_pos_y": crime_pos.y,
 		"crime_hour": crime_hour,
 		"crime_day": crime_day,
 		"days_investigating": 1,
@@ -5025,6 +5052,14 @@ func on_traveling_merchant_murdered(merchant: VillageNPC, cause_text: String = "
 	var p = get_tree().get_first_node_in_group("player")
 	if p and p.has_method("show_hint"):
 		p.show_hint("👑🕵️‍♂️ ¡MAGNICIDIO COMERCIAL! %s ha muerto (Ruta suspendida %d días). El Inquisidor Real Alistair interrogará a todo el pueblo (~%d al día) y resolverá el caso sin demoras." % [merchant.npc_name, embargo_days, init_daily_quota])
+
+func _get_investigation_crime_pos() -> Vector2:
+	if active_royal_investigation.has("crime_pos_x") and active_royal_investigation.has("crime_pos_y"):
+		return Vector2(float(active_royal_investigation["crime_pos_x"]), float(active_royal_investigation["crime_pos_y"]))
+	var raw_cp: Variant = active_royal_investigation.get("crime_pos", Vector2(465, 44))
+	if typeof(raw_cp) == TYPE_VECTOR2:
+		return raw_cp as Vector2
+	return Vector2(465, 44)
 
 ## Comunica en tiempo real cualquier arresto, fianza o ficha forense de la Comisaría/Morgue al expediente del Inquisidor Real Alistair
 func _notify_inquisitor_of_police_crime(clue_text: String, suspicion_boost: int) -> void:
@@ -5090,6 +5125,8 @@ func _advance_royal_investigation_day(_new_day: int) -> void:
 
 	# Solo si se alcanza el Día Límite (`max_days`, <= 18 días) se fuerza el cierre inmediato antes del regreso del mercader
 	if days_inv >= max_days and stg in ["CRIME_SCENE", "MORGUE", "INITIAL_PLAYER_INTERVIEW", "INTERVIEWS", "PLAYER_CHECK"]:
+		if not is_instance_valid(_royal_investigator_npc) or _royal_investigator_npc.is_dead:
+			return
 		while not queue.is_empty():
 			var last_n: String = str(queue.pop_front())
 			active_royal_investigation["interviews_done"] = int(active_royal_investigation.get("interviews_done", 0)) + 1
@@ -5097,10 +5134,9 @@ func _advance_royal_investigation_day(_new_day: int) -> void:
 			if tv != null and not tv.is_dead:
 				_evaluate_npc_interview(_royal_investigator_npc, tv, suspects, clues)
 		var player := get_tree().get_first_node_in_group("player") as Node2D
-		if player != null and is_instance_valid(_royal_investigator_npc):
+		if player != null:
 			_evaluate_player_inspection(_royal_investigator_npc, player, suspects, clues, false)
-		if is_instance_valid(_royal_investigator_npc):
-			_conclude_royal_investigation_with_mandatory_verdict(_royal_investigator_npc)
+		_conclude_royal_investigation_with_mandatory_verdict(_royal_investigator_npc)
 
 ## IA deductiva multidiaria paso a paso del Inquisidor Real Alistair:
 ## 1. Inspecciona físicamente la escena del crimen (`CRIME_SCENE`).
@@ -5133,13 +5169,21 @@ func update_royal_investigator_ai(inv_npc: VillageNPC, delta: float) -> void:
 	var done_cnt: int = int(active_royal_investigation.get("interviews_done", 0))
 	var max_cnt: int = int(active_royal_investigation.get("max_interviews", 18))
 
-	# Si el jugador ya fue encarcelado tras haber sido declarado culpable (`HUNTING_PLAYER`), Alistair da el caso por cerrado y regresa a la Corte
+	# Si el jugador ya fue encarcelado o pagó su condena tras haber sido declarado culpable (`HUNTING_PLAYER`), Alistair da el caso por cerrado y regresa a la Corte
 	if stage == "HUNTING_PLAYER":
-		if player_in_jail or player_being_escorted_to_jail:
+		if player_in_jail or player_being_escorted_to_jail or (wanted_level == 0 and not is_resisting_arrest):
 			inv_npc.is_hostile = false
 			inv_npc.remove_from_group("enemies")
 			active_royal_investigation["stage"] = "DEPARTING"
-			inv_npc._spawn_floating_text("⚖️👑 ¡El asesino está entre rejas! Regreso a la Corte Real.", Color.GOLD, -44.0)
+			inv_npc._spawn_floating_text("⚖️👑 ¡Caso resuelto ante la justicia real! Regreso a la Corte.", Color.GOLD, -44.0)
+			return
+		# Mantener la persecución activa hacia el jugador culpable para que nunca se quede congelado
+		inv_npc.is_hostile = true
+		inv_npc._police_alerted_timer = maxf(inv_npc._police_alerted_timer, 25.0)
+		var p_hunt := get_tree().get_first_node_in_group("player") as Node2D
+		if p_hunt != null:
+			inv_npc._last_seen_player_pos = p_hunt.global_position
+			inv_npc._process_police_law_enforcement(delta, self)
 		return
 
 	# Rutina diaria para fases de investigación (`CRIME_SCENE`, `MORGUE`, `INITIAL_PLAYER_INTERVIEW`, `INTERVIEWS`):
@@ -5199,7 +5243,7 @@ func update_royal_investigator_ai(inv_npc: VillageNPC, delta: float) -> void:
 
 	match stage:
 		"CRIME_SCENE":
-			var c_pos: Vector2 = active_royal_investigation.get("crime_pos", Vector2(465, 44))
+			var c_pos: Vector2 = _get_investigation_crime_pos()
 			inv_npc._move_towards_point(c_pos, 90.0, delta)
 			if inv_npc.global_position.distance_to(c_pos) <= 24.0:
 				inv_npc.velocity = Vector2.ZERO
@@ -5265,8 +5309,9 @@ func update_royal_investigator_ai(inv_npc: VillageNPC, delta: float) -> void:
 						active_royal_investigation["stage"] = "INTERVIEWS"
 		"INTERVIEWS":
 			var queue: Array = active_royal_investigation.get("interview_queue", [])
-			# Apenas termina de interrogar a todos los habitantes, pasa DIRECTAMENTE a la comprobación final y veredicto (sin alargar artificialmente el caso)
-			if done_cnt >= max_cnt or queue.is_empty():
+			var cur_target_name: String = str(active_royal_investigation.get("current_interview_target", ""))
+			# Apenas termina de interrogar a todos los habitantes (incluido el objetivo actual en curso), pasa DIRECTAMENTE a `PLAYER_CHECK`
+			if done_cnt >= max_cnt or (queue.is_empty() and cur_target_name == ""):
 				active_royal_investigation["stage"] = "PLAYER_CHECK"
 				active_royal_investigation["stage_timer"] = 0.0
 				return
@@ -5278,7 +5323,6 @@ func update_royal_investigator_ai(inv_npc: VillageNPC, delta: float) -> void:
 				_process_inquisitor_field_recon(inv_npc, delta, done_cnt, max_cnt, days_inv)
 				return
 
-			var cur_target_name: String = str(active_royal_investigation.get("current_interview_target", ""))
 			if cur_target_name == "" and not queue.is_empty():
 				cur_target_name = str(queue.pop_front())
 				active_royal_investigation["current_interview_target"] = cur_target_name
@@ -5378,7 +5422,7 @@ func update_royal_investigator_ai(inv_npc: VillageNPC, delta: float) -> void:
 ## Cuando Alistair ya completó su cuota de interrogatorios del día (6+ aldeanos), pasa el resto de la tarde
 ## reconstruyendo el caso entre la escena del crimen, la Morgue Forense, la Plaza y su escritorio en la Comisaría.
 func _process_inquisitor_field_recon(inv_npc: VillageNPC, delta: float, done_cnt: int, max_cnt: int, days_inv: int) -> void:
-	var c_pos: Vector2 = active_royal_investigation.get("crime_pos", Vector2(465, 44))
+	var c_pos: Vector2 = _get_investigation_crime_pos()
 	var recon_pts: Array[Vector2] = [
 		c_pos,
 		_morgue_table_positions[1],
@@ -5777,7 +5821,7 @@ func load_economy_save_dict(data: Dictionary) -> void:
 		if not m_data.is_empty():
 			var m_id_saved: String = str(m_data.get("merchant_id", "casimir"))
 			if not is_instance_valid(_active_traveling_merchant):
-				_check_weekly_merchant_arrival(3 if m_id_saved == "casimir" else 6)
+				_check_weekly_merchant_arrival(3 if m_id_saved == "casimir" else 6, true)
 			if is_instance_valid(_active_traveling_merchant):
 				_active_traveling_merchant.from_save_dict(m_data)
 	if data.has("active_royal_investigation") and typeof(data["active_royal_investigation"]) == TYPE_DICTIONARY:
@@ -5817,12 +5861,31 @@ func load_economy_save_dict(data: Dictionary) -> void:
 				if is_instance_valid(holder) and not holder.is_dead:
 					holder.shop_stock = (entry["stock_override"] as Dictionary).duplicate()
 			_refresh_shop_stall_visual(role_int)
-	# Reconstruir campamentos rústicos visuales de cualquier NPC que estuviera acampando en las afueras
+	# Reconciliar diccionarios `trade_npcs`, `family_npcs`, `unemployed_npcs` y campamentos rústicos tras cargar partida
+	reconcile_npc_registries_after_load()
+
+func reconcile_npc_registries_after_load() -> void:
+	unemployed_npcs.clear()
 	for n in get_tree().get_nodes_in_group("village_npcs"):
 		if n is VillageNPC:
 			var v := n as VillageNPC
+			var r_int: int = int(v.trade_role)
+			if r_int in [
+				int(VillageNPC.TradeRole.BLACKSMITH),
+				int(VillageNPC.TradeRole.BUTCHER),
+				int(VillageNPC.TradeRole.CARPENTER),
+				int(VillageNPC.TradeRole.FISHMONGER),
+				int(VillageNPC.TradeRole.HERBALIST)
+			] and not v.is_dead:
+				trade_npcs[r_int] = v
+			elif v.trade_role == VillageNPC.TradeRole.FAMILY_MEMBER and not v.is_dead:
+				family_npcs[int(v.linked_trade)] = v
+			elif v.trade_role == VillageNPC.TradeRole.UNEMPLOYED and not v.is_dead:
+				unemployed_npcs.append(v)
 			if v.is_vagrant_camper and not v.is_dead:
 				_spawn_or_update_vagrant_camp_visual(v, v.vagrant_camp_pos)
+			elif vagrant_camp_nodes.has(v.npc_name) and is_instance_valid(vagrant_camp_nodes[v.npc_name]):
+				vagrant_camp_nodes[v.npc_name].visible = false
 
 func _make_station_label(pos: Vector2, txt: String) -> Label:
 	var lbl := Label.new()
