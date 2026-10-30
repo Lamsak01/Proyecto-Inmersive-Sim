@@ -2172,7 +2172,10 @@ func _find_building_by_id(b_id: String) -> Dictionary:
 
 func _find_conscious_witness_near(pos: Vector2, max_dist: float, exclude_npc: VillageNPC) -> VillageNPC:
 	var best: VillageNPC = null
-	var best_d2: float = max_dist * max_dist
+	var eff_dist: float = max_dist
+	if WorldClock and WorldClock.has_method("get_weather_vision_multiplier"):
+		eff_dist *= float(WorldClock.call("get_weather_vision_multiplier"))
+	var best_d2: float = eff_dist * eff_dist
 	for n in get_tree().get_nodes_in_group("village_npcs"):
 		if n is VillageNPC and n != exclude_npc:
 			var v: VillageNPC = n as VillageNPC
@@ -2188,9 +2191,9 @@ func _find_conscious_witness_near(pos: Vector2, max_dist: float, exclude_npc: Vi
 func report_assault_crime(victim: VillageNPC) -> void:
 	if not victim:
 		return
-	var vision_mult: float = WorldClock.get_weather_vision_multiplier() if (WorldClock and WorldClock.has_method("get_weather_vision_multiplier")) else 1.0
-	var witness: VillageNPC = _find_conscious_witness_near(victim.global_position, 155.0 * vision_mult, victim)
-	if witness != null or victim.trade_role in [VillageNPC.TradeRole.SHERIFF, VillageNPC.TradeRole.GUARD, VillageNPC.TradeRole.ROYAL_INVESTIGATOR]:
+	var witness: VillageNPC = _find_conscious_witness_near(victim.global_position, 155.0, victim)
+	var victim_officer_conscious: bool = victim.trade_role in [VillageNPC.TradeRole.SHERIFF, VillageNPC.TradeRole.GUARD, VillageNPC.TradeRole.ROYAL_INVESTIGATOR] and not victim.is_dead and not victim.is_downed and not victim.is_sleeping and not victim.is_stunned_flag and victim.sedated_timer <= 0.0
+	if witness != null or victim_officer_conscious:
 		wanted_level = clampi(wanted_level + 1, 1, 5)
 		bounty_gold += 25
 		if victim.trade_role in [VillageNPC.TradeRole.SHERIFF, VillageNPC.TradeRole.GUARD, VillageNPC.TradeRole.ROYAL_INVESTIGATOR]:
@@ -2205,10 +2208,9 @@ func report_assault_crime(victim: VillageNPC) -> void:
 			player.show_hint(msg)
 
 func report_pet_assault_crime(pet: Node2D) -> void:
-	if not pet:
+	if not pet or ("family_id" in pet and str(pet.get("family_id")) == "player_farm"):
 		return
-	var vision_mult: float = WorldClock.get_weather_vision_multiplier() if (WorldClock and WorldClock.has_method("get_weather_vision_multiplier")) else 1.0
-	var witness: VillageNPC = _find_conscious_witness_near(pet.global_position, 145.0 * vision_mult, null)
+	var witness: VillageNPC = _find_conscious_witness_near(pet.global_position, 145.0, null)
 	if witness != null:
 		wanted_level = clampi(wanted_level + 1, 1, 5)
 		bounty_gold += 18
@@ -2224,8 +2226,7 @@ func report_pet_assault_crime(pet: Node2D) -> void:
 			player.show_hint(msg)
 
 func report_theft_crime(fam_id: String, reason: String, crime_pos: Vector2) -> void:
-	var vision_mult: float = WorldClock.get_weather_vision_multiplier() if (WorldClock and WorldClock.has_method("get_weather_vision_multiplier")) else 1.0
-	var witness: VillageNPC = _find_conscious_witness_near(crime_pos, 145.0 * vision_mult, null)
+	var witness: VillageNPC = _find_conscious_witness_near(crime_pos, 145.0, null)
 	if witness != null:
 		wanted_level = clampi(wanted_level + 1, 1, 5)
 		bounty_gold += 20
@@ -3066,14 +3067,14 @@ func try_priority_door_or_corpse_interaction(player: Node2D, mouse_pos: Vector2)
 			_interact_building_door(player, near_door)
 			return true
 
-	# 2. Si hay un cadáver en el suelo cerca del jugador (<= 32 px), permitir saquear sus bolsillos primero y reportarlo con [E]
+	# 2. Si hay un cadáver, herido abatido o NPC aturdido/sedado cerca del jugador (<= 32 px), priorizar saquear/reanimar/reportar con [E]
 	for n in get_tree().get_nodes_in_group("village_npcs"):
 		if n is VillageNPC:
 			var c := n as VillageNPC
-			if c.is_dead and c.corpse_on_ground and not c.corpse_in_morgue:
-				var can_loot_corpse: bool = not c.corpse_pocket_looted and (c.personal_gold > 0 or c.carries_royal_safe_conduct)
-				var mouse_aiming_corpse: bool = c.global_position.distance_to(mouse_pos) <= 20.0
-				if pos.distance_to(c.global_position) <= 32.0 and (can_loot_corpse or not c.corpse_reported or mouse_aiming_corpse):
+			if pos.distance_to(c.global_position) <= 32.0:
+				var can_loot_pockets: bool = not c.corpse_pocket_looted and (c.personal_gold > 0 or c.carries_royal_safe_conduct)
+				var mouse_aiming_c: bool = c.global_position.distance_to(mouse_pos) <= 20.0
+				if (c.is_dead and c.corpse_on_ground and not c.corpse_in_morgue and (can_loot_pockets or not c.corpse_reported or mouse_aiming_c)) or (not c.is_dead and (c.is_downed or ((c.sedated_timer > 0.0 or c.is_stunned_flag) and can_loot_pockets))):
 					c.interact(player)
 					return true
 
@@ -3083,7 +3084,7 @@ func try_priority_door_or_corpse_interaction(player: Node2D, mouse_pos: Vector2)
 		var s_pos: Vector2 = near_stall.get("stall_pos", Vector2.ZERO)
 		var b_role: int = int(near_stall.get("role", -1))
 		var holder: VillageNPC = trade_npcs.get(b_role)
-		var holder_present: bool = is_instance_valid(holder) and not holder.is_dead and not holder.is_downed and not holder.is_sleeping and holder.global_position.distance_to(pos) <= 28.0
+		var holder_present: bool = is_instance_valid(holder) and not holder.is_dead and not holder.is_downed and not holder.is_sleeping and not holder.is_stunned_flag and holder.sedated_timer <= 0.0 and holder.global_position.distance_to(pos) <= 28.0
 		if s_pos.distance_to(mouse_pos) <= 16.0 or not holder_present:
 			open_business_management_ui(b_role)
 			return true
@@ -4552,7 +4553,15 @@ func _on_business_action_3(player: Node2D) -> void:
 
 	if holder_alive:
 		business_panel.visible = false
-		holder.interact(player)
+		if holder.is_at_shop_counter() and player.global_position.distance_to(holder.global_position) <= 85.0:
+			holder._start_npc_dialogue(player)
+		elif player.has_method("_spawn_floating_text"):
+			player._spawn_floating_text("⏳ %s no está atendiendo el mostrador en este momento" % holder.npc_name, Color.GOLD, -42.0)
+		return
+
+	var inv: SimpleInventory = player.inventory
+	if inv.gold < 30:
+		player._spawn_floating_text("❌ Necesitas 30 Oro para contratar a un nuevo encargado", Color.ORANGE_RED, -42.0)
 		return
 
 	var candidate: VillageNPC = _pop_living_unemployed()
@@ -4565,10 +4574,6 @@ func _on_business_action_3(player: Node2D) -> void:
 		player._spawn_floating_text("⏳ Límite diario alcanzado (%d/%d llegadas hoy). Espera a mañana para que llegue otro artesano al valle" % [arrivals_today_count, MAX_DAILY_ARRIVALS], Color.GOLD, -44.0)
 		return
 
-	var inv: SimpleInventory = player.inventory
-	if inv.gold < 30:
-		player._spawn_floating_text("❌ Necesitas 30 Oro para contratar a un nuevo encargado", Color.ORANGE_RED, -42.0)
-		return
 	inv.add_gold(-30)
 
 	if candidate != null:
@@ -5685,9 +5690,11 @@ func _evaluate_player_inspection(inv_npc: VillageNPC, player: Node2D, suspects: 
 			if is_instance_valid(inv_npc):
 				inv_npc._spawn_floating_text("👑📜 ¡Llevas el Salvoconducto Real del difunto!", Color.ORANGE_RED, -42.0)
 		var w_used: String = str(active_royal_investigation.get("weapon_used", "")).to_lower()
-		if w_used != "" and not already_inspected and ("espada" in w_used or "cuchillo" in w_used or "arco" in w_used or "hacha" in w_used or "martillo" in w_used):
+		var eq_w: Variant = player.get("equipped_weapon")
+		var holding_matching_weapon: bool = (("espada" in w_used or "cuchillo" in w_used) and eq_w == player.get("sword_weapon")) or ("martillo" in w_used and eq_w == player.get("hammer_weapon")) or ("hacha" in w_used and eq_w == player.get("axe_weapon")) or ("arco" in w_used and eq_w == player.get("bow_weapon"))
+		if w_used != "" and not already_inspected and holding_matching_weapon:
 			p_entry["score"] = int(p_entry.get("score", 16)) + 16
-			clues.append("El Forastero porta armamento compatible con la herida forense (%s)." % w_used)
+			clues.append("El Forastero empuña abiertamente armamento compatible con la herida forense (%s)." % w_used)
 	if not already_inspected and (wanted_level > 0 or player_in_jail or player_being_escorted_to_jail or player_arrests_count > 0 or player_murder_warrants_count > 0 or recent_breakins_count > 0):
 		var police_add: int = 36 if (player_in_jail or player_murder_warrants_count > 0 or player_arrests_count > 0) else 20
 		p_entry["score"] = int(p_entry.get("score", 16)) + police_add
@@ -5901,7 +5908,7 @@ func _update_deployed_bear_traps(delta: float, player: Node2D) -> void:
 			for e in get_tree().get_nodes_in_group("enemies"):
 				if e is Node2D and e != player:
 					var en := e as Node2D
-					if en.global_position.distance_squared_to(t_pos) <= 16.0 * 16.0:
+					if en.visible and not bool(en.get("is_dead")) and not bool(en.get("is_downed")) and en.global_position.distance_squared_to(t_pos) <= 16.0 * 16.0:
 						triggered_target = en
 						break
 
@@ -5911,8 +5918,10 @@ func _update_deployed_bear_traps(delta: float, player: Node2D) -> void:
 			dmg.type = CombatConstants.DamageType.CUT
 			dmg.bleed_buildup = 85.0
 			dmg.stun_buildup = 100.0
-			dmg.source = player
+			dmg.source = t_node
 			triggered_target.call("take_damage", dmg)
+			if "last_hit_weapon_name" in triggered_target:
+				triggered_target.set("last_hit_weapon_name", "Cepo de Acero")
 			if triggered_target.has_method("_spawn_floating_text"):
 				triggered_target.call("_spawn_floating_text", "🪤💥 ¡ATRAPADO EN CEPO DE ACERO! (-35 HP, Stun)", Color.ORANGE_RED, -40.0)
 			t_node.queue_free()
@@ -6065,10 +6074,12 @@ func load_economy_save_dict(data: Dictionary) -> void:
 		house_pantry = (data["house_pantry"] as Dictionary).duplicate()
 	if data.has("merchant_suspension_days") and typeof(data["merchant_suspension_days"]) == TYPE_DICTIONARY:
 		merchant_suspension_days = (data["merchant_suspension_days"] as Dictionary).duplicate()
+	# Reconciliar los nodos dinámicos ya restaurados por GameManager antes de evaluar mercaderes e Inquisidor para evitar duplicados
+	reconcile_npc_registries_after_load()
 	if data.has("active_traveling_merchant") and typeof(data["active_traveling_merchant"]) == TYPE_DICTIONARY:
 		var m_data: Dictionary = data["active_traveling_merchant"] as Dictionary
 		if m_data.is_empty():
-			if is_instance_valid(_active_traveling_merchant):
+			if is_instance_valid(_active_traveling_merchant) and not _active_traveling_merchant.is_dead:
 				_active_traveling_merchant.remove_from_group("village_npcs")
 				_active_traveling_merchant.remove_from_group("npcs")
 				_active_traveling_merchant.name = "_freed_merchant_" + str(_active_traveling_merchant.get_instance_id())
@@ -6078,7 +6089,7 @@ func load_economy_save_dict(data: Dictionary) -> void:
 				_active_traveling_merchant = null
 		else:
 			var m_id_saved: String = str(m_data.get("merchant_id", "casimir"))
-			if is_instance_valid(_active_traveling_merchant) and _active_traveling_merchant.merchant_id != m_id_saved:
+			if is_instance_valid(_active_traveling_merchant) and _active_traveling_merchant.merchant_id != m_id_saved and not _active_traveling_merchant.is_dead:
 				_active_traveling_merchant.remove_from_group("village_npcs")
 				_active_traveling_merchant.remove_from_group("npcs")
 				_active_traveling_merchant.name = "_freed_merchant_" + str(_active_traveling_merchant.get_instance_id())
@@ -6107,7 +6118,7 @@ func load_economy_save_dict(data: Dictionary) -> void:
 					if not _royal_investigator_npc.is_in_group("enemies"):
 						_royal_investigator_npc.add_to_group("enemies")
 		else:
-			if is_instance_valid(_royal_investigator_npc):
+			if is_instance_valid(_royal_investigator_npc) and not _royal_investigator_npc.is_dead:
 				_royal_investigator_npc.remove_from_group("village_npcs")
 				_royal_investigator_npc.remove_from_group("npcs")
 				_royal_investigator_npc.name = "_freed_inquisitor_" + str(_royal_investigator_npc.get_instance_id())
@@ -6186,14 +6197,16 @@ func reconcile_npc_registries_after_load() -> void:
 	unemployed_npcs.clear()
 	authority_npcs.clear()
 	_innkeeper_npc = null
+	_royal_investigator_npc = null
+	_active_traveling_merchant = null
 	for slot in _authority_slots:
 		slot["npc"] = null
 	for n in get_tree().get_nodes_in_group("village_npcs"):
 		if n is VillageNPC:
 			var v := n as VillageNPC
-			if v.trade_role == VillageNPC.TradeRole.ROYAL_INVESTIGATOR and not str(v.name).begins_with("NPC_Royal_Investigator_Corpse_"):
+			if v.trade_role == VillageNPC.TradeRole.ROYAL_INVESTIGATOR and not v.is_dead and not str(v.name).begins_with("NPC_Royal_Investigator_Corpse_"):
 				_royal_investigator_npc = v
-			elif v.trade_role == VillageNPC.TradeRole.TRAVELING_MERCHANT and not str(v.name).begins_with("NPC_Merchant_Corpse_"):
+			elif v.trade_role == VillageNPC.TradeRole.TRAVELING_MERCHANT and not v.is_dead and not str(v.name).begins_with("NPC_Merchant_Corpse_"):
 				_active_traveling_merchant = v
 			var r_int: int = int(v.trade_role)
 			if r_int in [

@@ -78,7 +78,9 @@ func _unhandled_input(event: InputEvent) -> void:
 		return
 	if event is InputEventKey and event.pressed and not event.echo:
 		if event.physical_keycode == KEY_T:
-			start_organic_fast_forward_duration(120, 26.0)
+			var vm = get_tree().get_first_node_in_group("village_manager")
+			if not is_fast_forwarding and (vm == null or (not bool(vm.get("player_in_jail")) and not bool(vm.get("player_being_escorted_to_jail")))):
+				start_organic_fast_forward_duration(120, 26.0)
 		elif event.physical_keycode == KEY_F7:
 			cycle_weather()
 

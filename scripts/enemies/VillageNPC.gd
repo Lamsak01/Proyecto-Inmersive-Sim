@@ -716,12 +716,15 @@ func _physics_process(delta: float) -> void:
 
 	# Paso 8: Estado dormido por Somnífero Nocturno (`sleeping_draught`) o Aturdido en Sigilo (`stealth_knockout`)
 	if sedated_timer > 0.0:
-		sedated_timer -= delta
+		if not (WorldClock and WorldClock.has_method("is_time_frozen") and WorldClock.is_time_frozen()):
+			sedated_timer -= delta
 		velocity = Vector2.ZERO
 		_is_actively_crafting = false
 		if _craft_bar_root:
 			_craft_bar_root.visible = false
 		is_sleeping = true
+		if sprite:
+			sprite.rotation_degrees = 90.0
 		if status_label:
 			var loot_hint_s: String = ""
 			if not corpse_pocket_looted and (personal_gold > 0 or carries_royal_safe_conduct):
@@ -1346,7 +1349,7 @@ func _move_towards_point(target_pos: Vector2, speed: float, delta: float = 0.016
 			_stuck_timer += delta
 			if _stuck_timer >= 2.2:
 				_stuck_timer = 0.0
-				var is_police: bool = trade_role in [TradeRole.SHERIFF, TradeRole.GUARD]
+				var is_police: bool = trade_role in [TradeRole.SHERIFF, TradeRole.GUARD, TradeRole.ROYAL_INVESTIGATOR]
 				_spawn_floating_text("🚓💥 ¡Derribando puerta!" if is_police else "🚪✊ ¡Puerta trancada!", Color.ORANGE_RED if is_police else Color.GOLD, -34.0)
 			return
 
@@ -2074,13 +2077,17 @@ func _process_artisan_workshop_crafting_and_supply_runs(delta: float) -> void:
 		if cur_mat_count > 0:
 			workshop_materials[req_input] = cur_mat_count - 1
 		shop_stock[out_id] = int(shop_stock.get(out_id, 0)) + 1
-		if vm and "shop_businesses" in vm and vm.shop_businesses.has(int(trade_role)):
-			vm.shop_businesses[int(trade_role)]["stock_override"] = shop_stock.duplicate()
-		if vm and vm.has_method("_refresh_shop_stall_visual"):
-			vm.call("_refresh_shop_stall_visual", int(trade_role))
+		_sync_shop_stock_to_vm()
 		_spawn_floating_text("⚒️✨ ¡%s fabricó +1 %s!" % [npc_name, out_label], Color(0.55, 1.0, 0.68), -40.0)
 		add_thought("Elaboró +1 %s en su taller (+4)" % out_label, 4.0)
 		_crafting_recipe_idx = (_crafting_recipe_idx + 1) % recipes.size()
+
+func _sync_shop_stock_to_vm() -> void:
+	var vm = get_tree().get_first_node_in_group("village_manager")
+	if vm and "shop_businesses" in vm and vm.shop_businesses.has(int(trade_role)):
+		vm.shop_businesses[int(trade_role)]["stock_override"] = shop_stock.duplicate()
+	if vm and vm.has_method("_refresh_shop_stall_visual"):
+		vm.call("_refresh_shop_stall_visual", int(trade_role))
 
 ## Expedición Matutina Física y Sostenible (06:30 - 09:30):
 ## Los maestros de oficio acuden físicamente a talar un árbol real, picar una veta de hierro real,
@@ -2121,6 +2128,7 @@ func _process_physical_morning_expedition(delta: float) -> void:
 				var fish_yield: int = 2 if eff >= 0.75 else 1
 				shop_stock["cooked_fish"] = int(shop_stock.get("cooked_fish", 0)) + fish_yield
 				workshop_materials["wood"] = int(workshop_materials.get("wood", 0)) + 1
+				_sync_shop_stock_to_vm()
 				_spawn_floating_text("🎣🐟 ¡Pescado fresco capturado! (+%d Pescado | Eficiencia %d%%)" % [fish_yield, int(round(eff * 100.0))], Color(0.65, 0.95, 1.0), -34.0)
 				add_thought("Pesca matutina sostenible en el lago (+6)", 6.0)
 		return
@@ -2162,6 +2170,7 @@ func _process_physical_morning_expedition(delta: float) -> void:
 						_spawn_floating_text("🔪🥩 ¡%s desollado! (+%d Carne, +%d Cuero | Ef.%d%%)" % [p_name, meat_yield, leather_yield, int(round(eff * 100.0))], Color.GOLD, -38.0)
 					else:
 						_spawn_floating_text("🔪🥩 ¡%s desollado! (+%d Carne | Piel dañada por novato)" % [p_name, meat_yield], Color.GOLD, -38.0)
+					_sync_shop_stock_to_vm()
 					add_thought("Caza matutina en equilibrio con el bosque (+6)", 6.0)
 			return
 
@@ -2218,6 +2227,7 @@ func _process_physical_morning_expedition(delta: float) -> void:
 			var herb_yield: int = 2 if eff >= 0.75 else 1
 			shop_stock["herbal_poultice"] = int(shop_stock.get("herbal_poultice", 0)) + herb_yield
 			workshop_materials["bread"] = int(workshop_materials.get("bread", 0)) + 1
+			_sync_shop_stock_to_vm()
 			_spawn_floating_text("🌿✨ ¡%s recolectada! (+%d Botica | Ef.%d%%)" % [h_node.node_title, herb_yield, int(round(eff * 100.0))], Color.SPRING_GREEN, -36.0)
 			add_thought("Cosecha herbolaria sostenible (+6)", 6.0)
 		return
@@ -2249,6 +2259,7 @@ func _process_physical_morning_expedition(delta: float) -> void:
 				var ore_yield: int = 2 if eff >= 0.75 else 1
 				shop_stock["iron_ore"] = int(shop_stock.get("iron_ore", 0)) + ore_yield
 				_spawn_floating_text("🪨⛏️ ¡Veta extraída! (+%d Hierro | Ef.%d%%)" % [ore_yield, int(round(eff * 100.0))], Color.SPRING_GREEN, -38.0)
+			_sync_shop_stock_to_vm()
 			add_thought("Extracción matutina en equilibrio con el bosque (+6)", 6.0)
 
 func _fire_hunter_arrow_at_prey(prey: WildAnimal) -> void:
@@ -2485,7 +2496,7 @@ func _process_hostile_combat(delta: float) -> void:
 		velocity = Vector2.ZERO
 		return
 
-	var is_police_unit: bool = (trade_role in [TradeRole.SHERIFF, TradeRole.GUARD])
+	var is_police_unit: bool = (trade_role in [TradeRole.SHERIFF, TradeRole.GUARD, TradeRole.ROYAL_INVESTIGATOR])
 	if not is_police_unit:
 		if _civilian_hostile_timer > 0.0:
 			_civilian_hostile_timer -= delta
@@ -2681,10 +2692,10 @@ func take_damage(data: DamageData) -> void:
 	if is_downed:
 		_confirm_true_death()
 		var vm_exec = get_tree().get_first_node_in_group("village_manager")
-		if vm_exec and last_hit_by_player:
+		if vm_exec and last_hit_by_player and murder_witness_name != "":
 			if vm_exec.has_method("modify_family_reputation") and family_id != "none":
 				vm_exec.call("modify_family_reputation", family_id, -35, "Ejecución de " + npc_name, self)
-			if murder_witness_name != "" and vm_exec.has_method("report_assault_crime"):
+			if vm_exec.has_method("report_assault_crime"):
 				vm_exec.call("report_assault_crime", self)
 		return
 
@@ -2824,13 +2835,19 @@ func _on_stunned(stunned: bool) -> void:
 			body_col.set_deferred("disabled", true)
 		velocity = Vector2.ZERO
 	if sprite:
-		sprite.rotation_degrees = 90.0 if stunned else 0.0
-		sprite.modulate = Color(0.55, 0.65, 1.0) if stunned else Color.WHITE
+		if stunned or sedated_timer > 0.0 or is_sleeping:
+			sprite.rotation_degrees = 90.0
+			sprite.modulate = Color(0.55, 0.65, 1.0)
+		else:
+			sprite.rotation_degrees = 0.0
+			sprite.modulate = Color.WHITE
 
 ## Paso 1: Al caer a 0 HP entra primero en estado "Agonizando" (`is_downed`) con cuenta atrás según la herida
 func _on_died() -> void:
 	if is_dead:
 		return
+	if health_comp:
+		health_comp.stop_bleeding()
 	if not is_downed:
 		is_downed = true
 		is_hostile = false
@@ -2864,12 +2881,17 @@ func revive_from_downed(rescuer: Node, used_surgical_kit: bool = false) -> void:
 	is_downed = false
 	bleedout_timer = 0.0
 	is_hostile = false
+	is_stunned_flag = false
+	sedated_timer = 0.0
 	remove_from_group("enemies")
+	if stun_comp:
+		stun_comp.clear_stun()
 	if hurtbox and hurtbox.get_child_count() > 0:
 		var hcol := hurtbox.get_child(0) as CollisionShape2D
 		if hcol:
 			hcol.set_deferred("disabled", false)
 	if health_comp:
+		health_comp.stop_bleeding()
 		health_comp.current_health = health_comp.max_health * (0.85 if used_surgical_kit else 0.65)
 	if not used_surgical_kit:
 		# Traslado a la Cama de Urgencias del Hospital
@@ -2893,6 +2915,8 @@ func revive_from_downed(rescuer: Node, used_surgical_kit: bool = false) -> void:
 func _confirm_true_death() -> void:
 	if is_dead:
 		return
+	if health_comp:
+		health_comp.stop_bleeding()
 	death_world_pos = global_position
 	death_day = WorldClock.current_day if WorldClock else 1
 	death_hour = WorldClock.current_hour if WorldClock else 12
@@ -3789,6 +3813,9 @@ func to_save_dict() -> Dictionary:
 		"need_social": need_social,
 		"activity": int(current_activity),
 		"is_dead": is_dead,
+		"is_downed": is_downed,
+		"bleedout_timer": bleedout_timer,
+		"sedated_timer": sedated_timer,
 		"corpse_on_ground": corpse_on_ground,
 		"corpse_discovered": corpse_discovered,
 		"corpse_discovered_by": corpse_discovered_by,
@@ -3947,17 +3974,17 @@ func from_save_dict(data: Dictionary) -> void:
 			sprite.visible = not corpse_in_morgue
 	else:
 		is_dead = false
-		is_downed = false
-		bleedout_timer = 0.0
-		sedated_timer = 0.0
-		is_stunned_flag = false
-		is_sleeping = false
+		is_downed = bool(data.get("is_downed", false))
+		bleedout_timer = float(data.get("bleedout_timer", 0.0))
+		sedated_timer = float(data.get("sedated_timer", 0.0))
+		is_stunned_flag = sedated_timer > 0.0
+		is_sleeping = sedated_timer > 0.0
 		set_poker_seating(false)
 		corpse_on_ground = false
 		corpse_discovered = false
 		corpse_reported = false
 		corpse_in_morgue = false
-		is_hostile = bool(data.get("is_hostile", false))
+		is_hostile = bool(data.get("is_hostile", false)) and not is_downed and sedated_timer <= 0.0
 		if is_hostile:
 			if not is_in_group("enemies"):
 				add_to_group("enemies")
@@ -3976,8 +4003,15 @@ func from_save_dict(data: Dictionary) -> void:
 		if sprite:
 			sprite.visible = true
 			sprite.z_index = 0
-			sprite.rotation_degrees = 0.0
-			sprite.modulate = Color.WHITE
+			if is_downed:
+				sprite.rotation_degrees = 82.0
+				sprite.modulate = Color(1.1, 0.42, 0.42, 0.95)
+			elif sedated_timer > 0.0:
+				sprite.rotation_degrees = 90.0
+				sprite.modulate = Color(0.55, 0.65, 1.0)
+			else:
+				sprite.rotation_degrees = 0.0
+				sprite.modulate = Color.WHITE
 		if stun_comp:
 			stun_comp.clear_stun()
 		if health_comp:

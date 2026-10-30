@@ -340,20 +340,8 @@ func take_damage(data: DamageData) -> void:
 	if attacker_is_player:
 		affection = maxf(0.0, affection - 45.0)
 		var vm = get_tree().get_first_node_in_group("village_manager")
-		if vm and vm.has_method("_find_conscious_witness_near"):
-			var vis_mult: float = WorldClock.get_weather_vision_multiplier() if (WorldClock and WorldClock.has_method("get_weather_vision_multiplier")) else 1.0
-			var w = vm.call("_find_conscious_witness_near", global_position, 145.0 * vis_mult, null)
-			if w != null:
-				if family_id != "none" and vm.has_method("modify_family_reputation"):
-					vm.call("modify_family_reputation", family_id, -25, "Atacó a la mascota " + pet_name)
-				vm.wanted_level = clampi(int(vm.wanted_level) + 1, 1, 5)
-				vm.bounty_gold = int(vm.bounty_gold) + 20
-				var pet_crime_msg := "🚨👁️ ¡%s vio al Forastero atacar a la mascota %s! (+20 Oro de multa)" % [w.npc_name, pet_name]
-				if "crime_history" in vm and typeof(vm.crime_history) == TYPE_ARRAY:
-					vm.crime_history.push_front(pet_crime_msg)
-				if vm.has_method("_notify_inquisitor_of_police_crime"):
-					vm.call("_notify_inquisitor_of_police_crime", pet_crime_msg, 12)
-				_spawn_floating_text("🚨👁️ ¡%s te vio atacar a %s! (+20 Oro multa)" % [w.npc_name, pet_name], Color.ORANGE_RED)
+		if vm and vm.has_method("report_pet_assault_crime"):
+			vm.call("report_pet_assault_crime", self)
 
 	if pet_type == PetType.DOG:
 		is_hostile = true
