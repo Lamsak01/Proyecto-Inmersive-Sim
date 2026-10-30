@@ -101,6 +101,10 @@ func _ready() -> void:
 	parent.add_child.call_deferred(on_screen_notifier)
 
 func _physics_process(delta: float) -> void:
+	if WorldClock and WorldClock.has_method("is_time_frozen") and WorldClock.is_time_frozen():
+		if parent:
+			parent.velocity = Vector2.ZERO
+		return
 	# Update timers
 	if vision_timer > 0.0:
 		vision_timer -= delta

@@ -59,7 +59,12 @@ func _ready() -> void:
 	if hurtbox:
 		hurtbox.hit_received.connect(take_damage)
 
-func _physics_process(_delta: float) -> void:
+func _physics_process(delta: float) -> void:
+	if push_velocity.length_squared() > 1.0:
+		velocity = push_velocity
+		push_velocity = push_velocity.move_toward(Vector2.ZERO, 320.0 * delta)
+		move_and_slide()
+		return
 	if is_stunned_flag:
 		velocity = Vector2.ZERO
 		return

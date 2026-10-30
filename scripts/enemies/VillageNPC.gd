@@ -701,7 +701,8 @@ func _physics_process(delta: float) -> void:
 		_is_actively_crafting = false
 		if _craft_bar_root:
 			_craft_bar_root.visible = false
-		bleedout_timer -= delta
+		if not (WorldClock and WorldClock.has_method("is_time_frozen") and WorldClock.is_time_frozen()):
+			bleedout_timer -= delta
 		if sprite:
 			sprite.rotation_degrees = 82.0
 			var pulse_r: float = 0.65 + absf(sin(bleedout_timer * 4.0)) * 0.35

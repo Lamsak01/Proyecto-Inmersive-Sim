@@ -15,6 +15,8 @@ var _stun_timer: float = 0.0
 var _active_duration: float = 3.0
 
 func _process(delta: float) -> void:
+	if WorldClock and WorldClock.has_method("is_time_frozen") and WorldClock.is_time_frozen():
+		return
 	if is_stunned:
 		_stun_timer -= delta
 		current_stun = clamp((_stun_timer / max(0.01, _active_duration)) * max_stun, 0.0, max_stun)

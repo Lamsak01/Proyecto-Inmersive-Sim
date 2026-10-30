@@ -28,7 +28,7 @@ func _ready() -> void:
 	current_blood = 0.0
 
 func _process(delta: float) -> void:
-	if current_health <= 0.0:
+	if current_health <= 0.0 or (WorldClock and WorldClock.has_method("is_time_frozen") and WorldClock.is_time_frozen()):
 		return
 
 	if is_bleeding:
