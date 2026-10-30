@@ -387,8 +387,9 @@ func _evaluate_life_schedule() -> void:
 			is_night_time = (h >= 20 or h < 6)
 
 	if is_night_time:
-		# Si un zorro no logró comer durante el día, sale de noche a asaltar el Gallinero
-		if species == SpeciesType.FOX and not fed_today and not is_on_reserve_day:
+		# Si un zorro no logró comer durante el día, sale de noche a asaltar el Gallinero solo si quedan gallinas vivas
+		var coop_node = get_tree().get_first_node_in_group("chicken_coop") if species == SpeciesType.FOX else null
+		if species == SpeciesType.FOX and not fed_today and not is_on_reserve_day and coop_node is ChickenCoop and coop_node.has_live_chickens():
 			pass
 		else:
 			var dist_home := global_position.distance_to(home_position)
@@ -435,6 +436,9 @@ func _evaluate_life_schedule() -> void:
 		elif species != SpeciesType.FOX and not fed_today and days_hungry >= 1:
 			is_raiding_farm = true
 			state = AnimalState.SEEK_FOOD
+		elif global_position.distance_to(home_position) > 135.0:
+			is_raiding_farm = false
+			state = AnimalState.RETURN_HOME
 
 func _find_ready_mate() -> WildAnimal:
 	var group_name := "ecosystem_rabbits"
@@ -487,27 +491,35 @@ func _find_best_food_target() -> Node2D:
 						best_node = crop
 						is_raiding_farm = true
 	elif species == SpeciesType.FOX:
+		var best_prey_sq: float = 1850.0 * 1850.0
+		var live_rabbits: int = 0
 		for node in get_tree().get_nodes_in_group("ecosystem_rabbits"):
-			if node is WildAnimal and node.state == AnimalState.CARCASS and node.visible:
-				var d_sq := global_position.distance_squared_to(node.global_position)
-				if d_sq < best_dist_sq:
-					best_dist_sq = d_sq
-					best_node = node
+			if node is WildAnimal:
+				if node.state == AnimalState.CARCASS and node.visible:
+					var d_sq := global_position.distance_squared_to(node.global_position)
+					if d_sq < best_prey_sq:
+						best_prey_sq = d_sq
+						best_node = node
+				elif node.is_alive_in_ecosystem():
+					live_rabbits += 1
 		if best_node:
 			return best_node
 
-		var all_foxes := get_tree().get_nodes_in_group("ecosystem_foxes")
-		for rab in get_tree().get_nodes_in_group("herbivore_prey"):
-			if rab is WildAnimal and rab.is_alive_in_ecosystem() and rab.state != AnimalState.IN_BURROW and rab.visible:
-				var d_sq := global_position.distance_squared_to(rab.global_position)
-				for fx in all_foxes:
-					if fx != self and fx is WildAnimal and fx.food_target == rab:
-						d_sq += 650.0 * 650.0
-				if d_sq < best_dist_sq:
-					best_dist_sq = d_sq
-					best_node = rab
+		if live_rabbits > 4:
+			var all_foxes := get_tree().get_nodes_in_group("ecosystem_foxes")
+			for rab in get_tree().get_nodes_in_group("herbivore_prey"):
+				if rab is WildAnimal and rab.is_alive_in_ecosystem() and rab.state != AnimalState.IN_BURROW and rab.visible:
+					var d_sq := global_position.distance_squared_to(rab.global_position)
+					for fx in all_foxes:
+						if fx != self and fx is WildAnimal and fx.food_target == rab:
+							d_sq += 260.0 * 260.0
+					if d_sq < best_prey_sq:
+						best_prey_sq = d_sq
+						best_node = rab
 
-		if not best_node:
+		var h_now: int = WorldClock.current_hour if WorldClock else 12
+		var is_coop_raid_window: bool = (h_now >= 20 or h_now < 6) and not fed_today
+		if not best_node and is_coop_raid_window:
 			var coop = get_tree().get_first_node_in_group("chicken_coop")
 			if coop is ChickenCoop and coop.has_live_chickens():
 				best_node = coop
@@ -521,6 +533,8 @@ func _find_best_food_target() -> Node2D:
 							best_dist_sq = d_sq
 							best_node = poultry
 							is_raiding_farm = true
+		elif not best_node:
+			is_raiding_farm = false
 
 	return best_node
 
@@ -767,10 +781,10 @@ func _process_eating(delta: float) -> void:
 			_register_meal_eaten()
 
 		food_target = null
-		state = AnimalState.GRAZE
+		state = AnimalState.RETURN_HOME if global_position.distance_to(home_position) > 120.0 else AnimalState.GRAZE
 
 func _register_meal_eaten() -> void:
-	meals_eaten += 1
+	meals_eaten = MAX_MEALS if species == SpeciesType.FOX else (meals_eaten + 1)
 	fed_today = true
 	days_hungry = 0
 	is_raiding_farm = false

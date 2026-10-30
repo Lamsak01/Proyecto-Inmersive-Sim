@@ -5442,9 +5442,16 @@ func update_royal_investigator_ai(inv_npc: VillageNPC, delta: float) -> void:
 				active_royal_investigation["current_interview_target"] = cur_target_name
 
 			var target_npc: VillageNPC = _find_npc_by_name(cur_target_name)
-			if target_npc == null or target_npc.is_dead or target_npc.is_downed or target_npc.is_stunned_flag or target_npc.sedated_timer > 0.0:
+			if target_npc == null or target_npc.is_dead:
 				active_royal_investigation["current_interview_target"] = ""
 				active_royal_investigation["interviews_done"] = done_cnt + 1
+				return
+			if target_npc.is_downed or target_npc.is_stunned_flag or target_npc.sedated_timer > 0.0:
+				if not queue.is_empty():
+					queue.push_back(cur_target_name)
+					active_royal_investigation["current_interview_target"] = ""
+				else:
+					_process_inquisitor_field_recon(inv_npc, delta, done_cnt, max_cnt, days_inv)
 				return
 
 			var dist_npc: float = inv_npc.global_position.distance_to(target_npc.global_position)
@@ -5709,7 +5716,7 @@ func _evaluate_player_inspection(inv_npc: VillageNPC, player: Node2D, suspects: 
 ## Jamás condena a un aldeano que estuviera lejos de la escena (`dist_to_crime > 360 px`) ni a un testigo ocular (`score == 0`).
 func _conclude_royal_investigation_with_mandatory_verdict(inv_npc: VillageNPC) -> void:
 	var suspects: Dictionary = active_royal_investigation.get("suspects", {})
-	var best_key: String = "Jugador"
+	var best_key: String = ""
 	var best_score: int = -1
 	var best_dist: float = 999999.0
 
@@ -5719,8 +5726,10 @@ func _conclude_royal_investigation_with_mandatory_verdict(inv_npc: VillageNPC) -
 		var sc: int = int(s_entry.get("score", 0))
 		var kd: float = float(s_entry.get("known_dist", s_entry.get("dist_to_crime", -1.0)))
 		var dist_c: float = kd if kd >= 0.0 else 9999.0
-		# Ningún NPC que haya muerto, que sea testigo ocular (sc <= 0) o que estuviera lejos de la escena (> 360 px) puede ser elegido como culpable
-		if not is_p:
+		if is_p:
+			if sc <= 15 and kd < 0.0:
+				continue
+		else:
 			var npc_node: VillageNPC = _find_npc_by_name(str(k))
 			var real_d: float = float(s_entry.get("mem_dist_to_crime", dist_c))
 			if npc_node == null or npc_node.is_dead or real_d > 360.0 or sc <= 0:
@@ -5729,6 +5738,20 @@ func _conclude_royal_investigation_with_mandatory_verdict(inv_npc: VillageNPC) -
 			best_score = sc
 			best_dist = dist_c
 			best_key = str(k)
+
+	if best_key == "":
+		for k in suspects.keys():
+			var s_entry: Dictionary = suspects[k]
+			if bool(s_entry.get("is_player", false)) or str(s_entry.get("alibi", "")) != "":
+				continue
+			var npc_node: VillageNPC = _find_npc_by_name(str(k))
+			var real_d: float = float(s_entry.get("mem_dist_to_crime", 9999.0))
+			if npc_node and not npc_node.is_dead and real_d < best_dist:
+				best_dist = real_d
+				best_key = str(k)
+				best_score = maxi(35, int(s_entry.get("score", 25)))
+	if best_key == "":
+		best_key = "Jugador"
 
 	var chosen: Dictionary = suspects.get(best_key, {})
 	var chosen_name: String = str(chosen.get("name", best_key))

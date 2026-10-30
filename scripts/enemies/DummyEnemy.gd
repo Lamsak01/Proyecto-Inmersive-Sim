@@ -23,6 +23,7 @@ var home_spawn_pos: Vector2 = Vector2.ZERO
 var _player_ref: Node2D = null
 var _last_stealth_state: int = -1 # -1 = uninitialized, 0 = normal, 1 = stealthing
 var _death_tween: Tween = null
+var _damaged_by_player: bool = false
 
 func _ready() -> void:
 	motion_mode = CharacterBody2D.MOTION_MODE_FLOATING
@@ -135,6 +136,8 @@ func take_damage(data: DamageData) -> void:
 	if is_dead_flag:
 		return
 	var dmg = data.copy()
+	if dmg.source and (dmg.source.is_in_group("player") or dmg.source.is_in_group("player_trap") or dmg.source.is_in_group("companion_pets")):
+		_damaged_by_player = true
 	
 	# Stealth Critical Hit
 	if ai and dmg.source and dmg.source.is_in_group("player") and (ai.current_state == EnemyAI.State.IDLE or ai.current_state == EnemyAI.State.SEARCH):
@@ -218,10 +221,11 @@ func _on_died() -> void:
 	var cur_day: int = WorldClock.current_day if WorldClock else 1
 	respawn_on_day = cur_day + 2
 
-	if ObjectiveManager:
-		ObjectiveManager.progress_objective(0, enemy_id, 1) # 0 = KILL
-
-	_grant_plains_loot()
+	var player_involved: bool = _damaged_by_player or (is_instance_valid(_player_ref) and global_position.distance_to(_player_ref.global_position) <= 240.0)
+	if player_involved:
+		if ObjectiveManager:
+			ObjectiveManager.progress_objective(0, enemy_id, 1) # 0 = KILL
+		_grant_plains_loot()
 
 	set_physics_process(false)
 	if ai:
@@ -282,6 +286,7 @@ func _respawn_enemy() -> void:
 		_death_tween.kill()
 		_death_tween = null
 	is_dead_flag = false
+	_damaged_by_player = false
 	is_stunned_flag = false
 	is_weak_flag = false
 	respawn_on_day = -1

@@ -294,7 +294,7 @@ func _select_and_seat_table_npcs() -> void:
 	for node in get_tree().get_nodes_in_group("village_npcs"):
 		if node is VillageNPC:
 			var npc: VillageNPC = node as VillageNPC
-			if not npc.is_dead and not npc.is_downed and not npc.is_hostile and not npc.is_stunned_flag and npc.sedated_timer <= 0.0 and not (npc.trade_role in [VillageNPC.TradeRole.INNKEEPER, VillageNPC.TradeRole.TRAVELING_MERCHANT, VillageNPC.TradeRole.ROYAL_INVESTIGATOR]):
+			if not npc.is_dead and not npc.is_downed and not npc.is_hostile and not npc.is_stunned_flag and npc.sedated_timer <= 0.0 and npc._carrying_corpse_target == null and npc._reporting_corpse_target == null and npc._being_interviewed_timer <= 0.0 and not (npc.trade_role in [VillageNPC.TradeRole.INNKEEPER, VillageNPC.TradeRole.TRAVELING_MERCHANT, VillageNPC.TradeRole.ROYAL_INVESTIGATOR]):
 				if not npc._is_mandatory_work_hours():
 					candidates.push_front(npc)
 				else:

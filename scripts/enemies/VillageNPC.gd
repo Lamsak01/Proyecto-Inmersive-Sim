@@ -3727,12 +3727,17 @@ func on_dialogue_action(action_id: String) -> void:
 		elif affinity >= 45:
 			price = maxi(1, int(round(float(price) * 0.80)))
 
+	var is_partner_shop: bool = (vm and "shop_businesses" in vm and vm.shop_businesses.has(int(trade_role)) and str(vm.shop_businesses[int(trade_role)].get("owner_mode", "NPC")) == "PARTNER")
+
 	if cmd == "buy_armor" or cmd == "buy_unlimited":
 		if inv.gold < price:
 			_spawn_floating_text("Oro insuficiente (%d Oro)" % price, Color.ORANGE_RED, -44.0)
 			return
 		inv.add_gold(-price)
-		personal_gold = maxi(0, personal_gold) + price
+		var v_cut0: int = int(round(float(price) * 0.5)) if is_partner_shop else 0
+		personal_gold = maxi(0, personal_gold) + (price - v_cut0)
+		if v_cut0 > 0:
+			vm.shop_businesses[int(trade_role)]["vault_gold"] = int(vm.shop_businesses[int(trade_role)].get("vault_gold", 0)) + v_cut0
 		inv.add_item(item_id, 1)
 		if cmd == "buy_armor":
 			inv.equip_armor_item(item_id, player)
@@ -3769,10 +3774,13 @@ func on_dialogue_action(action_id: String) -> void:
 			_spawn_floating_text("Oro insuficiente (%d Oro)" % price, Color.ORANGE_RED, -44.0)
 			return
 		inv.add_gold(-price)
-		personal_gold = maxi(0, personal_gold) + price
+		var v_cut1: int = int(round(float(price) * 0.5)) if is_partner_shop else 0
+		personal_gold = maxi(0, personal_gold) + (price - v_cut1)
 		shop_stock[item_id] = avail - 1
 		if vm and "shop_businesses" in vm and vm.shop_businesses.has(int(trade_role)):
 			vm.shop_businesses[int(trade_role)]["stock_override"] = shop_stock.duplicate()
+			if v_cut1 > 0:
+				vm.shop_businesses[int(trade_role)]["vault_gold"] = int(vm.shop_businesses[int(trade_role)].get("vault_gold", 0)) + v_cut1
 		inv.add_item(item_id, 1)
 		_spawn_floating_text("+1 %s (-%d Oro)" % [inv.get_item_name(item_id), price], Color.SPRING_GREEN, -44.0)
 	elif cmd == "buy2":
@@ -3784,10 +3792,13 @@ func on_dialogue_action(action_id: String) -> void:
 			_spawn_floating_text("Oro insuficiente (%d Oro)" % price, Color.ORANGE_RED, -44.0)
 			return
 		inv.add_gold(-price)
-		personal_gold = maxi(0, personal_gold) + price
+		var v_cut2: int = int(round(float(price) * 0.5)) if is_partner_shop else 0
+		personal_gold = maxi(0, personal_gold) + (price - v_cut2)
 		shop_stock[item_id] = avail2 - 2
 		if vm and "shop_businesses" in vm and vm.shop_businesses.has(int(trade_role)):
 			vm.shop_businesses[int(trade_role)]["stock_override"] = shop_stock.duplicate()
+			if v_cut2 > 0:
+				vm.shop_businesses[int(trade_role)]["vault_gold"] = int(vm.shop_businesses[int(trade_role)].get("vault_gold", 0)) + v_cut2
 		inv.add_item(item_id, 2)
 		_spawn_floating_text("+2 %s (-%d Oro)" % [inv.get_item_name(item_id), price], Color.SPRING_GREEN, -44.0)
 
