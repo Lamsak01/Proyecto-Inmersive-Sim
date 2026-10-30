@@ -365,6 +365,14 @@ func from_save_dict(data: Dictionary) -> void:
 		if bool(data.get("is_dead", false)) or health_comp.current_health <= 0.0:
 			_on_died()
 		else:
+			is_dead = false
+			is_stunned_flag = false
+			health_comp.stop_bleeding()
+			if stun_comp:
+				stun_comp.clear_stun()
+			if hurtbox:
+				hurtbox.set_deferred("monitoring", true)
+				hurtbox.set_deferred("monitorable", true)
 			set_physics_process(true)
 			set_process(true)
 			rotation_degrees = 0

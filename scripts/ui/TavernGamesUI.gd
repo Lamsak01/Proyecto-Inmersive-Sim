@@ -47,6 +47,7 @@ var poker_npc1_folded: bool = false
 var poker_npc2_folded: bool = false
 var poker_npc_bluffing: Array[bool] = [false, false]
 var poker_pot: int = 0
+var poker_player_invested: int = 0
 var portrait_cards: Array[Control] = []
 
 # --- ESTADO DE BLACKJACK (21 — Reglas Reales S17, 3:2, Double Down y Surrender) ---
@@ -269,11 +270,11 @@ func close_games() -> void:
 	if not visible:
 		return
 	# Si el jugador cierra el salón con ESC mientras había una mano/giro en curso, reembolsar su apuesta activa
-	if poker_stage in [PokerStage.PRE_FLOP, PokerStage.FLOP, PokerStage.TURN, PokerStage.RIVER] and poker_pot > 0:
-		var refund_p: int = maxi(5, int(poker_pot / 3))
-		_add_player_gold(refund_p)
+	if poker_stage in [PokerStage.PRE_FLOP, PokerStage.FLOP, PokerStage.TURN, PokerStage.RIVER] and poker_player_invested > 0:
+		_add_player_gold(poker_player_invested)
 		poker_stage = PokerStage.IDLE
 		poker_pot = 0
+		poker_player_invested = 0
 	if bj_stage == BJStage.PLAYER_TURN and bj_bet > 0:
 		_add_player_gold(bj_bet)
 		bj_stage = BJStage.IDLE
@@ -472,11 +473,18 @@ func _create_card_row(row_title: String, cards: Array[Dictionary], hide_all: boo
 func _switch_tab(new_tab: GameTab) -> void:
 	if roulette_spinning:
 		return
+	# Si el jugador pulsa la tecla de la pestaña que ya está abierta mientras hay una mano activa, no reiniciar la mano
+	if current_tab == new_tab:
+		if current_tab == GameTab.POKER and poker_stage in [PokerStage.PRE_FLOP, PokerStage.FLOP, PokerStage.TURN, PokerStage.RIVER]:
+			return
+		if current_tab == GameTab.BLACKJACK and bj_stage == BJStage.PLAYER_TURN:
+			return
 	if current_tab != new_tab:
-		if poker_stage != PokerStage.IDLE and poker_stage != PokerStage.SHOWDOWN and poker_pot > 0:
-			_add_player_gold(maxi(0, int(poker_pot / 3)))
+		if poker_stage != PokerStage.IDLE and poker_stage != PokerStage.SHOWDOWN and poker_player_invested > 0:
+			_add_player_gold(poker_player_invested)
 			poker_stage = PokerStage.IDLE
 			poker_pot = 0
+			poker_player_invested = 0
 		if bj_stage == BJStage.PLAYER_TURN and bj_bet > 0:
 			_add_player_gold(bj_bet)
 			bj_stage = BJStage.IDLE
@@ -753,6 +761,7 @@ func _start_poker_hand() -> void:
 		return
 	_add_player_gold(-5)
 	poker_pot = 15
+	poker_player_invested = 5
 	poker_deck = _build_shuffled_deck()
 	poker_community.clear()
 	poker_player_hand = [poker_deck.pop_back(), poker_deck.pop_back()]
@@ -778,6 +787,7 @@ func _poker_player_bet(raise_amt: int) -> void:
 			return
 		_add_player_gold(-raise_amt)
 		poker_pot += raise_amt
+		poker_player_invested += raise_amt
 
 		if not poker_npc1_folded:
 			var dec1: Dictionary = _decide_npc_poker_action(0, poker_npc1_hand, poker_community, raise_amt)
@@ -809,6 +819,7 @@ func _poker_player_bet(raise_amt: int) -> void:
 
 	if poker_npc1_folded and poker_npc2_folded:
 		_add_player_gold(poker_pot)
+		poker_player_invested = 0
 		status_msg_lbl.text = "🏆 ¡Ambos rivales se retiraron! Te llevas el bote de %d Oro." % poker_pot
 		poker_stage = PokerStage.SHOWDOWN
 		_reward_social_with_table_npcs(2, "Jugó una mano emocionante de Póker (+8)")
@@ -832,11 +843,13 @@ func _poker_player_bet(raise_amt: int) -> void:
 			status_msg_lbl.text = "River (5.ª y última carta en mesa). Última ronda de apuestas."
 		PokerStage.RIVER:
 			poker_stage = PokerStage.SHOWDOWN
+			poker_player_invested = 0
 			_resolve_poker_showdown()
 	_render_poker_ui()
 
 func _poker_player_fold() -> void:
 	poker_stage = PokerStage.SHOWDOWN
+	poker_player_invested = 0
 	var winner_npc := _get_npc_name(0) if not poker_npc1_folded else _get_npc_name(1)
 	status_msg_lbl.text = "🏳️ Te retiraste de la mano. %s se lleva el bote de %d Oro." % [winner_npc, poker_pot]
 	_reward_social_with_table_npcs(3, "Ganó un bote de Póker en la Posada (+12)")

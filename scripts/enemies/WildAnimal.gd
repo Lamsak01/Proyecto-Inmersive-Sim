@@ -1218,6 +1218,11 @@ func from_save_dict(data: Dictionary) -> void:
 		if state == AnimalState.IN_BURROW:
 			_exit_burrow()
 		state = AnimalState.GRAZE
+		boar_aggressor = null
+		boar_aggro_timer = 0.0
+		hits_taken_count = 0
+		food_target = null
+		mate_target = null
 		if not is_in_group("wild_animals"):
 			add_to_group("wild_animals")
 		if sprite:

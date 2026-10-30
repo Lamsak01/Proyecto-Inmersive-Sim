@@ -297,10 +297,9 @@ func _respawn_enemy() -> void:
 		add_to_group("enemies")
 	if health_comp:
 		health_comp.current_health = health_comp.max_health
-		health_comp.current_blood = 0.0
-		health_comp.is_bleeding = false
+		health_comp.stop_bleeding()
 	if stun_comp:
-		stun_comp.current_stun = 0.0
+		stun_comp.clear_stun()
 	if vision_cone:
 		vision_cone.visible = true
 	if alert_indicator:
@@ -309,6 +308,8 @@ func _respawn_enemy() -> void:
 		ai.current_state = EnemyAI.State.IDLE
 		ai.target = null
 		ai.awareness_level = 0.0
+		if ai.has_method("_clear_ghost"):
+			ai._clear_ghost()
 		ai.set_physics_process(true)
 	set_physics_process(true)
 	if anim and anim.sprite_frames:
@@ -332,11 +333,17 @@ func from_save_dict(data: Dictionary) -> void:
 	if is_dead_flag:
 		set_physics_process(false)
 		if ai:
+			if ai.has_method("_clear_ghost"):
+				ai._clear_ghost()
 			ai.set_physics_process(false)
+		if hurtbox:
+			hurtbox.set_deferred("monitoring", false)
+			hurtbox.set_deferred("monitorable", false)
 		visible = false
 		collision_layer = 0
 		collision_mask = 0
 		remove_from_group("enemies")
+		remove_from_group("has_los_to_player")
 	else:
 		_respawn_enemy()
 		if data.has("pos_x") and data.has("pos_y"):

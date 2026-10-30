@@ -411,6 +411,7 @@ func _draw() -> void:
 
 func _complete_catch(player: Node2D) -> void:
 	state = FishState.IDLE
+	_active_fisher = null
 	queue_redraw()
 	if bobber_poly:
 		bobber_poly.visible = false
@@ -431,12 +432,18 @@ func _complete_catch(player: Node2D) -> void:
 
 func _cancel_fishing(msg: String) -> void:
 	state = FishState.IDLE
+	_active_fisher = null
 	queue_redraw()
 	if bobber_poly:
 		bobber_poly.visible = false
 	if fishing_line:
 		fishing_line.visible = false
-	_spawn_floating_text(msg, Color(0.95, 0.75, 0.45), -22.0)
+	if msg != "":
+		_spawn_floating_text(msg, Color(0.95, 0.75, 0.45), -22.0)
+
+func cancel_fishing() -> void:
+	if state != FishState.IDLE:
+		_cancel_fishing("")
 
 func _spawn_floating_text(text: String, color: Color, offset_y: float = -28.0) -> void:
 	if FloatingTextScene:

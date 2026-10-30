@@ -467,7 +467,7 @@ func _load_64_tex(res_path: String) -> Texture2D:
 			return ImageTexture.create_from_image(img)
 	return null
 
-func _resolve_unique_64_visuals_and_lore(fallback_tex: Texture2D) -> void:
+func _resolve_unique_64_visuals_and_lore(fallback_tex: Texture2D = null) -> void:
 	var key := "aldric"
 	var clean_name := npc_name.strip_edges()
 
@@ -2747,6 +2747,10 @@ func revive_from_downed(rescuer: Node, used_surgical_kit: bool = false) -> void:
 	bleedout_timer = 0.0
 	is_hostile = false
 	remove_from_group("enemies")
+	if hurtbox and hurtbox.get_child_count() > 0:
+		var hcol := hurtbox.get_child(0) as CollisionShape2D
+		if hcol:
+			hcol.set_deferred("disabled", false)
 	if health_comp:
 		health_comp.current_health = health_comp.max_health * (0.85 if used_surgical_kit else 0.65)
 	if not used_surgical_kit:
@@ -2799,6 +2803,10 @@ func _confirm_true_death() -> void:
 	remove_from_group("enemies")
 	if body_col:
 		body_col.set_deferred("disabled", true)
+	if hurtbox and hurtbox.get_child_count() > 0:
+		var hcol_dead := hurtbox.get_child(0) as CollisionShape2D
+		if hcol_dead:
+			hcol_dead.set_deferred("disabled", true)
 	# Mantener InteractArea activa mientras el cadáver yace en el suelo para que el jugador pueda reportarlo con [E]
 	if interact_area and interact_area.get_child_count() > 0:
 		var ic := interact_area.get_child(0) as CollisionShape2D
@@ -3761,6 +3769,10 @@ func from_save_dict(data: Dictionary) -> void:
 		death_minute = int(data.get("death_minute", 0))
 		if body_col:
 			body_col.set_deferred("disabled", true)
+		if hurtbox and hurtbox.get_child_count() > 0:
+			var hcol_d := hurtbox.get_child(0) as CollisionShape2D
+			if hcol_d:
+				hcol_d.set_deferred("disabled", true)
 		if interact_area and interact_area.get_child_count() > 0:
 			var ic := interact_area.get_child(0) as CollisionShape2D
 			if ic:
@@ -3774,21 +3786,39 @@ func from_save_dict(data: Dictionary) -> void:
 		is_dead = false
 		is_downed = false
 		bleedout_timer = 0.0
+		sedated_timer = 0.0
+		is_stunned_flag = false
+		is_sleeping = false
+		set_poker_seating(false)
 		corpse_on_ground = false
 		corpse_discovered = false
 		corpse_reported = false
 		corpse_in_morgue = false
 		is_hostile = bool(data.get("is_hostile", false))
+		if is_hostile:
+			if not is_in_group("enemies"):
+				add_to_group("enemies")
+		else:
+			remove_from_group("enemies")
 		if body_col:
-			body_col.set_deferred("disabled", false)
+			body_col.set_deferred("disabled", not is_hostile)
+		if hurtbox and hurtbox.get_child_count() > 0:
+			var hcol_a := hurtbox.get_child(0) as CollisionShape2D
+			if hcol_a:
+				hcol_a.set_deferred("disabled", false)
 		if interact_area and interact_area.get_child_count() > 0:
 			var ic := interact_area.get_child(0) as CollisionShape2D
 			if ic:
 				ic.set_deferred("disabled", false)
+		_resolve_unique_64_visuals_and_lore()
 		if sprite:
 			sprite.visible = true
 			sprite.z_index = 0
 			sprite.rotation_degrees = 0.0
 			sprite.modulate = Color.WHITE
-		if health_comp and data.has("hp"):
-			health_comp.current_health = clampf(float(data["hp"]), 1.0, health_comp.max_health)
+		if stun_comp:
+			stun_comp.clear_stun()
+		if health_comp:
+			health_comp.stop_bleeding()
+			if data.has("hp"):
+				health_comp.current_health = clampf(float(data["hp"]), 1.0, health_comp.max_health)

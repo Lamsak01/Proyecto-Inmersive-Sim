@@ -792,11 +792,18 @@ func from_save_dict(data: Dictionary) -> void:
 		stam_comp.current_stamina = clamp(float(data["stamina"]), 0.0, stam_comp.max_stamina)
 		stam_comp.stamina_changed.emit(stam_comp.current_stamina, stam_comp.max_stamina)
 	if survival_comp:
+		survival_comp.is_sitting_resting = false
 		if data.has("hunger"):
 			survival_comp.current_hunger = clampf(float(data["hunger"]), 0.0, survival_comp.max_hunger)
 		if data.has("sleep"):
 			survival_comp.current_sleep = clampf(float(data["sleep"]), 0.0, survival_comp.max_sleep)
 		survival_comp._emit_all()
+	if combat_ctrl:
+		combat_ctrl.is_aiming = false
+		combat_ctrl.is_blocking = false
+		combat_ctrl.bow_draw_time = 0.0
+		if combat_ctrl.has_method("_stop_attack"):
+			combat_ctrl._stop_attack()
 	if data.has("watering_can_charges"):
 		watering_can_charges = clampi(int(data["watering_can_charges"]), 0, max_water_charges)
 	var weapon_id: String = str(data.get("weapon", "sword"))

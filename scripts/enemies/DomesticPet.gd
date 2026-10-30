@@ -348,6 +348,11 @@ func take_damage(data: DamageData) -> void:
 				if w != null:
 					vm.wanted_level = clampi(int(vm.wanted_level) + 1, 1, 5)
 					vm.bounty_gold = int(vm.bounty_gold) + 20
+					var pet_crime_msg := "🚨👁️ ¡%s vio al Forastero atacar a la mascota %s! (+20 Oro de multa)" % [w.npc_name, pet_name]
+					if "crime_history" in vm and typeof(vm.crime_history) == TYPE_ARRAY:
+						vm.crime_history.push_front(pet_crime_msg)
+					if vm.has_method("_notify_inquisitor_of_police_crime"):
+						vm.call("_notify_inquisitor_of_police_crime", pet_crime_msg, 12)
 					_spawn_floating_text("🚨👁️ ¡%s te vio atacar a %s! (+20 Oro multa)" % [w.npc_name, pet_name], Color.ORANGE_RED)
 
 	if pet_type == PetType.DOG:
@@ -576,12 +581,24 @@ func from_save_dict(data: Dictionary) -> void:
 	if dead_s:
 		_on_died()
 		corpse_looted = bool(data.get("corpse_looted", false))
-		if corpse_looted:
-			visible = false
+		visible = not corpse_looted
+		if interact_area and interact_area.get_child_count() > 0:
+			var ic_dead := interact_area.get_child(0) as CollisionShape2D
+			if ic_dead:
+				ic_dead.set_deferred("disabled", corpse_looted)
 	else:
 		is_dead = false
 		corpse_looted = false
+		is_hostile = false
+		_hostile_timer = 0.0
+		_flee_timer = 0.0
+		is_stunned_flag = false
+		remove_from_group("enemies")
 		visible = true
+		if interact_area and interact_area.get_child_count() > 0:
+			var ic_alive := interact_area.get_child(0) as CollisionShape2D
+			if ic_alive:
+				ic_alive.set_deferred("disabled", false)
 		if hurtbox and hurtbox.get_child_count() > 0:
 			var hcol := hurtbox.get_child(0) as CollisionShape2D
 			if hcol:
@@ -589,5 +606,9 @@ func from_save_dict(data: Dictionary) -> void:
 		if sprite:
 			sprite.rotation_degrees = 0.0
 			sprite.modulate = tint_color
-		if health_comp and data.has("hp"):
-			health_comp.current_health = clampf(float(data["hp"]), 1.0, health_comp.max_health)
+		if stun_comp:
+			stun_comp.clear_stun()
+		if health_comp:
+			health_comp.stop_bleeding()
+			if data.has("hp"):
+				health_comp.current_health = clampf(float(data["hp"]), 1.0, health_comp.max_health)

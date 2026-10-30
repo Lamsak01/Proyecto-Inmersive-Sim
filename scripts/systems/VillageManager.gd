@@ -243,7 +243,7 @@ func _process(delta: float) -> void:
 	if not _deployed_bear_traps.is_empty():
 		_update_deployed_bear_traps(delta, player)
 
-	# Actualizar temporizadores de paso de puertas cada fotograma, pero throttlear las etiquetas UI a ~12.5 Hz
+	# Actualizar temporizadores de paso de puertas y ventanas cada fotograma, pero throttlear las etiquetas UI a ~12.5 Hz
 	for d_entry in building_doors:
 		var m_timer: float = float(d_entry.get("manual_override_timer", 0.0))
 		if m_timer > 0.0:
@@ -254,6 +254,11 @@ func _process(delta: float) -> void:
 		var now_npc_passing: bool = float(d_entry.get("npc_pass_timer", 0.0)) > 0.0
 		if was_npc_passing != now_npc_passing:
 			_refresh_door_visual_and_collision(d_entry)
+
+	for w_entry in building_windows:
+		var wm_timer: float = float(w_entry.get("manual_override_timer", 0.0))
+		if wm_timer > 0.0:
+			w_entry["manual_override_timer"] = maxf(0.0, wm_timer - delta)
 
 	_ui_hover_timer -= delta
 	if _ui_hover_timer > 0.0:
@@ -582,7 +587,8 @@ func _spawn_building_door_and_window(
 		"door_south": door_on_south,
 		"sprite": spr_win,
 		"label": w_lbl,
-		"is_shuttered": false
+		"is_shuttered": false,
+		"manual_override_timer": 0.0
 	})
 
 func _add_solid_wall_segment(pos: Vector2, sz: Vector2, tex: Texture2D, blocks_vision: bool = true) -> void:
@@ -2306,6 +2312,15 @@ func register_npc_death_and_corpse(
 		_bury_corpse_in_cemetery(record, "Sepultura directa (Morgue al límite de 3/3 camillas)")
 		_refresh_morgue_table_sprites()
 
+	# Si el Inquisidor Real Alistair está activo en el valle, re-cruzar los expedientes de la Morgue y Comisaría con el nuevo cadáver registrado
+	if bool(active_royal_investigation.get("active", false)) and is_instance_valid(_royal_investigator_npc):
+		active_royal_investigation["morgue_checked"] = false
+		_cross_check_morgue_and_police_records(
+			_royal_investigator_npc,
+			active_royal_investigation.get("suspects", {}),
+			active_royal_investigation.get("clues_log", [])
+		)
+
 	var player = get_tree().get_first_node_in_group("player")
 	if player and player.has_method("show_hint"):
 		if buried_directly:
@@ -3230,6 +3245,8 @@ func _apply_hourly_door_security_schedule(hour: int) -> void:
 					_set_door_state(d_entry, false, day_lock, false)
 
 	for w_entry in building_windows:
+		if float(w_entry.get("manual_override_timer", 0.0)) > 0.0:
+			continue
 		var wb_id: String = str(w_entry.get("building_id", ""))
 		var w_aff: int = _get_building_family_affinity(wb_id)
 		var should_shutter: bool = ((hour >= 21 or hour < 6) and sec_lvl >= 1) or (sec_lvl >= 2) or (w_aff < 0)
@@ -3440,6 +3457,7 @@ func force_lock_or_shutter_by_player(player: Node2D) -> bool:
 			bounty_gold += 20
 			var msg := "🚨👁️ ¡%s te vio forzar la cerradura de %s! (+20 Oro de multa)" % [witness.npc_name, b_title]
 			crime_history.push_front(msg)
+			_notify_inquisitor_of_police_crime(msg, 12)
 			if player.has_method("_spawn_floating_text"):
 				player._spawn_floating_text(msg, Color.ORANGE_RED, -46.0)
 		return true
@@ -3454,6 +3472,7 @@ func force_lock_or_shutter_by_player(player: Node2D) -> bool:
 		var player_inside: bool = b_rect.has_point(player.global_position)
 		if not player_inside and bool(w_entry.get("is_shuttered", false)):
 			w_entry["is_shuttered"] = false
+			w_entry["manual_override_timer"] = 120.0
 			recent_breakins_count += 1
 			var w_spr: Sprite2D = w_entry.get("sprite")
 			if is_instance_valid(w_spr):
@@ -3466,8 +3485,11 @@ func force_lock_or_shutter_by_player(player: Node2D) -> bool:
 			if witness2 != null:
 				wanted_level = clampi(wanted_level + 1, 1, 5)
 				bounty_gold += 20
+				var w_msg := "🚨👁️ ¡%s te vio forzar la ventana de %s! (+20 Oro de multa)" % [witness2.npc_name, wb_title]
+				crime_history.push_front(w_msg)
+				_notify_inquisitor_of_police_crime(w_msg, 12)
 				if player.has_method("_spawn_floating_text"):
-					player._spawn_floating_text("🚨👁️ ¡%s te vio forzar la ventana de %s! (+20 Oro)" % [witness2.npc_name, wb_title], Color.ORANGE_RED, -46.0)
+					player._spawn_floating_text(w_msg, Color.ORANGE_RED, -46.0)
 			else:
 				if player.has_method("_spawn_floating_text"):
 					player._spawn_floating_text("🪟🔓 Forzaste el postigo con [F] y entraste por la ventana", Color.SPRING_GREEN, -44.0)
@@ -3558,6 +3580,10 @@ func _interact_house_chest(player: Node2D, ch: Dictionary) -> void:
 		wanted_level = clampi(wanted_level + 1, 1, 5)
 		bounty_gold += 30
 		var fam_id: String = str(ch.get("family_id", "none"))
+		var ch_title: String = str(ch.get("title", "Cofre"))
+		var chest_crime_msg := "🚨👁️ ¡%s vio al Forastero saquear %s! (+30 Oro de multa)" % [witness.npc_name, ch_title]
+		crime_history.push_front(chest_crime_msg)
+		_notify_inquisitor_of_police_crime(chest_crime_msg, 15)
 		modify_family_reputation(fam_id, -35, "Robo de cofre visto por " + witness.npc_name)
 		if player.has_method("_spawn_floating_text"):
 			player._spawn_floating_text("🚨👁️ ¡%s te vio forzar el cofre! (+30 Oro de multa policial)" % witness.npc_name, Color.ORANGE_RED, -46.0)
@@ -5845,7 +5871,7 @@ func get_economy_save_dict() -> Dictionary:
 			saved_pets.append(p.to_save_dict())
 	var saved_chests: Dictionary = {}
 	for ch in house_chests:
-		var ch_id: String = str(ch.get("family_id", ch.get("id", "")))
+		var ch_id: String = str(ch.get("title", ch.get("family_id", ch.get("id", ""))))
 		if ch_id != "":
 			saved_chests[ch_id] = int(ch.get("looted_day", -1))
 	var saved_doors: Dictionary = {}
@@ -5856,6 +5882,7 @@ func get_economy_save_dict() -> Dictionary:
 				"is_open": bool(d_entry.get("is_open", false)),
 				"is_locked": bool(d_entry.get("is_locked", false)),
 				"locked_by_player": bool(d_entry.get("locked_by_player", false)),
+				"manual_override_timer": float(d_entry.get("manual_override_timer", 0.0)),
 				"picked_until_hour": int(d_entry.get("picked_until_hour", -1)),
 				"picked_day": int(d_entry.get("picked_day", -1))
 			}
@@ -5865,6 +5892,7 @@ func get_economy_save_dict() -> Dictionary:
 		if w_id != "":
 			saved_windows[w_id] = {
 				"is_shuttered": bool(w_entry.get("is_shuttered", false)),
+				"manual_override_timer": float(w_entry.get("manual_override_timer", 0.0)),
 				"picked_until_hour": int(w_entry.get("picked_until_hour", -1)),
 				"picked_day": int(w_entry.get("picked_day", -1))
 			}
@@ -5900,13 +5928,20 @@ func load_economy_save_dict(data: Dictionary) -> void:
 		var sc: Dictionary = data["house_chests"]
 		var cur_d: int = WorldClock.current_day if WorldClock else 1
 		for ch in house_chests:
-			var ch_id: String = str(ch.get("family_id", ch.get("id", "")))
-			if sc.has(ch_id):
-				ch["looted_day"] = int(sc[ch_id])
+			var ch_title_key: String = str(ch.get("title", ""))
+			var ch_fam_key: String = str(ch.get("family_id", ch.get("id", "")))
+			var match_key: String = ch_title_key if sc.has(ch_title_key) else (ch_fam_key if sc.has(ch_fam_key) else "")
+			if match_key != "":
+				ch["looted_day"] = int(sc[match_key])
 				var spr: Sprite2D = ch.get("sprite")
 				if is_instance_valid(spr):
 					var is_open: bool = (int(ch["looted_day"]) == cur_d)
 					spr.texture = _load_tex("res://assests/world/village/house_chest_open.png" if is_open else "res://assests/world/village/house_chest_closed.png")
+			else:
+				ch["looted_day"] = -1
+				var spr_def: Sprite2D = ch.get("sprite")
+				if is_instance_valid(spr_def):
+					spr_def.texture = _load_tex("res://assests/world/village/house_chest_closed.png")
 	if data.has("building_doors") and typeof(data["building_doors"]) == TYPE_DICTIONARY:
 		var sd: Dictionary = data["building_doors"]
 		for d_entry in building_doors:
@@ -5916,19 +5951,21 @@ func load_economy_save_dict(data: Dictionary) -> void:
 				d_entry["is_open"] = bool(de.get("is_open", false))
 				d_entry["is_locked"] = bool(de.get("is_locked", false))
 				d_entry["locked_by_player"] = bool(de.get("locked_by_player", false))
+				d_entry["manual_override_timer"] = float(de.get("manual_override_timer", 0.0))
 				d_entry["picked_until_hour"] = int(de.get("picked_until_hour", -1))
 				d_entry["picked_day"] = int(de.get("picked_day", -1))
 				_refresh_door_visual_and_collision(d_entry)
 	if data.has("building_windows") and typeof(data["building_windows"]) == TYPE_DICTIONARY:
 		var sw: Dictionary = data["building_windows"]
-		var tex_win_open := _load_tex("res://assests/world/village/window_wood_open.png")
-		var tex_win_shut := _load_tex("res://assests/world/village/window_wood_shuttered.png")
+		var tex_win_open := _load_tex("res://assests/world/village/window_glass_open.png")
+		var tex_win_shut := _load_tex("res://assests/world/village/window_shutter_closed.png")
 		for w_entry in building_windows:
 			var w_id: String = str(w_entry.get("building_id", w_entry.get("id", "")))
 			if sw.has(w_id) and typeof(sw[w_id]) == TYPE_DICTIONARY:
 				var we: Dictionary = sw[w_id]
 				var shut: bool = bool(we.get("is_shuttered", we.get("is_locked", false)))
 				w_entry["is_shuttered"] = shut
+				w_entry["manual_override_timer"] = float(we.get("manual_override_timer", 0.0))
 				w_entry["picked_until_hour"] = int(we.get("picked_until_hour", -1))
 				w_entry["picked_day"] = int(we.get("picked_day", -1))
 				var w_spr: Sprite2D = w_entry.get("sprite")
@@ -5950,8 +5987,19 @@ func load_economy_save_dict(data: Dictionary) -> void:
 		merchant_suspension_days = (data["merchant_suspension_days"] as Dictionary).duplicate()
 	if data.has("active_traveling_merchant") and typeof(data["active_traveling_merchant"]) == TYPE_DICTIONARY:
 		var m_data: Dictionary = data["active_traveling_merchant"] as Dictionary
-		if not m_data.is_empty():
+		if m_data.is_empty():
+			if is_instance_valid(_active_traveling_merchant):
+				_active_traveling_merchant.remove_from_group("village_npcs")
+				_active_traveling_merchant.remove_from_group("npcs")
+				_active_traveling_merchant.queue_free()
+				_active_traveling_merchant = null
+		else:
 			var m_id_saved: String = str(m_data.get("merchant_id", "casimir"))
+			if is_instance_valid(_active_traveling_merchant) and (_active_traveling_merchant.merchant_id != m_id_saved or _active_traveling_merchant.is_dead):
+				_active_traveling_merchant.remove_from_group("village_npcs")
+				_active_traveling_merchant.remove_from_group("npcs")
+				_active_traveling_merchant.queue_free()
+				_active_traveling_merchant = null
 			if not is_instance_valid(_active_traveling_merchant):
 				_check_weekly_merchant_arrival(3 if m_id_saved == "casimir" else 6, true)
 			if is_instance_valid(_active_traveling_merchant):
@@ -5964,6 +6012,12 @@ func load_economy_save_dict(data: Dictionary) -> void:
 				var inv_data: Dictionary = data["royal_investigator_npc"] as Dictionary
 				if not inv_data.is_empty():
 					_royal_investigator_npc.from_save_dict(inv_data)
+		else:
+			if is_instance_valid(_royal_investigator_npc):
+				_royal_investigator_npc.remove_from_group("village_npcs")
+				_royal_investigator_npc.remove_from_group("npcs")
+				_royal_investigator_npc.queue_free()
+				_royal_investigator_npc = null
 	if data.has("domestic_pets") and typeof(data["domestic_pets"]) == TYPE_ARRAY:
 		var p_arr: Array = data["domestic_pets"] as Array
 		for p_item in p_arr:
@@ -5997,6 +6051,8 @@ func load_economy_save_dict(data: Dictionary) -> void:
 	reconcile_npc_registries_after_load()
 
 func reconcile_npc_registries_after_load() -> void:
+	trade_npcs.clear()
+	family_npcs.clear()
 	unemployed_npcs.clear()
 	for n in get_tree().get_nodes_in_group("village_npcs"):
 		if n is VillageNPC:

@@ -43,7 +43,13 @@ func _on_objective_added(objective: Objective) -> void:
 
 func _on_objective_updated(objective: Objective) -> void:
     var label = objectives_container.get_node_or_null(objective.id)
-    if label and not objective.is_completed:
+    if not objective.is_completed:
+        if not is_instance_valid(label) or label.has_meta("completed_anim_started"):
+            if is_instance_valid(label):
+                label.name = objective.id + "_old"
+                label.queue_free()
+            _on_objective_added(objective)
+            return
         _update_label_text(label, objective)
 
 func _update_label_text(label: Label, objective: Objective) -> void:

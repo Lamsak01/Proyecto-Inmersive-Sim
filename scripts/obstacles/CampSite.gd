@@ -243,6 +243,7 @@ func _setup_tent_and_house() -> void:
 func _rebuild_house_visuals() -> void:
 	if not house_root:
 		return
+	chest_sprite = null
 	for c in house_root.get_children():
 		c.queue_free()
 

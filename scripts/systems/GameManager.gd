@@ -131,7 +131,9 @@ func load_game(filepath: String = SAVE_FILE_PATH) -> bool:
 		var dm = scene_root.get_node_or_null("Systems/dialogue_manager")
 		if dm and dm.has_method("is_active") and bool(dm.call("is_active")) and dm.has_method("end_dialogue"):
 			dm.call("end_dialogue")
-		var ui_root = scene_root.get_node_or_null("UI")
+		var ui_root = scene_root.get_node_or_null("UI/UIRoot")
+		if not ui_root:
+			ui_root = scene_root.get_node_or_null("UI")
 		if ui_root:
 			var tg = ui_root.get("tavern_games")
 			if tg and tg.visible and tg.has_method("close_games"):
@@ -140,16 +142,30 @@ func load_game(filepath: String = SAVE_FILE_PATH) -> bool:
 			if inv_p is Control:
 				inv_p.visible = false
 			var v_map = ui_root.get("valley_map")
-			if v_map and "is_full_map_open" in v_map:
-				v_map.is_full_map_open = false
+			if v_map:
+				if bool(v_map.get("is_full_map_open")) and v_map.has_method("close_full_map"):
+					v_map.call("close_full_map")
+				elif "is_full_map_open" in v_map:
+					v_map.is_full_map_open = false
+			var tw = ui_root.get("tool_wheel")
+			if tw:
+				if tw.has_method("close_wheel"):
+					tw.call("close_wheel", false)
+				elif tw is Control:
+					tw.visible = false
 		var camp_node = scene_root.find_child("PlayerCampSite", true, false)
 		if camp_node:
-			if "is_player_sitting" in camp_node:
+			if bool(camp_node.get("is_player_sitting")) and camp_node.has_method("_stand_up_player"):
+				camp_node.call("_stand_up_player")
+			elif "is_player_sitting" in camp_node:
 				camp_node.is_player_sitting = false
 			for cp_name in ["sleep_confirm_panel", "upgrade_panel", "chest_panel"]:
 				var cp = camp_node.get(cp_name)
 				if cp is Control:
 					cp.visible = false
+		var fish_node = scene_root.find_child("WestFishingLake", true, false)
+		if fish_node and fish_node.has_method("cancel_fishing"):
+			fish_node.call("cancel_fishing")
 	var coop_node = get_tree().get_first_node_in_group("chicken_coop")
 	if coop_node:
 		var coop_p = coop_node.get("chicken_action_panel")
@@ -171,7 +187,9 @@ func load_game(filepath: String = SAVE_FILE_PATH) -> bool:
 	for obj in get_tree().get_nodes_in_group("destructible"):
 		if is_instance_valid(obj) and not (obj is HarvestableNode) and "persistence_id" in obj and obj.persistence_id != "":
 			var flag_val = get_flag(obj.persistence_id, false)
-			if typeof(flag_val) == TYPE_BOOL and flag_val == true:
+			if obj.has_method("set_destroyed_state"):
+				obj.call("set_destroyed_state", typeof(flag_val) == TYPE_BOOL and flag_val == true)
+			elif typeof(flag_val) == TYPE_BOOL and flag_val == true:
 				obj.queue_free()
 
 	# 2. Restaurar Reloj del Mundo e iluminación
@@ -190,6 +208,13 @@ func load_game(filepath: String = SAVE_FILE_PATH) -> bool:
 			var path_key := str(npc.get_path())
 			if saved_npcs.has(path_key):
 				npc.from_save_dict(saved_npcs[path_key])
+			else:
+				var n_str := str(npc.name)
+				if n_str.begins_with("NPC_Newcomer_") or n_str.begins_with("NPC_Hired_") or n_str.begins_with("NPC_Traveler_") or n_str.begins_with("NPC_Rehired_") or n_str.begins_with("NPC_Innkeeper_"):
+					npc.remove_from_group("village_npcs")
+					npc.remove_from_group("npcs")
+					npc.remove_from_group("enemies")
+					npc.queue_free()
 
 	var saved_pets: Dictionary = data.get("domestic_pets", {})
 	for pet in get_tree().get_nodes_in_group("domestic_pets"):

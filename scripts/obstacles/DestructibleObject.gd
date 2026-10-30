@@ -22,11 +22,6 @@ func _ready() -> void:
 	if persistence_id == "":
 		persistence_id = "destructible_" + str(get_path())
 	
-	# Check persistence
-	if GameManager.get_flag(persistence_id, false) == true:
-		queue_free()
-		return
-
 	add_to_group("destructible")
 	if health_comp:
 		health_comp.died.connect(_on_died)
@@ -36,6 +31,10 @@ func _ready() -> void:
 		visual_node = $Sprite2D
 	if not root_to_free:
 		root_to_free = self
+
+	# Check persistence
+	if GameManager.get_flag(persistence_id, false) == true:
+		set_destroyed_state(true)
 
 func take_damage(data: DamageData) -> void:
 	# 1. Check vulnerabilities
@@ -91,7 +90,22 @@ func _on_died() -> void:
 		if player.has_method("_spawn_floating_text"):
 			player._spawn_floating_text("+1 %s" % player.inventory.get_item_name(drop_id), Color.WHEAT, -40.0)
 
-	if root_to_free:
-		root_to_free.queue_free()
-	else:
-		queue_free()
+	set_destroyed_state(true)
+
+func set_destroyed_state(destroyed: bool) -> void:
+	var target_root: Node = root_to_free if is_instance_valid(root_to_free) else self
+	if target_root is CanvasItem:
+		(target_root as CanvasItem).visible = not destroyed
+	visible = not destroyed
+	for child in get_children():
+		if child is CollisionShape2D:
+			(child as CollisionShape2D).set_deferred("disabled", destroyed)
+		elif child is Area2D:
+			var a := child as Area2D
+			a.set_deferred("monitoring", not destroyed)
+			a.set_deferred("monitorable", not destroyed)
+			for sub in a.get_children():
+				if sub is CollisionShape2D:
+					(sub as CollisionShape2D).set_deferred("disabled", destroyed)
+	if not destroyed and health_comp:
+		health_comp.current_health = health_comp.max_health
