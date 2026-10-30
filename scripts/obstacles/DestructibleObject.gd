@@ -18,6 +18,7 @@ enum Vulnerability {
 # We use the standard HealthComponent to track HP
 @onready var health_comp: HealthComponent = $HealthComponent
 var _base_modulate: Color = Color.WHITE
+var _last_damaged_by_player: bool = false
 
 func _ready() -> void:
 	if persistence_id == "":
@@ -48,6 +49,7 @@ func take_damage(data: DamageData) -> void:
 		return
 
 	# 2. Apply damage
+	_last_damaged_by_player = (data != null and is_instance_valid(data.source) and (data.source.is_in_group("player") or data.source.is_in_group("player_trap")))
 	if health_comp:
 		health_comp.take_damage(data)
 		if health_comp.current_health > 0 and AudioManager:
@@ -85,9 +87,9 @@ func _on_died() -> void:
 	if persistence_id != "":
 		GameManager.set_flag(persistence_id, true)
 
-	# Entregar recursos al inventario del jugador según el objeto destruido
+	# Entregar recursos al inventario del jugador solo si lo destruyó él o está cerca
 	var player = get_tree().get_first_node_in_group("player")
-	if player and "inventory" in player and player.inventory:
+	if player and "inventory" in player and player.inventory and (_last_damaged_by_player or global_position.distance_to(player.global_position) <= 180.0):
 		var drop_id := "stone" if vulnerability == Vulnerability.BLUNT_ONLY else "wood"
 		player.inventory.add_item(drop_id, 1)
 		if player.has_method("_spawn_floating_text"):

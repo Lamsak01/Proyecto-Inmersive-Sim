@@ -280,8 +280,10 @@ func _on_day_passed(_new_day: int) -> void:
 	var req_days: int = int(CROP_DATA[crop_type]["days"])
 	if is_watered and days_grown < req_days:
 		days_grown = min(req_days, days_grown + 1)
-	# La tierra vuelve a secarse salvo que hoy amanezca con lluvia
-	is_watered = (WorldClock != null and int(WorldClock.get("current_weather")) == 1)
+	# La tierra vuelve a secarse salvo que hoy amanezca con lluvia o el aspersor eléctrico esté activo
+	var camp_st: Variant = GameManager.get_flag("player_campsite_state", null) if GameManager else null
+	var sprk_on: bool = (typeof(camp_st) == TYPE_DICTIONARY) and bool((camp_st as Dictionary).get("sprinkler_installed", false)) and bool((camp_st as Dictionary).get("generator_active", false))
+	is_watered = (WorldClock != null and int(WorldClock.get("current_weather")) == 1) or sprk_on
 	_refresh_visuals()
 	_save_state()
 

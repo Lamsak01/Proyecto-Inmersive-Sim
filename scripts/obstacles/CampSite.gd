@@ -979,10 +979,13 @@ func _get_seat_prompt() -> String:
 func _save_state() -> void:
 	if Engine.is_editor_hint() or not GameManager:
 		return
+	var gen_unlocked: bool = generator_active or bool(GameManager.get_flag("generator_unlocked", false))
+	GameManager.set_flag("generator_unlocked", gen_unlocked)
 	GameManager.set_flag("electric_grid_active", generator_active)
 	GameManager.set_flag("player_campsite_state", {
 		"house_tier": house_tier,
 		"generator_active": generator_active,
+		"generator_unlocked": gen_unlocked,
 		"sprinkler_installed": sprinkler_installed,
 		"chest_gold": chest_gold_stored
 	})
@@ -996,6 +999,7 @@ func _load_saved_state() -> void:
 		generator_active = bool(saved.get("generator_active", false))
 		sprinkler_installed = bool(saved.get("sprinkler_installed", false))
 		chest_gold_stored = int(saved.get("chest_gold", 0))
+		GameManager.set_flag("generator_unlocked", generator_active or bool(saved.get("generator_unlocked", false)))
 		GameManager.set_flag("electric_grid_active", generator_active)
 		if sprinkler_sprite:
 			sprinkler_sprite.visible = sprinkler_installed

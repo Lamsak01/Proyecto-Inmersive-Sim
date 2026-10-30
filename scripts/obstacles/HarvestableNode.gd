@@ -283,11 +283,12 @@ func _regrow_node() -> void:
 func _on_day_passed(new_day: int) -> void:
 	if is_depleted and respawn_on_day > 0 and new_day >= respawn_on_day:
 		_regrow_node()
-	elif not is_depleted and harvest_type == HarvestType.FORAGE and animal_bites_left < max_animal_bites:
-		animal_bites_left = max_animal_bites
+	elif not is_depleted:
 		current_hp = max_hp
-		if sprite:
-			sprite.scale = _active_scale
+		if harvest_type == HarvestType.FORAGE and animal_bites_left < max_animal_bites:
+			animal_bites_left = max_animal_bites
+			if sprite:
+				sprite.scale = _active_scale
 
 func _on_game_loaded(_filepath: String) -> void:
 	if not Engine.is_editor_hint():

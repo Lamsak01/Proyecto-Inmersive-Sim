@@ -130,13 +130,18 @@ func get_relationship_color() -> Color:
 func take_damage(data: DamageData) -> void:
 	if is_dead:
 		return
-	# Si un aldeano es atacado, la relación cae drásticamente y se defiende
-	modify_affinity(-40)
-	if dialogue_manager and dialogue_manager.has_method("is_active") and dialogue_manager.call("is_active"):
-		dialogue_manager.call("end_dialogue")
-
-	if not is_attacking:
-		_trigger_attack()
+	var from_player: bool = (data != null and is_instance_valid(data.source) and (data.source.is_in_group("player") or data.source.is_in_group("player_trap")))
+	if from_player:
+		modify_affinity(-40)
+		if dialogue_manager and dialogue_manager.has_method("is_active") and dialogue_manager.call("is_active"):
+			dialogue_manager.call("end_dialogue")
+		if not is_attacking:
+			_trigger_attack()
+	elif data and is_instance_valid(data.source) and enemy_ai and enemy_ai.has_method("notify_damage"):
+		is_attacking = true
+		enemy_ai.set_process(true)
+		enemy_ai.set_physics_process(true)
+		enemy_ai.notify_damage(data.source)
 
 	if health_comp:
 		health_comp.take_damage(data)
@@ -148,6 +153,25 @@ func take_damage(data: DamageData) -> void:
 		await get_tree().create_timer(0.1).timeout
 		if is_instance_valid(self) and not is_dead and health_comp and health_comp.current_health > 0:
 			modulate = Color(0.5, 0.6, 1.0) if is_stunned_flag else Color.WHITE
+
+func knockout() -> void:
+	if is_dead:
+		return
+	if stun_comp:
+		var d := DamageData.new()
+		d.stun_buildup = stun_comp.max_stun
+		stun_comp.take_damage(d)
+
+func stealth_knockout(_player: Node = null) -> void:
+	knockout()
+
+func stealth_assassinate(_player: Node = null) -> void:
+	if is_dead:
+		return
+	if health_comp:
+		var d := DamageData.new()
+		d.amount = health_comp.max_health * 10.0
+		health_comp.take_damage(d)
 
 func _on_bleed_triggered(_dps: float) -> void:
 	_spawn_floating_text("BLEEDING!", Color.CRIMSON, -28.0)

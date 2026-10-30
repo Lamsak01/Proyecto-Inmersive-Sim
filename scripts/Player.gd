@@ -758,6 +758,11 @@ func to_save_dict() -> Dictionary:
 func from_save_dict(data: Dictionary) -> void:
 	if data.has("pos_x") and data.has("pos_y"):
 		global_position = Vector2(float(data["pos_x"]), float(data["pos_y"]))
+	velocity = Vector2.ZERO
+	last_damage_source = null
+	_hit_flash_timer = 0.0
+	if anim:
+		anim.modulate = Color.WHITE
 	speed_tonic_timer = float(data.get("speed_tonic_timer", 0.0))
 	paralytic_venom_timer = float(data.get("paralytic_venom_timer", 0.0))
 	if data.has("tool_tiers") and typeof(data["tool_tiers"]) == TYPE_DICTIONARY:

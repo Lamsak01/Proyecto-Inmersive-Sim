@@ -2712,13 +2712,14 @@ func take_damage(data: DamageData) -> void:
 				vm_exec.call("report_assault_crime", self)
 		return
 
-	modify_affinity(-35)
 	var vm = get_tree().get_first_node_in_group("village_manager")
-	if vm and last_hit_by_player:
-		if vm.has_method("modify_family_reputation") and family_id != "none":
-			vm.call("modify_family_reputation", family_id, -25, "Agresión a " + npc_name, self)
-		if vm.has_method("report_assault_crime"):
-			vm.call("report_assault_crime", self)
+	if last_hit_by_player:
+		modify_affinity(-35)
+		if vm:
+			if vm.has_method("modify_family_reputation") and family_id != "none":
+				vm.call("modify_family_reputation", family_id, -25, "Agresión a " + npc_name, self)
+			if vm.has_method("report_assault_crime"):
+				vm.call("report_assault_crime", self)
 
 	is_hostile = true
 	_civilian_hostile_timer = 14.0
@@ -3006,8 +3007,11 @@ func promote_to_trade(
 		family_name = new_family_name
 	shop_stock = inherited_stock.duplicate()
 	is_vagrant_camper = false
+	if is_at_poker_table:
+		set_poker_seating(false)
 	_init_workshop_materials()
 	_resolve_unique_64_visuals_and_lore(new_tex)
+	_sync_shop_stock_to_vm()
 	var vm_prom = _cached_vm if is_instance_valid(_cached_vm) else get_tree().get_first_node_in_group("village_manager")
 	if vm_prom and "vagrant_camp_nodes" in vm_prom and vm_prom.vagrant_camp_nodes.has(npc_name):
 		var c_node = vm_prom.vagrant_camp_nodes[npc_name]

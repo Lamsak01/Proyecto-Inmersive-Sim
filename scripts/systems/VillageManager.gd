@@ -2576,7 +2576,7 @@ func _on_church_pray_action(player: Node2D) -> void:
 	for n in get_tree().get_nodes_in_group("village_npcs"):
 		if n is VillageNPC:
 			var v := n as VillageNPC
-			if not v.is_dead:
+			if not v.is_dead and v.trade_role != VillageNPC.TradeRole.ROYAL_INVESTIGATOR:
 				v.affinity = clampi(v.affinity + 3, -100, 100)
 	if player.has_method("_spawn_floating_text"):
 		player._spawn_floating_text("🕯️🙏 Encendiste una vela por los difuntos (-5 Oro, +3 Afinidad en el pueblo)", Color(0.95, 0.88, 1.0), -44.0)
