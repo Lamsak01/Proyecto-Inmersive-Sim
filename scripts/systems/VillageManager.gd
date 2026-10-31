@@ -61,6 +61,7 @@ var player_murder_warrants_count: int = 0
 var player_in_jail: bool = false
 var player_being_escorted_to_jail: bool = false
 var escorting_officer: VillageNPC = null
+var _escort_elapsed_timer: float = 0.0
 const JAIL_MANDATORY_STAY_SECONDS: float = 10.0
 var jail_mandatory_stay_timer: float = 0.0
 var _last_confronting_officer: VillageNPC = null
@@ -189,20 +190,22 @@ func _process(delta: float) -> void:
 
 	# Escolta física policial hacia la celda de la Comisaría (Estilo Kenshi / Red Dead Redemption 2)
 	if player_being_escorted_to_jail and player:
+		_escort_elapsed_timer += real_delta
+		set_jail_cell_gate_locked(false)
 		if is_instance_valid(escorting_officer) and not escorting_officer.is_dead and not escorting_officer.is_downed and not escorting_officer.is_stunned_flag and escorting_officer.sedated_timer <= 0.0:
-			var follow_pos: Vector2 = escorting_officer.global_position + Vector2(-10, 6)
-			if player.global_position.distance_to(escorting_officer.global_position) > 30.0:
+			var follow_pos: Vector2 = escorting_officer.global_position + Vector2(-8, 6)
+			if player.global_position.distance_to(escorting_officer.global_position) > 28.0:
 				player.global_position = follow_pos
 			else:
-				player.global_position = player.global_position.move_toward(follow_pos, 92.0 * delta)
+				player.global_position = player.global_position.move_toward(follow_pos, 96.0 * delta)
 			if "velocity" in player:
 				player.velocity = Vector2.ZERO
-			if escorting_officer.global_position.distance_to(_jail_cell_pos) <= 22.0:
+			if escorting_officer.global_position.distance_to(_jail_cell_pos) <= 26.0 or player.global_position.distance_to(_jail_cell_pos) <= 24.0 or _escort_elapsed_timer >= 9.5:
 				complete_police_escort_to_jail(player)
 		else:
 			var nav_wp: Vector2 = get_navigation_waypoint(player.global_position, _jail_cell_pos, player)
-			player.global_position = player.global_position.move_toward(nav_wp, 74.0 * delta)
-			if player.global_position.distance_to(_jail_cell_pos) <= 20.0:
+			player.global_position = player.global_position.move_toward(nav_wp, 84.0 * delta)
+			if player.global_position.distance_to(_jail_cell_pos) <= 24.0 or _escort_elapsed_timer >= 9.5:
 				complete_police_escort_to_jail(player)
 
 	# Si el jugador está cumpliendo condena dentro de la celda de la cárcel, mantenerlo dentro y descontar el tiempo mínimo en celda
@@ -613,9 +616,9 @@ func _route_internal_building_partitions(b_id: String, from_pos: Vector2, target
 				return Vector2(745.0, 165.0 if absf(from_pos.x - 745.0) > 10.0 else 138.0)
 		"building_police":
 			if from_pos.y < 149.0 and target_pos.y > 155.0:
-				return Vector2(915.0, 138.0 if absf(from_pos.x - 915.0) > 9.0 else 165.0)
+				return Vector2(902.0, 138.0 if absf(from_pos.x - 902.0) > 9.0 else 165.0)
 			elif from_pos.y > 155.0 and target_pos.y < 149.0:
-				return Vector2(915.0, 165.0 if absf(from_pos.x - 915.0) > 9.0 else 138.0)
+				return Vector2(902.0, 165.0 if absf(from_pos.x - 902.0) > 9.0 else 138.0)
 	return target_pos
 
 func clamp_point_to_building_interior(ref_pos: Vector2, candidate_pos: Vector2) -> Vector2:
@@ -1827,8 +1830,10 @@ func start_police_escort_to_jail(player: Node2D, officer: VillageNPC = null) -> 
 	var chosen_officer: VillageNPC = officer if (officer != null and is_instance_valid(officer) and not officer.is_dead and not officer.is_downed and not officer.is_stunned_flag and officer.sedated_timer <= 0.0) else _find_nearest_police_officer(player.global_position)
 	player_being_escorted_to_jail = true
 	player_in_jail = false
+	_escort_elapsed_timer = 0.0
 	escorting_officer = chosen_officer
 	clear_police_hostility()
+	set_jail_cell_gate_locked(false)
 	if police_panel:
 		police_panel.visible = false
 	if "velocity" in player:
@@ -1837,6 +1842,11 @@ func start_police_escort_to_jail(player: Node2D, officer: VillageNPC = null) -> 
 		chosen_officer.is_sleeping = false
 		chosen_officer.sedated_timer = 0.0
 		chosen_officer.is_stunned_flag = false
+		if chosen_officer.body_col:
+			chosen_officer.body_col.disabled = true
+		if chosen_officer.health_comp:
+			chosen_officer.health_comp.stop_bleeding()
+			chosen_officer.health_comp.current_health = maxf(chosen_officer.health_comp.current_health, 28.0)
 		if chosen_officer.sprite:
 			chosen_officer.sprite.rotation_degrees = 0.0
 			chosen_officer.sprite.modulate = Color.WHITE

@@ -1040,8 +1040,9 @@ func _apply_player_and_doorway_yield(delta: float) -> void:
 
 func _move_towards_point(target_pos: Vector2, speed: float, delta: float = 0.016) -> void:
 	var vm = _get_vm()
+	var is_escorting_player: bool = vm != null and bool(vm.get("player_being_escorted_to_jail")) and vm.get("escorting_officer") == self
 	var leg_mult: float = health_comp.get_moving_capacity() if health_comp else 1.0
-	var eff_speed: float = speed * get_nutrition_speed_multiplier() * get_sleep_speed_multiplier() * leg_mult
+	var eff_speed: float = maxf(62.0, speed) if is_escorting_player else (speed * get_nutrition_speed_multiplier() * get_sleep_speed_multiplier() * leg_mult)
 
 	_nav_waypoint_timer -= delta
 	if (_nav_waypoint_timer <= 0.0) or (_cached_nav_waypoint == Vector2.INF) or (target_pos.distance_squared_to(_last_nav_dest) > 16.0) or (global_position.distance_squared_to(_cached_nav_waypoint) <= 20.0):
@@ -1100,7 +1101,7 @@ func _move_towards_point(target_pos: Vector2, speed: float, delta: float = 0.016
 		_cached_sep_vec = sep_vec
 
 	_last_frame_pos = global_position
-	velocity = (desired_vel + _cached_sep_vec).limit_length(eff_speed * 1.15)
+	velocity = desired_vel if is_escorting_player else (desired_vel + _cached_sep_vec).limit_length(eff_speed * 1.15)
 
 func _is_morning_expedition_hours() -> bool:
 	if not (trade_role in [TradeRole.BLACKSMITH, TradeRole.CARPENTER, TradeRole.HERBALIST, TradeRole.FISHMONGER, TradeRole.BUTCHER]) or not WorldClock or _completed_expedition_day == WorldClock.current_day:

@@ -41,7 +41,8 @@ func _physics_process(delta: float) -> void:
 			is_sprinting = false
 		player.velocity = Vector2.ZERO
 		_play_idle()
-		player.move_and_slide()
+		if not being_escorted:
+			player.move_and_slide()
 		return
 
 	# Block movement if stunned
