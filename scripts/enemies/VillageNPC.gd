@@ -2442,6 +2442,10 @@ func _on_died() -> void:
 		else: bleedout_timer = 58.0
 		_set_sprite_pose(82.0, Color(1.1, 0.42, 0.42, 0.95))
 		_spawn_floating_text("🩸 ¡%s AGONIZANDO! (%ds para salvarlo en el Hospital)" % [npc_name, int(bleedout_timer)], Color.ORANGE_RED, -44.0)
+		if last_hit_by_player and not ("Arco" in last_hit_weapon_name or "Envenenamiento" in last_hit_weapon_name):
+			var p_down := _get_player()
+			if p_down and p_down.has_method("add_bloodstain") and p_down.global_position.distance_to(global_position) <= 135.0:
+				p_down.call("add_bloodstain", 180.0)
 		return
 	_confirm_true_death()
 
@@ -2522,7 +2526,7 @@ func _confirm_true_death() -> void:
 	_spawn_floating_text("💀 %s ha muerto (El cuerpo yace en el lugar)" % npc_name, Color(0.88, 0.45, 0.45), -44.0)
 	if last_hit_by_player and not ("Arco" in last_hit_weapon_name or "Envenenamiento" in last_hit_weapon_name):
 		var p_killer := _get_player()
-		if p_killer and p_killer.has_method("add_bloodstain") and p_killer.global_position.distance_to(global_position) <= 75.0:
+		if p_killer and p_killer.has_method("add_bloodstain") and p_killer.global_position.distance_to(global_position) <= 180.0:
 			p_killer.call("add_bloodstain", 180.0)
 	if trade_role == TradeRole.TRAVELING_MERCHANT and vm and vm.has_method("on_traveling_merchant_murdered"):
 		vm.call("on_traveling_merchant_murdered", self, last_hit_weapon_name)

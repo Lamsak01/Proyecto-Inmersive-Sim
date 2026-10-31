@@ -2147,8 +2147,8 @@ func can_family_feed_pet(fam_id: String) -> bool:
 
 func _spawn_farm_well_and_compost() -> void:
 	_add_sprite_prop(_load_tex("res://assests/world/village/water_well.png"), _well_pos, Vector2(1.25, 1.25), 0)
-	_add_station_area("WaterWellArea", _well_pos, 10.0, "well")
-	_well_label = _make_station_label(_well_pos + Vector2(-110, -28), "🪣 Pozo de Agua [E: Llenar Regadera al 100%]")
+	_add_station_area("WaterWellArea", _well_pos, 24.0, "well")
+	_well_label = _make_station_label(_well_pos + Vector2(-120, -28), "🪣 Pozo de Agua [E: Lavarse la Sangre y Llenar Regadera]")
 	entities_root.add_child(_well_label)
 
 	_add_sprite_prop(_load_tex("res://assests/world/village/compost_bin.png"), _compost_pos, Vector2(1.25, 1.25), 0)
@@ -2175,6 +2175,11 @@ func try_priority_door_or_corpse_interaction(player: Node2D, mouse_pos: Vector2)
 		if is_closed_door or mouse_aiming_door:
 			_interact_building_door(player, near_door)
 			return true
+
+	# 1.5. Si el jugador está junto al Pozo de Agua y está manchado de sangre (o apunta al pozo), lavarse con prioridad
+	if pos.distance_to(_well_pos) <= 28.0 and ((player.has_method("is_bloodstained") and bool(player.call("is_bloodstained"))) or _well_pos.distance_to(mouse_pos) <= 18.0):
+		_use_water_well(player)
+		return true
 
 	# 2. Si hay un cadáver, herido abatido o NPC aturdido/sedado cerca del jugador (<= 32 px), priorizar saquear/reanimar/reportar con [E]
 	for n in get_tree().get_nodes_in_group("village_npcs"):

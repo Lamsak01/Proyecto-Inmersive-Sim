@@ -253,6 +253,11 @@ func _release_bow_shot(skip_release_cost: bool = false) -> void:
 func attack(_aim_with_mouse: bool = true) -> void:
 	var equipped: WeaponData = player.equipped_weapon
 	if not equipped or attack_timer > 0.0: return
+	if equipped == player.get("watering_can_weapon") and player.has_method("is_bloodstained") and bool(player.call("is_bloodstained")):
+		if player.has_method("consume_water_charge") and bool(player.call("consume_water_charge")):
+			attack_timer = 0.30
+			player.call("wash_bloodstains", true)
+			return
 	var stam_cost: float = 10.0 if equipped.is_ranged else 14.0
 	if stamina_comp:
 		if stamina_comp.current_stamina < stam_cost: return

@@ -190,13 +190,25 @@ func _update_status_label(player: Node2D, dock_world: Vector2) -> void:
 		return
 
 	if near_player or near_mouse:
+		var is_stained: bool = player != null and player.has_method("is_bloodstained") and bool(player.call("is_bloodstained"))
 		var time_hint := "Noche: Siluro/Carpa" if (WorldClock and (WorldClock.current_hour >= 18 or WorldClock.current_hour < 6)) else "Día: Trucha/Carpa"
-		_set_status("🎣 Muelle de Pesca [%s | E: Pescar / Llenar Regadera]" % time_hint, Color(0.85, 0.95, 1.0))
+		if is_stained:
+			_set_status("🩸🌊 Lago del Oeste [E: Lavarse la Sangre y Llenar Regadera]", Color(1.0, 0.58, 0.58))
+		else:
+			_set_status("🎣 Muelle de Pesca [%s | E: Pescar / Llenar Regadera]" % time_hint, Color(0.85, 0.95, 1.0))
 	else:
 		status_label.visible = false
 
 func interact(player: Node2D) -> void:
 	if not player:
+		return
+
+	# Si el jugador está manchado de sangre, el agua del lago lo lava primero sin iniciar la pesca
+	if player.has_method("is_bloodstained") and bool(player.call("is_bloodstained")):
+		if player.has_method("refill_watering_can"):
+			player.call("refill_watering_can")
+		elif player.has_method("wash_bloodstains"):
+			player.call("wash_bloodstains", true)
 		return
 
 	# Si el jugador lleva la Regadera equipada y no está llena, llenarla primero

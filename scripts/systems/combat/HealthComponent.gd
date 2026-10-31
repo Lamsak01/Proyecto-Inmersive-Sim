@@ -57,6 +57,7 @@ var swamp_sickness: float = 0.0 ## Fiebre del pantano / miasma cadavérico (0..1
 var last_sickness_cause: String = ""
 var _next_wound_id: int = 1
 var _med_tick_accum: float = 0.0
+var _bleed_notify_accum: float = 0.0
 
 func _ready() -> void:
 	current_health = max_health
@@ -76,38 +77,66 @@ func _init_anatomy() -> void:
 	swamp_sickness = 0.0
 	last_sickness_cause = ""
 
+func get_total_wound_bleed_rate() -> float:
+	var total_r: float = 0.0
+	for w in wounds:
+		if not bool(w.get("bandaged", false)) and not bool(w.get("stitched", false)):
+			total_r += float(w.get("bleed_rate", 0.0))
+	return total_r
+
 func _process(delta: float) -> void:
 	if Engine.is_editor_hint() or current_health <= 0.0 or (WorldClock and WorldClock.has_method("is_time_frozen") and WorldClock.is_time_frozen()):
 		return
 
-	if is_bleeding:
-		_bleed_timer -= delta
-		var bleed_loss: float = _bleed_dps * delta
-		current_health = max(0.0, current_health - bleed_loss)
+	if _bleed_timer > 0.0:
+		_bleed_timer = maxf(0.0, _bleed_timer - delta)
+		if _bleed_timer <= 0.0:
+			_bleed_dps = 0.0
+
+	var wound_bleed_dps: float = get_total_wound_bleed_rate()
+	var active_bleed_dps: float = wound_bleed_dps + (_bleed_dps if _bleed_timer > 0.0 else 0.0)
+
+	if active_bleed_dps > 0.0:
+		is_bleeding = true
+		var bleed_loss: float = active_bleed_dps * delta
+		current_health = maxf(0.0, current_health - bleed_loss)
 		_drain_bleeding_region_hp(bleed_loss)
 		health_changed.emit(current_health, max_health)
 
-		# Reflejar el tiempo restante de sangrado en la barra
-		current_blood = clamp((_bleed_timer / bleed_duration) * max_blood, 0.0, max_blood)
+		# Reflejar la hemorragia activa en la barra BLD (no baja a 0 mientras existan heridas abiertas sangrando)
+		var min_bar_from_wounds: float = clampf(wound_bleed_dps * 28.0, 18.0, max_blood) if wound_bleed_dps > 0.0 else 0.0
+		if _bleed_timer > 0.0:
+			current_blood = clampf(maxf((_bleed_timer / maxf(0.1, bleed_duration)) * max_blood, min_bar_from_wounds), 0.0, max_blood)
+		else:
+			current_blood = clampf(maxf(current_blood + wound_bleed_dps * 6.0 * delta, min_bar_from_wounds), 0.0, max_blood)
 		blood_changed.emit(current_blood, max_blood)
+
+		_bleed_notify_accum += delta
+		if _bleed_notify_accum >= 2.8:
+			_bleed_notify_accum = 0.0
+			var parent_n := get_parent()
+			if is_instance_valid(parent_n) and parent_n.has_method("_spawn_floating_text"):
+				var is_p: bool = parent_n.is_in_group("player")
+				var msg: String = ("🩸 -%.1f HP/s (Hemorragia — ¡Véndate en [H]!)" % active_bleed_dps) if is_p else ("🩸 -%.1f HP/s (Desangrándose)" % active_bleed_dps)
+				parent_n.call("_spawn_floating_text", msg, Color(1.0, 0.28, 0.32), -38.0)
 
 		if current_health <= 0.0:
 			is_bleeding = false
 			died.emit()
 			return
-
-		if _bleed_timer <= 0.0:
+	else:
+		_bleed_notify_accum = 0.0
+		if is_bleeding:
 			is_bleeding = false
-			current_blood = 0.0
 			_bleed_dps = 0.0
-			blood_changed.emit(current_blood, max_blood)
 			if is_weak:
 				is_weak = false
 				weakness_changed.emit(false)
-	elif current_blood > 0.0:
-		# Si no llegó al máximo, la acumulación baja poco a poco con el tiempo
-		current_blood = max(0.0, current_blood - bleed_decay_rate * delta)
-		blood_changed.emit(current_blood, max_blood)
+			anatomy_changed.emit()
+		if current_blood > 0.0:
+			# Si no hay heridas sangrando, la acumulación baja poco a poco con el tiempo
+			current_blood = maxf(0.0, current_blood - bleed_decay_rate * delta)
+			blood_changed.emit(current_blood, max_blood)
 
 	_med_tick_accum += delta
 	if _med_tick_accum >= 1.0:
@@ -278,24 +307,24 @@ func _inflict_anatomical_wound(data: DamageData, final_damage: float) -> void:
 		if is_bullet:
 			w_type = "deep_wound"
 			custom_w_name = "Herida de Bala"
-			bleed_r = 2.2
+			bleed_r = 3.0
 			pain_v = maxf(pain_v, 24.0)
 			sev_v = maxf(sev_v, 48.0)
 		elif is_arrow:
 			w_type = "lodged_arrow"
-			bleed_r = 1.5
+			bleed_r = 2.4
 			pain_v = maxf(pain_v, 20.0)
 			sev_v = maxf(sev_v, 42.0)
 		elif final_damage >= 14.0 or data.bleed_buildup >= 32.0:
 			w_type = "deep_wound"
-			bleed_r = 2.4
+			bleed_r = 3.2
 			pain_v = maxf(pain_v, 22.0)
 		elif final_damage >= 5.5 or data.bleed_buildup >= 12.0:
 			w_type = "laceration"
-			bleed_r = 1.2
+			bleed_r = 1.9
 		else:
 			w_type = "scratch"
-			bleed_r = 0.5
+			bleed_r = 1.0
 	else:
 		var new_ratio: float = float(region_hp.get(r_id, max_r)) / maxf(1.0, max_r)
 		if final_damage >= 15.0 or (new_ratio < 0.68 and final_damage >= 8.0 and randf() < 0.50) or (r_id in ["left_leg", "right_leg", "left_arm", "right_arm"] and final_damage >= 10.0 and randf() < 0.42):
@@ -336,13 +365,17 @@ func _inflict_anatomical_wound(data: DamageData, final_damage: float) -> void:
 	wounds.append(w_entry)
 	while wounds.size() > 14:
 		wounds.pop_front()
+	if bleed_r > 0.0:
+		is_bleeding = true
+		current_blood = clampf(maxf(current_blood, get_total_wound_bleed_rate() * 28.0), 0.0, max_blood)
+		blood_changed.emit(current_blood, max_blood)
 	anatomy_changed.emit()
 
 func add_bleed_buildup(buildup_amount: float, weapon_damage: float) -> void:
 	var weapon_bleed_dps = max(1.5, weapon_damage * bleed_damage_multiplier)
 
-	if is_bleeding:
-		# Si ya está sangrando, refresca parcialmente el sangrado y mantiene el mayor DPS
+	if _bleed_timer > 0.0:
+		# Si ya tiene hemorragia aguda por barra al 100%, refresca parcialmente y mantiene el mayor DPS
 		_bleed_dps = max(_bleed_dps, weapon_bleed_dps)
 		_bleed_timer = min(bleed_duration, _bleed_timer + bleed_duration * 0.35)
 		return
@@ -396,6 +429,10 @@ func stabilize_after_knockout(target_ratio: float = 0.45) -> void:
 	_bleed_timer = 0.0
 	_bleed_dps = 0.0
 	current_blood = 0.0
+	for w in wounds:
+		if float(w.get("bleed_rate", 0.0)) > 0.0:
+			w["bandaged"] = true
+			w["bleed_rate"] = 0.0
 	blood_changed.emit(current_blood, max_blood)
 	if is_weak:
 		is_weak = false

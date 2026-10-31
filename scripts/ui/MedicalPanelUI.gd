@@ -5,6 +5,7 @@ var player: Node2D = null
 var target_entity: Node2D = null
 var main_panel: PanelContainer = null
 var title_label: Label = null
+var wash_self_btn: Button = null
 var switch_target_btn: Button = null
 var regions_box: VBoxContainer = null
 var capacities_label: Label = null
@@ -72,6 +73,16 @@ func _build_ui() -> void:
 	root_v.add_child(header)
 
 	title_label = _add_lbl(header, "🩺 EXAMEN CLÍNICO Y ANATÓMICO — TU CUERPO", 16, Color(1.0, 0.86, 0.55), true)
+
+	wash_self_btn = Button.new()
+	wash_self_btn.text = "💧 Lavarse Manos y Ropa"
+	wash_self_btn.add_theme_font_size_override("font_size", 12)
+	wash_self_btn.pressed.connect(func() -> void:
+		if is_instance_valid(player) and player.has_method("wash_bloodstains"):
+			player.call("wash_bloodstains", true)
+			refresh_ui()
+	)
+	header.add_child(wash_self_btn)
 
 	switch_target_btn = Button.new()
 	switch_target_btn.text = "🔍 Examinar NPC Cercano"
@@ -191,6 +202,14 @@ func refresh_ui() -> void:
 		return
 
 	var near_npc := _find_nearby_npc()
+	if is_instance_valid(wash_self_btn):
+		var stained_now: bool = is_instance_valid(player) and player.has_method("is_bloodstained") and bool(player.call("is_bloodstained"))
+		if stained_now:
+			wash_self_btn.text = "🩸💧 Lavarse la Sangre (%ds)" % int(ceil(float(player.get("bloodstained_timer"))))
+			wash_self_btn.add_theme_color_override("font_color", Color(1.0, 0.55, 0.55))
+		else:
+			wash_self_btn.text = "💧 Lavarse Manos y Ropa"
+			wash_self_btn.add_theme_color_override("font_color", Color(0.70, 0.95, 1.0))
 	if is_instance_valid(near_npc):
 		switch_target_btn.visible = true
 		var n_name: String = str(near_npc.get("npc_name")) if "npc_name" in near_npc else near_npc.name
@@ -229,7 +248,9 @@ func refresh_ui() -> void:
 	for k in ["consciousness", "moving", "manipulation", "breathing", "filtration"]:
 		var pct: int = int(round(float(caps.get(k, 1.0)) * 100.0))
 		cap_lines.append("%s: %d%%" % [str(CAP_NAMES[k]), pct])
-	cap_lines.append("💥 Dolor Acumulado: %d%%  |  🩸 Sangrado: %s" % [int(round(hc.get_total_pain())), ("ACTIVO" if hc.is_bleeding else "Controlado")])
+	var bleed_dps: float = hc.get_total_wound_bleed_rate() + (hc._bleed_dps if hc._bleed_timer > 0.0 else 0.0)
+	var bleed_str: String = ("ACTIVO (-%.1f HP/s)" % bleed_dps) if (hc.is_bleeding or bleed_dps > 0.0) else "Controlado"
+	cap_lines.append("💥 Dolor Acumulado: %d%%  |  🩸 Sangrado: %s" % [int(round(hc.get_total_pain())), bleed_str])
 	cap_lines.append(hc.get_sickness_summary_label())
 	capacities_label.text = "\n".join(cap_lines)
 
@@ -258,7 +279,7 @@ func refresh_ui() -> void:
 		scv.add_child(sbtn_row)
 		_add_treat_btn(sbtn_row, "🍵 Purgar Fiebre y Toxinas (1 Cataplasma o 2 Hierbas)", hc, -1, "cure_sickness")
 
-	if target_entity == player and is_instance_valid(player) and player.has_method("is_bloodstained") and bool(player.call("is_bloodstained")):
+	if is_instance_valid(player) and player.has_method("is_bloodstained") and bool(player.call("is_bloodstained")):
 		var bcard := PanelContainer.new()
 		bcard.add_theme_stylebox_override("panel", _make_box_style(Color(0.20, 0.09, 0.11, 0.96), Color(0.95, 0.30, 0.35), 1, 5, 8, 6))
 		wounds_box.add_child(bcard)

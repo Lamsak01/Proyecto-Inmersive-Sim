@@ -293,13 +293,35 @@ const FROG_MARSH_RECT := Rect2(-725.0, 28.0, 240.0, 120.0)
 func add_bloodstain(duration: float = 180.0) -> void:
 	var was_stained: bool = bloodstained_timer > 0.0
 	bloodstained_timer = maxf(bloodstained_timer, duration)
+	if anim and _hit_flash_timer <= 0.0:
+		anim.modulate = Color(1.0, 0.72, 0.72)
 	if not was_stained:
-		_spawn_floating_text("🩸🖐️ ¡Manchado de sangre! (Lávate en el agua o en [H] antes de que te vea la Guardia/Inquisidor)", Color(1.0, 0.35, 0.35), -54.0)
+		_spawn_floating_text("🩸🖐️ ¡Manchado de sangre! (Lávate en el Pozo/Lago, con Regadera [7] o en [H])", Color(1.0, 0.35, 0.35), -54.0)
+	if health_comp:
+		health_comp.anatomy_changed.emit()
 
-func wash_bloodstains() -> void:
-	if bloodstained_timer > 0.0:
-		bloodstained_timer = 0.0
+func wash_bloodstains(show_even_if_clean: bool = false) -> void:
+	var had_blood: bool = bloodstained_timer > 0.0
+	bloodstained_timer = 0.0
+	if anim and _hit_flash_timer <= 0.0:
+		anim.modulate = Color.WHITE
+	var cleaned_wounds: bool = false
+	if health_comp:
+		for w in health_comp.wounds:
+			if not bool(w.get("clean", false)) or float(w.get("bandage_dirty", 0.0)) > 0.0:
+				w["clean"] = true
+				w["bandage_dirty"] = 0.0
+				w["infection"] = maxf(0.0, float(w.get("infection", 0.0)) - 15.0)
+				cleaned_wounds = true
+		if health_comp.get_total_wound_bleed_rate() <= 0.0 and not health_comp.is_bleeding and health_comp.current_blood > 0.0:
+			health_comp.current_blood = 0.0
+			health_comp.blood_changed.emit(0.0, health_comp.max_blood)
+			had_blood = true
+		health_comp.anatomy_changed.emit()
+	if had_blood or cleaned_wounds:
 		_spawn_floating_text("💧✨ Te has lavado la sangre de las manos y la ropa", Color.AQUA, -46.0)
+	elif show_even_if_clean:
+		_spawn_floating_text("💧✨ Tus manos y tu ropa ya están limpias", Color.AQUA, -46.0)
 
 func is_bloodstained() -> bool:
 	return bloodstained_timer > 0.0
@@ -314,10 +336,12 @@ func _process(delta: float) -> void:
 		paralytic_venom_timer = maxf(0.0, paralytic_venom_timer - delta)
 	if bloodstained_timer > 0.0:
 		bloodstained_timer = maxf(0.0, bloodstained_timer - delta)
+		if bloodstained_timer <= 0.0 and anim and _hit_flash_timer <= 0.0:
+			anim.modulate = Color.WHITE
 	if _hit_flash_timer > 0.0:
 		_hit_flash_timer -= delta
 		if _hit_flash_timer <= 0.0 and anim:
-			anim.modulate = Color.WHITE
+			anim.modulate = Color(1.0, 0.72, 0.72) if bloodstained_timer > 0.0 else Color.WHITE
 	if health_comp and health_comp.current_health > 0.0:
 		_env_sickness_timer += delta
 		if _env_sickness_timer >= 2.0:

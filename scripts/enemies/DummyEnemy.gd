@@ -208,6 +208,10 @@ func _on_died() -> void:
 	if _damaged_by_player or (is_instance_valid(_player_ref) and global_position.distance_to(_player_ref.global_position) <= 240.0):
 		if ObjectiveManager: ObjectiveManager.progress_objective(0, enemy_id, 1)
 		_grant_plains_loot()
+		if is_instance_valid(_player_ref) and _player_ref.has_method("add_bloodstain") and global_position.distance_to(_player_ref.global_position) <= 110.0:
+			var eq_w: Variant = _player_ref.get("equipped_weapon")
+			if eq_w == null or not bool(eq_w.get("is_ranged")):
+				_player_ref.call("add_bloodstain", 180.0)
 	set_physics_process(false)
 	if ai:
 		ai.set_physics_process(false)
