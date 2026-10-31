@@ -175,6 +175,8 @@ func _find_nearby_npc() -> Node2D:
 	var best_d2: float = 68.0 * 68.0
 	for n in get_tree().get_nodes_in_group("village_npcs"):
 		if n is Node2D and n != player:
+			if "corpse_buried" in n and bool(n.get("corpse_buried")):
+				continue
 			var d2: float = player.global_position.distance_squared_to((n as Node2D).global_position)
 			if d2 <= best_d2:
 				best_d2 = d2
@@ -462,7 +464,8 @@ func _build_surgery_and_pockets_cards(hc: HealthComponent, is_corpse: bool) -> v
 	if is_npc:
 		var sed_t: float = float(target_entity.get("sedated_timer")) if "sedated_timer" in target_entity else 0.0
 		var rot_h: float = float(target_entity.get("corpse_rot_hours")) if "corpse_rot_hours" in target_entity else 0.0
-		if target_entity.get("is_downed") == true or target_entity.get("is_sleeping") == true or sed_t > 0.0 or target_entity.get("is_stunned_flag") == true or (is_corpse and rot_h < 6.0):
+		var in_morgue: bool = ("corpse_in_morgue" in target_entity and bool(target_entity.get("corpse_in_morgue")) and not bool(target_entity.get("corpse_buried")))
+		if target_entity.get("is_downed") == true or target_entity.get("is_sleeping") == true or sed_t > 0.0 or target_entity.get("is_stunned_flag") == true or (is_corpse and (rot_h < 12.0 or in_morgue)):
 			can_extract = true
 
 	var surg_btns: Array[Dictionary] = []

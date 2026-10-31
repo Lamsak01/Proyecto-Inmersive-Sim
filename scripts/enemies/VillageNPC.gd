@@ -120,6 +120,7 @@ var corpse_reported: bool = false
 var corpse_reporter_npc: VillageNPC = null
 var corpse_being_carried: bool = false
 var corpse_in_morgue: bool = false
+var corpse_buried: bool = false
 var corpse_carrier: VillageNPC = null
 var corpse_rot_hours: float = 0.0
 var death_world_pos: Vector2 = Vector2.ZERO
@@ -352,10 +353,10 @@ func _stop_crafting_bar() -> void:
 		_craft_bar_root.visible = false
 
 func _get_pocket_loot_hint(inline_sep: bool = false) -> String:
-	if corpse_pocket_looted or (personal_gold <= 0 and not carries_royal_safe_conduct):
+	if corpse_pocket_looted or (personal_gold <= 0 and not carries_royal_safe_conduct and pocket_items.is_empty()):
 		return ""
-	var seal_str: String = (" + 📜Salvoconducto Real" if inline_sep else " + 📜 Salvoconducto Real") if carries_royal_safe_conduct else ""
-	return (" | [E: 💰 Saquear Bolsillos (%d Oro%s)]" % [personal_gold, seal_str]) if inline_sep else ("\n[E: 💰 Saquear Bolsillos (%d Oro%s)]" % [maxi(0, personal_gold), seal_str])
+	var seal_str: String = (" + 📜Salvoconducto Real" if inline_sep else " + 📜 Salvoconducto Real") if carries_royal_safe_conduct else (" + Objetos" if not pocket_items.is_empty() else "")
+	return (" | [E: 💰 Saquear Bolsillos (%d Oro%s)]" % [maxi(0, personal_gold), seal_str]) if inline_sep else ("\n[E: 💰 Saquear Bolsillos (%d Oro%s)]" % [maxi(0, personal_gold), seal_str])
 
 func _spawn_shot_tracer(to_pos: Vector2, color: Color, width: float = 2.0, z_idx: int = 18, end_offset_y: float = -6.0, fade_dur: float = 0.18) -> void:
 	var tracer := Line2D.new()
@@ -867,10 +868,24 @@ func _physics_process(delta: float) -> void:
 	_execute_dynamic_activity(delta)
 	_finish_frame_movement(delta, true)
 
-## Gestiona un cadáver en el suelo: se pudre con el paso de las horas/días hasta que otro NPC lo vea en su rutina natural (con línea de visión)
-## o el jugador lo reporte con [E]. El Dr. Valen NO sabe que alguien murió hasta que el cadáver sea físicamente reportado.
+## Gestiona un cadáver en el suelo o en la Morgue: se pudre con el paso de las horas/días hasta que otro NPC lo vea en su rutina natural (con línea de visión)
+## o el jugador lo reporte con [E]. En la Morgue conserva sus bolsillos y órganos hasta que el caso se resuelva/archive y sea sepultado.
 func _process_corpse_state(delta: float) -> void:
-	if corpse_in_morgue or not corpse_on_ground:
+	if corpse_buried:
+		return
+	if corpse_in_morgue:
+		if status_label:
+			var player_m = _get_player()
+			var near_pm: bool = player_m != null and global_position.distance_squared_to(player_m.global_position) <= 42.0 * 42.0
+			var near_mm: bool = global_position.distance_squared_to(get_global_mouse_position()) <= 26.0 * 26.0
+			if near_pm or near_mm:
+				var loot_m: String = _get_pocket_loot_hint(true)
+				var act_hint: String = loot_m if loot_m != "" else " | [E: Informe Forense]"
+				_show_status_label("⚰️ Cadáver en Morgue: %s (%s)\n[En Camilla Forense%s | H: Examinar Cuerpo / Órganos]" % [npc_name, npc_role, act_hint], Color(0.68, 0.96, 0.90))
+			else:
+				status_label.visible = false
+		return
+	if not corpse_on_ground:
 		return
 
 	if corpse_being_carried:
@@ -908,6 +923,7 @@ func _process_corpse_state(delta: float) -> void:
 						corpse_reported = true
 						corpse_reporter_npc = null
 						_spawn_floating_text("🚨 ¡%s encontró el cadáver de %s!" % [other.npc_name, npc_name], Color.ORANGE_RED, -42.0)
+						_notify_corpse_reported_to_authorities()
 						break
 					elif other.trade_role != TradeRole.TRAVELING_MERCHANT and (not is_instance_valid(corpse_reporter_npc) or not corpse_reporter_npc.is_conscious()):
 						corpse_reporter_npc = other
@@ -934,6 +950,13 @@ func _process_corpse_state(delta: float) -> void:
 		else:
 			status_label.visible = false
 
+## Notifica a las autoridades (y a la Corona si el cadáver reportado es un Mercader Viajero) recién cuando el cadáver es reportado
+func _notify_corpse_reported_to_authorities() -> void:
+	if trade_role == TradeRole.TRAVELING_MERCHANT:
+		var vm = _get_vm()
+		if vm and vm.has_method("on_traveling_merchant_murdered"):
+			vm.call("on_traveling_merchant_murdered", self, last_hit_weapon_name)
+
 ## Permite al jugador reportar manualmente un cadáver con [E] (Estilo Among Us / Hitman / Streets of Rogue)
 func report_corpse_by_player(player: Node) -> bool:
 	if not is_dead or not corpse_on_ground or corpse_in_morgue:
@@ -947,6 +970,7 @@ func report_corpse_by_player(player: Node) -> bool:
 		corpse_discovered_by = "Jugador (Reporte Ciudadano)"
 	corpse_reported = true
 	corpse_reporter_npc = null
+	_notify_corpse_reported_to_authorities()
 	_spawn_floating_text("📢 ¡Reportaste el cadáver de %s! El Dr. Valen / la guardia acudirá a recogerlo." % npc_name, Color.GOLD, -44.0)
 	if player and player.has_method("_spawn_floating_text"):
 		player.call("_spawn_floating_text", "📢 Cadáver de %s reportado al Hospital y Comisaría" % npc_name, Color.AQUA, -36.0)
@@ -982,6 +1006,7 @@ func _process_witness_corpse_reporting(delta: float) -> bool:
 	corpse_to_report.corpse_reporter_npc = null
 	_reporting_corpse_target = null
 	_spawn_floating_text("📢 ¡%s reportó el cadáver de %s a %s!" % [npc_name, corpse_to_report.npc_name, nearest_authority.npc_name if nearest_authority != null else "el Hospital"], Color.GOLD, -42.0)
+	corpse_to_report._notify_corpse_reported_to_authorities()
 	return true
 
 ## Recoge físicamente un cadáver YA REPORTADO (`corpse_reported == true`) y camina con él por las puertas y calles hasta depositarlo en la Morgue
@@ -1034,6 +1059,7 @@ func _process_corpse_morgue_transport(delta: float) -> bool:
 	target_corpse.corpse_on_ground = false
 	target_corpse.corpse_being_carried = false
 	target_corpse.corpse_in_morgue = true
+	target_corpse.corpse_buried = not morgue_has_space
 	target_corpse.corpse_carrier = null
 	target_corpse.global_position = target_drop_pos
 	if target_corpse.sprite:
@@ -1041,12 +1067,13 @@ func _process_corpse_morgue_transport(delta: float) -> bool:
 	if target_corpse.status_label:
 		target_corpse.status_label.visible = false
 	target_corpse._stop_crafting_bar()
-	target_corpse._set_area_col_disabled(target_corpse.interact_area, true)
+	# Mientras el cuerpo esté en una camilla de la Morgue (`not corpse_buried`), mantiene su área interactiva activa para poder saquear sus bolsillos o extraer órganos con [E] / [H]
+	target_corpse._set_area_col_disabled(target_corpse.interact_area, target_corpse.corpse_buried)
 	_carrying_corpse_target = null
 	var vm = _cached_vm
 	if vm and vm.has_method("register_npc_death_and_corpse"):
 		vm.call("register_npc_death_and_corpse", target_corpse, target_corpse.death_world_pos, target_corpse.last_hit_weapon_name, target_corpse.last_hit_by_player, target_corpse.corpse_discovered_by, target_corpse.corpse_rot_hours)
-	_spawn_floating_text(("⚰️ Cuerpo de %s depositado en la Morgue Forense" if morgue_has_space else "🪦 Cuerpo de %s sepultado en el Cementerio de la Iglesia") % target_corpse.npc_name, Color.AQUA if morgue_has_space else Color(0.85, 0.78, 0.95), -44.0)
+	_spawn_floating_text(("⚰️ Cuerpo de %s depositado en la Morgue Forense" if not target_corpse.corpse_buried else "🪦 Cuerpo de %s sepultado en el Cementerio de la Iglesia") % target_corpse.npc_name, Color.AQUA if not target_corpse.corpse_buried else Color(0.85, 0.78, 0.95), -44.0)
 	return true
 
 func _is_doctor_conscious_and_free() -> bool:
@@ -2793,6 +2820,7 @@ func _confirm_true_death() -> void:
 	corpse_reporter_npc = null
 	corpse_being_carried = false
 	corpse_in_morgue = false
+	corpse_buried = false
 	corpse_carrier = null
 	corpse_rot_hours = 0.0
 	_clear_combat_hostility()
@@ -2807,8 +2835,7 @@ func _confirm_true_death() -> void:
 		var p_killer := _get_player()
 		if p_killer and p_killer.has_method("add_bloodstain") and p_killer.global_position.distance_to(global_position) <= 180.0:
 			p_killer.call("add_bloodstain", 180.0)
-	if trade_role == TradeRole.TRAVELING_MERCHANT and vm and vm.has_method("on_traveling_merchant_murdered"):
-		vm.call("on_traveling_merchant_murdered", self, last_hit_weapon_name)
+	# El Inquisidor Real Alistair NO viene apenas muere el comerciante: solo es convocado cuando alguien descubre y reporta el cadáver (`_notify_corpse_reported_to_authorities`)
 
 ## Sucesión: este familiar o viajero sin oficio asume un puesto vacante en la aldea
 func promote_to_trade(new_role: TradeRole, new_title: String, new_work_pos: Vector2, inherited_stock: Dictionary, new_tex: Texture2D = null, new_bed_pos: Vector2 = Vector2.ZERO, new_table_pos: Vector2 = Vector2.ZERO, new_family_id: String = "", new_family_name: String = "") -> void:
@@ -2975,8 +3002,15 @@ func loot_npc_pockets(player: Node) -> bool:
 
 func interact(player: Node) -> void:
 	if is_dead:
+		if corpse_buried:
+			return
 		if not corpse_pocket_looted and (personal_gold > 0 or carries_royal_safe_conduct or not pocket_items.is_empty()):
 			loot_npc_pockets(player)
+			return
+		if corpse_in_morgue:
+			var vm_m = _get_vm()
+			if vm_m and vm_m.has_method("_open_morgue_autopsy_ui"):
+				vm_m.call("_open_morgue_autopsy_ui")
 			return
 		report_corpse_by_player(player)
 		return
@@ -3634,7 +3668,7 @@ func to_save_dict() -> Dictionary:
 		"mood": mood, "thoughts": thoughts.duplicate(), "activity": int(current_activity),
 		"is_dead": is_dead, "is_downed": is_downed, "bleedout_timer": bleedout_timer, "sedated_timer": sedated_timer,
 		"corpse_on_ground": corpse_on_ground, "corpse_discovered": corpse_discovered, "corpse_discovered_by": corpse_discovered_by,
-		"corpse_reported": corpse_reported, "corpse_in_morgue": corpse_in_morgue, "corpse_rot_hours": corpse_rot_hours,
+		"corpse_reported": corpse_reported, "corpse_in_morgue": corpse_in_morgue, "corpse_buried": corpse_buried, "corpse_rot_hours": corpse_rot_hours,
 		"last_hit_weapon_name": last_hit_weapon_name, "last_hit_by_player": last_hit_by_player, "murder_witness_name": murder_witness_name,
 		"death_world_pos_x": death_world_pos.x, "death_world_pos_y": death_world_pos.y,
 		"death_day": death_day, "death_hour": death_hour, "death_minute": death_minute, "is_hostile": is_hostile,
@@ -3741,13 +3775,14 @@ func from_save_dict(data: Dictionary) -> void:
 		corpse_discovered_by = str(data.get("corpse_discovered_by", ""))
 		corpse_reported = bool(data.get("corpse_reported", false))
 		corpse_in_morgue = bool(data.get("corpse_in_morgue", false))
+		corpse_buried = bool(data.get("corpse_buried", false))
 		corpse_rot_hours = float(data.get("corpse_rot_hours", 0.0))
 		death_world_pos = _read_vec2(data, "death_world_pos_x", "death_world_pos_y", global_position)
 		death_day = int(data.get("death_day", 1))
 		death_hour = int(data.get("death_hour", 12))
 		death_minute = int(data.get("death_minute", 0))
 		_set_area_col_disabled(hurtbox, true)
-		_set_area_col_disabled(interact_area, corpse_in_morgue)
+		_set_area_col_disabled(interact_area, corpse_buried)
 		if sprite:
 			_set_sprite_pose(90.0, Color(0.68, 0.54, 0.54, 0.96))
 			sprite.z_index = -1
@@ -3764,6 +3799,7 @@ func from_save_dict(data: Dictionary) -> void:
 		corpse_discovered = false
 		corpse_reported = false
 		corpse_in_morgue = false
+		corpse_buried = false
 		is_hostile = bool(data.get("is_hostile", false)) and not is_downed and sedated_timer <= 0.0
 		if is_hostile:
 			if not is_in_group("enemies"): add_to_group("enemies")

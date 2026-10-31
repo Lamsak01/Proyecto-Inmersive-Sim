@@ -322,9 +322,12 @@ func _unhandled_input(event: InputEvent) -> void:
 				KEY_5, KEY_ESCAPE: business_panel.visible = false; get_viewport().set_input_as_handled()
 		return
 	if morgue_panel and morgue_panel.visible:
-		if event is InputEventKey and event.pressed and not event.echo and event.keycode in [KEY_1, KEY_ESCAPE, KEY_ENTER, KEY_E]:
-			morgue_panel.visible = false
-			get_viewport().set_input_as_handled()
+		if event is InputEventKey and event.pressed and not event.echo:
+			var player = get_tree().get_first_node_in_group("player") as Node2D
+			match event.keycode:
+				KEY_1: _on_morgue_loot_corpses(player); get_viewport().set_input_as_handled()
+				KEY_2: _on_morgue_open_anatomy_panel(); get_viewport().set_input_as_handled()
+				KEY_3, KEY_ESCAPE, KEY_ENTER, KEY_E: morgue_panel.visible = false; get_viewport().set_input_as_handled()
 		return
 	if church_panel and church_panel.visible:
 		if event is InputEventKey and event.pressed and not event.echo:
@@ -1258,9 +1261,59 @@ func _spawn_church_and_cemetery() -> void:
 			_cemetery_grave_positions.append(g_pos)
 			_add_rect_poly(g_pos, Vector2(7, 9), Color(0.18, 0.24, 0.18, 0.50), -2)
 
-## Indica si queda al menos 1 de las 3 camillas de acero libres en la Morgue del Hospital (`MAX_MORGUE_CAPACITY = 3`)
+## Indica si queda al menos 1 de las 3 camillas de acero libres en la Morgue del Hospital (`MAX_MORGUE_CAPACITY = 3`),
+## o si algún cuerpo en la Morgue ya tiene su caso resuelto/archivado y puede pasar al Cementerio para ceder la camilla
 func has_free_morgue_table() -> bool:
-	return morgue_active_corpses.size() < MAX_MORGUE_CAPACITY
+	if morgue_active_corpses.size() < MAX_MORGUE_CAPACITY:
+		return true
+	for rec in morgue_active_corpses:
+		if not _is_corpse_under_active_investigation(str(rec.get("victim_name", ""))):
+			return true
+	return false
+
+func _find_corpse_npc_by_name(target_name: String) -> VillageNPC:
+	if target_name == "":
+		return null
+	for n in get_tree().get_nodes_in_group("village_npcs"):
+		if n is VillageNPC:
+			var v := n as VillageNPC
+			if v.is_dead and v.npc_name == target_name:
+				return v
+	return null
+
+## Devuelve `true` mientras el caso de homicidio de este cadáver siga abierto (sin resolverse ni archivarse)
+func _is_corpse_under_active_investigation(victim_name: String) -> bool:
+	if victim_name == "":
+		return false
+	if bool(active_royal_investigation.get("active", false)):
+		var r_stg: String = str(active_royal_investigation.get("stage", ""))
+		if str(active_royal_investigation.get("victim_name", "")) == victim_name and r_stg != "DEPARTING":
+			return true
+	if bool(active_sheriff_investigation.get("active", false)):
+		if str(active_sheriff_investigation.get("victim_name", "")) == victim_name:
+			return true
+	for rec in morgue_active_corpses:
+		if str(rec.get("victim_name", "")) == victim_name and rec.has("case_resolved") and not bool(rec.get("case_resolved", true)):
+			return true
+	return false
+
+func _mark_morgue_case_resolved(victim_name: String, resolution_note: String = "") -> void:
+	if victim_name == "":
+		return
+	var cur_d: int = WorldClock.current_day if WorldClock else 1
+	var cur_h: int = WorldClock.current_hour if WorldClock else 12
+	var cur_tot_h: int = cur_d * 24 + cur_h
+	for rec in morgue_active_corpses:
+		if str(rec.get("victim_name", "")) == victim_name:
+			rec["case_resolved"] = true
+			rec["added_total_hours"] = cur_tot_h
+			if resolution_note != "":
+				rec["suspect"] = resolution_note
+	for rec2 in corpse_records:
+		if str(rec2.get("victim_name", "")) == victim_name:
+			rec2["case_resolved"] = true
+			if resolution_note != "":
+				rec2["suspect"] = resolution_note
 
 ## Devuelve la posición a la que se llevan los cadáveres cuando las 3 camillas de la Morgue están llenas
 func get_cemetery_burial_target_pos() -> Vector2:
@@ -1273,6 +1326,18 @@ func _refresh_morgue_table_sprites() -> void:
 	for i in range(_morgue_corpse_sprites.size()):
 		if is_instance_valid(_morgue_corpse_sprites[i]):
 			_morgue_corpse_sprites[i].visible = (i < morgue_active_corpses.size())
+	for i in range(morgue_active_corpses.size()):
+		if i < _morgue_table_positions.size():
+			var v_name: String = str(morgue_active_corpses[i].get("victim_name", ""))
+			var c_node: VillageNPC = _find_corpse_npc_by_name(v_name)
+			if is_instance_valid(c_node):
+				c_node.corpse_on_ground = false
+				c_node.corpse_in_morgue = true
+				c_node.corpse_buried = false
+				c_node.global_position = _morgue_table_positions[i]
+				if c_node.sprite:
+					c_node.sprite.visible = false
+				c_node._set_area_col_disabled(c_node.interact_area, false)
 
 ## Sepulta físicamente un cuerpo en la siguiente parcela libre del Cementerio Parroquial y crea su lápida e inscripción
 func _bury_corpse_in_cemetery(rec: Dictionary, burial_reason: String = "Sepultura parroquial") -> void:
@@ -1284,6 +1349,16 @@ func _bury_corpse_in_cemetery(rec: Dictionary, burial_reason: String = "Sepultur
 	var grave_idx: int = buried_graves.size()
 	rec["grave_index"] = grave_idx
 	buried_graves.append(rec)
+	var c_node: VillageNPC = _find_corpse_npc_by_name(str(rec.get("victim_name", "")))
+	if is_instance_valid(c_node):
+		c_node.corpse_buried = true
+		c_node.corpse_in_morgue = true
+		c_node.corpse_on_ground = false
+		if c_node.status_label:
+			c_node.status_label.visible = false
+		if c_node.sprite:
+			c_node.sprite.visible = false
+		c_node._set_area_col_disabled(c_node.interact_area, true)
 	_spawn_physical_grave_marker(grave_idx, rec)
 
 func _spawn_physical_grave_marker(grave_idx: int, rec: Dictionary) -> void:
@@ -1568,16 +1643,30 @@ func register_npc_death_and_corpse(
 					_notify_inquisitor_of_police_crime("Cruce forense en Morgue: %s situó al Forastero en el asesinato de %s." % [w_name, victim.npc_name], 38)
 					break
 
+	# Si el cadáver reportado/trasladado es un Mercader Viajero y aún no se había convocado al Inquisidor Real, convocarlo ahora
+	if victim.trade_role == VillageNPC.TradeRole.TRAVELING_MERCHANT:
+		on_traveling_merchant_murdered(victim, weapon_name)
 	# Si el asesinato ocurrió sin testigo presencial directo del golpe, el Comisario Vane inicia una investigación en cadena (empezando por quien reportó el cuerpo)
-	if not suspect_str.begins_with("Jugador") and victim.trade_role != VillageNPC.TradeRole.TRAVELING_MERCHANT:
+	elif not suspect_str.begins_with("Jugador"):
 		start_sheriff_investigation(victim, death_pos, weapon_name, finder_str, death_mins)
 
+	var is_case_already_resolved: bool = suspect_str.begins_with("Jugador") and victim.trade_role != VillageNPC.TradeRole.TRAVELING_MERCHANT
 	var record: Dictionary = {
 		"victim_name": victim.npc_name, "victim_role": victim.npc_role, "family_name": victim.family_name,
 		"time_str": time_str, "crime_scene": crime_scene_name, "cause_of_death": weapon_name,
-		"witness_clue": witness_clue, "suspect": suspect_str, "added_total_hours": added_total_hours, "buried": false
+		"witness_clue": witness_clue, "suspect": suspect_str, "added_total_hours": added_total_hours,
+		"death_pos_x": death_pos.x, "death_pos_y": death_pos.y, "discoverer_name": finder_str, "death_mins": death_mins,
+		"case_resolved": is_case_already_resolved, "buried": false
 	}
 	corpse_records.push_front(record)
+
+	if morgue_active_corpses.size() >= MAX_MORGUE_CAPACITY:
+		for old_i in range(morgue_active_corpses.size()):
+			var old_rec: Dictionary = morgue_active_corpses[old_i]
+			if not _is_corpse_under_active_investigation(str(old_rec.get("victim_name", ""))):
+				morgue_active_corpses.remove_at(old_i)
+				_bury_corpse_in_cemetery(old_rec, "Traslado al Cementerio para liberar camilla forense")
+				break
 
 	var buried_directly := false
 	if morgue_active_corpses.size() < MAX_MORGUE_CAPACITY:
@@ -1596,7 +1685,7 @@ func register_npc_death_and_corpse(
 	if buried_directly:
 		_hint_player("🪦🚨 La Morgue está llena (3/3): %s fue sepultado en el Cementerio Parroquial. ¡%s! (Multa: %d Oro)." % [victim.npc_name, witness_clue, bounty_gold] if suspect_str.begins_with("Jugador") else "🪦⛪ La Morgue está llena (3/3 camillas): El cuerpo de %s fue sepultado directamente en el Cementerio de la Iglesia." % victim.npc_name)
 	else:
-		_hint_player("⚰️🚨 El cuerpo de %s fue trasladado a la Morgue (%d/3). ¡%s! Orden de arresto emitida (Multa: %d Oro)." % [victim.npc_name, morgue_active_corpses.size(), witness_clue, bounty_gold] if suspect_str.begins_with("Jugador") else "⚰️🕵️ El cuerpo de %s está en la Morgue Forense (%d/3 camillas). Se enterrará en el Cementerio tras 18h." % [victim.npc_name, morgue_active_corpses.size()])
+		_hint_player("⚰️🚨 El cuerpo de %s fue trasladado a la Morgue (%d/3). ¡%s! Orden de arresto emitida (Multa: %d Oro)." % [victim.npc_name, morgue_active_corpses.size(), witness_clue, bounty_gold] if suspect_str.begins_with("Jugador") else "⚰️🕵️ El cuerpo de %s está en la Morgue Forense (%d/3 camillas): conserva sus pertenencias y permanecerá aquí hasta que se resuelva o archive el caso." % [victim.npc_name, morgue_active_corpses.size()])
 
 ## Paso 4: Propaga cambios de reputación a toda una familia (`family_id`)
 func modify_family_reputation(fam_id: String, delta_amount: int, reason: String = "", source_npc: VillageNPC = null) -> void:
@@ -1640,10 +1729,12 @@ func _setup_Interactive_modals_ui() -> void:
 	ui_layer.layer = 32
 	add_child(ui_layer)
 
-	var m1 := _build_modal_base(Vector2(500, 250), Color(0.38, 0.85, 0.78), 11, Color(0.92, 0.98, 0.96))
+	var m1 := _build_modal_base(Vector2(540, 300), Color(0.38, 0.85, 0.78), 11, Color(0.92, 0.98, 0.96))
 	morgue_panel = m1["panel"]
 	morgue_info_lbl = m1["lbl"]
-	_add_modal_btn(m1["vbox"], "[1 / ESC] Cerrar Informe Forense de la Morgue", func(): morgue_panel.visible = false)
+	_add_modal_btn(m1["vbox"], "[1] 💰 Saquear Bolsillos / Propiedades de los Cuerpos en la Morgue", func(): _on_morgue_loot_corpses(get_tree().get_first_node_in_group("player") as Node2D))
+	_add_modal_btn(m1["vbox"], "[2] 🩺 Examen Anatómico / Bolsillos y Órganos en Camilla [H]", func(): _on_morgue_open_anatomy_panel())
+	_add_modal_btn(m1["vbox"], "[3 / ESC] Cerrar Informe Forense de la Morgue", func(): morgue_panel.visible = false)
 
 	var m2 := _build_modal_base(Vector2(470, 230), Color(0.42, 0.72, 1.0), 12, Color(0.95, 0.96, 1.0), true)
 	police_panel = m2["panel"]
@@ -1701,18 +1792,56 @@ func _open_morgue_autopsy_ui() -> void:
 		return
 	if morgue_active_corpses.is_empty():
 		var buried_note: String = "\n🪦 Hay %d difuntos ya sepultados en el Cementerio Parroquial (al sur del Hospital)." % buried_graves.size() if not buried_graves.is_empty() else ""
-		morgue_info_lbl.text = "⚰️ SALA DE AUTOPSIAS — MORGUE FORENSE DEL HOSPITAL (0/%d Camillas Ocupadas)\n\nLas 3 camillas de acero inoxidable están despejadas actualmente.%s\n\n(Los cuerpos permanecen en la Morgue hasta 18 horas durante la autopsia y luego reciben sepultura en el Cementerio de la Iglesia)." % [MAX_MORGUE_CAPACITY, buried_note]
+		morgue_info_lbl.text = "⚰️ SALA DE AUTOPSIAS — MORGUE FORENSE DEL HOSPITAL (0/%d Camillas Ocupadas)\n\nLas 3 camillas de acero inoxidable están despejadas actualmente.%s\n\n(Los cuerpos en la Morgue conservan sus pertenencias y órganos, y permanecen en su camilla hasta que su caso se resuelva o se archive)." % [MAX_MORGUE_CAPACITY, buried_note]
 	else:
 		var lines: Array[String] = ["⚰️ CAMILLAS ACTIVAS DE LA MORGUE (%d/%d Ocupadas | %d Sepultados en Cementerio):" % [morgue_active_corpses.size(), MAX_MORGUE_CAPACITY, buried_graves.size()]]
 		for i in range(morgue_active_corpses.size()):
 			var rec: Dictionary = morgue_active_corpses[i]
-			lines.append("• Camilla #%d: %s (%s — %s)\n   🕒 %s | 📍 %s\n   🗡️ Causa Forense: %s\n   👁️ Pista Testigos: %s\n   ⚖️ Sospechoso Policial: %s" % [
-				i + 1, str(rec.get("victim_name", "")), str(rec.get("victim_role", "")), str(rec.get("family_name", "")),
+			var v_name: String = str(rec.get("victim_name", ""))
+			var c_node: VillageNPC = _find_corpse_npc_by_name(v_name)
+			var pocket_txt: String = c_node.get_pocket_summary_text() if is_instance_valid(c_node) else "Bolsillos vacíos"
+			var under_inv: bool = _is_corpse_under_active_investigation(v_name)
+			var case_badge: String = "🔍 Caso Abierto (Permanece en Morgue hasta resolver/archivar)" if under_inv else "✅ Caso Resuelto/Archivado (Listo para sepultura)"
+			lines.append("• Camilla #%d: %s (%s — %s) [%s]\n   🕒 %s | 📍 %s | 🗡️ Causa: %s\n   💰 Pertenencias en el cuerpo: %s\n   👁️ Pista: %s | ⚖️ Sospechoso: %s" % [
+				i + 1, v_name, str(rec.get("victim_role", "")), str(rec.get("family_name", "")), case_badge,
 				str(rec.get("time_str", "")), str(rec.get("crime_scene", "")), str(rec.get("cause_of_death", "")),
-				str(rec.get("witness_clue", "")), str(rec.get("suspect", ""))
+				pocket_txt, str(rec.get("witness_clue", "")), str(rec.get("suspect", ""))
 			])
 		morgue_info_lbl.text = "\n".join(lines)
 	morgue_panel.visible = true
+
+func _on_morgue_loot_corpses(player: Node2D) -> void:
+	if not is_instance_valid(player) or morgue_active_corpses.is_empty():
+		return
+	var any_looted := false
+	for rec in morgue_active_corpses:
+		var c_node: VillageNPC = _find_corpse_npc_by_name(str(rec.get("victim_name", "")))
+		if is_instance_valid(c_node) and c_node.loot_npc_pockets(player):
+			any_looted = true
+	if not any_looted:
+		_msg_player(player, "⚰️ Los bolsillos de los cuerpos en la Morgue ya están vacíos (Usa [2] o [H] para cirugía/plantar pruebas)", Color.LIGHT_GRAY, -40.0)
+	_open_morgue_autopsy_ui()
+
+func _on_morgue_open_anatomy_panel() -> void:
+	if morgue_active_corpses.is_empty():
+		return
+	var target_corpse: VillageNPC = null
+	var p := get_tree().get_first_node_in_group("player") as Node2D
+	var best_d2: float = INF
+	for rec in morgue_active_corpses:
+		var c_node: VillageNPC = _find_corpse_npc_by_name(str(rec.get("victim_name", "")))
+		if is_instance_valid(c_node):
+			var d2: float = p.global_position.distance_squared_to(c_node.global_position) if p else 0.0
+			if d2 < best_d2:
+				best_d2 = d2
+				target_corpse = c_node
+	if not is_instance_valid(target_corpse):
+		return
+	if morgue_panel:
+		morgue_panel.visible = false
+	var ui_root := get_tree().current_scene.get_node_or_null("UIRoot") if get_tree().current_scene else null
+	if ui_root and "medical_panel" in ui_root and is_instance_valid(ui_root.medical_panel):
+		ui_root.medical_panel.open_panel(target_corpse)
 
 func _open_church_registry_ui() -> void:
 	if not church_panel:
@@ -2193,9 +2322,9 @@ func try_priority_door_or_corpse_interaction(player: Node2D, mouse_pos: Vector2)
 		if n is VillageNPC:
 			var c := n as VillageNPC
 			if pos.distance_to(c.global_position) <= 32.0:
-				var can_loot_pockets: bool = not c.corpse_pocket_looted and (c.personal_gold > 0 or c.carries_royal_safe_conduct)
+				var can_loot_pockets: bool = not c.corpse_pocket_looted and (c.personal_gold > 0 or c.carries_royal_safe_conduct or not c.pocket_items.is_empty())
 				var mouse_aiming_c: bool = c.global_position.distance_to(mouse_pos) <= 20.0
-				if (c.is_dead and c.corpse_on_ground and not c.corpse_in_morgue and (can_loot_pockets or not c.corpse_reported or mouse_aiming_c)) or (not c.is_dead and (c.is_downed or ((c.sedated_timer > 0.0 or c.is_stunned_flag) and can_loot_pockets))):
+				if (c.is_dead and not c.corpse_buried and ((c.corpse_on_ground and not c.corpse_in_morgue and (can_loot_pockets or not c.corpse_reported or mouse_aiming_c)) or (c.corpse_in_morgue and can_loot_pockets))) or (not c.is_dead and (c.is_downed or ((c.sedated_timer > 0.0 or c.is_stunned_flag) and can_loot_pockets))):
 					c.interact(player)
 					return true
 
@@ -2333,15 +2462,15 @@ func _on_hour_passed(_day: int, new_hour: int = 8) -> void:
 	elif actual_hour == 21:
 		_process_nightly_tavern_rent_and_vagrant_camps()
 
-	# Ciclo de Sepultura Forense: tras 18 horas en la Morgue, los cadáveres examinados son trasladados y sepultados en el Cementerio de la Iglesia,
-	# liberando sus camillas de acero inoxidable para nuevos casos.
+	# Ciclo de Sepultura Forense: solo se sepultan los cuerpos cuyo caso YA fue resuelto o archivado y que lleven >= 18h desde entonces
 	var cur_total_hours: int = actual_day * 24 + actual_hour
 	var remaining_morgue: Array[Dictionary] = []
 	var any_buried := false
 	for entry in morgue_active_corpses:
+		var v_name_h: String = str(entry.get("victim_name", ""))
 		var added_h: int = int(entry.get("added_total_hours", cur_total_hours))
-		if (cur_total_hours - added_h) >= 18:
-			_bury_corpse_in_cemetery(entry, "Sepultura parroquial tras concluir autopsia forense (18h)")
+		if not _is_corpse_under_active_investigation(v_name_h) and (cur_total_hours - added_h) >= 18:
+			_bury_corpse_in_cemetery(entry, "Sepultura parroquial tras resolverse/archivarse el caso")
 			any_buried = true
 		else:
 			remaining_morgue.append(entry)
@@ -2848,12 +2977,13 @@ func _on_day_passed(_new_day: int) -> void:
 					else:
 						v._spawn_floating_text("📈 Experiencia laboral: Día %d/7 (%d%% Eficiencia)" % [v.days_in_role, int(round(v.get_job_efficiency() * 100.0))], Color.AQUA, -36.0)
 
-	# 1b. Sepultura matutina de cuerpos en la Morgue que hayan cumplido su autopsia (>= 12h)
+	# 1b. Sepultura matutina de cuerpos en la Morgue SOLO si su caso ya se resolvió o archivó (los casos abiertos permanecen en la Morgue)
 	var cur_total_h: int = _new_day * 24 + (WorldClock.current_hour if WorldClock else 6)
 	var rem_morgue: Array[Dictionary] = []
 	for m_entry in morgue_active_corpses:
-		if (cur_total_h - int(m_entry.get("added_total_hours", cur_total_h))) >= 12:
-			_bury_corpse_in_cemetery(m_entry, "Sepultura parroquial matutina tras autopsia")
+		var v_name_d: String = str(m_entry.get("victim_name", ""))
+		if not _is_corpse_under_active_investigation(v_name_d) and (cur_total_h - int(m_entry.get("added_total_hours", cur_total_h))) >= 12:
+			_bury_corpse_in_cemetery(m_entry, "Sepultura parroquial matutina tras resolverse/archivarse el caso")
 		else:
 			rem_morgue.append(m_entry)
 	morgue_active_corpses = rem_morgue
@@ -3772,6 +3902,11 @@ func _check_weekly_merchant_arrival(current_day: int, ignore_suspension: bool = 
 		_hint_player("🚫⚖️ Ruta Comercial Suspendida: %s NO ha venido hoy al pueblo por el asesinato previo (Quedan %d días de embargo económico)." % [emb_name, susp_left])
 		return
 
+	if not ignore_suspension:
+		for existing_m in get_tree().get_nodes_in_group("village_npcs"):
+			if existing_m is VillageNPC and (existing_m as VillageNPC).merchant_id == m_id and (existing_m as VillageNPC).is_dead and not (existing_m as VillageNPC).corpse_buried:
+				return
+
 	if is_instance_valid(_active_traveling_merchant) and _active_traveling_merchant.is_dead:
 		_active_traveling_merchant.name = "NPC_Merchant_Corpse_" + str(_active_traveling_merchant.get_instance_id())
 		_active_traveling_merchant = null
@@ -4035,9 +4170,9 @@ func _build_investigation_case_dict(
 	m_id: String = "",
 	embargo_days: int = 0
 ) -> Dictionary:
-	var crime_hour: int = WorldClock.current_hour if WorldClock else 12
-	var crime_min: int = WorldClock.current_minute if WorldClock else 0
-	var crime_day: int = WorldClock.current_day if WorldClock else 1
+	var crime_hour: int = victim.death_hour if (victim != null and "death_hour" in victim and victim.death_hour >= 0) else (WorldClock.current_hour if WorldClock else 12)
+	var crime_min: int = victim.death_minute if (victim != null and "death_minute" in victim and victim.death_minute >= 0) else (WorldClock.current_minute if WorldClock else 0)
+	var crime_day: int = victim.death_day if (victim != null and "death_day" in victim and victim.death_day >= 1) else (WorldClock.current_day if WorldClock else 1)
 	var crime_total_mins: int = crime_day * 1440 + crime_hour * 60 + crime_min
 	var direct_murder_witness: String = str(victim.murder_witness_name) if (victim and "murder_witness_name" in victim) else ""
 
@@ -4185,15 +4320,19 @@ func start_sheriff_investigation(victim: VillageNPC, death_pos: Vector2, weapon_
 	var rep_txt: String = str(active_sheriff_investigation.get("reporter_name", "quien halló el cuerpo"))
 	_hint_player("🕵️‍♂️🚓 El Comisario Vane abrió investigación por el homicidio de %s: inspeccionará huellas en la escena e interrogará primero a %s (cadena de hasta 5 testigos)." % [victim.npc_name, rep_txt])
 
-## Se ejecuta cuando matan a `Maese Casimir` o a `Valeria la Tratante`:
+## Se ejecuta cuando REPORTAN el cadáver de `Maese Casimir` o de `Valeria la Tratante`:
 func on_traveling_merchant_murdered(merchant: VillageNPC, cause_text: String = "") -> void:
 	if merchant == null:
 		return
+	if bool(active_royal_investigation.get("active", false)) and str(active_royal_investigation.get("victim_name", "")) == merchant.npc_name:
+		return
 	var m_id: String = merchant.merchant_id if merchant.merchant_id != "" else "casimir"
-	var embargo_days: int = randi_range(20, 30)
-	merchant_suspension_days[m_id] = embargo_days
+	var embargo_days: int = int(merchant_suspension_days.get(m_id, 0))
+	if embargo_days <= 0:
+		embargo_days = randi_range(20, 30)
+		merchant_suspension_days[m_id] = embargo_days
 
-	var crime_pos: Vector2 = merchant.global_position
+	var crime_pos: Vector2 = merchant.death_world_pos if ("death_world_pos" in merchant and merchant.death_world_pos != Vector2.ZERO) else merchant.global_position
 	var weapon_used: String = merchant.last_hit_weapon_name if merchant.last_hit_weapon_name != "" else cause_text
 	spawn_blood_puddle(crime_pos, merchant.npc_name)
 
@@ -4202,7 +4341,7 @@ func on_traveling_merchant_murdered(merchant: VillageNPC, cause_text: String = "
 
 	_spawn_royal_investigator()
 	var rep_label: String = str(active_royal_investigation.get("reporter_name", "el primer testigo"))
-	_hint_player("👑🕵️‍♂️ ¡MAGNICIDIO COMERCIAL! %s ha muerto (Ruta suspendida %d días). El Inquisidor Real Alistair inspeccionará el charco de sangre e interrogará en cadena empezando por %s." % [merchant.npc_name, embargo_days, rep_label])
+	_hint_player("👑🕵️‍♂️ ¡CADÁVER REAL REPORTADO! Se ha dado aviso de la muerte de %s (Ruta suspendida %d días). El Inquisidor Real Alistair llega al valle, inspeccionará el charco de sangre e interrogará en cadena empezando por %s." % [merchant.npc_name, embargo_days, rep_label])
 
 func _get_investigation_crime_pos() -> Vector2:
 	if active_royal_investigation.has("crime_pos_x") and active_royal_investigation.has("crime_pos_y"):
@@ -4975,6 +5114,7 @@ func _conclude_sheriff_investigation_verdict(sheriff: VillageNPC) -> void:
 	var v_name: String = str(active_sheriff_investigation.get("victim_name", "Aldeano"))
 	var p := get_tree().get_first_node_in_group("player") as Node2D
 	if best_key == "Jugador" and best_score >= 48:
+		_mark_morgue_case_resolved(v_name, "Jugador (Declarado culpable por el Comisario Vane: %d%%)" % clampi(best_score, 48, 100))
 		wanted_level = clampi(wanted_level + 2, 2, 5)
 		bounty_gold += 70
 		player_murder_warrants_count += 1
@@ -4988,13 +5128,25 @@ func _conclude_sheriff_investigation_verdict(sheriff: VillageNPC) -> void:
 				sheriff._police_alerted_timer = 45.0
 		_hint_player(msg, p)
 	elif best_key != "" and best_key != "Jugador" and best_score >= 52:
+		_mark_morgue_case_resolved(v_name, "%s (Señalado por el Comisario Vane: %d%%)" % [best_key, best_score])
 		if is_instance_valid(sheriff):
 			sheriff._spawn_floating_text("🚓📋 Investigación cerrada: las pruebas apuntan a %s (%d%%)." % [best_key, best_score], Color.GOLD, -40.0)
 		_hint_player("🚓📋 El Comisario Vane concluyó sus 5 interrogatorios por la muerte de %s: las pistas señalan a %s (%d%% sospecha)." % [v_name, best_key, best_score], p)
 	else:
+		_mark_morgue_case_resolved(v_name, "Caso Archivado por el Comisario Vane (Sin pruebas)")
 		if is_instance_valid(sheriff):
 			sheriff._spawn_floating_text("🚓📋 Sin pruebas suficientes tras interrogar a los testigos cercanos.", Color.LIGHT_GRAY, -38.0)
-		_hint_player("🚓📋 El Comisario Vane cerró sin cargos la investigación local de %s (ningún testigo te situó como culpable)." % v_name, p)
+		_hint_player("🚓📋 El Comisario Vane archivó sin cargos la investigación local de %s (ningún testigo te situó como culpable)." % v_name, p)
+
+	# Si hay otro cadáver en la Morgue cuyo caso aún no había podido investigarse, abrir su investigación ahora
+	for next_rec in morgue_active_corpses:
+		var next_v_name: String = str(next_rec.get("victim_name", ""))
+		if next_v_name != "" and not bool(next_rec.get("case_resolved", true)):
+			var next_c: VillageNPC = _find_corpse_npc_by_name(next_v_name)
+			if is_instance_valid(next_c) and next_c.trade_role != VillageNPC.TradeRole.TRAVELING_MERCHANT:
+				var dp := Vector2(float(next_rec.get("death_pos_x", next_c.death_world_pos.x)), float(next_rec.get("death_pos_y", next_c.death_world_pos.y)))
+				start_sheriff_investigation(next_c, dp, str(next_rec.get("cause_of_death", next_c.last_hit_weapon_name)), str(next_rec.get("discoverer_name", "")), int(next_rec.get("death_mins", 0)))
+				break
 
 ## FILOSOFÍA DEL INQUISIDOR REAL (Etapa 4):
 ## Condena al sospechoso con mayor puntuación forense real (`>= 35%`), desempatando por quién estaba más cerca de la escena.
@@ -5025,11 +5177,13 @@ func _conclude_royal_investigation_with_mandatory_verdict(inv_npc: VillageNPC) -
 			best_key = str(k)
 
 	var p = get_tree().get_first_node_in_group("player") as Node2D
+	var royal_v_name: String = str(active_royal_investigation.get("victim_name", ""))
 	if best_key == "" or best_score < 35:
 		active_royal_investigation["verdict_target"] = "Caso Archivado (Sin Pruebas >= 35%)"
 		active_royal_investigation["verdict_reason"] = "Ningún sospechoso superó el umbral mínimo del 35% de sospecha forense."
 		active_royal_investigation["stage"] = "DEPARTING"
 		active_royal_investigation["stage_timer"] = 0.0
+		_mark_morgue_case_resolved(royal_v_name, "Caso Archivado por el Inquisidor Real (Sin pruebas >= 35%)")
 		if is_instance_valid(inv_npc):
 			inv_npc._spawn_floating_text("⚖️📜 Sin pruebas concluyentes (<35%): No ejecutaré a un inocente al azar. Regreso a la Corte.", Color.AQUA, -44.0)
 		_hint_player("⚖️👑 ¡EXPEDIENTE ARCHIVADO POR FALTA DE PRUEBAS! Ningún sospechoso superó el 35% de sospecha forense ni se halló el Salvoconducto Real. El Inquisidor Real Alistair se retira sin ejecutar a ningún inocente.", p)
@@ -5038,6 +5192,7 @@ func _conclude_royal_investigation_with_mandatory_verdict(inv_npc: VillageNPC) -
 	var chosen: Dictionary = suspects.get(best_key, {})
 	var chosen_name: String = str(chosen.get("name", best_key))
 	active_royal_investigation["verdict_target"] = chosen_name
+	_mark_morgue_case_resolved(royal_v_name, "Veredicto Real: %s (%d%%)" % [chosen_name, clampi(best_score, 35, 100)])
 
 	if bool(chosen.get("is_player", false)):
 		active_royal_investigation["verdict_reason"] = "Culpable por deducción de pruebas y testimonios (%d%% de probabilidad)." % clampi(best_score, 50, 100)
