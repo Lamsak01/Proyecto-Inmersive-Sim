@@ -74,8 +74,9 @@ func _process(delta: float) -> void:
 
 	if is_bleeding:
 		_bleed_timer -= delta
-		# Perder vida poco a poco dependiendo del daño del arma que causó el sangrado
-		current_health = max(0.0, current_health - _bleed_dps * delta)
+		var bleed_loss: float = _bleed_dps * delta
+		current_health = max(0.0, current_health - bleed_loss)
+		_drain_bleeding_region_hp(bleed_loss)
 		health_changed.emit(current_health, max_health)
 
 		# Reflejar el tiempo restante de sangrado en la barra
@@ -106,12 +107,16 @@ func _process(delta: float) -> void:
 		_med_tick_accum = 0.0
 		_tick_anatomical_recovery(dt_m)
 
+func _drain_bleeding_region_hp(loss: float) -> void:
+	for w in wounds:
+		if float(w.get("bleed_rate", 0.0)) > 0.0 and not bool(w.get("bandaged", false)) and not bool(w.get("stitched", false)):
+			var rk: String = str(w.get("region", "torso"))
+			region_hp[rk] = maxf(1.0, float(region_hp.get(rk, 40.0)) - loss * 0.85)
+			return
+	region_hp["torso"] = maxf(1.0, float(region_hp.get("torso", 65.0)) - loss * 0.75)
+
 func _tick_anatomical_recovery(dt: float) -> void:
 	if wounds.is_empty():
-		for r_id in REGION_ORDER:
-			var m_hp: float = float(REGION_DEFS[r_id]["max_hp"])
-			if float(region_hp.get(r_id, m_hp)) < m_hp:
-				region_hp[r_id] = minf(m_hp, float(region_hp.get(r_id, m_hp)) + dt * 0.45)
 		return
 	var changed := false
 	for i in range(wounds.size() - 1, -1, -1):
@@ -119,24 +124,33 @@ func _tick_anatomical_recovery(dt: float) -> void:
 		var w_type: String = str(w.get("type", "scratch"))
 		if w_type == "lodged_arrow":
 			continue
-		var rate: float = 0.28
-		if bool(w.get("bandaged", false)):
-			rate *= 2.1
-			w["bandage_dirty"] = minf(100.0, float(w.get("bandage_dirty", 0.0)) + dt * 0.65)
-		if bool(w.get("stitched", false)):
-			rate *= 2.6
+		var is_bandaged: bool = bool(w.get("bandaged", false))
+		var is_stitched: bool = bool(w.get("stitched", false))
+		var is_splinted: bool = bool(w.get("splinted", false))
+		if is_bandaged:
+			w["bandage_dirty"] = minf(100.0, float(w.get("bandage_dirty", 0.0)) + dt * 0.45)
+		# Estilo Project Zomboid: las heridas sin tratar NO desaparecen solas mágicamente en segundos
+		if not is_bandaged and not is_stitched and not is_splinted:
+			continue
+		var rate: float = 0.22
+		if is_bandaged:
+			rate = 0.48
+		if is_stitched:
+			rate = 0.72
 		if w_type == "fracture":
-			rate = 0.35 if bool(w.get("splinted", false)) else 0.08
+			rate = 0.32 if is_splinted else 0.0
+		if rate <= 0.0:
+			continue
 		var new_sev: float = float(w.get("severity", 10.0)) - rate * dt
+		var r_key: String = str(w.get("region", "torso"))
+		var m_hp2: float = float(REGION_DEFS.get(r_key, {"max_hp": 50.0})["max_hp"])
+		region_hp[r_key] = minf(m_hp2, float(region_hp.get(r_key, m_hp2)) + rate * dt * 0.35)
 		if new_sev <= 0.0:
-			var r_key: String = str(w.get("region", "torso"))
-			var m_hp2: float = float(REGION_DEFS.get(r_key, {"max_hp": 50.0})["max_hp"])
-			region_hp[r_key] = minf(m_hp2, float(region_hp.get(r_key, m_hp2)) + 8.0)
 			wounds.remove_at(i)
 			changed = true
 		else:
 			w["severity"] = new_sev
-			w["pain"] = maxf(1.0, float(w.get("pain", 6.0)) - rate * dt * 0.35)
+			w["pain"] = maxf(1.0, float(w.get("pain", 6.0)) - rate * dt * 0.30)
 	if changed:
 		anatomy_changed.emit()
 
@@ -181,7 +195,14 @@ func _inflict_anatomical_wound(data: DamageData, final_damage: float) -> void:
 	var r_id: String = _pick_hit_region(data)
 	var max_r: float = float(REGION_DEFS[r_id]["max_hp"])
 	var cur_r: float = float(region_hp.get(r_id, max_r))
-	region_hp[r_id] = maxf(0.0, cur_r - final_damage * 0.72)
+	var reg_loss: float = maxf(2.0, final_damage * 1.15)
+	if cur_r - reg_loss < 0.0 and r_id != "torso":
+		var overflow: float = reg_loss - cur_r
+		region_hp[r_id] = 0.0
+		var max_t: float = float(REGION_DEFS["torso"]["max_hp"])
+		region_hp["torso"] = maxf(0.0, float(region_hp.get("torso", max_t)) - overflow)
+	else:
+		region_hp[r_id] = maxf(0.0, cur_r - reg_loss)
 
 	var w_tag: String = str(data.weapon_tag) if data else ""
 	if w_tag == "" and data and is_instance_valid(data.source):
@@ -196,47 +217,61 @@ func _inflict_anatomical_wound(data: DamageData, final_damage: float) -> void:
 		w_tag = "Impacto Cortante" if (data and data.type == CombatConstants.DamageType.CUT) else "Golpe Contundente"
 
 	var w_type := "scratch"
+	var custom_w_name := ""
 	var bleed_r: float = 0.0
-	var pain_v: float = clampf(final_damage * 0.65, 4.0, 36.0)
-	var sev_v: float = clampf(final_damage * 1.35, 10.0, 95.0)
+	var pain_v: float = clampf(final_damage * 0.95, 6.0, 42.0)
+	var sev_v: float = clampf(final_damage * 2.1, 18.0, 98.0)
 	var low_tag := w_tag.to_lower()
+	var is_bullet: bool = ("pistola" in low_tag or "disparo" in low_tag or "bala" in low_tag)
+	var is_arrow: bool = ("arco" in low_tag or "flecha" in low_tag)
 
 	if data and data.type == CombatConstants.DamageType.CUT:
-		if "arco" in low_tag or "flecha" in low_tag:
+		if is_bullet:
+			w_type = "deep_wound"
+			custom_w_name = "Herida de Bala"
+			bleed_r = 2.2
+			pain_v = maxf(pain_v, 24.0)
+			sev_v = maxf(sev_v, 48.0)
+		elif is_arrow:
 			w_type = "lodged_arrow"
-			bleed_r = 1.4
-			pain_v = maxf(pain_v, 18.0)
-		elif final_damage >= 22.0 or data.bleed_buildup >= 45.0:
+			bleed_r = 1.5
+			pain_v = maxf(pain_v, 20.0)
+			sev_v = maxf(sev_v, 42.0)
+		elif final_damage >= 14.0 or data.bleed_buildup >= 32.0:
 			w_type = "deep_wound"
 			bleed_r = 2.4
 			pain_v = maxf(pain_v, 22.0)
-		elif final_damage >= 11.0 or data.bleed_buildup >= 20.0:
+		elif final_damage >= 5.5 or data.bleed_buildup >= 12.0:
 			w_type = "laceration"
 			bleed_r = 1.2
 		else:
 			w_type = "scratch"
-			bleed_r = 0.4
+			bleed_r = 0.5
 	else:
-		if final_damage >= 20.0 or (r_id in ["left_leg", "right_leg", "left_arm", "right_arm"] and final_damage >= 15.0 and randf() < 0.45):
+		var new_ratio: float = float(region_hp.get(r_id, max_r)) / maxf(1.0, max_r)
+		if final_damage >= 15.0 or (new_ratio < 0.68 and final_damage >= 8.0 and randf() < 0.50) or (r_id in ["left_leg", "right_leg", "left_arm", "right_arm"] and final_damage >= 10.0 and randf() < 0.42):
 			w_type = "fracture"
+			if r_id == "head":
+				custom_w_name = "Conmoción / Fisura Craneal"
 			pain_v = maxf(pain_v, 24.0)
-			sev_v = maxf(sev_v, 45.0)
+			sev_v = maxf(sev_v, 48.0)
 		else:
 			w_type = "bruise"
 
 	var organ_hit := ""
-	if final_damage >= 20.0 and r_id in ["head", "torso"] and randf() < 0.32:
-		var cand_organs: Array[String] = ["eyes", "brain"] if r_id == "head" else ["lungs", "stomach", "liver", "kidneys", "heart"]
-		organ_hit = cand_organs[randi() % cand_organs.size()]
-		var o_Loss: float = clampf(final_damage * 0.85, 12.0, 48.0)
-		organ_hp[organ_hit] = maxf(10.0, float(organ_hp.get(organ_hit, 100.0)) - o_Loss)
+	var organ_chance: float = 0.55 if (is_bullet or is_arrow) else (0.38 if final_damage >= 8.0 else 0.18)
+	if r_id in ["head", "torso"] and randf() < organ_chance:
+		var cand_organs: Array = ["eyes", "brain"] if r_id == "head" else ["lungs", "stomach", "liver", "kidneys", "heart"]
+		organ_hit = str(cand_organs[randi() % cand_organs.size()])
+		var o_loss: float = clampf(final_damage * 1.45, 14.0, 52.0)
+		organ_hp[organ_hit] = maxf(10.0, float(organ_hp.get(organ_hit, 100.0)) - o_loss)
 
 	var w_entry: Dictionary = {
 		"id": _next_wound_id,
 		"region": r_id,
 		"organ": organ_hit,
 		"type": w_type,
-		"name": str(WOUND_NAMES.get(w_type, "Herida")),
+		"name": custom_w_name if custom_w_name != "" else str(WOUND_NAMES.get(w_type, "Herida")),
 		"severity": sev_v,
 		"bleed_rate": bleed_r,
 		"pain": pain_v,
@@ -276,24 +311,50 @@ func add_bleed_buildup(buildup_amount: float, weapon_damage: float) -> void:
 			weakness_changed.emit(true)
 		bleed_triggered.emit(_bleed_dps)
 
-func heal(amount: float) -> void:
+func heal(amount: float, clear_all_wounds: bool = false) -> void:
 	current_health = clamp(current_health + amount, 0.0, max_health)
+	if clear_all_wounds:
+		_init_anatomy()
+		health_changed.emit(current_health, max_health)
+		anatomy_changed.emit()
+		return
+	var missing_regions: Array[String] = []
 	for r_id in REGION_ORDER:
 		var m_r: float = float(REGION_DEFS[r_id]["max_hp"])
-		region_hp[r_id] = minf(m_r, float(region_hp.get(r_id, m_r)) + amount * 0.55)
+		if float(region_hp.get(r_id, m_r)) < m_r - 0.1:
+			missing_regions.append(r_id)
+	if not missing_regions.is_empty():
+		var share: float = (amount * 1.1) / float(missing_regions.size())
+		for r_id in missing_regions:
+			var m_r2: float = float(REGION_DEFS[r_id]["max_hp"])
+			region_hp[r_id] = minf(m_r2, float(region_hp.get(r_id, m_r2)) + share)
 	for i in range(wounds.size() - 1, -1, -1):
 		var w: Dictionary = wounds[i]
-		if str(w.get("type", "")) == "lodged_arrow":
-			continue
-		var s_after: float = float(w.get("severity", 10.0)) - amount * 0.45
-		if s_after <= 0.0 or current_health >= max_health - 0.1:
-			wounds.remove_at(i)
-		else:
-			w["severity"] = s_after
-			w["pain"] = maxf(1.0, float(w.get("pain", 5.0)) - amount * 0.20)
-	if current_health >= max_health - 0.1:
-		for o_id in ORGAN_DEFS.keys():
-			organ_hp[o_id] = minf(100.0, float(organ_hp.get(o_id, 100.0)) + amount * 0.25)
+		# Solo las heridas tratadas reducen su severidad al curarse con comida/descanso
+		if bool(w.get("bandaged", false)) or bool(w.get("stitched", false)) or bool(w.get("splinted", false)):
+			var s_after: float = float(w.get("severity", 10.0)) - amount * 0.35
+			if s_after <= 0.0:
+				wounds.remove_at(i)
+			else:
+				w["severity"] = s_after
+				w["pain"] = maxf(1.0, float(w.get("pain", 5.0)) - amount * 0.15)
+	health_changed.emit(current_health, max_health)
+	anatomy_changed.emit()
+
+## Estabiliza al personaje tras caer abatido por la Guardia (sin borrar sus heridas, fracturas ni daño a órganos)
+func stabilize_after_knockout(target_ratio: float = 0.45) -> void:
+	is_bleeding = false
+	_bleed_timer = 0.0
+	_bleed_dps = 0.0
+	current_blood = 0.0
+	blood_changed.emit(current_blood, max_blood)
+	if is_weak:
+		is_weak = false
+		weakness_changed.emit(false)
+	current_health = maxf(current_health, max_health * target_ratio)
+	for r_id in REGION_ORDER:
+		var m_r: float = float(REGION_DEFS[r_id]["max_hp"])
+		region_hp[r_id] = maxf(float(region_hp.get(r_id, m_r)), m_r * 0.30)
 	health_changed.emit(current_health, max_health)
 	anatomy_changed.emit()
 

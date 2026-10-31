@@ -498,8 +498,7 @@ func _on_died() -> void:
 			knocked_by_police = true
 	if vm and (int(vm.get("wanted_level")) > 0 or bool(vm.get("is_resisting_arrest")) or knocked_by_police):
 		if health_comp:
-			health_comp.stop_bleeding()
-			health_comp.heal(health_comp.max_health * 0.50)
+			health_comp.stabilize_after_knockout(0.45)
 		if stun_comp and stun_comp.has_method("clear_stun"):
 			stun_comp.clear_stun()
 		is_stunned_flag = false
@@ -507,10 +506,9 @@ func _on_died() -> void:
 			vm.call("capture_knocked_out_player_to_jail", self)
 		return
 
-	# Si cae abatido fuera de persecución policial, es trasladado de urgencia al Hospital del Dr. Valen
+	# Si cae abatido fuera de persecución policial, es trasladado de urgencia al Hospital del Dr. Valen (conservando las heridas abiertas para tratarlas)
 	if health_comp:
-		health_comp.stop_bleeding()
-		health_comp.heal(health_comp.max_health * 0.60)
+		health_comp.stabilize_after_knockout(0.55)
 	if stun_comp and stun_comp.has_method("clear_stun"):
 		stun_comp.clear_stun()
 	is_stunned_flag = false

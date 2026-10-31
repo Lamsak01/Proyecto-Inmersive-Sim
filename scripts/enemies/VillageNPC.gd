@@ -727,6 +727,7 @@ func _physics_process(delta: float) -> void:
 			velocity = Vector2.ZERO
 			health_comp.heal(12.0 * delta)
 			if health_comp.current_health >= health_comp.max_health - 0.5:
+				health_comp.heal(health_comp.max_health, true)
 				_spawn_floating_text("🏥 Curado en el Hospital (+Salud)", Color.SPRING_GREEN, -36.0)
 		_finish_frame_movement(delta)
 		return
@@ -987,6 +988,7 @@ func _strike_police_baton(player: Node2D) -> void:
 	d.amount = 14.0 * eff
 	d.type = CombatConstants.DamageType.BLUNT
 	d.stun_buildup = 36.0 * eff
+	d.weapon_tag = "Porra Policial"
 	d.source = self
 	player.call("take_damage", d)
 	_spawn_floating_text("🏏 ¡Porrazo Policial!", Color.AQUA, -40.0)
@@ -1000,6 +1002,7 @@ func _fire_police_pistol(player: Node2D) -> void:
 	d.amount = 16.0 * eff
 	d.type = CombatConstants.DamageType.CUT
 	d.bleed_buildup = 20.0 * eff
+	d.weapon_tag = "Pistola Policial"
 	d.source = self
 	player.call("take_damage", d)
 	_spawn_floating_text("🔫 ¡Disparo Policial!", Color(1.0, 0.82, 0.28), -42.0)
@@ -2015,6 +2018,7 @@ func _process_hostile_combat(delta: float) -> void:
 			if player.has_method("take_damage"):
 				var d := DamageData.new()
 				d.amount = 14.0 if is_police_unit else 9.0
+				d.weapon_tag = "Porra Policial" if is_police_unit else ("Golpe de " + npc_name)
 				d.source = self
 				player.call("take_damage", d)
 
@@ -2834,7 +2838,7 @@ func on_dialogue_action(action_id: String) -> void:
 		var health: HealthComponent = player.get_node_or_null("HealthComponent")
 		if health:
 			health.stop_bleeding()
-			health.heal(health.max_health)
+			health.heal(health.max_health, true)
 		_spawn_floating_text("🏥 Curación Completa en el Hospital (-10 Oro)", Color.SPRING_GREEN, -44.0)
 		return
 
