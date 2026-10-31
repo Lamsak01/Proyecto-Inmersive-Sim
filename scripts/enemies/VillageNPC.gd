@@ -714,7 +714,16 @@ func _physics_process(delta: float) -> void:
 
 	_update_needs_and_decisions(delta)
 
-	if health_comp and health_comp.current_health < health_comp.max_health * 0.75 and need_hunger > 5.0:
+	var needs_hospital_care: bool = false
+	if health_comp and need_hunger > 5.0:
+		if health_comp.current_health < health_comp.max_health * 0.75:
+			needs_hospital_care = true
+		elif health_comp.fever >= 45.0 or health_comp.food_poisoning >= 50.0 or health_comp.swamp_sickness >= 50.0 or health_comp.get_max_wound_infection() >= 55.0:
+			needs_hospital_care = true
+		elif health_comp.has_active_sickness_or_infection() and global_position.distance_to(Vector2(718, 136)) <= 24.0:
+			needs_hospital_care = true
+
+	if needs_hospital_care:
 		if is_sleeping:
 			is_sleeping = false
 			if sprite:
@@ -726,9 +735,11 @@ func _physics_process(delta: float) -> void:
 		else:
 			velocity = Vector2.ZERO
 			health_comp.heal(12.0 * delta)
-			if health_comp.current_health >= health_comp.max_health - 0.5:
+			if health_comp.has_active_sickness_or_infection():
+				health_comp.cure_sickness(18.0 * delta)
+			if health_comp.current_health >= health_comp.max_health - 0.5 and not health_comp.has_active_sickness_or_infection():
 				health_comp.heal(health_comp.max_health, true)
-				_spawn_floating_text("🏥 Curado en el Hospital (+Salud)", Color.SPRING_GREEN, -36.0)
+				_spawn_floating_text("🏥 Curado en el Hospital (+Salud / Sin Fiebre)", Color.SPRING_GREEN, -36.0)
 		_finish_frame_movement(delta)
 		return
 
@@ -1369,9 +1380,15 @@ func _update_needs_and_decisions(delta: float) -> void:
 	else:
 		_starvation_tick_timer = 0.0
 
+	if health_comp and not is_dead:
+		_npc_env_sickness_timer += delta
+		if _npc_env_sickness_timer >= 2.2:
+			_npc_env_sickness_timer = 0.0
+			_check_npc_environmental_sickness()
+
 	# Si por alguna razón extrema llega a 0% de energía fuera del turno obligatorio, NO se desmaya en el suelo:
 	# sufre los debufos severos de privación de sueño y camina hacia su cama/campamento a dormir.
-	if need_energy <= 0.0 and not in_work_shift and current_activity != ActivityState.SLEEPING:
+	if (need_energy <= 0.0 or (health_comp and health_comp.fever >= 25.0)) and not in_work_shift and current_activity != ActivityState.SLEEPING:
 		current_activity = ActivityState.SLEEPING
 		return
 	if in_work_shift and current_activity == ActivityState.WORKING:
@@ -1419,6 +1436,21 @@ func _update_needs_and_decisions(delta: float) -> void:
 	elif need_social <= 78.0:
 		current_activity = ActivityState.SOCIALIZING
 		_social_partner = _find_best_social_partner()
+
+var _npc_env_sickness_timer: float = 0.0
+
+func _check_npc_environmental_sickness() -> void:
+	if not health_comp or is_dead:
+		return
+	if Rect2(-725.0, 28.0, 240.0, 120.0).has_point(global_position):
+		health_comp.add_swamp_or_miasma_exposure(1.4, "Humedad de la Ciénaga de las Ranas")
+	for n in get_tree().get_nodes_in_group("village_npcs"):
+		if n == self or not is_instance_valid(n) or not (n is Node2D):
+			continue
+		if n.get("corpse_on_ground") == true and n.get("corpse_in_morgue") != true and float(n.get("corpse_rot_hours")) >= 1.5:
+			if global_position.distance_to((n as Node2D).global_position) <= 68.0:
+				health_comp.add_swamp_or_miasma_exposure(2.5, "Miasma de cadáver putrefacto")
+				break
 
 func _approach_or_stop(target_pos: Vector2, tol: float, spd: float, delta: float) -> void:
 	if global_position.distance_to(target_pos) > tol:
@@ -1946,18 +1978,23 @@ func _get_social_target_pos() -> Vector2:
 func get_activity_description() -> String:
 	if is_downed: return "🩸 Agonizando (%ds)" % maxi(1, int(ceil(bleedout_timer)))
 	if sedated_timer > 0.0: return "💤 Sedado (%ds)" % maxi(1, int(ceil(sedated_timer)))
+	var sick_tag: String = ""
+	if health_comp and health_comp.has_active_sickness_or_infection():
+		sick_tag = " [🌡️Enfermo/Fiebre %d%%]" % int(round(maxf(health_comp.fever, maxf(health_comp.food_poisoning, health_comp.swamp_sickness))))
 	if trade_role == TradeRole.ROYAL_INVESTIGATOR:
 		var vm_inv = _get_vm()
 		if vm_inv and vm_inv.has_method("get_royal_investigator_status_text"):
-			return str(vm_inv.call("get_royal_investigator_status_text"))
-		return "🔍👑 Investigando Asesinato Real"
+			return str(vm_inv.call("get_royal_investigator_status_text")) + sick_tag
+		return "🔍👑 Investigando Asesinato Real" + sick_tag
 	if trade_role == TradeRole.TRAVELING_MERCHANT:
-		return "🧳👑 Regresando a las Tierras Reales" if _merchant_leaving else "⚖️👑 Comerciando con Salvoconducto Real"
+		return ("🧳👑 Regresando a las Tierras Reales" if _merchant_leaving else "⚖️👑 Comerciando con Salvoconducto Real") + sick_tag
+	if health_comp and (health_comp.fever >= 45.0 or health_comp.food_poisoning >= 50.0 or health_comp.swamp_sickness >= 50.0) and global_position.distance_to(Vector2(718, 136)) <= 32.0:
+		return "🏥 Ingresado en el Hospital tratándose la Fiebre/Infección" + sick_tag
 	match current_activity:
 		ActivityState.SLEEPING:
 			if is_vagrant_camper:
-				return "⛺ Durmiendo a la Intemperie (Campamento)" if is_sleeping else "🚶⛺ Yendo a su Campamento Rústico"
-			return "💤 Durmiendo en Cama" if is_sleeping else "🚶 Yendo a Dormir"
+				return ("⛺ Durmiendo a la Intemperie (Campamento)" if is_sleeping else "🚶⛺ Yendo a su Campamento Rústico") + sick_tag
+			return ("💤 Durmiendo en Cama" if is_sleeping else "🚶 Yendo a Dormir") + sick_tag
 		ActivityState.EATING:
 			if _is_amateur_foraging:
 				return "🏹💦 Cazando/Recolectando Torpemente (Sin Dinero/Comida)"
@@ -2839,6 +2876,7 @@ func on_dialogue_action(action_id: String) -> void:
 		var health: HealthComponent = player.get_node_or_null("HealthComponent")
 		if health:
 			health.stop_bleeding()
+			health.cure_sickness(100.0)
 			health.heal(health.max_health, true)
 		_spawn_floating_text("🏥 Curación Completa en el Hospital (-10 Oro)", Color.SPRING_GREEN, -44.0)
 		return

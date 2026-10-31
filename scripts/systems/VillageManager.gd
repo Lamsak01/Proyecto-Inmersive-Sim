@@ -2723,8 +2723,8 @@ func _use_hospital_emergency_bed(player: Node2D) -> void:
 				return
 
 	var health: HealthComponent = player.get_node_or_null("HealthComponent")
-	if health and health.current_health >= health.max_health - 0.1 and not health.is_bleeding and health.current_blood <= 0.1:
-		_msg_player(player, "🏥 Tu salud ya está al 100% y no tienes sangrado", Color.LIGHT_GRAY, -42.0)
+	if health and health.current_health >= health.max_health - 0.1 and not health.is_bleeding and health.current_blood <= 0.1 and health.wounds.is_empty() and not health.has_active_sickness_or_infection():
+		_msg_player(player, "🏥 Tu salud ya está al 100%, sin heridas ni infecciones", Color.LIGHT_GRAY, -42.0)
 		return
 	var inv: SimpleInventory = player.get("inventory") if "inventory" in player else null
 	if inv and inv.gold < 10:
@@ -2734,8 +2734,9 @@ func _use_hospital_emergency_bed(player: Node2D) -> void:
 		inv.add_gold(-10)
 	if health:
 		health.stop_bleeding()
-		health.heal(health.max_health)
-	_msg_player(player, "🏥 Cama de Urgencias (-10 Oro): Salud y Sangrado curados al 100%", Color.SPRING_GREEN, -44.0)
+		health.cure_sickness(100.0)
+		health.heal(health.max_health, true)
+	_msg_player(player, "🏥 Cama de Urgencias (-10 Oro): Salud, Heridas e Infecciones curadas al 100%", Color.SPRING_GREEN, -44.0)
 
 func _use_tavern_games_table(start_tab: int = 0) -> void:
 	var games_ui = get_tree().root.find_child("TavernGamesUI", true, false)

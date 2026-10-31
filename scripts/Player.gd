@@ -286,6 +286,9 @@ func get_stealth_detection_multiplier() -> float:
 func has_master_lockpick() -> bool:
 	return inventory != null and inventory.has_item("master_lockpick", 1)
 
+var _env_sickness_timer: float = 0.0
+const FROG_MARSH_RECT := Rect2(-725.0, 28.0, 240.0, 120.0)
+
 func _process(delta: float) -> void:
 	if speed_tonic_timer > 0.0:
 		speed_tonic_timer -= delta
@@ -298,6 +301,30 @@ func _process(delta: float) -> void:
 		_hit_flash_timer -= delta
 		if _hit_flash_timer <= 0.0 and anim:
 			anim.modulate = Color.WHITE
+	if health_comp and health_comp.current_health > 0.0:
+		_env_sickness_timer += delta
+		if _env_sickness_timer >= 2.0:
+			_env_sickness_timer = 0.0
+			_check_environmental_sickness()
+
+func _check_environmental_sickness() -> void:
+	if not health_comp or health_comp.current_health <= 0.0:
+		return
+	if FROG_MARSH_RECT.has_point(global_position):
+		var prev_swamp: float = health_comp.swamp_sickness
+		health_comp.add_swamp_or_miasma_exposure(1.6, "Humedad de la Ciénaga de las Ranas")
+		if prev_swamp < 25.0 and health_comp.swamp_sickness >= 25.0:
+			_spawn_floating_text("🦟 Aire insalubre de la Ciénaga (+Fiebre de Pantano)", Color(0.72, 0.95, 0.35), -48.0)
+	for n in get_tree().get_nodes_in_group("village_npcs"):
+		if not is_instance_valid(n) or not (n is Node2D):
+			continue
+		if n.get("corpse_on_ground") == true and n.get("corpse_in_morgue") != true and float(n.get("corpse_rot_hours")) >= 1.5:
+			if global_position.distance_to((n as Node2D).global_position) <= 68.0:
+				var prev_m: float = health_comp.swamp_sickness
+				health_comp.add_swamp_or_miasma_exposure(2.8, "Miasma de cadáver putrefacto")
+				if prev_m < 20.0 and health_comp.swamp_sickness >= 20.0:
+					_spawn_floating_text("☣️ ¡Miasma de cadáver sin enterrar!", Color(0.75, 1.0, 0.30), -52.0)
+				break
 
 func apply_armor_stats() -> void:
 	if not inventory:

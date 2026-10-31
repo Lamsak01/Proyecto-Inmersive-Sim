@@ -21,8 +21,8 @@ const CATALOG: Dictionary = {
 	"stone": {"name": "Piedra", "category": "Material", "desc": "Roca firme extraída con herramientas de minería ([4] Pico).", "usable": false},
 	"iron_ore": {"name": "Mineral de Hierro", "category": "Material", "desc": "Mineral bruto extraído de vetas rocosas. Esencial en la Herrería para forjar y mejorar herramientas.", "usable": false},
 	"steel_ingot": {"name": "Lingote de Acero", "category": "Material", "desc": "Aleación refinada de hierro y carbón de leña. Permite forjar equipo y herramientas de Tier 3.", "usable": false},
-	"herbs": {"name": "Hierbas Medicinales", "category": "Forrajeo", "desc": "Plantas silvestres coagulantes. Úsalas directo (+10 HP, corta sangrado) o craftea vendajes.", "usable": true, "heal_hp": 10.0, "stop_bleed": true},
-	"mushroom": {"name": "Hongo Silvestre", "category": "Forrajeo", "desc": "Hongo del bosque. Comestible crudo (+12 HP, +15 Hambre) o cocinable en la cacerola.", "usable": true, "heal_hp": 12.0, "restore_stamina": 20.0, "restore_hunger": 15.0},
+	"herbs": {"name": "Hierbas Medicinales", "category": "Forrajeo", "desc": "Plantas silvestres coagulantes y febrífugas. Úsalas directo (+10 HP, corta sangrado y baja fiebre) o craftea vendajes.", "usable": true, "heal_hp": 10.0, "stop_bleed": true, "cure_sickness": 22.0},
+	"mushroom": {"name": "Hongo Silvestre", "category": "Forrajeo", "desc": "Hongo del bosque. Comestible crudo (+12 HP, +15 Hambre, ligero riesgo digestivo) o cocinable al fuego.", "usable": true, "heal_hp": 12.0, "restore_stamina": 20.0, "restore_hunger": 15.0, "poison_risk": 0.35, "poison_amount": 22.0},
 	"crop_seeds": {"name": "Semillas del Valle", "category": "Agricultura", "desc": "Semillas silvestres del bosque. Puedes usarlas o intercambiarlas en la Herboristería.", "usable": false},
 	"carrot_seeds": {"name": "Semillas de Zanahoria", "category": "Agricultura", "desc": "Ciclo rápido (2 días, o 1 día con abono). Pulsa [E] en tierra vacía para plantar o [R] para alternar.", "usable": true, "is_seed": true},
 	"cabbage_seeds": {"name": "Semillas de Col", "category": "Agricultura", "desc": "Ciclo medio (3 días, o 2 días con abono). Cosecha abundante y muy nutritiva.", "usable": true, "is_seed": true},
@@ -32,12 +32,12 @@ const CATALOG: Dictionary = {
 	"cabbage": {"name": "Col de Huerta", "category": "Cosecha", "desc": "Repollo grande (+30 HP, +32 Hambre). Puedes cocinarlo en la cacerola de la hoguera.", "usable": true, "heal_hp": 30.0, "restore_stamina": 40.0, "restore_hunger": 32.0},
 	"wheat": {"name": "Gavilla de Trigo", "category": "Cosecha", "desc": "Cereal maduro listo para hornear Pan o alimentar a las gallinas.", "usable": false},
 	"cooked_vegetable": {"name": "Verdura Cocida", "category": "Alimento", "desc": "Plato caliente preparado en la cacerola de la hoguera (+28 HP, +40 STM, +45 Hambre).", "usable": true, "heal_hp": 28.0, "restore_stamina": 40.0, "restore_hunger": 45.0},
-	"egg": {"name": "Huevo Fresco", "category": "Ganadería", "desc": "Huevo recién puesto en el Gallinero. Cómetelo crudo (+10 HP, +18 Hambre) o cocínalo en la hoguera.", "usable": true, "heal_hp": 10.0, "restore_stamina": 15.0, "restore_hunger": 18.0},
+	"egg": {"name": "Huevo Fresco", "category": "Ganadería", "desc": "Huevo recién puesto en el Gallinero. Cómetelo crudo (+10 HP, +18 Hambre, riesgo leve de salmonela) o cocínalo.", "usable": true, "heal_hp": 10.0, "restore_stamina": 15.0, "restore_hunger": 18.0, "poison_risk": 0.30, "poison_amount": 20.0},
 	"cooked_egg": {"name": "Huevo Cocido", "category": "Alimento", "desc": "Huevo caliente hecho en la cacerola (+24 HP, +35 STM, +38 Hambre).", "usable": true, "heal_hp": 24.0, "restore_stamina": 35.0, "restore_hunger": 38.0},
-	"raw_chicken": {"name": "Pollo Crudo", "category": "Ganadería", "desc": "Ave desplumada del gallinero. Puedes comerla en emergencia (+12 HP, +22 Hambre) o asarla al fuego.", "usable": true, "heal_hp": 12.0, "restore_stamina": 15.0, "restore_hunger": 22.0},
+	"raw_chicken": {"name": "Pollo Crudo", "category": "Ganadería", "desc": "Ave desplumada cruda. Comerla sin cocinar (+18 Hambre) causa intoxicación alimentaria. Ásala al fuego.", "usable": true, "heal_hp": 4.0, "restore_stamina": 10.0, "restore_hunger": 18.0, "poison_risk": 0.90, "poison_amount": 38.0},
 	"roasted_chicken": {"name": "Pollo Asado", "category": "Alimento", "desc": "Pollo dorado y jugoso hecho al fuego (+48 HP, +65 STM, +68 Hambre).", "usable": true, "heal_hp": 48.0, "restore_stamina": 65.0, "restore_hunger": 68.0},
 	"feather": {"name": "Plumas de Ave", "category": "Ganadería", "desc": "Plumas suaves obtenidas de las gallinas. Útiles para emplumar flechas o vender en el pueblo.", "usable": false},
-	"frog_legs": {"name": "Ancas de Rana Crudas", "category": "Caza (Ciénaga)", "desc": "Ancas frescas obtenidas al cazar ranas en la Ciénaga de la Llanura del Oeste. Cocínalas en la hoguera.", "usable": false, "icon": "res://assests/items/icons/frog_legs.png"},
+	"frog_legs": {"name": "Ancas de Rana Crudas", "category": "Caza (Ciénaga)", "desc": "Ancas crudas de la Ciénaga. Comerlas sin cocinar (+16 Hambre) transmite parásitos e intoxicación.", "usable": true, "restore_hunger": 16.0, "poison_risk": 0.95, "poison_amount": 42.0, "icon": "res://assests/items/icons/frog_legs.png"},
 	"fried_frog_legs": {"name": "Ancas de Rana al Ajillo", "category": "Alimento", "desc": "Plato gourmet crujiente de la Ciénaga (+50 HP, +70 STM, +65 Hambre).", "usable": true, "heal_hp": 50.0, "restore_stamina": 70.0, "restore_hunger": 65.0, "icon": "res://assests/items/icons/fried_frog_legs.png"},
 	"bandit_scrap": {"name": "Reliquia y Chatarra de Bandido", "category": "Botín (Llanura)", "desc": "Metal antiguo y monedas del campamento hostil del Oeste. Muy cotizado en la Herrería o para fundir acero.", "usable": false, "icon": "res://assests/items/icons/bandit_scrap.png"},
 	"river_trout": {"name": "Trucha de Río", "category": "Pesca", "desc": "Pez de aguas frescas capturado de día. Cocínalo en la cacerola o véndelo en la Pescadería.", "usable": false},
@@ -46,10 +46,12 @@ const CATALOG: Dictionary = {
 	"cooked_fish": {"name": "Pescado Cocido", "category": "Alimento", "desc": "Filete de pescado recién hecho en la cacerola (+36 HP, +55 STM, +52 Hambre).", "usable": true, "heal_hp": 36.0, "restore_stamina": 55.0, "restore_hunger": 52.0},
 	"country_stew": {"name": "Estofado Campesino", "category": "Alimento", "desc": "Guiso caliente de carne, col y zanahoria (+55 HP, +75 STM, +80 Hambre).", "usable": true, "heal_hp": 55.0, "restore_stamina": 75.0, "restore_hunger": 80.0},
 	"bandage": {"name": "Vendaje Limpio", "category": "Curación", "desc": "Corta cualquier hemorragia al instante y restaura +20 HP.", "usable": true, "heal_hp": 20.0, "stop_bleed": true},
-	"herbal_poultice": {"name": "Cataplasma Curativa", "category": "Curación", "desc": "Ungüento concentrado de hierbas y hongos. Corta el sangrado y cura +40 HP.", "usable": true, "heal_hp": 40.0, "stop_bleed": true},
+	"herbal_poultice": {"name": "Cataplasma Curativa", "category": "Curación", "desc": "Ungüento antiséptico de hierbas y hongos. Corta el sangrado, cura +40 HP y combate infecciones/fiebre.", "usable": true, "heal_hp": 40.0, "stop_bleed": true, "cure_sickness": 55.0},
 	"bread": {"name": "Hogaza de Pan", "category": "Alimento", "desc": "Pan horneado (+20 HP, +35 STM, +40 Hambre).", "usable": true, "heal_hp": 20.0, "restore_stamina": 35.0, "restore_hunger": 40.0},
 	"roasted_mushroom": {"name": "Hongos Asados", "category": "Alimento", "desc": "Brocheta caliente hecha al fuego (+30 HP, +45 STM, +35 Hambre).", "usable": true, "heal_hp": 30.0, "restore_stamina": 45.0, "restore_hunger": 35.0},
-	"raw_meat": {"name": "Carne Cruda", "category": "Caza", "desc": "Carne fresca obtenida cazando fauna del bosque o dando de comer a mascotas. Cocínala al fuego.", "usable": false},
+	"raw_meat": {"name": "Carne Cruda", "category": "Caza", "desc": "Carne cruda de caza. Comerla sin cocinar (+20 Hambre) provoca intoxicación alimentaria severa.", "usable": true, "restore_hunger": 20.0, "poison_risk": 0.90, "poison_amount": 38.0},
+	"spoiled_food": {"name": "Comida en Mal Estado", "category": "Alimento Podrido", "desc": "Ración rancia y contaminada. Provoca intoxicación alimentaria aguda y fiebre al quien la consuma.", "usable": true, "restore_hunger": 14.0, "poison_risk": 1.0, "poison_amount": 60.0},
+	"poisoned_stew": {"name": "Estofado Adulterado", "category": "Alquimia / Sabotaje", "desc": "Guiso de aspecto apetitoso pero adulterado con toxinas viscerales. Envenena gravemente el estómago e hígado.", "usable": true, "restore_hunger": 25.0, "poison_risk": 1.0, "poison_amount": 85.0},
 	"leather": {"name": "Cuero Animal", "category": "Despiece", "desc": "Piel obtenida al desollar animales. Base para confeccionar armaduras y empuñaduras.", "usable": false},
 	"fox_pelt": {"name": "Piel de Zorro", "category": "Despiece", "desc": "Pelaje tupido y valioso de depredador del bosque. Muy cotizado en la Carnicería y Herrería.", "usable": false},
 	"bones": {"name": "Huesos", "category": "Despiece", "desc": "Huesos limpios obtenidos del despiece. Sirven para tallar mangos o hacer abono.", "usable": false},
@@ -60,7 +62,7 @@ const CATALOG: Dictionary = {
 	"repair_kit": {"name": "Tablones Reforzados", "category": "Construcción", "desc": "Material elaborado con madera y piedra para construir o comerciar en el pueblo.", "usable": false},
 	"sleeping_draught": {"name": "Somnífero Nocturno", "category": "Alquimia / Sigilo", "desc": "Elixir sedante de la Botica. Úsalo cerca de un NPC o guardia para dormirlo profundamente 40s sin matarlo ni dejar rastro forense.", "usable": true, "is_sleeping_draught": true, "icon": "res://assests/items/icons/sleeping_draught.png"},
 	"speed_tonic": {"name": "Tónico de Velocidad", "category": "Alquimia", "desc": "Destilado energético (+65 STM y +25% Velocidad de movimiento durante 35 segundos).", "usable": true, "restore_stamina": 65.0, "speed_buff_duration": 35.0, "icon": "res://assests/items/icons/speed_tonic.png"},
-	"surgical_kit": {"name": "Botiquín Quirúrgico", "category": "Medicina Hospitalaria", "desc": "Instrumental del Dr. Valen. Corta hemorragias, cura +85 HP o reanima al instante a un aldeano agonizando.", "usable": true, "heal_hp": 85.0, "stop_bleed": true, "icon": "res://assests/items/icons/surgical_kit.png"},
+	"surgical_kit": {"name": "Botiquín Quirúrgico", "category": "Medicina Hospitalaria", "desc": "Instrumental del Dr. Valen. Corta hemorragias, cura +85 HP, limpia infecciones/fiebre o reanima heridos.", "usable": true, "heal_hp": 85.0, "stop_bleed": true, "cure_sickness": 100.0, "icon": "res://assests/items/icons/surgical_kit.png"},
 	"golden_egg": {"name": "Huevo Dorado (Genética Nv.3)", "category": "Ganadería Selecta", "desc": "Huevo extraordinario puesto por gallinas de Genética Nv.3 (+75 HP, +90 STM, +85 Hambre o véndelo por 35 Oro).", "usable": true, "heal_hp": 75.0, "restore_stamina": 90.0, "restore_hunger": 85.0, "icon": "res://assests/items/icons/golden_egg.png"},
 	"copper_coil": {"name": "Bobina de Cobre Antiguo", "category": "Tecnología / Ingeniería", "desc": "Conductor electromagnético para construir o mejorar el Generador Antiguo y el Aspersor Automático.", "usable": false, "icon": "res://assests/items/icons/copper_coil.png"},
 	"royal_safe_conduct": {"name": "Salvoconducto Real Sellado", "category": "Documento de la Corona", "desc": "Cédula oficial con sello de lacre del Reino que autoriza a cruzar las fronteras del valle. ¡Cuidado: si un Investigador Real te lo encuentra encima tras la muerte de un mercader, será prueba irrefutable!", "usable": false},
@@ -105,6 +107,7 @@ const RECIPES: Array[Dictionary] = [
 	{"id": "craft_sleeping_draught", "result": "sleeping_draught", "amount": 1, "ingredients": {"herbs": 2, "mushroom": 1, "sinew_viscera": 1}, "desc": "Destila un Somnífero Nocturno para dormir guardias o aldeanos 40s sin herirlos."},
 	{"id": "craft_speed_tonic", "result": "speed_tonic", "amount": 1, "ingredients": {"herbs": 1, "animal_fat": 1, "carrot": 1}, "desc": "Destila un Tónico de Velocidad (+65 STM y +25% Velocidad por 35s)."},
 	{"id": "craft_surgical_kit", "result": "surgical_kit", "amount": 1, "ingredients": {"bandage": 1, "herbs": 2, "sinew_viscera": 1}, "desc": "Prepara un Botiquín Quirúrgico (+85 HP, corta sangrado y reanima heridos)."},
+	{"id": "craft_poisoned_stew", "result": "poisoned_stew", "amount": 1, "ingredients": {"country_stew": 1, "mushroom": 1, "sinew_viscera": 1}, "desc": "Adultera un Estofado Campesino con toxinas viscerales para envenenar a quien lo consuma."},
 	{"id": "craft_bone_fertilizer", "result": "fertilizer", "amount": 3, "ingredients": {"bones": 2, "animal_fat": 1}, "desc": "Muele huesos y grasa animal del despiece para crear 3 bolsas de Abono Orgánico."},
 	{"id": "craft_copper_coil", "result": "copper_coil", "amount": 1, "ingredients": {"iron_ore": 1, "bandit_scrap": 1}, "desc": "Bobina conductora antigua para el Generador Eléctrico y el Aspersor."}
 ]
@@ -392,9 +395,22 @@ func use_item(item_id: String, player: Node) -> bool:
 		survival_comp.restore_hunger(restore_hun)
 		used = true
 
+	var cure_sick: float = float(info.get("cure_sickness", 0.0))
+	if cure_sick > 0.0 and health_comp and health_comp.has_active_sickness_or_infection():
+		health_comp.cure_sickness(cure_sick)
+		used = true
+
+	var p_risk: float = float(info.get("poison_risk", 0.0))
+	if p_risk > 0.0 and health_comp:
+		used = true
+
 	if used:
 		remove_item(item_id, 1)
-		if player.has_method("_spawn_floating_text"):
+		if p_risk > 0.0 and health_comp and randf() <= p_risk:
+			health_comp.add_food_poisoning(float(info.get("poison_amount", 30.0)), get_item_name(item_id))
+			if player.has_method("_spawn_floating_text"):
+				player._spawn_floating_text("🤢 ¡Intoxicación Alimentaria! (%s)" % get_item_name(item_id), Color(0.75, 1.0, 0.25), -56.0)
+		elif player.has_method("_spawn_floating_text"):
 			player._spawn_floating_text("Usado: %s" % get_item_name(item_id), Color.LIGHT_GREEN, -42.0)
 	elif player.has_method("_spawn_floating_text"):
 		player._spawn_floating_text("✨ Estadísticas al 100% (No hace falta consumirlo)", Color.LIGHT_GRAY, -42.0)

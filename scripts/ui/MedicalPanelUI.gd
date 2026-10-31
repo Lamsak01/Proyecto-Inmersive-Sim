@@ -230,6 +230,7 @@ func refresh_ui() -> void:
 		var pct: int = int(round(float(caps.get(k, 1.0)) * 100.0))
 		cap_lines.append("%s: %d%%" % [str(CAP_NAMES[k]), pct])
 	cap_lines.append("💥 Dolor Acumulado: %d%%  |  🩸 Sangrado: %s" % [int(round(hc.get_total_pain())), ("ACTIVO" if hc.is_bleeding else "Controlado")])
+	cap_lines.append(hc.get_sickness_summary_label())
 	capacities_label.text = "\n".join(cap_lines)
 
 	var org_parts: Array[String] = []
@@ -242,11 +243,24 @@ func refresh_ui() -> void:
 	for c in wounds_box.get_children():
 		c.queue_free()
 
+	var is_corpse: bool = (target_entity.get("is_dead") == true)
+	if not is_corpse and hc.has_active_sickness_or_infection():
+		var sick_card := PanelContainer.new()
+		sick_card.add_theme_stylebox_override("panel", _make_box_style(Color(0.14, 0.16, 0.11, 0.96), Color(0.65, 0.85, 0.35), 1, 5, 8, 6))
+		wounds_box.add_child(sick_card)
+		var scv := VBoxContainer.new()
+		scv.add_theme_constant_override("separation", 4)
+		sick_card.add_child(scv)
+		var cause_txt: String = (" (Origen: %s)" % hc.last_sickness_cause) if hc.last_sickness_cause != "" else ""
+		_add_lbl(scv, "🦠 Cuadro Infeccioso / Toxicológico Activo%s" % cause_txt, 12, Color(0.85, 1.0, 0.45))
+		_add_lbl(scv, "   %s" % hc.get_sickness_summary_label(), 11, Color(0.86, 0.92, 0.78))
+		var sbtn_row := HBoxContainer.new()
+		scv.add_child(sbtn_row)
+		_add_treat_btn(sbtn_row, "🍵 Purgar Fiebre y Toxinas (1 Cataplasma o 2 Hierbas)", hc, -1, "cure_sickness")
+
 	if hc.wounds.is_empty():
 		_add_lbl(wounds_box, "✅ Sin heridas abiertas, fracturas ni traumatismos activos.", 13, Color(0.48, 0.95, 0.58))
 		return
-
-	var is_corpse: bool = (target_entity.get("is_dead") == true)
 	for w in hc.wounds:
 		var card := PanelContainer.new()
 		card.add_theme_stylebox_override("panel", _make_box_style(Color(0.11, 0.13, 0.17, 0.96), Color(0.45, 0.32, 0.35), 1, 5, 8, 6))
@@ -274,10 +288,13 @@ func refresh_ui() -> void:
 			badges.append("🩼Entablillado")
 		if bool(w.get("clean", false)):
 			badges.append("✨Limpio")
+		var inf_pct: int = int(round(float(w.get("infection", 0.0))))
+		if inf_pct >= 12:
+			badges.append("🦠Infectada (%d%%)" % inf_pct)
 
 		var badge_txt: String = ("  [" + " | ".join(badges) + "]") if not badges.is_empty() else "  [⚠️Sin tratar]"
 		_add_lbl(cv, "📍 %s%s — %s (Causa: %s)%s" % [r_title, o_str, str(w.get("name", "Herida")), str(w.get("weapon_cause", "Impacto")), badge_txt], 12, Color(1.0, 0.85, 0.65))
-		_add_lbl(cv, "   Severidad: %d%%   |   Dolor: +%d%%" % [int(round(float(w.get("severity", 10.0)))), int(round(float(w.get("pain", 5.0))))], 11, Color(0.80, 0.84, 0.90))
+		_add_lbl(cv, "   Severidad: %d%%   |   Dolor: +%d%%   |   Infección: %d%%" % [int(round(float(w.get("severity", 10.0)))), int(round(float(w.get("pain", 5.0)))), inf_pct], 11, Color(0.80, 0.84, 0.90))
 
 		if is_corpse:
 			continue
@@ -362,4 +379,20 @@ func _apply_treatment(hc: HealthComponent, wound_id: int, action: String) -> voi
 			hc.treat_wound(wound_id, "splint")
 			if player.has_method("_spawn_floating_text"):
 				player.call("_spawn_floating_text", "🩼 Fractura entablillada (+Movilidad)", Color.SPRING_GREEN, -40.0)
+		"cure_sickness":
+			if inv.has_item("surgical_kit", 1):
+				inv.remove_item("surgical_kit", 1)
+				hc.cure_sickness(80.0)
+			elif inv.has_item("herbal_poultice", 1):
+				inv.remove_item("herbal_poultice", 1)
+				hc.cure_sickness(55.0)
+			elif inv.has_item("herbs", 2):
+				inv.remove_item("herbs", 2)
+				hc.cure_sickness(45.0)
+			else:
+				if player.has_method("_spawn_floating_text"):
+					player.call("_spawn_floating_text", "❌ Necesitas 1 Cataplasma, 2 Hierbas o 1 Botiquín Quirúrgico", Color.CORAL, -40.0)
+				return
+			if player.has_method("_spawn_floating_text"):
+				player.call("_spawn_floating_text", "🍵 Fiebre, infección y toxinas reducidas", Color.SPRING_GREEN, -40.0)
 	refresh_ui()

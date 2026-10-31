@@ -51,6 +51,10 @@ var _bleed_dps: float = 0.0
 var region_hp: Dictionary = {}
 var organ_hp: Dictionary = {}
 var wounds: Array[Dictionary] = []
+var fever: float = 0.0 ## Fiebre sistémica (0..100%) por infección de heridas, miasma o intoxicación
+var food_poisoning: float = 0.0 ## Intoxicación alimentaria / veneno digestivo (0..100%)
+var swamp_sickness: float = 0.0 ## Fiebre del pantano / miasma cadavérico (0..100%)
+var last_sickness_cause: String = ""
 var _next_wound_id: int = 1
 var _med_tick_accum: float = 0.0
 
@@ -67,6 +71,10 @@ func _init_anatomy() -> void:
 	for o_id in ORGAN_DEFS.keys():
 		organ_hp[o_id] = 100.0
 	wounds.clear()
+	fever = 0.0
+	food_poisoning = 0.0
+	swamp_sickness = 0.0
+	last_sickness_cause = ""
 
 func _process(delta: float) -> void:
 	if Engine.is_editor_hint() or current_health <= 0.0 or (WorldClock and WorldClock.has_method("is_time_frozen") and WorldClock.is_time_frozen()):
@@ -116,41 +124,82 @@ func _drain_bleeding_region_hp(loss: float) -> void:
 	region_hp["torso"] = maxf(1.0, float(region_hp.get("torso", 65.0)) - loss * 0.75)
 
 func _tick_anatomical_recovery(dt: float) -> void:
-	if wounds.is_empty():
-		return
 	var changed := false
+	var filt: float = clampf((float(organ_hp.get("liver", 100.0)) + float(organ_hp.get("kidneys", 100.0))) / 200.0, 0.25, 1.0)
+	var max_wound_inf: float = 0.0
+
 	for i in range(wounds.size() - 1, -1, -1):
 		var w: Dictionary = wounds[i]
 		var w_type: String = str(w.get("type", "scratch"))
-		if w_type == "lodged_arrow":
-			continue
 		var is_bandaged: bool = bool(w.get("bandaged", false))
 		var is_stitched: bool = bool(w.get("stitched", false))
 		var is_splinted: bool = bool(w.get("splinted", false))
+		var is_clean: bool = bool(w.get("clean", false))
 		if is_bandaged:
 			w["bandage_dirty"] = minf(100.0, float(w.get("bandage_dirty", 0.0)) + dt * 0.45)
-		# Estilo Project Zomboid: las heridas sin tratar NO desaparecen solas mágicamente en segundos
-		if not is_bandaged and not is_stitched and not is_splinted:
+		var dirty_band: bool = is_bandaged and float(w.get("bandage_dirty", 0.0)) >= 55.0
+
+		# Progresión de infección en heridas abiertas (Project Zomboid / RimWorld)
+		if w_type in ["scratch", "laceration", "deep_wound", "lodged_arrow"]:
+			var cur_inf: float = float(w.get("infection", 0.0))
+			if (not is_bandaged and not is_stitched and not is_clean) or dirty_band or w_type == "lodged_arrow":
+				var inf_gain: float = (0.42 if not is_clean else 0.24) * (1.25 if dirty_band else 1.0) / maxf(0.35, filt)
+				cur_inf = minf(100.0, cur_inf + inf_gain * dt)
+			elif is_clean and (is_bandaged or is_stitched) and not dirty_band:
+				cur_inf = maxf(0.0, cur_inf - 0.35 * filt * dt)
+			if absf(cur_inf - float(w.get("infection", 0.0))) > 0.5:
+				changed = true
+			w["infection"] = cur_inf
+			max_wound_inf = maxf(max_wound_inf, cur_inf)
+
+		if w_type == "lodged_arrow" or (not is_bandaged and not is_stitched and not is_splinted):
 			continue
 		var rate: float = 0.22
 		if is_bandaged:
-			rate = 0.48
+			rate = 0.20 if dirty_band else 0.48
 		if is_stitched:
 			rate = 0.72
 		if w_type == "fracture":
 			rate = 0.32 if is_splinted else 0.0
+		if float(w.get("infection", 0.0)) >= 40.0:
+			rate *= 0.45
 		if rate <= 0.0:
 			continue
 		var new_sev: float = float(w.get("severity", 10.0)) - rate * dt
 		var r_key: String = str(w.get("region", "torso"))
 		var m_hp2: float = float(REGION_DEFS.get(r_key, {"max_hp": 50.0})["max_hp"])
 		region_hp[r_key] = minf(m_hp2, float(region_hp.get(r_key, m_hp2)) + rate * dt * 0.35)
-		if new_sev <= 0.0:
+		if new_sev <= 0.0 and float(w.get("infection", 0.0)) < 15.0:
 			wounds.remove_at(i)
 			changed = true
 		else:
-			w["severity"] = new_sev
+			w["severity"] = maxf(1.0, new_sev)
 			w["pain"] = maxf(1.0, float(w.get("pain", 6.0)) - rate * dt * 0.30)
+
+	# Evolución de intoxicación alimentaria, fiebre del pantano/miasma y fiebre sistémica
+	if food_poisoning > 0.0:
+		food_poisoning = maxf(0.0, food_poisoning - 0.32 * filt * dt)
+		if food_poisoning >= 55.0:
+			organ_hp["stomach"] = maxf(25.0, float(organ_hp.get("stomach", 100.0)) - 0.06 * dt)
+	if swamp_sickness > 0.0:
+		swamp_sickness = maxf(0.0, swamp_sickness - 0.22 * filt * dt)
+
+	var target_fever: float = maxf(max_wound_inf * 0.85, maxf(food_poisoning * 0.55, swamp_sickness * 0.75))
+	if target_fever > fever + 2.0:
+		fever = minf(100.0, fever + (0.45 / maxf(0.35, filt)) * dt)
+		changed = true
+	elif fever > 0.0:
+		fever = maxf(0.0, fever - 0.38 * filt * dt)
+		changed = true
+
+	# Sepsis o envenenamiento severo drena salud lentamente
+	if fever >= 72.0 or food_poisoning >= 75.0 or swamp_sickness >= 75.0:
+		var tox_dmg: float = (0.35 if fever < 88.0 else 0.75) * dt
+		current_health = maxf(0.0, current_health - tox_dmg)
+		health_changed.emit(current_health, max_health)
+		if current_health <= 0.0:
+			died.emit()
+			return
 	if changed:
 		anatomy_changed.emit()
 
@@ -393,8 +442,11 @@ func get_total_pain() -> float:
 func get_capacities() -> Dictionary:
 	var pain_pen: float = clampf(get_total_pain() / 160.0, 0.0, 0.45)
 	var blood_pen: float = 0.20 if is_bleeding else clampf((current_blood / maxf(1.0, max_blood)) * 0.15, 0.0, 0.15)
+	var fever_pen: float = clampf(fever / 100.0, 0.0, 1.0) * 0.32
+	var poison_pen: float = clampf(food_poisoning / 100.0, 0.0, 1.0) * 0.22
+	var swamp_pen: float = clampf(swamp_sickness / 100.0, 0.0, 1.0) * 0.22
 	var brain_r: float = clampf(float(organ_hp.get("brain", 100.0)) / 100.0, 0.1, 1.0)
-	var consciousness: float = clampf(brain_r * (1.0 - pain_pen * 0.85 - blood_pen), 0.15, 1.0)
+	var consciousness: float = clampf(brain_r * (1.0 - pain_pen * 0.85 - blood_pen - fever_pen - poison_pen * 0.5), 0.15, 1.0)
 
 	var l_leg: float = get_region_ratio("left_leg")
 	var r_leg: float = get_region_ratio("right_leg")
@@ -409,19 +461,19 @@ func get_capacities() -> Dictionary:
 				leg_frac_pen += fp
 			elif wr in ["left_arm", "right_arm"]:
 				arm_frac_pen += fp
-	var moving: float = clampf(((l_leg + r_leg) * 0.5) * (1.0 - leg_frac_pen - pain_pen * 0.4), 0.32, 1.0)
+	var moving: float = clampf(((l_leg + r_leg) * 0.5) * (1.0 - leg_frac_pen - pain_pen * 0.4 - fever_pen * 0.6 - poison_pen * 0.5), 0.32, 1.0)
 
 	var l_arm: float = get_region_ratio("left_arm")
 	var r_arm: float = get_region_ratio("right_arm")
-	var manipulation: float = clampf(((l_arm + r_arm) * 0.5) * (1.0 - arm_frac_pen - pain_pen * 0.35), 0.35, 1.0)
+	var manipulation: float = clampf(((l_arm + r_arm) * 0.5) * (1.0 - arm_frac_pen - pain_pen * 0.35 - fever_pen * 0.6 - poison_pen * 0.5), 0.35, 1.0)
 
 	var heart_r: float = float(organ_hp.get("heart", 100.0)) / 100.0
 	var lungs_r: float = float(organ_hp.get("lungs", 100.0)) / 100.0
-	var breathing: float = clampf((heart_r + lungs_r) * 0.5, 0.20, 1.0)
+	var breathing: float = clampf((heart_r + lungs_r) * 0.5 * (1.0 - swamp_pen * 0.6), 0.20, 1.0)
 
 	var liver_r: float = float(organ_hp.get("liver", 100.0)) / 100.0
 	var kidneys_r: float = float(organ_hp.get("kidneys", 100.0)) / 100.0
-	var filtration: float = clampf((liver_r + kidneys_r) * 0.5, 0.20, 1.0)
+	var filtration: float = clampf((liver_r + kidneys_r) * 0.5 * (1.0 - poison_pen * 0.5 - swamp_pen * 0.4), 0.20, 1.0)
 
 	return {
 		"consciousness": consciousness,
@@ -487,16 +539,68 @@ func treat_wound(wound_id: int, action: String) -> bool:
 		return true
 	return false
 
+func add_food_poisoning(amount: float, cause: String = "Comida en mal estado") -> void:
+	food_poisoning = clampf(food_poisoning + amount, 0.0, 100.0)
+	fever = clampf(fever + amount * 0.35, 0.0, 100.0)
+	last_sickness_cause = cause
+	organ_hp["stomach"] = maxf(25.0, float(organ_hp.get("stomach", 100.0)) - amount * 0.22)
+	organ_hp["liver"] = maxf(30.0, float(organ_hp.get("liver", 100.0)) - amount * 0.14)
+	anatomy_changed.emit()
+
+func add_swamp_or_miasma_exposure(amount: float, cause: String = "Miasma / Fiebre del Pantano") -> void:
+	swamp_sickness = clampf(swamp_sickness + amount, 0.0, 100.0)
+	if swamp_sickness >= 25.0:
+		fever = clampf(fever + amount * 0.45, 0.0, 100.0)
+		last_sickness_cause = cause
+	anatomy_changed.emit()
+
+func cure_sickness(amount: float, clear_wound_infections: bool = true) -> void:
+	fever = maxf(0.0, fever - amount)
+	food_poisoning = maxf(0.0, food_poisoning - amount)
+	swamp_sickness = maxf(0.0, swamp_sickness - amount)
+	if clear_wound_infections:
+		for w in wounds:
+			w["infection"] = maxf(0.0, float(w.get("infection", 0.0)) - amount)
+			w["clean"] = true
+	for ok in ["stomach", "liver", "kidneys", "lungs"]:
+		organ_hp[ok] = minf(100.0, float(organ_hp.get(ok, 100.0)) + amount * 0.20)
+	anatomy_changed.emit()
+
+func get_max_wound_infection() -> float:
+	var m: float = 0.0
+	for w in wounds:
+		m = maxf(m, float(w.get("infection", 0.0)))
+	return m
+
+func has_active_sickness_or_infection() -> bool:
+	return fever >= 20.0 or food_poisoning >= 20.0 or swamp_sickness >= 20.0 or get_max_wound_infection() >= 25.0
+
+func get_sickness_summary_label() -> String:
+	var tags: Array[String] = []
+	var max_inf: float = get_max_wound_infection()
+	if max_inf >= 20.0:
+		tags.append("🦠Infección Herida (%d%%)" % int(round(max_inf)))
+	if fever >= 18.0:
+		tags.append("🌡️Fiebre (%d%%)" % int(round(fever)))
+	if food_poisoning >= 15.0:
+		tags.append("🤢Intoxicación (%d%%)" % int(round(food_poisoning)))
+	if swamp_sickness >= 15.0:
+		tags.append("🦟Miasma/Pantano (%d%%)" % int(round(swamp_sickness)))
+	return " · ".join(tags) if not tags.is_empty() else "🟢 Sin fiebre ni infecciones activas"
+
 func get_forensic_autopsy_summary() -> String:
-	if wounds.is_empty():
-		return "Sin traumatismos externos registrados"
 	var parts: Array[String] = []
 	for i in range(maxi(0, wounds.size() - 3), wounds.size()):
 		var w: Dictionary = wounds[i]
 		var r_name: String = str(REGION_DEFS.get(str(w.get("region", "torso")), {"name": "Torso"})["name"])
 		var o_id: String = str(w.get("organ", ""))
 		var o_tag: String = (" [Órgano: %s]" % str(ORGAN_DEFS[o_id]["name"])) if (o_id != "" and ORGAN_DEFS.has(o_id)) else ""
-		parts.append("%s en %s%s (%s)" % [str(w.get("name", "Herida")), r_name, o_tag, str(w.get("weapon_cause", "Arma"))])
+		var inf_tag: String = (" [Infectada %d%%]" % int(round(float(w.get("infection", 0.0))))) if float(w.get("infection", 0.0)) >= 30.0 else ""
+		parts.append("%s en %s%s%s (%s)" % [str(w.get("name", "Herida")), r_name, o_tag, inf_tag, str(w.get("weapon_cause", "Arma"))])
+	if food_poisoning >= 40.0 or fever >= 50.0 or swamp_sickness >= 40.0:
+		parts.append("Patología interna: %s (%s)" % [get_sickness_summary_label(), last_sickness_cause if last_sickness_cause != "" else "Sepsis/Toxinas"])
+	if parts.is_empty():
+		return "Sin traumatismos externos registrados"
 	return "; ".join(parts)
 
 func to_medical_dict() -> Dictionary:
@@ -507,6 +611,10 @@ func to_medical_dict() -> Dictionary:
 		"region_hp": region_hp.duplicate(),
 		"organ_hp": organ_hp.duplicate(),
 		"wounds": w_copy,
+		"fever": fever,
+		"food_poisoning": food_poisoning,
+		"swamp_sickness": swamp_sickness,
+		"last_sickness_cause": last_sickness_cause,
 		"next_id": _next_wound_id
 	}
 
@@ -528,5 +636,9 @@ func from_medical_dict(data: Dictionary) -> void:
 		for raw_w in (data["wounds"] as Array):
 			if typeof(raw_w) == TYPE_DICTIONARY:
 				wounds.append((raw_w as Dictionary).duplicate())
+	fever = clampf(float(data.get("fever", 0.0)), 0.0, 100.0)
+	food_poisoning = clampf(float(data.get("food_poisoning", 0.0)), 0.0, 100.0)
+	swamp_sickness = clampf(float(data.get("swamp_sickness", 0.0)), 0.0, 100.0)
+	last_sickness_cause = str(data.get("last_sickness_cause", ""))
 	_next_wound_id = maxi(1, int(data.get("next_id", wounds.size() + 1)))
 	anatomy_changed.emit()
