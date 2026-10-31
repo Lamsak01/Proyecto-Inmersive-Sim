@@ -203,12 +203,13 @@ func interact(player: Node2D) -> void:
 	if not player:
 		return
 
-	# Si el jugador está manchado de sangre, el agua del lago lo lava primero sin iniciar la pesca
-	if player.has_method("is_bloodstained") and bool(player.call("is_bloodstained")):
+	# Si el jugador lleva algún Recipiente Vacío ("empty_flask") o está manchado de sangre, llenarlo y lavarse primero
+	var p_inv: SimpleInventory = player.get("inventory") if "inventory" in player else null
+	if (p_inv and p_inv.has_item("empty_flask", 1)) or (player.has_method("is_bloodstained") and bool(player.call("is_bloodstained"))):
 		if player.has_method("refill_watering_can"):
 			player.call("refill_watering_can")
 		elif player.has_method("wash_bloodstains"):
-			player.call("wash_bloodstains", true)
+			player.call("wash_bloodstains", true, true)
 		return
 
 	# Si el jugador lleva la Regadera equipada y no está llena, llenarla primero

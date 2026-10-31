@@ -46,6 +46,8 @@ const CATALOG: Dictionary = {
 	"cooked_fish": {"name": "Pescado Cocido", "category": "Alimento", "desc": "Filete de pescado recién hecho en la cacerola (+36 HP, +55 STM, +52 Hambre).", "usable": true, "heal_hp": 36.0, "restore_stamina": 55.0, "restore_hunger": 52.0},
 	"country_stew": {"name": "Estofado Campesino", "category": "Alimento", "desc": "Guiso caliente de carne, col y zanahoria (+55 HP, +75 STM, +80 Hambre).", "usable": true, "heal_hp": 55.0, "restore_stamina": 75.0, "restore_hunger": 80.0},
 	"bandage": {"name": "Vendaje Limpio", "category": "Curación", "desc": "Corta cualquier hemorragia al instante y restaura +20 HP.", "usable": true, "heal_hp": 20.0, "stop_bleed": true},
+	"empty_flask": {"name": "Recipiente Vacío", "category": "Utensilio / Agua", "desc": "Cantimplora o vasija vacía necesaria para recoger agua. Pulsa [E] en cualquier Pozo o Lago (o úsalo a menos de 2m de una fuente de agua) para obtener Agua Limpia.", "usable": true, "is_water_container": true},
+	"clean_water": {"name": "Agua Limpia", "category": "Curación / Higiene", "desc": "Agua fresca almacenada en un recipiente. Sirve para lavar heridas abiertas/sucias en el Panel Clínico [H] o limpiar manchas de sangre cuando estás a más de 2m de una fuente de agua (devuelve el Recipiente Vacío).", "usable": true, "is_clean_water": true},
 	"herbal_poultice": {"name": "Cataplasma Curativa", "category": "Curación", "desc": "Ungüento antiséptico de hierbas y hongos. Corta el sangrado, cura +40 HP y combate infecciones/fiebre.", "usable": true, "heal_hp": 40.0, "stop_bleed": true, "cure_sickness": 55.0},
 	"bread": {"name": "Hogaza de Pan", "category": "Alimento", "desc": "Pan horneado (+20 HP, +35 STM, +40 Hambre).", "usable": true, "heal_hp": 20.0, "restore_stamina": 35.0, "restore_hunger": 40.0},
 	"roasted_mushroom": {"name": "Hongos Asados", "category": "Alimento", "desc": "Brocheta caliente hecha al fuego (+30 HP, +45 STM, +35 Hambre).", "usable": true, "heal_hp": 30.0, "restore_stamina": 45.0, "restore_hunger": 35.0},
@@ -94,6 +96,7 @@ const CATALOG: Dictionary = {
 }
 
 const RECIPES: Array[Dictionary] = [
+	{"id": "craft_empty_flask", "result": "empty_flask", "amount": 1, "ingredients": {"wood": 1}, "desc": "Talla un Recipiente Vacío de madera para recoger y transportar Agua Limpia de pozos o lagos."},
 	{"id": "craft_bandage", "result": "bandage", "amount": 1, "ingredients": {"herbs": 2}, "desc": "Teje fibras medicinales para detener sangrados (+20 HP)."},
 	{"id": "craft_poultice", "result": "herbal_poultice", "amount": 1, "ingredients": {"herbs": 2, "mushroom": 1}, "desc": "Mezcla potente que corta hemorragias y cura +40 HP."},
 	{"id": "craft_roasted_mushroom", "result": "roasted_mushroom", "amount": 1, "ingredients": {"mushroom": 2, "wood": 1}, "desc": "Asa hongos silvestres con leña (+30 HP, +45 STM)."},
@@ -133,6 +136,8 @@ var _icon_cache: Dictionary = {}
 
 func _ready() -> void:
 	add_item("bandage", 2)
+	add_item("clean_water", 1)
+	add_item("empty_flask", 1)
 	add_item("bread", 1)
 	add_item("carrot_seeds", 3)
 	add_item("cabbage_seeds", 3)
@@ -185,6 +190,22 @@ func get_item_icon(item_id: String) -> Texture2D:
 				var itex := ImageTexture.create_from_image(img)
 				_icon_cache[item_id] = itex
 				return itex
+	if item_id in ["empty_flask", "clean_water"]:
+		var p_img := Image.create(16, 16, false, Image.FORMAT_RGBA8)
+		p_img.fill(Color(0, 0, 0, 0))
+		var rim_col := Color(0.55, 0.36, 0.18, 1.0)
+		var glass_col := Color(0.72, 0.80, 0.86, 0.85)
+		var fill_col := Color(0.18, 0.78, 0.98, 0.95) if item_id == "clean_water" else Color(0.22, 0.25, 0.30, 0.45)
+		for y in range(2, 5):
+			for x in range(6, 10):
+				p_img.set_pixel(x, y, rim_col if y == 2 else glass_col)
+		for y in range(5, 14):
+			for x in range(4, 12):
+				var is_edge: bool = (x == 4 or x == 11 or y == 5 or y == 13)
+				p_img.set_pixel(x, y, glass_col if is_edge else (fill_col if y >= 7 or item_id == "empty_flask" else Color(0.85, 0.95, 1.0, 0.35)))
+		var gen_tex := ImageTexture.create_from_image(p_img)
+		_icon_cache[item_id] = gen_tex
+		return gen_tex
 	return null
 
 func is_armor_item(item_id: String) -> bool:
@@ -306,6 +327,44 @@ func use_item(item_id: String, player: Node) -> bool:
 		selected_seed_id = item_id
 		if player.has_method("_spawn_floating_text"):
 			player._spawn_floating_text("🌱 Semilla activa: %s" % get_item_name(item_id), Color.SPRING_GREEN, -42.0)
+		return true
+
+	# Recipiente Vacío ("empty_flask"): si estás a <= 2m de una fuente de agua, se llena de Agua Limpia
+	if info.get("is_water_container", false):
+		if player.has_method("is_near_water_source") and bool(player.call("is_near_water_source", 2.0)):
+			remove_item("empty_flask", 1)
+			add_item("clean_water", 1)
+			if player.has_method("_spawn_floating_text"):
+				player._spawn_floating_text("💧 Recipiente llenado: +1 Agua Limpia", Color.AQUA, -42.0)
+			if player.has_method("show_hint"):
+				player.call("show_hint", "💧 Llenaste el Recipiente Vacío en la fuente de agua cercana (<2m) -> +1 Agua Limpia.")
+			return true
+		if player.has_method("_spawn_floating_text"):
+			player._spawn_floating_text("🪣 Recipiente vacío (Acércate a <2m de un Pozo o Lago)", Color.GOLD, -42.0)
+		if player.has_method("show_hint"):
+			player.call("show_hint", "🪣 Necesitas estar a menos de 2m de un Pozo de Agua o Lago (o pulsar [E] en el pozo) para llenar el Recipiente Vacío.")
+		return false
+
+	# Agua Limpia en Recipiente ("clean_water"): lava todas las heridas abiertas/sucias y manchas de sangre (y devuelve el Recipiente Vacío si estás a >2m del agua)
+	if info.get("is_clean_water", false):
+		var hc_w: HealthComponent = player.get_node_or_null("HealthComponent")
+		var washed_wounds: int = hc_w.wash_all_wounds() if (hc_w and hc_w.has_method("wash_all_wounds")) else 0
+		var was_stained: bool = player.has_method("is_bloodstained") and bool(player.call("is_bloodstained"))
+		if was_stained and player.has_method("wash_bloodstains"):
+			player.call("wash_bloodstains", false, true)
+		if washed_wounds <= 0 and not was_stained:
+			if player.has_method("_spawn_floating_text"):
+				player._spawn_floating_text("✨ Tus heridas y ropa ya están limpias", Color.LIGHT_GRAY, -42.0)
+			return false
+		var near_src: bool = player.has_method("is_near_water_source") and bool(player.call("is_near_water_source", 2.0))
+		if near_src:
+			if player.has_method("_spawn_floating_text"):
+				player._spawn_floating_text("💧 Heridas y sangre lavadas (Fuente de agua a <2m, sin gastar tu agua)", Color.AQUA, -44.0)
+		else:
+			remove_item("clean_water", 1)
+			add_item("empty_flask", 1)
+			if player.has_method("_spawn_floating_text"):
+				player._spawn_floating_text("💧 Heridas lavadas (-1 Agua Limpia -> +1 Recipiente Vacío)", Color.AQUA, -44.0)
 		return true
 
 	# Herramientas pasivas de Tierras Reales (Ganzúa Maestra / Manto de Camuflaje)

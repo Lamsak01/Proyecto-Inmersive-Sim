@@ -671,7 +671,14 @@ func treat_wound(wound_id: int, action: String, doctor_quality_bonus: float = 0.
 			"wash":
 				w["clean"] = true
 				w["bandage_dirty"] = 0.0
-				w["infection"] = maxf(0.0, float(w.get("infection", 0.0)) - 8.0)
+				w["infection"] = maxf(0.0, float(w.get("infection", 0.0)) - 12.0)
+				w["pain"] = maxf(1.0, float(w.get("pain", 6.0)) * 0.85)
+				if str(w.get("tend_tier", "")) == "makeshift":
+					w["tend_tier"] = "washed_makeshift"
+					w["tend_quality"] = maxf(float(w.get("tend_quality", 0.0)), 48.0)
+				elif not bool(w.get("bandaged", false)) and not bool(w.get("stitched", false)):
+					w["tend_quality"] = maxf(float(w.get("tend_quality", 0.0)), 35.0)
+					w["bleed_rate"] = float(w.get("bleed_rate", 0.0)) * 0.85
 			"bandage":
 				w["bandaged"] = true
 				w["clean"] = true
@@ -715,6 +722,25 @@ func treat_wound(wound_id: int, action: String, doctor_quality_bonus: float = 0.
 		anatomy_changed.emit()
 		return true
 	return false
+
+func wash_all_wounds() -> int:
+	var washed_count: int = 0
+	for w in wounds:
+		if not bool(w.get("clean", false)) or float(w.get("bandage_dirty", 0.0)) > 0.0 or float(w.get("infection", 0.0)) > 0.0 or str(w.get("tend_tier", "")) == "makeshift":
+			w["clean"] = true
+			w["bandage_dirty"] = 0.0
+			w["infection"] = maxf(0.0, float(w.get("infection", 0.0)) - 12.0)
+			w["pain"] = maxf(1.0, float(w.get("pain", 6.0)) * 0.85)
+			if str(w.get("tend_tier", "")) == "makeshift":
+				w["tend_tier"] = "washed_makeshift"
+				w["tend_quality"] = maxf(float(w.get("tend_quality", 0.0)), 48.0)
+			elif not bool(w.get("bandaged", false)) and not bool(w.get("stitched", false)):
+				w["tend_quality"] = maxf(float(w.get("tend_quality", 0.0)), 35.0)
+				w["bleed_rate"] = float(w.get("bleed_rate", 0.0)) * 0.85
+			washed_count += 1
+	if washed_count > 0:
+		anatomy_changed.emit()
+	return washed_count
 
 func add_food_poisoning(amount: float, cause: String = "Comida en mal estado") -> void:
 	food_poisoning = clampf(food_poisoning + amount, 0.0, 100.0)

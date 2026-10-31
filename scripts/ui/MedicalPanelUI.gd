@@ -78,8 +78,14 @@ func _build_ui() -> void:
 	wash_self_btn.text = "💧 Lavarse Manos y Ropa"
 	wash_self_btn.add_theme_font_size_override("font_size", 12)
 	wash_self_btn.pressed.connect(func() -> void:
-		if is_instance_valid(player) and player.has_method("wash_bloodstains"):
-			player.call("wash_bloodstains", true)
+		if is_instance_valid(player):
+			if is_instance_valid(target_entity) and target_entity != player:
+				var thc: HealthComponent = target_entity.get_node_or_null("HealthComponent")
+				if thc and thc.has_method("wash_all_wounds") and player.has_method("try_consume_water_for_washing"):
+					if bool(player.call("try_consume_water_for_washing", true)):
+						thc.wash_all_wounds()
+			elif player.has_method("wash_bloodstains"):
+				player.call("wash_bloodstains", true)
 			refresh_ui()
 	)
 	header.add_child(wash_self_btn)
@@ -204,13 +210,15 @@ func refresh_ui() -> void:
 		return
 
 	var near_npc := _find_nearby_npc()
+	var near_water_src: bool = is_instance_valid(player) and player.has_method("is_near_water_source") and bool(player.call("is_near_water_source", 2.0))
+	var water_cost_tag: String = "Fuente <2m" if near_water_src else "1 Agua"
 	if is_instance_valid(wash_self_btn):
 		var stained_now: bool = is_instance_valid(player) and player.has_method("is_bloodstained") and bool(player.call("is_bloodstained"))
 		if stained_now:
-			wash_self_btn.text = "🩸💧 Lavarse la Sangre (%ds)" % int(ceil(float(player.get("bloodstained_timer"))))
+			wash_self_btn.text = "🩸💧 Lavarse Sangre y Heridas (%ds | %s)" % [int(ceil(float(player.get("bloodstained_timer")))), water_cost_tag]
 			wash_self_btn.add_theme_color_override("font_color", Color(1.0, 0.55, 0.55))
 		else:
-			wash_self_btn.text = "💧 Lavarse Manos y Ropa"
+			wash_self_btn.text = "💧 Lavar Heridas y Ropa (%s)" % water_cost_tag
 			wash_self_btn.add_theme_color_override("font_color", Color(0.70, 0.95, 1.0))
 	if is_instance_valid(near_npc):
 		switch_target_btn.visible = true
@@ -229,8 +237,9 @@ func refresh_ui() -> void:
 
 	var inv: SimpleInventory = player.get("inventory") if is_instance_valid(player) else null
 	if inv:
-		supplies_label.text = "🎒 Botiquín disponible: 🩹Vendajes: %d  |  🌿Hierbas: %d  |  🧪Cataplasmas: %d  |  🧰Botiquín Quirúrgico: %d  |  🪵Madera: %d" % [
-			inv.get_count("bandage"), inv.get_count("herbs"), inv.get_count("herbal_poultice"), inv.get_count("surgical_kit"), inv.get_count("wood")
+		var src_str: String = " [🌊 Fuente <2m: Gratis]" if near_water_src else ""
+		supplies_label.text = "🎒 Botiquín: 💧Agua Limpia: %d (🪣Vacíos: %d)%s  |  🩹Vendajes: %d  |  🌿Hierbas: %d  |  🧪Cataplasmas: %d  |  🧰Quirúrgico: %d" % [
+			inv.get_count("clean_water"), inv.get_count("empty_flask"), src_str, inv.get_count("bandage"), inv.get_count("herbs"), inv.get_count("herbal_poultice"), inv.get_count("surgical_kit")
 		]
 
 	for c in regions_box.get_children():
@@ -346,11 +355,12 @@ func refresh_ui() -> void:
 		if is_corpse:
 			continue
 
-		var btn_row := HBoxContainer.new()
-		btn_row.add_theme_constant_override("separation", 6)
+		var btn_row := HFlowContainer.new()
+		btn_row.add_theme_constant_override("h_separation", 6)
+		btn_row.add_theme_constant_override("v_separation", 4)
 		cv.add_child(btn_row)
 
-		_add_treat_btn(btn_row, "💧 Lavar", hc, w_id, "wash")
+		_add_treat_btn(btn_row, "💧 Lavar Herida (%s)" % water_cost_tag, hc, w_id, "wash")
 		if not bool(w.get("bandaged", false)) and not bool(w.get("stitched", false)):
 			_add_treat_btn(btn_row, "🖐️ Cura Rudimentaria (Gratis)", hc, w_id, "tend_makeshift")
 		if not bool(w.get("bandaged", false)) or float(w.get("bandage_dirty", 0.0)) >= 35.0 or t_qual <= 35:
@@ -379,13 +389,16 @@ func _apply_treatment(hc: HealthComponent, wound_id: int, action: String) -> voi
 	match action:
 		"wash_bloodstains":
 			if player.has_method("wash_bloodstains"):
-				player.call("wash_bloodstains")
+				player.call("wash_bloodstains", true, false)
 		"wash":
+			if player.has_method("try_consume_water_for_washing") and not bool(player.call("try_consume_water_for_washing", true)):
+				return
 			hc.treat_wound(wound_id, "wash")
 			if player.has_method("wash_bloodstains"):
-				player.call("wash_bloodstains")
+				player.call("wash_bloodstains", false, true)
 			if player.has_method("_spawn_floating_text"):
-				player.call("_spawn_floating_text", "💧 Herida lavada y limpia", Color.AQUA, -40.0)
+				var src_note: String = " (Fuente de agua <2m)" if (player.has_method("is_near_water_source") and bool(player.call("is_near_water_source", 2.0))) else " (-1 Agua Limpia -> +1 Recipiente Vacío)"
+				player.call("_spawn_floating_text", "💧 Herida lavada y limpia%s" % src_note, Color.AQUA, -40.0)
 		"tend_makeshift":
 			hc.treat_wound(wound_id, "tend_makeshift")
 			if player.has_method("_spawn_floating_text"):

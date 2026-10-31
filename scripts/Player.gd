@@ -300,29 +300,52 @@ func add_bloodstain(duration: float = 180.0) -> void:
 	if health_comp:
 		health_comp.anatomy_changed.emit()
 
-func wash_bloodstains(show_even_if_clean: bool = false) -> void:
+func is_near_water_source(max_meters: float = 2.0) -> bool:
+	var vm = get_tree().get_first_node_in_group("village_manager")
+	if vm and vm.has_method("is_position_near_water_source"):
+		if bool(vm.call("is_position_near_water_source", global_position, max_meters)):
+			return true
+	if FROG_MARSH_RECT.grow(max_meters * 16.0).has_point(global_position):
+		return true
+	return false
+
+func try_consume_water_for_washing(show_error_if_missing: bool = true) -> bool:
+	if is_near_water_source(2.0):
+		return true
+	if inventory and inventory.has_item("clean_water", 1):
+		inventory.remove_item("clean_water", 1)
+		inventory.add_item("empty_flask", 1)
+		return true
+	if show_error_if_missing:
+		_spawn_floating_text("❌ Necesitas Agua Limpia (en Recipiente) o estar a <2m de una fuente de agua", Color.CORAL, -44.0)
+		show_hint("💧 Para lavar heridas o sangre lejos del agua necesitas 1 Agua Limpia (llena un Recipiente Vacío con [E] en cualquier Pozo o Lago) o acercarte a menos de 2m de una fuente de agua.")
+	return false
+
+func wash_bloodstains(show_even_if_clean: bool = false, free_from_water_source: bool = false) -> bool:
 	var had_blood: bool = bloodstained_timer > 0.0 or int(get_meta("bloody_steps_left", 0)) > 0
+	var has_dirty_wounds: bool = false
+	if health_comp:
+		for w in health_comp.wounds:
+			if not bool(w.get("clean", false)) or float(w.get("bandage_dirty", 0.0)) > 0.0 or str(w.get("tend_tier", "")) == "makeshift":
+				has_dirty_wounds = true
+				break
+	if not had_blood and not has_dirty_wounds:
+		if show_even_if_clean:
+			_spawn_floating_text("💧✨ Tus heridas, manos y ropa ya están limpias", Color.AQUA, -46.0)
+		return false
+	if not free_from_water_source and not try_consume_water_for_washing(true):
+		return false
 	bloodstained_timer = 0.0
 	set_meta("bloody_steps_left", 0)
 	if anim and _hit_flash_timer <= 0.0:
 		anim.modulate = Color.WHITE
-	var cleaned_wounds: bool = false
-	if health_comp:
-		for w in health_comp.wounds:
-			if not bool(w.get("clean", false)) or float(w.get("bandage_dirty", 0.0)) > 0.0:
-				w["clean"] = true
-				w["bandage_dirty"] = 0.0
-				w["infection"] = maxf(0.0, float(w.get("infection", 0.0)) - 15.0)
-				cleaned_wounds = true
-		if health_comp.get_total_wound_bleed_rate() <= 0.0 and not health_comp.is_bleeding and health_comp.current_blood > 0.0:
-			health_comp.current_blood = 0.0
-			health_comp.blood_changed.emit(0.0, health_comp.max_blood)
-			had_blood = true
-		health_comp.anatomy_changed.emit()
-	if had_blood or cleaned_wounds:
-		_spawn_floating_text("💧✨ Te has lavado la sangre de las manos y la ropa", Color.AQUA, -46.0)
-	elif show_even_if_clean:
-		_spawn_floating_text("💧✨ Tus manos y tu ropa ya están limpias", Color.AQUA, -46.0)
+	var cleaned_wounds: int = 0
+	if health_comp and health_comp.has_method("wash_all_wounds"):
+		cleaned_wounds = health_comp.wash_all_wounds()
+	if had_blood or cleaned_wounds > 0:
+		var src_tag: String = " (Fuente <2m)" if is_near_water_source(2.0) else " (-1 Agua Limpia -> Recipiente Vacío)"
+		_spawn_floating_text("💧✨ Heridas y sangre lavadas%s" % src_tag, Color.AQUA, -46.0)
+	return true
 
 func is_bloodstained() -> bool:
 	return bloodstained_timer > 0.0
@@ -444,9 +467,19 @@ func equip_tool_by_index(idx: int) -> void:
 
 func refill_watering_can() -> void:
 	watering_can_charges = max_water_charges
-	wash_bloodstains()
-	_spawn_floating_text("💧 Regadera llena (%d/%d)" % [watering_can_charges, max_water_charges], Color.AQUA, -40.0)
-	show_hint("💧 Regadera recargada al 100%% (%d/%d usos de riego)." % [watering_can_charges, max_water_charges])
+	var filled_flasks: int = 0
+	if inventory:
+		filled_flasks = inventory.get_count("empty_flask")
+		if filled_flasks > 0:
+			inventory.remove_item("empty_flask", filled_flasks)
+			inventory.add_item("clean_water", filled_flasks)
+	wash_bloodstains(false, true)
+	if filled_flasks > 0:
+		_spawn_floating_text("💧 +%d Agua Limpia (Recipiente lleno) y Regadera (%d/%d)" % [filled_flasks, watering_can_charges, max_water_charges], Color.AQUA, -40.0)
+		show_hint("💧 Llenaste %d Recipiente(s) con Agua Limpia, lavaste tus heridas/sangre y recargaste la Regadera (%d/%d)." % [filled_flasks, watering_can_charges, max_water_charges])
+	else:
+		_spawn_floating_text("💧 Agua fresca: Heridas lavadas y Regadera llena (%d/%d)" % [watering_can_charges, max_water_charges], Color.AQUA, -40.0)
+		show_hint("💧 Te lavaste en la fuente de agua y recargaste tu Regadera (%d/%d). Lleva un Recipiente Vacío para transportar Agua Limpia." % [watering_can_charges, max_water_charges])
 
 func consume_water_charge() -> bool:
 	if watering_can_charges <= 0:

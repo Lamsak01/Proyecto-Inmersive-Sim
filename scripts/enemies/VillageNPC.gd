@@ -130,6 +130,11 @@ var death_minute: int = -1
 var murder_witness_name: String = ""
 var _carrying_corpse_target: VillageNPC = null
 var _reporting_corpse_target: VillageNPC = null
+var _corpse_report_phase: int = 0
+var _corpse_report_timer: float = 0.0
+var witness_silenced_player: bool = false
+var witness_alibi_for_player: bool = false
+var witness_framed_target_name: String = ""
 var _active_downed_patient: VillageNPC = null
 
 # Cachés de rendimiento por fotograma (evita escaneos redundantes a 60 FPS en laptops)
@@ -914,21 +919,13 @@ func _process_corpse_state(delta: float) -> void:
 		for n in get_tree().get_nodes_in_group("village_npcs"):
 			if n is VillageNPC and n != self and (n as VillageNPC).is_conscious():
 				var other := n as VillageNPC
-				if other.global_position.distance_to(global_position) <= 105.0 and ((vm == null) or (not vm.has_method("has_line_of_sight")) or bool(vm.call("has_line_of_sight", other.global_position, global_position))):
-					if not corpse_discovered:
-						corpse_discovered = true
-						corpse_discovered_by = other.npc_name
-						other.add_thought("Descubrió el cadáver de %s (-15)" % npc_name, -15.0)
-					if other.trade_role in [TradeRole.DOCTOR, TradeRole.SHERIFF, TradeRole.GUARD, TradeRole.ROYAL_INVESTIGATOR]:
-						corpse_reported = true
-						corpse_reporter_npc = null
-						_spawn_floating_text("🚨 ¡%s encontró el cadáver de %s!" % [other.npc_name, npc_name], Color.ORANGE_RED, -42.0)
-						_notify_corpse_reported_to_authorities()
-						break
-					elif other.trade_role != TradeRole.TRAVELING_MERCHANT and (not is_instance_valid(corpse_reporter_npc) or not corpse_reporter_npc.is_conscious()):
-						corpse_reporter_npc = other
-						other._reporting_corpse_target = self
-						_spawn_floating_text("😱 ¡%s vio el cadáver de %s y corre a avisar!" % [other.npc_name, npc_name], Color.ORANGE_RED, -42.0)
+				if other.trade_role in [TradeRole.ROYAL_INVESTIGATOR, TradeRole.TRAVELING_MERCHANT]:
+					continue
+				if other.witness_silenced_player and last_hit_by_player:
+					continue
+				if other.global_position.distance_to(global_position) <= 95.0 and ((vm == null) or (not vm.has_method("has_line_of_sight")) or bool(vm.call("has_line_of_sight", other.global_position, global_position))):
+					if not is_instance_valid(corpse_reporter_npc) or not corpse_reporter_npc.is_conscious() or corpse_reporter_npc._reporting_corpse_target != self:
+						begin_physical_corpse_discovery(other)
 						break
 
 	if status_label:
@@ -945,17 +942,64 @@ func _process_corpse_state(delta: float) -> void:
 			elif corpse_reported:
 				state_line = "🚨 Reportado por %s — En espera de traslado a la Morgue%s" % [corpse_discovered_by, loot_tag]
 			elif corpse_discovered and is_instance_valid(corpse_reporter_npc):
-				state_line = "🏃 %s corre a reportarlo%s | [E: 📢 Reportar tú mismo]" % [corpse_reporter_npc.npc_name, loot_tag]
+				var r_phase: int = corpse_reporter_npc._corpse_report_phase
+				if r_phase == 1:
+					state_line = "🔍 %s comprueba si está muerto (10s)%s | [E: 📢 Reportar]" % [corpse_reporter_npc.npc_name, loot_tag]
+				elif r_phase == 3:
+					state_line = "🗣️ %s está explicando el hallazgo a la policía%s" % [corpse_reporter_npc.npc_name, loot_tag]
+				else:
+					state_line = "🏃 %s va en persona a avisar a la policía%s | [E: 📢 Reportar]" % [corpse_reporter_npc.npc_name, loot_tag]
 			_show_status_label("💀 Cadáver de %s (%s)\n[%s]" % [npc_name, npc_role, state_line], Color(0.72, 0.96, 0.62) if rot_days >= 1 else Color(0.92, 0.55, 0.55))
 		else:
 			status_label.visible = false
 
-## Notifica a las autoridades (y a la Corona si el cadáver reportado es un Mercader Viajero) recién cuando el cadáver es reportado
+## Inicia el proceso físico en 3 fases para quien descubre un cuerpo:
+## 1) Acercarse y comprobar durante 10s si está muerto -> 2) Caminar personalmente a buscar a la policía -> 3) Explicar durante 12.5s lo sucedido
+func begin_physical_corpse_discovery(discoverer: VillageNPC) -> void:
+	if discoverer == null or not is_dead or corpse_reported or corpse_in_morgue:
+		return
+	if not corpse_discovered:
+		corpse_discovered = true
+		corpse_discovered_by = discoverer.npc_name
+		discoverer.add_thought("Descubrió el cuerpo de %s (-15)" % npc_name, -15.0)
+	corpse_reporter_npc = discoverer
+	discoverer._reporting_corpse_target = self
+	discoverer._corpse_report_phase = 1
+	discoverer._corpse_report_timer = 0.0
+	_spawn_floating_text("😟❓ ¡%s vio a %s tendido y se acerca a comprobar si está muerto!" % [discoverer.npc_name, npc_name], Color.GOLD, -42.0)
+
+## Borra al jugador de la memoria visual de este testigo y detiene cualquier reporte activo si fue convencido, sobornado o intimidado
+func clear_witness_memories_of_player() -> void:
+	witness_silenced_player = true
+	for i in range(seen_entities_memory.size() - 1, -1, -1):
+		if str(seen_entities_memory[i].get("name", "")) == "Jugador" or bool(seen_entities_memory[i].get("is_player", false)):
+			seen_entities_memory.remove_at(i)
+	if is_instance_valid(_reporting_corpse_target):
+		if _reporting_corpse_target.corpse_reporter_npc == self:
+			_reporting_corpse_target.corpse_reporter_npc = null
+		_reporting_corpse_target = null
+	_corpse_report_phase = 0
+	_corpse_report_timer = 0.0
+	_stop_crafting_bar()
+	if is_inside_tree():
+		for n in get_tree().get_nodes_in_group("village_npcs"):
+			if n is VillageNPC and (n as VillageNPC).murder_witness_name == npc_name:
+				(n as VillageNPC).murder_witness_name = ""
+	var vm = _get_vm()
+	if vm and "sighting_log" in vm and typeof(vm.sighting_log) == TYPE_ARRAY:
+		var s_arr: Array = vm.sighting_log
+		for idx in range(s_arr.size() - 1, -1, -1):
+			if typeof(s_arr[idx]) == TYPE_DICTIONARY and str(s_arr[idx].get("witness_name", "")) == npc_name:
+				s_arr.remove_at(idx)
+
+## Notifica a las autoridades (y a la Corona si el cadáver reportado es un Mercader Viajero) recién cuando el testigo termina de explicarlo a la policía
 func _notify_corpse_reported_to_authorities() -> void:
+	var vm = _get_vm()
 	if trade_role == TradeRole.TRAVELING_MERCHANT:
-		var vm = _get_vm()
 		if vm and vm.has_method("on_traveling_merchant_murdered"):
 			vm.call("on_traveling_merchant_murdered", self, last_hit_weapon_name)
+	elif vm and vm.has_method("on_civilian_corpse_reported"):
+		vm.call("on_civilian_corpse_reported", self, death_world_pos if death_world_pos != Vector2.ZERO else global_position, last_hit_weapon_name, corpse_discovered_by)
 
 ## Permite al jugador reportar manualmente un cadáver con [E] (Estilo Among Us / Hitman / Streets of Rogue)
 func report_corpse_by_player(player: Node) -> bool:
@@ -976,37 +1020,123 @@ func report_corpse_by_player(player: Node) -> bool:
 		player.call("_spawn_floating_text", "📢 Cadáver de %s reportado al Hospital y Comisaría" % npc_name, Color.AQUA, -36.0)
 	return true
 
-## Un testigo que descubrió un cadáver corre físicamente hasta el Dr. Valen o un Guardia para dar el aviso (sin telepatía)
+## Un testigo que descubrió un cadáver cumple físicamente 3 fases sin telepatía ni instantaneidad:
+## Fase 1 (10.0s): Camina hasta el cuerpo y se agacha 10s a comprobar si realmente está muerto.
+## Fase 2: Camina personalmente por las calles en busca del Comisario/Guardia (o Médico/Comisaría).
+## Fase 3 (12.5s): Se detiene frente al policía y pasa 12.5s explicándole lo ocurrido antes de que se active la alerta.
 func _process_witness_corpse_reporting(delta: float) -> bool:
 	if not is_instance_valid(_reporting_corpse_target):
+		_corpse_report_phase = 0
+		_corpse_report_timer = 0.0
 		return false
 	var corpse_to_report: VillageNPC = _reporting_corpse_target
 	if not corpse_to_report.is_dead or not corpse_to_report.corpse_on_ground or corpse_to_report.corpse_in_morgue or corpse_to_report.corpse_reported or corpse_to_report.corpse_reporter_npc != self:
 		_reporting_corpse_target = null
+		_corpse_report_phase = 0
+		_corpse_report_timer = 0.0
+		_stop_crafting_bar()
 		return false
 
+	if _corpse_report_phase <= 0:
+		_corpse_report_phase = 1
+		_corpse_report_timer = 0.0
+
+	# FASE 1: Acercarse al cuerpo y pasar 10.0 segundos investigando si la persona está muerta
+	if _corpse_report_phase == 1:
+		var dist_to_body: float = global_position.distance_to(corpse_to_report.global_position)
+		if dist_to_body > 22.0:
+			_stop_crafting_bar()
+			_move_towards_point(corpse_to_report.global_position, 54.0, delta)
+			_finish_frame_movement(delta)
+			return true
+		velocity = Vector2.ZERO
+		if sprite:
+			sprite.flip_h = (corpse_to_report.global_position.x < global_position.x)
+		_corpse_report_timer += delta
+		var rem_chk: int = maxi(1, int(ceil(10.0 - _corpse_report_timer)))
+		_update_craft_bar_visual(clampf(_corpse_report_timer / 10.0, 0.02, 1.0), "🔍 Comprobando pulso (%ds)" % rem_chk, Color(0.95, 0.78, 0.30, 0.95))
+		trigger_action_animation(0.4)
+		_finish_frame_movement(delta)
+		if _corpse_report_timer >= 10.0:
+			_stop_crafting_bar()
+			_corpse_report_timer = 0.0
+			if trade_role in [TradeRole.SHERIFF, TradeRole.GUARD, TradeRole.DOCTOR]:
+				corpse_to_report.corpse_reported = true
+				corpse_to_report.corpse_reporter_npc = null
+				_reporting_corpse_target = null
+				_corpse_report_phase = 0
+				_spawn_floating_text("🚨 ¡%s examinó el cuerpo y confirmó la muerte de %s!" % [npc_name, corpse_to_report.npc_name], Color.ORANGE_RED, -42.0)
+				corpse_to_report._notify_corpse_reported_to_authorities()
+			else:
+				_corpse_report_phase = 2
+				_spawn_floating_text("😱💀 ¡No respira, está muerto! ¡Voy en persona a avisar a la policía!", Color.ORANGE_RED, -42.0)
+		return true
+
+	# Buscar al policía consciente más cercano (SHERIFF / GUARD primero; si no, DOCTOR)
 	var nearest_authority: VillageNPC = null
 	var best_dist: float = 999999.0
 	for n in get_tree().get_nodes_in_group("village_npcs"):
 		if n is VillageNPC and n != self:
 			var auth := n as VillageNPC
-			if auth.trade_role in [TradeRole.DOCTOR, TradeRole.SHERIFF, TradeRole.GUARD] and not auth.is_dead and not auth.is_downed:
+			if auth.trade_role in [TradeRole.SHERIFF, TradeRole.GUARD] and auth.is_conscious():
 				var d: float = global_position.distance_to(auth.global_position)
 				if d < best_dist:
 					best_dist = d
 					nearest_authority = auth
+	if nearest_authority == null:
+		for n in get_tree().get_nodes_in_group("village_npcs"):
+			if n is VillageNPC and n != self:
+				var auth2 := n as VillageNPC
+				if auth2.trade_role == TradeRole.DOCTOR and auth2.is_conscious():
+					var d2: float = global_position.distance_to(auth2.global_position)
+					if d2 < best_dist:
+						best_dist = d2
+						nearest_authority = auth2
 
-	var report_dest: Vector2 = nearest_authority.global_position if nearest_authority != null else Vector2(745, 128)
+	var report_dest: Vector2 = nearest_authority.global_position if nearest_authority != null else Vector2(886, 172)
+
+	# FASE 2: Caminar personalmente hasta donde está la policía
+	if _corpse_report_phase == 2:
+		if global_position.distance_to(report_dest) > 26.0:
+			_stop_crafting_bar()
+			_move_towards_point(report_dest, 58.0, delta)
+			_finish_frame_movement(delta)
+			return true
+		velocity = Vector2.ZERO
+		_corpse_report_phase = 3
+		_corpse_report_timer = 0.0
+		_spawn_floating_text("🗣️🚓 ¡Guardia, escúcheme! ¡He encontrado a %s muerto!" % corpse_to_report.npc_name, Color.GOLD, -42.0)
+		return true
+
+	# FASE 3: Explicar durante 12.5 segundos a la policía lo que pasó
 	if global_position.distance_to(report_dest) > 34.0:
-		_move_towards_point(report_dest, 76.0, delta)
+		_stop_crafting_bar()
+		_move_towards_point(report_dest, 58.0, delta)
 		_finish_frame_movement(delta)
 		return true
+
 	velocity = Vector2.ZERO
-	corpse_to_report.corpse_reported = true
-	corpse_to_report.corpse_reporter_npc = null
-	_reporting_corpse_target = null
-	_spawn_floating_text("📢 ¡%s reportó el cadáver de %s a %s!" % [npc_name, corpse_to_report.npc_name, nearest_authority.npc_name if nearest_authority != null else "el Hospital"], Color.GOLD, -42.0)
-	corpse_to_report._notify_corpse_reported_to_authorities()
+	if nearest_authority != null:
+		nearest_authority.hold_for_interview(self, 0.6)
+		if sprite:
+			sprite.flip_h = (nearest_authority.global_position.x < global_position.x)
+	_corpse_report_timer += delta
+	var rem_exp: int = maxi(1, int(ceil(12.5 - _corpse_report_timer)))
+	var auth_name: String = nearest_authority.npc_name if nearest_authority != null else "la Comisaría"
+	_update_craft_bar_visual(clampf(_corpse_report_timer / 12.5, 0.02, 1.0), "🗣️ Explicando a %s (%ds)" % [auth_name, rem_exp], Color(1.0, 0.56, 0.28, 0.95))
+	trigger_action_animation(0.4)
+	_finish_frame_movement(delta)
+	if _corpse_report_timer >= 12.5:
+		_stop_crafting_bar()
+		corpse_to_report.corpse_reported = true
+		corpse_to_report.corpse_reporter_npc = null
+		_reporting_corpse_target = null
+		_corpse_report_phase = 0
+		_corpse_report_timer = 0.0
+		_spawn_floating_text("📢 ¡%s terminó de explicar el hallazgo de %s a %s!" % [npc_name, corpse_to_report.npc_name, auth_name], Color.GOLD, -42.0)
+		if nearest_authority != null:
+			nearest_authority._spawn_floating_text("🚓📋 Entendido. Aseguraremos el cuerpo e investigaremos la escena.", Color.AQUA, -38.0)
+		corpse_to_report._notify_corpse_reported_to_authorities()
 	return true
 
 ## Recoge físicamente un cadáver YA REPORTADO (`corpse_reported == true`) y camina con él por las puertas y calles hasta depositarlo en la Morgue
@@ -1193,7 +1323,7 @@ func _update_visual_memory(delta: float) -> void:
 		vis_mult *= float(WorldClock.call("get_weather_vision_multiplier"))
 
 	var player := _cached_player
-	if is_instance_valid(player):
+	if is_instance_valid(player) and not witness_silenced_player:
 		var in_st: bool = player.has_method("is_stealthing") and bool(player.call("is_stealthing"))
 		var clk_m: float = float(player.call("get_stealth_detection_multiplier")) if player.has_method("get_stealth_detection_multiplier") else 1.0
 		var p_range: float = (62.0 if in_st else 195.0) * clk_m * vis_mult
@@ -2357,6 +2487,12 @@ func _get_social_target_pos() -> Vector2:
 func get_activity_description() -> String:
 	if is_downed: return "🩸 Agonizando (%ds)" % maxi(1, int(ceil(bleedout_timer)))
 	if sedated_timer > 0.0: return "💤 Sedado (%ds)" % maxi(1, int(ceil(sedated_timer)))
+	if is_instance_valid(_reporting_corpse_target):
+		if _corpse_report_phase == 1:
+			return "🔍 Comprobando si %s respira (%ds)" % [_reporting_corpse_target.npc_name, maxi(1, int(ceil(10.0 - _corpse_report_timer)))]
+		elif _corpse_report_phase == 3:
+			return "🗣️ Explicando el hallazgo de %s a la policía (%ds)" % [_reporting_corpse_target.npc_name, maxi(1, int(ceil(12.5 - _corpse_report_timer)))]
+		return "🏃 Yendo en persona a avisar a la policía por %s" % _reporting_corpse_target.npc_name
 	var sick_tag: String = ""
 	if health_comp and health_comp.has_active_sickness_or_infection():
 		sick_tag = " [🌡️Enfermo/Fiebre %d%%]" % int(round(maxf(health_comp.fever, maxf(health_comp.food_poisoning, health_comp.swamp_sickness))))
@@ -2668,7 +2804,7 @@ func stealth_assassinate(player: Node = null) -> void:
 	_spawn_floating_text("🗡️🩸 ¡Asesinato sigiloso! (%s eliminado)" % npc_name, Color.CRIMSON, -48.0)
 	if player and player.has_method("show_hint"):
 		if murder_witness_name != "":
-			player.call("show_hint", "🗡️🚨 ¡%s te vio asesinar a %s! La guardia ha sido alertada." % [murder_witness_name, npc_name])
+			player.call("show_hint", "🗡️👁️ ¡%s te vio asesinar a %s! Irá a examinar el cuerpo (10s) y luego a avisar en persona a la policía si no lo silencias o detienes." % [murder_witness_name, npc_name])
 		else:
 			player.call("show_hint", "🗡️🤫 Asesinato sigiloso sin testigos: el cuerpo de %s queda en el suelo." % npc_name)
 	var vm = _get_vm()
@@ -2803,11 +2939,13 @@ func _confirm_true_death() -> void:
 	var vm = _get_vm()
 	if vm and vm.has_method("spawn_blood_puddle") and not ("Envenenamiento" in last_hit_weapon_name or "Inanición" in last_hit_weapon_name):
 		vm.call("spawn_blood_puddle", death_world_pos, npc_name)
+	var direct_witness_node: VillageNPC = null
 	murder_witness_name = ""
 	if vm and vm.has_method("_find_conscious_witness_near"):
 		var w: VillageNPC = vm.call("_find_conscious_witness_near", death_world_pos, 165.0, self)
-		if w != null:
+		if w != null and not (last_hit_by_player and w.witness_silenced_player):
 			murder_witness_name = w.npc_name
+			direct_witness_node = w
 
 	is_downed = false
 	bleedout_timer = 0.0
@@ -2823,6 +2961,8 @@ func _confirm_true_death() -> void:
 	corpse_buried = false
 	corpse_carrier = null
 	corpse_rot_hours = 0.0
+	if is_instance_valid(direct_witness_node) and not (direct_witness_node.trade_role in [TradeRole.ROYAL_INVESTIGATOR, TradeRole.TRAVELING_MERCHANT]):
+		begin_physical_corpse_discovery(direct_witness_node)
 	_clear_combat_hostility()
 	_set_area_col_disabled(hurtbox, true)
 	_set_area_col_disabled(interact_area, false)
@@ -2874,10 +3014,46 @@ func _inject_character_lore_into_dialogue(diag: Dictionary) -> Dictionary:
 			return diag
 
 	var insert_idx: int = maxi(0, ch_arr.size() - 1)
+	if is_instance_valid(_reporting_corpse_target) and trade_role != TradeRole.ROYAL_INVESTIGATOR:
+		ch_arr.insert(0, {"label": "🚨🤫 ¡DETENER REPORTE DE %s! (Sobornar, Convencer o Intimidar)" % _reporting_corpse_target.npc_name, "next": "witness_manipulation_menu"})
+	elif not (trade_role in [TradeRole.SHERIFF, TradeRole.GUARD, TradeRole.ROYAL_INVESTIGATOR]):
+		ch_arr.insert(insert_idx, {"label": "🤫 Manipular Testigo / Coartada (Silenciar, Sobornar o Inculpar a otro)", "next": "witness_manipulation_menu"})
 	ch_arr.insert(insert_idx, {"label": "📖 Conocer la historia personal y el pasado de %s (+10 Relación)" % npc_name, "next": "character_lore", "affinity": 10})
 	ch_arr.insert(insert_idx, {"label": "🕵️ Bolsillos de %s: Hurtar o Meter objeto en sigilo [O pulsa H]" % npc_name, "next": "pocket_stealth_menu"})
 	if need_hunger < 75.0:
 		ch_arr.insert(insert_idx, {"label": "🍲 Darle 1 ración de comida de tu mochila (%s) para que se recupere gradualmente (+18 Relación)" % get_nutrition_status_label(), "next": "start", "action": "give_npc_food_ration"})
+
+	var rep_warn: String = ("\n⚠️ ¡Actualmente está yendo a reportar el cuerpo de %s!" % _reporting_corpse_target.npc_name) if is_instance_valid(_reporting_corpse_target) else ""
+	var silence_stat: String = "✅ Ya pactó silencio" if witness_silenced_player else "👁️ Testigo libre"
+	var alibi_stat: String = " | 🤝 Te dará Coartada" if witness_alibi_for_player else ""
+	var frame_stat: String = (" | 👉 Inculpará a: " + witness_framed_target_name) if witness_framed_target_name != "" else ""
+	var frame_choices: Array = []
+	if is_inside_tree():
+		var count_f: int = 0
+		for n_f in get_tree().get_nodes_in_group("village_npcs"):
+			if n_f is VillageNPC and n_f != self:
+				var vf := n_f as VillageNPC
+				if not vf.is_dead and not (vf.trade_role in [TradeRole.SHERIFF, TradeRole.GUARD, TradeRole.ROYAL_INVESTIGATOR, TradeRole.TRAVELING_MERCHANT]):
+					var cost_lbl: String = "Gratis por Afinidad >= 40" if affinity >= 40 else "-15 Oro"
+					frame_choices.append({"label": "👉 Inculpar a %s (%s) [%s]" % [vf.npc_name, vf.npc_role, cost_lbl], "next": "start", "action": "witness_frame_npc:" + vf.npc_name})
+					count_f += 1
+					if count_f >= 6:
+						break
+	frame_choices.append({"label": "⬅️ Volver al menú de manipulación", "next": "witness_manipulation_menu"})
+	diag["witness_frame_select"] = {
+		"text": "👉 Sembrar Rumor / Inculpar a otro habitante:\nElige a quién dirá %s que vio merodeando junto a la escena del crimen cuando lo interrogue el Comisario Vane o el Inquisidor Real:" % npc_name,
+		"choices": frame_choices
+	}
+	diag["witness_manipulation_menu"] = {
+		"text": "🤫 Manipulación de Testigo y Coartadas — %s (Relación: %d)%s\nEstado actual: [%s%s%s]" % [npc_name, affinity, rep_warn, silence_stat, alibi_stat, frame_stat],
+		"choices": [
+			{"label": "🤝 Convencer por Amistad: Pedir Coartada Falsa y Silencio (Requiere Afinidad >= 35 · Gratis)", "next": "start", "action": "witness_convince_alibi"},
+			{"label": "💰 Sobornar Testigo: Comprar su silencio y detener reporte (-25 Oro)", "next": "start", "action": "witness_bribe_silence"},
+			{"label": "🗡️ Intimidar / Amenazar: Obligar a callar y cancelar reporte (-15 Relación)", "next": "start", "action": "witness_intimidate_silence"},
+			{"label": "👉 Sembrar Rumor: «Diles que viste a otro vecino cerca del crimen» (%s)" % ("Gratis" if affinity >= 40 else "-15 Oro"), "next": "witness_frame_select"},
+			{"label": "⬅️ Volver a la conversación principal", "next": "start"}
+		]
+	}
 
 	var p_choices: Array = []
 	if personal_gold > 0:
@@ -3394,8 +3570,50 @@ func on_dialogue_action(action_id: String) -> void:
 		attempt_pickpocket_or_plant(player, "steal_item", action_id.get_slice(":", 1))
 		return
 
-	if action_id.begins_with("plant_pocket_item:"):
+	if action_id == "plant_pocket_item:" or action_id.begins_with("plant_pocket_item:"):
 		attempt_pickpocket_or_plant(player, "plant_item", action_id.get_slice(":", 1))
+		return
+
+	if action_id == "witness_convince_alibi":
+		if affinity < 35:
+			_spawn_floating_text("❌ Necesitas al menos 35 de Relación para pedirle una coartada (Actual: %d)" % affinity, Color.ORANGE_RED, -44.0)
+			return
+		clear_witness_memories_of_player()
+		witness_alibi_for_player = true
+		add_thought("Acepté cubrir al Forastero como coartada (+4)", 4.0)
+		_spawn_floating_text("🤝🤫 «Somos amigos: si preguntan, juraré que estuviste conmigo y no vi nada.»", Color.SPRING_GREEN, -46.0)
+		return
+
+	if action_id == "witness_bribe_silence":
+		if inv.gold < 25:
+			_spawn_floating_text("❌ Necesitas 25 Oro para sobornar a %s" % npc_name, Color.ORANGE_RED, -44.0)
+			return
+		inv.add_gold(-25)
+		personal_gold = maxi(0, personal_gold) + 25
+		clear_witness_memories_of_player()
+		modify_affinity(5)
+		add_thought("Recibió una bolsa de oro por guardar silencio (+8)", 8.0)
+		_spawn_floating_text("💰🤐 «Por mí como si nunca hubieras pasado por aquí...» (-25 Oro)", Color.GOLD, -46.0)
+		return
+
+	if action_id == "witness_intimidate_silence":
+		clear_witness_memories_of_player()
+		modify_affinity(-15)
+		add_thought("Amenazado por el Forastero para callar (-15)", -15.0)
+		_spawn_floating_text("😰🤐 «¡Está bien, no diré ni una palabra a la guardia!» (-15 Relación)", Color.ORANGE, -46.0)
+		return
+
+	if action_id.begins_with("witness_frame_npc:"):
+		var f_target: String = action_id.get_slice(":", 1)
+		if affinity < 40:
+			if inv.gold < 15:
+				_spawn_floating_text("❌ Necesitas 15 Oro (o Afinidad >= 40) para sembrar este rumor", Color.ORANGE_RED, -44.0)
+				return
+			inv.add_gold(-15)
+			personal_gold = maxi(0, personal_gold) + 15
+		clear_witness_memories_of_player()
+		witness_framed_target_name = f_target
+		_spawn_floating_text("👉🗣️ «Cuando me interrogue la guardia o el Inquisidor, diré que vi a %s cerca del crimen.»" % f_target, Color.VIOLET, -46.0)
 		return
 
 	if action_id == "compensate_family":
@@ -3679,6 +3897,8 @@ func to_save_dict() -> Dictionary:
 		"craft_progress": _craft_progress, "crafting_recipe_idx": _crafting_recipe_idx,
 		"completed_expedition_day": _completed_expedition_day, "route_bought_flags": route_bought_flags,
 		"bloodstained_timer": bloodstained_timer, "seen_entities_memory": seen_entities_memory.duplicate(true),
+		"witness_silenced_player": witness_silenced_player, "witness_alibi_for_player": witness_alibi_for_player,
+		"witness_framed_target_name": witness_framed_target_name,
 		"medical": health_comp.to_medical_dict() if health_comp else {}
 	}
 
@@ -3688,6 +3908,9 @@ func _read_vec2(data: Dictionary, kx: String, ky: String, fallback: Vector2) -> 
 func from_save_dict(data: Dictionary) -> void:
 	npc_name = str(data.get("npc_name", npc_name))
 	bloodstained_timer = maxf(0.0, float(data.get("bloodstained_timer", 0.0)))
+	witness_silenced_player = bool(data.get("witness_silenced_player", false))
+	witness_alibi_for_player = bool(data.get("witness_alibi_for_player", false))
+	witness_framed_target_name = str(data.get("witness_framed_target_name", ""))
 	seen_entities_memory.clear()
 	if data.has("seen_entities_memory") and typeof(data["seen_entities_memory"]) == TYPE_ARRAY:
 		for mem_it in (data["seen_entities_memory"] as Array):
