@@ -287,7 +287,22 @@ func has_master_lockpick() -> bool:
 	return inventory != null and inventory.has_item("master_lockpick", 1)
 
 var _env_sickness_timer: float = 0.0
+var bloodstained_timer: float = 0.0
 const FROG_MARSH_RECT := Rect2(-725.0, 28.0, 240.0, 120.0)
+
+func add_bloodstain(duration: float = 180.0) -> void:
+	var was_stained: bool = bloodstained_timer > 0.0
+	bloodstained_timer = maxf(bloodstained_timer, duration)
+	if not was_stained:
+		_spawn_floating_text("🩸🖐️ ¡Manchado de sangre! (Lávate en el agua o en [H] antes de que te vea la Guardia/Inquisidor)", Color(1.0, 0.35, 0.35), -54.0)
+
+func wash_bloodstains() -> void:
+	if bloodstained_timer > 0.0:
+		bloodstained_timer = 0.0
+		_spawn_floating_text("💧✨ Te has lavado la sangre de las manos y la ropa", Color.AQUA, -46.0)
+
+func is_bloodstained() -> bool:
+	return bloodstained_timer > 0.0
 
 func _process(delta: float) -> void:
 	if speed_tonic_timer > 0.0:
@@ -297,6 +312,8 @@ func _process(delta: float) -> void:
 			apply_armor_stats()
 	if paralytic_venom_timer > 0.0:
 		paralytic_venom_timer = maxf(0.0, paralytic_venom_timer - delta)
+	if bloodstained_timer > 0.0:
+		bloodstained_timer = maxf(0.0, bloodstained_timer - delta)
 	if _hit_flash_timer > 0.0:
 		_hit_flash_timer -= delta
 		if _hit_flash_timer <= 0.0 and anim:
@@ -397,6 +414,7 @@ func equip_tool_by_index(idx: int) -> void:
 
 func refill_watering_can() -> void:
 	watering_can_charges = max_water_charges
+	wash_bloodstains()
 	_spawn_floating_text("💧 Regadera llena (%d/%d)" % [watering_can_charges, max_water_charges], Color.AQUA, -40.0)
 	show_hint("💧 Regadera recargada al 100%% (%d/%d usos de riego)." % [watering_can_charges, max_water_charges])
 
@@ -644,6 +662,7 @@ func to_save_dict() -> Dictionary:
 		"watering_can_charges": watering_can_charges,
 		"speed_tonic_timer": speed_tonic_timer,
 		"paralytic_venom_timer": paralytic_venom_timer,
+		"bloodstained_timer": bloodstained_timer,
 		"tool_tiers": tool_tiers.duplicate(),
 		"weapon": weapon_id,
 		"medical": health_comp.to_medical_dict() if health_comp else {},
@@ -660,6 +679,7 @@ func from_save_dict(data: Dictionary) -> void:
 		anim.modulate = Color.WHITE
 	speed_tonic_timer = float(data.get("speed_tonic_timer", 0.0))
 	paralytic_venom_timer = float(data.get("paralytic_venom_timer", 0.0))
+	bloodstained_timer = float(data.get("bloodstained_timer", 0.0))
 	if data.has("tool_tiers") and typeof(data["tool_tiers"]) == TYPE_DICTIONARY:
 		var saved_tiers: Dictionary = data["tool_tiers"]
 		for k in tool_tiers.keys():

@@ -2423,6 +2423,8 @@ func _on_died() -> void:
 		return
 	if health_comp:
 		health_comp.stop_bleeding()
+		if health_comp.last_sickness_cause != "" and (health_comp.fever >= 70.0 or health_comp.food_poisoning >= 70.0 or health_comp.swamp_sickness >= 70.0):
+			last_hit_weapon_name = "Envenenamiento / Sepsis (%s)" % health_comp.last_sickness_cause
 		for vital_o in ["heart", "liver", "lungs", "kidneys", "brain"]:
 			if float(health_comp.organ_hp.get(vital_o, 100.0)) <= 0.0:
 				_confirm_true_death()
@@ -2457,6 +2459,8 @@ func revive_from_downed(rescuer: Node, used_surgical_kit: bool = false) -> void:
 	_set_area_col_disabled(hurtbox, false)
 	if health_comp:
 		health_comp.stop_bleeding()
+		if health_comp.last_sickness_cause != "" and (health_comp.fever >= 70.0 or health_comp.food_poisoning >= 70.0 or health_comp.swamp_sickness >= 70.0):
+			last_hit_weapon_name = "Envenenamiento / Sepsis (%s)" % health_comp.last_sickness_cause
 		for vital_o in ["heart", "liver", "lungs", "kidneys", "brain"]:
 			if float(health_comp.organ_hp.get(vital_o, 100.0)) <= 0.0:
 				_confirm_true_death()
@@ -2516,6 +2520,10 @@ func _confirm_true_death() -> void:
 		sprite.z_index = -1
 		sprite.visible = true
 	_spawn_floating_text("💀 %s ha muerto (El cuerpo yace en el lugar)" % npc_name, Color(0.88, 0.45, 0.45), -44.0)
+	if last_hit_by_player and not ("Arco" in last_hit_weapon_name or "Envenenamiento" in last_hit_weapon_name):
+		var p_killer := _get_player()
+		if p_killer and p_killer.has_method("add_bloodstain") and p_killer.global_position.distance_to(global_position) <= 75.0:
+			p_killer.call("add_bloodstain", 180.0)
 	if trade_role == TradeRole.TRAVELING_MERCHANT and vm and vm.has_method("on_traveling_merchant_murdered"):
 		vm.call("on_traveling_merchant_murdered", self, last_hit_weapon_name)
 

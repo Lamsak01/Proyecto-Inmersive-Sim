@@ -4485,6 +4485,30 @@ func _evaluate_npc_interview(inv_npc: VillageNPC, witness: VillageNPC, suspects:
 	var dist_m: int = int(round(dist_to_crime / 16.0))
 	var is_eyewitness: bool = bool(entry.get("mem_saw_player_near", entry.get("saw_player_near", false)))
 
+	# 1. Registro físico de los bolsillos del habitante interrogado (Etapa 4: detecta Salvoconducto Real u órganos plantados)
+	if witness.carries_royal_safe_conduct or witness.has_pocket_item("royal_safe_conduct", 1):
+		entry["score"] = maxi(int(entry.get("score", 10)) + 85, 92)
+		entry["known_dist"] = minf(dist_to_crime, 120.0)
+		entry["mem_dist_to_crime"] = minf(dist_to_crime, 120.0)
+		entry["status_note"] = "¡Sorprendido con el Salvoconducto Real robado en su bolsillo!"
+		clues.append("¡PRUEBA IRREFUTABLE! Al registrar los bolsillos de %s, Alistair halló el Salvoconducto Real del mercader (+85%% sospecha)." % witness.npc_name)
+		witness._spawn_floating_text("😱📜 ¡¿Quién me metió este Salvoconducto Real en el bolsillo?!", Color.ORANGE_RED, -40.0)
+		if is_instance_valid(inv_npc):
+			inv_npc._spawn_floating_text("👑📜 ¡Hallado el Salvoconducto Real en los bolsillos de %s!" % witness.npc_name, Color.GOLD, -42.0)
+		active_royal_investigation["stage"] = "VERDICT"
+		active_royal_investigation["stage_timer"] = 0.0
+		return
+
+	if witness.trade_role != VillageNPC.TradeRole.DOCTOR:
+		for org_it in ["organ_heart", "organ_liver", "organ_kidney", "organ_lung", "organ_stomach", "organ_eye"]:
+			if witness.has_pocket_item(org_it, 1):
+				entry["score"] = maxi(int(entry.get("score", 10)) + 55, 68)
+				entry["known_dist"] = minf(dist_to_crime, 180.0)
+				entry["mem_dist_to_crime"] = minf(dist_to_crime, 180.0)
+				entry["status_note"] = "Portaba un órgano humano extraído en su bolsillo"
+				clues.append("Registro de bolsillos: %s ocultaba un órgano humano extraído (%s) (+55%% sospecha)." % [witness.npc_name, org_it])
+				break
+
 	if is_eyewitness and suspects.has("Jugador"):
 		entry["score"] = 0
 		entry["status_note"] = "Testigo ocular de cargo contra el Forastero (%dm)" % dist_m
@@ -4522,9 +4546,31 @@ func _evaluate_npc_interview(inv_npc: VillageNPC, witness: VillageNPC, suspects:
 		var new_sc: int = 48 if dist_to_crime <= 150.0 else (34 if dist_to_crime <= 250.0 else 22)
 		if bool(entry.get("is_vagrant", false)):
 			new_sc += 8
+		# 2. Cruce forense de arma/método con el oficio del aldeano y su personalidad (RimWorld)
+		var w_low: String = str(active_royal_investigation.get("weapon_used", "")).to_lower()
+		var role_matches_weapon: bool = (
+			(("hacha" in w_low) and witness.trade_role == VillageNPC.TradeRole.CARPENTER) or
+			(("martillo" in w_low or "pico" in w_low or "espada" in w_low) and witness.trade_role == VillageNPC.TradeRole.BLACKSMITH) or
+			(("cuchillo" in w_low or "corte" in w_low or "despiece" in w_low) and witness.trade_role == VillageNPC.TradeRole.BUTCHER) or
+			(("envenenamiento" in w_low or "estofado" in w_low or "toxina" in w_low) and witness.trade_role in [VillageNPC.TradeRole.HERBALIST, VillageNPC.TradeRole.INNKEEPER]) or
+			(("bisturí" in w_low or "órgano" in w_low or "quirúrgic" in w_low) and witness.trade_role == VillageNPC.TradeRole.DOCTOR)
+		)
+		var extra_notes: Array[String] = []
+		if role_matches_weapon:
+			new_sc += 18
+			extra_notes.append("Oficio compatible con el arma/método forense")
+		for tr in witness.traits:
+			if tr in ["Sanguinario", "Codicioso", "Avaricioso", "Rencoroso", "Frío", "Cruel", "Tahúr"]:
+				new_sc += 10
+				extra_notes.append("Rasgo: " + tr)
+				break
+			elif tr in ["Pacífico", "Bondadoso", "Leal", "Honrado"]:
+				new_sc = maxi(10, new_sc - 8)
+				break
 		entry["score"] = maxi(int(entry.get("score", 10)), new_sc)
-		entry["status_note"] = "Estaba a %dm de la escena SIN coartada" % dist_m
-		clues.append("%s admitió estar a %d m de la escena y SIN coartada (%d%% sospecha)." % [witness.npc_name, dist_m, int(entry["score"])])
+		var note_suffix: String = (" [" + ", ".join(extra_notes) + "]") if not extra_notes.is_empty() else ""
+		entry["status_note"] = "Estaba a %dm de la escena SIN coartada%s" % [dist_m, note_suffix]
+		clues.append("%s admitió estar a %d m de la escena y SIN coartada%s (%d%% sospecha)." % [witness.npc_name, dist_m, note_suffix, int(entry["score"])])
 		if is_instance_valid(inv_npc):
 			inv_npc._spawn_floating_text("📝⚠️ %s estaba a %dm sin coartada (%d%% sospecha)" % [witness.npc_name, dist_m, int(entry["score"])], Color.GOLD, -36.0)
 
@@ -4546,6 +4592,13 @@ func _evaluate_player_inspection(inv_npc: VillageNPC, player: Node2D, suspects: 
 	var p_entry: Dictionary = suspects["Jugador"]
 	var already_inspected: bool = bool(p_entry.get("interviewed", false))
 	p_entry["interviewed"] = true
+	if player.has_method("is_bloodstained") and bool(player.call("is_bloodstained")) and not bool(p_entry.get("caught_bloodstained", false)):
+		p_entry["caught_bloodstained"] = true
+		p_entry["score"] = int(p_entry.get("score", 16)) + 42
+		p_entry["status_note"] = "¡Sorprendido con manchas de sangre fresca sin lavar!"
+		clues.append("Inspección Forense: Alistair detectó manchas de sangre fresca en las manos y ropa del Forastero (+42% sospecha).")
+		if is_instance_valid(inv_npc):
+			inv_npc._spawn_floating_text("🩸🕵️‍♂️ ¡Tienes sangre fresca en las manos y la ropa!", Color.ORANGE_RED, -42.0)
 	var inv: SimpleInventory = player.get("inventory")
 	if inv:
 		if inv.has_item("royal_safe_conduct", 1) and not bool(p_entry.get("caught_with_safe_conduct", false)):
@@ -4569,9 +4622,9 @@ func _evaluate_player_inspection(inv_npc: VillageNPC, player: Node2D, suspects: 
 	elif is_initial_interview and int(p_entry.get("score", 16)) < 40:
 		p_entry["status_note"] = "Interrogado por Alistair (%d%% sospecha)" % int(p_entry.get("score", 16))
 
-## FILOSOFÍA DEL INQUISIDOR REAL: "Nunca regresa a la Corte con las manos vacías".
-## Condena al sospechoso con mayor puntuación real (desempatando siempre por quién estaba físicamente más cerca de la escena del crimen).
-## Jamás condena a un aldeano que estuviera lejos de la escena (`dist_to_crime > 360 px`) ni a un testigo ocular (`score == 0`).
+## FILOSOFÍA DEL INQUISIDOR REAL (Etapa 4):
+## Condena al sospechoso con mayor puntuación forense real (`>= 35%`), desempatando por quién estaba más cerca de la escena.
+## Si NINGÚN sospechoso supera el umbral mínimo de pruebas (`< 35%`), archiva el caso por falta de pruebas sin ejecutar inocentes al azar.
 func _conclude_royal_investigation_with_mandatory_verdict(inv_npc: VillageNPC) -> void:
 	var suspects: Dictionary = active_royal_investigation.get("suspects", {})
 	var best_key: String = ""
@@ -4590,43 +4643,28 @@ func _conclude_royal_investigation_with_mandatory_verdict(inv_npc: VillageNPC) -
 		else:
 			var npc_node: VillageNPC = _find_npc_by_name(str(k))
 			var real_d: float = float(s_entry.get("mem_dist_to_crime", dist_c))
-			if npc_node == null or npc_node.is_dead or real_d > 360.0 or sc <= 0:
+			if npc_node == null or npc_node.is_dead or real_d > 360.0 or sc < 35:
 				continue
-		if sc > best_score or (sc == best_score and dist_c < best_dist):
+		if sc >= 35 and (sc > best_score or (sc == best_score and dist_c < best_dist)):
 			best_score = sc
 			best_dist = dist_c
 			best_key = str(k)
 
-	if best_key == "":
-		for k in suspects.keys():
-			var s_entry: Dictionary = suspects[k]
-			if bool(s_entry.get("is_player", false)) or str(s_entry.get("mem_alibi_partner", "")) != "":
-				continue
-			var npc_node: VillageNPC = _find_npc_by_name(str(k))
-			var real_d: float = float(s_entry.get("mem_dist_to_crime", 9999.0))
-			if npc_node and not npc_node.is_dead and real_d < best_dist:
-				best_dist = real_d
-				best_key = str(k)
-				best_score = maxi(35, int(s_entry.get("score", 25)))
-	if best_key == "":
-		for k in suspects.keys():
-			var s_entry: Dictionary = suspects[k]
-			if bool(s_entry.get("is_player", false)):
-				continue
-			var npc_node: VillageNPC = _find_npc_by_name(str(k))
-			var real_d: float = float(s_entry.get("mem_dist_to_crime", 9999.0))
-			if npc_node and not npc_node.is_dead and real_d < best_dist:
-				best_dist = real_d
-				best_key = str(k)
-				best_score = 35
-	if best_key == "":
-		best_key = "Jugador"
+	var p = get_tree().get_first_node_in_group("player") as Node2D
+	if best_key == "" or best_score < 35:
+		active_royal_investigation["verdict_target"] = "Caso Archivado (Sin Pruebas >= 35%)"
+		active_royal_investigation["verdict_reason"] = "Ningún sospechoso superó el umbral mínimo del 35% de sospecha forense."
+		active_royal_investigation["stage"] = "DEPARTING"
+		active_royal_investigation["stage_timer"] = 0.0
+		if is_instance_valid(inv_npc):
+			inv_npc._spawn_floating_text("⚖️📜 Sin pruebas concluyentes (<35%): No ejecutaré a un inocente al azar. Regreso a la Corte.", Color.AQUA, -44.0)
+		_hint_player("⚖️👑 ¡EXPEDIENTE ARCHIVADO POR FALTA DE PRUEBAS! Ningún sospechoso superó el 35% de sospecha forense ni se halló el Salvoconducto Real. El Inquisidor Real Alistair se retira sin ejecutar a ningún inocente.", p)
+		return
 
 	var chosen: Dictionary = suspects.get(best_key, {})
 	var chosen_name: String = str(chosen.get("name", best_key))
 	active_royal_investigation["verdict_target"] = chosen_name
 
-	var p = get_tree().get_first_node_in_group("player") as Node2D
 	if bool(chosen.get("is_player", false)):
 		active_royal_investigation["verdict_reason"] = "Culpable por deducción de pruebas y testimonios (%d%% de probabilidad)." % clampi(best_score, 50, 100)
 		if player_in_jail or player_being_escorted_to_jail:

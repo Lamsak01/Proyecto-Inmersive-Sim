@@ -258,6 +258,19 @@ func refresh_ui() -> void:
 		scv.add_child(sbtn_row)
 		_add_treat_btn(sbtn_row, "🍵 Purgar Fiebre y Toxinas (1 Cataplasma o 2 Hierbas)", hc, -1, "cure_sickness")
 
+	if target_entity == player and is_instance_valid(player) and player.has_method("is_bloodstained") and bool(player.call("is_bloodstained")):
+		var bcard := PanelContainer.new()
+		bcard.add_theme_stylebox_override("panel", _make_box_style(Color(0.20, 0.09, 0.11, 0.96), Color(0.95, 0.30, 0.35), 1, 5, 8, 6))
+		wounds_box.add_child(bcard)
+		var bcv := VBoxContainer.new()
+		bcv.add_theme_constant_override("separation", 4)
+		bcard.add_child(bcv)
+		_add_lbl(bcv, "🩸🖐️ ¡Manos y Ropa Manchadas de Sangre! (%ds restantes)" % int(ceil(float(player.get("bloodstained_timer")))), 12, Color(1.0, 0.50, 0.50))
+		_add_lbl(bcv, "   Si el Inquisidor Real Alistair te inspecciona así, sumará +42% de sospecha forense.", 11, Color(0.92, 0.78, 0.78))
+		var bbtn_row := HBoxContainer.new()
+		bcv.add_child(bbtn_row)
+		_add_treat_btn(bbtn_row, "💧 Lavarse la Sangre de las Manos y Ropa", hc, -1, "wash_bloodstains")
+
 	_build_surgery_and_pockets_cards(hc, is_corpse)
 
 	if hc.wounds.is_empty():
@@ -330,8 +343,13 @@ func _apply_treatment(hc: HealthComponent, wound_id: int, action: String) -> voi
 		return
 
 	match action:
+		"wash_bloodstains":
+			if player.has_method("wash_bloodstains"):
+				player.call("wash_bloodstains")
 		"wash":
 			hc.treat_wound(wound_id, "wash")
+			if player.has_method("wash_bloodstains"):
+				player.call("wash_bloodstains")
 			if player.has_method("_spawn_floating_text"):
 				player.call("_spawn_floating_text", "💧 Herida lavada y limpia", Color.AQUA, -40.0)
 		"bandage":

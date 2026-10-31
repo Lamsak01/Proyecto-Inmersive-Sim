@@ -543,8 +543,13 @@ func add_food_poisoning(amount: float, cause: String = "Comida en mal estado") -
 	food_poisoning = clampf(food_poisoning + amount, 0.0, 100.0)
 	fever = clampf(fever + amount * 0.35, 0.0, 100.0)
 	last_sickness_cause = cause
-	organ_hp["stomach"] = maxf(25.0, float(organ_hp.get("stomach", 100.0)) - amount * 0.22)
-	organ_hp["liver"] = maxf(30.0, float(organ_hp.get("liver", 100.0)) - amount * 0.14)
+	organ_hp["stomach"] = maxf(20.0, float(organ_hp.get("stomach", 100.0)) - amount * 0.25)
+	organ_hp["liver"] = maxf(25.0, float(organ_hp.get("liver", 100.0)) - amount * 0.18)
+	if amount >= 75.0 and current_health > 0.0:
+		current_health = maxf(0.0, current_health - 26.0)
+		health_changed.emit(current_health, max_health)
+		if current_health <= 0.0:
+			died.emit()
 	anatomy_changed.emit()
 
 func add_swamp_or_miasma_exposure(amount: float, cause: String = "Miasma / Fiebre del Pantano") -> void:
