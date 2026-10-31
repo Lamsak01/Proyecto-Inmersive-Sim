@@ -3047,6 +3047,19 @@ func _inject_character_lore_into_dialogue(diag: Dictionary) -> Dictionary:
 		if vm_diag:
 			if trade_role == TradeRole.ROYAL_INVESTIGATOR and "active_royal_investigation" in vm_diag:
 				has_active_case = bool(vm_diag.active_royal_investigation.get("active", false))
+				var r_stg: String = str(vm_diag.active_royal_investigation.get("stage", ""))
+				if has_active_case and r_stg in ["PUBLIC_TRIAL_PLAZA", "HUNTING_SCAPEGOAT"]:
+					var sc_lbl: String = str(vm_diag.active_royal_investigation.get("verdict_target", "el acusado"))
+					ch_arr.insert(0, {"label": "⚖️🔔 ¡INTERVENIR EN EL JUICIO PÚBLICO DE %s! (Salvar su vida / Alegar / Confesar)" % sc_lbl, "next": "public_trial_menu"})
+					diag["public_trial_menu"] = {
+						"text": "⚖️🔔 JUICIO PÚBLICO EN LA PLAZA CENTRAL — Acusado: %s\n«La sentencia real está a punto de ejecutarse. ¿Tienes algo que declarar ante la Inquisición Real y el pueblo?»" % sc_lbl,
+						"choices": [
+							{"label": "🗣️📜 [Alegato de Clemencia RPG] «¡Las pruebas contra %s son meramente circunstanciales! Ejecutar a un inocente sería una deshonra para la Corona.»" % sc_lbl, "next": "END", "action": "trial_intervene:clemency"},
+							{"label": "💰👑 [Pagar Fianza Real de Indulto (-60 Oro)] «Yo respondo con mi oro por la inocencia de %s para conmutar la pena capital.»" % sc_lbl, "next": "END", "action": "trial_intervene:bail_innocent"},
+							{"label": "✋🗡️ [Confesar el Crimen] «¡Soltadlo! %s es inocente, fui yo quien lo hizo.»" % sc_lbl, "next": "END", "action": "trial_intervene:confess"},
+							{"label": "👀🤐 Callar y dejar que el Inquisidor ejecute al chivo expiatorio.", "next": "END"}
+						]
+					}
 			elif "active_sheriff_investigation" in vm_diag:
 				has_active_case = bool(vm_diag.active_sheriff_investigation.get("active", false))
 		if has_active_case:
@@ -3667,6 +3680,12 @@ func on_dialogue_action(action_id: String) -> void:
 
 	if action_id == "plant_pocket_item:" or action_id.begins_with("plant_pocket_item:"):
 		attempt_pickpocket_or_plant(player, "plant_item", action_id.get_slice(":", 1))
+		return
+
+	if action_id.begins_with("trial_intervene:"):
+		var trial_mode: String = action_id.get_slice(":", 1)
+		if vm and vm.has_method("resolve_public_trial_intervention"):
+			vm.call("resolve_public_trial_intervention", self, player, trial_mode)
 		return
 
 	if action_id.begins_with("interrog_step:"):

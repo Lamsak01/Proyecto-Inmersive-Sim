@@ -2206,16 +2206,36 @@ func _on_police_jailbreak_or_resist(player: Node2D) -> void:
 	if WorldClock and WorldClock.has_method("stop_organic_fast_forward") and WorldClock.is_fast_forwarding:
 		WorldClock.stop_organic_fast_forward(false)
 	if player_in_jail or player_being_escorted_to_jail:
+		var was_in_cell: bool = player_in_jail
 		player_in_jail = false
 		player_being_escorted_to_jail = false
 		escorting_officer = null
 		jail_mandatory_stay_timer = 0.0
 		set_jail_cell_gate_locked(false)
-		wanted_level = clampi(wanted_level + 1, 2, 5)
-		bounty_gold += 30
-		alert_police_to_resist(player)
-		if player.has_method("_spawn_floating_text"):
-			player._spawn_floating_text("🔓🔫 ¡Barrotes forzados! Escapa corriendo de la Comisaría (+30 Oro de multa)", Color.ORANGE_RED, -46.0)
+		var in_stealth_jb: bool = player.has_method("is_stealthing") and bool(player.call("is_stealthing"))
+		var has_master_pick: bool = player.has_method("has_master_lockpick") and bool(player.call("has_master_lockpick"))
+		var stealth_sk_bonus: float = float(player.call("get_skill_bonus", "stealth")) if player.has_method("get_skill_bonus") else 0.0
+		var detect_jb_rad: float = (58.0 if in_stealth_jb else 135.0) * (0.35 if has_master_pick else 1.0) * clampf(1.0 - stealth_sk_bonus, 0.40, 1.0)
+		var gate_pos := Vector2(902, 152)
+		var watching_officer: VillageNPC = null
+		if was_in_cell:
+			for n_off in get_tree().get_nodes_in_group("village_npcs"):
+				if n_off is VillageNPC:
+					var vo := n_off as VillageNPC
+					if vo.trade_role in [VillageNPC.TradeRole.SHERIFF, VillageNPC.TradeRole.GUARD, VillageNPC.TradeRole.ROYAL_INVESTIGATOR] and vo.is_conscious():
+						if vo.global_position.distance_to(gate_pos) <= detect_jb_rad and has_line_of_sight(vo.global_position, gate_pos):
+							watching_officer = vo
+							break
+		if was_in_cell and watching_officer == null:
+			if player.has_method("_spawn_floating_text"):
+				player._spawn_floating_text("🔓🤫 ¡Fuga sigilosa! Forzaste la reja de la celda sin despertar ni alertar a la guardia", Color.SPRING_GREEN, -46.0)
+			_hint_player("🔓🤫 Has forzado la cerradura de la celda en completo silencio. Sal de la Comisaría sin que te vean.", player)
+		else:
+			wanted_level = clampi(wanted_level + 1, 2, 5)
+			bounty_gold += 30
+			alert_police_to_resist(player)
+			if player.has_method("_spawn_floating_text"):
+				player._spawn_floating_text("🔓🔫 ¡Barrotes forzados! La guardia te vio escapar (+30 Oro de multa)", Color.ORANGE_RED, -46.0)
 	else:
 		_police_confront_cooldown = 8.0
 		bounty_gold += 15
@@ -4528,7 +4548,7 @@ func _advance_royal_investigation_day(_new_day: int) -> void:
 			_royal_investigator_npc.is_hostile = true
 			if not _royal_investigator_npc.is_in_group("enemies"):
 				_royal_investigator_npc.add_to_group("enemies")
-	if stg in ["DEPARTING", "HUNTING_SCAPEGOAT", "HUNTING_PLAYER"]:
+	if stg in ["DEPARTING", "HUNTING_SCAPEGOAT", "PUBLIC_TRIAL_PLAZA", "HUNTING_PLAYER"]:
 		return
 
 	var suspects: Dictionary = active_royal_investigation.get("suspects", {})
@@ -4757,20 +4777,79 @@ func update_royal_investigator_ai(inv_npc: VillageNPC, delta: float) -> void:
 			if inv_npc.global_position.distance_to(scapegoat.global_position) <= 46.0:
 				scapegoat.hold_for_interview(inv_npc, 1.0)
 			inv_npc._move_towards_point(scapegoat.global_position, 104.0, delta)
-			if inv_npc.global_position.distance_to(scapegoat.global_position) <= 28.0:
+			if inv_npc.global_position.distance_to(scapegoat.global_position) <= 32.0:
 				inv_npc.velocity = Vector2.ZERO
 				scapegoat.velocity = Vector2.ZERO
-				inv_npc.trigger_action_animation(3.5)
-				var chosen_name: String = scapegoat.npc_name
-				var best_sc: int = int(suspects.get(sc_key, {}).get("score", 50))
-				scapegoat._spawn_floating_text("⛓️😱 ¡Soy inocente! ¡No tenía coartada cerca de allí!", Color.ORANGE_RED, -42.0)
-				scapegoat.last_hit_by_player = false
-				scapegoat.last_hit_weapon_name = "Ejecutado presencialmente por el Inquisidor Real Alistair (Chivo Expiatorio)"
-				scapegoat._confirm_true_death()
-				inv_npc._spawn_floating_text("⚖️🗡️ ¡Sentencia real ejecutada contra %s! Caso cerrado." % chosen_name, Color.GOLD, -44.0)
-				_hint_player("⚖️👑 ¡EJECUCIÓN INQUISITORIAL! Tras seguir la cadena de testigos (%d/%d), el Inquisidor Real Alistair ajustició en persona a %s (%d%% sospecha)." % [done_cnt, max_cnt, chosen_name, clampi(best_sc, 35, 95)])
+				scapegoat.is_sleeping = false
+				inv_npc.trigger_action_animation(2.0)
+				scapegoat._spawn_floating_text("⛓️😱 ¡No, por favor! ¡Soy inocente, me han incriminado!", Color.ORANGE_RED, -42.0)
+				inv_npc._spawn_floating_text("⚖️⛓️ ¡%s, quedas bajo arresto real! ¡A la Plaza Central para tu Juicio Público!" % scapegoat.npc_name, Color.GOLD, -44.0)
+				_hint_player("⚖️🔔 ¡JUICIO PÚBLICO EN LA PLAZA! El Inquisidor Real Alistair ha esposado a %s y lo lleva a la Plaza Central para leer su sentencia (Tienes 18s en la plaza para presenciarlo o hablar con el Inquisidor para intervenir)." % scapegoat.npc_name)
+				active_royal_investigation["stage"] = "PUBLIC_TRIAL_PLAZA"
+				active_royal_investigation["stage_timer"] = 0.0
+		"PUBLIC_TRIAL_PLAZA":
+			var sc_key_pl: String = str(active_royal_investigation.get("scapegoat_key", ""))
+			var scapegoat_pl: VillageNPC = _find_npc_by_name(sc_key_pl)
+			if scapegoat_pl == null or scapegoat_pl.is_dead:
+				inv_npc._stop_crafting_bar()
 				active_royal_investigation["stage"] = "DEPARTING"
 				active_royal_investigation["stage_timer"] = 0.0
+				return
+			var plaza_trial_pos := Vector2(465, 38)
+			scapegoat_pl.is_sleeping = false
+			scapegoat_pl.hold_for_interview(inv_npc, 1.2)
+			if inv_npc.global_position.distance_to(plaza_trial_pos) > 26.0:
+				inv_npc._stop_crafting_bar()
+				inv_npc._move_towards_point(plaza_trial_pos, 78.0, delta)
+				var sc_target_pos: Vector2 = inv_npc.global_position + Vector2(18, 2)
+				if scapegoat_pl.global_position.distance_to(sc_target_pos) > 14.0:
+					scapegoat_pl._move_towards_point(sc_target_pos, 84.0, delta)
+					scapegoat_pl._finish_frame_movement(delta)
+			else:
+				inv_npc.velocity = Vector2.ZERO
+				var accused_spot := plaza_trial_pos + Vector2(22, 0)
+				if scapegoat_pl.global_position.distance_to(accused_spot) > 12.0:
+					scapegoat_pl._move_towards_point(accused_spot, 80.0, delta)
+					scapegoat_pl._finish_frame_movement(delta)
+				else:
+					scapegoat_pl.velocity = Vector2.ZERO
+				if inv_npc.sprite:
+					inv_npc.sprite.flip_h = false
+				if scapegoat_pl.sprite:
+					scapegoat_pl.sprite.flip_h = true
+				# Los aldeanos cercanos en la Plaza se detienen a presenciar el juicio público
+				for n_spec in get_tree().get_nodes_in_group("village_npcs"):
+					if n_spec is VillageNPC and n_spec != inv_npc and n_spec != scapegoat_pl:
+						var v_spec := n_spec as VillageNPC
+						if v_spec.is_conscious() and v_spec.global_position.distance_to(plaza_trial_pos) <= 170.0:
+							v_spec.hold_for_interview(inv_npc, 0.6)
+				if inv_npc._cached_dm != null and "is_active" in inv_npc._cached_dm and bool(inv_npc._cached_dm.get("is_active")):
+					return
+				var prev_tr: float = s_timer
+				s_timer += delta
+				active_royal_investigation["stage_timer"] = s_timer
+				var rem_tr: int = maxi(1, int(ceil(18.0 - s_timer)))
+				inv_npc._update_craft_bar_visual(clampf(s_timer / 18.0, 0.02, 1.0), "⚖️ Juicio Público de %s (%ds)" % [scapegoat_pl.npc_name, rem_tr], Color(1.0, 0.78, 0.28, 0.95))
+				inv_npc.trigger_action_animation(0.6)
+				if prev_tr < 1.0 and s_timer >= 1.0:
+					inv_npc._spawn_floating_text("⚖️🔔 «¡Habitantes del valle! ¡Por orden de la Corona, %s será juzgado por asesinato!»" % scapegoat_pl.npc_name, Color.GOLD, -44.0)
+				elif prev_tr < 7.0 and s_timer >= 7.0:
+					scapegoat_pl._spawn_floating_text("⛓️😭 «¡Juro por mi vida que soy inocente! ¡Alguien me tendió una trampa!»", Color.ORANGE_RED, -42.0)
+				elif prev_tr < 13.0 and s_timer >= 13.0:
+					inv_npc._spawn_floating_text("⚖️🗡️ «Si nadie presenta pruebas ni confiesa en 5 segundos, se ejecutará la sentencia.»", Color.ORANGE, -44.0)
+				if s_timer >= 18.0:
+					inv_npc._stop_crafting_bar()
+					inv_npc.trigger_action_animation(3.5)
+					var chosen_name: String = scapegoat_pl.npc_name
+					var best_sc: int = int(suspects.get(sc_key_pl, {}).get("score", 50))
+					scapegoat_pl._spawn_floating_text("⛓️💔 ¡Era inocente...!", Color.ORANGE_RED, -42.0)
+					scapegoat_pl.last_hit_by_player = false
+					scapegoat_pl.last_hit_weapon_name = "Ejecutado en Juicio Público por el Inquisidor Real Alistair (Chivo Expiatorio)"
+					scapegoat_pl._confirm_true_death()
+					inv_npc._spawn_floating_text("⚖️🗡️ ¡Sentencia real ejecutada en la Plaza contra %s! Caso cerrado." % chosen_name, Color.GOLD, -44.0)
+					_hint_player("⚖️👑 ¡EJECUCIÓN EN LA PLAZA CENTRAL! El Inquisidor Real Alistair ejecutó públicamente a %s (%d%% sospecha) y dio por cerrado el expediente real." % [chosen_name, clampi(best_sc, 35, 95)])
+					active_royal_investigation["stage"] = "DEPARTING"
+					active_royal_investigation["stage_timer"] = 0.0
 		"DEPARTING":
 			inv_npc.is_sleeping = false
 			var exit_pos := Vector2(1000, 48)
@@ -4838,6 +4917,40 @@ func update_sheriff_investigator_ai(sheriff: VillageNPC, delta: float) -> bool:
 			return true
 		"VERDICT":
 			_conclude_sheriff_investigation_verdict(sheriff)
+			return true
+		"ARRESTING_NPC":
+			var arr_key: String = str(active_sheriff_investigation.get("scapegoat_key", ""))
+			var arr_npc: VillageNPC = _find_npc_by_name(arr_key)
+			if arr_npc == null or arr_npc.is_dead:
+				active_sheriff_investigation["active"] = false
+				return false
+			arr_npc.is_sleeping = false
+			arr_npc.hold_for_interview(sheriff, 1.0)
+			if not bool(active_sheriff_investigation.get("handcuffed_npc", false)):
+				if sheriff.global_position.distance_to(arr_npc.global_position) > 28.0:
+					sheriff._move_towards_point(arr_npc.global_position, 82.0, delta)
+					return true
+				active_sheriff_investigation["handcuffed_npc"] = true
+				arr_npc._spawn_floating_text("⛓️😱 ¡Comisario Vane, juro que me han incriminado!", Color.ORANGE_RED, -40.0)
+				sheriff._spawn_floating_text("🚓⛓️ ¡%s, quedas detenido! ¡Camina hacia la Celda Policial!" % arr_npc.npc_name, Color.GOLD, -42.0)
+				return true
+			var cell_dest := Vector2(872, 176)
+			if sheriff.global_position.distance_to(cell_dest) > 28.0:
+				sheriff._move_towards_point(cell_dest, 74.0, delta)
+				var follow_pt: Vector2 = sheriff.global_position + Vector2(-16, 4)
+				if arr_npc.global_position.distance_to(follow_pt) > 12.0:
+					arr_npc._move_towards_point(follow_pt, 80.0, delta)
+					arr_npc._finish_frame_movement(delta)
+				return true
+			sheriff.velocity = Vector2.ZERO
+			arr_npc.velocity = Vector2.ZERO
+			arr_npc.global_position = cell_dest
+			arr_npc.bed_position = cell_dest
+			arr_npc.sedated_timer = maxf(arr_npc.sedated_timer, 90.0)
+			sheriff._spawn_floating_text("🚓🔒 %s encerrado en la Celda Policial. Caso cerrado." % arr_npc.npc_name, Color.AQUA, -42.0)
+			_hint_player("🚓🔒 El Comisario Vane encerró físicamente a %s en la Celda Policial tras concluir su investigación." % arr_npc.npc_name)
+			active_sheriff_investigation["active"] = false
+			_check_and_start_next_morgue_sheriff_case()
 			return true
 	return false
 
@@ -5436,7 +5549,17 @@ func _conclude_sheriff_investigation_verdict(sheriff: VillageNPC) -> void:
 				sheriff._police_alerted_timer = 45.0
 		_hint_player(msg, p)
 	elif best_key != "" and best_key != "Jugador" and best_score >= 52:
-		_mark_morgue_case_resolved(v_name, "%s (Señalado por el Comisario Vane: %d%%)" % [best_key, best_score])
+		_mark_morgue_case_resolved(v_name, "%s (Arrestado por el Comisario Vane: %d%%)" % [best_key, best_score])
+		var sc_npc: VillageNPC = _find_npc_by_name(best_key)
+		if is_instance_valid(sheriff) and is_instance_valid(sc_npc) and not sc_npc.is_dead:
+			active_sheriff_investigation["active"] = true
+			active_sheriff_investigation["stage"] = "ARRESTING_NPC"
+			active_sheriff_investigation["scapegoat_key"] = best_key
+			active_sheriff_investigation["handcuffed_npc"] = false
+			active_sheriff_investigation["stage_timer"] = 0.0
+			sheriff._spawn_floating_text("🚓⛓️ ¡Las pruebas apuntan a %s (%d%%)! ¡Voy a arrestarlo y llevarlo a la Celda!" % [best_key, best_score], Color.GOLD, -40.0)
+			_hint_player("🚓⛓️ El Comisario Vane concluyó su investigación por la muerte de %s: las pistas señalan a %s (%d%% sospecha) y va en persona a arrestarlo y encerrarlo en la Celda." % [v_name, best_key, best_score], p)
+			return
 		if is_instance_valid(sheriff):
 			sheriff._spawn_floating_text("🚓📋 Investigación cerrada: las pruebas apuntan a %s (%d%%)." % [best_key, best_score], Color.GOLD, -40.0)
 		_hint_player("🚓📋 El Comisario Vane concluyó sus 5 interrogatorios por la muerte de %s: las pistas señalan a %s (%d%% sospecha)." % [v_name, best_key, best_score], p)
@@ -5446,7 +5569,9 @@ func _conclude_sheriff_investigation_verdict(sheriff: VillageNPC) -> void:
 			sheriff._spawn_floating_text("🚓📋 Sin pruebas suficientes tras interrogar a los testigos cercanos.", Color.LIGHT_GRAY, -38.0)
 		_hint_player("🚓📋 El Comisario Vane archivó sin cargos la investigación local de %s (ningún testigo te situó como culpable)." % v_name, p)
 
-	# Si hay otro cadáver en la Morgue cuyo caso aún no había podido investigarse, abrir su investigación ahora
+	_check_and_start_next_morgue_sheriff_case()
+
+func _check_and_start_next_morgue_sheriff_case() -> void:
 	for next_rec in morgue_active_corpses:
 		var next_v_name: String = str(next_rec.get("victim_name", ""))
 		if next_v_name != "" and not bool(next_rec.get("case_resolved", true)):
@@ -5455,6 +5580,82 @@ func _conclude_sheriff_investigation_verdict(sheriff: VillageNPC) -> void:
 				var dp := Vector2(float(next_rec.get("death_pos_x", next_c.death_world_pos.x)), float(next_rec.get("death_pos_y", next_c.death_world_pos.y)))
 				start_sheriff_investigation(next_c, dp, str(next_rec.get("cause_of_death", next_c.last_hit_weapon_name)), str(next_rec.get("discoverer_name", "")), int(next_rec.get("death_mins", 0)))
 				break
+
+## Permite al jugador intervenir durante el Juicio Público en la Plaza Central (`PUBLIC_TRIAL_PLAZA` / `HUNTING_SCAPEGOAT`)
+func resolve_public_trial_intervention(inv_npc: VillageNPC, player: Node2D, mode: String) -> void:
+	if inv_npc == null or player == null or active_royal_investigation.is_empty() or not bool(active_royal_investigation.get("active", false)):
+		return
+	var stg: String = str(active_royal_investigation.get("stage", ""))
+	if not (stg in ["PUBLIC_TRIAL_PLAZA", "HUNTING_SCAPEGOAT"]):
+		return
+	var sc_key: String = str(active_royal_investigation.get("scapegoat_key", ""))
+	var scapegoat: VillageNPC = _find_npc_by_name(sc_key)
+	var sc_name: String = scapegoat.npc_name if is_instance_valid(scapegoat) else sc_key
+	var royal_v_name: String = str(active_royal_investigation.get("victim_name", "Mercader Real"))
+	inv_npc._stop_crafting_bar()
+
+	if mode == "confess":
+		if is_instance_valid(scapegoat):
+			scapegoat.modify_affinity(60)
+			scapegoat.add_thought("¡El Forastero confesó para salvarme la vida en el Juicio Público! (+60)", 60.0)
+			scapegoat._spawn_floating_text("😭🙏 ¡Gracias por salvarme la vida en el patíbulo!", Color.SPRING_GREEN, -42.0)
+			if scapegoat.family_id != "none":
+				modify_family_reputation(scapegoat.family_id, 50, "Salvó a " + sc_name + " en el Juicio Público", scapegoat)
+		active_royal_investigation["verdict_target"] = "Jugador (Confesión en Juicio Público)"
+		active_royal_investigation["verdict_reason"] = "Confesó públicamente en la Plaza Central para salvar a " + sc_name
+		_mark_morgue_case_resolved(royal_v_name, "Jugador (Confesión en Juicio Público)")
+		active_royal_investigation["stage"] = "HUNTING_PLAYER"
+		active_royal_investigation["stage_timer"] = 0.0
+		wanted_level = 5
+		bounty_gold += 250
+		is_resisting_arrest = true
+		inv_npc.is_hostile = true
+		inv_npc.add_to_group("enemies")
+		inv_npc._last_seen_player_pos = player.global_position
+		inv_npc._police_alerted_timer = 65.0
+		alert_police_to_resist(player)
+		inv_npc._spawn_floating_text("⚖️🗡️ ¡Soltad a %s! ¡El Forastero acaba de confesar el crimen!" % sc_name, Color.ORANGE_RED, -46.0)
+		_hint_player("⚖️✋ ¡Confesaste en el Juicio Público! Salvaste la vida de %s (+60 Afinidad), pero el Inquisidor Real Alistair y la Guardia van ahora a por ti." % sc_name, player)
+	elif mode == "clemency":
+		var charisma_bonus: float = float(player.call("get_skill_bonus", "charisma")) if player.has_method("get_skill_bonus") else 0.0
+		var charisma_lvl: int = int(player.call("get_skill_level", "charisma")) if player.has_method("get_skill_level") else 1
+		var clem_chance: float = 1.0 if charisma_lvl >= 3 else clampf(0.45 + charisma_bonus * 2.0, 0.35, 0.95)
+		if randf() <= clem_chance:
+			if is_instance_valid(scapegoat):
+				scapegoat.modify_affinity(45)
+				scapegoat.add_thought("Defendido con elocuencia en el Juicio Público (+45)", 45.0)
+				scapegoat._spawn_floating_text("😭🙌 ¡Estoy libre! ¡Tu alegato me ha salvado la vida!", Color.SPRING_GREEN, -42.0)
+				if scapegoat.family_id != "none":
+					modify_family_reputation(scapegoat.family_id, 35, "Logró el indulto de " + sc_name + " en el Juicio Público", scapegoat)
+			active_royal_investigation["verdict_target"] = "Indultado en Juicio Público (" + sc_name + ")"
+			active_royal_investigation["verdict_reason"] = "Sentencia conmutada por duda razonable tras alegato público."
+			_mark_morgue_case_resolved(royal_v_name, "Caso Archivado tras Alegato en Juicio Público")
+			active_royal_investigation["stage"] = "DEPARTING"
+			active_royal_investigation["stage_timer"] = 0.0
+			inv_npc._spawn_floating_text("⚖️📜 «Tu alegato demuestra que las pruebas contra %s son circunstanciales. Conmuto la pena y regreso a la Corte.»" % sc_name, Color.AQUA, -46.0)
+			_hint_player("🗣️⚖️ ¡INDULTO LOGRADO EN LA PLAZA! Convenciste al Inquisidor Real de que las pruebas contra %s no eran concluyentes (+45 Afinidad)." % sc_name, player)
+		else:
+			inv_npc._spawn_floating_text("⚖️😠 «¡Silencio en la plaza! Tus palabras no bastan para anular las pruebas contra %s.»" % sc_name, Color.ORANGE_RED, -44.0)
+			_hint_player("⚖️❌ Tu alegato verbal no bastó para frenar al Inquisidor (Puedes pagar la Fianza Real de Indulto de 60 Oro o confesar).", player)
+	elif mode == "bail_innocent":
+		var inv: SimpleInventory = player.get("inventory")
+		if inv == null or inv.gold < 60:
+			inv_npc._spawn_floating_text("⚖️💰 «Se requieren 60 monedas de Oro de Fianza Real para conmutar la pena capital.»", Color.ORANGE_RED, -44.0)
+			return
+		inv.add_gold(-60)
+		if is_instance_valid(scapegoat):
+			scapegoat.modify_affinity(55)
+			scapegoat.add_thought("Pagó 60 Oro de Fianza Real para salvarme del patíbulo (+55)", 55.0)
+			scapegoat._spawn_floating_text("😭💰 ¡Jamás olvidaré que pagaste mi indulto real!", Color.GOLD, -42.0)
+			if scapegoat.family_id != "none":
+				modify_family_reputation(scapegoat.family_id, 45, "Pagó Fianza Real por la vida de " + sc_name, scapegoat)
+		active_royal_investigation["verdict_target"] = "Clemencia por Fianza Real (" + sc_name + ")"
+		active_royal_investigation["verdict_reason"] = "Pena conmutada mediante Fianza Real de 60 Oro."
+		_mark_morgue_case_resolved(royal_v_name, "Cerrado por Fianza Real de Indulto (60 Oro)")
+		active_royal_investigation["stage"] = "DEPARTING"
+		active_royal_investigation["stage_timer"] = 0.0
+		inv_npc._spawn_floating_text("⚖️💰 «La Corona acepta las 60 monedas de Fianza Real. %s queda en libertad.»" % sc_name, Color.GOLD, -46.0)
+		_hint_player("⚖️💰 ¡Pagaste 60 Oro de Fianza Real en la Plaza! Salvaste la vida de %s (+55 Afinidad) y el Inquisidor Real se retira." % sc_name, player)
 
 ## FILOSOFÍA DEL INQUISIDOR REAL (Etapa 4):
 ## Condena al sospechoso con mayor puntuación forense real (`>= 35%`), desempatando por quién estaba más cerca de la escena.
@@ -5546,7 +5747,8 @@ func get_royal_investigator_status_text() -> String:
 		"INTERVIEWS": return "Interrogando Pueblo (%d/%d · Día %d/%d)" % [done_i, max_i, d_inv, m_days]
 		"DEEP_FORENSICS": return "Cruzando Coartadas (%d/%d · Día %d/%d)" % [done_i, max_i, d_inv, m_days]
 		"PLAYER_CHECK": return "Inspección Final al Forastero"
-		"HUNTING_SCAPEGOAT": return "Yendo a Ajusticiar a " + str(active_royal_investigation.get("verdict_target", "Sospechoso"))
+		"HUNTING_SCAPEGOAT": return "Llevando Arrestado a " + str(active_royal_investigation.get("verdict_target", "Sospechoso"))
+		"PUBLIC_TRIAL_PLAZA": return "Juicio Público en la Plaza: " + str(active_royal_investigation.get("verdict_target", "Sospechoso"))
 		"HUNTING_PLAYER": return "Persiguiendo al Culpable (Jugador)"
 		"VERDICT", "DEPARTING": return "Veredicto: " + str(active_royal_investigation.get("verdict_target", "Emitido"))
 	return "Investigando"
