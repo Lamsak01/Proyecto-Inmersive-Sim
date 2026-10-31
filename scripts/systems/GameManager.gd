@@ -192,8 +192,8 @@ func load_game(filepath: String = SAVE_FILE_PATH) -> bool:
 			var vp = vm_pre.get(vp_name)
 			if vp is Control:
 				vp.visible = false
-	if WorldClock and "_activity_pause_locks" in WorldClock:
-		WorldClock._activity_pause_locks = 0
+	if WorldClock and WorldClock.has_method("set_activity_pause"):
+		WorldClock.set_activity_pause(false)
 
 	# 1. Restaurar flags del mundo y objetos destructibles
 	game_data = data.get("world_flags", {}).duplicate()

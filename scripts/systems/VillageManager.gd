@@ -3197,17 +3197,14 @@ func consume_village_meal_for_npc(npc: VillageNPC) -> bool:
 		return true
 
 	# 2º PRIORIDAD: Comprar producto crudo/fresco barato (3-5 Oro × mercado) en las tiendas de alimentación abiertas y llevar a la despensa
-	var food_roles: Array[int] = [
-		int(VillageNPC.TradeRole.FISHMONGER),
-		int(VillageNPC.TradeRole.BUTCHER),
-		int(VillageNPC.TradeRole.HERBALIST)
-	]
+	var food_roles: Array[int] = [int(VillageNPC.TradeRole.FISHMONGER), int(VillageNPC.TradeRole.BUTCHER), int(VillageNPC.TradeRole.HERBALIST)]
 	if npc.trade_role == VillageNPC.TradeRole.BUTCHER:
 		food_roles = [int(VillageNPC.TradeRole.BUTCHER), int(VillageNPC.TradeRole.FISHMONGER), int(VillageNPC.TradeRole.HERBALIST)]
+	if near_tavern:
+		food_roles.clear()
 
 	var edible_keys: Array[String] = ["bread", "cooked_meat", "cooked_fish", "roasted_chicken", "carrot", "cabbage", "herbal_poultice"]
-	var active_food_roles: Array[int] = [] if near_tavern else food_roles
-	for r_id in active_food_roles:
+	for r_id in food_roles:
 		var holder: VillageNPC = trade_npcs.get(r_id)
 		var cfg: Dictionary = trade_configs.get(r_id, {})
 		var shop_fam_id: String = str(cfg.get("family_id", ""))

@@ -272,7 +272,7 @@ func _tier_to_armor_color(tier: int) -> Color:
 func apply_speed_tonic(duration: float = 35.0) -> void:
 	speed_tonic_timer = maxf(speed_tonic_timer, duration)
 	apply_armor_stats()
-	_spawn_floating_text("⚡ Tónico de Velocidad (+25% Vel por %ds)" % int(duration), Color.AQUA, -44.0)
+	_spawn_floating_text("⚡ Tónico de Velocidad (+25%% Vel por %ds)" % int(duration), Color.AQUA, -44.0)
 
 func apply_paralytic_venom(duration: float = 60.0) -> void:
 	paralytic_venom_timer = maxf(paralytic_venom_timer, duration)

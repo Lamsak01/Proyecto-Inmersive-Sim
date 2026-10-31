@@ -289,12 +289,13 @@ func _perform_attack() -> void:
 	
 	attack_triggered.emit(damage)
 
-func _steer_towards(dest: Vector2, fallback_dir: Vector2 = Vector2.ZERO) -> Vector2:
+func _steer_towards(dest: Vector2, fallback_dir: Vector2 = Vector2.ZERO, fallback_on_zero: bool = false) -> Vector2:
 	_set_movement_target(dest)
 	var dir := (nav_agent.get_next_path_position() - parent.global_position).normalized() if nav_agent else Vector2.ZERO
 	if dir == Vector2.ZERO:
 		dir = fallback_dir if fallback_dir != Vector2.ZERO else (dest - parent.global_position).normalized()
-	return _get_avoidance_direction(dir)
+	var avoid := _get_avoidance_direction(dir)
+	return dir if (fallback_on_zero and avoid == Vector2.ZERO) else avoid
 
 func _process_search(delta: float) -> void:
 	var detected := _check_player_detection(0.0)
@@ -332,9 +333,7 @@ func _process_return() -> void:
 		parent.global_position = spawn_position
 		_change_state(State.IDLE)
 		return
-	var fallback := (spawn_position - parent.global_position).normalized()
-	var final_dir := _steer_towards(spawn_position, fallback)
-	parent.velocity = (final_dir if final_dir != Vector2.ZERO else fallback) * (chase_speed * 0.5)
+	parent.velocity = _steer_towards(spawn_position, Vector2.ZERO, true) * (chase_speed * 0.5)
 
 func _process_flee() -> void:
 	if not target:
@@ -366,14 +365,19 @@ func _calculate_separation_vector() -> Vector2:
 			separation += diff / dist_sq
 	return separation.normalized() if separation.length_squared() > 0.0001 else Vector2.ZERO
 
+func _get_exclude_rids(other: Node) -> Array[RID]:
+	var rids: Array[RID] = [parent.get_rid()]
+	if other is CollisionObject2D:
+		rids.append((other as CollisionObject2D).get_rid())
+	return rids
+
 func _has_line_of_sight(target_node: Node2D) -> bool:
 	if not target_node: return false
 	if target_node == cached_los_target and vision_timer > 0.0:
 		return cached_los_result
 	cached_los_target = target_node
 	vision_timer = 0.1
-	var query := PhysicsRayQueryParameters2D.create(parent.global_position, target_node.global_position, 1)
-	query.exclude = [parent.get_rid(), target_node.get_rid()] if target_node is CollisionObject2D else [parent.get_rid()]
+	var query := PhysicsRayQueryParameters2D.create(parent.global_position, target_node.global_position, 1, _get_exclude_rids(target_node))
 	cached_los_result = parent.get_world_2d().direct_space_state.intersect_ray(query).is_empty()
 	return cached_los_result
 
@@ -393,7 +397,7 @@ func _get_avoidance_direction(desired_dir: Vector2) -> Vector2:
 	cached_avoidance_input_dir = desired_dir
 	avoidance_timer = 0.12
 	var space_state := parent.get_world_2d().direct_space_state
-	var exclude_rids: Array[RID] = [parent.get_rid(), target.get_rid()] if target is CollisionObject2D else [parent.get_rid()]
+	var exclude_rids := _get_exclude_rids(target)
 	for i in range(num_rays):
 		interest_map[i] = max(0.0, ray_directions[i].dot(desired_dir))
 		danger_map[i] = 0.0

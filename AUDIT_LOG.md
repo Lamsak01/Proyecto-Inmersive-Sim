@@ -113,3 +113,16 @@ Este archivo registra únicamente **bugs reales de jugabilidad/lógica** detecta
   22. `scripts/ui/ValleyMapUI.gd`: `398` → `383` líneas (**`-15` líneas**)
   23. `scripts/obstacles/HarvestableNode.gd`: `313` → `309` líneas (**`-4` líneas**)
 - **Verificación:** `flatpak run org.godotengine.Godot --headless -d --quit-after 3` → **0 errores y 0 warnings**.
+
+---
+
+## Iteración 8 (Corrección de Arrays Tipados en Ternarios y Formato `%`) — Commit Base para Rollback: `30e09e6`
+
+### 10. Corrección de Asignaciones Ternarias a `Array[T]` y Formato en `Player.gd`
+- **Archivos afectados:** `scripts/systems/VillageManager.gd`, `scripts/enemies/DomesticPet.gd`, `scripts/systems/ai/EnemyAI.gd`, `scripts/Player.gd`, `scripts/systems/GameManager.gd`
+- **Correcciones aplicadas:**
+  1. `VillageManager.gd` (`consume_village_meal_for_npc`): Eliminado el ternario `[] if near_tavern else food_roles` asignado a `Array[int]` usando `if near_tavern: food_roles.clear()`.
+  2. `DomesticPet.gd` (`interact`): Iteración directa sobre el array de alimentos según especie sin asignación ternaria a `Array[String]`.
+  3. `EnemyAI.gd` (`_get_exclude_rids`, `_has_line_of_sight`, `_get_avoidance_direction`, `_steer_towards`): Helper tipado `_get_exclude_rids() -> Array[RID]` sin ternario y respaldo hacia el siguiente nodo de navegación en `_process_return()`.
+  4. `Player.gd` (`apply_speed_tonic`): Escapado `+25%% Vel` en el texto flotante con formato `%ds`.
+  5. `GameManager.gd` (`load_game`): Reemplazado el chequeo obsoleto `_activity_pause_locks` por `WorldClock.set_activity_pause(false)`.

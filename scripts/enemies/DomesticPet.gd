@@ -437,8 +437,7 @@ func interact(player: Node2D) -> void:
 
 	# Si tiene hambre (< 80%) y el jugador lleva comida adecuada, alimentarlo
 	if inv and (not is_fed_today or need_hunger < 80.0):
-		var food_candidates: Array[String] = ["raw_meat", "raw_chicken", "cooked_meat"] if pet_type == PetType.DOG else ["river_trout", "golden_carp", "raw_chicken", "cooked_fish"]
-		for f_id in food_candidates:
+		for f_id in (["raw_meat", "raw_chicken", "cooked_meat"] if pet_type == PetType.DOG else ["river_trout", "golden_carp", "raw_chicken", "cooked_fish"]):
 			if inv.has_item(f_id, 1):
 				var f_name: String = inv.get_item_name(f_id)
 				inv.remove_item(f_id, 1)
