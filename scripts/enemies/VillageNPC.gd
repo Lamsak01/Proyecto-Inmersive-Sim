@@ -199,6 +199,179 @@ var _cached_dm: Node = null
 
 const FloatingTextScene = preload("res://scenes/ui/FloatingText.tscn")
 
+const ROLE_INITIAL_GOLD: Dictionary = {
+	TradeRole.INNKEEPER: Vector2i(68, 95),
+	TradeRole.BLACKSMITH: Vector2i(68, 95),
+	TradeRole.BUTCHER: Vector2i(48, 72),
+	TradeRole.CARPENTER: Vector2i(48, 72),
+	TradeRole.HERBALIST: Vector2i(48, 72),
+	TradeRole.FISHMONGER: Vector2i(48, 72),
+	TradeRole.DOCTOR: Vector2i(52, 78),
+	TradeRole.SHERIFF: Vector2i(52, 78),
+	TradeRole.GUARD: Vector2i(52, 78),
+	TradeRole.FAMILY_MEMBER: Vector2i(26, 44),
+	TradeRole.TRAVELING_MERCHANT: Vector2i(172, 238),
+	TradeRole.ROYAL_INVESTIGATOR: Vector2i(110, 155),
+}
+
+const ROLE_INITIAL_MATERIALS: Dictionary = {
+	TradeRole.BLACKSMITH: {"wood": 1, "leather": 1},
+	TradeRole.CARPENTER: {"iron_ore": 1, "herbal_poultice": 1},
+	TradeRole.BUTCHER: {"wood": 1, "herbal_poultice": 1},
+	TradeRole.HERBALIST: {"bread": 1, "fertilizer": 1},
+	TradeRole.FISHMONGER: {"wood": 1, "herbal_poultice": 1},
+	TradeRole.INNKEEPER: {"cooked_meat": 1, "bread": 1},
+}
+
+const ROLE_PSYCHOLOGY: Dictionary = {
+	TradeRole.INNKEEPER: [["Hospitalaria", "Chef Apasionada"], "roasted_chicken", ["Olor a pan recién horneado (+8)", "La posada está animada (+6)"]],
+	TradeRole.BUTCHER: [["Fuerte", "Carnívoro"], "fox_pelt", ["Buen corte de caza hoy (+6)"]],
+	TradeRole.BLACKSMITH: [["Perfeccionista", "Forjador Maestro"], "iron_ore", ["Fragua al rojo vivo (+8)", "Orgulloso de sus armaduras (+5)"]],
+	TradeRole.CARPENTER: [["Trabajador", "Amante del Bosque"], "wood", ["Madera de pino bien seca (+6)"]],
+	TradeRole.HERBALIST: [["Naturista", "Pacífica"], "herbs", ["Las plantas crecen sanas (+7)"]],
+	TradeRole.FISHMONGER: [["Paciente", "Madrugador"], "night_catfish", ["Brisa fresca junto al molino (+6)"]],
+	TradeRole.DOCTOR: [["Cirujano Experto", "Forense Meticuloso"], "surgical_kit", ["Urgencias y morgue en orden (+8)"]],
+	TradeRole.SHERIFF: [["Justiciero", "Observador"], "cooked_meat", ["Vigilando la ley en el valle (+7)"]],
+	TradeRole.GUARD: [["Leal", "Alerta"], "bread", ["Patrulla sin novedad (+6)"]],
+	TradeRole.TRAVELING_MERCHANT: [["Mercader Real", "Portador de Salvoconducto"], "royal_ration", ["Comerciando entre el valle y las Tierras Reales (+10)"]],
+	TradeRole.ROYAL_INVESTIGATOR: [["Inquisidor Implacable", "Deducción Forense", "Nunca Vuelve Vacío"], "royal_ration", ["La Corona exige un culpable (+12)"]],
+}
+
+const NPC_NAME_ALIASES: Dictionary = {
+	"Dra. Valeria": "Dr. Valen", "Dr. Silvano": "Dr. Valen",
+	"Comisario Thorne": "Comisario Vane", "Inspectora Lyra": "Comisario Vane",
+	"Guardia Kaelen": "Guardia Rodric", "Centinela Bastian": "Guardia Rodric",
+}
+
+const NPC_LORE_PROFILES: Dictionary = {
+	"Thoran": ["thoran",
+		"Antiguo maestro armero de la Fundición Imperial de Vaelgard; desertó tras negarse a forjar grilletes de plomo para las cuencas mineras.",
+		"«No siempre forjé herraduras y azadas, forastero. Durante veinte años dirigí los altos hornos de la guarnición de Vaelgard. La cicatriz que me cruza el pómulo me la dejó un crisol de bronce cuando saboteé mis propios moldes la noche antes de que marcharan contra los mineros de Cima Quebrada.\n\nHuí al sur con mi hijo Kael entre la ceniza, jurando no volver a templar una hoja que sirviera a un tirano... aunque en este valle el hierro vuelve a pedir sangre.»",
+		"«El Comisario Vane y yo nos conocemos de aquella guerra, aunque ambos fingimos que no cuando nos cruzamos en la plaza. Él perdió el ojo en el mismo asedio donde yo deserté. Quemó mi cartel de búsqueda porque sabe que este valle necesita mi yunque más que otra soga en el patíbulo.»"],
+	"Kael": ["kael",
+		"Aprendiz de forja obsesionado con descifrar las bobinas y conductos de tecnología antigua enterrados bajo las ruinas del oeste.",
+		"«Mi padre cree que el acero solo sirve para protegerse o arar la tierra, pero bajo este valle hay conductos de cobre y generadores que no forjó ningún herrero común.\n\nCuando cae la noche y Thoran duerme, estudio los fragmentos que los viajeros traen de la Llanura Salvaje. No quiero pasar mi vida reparando rejas; quiero entender qué civilización levantó las máquinas que aún laten bajo la roca.»",
+		"«Le he estado comprando reliquias y bobinas en secreto a Aldric en la posada. Si mi padre descubre que enciendo la fragua de madrugada para ensayar aleaciones antiguas, me quitará las llaves del taller.»"],
+	"Garrick": ["garrick",
+		"Único superviviente de una expedición de tramperos sepultada en el Paso del Aullido; conoce la anatomía de cada bestia del bosque.",
+		"«La gente del pueblo me mira las manos manchadas y piensa que disfruto con el cuchillo. No saben lo que es pasar cuarenta días atrapado por un alud en las cumbres del norte, viendo apagarse a tu cuadrilla uno tras otro.\n\nAprendí a desollar y aprovechar hasta el último hueso y tendón porque el desperdicio en la frontera se paga con la muerte. Aquí cada corte mío mantiene vivo al valle.»",
+		"«El Dr. Valen acude a veces por la puerta trasera cuando cierro la carnicería. No busca carne para cenar: me pide huesos limpios y articulaciones para sus estudios anatómicos en la Morgue. Yo no hago preguntas, y él me cose cuando un jabalí me embiste en el bosque.»"],
+	"Lina": ["lina",
+		"Cartógrafa autodidacta y maestra curtidora llegada de las estepas de sal; traza mapas de las sendas de caza en el reverso del cuero.",
+		"«Antes de casarme con Garrick, viajaba con las caravanas que cruzaban los pantanos orientales. Allí aprendí que un buen jubón de cuero curado con corteza de roble salva más vidas que una coraza pesada que te hunde en el barro.\n\nEn los recortes de piel que descarto llevo el mapa de las manadas del bosque sur: sé cuándo escasean los ciervos y cuándo bajan los zorros hambrientos hacia los corrales.»",
+		"«Todavía oigo a Garrick hablar entre sueños sobre el invierno en que perdió a su antigua cuadrilla en la montaña. Nunca pronuncia el nombre del explorador que los dejó atrás... pero siempre aprieta el cuchillo cuando Aldric entra en la taberna.»"],
+	"Bram": ["bram",
+		"Arquitecto gremial exiliado de la capital tras el derrumbe del Gran Teatro, donde un intendente corrupto sustituyó su roble por madera podrida.",
+		"«Cada viga, cada puerta y cada umbral que ves en esta aldea pasó por mis manos. En la capital me cargaron la culpa cuando cedió la cúpula del teatro real: el intendente se embolsó el oro del roble curado y compró pino húmedo, pero fui yo quien pagó con su nombre.\n\nPor eso aquí levanto casas con muros de piedra y maderas que ni un vendaval ni una patrulla puedan derribar sin sudar sangre.»",
+		"«Le diseñé a cada edificio del pueblo un postigo lateral con bisagras ocultas. Llámalo manía de un constructor que conoció los calabozos de la corte: nunca me gustó levantar cuatro paredes de las que un hombre acorralado no pudiera escapar.»"],
+	"Mila": ["mila",
+		"Ebanista de precisión y maestra cerrajera; vendió sus herramientas de plata en la ciudad para pagar la fianza de su hermano Bram.",
+		"«Bram levanta paredes; yo me ocupo de lo que guarda secretos: cerraduras de muelle, cofres de doble fondo y muebles ensamblados sin un solo clavo.\n\nEn la capital tallaba clavicordios para la nobleza, pero cuando hundieron a mi hermano en aquel juicio amañado, malvendí mi taller para sacarlo de la celda y vinimos a empezar de cero entre los pinos.»",
+		"«Todos los cofres domésticos de las casas del pueblo llevan mi sello. Tienen un fiador interno que cede en silencio si te acercas agachado y con pulso firme... pero si alguien intenta abrirlos a plena vista, el trinquete suena como una campana.»"],
+	"Marlo": ["marlo",
+		"Antiguo timonel del bergantín contrabandista 'La Estrella Hundida'; cambió el mar abierto por el sosiego del lago y la rueda del molino.",
+		"«Este aro de oro en mi oreja es lo único que saqué a flote cuando *La Estrella Hundida* se partió contra los escollos del Cabo Gris. Navegué quince años burlando bloqueos navales con sacos de trigo y barriles de pólvora.\n\nCuando la resaca me escupió en la playa, juré que no volvería a echar el ancla en aguas donde no pudiera ver la otra orilla. Ahora el rumor del molino y las truchas del lago me bastan.»",
+		"«En las mañanas de niebla cerrada, cuando bajo al muelle antes de las siete, he visto fogatas apagándose hacia la Ciénaga de las Ranas. Esos bandidos de las ruinas no acampan ahí por azar: desentierran conductos del viejo mundo.»"],
+	"Nora": ["nora",
+		"Redera y cronista silenciosa del valle; registra en nudos marineros de cáñamo los movimientos y ausencias de cada habitante.",
+		"«Mi padre Marlo me enseñó el código de cuerdas que usaban los contrabandistas del sur para llevar bitácoras sin escribir una sola letra que pudiera incriminarlos.\n\nMientras remiendo las redes frente a la pescadería, mis dedos atan nudos por cada persona que cruza la plaza. La gente cree que solo miro secarse el lino, pero sé quién duerme en su cama y quién camina de noche.»",
+		"«Hace tres noches vi a Sora, la forastera de la posada, medir los pasos entre la parte trasera de la herrería y el camino del este. Juega a parecer una simple apostadora, pero calcula las rutas de salida mejor que el propio guardia.»"],
+	"Elena": ["elena",
+		"Ex-catedrática del Colegio Botánico de Ámbar; quemó sus tratados y huyó cuando el consejo militar quiso convertir sus sedantes en venenos.",
+		"«La diferencia entre un bálsamo que devuelve el aliento y un alcaloide que apaga la memoria es apenas media gota en el alambique. En la academia de Ámbar pretendían que mis destilados de espora azul se usaran en los interrogatorios de Estado.\n\nQuemé mis notas esa misma madrugada, recogí mis semillas madre y vine con Tomás a este valle, donde mis cataplasmas solo sirven para cerrar heridas.»",
+		"«Mi Somnífero Nocturno está destilado con raíz de sueño y hongos de los claros del sur. Si algún día necesitas silenciar a un testigo o dormir a un centinela sin mancharte las manos de sangre, cuarenta segundos de mi frasco bastan para cruzar cualquier puerta.»"],
+	"Tomás": ["tomas",
+		"Agrónomo paciente y estudioso del microclima del valle; logró fertilizar las tierras ácidas de la frontera mezclando ceniza de forja y compost.",
+		"«Cuando Elena y yo llegamos, esta tierra era grava fría donde ni el cardo agarraba. Tardé tres años mezclando escoria mineral de la fragua de Thoran con mantillo de hojas del bosque hasta lograr que las coles y el trigo dieran cosechas dobles.\n\nLa tierra es como la gente del pueblo: si la fuerzas con hierro se cierra, pero si entiendes su ciclo te alimenta toda la vida.»",
+		"«He estudiado las lluvias de este valle durante años: cuando cae el aguacero, no solo riega cada surco sin esfuerzo, sino que el golpeteo del agua sobre los tejados apaga el sonido de las pisadas en toda la aldea.»"],
+	"Marta": ["marta",
+		"Dama de hierro de 'El Jabalí Dorado'; ganó la escritura de la Posada hace diez años en una mano legendaria de póker contra un barón minero.",
+		"«Muchos entran por mi estofado campesino o por el pollo recién asado, pero el verdadero corazón de esta casa late sobre el paño verde del salón. Antes de que llegaran el médico y el comisario, esta posada era una posta sin ley donde se apostaban minas enteras.\n\nLe gané la propiedad de este edificio a su antiguo dueño con un full de ases a medianoche. Desde entonces puse dos reglas sagradas: aquí dentro nadie pasa hambre si tiene moneda, y mientras las cartas están en la mesa hasta el tiempo parece detenerse.»",
+		"«Desde la barra veo cómo respira cada jugador en el casino: hay quien parpadea de más por puro nervio aunque lleve escalera, y quien mantiene rostro de piedra con un dos y un siete. Aprende a leer a la persona, no solo sus cartas.»"],
+	"Dr. Valen": ["valen",
+		"Cirujano de mente analítica expulsado del anfiteatro médico de la capital por practicar autopsias forenses prohibidas por la nobleza.",
+		"«En los salones de la capital, la medicina consistía en adular a duques hipocondríacos mientras prohibían abrir un cuerpo para investigar un asesinato. Yo vine a la frontera porque aquí la verdad no se esconde tras cortinas de seda.\n\nHe dividido mi hospital en dos mundos: en la sala norte salvo a todo aquel que aún conserve un hilo de pulso; en las losas de la Morgue del sur, dejo que las heridas y el rigor mortis dicten sentencia.»",
+		"«Mis bisturíes pueden determinar el arma exacta y cuántas horas o días lleva un cuerpo descomponiéndose, pero la ciencia forense tiene un límite: sin un testigo que te haya visto entrar o salir del edificio, el expediente quedará como un crimen perfecto sin autor.»"],
+	"Comisario Vane": ["vane",
+		"Veterano inspector de frontera que perdió el ojo izquierdo en el motín de Cima Quebrada; aplica la ley con pragmatismo implacable.",
+		"«Dejé los tribunales del norte porque me cansé de colgar a hambrientos mientras los intendentes robaban a manos llenas. En mi comisaría la ley no distingue cunas: si cometes un delito a la vista de un vecino o las pruebas de la Morgue te señalan, te doy la oportunidad de rendirte o pagar tu deuda.\n\nSi entregas las manos, te escolto vivo a la celda y al cantar el gallo sales libre. Pero si desenfundas contra mis hombres, mi revólver habla primero.»",
+		"«Cuando sube el número de robos o aparecen cadáveres sin resolver, ordeno a todas las familias que echen la llave temprano y cierren los postigos. Un pueblo asustado es un pueblo cerrado a cal y canto.»"],
+	"Guardia Rodric": ["rodric",
+		"Joven centinela cuya granja familiar en la Llanura Oeste fue arrasada por los bandidos; patrulla las calles para que la historia no se repita.",
+		"«¿Ves las ruinas de piedra al noroeste de la ciénaga? Ese era el granero de mis padres antes de que llegara la banda del oeste. Yo tenía doce años cuando escapamos hacia este valle.\n\nEl Comisario Vane me dio un yelmo y una porra reglamentaria, y me enseñó a mirar los callejones antes de doblar cada esquina. Mientras yo haga la ronda, nadie volverá a quemar una casa en esta aldea.»",
+		"«Los muros de piedra y las puertas cerradas nos impiden ver lo que ocurre dentro de los locales desde la calle. Por eso cuando la niebla baja del bosque, redoblamos la atención en las entradas.»"],
+	"Aldric": ["aldric",
+		"Ex-batidor militar reconvertido en buscador de reliquias y jugador de ventaja; espera la ocasión de hacerse con un taller propio.",
+		"«Llevo el broche de mi antiguo regimiento escondido bajo la capa porque en las fronteras hacer demasiadas preguntas sobre el pasado acorta la vida. Oficialmente soy un huésped más de la posada que vive de sus ahorros y de alguna buena racha al blackjack.\n\nEn realidad, exploro las ruinas del oeste buscando piezas del viejo mundo... aunque si algún gremio del pueblo queda vacante, tengo manos de sobra para tomar el relevo.»",
+		"«He visto cómo funcionan los negocios aquí: cuando un taller sufre un 'accidente' en su maquinaria y se queda sin género, los precios se disparan al doble y el dueño está tan desesperado que vendería la escritura por un puñado de monedas.»"],
+	"Sora": ["sora",
+		"Tahúr de los barcos fluviales del sur y tasadora de arte; se refugió en el valle tras vaciarle los bolsillos al magistrado de Puerto Real.",
+		"«En los salones flotantes del río Grande aprendí dos cosas: nunca apuestes contra quien reparte si no has contado las cartas que ya salieron, y nunca te quedes en la misma ciudad después de ganarle el carruaje a un juez.\n\nEste valle parecía un escondite aburrido al principio, pero entre las intrigas de las cinco familias y la mesa de Marta, te aseguro que aquí se mueve más oro del que aparentan sus calles de tierra.»",
+		"«Si te conviertes en socio o dueño de una tienda del pueblo y abasteces tú mismo el mostrador, cada vez que los vecinos vayan a cenar estarás llenando tu propia caja registradora sin mover un dedo.»"],
+	"Darío": ["dario",
+		"Antiguo capataz de cantera despedido por priorizar la vida de sus mineros sobre la cuota de extracción; busca un oficio digno en el pueblo.",
+		"«Treinta hombres salieron vivos del pozo de Peñanegra gracias a que di la campana de evacuación diez minutos antes de que reventara la bóveda de agua. La compañía minera me agradeció el gesto poniéndome en la calle por 'pérdida de herramientas'.\n\nAhora alquilo una cama en el ala norte de la posada. No me asusta el trabajo duro: el día que falte un maestro en cualquier taller de la aldea, yo mismo levantaré el oficio.»",
+		"«Los maestros artesanos salen al bosque cada mañana a las 06:30 en punto a talar, picar o cazar su materia prima. Pero si la fauna o los árboles bajan del límite de equilibrio del bosque, regresan con las manos vacías y sus tiendas entran en escasez.»"],
+	"Maese Casimir": ["casimir",
+		"Intendente de la Liga Minera del Norte; porta un Salvoconducto Real para cruzar la frontera una vez por semana y comprar herramientas manufacturadas.",
+		"«Este valle parece el fin del mundo, pero el hierro y la madera curada que trabajan Thoran y Bram superan con creces lo que sale de las fundiciones reales. Cada semana cruzo el Paso del Sur con escolta en la frontera y mi Salvoconducto Real lacrado en el pecho.\n\nSolo compro lo que realmente necesito: herramientas, lingotes, bobinas y tablones para las minas del norte. Sin el oro que inyecto en vuestros talleres, esta aldea acabaría devorándose a sí misma.»",
+		"«Nadie sale de esta región sin un Salvoconducto Real firmado por la Cancillería. Pero cuidado con codiciar mi sello: si un intendente de la Corona desaparece en este valle, la capital suspenderá las rutas durante un mes entero y enviará al Inquisidor Real.»"],
+	"Valeria la Tratante": ["valeria",
+		"Tratante de Caza y Pieles de las Tierras Reales; acude una vez por semana con Salvoconducto Real a comprar legalmente pieles y carne del valle.",
+		"«En las Tierras Reales del norte cazar un ciervo o un zorro se paga con la horca: todos los bosques pertenecen a la Corona. Pero como esta región está tan apartada y a la capital le cuesta demasiado enviar suministros, el Rey hace la vista gorda y os permite cazar para sobrevivir.\n\nPor eso vengo cada semana con mi Salvoconducto Real: aquí compro legalmente vuestras pieles, astas, cueros y piezas de caza para revenderlas a precio de oro en los salones de extramuros.»",
+		"«Traigo conmigo Conservas Reales de Extramuros que no se pudren jamás. Nunca gasto todo mi oro de golpe: compro solo las pieles y carnes que están bien cortadas; los despieces torpes de aficionados no valen ni el barro que pisan.»"],
+	"Inquisidor Real Alistair": ["alistair",
+		"Alto Magistrado e Inquisidor de la Corona; enviado desde la capital para hallar y condenar a un culpable tras el asesinato de un mercader real.",
+		"«No soy un comisario rural como Vane. Cuando un portador de Salvoconducto Real cae asesinado en la frontera, la Cancillería me envía con plenos poderes de vida y muerte.\n\nInterrogo a cada vecino, cruzo coartadas hora por hora, examino las heridas forenses y registro quién merodeaba la escena. Y ten algo muy claro, forastero: un Inquisidor Real jamás regresa a la capital con las manos vacías. Cuando termine mi expediente, alguien pagará con su cuello.»",
+		"«Mi filosofía es el orden absoluto de la Corona: si las pruebas señalan sin duda al asesino, lo ejecutaré yo mismo; pero si el verdadero criminal ocultó sus rastros, condenaré al aldeano sin coartada que acumule mayor probabilidad. La Corona exige un culpable, no excusas.»"],
+}
+
+const ROLE_FALLBACK_LORE: Dictionary = {
+	TradeRole.DOCTOR: ["valen", "valen", "Médico forense y cirujano rural enviado por el Colegio Médico para mantener operativo el Hospital y la Morgue del valle."],
+	TradeRole.SHERIFF: ["vane", "vane", "Comisario de frontera designado para restablecer la ley, investigar crímenes y dirigir las patrullas del valle."],
+	TradeRole.GUARD: ["rodric", "rodric", "Centinela de guardia asignado a la comisaría local para vigilar las calles, entradas y comercios de la aldea."],
+	TradeRole.INNKEEPER: ["marta", "marta", "Regente de 'El Jabalí Dorado'; sirve platos calientes y administra las mesas de juego del salón."],
+	TradeRole.BLACKSMITH: ["thoran", "kiera", "Maestro forjador llegado de los valles vecinos para mantener encendida la fragua y abastecer de herramientas al pueblo."],
+	TradeRole.BUTCHER: ["garrick", "lina", "Cazador y maestro carnicero encargado de abastecer de carne fresca y cuero curado a la aldea."],
+	TradeRole.CARPENTER: ["bram", "mila", "Maestro ebanista y carpintero llegado para mantener en pie el aserradero y los talleres locales."],
+	TradeRole.FISHMONGER: ["marlo", "nora", "Pescador y molinero encargado de las redes del lago y de la molienda de grano para el valle."],
+	TradeRole.HERBALIST: ["tomas", "elena", "Herborista y botánico rural dedicado al cultivo de semillas y a la preparación de cataplasmas medicinales."],
+	TradeRole.FAMILY_MEMBER: ["aldric", "sora", "Viajero independiente recién llegado a la frontera en busca de fortuna y de un oficio estable en el valle."],
+	TradeRole.UNEMPLOYED: ["aldric", "sora", "Viajero independiente recién llegado a la frontera en busca de fortuna y de un oficio estable en el valle."],
+}
+
+func is_incapacitated() -> bool:
+	return is_dead or is_downed or is_stunned_flag or sedated_timer > 0.0
+
+func is_conscious() -> bool:
+	return not is_incapacitated() and not is_sleeping
+
+func _stop_crafting_bar() -> void:
+	_is_actively_crafting = false
+	if _craft_bar_root:
+		_craft_bar_root.visible = false
+
+func _get_pocket_loot_hint(inline_sep: bool = false) -> String:
+	if corpse_pocket_looted or (personal_gold <= 0 and not carries_royal_safe_conduct):
+		return ""
+	var seal_str: String = (" + 📜Salvoconducto Real" if inline_sep else " + 📜 Salvoconducto Real") if carries_royal_safe_conduct else ""
+	if inline_sep:
+		return " | [E: 💰 Saquear Bolsillos (%d Oro%s)]" % [personal_gold, seal_str]
+	return "\n[E: 💰 Saquear Bolsillos (%d Oro%s)]" % [maxi(0, personal_gold), seal_str]
+
+func _spawn_shot_tracer(to_pos: Vector2, color: Color, width: float = 2.0, z_idx: int = 18, end_offset_y: float = -6.0, fade_dur: float = 0.18) -> void:
+	var tracer := Line2D.new()
+	tracer.width = width
+	tracer.default_color = color
+	tracer.points = PackedVector2Array([global_position + Vector2(0, -6), to_pos + Vector2(0, end_offset_y)])
+	tracer.z_index = z_idx
+	var parent_scene: Node = get_tree().current_scene if get_tree().current_scene else get_parent()
+	if parent_scene:
+		parent_scene.add_child(tracer)
+		var tw := tracer.create_tween()
+		tw.tween_property(tracer, "modulate:a", 0.0, fade_dur)
+		tw.tween_callback(tracer.queue_free)
+
 func hold_for_interview(interviewer: Node2D, duration: float = 0.8) -> void:
 	_being_interviewed_timer = maxf(_being_interviewed_timer, duration)
 	_interviewer_node = interviewer
@@ -234,7 +407,6 @@ func setup_npc(
 	global_position = work_position
 	shop_stock = initial_stock.duplicate()
 
-	# Inicializar sub-stats y metabolismo con variación individual para que cada NPC tenga su propio ritmo (3 días completos = 100% -> 0%, 16h despierto / 8h sueño nocturno)
 	need_hunger = randf_range(78.0, 96.0)
 	digestion_buffer = 0.0
 	need_energy = randf_range(84.0, 98.0)
@@ -243,22 +415,10 @@ func setup_npc(
 	_energy_decay_rate = randf_range(0.24, 0.30)
 	_social_decay_rate = randf_range(0.45, 0.70)
 	if personal_gold < 0:
-		match trade_role:
-			TradeRole.INNKEEPER, TradeRole.BLACKSMITH:
-				personal_gold = randi_range(68, 95)
-			TradeRole.BUTCHER, TradeRole.CARPENTER, TradeRole.HERBALIST, TradeRole.FISHMONGER:
-				personal_gold = randi_range(48, 72)
-			TradeRole.DOCTOR, TradeRole.SHERIFF, TradeRole.GUARD:
-				personal_gold = randi_range(52, 78)
-			TradeRole.FAMILY_MEMBER:
-				personal_gold = randi_range(26, 44)
-			TradeRole.TRAVELING_MERCHANT:
-				personal_gold = randi_range(172, 238)
-				carries_royal_safe_conduct = true
-			TradeRole.ROYAL_INVESTIGATOR:
-				personal_gold = randi_range(110, 155)
-			_:
-				personal_gold = randi_range(24, 38)
+		var gold_range: Vector2i = ROLE_INITIAL_GOLD.get(trade_role, Vector2i(24, 38))
+		personal_gold = randi_range(gold_range.x, gold_range.y)
+		if trade_role == TradeRole.TRAVELING_MERCHANT:
+			carries_royal_safe_conduct = true
 	_init_rimworld_psychology()
 
 	sprite = Sprite2D.new()
@@ -272,17 +432,12 @@ func setup_npc(
 	var c := CircleShape2D.new()
 	c.radius = 6.5
 	body_col.shape = c
-	# Colisión blanda (Stardew Valley / RimWorld): los NPCs pacíficos no bloquean físicamente el paso del jugador en umbrales/puertas
 	body_col.disabled = true
 	add_child(body_col)
 
 	health_comp = HealthComponent.new()
 	health_comp.name = "HealthComponent"
-	var base_hp: float = 65.0
-	if trade_role == TradeRole.ROYAL_INVESTIGATOR:
-		base_hp = 165.0
-	elif trade_role == TradeRole.TRAVELING_MERCHANT:
-		base_hp = 95.0
+	var base_hp: float = 165.0 if trade_role == TradeRole.ROYAL_INVESTIGATOR else (95.0 if trade_role == TradeRole.TRAVELING_MERCHANT else 65.0)
 	health_comp.max_health = base_hp
 	health_comp.current_health = base_hp
 	health_comp.died.connect(_on_died)
@@ -344,16 +499,12 @@ func _setup_craft_progress_bar_ui() -> void:
 
 	_craft_bar_bg = Polygon2D.new()
 	_craft_bar_bg.color = Color(0.07, 0.08, 0.11, 0.88)
-	_craft_bar_bg.polygon = PackedVector2Array([
-		Vector2(-20, -3), Vector2(20, -3), Vector2(20, 2), Vector2(-20, 2)
-	])
+	_craft_bar_bg.polygon = PackedVector2Array([Vector2(-20, -3), Vector2(20, -3), Vector2(20, 2), Vector2(-20, 2)])
 	_craft_bar_root.add_child(_craft_bar_bg)
 
 	_craft_bar_fill = Polygon2D.new()
 	_craft_bar_fill.color = Color(0.98, 0.78, 0.24, 0.95)
-	_craft_bar_fill.polygon = PackedVector2Array([
-		Vector2(-19, -2), Vector2(-19, -2), Vector2(-19, 1), Vector2(-19, 1)
-	])
+	_craft_bar_fill.polygon = PackedVector2Array([Vector2(-19, -2), Vector2(-19, -2), Vector2(-19, 1), Vector2(-19, 1)])
 	_craft_bar_root.add_child(_craft_bar_fill)
 
 	_craft_bar_label = Label.new()
@@ -369,84 +520,25 @@ func _setup_craft_progress_bar_ui() -> void:
 func _init_workshop_materials() -> void:
 	_craft_progress = randf_range(5.0, 42.0)
 	_supply_run_cooldown = randf_range(10.0, 34.0)
-	match trade_role:
-		TradeRole.BLACKSMITH:
-			workshop_materials = {"wood": 1, "leather": 1}
-		TradeRole.CARPENTER:
-			workshop_materials = {"iron_ore": 1, "herbal_poultice": 1}
-		TradeRole.BUTCHER:
-			workshop_materials = {"wood": 1, "herbal_poultice": 1}
-		TradeRole.HERBALIST:
-			workshop_materials = {"bread": 1, "fertilizer": 1}
-		TradeRole.FISHMONGER:
-			workshop_materials = {"wood": 1, "herbal_poultice": 1}
-		TradeRole.INNKEEPER:
-			workshop_materials = {"cooked_meat": 1, "bread": 1}
-		_:
-			workshop_materials = {}
+	workshop_materials = (ROLE_INITIAL_MATERIALS.get(trade_role, {}) as Dictionary).duplicate()
 
 func _init_rimworld_psychology() -> void:
-	match trade_role:
-		TradeRole.INNKEEPER:
-			traits = ["Hospitalaria", "Chef Apasionada"]
-			favorite_item = "roasted_chicken"
-			thoughts = ["Olor a pan recién horneado (+8)", "La posada está animada (+6)"]
-		TradeRole.BUTCHER:
-			traits = ["Fuerte", "Carnívoro"]
-			favorite_item = "fox_pelt"
-			thoughts = ["Buen corte de caza hoy (+6)"]
-		TradeRole.BLACKSMITH:
-			traits = ["Perfeccionista", "Forjador Maestro"]
-			favorite_item = "iron_ore"
-			thoughts = ["Fragua al rojo vivo (+8)", "Orgulloso de sus armaduras (+5)"]
-		TradeRole.CARPENTER:
-			traits = ["Trabajador", "Amante del Bosque"]
-			favorite_item = "wood"
-			thoughts = ["Madera de pino bien seca (+6)"]
-		TradeRole.HERBALIST:
-			traits = ["Naturista", "Pacífica"]
-			favorite_item = "herbs"
-			thoughts = ["Las plantas crecen sanas (+7)"]
-		TradeRole.FISHMONGER:
-			traits = ["Paciente", "Madrugador"]
-			favorite_item = "night_catfish"
-			thoughts = ["Brisa fresca junto al molino (+6)"]
-		TradeRole.DOCTOR:
-			traits = ["Cirujano Experto", "Forense Meticuloso"]
-			favorite_item = "surgical_kit"
-			thoughts = ["Urgencias y morgue en orden (+8)"]
-		TradeRole.SHERIFF:
-			traits = ["Justiciero", "Observador"]
-			favorite_item = "cooked_meat"
-			thoughts = ["Vigilando la ley en el valle (+7)"]
-		TradeRole.GUARD:
-			traits = ["Leal", "Alerta"]
-			favorite_item = "bread"
-			thoughts = ["Patrulla sin novedad (+6)"]
-		TradeRole.TRAVELING_MERCHANT:
-			traits = ["Mercader Real", "Portador de Salvoconducto"]
-			favorite_item = "royal_ration"
-			thoughts = ["Comerciando entre el valle y las Tierras Reales (+10)"]
-		TradeRole.ROYAL_INVESTIGATOR:
-			traits = ["Inquisidor Implacable", "Deducción Forense", "Nunca Vuelve Vacío"]
-			favorite_item = "royal_ration"
-			thoughts = ["La Corona exige un culpable (+12)"]
-		_:
-			var pool_traits: Array[String] = ["Alegre", "Tahúr", "Glotón", "Noctámbulo", "Amante de Animales", "Curioso", "Leal"]
-			var idx1: int = abs(npc_name.hash()) % pool_traits.size()
-			var idx2: int = (idx1 + 3) % pool_traits.size()
-			traits = [pool_traits[idx1], pool_traits[idx2]]
-			var fav_pool: Array[String] = ["bread", "cooked_meat", "roasted_chicken", "country_stew", "cooked_fish"]
-			favorite_item = fav_pool[abs(npc_name.hash()) % fav_pool.size()]
-			thoughts = ["Paseando por el valle (+5)"]
+	if ROLE_PSYCHOLOGY.has(trade_role):
+		var entry: Array = ROLE_PSYCHOLOGY[trade_role]
+		traits.assign(entry[0])
+		favorite_item = str(entry[1])
+		thoughts.assign(entry[2])
+	else:
+		var pool_traits: Array[String] = ["Alegre", "Tahúr", "Glotón", "Noctámbulo", "Amante de Animales", "Curioso", "Leal"]
+		var idx1: int = abs(npc_name.hash()) % pool_traits.size()
+		traits = [pool_traits[idx1], pool_traits[(idx1 + 3) % pool_traits.size()]]
+		var fav_pool: Array[String] = ["bread", "cooked_meat", "roasted_chicken", "country_stew", "cooked_fish"]
+		favorite_item = fav_pool[abs(npc_name.hash()) % fav_pool.size()]
+		thoughts = ["Paseando por el valle (+5)"]
 	mood = clampf(78.0 + randf_range(-6.0, 12.0), 40.0, 98.0)
 
 func get_portrait_texture() -> Texture2D:
-	if portrait_texture != null:
-		return portrait_texture
-	if sprite and sprite.texture != null:
-		return sprite.texture
-	return null
+	return portrait_texture if portrait_texture != null else (sprite.texture if sprite else null)
 
 func get_character_tagline() -> String:
 	return character_tagline
@@ -464,168 +556,38 @@ func _load_64_tex(res_path: String) -> Texture2D:
 	return null
 
 func _resolve_unique_64_visuals_and_lore(fallback_tex: Texture2D = null) -> void:
-	var key := "aldric"
 	var clean_name := npc_name.strip_edges()
-
-	match clean_name:
-		"Thoran":
-			key = "thoran"
-			character_tagline = "Antiguo maestro armero de la Fundición Imperial de Vaelgard; desertó tras negarse a forjar grilletes de plomo para las cuencas mineras."
-			character_lore = "«No siempre forjé herraduras y azadas, forastero. Durante veinte años dirigí los altos hornos de la guarnición de Vaelgard. La cicatriz que me cruza el pómulo me la dejó un crisol de bronce cuando saboteé mis propios moldes la noche antes de que marcharan contra los mineros de Cima Quebrada.\n\nHuí al sur con mi hijo Kael entre la ceniza, jurando no volver a templar una hoja que sirviera a un tirano... aunque en este valle el hierro vuelve a pedir sangre.»"
-			character_secret = "«El Comisario Vane y yo nos conocemos de aquella guerra, aunque ambos fingimos que no cuando nos cruzamos en la plaza. Él perdió el ojo en el mismo asedio donde yo deserté. Quemó mi cartel de búsqueda porque sabe que este valle necesita mi yunque más que otra soga en el patíbulo.»"
-		"Kael":
-			key = "kael"
-			character_tagline = "Aprendiz de forja obsesionado con descifrar las bobinas y conductos de tecnología antigua enterrados bajo las ruinas del oeste."
-			character_lore = "«Mi padre cree que el acero solo sirve para protegerse o arar la tierra, pero bajo este valle hay conductos de cobre y generadores que no forjó ningún herrero común.\n\nCuando cae la noche y Thoran duerme, estudio los fragmentos que los viajeros traen de la Llanura Salvaje. No quiero pasar mi vida reparando rejas; quiero entender qué civilización levantó las máquinas que aún laten bajo la roca.»"
-			character_secret = "«Le he estado comprando reliquias y bobinas en secreto a Aldric en la posada. Si mi padre descubre que enciendo la fragua de madrugada para ensayar aleaciones antiguas, me quitará las llaves del taller.»"
-		"Garrick":
-			key = "garrick"
-			character_tagline = "Único superviviente de una expedición de tramperos sepultada en el Paso del Aullido; conoce la anatomía de cada bestia del bosque."
-			character_lore = "«La gente del pueblo me mira las manos manchadas y piensa que disfruto con el cuchillo. No saben lo que es pasar cuarenta días atrapado por un alud en las cumbres del norte, viendo apagarse a tu cuadrilla uno tras otro.\n\nAprendí a desollar y aprovechar hasta el último hueso y tendón porque el desperdicio en la frontera se paga con la muerte. Aquí cada corte mío mantiene vivo al valle.»"
-			character_secret = "«El Dr. Valen acude a veces por la puerta trasera cuando cierro la carnicería. No busca carne para cenar: me pide huesos limpios y articulaciones para sus estudios anatómicos en la Morgue. Yo no hago preguntas, y él me cose cuando un jabalí me embiste en el bosque.»"
-		"Lina":
-			key = "lina"
-			character_tagline = "Cartógrafa autodidacta y maestra curtidora llegada de las estepas de sal; traza mapas de las sendas de caza en el reverso del cuero."
-			character_lore = "«Antes de casarme con Garrick, viajaba con las caravanas que cruzaban los pantanos orientales. Allí aprendí que un buen jubón de cuero curado con corteza de roble salva más vidas que una coraza pesada que te hunde en el barro.\n\nEn los recortes de piel que descarto llevo el mapa de las manadas del bosque sur: sé cuándo escasean los ciervos y cuándo bajan los zorros hambrientos hacia los corrales.»"
-			character_secret = "«Todavía oigo a Garrick hablar entre sueños sobre el invierno en que perdió a su antigua cuadrilla en la montaña. Nunca pronuncia el nombre del explorador que los dejó atrás... pero siempre aprieta el cuchillo cuando Aldric entra en la taberna.»"
-		"Bram":
-			key = "bram"
-			character_tagline = "Arquitecto gremial exiliado de la capital tras el derrumbe del Gran Teatro, donde un intendente corrupto sustituyó su roble por madera podrida."
-			character_lore = "«Cada viga, cada puerta y cada umbral que ves en esta aldea pasó por mis manos. En la capital me cargaron la culpa cuando cedió la cúpula del teatro real: el intendente se embolsó el oro del roble curado y compró pino húmedo, pero fui yo quien pagó con su nombre.\n\nPor eso aquí levanto casas con muros de piedra y maderas que ni un vendaval ni una patrulla puedan derribar sin sudar sangre.»"
-			character_secret = "«Le diseñé a cada edificio del pueblo un postigo lateral con bisagras ocultas. Llámalo manía de un constructor que conoció los calabozos de la corte: nunca me gustó levantar cuatro paredes de las que un hombre acorralado no pudiera escapar.»"
-		"Mila":
-			key = "mila"
-			character_tagline = "Ebanista de precisión y maestra cerrajera; vendió sus herramientas de plata en la ciudad para pagar la fianza de su hermano Bram."
-			character_lore = "«Bram levanta paredes; yo me ocupo de lo que guarda secretos: cerraduras de muelle, cofres de doble fondo y muebles ensamblados sin un solo clavo.\n\nEn la capital tallaba clavicordios para la nobleza, pero cuando hundieron a mi hermano en aquel juicio amañado, malvendí mi taller para sacarlo de la celda y vinimos a empezar de cero entre los pinos.»"
-			character_secret = "«Todos los cofres domésticos de las casas del pueblo llevan mi sello. Tienen un fiador interno que cede en silencio si te acercas agachado y con pulso firme... pero si alguien intenta abrirlos a plena vista, el trinquete suena como una campana.»"
-		"Marlo":
-			key = "marlo"
-			character_tagline = "Antiguo timonel del bergantín contrabandista 'La Estrella Hundida'; cambió el mar abierto por el sosiego del lago y la rueda del molino."
-			character_lore = "«Este aro de oro en mi oreja es lo único que saqué a flote cuando *La Estrella Hundida* se partió contra los escollos del Cabo Gris. Navegué quince años burlando bloqueos navales con sacos de trigo y barriles de pólvora.\n\nCuando la resaca me escupió en la playa, juré que no volvería a echar el ancla en aguas donde no pudiera ver la otra orilla. Ahora el rumor del molino y las truchas del lago me bastan.»"
-			character_secret = "«En las mañanas de niebla cerrada, cuando bajo al muelle antes de las siete, he visto fogatas apagándose hacia la Ciénaga de las Ranas. Esos bandidos de las ruinas no acampan ahí por azar: desentierran conductos del viejo mundo.»"
-		"Nora":
-			key = "nora"
-			character_tagline = "Redera y cronista silenciosa del valle; registra en nudos marineros de cáñamo los movimientos y ausencias de cada habitante."
-			character_lore = "«Mi padre Marlo me enseñó el código de cuerdas que usaban los contrabandistas del sur para llevar bitácoras sin escribir una sola letra que pudiera incriminarlos.\n\nMientras remiendo las redes frente a la pescadería, mis dedos atan nudos por cada persona que cruza la plaza. La gente cree que solo miro secarse el lino, pero sé quién duerme en su cama y quién camina de noche.»"
-			character_secret = "«Hace tres noches vi a Sora, la forastera de la posada, medir los pasos entre la parte trasera de la herrería y el camino del este. Juega a parecer una simple apostadora, pero calcula las rutas de salida mejor que el propio guardia.»"
-		"Elena":
-			key = "elena"
-			character_tagline = "Ex-catedrática del Colegio Botánico de Ámbar; quemó sus tratados y huyó cuando el consejo militar quiso convertir sus sedantes en venenos."
-			character_lore = "«La diferencia entre un bálsamo que devuelve el aliento y un alcaloide que apaga la memoria es apenas media gota en el alambique. En la academia de Ámbar pretendían que mis destilados de espora azul se usaran en los interrogatorios de Estado.\n\nQuemé mis notas esa misma madrugada, recogí mis semillas madre y vine con Tomás a este valle, donde mis cataplasmas solo sirven para cerrar heridas.»"
-			character_secret = "«Mi Somnífero Nocturno está destilado con raíz de sueño y hongos de los claros del sur. Si algún día necesitas silenciar a un testigo o dormir a un centinela sin mancharte las manos de sangre, cuarenta segundos de mi frasco bastan para cruzar cualquier puerta.»"
-		"Tomás":
-			key = "tomas"
-			character_tagline = "Agrónomo paciente y estudioso del microclima del valle; logró fertilizar las tierras ácidas de la frontera mezclando ceniza de forja y compost."
-			character_lore = "«Cuando Elena y yo llegamos, esta tierra era grava fría donde ni el cardo agarraba. Tardé tres años mezclando escoria mineral de la fragua de Thoran con mantillo de hojas del bosque hasta lograr que las coles y el trigo dieran cosechas dobles.\n\nLa tierra es como la gente del pueblo: si la fuerzas con hierro se cierra, pero si entiendes su ciclo te alimenta toda la vida.»"
-			character_secret = "«He estudiado las lluvias de este valle durante años: cuando cae el aguacero, no solo riega cada surco sin esfuerzo, sino que el golpeteo del agua sobre los tejados apaga el sonido de las pisadas en toda la aldea.»"
-		"Marta":
-			key = "marta"
-			character_tagline = "Dama de hierro de 'El Jabalí Dorado'; ganó la escritura de la Posada hace diez años en una mano legendaria de póker contra un barón minero."
-			character_lore = "«Muchos entran por mi estofado campesino o por el pollo recién asado, pero el verdadero corazón de esta casa late sobre el paño verde del salón. Antes de que llegaran el médico y el comisario, esta posada era una posta sin ley donde se apostaban minas enteras.\n\nLe gané la propiedad de este edificio a su antiguo dueño con un full de ases a medianoche. Desde entonces puse dos reglas sagradas: aquí dentro nadie pasa hambre si tiene moneda, y mientras las cartas están en la mesa hasta el tiempo parece detenerse.»"
-			character_secret = "«Desde la barra veo cómo respira cada jugador en el casino: hay quien parpadea de más por puro nervio aunque lleve escalera, y quien mantiene rostro de piedra con un dos y un siete. Aprende a leer a la persona, no solo sus cartas.»"
-		"Dr. Valen", "Dra. Valeria", "Dr. Silvano":
-			key = "valen"
-			character_tagline = "Cirujano de mente analítica expulsado del anfiteatro médico de la capital por practicar autopsias forenses prohibidas por la nobleza."
-			character_lore = "«En los salones de la capital, la medicina consistía en adular a duques hipocondríacos mientras prohibían abrir un cuerpo para investigar un asesinato. Yo vine a la frontera porque aquí la verdad no se esconde tras cortinas de seda.\n\nHe dividido mi hospital en dos mundos: en la sala norte salvo a todo aquel que aún conserve un hilo de pulso; en las losas de la Morgue del sur, dejo que las heridas y el rigor mortis dicten sentencia.»"
-			character_secret = "«Mis bisturíes pueden determinar el arma exacta y cuántas horas o días lleva un cuerpo descomponiéndose, pero la ciencia forense tiene un límite: sin un testigo que te haya visto entrar o salir del edificio, el expediente quedará como un crimen perfecto sin autor.»"
-		"Comisario Vane", "Comisario Thorne", "Inspectora Lyra":
-			key = "vane"
-			character_tagline = "Veterano inspector de frontera que perdió el ojo izquierdo en el motín de Cima Quebrada; aplica la ley con pragmatismo implacable."
-			character_lore = "«Dejé los tribunales del norte porque me cansé de colgar a hambrientos mientras los intendentes robaban a manos llenas. En mi comisaría la ley no distingue cunas: si cometes un delito a la vista de un vecino o las pruebas de la Morgue te señalan, te doy la oportunidad de rendirte o pagar tu deuda.\n\nSi entregas las manos, te escolto vivo a la celda y al cantar el gallo sales libre. Pero si desenfundas contra mis hombres, mi revólver habla primero.»"
-			character_secret = "«Cuando sube el número de robos o aparecen cadáveres sin resolver, ordeno a todas las familias que echen la llave temprano y cierren los postigos. Un pueblo asustado es un pueblo cerrado a cal y canto.»"
-		"Guardia Rodric", "Guardia Kaelen", "Centinela Bastian":
-			key = "rodric"
-			character_tagline = "Joven centinela cuya granja familiar en la Llanura Oeste fue arrasada por los bandidos; patrulla las calles para que la historia no se repita."
-			character_lore = "«¿Ves las ruinas de piedra al noroeste de la ciénaga? Ese era el granero de mis padres antes de que llegara la banda del oeste. Yo tenía doce años cuando escapamos hacia este valle.\n\nEl Comisario Vane me dio un yelmo y una porra reglamentaria, y me enseñó a mirar los callejones antes de doblar cada esquina. Mientras yo haga la ronda, nadie volverá a quemar una casa en esta aldea.»"
-			character_secret = "«Los muros de piedra y las puertas cerradas nos impiden ver lo que ocurre dentro de los locales desde la calle. Por eso cuando la niebla baja del bosque, redoblamos la atención en las entradas.»"
-		"Aldric":
-			key = "aldric"
-			character_tagline = "Ex-batidor militar reconvertido en buscador de reliquias y jugador de ventaja; espera la ocasión de hacerse con un taller propio."
-			character_lore = "«Llevo el broche de mi antiguo regimiento escondido bajo la capa porque en las fronteras hacer demasiadas preguntas sobre el pasado acorta la vida. Oficialmente soy un huésped más de la posada que vive de sus ahorros y de alguna buena racha al blackjack.\n\nEn realidad, exploro las ruinas del oeste buscando piezas del viejo mundo... aunque si algún gremio del pueblo queda vacante, tengo manos de sobra para tomar el relevo.»"
-			character_secret = "«He visto cómo funcionan los negocios aquí: cuando un taller sufre un 'accidente' en su maquinaria y se queda sin género, los precios se disparan al doble y el dueño está tan desesperado que vendería la escritura por un puñado de monedas.»"
-		"Sora":
-			key = "sora"
-			character_tagline = "Tahúr de los barcos fluviales del sur y tasadora de arte; se refugió en el valle tras vaciarle los bolsillos al magistrado de Puerto Real."
-			character_lore = "«En los salones flotantes del río Grande aprendí dos cosas: nunca apuestes contra quien reparte si no has contado las cartas que ya salieron, y nunca te quedes en la misma ciudad después de ganarle el carruaje a un juez.\n\nEste valle parecía un escondite aburrido al principio, pero entre las intrigas de las cinco familias y la mesa de Marta, te aseguro que aquí se mueve más oro del que aparentan sus calles de tierra.»"
-			character_secret = "«Si te conviertes en socio o dueño de una tienda del pueblo y abasteces tú mismo el mostrador, cada vez que los vecinos vayan a cenar estarás llenando tu propia caja registradora sin mover un dedo.»"
-		"Darío":
-			key = "dario"
-			character_tagline = "Antiguo capataz de cantera despedido por priorizar la vida de sus mineros sobre la cuota de extracción; busca un oficio digno en el pueblo."
-			character_lore = "«Treinta hombres salieron vivos del pozo de Peñanegra gracias a que di la campana de evacuación diez minutos antes de que reventara la bóveda de agua. La compañía minera me agradeció el gesto poniéndome en la calle por 'pérdida de herramientas'.\n\nAhora alquilo una cama en el ala norte de la posada. No me asusta el trabajo duro: el día que falte un maestro en cualquier taller de la aldea, yo mismo levantaré el oficio.»"
-			character_secret = "«Los maestros artesanos salen al bosque cada mañana a las 06:30 en punto a talar, picar o cazar su materia prima. Pero si la fauna o los árboles bajan del límite de equilibrio del bosque, regresan con las manos vacías y sus tiendas entran en escasez.»"
-		"Maese Casimir":
-			key = "casimir"
-			character_tagline = "Intendente de la Liga Minera del Norte; porta un Salvoconducto Real para cruzar la frontera una vez por semana y comprar herramientas manufacturadas."
-			character_lore = "«Este valle parece el fin del mundo, pero el hierro y la madera curada que trabajan Thoran y Bram superan con creces lo que sale de las fundiciones reales. Cada semana cruzo el Paso del Sur con escolta en la frontera y mi Salvoconducto Real lacrado en el pecho.\n\nSolo compro lo que realmente necesito: herramientas, lingotes, bobinas y tablones para las minas del norte. Sin el oro que inyecto en vuestros talleres, esta aldea acabaría devorándose a sí misma.»"
-			character_secret = "«Nadie sale de esta región sin un Salvoconducto Real firmado por la Cancillería. Pero cuidado con codiciar mi sello: si un intendente de la Corona desaparece en este valle, la capital suspenderá las rutas durante un mes entero y enviará al Inquisidor Real.»"
-		"Valeria la Tratante":
-			key = "valeria"
-			character_tagline = "Tratante de Caza y Pieles de las Tierras Reales; acude una vez por semana con Salvoconducto Real a comprar legalmente pieles y carne del valle."
-			character_lore = "«En las Tierras Reales del norte cazar un ciervo o un zorro se paga con la horca: todos los bosques pertenecen a la Corona. Pero como esta región está tan apartada y a la capital le cuesta demasiado enviar suministros, el Rey hace la vista gorda y os permite cazar para sobrevivir.\n\nPor eso vengo cada semana con mi Salvoconducto Real: aquí compro legalmente vuestras pieles, astas, cueros y piezas de caza para revenderlas a precio de oro en los salones de extramuros.»"
-			character_secret = "«Traigo conmigo Conservas Reales de Extramuros que no se pudren jamás. Nunca gasto todo mi oro de golpe: compro solo las pieles y carnes que están bien cortadas; los despieces torpes de aficionados no valen ni el barro que pisan.»"
-		"Inquisidor Real Alistair":
-			key = "alistair"
-			character_tagline = "Alto Magistrado e Inquisidor de la Corona; enviado desde la capital para hallar y condenar a un culpable tras el asesinato de un mercader real."
-			character_lore = "«No soy un comisario rural como Vane. Cuando un portador de Salvoconducto Real cae asesinado en la frontera, la Cancillería me envía con plenos poderes de vida y muerte.\n\nInterrogo a cada vecino, cruzo coartadas hora por hora, examino las heridas forenses y registro quién merodeaba la escena. Y ten algo muy claro, forastero: un Inquisidor Real jamás regresa a la capital con las manos vacías. Cuando termine mi expediente, alguien pagará con su cuello.»"
-			character_secret = "«Mi filosofía es el orden absoluto de la Corona: si las pruebas señalan sin duda al asesino, lo ejecutaré yo mismo; pero si el verdadero criminal ocultó sus rastros, condenaré al aldeano sin coartada que acumule mayor probabilidad. La Corona exige un culpable, no excusas.»"
-		_:
-			var fem: bool = clean_name.ends_with("a")
-			match trade_role:
-				TradeRole.DOCTOR:
-					key = "valen"
-					character_tagline = "Médico forense y cirujano rural enviado por el Colegio Médico para mantener operativo el Hospital y la Morgue del valle."
-				TradeRole.SHERIFF:
-					key = "vane"
-					character_tagline = "Comisario de frontera designado para restablecer la ley, investigar crímenes y dirigir las patrullas del valle."
-				TradeRole.GUARD:
-					key = "rodric"
-					character_tagline = "Centinela de guardia asignado a la comisaría local para vigilar las calles, entradas y comercios de la aldea."
-				TradeRole.INNKEEPER:
-					key = "marta"
-					character_tagline = "Regente de 'El Jabalí Dorado'; sirve platos calientes y administra las mesas de juego del salón."
-				TradeRole.BLACKSMITH:
-					key = "kiera" if fem else "thoran"
-					character_tagline = "Maestro forjador llegado de los valles vecinos para mantener encendida la fragua y abastecer de herramientas al pueblo."
-				TradeRole.BUTCHER:
-					key = "lina" if fem else "garrick"
-					character_tagline = "Cazador y maestro carnicero encargado de abastecer de carne fresca y cuero curado a la aldea."
-				TradeRole.CARPENTER:
-					key = "mila" if fem else "bram"
-					character_tagline = "Maestro ebanista y carpintero llegado para mantener en pie el aserradero y los talleres locales."
-				TradeRole.FISHMONGER:
-					key = "nora" if fem else "marlo"
-					character_tagline = "Pescador y molinero encargado de las redes del lago y de la molienda de grano para el valle."
-				TradeRole.HERBALIST:
-					key = "elena" if fem else "tomas"
-					character_tagline = "Herborista y botánico rural dedicado al cultivo de semillas y a la preparación de cataplasmas medicinales."
-				TradeRole.FAMILY_MEMBER, TradeRole.UNEMPLOYED:
-					key = "sora" if fem else "aldric"
-					character_tagline = "Viajero independiente recién llegado a la frontera en busca de fortuna y de un oficio estable en el valle."
-				_:
-					key = "mila" if fem else "bram"
-					character_tagline = "Artesano profesional llegado de los valles vecinos para hacerse cargo del taller y mantener viva la economía local."
-			character_lore = "«Llegué al valle tras escuchar que la comunidad necesitaba manos expertas. No vengo a hacer preguntas sobre lo que le ocurrió a mi predecesor: mientras haya trabajo y corra el oro, cumpliré mi jornada de sol a sol.»"
-			character_secret = "«En este pueblo las paredes oyen y las puertas cerradas guardan más de un secreto. Conviene llevarse bien con los vecinos si quieres prosperar aquí.»"
+	var lookup_name: String = str(NPC_NAME_ALIASES.get(clean_name, clean_name))
+	var key := "aldric"
+	if NPC_LORE_PROFILES.has(lookup_name):
+		var p: Array = NPC_LORE_PROFILES[lookup_name]
+		key = str(p[0])
+		character_tagline = str(p[1])
+		character_lore = str(p[2])
+		character_secret = str(p[3])
+	else:
+		var fem: bool = clean_name.ends_with("a")
+		var fb: Array = ROLE_FALLBACK_LORE.get(trade_role, ["bram", "mila", "Artesano profesional llegado de los valles vecinos para hacerse cargo del taller y mantener viva la economía local."])
+		key = str(fb[1] if fem else fb[0])
+		character_tagline = str(fb[2])
+		character_lore = "«Llegué al valle tras escuchar que la comunidad necesitaba manos expertas. No vengo a hacer preguntas sobre lo que le ocurrió a mi predecesor: mientras haya trabajo y corra el oro, cumpliré mi jornada de sol a sol.»"
+		character_secret = "«En este pueblo las paredes oyen y las puertas cerradas guardan más de un secreto. Conviene llevarse bien con los vecinos si quieres prosperar aquí.»"
 
 	var anim_64 := _load_64_tex("res://assests/world/village/npcs_64/anim_%s.png" % key)
 	var spr_64 := _load_64_tex("res://assests/world/village/npcs_64/sprite_%s.png" % key)
 	var port_64 := _load_64_tex("res://assests/world/village/npcs_64/portrait_%s.png" % key)
-	if anim_64 != null and sprite != null:
-		sprite.texture = anim_64
-		sprite.hframes = 4
-		sprite.vframes = 3
-		sprite.frame = 0
-		_has_spritesheet_anim = true
-	elif spr_64 != null and sprite != null:
-		sprite.texture = spr_64
-		sprite.hframes = 1
-		sprite.vframes = 1
-		_has_spritesheet_anim = false
-	elif fallback_tex != null and sprite != null:
-		sprite.texture = fallback_tex
-		sprite.hframes = 1
-		sprite.vframes = 1
-		_has_spritesheet_anim = false
+	if sprite != null:
+		if anim_64 != null:
+			sprite.texture = anim_64
+			sprite.hframes = 4
+			sprite.vframes = 3
+			sprite.frame = 0
+			_has_spritesheet_anim = true
+		elif spr_64 != null or fallback_tex != null:
+			sprite.texture = spr_64 if spr_64 != null else fallback_tex
+			sprite.hframes = 1
+			sprite.vframes = 1
+			_has_spritesheet_anim = false
 	portrait_texture = port_64 if port_64 != null else (spr_64 if spr_64 != null else fallback_tex)
 
 func add_thought(thought_text: String, mood_delta: float) -> void:
@@ -639,9 +601,7 @@ func add_thought(thought_text: String, mood_delta: float) -> void:
 var _pre_poker_pos: Vector2 = Vector2.ZERO
 
 func set_poker_seating(active: bool, seat_world_pos: Vector2 = Vector2.ZERO) -> void:
-	_is_actively_crafting = false
-	if _craft_bar_root:
-		_craft_bar_root.visible = false
+	_stop_crafting_bar()
 	if active:
 		if not is_at_poker_table:
 			_pre_poker_pos = global_position
@@ -665,9 +625,7 @@ func set_poker_seating(active: bool, seat_world_pos: Vector2 = Vector2.ZERO) -> 
 func apply_sleeping_draught(duration: float = 40.0) -> void:
 	if is_dead or is_downed:
 		return
-	_is_actively_crafting = false
-	if _craft_bar_root:
-		_craft_bar_root.visible = false
+	_stop_crafting_bar()
 	sedated_timer = maxf(sedated_timer, duration)
 	is_sleeping = true
 	is_hostile = false
@@ -685,18 +643,14 @@ func _physics_process(delta: float) -> void:
 		return
 	if is_dead:
 		velocity = Vector2.ZERO
-		_is_actively_crafting = false
-		if _craft_bar_root:
-			_craft_bar_root.visible = false
+		_stop_crafting_bar()
 		_process_corpse_state(delta)
 		return
 
 	# Paso 1: Estado "Agonizando" (`is_downed`) antes de morir definitivamente
 	if is_downed:
 		velocity = Vector2.ZERO
-		_is_actively_crafting = false
-		if _craft_bar_root:
-			_craft_bar_root.visible = false
+		_stop_crafting_bar()
 		if not (WorldClock and WorldClock.has_method("is_time_frozen") and WorldClock.is_time_frozen()):
 			bleedout_timer -= delta
 		if sprite:
@@ -716,18 +670,12 @@ func _physics_process(delta: float) -> void:
 		if not (WorldClock and WorldClock.has_method("is_time_frozen") and WorldClock.is_time_frozen()):
 			sedated_timer -= delta
 		velocity = Vector2.ZERO
-		_is_actively_crafting = false
-		if _craft_bar_root:
-			_craft_bar_root.visible = false
+		_stop_crafting_bar()
 		is_sleeping = true
 		if sprite:
 			sprite.rotation_degrees = 90.0
 		if status_label:
-			var loot_hint_s: String = ""
-			if not corpse_pocket_looted and (personal_gold > 0 or carries_royal_safe_conduct):
-				var seal_tag: String = " + 📜 Salvoconducto Real" if carries_royal_safe_conduct else ""
-				loot_hint_s = "\n[E: 💰 Saquear Bolsillos (%d Oro%s)]" % [maxi(0, personal_gold), seal_tag]
-			status_label.text = "💤 %s — Inconsciente / Dormido (%ds)%s" % [npc_name, maxi(1, int(ceil(sedated_timer))), loot_hint_s]
+			status_label.text = "💤 %s — Inconsciente / Dormido (%ds)%s" % [npc_name, maxi(1, int(ceil(sedated_timer))), _get_pocket_loot_hint()]
 			status_label.add_theme_color_override("font_color", Color(0.78, 0.65, 1.0))
 			status_label.visible = true
 		if sedated_timer <= 0.0:
@@ -740,15 +688,9 @@ func _physics_process(delta: float) -> void:
 
 	if is_stunned_flag:
 		velocity = Vector2.ZERO
-		_is_actively_crafting = false
-		if _craft_bar_root:
-			_craft_bar_root.visible = false
+		_stop_crafting_bar()
 		if status_label:
-			var loot_hint_st: String = ""
-			if not corpse_pocket_looted and (personal_gold > 0 or carries_royal_safe_conduct):
-				var seal_tag2: String = " + 📜 Salvoconducto Real" if carries_royal_safe_conduct else ""
-				loot_hint_st = "\n[E: 💰 Saquear Bolsillos (%d Oro%s)]" % [maxi(0, personal_gold), seal_tag2]
-			status_label.text = "💫 %s — Aturdido%s" % [npc_name, loot_hint_st]
+			status_label.text = "💫 %s — Aturdido%s" % [npc_name, _get_pocket_loot_hint()]
 			status_label.add_theme_color_override("font_color", Color(0.75, 0.85, 1.0))
 			status_label.visible = true
 		return
@@ -758,9 +700,7 @@ func _physics_process(delta: float) -> void:
 		if poker_seat_pos != Vector2.ZERO and global_position.distance_to(poker_seat_pos) > 3.0:
 			global_position = poker_seat_pos
 		velocity = Vector2.ZERO
-		_is_actively_crafting = false
-		if _craft_bar_root:
-			_craft_bar_root.visible = false
+		_stop_crafting_bar()
 		_update_visual_animation(delta)
 		_update_hover_label()
 		return
@@ -783,9 +723,7 @@ func _physics_process(delta: float) -> void:
 	# Si el jugador está hablando con este NPC, detener inmediatamente cualquier caminata o trabajo y atender al jugador
 	if not is_hostile and is_instance_valid(_cached_dm) and bool(_cached_dm.get("active")) and _cached_dm.get("current_speaker") == self:
 		velocity = Vector2.ZERO
-		_is_actively_crafting = false
-		if _craft_bar_root:
-			_craft_bar_root.visible = false
+		_stop_crafting_bar()
 		if is_instance_valid(_cached_player) and sprite:
 			sprite.flip_h = (_cached_player.global_position.x < global_position.x)
 		trigger_action_animation(0.4)
@@ -797,9 +735,7 @@ func _physics_process(delta: float) -> void:
 	if _being_interviewed_timer > 0.0 and not is_hostile:
 		_being_interviewed_timer = maxf(0.0, _being_interviewed_timer - delta)
 		velocity = Vector2.ZERO
-		_is_actively_crafting = false
-		if _craft_bar_root:
-			_craft_bar_root.visible = false
+		_stop_crafting_bar()
 		if is_instance_valid(_interviewer_node) and sprite:
 			sprite.flip_h = (_interviewer_node.global_position.x < global_position.x)
 		trigger_action_animation(0.4)
@@ -884,8 +820,7 @@ func _physics_process(delta: float) -> void:
 			is_sleeping = false
 			if sprite:
 				sprite.rotation_degrees = 0.0
-		if _craft_bar_root:
-			_craft_bar_root.visible = false
+		_stop_crafting_bar()
 		var hosp_bed_pos := Vector2(718, 136)
 		if global_position.distance_to(hosp_bed_pos) > 18.0:
 			_move_towards_point(hosp_bed_pos, 46.0, delta)
@@ -913,7 +848,7 @@ func _process_corpse_state(delta: float) -> void:
 
 	# Si está siendo cargado físicamente hacia la Morgue por el Dr. Valen o un vecino/guardia
 	if corpse_being_carried:
-		if is_instance_valid(corpse_carrier) and not corpse_carrier.is_dead and not corpse_carrier.is_downed and not corpse_carrier.is_stunned_flag and corpse_carrier.sedated_timer <= 0.0 and not corpse_carrier.is_sleeping and not corpse_carrier.is_hostile:
+		if is_instance_valid(corpse_carrier) and corpse_carrier.is_conscious() and not corpse_carrier.is_hostile:
 			global_position = corpse_carrier.global_position + Vector2(0, -8)
 		else:
 			if is_instance_valid(corpse_carrier) and corpse_carrier._carrying_corpse_target == self:
@@ -921,7 +856,6 @@ func _process_corpse_state(delta: float) -> void:
 			corpse_being_carried = false
 			corpse_carrier = null
 	else:
-		# Avance suave de descomposición en tiempo real (además de los saltos de hora del reloj)
 		corpse_rot_hours += delta / 65.0
 
 	if sprite:
@@ -932,7 +866,6 @@ func _process_corpse_state(delta: float) -> void:
 		elif corpse_rot_hours < 24.0:
 			sprite.modulate = Color(0.54, 0.60, 0.46, 0.96)
 		else:
-			# Cadáver pudriéndose tras 1, 2 o 3+ días sin ser recogido
 			sprite.modulate = Color(0.38, 0.56, 0.30, 0.96)
 
 	_corpse_scan_timer -= delta
@@ -948,7 +881,7 @@ func _process_corpse_state(delta: float) -> void:
 		for n in get_tree().get_nodes_in_group("village_npcs"):
 			if n is VillageNPC and n != self:
 				var other := n as VillageNPC
-				if other.is_dead or other.is_downed or other.is_sleeping or other.is_stunned_flag or other.sedated_timer > 0.0:
+				if not other.is_conscious():
 					continue
 				if other.global_position.distance_to(global_position) <= 105.0:
 					var has_los: bool = (vm == null) or (not vm.has_method("has_line_of_sight")) or bool(vm.call("has_line_of_sight", other.global_position, global_position))
@@ -962,7 +895,7 @@ func _process_corpse_state(delta: float) -> void:
 							corpse_reporter_npc = null
 							_spawn_floating_text("🚨 ¡%s encontró el cadáver de %s!" % [other.npc_name, npc_name], Color.ORANGE_RED, -42.0)
 							break
-						elif other.trade_role != TradeRole.TRAVELING_MERCHANT and (corpse_reporter_npc == null or not is_instance_valid(corpse_reporter_npc) or corpse_reporter_npc.is_dead or corpse_reporter_npc.is_downed or corpse_reporter_npc.is_sleeping or corpse_reporter_npc.is_stunned_flag or corpse_reporter_npc.sedated_timer > 0.0):
+						elif other.trade_role != TradeRole.TRAVELING_MERCHANT and (not is_instance_valid(corpse_reporter_npc) or not corpse_reporter_npc.is_conscious()):
 							corpse_reporter_npc = other
 							other._reporting_corpse_target = self
 							_spawn_floating_text("😱 ¡%s vio el cadáver de %s y corre a avisar!" % [other.npc_name, npc_name], Color.ORANGE_RED, -42.0)
@@ -978,9 +911,7 @@ func _process_corpse_state(delta: float) -> void:
 			var rot_days: int = int(floor(corpse_rot_hours / 24.0))
 			var rot_rem_h: int = int(floor(corpse_rot_hours)) % 24
 			var state_line: String = ""
-			var loot_tag: String = ""
-			if not corpse_pocket_looted and (personal_gold > 0 or carries_royal_safe_conduct):
-				loot_tag = " | [E: 💰 Saquear Bolsillos (%d Oro%s)]" % [personal_gold, " + 📜Salvoconducto Real" if carries_royal_safe_conduct else ""]
+			var loot_tag: String = _get_pocket_loot_hint(true)
 			if corpse_being_carried and is_instance_valid(corpse_carrier):
 				state_line = "⚰️ Trasladando cuerpo a la Morgue (Llevado por %s)%s" % [corpse_carrier.npc_name, loot_tag]
 			elif corpse_reported:
@@ -1076,7 +1007,6 @@ func _process_corpse_morgue_transport(delta: float) -> bool:
 						_carrying_corpse_target = c
 						break
 					elif not c.corpse_being_carried:
-						# Tanto el Médico Forense como la Guardia/Comisario (o el descubridor si el médico no está libre) pueden levantar y trasladar el cuerpo
 						var doc_available := _is_doctor_conscious_and_free()
 						if can_be_carrier or (not doc_available and c.corpse_discovered_by == npc_name):
 							target_corpse = c
@@ -1125,8 +1055,7 @@ func _process_corpse_morgue_transport(delta: float) -> bool:
 			target_corpse.sprite.visible = false
 		if target_corpse.status_label:
 			target_corpse.status_label.visible = false
-		if target_corpse._craft_bar_root:
-			target_corpse._craft_bar_root.visible = false
+		target_corpse._stop_crafting_bar()
 		if target_corpse.interact_area and target_corpse.interact_area.get_child_count() > 0:
 			var ic := target_corpse.interact_area.get_child(0) as CollisionShape2D
 			if ic:
@@ -1151,10 +1080,8 @@ func _process_corpse_morgue_transport(delta: float) -> bool:
 
 func _is_doctor_conscious_and_free() -> bool:
 	for n in get_tree().get_nodes_in_group("village_npcs"):
-		if n is VillageNPC:
-			var v := n as VillageNPC
-			if v.trade_role == TradeRole.DOCTOR and not v.is_dead and not v.is_downed and not v.is_sleeping and not v.is_stunned_flag and v.sedated_timer <= 0.0:
-				return true
+		if n is VillageNPC and (n as VillageNPC).trade_role == TradeRole.DOCTOR and (n as VillageNPC).is_conscious():
+			return true
 	return false
 
 ## IA Policial: 1º Negociar (si no se resiste), 2º Si se resiste -> Persecución con Pistola a distancia y Porra cuerpo a cuerpo,
@@ -1202,7 +1129,6 @@ func _process_police_law_enforcement(delta: float, vm: Node) -> bool:
 	_attack_timer = maxf(0.0, _attack_timer - delta)
 
 	if can_see_player and dist_p <= 36.0:
-		# Combate cuerpo a cuerpo con Porra Policial
 		if dist_p > 22.0:
 			_move_towards_point(player.global_position, 96.0 * spd_mult, delta)
 		else:
@@ -1211,13 +1137,11 @@ func _process_police_law_enforcement(delta: float, vm: Node) -> bool:
 			_attack_timer = 0.85 / maxf(0.55, eff_pol)
 			_strike_police_baton(player)
 	elif can_see_player and dist_p <= 195.0:
-		# Disparo a distancia con Pistola Reglamentaria + avance táctico
 		_move_towards_point(player.global_position, 82.0 * spd_mult, delta)
 		if _attack_timer <= 0.0:
 			_attack_timer = 1.25 / maxf(0.55, eff_pol)
 			_fire_police_pistol(player)
 	else:
-		# Persecución hacia la última posición vista
 		_move_towards_point(target_pt, 96.0 * spd_mult, delta)
 
 	move_and_slide()
@@ -1240,22 +1164,7 @@ func _strike_police_baton(player: Node2D) -> void:
 func _fire_police_pistol(player: Node2D) -> void:
 	if not player or not player.has_method("take_damage"):
 		return
-	# Crear traza visual de disparo de pistola entre el policía y el jugador
-	var tracer := Line2D.new()
-	tracer.width = 2.2
-	tracer.default_color = Color(1.0, 0.88, 0.32, 0.95)
-	tracer.points = PackedVector2Array([
-		global_position + Vector2(0, -6),
-		player.global_position + Vector2(0, -6)
-	])
-	tracer.z_index = 18
-	var parent_scene: Node = get_tree().current_scene if get_tree().current_scene else get_parent()
-	if parent_scene:
-		parent_scene.add_child(tracer)
-		var tw := tracer.create_tween()
-		tw.tween_property(tracer, "modulate:a", 0.0, 0.18)
-		tw.tween_callback(tracer.queue_free)
-
+	_spawn_shot_tracer(player.global_position, Color(1.0, 0.88, 0.32, 0.95), 2.2, 18, -6.0, 0.18)
 	var eff: float = get_job_efficiency()
 	var d := DamageData.new()
 	d.amount = 16.0 * eff
@@ -1289,12 +1198,10 @@ func _apply_player_and_doorway_yield(delta: float) -> void:
 		if d_p_sq > 0.0025 and d_p_sq < 256.0:
 			var d_p: float = sqrt(d_p_sq)
 			var away_dir: Vector2 = (global_position - player.global_position).normalized()
-			# Empuje lateral suave para ceder el paso en puertas estrechas
 			var side_dir := Vector2(-away_dir.y, away_dir.x) if (abs(npc_name.hash()) % 2 == 0) else Vector2(away_dir.y, -away_dir.x)
 			var yield_vec: Vector2 = (away_dir * 0.7 + side_dir * 0.3).normalized() * ((16.0 - d_p) / 16.0) * 34.0
 			velocity += yield_vec
 
-	# Si el NPC está quieto justo en el marco de una puerta (<= 18 px), da un paso hacia adentro/afuera para no obstruir la entrada (throttled a 4 Hz)
 	if velocity.length_squared() < 9.0 and not is_sleeping and not is_at_poker_table:
 		_door_nudge_timer -= delta
 		if _door_nudge_timer <= 0.0:
@@ -1329,7 +1236,6 @@ func _move_towards_point(target_pos: Vector2, speed: float, delta: float = 0.016
 	if diff.length() <= step_snap:
 		if diff.length() <= 6.0:
 			global_position = nav_target
-		# Si `nav_target` era un waypoint intermedio (p. ej. umbral de puerta o esquina), encadenar al siguiente waypoint sin detenerse
 		if nav_target.distance_squared_to(target_pos) > 9.0 and vm and vm.has_method("get_navigation_waypoint"):
 			_cached_nav_waypoint = vm.call("get_navigation_waypoint", global_position, target_pos, self)
 			nav_target = _cached_nav_waypoint
@@ -1340,7 +1246,6 @@ func _move_towards_point(target_pos: Vector2, speed: float, delta: float = 0.016
 			_last_frame_pos = global_position
 			return
 
-	# Interacción activa con puertas: si hay una puerta cerrada y el NPC realmente va a cruzarla, la abre; si está trancada con cerrojo [B], se detiene ante ella
 	if vm and vm.has_method("npc_interact_with_door"):
 		var can_pass_door: bool = bool(vm.call("npc_interact_with_door", self, delta, target_pos, nav_target))
 		if not can_pass_door:
@@ -1354,7 +1259,6 @@ func _move_towards_point(target_pos: Vector2, speed: float, delta: float = 0.016
 
 	var desired_vel: Vector2 = diff.normalized() * eff_speed
 
-	# Recuperación anti-atasco contra esquinas o marcos de puertas
 	if global_position.distance_squared_to(_last_frame_pos) < 0.09 and eff_speed > 12.0:
 		_stuck_timer += delta
 		if _stuck_timer >= 0.40:
@@ -1364,7 +1268,6 @@ func _move_towards_point(target_pos: Vector2, speed: float, delta: float = 0.016
 	else:
 		_stuck_timer = 0.0
 
-	# Separación suave entre NPCs (throttled a 10 Hz para ahorrar 83% de iteraciones de grupo)
 	_sep_timer -= delta
 	if _sep_timer <= 0.0:
 		_sep_timer = 0.10
@@ -1385,44 +1288,35 @@ func _move_towards_point(target_pos: Vector2, speed: float, delta: float = 0.016
 	velocity = (desired_vel + _cached_sep_vec).limit_length(eff_speed * 1.15)
 
 func _is_morning_expedition_hours() -> bool:
-	if not (trade_role in [TradeRole.BLACKSMITH, TradeRole.CARPENTER, TradeRole.HERBALIST, TradeRole.FISHMONGER, TradeRole.BUTCHER]):
+	if not (trade_role in [TradeRole.BLACKSMITH, TradeRole.CARPENTER, TradeRole.HERBALIST, TradeRole.FISHMONGER, TradeRole.BUTCHER]) or not WorldClock:
 		return false
-	if not WorldClock:
-		return false
-	var cur_day: int = WorldClock.current_day
-	if _completed_expedition_day == cur_day:
+	if _completed_expedition_day == WorldClock.current_day:
 		return false
 	var h: int = WorldClock.current_hour
 	var m: int = WorldClock.current_minute
 	return (h == 6 and m >= 30) or h == 7 or h == 8 or (h == 9 and m < 30)
 
+const EXPEDITION_TARGETS: Dictionary = {
+	TradeRole.CARPENTER: Vector2(65, 640),
+	TradeRole.BLACKSMITH: Vector2(515, 648),
+	TradeRole.HERBALIST: Vector2(-180, 665),
+	TradeRole.FISHMONGER: Vector2(-52, 105),
+	TradeRole.BUTCHER: Vector2(142, 615),
+}
+
+const EXPEDITION_DESCS: Dictionary = {
+	TradeRole.CARPENTER: "🪓 Expedición Matutina: Talando Pinos",
+	TradeRole.BLACKSMITH: "⛏️ Expedición Matutina: Picando Hierro",
+	TradeRole.HERBALIST: "🌿 Expedición Matutina: Recogiendo Hierbas",
+	TradeRole.FISHMONGER: "🎣 Expedición Matutina: Pescando en el Lago",
+	TradeRole.BUTCHER: "🏹 Expedición Matutina: Cazando en el Bosque",
+}
+
 func _get_expedition_target_pos() -> Vector2:
-	match trade_role:
-		TradeRole.CARPENTER:
-			return Vector2(65, 640)    # Pinos en la entrada del Bosque Sur
-		TradeRole.BLACKSMITH:
-			return Vector2(515, 648)   # Veta de Hierro en la Cantera Este
-		TradeRole.HERBALIST:
-			return Vector2(-180, 665)  # Hierbas en la Pradera de Conejos
-		TradeRole.FISHMONGER:
-			return Vector2(-52, 105)   # Muelle del Lago del Oeste
-		TradeRole.BUTCHER:
-			return Vector2(142, 615)   # Cruce de caza en el Bosque Sur
-	return work_position
+	return EXPEDITION_TARGETS.get(trade_role, work_position)
 
 func _get_expedition_description() -> String:
-	match trade_role:
-		TradeRole.CARPENTER:
-			return "🪓 Expedición Matutina: Talando Pinos"
-		TradeRole.BLACKSMITH:
-			return "⛏️ Expedición Matutina: Picando Hierro"
-		TradeRole.HERBALIST:
-			return "🌿 Expedición Matutina: Recogiendo Hierbas"
-		TradeRole.FISHMONGER:
-			return "🎣 Expedición Matutina: Pescando en el Lago"
-		TradeRole.BUTCHER:
-			return "🏹 Expedición Matutina: Cazando en el Bosque"
-	return "🚶 En Expedición"
+	return str(EXPEDITION_DESCS.get(trade_role, "🚶 En Expedición"))
 
 func _is_mandatory_work_hours() -> bool:
 	if trade_role == TradeRole.UNEMPLOYED:
@@ -1805,10 +1699,8 @@ func _update_needs_and_decisions(delta: float) -> void:
 
 func _execute_dynamic_activity(delta: float) -> void:
 	if current_activity != ActivityState.WORKING:
-		_is_actively_crafting = false
 		_supply_run_target_role = 0
-		if _craft_bar_root:
-			_craft_bar_root.visible = false
+		_stop_crafting_bar()
 
 	match current_activity:
 		ActivityState.SLEEPING:
@@ -1836,9 +1728,7 @@ func _execute_dynamic_activity(delta: float) -> void:
 
 		ActivityState.WORKING:
 			if _is_morning_expedition_hours():
-				_is_actively_crafting = false
-				if _craft_bar_root:
-					_craft_bar_root.visible = false
+				_stop_crafting_bar()
 				_process_physical_morning_expedition(delta)
 				return
 
@@ -1846,18 +1736,13 @@ func _execute_dynamic_activity(delta: float) -> void:
 				_process_artisan_workshop_crafting_and_supply_runs(delta)
 				return
 
-			_is_actively_crafting = false
-			if _craft_bar_root:
-				_craft_bar_root.visible = false
+			_stop_crafting_bar()
 
 			_wander_timer -= delta
 			if _wander_timer <= 0.0:
 				_wander_timer = randf_range(2.2, 4.6)
-				if randf() < 0.55:
-					_wander_offset = Vector2.ZERO
-				else:
-					var radius: float = 26.0 if (trade_role == TradeRole.UNEMPLOYED or trade_role == TradeRole.GUARD) else 8.0
-					_wander_offset = Vector2.RIGHT.rotated(randf() * TAU) * randf_range(3.0, radius)
+				var radius: float = 26.0 if (trade_role == TradeRole.UNEMPLOYED or trade_role == TradeRole.GUARD) else 8.0
+				_wander_offset = Vector2.ZERO if randf() < 0.55 else Vector2.RIGHT.rotated(randf() * TAU) * randf_range(3.0, radius)
 
 			var target_pos: Vector2 = work_position + _wander_offset
 			var vm = get_tree().get_first_node_in_group("village_manager")
@@ -1870,39 +1755,38 @@ func _execute_dynamic_activity(delta: float) -> void:
 			else:
 				velocity = Vector2.ZERO
 
+const ARTISAN_RECIPES: Dictionary = {
+	TradeRole.BLACKSMITH: [
+		{"output": "steel_ingot", "label": "Lingote Acero", "verb": "⚒️ Forjando", "input": "wood", "supplier": int(TradeRole.CARPENTER), "input_name": "Madera"},
+		{"output": "repair_kit", "label": "Kit Herrero", "verb": "⚒️ Templando", "input": "leather", "supplier": int(TradeRole.BUTCHER), "input_name": "Cuero"}
+	],
+	TradeRole.CARPENTER: [
+		{"output": "repair_kit", "label": "Tablones", "verb": "🪚 Aserrando", "input": "iron_ore", "supplier": int(TradeRole.BLACKSMITH), "input_name": "Clavos/Hierro"},
+		{"output": "wood", "label": "Vigas Pino", "verb": "🪚 Cepillando", "input": "herbal_poultice", "supplier": int(TradeRole.HERBALIST), "input_name": "Resina/Hierbas"}
+	],
+	TradeRole.BUTCHER: [
+		{"output": "cooked_meat", "label": "Carne Asada", "verb": "🥩 Ahumando", "input": "wood", "supplier": int(TradeRole.CARPENTER), "input_name": "Leña"},
+		{"output": "leather", "label": "Cuero Curtido", "verb": "🔪 Curtiendo", "input": "herbal_poultice", "supplier": int(TradeRole.HERBALIST), "input_name": "Tanino/Hierbas"}
+	],
+	TradeRole.HERBALIST: [
+		{"output": "herbal_poultice", "label": "Cataplasma", "verb": "🧪 Destilando", "input": "bread", "supplier": int(TradeRole.FISHMONGER), "input_name": "Grano/Harina"},
+		{"output": "carrot_seeds", "label": "Semillas", "verb": "🌱 Seleccionando", "input": "fertilizer", "supplier": int(TradeRole.FISHMONGER), "input_name": "Abono"}
+	],
+	TradeRole.FISHMONGER: [
+		{"output": "bread", "label": "Hogaza Pan", "verb": "🌾 Moliendo", "input": "wood", "supplier": int(TradeRole.CARPENTER), "input_name": "Leña"},
+		{"output": "fertilizer", "label": "Abono Org.", "verb": "♻️ Compostando", "input": "herbal_poultice", "supplier": int(TradeRole.HERBALIST), "input_name": "Hierbas"}
+	],
+	TradeRole.INNKEEPER: [
+		{"output": "country_stew", "label": "Estofado", "verb": "🍲 Guisando", "input": "cooked_meat", "supplier": int(TradeRole.BUTCHER), "input_name": "Carne"},
+		{"output": "bread", "label": "Pan Posada", "verb": "🍞 Horneando", "input": "bread", "supplier": int(TradeRole.FISHMONGER), "input_name": "Harina"}
+	],
+}
+
 func _get_artisan_recipes() -> Array[Dictionary]:
-	match trade_role:
-		TradeRole.BLACKSMITH:
-			return [
-				{"output": "steel_ingot", "label": "Lingote Acero", "verb": "⚒️ Forjando", "input": "wood", "supplier": int(TradeRole.CARPENTER), "input_name": "Madera"},
-				{"output": "repair_kit", "label": "Kit Herrero", "verb": "⚒️ Templando", "input": "leather", "supplier": int(TradeRole.BUTCHER), "input_name": "Cuero"}
-			]
-		TradeRole.CARPENTER:
-			return [
-				{"output": "repair_kit", "label": "Tablones", "verb": "🪚 Aserrando", "input": "iron_ore", "supplier": int(TradeRole.BLACKSMITH), "input_name": "Clavos/Hierro"},
-				{"output": "wood", "label": "Vigas Pino", "verb": "🪚 Cepillando", "input": "herbal_poultice", "supplier": int(TradeRole.HERBALIST), "input_name": "Resina/Hierbas"}
-			]
-		TradeRole.BUTCHER:
-			return [
-				{"output": "cooked_meat", "label": "Carne Asada", "verb": "🥩 Ahumando", "input": "wood", "supplier": int(TradeRole.CARPENTER), "input_name": "Leña"},
-				{"output": "leather", "label": "Cuero Curtido", "verb": "🔪 Curtiendo", "input": "herbal_poultice", "supplier": int(TradeRole.HERBALIST), "input_name": "Tanino/Hierbas"}
-			]
-		TradeRole.HERBALIST:
-			return [
-				{"output": "herbal_poultice", "label": "Cataplasma", "verb": "🧪 Destilando", "input": "bread", "supplier": int(TradeRole.FISHMONGER), "input_name": "Grano/Harina"},
-				{"output": "carrot_seeds", "label": "Semillas", "verb": "🌱 Seleccionando", "input": "fertilizer", "supplier": int(TradeRole.FISHMONGER), "input_name": "Abono"}
-			]
-		TradeRole.FISHMONGER:
-			return [
-				{"output": "bread", "label": "Hogaza Pan", "verb": "🌾 Moliendo", "input": "wood", "supplier": int(TradeRole.CARPENTER), "input_name": "Leña"},
-				{"output": "fertilizer", "label": "Abono Org.", "verb": "♻️ Compostando", "input": "herbal_poultice", "supplier": int(TradeRole.HERBALIST), "input_name": "Hierbas"}
-			]
-		TradeRole.INNKEEPER:
-			return [
-				{"output": "country_stew", "label": "Estofado", "verb": "🍲 Guisando", "input": "cooked_meat", "supplier": int(TradeRole.BUTCHER), "input_name": "Carne"},
-				{"output": "bread", "label": "Pan Posada", "verb": "🍞 Horneando", "input": "bread", "supplier": int(TradeRole.FISHMONGER), "input_name": "Harina"}
-			]
-	return []
+	var res: Array[Dictionary] = []
+	if ARTISAN_RECIPES.has(trade_role):
+		res.assign(ARTISAN_RECIPES[trade_role])
+	return res
 
 func _update_craft_bar_visual(ratio: float, label_txt: String, bar_color: Color) -> void:
 	if not _craft_bar_root:
@@ -2014,9 +1898,7 @@ func _process_artisan_workshop_crafting_and_supply_runs(delta: float) -> void:
 	velocity = Vector2.ZERO
 	var recipes: Array[Dictionary] = _get_artisan_recipes()
 	if recipes.is_empty():
-		_is_actively_crafting = false
-		if _craft_bar_root:
-			_craft_bar_root.visible = false
+		_stop_crafting_bar()
 		return
 
 	var rec: Dictionary = recipes[_crafting_recipe_idx % recipes.size()]
@@ -2265,21 +2147,7 @@ func _process_physical_morning_expedition(delta: float) -> void:
 func _fire_hunter_arrow_at_prey(prey: WildAnimal) -> void:
 	if not is_instance_valid(prey):
 		return
-	var tracer := Line2D.new()
-	tracer.width = 1.8
-	tracer.default_color = Color(0.92, 0.78, 0.45, 0.92)
-	tracer.points = PackedVector2Array([
-		global_position + Vector2(0, -6),
-		prey.global_position + Vector2(0, -4)
-	])
-	tracer.z_index = 16
-	var parent_scene: Node = get_tree().current_scene if get_tree().current_scene else get_parent()
-	if parent_scene:
-		parent_scene.add_child(tracer)
-		var tw := tracer.create_tween()
-		tw.tween_property(tracer, "modulate:a", 0.0, 0.16)
-		tw.tween_callback(tracer.queue_free)
-
+	_spawn_shot_tracer(prey.global_position, Color(0.92, 0.78, 0.45, 0.92), 1.8, 16, -4.0, 0.16)
 	var d := DamageData.new()
 	d.amount = 18.0 * get_job_efficiency()
 	d.type = CombatConstants.DamageType.CUT
@@ -2584,7 +2452,7 @@ func _update_hover_label(delta: float = 0.016) -> void:
 	if not status_label or is_dead or is_downed:
 		return
 	if is_stunned_flag:
-		var loot_hint: String = ("\n[E: 💰 Saquear Bolsillos (%d Oro%s)]" % [personal_gold, " + 📜Salvoconducto Real" if carries_royal_safe_conduct else ""]) if (not corpse_pocket_looted and (personal_gold > 0 or carries_royal_safe_conduct)) else ""
+		var loot_hint: String = _get_pocket_loot_hint()
 		status_label.text = "💫 %s (%s) — Inconsciente / Aturdido (No Letal)%s" % [npc_name, npc_role, loot_hint]
 		status_label.add_theme_color_override("font_color", Color(0.65, 0.82, 1.0))
 		status_label.visible = true
@@ -2723,9 +2591,7 @@ func take_damage(data: DamageData) -> void:
 	_civilian_hostile_timer = 14.0
 	is_sleeping = false
 	sedated_timer = 0.0
-	_is_actively_crafting = false
-	if _craft_bar_root:
-		_craft_bar_root.visible = false
+	_stop_crafting_bar()
 	if not (stun_comp and stun_comp.is_stunned):
 		is_stunned_flag = false
 		if sprite and not is_dead and not is_downed:
@@ -2779,9 +2645,7 @@ func stealth_knockout(player: Node = null) -> void:
 	if is_instance_valid(_reporting_corpse_target) and _reporting_corpse_target.corpse_reporter_npc == self:
 		_reporting_corpse_target.corpse_reporter_npc = null
 	_reporting_corpse_target = null
-	_is_actively_crafting = false
-	if _craft_bar_root:
-		_craft_bar_root.visible = false
+	_stop_crafting_bar()
 	is_hostile = false
 	_civilian_hostile_timer = 0.0
 	remove_from_group("enemies")
@@ -2847,9 +2711,7 @@ func _on_stunned(stunned: bool) -> void:
 		if is_instance_valid(_reporting_corpse_target) and _reporting_corpse_target.corpse_reporter_npc == self:
 			_reporting_corpse_target.corpse_reporter_npc = null
 		_reporting_corpse_target = null
-		_is_actively_crafting = false
-		if _craft_bar_root:
-			_craft_bar_root.visible = false
+		_stop_crafting_bar()
 		is_hostile = false
 		_civilian_hostile_timer = 0.0
 		remove_from_group("enemies")
@@ -2876,9 +2738,7 @@ func _on_died() -> void:
 		is_sleeping = false
 		sedated_timer = 0.0
 		is_stunned_flag = false
-		_is_actively_crafting = false
-		if _craft_bar_root:
-			_craft_bar_root.visible = false
+		_stop_crafting_bar()
 		if body_col:
 			body_col.set_deferred("disabled", true)
 		velocity = Vector2.ZERO
@@ -2955,9 +2815,7 @@ func _confirm_true_death() -> void:
 	bleedout_timer = 0.0
 	is_dead = true
 	is_hostile = false
-	_is_actively_crafting = false
-	if _craft_bar_root:
-		_craft_bar_root.visible = false
+	_stop_crafting_bar()
 	corpse_on_ground = true
 	corpse_discovered = false
 	corpse_discovered_by = ""
@@ -3120,9 +2978,7 @@ func interact(player: Node) -> void:
 func _start_npc_dialogue(player: Node) -> void:
 	# Al conversar con el jugador, el NPC detiene lo que está haciendo, mira al jugador y satisface parte de su necesidad social
 	velocity = Vector2.ZERO
-	_is_actively_crafting = false
-	if _craft_bar_root:
-		_craft_bar_root.visible = false
+	_stop_crafting_bar()
 	if player is Node2D and sprite:
 		sprite.flip_h = ((player as Node2D).global_position.x < global_position.x)
 	trigger_action_animation(0.8)
@@ -3181,22 +3037,24 @@ func _get_dynamic_buy_price(base_price: int) -> int:
 	var disc: float = 0.70 if is_owner else (0.80 if affinity >= 45 else 1.0)
 	return maxi(1, int(round(float(base_price) * mult * disc)))
 
+func _make_armor_menu(title: String, menu_key: String, items: Array) -> Dictionary:
+	var ch: Array[Dictionary] = []
+	for it in items:
+		ch.append({"label": str(it[0]), "next": menu_key, "action": "buy_armor:%s:%d" % [str(it[1]), int(it[2])]})
+	ch.append({"label": "⬅️ Volver a Categorías de Armadura", "next": "armor_menu"})
+	return {"text": title, "choices": ch}
+
 func _build_blacksmith_dialogue(needs_line: String) -> Dictionary:
 	var player = get_tree().get_first_node_in_group("player")
 	var catalog_dict: Dictionary = player.get("TOOL_UPGRADE_CATALOG") if (player and "TOOL_UPGRADE_CATALOG" in player) else {}
 	var upgrade_choices: Array[Dictionary] = []
 	var tool_order: Array[String] = ["sword", "hammer", "axe", "pickaxe", "bow", "sickle", "watering_can", "fishing_rod"]
 	for t_id in tool_order:
-		var cur_tier: int = 1
-		if player and player.has_method("get_tool_tier"):
-			cur_tier = int(player.call("get_tool_tier", t_id))
+		var cur_tier: int = int(player.call("get_tool_tier", t_id)) if (player and player.has_method("get_tool_tier")) else 1
 		var t_meta: Dictionary = catalog_dict.get(t_id, {})
 		var t_title: String = str(t_meta.get("title", t_id))
 		if cur_tier >= 3:
-			upgrade_choices.append({
-				"label": "★ %s [Nivel 3 Acero Maestro — MÁXIMO]" % t_title,
-				"next": "upgrade_menu"
-			})
+			upgrade_choices.append({"label": "★ %s [Nivel 3 Acero Maestro — MÁXIMO]" % t_title, "next": "upgrade_menu"})
 		else:
 			var next_tier: int = cur_tier + 1
 			var tier_info: Dictionary = t_meta.get("tiers", {}).get(next_tier, {})
@@ -3242,36 +3100,24 @@ func _build_blacksmith_dialogue(needs_line: String) -> Dictionary:
 				{"label": "⬅️ Volver al mostrador", "next": "start"}
 			]
 		},
-		"armor_leather": {
-			"text": "🟫 Set de Armadura de Cuero Curtido (Tier 1):",
-			"choices": [
-				{"label": "🪖 Comprar Capucha de Cuero (-18 Oro) [+6% Def]", "next": "armor_leather", "action": "buy_armor:helm_leather:18"},
-				{"label": "🦺 Comprar Jubón de Cuero (-28 Oro) [+12% Def]", "next": "armor_leather", "action": "buy_armor:chest_leather:28"},
-				{"label": "👖 Comprar Grebas de Cuero (-22 Oro) [+8% Def]", "next": "armor_leather", "action": "buy_armor:legs_leather:22"},
-				{"label": "🥾 Comprar Botas de Cuero (-16 Oro) [+5% Def, +3% Vel]", "next": "armor_leather", "action": "buy_armor:boots_leather:16"},
-				{"label": "⬅️ Volver a Categorías de Armadura", "next": "armor_menu"}
-			]
-		},
-		"armor_iron": {
-			"text": "⬜ Set de Armadura de Hierro Forjado (Tier 2):",
-			"choices": [
-				{"label": "🪖 Comprar Yelmo de Hierro (-36 Oro) [+11% Def]", "next": "armor_iron", "action": "buy_armor:helm_iron:36"},
-				{"label": "🦺 Comprar Coraza de Hierro (-52 Oro) [+20% Def]", "next": "armor_iron", "action": "buy_armor:chest_iron:52"},
-				{"label": "👖 Comprar Quijotes de Hierro (-42 Oro) [+14% Def]", "next": "armor_iron", "action": "buy_armor:legs_iron:42"},
-				{"label": "🥾 Comprar Escarpes de Hierro (-32 Oro) [+9% Def]", "next": "armor_iron", "action": "buy_armor:boots_iron:32"},
-				{"label": "⬅️ Volver a Categorías de Armadura", "next": "armor_menu"}
-			]
-		},
-		"armor_steel": {
-			"text": "🟦 Set de Armadura de Acero Maestro (Tier 3):",
-			"choices": [
-				{"label": "🪖 Comprar Gran Yelmo de Acero (-68 Oro) [+16% Def]", "next": "armor_steel", "action": "buy_armor:helm_steel:68"},
-				{"label": "🦺 Comprar Armadura Real de Acero (-95 Oro) [+28% Def]", "next": "armor_steel", "action": "buy_armor:chest_steel:95"},
-				{"label": "👖 Comprar Grebas de Acero Maestro (-78 Oro) [+20% Def]", "next": "armor_steel", "action": "buy_armor:legs_steel:78"},
-				{"label": "🥾 Comprar Botas de Acero Maestro (-62 Oro) [+13% Def]", "next": "armor_steel", "action": "buy_armor:boots_steel:62"},
-				{"label": "⬅️ Volver a Categorías de Armadura", "next": "armor_menu"}
-			]
-		},
+		"armor_leather": _make_armor_menu("🟫 Set de Armadura de Cuero Curtido (Tier 1):", "armor_leather", [
+			["🪖 Comprar Capucha de Cuero (-18 Oro) [+6% Def]", "helm_leather", 18],
+			["🦺 Comprar Jubón de Cuero (-28 Oro) [+12% Def]", "chest_leather", 28],
+			["👖 Comprar Grebas de Cuero (-22 Oro) [+8% Def]", "legs_leather", 22],
+			["🥾 Comprar Botas de Cuero (-16 Oro) [+5% Def, +3% Vel]", "boots_leather", 16],
+		]),
+		"armor_iron": _make_armor_menu("⬜ Set de Armadura de Hierro Forjado (Tier 2):", "armor_iron", [
+			["🪖 Comprar Yelmo de Hierro (-36 Oro) [+11% Def]", "helm_iron", 36],
+			["🦺 Comprar Coraza de Hierro (-52 Oro) [+20% Def]", "chest_iron", 52],
+			["👖 Comprar Quijotes de Hierro (-42 Oro) [+14% Def]", "legs_iron", 42],
+			["🥾 Comprar Escarpes de Hierro (-32 Oro) [+9% Def]", "boots_iron", 32],
+		]),
+		"armor_steel": _make_armor_menu("🟦 Set de Armadura de Acero Maestro (Tier 3):", "armor_steel", [
+			["🪖 Comprar Gran Yelmo de Acero (-68 Oro) [+16% Def]", "helm_steel", 68],
+			["🦺 Comprar Armadura Real de Acero (-95 Oro) [+28% Def]", "chest_steel", 95],
+			["👖 Comprar Grebas de Acero Maestro (-78 Oro) [+20% Def]", "legs_steel", 78],
+			["🥾 Comprar Botas de Acero Maestro (-62 Oro) [+13% Def]", "boots_steel", 62],
+		]),
 		"family_chat": {
 			"text": "Ahora tengo mi propio edificio de Herrería separado de nuestra casa familiar. Tráeme mineral de hierro y oro cuando quieras subir tus herramientas a Hierro o Acero Maestro.",
 			"choices": [{"label": "Buen trabajo, maestro Thoran. [Volver]", "next": "start"}]
@@ -3777,42 +3623,25 @@ func on_dialogue_action(action_id: String) -> void:
 			_spawn_floating_text("+%d Oro (Vendido %s)" % [price, inv.get_item_name(item_id)], Color.GOLD, -44.0)
 		else:
 			_spawn_floating_text("No tienes %s" % inv.get_item_name(item_id), Color.ORANGE_RED, -44.0)
-	elif cmd == "buy":
+	elif cmd in ["buy", "buy2"]:
+		var qty: int = 2 if cmd == "buy2" else 1
 		var avail: int = int(shop_stock.get(item_id, 0))
-		if avail <= 0:
-			_spawn_floating_text("Sin stock hoy de %s" % inv.get_item_name(item_id), Color.ORANGE_RED, -44.0)
+		if avail < qty:
+			_spawn_floating_text("Stock insuficiente" if qty > 1 else ("Sin stock hoy de %s" % inv.get_item_name(item_id)), Color.ORANGE_RED, -44.0)
 			return
 		if inv.gold < price:
 			_spawn_floating_text("Oro insuficiente (%d Oro)" % price, Color.ORANGE_RED, -44.0)
 			return
 		inv.add_gold(-price)
-		var v_cut1: int = int(round(float(price) * 0.5)) if is_partner_shop else 0
-		personal_gold = maxi(0, personal_gold) + (price - v_cut1)
-		shop_stock[item_id] = avail - 1
+		var v_cut: int = int(round(float(price) * 0.5)) if is_partner_shop else 0
+		personal_gold = maxi(0, personal_gold) + (price - v_cut)
+		shop_stock[item_id] = avail - qty
 		if vm and "shop_businesses" in vm and vm.shop_businesses.has(int(trade_role)):
 			vm.shop_businesses[int(trade_role)]["stock_override"] = shop_stock.duplicate()
-			if v_cut1 > 0:
-				vm.shop_businesses[int(trade_role)]["vault_gold"] = int(vm.shop_businesses[int(trade_role)].get("vault_gold", 0)) + v_cut1
-		inv.add_item(item_id, 1)
-		_spawn_floating_text("+1 %s (-%d Oro)" % [inv.get_item_name(item_id), price], Color.SPRING_GREEN, -44.0)
-	elif cmd == "buy2":
-		var avail2: int = int(shop_stock.get(item_id, 0))
-		if avail2 < 2:
-			_spawn_floating_text("Stock insuficiente", Color.ORANGE_RED, -44.0)
-			return
-		if inv.gold < price:
-			_spawn_floating_text("Oro insuficiente (%d Oro)" % price, Color.ORANGE_RED, -44.0)
-			return
-		inv.add_gold(-price)
-		var v_cut2: int = int(round(float(price) * 0.5)) if is_partner_shop else 0
-		personal_gold = maxi(0, personal_gold) + (price - v_cut2)
-		shop_stock[item_id] = avail2 - 2
-		if vm and "shop_businesses" in vm and vm.shop_businesses.has(int(trade_role)):
-			vm.shop_businesses[int(trade_role)]["stock_override"] = shop_stock.duplicate()
-			if v_cut2 > 0:
-				vm.shop_businesses[int(trade_role)]["vault_gold"] = int(vm.shop_businesses[int(trade_role)].get("vault_gold", 0)) + v_cut2
-		inv.add_item(item_id, 2)
-		_spawn_floating_text("+2 %s (-%d Oro)" % [inv.get_item_name(item_id), price], Color.SPRING_GREEN, -44.0)
+			if v_cut > 0:
+				vm.shop_businesses[int(trade_role)]["vault_gold"] = int(vm.shop_businesses[int(trade_role)].get("vault_gold", 0)) + v_cut
+		inv.add_item(item_id, qty)
+		_spawn_floating_text("+%d %s (-%d Oro)" % [qty, inv.get_item_name(item_id), price], Color.SPRING_GREEN, -44.0)
 
 func _spawn_floating_text(text: String, color: Color, offset_y: float = -36.0) -> void:
 	if FloatingTextScene and is_inside_tree():
@@ -3890,28 +3719,23 @@ func to_save_dict() -> Dictionary:
 	}
 
 func from_save_dict(data: Dictionary) -> void:
-	if data.has("npc_name"):
-		npc_name = str(data["npc_name"])
+	npc_name = str(data.get("npc_name", npc_name))
 	if data.has("workshop_materials") and typeof(data["workshop_materials"]) == TYPE_DICTIONARY:
 		workshop_materials = data["workshop_materials"].duplicate()
-	if data.has("craft_progress"):
-		_craft_progress = clampf(float(data["craft_progress"]), 0.0, 99.0)
-	if data.has("crafting_recipe_idx"):
-		_crafting_recipe_idx = maxi(0, int(data["crafting_recipe_idx"]))
+	_craft_progress = clampf(float(data.get("craft_progress", _craft_progress)), 0.0, 99.0)
+	_crafting_recipe_idx = maxi(0, int(data.get("crafting_recipe_idx", _crafting_recipe_idx)))
 	_completed_expedition_day = int(data.get("completed_expedition_day", -1))
 	_supply_run_target_role = 0
 	_supply_run_item_id = ""
 	_supply_run_input_label = ""
 	_supply_run_timer = 0.0
-	_is_actively_crafting = false
 	_expedition_target_node = null
 	_expedition_gather_timer = 0.0
 	_is_amateur_foraging = false
 	_amateur_forage_timer = 0.0
 	_being_interviewed_timer = 0.0
 	_interviewer_node = null
-	if _craft_bar_root:
-		_craft_bar_root.visible = false
+	_stop_crafting_bar()
 	for rk in ["route_Bought_smith", "route_Bought_carp", "route_Bought_butcher", "route_Bought_fish", "route_Bought_herb"]:
 		if has_meta(rk):
 			remove_meta(rk)
@@ -3928,42 +3752,25 @@ func from_save_dict(data: Dictionary) -> void:
 	_carrying_corpse_target = null
 	_reporting_corpse_target = null
 	_active_downed_patient = null
-	if data.has("npc_role"):
-		npc_role = str(data["npc_role"])
-	if data.has("family_id"):
-		family_id = str(data["family_id"])
-	if data.has("family_name"):
-		family_name = str(data["family_name"])
-	if data.has("trade_role"):
-		trade_role = int(data["trade_role"]) as TradeRole
-	if data.has("linked_trade"):
-		linked_trade = int(data["linked_trade"]) as TradeRole
-	if data.has("days_in_role"):
-		days_in_role = clampi(int(data["days_in_role"]), 0, 7)
-	if data.has("affinity"):
-		affinity = int(data["affinity"])
-	if data.has("personal_gold"):
-		personal_gold = maxi(0, int(data["personal_gold"]))
-	if data.has("carries_royal_safe_conduct"):
-		carries_royal_safe_conduct = bool(data["carries_royal_safe_conduct"])
-	if data.has("corpse_pocket_looted"):
-		corpse_pocket_looted = bool(data["corpse_pocket_looted"])
-	if data.has("is_vagrant_camper"):
-		is_vagrant_camper = bool(data["is_vagrant_camper"])
+	npc_role = str(data.get("npc_role", npc_role))
+	family_id = str(data.get("family_id", family_id))
+	family_name = str(data.get("family_name", family_name))
+	trade_role = int(data.get("trade_role", trade_role)) as TradeRole
+	linked_trade = int(data.get("linked_trade", linked_trade)) as TradeRole
+	days_in_role = clampi(int(data.get("days_in_role", days_in_role)), 0, 7)
+	affinity = int(data.get("affinity", affinity))
+	personal_gold = maxi(0, int(data.get("personal_gold", personal_gold)))
+	carries_royal_safe_conduct = bool(data.get("carries_royal_safe_conduct", carries_royal_safe_conduct))
+	corpse_pocket_looted = bool(data.get("corpse_pocket_looted", corpse_pocket_looted))
+	is_vagrant_camper = bool(data.get("is_vagrant_camper", is_vagrant_camper))
 	if data.has("vagrant_camp_x") and data.has("vagrant_camp_y"):
 		vagrant_camp_pos = Vector2(float(data["vagrant_camp_x"]), float(data["vagrant_camp_y"]))
-	if data.has("merchant_id"):
-		merchant_id = str(data["merchant_id"])
-	if data.has("need_hunger"):
-		need_hunger = clampf(float(data["need_hunger"]), 0.0, 100.0)
-	if data.has("digestion_buffer"):
-		digestion_buffer = clampf(float(data["digestion_buffer"]), 0.0, 100.0)
-	if data.has("need_energy"):
-		need_energy = clampf(float(data["need_energy"]), 0.0, 100.0)
-	if data.has("need_social"):
-		need_social = clampf(float(data["need_social"]), 0.0, 100.0)
-	if data.has("activity"):
-		current_activity = int(data["activity"]) as ActivityState
+	merchant_id = str(data.get("merchant_id", merchant_id))
+	need_hunger = clampf(float(data.get("need_hunger", need_hunger)), 0.0, 100.0)
+	digestion_buffer = clampf(float(data.get("digestion_buffer", digestion_buffer)), 0.0, 100.0)
+	need_energy = clampf(float(data.get("need_energy", need_energy)), 0.0, 100.0)
+	need_social = clampf(float(data.get("need_social", need_social)), 0.0, 100.0)
+	current_activity = int(data.get("activity", current_activity)) as ActivityState
 	if data.has("pos_x") and data.has("pos_y"):
 		global_position = Vector2(float(data["pos_x"]), float(data["pos_y"]))
 	if data.has("work_x") and data.has("work_y"):
@@ -3975,8 +3782,7 @@ func from_save_dict(data: Dictionary) -> void:
 	if data.has("shop_stock") and typeof(data["shop_stock"]) == TYPE_DICTIONARY:
 		shop_stock = data["shop_stock"].duplicate()
 	_resolve_unique_64_visuals_and_lore()
-	if data.has("mood"):
-		mood = clampf(float(data["mood"]), 0.0, 100.0)
+	mood = clampf(float(data.get("mood", mood)), 0.0, 100.0)
 	if data.has("thoughts") and typeof(data["thoughts"]) == TYPE_ARRAY:
 		thoughts.clear()
 		for th in (data["thoughts"] as Array):

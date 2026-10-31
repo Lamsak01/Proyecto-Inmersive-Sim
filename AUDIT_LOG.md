@@ -60,3 +60,14 @@ Este archivo registra únicamente **bugs reales de jugabilidad/lógica** detecta
   1. `DomesticPet.gd`: Firma `func(_dps = 0):` en `bleed_triggered`, desactivación de persecución hostil durante escolta/prisión y reseteo de `is_sleeping = false` + `sprite.scale` al cargar mascota viva (`[F9]`).
   2. `VillageManager.gd` y `VillageNPC.gd`: Bloqueo de interacciones `[E]` y derribos en sigilo durante `player_being_escorted_to_jail`, limpieza de `_reporting_corpse_target` al aturdir/noquear a un testigo, prioridad de comida de Taberna (`not near_tavern`), refresco de mostrador `_refresh_shop_stall_visual`, reseteo de `_craft_progress` al cambiar de receta y persistencia de `mood`/`thoughts`.
   3. Eliminadas las 26 advertencias amarillas del compilador GDScript (`godot --headless -d` ahora reporta **0 errores y 0 warnings**).
+
+---
+
+## Iteración 5 (Paso 1 Simplificación) — Commit Base para Rollback: `b01eb18`
+
+### 7. Simplificación y Compactación Data-Driven en `scripts/enemies/VillageNPC.gd` (-194 líneas netas)
+- **Archivo afectado:** `scripts/enemies/VillageNPC.gd` (`4,069` → `3,875` líneas)
+- **Cambios aplicados (100% preservación de mecánicas, lore, diálogos y guardado/carga):**
+  1. Unificados perfiles iniciales (`ROLE_INITIAL_GOLD`, `ROLE_INITIAL_MATERIALS`, `ROLE_PSYCHOLOGY`, `NPC_LORE_PROFILES`, `ROLE_FALLBACK_LORE`, `ARTISAN_RECIPES`).
+  2. Añadidos helpers reutilizables (`is_incapacitated()`, `is_conscious()`, `_stop_crafting_bar()`, `_get_pocket_loot_hint()`, `_spawn_shot_tracer()`, `_make_armor_menu()`).
+  3. Unificadas las ramas `buy` y `buy2` en `on_dialogue_action()` y compactadas las lecturas de diccionario en `from_save_dict()`.
