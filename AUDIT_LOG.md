@@ -71,3 +71,14 @@ Este archivo registra únicamente **bugs reales de jugabilidad/lógica** detecta
   1. Unificados perfiles iniciales (`ROLE_INITIAL_GOLD`, `ROLE_INITIAL_MATERIALS`, `ROLE_PSYCHOLOGY`, `NPC_LORE_PROFILES`, `ROLE_FALLBACK_LORE`, `ARTISAN_RECIPES`).
   2. Añadidos helpers reutilizables (`is_incapacitated()`, `is_conscious()`, `_stop_crafting_bar()`, `_get_pocket_loot_hint()`, `_spawn_shot_tracer()`, `_make_armor_menu()`).
   3. Unificadas las ramas `buy` y `buy2` en `on_dialogue_action()` y compactadas las lecturas de diccionario en `from_save_dict()`.
+
+---
+
+## Iteración 6 (Paso 2 Simplificación) — Commit Base para Rollback: `4f82bfc`
+
+### 8. Simplificación de Constructores UI, Autoridades y Limpieza de Nodos en `scripts/systems/VillageManager.gd` (-142 líneas netas)
+- **Archivo afectado:** `scripts/systems/VillageManager.gd` (`6,306` → `6,164` líneas)
+- **Cambios aplicados (100% preservación de mecánicas y compatibilidad de guardado):**
+  1. Añadidos los constructores modales `_build_modal_base()` y `_add_modal_btn()` en `_setup_Interactive_modals_ui()` para unificar los 5 paneles interactivos (Morgue, Policía, Tablón, Negocios y Capilla).
+  2. Añadido `_register_authority_npc()` para unificar el alta y registro de vacantes del Médico (`Dr. Valen`), Comisario (`Vane`) y Oficial (`Rodric`).
+  3. Añadido `_free_transient_npc()` en `load_economy_save_dict()` para eliminar la triplicación del desmontaje de mercaderes/inquisidor al cargar partida.

@@ -1539,39 +1539,14 @@ func _spawn_hospital_and_morgue() -> void:
 
 	# Dr. Valen (Médico Cirujano y Forense) — Mesa de comedor propia dentro del Hospital (`Vector2(764, 128)`)
 	_spawn_decor_prop("res://assests/Comprados/ Packs/Cute_Fantasy/Buildings/House_Decor/table_1.png", Vector2(764, 128))
-	var tex_doc := _load_tex("res://assests/world/village/villager_doctor.png")
-	var dr_valen := VillageNPC.new()
-	dr_valen.name = "NPC_Dr_Valen"
-	dr_valen.npc_name = "Dr. Valen"
-	dr_valen.npc_role = "Cirujano y Forense"
-	dr_valen.trade_role = VillageNPC.TradeRole.DOCTOR
-	dr_valen.tavern_social_pos = _tavern_social_pos
-	entities_root.add_child(dr_valen)
-	dr_valen.setup_npc(
-		tex_doc,
-		Vector2(745, 128),
-		Vector2(780, 132),
+	_register_authority_npc(
+		"NPC_Dr_Valen", "Dr. Valen", "Cirujano y Forense", VillageNPC.TradeRole.DOCTOR,
+		"res://assests/world/village/villager_doctor.png",
+		Vector2(745, 128), Vector2(780, 132), Vector2(764, 128),
 		{"surgical_kit": 4, "herbal_poultice": 6},
-		Vector2(764, 128),
-		"family_hospital",
-		"Cuerpo Médico del Valle"
+		"family_hospital", "Cuerpo Médico del Valle",
+		["Dr. Silvano", "Dra. Valeria", "Dr. Aurelio", "Dra. Caelia", "Dr. Mirko"]
 	)
-	authority_npcs.append(dr_valen)
-	_authority_slots.append({
-		"role": VillageNPC.TradeRole.DOCTOR,
-		"npc": dr_valen,
-		"rehire_timer": 0.0,
-		"vacancy_announced": false,
-		"work_pos": Vector2(745, 128),
-		"bed_pos": Vector2(780, 132),
-		"table_pos": Vector2(764, 128),
-		"tex_path": "res://assests/world/village/villager_doctor.png",
-		"stock": {"surgical_kit": 4, "herbal_poultice": 6},
-		"family_id": "family_hospital",
-		"family_name": "Cuerpo Médico del Valle",
-		"title": "Cirujano y Forense",
-		"name_pool": ["Dr. Silvano", "Dra. Valeria", "Dr. Aurelio", "Dra. Caelia", "Dr. Mirko"]
-	})
 
 # ==============================================================================
 # PASO 2: 🚓 COMISARÍA, 🔒 CÁRCEL Y GUARDIAS DE LA LEY (`Vector2(915, 148)`)
@@ -1645,74 +1620,38 @@ func _spawn_police_station_and_jail() -> void:
 	entities_root.add_child(_jail_label)
 
 	# Comisario Vane y Guardia Rodric (Con mesa de comedor propia en la Comisaría `Vector2(886, 126)` / `Vector2(896, 126)`)
-	var tex_sheriff := _load_tex("res://assests/world/village/villager_sheriff.png")
-	var tex_guard := _load_tex("res://assests/world/village/villager_guard.png")
-
-	var sheriff := VillageNPC.new()
-	sheriff.name = "NPC_Sheriff_Vane"
-	sheriff.npc_name = "Comisario Vane"
-	sheriff.npc_role = "Comisario Jefe"
-	sheriff.trade_role = VillageNPC.TradeRole.SHERIFF
-	sheriff.tavern_social_pos = _tavern_social_pos
-	entities_root.add_child(sheriff)
-	sheriff.setup_npc(
-		tex_sheriff,
-		Vector2(915, 126),
-		Vector2(968, 132),
-		{},
-		Vector2(886, 126),
-		"family_police",
-		"Guardia del Valle"
+	_register_authority_npc(
+		"NPC_Sheriff_Vane", "Comisario Vane", "Comisario Jefe", VillageNPC.TradeRole.SHERIFF,
+		"res://assests/world/village/villager_sheriff.png",
+		Vector2(915, 126), Vector2(968, 132), Vector2(886, 126), {},
+		"family_police", "Guardia del Valle",
+		["Comisario Thorne", "Comisaria Vance", "Comisario Haldor", "Comisaria Lyra", "Comisario Rourke"]
 	)
-	authority_npcs.append(sheriff)
-	_authority_slots.append({
-		"role": VillageNPC.TradeRole.SHERIFF,
-		"npc": sheriff,
-		"rehire_timer": 0.0,
-		"vacancy_announced": false,
-		"work_pos": Vector2(915, 126),
-		"bed_pos": Vector2(968, 132),
-		"table_pos": Vector2(886, 126),
-		"tex_path": "res://assests/world/village/villager_sheriff.png",
-		"stock": {},
-		"family_id": "family_police",
-		"family_name": "Guardia del Valle",
-		"title": "Comisario Jefe",
-		"name_pool": ["Comisario Thorne", "Comisaria Vance", "Comisario Haldor", "Comisaria Lyra", "Comisario Rourke"]
-	})
-
-	var guard := VillageNPC.new()
-	guard.name = "NPC_Guard_Rodric"
-	guard.npc_name = "Guardia Rodric"
-	guard.npc_role = "Oficial de Patrulla"
-	guard.trade_role = VillageNPC.TradeRole.GUARD
-	guard.tavern_social_pos = _tavern_social_pos
-	entities_root.add_child(guard)
-	guard.setup_npc(
-		tex_guard,
-		Vector2(510, 48), # Patrulla en torno a la Plaza Central y calles
-		Vector2(862, 132),
-		{},
-		Vector2(896, 126),
-		"family_police",
-		"Guardia del Valle"
+	_register_authority_npc(
+		"NPC_Guard_Rodric", "Guardia Rodric", "Oficial de Patrulla", VillageNPC.TradeRole.GUARD,
+		"res://assests/world/village/villager_guard.png",
+		Vector2(510, 48), Vector2(862, 132), Vector2(896, 126), {},
+		"family_police", "Guardia del Valle",
+		["Guardia Kaelen", "Guardia Darian", "Guardia Brenna", "Guardia Tormund", "Guardia Soren"]
 	)
-	authority_npcs.append(guard)
+
+func _register_authority_npc(node_name: String, npc_name_str: String, title: String, role: VillageNPC.TradeRole, tex_path: String, work_pos: Vector2, bed_pos: Vector2, table_pos: Vector2, stock: Dictionary, fam_id: String, fam_name: String, name_pool: Array) -> VillageNPC:
+	var npc := VillageNPC.new()
+	npc.name = node_name
+	npc.npc_name = npc_name_str
+	npc.npc_role = title
+	npc.trade_role = role
+	npc.tavern_social_pos = _tavern_social_pos
+	entities_root.add_child(npc)
+	npc.setup_npc(_load_tex(tex_path), work_pos, bed_pos, stock.duplicate(), table_pos, fam_id, fam_name)
+	authority_npcs.append(npc)
 	_authority_slots.append({
-		"role": VillageNPC.TradeRole.GUARD,
-		"npc": guard,
-		"rehire_timer": 0.0,
-		"vacancy_announced": false,
-		"work_pos": Vector2(510, 48),
-		"bed_pos": Vector2(862, 132),
-		"table_pos": Vector2(896, 126),
-		"tex_path": "res://assests/world/village/villager_guard.png",
-		"stock": {},
-		"family_id": "family_police",
-		"family_name": "Guardia del Valle",
-		"title": "Oficial de Patrulla",
-		"name_pool": ["Guardia Kaelen", "Guardia Darian", "Guardia Brenna", "Guardia Tormund", "Guardia Soren"]
+		"role": role, "npc": npc, "rehire_timer": 0.0, "vacancy_announced": false,
+		"work_pos": work_pos, "bed_pos": bed_pos, "table_pos": table_pos,
+		"tex_path": tex_path, "stock": stock.duplicate(),
+		"family_id": fam_id, "family_name": fam_name, "title": title, "name_pool": name_pool
 	})
+	return npc
 
 ## Devuelve la coordenada exacta en el borde del mapa (Camino Oeste `Vector2(-900, 48)` o Camino Este `Vector2(990, 48)`)
 ## desde la que cualquier nuevo habitante entra caminando físicamente al pueblo (Prohibido el respawn instantáneo en mitad de la calle).
@@ -2357,144 +2296,68 @@ func modify_family_reputation(fam_id: String, delta_amount: int, reason: String 
 # ==============================================================================
 # MODALES INTERACTIVOS (MORGUE, COMISARÍA/CÁRCEL Y TABLÓN DE ENCARGOS)
 # ==============================================================================
+func _build_modal_base(sz: Vector2, border_col: Color, font_sz: int, font_col: Color, center_align: bool = false, sep: int = 8) -> Dictionary:
+	var panel := _create_styled_modal(sz, border_col)
+	ui_layer.add_child(panel)
+	var vbox := VBoxContainer.new()
+	vbox.add_theme_constant_override("separation", sep)
+	panel.add_child(vbox)
+	var lbl := Label.new()
+	lbl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	if center_align:
+		lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	lbl.add_theme_font_size_override("font_size", font_sz)
+	lbl.add_theme_color_override("font_color", font_col)
+	vbox.add_child(lbl)
+	return {"panel": panel, "vbox": vbox, "lbl": lbl}
+
+func _add_modal_btn(vbox: VBoxContainer, txt: String, cb: Callable) -> Button:
+	var b := Button.new()
+	b.text = txt
+	b.pressed.connect(cb)
+	vbox.add_child(b)
+	return b
+
 func _setup_Interactive_modals_ui() -> void:
 	ui_layer = CanvasLayer.new()
 	ui_layer.layer = 32
 	add_child(ui_layer)
 
-	# 1. Modal de Autopsias de la Morgue Forense
-	morgue_panel = _create_styled_modal(Vector2(500, 250), Color(0.38, 0.85, 0.78))
-	ui_layer.add_child(morgue_panel)
-	var m_vbox := VBoxContainer.new()
-	m_vbox.add_theme_constant_override("separation", 8)
-	morgue_panel.add_child(m_vbox)
-	morgue_info_lbl = Label.new()
-	morgue_info_lbl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	morgue_info_lbl.add_theme_font_size_override("font_size", 11)
-	morgue_info_lbl.add_theme_color_override("font_color", Color(0.92, 0.98, 0.96))
-	m_vbox.add_child(morgue_info_lbl)
-	var m_close := Button.new()
-	m_close.text = "[1 / ESC] Cerrar Informe Forense de la Morgue"
-	m_close.pressed.connect(func(): morgue_panel.visible = false)
-	m_vbox.add_child(m_close)
+	var m1 := _build_modal_base(Vector2(500, 250), Color(0.38, 0.85, 0.78), 11, Color(0.92, 0.98, 0.96))
+	morgue_panel = m1["panel"]
+	morgue_info_lbl = m1["lbl"]
+	_add_modal_btn(m1["vbox"], "[1 / ESC] Cerrar Informe Forense de la Morgue", func(): morgue_panel.visible = false)
 
-	# 2. Modal Policial de Arresto, Fianza y Celda
-	police_panel = _create_styled_modal(Vector2(470, 230), Color(0.42, 0.72, 1.0))
-	ui_layer.add_child(police_panel)
-	var p_vbox := VBoxContainer.new()
-	p_vbox.add_theme_constant_override("separation", 8)
-	police_panel.add_child(p_vbox)
-	police_info_lbl = Label.new()
-	police_info_lbl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	police_info_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	police_info_lbl.add_theme_font_size_override("font_size", 12)
-	police_info_lbl.add_theme_color_override("font_color", Color(0.95, 0.96, 1.0))
-	p_vbox.add_child(police_info_lbl)
+	var m2 := _build_modal_base(Vector2(470, 230), Color(0.42, 0.72, 1.0), 12, Color(0.95, 0.96, 1.0), true)
+	police_panel = m2["panel"]
+	police_info_lbl = m2["lbl"]
+	_add_modal_btn(m2["vbox"], "[1] 🔒 Entregarse y cumplir condena en la Celda hasta las 06:00 AM (Limpia cargos)", func(): _on_police_serve_sentence(get_tree().get_first_node_in_group("player") as Node2D))
+	_add_modal_btn(m2["vbox"], "[2] 💰 Pagar Fianza / Multa Policial en Oro para quedar libre", func(): pay_bounty_fine(get_tree().get_first_node_in_group("player") as Node2D))
+	_add_modal_btn(m2["vbox"], "[3] 🔓 Forzar barrotes para fugarse (en Celda) / Resistirse", func(): _on_police_jailbreak_or_resist(get_tree().get_first_node_in_group("player") as Node2D))
+	_add_modal_btn(m2["vbox"], "[4 / ESC] Cerrar", func(): police_panel.visible = false)
 
-	var p_b1 := Button.new()
-	p_b1.text = "[1] 🔒 Entregarse y cumplir condena en la Celda hasta las 06:00 AM (Limpia cargos)"
-	p_b1.pressed.connect(func(): _on_police_serve_sentence(get_tree().get_first_node_in_group("player") as Node2D))
-	p_vbox.add_child(p_b1)
+	var m3 := _build_modal_base(Vector2(490, 240), Color(0.92, 0.76, 0.36), 12, Color(1.0, 0.95, 0.80), true)
+	board_panel = m3["panel"]
+	board_info_lbl = m3["lbl"]
+	_add_modal_btn(m3["vbox"], "[1] ⚒️ Encargo de Gremios: Entregar 2 Maderas o 1 Mineral Hierro (+28 Oro, +15 Afinidad)", func(): _complete_board_contract(get_tree().get_first_node_in_group("player") as Node2D, 1))
+	_add_modal_btn(m3["vbox"], "[2] 🏥 Urgencia del Hospital: Entregar 2 Hierbas o 1 Cataplasma (+26 Oro, +15 Afinidad)", func(): _complete_board_contract(get_tree().get_first_node_in_group("player") as Node2D, 2))
+	_add_modal_btn(m3["vbox"], "[3] 🚓 Cazarrecompensas: Entregar 1 Reliquia Bandido o 1 Ancas Rana (+34 Oro, -1 Cargo)", func(): _complete_board_contract(get_tree().get_first_node_in_group("player") as Node2D, 3))
+	_add_modal_btn(m3["vbox"], "[4 / ESC] Cerrar Tablón", func(): board_panel.visible = false)
 
-	var p_b2 := Button.new()
-	p_b2.text = "[2] 💰 Pagar Fianza / Multa Policial en Oro para quedar libre"
-	p_b2.pressed.connect(func(): pay_bounty_fine(get_tree().get_first_node_in_group("player") as Node2D))
-	p_vbox.add_child(p_b2)
+	var m4 := _build_modal_base(Vector2(540, 310), Color(0.96, 0.80, 0.32), 11, Color(1.0, 0.96, 0.84), false, 7)
+	business_panel = m4["panel"]
+	business_info_lbl = m4["lbl"]
+	_biz_btn_1 = _add_modal_btn(m4["vbox"], "", func(): _on_business_action_1(get_tree().get_first_node_in_group("player") as Node2D))
+	_biz_btn_2 = _add_modal_btn(m4["vbox"], "", func(): _on_business_action_2(get_tree().get_first_node_in_group("player") as Node2D))
+	_biz_btn_3 = _add_modal_btn(m4["vbox"], "", func(): _on_business_action_3(get_tree().get_first_node_in_group("player") as Node2D))
+	_biz_btn_4 = _add_modal_btn(m4["vbox"], "", func(): _on_business_action_4(get_tree().get_first_node_in_group("player") as Node2D))
+	_add_modal_btn(m4["vbox"], "[5 / ESC] Cerrar Panel del Negocio", func(): business_panel.visible = false)
 
-	var p_b3 := Button.new()
-	p_b3.text = "[3] 🔓 Forzar barrotes para fugarse (en Celda) / Resistirse"
-	p_b3.pressed.connect(func(): _on_police_jailbreak_or_resist(get_tree().get_first_node_in_group("player") as Node2D))
-	p_vbox.add_child(p_b3)
-
-	var p_b4 := Button.new()
-	p_b4.text = "[4 / ESC] Cerrar"
-	p_b4.pressed.connect(func(): police_panel.visible = false)
-	p_vbox.add_child(p_b4)
-
-	# 3. Modal del Tablón de Encargos de la Plaza Central
-	board_panel = _create_styled_modal(Vector2(490, 240), Color(0.92, 0.76, 0.36))
-	ui_layer.add_child(board_panel)
-	var b_vbox := VBoxContainer.new()
-	b_vbox.add_theme_constant_override("separation", 8)
-	board_panel.add_child(b_vbox)
-	board_info_lbl = Label.new()
-	board_info_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	board_info_lbl.add_theme_font_size_override("font_size", 12)
-	board_info_lbl.add_theme_color_override("font_color", Color(1.0, 0.95, 0.80))
-	b_vbox.add_child(board_info_lbl)
-
-	var bb1 := Button.new()
-	bb1.text = "[1] ⚒️ Encargo de Gremios: Entregar 2 Maderas o 1 Mineral Hierro (+28 Oro, +15 Afinidad)"
-	bb1.pressed.connect(func(): _complete_board_contract(get_tree().get_first_node_in_group("player") as Node2D, 1))
-	b_vbox.add_child(bb1)
-
-	var bb2 := Button.new()
-	bb2.text = "[2] 🏥 Urgencia del Hospital: Entregar 2 Hierbas o 1 Cataplasma (+26 Oro, +15 Afinidad)"
-	bb2.pressed.connect(func(): _complete_board_contract(get_tree().get_first_node_in_group("player") as Node2D, 2))
-	b_vbox.add_child(bb2)
-
-	var bb3 := Button.new()
-	bb3.text = "[3] 🚓 Cazarrecompensas: Entregar 1 Reliquia Bandido o 1 Ancas Rana (+34 Oro, -1 Cargo)"
-	bb3.pressed.connect(func(): _complete_board_contract(get_tree().get_first_node_in_group("player") as Node2D, 3))
-	b_vbox.add_child(bb3)
-
-	var bb4 := Button.new()
-	bb4.text = "[4 / ESC] Cerrar Tablón"
-	bb4.pressed.connect(func(): board_panel.visible = false)
-	b_vbox.add_child(bb4)
-
-	# 4. Modal de Gestión de Negocios, Oferta/Demanda, Sabotaje y Escrituras de Propiedad (Fase 8)
-	business_panel = _create_styled_modal(Vector2(540, 310), Color(0.96, 0.80, 0.32))
-	ui_layer.add_child(business_panel)
-	var biz_vbox := VBoxContainer.new()
-	biz_vbox.add_theme_constant_override("separation", 7)
-	business_panel.add_child(biz_vbox)
-	business_info_lbl = Label.new()
-	business_info_lbl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	business_info_lbl.add_theme_font_size_override("font_size", 11)
-	business_info_lbl.add_theme_color_override("font_color", Color(1.0, 0.96, 0.84))
-	biz_vbox.add_child(business_info_lbl)
-
-	_biz_btn_1 = Button.new()
-	_biz_btn_1.pressed.connect(func(): _on_business_action_1(get_tree().get_first_node_in_group("player") as Node2D))
-	biz_vbox.add_child(_biz_btn_1)
-
-	_biz_btn_2 = Button.new()
-	_biz_btn_2.pressed.connect(func(): _on_business_action_2(get_tree().get_first_node_in_group("player") as Node2D))
-	biz_vbox.add_child(_biz_btn_2)
-
-	_biz_btn_3 = Button.new()
-	_biz_btn_3.pressed.connect(func(): _on_business_action_3(get_tree().get_first_node_in_group("player") as Node2D))
-	biz_vbox.add_child(_biz_btn_3)
-
-	_biz_btn_4 = Button.new()
-	_biz_btn_4.pressed.connect(func(): _on_business_action_4(get_tree().get_first_node_in_group("player") as Node2D))
-	biz_vbox.add_child(_biz_btn_4)
-
-	var biz_close := Button.new()
-	biz_close.text = "[5 / ESC] Cerrar Panel del Negocio"
-	biz_close.pressed.connect(func(): business_panel.visible = false)
-	biz_vbox.add_child(biz_close)
-
-	# 5. Modal de la Capilla de San Cipriano y Libro de Sepulturas del Cementerio Parroquial
-	church_panel = _create_styled_modal(Vector2(520, 285), Color(0.82, 0.72, 0.96))
-	ui_layer.add_child(church_panel)
-	var ch_vbox := VBoxContainer.new()
-	ch_vbox.add_theme_constant_override("separation", 8)
-	church_panel.add_child(ch_vbox)
-	church_info_lbl = Label.new()
-	church_info_lbl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	church_info_lbl.add_theme_font_size_override("font_size", 11)
-	church_info_lbl.add_theme_color_override("font_color", Color(0.95, 0.92, 1.0))
-	ch_vbox.add_child(church_info_lbl)
-	var ch_pray := Button.new()
-	ch_pray.text = "[1] 🕯️ Encender Vela y Orar por los Difuntos (-5 Oro -> +Calma / +Reputación Vecinal)"
-	ch_pray.pressed.connect(func(): _on_church_pray_action(get_tree().get_first_node_in_group("player") as Node2D))
-	ch_vbox.add_child(ch_pray)
-	var ch_close := Button.new()
-	ch_close.text = "[2 / ESC] Cerrar Libro Parroquial de Difuntos"
-	ch_close.pressed.connect(func(): church_panel.visible = false)
-	ch_vbox.add_child(ch_close)
+	var m5 := _build_modal_base(Vector2(520, 285), Color(0.82, 0.72, 0.96), 11, Color(0.95, 0.92, 1.0))
+	church_panel = m5["panel"]
+	church_info_lbl = m5["lbl"]
+	_add_modal_btn(m5["vbox"], "[1] 🕯️ Encender Vela y Orar por los Difuntos (-5 Oro -> +Calma / +Reputación Vecinal)", func(): _on_church_pray_action(get_tree().get_first_node_in_group("player") as Node2D))
+	_add_modal_btn(m5["vbox"], "[2 / ESC] Cerrar Libro Parroquial de Difuntos", func(): church_panel.visible = false)
 
 func _create_styled_modal(sz: Vector2, border_col: Color) -> PanelContainer:
 	var panel := PanelContainer.new()
@@ -6041,6 +5904,16 @@ func get_economy_save_dict() -> Dictionary:
 		"deployed_bear_traps": saved_traps
 	}
 
+func _free_transient_npc(npc: VillageNPC) -> void:
+	if not is_instance_valid(npc):
+		return
+	npc.remove_from_group("village_npcs")
+	npc.remove_from_group("npcs")
+	npc.name = "_freed_npc_" + str(npc.get_instance_id())
+	if npc.get_parent():
+		npc.get_parent().remove_child(npc)
+	npc.queue_free()
+
 func load_economy_save_dict(data: Dictionary) -> void:
 	village_food_shortage_days = int(data.get("village_food_shortage_days", 0))
 	player_arrests_count = int(data.get("player_arrests_count", 0))
@@ -6119,22 +5992,12 @@ func load_economy_save_dict(data: Dictionary) -> void:
 		var m_data: Dictionary = data["active_traveling_merchant"] as Dictionary
 		if m_data.is_empty() or bool(m_data.get("is_dead", false)):
 			if is_instance_valid(_active_traveling_merchant) and not _active_traveling_merchant.is_dead:
-				_active_traveling_merchant.remove_from_group("village_npcs")
-				_active_traveling_merchant.remove_from_group("npcs")
-				_active_traveling_merchant.name = "_freed_merchant_" + str(_active_traveling_merchant.get_instance_id())
-				if _active_traveling_merchant.get_parent():
-					_active_traveling_merchant.get_parent().remove_child(_active_traveling_merchant)
-				_active_traveling_merchant.queue_free()
+				_free_transient_npc(_active_traveling_merchant)
 				_active_traveling_merchant = null
 		else:
 			var m_id_saved: String = str(m_data.get("merchant_id", "casimir"))
 			if is_instance_valid(_active_traveling_merchant) and _active_traveling_merchant.merchant_id != m_id_saved and not _active_traveling_merchant.is_dead:
-				_active_traveling_merchant.remove_from_group("village_npcs")
-				_active_traveling_merchant.remove_from_group("npcs")
-				_active_traveling_merchant.name = "_freed_merchant_" + str(_active_traveling_merchant.get_instance_id())
-				if _active_traveling_merchant.get_parent():
-					_active_traveling_merchant.get_parent().remove_child(_active_traveling_merchant)
-				_active_traveling_merchant.queue_free()
+				_free_transient_npc(_active_traveling_merchant)
 				_active_traveling_merchant = null
 			if not is_instance_valid(_active_traveling_merchant):
 				_check_weekly_merchant_arrival(3 if m_id_saved == "casimir" else 6, true, true)
@@ -6158,12 +6021,7 @@ func load_economy_save_dict(data: Dictionary) -> void:
 						_royal_investigator_npc.add_to_group("enemies")
 		else:
 			if is_instance_valid(_royal_investigator_npc) and not _royal_investigator_npc.is_dead:
-				_royal_investigator_npc.remove_from_group("village_npcs")
-				_royal_investigator_npc.remove_from_group("npcs")
-				_royal_investigator_npc.name = "_freed_inquisitor_" + str(_royal_investigator_npc.get_instance_id())
-				if _royal_investigator_npc.get_parent():
-					_royal_investigator_npc.get_parent().remove_child(_royal_investigator_npc)
-				_royal_investigator_npc.queue_free()
+				_free_transient_npc(_royal_investigator_npc)
 				_royal_investigator_npc = null
 	if data.has("domestic_pets") and typeof(data["domestic_pets"]) == TYPE_ARRAY:
 		var p_arr: Array = data["domestic_pets"] as Array
