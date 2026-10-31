@@ -14,716 +14,99 @@ signal recipe_crafted(recipe_id: String, result_item: String)
 signal armor_changed()
 
 const ARMOR_SLOTS: Array[String] = ["HEAD", "CHEST", "LEGS", "BOOTS"]
-const ARMOR_SLOT_NAMES: Dictionary = {
-	"HEAD": "Casco",
-	"CHEST": "Pecho",
-	"LEGS": "Piernas",
-	"BOOTS": "Botas"
-}
+const ARMOR_SLOT_NAMES: Dictionary = {"HEAD": "Casco", "CHEST": "Pecho", "LEGS": "Piernas", "BOOTS": "Botas"}
 
 const CATALOG: Dictionary = {
-	"wood": {
-		"name": "Madera",
-		"category": "Material",
-		"desc": "Troncos obtenidos talando árboles ([3] Hacha). Útil para leña, mejoras y construcción.",
-		"usable": false
-	},
-	"stone": {
-		"name": "Piedra",
-		"category": "Material",
-		"desc": "Roca firme extraída con herramientas de minería ([4] Pico).",
-		"usable": false
-	},
-	"iron_ore": {
-		"name": "Mineral de Hierro",
-		"category": "Material",
-		"desc": "Mineral bruto extraído de vetas rocosas. Esencial en la Herrería para forjar y mejorar herramientas.",
-		"usable": false
-	},
-	"steel_ingot": {
-		"name": "Lingote de Acero",
-		"category": "Material",
-		"desc": "Aleación refinada de hierro y carbón de leña. Permite forjar equipo y herramientas de Tier 3.",
-		"usable": false
-	},
-	"herbs": {
-		"name": "Hierbas Medicinales",
-		"category": "Forrajeo",
-		"desc": "Plantas silvestres coagulantes. Úsalas directo (+10 HP, corta sangrado) o craftea vendajes.",
-		"usable": true,
-		"heal_hp": 10.0,
-		"stop_bleed": true
-	},
-	"mushroom": {
-		"name": "Hongo Silvestre",
-		"category": "Forrajeo",
-		"desc": "Hongo del bosque. Comestible crudo (+12 HP, +15 Hambre) o cocinable en la cacerola.",
-		"usable": true,
-		"heal_hp": 12.0,
-		"restore_stamina": 20.0,
-		"restore_hunger": 15.0
-	},
-	"crop_seeds": {
-		"name": "Semillas del Valle",
-		"category": "Agricultura",
-		"desc": "Semillas silvestres del bosque. Puedes usarlas o intercambiarlas en la Herboristería.",
-		"usable": false
-	},
-	"carrot_seeds": {
-		"name": "Semillas de Zanahoria",
-		"category": "Agricultura",
-		"desc": "Ciclo rápido (2 días, o 1 día con abono). Pulsa [E] en tierra vacía para plantar o [R] para alternar.",
-		"usable": true,
-		"is_seed": true
-	},
-	"cabbage_seeds": {
-		"name": "Semillas de Col",
-		"category": "Agricultura",
-		"desc": "Ciclo medio (3 días, o 2 días con abono). Cosecha abundante y muy nutritiva.",
-		"usable": true,
-		"is_seed": true
-	},
-	"wheat_seeds": {
-		"name": "Semillas de Trigo",
-		"category": "Agricultura",
-		"desc": "Ciclo largo (4 días, o 3 días con abono). Produce trigo para hornear pan.",
-		"usable": true,
-		"is_seed": true
-	},
-	"fertilizer": {
-		"name": "Abono Orgánico",
-		"category": "Agricultura",
-		"desc": "Compost nutritivo. Aplícalo con [E] en un cultivo regado para adelantar +1 día y obtener +1 cosecha extra.",
-		"usable": false
-	},
-	"carrot": {
-		"name": "Zanahoria Fresca",
-		"category": "Cosecha",
-		"desc": "Hortaliza crujiente (+16 HP, +22 Hambre). Puedes cocinarla en la cacerola de la hoguera.",
-		"usable": true,
-		"heal_hp": 16.0,
-		"restore_stamina": 25.0,
-		"restore_hunger": 22.0
-	},
-	"cabbage": {
-		"name": "Col de Huerta",
-		"category": "Cosecha",
-		"desc": "Repollo grande (+30 HP, +32 Hambre). Puedes cocinarlo en la cacerola de la hoguera.",
-		"usable": true,
-		"heal_hp": 30.0,
-		"restore_stamina": 40.0,
-		"restore_hunger": 32.0
-	},
-	"wheat": {
-		"name": "Gavilla de Trigo",
-		"category": "Cosecha",
-		"desc": "Cereal maduro listo para hornear Pan o alimentar a las gallinas.",
-		"usable": false
-	},
-	"cooked_vegetable": {
-		"name": "Verdura Cocida",
-		"category": "Alimento",
-		"desc": "Plato caliente preparado en la cacerola de la hoguera (+28 HP, +40 STM, +45 Hambre).",
-		"usable": true,
-		"heal_hp": 28.0,
-		"restore_stamina": 40.0,
-		"restore_hunger": 45.0
-	},
-	"egg": {
-		"name": "Huevo Fresco",
-		"category": "Ganadería",
-		"desc": "Huevo recién puesto en el Gallinero. Cómetelo crudo (+10 HP, +18 Hambre) o cocínalo en la hoguera.",
-		"usable": true,
-		"heal_hp": 10.0,
-		"restore_stamina": 15.0,
-		"restore_hunger": 18.0
-	},
-	"cooked_egg": {
-		"name": "Huevo Cocido",
-		"category": "Alimento",
-		"desc": "Huevo caliente hecho en la cacerola (+24 HP, +35 STM, +38 Hambre).",
-		"usable": true,
-		"heal_hp": 24.0,
-		"restore_stamina": 35.0,
-		"restore_hunger": 38.0
-	},
-	"raw_chicken": {
-		"name": "Pollo Crudo",
-		"category": "Ganadería",
-		"desc": "Ave desplumada del gallinero. Puedes comerla en emergencia (+12 HP, +22 Hambre) o asarla al fuego.",
-		"usable": true,
-		"heal_hp": 12.0,
-		"restore_stamina": 15.0,
-		"restore_hunger": 22.0
-	},
-	"roasted_chicken": {
-		"name": "Pollo Asado",
-		"category": "Alimento",
-		"desc": "Pollo dorado y jugoso hecho al fuego (+48 HP, +65 STM, +68 Hambre).",
-		"usable": true,
-		"heal_hp": 48.0,
-		"restore_stamina": 65.0,
-		"restore_hunger": 68.0
-	},
-	"feather": {
-		"name": "Plumas de Ave",
-		"category": "Ganadería",
-		"desc": "Plumas suaves obtenidas de las gallinas. Útiles para emplumar flechas o vender en el pueblo.",
-		"usable": false
-	},
-	"frog_legs": {
-		"name": "Ancas de Rana Crudas",
-		"category": "Caza (Ciénaga)",
-		"desc": "Ancas frescas obtenidas al cazar ranas en la Ciénaga de la Llanura del Oeste. Cocínalas en la hoguera.",
-		"usable": false,
-		"icon": "res://assests/items/icons/frog_legs.png"
-	},
-	"fried_frog_legs": {
-		"name": "Ancas de Rana al Ajillo",
-		"category": "Alimento",
-		"desc": "Plato gourmet crujiente de la Ciénaga (+50 HP, +70 STM, +65 Hambre).",
-		"usable": true,
-		"heal_hp": 50.0,
-		"restore_stamina": 70.0,
-		"restore_hunger": 65.0,
-		"icon": "res://assests/items/icons/fried_frog_legs.png"
-	},
-	"bandit_scrap": {
-		"name": "Reliquia y Chatarra de Bandido",
-		"category": "Botín (Llanura)",
-		"desc": "Metal antiguo y monedas del campamento hostil del Oeste. Muy cotizado en la Herrería o para fundir acero.",
-		"usable": false,
-		"icon": "res://assests/items/icons/bandit_scrap.png"
-	},
-	"river_trout": {
-		"name": "Trucha de Río",
-		"category": "Pesca",
-		"desc": "Pez de aguas frescas capturado de día. Cocínalo en la cacerola o véndelo en la Pescadería.",
-		"usable": false
-	},
-	"golden_carp": {
-		"name": "Carpa Dorada",
-		"category": "Pesca",
-		"desc": "Pez brillante y cotizado del lago. Cocínalo o véndelo a buen precio.",
-		"usable": false
-	},
-	"night_catfish": {
-		"name": "Siluro Nocturno",
-		"category": "Pesca",
-		"desc": "Gran pez de fondo que solo pica al atardecer y de noche. Muy valioso.",
-		"usable": false
-	},
-	"cooked_fish": {
-		"name": "Pescado Cocido",
-		"category": "Alimento",
-		"desc": "Filete de pescado recién hecho en la cacerola (+36 HP, +55 STM, +52 Hambre).",
-		"usable": true,
-		"heal_hp": 36.0,
-		"restore_stamina": 55.0,
-		"restore_hunger": 52.0
-	},
-	"country_stew": {
-		"name": "Estofado Campesino",
-		"category": "Alimento",
-		"desc": "Guiso caliente de carne, col y zanahoria (+55 HP, +75 STM, +80 Hambre).",
-		"usable": true,
-		"heal_hp": 55.0,
-		"restore_stamina": 75.0,
-		"restore_hunger": 80.0
-	},
-	"bandage": {
-		"name": "Vendaje Limpio",
-		"category": "Curación",
-		"desc": "Corta cualquier hemorragia al instante y restaura +20 HP.",
-		"usable": true,
-		"heal_hp": 20.0,
-		"stop_bleed": true
-	},
-	"herbal_poultice": {
-		"name": "Cataplasma Curativa",
-		"category": "Curación",
-		"desc": "Ungüento concentrado de hierbas y hongos. Corta el sangrado y cura +40 HP.",
-		"usable": true,
-		"heal_hp": 40.0,
-		"stop_bleed": true
-	},
-	"bread": {
-		"name": "Hogaza de Pan",
-		"category": "Alimento",
-		"desc": "Pan horneado (+20 HP, +35 STM, +40 Hambre).",
-		"usable": true,
-		"heal_hp": 20.0,
-		"restore_stamina": 35.0,
-		"restore_hunger": 40.0
-	},
-	"roasted_mushroom": {
-		"name": "Hongos Asados",
-		"category": "Alimento",
-		"desc": "Brocheta caliente hecha al fuego (+30 HP, +45 STM, +35 Hambre).",
-		"usable": true,
-		"heal_hp": 30.0,
-		"restore_stamina": 45.0,
-		"restore_hunger": 35.0
-	},
-	"raw_meat": {
-		"name": "Carne Cruda",
-		"category": "Caza",
-		"desc": "Carne fresca obtenida cazando fauna del bosque o dando de comer a mascotas. Cocínala al fuego.",
-		"usable": false
-	},
-	"leather": {
-		"name": "Cuero Animal",
-		"category": "Despiece",
-		"desc": "Piel obtenida al desollar animales. Base para confeccionar armaduras y empuñaduras.",
-		"usable": false
-	},
-	"fox_pelt": {
-		"name": "Piel de Zorro",
-		"category": "Despiece",
-		"desc": "Pelaje tupido y valioso de depredador del bosque. Muy cotizado en la Carnicería y Herrería.",
-		"usable": false
-	},
-	"bones": {
-		"name": "Huesos",
-		"category": "Despiece",
-		"desc": "Huesos limpios obtenidos del despiece. Sirven para tallar mangos o hacer abono.",
-		"usable": false
-	},
-	"antlers": {
-		"name": "Astas y Cuernos",
-		"category": "Despiece",
-		"desc": "Cornamenta firme ideal para empuñaduras de armas o venta a buen precio.",
-		"usable": false
-	},
-	"sinew_viscera": {
-		"name": "Vísceras y Tendones",
-		"category": "Despiece",
-		"desc": "Fibras resistentes para fabricar cuerdas de arco y costuras de armadura.",
-		"usable": false
-	},
-	"animal_fat": {
-		"name": "Grasa Animal",
-		"category": "Despiece",
-		"desc": "Sebo útil para templar acero, ungüentos o impermeabilizar cuero.",
-		"usable": false
-	},
-	"cooked_meat": {
-		"name": "Carne Cocida",
-		"category": "Alimento",
-		"desc": "Carne cocinada en la cacerola de la hoguera (+40 HP, +60 STM, +55 Hambre).",
-		"usable": true,
-		"heal_hp": 40.0,
-		"restore_stamina": 60.0,
-		"restore_hunger": 55.0
-	},
-	"repair_kit": {
-		"name": "Tablones Reforzados",
-		"category": "Construcción",
-		"desc": "Material elaborado con madera y piedra para construir o comerciar en el pueblo.",
-		"usable": false
-	},
-	"sleeping_draught": {
-		"name": "Somnífero Nocturno",
-		"category": "Alquimia / Sigilo",
-		"desc": "Elixir sedante de la Botica. Úsalo cerca de un NPC o guardia para dormirlo profundamente 40s sin matarlo ni dejar rastro forense.",
-		"usable": true,
-		"is_sleeping_draught": true,
-		"icon": "res://assests/items/icons/sleeping_draught.png"
-	},
-	"speed_tonic": {
-		"name": "Tónico de Velocidad",
-		"category": "Alquimia",
-		"desc": "Destilado energético (+65 STM y +25% Velocidad de movimiento durante 35 segundos).",
-		"usable": true,
-		"restore_stamina": 65.0,
-		"speed_buff_duration": 35.0,
-		"icon": "res://assests/items/icons/speed_tonic.png"
-	},
-	"surgical_kit": {
-		"name": "Botiquín Quirúrgico",
-		"category": "Medicina Hospitalaria",
-		"desc": "Instrumental del Dr. Valen. Corta hemorragias, cura +85 HP o reanima al instante a un aldeano agonizando.",
-		"usable": true,
-		"heal_hp": 85.0,
-		"stop_bleed": true,
-		"icon": "res://assests/items/icons/surgical_kit.png"
-	},
-	"golden_egg": {
-		"name": "Huevo Dorado (Genética Nv.3)",
-		"category": "Ganadería Selecta",
-		"desc": "Huevo extraordinario puesto por gallinas de Genética Nv.3 (+75 HP, +90 STM, +85 Hambre o véndelo por 35 Oro).",
-		"usable": true,
-		"heal_hp": 75.0,
-		"restore_stamina": 90.0,
-		"restore_hunger": 85.0,
-		"icon": "res://assests/items/icons/golden_egg.png"
-	},
-	"copper_coil": {
-		"name": "Bobina de Cobre Antiguo",
-		"category": "Tecnología / Ingeniería",
-		"desc": "Conductor electromagnético para construir o mejorar el Generador Antiguo y el Aspersor Automático.",
-		"usable": false,
-		"icon": "res://assests/items/icons/copper_coil.png"
-	},
-	"royal_safe_conduct": {
-		"name": "Salvoconducto Real Sellado",
-		"category": "Documento de la Corona",
-		"desc": "Cédula oficial con sello de lacre del Reino que autoriza a cruzar las fronteras del valle. ¡Cuidado: si un Investigador Real te lo encuentra encima tras la muerte de un mercader, será prueba irrefutable!",
-		"usable": false
-	},
-	"royal_ration": {
-		"name": "Conserva Real de Extramuros",
-		"category": "Importación Exótica",
-		"desc": "Ración militar especiada traída de la capital por mercaderes con salvoconducto (+60 HP, +80 STM, +90 Hambre).",
-		"usable": true,
-		"heal_hp": 60.0,
-		"restore_stamina": 80.0,
-		"restore_hunger": 90.0
-	},
-	"master_lockpick": {
-		"name": "Ganzúa Maestra de Relojero",
-		"category": "Herramienta Real (Casimir)",
-		"desc": "Instrumental de precisión de las Tierras Reales. Mientras la lleves en el inventario, reduces un 65% el radio de detección de testigos al forzar puertas ([F]) o cofres privados ([E]).",
-		"usable": true,
-		"is_passive_tool": true,
-		"icon": "res://assests/items/icons/master_lockpick.png"
-	},
-	"steel_bear_trap": {
-		"name": "Cepo de Acero de Frontera",
-		"category": "Trampa Táctica (Casimir)",
-		"desc": "Trampa mecánica dentada de las Tierras Reales. Úsala en el inventario para desplegarla en el suelo: atrapa al primer animal salvaje o enemigo hostil que la pise (35 Daño, Sangrado y 100 Stun).",
-		"usable": true,
-		"is_bear_trap": true,
-		"icon": "res://assests/items/icons/steel_bear_trap.png"
-	},
-	"ranger_camo_cloak": {
-		"name": "Manto de Camuflaje Montaraz",
-		"category": "Equipo de Sigilo (Valeria)",
-		"desc": "Capa mimética de las Tierras Reales. Mientras la lleves en el inventario, reduce un 40% la distancia a la que te detectan guardias, animales salvajes y el Investigador Real.",
-		"usable": true,
-		"is_passive_tool": true,
-		"icon": "res://assests/items/icons/ranger_camo_cloak.png"
-	},
-	"royal_paralytic_venom": {
-		"name": "Veneno Paralizante de Extramuros",
-		"category": "Alquimia Exótica (Valeria)",
-		"desc": "Destilado neurotóxico de las Tierras Reales. Impregna tu arma o flechas durante 60s: cada impacto aplica +50 de Stun/Parálisis adicional.",
-		"usable": true,
-		"venom_buff_duration": 60.0,
-		"icon": "res://assests/items/icons/royal_paralytic_venom.png"
-	},
+	"wood": {"name": "Madera", "category": "Material", "desc": "Troncos obtenidos talando árboles ([3] Hacha). Útil para leña, mejoras y construcción.", "usable": false},
+	"stone": {"name": "Piedra", "category": "Material", "desc": "Roca firme extraída con herramientas de minería ([4] Pico).", "usable": false},
+	"iron_ore": {"name": "Mineral de Hierro", "category": "Material", "desc": "Mineral bruto extraído de vetas rocosas. Esencial en la Herrería para forjar y mejorar herramientas.", "usable": false},
+	"steel_ingot": {"name": "Lingote de Acero", "category": "Material", "desc": "Aleación refinada de hierro y carbón de leña. Permite forjar equipo y herramientas de Tier 3.", "usable": false},
+	"herbs": {"name": "Hierbas Medicinales", "category": "Forrajeo", "desc": "Plantas silvestres coagulantes. Úsalas directo (+10 HP, corta sangrado) o craftea vendajes.", "usable": true, "heal_hp": 10.0, "stop_bleed": true},
+	"mushroom": {"name": "Hongo Silvestre", "category": "Forrajeo", "desc": "Hongo del bosque. Comestible crudo (+12 HP, +15 Hambre) o cocinable en la cacerola.", "usable": true, "heal_hp": 12.0, "restore_stamina": 20.0, "restore_hunger": 15.0},
+	"crop_seeds": {"name": "Semillas del Valle", "category": "Agricultura", "desc": "Semillas silvestres del bosque. Puedes usarlas o intercambiarlas en la Herboristería.", "usable": false},
+	"carrot_seeds": {"name": "Semillas de Zanahoria", "category": "Agricultura", "desc": "Ciclo rápido (2 días, o 1 día con abono). Pulsa [E] en tierra vacía para plantar o [R] para alternar.", "usable": true, "is_seed": true},
+	"cabbage_seeds": {"name": "Semillas de Col", "category": "Agricultura", "desc": "Ciclo medio (3 días, o 2 días con abono). Cosecha abundante y muy nutritiva.", "usable": true, "is_seed": true},
+	"wheat_seeds": {"name": "Semillas de Trigo", "category": "Agricultura", "desc": "Ciclo largo (4 días, o 3 días con abono). Produce trigo para hornear pan.", "usable": true, "is_seed": true},
+	"fertilizer": {"name": "Abono Orgánico", "category": "Agricultura", "desc": "Compost nutritivo. Aplícalo con [E] en un cultivo regado para adelantar +1 día y obtener +1 cosecha extra.", "usable": false},
+	"carrot": {"name": "Zanahoria Fresca", "category": "Cosecha", "desc": "Hortaliza crujiente (+16 HP, +22 Hambre). Puedes cocinarla en la cacerola de la hoguera.", "usable": true, "heal_hp": 16.0, "restore_stamina": 25.0, "restore_hunger": 22.0},
+	"cabbage": {"name": "Col de Huerta", "category": "Cosecha", "desc": "Repollo grande (+30 HP, +32 Hambre). Puedes cocinarlo en la cacerola de la hoguera.", "usable": true, "heal_hp": 30.0, "restore_stamina": 40.0, "restore_hunger": 32.0},
+	"wheat": {"name": "Gavilla de Trigo", "category": "Cosecha", "desc": "Cereal maduro listo para hornear Pan o alimentar a las gallinas.", "usable": false},
+	"cooked_vegetable": {"name": "Verdura Cocida", "category": "Alimento", "desc": "Plato caliente preparado en la cacerola de la hoguera (+28 HP, +40 STM, +45 Hambre).", "usable": true, "heal_hp": 28.0, "restore_stamina": 40.0, "restore_hunger": 45.0},
+	"egg": {"name": "Huevo Fresco", "category": "Ganadería", "desc": "Huevo recién puesto en el Gallinero. Cómetelo crudo (+10 HP, +18 Hambre) o cocínalo en la hoguera.", "usable": true, "heal_hp": 10.0, "restore_stamina": 15.0, "restore_hunger": 18.0},
+	"cooked_egg": {"name": "Huevo Cocido", "category": "Alimento", "desc": "Huevo caliente hecho en la cacerola (+24 HP, +35 STM, +38 Hambre).", "usable": true, "heal_hp": 24.0, "restore_stamina": 35.0, "restore_hunger": 38.0},
+	"raw_chicken": {"name": "Pollo Crudo", "category": "Ganadería", "desc": "Ave desplumada del gallinero. Puedes comerla en emergencia (+12 HP, +22 Hambre) o asarla al fuego.", "usable": true, "heal_hp": 12.0, "restore_stamina": 15.0, "restore_hunger": 22.0},
+	"roasted_chicken": {"name": "Pollo Asado", "category": "Alimento", "desc": "Pollo dorado y jugoso hecho al fuego (+48 HP, +65 STM, +68 Hambre).", "usable": true, "heal_hp": 48.0, "restore_stamina": 65.0, "restore_hunger": 68.0},
+	"feather": {"name": "Plumas de Ave", "category": "Ganadería", "desc": "Plumas suaves obtenidas de las gallinas. Útiles para emplumar flechas o vender en el pueblo.", "usable": false},
+	"frog_legs": {"name": "Ancas de Rana Crudas", "category": "Caza (Ciénaga)", "desc": "Ancas frescas obtenidas al cazar ranas en la Ciénaga de la Llanura del Oeste. Cocínalas en la hoguera.", "usable": false, "icon": "res://assests/items/icons/frog_legs.png"},
+	"fried_frog_legs": {"name": "Ancas de Rana al Ajillo", "category": "Alimento", "desc": "Plato gourmet crujiente de la Ciénaga (+50 HP, +70 STM, +65 Hambre).", "usable": true, "heal_hp": 50.0, "restore_stamina": 70.0, "restore_hunger": 65.0, "icon": "res://assests/items/icons/fried_frog_legs.png"},
+	"bandit_scrap": {"name": "Reliquia y Chatarra de Bandido", "category": "Botín (Llanura)", "desc": "Metal antiguo y monedas del campamento hostil del Oeste. Muy cotizado en la Herrería o para fundir acero.", "usable": false, "icon": "res://assests/items/icons/bandit_scrap.png"},
+	"river_trout": {"name": "Trucha de Río", "category": "Pesca", "desc": "Pez de aguas frescas capturado de día. Cocínalo en la cacerola o véndelo en la Pescadería.", "usable": false},
+	"golden_carp": {"name": "Carpa Dorada", "category": "Pesca", "desc": "Pez brillante y cotizado del lago. Cocínalo o véndelo a buen precio.", "usable": false},
+	"night_catfish": {"name": "Siluro Nocturno", "category": "Pesca", "desc": "Gran pez de fondo que solo pica al atardecer y de noche. Muy valioso.", "usable": false},
+	"cooked_fish": {"name": "Pescado Cocido", "category": "Alimento", "desc": "Filete de pescado recién hecho en la cacerola (+36 HP, +55 STM, +52 Hambre).", "usable": true, "heal_hp": 36.0, "restore_stamina": 55.0, "restore_hunger": 52.0},
+	"country_stew": {"name": "Estofado Campesino", "category": "Alimento", "desc": "Guiso caliente de carne, col y zanahoria (+55 HP, +75 STM, +80 Hambre).", "usable": true, "heal_hp": 55.0, "restore_stamina": 75.0, "restore_hunger": 80.0},
+	"bandage": {"name": "Vendaje Limpio", "category": "Curación", "desc": "Corta cualquier hemorragia al instante y restaura +20 HP.", "usable": true, "heal_hp": 20.0, "stop_bleed": true},
+	"herbal_poultice": {"name": "Cataplasma Curativa", "category": "Curación", "desc": "Ungüento concentrado de hierbas y hongos. Corta el sangrado y cura +40 HP.", "usable": true, "heal_hp": 40.0, "stop_bleed": true},
+	"bread": {"name": "Hogaza de Pan", "category": "Alimento", "desc": "Pan horneado (+20 HP, +35 STM, +40 Hambre).", "usable": true, "heal_hp": 20.0, "restore_stamina": 35.0, "restore_hunger": 40.0},
+	"roasted_mushroom": {"name": "Hongos Asados", "category": "Alimento", "desc": "Brocheta caliente hecha al fuego (+30 HP, +45 STM, +35 Hambre).", "usable": true, "heal_hp": 30.0, "restore_stamina": 45.0, "restore_hunger": 35.0},
+	"raw_meat": {"name": "Carne Cruda", "category": "Caza", "desc": "Carne fresca obtenida cazando fauna del bosque o dando de comer a mascotas. Cocínala al fuego.", "usable": false},
+	"leather": {"name": "Cuero Animal", "category": "Despiece", "desc": "Piel obtenida al desollar animales. Base para confeccionar armaduras y empuñaduras.", "usable": false},
+	"fox_pelt": {"name": "Piel de Zorro", "category": "Despiece", "desc": "Pelaje tupido y valioso de depredador del bosque. Muy cotizado en la Carnicería y Herrería.", "usable": false},
+	"bones": {"name": "Huesos", "category": "Despiece", "desc": "Huesos limpios obtenidos del despiece. Sirven para tallar mangos o hacer abono.", "usable": false},
+	"antlers": {"name": "Astas y Cuernos", "category": "Despiece", "desc": "Cornamenta firme ideal para empuñaduras de armas o venta a buen precio.", "usable": false},
+	"sinew_viscera": {"name": "Vísceras y Tendones", "category": "Despiece", "desc": "Fibras resistentes para fabricar cuerdas de arco y costuras de armadura.", "usable": false},
+	"animal_fat": {"name": "Grasa Animal", "category": "Despiece", "desc": "Sebo útil para templar acero, ungüentos o impermeabilizar cuero.", "usable": false},
+	"cooked_meat": {"name": "Carne Cocida", "category": "Alimento", "desc": "Carne cocinada en la cacerola de la hoguera (+40 HP, +60 STM, +55 Hambre).", "usable": true, "heal_hp": 40.0, "restore_stamina": 60.0, "restore_hunger": 55.0},
+	"repair_kit": {"name": "Tablones Reforzados", "category": "Construcción", "desc": "Material elaborado con madera y piedra para construir o comerciar en el pueblo.", "usable": false},
+	"sleeping_draught": {"name": "Somnífero Nocturno", "category": "Alquimia / Sigilo", "desc": "Elixir sedante de la Botica. Úsalo cerca de un NPC o guardia para dormirlo profundamente 40s sin matarlo ni dejar rastro forense.", "usable": true, "is_sleeping_draught": true, "icon": "res://assests/items/icons/sleeping_draught.png"},
+	"speed_tonic": {"name": "Tónico de Velocidad", "category": "Alquimia", "desc": "Destilado energético (+65 STM y +25% Velocidad de movimiento durante 35 segundos).", "usable": true, "restore_stamina": 65.0, "speed_buff_duration": 35.0, "icon": "res://assests/items/icons/speed_tonic.png"},
+	"surgical_kit": {"name": "Botiquín Quirúrgico", "category": "Medicina Hospitalaria", "desc": "Instrumental del Dr. Valen. Corta hemorragias, cura +85 HP o reanima al instante a un aldeano agonizando.", "usable": true, "heal_hp": 85.0, "stop_bleed": true, "icon": "res://assests/items/icons/surgical_kit.png"},
+	"golden_egg": {"name": "Huevo Dorado (Genética Nv.3)", "category": "Ganadería Selecta", "desc": "Huevo extraordinario puesto por gallinas de Genética Nv.3 (+75 HP, +90 STM, +85 Hambre o véndelo por 35 Oro).", "usable": true, "heal_hp": 75.0, "restore_stamina": 90.0, "restore_hunger": 85.0, "icon": "res://assests/items/icons/golden_egg.png"},
+	"copper_coil": {"name": "Bobina de Cobre Antiguo", "category": "Tecnología / Ingeniería", "desc": "Conductor electromagnético para construir o mejorar el Generador Antiguo y el Aspersor Automático.", "usable": false, "icon": "res://assests/items/icons/copper_coil.png"},
+	"royal_safe_conduct": {"name": "Salvoconducto Real Sellado", "category": "Documento de la Corona", "desc": "Cédula oficial con sello de lacre del Reino que autoriza a cruzar las fronteras del valle. ¡Cuidado: si un Investigador Real te lo encuentra encima tras la muerte de un mercader, será prueba irrefutable!", "usable": false},
+	"royal_ration": {"name": "Conserva Real de Extramuros", "category": "Importación Exótica", "desc": "Ración militar especiada traída de la capital por mercaderes con salvoconducto (+60 HP, +80 STM, +90 Hambre).", "usable": true, "heal_hp": 60.0, "restore_stamina": 80.0, "restore_hunger": 90.0},
+	"master_lockpick": {"name": "Ganzúa Maestra de Relojero", "category": "Herramienta Real (Casimir)", "desc": "Instrumental de precisión de las Tierras Reales. Mientras la lleves en el inventario, reduces un 65% el radio de detección de testigos al forzar puertas ([F]) o cofres privados ([E]).", "usable": true, "is_passive_tool": true, "icon": "res://assests/items/icons/master_lockpick.png"},
+	"steel_bear_trap": {"name": "Cepo de Acero de Frontera", "category": "Trampa Táctica (Casimir)", "desc": "Trampa mecánica dentada de las Tierras Reales. Úsala en el inventario para desplegarla en el suelo: atrapa al primer animal salvaje o enemigo hostil que la pise (35 Daño, Sangrado y 100 Stun).", "usable": true, "is_bear_trap": true, "icon": "res://assests/items/icons/steel_bear_trap.png"},
+	"ranger_camo_cloak": {"name": "Manto de Camuflaje Montaraz", "category": "Equipo de Sigilo (Valeria)", "desc": "Capa mimética de las Tierras Reales. Mientras la lleves en el inventario, reduce un 40% la distancia a la que te detectan guardias, animales salvajes y el Investigador Real.", "usable": true, "is_passive_tool": true, "icon": "res://assests/items/icons/ranger_camo_cloak.png"},
+	"royal_paralytic_venom": {"name": "Veneno Paralizante de Extramuros", "category": "Alquimia Exótica (Valeria)", "desc": "Destilado neurotóxico de las Tierras Reales. Impregna tu arma o flechas durante 60s: cada impacto aplica +50 de Stun/Parálisis adicional.", "usable": true, "venom_buff_duration": 60.0, "icon": "res://assests/items/icons/royal_paralytic_venom.png"},
 
-	# --- ARMADURAS TIER 1: CUERO CURTIDO ---
-	"helm_leather": {
-		"name": "Capucha de Cuero",
-		"category": "Armadura (Casco)",
-		"desc": "Tier 1 [Casco]: +6% Defensa física, +15% Resistencia a Stun/KO y +10% Resistencia a Sangrado.",
-		"usable": true,
-		"armor_slot": "HEAD",
-		"armor_tier": 1,
-		"defense": 0.06,
-		"bleed_res": 0.10,
-		"stun_res": 0.15,
-		"speed_bonus": 0.0,
-		"icon": "res://assests/items/armor/helm_leather.png"
-	},
-	"chest_leather": {
-		"name": "Peto de Cuero Curtido",
-		"category": "Armadura (Pecho)",
-		"desc": "Tier 1 [Pecho]: +12% Defensa física y +20% Resistencia a Sangrado.",
-		"usable": true,
-		"armor_slot": "CHEST",
-		"armor_tier": 1,
-		"defense": 0.12,
-		"bleed_res": 0.20,
-		"stun_res": 0.05,
-		"speed_bonus": 0.0,
-		"icon": "res://assests/items/armor/chest_leather.png"
-	},
-	"legs_leather": {
-		"name": "Grebas de Cuero",
-		"category": "Armadura (Piernas)",
-		"desc": "Tier 1 [Piernas]: +8% Defensa física y +15% Resistencia a Sangrado.",
-		"usable": true,
-		"armor_slot": "LEGS",
-		"armor_tier": 1,
-		"defense": 0.08,
-		"bleed_res": 0.15,
-		"stun_res": 0.05,
-		"speed_bonus": 0.0,
-		"icon": "res://assests/items/armor/legs_leather.png"
-	},
-	"boots_leather": {
-		"name": "Botas de Explorador",
-		"category": "Armadura (Botas)",
-		"desc": "Tier 1 [Botas]: +5% Defensa física y +8% Velocidad de movimiento.",
-		"usable": true,
-		"armor_slot": "BOOTS",
-		"armor_tier": 1,
-		"defense": 0.05,
-		"bleed_res": 0.08,
-		"stun_res": 0.05,
-		"speed_bonus": 0.08,
-		"icon": "res://assests/items/armor/boots_leather.png"
-	},
-
-	# --- ARMADURAS TIER 2: HIERRO FORJADO ---
-	"helm_iron": {
-		"name": "Yelmo de Hierro",
-		"category": "Armadura (Casco)",
-		"desc": "Tier 2 [Casco]: +11% Defensa física y +28% Resistencia a Stun/KO.",
-		"usable": true,
-		"armor_slot": "HEAD",
-		"armor_tier": 2,
-		"defense": 0.11,
-		"bleed_res": 0.15,
-		"stun_res": 0.28,
-		"speed_bonus": 0.0,
-		"icon": "res://assests/items/armor/helm_iron.png"
-	},
-	"chest_iron": {
-		"name": "Coraza de Hierro",
-		"category": "Armadura (Pecho)",
-		"desc": "Tier 2 [Pecho]: +20% Defensa física y +30% Resistencia a Sangrado.",
-		"usable": true,
-		"armor_slot": "CHEST",
-		"armor_tier": 2,
-		"defense": 0.20,
-		"bleed_res": 0.30,
-		"stun_res": 0.12,
-		"speed_bonus": 0.0,
-		"icon": "res://assests/items/armor/chest_iron.png"
-	},
-	"legs_iron": {
-		"name": "Quijotes de Hierro",
-		"category": "Armadura (Piernas)",
-		"desc": "Tier 2 [Piernas]: +14% Defensa física y +20% Resistencia a Sangrado.",
-		"usable": true,
-		"armor_slot": "LEGS",
-		"armor_tier": 2,
-		"defense": 0.14,
-		"bleed_res": 0.20,
-		"stun_res": 0.10,
-		"speed_bonus": 0.0,
-		"icon": "res://assests/items/armor/legs_iron.png"
-	},
-	"boots_iron": {
-		"name": "Botas Herradas",
-		"category": "Armadura (Botas)",
-		"desc": "Tier 2 [Botas]: +9% Defensa física, +12% Resistencia a Stun y +5% Velocidad.",
-		"usable": true,
-		"armor_slot": "BOOTS",
-		"armor_tier": 2,
-		"defense": 0.09,
-		"bleed_res": 0.12,
-		"stun_res": 0.12,
-		"speed_bonus": 0.05,
-		"icon": "res://assests/items/armor/boots_iron.png"
-	},
-
-	# --- ARMADURAS TIER 3: ACERO TEMPLADO ---
-	"helm_steel": {
-		"name": "Gran Yelmo de Acero",
-		"category": "Armadura (Casco)",
-		"desc": "Tier 3 [Casco]: +16% Defensa física y +42% Resistencia a Stun/KO.",
-		"usable": true,
-		"armor_slot": "HEAD",
-		"armor_tier": 3,
-		"defense": 0.16,
-		"bleed_res": 0.22,
-		"stun_res": 0.42,
-		"speed_bonus": 0.0,
-		"icon": "res://assests/items/armor/helm_steel.png"
-	},
-	"chest_steel": {
-		"name": "Armadura de Placas de Acero",
-		"category": "Armadura (Pecho)",
-		"desc": "Tier 3 [Pecho]: +28% Defensa física y +42% Resistencia a Sangrado.",
-		"usable": true,
-		"armor_slot": "CHEST",
-		"armor_tier": 3,
-		"defense": 0.28,
-		"bleed_res": 0.42,
-		"stun_res": 0.20,
-		"speed_bonus": 0.0,
-		"icon": "res://assests/items/armor/chest_steel.png"
-	},
-	"legs_steel": {
-		"name": "Grebas de Acero Templado",
-		"category": "Armadura (Piernas)",
-		"desc": "Tier 3 [Piernas]: +19% Defensa física y +28% Resistencia a Sangrado.",
-		"usable": true,
-		"armor_slot": "LEGS",
-		"armor_tier": 3,
-		"defense": 0.19,
-		"bleed_res": 0.28,
-		"stun_res": 0.15,
-		"speed_bonus": 0.0,
-		"icon": "res://assests/items/armor/legs_steel.png"
-	},
-	"boots_steel": {
-		"name": "Escarpes de Acero Real",
-		"category": "Armadura (Botas)",
-		"desc": "Tier 3 [Botas]: +12% Defensa física, +15% Resistencia a Sangrado y +10% Velocidad.",
-		"usable": true,
-		"armor_slot": "BOOTS",
-		"armor_tier": 3,
-		"defense": 0.12,
-		"bleed_res": 0.15,
-		"stun_res": 0.15,
-		"speed_bonus": 0.10,
-		"icon": "res://assests/items/armor/boots_steel.png"
-	}
+	# --- ARMADURAS TIER 1..3 (CUERO / HIERRO / ACERO) ---
+	"helm_leather": {"name": "Capucha de Cuero", "category": "Armadura (Casco)", "desc": "Tier 1 [Casco]: +6% Defensa física, +15% Resistencia a Stun/KO y +10% Resistencia a Sangrado.", "usable": true, "armor_slot": "HEAD", "armor_tier": 1, "defense": 0.06, "bleed_res": 0.10, "stun_res": 0.15, "speed_bonus": 0.0, "icon": "res://assests/items/armor/helm_leather.png"},
+	"chest_leather": {"name": "Peto de Cuero Curtido", "category": "Armadura (Pecho)", "desc": "Tier 1 [Pecho]: +12% Defensa física y +20% Resistencia a Sangrado.", "usable": true, "armor_slot": "CHEST", "armor_tier": 1, "defense": 0.12, "bleed_res": 0.20, "stun_res": 0.05, "speed_bonus": 0.0, "icon": "res://assests/items/armor/chest_leather.png"},
+	"legs_leather": {"name": "Grebas de Cuero", "category": "Armadura (Piernas)", "desc": "Tier 1 [Piernas]: +8% Defensa física y +15% Resistencia a Sangrado.", "usable": true, "armor_slot": "LEGS", "armor_tier": 1, "defense": 0.08, "bleed_res": 0.15, "stun_res": 0.05, "speed_bonus": 0.0, "icon": "res://assests/items/armor/legs_leather.png"},
+	"boots_leather": {"name": "Botas de Explorador", "category": "Armadura (Botas)", "desc": "Tier 1 [Botas]: +5% Defensa física y +8% Velocidad de movimiento.", "usable": true, "armor_slot": "BOOTS", "armor_tier": 1, "defense": 0.05, "bleed_res": 0.08, "stun_res": 0.05, "speed_bonus": 0.08, "icon": "res://assests/items/armor/boots_leather.png"},
+	"helm_iron": {"name": "Yelmo de Hierro", "category": "Armadura (Casco)", "desc": "Tier 2 [Casco]: +11% Defensa física y +28% Resistencia a Stun/KO.", "usable": true, "armor_slot": "HEAD", "armor_tier": 2, "defense": 0.11, "bleed_res": 0.15, "stun_res": 0.28, "speed_bonus": 0.0, "icon": "res://assests/items/armor/helm_iron.png"},
+	"chest_iron": {"name": "Coraza de Hierro", "category": "Armadura (Pecho)", "desc": "Tier 2 [Pecho]: +20% Defensa física y +30% Resistencia a Sangrado.", "usable": true, "armor_slot": "CHEST", "armor_tier": 2, "defense": 0.20, "bleed_res": 0.30, "stun_res": 0.12, "speed_bonus": 0.0, "icon": "res://assests/items/armor/chest_iron.png"},
+	"legs_iron": {"name": "Quijotes de Hierro", "category": "Armadura (Piernas)", "desc": "Tier 2 [Piernas]: +14% Defensa física y +20% Resistencia a Sangrado.", "usable": true, "armor_slot": "LEGS", "armor_tier": 2, "defense": 0.14, "bleed_res": 0.20, "stun_res": 0.10, "speed_bonus": 0.0, "icon": "res://assests/items/armor/legs_iron.png"},
+	"boots_iron": {"name": "Botas Herradas", "category": "Armadura (Botas)", "desc": "Tier 2 [Botas]: +9% Defensa física, +12% Resistencia a Stun y +5% Velocidad.", "usable": true, "armor_slot": "BOOTS", "armor_tier": 2, "defense": 0.09, "bleed_res": 0.12, "stun_res": 0.12, "speed_bonus": 0.05, "icon": "res://assests/items/armor/boots_iron.png"},
+	"helm_steel": {"name": "Gran Yelmo de Acero", "category": "Armadura (Casco)", "desc": "Tier 3 [Casco]: +16% Defensa física y +42% Resistencia a Stun/KO.", "usable": true, "armor_slot": "HEAD", "armor_tier": 3, "defense": 0.16, "bleed_res": 0.22, "stun_res": 0.42, "speed_bonus": 0.0, "icon": "res://assests/items/armor/helm_steel.png"},
+	"chest_steel": {"name": "Armadura de Placas de Acero", "category": "Armadura (Pecho)", "desc": "Tier 3 [Pecho]: +28% Defensa física y +42% Resistencia a Sangrado.", "usable": true, "armor_slot": "CHEST", "armor_tier": 3, "defense": 0.28, "bleed_res": 0.42, "stun_res": 0.20, "speed_bonus": 0.0, "icon": "res://assests/items/armor/chest_steel.png"},
+	"legs_steel": {"name": "Grebas de Acero Templado", "category": "Armadura (Piernas)", "desc": "Tier 3 [Piernas]: +19% Defensa física y +28% Resistencia a Sangrado.", "usable": true, "armor_slot": "LEGS", "armor_tier": 3, "defense": 0.19, "bleed_res": 0.28, "stun_res": 0.15, "speed_bonus": 0.0, "icon": "res://assests/items/armor/legs_steel.png"},
+	"boots_steel": {"name": "Escarpes de Acero Real", "category": "Armadura (Botas)", "desc": "Tier 3 [Botas]: +12% Defensa física, +15% Resistencia a Sangrado y +10% Velocidad.", "usable": true, "armor_slot": "BOOTS", "armor_tier": 3, "defense": 0.12, "bleed_res": 0.15, "stun_res": 0.15, "speed_bonus": 0.10, "icon": "res://assests/items/armor/boots_steel.png"}
 }
 
 const RECIPES: Array[Dictionary] = [
-	{
-		"id": "craft_bandage",
-		"result": "bandage",
-		"amount": 1,
-		"ingredients": {"herbs": 2},
-		"desc": "Teje fibras medicinales para detener sangrados (+20 HP)."
-	},
-	{
-		"id": "craft_poultice",
-		"result": "herbal_poultice",
-		"amount": 1,
-		"ingredients": {"herbs": 2, "mushroom": 1},
-		"desc": "Mezcla potente que corta hemorragias y cura +40 HP."
-	},
-	{
-		"id": "craft_roasted_mushroom",
-		"result": "roasted_mushroom",
-		"amount": 1,
-		"ingredients": {"mushroom": 2, "wood": 1},
-		"desc": "Asa hongos silvestres con leña (+30 HP, +45 STM)."
-	},
-	{
-		"id": "craft_cooked_meat",
-		"result": "cooked_meat",
-		"amount": 1,
-		"ingredients": {"raw_meat": 1, "wood": 1},
-		"desc": "Asa carne cruda al fuego (+40 HP, +60 STM)."
-	},
-	{
-		"id": "craft_roasted_chicken",
-		"result": "roasted_chicken",
-		"amount": 1,
-		"ingredients": {"raw_chicken": 1, "wood": 1},
-		"desc": "Asa un pollo entero al fuego (+48 HP, +65 STM, +68 Hambre)."
-	},
-	{
-		"id": "craft_fried_frog_legs",
-		"result": "fried_frog_legs",
-		"amount": 1,
-		"ingredients": {"frog_legs": 2, "herbs": 1},
-		"desc": "Saltea ancas de rana de la Ciénaga con hierbas (+50 HP, +70 STM, +65 Hambre)."
-	},
-	{
-		"id": "craft_steel_from_scrap",
-		"result": "steel_ingot",
-		"amount": 1,
-		"ingredients": {"bandit_scrap": 1, "wood": 1},
-		"desc": "Recicla chatarra de bandido con fuego para fundir 1 Lingote de Acero."
-	},
-	{
-		"id": "craft_planks",
-		"result": "repair_kit",
-		"amount": 1,
-		"ingredients": {"wood": 3, "stone": 1},
-		"desc": "Prepara tablones reforzados para construcción, mejoras o comercio."
-	},
-	{
-		"id": "craft_steel_ingot",
-		"result": "steel_ingot",
-		"amount": 1,
-		"ingredients": {"iron_ore": 2, "wood": 2},
-		"desc": "Funde mineral de hierro con carbón de leña para crear 1 Lingote de Acero."
-	},
-	{
-		"id": "craft_fertilizer",
-		"result": "fertilizer",
-		"amount": 2,
-		"ingredients": {"mushroom": 1, "herbs": 1},
-		"desc": "Composta hongos y hierbas para producir 2 bolsas de Abono Orgánico."
-	},
-	{
-		"id": "craft_bake_bread",
-		"result": "bread",
-		"amount": 2,
-		"ingredients": {"wheat": 2, "wood": 1},
-		"desc": "Hornea 2 Hogazas de Pan usando trigo cosechado y leña (+20 HP, +35 STM)."
-	},
-	{
-		"id": "craft_country_stew",
-		"result": "country_stew",
-		"amount": 1,
-		"ingredients": {"raw_meat": 1, "cabbage": 1, "carrot": 1},
-		"desc": "Cocina un Estofado Campesino con carne, col y zanahoria (+55 HP, +75 STM)."
-	},
-	{
-		"id": "craft_helm_leather",
-		"result": "helm_leather",
-		"amount": 1,
-		"ingredients": {"leather": 2},
-		"desc": "Confecciona una Capucha de Cuero (Tier 1 Casco)."
-	},
-	{
-		"id": "craft_chest_leather",
-		"result": "chest_leather",
-		"amount": 1,
-		"ingredients": {"leather": 3, "wood": 1},
-		"desc": "Confecciona un Peto de Cuero Curtido (Tier 1 Pecho)."
-	},
-	{
-		"id": "craft_legs_leather",
-		"result": "legs_leather",
-		"amount": 1,
-		"ingredients": {"leather": 2},
-		"desc": "Confecciona unas Grebas de Cuero (Tier 1 Piernas)."
-	},
-	{
-		"id": "craft_boots_leather",
-		"result": "boots_leather",
-		"amount": 1,
-		"ingredients": {"leather": 2},
-		"desc": "Confecciona unas Botas de Explorador (+8% Velocidad)."
-	},
-	{
-		"id": "craft_sleeping_draught",
-		"result": "sleeping_draught",
-		"amount": 1,
-		"ingredients": {"herbs": 2, "mushroom": 1, "sinew_viscera": 1},
-		"desc": "Destila un Somnífero Nocturno para dormir guardias o aldeanos 40s sin herirlos."
-	},
-	{
-		"id": "craft_speed_tonic",
-		"result": "speed_tonic",
-		"amount": 1,
-		"ingredients": {"herbs": 1, "animal_fat": 1, "carrot": 1},
-		"desc": "Destila un Tónico de Velocidad (+65 STM y +25% Velocidad por 35s)."
-	},
-	{
-		"id": "craft_surgical_kit",
-		"result": "surgical_kit",
-		"amount": 1,
-		"ingredients": {"bandage": 1, "herbs": 2, "sinew_viscera": 1},
-		"desc": "Prepara un Botiquín Quirúrgico (+85 HP, corta sangrado y reanima heridos)."
-	},
-	{
-		"id": "craft_bone_fertilizer",
-		"result": "fertilizer",
-		"amount": 3,
-		"ingredients": {"bones": 2, "animal_fat": 1},
-		"desc": "Muele huesos y grasa animal del despiece para crear 3 bolsas de Abono Orgánico."
-	},
-	{
-		"id": "craft_copper_coil",
-		"result": "copper_coil",
-		"amount": 1,
-		"ingredients": {"iron_ore": 1, "bandit_scrap": 1},
-		"desc": "Bobina conductora antigua para el Generador Eléctrico y el Aspersor."
-	}
+	{"id": "craft_bandage", "result": "bandage", "amount": 1, "ingredients": {"herbs": 2}, "desc": "Teje fibras medicinales para detener sangrados (+20 HP)."},
+	{"id": "craft_poultice", "result": "herbal_poultice", "amount": 1, "ingredients": {"herbs": 2, "mushroom": 1}, "desc": "Mezcla potente que corta hemorragias y cura +40 HP."},
+	{"id": "craft_roasted_mushroom", "result": "roasted_mushroom", "amount": 1, "ingredients": {"mushroom": 2, "wood": 1}, "desc": "Asa hongos silvestres con leña (+30 HP, +45 STM)."},
+	{"id": "craft_cooked_meat", "result": "cooked_meat", "amount": 1, "ingredients": {"raw_meat": 1, "wood": 1}, "desc": "Asa carne cruda al fuego (+40 HP, +60 STM)."},
+	{"id": "craft_roasted_chicken", "result": "roasted_chicken", "amount": 1, "ingredients": {"raw_chicken": 1, "wood": 1}, "desc": "Asa un pollo entero al fuego (+48 HP, +65 STM, +68 Hambre)."},
+	{"id": "craft_fried_frog_legs", "result": "fried_frog_legs", "amount": 1, "ingredients": {"frog_legs": 2, "herbs": 1}, "desc": "Saltea ancas de rana de la Ciénaga con hierbas (+50 HP, +70 STM, +65 Hambre)."},
+	{"id": "craft_steel_from_scrap", "result": "steel_ingot", "amount": 1, "ingredients": {"bandit_scrap": 1, "wood": 1}, "desc": "Recicla chatarra de bandido con fuego para fundir 1 Lingote de Acero."},
+	{"id": "craft_planks", "result": "repair_kit", "amount": 1, "ingredients": {"wood": 3, "stone": 1}, "desc": "Prepara tablones reforzados para construcción, mejoras o comercio."},
+	{"id": "craft_steel_ingot", "result": "steel_ingot", "amount": 1, "ingredients": {"iron_ore": 2, "wood": 2}, "desc": "Funde mineral de hierro con carbón de leña para crear 1 Lingote de Acero."},
+	{"id": "craft_fertilizer", "result": "fertilizer", "amount": 2, "ingredients": {"mushroom": 1, "herbs": 1}, "desc": "Composta hongos y hierbas para producir 2 bolsas de Abono Orgánico."},
+	{"id": "craft_bake_bread", "result": "bread", "amount": 2, "ingredients": {"wheat": 2, "wood": 1}, "desc": "Hornea 2 Hogazas de Pan usando trigo cosechado y leña (+20 HP, +35 STM)."},
+	{"id": "craft_country_stew", "result": "country_stew", "amount": 1, "ingredients": {"raw_meat": 1, "cabbage": 1, "carrot": 1}, "desc": "Cocina un Estofado Campesino con carne, col y zanahoria (+55 HP, +75 STM)."},
+	{"id": "craft_helm_leather", "result": "helm_leather", "amount": 1, "ingredients": {"leather": 2}, "desc": "Confecciona una Capucha de Cuero (Tier 1 Casco)."},
+	{"id": "craft_chest_leather", "result": "chest_leather", "amount": 1, "ingredients": {"leather": 3, "wood": 1}, "desc": "Confecciona un Peto de Cuero Curtido (Tier 1 Pecho)."},
+	{"id": "craft_legs_leather", "result": "legs_leather", "amount": 1, "ingredients": {"leather": 2}, "desc": "Confecciona unas Grebas de Cuero (Tier 1 Piernas)."},
+	{"id": "craft_boots_leather", "result": "boots_leather", "amount": 1, "ingredients": {"leather": 2}, "desc": "Confecciona unas Botas de Explorador (+8% Velocidad)."},
+	{"id": "craft_sleeping_draught", "result": "sleeping_draught", "amount": 1, "ingredients": {"herbs": 2, "mushroom": 1, "sinew_viscera": 1}, "desc": "Destila un Somnífero Nocturno para dormir guardias o aldeanos 40s sin herirlos."},
+	{"id": "craft_speed_tonic", "result": "speed_tonic", "amount": 1, "ingredients": {"herbs": 1, "animal_fat": 1, "carrot": 1}, "desc": "Destila un Tónico de Velocidad (+65 STM y +25% Velocidad por 35s)."},
+	{"id": "craft_surgical_kit", "result": "surgical_kit", "amount": 1, "ingredients": {"bandage": 1, "herbs": 2, "sinew_viscera": 1}, "desc": "Prepara un Botiquín Quirúrgico (+85 HP, corta sangrado y reanima heridos)."},
+	{"id": "craft_bone_fertilizer", "result": "fertilizer", "amount": 3, "ingredients": {"bones": 2, "animal_fat": 1}, "desc": "Muele huesos y grasa animal del despiece para crear 3 bolsas de Abono Orgánico."},
+	{"id": "craft_copper_coil", "result": "copper_coil", "amount": 1, "ingredients": {"iron_ore": 1, "bandit_scrap": 1}, "desc": "Bobina conductora antigua para el Generador Eléctrico y el Aspersor."}
 ]
 
 const SEED_ORDER: Array[String] = ["carrot_seeds", "cabbage_seeds", "wheat_seeds"]

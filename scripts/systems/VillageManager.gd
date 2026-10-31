@@ -130,11 +130,7 @@ var _biz_btn_4: Button = null
 var _active_business_role: int = -1
 
 func get_poker_chair_positions() -> Array[Vector2]:
-	return [
-		_tavern_games_pos + Vector2(-24, 0),
-		_tavern_games_pos + Vector2(24, 0),
-		_tavern_games_pos + Vector2(0, -18)
-	]
+	return [_tavern_games_pos + Vector2(-24, 0), _tavern_games_pos + Vector2(24, 0), _tavern_games_pos + Vector2(0, -18)]
 
 func setup_village(target_entities_root: Node) -> void:
 	entities_root = target_entities_root if target_entities_root else self
@@ -143,29 +139,14 @@ func setup_village(target_entities_root: Node) -> void:
 	set_process_unhandled_input(not in_editor)
 	add_to_group("village_manager")
 
-	building_footprints.clear()
-	_wall_occluder_rects.clear()
-	house_chests.clear()
-	building_doors.clear()
-	building_windows.clear()
-	streetlights.clear()
-	_authority_slots.clear()
+	for arr in [building_footprints, _wall_occluder_rects, house_chests, building_doors, building_windows, streetlights, _authority_slots, morgue_active_corpses, buried_graves, _cemetery_grave_positions, _cemetery_grave_nodes]:
+		arr.clear()
 	shop_businesses.clear()
-	morgue_active_corpses.clear()
-	buried_graves.clear()
-	_cemetery_grave_positions.clear()
-	_cemetery_grave_nodes.clear()
 	vagrant_camp_nodes.clear()
 	arrivals_today_count = 0
 	house_pantry = {
-		"family_smith": 3,
-		"family_butcher": 4,
-		"family_carpenter": 3,
-		"family_fishmonger": 4,
-		"family_herbalist": 4,
-		"family_hospital": 3,
-		"family_police": 4,
-		"family_tavern": 5
+		"family_smith": 3, "family_butcher": 4, "family_carpenter": 3, "family_fishmonger": 4,
+		"family_herbalist": 4, "family_hospital": 3, "family_police": 4, "family_tavern": 5
 	}
 
 	_spawn_village_roads_and_plaza()
@@ -327,30 +308,18 @@ func _unhandled_input(event: InputEvent) -> void:
 	if business_panel and business_panel.visible:
 		if event is InputEventKey and event.pressed and not event.echo:
 			var player = get_tree().get_first_node_in_group("player") as Node2D
-			if event.keycode == KEY_1:
-				_on_business_action_1(player)
-				get_viewport().set_input_as_handled()
-			elif event.keycode == KEY_2:
-				_on_business_action_2(player)
-				get_viewport().set_input_as_handled()
-			elif event.keycode == KEY_3:
-				_on_business_action_3(player)
-				get_viewport().set_input_as_handled()
-			elif event.keycode == KEY_4:
-				_on_business_action_4(player)
-				get_viewport().set_input_as_handled()
-			elif event.keycode in [KEY_5, KEY_ESCAPE]:
-				business_panel.visible = false
-				get_viewport().set_input_as_handled()
+			match event.keycode:
+				KEY_1: _on_business_action_1(player); get_viewport().set_input_as_handled()
+				KEY_2: _on_business_action_2(player); get_viewport().set_input_as_handled()
+				KEY_3: _on_business_action_3(player); get_viewport().set_input_as_handled()
+				KEY_4: _on_business_action_4(player); get_viewport().set_input_as_handled()
+				KEY_5, KEY_ESCAPE: business_panel.visible = false; get_viewport().set_input_as_handled()
 		return
-
 	if morgue_panel and morgue_panel.visible:
-		if event is InputEventKey and event.pressed and not event.echo:
-			if event.keycode in [KEY_1, KEY_ESCAPE, KEY_ENTER, KEY_E]:
-				morgue_panel.visible = false
-				get_viewport().set_input_as_handled()
+		if event is InputEventKey and event.pressed and not event.echo and event.keycode in [KEY_1, KEY_ESCAPE, KEY_ENTER, KEY_E]:
+			morgue_panel.visible = false
+			get_viewport().set_input_as_handled()
 		return
-
 	if church_panel and church_panel.visible:
 		if event is InputEventKey and event.pressed and not event.echo:
 			var player = get_tree().get_first_node_in_group("player") as Node2D
@@ -365,35 +334,18 @@ func _unhandled_input(event: InputEvent) -> void:
 	if police_panel and police_panel.visible:
 		if event is InputEventKey and event.pressed and not event.echo:
 			var player = get_tree().get_first_node_in_group("player") as Node2D
-			if event.keycode == KEY_1:
-				_on_police_serve_sentence(player)
-				get_viewport().set_input_as_handled()
-			elif event.keycode == KEY_2:
-				pay_bounty_fine(player)
-				get_viewport().set_input_as_handled()
-			elif event.keycode == KEY_3:
-				_on_police_jailbreak_or_resist(player)
-				get_viewport().set_input_as_handled()
-			elif event.keycode in [KEY_4, KEY_ESCAPE]:
-				police_panel.visible = false
-				get_viewport().set_input_as_handled()
+			match event.keycode:
+				KEY_1: _on_police_serve_sentence(player); get_viewport().set_input_as_handled()
+				KEY_2: pay_bounty_fine(player); get_viewport().set_input_as_handled()
+				KEY_3: _on_police_jailbreak_or_resist(player); get_viewport().set_input_as_handled()
+				KEY_4, KEY_ESCAPE: police_panel.visible = false; get_viewport().set_input_as_handled()
 		return
-
 	if board_panel and board_panel.visible:
 		if event is InputEventKey and event.pressed and not event.echo:
 			var player = get_tree().get_first_node_in_group("player") as Node2D
-			if event.keycode == KEY_1:
-				_complete_board_contract(player, 1)
-				get_viewport().set_input_as_handled()
-			elif event.keycode == KEY_2:
-				_complete_board_contract(player, 2)
-				get_viewport().set_input_as_handled()
-			elif event.keycode == KEY_3:
-				_complete_board_contract(player, 3)
-				get_viewport().set_input_as_handled()
-			elif event.keycode in [KEY_4, KEY_ESCAPE]:
-				board_panel.visible = false
-				get_viewport().set_input_as_handled()
+			match event.keycode:
+				KEY_1, KEY_2, KEY_3: _complete_board_contract(player, event.keycode - KEY_0); get_viewport().set_input_as_handled()
+				KEY_4, KEY_ESCAPE: board_panel.visible = false; get_viewport().set_input_as_handled()
 		return
 
 	# Tecla [B]: Echar o quitar el cerrojo / bloquear la puerta más cercana
@@ -408,21 +360,11 @@ func _unhandled_input(event: InputEvent) -> void:
 		elif event.keycode == KEY_F and force_lock_or_shutter_by_player(player):
 			get_viewport().set_input_as_handled()
 
-# ==============================================================================
 # CONSTRUCCIÓN SÓLIDA DE EDIFICIOS CON TEXTURAS Y COLISIÓN (`StaticBody2D`)
-# ==============================================================================
 func _construct_solid_building(
-	b_id: String,
-	b_title: String,
-	center: Vector2,
-	size: Vector2,
-	door_on_south: bool,
-	floor_tex_path: String,
-	wall_h_path: String,
-	wall_v_path: String,
-	door_width: float = 42.0,
-	door_offset_x: float = 0.0,
-	title_color: Color = Color(0.96, 0.90, 0.68)
+	b_id: String, b_title: String, center: Vector2, size: Vector2, door_on_south: bool,
+	floor_tex_path: String, wall_h_path: String, wall_v_path: String,
+	door_width: float = 42.0, door_offset_x: float = 0.0, title_color: Color = Color(0.96, 0.90, 0.68)
 ) -> void:
 	var half := size * 0.5
 	var rect := Rect2(center - half, size)
@@ -430,14 +372,9 @@ func _construct_solid_building(
 	var door_pos := Vector2(center.x + door_offset_x, door_y)
 
 	building_footprints.append({
-		"id": b_id,
-		"title": b_title,
-		"rect": rect,
-		"door_pos": door_pos,
-		"door_south": door_on_south
+		"id": b_id, "title": b_title, "rect": rect, "door_pos": door_pos, "door_south": door_on_south
 	})
 
-	# 1. Suelo en mosaico (`TextureRect` con STRETCH_TILE)
 	var floor_tex := _load_tex(floor_tex_path)
 	if floor_tex:
 		var f_rect := TextureRect.new()
@@ -452,11 +389,9 @@ func _construct_solid_building(
 	var tex_v := _load_tex(wall_v_path)
 	var wall_t: float = 7.0
 
-	# 2. Paredes laterales Oeste y Este completas
 	_add_solid_wall_segment(Vector2(rect.position.x, center.y), Vector2(wall_t, size.y), tex_v)
 	_add_solid_wall_segment(Vector2(rect.end.x, center.y), Vector2(wall_t, size.y), tex_v)
 
-	# 3. Pared opuesta a la puerta (completa) y Pared de la puerta (dividida en 2 tramos dejando la puerta abierta)
 	var closed_y: float = (center.y - half.y) if door_on_south else (center.y + half.y)
 	_add_solid_wall_segment(Vector2(center.x, closed_y), Vector2(size.x, wall_t), tex_h)
 
@@ -468,30 +403,8 @@ func _construct_solid_building(
 	_add_solid_wall_segment(Vector2(rect.position.x + left_seg_w * 0.5, door_y), Vector2(left_seg_w, wall_t), tex_h)
 	_add_solid_wall_segment(Vector2(rect.end.x - right_seg_w * 0.5, door_y), Vector2(right_seg_w, wall_t), tex_h)
 
-	# Umbral de puerta de madera/piedra
-	var thresh := Polygon2D.new()
-	thresh.polygon = PackedVector2Array([
-		Vector2(-door_width * 0.5, -3), Vector2(door_width * 0.5, -3),
-		Vector2(door_width * 0.5, 3), Vector2(-door_width * 0.5, 3)
-	])
-	thresh.color = Color(0.72, 0.54, 0.30, 0.85)
-	thresh.global_position = door_pos
-	thresh.z_index = -2
-	entities_root.add_child(thresh)
-
-	# Letrero superior del edificio
-	var lbl := Label.new()
-	lbl.text = b_title
-	lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	lbl.position = center + Vector2(-125, -half.y - 19.0)
-	lbl.custom_minimum_size = Vector2(250, 16)
-	lbl.add_theme_font_size_override("font_size", 8)
-	lbl.add_theme_color_override("font_color", title_color)
-	lbl.add_theme_color_override("font_outline_color", Color.BLACK)
-	lbl.add_theme_constant_override("outline_size", 3)
-	entities_root.add_child(lbl)
-
-	# 4. Puerta Física Interactiva (Abrir/Cerrar/Bloquear con Cerrojo/Forzar Cerradura) y Ventana Forzable
+	_add_rect_poly(door_pos, Vector2(door_width * 0.5, 3.0), Color(0.72, 0.54, 0.30, 0.85), -2)
+	_add_title_label(center + Vector2(-125, -half.y - 19.0), Vector2(250, 16), b_title, title_color, 8)
 	_spawn_building_door_and_window(b_id, b_title, rect, door_pos, door_on_south, door_width)
 
 func _spawn_building_door_and_window(
@@ -520,75 +433,36 @@ func _spawn_building_door_and_window(
 	d_body.add_child(d_col)
 	entities_root.add_child(d_body)
 
-	# Sprite de puerta cerrada / con llave
-	var spr_closed := Sprite2D.new()
-	spr_closed.texture = tex_door_closed
-	spr_closed.global_position = door_pos
-	spr_closed.scale = Vector2(door_width / 42.0, 1.0)
-	spr_closed.visible = true
-	spr_closed.z_index = 3
-	entities_root.add_child(spr_closed)
-
-	# Sprite de hoja de puerta abierta hacia el interior del marco
-	var spr_open := Sprite2D.new()
-	spr_open.texture = tex_door_open
-	spr_open.global_position = door_pos + Vector2(-door_width * 0.5 + 4.0, -15.0 if door_on_south else 15.0)
-	spr_open.visible = false
-	spr_open.z_index = 2
-	entities_root.add_child(spr_open)
+	var spr_closed := _add_sprite_prop(tex_door_closed, door_pos, Vector2(door_width / 42.0, 1.0), 3, true)
+	var spr_open := _add_sprite_prop(tex_door_open, door_pos + Vector2(-door_width * 0.5 + 4.0, -15.0 if door_on_south else 15.0), Vector2.ONE, 2, false)
 
 	_add_station_area("DoorArea_" + b_id, door_pos, 14.0, "building_door")
 	var d_lbl := _make_station_label(door_pos + Vector2(-125, -26), "🚪 Puerta de %s" % b_title)
 	entities_root.add_child(d_lbl)
 
 	building_doors.append({
-		"building_id": b_id,
-		"building_title": b_title,
-		"building_rect": rect,
-		"pos": door_pos,
-		"door_south": door_on_south,
-		"width": door_width,
-		"body": d_body,
-		"col": d_col,
-		"spr_closed": spr_closed,
-		"spr_open": spr_open,
-		"label": d_lbl,
+		"building_id": b_id, "building_title": b_title, "building_rect": rect, "pos": door_pos,
+		"door_south": door_on_south, "width": door_width, "body": d_body, "col": d_col,
+		"spr_closed": spr_closed, "spr_open": spr_open, "label": d_lbl,
 		"occluder_rect": Rect2(door_pos - Vector2(door_width * 0.5, 4.0), Vector2(door_width, 8.0)),
-		"is_open": false,
-		"is_locked": false,
-		"locked_by_player": false,
-		"manual_override_timer": 0.0,
-		"npc_pass_timer": 0.0,
-		"police_breach_timer": 0.0
+		"is_open": false, "is_locked": false, "locked_by_player": false,
+		"manual_override_timer": 0.0, "npc_pass_timer": 0.0, "police_breach_timer": 0.0
 	})
 
-	# Ventana Forzable en la fachada del edificio (al lado de la puerta)
 	var win_x: float = door_pos.x - door_width * 0.5 - 18.0
 	if win_x < rect.position.x + 15.0:
 		win_x = door_pos.x + door_width * 0.5 + 18.0
-	win_x = clampf(win_x, rect.position.x + 14.0, rect.end.x - 14.0)
-	var win_pos := Vector2(win_x, door_pos.y)
-
-	var spr_win := Sprite2D.new()
-	spr_win.texture = tex_win_open
-	spr_win.global_position = win_pos
-	spr_win.z_index = 3
-	entities_root.add_child(spr_win)
+	var win_pos := Vector2(clampf(win_x, rect.position.x + 14.0, rect.end.x - 14.0), door_pos.y)
+	var spr_win := _add_sprite_prop(tex_win_open, win_pos, Vector2.ONE, 3)
 
 	_add_station_area("WindowArea_" + b_id, win_pos, 11.0, "building_window")
 	var w_lbl := _make_station_label(win_pos + Vector2(-125, -24), "🪟 Ventana de %s" % b_title)
 	entities_root.add_child(w_lbl)
 
 	building_windows.append({
-		"building_id": b_id,
-		"building_title": b_title,
-		"building_rect": rect,
-		"pos": win_pos,
-		"door_south": door_on_south,
-		"sprite": spr_win,
-		"label": w_lbl,
-		"is_shuttered": false,
-		"manual_override_timer": 0.0
+		"building_id": b_id, "building_title": b_title, "building_rect": rect, "pos": win_pos,
+		"door_south": door_on_south, "sprite": spr_win, "label": w_lbl,
+		"is_shuttered": false, "manual_override_timer": 0.0
 	})
 
 func _add_solid_wall_segment(pos: Vector2, sz: Vector2, tex: Texture2D, blocks_vision: bool = true) -> void:
@@ -723,45 +597,25 @@ func get_navigation_waypoint(from_pos: Vector2, to_pos: Vector2, agent: Node2D =
 func _route_internal_building_partitions(b_id: String, from_pos: Vector2, target_pos: Vector2) -> Vector2:
 	match b_id:
 		"building_tavern":
-			# Tabique horizontal en y = -222 con hueco de paso en x = 425 (entre dormitorios Norte y salón Sur)
 			if from_pos.y < -219.0 and target_pos.y > -225.0:
-				if absf(from_pos.x - 425.0) > 10.0:
-					return Vector2(425.0, -234.0)
-				return Vector2(425.0, -206.0)
+				return Vector2(425.0, -234.0 if absf(from_pos.x - 425.0) > 10.0 else -206.0)
 			elif from_pos.y > -225.0 and target_pos.y < -219.0:
-				if absf(from_pos.x - 425.0) > 10.0:
-					return Vector2(425.0, -206.0)
-				return Vector2(425.0, -234.0)
+				return Vector2(425.0, -206.0 if absf(from_pos.x - 425.0) > 10.0 else -234.0)
 		"mixed_family_herbalist":
-			# Tabique horizontal en y = 159 con puerta central en x = 325 (entre tienda Norte y vivienda Sur)
 			if from_pos.y > 156.0 and target_pos.y < 162.0:
-				if absf(from_pos.x - 325.0) > 9.0:
-					return Vector2(325.0, 171.0)
-				return Vector2(325.0, 145.0)
+				return Vector2(325.0, 171.0 if absf(from_pos.x - 325.0) > 9.0 else 145.0)
 			elif from_pos.y < 162.0 and target_pos.y > 156.0:
-				if absf(from_pos.x - 325.0) > 9.0:
-					return Vector2(325.0, 145.0)
-				return Vector2(325.0, 171.0)
+				return Vector2(325.0, 145.0 if absf(from_pos.x - 325.0) > 9.0 else 171.0)
 		"building_hospital":
-			# Tabique horizontal en y = 152 con puerta central en x = 745 (entre Urgencias Norte y Morgue Sur)
 			if from_pos.y < 149.0 and target_pos.y > 155.0:
-				if absf(from_pos.x - 745.0) > 10.0:
-					return Vector2(745.0, 138.0)
-				return Vector2(745.0, 165.0)
+				return Vector2(745.0, 138.0 if absf(from_pos.x - 745.0) > 10.0 else 165.0)
 			elif from_pos.y > 155.0 and target_pos.y < 149.0:
-				if absf(from_pos.x - 745.0) > 10.0:
-					return Vector2(745.0, 165.0)
-				return Vector2(745.0, 138.0)
+				return Vector2(745.0, 165.0 if absf(from_pos.x - 745.0) > 10.0 else 138.0)
 		"building_police":
-			# Rejas de celdas en y = 152 con pasillo central en x = 915
 			if from_pos.y < 149.0 and target_pos.y > 155.0:
-				if absf(from_pos.x - 915.0) > 9.0:
-					return Vector2(915.0, 138.0)
-				return Vector2(915.0, 165.0)
+				return Vector2(915.0, 138.0 if absf(from_pos.x - 915.0) > 9.0 else 165.0)
 			elif from_pos.y > 155.0 and target_pos.y < 149.0:
-				if absf(from_pos.x - 915.0) > 9.0:
-					return Vector2(915.0, 165.0)
-				return Vector2(915.0, 138.0)
+				return Vector2(915.0, 165.0 if absf(from_pos.x - 915.0) > 9.0 else 138.0)
 	return target_pos
 
 func clamp_point_to_building_interior(ref_pos: Vector2, candidate_pos: Vector2) -> Vector2:
@@ -934,229 +788,78 @@ func _spawn_village_roads_and_plaza() -> void:
 	_spawn_world_signpost(Vector2(668, 72), "➡️ Este: 🏥 Hospital y Morgue Forense | 🚓 Comisaría y Cárcel", Color(0.68, 0.92, 1.0))
 
 func _spawn_world_signpost(pos: Vector2, text_str: String, text_col: Color) -> void:
-	var sign_spr := Sprite2D.new()
-	sign_spr.texture = _load_tex("res://assests/Comprados/ Packs/Cute_Fantasy/Buildings/House_Decor/sign_1.png")
-	sign_spr.global_position = pos
-	sign_spr.scale = Vector2(0.9, 0.9)
-	sign_spr.z_index = -1
-	entities_root.add_child(sign_spr)
-
-	var lbl := Label.new()
-	lbl.text = text_str
-	lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	lbl.position = pos + Vector2(-155, -28)
-	lbl.custom_minimum_size = Vector2(310, 16)
-	lbl.add_theme_font_size_override("font_size", 8)
-	lbl.add_theme_color_override("font_color", text_col)
-	lbl.add_theme_color_override("font_outline_color", Color.BLACK)
-	lbl.add_theme_constant_override("outline_size", 3)
-	entities_root.add_child(lbl)
+	_add_sprite_prop(_load_tex("res://assests/Comprados/ Packs/Cute_Fantasy/Buildings/House_Decor/sign_1.png"), pos, Vector2(0.9, 0.9), -1)
+	_add_title_label(pos + Vector2(-155, -28), Vector2(310, 16), text_str, text_col, 8)
 
 func _spawn_western_plains_and_frog_marsh() -> void:
-	var plains_poly := Polygon2D.new()
-	plains_poly.polygon = PackedVector2Array([
-		Vector2(-860, -210), Vector2(-390, -210),
-		Vector2(-390, 150), Vector2(-860, 150)
-	])
-	plains_poly.color = Color(0.58, 0.50, 0.26, 0.44)
-	plains_poly.z_index = -4
-	entities_root.add_child(plains_poly)
+	_add_poly(PackedVector2Array([Vector2(-860, -210), Vector2(-390, -210), Vector2(-390, 150), Vector2(-860, 150)]), Color(0.58, 0.50, 0.26, 0.44), -4)
 
 	var plains_border := Line2D.new()
 	plains_border.width = 2.5
 	plains_border.default_color = Color(0.66, 0.56, 0.30, 0.65)
-	plains_border.points = PackedVector2Array([
-		Vector2(-860, -210), Vector2(-390, -210),
-		Vector2(-390, 150), Vector2(-860, 150), Vector2(-860, -210)
-	])
+	plains_border.points = PackedVector2Array([Vector2(-860, -210), Vector2(-390, -210), Vector2(-390, 150), Vector2(-860, 150), Vector2(-860, -210)])
 	plains_border.z_index = -3
 	entities_root.add_child(plains_border)
 
-	var camp_floor := Polygon2D.new()
-	camp_floor.polygon = PackedVector2Array([
-		Vector2(-730, -125), Vector2(-495, -125),
-		Vector2(-495, -18), Vector2(-730, -18)
-	])
-	camp_floor.color = Color(0.42, 0.33, 0.22, 0.62)
-	camp_floor.z_index = -3
-	entities_root.add_child(camp_floor)
+	_add_poly(PackedVector2Array([Vector2(-730, -125), Vector2(-495, -125), Vector2(-495, -18), Vector2(-730, -18)]), Color(0.42, 0.33, 0.22, 0.62), -3)
+	_add_poly(PackedVector2Array([Vector2(-705, 36), Vector2(-510, 36), Vector2(-495, 85), Vector2(-515, 134), Vector2(-695, 134), Vector2(-718, 85)]), Color(0.26, 0.36, 0.24, 0.75), -3)
+	_add_poly(PackedVector2Array([Vector2(-680, 52), Vector2(-535, 52), Vector2(-522, 85), Vector2(-540, 118), Vector2(-675, 118), Vector2(-692, 85)]), Color(0.16, 0.44, 0.42, 0.82), -2)
 
-	var marsh_mud := Polygon2D.new()
-	marsh_mud.polygon = PackedVector2Array([
-		Vector2(-705, 36), Vector2(-510, 36),
-		Vector2(-495, 85), Vector2(-515, 134),
-		Vector2(-695, 134), Vector2(-718, 85)
-	])
-	marsh_mud.color = Color(0.26, 0.36, 0.24, 0.75)
-	marsh_mud.z_index = -3
-	entities_root.add_child(marsh_mud)
-
-	var marsh_water := Polygon2D.new()
-	marsh_water.polygon = PackedVector2Array([
-		Vector2(-680, 52), Vector2(-535, 52),
-		Vector2(-522, 85), Vector2(-540, 118),
-		Vector2(-675, 118), Vector2(-692, 85)
-	])
-	marsh_water.color = Color(0.16, 0.44, 0.42, 0.82)
-	marsh_water.z_index = -2
-	entities_root.add_child(marsh_water)
-
-	_spawn_world_signpost(
-		Vector2(-415, -14),
-		"🌾 Llanura Salvaje del Oeste — ⚠️ N: Ruinas Hostiles | S: Ciénaga de Ranas",
-		Color(1.0, 0.78, 0.36)
-	)
-	_spawn_world_signpost(
-		Vector2(-605, 34),
-		"🐸 Ciénaga de las Ranas de la Llanura",
-		Color(0.62, 0.96, 0.68)
-	)
+	_spawn_world_signpost(Vector2(-415, -14), "🌾 Llanura Salvaje del Oeste — ⚠️ N: Ruinas Hostiles | S: Ciénaga de Ranas", Color(1.0, 0.78, 0.36))
+	_spawn_world_signpost(Vector2(-605, 34), "🐸 Ciénaga de las Ranas de la Llanura", Color(0.62, 0.96, 0.68))
 
 func _add_road_rect(rect: Rect2, col: Color) -> void:
-	var poly := Polygon2D.new()
-	poly.polygon = PackedVector2Array([
-		rect.position,
-		Vector2(rect.end.x, rect.position.y),
-		rect.end,
-		Vector2(rect.position.x, rect.end.y)
-	])
-	poly.color = col
-	poly.z_index = -3
-	entities_root.add_child(poly)
+	_add_poly(PackedVector2Array([rect.position, Vector2(rect.end.x, rect.position.y), rect.end, Vector2(rect.position.x, rect.end.y)]), col, -3)
 
-# ==============================================================================
 # EDIFICIO MIXTO #1: GRAN POSADA, TABERNA Y SALA DE CASINO/BILLAR
-# ==============================================================================
 func _spawn_tavern_and_rooms() -> void:
 	var tex_bed := _load_tex("res://assests/world/village/tavern_bed.png")
 	var tex_stall := _load_tex("res://assests/world/village/work_stall.png")
 	var tex_innkeeper := _load_tex("res://assests/world/village/villager_innkeeper.png")
 	var tex_wall_h := _load_tex("res://assests/world/village/wall_timber_h.png")
 
-	# Construcción sólida con suelo de tablones de madera y colisión de paredes (260x145 px, centro (440, -207.5))
 	_construct_solid_building(
-		"building_tavern",
-		"🍺 Gran Posada, Taberna y Casino 'El Jabalí Dorado'",
-		Vector2(440, -208),
-		Vector2(260, 145),
-		true,
+		"building_tavern", "🍺 Gran Posada, Taberna y Casino 'El Jabalí Dorado'",
+		Vector2(440, -208), Vector2(260, 145), true,
 		"res://assests/world/village/floor_wood_planks.png",
 		"res://assests/world/village/wall_timber_h.png",
 		"res://assests/world/village/wall_timber_v.png",
-		50.0,
-		20.0,
-		Color(1.0, 0.88, 0.45)
+		50.0, 20.0, Color(1.0, 0.88, 0.45)
 	)
 
-	# Alfombra roja del Salón de Casino
-	var carpet_poly := Polygon2D.new()
-	carpet_poly.polygon = PackedVector2Array([
-		Vector2(435, -202), Vector2(556, -202), Vector2(556, -144), Vector2(435, -144)
-	])
-	carpet_poly.color = Color(0.55, 0.14, 0.14, 0.62)
-	carpet_poly.z_index = -1
-	entities_root.add_child(carpet_poly)
-
-	# Tabique interior con puerta amplia de paso hacia los dormitorios (x = 400..450 abierta)
+	_add_poly(PackedVector2Array([Vector2(435, -202), Vector2(556, -202), Vector2(556, -144), Vector2(435, -144)]), Color(0.55, 0.14, 0.14, 0.62), -1)
 	_add_solid_wall_segment(Vector2(355, -222), Vector2(90, 6), tex_wall_h)
 	_add_solid_wall_segment(Vector2(510, -222), Vector2(120, 6), tex_wall_h)
 
-	# Decoración de interiores (Estanterías y macetas de Cute_Fantasy)
 	_spawn_decor_prop("res://assests/Comprados/ Packs/Cute_Fantasy/Buildings/House_Decor/bookcase_1.png", Vector2(325, -268))
 	_spawn_decor_prop("res://assests/Comprados/ Packs/Cute_Fantasy/Buildings/House_Decor/flower_pot_1.png", Vector2(555, -148))
-
-	# Mostrador de Cocina y Barra de Marta (Oeste)
-	var bar_spr := Sprite2D.new()
-	bar_spr.texture = tex_stall
-	bar_spr.global_position = Vector2(348, -172)
-	bar_spr.scale = Vector2(1.4, 1.4)
-	entities_root.add_child(bar_spr)
-
-	# Mesa Social de Comedor
-	var table_poly := Polygon2D.new()
-	table_poly.polygon = PackedVector2Array([
-		Vector2(-20, -9), Vector2(20, -9), Vector2(20, 9), Vector2(-20, 9)
-	])
-	table_poly.color = Color(0.54, 0.35, 0.18, 0.98)
-	table_poly.global_position = _tavern_social_pos
-	table_poly.z_index = -1
-	entities_root.add_child(table_poly)
+	_add_sprite_prop(tex_stall, Vector2(348, -172), Vector2(1.4, 1.4), 0)
+	_add_rect_poly(_tavern_social_pos, Vector2(20, 9), Color(0.54, 0.35, 0.18, 0.98), -1)
 
 	# 1. Mesa Verde de Póker / Blackjack / Ruleta
-	var games_rim := Polygon2D.new()
-	games_rim.polygon = PackedVector2Array([
-		Vector2(-20, -12), Vector2(20, -12), Vector2(20, 12), Vector2(-20, 12)
-	])
-	games_rim.color = Color(0.42, 0.26, 0.12, 1.0)
-	games_rim.global_position = _tavern_games_pos
-	games_rim.z_index = -1
-	entities_root.add_child(games_rim)
-
-	var games_felt := Polygon2D.new()
-	games_felt.polygon = PackedVector2Array([
-		Vector2(-16, -8), Vector2(16, -8), Vector2(16, 8), Vector2(-16, 8)
-	])
-	games_felt.color = Color(0.10, 0.50, 0.25, 1.0)
-	games_felt.global_position = _tavern_games_pos
-	games_felt.z_index = -1
-	entities_root.add_child(games_felt)
-
+	_add_rect_poly(_tavern_games_pos, Vector2(20, 12), Color(0.42, 0.26, 0.12, 1.0), -1)
+	_add_rect_poly(_tavern_games_pos, Vector2(16, 8), Color(0.10, 0.50, 0.25, 1.0), -1)
 	for chair_offset in [Vector2(-24, 0), Vector2(24, 0), Vector2(0, -16), Vector2(0, 16)]:
-		var chair := Polygon2D.new()
-		chair.polygon = PackedVector2Array([Vector2(-4, -4), Vector2(4, -4), Vector2(4, 4), Vector2(-4, 4)])
-		chair.color = Color(0.55, 0.36, 0.18, 0.95)
-		chair.global_position = _tavern_games_pos + chair_offset
-		chair.z_index = -1
-		entities_root.add_child(chair)
+		_add_rect_poly(_tavern_games_pos + chair_offset, Vector2(4, 4), Color(0.55, 0.36, 0.18, 0.95), -1)
 
 	_add_station_area("TavernGamesTableArea", _tavern_games_pos, 16.0, "tavern_games")
 	_tavern_games_label = _make_station_label(_tavern_games_pos + Vector2(-120, -30), "🃏 Mesa de Póker y Casino [E: Jugar con Aldeanos]")
 	entities_root.add_child(_tavern_games_label)
 
 	# 2. Mesa de Billar de la Posada
-	var pool_rim := Polygon2D.new()
-	pool_rim.polygon = PackedVector2Array([
-		Vector2(-22, -12), Vector2(22, -12), Vector2(22, 12), Vector2(-22, 12)
-	])
-	pool_rim.color = Color(0.38, 0.22, 0.10, 1.0)
-	pool_rim.global_position = _tavern_pool_pos
-	pool_rim.z_index = -1
-	entities_root.add_child(pool_rim)
-
-	var pool_felt := Polygon2D.new()
-	pool_felt.polygon = PackedVector2Array([
-		Vector2(-18, -8), Vector2(18, -8), Vector2(18, 8), Vector2(-18, 8)
-	])
-	pool_felt.color = Color(0.08, 0.42, 0.32, 1.0)
-	pool_felt.global_position = _tavern_pool_pos
-	pool_felt.z_index = -1
-	entities_root.add_child(pool_felt)
-
+	_add_rect_poly(_tavern_pool_pos, Vector2(22, 12), Color(0.38, 0.22, 0.10, 1.0), -1)
+	_add_rect_poly(_tavern_pool_pos, Vector2(18, 8), Color(0.08, 0.42, 0.32, 1.0), -1)
 	_add_station_area("TavernPoolTableArea", _tavern_pool_pos, 16.0, "tavern_pool")
 	_tavern_pool_label = _make_station_label(_tavern_pool_pos + Vector2(-115, -30), "🎱 Mesa de Billar [E: Jugar Billar de Posada]")
 	entities_root.add_child(_tavern_pool_label)
 
-	# Camas de la Posada
-	var bed_positions: Array[Vector2] = [
-		Vector2(342, -252),
-		Vector2(435, -252),
-		Vector2(468, -252),
-		Vector2(502, -252),
-		_tavern_bed_pos
-	]
-	for i in range(bed_positions.size()):
-		var b_spr := Sprite2D.new()
-		b_spr.texture = tex_bed
-		b_spr.global_position = bed_positions[i]
-		b_spr.scale = Vector2(1.18, 1.18)
-		b_spr.z_index = -1
-		entities_root.add_child(b_spr)
+	for b_pos in [Vector2(342, -252), Vector2(435, -252), Vector2(468, -252), Vector2(502, -252), _tavern_bed_pos]:
+		_add_sprite_prop(tex_bed, b_pos, Vector2(1.18, 1.18), -1)
 
 	_add_station_area("TavernPlayerBedArea", _tavern_bed_pos, 11.0, "tavern_bed")
 	_tavern_bed_label = _make_station_label(_tavern_bed_pos + Vector2(-115, -28), "🛌 Cama de Posada [E: Dormir hasta 06:00 (-8 Oro)]")
 	entities_root.add_child(_tavern_bed_label)
 
-	# Cofre privado de la Posada (en el cuarto de Marta)
 	_spawn_house_chest(Vector2(372, -256), "Cofre de la Posada El Jabalí", "family_tavern")
 
 	var marta := VillageNPC.new()
@@ -1166,20 +869,10 @@ func _spawn_tavern_and_rooms() -> void:
 	marta.trade_role = VillageNPC.TradeRole.INNKEEPER
 	marta.tavern_social_pos = _tavern_social_pos
 	entities_root.add_child(marta)
-	marta.setup_npc(
-		tex_innkeeper,
-		Vector2(348, -154),
-		Vector2(342, -252),
-		{"country_stew": 5, "bread": 7, "roasted_chicken": 3},
-		_tavern_social_pos,
-		"family_tavern",
-		"Posada El Jabalí"
-	)
+	marta.setup_npc(tex_innkeeper, Vector2(348, -154), Vector2(342, -252), {"country_stew": 5, "bread": 7, "roasted_chicken": 3}, _tavern_social_pos, "family_tavern", "Posada El Jabalí")
 	_innkeeper_npc = marta
 
-# ==============================================================================
 # 4 LOCALES COMERCIALES + 4 CASAS RESIDENCIALES + BOTICA-VIVIENDA MIXTA
-# ==============================================================================
 func _spawn_five_family_houses_and_trades() -> void:
 	var tex_stall := _load_tex("res://assests/world/village/work_stall.png")
 	var tex_bed := _load_tex("res://assests/world/village/tavern_bed.png")
@@ -1187,84 +880,54 @@ func _spawn_five_family_houses_and_trades() -> void:
 
 	trade_configs = {
 		VillageNPC.TradeRole.BLACKSMITH: {
-			"family_id": "family_smith",
-			"family_name": "Familia Yunque Gris",
-			"shop_title": "⚒️ Herrería y Armería 'Yunque Gris'",
-			"shop_center": Vector2(335, -36),
-			"shop_door_south": true,
-			"is_mixed_building": false,
-			"house_title": "🏠 Residencia Familia Yunque Gris",
-			"house_center": Vector2(745, -195),
-			"name": "Thoran",
-			"title": "Maestro Herrero y Armero",
+			"family_id": "family_smith", "family_name": "Familia Yunque Gris",
+			"shop_title": "⚒️ Herrería y Armería 'Yunque Gris'", "shop_center": Vector2(335, -36),
+			"shop_door_south": true, "is_mixed_building": false,
+			"house_title": "🏠 Residencia Familia Yunque Gris", "house_center": Vector2(745, -195),
+			"name": "Thoran", "title": "Maestro Herrero y Armero",
 			"tex": _load_tex("res://assests/world/village/villager_smith.png"),
 			"stock": {"iron_ore": 4, "repair_kit": 3},
-			"kin_name": "Kael",
-			"kin_title": "Hijo y Aprendiz de Forja"
+			"kin_name": "Kael", "kin_title": "Hijo y Aprendiz de Forja"
 		},
 		VillageNPC.TradeRole.BUTCHER: {
-			"family_id": "family_butcher",
-			"family_name": "Familia Colmillo",
-			"shop_title": "🥩 Carnicería y Peletería 'El Colmillo'",
-			"shop_center": Vector2(585, -36),
-			"shop_door_south": true,
-			"is_mixed_building": false,
-			"house_title": "🏠 Residencia Familia Colmillo",
-			"house_center": Vector2(905, -195),
-			"name": "Garrick",
-			"title": "Maestro Carnicero",
+			"family_id": "family_butcher", "family_name": "Familia Colmillo",
+			"shop_title": "🥩 Carnicería y Peletería 'El Colmillo'", "shop_center": Vector2(585, -36),
+			"shop_door_south": true, "is_mixed_building": false,
+			"house_title": "🏠 Residencia Familia Colmillo", "house_center": Vector2(905, -195),
+			"name": "Garrick", "title": "Maestro Carnicero",
 			"tex": _load_tex("res://assests/world/village/villager_butcher.png"),
 			"stock": {"cooked_meat": 5, "leather": 4, "roasted_chicken": 2},
-			"kin_name": "Lina",
-			"kin_title": "Esposa y Curtidora"
+			"kin_name": "Lina", "kin_title": "Esposa y Curtidora"
 		},
 		VillageNPC.TradeRole.CARPENTER: {
-			"family_id": "family_carpenter",
-			"family_name": "Familia Roble Viejo",
-			"shop_title": "🪚 Carpintería y Aserradero 'Roble Viejo'",
-			"shop_center": Vector2(585, 148),
-			"shop_door_south": false,
-			"is_mixed_building": false,
-			"house_title": "🏠 Residencia Familia Roble Viejo",
-			"house_center": Vector2(745, -36),
-			"name": "Bram",
-			"title": "Maestro Carpintero",
+			"family_id": "family_carpenter", "family_name": "Familia Roble Viejo",
+			"shop_title": "🪚 Carpintería y Aserradero 'Roble Viejo'", "shop_center": Vector2(585, 148),
+			"shop_door_south": false, "is_mixed_building": false,
+			"house_title": "🏠 Residencia Familia Roble Viejo", "house_center": Vector2(745, -36),
+			"name": "Bram", "title": "Maestro Carpintero",
 			"tex": _load_tex("res://assests/world/village/villager_carpenter.png"),
 			"stock": {"repair_kit": 5, "wood": 8},
-			"kin_name": "Mila",
-			"kin_title": "Hermana y Ebanista"
+			"kin_name": "Mila", "kin_title": "Hermana y Ebanista"
 		},
 		VillageNPC.TradeRole.FISHMONGER: {
-			"family_id": "family_fishmonger",
-			"family_name": "Familia Aguas Claras",
-			"shop_title": "🐟 Pescadería y Molino 'Aguas Claras'",
-			"shop_center": Vector2(465, 148),
-			"shop_door_south": false,
-			"is_mixed_building": false,
-			"house_title": "🏠 Residencia Familia Aguas Claras",
-			"house_center": Vector2(905, -36),
-			"name": "Marlo",
-			"title": "Pescador y Molinero",
+			"family_id": "family_fishmonger", "family_name": "Familia Aguas Claras",
+			"shop_title": "🐟 Pescadería y Molino 'Aguas Claras'", "shop_center": Vector2(465, 148),
+			"shop_door_south": false, "is_mixed_building": false,
+			"house_title": "🏠 Residencia Familia Aguas Claras", "house_center": Vector2(905, -36),
+			"name": "Marlo", "title": "Pescador y Molinero",
 			"tex": _load_tex("res://assests/world/village/villager_fishmonger.png"),
 			"stock": {"bread": 6, "fertilizer": 5, "cooked_fish": 4},
-			"kin_name": "Nora",
-			"kin_title": "Hija y Redera"
+			"kin_name": "Nora", "kin_title": "Hija y Redera"
 		},
 		VillageNPC.TradeRole.HERBALIST: {
-			"family_id": "family_herbalist",
-			"family_name": "Familia Raíz Verde",
-			"shop_title": "🌿 Botica y Casa-Jardín 'Raíz Verde'",
-			"shop_center": Vector2(325, 155),
-			"shop_door_south": false,
-			"is_mixed_building": true,
-			"house_title": "🌿 Botica y Vivienda Raíz Verde",
-			"house_center": Vector2(325, 155),
-			"name": "Elena",
-			"title": "Herborista y Alquimista",
+			"family_id": "family_herbalist", "family_name": "Familia Raíz Verde",
+			"shop_title": "🌿 Botica y Casa-Jardín 'Raíz Verde'", "shop_center": Vector2(325, 155),
+			"shop_door_south": false, "is_mixed_building": true,
+			"house_title": "🌿 Botica y Vivienda Raíz Verde", "house_center": Vector2(325, 155),
+			"name": "Elena", "title": "Herborista y Alquimista",
 			"tex": _load_tex("res://assests/world/village/villager_herbalist.png"),
 			"stock": {"carrot_seeds": 8, "cabbage_seeds": 8, "wheat_seeds": 8, "herbal_poultice": 4},
-			"kin_name": "Tomás",
-			"kin_title": "Esposo y Hortelano"
+			"kin_name": "Tomás", "kin_title": "Esposo y Hortelano"
 		}
 	}
 
@@ -1307,15 +970,7 @@ func _spawn_five_family_houses_and_trades() -> void:
 		master_npc.linked_trade = role_key
 		master_npc.tavern_social_pos = _tavern_social_pos
 		entities_root.add_child(master_npc)
-		master_npc.setup_npc(
-			cfg["tex"],
-			work_pos,
-			bed1_pos,
-			cfg["stock"],
-			table_pos,
-			fam_id,
-			str(cfg["family_name"])
-		)
+		master_npc.setup_npc(cfg["tex"], work_pos, bed1_pos, cfg["stock"], table_pos, fam_id, str(cfg["family_name"]))
 		trade_npcs[role_key] = master_npc
 
 		var kin_npc := VillageNPC.new()
@@ -1326,212 +981,101 @@ func _spawn_five_family_houses_and_trades() -> void:
 		kin_npc.linked_trade = role_key
 		kin_npc.tavern_social_pos = _tavern_social_pos
 		entities_root.add_child(kin_npc)
-		kin_npc.setup_npc(
-			tex_family,
-			kin_work_pos,
-			bed2_pos,
-			{},
-			table_pos,
-			fam_id,
-			str(cfg["family_name"])
-		)
+		kin_npc.setup_npc(tex_family, kin_work_pos, bed2_pos, {}, table_pos, fam_id, str(cfg["family_name"]))
 		family_npcs[role_key] = kin_npc
 
 func _build_enclosed_shop_visuals(
-	sc: Vector2,
-	shop_title: String,
-	tex_stall: Texture2D,
-	work_pos: Vector2,
-	door_on_south: bool,
-	is_blacksmith: bool,
-	fam_id: String,
-	role_id: int = -1
+	sc: Vector2, shop_title: String, tex_stall: Texture2D, work_pos: Vector2,
+	door_on_south: bool, is_blacksmith: bool, fam_id: String, role_id: int = -1
 ) -> void:
 	var floor_p: String = "res://assests/world/village/floor_stone_forge.png" if is_blacksmith else "res://assests/world/village/floor_wood_planks.png"
 	var wall_h_p: String = "res://assests/world/village/wall_stone_h.png" if is_blacksmith else "res://assests/world/village/wall_timber_h.png"
 	var wall_v_p: String = "res://assests/world/village/wall_stone_v.png" if is_blacksmith else "res://assests/world/village/wall_timber_v.png"
 
 	_construct_solid_building(
-		"shop_" + fam_id,
-		shop_title,
-		sc,
-		Vector2(116, 76),
-		door_on_south,
-		floor_p,
-		wall_h_p,
-		wall_v_p,
-		40.0,
-		0.0,
+		"shop_" + fam_id, shop_title, sc, Vector2(116, 76), door_on_south,
+		floor_p, wall_h_p, wall_v_p, 40.0, 0.0,
 		Color(1.0, 0.88, 0.52) if is_blacksmith else Color(0.95, 0.90, 0.68)
 	)
-
-	var stall := Sprite2D.new()
-	stall.texture = tex_stall
-	stall.global_position = work_pos + (Vector2(0, -10) if door_on_south else Vector2(0, 10))
-	stall.scale = Vector2(1.32, 1.32)
-	stall.z_index = -1
-	entities_root.add_child(stall)
+	var stall := _add_sprite_prop(tex_stall, work_pos + (Vector2(0, -10) if door_on_south else Vector2(0, 10)), Vector2(1.32, 1.32), -1)
 	if role_id >= 0:
 		_register_shop_business_stall(role_id, shop_title, fam_id, stall.global_position, stall)
 
-	# Cofre comercial del local (Paso 3)
-	var chest_pos: Vector2 = sc + (Vector2(38, -20) if door_on_south else Vector2(38, 20))
-	_spawn_house_chest(chest_pos, "Cofre de " + shop_title, fam_id)
-
+	_spawn_house_chest(sc + (Vector2(38, -20) if door_on_south else Vector2(38, 20)), "Cofre de " + shop_title, fam_id)
 	if is_blacksmith:
 		_spawn_decor_prop("res://assests/Comprados/ Packs/Cute_Fantasy/Buildings/House_Decor/furnace.png", sc + Vector2(-36, -16))
 		_spawn_decor_prop("res://assests/Comprados/ Packs/Cute_Fantasy/Buildings/House_Decor/anvil.png", sc + Vector2(26, -12))
 
 func _build_residential_house_visuals(
-	hc: Vector2,
-	house_title: String,
-	tex_bed: Texture2D,
-	bed1_pos: Vector2,
-	bed2_pos: Vector2,
-	table_pos: Vector2,
-	fam_id: String
+	hc: Vector2, house_title: String, tex_bed: Texture2D, bed1_pos: Vector2, bed2_pos: Vector2, table_pos: Vector2, fam_id: String
 ) -> void:
 	_construct_solid_building(
-		"house_" + fam_id,
-		house_title,
-		hc,
-		Vector2(112, 78),
-		true,
+		"house_" + fam_id, house_title, hc, Vector2(112, 78), true,
 		"res://assests/world/village/floor_wood_planks.png",
 		"res://assests/world/village/wall_timber_h.png",
 		"res://assests/world/village/wall_timber_v.png",
-		38.0,
-		0.0,
-		Color(0.92, 0.88, 0.72)
+		38.0, 0.0, Color(0.92, 0.88, 0.72)
 	)
-
-	var rug_poly := Polygon2D.new()
-	rug_poly.polygon = PackedVector2Array([
-		hc + Vector2(-24, -8), hc + Vector2(24, -8),
-		hc + Vector2(24, 18), hc + Vector2(-24, 18)
-	])
-	rug_poly.color = Color(0.52, 0.24, 0.20, 0.55)
-	rug_poly.z_index = -1
-	entities_root.add_child(rug_poly)
-
+	_add_poly(PackedVector2Array([hc + Vector2(-24, -8), hc + Vector2(24, -8), hc + Vector2(24, 18), hc + Vector2(-24, 18)]), Color(0.52, 0.24, 0.20, 0.55), -1)
 	for b_pos in [bed1_pos, bed2_pos]:
-		var bed := Sprite2D.new()
-		bed.texture = tex_bed
-		bed.global_position = b_pos
-		bed.scale = Vector2(1.12, 1.12)
-		bed.z_index = -1
-		entities_root.add_child(bed)
+		_add_sprite_prop(tex_bed, b_pos, Vector2(1.12, 1.12), -1)
 
 	_spawn_decor_prop("res://assests/Comprados/ Packs/Cute_Fantasy/Buildings/House_Decor/table_1.png", table_pos)
 	_spawn_house_chest(hc + Vector2(0, -24), "Cofre Familiar (" + house_title + ")", fam_id)
 
 func _build_mixed_shop_house_visuals(
-	center: Vector2,
-	title: String,
-	tex_bed: Texture2D,
-	tex_stall: Texture2D,
-	bed1_pos: Vector2,
-	bed2_pos: Vector2,
-	table_pos: Vector2,
-	work_pos: Vector2,
-	fam_id: String,
-	role_id: int = -1
+	center: Vector2, title: String, tex_bed: Texture2D, tex_stall: Texture2D,
+	bed1_pos: Vector2, bed2_pos: Vector2, table_pos: Vector2, work_pos: Vector2, fam_id: String, role_id: int = -1
 ) -> void:
 	_construct_solid_building(
-		"mixed_" + fam_id,
-		title,
-		center,
-		Vector2(128, 96),
-		false,
+		"mixed_" + fam_id, title, center, Vector2(128, 96), false,
 		"res://assests/world/village/floor_wood_planks.png",
 		"res://assests/world/village/wall_timber_h.png",
 		"res://assests/world/village/wall_timber_v.png",
-		42.0,
-		0.0,
-		Color(0.75, 0.96, 0.68)
+		42.0, 0.0, Color(0.75, 0.96, 0.68)
 	)
-
 	var tex_wall_h := _load_tex("res://assests/world/village/wall_timber_h.png")
 	_add_solid_wall_segment(center + Vector2(-42, 4), Vector2(40, 6), tex_wall_h)
 	_add_solid_wall_segment(center + Vector2(42, 4), Vector2(40, 6), tex_wall_h)
 
-	var stall := Sprite2D.new()
-	stall.texture = tex_stall
-	stall.global_position = work_pos + Vector2(0, 8)
-	stall.scale = Vector2(1.3, 1.3)
-	stall.z_index = -1
-	entities_root.add_child(stall)
+	var stall := _add_sprite_prop(tex_stall, work_pos + Vector2(0, 8), Vector2(1.3, 1.3), -1)
 	if role_id >= 0:
 		_register_shop_business_stall(role_id, title, fam_id, stall.global_position, stall)
 
 	for b_pos in [bed1_pos, bed2_pos]:
-		var bed := Sprite2D.new()
-		bed.texture = tex_bed
-		bed.global_position = b_pos
-		bed.scale = Vector2(1.12, 1.12)
-		bed.z_index = -1
-		entities_root.add_child(bed)
+		_add_sprite_prop(tex_bed, b_pos, Vector2(1.12, 1.12), -1)
 
 	_spawn_decor_prop("res://assests/Comprados/ Packs/Cute_Fantasy/Buildings/House_Decor/table_1.png", table_pos)
 	_spawn_house_chest(center + Vector2(42, -26), "Cofre de la Botica Raíz Verde", fam_id)
 
-# ==============================================================================
 # PASO 1: 🏥 HOSPITAL DE URGENCIAS Y ⚰️ MORGUE FORENSE (`Vector2(745, 148)`)
-# ==============================================================================
 func _spawn_hospital_and_morgue() -> void:
 	_construct_solid_building(
-		"building_hospital",
-		"🏥 Hospital de Urgencias y ⚰️ Morgue Forense",
-		_hospital_center,
-		Vector2(138, 96),
-		false,
+		"building_hospital", "🏥 Hospital de Urgencias y ⚰️ Morgue Forense",
+		_hospital_center, Vector2(138, 96), false,
 		"res://assests/world/village/floor_hospital_tile.png",
 		"res://assests/world/village/wall_stone_h.png",
 		"res://assests/world/village/wall_stone_v.png",
-		44.0,
-		0.0,
-		Color(0.68, 0.98, 0.88)
+		44.0, 0.0, Color(0.68, 0.98, 0.88)
 	)
-
 	var tex_wall_h := _load_tex("res://assests/world/village/wall_stone_h.png")
-	# Tabique divisorio entre Sala de Urgencias (Norte) y Morgue Forense (Sur) con puerta central amplia
 	_add_solid_wall_segment(_hospital_center + Vector2(-46, 4), Vector2(44, 6), tex_wall_h)
 	_add_solid_wall_segment(_hospital_center + Vector2(46, 4), Vector2(44, 6), tex_wall_h)
 
-	# 2 Camas Clínicas de Urgencias en la Sala Norte
 	var tex_hbed := _load_tex("res://assests/world/village/hospital_bed.png")
 	for b_pos in [_hospital_bed_pos, Vector2(780, 132)]:
-		var hbed := Sprite2D.new()
-		hbed.texture = tex_hbed
-		hbed.global_position = b_pos
-		hbed.scale = Vector2(1.15, 1.15)
-		hbed.z_index = -1
-		entities_root.add_child(hbed)
+		_add_sprite_prop(tex_hbed, b_pos, Vector2(1.15, 1.15), -1)
 
 	_add_station_area("HospitalEmergencyBedArea", _hospital_bed_pos, 16.0, "hospital_bed")
 	_hospital_bed_label = _make_station_label(_hospital_bed_pos + Vector2(-120, -28), "🏥 Cama de Urgencias [E: Curar Heridas (-10 Oro)]")
 	entities_root.add_child(_hospital_bed_label)
 
-	# 3 Mesas de Autopsia en la Sala Sur (Morgue Forense)
 	var tex_mtable := _load_tex("res://assests/world/village/morgue_table.png")
 	var tex_corpse := _load_tex("res://assests/world/village/morgue_corpse_sheet.png")
 	_morgue_corpse_sprites.clear()
 	for m_pos in _morgue_table_positions:
-		var mt := Sprite2D.new()
-		mt.texture = tex_mtable
-		mt.global_position = m_pos
-		mt.scale = Vector2(1.15, 1.15)
-		mt.z_index = -1
-		entities_root.add_child(mt)
-
-		var c_spr := Sprite2D.new()
-		c_spr.texture = tex_corpse
-		c_spr.global_position = m_pos
-		c_spr.scale = Vector2(1.15, 1.15)
-		c_spr.visible = false
-		c_spr.z_index = 0
-		entities_root.add_child(c_spr)
-		_morgue_corpse_sprites.append(c_spr)
+		_add_sprite_prop(tex_mtable, m_pos, Vector2(1.15, 1.15), -1)
+		_morgue_corpse_sprites.append(_add_sprite_prop(tex_corpse, m_pos, Vector2(1.15, 1.15), 0, false))
 
 	_add_station_area("MorgueAutopsyArea", _morgue_table_positions[1], 24.0, "morgue_table")
 	_morgue_label = _make_station_label(_morgue_table_positions[1] + Vector2(-125, -26), "⚰️ Morgue Forense [E: Examinar Autopsias]")
@@ -1548,34 +1092,24 @@ func _spawn_hospital_and_morgue() -> void:
 		["Dr. Silvano", "Dra. Valeria", "Dr. Aurelio", "Dra. Caelia", "Dr. Mirko"]
 	)
 
-# ==============================================================================
 # PASO 2: 🚓 COMISARÍA, 🔒 CÁRCEL Y GUARDIAS DE LA LEY (`Vector2(915, 148)`)
-# ==============================================================================
 func _spawn_police_station_and_jail() -> void:
 	_construct_solid_building(
-		"building_police",
-		"🚓 Comisaría de Policía y 🔒 Cárcel del Valle",
-		_police_center,
-		Vector2(142, 96),
-		false,
+		"building_police", "🚓 Comisaría de Policía y 🔒 Cárcel del Valle",
+		_police_center, Vector2(142, 96), false,
 		"res://assests/world/village/floor_stone_forge.png",
 		"res://assests/world/village/wall_stone_h.png",
 		"res://assests/world/village/wall_stone_v.png",
-		44.0,
-		0.0,
-		Color(0.62, 0.85, 1.0)
+		44.0, 0.0, Color(0.62, 0.85, 1.0)
 	)
-
 	var tex_bars_h := _load_tex("res://assests/world/village/jail_bars_h.png")
 	var tex_bars_v := _load_tex("res://assests/world/village/jail_bars_v.png")
 	var tex_bed := _load_tex("res://assests/world/village/tavern_bed.png")
 
-	# Rejas de Hierro de las Celdas (Sur-Oeste y Sur-Este de la Comisaría) con Puerta de Reja Física en `Vector2(902, 152)`
 	_add_solid_wall_segment(Vector2(868, 152), Vector2(42, 6), tex_bars_h, false)
 	_add_solid_wall_segment(Vector2(962, 152), Vector2(42, 6), tex_bars_h, false)
 	_add_solid_wall_segment(Vector2(915, 174), Vector2(6, 42), tex_bars_v, false)
 
-	# Puerta de Barrotes de la Celda (`Vector2(902, 152)`): se bloquea al estar recluido y se abre físicamente al salir en libertad o fugarse
 	_jail_cell_gate_body = StaticBody2D.new()
 	_jail_cell_gate_body.name = "JailCellGateBody"
 	_jail_cell_gate_body.global_position = Vector2(902, 152)
@@ -1589,30 +1123,11 @@ func _spawn_police_station_and_jail() -> void:
 	_jail_cell_gate_body.add_child(_jail_cell_gate_col)
 	entities_root.add_child(_jail_cell_gate_body)
 
-	_jail_cell_gate_spr_closed = Sprite2D.new()
-	_jail_cell_gate_spr_closed.texture = tex_bars_h
-	_jail_cell_gate_spr_closed.global_position = Vector2(902, 152)
-	_jail_cell_gate_spr_closed.scale = Vector2(0.85, 1.0)
-	_jail_cell_gate_spr_closed.visible = false
-	_jail_cell_gate_spr_closed.z_index = 2
-	entities_root.add_child(_jail_cell_gate_spr_closed)
-
-	_jail_cell_gate_spr_open = Sprite2D.new()
-	_jail_cell_gate_spr_open.texture = tex_bars_v
-	_jail_cell_gate_spr_open.global_position = Vector2(890, 141)
-	_jail_cell_gate_spr_open.scale = Vector2(1.0, 0.75)
-	_jail_cell_gate_spr_open.visible = true
-	_jail_cell_gate_spr_open.z_index = 2
-	entities_root.add_child(_jail_cell_gate_spr_open)
+	_jail_cell_gate_spr_closed = _add_sprite_prop(tex_bars_h, Vector2(902, 152), Vector2(0.85, 1.0), 2, false)
+	_jail_cell_gate_spr_open = _add_sprite_prop(tex_bars_v, Vector2(890, 141), Vector2(1.0, 0.75), 2, true)
 
 	for c_bed_pos in [Vector2(872, 176), Vector2(958, 176), Vector2(862, 132), Vector2(968, 132)]:
-		var cbed := Sprite2D.new()
-		cbed.texture = tex_bed
-		cbed.global_position = c_bed_pos
-		cbed.scale = Vector2(1.0, 1.0)
-		cbed.modulate = Color(0.75, 0.78, 0.85, 1.0)
-		cbed.z_index = -1
-		entities_root.add_child(cbed)
+		_add_sprite_prop(tex_bed, c_bed_pos, Vector2.ONE, -1, true, Color(0.75, 0.78, 0.85, 1.0))
 
 	_spawn_decor_prop("res://assests/Comprados/ Packs/Cute_Fantasy/Buildings/House_Decor/table_1.png", Vector2(890, 126))
 	_add_station_area("PoliceJailCellArea", _jail_cell_pos, 22.0, "police_jail")
@@ -1660,8 +1175,6 @@ func _get_map_edge_arrival_pos(index: int = 0) -> Vector2:
 		return Vector2(-900.0, 48.0 + float((index % 3) - 1) * 6.0)
 	return Vector2(990.0, 48.0 + float((index % 3) - 1) * 6.0)
 
-## Comprueba si ha fallecido el Médico o un agente de Policía para anunciar la vacante institucional.
-## NO hace respawn a los 75 segundos: los reemplazos solo llegan al amanecer respetando el límite estricto de `MAX_DAILY_ARRIVALS = 2` personas por día.
 func _check_authority_vacancy_announcements() -> void:
 	for slot in _authority_slots:
 		var cur_npc: VillageNPC = slot.get("npc")
@@ -1669,9 +1182,7 @@ func _check_authority_vacancy_announcements() -> void:
 			continue
 		if not bool(slot.get("vacancy_announced", false)):
 			slot["vacancy_announced"] = true
-			var p = get_tree().get_first_node_in_group("player")
-			if p and p.has_method("show_hint"):
-				p.show_hint("📢 Vacante en el Valle: %s ha muerto. Un reemplazo novato llegará caminando desde el borde del mapa en los próximos días (Máx. %d llegadas/día)." % [str(slot["title"]), MAX_DAILY_ARRIVALS])
+			_hint_player("📢 Vacante en el Valle: %s ha muerto. Un reemplazo novato llegará caminando desde el borde del mapa en los próximos días (Máx. %d llegadas/día)." % [str(slot["title"]), MAX_DAILY_ARRIVALS])
 
 func _spawn_authority_replacement(slot: Dictionary) -> VillageNPC:
 	_rehire_counter += 1
@@ -1682,150 +1193,64 @@ func _spawn_authority_replacement(slot: Dictionary) -> VillageNPC:
 	new_npc.npc_name = new_name
 	new_npc.npc_role = str(slot["title"]) + " (Recién Llegado)"
 	new_npc.trade_role = slot["role"]
-	new_npc.days_in_role = 0 # Empieza como Novato al 35% de eficiencia y necesita 7 días para alcanzar el 100%
+	new_npc.days_in_role = 0
 	new_npc.tavern_social_pos = _tavern_social_pos
 	entities_root.add_child(new_npc)
 	var stock_copy: Dictionary = (slot.get("stock", {}) as Dictionary).duplicate()
-	new_npc.setup_npc(
-		_load_tex(str(slot["tex_path"])),
-		slot["work_pos"],
-		slot["bed_pos"],
-		stock_copy,
-		slot.get("table_pos", _tavern_social_pos),
-		str(slot["family_id"]),
-		str(slot["family_name"])
-	)
-	# Llega caminando físicamente desde el borde del mapa por el camino principal
+	new_npc.setup_npc(_load_tex(str(slot["tex_path"])), slot["work_pos"], slot["bed_pos"], stock_copy, slot.get("table_pos", _tavern_social_pos), str(slot["family_id"]), str(slot["family_name"]))
 	new_npc.global_position = _get_map_edge_arrival_pos(_rehire_counter)
 	slot["npc"] = new_npc
 	slot["rehire_timer"] = 0.0
 	slot["vacancy_announced"] = false
 	authority_npcs.append(new_npc)
-
-	var p = get_tree().get_first_node_in_group("player")
-	if p and p.has_method("show_hint"):
-		if slot["role"] == VillageNPC.TradeRole.DOCTOR:
-			p.show_hint("🏥🚶 %s (%s · Novato 35%%) está entrando al valle por el camino principal hacia el Hospital." % [new_name, str(slot["title"])])
-		else:
-			p.show_hint("🚓🚶 %s (%s · Novato 35%%) está entrando al valle por el camino principal hacia la Comisaría." % [new_name, str(slot["title"])])
+	var dest_b: String = "Hospital" if slot["role"] == VillageNPC.TradeRole.DOCTOR else "Comisaría"
+	var icon_b: String = "🏥🚶" if slot["role"] == VillageNPC.TradeRole.DOCTOR else "🚓🚶"
+	_hint_player("%s %s (%s · Novato 35%%) está entrando al valle por el camino principal hacia el/la %s." % [icon_b, new_name, str(slot["title"]), dest_b])
 	return new_npc
 
-# ==============================================================================
 # PASO 2B: ⛪ CAPILLA DE SAN CIPRIANO Y 🪦 CEMENTERIO PARROQUIAL (`Vector2(745, 312)`)
-# ==============================================================================
 func _spawn_church_and_cemetery() -> void:
-	# 1. Construcción sólida de la Capilla de San Cipriano al sur del Hospital
 	_construct_solid_building(
-		"building_church",
-		"⛪ Capilla de San Cipriano",
-		_church_center,
-		Vector2(132, 92),
-		false,
+		"building_church", "⛪ Capilla de San Cipriano",
+		_church_center, Vector2(132, 92), false,
 		"res://assests/world/village/floor_stone_forge.png",
 		"res://assests/world/village/wall_stone_h.png",
 		"res://assests/world/village/wall_stone_v.png",
-		42.0,
-		0.0,
-		Color(0.92, 0.86, 1.0)
+		42.0, 0.0, Color(0.92, 0.86, 1.0)
 	)
+	_add_poly(PackedVector2Array([_church_center + Vector2(-12, -42), _church_center + Vector2(12, -42), _church_center + Vector2(12, 34), _church_center + Vector2(-12, 34)]), Color(0.46, 0.16, 0.36, 0.72), -1)
 
-	# Alfombra púrpura/dorada del pasillo central hacia el Altar
-	var aisle_poly := Polygon2D.new()
-	aisle_poly.polygon = PackedVector2Array([
-		_church_center + Vector2(-12, -42),
-		_church_center + Vector2(12, -42),
-		_church_center + Vector2(12, 34),
-		_church_center + Vector2(-12, 34)
-	])
-	aisle_poly.color = Color(0.46, 0.16, 0.36, 0.72)
-	aisle_poly.z_index = -1
-	entities_root.add_child(aisle_poly)
-
-	# 4 Bancos de madera de oración (2 a la izquierda y 2 a la derecha del pasillo)
 	for pew_offset in [Vector2(-36, -16), Vector2(-36, 6), Vector2(36, -16), Vector2(36, 6)]:
-		var pew := Polygon2D.new()
-		pew.polygon = PackedVector2Array([
-			Vector2(-18, -5), Vector2(18, -5), Vector2(18, 5), Vector2(-18, 5)
-		])
-		pew.color = Color(0.46, 0.30, 0.16, 0.96)
-		pew.global_position = _church_center + pew_offset
-		pew.z_index = -1
-		entities_root.add_child(pew)
+		_add_rect_poly(_church_center + pew_offset, Vector2(18, 5), Color(0.46, 0.30, 0.16, 0.96), -1)
 
-	# Altar Sagrado y Libro Parroquial de Difuntos al Sur de la Capilla (`_church_altar_pos`)
-	var altar_base := Polygon2D.new()
-	altar_base.polygon = PackedVector2Array([
-		Vector2(-24, -8), Vector2(24, -8), Vector2(24, 8), Vector2(-24, 8)
-	])
-	altar_base.color = Color(0.82, 0.78, 0.72, 1.0)
-	altar_base.global_position = _church_altar_pos
-	altar_base.z_index = -1
-	entities_root.add_child(altar_base)
-
-	var altar_cloth := Polygon2D.new()
-	altar_cloth.polygon = PackedVector2Array([
-		Vector2(-14, -8), Vector2(14, -8), Vector2(14, 8), Vector2(-14, 8)
-	])
-	altar_cloth.color = Color(0.88, 0.72, 0.24, 0.95)
-	altar_cloth.global_position = _church_altar_pos
-	altar_cloth.z_index = -1
-	entities_root.add_child(altar_cloth)
+	_add_rect_poly(_church_altar_pos, Vector2(24, 8), Color(0.82, 0.78, 0.72, 1.0), -1)
+	_add_rect_poly(_church_altar_pos, Vector2(14, 8), Color(0.88, 0.72, 0.24, 0.95), -1)
 
 	_add_station_area("ChurchAltarArea", _church_altar_pos, 22.0, "church_altar")
 	_church_altar_label = _make_station_label(_church_altar_pos + Vector2(-125, -28), "⛪ Altar y Libro de Difuntos [E: Consultar Sepulturas / Orar]")
 	entities_root.add_child(_church_altar_label)
 
 	# 2. Cementerio Parroquial al Este de la Capilla (sur de la Comisaría, `Rect2(826, 262, 166, 98)`)
-	var cem_ground := Polygon2D.new()
-	cem_ground.polygon = PackedVector2Array([
-		Vector2(826, 262), Vector2(992, 262), Vector2(992, 360), Vector2(826, 360)
-	])
-	cem_ground.color = Color(0.22, 0.30, 0.22, 0.78)
-	cem_ground.z_index = -2
-	entities_root.add_child(cem_ground)
+	_add_poly(PackedVector2Array([Vector2(826, 262), Vector2(992, 262), Vector2(992, 360), Vector2(826, 360)]), Color(0.22, 0.30, 0.22, 0.78), -2)
 
-	# Verja perimetral de hierro forjado del Cementerio (dejando entrada abierta en `x = 870..906, y = 262`)
 	var fence_border := Line2D.new()
 	fence_border.width = 2.5
 	fence_border.default_color = Color(0.26, 0.28, 0.34, 0.95)
-	fence_border.points = PackedVector2Array([
-		Vector2(870, 262), Vector2(826, 262), Vector2(826, 360),
-		Vector2(992, 360), Vector2(992, 262), Vector2(906, 262)
-	])
+	fence_border.points = PackedVector2Array([Vector2(870, 262), Vector2(826, 262), Vector2(826, 360), Vector2(992, 360), Vector2(992, 262), Vector2(906, 262)])
 	fence_border.z_index = 0
 	entities_root.add_child(fence_border)
 
-	# Letrero fijo del Cementerio Parroquial
-	var cem_title := Label.new()
-	cem_title.text = "🪦 Cementerio Parroquial de San Cipriano"
-	cem_title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	cem_title.position = Vector2(784, 244)
-	cem_title.custom_minimum_size = Vector2(250, 16)
-	cem_title.add_theme_font_size_override("font_size", 8)
-	cem_title.add_theme_color_override("font_color", Color(0.82, 0.86, 0.96))
-	cem_title.add_theme_color_override("font_outline_color", Color.BLACK)
-	cem_title.add_theme_constant_override("outline_size", 3)
-	entities_root.add_child(cem_title)
-
+	_add_title_label(Vector2(784, 244), Vector2(250, 16), "🪦 Cementerio Parroquial de San Cipriano", Color(0.82, 0.86, 0.96), 8)
 	_add_station_area("CemeteryGateArea", _cemetery_gate_pos, 22.0, "cemetery_gate")
 	_cemetery_label = _make_station_label(_cemetery_gate_pos + Vector2(-125, -26), "🪦 Cementerio Parroquial [E: Inspeccionar Sepulturas]")
 	entities_root.add_child(_cemetery_label)
 
-	# Generar las 18 parcelas físicas de tumbas (3 filas x 6 columnas)
 	_cemetery_grave_positions.clear()
 	for row_i in range(3):
 		for col_i in range(6):
 			var g_pos := Vector2(844.0 + float(col_i) * 26.0, 282.0 + float(row_i) * 28.0)
 			_cemetery_grave_positions.append(g_pos)
-			# Marca sutil de parcela vacía en el césped del camposanto
-			var plot_mark := Polygon2D.new()
-			plot_mark.polygon = PackedVector2Array([
-				Vector2(-7, -9), Vector2(7, -9), Vector2(7, 9), Vector2(-7, 9)
-			])
-			plot_mark.color = Color(0.18, 0.24, 0.18, 0.50)
-			plot_mark.global_position = g_pos
-			plot_mark.z_index = -2
-			entities_root.add_child(plot_mark)
+			_add_rect_poly(g_pos, Vector2(7, 9), Color(0.18, 0.24, 0.18, 0.50), -2)
 
 ## Indica si queda al menos 1 de las 3 camillas de acero libres en la Morgue del Hospital (`MAX_MORGUE_CAPACITY = 3`)
 func has_free_morgue_table() -> bool:
@@ -1870,50 +1295,16 @@ func _spawn_physical_grave_marker(grave_idx: int, rec: Dictionary) -> void:
 	entities_root.add_child(grave_node)
 	_cemetery_grave_nodes.append(grave_node)
 
-	# Montículo de tierra recién removida
-	var mound := Polygon2D.new()
-	mound.polygon = PackedVector2Array([
-		Vector2(-7, -2), Vector2(7, -2), Vector2(8, 10), Vector2(-8, 10)
-	])
-	mound.color = Color(0.36, 0.25, 0.16, 0.95)
-	mound.z_index = -1
-	grave_node.add_child(mound)
-
-	# Lápida de piedra tallada en la cabecera norte
-	var headstone := Polygon2D.new()
-	headstone.polygon = PackedVector2Array([
-		Vector2(-6, -11), Vector2(-4, -14), Vector2(4, -14), Vector2(6, -11),
-		Vector2(6, -2), Vector2(-6, -2)
-	])
-	headstone.color = Color(0.68, 0.72, 0.78, 1.0)
-	headstone.z_index = 0
-	grave_node.add_child(headstone)
-
-	# Cruz grabada en la lápida
-	var cross_v := Polygon2D.new()
-	cross_v.polygon = PackedVector2Array([
-		Vector2(-1, -12), Vector2(1, -12), Vector2(1, -4), Vector2(-1, -4)
-	])
-	cross_v.color = Color(0.32, 0.35, 0.40, 1.0)
-	cross_v.z_index = 1
-	grave_node.add_child(cross_v)
-
-	var cross_h := Polygon2D.new()
-	cross_h.polygon = PackedVector2Array([
-		Vector2(-3, -10), Vector2(3, -10), Vector2(3, -8), Vector2(-3, -8)
-	])
-	cross_h.color = Color(0.32, 0.35, 0.40, 1.0)
-	cross_h.z_index = 1
-	grave_node.add_child(cross_h)
+	_add_poly(PackedVector2Array([Vector2(-7, -2), Vector2(7, -2), Vector2(8, 10), Vector2(-8, 10)]), Color(0.36, 0.25, 0.16, 0.95), -1, Vector2.ZERO, grave_node)
+	_add_poly(PackedVector2Array([Vector2(-6, -11), Vector2(-4, -14), Vector2(4, -14), Vector2(6, -11), Vector2(6, -2), Vector2(-6, -2)]), Color(0.68, 0.72, 0.78, 1.0), 0, Vector2.ZERO, grave_node)
+	_add_poly(PackedVector2Array([Vector2(-1, -12), Vector2(1, -12), Vector2(1, -4), Vector2(-1, -4)]), Color(0.32, 0.35, 0.40, 1.0), 1, Vector2.ZERO, grave_node)
+	_add_poly(PackedVector2Array([Vector2(-3, -10), Vector2(3, -10), Vector2(3, -8), Vector2(-3, -8)]), Color(0.32, 0.35, 0.40, 1.0), 1, Vector2.ZERO, grave_node)
 
 	var v_name: String = str(rec.get("victim_name", "Aldeano"))
 	var v_role: String = str(rec.get("victim_role", "Habitante"))
 	var v_cause: String = str(rec.get("cause_of_death", "Causa desconocida"))
 	var b_day: int = int(rec.get("burial_day", 1))
-	var g_lbl := _make_station_label(
-		Vector2(-125, -34),
-		"🪦 Tumba #%d: R.I.P. %s (%s)\n[Sepultado Día %d | %s | E: Libro de Difuntos]" % [grave_idx + 1, v_name, v_role, b_day, v_cause]
-	)
+	var g_lbl := _make_station_label(Vector2(-125, -34), "🪦 Tumba #%d: R.I.P. %s (%s)\n[Sepultado Día %d | %s | E: Libro de Difuntos]" % [grave_idx + 1, v_name, v_role, b_day, v_cause])
 	g_lbl.name = "GraveHoverLabel"
 	g_lbl.add_theme_color_override("font_color", Color(0.86, 0.90, 1.0))
 	grave_node.add_child(g_lbl)
@@ -1934,49 +1325,17 @@ func _rebuild_cemetery_graves_from_save() -> void:
 # PASO 3: 🔓 COFRES DOMÉSTICOS Y ROBO EN SIGILO
 # ==============================================================================
 func _spawn_house_chest(pos: Vector2, chest_title: String, fam_id: String) -> void:
-	var spr := Sprite2D.new()
-	spr.texture = _load_tex("res://assests/world/village/house_chest_closed.png")
-	spr.global_position = pos
-	spr.scale = Vector2(1.05, 1.05)
-	spr.z_index = -1
-	entities_root.add_child(spr)
-
-	var area := Area2D.new()
-	area.global_position = pos
-	area.collision_layer = 1
-	area.collision_mask = 2
-	area.add_to_group("interactable")
-	area.set_meta("village_station", "house_chest")
-	var col := CollisionShape2D.new()
-	var c := CircleShape2D.new()
-	c.radius = 9.0
-	col.shape = c
-	area.add_child(col)
-	add_child(area)
-
+	var spr := _add_sprite_prop(_load_tex("res://assests/world/village/house_chest_closed.png"), pos, Vector2(1.05, 1.05), -1)
+	_add_station_area("", pos, 9.0, "house_chest")
 	var lbl := _make_station_label(pos + Vector2(-115, -24), "🔓 %s [E: Forzar Cerradura (Usa Sigilo [C])]" % chest_title)
 	entities_root.add_child(lbl)
-
-	house_chests.append({
-		"pos": pos,
-		"sprite": spr,
-		"label": lbl,
-		"title": chest_title,
-		"family_id": fam_id,
-		"looted_day": -1
-	})
+	house_chests.append({"pos": pos, "sprite": spr, "label": lbl, "title": chest_title, "family_id": fam_id, "looted_day": -1})
 
 # ==============================================================================
 # PASO 5: 📋 TABLÓN DE ENCARGOS EN LA PLAZA CENTRAL (`Vector2(465, 24)`)
 # ==============================================================================
 func _spawn_notice_board_in_plaza() -> void:
-	var board_spr := Sprite2D.new()
-	board_spr.texture = _load_tex("res://assests/Comprados/ Packs/Cute_Fantasy/Buildings/House_Decor/questboard_1.png")
-	board_spr.global_position = _notice_board_pos
-	board_spr.scale = Vector2(1.15, 1.15)
-	board_spr.z_index = -1
-	entities_root.add_child(board_spr)
-
+	_add_sprite_prop(_load_tex("res://assests/Comprados/ Packs/Cute_Fantasy/Buildings/House_Decor/questboard_1.png"), _notice_board_pos, Vector2(1.15, 1.15), -1)
 	_add_station_area("PlazaNoticeBoardArea", _notice_board_pos, 14.0, "notice_board")
 	_notice_board_label = _make_station_label(_notice_board_pos + Vector2(-120, -28), "📋 Tablón de Encargos y Recompensas [E: Ver Misiones]")
 	entities_root.add_child(_notice_board_label)
@@ -1986,32 +1345,11 @@ func _spawn_notice_board_in_plaza() -> void:
 # ==============================================================================
 func _spawn_electric_streetlights() -> void:
 	var lamp_tex := _load_tex("res://assests/Comprados/ Packs/Cute_Fantasy/Buildings/House_Decor/lamp-post1.png")
-	var lamp_positions: Array[Vector2] = [
-		Vector2(215, 36),  # Entrada de la Granja
-		Vector2(405, 18),  # Esquina Noroeste Plaza
-		Vector2(525, 18),  # Esquina Noreste Plaza
-		Vector2(432, -126),# Entrada de la Gran Posada
-		Vector2(692, 88),  # Entrada del Hospital
-		Vector2(862, 88)   # Entrada de la Comisaría
-	]
+	var lamp_positions: Array[Vector2] = [Vector2(215, 36), Vector2(405, 18), Vector2(525, 18), Vector2(432, -126), Vector2(692, 88), Vector2(862, 88)]
 	for l_pos in lamp_positions:
-		var l_spr := Sprite2D.new()
-		l_spr.texture = lamp_tex
-		l_spr.global_position = l_pos
-		l_spr.scale = Vector2(1.05, 1.05)
-		l_spr.z_index = 1
-		entities_root.add_child(l_spr)
-
-		var glow := Polygon2D.new()
-		glow.polygon = PackedVector2Array([
-			Vector2(-26, -18), Vector2(26, -18), Vector2(34, 18), Vector2(-34, 18)
-		])
-		glow.color = Color(1.0, 0.92, 0.55, 0.22)
-		glow.global_position = l_pos
+		var l_spr := _add_sprite_prop(lamp_tex, l_pos, Vector2(1.05, 1.05), 1)
+		var glow := _add_poly(PackedVector2Array([Vector2(-26, -18), Vector2(26, -18), Vector2(34, 18), Vector2(-34, 18)]), Color(1.0, 0.92, 0.55, 0.22), -1, l_pos)
 		glow.visible = false
-		glow.z_index = -1
-		entities_root.add_child(glow)
-
 		streetlights.append({"sprite": l_spr, "glow": glow, "pos": l_pos})
 
 func _update_streetlights_glow() -> void:
@@ -2040,7 +1378,8 @@ func _spawn_decor_prop(tex_path: String, pos: Vector2) -> void:
 
 func _add_station_area(area_name: String, pos: Vector2, radius: float, meta_tag: String) -> void:
 	var area := Area2D.new()
-	area.name = area_name
+	if area_name != "":
+		area.name = area_name
 	area.global_position = pos
 	area.collision_layer = 1
 	area.collision_mask = 2
@@ -2090,17 +1429,10 @@ func _track_player_building_sightings(player: Node2D) -> void:
 		var h: int = WorldClock.current_hour if WorldClock else 12
 		var m: int = WorldClock.current_minute if WorldClock else 0
 		var d: int = WorldClock.current_day if WorldClock else 1
-		var entry: Dictionary = {
-			"building_id": str(entered_b.get("id", "")),
-			"building_title": str(entered_b.get("title", "Edificio")),
-			"witness_name": witness.npc_name,
-			"action": action_verb,
-			"hour": h,
-			"minute": m,
-			"day": d,
-			"total_minutes": d * 1440 + h * 60 + m
-		}
-		sighting_log.push_front(entry)
+		sighting_log.push_front({
+			"building_id": str(entered_b.get("id", "")), "building_title": str(entered_b.get("title", "Edificio")),
+			"witness_name": witness.npc_name, "action": action_verb, "hour": h, "minute": m, "day": d, "total_minutes": d * 1440 + h * 60 + m
+		})
 		while sighting_log.size() > 25:
 			sighting_log.pop_back()
 
@@ -2143,9 +1475,7 @@ func report_assault_crime(victim: VillageNPC) -> void:
 		var msg := "👁️🚨 ¡%s presenció el ataque a %s! (+25 Oro de multa policial)" % [w_name, victim.npc_name]
 		crime_history.push_front(msg)
 		_notify_inquisitor_of_police_crime(msg, 24)
-		var player = get_tree().get_first_node_in_group("player")
-		if player and player.has_method("show_hint"):
-			player.show_hint(msg)
+		_hint_player(msg)
 
 func report_pet_assault_crime(pet: Node2D) -> void:
 	if not pet or ("family_id" in pet and str(pet.get("family_id")) == "player_farm"):
@@ -2161,9 +1491,7 @@ func report_pet_assault_crime(pet: Node2D) -> void:
 		var msg := "🐾🚨 ¡%s te vio atacar a %s! (+18 Oro de multa por crueldad)" % [witness.npc_name, p_name]
 		crime_history.push_front(msg)
 		_notify_inquisitor_of_police_crime(msg, 14)
-		var player = get_tree().get_first_node_in_group("player")
-		if player and player.has_method("show_hint"):
-			player.show_hint(msg)
+		_hint_player(msg)
 
 func report_theft_crime(fam_id: String, reason: String, crime_pos: Vector2) -> void:
 	var witness: VillageNPC = _find_conscious_witness_near(crime_pos, 145.0, null)
@@ -2175,9 +1503,7 @@ func report_theft_crime(fam_id: String, reason: String, crime_pos: Vector2) -> v
 		var msg := "🕵️🚨 ¡%s te vio cometer robo (%s)! (+20 Oro de multa policial)" % [witness.npc_name, reason]
 		crime_history.push_front(msg)
 		_notify_inquisitor_of_police_crime(msg, 16)
-		var player = get_tree().get_first_node_in_group("player")
-		if player and player.has_method("show_hint"):
-			player.show_hint(msg)
+		_hint_player(msg)
 
 ## Paso 1 y Paso 2: Cuando un NPC descubre un cadáver y lo traslada a la Morgue (máx. 3 camillas) o al Cementerio Parroquial (si la Morgue está llena)
 func register_npc_death_and_corpse(
@@ -2237,16 +1563,9 @@ func register_npc_death_and_corpse(
 					break
 
 	var record: Dictionary = {
-		"victim_name": victim.npc_name,
-		"victim_role": victim.npc_role,
-		"family_name": victim.family_name,
-		"time_str": time_str,
-		"crime_scene": crime_scene_name,
-		"cause_of_death": weapon_name,
-		"witness_clue": witness_clue,
-		"suspect": suspect_str,
-		"added_total_hours": added_total_hours,
-		"buried": false
+		"victim_name": victim.npc_name, "victim_role": victim.npc_role, "family_name": victim.family_name,
+		"time_str": time_str, "crime_scene": crime_scene_name, "cause_of_death": weapon_name,
+		"witness_clue": witness_clue, "suspect": suspect_str, "added_total_hours": added_total_hours, "buried": false
 	}
 	corpse_records.push_front(record)
 
@@ -2262,24 +1581,12 @@ func register_npc_death_and_corpse(
 	# Si el Inquisidor Real Alistair está activo en el valle, re-cruzar los expedientes de la Morgue y Comisaría con el nuevo cadáver registrado
 	if bool(active_royal_investigation.get("active", false)) and is_instance_valid(_royal_investigator_npc):
 		active_royal_investigation["morgue_checked"] = false
-		_cross_check_morgue_and_police_records(
-			_royal_investigator_npc,
-			active_royal_investigation.get("suspects", {}),
-			active_royal_investigation.get("clues_log", [])
-		)
+		_cross_check_morgue_and_police_records(_royal_investigator_npc, active_royal_investigation.get("suspects", {}), active_royal_investigation.get("clues_log", []))
 
-	var player = get_tree().get_first_node_in_group("player")
-	if player and player.has_method("show_hint"):
-		if buried_directly:
-			if suspect_str.begins_with("Jugador"):
-				player.show_hint("🪦🚨 La Morgue está llena (3/3): %s fue sepultado en el Cementerio Parroquial. ¡%s! (Multa: %d Oro)." % [victim.npc_name, witness_clue, bounty_gold])
-			else:
-				player.show_hint("🪦⛪ La Morgue está llena (3/3 camillas): El cuerpo de %s fue sepultado directamente en el Cementerio de la Iglesia." % victim.npc_name)
-		else:
-			if suspect_str.begins_with("Jugador"):
-				player.show_hint("⚰️🚨 El cuerpo de %s fue trasladado a la Morgue (%d/3). ¡%s! Orden de arresto emitida (Multa: %d Oro)." % [victim.npc_name, morgue_active_corpses.size(), witness_clue, bounty_gold])
-			else:
-				player.show_hint("⚰️🕵️ El cuerpo de %s está en la Morgue Forense (%d/3 camillas). Se enterrará en el Cementerio tras 18h." % [victim.npc_name, morgue_active_corpses.size()])
+	if buried_directly:
+		_hint_player("🪦🚨 La Morgue está llena (3/3): %s fue sepultado en el Cementerio Parroquial. ¡%s! (Multa: %d Oro)." % [victim.npc_name, witness_clue, bounty_gold] if suspect_str.begins_with("Jugador") else "🪦⛪ La Morgue está llena (3/3 camillas): El cuerpo de %s fue sepultado directamente en el Cementerio de la Iglesia." % victim.npc_name)
+	else:
+		_hint_player("⚰️🚨 El cuerpo de %s fue trasladado a la Morgue (%d/3). ¡%s! Orden de arresto emitida (Multa: %d Oro)." % [victim.npc_name, morgue_active_corpses.size(), witness_clue, bounty_gold] if suspect_str.begins_with("Jugador") else "⚰️🕵️ El cuerpo de %s está en la Morgue Forense (%d/3 camillas). Se enterrará en el Cementerio tras 18h." % [victim.npc_name, morgue_active_corpses.size()])
 
 ## Paso 4: Propaga cambios de reputación a toda una familia (`family_id`)
 func modify_family_reputation(fam_id: String, delta_amount: int, reason: String = "", source_npc: VillageNPC = null) -> void:
@@ -2390,15 +1697,9 @@ func _open_morgue_autopsy_ui() -> void:
 		for i in range(morgue_active_corpses.size()):
 			var rec: Dictionary = morgue_active_corpses[i]
 			lines.append("• Camilla #%d: %s (%s — %s)\n   🕒 %s | 📍 %s\n   🗡️ Causa Forense: %s\n   👁️ Pista Testigos: %s\n   ⚖️ Sospechoso Policial: %s" % [
-				i + 1,
-				str(rec.get("victim_name", "")),
-				str(rec.get("victim_role", "")),
-				str(rec.get("family_name", "")),
-				str(rec.get("time_str", "")),
-				str(rec.get("crime_scene", "")),
-				str(rec.get("cause_of_death", "")),
-				str(rec.get("witness_clue", "")),
-				str(rec.get("suspect", ""))
+				i + 1, str(rec.get("victim_name", "")), str(rec.get("victim_role", "")), str(rec.get("family_name", "")),
+				str(rec.get("time_str", "")), str(rec.get("crime_scene", "")), str(rec.get("cause_of_death", "")),
+				str(rec.get("witness_clue", "")), str(rec.get("suspect", ""))
 			])
 		morgue_info_lbl.text = "\n".join(lines)
 	morgue_panel.visible = true
@@ -2418,13 +1719,8 @@ func _open_church_registry_ui() -> void:
 		for i in range(buried_graves.size() - 1, start_idx - 1, -1):
 			var g: Dictionary = buried_graves[i]
 			lines.append("• Tumba #%d: R.I.P. %s (%s — %s) | Sepultado Día %d\n   🗡️ Causa: %s | 📜 %s" % [
-				int(g.get("grave_index", i)) + 1,
-				str(g.get("victim_name", "")),
-				str(g.get("victim_role", "")),
-				str(g.get("family_name", "")),
-				int(g.get("burial_day", 1)),
-				str(g.get("cause_of_death", "")),
-				str(g.get("burial_reason", "Sepultura parroquial"))
+				int(g.get("grave_index", i)) + 1, str(g.get("victim_name", "")), str(g.get("victim_role", "")),
+				str(g.get("family_name", "")), int(g.get("burial_day", 1)), str(g.get("cause_of_death", "")), str(g.get("burial_reason", "Sepultura parroquial"))
 			])
 	church_info_lbl.text = "\n".join(lines)
 	church_panel.visible = true
@@ -2434,8 +1730,7 @@ func _on_church_pray_action(player: Node2D) -> void:
 		return
 	var inv: SimpleInventory = player.inventory
 	if inv.gold < 5:
-		if player.has_method("_spawn_floating_text"):
-			player._spawn_floating_text("❌ Necesitas 5 Oro para la ofrenda de velas del altar", Color.ORANGE_RED, -42.0)
+		_msg_player(player, "❌ Necesitas 5 Oro para la ofrenda de velas del altar", Color.ORANGE_RED, -42.0)
 		return
 	inv.add_gold(-5)
 	for n in get_tree().get_nodes_in_group("village_npcs"):
@@ -2443,8 +1738,7 @@ func _on_church_pray_action(player: Node2D) -> void:
 			var v := n as VillageNPC
 			if not v.is_dead and v.trade_role != VillageNPC.TradeRole.ROYAL_INVESTIGATOR:
 				v.affinity = clampi(v.affinity + 3, -100, 100)
-	if player.has_method("_spawn_floating_text"):
-		player._spawn_floating_text("🕯️🙏 Encendiste una vela por los difuntos (-5 Oro, +3 Afinidad en el pueblo)", Color(0.95, 0.88, 1.0), -44.0)
+	_msg_player(player, "🕯️🙏 Encendiste una vela por los difuntos (-5 Oro, +3 Afinidad en el pueblo)", Color(0.95, 0.88, 1.0), -44.0)
 	_open_church_registry_ui()
 
 func clear_police_hostility() -> void:
@@ -2592,49 +1886,40 @@ func complete_police_escort_to_jail(player: Node2D) -> void:
 		player.global_position = _jail_cell_pos
 		if "velocity" in player:
 			player.velocity = Vector2.ZERO
-		if player.has_method("_spawn_floating_text"):
-			player._spawn_floating_text("🔒⛓️ Encerrado en la Celda (%ds de estancia antes de usar el camastro)" % int(JAIL_MANDATORY_STAY_SECONDS), Color.SKY_BLUE, -46.0)
+		_msg_player(player, "🔒⛓️ Encerrado en la Celda (%ds de estancia antes de usar el camastro)" % int(JAIL_MANDATORY_STAY_SECONDS), Color.SKY_BLUE, -46.0)
 	_police_confront_cooldown = 0.0
 	trigger_police_confrontation(null)
 
 func capture_knocked_out_player_to_jail(player: Node2D) -> void:
-	if not player:
-		return
-	start_police_escort_to_jail(player, _last_confronting_officer)
+	if player:
+		start_police_escort_to_jail(player, _last_confronting_officer)
 
 func send_player_to_jail(player: Node2D) -> void:
-	if not player:
-		return
-	start_police_escort_to_jail(player, _last_confronting_officer)
+	if player:
+		start_police_escort_to_jail(player, _last_confronting_officer)
 
 func _on_police_serve_sentence(player: Node2D) -> void:
 	if not player:
 		return
-	# 1º Si el jugador aún está fuera de la celda (acaba de entregarse en la calle), el policía lo escolta físicamente caminando hasta la prisión
 	if not player_in_jail and not player_being_escorted_to_jail:
 		start_police_escort_to_jail(player, _last_confronting_officer)
 		return
 	if player_being_escorted_to_jail:
 		if police_panel:
 			police_panel.visible = false
-		if player.has_method("_spawn_floating_text"):
-			player._spawn_floating_text("🚔⛓️ Espera a llegar a la celda con el guardia...", Color.GOLD, -42.0)
+		_msg_player(player, "🚔⛓️ Espera a llegar a la celda con el guardia...", Color.GOLD, -42.0)
 		return
 
-	# 2º Ya dentro de la celda: exigir el tiempo mínimo de reclusión antes de poder acostarse en el camastro (The Escapists / Kenshi)
 	if jail_mandatory_stay_timer > 0.0:
 		var wait_s: int = int(ceil(jail_mandatory_stay_timer))
 		if police_info_lbl:
 			police_info_lbl.text = "⏳🔒 AÚN NO PUEDES USAR EL CAMASTRO DE LA CELDA\nDebes permanecer %ds más en la celda antes de acostarte para cumplir tu pena.\n(También puedes pagar tu fianza [2] o forzar los barrotes [3])." % wait_s
-		if player.has_method("_spawn_floating_text"):
-			player._spawn_floating_text("⏳🔒 Espera %ds en la celda antes de acostarte en el camastro" % wait_s, Color.GOLD, -44.0)
+		_msg_player(player, "⏳🔒 Espera %ds en la celda antes de acostarte en el camastro" % wait_s, Color.GOLD, -44.0)
 		return
 
-	# 3º El jugador decide acostarse en el camastro de la celda -> El tiempo avanza de forma ORGÁNICA en el mundo (sin teletransportes ni congelar NPCs/animales)
 	if police_panel:
 		police_panel.visible = false
-	if player.has_method("_spawn_floating_text"):
-		player._spawn_floating_text("🛏️⏩ Cumpliendo pena en el camastro: El mundo avanza orgánicamente hasta las 06:00 AM...", Color.AQUA, -46.0)
+	_msg_player(player, "🛏️⏩ Cumpliendo pena en el camastro: El mundo avanza orgánicamente hasta las 06:00 AM...", Color.AQUA, -46.0)
 	if WorldClock and WorldClock.has_method("start_organic_fast_forward"):
 		WorldClock.start_organic_fast_forward(6, 26.0, func(): release_player_from_jail_after_sentence(player))
 	else:
@@ -2656,32 +1941,27 @@ func release_player_from_jail_after_sentence(player: Node2D) -> void:
 			_royal_investigator_npc.is_hostile = false
 			_royal_investigator_npc.remove_from_group("enemies")
 	if player and is_instance_valid(player):
-		# Salida 100% natural: NO se teletransporta al jugador fuera de la comisaría; se abre la reja de la celda para que salga caminando por su pie
 		var surv: SurvivalComponent = player.get_node_or_null("SurvivalComponent")
 		if surv:
 			surv.restore_sleep(85.0)
-		if player.has_method("_spawn_floating_text"):
-			player._spawn_floating_text("⚖️🔓 Condena cumplida (06:00 AM): Reja abierta, puedes salir caminando de la Comisaría", Color.SPRING_GREEN, -46.0)
+		_msg_player(player, "⚖️🔓 Condena cumplida (06:00 AM): Reja abierta, puedes salir caminando de la Comisaría", Color.SPRING_GREEN, -46.0)
 
 func pay_bounty_fine(player: Node2D) -> void:
 	if not player or not ("inventory" in player) or not player.inventory:
 		return
 	if bool(active_royal_investigation.get("active", false)) and str(active_royal_investigation.get("stage", "")) == "HUNTING_PLAYER" and not player_in_jail:
-		if player.has_method("_spawn_floating_text"):
-			player._spawn_floating_text("⚖️👑 Orden de Captura Real activa: debes entregarte en la Celda [1] antes de pagar fianza", Color.ORANGE_RED, -44.0)
+		_msg_player(player, "⚖️👑 Orden de Captura Real activa: debes entregarte en la Celda [1] antes de pagar fianza", Color.ORANGE_RED, -44.0)
 		return
 	var inv: SimpleInventory = player.inventory
 	var fine: int = maxi(15, bounty_gold) if wanted_level > 0 else 0
 	if fine <= 0 and not player_in_jail and not player_being_escorted_to_jail:
 		if police_panel:
 			police_panel.visible = false
-		if player.has_method("_spawn_floating_text"):
-			player._spawn_floating_text("✅ No tienes multas ni cargos pendientes", Color.SPRING_GREEN, -42.0)
+		_msg_player(player, "✅ No tienes multas ni cargos pendientes", Color.SPRING_GREEN, -42.0)
 		return
 	var cost: int = maxi(15, fine)
 	if inv.gold < cost:
-		if player.has_method("_spawn_floating_text"):
-			player._spawn_floating_text("❌ Necesitas %d Oro para pagar la fianza" % cost, Color.ORANGE_RED, -42.0)
+		_msg_player(player, "❌ Necesitas %d Oro para pagar la fianza" % cost, Color.ORANGE_RED, -42.0)
 		return
 	inv.add_gold(-cost)
 	if not player_in_jail:
@@ -2704,8 +1984,7 @@ func pay_bounty_fine(player: Node2D) -> void:
 			_royal_investigator_npc.remove_from_group("enemies")
 	if police_panel:
 		police_panel.visible = false
-	if player.has_method("_spawn_floating_text"):
-		player._spawn_floating_text("⚖️🔓 Fianza pagada (-%d Oro): Reja abierta, puedes salir caminando" % cost, Color.GOLD, -44.0)
+	_msg_player(player, "⚖️🔓 Fianza pagada (-%d Oro): Reja abierta, puedes salir caminando" % cost, Color.GOLD, -44.0)
 
 func _on_police_jailbreak_or_resist(player: Node2D) -> void:
 	if police_panel:
@@ -2747,52 +2026,42 @@ func _complete_board_contract(player: Node2D, contract_idx: int) -> void:
 		return
 	var d: int = WorldClock.current_day if WorldClock else 1
 	if int(completed_contracts_today.get(contract_idx, -1)) == d:
-		if player.has_method("_spawn_floating_text"):
-			player._spawn_floating_text("✅ Ya completaste este encargo hoy", Color.GOLD, -42.0)
+		_msg_player(player, "✅ Ya completaste este encargo hoy", Color.GOLD, -42.0)
 		return
 	var inv: SimpleInventory = player.inventory
 	if contract_idx == 1:
-		if inv.has_item("wood", 2):
-			inv.remove_item("wood", 2)
-		elif inv.has_item("iron_ore", 1):
-			inv.remove_item("iron_ore", 1)
+		if inv.has_item("wood", 2): inv.remove_item("wood", 2)
+		elif inv.has_item("iron_ore", 1): inv.remove_item("iron_ore", 1)
 		else:
-			if player.has_method("_spawn_floating_text"):
-				player._spawn_floating_text("❌ Requiere 2 Maderas o 1 Mineral de Hierro", Color.ORANGE_RED, -42.0)
+			_msg_player(player, "❌ Requiere 2 Maderas o 1 Mineral de Hierro", Color.ORANGE_RED, -42.0)
 			return
 		inv.add_gold(28)
 		modify_family_reputation("family_carpenter", 15, "Encargo del tablón completado")
 		modify_family_reputation("family_smith", 15, "Encargo del tablón completado")
 		completed_contracts_today[1] = d
-		player._spawn_floating_text("📋⚒️ ¡Encargo Artesanal completado! (+28 Oro, +15 Afinidad)", Color.SPRING_GREEN, -44.0)
+		_msg_player(player, "📋⚒️ ¡Encargo Artesanal completado! (+28 Oro, +15 Afinidad)", Color.SPRING_GREEN, -44.0)
 	elif contract_idx == 2:
-		if inv.has_item("herbs", 2):
-			inv.remove_item("herbs", 2)
-		elif inv.has_item("herbal_poultice", 1):
-			inv.remove_item("herbal_poultice", 1)
+		if inv.has_item("herbs", 2): inv.remove_item("herbs", 2)
+		elif inv.has_item("herbal_poultice", 1): inv.remove_item("herbal_poultice", 1)
 		else:
-			if player.has_method("_spawn_floating_text"):
-				player._spawn_floating_text("❌ Requiere 2 Hierbas Medicinales o 1 Cataplasma", Color.ORANGE_RED, -42.0)
+			_msg_player(player, "❌ Requiere 2 Hierbas Medicinales o 1 Cataplasma", Color.ORANGE_RED, -42.0)
 			return
 		inv.add_gold(26)
 		modify_family_reputation("family_herbalist", 15, "Suministro médico entregado")
 		completed_contracts_today[2] = d
-		player._spawn_floating_text("📋🏥 ¡Urgencia Médica completada! (+26 Oro, +15 Afinidad)", Color.SPRING_GREEN, -44.0)
+		_msg_player(player, "📋🏥 ¡Urgencia Médica completada! (+26 Oro, +15 Afinidad)", Color.SPRING_GREEN, -44.0)
 	elif contract_idx == 3:
-		if inv.has_item("bandit_scrap", 1):
-			inv.remove_item("bandit_scrap", 1)
-		elif inv.has_item("frog_legs", 1):
-			inv.remove_item("frog_legs", 1)
+		if inv.has_item("bandit_scrap", 1): inv.remove_item("bandit_scrap", 1)
+		elif inv.has_item("frog_legs", 1): inv.remove_item("frog_legs", 1)
 		else:
-			if player.has_method("_spawn_floating_text"):
-				player._spawn_floating_text("❌ Requiere 1 Chatarra de Bandido o 1 Ancas de Rana", Color.ORANGE_RED, -42.0)
+			_msg_player(player, "❌ Requiere 1 Chatarra de Bandido o 1 Ancas de Rana", Color.ORANGE_RED, -42.0)
 			return
 		inv.add_gold(34)
 		if wanted_level > 0:
 			wanted_level = maxi(0, wanted_level - 1)
 			bounty_gold = maxi(0, bounty_gold - 25)
 		completed_contracts_today[3] = d
-		player._spawn_floating_text("📋🚓 ¡Recompensa cobrada! (+34 Oro, -1 Nivel de Búsqueda)", Color.GOLD, -44.0)
+		_msg_player(player, "📋🚓 ¡Recompensa cobrada! (+34 Oro, -1 Nivel de Búsqueda)", Color.GOLD, -44.0)
 	_open_notice_board_ui()
 
 # ==============================================================================
@@ -2849,33 +2118,10 @@ func _spawn_pet_bed_and_bowl(pos: Vector2, p_type: int, _p_name: String) -> void
 	bed_root.global_position = pos
 	bed_root.z_index = -1
 	entities_root.add_child(bed_root)
+	_add_poly(PackedVector2Array([Vector2(-9, -5), Vector2(9, -5), Vector2(10, 5), Vector2(-10, 5)]), Color(0.45, 0.28, 0.15, 0.95) if p_type == DomesticPet.PetType.DOG else Color(0.52, 0.34, 0.22, 0.95), 0, Vector2.ZERO, bed_root)
+	_add_poly(PackedVector2Array([Vector2(-7, -3), Vector2(7, -3), Vector2(8, 3), Vector2(-8, 3)]), Color(0.76, 0.28, 0.24, 0.95) if p_type == DomesticPet.PetType.DOG else Color(0.32, 0.56, 0.78, 0.95), 0, Vector2.ZERO, bed_root)
+	_add_poly(PackedVector2Array([Vector2(11, -1), Vector2(16, -1), Vector2(15, 3), Vector2(12, 3)]), Color(0.78, 0.68, 0.32, 0.95), 0, Vector2.ZERO, bed_root)
 
-	# Borde de madera / cesta de descanso de la mascota
-	var rim := Polygon2D.new()
-	rim.polygon = PackedVector2Array([
-		Vector2(-9, -5), Vector2(9, -5), Vector2(10, 5), Vector2(-10, 5)
-	])
-	rim.color = Color(0.45, 0.28, 0.15, 0.95) if p_type == DomesticPet.PetType.DOG else Color(0.52, 0.34, 0.22, 0.95)
-	bed_root.add_child(rim)
-
-	# Cojín / manta interior donde duerme la mascota
-	var cushion := Polygon2D.new()
-	cushion.polygon = PackedVector2Array([
-		Vector2(-7, -3), Vector2(7, -3), Vector2(8, 3), Vector2(-8, 3)
-	])
-	cushion.color = Color(0.76, 0.28, 0.24, 0.95) if p_type == DomesticPet.PetType.DOG else Color(0.32, 0.56, 0.78, 0.95)
-	bed_root.add_child(cushion)
-
-	# Cuenco de comida junto a la cama
-	var bowl := Polygon2D.new()
-	bowl.polygon = PackedVector2Array([
-		Vector2(11, -1), Vector2(16, -1), Vector2(15, 3), Vector2(12, 3)
-	])
-	bowl.color = Color(0.78, 0.68, 0.32, 0.95)
-	bed_root.add_child(bowl)
-
-## Comprueba si la familia dueña de una mascota sigue viva y con recursos para alimentarla en su casa.
-## Si la familia dueña ha sido asesinada y no hay comida en el pueblo, la mascota pasa hambre real.
 func can_family_feed_pet(fam_id: String) -> bool:
 	if fam_id == "player_farm":
 		for r_id in [int(VillageNPC.TradeRole.FISHMONGER), int(VillageNPC.TradeRole.BUTCHER), int(VillageNPC.TradeRole.HERBALIST)]:
@@ -2890,23 +2136,12 @@ func can_family_feed_pet(fam_id: String) -> bool:
 	return false
 
 func _spawn_farm_well_and_compost() -> void:
-	var tex_well := _load_tex("res://assests/world/village/water_well.png")
-	var tex_compost := _load_tex("res://assests/world/village/compost_bin.png")
-
-	var well_spr := Sprite2D.new()
-	well_spr.texture = tex_well
-	well_spr.global_position = _well_pos
-	well_spr.scale = Vector2(1.25, 1.25)
-	entities_root.add_child(well_spr)
+	_add_sprite_prop(_load_tex("res://assests/world/village/water_well.png"), _well_pos, Vector2(1.25, 1.25), 0)
 	_add_station_area("WaterWellArea", _well_pos, 10.0, "well")
 	_well_label = _make_station_label(_well_pos + Vector2(-110, -28), "🪣 Pozo de Agua [E: Llenar Regadera al 100%]")
 	entities_root.add_child(_well_label)
 
-	var comp_spr := Sprite2D.new()
-	comp_spr.texture = tex_compost
-	comp_spr.global_position = _compost_pos
-	comp_spr.scale = Vector2(1.25, 1.25)
-	entities_root.add_child(comp_spr)
+	_add_sprite_prop(_load_tex("res://assests/world/village/compost_bin.png"), _compost_pos, Vector2(1.25, 1.25), 0)
 	_add_station_area("CompostBinArea", _compost_pos, 10.0, "compost")
 	_compost_label = _make_station_label(_compost_pos + Vector2(-115, -28), "♻️ Compostador [E: Crear Abono con Hierba/Hongo]")
 	entities_root.add_child(_compost_label)
@@ -3299,28 +2534,19 @@ func _interact_building_door(player: Node2D, d_entry: Dictionary) -> void:
 
 	if is_open_now:
 		_set_door_state(d_entry, false, false, false)
-		if player.has_method("_spawn_floating_text"):
-			player._spawn_floating_text("🚪 Puerta cerrada (Oculta la visión desde fuera)", Color(0.90, 0.85, 0.70), -42.0)
+		_msg_player(player, "🚪 Puerta cerrada (Oculta la visión desde fuera)", Color(0.90, 0.85, 0.70), -42.0)
 		return
-
 	if locked_by_p:
 		_set_door_state(d_entry, true, false, false)
-		if player.has_method("_spawn_floating_text"):
-			player._spawn_floating_text("🔓 Quitaste tu cerrojo y abriste la puerta", Color.SPRING_GREEN, -42.0)
+		_msg_player(player, "🔓 Quitaste tu cerrojo y abriste la puerta", Color.SPRING_GREEN, -42.0)
 		return
-
 	if not is_locked_now:
 		_set_door_state(d_entry, true, false, false)
-		if player.has_method("_spawn_floating_text"):
-			player._spawn_floating_text("🚪 Puerta abierta", Color.SPRING_GREEN, -42.0)
+		_msg_player(player, "🚪 Puerta abierta", Color.SPRING_GREEN, -42.0)
 		return
 
-	# Si la puerta está cerrada con llave por los habitantes, pulsar [E] NO fuerza la cerradura (evita crímenes accidentales):
-	# requiere pulsar explícitamente la tecla [F] para forzar la cerradura.
-	if player.has_method("_spawn_floating_text"):
-		player._spawn_floating_text("🔒 Cerrada con llave — Pulsa [F] para forzar cerradura", Color.GOLD, -42.0)
-	if player.has_method("show_hint"):
-		player.call("show_hint", "🔒 La puerta de %s está cerrada con llave. Pulsa [F] si quieres forzar la cerradura (usa Sigilo [C])." % b_title)
+	_msg_player(player, "🔒 Cerrada con llave — Pulsa [F] para forzar cerradura", Color.GOLD, -42.0)
+	_hint_player("🔒 La puerta de %s está cerrada con llave. Pulsa [F] si quieres forzar la cerradura (usa Sigilo [C])." % b_title, player)
 
 ## Tecla [F]: Acción dedicada para Forzar Cerraduras de puertas, Postigos de ventanas o Barrotes de la Celda (Separada de [E])
 func force_lock_or_shutter_by_player(player: Node2D) -> bool:
@@ -3341,8 +2567,7 @@ func force_lock_or_shutter_by_player(player: Node2D) -> bool:
 		var b_title: String = str(d_entry.get("building_title", "Edificio"))
 
 		if is_open_now or not is_locked_now or locked_by_p:
-			if player.has_method("_spawn_floating_text"):
-				player._spawn_floating_text("🚪 Esta puerta no tiene llave ajena (Usa [E] para abrirla)", Color.LIGHT_GRAY, -40.0)
+			_msg_player(player, "🚪 Esta puerta no tiene llave ajena (Usa [E] para abrirla)", Color.LIGHT_GRAY, -40.0)
 			return true
 
 		d_entry["manual_override_timer"] = 65.0
@@ -3354,16 +2579,14 @@ func force_lock_or_shutter_by_player(player: Node2D) -> bool:
 		var detect_rad: float = (42.0 if in_stealth else 145.0) * cloak_mult * lockpick_mult
 		var witness: VillageNPC = _find_conscious_witness_near(d_entry.get("pos", player.global_position), detect_rad, null)
 		if witness == null:
-			if player.has_method("_spawn_floating_text"):
-				player._spawn_floating_text("🔓🤫 Cerradura forzada con [F] en sigilo: %s (Sin testigos)" % b_title, Color.SPRING_GREEN, -44.0)
+			_msg_player(player, "🔓🤫 Cerradura forzada con [F] en sigilo: %s (Sin testigos)" % b_title, Color.SPRING_GREEN, -44.0)
 		else:
 			wanted_level = clampi(wanted_level + 1, 1, 5)
 			bounty_gold += 20
 			var msg := "🚨👁️ ¡%s te vio forzar la cerradura de %s! (+20 Oro de multa)" % [witness.npc_name, b_title]
 			crime_history.push_front(msg)
 			_notify_inquisitor_of_police_crime(msg, 12)
-			if player.has_method("_spawn_floating_text"):
-				player._spawn_floating_text(msg, Color.ORANGE_RED, -46.0)
+			_msg_player(player, msg, Color.ORANGE_RED, -46.0)
 		return true
 
 	# 3. ¿Está ante una ventana con postigo cerrado?
@@ -3392,11 +2615,9 @@ func force_lock_or_shutter_by_player(player: Node2D) -> bool:
 				var w_msg := "🚨👁️ ¡%s te vio forzar la ventana de %s! (+20 Oro de multa)" % [witness2.npc_name, wb_title]
 				crime_history.push_front(w_msg)
 				_notify_inquisitor_of_police_crime(w_msg, 12)
-				if player.has_method("_spawn_floating_text"):
-					player._spawn_floating_text(w_msg, Color.ORANGE_RED, -46.0)
+				_msg_player(player, w_msg, Color.ORANGE_RED, -46.0)
 			else:
-				if player.has_method("_spawn_floating_text"):
-					player._spawn_floating_text("🪟🔓 Forzaste el postigo con [F] y entraste por la ventana", Color.SPRING_GREEN, -44.0)
+				_msg_player(player, "🪟🔓 Forzaste el postigo con [F] y entraste por la ventana", Color.SPRING_GREEN, -44.0)
 			player.global_position = w_pos + Vector2(0, -15.0 if door_south else 15.0)
 			return true
 
@@ -3420,12 +2641,10 @@ func toggle_bar_door_by_player(player: Node2D) -> bool:
 	var currently_barred: bool = bool(d_entry.get("locked_by_player", false)) and not bool(d_entry.get("is_open", true))
 	if not currently_barred:
 		_set_door_state(d_entry, false, true, true)
-		if player.has_method("_spawn_floating_text"):
-			player._spawn_floating_text("🚪🔒 ¡Puerta cerrada y trancada con cerrojo! (Impide el paso y la visión)", Color.GOLD, -44.0)
+		_msg_player(player, "🚪🔒 ¡Puerta cerrada y trancada con cerrojo! (Impide el paso y la visión)", Color.GOLD, -44.0)
 	else:
 		_set_door_state(d_entry, false, false, false)
-		if player.has_method("_spawn_floating_text"):
-			player._spawn_floating_text("🔓 Quitaste el cerrojo de la puerta", Color.SPRING_GREEN, -42.0)
+		_msg_player(player, "🔓 Quitaste el cerrojo de la puerta", Color.SPRING_GREEN, -42.0)
 	return true
 
 func _interact_building_window(player: Node2D, w_entry: Dictionary) -> void:
@@ -3433,23 +2652,16 @@ func _interact_building_window(player: Node2D, w_entry: Dictionary) -> void:
 	var w_pos: Vector2 = w_entry.get("pos", Vector2.ZERO)
 	var door_south: bool = bool(w_entry.get("door_south", true))
 	var b_title: String = str(w_entry.get("building_title", "Edificio"))
-	var player_inside: bool = b_rect.has_point(player.global_position)
-
-	if not player_inside:
-		var was_shuttered: bool = bool(w_entry.get("is_shuttered", false))
-		if was_shuttered:
-			if player.has_method("_spawn_floating_text"):
-				player._spawn_floating_text("🪟🔒 Postigo cerrado — Pulsa [F] para forzar ventana", Color.GOLD, -42.0)
-			if player.has_method("show_hint"):
-				player.call("show_hint", "🪟🔒 La ventana de %s tiene el postigo echado. Pulsa [F] para forzarla." % b_title)
+	if not b_rect.has_point(player.global_position):
+		if bool(w_entry.get("is_shuttered", false)):
+			_msg_player(player, "🪟🔒 Postigo cerrado — Pulsa [F] para forzar ventana", Color.GOLD, -42.0)
+			_hint_player("🪟🔒 La ventana de %s tiene el postigo echado. Pulsa [F] para forzarla." % b_title, player)
 			return
 		player.global_position = w_pos + Vector2(0, -15.0 if door_south else 15.0)
-		if player.has_method("_spawn_floating_text"):
-			player._spawn_floating_text("🪟🤫 Te colaste por la ventana de %s" % b_title, Color.AQUA, -44.0)
+		_msg_player(player, "🪟🤫 Te colaste por la ventana de %s" % b_title, Color.AQUA, -44.0)
 	else:
 		player.global_position = w_pos + Vector2(0, 15.0 if door_south else -15.0)
-		if player.has_method("_spawn_floating_text"):
-			player._spawn_floating_text("🪟🏃 Saliste al exterior por la ventana", Color.AQUA, -44.0)
+		_msg_player(player, "🪟🏃 Saliste al exterior por la ventana", Color.AQUA, -44.0)
 
 func _interact_house_chest(player: Node2D, ch: Dictionary) -> void:
 	var cur_day: int = WorldClock.current_day if WorldClock else 1
@@ -3493,7 +2705,6 @@ func _interact_house_chest(player: Node2D, ch: Dictionary) -> void:
 			player._spawn_floating_text("🚨👁️ ¡%s te vio forzar el cofre! (+30 Oro de multa policial)" % witness.npc_name, Color.ORANGE_RED, -46.0)
 
 func _use_hospital_emergency_bed(player: Node2D) -> void:
-	# Primero comprobar si hay algún NPC agonizando cerca para ingresarlo
 	for n in get_tree().get_nodes_in_group("village_npcs"):
 		if n is VillageNPC:
 			var v: VillageNPC = n as VillageNPC
@@ -3503,21 +2714,18 @@ func _use_hospital_emergency_bed(player: Node2D) -> void:
 
 	var health: HealthComponent = player.get_node_or_null("HealthComponent")
 	if health and health.current_health >= health.max_health - 0.1 and not health.is_bleeding and health.current_blood <= 0.1:
-		if player.has_method("_spawn_floating_text"):
-			player._spawn_floating_text("🏥 Tu salud ya está al 100% y no tienes sangrado", Color.LIGHT_GRAY, -42.0)
+		_msg_player(player, "🏥 Tu salud ya está al 100% y no tienes sangrado", Color.LIGHT_GRAY, -42.0)
 		return
 	var inv: SimpleInventory = player.get("inventory") if "inventory" in player else null
 	if inv and inv.gold < 10:
-		if player.has_method("_spawn_floating_text"):
-			player._spawn_floating_text("❌ Necesitas 10 Oro para usar la Cama de Urgencias", Color.ORANGE_RED, -42.0)
+		_msg_player(player, "❌ Necesitas 10 Oro para usar la Cama de Urgencias", Color.ORANGE_RED, -42.0)
 		return
 	if inv:
 		inv.add_gold(-10)
 	if health:
 		health.stop_bleeding()
 		health.heal(health.max_health)
-	if player.has_method("_spawn_floating_text"):
-		player._spawn_floating_text("🏥 Cama de Urgencias (-10 Oro): Salud y Sangrado curados al 100%", Color.SPRING_GREEN, -44.0)
+	_msg_player(player, "🏥 Cama de Urgencias (-10 Oro): Salud y Sangrado curados al 100%", Color.SPRING_GREEN, -44.0)
 
 func _use_tavern_games_table(start_tab: int = 0) -> void:
 	var games_ui = get_tree().root.find_child("TavernGamesUI", true, false)
@@ -3527,8 +2735,7 @@ func _use_tavern_games_table(start_tab: int = 0) -> void:
 func _use_tavern_bed(player: Node2D) -> void:
 	var inv: SimpleInventory = player.get("inventory")
 	if not inv or inv.gold < 8:
-		if player.has_method("show_hint"):
-			player.show_hint("🛌 Necesitas 8 Oro para alquilar la cama de la Taberna.")
+		_hint_player("🛌 Necesitas 8 Oro para alquilar la cama de la Taberna.", player)
 		return
 	inv.add_gold(-8)
 	var surv: SurvivalComponent = player.get_node_or_null("SurvivalComponent")
@@ -3543,14 +2750,13 @@ func _use_tavern_bed(player: Node2D) -> void:
 		health.heal(35.0)
 	if WorldClock:
 		WorldClock.sleep_until_morning()
-	if player.has_method("_spawn_floating_text"):
-		player._spawn_floating_text("🛌 Dormiste en la Posada (-8 Oro, +100% Sueño)", Color.GOLD, -42.0)
+	_msg_player(player, "🛌 Dormiste en la Posada (-8 Oro, +100% Sueño)", Color.GOLD, -42.0)
 
 func _use_water_well(player: Node2D) -> void:
 	if player.has_method("refill_watering_can"):
 		player.call("refill_watering_can")
-	elif player.has_method("_spawn_floating_text"):
-		player._spawn_floating_text("💧 Agua fresca del pozo", Color.AQUA, -40.0)
+	else:
+		_msg_player(player, "💧 Agua fresca del pozo", Color.AQUA, -40.0)
 
 func _use_compost_bin(player: Node2D) -> void:
 	var inv: SimpleInventory = player.get("inventory")
@@ -3559,11 +2765,9 @@ func _use_compost_bin(player: Node2D) -> void:
 	for org_id in ["mushroom", "herbs", "carrot", "cabbage"]:
 		if inv.remove_item(org_id, 1):
 			inv.add_item("fertilizer", 2)
-			if player.has_method("_spawn_floating_text"):
-				player._spawn_floating_text("♻️ Compostador: +2 Abono Orgánico", Color.SPRING_GREEN, -42.0)
+			_msg_player(player, "♻️ Compostador: +2 Abono Orgánico", Color.SPRING_GREEN, -42.0)
 			return
-	if player.has_method("show_hint"):
-		player.show_hint("♻️ Necesitas 1 Hongo, Hierba o Verdura para fermentar 2 bolsas de Abono Orgánico.")
+	_hint_player("♻️ Necesitas 1 Hongo, Hierba o Verdura para fermentar 2 bolsas de Abono Orgánico.", player)
 
 func _on_day_passed(_new_day: int) -> void:
 	arrivals_today_count = 0
@@ -3657,21 +2861,12 @@ func _on_day_passed(_new_day: int) -> void:
 			var kin_candidate: VillageNPC = family_npcs.get(role_key)
 			if is_instance_valid(kin_candidate) and not kin_candidate.is_dead and kin_candidate.trade_role == VillageNPC.TradeRole.FAMILY_MEMBER:
 				var inh_stock: Dictionary = (biz.get("stock_override", cfg["stock"]) as Dictionary).duplicate()
-				kin_candidate.promote_to_trade(
-					role_key,
-					str(cfg["title"]),
-					cfg["work_pos"],
-					inh_stock,
-					cfg["tex"]
-				)
+				kin_candidate.promote_to_trade(role_key, str(cfg["title"]), cfg["work_pos"], inh_stock, cfg["tex"])
 				trade_npcs[role_key] = kin_candidate
 				family_npcs.erase(role_key)
-				var p1 = get_tree().get_first_node_in_group("player")
-				if p1 and p1.has_method("show_hint"):
-					p1.show_hint("🏠 Herencia Familiar: %s (%s) asumió el puesto de %s como Aprendiz (54%% Eficiencia · 5 días para Maestro)." % [kin_candidate.npc_name, str(cfg["family_name"]), str(cfg["title"])])
+				_hint_player("🏠 Herencia Familiar: %s (%s) asumió el puesto de %s como Aprendiz (54%% Eficiencia · 5 días para Maestro)." % [kin_candidate.npc_name, str(cfg["family_name"]), str(cfg["title"])])
 				continue
 
-			# Si toda la familia murió y el taller está saboteado, queda vacante para que el jugador pueda comprarlo barato en liquidación
 			if sab_days > 0:
 				continue
 
@@ -3679,21 +2874,9 @@ func _on_day_passed(_new_day: int) -> void:
 			var outsider: VillageNPC = _pop_living_unemployed()
 			if outsider:
 				var inh_stock2: Dictionary = (biz.get("stock_override", cfg["stock"]) as Dictionary).duplicate()
-				outsider.promote_to_trade(
-					role_key,
-					str(cfg["title"]),
-					cfg["work_pos"],
-					inh_stock2,
-					cfg["tex"],
-					cfg["bed1_pos"],
-					cfg["table_pos"],
-					str(cfg["family_id"]),
-					str(cfg["family_name"])
-				)
+				outsider.promote_to_trade(role_key, str(cfg["title"]), cfg["work_pos"], inh_stock2, cfg["tex"], cfg["bed1_pos"], cfg["table_pos"], str(cfg["family_id"]), str(cfg["family_name"]))
 				trade_npcs[role_key] = outsider
-				var p2 = get_tree().get_first_node_in_group("player")
-				if p2 and p2.has_method("show_hint"):
-					p2.show_hint("🔄 Sucesión en la aldea: %s asumió el taller como nuevo %s Novato (35%% Eficiencia · 7 días para Maestro)." % [outsider.npc_name, str(cfg["title"])])
+				_hint_player("🔄 Sucesión en la aldea: %s asumió el taller como nuevo %s Novato (35%% Eficiencia · 7 días para Maestro)." % [outsider.npc_name, str(cfg["title"])])
 		else:
 			# Solo repone stock pasivo si el taller NO está saboteado y el titular está consciente; la cantidad depende de `get_job_efficiency()`
 			if sab_days <= 0 and not current_holder.is_downed:
@@ -3746,21 +2929,11 @@ func _process_daily_map_edge_arrivals() -> void:
 		new_inn.days_in_role = 0
 		new_inn.tavern_social_pos = _tavern_social_pos
 		entities_root.add_child(new_inn)
-		new_inn.setup_npc(
-			_load_tex("res://assests/world/village/villager_innkeeper.png"),
-			Vector2(348, -154),
-			Vector2(342, -252),
-			{"country_stew": 2, "bread": 3, "roasted_chicken": 1},
-			_tavern_social_pos,
-			"family_tavern",
-			"Posada El Jabalí"
-		)
+		new_inn.setup_npc(_load_tex("res://assests/world/village/villager_innkeeper.png"), Vector2(348, -154), Vector2(342, -252), {"country_stew": 2, "bread": 3, "roasted_chicken": 1}, _tavern_social_pos, "family_tavern", "Posada El Jabalí")
 		new_inn.global_position = _get_map_edge_arrival_pos(_rehire_counter)
 		_innkeeper_npc = new_inn
 		arrivals_today_count += 1
-		var p_inn = get_tree().get_first_node_in_group("player")
-		if p_inn and p_inn.has_method("show_hint"):
-			p_inn.show_hint("🍺🚶 %s (Posadera Novata · 35%%) está llegando por el borde del valle para reabrir la Posada." % new_inn_name)
+		_hint_player("🍺🚶 %s (Posadera Novata · 35%%) está llegando por el borde del valle para reabrir la Posada." % new_inn_name)
 
 	# Prioridad 3: Oficios vacantes sin familia ni huésped disponible (salvo que sean propiedad exclusiva del jugador o estén saboteados)
 	for role_key in trade_configs.keys():
@@ -3787,21 +2960,11 @@ func _process_daily_map_edge_arrivals() -> void:
 		new_art.tavern_social_pos = _tavern_social_pos
 		entities_root.add_child(new_art)
 		var inh_st: Dictionary = (biz.get("stock_override", cfg["stock"]) as Dictionary).duplicate()
-		new_art.setup_npc(
-			cfg.get("tex", null),
-			cfg.get("work_pos", Vector2(440, 44)),
-			cfg.get("bed1_pos", _tavern_bed_pos),
-			inh_st,
-			cfg.get("table_pos", _tavern_social_pos),
-			str(cfg.get("family_id", "none")),
-			str(cfg.get("family_name", "Gremio"))
-		)
+		new_art.setup_npc(cfg.get("tex", null), cfg.get("work_pos", Vector2(440, 44)), cfg.get("bed1_pos", _tavern_bed_pos), inh_st, cfg.get("table_pos", _tavern_social_pos), str(cfg.get("family_id", "none")), str(cfg.get("family_name", "Gremio")))
 		new_art.global_position = _get_map_edge_arrival_pos(_rehire_counter)
 		trade_npcs[role_key] = new_art
 		arrivals_today_count += 1
-		var p_art = get_tree().get_first_node_in_group("player")
-		if p_art and p_art.has_method("show_hint"):
-			p_art.show_hint("⚒️🚶 %s (%s Novato · 35%% Eficiencia) está entrando al valle desde el borde del mapa." % [new_art_name, str(cfg.get("title", "Artesano"))])
+		_hint_player("⚒️🚶 %s (%s Novato · 35%% Eficiencia) está entrando al valle desde el borde del mapa." % [new_art_name, str(cfg.get("title", "Artesano"))])
 
 	# Prioridad 4: Si aún queda cupo en el límite diario (<= 2/día) y hay camas de viajeros vacías en la Posada (máx. 3 huéspedes)
 	var living_guests: Array[VillageNPC] = []
@@ -3826,21 +2989,11 @@ func _process_daily_map_edge_arrivals() -> void:
 		t_npc.days_in_role = 0
 		t_npc.tavern_social_pos = _tavern_social_pos
 		entities_root.add_child(t_npc)
-		t_npc.setup_npc(
-			tex_traveler,
-			guest_day_spots[slot_idx % guest_day_spots.size()],
-			guest_beds[slot_idx % guest_beds.size()],
-			{},
-			_tavern_social_pos,
-			"none",
-			"Huésped de Posada"
-		)
+		t_npc.setup_npc(tex_traveler, guest_day_spots[slot_idx % guest_day_spots.size()], guest_beds[slot_idx % guest_beds.size()], {}, _tavern_social_pos, "none", "Huésped de Posada")
 		t_npc.global_position = _get_map_edge_arrival_pos(_rehire_counter)
 		unemployed_npcs.append(t_npc)
 		arrivals_today_count += 1
-		var p_tr = get_tree().get_first_node_in_group("player")
-		if p_tr and p_tr.has_method("show_hint"):
-			p_tr.show_hint("🎒🚶 Un nuevo viajero (%s) acaba de entrar al valle por el camino principal." % t_name)
+		_hint_player("🎒🚶 Un nuevo viajero (%s) acaba de entrar al valle por el camino principal." % t_name)
 
 func _pop_living_unemployed() -> VillageNPC:
 	for i in range(unemployed_npcs.size()):
@@ -3861,32 +3014,18 @@ func _register_shop_business_stall(role_id: int, shop_title: String, fam_id: Str
 
 	var sup_items: Array[String] = []
 	match role_id:
-		int(VillageNPC.TradeRole.BLACKSMITH):
-			sup_items = ["iron_ore", "stone", "steel_ingot", "repair_kit", "bandit_scrap"]
-		int(VillageNPC.TradeRole.BUTCHER):
-			sup_items = ["cooked_meat", "raw_meat", "roasted_chicken", "raw_chicken", "leather", "fox_pelt", "antlers"]
-		int(VillageNPC.TradeRole.CARPENTER):
-			sup_items = ["wood", "repair_kit", "copper_coil"]
-		int(VillageNPC.TradeRole.FISHMONGER):
-			sup_items = ["bread", "cooked_fish", "river_trout", "golden_carp", "night_catfish", "wheat", "fertilizer"]
-		int(VillageNPC.TradeRole.HERBALIST):
-			sup_items = ["herbal_poultice", "herbs", "mushroom", "carrot", "cabbage", "sleeping_draught", "surgical_kit"]
+		int(VillageNPC.TradeRole.BLACKSMITH): sup_items = ["iron_ore", "stone", "steel_ingot", "repair_kit", "bandit_scrap"]
+		int(VillageNPC.TradeRole.BUTCHER): sup_items = ["cooked_meat", "raw_meat", "roasted_chicken", "raw_chicken", "leather", "fox_pelt", "antlers"]
+		int(VillageNPC.TradeRole.CARPENTER): sup_items = ["wood", "repair_kit", "copper_coil"]
+		int(VillageNPC.TradeRole.FISHMONGER): sup_items = ["bread", "cooked_fish", "river_trout", "golden_carp", "night_catfish", "wheat", "fertilizer"]
+		int(VillageNPC.TradeRole.HERBALIST): sup_items = ["herbal_poultice", "herbs", "mushroom", "carrot", "cabbage", "sleeping_draught", "surgical_kit"]
 
 	var cfg: Dictionary = trade_configs.get(role_id, {})
 	var init_stock: Dictionary = (cfg.get("stock", {}) as Dictionary).duplicate()
 	shop_businesses[role_id] = {
-		"role": role_id,
-		"family_id": fam_id,
-		"title": shop_title,
-		"stall_pos": stall_pos,
-		"stall_sprite": stall_spr,
-		"stall_label": lbl,
-		"owner_mode": "NPC", # "NPC", "PARTNER" (Socio Capitalista), "SOLE_OWNER" (Dueño Único)
-		"vault_gold": 0,
-		"sabotaged_days": 0,
-		"sabotaged_today_day": -1,
-		"supply_items": sup_items,
-		"stock_override": init_stock
+		"role": role_id, "family_id": fam_id, "title": shop_title, "stall_pos": stall_pos, "stall_sprite": stall_spr,
+		"stall_label": lbl, "owner_mode": "NPC", "vault_gold": 0, "sabotaged_days": 0, "sabotaged_today_day": -1,
+		"supply_items": sup_items, "stock_override": init_stock
 	}
 
 func _find_nearest_business_stall(pos: Vector2, max_rad: float) -> Dictionary:
@@ -4199,8 +3338,7 @@ func sabotage_shop_stall(player: Node2D, role_id: int) -> void:
 	var cur_day: int = WorldClock.current_day if WorldClock else 1
 
 	if int(biz.get("sabotaged_days", 0)) > 0 or int(biz.get("sabotaged_today_day", -1)) == cur_day:
-		if player.has_method("_spawn_floating_text"):
-			player._spawn_floating_text("🔧💥 Este taller ya fue saboteado hoy", Color.GOLD, -42.0)
+		_msg_player(player, "🔧💥 Este taller ya fue saboteado hoy", Color.GOLD, -42.0)
 		return
 
 	biz["sabotaged_days"] = 2
@@ -4208,12 +3346,10 @@ func sabotage_shop_stall(player: Node2D, role_id: int) -> void:
 	recent_breakins_count += 1
 	_refresh_shop_stall_visual(role_id)
 
-	# Reducir a la mitad el stock actual del negocio (provocando Escasez / Crisis de Suministro 2.25x)
 	var st: Dictionary = get_trade_stock_dict(role_id)
 	for k in st.keys():
 		st[k] = int(floor(float(st[k]) * 0.4))
 
-	# Entregar 1 material saqueado del taller al jugador
 	var inv: SimpleInventory = player.get("inventory")
 	var sup_list: Array = biz.get("supply_items", ["wood"])
 	var loot_id: String = str(sup_list[0]) if not sup_list.is_empty() else "wood"
@@ -4227,10 +3363,8 @@ func sabotage_shop_stall(player: Node2D, role_id: int) -> void:
 	var witness: VillageNPC = _find_conscious_witness_near(biz.get("stall_pos", player.global_position), detect_rad, null)
 
 	if witness == null:
-		if player.has_method("_spawn_floating_text"):
-			player._spawn_floating_text("💣🤫 ¡Sabotaje industrial en sigilo! %s averiado (+1 %s | Precios a 2.25x)" % [b_title, loot_name], Color.SPRING_GREEN, -46.0)
-		if player.has_method("show_hint"):
-			player.call("show_hint", "💣 Has saboteado %s sin testigos: su producción se detiene 2 días, sus precios suben al 225%% y puedes comprar su escritura en liquidación (65 Oro)." % b_title)
+		_msg_player(player, "💣🤫 ¡Sabotaje industrial en sigilo! %s averiado (+1 %s | Precios a 2.25x)" % [b_title, loot_name], Color.SPRING_GREEN, -46.0)
+		_hint_player("💣 Has saboteado %s sin testigos: su producción se detiene 2 días, sus precios suben al 225%% y puedes comprar su escritura en liquidación (65 Oro)." % b_title, player)
 	else:
 		wanted_level = clampi(wanted_level + 1, 1, 5)
 		bounty_gold += 35
@@ -4239,8 +3373,7 @@ func sabotage_shop_stall(player: Node2D, role_id: int) -> void:
 		var msg := "🚨👁️ ¡%s te vio sabotear %s! (+35 Oro de multa policial)" % [witness.npc_name, b_title]
 		crime_history.push_front(msg)
 		_notify_inquisitor_of_police_crime(msg, 22)
-		if player.has_method("_spawn_floating_text"):
-			player._spawn_floating_text(msg, Color.ORANGE_RED, -46.0)
+		_msg_player(player, msg, Color.ORANGE_RED, -46.0)
 
 	if business_panel and business_panel.visible and _active_business_role == role_id:
 		open_business_management_ui(role_id)
@@ -4443,23 +3576,12 @@ func _on_business_action_3(player: Node2D) -> void:
 	inv.add_gold(-30)
 
 	if candidate != null:
-		candidate.promote_to_trade(
-			_active_business_role as VillageNPC.TradeRole,
-			str(cfg.get("title", "Artesano")),
-			cfg.get("work_pos", biz.get("stall_pos", Vector2.ZERO)),
-			get_trade_stock_dict(_active_business_role),
-			cfg.get("tex", null),
-			cfg.get("bed1_pos", Vector2.ZERO),
-			cfg.get("table_pos", Vector2.ZERO),
-			str(cfg.get("family_id", "none")),
-			str(cfg.get("family_name", "Gremio"))
-		)
+		candidate.promote_to_trade(_active_business_role as VillageNPC.TradeRole, str(cfg.get("title", "Artesano")), cfg.get("work_pos", biz.get("stall_pos", Vector2.ZERO)), get_trade_stock_dict(_active_business_role), cfg.get("tex", null), cfg.get("bed1_pos", Vector2.ZERO), cfg.get("table_pos", Vector2.ZERO), str(cfg.get("family_id", "none")), str(cfg.get("family_name", "Gremio")))
 		trade_npcs[_active_business_role] = candidate
 		if family_npcs.get(_active_business_role) == candidate:
 			family_npcs.erase(_active_business_role)
-		player._spawn_floating_text("🤝⚒️ ¡Contrataste a %s (%s) como encargado de %s! (-30 Oro)" % [candidate.npc_name, candidate.get_job_efficiency_label(), str(biz.get("title", ""))], Color.SPRING_GREEN, -46.0)
+		_msg_player(player, "🤝⚒️ ¡Contrataste a %s (%s) como encargado de %s! (-30 Oro)" % [candidate.npc_name, candidate.get_job_efficiency_label(), str(biz.get("title", ""))], Color.SPRING_GREEN, -46.0)
 	else:
-		# Si no quedan viajeros libres en la posada, llega un nuevo artesano novato caminando desde el borde del mapa (máx. 2 llegadas/día)
 		arrivals_today_count += 1
 		_rehire_counter += 1
 		var hired_npc := VillageNPC.new()
@@ -4468,21 +3590,13 @@ func _on_business_action_3(player: Node2D) -> void:
 		hired_npc.npc_role = str(cfg.get("title", "Encargado")) + " (Contratado)"
 		hired_npc.trade_role = _active_business_role as VillageNPC.TradeRole
 		hired_npc.linked_trade = _active_business_role as VillageNPC.TradeRole
-		hired_npc.days_in_role = 0 # Empieza como Novato al 35% de eficiencia y tarda 7 días en llegar a Maestro
+		hired_npc.days_in_role = 0
 		hired_npc.tavern_social_pos = _tavern_social_pos
 		entities_root.add_child(hired_npc)
-		hired_npc.setup_npc(
-			cfg.get("tex", null),
-			cfg.get("work_pos", biz.get("stall_pos", Vector2.ZERO)),
-			cfg.get("bed1_pos", _tavern_bed_pos),
-			get_trade_stock_dict(_active_business_role),
-			cfg.get("table_pos", _tavern_social_pos),
-			str(cfg.get("family_id", "none")),
-			str(cfg.get("family_name", "Gremio"))
-		)
+		hired_npc.setup_npc(cfg.get("tex", null), cfg.get("work_pos", biz.get("stall_pos", Vector2.ZERO)), cfg.get("bed1_pos", _tavern_bed_pos), get_trade_stock_dict(_active_business_role), cfg.get("table_pos", _tavern_social_pos), str(cfg.get("family_id", "none")), str(cfg.get("family_name", "Gremio")))
 		hired_npc.global_position = _get_map_edge_arrival_pos(_rehire_counter)
 		trade_npcs[_active_business_role] = hired_npc
-		player._spawn_floating_text("🤝🚶 ¡Contrataste a %s (Novato 35%%)! Ya viene caminando desde el borde del mapa (-30 Oro)" % hired_npc.npc_name, Color.SPRING_GREEN, -46.0)
+		_msg_player(player, "🤝🚶 ¡Contrataste a %s (Novato 35%%)! Ya viene caminando desde el borde del mapa (-30 Oro)" % hired_npc.npc_name, Color.SPRING_GREEN, -46.0)
 
 	open_business_management_ui(_active_business_role)
 
@@ -4596,14 +3710,8 @@ func _process_nightly_tavern_rent_and_vagrant_camps() -> void:
 func evict_npc_to_vagrant_camp(npc: VillageNPC, _reason: String = "") -> void:
 	if npc == null or npc.is_dead:
 		return
-	var camp_spots: Array[Vector2] = [
-		Vector2(360, 345),
-		Vector2(412, 355),
-		Vector2(522, 348),
-		Vector2(310, 348)
-	]
-	var idx: int = abs(npc.npc_name.hash()) % camp_spots.size()
-	var c_pos: Vector2 = camp_spots[idx]
+	var camp_spots: Array[Vector2] = [Vector2(360, 345), Vector2(412, 355), Vector2(522, 348), Vector2(310, 348)]
+	var c_pos: Vector2 = camp_spots[abs(npc.npc_name.hash()) % camp_spots.size()]
 	npc.is_vagrant_camper = true
 	npc.vagrant_camp_pos = c_pos
 	npc.bed_position = c_pos
@@ -4626,52 +3734,11 @@ func _spawn_or_update_vagrant_camp_visual(npc: VillageNPC, camp_pos: Vector2) ->
 	entities_root.add_child(camp_root)
 	vagrant_camp_nodes[npc.npc_name] = camp_root
 
-	# Suelo de tierra pisada del campamento rústico
-	var dirt := Polygon2D.new()
-	dirt.polygon = PackedVector2Array([
-		Vector2(-18, -10), Vector2(18, -10), Vector2(20, 12), Vector2(-20, 12)
-	])
-	dirt.color = Color(0.36, 0.27, 0.18, 0.72)
-	dirt.z_index = -2
-	camp_root.add_child(dirt)
-
-	# Tienda de lona improvisada (Tarp triangular)
-	var tent := Polygon2D.new()
-	tent.polygon = PackedVector2Array([
-		Vector2(-15, 4), Vector2(-6, -11), Vector2(4, 4)
-	])
-	tent.color = Color(0.56, 0.46, 0.32, 0.95)
-	tent.z_index = 0
-	camp_root.add_child(tent)
-
-	# Saco de dormir / petate junto a la lona
-	var bedroll := Polygon2D.new()
-	bedroll.polygon = PackedVector2Array([
-		Vector2(-6, 1), Vector2(8, 1), Vector2(8, 7), Vector2(-6, 7)
-	])
-	bedroll.color = Color(0.45, 0.52, 0.36, 0.95)
-	bedroll.z_index = -1
-	camp_root.add_child(bedroll)
-
-	# Pequeña hoguera de piedras para sobrevivir al frío nocturno
-	var fire_glow := Polygon2D.new()
-	fire_glow.polygon = PackedVector2Array([
-		Vector2(10, -2), Vector2(15, -5), Vector2(18, 0), Vector2(14, 4)
-	])
-	fire_glow.color = Color(1.0, 0.58, 0.18, 0.88)
-	fire_glow.z_index = 1
-	camp_root.add_child(fire_glow)
-
-	var lbl := Label.new()
-	lbl.text = "⛺ Campamento Rústico de %s (Intemperie: Sueño máx. 74%%)" % npc.npc_name
-	lbl.position = Vector2(-110, -26)
-	lbl.custom_minimum_size = Vector2(220, 16)
-	lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	lbl.add_theme_font_size_override("font_size", 7)
-	lbl.add_theme_color_override("font_color", Color(1.0, 0.80, 0.52))
-	lbl.add_theme_color_override("font_outline_color", Color.BLACK)
-	lbl.add_theme_constant_override("outline_size", 3)
-	camp_root.add_child(lbl)
+	_add_poly(PackedVector2Array([Vector2(-18, -10), Vector2(18, -10), Vector2(20, 12), Vector2(-20, 12)]), Color(0.36, 0.27, 0.18, 0.72), -2, Vector2.ZERO, camp_root)
+	_add_poly(PackedVector2Array([Vector2(-15, 4), Vector2(-6, -11), Vector2(4, 4)]), Color(0.56, 0.46, 0.32, 0.95), 0, Vector2.ZERO, camp_root)
+	_add_poly(PackedVector2Array([Vector2(-6, 1), Vector2(8, 1), Vector2(8, 7), Vector2(-6, 7)]), Color(0.45, 0.52, 0.36, 0.95), -1, Vector2.ZERO, camp_root)
+	_add_poly(PackedVector2Array([Vector2(10, -2), Vector2(15, -5), Vector2(18, 0), Vector2(14, 4)]), Color(1.0, 0.58, 0.18, 0.88), 1, Vector2.ZERO, camp_root)
+	_add_title_label(Vector2(-110, -26), Vector2(220, 16), "⛺ Campamento Rústico de %s (Intemperie: Sueño máx. 74%%)" % npc.npc_name, Color(1.0, 0.80, 0.52), 7, camp_root)
 
 ## Comprueba cada mañana (07:00 AM) si hoy toca visita de uno de los 2 Mercaderes Semanales de Extramuros:
 ## - Día 3 de cada semana (`day % 7 == 3`): Maese Casimir (Liga Minera, presupuesto variable `168..196 Oro`).
@@ -4691,13 +3758,10 @@ func _check_weekly_merchant_arrival(current_day: int, ignore_suspension: bool = 
 
 	var susp_left: int = int(merchant_suspension_days.get(m_id, 0))
 	if susp_left > 0 and not ignore_suspension:
-		var p_emb = get_tree().get_first_node_in_group("player")
-		if p_emb and p_emb.has_method("show_hint"):
-			var emb_name: String = "Maese Casimir" if m_id == "casimir" else "Valeria la Tratante"
-			p_emb.show_hint("🚫⚖️ Ruta Comercial Suspendida: %s NO ha venido hoy al pueblo por el asesinato previo (Quedan %d días de embargo económico)." % [emb_name, susp_left])
+		var emb_name: String = "Maese Casimir" if m_id == "casimir" else "Valeria la Tratante"
+		_hint_player("🚫⚖️ Ruta Comercial Suspendida: %s NO ha venido hoy al pueblo por el asesinato previo (Quedan %d días de embargo económico)." % [emb_name, susp_left])
 		return
 
-	# Si el mercader anterior murió, conservar su cadáver en el mundo/morgue renombrándolo para que no colisione con el nuevo mercader
 	if is_instance_valid(_active_traveling_merchant) and _active_traveling_merchant.is_dead:
 		_active_traveling_merchant.name = "NPC_Merchant_Corpse_" + str(_active_traveling_merchant.get_instance_id())
 		_active_traveling_merchant = null
@@ -4717,47 +3781,29 @@ func _check_weekly_merchant_arrival(current_day: int, ignore_suspension: bool = 
 		m_npc.name = "NPC_Merchant_Casimir"
 		m_npc.npc_name = "Maese Casimir"
 		m_npc.npc_role = "Intendente de la Liga Minera"
-		m_npc.personal_gold = randi_range(168, 196) # Cantidad dinámica no redonda
+		m_npc.personal_gold = randi_range(168, 196)
 		m_npc.set_meta("initial_budget", m_npc.personal_gold)
 		m_npc.set_meta("route_Bought_smith", false)
 		m_npc.set_meta("route_Bought_carp", false)
 		entities_root.add_child(m_npc)
-		m_npc.setup_npc(
-			_load_tex("res://assests/world/village/npcs_64/sprite_casimir.png"),
-			Vector2(335, 12),
-			Vector2(-900, 48),
-			{"royal_ration": 3, "steel_ingot": 3, "copper_coil": 2, "repair_kit": 3},
-			_tavern_social_pos,
-			"none",
-			"Comitiva Real de Extramuros"
-		)
+		m_npc.setup_npc(_load_tex("res://assests/world/village/npcs_64/sprite_casimir.png"), Vector2(335, 12), Vector2(-900, 48), {"royal_ration": 3, "steel_ingot": 3, "copper_coil": 2, "repair_kit": 3}, _tavern_social_pos, "none", "Comitiva Real de Extramuros")
 	else:
 		m_npc.name = "NPC_Merchant_Valeria"
 		m_npc.npc_name = "Valeria la Tratante"
 		m_npc.npc_role = "Tratante de Caza y Pieles"
-		m_npc.personal_gold = randi_range(214, 248) # Cantidad dinámica distinta a Casimir
+		m_npc.personal_gold = randi_range(214, 248)
 		m_npc.set_meta("initial_budget", m_npc.personal_gold)
 		m_npc.set_meta("route_Bought_butcher", false)
 		m_npc.set_meta("route_Bought_fish", false)
 		m_npc.set_meta("route_Bought_herb", false)
 		entities_root.add_child(m_npc)
-		m_npc.setup_npc(
-			_load_tex("res://assests/world/village/npcs_64/sprite_valeria.png"),
-			Vector2(585, 12),
-			Vector2(990, 48),
-			{"royal_ration": 4, "surgical_kit": 2, "sleeping_draught": 2},
-			_tavern_social_pos,
-			"none",
-			"Comitiva Real de Extramuros"
-		)
+		m_npc.setup_npc(_load_tex("res://assests/world/village/npcs_64/sprite_valeria.png"), Vector2(585, 12), Vector2(990, 48), {"royal_ration": 4, "surgical_kit": 2, "sleeping_draught": 2}, _tavern_social_pos, "none", "Comitiva Real de Extramuros")
 
 	m_npc.global_position = Vector2(-900, 48) if m_id == "casimir" else Vector2(990, 48)
 	_active_traveling_merchant = m_npc
 
 	if not silent:
-		var p = get_tree().get_first_node_in_group("player")
-		if p and p.has_method("show_hint"):
-			p.show_hint("🐎👑 ¡Ha llegado %s (%s) con %d Oro y Salvoconducto Real! Comprará producción local hasta las 19:00." % [m_npc.npc_name, m_npc.npc_role, m_npc.personal_gold])
+		_hint_player("🐎👑 ¡Ha llegado %s (%s) con %d Oro y Salvoconducto Real! Comprará producción local hasta las 19:00." % [m_npc.npc_name, m_npc.npc_role, m_npc.personal_gold])
 
 ## IA física de los 2 Mercaderes Semanales: recorren las tiendas de su especialidad comprando solo lo que hay en stock
 ## (inyectando oro externo real a los artesanos y cazadores) y se marchan por el camino principal a las 19:00.
@@ -4921,22 +3967,14 @@ func on_traveling_merchant_murdered(merchant: VillageNPC, cause_text: String = "
 					saw_player_near = true
 
 		suspects_dict[v.npc_name] = {
-			"name": v.npc_name,
-			"is_player": false,
-			"score": 10,
-			"known_dist": -1.0,
-			"mem_alibi_partner": alibi_partner,
-			"mem_dist_to_crime": dist_to_crime,
-			"mem_saw_player_near": saw_player_near,
-			"mem_player_dist": player_dist_at_crime if saw_player_near else -1.0,
-			"mem_seen_villager": seen_near_villager,
-			"is_vagrant": (v.trade_role == VillageNPC.TradeRole.UNEMPLOYED or v.is_vagrant_camper),
-			"interviewed": false,
-			"status_note": "Paradero pendiente de interrogar"
+			"name": v.npc_name, "is_player": false, "score": 10, "known_dist": -1.0,
+			"mem_alibi_partner": alibi_partner, "mem_dist_to_crime": dist_to_crime,
+			"mem_saw_player_near": saw_player_near, "mem_player_dist": player_dist_at_crime if saw_player_near else -1.0,
+			"mem_seen_villager": seen_near_villager, "is_vagrant": (v.trade_role == VillageNPC.TradeRole.UNEMPLOYED or v.is_vagrant_camper),
+			"interviewed": false, "status_note": "Paradero pendiente de interrogar"
 		}
 		npcs_to_interview.append(v.npc_name)
 
-	# Expediente inicial del Jugador: sin omnisciencia mágica (Alistair solo sabe lo que conste en actas de la Guardia o declaren testigos)
 	var player_init_score: int = 10
 	var player_known_dist: float = -1.0
 	var p_note: String = "Forastero en el valle (paradero aún no confirmado)"
@@ -4948,18 +3986,11 @@ func on_traveling_merchant_murdered(merchant: VillageNPC, cause_text: String = "
 		player_init_score += 35
 		p_note = "Fichado/Arrestado por el Comisario Vane tras el crimen"
 
-	suspects_dict["Jugador"] = {
-		"name": "El Forastero (Jugador)",
-		"is_player": true,
-		"score": player_init_score,
-		"known_dist": player_known_dist,
-		"interviewed": false,
-		"status_note": p_note
-	}
+	suspects_dict["Jugador"] = {"name": "El Forastero (Jugador)", "is_player": true, "score": player_init_score, "known_dist": player_known_dist, "interviewed": false, "status_note": p_note}
 
 	var total_villagers: int = npcs_to_interview.size()
-	var max_inv_days: int = mini(18, embargo_days - 2) # Plazo máximo: antes de que regrese el nuevo mercader (<= 18 días)
-	var init_daily_quota: int = 6                      # Interroga al menos a 5-6+ habitantes por día sin alargar artificialmente el caso
+	var max_inv_days: int = mini(18, embargo_days - 2)
+	var init_daily_quota: int = 6
 
 	var initial_clues: Array[String] = [
 		"Cadáver de %s hallado en (%d, %d) a las %02d:00 del Día %d." % [merchant.npc_name, int(crime_pos.x), int(crime_pos.y), crime_hour, crime_day],
@@ -4970,40 +4001,17 @@ func on_traveling_merchant_murdered(merchant: VillageNPC, cause_text: String = "
 		initial_clues.append("Parte Policial del Comisario Vane: %s denunció al Forastero como autor presencial." % direct_murder_witness)
 
 	active_royal_investigation = {
-		"active": true,
-		"victim_name": merchant.npc_name,
-		"victim_id": m_id,
-		"embargo_days": embargo_days,
-		"crime_pos_x": crime_pos.x,
-		"crime_pos_y": crime_pos.y,
-		"crime_hour": crime_hour,
-		"crime_day": crime_day,
-		"days_investigating": 1,
-		"max_days": max_inv_days,
-		"daily_quota": init_daily_quota,
-		"interviews_done_today": 0,
-		"recon_spot_idx": 0,
-		"weapon_used": weapon_used,
-		"morgue_checked": false,
-		"stage": "CRIME_SCENE", # "CRIME_SCENE" -> "MORGUE" -> "INITIAL_PLAYER_INTERVIEW" -> "INTERVIEWS" -> "PLAYER_CHECK" -> "VERDICT" -> "HUNTING_SCAPEGOAT" / "HUNTING_PLAYER" -> "DEPARTING"
-		"stage_timer": 0.0,
-		"routine_timer": 0.0,
-		"interviews_done": 0,
-		"max_interviews": total_villagers,
-		"interview_queue": npcs_to_interview,
-		"current_interview_target": "",
-		"scapegoat_key": "",
-		"clues_log": initial_clues,
-		"suspects": suspects_dict,
-		"verdict_target": "",
-		"verdict_reason": ""
+		"active": true, "victim_name": merchant.npc_name, "victim_id": m_id, "embargo_days": embargo_days,
+		"crime_pos_x": crime_pos.x, "crime_pos_y": crime_pos.y, "crime_hour": crime_hour, "crime_day": crime_day,
+		"days_investigating": 1, "max_days": max_inv_days, "daily_quota": init_daily_quota, "interviews_done_today": 0,
+		"recon_spot_idx": 0, "weapon_used": weapon_used, "morgue_checked": false, "stage": "CRIME_SCENE",
+		"stage_timer": 0.0, "routine_timer": 0.0, "interviews_done": 0, "max_interviews": total_villagers,
+		"interview_queue": npcs_to_interview, "current_interview_target": "", "scapegoat_key": "",
+		"clues_log": initial_clues, "suspects": suspects_dict, "verdict_target": "", "verdict_reason": ""
 	}
 
 	_spawn_royal_investigator()
-
-	var p = get_tree().get_first_node_in_group("player")
-	if p and p.has_method("show_hint"):
-		p.show_hint("👑🕵️‍♂️ ¡MAGNICIDIO COMERCIAL! %s ha muerto (Ruta suspendida %d días). El Inquisidor Real Alistair interrogará a todo el pueblo (~%d al día) y resolverá el caso sin demoras." % [merchant.npc_name, embargo_days, init_daily_quota])
+	_hint_player("👑🕵️‍♂️ ¡MAGNICIDIO COMERCIAL! %s ha muerto (Ruta suspendida %d días). El Inquisidor Real Alistair interrogará a todo el pueblo (~%d al día) y resolverá el caso sin demoras." % [merchant.npc_name, embargo_days, init_daily_quota])
 
 func _get_investigation_crime_pos() -> Vector2:
 	if active_royal_investigation.has("crime_pos_x") and active_royal_investigation.has("crime_pos_y"):
@@ -5047,15 +4055,7 @@ func _spawn_royal_investigator() -> void:
 	inv_npc.days_in_role = 7
 	inv_npc.tavern_social_pos = _tavern_social_pos
 	entities_root.add_child(inv_npc)
-	inv_npc.setup_npc(
-		_load_tex("res://assests/world/village/npcs_64/sprite_alistair.png"),
-		Vector2(465, 44),
-		Vector2(968, 132),
-		{},
-		Vector2(886, 126),
-		"family_police",
-		"Inquisición Real de la Corona"
-	)
+	inv_npc.setup_npc(_load_tex("res://assests/world/village/npcs_64/sprite_alistair.png"), Vector2(465, 44), Vector2(968, 132), {}, Vector2(886, 126), "family_police", "Inquisición Real de la Corona")
 	inv_npc.global_position = _get_map_edge_arrival_pos(1)
 	_royal_investigator_npc = inv_npc
 
@@ -5399,9 +4399,7 @@ func update_royal_investigator_ai(inv_npc: VillageNPC, delta: float) -> void:
 				scapegoat.last_hit_weapon_name = "Ejecutado presencialmente por el Inquisidor Real Alistair (Chivo Expiatorio)"
 				scapegoat._confirm_true_death()
 				inv_npc._spawn_floating_text("⚖️🗡️ ¡Sentencia real ejecutada contra %s! Caso cerrado." % chosen_name, Color.GOLD, -44.0)
-				var p_h = get_tree().get_first_node_in_group("player")
-				if p_h and p_h.has_method("show_hint"):
-					p_h.show_hint("⚖️👑 ¡EJECUCIÓN INQUISITORIAL! Tras interrogar a todo el pueblo (%d/%d), el Inquisidor Real Alistair ajustició en persona a %s (el sospechoso cercano sin coartada con mayor probabilidad: %d%%)." % [done_cnt, max_cnt, chosen_name, clampi(best_sc, 35, 95)])
+				_hint_player("⚖️👑 ¡EJECUCIÓN INQUISITORIAL! Tras interrogar a todo el pueblo (%d/%d), el Inquisidor Real Alistair ajustició en persona a %s (el sospechoso cercano sin coartada con mayor probabilidad: %d%%)." % [done_cnt, max_cnt, chosen_name, clampi(best_sc, 35, 95)])
 				active_royal_investigation["stage"] = "DEPARTING"
 				active_royal_investigation["stage_timer"] = 0.0
 		"DEPARTING":
@@ -5414,16 +4412,9 @@ func update_royal_investigator_ai(inv_npc: VillageNPC, delta: float) -> void:
 					_royal_investigator_npc = null
 				inv_npc.queue_free()
 
-## Cuando Alistair ya completó su cuota de interrogatorios del día (6+ aldeanos), pasa el resto de la tarde
-## reconstruyendo el caso entre la escena del crimen, la Morgue Forense, la Plaza y su escritorio en la Comisaría.
 func _process_inquisitor_field_recon(inv_npc: VillageNPC, delta: float, done_cnt: int, max_cnt: int, days_inv: int) -> void:
 	var c_pos: Vector2 = _get_investigation_crime_pos()
-	var recon_pts: Array[Vector2] = [
-		c_pos,
-		_morgue_table_positions[1],
-		Vector2(886, 126),
-		Vector2(465, 36)
-	]
+	var recon_pts: Array[Vector2] = [c_pos, _morgue_table_positions[1], Vector2(886, 126), Vector2(465, 36)]
 	var r_idx: int = int(active_royal_investigation.get("recon_spot_idx", 0)) % recon_pts.size()
 	var target_pt: Vector2 = recon_pts[r_idx]
 	if inv_npc.global_position.distance_to(target_pt) > 22.0:
@@ -5631,12 +4622,10 @@ func _conclude_royal_investigation_with_mandatory_verdict(inv_npc: VillageNPC) -
 	if bool(chosen.get("is_player", false)):
 		active_royal_investigation["verdict_reason"] = "Culpable por deducción de pruebas y testimonios (%d%% de probabilidad)." % clampi(best_score, 50, 100)
 		if player_in_jail or player_being_escorted_to_jail:
-			# Si el jugador ya está encerrado en la Celda cuando Alistair emite el veredicto, le impone la condena real directamente y cierra el caso
 			bounty_gold += 250
 			active_royal_investigation["stage"] = "DEPARTING"
 			inv_npc._spawn_floating_text("⚖️👑 ¡El Forastero es el asesino y ya está tras las rejas! (+250 Oro de condena real)", Color.GOLD, -44.0)
-			if p and p.has_method("show_hint"):
-				p.show_hint("⚖️👑 ¡VEREDICTO DEL INQUISIDOR REAL ALISTAIR! Tras interrogar a todo el pueblo, confirmó tu culpabilidad mientras estabas en la celda (+250 Oro a tu fianza). El Inquisidor regresa a la Corte.")
+			_hint_player("⚖️👑 ¡VEREDICTO DEL INQUISIDOR REAL ALISTAIR! Tras interrogar a todo el pueblo, confirmó tu culpabilidad mientras estabas en la celda (+250 Oro a tu fianza). El Inquisidor regresa a la Corte.", p)
 		else:
 			active_royal_investigation["stage"] = "HUNTING_PLAYER"
 			wanted_level = 5
@@ -5648,20 +4637,16 @@ func _conclude_royal_investigation_with_mandatory_verdict(inv_npc: VillageNPC) -
 				inv_npc._last_seen_player_pos = p.global_position
 				inv_npc._police_alerted_timer = 65.0
 				alert_police_to_resist(p)
-				if p.has_method("show_hint"):
-					p.show_hint("⚖️👑 ¡VEREDICTO DEL INQUISIDOR REAL ALISTAIR! Tras interrogar a todo el pueblo, te ha declarado CULPABLE del asesinato de %s (%d%% sospecha). ¡Orden de captura inmediata (+250 Oro)!" % [str(active_royal_investigation.get("victim_name", "Mercader")), clampi(best_score, 50, 100)])
+				_hint_player("⚖️👑 ¡VEREDICTO DEL INQUISIDOR REAL ALISTAIR! Tras interrogar a todo el pueblo, te ha declarado CULPABLE del asesinato de %s (%d%% sospecha). ¡Orden de captura inmediata (+250 Oro)!" % [str(active_royal_investigation.get("victim_name", "Mercader")), clampi(best_score, 50, 100)], p)
 			inv_npc._spawn_floating_text("⚖️🗡️ ¡EN NOMBRE DEL REY, TÚ ASESINASTE AL MERCADER!", Color.ORANGE_RED, -44.0)
 	else:
-		# ¡CHIVO EXPIATORIO CERCANO (`Scapegoat`)! El jugador ocultó sus pruebas y había otro aldeano SIN coartada cerca de la escena (`<= 360 px`).
-		# Alistair camina físicamente hasta donde esté ese aldeano (`HUNTING_SCAPEGOAT`) para arrestarlo y ejecutarlo en persona.
 		var sc_dist_m: int = int(round(float(chosen.get("known_dist", chosen.get("mem_dist_to_crime", 120.0))) / 16.0))
 		active_royal_investigation["verdict_reason"] = "Condenado por estar a %d m de la escena sin coartada (%d%% sospecha)." % [sc_dist_m, clampi(best_score, 35, 95)]
 		active_royal_investigation["scapegoat_key"] = best_key
 		active_royal_investigation["stage"] = "HUNTING_SCAPEGOAT"
 		active_royal_investigation["stage_timer"] = 0.0
 		inv_npc._spawn_floating_text("⚖️📜 ¡Orden de ejecución contra %s (estaba a %dm de la escena sin coartada)!" % [chosen_name, sc_dist_m], Color.GOLD, -44.0)
-		if p and p.has_method("show_hint"):
-			p.show_hint("⚖️👑 ¡VEREDICTO EMITIDO! El Inquisidor Real Alistair se dirige a buscar y ejecutar personalmente a %s (estaba a %d m de la escena del crimen sin coartada: %d%% sospecha)." % [chosen_name, sc_dist_m, clampi(best_score, 35, 95)])
+		_hint_player("⚖️👑 ¡VEREDICTO EMITIDO! El Inquisidor Real Alistair se dirige a buscar y ejecutar personalmente a %s (estaba a %d m de la escena del crimen sin coartada: %d%% sospecha)." % [chosen_name, sc_dist_m, clampi(best_score, 35, 95)], p)
 
 func get_royal_investigator_status_text() -> String:
 	if active_royal_investigation.is_empty():
@@ -5672,24 +4657,15 @@ func get_royal_investigator_status_text() -> String:
 	var d_inv: int = int(active_royal_investigation.get("days_investigating", 1))
 	var m_days: int = int(active_royal_investigation.get("max_days", 18))
 	match stg:
-		"CRIME_SCENE":
-			return "Inspeccionando Escena (Día %d/%d)" % [d_inv, m_days]
-		"MORGUE":
-			return "Examinando Autopsia y Comisaría (Día %d/%d)" % [d_inv, m_days]
-		"INITIAL_PLAYER_INTERVIEW":
-			return "Yendo a Interrogarte (Día %d/%d)" % [d_inv, m_days]
-		"INTERVIEWS":
-			return "Interrogando Pueblo (%d/%d · Día %d/%d)" % [done_i, max_i, d_inv, m_days]
-		"DEEP_FORENSICS":
-			return "Cruzando Coartadas (%d/%d · Día %d/%d)" % [done_i, max_i, d_inv, m_days]
-		"PLAYER_CHECK":
-			return "Inspección Final al Forastero"
-		"HUNTING_SCAPEGOAT":
-			return "Yendo a Ajusticiar a " + str(active_royal_investigation.get("verdict_target", "Sospechoso"))
-		"HUNTING_PLAYER":
-			return "Persiguiendo al Culpable (Jugador)"
-		"VERDICT", "DEPARTING":
-			return "Veredicto: " + str(active_royal_investigation.get("verdict_target", "Emitido"))
+		"CRIME_SCENE": return "Inspeccionando Escena (Día %d/%d)" % [d_inv, m_days]
+		"MORGUE": return "Examinando Autopsia y Comisaría (Día %d/%d)" % [d_inv, m_days]
+		"INITIAL_PLAYER_INTERVIEW": return "Yendo a Interrogarte (Día %d/%d)" % [d_inv, m_days]
+		"INTERVIEWS": return "Interrogando Pueblo (%d/%d · Día %d/%d)" % [done_i, max_i, d_inv, m_days]
+		"DEEP_FORENSICS": return "Cruzando Coartadas (%d/%d · Día %d/%d)" % [done_i, max_i, d_inv, m_days]
+		"PLAYER_CHECK": return "Inspección Final al Forastero"
+		"HUNTING_SCAPEGOAT": return "Yendo a Ajusticiar a " + str(active_royal_investigation.get("verdict_target", "Sospechoso"))
+		"HUNTING_PLAYER": return "Persiguiendo al Culpable (Jugador)"
+		"VERDICT", "DEPARTING": return "Veredicto: " + str(active_royal_investigation.get("verdict_target", "Emitido"))
 	return "Investigando"
 
 func get_royal_investigation_dialogue_summary() -> String:
@@ -5835,18 +4811,12 @@ func get_economy_save_dict() -> Dictionary:
 		var role_int: int = int(r_id)
 		var biz: Dictionary = shop_businesses[role_int]
 		out[str(role_int)] = {
-			"owner_mode": str(biz.get("owner_mode", "NPC")),
-			"vault_gold": int(biz.get("vault_gold", 0)),
-			"sabotaged_days": int(biz.get("sabotaged_days", 0)),
-			"sabotaged_today_day": int(biz.get("sabotaged_today_day", -1)),
+			"owner_mode": str(biz.get("owner_mode", "NPC")), "vault_gold": int(biz.get("vault_gold", 0)),
+			"sabotaged_days": int(biz.get("sabotaged_days", 0)), "sabotaged_today_day": int(biz.get("sabotaged_today_day", -1)),
 			"stock_override": get_trade_stock_dict(role_int).duplicate()
 		}
-	var saved_merchant: Dictionary = {}
-	if is_instance_valid(_active_traveling_merchant) and not _active_traveling_merchant.is_dead:
-		saved_merchant = _active_traveling_merchant.to_save_dict()
-	var saved_investigator: Dictionary = {}
-	if is_instance_valid(_royal_investigator_npc) and not _royal_investigator_npc.is_dead:
-		saved_investigator = _royal_investigator_npc.to_save_dict()
+	var saved_merchant: Dictionary = _active_traveling_merchant.to_save_dict() if (is_instance_valid(_active_traveling_merchant) and not _active_traveling_merchant.is_dead) else {}
+	var saved_investigator: Dictionary = _royal_investigator_npc.to_save_dict() if (is_instance_valid(_royal_investigator_npc) and not _royal_investigator_npc.is_dead) else {}
 	var saved_pets: Array[Dictionary] = []
 	for p in domestic_pets:
 		if is_instance_valid(p) and p.has_method("to_save_dict"):
@@ -5861,22 +4831,17 @@ func get_economy_save_dict() -> Dictionary:
 		var d_id: String = str(d_entry.get("building_id", d_entry.get("id", "")))
 		if d_id != "":
 			saved_doors[d_id] = {
-				"is_open": bool(d_entry.get("is_open", false)),
-				"is_locked": bool(d_entry.get("is_locked", false)),
-				"locked_by_player": bool(d_entry.get("locked_by_player", false)),
-				"manual_override_timer": float(d_entry.get("manual_override_timer", 0.0)),
-				"picked_until_hour": int(d_entry.get("picked_until_hour", -1)),
-				"picked_day": int(d_entry.get("picked_day", -1))
+				"is_open": bool(d_entry.get("is_open", false)), "is_locked": bool(d_entry.get("is_locked", false)),
+				"locked_by_player": bool(d_entry.get("locked_by_player", false)), "manual_override_timer": float(d_entry.get("manual_override_timer", 0.0)),
+				"picked_until_hour": int(d_entry.get("picked_until_hour", -1)), "picked_day": int(d_entry.get("picked_day", -1))
 			}
 	var saved_windows: Dictionary = {}
 	for w_entry in building_windows:
 		var w_id: String = str(w_entry.get("building_id", w_entry.get("id", "")))
 		if w_id != "":
 			saved_windows[w_id] = {
-				"is_shuttered": bool(w_entry.get("is_shuttered", false)),
-				"manual_override_timer": float(w_entry.get("manual_override_timer", 0.0)),
-				"picked_until_hour": int(w_entry.get("picked_until_hour", -1)),
-				"picked_day": int(w_entry.get("picked_day", -1))
+				"is_shuttered": bool(w_entry.get("is_shuttered", false)), "manual_override_timer": float(w_entry.get("manual_override_timer", 0.0)),
+				"picked_until_hour": int(w_entry.get("picked_until_hour", -1)), "picked_day": int(w_entry.get("picked_day", -1))
 			}
 	var saved_traps: Array[Dictionary] = []
 	for trap_entry in _deployed_bear_traps:
@@ -5884,24 +4849,13 @@ func get_economy_save_dict() -> Dictionary:
 		if is_instance_valid(tr_node):
 			saved_traps.append({"x": tr_node.global_position.x, "y": tr_node.global_position.y})
 	return {
-		"businesses": out,
-		"village_food_shortage_days": village_food_shortage_days,
-		"house_pantry": house_pantry.duplicate(),
-		"merchant_suspension_days": merchant_suspension_days.duplicate(),
-		"active_royal_investigation": active_royal_investigation.duplicate(true),
-		"active_traveling_merchant": saved_merchant,
-		"royal_investigator_npc": saved_investigator,
-		"domestic_pets": saved_pets,
-		"player_arrests_count": player_arrests_count,
-		"player_murder_warrants_count": player_murder_warrants_count,
-		"recent_breakins_count": recent_breakins_count,
-		"crime_history": crime_history.duplicate(),
-		"arrivals_today_count": arrivals_today_count,
-		"rehire_counter": _rehire_counter,
-		"house_chests": saved_chests,
-		"building_doors": saved_doors,
-		"building_windows": saved_windows,
-		"deployed_bear_traps": saved_traps
+		"businesses": out, "village_food_shortage_days": village_food_shortage_days, "house_pantry": house_pantry.duplicate(),
+		"merchant_suspension_days": merchant_suspension_days.duplicate(), "active_royal_investigation": active_royal_investigation.duplicate(true),
+		"active_traveling_merchant": saved_merchant, "royal_investigator_npc": saved_investigator, "domestic_pets": saved_pets,
+		"player_arrests_count": player_arrests_count, "player_murder_warrants_count": player_murder_warrants_count,
+		"recent_breakins_count": recent_breakins_count, "crime_history": crime_history.duplicate(), "arrivals_today_count": arrivals_today_count,
+		"rehire_counter": _rehire_counter, "house_chests": saved_chests, "building_doors": saved_doors,
+		"building_windows": saved_windows, "deployed_bear_traps": saved_traps
 	}
 
 func _free_transient_npc(npc: VillageNPC) -> void:
@@ -6073,13 +5027,10 @@ func spawn_dynamic_npc_from_save(node_name: String, npc_data: Dictionary) -> Vil
 	entities_root.add_child(dyn_npc)
 	var default_tex := _load_tex("res://assests/world/village/villager_traveler.png")
 	dyn_npc.setup_npc(
-		default_tex,
-		Vector2(float(npc_data.get("work_x", 440.0)), float(npc_data.get("work_y", 44.0))),
-		Vector2(float(npc_data.get("bed_x", 435.0)), float(npc_data.get("bed_y", -252.0))),
-		{},
+		default_tex, Vector2(float(npc_data.get("work_x", 440.0)), float(npc_data.get("work_y", 44.0))),
+		Vector2(float(npc_data.get("bed_x", 435.0)), float(npc_data.get("bed_y", -252.0))), {},
 		Vector2(float(npc_data.get("table_x", _tavern_social_pos.x)), float(npc_data.get("table_y", _tavern_social_pos.y))),
-		str(npc_data.get("family_id", "none")),
-		str(npc_data.get("family_name", "Independiente"))
+		str(npc_data.get("family_id", "none")), str(npc_data.get("family_name", "Independiente"))
 	)
 	dyn_npc.from_save_dict(npc_data)
 	return dyn_npc
@@ -6106,13 +5057,7 @@ func reconcile_npc_registries_after_load() -> void:
 			elif v.trade_role == VillageNPC.TradeRole.TRAVELING_MERCHANT and not v.is_dead and not str(v.name).begins_with("NPC_Merchant_Corpse_"):
 				_active_traveling_merchant = v
 			var r_int: int = int(v.trade_role)
-			if r_int in [
-				int(VillageNPC.TradeRole.BLACKSMITH),
-				int(VillageNPC.TradeRole.BUTCHER),
-				int(VillageNPC.TradeRole.CARPENTER),
-				int(VillageNPC.TradeRole.FISHMONGER),
-				int(VillageNPC.TradeRole.HERBALIST)
-			] and not v.is_dead:
+			if r_int in [int(VillageNPC.TradeRole.BLACKSMITH), int(VillageNPC.TradeRole.BUTCHER), int(VillageNPC.TradeRole.CARPENTER), int(VillageNPC.TradeRole.FISHMONGER), int(VillageNPC.TradeRole.HERBALIST)] and not v.is_dead:
 				trade_npcs[r_int] = v
 			elif v.trade_role == VillageNPC.TradeRole.FAMILY_MEMBER and not v.is_dead:
 				family_npcs[int(v.linked_trade)] = v
@@ -6130,6 +5075,54 @@ func reconcile_npc_registries_after_load() -> void:
 			if v.is_vagrant_camper and not v.is_dead:
 				_spawn_or_update_vagrant_camp_visual(v, v.vagrant_camp_pos)
 
+func _add_poly(pts: PackedVector2Array, col: Color, z_idx: int = -1, pos: Vector2 = Vector2.ZERO, parent_node: Node = null) -> Polygon2D:
+	var p := Polygon2D.new()
+	p.polygon = pts
+	p.color = col
+	if pos != Vector2.ZERO:
+		p.global_position = pos
+	p.z_index = z_idx
+	(parent_node if parent_node else entities_root).add_child(p)
+	return p
+
+func _add_rect_poly(pos: Vector2, half_sz: Vector2, col: Color, z_idx: int = -1, parent_node: Node = null) -> Polygon2D:
+	var pts := PackedVector2Array([Vector2(-half_sz.x, -half_sz.y), Vector2(half_sz.x, -half_sz.y), Vector2(half_sz.x, half_sz.y), Vector2(-half_sz.x, half_sz.y)])
+	return _add_poly(pts, col, z_idx, pos, parent_node)
+
+func _add_sprite_prop(tex: Texture2D, pos: Vector2, sc: Vector2 = Vector2.ONE, z_idx: int = -1, vis: bool = true, mod: Color = Color.WHITE) -> Sprite2D:
+	var s := Sprite2D.new()
+	s.texture = tex
+	s.global_position = pos
+	s.scale = sc
+	s.z_index = z_idx
+	s.visible = vis
+	if mod != Color.WHITE:
+		s.modulate = mod
+	entities_root.add_child(s)
+	return s
+
+func _add_title_label(pos: Vector2, min_sz: Vector2, txt: String, col: Color, f_sz: int = 8, parent_node: Node = null) -> Label:
+	var lbl := Label.new()
+	lbl.text = txt
+	lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	lbl.position = pos
+	lbl.custom_minimum_size = min_sz
+	lbl.add_theme_font_size_override("font_size", f_sz)
+	lbl.add_theme_color_override("font_color", col)
+	lbl.add_theme_color_override("font_outline_color", Color.BLACK)
+	lbl.add_theme_constant_override("outline_size", 3)
+	(parent_node if parent_node else entities_root).add_child(lbl)
+	return lbl
+
+func _msg_player(player: Node, txt: String, col: Color, offset_y: float = -42.0) -> void:
+	if is_instance_valid(player) and player.has_method("_spawn_floating_text"):
+		player.call("_spawn_floating_text", txt, col, offset_y)
+
+func _hint_player(txt: String, player: Node = null) -> void:
+	var p: Node = player if is_instance_valid(player) else get_tree().get_first_node_in_group("player")
+	if is_instance_valid(p) and p.has_method("show_hint"):
+		p.call("show_hint", txt)
+
 func _make_station_label(pos: Vector2, txt: String) -> Label:
 	var lbl := Label.new()
 	lbl.visible = false
@@ -6145,10 +5138,8 @@ func _make_station_label(pos: Vector2, txt: String) -> Label:
 	return lbl
 
 func _load_tex(res_path: String) -> Texture2D:
-	if _tex_cache.has(res_path):
-		var cached: Variant = _tex_cache[res_path]
-		if cached is Texture2D:
-			return cached as Texture2D
+	if _tex_cache.has(res_path) and _tex_cache[res_path] is Texture2D:
+		return _tex_cache[res_path] as Texture2D
 	if ResourceLoader.exists(res_path):
 		var t = load(res_path)
 		if t is Texture2D:

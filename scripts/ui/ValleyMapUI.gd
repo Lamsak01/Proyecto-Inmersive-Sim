@@ -58,6 +58,30 @@ func close_full_map() -> void:
 	if full_map_panel:
 		full_map_panel.visible = false
 
+func _make_map_style(bg: Color, border: Color, radius: int, mx: int, my: int) -> StyleBoxFlat:
+	var s := StyleBoxFlat.new()
+	s.bg_color = bg
+	s.border_color = border
+	s.set_border_width_all(2)
+	s.set_corner_radius_all(radius)
+	s.content_margin_left = mx
+	s.content_margin_right = mx
+	s.content_margin_top = my
+	s.content_margin_bottom = my
+	return s
+
+func _make_map_lbl(txt: String, f_sz: int, col: Color, expand_h: bool = false) -> Label:
+	var l := Label.new()
+	l.text = txt
+	if expand_h:
+		l.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	l.add_theme_font_size_override("font_size", f_sz)
+	l.add_theme_color_override("font_color", col)
+	return l
+
+func _can_open_full_map() -> bool:
+	return is_full_map_open or not (is_instance_valid(player) and player.has_method("is_any_ui_modal_open") and bool(player.call("is_any_ui_modal_open")))
+
 func _build_minimap_ui() -> void:
 	minimap_panel = PanelContainer.new()
 	minimap_panel.name = "MinimapPanel"
@@ -66,17 +90,7 @@ func _build_minimap_ui() -> void:
 	minimap_panel.offset_top = 10.0
 	minimap_panel.offset_right = -12.0
 	minimap_panel.offset_bottom = 154.0
-
-	var style := StyleBoxFlat.new()
-	style.bg_color = Color(0.06, 0.08, 0.11, 0.90)
-	style.border_color = Color(0.72, 0.60, 0.34, 0.92)
-	style.set_border_width_all(2)
-	style.set_corner_radius_all(6)
-	style.content_margin_left = 6
-	style.content_margin_right = 6
-	style.content_margin_top = 4
-	style.content_margin_bottom = 6
-	minimap_panel.add_theme_stylebox_override("panel", style)
+	minimap_panel.add_theme_stylebox_override("panel", _make_map_style(Color(0.06, 0.08, 0.11, 0.90), Color(0.72, 0.60, 0.34, 0.92), 6, 6, 5))
 	add_child(minimap_panel)
 
 	var vbox := VBoxContainer.new()
@@ -89,9 +103,8 @@ func _build_minimap_ui() -> void:
 	header_btn.add_theme_font_size_override("font_size", 11)
 	header_btn.add_theme_color_override("font_color", Color(0.96, 0.88, 0.62))
 	header_btn.pressed.connect(func():
-		if not is_full_map_open and is_instance_valid(player) and player.has_method("is_any_ui_modal_open") and bool(player.call("is_any_ui_modal_open")):
-			return
-		toggle_full_map()
+		if _can_open_full_map():
+			toggle_full_map()
 	)
 	vbox.add_child(header_btn)
 
@@ -101,14 +114,10 @@ func _build_minimap_ui() -> void:
 	minimap_canvas.custom_minimum_size = Vector2(174, 112)
 	minimap_canvas.clip_contents = true
 	minimap_canvas.gui_input.connect(func(ev: InputEvent):
-		if ev is InputEventMouseButton and ev.pressed and ev.button_index == MOUSE_BUTTON_LEFT:
-			if not is_full_map_open and is_instance_valid(player) and player.has_method("is_any_ui_modal_open") and bool(player.call("is_any_ui_modal_open")):
-				return
+		if ev is InputEventMouseButton and ev.pressed and ev.button_index == MOUSE_BUTTON_LEFT and _can_open_full_map():
 			toggle_full_map()
 	)
-	minimap_canvas.draw.connect(func():
-		_draw_valley_cartography(minimap_canvas, false)
-	)
+	minimap_canvas.draw.connect(func(): _draw_valley_cartography(minimap_canvas, false))
 	vbox.add_child(minimap_canvas)
 
 func _build_full_map_ui() -> void:
@@ -120,17 +129,7 @@ func _build_full_map_ui() -> void:
 	full_map_panel.offset_top = -275.0
 	full_map_panel.offset_right = 450.0
 	full_map_panel.offset_bottom = 275.0
-
-	var style := StyleBoxFlat.new()
-	style.bg_color = Color(0.07, 0.09, 0.12, 0.97)
-	style.border_color = Color(0.84, 0.70, 0.36, 1.0)
-	style.set_border_width_all(2)
-	style.set_corner_radius_all(8)
-	style.content_margin_left = 16
-	style.content_margin_right = 16
-	style.content_margin_top = 12
-	style.content_margin_bottom = 12
-	full_map_panel.add_theme_stylebox_override("panel", style)
+	full_map_panel.add_theme_stylebox_override("panel", _make_map_style(Color(0.07, 0.09, 0.12, 0.97), Color(0.84, 0.70, 0.36, 1.0), 8, 16, 12))
 	add_child(full_map_panel)
 
 	var vbox := VBoxContainer.new()
@@ -139,38 +138,24 @@ func _build_full_map_ui() -> void:
 
 	var top_bar := HBoxContainer.new()
 	vbox.add_child(top_bar)
-
-	var title := Label.new()
-	title.text = "🗺️ Mapa Cartográfico del Valle — Regiones, Aldeanos en Vivo y Ecosistema"
-	title.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	title.add_theme_font_size_override("font_size", 16)
-	title.add_theme_color_override("font_color", Color(0.98, 0.90, 0.64))
-	top_bar.add_child(title)
+	top_bar.add_child(_make_map_lbl("🗺️ Mapa Cartográfico del Valle — Regiones, Aldeanos en Vivo y Ecosistema", 16, Color(0.98, 0.90, 0.64), true))
 
 	var close_btn := Button.new()
 	close_btn.text = "✖ [M / ESC] Cerrar"
 	close_btn.pressed.connect(close_full_map)
 	top_bar.add_child(close_btn)
 
-	census_label = Label.new()
-	census_label.text = ""
-	census_label.add_theme_font_size_override("font_size", 11)
-	census_label.add_theme_color_override("font_color", Color(0.76, 0.88, 0.98))
+	census_label = _make_map_lbl("", 11, Color(0.76, 0.88, 0.98))
 	vbox.add_child(census_label)
 
 	full_map_canvas = Control.new()
 	full_map_canvas.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	full_map_canvas.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	full_map_canvas.clip_contents = true
-	full_map_canvas.draw.connect(func():
-		_draw_valley_cartography(full_map_canvas, true)
-	)
+	full_map_canvas.draw.connect(func(): _draw_valley_cartography(full_map_canvas, true))
 	vbox.add_child(full_map_canvas)
 
-	hover_info_label = Label.new()
-	hover_info_label.text = "💡 Pasa el cursor sobre cualquier punto del mapa para inspeccionar Aldeanos, Edificios o Hábitats."
-	hover_info_label.add_theme_font_size_override("font_size", 12)
-	hover_info_label.add_theme_color_override("font_color", Color(0.95, 0.92, 0.72))
+	hover_info_label = _make_map_lbl("💡 Pasa el cursor sobre cualquier punto del mapa para inspeccionar Aldeanos, Edificios o Hábitats.", 12, Color(0.95, 0.92, 0.72))
 	vbox.add_child(hover_info_label)
 
 func _world_to_map(world_pos: Vector2, canvas_size: Vector2) -> Vector2:

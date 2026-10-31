@@ -72,46 +72,28 @@ func _physics_process(delta: float) -> void:
 	if not is_instance_valid(_player_ref):
 		_player_ref = get_tree().get_first_node_in_group("player") as Node2D
 	var far_offscreen: bool = is_instance_valid(_player_ref) and global_position.distance_squared_to(_player_ref.global_position) > 520.0 * 520.0
-
 	if far_offscreen and velocity.length_squared() < 0.01:
 		if vision_cone and vision_cone.visible:
 			vision_cone.visible = false
 		return
-
 	if is_weak_flag:
 		velocity *= 0.5
-
 	if velocity.length_squared() > 0.01:
 		move_and_slide()
-	
-	# Flip sprite based on movement direction
 	if velocity.x != 0:
 		anim.flip_h = velocity.x < 0
-	
-	# Animation State Management
 	if anim.sprite_frames.has_animation("run"):
-		if velocity.length_squared() > 25.0:
-			if anim.animation != "run":
-				anim.play("run")
-		elif anim.sprite_frames.has_animation("idle"):
-			if anim.animation != "idle":
-				anim.play("idle")
-	elif anim.sprite_frames.has_animation("fly"):
-		if anim.animation != "fly":
-			anim.play("fly")
-	
-	# Rotate vision cone to match AI facing direction
-	if vision_cone and ai and is_instance_valid(ai):
+		var target_anim := "run" if velocity.length_squared() > 25.0 else ("idle" if anim.sprite_frames.has_animation("idle") else "")
+		if target_anim != "" and anim.animation != target_anim:
+			anim.play(target_anim)
+	elif anim.sprite_frames.has_animation("fly") and anim.animation != "fly":
+		anim.play("fly")
+	if vision_cone and is_instance_valid(ai):
 		vision_cone.visible = not far_offscreen
 		if not far_offscreen:
-			var dir = ai.facing_direction
-			if dir.length_squared() > 0.001:
-				vision_cone.rotation = dir.angle()
-				
-			# Dynamic Cone Size based on Time of Day (WorldClock) & Player Stealth
-			var stealth_now := 0
-			if _player_ref and _player_ref.has_method("is_stealthing") and _player_ref.is_stealthing():
-				stealth_now = 1
+			if ai.facing_direction.length_squared() > 0.001:
+				vision_cone.rotation = ai.facing_direction.angle()
+			var stealth_now: int = 1 if (_player_ref and _player_ref.has_method("is_stealthing") and _player_ref.is_stealthing()) else 0
 			vision_cone.radius = ai.get_effective_detection_range()
 			if stealth_now != _last_stealth_state:
 				_last_stealth_state = stealth_now
@@ -220,52 +202,34 @@ func _on_ai_awareness_changed(level: float, is_alerted: bool) -> void:
 		alert_indicator.update_awareness(level, is_alerted)
 
 func _on_died() -> void:
-	if is_dead_flag:
-		return
+	if is_dead_flag: return
 	is_dead_flag = true
-	var cur_day: int = WorldClock.current_day if WorldClock else 1
-	respawn_on_day = cur_day + 2
-
-	var player_involved: bool = _damaged_by_player or (is_instance_valid(_player_ref) and global_position.distance_to(_player_ref.global_position) <= 240.0)
-	if player_involved:
-		if ObjectiveManager:
-			ObjectiveManager.progress_objective(0, enemy_id, 1) # 0 = KILL
+	respawn_on_day = (WorldClock.current_day if WorldClock else 1) + 2
+	if _damaged_by_player or (is_instance_valid(_player_ref) and global_position.distance_to(_player_ref.global_position) <= 240.0):
+		if ObjectiveManager: ObjectiveManager.progress_objective(0, enemy_id, 1)
 		_grant_plains_loot()
-
 	set_physics_process(false)
 	if ai:
 		ai.set_physics_process(false)
 		ai._clear_ghost()
-
 	anim.stop()
 	rotation_degrees = 90
 	modulate = Color.GRAY
-
-	if vision_cone:
-		vision_cone.visible = false
-	if prompt_label:
-		prompt_label.visible = false
-	if alert_indicator:
-		alert_indicator.visible = false
-
+	if vision_cone: vision_cone.visible = false
+	if prompt_label: prompt_label.visible = false
+	if alert_indicator: alert_indicator.visible = false
 	collision_layer = 0
 	collision_mask = 0
 	if hurtbox:
 		hurtbox.set_deferred("monitoring", false)
 		hurtbox.set_deferred("monitorable", false)
-
 	remove_from_group("enemies")
 	remove_from_group("has_los_to_player")
-
-	if _death_tween and _death_tween.is_valid():
-		_death_tween.kill()
+	if _death_tween and _death_tween.is_valid(): _death_tween.kill()
 	_death_tween = create_tween()
 	_death_tween.tween_interval(6.0)
 	_death_tween.tween_property(self, "modulate:a", 0.0, 1.5)
-	_death_tween.tween_callback(func():
-		if is_dead_flag:
-			visible = false
-	)
+	_death_tween.tween_callback(func(): if is_dead_flag: visible = false)
 
 func _grant_plains_loot() -> void:
 	var player = get_tree().get_first_node_in_group("player")

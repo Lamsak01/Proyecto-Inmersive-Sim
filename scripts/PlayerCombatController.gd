@@ -180,14 +180,11 @@ func _setup_hitbox() -> void:
 func _update_weapon_visuals() -> void:
 	if not is_instance_valid(weapon_pivot) or not is_instance_valid(player):
 		return
-	
-	# Apuntado 360° continuo hacia el Punto de Mira
 	var pivot_global := player.global_position + Vector2(0, -10)
 	var aim_pos := crosshair.get_aim_world_position() if is_instance_valid(crosshair) else player.get_global_mouse_position()
 	var diff := aim_pos - pivot_global
 	if diff.length_squared() > 4.0:
 		current_aim_dir = diff.normalized()
-	
 	weapon_pivot.rotation = current_aim_dir.angle()
 	weapon_pivot.z_index = -1 if current_aim_dir.y < -0.35 else 1
 
@@ -198,11 +195,10 @@ func equip_weapon(weapon_data: WeaponData) -> void:
 	if weapon_sprite and weapon_data and weapon_data.icon:
 		weapon_sprite.texture = weapon_data.icon
 		weapon_sprite.modulate = Color.WHITE
-		weapon_sprite.scale = Vector2(1.0, 1.0)
+		weapon_sprite.scale = Vector2.ONE
 		weapon_sprite.offset = Vector2(6, -10)
 		weapon_sprite.rotation_degrees = 0 if weapon_data.is_ranged else -45
 		weapon_sprite.visible = false
-
 	if crosshair and weapon_data:
 		crosshair.is_ranged_mode = weapon_data.is_ranged
 		crosshair.is_drawing_bow = false
@@ -210,13 +206,8 @@ func equip_weapon(weapon_data: WeaponData) -> void:
 
 func _start_bow_draw() -> void:
 	var equipped: WeaponData = player.equipped_weapon
-	if not equipped or not equipped.is_ranged:
+	if not equipped or not equipped.is_ranged or attack_timer > 0.0 or (stamina_comp and stamina_comp.current_stamina < 6.0):
 		return
-	if attack_timer > 0.0:
-		return
-	if stamina_comp and stamina_comp.current_stamina < 6.0:
-		return
-
 	is_drawing_bow = true
 	bow_tension = 0.05
 	if weapon_sprite:
@@ -244,52 +235,30 @@ func _release_bow_shot(skip_release_cost: bool = false) -> void:
 	var final_tension: float = clampf(bow_tension, 0.12, 1.0)
 	is_drawing_bow = false
 	bow_tension = 0.0
-
 	if crosshair:
 		crosshair.is_drawing_bow = false
 		crosshair.bow_tension = 0.0
 		crosshair.add_recoil(lerpf(2.5, 5.5, final_tension))
-
 	if not equipped or not equipped.is_ranged:
-		if weapon_sprite:
-			weapon_sprite.visible = false
+		if weapon_sprite: weapon_sprite.visible = false
 		return
-
 	if stamina_comp and not skip_release_cost and stamina_comp.current_stamina >= 4.0:
 		stamina_comp.use_stamina(4.0)
-
 	attack_timer = 0.25
-	var pivot_global := player.global_position + Vector2(0, -10)
-	var aim_pos := crosshair.get_aim_world_position() if is_instance_valid(crosshair) else player.get_global_mouse_position()
-	var diff := aim_pos - pivot_global
-	if diff.length_squared() > 4.0:
-		current_aim_dir = diff.normalized()
-		weapon_pivot.rotation = current_aim_dir.angle()
-
+	_update_weapon_visuals()
 	_fire_bow(equipped, final_tension)
 
 func attack(_aim_with_mouse: bool = true) -> void:
 	var equipped: WeaponData = player.equipped_weapon
-	if not equipped: return
+	if not equipped or attack_timer > 0.0: return
 	var stam_cost: float = 10.0 if equipped.is_ranged else 14.0
-	if stamina_comp and stamina_comp.current_stamina < stam_cost: return
-	if attack_timer > 0.0: return
-		
 	if stamina_comp:
+		if stamina_comp.current_stamina < stam_cost: return
 		stamina_comp.use_stamina(stam_cost)
-		
 	attack_timer = 0.36
 	if crosshair:
 		crosshair.add_recoil(4.5)
-	
-	# Actualizar dirección exacta hacia el punto de mira en el instante del ataque
-	var pivot_global := player.global_position + Vector2(0, -10)
-	var aim_pos := crosshair.get_aim_world_position() if is_instance_valid(crosshair) else player.get_global_mouse_position()
-	var diff := aim_pos - pivot_global
-	if diff.length_squared() > 4.0:
-		current_aim_dir = diff.normalized()
-		weapon_pivot.rotation = current_aim_dir.angle()
-
+	_update_weapon_visuals()
 	if equipped.is_ranged:
 		_fire_bow(equipped, 0.5)
 		return
@@ -367,15 +336,12 @@ func _on_hitbox_body_entered(body: Node2D) -> void:
 func _apply_hitstop() -> void:
 	Engine.time_scale = 0.1
 	await get_tree().create_timer(0.05, true, false, true).timeout
-	if WorldClock and WorldClock.is_fast_forwarding:
-		Engine.time_scale = WorldClock.fast_forward_speed
-	else:
-		Engine.time_scale = 1.0
+	Engine.time_scale = WorldClock.fast_forward_speed if (WorldClock and WorldClock.is_fast_forwarding) else 1.0
 
 func _apply_camera_shake() -> void:
-	var cam = get_viewport().get_camera_2d()
+	var cam := get_viewport().get_camera_2d()
 	if cam:
-		var shake_tween = create_tween()
+		var shake_tween := create_tween()
 		shake_tween.tween_property(cam, "position", Vector2(randf_range(-4, 4), randf_range(-4, 4)), 0.03)
 		shake_tween.tween_property(cam, "position", Vector2(randf_range(-4, 4), randf_range(-4, 4)), 0.03)
 		shake_tween.tween_property(cam, "position", Vector2.ZERO, 0.03)
@@ -384,34 +350,21 @@ func _check_stealth_takedown() -> void:
 	if not interact_area or not is_instance_valid(player):
 		return
 	var new_target: Node2D = null
-
-	# 1. Comprobar civiles / NPCs de la aldea cuando el jugador va en Sigilo ([C]) por su espalda
 	if player.has_method("is_stealthing") and bool(player.call("is_stealthing")):
 		var best_dist_sq: float = 29.0 * 29.0
 		for n in get_tree().get_nodes_in_group("village_npcs"):
-			if n is Node2D and n.has_method("can_be_stealth_targeted"):
-				var npc_node := n as Node2D
-				if bool(npc_node.call("can_be_stealth_targeted", player)):
-					var d2: float = player.global_position.distance_squared_to(npc_node.global_position)
-					if d2 <= best_dist_sq:
-						best_dist_sq = d2
-						new_target = npc_node
-
-	# 2. Comprobar enemigos de bosque (EnemyAI) por la espalda en modo Sigilo ([C])
-	if new_target == null and player.has_method("is_stealthing") and bool(player.call("is_stealthing")):
-		var bodies = interact_area.get_overlapping_bodies()
-		for b in bodies:
-			if b.is_in_group("enemies") and b.has_method("knockout") and b.get_node_or_null("EnemyAI"):
-				if b.get("is_stunned_flag") == true:
-					continue
-				var ai = b.get_node("EnemyAI")
-				if ai.current_state == EnemyAI.State.IDLE or ai.current_state == EnemyAI.State.SEARCH:
-					var enemy_facing = ai.facing_direction
-					var dir_to_player = (player.global_position - b.global_position).normalized()
-					if enemy_facing.dot(dir_to_player) < -0.5:
+			if n is Node2D and n.has_method("can_be_stealth_targeted") and bool(n.call("can_be_stealth_targeted", player)):
+				var d2: float = player.global_position.distance_squared_to((n as Node2D).global_position)
+				if d2 <= best_dist_sq:
+					best_dist_sq = d2
+					new_target = n as Node2D
+		if new_target == null:
+			for b in interact_area.get_overlapping_bodies():
+				if b.is_in_group("enemies") and b.has_method("knockout") and b.get_node_or_null("EnemyAI") and b.get("is_stunned_flag") != true:
+					var ai = b.get_node("EnemyAI")
+					if ai.current_state in [EnemyAI.State.IDLE, EnemyAI.State.SEARCH] and ai.facing_direction.dot((player.global_position - b.global_position).normalized()) < -0.5:
 						new_target = b
 						break
-
 	if new_target != current_prompt_target:
 		if is_instance_valid(current_prompt_target) and current_prompt_target.has_method("hide_prompt"):
 			current_prompt_target.hide_prompt()

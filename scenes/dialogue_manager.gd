@@ -43,6 +43,30 @@ func _process(delta: float) -> void:
 		if not is_instance_valid(current_speaker) or bool(current_speaker.get("is_dead")) or bool(current_speaker.get("is_downed")) or bool(current_speaker.get("is_hostile")) or bool(current_speaker.get("is_stunned_flag")) or sed_val > 0.0:
 			end_dialogue()
 
+func _make_dlg_style(bg: Color, border: Color, bw: int, rad: int, mx: int, my: int) -> StyleBoxFlat:
+	var s := StyleBoxFlat.new()
+	s.bg_color = bg
+	s.border_color = border
+	s.set_border_width_all(bw)
+	s.set_corner_radius_all(rad)
+	s.content_margin_left = mx
+	s.content_margin_right = mx
+	s.content_margin_top = my
+	s.content_margin_bottom = my
+	return s
+
+func _make_dlg_lbl(txt: String, f_sz: int, col: Color, autowrap: bool = false, align: HorizontalAlignment = HORIZONTAL_ALIGNMENT_LEFT, expand_h: bool = false) -> Label:
+	var l := Label.new()
+	l.text = txt
+	l.horizontal_alignment = align
+	if autowrap:
+		l.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	if expand_h:
+		l.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	l.add_theme_font_size_override("font_size", f_sz)
+	l.add_theme_color_override("font_color", col)
+	return l
+
 func _build_clean_ui() -> void:
 	var cs := get_tree().current_scene
 	var ui_parent: Node = cs.get_node_or_null("UI/UIRoot") if cs else null
@@ -52,26 +76,7 @@ func _build_clean_ui() -> void:
 	_panel = PanelContainer.new()
 	_panel.name = "DialoguePanel"
 	_panel.visible = false
-	
-	# Estilo visual oscuro con borde elegante
-	var style := StyleBoxFlat.new()
-	style.bg_color = Color(0.08, 0.09, 0.12, 0.94)
-	style.border_width_left = 2
-	style.border_width_top = 2
-	style.border_width_right = 2
-	style.border_width_bottom = 2
-	style.border_color = Color(0.75, 0.65, 0.42, 0.9)
-	style.corner_radius_top_left = 6
-	style.corner_radius_top_right = 6
-	style.corner_radius_bottom_left = 6
-	style.corner_radius_bottom_right = 6
-	style.content_margin_left = 20
-	style.content_margin_right = 20
-	style.content_margin_top = 14
-	style.content_margin_bottom = 14
-	_panel.add_theme_stylebox_override("panel", style)
-
-	# Centrado perfecto en la parte inferior de la pantalla (720px de ancho)
+	_panel.add_theme_stylebox_override("panel", _make_dlg_style(Color(0.08, 0.09, 0.12, 0.94), Color(0.75, 0.65, 0.42, 0.9), 2, 6, 20, 14))
 	_panel.set_anchors_preset(Control.PRESET_CENTER_BOTTOM)
 	_panel.grow_horizontal = Control.GROW_DIRECTION_BOTH
 	_panel.grow_vertical = Control.GROW_DIRECTION_BEGIN
@@ -85,23 +90,13 @@ func _build_clean_ui() -> void:
 	main_vbox.add_theme_constant_override("separation", 10)
 	_panel.add_child(main_vbox)
 
-	# Cabecera con Retrato 64x64 a la izquierda + Nombre, Relación y Contexto Personal a la derecha
 	var header_hbox := HBoxContainer.new()
 	header_hbox.add_theme_constant_override("separation", 14)
 	main_vbox.add_child(header_hbox)
 
 	_portrait_frame = PanelContainer.new()
 	_portrait_frame.custom_minimum_size = Vector2(72, 72)
-	var p_style := StyleBoxFlat.new()
-	p_style.bg_color = Color(0.11, 0.12, 0.16, 0.98)
-	p_style.border_color = Color(0.85, 0.72, 0.42, 0.95)
-	p_style.set_border_width_all(2)
-	p_style.set_corner_radius_all(6)
-	p_style.content_margin_left = 4
-	p_style.content_margin_right = 4
-	p_style.content_margin_top = 4
-	p_style.content_margin_bottom = 4
-	_portrait_frame.add_theme_stylebox_override("panel", p_style)
+	_portrait_frame.add_theme_stylebox_override("panel", _make_dlg_style(Color(0.11, 0.12, 0.16, 0.98), Color(0.85, 0.72, 0.42, 0.95), 2, 6, 4, 4))
 	header_hbox.add_child(_portrait_frame)
 
 	_portrait_rect = TextureRect.new()
@@ -118,50 +113,24 @@ func _build_clean_ui() -> void:
 
 	var title_row := HBoxContainer.new()
 	header_info_vbox.add_child(title_row)
-
-	_speaker_label = Label.new()
-	_speaker_label.text = "NPC"
-	_speaker_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	_speaker_label.add_theme_font_size_override("font_size", 18)
-	_speaker_label.add_theme_color_override("font_color", Color(1.0, 0.85, 0.45))
+	_speaker_label = _make_dlg_lbl("NPC", 18, Color(1.0, 0.85, 0.45), false, HORIZONTAL_ALIGNMENT_LEFT, true)
 	title_row.add_child(_speaker_label)
-
-	_relation_label = Label.new()
-	_relation_label.text = "Neutral (0)"
-	_relation_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
-	_relation_label.add_theme_font_size_override("font_size", 14)
-	_relation_label.add_theme_color_override("font_color", Color(0.75, 0.8, 0.85))
+	_relation_label = _make_dlg_lbl("Neutral (0)", 14, Color(0.75, 0.8, 0.85), false, HORIZONTAL_ALIGNMENT_RIGHT)
 	title_row.add_child(_relation_label)
 
-	_tagline_label = Label.new()
-	_tagline_label.text = ""
-	_tagline_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	_tagline_label.add_theme_font_size_override("font_size", 12)
-	_tagline_label.add_theme_color_override("font_color", Color(0.84, 0.78, 0.62))
+	_tagline_label = _make_dlg_lbl("", 12, Color(0.84, 0.78, 0.62), true)
 	header_info_vbox.add_child(_tagline_label)
 
-	var sep := HSeparator.new()
-	main_vbox.add_child(sep)
-
-	# Texto principal del diálogo
-	_body_label = Label.new()
+	main_vbox.add_child(HSeparator.new())
+	_body_label = _make_dlg_lbl("", 16, Color(0.95, 0.95, 0.95), true)
 	_body_label.custom_minimum_size = Vector2(680, 48)
-	_body_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	_body_label.add_theme_font_size_override("font_size", 16)
-	_body_label.add_theme_color_override("font_color", Color(0.95, 0.95, 0.95))
 	main_vbox.add_child(_body_label)
 
-	# Contenedor de opciones centrado y expandible
 	_choices_container = VBoxContainer.new()
 	_choices_container.add_theme_constant_override("separation", 6)
 	main_vbox.add_child(_choices_container)
 
-	# Pie de ayuda de controles
-	_hint_footer = Label.new()
-	_hint_footer.text = "[1-9] Elegir opción   |   [W/S + Espacio/Enter] Navegar   |   [ESC] Cerrar"
-	_hint_footer.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	_hint_footer.add_theme_font_size_override("font_size", 12)
-	_hint_footer.add_theme_color_override("font_color", Color(0.55, 0.58, 0.65))
+	_hint_footer = _make_dlg_lbl("[1-9] Elegir opción   |   [W/S + Espacio/Enter] Navegar   |   [ESC] Cerrar", 12, Color(0.55, 0.58, 0.65), false, HORIZONTAL_ALIGNMENT_CENTER)
 	main_vbox.add_child(_hint_footer)
 
 	ui_parent.call_deferred("add_child", _panel)

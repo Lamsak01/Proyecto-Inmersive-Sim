@@ -13,20 +13,8 @@ class_name WildAnimal
 
 enum SpeciesType { RABBIT, DEER, FOX, BOAR }
 enum AnimalState {
-	GRAZE,
-	SEEK_FOOD,
-	STALK_PREY,
-	POUNCE,
-	CHASE_PREY,
-	CHARGE_ATTACK,
-	EATING,
-	SEEK_MATE,
-	RETURN_HOME,
-	SLEEP,
-	IN_BURROW,
-	FLEE,
-	CARCASS,
-	BUTCHERED
+	GRAZE, SEEK_FOOD, STALK_PREY, POUNCE, CHASE_PREY, CHARGE_ATTACK,
+	EATING, SEEK_MATE, RETURN_HOME, SLEEP, IN_BURROW, FLEE, CARCASS, BUTCHERED
 }
 
 const MAX_MEALS: int = 2
@@ -137,6 +125,27 @@ func _ready() -> void:
 		if GameManager:
 			GameManager.game_loaded.connect(_on_game_loaded)
 
+func _add_circle_col(parent: Node, r: float, dis: bool = false) -> CollisionShape2D:
+	var col := CollisionShape2D.new()
+	var c := CircleShape2D.new()
+	c.radius = r
+	col.shape = c
+	col.disabled = dis
+	parent.add_child(col)
+	return col
+
+func _set_area_disabled(area: Area2D, dis: bool) -> void:
+	if area and area.get_child_count() > 0:
+		var col := area.get_child(0) as CollisionShape2D
+		if col:
+			col.set_deferred("disabled", dis)
+
+func _set_status_lbl(txt: String, col: Color, vis: bool = true) -> void:
+	if status_label:
+		status_label.text = txt
+		status_label.add_theme_color_override("font_color", col)
+		status_label.visible = vis
+
 func setup_animal(tex: Texture2D, spr_scale: Vector2 = Vector2.ONE, col_radius: float = 8.0) -> void:
 	sprite = Sprite2D.new()
 	sprite.name = "Sprite2D"
@@ -144,21 +153,13 @@ func setup_animal(tex: Texture2D, spr_scale: Vector2 = Vector2.ONE, col_radius: 
 	sprite.scale = spr_scale
 	add_child(sprite)
 
-	body_col = CollisionShape2D.new()
-	var c := CircleShape2D.new()
-	c.radius = col_radius
-	body_col.shape = c
-	add_child(body_col)
+	body_col = _add_circle_col(self, col_radius)
 
 	hurtbox = Hurtbox.new()
 	hurtbox.name = "Hurtbox"
 	hurtbox.collision_layer = 4
 	hurtbox.collision_mask = 0
-	var hcol := CollisionShape2D.new()
-	var hcircle := CircleShape2D.new()
-	hcircle.radius = col_radius + 4.0
-	hcol.shape = hcircle
-	hurtbox.add_child(hcol)
+	_add_circle_col(hurtbox, col_radius + 4.0)
 	hurtbox.hit_received.connect(take_damage)
 	add_child(hurtbox)
 
@@ -168,19 +169,13 @@ func setup_animal(tex: Texture2D, spr_scale: Vector2 = Vector2.ONE, col_radius: 
 	butcher_area.collision_layer = 1
 	butcher_area.collision_mask = 2
 	butcher_area.add_to_group("interactable")
-	var bcol := CollisionShape2D.new()
-	var bcircle := CircleShape2D.new()
-	bcircle.radius = col_radius + 16.0
-	bcol.shape = bcircle
-	bcol.disabled = (state != AnimalState.CARCASS)
-	butcher_area.add_child(bcol)
+	_add_circle_col(butcher_area, col_radius + 16.0, state != AnimalState.CARCASS)
 	butcher_area.body_entered.connect(_on_butcher_body_entered)
 	butcher_area.body_exited.connect(_on_butcher_body_exited)
 	add_child(butcher_area)
 
 	status_label = Label.new()
 	status_label.visible = false
-	status_label.text = ""
 	status_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	status_label.position = Vector2(-105, -34)
 	status_label.custom_minimum_size = Vector2(210, 20)
@@ -243,26 +238,16 @@ func _physics_process(delta: float) -> void:
 			_update_observation_label()
 
 	match state:
-		AnimalState.GRAZE:
-			_process_graze(delta)
-		AnimalState.SEEK_FOOD:
-			_process_seek_food(delta)
-		AnimalState.STALK_PREY:
-			_process_stalk_prey(delta)
-		AnimalState.CHASE_PREY:
-			_process_chase_prey(delta)
-		AnimalState.CHARGE_ATTACK:
-			_process_boar_charge_attack(delta)
-		AnimalState.EATING:
-			_process_eating(delta)
-		AnimalState.SEEK_MATE:
-			_process_seek_mate(delta)
-		AnimalState.RETURN_HOME:
-			_process_return_home(delta)
-		AnimalState.SLEEP:
-			_process_sleep(delta)
-		AnimalState.FLEE:
-			_process_flee(delta)
+		AnimalState.GRAZE: _process_graze(delta)
+		AnimalState.SEEK_FOOD: _process_seek_food(delta)
+		AnimalState.STALK_PREY: _process_stalk_prey(delta)
+		AnimalState.CHASE_PREY: _process_chase_prey(delta)
+		AnimalState.CHARGE_ATTACK: _process_boar_charge_attack(delta)
+		AnimalState.EATING: _process_eating(delta)
+		AnimalState.SEEK_MATE: _process_seek_mate(delta)
+		AnimalState.RETURN_HOME: _process_return_home(delta)
+		AnimalState.SLEEP: _process_sleep(delta)
+		AnimalState.FLEE: _process_flee(delta)
 
 	if far_offscreen:
 		if velocity.length_squared() > 0.1:
@@ -441,14 +426,7 @@ func _evaluate_life_schedule() -> void:
 			state = AnimalState.RETURN_HOME
 
 func _find_ready_mate() -> WildAnimal:
-	var group_name := "ecosystem_rabbits"
-	if species == SpeciesType.DEER:
-		group_name = "ecosystem_deer"
-	elif species == SpeciesType.FOX:
-		group_name = "ecosystem_foxes"
-	elif species == SpeciesType.BOAR:
-		group_name = "ecosystem_boars"
-
+	var group_name := "ecosystem_deer" if species == SpeciesType.DEER else ("ecosystem_foxes" if species == SpeciesType.FOX else ("ecosystem_boars" if species == SpeciesType.BOAR else "ecosystem_rabbits"))
 	var best_mate: WildAnimal = null
 	var best_dist_sq: float = 380.0 * 380.0
 	for node in get_tree().get_nodes_in_group(group_name):
@@ -645,18 +623,19 @@ func _process_seek_food(_delta: float) -> void:
 	else:
 		velocity = to_food.normalized() * (graze_speed * 1.25)
 
-## El zorro se acerca en sigilo (STALK_PREY) para cortar distancia antes de que el conejo corra
-func _process_stalk_prey(_delta: float) -> void:
-	if is_fully_satiated():
+func _validate_prey_target() -> bool:
+	if is_fully_satiated() or not is_instance_valid(food_target) or not (food_target is WildAnimal) or not food_target.visible or food_target.state == AnimalState.IN_BURROW:
 		food_target = null
 		state = AnimalState.GRAZE
-		return
-	if not is_instance_valid(food_target) or not (food_target is WildAnimal) or not food_target.visible or food_target.state == AnimalState.IN_BURROW:
-		food_target = null
-		state = AnimalState.GRAZE
-		return
+		return false
 	if food_target.state == AnimalState.CARCASS:
 		state = AnimalState.SEEK_FOOD
+		return false
+	return true
+
+## El zorro se acerca en sigilo (STALK_PREY) para cortar distancia antes de que el conejo corra
+func _process_stalk_prey(_delta: float) -> void:
+	if not _validate_prey_target():
 		return
 
 	var to_prey := food_target.global_position - global_position
@@ -717,10 +696,7 @@ func _resolve_pounce_hit(prey: WildAnimal) -> void:
 		prey.escaped_first_pounce = true
 		prey._start_flee_from(global_position)
 		prey.global_position += prey.flee_dir * 10.0
-		if prey.status_label:
-			prey.status_label.text = "¡Se zafó!"
-			prey.status_label.add_theme_color_override("font_color", Color.SPRING_GREEN)
-			prey.status_label.visible = true
+		prey._set_status_lbl("¡Se zafó!", Color.SPRING_GREEN)
 		# El zorro queda 0.65s recuperándose del salto fallido mientras el conejo corre más rápido
 		attack_cooldown = 1.2
 		pounce_recovery_timer = 0.65
@@ -733,16 +709,7 @@ func _resolve_pounce_hit(prey: WildAnimal) -> void:
 	state = AnimalState.EATING
 
 func _process_chase_prey(_delta: float) -> void:
-	if is_fully_satiated():
-		food_target = null
-		state = AnimalState.GRAZE
-		return
-	if not is_instance_valid(food_target) or not (food_target is WildAnimal) or not food_target.visible or food_target.state == AnimalState.IN_BURROW:
-		food_target = null
-		state = AnimalState.GRAZE
-		return
-	if food_target.state == AnimalState.CARCASS:
-		state = AnimalState.SEEK_FOOD
+	if not _validate_prey_target():
 		return
 
 	var to_prey := food_target.global_position - global_position
@@ -801,21 +768,15 @@ func _process_seek_mate(delta: float) -> void:
 		return
 
 	var to_mate := mate_target.global_position - global_position
-	var dist := to_mate.length()
-	if dist <= 20.0:
+	if to_mate.length() <= 20.0:
 		velocity = Vector2.ZERO
 		mate_timer += delta
-		if status_label:
-			status_label.text = "%s [Cortejo ♥]" % animal_name
-			status_label.add_theme_color_override("font_color", Color(1.0, 0.65, 0.82))
-			status_label.visible = true
+		_set_status_lbl("%s [Cortejo ♥]" % animal_name, Color(1.0, 0.65, 0.82))
 		if mate_timer >= 1.6:
 			mate_timer = 0.0
 			mated_today = true
 			mate_target.mated_today = true
-			var next_gen: int = mini(3, maxi(genetics_tier, mate_target.genetics_tier) + 1)
-			offspring_genetics_tier = next_gen
-			# 75% de probabilidad de tener una cría al haber comido 2 veces ambos padres
+			offspring_genetics_tier = mini(3, maxi(genetics_tier, mate_target.genetics_tier) + 1)
 			if randf() <= 0.75:
 				pending_offspring = true
 			mate_target = null
@@ -847,10 +808,7 @@ func _enter_burrow(duration: float = 0.0) -> void:
 	visible = false
 	if body_col:
 		body_col.set_deferred("disabled", true)
-	if hurtbox and hurtbox.get_child_count() > 0:
-		var hcol := hurtbox.get_child(0) as CollisionShape2D
-		if hcol:
-			hcol.set_deferred("disabled", true)
+	_set_area_disabled(hurtbox, true)
 
 func _exit_burrow() -> void:
 	if state != AnimalState.IN_BURROW:
@@ -862,10 +820,7 @@ func _exit_burrow() -> void:
 		add_to_group("wild_animals")
 	if body_col:
 		body_col.set_deferred("disabled", false)
-	if hurtbox and hurtbox.get_child_count() > 0:
-		var hcol := hurtbox.get_child(0) as CollisionShape2D
-		if hcol:
-			hcol.set_deferred("disabled", false)
+	_set_area_disabled(hurtbox, false)
 
 func _process_in_burrow(delta: float) -> void:
 	if burrow_hide_timer > 0.0:
@@ -975,21 +930,13 @@ func _update_observation_label() -> void:
 	if not status_label or state in [AnimalState.CARCASS, AnimalState.BUTCHERED, AnimalState.IN_BURROW]:
 		return
 
-	var mouse_pos := get_global_mouse_position()
-	var cursor_near := global_position.distance_squared_to(mouse_pos) <= 32.0 * 32.0
-
+	var cursor_near := global_position.distance_squared_to(get_global_mouse_position()) <= 32.0 * 32.0
 	if state == AnimalState.FLEE and not cursor_near:
-		status_label.text = "!"
-		status_label.add_theme_color_override("font_color", Color.ORANGE_RED)
-		status_label.visible = true
+		_set_status_lbl("!", Color.ORANGE_RED)
 		return
-
 	if state == AnimalState.SLEEP and not cursor_near:
-		status_label.text = "Zzz"
-		status_label.add_theme_color_override("font_color", Color(0.75, 0.85, 1.0, 0.85))
-		status_label.visible = true
+		_set_status_lbl("Zzz", Color(0.75, 0.85, 1.0, 0.85))
 		return
-
 	if not cursor_near:
 		status_label.visible = false
 		return
@@ -998,40 +945,21 @@ func _update_observation_label() -> void:
 	var action_txt := "Pastando"
 	match state:
 		AnimalState.GRAZE:
-			if is_on_reserve_day or meals_eaten >= MAX_MEALS:
-				action_txt = "Saciado - Descansando"
-			else:
-				action_txt = "En manada" if species == SpeciesType.DEER else ("Merodeando" if species == SpeciesType.FOX else "Pastando")
+			action_txt = "Saciado - Descansando" if (is_on_reserve_day or meals_eaten >= MAX_MEALS) else ("En manada" if species == SpeciesType.DEER else ("Merodeando" if species == SpeciesType.FOX else "Pastando"))
 		AnimalState.SEEK_FOOD:
-			if food_target is ChickenCoop and not food_target.is_breached:
-				action_txt = "Abriendo agujero en Gallinero"
-			elif is_raiding_farm:
-				action_txt = "Hambriento (Asaltando Gallinero)"
-			else:
-				action_txt = "Buscando presa" if species == SpeciesType.FOX else "Buscando plantas"
-		AnimalState.STALK_PREY:
-			action_txt = "Acechando en sigilo"
-		AnimalState.POUNCE:
-			action_txt = "¡Salto de caza!"
-		AnimalState.CHASE_PREY:
-			action_txt = "Persiguiendo presa"
-		AnimalState.CHARGE_ATTACK:
-			action_txt = "¡Embistiendo agresivo!"
-		AnimalState.EATING:
-			action_txt = "Devorando presa" if species == SpeciesType.FOX else "Comiendo brotes"
-		AnimalState.SEEK_MATE:
-			action_txt = "Buscando pareja ♥"
-		AnimalState.RETURN_HOME:
-			action_txt = "Volviendo a su refugio"
-		AnimalState.SLEEP:
-			action_txt = "Durmiendo (Zzz)"
-		AnimalState.FLEE:
-			action_txt = "Huyendo asustado"
+			action_txt = "Abriendo agujero en Gallinero" if (food_target is ChickenCoop and not food_target.is_breached) else ("Hambriento (Asaltando Gallinero)" if is_raiding_farm else ("Buscando presa" if species == SpeciesType.FOX else "Buscando plantas"))
+		AnimalState.STALK_PREY: action_txt = "Acechando en sigilo"
+		AnimalState.POUNCE: action_txt = "¡Salto de caza!"
+		AnimalState.CHASE_PREY: action_txt = "Persiguiendo presa"
+		AnimalState.CHARGE_ATTACK: action_txt = "¡Embistiendo agresivo!"
+		AnimalState.EATING: action_txt = "Devorando presa" if species == SpeciesType.FOX else "Comiendo brotes"
+		AnimalState.SEEK_MATE: action_txt = "Buscando pareja ♥"
+		AnimalState.RETURN_HOME: action_txt = "Volviendo a su refugio"
+		AnimalState.SLEEP: action_txt = "Durmiendo (Zzz)"
+		AnimalState.FLEE: action_txt = "Huyendo asustado"
 
 	var gen_tag: String = (" | 🧬Nv.%d" % genetics_tier) if genetics_tier >= 2 else ""
-	status_label.text = "%s [%s | %s%s]" % [animal_name, action_txt, food_badge, gen_tag]
-	status_label.add_theme_color_override("font_color", Color(1.0, 0.90, 0.45) if genetics_tier >= 2 else Color(0.95, 0.92, 0.72))
-	status_label.visible = true
+	_set_status_lbl("%s [%s | %s%s]" % [animal_name, action_txt, food_badge, gen_tag], Color(1.0, 0.90, 0.45) if genetics_tier >= 2 else Color(0.95, 0.92, 0.72))
 
 func take_pounce_takedown() -> void:
 	if state in [AnimalState.CARCASS, AnimalState.BUTCHERED, AnimalState.IN_BURROW]:
@@ -1075,25 +1003,16 @@ func _become_carcass() -> void:
 
 	if body_col:
 		body_col.set_deferred("disabled", true)
-	if hurtbox and hurtbox.get_child_count() > 0:
-		var hcol := hurtbox.get_child(0) as CollisionShape2D
-		if hcol:
-			hcol.set_deferred("disabled", true)
-	if butcher_area and butcher_area.get_child_count() > 0:
-		var bcol := butcher_area.get_child(0) as CollisionShape2D
-		if bcol:
-			bcol.set_deferred("disabled", false)
+	_set_area_disabled(hurtbox, true)
+	_set_area_disabled(butcher_area, false)
 
 	if sprite:
 		sprite.position = Vector2(0, 3)
 		sprite.rotation_degrees = 90.0
 		sprite.modulate = Color(0.75, 0.68, 0.68, 0.95)
 
-	if status_label:
-		status_label.text = "[E] Desollar %s" % animal_name
-		status_label.add_theme_color_override("font_color", Color(0.95, 0.92, 0.65))
-		var player = get_tree().get_first_node_in_group("player")
-		status_label.visible = (player != null and global_position.distance_squared_to(player.global_position) <= 900.0)
+	var player = get_tree().get_first_node_in_group("player")
+	_set_status_lbl("[E] Desollar %s" % animal_name, Color(0.95, 0.92, 0.65), player != null and global_position.distance_squared_to(player.global_position) <= 900.0)
 
 func consume_by_predator() -> void:
 	if state != AnimalState.CARCASS:
@@ -1101,10 +1020,8 @@ func consume_by_predator() -> void:
 	_finish_butchering()
 
 func _on_butcher_body_entered(body: Node) -> void:
-	if state == AnimalState.CARCASS and body.is_in_group("player") and status_label:
-		status_label.text = "[E] Desollar %s" % animal_name
-		status_label.add_theme_color_override("font_color", Color(0.95, 0.92, 0.65))
-		status_label.visible = true
+	if state == AnimalState.CARCASS and body.is_in_group("player"):
+		_set_status_lbl("[E] Desollar %s" % animal_name, Color(0.95, 0.92, 0.65))
 
 func _on_butcher_body_exited(body: Node) -> void:
 	if state == AnimalState.CARCASS and body.is_in_group("player") and status_label:
@@ -1164,14 +1081,29 @@ func _apply_hidden_state(hidden_state: bool) -> void:
 		status_label.visible = false
 	if body_col:
 		body_col.set_deferred("disabled", hidden_state)
-	if hurtbox and hurtbox.get_child_count() > 0:
-		var hcol := hurtbox.get_child(0) as CollisionShape2D
-		if hcol:
-			hcol.set_deferred("disabled", hidden_state)
-	if butcher_area and butcher_area.get_child_count() > 0:
-		var bcol_h := butcher_area.get_child(0) as CollisionShape2D
-		if bcol_h:
-			bcol_h.set_deferred("disabled", hidden_state or state != AnimalState.CARCASS)
+	_set_area_disabled(hurtbox, hidden_state)
+	_set_area_disabled(butcher_area, hidden_state or state != AnimalState.CARCASS)
+
+func _reset_alive_state() -> void:
+	hits_taken_count = 0
+	boar_aggressor = null
+	boar_aggro_timer = 0.0
+	boar_charge_windup = 0.0
+	boar_charge_timer = 0.0
+	pounce_timer = 0.0
+	pounce_recovery_timer = 0.0
+	flee_timer = 0.0
+	eat_timer = 0.0
+	mate_timer = 0.0
+	is_raiding_farm = false
+	food_target = null
+	mate_target = null
+	if not is_in_group("wild_animals"):
+		add_to_group("wild_animals")
+	if sprite:
+		sprite.position = Vector2.ZERO
+		sprite.rotation_degrees = 0.0
+		sprite.modulate = Color(1.08, 1.04, 0.88) if genetics_tier >= 2 else Color.WHITE
 
 func respawn_from_ecosystem(new_genetics: int = 1) -> void:
 	genetics_tier = clampi(new_genetics, 1, 3)
@@ -1181,11 +1113,6 @@ func _respawn_animal() -> void:
 	state = AnimalState.GRAZE
 	respawn_on_day = -1
 	current_hp = max_hp + float((genetics_tier - 1) * 5)
-	hits_taken_count = 0
-	boar_aggressor = null
-	boar_aggro_timer = 0.0
-	boar_charge_windup = 0.0
-	boar_charge_timer = 0.0
 	meals_eaten = 0
 	fed_today = false
 	has_reserve_day = false
@@ -1194,14 +1121,8 @@ func _respawn_animal() -> void:
 	pending_offspring = false
 	escaped_first_pounce = false
 	days_hungry = 0
-	is_raiding_farm = false
 	global_position = home_position + Vector2.RIGHT.rotated(randf() * TAU) * randf_range(6.0, 20.0)
-	if not is_in_group("wild_animals"):
-		add_to_group("wild_animals")
-	if sprite:
-		sprite.position = Vector2.ZERO
-		sprite.rotation_degrees = 0.0
-		sprite.modulate = Color(1.08, 1.04, 0.88) if genetics_tier >= 2 else Color.WHITE
+	_reset_alive_state()
 	if GameManager and persistence_id != "":
 		GameManager.set_flag(persistence_id, -1)
 	_apply_hidden_state(false)
@@ -1229,20 +1150,11 @@ func _check_saved_state() -> void:
 
 func to_save_dict() -> Dictionary:
 	return {
-		"state": int(state),
-		"hp": current_hp,
-		"genetics_tier": genetics_tier,
-		"meals_eaten": meals_eaten,
-		"fed_today": fed_today,
-		"has_reserve_day": has_reserve_day,
-		"is_on_reserve_day": is_on_reserve_day,
-		"mated_today": mated_today,
-		"pending_offspring": pending_offspring,
-		"offspring_genetics_tier": offspring_genetics_tier,
-		"days_hungry": days_hungry,
-		"respawn_on_day": respawn_on_day,
-		"pos_x": global_position.x,
-		"pos_y": global_position.y
+		"state": int(state), "hp": current_hp, "genetics_tier": genetics_tier,
+		"meals_eaten": meals_eaten, "fed_today": fed_today, "has_reserve_day": has_reserve_day,
+		"is_on_reserve_day": is_on_reserve_day, "mated_today": mated_today, "pending_offspring": pending_offspring,
+		"offspring_genetics_tier": offspring_genetics_tier, "days_hungry": days_hungry, "respawn_on_day": respawn_on_day,
+		"pos_x": global_position.x, "pos_y": global_position.y
 	}
 
 func from_save_dict(data: Dictionary) -> void:
@@ -1273,23 +1185,5 @@ func from_save_dict(data: Dictionary) -> void:
 		state = AnimalState.GRAZE
 		if data.has("pos_x") and data.has("pos_y"):
 			global_position = Vector2(float(data["pos_x"]), float(data["pos_y"]))
-		boar_aggressor = null
-		boar_aggro_timer = 0.0
-		boar_charge_windup = 0.0
-		boar_charge_timer = 0.0
-		pounce_timer = 0.0
-		pounce_recovery_timer = 0.0
-		flee_timer = 0.0
-		eat_timer = 0.0
-		mate_timer = 0.0
-		is_raiding_farm = false
-		hits_taken_count = 0
-		food_target = null
-		mate_target = null
-		if not is_in_group("wild_animals"):
-			add_to_group("wild_animals")
-		if sprite:
-			sprite.position = Vector2.ZERO
-			sprite.rotation_degrees = 0.0
-			sprite.modulate = Color(1.08, 1.04, 0.88) if genetics_tier >= 2 else Color.WHITE
+		_reset_alive_state()
 		_apply_hidden_state(false)

@@ -144,200 +144,81 @@ func _spawn_distant_forest() -> void:
 		# Borde de la Cantera Este
 		Vector2(475, 725), Vector2(815, 715), Vector2(645, 935)
 	]
-	for i in range(tree_positions.size()):
-		var tree := HarvestableNode.new()
-		tree.name = "ForestTree_%d" % i
-		tree.global_position = tree_positions[i]
-		tree.harvest_type = HarvestableNode.HarvestType.LOGGING
-		tree.node_title = "Pino del Valle"
-		tree.primary_item_id = "wood"
-		tree.primary_amount = 3
-		tree.bonus_item_id = "crop_seeds"
-		tree.bonus_amount = 1
-		tree.max_hp = 30.0
-		tree.respawn_days = 2
-		entities_root.add_child(tree)
-		tree.setup_visuals(tex_tree, tex_stump, Color.WHITE, Vector2(0.85, 0.85), 12.0)
+	_spawn_harvest_batch("ForestTree", tree_positions, HarvestableNode.HarvestType.LOGGING, "Pino del Valle", "wood", 3, "crop_seeds", 1, 30.0, 2, 0, tex_tree, tex_stump, Vector2(0.85, 0.85), 12.0)
 
-	# 3. Cantera y Vetas de Hierro (8 vetas rocosas concentradas en el Barranco Este de los Zorros, x = 510..795, y = 640..920)
 	var rock_positions: Array[Vector2] = [
 		Vector2(515, 648), Vector2(635, 645), Vector2(755, 660), Vector2(530, 755),
 		Vector2(655, 765), Vector2(785, 780), Vector2(585, 885), Vector2(755, 905)
 	]
-	for i in range(rock_positions.size()):
-		var vein := HarvestableNode.new()
-		vein.name = "OreVein_%d" % i
-		vein.global_position = rock_positions[i]
-		vein.harvest_type = HarvestableNode.HarvestType.MINING
-		vein.node_title = "Veta de Hierro y Piedra"
-		vein.primary_item_id = "stone"
-		vein.primary_amount = 2
-		vein.bonus_item_id = "iron_ore"
-		vein.bonus_amount = 2
-		vein.max_hp = 35.0
-		vein.respawn_days = 2
-		entities_root.add_child(vein)
-		vein.setup_visuals(tex_rock, tex_rock_depleted, Color.WHITE, Vector2(1.15, 1.15), 12.0)
+	_spawn_harvest_batch("OreVein", rock_positions, HarvestableNode.HarvestType.MINING, "Veta de Hierro y Piedra", "stone", 2, "iron_ore", 2, 35.0, 2, 0, tex_rock, tex_rock_depleted, Vector2(1.15, 1.15), 12.0)
 
-	# 4. Flora Silvestre Separada por Hábitat (12 Hierbas en la Pradera de Conejos + 10 Hongos en los Claros de Venados)
 	var herb_positions: Array[Vector2] = [
 		Vector2(-435, 650), Vector2(-345, 645), Vector2(-265, 655), Vector2(-180, 665),
 		Vector2(-420, 725), Vector2(-325, 730), Vector2(-235, 735), Vector2(-175, 745),
 		Vector2(-405, 810), Vector2(-345, 855), Vector2(-260, 835), Vector2(-195, 825)
 	]
-	for i in range(herb_positions.size()):
-		var herb := HarvestableNode.new()
-		herb.name = "WildHerb_%d" % i
-		herb.global_position = herb_positions[i]
-		herb.harvest_type = HarvestableNode.HarvestType.FORAGE
-		herb.node_title = "Hierbas Medicinales"
-		herb.primary_item_id = "herbs"
-		herb.primary_amount = 2
-		herb.max_animal_bites = 2
-		herb.respawn_days = 1
-		entities_root.add_child(herb)
-		herb.setup_visuals(tex_herb, null, Color.WHITE, Vector2(1.1, 1.1), 8.0)
+	_spawn_harvest_batch("WildHerb", herb_positions, HarvestableNode.HarvestType.FORAGE, "Hierbas Medicinales", "herbs", 2, "", 0, 15.0, 1, 2, tex_herb, null, Vector2(1.1, 1.1), 8.0)
 
 	var mush_positions: Array[Vector2] = [
 		Vector2(-10, 835), Vector2(85, 830), Vector2(195, 840), Vector2(275, 855),
 		Vector2(15, 935), Vector2(115, 945), Vector2(235, 955),
 		Vector2(45, 1065), Vector2(165, 1085), Vector2(265, 1075),
-		# 4 Trufas / Hongos en el Robledal Suroeste para el hábitat de Jabalíes (26 plantas en total = 52 raciones/día)
 		Vector2(-385, 975), Vector2(-285, 1015), Vector2(-225, 1055), Vector2(-145, 1095)
 	]
-	for i in range(mush_positions.size()):
-		var mush := HarvestableNode.new()
-		mush.name = "WildMushroom_%d" % i
-		mush.global_position = mush_positions[i]
-		mush.harvest_type = HarvestableNode.HarvestType.FORAGE
-		mush.node_title = "Hongos Silvestres"
-		mush.primary_item_id = "mushroom"
-		mush.primary_amount = 2
-		mush.max_animal_bites = 2
-		mush.respawn_days = 1
-		entities_root.add_child(mush)
-		mush.setup_visuals(tex_mushroom, null, Color.WHITE, Vector2(1.1, 1.1), 8.0)
+	_spawn_harvest_batch("WildMushroom", mush_positions, HarvestableNode.HarvestType.FORAGE, "Hongos Silvestres", "mushroom", 2, "", 0, 15.0, 1, 2, tex_mushroom, null, Vector2(1.1, 1.1), 8.0)
 
-	# 5. Población de Conejos Silvestres (Capacidad máx: 16 | Inicialmente vivos: 10)
-	var max_rabbits := 16
-	var initial_rabbits := 10
-	for i in range(max_rabbits):
-		var burrow_pos: Vector2 = burrow_positions[i % burrow_positions.size()]
-		var spawn_offset := Vector2.RIGHT.rotated((TAU / float(max_rabbits)) * float(i)) * randf_range(18.0, 65.0)
-		var rab := WildAnimal.new()
-		rab.name = "WildRabbit_%d" % i
-		rab.species = WildAnimal.SpeciesType.RABBIT
-		rab.home_position = burrow_pos
-		rab.global_position = burrow_pos + spawn_offset
-		rab.animal_name = "Conejo Silvestre"
-		rab.max_hp = 12.0
-		rab.graze_speed = 28.0
-		rab.flee_speed = 134.0
-		rab.alert_radius = 85.0
-		rab.meat_drop = 1
-		rab.leather_drop = 1
-		rab.pelt_item_id = "leather"
-		rab.bones_drop = 1
-		rab.antlers_drop = 0
-		rab.viscera_drop = 0
-		rab.fat_drop = 1
-		rab.managed_by_ecosystem = true
-		entities_root.add_child(rab)
-		rab.setup_animal(tex_rabbit, Vector2(1.1, 1.1), 6.0)
-		if i >= initial_rabbits:
-			rab._finish_butchering()
-		rabbit_pool.append(rab)
+	_spawn_animal_pool(rabbit_pool, "WildRabbit", WildAnimal.SpeciesType.RABBIT, "Conejo Silvestre", 16, 10, burrow_positions, 18.0, 65.0, 12.0, 999.0, 28.0, 134.0, 85.0, [1, 1, "leather", 1, 0, 0, 1], tex_rabbit, Vector2(1.1, 1.1), 6.0)
+	_spawn_animal_pool(deer_pool, "WildDeer", WildAnimal.SpeciesType.DEER, "Venado del Valle", 9, 6, deer_clearing_positions, 22.0, 60.0, 26.0, 999.0, 22.0, 118.0, 95.0, [2, 1, "leather", 2, 1, 1, 1], tex_deer, Vector2(1.15, 1.15), 9.0)
+	_spawn_animal_pool(fox_pool, "WildFox", WildAnimal.SpeciesType.FOX, "Zorro del Bosque", 6, 3, fox_den_positions, 20.0, 50.0, 20.0, 999.0, 32.0, 122.0, 78.0, [1, 1, "fox_pelt", 1, 0, 1, 0], tex_fox, Vector2(1.15, 1.15), 7.5)
+	_spawn_animal_pool(boar_pool, "WildBoar", WildAnimal.SpeciesType.BOAR, "Jabalí del Bosque", 7, 5, boar_rooting_positions, 22.0, 55.0, 66.0, 22.0, 24.0, 138.0, 85.0, [3, 2, "leather", 2, 0, 1, 2], tex_boar, Vector2(1.22, 1.22), 9.5)
 
-	# 6. Manadas de Venados del Valle (Capacidad máx: 9 | Inicialmente vivos: 6)
-	var max_deer := 9
-	var initial_deer := 6
-	for i in range(max_deer):
-		var clearing_pos: Vector2 = deer_clearing_positions[i % deer_clearing_positions.size()]
-		var spawn_offset := Vector2.RIGHT.rotated((TAU / float(max_deer)) * float(i)) * randf_range(22.0, 60.0)
-		var deer := WildAnimal.new()
-		deer.name = "WildDeer_%d" % i
-		deer.species = WildAnimal.SpeciesType.DEER
-		deer.home_position = clearing_pos
-		deer.global_position = clearing_pos + spawn_offset
-		deer.animal_name = "Venado del Valle"
-		deer.max_hp = 26.0
-		deer.graze_speed = 22.0
-		deer.flee_speed = 118.0
-		deer.alert_radius = 95.0
-		deer.meat_drop = 2
-		deer.leather_drop = 1
-		deer.pelt_item_id = "leather"
-		deer.bones_drop = 2
-		deer.antlers_drop = 1
-		deer.viscera_drop = 1
-		deer.fat_drop = 1
-		deer.managed_by_ecosystem = true
-		entities_root.add_child(deer)
-		deer.setup_animal(tex_deer, Vector2(1.15, 1.15), 9.0)
-		if i >= initial_deer:
-			deer._finish_butchering()
-		deer_pool.append(deer)
+func _spawn_harvest_batch(prefix: String, positions: Array[Vector2], h_type: HarvestableNode.HarvestType, title: String, p_id: String, p_amt: int, b_id: String, b_amt: int, hp: float, r_days: int, bites: int, tex_main: Texture2D, tex_dep: Texture2D, sc: Vector2, rad: float) -> void:
+	for i in range(positions.size()):
+		var node := HarvestableNode.new()
+		node.name = "%s_%d" % [prefix, i]
+		node.global_position = positions[i]
+		node.harvest_type = h_type
+		node.node_title = title
+		node.primary_item_id = p_id
+		node.primary_amount = p_amt
+		node.bonus_item_id = b_id
+		node.bonus_amount = b_amt
+		node.max_hp = hp
+		node.respawn_days = r_days
+		if bites > 0:
+			node.max_animal_bites = bites
+		entities_root.add_child(node)
+		node.setup_visuals(tex_main, tex_dep, Color.WHITE, sc, rad)
 
-	# 7. Depredadores: Zorros del Bosque (Capacidad máx: 6 | Inicialmente vivos: 3)
-	var max_foxes := 6
-	var initial_foxes := 3
-	for i in range(max_foxes):
-		var den_pos: Vector2 = fox_den_positions[i % fox_den_positions.size()]
-		var spawn_offset := Vector2.RIGHT.rotated((TAU / float(max_foxes)) * float(i)) * randf_range(20.0, 50.0)
-		var fox := WildAnimal.new()
-		fox.name = "WildFox_%d" % i
-		fox.species = WildAnimal.SpeciesType.FOX
-		fox.home_position = den_pos
-		fox.global_position = den_pos + spawn_offset
-		fox.animal_name = "Zorro del Bosque"
-		fox.max_hp = 20.0
-		fox.graze_speed = 32.0
-		fox.flee_speed = 122.0 # Corre menos que el conejo (134), pero caza con sigilo + salto (245)
-		fox.alert_radius = 78.0
-		fox.meat_drop = 1
-		fox.leather_drop = 1
-		fox.pelt_item_id = "fox_pelt"
-		fox.bones_drop = 1
-		fox.antlers_drop = 0
-		fox.viscera_drop = 1
-		fox.fat_drop = 0
-		fox.managed_by_ecosystem = true
-		entities_root.add_child(fox)
-		fox.setup_animal(tex_fox, Vector2(1.15, 1.15), 7.5)
-		if i >= initial_foxes:
-			fox._finish_butchering()
-		fox_pool.append(fox)
-
-	# 8. Manada de Jabalíes del Robledal (Capacidad máx: 7 | Inicialmente vivos: 5 | Aguantan >= 3 golpes y embisten si los atacas)
-	var max_boars := 7
-	var initial_boars := 5
-	for i in range(max_boars):
-		var root_pos: Vector2 = boar_rooting_positions[i % boar_rooting_positions.size()]
-		var spawn_offset := Vector2.RIGHT.rotated((TAU / float(max_boars)) * float(i)) * randf_range(22.0, 55.0)
-		var boar := WildAnimal.new()
-		boar.name = "WildBoar_%d" % i
-		boar.species = WildAnimal.SpeciesType.BOAR
-		boar.home_position = root_pos
-		boar.global_position = root_pos + spawn_offset
-		boar.animal_name = "Jabalí del Bosque"
-		boar.max_hp = 66.0
-		boar.max_damage_per_hit = 22.0 # Garantiza que aguante al menos 3 golpes incluso con armas mejoradas
-		boar.graze_speed = 24.0
-		boar.flee_speed = 138.0
-		boar.alert_radius = 85.0
-		boar.meat_drop = 3
-		boar.leather_drop = 2
-		boar.pelt_item_id = "leather"
-		boar.bones_drop = 2
-		boar.antlers_drop = 0
-		boar.viscera_drop = 1
-		boar.fat_drop = 2
-		boar.managed_by_ecosystem = true
-		entities_root.add_child(boar)
-		boar.setup_animal(tex_boar, Vector2(1.22, 1.22), 9.5)
-		if i >= initial_boars:
-			boar._finish_butchering()
-		boar_pool.append(boar)
+func _spawn_animal_pool(pool: Array[WildAnimal], prefix: String, sp: WildAnimal.SpeciesType, a_name: String, max_cnt: int, init_cnt: int, homes: Array[Vector2], r_min: float, r_max: float, hp: float, max_hit: float, g_spd: float, f_spd: float, alert_r: float, drops: Array, tex: Texture2D, sc: Vector2, rad: float) -> void:
+	for i in range(max_cnt):
+		var home_pos: Vector2 = homes[i % homes.size()]
+		var offset := Vector2.RIGHT.rotated((TAU / float(max_cnt)) * float(i)) * randf_range(r_min, r_max)
+		var a := WildAnimal.new()
+		a.name = "%s_%d" % [prefix, i]
+		a.species = sp
+		a.home_position = home_pos
+		a.global_position = home_pos + offset
+		a.animal_name = a_name
+		a.max_hp = hp
+		if max_hit < 500.0:
+			a.max_damage_per_hit = max_hit
+		a.graze_speed = g_spd
+		a.flee_speed = f_spd
+		a.alert_radius = alert_r
+		a.meat_drop = int(drops[0])
+		a.leather_drop = int(drops[1])
+		a.pelt_item_id = str(drops[2])
+		a.bones_drop = int(drops[3])
+		a.antlers_drop = int(drops[4])
+		a.viscera_drop = int(drops[5])
+		a.fat_drop = int(drops[6])
+		a.managed_by_ecosystem = true
+		entities_root.add_child(a)
+		a.setup_animal(tex, sc, rad)
+		if i >= init_cnt:
+			a._finish_butchering()
+		pool.append(a)
 
 ## Evaluación ecológica cada nuevo día (06:00 AM)
 func _on_day_passed(_new_day: int) -> void:
@@ -539,32 +420,26 @@ func _spawn_forest_sign(pos: Vector2, txt: String) -> void:
 	lbl.add_theme_constant_override("outline_size", 3)
 	entities_root.add_child(lbl)
 
+func _save_pool(pool: Array[WildAnimal]) -> Array[Dictionary]:
+	var arr: Array[Dictionary] = []
+	for a in pool:
+		if is_instance_valid(a):
+			arr.append(a.to_save_dict())
+	return arr
+
+func _load_pool(pool: Array[WildAnimal], data: Dictionary, key: String) -> void:
+	if data.has(key) and typeof(data[key]) == TYPE_ARRAY:
+		var arr: Array = data[key]
+		for i in range(mini(arr.size(), pool.size())):
+			if is_instance_valid(pool[i]) and typeof(arr[i]) == TYPE_DICTIONARY:
+				pool[i].from_save_dict(arr[i])
+
 func to_save_dict() -> Dictionary:
-	var r_data: Array[Dictionary] = []
-	for a in rabbit_pool:
-		if is_instance_valid(a):
-			r_data.append(a.to_save_dict())
-	var d_data: Array[Dictionary] = []
-	for a in deer_pool:
-		if is_instance_valid(a):
-			d_data.append(a.to_save_dict())
-	var f_data: Array[Dictionary] = []
-	for a in fox_pool:
-		if is_instance_valid(a):
-			f_data.append(a.to_save_dict())
-	var b_data: Array[Dictionary] = []
-	for a in boar_pool:
-		if is_instance_valid(a):
-			b_data.append(a.to_save_dict())
 	return {
-		"rabbit_extinct_days": rabbit_extinct_days,
-		"deer_extinct_days": deer_extinct_days,
-		"fox_extinct_days": fox_extinct_days,
-		"boar_extinct_days": boar_extinct_days,
-		"rabbits": r_data,
-		"deer": d_data,
-		"foxes": f_data,
-		"boars": b_data
+		"rabbit_extinct_days": rabbit_extinct_days, "deer_extinct_days": deer_extinct_days,
+		"fox_extinct_days": fox_extinct_days, "boar_extinct_days": boar_extinct_days,
+		"rabbits": _save_pool(rabbit_pool), "deer": _save_pool(deer_pool),
+		"foxes": _save_pool(fox_pool), "boars": _save_pool(boar_pool)
 	}
 
 func from_save_dict(data: Dictionary) -> void:
@@ -572,23 +447,7 @@ func from_save_dict(data: Dictionary) -> void:
 	deer_extinct_days = int(data.get("deer_extinct_days", 0))
 	fox_extinct_days = int(data.get("fox_extinct_days", 0))
 	boar_extinct_days = int(data.get("boar_extinct_days", 0))
-	if data.has("rabbits") and typeof(data["rabbits"]) == TYPE_ARRAY:
-		var r_arr: Array = data["rabbits"]
-		for i in range(mini(r_arr.size(), rabbit_pool.size())):
-			if is_instance_valid(rabbit_pool[i]) and typeof(r_arr[i]) == TYPE_DICTIONARY:
-				rabbit_pool[i].from_save_dict(r_arr[i])
-	if data.has("deer") and typeof(data["deer"]) == TYPE_ARRAY:
-		var d_arr: Array = data["deer"]
-		for i in range(mini(d_arr.size(), deer_pool.size())):
-			if is_instance_valid(deer_pool[i]) and typeof(d_arr[i]) == TYPE_DICTIONARY:
-				deer_pool[i].from_save_dict(d_arr[i])
-	if data.has("foxes") and typeof(data["foxes"]) == TYPE_ARRAY:
-		var f_arr: Array = data["foxes"]
-		for i in range(mini(f_arr.size(), fox_pool.size())):
-			if is_instance_valid(fox_pool[i]) and typeof(f_arr[i]) == TYPE_DICTIONARY:
-				fox_pool[i].from_save_dict(f_arr[i])
-	if data.has("boars") and typeof(data["boars"]) == TYPE_ARRAY:
-		var b_arr: Array = data["boars"]
-		for i in range(mini(b_arr.size(), boar_pool.size())):
-			if is_instance_valid(boar_pool[i]) and typeof(b_arr[i]) == TYPE_DICTIONARY:
-				boar_pool[i].from_save_dict(b_arr[i])
+	_load_pool(rabbit_pool, data, "rabbits")
+	_load_pool(deer_pool, data, "deer")
+	_load_pool(fox_pool, data, "foxes")
+	_load_pool(boar_pool, data, "boars")

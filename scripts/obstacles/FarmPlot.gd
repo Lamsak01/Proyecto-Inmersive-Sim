@@ -11,36 +11,9 @@ class_name FarmPlot
 enum CropType { NONE, CARROT, CABBAGE, WHEAT }
 
 const CROP_DATA: Dictionary = {
-	CropType.CARROT: {
-		"name": "Zanahoria",
-		"seed_id": "carrot_seeds",
-		"product_id": "carrot",
-		"days": 2,
-		"base_yield": 2,
-		"seed_return": 2,
-		"stage2_tex": "res://assests/world/farming/carrot_stage2.png",
-		"mature_tex": "res://assests/world/farming/carrot_mature.png"
-	},
-	CropType.CABBAGE: {
-		"name": "Col",
-		"seed_id": "cabbage_seeds",
-		"product_id": "cabbage",
-		"days": 3,
-		"base_yield": 2,
-		"seed_return": 2,
-		"stage2_tex": "res://assests/world/farming/cabbage_stage2.png",
-		"mature_tex": "res://assests/world/farming/cabbage_mature.png"
-	},
-	CropType.WHEAT: {
-		"name": "Trigo",
-		"seed_id": "wheat_seeds",
-		"product_id": "wheat",
-		"days": 4,
-		"base_yield": 3,
-		"seed_return": 2,
-		"stage2_tex": "res://assests/world/farming/wheat_stage2.png",
-		"mature_tex": "res://assests/world/farming/wheat_mature.png"
-	}
+	CropType.CARROT: {"name": "Zanahoria", "seed_id": "carrot_seeds", "product_id": "carrot", "days": 2, "base_yield": 2, "seed_return": 2, "stage2_tex": "res://assests/world/farming/carrot_stage2.png", "mature_tex": "res://assests/world/farming/carrot_mature.png"},
+	CropType.CABBAGE: {"name": "Col", "seed_id": "cabbage_seeds", "product_id": "cabbage", "days": 3, "base_yield": 2, "seed_return": 2, "stage2_tex": "res://assests/world/farming/cabbage_stage2.png", "mature_tex": "res://assests/world/farming/cabbage_mature.png"},
+	CropType.WHEAT: {"name": "Trigo", "seed_id": "wheat_seeds", "product_id": "wheat", "days": 4, "base_yield": 3, "seed_return": 2, "stage2_tex": "res://assests/world/farming/wheat_stage2.png", "mature_tex": "res://assests/world/farming/wheat_mature.png"}
 }
 
 @export var persistence_id: String = ""

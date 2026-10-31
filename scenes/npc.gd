@@ -89,41 +89,22 @@ func modify_affinity(delta_amount: int) -> void:
 		return
 	affinity = clamp(affinity + delta_amount, -100, 100)
 	_update_attitude_from_affinity()
-
-	var sign_str := "+" if delta_amount > 0 else ""
-	var col := Color.SPRING_GREEN if delta_amount > 0 else Color.CORAL
-	_spawn_floating_text("%s%d Relación" % [sign_str, delta_amount], col, -42.0)
+	_spawn_floating_text("%s%d Relación" % ["+" if delta_amount > 0 else "", delta_amount], Color.SPRING_GREEN if delta_amount > 0 else Color.CORAL, -42.0)
 
 func _update_attitude_from_affinity() -> void:
-	if affinity <= hostility_threshold:
-		current_attitude = Attitude.HOSTILE
-	elif affinity <= -10:
-		current_attitude = Attitude.UNFRIENDLY
-	elif affinity < 20:
-		current_attitude = Attitude.NEUTRAL
-	elif affinity < 50:
-		current_attitude = Attitude.FRIENDLY
-	else:
-		current_attitude = Attitude.ALLY
+	if affinity <= hostility_threshold: current_attitude = Attitude.HOSTILE
+	elif affinity <= -10: current_attitude = Attitude.UNFRIENDLY
+	elif affinity < 20: current_attitude = Attitude.NEUTRAL
+	elif affinity < 50: current_attitude = Attitude.FRIENDLY
+	else: current_attitude = Attitude.ALLY
 
 func get_relationship_status_text() -> String:
-	var state_str := "Neutral"
-	match current_attitude:
-		Attitude.HOSTILE: state_str = "Hostil"
-		Attitude.UNFRIENDLY: state_str = "Desconfiado"
-		Attitude.NEUTRAL: state_str = "Neutral"
-		Attitude.FRIENDLY: state_str = "Amistoso"
-		Attitude.ALLY: state_str = "Aliado"
-	return "%s | %s (%d)" % [npc_role, state_str, affinity]
+	const STATES := {Attitude.HOSTILE: "Hostil", Attitude.UNFRIENDLY: "Desconfiado", Attitude.NEUTRAL: "Neutral", Attitude.FRIENDLY: "Amistoso", Attitude.ALLY: "Aliado"}
+	return "%s | %s (%d)" % [npc_role, STATES.get(current_attitude, "Neutral"), affinity]
 
 func get_relationship_color() -> Color:
-	match current_attitude:
-		Attitude.HOSTILE: return Color.RED
-		Attitude.UNFRIENDLY: return Color.ORANGE
-		Attitude.NEUTRAL: return Color(0.8, 0.85, 0.9)
-		Attitude.FRIENDLY: return Color.LIGHT_GREEN
-		Attitude.ALLY: return Color.CYAN
-	return Color.WHITE
+	const COLS := {Attitude.HOSTILE: Color.RED, Attitude.UNFRIENDLY: Color.ORANGE, Attitude.NEUTRAL: Color(0.8, 0.85, 0.9), Attitude.FRIENDLY: Color.LIGHT_GREEN, Attitude.ALLY: Color.CYAN}
+	return COLS.get(current_attitude, Color.WHITE)
 
 # --- Combate / Daño / Stun / Sangrado ---
 
@@ -291,81 +272,39 @@ func _build_dialogue_for_attitude() -> Dictionary:
 	match current_attitude:
 		Attitude.FRIENDLY, Attitude.ALLY:
 			return {
-				"start": {
-					"text": "¡Me alegra verte! Vigilo el paso entre la Granja y la Llanura Salvaje del Oeste. ¿Necesitas algo?",
-					"choices": [
-						{"label": "¿Puedes vendar mis heridas?", "next": "healed", "action": "heal_player"},
-						{"label": "Te traje Madera para el puesto (+8 Oro, +8 Relación)", "next": "start", "action": "sell_wood"},
-						{"label": "Comprar Vendaje Limpio (-6 Oro)", "next": "start", "action": "buy_bandage"},
-						{"label": "Háblame de la Llanura Salvaje y la Ciénaga.", "next": "frogs_info"},
-						{"label": "Solo pasaba a saludar. [Salir]", "next": "END"}
-					]
-				},
-				"healed": {
-					"text": "Listo, eso detendrá el sangrado y recuperará tus fuerzas. Ten más cuidado ahí fuera.",
-					"choices": [
-						{"label": "¡Muchas gracias! [Salir]", "next": "END"}
-					]
-				},
-				"frogs_info": {
-					"text": "Aquí en la Llanura del Oeste hay ruinas hostiles al noroeste y la Ciénaga de las Ranas al suroeste. Usa el Martillo ([2]) para aturdirlas o acércate en sigilo ([C]).",
-					"choices": [
-						{"label": "Buen consejo, me encargaré de ellas.", "next": "END", "affinity": 5}
-					]
-				}
+				"start": {"text": "¡Me alegra verte! Vigilo el paso entre la Granja y la Llanura Salvaje del Oeste. ¿Necesitas algo?", "choices": [
+					{"label": "¿Puedes vendar mis heridas?", "next": "healed", "action": "heal_player"},
+					{"label": "Te traje Madera para el puesto (+8 Oro, +8 Relación)", "next": "start", "action": "sell_wood"},
+					{"label": "Comprar Vendaje Limpio (-6 Oro)", "next": "start", "action": "buy_bandage"},
+					{"label": "Háblame de la Llanura Salvaje y la Ciénaga.", "next": "frogs_info"},
+					{"label": "Solo pasaba a saludar. [Salir]", "next": "END"}
+				]},
+				"healed": {"text": "Listo, eso detendrá el sangrado y recuperará tus fuerzas. Ten más cuidado ahí fuera.", "choices": [{"label": "¡Muchas gracias! [Salir]", "next": "END"}]},
+				"frogs_info": {"text": "Aquí en la Llanura del Oeste hay ruinas hostiles al noroeste y la Ciénaga de las Ranas al suroeste. Usa el Martillo ([2]) para aturdirlas o acércate en sigilo ([C]).", "choices": [{"label": "Buen consejo, me encargaré de ellas.", "next": "END", "affinity": 5}]}
 			}
-
 		Attitude.UNFRIENDLY, Attitude.HOSTILE:
 			return {
-				"start": {
-					"text": "No me gusta tu actitud, forastero. Más vale que no causes problemas en nuestra aldea o te pesará.",
-					"choices": [
-						{"label": "Disculpa, empecemos de nuevo.", "next": "apology", "affinity": 15},
-						{"label": "Intenta detenerme si puedes. [Pelear]", "next": "END", "affinity": -30, "action": "provoke_fight"},
-						{"label": "[Alejarse en silencio]", "next": "END"}
-					]
-				},
-				"apology": {
-					"text": "Hmph... Está bien. Mientras respetes a la gente del pueblo y ayudes con las plagas, no tendremos problemas.",
-					"choices": [
-						{"label": "Entendido. [Salir]", "next": "END"}
-					]
-				}
+				"start": {"text": "No me gusta tu actitud, forastero. Más vale que no causes problemas en nuestra aldea o te pesará.", "choices": [
+					{"label": "Disculpa, empecemos de nuevo.", "next": "apology", "affinity": 15},
+					{"label": "Intenta detenerme si puedes. [Pelear]", "next": "END", "affinity": -30, "action": "provoke_fight"},
+					{"label": "[Alejarse en silencio]", "next": "END"}
+				]},
+				"apology": {"text": "Hmph... Está bien. Mientras respetes a la gente del pueblo y ayudes con las plagas, no tendremos problemas.", "choices": [{"label": "Entendido. [Salir]", "next": "END"}]}
 			}
 
 		_: # NEUTRAL
 			return {
-				"start": {
-					"text": "Alto ahí. Estás entrando en la Llanura Salvaje del Oeste. Más allá de este puesto hay ruinas hostiles y la ciénaga de las ranas.",
-					"choices": [
-						{"label": "Quiero ganarme mi lugar. ¿En qué puedo ayudar?", "next": "help_branch", "affinity": 15},
-						{"label": "Vender 1 Madera (+8 Oro, +8 Relación)", "next": "start", "action": "sell_wood"},
-						{"label": "Comprar Vendaje Limpio (-6 Oro)", "next": "start", "action": "buy_bandage"},
-						{"label": "¿Cómo se dividen las zonas del valle?", "next": "tips_branch"},
-						{"label": "Apártate de mi camino, viejo.", "next": "rude_branch", "affinity": -20},
-						{"label": "Nos vemos luego. [Salir]", "next": "END"}
-					]
-				},
-				"help_branch": {
-					"text": "Aquí mismo a mi izquierda dejé una espada. Al suroeste de esta llanura está la Ciénaga de las Ranas y al noroeste el campamento hostil. Límpialos y el pueblo te respetará.",
-					"choices": [
-						{"label": "Cuenta conmigo.", "next": "END", "affinity": 10},
-						{"label": "Veré qué puedo hacer.", "next": "END"}
-					]
-				},
-				"tips_branch": {
-					"text": "Al este tienes tu Granja y la Aldea con sus talleres, casas y la Posada-Casino. Siguiendo el sendero largo del sur llegarás al Bosque Profundo, dividido en Pradera de Conejos (Oeste), Claros de Venados (Sur) y Cantera de Zorros (Este).",
-					"choices": [
-						{"label": "Gracias por la información.", "next": "start", "affinity": 5}
-					]
-				},
-				"rude_branch": {
-					"text": "Cuidado con esa lengua. En una aldea de cinco casas todo se sabe muy rápido, y nadie le vende comida a un bravucón.",
-					"choices": [
-						{"label": "Tienes razón, disculpa.", "next": "start", "affinity": 15},
-						{"label": "No me importa. [Salir]", "next": "END", "affinity": -10}
-					]
-				}
+				"start": {"text": "Alto ahí. Estás entrando en la Llanura Salvaje del Oeste. Más allá de este puesto hay ruinas hostiles y la ciénaga de las ranas.", "choices": [
+					{"label": "Quiero ganarme mi lugar. ¿En qué puedo ayudar?", "next": "help_branch", "affinity": 15},
+					{"label": "Vender 1 Madera (+8 Oro, +8 Relación)", "next": "start", "action": "sell_wood"},
+					{"label": "Comprar Vendaje Limpio (-6 Oro)", "next": "start", "action": "buy_bandage"},
+					{"label": "¿Cómo se dividen las zonas del valle?", "next": "tips_branch"},
+					{"label": "Apártate de mi camino, viejo.", "next": "rude_branch", "affinity": -20},
+					{"label": "Nos vemos luego. [Salir]", "next": "END"}
+				]},
+				"help_branch": {"text": "Aquí mismo a mi izquierda dejé una espada. Al suroeste de esta llanura está la Ciénaga de las Ranas y al noroeste el campamento hostil. Límpialos y el pueblo te respetará.", "choices": [{"label": "Cuenta conmigo.", "next": "END", "affinity": 10}, {"label": "Veré qué puedo hacer.", "next": "END"}]},
+				"tips_branch": {"text": "Al este tienes tu Granja y la Aldea con sus talleres, casas y la Posada-Casino. Siguiendo el sendero largo del sur llegarás al Bosque Profundo, dividido en Pradera de Conejos (Oeste), Claros de Venados (Sur) y Cantera de Zorros (Este).", "choices": [{"label": "Gracias por la información.", "next": "start", "affinity": 5}]},
+				"rude_branch": {"text": "Cuidado con esa lengua. En una aldea de cinco casas todo se sabe muy rápido, y nadie le vende comida a un bravucón.", "choices": [{"label": "Tienes razón, disculpa.", "next": "start", "affinity": 15}, {"label": "No me importa. [Salir]", "next": "END", "affinity": -10}]}
 			}
 
 func to_save_dict() -> Dictionary:

@@ -77,131 +77,81 @@ func _ready() -> void:
 		push_error("EnemyAI must be child of CharacterBody2D")
 		return
 	spawn_position = parent.global_position
-	
-	# Pre-calculate ray directions
 	ray_directions.resize(num_rays)
 	interest_map.resize(num_rays)
 	danger_map.resize(num_rays)
-	
 	for i in range(num_rays):
-		var angle = i * TAU / num_rays
-		ray_directions[i] = Vector2.RIGHT.rotated(angle)
-
-	# Configure NavigationAgent
+		ray_directions[i] = Vector2.RIGHT.rotated(i * TAU / num_rays)
 	if nav_agent:
 		nav_agent.path_desired_distance = 16.0
 		nav_agent.target_desired_distance = 16.0
 		nav_agent.max_speed = chase_speed
-	
-	# Connect to parent's HealthComponent if available
 	var health_comp = parent.get_node_or_null("HealthComponent")
 	if health_comp:
 		health_comp.health_changed.connect(_on_health_changed)
-
-	# Optimization: Create Visibility Notifier to disable context steering raycasts when off-screen
 	on_screen_notifier = VisibleOnScreenNotifier2D.new()
 	on_screen_notifier.rect = Rect2(-30, -30, 60, 60)
 	parent.add_child.call_deferred(on_screen_notifier)
 
 func _physics_process(delta: float) -> void:
 	if Engine.is_editor_hint() or (WorldClock and WorldClock.has_method("is_time_frozen") and WorldClock.is_time_frozen()):
-		if parent:
-			parent.velocity = Vector2.ZERO
+		if parent: parent.velocity = Vector2.ZERO
 		return
-	# Update timers
-	if vision_timer > 0.0:
-		vision_timer -= delta
-	if hearing_timer > 0.0:
-		hearing_timer -= delta
-	if avoidance_timer > 0.0:
-		avoidance_timer -= delta
-	if nav_timer > 0.0:
-		nav_timer -= delta
-	if alert_cooldown_timer > 0.0:
-		alert_cooldown_timer -= delta
-	if broadcast_chase_timer > 0.0:
-		broadcast_chase_timer -= delta
-		
-	# Update target facing direction based on movement
+	vision_timer = maxf(0.0, vision_timer - delta)
+	hearing_timer = maxf(0.0, hearing_timer - delta)
+	avoidance_timer = maxf(0.0, avoidance_timer - delta)
+	nav_timer = maxf(0.0, nav_timer - delta)
+	alert_cooldown_timer = maxf(0.0, alert_cooldown_timer - delta)
+	broadcast_chase_timer = maxf(0.0, broadcast_chase_timer - delta)
+	attack_timer = maxf(0.0, attack_timer - delta)
 	if parent.velocity.length_squared() > 0.01:
 		target_facing_direction = parent.velocity.normalized()
-	elif target != null and (current_state == State.CHASE or current_state == State.ATTACK or current_state == State.FLEE):
-		var diff = (target.global_position - parent.global_position) if target else Vector2.ZERO
+	elif target != null and current_state in [State.CHASE, State.ATTACK, State.FLEE]:
+		var diff := target.global_position - parent.global_position
 		if diff.length_squared() > 1.0:
-			if current_state == State.FLEE:
-				target_facing_direction = -diff.normalized()
-			else:
-				target_facing_direction = diff.normalized()
+			target_facing_direction = -diff.normalized() if current_state == State.FLEE else diff.normalized()
 
-	# Smoothly rotate facing_direction towards target_facing_direction
 	if target_facing_direction.length_squared() > 0.001:
-		var current_angle = facing_direction.angle()
-		var target_angle = target_facing_direction.angle()
-		var new_angle = lerp_angle(current_angle, target_angle, 4.0 * delta)
-		facing_direction = Vector2.RIGHT.rotated(new_angle)
-
-	# Update attack cooldown
-	if attack_timer > 0.0:
-		attack_timer -= delta
-	
-	# State machine logic
+		facing_direction = Vector2.RIGHT.rotated(lerp_angle(facing_direction.angle(), target_facing_direction.angle(), 4.0 * delta))
 	match current_state:
-		State.IDLE:
-			_process_idle(delta)
-		State.ALERT:
-			_process_alert(delta)
-		State.CHASE:
-			_process_chase()
-		State.ATTACK:
-			_process_attack(delta)
-		State.SEARCH:
-			_process_search(delta)
-		State.RETURN:
-			_process_return()
-		State.FLEE:
-			_process_flee()
-	
-	# Safety clamp
+		State.IDLE: _process_idle(delta)
+		State.ALERT: _process_alert(delta)
+		State.CHASE: _process_chase()
+		State.ATTACK: _process_attack(delta)
+		State.SEARCH: _process_search(delta)
+		State.RETURN: _process_return()
+		State.FLEE: _process_flee()
 	if parent.velocity.length_squared() > chase_speed * chase_speed:
 		parent.velocity = parent.velocity.limit_length(chase_speed)
 
 func get_effective_detection_range() -> float:
-	var eff: float = detection_range
-	if WorldClock:
-		eff *= WorldClock.get_vision_multiplier()
+	var eff: float = detection_range * (WorldClock.get_vision_multiplier() if WorldClock else 1.0)
 	var player := _get_global_player()
 	if player and player.has_method("is_stealthing") and player.is_stealthing():
-		eff *= 0.5
-		if player.has_method("get_stealth_detection_multiplier"):
-			eff *= float(player.call("get_stealth_detection_multiplier"))
+		eff *= 0.5 * (float(player.call("get_stealth_detection_multiplier")) if player.has_method("get_stealth_detection_multiplier") else 1.0)
 	return eff
+
+func _check_player_detection(min_noise_for_search: float) -> Node2D:
+	var player := _get_global_player()
+	if not player: return null
+	var eff_range := get_effective_detection_range()
+	var distance_sq := parent.global_position.distance_squared_to(player.global_position)
+	if distance_sq <= eff_range * eff_range and _is_in_fov(player) and _has_line_of_sight(player):
+		return player
+	var noise_mult: float = player.get_noise_multiplier() if player.has_method("get_noise_multiplier") else (0.0 if (player.has_method("is_stealthing") and player.is_stealthing()) else 1.0)
+	if noise_mult > 0.0 and distance_sq <= pow(hearing_range * noise_mult, 2):
+		if distance_sq <= pow(calculate_auditory_radius(player.global_position) * noise_mult, 2):
+			target_facing_direction = (player.global_position - parent.global_position).normalized()
+			if noise_mult > min_noise_for_search:
+				on_noise_heard(player.global_position)
+	return null
 
 func _process_idle(_delta: float) -> void:
 	parent.velocity = Vector2.ZERO
-	
-	var player = _get_global_player()
-	if not player: return
-
-	# 1. Visual Detection (afectado por hora del día y sigilo del jugador)
-	var eff_range := get_effective_detection_range()
-	var distance_sq = parent.global_position.distance_squared_to(player.global_position)
-	if distance_sq <= eff_range * eff_range:
-		if _is_in_fov(player) and _has_line_of_sight(player):
-			target = player
-			_change_state(State.ALERT)
-			return
-
-	# 2. Auditory Detection (Dynamic noise multiplier: 0 stealth/idle, 1 walk, 1.8 sprint)
-	var noise_mult: float = player.get_noise_multiplier() if player.has_method("get_noise_multiplier") else (0.0 if (player.has_method("is_stealthing") and player.is_stealthing()) else 1.0)
-	if noise_mult > 0.0:
-		var max_hear = hearing_range * noise_mult
-		if distance_sq <= max_hear * max_hear:
-			var effective_hearing = calculate_auditory_radius(player.global_position) * noise_mult
-			if distance_sq <= effective_hearing * effective_hearing:
-				target_facing_direction = (player.global_position - parent.global_position).normalized()
-				# Si el jugador viene corriendo y hace mucho ruido, el enemigo pasa a investigar el sonido
-				if noise_mult > 1.2:
-					on_noise_heard(player.global_position)
+	var detected := _check_player_detection(1.2)
+	if detected:
+		target = detected
+		_change_state(State.ALERT)
 
 func _get_global_player() -> Node2D:
 	if not is_instance_valid(_cached_player):
@@ -209,29 +159,22 @@ func _get_global_player() -> Node2D:
 	return _cached_player
 
 func _is_in_fov(target_node: Node2D) -> bool:
-	if not target_node: return false
-	var dir_to_target = (target_node.global_position - parent.global_position).normalized()
-	return facing_direction.dot(dir_to_target) > 0.5
+	return target_node != null and facing_direction.dot((target_node.global_position - parent.global_position).normalized()) > 0.5
 
 func _process_alert(delta: float) -> void:
 	parent.velocity = Vector2.ZERO
 	if not target:
 		_change_state(State.IDLE)
 		return
-		
 	var eff_range := get_effective_detection_range()
-	var distance_sq = parent.global_position.distance_squared_to(target.global_position)
-	var has_los = distance_sq <= eff_range * eff_range and _is_in_fov(target) and _has_line_of_sight(target)
-	
+	var has_los := parent.global_position.distance_squared_to(target.global_position) <= eff_range * eff_range and _is_in_fov(target) and _has_line_of_sight(target)
 	if has_los:
 		awareness_level += delta / awareness_fill_time
 		last_known_position = target.global_position
 	else:
 		awareness_level -= delta / awareness_drain_time
-	
 	awareness_level = clamp(awareness_level, 0.0, 1.0)
 	awareness_changed.emit(awareness_level, true)
-	
 	if awareness_level >= 1.0:
 		_change_state(State.CHASE)
 	elif awareness_level <= 0.0:
@@ -346,242 +289,125 @@ func _perform_attack() -> void:
 	
 	attack_triggered.emit(damage)
 
+func _steer_towards(dest: Vector2, fallback_dir: Vector2 = Vector2.ZERO) -> Vector2:
+	_set_movement_target(dest)
+	var dir := (nav_agent.get_next_path_position() - parent.global_position).normalized() if nav_agent else Vector2.ZERO
+	if dir == Vector2.ZERO:
+		dir = fallback_dir if fallback_dir != Vector2.ZERO else (dest - parent.global_position).normalized()
+	return _get_avoidance_direction(dir)
+
 func _process_search(delta: float) -> void:
-	var player = _get_global_player()
-	if player:
-		var eff_range := get_effective_detection_range()
-		var distance_sq = parent.global_position.distance_squared_to(player.global_position)
-		# 1. Visual Detection Check
-		if distance_sq <= eff_range * eff_range and _is_in_fov(player) and _has_line_of_sight(player):
-			target = player
-			_clear_ghost()
-			awareness_level = 1.0
-			_change_state(State.CHASE)
-			return
-
-		# 2. Auditory Detection Check (Distance-filtered first!)
-		var noise_mult: float = player.get_noise_multiplier() if player.has_method("get_noise_multiplier") else (0.0 if (player.has_method("is_stealthing") and player.is_stealthing()) else 1.0)
-		if noise_mult > 0.0:
-			var max_hear = hearing_range * noise_mult
-			if distance_sq <= max_hear * max_hear:
-				var effective_hearing = calculate_auditory_radius(player.global_position) * noise_mult
-				if distance_sq <= effective_hearing * effective_hearing:
-					on_noise_heard(player.global_position)
-
-	var arrived = (nav_agent and nav_agent.is_navigation_finished()) or \
-				  parent.global_position.distance_squared_to(roam_target) < 576.0 # 24^2
-	
+	var detected := _check_player_detection(0.0)
+	if detected:
+		target = detected
+		_clear_ghost()
+		awareness_level = 1.0
+		_change_state(State.CHASE)
+		return
+	var arrived := (nav_agent and nav_agent.is_navigation_finished()) or parent.global_position.distance_squared_to(roam_target) < 576.0
 	if arrived:
-		var search_radius: float = 80.0
-		var points_count: int = 6
-		var angle_step = TAU / points_count
-		var point_index = int((search_duration - search_timer) / (search_duration / points_count)) % points_count
-		var angle = point_index * angle_step + PI / 4.0
-		var offset = Vector2(cos(angle), sin(angle)) * search_radius
-		
-		roam_target = last_known_position + offset
+		var point_index := int((search_duration - search_timer) / (search_duration / 6.0)) % 6
+		var angle := point_index * (TAU / 6.0) + PI / 4.0
+		roam_target = last_known_position + Vector2(cos(angle), sin(angle)) * 80.0
 		target_facing_direction = (roam_target - parent.global_position).normalized()
 	else:
-		_set_movement_target(roam_target)
-		var dir := Vector2.ZERO
-		if nav_agent:
-			var next_path_pos = nav_agent.get_next_path_position()
-			dir = (next_path_pos - parent.global_position).normalized()
-		if dir == Vector2.ZERO:
-			dir = (roam_target - parent.global_position).normalized()
-		var final_dir = _get_avoidance_direction(dir)
-		parent.velocity = final_dir * (chase_speed * 0.5)
-	
+		parent.velocity = _steer_towards(roam_target) * (chase_speed * 0.5)
 	search_timer -= delta
 	if search_timer <= 0.0:
 		_clear_ghost()
 		_change_state(State.RETURN)
 
 func _process_return() -> void:
-	var player = _get_global_player()
-	if player:
-		var eff_range := get_effective_detection_range()
-		var distance_sq = parent.global_position.distance_squared_to(player.global_position)
-		# 1. Visual Detection Check
-		if distance_sq <= eff_range * eff_range and _is_in_fov(player) and _has_line_of_sight(player):
-			target = player
-			_change_state(State.ALERT)
-			awareness_level = 0.5
-			return
-
-		# 2. Auditory Detection Check (Distance-filtered first!)
-		var noise_mult: float = player.get_noise_multiplier() if player.has_method("get_noise_multiplier") else (0.0 if (player.has_method("is_stealthing") and player.is_stealthing()) else 1.0)
-		if noise_mult > 0.0:
-			var max_hear = hearing_range * noise_mult
-			if distance_sq <= max_hear * max_hear:
-				var effective_hearing = calculate_auditory_radius(player.global_position) * noise_mult
-				if distance_sq <= effective_hearing * effective_hearing:
-					on_noise_heard(player.global_position)
-					return
-
+	var detected := _check_player_detection(0.0)
+	if detected:
+		target = detected
+		_change_state(State.ALERT)
+		awareness_level = 0.5
+		return
+	if current_state != State.RETURN:
+		return
 	_set_movement_target(spawn_position)
-	
 	if (nav_agent and nav_agent.is_navigation_finished()) or parent.global_position.distance_squared_to(spawn_position) <= 256.0:
 		parent.velocity = Vector2.ZERO
 		parent.global_position = spawn_position
 		_change_state(State.IDLE)
 		return
-	
-	var dir := Vector2.ZERO
-	if nav_agent:
-		var next_path_pos = nav_agent.get_next_path_position()
-		dir = (next_path_pos - parent.global_position).normalized()
-	
-	if dir == Vector2.ZERO:
-		dir = (spawn_position - parent.global_position).normalized()
-	
-	var final_dir = _get_avoidance_direction(dir)
-	if final_dir == Vector2.ZERO:
-		final_dir = dir
-		
-	parent.velocity = final_dir * (chase_speed * 0.5)
+	var fallback := (spawn_position - parent.global_position).normalized()
+	var final_dir := _steer_towards(spawn_position, fallback)
+	parent.velocity = (final_dir if final_dir != Vector2.ZERO else fallback) * (chase_speed * 0.5)
 
 func _process_flee() -> void:
 	if not target:
 		target = _find_player_in_range(detection_range * 1.5)
-	
 	if not target:
 		_change_state(State.RETURN)
 		return
-		
-	var dir_away = (parent.global_position - target.global_position).normalized()
-	var flee_dest = parent.global_position + (dir_away * 300.0)
-	
-	_set_movement_target(flee_dest)
-	
-	var desired_direction := Vector2.ZERO
-	if nav_agent:
-		var next_path_pos = nav_agent.get_next_path_position()
-		desired_direction = (next_path_pos - parent.global_position).normalized()
-	
-	if desired_direction == Vector2.ZERO:
-		desired_direction = dir_away
-		
-	var final_direction = _get_avoidance_direction(desired_direction)
-	parent.velocity = final_direction * (chase_speed * 1.2)
+	var dir_away := (parent.global_position - target.global_position).normalized()
+	parent.velocity = _steer_towards(parent.global_position + dir_away * 300.0, dir_away) * (chase_speed * 1.2)
 
 func _on_health_changed(current: float, max_health: float) -> void:
-	if flee_health_threshold > 0.0:
-		var percent = current / max_health
-		if percent <= flee_health_threshold:
-			if current_state != State.FLEE and current_state != State.IDLE:
-				if not target:
-					target = _find_player_in_range(detection_range)
-				_change_state(State.FLEE)
+	if flee_health_threshold > 0.0 and (current / max_health) <= flee_health_threshold and current_state not in [State.FLEE, State.IDLE]:
+		if not target:
+			target = _find_player_in_range(detection_range)
+		_change_state(State.FLEE)
 
 func _find_player_in_range(max_range: float) -> Node2D:
-	if not detection_area:
-		return null
-	var closest = detection_area.get_closest_target(parent.global_position)
-	if closest:
-		if max_range <= 0.0 or parent.global_position.distance_to(closest.global_position) <= max_range * 1.5:
-			return closest
-	return null
+	if not detection_area: return null
+	var closest := detection_area.get_closest_target(parent.global_position)
+	return closest if (closest and (max_range <= 0.0 or parent.global_position.distance_to(closest.global_position) <= max_range * 1.5)) else null
 
 func _calculate_separation_vector() -> Vector2:
-	const SEPARATION_RADIUS_SQ: float = 2500.0 # 50.0^2
-	var separation = Vector2.ZERO
-	
+	var separation := Vector2.ZERO
 	for ally in get_tree().get_nodes_in_group("enemies"):
 		if ally == parent: continue
-		var diff = parent.global_position - ally.global_position
-		var dist_sq = diff.length_squared()
-		if dist_sq < SEPARATION_RADIUS_SQ and dist_sq > 0.0001:
+		var diff: Vector2 = parent.global_position - ally.global_position
+		var dist_sq := diff.length_squared()
+		if dist_sq < 2500.0 and dist_sq > 0.0001:
 			separation += diff / dist_sq
-			
-	if separation.length_squared() > 0.0001:
-		return separation.normalized()
-	return Vector2.ZERO
+	return separation.normalized() if separation.length_squared() > 0.0001 else Vector2.ZERO
 
 func _has_line_of_sight(target_node: Node2D) -> bool:
-	if not target_node:
-		return false
-	
+	if not target_node: return false
 	if target_node == cached_los_target and vision_timer > 0.0:
 		return cached_los_result
-		
 	cached_los_target = target_node
-	vision_timer = 0.1 # Check at most 10 times/sec
-	
-	var space_state = parent.get_world_2d().direct_space_state
-	var query = PhysicsRayQueryParameters2D.create(
-		parent.global_position,
-		target_node.global_position
-	)
+	vision_timer = 0.1
+	var query := PhysicsRayQueryParameters2D.create(parent.global_position, target_node.global_position, 1)
 	query.exclude = [parent.get_rid(), target_node.get_rid()] if target_node is CollisionObject2D else [parent.get_rid()]
-	query.collision_mask = 1
-	
-	var result = space_state.intersect_ray(query)
-	cached_los_result = result.is_empty()
+	cached_los_result = parent.get_world_2d().direct_space_state.intersect_ray(query).is_empty()
 	return cached_los_result
 
 func calculate_auditory_radius(sound_origin: Vector2) -> float:
 	if hearing_timer > 0.0:
 		return cached_effective_hearing
-		
-	hearing_timer = 0.15 # Throttle acoustic raycast to ~6-7 times/sec when close
-	
-	var query = PhysicsRayQueryParameters2D.create(parent.global_position, sound_origin)
-	query.exclude = [parent.get_rid()]
-	query.collision_mask = 1
-	
-	var space_state = parent.get_world_2d().direct_space_state
-	var result = space_state.intersect_ray(query)
-	
-	if not result.is_empty():
-		cached_effective_hearing = 20.0
-	else:
-		cached_effective_hearing = hearing_range
+	hearing_timer = 0.15
+	var query := PhysicsRayQueryParameters2D.create(parent.global_position, sound_origin, 1, [parent.get_rid()])
+	cached_effective_hearing = 20.0 if not parent.get_world_2d().direct_space_state.intersect_ray(query).is_empty() else hearing_range
 	return cached_effective_hearing
 
 func _get_avoidance_direction(desired_dir: Vector2) -> Vector2:
 	if is_instance_valid(on_screen_notifier) and not on_screen_notifier.is_on_screen():
 		return desired_dir
-
-	# Use dot product (> 0.98 is ~11 deg tolerance) so minor sub-pixel movement doesn't invalidate the cache!
 	if avoidance_timer > 0.0 and desired_dir.dot(cached_avoidance_input_dir) > 0.98:
 		return cached_avoidance_dir
-		
 	cached_avoidance_input_dir = desired_dir
 	avoidance_timer = 0.12
-	
+	var space_state := parent.get_world_2d().direct_space_state
+	var exclude_rids: Array[RID] = [parent.get_rid(), target.get_rid()] if target is CollisionObject2D else [parent.get_rid()]
 	for i in range(num_rays):
-		var d = ray_directions[i].dot(desired_dir)
-		interest_map[i] = max(0.0, d)
+		interest_map[i] = max(0.0, ray_directions[i].dot(desired_dir))
 		danger_map[i] = 0.0
-	
-	var space_state = parent.get_world_2d().direct_space_state
-	var exclude_rids: Array[RID] = [parent.get_rid()]
-	if target:
-		exclude_rids.append(target.get_rid())
-	
 	for i in range(num_rays):
-		var query = PhysicsRayQueryParameters2D.create(
-			parent.global_position,
-			parent.global_position + ray_directions[i] * look_ahead
-		)
-		query.exclude = exclude_rids
-		query.collision_mask = 1
-		
-		var result = space_state.intersect_ray(query)
-		if not result.is_empty():
+		var query := PhysicsRayQueryParameters2D.create(parent.global_position, parent.global_position + ray_directions[i] * look_ahead, 1, exclude_rids)
+		if not space_state.intersect_ray(query).is_empty():
 			danger_map[i] = 1.0
-			var prev = (i - 1 + num_rays) % num_rays
-			var next = (i + 1) % num_rays
-			danger_map[prev] = max(danger_map[prev], 0.5)
-			danger_map[next] = max(danger_map[next], 0.5)
-
-	var chosen_dir = Vector2.ZERO
+			danger_map[(i - 1 + num_rays) % num_rays] = max(danger_map[(i - 1 + num_rays) % num_rays], 0.5)
+			danger_map[(i + 1) % num_rays] = max(danger_map[(i + 1) % num_rays], 0.5)
+	var chosen_dir := Vector2.ZERO
 	for i in range(num_rays):
-		var value = interest_map[i] - danger_map[i]
+		var value := interest_map[i] - danger_map[i]
 		if value > 0.0:
 			chosen_dir += ray_directions[i] * value
-			
 	cached_avoidance_dir = chosen_dir.normalized()
 	return cached_avoidance_dir
 
@@ -612,94 +438,64 @@ func _change_state(new_state: State) -> void:
 func _broadcast_alert() -> void:
 	if alert_cooldown_timer > 0.0:
 		return
-		
 	alert_cooldown_timer = ALERT_COOLDOWN_MAX
-	
 	var alert_radius: float = 300.0
-	var allies = get_tree().get_nodes_in_group("enemies")
-	
-	for ally in allies:
-		if ally == parent: continue
-		if not ally.is_physics_processing(): continue
-		
-		var distance = parent.global_position.distance_to(ally.global_position)
+	for ally in get_tree().get_nodes_in_group("enemies"):
+		if ally == parent or not ally.is_physics_processing(): continue
+		var distance := parent.global_position.distance_to(ally.global_position)
 		if distance > alert_radius: continue
-		
-		var ally_ai = ally.get_node_or_null("EnemyAI")
-		if ally_ai and ally_ai is EnemyAI:
-			if ally_ai.current_state in [State.CHASE, State.ATTACK, State.FLEE]:
-				continue
-			if ally_ai.alert_cooldown_timer > 0.0:
-				continue
-				
-			var space_state = parent.get_world_2d().direct_space_state
-			var query = PhysicsRayQueryParameters2D.create(parent.global_position, ally.global_position)
-			query.collision_mask = 1
-			query.exclude = [parent.get_rid(), ally.get_rid()]
-			
-			var result = space_state.intersect_ray(query)
-			var effective_range = alert_radius if result.is_empty() else 100.0
-			
-			if distance <= effective_range or ally_ai._has_line_of_sight(parent):
-				ally_ai.target_facing_direction = (parent.global_position - ally.global_position).normalized()
-				if target:
-					ally_ai.target = target
-					ally_ai.last_known_position = target.global_position
-					ally_ai.roam_target = target.global_position
-					ally_ai.awareness_level = 1.0
-					ally_ai.broadcast_chase_timer = BROADCAST_CHASE_GRACE
-					ally_ai._change_state(State.CHASE)
-				else:
-					ally_ai.last_known_position = parent.global_position
-					ally_ai.roam_target = parent.global_position
-					ally_ai.awareness_level = 0.5
-					ally_ai._change_state(State.SEARCH)
+		var ally_ai := ally.get_node_or_null("EnemyAI") as EnemyAI
+		if not ally_ai or ally_ai.current_state in [State.CHASE, State.ATTACK, State.FLEE] or ally_ai.alert_cooldown_timer > 0.0:
+			continue
+		var query := PhysicsRayQueryParameters2D.create(parent.global_position, ally.global_position, 1, [parent.get_rid(), ally.get_rid()])
+		var effective_range := alert_radius if parent.get_world_2d().direct_space_state.intersect_ray(query).is_empty() else 100.0
+		if distance <= effective_range or ally_ai._has_line_of_sight(parent):
+			ally_ai.target_facing_direction = (parent.global_position - ally.global_position).normalized()
+			if target:
+				ally_ai.target = target
+				ally_ai.last_known_position = target.global_position
+				ally_ai.roam_target = target.global_position
+				ally_ai.awareness_level = 1.0
+				ally_ai.broadcast_chase_timer = BROADCAST_CHASE_GRACE
+				ally_ai._change_state(State.CHASE)
+			else:
+				ally_ai.last_known_position = parent.global_position
+				ally_ai.roam_target = parent.global_position
+				ally_ai.awareness_level = 0.5
+				ally_ai._change_state(State.SEARCH)
 
 func _spawn_ghost(pos: Vector2, target_node: Node2D) -> void:
 	_clear_ghost()
 	if not target_node: return
-	
-	var anim_node = target_node.get_node_or_null("Animations")
-	var texture = null
-	var hframes = 1
-	var vframes = 1
-	var frame = 0
-	
+	var anim_node := target_node.get_node_or_null("Animations")
+	var texture: Texture2D = null
 	if anim_node is AnimatedSprite2D:
 		texture = anim_node.sprite_frames.get_frame_texture(anim_node.animation, anim_node.frame)
 	elif anim_node is Sprite2D:
 		texture = anim_node.texture
-		hframes = anim_node.hframes
-		vframes = anim_node.vframes
-		frame = anim_node.frame
-		
-	if texture:
-		ghost_instance = Sprite2D.new()
-		ghost_instance.texture = texture
-		if anim_node is Sprite2D:
-			ghost_instance.hframes = hframes
-			ghost_instance.vframes = vframes
-			ghost_instance.frame = frame
-		
-		ghost_instance.z_index = 100
-		ghost_instance.scale = target_node.scale
-		ghost_instance.global_position = pos
-		
-		if anim_node is AnimatedSprite2D or anim_node is Sprite2D:
-			ghost_instance.flip_h = anim_node.flip_h
-			ghost_instance.flip_v = anim_node.flip_v
-		
-		if GHOST_SHADER:
-			var mat = ShaderMaterial.new()
-			mat.shader = GHOST_SHADER
-			mat.set_shader_parameter("line_color", Color(0.5, 0.8, 1.0, 0.8))
-			mat.set_shader_parameter("line_thickness", 2.0)
-			ghost_instance.material = mat
-		else:
-			ghost_instance.modulate = Color(0.5, 0.8, 1.0, 0.5)
-		
-		get_tree().current_scene.add_child(ghost_instance)
-		get_tree().create_timer(3.0).timeout.connect(_clear_ghost)
+	if not texture: return
+	ghost_instance = Sprite2D.new()
+	ghost_instance.texture = texture
+	if anim_node is Sprite2D:
+		ghost_instance.hframes = anim_node.hframes
+		ghost_instance.vframes = anim_node.vframes
+		ghost_instance.frame = anim_node.frame
+	ghost_instance.z_index = 100
+	ghost_instance.scale = target_node.scale
+	ghost_instance.global_position = pos
+	if anim_node is AnimatedSprite2D or anim_node is Sprite2D:
+		ghost_instance.flip_h = anim_node.flip_h
+		ghost_instance.flip_v = anim_node.flip_v
+	if GHOST_SHADER:
+		var mat := ShaderMaterial.new()
+		mat.shader = GHOST_SHADER
+		mat.set_shader_parameter("line_color", Color(0.5, 0.8, 1.0, 0.8))
+		mat.set_shader_parameter("line_thickness", 2.0)
+		ghost_instance.material = mat
+	else:
+		ghost_instance.modulate = Color(0.5, 0.8, 1.0, 0.5)
+	get_tree().current_scene.add_child(ghost_instance)
+	get_tree().create_timer(3.0).timeout.connect(_clear_ghost)
 
 func _clear_ghost() -> void:
 	if is_instance_valid(ghost_instance):

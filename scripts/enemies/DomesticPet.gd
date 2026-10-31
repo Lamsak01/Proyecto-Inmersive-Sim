@@ -70,21 +70,28 @@ func _ready() -> void:
 		if not WorldClock.day_passed.is_connected(_on_day_passed):
 			WorldClock.day_passed.connect(_on_day_passed)
 
-func _setup_components_and_visuals() -> void:
+func _add_circle_col(parent: Node, radius: float) -> void:
 	var col := CollisionShape2D.new()
 	var c := CircleShape2D.new()
-	c.radius = 5.0
+	c.radius = radius
 	col.shape = c
-	add_child(col)
+	parent.add_child(col)
+
+func _set_area_disabled(area: Area2D, dis: bool) -> void:
+	if area and area.get_child_count() > 0:
+		var col := area.get_child(0) as CollisionShape2D
+		if col:
+			col.set_deferred("disabled", dis)
+
+func _setup_components_and_visuals() -> void:
+	_add_circle_col(self, 5.0)
 
 	health_comp = HealthComponent.new()
 	health_comp.name = "HealthComponent"
 	health_comp.max_health = 45.0 if pet_type == PetType.DOG else 24.0
 	health_comp.current_health = health_comp.max_health
 	health_comp.died.connect(_on_died)
-	health_comp.bleed_triggered.connect(func(_dps = 0):
-		_spawn_floating_text("🩸 ¡Sangrado!", Color.CRIMSON)
-	)
+	health_comp.bleed_triggered.connect(func(_dps = 0): _spawn_floating_text("🩸 ¡Sangrado!", Color.CRIMSON))
 	add_child(health_comp)
 
 	stun_comp = StunComponent.new()
@@ -98,18 +105,13 @@ func _setup_components_and_visuals() -> void:
 	hurtbox.name = "Hurtbox"
 	hurtbox.collision_layer = 4
 	hurtbox.collision_mask = 0
-	var h_col := CollisionShape2D.new()
-	var h_circle := CircleShape2D.new()
-	h_circle.radius = 9.0
-	h_col.shape = h_circle
-	hurtbox.add_child(h_col)
+	_add_circle_col(hurtbox, 9.0)
 	hurtbox.hit_received.connect(take_damage)
 	add_child(hurtbox)
 
 	sprite = Sprite2D.new()
 	sprite.name = "Sprite2D"
-	var tex_path: String = "res://assests/world/pets/pet_dog.png" if pet_type == PetType.DOG else "res://assests/world/pets/pet_cat.png"
-	sprite.texture = _load_tex(tex_path)
+	sprite.texture = _load_tex("res://assests/world/pets/pet_dog.png" if pet_type == PetType.DOG else "res://assests/world/pets/pet_cat.png")
 	sprite.modulate = tint_color
 	sprite.scale = Vector2(1.15, 1.15)
 	sprite.position = Vector2(0, -5)
@@ -120,11 +122,7 @@ func _setup_components_and_visuals() -> void:
 	interact_area.collision_layer = 1
 	interact_area.collision_mask = 2
 	interact_area.add_to_group("interactable")
-	var icol := CollisionShape2D.new()
-	var ic := CircleShape2D.new()
-	ic.radius = 16.0
-	icol.shape = ic
-	interact_area.add_child(icol)
+	_add_circle_col(interact_area, 16.0)
 	interact_area.body_entered.connect(func(b: Node): if b.is_in_group("player"): _player_near = true)
 	interact_area.body_exited.connect(func(b: Node): if b.is_in_group("player"): _player_near = false)
 	add_child(interact_area)
@@ -314,12 +312,8 @@ func _compute_player_soft_push() -> Vector2:
 	var min_r: float = 15.0
 	if d_sq >= min_r * min_r:
 		return Vector2.ZERO
-	var away: Vector2 = global_position - p.global_position
 	var d: float = sqrt(d_sq)
-	if d < 0.01:
-		away = Vector2.RIGHT
-	else:
-		away = away / d
+	var away: Vector2 = (global_position - p.global_position) / d if d >= 0.01 else Vector2.RIGHT
 	return away * ((min_r - d) / min_r) * 58.0
 
 func _try_eat_from_home_bowl(_delta: float) -> void:
@@ -380,10 +374,7 @@ func _on_died(silent: bool = false) -> void:
 	is_sleeping = false
 	remove_from_group("enemies")
 	velocity = Vector2.ZERO
-	if hurtbox and hurtbox.get_child_count() > 0:
-		var hcol := hurtbox.get_child(0) as CollisionShape2D
-		if hcol:
-			hcol.set_deferred("disabled", true)
+	_set_area_disabled(hurtbox, true)
 	if sprite:
 		sprite.rotation_degrees = 90.0
 		sprite.offset.y = 0.0
@@ -424,10 +415,7 @@ func interact(player: Node2D) -> void:
 	if is_dead:
 		corpse_looted = true
 		visible = false
-		if interact_area and interact_area.get_child_count() > 0:
-			var ic := interact_area.get_child(0) as CollisionShape2D
-			if ic:
-				ic.set_deferred("disabled", true)
+		_set_area_disabled(interact_area, true)
 		var vm_skin = get_tree().get_first_node_in_group("village_manager")
 		if vm_skin and vm_skin.has_method("report_pet_assault_crime"):
 			vm_skin.call("report_pet_assault_crime", self)
@@ -449,11 +437,7 @@ func interact(player: Node2D) -> void:
 
 	# Si tiene hambre (< 80%) y el jugador lleva comida adecuada, alimentarlo
 	if inv and (not is_fed_today or need_hunger < 80.0):
-		var food_candidates: Array[String] = []
-		if pet_type == PetType.DOG:
-			food_candidates = ["raw_meat", "raw_chicken", "cooked_meat"]
-		else:
-			food_candidates = ["river_trout", "golden_carp", "raw_chicken", "cooked_fish"]
+		var food_candidates: Array[String] = ["raw_meat", "raw_chicken", "cooked_meat"] if pet_type == PetType.DOG else ["river_trout", "golden_carp", "raw_chicken", "cooked_fish"]
 		for f_id in food_candidates:
 			if inv.has_item(f_id, 1):
 				var f_name: String = inv.get_item_name(f_id)
@@ -553,16 +537,10 @@ func _load_tex(res_path: String) -> Texture2D:
 
 func to_save_dict() -> Dictionary:
 	return {
-		"pet_name": pet_name,
-		"is_fed_today": is_fed_today,
-		"affection": affection,
-		"need_hunger": need_hunger,
-		"digestion_buffer": digestion_buffer,
-		"need_energy": need_energy,
-		"is_dead": is_dead,
-		"corpse_looted": corpse_looted,
-		"pos_x": global_position.x,
-		"pos_y": global_position.y,
+		"pet_name": pet_name, "is_fed_today": is_fed_today, "affection": affection,
+		"need_hunger": need_hunger, "digestion_buffer": digestion_buffer, "need_energy": need_energy,
+		"is_dead": is_dead, "corpse_looted": corpse_looted,
+		"pos_x": global_position.x, "pos_y": global_position.y,
 		"hp": health_comp.current_health if health_comp else 36.0
 	}
 
@@ -574,15 +552,11 @@ func from_save_dict(data: Dictionary) -> void:
 	need_energy = clampf(float(data.get("need_energy", 90.0)), 0.0, 100.0)
 	if data.has("pos_x") and data.has("pos_y"):
 		global_position = Vector2(float(data["pos_x"]), float(data["pos_y"]))
-	var dead_s: bool = bool(data.get("is_dead", false))
-	if dead_s:
+	if bool(data.get("is_dead", false)):
 		_on_died(true)
 		corpse_looted = bool(data.get("corpse_looted", false))
 		visible = not corpse_looted
-		if interact_area and interact_area.get_child_count() > 0:
-			var ic_dead := interact_area.get_child(0) as CollisionShape2D
-			if ic_dead:
-				ic_dead.set_deferred("disabled", corpse_looted)
+		_set_area_disabled(interact_area, corpse_looted)
 	else:
 		is_dead = false
 		is_sleeping = false
@@ -593,14 +567,8 @@ func from_save_dict(data: Dictionary) -> void:
 		is_stunned_flag = false
 		remove_from_group("enemies")
 		visible = true
-		if interact_area and interact_area.get_child_count() > 0:
-			var ic_alive := interact_area.get_child(0) as CollisionShape2D
-			if ic_alive:
-				ic_alive.set_deferred("disabled", false)
-		if hurtbox and hurtbox.get_child_count() > 0:
-			var hcol := hurtbox.get_child(0) as CollisionShape2D
-			if hcol:
-				hcol.set_deferred("disabled", false)
+		_set_area_disabled(interact_area, false)
+		_set_area_disabled(hurtbox, false)
 		if sprite:
 			sprite.rotation_degrees = 0.0
 			sprite.scale = Vector2(1.15, 1.15)

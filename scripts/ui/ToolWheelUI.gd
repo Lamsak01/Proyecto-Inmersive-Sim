@@ -21,38 +21,27 @@ var center_title_lbl: Label = null
 var center_desc_lbl: Label = null
 var footer_hint_lbl: Label = null
 
+func _make_wheel_lbl(f_sz: int, col: Color, out_sz: int = 3, autowrap: bool = false, txt: String = "") -> Label:
+	var l := Label.new()
+	l.text = txt
+	l.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	l.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	if autowrap:
+		l.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	l.add_theme_font_size_override("font_size", f_sz)
+	l.add_theme_color_override("font_color", col)
+	l.add_theme_color_override("font_outline_color", Color.BLACK)
+	l.add_theme_constant_override("outline_size", out_sz)
+	add_child(l)
+	return l
+
 func _ready() -> void:
 	visible = false
 	mouse_filter = Control.MOUSE_FILTER_STOP
 	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-
-	center_title_lbl = Label.new()
-	center_title_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	center_title_lbl.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-	center_title_lbl.add_theme_font_size_override("font_size", 14)
-	center_title_lbl.add_theme_color_override("font_color", Color(1.0, 0.90, 0.55))
-	center_title_lbl.add_theme_color_override("font_outline_color", Color.BLACK)
-	center_title_lbl.add_theme_constant_override("outline_size", 3)
-	add_child(center_title_lbl)
-
-	center_desc_lbl = Label.new()
-	center_desc_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	center_desc_lbl.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-	center_desc_lbl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	center_desc_lbl.add_theme_font_size_override("font_size", 10)
-	center_desc_lbl.add_theme_color_override("font_color", Color(0.85, 0.90, 0.96))
-	center_desc_lbl.add_theme_color_override("font_outline_color", Color.BLACK)
-	center_desc_lbl.add_theme_constant_override("outline_size", 2)
-	add_child(center_desc_lbl)
-
-	footer_hint_lbl = Label.new()
-	footer_hint_lbl.text = "☸ Rueda de Herramientas [A/D o Flechas ←/→ para girar | Espacio/Enter/Clic para elegir | 1-8 Rápido]"
-	footer_hint_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	footer_hint_lbl.add_theme_font_size_override("font_size", 11)
-	footer_hint_lbl.add_theme_color_override("font_color", Color(0.95, 0.88, 0.68))
-	footer_hint_lbl.add_theme_color_override("font_outline_color", Color.BLACK)
-	footer_hint_lbl.add_theme_constant_override("outline_size", 3)
-	add_child(footer_hint_lbl)
+	center_title_lbl = _make_wheel_lbl(14, Color(1.0, 0.90, 0.55), 3)
+	center_desc_lbl = _make_wheel_lbl(10, Color(0.85, 0.90, 0.96), 2, true)
+	footer_hint_lbl = _make_wheel_lbl(11, Color(0.95, 0.88, 0.68), 3, false, "☸ Rueda de Herramientas [A/D o Flechas ←/→ para girar | Espacio/Enter/Clic para elegir | 1-8 Rápido]")
 
 func open_wheel() -> void:
 	if not player:
@@ -164,62 +153,14 @@ func _get_tool_entries() -> Array[Dictionary]:
 		sickle_bonus = int(player.call("get_sickle_bonus"))
 
 	return [
-		{
-			"key": "1",
-			"tier": t_sword,
-			"title": "Espada" + _get_tier_badge(t_sword),
-			"desc": "Arma de filo: corte rápido y acumulación de sangrado.\nMejorable en la Herrería de Thoran.",
-			"weapon": player.get("sword_weapon") if player else null
-		},
-		{
-			"key": "2",
-			"tier": t_hammer,
-			"title": "Martillo" + _get_tier_badge(t_hammer),
-			"desc": "Arma contundente: alto empuje y aturdimiento (KO).\nMejorable en la Herrería de Thoran.",
-			"weapon": player.get("hammer_weapon") if player else null
-		},
-		{
-			"key": "3",
-			"tier": t_axe,
-			"title": "Hacha" + _get_tier_badge(t_axe),
-			"desc": "Herramienta especialista en Tala de Árboles.\nEficiencia de tala: %d%%" % int(round((1.8 if t_axe == 1 else (2.7 if t_axe == 2 else 3.8)) * 100.0)),
-			"weapon": player.get("axe_weapon") if player else null
-		},
-		{
-			"key": "4",
-			"tier": t_pick,
-			"title": "Pico" + _get_tier_badge(t_pick),
-			"desc": "Herramienta especialista en Minería de Rocas y Hierro.\nEficiencia minera: %d%%" % int(round((1.8 if t_pick == 1 else (2.7 if t_pick == 2 else 3.8)) * 100.0)),
-			"weapon": player.get("pickaxe_weapon") if player else null
-		},
-		{
-			"key": "5",
-			"tier": t_bow,
-			"title": "Arco de Caza" + _get_tier_badge(t_bow),
-			"desc": "Disparo a distancia silencioso para cazar sin espantar.\nMantén Clic Izquierdo para tensar.",
-			"weapon": player.get("bow_weapon") if player else null
-		},
-		{
-			"key": "6",
-			"tier": t_sickle,
-			"title": "Hoz" + _get_tier_badge(t_sickle),
-			"desc": "Herramienta de cosecha agrícola.\nOtorga +%d cultivo(s) extra al cosechar plantas maduras." % sickle_bonus,
-			"weapon": player.get("sickle_weapon") if player else null
-		},
-		{
-			"key": "7",
-			"tier": t_can,
-			"title": "Regadera (%d/%d)%s" % [water_charges, max_water, _get_tier_badge(t_can)],
-			"desc": "Herramienta de riego agrícola (Agua: %d/%d).\nRecárgala en el Pozo o en el Lago del Oeste." % [water_charges, max_water],
-			"weapon": player.get("watering_can_weapon") if player else null
-		},
-		{
-			"key": "8",
-			"tier": t_rod,
-			"title": "Caña de Pescar" + _get_tier_badge(t_rod),
-			"desc": "Herramienta de pesca con barra de precisión.\nTamaño de barra: %d%%." % int(round((1.0 if t_rod == 1 else (1.28 if t_rod == 2 else 1.55)) * 100.0)),
-			"weapon": player.get("fishing_rod_weapon") if player else null
-		}
+		{"key": "1", "tier": t_sword, "title": "Espada" + _get_tier_badge(t_sword), "desc": "Arma de filo: corte rápido y acumulación de sangrado.\nMejorable en la Herrería de Thoran.", "weapon": player.get("sword_weapon") if player else null},
+		{"key": "2", "tier": t_hammer, "title": "Martillo" + _get_tier_badge(t_hammer), "desc": "Arma contundente: alto empuje y aturdimiento (KO).\nMejorable en la Herrería de Thoran.", "weapon": player.get("hammer_weapon") if player else null},
+		{"key": "3", "tier": t_axe, "title": "Hacha" + _get_tier_badge(t_axe), "desc": "Herramienta especialista en Tala de Árboles.\nEficiencia de tala: %d%%" % int(round((1.8 if t_axe == 1 else (2.7 if t_axe == 2 else 3.8)) * 100.0)), "weapon": player.get("axe_weapon") if player else null},
+		{"key": "4", "tier": t_pick, "title": "Pico" + _get_tier_badge(t_pick), "desc": "Herramienta especialista en Minería de Rocas y Hierro.\nEficiencia minera: %d%%" % int(round((1.8 if t_pick == 1 else (2.7 if t_pick == 2 else 3.8)) * 100.0)), "weapon": player.get("pickaxe_weapon") if player else null},
+		{"key": "5", "tier": t_bow, "title": "Arco de Caza" + _get_tier_badge(t_bow), "desc": "Disparo a distancia silencioso para cazar sin espantar.\nMantén Clic Izquierdo para tensar.", "weapon": player.get("bow_weapon") if player else null},
+		{"key": "6", "tier": t_sickle, "title": "Hoz" + _get_tier_badge(t_sickle), "desc": "Herramienta de cosecha agrícola.\nOtorga +%d cultivo(s) extra al cosechar plantas maduras." % sickle_bonus, "weapon": player.get("sickle_weapon") if player else null},
+		{"key": "7", "tier": t_can, "title": "Regadera (%d/%d)%s" % [water_charges, max_water, _get_tier_badge(t_can)], "desc": "Herramienta de riego agrícola (Agua: %d/%d).\nRecárgala en el Pozo o en el Lago del Oeste." % [water_charges, max_water], "weapon": player.get("watering_can_weapon") if player else null},
+		{"key": "8", "tier": t_rod, "title": "Caña de Pescar" + _get_tier_badge(t_rod), "desc": "Herramienta de pesca con barra de precisión.\nTamaño de barra: %d%%." % int(round((1.0 if t_rod == 1 else (1.28 if t_rod == 2 else 1.55)) * 100.0)), "weapon": player.get("fishing_rod_weapon") if player else null}
 	]
 
 func _get_equipped_index() -> int:

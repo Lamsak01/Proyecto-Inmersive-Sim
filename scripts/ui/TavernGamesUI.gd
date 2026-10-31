@@ -94,6 +94,37 @@ const EUROPEAN_WHEEL_ORDER: Array[int] = [
 	5, 24, 16, 33, 1, 20, 14, 31, 9, 22, 18, 29, 7, 28, 12, 35, 3, 26
 ]
 
+func _make_style(bg: Color, border: Color, bw: int, cr: int, mx: int, my: int) -> StyleBoxFlat:
+	var s := StyleBoxFlat.new()
+	s.bg_color = bg
+	s.border_color = border
+	s.set_border_width_all(bw)
+	s.set_corner_radius_all(cr)
+	s.content_margin_left = mx
+	s.content_margin_right = mx
+	s.content_margin_top = my
+	s.content_margin_bottom = my
+	return s
+
+func _make_lbl(parent: Node, txt: String, f_sz: int, col: Color, center: bool = false, autowrap: bool = false) -> Label:
+	var l := Label.new()
+	l.text = txt
+	if center:
+		l.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	if autowrap:
+		l.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	l.add_theme_font_size_override("font_size", f_sz)
+	l.add_theme_color_override("font_color", col)
+	parent.add_child(l)
+	return l
+
+func _make_btn(parent: Node, txt: String, cb: Callable) -> Button:
+	var b := Button.new()
+	b.text = txt
+	b.pressed.connect(cb)
+	parent.add_child(b)
+	return b
+
 func _ready() -> void:
 	visible = false
 	set_anchors_and_offsets_preset(Control.PRESET_CENTER)
@@ -102,18 +133,7 @@ func _ready() -> void:
 	offset_right = 435.0
 	offset_bottom = 255.0
 	z_index = 90
-
-	var style := StyleBoxFlat.new()
-	style.bg_color = Color(0.06, 0.12, 0.09, 0.98)
-	style.border_color = Color(0.84, 0.68, 0.32, 1.0)
-	style.set_border_width_all(3)
-	style.set_corner_radius_all(10)
-	style.content_margin_left = 18
-	style.content_margin_right = 18
-	style.content_margin_top = 12
-	style.content_margin_bottom = 12
-	add_theme_stylebox_override("panel", style)
-
+	add_theme_stylebox_override("panel", _make_style(Color(0.06, 0.12, 0.09, 0.98), Color(0.84, 0.68, 0.32, 1.0), 3, 10, 18, 12))
 	_reset_pool_rack()
 	_build_ui()
 
@@ -122,59 +142,22 @@ func _build_ui() -> void:
 	root_vbox.add_theme_constant_override("separation", 6)
 	add_child(root_vbox)
 
-	# 1. Cabecera con Reloj Congelado y Oro
 	var header := HBoxContainer.new()
 	root_vbox.add_child(header)
-
-	var title := Label.new()
-	title.text = "🎲 Salón de Casino y Billar — Posada 'El Jabalí Dorado'"
+	var title := _make_lbl(header, "🎲 Salón de Casino y Billar — Posada 'El Jabalí Dorado'", 16, Color(1.0, 0.90, 0.55))
 	title.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	title.add_theme_font_size_override("font_size", 16)
-	title.add_theme_color_override("font_color", Color(1.0, 0.90, 0.55))
-	header.add_child(title)
+	header_freeze_lbl = _make_lbl(header, "❄️ Tiempo Pausado (Rutinas Protegidas)   ", 12, Color(0.58, 0.90, 1.0))
+	header_gold_lbl = _make_lbl(header, "💰 25 Oro", 15, Color.GOLD)
 
-	header_freeze_lbl = Label.new()
-	header_freeze_lbl.text = "❄️ Tiempo Pausado (Rutinas Protegidas)   "
-	header_freeze_lbl.add_theme_font_size_override("font_size", 12)
-	header_freeze_lbl.add_theme_color_override("font_color", Color(0.58, 0.90, 1.0))
-	header.add_child(header_freeze_lbl)
-
-	header_gold_lbl = Label.new()
-	header_gold_lbl.text = "💰 25 Oro"
-	header_gold_lbl.add_theme_font_size_override("font_size", 15)
-	header_gold_lbl.add_theme_color_override("font_color", Color.GOLD)
-	header.add_child(header_gold_lbl)
-
-	# 2. Selector de Juego ([F1] Póker, [F2] Blackjack, [F3] Ruleta, [F4] Billar)
 	var tabs_hbox := HBoxContainer.new()
 	tabs_hbox.alignment = BoxContainer.ALIGNMENT_CENTER
 	tabs_hbox.add_theme_constant_override("separation", 8)
 	root_vbox.add_child(tabs_hbox)
-
-	var btn_poker := Button.new()
-	btn_poker.text = "♠️ [F1] Póker Hold'em"
-	btn_poker.pressed.connect(func(): _switch_tab(GameTab.POKER))
-	tabs_hbox.add_child(btn_poker)
-
-	var btn_bj := Button.new()
-	btn_bj.text = "🃏 [F2] Blackjack 21"
-	btn_bj.pressed.connect(func(): _switch_tab(GameTab.BLACKJACK))
-	tabs_hbox.add_child(btn_bj)
-
-	var btn_roul := Button.new()
-	btn_roul.text = "🎡 [F3] Ruleta"
-	btn_roul.pressed.connect(func(): _switch_tab(GameTab.ROULETTE))
-	tabs_hbox.add_child(btn_roul)
-
-	var btn_pool := Button.new()
-	btn_pool.text = "🎱 [F4] Billar de Posada"
-	btn_pool.pressed.connect(func(): _switch_tab(GameTab.BILLIARDS))
-	tabs_hbox.add_child(btn_pool)
-
-	var btn_exit := Button.new()
-	btn_exit.text = "✖ [ESC] Levantarse"
-	btn_exit.pressed.connect(func(): close_games())
-	tabs_hbox.add_child(btn_exit)
+	_make_btn(tabs_hbox, "♠️ [F1] Póker Hold'em", func(): _switch_tab(GameTab.POKER))
+	_make_btn(tabs_hbox, "🃏 [F2] Blackjack 21", func(): _switch_tab(GameTab.BLACKJACK))
+	_make_btn(tabs_hbox, "🎡 [F3] Ruleta", func(): _switch_tab(GameTab.ROULETTE))
+	_make_btn(tabs_hbox, "🎱 [F4] Billar de Posada", func(): _switch_tab(GameTab.BILLIARDS))
+	_make_btn(tabs_hbox, "✖ [ESC] Levantarse", func(): close_games())
 
 	# 3. Fila de Retratos Visuales de Personajes (Fotos + Rasgos + Expresión)
 	portraits_box = HBoxContainer.new()
@@ -185,16 +168,7 @@ func _build_ui() -> void:
 	# 4. Área Central del Tapete Verde
 	var felt_panel := PanelContainer.new()
 	felt_panel.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	var felt_style := StyleBoxFlat.new()
-	felt_style.bg_color = Color(0.05, 0.23, 0.14, 0.96)
-	felt_style.border_color = Color(0.38, 0.62, 0.42, 0.85)
-	felt_style.set_border_width_all(2)
-	felt_style.set_corner_radius_all(8)
-	felt_style.content_margin_left = 14
-	felt_style.content_margin_right = 14
-	felt_style.content_margin_top = 8
-	felt_style.content_margin_bottom = 8
-	felt_panel.add_theme_stylebox_override("panel", felt_style)
+	felt_panel.add_theme_stylebox_override("panel", _make_style(Color(0.05, 0.23, 0.14, 0.96), Color(0.38, 0.62, 0.42, 0.85), 2, 8, 14, 8))
 	root_vbox.add_child(felt_panel)
 
 	var felt_vbox := VBoxContainer.new()
@@ -202,11 +176,7 @@ func _build_ui() -> void:
 	felt_vbox.add_theme_constant_override("separation", 6)
 	felt_panel.add_child(felt_vbox)
 
-	table_title_lbl = Label.new()
-	table_title_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	table_title_lbl.add_theme_font_size_override("font_size", 14)
-	table_title_lbl.add_theme_color_override("font_color", Color(0.98, 0.92, 0.68))
-	felt_vbox.add_child(table_title_lbl)
+	table_title_lbl = _make_lbl(felt_vbox, "", 14, Color(0.98, 0.92, 0.68), true)
 
 	visual_cards_area = VBoxContainer.new()
 	visual_cards_area.alignment = BoxContainer.ALIGNMENT_CENTER
@@ -220,28 +190,12 @@ func _build_ui() -> void:
 	pool_canvas.draw.connect(_draw_pool_table)
 	felt_vbox.add_child(pool_canvas)
 
-	cards_display_lbl = Label.new()
-	cards_display_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	cards_display_lbl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	cards_display_lbl.add_theme_font_size_override("font_size", 13)
-	cards_display_lbl.add_theme_color_override("font_color", Color.WHITE)
+	cards_display_lbl = _make_lbl(felt_vbox, "", 13, Color.WHITE, true, true)
 	cards_display_lbl.add_theme_color_override("font_outline_color", Color.BLACK)
 	cards_display_lbl.add_theme_constant_override("outline_size", 3)
-	felt_vbox.add_child(cards_display_lbl)
 
-	table_state_lbl = Label.new()
-	table_state_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	table_state_lbl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	table_state_lbl.add_theme_font_size_override("font_size", 11)
-	table_state_lbl.add_theme_color_override("font_color", Color(0.80, 0.95, 0.85))
-	felt_vbox.add_child(table_state_lbl)
-
-	status_msg_lbl = Label.new()
-	status_msg_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	status_msg_lbl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	status_msg_lbl.add_theme_font_size_override("font_size", 13)
-	status_msg_lbl.add_theme_color_override("font_color", Color(1.0, 0.88, 0.42))
-	root_vbox.add_child(status_msg_lbl)
+	table_state_lbl = _make_lbl(felt_vbox, "", 11, Color(0.80, 0.95, 0.85), true, true)
+	status_msg_lbl = _make_lbl(root_vbox, "", 13, Color(1.0, 0.88, 0.42), true, true)
 
 	# 5. Botonera de Acciones ([1]-[8])
 	actions_box = HBoxContainer.new()
@@ -249,12 +203,7 @@ func _build_ui() -> void:
 	actions_box.add_theme_constant_override("separation", 8)
 	root_vbox.add_child(actions_box)
 
-	tab_info_lbl = Label.new()
-	tab_info_lbl.text = "⌨️ Controles: [1]-[7] Acciones | [F1] Póker [F2] Blackjack [F3] Ruleta [F4] Billar | [A/D] Apuntar Billar | [ESC] Salir"
-	tab_info_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	tab_info_lbl.add_theme_font_size_override("font_size", 10)
-	tab_info_lbl.add_theme_color_override("font_color", Color(0.68, 0.78, 0.72))
-	root_vbox.add_child(tab_info_lbl)
+	tab_info_lbl = _make_lbl(root_vbox, "⌨️ Controles: [1]-[7] Acciones | [F1] Póker [F2] Blackjack [F3] Ruleta [F4] Billar | [A/D] Apuntar Billar | [ESC] Salir", 10, Color(0.68, 0.78, 0.72), true)
 
 func open_games(initial_tab: int = 0) -> void:
 	if not player:
@@ -332,16 +281,7 @@ func _refresh_portraits_bar() -> void:
 		var npc: VillageNPC = table_npcs[i] if i < table_npcs.size() and is_instance_valid(table_npcs[i]) else null
 		var card := PanelContainer.new()
 		card.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		var c_style := StyleBoxFlat.new()
-		c_style.bg_color = Color(0.10, 0.16, 0.14, 0.95)
-		c_style.border_color = Color(0.55, 0.72, 0.52, 0.85)
-		c_style.set_border_width_all(1)
-		c_style.set_corner_radius_all(6)
-		c_style.content_margin_left = 8
-		c_style.content_margin_right = 8
-		c_style.content_margin_top = 4
-		c_style.content_margin_bottom = 4
-		card.add_theme_stylebox_override("panel", c_style)
+		card.add_theme_stylebox_override("panel", _make_style(Color(0.10, 0.16, 0.14, 0.95), Color(0.55, 0.72, 0.52, 0.85), 1, 6, 8, 4))
 
 		var hbox := HBoxContainer.new()
 		hbox.add_theme_constant_override("separation", 8)
@@ -362,20 +302,12 @@ func _refresh_portraits_bar() -> void:
 		vbox.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		hbox.add_child(vbox)
 
-		var name_lbl := Label.new()
 		var traits_txt: String = ", ".join(npc.traits) if (npc and not npc.traits.is_empty()) else "Tahúr"
-		name_lbl.text = "%s  [%s]" % [_get_npc_name(i), traits_txt]
-		name_lbl.add_theme_font_size_override("font_size", 11)
-		name_lbl.add_theme_color_override("font_color", Color(0.98, 0.92, 0.72))
-		vbox.add_child(name_lbl)
+		_make_lbl(vbox, "%s  [%s]" % [_get_npc_name(i), traits_txt], 11, Color(0.98, 0.92, 0.72))
 
-		var react_lbl := Label.new()
 		var mood_val: int = int(round(npc.mood)) if npc else 85
 		var react_str: String = npc_reactions[i] if i < npc_reactions.size() else "😊 Atento"
-		react_lbl.text = "%s  |  Humor: %d%%" % [react_str, mood_val]
-		react_lbl.add_theme_font_size_override("font_size", 10)
-		react_lbl.add_theme_color_override("font_color", Color(0.72, 0.95, 0.82))
-		vbox.add_child(react_lbl)
+		_make_lbl(vbox, "%s  |  Humor: %d%%" % [react_str, mood_val], 10, Color(0.72, 0.95, 0.82))
 
 		portraits_box.add_child(card)
 		portrait_cards.append(card)
@@ -537,66 +469,41 @@ func _input(event: InputEvent) -> void:
 			close_games()
 			get_viewport().set_input_as_handled()
 			return
-		elif event.keycode == KEY_F1:
-			_switch_tab(GameTab.POKER)
-			get_viewport().set_input_as_handled()
-			return
-		elif event.keycode == KEY_F2:
-			_switch_tab(GameTab.BLACKJACK)
-			get_viewport().set_input_as_handled()
-			return
-		elif event.keycode == KEY_F3:
-			_switch_tab(GameTab.ROULETTE)
-			get_viewport().set_input_as_handled()
-			return
-		elif event.keycode == KEY_F4:
-			_switch_tab(GameTab.BILLIARDS)
+		var tab_map := {KEY_F1: GameTab.POKER, KEY_F2: GameTab.BLACKJACK, KEY_F3: GameTab.ROULETTE, KEY_F4: GameTab.BILLIARDS}
+		if tab_map.has(event.keycode):
+			_switch_tab(tab_map[event.keycode])
 			get_viewport().set_input_as_handled()
 			return
 
-		if current_tab == GameTab.BILLIARDS:
-			if event.keycode == KEY_A or event.keycode == KEY_LEFT:
-				pool_aim_angle -= deg_to_rad(10.0)
-				if pool_canvas:
-					pool_canvas.queue_redraw()
-				get_viewport().set_input_as_handled()
-				return
-			elif event.keycode == KEY_D or event.keycode == KEY_RIGHT:
-				pool_aim_angle += deg_to_rad(10.0)
-				if pool_canvas:
-					pool_canvas.queue_redraw()
-				get_viewport().set_input_as_handled()
-				return
+		if current_tab == GameTab.BILLIARDS and event.keycode in [KEY_A, KEY_LEFT, KEY_D, KEY_RIGHT]:
+			pool_aim_angle += deg_to_rad(-10.0 if event.keycode in [KEY_A, KEY_LEFT] else 10.0)
+			if pool_canvas:
+				pool_canvas.queue_redraw()
+			get_viewport().set_input_as_handled()
+			return
 
 		if current_tab == GameTab.ROULETTE and not roulette_spinning:
+			var handled_roul := true
 			if event.physical_keycode == KEY_Q:
 				roulette_chip_idx = (roulette_chip_idx + 1) % roulette_chip_values.size()
-				_render_roulette_ui()
-				get_viewport().set_input_as_handled()
-				return
 			elif event.keycode == KEY_TAB:
 				roulette_mode = ((int(roulette_mode) + 1) % 3) as RouletteMode
-				_render_roulette_ui()
-				get_viewport().set_input_as_handled()
-				return
 			elif event.physical_keycode == KEY_Z or event.keycode == KEY_LEFT:
 				roulette_chosen_num = (roulette_chosen_num + 36) % 37
-				_render_roulette_ui()
-				get_viewport().set_input_as_handled()
-				return
 			elif event.physical_keycode == KEY_X or event.keycode == KEY_RIGHT:
 				roulette_chosen_num = (roulette_chosen_num + 1) % 37
+			else:
+				handled_roul = false
+			if handled_roul:
 				_render_roulette_ui()
 				get_viewport().set_input_as_handled()
 				return
 
 		if event.keycode >= KEY_1 and event.keycode <= KEY_9:
-			var idx: int = int(event.keycode - KEY_1)
-			_trigger_action_button(idx)
+			_trigger_action_button(int(event.keycode - KEY_1))
 			get_viewport().set_input_as_handled()
 		elif event.keycode == KEY_SPACE or event.keycode == KEY_ENTER:
-			var default_btn_idx: int = 2 if current_tab == GameTab.BILLIARDS else 0
-			_trigger_action_button(default_btn_idx)
+			_trigger_action_button(2 if current_tab == GameTab.BILLIARDS else 0)
 			get_viewport().set_input_as_handled()
 
 func _trigger_action_button(idx: int) -> void:
@@ -658,37 +565,13 @@ func _generate_subtle_poker_tell(npc_idx: int, is_bluffing: bool, hand_category:
 
 	match arch:
 		PokerArchetype.STOIC_ROCK:
-			# Casi inmutable: mantiene la misma expresión incluso mintiendo; solo apoya el pulgar en sus fichas con gran juego
-			if strong_hand and not is_bluffing:
-				habit = "apoya el pulgar en silencio sobre su pila de fichas"
-			elif is_bluffing:
-				habit = "mantiene la mirada fija en el centro del tapete sin parpadear"
-			else:
-				habit = "respira con calma sin mover un músculo"
+			habit = "apoya el pulgar en silencio sobre su pila de fichas" if (strong_hand and not is_bluffing) else ("mantiene la mirada fija en el centro del tapete sin parpadear" if is_bluffing else "respira con calma sin mover un músculo")
 		PokerArchetype.CALCULATING_SHARK:
-			# Tell inverso: aparenta serenidad relajada cuando farolea y finge duda cuando lleva una mano monstruosa
-			if is_bluffing:
-				habit = "sonríe levemente mientras alinea sus fichas con parsimonia"
-			elif strong_hand:
-				habit = "frunce el ceño un instante como si dudara de sus cartas"
-			else:
-				habit = "inclina la cabeza midiendo tu pila de oro"
+			habit = "sonríe levemente mientras alinea sus fichas con parsimonia" if is_bluffing else ("frunce el ceño un instante como si dudara de sus cartas" if strong_hand else "inclina la cabeza midiendo tu pila de oro")
 		PokerArchetype.IMPULSIVE_AGGRESSOR:
-			# Impaciente: cuando miente, actúa demasiado rápido sin mirar sus cartas o tamborilea los dedos
-			if is_bluffing:
-				habit = "empuja las fichas de golpe sin volver a mirar sus cartas"
-			elif strong_hand:
-				habit = "inclina los hombros hacia el bote guardando silencio"
-			else:
-				habit = "tamborilea dos veces con el índice sobre la madera"
+			habit = "empuja las fichas de golpe sin volver a mirar sus cartas" if is_bluffing else ("inclina los hombros hacia el bote guardando silencio" if strong_hand else "tamborilea dos veces con el índice sobre la madera")
 		PokerArchetype.CAUTIOUS_READABLE:
-			# Transparente: evita el contacto visual o toca su jarra al farolear; comprueba dos veces sus cartas si lleva juego
-			if is_bluffing:
-				habit = "desvía la mirada un segundo hacia su jarra antes de hablar"
-			elif strong_hand:
-				habit = "vuelve a levantar la esquina de sus cartas para asegurarse"
-			else:
-				habit = "acomoda sus cartas despacio junto al borde"
+			habit = "desvía la mirada un segundo hacia su jarra antes de hablar" if is_bluffing else ("vuelve a levantar la esquina de sus cartas para asegurarse" if strong_hand else "acomoda sus cartas despacio junto al borde")
 
 	_play_subtle_portrait_tell_tween(npc_idx, is_bluffing, arch)
 	return "%s · %s" % [action_label, habit]
@@ -858,54 +741,36 @@ func _decide_npc_poker_action(npc_idx: int, hole: Array[Dictionary], comm: Array
 	var combined: Array[Dictionary] = []
 	combined.append_array(hole)
 	combined.append_array(comm)
-	var eval_res: Dictionary = _evaluate_cards_strength(combined)
-	var cat: int = int(eval_res["category"])
-	var arch: PokerArchetype = get_npc_poker_archetype(npc_idx)
-
-	# Si ya tiene Pareja o superior, iguala por valor real (no es farol)
+	var cat: int = int(_evaluate_cards_strength(combined)["category"])
 	if cat >= 1:
 		return {"call": true, "bluffing": false, "category": cat}
 
 	var high_hole: bool = (hole.size() >= 2 and (int(hole[0]["val"]) >= 12 or int(hole[1]["val"]) >= 12))
-	var bluff_prob: float = 0.14
-	match arch:
-		PokerArchetype.STOIC_ROCK:
-			bluff_prob = 0.08
-		PokerArchetype.CALCULATING_SHARK:
-			bluff_prob = 0.28
-		PokerArchetype.IMPULSIVE_AGGRESSOR:
-			bluff_prob = 0.36
-		PokerArchetype.CAUTIOUS_READABLE:
-			bluff_prob = 0.12
-
+	var arch: PokerArchetype = get_npc_poker_archetype(npc_idx)
+	var bluff_prob: float = 0.08 if arch == PokerArchetype.STOIC_ROCK else (0.28 if arch == PokerArchetype.CALCULATING_SHARK else (0.36 if arch == PokerArchetype.IMPULSIVE_AGGRESSOR else 0.12))
 	if raise_amt >= 10:
 		bluff_prob *= 0.65
-
 	if randf() < bluff_prob:
 		return {"call": true, "bluffing": true, "category": cat}
-
 	if high_hole and raise_amt <= 5 and randf() < 0.65:
 		return {"call": true, "bluffing": false, "category": cat}
-
 	return {"call": raise_amt == 0, "bluffing": false, "category": cat}
 
 func _should_npc_call(hole: Array[Dictionary], comm: Array[Dictionary], raise_amt: int) -> bool:
-	var dec: Dictionary = _decide_npc_poker_action(0, hole, comm, raise_amt)
-	return bool(dec["call"])
+	return bool(_decide_npc_poker_action(0, hole, comm, raise_amt)["call"])
+
+func _eval_combined(hole: Array[Dictionary]) -> Dictionary:
+	var all_c: Array[Dictionary] = []
+	all_c.append_array(hole)
+	all_c.append_array(poker_community)
+	return _evaluate_cards_strength(all_c)
 
 func _resolve_poker_showdown() -> void:
-	var p_all: Array[Dictionary] = []
-	p_all.append_array(poker_player_hand)
-	p_all.append_array(poker_community)
-	var p_eval: Dictionary = _evaluate_cards_strength(p_all)
-
+	var p_eval: Dictionary = _eval_combined(poker_player_hand)
 	var n1_score: int = -1
 	var n1_name := "Retirado"
 	if not poker_npc1_folded:
-		var n1_all: Array[Dictionary] = []
-		n1_all.append_array(poker_npc1_hand)
-		n1_all.append_array(poker_community)
-		var n1_eval: Dictionary = _evaluate_cards_strength(n1_all)
+		var n1_eval: Dictionary = _eval_combined(poker_npc1_hand)
 		n1_score = int(n1_eval["score"])
 		n1_name = str(n1_eval["name"])
 		npc_reactions[0] = "🃏 Muestra: " + n1_name
@@ -913,17 +778,13 @@ func _resolve_poker_showdown() -> void:
 	var n2_score: int = -1
 	var n2_name := "Retirado"
 	if not poker_npc2_folded:
-		var n2_all: Array[Dictionary] = []
-		n2_all.append_array(poker_npc2_hand)
-		n2_all.append_array(poker_community)
-		var n2_eval: Dictionary = _evaluate_cards_strength(n2_all)
+		var n2_eval: Dictionary = _eval_combined(poker_npc2_hand)
 		n2_score = int(n2_eval["score"])
 		n2_name = str(n2_eval["name"])
 		npc_reactions[1] = "🃏 Muestra: " + n2_name
 
 	var p_score: int = int(p_eval["score"])
 	var p_hand_name: String = str(p_eval["name"])
-
 	_reward_social_with_table_npcs(3, "Gran partida de Póker con vecinos (+10)")
 
 	if p_score > n1_score and p_score > n2_score:
@@ -1206,83 +1067,41 @@ func get_roulette_covered_numbers(bet_kind: String, base_num: int) -> Array[int]
 			var r6: int = mini(int(float(n_pos - 1) / 3.0), 10)
 			var first_n: int = r6 * 3 + 1
 			return [first_n, first_n + 1, first_n + 2, first_n + 3, first_n + 4, first_n + 5]
-		"dozen_1":
-			var d1: Array[int] = []
-			for i in range(1, 13): d1.append(i)
-			return d1
-		"dozen_2":
-			var d2: Array[int] = []
-			for i in range(13, 25): d2.append(i)
-			return d2
-		"dozen_3":
-			var d3: Array[int] = []
-			for i in range(25, 37): d3.append(i)
-			return d3
-		"col_1":
-			var c1: Array[int] = []
-			for i in range(1, 37):
-				if i % 3 == 1: c1.append(i)
-			return c1
-		"col_2":
-			var c2: Array[int] = []
-			for i in range(1, 37):
-				if i % 3 == 2: c2.append(i)
-			return c2
-		"col_3":
-			var c3: Array[int] = []
-			for i in range(1, 37):
-				if i % 3 == 0: c3.append(i)
-			return c3
-		"red":
-			return RED_NUMBERS.duplicate()
+		"dozen_1": return _range_step(1, 13)
+		"dozen_2": return _range_step(13, 25)
+		"dozen_3": return _range_step(25, 37)
+		"col_1": return _range_step(1, 37, 3)
+		"col_2": return _range_step(2, 37, 3)
+		"col_3": return _range_step(3, 37, 3)
+		"red": return RED_NUMBERS.duplicate()
 		"black":
 			var blk: Array[int] = []
 			for i in range(1, 37):
 				if not RED_NUMBERS.has(i): blk.append(i)
 			return blk
-		"even":
-			var ev: Array[int] = []
-			for i in range(2, 37, 2): ev.append(i)
-			return ev
-		"odd":
-			var od: Array[int] = []
-			for i in range(1, 37, 2): od.append(i)
-			return od
-		"low":
-			var lw: Array[int] = []
-			for i in range(1, 19): lw.append(i)
-			return lw
-		"high":
-			var hg: Array[int] = []
-			for i in range(19, 37): hg.append(i)
-			return hg
+		"even": return _range_step(2, 37, 2)
+		"odd": return _range_step(1, 37, 2)
+		"low": return _range_step(1, 19)
+		"high": return _range_step(19, 37)
 	return [b]
+
+func _range_step(from_n: int, to_n: int, step_n: int = 1) -> Array[int]:
+	var arr: Array[int] = []
+	for i in range(from_n, to_n, step_n): arr.append(i)
+	return arr
 
 func evaluate_roulette_bet(bet_kind: String, base_num: int, winning_ball: int) -> Dictionary:
 	var covered: Array[int] = get_roulette_covered_numbers(bet_kind, base_num)
-	var won: bool = covered.has(winning_ball)
 	var mult: int = 2
 	match bet_kind:
-		"straight", "exact", "zero":
-			mult = 36 # Pago real 35 a 1 (+ ficha apostada = x36)
-		"split":
-			mult = 18 # Pago real 17 a 1 (+ ficha = x18)
-		"street":
-			mult = 12 # Pago real 11 a 1 (+ ficha = x12)
-		"corner":
-			mult = 9  # Pago real 8 a 1 (+ ficha = x9)
-		"six_line":
-			mult = 6  # Pago real 5 a 1 (+ ficha = x6)
-		"dozen_1", "dozen_2", "dozen_3", "col_1", "col_2", "col_3":
-			mult = 3  # Pago real 2 a 1 (+ ficha = x3)
-		"red", "black", "even", "odd", "low", "high":
-			mult = 2  # Pago real 1 a 1 (+ ficha = x2; el 0 verde pierde)
-	return {
-		"won": won,
-		"multiplier": mult,
-		"net_odds": "%d:1" % (mult - 1),
-		"covered_numbers": covered
-	}
+		"straight", "exact", "zero": mult = 36 # Pago real 35 a 1 (+ ficha apostada = x36)
+		"split": mult = 18 # Pago real 17 a 1 (+ ficha = x18)
+		"street": mult = 12 # Pago real 11 a 1 (+ ficha = x12)
+		"corner": mult = 9  # Pago real 8 a 1 (+ ficha = x9)
+		"six_line": mult = 6  # Pago real 5 a 1 (+ ficha = x6)
+		"dozen_1", "dozen_2", "dozen_3", "col_1", "col_2", "col_3": mult = 3  # Pago real 2 a 1 (+ ficha = x3)
+		"red", "black", "even", "odd", "low", "high": mult = 2  # Pago real 1 a 1 (+ ficha = x2; el 0 verde pierde)
+	return {"won": covered.has(winning_ball), "multiplier": mult, "net_odds": "%d:1" % (mult - 1), "covered_numbers": covered}
 
 func _render_roulette_ui() -> void:
 	_refresh_header()
@@ -1294,18 +1113,14 @@ func _render_roulette_ui() -> void:
 		"Apuestas Internas (Pleno 35:1, Caballo 17:1, Calle 11:1, Cuadro 8:1, Seisena 5:1)"
 	]
 	table_title_lbl.text = "🎡 Ruleta Europea (0–36)  |  Ficha: 💰 %d Oro ([Q] Ficha)  |  Selector: #%d ([Z/X] Cambiar N.º)" % [chip, roulette_chosen_num]
-
 	var row1 := "🟢[0]  🔴1 ⚫2 🔴3 | ⚫4 🔴5 ⚫6 | 🔴7 ⚫8 🔴9 | ⚫10 ⚫11 🔴12 | ⚫13 🔴14 ⚫15 | 🔴16 ⚫17 🔴18"
 	var row2 := "🔴19 ⚫20 🔴21 | ⚫22 🔴23 ⚫24 | 🔴25 ⚫26 🔴27 | ⚫28 ⚫29 🔴30 | ⚫31 🔴32 ⚫33 | 🔴34 ⚫35 🔴36"
-	cards_display_lbl.text = "%s\n%s\n\nModo Actual: %s   |   Última Bola:  %s" % [
-		row1, row2, mode_names[int(roulette_mode)], _format_roulette_number(roulette_current_ball)
-	]
+	cards_display_lbl.text = "%s\n%s\n\nModo Actual: %s   |   Última Bola:  %s" % [row1, row2, mode_names[int(roulette_mode)], _format_roulette_number(roulette_current_ball)]
 
 	var split_nums := get_roulette_covered_numbers("split", roulette_chosen_num)
 	var street_nums := get_roulette_covered_numbers("street", roulette_chosen_num)
 	var corner_nums := get_roulette_covered_numbers("corner", roulette_chosen_num)
 	var six_nums := get_roulette_covered_numbers("six_line", roulette_chosen_num)
-
 	var no_gold: bool = (_get_player_gold() < chip) or roulette_spinning
 
 	match roulette_mode:
@@ -1317,10 +1132,7 @@ func _render_roulette_ui() -> void:
 			_add_action_btn("[4] Impar (x2)", func(): _spin_roulette("odd", chip), no_gold)
 			_add_action_btn("[5] 1–18 Falta (x2)", func(): _spin_roulette("low", chip), no_gold)
 			_add_action_btn("[6] 19–36 Pasa (x2)", func(): _spin_roulette("high", chip), no_gold)
-			_add_action_btn("[7] 🔁 Ver Docenas/Cols", func():
-				roulette_mode = RouletteMode.DOCENAS_Y_COLUMNAS
-				_render_roulette_ui()
-			, roulette_spinning)
+			_add_action_btn("[7] 🔁 Ver Docenas/Cols", func(): roulette_mode = RouletteMode.DOCENAS_Y_COLUMNAS; _render_roulette_ui(), roulette_spinning)
 		RouletteMode.DOCENAS_Y_COLUMNAS:
 			table_state_lbl.text = "Probabilidad Real: 12/37 (32.43%) — Pago 2:1 (x3). Si sale 🟢 0 pierden docenas y columnas. [Tab] o [7] para Apuestas Internas."
 			_add_action_btn("[1] 1.ª Docena 1–12 (x3)", func(): _spin_roulette("dozen_1", chip), no_gold)
@@ -1329,14 +1141,10 @@ func _render_roulette_ui() -> void:
 			_add_action_btn("[4] Columna 1 (x3)", func(): _spin_roulette("col_1", chip), no_gold)
 			_add_action_btn("[5] Columna 2 (x3)", func(): _spin_roulette("col_2", chip), no_gold)
 			_add_action_btn("[6] Columna 3 (x3)", func(): _spin_roulette("col_3", chip), no_gold)
-			_add_action_btn("[7] 🔁 Ver Plenos/Internas", func():
-				roulette_mode = RouletteMode.APUESTAS_INTERNAS
-				_render_roulette_ui()
-			, roulette_spinning)
+			_add_action_btn("[7] 🔁 Ver Plenos/Internas", func(): roulette_mode = RouletteMode.APUESTAS_INTERNAS; _render_roulette_ui(), roulette_spinning)
 		RouletteMode.APUESTAS_INTERNAS:
 			table_state_lbl.text = "Internas sobre #%d: Pleno #%d (35:1) | Caballo %s (17:1) | Calle %d–%d (11:1) | Cuadro %d..%d (8:1) | Seisena %d–%d (5:1)" % [
-				roulette_chosen_num, roulette_chosen_num, str(split_nums),
-				street_nums[0], street_nums[2], corner_nums[0], corner_nums[3], six_nums[0], six_nums[5]
+				roulette_chosen_num, roulette_chosen_num, str(split_nums), street_nums[0], street_nums[2], corner_nums[0], corner_nums[3], six_nums[0], six_nums[5]
 			]
 			_add_action_btn("[1] 🎯 Pleno #%d (x36)" % roulette_chosen_num, func(): _spin_roulette("straight", chip), no_gold)
 			_add_action_btn("[2] 🟢 Pleno 0 (x36)", func(): _spin_roulette("zero", chip), no_gold)
@@ -1344,14 +1152,8 @@ func _render_roulette_ui() -> void:
 			_add_action_btn("[4] Calle %d–%d (x12)" % [street_nums[0], street_nums[2]], func(): _spin_roulette("street", chip), no_gold)
 			_add_action_btn("[5] Cuadro %d..%d (x9)" % [corner_nums[0], corner_nums[3]], func(): _spin_roulette("corner", chip), no_gold)
 			_add_action_btn("[6] Seisena %d–%d (x6)" % [six_nums[0], six_nums[5]], func(): _spin_roulette("six_line", chip), no_gold)
-			_add_action_btn("[7] 🔁 Suertes Sencillas", func():
-				roulette_mode = RouletteMode.SUERTES_SENCILLAS
-				_render_roulette_ui()
-			, roulette_spinning)
-			_add_action_btn("[8] N.º +1 (#%d)" % roulette_chosen_num, func():
-				roulette_chosen_num = (roulette_chosen_num + 1) % 37
-				_render_roulette_ui()
-			, roulette_spinning)
+			_add_action_btn("[7] 🔁 Suertes Sencillas", func(): roulette_mode = RouletteMode.SUERTES_SENCILLAS; _render_roulette_ui(), roulette_spinning)
+			_add_action_btn("[8] N.º +1 (#%d)" % roulette_chosen_num, func(): roulette_chosen_num = (roulette_chosen_num + 1) % 37; _render_roulette_ui(), roulette_spinning)
 
 func _spin_roulette(bet_kind: String, amount: int) -> void:
 	if roulette_spinning or _get_player_gold() < amount:
@@ -1404,29 +1206,15 @@ func _render_billiards_ui() -> void:
 	_clear_actions()
 	var remaining: int = 0
 	for b in pool_targets:
-		if not bool(b["pocketed"]):
-			remaining += 1
+		if not bool(b["pocketed"]): remaining += 1
 	table_title_lbl.text = "🎱 Billar de la Posada  |  Bolas en Mesa: %d/4  |  Premio por Tronera: 💰 +14 Oro (+25 Oro la Bola 8)" % remaining
 	table_state_lbl.text = "Apunta el taco con [1]/[2] (o teclas A/D) y golpea con [3] (o Espacio). Cada tiro cuesta 4 Oro."
 
-	_add_action_btn("[1] ⟲ Apuntar Izq. (-10°)", func():
-		pool_aim_angle -= deg_to_rad(10.0)
-		if pool_canvas:
-			pool_canvas.queue_redraw()
-	, pool_balls_moving)
-	_add_action_btn("[2] ⟳ Apuntar Der. (+10°)", func():
-		pool_aim_angle += deg_to_rad(10.0)
-		if pool_canvas:
-			pool_canvas.queue_redraw()
-	, pool_balls_moving)
+	_add_action_btn("[1] ⟲ Apuntar Izq. (-10°)", func(): pool_aim_angle -= deg_to_rad(10.0); if pool_canvas: pool_canvas.queue_redraw(), pool_balls_moving)
+	_add_action_btn("[2] ⟳ Apuntar Der. (+10°)", func(): pool_aim_angle += deg_to_rad(10.0); if pool_canvas: pool_canvas.queue_redraw(), pool_balls_moving)
 	_add_action_btn("[3] 🎱 ¡TIRAR TACO! (-4 Oro)", _shoot_pool_cue, pool_balls_moving or _get_player_gold() < 4)
-	_add_action_btn("[4] 🔄 Colocar Nuevo Triángulo", func():
-		_reset_pool_rack()
-		status_msg_lbl.text = "🎱 Triángulo de bolas recolocado en la mesa."
-		_render_billiards_ui()
-	, pool_balls_moving)
-	if pool_canvas:
-		pool_canvas.queue_redraw()
+	_add_action_btn("[4] 🔄 Colocar Nuevo Triángulo", func(): _reset_pool_rack(); status_msg_lbl.text = "🎱 Triángulo de bolas recolocado en la mesa."; _render_billiards_ui(), pool_balls_moving)
+	if pool_canvas: pool_canvas.queue_redraw()
 
 func _shoot_pool_cue() -> void:
 	if pool_balls_moving or _get_player_gold() < 4:

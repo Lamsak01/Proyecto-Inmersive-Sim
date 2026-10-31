@@ -277,39 +277,20 @@ func load_game(filepath: String = SAVE_FILE_PATH) -> bool:
 		vm.jail_mandatory_stay_timer = float(c_state.get("jail_mandatory_stay_timer", 0.0))
 		if vm.has_method("set_jail_cell_gate_locked"):
 			vm.call("set_jail_cell_gate_locked", vm.player_in_jail)
-		if c_state.has("crime_history") and typeof(c_state["crime_history"]) == TYPE_ARRAY:
-			vm.crime_history.clear()
-			for ch_e in c_state["crime_history"]:
-				vm.crime_history.append(str(ch_e))
-		if c_state.has("sighting_log") and typeof(c_state["sighting_log"]) == TYPE_ARRAY:
-			vm.sighting_log.clear()
-			for s_item in c_state["sighting_log"]:
-				if typeof(s_item) == TYPE_DICTIONARY:
-					vm.sighting_log.append(s_item)
+		for arr_k in ["crime_history", "sighting_log", "corpse_records", "morgue_active_corpses", "buried_graves"]:
+			if c_state.has(arr_k) and typeof(c_state[arr_k]) == TYPE_ARRAY:
+				var dst: Array = vm.get(arr_k)
+				dst.clear()
+				for item in c_state[arr_k]:
+					if arr_k == "crime_history": dst.append(str(item))
+					elif typeof(item) == TYPE_DICTIONARY: dst.append(item)
+		if vm.has_method("_refresh_morgue_table_sprites"): vm.call("_refresh_morgue_table_sprites")
+		if vm.has_method("_rebuild_cemetery_graves_from_save"): vm.call("_rebuild_cemetery_graves_from_save")
 		if c_state.has("completed_contracts_today") and typeof(c_state["completed_contracts_today"]) == TYPE_DICTIONARY:
 			vm.completed_contracts_today.clear()
 			var saved_c: Dictionary = c_state["completed_contracts_today"]
 			for ck in saved_c.keys():
 				vm.completed_contracts_today[int(str(ck))] = int(saved_c[ck])
-		if c_state.has("corpse_records") and typeof(c_state["corpse_records"]) == TYPE_ARRAY:
-			vm.corpse_records.clear()
-			for r in c_state["corpse_records"]:
-				if typeof(r) == TYPE_DICTIONARY:
-					vm.corpse_records.append(r)
-		if c_state.has("morgue_active_corpses") and typeof(c_state["morgue_active_corpses"]) == TYPE_ARRAY:
-			vm.morgue_active_corpses.clear()
-			for mr in c_state["morgue_active_corpses"]:
-				if typeof(mr) == TYPE_DICTIONARY:
-					vm.morgue_active_corpses.append(mr)
-			if vm.has_method("_refresh_morgue_table_sprites"):
-				vm.call("_refresh_morgue_table_sprites")
-		if c_state.has("buried_graves") and typeof(c_state["buried_graves"]) == TYPE_ARRAY:
-			vm.buried_graves.clear()
-			for bg in c_state["buried_graves"]:
-				if typeof(bg) == TYPE_DICTIONARY:
-					vm.buried_graves.append(bg)
-			if vm.has_method("_rebuild_cemetery_graves_from_save"):
-				vm.call("_rebuild_cemetery_graves_from_save")
 		if c_state.has("economy") and typeof(c_state["economy"]) == TYPE_DICTIONARY and vm.has_method("load_economy_save_dict"):
 			vm.load_economy_save_dict(c_state["economy"])
 

@@ -96,14 +96,8 @@ func _ready() -> void:
 	_setup_tavern_games_ui()
 	_setup_valley_map_ui()
 	_init_default_objectives()
-
 	if "inventory" in player and player.inventory:
-		player.inventory.inventory_changed.connect(_on_inventory_changed)
-		if not player.inventory.armor_changed.is_connected(_on_inventory_changed):
-			player.inventory.armor_changed.connect(_on_inventory_changed)
-		if not player.inventory.gold_changed.is_connected(_on_gold_changed):
-			player.inventory.gold_changed.connect(_on_gold_changed)
-		_on_inventory_changed()
+		_bind_player_inventory()
 	else:
 		call_deferred("_bind_player_inventory")
 
@@ -244,6 +238,48 @@ func _on_inventory_changed() -> void:
 	if inv_panel and inv_panel.visible:
 		_refresh_inventory_list()
 
+func _make_style(bg: Color, border: Color, bw: int, cr: int, mx: int, my: int) -> StyleBoxFlat:
+	var s := StyleBoxFlat.new()
+	s.bg_color = bg
+	s.border_color = border
+	s.set_border_width_all(bw)
+	s.set_corner_radius_all(cr)
+	s.content_margin_left = mx
+	s.content_margin_right = mx
+	s.content_margin_top = my
+	s.content_margin_bottom = my
+	return s
+
+func _make_lbl(parent: Node, txt: String, f_sz: int, col: Color, expand_h: bool = false, align: int = HORIZONTAL_ALIGNMENT_LEFT) -> Label:
+	var l := Label.new()
+	l.text = txt
+	l.horizontal_alignment = align as HorizontalAlignment
+	if expand_h:
+		l.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	l.add_theme_font_size_override("font_size", f_sz)
+	l.add_theme_color_override("font_color", col)
+	parent.add_child(l)
+	return l
+
+func _make_btn(parent: Node, txt: String, cb: Callable, dis: bool = false) -> Button:
+	var b := Button.new()
+	b.text = txt
+	b.disabled = dis
+	b.pressed.connect(cb)
+	parent.add_child(b)
+	return b
+
+func _add_item_icon(parent: Node, tex: Texture2D, sz: float) -> void:
+	if not tex:
+		return
+	var r := TextureRect.new()
+	r.texture = tex
+	r.custom_minimum_size = Vector2(sz, sz)
+	r.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	r.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	r.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+	parent.add_child(r)
+
 func _setup_inventory_ui() -> void:
 	inv_panel = PanelContainer.new()
 	inv_panel.name = "InventoryPanel"
@@ -253,17 +289,7 @@ func _setup_inventory_ui() -> void:
 	inv_panel.offset_top = -250.0
 	inv_panel.offset_right = 430.0
 	inv_panel.offset_bottom = 250.0
-
-	var style := StyleBoxFlat.new()
-	style.bg_color = Color(0.07, 0.08, 0.11, 0.96)
-	style.border_color = Color(0.75, 0.63, 0.35, 1.0)
-	style.set_border_width_all(2)
-	style.set_corner_radius_all(8)
-	style.content_margin_left = 18
-	style.content_margin_right = 18
-	style.content_margin_top = 14
-	style.content_margin_bottom = 14
-	inv_panel.add_theme_stylebox_override("panel", style)
+	inv_panel.add_theme_stylebox_override("panel", _make_style(Color(0.07, 0.08, 0.11, 0.96), Color(0.75, 0.63, 0.35, 1.0), 2, 8, 18, 14))
 
 	var main_vbox := VBoxContainer.new()
 	main_vbox.add_theme_constant_override("separation", 8)
@@ -271,50 +297,21 @@ func _setup_inventory_ui() -> void:
 
 	var header := HBoxContainer.new()
 	main_vbox.add_child(header)
+	_make_lbl(header, "🎒 Mochila, Armadura y Taller de Crafteo", 18, Color(0.96, 0.88, 0.65), true)
+	inv_gold_label = _make_lbl(header, "💰 25 Oro", 16, Color.GOLD)
 
-	var title := Label.new()
-	title.text = "🎒 Mochila, Armadura y Taller de Crafteo"
-	title.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	title.add_theme_font_size_override("font_size", 18)
-	title.add_theme_color_override("font_color", Color(0.96, 0.88, 0.65))
-	header.add_child(title)
-
-	inv_gold_label = Label.new()
-	inv_gold_label.text = "💰 25 Oro"
-	inv_gold_label.add_theme_font_size_override("font_size", 16)
-	inv_gold_label.add_theme_color_override("font_color", Color.GOLD)
-	header.add_child(inv_gold_label)
-
-	# Panel de Equipamiento de Armadura (4 Slots: Casco, Pecho, Piernas, Botas)
 	var armor_panel := PanelContainer.new()
-	var armor_style := StyleBoxFlat.new()
-	armor_style.bg_color = Color(0.11, 0.13, 0.18, 0.95)
-	armor_style.border_color = Color(0.45, 0.55, 0.72, 0.85)
-	armor_style.set_border_width_all(1)
-	armor_style.set_corner_radius_all(6)
-	armor_style.content_margin_left = 10
-	armor_style.content_margin_right = 10
-	armor_style.content_margin_top = 6
-	armor_style.content_margin_bottom = 6
-	armor_panel.add_theme_stylebox_override("panel", armor_style)
+	armor_panel.add_theme_stylebox_override("panel", _make_style(Color(0.11, 0.13, 0.18, 0.95), Color(0.45, 0.55, 0.72, 0.85), 1, 6, 10, 6))
 	main_vbox.add_child(armor_panel)
 
 	var armor_vbox := VBoxContainer.new()
 	armor_vbox.add_theme_constant_override("separation", 4)
 	armor_panel.add_child(armor_vbox)
-
-	inv_armor_stats_label = Label.new()
-	inv_armor_stats_label.text = "🛡️ Armadura Equipada: Sin armadura (0% Defensa)"
-	inv_armor_stats_label.add_theme_font_size_override("font_size", 12)
-	inv_armor_stats_label.add_theme_color_override("font_color", Color(0.75, 0.90, 1.0))
-	armor_vbox.add_child(inv_armor_stats_label)
-
+	inv_armor_stats_label = _make_lbl(armor_vbox, "🛡️ Armadura Equipada: Sin armadura (0% Defensa)", 12, Color(0.75, 0.90, 1.0))
 	inv_armor_slots_box = HBoxContainer.new()
 	inv_armor_slots_box.add_theme_constant_override("separation", 8)
 	armor_vbox.add_child(inv_armor_slots_box)
-
-	var sep := HSeparator.new()
-	main_vbox.add_child(sep)
+	main_vbox.add_child(HSeparator.new())
 
 	var columns := HBoxContainer.new()
 	columns.size_flags_vertical = Control.SIZE_EXPAND_FILL
@@ -326,75 +323,42 @@ func _setup_inventory_ui() -> void:
 	left_col.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	left_col.size_flags_stretch_ratio = 1.0
 	columns.add_child(left_col)
-
-	var left_title := Label.new()
-	left_title.text = "📦 Recursos y Objetos"
-	left_title.add_theme_font_size_override("font_size", 14)
-	left_title.add_theme_color_override("font_color", Color(0.80, 0.88, 0.98))
-	left_col.add_child(left_title)
+	_make_lbl(left_col, "📦 Recursos y Objetos", 14, Color(0.80, 0.88, 0.98))
 
 	var scroll_items := ScrollContainer.new()
 	scroll_items.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	left_col.add_child(scroll_items)
-
 	inv_items_box = VBoxContainer.new()
 	inv_items_box.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	inv_items_box.add_theme_constant_override("separation", 6)
 	scroll_items.add_child(inv_items_box)
 
-	var vsep := VSeparator.new()
-	columns.add_child(vsep)
+	columns.add_child(VSeparator.new())
 
 	# Columna Derecha: Taller de Crafteo
 	var right_col := VBoxContainer.new()
 	right_col.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	right_col.size_flags_stretch_ratio = 1.05
 	columns.add_child(right_col)
-
-	var right_title := Label.new()
-	right_title.text = "🔨 Recetas de Crafteo"
-	right_title.add_theme_font_size_override("font_size", 14)
-	right_title.add_theme_color_override("font_color", Color(0.95, 0.82, 0.55))
-	right_col.add_child(right_title)
+	_make_lbl(right_col, "🔨 Recetas de Crafteo", 14, Color(0.95, 0.82, 0.55))
 
 	var scroll_recipes := ScrollContainer.new()
 	scroll_recipes.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	right_col.add_child(scroll_recipes)
-
 	inv_recipes_box = VBoxContainer.new()
 	inv_recipes_box.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	inv_recipes_box.add_theme_constant_override("separation", 6)
 	scroll_recipes.add_child(inv_recipes_box)
 
-	var sep2 := HSeparator.new()
-	main_vbox.add_child(sep2)
+	main_vbox.add_child(HSeparator.new())
 
 	var footer := HBoxContainer.new()
 	footer.alignment = BoxContainer.ALIGNMENT_CENTER
 	footer.add_theme_constant_override("separation", 12)
 	main_vbox.add_child(footer)
-
-	var btn_save := Button.new()
-	btn_save.text = "💾 [F5] Guardar"
-	btn_save.pressed.connect(func():
-		if GameManager:
-			GameManager.save_game()
-	)
-	footer.add_child(btn_save)
-
-	var btn_load := Button.new()
-	btn_load.text = "📂 [F9] Cargar"
-	btn_load.pressed.connect(func():
-		if GameManager:
-			GameManager.load_game()
-	)
-	footer.add_child(btn_load)
-
-	var btn_close := Button.new()
-	btn_close.text = "✖ [I / ESC] Cerrar"
-	btn_close.pressed.connect(func(): inv_panel.visible = false)
-	footer.add_child(btn_close)
-
+	_make_btn(footer, "💾 [F5] Guardar", func(): if GameManager: GameManager.save_game())
+	_make_btn(footer, "📂 [F9] Cargar", func(): if GameManager: GameManager.load_game())
+	_make_btn(footer, "✖ [I / ESC] Cerrar", func(): inv_panel.visible = false)
 	add_child(inv_panel)
 
 func _refresh_inventory_list() -> void:
@@ -416,58 +380,27 @@ func _refresh_inventory_list() -> void:
 	if inv_armor_slots_box:
 		for child in inv_armor_slots_box.get_children():
 			child.queue_free()
-		var slot_titles: Dictionary = {
-			"HEAD": "🪖 Casco",
-			"CHEST": "🦺 Pecho",
-			"LEGS": "👖 Piernas",
-			"BOOTS": "🥾 Botas"
-		}
+		var slot_titles: Dictionary = {"HEAD": "🪖 Casco", "CHEST": "🦺 Pecho", "LEGS": "👖 Piernas", "BOOTS": "🥾 Botas"}
 		for slot_key in SimpleInventory.ARMOR_SLOTS:
 			var eq_id: String = str(inv.equipped_armor.get(slot_key, ""))
 			var slot_card := PanelContainer.new()
 			slot_card.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-			var sc_style := StyleBoxFlat.new()
-			sc_style.bg_color = Color(0.16, 0.20, 0.26, 0.95) if eq_id != "" else Color(0.09, 0.10, 0.13, 0.85)
-			sc_style.border_color = Color(0.55, 0.78, 0.95, 0.9) if eq_id != "" else Color(0.28, 0.30, 0.36, 0.6)
-			sc_style.set_border_width_all(1)
-			sc_style.set_corner_radius_all(4)
-			sc_style.content_margin_left = 6
-			sc_style.content_margin_right = 6
-			sc_style.content_margin_top = 4
-			sc_style.content_margin_bottom = 4
-			slot_card.add_theme_stylebox_override("panel", sc_style)
+			slot_card.add_theme_stylebox_override("panel", _make_style(
+				Color(0.16, 0.20, 0.26, 0.95) if eq_id != "" else Color(0.09, 0.10, 0.13, 0.85),
+				Color(0.55, 0.78, 0.95, 0.9) if eq_id != "" else Color(0.28, 0.30, 0.36, 0.6), 1, 4, 6, 4))
 
 			var sc_hbox := HBoxContainer.new()
 			sc_hbox.add_theme_constant_override("separation", 6)
 			slot_card.add_child(sc_hbox)
+			if eq_id != "":
+				_add_item_icon(sc_hbox, inv.get_item_icon(eq_id), 22.0)
+
+			_make_lbl(sc_hbox, "%s:\n%s" % [str(slot_titles.get(slot_key, slot_key)), inv.get_item_name(eq_id) if eq_id != "" else "Vacío"], 10, Color(0.95, 0.95, 0.85) if eq_id != "" else Color(0.55, 0.58, 0.65), true)
 
 			if eq_id != "":
-				var icon_tex: Texture2D = inv.get_item_icon(eq_id)
-				if icon_tex:
-					var icon_rect := TextureRect.new()
-					icon_rect.texture = icon_tex
-					icon_rect.custom_minimum_size = Vector2(22, 22)
-					icon_rect.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-					icon_rect.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
-					icon_rect.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
-					sc_hbox.add_child(icon_rect)
-
-			var sc_lbl := Label.new()
-			sc_lbl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-			sc_lbl.text = "%s:\n%s" % [str(slot_titles.get(slot_key, slot_key)), inv.get_item_name(eq_id) if eq_id != "" else "Vacío"]
-			sc_lbl.add_theme_font_size_override("font_size", 10)
-			sc_lbl.add_theme_color_override("font_color", Color(0.95, 0.95, 0.85) if eq_id != "" else Color(0.55, 0.58, 0.65))
-			sc_hbox.add_child(sc_lbl)
-
-			if eq_id != "":
-				var un_btn := Button.new()
-				un_btn.text = "✖"
-				un_btn.tooltip_text = "Desequipar"
 				var cap_slot: String = str(slot_key)
-				un_btn.pressed.connect(func():
-					inv.unequip_armor_slot(cap_slot, player)
-				)
-				sc_hbox.add_child(un_btn)
+				var un_btn := _make_btn(sc_hbox, "✖", func(): inv.unequip_armor_slot(cap_slot, player))
+				un_btn.tooltip_text = "Desequipar"
 
 			inv_armor_slots_box.add_child(slot_card)
 
@@ -475,11 +408,7 @@ func _refresh_inventory_list() -> void:
 		child.queue_free()
 
 	if inv.items.is_empty():
-		var empty_lbl := Label.new()
-		empty_lbl.text = "Tu mochila está vacía.\nTala árboles ([3]), pica rocas ([4]), pesca ([8]) o recoge plantas ([E])."
-		empty_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-		empty_lbl.add_theme_color_override("font_color", Color(0.65, 0.65, 0.7))
-		inv_items_box.add_child(empty_lbl)
+		_make_lbl(inv_items_box, "Tu mochila está vacía.\nTala árboles ([3]), pica rocas ([4]), pesca ([8]) o recoge plantas ([E]).", 13, Color(0.65, 0.65, 0.7), false, HORIZONTAL_ALIGNMENT_CENTER)
 	else:
 		for item_id in inv.items.keys():
 			var count: int = int(inv.items[item_id])
@@ -487,60 +416,25 @@ func _refresh_inventory_list() -> void:
 				continue
 			var info: Dictionary = inv.get_item_info(str(item_id))
 			var row := PanelContainer.new()
-			var row_style := StyleBoxFlat.new()
-			row_style.bg_color = Color(0.13, 0.15, 0.20, 0.9)
-			row_style.set_corner_radius_all(4)
-			row_style.content_margin_left = 10
-			row_style.content_margin_right = 10
-			row_style.content_margin_top = 6
-			row_style.content_margin_bottom = 6
-			row.add_theme_stylebox_override("panel", row_style)
+			row.add_theme_stylebox_override("panel", _make_style(Color(0.13, 0.15, 0.20, 0.9), Color.TRANSPARENT, 0, 4, 10, 6))
 
 			var hbox := HBoxContainer.new()
 			hbox.add_theme_constant_override("separation", 10)
 			row.add_child(hbox)
-
-			var item_tex: Texture2D = inv.get_item_icon(str(item_id))
-			if item_tex:
-				var icon_rect := TextureRect.new()
-				icon_rect.texture = item_tex
-				icon_rect.custom_minimum_size = Vector2(28, 28)
-				icon_rect.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-				icon_rect.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
-				icon_rect.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
-				hbox.add_child(icon_rect)
+			_add_item_icon(hbox, inv.get_item_icon(str(item_id)), 28.0)
 
 			var text_vbox := VBoxContainer.new()
 			text_vbox.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 			hbox.add_child(text_vbox)
-
-			var name_lbl := Label.new()
-			name_lbl.text = "%s  x%d   [%s]" % [info.get("name", item_id), count, info.get("category", "Objeto")]
-			name_lbl.add_theme_font_size_override("font_size", 13)
-			name_lbl.add_theme_color_override("font_color", Color(0.95, 0.95, 0.98))
-			text_vbox.add_child(name_lbl)
-
-			var desc_lbl := Label.new()
-			desc_lbl.text = str(info.get("desc", ""))
+			_make_lbl(text_vbox, "%s  x%d   [%s]" % [info.get("name", item_id), count, info.get("category", "Objeto")], 13, Color(0.95, 0.95, 0.98))
+			var desc_lbl := _make_lbl(text_vbox, str(info.get("desc", "")), 11, Color(0.70, 0.75, 0.82))
 			desc_lbl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-			desc_lbl.add_theme_font_size_override("font_size", 11)
-			desc_lbl.add_theme_color_override("font_color", Color(0.70, 0.75, 0.82))
-			text_vbox.add_child(desc_lbl)
 
 			if info.get("usable", false):
-				var use_btn := Button.new()
 				var cat_str: String = str(info.get("category", ""))
-				if info.has("armor_slot") or cat_str.begins_with("Armadura"):
-					use_btn.text = "🛡️ Equipar"
-				elif info.get("is_seed", false):
-					use_btn.text = "🌱 Semilla"
-				else:
-					use_btn.text = "🍽️ Usar"
+				var btn_txt := "🛡️ Equipar" if (info.has("armor_slot") or cat_str.begins_with("Armadura")) else ("🌱 Semilla" if info.get("is_seed", false) else "🍽️ Usar")
 				var captured_id := str(item_id)
-				use_btn.pressed.connect(func():
-					inv.use_item(captured_id, player)
-				)
-				hbox.add_child(use_btn)
+				_make_btn(hbox, btn_txt, func(): inv.use_item(captured_id, player))
 
 			inv_items_box.add_child(row)
 
@@ -555,64 +449,30 @@ func _refresh_inventory_list() -> void:
 			var craftable: bool = inv.can_craft(recipe)
 
 			var r_row := PanelContainer.new()
-			var r_style := StyleBoxFlat.new()
-			r_style.bg_color = Color(0.14, 0.18, 0.15, 0.92) if craftable else Color(0.12, 0.12, 0.15, 0.85)
-			r_style.border_color = Color(0.35, 0.75, 0.45, 0.8) if craftable else Color(0.25, 0.25, 0.30, 0.5)
-			r_style.set_border_width_all(1)
-			r_style.set_corner_radius_all(4)
-			r_style.content_margin_left = 10
-			r_style.content_margin_right = 10
-			r_style.content_margin_top = 6
-			r_style.content_margin_bottom = 6
-			r_row.add_theme_stylebox_override("panel", r_style)
+			r_row.add_theme_stylebox_override("panel", _make_style(
+				Color(0.14, 0.18, 0.15, 0.92) if craftable else Color(0.12, 0.12, 0.15, 0.85),
+				Color(0.35, 0.75, 0.45, 0.8) if craftable else Color(0.25, 0.25, 0.30, 0.5), 1, 4, 10, 6))
 
 			var r_hbox := HBoxContainer.new()
 			r_hbox.add_theme_constant_override("separation", 10)
 			r_row.add_child(r_hbox)
-
-			var rec_tex: Texture2D = inv.get_item_icon(res_id)
-			if rec_tex:
-				var rec_icon := TextureRect.new()
-				rec_icon.texture = rec_tex
-				rec_icon.custom_minimum_size = Vector2(28, 28)
-				rec_icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-				rec_icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
-				rec_icon.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
-				r_hbox.add_child(rec_icon)
+			_add_item_icon(r_hbox, inv.get_item_icon(res_id), 28.0)
 
 			var r_vbox := VBoxContainer.new()
 			r_vbox.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 			r_hbox.add_child(r_vbox)
-
-			var r_title := Label.new()
-			r_title.text = "%s x%d" % [inv.get_item_name(res_id), res_amt]
-			r_title.add_theme_font_size_override("font_size", 13)
-			r_title.add_theme_color_override("font_color", Color(0.95, 0.92, 0.72) if craftable else Color(0.75, 0.75, 0.78))
-			r_vbox.add_child(r_title)
+			_make_lbl(r_vbox, "%s x%d" % [inv.get_item_name(res_id), res_amt], 13, Color(0.95, 0.92, 0.72) if craftable else Color(0.75, 0.75, 0.78))
 
 			var ing_dict: Dictionary = recipe.get("ingredients", {})
 			var ing_parts: Array[String] = []
 			for ing_id in ing_dict.keys():
-				var req: int = int(ing_dict[ing_id])
-				var have: int = inv.get_count(str(ing_id))
-				ing_parts.append("%s (%d/%d)" % [inv.get_item_name(str(ing_id)), have, req])
+				ing_parts.append("%s (%d/%d)" % [inv.get_item_name(str(ing_id)), inv.get_count(str(ing_id)), int(ing_dict[ing_id])])
 
-			var r_ing_lbl := Label.new()
-			r_ing_lbl.text = "Requiere: " + ", ".join(ing_parts)
+			var r_ing_lbl := _make_lbl(r_vbox, "Requiere: " + ", ".join(ing_parts), 11, Color(0.65, 0.92, 0.70) if craftable else Color(0.85, 0.55, 0.55))
 			r_ing_lbl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-			r_ing_lbl.add_theme_font_size_override("font_size", 11)
-			r_ing_lbl.add_theme_color_override("font_color", Color(0.65, 0.92, 0.70) if craftable else Color(0.85, 0.55, 0.55))
-			r_vbox.add_child(r_ing_lbl)
 
-			var craft_btn := Button.new()
-			craft_btn.text = "Fabricar"
-			craft_btn.disabled = not craftable
 			var captured_recipe: Dictionary = recipe
-			craft_btn.pressed.connect(func():
-				inv.craft_recipe(captured_recipe, player)
-			)
-			r_hbox.add_child(craft_btn)
-
+			_make_btn(r_hbox, "Fabricar", func(): inv.craft_recipe(captured_recipe, player), not craftable)
 			inv_recipes_box.add_child(r_row)
 
 func _setup_clock_ui() -> void:
@@ -623,34 +483,13 @@ func _setup_clock_ui() -> void:
 	clock_panel.offset_top = 10.0
 	clock_panel.offset_right = 175.0
 	clock_panel.offset_bottom = 62.0
-
-	var style := StyleBoxFlat.new()
-	style.bg_color = Color(0.08, 0.09, 0.12, 0.88)
-	style.border_color = Color(0.45, 0.55, 0.72, 0.9)
-	style.set_border_width_all(2)
-	style.set_corner_radius_all(6)
-	style.content_margin_left = 12
-	style.content_margin_right = 12
-	style.content_margin_top = 6
-	style.content_margin_bottom = 6
-	clock_panel.add_theme_stylebox_override("panel", style)
+	clock_panel.add_theme_stylebox_override("panel", _make_style(Color(0.08, 0.09, 0.12, 0.88), Color(0.45, 0.55, 0.72, 0.9), 2, 6, 12, 6))
 
 	var vbox := VBoxContainer.new()
 	vbox.add_theme_constant_override("separation", 2)
 	clock_panel.add_child(vbox)
-
-	clock_label = Label.new()
-	clock_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	clock_label.add_theme_font_size_override("font_size", 15)
-	clock_label.add_theme_color_override("font_color", Color(0.96, 0.92, 0.78))
-	vbox.add_child(clock_label)
-
-	clock_sub_label = Label.new()
-	clock_sub_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	clock_sub_label.add_theme_font_size_override("font_size", 11)
-	clock_sub_label.add_theme_color_override("font_color", Color(0.70, 0.78, 0.88))
-	vbox.add_child(clock_sub_label)
-
+	clock_label = _make_lbl(vbox, "", 15, Color(0.96, 0.92, 0.78), false, HORIZONTAL_ALIGNMENT_CENTER)
+	clock_sub_label = _make_lbl(vbox, "", 11, Color(0.70, 0.78, 0.88), false, HORIZONTAL_ALIGNMENT_CENTER)
 	add_child(clock_panel)
 
 	if WorldClock:

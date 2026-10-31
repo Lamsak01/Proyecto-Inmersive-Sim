@@ -188,80 +188,34 @@ func sleep_until_morning(on_complete: Callable = Callable()) -> void:
 	start_organic_fast_forward(6, 26.0, on_complete)
 
 func get_day_phase(hour: int = current_hour) -> DayPhase:
-	if hour >= 5 and hour < 6:
-		return DayPhase.EARLY_MORNING
-	elif hour >= 6 and hour < 12:
-		return DayPhase.MORNING
-	elif hour >= 12 and hour < 18:
-		return DayPhase.AFTERNOON
-	elif hour >= 18 and hour < 21:
-		return DayPhase.DUSK
-	else:
-		return DayPhase.NIGHT
+	if hour >= 5 and hour < 6: return DayPhase.EARLY_MORNING
+	elif hour >= 6 and hour < 12: return DayPhase.MORNING
+	elif hour >= 12 and hour < 18: return DayPhase.AFTERNOON
+	elif hour >= 18 and hour < 21: return DayPhase.DUSK
+	return DayPhase.NIGHT
 
 func get_phase_name(phase: DayPhase = _current_phase) -> String:
-	match phase:
-		DayPhase.EARLY_MORNING:
-			return "Madrugada"
-		DayPhase.MORNING:
-			return "Mañana"
-		DayPhase.AFTERNOON:
-			return "Tarde"
-		DayPhase.DUSK:
-			return "Atardecer"
-		DayPhase.NIGHT:
-			return "Noche"
-	return "Día"
+	const NAMES := {DayPhase.EARLY_MORNING: "Madrugada", DayPhase.MORNING: "Mañana", DayPhase.AFTERNOON: "Tarde", DayPhase.DUSK: "Atardecer", DayPhase.NIGHT: "Noche"}
+	return NAMES.get(phase, "Día")
 
 func get_phase_icon(phase: DayPhase = _current_phase) -> String:
-	match phase:
-		DayPhase.EARLY_MORNING:
-			return "🌅"
-		DayPhase.MORNING:
-			return "☀"
-		DayPhase.AFTERNOON:
-			return "☀"
-		DayPhase.DUSK:
-			return "🌇"
-		DayPhase.NIGHT:
-			return "🌙"
-	return "☀"
+	const ICONS := {DayPhase.EARLY_MORNING: "🌅", DayPhase.MORNING: "☀", DayPhase.AFTERNOON: "☀", DayPhase.DUSK: "🌇", DayPhase.NIGHT: "🌙"}
+	return ICONS.get(phase, "☀")
 
 func get_weather_name(w: WeatherType = current_weather) -> String:
-	match w:
-		WeatherType.RAIN:
-			return "Lluvia"
-		WeatherType.FOG:
-			return "Niebla"
-		_:
-			return "Despejado"
+	return "Lluvia" if w == WeatherType.RAIN else ("Niebla" if w == WeatherType.FOG else "Despejado")
 
 func get_weather_icon(w: WeatherType = current_weather) -> String:
-	match w:
-		WeatherType.RAIN:
-			return "🌧️"
-		WeatherType.FOG:
-			return "🌫️"
-		_:
-			return "☀️"
+	return "🌧️" if w == WeatherType.RAIN else ("🌫️" if w == WeatherType.FOG else "☀️")
 
 func get_noise_weather_multiplier() -> float:
-	if current_weather == WeatherType.RAIN:
-		return 0.65
-	return 1.0
+	return 0.65 if current_weather == WeatherType.RAIN else 1.0
 
 func get_weather_vision_multiplier() -> float:
 	return get_vision_multiplier()
 
 func get_formatted_time() -> String:
-	return "Día %d | %02d:%02d (%s | %s %s)" % [
-		current_day,
-		current_hour,
-		current_minute,
-		get_phase_name(_current_phase),
-		get_weather_icon(current_weather),
-		get_weather_name(current_weather)
-	]
+	return "Día %d | %02d:%02d (%s | %s %s)" % [current_day, current_hour, current_minute, get_phase_name(_current_phase), get_weather_icon(current_weather), get_weather_name(current_weather)]
 
 ## Multiplicador sistémico de visión según la luz del día y el clima actual (Niebla reduce -35%, Lluvia -15%)
 func get_vision_multiplier() -> float:

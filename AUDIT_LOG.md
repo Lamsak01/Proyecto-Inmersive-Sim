@@ -82,3 +82,34 @@ Este archivo registra únicamente **bugs reales de jugabilidad/lógica** detecta
   1. Añadidos los constructores modales `_build_modal_base()` y `_add_modal_btn()` en `_setup_Interactive_modals_ui()` para unificar los 5 paneles interactivos (Morgue, Policía, Tablón, Negocios y Capilla).
   2. Añadido `_register_authority_npc()` para unificar el alta y registro de vacantes del Médico (`Dr. Valen`), Comisario (`Vane`) y Oficial (`Rodric`).
   3. Añadido `_free_transient_npc()` en `load_economy_save_dict()` para eliminar la triplicación del desmontaje de mercaderes/inquisidor al cargar partida.
+
+---
+
+## Iteración 7 (Compactación Integral de Todo el Proyecto) — Commit Base para Rollback: `f20aed7` (Base pre-compactación: `b01eb18`)
+
+### 9. Compactación Profunda de 23 Archivos GDScript (`27,055` → `22,745` líneas totales, `-4,310` líneas eliminadas)
+- **Resumen de reducción por archivo (respecto a `b01eb18`):**
+  1. `scripts/systems/VillageManager.gd`: `6,306` → `5,155` líneas (**`-1,151` líneas**)
+  2. `scripts/enemies/VillageNPC.gd`: `4,069` → `3,226` líneas (**`-843` líneas**)
+  3. `scripts/systems/SimpleInventory.gd`: `1,076` → `459` líneas (**`-617` líneas**)
+  4. `scripts/obstacles/CampSite.gd`: `1,036` → `810` líneas (**`-226` líneas**)
+  5. `scripts/ui/TavernGamesUI.gd`: `1,582` → `1,370` líneas (**`-212` líneas**)
+  6. `scripts/systems/ai/EnemyAI.gd`: `746` → `542` líneas (**`-204` líneas**)
+  7. `scenes/ui_root.gd`: `734` → `573` líneas (**`-161` líneas**)
+  8. `scripts/systems/EcosystemManager.gd`: `594` → `453` líneas (**`-141` líneas**)
+  9. `scripts/Player.gd`: `828` → `697` líneas (**`-131` líneas**)
+  10. `scripts/enemies/WildAnimal.gd`: `1,295` → `1,189` líneas (**`-106` líneas**)
+  11. `scripts/obstacles/FishingSpot.gd`: `466` → `386` líneas (**`-80` líneas**)
+  12. `scenes/npc.gd`: `413` → `352` líneas (**`-61` líneas**)
+  13. `scripts/obstacles/ChickenCoop.gd`: `666` → `605` líneas (**`-61` líneas**)
+  14. `scripts/ui/ToolWheelUI.gd`: `312` → `253` líneas (**`-59` líneas**)
+  15. `scripts/PlayerCombatController.gd`: `420` → `373` líneas (**`-47` líneas**)
+  16. `scripts/systems/WorldClock.gd`: `383` → `337` líneas (**`-46` líneas**)
+  17. `scripts/enemies/DummyEnemy.gd`: `376` → `340` líneas (**`-36` líneas**)
+  18. `scripts/enemies/DomesticPet.gd`: `613` → `581` líneas (**`-32` líneas**)
+  19. `scenes/dialogue_manager.gd`: `346` → `315` líneas (**`-31` líneas**)
+  20. `scripts/obstacles/FarmPlot.gd`: `388` → `361` líneas (**`-27` líneas**)
+  21. `scripts/systems/GameManager.gd`: `340` → `321` líneas (**`-19` líneas**)
+  22. `scripts/ui/ValleyMapUI.gd`: `398` → `383` líneas (**`-15` líneas**)
+  23. `scripts/obstacles/HarvestableNode.gd`: `313` → `309` líneas (**`-4` líneas**)
+- **Verificación:** `flatpak run org.godotengine.Godot --headless -d --quit-after 3` → **0 errores y 0 warnings**.

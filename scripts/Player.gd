@@ -32,80 +32,17 @@ var watering_can_weapon: WeaponData = null
 var fishing_rod_weapon: WeaponData = null
 
 ## Niveles de Mejora de Herramientas y Armas estilo Stardew Valley (1 = Básico, 2 = Hierro Forjado, 3 = Acero Maestro)
-var tool_tiers: Dictionary = {
-	"sword": 1,
-	"hammer": 1,
-	"axe": 1,
-	"pickaxe": 1,
-	"bow": 1,
-	"sickle": 1,
-	"watering_can": 1,
-	"fishing_rod": 1
-}
-
-const TIER_NAMES: Dictionary = {
-	1: "Básico",
-	2: "Hierro",
-	3: "Acero Maestro"
-}
-
+var tool_tiers: Dictionary = {"sword": 1, "hammer": 1, "axe": 1, "pickaxe": 1, "bow": 1, "sickle": 1, "watering_can": 1, "fishing_rod": 1}
+const TIER_NAMES: Dictionary = {1: "Básico", 2: "Hierro", 3: "Acero Maestro"}
 const TOOL_UPGRADE_CATALOG: Dictionary = {
-	"sword": {
-		"title": "Espada",
-		"tiers": {
-			2: {"gold": 25, "mats": {"iron_ore": 2, "wood": 1}},
-			3: {"gold": 55, "mats": {"steel_ingot": 2, "wood": 2}}
-		}
-	},
-	"hammer": {
-		"title": "Martillo",
-		"tiers": {
-			2: {"gold": 25, "mats": {"iron_ore": 2, "wood": 1}},
-			3: {"gold": 55, "mats": {"steel_ingot": 2, "wood": 2}}
-		}
-	},
-	"axe": {
-		"title": "Hacha",
-		"tiers": {
-			2: {"gold": 22, "mats": {"iron_ore": 2, "wood": 2}},
-			3: {"gold": 48, "mats": {"steel_ingot": 2, "wood": 2}}
-		}
-	},
-	"pickaxe": {
-		"title": "Pico",
-		"tiers": {
-			2: {"gold": 22, "mats": {"iron_ore": 2, "wood": 2}},
-			3: {"gold": 48, "mats": {"steel_ingot": 2, "wood": 2}}
-		}
-	},
-	"bow": {
-		"title": "Arco de Caza",
-		"tiers": {
-			2: {"gold": 26, "mats": {"wood": 3, "leather": 2}},
-			3: {"gold": 56, "mats": {"steel_ingot": 1, "wood": 3, "fox_pelt": 1}}
-		}
-	},
-	"sickle": {
-		"title": "Hoz Agrícola",
-		"tiers": {
-			2: {"gold": 18, "mats": {"iron_ore": 1, "wood": 1}},
-			3: {"gold": 40, "mats": {"steel_ingot": 1, "wood": 2}}
-		}
-	},
-	"watering_can": {
-		"title": "Regadera",
-		"tiers": {
-			2: {"gold": 18, "mats": {"iron_ore": 2}},
-			3: {"gold": 40, "mats": {"steel_ingot": 2}}
-		}
-	},
-	"fishing_rod": {
-		"title": "Caña de Pescar",
-		"tiers": {
-			2: {"gold": 20, "mats": {"wood": 3, "iron_ore": 1}},
-			3: {"gold": 45, "mats": {"steel_ingot": 1, "wood": 3, "feather": 2}}
-		}
-	}
+	"sword": {"title": "Espada", "tiers": {2: {"gold": 25, "mats": {"iron_ore": 2, "wood": 1}}, 3: {"gold": 55, "mats": {"steel_ingot": 2, "wood": 2}}}},
+	"hammer": {"title": "Martillo", "tiers": {2: {"gold": 25, "mats": {"iron_ore": 2, "wood": 1}}, 3: {"gold": 55, "mats": {"steel_ingot": 2, "wood": 2}}}},
+	"axe": {"title": "Hacha", "tiers": {2: {"gold": 22, "mats": {"iron_ore": 2, "wood": 2}}, 3: {"gold": 48, "mats": {"steel_ingot": 2, "wood": 2}}}},
+	"pickaxe": {"title": "Pico", "tiers": {2: {"gold": 22, "mats": {"iron_ore": 2, "wood": 2}}, 3: {"gold": 48, "mats": {"steel_ingot": 2, "wood": 2}}}},
+	"bow": {"title": "Arco de Caza", "tiers": {2: {"gold": 26, "mats": {"wood": 3, "leather": 2}}, 3: {"gold": 56, "mats": {"steel_ingot": 1, "wood": 3, "fox_pelt": 1}}}},
+	"sickle": {"title": "Hoz Agrícola", "tiers": {2: {"gold": 18, "mats": {"iron_ore": 1, "wood": 1}}, 3: {"gold": 40, "mats": {"steel_ingot": 1, "wood": 2}}}},
+	"watering_can": {"title": "Regadera", "tiers": {2: {"gold": 18, "mats": {"iron_ore": 2}}, 3: {"gold": 40, "mats": {"steel_ingot": 2}}}},
+	"fishing_rod": {"title": "Caña de Pescar", "tiers": {2: {"gold": 20, "mats": {"wood": 3, "iron_ore": 1}}, 3: {"gold": 45, "mats": {"steel_ingot": 1, "wood": 3, "feather": 2}}}}
 }
 
 var max_water_charges: int = 6
@@ -138,60 +75,26 @@ func _load_tool_tex(res_path: String) -> Texture2D:
 			return ImageTexture.create_from_image(img)
 	return null
 
+func _make_tool_weapon(w_name: String, icon_path: String, dmg_type: CombatConstants.DamageType, ranged: bool = false) -> WeaponData:
+	var w := WeaponData.new()
+	w.name = w_name
+	w.is_ranged = ranged
+	w.icon = _load_tool_tex(icon_path)
+	var d := DamageData.new()
+	d.type = dmg_type
+	w.damage_data = d
+	return w
+
 func _setup_tools() -> void:
 	var clean_ham_tex := _load_tool_tex("res://assests/items/tools/hammer_clean.png")
 	if clean_ham_tex and hammer_weapon:
 		hammer_weapon.icon = clean_ham_tex
-
-	# [3] Hacha de Leñador
-	axe_weapon = WeaponData.new()
-	axe_weapon.name = "Axe"
-	axe_weapon.icon = _load_tool_tex("res://assests/items/tools/axe_tool.png")
-	var axe_dmg := DamageData.new()
-	axe_dmg.type = CombatConstants.DamageType.CUT
-	axe_weapon.damage_data = axe_dmg
-
-	# [4] Pico de Minero
-	pickaxe_weapon = WeaponData.new()
-	pickaxe_weapon.name = "Pickaxe"
-	pickaxe_weapon.icon = _load_tool_tex("res://assests/items/tools/pickaxe_tool.png")
-	var pick_dmg := DamageData.new()
-	pick_dmg.type = CombatConstants.DamageType.BLUNT
-	pickaxe_weapon.damage_data = pick_dmg
-
-	# [5] Arco de Caza
-	bow_weapon = WeaponData.new()
-	bow_weapon.name = "Bow"
-	bow_weapon.is_ranged = true
-	bow_weapon.icon = _load_tool_tex("res://assests/items/tools/bow_weapon.png")
-	var bow_dmg := DamageData.new()
-	bow_dmg.type = CombatConstants.DamageType.CUT
-	bow_weapon.damage_data = bow_dmg
-
-	# [6] Hoz de Cosecha
-	sickle_weapon = WeaponData.new()
-	sickle_weapon.name = "Sickle"
-	sickle_weapon.icon = _load_tool_tex("res://assests/items/tools/sickle_tool.png")
-	var sickle_dmg := DamageData.new()
-	sickle_dmg.type = CombatConstants.DamageType.CUT
-	sickle_weapon.damage_data = sickle_dmg
-
-	# [7] Regadera Agrícola
-	watering_can_weapon = WeaponData.new()
-	watering_can_weapon.name = "WateringCan"
-	watering_can_weapon.icon = _load_tool_tex("res://assests/items/tools/watering_can.png")
-	var can_dmg := DamageData.new()
-	can_dmg.type = CombatConstants.DamageType.BLUNT
-	watering_can_weapon.damage_data = can_dmg
-
-	# [8] Caña de Pescar
-	fishing_rod_weapon = WeaponData.new()
-	fishing_rod_weapon.name = "FishingRod"
-	fishing_rod_weapon.icon = _load_tool_tex("res://assests/items/tools/fishing_rod.png")
-	var rod_dmg := DamageData.new()
-	rod_dmg.type = CombatConstants.DamageType.BLUNT
-	fishing_rod_weapon.damage_data = rod_dmg
-
+	axe_weapon = _make_tool_weapon("Axe", "res://assests/items/tools/axe_tool.png", CombatConstants.DamageType.CUT)
+	pickaxe_weapon = _make_tool_weapon("Pickaxe", "res://assests/items/tools/pickaxe_tool.png", CombatConstants.DamageType.BLUNT)
+	bow_weapon = _make_tool_weapon("Bow", "res://assests/items/tools/bow_weapon.png", CombatConstants.DamageType.CUT, true)
+	sickle_weapon = _make_tool_weapon("Sickle", "res://assests/items/tools/sickle_tool.png", CombatConstants.DamageType.CUT)
+	watering_can_weapon = _make_tool_weapon("WateringCan", "res://assests/items/tools/watering_can.png", CombatConstants.DamageType.BLUNT)
+	fishing_rod_weapon = _make_tool_weapon("FishingRod", "res://assests/items/tools/fishing_rod.png", CombatConstants.DamageType.BLUNT)
 	_apply_tool_tiers()
 
 func _normalize_tool_key(tool_key: String) -> String:
@@ -346,37 +249,24 @@ func _setup_armor_visual_placeholder() -> void:
 	_armor_visual_overlay.name = "ArmorPlaceholderOverlay"
 	_armor_visual_overlay.z_index = 2
 	add_child(_armor_visual_overlay)
-
-	# Placeholder visual modular para Casco, Pecho, Piernas y Botas sobre el sprite del jugador
-	var helm_poly := Polygon2D.new()
-	helm_poly.name = "HelmVis"
-	helm_poly.polygon = PackedVector2Array([Vector2(-4, -24), Vector2(4, -24), Vector2(5, -20), Vector2(-5, -20)])
-	helm_poly.visible = false
-	_armor_visual_overlay.add_child(helm_poly)
-
-	var chest_poly := Polygon2D.new()
-	chest_poly.name = "ChestVis"
-	chest_poly.polygon = PackedVector2Array([Vector2(-5, -15), Vector2(5, -15), Vector2(4, -9), Vector2(-4, -9)])
-	chest_poly.visible = false
-	_armor_visual_overlay.add_child(chest_poly)
-
-	var legs_poly := Polygon2D.new()
-	legs_poly.name = "LegsVis"
-	legs_poly.polygon = PackedVector2Array([Vector2(-4, -9), Vector2(4, -9), Vector2(4, -5), Vector2(-4, -5)])
-	legs_poly.visible = false
-	_armor_visual_overlay.add_child(legs_poly)
-
-	var boots_poly := Polygon2D.new()
-	boots_poly.name = "BootsVis"
-	boots_poly.polygon = PackedVector2Array([Vector2(-4, -4), Vector2(4, -4), Vector2(4, -1), Vector2(-4, -1)])
-	boots_poly.visible = false
-	_armor_visual_overlay.add_child(boots_poly)
+	var vis_defs: Dictionary = {
+		"HelmVis": [Vector2(-4, -24), Vector2(4, -24), Vector2(5, -20), Vector2(-5, -20)],
+		"ChestVis": [Vector2(-5, -15), Vector2(5, -15), Vector2(4, -9), Vector2(-4, -9)],
+		"LegsVis": [Vector2(-4, -9), Vector2(4, -9), Vector2(4, -5), Vector2(-4, -5)],
+		"BootsVis": [Vector2(-4, -4), Vector2(4, -4), Vector2(4, -1), Vector2(-4, -1)]
+	}
+	for p_name in vis_defs.keys():
+		var poly := Polygon2D.new()
+		poly.name = p_name
+		poly.polygon = PackedVector2Array(vis_defs[p_name])
+		poly.visible = false
+		_armor_visual_overlay.add_child(poly)
 
 func _tier_to_armor_color(tier: int) -> Color:
 	match tier:
-		1: return Color(0.68, 0.44, 0.24, 0.82) # Cuero Curtido
-		2: return Color(0.75, 0.80, 0.88, 0.86) # Hierro Forjado
-		3: return Color(0.45, 0.82, 1.00, 0.90) # Acero Templado
+		1: return Color(0.68, 0.44, 0.24, 0.82)
+		2: return Color(0.75, 0.80, 0.88, 0.86)
+		3: return Color(0.45, 0.82, 1.00, 0.90)
 	return Color.TRANSPARENT
 
 func apply_speed_tonic(duration: float = 35.0) -> void:
@@ -534,15 +424,10 @@ func is_any_ui_modal_open() -> bool:
 		return true
 	var ui_root = get_tree().current_scene.get_node_or_null("UI/UIRoot") if get_tree().current_scene else null
 	if ui_root:
-		var inv_p = ui_root.get("inv_panel")
-		if inv_p is Control and inv_p.visible:
-			return true
-		var tw_p = ui_root.get("tool_wheel")
-		if tw_p is Control and tw_p.visible:
-			return true
-		var tg_p = ui_root.get("tavern_games")
-		if tg_p is Control and tg_p.visible:
-			return true
+		for ui_key in ["inv_panel", "tool_wheel", "tavern_games"]:
+			var ctrl = ui_root.get(ui_key)
+			if ctrl is Control and ctrl.visible:
+				return true
 		var vm_ui = ui_root.get("valley_map")
 		if vm_ui and bool(vm_ui.get("is_full_map_open")):
 			return true
@@ -570,9 +455,7 @@ func is_fishing_or_sitting() -> bool:
 	if camp and bool(camp.get("is_player_sitting")):
 		return true
 	var lake = get_tree().current_scene.find_child("WestFishingLake", true, false) if get_tree().current_scene else null
-	if lake and int(lake.get("state")) != 0:
-		return true
-	return false
+	return lake != null and int(lake.get("state")) != 0
 
 func show_hint(text: String) -> void:
 	if hint_label:
@@ -590,33 +473,19 @@ func _unhandled_input(event: InputEvent) -> void:
 			_handle_interactions()
 		return
 	var lake = get_tree().current_scene.find_child("WestFishingLake", true, false) if get_tree().current_scene else null
-	if lake and int(lake.get("state")) == 3: # FishState.MINIGAME
+	if lake and int(lake.get("state")) == 3:
 		return
 
 	if event is InputEventKey and event.pressed and not event.echo:
-		if event.keycode == KEY_1:
-			equip_tool_by_index(0)
-		elif event.keycode == KEY_2:
-			equip_tool_by_index(1)
-		elif event.keycode == KEY_3:
-			equip_tool_by_index(2)
-		elif event.keycode == KEY_4:
-			equip_tool_by_index(3)
-		elif event.keycode == KEY_5:
-			equip_tool_by_index(4)
-		elif event.keycode == KEY_6:
-			equip_tool_by_index(5)
-		elif event.keycode == KEY_7:
-			equip_tool_by_index(6)
-		elif event.keycode == KEY_8:
-			equip_tool_by_index(7)
+		if event.keycode >= KEY_1 and event.keycode <= KEY_8:
+			equip_tool_by_index(int(event.keycode - KEY_1))
 		elif event.keycode == KEY_R and inventory:
 			var next_seed := inventory.cycle_selected_seed()
 			var s_name := inventory.get_item_name(next_seed)
 			var s_count := inventory.get_count(next_seed)
 			_spawn_floating_text("🌱 %s (%d)" % [s_name, s_count], Color.SPRING_GREEN, -40.0)
 			show_hint("[R] Semilla activa para sembrar: %s (Tienes %d)" % [s_name, s_count])
-			
+
 	if event.is_action_pressed("Interact"):
 		_handle_interactions()
 

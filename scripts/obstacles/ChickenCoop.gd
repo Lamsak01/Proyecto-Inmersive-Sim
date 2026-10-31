@@ -65,56 +65,41 @@ func _ready() -> void:
 	set_process(not Engine.is_editor_hint())
 	set_process_unhandled_input(not Engine.is_editor_hint())
 
+func _add_fence_line(pts: Array[Vector2], col: Color = Color(0.58, 0.38, 0.20, 1.0)) -> Line2D:
+	var ln := Line2D.new()
+	ln.width = 3.0
+	ln.default_color = col
+	ln.points = PackedVector2Array(pts)
+	add_child(ln)
+	return ln
+
+func _make_world_lbl(txt: String, pos: Vector2, min_sz: Vector2, f_sz: int, col: Color, z: int = 0) -> Label:
+	var l := Label.new()
+	l.visible = false
+	l.text = txt
+	l.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	l.position = pos
+	l.custom_minimum_size = min_sz
+	l.add_theme_font_size_override("font_size", f_sz)
+	l.add_theme_color_override("font_color", col)
+	l.add_theme_color_override("font_outline_color", Color.BLACK)
+	l.add_theme_constant_override("outline_size", 3)
+	l.z_index = z
+	add_child(l)
+	return l
+
 func _build_fence_enclosure() -> void:
-	# Suelo de tierra suave del gallinero
 	var floor_poly := Polygon2D.new()
-	floor_poly.polygon = PackedVector2Array([
-		Vector2(-38, -30), Vector2(38, -30), Vector2(38, 30), Vector2(-38, 30)
-	])
+	floor_poly.polygon = PackedVector2Array([Vector2(-38, -30), Vector2(38, -30), Vector2(38, 30), Vector2(-38, 30)])
 	floor_poly.color = Color(0.46, 0.36, 0.22, 0.42)
 	floor_poly.z_index = -2
 	add_child(floor_poly)
 
-	var fence_col := Color(0.58, 0.38, 0.20, 1.0)
-	# Paredes Norte, Oeste y Este
-	var main_fence := Line2D.new()
-	main_fence.width = 3.0
-	main_fence.default_color = fence_col
-	main_fence.points = PackedVector2Array([
-		Vector2(-38, 30), Vector2(-38, -30), Vector2(38, -30), Vector2(38, 30)
-	])
-	add_child(main_fence)
-
-	# Pared Sur dividida en 3 tramos para que el tramo central pueda abrirse cuando un zorro hace un agujero
-	south_fence_left = Line2D.new()
-	south_fence_left.width = 3.0
-	south_fence_left.default_color = fence_col
-	south_fence_left.points = PackedVector2Array([Vector2(-38, 30), Vector2(-12, 30)])
-	add_child(south_fence_left)
-
-	south_fence_gap = Line2D.new()
-	south_fence_gap.width = 3.0
-	south_fence_gap.default_color = fence_col
-	south_fence_gap.points = PackedVector2Array([Vector2(-12, 30), Vector2(12, 30)])
-	add_child(south_fence_gap)
-
-	south_fence_right = Line2D.new()
-	south_fence_right.width = 3.0
-	south_fence_right.default_color = fence_col
-	south_fence_right.points = PackedVector2Array([Vector2(12, 30), Vector2(38, 30)])
-	add_child(south_fence_right)
-
-	breach_marker = Label.new()
-	breach_marker.visible = false
-	breach_marker.text = "🕳️ [Agujero]"
-	breach_marker.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	breach_marker.position = Vector2(-45, 22)
-	breach_marker.custom_minimum_size = Vector2(90, 16)
-	breach_marker.add_theme_font_size_override("font_size", 8)
-	breach_marker.add_theme_color_override("font_color", Color.ORANGE_RED)
-	breach_marker.add_theme_color_override("font_outline_color", Color.BLACK)
-	breach_marker.add_theme_constant_override("outline_size", 3)
-	add_child(breach_marker)
+	_add_fence_line([Vector2(-38, 30), Vector2(-38, -30), Vector2(38, -30), Vector2(38, 30)])
+	south_fence_left = _add_fence_line([Vector2(-38, 30), Vector2(-12, 30)])
+	south_fence_gap = _add_fence_line([Vector2(-12, 30), Vector2(12, 30)])
+	south_fence_right = _add_fence_line([Vector2(12, 30), Vector2(38, 30)])
+	breach_marker = _make_world_lbl("🕳️ [Agujero]", Vector2(-45, 22), Vector2(90, 16), 8, Color.ORANGE_RED)
 
 func _build_feeder_and_nest() -> void:
 	feeder_sprite = Sprite2D.new()
@@ -143,17 +128,7 @@ func _build_feeder_and_nest() -> void:
 	area.body_exited.connect(func(b): if b.is_in_group("player"): _player_near = false)
 	add_child(area)
 
-	status_label = Label.new()
-	status_label.visible = false
-	status_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	status_label.position = Vector2(-135, -48)
-	status_label.custom_minimum_size = Vector2(270, 20)
-	status_label.add_theme_font_size_override("font_size", 9)
-	status_label.add_theme_color_override("font_color", Color(1.0, 0.92, 0.68))
-	status_label.add_theme_color_override("font_outline_color", Color.BLACK)
-	status_label.add_theme_constant_override("outline_size", 3)
-	status_label.z_index = 20
-	add_child(status_label)
+	status_label = _make_world_lbl("", Vector2(-135, -48), Vector2(270, 20), 9, Color(1.0, 0.92, 0.68), 20)
 
 func _spawn_initial_chickens(count: int) -> void:
 	for i in range(count):
@@ -230,6 +205,12 @@ func _harvest_chicken(chk_data: Dictionary, player: Node, by_attack: bool = fals
 		player._spawn_floating_text("%s (🧬Nv.%d): +%d Pollo Crudo, +%d Pluma" % [prefix, gen_tier, yield_amt, yield_amt], Color.ORANGE, -44.0)
 	_save_state()
 
+func _add_action_btn(parent: Node, txt: String, cb: Callable) -> void:
+	var btn := Button.new()
+	btn.text = txt
+	btn.pressed.connect(cb)
+	parent.add_child(btn)
+
 func _setup_chicken_action_ui() -> void:
 	chicken_action_layer = CanvasLayer.new()
 	chicken_action_layer.layer = 31
@@ -266,20 +247,9 @@ func _setup_chicken_action_ui() -> void:
 	lbl.add_theme_color_override("font_color", Color(0.98, 0.92, 0.76))
 	vbox.add_child(lbl)
 
-	var btn_grab := Button.new()
-	btn_grab.text = "[1] 🍗 Coger pollo para comer (+1 Pollo Crudo, +1 Pluma)"
-	btn_grab.pressed.connect(_on_chicken_grab_confirmed)
-	vbox.add_child(btn_grab)
-
-	var btn_pet := Button.new()
-	btn_pet.text = "[2] ❤️ Acariciar gallina (Calmar y alimentar)"
-	btn_pet.pressed.connect(_on_chicken_pet_confirmed)
-	vbox.add_child(btn_pet)
-
-	var btn_cancel := Button.new()
-	btn_cancel.text = "[3 / ESC] Dejarla tranquila"
-	btn_cancel.pressed.connect(func(): chicken_action_panel.visible = false)
-	vbox.add_child(btn_cancel)
+	_add_action_btn(vbox, "[1] 🍗 Coger pollo para comer (+1 Pollo Crudo, +1 Pluma)", _on_chicken_grab_confirmed)
+	_add_action_btn(vbox, "[2] ❤️ Acariciar gallina (Calmar y alimentar)", _on_chicken_pet_confirmed)
+	_add_action_btn(vbox, "[3 / ESC] Dejarla tranquila", func(): chicken_action_panel.visible = false)
 
 func _unhandled_input(event: InputEvent) -> void:
 	if chicken_action_panel and chicken_action_panel.visible:
@@ -463,29 +433,13 @@ func interact(player: Node2D) -> void:
 			return
 
 	# 2. Si hay huevos en el nido y el jugador está más cerca del nido (derecha) o el comedero ya está lleno
-
 	if (eggs_in_nest > 0 or golden_eggs_in_nest > 0) and (d_nest <= d_feeder or feeder_level >= 2):
-		var collected := eggs_in_nest
-		var collected_gold := golden_eggs_in_nest
-		eggs_in_nest = 0
-		golden_eggs_in_nest = 0
-		if inv:
-			if collected > 0:
-				inv.add_item("egg", collected)
-			if collected_gold > 0:
-				inv.add_item("golden_egg", collected_gold)
-		_refresh_coop_visuals()
-		if player.has_method("_spawn_floating_text"):
-			var msg: String = "🥚 Recogido: +%d Huevo" % collected
-			if collected_gold > 0:
-				msg += " | 🥚✨ +%d Huevo Dorado (Genética Nv.3)" % collected_gold
-			player._spawn_floating_text(msg, Color.GOLD, -42.0)
+		_collect_eggs(player, inv, " (Genética Nv.3)")
 		return
 
 	# 3. Llenar el Comedero (sistema de 2 toques [E]: 0/2 -> 1/2 -> 2/2)
 	if feeder_level < 2:
 		feeder_level += 1
-		# Alimentar también a una gallina al llenar
 		for chk in chickens:
 			if not chk["fed"]:
 				chk["fed"] = true
@@ -497,21 +451,7 @@ func interact(player: Node2D) -> void:
 
 	# 4. Si el comedero ya está 2/2 y aún quedaban huevos
 	if eggs_in_nest > 0 or golden_eggs_in_nest > 0:
-		var collected := eggs_in_nest
-		var collected_gold := golden_eggs_in_nest
-		eggs_in_nest = 0
-		golden_eggs_in_nest = 0
-		if inv:
-			if collected > 0:
-				inv.add_item("egg", collected)
-			if collected_gold > 0:
-				inv.add_item("golden_egg", collected_gold)
-		_refresh_coop_visuals()
-		if player.has_method("_spawn_floating_text"):
-			var msg2: String = "🥚 Recogido: +%d Huevo" % collected
-			if collected_gold > 0:
-				msg2 += " | 🥚✨ +%d Huevo Dorado" % collected_gold
-			player._spawn_floating_text(msg2, Color.GOLD, -42.0)
+		_collect_eggs(player, inv, "")
 		return
 
 	if not nearest_chk.is_empty():
@@ -522,6 +462,23 @@ func interact(player: Node2D) -> void:
 
 	if player.has_method("show_hint"):
 		player.show_hint("🐔 Gallinero al día: %d Gallinas | Comedero Lleno (2/2) | Acércate a una gallina y pulsa [E] o atácala si quieres carne de pollo." % chickens.size())
+
+func _collect_eggs(player: Node2D, inv: SimpleInventory, gold_suffix: String) -> void:
+	var collected := eggs_in_nest
+	var collected_gold := golden_eggs_in_nest
+	eggs_in_nest = 0
+	golden_eggs_in_nest = 0
+	if inv:
+		if collected > 0:
+			inv.add_item("egg", collected)
+		if collected_gold > 0:
+			inv.add_item("golden_egg", collected_gold)
+	_refresh_coop_visuals()
+	if player.has_method("_spawn_floating_text"):
+		var msg: String = "🥚 Recogido: +%d Huevo" % collected
+		if collected_gold > 0:
+			msg += " | 🥚✨ +%d Huevo Dorado%s" % [collected_gold, gold_suffix]
+		player._spawn_floating_text(msg, Color.GOLD, -42.0)
 
 func _find_nearest_chicken(world_pos: Vector2, max_dist: float) -> Dictionary:
 	var best: Dictionary = {}
@@ -571,36 +528,28 @@ func _on_day_passed(_new_day: int) -> void:
 
 func _refresh_coop_visuals() -> void:
 	if feeder_sprite:
-		if feeder_level <= 0:
-			feeder_sprite.texture = _tex_feeder_empty
-		elif feeder_level == 1:
-			feeder_sprite.texture = _tex_feeder_half
-		else:
-			feeder_sprite.texture = _tex_feeder_full
-
+		feeder_sprite.texture = _tex_feeder_empty if feeder_level <= 0 else (_tex_feeder_half if feeder_level == 1 else _tex_feeder_full)
 	if nest_sprite:
 		nest_sprite.texture = _tex_nest_eggs if (eggs_in_nest > 0 or golden_eggs_in_nest > 0) else _tex_nest_empty
-
 	if south_fence_gap:
 		south_fence_gap.visible = not is_breached
 	if breach_marker:
 		breach_marker.visible = is_breached
 	_save_state()
 
-func _save_state() -> void:
-	if Engine.is_editor_hint() or not GameManager:
-		return
+func _get_max_genetics() -> int:
 	var max_gen: int = 1
 	for chk in chickens:
 		max_gen = maxi(max_gen, int(chk.get("genetics", 1)))
+	return max_gen
+
+func _save_state() -> void:
+	if Engine.is_editor_hint() or not GameManager:
+		return
 	GameManager.set_flag("player_chicken_coop", {
-		"feeder": feeder_level,
-		"eggs": eggs_in_nest,
-		"golden_eggs": golden_eggs_in_nest,
-		"breached": is_breached,
-		"fence_hp": fence_hp,
-		"chickens": chickens.size(),
-		"max_genetics": max_gen
+		"feeder": feeder_level, "eggs": eggs_in_nest, "golden_eggs": golden_eggs_in_nest,
+		"breached": is_breached, "fence_hp": fence_hp, "chickens": chickens.size(),
+		"max_genetics": _get_max_genetics()
 	})
 
 func _load_saved_state() -> void:
@@ -637,21 +586,11 @@ func _on_game_loaded(_filepath: String) -> void:
 func _get_coop_prompt() -> String:
 	if is_breached:
 		return "⚠️ Gallinero Con Agujero (%d 🐔) [E: Reparar Cerca]" % chickens.size()
-	var max_gen: int = 1
-	for chk in chickens:
-		max_gen = maxi(max_gen, int(chk.get("genetics", 1)))
-	var parts: Array[String] = []
-	if feeder_level < 2:
-		parts.append("E: Llenar Comedero (%d/2)" % feeder_level)
-	else:
-		parts.append("Comedero 2/2")
+	var parts: Array[String] = ["E: Llenar Comedero (%d/2)" % feeder_level if feeder_level < 2 else "Comedero 2/2"]
 	if eggs_in_nest > 0 or golden_eggs_in_nest > 0:
-		if golden_eggs_in_nest > 0:
-			parts.append("E: Recoger %d🥚+%d🥚✨" % [eggs_in_nest, golden_eggs_in_nest])
-		else:
-			parts.append("E: Recoger %d Huevos" % eggs_in_nest)
+		parts.append("E: Recoger %d🥚+%d🥚✨" % [eggs_in_nest, golden_eggs_in_nest] if golden_eggs_in_nest > 0 else "E: Recoger %d Huevos" % eggs_in_nest)
 	parts.append("E en 🐔: Coger/Acariciar")
-	return "🐔 Gallinero (%d | 🧬Nv.%d) [%s]" % [chickens.size(), max_gen, " | ".join(parts)]
+	return "🐔 Gallinero (%d | 🧬Nv.%d) [%s]" % [chickens.size(), _get_max_genetics(), " | ".join(parts)]
 
 func _load_tex(res_path: String) -> Texture2D:
 	if ResourceLoader.exists(res_path):
