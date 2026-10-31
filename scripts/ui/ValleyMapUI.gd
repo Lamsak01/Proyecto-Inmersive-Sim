@@ -279,7 +279,7 @@ func _draw_valley_cartography(canvas: Control, detailed: bool) -> void:
 
 	# 8. Puntos en Vivo de Enemigos Hostiles de la Llanura
 	for h in get_tree().get_nodes_in_group("plains_hostiles"):
-		if h is Node2D and h.visible and not bool(h.get("is_dead_flag")):
+		if h is Node2D and h.visible and h.get("is_dead_flag") != true and h.get("is_dead") != true:
 			var hp := _world_to_map(h.global_position, csize)
 			canvas.draw_circle(hp, 3.8 if detailed else 2.0, Color(1.0, 0.25, 0.25))
 
@@ -323,7 +323,7 @@ func _update_census_and_hover() -> void:
 
 	var h_alive := 0
 	for h in get_tree().get_nodes_in_group("plains_hostiles"):
-		if h is Node2D and not bool(h.get("is_dead_flag")):
+		if h is Node2D and h.get("is_dead_flag") != true and h.get("is_dead") != true:
 			h_alive += 1
 
 	var npc_alive := 0

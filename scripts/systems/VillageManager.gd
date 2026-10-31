@@ -4783,7 +4783,7 @@ func _update_deployed_bear_traps(delta: float, player: Node2D) -> void:
 			for e in get_tree().get_nodes_in_group("enemies"):
 				if e is Node2D and e != player:
 					var en := e as Node2D
-					if en.visible and not bool(en.get("is_dead")) and not bool(en.get("is_downed")) and en.global_position.distance_squared_to(t_pos) <= 16.0 * 16.0:
+					if en.visible and en.get("is_dead") != true and en.get("is_dead_flag") != true and en.get("is_downed") != true and en.global_position.distance_squared_to(t_pos) <= 16.0 * 16.0:
 						triggered_target = en
 						break
 

@@ -40,7 +40,7 @@ func _process(delta: float) -> void:
 		_input_cooldown -= delta
 	if active and current_speaker != null:
 		var sed_val: float = float(current_speaker.get("sedated_timer")) if (is_instance_valid(current_speaker) and "sedated_timer" in current_speaker) else 0.0
-		if not is_instance_valid(current_speaker) or bool(current_speaker.get("is_dead")) or bool(current_speaker.get("is_downed")) or bool(current_speaker.get("is_hostile")) or bool(current_speaker.get("is_stunned_flag")) or sed_val > 0.0:
+		if not is_instance_valid(current_speaker) or current_speaker.get("is_dead") == true or current_speaker.get("is_downed") == true or current_speaker.get("is_hostile") == true or current_speaker.get("is_attacking") == true or current_speaker.get("is_stunned_flag") == true or sed_val > 0.0:
 			end_dialogue()
 
 func _make_dlg_style(bg: Color, border: Color, bw: int, rad: int, mx: int, my: int) -> StyleBoxFlat:
