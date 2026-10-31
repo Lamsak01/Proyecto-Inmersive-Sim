@@ -222,7 +222,8 @@ func refresh_ui() -> void:
 
 	var pat_name: String = "TU CUERPO (Forastero)" if target_entity == player else ("%s (%s)" % [str(target_entity.get("npc_name")), str(target_entity.get("npc_role"))])
 	var dead_tag: String = " [CADÁVER]" if target_entity.get("is_dead") == true else (" [AGONIZANDO]" if target_entity.get("is_downed") == true else "")
-	title_label.text = "🩺 EXAMEN CLÍNICO: %s%s — Salud Global: %d/%d HP" % [pat_name, dead_tag, int(round(hc.current_health)), int(round(hc.max_health))]
+	var eff_max_hp: int = int(round(hc.get_effective_max_health()))
+	title_label.text = "🩺 %s%s — Resistencia: %d/%d HP  |  🩸 Pérdida Sangre: %d%% (%s)" % [pat_name, dead_tag, int(round(hc.current_health)), eff_max_hp, int(round(hc.current_blood)), hc.get_blood_loss_stage_name()]
 
 	var inv: SimpleInventory = player.get("inventory") if is_instance_valid(player) else null
 	if inv:
@@ -249,8 +250,10 @@ func refresh_ui() -> void:
 		var pct: int = int(round(float(caps.get(k, 1.0)) * 100.0))
 		cap_lines.append("%s: %d%%" % [str(CAP_NAMES[k]), pct])
 	var bleed_dps: float = hc.get_total_wound_bleed_rate() + (hc._bleed_dps if hc._bleed_timer > 0.0 else 0.0)
-	var bleed_str: String = ("ACTIVO (-%.1f HP/s)" % bleed_dps) if (hc.is_bleeding or bleed_dps > 0.0) else "Controlado"
-	cap_lines.append("💥 Dolor Acumulado: %d%%  |  🩸 Sangrado: %s" % [int(round(hc.get_total_pain())), bleed_str])
+	var eta_sec: int = hc.get_bleedout_eta_seconds()
+	var bleed_str: String = ("ACTIVO (+%.2f%%/s -> Muerte en ~%ds)" % [bleed_dps, eta_sec]) if (hc.is_bleeding or bleed_dps > 0.0) else "Controlado (Regenerando sangre)"
+	cap_lines.append("🩸 Pérdida de Sangre: %d%% [%s] — %s" % [int(round(hc.current_blood)), hc.get_blood_loss_stage_name(), bleed_str])
+	cap_lines.append("💥 Dolor Acumulado: %d%%  |  🛡️ Tope Resistencia: %d/%d HP" % [int(round(hc.get_total_pain())), int(round(hc.get_effective_max_health())), int(round(hc.max_health))])
 	cap_lines.append(hc.get_sickness_summary_label())
 	capacities_label.text = "\n".join(cap_lines)
 
@@ -313,24 +316,30 @@ func refresh_ui() -> void:
 		var w_type: String = str(w.get("type", "scratch"))
 
 		var badges: Array[String] = []
-		if float(w.get("bleed_rate", 0.0)) > 0.0 and not bool(w.get("bandaged", false)) and not bool(w.get("stitched", false)):
-			badges.append("🩸Sangrando")
+		var w_bleed: float = float(w.get("bleed_rate", 0.0))
+		var t_qual: int = int(round(float(w.get("tend_quality", 0.0))))
+		if w_bleed > 0.0 and not bool(w.get("bandaged", false)) and not bool(w.get("stitched", false)):
+			badges.append("🩸Sangrando (+%.2f%%/s)" % w_bleed)
 		if bool(w.get("bandaged", false)):
 			var dirty: float = float(w.get("bandage_dirty", 0.0))
-			badges.append("🩹Vendado (Sucio)" if dirty >= 55.0 else "🩹Vendado")
+			if t_qual > 0 and t_qual <= 32:
+				badges.append("🖐️Rudimentario (%d%%)" % t_qual)
+			else:
+				badges.append(("🩹Vendado Sucio (%d%%)" % t_qual) if dirty >= 55.0 else ("🩹Vendado (%d%%)" % t_qual))
 		if bool(w.get("stitched", false)):
-			badges.append("🧵Suturado")
+			badges.append("🧵Suturado (%d%%)" % max(t_qual, 90))
 		if bool(w.get("splinted", false)):
 			badges.append("🩼Entablillado")
 		if bool(w.get("clean", false)):
 			badges.append("✨Limpio")
 		var inf_pct: int = int(round(float(w.get("infection", 0.0))))
-		if inf_pct >= 12:
-			badges.append("🦠Infectada (%d%%)" % inf_pct)
+		var imm_pct: int = int(round(maxf(float(w.get("immunity", 0.0)), hc.systemic_immunity)))
+		if inf_pct >= 5:
+			badges.append("🦠Infección %d%% vs 🛡️Inmunidad %d%%" % [inf_pct, imm_pct])
 
 		var badge_txt: String = ("  [" + " | ".join(badges) + "]") if not badges.is_empty() else "  [⚠️Sin tratar]"
 		_add_lbl(cv, "📍 %s%s — %s (Causa: %s)%s" % [r_title, o_str, str(w.get("name", "Herida")), str(w.get("weapon_cause", "Impacto")), badge_txt], 12, Color(1.0, 0.85, 0.65))
-		_add_lbl(cv, "   Severidad: %d%%   |   Dolor: +%d%%   |   Infección: %d%%" % [int(round(float(w.get("severity", 10.0)))), int(round(float(w.get("pain", 5.0)))), inf_pct], 11, Color(0.80, 0.84, 0.90))
+		_add_lbl(cv, "   Severidad: %d%%   |   Dolor: +%d%%   |   Calidad Cura: %d%%   |   Infección: %d%% (Inmunidad: %d%%)" % [int(round(float(w.get("severity", 10.0)))), int(round(float(w.get("pain", 5.0)))), t_qual, inf_pct, imm_pct], 11, Color(0.80, 0.84, 0.90))
 
 		if is_corpse:
 			continue
@@ -340,7 +349,9 @@ func refresh_ui() -> void:
 		cv.add_child(btn_row)
 
 		_add_treat_btn(btn_row, "💧 Lavar", hc, w_id, "wash")
-		if not bool(w.get("bandaged", false)) or float(w.get("bandage_dirty", 0.0)) >= 50.0:
+		if not bool(w.get("bandaged", false)) and not bool(w.get("stitched", false)):
+			_add_treat_btn(btn_row, "🖐️ Cura Rudimentaria (Gratis)", hc, w_id, "tend_makeshift")
+		if not bool(w.get("bandaged", false)) or float(w.get("bandage_dirty", 0.0)) >= 35.0 or t_qual <= 35:
 			_add_treat_btn(btn_row, "🩹 Vendar", hc, w_id, "bandage")
 		_add_treat_btn(btn_row, "🌿 Cataplasma", hc, w_id, "poultice")
 		if w_type in ["deep_wound", "lodged_arrow"] and not bool(w.get("stitched", false)):
@@ -373,6 +384,10 @@ func _apply_treatment(hc: HealthComponent, wound_id: int, action: String) -> voi
 				player.call("wash_bloodstains")
 			if player.has_method("_spawn_floating_text"):
 				player.call("_spawn_floating_text", "💧 Herida lavada y limpia", Color.AQUA, -40.0)
+		"tend_makeshift":
+			hc.treat_wound(wound_id, "tend_makeshift")
+			if player.has_method("_spawn_floating_text"):
+				player.call("_spawn_floating_text", "🖐️ Vendaje rudimentario aplicado (Sangrado detenido, calidad 25%)", Color(0.95, 0.80, 0.42), -40.0)
 		"bandage":
 			if inv.has_item("bandage", 1):
 				inv.remove_item("bandage", 1)

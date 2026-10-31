@@ -122,6 +122,8 @@ var merchant_suspension_days: Dictionary = {"casimir": 0, "valeria": 0} # Días 
 var _active_traveling_merchant: VillageNPC = null
 var _royal_investigator_npc: VillageNPC = null
 var active_royal_investigation: Dictionary = {} # Expediente deductivo del Inquisidor Real Alistair
+var active_sheriff_investigation: Dictionary = {} # Expediente deductivo local del Comisario Vane (máx. 5 eslabones)
+var blood_puddles: Array[Dictionary] = [] # Charcos de sangre y rastro direccional de huellas ([{pos, victim_name, node, footprint_nodes, flee_dir, flee_compass}])
 var business_panel: PanelContainer = null
 var business_info_lbl: Label = null
 var _biz_btn_1: Button = null
@@ -140,8 +142,9 @@ func setup_village(target_entities_root: Node) -> void:
 	set_process_unhandled_input(not in_editor)
 	add_to_group("village_manager")
 
-	for arr in [building_footprints, _wall_occluder_rects, house_chests, building_doors, building_windows, streetlights, _authority_slots, morgue_active_corpses, buried_graves, _cemetery_grave_positions, _cemetery_grave_nodes]:
+	for arr in [building_footprints, _wall_occluder_rects, house_chests, building_doors, building_windows, streetlights, _authority_slots, morgue_active_corpses, buried_graves, _cemetery_grave_positions, _cemetery_grave_nodes, blood_puddles]:
 		arr.clear()
+	active_sheriff_investigation.clear()
 	shop_businesses.clear()
 	vagrant_camp_nodes.clear()
 	arrivals_today_count = 0
@@ -856,7 +859,7 @@ func _spawn_tavern_and_rooms() -> void:
 	_tavern_pool_label = _make_station_label(_tavern_pool_pos + Vector2(-115, -30), "🎱 Mesa de Billar [E: Jugar Billar de Posada]")
 	entities_root.add_child(_tavern_pool_label)
 
-	for b_pos in [Vector2(342, -252), Vector2(435, -252), Vector2(468, -252), Vector2(502, -252), _tavern_bed_pos]:
+	for b_pos in [Vector2(342, -252), Vector2(400, -252), Vector2(435, -252), Vector2(468, -252), Vector2(502, -252), _tavern_bed_pos]:
 		_add_sprite_prop(tex_bed, b_pos, Vector2(1.18, 1.18), -1)
 
 	_add_station_area("TavernPlayerBedArea", _tavern_bed_pos, 11.0, "tavern_bed")
@@ -909,7 +912,7 @@ func _spawn_five_family_houses_and_trades() -> void:
 			"house_title": "🏠 Residencia Familia Roble Viejo", "house_center": Vector2(745, -36),
 			"name": "Bram", "title": "Maestro Carpintero",
 			"tex": _load_tex("res://assests/world/village/villager_carpenter.png"),
-			"stock": {"repair_kit": 5, "wood": 8},
+			"stock": {"repair_kit": 5, "wood": 8, "copper_coil": 2},
 			"kin_name": "Mila", "kin_title": "Hermana y Ebanista"
 		},
 		VillageNPC.TradeRole.FISHMONGER: {
@@ -929,7 +932,7 @@ func _spawn_five_family_houses_and_trades() -> void:
 			"house_title": "🌿 Botica y Vivienda Raíz Verde", "house_center": Vector2(325, 155),
 			"name": "Elena", "title": "Herborista y Alquimista",
 			"tex": _load_tex("res://assests/world/village/villager_herbalist.png"),
-			"stock": {"carrot_seeds": 8, "cabbage_seeds": 8, "wheat_seeds": 8, "herbal_poultice": 4},
+			"stock": {"carrot_seeds": 8, "cabbage_seeds": 8, "wheat_seeds": 8, "herbal_poultice": 4, "sleeping_draught": 2, "surgical_kit": 1},
 			"kin_name": "Tomás", "kin_title": "Esposo y Hortelano"
 		}
 	}
@@ -1070,7 +1073,7 @@ func _spawn_hospital_and_morgue() -> void:
 		_add_sprite_prop(tex_hbed, b_pos, Vector2(1.15, 1.15), -1)
 
 	_add_station_area("HospitalEmergencyBedArea", _hospital_bed_pos, 16.0, "hospital_bed")
-	_hospital_bed_label = _make_station_label(_hospital_bed_pos + Vector2(-120, -28), "🏥 Cama de Urgencias [E: Curar Heridas (-10 Oro)]")
+	_hospital_bed_label = _make_station_label(_hospital_bed_pos + Vector2(-120, -28), "🏥 Cama de Urgencias [E: Ingresar para Cura Progresiva (-10 Oro)]")
 	entities_root.add_child(_hospital_bed_label)
 
 	var tex_mtable := _load_tex("res://assests/world/village/morgue_table.png")
@@ -1090,7 +1093,7 @@ func _spawn_hospital_and_morgue() -> void:
 		"NPC_Dr_Valen", "Dr. Valen", "Cirujano y Forense", VillageNPC.TradeRole.DOCTOR,
 		"res://assests/world/village/villager_doctor.png",
 		Vector2(745, 128), Vector2(780, 132), Vector2(764, 128),
-		{"surgical_kit": 4, "herbal_poultice": 6},
+		{"bandage": 4, "surgical_kit": 4, "herbal_poultice": 6},
 		"family_hospital", "Cuerpo Médico del Valle",
 		["Dr. Silvano", "Dra. Valeria", "Dr. Aurelio", "Dra. Caelia", "Dr. Mirko"]
 	)
@@ -1564,6 +1567,10 @@ func register_npc_death_and_corpse(
 					player_murder_warrants_count += 1
 					_notify_inquisitor_of_police_crime("Cruce forense en Morgue: %s situó al Forastero en el asesinato de %s." % [w_name, victim.npc_name], 38)
 					break
+
+	# Si el asesinato ocurrió sin testigo presencial directo del golpe, el Comisario Vane inicia una investigación en cadena (empezando por quien reportó el cuerpo)
+	if not suspect_str.begins_with("Jugador") and victim.trade_role != VillageNPC.TradeRole.TRAVELING_MERCHANT:
+		start_sheriff_investigation(victim, death_pos, weapon_name, finder_str, death_mins)
 
 	var record: Dictionary = {
 		"victim_name": victim.npc_name, "victim_role": victim.npc_role, "family_name": victim.family_name,
@@ -2731,17 +2738,36 @@ func _use_hospital_emergency_bed(player: Node2D) -> void:
 	if health and health.current_health >= health.max_health - 0.1 and not health.is_bleeding and health.current_blood <= 0.1 and health.wounds.is_empty() and not health.has_active_sickness_or_infection():
 		_msg_player(player, "🏥 Tu salud ya está al 100%, sin heridas ni infecciones", Color.LIGHT_GRAY, -42.0)
 		return
+	var already_resting: bool = health != null and health.is_resting_in_bed
 	var inv: SimpleInventory = player.get("inventory") if "inventory" in player else null
-	if inv and inv.gold < 10:
-		_msg_player(player, "❌ Necesitas 10 Oro para usar la Cama de Urgencias", Color.ORANGE_RED, -42.0)
-		return
-	if inv:
-		inv.add_gold(-10)
+	if not already_resting:
+		if inv and inv.gold < 10:
+			_msg_player(player, "❌ Necesitas 10 Oro para ingresar en la Cama de Urgencias", Color.ORANGE_RED, -42.0)
+			return
+		if inv:
+			inv.add_gold(-10)
+	player.global_position = _hospital_bed_pos
+	if "velocity" in player:
+		player.velocity = Vector2.ZERO
 	if health:
-		health.stop_bleeding()
-		health.cure_sickness(100.0)
-		health.heal(health.max_health, true)
-	_msg_player(player, "🏥 Cama de Urgencias (-10 Oro): Salud, Heridas e Infecciones curadas al 100%", Color.SPRING_GREEN, -44.0)
+		health.is_resting_in_bed = true
+	var doc_npc: VillageNPC = null
+	for n in get_tree().get_nodes_in_group("village_npcs"):
+		if n is VillageNPC:
+			var vn := n as VillageNPC
+			if vn.trade_role == VillageNPC.TradeRole.DOCTOR and not vn.is_dead and not vn.is_downed:
+				doc_npc = vn
+				break
+	if is_instance_valid(doc_npc):
+		doc_npc.is_sleeping = false
+		doc_npc._active_hospital_patient = player
+		_msg_player(player, "🏥🛏️ Ingresado en Cama de Urgencias: %s irá curando tus heridas una por una (no te muevas)" % doc_npc.npc_name, Color.SPRING_GREEN, -44.0)
+	else:
+		if health:
+			var urg_id: int = health.get_most_urgent_untreated_wound_id(true)
+			if urg_id >= 0:
+				health.treat_wound(urg_id, "tend_makeshift")
+		_msg_player(player, "🏥🛏️ Sin médico de guardia: te aplicaste un vendaje de urgencia; descansa en la camilla para recuperarte", Color.GOLD, -44.0)
 
 func _use_tavern_games_table(start_tab: int = 0) -> void:
 	var games_ui = get_tree().root.find_child("TavernGamesUI", true, false)
@@ -2833,20 +2859,7 @@ func _on_day_passed(_new_day: int) -> void:
 	morgue_active_corpses = rem_morgue
 	_refresh_morgue_table_sprites()
 
-	# 1c. Reposición matutina de la Posada si la Tabernera está viva y consciente (escalada por su eficiencia laboral)
-	if is_instance_valid(_innkeeper_npc) and not _innkeeper_npc.is_dead and not _innkeeper_npc.is_downed:
-		var inn_eff: float = _innkeeper_npc.get_job_efficiency()
-		var inn_restock_cnt: int = 1 if inn_eff < 0.60 else (2 if inn_eff < 0.85 else 3)
-		var inn_added: int = 0
-		var inn_base := {"country_stew": 5, "bread": 7, "roasted_chicken": 3}
-		for ik in inn_base.keys():
-			if inn_added >= inn_restock_cnt:
-				break
-			var cur_iq: int = int(_innkeeper_npc.shop_stock.get(ik, 0))
-			var max_iq: int = int(ceil(float(inn_base[ik]) * inn_eff))
-			if cur_iq < max_iq:
-				_innkeeper_npc.shop_stock[ik] = cur_iq + 1
-				inn_added += 1
+	# 1c. La Posada y los artesanos ya NO reponen stock por arte de magia al dormir: fabrican sus propios recursos físicamente durante su turno de trabajo (`_process_artisan_work_shift`)
 
 	var total_player_dividends: int = 0
 	for role_key in trade_configs.keys():
@@ -2894,22 +2907,6 @@ func _on_day_passed(_new_day: int) -> void:
 				trade_npcs[role_key] = outsider
 				_hint_player("🔄 Sucesión en la aldea: %s asumió el taller como nuevo %s Novato (35%% Eficiencia · 7 días para Maestro)." % [outsider.npc_name, str(cfg["title"])])
 		else:
-			# Solo repone stock pasivo si el taller NO está saboteado y el titular está consciente; la cantidad depende de `get_job_efficiency()`
-			if sab_days <= 0 and not current_holder.is_downed:
-				var eff_h: float = current_holder.get_job_efficiency()
-				var max_items_restock: int = 1 if eff_h < 0.60 else (2 if eff_h < 0.85 else 99)
-				var items_restocked: int = 0
-				var base_stock: Dictionary = cfg["stock"]
-				for item_k in base_stock.keys():
-					if items_restocked >= max_items_restock:
-						break
-					var cur_amt: int = int(current_holder.shop_stock.get(item_k, 0))
-					var base_cap: int = int(base_stock[item_k])
-					var max_amt: int = maxi(1, int(ceil(float(base_cap) * 0.60))) if eff_h < 0.60 else (base_cap if eff_h < 0.85 else base_cap + 2)
-					if cur_amt < max_amt:
-						var add_qty: int = 2 if (eff_h >= 0.95 and cur_amt + 2 <= max_amt) else 1
-						current_holder.shop_stock[item_k] = cur_amt + add_qty
-						items_restocked += 1
 			biz["stock_override"] = current_holder.shop_stock.duplicate()
 
 	# 2. LLEGADAS EXTERNAS DESDE EL BORDE DEL MAPA (Estricto límite de `MAX_DAILY_ARRIVALS = 2` personas por día)
@@ -3920,11 +3917,275 @@ func _merchant_buy_from_local_shop(merchant: VillageNPC, role_id: int, wanted_ke
 		merchant._spawn_floating_text("📦 Compró %d lotes (-%d Oro | Quedan %d Oro)" % [bought_units, spent, merchant.personal_gold], Color.AQUA, -36.0)
 		merchant.trigger_action_animation(3.5)
 
+## ==============================================================================
+## BLOQUE 3 Y 4: CHARCOS DE SANGRE, HUELLAS DIRECCIONALES Y MOTOR DETECTIVESCO EN CADENA
+## ==============================================================================
+func spawn_blood_puddle(pos: Vector2, victim_name: String = "") -> void:
+	if not is_instance_valid(entities_root):
+		return
+	for existing in blood_puddles:
+		var ex_pos: Vector2 = existing.get("pos", Vector2.ZERO)
+		if ex_pos.distance_to(pos) <= 20.0:
+			if victim_name != "":
+				existing["victim_name"] = victim_name
+			return
+	var pts := PackedVector2Array([
+		Vector2(-9, -4), Vector2(-4, -8), Vector2(4, -7), Vector2(10, -3),
+		Vector2(8, 5), Vector2(2, 8), Vector2(-6, 7), Vector2(-10, 2)
+	])
+	var puddle_poly := _add_poly(pts, Color(0.56, 0.04, 0.06, 0.84), -2, pos)
+	var cur_d: int = WorldClock.current_day if WorldClock else 1
+	var cur_h: int = WorldClock.current_hour if WorldClock else 12
+	var cur_m: int = WorldClock.current_minute if WorldClock else 0
+	blood_puddles.append({
+		"pos": pos,
+		"victim_name": victim_name,
+		"node": puddle_poly,
+		"footprint_nodes": [],
+		"flee_dir": Vector2.ZERO,
+		"flee_compass": "",
+		"last_stepper": "",
+		"created_mins": cur_d * 1440 + cur_h * 60 + cur_m
+	})
+
+func update_entity_blood_footprints(entity: Node2D, _delta: float) -> void:
+	if entity == null or not is_instance_valid(entities_root) or blood_puddles.is_empty():
+		return
+	var steps_left: int = int(entity.get_meta("bloody_steps_left", 0)) if entity.has_meta("bloody_steps_left") else 0
+	var ent_pos: Vector2 = entity.global_position
+	if steps_left <= 0:
+		for i in range(blood_puddles.size()):
+			var pud: Dictionary = blood_puddles[i]
+			var p_pos: Vector2 = pud.get("pos", Vector2.ZERO)
+			if ent_pos.distance_squared_to(p_pos) <= 16.0 * 16.0:
+				entity.set_meta("bloody_steps_left", 6)
+				entity.set_meta("bloody_last_step_pos", ent_pos)
+				entity.set_meta("bloody_puddle_idx", i)
+				entity.set_meta("bloody_origin_pos", p_pos)
+				if entity.has_method("add_bloodstain"):
+					entity.call("add_bloodstain", 180.0)
+				break
+		return
+
+	var last_pos: Vector2 = entity.get_meta("bloody_last_step_pos", ent_pos) as Vector2
+	if ent_pos.distance_squared_to(last_pos) < 15.0 * 15.0:
+		return
+
+	steps_left -= 1
+	entity.set_meta("bloody_steps_left", steps_left)
+	entity.set_meta("bloody_last_step_pos", ent_pos)
+
+	var origin_pos: Vector2 = entity.get_meta("bloody_origin_pos", last_pos) as Vector2
+	var move_vec: Vector2 = ent_pos - origin_pos
+	var flee_dir: Vector2 = move_vec.normalized() if move_vec.length_squared() > 1.0 else (ent_pos - last_pos).normalized()
+	var alpha: float = clampf(0.28 + float(steps_left) * 0.09, 0.25, 0.82)
+	var fp_pts := PackedVector2Array([Vector2(-2.2, -1.2), Vector2(2.2, -1.2), Vector2(2.2, 1.2), Vector2(-2.2, 1.2)])
+	var fp_poly := _add_poly(fp_pts, Color(0.52, 0.04, 0.06, alpha), -2, ent_pos + Vector2(0, 5))
+	fp_poly.rotation = flee_dir.angle()
+
+	var p_idx: int = int(entity.get_meta("bloody_puddle_idx", -1))
+	if p_idx >= 0 and p_idx < blood_puddles.size() and flee_dir.length_squared() > 0.01:
+		var pud: Dictionary = blood_puddles[p_idx]
+		pud["flee_dir"] = flee_dir
+		pud["flee_compass"] = _describe_direction_and_landmark(origin_pos, flee_dir)
+		var ent_name: String = "Jugador" if entity.is_in_group("player") else (str(entity.get("npc_name")) if "npc_name" in entity else entity.name)
+		pud["last_stepper"] = ent_name
+		var fp_arr: Array = pud.get("footprint_nodes", [])
+		fp_arr.append(fp_poly)
+		pud["footprint_nodes"] = fp_arr
+
+func get_blood_puddle_clue_near(crime_pos: Vector2, max_radius: float = 95.0) -> Dictionary:
+	var best_idx: int = -1
+	var best_d2: float = max_radius * max_radius
+	for i in range(blood_puddles.size()):
+		var p_pos: Vector2 = blood_puddles[i].get("pos", Vector2.ZERO)
+		var d2: float = crime_pos.distance_squared_to(p_pos)
+		if d2 <= best_d2:
+			best_d2 = d2
+			best_idx = i
+	return blood_puddles[best_idx] if best_idx >= 0 else {}
+
+func _describe_direction_and_landmark(origin: Vector2, dir: Vector2) -> String:
+	if dir.length_squared() <= 0.001:
+		return "dirección indeterminada"
+	var ang: float = rad_to_deg(dir.angle())
+	var compass: String = "hacia el Este"
+	if ang >= -22.5 and ang < 22.5: compass = "hacia el Este"
+	elif ang >= 22.5 and ang < 67.5: compass = "hacia el Sureste"
+	elif ang >= 67.5 and ang < 112.5: compass = "hacia el Sur"
+	elif ang >= 112.5 and ang < 157.5: compass = "hacia el Suroeste"
+	elif ang >= 157.5 or ang < -157.5: compass = "hacia el Oeste"
+	elif ang >= -157.5 and ang < -112.5: compass = "hacia el Noroeste"
+	elif ang >= -112.5 and ang < -67.5: compass = "hacia el Norte"
+	elif ang >= -67.5 and ang < -22.5: compass = "hacia el Noreste"
+	var sample_pt: Vector2 = origin + dir * 130.0
+	var b_info: Dictionary = _get_building_at_pos(sample_pt)
+	var b_title: String = str(b_info.get("title", ""))
+	if b_title != "":
+		return "%s (rumbo a %s)" % [compass, b_title]
+	return compass
+
+func _build_investigation_case_dict(
+	victim: VillageNPC,
+	crime_pos: Vector2,
+	weapon_used: String,
+	discoverer_name: String,
+	max_interviews_cap: int,
+	is_royal: bool,
+	m_id: String = "",
+	embargo_days: int = 0
+) -> Dictionary:
+	var crime_hour: int = WorldClock.current_hour if WorldClock else 12
+	var crime_min: int = WorldClock.current_minute if WorldClock else 0
+	var crime_day: int = WorldClock.current_day if WorldClock else 1
+	var crime_total_mins: int = crime_day * 1440 + crime_hour * 60 + crime_min
+	var direct_murder_witness: String = str(victim.murder_witness_name) if (victim and "murder_witness_name" in victim) else ""
+
+	var suspects_dict: Dictionary = {}
+	var all_living: Array[VillageNPC] = []
+	for n in get_tree().get_nodes_in_group("village_npcs"):
+		if n is VillageNPC:
+			var v := n as VillageNPC
+			if v != victim and not v.is_dead and v.trade_role != VillageNPC.TradeRole.ROYAL_INVESTIGATOR:
+				all_living.append(v)
+
+	var player := get_tree().get_first_node_in_group("player") as Node2D
+	var player_dist_at_crime: float = player.global_position.distance_to(crime_pos) if player else 999.0
+	var player_in_stealth: bool = player != null and player.has_method("is_stealthing") and bool(player.call("is_stealthing"))
+
+	for v in all_living:
+		var alibi_partner: String = ""
+		var seen_list: Array[Dictionary] = v.get_seen_entities_near_crime(crime_pos, crime_total_mins, 280.0, 240)
+		var seen_names_set: Dictionary = {}
+		for se in seen_list:
+			seen_names_set[str(se.get("name", ""))] = true
+
+		for other in all_living:
+			if other == v or other.is_downed or other.is_sleeping:
+				continue
+			var d_other: float = v.global_position.distance_to(other.global_position)
+			if alibi_partner == "" and d_other <= 115.0 and has_line_of_sight(v.global_position, other.global_position):
+				alibi_partner = other.npc_name
+			if not seen_names_set.has(other.npc_name) and d_other <= 210.0 and other.global_position.distance_to(crime_pos) <= 280.0 and has_line_of_sight(v.global_position, other.global_position):
+				seen_names_set[other.npc_name] = true
+				seen_list.append({
+					"name": other.npc_name,
+					"is_player": false,
+					"pos_x": other.global_position.x,
+					"pos_y": other.global_position.y,
+					"dist_to_crime": other.global_position.distance_to(crime_pos),
+					"bloodstained": other.is_bloodstained(),
+					"wounded": other.health_comp != null and other.health_comp.has_fresh_combat_wounds_or_makeshift()
+				})
+
+		var dist_to_crime: float = v.global_position.distance_to(crime_pos)
+		var saw_player_near: bool = (direct_murder_witness != "" and v.npc_name == direct_murder_witness) or seen_names_set.has("Jugador")
+		if not saw_player_near and player != null and not v.is_sleeping and not v.is_downed and v.sedated_timer <= 0.0:
+			var cloak_m: float = float(player.call("get_stealth_detection_multiplier")) if player.has_method("get_stealth_detection_multiplier") else 1.0
+			var detect_r: float = (85.0 if player_in_stealth else 210.0) * cloak_m
+			if v.global_position.distance_to(player.global_position) <= detect_r and player_dist_at_crime <= 240.0 * cloak_m:
+				if has_line_of_sight(v.global_position, player.global_position):
+					saw_player_near = true
+		if saw_player_near and not seen_names_set.has("Jugador") and player != null:
+			var p_hc: HealthComponent = player.get_node_or_null("HealthComponent")
+			seen_list.push_front({
+				"name": "Jugador",
+				"is_player": true,
+				"pos_x": player.global_position.x,
+				"pos_y": player.global_position.y,
+				"dist_to_crime": player_dist_at_crime,
+				"bloodstained": player.has_method("is_bloodstained") and bool(player.call("is_bloodstained")),
+				"wounded": p_hc != null and p_hc.has_fresh_combat_wounds_or_makeshift()
+			})
+
+		suspects_dict[v.npc_name] = {
+			"name": v.npc_name, "is_player": false, "score": 10, "known_dist": -1.0,
+			"mem_pos_x": v.global_position.x, "mem_pos_y": v.global_position.y,
+			"mem_alibi_partner": alibi_partner, "mem_dist_to_crime": dist_to_crime,
+			"mem_saw_player_near": saw_player_near, "mem_player_dist": player_dist_at_crime if saw_player_near else -1.0,
+			"mem_seen_list": seen_list,
+			"is_vagrant": (v.trade_role == VillageNPC.TradeRole.UNEMPLOYED or v.is_vagrant_camper),
+			"interviewed": false, "status_note": "Paradero desconocido hasta interrogar"
+		}
+
+	var player_init_score: int = 10
+	var player_known_dist: float = -1.0
+	var p_note: String = "Paradero aún no situado por ningún testigo"
+	if direct_murder_witness != "":
+		player_init_score += 45
+		player_known_dist = player_dist_at_crime
+		p_note = "Denunciado por testigo presencial (%s)" % direct_murder_witness
+	if player_in_jail or player_being_escorted_to_jail or wanted_level > 0 or player_murder_warrants_count > 0:
+		player_init_score += 35
+		p_note = "Con antecedentes/búsqueda en Comisaría"
+
+	suspects_dict["Jugador"] = {
+		"name": "El Forastero (Jugador)", "is_player": true, "score": player_init_score,
+		"known_dist": player_known_dist,
+		"mem_pos_x": player.global_position.x if player else 0.0,
+		"mem_pos_y": player.global_position.y if player else 0.0,
+		"interviewed": false, "status_note": p_note
+	}
+
+	# Eslabón #1 de la cadena: quien descubrió/reportó el cuerpo (sin visión omnisciente del pueblo)
+	var first_witness: String = discoverer_name
+	if first_witness == "" or (first_witness != "Jugador" and not suspects_dict.has(first_witness)):
+		if direct_murder_witness != "" and suspects_dict.has(direct_murder_witness):
+			first_witness = direct_murder_witness
+		else:
+			# Si aún nadie reportó el cuerpo (p. ej. muerte recién ocurrida en la plaza), el primer interrogado es quien lo descubre visualmente o el Médico/Guardia
+			var best_finder: String = ""
+			var best_d2: float = 99999999.0
+			for v in all_living:
+				if v.is_sleeping or v.is_downed or v.trade_role == VillageNPC.TradeRole.SHERIFF:
+					continue
+				var d2: float = v.global_position.distance_squared_to(crime_pos)
+				if d2 < best_d2 and (has_line_of_sight(v.global_position, crime_pos) or d2 <= 220.0 * 220.0):
+					best_d2 = d2
+					best_finder = v.npc_name
+			if best_finder == "" and not all_living.is_empty():
+				best_finder = all_living[0].npc_name
+			first_witness = best_finder
+
+	var start_queue: Array[String] = []
+	if first_witness != "":
+		start_queue.append(first_witness)
+	if direct_murder_witness != "" and not ("Jugador" in start_queue):
+		start_queue.append("Jugador")
+
+	var total_cap: int = mini(max_interviews_cap, all_living.size()) if not is_royal else all_living.size()
+	var max_inv_days: int = mini(18, maxi(3, embargo_days - 2)) if is_royal else 3
+	var init_daily_quota: int = 6 if is_royal else 5
+
+	var v_label: String = victim.npc_name if victim else "Aldeano"
+	var initial_clues: Array[String] = [
+		"Cadáver de %s hallado en (%d, %d) a las %02d:00 del Día %d (Reportado por: %s)." % [v_label, int(crime_pos.x), int(crime_pos.y), crime_hour, crime_day, first_witness if first_witness != "" else "Guardia"],
+		"Herida forense compatible con: %s." % weapon_used,
+		"Método deductivo en cadena: empezar interrogando a quien reportó el hallazgo (%s) y seguir la pista de a quién vio cerca." % (first_witness if first_witness != "" else "Testigo #1")
+	]
+	if direct_murder_witness != "":
+		initial_clues.append("Parte Policial: %s denunció al Forastero como autor presencial." % direct_murder_witness)
+
+	return {
+		"active": true, "is_royal": is_royal, "victim_name": v_label, "victim_id": m_id, "embargo_days": embargo_days,
+		"crime_pos_x": crime_pos.x, "crime_pos_y": crime_pos.y, "crime_hour": crime_hour, "crime_day": crime_day,
+		"crime_total_mins": crime_total_mins, "reporter_name": first_witness,
+		"flee_dir_x": 0.0, "flee_dir_y": 0.0, "flee_compass": "",
+		"days_investigating": 1, "max_days": max_inv_days, "daily_quota": init_daily_quota, "interviews_done_today": 0,
+		"recon_spot_idx": 0, "weapon_used": weapon_used, "morgue_checked": false, "stage": "CRIME_SCENE",
+		"stage_timer": 0.0, "routine_timer": 0.0, "interviews_done": 0, "max_interviews": maxi(1, total_cap),
+		"interview_queue": start_queue, "current_interview_target": "", "scapegoat_key": "",
+		"clues_log": initial_clues, "suspects": suspects_dict, "verdict_target": "", "verdict_reason": ""
+	}
+
+func start_sheriff_investigation(victim: VillageNPC, death_pos: Vector2, weapon_name: String, discoverer_name: String, _death_mins: int = 0) -> void:
+	if bool(active_sheriff_investigation.get("active", false)):
+		return
+	active_sheriff_investigation = _build_investigation_case_dict(victim, death_pos, weapon_name, discoverer_name, 5, false)
+	var rep_txt: String = str(active_sheriff_investigation.get("reporter_name", "quien halló el cuerpo"))
+	_hint_player("🕵️‍♂️🚓 El Comisario Vane abrió investigación por el homicidio de %s: inspeccionará huellas en la escena e interrogará primero a %s (cadena de hasta 5 testigos)." % [victim.npc_name, rep_txt])
+
 ## Se ejecuta cuando matan a `Maese Casimir` o a `Valeria la Tratante`:
-## 1) Suspende su ruta comercial entre `20 y 30 días` (rango dinámico), dejando al pueblo sin esa inyección de oro.
-## 2) Registra las coartadas reales (con línea de visión), testigos oculares y distancias de TODOS los NPCs vivos en ese instante,
-##    los ordena por cercanía real a la escena del crimen y convoca al `Inquisidor Real Alistair` para que interrogue
-##    físicamente a TODO el pueblo a un ritmo ágil (5 a 6+ aldeanos por día, sin alargar artificialmente el caso).
 func on_traveling_merchant_murdered(merchant: VillageNPC, cause_text: String = "") -> void:
 	if merchant == null:
 		return
@@ -3933,98 +4194,15 @@ func on_traveling_merchant_murdered(merchant: VillageNPC, cause_text: String = "
 	merchant_suspension_days[m_id] = embargo_days
 
 	var crime_pos: Vector2 = merchant.global_position
-	var crime_hour: int = WorldClock.current_hour if WorldClock else 12
-	var crime_day: int = WorldClock.current_day if WorldClock else 1
 	var weapon_used: String = merchant.last_hit_weapon_name if merchant.last_hit_weapon_name != "" else cause_text
-	var direct_murder_witness: String = str(merchant.murder_witness_name) if "murder_witness_name" in merchant else ""
+	spawn_blood_puddle(crime_pos, merchant.npc_name)
 
-	# Construir matriz deductiva justa de sospechosos, testigos oculares y coartadas en el instante real del crimen
-	var suspects_dict: Dictionary = {}
-	var npcs_to_interview: Array[String] = []
-	var all_living: Array[VillageNPC] = []
-	for n in get_tree().get_nodes_in_group("village_npcs"):
-		if n is VillageNPC:
-			var v := n as VillageNPC
-			if v != merchant and not v.is_dead and v.trade_role != VillageNPC.TradeRole.ROYAL_INVESTIGATOR:
-				all_living.append(v)
-
-	# Ordenar a TODOS los aldeanos vivos de menor a mayor distancia a la escena del crimen (`dist_to_crime`)
-	all_living.sort_custom(func(a: VillageNPC, b: VillageNPC) -> bool:
-		return a.global_position.distance_squared_to(crime_pos) < b.global_position.distance_squared_to(crime_pos)
-	)
-
-	var player := get_tree().get_first_node_in_group("player") as Node2D
-	var player_dist_at_crime: float = player.global_position.distance_to(crime_pos) if player else 999.0
-	var player_in_stealth: bool = player != null and player.has_method("is_stealthing") and bool(player.call("is_stealthing"))
-
-	for v in all_living:
-		# Memoria privada de cada habitante en el instante del crimen (el Inquisidor NO la conoce hasta interrogarlo)
-		var alibi_partner: String = ""
-		var seen_near_villager: String = ""
-		for other in all_living:
-			if other == v or other.is_downed or other.is_sleeping:
-				continue
-			var d_other: float = v.global_position.distance_to(other.global_position)
-			if alibi_partner == "" and d_other <= 115.0 and has_line_of_sight(v.global_position, other.global_position):
-				alibi_partner = other.npc_name
-			elif seen_near_villager == "" and d_other <= 220.0 and other.global_position.distance_to(crime_pos) <= 280.0 and has_line_of_sight(v.global_position, other.global_position):
-				seen_near_villager = other.npc_name
-
-		var dist_to_crime: float = v.global_position.distance_to(crime_pos)
-		var saw_player_near: bool = (direct_murder_witness != "" and v.npc_name == direct_murder_witness)
-		if not saw_player_near and player != null and not v.is_sleeping and not v.is_downed and v.sedated_timer <= 0.0:
-			var cloak_m: float = float(player.call("get_stealth_detection_multiplier")) if player.has_method("get_stealth_detection_multiplier") else 1.0
-			var detect_r: float = (85.0 if player_in_stealth else 210.0) * cloak_m
-			if v.global_position.distance_to(player.global_position) <= detect_r and player_dist_at_crime <= 240.0 * cloak_m:
-				if has_line_of_sight(v.global_position, player.global_position):
-					saw_player_near = true
-
-		suspects_dict[v.npc_name] = {
-			"name": v.npc_name, "is_player": false, "score": 10, "known_dist": -1.0,
-			"mem_alibi_partner": alibi_partner, "mem_dist_to_crime": dist_to_crime,
-			"mem_saw_player_near": saw_player_near, "mem_player_dist": player_dist_at_crime if saw_player_near else -1.0,
-			"mem_seen_villager": seen_near_villager, "is_vagrant": (v.trade_role == VillageNPC.TradeRole.UNEMPLOYED or v.is_vagrant_camper),
-			"interviewed": false, "status_note": "Paradero pendiente de interrogar"
-		}
-		npcs_to_interview.append(v.npc_name)
-
-	var player_init_score: int = 10
-	var player_known_dist: float = -1.0
-	var p_note: String = "Forastero en el valle (paradero aún no confirmado)"
-	if direct_murder_witness != "":
-		player_init_score += 45
-		player_known_dist = player_dist_at_crime
-		p_note = "Denunciado a la Guardia por testigo presencial (%s)" % direct_murder_witness
-	if player_in_jail or player_being_escorted_to_jail or wanted_level > 0 or player_murder_warrants_count > 0:
-		player_init_score += 35
-		p_note = "Fichado/Arrestado por el Comisario Vane tras el crimen"
-
-	suspects_dict["Jugador"] = {"name": "El Forastero (Jugador)", "is_player": true, "score": player_init_score, "known_dist": player_known_dist, "interviewed": false, "status_note": p_note}
-
-	var total_villagers: int = npcs_to_interview.size()
-	var max_inv_days: int = mini(18, embargo_days - 2)
-	var init_daily_quota: int = 6
-
-	var initial_clues: Array[String] = [
-		"Cadáver de %s hallado en (%d, %d) a las %02d:00 del Día %d." % [merchant.npc_name, int(crime_pos.x), int(crime_pos.y), crime_hour, crime_day],
-		"Herida forense compatible con: %s." % weapon_used,
-		"Plan Inquisitorial: interrogar a los %d habitantes del pueblo (%d por día, sin demoras artificiales; límite máx. %d días)." % [total_villagers, init_daily_quota, max_inv_days]
-	]
-	if direct_murder_witness != "":
-		initial_clues.append("Parte Policial del Comisario Vane: %s denunció al Forastero como autor presencial." % direct_murder_witness)
-
-	active_royal_investigation = {
-		"active": true, "victim_name": merchant.npc_name, "victim_id": m_id, "embargo_days": embargo_days,
-		"crime_pos_x": crime_pos.x, "crime_pos_y": crime_pos.y, "crime_hour": crime_hour, "crime_day": crime_day,
-		"days_investigating": 1, "max_days": max_inv_days, "daily_quota": init_daily_quota, "interviews_done_today": 0,
-		"recon_spot_idx": 0, "weapon_used": weapon_used, "morgue_checked": false, "stage": "CRIME_SCENE",
-		"stage_timer": 0.0, "routine_timer": 0.0, "interviews_done": 0, "max_interviews": total_villagers,
-		"interview_queue": npcs_to_interview, "current_interview_target": "", "scapegoat_key": "",
-		"clues_log": initial_clues, "suspects": suspects_dict, "verdict_target": "", "verdict_reason": ""
-	}
+	var reporter: String = merchant.corpse_discovered_by if ("corpse_discovered_by" in merchant and merchant.corpse_discovered_by != "") else ""
+	active_royal_investigation = _build_investigation_case_dict(merchant, crime_pos, weapon_used, reporter, 18, true, m_id, embargo_days)
 
 	_spawn_royal_investigator()
-	_hint_player("👑🕵️‍♂️ ¡MAGNICIDIO COMERCIAL! %s ha muerto (Ruta suspendida %d días). El Inquisidor Real Alistair interrogará a todo el pueblo (~%d al día) y resolverá el caso sin demoras." % [merchant.npc_name, embargo_days, init_daily_quota])
+	var rep_label: String = str(active_royal_investigation.get("reporter_name", "el primer testigo"))
+	_hint_player("👑🕵️‍♂️ ¡MAGNICIDIO COMERCIAL! %s ha muerto (Ruta suspendida %d días). El Inquisidor Real Alistair inspeccionará el charco de sangre e interrogará en cadena empezando por %s." % [merchant.npc_name, embargo_days, rep_label])
 
 func _get_investigation_crime_pos() -> Vector2:
 	if active_royal_investigation.has("crime_pos_x") and active_royal_investigation.has("crime_pos_y"):
@@ -4068,7 +4246,8 @@ func _spawn_royal_investigator() -> void:
 	inv_npc.days_in_role = 7
 	inv_npc.tavern_social_pos = _tavern_social_pos
 	entities_root.add_child(inv_npc)
-	inv_npc.setup_npc(_load_tex("res://assests/world/village/npcs_64/sprite_alistair.png"), Vector2(465, 44), Vector2(968, 132), {}, Vector2(886, 126), "family_police", "Inquisición Real de la Corona")
+	# Alistair duerme en su propia cama de huéspedes en la Posada (`Vector2(400, -252)`), nunca en la cama del Comisario Vane
+	inv_npc.setup_npc(_load_tex("res://assests/world/village/npcs_64/sprite_alistair.png"), Vector2(465, 44), Vector2(400, -252), {}, _tavern_social_pos, "family_police", "Inquisición Real de la Corona")
 	inv_npc.global_position = _get_map_edge_arrival_pos(1)
 	_royal_investigator_npc = inv_npc
 
@@ -4174,9 +4353,9 @@ func update_royal_investigator_ai(inv_npc: VillageNPC, delta: float) -> void:
 
 	# Rutina diaria para fases de investigación (`CRIME_SCENE`, `MORGUE`, `INITIAL_PLAYER_INTERVIEW`, `INTERVIEWS`):
 	if stage in ["CRIME_SCENE", "MORGUE", "INITIAL_PLAYER_INTERVIEW", "INTERVIEWS"]:
-		# 1. Noche (22:00 a 06:00): Descansa en los aposentos de la Comisaría (`Vector2(968, 132)`)
+		# 1. Noche (22:00 a 06:00): Descansa en su propia cama de la Posada (`Vector2(400, -252)`), sin usar la cama del Comisario Vane
 		if h >= 22 or h < 6:
-			var bed_pt := Vector2(968, 132)
+			var bed_pt := Vector2(400, -252)
 			if inv_npc.global_position.distance_to(bed_pt) > 12.0:
 				inv_npc.is_sleeping = false
 				inv_npc._move_towards_point(bed_pt, 78.0, delta)
@@ -4237,11 +4416,11 @@ func update_royal_investigator_ai(inv_npc: VillageNPC, delta: float) -> void:
 				s_timer += delta
 				active_royal_investigation["stage_timer"] = s_timer
 				if int(s_timer * 10.0) % 28 == 0:
-					inv_npc._spawn_floating_text("🔍🕵️‍♂️ Analizando rastros, sangre y distancias en la escena...", Color(1.0, 0.86, 0.38), -36.0)
-				if s_timer >= 7.5:
+					inv_npc._spawn_floating_text("🔍🩸 Analizando charco de sangre y dirección de huellas...", Color(1.0, 0.86, 0.38), -36.0)
+				if s_timer >= 6.5:
+					_inspect_crime_scene_and_footprints(inv_npc, active_royal_investigation)
 					active_royal_investigation["stage"] = "MORGUE"
 					active_royal_investigation["stage_timer"] = 0.0
-					clues.append("Escena del crimen y perímetro de 360 px inspeccionados por Alistair.")
 		"MORGUE":
 			var m_pos: Vector2 = _morgue_table_positions[1]
 			inv_npc._move_towards_point(m_pos, 90.0, delta)
@@ -4250,124 +4429,25 @@ func update_royal_investigator_ai(inv_npc: VillageNPC, delta: float) -> void:
 				inv_npc.trigger_action_animation(1.0)
 				s_timer += delta
 				active_royal_investigation["stage_timer"] = s_timer
-				if s_timer >= 6.5:
+				if s_timer >= 5.5:
 					_cross_check_morgue_and_police_records(inv_npc, suspects, clues)
-					active_royal_investigation["stage"] = "INITIAL_PLAYER_INTERVIEW"
-					active_royal_investigation["stage_timer"] = 0.0
-					inv_npc._spawn_floating_text("⚰️📜 Autopsia y partes policiales verificados: iré a interrogar al Forastero y al pueblo.", Color.AQUA, -38.0)
-		"INITIAL_PLAYER_INTERVIEW":
-			var player := get_tree().get_first_node_in_group("player") as Node2D
-			if player == null:
-				active_royal_investigation["stage"] = "INTERVIEWS"
-				active_royal_investigation["stage_timer"] = 0.0
-				return
-			# Si el jugador está encerrado en la Celda de la Comisaría, Alistair camina hasta la reja del calabozo (`Vector2(902, 144)`)
-			var target_pt: Vector2 = Vector2(902, 144) if player_in_jail else player.global_position
-			var dist_to_target: float = inv_npc.global_position.distance_to(target_pt)
-			if dist_to_target > 36.0:
-				inv_npc._move_towards_point(target_pt, 96.0, delta)
-				var walk_t: float = float(active_royal_investigation.get("walk_timer", 0.0)) + delta
-				active_royal_investigation["walk_timer"] = walk_t
-				# Si el jugador está fuera del pueblo (p. ej. en el Bosque Profundo) tras 24s de búsqueda, posponer su interrogatorio hasta `PLAYER_CHECK` sin inspeccionarlo por telepatía
-				if walk_t >= 24.0 and not player_in_jail and dist_to_target > 240.0:
-					active_royal_investigation["walk_timer"] = 0.0
-					active_royal_investigation["stage_timer"] = 0.0
 					active_royal_investigation["stage"] = "INTERVIEWS"
-					inv_npc._spawn_floating_text("🕵️‍♂️📜 El Forastero no está en la aldea; interrogaré primero a los habitantes.", Color.AQUA, -38.0)
-			else:
-				active_royal_investigation["walk_timer"] = 0.0
-				inv_npc.velocity = Vector2.ZERO
-				var dir_to_p: Vector2 = (player.global_position - inv_npc.global_position)
-				if dir_to_p.length_squared() > 1.0:
-					inv_npc.facing_direction = dir_to_p.normalized()
-				if inv_npc.sprite:
-					inv_npc.sprite.flip_h = (player.global_position.x < inv_npc.global_position.x)
-				inv_npc.trigger_action_animation(1.2)
-				var prev_s: float = s_timer
-				s_timer += delta
-				active_royal_investigation["stage_timer"] = s_timer
-				if prev_s < 0.6 and s_timer >= 0.6:
-					if player_in_jail:
-						inv_npc._spawn_floating_text("⚖️⛓️ Interrogándote en la celda: el Comisario Vane ya me entregó tus cargos...", Color.ORANGE_RED, -40.0)
-					else:
-						inv_npc._spawn_floating_text("🕵️‍♂️📜 Interrogando al Forastero: verificando tus manos, armas y coartada...", Color(1.0, 0.90, 0.52), -40.0)
-				if s_timer >= 4.2:
-					_evaluate_player_inspection(inv_npc, player, suspects, clues, true)
 					active_royal_investigation["stage_timer"] = 0.0
-					# Si ya encontró el Salvoconducto Real robado encima del jugador, dicta veredicto inmediato
-					var p_sc: int = int(suspects.get("Jugador", {}).get("score", 0))
-					var p_inv: SimpleInventory = player.get("inventory")
-					if p_inv and p_inv.has_item("royal_safe_conduct", 1) and p_sc >= 85:
-						active_royal_investigation["stage"] = "VERDICT"
-					else:
-						active_royal_investigation["stage"] = "INTERVIEWS"
+					var first_rep: String = str(active_royal_investigation.get("reporter_name", "el primer testigo"))
+					inv_npc._spawn_floating_text("⚰️📜 Autopsia verificada: interrogaré primero a %s y seguiré el hilo." % first_rep, Color.AQUA, -38.0)
+		"INITIAL_PLAYER_INTERVIEW":
+			active_royal_investigation["stage"] = "INTERVIEWS"
+			active_royal_investigation["stage_timer"] = 0.0
 		"INTERVIEWS":
-			var queue: Array = active_royal_investigation.get("interview_queue", [])
-			var cur_target_name: String = str(active_royal_investigation.get("current_interview_target", ""))
-			# Apenas termina de interrogar a todos los habitantes (incluido el objetivo actual en curso), pasa DIRECTAMENTE a `PLAYER_CHECK`
-			if done_cnt >= max_cnt or (queue.is_empty() and cur_target_name == ""):
-				active_royal_investigation["stage"] = "PLAYER_CHECK"
-				active_royal_investigation["stage_timer"] = 0.0
-				return
-
-			var done_today: int = int(active_royal_investigation.get("interviews_done_today", 0))
-			var quota_today: int = int(active_royal_investigation.get("daily_quota", 6))
-			# Si ya cumplió su cuota de 6+ interrogatorios del día, realiza reconstrucción forense el resto de la tarde
-			if done_today >= quota_today and days_inv < max_days - 1:
-				_process_inquisitor_field_recon(inv_npc, delta, done_cnt, max_cnt, days_inv)
-				return
-
-			if cur_target_name == "" and not queue.is_empty():
-				cur_target_name = str(queue.pop_front())
-				active_royal_investigation["current_interview_target"] = cur_target_name
-
-			var target_npc: VillageNPC = _find_npc_by_name(cur_target_name)
-			if target_npc == null or target_npc.is_dead:
-				active_royal_investigation["current_interview_target"] = ""
-				active_royal_investigation["interviews_done"] = done_cnt + 1
-				return
-			if target_npc.is_downed or target_npc.is_stunned_flag or target_npc.sedated_timer > 0.0:
-				if not queue.is_empty():
-					queue.push_back(cur_target_name)
-					active_royal_investigation["current_interview_target"] = ""
-				else:
-					_process_inquisitor_field_recon(inv_npc, delta, done_cnt, max_cnt, days_inv)
-				return
-
-			var dist_npc: float = inv_npc.global_position.distance_to(target_npc.global_position)
-			if dist_npc <= 46.0:
-				# El NPC detiene lo que está haciendo, oculta su barra de crafteo y atiende cara a cara al Inquisidor
-				target_npc.hold_for_interview(inv_npc, 0.9)
-
-			if dist_npc > 32.0:
-				inv_npc._move_towards_point(target_npc.global_position, 92.0, delta)
-			else:
-				inv_npc.velocity = Vector2.ZERO
-				target_npc.hold_for_interview(inv_npc, 0.9)
-				var to_target: Vector2 = target_npc.global_position - inv_npc.global_position
-				if to_target.length_squared() > 1.0:
-					inv_npc.facing_direction = to_target.normalized()
-				if inv_npc.sprite:
-					inv_npc.sprite.flip_h = (target_npc.global_position.x < inv_npc.global_position.x)
-				inv_npc.trigger_action_animation(1.0)
-				var prev_s_npc: float = s_timer
-				s_timer += delta
-				active_royal_investigation["stage_timer"] = s_timer
-				if prev_s_npc < 0.6 and s_timer >= 0.6:
-					inv_npc._spawn_floating_text("🕵️‍♂️📜 Interrogando a %s (%d/%d)..." % [target_npc.npc_name, done_cnt + 1, max_cnt], Color(1.0, 0.90, 0.52), -36.0)
-				if s_timer >= 4.6:
-					active_royal_investigation["stage_timer"] = 0.0
-					active_royal_investigation["current_interview_target"] = ""
-					active_royal_investigation["interviews_done"] = done_cnt + 1
-					active_royal_investigation["interviews_done_today"] = done_today + 1
-					_evaluate_npc_interview(inv_npc, target_npc, suspects, clues)
+			_process_case_chain_interviews_step(inv_npc, delta, active_royal_investigation, true)
 		"DEEP_FORENSICS":
-			# Compatibilidad con guardados previos: pasar directamente a `PLAYER_CHECK` sin demoras artificiales
 			active_royal_investigation["stage"] = "PLAYER_CHECK"
 			active_royal_investigation["stage_timer"] = 0.0
 		"PLAYER_CHECK":
+			var p_susp: Dictionary = suspects.get("Jugador", {})
+			var should_inspect_player: bool = (float(p_susp.get("known_dist", -1.0)) >= 0.0 or int(p_susp.get("score", 0)) >= 25 or player_in_jail) and not bool(p_susp.get("interviewed", false))
 			var player := get_tree().get_first_node_in_group("player") as Node2D
-			if player == null:
+			if player == null or not should_inspect_player:
 				active_royal_investigation["stage"] = "VERDICT"
 				return
 			var check_pt: Vector2 = Vector2(902, 144) if player_in_jail else player.global_position
@@ -4381,8 +4461,7 @@ func update_royal_investigator_ai(inv_npc: VillageNPC, delta: float) -> void:
 				_evaluate_player_inspection(inv_npc, player, suspects, clues, false)
 				active_royal_investigation["stage"] = "VERDICT"
 				active_royal_investigation["stage_timer"] = 0.0
-			elif s_timer >= 24.0:
-				# Si el jugador está escondido lejos del pueblo, Alistair emite el veredicto con las pruebas forenses y testimonios ya reunidos sin inspeccionarlo por telepatía
+			elif s_timer >= 20.0:
 				inv_npc.velocity = Vector2.ZERO
 				active_royal_investigation["stage"] = "VERDICT"
 				active_royal_investigation["stage_timer"] = 0.0
@@ -4412,7 +4491,7 @@ func update_royal_investigator_ai(inv_npc: VillageNPC, delta: float) -> void:
 				scapegoat.last_hit_weapon_name = "Ejecutado presencialmente por el Inquisidor Real Alistair (Chivo Expiatorio)"
 				scapegoat._confirm_true_death()
 				inv_npc._spawn_floating_text("⚖️🗡️ ¡Sentencia real ejecutada contra %s! Caso cerrado." % chosen_name, Color.GOLD, -44.0)
-				_hint_player("⚖️👑 ¡EJECUCIÓN INQUISITORIAL! Tras interrogar a todo el pueblo (%d/%d), el Inquisidor Real Alistair ajustició en persona a %s (el sospechoso cercano sin coartada con mayor probabilidad: %d%%)." % [done_cnt, max_cnt, chosen_name, clampi(best_sc, 35, 95)])
+				_hint_player("⚖️👑 ¡EJECUCIÓN INQUISITORIAL! Tras seguir la cadena de testigos (%d/%d), el Inquisidor Real Alistair ajustició en persona a %s (%d%% sospecha)." % [done_cnt, max_cnt, chosen_name, clampi(best_sc, 35, 95)])
 				active_royal_investigation["stage"] = "DEPARTING"
 				active_royal_investigation["stage_timer"] = 0.0
 		"DEPARTING":
@@ -4424,6 +4503,56 @@ func update_royal_investigator_ai(inv_npc: VillageNPC, delta: float) -> void:
 				if _royal_investigator_npc == inv_npc:
 					_royal_investigator_npc = null
 				inv_npc.queue_free()
+
+## IA detectivesca del Comisario Vane (`active_sheriff_investigation`, máx. 5 eslabones en cadena):
+## Devuelve `true` si el Comisario está realizando activamente su investigación en cadena.
+func update_sheriff_investigator_ai(sheriff: VillageNPC, delta: float) -> bool:
+	if sheriff == null or sheriff.is_dead or sheriff.is_downed:
+		return false
+	if active_sheriff_investigation.is_empty() or not bool(active_sheriff_investigation.get("active", false)):
+		return false
+	var h: int = WorldClock.current_hour if WorldClock else 12
+	if h >= 22 or h < 6:
+		return false
+	var stage: String = str(active_sheriff_investigation.get("stage", "CRIME_SCENE"))
+	var s_timer: float = float(active_sheriff_investigation.get("stage_timer", 0.0))
+	match stage:
+		"CRIME_SCENE":
+			var c_pos := Vector2(float(active_sheriff_investigation.get("crime_pos_x", 465.0)), float(active_sheriff_investigation.get("crime_pos_y", 44.0)))
+			sheriff._move_towards_point(c_pos, 92.0, delta)
+			if sheriff.global_position.distance_to(c_pos) <= 24.0:
+				sheriff.velocity = Vector2.ZERO
+				sheriff.trigger_action_animation(1.0)
+				s_timer += delta
+				active_sheriff_investigation["stage_timer"] = s_timer
+				if int(s_timer * 10.0) % 25 == 0:
+					sheriff._spawn_floating_text("🚓🔍 Inspeccionando escena del crimen y rastro de huellas...", Color.AQUA, -36.0)
+				if s_timer >= 4.5:
+					_inspect_crime_scene_and_footprints(sheriff, active_sheriff_investigation)
+					active_sheriff_investigation["stage"] = "MORGUE"
+					active_sheriff_investigation["stage_timer"] = 0.0
+			return true
+		"MORGUE":
+			var m_pos: Vector2 = _morgue_table_positions[1]
+			sheriff._move_towards_point(m_pos, 92.0, delta)
+			if sheriff.global_position.distance_to(m_pos) <= 26.0:
+				sheriff.velocity = Vector2.ZERO
+				sheriff.trigger_action_animation(1.0)
+				s_timer += delta
+				active_sheriff_investigation["stage_timer"] = s_timer
+				if s_timer >= 4.0:
+					active_sheriff_investigation["stage"] = "INTERVIEWS"
+					active_sheriff_investigation["stage_timer"] = 0.0
+					var rep_n: String = str(active_sheriff_investigation.get("reporter_name", "quien halló el cuerpo"))
+					sheriff._spawn_floating_text("⚰️🚓 Autopsia revisada: interrogaré primero a %s." % rep_n, Color.AQUA, -38.0)
+			return true
+		"INTERVIEWS":
+			_process_case_chain_interviews_step(sheriff, delta, active_sheriff_investigation, false)
+			return true
+		"VERDICT":
+			_conclude_sheriff_investigation_verdict(sheriff)
+			return true
+	return false
 
 func _process_inquisitor_field_recon(inv_npc: VillageNPC, delta: float, done_cnt: int, max_cnt: int, days_inv: int) -> void:
 	var c_pos: Vector2 = _get_investigation_crime_pos()
@@ -4479,29 +4608,182 @@ func _cross_check_morgue_and_police_records(inv_npc: VillageNPC, suspects: Dicti
 	if is_instance_valid(inv_npc) and int(p_entry.get("score", 0)) >= 50:
 		inv_npc._spawn_floating_text("⚖️📔 ¡El Libro Forense y la Guardia vinculan al Forastero con el crimen!", Color.ORANGE_RED, -42.0)
 
-func _evaluate_npc_interview(inv_npc: VillageNPC, witness: VillageNPC, suspects: Dictionary, clues: Array) -> void:
+func _inspect_crime_scene_and_footprints(inv_npc: VillageNPC, case_dict: Dictionary) -> void:
+	var c_pos := Vector2(float(case_dict.get("crime_pos_x", 465.0)), float(case_dict.get("crime_pos_y", 44.0)))
+	var clues: Array = case_dict.get("clues_log", [])
+	var pud: Dictionary = get_blood_puddle_clue_near(c_pos, 95.0)
+	if not pud.is_empty():
+		var f_dir: Vector2 = pud.get("flee_dir", Vector2.ZERO) as Vector2
+		var f_comp: String = str(pud.get("flee_compass", ""))
+		if f_dir.length_squared() > 0.01 and f_comp != "":
+			case_dict["flee_dir_x"] = f_dir.x
+			case_dict["flee_dir_y"] = f_dir.y
+			case_dict["flee_compass"] = f_comp
+			clues.append("Rastro de sangre en la escena: huellas frescas desde el charco apuntan %s." % f_comp)
+			if is_instance_valid(inv_npc):
+				inv_npc._spawn_floating_text("🩸👣 ¡Huellas de sangre fresca! El asesino huyó %s." % f_comp, Color.ORANGE_RED, -40.0)
+			return
+	clues.append("Escena del crimen inspeccionada (sin huellas de pisadas en el charco).")
+
+func _pick_next_neighbor_to_keep_chain_alive(inv_npc: VillageNPC, case_dict: Dictionary) -> String:
+	var suspects: Dictionary = case_dict.get("suspects", {})
+	var queue: Array = case_dict.get("interview_queue", [])
+	var ref_pos: Vector2 = inv_npc.global_position if is_instance_valid(inv_npc) else Vector2(float(case_dict.get("crime_pos_x", 465.0)), float(case_dict.get("crime_pos_y", 44.0)))
+	var best_name: String = ""
+	var best_d2: float = 99999999.0
+	for k in suspects.keys():
+		var s_name: String = str(k)
+		if s_name == "Jugador" or (s_name in queue):
+			continue
+		var se: Dictionary = suspects[s_name]
+		if bool(se.get("interviewed", false)):
+			continue
+		var v_node: VillageNPC = _find_npc_by_name(s_name)
+		if v_node == null or v_node.is_dead or (not bool(case_dict.get("is_royal", false)) and v_node == inv_npc):
+			continue
+		var d2: float = ref_pos.distance_squared_to(v_node.global_position)
+		if d2 < best_d2:
+			best_d2 = d2
+			best_name = s_name
+	return best_name
+
+func _process_case_chain_interviews_step(inv_npc: VillageNPC, delta: float, case_dict: Dictionary, is_royal: bool) -> void:
+	var queue: Array = case_dict.get("interview_queue", [])
+	var cur_target_name: String = str(case_dict.get("current_interview_target", ""))
+	var done_cnt: int = int(case_dict.get("interviews_done", 0))
+	var max_cnt: int = int(case_dict.get("max_interviews", 5))
+	var days_inv: int = int(case_dict.get("days_investigating", 1))
+	var max_days: int = int(case_dict.get("max_days", 18))
+	var s_timer: float = float(case_dict.get("stage_timer", 0.0))
+	var suspects: Dictionary = case_dict.get("suspects", {})
+	var clues: Array = case_dict.get("clues_log", [])
+
+	if cur_target_name == "" and queue.is_empty() and done_cnt < max_cnt and is_royal:
+		var next_nb: String = _pick_next_neighbor_to_keep_chain_alive(inv_npc, case_dict)
+		if next_nb != "":
+			queue.append(next_nb)
+
+	if done_cnt >= max_cnt or (queue.is_empty() and cur_target_name == ""):
+		case_dict["stage"] = "PLAYER_CHECK" if is_royal else "VERDICT"
+		case_dict["stage_timer"] = 0.0
+		return
+
+	var done_today: int = int(case_dict.get("interviews_done_today", 0))
+	var quota_today: int = int(case_dict.get("daily_quota", 6))
+	if is_royal and done_today >= quota_today and days_inv < max_days - 1:
+		_process_inquisitor_field_recon(inv_npc, delta, done_cnt, max_cnt, days_inv)
+		return
+
+	if cur_target_name == "" and not queue.is_empty():
+		cur_target_name = str(queue.pop_front())
+		case_dict["current_interview_target"] = cur_target_name
+
+	# Si un testigo nombró al Jugador (o el Jugador reportó el cuerpo), el investigador va físicamente a interrogarlo
+	if cur_target_name == "Jugador":
+		var player := get_tree().get_first_node_in_group("player") as Node2D
+		if player == null:
+			case_dict["current_interview_target"] = ""
+			case_dict["interviews_done"] = done_cnt + 1
+			return
+		var target_pt: Vector2 = Vector2(902, 144) if player_in_jail else player.global_position
+		var dist_p: float = inv_npc.global_position.distance_to(target_pt)
+		if dist_p > 36.0:
+			inv_npc._move_towards_point(target_pt, 96.0, delta)
+			var walk_t: float = float(case_dict.get("walk_timer", 0.0)) + delta
+			case_dict["walk_timer"] = walk_t
+			if walk_t >= 20.0 and not player_in_jail and dist_p > 220.0:
+				case_dict["walk_timer"] = 0.0
+				case_dict["stage_timer"] = 0.0
+				case_dict["current_interview_target"] = ""
+				inv_npc._spawn_floating_text("🕵️‍♂️📜 El Forastero no está cerca; seguiré interrogando a otros testigos.", Color.AQUA, -38.0)
+		else:
+			case_dict["walk_timer"] = 0.0
+			inv_npc.velocity = Vector2.ZERO
+			var prev_sp: float = s_timer
+			s_timer += delta
+			case_dict["stage_timer"] = s_timer
+			if prev_sp < 0.5 and s_timer >= 0.5:
+				inv_npc._spawn_floating_text("🕵️‍♂️📜 Un testigo te situó cerca: ¿dónde estabas y qué tienes en las manos?", Color(1.0, 0.90, 0.52), -40.0)
+			if s_timer >= 3.8:
+				case_dict["stage_timer"] = 0.0
+				case_dict["current_interview_target"] = ""
+				case_dict["interviews_done"] = done_cnt + 1
+				case_dict["interviews_done_today"] = done_today + 1
+				_evaluate_player_inspection(inv_npc, player, suspects, clues, true, case_dict)
+				var p_sc: int = int(suspects.get("Jugador", {}).get("score", 0))
+				if p_sc >= 75:
+					case_dict["stage"] = "VERDICT"
+		return
+
+	var target_npc: VillageNPC = _find_npc_by_name(cur_target_name)
+	if target_npc == null or target_npc.is_dead or target_npc == inv_npc:
+		case_dict["current_interview_target"] = ""
+		case_dict["interviews_done"] = done_cnt + 1
+		return
+	if target_npc.is_downed or target_npc.is_stunned_flag or target_npc.sedated_timer > 0.0:
+		if not queue.is_empty():
+			queue.push_back(cur_target_name)
+			case_dict["current_interview_target"] = ""
+		elif is_royal:
+			_process_inquisitor_field_recon(inv_npc, delta, done_cnt, max_cnt, days_inv)
+		else:
+			case_dict["current_interview_target"] = ""
+			case_dict["interviews_done"] = done_cnt + 1
+		return
+
+	var dist_npc: float = inv_npc.global_position.distance_to(target_npc.global_position)
+	if dist_npc <= 46.0:
+		target_npc.hold_for_interview(inv_npc, 0.9)
+
+	if dist_npc > 32.0:
+		inv_npc._move_towards_point(target_npc.global_position, 92.0, delta)
+	else:
+		inv_npc.velocity = Vector2.ZERO
+		target_npc.hold_for_interview(inv_npc, 0.9)
+		var to_target: Vector2 = target_npc.global_position - inv_npc.global_position
+		if to_target.length_squared() > 1.0:
+			inv_npc.facing_direction = to_target.normalized()
+		if inv_npc.sprite:
+			inv_npc.sprite.flip_h = (target_npc.global_position.x < inv_npc.global_position.x)
+		inv_npc.trigger_action_animation(1.0)
+		var prev_s_npc: float = s_timer
+		s_timer += delta
+		case_dict["stage_timer"] = s_timer
+		if prev_s_npc < 0.6 and s_timer >= 0.6:
+			inv_npc._spawn_floating_text("🕵️‍♂️📜 Interrogando a %s (%d/%d): ¿Dónde estabas y a quién viste?" % [target_npc.npc_name, done_cnt + 1, max_cnt], Color(1.0, 0.90, 0.52), -36.0)
+		if s_timer >= 4.2:
+			case_dict["stage_timer"] = 0.0
+			case_dict["current_interview_target"] = ""
+			case_dict["interviews_done"] = done_cnt + 1
+			case_dict["interviews_done_today"] = done_today + 1
+			_evaluate_npc_interview(inv_npc, target_npc, suspects, clues, case_dict)
+
+func _evaluate_npc_interview(inv_npc: VillageNPC, witness: VillageNPC, suspects: Dictionary, clues: Array, case_dict: Dictionary = {}) -> void:
 	if not suspects.has(witness.npc_name):
 		return
+	var active_case: Dictionary = active_royal_investigation if case_dict.is_empty() else case_dict
 	var entry: Dictionary = suspects[witness.npc_name]
 	entry["interviewed"] = true
 	var alibi: String = str(entry.get("mem_alibi_partner", entry.get("alibi_partner", "")))
 	var dist_to_crime: float = float(entry.get("mem_dist_to_crime", entry.get("dist_to_crime", 999.0)))
 	entry["known_dist"] = dist_to_crime
 	var dist_m: int = int(round(dist_to_crime / 16.0))
-	var is_eyewitness: bool = bool(entry.get("mem_saw_player_near", entry.get("saw_player_near", false)))
+	var crime_pos := Vector2(float(active_case.get("crime_pos_x", 465.0)), float(active_case.get("crime_pos_y", 44.0)))
+	var flee_dir := Vector2(float(active_case.get("flee_dir_x", 0.0)), float(active_case.get("flee_dir_y", 0.0)))
+	var queue: Array = active_case.get("interview_queue", [])
 
-	# 1. Registro físico de los bolsillos del habitante interrogado (Etapa 4: detecta Salvoconducto Real u órganos plantados)
+	# 1. Registro físico de bolsillos, sangre y heridas de combate recientes / vendajes rudimentarios
 	if witness.carries_royal_safe_conduct or witness.has_pocket_item("royal_safe_conduct", 1):
 		entry["score"] = maxi(int(entry.get("score", 10)) + 85, 92)
 		entry["known_dist"] = minf(dist_to_crime, 120.0)
 		entry["mem_dist_to_crime"] = minf(dist_to_crime, 120.0)
 		entry["status_note"] = "¡Sorprendido con el Salvoconducto Real robado en su bolsillo!"
-		clues.append("¡PRUEBA IRREFUTABLE! Al registrar los bolsillos de %s, Alistair halló el Salvoconducto Real del mercader (+85%% sospecha)." % witness.npc_name)
+		clues.append("¡PRUEBA IRREFUTABLE! Al registrar los bolsillos de %s se halló el Salvoconducto Real (+85%% sospecha)." % witness.npc_name)
 		witness._spawn_floating_text("😱📜 ¡¿Quién me metió este Salvoconducto Real en el bolsillo?!", Color.ORANGE_RED, -40.0)
 		if is_instance_valid(inv_npc):
 			inv_npc._spawn_floating_text("👑📜 ¡Hallado el Salvoconducto Real en los bolsillos de %s!" % witness.npc_name, Color.GOLD, -42.0)
-		active_royal_investigation["stage"] = "VERDICT"
-		active_royal_investigation["stage_timer"] = 0.0
+		active_case["stage"] = "VERDICT"
+		active_case["stage_timer"] = 0.0
 		return
 
 	if witness.trade_role != VillageNPC.TradeRole.DOCTOR:
@@ -4514,45 +4796,91 @@ func _evaluate_npc_interview(inv_npc: VillageNPC, witness: VillageNPC, suspects:
 				clues.append("Registro de bolsillos: %s ocultaba un órgano humano extraído (%s) (+55%% sospecha)." % [witness.npc_name, org_it])
 				break
 
-	if is_eyewitness and suspects.has("Jugador"):
-		entry["score"] = 0
-		entry["status_note"] = "Testigo ocular de cargo contra el Forastero (%dm)" % dist_m
-		var p_entry: Dictionary = suspects["Jugador"]
-		var p_dist: float = float(entry.get("mem_player_dist", 32.0))
-		if p_dist >= 0.0:
-			p_entry["known_dist"] = p_dist
-		p_entry["score"] = int(p_entry.get("score", 10)) + 38
-		p_entry["status_note"] = "Visto junto a la escena por %s" % witness.npc_name
-		clues.append("Testimonio de %s: declaró haber visto al Forastero junto al mercader en el momento del crimen (+38%% sospecha al Jugador)." % witness.npc_name)
-		witness._spawn_floating_text("🗣️👁️ ¡Lo vi! ¡El Forastero estaba junto al mercader!", Color.ORANGE_RED, -36.0)
-		if is_instance_valid(inv_npc):
-			inv_npc._spawn_floating_text("📝👁️ Testigo clave: %s vio al Forastero en la escena" % witness.npc_name, Color.ORANGE_RED, -38.0)
-		return
+	if witness.is_bloodstained():
+		entry["score"] = int(entry.get("score", 10)) + 42
+		clues.append("Inspección física: %s tenía manchas de sangre reciente en la ropa (+42%% sospecha)." % witness.npc_name)
+	if witness.health_comp != null and witness.health_comp.has_fresh_combat_wounds_or_makeshift():
+		entry["score"] = int(entry.get("score", 10)) + 28
+		clues.append("Inspección médica: %s presenta heridas de forcejeo o vendajes rudimentarios recientes (+28%% sospecha)." % witness.npc_name)
 
+	# 2. ¿Dónde estaba este testigo y a quién vio cerca? (Hilo en cadena)
+	var seen_list: Array = entry.get("mem_seen_list", []).duplicate()
+	var live_seen: Array[Dictionary] = witness.get_seen_entities_near_crime(crime_pos, int(active_case.get("crime_total_mins", 0)), 280.0, 240)
+	for ls in live_seen:
+		var ls_n: String = str(ls.get("name", ""))
+		var exists_s := false
+		for ex_s in seen_list:
+			if str(ex_s.get("name", "")) == ls_n:
+				exists_s = true
+				break
+		if not exists_s:
+			seen_list.append(ls)
+
+	var named_for_chain: Array[String] = []
+	for s_info in seen_list:
+		var s_name: String = str(s_info.get("name", ""))
+		if s_name == "" or not suspects.has(s_name):
+			continue
+		var s_entry: Dictionary = suspects[s_name]
+		var s_dist: float = float(s_info.get("dist_to_crime", s_entry.get("mem_dist_to_crime", 180.0)))
+		s_entry["known_dist"] = s_dist
+		var s_pos := Vector2(float(s_info.get("pos_x", s_entry.get("mem_pos_x", crime_pos.x))), float(s_info.get("pos_y", s_entry.get("mem_pos_y", crime_pos.y))))
+		var matches_flee: bool = false
+		if flee_dir.length_squared() > 0.01 and (s_pos - crime_pos).length_squared() > 16.0:
+			matches_flee = (s_pos - crime_pos).normalized().dot(flee_dir) >= 0.42
+
+		if s_name == "Jugador":
+			var add_p: int = 34 if s_dist <= 180.0 else 18
+			if bool(s_info.get("bloodstained", false)):
+				add_p += 28
+			if bool(s_info.get("wounded", false)):
+				add_p += 18
+			if matches_flee:
+				add_p += 16
+			s_entry["score"] = int(s_entry.get("score", 10)) + add_p
+			s_entry["status_note"] = "Visto a %dm de la escena por %s%s" % [int(round(s_dist / 16.0)), witness.npc_name, " (en dirección de las huellas)" if matches_flee else ""]
+			clues.append("Testimonio de %s: vio al Forastero a %d m del lugar del crimen%s (+%d%% sospecha)." % [witness.npc_name, int(round(s_dist / 16.0)), " en la dirección de las huellas de sangre" if matches_flee else "", add_p])
+			witness._spawn_floating_text("🗣️👁️ ¡Vi al Forastero cerca de allí!", Color.ORANGE_RED, -36.0)
+		else:
+			if str(s_entry.get("mem_alibi_partner", "")) == "" and s_dist <= 320.0:
+				var add_v: int = 12 + (16 if matches_flee else 0)
+				s_entry["score"] = int(s_entry.get("score", 10)) + add_v
+				if not bool(s_entry.get("interviewed", false)):
+					s_entry["status_note"] = "Situado a %dm por %s%s" % [int(round(s_dist / 16.0)), witness.npc_name, " (rumbo de las huellas)" if matches_flee else ""]
+				clues.append("%s declaró haber visto a %s a %d m de la escena%s (+%d%% sospecha)." % [witness.npc_name, s_name, int(round(s_dist / 16.0)), " en dirección de las huellas" if matches_flee else "", add_v])
+
+		if not bool(s_entry.get("interviewed", false)) and not (s_name in queue) and s_name != witness.npc_name:
+			if matches_flee or s_name == "Jugador":
+				queue.push_front(s_name)
+			else:
+				queue.append(s_name)
+			named_for_chain.append(s_name)
+
+	# 3. Evaluación de coartada y distancia del propio interrogado
 	if alibi != "":
-		entry["score"] = 0
+		entry["score"] = mini(int(entry.get("score", 10)), 12)
 		entry["status_note"] = "Coartada confirmada con %s (%dm)" % [alibi, dist_m]
 		if suspects.has(alibi):
 			var p_alibi: Dictionary = suspects[alibi]
 			p_alibi["known_dist"] = float(p_alibi.get("mem_dist_to_crime", dist_to_crime))
-			if not bool(p_alibi.get("interviewed", false)):
-				p_alibi["score"] = 2
-				p_alibi["status_note"] = "Coartada corroborada por %s" % witness.npc_name
-		clues.append("%s declaró que estaba junto a %s a %d m de la escena (Coartada confirmada)." % [witness.npc_name, alibi, dist_m])
+			if not bool(p_alibi.get("interviewed", false)) and not (alibi in queue):
+				queue.append(alibi)
+		var chain_txt: String = (" | Vio cerca a: " + ", ".join(named_for_chain)) if not named_for_chain.is_empty() else ""
+		clues.append("%s estaba junto a %s a %d m (Coartada)%s." % [witness.npc_name, alibi, dist_m, chain_txt])
 		if is_instance_valid(inv_npc):
-			inv_npc._spawn_floating_text("📝✅ %s tiene coartada con %s" % [witness.npc_name, alibi], Color.SPRING_GREEN, -36.0)
+			inv_npc._spawn_floating_text("📝✅ %s tiene coartada con %s%s" % [witness.npc_name, alibi, (" -> Iré a ver a " + named_for_chain[0]) if not named_for_chain.is_empty() else ""], Color.SPRING_GREEN, -36.0)
 	elif dist_to_crime > 360.0:
-		entry["score"] = 0
+		entry["score"] = mini(int(entry.get("score", 10)), 8)
 		entry["status_note"] = "Descartado por distancia (%dm de la escena)" % dist_m
-		clues.append("%s declaró estar en la otra punta del pueblo (a %d m de la escena — Descartado)." % [witness.npc_name, dist_m])
+		clues.append("%s declaró estar lejos (a %d m de la escena — Descartado)." % [witness.npc_name, dist_m])
 		if is_instance_valid(inv_npc):
-			inv_npc._spawn_floating_text("📝📍 %s estaba lejos (%dm — Descartado)" % [witness.npc_name, dist_m], Color(0.65, 0.92, 1.0), -36.0)
+			inv_npc._spawn_floating_text("📝📍 %s estaba lejos (%dm)%s" % [witness.npc_name, dist_m, (" -> Nombró a " + named_for_chain[0]) if not named_for_chain.is_empty() else ""], Color(0.65, 0.92, 1.0), -36.0)
 	else:
 		var new_sc: int = 48 if dist_to_crime <= 150.0 else (34 if dist_to_crime <= 250.0 else 22)
 		if bool(entry.get("is_vagrant", false)):
 			new_sc += 8
-		# 2. Cruce forense de arma/método con el oficio del aldeano y su personalidad (RimWorld)
-		var w_low: String = str(active_royal_investigation.get("weapon_used", "")).to_lower()
+		var w_pos := Vector2(float(entry.get("mem_pos_x", witness.global_position.x)), float(entry.get("mem_pos_y", witness.global_position.y)))
+		var w_low: String = str(active_case.get("weapon_used", "")).to_lower()
 		var role_matches_weapon: bool = (
 			(("hacha" in w_low) and witness.trade_role == VillageNPC.TradeRole.CARPENTER) or
 			(("martillo" in w_low or "pico" in w_low or "espada" in w_low) and witness.trade_role == VillageNPC.TradeRole.BLACKSMITH) or
@@ -4561,6 +4889,9 @@ func _evaluate_npc_interview(inv_npc: VillageNPC, witness: VillageNPC, suspects:
 			(("bisturí" in w_low or "órgano" in w_low or "quirúrgic" in w_low) and witness.trade_role == VillageNPC.TradeRole.DOCTOR)
 		)
 		var extra_notes: Array[String] = []
+		if flee_dir.length_squared() > 0.01 and (w_pos - crime_pos).length_squared() > 16.0 and (w_pos - crime_pos).normalized().dot(flee_dir) >= 0.42:
+			new_sc += 16
+			extra_notes.append("En dirección de las huellas de sangre")
 		if role_matches_weapon:
 			new_sc += 18
 			extra_notes.append("Oficio compatible con el arma/método forense")
@@ -4575,25 +4906,14 @@ func _evaluate_npc_interview(inv_npc: VillageNPC, witness: VillageNPC, suspects:
 		entry["score"] = maxi(int(entry.get("score", 10)), new_sc)
 		var note_suffix: String = (" [" + ", ".join(extra_notes) + "]") if not extra_notes.is_empty() else ""
 		entry["status_note"] = "Estaba a %dm de la escena SIN coartada%s" % [dist_m, note_suffix]
-		clues.append("%s admitió estar a %d m de la escena y SIN coartada%s (%d%% sospecha)." % [witness.npc_name, dist_m, note_suffix, int(entry["score"])])
+		clues.append("%s admitió estar a %d m de la escena SIN coartada%s (%d%% sospecha)." % [witness.npc_name, dist_m, note_suffix, int(entry["score"])])
 		if is_instance_valid(inv_npc):
 			inv_npc._spawn_floating_text("📝⚠️ %s estaba a %dm sin coartada (%d%% sospecha)" % [witness.npc_name, dist_m, int(entry["score"])], Color.GOLD, -36.0)
 
-	# Fragmento adicional: si este vecino vio a otro aldeano merodeando cerca del crimen sin coartada, lo aporta al expediente
-	var seen_v: String = str(entry.get("mem_seen_villager", ""))
-	if seen_v != "" and suspects.has(seen_v):
-		var sv_entry: Dictionary = suspects[seen_v]
-		var sv_dist: float = float(sv_entry.get("mem_dist_to_crime", 200.0))
-		sv_entry["known_dist"] = sv_dist
-		if str(sv_entry.get("mem_alibi_partner", "")) == "" and sv_dist <= 360.0:
-			sv_entry["score"] = int(sv_entry.get("score", 10)) + 12
-			if not bool(sv_entry.get("interviewed", false)):
-				sv_entry["status_note"] = "Situado cerca (%dm) por %s" % [int(round(sv_dist / 16.0)), witness.npc_name]
-			clues.append("%s declaró haber visto a %s merodeando solo a %d m del crimen (+12%% sospecha a %s)." % [witness.npc_name, seen_v, int(round(sv_dist / 16.0)), seen_v])
-
-func _evaluate_player_inspection(inv_npc: VillageNPC, player: Node2D, suspects: Dictionary, clues: Array, is_initial_interview: bool = false) -> void:
+func _evaluate_player_inspection(inv_npc: VillageNPC, player: Node2D, suspects: Dictionary, clues: Array, is_initial_interview: bool = false, case_dict: Dictionary = {}) -> void:
 	if not suspects.has("Jugador") or not player:
 		return
+	var active_case: Dictionary = active_royal_investigation if case_dict.is_empty() else case_dict
 	var p_entry: Dictionary = suspects["Jugador"]
 	var already_inspected: bool = bool(p_entry.get("interviewed", false))
 	p_entry["interviewed"] = true
@@ -4601,9 +4921,17 @@ func _evaluate_player_inspection(inv_npc: VillageNPC, player: Node2D, suspects: 
 		p_entry["caught_bloodstained"] = true
 		p_entry["score"] = int(p_entry.get("score", 16)) + 42
 		p_entry["status_note"] = "¡Sorprendido con manchas de sangre fresca sin lavar!"
-		clues.append("Inspección Forense: Alistair detectó manchas de sangre fresca en las manos y ropa del Forastero (+42% sospecha).")
+		clues.append("Inspección Forense: detectó manchas de sangre fresca en las manos y ropa del Forastero (+42% sospecha).")
 		if is_instance_valid(inv_npc):
 			inv_npc._spawn_floating_text("🩸🕵️‍♂️ ¡Tienes sangre fresca en las manos y la ropa!", Color.ORANGE_RED, -42.0)
+	var p_hc: HealthComponent = player.get_node_or_null("HealthComponent")
+	if p_hc and p_hc.has_fresh_combat_wounds_or_makeshift() and not bool(p_entry.get("caught_wounded", false)):
+		p_entry["caught_wounded"] = true
+		p_entry["score"] = int(p_entry.get("score", 16)) + 28
+		p_entry["status_note"] = "Presenta heridas de combate recientes / vendaje rudimentario"
+		clues.append("Inspección Médica: el Forastero tiene heridas recientes de pelea o vendajes improvisados (+28% sospecha).")
+		if is_instance_valid(inv_npc):
+			inv_npc._spawn_floating_text("🩹🕵️‍♂️ ¡Tienes heridas frescas de forcejeo o vendajes improvisados!", Color.ORANGE_RED, -40.0)
 	var inv: SimpleInventory = player.get("inventory")
 	if inv:
 		if inv.has_item("royal_safe_conduct", 1) and not bool(p_entry.get("caught_with_safe_conduct", false)):
@@ -4613,7 +4941,7 @@ func _evaluate_player_inspection(inv_npc: VillageNPC, player: Node2D, suspects: 
 			clues.append("¡PRUEBA IRREFUTABLE! El Forastero lleva encima el Salvoconducto Real robado al mercader.")
 			if is_instance_valid(inv_npc):
 				inv_npc._spawn_floating_text("👑📜 ¡Llevas el Salvoconducto Real del difunto!", Color.ORANGE_RED, -42.0)
-		var w_used: String = str(active_royal_investigation.get("weapon_used", "")).to_lower()
+		var w_used: String = str(active_case.get("weapon_used", "")).to_lower()
 		var eq_w: Variant = player.get("equipped_weapon")
 		var holding_matching_weapon: bool = (("espada" in w_used or "cuchillo" in w_used) and eq_w == player.get("sword_weapon")) or ("martillo" in w_used and eq_w == player.get("hammer_weapon")) or ("hacha" in w_used and eq_w == player.get("axe_weapon")) or ("arco" in w_used and eq_w == player.get("bow_weapon")) or ("pico" in w_used and eq_w == player.get("pickaxe_weapon")) or ("hoz" in w_used and eq_w == player.get("sickle_weapon"))
 		if w_used != "" and not already_inspected and holding_matching_weapon:
@@ -4623,9 +4951,50 @@ func _evaluate_player_inspection(inv_npc: VillageNPC, player: Node2D, suspects: 
 		var police_add: int = 36 if (player_in_jail or player_murder_warrants_count > 0 or player_arrests_count > 0) else 20
 		p_entry["score"] = int(p_entry.get("score", 16)) + police_add
 		p_entry["status_note"] = "Interrogado con antecedentes/arresto en la Comisaría"
-		clues.append("El Comisario Vane confirmó antecedentes directos o arresto del Forastero (+%d%% sospecha)." % police_add)
+		clues.append("Antecedentes directos o arresto en Comisaría (+%d%% sospecha)." % police_add)
 	elif is_initial_interview and int(p_entry.get("score", 16)) < 40:
-		p_entry["status_note"] = "Interrogado por Alistair (%d%% sospecha)" % int(p_entry.get("score", 16))
+		p_entry["status_note"] = "Interrogado (%d%% sospecha)" % int(p_entry.get("score", 16))
+
+func _conclude_sheriff_investigation_verdict(sheriff: VillageNPC) -> void:
+	var suspects: Dictionary = active_sheriff_investigation.get("suspects", {})
+	var best_key: String = ""
+	var best_score: int = -1
+	var best_dist: float = 999999.0
+	for k in suspects.keys():
+		var se: Dictionary = suspects[k]
+		var sc: int = int(se.get("score", 0))
+		var kd: float = float(se.get("known_dist", -1.0))
+		if kd < 0.0 and sc < 50:
+			continue
+		var dc: float = kd if kd >= 0.0 else 9999.0
+		if sc > best_score or (sc == best_score and dc < best_dist):
+			best_score = sc
+			best_dist = dc
+			best_key = str(k)
+	active_sheriff_investigation["active"] = false
+	var v_name: String = str(active_sheriff_investigation.get("victim_name", "Aldeano"))
+	var p := get_tree().get_first_node_in_group("player") as Node2D
+	if best_key == "Jugador" and best_score >= 48:
+		wanted_level = clampi(wanted_level + 2, 2, 5)
+		bounty_gold += 70
+		player_murder_warrants_count += 1
+		var msg := "🚓⚖️ ¡Tras interrogar a la cadena de testigos del asesinato de %s, el Comisario Vane te declaró CULPABLE (%d%% sospecha)! (+70 Oro de multa)" % [v_name, clampi(best_score, 48, 100)]
+		crime_history.push_front(msg)
+		_notify_inquisitor_of_police_crime(msg, 45)
+		if is_instance_valid(sheriff):
+			sheriff._spawn_floating_text("🚓⚖️ ¡Orden de arresto contra el Forastero por el asesinato de %s!" % v_name, Color.ORANGE_RED, -42.0)
+			if p:
+				sheriff._last_seen_player_pos = p.global_position
+				sheriff._police_alerted_timer = 45.0
+		_hint_player(msg, p)
+	elif best_key != "" and best_key != "Jugador" and best_score >= 52:
+		if is_instance_valid(sheriff):
+			sheriff._spawn_floating_text("🚓📋 Investigación cerrada: las pruebas apuntan a %s (%d%%)." % [best_key, best_score], Color.GOLD, -40.0)
+		_hint_player("🚓📋 El Comisario Vane concluyó sus 5 interrogatorios por la muerte de %s: las pistas señalan a %s (%d%% sospecha)." % [v_name, best_key, best_score], p)
+	else:
+		if is_instance_valid(sheriff):
+			sheriff._spawn_floating_text("🚓📋 Sin pruebas suficientes tras interrogar a los testigos cercanos.", Color.LIGHT_GRAY, -38.0)
+		_hint_player("🚓📋 El Comisario Vane cerró sin cargos la investigación local de %s (ningún testigo te situó como culpable)." % v_name, p)
 
 ## FILOSOFÍA DEL INQUISIDOR REAL (Etapa 4):
 ## Condena al sospechoso con mayor puntuación forense real (`>= 35%`), desempatando por quién estaba más cerca de la escena.
@@ -4902,6 +5271,7 @@ func get_economy_save_dict() -> Dictionary:
 	return {
 		"businesses": out, "village_food_shortage_days": village_food_shortage_days, "house_pantry": house_pantry.duplicate(),
 		"merchant_suspension_days": merchant_suspension_days.duplicate(), "active_royal_investigation": active_royal_investigation.duplicate(true),
+		"active_sheriff_investigation": active_sheriff_investigation.duplicate(true),
 		"active_traveling_merchant": saved_merchant, "royal_investigator_npc": saved_investigator, "domestic_pets": saved_pets,
 		"player_arrests_count": player_arrests_count, "player_murder_warrants_count": player_murder_warrants_count,
 		"recent_breakins_count": recent_breakins_count, "crime_history": crime_history.duplicate(), "arrivals_today_count": arrivals_today_count,
@@ -5008,6 +5378,8 @@ func load_economy_save_dict(data: Dictionary) -> void:
 				_check_weekly_merchant_arrival(3 if m_id_saved == "casimir" else 6, true, true)
 			if is_instance_valid(_active_traveling_merchant):
 				_active_traveling_merchant.from_save_dict(m_data)
+	if data.has("active_sheriff_investigation") and typeof(data["active_sheriff_investigation"]) == TYPE_DICTIONARY:
+		active_sheriff_investigation = (data["active_sheriff_investigation"] as Dictionary).duplicate(true)
 	if data.has("active_royal_investigation") and typeof(data["active_royal_investigation"]) == TYPE_DICTIONARY:
 		active_royal_investigation = (data["active_royal_investigation"] as Dictionary).duplicate(true)
 		var inv_data: Dictionary = data.get("royal_investigator_npc", {}) if typeof(data.get("royal_investigator_npc", {})) == TYPE_DICTIONARY else {}

@@ -301,8 +301,9 @@ func add_bloodstain(duration: float = 180.0) -> void:
 		health_comp.anatomy_changed.emit()
 
 func wash_bloodstains(show_even_if_clean: bool = false) -> void:
-	var had_blood: bool = bloodstained_timer > 0.0
+	var had_blood: bool = bloodstained_timer > 0.0 or int(get_meta("bloody_steps_left", 0)) > 0
 	bloodstained_timer = 0.0
+	set_meta("bloody_steps_left", 0)
 	if anim and _hit_flash_timer <= 0.0:
 		anim.modulate = Color.WHITE
 	var cleaned_wounds: bool = false
@@ -343,10 +344,15 @@ func _process(delta: float) -> void:
 		if _hit_flash_timer <= 0.0 and anim:
 			anim.modulate = Color(1.0, 0.72, 0.72) if bloodstained_timer > 0.0 else Color.WHITE
 	if health_comp and health_comp.current_health > 0.0:
+		if velocity.length_squared() > 9.0 and health_comp.is_resting_in_bed and global_position.distance_to(Vector2(718, 136)) > 26.0:
+			health_comp.is_resting_in_bed = false
 		_env_sickness_timer += delta
 		if _env_sickness_timer >= 2.0:
 			_env_sickness_timer = 0.0
 			_check_environmental_sickness()
+	var vm_fp = get_tree().get_first_node_in_group("village_manager")
+	if vm_fp and vm_fp.has_method("update_entity_blood_footprints"):
+		vm_fp.call("update_entity_blood_footprints", self, delta)
 
 func _check_environmental_sickness() -> void:
 	if not health_comp or health_comp.current_health <= 0.0:

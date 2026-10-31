@@ -54,10 +54,15 @@ var wounds: Array[Dictionary] = []
 var fever: float = 0.0 ## Fiebre sistémica (0..100%) por infección de heridas, miasma o intoxicación
 var food_poisoning: float = 0.0 ## Intoxicación alimentaria / veneno digestivo (0..100%)
 var swamp_sickness: float = 0.0 ## Fiebre del pantano / miasma cadavérico (0..100%)
+var systemic_immunity: float = 0.0 ## Inmunidad sistémica desarrollada (0..100%) estilo RimWorld
+var systemic_tend_quality: float = 0.0 ## Calidad del tratamiento médico sobre enfermedad sistémica (0..130%)
+var is_resting_in_bed: bool = false ## Multiplica x1.45 la velocidad de ganancia de Inmunidad y regeneración de sangre
 var last_sickness_cause: String = ""
+var last_death_reason: String = ""
 var _next_wound_id: int = 1
 var _med_tick_accum: float = 0.0
 var _bleed_notify_accum: float = 0.0
+var _blood_drop_accum: float = 0.0
 
 func _ready() -> void:
 	current_health = max_health
@@ -75,7 +80,10 @@ func _init_anatomy() -> void:
 	fever = 0.0
 	food_poisoning = 0.0
 	swamp_sickness = 0.0
+	systemic_immunity = 0.0
+	systemic_tend_quality = 0.0
 	last_sickness_cause = ""
+	last_death_reason = ""
 
 func get_total_wound_bleed_rate() -> float:
 	var total_r: float = 0.0
@@ -83,6 +91,31 @@ func get_total_wound_bleed_rate() -> float:
 		if not bool(w.get("bandaged", false)) and not bool(w.get("stitched", false)):
 			total_r += float(w.get("bleed_rate", 0.0))
 	return total_r
+
+func get_bleedout_eta_seconds() -> float:
+	var rate: float = get_total_wound_bleed_rate()
+	if rate <= 0.001:
+		return -1.0
+	return maxf(0.0, (max_blood - current_blood) / rate)
+
+func get_blood_loss_stage_name() -> String:
+	if current_blood < 15.0:
+		return "Estable"
+	elif current_blood < 30.0:
+		return "Leve (Minor)"
+	elif current_blood < 45.0:
+		return "Moderada (Moderate)"
+	elif current_blood < 60.0:
+		return "Severa (Severe)"
+	return "Extrema (Extreme)"
+
+## En RimWorld, estar enfermo o con infección severa reduce simbólicamente tu tope de resistencia física (hasta un 50%),
+## haciendo que aguantes menos golpes sin drenar tu vida a 0 por segundo; la infección solo mata si llega al 100% antes que la Inmunidad.
+func get_effective_max_health() -> float:
+	var max_inf: float = get_max_wound_infection()
+	var sick_factor: float = maxf(max_inf, maxf(fever, maxf(food_poisoning * 0.85, swamp_sickness * 0.90))) / 100.0
+	var cap_mult: float = clampf(1.0 - sick_factor * 0.50, 0.50, 1.0)
+	return maxf(25.0, max_health * cap_mult)
 
 func _process(delta: float) -> void:
 	if Engine.is_editor_hint() or current_health <= 0.0 or (WorldClock and WorldClock.has_method("is_time_frozen") and WorldClock.is_time_frozen()):
@@ -93,35 +126,32 @@ func _process(delta: float) -> void:
 		if _bleed_timer <= 0.0:
 			_bleed_dps = 0.0
 
-	var wound_bleed_dps: float = get_total_wound_bleed_rate()
-	var active_bleed_dps: float = wound_bleed_dps + (_bleed_dps if _bleed_timer > 0.0 else 0.0)
+	var wound_bleed_rate: float = get_total_wound_bleed_rate()
 
-	if active_bleed_dps > 0.0:
+	if wound_bleed_rate > 0.0:
 		is_bleeding = true
-		var bleed_loss: float = active_bleed_dps * delta
-		current_health = maxf(0.0, current_health - bleed_loss)
-		_drain_bleeding_region_hp(bleed_loss)
-		health_changed.emit(current_health, max_health)
-
-		# Reflejar la hemorragia activa en la barra BLD (no baja a 0 mientras existan heridas abiertas sangrando)
-		var min_bar_from_wounds: float = clampf(wound_bleed_dps * 28.0, 18.0, max_blood) if wound_bleed_dps > 0.0 else 0.0
-		if _bleed_timer > 0.0:
-			current_blood = clampf(maxf((_bleed_timer / maxf(0.1, bleed_duration)) * max_blood, min_bar_from_wounds), 0.0, max_blood)
-		else:
-			current_blood = clampf(maxf(current_blood + wound_bleed_dps * 6.0 * delta, min_bar_from_wounds), 0.0, max_blood)
+		current_blood = clampf(current_blood + wound_bleed_rate * delta, 0.0, max_blood)
 		blood_changed.emit(current_blood, max_blood)
+		if current_blood >= 30.0 and not is_weak:
+			is_weak = true
+			weakness_changed.emit(true)
 
 		_bleed_notify_accum += delta
-		if _bleed_notify_accum >= 2.8:
+		if _bleed_notify_accum >= 6.0:
 			_bleed_notify_accum = 0.0
 			var parent_n := get_parent()
 			if is_instance_valid(parent_n) and parent_n.has_method("_spawn_floating_text"):
+				var eta_s: int = int(ceil(get_bleedout_eta_seconds()))
 				var is_p: bool = parent_n.is_in_group("player")
-				var msg: String = ("🩸 -%.1f HP/s (Hemorragia — ¡Véndate en [H]!)" % active_bleed_dps) if is_p else ("🩸 -%.1f HP/s (Desangrándose)" % active_bleed_dps)
+				var msg: String = ("🩸 Pérdida de Sangre: %d%% (%s — Desangrado en %ds)" % [int(round(current_blood)), get_blood_loss_stage_name(), eta_s]) if is_p else ("🩸 Sangrando (%d%% — %ds)" % [int(round(current_blood)), eta_s])
 				parent_n.call("_spawn_floating_text", msg, Color(1.0, 0.28, 0.32), -38.0)
 
-		if current_health <= 0.0:
+		# Muerte fisiológica por Exsanguinación al llegar al 100% de Pérdida de Sangre (RimWorld)
+		if current_blood >= max_blood:
 			is_bleeding = false
+			last_death_reason = "Exsanguinación (100% Pérdida de Sangre)"
+			current_health = 0.0
+			health_changed.emit(current_health, max_health)
 			died.emit()
 			return
 	else:
@@ -129,14 +159,15 @@ func _process(delta: float) -> void:
 		if is_bleeding:
 			is_bleeding = false
 			_bleed_dps = 0.0
-			if is_weak:
-				is_weak = false
-				weakness_changed.emit(false)
 			anatomy_changed.emit()
 		if current_blood > 0.0:
-			# Si no hay heridas sangrando, la acumulación baja poco a poco con el tiempo
-			current_blood = maxf(0.0, current_blood - bleed_decay_rate * delta)
+			# Recuperación hematopoyética realista (~36% por día de juego, o x1.8 descansando en cama)
+			var regen_rate: float = 0.10 * (1.8 if is_resting_in_bed else 1.0)
+			current_blood = maxf(0.0, current_blood - regen_rate * delta)
 			blood_changed.emit(current_blood, max_blood)
+			if current_blood < 30.0 and is_weak:
+				is_weak = false
+				weakness_changed.emit(false)
 
 	_med_tick_accum += delta
 	if _med_tick_accum >= 1.0:
@@ -155,7 +186,9 @@ func _drain_bleeding_region_hp(loss: float) -> void:
 func _tick_anatomical_recovery(dt: float) -> void:
 	var changed := false
 	var filt: float = clampf((float(organ_hp.get("liver", 100.0)) + float(organ_hp.get("kidneys", 100.0))) / 200.0, 0.25, 1.0)
+	var bed_imm_mult: float = 1.45 if is_resting_in_bed else 1.0
 	var max_wound_inf: float = 0.0
+	var max_wound_imm: float = 0.0
 
 	for i in range(wounds.size() - 1, -1, -1):
 		var w: Dictionary = wounds[i]
@@ -164,34 +197,66 @@ func _tick_anatomical_recovery(dt: float) -> void:
 		var is_stitched: bool = bool(w.get("stitched", false))
 		var is_splinted: bool = bool(w.get("splinted", false))
 		var is_clean: bool = bool(w.get("clean", false))
+		var tend_q: float = float(w.get("tend_quality", 0.0))
+		var tend_tier: String = str(w.get("tend_tier", "none"))
 		if is_bandaged:
-			w["bandage_dirty"] = minf(100.0, float(w.get("bandage_dirty", 0.0)) + dt * 0.45)
+			var dirty_spd: float = 0.55 if tend_tier == "makeshift" else 0.25
+			w["bandage_dirty"] = minf(100.0, float(w.get("bandage_dirty", 0.0)) + dt * dirty_spd)
 		var dirty_band: bool = is_bandaged and float(w.get("bandage_dirty", 0.0)) >= 55.0
 
-		# Progresión de infección en heridas abiertas (Project Zomboid / RimWorld)
+		# Carrera Infección vs Inmunidad estilo RimWorld:
+		# - Sin tratar (o vendaje rudimentario sucio), la infección avanza (~0.28%/s -> ~6 min reales = 1 día de juego).
+		# - Tratar la herida frena el avance de la infección según la Calidad del Tratamiento (`tend_quality`),
+		#   dando tiempo a que la Inmunidad (`immunity`) llegue al 100% y venza la infección.
 		if w_type in ["scratch", "laceration", "deep_wound", "lodged_arrow"]:
 			var cur_inf: float = float(w.get("infection", 0.0))
-			if (not is_bandaged and not is_stitched and not is_clean) or dirty_band or w_type == "lodged_arrow":
-				var inf_gain: float = (0.42 if not is_clean else 0.24) * (1.25 if dirty_band else 1.0) / maxf(0.35, filt)
+			var cur_imm: float = float(w.get("immunity", 0.0))
+			var can_infect: bool = (not is_bandaged and not is_stitched and not is_clean) or dirty_band or tend_tier == "makeshift" or w_type == "lodged_arrow" or cur_inf > 0.0
+			if can_infect:
+				var tend_slow: float = lerpf(1.0, 0.20, clampf(tend_q / 100.0, 0.0, 1.0))
+				if dirty_band:
+					tend_slow = maxf(tend_slow, 0.78)
+				var base_inf_spd: float = 0.28 if (not is_clean or dirty_band) else 0.16
+				var inf_gain: float = (base_inf_spd * tend_slow) / maxf(0.40, filt)
 				cur_inf = minf(100.0, cur_inf + inf_gain * dt)
-			elif is_clean and (is_bandaged or is_stitched) and not dirty_band:
-				cur_inf = maxf(0.0, cur_inf - 0.35 * filt * dt)
-			if absf(cur_inf - float(w.get("infection", 0.0))) > 0.5:
+				if cur_inf >= 5.0:
+					var imm_gain: float = 0.33 * filt * bed_imm_mult * (1.15 if is_clean else 0.92)
+					cur_imm = minf(100.0, cur_imm + imm_gain * dt)
+					if cur_imm >= 100.0:
+						# ¡Ganó la carrera de Inmunidad! La infección desaparece (RimWorld)
+						cur_inf = 0.0
+						cur_imm = 100.0
+						w["clean"] = true
+						w["bandage_dirty"] = 0.0
+						changed = true
+					elif cur_inf >= 100.0:
+						# La infección llegó al 100% antes que la Inmunidad -> Muerte por Sepsis
+						w["infection"] = 100.0
+						last_death_reason = "Sepsis / Infección Letal (100%% en %s)" % str(w.get("name", "Herida"))
+						current_health = 0.0
+						health_changed.emit(current_health, max_health)
+						died.emit()
+						return
+			if absf(cur_inf - float(w.get("infection", 0.0))) > 0.4 or absf(cur_imm - float(w.get("immunity", 0.0))) > 0.4:
 				changed = true
 			w["infection"] = cur_inf
+			w["immunity"] = cur_imm
 			max_wound_inf = maxf(max_wound_inf, cur_inf)
+			max_wound_imm = maxf(max_wound_imm, cur_imm)
 
 		if w_type == "lodged_arrow" or (not is_bandaged and not is_stitched and not is_splinted):
 			continue
-		var rate: float = 0.22
+		var rate: float = 0.14
 		if is_bandaged:
-			rate = 0.20 if dirty_band else 0.48
+			rate = 0.12 if (dirty_band or tend_tier == "makeshift") else lerpf(0.24, 0.55, clampf(tend_q / 100.0, 0.0, 1.0))
 		if is_stitched:
-			rate = 0.72
+			rate = 0.68
 		if w_type == "fracture":
-			rate = 0.32 if is_splinted else 0.0
+			rate = 0.28 if is_splinted else 0.0
 		if float(w.get("infection", 0.0)) >= 40.0:
 			rate *= 0.45
+		if is_resting_in_bed:
+			rate *= 1.35
 		if rate <= 0.0:
 			continue
 		var new_sev: float = float(w.get("severity", 10.0)) - rate * dt
@@ -205,30 +270,49 @@ func _tick_anatomical_recovery(dt: float) -> void:
 			w["severity"] = maxf(1.0, new_sev)
 			w["pain"] = maxf(1.0, float(w.get("pain", 6.0)) - rate * dt * 0.30)
 
-	# Evolución de intoxicación alimentaria, fiebre del pantano/miasma y fiebre sistémica
-	if food_poisoning > 0.0:
-		food_poisoning = maxf(0.0, food_poisoning - 0.32 * filt * dt)
-		if food_poisoning >= 55.0:
-			organ_hp["stomach"] = maxf(25.0, float(organ_hp.get("stomach", 100.0)) - 0.06 * dt)
-	if swamp_sickness > 0.0:
-		swamp_sickness = maxf(0.0, swamp_sickness - 0.22 * filt * dt)
+	# Evolución de intoxicación alimentaria, fiebre del pantano/miasma y carrera de inmunidad sistémica
+	var sys_sick: float = maxf(food_poisoning, swamp_sickness)
+	if sys_sick > 0.0 or fever > 0.0:
+		var sys_slow: float = lerpf(1.0, 0.25, clampf(systemic_tend_quality / 100.0, 0.0, 1.0))
+		if sys_sick > 0.0 and systemic_immunity < 100.0:
+			systemic_immunity = minf(100.0, systemic_immunity + 0.34 * filt * bed_imm_mult * dt)
+			if systemic_tend_quality < 20.0 and not is_resting_in_bed:
+				fever = minf(100.0, fever + 0.22 * sys_slow / maxf(0.4, filt) * dt)
+		if systemic_immunity >= 100.0:
+			food_poisoning = maxf(0.0, food_poisoning - 1.2 * dt)
+			swamp_sickness = maxf(0.0, swamp_sickness - 1.2 * dt)
+			fever = maxf(0.0, fever - 1.4 * dt)
+			if food_poisoning <= 0.1 and swamp_sickness <= 0.1 and fever <= 0.1:
+				systemic_immunity = 0.0
+				systemic_tend_quality = 0.0
+			changed = true
+		else:
+			if food_poisoning > 0.0:
+				food_poisoning = maxf(0.0, food_poisoning - 0.18 * filt * dt)
+			if swamp_sickness > 0.0:
+				swamp_sickness = maxf(0.0, swamp_sickness - 0.15 * filt * dt)
 
-	var target_fever: float = maxf(max_wound_inf * 0.85, maxf(food_poisoning * 0.55, swamp_sickness * 0.75))
-	if target_fever > fever + 2.0:
-		fever = minf(100.0, fever + (0.45 / maxf(0.35, filt)) * dt)
+	var target_fever: float = maxf(max_wound_inf * 0.88, maxf(food_poisoning * 0.65, swamp_sickness * 0.80))
+	if target_fever > fever + 1.5:
+		fever = minf(100.0, fever + (0.28 / maxf(0.35, filt)) * dt)
 		changed = true
-	elif fever > 0.0:
-		fever = maxf(0.0, fever - 0.38 * filt * dt)
+	elif fever > 0.0 and target_fever < fever - 1.0:
+		fever = maxf(0.0, fever - 0.35 * filt * dt)
 		changed = true
 
-	# Sepsis o envenenamiento severo drena salud lentamente
-	if fever >= 72.0 or food_poisoning >= 75.0 or swamp_sickness >= 75.0:
-		var tox_dmg: float = (0.35 if fever < 88.0 else 0.75) * dt
-		current_health = maxf(0.0, current_health - tox_dmg)
+	# Reducción simbólica del tope de resistencia física mientras está enfermo/infectado (RimWorld: aguantas menos golpes, pero solo mueres si la infección llega al 100%)
+	var eff_max: float = get_effective_max_health()
+	if current_health > eff_max:
+		current_health = eff_max
 		health_changed.emit(current_health, max_health)
-		if current_health <= 0.0:
-			died.emit()
-			return
+
+	if fever >= 100.0 and systemic_immunity < 100.0 and max_wound_imm < 100.0:
+		last_death_reason = "Fiebre / Sepsis Sistémica Letal (100%% — %s)" % (last_sickness_cause if last_sickness_cause != "" else "Infección")
+		current_health = 0.0
+		health_changed.emit(current_health, max_health)
+		died.emit()
+		return
+
 	if changed:
 		anatomy_changed.emit()
 
@@ -236,27 +320,29 @@ func take_damage(data: DamageData) -> void:
 	if current_health <= 0.0:
 		return
 
-	# 1. Aplicar daño directo a la vida (mitigado por la armadura equipada)
+	# 1. Aplicar daño directo a la resistencia física (limitada por `get_effective_max_health()` si está enfermo/infectado)
 	var dmg_mult: float = clampf(1.0 - armor_defense, 0.20, 1.0)
 	var final_damage: float = maxf(1.0, data.amount * dmg_mult) if data.amount > 0.0 else 0.0
 	if final_damage > 0.0:
 		_inflict_anatomical_wound(data, final_damage)
-	current_health = max(0.0, current_health - final_damage)
+	current_health = clampf(current_health - final_damage, 0.0, get_effective_max_health())
 	health_changed.emit(current_health, max_health)
 	
 	if current_health <= 0.0:
 		is_bleeding = false
+		last_death_reason = "Trauma Físico Letal"
 		died.emit()
 		return
 	
-	# 2. Acumular sangrado según la estadística del arma (mitigado por resistencia al sangrado de armadura)
+	# 2. En RimWorld, los impactos cortantes aumentan levemente la pérdida inicial de sangre (`current_blood`),
+	# mientras que la hemorragia continua depende de la tasa de sangrado (`bleed_rate`) de las heridas abiertas.
 	var buildup: float = data.bleed_buildup
 	if buildup <= 0.0 and data.type == CombatConstants.DamageType.CUT and data.bleed_chance > 0.0:
-		buildup = data.amount * 3.0
+		buildup = data.amount * 1.5
 
 	buildup *= clampf(1.0 - armor_bleed_resistance, 0.10, 1.0)
 	if buildup > 0.0:
-		add_bleed_buildup(buildup, final_damage)
+		add_bleed_buildup(buildup * 0.16, final_damage)
 
 func _pick_hit_region(data: DamageData) -> String:
 	var roll: float = randf()
@@ -307,24 +393,25 @@ func _inflict_anatomical_wound(data: DamageData, final_damage: float) -> void:
 		if is_bullet:
 			w_type = "deep_wound"
 			custom_w_name = "Herida de Bala"
-			bleed_r = 3.0
+			bleed_r = 0.72 # ~138s (2.3 min reales / 9h de juego) para llegar a 100% Blood Loss
 			pain_v = maxf(pain_v, 24.0)
 			sev_v = maxf(sev_v, 48.0)
 		elif is_arrow:
 			w_type = "lodged_arrow"
-			bleed_r = 2.4
+			bleed_r = 0.55 # ~180s (3 min reales / 12h de juego)
 			pain_v = maxf(pain_v, 20.0)
 			sev_v = maxf(sev_v, 42.0)
 		elif final_damage >= 14.0 or data.bleed_buildup >= 32.0:
 			w_type = "deep_wound"
-			bleed_r = 3.2
+			bleed_r = 0.78 # ~128s (2.1 min reales / 8.5h de juego)
 			pain_v = maxf(pain_v, 22.0)
+			sev_v = maxf(sev_v, 45.0)
 		elif final_damage >= 5.5 or data.bleed_buildup >= 12.0:
 			w_type = "laceration"
-			bleed_r = 1.9
+			bleed_r = 0.42 # ~238s (4 min reales / 16h de juego por un corte en brazo)
 		else:
 			w_type = "scratch"
-			bleed_r = 1.0
+			bleed_r = 0.18 # ~550s (9 min reales)
 	else:
 		var new_ratio: float = float(region_hp.get(r_id, max_r)) / maxf(1.0, max_r)
 		if final_damage >= 15.0 or (new_ratio < 0.68 and final_damage >= 8.0 and randf() < 0.50) or (r_id in ["left_leg", "right_leg", "left_arm", "right_arm"] and final_damage >= 10.0 and randf() < 0.42):
@@ -359,6 +446,9 @@ func _inflict_anatomical_wound(data: DamageData, final_damage: float) -> void:
 		"splinted": false,
 		"clean": false,
 		"infection": 0.0,
+		"immunity": 0.0,
+		"tend_quality": 0.0,
+		"tend_tier": "none",
 		"weapon_cause": w_tag
 	}
 	_next_wound_id += 1
@@ -367,31 +457,21 @@ func _inflict_anatomical_wound(data: DamageData, final_damage: float) -> void:
 		wounds.pop_front()
 	if bleed_r > 0.0:
 		is_bleeding = true
-		current_blood = clampf(maxf(current_blood, get_total_wound_bleed_rate() * 28.0), 0.0, max_blood)
 		blood_changed.emit(current_blood, max_blood)
 	anatomy_changed.emit()
 
-func add_bleed_buildup(buildup_amount: float, weapon_damage: float) -> void:
-	var weapon_bleed_dps = max(1.5, weapon_damage * bleed_damage_multiplier)
-
-	if _bleed_timer > 0.0:
-		# Si ya tiene hemorragia aguda por barra al 100%, refresca parcialmente y mantiene el mayor DPS
-		_bleed_dps = max(_bleed_dps, weapon_bleed_dps)
-		_bleed_timer = min(bleed_duration, _bleed_timer + bleed_duration * 0.35)
-		return
-
-	current_blood = min(max_blood, current_blood + buildup_amount)
+func add_bleed_buildup(buildup_amount: float, _weapon_damage: float) -> void:
+	current_blood = clampf(current_blood + buildup_amount, 0.0, max_blood)
 	blood_changed.emit(current_blood, max_blood)
-
-	if current_blood >= max_blood:
-		# Se llenó la barra: activar estado de sangrado
-		is_bleeding = true
-		_bleed_timer = bleed_duration
-		_bleed_dps = weapon_bleed_dps
-		if not is_weak:
-			is_weak = true
-			weakness_changed.emit(true)
-		bleed_triggered.emit(_bleed_dps)
+	if current_blood >= 30.0 and not is_weak:
+		is_weak = true
+		weakness_changed.emit(true)
+	if current_blood >= max_blood and current_health > 0.0:
+		is_bleeding = false
+		last_death_reason = "Exsanguinación (100% Pérdida de Sangre)"
+		current_health = 0.0
+		health_changed.emit(current_health, max_health)
+		died.emit()
 
 func heal(amount: float, clear_all_wounds: bool = false) -> void:
 	current_health = clamp(current_health + amount, 0.0, max_health)
@@ -478,12 +558,23 @@ func get_total_pain() -> float:
 
 func get_capacities() -> Dictionary:
 	var pain_pen: float = clampf(get_total_pain() / 160.0, 0.0, 0.45)
-	var blood_pen: float = 0.20 if is_bleeding else clampf((current_blood / maxf(1.0, max_blood)) * 0.15, 0.0, 0.15)
+	# Penalización de Conciencia por etapas de Pérdida de Sangre (RimWorld: Minor -10%, Moderate -20%, Severe -40%, Extreme max 15%)
+	var blood_pen: float = 0.0
+	if current_blood >= 60.0:
+		blood_pen = 0.65
+	elif current_blood >= 45.0:
+		blood_pen = 0.40
+	elif current_blood >= 30.0:
+		blood_pen = 0.20
+	elif current_blood >= 15.0:
+		blood_pen = 0.10
 	var fever_pen: float = clampf(fever / 100.0, 0.0, 1.0) * 0.32
 	var poison_pen: float = clampf(food_poisoning / 100.0, 0.0, 1.0) * 0.22
 	var swamp_pen: float = clampf(swamp_sickness / 100.0, 0.0, 1.0) * 0.22
 	var brain_r: float = clampf(float(organ_hp.get("brain", 100.0)) / 100.0, 0.1, 1.0)
-	var consciousness: float = clampf(brain_r * (1.0 - pain_pen * 0.85 - blood_pen - fever_pen - poison_pen * 0.5), 0.15, 1.0)
+	var consciousness: float = clampf(brain_r * (1.0 - pain_pen * 0.85 - blood_pen - fever_pen - poison_pen * 0.5), 0.10, 1.0)
+	if current_blood >= 60.0:
+		consciousness = minf(consciousness, 0.20)
 
 	var l_leg: float = get_region_ratio("left_leg")
 	var r_leg: float = get_region_ratio("right_leg")
@@ -526,31 +617,80 @@ func get_moving_capacity() -> float:
 func get_manipulation_capacity() -> float:
 	return float(get_capacities().get("manipulation", 1.0))
 
-func treat_wound(wound_id: int, action: String) -> bool:
+## Devuelve el ID de la herida más urgente para que el Dr. Valen o un NPC se trate herida por herida (priorizando mayor tasa de sangrado)
+func get_most_urgent_untreated_wound_id(include_makeshift_for_upgrade: bool = false) -> int:
+	var best_id: int = -1
+	var best_score: float = -1.0
+	for w in wounds:
+		var wid: int = int(w.get("id", -1))
+		var b_rate: float = float(w.get("bleed_rate", 0.0))
+		var is_band: bool = bool(w.get("bandaged", false))
+		var is_stit: bool = bool(w.get("stitched", false))
+		var is_spl: bool = bool(w.get("splinted", false))
+		var t_tier: String = str(w.get("tend_tier", "none"))
+		var w_type: String = str(w.get("type", "scratch"))
+		var inf_v: float = float(w.get("infection", 0.0))
+		if b_rate > 0.0 and not is_band and not is_stit:
+			var sc: float = 1000.0 + b_rate * 500.0 + float(w.get("severity", 10.0))
+			if sc > best_score:
+				best_score = sc
+				best_id = wid
+		elif w_type == "fracture" and not is_spl:
+			var sc2: float = 400.0 + float(w.get("severity", 20.0))
+			if sc2 > best_score:
+				best_score = sc2
+				best_id = wid
+		elif (not is_band and not is_stit) or (include_makeshift_for_upgrade and (t_tier == "makeshift" or float(w.get("bandage_dirty", 0.0)) >= 50.0 or inf_v >= 20.0)):
+			var sc3: float = 100.0 + inf_v * 3.0 + float(w.get("severity", 10.0))
+			if sc3 > best_score:
+				best_score = sc3
+				best_id = wid
+	return best_id
+
+func has_fresh_combat_wounds_or_makeshift() -> bool:
+	if current_blood >= 14.0 or not wounds.is_empty():
+		return true
+	return false
+
+func treat_wound(wound_id: int, action: String, doctor_quality_bonus: float = 0.0) -> bool:
 	for i in range(wounds.size()):
 		var w: Dictionary = wounds[i]
 		if int(w.get("id", -1)) != wound_id:
 			continue
 		match action:
+			"tend_makeshift":
+				# Tratamiento Rudimentario de Supervivencia (Sin medicina / Manos desnudas — RimWorld ~25% Tend Quality):
+				# Corta la hemorragia para poder llegar vivo al pueblo, pero deja vendaje improvisado/sucio con riesgo de infección.
+				w["bandaged"] = true
+				w["bandage_dirty"] = 38.0
+				w["clean"] = false
+				w["bleed_rate"] = 0.0
+				w["tend_quality"] = clampf(25.0 + doctor_quality_bonus, 15.0, 45.0)
+				w["tend_tier"] = "makeshift"
+				w["pain"] = maxf(2.0, float(w.get("pain", 6.0)) * 0.88)
 			"wash":
 				w["clean"] = true
 				w["bandage_dirty"] = 0.0
-				w["infection"] = maxf(0.0, float(w.get("infection", 0.0)) - 20.0)
+				w["infection"] = maxf(0.0, float(w.get("infection", 0.0)) - 8.0)
 			"bandage":
 				w["bandaged"] = true
+				w["clean"] = true
 				w["bandage_dirty"] = 0.0
 				w["bleed_rate"] = 0.0
-				w["pain"] = maxf(1.0, float(w.get("pain", 6.0)) * 0.72)
-				heal(8.0)
+				w["tend_quality"] = clampf(82.0 + doctor_quality_bonus, 50.0, 100.0)
+				w["tend_tier"] = "bandage"
+				w["pain"] = maxf(1.0, float(w.get("pain", 6.0)) * 0.70)
+				heal(4.0)
 			"poultice":
 				w["clean"] = true
 				w["bandaged"] = true
 				w["bandage_dirty"] = 0.0
 				w["bleed_rate"] = 0.0
-				w["infection"] = 0.0
-				w["severity"] = maxf(2.0, float(w.get("severity", 20.0)) * 0.55)
-				w["pain"] = maxf(1.0, float(w.get("pain", 8.0)) * 0.50)
-				heal(16.0)
+				w["tend_quality"] = clampf(68.0 + doctor_quality_bonus, 45.0, 88.0)
+				w["tend_tier"] = "herbal"
+				w["severity"] = maxf(2.0, float(w.get("severity", 20.0)) * 0.75)
+				w["pain"] = maxf(1.0, float(w.get("pain", 8.0)) * 0.60)
+				heal(6.0)
 			"stitch":
 				if str(w.get("type", "")) == "lodged_arrow":
 					w["type"] = "laceration"
@@ -558,42 +698,49 @@ func treat_wound(wound_id: int, action: String) -> bool:
 				w["stitched"] = true
 				w["bandaged"] = true
 				w["clean"] = true
+				w["bandage_dirty"] = 0.0
 				w["bleed_rate"] = 0.0
-				w["severity"] = maxf(2.0, float(w.get("severity", 25.0)) * 0.45)
+				w["tend_quality"] = clampf(115.0 + doctor_quality_bonus, 90.0, 130.0)
+				w["tend_tier"] = "surgical"
+				w["severity"] = maxf(2.0, float(w.get("severity", 25.0)) * 0.60)
 				w["pain"] = maxf(1.0, float(w.get("pain", 10.0)) * 0.55)
-				heal(24.0)
+				heal(10.0)
 			"splint":
 				w["splinted"] = true
+				w["tend_quality"] = maxf(float(w.get("tend_quality", 0.0)), 75.0 + doctor_quality_bonus)
 				w["pain"] = maxf(2.0, float(w.get("pain", 18.0)) * 0.60)
-		var any_bleed := false
-		for cw in wounds:
-			if float(cw.get("bleed_rate", 0.0)) > 0.0 and not bool(cw.get("bandaged", false)) and not bool(cw.get("stitched", false)):
-				any_bleed = true
-				break
-		if not any_bleed and is_bleeding:
-			stop_bleeding()
+		var any_bleed := (get_total_wound_bleed_rate() > 0.0)
+		if not any_bleed:
+			is_bleeding = false
 		anatomy_changed.emit()
 		return true
 	return false
 
 func add_food_poisoning(amount: float, cause: String = "Comida en mal estado") -> void:
 	food_poisoning = clampf(food_poisoning + amount, 0.0, 100.0)
-	fever = clampf(fever + amount * 0.35, 0.0, 100.0)
+	fever = clampf(fever + amount * 0.45, 0.0, 96.0)
+	if systemic_immunity <= 0.0:
+		systemic_immunity = 8.0
 	last_sickness_cause = cause
-	organ_hp["stomach"] = maxf(20.0, float(organ_hp.get("stomach", 100.0)) - amount * 0.25)
-	organ_hp["liver"] = maxf(25.0, float(organ_hp.get("liver", 100.0)) - amount * 0.18)
-	if amount >= 75.0 and current_health > 0.0:
-		current_health = maxf(0.0, current_health - 26.0)
+	organ_hp["stomach"] = maxf(25.0, float(organ_hp.get("stomach", 100.0)) - amount * 0.22)
+	organ_hp["liver"] = maxf(30.0, float(organ_hp.get("liver", 100.0)) - amount * 0.16)
+	var eff_max: float = get_effective_max_health()
+	if current_health > eff_max:
+		current_health = eff_max
 		health_changed.emit(current_health, max_health)
-		if current_health <= 0.0:
-			died.emit()
 	anatomy_changed.emit()
 
 func add_swamp_or_miasma_exposure(amount: float, cause: String = "Miasma / Fiebre del Pantano") -> void:
 	swamp_sickness = clampf(swamp_sickness + amount, 0.0, 100.0)
 	if swamp_sickness >= 25.0:
-		fever = clampf(fever + amount * 0.45, 0.0, 100.0)
+		fever = clampf(fever + amount * 0.45, 0.0, 96.0)
+		if systemic_immunity <= 0.0:
+			systemic_immunity = 8.0
 		last_sickness_cause = cause
+	var eff_max: float = get_effective_max_health()
+	if current_health > eff_max:
+		current_health = eff_max
+		health_changed.emit(current_health, max_health)
 	anatomy_changed.emit()
 
 const ORGAN_ITEM_MAP: Dictionary = {
@@ -606,16 +753,24 @@ const ORGAN_ITEM_MAP: Dictionary = {
 }
 
 func cure_sickness(amount: float, clear_wound_infections: bool = true) -> void:
-	fever = maxf(0.0, fever - amount)
-	food_poisoning = maxf(0.0, food_poisoning - amount)
-	swamp_sickness = maxf(0.0, swamp_sickness - amount)
+	systemic_tend_quality = clampf(maxf(systemic_tend_quality, amount), 0.0, 130.0)
+	systemic_immunity = clampf(systemic_immunity + amount * 0.38, 0.0, 100.0)
+	fever = maxf(0.0, fever - amount * 0.55)
+	food_poisoning = maxf(0.0, food_poisoning - amount * 0.60)
+	swamp_sickness = maxf(0.0, swamp_sickness - amount * 0.60)
 	if clear_wound_infections:
 		for w in wounds:
-			w["infection"] = maxf(0.0, float(w.get("infection", 0.0)) - amount)
+			if float(w.get("infection", 0.0)) > 0.0:
+				w["tend_quality"] = maxf(float(w.get("tend_quality", 0.0)), amount)
+				w["immunity"] = clampf(float(w.get("immunity", 0.0)) + amount * 0.42, 0.0, 100.0)
+				w["infection"] = maxf(0.0, float(w.get("infection", 0.0)) - amount * 0.50)
+				if float(w["immunity"]) >= 100.0 or float(w["infection"]) <= 1.0:
+					w["infection"] = 0.0
 			w["clean"] = true
+			w["bandage_dirty"] = 0.0
 	for ok in ["stomach", "liver", "kidneys", "lungs"]:
-		if float(organ_hp.get(ok, 100.0)) > 50.0:
-			organ_hp[ok] = minf(100.0, float(organ_hp.get(ok, 100.0)) + amount * 0.20)
+		if float(organ_hp.get(ok, 100.0)) > 40.0:
+			organ_hp[ok] = minf(100.0, float(organ_hp.get(ok, 100.0)) + amount * 0.22)
 	anatomy_changed.emit()
 
 func extract_organ(organ_id: String, surgeon_cause: String = "Bisturí Quirúrgico (Extracción de Órgano)") -> String:
@@ -697,24 +852,36 @@ func get_max_wound_infection() -> float:
 		m = maxf(m, float(w.get("infection", 0.0)))
 	return m
 
+func get_max_wound_immunity() -> float:
+	var m: float = 0.0
+	for w in wounds:
+		if float(w.get("infection", 0.0)) > 0.0:
+			m = maxf(m, float(w.get("immunity", 0.0)))
+	return m
+
 func has_active_sickness_or_infection() -> bool:
-	return fever >= 20.0 or food_poisoning >= 20.0 or swamp_sickness >= 20.0 or get_max_wound_infection() >= 25.0
+	return fever >= 18.0 or food_poisoning >= 18.0 or swamp_sickness >= 18.0 or get_max_wound_infection() >= 18.0
 
 func get_sickness_summary_label() -> String:
 	var tags: Array[String] = []
 	var max_inf: float = get_max_wound_infection()
-	if max_inf >= 20.0:
-		tags.append("🦠Infección Herida (%d%%)" % int(round(max_inf)))
-	if fever >= 18.0:
-		tags.append("🌡️Fiebre (%d%%)" % int(round(fever)))
+	if max_inf >= 12.0:
+		tags.append("🦠Infección: %d%% vs 🛡️Inmunidad: %d%%" % [int(round(max_inf)), int(round(get_max_wound_immunity()))])
+	if fever >= 15.0:
+		tags.append("🌡️Fiebre: %d%% (Inm: %d%%)" % [int(round(fever)), int(round(maxf(systemic_immunity, get_max_wound_immunity())))])
 	if food_poisoning >= 15.0:
-		tags.append("🤢Intoxicación (%d%%)" % int(round(food_poisoning)))
+		tags.append("🤢Intoxicación: %d%%" % int(round(food_poisoning)))
 	if swamp_sickness >= 15.0:
-		tags.append("🦟Miasma/Pantano (%d%%)" % int(round(swamp_sickness)))
+		tags.append("🦟Miasma: %d%%" % int(round(swamp_sickness)))
+	var eff_cap: int = int(round(get_effective_max_health()))
+	if eff_cap < int(round(max_health)):
+		tags.append("⚠️Tope Resistencia: %d%%" % eff_cap)
 	return " · ".join(tags) if not tags.is_empty() else "🟢 Sin fiebre ni infecciones activas"
 
 func get_forensic_autopsy_summary() -> String:
 	var parts: Array[String] = []
+	if last_death_reason != "":
+		parts.append("Causa Fisiológica: " + last_death_reason)
 	for i in range(maxi(0, wounds.size() - 3), wounds.size()):
 		var w: Dictionary = wounds[i]
 		var r_name: String = str(REGION_DEFS.get(str(w.get("region", "torso")), {"name": "Torso"})["name"])
@@ -728,6 +895,15 @@ func get_forensic_autopsy_summary() -> String:
 		return "Sin traumatismos externos registrados"
 	return "; ".join(parts)
 
+func get_untreated_wound_count() -> int:
+	var cnt: int = 0
+	for w in wounds:
+		var is_tended: bool = bool(w.get("bandaged", false)) or bool(w.get("stitched", false)) or bool(w.get("splinted", false))
+		var is_makeshift_or_dirty: bool = str(w.get("tend_tier", "none")) == "makeshift" or float(w.get("bandage_dirty", 0.0)) >= 25.0
+		if not is_tended or is_makeshift_or_dirty or float(w.get("bleed_rate", 0.0)) > 0.0 or float(w.get("infection", 0.0)) >= 12.0:
+			cnt += 1
+	return cnt
+
 func to_medical_dict() -> Dictionary:
 	var w_copy: Array = []
 	for w in wounds:
@@ -739,7 +915,10 @@ func to_medical_dict() -> Dictionary:
 		"fever": fever,
 		"food_poisoning": food_poisoning,
 		"swamp_sickness": swamp_sickness,
+		"systemic_immunity": systemic_immunity,
+		"systemic_tend_quality": systemic_tend_quality,
 		"last_sickness_cause": last_sickness_cause,
+		"last_death_reason": last_death_reason,
 		"next_id": _next_wound_id
 	}
 
@@ -764,6 +943,9 @@ func from_medical_dict(data: Dictionary) -> void:
 	fever = clampf(float(data.get("fever", 0.0)), 0.0, 100.0)
 	food_poisoning = clampf(float(data.get("food_poisoning", 0.0)), 0.0, 100.0)
 	swamp_sickness = clampf(float(data.get("swamp_sickness", 0.0)), 0.0, 100.0)
+	systemic_immunity = clampf(float(data.get("systemic_immunity", 0.0)), 0.0, 100.0)
+	systemic_tend_quality = clampf(float(data.get("systemic_tend_quality", 0.0)), 0.0, 130.0)
 	last_sickness_cause = str(data.get("last_sickness_cause", ""))
+	last_death_reason = str(data.get("last_death_reason", ""))
 	_next_wound_id = maxi(1, int(data.get("next_id", wounds.size() + 1)))
 	anatomy_changed.emit()

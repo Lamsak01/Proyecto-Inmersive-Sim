@@ -197,6 +197,12 @@ var _craft_bar_label: Label = null
 var _being_interviewed_timer: float = 0.0
 var _interviewer_node: Node2D = null
 var _cached_dm: Node = null
+var _self_tend_timer: float = 0.0
+var _active_hospital_patient: Node2D = null
+var _doctor_treat_progress: float = 0.0
+var bloodstained_timer: float = 0.0
+var seen_entities_memory: Array[Dictionary] = []
+var _visual_memory_timer: float = 0.0
 
 const FloatingTextScene = preload("res://scenes/ui/FloatingText.tscn")
 
@@ -212,6 +218,7 @@ const ROLE_INITIAL_MATERIALS: Dictionary = {
 	TradeRole.BLACKSMITH: {"wood": 1, "leather": 1}, TradeRole.CARPENTER: {"iron_ore": 1, "herbal_poultice": 1},
 	TradeRole.BUTCHER: {"wood": 1, "herbal_poultice": 1}, TradeRole.HERBALIST: {"bread": 1, "fertilizer": 1},
 	TradeRole.FISHMONGER: {"wood": 1, "herbal_poultice": 1}, TradeRole.INNKEEPER: {"cooked_meat": 1, "bread": 1},
+	TradeRole.DOCTOR: {"herbal_poultice": 2, "leather": 1},
 }
 
 const ROLE_PSYCHOLOGY: Dictionary = {
@@ -308,8 +315,16 @@ func _finish_frame_movement(delta: float, apply_yield: bool = false) -> void:
 	if apply_yield:
 		_apply_player_and_doorway_yield(delta)
 	move_and_slide()
+	if _cached_vm and _cached_vm.has_method("update_entity_blood_footprints"):
+		_cached_vm.call("update_entity_blood_footprints", self, delta)
 	_update_visual_animation(delta)
 	_update_hover_label(delta)
+
+func is_bloodstained() -> bool:
+	return bloodstained_timer > 0.0
+
+func add_bloodstain(duration: float = 180.0) -> void:
+	bloodstained_timer = maxf(bloodstained_timer, duration)
 
 func _add_circle_col(parent: Node, radius: float, disabled: bool = false) -> CollisionShape2D:
 	var col := CollisionShape2D.new()
@@ -719,8 +734,30 @@ func _physics_process(delta: float) -> void:
 		body_col.disabled = not is_hostile
 	_get_vm()
 	_get_player()
+	if bloodstained_timer > 0.0:
+		bloodstained_timer = maxf(0.0, bloodstained_timer - delta)
+	if is_conscious():
+		_update_visual_memory(delta)
+	if health_comp and velocity.length_squared() > 9.0 and health_comp.is_resting_in_bed and global_position.distance_to(Vector2(718, 136)) > 26.0 and global_position.distance_to(bed_position) > 20.0:
+		health_comp.is_resting_in_bed = false
 	if not is_instance_valid(_cached_dm) and get_tree().current_scene:
 		_cached_dm = get_tree().current_scene.get_node_or_null("Systems/dialogue_manager")
+
+	# Auto-cura de supervivencia (RimWorld Self-Tend): si el NPC no está en combate y está sangrando, se aplica un vendaje o torniquete rudimentario
+	if not is_hostile and health_comp and health_comp.get_total_wound_bleed_rate() > 0.0:
+		_self_tend_timer += delta
+		if _self_tend_timer >= 3.5:
+			_self_tend_timer = 0.0
+			var urg_wid: int = health_comp.get_most_urgent_untreated_wound_id(true)
+			if urg_wid != -1:
+				if remove_pocket_item("bandage", 1):
+					health_comp.treat_wound(urg_wid, "bandage")
+					_spawn_floating_text("🩹 %s se vendó su herida sangrante" % npc_name, Color.SPRING_GREEN, -38.0)
+				else:
+					health_comp.treat_wound(urg_wid, "tend_makeshift")
+					_spawn_floating_text("🖐️🩹 %s se aplicó un torniquete rudimentario (Calidad 25%%)" % npc_name, Color(0.95, 0.80, 0.42), -38.0)
+	else:
+		_self_tend_timer = 0.0
 
 	var talking_to_player: bool = not is_hostile and is_instance_valid(_cached_dm) and bool(_cached_dm.get("active")) and _cached_dm.get("current_speaker") == self
 	if talking_to_player or (_being_interviewed_timer > 0.0 and not is_hostile):
@@ -751,13 +788,18 @@ func _physics_process(delta: float) -> void:
 				_doctor_scan_timer = 0.25
 				_active_downed_patient = _find_downed_npc()
 		if _active_downed_patient != null:
+			_stop_crafting_bar()
 			if global_position.distance_to(_active_downed_patient.global_position) > 22.0:
 				_move_towards_point(_active_downed_patient.global_position, 68.0 * lerpf(0.72, 1.0, get_job_efficiency()), delta)
 				_finish_frame_movement(delta)
 			else:
 				_active_downed_patient.revive_from_downed(self, false)
-				_spawn_floating_text("🩺 ¡%s estabilizó a %s!" % [npc_name, _active_downed_patient.npc_name], Color.SPRING_GREEN, -42.0)
+				_spawn_floating_text("🩺 ¡%s trasladó a %s a la camilla de urgencias!" % [npc_name, _active_downed_patient.npc_name], Color.SPRING_GREEN, -42.0)
+				_active_hospital_patient = _active_downed_patient
 				_active_downed_patient = null
+			return
+		if _process_doctor_hospital_treatment(delta):
+			_finish_frame_movement(delta)
 			return
 
 	if not is_hostile and (_process_witness_corpse_reporting(delta) or _process_corpse_morgue_transport(delta)):
@@ -767,6 +809,11 @@ func _physics_process(delta: float) -> void:
 		var vm = _cached_vm
 		if vm and (int(vm.get("wanted_level")) > 0 or bool(vm.get("is_resisting_arrest")) or is_hostile) and not bool(vm.get("player_in_jail")) and not bool(vm.get("player_being_escorted_to_jail")):
 			if _process_police_law_enforcement(delta, vm):
+				return
+		if trade_role == TradeRole.SHERIFF and vm and "active_sheriff_investigation" in vm and bool(vm.active_sheriff_investigation.get("active", false)):
+			if vm.has_method("update_sheriff_investigator_ai"):
+				vm.call("update_sheriff_investigator_ai", self, delta)
+				_finish_frame_movement(delta, true)
 				return
 
 	if trade_role == TradeRole.ROYAL_INVESTIGATOR:
@@ -789,10 +836,12 @@ func _physics_process(delta: float) -> void:
 	_update_needs_and_decisions(delta)
 
 	var needs_hospital_care: bool = false
-	if health_comp and need_hunger > 5.0:
-		if health_comp.current_health < health_comp.max_health * 0.75:
+	if health_comp and need_hunger > 5.0 and trade_role != TradeRole.DOCTOR:
+		if health_comp.current_blood >= 22.0 or health_comp.get_most_urgent_untreated_wound_id(false) != -1:
 			needs_hospital_care = true
-		elif health_comp.fever >= 45.0 or health_comp.food_poisoning >= 50.0 or health_comp.swamp_sickness >= 50.0 or health_comp.get_max_wound_infection() >= 55.0:
+		elif health_comp.current_health < health_comp.get_effective_max_health() * 0.78:
+			needs_hospital_care = true
+		elif health_comp.fever >= 35.0 or health_comp.food_poisoning >= 40.0 or health_comp.swamp_sickness >= 40.0 or health_comp.get_max_wound_infection() >= 25.0:
 			needs_hospital_care = true
 		elif health_comp.has_active_sickness_or_infection() and global_position.distance_to(Vector2(718, 136)) <= 24.0:
 			needs_hospital_care = true
@@ -808,12 +857,10 @@ func _physics_process(delta: float) -> void:
 			_move_towards_point(hosp_bed_pos, 46.0, delta)
 		else:
 			velocity = Vector2.ZERO
-			health_comp.heal(12.0 * delta)
-			if health_comp.has_active_sickness_or_infection():
-				health_comp.cure_sickness(18.0 * delta)
-			if health_comp.current_health >= health_comp.max_health - 0.5 and not health_comp.has_active_sickness_or_infection():
-				health_comp.heal(health_comp.max_health, true)
-				_spawn_floating_text("🏥 Curado en el Hospital (+Salud / Sin Fiebre)", Color.SPRING_GREEN, -36.0)
+			health_comp.is_resting_in_bed = true
+			# Solo recupera resistencia física gradualmente si ya no tiene heridas abiertas sangrando
+			if health_comp.get_total_wound_bleed_rate() <= 0.0 and not health_comp.is_bleeding:
+				health_comp.heal(1.8 * delta)
 		_finish_frame_movement(delta)
 		return
 
@@ -1102,6 +1149,216 @@ func _find_downed_npc() -> VillageNPC:
 				if hosp_rect.has_point(v.global_position) or (global_position.distance_to(v.global_position) <= 115.0 and ((vm == null) or (not vm.has_method("has_line_of_sight")) or bool(vm.call("has_line_of_sight", global_position, v.global_position)))):
 					return v
 	return null
+
+## Memoria visual orgánica de cada habitante: recuerda a las últimas personas que vio pasar cerca con línea de visión
+func _update_visual_memory(delta: float) -> void:
+	_visual_memory_timer -= delta
+	if _visual_memory_timer > 0.0:
+		return
+	_visual_memory_timer = 1.25
+	var vm = _cached_vm
+	var d: int = WorldClock.current_day if WorldClock else 1
+	var h: int = WorldClock.current_hour if WorldClock else 12
+	var m: int = WorldClock.current_minute if WorldClock else 0
+	var total_mins: int = d * 1440 + h * 60 + m
+	var vis_mult: float = get_sleep_vision_multiplier()
+	if WorldClock and WorldClock.has_method("get_weather_vision_multiplier"):
+		vis_mult *= float(WorldClock.call("get_weather_vision_multiplier"))
+
+	var player := _cached_player
+	if is_instance_valid(player):
+		var in_st: bool = player.has_method("is_stealthing") and bool(player.call("is_stealthing"))
+		var clk_m: float = float(player.call("get_stealth_detection_multiplier")) if player.has_method("get_stealth_detection_multiplier") else 1.0
+		var p_range: float = (62.0 if in_st else 195.0) * clk_m * vis_mult
+		if global_position.distance_to(player.global_position) <= p_range:
+			if vm == null or not vm.has_method("has_line_of_sight") or bool(vm.call("has_line_of_sight", global_position, player.global_position)):
+				var p_hc: HealthComponent = player.get_node_or_null("HealthComponent")
+				var p_stained: bool = player.has_method("is_bloodstained") and bool(player.call("is_bloodstained"))
+				var p_wounded: bool = p_hc != null and p_hc.has_fresh_combat_wounds_or_makeshift()
+				_record_entity_sighting("Jugador", true, player.global_position, total_mins, d, h, m, p_stained, p_wounded)
+
+	var npc_range: float = 195.0 * vis_mult
+	for n in get_tree().get_nodes_in_group("village_npcs"):
+		if n is VillageNPC and n != self:
+			var other := n as VillageNPC
+			if other.is_dead:
+				continue
+			if global_position.distance_to(other.global_position) <= npc_range:
+				if vm == null or not vm.has_method("has_line_of_sight") or bool(vm.call("has_line_of_sight", global_position, other.global_position)):
+					var o_stained: bool = other.is_bloodstained()
+					var o_wounded: bool = other.health_comp != null and other.health_comp.has_fresh_combat_wounds_or_makeshift()
+					_record_entity_sighting(other.npc_name, false, other.global_position, total_mins, d, h, m, o_stained, o_wounded)
+
+func _record_entity_sighting(ent_name: String, is_p: bool, pos: Vector2, total_mins: int, d: int, h: int, m: int, stained: bool, wounded: bool) -> void:
+	for i in range(seen_entities_memory.size()):
+		if str(seen_entities_memory[i].get("name", "")) == ent_name:
+			seen_entities_memory.remove_at(i)
+			break
+	seen_entities_memory.push_front({
+		"name": ent_name, "is_player": is_p, "pos_x": pos.x, "pos_y": pos.y,
+		"witness_x": global_position.x, "witness_y": global_position.y,
+		"total_minutes": total_mins, "day": d, "hour": h, "minute": m,
+		"bloodstained": stained, "wounded": wounded
+	})
+	while seen_entities_memory.size() > 12:
+		seen_entities_memory.pop_back()
+
+func get_seen_entities_near_crime(crime_pos: Vector2, crime_total_mins: int, max_dist: float = 320.0, max_time_diff: int = 240) -> Array[Dictionary]:
+	var results: Array[Dictionary] = []
+	for mem in seen_entities_memory:
+		var t_diff: int = abs(crime_total_mins - int(mem.get("total_minutes", crime_total_mins)))
+		if t_diff > max_time_diff:
+			continue
+		var seen_pos := Vector2(float(mem.get("pos_x", 0.0)), float(mem.get("pos_y", 0.0)))
+		var d_crime: float = seen_pos.distance_to(crime_pos)
+		if d_crime <= max_dist:
+			var copy_m: Dictionary = mem.duplicate()
+			copy_m["dist_to_crime"] = d_crime
+			results.append(copy_m)
+	results.sort_custom(func(a: Dictionary, b: Dictionary) -> bool:
+		return float(a.get("dist_to_crime", 999.0)) < float(b.get("dist_to_crime", 999.0))
+	)
+	return results
+
+## Tratamiento médico secuencial herida por herida del Dr. Valen en el Hospital (RimWorld):
+## El médico NO cura al 100% de golpe; camina hacia el paciente en la camilla y trata UNA herida cada ~3.2s consumiendo stock real.
+func _process_doctor_hospital_treatment(delta: float) -> bool:
+	if not is_instance_valid(_active_hospital_patient) or not _patient_still_needs_doctor(_active_hospital_patient):
+		_active_hospital_patient = _find_hospital_patient_needing_care()
+		_doctor_treat_progress = 0.0
+	if _active_hospital_patient == null:
+		return false
+
+	var pat_pos: Vector2 = _active_hospital_patient.global_position
+	var bedside_pos: Vector2 = pat_pos + Vector2(14.0, 0.0)
+	if global_position.distance_to(bedside_pos) > 26.0:
+		_doctor_treat_progress = maxf(0.0, _doctor_treat_progress - delta * 8.0)
+		_update_craft_bar_visual(0.20, "🩺 Yendo a atender paciente...", Color(0.45, 0.95, 0.75, 0.90))
+		_move_towards_point(bedside_pos, 64.0 * lerpf(0.75, 1.0, get_job_efficiency()), delta)
+		return true
+
+	velocity = Vector2.ZERO
+	if sprite:
+		sprite.flip_h = (pat_pos.x < global_position.x)
+	trigger_action_animation(0.6)
+	var pat_hc: HealthComponent = _active_hospital_patient.get_node_or_null("HealthComponent")
+	if pat_hc == null:
+		_active_hospital_patient = null
+		_stop_crafting_bar()
+		return false
+	pat_hc.is_resting_in_bed = true
+
+	var pat_label: String = "Forastero" if _active_hospital_patient.is_in_group("player") else str(_active_hospital_patient.get("npc_name"))
+	var eff: float = maxf(0.55, get_job_efficiency())
+	_doctor_treat_progress += (100.0 / 3.2) * eff * delta
+	var pct: int = clampi(int(round(_doctor_treat_progress)), 0, 100)
+	_update_craft_bar_visual(_doctor_treat_progress / 100.0, "🩺 Tratando herida de %s (%d%%)" % [pat_label, pct], Color(0.35, 0.98, 0.62, 0.95))
+
+	if _doctor_treat_progress >= 100.0:
+		_doctor_treat_progress = 0.0
+		_doctor_apply_single_step_treatment(_active_hospital_patient, pat_hc, pat_label)
+		if not _patient_still_needs_doctor(_active_hospital_patient):
+			_active_hospital_patient = null
+			_stop_crafting_bar()
+	return true
+
+func _patient_still_needs_doctor(pat: Node2D) -> bool:
+	if not is_instance_valid(pat):
+		return false
+	if pat.get("is_dead") == true:
+		return false
+	var hosp_zone := Rect2(684, 98, 110, 96)
+	if not hosp_zone.has_point(pat.global_position):
+		return false
+	var hc: HealthComponent = pat.get_node_or_null("HealthComponent")
+	if hc == null:
+		return false
+	if hc.get_most_urgent_untreated_wound_id(false) != -1:
+		return true
+	if hc.has_active_sickness_or_infection():
+		return true
+	if hc.is_bleeding or hc.get_total_wound_bleed_rate() > 0.0:
+		return true
+	return false
+
+func _find_hospital_patient_needing_care() -> Node2D:
+	var hosp_zone := Rect2(684, 98, 110, 96)
+	var best: Node2D = null
+	var best_urgency: float = -1.0
+	var candidates: Array[Node2D] = []
+	if is_instance_valid(_cached_player):
+		candidates.append(_cached_player)
+	for n in get_tree().get_nodes_in_group("village_npcs"):
+		if n is VillageNPC and n != self:
+			candidates.append(n as Node2D)
+	for c in candidates:
+		if not _patient_still_needs_doctor(c) or not hosp_zone.has_point(c.global_position):
+			continue
+		var hc: HealthComponent = c.get_node_or_null("HealthComponent")
+		var urg: float = hc.current_blood + hc.get_total_wound_bleed_rate() * 40.0 + float(hc.get_untreated_wound_count()) * 15.0
+		if urg > best_urgency:
+			best_urgency = urg
+			best = c
+	return best
+
+func _doctor_apply_single_step_treatment(pat: Node2D, hc: HealthComponent, pat_label: String) -> void:
+	# Prioridad 1: Herida sangrante más grave -> Prioridad 2: Herida sin tratar o con vendaje rudimentario
+	var wid: int = hc.get_most_urgent_untreated_wound_id(true)
+	if wid == -1:
+		wid = hc.get_most_urgent_untreated_wound_id(false)
+	if wid != -1:
+		var w_type: String = "laceration"
+		var w_name: String = "Herida"
+		for w in hc.wounds:
+			if int(w.get("id", -1)) == wid:
+				w_type = str(w.get("type", "laceration"))
+				w_name = str(w.get("name", "Herida"))
+				break
+		var used_supply_txt: String = "Cura sin medicina (Sin Stock)"
+		if w_type in ["deep_wound", "lodged_arrow"] and int(shop_stock.get("surgical_kit", 0)) > 0:
+			shop_stock["surgical_kit"] = int(shop_stock["surgical_kit"]) - 1
+			hc.treat_wound(wid, "stitch")
+			used_supply_txt = "Sutura Quirúrgica (115%)"
+		elif w_type == "fracture" and int(shop_stock.get("bandage", 0)) > 0:
+			shop_stock["bandage"] = int(shop_stock["bandage"]) - 1
+			hc.treat_wound(wid, "splint")
+			used_supply_txt = "Entablillado Clínico (85%)"
+		elif int(shop_stock.get("bandage", 0)) > 0:
+			shop_stock["bandage"] = int(shop_stock["bandage"]) - 1
+			hc.treat_wound(wid, "bandage")
+			used_supply_txt = "Vendaje Limpio (85%)"
+		elif int(shop_stock.get("herbal_poultice", 0)) > 0:
+			shop_stock["herbal_poultice"] = int(shop_stock["herbal_poultice"]) - 1
+			hc.treat_wound(wid, "poultice")
+			used_supply_txt = "Cataplasma Herbal (70%)"
+		else:
+			hc.treat_wound(wid, "tend_makeshift")
+			for w in hc.wounds:
+				if int(w.get("id", -1)) == wid:
+					w["tend_quality"] = 42.0
+					w["bandage_dirty"] = 18.0
+					break
+		_sync_shop_stock_to_vm()
+		hc.heal(10.0)
+		var rem_w: int = hc.get_untreated_wound_count()
+		_spawn_floating_text("🩺 %s trató [%s] de %s (%s | Quedan %d heridas)" % [npc_name, w_name, pat_label, used_supply_txt, rem_w], Color.SPRING_GREEN, -42.0)
+		if pat.has_method("_spawn_floating_text") and pat != self:
+			pat.call("_spawn_floating_text", "🩹 Herida tratada: %s (%s)" % [w_name, used_supply_txt], Color.AQUA, -44.0)
+		return
+
+	if hc.has_active_sickness_or_infection():
+		if int(shop_stock.get("herbal_poultice", 0)) > 0:
+			shop_stock["herbal_poultice"] = int(shop_stock["herbal_poultice"]) - 1
+			_sync_shop_stock_to_vm()
+			hc.cure_sickness(48.0)
+			_spawn_floating_text("🍵🩺 %s administró Cataplasma Antiséptica a %s (+Inmunidad)" % [npc_name, pat_label], Color.SPRING_GREEN, -42.0)
+		else:
+			hc.cure_sickness(24.0)
+			_spawn_floating_text("🩺 %s asistió la fiebre de %s (Sin cataplasmas en stock)" % [npc_name, pat_label], Color.GOLD, -42.0)
+		return
+
+	hc.stop_bleeding()
+	hc.heal(18.0)
 
 func _apply_player_and_doorway_yield(delta: float) -> void:
 	var player = _cached_player
@@ -1572,7 +1829,7 @@ func _execute_dynamic_activity(delta: float) -> void:
 				_stop_crafting_bar()
 				_process_physical_morning_expedition(delta)
 				return
-			if trade_role in [TradeRole.BLACKSMITH, TradeRole.BUTCHER, TradeRole.CARPENTER, TradeRole.HERBALIST, TradeRole.FISHMONGER, TradeRole.INNKEEPER]:
+			if trade_role in [TradeRole.BLACKSMITH, TradeRole.BUTCHER, TradeRole.CARPENTER, TradeRole.HERBALIST, TradeRole.FISHMONGER, TradeRole.INNKEEPER, TradeRole.DOCTOR]:
 				_process_artisan_workshop_crafting_and_supply_runs(delta)
 				return
 			_stop_crafting_bar()
@@ -1591,11 +1848,12 @@ func _execute_dynamic_activity(delta: float) -> void:
 
 const ARTISAN_RECIPES: Dictionary = {
 	TradeRole.BLACKSMITH: [{"output": "steel_ingot", "label": "Lingote Acero", "verb": "⚒️ Forjando", "input": "wood", "supplier": int(TradeRole.CARPENTER), "input_name": "Madera"}, {"output": "repair_kit", "label": "Kit Herrero", "verb": "⚒️ Templando", "input": "leather", "supplier": int(TradeRole.BUTCHER), "input_name": "Cuero"}],
-	TradeRole.CARPENTER: [{"output": "repair_kit", "label": "Tablones", "verb": "🪚 Aserrando", "input": "iron_ore", "supplier": int(TradeRole.BLACKSMITH), "input_name": "Clavos/Hierro"}, {"output": "wood", "label": "Vigas Pino", "verb": "🪚 Cepillando", "input": "herbal_poultice", "supplier": int(TradeRole.HERBALIST), "input_name": "Resina/Hierbas"}],
+	TradeRole.CARPENTER: [{"output": "repair_kit", "label": "Tablones", "verb": "🪚 Aserrando", "input": "iron_ore", "supplier": int(TradeRole.BLACKSMITH), "input_name": "Clavos/Hierro"}, {"output": "wood", "label": "Vigas Pino", "verb": "🪚 Cepillando", "input": "herbal_poultice", "supplier": int(TradeRole.HERBALIST), "input_name": "Resina/Hierbas"}, {"output": "copper_coil", "label": "Bobina Cobre", "verb": "⚡ Bobinando", "input": "iron_ore", "supplier": int(TradeRole.BLACKSMITH), "input_name": "Hierro/Cobre"}],
 	TradeRole.BUTCHER: [{"output": "cooked_meat", "label": "Carne Asada", "verb": "🥩 Ahumando", "input": "wood", "supplier": int(TradeRole.CARPENTER), "input_name": "Leña"}, {"output": "leather", "label": "Cuero Curtido", "verb": "🔪 Curtiendo", "input": "herbal_poultice", "supplier": int(TradeRole.HERBALIST), "input_name": "Tanino/Hierbas"}],
-	TradeRole.HERBALIST: [{"output": "herbal_poultice", "label": "Cataplasma", "verb": "🧪 Destilando", "input": "bread", "supplier": int(TradeRole.FISHMONGER), "input_name": "Grano/Harina"}, {"output": "carrot_seeds", "label": "Semillas", "verb": "🌱 Seleccionando", "input": "fertilizer", "supplier": int(TradeRole.FISHMONGER), "input_name": "Abono"}],
+	TradeRole.HERBALIST: [{"output": "herbal_poultice", "label": "Cataplasma", "verb": "🧪 Destilando", "input": "bread", "supplier": int(TradeRole.FISHMONGER), "input_name": "Grano/Harina"}, {"output": "carrot_seeds", "label": "Semillas", "verb": "🌱 Seleccionando", "input": "fertilizer", "supplier": int(TradeRole.FISHMONGER), "input_name": "Abono"}, {"output": "sleeping_draught", "label": "Somnífero", "verb": "🌙 Alambicando", "input": "bread", "supplier": int(TradeRole.FISHMONGER), "input_name": "Extracto"}, {"output": "surgical_kit", "label": "Botiquín Quir.", "verb": "🩺 Esterilizando", "input": "fertilizer", "supplier": int(TradeRole.FISHMONGER), "input_name": "Sales"}],
 	TradeRole.FISHMONGER: [{"output": "bread", "label": "Hogaza Pan", "verb": "🌾 Moliendo", "input": "wood", "supplier": int(TradeRole.CARPENTER), "input_name": "Leña"}, {"output": "fertilizer", "label": "Abono Org.", "verb": "♻️ Compostando", "input": "herbal_poultice", "supplier": int(TradeRole.HERBALIST), "input_name": "Hierbas"}],
-	TradeRole.INNKEEPER: [{"output": "country_stew", "label": "Estofado", "verb": "🍲 Guisando", "input": "cooked_meat", "supplier": int(TradeRole.BUTCHER), "input_name": "Carne"}, {"output": "bread", "label": "Pan Posada", "verb": "🍞 Horneando", "input": "bread", "supplier": int(TradeRole.FISHMONGER), "input_name": "Harina"}],
+	TradeRole.INNKEEPER: [{"output": "country_stew", "label": "Estofado", "verb": "🍲 Guisando", "input": "cooked_meat", "supplier": int(TradeRole.BUTCHER), "input_name": "Carne"}, {"output": "bread", "label": "Pan Posada", "verb": "🍞 Horneando", "input": "bread", "supplier": int(TradeRole.FISHMONGER), "input_name": "Harina"}, {"output": "roasted_chicken", "label": "Pollo Asado", "verb": "🍗 Asando", "input": "cooked_meat", "supplier": int(TradeRole.BUTCHER), "input_name": "Aves/Carne"}],
+	TradeRole.DOCTOR: [{"output": "bandage", "label": "Vendaje Limpio", "verb": "🩹 Esterilizando", "input": "herbal_poultice", "supplier": int(TradeRole.HERBALIST), "input_name": "Cataplasma"}, {"output": "herbal_poultice", "label": "Cataplasma", "verb": "🧪 Preparando", "input": "bread", "supplier": int(TradeRole.FISHMONGER), "input_name": "Base Vegetal"}, {"output": "surgical_kit", "label": "Botiquín Quir.", "verb": "🩺 Ensamblando", "input": "leather", "supplier": int(TradeRole.BUTCHER), "input_name": "Sutura/Cuero"}],
 }
 
 func _get_artisan_recipes() -> Array[Dictionary]:
@@ -2421,14 +2679,21 @@ func _on_stunned(stunned: bool) -> void:
 func _on_died() -> void:
 	if is_dead:
 		return
+	var vm_bld = _get_vm()
 	if health_comp:
-		health_comp.stop_bleeding()
-		if health_comp.last_sickness_cause != "" and (health_comp.fever >= 70.0 or health_comp.food_poisoning >= 70.0 or health_comp.swamp_sickness >= 70.0):
+		if health_comp.current_blood >= 99.0 and not ("Desangrado" in last_hit_weapon_name):
+			last_hit_weapon_name = "%s (Exanguinación / Desangrado)" % (last_hit_weapon_name if last_hit_weapon_name != "" else "Hemorragia")
+		if health_comp.last_sickness_cause != "" and (health_comp.fever >= 70.0 or health_comp.food_poisoning >= 70.0 or health_comp.swamp_sickness >= 70.0 or health_comp.get_max_wound_infection() >= 90.0):
 			last_hit_weapon_name = "Envenenamiento / Sepsis (%s)" % health_comp.last_sickness_cause
 		for vital_o in ["heart", "liver", "lungs", "kidneys", "brain"]:
 			if float(health_comp.organ_hp.get(vital_o, 100.0)) <= 0.0:
 				_confirm_true_death()
 				return
+		if health_comp.current_blood >= 99.9 or health_comp.get_max_wound_infection() >= 99.9:
+			_confirm_true_death()
+			return
+	if vm_bld and vm_bld.has_method("spawn_blood_puddle") and not ("Envenenamiento" in last_hit_weapon_name or "Inanición" in last_hit_weapon_name):
+		vm_bld.call("spawn_blood_puddle", global_position, npc_name)
 	if not is_downed:
 		is_downed = true
 		is_sleeping = false
@@ -2438,8 +2703,8 @@ func _on_died() -> void:
 		_clear_combat_hostility()
 		velocity = Vector2.ZERO
 		if last_hit_weapon_name.contains("Martillo"): bleedout_timer = 90.0
-		elif last_hit_weapon_name.contains("Espada") or last_hit_weapon_name.contains("Hacha"): bleedout_timer = 34.0
-		else: bleedout_timer = 58.0
+		elif last_hit_weapon_name.contains("Espada") or last_hit_weapon_name.contains("Hacha"): bleedout_timer = 48.0
+		else: bleedout_timer = 68.0
 		_set_sprite_pose(82.0, Color(1.1, 0.42, 0.42, 0.95))
 		_spawn_floating_text("🩸 ¡%s AGONIZANDO! (%ds para salvarlo en el Hospital)" % [npc_name, int(bleedout_timer)], Color.ORANGE_RED, -44.0)
 		if last_hit_by_player and not ("Arco" in last_hit_weapon_name or "Envenenamiento" in last_hit_weapon_name):
@@ -2462,18 +2727,30 @@ func revive_from_downed(rescuer: Node, used_surgical_kit: bool = false) -> void:
 		stun_comp.clear_stun()
 	_set_area_col_disabled(hurtbox, false)
 	if health_comp:
-		health_comp.stop_bleeding()
 		if health_comp.last_sickness_cause != "" and (health_comp.fever >= 70.0 or health_comp.food_poisoning >= 70.0 or health_comp.swamp_sickness >= 70.0):
 			last_hit_weapon_name = "Envenenamiento / Sepsis (%s)" % health_comp.last_sickness_cause
 		for vital_o in ["heart", "liver", "lungs", "kidneys", "brain"]:
 			if float(health_comp.organ_hp.get(vital_o, 100.0)) <= 0.0:
 				_confirm_true_death()
 				return
-		health_comp.current_health = health_comp.max_health * (0.85 if used_surgical_kit else 0.65)
+		if used_surgical_kit:
+			health_comp.stop_bleeding()
+			health_comp.current_blood = minf(health_comp.current_blood, 45.0)
+			health_comp.current_health = health_comp.get_effective_max_health() * 0.75
+		else:
+			# Estabilización de urgencia en camilla: aplica solo 1 torniquete de emergencia a la peor herida; el Dr. Valen debe curar el resto herida por herida
+			var worst_w: int = health_comp.get_most_urgent_untreated_wound_id(true)
+			if worst_w != -1:
+				health_comp.treat_wound(worst_w, "tend_makeshift")
+			health_comp.current_blood = minf(health_comp.current_blood, 82.0)
+			health_comp.current_health = maxf(health_comp.current_health, health_comp.get_effective_max_health() * 0.35)
+			health_comp.is_resting_in_bed = true
+		health_comp.blood_changed.emit(health_comp.current_blood, health_comp.max_blood)
+		health_comp.health_changed.emit(health_comp.current_health, health_comp.max_health)
 	if not used_surgical_kit:
-		global_position = Vector2(718, 142)
+		global_position = Vector2(718, 136)
 	_set_sprite_pose(0.0)
-	add_thought("Me salvaron la vida en urgencias (+25)", 25.0)
+	add_thought("Me trasladaron a urgencias (+25)", 25.0)
 	if rescuer and rescuer.is_in_group("player"):
 		modify_affinity(45)
 		var vm = _get_vm()
@@ -2482,7 +2759,7 @@ func revive_from_downed(rescuer: Node, used_surgical_kit: bool = false) -> void:
 		if "inventory" in rescuer and rescuer.inventory:
 			rescuer.inventory.add_gold(25)
 		if rescuer.has_method("_spawn_floating_text"):
-			rescuer._spawn_floating_text("🏥 ¡Salvaste la vida de %s! (+25 Oro, +40 Afinidad Familiar)" % npc_name, Color.SPRING_GREEN, -46.0)
+			rescuer._spawn_floating_text("🏥 ¡Trasladaste a %s al Hospital! (+25 Oro, el Dr. Valen tratará sus heridas)" % npc_name, Color.SPRING_GREEN, -46.0)
 
 ## Paso 1: Muerte definitiva -> el cadáver permanece en el lugar donde murió (y puede pudrirse durante días si nadie entra),
 ## hasta que otro NPC lo vea en sus pasos naturales y lo traslade físicamente a la Morgue Forense.
@@ -2497,6 +2774,8 @@ func _confirm_true_death() -> void:
 	death_minute = WorldClock.current_minute if WorldClock else 0
 
 	var vm = _get_vm()
+	if vm and vm.has_method("spawn_blood_puddle") and not ("Envenenamiento" in last_hit_weapon_name or "Inanición" in last_hit_weapon_name):
+		vm.call("spawn_blood_puddle", death_world_pos, npc_name)
 	murder_witness_name = ""
 	if vm and vm.has_method("_find_conscious_witness_near"):
 		var w: VillageNPC = vm.call("_find_conscious_witness_near", death_world_pos, 165.0, self)
@@ -2853,11 +3132,15 @@ func _build_dialogue() -> Dictionary:
 		TradeRole.DOCTOR:
 			return {
 				"start": {
-					"text": "Soy el %s (%s). %s%s\nDirijo el Hospital de Urgencias y la Morgue Forense. Si alguien cae herido grave (`Agonizando`), tráelo aquí con [E] antes de que se desangre y te recompensaré con 25 Oro." % [npc_name, npc_role, needs_line, discount_tag],
+					"text": "Soy el %s (%s). %s%s\nDirijo el Hospital y la Morgue. Trato las heridas una por una en la camilla según su urgencia.\n[Stock Hospital: 🩹Vendajes: %d | 🌿Cataplasmas: %d | 🩺Botiquines: %d]" % [
+						npc_name, npc_role, needs_line, discount_tag,
+						int(shop_stock.get("bandage", 0)), int(shop_stock.get("herbal_poultice", 0)), int(shop_stock.get("surgical_kit", 0))
+					],
 					"choices": [
-						{"label": "🏥 Recibir Cura Médica Completa (+100% Vida y Curar Sangrado) (-10 Oro)", "next": "start", "action": "doctor_heal"},
-						{"label": "🩺 Comprar 1 Botiquín Quirúrgico (-24 Oro) [Revive agonizantes o +85 HP]", "next": "start", "action": "buy_unlimited:surgical_kit:24"},
-						{"label": "🌿 Comprar 1 Cataplasma Curativa (-10 Oro)", "next": "start", "action": "buy_unlimited:herbal_poultice:10"},
+						{"label": "🏥 Ingresar en Camilla de Urgencias (Tratamiento secuencial herida por herida) (-10 Oro)", "next": "END", "action": "doctor_heal"},
+						{"label": "🩹 Comprar 1 Vendaje Limpio (-%d Oro) [Stock: %d]" % [_get_dynamic_buy_price(12), int(shop_stock.get("bandage", 0))], "next": "start", "action": "buy:bandage:12"},
+						{"label": "🌿 Comprar 1 Cataplasma Curativa (-%d Oro) [Stock: %d]" % [_get_dynamic_buy_price(10), int(shop_stock.get("herbal_poultice", 0))], "next": "start", "action": "buy:herbal_poultice:10"},
+						{"label": "🩺 Comprar 1 Botiquín Quirúrgico (-%d Oro) [Stock: %d]" % [_get_dynamic_buy_price(24), int(shop_stock.get("surgical_kit", 0))], "next": "start", "action": "buy:surgical_kit:24"},
 						{"label": "🫀 Entregar Órganos para Trasplantes / Estudio Anatómico", "next": "organ_bank_menu"},
 						{"label": "⚰️ Consultar Informes Forenses de la Morgue", "next": "morgue_info"},
 						{"label": "Gracias, doctor. [Salir]", "next": "END"}
@@ -2882,9 +3165,10 @@ func _build_dialogue() -> Dictionary:
 			var w_lvl: int = int(vm.get("wanted_level")) if vm else 0
 			var b_gold: int = int(vm.get("bounty_gold")) if vm else 0
 			var status_crime: String = "✅ Sin cargos pendientes" if w_lvl <= 0 else ("🚨 BUSCADO (Nivel %d | Multa: %d Oro)" % [w_lvl, b_gold])
+			var sh_inv_line: String = ("\n" + str(vm.call("get_sheriff_investigation_dialogue_summary"))) if (vm and vm.has_method("get_sheriff_investigation_dialogue_summary")) else ""
 			return {
 				"start": {
-					"text": "Soy %s (%s). %s\nEstado Policial: %s\nDesde la Comisaría vigilamos las calles y cruzamos los registros de testigos con las autopsias de la Morgue." % [npc_name, npc_role, needs_line, status_crime],
+					"text": "Soy %s (%s). %s\nEstado Policial: %s%s\nDesde la Comisaría vigilamos las calles, analizamos huellas de sangre e interrogamos empezando por quien reportó el crimen." % [npc_name, npc_role, needs_line, status_crime, sh_inv_line],
 					"choices": [
 						{"label": "⚖️ Pagar Multa / Fianza Policial para limpiar historial (-%d Oro)" % maxi(15, b_gold), "next": "start", "action": "pay_police_bounty"},
 						{"label": "🔒 Entregarse voluntariamente y cumplir condena en la Celda hasta las 06:00 AM", "next": "END", "action": "surrender_to_jail"},
@@ -2893,7 +3177,7 @@ func _build_dialogue() -> Dictionary:
 						{"label": "Seguiré mi camino. [Salir]", "next": "END"}
 					]
 				},
-				"crime_explain": {"text": "Si entras a una casa sin usar Sigilo [C] y un vecino te ve, recordará la hora y el edificio. Si luego aparece un cadáver en la Morgue de ese edificio, sabremos que fuiste tú. ¡Pero si nadie te ve entrar ni atacar, será un caso sin resolver!", "choices": [{"label": "Un sistema implacable. [Volver]", "next": "start"}]}
+				"crime_explain": {"text": "Cuando aparece un cadáver, inspecciono primero las huellas de sangre en la escena para deducir hacia dónde huyó el asesino. Luego interrogo a quien descubrió el cuerpo, le pregunto a quién vio cerca en ese momento y sigo el hilo de testigo en testigo.", "choices": [{"label": "Un sistema lógico e implacable. [Volver]", "next": "start"}]}
 			}
 		TradeRole.BUTCHER:
 			return {
@@ -2935,7 +3219,7 @@ func _build_dialogue() -> Dictionary:
 						{"label": "📜 Negocio, Escritura de Propiedad y Caja Registradora", "next": "END", "action": "open_business_panel"},
 						{"label": "🛖 Construir Cabaña de Madera en tu Campamento (Nv.2: -30 Oro)", "next": "start", "action": "upgrade_camp_house:2:30"},
 						{"label": "🏡 Construir Casa de Piedra con Cofre Propio (Nv.3: -55 Oro)", "next": "start", "action": "upgrade_camp_house:3:55"},
-						{"label": "⚡ Comprar 1 Bobina de Cobre para Generador/Aspersor (-%d Oro)" % _get_dynamic_buy_price(16), "next": "start", "action": "buy_unlimited:copper_coil:16"},
+						{"label": "⚡ Comprar 1 Bobina de Cobre para Generador/Aspersor (-%d Oro) [Stock: %d]" % [_get_dynamic_buy_price(16), int(shop_stock.get("copper_coil", 0))], "next": "start", "action": "buy:copper_coil:16"},
 						{"label": "🪵 Vender 1 Madera (+%d Oro)" % _get_dynamic_sell_price(8), "next": "start", "action": "sell:wood:8"},
 						{"label": "🔨 Comprar 1 Tablones Reforzados (-%d Oro) [Stock: %d]" % [_get_dynamic_buy_price(15), int(shop_stock.get("repair_kit", 0))], "next": "start", "action": "buy:repair_kit:15"},
 						{"label": "🌲 Comprar 1 Madera (-%d Oro) [Stock: %d]" % [_get_dynamic_buy_price(9), int(shop_stock.get("wood", 0))], "next": "start", "action": "buy:wood:9"},
@@ -2950,9 +3234,9 @@ func _build_dialogue() -> Dictionary:
 				"text": "Soy %s de la %s (%s). %s%s%s\n[Semillas Zanahoria: %d | Col: %d | Trigo: %d]" % [npc_name, family_name, npc_role, needs_line, discount_tag, _get_market_header_line(), int(shop_stock.get("carrot_seeds", 0)), int(shop_stock.get("cabbage_seeds", 0)), int(shop_stock.get("wheat_seeds", 0))],
 				"choices": [
 					{"label": "📜 Negocio, Escritura de Propiedad y Caja Registradora", "next": "END", "action": "open_business_panel"},
-					{"label": "🧪 Comprar 1 Somnífero Nocturno (-%d Oro) [Duerme a un NPC 40s sin matarlo]" % _get_dynamic_buy_price(18), "next": "start", "action": "buy_unlimited:sleeping_draught:18"},
-					{"label": "⚡ Comprar 1 Tónico de Ligereza (-%d Oro) [+30%% Velocidad]" % _get_dynamic_buy_price(15), "next": "start", "action": "buy_unlimited:speed_tonic:15"},
-					{"label": "🩺 Comprar 1 Botiquín Quirúrgico (-%d Oro)" % _get_dynamic_buy_price(24), "next": "start", "action": "buy_unlimited:surgical_kit:24"},
+					{"label": "🧪 Comprar 1 Somnífero Nocturno (-%d Oro) [Stock: %d]" % [_get_dynamic_buy_price(18), int(shop_stock.get("sleeping_draught", 0))], "next": "start", "action": "buy:sleeping_draught:18"},
+					{"label": "🌿 Comprar 1 Cataplasma Curativa (-%d Oro) [Stock: %d]" % [_get_dynamic_buy_price(10), int(shop_stock.get("herbal_poultice", 0))], "next": "start", "action": "buy:herbal_poultice:10"},
+					{"label": "🩺 Comprar 1 Botiquín Quirúrgico (-%d Oro) [Stock: %d]" % [_get_dynamic_buy_price(24), int(shop_stock.get("surgical_kit", 0))], "next": "start", "action": "buy:surgical_kit:24"},
 					{"label": "🥬 Vender 1 Col de Huerta (+%d Oro)" % _get_dynamic_sell_price(12), "next": "start", "action": "sell:cabbage:12"},
 					{"label": "🥕 Vender 1 Zanahoria Fresca (+%d Oro)" % _get_dynamic_sell_price(8), "next": "start", "action": "sell:carrot:8"},
 					{"label": "🌱 Comprar 2 Semillas de Zanahoria (-%d Oro)" % _get_dynamic_buy_price(6), "next": "start", "action": "buy2:carrot_seeds:6"},
@@ -2981,7 +3265,7 @@ func _build_dialogue() -> Dictionary:
 				"choices": [
 					{"label": "🃏🎱 Sentarse a la Mesa de Casino y Billar (Póker, 21, Ruleta y Billar)", "next": "END", "action": "open_tavern_games"},
 					{"label": "🛌 Alquilar habitación y dormir hasta las 06:00 AM (-8 Oro)", "next": "END", "action": "rent_tavern_bed"},
-					{"label": "🍗 Comprar 1 Pollo Asado Crujiente (-%d Oro)" % _get_dynamic_buy_price(13), "next": "start", "action": "buy_unlimited:roasted_chicken:13"},
+					{"label": "🍗 Comprar 1 Pollo Asado Crujiente (-%d Oro) [Stock: %d]" % [_get_dynamic_buy_price(13), int(shop_stock.get("roasted_chicken", 0))], "next": "start", "action": "buy:roasted_chicken:13"},
 					{"label": "🐸 Vender 1 Ancas de Rana al Ajillo (+%d Oro)" % _get_dynamic_sell_price(24), "next": "start", "action": "sell:fried_frog_legs:24"},
 					{"label": "🍲 Comprar 1 Estofado Campesino (-%d Oro) [Stock: %d]" % [_get_dynamic_buy_price(14), int(shop_stock.get("country_stew", 0))], "next": "start", "action": "buy:country_stew:14"},
 					{"label": "🍞 Comprar 1 Hogaza de Pan (-%d Oro) [Stock: %d]" % [_get_dynamic_buy_price(7), int(shop_stock.get("bread", 0))], "next": "start", "action": "buy:bread:7"},
@@ -3092,16 +3376,8 @@ func on_dialogue_action(action_id: String) -> void:
 		return
 
 	if action_id == "doctor_heal":
-		if inv.gold < 10:
-			_spawn_floating_text("Necesitas 10 Oro para el tratamiento médico", Color.ORANGE_RED, -44.0)
-			return
-		inv.add_gold(-10)
-		var health: HealthComponent = player.get_node_or_null("HealthComponent")
-		if health:
-			health.stop_bleeding()
-			health.cure_sickness(100.0)
-			health.heal(health.max_health, true)
-		_spawn_floating_text("🏥 Curación Completa en el Hospital (-10 Oro)", Color.SPRING_GREEN, -44.0)
+		if vm and vm.has_method("_use_hospital_emergency_bed"):
+			vm.call("_use_hospital_emergency_bed", player)
 		return
 
 	if action_id == "pay_police_bounty":
@@ -3368,6 +3644,7 @@ func to_save_dict() -> Dictionary:
 		"shop_stock": shop_stock.duplicate(), "workshop_materials": workshop_materials.duplicate(),
 		"craft_progress": _craft_progress, "crafting_recipe_idx": _crafting_recipe_idx,
 		"completed_expedition_day": _completed_expedition_day, "route_bought_flags": route_bought_flags,
+		"bloodstained_timer": bloodstained_timer, "seen_entities_memory": seen_entities_memory.duplicate(true),
 		"medical": health_comp.to_medical_dict() if health_comp else {}
 	}
 
@@ -3376,6 +3653,12 @@ func _read_vec2(data: Dictionary, kx: String, ky: String, fallback: Vector2) -> 
 
 func from_save_dict(data: Dictionary) -> void:
 	npc_name = str(data.get("npc_name", npc_name))
+	bloodstained_timer = maxf(0.0, float(data.get("bloodstained_timer", 0.0)))
+	seen_entities_memory.clear()
+	if data.has("seen_entities_memory") and typeof(data["seen_entities_memory"]) == TYPE_ARRAY:
+		for mem_it in (data["seen_entities_memory"] as Array):
+			if typeof(mem_it) == TYPE_DICTIONARY:
+				seen_entities_memory.append((mem_it as Dictionary).duplicate())
 	if data.has("workshop_materials") and typeof(data["workshop_materials"]) == TYPE_DICTIONARY:
 		workshop_materials = data["workshop_materials"].duplicate()
 	_craft_progress = clampf(float(data.get("craft_progress", _craft_progress)), 0.0, 99.0)

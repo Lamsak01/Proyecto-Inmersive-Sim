@@ -568,6 +568,10 @@ func setup_hint_label() -> void:
 func _on_health_changed(current: float, max_val: float) -> void:
 	health_bar.value = current
 	health_bar.max_value = max_val
+	if health_bar.get_child_count() > 0 and health_bar.get_child(0) is Label:
+		var hc: HealthComponent = player.get_node_or_null("HealthComponent") if player else null
+		var eff_max: int = int(round(hc.get_effective_max_health())) if hc else int(round(max_val))
+		(health_bar.get_child(0) as Label).text = ("🛡️ Res: %d/%d (Enfermo)" % [int(round(current)), eff_max]) if eff_max < int(round(max_val)) else ("🛡️ Res: %d/%d" % [int(round(current)), int(round(max_val))])
 
 func _on_stamina_changed(current: float, max_val: float) -> void:
 	stamina_bar.value = current
@@ -576,6 +580,10 @@ func _on_stamina_changed(current: float, max_val: float) -> void:
 func _on_blood_changed(current: float, max_val: float) -> void:
 	blood_bar.value = current
 	blood_bar.max_value = max_val
+	if blood_bar.get_child_count() > 0 and blood_bar.get_child(0) is Label:
+		var hc: HealthComponent = player.get_node_or_null("HealthComponent") if player else null
+		var stg: String = hc.get_blood_loss_stage_name() if hc else "Estable"
+		(blood_bar.get_child(0) as Label).text = "🩸 Sangre: -%d%% (%s)" % [int(round(current)), stg]
 
 func _on_stun_changed(current: float, max_val: float) -> void:
 	stun_bar.value = current
