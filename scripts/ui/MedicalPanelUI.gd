@@ -258,6 +258,8 @@ func refresh_ui() -> void:
 		scv.add_child(sbtn_row)
 		_add_treat_btn(sbtn_row, "🍵 Purgar Fiebre y Toxinas (1 Cataplasma o 2 Hierbas)", hc, -1, "cure_sickness")
 
+	_build_surgery_and_pockets_cards(hc, is_corpse)
+
 	if hc.wounds.is_empty():
 		_add_lbl(wounds_box, "✅ Sin heridas abiertas, fracturas ni traumatismos activos.", 13, Color(0.48, 0.95, 0.58))
 		return
@@ -395,4 +397,107 @@ func _apply_treatment(hc: HealthComponent, wound_id: int, action: String) -> voi
 				return
 			if player.has_method("_spawn_floating_text"):
 				player.call("_spawn_floating_text", "🍵 Fiebre, infección y toxinas reducidas", Color.SPRING_GREEN, -40.0)
+		_:
+			_handle_surgery_or_pocket_action(hc, inv, action)
 	refresh_ui()
+
+func _build_surgery_and_pockets_cards(hc: HealthComponent, is_corpse: bool) -> void:
+	var inv: SimpleInventory = player.get("inventory") if is_instance_valid(player) else null
+	var is_npc: bool = is_instance_valid(target_entity) and target_entity != player
+	var can_extract: bool = false
+	if is_npc:
+		var sed_t: float = float(target_entity.get("sedated_timer")) if "sedated_timer" in target_entity else 0.0
+		var rot_h: float = float(target_entity.get("corpse_rot_hours")) if "corpse_rot_hours" in target_entity else 0.0
+		if target_entity.get("is_downed") == true or target_entity.get("is_sleeping") == true or sed_t > 0.0 or target_entity.get("is_stunned_flag") == true or (is_corpse and rot_h < 6.0):
+			can_extract = true
+
+	var surg_btns: Array[Dictionary] = []
+	for o_id in HealthComponent.ORGAN_ITEM_MAP.keys():
+		var o_name: String = str(HealthComponent.ORGAN_DEFS[o_id]["name"])
+		var o_hp: float = float(hc.organ_hp.get(o_id, 100.0))
+		var item_id: String = str(HealthComponent.ORGAN_ITEM_MAP[o_id])
+		if not is_corpse and o_hp < 95.0 and inv and inv.has_item(item_id, 1):
+			surg_btns.append({"lbl": "🫀 Trasplantar %s (%d%% -> 100%%)" % [o_name, int(round(o_hp))], "act": "transplant_organ:" + o_id})
+		if can_extract and o_hp >= 35.0:
+			var warn: String = "⚠️Letal" if (o_id in ["heart", "liver"] or (o_id in ["lungs", "kidneys"] and o_hp <= 55.0)) else "Parcial"
+			surg_btns.append({"lbl": "🔪 Extraer %s [%s]" % [o_name, warn], "act": "extract_organ:" + o_id})
+
+	if not surg_btns.is_empty():
+		var scard := PanelContainer.new()
+		scard.add_theme_stylebox_override("panel", _make_box_style(Color(0.16, 0.10, 0.14, 0.96), Color(0.85, 0.35, 0.55), 1, 5, 8, 6))
+		wounds_box.add_child(scard)
+		var sv := VBoxContainer.new()
+		sv.add_theme_constant_override("separation", 4)
+		scard.add_child(sv)
+		_add_lbl(sv, "🔪 Cirugía de Órganos y Trasplantes (RimWorld — Requiere 1 Botiquín Quirúrgico)", 12, Color(1.0, 0.65, 0.80))
+		var sflow := HFlowContainer.new()
+		sflow.add_theme_constant_override("h_separation", 6)
+		sflow.add_theme_constant_override("v_separation", 4)
+		sv.add_child(sflow)
+		for sb in surg_btns:
+			_add_treat_btn(sflow, str(sb["lbl"]), hc, -1, str(sb["act"]))
+
+	if is_npc and target_entity.has_method("get_pocket_summary_text"):
+		var pcard := PanelContainer.new()
+		pcard.add_theme_stylebox_override("panel", _make_box_style(Color(0.12, 0.13, 0.18, 0.96), Color(0.75, 0.68, 0.35), 1, 5, 8, 6))
+		wounds_box.add_child(pcard)
+		var pv := VBoxContainer.new()
+		pv.add_theme_constant_override("separation", 4)
+		pcard.add_child(pv)
+		var ch_pct: int = int(round(float(target_entity.call("get_pickpocket_success_chance", player)) * 100.0))
+		_add_lbl(pv, "🕵️ Bolsillos de %s (Éxito de Sigilo: %d%%): %s" % [str(target_entity.get("npc_name")), ch_pct, str(target_entity.call("get_pocket_summary_text"))], 12, Color(1.0, 0.90, 0.50))
+		var pflow := HFlowContainer.new()
+		pflow.add_theme_constant_override("h_separation", 6)
+		pflow.add_theme_constant_override("v_separation", 4)
+		pv.add_child(pflow)
+		if int(target_entity.get("personal_gold")) > 0:
+			_add_treat_btn(pflow, "💰 Hurtar Oro (%d)" % int(target_entity.get("personal_gold")), hc, -1, "npc_steal_gold")
+		var p_dict: Dictionary = target_entity.get("pocket_items") if "pocket_items" in target_entity else {}
+		for pk in p_dict.keys():
+			if int(p_dict[pk]) > 0:
+				var nm: String = inv.get_item_name(str(pk)) if inv else str(pk)
+				_add_treat_btn(pflow, "🤏 Hurtar %s" % nm, hc, -1, "npc_steal_item:" + str(pk))
+		if inv:
+			for plant_id in ["royal_safe_conduct", "poisoned_stew", "spoiled_food", "organ_heart", "organ_kidney", "organ_liver", "bread", "country_stew"]:
+				if inv.has_item(plant_id, 1):
+					_add_treat_btn(pflow, "📥 Meter %s" % inv.get_item_name(plant_id), hc, -1, "npc_plant_item:" + plant_id)
+
+func _handle_surgery_or_pocket_action(hc: HealthComponent, inv: SimpleInventory, action: String) -> void:
+	if action == "npc_steal_gold" and is_instance_valid(target_entity) and target_entity.has_method("attempt_pickpocket_or_plant"):
+		target_entity.call("attempt_pickpocket_or_plant", player, "steal_gold")
+	elif action.begins_with("npc_steal_item:") and is_instance_valid(target_entity) and target_entity.has_method("attempt_pickpocket_or_plant"):
+		target_entity.call("attempt_pickpocket_or_plant", player, "steal_item", action.get_slice(":", 1))
+	elif action.begins_with("npc_plant_item:") and is_instance_valid(target_entity) and target_entity.has_method("attempt_pickpocket_or_plant"):
+		target_entity.call("attempt_pickpocket_or_plant", player, "plant_item", action.get_slice(":", 1))
+	elif action.begins_with("extract_organ:"):
+		if not inv.has_item("surgical_kit", 1):
+			if player.has_method("_spawn_floating_text"):
+				player.call("_spawn_floating_text", "❌ Necesitas 1 Botiquín Quirúrgico para extraer órganos", Color.CORAL, -40.0)
+			return
+		var o_id: String = action.get_slice(":", 1)
+		if is_instance_valid(target_entity) and target_entity != player:
+			target_entity.set("last_hit_weapon_name", "Bisturí Quirúrgico (Extracción de Órgano)")
+			target_entity.set("last_hit_by_player", true)
+		var item_got: String = hc.extract_organ(o_id, "Bisturí Quirúrgico (Extracción de Órgano)")
+		if item_got != "":
+			inv.remove_item("surgical_kit", 1)
+			inv.add_item(item_got, 1)
+			if player.has_method("_spawn_floating_text"):
+				player.call("_spawn_floating_text", "🔪 Extraído: +1 %s" % inv.get_item_name(item_got), Color(1.0, 0.45, 0.65), -44.0)
+			var vm = get_tree().get_first_node_in_group("village_manager")
+			if vm and is_instance_valid(target_entity) and target_entity is Node2D and vm.has_method("_find_conscious_witness_near"):
+				var w = vm.call("_find_conscious_witness_near", (target_entity as Node2D).global_position, 150.0, target_entity)
+				if w != null and vm.has_method("report_theft_crime"):
+					vm.call("report_theft_crime", str(target_entity.get("family_id")), "Extracción clandestina de órganos a " + str(target_entity.get("npc_name")), (target_entity as Node2D).global_position)
+	elif action.begins_with("transplant_organ:"):
+		var o_id2: String = action.get_slice(":", 1)
+		var req_item: String = str(HealthComponent.ORGAN_ITEM_MAP.get(o_id2, ""))
+		if req_item == "" or not inv.has_item(req_item, 1) or not inv.has_item("surgical_kit", 1):
+			if player.has_method("_spawn_floating_text"):
+				player.call("_spawn_floating_text", "❌ Necesitas 1 Botiquín Quirúrgico + 1 %s" % inv.get_item_name(req_item), Color.CORAL, -40.0)
+			return
+		if hc.transplant_organ(o_id2):
+			inv.remove_item("surgical_kit", 1)
+			inv.remove_item(req_item, 1)
+			if player.has_method("_spawn_floating_text"):
+				player.call("_spawn_floating_text", "🫀 ¡Trasplante de %s completado al 100%%!" % inv.get_item_name(req_item), Color.SPRING_GREEN, -44.0)

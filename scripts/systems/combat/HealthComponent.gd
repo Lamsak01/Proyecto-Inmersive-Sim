@@ -554,6 +554,15 @@ func add_swamp_or_miasma_exposure(amount: float, cause: String = "Miasma / Fiebr
 		last_sickness_cause = cause
 	anatomy_changed.emit()
 
+const ORGAN_ITEM_MAP: Dictionary = {
+	"heart": "organ_heart",
+	"lungs": "organ_lung",
+	"kidneys": "organ_kidney",
+	"liver": "organ_liver",
+	"stomach": "organ_stomach",
+	"eyes": "organ_eye"
+}
+
 func cure_sickness(amount: float, clear_wound_infections: bool = true) -> void:
 	fever = maxf(0.0, fever - amount)
 	food_poisoning = maxf(0.0, food_poisoning - amount)
@@ -563,8 +572,82 @@ func cure_sickness(amount: float, clear_wound_infections: bool = true) -> void:
 			w["infection"] = maxf(0.0, float(w.get("infection", 0.0)) - amount)
 			w["clean"] = true
 	for ok in ["stomach", "liver", "kidneys", "lungs"]:
-		organ_hp[ok] = minf(100.0, float(organ_hp.get(ok, 100.0)) + amount * 0.20)
+		if float(organ_hp.get(ok, 100.0)) > 50.0:
+			organ_hp[ok] = minf(100.0, float(organ_hp.get(ok, 100.0)) + amount * 0.20)
 	anatomy_changed.emit()
+
+func extract_organ(organ_id: String, surgeon_cause: String = "Bisturí Quirúrgico (Extracción de Órgano)") -> String:
+	if not ORGAN_ITEM_MAP.has(organ_id):
+		return ""
+	var cur_o: float = float(organ_hp.get(organ_id, 100.0))
+	if cur_o < 35.0:
+		return ""
+	var o_name: String = str(ORGAN_DEFS[organ_id]["name"])
+	if organ_id in ["lungs", "kidneys", "eyes"] and cur_o > 55.0:
+		organ_hp[organ_id] = 45.0
+	else:
+		organ_hp[organ_id] = 0.0
+	var r_id: String = "head" if organ_id == "eyes" else "torso"
+	var max_r: float = float(REGION_DEFS[r_id]["max_hp"])
+	region_hp[r_id] = maxf(5.0, float(region_hp.get(r_id, max_r)) - 22.0)
+	wounds.append({
+		"id": _next_wound_id,
+		"region": r_id,
+		"organ": organ_id,
+		"type": "deep_wound",
+		"name": "Incisión Quirúrgica (%s Extraído)" % o_name,
+		"severity": 46.0,
+		"bleed_rate": 1.6,
+		"pain": 26.0,
+		"bandaged": true,
+		"bandage_dirty": 0.0,
+		"stitched": false,
+		"splinted": false,
+		"clean": true,
+		"infection": 0.0,
+		"weapon_cause": surgeon_cause
+	})
+	_next_wound_id += 1
+	if float(organ_hp.get(organ_id, 0.0)) <= 0.0 and organ_id in ["heart", "liver", "lungs", "kidneys"]:
+		current_health = 0.0
+		is_bleeding = false
+		health_changed.emit(current_health, max_health)
+		anatomy_changed.emit()
+		died.emit()
+	else:
+		current_health = maxf(12.0, current_health - 24.0)
+		health_changed.emit(current_health, max_health)
+		anatomy_changed.emit()
+	return str(ORGAN_ITEM_MAP[organ_id])
+
+func transplant_organ(organ_id: String) -> bool:
+	if not ORGAN_DEFS.has(organ_id):
+		return false
+	if float(organ_hp.get(organ_id, 100.0)) >= 98.0:
+		return false
+	var o_name: String = str(ORGAN_DEFS[organ_id]["name"])
+	organ_hp[organ_id] = 100.0
+	var r_id: String = "head" if organ_id == "eyes" else "torso"
+	wounds.append({
+		"id": _next_wound_id,
+		"region": r_id,
+		"organ": organ_id,
+		"type": "deep_wound",
+		"name": "Sutura de Trasplante (%s)" % o_name,
+		"severity": 16.0,
+		"bleed_rate": 0.0,
+		"pain": 8.0,
+		"bandaged": true,
+		"bandage_dirty": 0.0,
+		"stitched": true,
+		"splinted": false,
+		"clean": true,
+		"infection": 0.0,
+		"weapon_cause": "Cirugía de Trasplante"
+	})
+	_next_wound_id += 1
+	anatomy_changed.emit()
+	return true
 
 func get_max_wound_infection() -> float:
 	var m: float = 0.0

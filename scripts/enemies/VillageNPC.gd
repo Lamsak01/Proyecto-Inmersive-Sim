@@ -58,6 +58,7 @@ var shop_stock: Dictionary = {}
 # Economía Personal Real (`personal_gold`), Salvoconducto Real, Vagabundeo Rústico y Caza Amateur
 var personal_gold: int = -1
 var carries_royal_safe_conduct: bool = false
+var pocket_items: Dictionary = {}
 var corpse_pocket_looted: bool = false
 var is_vagrant_camper: bool = false
 var vagrant_camp_pos: Vector2 = Vector2.ZERO
@@ -468,6 +469,79 @@ func _init_workshop_materials() -> void:
 	_craft_progress = randf_range(5.0, 42.0)
 	_supply_run_cooldown = randf_range(10.0, 34.0)
 	workshop_materials = (ROLE_INITIAL_MATERIALS.get(trade_role, {}) as Dictionary).duplicate()
+	if pocket_items.is_empty():
+		_init_npc_pockets()
+
+func _init_npc_pockets() -> void:
+	pocket_items.clear()
+	match trade_role:
+		TradeRole.BLACKSMITH:
+			pocket_items = {"bread": 1, "iron_ore": 1}
+		TradeRole.CARPENTER:
+			pocket_items = {"bread": 1, "wood": 2}
+		TradeRole.BUTCHER:
+			pocket_items = {"cooked_meat": 1, "leather": 1}
+		TradeRole.HERBALIST:
+			pocket_items = {"herbal_poultice": 1, "herbs": 2}
+		TradeRole.FISHMONGER:
+			pocket_items = {"bread": 1, "cooked_fish": 1}
+		TradeRole.INNKEEPER:
+			pocket_items = {"country_stew": 1, "bread": 1}
+		TradeRole.DOCTOR:
+			pocket_items = {"surgical_kit": 1, "bandage": 2}
+		TradeRole.SHERIFF, TradeRole.GUARD:
+			pocket_items = {"bandage": 1, "bread": 1}
+		TradeRole.TRAVELING_MERCHANT:
+			pocket_items = {"royal_safe_conduct": 1, "royal_ration": 1}
+			carries_royal_safe_conduct = true
+		TradeRole.ROYAL_INVESTIGATOR:
+			pocket_items = {"royal_ration": 1, "bandage": 1}
+		_:
+			pocket_items = {"bread": 1}
+	if carries_royal_safe_conduct:
+		pocket_items["royal_safe_conduct"] = maxi(1, int(pocket_items.get("royal_safe_conduct", 0)))
+
+func has_pocket_item(item_id: String, count: int = 1) -> bool:
+	if item_id == "royal_safe_conduct" and carries_royal_safe_conduct:
+		return true
+	return int(pocket_items.get(item_id, 0)) >= count
+
+func add_pocket_item(item_id: String, count: int = 1) -> void:
+	if item_id == "" or count <= 0:
+		return
+	pocket_items[item_id] = int(pocket_items.get(item_id, 0)) + count
+	if item_id == "royal_safe_conduct":
+		carries_royal_safe_conduct = true
+	corpse_pocket_looted = false
+
+func remove_pocket_item(item_id: String, count: int = 1) -> bool:
+	var cur: int = int(pocket_items.get(item_id, 0))
+	if item_id == "royal_safe_conduct" and carries_royal_safe_conduct and cur <= 0:
+		cur = 1
+	if cur < count:
+		return false
+	var left: int = cur - count
+	if left <= 0:
+		pocket_items.erase(item_id)
+		if item_id == "royal_safe_conduct":
+			carries_royal_safe_conduct = false
+	else:
+		pocket_items[item_id] = left
+	return true
+
+func get_pocket_summary_text() -> String:
+	if carries_royal_safe_conduct and int(pocket_items.get("royal_safe_conduct", 0)) <= 0:
+		pocket_items["royal_safe_conduct"] = 1
+	var parts: Array[String] = []
+	if personal_gold > 0:
+		parts.append("💰 %d Oro" % personal_gold)
+	for k in pocket_items.keys():
+		var cnt: int = int(pocket_items[k])
+		if cnt > 0:
+			var info: Dictionary = SimpleInventory.CATALOG.get(str(k), {})
+			var nm: String = str(info.get("name", k))
+			parts.append("%s x%d" % [nm, cnt])
+	return ", ".join(parts) if not parts.is_empty() else "Bolsillos vacíos"
 
 func _init_rimworld_psychology() -> void:
 	if ROLE_PSYCHOLOGY.has(trade_role):
@@ -1309,7 +1383,10 @@ func _update_needs_and_decisions(delta: float) -> void:
 				if global_position.distance_to(meal_pos) <= 14.0:
 					if not _meal_consumed_this_sitting:
 						_meal_consumed_this_sitting = true
-						_has_valid_meal_this_sitting = bool(vm_chk.call("consume_village_meal_for_npc", self)) if (vm_chk and vm_chk.has_method("consume_village_meal_for_npc")) else false
+						if _consume_pocket_meal_if_any():
+							_has_valid_meal_this_sitting = true
+						else:
+							_has_valid_meal_this_sitting = bool(vm_chk.call("consume_village_meal_for_npc", self)) if (vm_chk and vm_chk.has_method("consume_village_meal_for_npc")) else false
 						_sitting_meal_ingested = 0.0
 					if _has_valid_meal_this_sitting:
 						var ingest_step: float = minf(38.0 - _sitting_meal_ingested, 9.5 * delta)
@@ -1438,6 +1515,23 @@ func _update_needs_and_decisions(delta: float) -> void:
 		_social_partner = _find_best_social_partner()
 
 var _npc_env_sickness_timer: float = 0.0
+
+func _consume_pocket_meal_if_any() -> bool:
+	var priority_foods: Array[String] = ["poisoned_stew", "spoiled_food", "country_stew", "roasted_chicken", "cooked_meat", "cooked_fish", "fried_frog_legs", "royal_ration", "bread", "raw_meat", "raw_chicken"]
+	for fid in priority_foods:
+		if has_pocket_item(fid, 1):
+			remove_pocket_item(fid, 1)
+			var info: Dictionary = SimpleInventory.CATALOG.get(fid, {})
+			var fname: String = str(info.get("name", fid))
+			var p_risk: float = float(info.get("poison_risk", 0.0))
+			if p_risk > 0.0 and health_comp and randf() <= p_risk:
+				var p_amt: float = float(info.get("poison_amount", 40.0))
+				health_comp.add_food_poisoning(p_amt, fname)
+				last_hit_weapon_name = "Envenenamiento por " + fname
+				add_thought("¡Comí %s contaminado/adulterado! (-22)" % fname, -22.0)
+				_spawn_floating_text("🤢☣️ ¡%s sufrió intoxicación al comer %s!" % [npc_name, fname], Color(0.75, 1.0, 0.25), -44.0)
+			return true
+	return false
 
 func _check_npc_environmental_sickness() -> void:
 	if not health_comp or is_dead:
@@ -2329,6 +2423,10 @@ func _on_died() -> void:
 		return
 	if health_comp:
 		health_comp.stop_bleeding()
+		for vital_o in ["heart", "liver", "lungs", "kidneys", "brain"]:
+			if float(health_comp.organ_hp.get(vital_o, 100.0)) <= 0.0:
+				_confirm_true_death()
+				return
 	if not is_downed:
 		is_downed = true
 		is_sleeping = false
@@ -2359,6 +2457,10 @@ func revive_from_downed(rescuer: Node, used_surgical_kit: bool = false) -> void:
 	_set_area_col_disabled(hurtbox, false)
 	if health_comp:
 		health_comp.stop_bleeding()
+		for vital_o in ["heart", "liver", "lungs", "kidneys", "brain"]:
+			if float(health_comp.organ_hp.get(vital_o, 100.0)) <= 0.0:
+				_confirm_true_death()
+				return
 		health_comp.current_health = health_comp.max_health * (0.85 if used_surgical_kit else 0.65)
 	if not used_surgical_kit:
 		global_position = Vector2(718, 142)
@@ -2455,8 +2557,31 @@ func _inject_character_lore_into_dialogue(diag: Dictionary) -> Dictionary:
 
 	var insert_idx: int = maxi(0, ch_arr.size() - 1)
 	ch_arr.insert(insert_idx, {"label": "📖 Conocer la historia personal y el pasado de %s (+10 Relación)" % npc_name, "next": "character_lore", "affinity": 10})
+	ch_arr.insert(insert_idx, {"label": "🕵️ Bolsillos de %s: Hurtar o Meter objeto en sigilo [O pulsa H]" % npc_name, "next": "pocket_stealth_menu"})
 	if need_hunger < 75.0:
 		ch_arr.insert(insert_idx, {"label": "🍲 Darle 1 ración de comida de tu mochila (%s) para que se recupere gradualmente (+18 Relación)" % get_nutrition_status_label(), "next": "start", "action": "give_npc_food_ration"})
+
+	var p_choices: Array = []
+	if personal_gold > 0:
+		p_choices.append({"label": "💰 Hurtar Oro del bolsillo (%d Oro)" % personal_gold, "next": "start", "action": "pickpocket_gold"})
+	if carries_royal_safe_conduct and int(pocket_items.get("royal_safe_conduct", 0)) <= 0:
+		pocket_items["royal_safe_conduct"] = 1
+	for pk in pocket_items.keys():
+		var cnt: int = int(pocket_items[pk])
+		if cnt > 0:
+			var p_info: Dictionary = SimpleInventory.CATALOG.get(str(pk), {})
+			p_choices.append({"label": "🤏 Hurtar 1x %s (Tiene %d)" % [str(p_info.get("name", pk)), cnt], "next": "start", "action": "pickpocket_item:" + str(pk)})
+	var player_ref = _get_player()
+	if player_ref and "inventory" in player_ref and player_ref.inventory:
+		var pinv: SimpleInventory = player_ref.inventory
+		for plant_id in ["royal_safe_conduct", "poisoned_stew", "spoiled_food", "sleeping_draught", "organ_heart", "organ_kidney", "organ_liver", "bread", "country_stew"]:
+			if pinv.has_item(plant_id, 1):
+				p_choices.append({"label": "📥 Meter 1x %s en su bolsillo (Incriminar / Envenenar)" % pinv.get_item_name(plant_id), "next": "start", "action": "plant_pocket_item:" + plant_id})
+	p_choices.append({"label": "⬅️ Volver sin tocar nada", "next": "start"})
+	diag["pocket_stealth_menu"] = {
+		"text": "🕵️ Bolsillos de %s (%s):\nContenido actual: %s\n(Probabilidad de sigilo: %d%% según tu Manipulación, Ganzúa Maestra y Manto Montaraz)" % [npc_name, npc_role, get_pocket_summary_text(), int(round(get_pickpocket_success_chance(player_ref) * 100.0))],
+		"choices": p_choices
+	}
 
 	diag["character_lore"] = {
 		"text": "📜 Historia de %s (%s):\n%s" % [npc_name, npc_role, character_lore],
@@ -2468,27 +2593,88 @@ func _inject_character_lore_into_dialogue(diag: Dictionary) -> Dictionary:
 	diag["character_secret"] = {"text": "🤫 Confidencia de %s:\n%s" % [npc_name, character_secret], "choices": [{"label": "Guardaré el secreto. [Volver]", "next": "start"}]}
 	return diag
 
+func get_pickpocket_success_chance(player: Node) -> float:
+	if is_dead or is_downed or is_sleeping or sedated_timer > 0.0 or is_stunned_flag:
+		return 1.0
+	var chance: float = 0.58
+	if player:
+		var phc: HealthComponent = player.get_node_or_null("HealthComponent")
+		if phc:
+			var manip: float = float(phc.get_capacities().get("manipulation", 1.0))
+			chance *= clampf(0.45 + manip * 0.60, 0.25, 1.15)
+		if player.has_method("has_master_lockpick") and bool(player.call("has_master_lockpick")):
+			chance += 0.20
+		if player.has_method("get_stealth_detection_multiplier") and float(player.call("get_stealth_detection_multiplier")) < 0.8:
+			chance += 0.14
+	if health_comp:
+		var npc_consc: float = float(health_comp.get_capacities().get("consciousness", 1.0))
+		chance += (1.0 - npc_consc) * 0.30
+	return clampf(chance, 0.15, 0.96)
+
+func attempt_pickpocket_or_plant(player: Node, mode: String, item_id: String = "") -> bool:
+	if not player or not ("inventory" in player) or not player.inventory:
+		return false
+	var inv: SimpleInventory = player.inventory
+	var chance: float = get_pickpocket_success_chance(player)
+	if randf() > chance:
+		modify_affinity(-25)
+		add_thought("¡Sorprendí al Forastero hurgando en mis bolsillos! (-25)", -25.0)
+		_spawn_floating_text("🚨👁️ ¡%s te descubrió hurgando en su bolsillo!" % npc_name, Color.ORANGE_RED, -46.0)
+		var vm = _get_vm()
+		if vm and vm.has_method("report_theft_crime"):
+			vm.call("report_theft_crime", family_id, "Hurto fallido en los bolsillos de " + npc_name, global_position)
+		return false
+
+	if mode == "steal_gold":
+		if personal_gold <= 0:
+			return false
+		var stolen_g: int = personal_gold
+		personal_gold = 0
+		inv.add_gold(stolen_g)
+		_spawn_floating_text("🕵️💰 Hurtaste +%d Oro de %s en sigilo" % [stolen_g, npc_name], Color.GOLD, -44.0)
+		return true
+	elif mode == "steal_item":
+		if not remove_pocket_item(item_id, 1):
+			return false
+		inv.add_item(item_id, 1)
+		_spawn_floating_text("🕵️🤏 Hurtaste 1x %s de %s" % [inv.get_item_name(item_id), npc_name], Color.AQUA, -44.0)
+		return true
+	elif mode == "plant_item":
+		if not inv.remove_item(item_id, 1):
+			return false
+		add_pocket_item(item_id, 1)
+		_spawn_floating_text("🕵️📥 Metiste 1x %s en el bolsillo de %s" % [inv.get_item_name(item_id), npc_name], Color.VIOLET, -44.0)
+		return true
+	return false
+
 func loot_npc_pockets(player: Node) -> bool:
-	if corpse_pocket_looted or (personal_gold <= 0 and not carries_royal_safe_conduct):
+	if carries_royal_safe_conduct and int(pocket_items.get("royal_safe_conduct", 0)) <= 0:
+		pocket_items["royal_safe_conduct"] = 1
+	if corpse_pocket_looted or (personal_gold <= 0 and pocket_items.is_empty()):
 		return false
 	if not player or not ("inventory" in player) or not player.inventory:
 		return false
 	var inv: SimpleInventory = player.inventory
 	var looted_gold: int = maxi(0, personal_gold)
-	var got_seal: bool = carries_royal_safe_conduct
+	var got_seal: bool = has_pocket_item("royal_safe_conduct", 1)
+	var item_names: Array[String] = []
+	for pk in pocket_items.keys():
+		var cnt: int = int(pocket_items[pk])
+		if cnt > 0:
+			inv.add_item(str(pk), cnt)
+			item_names.append("%s x%d" % [inv.get_item_name(str(pk)), cnt])
 	personal_gold = 0
+	pocket_items.clear()
 	carries_royal_safe_conduct = false
 	corpse_pocket_looted = true
 	if looted_gold > 0:
 		inv.add_gold(looted_gold)
-	if got_seal:
-		inv.add_item("royal_safe_conduct", 1)
 	var msg: String = "💰 Saqueaste +%d Oro de %s" % [looted_gold, npc_name]
-	if got_seal:
-		msg += " + 📜 ¡SALVOCONDUCTO REAL SELLADO!"
+	if not item_names.is_empty():
+		msg += " + [" + ", ".join(item_names) + "]"
 	_spawn_floating_text(msg, Color.GOLD, -44.0)
 	if player.has_method("show_hint"):
-		player.call("show_hint", msg + (" (Oculta el Salvoconducto Real en un cofre si viene el Inquisidor Real)" if got_seal else ""))
+		player.call("show_hint", msg + (" (Oculta o planta el Salvoconducto Real si viene el Inquisidor Real)" if got_seal else ""))
 	var vm = get_tree().get_first_node_in_group("village_manager")
 	if vm and vm.has_method("_find_conscious_witness_near"):
 		var w: VillageNPC = vm.call("_find_conscious_witness_near", global_position, 140.0, self)
@@ -2498,7 +2684,7 @@ func loot_npc_pockets(player: Node) -> bool:
 
 func interact(player: Node) -> void:
 	if is_dead:
-		if not corpse_pocket_looted and (personal_gold > 0 or carries_royal_safe_conduct):
+		if not corpse_pocket_looted and (personal_gold > 0 or carries_royal_safe_conduct or not pocket_items.is_empty()):
 			loot_npc_pockets(player)
 			return
 		report_corpse_by_player(player)
@@ -2660,8 +2846,21 @@ func _build_dialogue() -> Dictionary:
 						{"label": "🏥 Recibir Cura Médica Completa (+100% Vida y Curar Sangrado) (-10 Oro)", "next": "start", "action": "doctor_heal"},
 						{"label": "🩺 Comprar 1 Botiquín Quirúrgico (-24 Oro) [Revive agonizantes o +85 HP]", "next": "start", "action": "buy_unlimited:surgical_kit:24"},
 						{"label": "🌿 Comprar 1 Cataplasma Curativa (-10 Oro)", "next": "start", "action": "buy_unlimited:herbal_poultice:10"},
+						{"label": "🫀 Entregar Órganos para Trasplantes / Estudio Anatómico", "next": "organ_bank_menu"},
 						{"label": "⚰️ Consultar Informes Forenses de la Morgue", "next": "morgue_info"},
 						{"label": "Gracias, doctor. [Salir]", "next": "END"}
+					]
+				},
+				"organ_bank_menu": {
+					"text": "🫀 Banco Quirúrgico del Hospital:\n«No haré preguntas incómodas sobre su procedencia si están bien conservados. También puedes usar un Botiquín Quirúrgico desde tu Panel Clínico [H] para trasplantar órganos dañados.»",
+					"choices": [
+						{"label": "🫀 Vender 1 Corazón Humano (+70 Oro)", "next": "organ_bank_menu", "action": "sell:organ_heart:70"},
+						{"label": "🫁 Vender 1 Hígado Humano (+60 Oro)", "next": "organ_bank_menu", "action": "sell:organ_liver:60"},
+						{"label": "🫁 Vender 1 Pulmón Humano (+50 Oro)", "next": "organ_bank_menu", "action": "sell:organ_lung:50"},
+						{"label": "🫘 Vender 1 Riñón Humano (+45 Oro)", "next": "organ_bank_menu", "action": "sell:organ_kidney:45"},
+						{"label": "🥩 Vender 1 Estómago Humano (+40 Oro)", "next": "organ_bank_menu", "action": "sell:organ_stomach:40"},
+						{"label": "👁️ Vender 1 Globo Ocular (+35 Oro)", "next": "organ_bank_menu", "action": "sell:organ_eye:35"},
+						{"label": "⬅️ Volver a la consulta del Dr. Valen", "next": "start"}
 					]
 				},
 				"morgue_info": {"text": "En la sala trasera está la Morgue Forense con 3 mesas de autopsia. Si ocurre una muerte, puedes acercarte a la camilla y pulsar [E] para leer el dictamen forense: hora exacta, arma empleada y si algún vecino vio entrar al sospechoso.", "choices": [{"label": "Entendido, revisaré las mesas de la Morgue. [Volver]", "next": "start"}]}
@@ -2856,6 +3055,18 @@ func on_dialogue_action(action_id: String) -> void:
 		return
 	var inv: SimpleInventory = player.inventory
 	var vm = _get_vm()
+
+	if action_id == "pickpocket_gold":
+		attempt_pickpocket_or_plant(player, "steal_gold")
+		return
+
+	if action_id.begins_with("pickpocket_item:"):
+		attempt_pickpocket_or_plant(player, "steal_item", action_id.get_slice(":", 1))
+		return
+
+	if action_id.begins_with("plant_pocket_item:"):
+		attempt_pickpocket_or_plant(player, "plant_item", action_id.get_slice(":", 1))
+		return
 
 	if action_id == "compensate_family":
 		if inv.gold < 20:
@@ -3129,7 +3340,7 @@ func to_save_dict() -> Dictionary:
 		"npc_name": npc_name, "npc_role": npc_role, "family_id": family_id, "family_name": family_name,
 		"trade_role": int(trade_role), "linked_trade": int(linked_trade), "days_in_role": days_in_role,
 		"affinity": affinity, "personal_gold": personal_gold, "carries_royal_safe_conduct": carries_royal_safe_conduct,
-		"corpse_pocket_looted": corpse_pocket_looted, "is_vagrant_camper": is_vagrant_camper,
+		"pocket_items": pocket_items.duplicate(), "corpse_pocket_looted": corpse_pocket_looted, "is_vagrant_camper": is_vagrant_camper,
 		"vagrant_camp_x": vagrant_camp_pos.x, "vagrant_camp_y": vagrant_camp_pos.y, "merchant_id": merchant_id,
 		"need_hunger": need_hunger, "digestion_buffer": digestion_buffer, "need_energy": need_energy, "need_social": need_social,
 		"mood": mood, "thoughts": thoughts.duplicate(), "activity": int(current_activity),
@@ -3194,6 +3405,10 @@ func from_save_dict(data: Dictionary) -> void:
 	affinity = int(data.get("affinity", affinity))
 	personal_gold = maxi(0, int(data.get("personal_gold", personal_gold)))
 	carries_royal_safe_conduct = bool(data.get("carries_royal_safe_conduct", carries_royal_safe_conduct))
+	if data.has("pocket_items") and typeof(data["pocket_items"]) == TYPE_DICTIONARY:
+		pocket_items = (data["pocket_items"] as Dictionary).duplicate()
+	elif carries_royal_safe_conduct:
+		pocket_items["royal_safe_conduct"] = maxi(1, int(pocket_items.get("royal_safe_conduct", 0)))
 	corpse_pocket_looted = bool(data.get("corpse_pocket_looted", corpse_pocket_looted))
 	is_vagrant_camper = bool(data.get("is_vagrant_camper", is_vagrant_camper))
 	vagrant_camp_pos = _read_vec2(data, "vagrant_camp_x", "vagrant_camp_y", vagrant_camp_pos)
