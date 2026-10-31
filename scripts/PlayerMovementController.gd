@@ -22,8 +22,6 @@ var current_speed: float = 120.0
 @export var max_aim_camera_offset: float = 95.0   ## Desplazamiento al mantener Clic Derecho (Apuntar lejos)
 @export var camera_smooth_speed: float = 8.0      ## Velocidad de suavizado de la cámara
 
-var _aim_screen_offset: Vector2 = Vector2.ZERO
-
 func _physics_process(delta: float) -> void:
 	if not is_instance_valid(player) or not is_instance_valid(anim):
 		return

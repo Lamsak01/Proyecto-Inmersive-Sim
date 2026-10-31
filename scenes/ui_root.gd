@@ -248,7 +248,6 @@ func _setup_inventory_ui() -> void:
 	inv_panel = PanelContainer.new()
 	inv_panel.name = "InventoryPanel"
 	inv_panel.visible = false
-	inv_panel.layout_mode = 1
 	inv_panel.set_anchors_and_offsets_preset(Control.PRESET_CENTER)
 	inv_panel.offset_left = -430.0
 	inv_panel.offset_top = -250.0
@@ -445,13 +444,13 @@ func _refresh_inventory_list() -> void:
 			if eq_id != "":
 				var icon_tex: Texture2D = inv.get_item_icon(eq_id)
 				if icon_tex:
-					var tr := TextureRect.new()
-					tr.texture = icon_tex
-					tr.custom_minimum_size = Vector2(22, 22)
-					tr.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-					tr.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
-					tr.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
-					sc_hbox.add_child(tr)
+					var icon_rect := TextureRect.new()
+					icon_rect.texture = icon_tex
+					icon_rect.custom_minimum_size = Vector2(22, 22)
+					icon_rect.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+					icon_rect.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+					icon_rect.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+					sc_hbox.add_child(icon_rect)
 
 			var sc_lbl := Label.new()
 			sc_lbl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
@@ -619,7 +618,6 @@ func _refresh_inventory_list() -> void:
 func _setup_clock_ui() -> void:
 	clock_panel = PanelContainer.new()
 	clock_panel.name = "WorldClockPanel"
-	clock_panel.layout_mode = 1
 	clock_panel.set_anchors_and_offsets_preset(Control.PRESET_CENTER_TOP)
 	clock_panel.offset_left = -175.0
 	clock_panel.offset_top = 10.0

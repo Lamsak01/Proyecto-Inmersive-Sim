@@ -333,13 +333,13 @@ func _add_house_wall_segment(pos: Vector2, sz: Vector2, tex: Texture2D) -> void:
 	sb.add_child(col)
 
 	if tex:
-		var tr := TextureRect.new()
-		tr.texture = tex
-		tr.stretch_mode = TextureRect.STRETCH_TILE
-		tr.position = -sz * 0.5
-		tr.size = sz
-		tr.z_index = 2
-		sb.add_child(tr)
+		var tex_rect := TextureRect.new()
+		tex_rect.texture = tex
+		tex_rect.stretch_mode = TextureRect.STRETCH_TILE
+		tex_rect.position = -sz * 0.5
+		tex_rect.size = sz
+		tex_rect.z_index = 2
+		sb.add_child(tex_rect)
 	house_root.add_child(sb)
 
 # --- 2. HOGUERA CON CACEROLA ---

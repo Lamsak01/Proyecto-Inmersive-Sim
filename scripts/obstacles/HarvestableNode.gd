@@ -207,7 +207,7 @@ func take_damage(data: DamageData) -> void:
 	if current_hp <= 0.0:
 		# Al derribar el árbol o romper la veta: la herramienta adecuada rinde el total (+bono por tier), la improvisada la mitad
 		var tier_bonus: int = 2 if tool_efficiency >= 3.2 else (1 if tool_efficiency >= 2.2 else 0)
-		var final_yield: int = (primary_amount + tier_bonus) if tool_efficiency >= 1.0 else max(1, int(primary_amount / 2))
+		var final_yield: int = (primary_amount + tier_bonus) if tool_efficiency >= 1.0 else maxi(1, int(float(primary_amount) * 0.5))
 		_give_drop(player, primary_item_id, final_yield, -44.0)
 		if bonus_item_id != "" and bonus_amount > 0 and tool_efficiency >= 1.0:
 			_give_drop(player, bonus_item_id, bonus_amount + (1 if tool_efficiency >= 2.2 else 0), -58.0)

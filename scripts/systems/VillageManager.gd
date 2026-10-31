@@ -208,7 +208,7 @@ func _process(delta: float) -> void:
 
 	# Escolta física policial hacia la celda de la Comisaría (Estilo Kenshi / Red Dead Redemption 2)
 	if player_being_escorted_to_jail and player:
-		if is_instance_valid(escorting_officer) and not escorting_officer.is_dead and not escorting_officer.is_downed:
+		if is_instance_valid(escorting_officer) and not escorting_officer.is_dead and not escorting_officer.is_downed and not escorting_officer.is_stunned_flag and escorting_officer.sedated_timer <= 0.0:
 			var follow_pos: Vector2 = escorting_officer.global_position + Vector2(-10, 6)
 			if player.global_position.distance_to(escorting_officer.global_position) > 30.0:
 				player.global_position = follow_pos
@@ -607,13 +607,13 @@ func _add_solid_wall_segment(pos: Vector2, sz: Vector2, tex: Texture2D, blocks_v
 		_wall_occluder_rects.append(Rect2(pos - sz * 0.5, sz))
 
 	if tex:
-		var tr := TextureRect.new()
-		tr.texture = tex
-		tr.stretch_mode = TextureRect.STRETCH_TILE
-		tr.position = -sz * 0.5
-		tr.size = sz
-		tr.z_index = 2
-		sb.add_child(tr)
+		var tex_rect := TextureRect.new()
+		tex_rect.texture = tex
+		tex_rect.stretch_mode = TextureRect.STRETCH_TILE
+		tex_rect.position = -sz * 0.5
+		tex_rect.size = sz
+		tex_rect.z_index = 2
+		sb.add_child(tex_rect)
 	entities_root.add_child(sb)
 
 func _segment_intersects_rect(p1: Vector2, p2: Vector2, r: Rect2) -> bool:
@@ -626,12 +626,12 @@ func _segment_intersects_rect(p1: Vector2, p2: Vector2, r: Rect2) -> bool:
 	if r.has_point(p1) or r.has_point(p2):
 		return true
 	var tl := r.position
-	var tr := Vector2(r.end.x, r.position.y)
+	var top_r := Vector2(r.end.x, r.position.y)
 	var br := r.end
 	var bl := Vector2(r.position.x, r.end.y)
-	if Geometry2D.segment_intersects_segment(p1, p2, tl, tr) != null:
+	if Geometry2D.segment_intersects_segment(p1, p2, tl, top_r) != null:
 		return true
-	if Geometry2D.segment_intersects_segment(p1, p2, tr, br) != null:
+	if Geometry2D.segment_intersects_segment(p1, p2, top_r, br) != null:
 		return true
 	if Geometry2D.segment_intersects_segment(p1, p2, br, bl) != null:
 		return true
@@ -1923,7 +1923,7 @@ func _spawn_physical_grave_marker(grave_idx: int, rec: Dictionary) -> void:
 	if grave_idx >= 0 and grave_idx < _cemetery_grave_positions.size():
 		g_pos = _cemetery_grave_positions[grave_idx]
 	else:
-		g_pos = Vector2(844.0 + float(grave_idx % 6) * 26.0, 282.0 + float((grave_idx / 6) % 3) * 28.0)
+		g_pos = Vector2(844.0 + float(grave_idx % 6) * 26.0, 282.0 + float(int(float(grave_idx) / 6.0) % 3) * 28.0)
 
 	var grave_node := Node2D.new()
 	grave_node.name = "GraveMarker_%d" % (grave_idx + 1)
@@ -3054,7 +3054,7 @@ func _spawn_farm_well_and_compost() -> void:
 ## Prioridad de interacción [E]: garantiza que el jugador siempre pueda abrir una puerta cerrada aunque haya un NPC parado encima,
 ## y permite reportar cualquier cadáver en el suelo con [E].
 func try_priority_door_or_corpse_interaction(player: Node2D, mouse_pos: Vector2) -> bool:
-	if not player:
+	if not player or player_being_escorted_to_jail:
 		return false
 	var pos: Vector2 = player.global_position
 
@@ -3093,7 +3093,7 @@ func try_priority_door_or_corpse_interaction(player: Node2D, mouse_pos: Vector2)
 	return false
 
 func interact(player: Node2D) -> void:
-	if not player:
+	if not player or player_being_escorted_to_jail:
 		return
 	var pos := player.global_position
 
@@ -4204,7 +4204,8 @@ func consume_village_meal_for_npc(npc: VillageNPC) -> bool:
 		food_roles = [int(VillageNPC.TradeRole.BUTCHER), int(VillageNPC.TradeRole.FISHMONGER), int(VillageNPC.TradeRole.HERBALIST)]
 
 	var edible_keys: Array[String] = ["bread", "cooked_meat", "cooked_fish", "roasted_chicken", "carrot", "cabbage", "herbal_poultice"]
-	for r_id in food_roles:
+	var active_food_roles: Array[int] = [] if near_tavern else food_roles
+	for r_id in active_food_roles:
 		var holder: VillageNPC = trade_npcs.get(r_id)
 		var cfg: Dictionary = trade_configs.get(r_id, {})
 		var shop_fam_id: String = str(cfg.get("family_id", ""))
@@ -4250,6 +4251,7 @@ func consume_village_meal_for_npc(npc: VillageNPC) -> bool:
 						var base_val: int = 10 if om == "SOLE_OWNER" else 6
 						var sale_gold: int = maxi(3, int(round(float(base_val) * mkt_m * eff_m)))
 						biz["vault_gold"] = int(biz.get("vault_gold", 0)) + sale_gold
+				_refresh_shop_stall_visual(r_id)
 				return true
 
 	# 3º PRIORIDAD (Lujo Opcional): Plato cocinado en la Posada (12-15 Oro × mercado) SOLO si la puerta de la Taberna no está bloqueada y la Tabernera sirve en barra
@@ -5539,14 +5541,6 @@ func update_royal_investigator_ai(inv_npc: VillageNPC, delta: float) -> void:
 					p_h.show_hint("⚖️👑 ¡EJECUCIÓN INQUISITORIAL! Tras interrogar a todo el pueblo (%d/%d), el Inquisidor Real Alistair ajustició en persona a %s (el sospechoso cercano sin coartada con mayor probabilidad: %d%%)." % [done_cnt, max_cnt, chosen_name, clampi(best_sc, 35, 95)])
 				active_royal_investigation["stage"] = "DEPARTING"
 				active_royal_investigation["stage_timer"] = 0.0
-		"HUNTING_PLAYER":
-			if player_in_jail or player_being_escorted_to_jail:
-				inv_npc.velocity = Vector2.ZERO
-			elif not inv_npc.is_hostile and not inv_npc.is_downed and not inv_npc.is_stunned_flag and inv_npc.sedated_timer <= 0.0:
-				inv_npc.is_hostile = true
-				inv_npc._police_alerted_timer = 45.0
-				if not inv_npc.is_in_group("enemies"):
-					inv_npc.add_to_group("enemies")
 		"DEPARTING":
 			inv_npc.is_sleeping = false
 			var exit_pos := Vector2(1000, 48)
@@ -6022,8 +6016,8 @@ func get_economy_save_dict() -> Dictionary:
 				"picked_day": int(w_entry.get("picked_day", -1))
 			}
 	var saved_traps: Array[Dictionary] = []
-	for tr in _deployed_bear_traps:
-		var tr_node: Node2D = tr.get("node") as Node2D
+	for trap_entry in _deployed_bear_traps:
+		var tr_node: Node2D = trap_entry.get("node") as Node2D
 		if is_instance_valid(tr_node):
 			saved_traps.append({"x": tr_node.global_position.x, "y": tr_node.global_position.y})
 	return {
@@ -6105,10 +6099,10 @@ func load_economy_save_dict(data: Dictionary) -> void:
 				var w_spr: Sprite2D = w_entry.get("sprite")
 				if is_instance_valid(w_spr):
 					w_spr.texture = tex_win_shut if shut else tex_win_open
-	for tr in _deployed_bear_traps:
-		var tr_n: Node2D = tr.get("node") as Node2D
-		if is_instance_valid(tr_n):
-			tr_n.queue_free()
+	for trap_entry in _deployed_bear_traps:
+		var trap_node: Node2D = trap_entry.get("node") as Node2D
+		if is_instance_valid(trap_node):
+			trap_node.queue_free()
 	_deployed_bear_traps.clear()
 	if data.has("deployed_bear_traps") and typeof(data["deployed_bear_traps"]) == TYPE_ARRAY:
 		for t_item in (data["deployed_bear_traps"] as Array):

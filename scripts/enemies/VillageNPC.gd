@@ -65,11 +65,7 @@ var _is_amateur_foraging: bool = false
 var _amateur_forage_timer: float = 0.0
 var _amateur_prey_target: Node2D = null
 var merchant_id: String = "" # "casimir" o "valeria"
-var _merchant_visit_timer: float = 0.0
-var _merchant_shop_index: int = 0
 var _merchant_leaving: bool = false
-var _investigator_timer: float = 0.0
-var _investigator_target_npc: VillageNPC = null
 
 # Sub-stats de Necesidades Dinámicas (0.0 = crítico / 3 días sin comer, 100.0 = 300 pts Kenshi Bien Alimentado)
 var need_hunger: float = 88.0
@@ -961,12 +957,12 @@ func _process_corpse_state(delta: float) -> void:
 							corpse_discovered = true
 							corpse_discovered_by = other.npc_name
 							other.add_thought("Descubrió el cadáver de %s (-15)" % npc_name, -15.0)
-						if other.trade_role in [TradeRole.DOCTOR, TradeRole.SHERIFF, TradeRole.GUARD]:
+						if other.trade_role in [TradeRole.DOCTOR, TradeRole.SHERIFF, TradeRole.GUARD, TradeRole.ROYAL_INVESTIGATOR]:
 							corpse_reported = true
 							corpse_reporter_npc = null
 							_spawn_floating_text("🚨 ¡%s encontró el cadáver de %s!" % [other.npc_name, npc_name], Color.ORANGE_RED, -42.0)
 							break
-						elif corpse_reporter_npc == null or not is_instance_valid(corpse_reporter_npc) or corpse_reporter_npc.is_dead or corpse_reporter_npc.is_downed:
+						elif other.trade_role != TradeRole.TRAVELING_MERCHANT and (corpse_reporter_npc == null or not is_instance_valid(corpse_reporter_npc) or corpse_reporter_npc.is_dead or corpse_reporter_npc.is_downed or corpse_reporter_npc.is_sleeping or corpse_reporter_npc.is_stunned_flag or corpse_reporter_npc.sedated_timer > 0.0):
 							corpse_reporter_npc = other
 							other._reporting_corpse_target = self
 							_spawn_floating_text("😱 ¡%s vio el cadáver de %s y corre a avisar!" % [other.npc_name, npc_name], Color.ORANGE_RED, -42.0)
@@ -1987,7 +1983,7 @@ func _process_artisan_workshop_crafting_and_supply_runs(delta: float) -> void:
 			if biz_mode == "SOLE_OWNER":
 				vm.shop_businesses[_supply_run_target_role]["vault_gold"] = int(vm.shop_businesses[_supply_run_target_role].get("vault_gold", 0)) + buy_cost
 			elif biz_mode == "PARTNER":
-				var player_cut: int = int(buy_cost / 2)
+				var player_cut: int = int(float(buy_cost) * 0.5)
 				vm.shop_businesses[_supply_run_target_role]["vault_gold"] = int(vm.shop_businesses[_supply_run_target_role].get("vault_gold", 0)) + player_cut
 				supplier_npc.personal_gold = maxi(0, supplier_npc.personal_gold) + (buy_cost - player_cut)
 			else:
@@ -2033,6 +2029,7 @@ func _process_artisan_workshop_crafting_and_supply_runs(delta: float) -> void:
 
 	# Si el stock de este producto ya está al máximo (>= 12), pasar a la otra receta o atender mostrador
 	if int(shop_stock.get(out_id, 0)) >= 12:
+		_craft_progress = 0.0
 		_crafting_recipe_idx = (_crafting_recipe_idx + 1) % recipes.size()
 		rec = recipes[_crafting_recipe_idx]
 		out_id = str(rec.get("output", ""))
@@ -2753,6 +2750,10 @@ func take_damage(data: DamageData) -> void:
 
 ## Comprueba si el jugador en Sigilo (`[C]`) está situado por la espalda del NPC (o junto a un NPC dormido) para ejecutar un ataque sigiloso (No Letal o Letal)
 func can_be_stealth_targeted(player: Node2D) -> bool:
+	if not is_instance_valid(_cached_vm):
+		_cached_vm = get_tree().get_first_node_in_group("village_manager")
+	if _cached_vm and (bool(_cached_vm.get("player_being_escorted_to_jail")) or bool(_cached_vm.get("player_in_jail"))):
+		return false
 	if player == null or is_dead or is_downed or is_hostile or is_at_poker_table or is_stunned_flag or sedated_timer > 0.0 or trade_role == TradeRole.ROYAL_INVESTIGATOR:
 		return false
 	if not player.has_method("is_stealthing") or not bool(player.call("is_stealthing")):
@@ -2775,6 +2776,9 @@ func stealth_knockout(player: Node = null) -> void:
 	if is_dead or is_downed or is_stunned_flag or sedated_timer > 0.0:
 		return
 	hide_prompt()
+	if is_instance_valid(_reporting_corpse_target) and _reporting_corpse_target.corpse_reporter_npc == self:
+		_reporting_corpse_target.corpse_reporter_npc = null
+	_reporting_corpse_target = null
 	_is_actively_crafting = false
 	if _craft_bar_root:
 		_craft_bar_root.visible = false
@@ -2840,6 +2844,9 @@ func _on_stunned(stunned: bool) -> void:
 		return
 	is_stunned_flag = stunned or (sedated_timer > 0.0)
 	if is_stunned_flag:
+		if is_instance_valid(_reporting_corpse_target) and _reporting_corpse_target.corpse_reporter_npc == self:
+			_reporting_corpse_target.corpse_reporter_npc = null
+		_reporting_corpse_target = null
 		_is_actively_crafting = false
 		if _craft_bar_root:
 			_craft_bar_root.visible = false
@@ -3843,6 +3850,8 @@ func to_save_dict() -> Dictionary:
 		"digestion_buffer": digestion_buffer,
 		"need_energy": need_energy,
 		"need_social": need_social,
+		"mood": mood,
+		"thoughts": thoughts.duplicate(),
 		"activity": int(current_activity),
 		"is_dead": is_dead,
 		"is_downed": is_downed,
@@ -3966,6 +3975,12 @@ func from_save_dict(data: Dictionary) -> void:
 	if data.has("shop_stock") and typeof(data["shop_stock"]) == TYPE_DICTIONARY:
 		shop_stock = data["shop_stock"].duplicate()
 	_resolve_unique_64_visuals_and_lore()
+	if data.has("mood"):
+		mood = clampf(float(data["mood"]), 0.0, 100.0)
+	if data.has("thoughts") and typeof(data["thoughts"]) == TYPE_ARRAY:
+		thoughts.clear()
+		for th in (data["thoughts"] as Array):
+			thoughts.append(str(th))
 	last_hit_weapon_name = str(data.get("last_hit_weapon_name", last_hit_weapon_name))
 	last_hit_by_player = bool(data.get("last_hit_by_player", false))
 	murder_witness_name = str(data.get("murder_witness_name", ""))

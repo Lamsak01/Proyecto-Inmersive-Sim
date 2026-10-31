@@ -82,7 +82,7 @@ func _setup_components_and_visuals() -> void:
 	health_comp.max_health = 45.0 if pet_type == PetType.DOG else 24.0
 	health_comp.current_health = health_comp.max_health
 	health_comp.died.connect(_on_died)
-	health_comp.bleed_triggered.connect(func():
+	health_comp.bleed_triggered.connect(func(_dps = 0):
 		_spawn_floating_text("🩸 ¡Sangrado!", Color.CRIMSON)
 	)
 	add_child(health_comp)
@@ -218,7 +218,9 @@ func _physics_process(delta: float) -> void:
 	if is_hostile and pet_type == PetType.DOG:
 		_hostile_timer -= delta
 		var player := get_tree().get_first_node_in_group("player") as Node2D
-		if _hostile_timer <= 0.0 or not is_instance_valid(player) or global_position.distance_to(player.global_position) > 190.0:
+		var vm_p := get_tree().get_first_node_in_group("village_manager")
+		var player_jailed: bool = vm_p != null and (bool(vm_p.get("player_being_escorted_to_jail")) or bool(vm_p.get("player_in_jail")))
+		if _hostile_timer <= 0.0 or not is_instance_valid(player) or player_jailed or global_position.distance_to(player.global_position) > 190.0:
 			is_hostile = false
 			remove_from_group("enemies")
 		else:
@@ -583,6 +585,7 @@ func from_save_dict(data: Dictionary) -> void:
 				ic_dead.set_deferred("disabled", corpse_looted)
 	else:
 		is_dead = false
+		is_sleeping = false
 		corpse_looted = false
 		is_hostile = false
 		_hostile_timer = 0.0
@@ -600,6 +603,7 @@ func from_save_dict(data: Dictionary) -> void:
 				hcol.set_deferred("disabled", false)
 		if sprite:
 			sprite.rotation_degrees = 0.0
+			sprite.scale = Vector2(1.15, 1.15)
 			sprite.modulate = tint_color
 		if stun_comp:
 			stun_comp.clear_stun()

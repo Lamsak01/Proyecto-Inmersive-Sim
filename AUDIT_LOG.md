@@ -49,3 +49,14 @@ Este archivo registra únicamente **bugs reales de jugabilidad/lógica** detecta
   - `scripts/systems/VillageManager.gd` (`líneas 2078-2081`)
 - **Descripción del fallo real:** Como `VillageManager.gd`, `VillageNPC.gd` y `DomesticPet.gd` son scripts `@tool` (para visualizar la aldea en el visor 2D del Editor), al abrir `World.tscn` en el Editor instancian `HealthComponent.new()` y `StunComponent.new()`. Aunque esos componentes no tienen `@tool`, Godot ejecuta su `_process(delta)` dentro del Editor cuando son creados con `.new()`. Como el autoload `WorldClock` no es `@tool`, en el Editor existe como *placeholder instance* y llamar a `WorldClock.is_time_frozen()` lanzaba en bucle: `Invalid call function 'is_time_frozen' in base 'Node (WorldClock.gd)': Attempt to call a method on a placeholder instance`.
 - **Solución aplicada:** Desactivar `_process` / `_physics_process` en `_ready()` cuando `Engine.is_editor_hint()` es `true` y añadir la guarda `if Engine.is_editor_hint()` al inicio de `_process` / `_physics_process` en `HealthComponent.gd`, `StunComponent.gd`, `SurvivalComponent.gd`, `EnemyAI.gd` y `VillageManager._update_streetlights_glow()`.
+
+---
+
+## Iteración 4 — Commit Base para Rollback: `74045dc`
+
+### 6. Correcciones Puntuales Finales y Limpieza de 100% de Warnings GDScript (`-d`)
+- **Archivos afectados:** `scripts/enemies/DomesticPet.gd`, `scripts/systems/VillageManager.gd`, `scripts/enemies/VillageNPC.gd`, `scripts/obstacles/HarvestableNode.gd`, `scripts/PlayerMovementController.gd`, `scripts/obstacles/CampSite.gd`, `scripts/ui/ValleyMapUI.gd`, `scripts/ui/TavernGamesUI.gd`, `scenes/ui_root.gd`
+- **Correcciones aplicadas:**
+  1. `DomesticPet.gd`: Firma `func(_dps = 0):` en `bleed_triggered`, desactivación de persecución hostil durante escolta/prisión y reseteo de `is_sleeping = false` + `sprite.scale` al cargar mascota viva (`[F9]`).
+  2. `VillageManager.gd` y `VillageNPC.gd`: Bloqueo de interacciones `[E]` y derribos en sigilo durante `player_being_escorted_to_jail`, limpieza de `_reporting_corpse_target` al aturdir/noquear a un testigo, prioridad de comida de Taberna (`not near_tavern`), refresco de mostrador `_refresh_shop_stall_visual`, reseteo de `_craft_progress` al cambiar de receta y persistencia de `mood`/`thoughts`.
+  3. Eliminadas las 26 advertencias amarillas del compilador GDScript (`godot --headless -d` ahora reporta **0 errores y 0 warnings**).

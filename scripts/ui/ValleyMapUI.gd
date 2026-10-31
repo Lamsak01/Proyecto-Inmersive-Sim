@@ -61,7 +61,6 @@ func close_full_map() -> void:
 func _build_minimap_ui() -> void:
 	minimap_panel = PanelContainer.new()
 	minimap_panel.name = "MinimapPanel"
-	minimap_panel.layout_mode = 1
 	minimap_panel.set_anchors_and_offsets_preset(Control.PRESET_TOP_RIGHT)
 	minimap_panel.offset_left = -202.0
 	minimap_panel.offset_top = 10.0
@@ -116,7 +115,6 @@ func _build_full_map_ui() -> void:
 	full_map_panel = PanelContainer.new()
 	full_map_panel.name = "FullValleyMapPanel"
 	full_map_panel.visible = false
-	full_map_panel.layout_mode = 1
 	full_map_panel.set_anchors_and_offsets_preset(Control.PRESET_CENTER)
 	full_map_panel.offset_left = -450.0
 	full_map_panel.offset_top = -275.0

@@ -96,7 +96,6 @@ const EUROPEAN_WHEEL_ORDER: Array[int] = [
 
 func _ready() -> void:
 	visible = false
-	layout_mode = 1
 	set_anchors_and_offsets_preset(Control.PRESET_CENTER)
 	offset_left = -435.0
 	offset_top = -255.0
@@ -638,8 +637,8 @@ func _build_shuffled_deck() -> Array[Dictionary]:
 func get_npc_poker_archetype(npc_idx: int) -> PokerArchetype:
 	var npc: VillageNPC = table_npcs[npc_idx] if (npc_idx >= 0 and npc_idx < table_npcs.size() and is_instance_valid(table_npcs[npc_idx])) else null
 	if npc:
-		for tr in npc.traits:
-			var t_low: String = str(tr).to_lower()
+		for trait_name in npc.traits:
+			var t_low: String = str(trait_name).to_lower()
 			if t_low.find("estóico") != -1 or t_low.find("estoico") != -1 or t_low.find("sereno") != -1 or t_low.find("frío") != -1:
 				return PokerArchetype.STOIC_ROCK
 			if t_low.find("astuto") != -1 or t_low.find("codicioso") != -1 or t_low.find("calculador") != -1 or t_low.find("taimado") != -1:
@@ -1070,7 +1069,7 @@ func _render_blackjack_ui() -> void:
 		var is_first_decision: bool = (bj_player_hand.size() == 2)
 		var can_double: bool = (is_first_decision and _get_player_gold() >= bj_bet)
 		_add_action_btn("[3] Doblar (+%d Oro)" % bj_bet, _bj_double, not can_double)
-		_add_action_btn("[4] Rendirse (Recupera %d)" % int(bj_bet / 2), _bj_surrender, not is_first_decision)
+		_add_action_btn("[4] Rendirse (Recupera %d)" % int(float(bj_bet) * 0.5), _bj_surrender, not is_first_decision)
 	else:
 		_add_action_btn("[1] Jugar Otra Mano (5 Oro)", func(): _start_blackjack(5), _get_player_gold() < 5)
 		_add_action_btn("[2] Jugar Otra Mano (10 Oro)", func(): _start_blackjack(10), _get_player_gold() < 10)
@@ -1110,7 +1109,7 @@ func _bj_surrender() -> void:
 	if bj_stage != BJStage.PLAYER_TURN or bj_player_hand.size() != 2:
 		return
 	bj_stage = BJStage.FINISHED
-	var refund: int = int(bj_bet / 2)
+	var refund: int = int(float(bj_bet) * 0.5)
 	_add_player_gold(refund)
 	status_msg_lbl.text = "🏳️ Te rendiste (Surrender). Recuperas la mitad de tu apuesta (+%d Oro)." % refund
 	_render_blackjack_ui()
@@ -1194,17 +1193,17 @@ func get_roulette_covered_numbers(bet_kind: String, base_num: int) -> Array[int]
 			return [n_pos, partner]
 		"street":
 			# Calle / Transversal (fila de 3 números)
-			var row_start: int = int((n_pos - 1) / 3) * 3 + 1
+			var row_start: int = int(float(n_pos - 1) / 3.0) * 3 + 1
 			return [row_start, row_start + 1, row_start + 2]
 		"corner":
 			# Cuadro (esquina de 4 números en el paño)
-			var r_idx: int = mini(int((n_pos - 1) / 3), 10) # filas 0..10 para que r_idx+1 exista
+			var r_idx: int = mini(int(float(n_pos - 1) / 3.0), 10) # filas 0..10 para que r_idx+1 exista
 			var c_idx: int = 0 if ((n_pos - 1) % 3 == 0) else 1
 			var tl: int = r_idx * 3 + c_idx + 1
 			return [tl, tl + 1, tl + 3, tl + 4]
 		"six_line":
 			# Seisena (dos filas contiguas = 6 números)
-			var r6: int = mini(int((n_pos - 1) / 3), 10)
+			var r6: int = mini(int(float(n_pos - 1) / 3.0), 10)
 			var first_n: int = r6 * 3 + 1
 			return [first_n, first_n + 1, first_n + 2, first_n + 3, first_n + 4, first_n + 5]
 		"dozen_1":
