@@ -121,10 +121,15 @@ func _handle_input(delta: float) -> void:
 		current_speed = max_walk_speed
 		target_anim_scale = 1.0
 
-	# Weakness (active bleeding) penalty
+	# Weakness (active bleeding) and anatomical leg capacity (Project Zomboid / RimWorld parity)
 	if player.is_weak:
 		current_speed *= 0.6
 		target_anim_scale *= 0.7
+	var hc: HealthComponent = player.get_node_or_null("HealthComponent")
+	if hc:
+		var mov_cap: float = hc.get_moving_capacity()
+		current_speed *= mov_cap
+		target_anim_scale *= lerpf(0.65, 1.0, mov_cap)
 
 	if "armor_speed_multiplier" in player:
 		current_speed *= float(player.get("armor_speed_multiplier"))

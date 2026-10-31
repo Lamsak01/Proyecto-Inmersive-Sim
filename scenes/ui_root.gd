@@ -19,10 +19,12 @@ var inv_armor_slots_box: HBoxContainer = null
 var inv_items_box: VBoxContainer = null
 var inv_recipes_box: VBoxContainer = null
 const ValleyMapUIScript = preload("res://scripts/ui/ValleyMapUI.gd")
+const MedicalPanelUIScript = preload("res://scripts/ui/MedicalPanelUI.gd")
 
 var tool_wheel: ToolWheelUI = null
 var tavern_games: TavernGamesUI = null
 var valley_map: Control = null
+var medical_panel: Control = null
 
 func _ready() -> void:
 	# 1. Find Player if not assigned
@@ -95,6 +97,7 @@ func _ready() -> void:
 	_setup_tool_wheel_ui()
 	_setup_tavern_games_ui()
 	_setup_valley_map_ui()
+	_setup_medical_panel_ui()
 	_init_default_objectives()
 	if "inventory" in player and player.inventory:
 		_bind_player_inventory()
@@ -161,6 +164,8 @@ func _unhandled_input(event: InputEvent) -> void:
 				elif tool_wheel:
 					if inv_panel and inv_panel.visible:
 						inv_panel.visible = false
+					if medical_panel and medical_panel.visible:
+						medical_panel.call("close_panel")
 					if valley_map and bool(valley_map.get("is_full_map_open")):
 						valley_map.call("close_full_map")
 					tool_wheel.open_wheel()
@@ -174,15 +179,29 @@ func _unhandled_input(event: InputEvent) -> void:
 			if event.physical_keycode == KEY_I:
 				if tool_wheel and tool_wheel.visible:
 					tool_wheel.close_wheel(false)
+				if medical_panel and medical_panel.visible:
+					medical_panel.call("close_panel")
 				if valley_map and bool(valley_map.get("is_full_map_open")):
 					valley_map.call("close_full_map")
 				_toggle_inventory()
+				get_viewport().set_input_as_handled()
+			elif event.physical_keycode == KEY_H:
+				if tool_wheel and tool_wheel.visible:
+					tool_wheel.close_wheel(false)
+				if inv_panel and inv_panel.visible:
+					inv_panel.visible = false
+				if valley_map and bool(valley_map.get("is_full_map_open")):
+					valley_map.call("close_full_map")
+				if medical_panel and medical_panel.has_method("toggle_panel"):
+					medical_panel.call("toggle_panel")
 				get_viewport().set_input_as_handled()
 			elif event.physical_keycode == KEY_M:
 				if tool_wheel and tool_wheel.visible:
 					tool_wheel.close_wheel(false)
 				if inv_panel and inv_panel.visible:
 					inv_panel.visible = false
+				if medical_panel and medical_panel.visible:
+					medical_panel.call("close_panel")
 				if valley_map and valley_map.has_method("toggle_full_map"):
 					valley_map.call("toggle_full_map")
 				get_viewport().set_input_as_handled()
@@ -190,12 +209,25 @@ func _unhandled_input(event: InputEvent) -> void:
 				if tool_wheel and tool_wheel.visible:
 					tool_wheel.close_wheel(false)
 					get_viewport().set_input_as_handled()
+				elif medical_panel and medical_panel.visible:
+					medical_panel.call("close_panel")
+					get_viewport().set_input_as_handled()
 				elif valley_map and bool(valley_map.get("is_full_map_open")):
 					valley_map.call("close_full_map")
 					get_viewport().set_input_as_handled()
 				elif inv_panel and inv_panel.visible:
 					inv_panel.visible = false
 					get_viewport().set_input_as_handled()
+
+func _setup_medical_panel_ui() -> void:
+	medical_panel = MedicalPanelUIScript.new()
+	medical_panel.name = "MedicalPanelUI"
+	medical_panel.set("player", player)
+	add_child(medical_panel)
+	if player and player.has_node("HealthComponent"):
+		var hc: HealthComponent = player.get_node("HealthComponent")
+		if not hc.anatomy_changed.is_connected(Callable(medical_panel, "refresh_ui")):
+			hc.anatomy_changed.connect(Callable(medical_panel, "refresh_ui"))
 
 func _setup_tool_wheel_ui() -> void:
 	tool_wheel = ToolWheelUI.new()
@@ -356,6 +388,11 @@ func _setup_inventory_ui() -> void:
 	footer.alignment = BoxContainer.ALIGNMENT_CENTER
 	footer.add_theme_constant_override("separation", 12)
 	main_vbox.add_child(footer)
+	_make_btn(footer, "🩺 [H] Panel Clínico", func():
+		inv_panel.visible = false
+		if medical_panel and medical_panel.has_method("open_panel"):
+			medical_panel.call("open_panel")
+	)
 	_make_btn(footer, "💾 [F5] Guardar", func(): if GameManager: GameManager.save_game())
 	_make_btn(footer, "📂 [F9] Cargar", func(): if GameManager: GameManager.load_game())
 	_make_btn(footer, "✖ [I / ESC] Cerrar", func(): inv_panel.visible = false)

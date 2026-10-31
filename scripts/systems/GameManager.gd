@@ -156,6 +156,9 @@ func load_game(filepath: String = SAVE_FILE_PATH) -> bool:
 			var inv_p = ui_root.get("inv_panel")
 			if inv_p is Control:
 				inv_p.visible = false
+			var med_p = ui_root.get("medical_panel")
+			if med_p is Control:
+				med_p.visible = false
 			var v_map = ui_root.get("valley_map")
 			if v_map:
 				if bool(v_map.get("is_full_map_open")) and v_map.has_method("close_full_map"):

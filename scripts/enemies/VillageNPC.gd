@@ -1037,7 +1037,8 @@ func _apply_player_and_doorway_yield(delta: float) -> void:
 
 func _move_towards_point(target_pos: Vector2, speed: float, delta: float = 0.016) -> void:
 	var vm = _get_vm()
-	var eff_speed: float = speed * get_nutrition_speed_multiplier() * get_sleep_speed_multiplier()
+	var leg_mult: float = health_comp.get_moving_capacity() if health_comp else 1.0
+	var eff_speed: float = speed * get_nutrition_speed_multiplier() * get_sleep_speed_multiplier() * leg_mult
 
 	_nav_waypoint_timer -= delta
 	if (_nav_waypoint_timer <= 0.0) or (_cached_nav_waypoint == Vector2.INF) or (target_pos.distance_squared_to(_last_nav_dest) > 16.0) or (global_position.distance_squared_to(_cached_nav_waypoint) <= 20.0):
@@ -1195,9 +1196,10 @@ func get_sleep_status_label() -> String:
 		return "🟠Privación Sueño (-28%%Vel -35%%Oficio)%s" % camp_tag
 	return ("🟡Somnoliento (-12%%Vel)%s" if need_energy < 50.0 else "🟢Descansado%s") % camp_tag
 
-## Devuelve la eficiencia laboral actual del NPC combinando su experiencia (`days_in_role`) con su estado nutricional estilo Kenshi y su nivel de sueño
+## Devuelve la eficiencia laboral actual del NPC combinando su experiencia (`days_in_role`) con su estado nutricional estilo Kenshi, sueño y capacidad de brazos (`manipulation`)
 func get_job_efficiency() -> float:
-	var mult: float = get_nutrition_skill_multiplier() * get_sleep_skill_multiplier()
+	var arm_mult: float = health_comp.get_manipulation_capacity() if health_comp else 1.0
+	var mult: float = get_nutrition_skill_multiplier() * get_sleep_skill_multiplier() * arm_mult
 	if trade_role in [TradeRole.UNEMPLOYED, TradeRole.FAMILY_MEMBER]:
 		return clampf(mult, 0.15, 1.0)
 	var base_exp: float = clampf(0.35 + (float(days_in_role) / 7.0) * 0.65, 0.35, 1.0)
@@ -3099,7 +3101,8 @@ func to_save_dict() -> Dictionary:
 		"hp": health_comp.current_health if health_comp else 65.0,
 		"shop_stock": shop_stock.duplicate(), "workshop_materials": workshop_materials.duplicate(),
 		"craft_progress": _craft_progress, "crafting_recipe_idx": _crafting_recipe_idx,
-		"completed_expedition_day": _completed_expedition_day, "route_bought_flags": route_bought_flags
+		"completed_expedition_day": _completed_expedition_day, "route_bought_flags": route_bought_flags,
+		"medical": health_comp.to_medical_dict() if health_comp else {}
 	}
 
 func _read_vec2(data: Dictionary, kx: String, ky: String, fallback: Vector2) -> Vector2:
@@ -3224,3 +3227,8 @@ func from_save_dict(data: Dictionary) -> void:
 			else: _set_sprite_pose(0.0)
 		if health_comp and data.has("hp"):
 			health_comp.current_health = clampf(float(data["hp"]), 1.0, health_comp.max_health)
+	if health_comp:
+		if data.has("medical") and typeof(data["medical"]) == TYPE_DICTIONARY:
+			health_comp.from_medical_dict(data["medical"])
+		else:
+			health_comp._init_anatomy()

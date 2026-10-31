@@ -244,9 +244,11 @@ func _release_bow_shot(skip_release_cost: bool = false) -> void:
 		return
 	if stamina_comp and not skip_release_cost and stamina_comp.current_stamina >= 4.0:
 		stamina_comp.use_stamina(4.0)
-	attack_timer = 0.25
+	var hc_bow: HealthComponent = player.get_node_or_null("HealthComponent")
+	var manip_bow: float = hc_bow.get_manipulation_capacity() if hc_bow else 1.0
+	attack_timer = 0.25 / maxf(0.35, manip_bow)
 	_update_weapon_visuals()
-	_fire_bow(equipped, final_tension)
+	_fire_bow(equipped, final_tension * manip_bow)
 
 func attack(_aim_with_mouse: bool = true) -> void:
 	var equipped: WeaponData = player.equipped_weapon
@@ -255,7 +257,9 @@ func attack(_aim_with_mouse: bool = true) -> void:
 	if stamina_comp:
 		if stamina_comp.current_stamina < stam_cost: return
 		stamina_comp.use_stamina(stam_cost)
-	attack_timer = 0.36
+	var hc_atk: HealthComponent = player.get_node_or_null("HealthComponent")
+	var manip_atk: float = hc_atk.get_manipulation_capacity() if hc_atk else 1.0
+	attack_timer = 0.36 / maxf(0.35, manip_atk)
 	if crosshair:
 		crosshair.add_recoil(4.5)
 	_update_weapon_visuals()

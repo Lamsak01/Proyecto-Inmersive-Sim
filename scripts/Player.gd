@@ -424,7 +424,7 @@ func is_any_ui_modal_open() -> bool:
 		return true
 	var ui_root = get_tree().current_scene.get_node_or_null("UI/UIRoot") if get_tree().current_scene else null
 	if ui_root:
-		for ui_key in ["inv_panel", "tool_wheel", "tavern_games"]:
+		for ui_key in ["inv_panel", "tool_wheel", "tavern_games", "medical_panel"]:
 			var ctrl = ui_root.get(ui_key)
 			if ctrl is Control and ctrl.visible:
 				return true
@@ -621,6 +621,7 @@ func to_save_dict() -> Dictionary:
 		"paralytic_venom_timer": paralytic_venom_timer,
 		"tool_tiers": tool_tiers.duplicate(),
 		"weapon": weapon_id,
+		"medical": health_comp.to_medical_dict() if health_comp else {},
 		"inventory": inventory.to_dict() if inventory else {}
 	}
 
@@ -661,6 +662,10 @@ func from_save_dict(data: Dictionary) -> void:
 			health_comp.weakness_changed.emit(false)
 		health_comp.health_changed.emit(health_comp.current_health, health_comp.max_health)
 		health_comp.blood_changed.emit(health_comp.current_blood, health_comp.max_blood)
+		if data.has("medical") and typeof(data["medical"]) == TYPE_DICTIONARY:
+			health_comp.from_medical_dict(data["medical"])
+		else:
+			health_comp._init_anatomy()
 	var stam_comp: StaminaComponent = get_node_or_null("StaminaComponent")
 	if stam_comp and data.has("stamina"):
 		stam_comp.current_stamina = clamp(float(data["stamina"]), 0.0, stam_comp.max_stamina)
