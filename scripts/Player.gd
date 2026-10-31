@@ -58,6 +58,24 @@ var is_stunned_flag: bool = false
 var last_damage_source: Node = null
 var _hit_flash_timer: float = 0.0
 
+## Hook arquitectónico preparado para el futuro Sistema de Habilidades RPG (Carisma, Caza, Elaboración, Cocina, Alquimia, Trato con Animales, Sigilo, Medicina)
+var player_skills: Dictionary = {
+	"charisma": 1,
+	"hunting": 1,
+	"crafting": 1,
+	"cooking": 1,
+	"alchemy": 1,
+	"animals": 1,
+	"stealth": 1,
+	"medicine": 1
+}
+
+func get_skill_level(skill_id: String) -> int:
+	return maxi(1, int(player_skills.get(skill_id.to_lower(), 1)))
+
+func get_skill_bonus(skill_id: String) -> float:
+	return float(get_skill_level(skill_id) - 1) * 0.05
+
 func _get(property: StringName) -> Variant:
 	if property == &"MAX_WATER_CHARGES":
 		return max_water_charges
@@ -727,6 +745,7 @@ func to_save_dict() -> Dictionary:
 		"paralytic_venom_timer": paralytic_venom_timer,
 		"bloodstained_timer": bloodstained_timer,
 		"tool_tiers": tool_tiers.duplicate(),
+		"player_skills": player_skills.duplicate(),
 		"weapon": weapon_id,
 		"medical": health_comp.to_medical_dict() if health_comp else {},
 		"inventory": inventory.to_dict() if inventory else {}
@@ -749,6 +768,11 @@ func from_save_dict(data: Dictionary) -> void:
 			if saved_tiers.has(k):
 				tool_tiers[k] = clampi(int(saved_tiers[k]), 1, 3)
 		_apply_tool_tiers()
+	if data.has("player_skills") and typeof(data["player_skills"]) == TYPE_DICTIONARY:
+		var saved_sk: Dictionary = data["player_skills"]
+		for sk_k in player_skills.keys():
+			if saved_sk.has(sk_k):
+				player_skills[sk_k] = maxi(1, int(saved_sk[sk_k]))
 	if stun_comp and stun_comp.has_method("clear_stun"):
 		stun_comp.clear_stun()
 	is_stunned_flag = false

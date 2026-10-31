@@ -4730,6 +4730,11 @@ func update_royal_investigator_ai(inv_npc: VillageNPC, delta: float) -> void:
 			if dist_chk <= 38.0:
 				inv_npc.velocity = Vector2.ZERO
 				inv_npc.trigger_action_animation(3.5)
+				if not bool(active_royal_investigation.get("player_dialogue_opened", false)):
+					active_royal_investigation["player_dialogue_opened"] = true
+					inv_npc.start_interrogation_dialogue_with_player(player)
+				if inv_npc._cached_dm != null and "is_active" in inv_npc._cached_dm and bool(inv_npc._cached_dm.get("is_active")):
+					return
 				_evaluate_player_inspection(inv_npc, player, suspects, clues, false)
 				active_royal_investigation["stage"] = "VERDICT"
 				active_royal_investigation["stage_timer"] = 0.0
@@ -4982,6 +4987,12 @@ func _process_case_chain_interviews_step(inv_npc: VillageNPC, delta: float, case
 		else:
 			case_dict["walk_timer"] = 0.0
 			inv_npc.velocity = Vector2.ZERO
+			if not bool(case_dict.get("player_dialogue_opened", false)):
+				case_dict["player_dialogue_opened"] = true
+				if inv_npc.start_interrogation_dialogue_with_player(player):
+					inv_npc._spawn_floating_text("🕵️‍♂️⚖️ ¡Interrogatorio en curso! Elige bien tus palabras para defenderte.", Color.GOLD, -44.0)
+			if inv_npc._cached_dm != null and "is_active" in inv_npc._cached_dm and bool(inv_npc._cached_dm.get("is_active")):
+				return
 			var prev_sp: float = s_timer
 			s_timer += delta
 			case_dict["stage_timer"] = s_timer
@@ -4992,6 +5003,7 @@ func _process_case_chain_interviews_step(inv_npc: VillageNPC, delta: float, case
 			if s_timer >= 8.0:
 				inv_npc._stop_crafting_bar()
 				case_dict["stage_timer"] = 0.0
+				case_dict["player_dialogue_opened"] = false
 				case_dict["current_interview_target"] = ""
 				case_dict["interviews_done"] = done_cnt + 1
 				case_dict["interviews_done_today"] = done_today + 1
@@ -5277,6 +5289,118 @@ func _evaluate_player_inspection(inv_npc: VillageNPC, player: Node2D, suspects: 
 		clues.append("Antecedentes directos o arresto en Comisaría (+%d%% sospecha)." % police_add)
 	elif is_initial_interview and int(p_entry.get("score", 16)) < 40:
 		p_entry["status_note"] = "Interrogado (%d%% sospecha)" % int(p_entry.get("score", 16))
+
+## Resuelve el resultado de la rueda de diálogo de Defensa en Interrogatorio RPG (3 Rondas) ante el Comisario Vane o el Inquisidor Real Alistair
+func resolve_player_interrogation_outcome(inv_npc: VillageNPC, player: Node2D, outcome_mode: String, correct_steps: int, penalty_acc: int) -> void:
+	if inv_npc == null or player == null:
+		return
+	var is_royal: bool = (inv_npc.trade_role == VillageNPC.TradeRole.ROYAL_INVESTIGATOR and bool(active_royal_investigation.get("active", false)))
+	var active_case: Dictionary = active_royal_investigation if is_royal else active_sheriff_investigation
+	if active_case.is_empty() or not bool(active_case.get("active", false)):
+		return
+	var suspects: Dictionary = active_case.get("suspects", {})
+	var clues: Array = active_case.get("clues_log", [])
+	if not suspects.has("Jugador"):
+		return
+	var p_entry: Dictionary = suspects["Jugador"]
+	if not bool(p_entry.get("interviewed", false)):
+		_evaluate_player_inspection(inv_npc, player, suspects, clues, true, active_case)
+
+	inv_npc._stop_crafting_bar()
+	active_case["player_dialogue_opened"] = false
+	if str(active_case.get("current_interview_target", "")) == "Jugador":
+		active_case["current_interview_target"] = ""
+		active_case["stage_timer"] = 0.0
+		active_case["interviews_done"] = int(active_case.get("interviews_done", 0)) + 1
+		active_case["interviews_done_today"] = int(active_case.get("interviews_done_today", 0)) + 1
+	elif str(active_case.get("stage", "")) == "PLAYER_CHECK":
+		active_case["stage"] = "VERDICT"
+		active_case["stage_timer"] = 0.0
+
+	if penalty_acc > 0:
+		p_entry["score"] = int(p_entry.get("score", 16)) + penalty_acc
+		p_entry["status_note"] = "Se contradijo en el interrogatorio (+%d%% sospecha)" % penalty_acc
+		clues.append("Interrogatorio al Forastero: respuestas evasivas o contradictorias (+%d%% sospecha)." % penalty_acc)
+
+	if bool(p_entry.get("caught_with_safe_conduct", false)):
+		inv_npc._spawn_floating_text("👑📜 ¡Ninguna labia explica por qué llevas el Salvoconducto Real robado!", Color.ORANGE_RED, -44.0)
+		active_case["stage"] = "VERDICT"
+		return
+
+	var inv: SimpleInventory = player.get("inventory")
+	var charisma_bonus: float = float(player.call("get_skill_bonus", "charisma")) if player.has_method("get_skill_bonus") else 0.0
+	var hunting_bonus: float = float(player.call("get_skill_bonus", "hunting")) if player.has_method("get_skill_bonus") else 0.0
+
+	match outcome_mode:
+		"r3_persuade":
+			if correct_steps >= 2 and penalty_acc == 0:
+				var had_blood_or_wound: bool = bool(p_entry.get("caught_bloodstained", false)) or bool(p_entry.get("caught_wounded", false))
+				if not had_blood_or_wound:
+					p_entry["score"] = maxi(6, int(p_entry.get("score", 16)) - 35)
+					p_entry["persuaded_defense"] = true
+					p_entry["status_note"] = "Defensa elocuente y coherente en interrogatorio (-35% sospecha)"
+					clues.append("Interrogatorio al Forastero: defensa coherente y sin fisuras; redujo las sospechas (-35%).")
+					inv_npc._spawn_floating_text("🗣️✅ «Tu declaración es sólida y coherente. Quedas descartado como sospechoso principal (-35%).»", Color.SPRING_GREEN, -44.0)
+					_hint_player("🗣️✨ ¡Éxito de Persuasión en el Interrogatorio! Convenciste a %s con una secuencia de defensa impecable (-35%% sospecha)." % inv_npc.npc_name, player)
+				else:
+					var has_hunting_proof: bool = false
+					if inv:
+						for h_it in ["raw_meat", "leather", "fox_pelt", "antlers", "bones", "wood", "herbs"]:
+							if inv.has_item(h_it, 1):
+								has_hunting_proof = true
+								break
+					var base_ch: float = 0.28 if is_royal else 0.38
+					var total_ch: float = clampf(base_ch + (0.20 if has_hunting_proof else 0.0) + charisma_bonus + hunting_bonus * 0.5, 0.15, 0.90)
+					if randf() <= total_ch:
+						p_entry["score"] = maxi(10, int(p_entry.get("score", 50)) - 45)
+						p_entry["persuaded_defense"] = true
+						p_entry["status_note"] = "Convenció al investigador de que su sangre/heridas eran de cazar (-45%)"
+						clues.append("Persuasión exitosa: el Forastero justificó sus manchas/heridas como faena de caza en el bosque (-45% sospecha).")
+						inv_npc._spawn_floating_text("🏹✅ «Acepto tu explicación: esas manchas parecen de faenar bestias en el bosque (-45% sospecha).»", Color.SPRING_GREEN, -44.0)
+						_hint_player("🏹✨ ¡Persuasión crítica exitosa! Convenciste a %s de que tus manchas/heridas eran de cazar en el bosque (-45%% sospecha)." % inv_npc.npc_name, player)
+					else:
+						p_entry["score"] = int(p_entry.get("score", 40)) + 10
+						p_entry["status_note"] = "No logró justificar sus manchas/heridas en el interrogatorio"
+						clues.append("Interrogatorio: el investigador no creyó la excusa sobre las manchas de sangre/heridas (+10% sospecha).")
+						inv_npc._spawn_floating_text("🤨🩸 «Buena historia sobre el bosque, pero esa sangre fresca sigue siendo muy sospechosa (+10%).»", Color.ORANGE, -44.0)
+			else:
+				p_entry["score"] = int(p_entry.get("score", 20)) + 12
+				p_entry["status_note"] = "Alegato final fallido por contradicciones previas"
+				clues.append("El Forastero intentó persuadir al investigador tras haberse contradicho (+12% sospecha).")
+				inv_npc._spawn_floating_text("🤨📋 «Tu alegato final no se sostiene tras tus contradicciones anteriores (+12% sospecha).»", Color.ORANGE_RED, -44.0)
+		"r3_bribe":
+			if inv == null or inv.gold < 45:
+				p_entry["score"] = int(p_entry.get("score", 20)) + 15
+				inv_npc._spawn_floating_text("😠💰 «¿Intentas sobornarme sin tener siquiera 45 monedas de oro? (+15% sospecha)»", Color.ORANGE_RED, -44.0)
+			elif is_royal:
+				p_entry["score"] = int(p_entry.get("score", 20)) + 35
+				p_entry["status_note"] = "¡Intentó sobornar al Inquisidor Real Alistair! (+35%)"
+				clues.append("¡El Forastero intentó sobornar con oro al Inquisidor Real durante el interrogatorio! (+35% sospecha).")
+				inv_npc._spawn_floating_text("⚖️😡 «¡¿Intentas comprar a la Inquisición Real?! ¡Eso confirma tu culpa! (+35% sospecha)»", Color.ORANGE_RED, -44.0)
+			else:
+				var bribe_ch: float = clampf(0.50 + charisma_bonus, 0.25, 0.90)
+				if randf() <= bribe_ch:
+					inv.add_gold(-45)
+					inv_npc.personal_gold = maxi(0, inv_npc.personal_gold) + 45
+					p_entry["score"] = maxi(8, int(p_entry.get("score", 30)) - 38)
+					p_entry["status_note"] = "Acuerdo discreto en el interrogatorio (-38% sospecha)"
+					clues.append("El Comisario dio por buena la declaración del Forastero tras un acuerdo discreto (-38% sospecha).")
+					inv_npc._spawn_floating_text("💰🤫 «Haremos la vista gorda en el informe por esta vez... (-45 Oro, -38% sospecha)»", Color.GOLD, -44.0)
+				else:
+					p_entry["score"] = int(p_entry.get("score", 20)) + 22
+					p_entry["status_note"] = "Intento de soborno policial rechazado (+22%)"
+					clues.append("El Forastero intentó sobornar a la guardia durante su interrogatorio (+22% sospecha).")
+					inv_npc._spawn_floating_text("😠🚓 «¡Guárdate tu oro! Anotaré este intento de soborno en el acta (+22% sospecha).»", Color.ORANGE_RED, -44.0)
+		"r3_silent":
+			if correct_steps >= 2 and penalty_acc == 0:
+				p_entry["score"] = maxi(8, int(p_entry.get("score", 16)) - 12)
+				inv_npc._spawn_floating_text("📝 «Anotada tu declaración. Seguiré investigando (-12% sospecha).»", Color.AQUA, -42.0)
+			else:
+				p_entry["score"] = int(p_entry.get("score", 16)) + 6
+				inv_npc._spawn_floating_text("🤨 «Tu silencio tras esas respuestas deja muchas dudas (+6% sospecha).»", Color.GOLD, -42.0)
+
+	if int(p_entry.get("score", 0)) >= 75:
+		active_case["stage"] = "VERDICT"
 
 func _conclude_sheriff_investigation_verdict(sheriff: VillageNPC) -> void:
 	var suspects: Dictionary = active_sheriff_investigation.get("suspects", {})

@@ -135,6 +135,8 @@ var _corpse_report_timer: float = 0.0
 var witness_silenced_player: bool = false
 var witness_alibi_for_player: bool = false
 var witness_framed_target_name: String = ""
+var _interrog_correct_steps: int = 0
+var _interrog_penalty_acc: int = 0
 var _active_downed_patient: VillageNPC = null
 
 # Cachés de rendimiento por fotograma (evita escaneos redundantes a 60 FPS en laptops)
@@ -923,6 +925,8 @@ func _process_corpse_state(delta: float) -> void:
 					continue
 				if other.witness_silenced_player and last_hit_by_player:
 					continue
+				if is_instance_valid(other._reporting_corpse_target) and other._reporting_corpse_target.is_dead and not other._reporting_corpse_target.corpse_reported:
+					continue
 				if other.global_position.distance_to(global_position) <= 95.0 and ((vm == null) or (not vm.has_method("has_line_of_sight")) or bool(vm.call("has_line_of_sight", other.global_position, global_position))):
 					if not is_instance_valid(corpse_reporter_npc) or not corpse_reporter_npc.is_conscious() or corpse_reporter_npc._reporting_corpse_target != self:
 						begin_physical_corpse_discovery(other)
@@ -958,6 +962,11 @@ func _process_corpse_state(delta: float) -> void:
 func begin_physical_corpse_discovery(discoverer: VillageNPC) -> void:
 	if discoverer == null or not is_dead or corpse_reported or corpse_in_morgue:
 		return
+	if is_instance_valid(discoverer._reporting_corpse_target) and discoverer._reporting_corpse_target.is_dead and not discoverer._reporting_corpse_target.corpse_reported:
+		if not corpse_discovered:
+			corpse_discovered = true
+			corpse_discovered_by = discoverer.npc_name
+		return
 	if not corpse_discovered:
 		corpse_discovered = true
 		corpse_discovered_by = discoverer.npc_name
@@ -967,6 +976,22 @@ func begin_physical_corpse_discovery(discoverer: VillageNPC) -> void:
 	discoverer._corpse_report_phase = 1
 	discoverer._corpse_report_timer = 0.0
 	_spawn_floating_text("😟❓ ¡%s vio a %s tendido y se acerca a comprobar si está muerto!" % [discoverer.npc_name, npc_name], Color.GOLD, -42.0)
+
+## Cuando un testigo termina de reportar un cadáver a la policía, también quedan reportados otros cadáveres de la misma escena (<= 165 px)
+func _report_nearby_corpses_from_same_scene(primary_corpse: VillageNPC) -> void:
+	if not is_instance_valid(primary_corpse) or not is_inside_tree():
+		return
+	for n in get_tree().get_nodes_in_group("village_npcs"):
+		if n is VillageNPC and n != primary_corpse and n != self:
+			var c := n as VillageNPC
+			if c.is_dead and c.corpse_on_ground and not c.corpse_in_morgue and not c.corpse_reported:
+				if c.global_position.distance_to(primary_corpse.global_position) <= 165.0:
+					c.corpse_discovered = true
+					if c.corpse_discovered_by == "":
+						c.corpse_discovered_by = npc_name
+					c.corpse_reported = true
+					c.corpse_reporter_npc = null
+					c._notify_corpse_reported_to_authorities()
 
 ## Borra al jugador de la memoria visual de este testigo y detiene cualquier reporte activo si fue convencido, sobornado o intimidado
 func clear_witness_memories_of_player() -> void:
@@ -1067,6 +1092,7 @@ func _process_witness_corpse_reporting(delta: float) -> bool:
 				_corpse_report_phase = 0
 				_spawn_floating_text("🚨 ¡%s examinó el cuerpo y confirmó la muerte de %s!" % [npc_name, corpse_to_report.npc_name], Color.ORANGE_RED, -42.0)
 				corpse_to_report._notify_corpse_reported_to_authorities()
+				_report_nearby_corpses_from_same_scene(corpse_to_report)
 			else:
 				_corpse_report_phase = 2
 				_spawn_floating_text("😱💀 ¡No respira, está muerto! ¡Voy en persona a avisar a la policía!", Color.ORANGE_RED, -42.0)
@@ -1137,6 +1163,7 @@ func _process_witness_corpse_reporting(delta: float) -> bool:
 		if nearest_authority != null:
 			nearest_authority._spawn_floating_text("🚓📋 Entendido. Aseguraremos el cuerpo e investigaremos la escena.", Color.AQUA, -38.0)
 		corpse_to_report._notify_corpse_reported_to_authorities()
+		_report_nearby_corpses_from_same_scene(corpse_to_report)
 	return true
 
 ## Recoge físicamente un cadáver YA REPORTADO (`corpse_reported == true`) y camina con él por las puertas y calles hasta depositarlo en la Morgue
@@ -3014,6 +3041,16 @@ func _inject_character_lore_into_dialogue(diag: Dictionary) -> Dictionary:
 			return diag
 
 	var insert_idx: int = maxi(0, ch_arr.size() - 1)
+	var vm_diag = _get_vm()
+	if trade_role in [TradeRole.SHERIFF, TradeRole.GUARD, TradeRole.ROYAL_INVESTIGATOR]:
+		var has_active_case: bool = false
+		if vm_diag:
+			if trade_role == TradeRole.ROYAL_INVESTIGATOR and "active_royal_investigation" in vm_diag:
+				has_active_case = bool(vm_diag.active_royal_investigation.get("active", false))
+			elif "active_sheriff_investigation" in vm_diag:
+				has_active_case = bool(vm_diag.active_sheriff_investigation.get("active", false))
+		if has_active_case:
+			ch_arr.insert(0, {"label": "🗣️⚖️ Defenderme en Interrogatorio / Declarar mi Coartada (Persuasión RPG)", "next": "interrogation_r1", "action": "interrog_step:init"})
 	if is_instance_valid(_reporting_corpse_target) and trade_role != TradeRole.ROYAL_INVESTIGATOR:
 		ch_arr.insert(0, {"label": "🚨🤫 ¡DETENER REPORTE DE %s! (Sobornar, Convencer o Intimidar)" % _reporting_corpse_target.npc_name, "next": "witness_manipulation_menu"})
 	elif not (trade_role in [TradeRole.SHERIFF, TradeRole.GUARD, TradeRole.ROYAL_INVESTIGATOR]):
@@ -3085,6 +3122,39 @@ func _inject_character_lore_into_dialogue(diag: Dictionary) -> Dictionary:
 		]
 	}
 	diag["character_secret"] = {"text": "🤫 Confidencia de %s:\n%s" % [npc_name, character_secret], "choices": [{"label": "Guardaré el secreto. [Volver]", "next": "start"}]}
+
+	if trade_role in [TradeRole.SHERIFF, TradeRole.GUARD, TradeRole.ROYAL_INVESTIGATOR]:
+		var blood_or_wound_hint: String = ""
+		if player_ref:
+			var p_bld: bool = player_ref.has_method("is_bloodstained") and bool(player_ref.call("is_bloodstained"))
+			var p_hc_chk: HealthComponent = player_ref.get_node_or_null("HealthComponent")
+			var p_wnd: bool = p_hc_chk != null and p_hc_chk.has_fresh_combat_wounds_or_makeshift()
+			if p_bld or p_wnd:
+				blood_or_wound_hint = "\n⚠️ (El investigador observa con recelo tus manchas de sangre o vendajes recientes)."
+		diag["interrogation_r1"] = {
+			"text": "🕵️‍♂️⚖️ INTERROGATORIO OFICIAL DE %s — Ronda 1/3 (Ubicación y Coartada):\n«Forastero, estamos investigando el crimen en el valle. ¿Dónde estabas a esa hora y qué hacías por los alrededores?»%s" % [npc_name, blood_or_wound_hint],
+			"choices": [
+				{"label": "😰 «¡Yo no fui, ni siquiera pasé por esa calle en todo el día!»", "next": "interrogation_r2", "action": "interrog_step:r1_wrong_nervous"},
+				{"label": "🧘 «Estaba realizando encargos de recolección y comercio entre la granja y los talleres; cualquiera pudo verme trabajando con normalidad.»", "next": "interrogation_r2", "action": "interrog_step:r1_correct"},
+				{"label": "😤 «Soy libre de andar por donde quiera, no tengo que darle explicaciones a nadie.»", "next": "interrogation_r2", "action": "interrog_step:r1_wrong_hostile"}
+			]
+		}
+		diag["interrogation_r2"] = {
+			"text": "🕵️‍♂️⚖️ INTERROGATORIO OFICIAL DE %s — Ronda 2/3 (Pruebas Físicas y Forenses):\n«Hemos revisado la escena del crimen, el rastro de sangre y la autopsia en la Morgue. ¿Cómo explicas tus herramientas, las marcas de tu jornada y la naturaleza del ataque?»" % npc_name,
+			"choices": [
+				{"label": "🤷 «Me habré manchado con pintura o tropezado en la taberna... pura casualidad.»", "next": "interrogation_r3", "action": "interrog_step:r2_wrong_excuse"},
+				{"label": "🏹 «Mis manos y herramientas son de faenar y cazar bestias en el bosque/ciénaga; la herida de la víctima apunta a un asalto premeditado, no a mi oficio.»", "next": "interrogation_r3", "action": "interrog_step:r2_correct"},
+				{"label": "👀 «Seguro que un lobo salvaje abrió la puerta, lo atacó y volvió a cerrar.»", "next": "interrogation_r3", "action": "interrog_step:r2_wrong_lie"}
+			]
+		}
+		diag["interrogation_r3"] = {
+			"text": "🕵️‍♂️⚖️ INTERROGATORIO OFICIAL DE %s — Ronda 3/3 (Alegato Final de Defensa):\n«Última pregunta antes de anotar mi conclusión en el expediente: ¿por qué debería descartarte como sospechoso de este crimen?»" % npc_name,
+			"choices": [
+				{"label": "🗣️✨ [Persuasión RPG] «Porque mi declaración es coherente, no tengo móvil contra la víctima y acusar al forastero sin pruebas dejaría libre al verdadero culpable.»", "next": "END", "action": "interrog_step:r3_persuade"},
+				{"label": "💰 [Sobornar con 45 Oro] «Quizás esta bolsa de oro ayude a limpiar mi nombre del expediente...»", "next": "END", "action": "interrog_step:r3_bribe"},
+				{"label": "🤐 Guardar silencio y concluir el interrogatorio.", "next": "END", "action": "interrog_step:r3_silent"}
+			]
+		}
 	return diag
 
 func get_pickpocket_success_chance(player: Node) -> float:
@@ -3217,6 +3287,31 @@ func _start_npc_dialogue(player: Node) -> void:
 	_cached_dm = dm
 	var diag := _inject_character_lore_into_dialogue(_build_dialogue())
 	dm.call("start_dialogue", diag, "start", self)
+
+## Abre directamente la rueda de diálogo de Defensa de Interrogatorio RPG (3 Rondas) cuando la policía o el Inquisidor interrogan al jugador
+func start_interrogation_dialogue_with_player(player: Node) -> bool:
+	_interrog_correct_steps = 0
+	_interrog_penalty_acc = 0
+	velocity = Vector2.ZERO
+	_stop_crafting_bar()
+	if player is Node2D and sprite:
+		sprite.flip_h = ((player as Node2D).global_position.x < global_position.x)
+	trigger_action_animation(0.8)
+	var dm: Node = null
+	if get_tree() and get_tree().current_scene:
+		dm = get_tree().current_scene.get_node_or_null("Systems/dialogue_manager")
+	if not dm and get_tree() and get_tree().root:
+		dm = get_tree().root.find_child("dialogue_manager", true, false)
+	if not dm:
+		return false
+	if "is_active" in dm and bool(dm.get("is_active")):
+		return false
+	_cached_dm = dm
+	var diag := _inject_character_lore_into_dialogue(_build_dialogue())
+	if not diag.has("interrogation_r1"):
+		return false
+	dm.call("start_dialogue", diag, "interrogation_r1", self)
+	return true
 
 func _get_needs_status_line() -> String:
 	var traits_str: String = ", ".join(traits) if not traits.is_empty() else "Equilibrado"
@@ -3574,9 +3669,40 @@ func on_dialogue_action(action_id: String) -> void:
 		attempt_pickpocket_or_plant(player, "plant_item", action_id.get_slice(":", 1))
 		return
 
+	if action_id.begins_with("interrog_step:"):
+		var step_cmd: String = action_id.get_slice(":", 1)
+		match step_cmd:
+			"init":
+				_interrog_correct_steps = 0
+				_interrog_penalty_acc = 0
+			"r1_correct":
+				_interrog_correct_steps += 1
+				_spawn_floating_text("📝 «Una coartada razonable... sigamos.»", Color(0.75, 0.96, 0.80), -40.0)
+			"r1_wrong_nervous":
+				_interrog_penalty_acc += 14
+				_spawn_floating_text("🤨 «Te contradices y pareces nervioso (+14% sospecha).»", Color.ORANGE, -40.0)
+			"r1_wrong_hostile":
+				_interrog_penalty_acc += 20
+				_spawn_floating_text("😠 «Tu actitud hostil solo te incrimina más (+20% sospecha).»", Color.ORANGE_RED, -40.0)
+			"r2_correct":
+				_interrog_correct_steps += 1
+				_spawn_floating_text("📝 «Tiene sentido para alguien que caza y trabaja en el valle...»", Color(0.75, 0.96, 0.80), -40.0)
+			"r2_wrong_excuse":
+				_interrog_penalty_acc += 16
+				_spawn_floating_text("🤨 «¿Pintura en la taberna? Qué excusa tan burda (+16% sospecha).»", Color.ORANGE, -40.0)
+			"r2_wrong_lie":
+				_interrog_penalty_acc += 18
+				_spawn_floating_text("😠 «No te burles de esta investigación (+18% sospecha).»", Color.ORANGE_RED, -40.0)
+			"r3_persuade", "r3_bribe", "r3_silent":
+				if vm and vm.has_method("resolve_player_interrogation_outcome"):
+					vm.call("resolve_player_interrogation_outcome", self, player, step_cmd, _interrog_correct_steps, _interrog_penalty_acc)
+		return
+
 	if action_id == "witness_convince_alibi":
-		if affinity < 35:
-			_spawn_floating_text("❌ Necesitas al menos 35 de Relación para pedirle una coartada (Actual: %d)" % affinity, Color.ORANGE_RED, -44.0)
+		var charisma_bonus_aff: int = int(round(float(player.call("get_skill_bonus", "charisma")) * 100.0)) if player.has_method("get_skill_bonus") else 0
+		var req_aff: int = maxi(15, 35 - charisma_bonus_aff)
+		if affinity < req_aff:
+			_spawn_floating_text("❌ Necesitas al menos %d de Relación para pedirle una coartada (Actual: %d)" % [req_aff, affinity], Color.ORANGE_RED, -44.0)
 			return
 		clear_witness_memories_of_player()
 		witness_alibi_for_player = true
