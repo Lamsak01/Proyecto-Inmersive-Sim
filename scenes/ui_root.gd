@@ -579,20 +579,49 @@ func _refresh_inventory_list() -> void:
 			_make_btn(r_hbox, "Fabricar", func(): inv.craft_recipe(captured_recipe, player), not craftable)
 			inv_recipes_box.add_child(r_row)
 
+var _speed_buttons: Dictionary = {} # float -> Button
+
 func _setup_clock_ui() -> void:
 	clock_panel = PanelContainer.new()
 	clock_panel.name = "WorldClockPanel"
 	clock_panel.set_anchors_and_offsets_preset(Control.PRESET_CENTER_TOP)
-	clock_panel.offset_left = -175.0
-	clock_panel.offset_top = 10.0
-	clock_panel.offset_right = 175.0
-	clock_panel.offset_bottom = 62.0
+	clock_panel.offset_left = -215.0
+	clock_panel.offset_top = 8.0
+	clock_panel.offset_right = 215.0
+	clock_panel.offset_bottom = 82.0
 	clock_panel.add_theme_stylebox_override("panel", _make_style(Color(0.08, 0.09, 0.12, 0.88), Color(0.45, 0.55, 0.72, 0.9), 2, 6, 12, 6))
 
 	var vbox := VBoxContainer.new()
 	vbox.add_theme_constant_override("separation", 2)
 	clock_panel.add_child(vbox)
-	clock_label = _make_lbl(vbox, "", 15, Color(0.96, 0.92, 0.78), false, HORIZONTAL_ALIGNMENT_CENTER)
+
+	var top_hbox := HBoxContainer.new()
+	top_hbox.alignment = BoxContainer.ALIGNMENT_CENTER
+	top_hbox.add_theme_constant_override("separation", 6)
+	vbox.add_child(top_hbox)
+	clock_label = _make_lbl(top_hbox, "", 14, Color(0.96, 0.92, 0.78), false, HORIZONTAL_ALIGNMENT_CENTER)
+
+	var speed_hbox := HBoxContainer.new()
+	speed_hbox.alignment = BoxContainer.ALIGNMENT_CENTER
+	speed_hbox.add_theme_constant_override("separation", 4)
+	vbox.add_child(speed_hbox)
+	_make_lbl(speed_hbox, "Velocidad [F1-F4 / - +]:", 10, Color(0.75, 0.82, 0.92))
+	_speed_buttons.clear()
+	for sp_val in [1.0, 2.0, 4.0, 8.0]:
+		var b_lbl: String = "▶ 1x" if sp_val == 1.0 else ("▶▶ 2x" if sp_val == 2.0 else ("▶▶▶ 4x" if sp_val == 4.0 else "⏩ 8x"))
+		var btn := Button.new()
+		btn.text = b_lbl
+		btn.custom_minimum_size = Vector2(46, 20)
+		btn.focus_mode = Control.FOCUS_NONE
+		btn.add_theme_font_size_override("font_size", 10)
+		var captured_sp: float = sp_val
+		btn.pressed.connect(func() -> void:
+			if WorldClock and WorldClock.has_method("set_persistent_time_scale"):
+				WorldClock.set_persistent_time_scale(captured_sp)
+		)
+		speed_hbox.add_child(btn)
+		_speed_buttons[sp_val] = btn
+
 	clock_sub_label = _make_lbl(vbox, "", 11, Color(0.70, 0.78, 0.88), false, HORIZONTAL_ALIGNMENT_CENTER)
 	add_child(clock_panel)
 
@@ -605,6 +634,11 @@ func _on_clock_time_updated(_day: int, _hour: int, _minute: int) -> void:
 		return
 	var icon := WorldClock.get_phase_icon()
 	clock_label.text = "%s %s" % [icon, WorldClock.get_formatted_time()]
+	var cur_sp: float = float(WorldClock.get("persistent_time_scale")) if "persistent_time_scale" in WorldClock else 1.0
+	for sp_k in _speed_buttons.keys():
+		var b: Button = _speed_buttons[sp_k]
+		if is_instance_valid(b):
+			b.add_theme_color_override("font_color", Color(1.0, 0.92, 0.42) if is_equal_approx(float(sp_k), cur_sp) else Color(0.80, 0.84, 0.90))
 	var vis_pct := int(round(WorldClock.get_vision_multiplier() * 100.0))
 	var gold_val := 25
 	if player and "inventory" in player and player.inventory:

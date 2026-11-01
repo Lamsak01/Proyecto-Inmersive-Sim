@@ -45,6 +45,10 @@ var _fast_forward_elapsed_minutes: int = 0
 var _fast_forward_target_minutes: int = 0
 var _on_fast_forward_complete: Callable = Callable()
 
+# Multiplicador de velocidad persistente estilo RimWorld / RTS (1x, 2x, 4x, 8x)
+const PERSISTENT_SPEED_STEPS: Array[float] = [1.0, 2.0, 4.0, 8.0]
+var persistent_time_scale: float = 1.0
+
 func _ready() -> void:
 	_current_phase = get_day_phase(current_hour)
 
@@ -83,6 +87,19 @@ func _unhandled_input(event: InputEvent) -> void:
 				start_organic_fast_forward_duration(120, 26.0)
 		elif event.physical_keycode == KEY_F7:
 			cycle_weather()
+		elif not is_paused_by_activity:
+			if event.physical_keycode == KEY_F1:
+				set_persistent_time_scale(1.0)
+			elif event.physical_keycode == KEY_F2:
+				set_persistent_time_scale(2.0)
+			elif event.physical_keycode == KEY_F3:
+				set_persistent_time_scale(4.0)
+			elif event.physical_keycode == KEY_F4:
+				set_persistent_time_scale(8.0)
+			elif event.physical_keycode in [KEY_MINUS, KEY_KP_SUBTRACT] or event.keycode in [KEY_MINUS, KEY_KP_SUBTRACT]:
+				cycle_persistent_time_scale(-1)
+			elif event.physical_keycode in [KEY_EQUAL, KEY_PLUS, KEY_KP_ADD] or event.keycode in [KEY_EQUAL, KEY_PLUS, KEY_KP_ADD]:
+				cycle_persistent_time_scale(1)
 
 func cycle_weather() -> void:
 	var next_w: int = (int(current_weather) + 1) % 3
@@ -164,16 +181,65 @@ func start_organic_fast_forward_duration(minutes_to_advance: int, speed_mult: fl
 	Engine.time_scale = fast_forward_speed
 
 func stop_organic_fast_forward(completed_target: bool = true) -> void:
-	if not is_fast_forwarding and Engine.time_scale == 1.0:
+	if not is_fast_forwarding and Engine.time_scale == persistent_time_scale:
 		return
 	is_fast_forwarding = false
 	_fast_forward_target_minutes = 0
-	Engine.physics_ticks_per_second = 60
-	Engine.time_scale = 1.0
+	_apply_persistent_engine_scale()
 	var cb: Callable = _on_fast_forward_complete
 	_on_fast_forward_complete = Callable()
 	if completed_target and cb.is_valid():
 		cb.call()
+
+func get_active_time_scale() -> float:
+	return fast_forward_speed if is_fast_forwarding else persistent_time_scale
+
+func _apply_persistent_engine_scale() -> void:
+	if is_fast_forwarding:
+		Engine.physics_ticks_per_second = 240
+		Engine.time_scale = fast_forward_speed
+		return
+	Engine.time_scale = persistent_time_scale
+	if persistent_time_scale <= 1.01:
+		Engine.physics_ticks_per_second = 60
+	elif persistent_time_scale <= 2.01:
+		Engine.physics_ticks_per_second = 120
+	elif persistent_time_scale <= 4.01:
+		Engine.physics_ticks_per_second = 180
+	else:
+		Engine.physics_ticks_per_second = 240
+
+func set_persistent_time_scale(mult: float) -> void:
+	var best: float = 1.0
+	for s in PERSISTENT_SPEED_STEPS:
+		if is_equal_approx(s, mult):
+			best = s
+			break
+	persistent_time_scale = best
+	if not is_fast_forwarding:
+		_apply_persistent_engine_scale()
+	time_updated.emit(current_day, current_hour, current_minute)
+
+func cycle_persistent_time_scale(step_dir: int) -> void:
+	var cur_idx: int = 0
+	for i in range(PERSISTENT_SPEED_STEPS.size()):
+		if is_equal_approx(PERSISTENT_SPEED_STEPS[i], persistent_time_scale):
+			cur_idx = i
+			break
+	var next_idx: int = clampi(cur_idx + step_dir, 0, PERSISTENT_SPEED_STEPS.size() - 1)
+	set_persistent_time_scale(PERSISTENT_SPEED_STEPS[next_idx])
+
+func get_speed_badge() -> String:
+	if is_fast_forwarding:
+		return "⏩ ×%d" % int(round(fast_forward_speed))
+	var m_int: int = int(round(persistent_time_scale))
+	if m_int <= 1:
+		return "▶ ×1"
+	elif m_int == 2:
+		return "▶▶ ×2"
+	elif m_int == 4:
+		return "▶▶▶ ×4"
+	return "⏩ ×%d" % m_int
 
 ## Avanza varias horas de golpe (mantenido para compatibilidad de tests unitarios)
 func advance_hours(hours: int) -> void:
@@ -215,7 +281,7 @@ func get_weather_vision_multiplier() -> float:
 	return get_vision_multiplier()
 
 func get_formatted_time() -> String:
-	return "Día %d | %02d:%02d (%s | %s %s)" % [current_day, current_hour, current_minute, get_phase_name(_current_phase), get_weather_icon(current_weather), get_weather_name(current_weather)]
+	return "Día %d | %02d:%02d (%s | %s %s) [%s]" % [current_day, current_hour, current_minute, get_phase_name(_current_phase), get_weather_icon(current_weather), get_weather_name(current_weather), get_speed_badge()]
 
 ## Multiplicador sistémico de visión según la luz del día y el clima actual (Niebla reduce -35%, Lluvia -15%)
 func get_vision_multiplier() -> float:
