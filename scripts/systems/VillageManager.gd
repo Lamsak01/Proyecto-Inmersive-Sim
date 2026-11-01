@@ -3244,6 +3244,7 @@ func get_hangout_spots() -> Array:
 	if not is_building_door_blocked("tavern"):
 		spots.append({"id": "tavern", "pos": _tavern_social_pos + Vector2(0, 14), "kind": "tavern", "label": "la Taberna"})
 	spots.append({"id": "plaza_well", "pos": _plaza_well_pos + Vector2(0, 24), "kind": "well", "label": "el Pozo de la Plaza"})
+	spots.append({"id": "plaza_bench", "pos": Vector2(468, 54), "kind": "bench", "label": "el Rincón de la Plaza"})
 	spots.append({"id": "plaza_board", "pos": _notice_board_pos + Vector2(0, 26), "kind": "plaza", "label": "la Plaza Central"})
 	spots.append({"id": "farm_well", "pos": _well_pos + Vector2(0, 24), "kind": "well", "label": "el Pozo de la Granja"})
 	return spots
@@ -3304,13 +3305,32 @@ func _update_social_hangouts(delta: float) -> void:
 				v2.clear_hangout()
 		if bool(res.get("success", false)) and is_instance_valid(ra) and is_instance_valid(rb) and not ra.is_dead and not rb.is_dead:
 			var d_aff: int = int(res.get("delta_affinity", 3))
-			ra.modify_npc_relationship(rb, d_aff, "Pasaron un buen rato juntos")
-			ra.add_thought("Pasé un buen rato con %s (+6)" % rb.npc_name, 6.0)
-			rb.add_thought("Pasé un buen rato con %s (+6)" % ra.npc_name, 6.0)
-			ra.need_social = minf(100.0, ra.need_social + 20.0)
-			rb.need_social = minf(100.0, rb.need_social + 20.0)
-			ra._spawn_floating_text("☕🤝 Buen rato con %s (+%d)" % [rb.npc_name, d_aff], Color(0.70, 1.0, 0.80), -40.0)
-			record_social_event("hangout", ra, rb, "%s y %s pasaron un rato juntos en %s" % [ra.npc_name, rb.npc_name, _spot_label_for(str(res.get("spot_id", ""))) if str(res.get("spot_id", "")) != "" else "el pueblo"])
+			var st_done: String = social_director.get_pair_stage(ra.get_person_key(), rb.get_person_key())
+			var spot_lbl: String = _spot_label_for(str(res.get("spot_id", ""))) if str(res.get("spot_id", "")) != "" else "el pueblo"
+			if st_done == "couple" or (ra.person_profile != null and str(ra.person_profile.partner_id) == rb.get_person_key()):
+				ra.modify_npc_relationship(rb, d_aff + 2, "💑 Pasaron la tarde juntos en pareja")
+				ra.add_thought("Pasé una tarde preciosa con %s (+10)" % rb.npc_name, 10.0)
+				rb.add_thought("Pasé una tarde preciosa con %s (+10)" % ra.npc_name, 10.0)
+				ra.need_social = minf(100.0, ra.need_social + 26.0)
+				rb.need_social = minf(100.0, rb.need_social + 26.0)
+				ra._spawn_floating_text("💑✨ Tarde en pareja con %s (+%d)" % [rb.npc_name, d_aff + 2], Color(1.0, 0.62, 0.80), -40.0)
+				record_social_event("date", ra, rb, "%s y %s pasaron la tarde juntos como pareja en %s" % [ra.npc_name, rb.npc_name, spot_lbl])
+			elif st_done in ["dating", "flirt"]:
+				ra.modify_npc_relationship(rb, d_aff + 1, "💞 Tuvieron una cita juntos")
+				ra.add_thought("Disfruté mucho de mi cita con %s (+8)" % rb.npc_name, 8.0)
+				rb.add_thought("Disfruté mucho de mi cita con %s (+8)" % ra.npc_name, 8.0)
+				ra.need_social = minf(100.0, ra.need_social + 24.0)
+				rb.need_social = minf(100.0, rb.need_social + 24.0)
+				ra._spawn_floating_text("💞✨ Cita con %s (+%d)" % [rb.npc_name, d_aff + 1], Color(1.0, 0.70, 0.88), -40.0)
+				record_social_event("date", ra, rb, "%s y %s tuvieron una cita en %s" % [ra.npc_name, rb.npc_name, spot_lbl])
+			else:
+				ra.modify_npc_relationship(rb, d_aff, "Pasaron un buen rato juntos")
+				ra.add_thought("Pasé un buen rato con %s (+6)" % rb.npc_name, 6.0)
+				rb.add_thought("Pasé un buen rato con %s (+6)" % ra.npc_name, 6.0)
+				ra.need_social = minf(100.0, ra.need_social + 20.0)
+				rb.need_social = minf(100.0, rb.need_social + 20.0)
+				ra._spawn_floating_text("☕🤝 Buen rato con %s (+%d)" % [rb.npc_name, d_aff], Color(0.70, 1.0, 0.80), -40.0)
+				record_social_event("hangout", ra, rb, "%s y %s pasaron un rato juntos en %s" % [ra.npc_name, rb.npc_name, spot_lbl])
 
 	# 3. Planificar nuevas quedadas cada pocos segundos en horario social
 	_hangout_plan_timer -= delta
@@ -3351,7 +3371,13 @@ func _update_social_hangouts(delta: float) -> void:
 	var sp_pos: Vector2 = hg_new.get("spot_pos", pa.global_position)
 	pa.assign_hangout(int(hg_new["id"]), sp_pos, pb, -1, lbl)
 	pb.assign_hangout(int(hg_new["id"]), sp_pos, pa, 1, lbl)
-	pa._spawn_floating_text("☕ «%s, ¿nos vemos en %s?»" % [pb.npc_name, lbl], Color(0.85, 0.95, 1.0), -36.0)
+	var st_inv: String = social_director.get_pair_stage(pa.get_person_key(), pb.get_person_key())
+	if st_inv == "couple" or (pa.person_profile != null and str(pa.person_profile.partner_id) == pb.get_person_key()):
+		pa._spawn_floating_text("💑 «%s, ¿pasamos la tarde juntos en %s?»" % [pb.npc_name, lbl], Color(1.0, 0.65, 0.82), -36.0)
+	elif st_inv in ["dating", "flirt"]:
+		pa._spawn_floating_text("💞 «%s, ¿vamos un rato a %s?»" % [pb.npc_name, lbl], Color(1.0, 0.72, 0.88), -36.0)
+	else:
+		pa._spawn_floating_text("☕ «%s, ¿nos vemos en %s?»" % [pb.npc_name, lbl], Color(0.85, 0.95, 1.0), -36.0)
 
 # ==============================================================================
 # B3.1: AVANCE DIARIO DE CORTEJOS EN VIVO (Interés → Coqueteo → Citas → Pareja)

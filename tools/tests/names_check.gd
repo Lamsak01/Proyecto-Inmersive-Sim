@@ -108,7 +108,7 @@ func _initialize() -> void:
 	var c2: Dictionary = PersonProfile.generate_newcomer(4, 1, gr2, [], {}, 6, 11)
 	assert(c1["full_name"] == c2["full_name"] and c1["profile"].to_dict() == c2["profile"].to_dict(), "Generador debe ser reproducible con la misma semilla")
 	# B1.1: Comprobar catalogo de frases sociales (8 acciones, 16 gustos, sin placeholders residuales)
-	assert(SocialDialogueData.ALL_ACTIONS.size() == 8, "Debe haber 8 tipos de acciones sociales")
+	assert(SocialDialogueData.ALL_ACTIONS.size() == 10, "Debe haber 10 tipos de acciones sociales (incluidos coqueteo y cariño)")
 	for t_key in PersonProfile.TASTE_TOPICS:
 		assert(SocialDialogueData.TASTE_LABELS.has(t_key), "Falta etiqueta de gusto para: %s" % t_key)
 	var prof_elena: Dictionary = NPCData.INITIAL_PERSON_PROFILES["Elena"]
@@ -246,5 +246,31 @@ func _initialize() -> void:
 	assert(int(cap_pe["spark"]) == 10, "Tope diario de chispa = 10")
 	rd._add_spark_capped(cap_pe, 8, 6)
 	assert(int(cap_pe["spark"]) == 18, "Al dia siguiente vuelve a ganar chispa")
-	print("NAMES CHECK PASSED (200 F / 200 M / 200 apellidos + 17 PersonProfile + B0.3 generator + B1.1/B1.2 social + B2.1 hangouts + B3.1 stages)")
+	# B3.2: Comportamiento por etapa (coqueteo en etapa flirt/dating y cariño en pareja)
+	var bd = SocialDirector.new(8888)
+	var mock_kael: Dictionary = {"npc_name": "Kael", "person_profile": PersonProfile.from_dict(NPCData.INITIAL_PERSON_PROFILES["Kael"])}
+	var mock_nora: Dictionary = {"npc_name": "Nora", "person_profile": PersonProfile.from_dict(NPCData.INITIAL_PERSON_PROFILES["Nora"])}
+	bd.set_pair_metrics("kael", "nora", 35, 30, 36, 0, SocialDirector.STAGE_FLIRT)
+	var saw_flirt: bool = false
+	for _it in range(12):
+		bd.active_scenes.clear()
+		var ex_f: Dictionary = bd.resolve_live_conversation(mock_kael, mock_nora, 6)
+		if str(ex_f.get("action_id", "")) == SocialDialogueData.ACTION_FLIRT:
+			saw_flirt = true
+			break
+	assert(saw_flirt, "B3.2: Una pareja en etapa de coqueteo debe usar frases de ACTION_FLIRT")
+	mock_kael["person_profile"].romance_status = PersonProfile.ROMANCE_PARTNERED
+	mock_kael["person_profile"].partner_id = "nora"
+	mock_nora["person_profile"].romance_status = PersonProfile.ROMANCE_PARTNERED
+	mock_nora["person_profile"].partner_id = "kael"
+	bd.set_pair_metrics("kael", "nora", 72, 65, 80, 0, SocialDirector.STAGE_COUPLE)
+	var saw_affection: bool = false
+	for _it2 in range(12):
+		bd.active_scenes.clear()
+		var ex_c: Dictionary = bd.resolve_live_conversation(mock_kael, mock_nora, 6)
+		if str(ex_c.get("action_id", "")) == SocialDialogueData.ACTION_AFFECTION:
+			saw_affection = true
+			break
+	assert(saw_affection, "B3.2: Una pareja establecida debe usar frases de ACTION_AFFECTION")
+	print("NAMES CHECK PASSED (200 F / 200 M / 200 apellidos + 17 PersonProfile + B0.3 generator + B1.1/B1.2 social + B2.1 hangouts + B3.1/B3.2 romance)")
 	quit(0)

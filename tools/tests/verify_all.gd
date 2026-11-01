@@ -720,5 +720,32 @@ func _initialize() -> void:
 	assert(vm.get_recent_social_events(5, "couple").size() >= 1, "B3.1: New couple must be recorded in the social event log")
 	print("B3.1 live romance stages OK (%s + %s)" % [na3.npc_name, nb3.npc_name])
 
+	# Test #24 (B3.2): Comportamiento en vivo de la pareja (tarde juntos, estado 💑 y evento 'date')
+	sd3.active_hangouts.clear()
+	sd3.finished_hangouts.clear()
+	sd3.hangout_day_counts.clear()
+	for n_r in vm.get_tree().get_nodes_in_group("village_npcs"):
+		if n_r.has_method("clear_hangout"):
+			n_r.clear_hangout()
+			if n_r != na3 and n_r != nb3:
+				n_r.current_activity = 0
+	for v_r in [na3, nb3]:
+		v_r.is_hostile = false
+		v_r.is_sleeping = false
+		v_r.current_activity = 3
+	wc_speed.current_hour = 19
+	vm._hangout_plan_timer = 0.0
+	vm._update_social_hangouts(0.1)
+	assert(na3.hangout_id >= 0 and na3.hangout_id == nb3.hangout_id, "B3.2: Couple must plan an evening hangout together")
+	assert(na3.get_activity_description().begins_with("💑"), "B3.2: Couple hangout activity must show 💑")
+	na3.global_position = na3._get_social_target_pos()
+	nb3.global_position = nb3._get_social_target_pos()
+	vm._update_social_hangouts(0.1)
+	assert(na3.get_activity_description().begins_with("💑 Pasando la tarde con"), "B3.2: Couple at spot must show '💑 Pasando la tarde con...'")
+	sd3.tick(50.0)
+	vm._update_social_hangouts(0.1)
+	assert(vm.get_recent_social_events(5, "date").size() >= 1, "B3.2: Completed couple hangout must record a 'date' social event")
+	print("B3.2 romantic behavior & dates OK")
+
 	print("ALL RIMWORLD MEDICAL, FOOTPRINTS, 3-PHASE CORPSE REPORT, MULTI-CORPSE FIX, RPG INTERROGATION, PUBLIC TRIAL, DYNAMIC RELATIONSHIPS, MISSING FAMILY SEARCH, SOCIAL GLOSSARY & UNCONSCIOUS REACTION TESTS PASSED!")
 	quit(0)

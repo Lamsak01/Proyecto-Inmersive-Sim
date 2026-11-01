@@ -11,6 +11,8 @@ const ACTION_JOKE := "joke"
 const ACTION_FRICTION := "friction"
 const ACTION_TASTE_CLASH := "taste_clash"
 const ACTION_APOLOGY := "apology"
+const ACTION_FLIRT := "flirt"
+const ACTION_AFFECTION := "affection"
 
 const ALL_ACTIONS: Array[String] = [
 	ACTION_SMALL_TALK,
@@ -21,6 +23,8 @@ const ALL_ACTIONS: Array[String] = [
 	ACTION_FRICTION,
 	ACTION_TASTE_CLASH,
 	ACTION_APOLOGY,
+	ACTION_FLIRT,
+	ACTION_AFFECTION,
 ]
 
 ## Etiquetas naturales en español para los 16 temas de gustos de PersonProfile.TASTE_TOPICS.
@@ -92,6 +96,18 @@ const ACTION_META: Dictionary = {
 		"label": "Disculpa sincera",
 		"color": Color(0.55, 1.0, 0.72),
 		"note": "Limaron asperezas con una disculpa inesperada",
+	},
+	ACTION_FLIRT: {
+		"icon": "💘",
+		"label": "Coqueteo",
+		"color": Color(1.0, 0.68, 0.86),
+		"note": "Coquetearon con complicidad al encontrarse",
+	},
+	ACTION_AFFECTION: {
+		"icon": "💑",
+		"label": "Cariño de pareja",
+		"color": Color(1.0, 0.56, 0.76),
+		"note": "Compartieron un momento cariñoso en pareja",
 	},
 }
 
@@ -222,6 +238,38 @@ const OPENERS_BY_ACTION: Dictionary = {
 			"Prefiero la paz entre vecinos, {b}. Olvidemos nuestros roces.",
 		],
 	},
+	ACTION_FLIRT: {
+		"default": [
+			"No sé si es impresión mía, {b}, pero el día mejora en cuanto apareces.",
+			"Siempre busco una excusa para cruzarme contigo a esta hora, {b}.",
+			"Oye {b}... me encanta cuando nos quedamos charlando los dos solos.",
+		],
+		"Alegre": [
+			"¡Con esa sonrisa tuya me alegras toda la tarde, {b}!",
+		],
+		"Bondadoso": [
+			"Tienes una forma de ser que hace que uno se sienta en casa, {b}.",
+		],
+		"Orgulloso": [
+			"Poca gente en este valle me llama la atención como tú, {b}.",
+		],
+	},
+	ACTION_AFFECTION: {
+		"default": [
+			"Lo mejor de terminar la jornada es pasar este rato contigo, {b}.",
+			"Contigo a mi lado hasta los días duros en el valle se hacen ligeros, {b}.",
+			"Me alegra tanto que compartamos la vida aquí, {b}.",
+		],
+		"Leal": [
+			"Pase lo que pase en el pueblo, siempre estaré a tu lado, {b}.",
+		],
+		"Bondadoso": [
+			"Verte bien es todo lo que necesito hoy, {b}.",
+		],
+		"Pacífico": [
+			"Qué paz siento cada vez que estamos juntos, {b}.",
+		],
+	},
 }
 
 const REPLIES_BY_ACTION: Dictionary = {
@@ -324,6 +372,32 @@ const REPLIES_BY_ACTION: Dictionary = {
 		],
 		"Rencoroso": [
 			"Está bien, {a}... lo dejaremos pasar por esta vez.",
+		],
+	},
+	ACTION_FLIRT: {
+		"default": [
+			"Vas a hacer que me sonroje en mitad del pueblo, {a}...",
+			"Yo también estaba esperando verte hoy, {a}.",
+			"Contigo el tiempo se pasa volando, {a}.",
+		],
+		"Alegre": [
+			"¡Ja, ja! Qué cosas dices, {a}... pero no dejes de decirlas.",
+		],
+		"Leal": [
+			"Siempre tienes un hueco en mi día, {a}.",
+		],
+	},
+	ACTION_AFFECTION: {
+		"default": [
+			"Y a mí contigo, {a}. Eres mi rincón favorito del valle.",
+			"Ven aquí, {a}... qué suerte la nuestra de habernos encontrado.",
+			"No cambiaría estas tardes contigo por nada del mundo, {a}.",
+		],
+		"Bondadoso": [
+			"Siempre sabes cómo abrigarme el corazón, {a}.",
+		],
+		"Leal": [
+			"Juntos en las buenas y en las malas, {a}.",
 		],
 	},
 }

@@ -270,8 +270,32 @@ func resolve_live_conversation(npc_a, npc_b, current_day: int = 1) -> Dictionary
 	var topic_used: String = ""
 	var delta_rel: int = 0
 	var roll: float = rng.randf()
+	var pair_stage: String = str(pe.get("stage", STAGE_NONE))
+	var is_couple_pair: bool = (pair_stage == STAGE_COUPLE) or (str(prof_a.partner_id) != "" and str(prof_a.partner_id) == id_b)
+	var is_courting_pair: bool = not is_couple_pair and (pair_stage in [STAGE_INTEREST, STAGE_FLIRT, STAGE_DATING])
 
-	if cur_rel <= -20:
+	if is_couple_pair and cur_rel > -10 and roll >= 0.08:
+		if rng.randf() < 0.72:
+			action_id = SocialDialogueData.ACTION_AFFECTION
+		elif shared_like != "" and rng.randf() < 0.60:
+			action_id = SocialDialogueData.ACTION_SHARED_TASTE
+			topic_used = shared_like
+		else:
+			action_id = SocialDialogueData.ACTION_COMPLIMENT
+		delta_rel = rng.randi_range(6, 12)
+		pe["tension"] = clampi(int(pe.get("tension", 0)) - rng.randi_range(3, 6), 0, 100)
+	elif is_courting_pair and cur_rel > -10 and roll >= 0.12:
+		var flirt_prob: float = 0.50 if pair_stage == STAGE_INTEREST else 0.72
+		if rng.randf() < flirt_prob:
+			action_id = SocialDialogueData.ACTION_FLIRT
+		elif shared_like != "" and rng.randf() < 0.55:
+			action_id = SocialDialogueData.ACTION_SHARED_TASTE
+			topic_used = shared_like
+		else:
+			action_id = SocialDialogueData.ACTION_COMPLIMENT
+		delta_rel = rng.randi_range(8, 14)
+		pe["tension"] = clampi(int(pe.get("tension", 0)) - rng.randi_range(2, 5), 0, 100)
+	elif cur_rel <= -20:
 		if roll < 0.32:
 			action_id = SocialDialogueData.ACTION_APOLOGY
 			delta_rel = rng.randi_range(18, 28)
@@ -342,6 +366,7 @@ func resolve_live_conversation(npc_a, npc_b, current_day: int = 1) -> Dictionary
 	var ex: Dictionary = SocialDialogueData.build_exchange(action_id, dict_a, name_a, dict_b, name_b, topic_used, rng)
 	ex["allowed"] = true
 	ex["scene_id"] = int(sc.get("id", 0))
+	ex["stage"] = str(pe.get("stage", STAGE_NONE))
 	ex["delta_rel"] = delta_rel
 	ex["affinity"] = int(pe["affinity"])
 	ex["familiarity"] = int(pe["familiarity"])
@@ -407,14 +432,15 @@ func get_hangout_score(id_a: String, id_b: String) -> int:
 	var aff: int = int(pe.get("affinity", 0))
 	var spk: int = int(pe.get("spark", 0))
 	var stage: String = str(pe.get("stage", STAGE_NONE))
-	var romantic: bool = stage in [STAGE_FLIRT, STAGE_DATING, STAGE_COUPLE]
+	var romantic: bool = stage in [STAGE_INTEREST, STAGE_FLIRT, STAGE_DATING, STAGE_COUPLE]
 	if aff < int(dials.get("hangout_min_affinity", 25)) and spk < int(dials.get("hangout_min_spark", 18)) and not romantic:
 		return -1
 	var score: int = aff + int(float(spk) * 0.8)
 	match stage:
-		STAGE_COUPLE: score += 30
-		STAGE_DATING: score += 20
-		STAGE_FLIRT: score += 10
+		STAGE_COUPLE: score += 55
+		STAGE_DATING: score += 38
+		STAGE_FLIRT: score += 24
+		STAGE_INTEREST: score += 12
 	return maxi(1, score)
 
 func is_person_in_hangout(person_id: String) -> bool:

@@ -159,7 +159,7 @@ Otros documentos antiguos en la raíz: `ROADMAP_PROYECTO.md`, `AUDIT_LOG.md`, `S
 
 **Fase 3 — Parejas**
 - [x] **B3.1** HECHO. Etapas en vivo en `SocialDirector.advance_live_romance_day()` (Interés 14 → Coqueteo 28 → Citas 44 → Pareja 60 de chispa + afinidad ≥ 24), solo si hubo contacto hoy/ayer, ambos solteros, distinta familia y compatibilidad ≥ 40; probabilidad diaria `live_stage_advance_chance` × compat/50, sin plazos. Cortejo que se apaga si la chispa < 8. Tope diario de chispa por par (`spark_daily_gain_cap = 10`) en charlas y quedadas. `VillageManager._advance_live_romances()` (al pasar el día): fichas cruzadas, relación ≥ 68, pensamientos, burbuja 💑 y eventos `couple` / `romance_*` / `romance_fizzle`. Glosario `[J]` muestra "💘 Coqueteo con X" y la etapa en cada fila. Tests en `names_check.gd` y #23 en `verify_all.gd`. (La simulación de 60 días aún usa su propio paso; se recalibra en B3.5.)
-- [ ] **B3.2** Comportamiento por etapa (frases de coqueteo, citas por la tarde, la pareja pasa las tardes junta).
+- [x] **B3.2** HECHO. Comportamiento por etapa en `SocialDialogueData.gd` (`ACTION_FLIRT` 💘 y `ACTION_AFFECTION` 💑), selección en `SocialDirector.resolve_live_conversation()` y mayor peso de quedadas para etapas románticas, preferencia de compañero romántico y descripciones (`💑 Pasando la tarde con…` / `💞 En una cita con…`) en `VillageNPC.gd`, y citas/tardes en pareja con evento `date` en `VillageManager.gd`. Verificado en `names_check.gd` y Test #24 en `verify_all.gd`.
 - [ ] **B3.3** Celos, rupturas y reconciliación.
 - [ ] **B3.4** Duelo y viudedad mejorados (humor bajo varios días, visitas a la tumba).
 - [ ] **B3.5** Recalibrar `social_sim.gd` con el sistema en vivo.

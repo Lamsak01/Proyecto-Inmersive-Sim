@@ -3370,10 +3370,20 @@ func _find_best_social_partner() -> VillageNPC:
 		if other.hangout_id >= 0:
 			continue
 		var dist: float = global_position.distance_to(other.global_position)
+		var other_key: String = other.get_person_key()
 		var family_bonus: float = 110.0 if (family_id != "none" and other.family_id == family_id) else 0.0
+		var rom_bonus: float = 0.0
+		if person_profile != null and str(person_profile.partner_id) != "" and str(person_profile.partner_id) == other_key:
+			rom_bonus = 135.0
+		elif sdir_s != null and sdir_s.has_method("get_pair_stage"):
+			match str(sdir_s.call("get_pair_stage", my_key, other_key)):
+				"couple": rom_bonus = 135.0
+				"dating": rom_bonus = 95.0
+				"flirt": rom_bonus = 60.0
+				"interest": rom_bonus = 32.0
 		var rel_score: float = float(get_relationship_with_npc(other.npc_name)) * 0.65
 		var fate_jitter: float = randf_range(-20.0, 42.0)
-		var score: float = family_bonus + rel_score + fate_jitter - dist * 0.4 + (100.0 - other.need_social) * 0.5
+		var score: float = family_bonus + rom_bonus + rel_score + fate_jitter - dist * 0.4 + (100.0 - other.need_social) * 0.5
 		if score > best_score:
 			best_score = score
 			best = other
@@ -3444,6 +3454,16 @@ func get_activity_description() -> String:
 			return "🍲 Comiendo %s" % loc
 		ActivityState.SOCIALIZING:
 			if hangout_id >= 0 and is_instance_valid(_social_partner):
+				var vm_act = _get_vm()
+				var sdir_act = vm_act.get("social_director") if vm_act != null else null
+				var p_key: String = _social_partner.get_person_key()
+				var st_act: String = str(sdir_act.call("get_pair_stage", get_person_key(), p_key)) if (sdir_act != null and sdir_act.has_method("get_pair_stage")) else "none"
+				if person_profile != null and str(person_profile.partner_id) == p_key:
+					st_act = "couple"
+				if st_act == "couple":
+					return ("💑 Pasando la tarde con %s%s" % [_social_partner.npc_name, (" (%s)" % hangout_spot_label) if hangout_spot_label != "" else ""]) if is_at_hangout_spot(24.0) else ("💑 Ha quedado con su pareja %s%s" % [_social_partner.npc_name, (" en %s" % hangout_spot_label) if hangout_spot_label != "" else ""])
+				elif st_act in ["dating", "flirt"]:
+					return ("💞 En una cita con %s%s" % [_social_partner.npc_name, (" (%s)" % hangout_spot_label) if hangout_spot_label != "" else ""]) if is_at_hangout_spot(24.0) else ("💞 Yendo a su cita con %s%s" % [_social_partner.npc_name, (" en %s" % hangout_spot_label) if hangout_spot_label != "" else ""])
 				return ("☕ Pasando el rato con %s%s" % [_social_partner.npc_name, (" (%s)" % hangout_spot_label) if hangout_spot_label != "" else ""]) if is_at_hangout_spot(24.0) else ("🚶 Ha quedado con %s%s" % [_social_partner.npc_name, (" en %s" % hangout_spot_label) if hangout_spot_label != "" else ""])
 			return ("💬 Charlando con %s" % _social_partner.npc_name) if is_instance_valid(_social_partner) else "💬 Socializando"
 		_:
