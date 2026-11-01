@@ -619,16 +619,23 @@ func get_portrait_texture() -> Texture2D:
 func get_character_tagline() -> String:
 	return character_tagline
 
+static var _tex_64_cache: Dictionary = {}
+
 func _load_64_tex(res_path: String) -> Texture2D:
-	if ResourceLoader.exists(res_path):
-		var t = load(res_path)
-		if t is Texture2D:
-			return t
+	if _tex_64_cache.has(res_path) and _tex_64_cache[res_path] is Texture2D:
+		return _tex_64_cache[res_path] as Texture2D
 	var abs_p := ProjectSettings.globalize_path(res_path)
 	if FileAccess.file_exists(abs_p):
 		var img := Image.load_from_file(abs_p)
 		if img and not img.is_empty():
-			return ImageTexture.create_from_image(img)
+			var itex := ImageTexture.create_from_image(img)
+			_tex_64_cache[res_path] = itex
+			return itex
+	if ResourceLoader.exists(res_path):
+		var t = load(res_path)
+		if t is Texture2D:
+			_tex_64_cache[res_path] = t
+			return t
 	return null
 
 func _resolve_unique_64_visuals_and_lore(fallback_tex: Texture2D = null) -> void:

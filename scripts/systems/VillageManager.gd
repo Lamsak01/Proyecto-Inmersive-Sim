@@ -831,7 +831,7 @@ func _spawn_village_roads_and_plaza() -> void:
 	_spawn_world_signpost(Vector2(668, 72), "➡️ Este: 🏥 Hospital y Morgue Forense | 🚓 Comisaría y Cárcel", Color(0.68, 0.92, 1.0))
 
 func _spawn_world_signpost(pos: Vector2, text_str: String, text_col: Color) -> void:
-	_add_sprite_prop(_load_tex("res://assests/Comprados/ Packs/Cute_Fantasy/Buildings/House_Decor/sign_1.png"), pos, Vector2(0.9, 0.9), -1)
+	_add_sprite_prop(_load_tex("res://assests/Comprados/Epic RPG World - The Village V2.1/buildings/Decorations_sprites/sign_1.png"), pos, Vector2(0.9, 0.9), -1)
 	_add_title_label(pos + Vector2(-155, -28), Vector2(310, 16), text_str, text_col, 8)
 
 func _spawn_western_plains_and_frog_marsh() -> void:
@@ -889,8 +889,8 @@ func _spawn_tavern_and_rooms() -> void:
 	_add_solid_wall_segment(Vector2(355, -222), Vector2(90, 6), tex_wall_h)
 	_add_solid_wall_segment(Vector2(510, -222), Vector2(120, 6), tex_wall_h)
 
-	_spawn_decor_prop("res://assests/Comprados/ Packs/Cute_Fantasy/Buildings/House_Decor/bookcase_1.png", Vector2(325, -268))
-	_spawn_decor_prop("res://assests/Comprados/ Packs/Cute_Fantasy/Buildings/House_Decor/flower_pot_1.png", Vector2(555, -148))
+	_spawn_decor_prop("res://assests/Comprados/Epic RPG World - Village(interiors) V1.3/assets/furniture_and_props_sprites/shelves_3.png", Vector2(325, -268), Vector2(0.45, 0.45))
+	_spawn_decor_prop("res://assests/Comprados/Epic RPG World - The Village V2.1/tilesets and props/props-sprites/potted-flower_0.png", Vector2(555, -148))
 	_add_sprite_prop(tex_stall, Vector2(348, -172), Vector2(1.4, 1.4), 0)
 	_add_rect_poly(_tavern_social_pos, Vector2(20, 9), Color(0.54, 0.35, 0.18, 0.98), -1)
 
@@ -1061,8 +1061,8 @@ func _build_enclosed_shop_visuals(
 
 	_spawn_house_chest(sc + (Vector2(38, -20) if door_on_south else Vector2(38, 20)), "Cofre de " + shop_title, fam_id)
 	if is_blacksmith:
-		_spawn_decor_prop("res://assests/Comprados/ Packs/Cute_Fantasy/Buildings/House_Decor/furnace.png", sc + Vector2(-36, -16))
-		_spawn_decor_prop("res://assests/Comprados/ Packs/Cute_Fantasy/Buildings/House_Decor/anvil.png", sc + Vector2(26, -12))
+		_spawn_decor_prop("res://assests/Comprados/Epic RPG World - Village(interiors) V1.3/assets/furniture_and_props_sprites/fireplace_0.png", sc + Vector2(-36, -16), Vector2(0.32, 0.32))
+		_spawn_decor_prop("res://assests/Comprados/Epic RPG World - Village(interiors) V1.3/assets/furniture_and_props_sprites/stand-1_part5.png", sc + Vector2(26, -12), Vector2(0.65, 0.65))
 
 func _build_residential_house_visuals(
 	hc: Vector2, house_title: String, tex_bed: Texture2D, bed1_pos: Vector2, bed2_pos: Vector2, table_pos: Vector2, fam_id: String
@@ -1078,7 +1078,7 @@ func _build_residential_house_visuals(
 	for b_pos in [bed1_pos, bed2_pos]:
 		_add_sprite_prop(tex_bed, b_pos, Vector2(1.12, 1.12), -1)
 
-	_spawn_decor_prop("res://assests/Comprados/ Packs/Cute_Fantasy/Buildings/House_Decor/table_1.png", table_pos)
+	_spawn_decor_prop("res://assests/Comprados/Epic RPG World - Village(interiors) V1.3/assets/furniture_and_props_sprites/table_chairs_1.png", table_pos, Vector2(0.45, 0.45))
 	_spawn_house_chest(hc + Vector2(0, -24), "Cofre Familiar (" + house_title + ")", fam_id)
 
 func _build_mixed_shop_house_visuals(
@@ -1103,7 +1103,7 @@ func _build_mixed_shop_house_visuals(
 	for b_pos in [bed1_pos, bed2_pos]:
 		_add_sprite_prop(tex_bed, b_pos, Vector2(1.12, 1.12), -1)
 
-	_spawn_decor_prop("res://assests/Comprados/ Packs/Cute_Fantasy/Buildings/House_Decor/table_1.png", table_pos)
+	_spawn_decor_prop("res://assests/Comprados/Epic RPG World - Village(interiors) V1.3/assets/furniture_and_props_sprites/table_chairs_1.png", table_pos, Vector2(0.45, 0.45))
 	_spawn_house_chest(center + Vector2(42, -26), "Cofre de la Botica Raíz Verde", fam_id)
 
 # PASO 1: 🏥 HOSPITAL DE URGENCIAS Y ⚰️ MORGUE FORENSE (`Vector2(745, 148)`)
@@ -1140,7 +1140,7 @@ func _spawn_hospital_and_morgue() -> void:
 	entities_root.add_child(_morgue_label)
 
 	# Dr. Valen (Médico Cirujano y Forense) — Mesa de comedor propia dentro del Hospital (`Vector2(764, 128)`)
-	_spawn_decor_prop("res://assests/Comprados/ Packs/Cute_Fantasy/Buildings/House_Decor/table_1.png", Vector2(764, 128))
+	_spawn_decor_prop("res://assests/Comprados/Epic RPG World - Village(interiors) V1.3/assets/furniture_and_props_sprites/table_chairs_1.png", Vector2(764, 128), Vector2(0.45, 0.45))
 	_register_authority_npc(
 		"NPC_Dr_Valen", "Dr. Valen", "Cirujano y Forense", VillageNPC.TradeRole.DOCTOR,
 		"res://assests/world/village/villager_doctor.png",
@@ -1187,7 +1187,7 @@ func _spawn_police_station_and_jail() -> void:
 	for c_bed_pos in [Vector2(872, 176), Vector2(958, 176), Vector2(862, 132), Vector2(968, 132)]:
 		_add_sprite_prop(tex_bed, c_bed_pos, Vector2.ONE, -1, true, Color(0.75, 0.78, 0.85, 1.0))
 
-	_spawn_decor_prop("res://assests/Comprados/ Packs/Cute_Fantasy/Buildings/House_Decor/table_1.png", Vector2(890, 126))
+	_spawn_decor_prop("res://assests/Comprados/Epic RPG World - Village(interiors) V1.3/assets/furniture_and_props_sprites/table_chairs_1.png", Vector2(890, 126), Vector2(0.45, 0.45))
 	_add_station_area("PoliceJailCellArea", _jail_cell_pos, 22.0, "police_jail")
 	_jail_label = _make_station_label(_jail_cell_pos + Vector2(-120, -28), "🚓 Celda Policial [E: Gestionar Fianza / Condena]")
 	entities_root.add_child(_jail_label)
@@ -1581,7 +1581,7 @@ func _spawn_house_chest(pos: Vector2, chest_title: String, fam_id: String) -> vo
 # PASO 5: 📋 TABLÓN DE ENCARGOS EN LA PLAZA CENTRAL (`Vector2(465, 24)`)
 # ==============================================================================
 func _spawn_notice_board_in_plaza() -> void:
-	_add_sprite_prop(_load_tex("res://assests/Comprados/ Packs/Cute_Fantasy/Buildings/House_Decor/questboard_1.png"), _notice_board_pos, Vector2(1.15, 1.15), -1)
+	_add_sprite_prop(_load_tex("res://assests/Comprados/Epic RPG World - The Village V2.1/tilesets and props/props-sprites/questboard_1.png"), _notice_board_pos, Vector2(0.65, 0.65), -1)
 	_add_station_area("PlazaNoticeBoardArea", _notice_board_pos, 14.0, "notice_board")
 	_notice_board_label = _make_station_label(_notice_board_pos + Vector2(-120, -28), "📋 Tablón de Encargos y Recompensas [E: Ver Misiones]")
 	entities_root.add_child(_notice_board_label)
@@ -1590,10 +1590,10 @@ func _spawn_notice_board_in_plaza() -> void:
 # PASO 10: ⚡ FAROLAS ELÉCTRICAS EN LAS CALLES DEL PUEBLO (`lamp-post1.png`)
 # ==============================================================================
 func _spawn_electric_streetlights() -> void:
-	var lamp_tex := _load_tex("res://assests/Comprados/ Packs/Cute_Fantasy/Buildings/House_Decor/lamp-post1.png")
+	var lamp_tex := _load_tex("res://assests/Comprados/Epic RPG World - The Village V2.1/tilesets and props/props-sprites/lamp-post1.png")
 	var lamp_positions: Array[Vector2] = [Vector2(215, 36), Vector2(405, 18), Vector2(525, 18), Vector2(432, -126), Vector2(692, 88), Vector2(862, 88)]
 	for l_pos in lamp_positions:
-		var l_spr := _add_sprite_prop(lamp_tex, l_pos, Vector2(1.05, 1.05), 1)
+		var l_spr := _add_sprite_prop(lamp_tex, l_pos, Vector2(0.75, 0.75), 1)
 		var glow := _add_poly(PackedVector2Array([Vector2(-26, -18), Vector2(26, -18), Vector2(34, 18), Vector2(-34, 18)]), Color(1.0, 0.92, 0.55, 0.22), -1, l_pos)
 		glow.visible = false
 		streetlights.append({"sprite": l_spr, "glow": glow, "pos": l_pos})
@@ -1612,13 +1612,14 @@ func _update_streetlights_glow() -> void:
 		if is_instance_valid(spr):
 			spr.modulate = Color(0.90, 1.08, 1.18) if grid_on else Color.WHITE
 
-func _spawn_decor_prop(tex_path: String, pos: Vector2) -> void:
+func _spawn_decor_prop(tex_path: String, pos: Vector2, sc: Vector2 = Vector2.ONE) -> void:
 	var tex := _load_tex(tex_path)
 	if not tex:
 		return
 	var spr := Sprite2D.new()
 	spr.texture = tex
 	spr.global_position = pos
+	spr.scale = sc
 	spr.z_index = -1
 	entities_root.add_child(spr)
 
@@ -6426,11 +6427,6 @@ func _make_station_label(pos: Vector2, txt: String) -> Label:
 func _load_tex(res_path: String) -> Texture2D:
 	if _tex_cache.has(res_path) and _tex_cache[res_path] is Texture2D:
 		return _tex_cache[res_path] as Texture2D
-	if ResourceLoader.exists(res_path):
-		var t = load(res_path)
-		if t is Texture2D:
-			_tex_cache[res_path] = t
-			return t
 	var abs_path := ProjectSettings.globalize_path(res_path)
 	if FileAccess.file_exists(abs_path):
 		var img := Image.load_from_file(abs_path)
@@ -6438,4 +6434,9 @@ func _load_tex(res_path: String) -> Texture2D:
 			var itex := ImageTexture.create_from_image(img)
 			_tex_cache[res_path] = itex
 			return itex
+	if ResourceLoader.exists(res_path):
+		var t = load(res_path)
+		if t is Texture2D:
+			_tex_cache[res_path] = t
+			return t
 	return null

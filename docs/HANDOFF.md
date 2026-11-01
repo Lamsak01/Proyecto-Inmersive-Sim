@@ -125,7 +125,7 @@ Otros documentos antiguos en la raíz: `ROADMAP_PROYECTO.md`, `AUDIT_LOG.md`, `S
    (`npc_relationships`, `npc_relationship_notes` en `VillageNPC.gd`), así que nombres repetidos mezclarían relaciones y un recién llegado
    podría heredar las de un muerto. **Prioridad máxima del Bloque 0.**
 3. Los **rasgos** (`traits`) hoy salen del **oficio** (`ROLE_PSYCHOLOGY`) o de un pool de 7; no son por persona.
-4. Los NPC nuevos usan un aspecto único (`assests/world/village/villager_traveler.png`). Aceptado por ahora.
+4. Los sprites, retratos y animaciones de los 20 NPCs (`assests/world/village/npcs_64/` y `villager_*.png`), así como todos los suelos, muros, puertas, ventanas, camas, cofres, pozos y mobiliario (`assests/world/village/`), utilizan exclusivamente los assets comprados del usuario en `assests/Comprados/Epic RPG World - The Village V2.1` y `Epic RPG World - Village(interiors) V1.3` (no generar texturas procedurales propias).
 5. Reparto actual: **6 mujeres / 11 hombres** entre los 17 vecinos residentes (visitantes aparte). Solo heterosexuales por ahora.
 6. Partir `VillageNPC.gd` más allá de lo hecho es arriesgado (funciones muy entrelazadas con decenas de variables). El usuario aceptó parar ahí.
    Si hace falta, extraer módulos nuevos **como clases aparte con `npc` tipado** (técnica usada en `NPCDialogue.gd`) y comprobar con `dialogue_coverage.gd`.
@@ -153,7 +153,11 @@ Otros documentos antiguos en la raíz: `ROADMAP_PROYECTO.md`, `AUDIT_LOG.md`, `S
 - [x] **B1.2** HECHO. Selección y resolución de conversaciones en vivo (`resolve_live_conversation`) en `SocialDirector.gd`, actualizando las 4 métricas del par (`affinity`, `familiarity`, `spark`, `tension`), relación vecinal y memoria corta respetando `max_concurrent_scenes = 3`. Verificado en `tools/tests/names_check.gd`.
 - [x] **B1.3** HECHO. Escena en vivo de 2 turnos en `VillageNPC.gd` (burbuja de apertura de A → respuesta diferida ~1.8 s de B con actualización de relación y nota) y test automático #21 en `tools/tests/verify_all.gd`.
 
-**Fase 2** Pasar tiempo juntos · **Fase 3** Parejas (chispa, etapas, celos, duelo) ·
+**Fase 2 — Pasar tiempo juntos**
+- [ ] **B2.1** Selección de punto de encuentro compartido (`pick_shared_hangout_spot`) y gestión de actividad compartida activa en `SocialDirector.gd` (para amigos o vecinos con buena chispa en horario libre/social).
+- [ ] **B2.2** Ejecución física en `VillageNPC.gd` y `VillageManager.gd` (ambos vecinos caminan al mismo banco/mesa/fogata, charlan al coincidir y ganan un bono suave de humor y afinidad) + test automático en `tools/tests/verify_all.gd`.
+
+**Fase 3** Parejas (chispa, etapas, celos, duelo) ·
 **Fase 4** Peleas discretas por dados · **Fase 5** Rol del jugador (observador/instigador/mediador) · **Fase 6** Chismes, noticias y pulido.
 Cada fase se dividirá en bloques pequeños cuando se llegue a ella (detalle en `docs/PLAN_VIDA_SOCIAL.md`).
 

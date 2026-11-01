@@ -334,7 +334,7 @@ func _setup_log_seat() -> void:
 
 # --- 4. CARTEL DE MEJORA DE CASA Y TALLER ELÉCTRICO (Pasos 6 y 10) ---
 func _setup_upgrade_sign() -> void:
-	sign_sprite = _add_prop_sprite(self, "UpgradeSignSprite", "res://assests/Comprados/ Packs/Cute_Fantasy/Buildings/House_Decor/sign_1.png", UPGRADE_SIGN_OFFSET, 0.95)
+	sign_sprite = _add_prop_sprite(self, "UpgradeSignSprite", "res://assests/Comprados/Epic RPG World - The Village V2.1/buildings/Decorations_sprites/sign_1.png", UPGRADE_SIGN_OFFSET, 0.75)
 	_add_interact_area(self, "SignInteractArea", UPGRADE_SIGN_OFFSET, 6.0)
 	sign_label = _create_label(UPGRADE_SIGN_OFFSET + Vector2(-115, -28), Color(0.95, 0.85, 0.52))
 	add_child(sign_label)
