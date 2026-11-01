@@ -254,6 +254,7 @@ func _rebuild_house_visuals() -> void:
 
 	# Suelo texturizado en mosaico
 	var floor_rect := TextureRect.new()
+	floor_rect.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 	floor_rect.texture = _load_tex(floor_tex_path)
 	floor_rect.stretch_mode = TextureRect.STRETCH_TILE
 	floor_rect.position = center - half
@@ -300,6 +301,7 @@ func _add_house_wall_segment(pos: Vector2, sz: Vector2, tex: Texture2D) -> void:
 
 	if tex:
 		var tex_rect := TextureRect.new()
+		tex_rect.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 		tex_rect.texture = tex
 		tex_rect.stretch_mode = TextureRect.STRETCH_TILE
 		tex_rect.position = -sz * 0.5

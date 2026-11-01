@@ -421,6 +421,7 @@ func _construct_solid_building(
 	var floor_tex := _load_tex(floor_tex_path)
 	if floor_tex:
 		var f_rect := TextureRect.new()
+		f_rect.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 		f_rect.texture = floor_tex
 		f_rect.stretch_mode = TextureRect.STRETCH_TILE
 		f_rect.position = rect.position
@@ -525,6 +526,7 @@ func _add_solid_wall_segment(pos: Vector2, sz: Vector2, tex: Texture2D, blocks_v
 
 	if tex:
 		var tex_rect := TextureRect.new()
+		tex_rect.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 		tex_rect.texture = tex
 		tex_rect.stretch_mode = TextureRect.STRETCH_TILE
 		tex_rect.position = -sz * 0.5
@@ -858,6 +860,7 @@ func _add_cobble_rect(rect: Rect2) -> void:
 	var cobble_tex := _load_tex("res://assests/world/village/floor_plaza_cobble.png")
 	if cobble_tex:
 		var c_rect := TextureRect.new()
+		c_rect.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 		c_rect.texture = cobble_tex
 		c_rect.stretch_mode = TextureRect.STRETCH_TILE
 		c_rect.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
