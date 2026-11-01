@@ -159,6 +159,8 @@ var _unconscious_helper_npc: VillageNPC = null
 var _unconscious_ignored_by: Dictionary = {} # npc_name -> bool (rivales que ya le robaron o desistieron en este desmayo)
 var _unconscious_scan_timer: float = 0.0
 var _witness_check_timer: float = 0.0
+var _footprint_check_done: bool = false
+var _footprint_supported: bool = false
 var _witness_check_cached: Node2D = null
 
 # Cachés de rendimiento por fotograma (evita escaneos redundantes a 60 FPS en laptops)
@@ -345,8 +347,12 @@ func _finish_frame_movement(delta: float, apply_yield: bool = false) -> void:
 	if apply_yield:
 		_apply_player_and_doorway_yield(delta)
 	move_and_slide()
-	if _cached_vm and _cached_vm.has_method("update_entity_blood_footprints"):
-		_cached_vm.call("update_entity_blood_footprints", self, delta)
+	if _cached_vm:
+		if not _footprint_check_done:
+			_footprint_check_done = true
+			_footprint_supported = _cached_vm.has_method("update_entity_blood_footprints")
+		if _footprint_supported:
+			_cached_vm.call("update_entity_blood_footprints", self, delta)
 	_update_visual_animation(delta)
 	_update_hover_label(delta)
 
@@ -411,6 +417,11 @@ func _ready() -> void:
 	collision_mask = 0
 	add_to_group("npcs")
 	add_to_group("village_npcs")
+	# Desfasar temporizadores de escaneo para que los ~20 NPC no ejecuten sus chequeos pesados en el mismo fotograma (evita picos de lag)
+	_visual_memory_timer = randf_range(0.0, 1.25)
+	_hover_label_timer = randf_range(0.0, 0.10)
+	_unconscious_scan_timer = randf_range(0.0, 0.25)
+	_corpse_scan_timer = randf_range(0.0, 0.25)
 	if not Engine.is_editor_hint() and WorldClock and not WorldClock.hour_passed.is_connected(_on_hour_passed):
 		WorldClock.hour_passed.connect(_on_hour_passed)
 
@@ -2088,7 +2099,7 @@ func _update_visual_memory(delta: float) -> void:
 			var other := n as VillageNPC
 			if other.is_dead:
 				continue
-			if global_position.distance_to(other.global_position) <= npc_range:
+			if global_position.distance_squared_to(other.global_position) <= npc_range * npc_range:
 				if vm == null or not vm.has_method("has_line_of_sight") or bool(vm.call("has_line_of_sight", global_position, other.global_position)):
 					var o_stained: bool = other.is_bloodstained()
 					var o_wounded: bool = other.health_comp != null and other.health_comp.has_fresh_combat_wounds_or_makeshift()
