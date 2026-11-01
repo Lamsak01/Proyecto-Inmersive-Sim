@@ -5292,13 +5292,22 @@ func _evaluate_npc_interview(inv_npc: VillageNPC, witness: VillageNPC, suspects:
 		else:
 			if str(s_entry.get("mem_alibi_partner", "")) == "" and s_dist <= 320.0:
 				var add_v: int = 12 + (16 if matches_flee else 0)
+				var rel_w: int = witness.get_relationship_with_npc(s_name) if witness.has_method("get_relationship_with_npc") else 0
+				var rel_bias_note: String = ""
+				if rel_w <= -25:
+					add_v += 16
+					rel_bias_note = " [Rivalidad vecinal %d: acusación severa +16%%]" % rel_w
+				elif rel_w >= 60:
+					add_v = maxi(4, add_v - 8)
+					rel_bias_note = " [Amigo/Familia +%d: intentó restarle importancia -8%%]" % rel_w
 				s_entry["score"] = int(s_entry.get("score", 10)) + add_v
 				if not bool(s_entry.get("interviewed", false)):
 					s_entry["status_note"] = "Situado a %dm por %s%s" % [int(round(s_dist / 16.0)), witness.npc_name, " (rumbo de las huellas)" if matches_flee else ""]
-				clues.append("%s declaró haber visto a %s a %d m de la escena%s (+%d%% sospecha)." % [witness.npc_name, s_name, int(round(s_dist / 16.0)), " en dirección de las huellas" if matches_flee else "", add_v])
+				clues.append("%s declaró haber visto a %s a %d m de la escena%s%s (+%d%% sospecha)." % [witness.npc_name, s_name, int(round(s_dist / 16.0)), " en dirección de las huellas" if matches_flee else "", rel_bias_note, add_v])
 
 		if not bool(s_entry.get("interviewed", false)) and not (s_name in queue) and s_name != witness.npc_name:
-			if matches_flee or s_name == "Jugador":
+			var rel_prio: int = witness.get_relationship_with_npc(s_name) if (s_name != "Jugador" and witness.has_method("get_relationship_with_npc")) else 0
+			if matches_flee or s_name == "Jugador" or rel_prio <= -25:
 				queue.push_front(s_name)
 			else:
 				queue.append(s_name)

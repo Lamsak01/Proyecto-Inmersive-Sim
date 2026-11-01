@@ -20,11 +20,13 @@ var inv_items_box: VBoxContainer = null
 var inv_recipes_box: VBoxContainer = null
 const ValleyMapUIScript = preload("res://scripts/ui/ValleyMapUI.gd")
 const MedicalPanelUIScript = preload("res://scripts/ui/MedicalPanelUI.gd")
+const SocialGlossaryUIScript = preload("res://scripts/ui/SocialGlossaryUI.gd")
 
 var tool_wheel: ToolWheelUI = null
 var tavern_games: TavernGamesUI = null
 var valley_map: Control = null
 var medical_panel: Control = null
+var social_glossary: Control = null
 
 func _ready() -> void:
 	# 1. Find Player if not assigned
@@ -98,6 +100,7 @@ func _ready() -> void:
 	_setup_tavern_games_ui()
 	_setup_valley_map_ui()
 	_setup_medical_panel_ui()
+	_setup_social_glossary_ui()
 	_init_default_objectives()
 	if "inventory" in player and player.inventory:
 		_bind_player_inventory()
@@ -166,6 +169,8 @@ func _unhandled_input(event: InputEvent) -> void:
 						inv_panel.visible = false
 					if medical_panel and medical_panel.visible:
 						medical_panel.call("close_panel")
+					if social_glossary and social_glossary.visible:
+						social_glossary.call("close_panel")
 					if valley_map and bool(valley_map.get("is_full_map_open")):
 						valley_map.call("close_full_map")
 					tool_wheel.open_wheel()
@@ -181,6 +186,8 @@ func _unhandled_input(event: InputEvent) -> void:
 					tool_wheel.close_wheel(false)
 				if medical_panel and medical_panel.visible:
 					medical_panel.call("close_panel")
+				if social_glossary and social_glossary.visible:
+					social_glossary.call("close_panel")
 				if valley_map and bool(valley_map.get("is_full_map_open")):
 					valley_map.call("close_full_map")
 				_toggle_inventory()
@@ -190,6 +197,8 @@ func _unhandled_input(event: InputEvent) -> void:
 					tool_wheel.close_wheel(false)
 				if inv_panel and inv_panel.visible:
 					inv_panel.visible = false
+				if social_glossary and social_glossary.visible:
+					social_glossary.call("close_panel")
 				if valley_map and bool(valley_map.get("is_full_map_open")):
 					valley_map.call("close_full_map")
 				if medical_panel and medical_panel.has_method("toggle_panel"):
@@ -202,12 +211,29 @@ func _unhandled_input(event: InputEvent) -> void:
 					inv_panel.visible = false
 				if medical_panel and medical_panel.visible:
 					medical_panel.call("close_panel")
+				if social_glossary and social_glossary.visible:
+					social_glossary.call("close_panel")
 				if valley_map and valley_map.has_method("toggle_full_map"):
 					valley_map.call("toggle_full_map")
+				get_viewport().set_input_as_handled()
+			elif event.physical_keycode == KEY_J:
+				if tool_wheel and tool_wheel.visible:
+					tool_wheel.close_wheel(false)
+				if inv_panel and inv_panel.visible:
+					inv_panel.visible = false
+				if medical_panel and medical_panel.visible:
+					medical_panel.call("close_panel")
+				if valley_map and bool(valley_map.get("is_full_map_open")):
+					valley_map.call("close_full_map")
+				if social_glossary and social_glossary.has_method("toggle_panel"):
+					social_glossary.call("toggle_panel")
 				get_viewport().set_input_as_handled()
 			elif event.keycode == KEY_ESCAPE:
 				if tool_wheel and tool_wheel.visible:
 					tool_wheel.close_wheel(false)
+					get_viewport().set_input_as_handled()
+				elif social_glossary and social_glossary.visible:
+					social_glossary.call("close_panel")
 					get_viewport().set_input_as_handled()
 				elif medical_panel and medical_panel.visible:
 					medical_panel.call("close_panel")
@@ -218,6 +244,11 @@ func _unhandled_input(event: InputEvent) -> void:
 				elif inv_panel and inv_panel.visible:
 					inv_panel.visible = false
 					get_viewport().set_input_as_handled()
+
+func _setup_social_glossary_ui() -> void:
+	social_glossary = SocialGlossaryUIScript.new()
+	social_glossary.name = "SocialGlossaryUI"
+	add_child(social_glossary)
 
 func _setup_medical_panel_ui() -> void:
 	medical_panel = MedicalPanelUIScript.new()
@@ -542,7 +573,7 @@ func _on_clock_time_updated(_day: int, _hour: int, _minute: int) -> void:
 	var gold_val := 25
 	if player and "inventory" in player and player.inventory:
 		gold_val = player.inventory.gold
-	clock_sub_label.text = "💰 %d Oro | Visión: %d%% | [TAB] Rueda | [I] Mochila | [M] Mapa | [F5/F9] Guardar/Cargar" % [gold_val, vis_pct]
+	clock_sub_label.text = "💰 %d Oro | Visión: %d%% | [TAB] Rueda | [I] Mochila | [J] Vecinos | [M] Mapa | [F5/F9] Guardar/Cargar" % [gold_val, vis_pct]
 
 func _init_default_objectives() -> void:
 	if not ObjectiveManager:

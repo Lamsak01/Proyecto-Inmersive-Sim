@@ -139,6 +139,19 @@ var _interrog_correct_steps: int = 0
 var _interrog_penalty_acc: int = 0
 var _active_downed_patient: VillageNPC = null
 
+# Relaciones Dinámicas entre Vecinos (-100 a +100, estilo RimWorld) y Búsqueda de Familiares Ausentes
+var npc_relationships: Dictionary = {} # other_npc_name -> int (-100..100)
+var npc_relationship_notes: Dictionary = {} # other_npc_name -> String (motivo actual / historia común)
+var _npc_social_event_cooldown: float = 0.0
+var _searching_missing_kin: VillageNPC = null
+var _missing_kin_phase: int = 0
+var _missing_kin_timer: float = 0.0
+var _missing_kin_reported_day: int = -1
+var _kin_absence_worry_timer: float = 0.0
+var _patrol_search_target_npc: VillageNPC = null
+var _patrol_search_target_pos: Vector2 = Vector2.ZERO
+var _patrol_search_timer: float = 0.0
+
 # Cachés de rendimiento por fotograma (evita escaneos redundantes a 60 FPS en laptops)
 var _cached_player: Node2D = null
 var _cached_vm: Node = null
@@ -634,6 +647,412 @@ func _resolve_unique_64_visuals_and_lore(fallback_tex: Texture2D = null) -> void
 			_has_spritesheet_anim = false
 	portrait_texture = port_64 if port_64 != null else (spr_64 if spr_64 != null else fallback_tex)
 
+const INITIAL_NPC_RELATIONS: Dictionary = {
+	"Thoran|Bram": [58, "Socios gremiales de forja y aserradero"],
+	"Thoran|Comisario Vane": [52, "Veteranos del asedio de Cima Quebrada"],
+	"Thoran|Tomás": [45, "Intercambio de ceniza de forja para la huerta"],
+	"Thoran|Garrick": [-34, "Discusiones por el humo de la fragua y el precio de los cuchillos"],
+	"Kael|Aldric": [48, "Trato secreto de reliquias y bobinas antiguas"],
+	"Kael|Nora": [42, "Amigos de juventud en la plaza"],
+	"Kael|Guardia Rodric": [-28, "Rodric sospecha de sus incursiones nocturnas"],
+	"Garrick|Dr. Valen": [55, "Suministro discreto de huesos para estudios anatómicos"],
+	"Garrick|Marlo": [-46, "Rivalidad comercial entre Carnicería y Pescadería"],
+	"Garrick|Aldric": [-56, "Rencor del Paso del Aullido: sospecha de su pasado"],
+	"Garrick|Elena": [-30, "Choque entre cazador implacable y botánica pacífica"],
+	"Lina|Mila": [46, "Artesanas aliadas (Cuero curtido y ebanistería)"],
+	"Lina|Aldric": [-38, "Desconfía de él por el trauma de Garrick"],
+	"Bram|Darío": [48, "Respeto mutuo entre constructores y mineros"],
+	"Bram|Comisario Vane": [-26, "Recelo hacia los tribunales por su antiguo exilio"],
+	"Mila|Sora": [44, "Confidencias sobre cerraduras y nobles de la capital"],
+	"Marlo|Marta": [50, "Viejos amigos de taberna y suministro de pescado"],
+	"Nora|Sora": [-36, "Nora vigila sus pasos nocturnos en su bitácora de nudos"],
+	"Elena|Dr. Valen": [62, "Colaboración médica entre la Botica y el Hospital"],
+	"Tomás|Marlo": [44, "Intercambio de grano y abono en el molino"],
+	"Marta|Darío": [42, "Huésped honrado de la Posada El Jabalí"],
+	"Marta|Sora": [-32, "Tensión en el casino por contar cartas en el Blackjack"],
+	"Comisario Vane|Guardia Rodric": [74, "Mentor y centinela leal de la Guardia del Valle"],
+	"Comisario Vane|Dr. Valen": [56, "Cooperación forense en autopsias e investigaciones"],
+	"Comisario Vane|Aldric": [-35, "Bajo vigilancia policial por contrabando de ruinas"],
+	"Comisario Vane|Sora": [-30, "Sospechosa de desplumar viajeros en el río Grande"],
+	"Guardia Rodric|Darío": [38, "Compañeros de patrulla y guardia vecinal"],
+	"Aldric|Sora": [52, "Cómplices de apuestas en la mesa de la posada"],
+	"Aldric|Darío": [-40, "Choque entre buscavidas oportunista y capataz honrado"],
+}
+
+## Inicializa de forma determinista y basada en el lore las relaciones iniciales de este NPC con todos los vecinos del pueblo
+func ensure_npc_relationships_initialized() -> void:
+	if not is_inside_tree():
+		return
+	for n in get_tree().get_nodes_in_group("village_npcs"):
+		if not (n is VillageNPC) or n == self:
+			continue
+		var other := n as VillageNPC
+		var o_name: String = other.npc_name
+		if o_name == "" or npc_relationships.has(o_name):
+			continue
+		if family_id != "none" and family_id != "" and family_id != "family_police" and other.family_id == family_id:
+			npc_relationships[o_name] = 85
+			npc_relationship_notes[o_name] = "Familia cercana (%s)" % family_name
+			continue
+		var k1: String = "%s|%s" % [npc_name, o_name]
+		var k2: String = "%s|%s" % [o_name, npc_name]
+		if INITIAL_NPC_RELATIONS.has(k1):
+			var info1: Array = INITIAL_NPC_RELATIONS[k1]
+			npc_relationships[o_name] = int(info1[0])
+			npc_relationship_notes[o_name] = str(info1[1])
+		elif INITIAL_NPC_RELATIONS.has(k2):
+			var info2: Array = INITIAL_NPC_RELATIONS[k2]
+			npc_relationships[o_name] = int(info2[0])
+			npc_relationship_notes[o_name] = str(info2[1])
+		else:
+			var pair_hash: int = abs((npc_name + "_" + o_name).hash() if npc_name < o_name else (o_name + "_" + npc_name).hash())
+			var base_rel: int = (pair_hash % 45) - 18
+			if trade_role == TradeRole.INNKEEPER or other.trade_role == TradeRole.INNKEEPER:
+				base_rel = maxi(base_rel, 18)
+			npc_relationships[o_name] = clampi(base_rel, -100, 100)
+			if base_rel >= 20:
+				npc_relationship_notes[o_name] = "Simpatía vecinal y charlas en la plaza"
+			elif base_rel <= -12:
+				npc_relationship_notes[o_name] = "Roce de carácter y opiniones distintas"
+			else:
+				npc_relationship_notes[o_name] = "Trato vecinal cotidiano"
+
+func get_relationship_with_npc(other_name: String) -> int:
+	if other_name == "" or other_name == npc_name:
+		return 0
+	if not npc_relationships.has(other_name):
+		ensure_npc_relationships_initialized()
+	return clampi(int(npc_relationships.get(other_name, 0)), -100, 100)
+
+func get_relationship_note_with_npc(other_name: String) -> String:
+	if not npc_relationship_notes.has(other_name):
+		ensure_npc_relationships_initialized()
+	return str(npc_relationship_notes.get(other_name, "Trato vecinal cotidiano"))
+
+static func get_relationship_tier_label(val: int, is_same_family: bool = false) -> String:
+	if is_same_family and val >= 50:
+		return "❤️ Familia Cercana"
+	if val >= 65:
+		return "🌟 Mejor Amigo / Íntimo"
+	if val >= 35:
+		return "🤝 Amigo"
+	if val >= 12:
+		return "🙂 Cordial"
+	if val > -12:
+		return "😐 Neutral"
+	if val > -30:
+		return "😒 Frío / Distante"
+	if val > -55:
+		return "💢 Rival"
+	return "⚔️ Enemigo Acérrimo"
+
+## Modifica dinámicamente la relación mutua entre dos NPCs y detecta giros dramáticos ("por azares del destino")
+func modify_npc_relationship(other: VillageNPC, delta_val: int, reason: String = "") -> void:
+	if other == null or other == self or other.npc_name == "":
+		return
+	ensure_npc_relationships_initialized()
+	other.ensure_npc_relationships_initialized()
+	var old_val: int = get_relationship_with_npc(other.npc_name)
+	var new_val: int = clampi(old_val + delta_val, -100, 100)
+	npc_relationships[other.npc_name] = new_val
+	other.npc_relationships[npc_name] = clampi(other.get_relationship_with_npc(npc_name) + delta_val, -100, 100)
+	if reason != "":
+		npc_relationship_notes[other.npc_name] = reason
+		other.npc_relationship_notes[npc_name] = reason
+	# Giro de "azares del destino": dos rivales/enemigos que pasan a llevarse bien (o amigos que riñen)
+	if old_val <= -20 and new_val >= 20:
+		var twist_note: String = "🌟 Por azares del destino dejaron atrás su enemistad (%s)" % (reason if reason != "" else "Reconciliación inesperada")
+		npc_relationship_notes[other.npc_name] = twist_note
+		other.npc_relationship_notes[npc_name] = twist_note
+		add_thought("Me reconcilié con mi antiguo rival %s (+12)" % other.npc_name, 12.0)
+		other.add_thought("Me reconcilié con mi antiguo rival %s (+12)" % npc_name, 12.0)
+		_spawn_floating_text("🌟🤝 ¡Por azares del destino, %s y %s dejaron atrás su enemistad!" % [npc_name, other.npc_name], Color.GOLD, -44.0)
+	elif old_val >= 30 and new_val <= -20:
+		var feud_note: String = "⚡ Antiguos amigos enemistados (%s)" % (reason if reason != "" else "Disputa grave")
+		npc_relationship_notes[other.npc_name] = feud_note
+		other.npc_relationship_notes[npc_name] = feud_note
+		add_thought("Ruptura de amistad con %s (-10)" % other.npc_name, -10.0)
+		_spawn_floating_text("💢⚡ ¡%s y %s rompieron su amistad tras una fuerte disputa!" % [npc_name, other.npc_name], Color.ORANGE_RED, -44.0)
+
+func _trigger_dynamic_npc_social_interaction(partner: VillageNPC) -> void:
+	if not is_instance_valid(partner) or partner == self or partner.is_dead or partner.is_downed:
+		return
+	_npc_social_event_cooldown = randf_range(16.0, 26.0)
+	partner._npc_social_event_cooldown = randf_range(16.0, 26.0)
+	var cur_rel: int = get_relationship_with_npc(partner.npc_name)
+	var roll: float = randf()
+	if cur_rel <= -20:
+		# 32% de probabilidad de giro inesperado ("por azares del destino") donde dos enemigos conectan positivamente
+		if roll < 0.32:
+			var boost: int = randi_range(18, 28)
+			modify_npc_relationship(partner, boost, "Charla sincera e inesperada que limó viejas rencillas")
+			_spawn_floating_text("🍻🤝 Charla inesperada con %s (+%d Relación vecinal)" % [partner.npc_name, boost], Color.SPRING_GREEN, -34.0)
+		else:
+			var drop: int = randi_range(-10, -5)
+			modify_npc_relationship(partner, drop, "Discusión tensa al cruzarse en el pueblo")
+			_spawn_floating_text("😠💬 Roce con %s (%d Relación vecinal)" % [partner.npc_name, drop], Color.ORANGE, -34.0)
+	elif cur_rel >= 35:
+		if roll < 0.14:
+			var drop_f: int = randi_range(-14, -8)
+			modify_npc_relationship(partner, drop_f, "Malentendido reciente conversando en el pueblo")
+			_spawn_floating_text("😒💬 Desacuerdo con %s (%d Relación vecinal)" % [partner.npc_name, drop_f], Color.GOLD, -34.0)
+		else:
+			var gain_f: int = randi_range(6, 12)
+			modify_npc_relationship(partner, gain_f, "Buena conversación y apoyo mutuo entre amigos")
+			_spawn_floating_text("😊🤝 Charla amena con %s (+%d Relación vecinal)" % [partner.npc_name, gain_f], Color(0.65, 1.0, 0.78), -34.0)
+	else:
+		if roll < 0.72:
+			var gain_n: int = randi_range(8, 15)
+			modify_npc_relationship(partner, gain_n, "Se cayeron bien charlando durante el descanso")
+			_spawn_floating_text("🙂💬 Buena charla con %s (+%d Relación vecinal)" % [partner.npc_name, gain_n], Color(0.75, 0.96, 1.0), -34.0)
+		else:
+			var drop_n: int = randi_range(-12, -6)
+			modify_npc_relationship(partner, drop_n, "Choque de opiniones durante la jornada")
+			_spawn_floating_text("😒💬 Discusión con %s (%d Relación vecinal)" % [partner.npc_name, drop_n], Color.ORANGE, -34.0)
+
+## Inicia la búsqueda física de un familiar que no llegó a dormir a casa ni sigue su rutina habitual:
+## Fase 1: Ir a la tienda/taller familiar a buscarlo (8s). Si encuentra su cadáver allí, activa el reporte físico de inmediato.
+## Fase 2: Si no está en la tienda, caminar hacia el policía más cercano.
+## Fase 3: Explicar durante 10s a la policía que su familiar ha desaparecido para que la guardia salga a buscarlo.
+func begin_missing_family_search(kin: VillageNPC) -> void:
+	if not is_instance_valid(kin) or kin == self or is_incapacitated():
+		return
+	if is_instance_valid(_reporting_corpse_target) or is_instance_valid(_searching_missing_kin):
+		return
+	_searching_missing_kin = kin
+	_missing_kin_phase = 1
+	_missing_kin_timer = 0.0
+	is_sleeping = false
+	if sprite:
+		sprite.rotation_degrees = 0.0
+	add_thought("Preocupado: %s no ha vuelto a casa (-10)" % kin.npc_name, -10.0)
+	_spawn_floating_text("😟🏠 ¡%s no ha llegado a dormir a casa! Voy a la tienda a ver qué pasó..." % kin.npc_name, Color.GOLD, -44.0)
+	var vm = _get_vm()
+	if vm and vm.has_method("_hint_player"):
+		vm.call("_hint_player", "😟🏠 %s ha notado que su familiar %s no llegó a dormir a casa y va camino a la tienda a buscarlo." % [npc_name, kin.npc_name])
+
+func _get_family_shop_search_pos(kin: VillageNPC) -> Vector2:
+	if is_instance_valid(kin) and kin.work_position.distance_to(home_table_pos) > 36.0:
+		return kin.work_position
+	if work_position.distance_to(home_table_pos) > 36.0:
+		return work_position
+	var vm = _get_vm()
+	if vm and "trade_configs" in vm and vm.trade_configs.has(linked_trade):
+		var cfg: Dictionary = vm.trade_configs[linked_trade]
+		if cfg.has("work_pos"):
+			return cfg["work_pos"] as Vector2
+	return Vector2(465, 44)
+
+func _process_family_missing_search(delta: float) -> bool:
+	if is_instance_valid(_searching_missing_kin):
+		var kin: VillageNPC = _searching_missing_kin
+		if kin.corpse_reported or kin.corpse_in_morgue:
+			_searching_missing_kin = null
+			_missing_kin_phase = 0
+			_missing_kin_timer = 0.0
+			_stop_crafting_bar()
+			return false
+		# Si durante la búsqueda ve el cadáver de su familiar, pasa de inmediato a examinar el cuerpo (10s) y reportarlo
+		if kin.is_dead and kin.corpse_on_ground and global_position.distance_to(kin.global_position) <= 95.0:
+			_searching_missing_kin = null
+			_missing_kin_phase = 0
+			_missing_kin_timer = 0.0
+			_stop_crafting_bar()
+			kin.begin_physical_corpse_discovery(self)
+			return true
+		# Si lo encuentra vivo y cerca, se tranquiliza
+		if not kin.is_dead and not kin.is_downed and global_position.distance_to(kin.global_position) <= 48.0:
+			_searching_missing_kin = null
+			_missing_kin_phase = 0
+			_missing_kin_timer = 0.0
+			_stop_crafting_bar()
+			_spawn_floating_text("😮‍💨🏠 ¡Ahí estás, %s! Me tenías preocupado al no verte en casa." % kin.npc_name, Color.SPRING_GREEN, -40.0)
+			return false
+
+		is_sleeping = false
+		if sprite:
+			sprite.rotation_degrees = 0.0
+
+		# FASE 1: Ir a la tienda/taller familiar e inspeccionar durante 8.0s
+		if _missing_kin_phase == 1:
+			var shop_pos: Vector2 = _get_family_shop_search_pos(kin)
+			if global_position.distance_to(shop_pos) > 24.0:
+				_stop_crafting_bar()
+				_move_towards_point(shop_pos, 58.0, delta)
+				_finish_frame_movement(delta)
+				return true
+			velocity = Vector2.ZERO
+			_missing_kin_timer += delta
+			var rem_s: int = maxi(1, int(ceil(8.0 - _missing_kin_timer)))
+			_update_craft_bar_visual(clampf(_missing_kin_timer / 8.0, 0.02, 1.0), "😟🔍 Buscando a %s en tienda (%ds)" % [kin.npc_name, rem_s], Color(1.0, 0.78, 0.28, 0.95))
+			trigger_action_animation(0.4)
+			_finish_frame_movement(delta)
+			if _missing_kin_timer >= 8.0:
+				_stop_crafting_bar()
+				_missing_kin_timer = 0.0
+				_missing_kin_phase = 2
+				_spawn_floating_text("😰🚨 ¡%s tampoco está en la tienda! ¡Voy a pedir ayuda a la policía!" % kin.npc_name, Color.ORANGE_RED, -42.0)
+			return true
+
+		# Buscar al policía más cercano (incluyendo si está durmiendo en la Comisaría por la noche para despertarlo)
+		var nearest_police: VillageNPC = _find_nearest_available_authority(true)
+		var pol_dest: Vector2 = nearest_police.global_position if nearest_police != null else Vector2(886, 132)
+
+		# FASE 2: Caminar personalmente hacia la policía
+		if _missing_kin_phase == 2:
+			if global_position.distance_to(pol_dest) > 26.0:
+				_stop_crafting_bar()
+				_move_towards_point(pol_dest, 60.0, delta)
+				_finish_frame_movement(delta)
+				return true
+			velocity = Vector2.ZERO
+			_missing_kin_phase = 3
+			_missing_kin_timer = 0.0
+			if nearest_police != null:
+				nearest_police.is_sleeping = false
+				if nearest_police.sprite:
+					nearest_police.sprite.rotation_degrees = 0.0
+			_spawn_floating_text("🗣️🚓 ¡Guardia, por favor! ¡%s no llegó a casa ni está en su tienda!" % kin.npc_name, Color.GOLD, -42.0)
+			return true
+
+		# FASE 3: Explicar la desaparición a la policía durante 10.0s
+		if global_position.distance_to(pol_dest) > 34.0:
+			_stop_crafting_bar()
+			_move_towards_point(pol_dest, 60.0, delta)
+			_finish_frame_movement(delta)
+			return true
+		velocity = Vector2.ZERO
+		if nearest_police != null:
+			nearest_police.is_sleeping = false
+			if nearest_police.sprite:
+				nearest_police.sprite.rotation_degrees = 0.0
+			nearest_police.hold_for_interview(self, 0.8)
+			if sprite:
+				sprite.flip_h = (nearest_police.global_position.x < global_position.x)
+		_missing_kin_timer += delta
+		var rem_p: int = maxi(1, int(ceil(10.0 - _missing_kin_timer)))
+		var p_name: String = nearest_police.npc_name if nearest_police != null else "la Guardia"
+		_update_craft_bar_visual(clampf(_missing_kin_timer / 10.0, 0.02, 1.0), "🗣️🚓 Denunciando ausencia a %s (%ds)" % [p_name, rem_p], Color(0.45, 0.88, 1.0, 0.95))
+		trigger_action_animation(0.4)
+		_finish_frame_movement(delta)
+		if _missing_kin_timer >= 10.0:
+			_stop_crafting_bar()
+			_missing_kin_reported_day = WorldClock.current_day if WorldClock else 1
+			var missing_ref: VillageNPC = kin
+			_searching_missing_kin = null
+			_missing_kin_phase = 0
+			_missing_kin_timer = 0.0
+			_spawn_floating_text("📢 ¡%s denunció la desaparición de %s ante %s!" % [npc_name, missing_ref.npc_name, p_name], Color.AQUA, -42.0)
+			if nearest_police != null:
+				nearest_police.start_missing_person_police_search(missing_ref, self)
+		return true
+
+	# Detección automática en casa por la noche (21:00 - 06:00): ¿Falta mi familiar en su cama/casa?
+	if family_id in ["family_smith", "family_butcher", "family_carpenter", "family_fishmonger", "family_herbalist"]:
+		var cur_d: int = WorldClock.current_day if WorldClock else 1
+		var cur_h: int = WorldClock.current_hour if WorldClock else 12
+		var is_sleep_hours: bool = (cur_h >= 21 or cur_h < 6)
+		if is_sleep_hours and _missing_kin_reported_day != cur_d and (global_position.distance_to(home_table_pos) <= 95.0 or is_sleeping):
+			for n in get_tree().get_nodes_in_group("village_npcs"):
+				if n is VillageNPC and n != self:
+					var cand_kin := n as VillageNPC
+					if cand_kin.family_id == family_id and not cand_kin.corpse_reported and not cand_kin.corpse_in_morgue:
+						var dist_home: float = minf(cand_kin.global_position.distance_to(cand_kin.bed_position), cand_kin.global_position.distance_to(home_table_pos))
+						if dist_home > 85.0:
+							# Si el familiar está muerto, abatido, sedado o ya pasan de las 22:00 sin estar en casa, crece la preocupación
+							if cand_kin.is_dead or cand_kin.is_downed or cand_kin.sedated_timer > 0.0 or cur_h >= 22 or cur_h < 6:
+								_kin_absence_worry_timer += delta
+								if _kin_absence_worry_timer >= 4.0:
+									_kin_absence_worry_timer = 0.0
+									begin_missing_family_search(cand_kin)
+									return true
+						else:
+							_kin_absence_worry_timer = 0.0
+						break
+		else:
+			_kin_absence_worry_timer = 0.0
+	return false
+
+func _find_nearest_available_authority(allow_waking_sleeping: bool = false) -> VillageNPC:
+	var nearest_authority: VillageNPC = null
+	var best_dist: float = 999999.0
+	for n in get_tree().get_nodes_in_group("village_npcs"):
+		if n is VillageNPC and n != self:
+			var auth := n as VillageNPC
+			var ok_state: bool = (not auth.is_incapacitated()) if allow_waking_sleeping else auth.is_conscious()
+			if auth.trade_role in [TradeRole.SHERIFF, TradeRole.GUARD] and ok_state:
+				var d: float = global_position.distance_to(auth.global_position)
+				if d < best_dist:
+					best_dist = d
+					nearest_authority = auth
+	if nearest_authority == null:
+		for n in get_tree().get_nodes_in_group("village_npcs"):
+			if n is VillageNPC and n != self:
+				var auth2 := n as VillageNPC
+				var ok_state2: bool = (not auth2.is_incapacitated()) if allow_waking_sleeping else auth2.is_conscious()
+				if auth2.trade_role == TradeRole.DOCTOR and ok_state2:
+					var d2: float = global_position.distance_to(auth2.global_position)
+					if d2 < best_dist:
+						best_dist = d2
+						nearest_authority = auth2
+	return nearest_authority
+
+func start_missing_person_police_search(missing_npc: VillageNPC, reporter: VillageNPC) -> void:
+	if not is_instance_valid(missing_npc):
+		return
+	is_sleeping = false
+	if sprite:
+		sprite.rotation_degrees = 0.0
+	_patrol_search_target_npc = missing_npc
+	_patrol_search_target_pos = missing_npc.global_position
+	_patrol_search_timer = 45.0
+	var rep_name: String = reporter.npc_name if is_instance_valid(reporter) else "un vecino"
+	_spawn_floating_text("🚓🔦 «Calma, %s. Iré en persona a buscar a %s ahora mismo.»" % [rep_name, missing_npc.npc_name], Color.AQUA, -40.0)
+	var vm = _get_vm()
+	if vm and vm.has_method("_hint_player"):
+		vm.call("_hint_player", "🚓🔦 ¡PATRULLA DE BÚSQUEDA! Tras la denuncia de %s, %s ha salido a rastrear el paradero de %s." % [rep_name, npc_name, missing_npc.npc_name])
+
+func _process_police_missing_person_patrol(delta: float) -> bool:
+	if _patrol_search_timer <= 0.0:
+		return false
+	_patrol_search_timer = maxf(0.0, _patrol_search_timer - delta)
+	if is_instance_valid(_patrol_search_target_npc):
+		var m_npc: VillageNPC = _patrol_search_target_npc
+		if m_npc.corpse_reported or m_npc.corpse_in_morgue:
+			_patrol_search_timer = 0.0
+			_patrol_search_target_npc = null
+			_stop_crafting_bar()
+			return false
+		_patrol_search_target_pos = m_npc.global_position
+		if m_npc.is_dead and m_npc.corpse_on_ground and global_position.distance_to(m_npc.global_position) <= 90.0:
+			_patrol_search_timer = 0.0
+			_patrol_search_target_npc = null
+			_stop_crafting_bar()
+			m_npc.begin_physical_corpse_discovery(self)
+			return true
+		if not m_npc.is_dead and global_position.distance_to(m_npc.global_position) <= 45.0:
+			_patrol_search_timer = 0.0
+			_patrol_search_target_npc = null
+			_stop_crafting_bar()
+			if m_npc.is_downed:
+				m_npc.revive_from_downed(self, false)
+			_spawn_floating_text("🚓🔦 ¡Localicé a %s!" % m_npc.npc_name, Color.SPRING_GREEN, -38.0)
+			return false
+	is_sleeping = false
+	if sprite:
+		sprite.rotation_degrees = 0.0
+	var tgt_name: String = _patrol_search_target_npc.npc_name if is_instance_valid(_patrol_search_target_npc) else "vecino desaparecido"
+	_update_craft_bar_visual(clampf(_patrol_search_timer / 45.0, 0.05, 1.0), "🚓🔦 Buscando a %s" % tgt_name, Color(0.40, 0.88, 1.0, 0.95))
+	if global_position.distance_to(_patrol_search_target_pos) > 22.0:
+		_move_towards_point(_patrol_search_target_pos, 66.0, delta)
+	else:
+		velocity = Vector2.ZERO
+		_patrol_search_timer = 0.0
+		_patrol_search_target_npc = null
+		_stop_crafting_bar()
+	_finish_frame_movement(delta)
+	return true
+
 func add_thought(thought_text: String, mood_delta: float) -> void:
 	if thoughts.has(thought_text):
 		thoughts.erase(thought_text)
@@ -744,6 +1163,8 @@ func _physics_process(delta: float) -> void:
 	_get_player()
 	if bloodstained_timer > 0.0:
 		bloodstained_timer = maxf(0.0, bloodstained_timer - delta)
+	if _npc_social_event_cooldown > 0.0:
+		_npc_social_event_cooldown = maxf(0.0, _npc_social_event_cooldown - delta)
 	if is_conscious():
 		_update_visual_memory(delta)
 	if health_comp and velocity.length_squared() > 9.0 and health_comp.is_resting_in_bed and global_position.distance_to(Vector2(718, 136)) > 26.0 and global_position.distance_to(bed_position) > 20.0:
@@ -810,7 +1231,7 @@ func _physics_process(delta: float) -> void:
 			_finish_frame_movement(delta)
 			return
 
-	if not is_hostile and (_process_witness_corpse_reporting(delta) or _process_corpse_morgue_transport(delta)):
+	if not is_hostile and (_process_witness_corpse_reporting(delta) or _process_corpse_morgue_transport(delta) or _process_family_missing_search(delta)):
 		return
 
 	if trade_role in [TradeRole.SHERIFF, TradeRole.GUARD]:
@@ -823,6 +1244,8 @@ func _physics_process(delta: float) -> void:
 				vm.call("update_sheriff_investigator_ai", self, delta)
 				_finish_frame_movement(delta, true)
 				return
+		if not is_hostile and _process_police_missing_person_patrol(delta):
+			return
 
 	if trade_role == TradeRole.ROYAL_INVESTIGATOR:
 		if is_hostile:
@@ -1098,27 +1521,8 @@ func _process_witness_corpse_reporting(delta: float) -> bool:
 				_spawn_floating_text("😱💀 ¡No respira, está muerto! ¡Voy en persona a avisar a la policía!", Color.ORANGE_RED, -42.0)
 		return true
 
-	# Buscar al policía consciente más cercano (SHERIFF / GUARD primero; si no, DOCTOR)
-	var nearest_authority: VillageNPC = null
-	var best_dist: float = 999999.0
-	for n in get_tree().get_nodes_in_group("village_npcs"):
-		if n is VillageNPC and n != self:
-			var auth := n as VillageNPC
-			if auth.trade_role in [TradeRole.SHERIFF, TradeRole.GUARD] and auth.is_conscious():
-				var d: float = global_position.distance_to(auth.global_position)
-				if d < best_dist:
-					best_dist = d
-					nearest_authority = auth
-	if nearest_authority == null:
-		for n in get_tree().get_nodes_in_group("village_npcs"):
-			if n is VillageNPC and n != self:
-				var auth2 := n as VillageNPC
-				if auth2.trade_role == TradeRole.DOCTOR and auth2.is_conscious():
-					var d2: float = global_position.distance_to(auth2.global_position)
-					if d2 < best_dist:
-						best_dist = d2
-						nearest_authority = auth2
-
+	# Buscar al policía consciente más cercano (o despertarlo en la Comisaría si es de noche)
+	var nearest_authority: VillageNPC = _find_nearest_available_authority(true)
 	var report_dest: Vector2 = nearest_authority.global_position if nearest_authority != null else Vector2(886, 172)
 
 	# FASE 2: Caminar personalmente hasta donde está la policía
@@ -1131,6 +1535,10 @@ func _process_witness_corpse_reporting(delta: float) -> bool:
 		velocity = Vector2.ZERO
 		_corpse_report_phase = 3
 		_corpse_report_timer = 0.0
+		if nearest_authority != null:
+			nearest_authority.is_sleeping = false
+			if nearest_authority.sprite:
+				nearest_authority.sprite.rotation_degrees = 0.0
 		_spawn_floating_text("🗣️🚓 ¡Guardia, escúcheme! ¡He encontrado a %s muerto!" % corpse_to_report.npc_name, Color.GOLD, -42.0)
 		return true
 
@@ -1143,6 +1551,9 @@ func _process_witness_corpse_reporting(delta: float) -> bool:
 
 	velocity = Vector2.ZERO
 	if nearest_authority != null:
+		nearest_authority.is_sleeping = false
+		if nearest_authority.sprite:
+			nearest_authority.sprite.rotation_degrees = 0.0
 		nearest_authority.hold_for_interview(self, 0.6)
 		if sprite:
 			sprite.flip_h = (nearest_authority.global_position.x < global_position.x)
@@ -1861,7 +2272,10 @@ func _update_needs_and_decisions(delta: float) -> void:
 				_chat_bubble_timer -= delta
 				if _chat_bubble_timer <= 0.0:
 					_chat_bubble_timer = randf_range(4.5, 7.5)
-					_spawn_floating_text("💬", Color(0.75, 0.95, 1.0), -28.0)
+					if is_instance_valid(_social_partner) and _npc_social_event_cooldown <= 0.0:
+						_trigger_dynamic_npc_social_interaction(_social_partner)
+					else:
+						_spawn_floating_text("💬", Color(0.75, 0.95, 1.0), -28.0)
 
 		ActivityState.SLEEPING:
 			var vm_slp = _get_vm()
@@ -2119,6 +2533,7 @@ func _process_artisan_workshop_crafting_and_supply_runs(delta: float) -> void:
 			_spawn_floating_text("🛒🤝 Compró +2 %s a %s (-%d Oro)" % [_supply_run_input_label, supplier_npc.npc_name, buy_cost], Color(0.45, 0.95, 1.0), -42.0)
 			supplier_npc._spawn_floating_text("💰 +%d Oro (Suministro a %s)" % [buy_cost, npc_name], Color.GOLD, -36.0)
 			add_thought("Compró suministros de taller a %s (+5)" % supplier_npc.npc_name, 5.0)
+			modify_npc_relationship(supplier_npc, 6, "Comercio frecuente de suministros entre talleres")
 		_supply_run_target_role = 0
 		_supply_run_timer = 0.0
 		_supply_run_cooldown = randf_range(38.0, 56.0)
@@ -2481,6 +2896,7 @@ func _process_royal_investigator_ai(delta: float) -> void:
 	_finish_frame_movement(delta, true)
 
 func _find_best_social_partner() -> VillageNPC:
+	ensure_npc_relationships_initialized()
 	var best: VillageNPC = null
 	var best_score: float = -9999.0
 	for node in get_tree().get_nodes_in_group("village_npcs"):
@@ -2490,8 +2906,10 @@ func _find_best_social_partner() -> VillageNPC:
 		if other.is_dead or other.is_downed or other.is_sleeping:
 			continue
 		var dist: float = global_position.distance_to(other.global_position)
-		var family_bonus: float = 120.0 if (family_id != "none" and other.family_id == family_id) else 0.0
-		var score: float = family_bonus - dist * 0.4 + (100.0 - other.need_social) * 0.5
+		var family_bonus: float = 110.0 if (family_id != "none" and other.family_id == family_id) else 0.0
+		var rel_score: float = float(get_relationship_with_npc(other.npc_name)) * 0.65
+		var fate_jitter: float = randf_range(-20.0, 42.0)
+		var score: float = family_bonus + rel_score + fate_jitter - dist * 0.4 + (100.0 - other.need_social) * 0.5
 		if score > best_score:
 			best_score = score
 			best = other
@@ -2520,6 +2938,14 @@ func get_activity_description() -> String:
 		elif _corpse_report_phase == 3:
 			return "🗣️ Explicando el hallazgo de %s a la policía (%ds)" % [_reporting_corpse_target.npc_name, maxi(1, int(ceil(12.5 - _corpse_report_timer)))]
 		return "🏃 Yendo en persona a avisar a la policía por %s" % _reporting_corpse_target.npc_name
+	if is_instance_valid(_searching_missing_kin):
+		if _missing_kin_phase == 1:
+			return "😟🔍 Buscando a su familiar %s en la tienda" % _searching_missing_kin.npc_name
+		elif _missing_kin_phase == 3:
+			return "🗣️🚓 Denunciando la desaparición de %s (%ds)" % [_searching_missing_kin.npc_name, maxi(1, int(ceil(10.0 - _missing_kin_timer)))]
+		return "😰🏃 Yendo a la policía por la ausencia de %s" % _searching_missing_kin.npc_name
+	if _patrol_search_timer > 0.0 and is_instance_valid(_patrol_search_target_npc):
+		return "🚓🔦 Patrulla de búsqueda: rastreando a %s" % _patrol_search_target_npc.npc_name
 	var sick_tag: String = ""
 	if health_comp and health_comp.has_active_sickness_or_infection():
 		sick_tag = " [🌡️Enfermo/Fiebre %d%%]" % int(round(maxf(health_comp.fever, maxf(health_comp.food_poisoning, health_comp.swamp_sickness))))
@@ -3069,6 +3495,7 @@ func _inject_character_lore_into_dialogue(diag: Dictionary) -> Dictionary:
 	elif not (trade_role in [TradeRole.SHERIFF, TradeRole.GUARD, TradeRole.ROYAL_INVESTIGATOR]):
 		ch_arr.insert(insert_idx, {"label": "🤫 Manipular Testigo / Coartada (Silenciar, Sobornar o Inculpar a otro)", "next": "witness_manipulation_menu"})
 	ch_arr.insert(insert_idx, {"label": "📖 Conocer la historia personal y el pasado de %s (+10 Relación)" % npc_name, "next": "character_lore", "affinity": 10})
+	ch_arr.insert(insert_idx, {"label": "🤝📓 Ver Red Social, Amigos y Rivales de %s [Glosario J]" % npc_name, "next": "END", "action": "open_social_glossary"})
 	ch_arr.insert(insert_idx, {"label": "🕵️ Bolsillos de %s: Hurtar o Meter objeto en sigilo [O pulsa H]" % npc_name, "next": "pocket_stealth_menu"})
 	if need_hunger < 75.0:
 		ch_arr.insert(insert_idx, {"label": "🍲 Darle 1 ración de comida de tu mochila (%s) para que se recupere gradualmente (+18 Relación)" % get_nutrition_status_label(), "next": "start", "action": "give_npc_food_ration"})
@@ -3670,6 +4097,12 @@ func on_dialogue_action(action_id: String) -> void:
 	var inv: SimpleInventory = player.inventory
 	var vm = _get_vm()
 
+	if action_id == "open_social_glossary":
+		var soc_ui = get_tree().root.find_child("SocialGlossaryUI", true, false)
+		if soc_ui and soc_ui.has_method("open_panel"):
+			soc_ui.call_deferred("open_panel", self)
+		return
+
 	if action_id == "pickpocket_gold":
 		attempt_pickpocket_or_plant(player, "steal_gold")
 		return
@@ -4044,6 +4477,8 @@ func to_save_dict() -> Dictionary:
 		"bloodstained_timer": bloodstained_timer, "seen_entities_memory": seen_entities_memory.duplicate(true),
 		"witness_silenced_player": witness_silenced_player, "witness_alibi_for_player": witness_alibi_for_player,
 		"witness_framed_target_name": witness_framed_target_name,
+		"npc_relationships": npc_relationships.duplicate(), "npc_relationship_notes": npc_relationship_notes.duplicate(),
+		"missing_kin_reported_day": _missing_kin_reported_day,
 		"medical": health_comp.to_medical_dict() if health_comp else {}
 	}
 
@@ -4056,6 +4491,16 @@ func from_save_dict(data: Dictionary) -> void:
 	witness_silenced_player = bool(data.get("witness_silenced_player", false))
 	witness_alibi_for_player = bool(data.get("witness_alibi_for_player", false))
 	witness_framed_target_name = str(data.get("witness_framed_target_name", ""))
+	if data.has("npc_relationships") and typeof(data["npc_relationships"]) == TYPE_DICTIONARY:
+		npc_relationships = (data["npc_relationships"] as Dictionary).duplicate()
+	if data.has("npc_relationship_notes") and typeof(data["npc_relationship_notes"]) == TYPE_DICTIONARY:
+		npc_relationship_notes = (data["npc_relationship_notes"] as Dictionary).duplicate()
+	_missing_kin_reported_day = int(data.get("missing_kin_reported_day", -1))
+	_searching_missing_kin = null
+	_missing_kin_phase = 0
+	_missing_kin_timer = 0.0
+	_patrol_search_target_npc = null
+	_patrol_search_timer = 0.0
 	seen_entities_memory.clear()
 	if data.has("seen_entities_memory") and typeof(data["seen_entities_memory"]) == TYPE_ARRAY:
 		for mem_it in (data["seen_entities_memory"] as Array):
