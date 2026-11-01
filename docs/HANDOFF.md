@@ -142,7 +142,7 @@ Otros documentos antiguos en la raíz: `ROADMAP_PROYECTO.md`, `AUDIT_LOG.md`, `S
 - [x] **B0.2** HECHO. `scripts/data/PersonProfile.gd` (`person_id`, `gender`, `orientation`, `age`, `personality` de 3 rasgos, `likes`/`dislikes`, `favorite_item`, `romance_status`, `partner_id`) y tabla `INITIAL_PERSON_PROFILES` en `scripts/data/NPCData.gd` para los 17 vecinos (6 F / 11 M) + 3 visitantes. Conectado en `VillageNPC._init_person_profile()`. Lore de Lina y Tomás ajustado a hermanos de hogar/taller.
 - [x] **B0.3** HECHO. Generador `PersonProfile.generate_newcomer(...)` (nombre y `person_id` únicos, género equilibrado según vivos, edad y gustos por oficio, 3 rasgos sin opuestos, reproducible con semilla) y unificación de los 5 puntos de creación de vecinos nuevos en `VillageManager._spawn_generated_newcomer(...)`.
 - [x] **B0.4** HECHO. Relaciones (`npc_relationships` y `npc_relationship_notes`) migradas a claves únicas (`person_id`), migración automática de claves antiguas por nombre (`_migrate_legacy_relationship_keys`), limpieza al morir (`purge_deceased_relationship`) y bloqueo de fallecidos en `ensure_npc_relationships_initialized`.
-- [ ] **B0.5** Guardado/carga de la ficha y de las relaciones, con valores por defecto para partidas antiguas.
+- [x] **B0.5** HECHO. Guardado y carga de `person_profile`, `npc_id`, relaciones por `person_id` y registros del generador (`used_first_names`, `used_person_ids`, `newcomer_rng_state`), con fallback y migración automática para partidas antiguas.
 - [ ] **B0.6** Registro de eventos sociales (base de "Noticias del pueblo").
 - [ ] **B0.7** Esqueleto del **Director Social** (máx. 2–3 escenas simultáneas) y tabla única de "diales" de ajuste.
 - [ ] **B0.8** Pareja inicial **Elena y el Dr. Valen**.

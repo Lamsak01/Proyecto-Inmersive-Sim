@@ -6023,7 +6023,10 @@ func get_economy_save_dict() -> Dictionary:
 		"player_arrests_count": player_arrests_count, "player_murder_warrants_count": player_murder_warrants_count,
 		"recent_breakins_count": recent_breakins_count, "crime_history": crime_history.duplicate(), "arrivals_today_count": arrivals_today_count,
 		"rehire_counter": _rehire_counter, "house_chests": saved_chests, "building_doors": saved_doors,
-		"building_windows": saved_windows, "deployed_bear_traps": saved_traps
+		"building_windows": saved_windows, "deployed_bear_traps": saved_traps,
+		"used_first_names": _used_first_names.duplicate(),
+		"used_person_ids": _used_person_ids.keys(),
+		"newcomer_rng_state": _newcomer_rng.state
 	}
 
 func _free_transient_npc(npc: VillageNPC) -> void:
@@ -6043,6 +6046,18 @@ func load_economy_save_dict(data: Dictionary) -> void:
 	recent_breakins_count = int(data.get("recent_breakins_count", 0))
 	arrivals_today_count = int(data.get("arrivals_today_count", 0))
 	_rehire_counter = maxi(_rehire_counter, int(data.get("rehire_counter", _rehire_counter)))
+	if data.has("used_first_names") and typeof(data["used_first_names"]) == TYPE_ARRAY:
+		for fn_it in (data["used_first_names"] as Array):
+			var fn_s: String = str(fn_it)
+			if fn_s != "" and not (fn_s in _used_first_names):
+				_used_first_names.append(fn_s)
+	if data.has("used_person_ids") and typeof(data["used_person_ids"]) == TYPE_ARRAY:
+		for pid_it in (data["used_person_ids"] as Array):
+			var pid_s: String = str(pid_it)
+			if pid_s != "":
+				_used_person_ids[pid_s] = true
+	if data.has("newcomer_rng_state"):
+		_newcomer_rng.state = int(data["newcomer_rng_state"])
 	if data.has("crime_history") and typeof(data["crime_history"]) == TYPE_ARRAY:
 		crime_history.clear()
 		for ch_item in (data["crime_history"] as Array):

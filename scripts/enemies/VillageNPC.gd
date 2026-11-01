@@ -4050,6 +4050,8 @@ func to_save_dict() -> Dictionary:
 			route_bought_flags[rk] = bool(get_meta(rk))
 	var save_pos: Vector2 = _pre_poker_pos if (is_at_poker_table and _pre_poker_pos != Vector2.ZERO and not is_dead) else global_position
 	return {
+		"npc_id": npc_id,
+		"person_profile": person_profile.to_dict() if person_profile != null else {},
 		"npc_name": npc_name, "npc_role": npc_role, "family_id": family_id, "family_name": family_name,
 		"trade_role": int(trade_role), "linked_trade": int(linked_trade), "days_in_role": days_in_role,
 		"affinity": affinity, "personal_gold": personal_gold, "carries_royal_safe_conduct": carries_royal_safe_conduct,
@@ -4082,6 +4084,13 @@ func _read_vec2(data: Dictionary, kx: String, ky: String, fallback: Vector2) -> 
 
 func from_save_dict(data: Dictionary) -> void:
 	npc_name = str(data.get("npc_name", npc_name))
+	if data.has("person_profile") and typeof(data["person_profile"]) == TYPE_DICTIONARY and not (data["person_profile"] as Dictionary).is_empty():
+		person_profile = PersonProfile.from_dict(data["person_profile"] as Dictionary)
+	else:
+		person_profile = null
+	_init_person_profile()
+	if data.has("npc_id") and str(data["npc_id"]) != "" and (person_profile == null or str(person_profile.person_id) == ""):
+		npc_id = str(data["npc_id"])
 	bloodstained_timer = maxf(0.0, float(data.get("bloodstained_timer", 0.0)))
 	witness_silenced_player = bool(data.get("witness_silenced_player", false))
 	witness_alibi_for_player = bool(data.get("witness_alibi_for_player", false))
@@ -4090,6 +4099,7 @@ func from_save_dict(data: Dictionary) -> void:
 		npc_relationships = (data["npc_relationships"] as Dictionary).duplicate()
 	if data.has("npc_relationship_notes") and typeof(data["npc_relationship_notes"]) == TYPE_DICTIONARY:
 		npc_relationship_notes = (data["npc_relationship_notes"] as Dictionary).duplicate()
+	_migrate_legacy_relationship_keys()
 	_missing_kin_reported_day = int(data.get("missing_kin_reported_day", -1))
 	_searching_missing_kin = null
 	_missing_kin_phase = 0

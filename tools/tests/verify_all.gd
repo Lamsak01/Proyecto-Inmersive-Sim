@@ -395,6 +395,21 @@ func _initialize() -> void:
 	assert(not bram_npc.npc_relationships.has("mila"), "B0.4: purge_deceased_relationship must remove deceased entry!")
 	bram_npc.ensure_npc_relationships_initialized()
 	assert(bram_npc.get_relationship_with_npc("mila") == 85, "Living Mila re-initializes cleanly")
+	# B0.5: Verify save/load of PersonProfile, relationships, and legacy save fallback
+	var bram_saved: Dictionary = bram_npc.to_save_dict()
+	assert(bram_saved.has("person_profile") and str(bram_saved["person_profile"].get("person_id", "")) == "bram", "B0.5: to_save_dict must include person_profile!")
+	bram_npc.person_profile.age = 99
+	bram_npc.from_save_dict(bram_saved)
+	assert(bram_npc.person_profile.age == 41 and bram_npc.get_relationship_with_npc("vane") == 25, "B0.5: from_save_dict must restore PersonProfile and relationships!")
+	# Legacy save (no person_profile key, relationship keyed by display name "Mila")
+	var legacy_save: Dictionary = bram_saved.duplicate(true)
+	legacy_save.erase("person_profile")
+	legacy_save["npc_relationships"] = {"Mila": 77}
+	bram_npc.from_save_dict(legacy_save)
+	assert(bram_npc.person_profile != null and bram_npc.person_profile.person_id == "bram" and bram_npc.get_relationship_with_npc("mila") == 77 and bram_npc.npc_relationships.has("mila"), "B0.5: legacy save without person_profile must rebuild default profile and migrate name keys to person_id!")
+	bram_npc.from_save_dict(bram_saved)
+	var vm_econ_save: Dictionary = vm.get_economy_save_dict()
+	assert(vm_econ_save.has("used_first_names") and vm_econ_save.has("used_person_ids"), "B0.5: VillageManager save must persist used names and IDs!")
 
 	# 16. Test Worried Family Missing-Person Search (Shop Search 8s -> Police Report 10s -> Police Search Patrol)
 	assert(elena_npc != null and tomas_npc != null, "Elena and Tomás must exist for family search test")
