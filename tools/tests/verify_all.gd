@@ -747,5 +747,25 @@ func _initialize() -> void:
 	assert(vm.get_recent_social_events(5, "date").size() >= 1, "B3.2: Completed couple hangout must record a 'date' social event")
 	print("B3.2 romantic behavior & dates OK")
 
+	# Test #25 (B3.3): Ruptura por alta tensión y reconciliación posterior en vivo
+	var day33: int = int(wc_speed.current_day)
+	sd3.set_pair_metrics(na3.get_person_key(), nb3.get_person_key(), 5, 60, 65, 75, "couple")
+	var old_brk = sd3.dials["breakup_daily_chance"]
+	sd3.dials["breakup_daily_chance"] = 1.0
+	vm._advance_live_romances(day33)
+	sd3.dials["breakup_daily_chance"] = old_brk
+	assert(str(na3.person_profile.romance_status) == "single" and str(nb3.person_profile.romance_status) == "single", "B3.3: Couple with high tension & low affinity must break up")
+	assert(vm.get_recent_social_events(5, "breakup").size() >= 1, "B3.3: Breakup must be recorded in the social event log")
+	sd3.set_pair_metrics(na3.get_person_key(), nb3.get_person_key(), 42, 65, 50, 10, "none")
+	sd3.get_pair_entry(na3.get_person_key(), nb3.get_person_key())["ex_couple"] = true
+	sd3.get_pair_entry(na3.get_person_key(), nb3.get_person_key())["last_contact_day"] = day33
+	var old_rec = sd3.dials["reconcile_ex_chance"]
+	sd3.dials["reconcile_ex_chance"] = 1.0
+	vm._advance_live_romances(day33)
+	sd3.dials["reconcile_ex_chance"] = old_rec
+	assert(str(na3.person_profile.romance_status) == "partnered" and str(na3.person_profile.partner_id) == nb3.get_person_key(), "B3.3: Ex-couple with spark & low tension must reconcile")
+	assert(vm.get_recent_social_events(5, "couple_reconciled").size() >= 1, "B3.3: Reconciliation must be recorded in the social event log")
+	print("B3.3 jealousy, breakups & reconciliation OK")
+
 	print("ALL RIMWORLD MEDICAL, FOOTPRINTS, 3-PHASE CORPSE REPORT, MULTI-CORPSE FIX, RPG INTERROGATION, PUBLIC TRIAL, DYNAMIC RELATIONSHIPS, MISSING FAMILY SEARCH, SOCIAL GLOSSARY & UNCONSCIOUS REACTION TESTS PASSED!")
 	quit(0)

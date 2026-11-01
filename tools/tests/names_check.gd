@@ -107,8 +107,8 @@ func _initialize() -> void:
 	var c1: Dictionary = PersonProfile.generate_newcomer(4, 1, gr1, [], {}, 6, 11)
 	var c2: Dictionary = PersonProfile.generate_newcomer(4, 1, gr2, [], {}, 6, 11)
 	assert(c1["full_name"] == c2["full_name"] and c1["profile"].to_dict() == c2["profile"].to_dict(), "Generador debe ser reproducible con la misma semilla")
-	# B1.1: Comprobar catalogo de frases sociales (8 acciones, 16 gustos, sin placeholders residuales)
-	assert(SocialDialogueData.ALL_ACTIONS.size() == 10, "Debe haber 10 tipos de acciones sociales (incluidos coqueteo y cariño)")
+	# B1.1: Comprobar catalogo de frases sociales (11 acciones, 16 gustos, sin placeholders residuales)
+	assert(SocialDialogueData.ALL_ACTIONS.size() == 11, "Debe haber 11 tipos de acciones sociales (incluidos coqueteo, cariño y celos)")
 	for t_key in PersonProfile.TASTE_TOPICS:
 		assert(SocialDialogueData.TASTE_LABELS.has(t_key), "Falta etiqueta de gusto para: %s" % t_key)
 	var prof_elena: Dictionary = NPCData.INITIAL_PERSON_PROFILES["Elena"]
@@ -272,5 +272,36 @@ func _initialize() -> void:
 			saw_affection = true
 			break
 	assert(saw_affection, "B3.2: Una pareja establecida debe usar frases de ACTION_AFFECTION")
-	print("NAMES CHECK PASSED (200 F / 200 M / 200 apellidos + 17 PersonProfile + B0.3 generator + B1.1/B1.2 social + B2.1 hangouts + B3.1/B3.2 romance)")
+	# B3.3: Celos, rupturas y reconciliación de ex-parejas
+	var jd = SocialDirector.new(3333)
+	jd.dials["jealousy_base_chance"] = 1.0
+	var p_kael = PersonProfile.from_dict(NPCData.INITIAL_PERSON_PROFILES["Kael"])
+	var p_nora = PersonProfile.from_dict(NPCData.INITIAL_PERSON_PROFILES["Nora"])
+	var p_mila = PersonProfile.from_dict(NPCData.INITIAL_PERSON_PROFILES["Mila"])
+	p_kael.romance_status = PersonProfile.ROMANCE_PARTNERED; p_kael.partner_id = "nora"
+	p_nora.romance_status = PersonProfile.ROMANCE_PARTNERED; p_nora.partner_id = "kael"
+	p_mila.romance_status = PersonProfile.ROMANCE_SINGLE; p_mila.partner_id = ""
+	var jprofs: Dictionary = {"kael": p_kael, "nora": p_nora, "mila": p_mila}
+	jd.set_pair_metrics("kael", "nora", 70, 60, 75, 5, SocialDirector.STAGE_COUPLE)
+	jd.set_pair_metrics("kael", "mila", 40, 30, 20, 0, SocialDirector.STAGE_NONE)
+	var jevs: Array = jd.trigger_jealousy_if_any("kael", "mila", jprofs, {}, 7)
+	assert(jevs.size() == 1 and str(jevs[0].get("partner_id", "")) == "nora", "B3.3: Nora debe sentir celos cuando Kael queda con Mila")
+	assert(int(jd.get_pair_entry("kael", "nora")["tension"]) > 5, "B3.3: Los celos suben la tension de la pareja")
+	assert(int(jd.get_pair_entry("nora", "mila")["tension"]) >= 12, "B3.3: Los celos generan tension con la rival")
+	# Ruptura por alta tensión y baja afinidad
+	jd.dials["breakup_daily_chance"] = 1.0
+	jd.set_pair_metrics("kael", "nora", 5, 60, 65, 75, SocialDirector.STAGE_COUPLE)
+	var r_brk: Dictionary = jd.advance_live_romance_day(8, jprofs)
+	assert(r_brk["breakups"].size() == 1 and jd.get_pair_stage("kael", "nora") == SocialDirector.STAGE_NONE, "B3.3: Pareja con tension 75 y afinidad 5 debe romper")
+	assert(str(p_kael.romance_status) == PersonProfile.ROMANCE_SINGLE and str(p_nora.romance_status) == PersonProfile.ROMANCE_SINGLE, "B3.3: Tras romper ambos vuelven a estar solteros")
+	assert(bool(jd.get_pair_entry("kael", "nora").get("ex_couple", false)), "B3.3: El par queda marcado como ex_couple")
+	# Reconciliación si persiste la chispa, baja la tensión y recuperan afinidad
+	jd.dials["reconcile_ex_chance"] = 1.0
+	jd.set_pair_metrics("kael", "nora", 38, 65, 45, 10, SocialDirector.STAGE_NONE)
+	jd.get_pair_entry("kael", "nora")["ex_couple"] = true
+	jd.get_pair_entry("kael", "nora")["last_contact_day"] = 9
+	var r_rec: Dictionary = jd.advance_live_romance_day(9, jprofs)
+	assert(r_rec["reconciled"].size() == 1 and jd.get_pair_stage("kael", "nora") == SocialDirector.STAGE_COUPLE, "B3.3: Ex-pareja con chispa, baja tension y buena afinidad puede reconciliarse")
+	assert(str(p_kael.partner_id) == "nora" and str(p_nora.partner_id) == "kael", "B3.3: Reconciliacion restaura fichas de pareja")
+	print("NAMES CHECK PASSED (200 F / 200 M / 200 apellidos + 17 PersonProfile + B0.3 generator + B1.1/B1.2 social + B2.1 hangouts + B3.1/B3.2/B3.3 romance)")
 	quit(0)

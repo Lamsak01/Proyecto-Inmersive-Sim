@@ -68,6 +68,17 @@ const DIALS: Dictionary = {
 	"stage_fizzle_spark": 8,             # Si la chispa cae por debajo, el cortejo se apaga
 	"romance_min_compat": 40,
 	"spark_daily_gain_cap": 10,          # Máximo de chispa que un par puede ganar en un mismo día (charlas + quedadas)
+	# B3.3: Celos, rupturas y reconciliación
+	"jealousy_tension_gain_base": 14,
+	"jealousy_trait_bonus": 10,
+	"jealousy_rival_tension_gain": 12,
+	"jealousy_base_chance": 0.65,
+	"breakup_min_tension": 62,
+	"breakup_max_affinity": 12,
+	"breakup_daily_chance": 0.28,
+	"reconcile_ex_min_spark": 35,
+	"reconcile_ex_max_tension": 18,
+	"reconcile_ex_chance": 0.35,
 }
 
 const STAGE_NONE := "none"
@@ -274,7 +285,21 @@ func resolve_live_conversation(npc_a, npc_b, current_day: int = 1) -> Dictionary
 	var is_couple_pair: bool = (pair_stage == STAGE_COUPLE) or (str(prof_a.partner_id) != "" and str(prof_a.partner_id) == id_b)
 	var is_courting_pair: bool = not is_couple_pair and (pair_stage in [STAGE_INTEREST, STAGE_FLIRT, STAGE_DATING])
 
-	if is_couple_pair and cur_rel > -10 and roll >= 0.08:
+	if is_couple_pair and int(pe.get("tension", 0)) >= 28:
+		var reconciliatory: bool = ("Pacífico" in prof_a.personality) or ("Leal" in prof_a.personality) or ("Bondadoso" in prof_a.personality)
+		if reconciliatory and rng.randf() < 0.38:
+			action_id = SocialDialogueData.ACTION_APOLOGY
+			delta_rel = rng.randi_range(10, 18)
+			pe["tension"] = clampi(int(pe.get("tension", 0)) - rng.randi_range(12, 20), 0, 100)
+		elif rng.randf() < 0.65:
+			action_id = SocialDialogueData.ACTION_JEALOUSY
+			delta_rel = rng.randi_range(-12, -5)
+			pe["tension"] = clampi(int(pe.get("tension", 0)) + rng.randi_range(6, 12), 0, 100)
+		else:
+			action_id = SocialDialogueData.ACTION_VENT
+			delta_rel = rng.randi_range(4, 9)
+			pe["tension"] = clampi(int(pe.get("tension", 0)) - rng.randi_range(6, 12), 0, 100)
+	elif is_couple_pair and cur_rel > -10 and roll >= 0.08:
 		if rng.randf() < 0.72:
 			action_id = SocialDialogueData.ACTION_AFFECTION
 		elif shared_like != "" and rng.randf() < 0.60:
@@ -685,13 +710,72 @@ func _stage_threshold(stage_next: String) -> int:
 		STAGE_COUPLE: return int(dials.get("stage_spark_couple", 60))
 	return 999
 
+## B3.3: Evalúa si una interacción cercana o quedada entre `actor_a_id` y `actor_b_id` (que no son pareja entre sí)
+## despierta celos en la pareja actual de alguno de ellos.
+## Devuelve Array de episodios: `[{"partner_id", "cheater_id", "rival_id", "couple_tension", "rival_tension"}]`.
+func trigger_jealousy_if_any(actor_a_id: String, actor_b_id: String, profiles_by_id: Dictionary, families_by_id: Dictionary = {}, current_day: int = 1) -> Array:
+	var events: Array = []
+	var prof_a = profiles_by_id.get(actor_a_id, null)
+	var prof_b = profiles_by_id.get(actor_b_id, null)
+	if prof_a == null or prof_b == null or actor_a_id == actor_b_id:
+		return events
+	if str(prof_a.partner_id) == actor_b_id or str(prof_b.partner_id) == actor_a_id:
+		return events
+	var fam_a: String = str(families_by_id.get(actor_a_id, "none"))
+	var fam_b: String = str(families_by_id.get(actor_b_id, "none"))
+	var same_fam: bool = (fam_a != "none" and fam_a != "" and fam_a != "family_police" and fam_a == fam_b)
+	if compute_compatibility(prof_a, prof_b, same_fam) < int(dials.get("romance_min_compat", 40)):
+		return events
+	var pe_ab: Dictionary = get_pair_entry(actor_a_id, actor_b_id)
+	if int(pe_ab.get("affinity", 0)) < 26 and int(pe_ab.get("spark", 0)) < 14:
+		return events
+	for pair_info in [[actor_a_id, actor_b_id, prof_a], [actor_b_id, actor_a_id, prof_b]]:
+		var cheater_id: String = str(pair_info[0])
+		var rival_id: String = str(pair_info[1])
+		var prof_c = pair_info[2]
+		var partner_id: String = str(prof_c.partner_id)
+		if partner_id == "" or partner_id == rival_id or not profiles_by_id.has(partner_id):
+			continue
+		var prof_p = profiles_by_id[partner_id]
+		if prof_p == null:
+			continue
+		var chance: float = float(dials.get("jealousy_base_chance", 0.65))
+		if ("Celoso" in prof_p.personality) or ("Desconfiado" in prof_p.personality):
+			chance += 0.25
+		if "Pacífico" in prof_p.personality:
+			chance -= 0.25
+		if rng.randf() >= clampf(chance, 0.15, 0.95):
+			continue
+		var pe_couple: Dictionary = get_pair_entry(partner_id, cheater_id, 65)
+		var ten_add: int = int(dials.get("jealousy_tension_gain_base", 14))
+		if "Celoso" in prof_p.personality:
+			ten_add += int(dials.get("jealousy_trait_bonus", 10))
+		pe_couple["tension"] = clampi(int(pe_couple.get("tension", 0)) + ten_add, 0, 100)
+		pe_couple["affinity"] = clampi(int(pe_couple.get("affinity", 65)) - 8, -100, 100)
+		pe_couple["last_contact_day"] = current_day
+		var pe_rival: Dictionary = get_pair_entry(partner_id, rival_id, 0)
+		var r_ten_add: int = int(dials.get("jealousy_rival_tension_gain", 12))
+		pe_rival["tension"] = clampi(int(pe_rival.get("tension", 0)) + r_ten_add, 0, 100)
+		pe_rival["affinity"] = clampi(int(pe_rival.get("affinity", 0)) - 8, -100, 100)
+		events.append({
+			"partner_id": partner_id,
+			"cheater_id": cheater_id,
+			"rival_id": rival_id,
+			"couple_tension": int(pe_couple["tension"]),
+			"rival_tension": int(pe_rival["tension"]),
+		})
+	return events
+
 ## Paso diario de cortejos en vivo. `profiles_by_id`: {person_id: PersonProfile} de los vivos; `families_by_id`: {person_id: family_id}.
 ## Solo avanza quien tuvo contacto hoy/ayer (charlas o quedadas), con probabilidad, sin plazos. Si la chispa se apaga, el cortejo se pierde.
-## Devuelve {"advanced": [{id_a, id_b, from, to}], "new_couples": [{id_a, id_b}], "fizzled": [{id_a, id_b, from}]}.
+## También evalúa rupturas por alta tensión/baja afinidad y reconciliación de ex-parejas (B3.3).
+## Devuelve {"advanced", "new_couples", "fizzled", "breakups", "reconciled"}.
 func advance_live_romance_day(current_day: int, profiles_by_id: Dictionary, families_by_id: Dictionary = {}) -> Dictionary:
 	var advanced: Array = []
 	var new_couples: Array = []
 	var fizzled: Array = []
+	var breakups: Array = []
+	var reconciled: Array = []
 	var keys: Array = pair_metrics.keys()
 	keys.sort()
 	var window: int = int(dials.get("live_stage_contact_window_days", 1))
@@ -709,6 +793,19 @@ func advance_live_romance_day(current_day: int, profiles_by_id: Dictionary, fami
 			continue
 		var stage: String = str(pe.get("stage", STAGE_NONE))
 		if stage == STAGE_COUPLE:
+			if int(pe.get("tension", 0)) >= int(dials.get("breakup_min_tension", 62)) and int(pe.get("affinity", 0)) <= int(dials.get("breakup_max_affinity", 12)):
+				if rng.randf() < float(dials.get("breakup_daily_chance", 0.28)):
+					pe["stage"] = STAGE_NONE
+					pe["ex_couple"] = true
+					pe["spark"] = maxi(20, int(pe.get("spark", 0)) - 25)
+					pe["tension"] = clampi(int(pe.get("tension", 0)) - 20, 0, 100)
+					if str(prof_a.partner_id) == id_b:
+						prof_a.romance_status = PersonProfile.ROMANCE_SINGLE
+						prof_a.partner_id = ""
+					if str(prof_b.partner_id) == id_a:
+						prof_b.romance_status = PersonProfile.ROMANCE_SINGLE
+						prof_b.partner_id = ""
+					breakups.append({"id_a": id_a, "id_b": id_b})
 			continue
 		var spk: int = int(pe.get("spark", 0))
 		if stage != STAGE_NONE and spk < int(dials.get("stage_fizzle_spark", 8)):
@@ -720,6 +817,18 @@ func advance_live_romance_day(current_day: int, profiles_by_id: Dictionary, fami
 		var both_single: bool = str(prof_a.romance_status) == PersonProfile.ROMANCE_SINGLE and str(prof_b.romance_status) == PersonProfile.ROMANCE_SINGLE
 		if not both_single:
 			continue
+		# B3.3: Reconciliación de ex-parejas si siguen teniendo chispa, baja tensión y buena afinidad tras hablar
+		if bool(pe.get("ex_couple", false)) and spk >= int(dials.get("reconcile_ex_min_spark", 35)) and int(pe.get("tension", 0)) <= int(dials.get("reconcile_ex_max_tension", 18)) and int(pe.get("affinity", 0)) >= 28:
+			if rng.randf() < float(dials.get("reconcile_ex_chance", 0.35)):
+				pe["stage"] = STAGE_COUPLE
+				pe["ex_couple"] = false
+				pe["affinity"] = maxi(int(pe.get("affinity", 0)), 62)
+				prof_a.romance_status = PersonProfile.ROMANCE_PARTNERED
+				prof_a.partner_id = id_b
+				prof_b.romance_status = PersonProfile.ROMANCE_PARTNERED
+				prof_b.partner_id = id_a
+				reconciled.append({"id_a": id_a, "id_b": id_b})
+				continue
 		var fam_a: String = str(families_by_id.get(id_a, "none"))
 		var fam_b: String = str(families_by_id.get(id_b, "none"))
 		var same_fam: bool = (fam_a != "none" and fam_a != "" and fam_a != "family_police" and fam_a == fam_b)
@@ -747,7 +856,7 @@ func advance_live_romance_day(current_day: int, profiles_by_id: Dictionary, fami
 			pe["affinity"] = maxi(int(pe.get("affinity", 0)), 68)
 			total_new_couples_formed += 1
 			new_couples.append({"id_a": id_a, "id_b": id_b})
-	return {"advanced": advanced, "new_couples": new_couples, "fizzled": fizzled}
+	return {"advanced": advanced, "new_couples": new_couples, "fizzled": fizzled, "breakups": breakups, "reconciled": reconciled}
 
 ## Enfriamiento diario para pares sin contacto en `current_day`.
 func on_day_passed(current_day: int) -> void:

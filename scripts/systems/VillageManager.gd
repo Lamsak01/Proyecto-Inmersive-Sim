@@ -3331,6 +3331,25 @@ func _update_social_hangouts(delta: float) -> void:
 				rb.need_social = minf(100.0, rb.need_social + 20.0)
 				ra._spawn_floating_text("☕🤝 Buen rato con %s (+%d)" % [rb.npc_name, d_aff], Color(0.70, 1.0, 0.80), -40.0)
 				record_social_event("hangout", ra, rb, "%s y %s pasaron un rato juntos en %s" % [ra.npc_name, rb.npc_name, spot_lbl])
+			# B3.3: Comprobar si quedar con un tercero despierta celos en alguna pareja actual
+			if st_done != "couple" and (ra.person_profile == null or str(ra.person_profile.partner_id) != rb.get_person_key()):
+				var profs_j: Dictionary = {}
+				var fams_j: Dictionary = {}
+				for kj in by_key.keys():
+					var vj: VillageNPC = by_key[kj]
+					if vj.person_profile != null and not vj.is_dead:
+						profs_j[kj] = vj.person_profile
+						fams_j[kj] = vj.family_id
+				for jev in social_director.trigger_jealousy_if_any(ra.get_person_key(), rb.get_person_key(), profs_j, fams_j, cur_day):
+					var jp: VillageNPC = by_key.get(str(jev.get("partner_id", "")), null)
+					var jc: VillageNPC = by_key.get(str(jev.get("cheater_id", "")), null)
+					var jr: VillageNPC = by_key.get(str(jev.get("rival_id", "")), null)
+					if is_instance_valid(jp) and is_instance_valid(jc) and is_instance_valid(jr):
+						jp.modify_npc_relationship(jc, -8, "💢💔 Celos por pasar tiempo a solas con %s" % jr.npc_name)
+						jp.modify_npc_relationship(jr, -8, "💢 Rival de celos por %s" % jc.npc_name)
+						jp.add_thought("No me gustó ver a %s tan cerca de %s (-8)" % [jc.npc_name, jr.npc_name], -8.0)
+						jp._spawn_floating_text("💢💔 ¡Celos de %s al ver a %s con %s!" % [jp.npc_name, jc.npc_name, jr.npc_name], Color(1.0, 0.42, 0.42), -44.0)
+						record_social_event("jealousy", jp, jc, "%s sintió celos al ver a %s con %s" % [jp.npc_name, jc.npc_name, jr.npc_name])
 
 	# 3. Planificar nuevas quedadas cada pocos segundos en horario social
 	_hangout_plan_timer -= delta
@@ -3419,6 +3438,25 @@ func _advance_live_romances(cur_day: int) -> Dictionary:
 		var fb: VillageNPC = by_key.get(str(fz.get("id_b", "")), null)
 		if is_instance_valid(fa) and is_instance_valid(fb):
 			record_social_event("romance_fizzle", fa, fb, "Lo de %s y %s se enfrió" % [fa.npc_name, fb.npc_name])
+	for brk in res.get("breakups", []):
+		var ba: VillageNPC = by_key.get(str(brk.get("id_a", "")), null)
+		var bb: VillageNPC = by_key.get(str(brk.get("id_b", "")), null)
+		if is_instance_valid(ba) and is_instance_valid(bb):
+			ba.modify_npc_relationship(bb, -10, "💔 Ex-pareja tras una ruptura")
+			ba.add_thought("Rompí mi relación con %s (-14)" % bb.npc_name, -14.0)
+			bb.add_thought("Rompí mi relación con %s (-14)" % ba.npc_name, -14.0)
+			ba._spawn_floating_text("💔 ¡%s y %s han roto su relación!" % [ba.npc_name, bb.npc_name], Color(1.0, 0.38, 0.45), -46.0)
+			record_social_event("breakup", ba, bb, "%s y %s han roto su relación" % [ba.npc_name, bb.npc_name])
+	for rec in res.get("reconciled", []):
+		var rca: VillageNPC = by_key.get(str(rec.get("id_a", "")), null)
+		var rcb: VillageNPC = by_key.get(str(rec.get("id_b", "")), null)
+		if is_instance_valid(rca) and is_instance_valid(rcb):
+			var rel_r: int = rca.get_relationship_with_npc(rcb.get_person_key())
+			rca.modify_npc_relationship(rcb, maxi(10, 62 - rel_r), "💑 Pareja reconciliada")
+			rca.add_thought("Me reconcilié con %s (+14)" % rcb.npc_name, 14.0)
+			rcb.add_thought("Me reconcilié con %s (+14)" % rca.npc_name, 14.0)
+			rca._spawn_floating_text("💑✨ ¡%s y %s se han reconciliado!" % [rca.npc_name, rcb.npc_name], Color(1.0, 0.62, 0.80), -46.0)
+			record_social_event("couple_reconciled", rca, rcb, "%s y %s se han reconciliado y vuelven a ser pareja" % [rca.npc_name, rcb.npc_name])
 	return res
 
 func _on_day_passed(_new_day: int) -> void:

@@ -13,6 +13,7 @@ const ACTION_TASTE_CLASH := "taste_clash"
 const ACTION_APOLOGY := "apology"
 const ACTION_FLIRT := "flirt"
 const ACTION_AFFECTION := "affection"
+const ACTION_JEALOUSY := "jealousy"
 
 const ALL_ACTIONS: Array[String] = [
 	ACTION_SMALL_TALK,
@@ -25,6 +26,7 @@ const ALL_ACTIONS: Array[String] = [
 	ACTION_APOLOGY,
 	ACTION_FLIRT,
 	ACTION_AFFECTION,
+	ACTION_JEALOUSY,
 ]
 
 ## Etiquetas naturales en español para los 16 temas de gustos de PersonProfile.TASTE_TOPICS.
@@ -108,6 +110,12 @@ const ACTION_META: Dictionary = {
 		"label": "Cariño de pareja",
 		"color": Color(1.0, 0.56, 0.76),
 		"note": "Compartieron un momento cariñoso en pareja",
+	},
+	ACTION_JEALOUSY: {
+		"icon": "💢💔",
+		"label": "Reproche de celos",
+		"color": Color(1.0, 0.50, 0.45),
+		"note": "Tuvieron una escena de celos y desconfianza",
 	},
 }
 
@@ -270,6 +278,20 @@ const OPENERS_BY_ACTION: Dictionary = {
 			"Qué paz siento cada vez que estamos juntos, {b}.",
 		],
 	},
+	ACTION_JEALOUSY: {
+		"default": [
+			"Últimamente pasas demasiado tiempo con otra gente y apenas me miras, {b}.",
+			"No me gusta nada tanta risita y confianzas que te traes por el pueblo, {b}.",
+			"Oye {b}, ¿se puede saber por qué me esquivas cuando te pregunto con quién estabas?",
+		],
+		"Celoso": [
+			"¡Te he visto muy sonriente por la plaza, {b}, y no soy tonto!",
+			"Conmigo no juegues a dos bandas, {b}, que lo noto todo.",
+		],
+		"Orgulloso": [
+			"No pienso quedar en ridículo delante de todo el valle por tu culpa, {b}.",
+		],
+	},
 }
 
 const REPLIES_BY_ACTION: Dictionary = {
@@ -398,6 +420,22 @@ const REPLIES_BY_ACTION: Dictionary = {
 		],
 		"Leal": [
 			"Juntos en las buenas y en las malas, {a}.",
+		],
+	},
+	ACTION_JEALOUSY: {
+		"default": [
+			"Estás viendo fantasmas donde no los hay, {a}, solo estábamos charlando.",
+			"No me vengas con escenas en mitad de la calle, {a}.",
+			"Si no confías en mí después de todo, {a}, tenemos un problema.",
+		],
+		"Pacífico": [
+			"Cálmate, por favor, {a}... sabes que solo tengo ojos para ti.",
+		],
+		"Orgulloso": [
+			"Yo hablo con quien quiero en este pueblo, {a}, no me controles.",
+		],
+		"Leal": [
+			"Jamás te faltaría al respeto, {a}, te doy mi palabra.",
 		],
 	},
 }
