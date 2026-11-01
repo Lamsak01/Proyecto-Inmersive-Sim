@@ -28,12 +28,16 @@ const DIALS: Dictionary = {
 	"compat_shared_trait_bonus": 10,
 	"compat_opposite_trait_penalty": -22,
 	# Umbrales y probabilidades diarias para parejas y peleas (usados en B0.9 y Fases 3-4)
-	"spark_min_affinity": 28,
-	"spark_min_familiarity": 20,
-	"spark_daily_gain_max": 6,
-	"stage_advance_base_chance": 0.14,
-	"fight_tension_threshold": 55,
-	"fight_daily_base_chance": 0.12,
+	"daily_interactions_per_day": 22,
+	"max_new_couples_per_60d": 3,
+	"max_total_fights_per_60d": 5,
+	"affinity_drift_neutral_target": 12,
+	"spark_min_affinity": 14,
+	"spark_min_familiarity": 12,
+	"spark_daily_gain_max": 12,
+	"stage_advance_base_chance": 0.36,
+	"fight_tension_threshold": 36,
+	"fight_daily_base_chance": 0.38,
 }
 
 const STAGE_NONE := "none"
@@ -47,6 +51,8 @@ var dials: Dictionary = DIALS.duplicate(true)
 var pair_metrics: Dictionary = {}      # "idA|idB" -> {affinity, familiarity, spark, tension, stage, fights_count, last_contact_day}
 var active_scenes: Array[Dictionary] = [] # [{id, type, actor_a_id, actor_b_id, remaining_sec}]
 var last_drama_day: int = -10
+var total_new_couples_formed: int = 0
+var total_fights_triggered: int = 0
 var _tick_accum: float = 0.0
 var _scene_seq: int = 0
 
@@ -215,3 +221,112 @@ func from_save_dict(d: Dictionary) -> void:
 	if d.has("pair_metrics") and typeof(d["pair_metrics"]) == TYPE_DICTIONARY:
 		pair_metrics = (d["pair_metrics"] as Dictionary).duplicate(true)
 	active_scenes.clear()
+
+## B0.9: Simula un día completo de interacciones sociales entre un conjunto de fichas (`id -> PersonProfile`) y familias (`id -> family_id`).
+## Devuelve las novedades ocurridas en el día: `{"new_couples": Array, "fights": Array}`.
+func simulate_social_day(current_day: int, profiles_by_id: Dictionary, families_by_id: Dictionary = {}) -> Dictionary:
+	var ids: Array = profiles_by_id.keys()
+	ids.sort()
+	var new_couples: Array = []
+	var fights: Array = []
+	if ids.size() < 2:
+		return {"new_couples": new_couples, "fights": fights}
+
+	var interactions_count: int = int(dials.get("daily_interactions_per_day", 14))
+	for _step in range(interactions_count):
+		var idx_a: int = rng.randi_range(0, ids.size() - 1)
+		var idx_b: int = rng.randi_range(0, ids.size() - 2)
+		if idx_b >= idx_a:
+			idx_b += 1
+		var id_a: String = str(ids[idx_a])
+		var id_b: String = str(ids[idx_b])
+		var prof_a = profiles_by_id[id_a]
+		var prof_b = profiles_by_id[id_b]
+		var fam_a: String = str(families_by_id.get(id_a, "none"))
+		var fam_b: String = str(families_by_id.get(id_b, "none"))
+		var same_fam: bool = (fam_a != "none" and fam_a != "" and fam_a != "family_police" and fam_a == fam_b)
+
+		var pe: Dictionary = get_pair_entry(id_a, id_b, 85 if same_fam else 0)
+		pe["last_contact_day"] = current_day
+		pe["familiarity"] = clampi(int(pe.get("familiarity", 0)) + rng.randi_range(2, 5), 0, 100)
+
+		# Compatibilidad general de trato (compartir gustos/rasgos aunque sean del mismo género)
+		var social_harmony: int = 0
+		for lk in prof_a.likes:
+			if lk in prof_b.likes: social_harmony += 1
+			if lk in prof_b.dislikes: social_harmony -= 1
+		for tr in prof_a.personality:
+			if tr in prof_b.personality: social_harmony += 1
+			var opp: String = str(PersonProfile.OPPOSITE_TRAITS.get(tr, ""))
+			if opp != "" and (opp in prof_b.personality): social_harmony -= 2
+
+		var cur_aff: int = int(pe.get("affinity", 0))
+		var roll: float = rng.randf()
+		if same_fam:
+			pe["affinity"] = clampi(cur_aff + rng.randi_range(0, 2), 55, 95)
+			pe["tension"] = clampi(int(pe.get("tension", 0)) - 3, 0, 25)
+		elif roll < clampf(0.68 + float(social_harmony) * 0.06 + (0.14 if cur_aff >= 20 else (-0.18 if cur_aff <= -25 else 0.0)), 0.22, 0.88):
+			# Charla cordial: amortiguada arriba de +35 para mantener la mayoría en el rango natural (-20..+40)
+			var gain: int = rng.randi_range(2, 5) if cur_aff < 30 else rng.randi_range(0, 1)
+			pe["affinity"] = clampi(cur_aff + gain, -100, 100)
+			pe["tension"] = clampi(int(pe.get("tension", 0)) - rng.randi_range(1, 3), 0, 100)
+		else:
+			# Roce vecinal
+			var drop: int = rng.randi_range(2, 5) if cur_aff > -35 else rng.randi_range(0, 2)
+			pe["affinity"] = clampi(cur_aff - drop, -100, 100)
+			var ten_add: int = rng.randi_range(8, 15)
+			if ("Rencoroso" in prof_a.personality) or ("Rencoroso" in prof_b.personality) or ("Celoso" in prof_a.personality) or ("Celoso" in prof_b.personality):
+				ten_add += 6
+			if ("Pacífico" in prof_a.personality) or ("Pacífico" in prof_b.personality):
+				ten_add = maxi(2, ten_add - 6)
+			pe["tension"] = clampi(int(pe.get("tension", 0)) + ten_add, 0, 100)
+
+		# Evaluación de chispa y etapas de pareja (solo solteros heterosexuales de distinta familia)
+		var both_single: bool = (str(prof_a.romance_status) == PersonProfile.ROMANCE_SINGLE and str(prof_b.romance_status) == PersonProfile.ROMANCE_SINGLE)
+		var rom_compat: int = compute_compatibility(prof_a, prof_b, same_fam)
+		var max_couples: int = int(dials.get("max_new_couples_per_60d", 3))
+		if both_single and total_new_couples_formed < max_couples and rom_compat >= 40 and int(pe["affinity"]) >= int(dials.get("spark_min_affinity", 14)) and int(pe["familiarity"]) >= int(dials.get("spark_min_familiarity", 12)):
+			var spk_gain: int = rng.randi_range(4, int(dials.get("spark_daily_gain_max", 12)))
+			if rom_compat >= 60:
+				spk_gain += 3
+			pe["spark"] = clampi(int(pe.get("spark", 0)) + spk_gain, 0, 100)
+			var cur_stage: String = str(pe.get("stage", STAGE_NONE))
+			var spk: int = int(pe["spark"])
+			var adv_chance: float = float(dials.get("stage_advance_base_chance", 0.36)) * (float(rom_compat) / 50.0)
+			if cur_stage == STAGE_NONE and spk >= 14 and rng.randf() < adv_chance:
+				pe["stage"] = STAGE_INTEREST
+			elif cur_stage == STAGE_INTEREST and spk >= 28 and rng.randf() < adv_chance:
+				pe["stage"] = STAGE_FLIRT
+			elif cur_stage == STAGE_FLIRT and spk >= 44 and rng.randf() < adv_chance:
+				pe["stage"] = STAGE_DATING
+			elif cur_stage == STAGE_DATING and spk >= 60 and int(pe["affinity"]) >= 24 and rng.randf() < adv_chance:
+				pe["stage"] = STAGE_COUPLE
+				prof_a.romance_status = PersonProfile.ROMANCE_PARTNERED
+				prof_a.partner_id = id_b
+				prof_b.romance_status = PersonProfile.ROMANCE_PARTNERED
+				prof_b.partner_id = id_a
+				pe["affinity"] = maxi(int(pe["affinity"]), 68)
+				total_new_couples_formed += 1
+				new_couples.append(make_pair_key(id_a, id_b))
+
+		# Evaluación de pelea discreta por tensión (sin muerte, respetando drama_cooldown_days y max_fights_per_pair)
+		var ten_now: int = int(pe.get("tension", 0))
+		var f_count: int = int(pe.get("fights_count", 0))
+		var max_f: int = int(dials.get("max_fights_per_pair", 2))
+		var max_tot_f: int = int(dials.get("max_total_fights_per_60d", 5))
+		var drama_cd: int = int(dials.get("drama_cooldown_days", 2))
+		var has_pacifist: bool = ("Pacífico" in prof_a.personality) or ("Pacífico" in prof_b.personality)
+		if not same_fam and total_fights_triggered < max_tot_f and ten_now >= int(dials.get("fight_tension_threshold", 36)) and f_count < max_f and (current_day - last_drama_day) >= drama_cd:
+			var f_chance: float = float(dials.get("fight_daily_base_chance", 0.38))
+			if has_pacifist:
+				f_chance *= 0.15
+			if rng.randf() < f_chance:
+				pe["fights_count"] = f_count + 1
+				pe["tension"] = clampi(ten_now - 26, 0, 100)
+				pe["affinity"] = clampi(int(pe["affinity"]) - 12, -100, 100)
+				last_drama_day = current_day
+				total_fights_triggered += 1
+				fights.append(make_pair_key(id_a, id_b))
+
+	on_day_passed(current_day)
+	return {"new_couples": new_couples, "fights": fights}

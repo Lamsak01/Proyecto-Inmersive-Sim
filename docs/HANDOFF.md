@@ -146,7 +146,7 @@ Otros documentos antiguos en la raíz: `ROADMAP_PROYECTO.md`, `AUDIT_LOG.md`, `S
 - [x] **B0.6** HECHO. Registro de eventos sociales (`social_event_log` con tope `MAX_SOCIAL_EVENT_LOG = 80`, `record_social_event` y `get_recent_social_events`) en `VillageManager.gd`, conectado a llegadas, reconciliaciones y rupturas de amistad, y persistido en guardado/carga.
 - [x] **B0.7** HECHO. Esqueleto de `scripts/systems/SocialDirector.gd` con tabla única `DIALS` (`max_concurrent_scenes = 3`), 4 medidas por par (`affinity`, `familiarity`, `spark`, `tension`), enfriamiento diario sin contacto, cálculo de compatibilidad y conexión con `VillageManager` y guardado/carga.
 - [x] **B0.8** HECHO. Pareja inicial **Elena y el Dr. Valen** (`romance_status = "partnered"`, `partner_id` cruzado, relación `+78`, etapa `"couple"` en `SocialDirector`), paso automático a viudo/a (`"widowed"`) si muere la pareja y visualización en el Glosario Social `[J]`.
-- [ ] **B0.9** Simulador headless de N días con semilla y métricas (objetivos en sección 8).
+- [x] **B0.9** HECHO. Simulador headless de 60 días (`tools/tests/social_sim.gd`) y paso diario `SocialDirector.simulate_social_day(...)`, calibrado sobre 5 semillas + reemplazos procedurales cumpliendo todas las metas (1–3 parejas nuevas, 2–6 peleas con máx. 2 por par, 0 vecinos sin amigos y ~77% de relaciones entre −20 y +40).
 
 **Fase 1** Conversaciones con frases · **Fase 2** Pasar tiempo juntos · **Fase 3** Parejas (chispa, etapas, celos, duelo) ·
 **Fase 4** Peleas discretas por dados · **Fase 5** Rol del jugador (observador/instigador/mediador) · **Fase 6** Chismes, noticias y pulido.
