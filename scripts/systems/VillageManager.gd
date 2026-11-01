@@ -204,6 +204,7 @@ func _process(delta: float) -> void:
 		_police_confront_cooldown -= delta
 	if social_director != null:
 		social_director.tick(delta, self)
+		_update_social_hangouts(delta)
 
 	if not is_instance_valid(_cached_player):
 		_cached_player = get_tree().get_first_node_in_group("player") as Node2D
@@ -3230,6 +3231,127 @@ func _use_compost_bin(player: Node2D) -> void:
 			_msg_player(player, "♻️ Compostador: +2 Abono Orgánico", Color.SPRING_GREEN, -42.0)
 			return
 	_hint_player("♻️ Necesitas 1 Hongo, Hierba o Verdura para fermentar 2 bolsas de Abono Orgánico.", player)
+
+# ==============================================================================
+# B2.2: QUEDADAS FÍSICAS (Pasar tiempo juntos) — el SocialDirector decide, aquí se ejecuta en el mundo
+# ==============================================================================
+var _hangout_plan_timer: float = 6.0
+const HANGOUT_ARRIVAL_RADIUS: float = 20.0
+
+## Puntos de encuentro del pueblo ofrecidos al SocialDirector ({id, pos, kind, label}).
+func get_hangout_spots() -> Array:
+	var spots: Array = []
+	if not is_building_door_blocked("tavern"):
+		spots.append({"id": "tavern", "pos": _tavern_social_pos + Vector2(0, 14), "kind": "tavern", "label": "la Taberna"})
+	spots.append({"id": "plaza_well", "pos": _plaza_well_pos + Vector2(0, 24), "kind": "well", "label": "el Pozo de la Plaza"})
+	spots.append({"id": "plaza_board", "pos": _notice_board_pos + Vector2(0, 26), "kind": "plaza", "label": "la Plaza Central"})
+	spots.append({"id": "farm_well", "pos": _well_pos + Vector2(0, 24), "kind": "well", "label": "el Pozo de la Granja"})
+	return spots
+
+func _is_npc_eligible_for_hangout(v: VillageNPC) -> bool:
+	if not is_instance_valid(v) or v.is_dead or v.is_downed or v.is_sleeping or v.is_hostile or v.is_incapacitated():
+		return false
+	if v.trade_role in [VillageNPC.TradeRole.TRAVELING_MERCHANT, VillageNPC.TradeRole.ROYAL_INVESTIGATOR]:
+		return false
+	if v.is_vagrant_camper or v.current_activity != VillageNPC.ActivityState.SOCIALIZING:
+		return false
+	return true
+
+func _get_npcs_by_person_key() -> Dictionary:
+	var out: Dictionary = {}
+	for n in get_tree().get_nodes_in_group("village_npcs"):
+		if n is VillageNPC and not (n as VillageNPC).is_dead:
+			out[(n as VillageNPC).get_person_key()] = n
+	return out
+
+func _spot_label_for(spot_id: String) -> String:
+	for sp in get_hangout_spots():
+		if str(sp.get("id", "")) == spot_id:
+			return str(sp.get("label", ""))
+	return ""
+
+func _update_social_hangouts(delta: float) -> void:
+	if social_director == null or not is_inside_tree():
+		return
+	var by_key: Dictionary = _get_npcs_by_person_key()
+	var cur_day: int = int(WorldClock.current_day) if WorldClock != null else 1
+	var cur_hour: int = int(WorldClock.current_hour) if WorldClock != null else 12
+
+	# 1. Seguimiento de quedadas activas: llegadas y cancelaciones si alguien deja de estar disponible
+	for hg in social_director.active_hangouts.duplicate():
+		var h_id: int = int(hg.get("id", -1))
+		var a: VillageNPC = by_key.get(str(hg.get("actor_a_id", "")), null)
+		var b: VillageNPC = by_key.get(str(hg.get("actor_b_id", "")), null)
+		var broken: bool = false
+		for v in [a, b]:
+			if not is_instance_valid(v) or v.is_dead or v.is_downed or v.is_hostile or v.is_sleeping or v.hangout_id != h_id or v.current_activity != VillageNPC.ActivityState.SOCIALIZING:
+				broken = true
+		if broken:
+			social_director.cancel_hangout(h_id, "interrupted")
+			continue
+		if a.is_at_hangout_spot(HANGOUT_ARRIVAL_RADIUS):
+			social_director.mark_hangout_arrival(h_id, a.get_person_key())
+		if b.is_at_hangout_spot(HANGOUT_ARRIVAL_RADIUS):
+			social_director.mark_hangout_arrival(h_id, b.get_person_key())
+
+	# 2. Resultados de quedadas terminadas: bono suave de relación y humor, o liberar a los participantes
+	for res in social_director.pop_finished_hangouts():
+		var ra: VillageNPC = by_key.get(str(res.get("actor_a_id", "")), null)
+		var rb: VillageNPC = by_key.get(str(res.get("actor_b_id", "")), null)
+		var res_id: int = int(res.get("id", -1))
+		for v2 in [ra, rb]:
+			if is_instance_valid(v2) and v2.hangout_id == res_id:
+				v2.clear_hangout()
+		if bool(res.get("success", false)) and is_instance_valid(ra) and is_instance_valid(rb) and not ra.is_dead and not rb.is_dead:
+			var d_aff: int = int(res.get("delta_affinity", 3))
+			ra.modify_npc_relationship(rb, d_aff, "Pasaron un buen rato juntos")
+			ra.add_thought("Pasé un buen rato con %s (+6)" % rb.npc_name, 6.0)
+			rb.add_thought("Pasé un buen rato con %s (+6)" % ra.npc_name, 6.0)
+			ra.need_social = minf(100.0, ra.need_social + 20.0)
+			rb.need_social = minf(100.0, rb.need_social + 20.0)
+			ra._spawn_floating_text("☕🤝 Buen rato con %s (+%d)" % [rb.npc_name, d_aff], Color(0.70, 1.0, 0.80), -40.0)
+			record_social_event("hangout", ra, rb, "%s y %s pasaron un rato juntos en %s" % [ra.npc_name, rb.npc_name, _spot_label_for(str(res.get("spot_id", ""))) if str(res.get("spot_id", "")) != "" else "el pueblo"])
+
+	# 3. Planificar nuevas quedadas cada pocos segundos en horario social
+	_hangout_plan_timer -= delta
+	if _hangout_plan_timer > 0.0:
+		return
+	_hangout_plan_timer = randf_range(5.0, 8.0)
+	if not social_director.is_social_hour(cur_hour):
+		return
+	var eligible: Array[VillageNPC] = []
+	for k in by_key.keys():
+		var v3: VillageNPC = by_key[k]
+		if _is_npc_eligible_for_hangout(v3) and v3.hangout_id < 0:
+			eligible.append(v3)
+	if eligible.size() < 2:
+		return
+	var initiator: VillageNPC = eligible[randi() % eligible.size()]
+	var cand_ids: Array = []
+	var positions: Dictionary = {}
+	for v4 in eligible:
+		var key4: String = v4.get_person_key()
+		positions[key4] = v4.global_position
+		if v4 == initiator:
+			continue
+		cand_ids.append(key4)
+		# Sincroniza la afinidad del par con la relación vecinal real (fuente de verdad en VillageNPC)
+		var pe: Dictionary = social_director.get_pair_entry(initiator.get_person_key(), key4, initiator.get_relationship_with_npc(key4))
+		if not pe.is_empty():
+			pe["affinity"] = initiator.get_relationship_with_npc(key4)
+	var hg_new: Dictionary = social_director.try_plan_hangout(initiator.get_person_key(), cand_ids, positions, get_hangout_spots(), cur_hour, cur_day)
+	if hg_new.is_empty():
+		return
+	var pa: VillageNPC = by_key.get(str(hg_new.get("actor_a_id", "")), null)
+	var pb: VillageNPC = by_key.get(str(hg_new.get("actor_b_id", "")), null)
+	if not is_instance_valid(pa) or not is_instance_valid(pb):
+		social_director.cancel_hangout(int(hg_new.get("id", -1)), "missing_actor")
+		return
+	var lbl: String = _spot_label_for(str(hg_new.get("spot_id", "")))
+	var sp_pos: Vector2 = hg_new.get("spot_pos", pa.global_position)
+	pa.assign_hangout(int(hg_new["id"]), sp_pos, pb, -1, lbl)
+	pb.assign_hangout(int(hg_new["id"]), sp_pos, pa, 1, lbl)
+	pa._spawn_floating_text("☕ «%s, ¿nos vemos en %s?»" % [pb.npc_name, lbl], Color(0.85, 0.95, 1.0), -36.0)
 
 func _on_day_passed(_new_day: int) -> void:
 	arrivals_today_count = 0

@@ -428,6 +428,7 @@ func _initialize() -> void:
 	sdir.on_day_passed(4)
 	var bs_pe: Dictionary = sdir.get_pair_entry("bram", "sora")
 	assert(int(bs_pe["familiarity"]) < 30 and int(bs_pe["spark"]) < 15 and int(bs_pe["tension"]) < 10, "B0.7: Days without contact must cool down familiarity, spark, and tension!")
+	sdir.active_scenes.clear()  # Evita interferencias de charlas en vivo surgidas durante los frames iniciales
 	var sc1: Dictionary = sdir.start_scene("chat", "bram", "mila", 5.0, 4)
 	var sc2: Dictionary = sdir.start_scene("chat", "elena", "valen", 5.0, 4)
 	var sc3: Dictionary = sdir.start_scene("chat", "thoran", "vane", 5.0, 4)
@@ -633,6 +634,60 @@ func _initialize() -> void:
 	bram2_npc._process_pending_social_reply(2.0)
 	assert(bram2_npc._pending_social_reply_timer == 0.0 and bram2_npc.last_social_line_spoken != "", "Partner Bram must speak his Turn 2 reply after 1.8s!")
 	assert(smith_npc.get_relationship_with_npc("bram") != rel_before_conv, "Relationship must update after Turn 2 reply completes!")
+
+	# Test #22 (B2.2): Quedada física entre amigos (Thoran y Bram) a las 19h + rivales que se evitan
+	print("Testing B2.2 physical hangouts...")
+	vm.social_director.active_scenes.clear()
+	vm.social_director.active_hangouts.clear()
+	vm.social_director.finished_hangouts.clear()
+	vm.social_director.hangout_day_counts.clear()
+	wc_speed.current_hour = 19
+	for n_h in vm.get_tree().get_nodes_in_group("village_npcs"):
+		if n_h.has_method("clear_hangout"):
+			n_h.clear_hangout()
+			if n_h != smith_npc and n_h != bram2_npc:
+				n_h.current_activity = 0  # ActivityState.WORKING
+	for v_h in [smith_npc, bram2_npc]:
+		v_h.is_hostile = false
+		v_h.is_sleeping = false
+		v_h.current_activity = 3  # ActivityState.SOCIALIZING
+	smith_npc.modify_npc_relationship(bram2_npc, 60 - smith_npc.get_relationship_with_npc(bram2_npc.get_person_key()), "Test amistad")
+	vm._hangout_plan_timer = 0.0
+	vm._update_social_hangouts(0.1)
+	assert(smith_npc.hangout_id >= 0 and smith_npc.hangout_id == bram2_npc.hangout_id, "Thoran and Bram (friends, 19h, socializing) must be assigned the same hangout!")
+	assert(smith_npc._social_partner == bram2_npc and bram2_npc._social_partner == smith_npc, "Hangout partners must target each other")
+	assert(smith_npc.get_activity_description().begins_with("🚶"), "Activity must show they are on the way to the hangout")
+	var rel_before_hg: int = smith_npc.get_relationship_with_npc(bram2_npc.get_person_key())
+	smith_npc.global_position = smith_npc._get_social_target_pos()
+	bram2_npc.global_position = bram2_npc._get_social_target_pos()
+	vm._update_social_hangouts(0.1)
+	var hg_live: Dictionary = vm.social_director.get_active_hangout_for(smith_npc.get_person_key())
+	assert(str(hg_live.get("phase", "")) == "together", "Both at the spot -> hangout phase must be 'together'")
+	assert(smith_npc.get_activity_description().begins_with("☕"), "Activity must show they are spending time together")
+	vm.social_director.tick(50.0)
+	vm._update_social_hangouts(0.1)
+	assert(smith_npc.hangout_id == -1 and bram2_npc.hangout_id == -1, "Hangout must be cleared on both NPCs after completing")
+	assert(smith_npc.get_relationship_with_npc(bram2_npc.get_person_key()) > rel_before_hg, "Completed hangout must raise the relationship")
+	var hg_events: Array = vm.get_recent_social_events(5, "hangout")
+	assert(hg_events.size() >= 1, "Completed hangout must be recorded in the social event log")
+	# Interrupción: si uno se va a dormir, la quedada se cancela y ambos quedan libres
+	vm.social_director.hangout_day_counts.clear()
+	vm._hangout_plan_timer = 0.0
+	vm._update_social_hangouts(0.1)
+	assert(smith_npc.hangout_id >= 0, "A new hangout must be planned (daily cap reset)")
+	bram2_npc.current_activity = 2  # ActivityState.SLEEPING
+	vm._update_social_hangouts(0.1)
+	vm._update_social_hangouts(0.1)
+	assert(smith_npc.hangout_id == -1 and vm.social_director.active_hangouts.is_empty(), "Hangout must be cancelled if a participant leaves")
+	# Rivales se evitan: Thoran no elige a Garrick como compañero de charla
+	vm.social_director.set_pair_metrics(smith_npc.get_person_key(), garrick_npc.get_person_key(), -50, 20, 0, 50)
+	assert(vm.social_director.should_avoid(smith_npc.get_person_key(), garrick_npc.get_person_key()), "Rivals must be flagged to avoid each other")
+	garrick_npc.is_dead = false
+	garrick_npc.is_downed = false
+	garrick_npc.is_sleeping = false
+	for _rr in range(25):
+		assert(smith_npc._find_best_social_partner() != garrick_npc, "Rival Garrick must never be chosen as social partner")
+	print("B2.2 physical hangouts OK")
 
 	print("ALL RIMWORLD MEDICAL, FOOTPRINTS, 3-PHASE CORPSE REPORT, MULTI-CORPSE FIX, RPG INTERROGATION, PUBLIC TRIAL, DYNAMIC RELATIONSHIPS, MISSING FAMILY SEARCH, SOCIAL GLOSSARY & UNCONSCIOUS REACTION TESTS PASSED!")
 	quit(0)

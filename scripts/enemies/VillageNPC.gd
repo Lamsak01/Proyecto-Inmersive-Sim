@@ -102,6 +102,11 @@ var _sitting_meal_ingested: float = 0.0
 var _starvation_tick_timer: float = 0.0
 var _social_partner: VillageNPC = null
 var _decision_timer: float = 0.0
+# B2.2: Quedada activa organizada por el SocialDirector (-1 = ninguna). El VillageManager la asigna y la limpia.
+var hangout_id: int = -1
+var hangout_spot_pos: Vector2 = Vector2.ZERO
+var hangout_side: int = 0  # -1 / +1: cada participante se coloca a un lado del punto de encuentro
+var hangout_spot_label: String = ""
 
 var is_dead: bool = false
 var is_downed: bool = false
@@ -2777,7 +2782,7 @@ func _update_needs_and_decisions(delta: float) -> void:
 		return
 
 	if current_activity == ActivityState.SOCIALIZING:
-		if is_night_env or need_energy <= 12.0 or (need_hunger < 65.0 and digestion_buffer < 10.0) or need_social >= 92.0:
+		if is_night_env or need_energy <= 12.0 or (need_hunger < 65.0 and digestion_buffer < 10.0) or (need_social >= 92.0 and hangout_id < 0):
 			_social_partner = null
 			if need_hunger < 70.0 and digestion_buffer < 12.0 and not is_night_env:
 				current_activity = ActivityState.EATING
@@ -3321,8 +3326,36 @@ func _process_royal_investigator_ai(delta: float) -> void:
 		vm.call("update_royal_investigator_ai", self, delta)
 	_finish_frame_movement(delta, true)
 
+func get_person_key() -> String:
+	if person_profile != null and str(person_profile.person_id) != "":
+		return str(person_profile.person_id)
+	return npc_id if npc_id != "" else npc_name
+
+## B2.2: Asigna una quedada (llamado por el VillageManager). El vecino pasa a socializar y camina al punto de encuentro.
+func assign_hangout(h_id: int, spot_pos: Vector2, partner: VillageNPC, side: int, spot_label: String = "") -> void:
+	hangout_id = h_id
+	hangout_spot_pos = spot_pos
+	hangout_side = side
+	hangout_spot_label = spot_label
+	_social_partner = partner
+	is_sleeping = false
+	current_activity = ActivityState.SOCIALIZING
+	_decision_timer = randf_range(2.0, 3.0)
+
+func clear_hangout() -> void:
+	hangout_id = -1
+	hangout_spot_pos = Vector2.ZERO
+	hangout_side = 0
+	hangout_spot_label = ""
+
+func is_at_hangout_spot(tol: float = 20.0) -> bool:
+	return hangout_id >= 0 and global_position.distance_to(_get_social_target_pos()) <= tol
+
 func _find_best_social_partner() -> VillageNPC:
 	ensure_npc_relationships_initialized()
+	var vm_s = _get_vm()
+	var sdir_s = vm_s.get("social_director") if vm_s != null else null
+	var my_key: String = get_person_key()
 	var best: VillageNPC = null
 	var best_score: float = -9999.0
 	for node in get_tree().get_nodes_in_group("village_npcs"):
@@ -3330,6 +3363,11 @@ func _find_best_social_partner() -> VillageNPC:
 			continue
 		var other: VillageNPC = node as VillageNPC
 		if other.is_dead or other.is_downed or other.is_sleeping:
+			continue
+		# B2.2: los rivales se evitan (no se buscan para charlar) y no se interrumpe una quedada ajena
+		if sdir_s != null and bool(sdir_s.call("should_avoid", my_key, other.get_person_key())):
+			continue
+		if other.hangout_id >= 0:
 			continue
 		var dist: float = global_position.distance_to(other.global_position)
 		var family_bonus: float = 110.0 if (family_id != "none" and other.family_id == family_id) else 0.0
@@ -3342,6 +3380,8 @@ func _find_best_social_partner() -> VillageNPC:
 	return best
 
 func _get_social_target_pos() -> Vector2:
+	if hangout_id >= 0:
+		return hangout_spot_pos + Vector2(float(hangout_side) * 11.0, 0.0)
 	if is_instance_valid(_social_partner) and not _social_partner.is_dead and not _social_partner.is_downed and not _social_partner.is_sleeping:
 		var angle_idx: float = float(abs(npc_name.hash()) % 8) * (TAU / 8.0)
 		var ring_offset := Vector2.RIGHT.rotated(angle_idx) * 14.0
@@ -3403,6 +3443,8 @@ func get_activity_description() -> String:
 			var loc := "en la Taberna" if _eat_at_tavern else ("en su Fogata" if is_vagrant_camper else "en Casa")
 			return "🍲 Comiendo %s" % loc
 		ActivityState.SOCIALIZING:
+			if hangout_id >= 0 and is_instance_valid(_social_partner):
+				return ("☕ Pasando el rato con %s%s" % [_social_partner.npc_name, (" (%s)" % hangout_spot_label) if hangout_spot_label != "" else ""]) if is_at_hangout_spot(24.0) else ("🚶 Ha quedado con %s%s" % [_social_partner.npc_name, (" en %s" % hangout_spot_label) if hangout_spot_label != "" else ""])
 			return ("💬 Charlando con %s" % _social_partner.npc_name) if is_instance_valid(_social_partner) else "💬 Socializando"
 		_:
 			if _is_morning_expedition_hours(): return _get_expedition_description()

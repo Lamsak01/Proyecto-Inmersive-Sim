@@ -548,7 +548,7 @@ func _complete_hangout(hg: Dictionary) -> Dictionary:
 	var id_a: String = str(hg.get("actor_a_id", ""))
 	var id_b: String = str(hg.get("actor_b_id", ""))
 	var pe: Dictionary = get_pair_entry(id_a, id_b)
-	var res: Dictionary = {"id": int(hg.get("id", 0)), "actor_a_id": id_a, "actor_b_id": id_b, "spot_kind": str(hg.get("spot_kind", "")), "success": true, "reason": "completed"}
+	var res: Dictionary = {"id": int(hg.get("id", 0)), "actor_a_id": id_a, "actor_b_id": id_b, "spot_kind": str(hg.get("spot_kind", "")), "spot_id": str(hg.get("spot_id", "")), "success": true, "reason": "completed"}
 	if pe.is_empty():
 		return res
 	var d_aff: int = rng.randi_range(int(dials.get("hangout_bonus_affinity_min", 3)), int(dials.get("hangout_bonus_affinity_max", 6)))
