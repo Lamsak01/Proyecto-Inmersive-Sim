@@ -3778,6 +3778,8 @@ func _confirm_true_death() -> void:
 		for n_other in get_tree().get_nodes_in_group("village_npcs"):
 			if n_other is VillageNPC and n_other != self and not n_other.is_dead:
 				(n_other as VillageNPC).purge_deceased_relationship(my_dead_id, npc_name)
+	if vm and vm.get("social_director") != null:
+		vm.get("social_director").call("purge_deceased", my_dead_id)
 	_stop_crafting_bar()
 	corpse_on_ground = true
 	corpse_discovered = false

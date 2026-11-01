@@ -417,6 +417,25 @@ func _initialize() -> void:
 		vm.record_social_event("chat", bram_npc, mila_npc, "Charla de prueba %d" % cap_i)
 	assert(vm.social_event_log.size() == vm.MAX_SOCIAL_EVENT_LOG, "B0.6: social_event_log must respect MAX_SOCIAL_EVENT_LOG (80)!")
 	assert(vm.get_economy_save_dict().has("social_event_log"), "B0.6: social_event_log must be persisted in save dict!")
+	# B0.7: Verify SocialDirector skeleton, DIALS, max 3 concurrent scenes, 4 metrics, decay, and compatibility rules
+	var sdir = vm.social_director
+	assert(sdir != null and int(sdir.dials.get("max_concurrent_scenes", 0)) == 3, "B0.7: SocialDirector must be initialized with max_concurrent_scenes == 3!")
+	assert(sdir.compute_compatibility(bram_npc.person_profile, mila_npc.person_profile, true) == 0, "B0.7: Same-family compatibility must always be 0!")
+	assert(sdir.compute_compatibility(bram_npc.person_profile, sheriff_npc.person_profile, false) == 0, "B0.7: Same-gender heterosexual compatibility must be 0!")
+	assert(sdir.compute_compatibility(elena_npc.person_profile, doc_npc.person_profile, false) >= 60, "B0.7: Elena and Dr. Valen must have high compatibility!")
+	sdir.set_pair_metrics("bram", "sora", 20, 30, 15, 10)
+	sdir.get_pair_entry("bram", "sora")["last_contact_day"] = 1
+	sdir.on_day_passed(4)
+	var bs_pe: Dictionary = sdir.get_pair_entry("bram", "sora")
+	assert(int(bs_pe["familiarity"]) < 30 and int(bs_pe["spark"]) < 15 and int(bs_pe["tension"]) < 10, "B0.7: Days without contact must cool down familiarity, spark, and tension!")
+	var sc1: Dictionary = sdir.start_scene("chat", "bram", "mila", 5.0, 4)
+	var sc2: Dictionary = sdir.start_scene("chat", "elena", "valen", 5.0, 4)
+	var sc3: Dictionary = sdir.start_scene("chat", "thoran", "vane", 5.0, 4)
+	var sc_dup: Dictionary = sdir.start_scene("chat", "bram", "tomas", 5.0, 4)
+	var sc4: Dictionary = sdir.start_scene("chat", "garrick", "lina", 5.0, 4)
+	assert(not sc1.is_empty() and not sc2.is_empty() and not sc3.is_empty() and sc_dup.is_empty() and sc4.is_empty(), "B0.7: SocialDirector must enforce max 3 concurrent scenes and prevent actor overlap!")
+	sdir.tick(6.0, vm)
+	assert(sdir.active_scenes.is_empty(), "B0.7: Scenes must expire after duration!")
 
 	# 16. Test Worried Family Missing-Person Search (Shop Search 8s -> Police Report 10s -> Police Search Patrol)
 	assert(elena_npc != null and tomas_npc != null, "Elena and Tomás must exist for family search test")

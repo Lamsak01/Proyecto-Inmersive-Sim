@@ -19,6 +19,8 @@ var _authority_slots: Array[Dictionary] = []
 var _rehire_counter: int = 0
 const PersonProfile = preload("res://scripts/data/PersonProfile.gd")
 const NPCData = preload("res://scripts/data/NPCData.gd")
+const SocialDirector = preload("res://scripts/systems/SocialDirector.gd")
+var social_director: RefCounted = null
 var _newcomer_rng: RandomNumberGenerator = RandomNumberGenerator.new()
 var _used_first_names: Array = []
 var _used_person_ids: Dictionary = {}
@@ -161,6 +163,7 @@ func setup_village(target_entities_root: Node) -> void:
 	vagrant_camp_nodes.clear()
 	arrivals_today_count = 0
 	_init_newcomer_generator_registries()
+	social_director = SocialDirector.new(20261101)
 	house_pantry = {
 		"family_smith": 3, "family_butcher": 4, "family_carpenter": 3, "family_fishmonger": 4,
 		"family_herbalist": 4, "family_hospital": 3, "family_police": 4, "family_tavern": 5
@@ -198,6 +201,8 @@ func _process(delta: float) -> void:
 		return
 	if _police_confront_cooldown > 0.0:
 		_police_confront_cooldown -= delta
+	if social_director != null:
+		social_director.tick(delta, self)
 
 	if not is_instance_valid(_cached_player):
 		_cached_player = get_tree().get_first_node_in_group("player") as Node2D
@@ -3209,6 +3214,8 @@ func _use_compost_bin(player: Node2D) -> void:
 
 func _on_day_passed(_new_day: int) -> void:
 	arrivals_today_count = 0
+	if social_director != null:
+		social_director.on_day_passed(_new_day)
 
 	# Descontar 1 día del embargo comercial (20..30 días) si alguno de los 2 mercaderes semanales fue asesinado
 	for m_key in ["casimir", "valeria"]:
@@ -6080,7 +6087,8 @@ func get_economy_save_dict() -> Dictionary:
 		"used_first_names": _used_first_names.duplicate(),
 		"used_person_ids": _used_person_ids.keys(),
 		"newcomer_rng_state": _newcomer_rng.state,
-		"social_event_log": social_event_log.duplicate(true)
+		"social_event_log": social_event_log.duplicate(true),
+		"social_director": social_director.to_save_dict() if social_director != null else {}
 	}
 
 func _free_transient_npc(npc: VillageNPC) -> void:
@@ -6119,6 +6127,8 @@ func load_economy_save_dict(data: Dictionary) -> void:
 				social_event_log.append((ev_it as Dictionary).duplicate())
 		while social_event_log.size() > MAX_SOCIAL_EVENT_LOG:
 			social_event_log.remove_at(0)
+	if data.has("social_director") and typeof(data["social_director"]) == TYPE_DICTIONARY and social_director != null:
+		social_director.from_save_dict(data["social_director"] as Dictionary)
 	if data.has("crime_history") and typeof(data["crime_history"]) == TYPE_ARRAY:
 		crime_history.clear()
 		for ch_item in (data["crime_history"] as Array):
