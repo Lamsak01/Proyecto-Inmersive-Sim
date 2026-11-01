@@ -33,9 +33,9 @@ const DIALS: Dictionary = {
 	"max_new_couples_per_60d": 3,
 	"max_total_fights_per_60d": 5,
 	"affinity_drift_neutral_target": 12,
-	"spark_min_affinity": 14,
-	"spark_min_familiarity": 12,
-	"spark_daily_gain_max": 12,
+	"spark_min_affinity": 16,
+	"spark_min_familiarity": 14,
+	"spark_daily_gain_max": 8,
 	"stage_advance_base_chance": 0.36,
 	"fight_tension_threshold": 36,
 	"fight_daily_base_chance": 0.38,
@@ -63,7 +63,7 @@ const DIALS: Dictionary = {
 	"stage_spark_dating": 44,
 	"stage_spark_couple": 60,
 	"stage_couple_min_affinity": 24,
-	"live_stage_advance_chance": 0.30,   # Probabilidad diaria base (x compatibilidad/50)
+	"live_stage_advance_chance": 0.24,   # Probabilidad diaria base (x compatibilidad/50)
 	"live_stage_contact_window_days": 1, # Debe haber contacto hoy o ayer para avanzar
 	"stage_fizzle_spark": 8,             # Si la chispa cae por debajo, el cortejo se apaga
 	"romance_min_compat": 40,
@@ -841,7 +841,7 @@ func advance_live_romance_day(current_day: int, profiles_by_id: Dictionary, fami
 		var next_stage: String = STAGE_ORDER[idx + 1]
 		if spk < _stage_threshold(next_stage):
 			continue
-		if next_stage == STAGE_COUPLE and int(pe.get("affinity", 0)) < int(dials.get("stage_couple_min_affinity", 24)):
+		if next_stage == STAGE_COUPLE and (int(pe.get("affinity", 0)) < int(dials.get("stage_couple_min_affinity", 24)) or total_new_couples_formed >= int(dials.get("max_new_couples_per_60d", 3))):
 			continue
 		var chance: float = float(dials.get("live_stage_advance_chance", 0.30)) * (float(compat) / 50.0)
 		if rng.randf() >= chance:
@@ -931,6 +931,7 @@ func simulate_social_day(current_day: int, profiles_by_id: Dictionary, families_
 
 		var cur_aff: int = int(pe.get("affinity", 0))
 		var roll: float = rng.randf()
+		var cordial_chat: bool = false
 		if same_fam:
 			pe["affinity"] = clampi(cur_aff + rng.randi_range(0, 2), 55, 95)
 			pe["tension"] = clampi(int(pe.get("tension", 0)) - 3, 0, 25)
@@ -939,6 +940,7 @@ func simulate_social_day(current_day: int, profiles_by_id: Dictionary, families_
 			var gain: int = rng.randi_range(2, 5) if cur_aff < 30 else rng.randi_range(0, 1)
 			pe["affinity"] = clampi(cur_aff + gain, -100, 100)
 			pe["tension"] = clampi(int(pe.get("tension", 0)) - rng.randi_range(1, 3), 0, 100)
+			cordial_chat = true
 		else:
 			# Roce vecinal
 			var drop: int = rng.randi_range(2, 5) if cur_aff > -35 else rng.randi_range(0, 2)
@@ -950,33 +952,14 @@ func simulate_social_day(current_day: int, profiles_by_id: Dictionary, families_
 				ten_add = maxi(2, ten_add - 6)
 			pe["tension"] = clampi(int(pe.get("tension", 0)) + ten_add, 0, 100)
 
-		# Evaluación de chispa y etapas de pareja (solo solteros heterosexuales de distinta familia)
+		# Evaluación de chispa en vivo (solo solteros compatibles en charla cordial, con tope diario _add_spark_capped)
 		var both_single: bool = (str(prof_a.romance_status) == PersonProfile.ROMANCE_SINGLE and str(prof_b.romance_status) == PersonProfile.ROMANCE_SINGLE)
 		var rom_compat: int = compute_compatibility(prof_a, prof_b, same_fam)
-		var max_couples: int = int(dials.get("max_new_couples_per_60d", 3))
-		if both_single and total_new_couples_formed < max_couples and rom_compat >= 40 and int(pe["affinity"]) >= int(dials.get("spark_min_affinity", 14)) and int(pe["familiarity"]) >= int(dials.get("spark_min_familiarity", 12)):
-			var spk_gain: int = rng.randi_range(4, int(dials.get("spark_daily_gain_max", 12)))
+		if cordial_chat and both_single and rom_compat >= int(dials.get("romance_min_compat", 40)) and int(pe["affinity"]) >= int(dials.get("spark_min_affinity", 16)) and int(pe["familiarity"]) >= int(dials.get("spark_min_familiarity", 14)):
+			var spk_gain: int = rng.randi_range(3, int(dials.get("spark_daily_gain_max", 8)))
 			if rom_compat >= 60:
-				spk_gain += 3
-			pe["spark"] = clampi(int(pe.get("spark", 0)) + spk_gain, 0, 100)
-			var cur_stage: String = str(pe.get("stage", STAGE_NONE))
-			var spk: int = int(pe["spark"])
-			var adv_chance: float = float(dials.get("stage_advance_base_chance", 0.36)) * (float(rom_compat) / 50.0)
-			if cur_stage == STAGE_NONE and spk >= 14 and rng.randf() < adv_chance:
-				pe["stage"] = STAGE_INTEREST
-			elif cur_stage == STAGE_INTEREST and spk >= 28 and rng.randf() < adv_chance:
-				pe["stage"] = STAGE_FLIRT
-			elif cur_stage == STAGE_FLIRT and spk >= 44 and rng.randf() < adv_chance:
-				pe["stage"] = STAGE_DATING
-			elif cur_stage == STAGE_DATING and spk >= 60 and int(pe["affinity"]) >= 24 and rng.randf() < adv_chance:
-				pe["stage"] = STAGE_COUPLE
-				prof_a.romance_status = PersonProfile.ROMANCE_PARTNERED
-				prof_a.partner_id = id_b
-				prof_b.romance_status = PersonProfile.ROMANCE_PARTNERED
-				prof_b.partner_id = id_a
-				pe["affinity"] = maxi(int(pe["affinity"]), 68)
-				total_new_couples_formed += 1
-				new_couples.append(make_pair_key(id_a, id_b))
+				spk_gain += 2
+			_add_spark_capped(pe, spk_gain, current_day)
 
 		# Evaluación de pelea discreta por tensión (sin muerte, respetando drama_cooldown_days y max_fights_per_pair)
 		var ten_now: int = int(pe.get("tension", 0))
@@ -997,5 +980,25 @@ func simulate_social_day(current_day: int, profiles_by_id: Dictionary, families_
 				total_fights_triggered += 1
 				fights.append(make_pair_key(id_a, id_b))
 
+	# B3.5: En el juego en vivo, los pares en cortejo (Interés/Coqueteo/Citas) se buscan activamente en la tarde libre
+	var sorted_pkeys: Array = pair_metrics.keys()
+	sorted_pkeys.sort()
+	for pk in sorted_pkeys:
+		var pe_c: Dictionary = pair_metrics[pk]
+		var st_c: String = str(pe_c.get("stage", STAGE_NONE))
+		if st_c in [STAGE_INTEREST, STAGE_FLIRT, STAGE_DATING]:
+			var pts: PackedStringArray = str(pk).split("|")
+			if pts.size() == 2 and profiles_by_id.has(pts[0]) and profiles_by_id.has(pts[1]):
+				var pa = profiles_by_id[pts[0]]
+				var pb = profiles_by_id[pts[1]]
+				if str(pa.romance_status) == PersonProfile.ROMANCE_SINGLE and str(pb.romance_status) == PersonProfile.ROMANCE_SINGLE and rng.randf() < 0.48:
+					pe_c["last_contact_day"] = current_day
+					_add_spark_capped(pe_c, rng.randi_range(3, 5), current_day)
+
+	var max_couples: int = int(dials.get("max_new_couples_per_60d", 3))
+	if total_new_couples_formed < max_couples:
+		var rom_res: Dictionary = advance_live_romance_day(current_day, profiles_by_id, families_by_id)
+		for nc in rom_res.get("new_couples", []):
+			new_couples.append(make_pair_key(str(nc.get("id_a", "")), str(nc.get("id_b", ""))))
 	on_day_passed(current_day)
 	return {"new_couples": new_couples, "fights": fights}

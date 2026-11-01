@@ -162,10 +162,14 @@ Otros documentos antiguos en la raíz: `ROADMAP_PROYECTO.md`, `AUDIT_LOG.md`, `S
 - [x] **B3.2** HECHO. Comportamiento por etapa en `SocialDialogueData.gd` (`ACTION_FLIRT` 💘 y `ACTION_AFFECTION` 💑), selección en `SocialDirector.resolve_live_conversation()` y mayor peso de quedadas para etapas románticas, preferencia de compañero romántico y descripciones (`💑 Pasando la tarde con…` / `💞 En una cita con…`) en `VillageNPC.gd`, y citas/tardes en pareja con evento `date` en `VillageManager.gd`. Verificado en `names_check.gd` y Test #24 en `verify_all.gd`.
 - [x] **B3.3** HECHO. Celos (`ACTION_JEALOUSY` 💢💔 en `SocialDialogueData.gd` y `trigger_jealousy_if_any()` en `SocialDirector.gd` cuando alguien con pareja queda con un tercero compatible), rupturas (`stage` vuelve a `"none"`, `ex_couple = true`, ambos vuelven a `"single"` con evento `breakup`) y reconciliación de ex-parejas (`couple_reconciled`) en `SocialDirector.advance_live_romance_day()` y `VillageManager.gd`. Verificado en `names_check.gd` y Test #25 en `verify_all.gd`.
 - [x] **B3.4** HECHO. Duelo y viudedad mejorados: `bereavement_days_left` (5 días) y `deceased_partner_name` en `PersonProfile.gd`, pensamiento diario de luto y fin de duelo (`bereavement_ended`) en `VillageManager._advance_live_romances()`, visitas al Cementerio Parroquial (`get_grave_pos_for_victim`, `is_visiting_grave`, `"🪦 Visitando la tumba de X"`, `"🕯️ «No te olvido, X...»"`) en `VillageNPC.gd`, y estado en Glosario `[J]`. Verificado en `names_check.gd` y Test #26 en `verify_all.gd`.
-- [ ] **B3.5** Recalibrar `social_sim.gd` con el sistema en vivo.
+- [x] **B3.5** HECHO. Unificado `SocialDirector.simulate_social_day()` con `_add_spark_capped()` y `advance_live_romance_day()`, y recalibrado `tools/tests/social_sim.gd` (60 días en 5 semillas + reemplazos procedurales cumpliendo todas las metas).
 
 
-**Fase 4** Peleas discretas por dados · **Fase 5** Rol del jugador (observador/instigador/mediador) · **Fase 6** Chismes, noticias y pulido.
+**Fase 4 — Peleas discretas por dados**
+- [ ] **B4.1** Resolución por dados en `SocialDirector.gd` (poder de pelea ponderado por oficio, edad, salud y personalidad; tirada interna con ganador/perdedor, alivio de tensión, caída de relación y respeto a `drama_cooldown_days` y `max_fights_per_pair = 2`).
+- [ ] **B4.2** Escena discreta en vivo en `VillageNPC.gd` y `VillageManager.gd` (dos vecinos frente a frente unos segundos con pequeños empujones/temblor leve y "💢", contusión leve sin muerte en `HealthComponent`, reacción de testigos/guardia y evento `fight` en el registro social).
+
+**Fase 5** Rol del jugador (observador/instigador/mediador) · **Fase 6** Chismes, noticias y pulido.
 Cada fase se dividirá en bloques pequeños cuando se llegue a ella (detalle en `docs/PLAN_VIDA_SOCIAL.md`).
 
 ## 8. Decisiones de diseño ya tomadas (no volver a preguntarlas)
