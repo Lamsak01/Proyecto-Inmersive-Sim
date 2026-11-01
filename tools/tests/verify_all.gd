@@ -689,5 +689,36 @@ func _initialize() -> void:
 		assert(smith_npc._find_best_social_partner() != garrick_npc, "Rival Garrick must never be chosen as social partner")
 	print("B2.2 physical hangouts OK")
 
+	# Test #23 (B3.1): Avance diario de cortejo en vivo hasta formar pareja (fichas, relación, registro social)
+	var sd3 = vm.social_director
+	var best3: Array = []
+	var best3_c: int = -1
+	var live3: Array = []
+	for n3 in vm.get_tree().get_nodes_in_group("village_npcs"):
+		if n3.has_method("get_person_key") and not n3.is_dead and n3.person_profile != null and str(n3.person_profile.romance_status) == "single":
+			live3.append(n3)
+	for i3 in range(live3.size()):
+		for j3 in range(i3 + 1, live3.size()):
+			var fa3: String = str(live3[i3].family_id)
+			var same3: bool = fa3 != "none" and fa3 != "" and fa3 != "family_police" and fa3 == str(live3[j3].family_id)
+			var c3: int = sd3.compute_compatibility(live3[i3].person_profile, live3[j3].person_profile, same3)
+			if c3 > best3_c:
+				best3_c = c3
+				best3 = [live3[i3], live3[j3]]
+	assert(best3_c >= 40, "There must be a compatible single pair in the village")
+	var na3 = best3[0]
+	var nb3 = best3[1]
+	var day3: int = int(wc_speed.current_day)
+	sd3.set_pair_metrics(na3.get_person_key(), nb3.get_person_key(), 40, 50, 70, 0, "dating")
+	sd3.get_pair_entry(na3.get_person_key(), nb3.get_person_key())["last_contact_day"] = day3
+	var old_chance3 = sd3.dials["live_stage_advance_chance"]
+	sd3.dials["live_stage_advance_chance"] = 10.0
+	vm._advance_live_romances(day3)
+	sd3.dials["live_stage_advance_chance"] = old_chance3
+	assert(str(na3.person_profile.romance_status) == "partnered" and str(na3.person_profile.partner_id) == nb3.get_person_key(), "B3.1: Dating pair with spark 70 must become a couple")
+	assert(na3.get_relationship_with_npc(nb3.get_person_key()) >= 68 and nb3.get_relationship_with_npc(na3.get_person_key()) >= 68, "B3.1: New couple relationship must be >= 68 on both sides")
+	assert(vm.get_recent_social_events(5, "couple").size() >= 1, "B3.1: New couple must be recorded in the social event log")
+	print("B3.1 live romance stages OK (%s + %s)" % [na3.npc_name, nb3.npc_name])
+
 	print("ALL RIMWORLD MEDICAL, FOOTPRINTS, 3-PHASE CORPSE REPORT, MULTI-CORPSE FIX, RPG INTERROGATION, PUBLIC TRIAL, DYNAMIC RELATIONSHIPS, MISSING FAMILY SEARCH, SOCIAL GLOSSARY & UNCONSCIOUS REACTION TESTS PASSED!")
 	quit(0)

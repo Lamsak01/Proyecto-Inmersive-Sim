@@ -3353,9 +3353,52 @@ func _update_social_hangouts(delta: float) -> void:
 	pb.assign_hangout(int(hg_new["id"]), sp_pos, pa, 1, lbl)
 	pa._spawn_floating_text("☕ «%s, ¿nos vemos en %s?»" % [pb.npc_name, lbl], Color(0.85, 0.95, 1.0), -36.0)
 
+# ==============================================================================
+# B3.1: AVANCE DIARIO DE CORTEJOS EN VIVO (Interés → Coqueteo → Citas → Pareja)
+# ==============================================================================
+const ROMANCE_STAGE_NAMES: Dictionary = {"interest": "sienten interés mutuo", "flirt": "han empezado a coquetear", "dating": "han empezado a salir"}
+
+func _advance_live_romances(cur_day: int) -> Dictionary:
+	if social_director == null:
+		return {}
+	var by_key: Dictionary = _get_npcs_by_person_key()
+	var profiles: Dictionary = {}
+	var families: Dictionary = {}
+	for k in by_key.keys():
+		var v: VillageNPC = by_key[k]
+		if v.person_profile != null and not v.is_dead:
+			profiles[k] = v.person_profile
+			families[k] = v.family_id
+	var res: Dictionary = social_director.advance_live_romance_day(cur_day, profiles, families)
+	for adv in res.get("advanced", []):
+		var a: VillageNPC = by_key.get(str(adv.get("id_a", "")), null)
+		var b: VillageNPC = by_key.get(str(adv.get("id_b", "")), null)
+		if not is_instance_valid(a) or not is_instance_valid(b):
+			continue
+		var to_st: String = str(adv.get("to", ""))
+		if to_st == "couple":
+			var rel_now: int = a.get_relationship_with_npc(b.get_person_key())
+			a.modify_npc_relationship(b, maxi(0, 68 - rel_now), "💑 Pareja: decidieron estar juntos")
+			a.add_thought("¡Ahora estoy en pareja con %s! (+15)" % b.npc_name, 15.0)
+			b.add_thought("¡Ahora estoy en pareja con %s! (+15)" % a.npc_name, 15.0)
+			a._spawn_floating_text("💑 ¡%s y %s ahora son pareja!" % [a.npc_name, b.npc_name], Color(1.0, 0.55, 0.75), -46.0)
+			record_social_event("couple", a, b, "%s y %s ahora son pareja" % [a.npc_name, b.npc_name])
+		else:
+			if to_st in ["flirt", "dating"]:
+				a.add_thought("Me hace ilusión lo que tengo con %s (+5)" % b.npc_name, 5.0)
+				b.add_thought("Me hace ilusión lo que tengo con %s (+5)" % a.npc_name, 5.0)
+			record_social_event("romance_" + to_st, a, b, "%s y %s %s" % [a.npc_name, b.npc_name, str(ROMANCE_STAGE_NAMES.get(to_st, "se acercan"))])
+	for fz in res.get("fizzled", []):
+		var fa: VillageNPC = by_key.get(str(fz.get("id_a", "")), null)
+		var fb: VillageNPC = by_key.get(str(fz.get("id_b", "")), null)
+		if is_instance_valid(fa) and is_instance_valid(fb):
+			record_social_event("romance_fizzle", fa, fb, "Lo de %s y %s se enfrió" % [fa.npc_name, fb.npc_name])
+	return res
+
 func _on_day_passed(_new_day: int) -> void:
 	arrivals_today_count = 0
 	if social_director != null:
+		_advance_live_romances(_new_day)
 		social_director.on_day_passed(_new_day)
 
 	# Descontar 1 día del embargo comercial (20..30 días) si alguno de los 2 mercaderes semanales fue asesinado

@@ -191,5 +191,60 @@ func _initialize() -> void:
 	var hd2 = SocialDirector.new(1)
 	hd2.from_save_dict(hd_save)
 	assert(hd2.get_hangouts_today("kael", 4) == 1 and hd2.active_hangouts.is_empty(), "Guardado: cupo diario persiste, quedadas activas no")
-	print("NAMES CHECK PASSED (200 F / 200 M / 200 apellidos + 17 PersonProfile + B0.3 generator + B1.1/B1.2 social + B2.1 hangouts)")
+	# B3.1: Etapas de cortejo en vivo
+	var rd = SocialDirector.new(4242)
+	rd.dials["live_stage_advance_chance"] = 10.0  # garantiza el avance si se cumplen las condiciones
+	var rprofs: Dictionary = {}
+	for nm in NPCData.INITIAL_PERSON_PROFILES.keys():
+		var pp = PersonProfile.from_dict(NPCData.INITIAL_PERSON_PROFILES[nm])
+		pp.romance_status = PersonProfile.ROMANCE_SINGLE
+		pp.partner_id = ""
+		rprofs[str(pp.person_id)] = pp
+	var best_pair: Array = []
+	var best_c: int = -1
+	var pids: Array = rprofs.keys()
+	pids.sort()
+	for i in range(pids.size()):
+		for j in range(i + 1, pids.size()):
+			var cc: int = rd.compute_compatibility(rprofs[pids[i]], rprofs[pids[j]], false)
+			if cc > best_c:
+				best_c = cc
+				best_pair = [pids[i], pids[j]]
+	assert(best_c >= 40, "Debe existir al menos un par compatible")
+	var ra: String = best_pair[0]
+	var rb: String = best_pair[1]
+	rd.set_pair_metrics(ra, rb, 40, 40, 30, 0, SocialDirector.STAGE_INTEREST)
+	rd.get_pair_entry(ra, rb)["last_contact_day"] = 9
+	var rs1: Dictionary = rd.advance_live_romance_day(10, rprofs)
+	assert(rd.get_pair_stage(ra, rb) == SocialDirector.STAGE_FLIRT and rs1["advanced"].size() == 1, "Con chispa 30 y contacto ayer: Interés -> Coqueteo")
+	var rs2: Dictionary = rd.advance_live_romance_day(10, rprofs)
+	assert(rd.get_pair_stage(ra, rb) == SocialDirector.STAGE_FLIRT and rs2["advanced"].is_empty(), "Sin chispa suficiente (30 < 44) no pasa a Citas")
+	rd.get_pair_entry(ra, rb)["last_contact_day"] = 3
+	rd.get_pair_entry(ra, rb)["spark"] = 70
+	rd.advance_live_romance_day(10, rprofs)
+	assert(rd.get_pair_stage(ra, rb) == SocialDirector.STAGE_FLIRT, "Sin contacto reciente no avanza aunque haya chispa")
+	rd.get_pair_entry(ra, rb)["last_contact_day"] = 10
+	rd.advance_live_romance_day(10, rprofs)
+	assert(rd.get_pair_stage(ra, rb) == SocialDirector.STAGE_DATING, "Coqueteo -> Citas")
+	assert(rd.get_courtship_of(ra).get("other_id", "") == rb, "get_courtship_of debe devolver al otro")
+	var rs3: Dictionary = rd.advance_live_romance_day(10, rprofs)
+	assert(rd.get_pair_stage(ra, rb) == SocialDirector.STAGE_COUPLE and rs3["new_couples"].size() == 1, "Citas -> Pareja")
+	assert(str(rprofs[ra].romance_status) == PersonProfile.ROMANCE_PARTNERED and str(rprofs[ra].partner_id) == rb and str(rprofs[rb].partner_id) == ra, "Pareja: fichas cruzadas")
+	assert(int(rd.get_pair_entry(ra, rb)["affinity"]) >= 68, "Pareja: afinidad minima 68")
+	# Fizzle: el cortejo se apaga si la chispa cae
+	var fz_ids: Array = []
+	for pid2 in pids:
+		if pid2 != ra and pid2 != rb:
+			fz_ids.append(pid2)
+	rd.set_pair_metrics(str(fz_ids[0]), str(fz_ids[1]), 20, 20, 3, 0, SocialDirector.STAGE_FLIRT)
+	var rs4: Dictionary = rd.advance_live_romance_day(11, rprofs)
+	assert(rs4["fizzled"].size() == 1, "Con chispa < 8, el coqueteo se apaga")
+	# Tope diario de chispa
+	var cap_pe: Dictionary = rd.get_pair_entry("x1", "x2")
+	rd._add_spark_capped(cap_pe, 8, 5)
+	rd._add_spark_capped(cap_pe, 8, 5)
+	assert(int(cap_pe["spark"]) == 10, "Tope diario de chispa = 10")
+	rd._add_spark_capped(cap_pe, 8, 6)
+	assert(int(cap_pe["spark"]) == 18, "Al dia siguiente vuelve a ganar chispa")
+	print("NAMES CHECK PASSED (200 F / 200 M / 200 apellidos + 17 PersonProfile + B0.3 generator + B1.1/B1.2 social + B2.1 hangouts + B3.1 stages)")
 	quit(0)

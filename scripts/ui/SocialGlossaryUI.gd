@@ -243,6 +243,16 @@ func _build_ui() -> void:
 	_social_table_vbox.add_theme_constant_override("separation", 5)
 	tbl_scroll.add_child(_social_table_vbox)
 
+func _get_social_director():
+	var vm = get_tree().get_first_node_in_group("village_manager") if is_inside_tree() else null
+	return vm.get("social_director") if vm != null else null
+
+func _name_for_person_id(pid: String, npcs: Array) -> String:
+	for n in npcs:
+		if n is VillageNPC and (n as VillageNPC).get_person_key() == pid:
+			return (n as VillageNPC).npc_name
+	return pid.capitalize()
+
 func _get_role_icon(role: int) -> String:
 	match role:
 		VillageNPC.TradeRole.BLACKSMITH: return "⚒️"
@@ -334,6 +344,13 @@ func refresh_ui(rebuild_lists: bool = true) -> void:
 			rom_badge = "💑 En pareja"
 		elif r_st == "widowed":
 			rom_badge = "🖤 Viudo/a"
+	# B3.1: mostrar el cortejo en curso (Interés / Coqueteo / Citas)
+	var sdir_g = _get_social_director()
+	if sdir_g != null and sel.person_profile != null and str(sel.person_profile.romance_status) == "single":
+		var court: Dictionary = sdir_g.get_courtship_of(str(sel.person_profile.person_id))
+		if not court.is_empty():
+			var other_nm: String = _name_for_person_id(str(court.get("other_id", "")), all_npcs)
+			rom_badge = "%s con %s" % [sdir_g.get_stage_label(str(court.get("stage", ""))), other_nm]
 	_subtitle_label.text = "Rutina: %s | %s | 😊 Humor: %d%% | 🍖 %d%% | 💤 %d%% | 💰 %d Oro | Rasgos: %s" % [
 		sel.get_activity_description(), rom_badge, int(round(sel.mood)), int(round(sel.need_hunger)), int(round(sel.need_energy)), maxi(0, sel.personal_gold), traits_txt
 	]
@@ -363,6 +380,11 @@ func refresh_ui(rebuild_lists: bool = true) -> void:
 		var same_fam: bool = (sel.family_id != "none" and sel.family_id != "" and sel.family_id != "family_police" and other.family_id == sel.family_id)
 		var other_id: String = str(other.person_profile.person_id) if other.person_profile != null else other.npc_id
 		var is_partner: bool = (sel.person_profile != null and str(sel.person_profile.partner_id) != "" and str(sel.person_profile.partner_id) == other_id)
+		var stage_tag: String = ""
+		if sdir_g != null and sel.person_profile != null and not is_partner:
+			var st_pair: String = str(sdir_g.get_pair_stage(str(sel.person_profile.person_id), other_id))
+			if st_pair != "none" and st_pair != "couple":
+				stage_tag = sdir_g.get_stage_label(st_pair)
 		if same_fam:
 			var kin_state: String = "💀 Difunto" if other.is_dead else ("😟 Buscando" if is_instance_valid(other._searching_missing_kin) else "🟢 En el valle")
 			family_list.append("%s (%s · %+d · %s)" % [other.npc_name, other.npc_role, rel_val, kin_state])
@@ -373,7 +395,8 @@ func refresh_ui(rebuild_lists: bool = true) -> void:
 			"val": rel_val,
 			"note": note_str,
 			"same_fam": same_fam,
-			"is_partner": is_partner
+			"is_partner": is_partner,
+			"stage_tag": stage_tag
 		})
 
 	rel_entries.sort_custom(func(a: Dictionary, b: Dictionary) -> bool:
@@ -525,6 +548,9 @@ func _fill_table_row(row: Dictionary, entry: Dictionary) -> void:
 	var is_fam: bool = bool(entry["same_fam"])
 	var is_part: bool = bool(entry.get("is_partner", false))
 	var tier_lbl: String = VillageNPC.get_relationship_tier_label(r_val, is_fam, is_part)
+	var st_tag: String = str(entry.get("stage_tag", ""))
+	if st_tag != "":
+		tier_lbl += " · " + st_tag
 	panel.add_theme_stylebox_override("panel", _style_row_good if r_val >= 35 else (_style_row_bad if r_val <= -25 else _style_row_neutral))
 	var sc_col: Color = Color(0.45, 1.0, 0.62) if r_val >= 35 else (Color(0.75, 0.95, 0.75) if r_val >= 12 else (Color(1.0, 0.45, 0.42) if r_val <= -25 else Color(0.85, 0.85, 0.85)))
 	var score_lbl: Label = row["score"]

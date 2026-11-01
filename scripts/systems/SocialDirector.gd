@@ -57,6 +57,17 @@ const DIALS: Dictionary = {
 	"hangout_tension_relief_max": 6,
 	"avoid_affinity_threshold": -25,
 	"avoid_tension_threshold": 30,
+	# B3.1: Chispa y etapas en vivo (solo avanzan si hubo contacto reciente; sin plazos ni cupos)
+	"stage_spark_interest": 14,
+	"stage_spark_flirt": 28,
+	"stage_spark_dating": 44,
+	"stage_spark_couple": 60,
+	"stage_couple_min_affinity": 24,
+	"live_stage_advance_chance": 0.30,   # Probabilidad diaria base (x compatibilidad/50)
+	"live_stage_contact_window_days": 1, # Debe haber contacto hoy o ayer para avanzar
+	"stage_fizzle_spark": 8,             # Si la chispa cae por debajo, el cortejo se apaga
+	"romance_min_compat": 40,
+	"spark_daily_gain_cap": 10,          # Máximo de chispa que un par puede ganar en un mismo día (charlas + quedadas)
 }
 
 const STAGE_NONE := "none"
@@ -326,7 +337,7 @@ func resolve_live_conversation(npc_a, npc_b, current_day: int = 1) -> Dictionary
 	var rom_compat: int = compute_compatibility(prof_a, prof_b, same_fam)
 	var both_single: bool = (str(prof_a.romance_status) == PersonProfile.ROMANCE_SINGLE and str(prof_b.romance_status) == PersonProfile.ROMANCE_SINGLE)
 	if delta_rel > 0 and both_single and rom_compat >= 40 and int(pe["affinity"]) >= int(dials.get("spark_min_affinity", 14)) and int(pe["familiarity"]) >= int(dials.get("spark_min_familiarity", 12)):
-		pe["spark"] = clampi(int(pe.get("spark", 0)) + rng.randi_range(2, 5), 0, 100)
+		_add_spark_capped(pe, rng.randi_range(2, 5), current_day)
 
 	var ex: Dictionary = SocialDialogueData.build_exchange(action_id, dict_a, name_a, dict_b, name_b, topic_used, rng)
 	ex["allowed"] = true
@@ -560,7 +571,7 @@ func _complete_hangout(hg: Dictionary) -> Dictionary:
 	pe["affinity"] = clampi(int(pe.get("affinity", 0)) + d_aff, -100, 100)
 	pe["familiarity"] = clampi(int(pe.get("familiarity", 0)) + d_fam, 0, 100)
 	pe["tension"] = clampi(int(pe.get("tension", 0)) - d_ten, 0, 100)
-	pe["spark"] = clampi(int(pe.get("spark", 0)) + d_spk, 0, 100)
+	d_spk = _add_spark_capped(pe, d_spk, int(hg.get("started_day", 1)))
 	res["delta_affinity"] = d_aff
 	res["delta_familiarity"] = d_fam
 	res["delta_spark"] = d_spk
@@ -589,6 +600,128 @@ func pop_finished_hangouts() -> Array[Dictionary]:
 	var out: Array[Dictionary] = finished_hangouts.duplicate()
 	finished_hangouts.clear()
 	return out
+
+# ==============================================================================
+# B3.1: CHISPA Y ETAPAS EN VIVO — Interés → Coqueteo → Citas → Pareja
+# ==============================================================================
+const STAGE_ORDER: Array[String] = [STAGE_NONE, STAGE_INTEREST, STAGE_FLIRT, STAGE_DATING, STAGE_COUPLE]
+const STAGE_LABELS: Dictionary = {
+	STAGE_NONE: "",
+	STAGE_INTEREST: "💭 Interés",
+	STAGE_FLIRT: "💘 Coqueteo",
+	STAGE_DATING: "💞 Citas",
+	STAGE_COUPLE: "💑 Pareja",
+}
+
+## Suma chispa respetando un tope diario por par (`spark_daily_gain_cap`) para que los cortejos tarden varios días. Devuelve lo sumado.
+func _add_spark_capped(pe: Dictionary, amount: int, current_day: int) -> int:
+	if amount <= 0:
+		return 0
+	if int(pe.get("spark_gain_day", -1)) != current_day:
+		pe["spark_gain_day"] = current_day
+		pe["spark_gain_today"] = 0
+	var cap: int = int(dials.get("spark_daily_gain_cap", 10))
+	var add: int = mini(amount, maxi(0, cap - int(pe.get("spark_gain_today", 0))))
+	pe["spark_gain_today"] = int(pe.get("spark_gain_today", 0)) + add
+	pe["spark"] = clampi(int(pe.get("spark", 0)) + add, 0, 100)
+	return add
+
+static func get_stage_label(stage: String) -> String:
+	return str(STAGE_LABELS.get(stage, ""))
+
+func get_pair_stage(id_a: String, id_b: String) -> String:
+	var k: String = make_pair_key(id_a, id_b)
+	if k == "" or not pair_metrics.has(k):
+		return STAGE_NONE
+	return str(pair_metrics[k].get("stage", STAGE_NONE))
+
+## Devuelve el cortejo más avanzado (sin contar pareja formada) de una persona: {"other_id", "stage"} o {}.
+func get_courtship_of(person_id: String) -> Dictionary:
+	var best: Dictionary = {}
+	var best_idx: int = 0
+	for k in pair_metrics.keys():
+		var parts: PackedStringArray = str(k).split("|")
+		if parts.size() != 2 or not (person_id in parts):
+			continue
+		var st: String = str(pair_metrics[k].get("stage", STAGE_NONE))
+		var idx: int = STAGE_ORDER.find(st)
+		if st == STAGE_COUPLE or idx <= best_idx:
+			continue
+		best_idx = idx
+		best = {"other_id": parts[1] if parts[0] == person_id else parts[0], "stage": st}
+	return best
+
+func _stage_threshold(stage_next: String) -> int:
+	match stage_next:
+		STAGE_INTEREST: return int(dials.get("stage_spark_interest", 14))
+		STAGE_FLIRT: return int(dials.get("stage_spark_flirt", 28))
+		STAGE_DATING: return int(dials.get("stage_spark_dating", 44))
+		STAGE_COUPLE: return int(dials.get("stage_spark_couple", 60))
+	return 999
+
+## Paso diario de cortejos en vivo. `profiles_by_id`: {person_id: PersonProfile} de los vivos; `families_by_id`: {person_id: family_id}.
+## Solo avanza quien tuvo contacto hoy/ayer (charlas o quedadas), con probabilidad, sin plazos. Si la chispa se apaga, el cortejo se pierde.
+## Devuelve {"advanced": [{id_a, id_b, from, to}], "new_couples": [{id_a, id_b}], "fizzled": [{id_a, id_b, from}]}.
+func advance_live_romance_day(current_day: int, profiles_by_id: Dictionary, families_by_id: Dictionary = {}) -> Dictionary:
+	var advanced: Array = []
+	var new_couples: Array = []
+	var fizzled: Array = []
+	var keys: Array = pair_metrics.keys()
+	keys.sort()
+	var window: int = int(dials.get("live_stage_contact_window_days", 1))
+	var min_compat: int = int(dials.get("romance_min_compat", 40))
+	for k in keys:
+		var pe: Dictionary = pair_metrics[k]
+		var parts: PackedStringArray = str(k).split("|")
+		if parts.size() != 2:
+			continue
+		var id_a: String = parts[0]
+		var id_b: String = parts[1]
+		var prof_a = profiles_by_id.get(id_a, null)
+		var prof_b = profiles_by_id.get(id_b, null)
+		if prof_a == null or prof_b == null:
+			continue
+		var stage: String = str(pe.get("stage", STAGE_NONE))
+		if stage == STAGE_COUPLE:
+			continue
+		var spk: int = int(pe.get("spark", 0))
+		if stage != STAGE_NONE and spk < int(dials.get("stage_fizzle_spark", 8)):
+			pe["stage"] = STAGE_NONE
+			fizzled.append({"id_a": id_a, "id_b": id_b, "from": stage})
+			continue
+		if spk <= 0 or int(pe.get("last_contact_day", 0)) < current_day - window:
+			continue
+		var both_single: bool = str(prof_a.romance_status) == PersonProfile.ROMANCE_SINGLE and str(prof_b.romance_status) == PersonProfile.ROMANCE_SINGLE
+		if not both_single:
+			continue
+		var fam_a: String = str(families_by_id.get(id_a, "none"))
+		var fam_b: String = str(families_by_id.get(id_b, "none"))
+		var same_fam: bool = (fam_a != "none" and fam_a != "" and fam_a != "family_police" and fam_a == fam_b)
+		var compat: int = compute_compatibility(prof_a, prof_b, same_fam)
+		if compat < min_compat:
+			continue
+		var idx: int = STAGE_ORDER.find(stage)
+		if idx < 0 or idx >= STAGE_ORDER.size() - 1:
+			continue
+		var next_stage: String = STAGE_ORDER[idx + 1]
+		if spk < _stage_threshold(next_stage):
+			continue
+		if next_stage == STAGE_COUPLE and int(pe.get("affinity", 0)) < int(dials.get("stage_couple_min_affinity", 24)):
+			continue
+		var chance: float = float(dials.get("live_stage_advance_chance", 0.30)) * (float(compat) / 50.0)
+		if rng.randf() >= chance:
+			continue
+		pe["stage"] = next_stage
+		advanced.append({"id_a": id_a, "id_b": id_b, "from": stage, "to": next_stage})
+		if next_stage == STAGE_COUPLE:
+			prof_a.romance_status = PersonProfile.ROMANCE_PARTNERED
+			prof_a.partner_id = id_b
+			prof_b.romance_status = PersonProfile.ROMANCE_PARTNERED
+			prof_b.partner_id = id_a
+			pe["affinity"] = maxi(int(pe.get("affinity", 0)), 68)
+			total_new_couples_formed += 1
+			new_couples.append({"id_a": id_a, "id_b": id_b})
+	return {"advanced": advanced, "new_couples": new_couples, "fizzled": fizzled}
 
 ## Enfriamiento diario para pares sin contacto en `current_day`.
 func on_day_passed(current_day: int) -> void:
