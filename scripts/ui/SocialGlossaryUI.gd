@@ -327,8 +327,15 @@ func refresh_ui(rebuild_lists: bool = true) -> void:
 	var state_badge: String = "💀 DIFUNTO" if sel.is_dead else ("🩸 AGONIZANDO" if sel.is_downed else "🟢 VIVO")
 	_title_label.text = "%s %s — %s (%s) [%s]" % [_get_role_icon(int(sel.trade_role)), sel.npc_name, sel.npc_role, sel.family_name, state_badge]
 	var traits_txt: String = ", ".join(sel.traits) if not sel.traits.is_empty() else "Equilibrado"
-	_subtitle_label.text = "Rutina: %s | 😊 Humor: %d%% | 🍖 %d%% | 💤 %d%% | 💰 %d Oro | Rasgos: %s" % [
-		sel.get_activity_description(), int(round(sel.mood)), int(round(sel.need_hunger)), int(round(sel.need_energy)), maxi(0, sel.personal_gold), traits_txt
+	var rom_badge: String = "Soltero/a"
+	if sel.person_profile != null:
+		var r_st: String = str(sel.person_profile.romance_status)
+		if r_st == "partnered":
+			rom_badge = "💑 En pareja"
+		elif r_st == "widowed":
+			rom_badge = "🖤 Viudo/a"
+	_subtitle_label.text = "Rutina: %s | %s | 😊 Humor: %d%% | 🍖 %d%% | 💤 %d%% | 💰 %d Oro | Rasgos: %s" % [
+		sel.get_activity_description(), rom_badge, int(round(sel.mood)), int(round(sel.need_hunger)), int(round(sel.need_energy)), maxi(0, sel.personal_gold), traits_txt
 	]
 	_tagline_label.text = "«%s»" % (sel.character_tagline if sel.character_tagline != "" else "Habitante del valle.")
 
@@ -354,6 +361,8 @@ func refresh_ui(rebuild_lists: bool = true) -> void:
 		var rel_val: int = sel.get_relationship_with_npc(other.npc_name)
 		var note_str: String = sel.get_relationship_note_with_npc(other.npc_name)
 		var same_fam: bool = (sel.family_id != "none" and sel.family_id != "" and sel.family_id != "family_police" and other.family_id == sel.family_id)
+		var other_id: String = str(other.person_profile.person_id) if other.person_profile != null else other.npc_id
+		var is_partner: bool = (sel.person_profile != null and str(sel.person_profile.partner_id) != "" and str(sel.person_profile.partner_id) == other_id)
 		if same_fam:
 			var kin_state: String = "💀 Difunto" if other.is_dead else ("😟 Buscando" if is_instance_valid(other._searching_missing_kin) else "🟢 En el valle")
 			family_list.append("%s (%s · %+d · %s)" % [other.npc_name, other.npc_role, rel_val, kin_state])
@@ -363,7 +372,8 @@ func refresh_ui(rebuild_lists: bool = true) -> void:
 			"role": other.npc_role,
 			"val": rel_val,
 			"note": note_str,
-			"same_fam": same_fam
+			"same_fam": same_fam,
+			"is_partner": is_partner
 		})
 
 	rel_entries.sort_custom(func(a: Dictionary, b: Dictionary) -> bool:
@@ -513,7 +523,8 @@ func _fill_table_row(row: Dictionary, entry: Dictionary) -> void:
 	var other_npc: VillageNPC = entry["npc"] as VillageNPC
 	var r_val: int = int(entry["val"])
 	var is_fam: bool = bool(entry["same_fam"])
-	var tier_lbl: String = VillageNPC.get_relationship_tier_label(r_val, is_fam)
+	var is_part: bool = bool(entry.get("is_partner", false))
+	var tier_lbl: String = VillageNPC.get_relationship_tier_label(r_val, is_fam, is_part)
 	panel.add_theme_stylebox_override("panel", _style_row_good if r_val >= 35 else (_style_row_bad if r_val <= -25 else _style_row_neutral))
 	var sc_col: Color = Color(0.45, 1.0, 0.62) if r_val >= 35 else (Color(0.75, 0.95, 0.75) if r_val >= 12 else (Color(1.0, 0.45, 0.42) if r_val <= -25 else Color(0.85, 0.85, 0.85)))
 	var score_lbl: Label = row["score"]

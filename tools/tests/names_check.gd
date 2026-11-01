@@ -68,7 +68,12 @@ func _initialize() -> void:
 			var opp: String = str(PersonProfile.OPPOSITE_TRAITS.get(tr, ""))
 			assert(opp == "" or not (opp in prof.personality), "Rasgos opuestos en %s: %s y %s" % [r_name, tr, opp])
 		assert(prof.likes.size() >= 1 and prof.dislikes.size() >= 1, "Gustos vacios en %s" % r_name)
-		assert(prof.romance_status == PersonProfile.ROMANCE_SINGLE and prof.partner_id == "", "En B0.2 deben iniciar single: %s" % r_name)
+		if r_name == "Elena":
+			assert(prof.romance_status == PersonProfile.ROMANCE_PARTNERED and prof.partner_id == "valen", "Elena debe iniciar en pareja con Dr. Valen")
+		elif r_name == "Dr. Valen":
+			assert(prof.romance_status == PersonProfile.ROMANCE_PARTNERED and prof.partner_id == "elena", "Dr. Valen debe iniciar en pareja con Elena")
+		else:
+			assert(prof.romance_status == PersonProfile.ROMANCE_SINGLE and prof.partner_id == "", "El resto de residentes debe iniciar soltero: %s" % r_name)
 	assert(fem_count == 6 and male_count == 11, "Reparto esperado 6 F / 11 M, obtenido %d F / %d M" % [fem_count, male_count])
 	# B0.3: Generador de vecinos nuevos (unicidad, equilibrio de genero, edad por oficio, reproducibilidad)
 	var gen_rng := RandomNumberGenerator.new()

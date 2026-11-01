@@ -436,6 +436,10 @@ func _initialize() -> void:
 	assert(not sc1.is_empty() and not sc2.is_empty() and not sc3.is_empty() and sc_dup.is_empty() and sc4.is_empty(), "B0.7: SocialDirector must enforce max 3 concurrent scenes and prevent actor overlap!")
 	sdir.tick(6.0, vm)
 	assert(sdir.active_scenes.is_empty(), "B0.7: Scenes must expire after duration!")
+	# B0.8: Verify initial couple Elena + Dr. Valen
+	assert(elena_npc.person_profile.romance_status == "partnered" and elena_npc.person_profile.partner_id == "valen", "B0.8: Elena must start partnered with Dr. Valen!")
+	assert(doc_npc.person_profile.romance_status == "partnered" and doc_npc.person_profile.partner_id == "elena", "B0.8: Dr. Valen must start partnered with Elena!")
+	assert(str(sdir.get_pair_entry("elena", "valen").get("stage", "")) == "couple", "B0.8: SocialDirector must seed Elena + Valen as stage 'couple'!")
 
 	# 16. Test Worried Family Missing-Person Search (Shop Search 8s -> Police Report 10s -> Police Search Patrol)
 	assert(elena_npc != null and tomas_npc != null, "Elena and Tomás must exist for family search test")
@@ -448,6 +452,7 @@ func _initialize() -> void:
 	# Suppose Elena is killed far away in the forest and Tomás is at home at 22:00
 	elena_npc.global_position = Vector2(140, 620)
 	elena_npc._confirm_true_death()
+	assert(doc_npc.person_profile.romance_status == "widowed" and doc_npc.person_profile.partner_id == "", "B0.8: When Elena dies, Dr. Valen must become widowed!")
 	tomas_npc.global_position = tomas_npc.home_table_pos
 	if wc:
 		wc.current_hour = 22

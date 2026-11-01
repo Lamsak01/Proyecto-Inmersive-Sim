@@ -771,7 +771,9 @@ func get_relationship_note_with_npc(other_key_or_name: String) -> String:
 		ensure_npc_relationships_initialized()
 	return str(npc_relationship_notes.get(key, "Trato vecinal cotidiano"))
 
-static func get_relationship_tier_label(val: int, is_same_family: bool = false) -> String:
+static func get_relationship_tier_label(val: int, is_same_family: bool = false, is_partner: bool = false) -> String:
+	if is_partner:
+		return "💑 Pareja"
 	if is_same_family and val >= 50:
 		return "❤️ Familia Cercana"
 	if val >= 65:
@@ -3777,7 +3779,14 @@ func _confirm_true_death() -> void:
 	if is_inside_tree():
 		for n_other in get_tree().get_nodes_in_group("village_npcs"):
 			if n_other is VillageNPC and n_other != self and not n_other.is_dead:
-				(n_other as VillageNPC).purge_deceased_relationship(my_dead_id, npc_name)
+				var vo := n_other as VillageNPC
+				if vo.person_profile != null and str(vo.person_profile.partner_id) == my_dead_id:
+					vo.person_profile.romance_status = PersonProfile.ROMANCE_WIDOWED
+					vo.person_profile.partner_id = ""
+					vo.add_thought("Duelo por la muerte de mi pareja %s (-18)" % npc_name, -18.0)
+					if vm and vm.has_method("record_social_event"):
+						vm.call("record_social_event", "widowed", vo, self, "%s quedó viudo/a tras la muerte de %s" % [vo.npc_name, npc_name])
+				vo.purge_deceased_relationship(my_dead_id, npc_name)
 	if vm and vm.get("social_director") != null:
 		vm.get("social_director").call("purge_deceased", my_dead_id)
 	_stop_crafting_bar()

@@ -51,7 +51,7 @@ const INITIAL_NPC_RELATIONS: Dictionary = {
 	"Mila|Sora": [44, "Confidencias sobre cerraduras y nobles de la capital"],
 	"Marlo|Marta": [50, "Viejos amigos de taberna y suministro de pescado"],
 	"Nora|Sora": [-36, "Nora vigila sus pasos nocturnos en su bitácora de nudos"],
-	"Elena|Dr. Valen": [62, "Colaboración médica entre la Botica y el Hospital"],
+	"Elena|Dr. Valen": [78, "Pareja y estrechos colaboradores entre la Botica y el Hospital"],
 	"Tomás|Marlo": [44, "Intercambio de grano y abono en el molino"],
 	"Marta|Darío": [42, "Huésped honrado de la Posada El Jabalí"],
 	"Marta|Sora": [-32, "Tensión en el casino por contar cartas en el Blackjack"],
@@ -120,7 +120,7 @@ const INITIAL_PERSON_PROFILES: Dictionary = {
 		"person_id": "elena", "gender": "F", "orientation": "H", "age": 36,
 		"personality": ["Pacífico", "Bondadoso", "Curioso"],
 		"likes": ["hierbas", "lluvia"], "dislikes": ["caza"],
-		"favorite_item": "herbs", "romance_status": "single", "partner_id": ""
+		"favorite_item": "herbs", "romance_status": "partnered", "partner_id": "valen"
 	},
 	"Tomás": {
 		"person_id": "tomas", "gender": "M", "orientation": "H", "age": 39,
@@ -138,7 +138,7 @@ const INITIAL_PERSON_PROFILES: Dictionary = {
 		"person_id": "valen", "gender": "M", "orientation": "H", "age": 40,
 		"personality": ["Curioso", "Paciente", "Honrado"],
 		"likes": ["hierbas", "silencio"], "dislikes": ["cartas"],
-		"favorite_item": "surgical_kit", "romance_status": "single", "partner_id": ""
+		"favorite_item": "surgical_kit", "romance_status": "partnered", "partner_id": "elena"
 	},
 	"Comisario Vane": {
 		"person_id": "vane", "gender": "M", "orientation": "H", "age": 55,

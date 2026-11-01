@@ -164,6 +164,7 @@ func setup_village(target_entities_root: Node) -> void:
 	arrivals_today_count = 0
 	_init_newcomer_generator_registries()
 	social_director = SocialDirector.new(20261101)
+	social_director.set_pair_metrics("elena", "valen", 78, 75, 80, 5, SocialDirector.STAGE_COUPLE)
 	house_pantry = {
 		"family_smith": 3, "family_butcher": 4, "family_carpenter": 3, "family_fishmonger": 4,
 		"family_herbalist": 4, "family_hospital": 3, "family_police": 4, "family_tavern": 5
