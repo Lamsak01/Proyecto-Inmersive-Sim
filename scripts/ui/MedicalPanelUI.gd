@@ -222,7 +222,7 @@ func refresh_ui() -> void:
 			wash_self_btn.add_theme_color_override("font_color", Color(0.70, 0.95, 1.0))
 	if is_instance_valid(near_npc):
 		switch_target_btn.visible = true
-		var n_name: String = str(near_npc.get("npc_name")) if "npc_name" in near_npc else near_npc.name
+		var n_name: String = str(near_npc.get("npc_name")) if "npc_name" in near_npc else str(near_npc.name)
 		switch_target_btn.text = ("🧍 Volver a Mi Cuerpo" if target_entity != player else ("🔍 Examinar a %s" % n_name))
 	else:
 		if target_entity != player:
@@ -261,7 +261,7 @@ func refresh_ui() -> void:
 		var pct: int = int(round(float(caps.get(k, 1.0)) * 100.0))
 		cap_lines.append("%s: %d%%" % [str(CAP_NAMES[k]), pct])
 	var bleed_dps: float = hc.get_total_wound_bleed_rate() + (hc._bleed_dps if hc._bleed_timer > 0.0 else 0.0)
-	var eta_sec: int = hc.get_bleedout_eta_seconds()
+	var eta_sec: int = int(hc.get_bleedout_eta_seconds())
 	var bleed_str: String = ("ACTIVO (+%.2f%%/s -> Muerte en ~%ds)" % [bleed_dps, eta_sec]) if (hc.is_bleeding or bleed_dps > 0.0) else "Controlado (Regenerando sangre)"
 	cap_lines.append("🩸 Pérdida de Sangre: %d%% [%s] — %s" % [int(round(hc.current_blood)), hc.get_blood_loss_stage_name(), bleed_str])
 	cap_lines.append("💥 Dolor Acumulado: %d%%  |  🛡️ Tope Resistencia: %d/%d HP" % [int(round(hc.get_total_pain())), int(round(hc.get_effective_max_health())), int(round(hc.max_health))])

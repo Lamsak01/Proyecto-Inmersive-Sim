@@ -4266,7 +4266,7 @@ func update_entity_blood_footprints(entity: Node2D, _delta: float) -> void:
 		var pud: Dictionary = blood_puddles[p_idx]
 		pud["flee_dir"] = flee_dir
 		pud["flee_compass"] = _describe_direction_and_landmark(origin_pos, flee_dir)
-		var ent_name: String = "Jugador" if entity.is_in_group("player") else (str(entity.get("npc_name")) if "npc_name" in entity else entity.name)
+		var ent_name: String = "Jugador" if entity.is_in_group("player") else (str(entity.get("npc_name")) if "npc_name" in entity else str(entity.name))
 		pud["last_stepper"] = ent_name
 		var fp_arr: Array = pud.get("footprint_nodes", [])
 		fp_arr.append(fp_poly)
