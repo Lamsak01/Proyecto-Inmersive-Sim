@@ -798,4 +798,3 @@ static func on_dialogue_action(npc: VillageNPC, action_id: String) -> void:
 				vm.shop_businesses[int(npc.trade_role)]["vault_gold"] = int(vm.shop_businesses[int(npc.trade_role)].get("vault_gold", 0)) + v_cut
 		inv.add_item(item_id, qty)
 		npc._spawn_floating_text("+%d %s (-%d Oro)" % [qty, inv.get_item_name(item_id), price], Color.SPRING_GREEN, -44.0)
-

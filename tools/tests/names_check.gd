@@ -4,6 +4,7 @@ extends SceneTree
 const NPCNames = preload("res://scripts/data/NPCNames.gd")
 const NPCData = preload("res://scripts/data/NPCData.gd")
 const PersonProfile = preload("res://scripts/data/PersonProfile.gd")
+const SocialDialogueData = preload("res://scripts/data/SocialDialogueData.gd")
 
 func _norm(s: String) -> String:
 	return s.to_lower()
@@ -105,5 +106,19 @@ func _initialize() -> void:
 	var c1: Dictionary = PersonProfile.generate_newcomer(4, 1, gr1, [], {}, 6, 11)
 	var c2: Dictionary = PersonProfile.generate_newcomer(4, 1, gr2, [], {}, 6, 11)
 	assert(c1["full_name"] == c2["full_name"] and c1["profile"].to_dict() == c2["profile"].to_dict(), "Generador debe ser reproducible con la misma semilla")
-	print("NAMES CHECK PASSED (200 F / 200 M / 200 apellidos + 17 PersonProfile + B0.3 generator)")
+	# B1.1: Comprobar catalogo de frases sociales (8 acciones, 16 gustos, sin placeholders residuales)
+	assert(SocialDialogueData.ALL_ACTIONS.size() == 8, "Debe haber 8 tipos de acciones sociales")
+	for t_key in PersonProfile.TASTE_TOPICS:
+		assert(SocialDialogueData.TASTE_LABELS.has(t_key), "Falta etiqueta de gusto para: %s" % t_key)
+	var prof_elena: Dictionary = NPCData.INITIAL_PERSON_PROFILES["Elena"]
+	var prof_thoran: Dictionary = NPCData.INITIAL_PERSON_PROFILES["Thoran"]
+	for act_id in SocialDialogueData.ALL_ACTIONS:
+		var ex: Dictionary = SocialDialogueData.build_exchange(act_id, prof_elena, "Elena", prof_thoran, "Thoran", "", gr1)
+		var la: String = str(ex.get("line_a", ""))
+		var lb: String = str(ex.get("line_b", ""))
+		var nt: String = str(ex.get("note", ""))
+		assert(la != "" and lb != "" and nt != "", "Intercambio vacio en accion %s" % act_id)
+		assert(not ("{a}" in la or "{b}" in la or "{topic}" in la), "Placeholder sin sustituir en line_a (%s): %s" % [act_id, la])
+		assert(not ("{a}" in lb or "{b}" in lb or "{topic}" in lb), "Placeholder sin sustituir en line_b (%s): %s" % [act_id, lb])
+	print("NAMES CHECK PASSED (200 F / 200 M / 200 apellidos + 17 PersonProfile + B0.3 generator + B1.1 dialogue)")
 	quit(0)

@@ -148,7 +148,12 @@ Otros documentos antiguos en la raíz: `ROADMAP_PROYECTO.md`, `AUDIT_LOG.md`, `S
 - [x] **B0.8** HECHO. Pareja inicial **Elena y el Dr. Valen** (`romance_status = "partnered"`, `partner_id` cruzado, relación `+78`, etapa `"couple"` en `SocialDirector`), paso automático a viudo/a (`"widowed"`) si muere la pareja y visualización en el Glosario Social `[J]`.
 - [x] **B0.9** HECHO. Simulador headless de 60 días (`tools/tests/social_sim.gd`) y paso diario `SocialDirector.simulate_social_day(...)`, calibrado sobre 5 semillas + reemplazos procedurales cumpliendo todas las metas (1–3 parejas nuevas, 2–6 peleas con máx. 2 por par, 0 vecinos sin amigos y ~77% de relaciones entre −20 y +40).
 
-**Fase 1** Conversaciones con frases · **Fase 2** Pasar tiempo juntos · **Fase 3** Parejas (chispa, etapas, celos, duelo) ·
+**Fase 1 — Conversaciones con frases**
+- [x] **B1.1** HECHO. Catálogo procedural `scripts/data/SocialDialogueData.gd` con 8 tipos de acciones sociales (`small_talk`, `shared_taste`, `compliment`, `vent`, `joke`, `friction`, `taste_clash`, `apology`), etiquetas naturales para los 16 gustos y generador de intercambios de 2 turnos (`build_exchange`) adaptado a rasgos y gustos. Verificado en `tools/tests/names_check.gd`.
+- [ ] **B1.2** Selección y resolución de conversaciones en vivo (`resolve_live_conversation`) en `SocialDirector.gd`, actualizando las 4 métricas del par, relación vecinal y memoria corta respetando `max_concurrent_scenes = 3`.
+- [ ] **B1.3** Escena en vivo de 2 turnos en `VillageNPC.gd` (burbuja de apertura de A → respuesta de B a los ~1.8 s) y test automático en `tools/tests/verify_all.gd`.
+
+**Fase 2** Pasar tiempo juntos · **Fase 3** Parejas (chispa, etapas, celos, duelo) ·
 **Fase 4** Peleas discretas por dados · **Fase 5** Rol del jugador (observador/instigador/mediador) · **Fase 6** Chismes, noticias y pulido.
 Cada fase se dividirá en bloques pequeños cuando se llegue a ella (detalle en `docs/PLAN_VIDA_SOCIAL.md`).
 
