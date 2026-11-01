@@ -767,5 +767,21 @@ func _initialize() -> void:
 	assert(vm.get_recent_social_events(5, "couple_reconciled").size() >= 1, "B3.3: Reconciliation must be recorded in the social event log")
 	print("B3.3 jealousy, breakups & reconciliation OK")
 
+	# Test #26 (B3.4): Duelo y viudedad mejorados (luto de varios días y visita a la tumba en horas libres)
+	na3.person_profile.start_bereavement(nb3.npc_name, 2)
+	na3.clear_hangout()
+	na3.current_activity = 3  # ActivityState.SOCIALIZING
+	assert(na3.is_visiting_grave(), "B3.4: Widowed NPC in bereavement during socializing hours must visit the grave")
+	var grave_target: Vector2 = na3._get_social_target_pos()
+	assert(grave_target.distance_to(vm._cemetery_gate_pos) <= 120.0, "B3.4: Social target during bereavement must point to the cemetery")
+	na3.global_position = grave_target
+	assert(na3.get_activity_description().begins_with("🪦 Visitando la tumba de"), "B3.4: Activity at grave must show '🪦 Visitando la tumba de...'")
+	vm._advance_live_romances(day33 + 1)
+	assert(int(na3.person_profile.bereavement_days_left) == 1 and str(na3.person_profile.romance_status) == "widowed", "B3.4: Day 1 of bereavement must keep widowed status and decrement counter")
+	vm._advance_live_romances(day33 + 2)
+	assert(int(na3.person_profile.bereavement_days_left) == 0 and str(na3.person_profile.romance_status) == "single", "B3.4: Finishing bereavement must return status to single")
+	assert(vm.get_recent_social_events(5, "bereavement_ended").size() >= 1, "B3.4: Ending bereavement must record 'bereavement_ended' social event")
+	print("B3.4 bereavement & grave visits OK")
+
 	print("ALL RIMWORLD MEDICAL, FOOTPRINTS, 3-PHASE CORPSE REPORT, MULTI-CORPSE FIX, RPG INTERROGATION, PUBLIC TRIAL, DYNAMIC RELATIONSHIPS, MISSING FAMILY SEARCH, SOCIAL GLOSSARY & UNCONSCIOUS REACTION TESTS PASSED!")
 	quit(0)

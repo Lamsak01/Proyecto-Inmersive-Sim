@@ -343,7 +343,9 @@ func refresh_ui(rebuild_lists: bool = true) -> void:
 		if r_st == "partnered":
 			rom_badge = "💑 En pareja"
 		elif r_st == "widowed":
-			rom_badge = "🖤 Viudo/a"
+			var d_nm: String = str(sel.person_profile.deceased_partner_name)
+			var b_days: int = int(sel.person_profile.bereavement_days_left)
+			rom_badge = ("🖤 Viudo/a de %s (Luto: %dd)" % [d_nm, b_days]) if (d_nm != "" and b_days > 0) else (("🖤 Viudo/a de %s" % d_nm) if d_nm != "" else "🖤 Viudo/a")
 	# B3.1: mostrar el cortejo en curso (Interés / Coqueteo / Citas)
 	var sdir_g = _get_social_director()
 	if sdir_g != null and sel.person_profile != null and str(sel.person_profile.romance_status) == "single":

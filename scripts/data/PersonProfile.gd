@@ -45,6 +45,24 @@ var dislikes: Array[String] = []    # 1 disgusto de TASTE_TOPICS
 var favorite_item: String = "bread"
 var romance_status: String = ROMANCE_SINGLE
 var partner_id: String = ""
+var bereavement_days_left: int = 0
+var deceased_partner_name: String = ""
+
+func start_bereavement(dead_name: String, days: int = 5) -> void:
+	romance_status = ROMANCE_WIDOWED
+	partner_id = ""
+	bereavement_days_left = maxi(1, days)
+	deceased_partner_name = dead_name.strip_edges()
+
+## Descuenta 1 día de luto. Cuando llega a 0, la persona supera el duelo agudo (`romance_status = ROMANCE_SINGLE` conservando `deceased_partner_name`). Devuelve true si hoy terminó el luto.
+func tick_bereavement_day() -> bool:
+	if bereavement_days_left <= 0:
+		return false
+	bereavement_days_left = maxi(0, bereavement_days_left - 1)
+	if bereavement_days_left == 0 and romance_status == ROMANCE_WIDOWED:
+		romance_status = ROMANCE_SINGLE
+		return true
+	return false
 
 func get_age_group() -> String:
 	return age_group_for(age)
@@ -75,6 +93,8 @@ static func from_dict(d: Dictionary):
 	p.favorite_item = str(d.get("favorite_item", "bread"))
 	p.romance_status = str(d.get("romance_status", ROMANCE_SINGLE))
 	p.partner_id = str(d.get("partner_id", ""))
+	p.bereavement_days_left = int(d.get("bereavement_days_left", 0))
+	p.deceased_partner_name = str(d.get("deceased_partner_name", ""))
 	return p
 
 func to_dict() -> Dictionary:
@@ -90,6 +110,8 @@ func to_dict() -> Dictionary:
 		"favorite_item": favorite_item,
 		"romance_status": romance_status,
 		"partner_id": partner_id,
+		"bereavement_days_left": bereavement_days_left,
+		"deceased_partner_name": deceased_partner_name,
 	}
 
 ## Construye una ficha determinista a partir del nombre cuando un NPC aún no está en la tabla fija (puente hasta B0.3).

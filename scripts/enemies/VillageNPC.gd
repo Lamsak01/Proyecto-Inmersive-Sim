@@ -2703,7 +2703,9 @@ func _update_needs_and_decisions(delta: float) -> void:
 				_chat_bubble_timer -= delta
 				if _chat_bubble_timer <= 0.0:
 					_chat_bubble_timer = randf_range(4.5, 7.5)
-					if is_instance_valid(_social_partner) and _npc_social_event_cooldown <= 0.0:
+					if is_visiting_grave():
+						_spawn_floating_text("🕯️ «No te olvido, %s...»" % str(person_profile.deceased_partner_name), Color(0.82, 0.80, 0.98), -30.0)
+					elif is_instance_valid(_social_partner) and _npc_social_event_cooldown <= 0.0:
 						_trigger_dynamic_npc_social_interaction(_social_partner)
 					else:
 						_spawn_floating_text("💬", Color(0.75, 0.95, 1.0), -28.0)
@@ -3389,9 +3391,17 @@ func _find_best_social_partner() -> VillageNPC:
 			best = other
 	return best
 
+func is_visiting_grave() -> bool:
+	return current_activity == ActivityState.SOCIALIZING and hangout_id < 0 and person_profile != null and int(person_profile.bereavement_days_left) > 0 and str(person_profile.deceased_partner_name) != ""
+
 func _get_social_target_pos() -> Vector2:
 	if hangout_id >= 0:
 		return hangout_spot_pos + Vector2(float(hangout_side) * 11.0, 0.0)
+	if is_visiting_grave():
+		var vm_g = _get_vm()
+		if vm_g and vm_g.has_method("get_grave_pos_for_victim"):
+			return vm_g.call("get_grave_pos_for_victim", str(person_profile.deceased_partner_name))
+		return Vector2(888, 262)
 	if is_instance_valid(_social_partner) and not _social_partner.is_dead and not _social_partner.is_downed and not _social_partner.is_sleeping:
 		var angle_idx: float = float(abs(npc_name.hash()) % 8) * (TAU / 8.0)
 		var ring_offset := Vector2.RIGHT.rotated(angle_idx) * 14.0
@@ -3465,6 +3475,9 @@ func get_activity_description() -> String:
 				elif st_act in ["dating", "flirt"]:
 					return ("💞 En una cita con %s%s" % [_social_partner.npc_name, (" (%s)" % hangout_spot_label) if hangout_spot_label != "" else ""]) if is_at_hangout_spot(24.0) else ("💞 Yendo a su cita con %s%s" % [_social_partner.npc_name, (" en %s" % hangout_spot_label) if hangout_spot_label != "" else ""])
 				return ("☕ Pasando el rato con %s%s" % [_social_partner.npc_name, (" (%s)" % hangout_spot_label) if hangout_spot_label != "" else ""]) if is_at_hangout_spot(24.0) else ("🚶 Ha quedado con %s%s" % [_social_partner.npc_name, (" en %s" % hangout_spot_label) if hangout_spot_label != "" else ""])
+			if is_visiting_grave():
+				var d_nm_g: String = str(person_profile.deceased_partner_name)
+				return ("🪦 Visitando la tumba de %s" % d_nm_g) if global_position.distance_to(_get_social_target_pos()) <= 26.0 else ("🚶🕯️ Yendo al cementerio a recordar a %s" % d_nm_g)
 			return ("💬 Charlando con %s" % _social_partner.npc_name) if is_instance_valid(_social_partner) else "💬 Socializando"
 		_:
 			if _is_morning_expedition_hours(): return _get_expedition_description()
@@ -3916,8 +3929,8 @@ func _confirm_true_death() -> void:
 			if n_other is VillageNPC and n_other != self and not n_other.is_dead:
 				var vo := n_other as VillageNPC
 				if vo.person_profile != null and str(vo.person_profile.partner_id) == my_dead_id:
-					vo.person_profile.romance_status = PersonProfile.ROMANCE_WIDOWED
-					vo.person_profile.partner_id = ""
+					vo.person_profile.start_bereavement(npc_name, 5)
+					vo.clear_hangout()
 					vo.add_thought("Duelo por la muerte de mi pareja %s (-18)" % npc_name, -18.0)
 					if vm and vm.has_method("record_social_event"):
 						vm.call("record_social_event", "widowed", vo, self, "%s quedó viudo/a tras la muerte de %s" % [vo.npc_name, npc_name])

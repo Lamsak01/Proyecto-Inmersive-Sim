@@ -1491,6 +1491,17 @@ func get_cemetery_burial_target_pos() -> Vector2:
 		return _cemetery_grave_positions[next_idx]
 	return _cemetery_burial_pos
 
+## B3.4: Devuelve la posición de la tumba de un difunto en el cementerio (o la puerta del cementerio si aún está en la morgue).
+func get_grave_pos_for_victim(victim_name_str: String) -> Vector2:
+	var clean: String = victim_name_str.strip_edges()
+	for rec in buried_graves:
+		if typeof(rec) == TYPE_DICTIONARY and str(rec.get("victim_name", "")).strip_edges() == clean:
+			var g_idx: int = int(rec.get("grave_index", -1))
+			if g_idx >= 0 and g_idx < _cemetery_grave_positions.size():
+				return _cemetery_grave_positions[g_idx] + Vector2(0, 10)
+			return _cemetery_burial_pos
+	return _cemetery_gate_pos
+
 func _refresh_morgue_table_sprites() -> void:
 	for i in range(_morgue_corpse_sprites.size()):
 		if is_instance_valid(_morgue_corpse_sprites[i]):
@@ -3256,6 +3267,8 @@ func _is_npc_eligible_for_hangout(v: VillageNPC) -> bool:
 		return false
 	if v.is_vagrant_camper or v.current_activity != VillageNPC.ActivityState.SOCIALIZING:
 		return false
+	if v.person_profile != null and int(v.person_profile.bereavement_days_left) > 0:
+		return false
 	return true
 
 func _get_npcs_by_person_key() -> Dictionary:
@@ -3412,6 +3425,14 @@ func _advance_live_romances(cur_day: int) -> Dictionary:
 	for k in by_key.keys():
 		var v: VillageNPC = by_key[k]
 		if v.person_profile != null and not v.is_dead:
+			if int(v.person_profile.bereavement_days_left) > 0:
+				var d_nm: String = str(v.person_profile.deceased_partner_name)
+				var ended: bool = v.person_profile.tick_bereavement_day()
+				if ended:
+					v.add_thought("Aunque siempre recordaré a %s, la vida continúa (+4)" % d_nm, 4.0)
+					record_social_event("bereavement_ended", v, null, "%s ha superado los días más duros del luto por %s" % [v.npc_name, d_nm])
+				else:
+					v.add_thought("Sigo de luto por la pérdida de %s (-12)" % d_nm, -12.0)
 			profiles[k] = v.person_profile
 			families[k] = v.family_id
 	var res: Dictionary = social_director.advance_live_romance_day(cur_day, profiles, families)
