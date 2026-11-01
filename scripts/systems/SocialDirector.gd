@@ -6,6 +6,7 @@ extends RefCounted
 ## Cargado mediante preload("res://scripts/systems/SocialDirector.gd").
 
 const PersonProfile = preload("res://scripts/data/PersonProfile.gd")
+const SocialDialogueData = preload("res://scripts/data/SocialDialogueData.gd")
 
 ## Tabla única de diales de calibración.
 const DIALS: Dictionary = {
@@ -180,6 +181,132 @@ func end_scene(scene_id: int) -> void:
 		if int(active_scenes[i].get("id", -1)) == scene_id:
 			active_scenes.remove_at(i)
 			return
+
+## B1.2: Resuelve una conversación en vivo de 2 turnos entre dos vecinos respetando `max_concurrent_scenes = 3`.
+## Actualiza las 4 métricas del par (`affinity`, `familiarity`, `spark`, `tension`) y devuelve las frases `line_a` y `line_b`.
+func resolve_live_conversation(npc_a, npc_b, current_day: int = 1) -> Dictionary:
+	if npc_a == null or npc_b == null or npc_a == npc_b:
+		return {"allowed": false, "reason": "invalid_actors"}
+
+	var prof_a = npc_a.get("person_profile")
+	var prof_b = npc_b.get("person_profile")
+	var name_a: String = str(npc_a.get("npc_name"))
+	var name_b: String = str(npc_b.get("npc_name"))
+	if prof_a == null:
+		prof_a = PersonProfile.make_fallback_for_name(name_a if name_a != "" else "Vecino A")
+	if prof_b == null:
+		prof_b = PersonProfile.make_fallback_for_name(name_b if name_b != "" else "Vecino B")
+
+	var id_a: String = str(prof_a.person_id)
+	var id_b: String = str(prof_b.person_id)
+	if not can_start_scene(id_a, id_b):
+		return {"allowed": false, "reason": "max_scenes_or_busy"}
+
+	var sc: Dictionary = start_scene("conversation", id_a, id_b, 3.2, current_day)
+	if sc.is_empty():
+		return {"allowed": false, "reason": "scene_rejected"}
+
+	var fam_a: String = str(npc_a.get("family_id")) if "family_id" in npc_a else "none"
+	var fam_b: String = str(npc_b.get("family_id")) if "family_id" in npc_b else "none"
+	var same_fam: bool = (fam_a != "none" and fam_a != "" and fam_a != "family_police" and fam_a == fam_b)
+
+	var cur_rel: int = 0
+	if npc_a is Object and npc_a.has_method("get_relationship_with_npc"):
+		cur_rel = int(npc_a.call("get_relationship_with_npc", id_b))
+	else:
+		cur_rel = int(get_pair_entry(id_a, id_b).get("affinity", 0))
+
+	var pe: Dictionary = get_pair_entry(id_a, id_b, cur_rel)
+	pe["last_contact_day"] = current_day
+	pe["familiarity"] = clampi(int(pe.get("familiarity", 0)) + rng.randi_range(2, 4), 0, 100)
+
+	var dict_a: Dictionary = prof_a.to_dict()
+	var dict_b: Dictionary = prof_b.to_dict()
+	var shared_like: String = SocialDialogueData.find_shared_like(dict_a, dict_b)
+	var clash_topic: String = SocialDialogueData.find_clashing_taste(dict_a, dict_b)
+
+	var action_id: String = SocialDialogueData.ACTION_SMALL_TALK
+	var topic_used: String = ""
+	var delta_rel: int = 0
+	var roll: float = rng.randf()
+
+	if cur_rel <= -20:
+		if roll < 0.32:
+			action_id = SocialDialogueData.ACTION_APOLOGY
+			delta_rel = rng.randi_range(18, 28)
+			pe["tension"] = clampi(int(pe.get("tension", 0)) - rng.randi_range(8, 16), 0, 100)
+		else:
+			if clash_topic != "" and rng.randf() < 0.55:
+				action_id = SocialDialogueData.ACTION_TASTE_CLASH
+				topic_used = clash_topic
+			else:
+				action_id = SocialDialogueData.ACTION_FRICTION
+			delta_rel = rng.randi_range(-10, -5)
+			pe["tension"] = clampi(int(pe.get("tension", 0)) + rng.randi_range(6, 12), 0, 100)
+	elif cur_rel >= 35:
+		if not same_fam and roll < 0.14:
+			if clash_topic != "" and rng.randf() < 0.55:
+				action_id = SocialDialogueData.ACTION_TASTE_CLASH
+				topic_used = clash_topic
+			else:
+				action_id = SocialDialogueData.ACTION_FRICTION
+			delta_rel = rng.randi_range(-14, -8)
+			pe["tension"] = clampi(int(pe.get("tension", 0)) + rng.randi_range(5, 10), 0, 100)
+		else:
+			if shared_like != "" and rng.randf() < 0.44:
+				action_id = SocialDialogueData.ACTION_SHARED_TASTE
+				topic_used = shared_like
+			else:
+				var friend_actions: Array[String] = [
+					SocialDialogueData.ACTION_COMPLIMENT,
+					SocialDialogueData.ACTION_JOKE,
+					SocialDialogueData.ACTION_VENT,
+					SocialDialogueData.ACTION_SMALL_TALK,
+				]
+				action_id = friend_actions[rng.randi_range(0, friend_actions.size() - 1)]
+			delta_rel = rng.randi_range(6, 12)
+			pe["tension"] = clampi(int(pe.get("tension", 0)) - rng.randi_range(2, 5), 0, 100)
+	else:
+		var pos_threshold: float = 0.72 + (0.08 if shared_like != "" else 0.0) - (0.08 if clash_topic != "" else 0.0)
+		if roll < clampf(pos_threshold, 0.45, 0.88):
+			if shared_like != "" and rng.randf() < 0.48:
+				action_id = SocialDialogueData.ACTION_SHARED_TASTE
+				topic_used = shared_like
+			else:
+				var neutral_actions: Array[String] = [
+					SocialDialogueData.ACTION_SMALL_TALK,
+					SocialDialogueData.ACTION_JOKE,
+					SocialDialogueData.ACTION_VENT,
+					SocialDialogueData.ACTION_COMPLIMENT,
+				]
+				action_id = neutral_actions[rng.randi_range(0, neutral_actions.size() - 1)]
+			delta_rel = rng.randi_range(8, 15)
+			pe["tension"] = clampi(int(pe.get("tension", 0)) - rng.randi_range(1, 4), 0, 100)
+		else:
+			if clash_topic != "" and rng.randf() < 0.60:
+				action_id = SocialDialogueData.ACTION_TASTE_CLASH
+				topic_used = clash_topic
+			else:
+				action_id = SocialDialogueData.ACTION_FRICTION
+			delta_rel = rng.randi_range(-12, -6)
+			pe["tension"] = clampi(int(pe.get("tension", 0)) + rng.randi_range(6, 12), 0, 100)
+
+	pe["affinity"] = clampi(cur_rel + delta_rel, -100, 100)
+
+	var rom_compat: int = compute_compatibility(prof_a, prof_b, same_fam)
+	var both_single: bool = (str(prof_a.romance_status) == PersonProfile.ROMANCE_SINGLE and str(prof_b.romance_status) == PersonProfile.ROMANCE_SINGLE)
+	if delta_rel > 0 and both_single and rom_compat >= 40 and int(pe["affinity"]) >= int(dials.get("spark_min_affinity", 14)) and int(pe["familiarity"]) >= int(dials.get("spark_min_familiarity", 12)):
+		pe["spark"] = clampi(int(pe.get("spark", 0)) + rng.randi_range(2, 5), 0, 100)
+
+	var ex: Dictionary = SocialDialogueData.build_exchange(action_id, dict_a, name_a, dict_b, name_b, topic_used, rng)
+	ex["allowed"] = true
+	ex["scene_id"] = int(sc.get("id", 0))
+	ex["delta_rel"] = delta_rel
+	ex["affinity"] = int(pe["affinity"])
+	ex["familiarity"] = int(pe["familiarity"])
+	ex["spark"] = int(pe["spark"])
+	ex["tension"] = int(pe["tension"])
+	return ex
 
 func tick(delta: float, _vm: Node = null) -> void:
 	for i in range(active_scenes.size() - 1, -1, -1):

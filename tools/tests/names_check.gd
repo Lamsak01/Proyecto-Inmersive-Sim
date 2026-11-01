@@ -5,6 +5,7 @@ const NPCNames = preload("res://scripts/data/NPCNames.gd")
 const NPCData = preload("res://scripts/data/NPCData.gd")
 const PersonProfile = preload("res://scripts/data/PersonProfile.gd")
 const SocialDialogueData = preload("res://scripts/data/SocialDialogueData.gd")
+const SocialDirector = preload("res://scripts/systems/SocialDirector.gd")
 
 func _norm(s: String) -> String:
 	return s.to_lower()
@@ -120,5 +121,22 @@ func _initialize() -> void:
 		assert(la != "" and lb != "" and nt != "", "Intercambio vacio en accion %s" % act_id)
 		assert(not ("{a}" in la or "{b}" in la or "{topic}" in la), "Placeholder sin sustituir en line_a (%s): %s" % [act_id, la])
 		assert(not ("{a}" in lb or "{b}" in lb or "{topic}" in lb), "Placeholder sin sustituir en line_b (%s): %s" % [act_id, lb])
-	print("NAMES CHECK PASSED (200 F / 200 M / 200 apellidos + 17 PersonProfile + B0.3 generator + B1.1 dialogue)")
+	# B1.2: Comprobar resolve_live_conversation en SocialDirector y limite max_concurrent_scenes = 3
+	var sdir = SocialDirector.new(12345)
+	var mock_pairs: Array = [
+		[{"npc_name": "Elena", "person_profile": PersonProfile.from_dict(NPCData.INITIAL_PERSON_PROFILES["Elena"])}, {"npc_name": "Thoran", "person_profile": PersonProfile.from_dict(NPCData.INITIAL_PERSON_PROFILES["Thoran"])}],
+		[{"npc_name": "Kael", "person_profile": PersonProfile.from_dict(NPCData.INITIAL_PERSON_PROFILES["Kael"])}, {"npc_name": "Mila", "person_profile": PersonProfile.from_dict(NPCData.INITIAL_PERSON_PROFILES["Mila"])}],
+		[{"npc_name": "Bram", "person_profile": PersonProfile.from_dict(NPCData.INITIAL_PERSON_PROFILES["Bram"])}, {"npc_name": "Nora", "person_profile": PersonProfile.from_dict(NPCData.INITIAL_PERSON_PROFILES["Nora"])}],
+		[{"npc_name": "Garrick", "person_profile": PersonProfile.from_dict(NPCData.INITIAL_PERSON_PROFILES["Garrick"])}, {"npc_name": "Marlo", "person_profile": PersonProfile.from_dict(NPCData.INITIAL_PERSON_PROFILES["Marlo"])}],
+	]
+	for pi in range(3):
+		var conv_ok: Dictionary = sdir.resolve_live_conversation(mock_pairs[pi][0], mock_pairs[pi][1], 5)
+		assert(bool(conv_ok.get("allowed", false)), "Las primeras 3 conversaciones deben permitirse")
+		assert(str(conv_ok.get("line_a", "")) != "" and str(conv_ok.get("line_b", "")) != "", "Debe devolver line_a y line_b")
+	var conv_blocked: Dictionary = sdir.resolve_live_conversation(mock_pairs[3][0], mock_pairs[3][1], 5)
+	assert(not bool(conv_blocked.get("allowed", true)), "La 4ta conversacion simultanea debe bloquearse por max_concurrent_scenes=3")
+	sdir.tick(4.0)
+	var conv_after_tick: Dictionary = sdir.resolve_live_conversation(mock_pairs[3][0], mock_pairs[3][1], 5)
+	assert(bool(conv_after_tick.get("allowed", false)), "Tras expirar las escenas de 3.2s, debe permitirse una nueva conversacion")
+	print("NAMES CHECK PASSED (200 F / 200 M / 200 apellidos + 17 PersonProfile + B0.3 generator + B1.1/B1.2 social)")
 	quit(0)

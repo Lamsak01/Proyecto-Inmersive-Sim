@@ -775,7 +775,7 @@ static func get_relationship_tier_label(val: int, is_same_family: bool = false, 
 	if is_partner:
 		return "💑 Pareja"
 	if is_same_family and val >= 50:
-		return "❤️ Familia Cercana"
+		return "🏠 Familia Cercana"
 	if val >= 65:
 		return "🌟 Mejor Amigo / Íntimo"
 	if val >= 35:

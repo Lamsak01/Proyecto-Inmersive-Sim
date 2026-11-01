@@ -150,7 +150,7 @@ Otros documentos antiguos en la raíz: `ROADMAP_PROYECTO.md`, `AUDIT_LOG.md`, `S
 
 **Fase 1 — Conversaciones con frases**
 - [x] **B1.1** HECHO. Catálogo procedural `scripts/data/SocialDialogueData.gd` con 8 tipos de acciones sociales (`small_talk`, `shared_taste`, `compliment`, `vent`, `joke`, `friction`, `taste_clash`, `apology`), etiquetas naturales para los 16 gustos y generador de intercambios de 2 turnos (`build_exchange`) adaptado a rasgos y gustos. Verificado en `tools/tests/names_check.gd`.
-- [ ] **B1.2** Selección y resolución de conversaciones en vivo (`resolve_live_conversation`) en `SocialDirector.gd`, actualizando las 4 métricas del par, relación vecinal y memoria corta respetando `max_concurrent_scenes = 3`.
+- [x] **B1.2** HECHO. Selección y resolución de conversaciones en vivo (`resolve_live_conversation`) en `SocialDirector.gd`, actualizando las 4 métricas del par (`affinity`, `familiarity`, `spark`, `tension`), relación vecinal y memoria corta respetando `max_concurrent_scenes = 3`. Verificado en `tools/tests/names_check.gd`.
 - [ ] **B1.3** Escena en vivo de 2 turnos en `VillageNPC.gd` (burbuja de apertura de A → respuesta de B a los ~1.8 s) y test automático en `tools/tests/verify_all.gd`.
 
 **Fase 2** Pasar tiempo juntos · **Fase 3** Parejas (chispa, etapas, celos, duelo) ·

@@ -394,7 +394,7 @@ func refresh_ui(rebuild_lists: bool = true) -> void:
 	var enemies_str: String = ", ".join(main_enemies) if not main_enemies.is_empty() else "Sin enemistades declaradas actualmente"
 
 	_highlights_label.text = (
-		"[color=#ff99aa][b]❤️ Familia Cercana:[/b][/color] %s\n" % fam_str +
+		"[color=#aaddff][b]🏠 Familia Cercana:[/b][/color] %s\n" % fam_str +
 		"[color=#88ffaa][b]🌟 Mejores Amigos:[/b][/color] %s\n" % friends_str +
 		"[color=#ff8866][b]💢 Enemistades Principales / Rivales:[/b][/color] %s" % enemies_str
 	)
