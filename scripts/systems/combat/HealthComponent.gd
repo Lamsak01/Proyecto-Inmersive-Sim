@@ -5,6 +5,7 @@ signal died
 signal health_changed(current, max)
 signal blood_changed(current, max)
 signal weakness_changed(is_weak)
+@warning_ignore("unused_signal")
 signal bleed_triggered(dps_amount)
 signal anatomy_changed()
 
@@ -62,7 +63,6 @@ var last_death_reason: String = ""
 var _next_wound_id: int = 1
 var _med_tick_accum: float = 0.0
 var _bleed_notify_accum: float = 0.0
-var _blood_drop_accum: float = 0.0
 
 func _ready() -> void:
 	current_health = max_health

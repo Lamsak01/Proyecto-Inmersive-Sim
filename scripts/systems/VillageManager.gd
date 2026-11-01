@@ -4612,7 +4612,6 @@ func update_royal_investigator_ai(inv_npc: VillageNPC, delta: float) -> void:
 	var clues: Array = active_royal_investigation.get("clues_log", [])
 	var h: int = WorldClock.current_hour if WorldClock else 12
 	var days_inv: int = int(active_royal_investigation.get("days_investigating", 1))
-	var max_days: int = int(active_royal_investigation.get("max_days", 18))
 	var done_cnt: int = int(active_royal_investigation.get("interviews_done", 0))
 	var max_cnt: int = int(active_royal_investigation.get("max_interviews", 18))
 
@@ -5352,12 +5351,12 @@ func _evaluate_npc_interview(inv_npc: VillageNPC, witness: VillageNPC, suspects:
 		if role_matches_weapon:
 			new_sc += 18
 			extra_notes.append("Oficio compatible con el arma/método forense")
-		for tr in witness.traits:
-			if tr in ["Sanguinario", "Codicioso", "Avaricioso", "Rencoroso", "Frío", "Cruel", "Tahúr"]:
+		for trait_name in witness.traits:
+			if trait_name in ["Sanguinario", "Codicioso", "Avaricioso", "Rencoroso", "Frío", "Cruel", "Tahúr"]:
 				new_sc += 10
-				extra_notes.append("Rasgo: " + tr)
+				extra_notes.append("Rasgo: " + trait_name)
 				break
-			elif tr in ["Pacífico", "Bondadoso", "Leal", "Honrado"]:
+			elif trait_name in ["Pacífico", "Bondadoso", "Leal", "Honrado"]:
 				new_sc = maxi(10, new_sc - 8)
 				break
 		entry["score"] = maxi(int(entry.get("score", 10)), new_sc)
