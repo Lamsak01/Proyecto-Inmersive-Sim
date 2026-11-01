@@ -596,12 +596,13 @@ func _init_rimworld_psychology() -> void:
 	mood = clampf(78.0 + randf_range(-6.0, 12.0), 40.0, 98.0)
 
 func _init_person_profile() -> void:
-	var clean_name := npc_name.strip_edges()
-	var lookup_name: String = str(NPC_NAME_ALIASES.get(clean_name, clean_name))
-	if INITIAL_PERSON_PROFILES.has(lookup_name):
-		person_profile = PersonProfile.from_dict(INITIAL_PERSON_PROFILES[lookup_name])
-	else:
-		person_profile = PersonProfile.make_fallback_for_name(clean_name)
+	if person_profile == null:
+		var clean_name := npc_name.strip_edges()
+		var lookup_name: String = str(NPC_NAME_ALIASES.get(clean_name, clean_name))
+		if INITIAL_PERSON_PROFILES.has(lookup_name):
+			person_profile = PersonProfile.from_dict(INITIAL_PERSON_PROFILES[lookup_name])
+		else:
+			person_profile = PersonProfile.make_fallback_for_name(clean_name)
 	if person_profile != null:
 		npc_id = str(person_profile.person_id)
 		if not person_profile.personality.is_empty():
@@ -638,7 +639,7 @@ func _resolve_unique_64_visuals_and_lore(fallback_tex: Texture2D = null) -> void
 		character_lore = str(p[2])
 		character_secret = str(p[3])
 	else:
-		var fem: bool = clean_name.ends_with("a")
+		var fem: bool = (person_profile != null and str(person_profile.gender) == "F") or (person_profile == null and clean_name.ends_with("a"))
 		var fb: Array = ROLE_FALLBACK_LORE.get(trade_role, ["bram", "mila", "Artesano profesional llegado de los valles vecinos para hacerse cargo del taller y mantener viva la economía local."])
 		key = str(fb[1] if fem else fb[0])
 		character_tagline = str(fb[2])

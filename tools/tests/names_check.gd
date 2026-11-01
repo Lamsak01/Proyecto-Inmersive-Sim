@@ -70,5 +70,35 @@ func _initialize() -> void:
 		assert(prof.likes.size() >= 1 and prof.dislikes.size() >= 1, "Gustos vacios en %s" % r_name)
 		assert(prof.romance_status == PersonProfile.ROMANCE_SINGLE and prof.partner_id == "", "En B0.2 deben iniciar single: %s" % r_name)
 	assert(fem_count == 6 and male_count == 11, "Reparto esperado 6 F / 11 M, obtenido %d F / %d M" % [fem_count, male_count])
-	print("NAMES CHECK PASSED (200 F / 200 M / 200 apellidos + 17 PersonProfile)")
+	# B0.3: Generador de vecinos nuevos (unicidad, equilibrio de genero, edad por oficio, reproducibilidad)
+	var gen_rng := RandomNumberGenerator.new()
+	gen_rng.seed = 2026
+	var used_first: Array = residents.duplicate()
+	var used_ids: Dictionary = seen_ids.duplicate()
+	var live_f: int = 6
+	var live_m: int = 11
+	var full_seen: Dictionary = {}
+	for i in range(40):
+		var role_id: int = i % 11
+		var g_res: Dictionary = PersonProfile.generate_newcomer(role_id, i + 1, gen_rng, used_first, used_ids, live_f, live_m)
+		var g_prof = g_res["profile"]
+		var fn: String = str(g_res["full_name"])
+		assert(fn != "" and not full_seen.has(fn), "Nombre completo repetido: %s" % fn)
+		full_seen[fn] = true
+		assert(g_prof.person_id != "" and not seen_ids.has(g_prof.person_id), "ID choca con residente inicial: %s" % g_prof.person_id)
+		var expected_range: Vector2i = PersonProfile.ROLE_GENERATION_HINTS[role_id]["age"]
+		assert(g_prof.age >= expected_range.x and g_prof.age <= expected_range.y, "Edad fuera del rango del oficio %d: %d" % [role_id, g_prof.age])
+		assert(g_prof.personality.size() == 3 and g_prof.likes.size() == 2 and g_prof.dislikes.size() == 1, "Ficha generada incompleta")
+		if g_prof.gender == "F":
+			live_f += 1
+		else:
+			live_m += 1
+	assert(abs(live_f - live_m) <= 10, "El generador debe tender a equilibrar el genero: %d F vs %d M" % [live_f, live_m])
+	# Reproducibilidad del generador con semilla
+	var gr1 := RandomNumberGenerator.new(); gr1.seed = 99
+	var gr2 := RandomNumberGenerator.new(); gr2.seed = 99
+	var c1: Dictionary = PersonProfile.generate_newcomer(4, 1, gr1, [], {}, 6, 11)
+	var c2: Dictionary = PersonProfile.generate_newcomer(4, 1, gr2, [], {}, 6, 11)
+	assert(c1["full_name"] == c2["full_name"] and c1["profile"].to_dict() == c2["profile"].to_dict(), "Generador debe ser reproducible con la misma semilla")
+	print("NAMES CHECK PASSED (200 F / 200 M / 200 apellidos + 17 PersonProfile + B0.3 generator)")
 	quit(0)

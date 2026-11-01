@@ -124,3 +124,112 @@ static func make_fallback_for_name(npc_name_str: String):
 		"romance_status": ROMANCE_SINGLE,
 		"partner_id": "",
 	})
+
+const NPCNames = preload("res://scripts/data/NPCNames.gd")
+
+## Rangos de edad (Vector2i(min, max)), rasgos afines, gustos afines y plato/objeto favorito según el oficio (int de VillageNPC.TradeRole).
+const ROLE_GENERATION_HINTS: Dictionary = {
+	0: {"age": Vector2i(20, 38), "traits": ["Curioso", "Alegre", "Tahúr", "Noctámbulo", "Valiente"], "likes": ["historias", "cartas", "reliquias", "musica"], "fav": "bread"}, # UNEMPLOYED
+	1: {"age": Vector2i(19, 36), "traits": ["Leal", "Paciente", "Curioso", "Trabajador"], "likes": ["musica", "animales", "historias"], "fav": "bread"}, # FAMILY_MEMBER
+	2: {"age": Vector2i(28, 52), "traits": ["Alegre", "Trabajador", "Chismoso", "Orgulloso"], "likes": ["estofado", "pan_caliente", "cartas", "historias"], "fav": "roasted_chicken"}, # INNKEEPER
+	3: {"age": Vector2i(26, 50), "traits": ["Valiente", "Trabajador", "Desconfiado", "Orgulloso"], "likes": ["caza", "carne_asada", "animales"], "fav": "fox_pelt"}, # BUTCHER
+	4: {"age": Vector2i(28, 56), "traits": ["Trabajador", "Orgulloso", "Honrado", "Paciente"], "likes": ["forja", "carne_asada", "estofado"], "fav": "iron_ore"}, # BLACKSMITH
+	5: {"age": Vector2i(26, 54), "traits": ["Trabajador", "Paciente", "Honrado", "Curioso"], "likes": ["carpinteria", "estofado", "silencio"], "fav": "wood"}, # CARPENTER
+	6: {"age": Vector2i(24, 52), "traits": ["Pacífico", "Bondadoso", "Paciente", "Curioso"], "likes": ["hierbas", "lluvia", "animales"], "fav": "herbs"}, # HERBALIST
+	7: {"age": Vector2i(25, 56), "traits": ["Paciente", "Alegre", "Bondadoso", "Trabajador"], "likes": ["pesca", "pescado", "historias"], "fav": "night_catfish"}, # FISHMONGER
+	8: {"age": Vector2i(30, 58), "traits": ["Curioso", "Paciente", "Honrado", "Frío"], "likes": ["hierbas", "silencio", "reliquias"], "fav": "surgical_kit"}, # DOCTOR
+	9: {"age": Vector2i(34, 58), "traits": ["Honrado", "Valiente", "Desconfiado", "Frío"], "likes": ["carne_asada", "silencio", "caza"], "fav": "cooked_meat"}, # SHERIFF
+	10: {"age": Vector2i(20, 35), "traits": ["Leal", "Valiente", "Honrado", "Trabajador"], "likes": ["pan_caliente", "caza", "animales"], "fav": "bread"}, # GUARD
+}
+
+## Elige género ("F" o "M") equilibrando la proporción actual de residentes vivos.
+static func pick_balanced_gender(rng: RandomNumberGenerator, living_females: int, living_males: int) -> String:
+	var fem_prob: float = 0.50
+	if living_females < living_males:
+		var diff: int = living_males - living_females
+		fem_prob = clampf(0.58 + float(diff) * 0.05, 0.58, 0.78)
+	elif living_females > living_males:
+		var diff2: int = living_females - living_males
+		fem_prob = clampf(0.42 - float(diff2) * 0.05, 0.22, 0.42)
+	return "F" if rng.randf() < fem_prob else "M"
+
+## Genera un vecino nuevo completo: devuelve {"profile": PersonProfile, "first_name": String, "surname": String, "full_name": String}.
+## Actualiza in-place `used_first_names` y `used_ids` para garantizar que jamás se repitan.
+static func generate_newcomer(
+	role_id: int,
+	counter: int,
+	rng: RandomNumberGenerator,
+	used_first_names: Array,
+	used_ids: Dictionary,
+	living_females: int = 6,
+	living_males: int = 11
+) -> Dictionary:
+	var g: String = pick_balanced_gender(rng, living_females, living_males)
+	var name_info: Dictionary = NPCNames.make_person_name(g, rng, used_first_names)
+	var first_nm: String = str(name_info["first"])
+	var full_nm: String = str(name_info["full"])
+	used_first_names.append(first_nm)
+
+	var slug: String = first_nm.to_lower().replace(" ", "_")
+	var pid: String = "npc_%d_%s" % [counter, slug]
+	while used_ids.has(pid):
+		counter += 1
+		pid = "npc_%d_%s" % [counter, slug]
+	used_ids[pid] = true
+
+	var hint: Dictionary = ROLE_GENERATION_HINTS.get(role_id, ROLE_GENERATION_HINTS[0])
+	var age_range: Vector2i = hint.get("age", Vector2i(22, 48))
+	var age_val: int = rng.randi_range(age_range.x, age_range.y)
+
+	# 3 rasgos: 1 afín al oficio + 2 del catálogo general (sin duplicados ni opuestos)
+	var traits_picked: Array[String] = []
+	var role_traits: Array = hint.get("traits", [])
+	if not role_traits.is_empty():
+		traits_picked.append(str(role_traits[rng.randi_range(0, role_traits.size() - 1)]))
+	var safety: int = 0
+	while traits_picked.size() < 3 and safety < 60:
+		safety += 1
+		var cand: String = PERSONALITY_TRAITS[rng.randi_range(0, PERSONALITY_TRAITS.size() - 1)]
+		var opp: String = str(OPPOSITE_TRAITS.get(cand, ""))
+		if not (cand in traits_picked) and (opp == "" or not (opp in traits_picked)):
+			traits_picked.append(cand)
+
+	# 2 gustos y 1 disgusto sin solaparse
+	var likes_picked: Array[String] = []
+	var role_likes: Array = hint.get("likes", [])
+	if not role_likes.is_empty():
+		likes_picked.append(str(role_likes[rng.randi_range(0, role_likes.size() - 1)]))
+	while likes_picked.size() < 2:
+		var l_cand: String = TASTE_TOPICS[rng.randi_range(0, TASTE_TOPICS.size() - 1)]
+		if not (l_cand in likes_picked):
+			likes_picked.append(l_cand)
+	var dislike_picked: String = "silencio"
+	for _i in range(30):
+		var dl_cand: String = TASTE_TOPICS[rng.randi_range(0, TASTE_TOPICS.size() - 1)]
+		if not (dl_cand in likes_picked):
+			dislike_picked = dl_cand
+			break
+
+	var fav_pool: Array[String] = ["bread", "cooked_meat", "roasted_chicken", "country_stew", "cooked_fish"]
+	var fav_item: String = str(hint.get("fav", "bread"))
+	if role_id in [0, 1]:
+		fav_item = fav_pool[rng.randi_range(0, fav_pool.size() - 1)]
+
+	var prof = from_dict({
+		"person_id": pid,
+		"gender": g,
+		"orientation": "H",
+		"age": age_val,
+		"personality": traits_picked,
+		"likes": likes_picked,
+		"dislikes": [dislike_picked],
+		"favorite_item": fav_item,
+		"romance_status": ROMANCE_SINGLE,
+		"partner_id": "",
+	})
+	return {
+		"profile": prof,
+		"first_name": first_nm,
+		"surname": str(name_info["last"]),
+		"full_name": full_nm,
+	}

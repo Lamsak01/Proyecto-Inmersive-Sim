@@ -17,6 +17,11 @@ const MAX_MORGUE_CAPACITY: int = 3
 var arrivals_today_count: int = 0
 var _authority_slots: Array[Dictionary] = []
 var _rehire_counter: int = 0
+const PersonProfile = preload("res://scripts/data/PersonProfile.gd")
+const NPCData = preload("res://scripts/data/NPCData.gd")
+var _newcomer_rng: RandomNumberGenerator = RandomNumberGenerator.new()
+var _used_first_names: Array = []
+var _used_person_ids: Dictionary = {}
 var trade_configs: Dictionary = {}
 var domestic_pets: Array[DomesticPet] = []
 
@@ -153,6 +158,7 @@ func setup_village(target_entities_root: Node) -> void:
 	shop_businesses.clear()
 	vagrant_camp_nodes.clear()
 	arrivals_today_count = 0
+	_init_newcomer_generator_registries()
 	house_pantry = {
 		"family_smith": 3, "family_butcher": 4, "family_carpenter": 3, "family_fishmonger": 4,
 		"family_herbalist": 4, "family_hospital": 3, "family_police": 4, "family_tavern": 5
@@ -1215,27 +1221,92 @@ func _check_authority_vacancy_announcements() -> void:
 			_hint_player("📢 Vacante en el Valle: %s ha muerto. Un reemplazo novato llegará caminando desde el borde del mapa en los próximos días (Máx. %d llegadas/día)." % [str(slot["title"]), MAX_DAILY_ARRIVALS])
 
 func _spawn_authority_replacement(slot: Dictionary) -> VillageNPC:
-	_rehire_counter += 1
-	var pool: Array = slot.get("name_pool", ["Oficial de Reemplazo"])
-	var new_name: String = str(pool[_rehire_counter % pool.size()])
-	var new_npc := VillageNPC.new()
-	new_npc.name = "NPC_Rehired_%d_%s" % [_rehire_counter, new_name.replace(" ", "_").replace(".", "")]
-	new_npc.npc_name = new_name
-	new_npc.npc_role = str(slot["title"]) + " (Recién Llegado)"
-	new_npc.trade_role = slot["role"]
-	new_npc.days_in_role = 0
-	new_npc.tavern_social_pos = _tavern_social_pos
-	entities_root.add_child(new_npc)
 	var stock_copy: Dictionary = (slot.get("stock", {}) as Dictionary).duplicate()
-	new_npc.setup_npc(_load_tex(str(slot["tex_path"])), slot["work_pos"], slot["bed_pos"], stock_copy, slot.get("table_pos", _tavern_social_pos), str(slot["family_id"]), str(slot["family_name"]))
-	new_npc.global_position = _get_map_edge_arrival_pos(_rehire_counter)
+	var new_npc: VillageNPC = _spawn_generated_newcomer(
+		"NPC_Rehired_",
+		int(slot["role"]) as VillageNPC.TradeRole,
+		int(slot["role"]) as VillageNPC.TradeRole,
+		str(slot["title"]) + " (Recién Llegado)",
+		_load_tex(str(slot["tex_path"])),
+		slot["work_pos"],
+		slot["bed_pos"],
+		stock_copy,
+		slot.get("table_pos", _tavern_social_pos),
+		str(slot["family_id"]),
+		str(slot["family_name"])
+	)
 	slot["npc"] = new_npc
 	slot["rehire_timer"] = 0.0
 	slot["vacancy_announced"] = false
 	authority_npcs.append(new_npc)
 	var dest_b: String = "Hospital" if slot["role"] == VillageNPC.TradeRole.DOCTOR else "Comisaría"
 	var icon_b: String = "🏥🚶" if slot["role"] == VillageNPC.TradeRole.DOCTOR else "🚓🚶"
-	_hint_player("%s %s (%s · Novato 35%%) está entrando al valle por el camino principal hacia el/la %s." % [icon_b, new_name, str(slot["title"]), dest_b])
+	_hint_player("%s %s (%s · Novato 35%%) está entrando al valle por el camino principal hacia el/la %s." % [icon_b, new_npc.npc_name, str(slot["title"]), dest_b])
+	return new_npc
+
+func _init_newcomer_generator_registries() -> void:
+	_used_first_names.clear()
+	_used_person_ids.clear()
+	if _newcomer_rng.seed == 0:
+		_newcomer_rng.seed = 20261101
+	for k in NPCData.INITIAL_PERSON_PROFILES.keys():
+		var nm: String = str(k)
+		var parts: PackedStringArray = nm.split(" ", false)
+		var first_tok: String = parts[parts.size() - 1] if parts.size() > 1 and (parts[0] in ["Dr.", "Dra.", "Comisario", "Comisaria", "Guardia", "Maese"]) else parts[0]
+		_used_first_names.append(first_tok)
+		var prof_d: Dictionary = NPCData.INITIAL_PERSON_PROFILES[k]
+		var pid: String = str(prof_d.get("person_id", ""))
+		if pid != "":
+			_used_person_ids[pid] = true
+
+func _count_living_genders() -> Vector2i:
+	var fem: int = 0
+	var male: int = 0
+	if is_inside_tree():
+		for n in get_tree().get_nodes_in_group("village_npcs"):
+			if n is VillageNPC and not n.is_dead and n.trade_role not in [VillageNPC.TradeRole.TRAVELING_MERCHANT, VillageNPC.TradeRole.ROYAL_INVESTIGATOR]:
+				var g: String = str(n.person_profile.gender) if n.person_profile != null else ("F" if n.npc_name.ends_with("a") else "M")
+				if g == "F":
+					fem += 1
+				else:
+					male += 1
+	if fem == 0 and male == 0:
+		return Vector2i(6, 11)
+	return Vector2i(fem, male)
+
+## Paso único para crear cualquier vecino nuevo (autoridades, posadera, artesano, viajero o encargado contratado).
+func _spawn_generated_newcomer(
+	node_prefix: String,
+	role: VillageNPC.TradeRole,
+	linked_role: VillageNPC.TradeRole,
+	role_label: String,
+	tex: Texture2D,
+	work_pos: Vector2,
+	bed_pos: Vector2,
+	stock: Dictionary,
+	table_pos: Vector2,
+	fam_id: String,
+	fam_name: String
+) -> VillageNPC:
+	_rehire_counter += 1
+	var counts: Vector2i = _count_living_genders()
+	var gen: Dictionary = PersonProfile.generate_newcomer(
+		int(role), _rehire_counter, _newcomer_rng, _used_first_names, _used_person_ids, counts.x, counts.y
+	)
+	var prof = gen["profile"]
+	var full_name: String = str(gen["full_name"])
+	var new_npc := VillageNPC.new()
+	new_npc.name = "%s%d_%s" % [node_prefix, _rehire_counter, str(gen["first_name"]).replace(" ", "_")]
+	new_npc.npc_name = full_name
+	new_npc.npc_role = role_label
+	new_npc.trade_role = role
+	new_npc.linked_trade = linked_role
+	new_npc.days_in_role = 0
+	new_npc.tavern_social_pos = _tavern_social_pos
+	new_npc.person_profile = prof
+	entities_root.add_child(new_npc)
+	new_npc.setup_npc(tex, work_pos, bed_pos, stock, table_pos, fam_id, fam_name)
+	new_npc.global_position = _get_map_edge_arrival_pos(_rehire_counter)
 	return new_npc
 
 # PASO 2B: ⛪ CAPILLA DE SAN CIPRIANO Y 🪦 CEMENTERIO PARROQUIAL (`Vector2(745, 312)`)
@@ -3204,22 +3275,22 @@ func _process_daily_map_edge_arrivals() -> void:
 
 	# Prioridad 2: Vacante de Posadera/Chef en la Taberna El Jabalí Dorado
 	if arrivals_today_count < MAX_DAILY_ARRIVALS and (not is_instance_valid(_innkeeper_npc) or _innkeeper_npc.is_dead):
-		_rehire_counter += 1
-		var inn_names: Array[String] = ["Posadera Sofía", "Chef Herminia", "Posadera Brisa", "Chef Lucía"]
-		var new_inn_name: String = inn_names[_rehire_counter % inn_names.size()]
-		var new_inn := VillageNPC.new()
-		new_inn.name = "NPC_Innkeeper_%d" % _rehire_counter
-		new_inn.npc_name = new_inn_name
-		new_inn.npc_role = "Chef y Posadera (Novata)"
-		new_inn.trade_role = VillageNPC.TradeRole.INNKEEPER
-		new_inn.days_in_role = 0
-		new_inn.tavern_social_pos = _tavern_social_pos
-		entities_root.add_child(new_inn)
-		new_inn.setup_npc(_load_tex("res://assests/world/village/villager_innkeeper.png"), Vector2(348, -154), Vector2(342, -252), {"country_stew": 2, "bread": 3, "roasted_chicken": 1}, _tavern_social_pos, "family_tavern", "Posada El Jabalí")
-		new_inn.global_position = _get_map_edge_arrival_pos(_rehire_counter)
+		var new_inn: VillageNPC = _spawn_generated_newcomer(
+			"NPC_Innkeeper_",
+			VillageNPC.TradeRole.INNKEEPER,
+			VillageNPC.TradeRole.INNKEEPER,
+			"Chef y Posadera (Novata)",
+			_load_tex("res://assests/world/village/villager_innkeeper.png"),
+			Vector2(348, -154),
+			Vector2(342, -252),
+			{"country_stew": 2, "bread": 3, "roasted_chicken": 1},
+			_tavern_social_pos,
+			"family_tavern",
+			"Posada El Jabalí"
+		)
 		_innkeeper_npc = new_inn
 		arrivals_today_count += 1
-		_hint_player("🍺🚶 %s (Posadera Novata · 35%%) está llegando por el borde del valle para reabrir la Posada." % new_inn_name)
+		_hint_player("🍺🚶 %s (Posadera Novata · 35%%) está llegando por el borde del valle para reabrir la Posada." % new_inn.npc_name)
 
 	# Prioridad 3: Oficios vacantes sin familia ni huésped disponible (salvo que sean propiedad exclusiva del jugador o estén saboteados)
 	for role_key in trade_configs.keys():
@@ -3233,24 +3304,23 @@ func _process_daily_map_edge_arrivals() -> void:
 		if str(biz.get("owner_mode", "NPC")) == "SOLE_OWNER" or int(biz.get("sabotaged_days", 0)) > 0:
 			continue
 		var cfg: Dictionary = trade_configs[role_key]
-		_rehire_counter += 1
-		var art_names: Array[String] = ["Artesano Gael", "Artesana Nerea", "Artesano Orson", "Artesana Talia", "Artesano Tristán"]
-		var new_art_name: String = art_names[_rehire_counter % art_names.size()]
-		var new_art := VillageNPC.new()
-		new_art.name = "NPC_Newcomer_Trade_%d" % _rehire_counter
-		new_art.npc_name = new_art_name
-		new_art.npc_role = str(cfg.get("title", "Artesano")) + " (Recién Llegado)"
-		new_art.trade_role = role_key
-		new_art.linked_trade = role_key
-		new_art.days_in_role = 0 # 35% eficiencia inicial, requiere 7 días de aprendizaje
-		new_art.tavern_social_pos = _tavern_social_pos
-		entities_root.add_child(new_art)
 		var inh_st: Dictionary = (biz.get("stock_override", cfg["stock"]) as Dictionary).duplicate()
-		new_art.setup_npc(cfg.get("tex", null), cfg.get("work_pos", Vector2(440, 44)), cfg.get("bed1_pos", _tavern_bed_pos), inh_st, cfg.get("table_pos", _tavern_social_pos), str(cfg.get("family_id", "none")), str(cfg.get("family_name", "Gremio")))
-		new_art.global_position = _get_map_edge_arrival_pos(_rehire_counter)
+		var new_art: VillageNPC = _spawn_generated_newcomer(
+			"NPC_Newcomer_Trade_",
+			role_key,
+			role_key,
+			str(cfg.get("title", "Artesano")) + " (Recién Llegado)",
+			cfg.get("tex", null),
+			cfg.get("work_pos", Vector2(440, 44)),
+			cfg.get("bed1_pos", _tavern_bed_pos),
+			inh_st,
+			cfg.get("table_pos", _tavern_social_pos),
+			str(cfg.get("family_id", "none")),
+			str(cfg.get("family_name", "Gremio"))
+		)
 		trade_npcs[role_key] = new_art
 		arrivals_today_count += 1
-		_hint_player("⚒️🚶 %s (%s Novato · 35%% Eficiencia) está entrando al valle desde el borde del mapa." % [new_art_name, str(cfg.get("title", "Artesano"))])
+		_hint_player("⚒️🚶 %s (%s Novato · 35%% Eficiencia) está entrando al valle desde el borde del mapa." % [new_art.npc_name, str(cfg.get("title", "Artesano"))])
 
 	# Prioridad 4: Si aún queda cupo en el límite diario (<= 2/día) y hay camas de viajeros vacías en la Posada (máx. 3 huéspedes)
 	var living_guests: Array[VillageNPC] = []
@@ -3261,25 +3331,25 @@ func _process_daily_map_edge_arrivals() -> void:
 
 	var guest_beds: Array[Vector2] = [Vector2(435, -252), Vector2(468, -252), Vector2(502, -252)]
 	var guest_day_spots: Array[Vector2] = [Vector2(440, 44), Vector2(495, 44), Vector2(415, -105)]
-	var trav_names: Array[String] = ["Caminante Elian", "Viajera Maeve", "Jornalero Bastián", "Forastera Íngrid", "Viajero Román"]
 	var tex_traveler := _load_tex("res://assests/world/village/villager_traveler.png")
 	while unemployed_npcs.size() < 3 and arrivals_today_count < MAX_DAILY_ARRIVALS:
-		_rehire_counter += 1
 		var slot_idx: int = unemployed_npcs.size()
-		var t_name: String = trav_names[_rehire_counter % trav_names.size()]
-		var t_npc := VillageNPC.new()
-		t_npc.name = "NPC_Traveler_%d" % _rehire_counter
-		t_npc.npc_name = t_name
-		t_npc.npc_role = "Viajero Recién Llegado"
-		t_npc.trade_role = VillageNPC.TradeRole.UNEMPLOYED
-		t_npc.days_in_role = 0
-		t_npc.tavern_social_pos = _tavern_social_pos
-		entities_root.add_child(t_npc)
-		t_npc.setup_npc(tex_traveler, guest_day_spots[slot_idx % guest_day_spots.size()], guest_beds[slot_idx % guest_beds.size()], {}, _tavern_social_pos, "none", "Huésped de Posada")
-		t_npc.global_position = _get_map_edge_arrival_pos(_rehire_counter)
+		var t_npc: VillageNPC = _spawn_generated_newcomer(
+			"NPC_Traveler_",
+			VillageNPC.TradeRole.UNEMPLOYED,
+			VillageNPC.TradeRole.UNEMPLOYED,
+			"Viajero Recién Llegado",
+			tex_traveler,
+			guest_day_spots[slot_idx % guest_day_spots.size()],
+			guest_beds[slot_idx % guest_beds.size()],
+			{},
+			_tavern_social_pos,
+			"none",
+			"Huésped de Posada"
+		)
 		unemployed_npcs.append(t_npc)
 		arrivals_today_count += 1
-		_hint_player("🎒🚶 Un nuevo viajero (%s) acaba de entrar al valle por el camino principal." % t_name)
+		_hint_player("🎒🚶 Un nuevo viajero (%s) acaba de entrar al valle por el camino principal." % t_npc.npc_name)
 
 func _pop_living_unemployed() -> VillageNPC:
 	for i in range(unemployed_npcs.size()):
@@ -3866,18 +3936,19 @@ func _on_business_action_3(player: Node2D) -> void:
 		_msg_player(player, "🤝⚒️ ¡Contrataste a %s (%s) como encargado de %s! (-30 Oro)" % [candidate.npc_name, candidate.get_job_efficiency_label(), str(biz.get("title", ""))], Color.SPRING_GREEN, -46.0)
 	else:
 		arrivals_today_count += 1
-		_rehire_counter += 1
-		var hired_npc := VillageNPC.new()
-		hired_npc.name = "NPC_Hired_Artisan_%d" % _rehire_counter
-		hired_npc.npc_name = "Artesano Julián" if (_rehire_counter % 2 == 0) else "Artesana Clara"
-		hired_npc.npc_role = str(cfg.get("title", "Encargado")) + " (Contratado)"
-		hired_npc.trade_role = _active_business_role as VillageNPC.TradeRole
-		hired_npc.linked_trade = _active_business_role as VillageNPC.TradeRole
-		hired_npc.days_in_role = 0
-		hired_npc.tavern_social_pos = _tavern_social_pos
-		entities_root.add_child(hired_npc)
-		hired_npc.setup_npc(cfg.get("tex", null), cfg.get("work_pos", biz.get("stall_pos", Vector2.ZERO)), cfg.get("bed1_pos", _tavern_bed_pos), get_trade_stock_dict(_active_business_role), cfg.get("table_pos", _tavern_social_pos), str(cfg.get("family_id", "none")), str(cfg.get("family_name", "Gremio")))
-		hired_npc.global_position = _get_map_edge_arrival_pos(_rehire_counter)
+		var hired_npc: VillageNPC = _spawn_generated_newcomer(
+			"NPC_Hired_Artisan_",
+			_active_business_role as VillageNPC.TradeRole,
+			_active_business_role as VillageNPC.TradeRole,
+			str(cfg.get("title", "Encargado")) + " (Contratado)",
+			cfg.get("tex", null),
+			cfg.get("work_pos", biz.get("stall_pos", Vector2.ZERO)),
+			cfg.get("bed1_pos", _tavern_bed_pos),
+			get_trade_stock_dict(_active_business_role),
+			cfg.get("table_pos", _tavern_social_pos),
+			str(cfg.get("family_id", "none")),
+			str(cfg.get("family_name", "Gremio"))
+		)
 		trade_npcs[_active_business_role] = hired_npc
 		_msg_player(player, "🤝🚶 ¡Contrataste a %s (Novato 35%%)! Ya viene caminando desde el borde del mapa (-30 Oro)" % hired_npc.npc_name, Color.SPRING_GREEN, -46.0)
 
@@ -6131,6 +6202,8 @@ func spawn_dynamic_npc_from_save(node_name: String, npc_data: Dictionary) -> Vil
 	dyn_npc.trade_role = int(npc_data.get("trade_role", int(VillageNPC.TradeRole.UNEMPLOYED))) as VillageNPC.TradeRole
 	dyn_npc.linked_trade = int(npc_data.get("linked_trade", int(dyn_npc.trade_role))) as VillageNPC.TradeRole
 	dyn_npc.tavern_social_pos = _tavern_social_pos
+	if npc_data.has("person_profile") and typeof(npc_data["person_profile"]) == TYPE_DICTIONARY:
+		dyn_npc.person_profile = PersonProfile.from_dict(npc_data["person_profile"])
 	entities_root.add_child(dyn_npc)
 	var default_tex := _load_tex("res://assests/world/village/villager_traveler.png")
 	dyn_npc.setup_npc(
@@ -6140,6 +6213,11 @@ func spawn_dynamic_npc_from_save(node_name: String, npc_data: Dictionary) -> Vil
 		str(npc_data.get("family_id", "none")), str(npc_data.get("family_name", "Independiente"))
 	)
 	dyn_npc.from_save_dict(npc_data)
+	if dyn_npc.person_profile != null and str(dyn_npc.person_profile.person_id) != "":
+		_used_person_ids[str(dyn_npc.person_profile.person_id)] = true
+	var first_tok: String = dyn_npc.npc_name.strip_edges().split(" ", false)[0] if dyn_npc.npc_name.strip_edges() != "" else ""
+	if first_tok != "" and not (first_tok in _used_first_names):
+		_used_first_names.append(first_tok)
 	return dyn_npc
 
 func reconcile_npc_registries_after_load() -> void:
