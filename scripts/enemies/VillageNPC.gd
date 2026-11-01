@@ -151,6 +151,13 @@ var _kin_absence_worry_timer: float = 0.0
 var _patrol_search_target_npc: VillageNPC = null
 var _patrol_search_target_pos: Vector2 = Vector2.ZERO
 var _patrol_search_timer: float = 0.0
+var _reacting_unconscious_target: VillageNPC = null
+var _unconscious_react_mode: String = "" # "opportunist_steal", "friend_rescue", "neutral_wake"
+var _unconscious_react_phase: int = 0
+var _unconscious_react_timer: float = 0.0
+var _unconscious_helper_npc: VillageNPC = null
+var _unconscious_ignored_by: Dictionary = {} # npc_name -> bool (rivales que ya le robaron o desistieron en este desmayo)
+var _unconscious_scan_timer: float = 0.0
 
 # Cachés de rendimiento por fotograma (evita escaneos redundantes a 60 FPS en laptops)
 var _cached_player: Node2D = null
@@ -1097,9 +1104,295 @@ func apply_sleeping_draught(duration: float = 40.0) -> void:
 	_stop_crafting_bar()
 	sedated_timer = maxf(sedated_timer, duration)
 	is_sleeping = true
+	_unconscious_ignored_by.clear()
+	_unconscious_helper_npc = null
 	_clear_combat_hostility()
 	_set_sprite_pose(90.0, Color(0.68, 0.58, 1.0, 0.95))
 	add_thought("Sedado por un somnífero (-6)", -6.0)
+
+func is_unconscious_on_ground() -> bool:
+	return not is_dead and not is_downed and (sedated_timer > 0.0 or is_stunned_flag)
+
+func wake_up_from_unconscious(rescuer: VillageNPC = null) -> void:
+	sedated_timer = 0.0
+	is_stunned_flag = false
+	is_sleeping = false
+	_unconscious_helper_npc = null
+	_unconscious_ignored_by.clear()
+	_set_sprite_pose(0.0, Color.WHITE)
+	if is_instance_valid(rescuer):
+		add_thought("Despertado y auxiliado por %s (+6)" % rescuer.npc_name, 6.0)
+
+## Comprueba si algún tercer vecino consciente o el Jugador está mirando al oportunista o a la víctima inconsciente (con línea de visión)
+func _has_any_witness_watching_opportunist(victim: VillageNPC) -> Node2D:
+	if not is_inside_tree():
+		return null
+	var vm = _get_vm()
+	var check_pos: Vector2 = victim.global_position if is_instance_valid(victim) else global_position
+	for n in get_tree().get_nodes_in_group("village_npcs"):
+		if n is VillageNPC and n != self and n != victim:
+			var w := n as VillageNPC
+			if w.is_conscious():
+				var d_v: float = w.global_position.distance_to(check_pos)
+				var d_s: float = w.global_position.distance_to(global_position)
+				if minf(d_v, d_s) <= 135.0:
+					var has_los_v: bool = (vm == null) or (not vm.has_method("has_line_of_sight")) or bool(vm.call("has_line_of_sight", w.global_position, check_pos))
+					var has_los_s: bool = (vm == null) or (not vm.has_method("has_line_of_sight")) or bool(vm.call("has_line_of_sight", w.global_position, global_position))
+					if has_los_v or has_los_s:
+						return w
+	var p: Node2D = _get_player()
+	if is_instance_valid(p) and not (p.has_method("is_stunned") and bool(p.call("is_stunned"))):
+		var dp_v: float = p.global_position.distance_to(check_pos)
+		var dp_s: float = p.global_position.distance_to(global_position)
+		if minf(dp_v, dp_s) <= 120.0:
+			var p_los_v: bool = (vm == null) or (not vm.has_method("has_line_of_sight")) or bool(vm.call("has_line_of_sight", p.global_position, check_pos))
+			var p_los_s: bool = (vm == null) or (not vm.has_method("has_line_of_sight")) or bool(vm.call("has_line_of_sight", p.global_position, global_position))
+			if p_los_v or p_los_s:
+				return p
+	return null
+
+func _scan_unconscious_victim_for_passersby(delta: float) -> void:
+	if not is_unconscious_on_ground() or not is_inside_tree():
+		return
+	if is_instance_valid(_unconscious_helper_npc) and _unconscious_helper_npc.is_conscious() and _unconscious_helper_npc._reacting_unconscious_target == self:
+		return
+	_unconscious_scan_timer -= delta
+	if _unconscious_scan_timer > 0.0:
+		return
+	_unconscious_scan_timer = 0.25
+	var vm = _get_vm()
+	for n in get_tree().get_nodes_in_group("village_npcs"):
+		if n is VillageNPC and n != self:
+			var other := n as VillageNPC
+			if not other.is_conscious() or other.is_hostile or other.is_at_poker_table:
+				continue
+			if other.trade_role in [TradeRole.ROYAL_INVESTIGATOR, TradeRole.TRAVELING_MERCHANT]:
+				continue
+			if is_instance_valid(other._reporting_corpse_target) or is_instance_valid(other._carrying_corpse_target) or is_instance_valid(other._searching_missing_kin) or is_instance_valid(other._reacting_unconscious_target):
+				continue
+			if _unconscious_ignored_by.has(other.npc_name):
+				continue
+			if other.global_position.distance_to(global_position) <= 95.0 and ((vm == null) or (not vm.has_method("has_line_of_sight")) or bool(vm.call("has_line_of_sight", other.global_position, global_position))):
+				if begin_unconscious_neighbor_reaction(other):
+					break
+
+## Inicia la reacción de un vecino consciente al encontrar a este NPC inconsciente (estuneado o sedado) según su relación:
+## - Enemigo (<= -25): No reporta nada; vigila que nadie esté mirando antes de acercarse a robarle (4s). Si alguien mira, disimula y lo deja tirado.
+## - Amigo (>= 25) / Familiar / Autoridad: Corre a socorrerlo y despertarlo rápido (4s), gana afinidad y va a avisar/colaborar con la policía (6s).
+## - Neutral (-24..+24): Se acerca con cautela a despertarlo (7s) y sigue su rutina.
+func begin_unconscious_neighbor_reaction(discoverer: VillageNPC) -> bool:
+	if discoverer == null or discoverer == self or not is_unconscious_on_ground():
+		return false
+	if is_instance_valid(_unconscious_helper_npc) and _unconscious_helper_npc.is_conscious() and _unconscious_helper_npc._reacting_unconscious_target == self:
+		return false
+	var rel: int = discoverer.get_relationship_with_npc(npc_name)
+	var same_fam: bool = (family_id != "none" and family_id != "" and family_id != "family_police" and discoverer.family_id == family_id)
+	var is_authority: bool = discoverer.trade_role in [TradeRole.SHERIFF, TradeRole.GUARD, TradeRole.DOCTOR]
+
+	# Caso 1: Enemigo / Rival Oportunista (rel <= -25, no familiar ni policía/médico)
+	if rel <= -25 and not same_fam and not is_authority:
+		if personal_gold <= 0 and pocket_items.is_empty():
+			_unconscious_ignored_by[discoverer.npc_name] = true
+			discoverer._spawn_floating_text("😏💤 ¿%s tirado en el suelo y sin un centavo? Ahí te quedas." % npc_name, Color(0.95, 0.72, 0.35), -40.0)
+			return false
+		var watcher: Node2D = discoverer._has_any_witness_watching_opportunist(self)
+		if watcher != null:
+			_unconscious_ignored_by[discoverer.npc_name] = true
+			discoverer._spawn_floating_text("😒👀 Hay gente mirando... mejor no le robo a %s, pero tampoco pienso ayudarlo." % npc_name, Color(0.92, 0.68, 0.38), -40.0)
+			return false
+		_unconscious_helper_npc = discoverer
+		discoverer._reacting_unconscious_target = self
+		discoverer._unconscious_react_mode = "opportunist_steal"
+		discoverer._unconscious_react_phase = 1
+		discoverer._unconscious_react_timer = 0.0
+		discoverer._spawn_floating_text("😏👀 Nadie mira... aprovechemos que %s está inconsciente para vaciarle los bolsillos." % npc_name, Color.GOLD, -42.0)
+		return true
+
+	# Caso 2: Amigo (>= 25), Familiar o Autoridad -> Socorro rápido (4s) + Alerta/Colaboración con la Policía
+	if rel >= 25 or same_fam or is_authority:
+		_unconscious_helper_npc = discoverer
+		discoverer._reacting_unconscious_target = self
+		discoverer._unconscious_react_mode = "friend_rescue"
+		discoverer._unconscious_react_phase = 1
+		discoverer._unconscious_react_timer = 0.0
+		discoverer._spawn_floating_text("😟⚡ ¡%s está inconsciente en el suelo! ¡Resiste, voy a despertarte!" % npc_name, Color.SPRING_GREEN, -42.0)
+		return true
+
+	# Caso 3: Vecino Neutral (-24 a +24) -> Despierta con cautela (7s) sin ir a la policía
+	_unconscious_helper_npc = discoverer
+	discoverer._reacting_unconscious_target = self
+	discoverer._unconscious_react_mode = "neutral_wake"
+	discoverer._unconscious_react_phase = 1
+	discoverer._unconscious_react_timer = 0.0
+	discoverer._spawn_floating_text("🤨🤚 Oye %s, ¿qué haces tirado ahí? Levántate..." % npc_name, Color(0.78, 0.92, 1.0), -40.0)
+	return true
+
+func _clear_unconscious_reaction_state() -> void:
+	if is_instance_valid(_reacting_unconscious_target) and _reacting_unconscious_target._unconscious_helper_npc == self:
+		_reacting_unconscious_target._unconscious_helper_npc = null
+	_reacting_unconscious_target = null
+	_unconscious_react_mode = ""
+	_unconscious_react_phase = 0
+	_unconscious_react_timer = 0.0
+	_stop_crafting_bar()
+
+func _process_unconscious_neighbor_reaction(delta: float) -> bool:
+	if not is_instance_valid(_reacting_unconscious_target) or _unconscious_react_mode == "":
+		return false
+	var target: VillageNPC = _reacting_unconscious_target
+
+	# MODO A: RIVAL OPORTUNISTA ("opportunist_steal") — Vigila que nadie esté viendo antes y durante el robo (4.0s)
+	if _unconscious_react_mode == "opportunist_steal":
+		if not target.is_unconscious_on_ground():
+			_clear_unconscious_reaction_state()
+			return false
+		var watcher: Node2D = _has_any_witness_watching_opportunist(target)
+		if watcher != null:
+			target._unconscious_ignored_by[npc_name] = true
+			_spawn_floating_text("😳👀 ¡Alguien está mirando! Mejor disimulo y me alejo de %s..." % target.npc_name, Color.ORANGE, -42.0)
+			_clear_unconscious_reaction_state()
+			return false
+		if global_position.distance_to(target.global_position) > 22.0:
+			_stop_crafting_bar()
+			_move_towards_point(target.global_position, 52.0, delta)
+			_finish_frame_movement(delta)
+			return true
+		velocity = Vector2.ZERO
+		if sprite:
+			sprite.flip_h = (target.global_position.x < global_position.x)
+		_unconscious_react_timer += delta
+		var rem_st: int = maxi(1, int(ceil(4.0 - _unconscious_react_timer)))
+		_update_craft_bar_visual(clampf(_unconscious_react_timer / 4.0, 0.02, 1.0), "🕵️‍♂️💰 Robando a %s sin testigos (%ds)" % [target.npc_name, rem_st], Color(0.95, 0.76, 0.24, 0.95))
+		trigger_action_animation(0.4)
+		_finish_frame_movement(delta)
+		if _unconscious_react_timer >= 4.0:
+			var stolen_g: int = 0
+			if target.personal_gold > 0:
+				stolen_g = maxi(1, int(ceil(float(target.personal_gold) * 0.65)))
+				target.personal_gold = maxi(0, target.personal_gold - stolen_g)
+				personal_gold += stolen_g
+			var stolen_item_id: String = ""
+			for pk in target.pocket_items.keys():
+				if str(pk) != "royal_safe_conduct" and int(target.pocket_items[pk]) > 0:
+					if target.remove_pocket_item(str(pk), 1):
+						add_pocket_item(str(pk), 1)
+						stolen_item_id = str(pk)
+						break
+			target._unconscious_ignored_by[npc_name] = true
+			add_thought("Aproveché que mi rival %s estaba inconsciente para robarle (+10)" % target.npc_name, 10.0)
+			target.add_thought("Alguien me vació los bolsillos mientras estaba inconsciente (-14)", -14.0)
+			target.modify_npc_relationship(self, -12, "Sospecha que le robó mientras estaba inconsciente en el suelo")
+			var loot_desc: String = "%d Oro" % stolen_g if stolen_g > 0 else "sus bolsillos"
+			if stolen_item_id != "":
+				loot_desc += " + 1x %s" % stolen_item_id
+			_spawn_floating_text("😏💰 ¡%s le robó %s a %s sin que nadie viera y lo dejó tirado!" % [npc_name, loot_desc, target.npc_name], Color.GOLD, -44.0)
+			_clear_unconscious_reaction_state()
+		return true
+
+	# MODO B: AMIGO / FAMILIAR / AUTORIDAD ("friend_rescue") — Fase 1: Reanimar rápido (4.0s) -> Fase 2 y 3: Informar y colaborar con la Policía (6.0s)
+	if _unconscious_react_mode == "friend_rescue":
+		if _unconscious_react_phase == 1:
+			if not target.is_unconscious_on_ground():
+				_clear_unconscious_reaction_state()
+				return false
+			if global_position.distance_to(target.global_position) > 22.0:
+				_stop_crafting_bar()
+				_move_towards_point(target.global_position, 64.0, delta)
+				_finish_frame_movement(delta)
+				return true
+			velocity = Vector2.ZERO
+			if sprite:
+				sprite.flip_h = (target.global_position.x < global_position.x)
+			_unconscious_react_timer += delta
+			var rem_fr: int = maxi(1, int(ceil(4.0 - _unconscious_react_timer)))
+			_update_craft_bar_visual(clampf(_unconscious_react_timer / 4.0, 0.02, 1.0), "🤝⚡ Socorriendo a %s (%ds)" % [target.npc_name, rem_fr], Color(0.35, 0.96, 0.58, 0.95))
+			trigger_action_animation(0.4)
+			_finish_frame_movement(delta)
+			if _unconscious_react_timer >= 4.0:
+				_stop_crafting_bar()
+				_unconscious_react_timer = 0.0
+				target.wake_up_from_unconscious(self)
+				modify_npc_relationship(target, 8, "Lo socorrió y despertó rápidamente al hallarlo inconsciente")
+				if trade_role in [TradeRole.SHERIFF, TradeRole.GUARD]:
+					_spawn_floating_text("🚓⚡ ¡%s reanimó a %s y patrullará la zona del ataque!" % [npc_name, target.npc_name], Color.AQUA, -42.0)
+					_patrol_search_target_npc = target
+					_patrol_search_target_pos = target.global_position
+					_patrol_search_timer = 28.0
+					_clear_unconscious_reaction_state()
+				else:
+					_unconscious_react_phase = 2
+					_spawn_floating_text("🤝🚨 ¡Ya estás despierto, %s! ¡Voy corriendo a avisar a la policía de este ataque!" % target.npc_name, Color.SPRING_GREEN, -42.0)
+			return true
+
+		var nearest_police: VillageNPC = _find_nearest_available_authority(true)
+		var pol_dest: Vector2 = nearest_police.global_position if nearest_police != null else Vector2(886, 132)
+
+		if _unconscious_react_phase == 2:
+			if global_position.distance_to(pol_dest) > 26.0:
+				_stop_crafting_bar()
+				_move_towards_point(pol_dest, 62.0, delta)
+				_finish_frame_movement(delta)
+				return true
+			velocity = Vector2.ZERO
+			_unconscious_react_phase = 3
+			_unconscious_react_timer = 0.0
+			if nearest_police != null:
+				nearest_police.is_sleeping = false
+				if nearest_police.sprite:
+					nearest_police.sprite.rotation_degrees = 0.0
+			_spawn_floating_text("🗣️🚓 ¡Guardia! ¡Encontré a mi amigo %s inconsciente en el suelo!" % target.npc_name, Color.GOLD, -42.0)
+			return true
+
+		if global_position.distance_to(pol_dest) > 34.0:
+			_stop_crafting_bar()
+			_move_towards_point(pol_dest, 62.0, delta)
+			_finish_frame_movement(delta)
+			return true
+		velocity = Vector2.ZERO
+		if nearest_police != null:
+			nearest_police.is_sleeping = false
+			if nearest_police.sprite:
+				nearest_police.sprite.rotation_degrees = 0.0
+			nearest_police.hold_for_interview(self, 0.8)
+			if sprite:
+				sprite.flip_h = (nearest_police.global_position.x < global_position.x)
+		_unconscious_react_timer += delta
+		var rem_rep: int = maxi(1, int(ceil(6.0 - _unconscious_react_timer)))
+		var p_label: String = nearest_police.npc_name if nearest_police != null else "la Guardia"
+		_update_craft_bar_visual(clampf(_unconscious_react_timer / 6.0, 0.02, 1.0), "🗣️🚓 Colaborando con %s sobre ataque a %s (%ds)" % [p_label, target.npc_name, rem_rep], Color(0.42, 0.88, 1.0, 0.95))
+		trigger_action_animation(0.4)
+		_finish_frame_movement(delta)
+		if _unconscious_react_timer >= 6.0:
+			var rescued_ref: VillageNPC = target
+			_clear_unconscious_reaction_state()
+			_spawn_floating_text("📢🚓 ¡%s informó a %s del ataque a %s y dio pistas para patrullar la zona!" % [npc_name, p_label, rescued_ref.npc_name], Color.AQUA, -42.0)
+			if nearest_police != null:
+				nearest_police.start_missing_person_police_search(rescued_ref, self)
+		return true
+
+	# MODO C: VECINO NEUTRAL ("neutral_wake") — Despierta con cautela (7.0s) y sigue su rutina sin ir a la policía
+	if not target.is_unconscious_on_ground():
+		_clear_unconscious_reaction_state()
+		return false
+	if global_position.distance_to(target.global_position) > 22.0:
+		_stop_crafting_bar()
+		_move_towards_point(target.global_position, 48.0, delta)
+		_finish_frame_movement(delta)
+		return true
+	velocity = Vector2.ZERO
+	if sprite:
+		sprite.flip_h = (target.global_position.x < global_position.x)
+	_unconscious_react_timer += delta
+	var rem_nw: int = maxi(1, int(ceil(7.0 - _unconscious_react_timer)))
+	_update_craft_bar_visual(clampf(_unconscious_react_timer / 7.0, 0.02, 1.0), "🤨🤚 Despertando con cautela a %s (%ds)" % [target.npc_name, rem_nw], Color(0.75, 0.88, 1.0, 0.95))
+	trigger_action_animation(0.4)
+	_finish_frame_movement(delta)
+	if _unconscious_react_timer >= 7.0:
+		target.wake_up_from_unconscious(self)
+		modify_npc_relationship(target, 3, "Le ayudó a despertarse cuando estaba tirado en el suelo")
+		_spawn_floating_text("😮‍💨🤚 %s despertó a %s y continúa con su jornada." % [npc_name, target.npc_name], Color(0.78, 0.94, 1.0), -40.0)
+		_clear_unconscious_reaction_state()
+	return true
 
 func _physics_process(delta: float) -> void:
 	if Engine.is_editor_hint():
@@ -1130,16 +1423,24 @@ func _physics_process(delta: float) -> void:
 		is_sleeping = true
 		if sprite:
 			sprite.rotation_degrees = 90.0
-		_show_status_label("💤 %s — Inconsciente / Dormido (%ds)%s" % [npc_name, maxi(1, int(ceil(sedated_timer))), _get_pocket_loot_hint()], Color(0.78, 0.65, 1.0))
+		_scan_unconscious_victim_for_passersby(delta)
+		var helper_tag: String = ""
+		if is_instance_valid(_unconscious_helper_npc) and _unconscious_helper_npc._reacting_unconscious_target == self:
+			if _unconscious_helper_npc._unconscious_react_mode == "opportunist_steal":
+				helper_tag = "\n[🕵️‍♂️ %s vigila que nadie mire para robarle]" % _unconscious_helper_npc.npc_name
+			elif _unconscious_helper_npc._unconscious_react_mode == "friend_rescue":
+				helper_tag = "\n[🤝 %s corre a socorrerlo y despertarlo]" % _unconscious_helper_npc.npc_name
+			else:
+				helper_tag = "\n[🤨 %s se acerca a despertarlo]" % _unconscious_helper_npc.npc_name
+		_show_status_label("💤 %s — Inconsciente / Dormido (%ds)%s%s" % [npc_name, maxi(1, int(ceil(sedated_timer))), _get_pocket_loot_hint(), helper_tag], Color(0.78, 0.65, 1.0))
 		if sedated_timer <= 0.0:
-			is_sleeping = false
-			is_stunned_flag = false
-			_set_sprite_pose(0.0, Color.WHITE)
+			wake_up_from_unconscious()
 		return
 
 	if is_stunned_flag:
 		velocity = Vector2.ZERO
 		_stop_crafting_bar()
+		_scan_unconscious_victim_for_passersby(delta)
 		_show_status_label("💫 %s — Aturdido%s" % [npc_name, _get_pocket_loot_hint()], Color(0.75, 0.85, 1.0))
 		return
 
@@ -1231,7 +1532,7 @@ func _physics_process(delta: float) -> void:
 			_finish_frame_movement(delta)
 			return
 
-	if not is_hostile and (_process_witness_corpse_reporting(delta) or _process_corpse_morgue_transport(delta) or _process_family_missing_search(delta)):
+	if not is_hostile and (_process_witness_corpse_reporting(delta) or _process_corpse_morgue_transport(delta) or _process_family_missing_search(delta) or _process_unconscious_neighbor_reaction(delta)):
 		return
 
 	if trade_role in [TradeRole.SHERIFF, TradeRole.GUARD]:
@@ -2946,6 +3247,14 @@ func get_activity_description() -> String:
 		return "😰🏃 Yendo a la policía por la ausencia de %s" % _searching_missing_kin.npc_name
 	if _patrol_search_timer > 0.0 and is_instance_valid(_patrol_search_target_npc):
 		return "🚓🔦 Patrulla de búsqueda: rastreando a %s" % _patrol_search_target_npc.npc_name
+	if is_instance_valid(_reacting_unconscious_target):
+		if _unconscious_react_mode == "opportunist_steal":
+			return "🕵️‍♂️💰 Robando en sigilo a su rival %s" % _reacting_unconscious_target.npc_name
+		elif _unconscious_react_mode == "friend_rescue":
+			if _unconscious_react_phase == 1:
+				return "🤝⚡ Socorriendo y despertando a %s" % _reacting_unconscious_target.npc_name
+			return "🗣️🚓 Informando a la guardia del ataque a %s" % _reacting_unconscious_target.npc_name
+		return "🤨🤚 Despertando con cautela a %s" % _reacting_unconscious_target.npc_name
 	var sick_tag: String = ""
 	if health_comp and health_comp.has_active_sickness_or_infection():
 		sick_tag = " [🌡️Enfermo/Fiebre %d%%]" % int(round(maxf(health_comp.fever, maxf(health_comp.food_poisoning, health_comp.swamp_sickness))))
@@ -3234,6 +3543,8 @@ func stealth_knockout(player: Node = null) -> void:
 	sedated_timer = maxf(sedated_timer, 25.0)
 	is_sleeping = true
 	is_stunned_flag = true
+	_unconscious_ignored_by.clear()
+	_unconscious_helper_npc = null
 	_set_sprite_pose(90.0, Color(0.55, 0.65, 1.0))
 	add_thought("Aturdido por la espalda (-12)", -12.0)
 	_spawn_floating_text("💤🤫 ¡%s aturdido en sigilo! (No Letal — 25s)" % npc_name, Color.AQUA, -44.0)
@@ -3243,8 +3554,14 @@ func stealth_knockout(player: Node = null) -> void:
 	var vm = _get_vm()
 	if vm and vm.has_method("_find_conscious_witness_near"):
 		var w: VillageNPC = vm.call("_find_conscious_witness_near", global_position, 145.0, self)
-		if w != null and vm.has_method("report_assault_crime"):
-			vm.call("report_assault_crime", self)
+		if w != null:
+			var w_rel: int = w.get_relationship_with_npc(npc_name)
+			var w_same_fam: bool = (family_id != "none" and family_id != "" and family_id != "family_police" and w.family_id == family_id)
+			var w_is_auth: bool = w.trade_role in [TradeRole.SHERIFF, TradeRole.GUARD, TradeRole.DOCTOR]
+			if w_rel <= -25 and not w_same_fam and not w_is_auth:
+				w._spawn_floating_text("😏🤫 %s vio caer a su enemigo %s y no piensa decir ni pío a la guardia..." % [w.npc_name, npc_name], Color.GOLD, -42.0)
+			elif vm.has_method("report_assault_crime"):
+				vm.call("report_assault_crime", self)
 
 ## Opción Letal en Sigilo ([Clic Izq.] o [V] por la espalda): Ejecución silenciosa instantánea
 func stealth_assassinate(player: Node = null) -> void:
@@ -3744,7 +4061,7 @@ func start_interrogation_dialogue_with_player(player: Node) -> bool:
 		dm = get_tree().root.find_child("dialogue_manager", true, false)
 	if not dm:
 		return false
-	if "is_active" in dm and bool(dm.get("is_active")):
+	if dm.has_method("is_active") and bool(dm.call("is_active")):
 		return false
 	_cached_dm = dm
 	var diag := _inject_character_lore_into_dialogue(_build_dialogue())

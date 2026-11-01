@@ -4753,7 +4753,7 @@ func update_royal_investigator_ai(inv_npc: VillageNPC, delta: float) -> void:
 				if not bool(active_royal_investigation.get("player_dialogue_opened", false)):
 					active_royal_investigation["player_dialogue_opened"] = true
 					inv_npc.start_interrogation_dialogue_with_player(player)
-				if inv_npc._cached_dm != null and "is_active" in inv_npc._cached_dm and bool(inv_npc._cached_dm.get("is_active")):
+				if is_instance_valid(inv_npc._cached_dm) and inv_npc._cached_dm.has_method("is_active") and bool(inv_npc._cached_dm.call("is_active")):
 					return
 				_evaluate_player_inspection(inv_npc, player, suspects, clues, false)
 				active_royal_investigation["stage"] = "VERDICT"
@@ -4823,7 +4823,7 @@ func update_royal_investigator_ai(inv_npc: VillageNPC, delta: float) -> void:
 						var v_spec := n_spec as VillageNPC
 						if v_spec.is_conscious() and v_spec.global_position.distance_to(plaza_trial_pos) <= 170.0:
 							v_spec.hold_for_interview(inv_npc, 0.6)
-				if inv_npc._cached_dm != null and "is_active" in inv_npc._cached_dm and bool(inv_npc._cached_dm.get("is_active")):
+				if is_instance_valid(inv_npc._cached_dm) and inv_npc._cached_dm.has_method("is_active") and bool(inv_npc._cached_dm.call("is_active")):
 					return
 				var prev_tr: float = s_timer
 				s_timer += delta
@@ -5104,7 +5104,7 @@ func _process_case_chain_interviews_step(inv_npc: VillageNPC, delta: float, case
 				case_dict["player_dialogue_opened"] = true
 				if inv_npc.start_interrogation_dialogue_with_player(player):
 					inv_npc._spawn_floating_text("🕵️‍♂️⚖️ ¡Interrogatorio en curso! Elige bien tus palabras para defenderte.", Color.GOLD, -44.0)
-			if inv_npc._cached_dm != null and "is_active" in inv_npc._cached_dm and bool(inv_npc._cached_dm.get("is_active")):
+			if is_instance_valid(inv_npc._cached_dm) and inv_npc._cached_dm.has_method("is_active") and bool(inv_npc._cached_dm.call("is_active")):
 				return
 			var prev_sp: float = s_timer
 			s_timer += delta

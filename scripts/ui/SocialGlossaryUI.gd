@@ -29,10 +29,12 @@ func _ready() -> void:
 func _process(delta: float) -> void:
 	if not visible:
 		return
+	if Input.get_mouse_mode() != Input.MOUSE_MODE_VISIBLE:
+		Input.set_mouse_mode(Input.MOUSE_MODE_VISIBLE)
 	_refresh_timer += delta
-	if _refresh_timer >= 0.65:
+	if _refresh_timer >= 2.0:
 		_refresh_timer = 0.0
-		refresh_ui()
+		refresh_ui(false)
 
 func _make_box_style(bg: Color, border: Color, bw: int = 1, radius: int = 6) -> StyleBoxFlat:
 	var st := StyleBoxFlat.new()
@@ -48,20 +50,22 @@ func _build_ui() -> void:
 	dimmer.color = Color(0.02, 0.03, 0.05, 0.80)
 	add_child(dimmer)
 
+	var center := CenterContainer.new()
+	center.set_anchors_preset(Control.PRESET_FULL_RECT)
+	add_child(center)
+
 	var main_panel := PanelContainer.new()
-	main_panel.set_anchors_preset(Control.PRESET_CENTER)
-	main_panel.custom_minimum_size = Vector2(960, 580)
-	main_panel.position = Vector2(-480, -290)
+	main_panel.custom_minimum_size = Vector2(780, 440)
 	main_panel.add_theme_stylebox_override("panel", _make_box_style(Color(0.07, 0.09, 0.13, 0.98), Color(0.76, 0.62, 0.34, 0.95), 2, 8))
-	add_child(main_panel)
+	center.add_child(main_panel)
 
 	var margin := MarginContainer.new()
 	for side in ["margin_left", "margin_right", "margin_top", "margin_bottom"]:
-		margin.add_theme_constant_override(side, 14)
+		margin.add_theme_constant_override(side, 10)
 	main_panel.add_child(margin)
 
 	var root_vbox := VBoxContainer.new()
-	root_vbox.add_theme_constant_override("separation", 10)
+	root_vbox.add_theme_constant_override("separation", 6)
 	margin.add_child(root_vbox)
 
 	# Cabecera Superior
@@ -92,7 +96,7 @@ func _build_ui() -> void:
 
 	# Columna Izquierda: Lista de Habitantes
 	var left_panel := PanelContainer.new()
-	left_panel.custom_minimum_size = Vector2(285, 0)
+	left_panel.custom_minimum_size = Vector2(235, 0)
 	left_panel.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	left_panel.add_theme_stylebox_override("panel", _make_box_style(Color(0.05, 0.06, 0.09, 0.96), Color(0.28, 0.34, 0.44, 0.85), 1, 6))
 	body_hbox.add_child(left_panel)
@@ -144,12 +148,12 @@ func _build_ui() -> void:
 	right_vbox.add_child(bio_hbox)
 
 	var port_frame := PanelContainer.new()
-	port_frame.custom_minimum_size = Vector2(72, 72)
+	port_frame.custom_minimum_size = Vector2(58, 58)
 	port_frame.add_theme_stylebox_override("panel", _make_box_style(Color(0.10, 0.12, 0.17, 1.0), Color(0.82, 0.68, 0.36, 0.95), 2, 6))
 	bio_hbox.add_child(port_frame)
 
 	_portrait_rect = TextureRect.new()
-	_portrait_rect.custom_minimum_size = Vector2(64, 64)
+	_portrait_rect.custom_minimum_size = Vector2(52, 52)
 	_portrait_rect.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 	_portrait_rect.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 	_portrait_rect.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
@@ -216,7 +220,7 @@ func _build_ui() -> void:
 	_highlights_label.bbcode_enabled = true
 	_highlights_label.fit_content = true
 	_highlights_label.scroll_active = false
-	_highlights_label.custom_minimum_size = Vector2(0, 68)
+	_highlights_label.custom_minimum_size = Vector2(0, 52)
 	_highlights_label.add_theme_font_size_override("normal_font_size", 11)
 	hl_margin.add_child(_highlights_label)
 
@@ -273,6 +277,7 @@ func open_panel(focus_npc: Node = null) -> void:
 	if focus_npc is VillageNPC and is_instance_valid(focus_npc):
 		selected_npc = focus_npc as VillageNPC
 	visible = true
+	Input.set_mouse_mode(Input.MOUSE_MODE_VISIBLE)
 	refresh_ui()
 
 func close_panel() -> void:
@@ -295,7 +300,7 @@ func _get_player_affinity_tier_text(aff: int) -> String:
 		return "😒 Receloso / Desconfiado"
 	return "😠 Agraviado (Se niega a comerciar hasta pagar compensación)"
 
-func refresh_ui() -> void:
+func refresh_ui(rebuild_lists: bool = true) -> void:
 	if not is_inside_tree():
 		return
 	var all_npcs: Array[VillageNPC] = _get_all_sorted_npcs()
@@ -304,14 +309,16 @@ func refresh_ui() -> void:
 	if not is_instance_valid(selected_npc) or not (selected_npc in all_npcs):
 		selected_npc = all_npcs[0]
 
-	for npc_init in all_npcs:
-		npc_init.ensure_npc_relationships_initialized()
+	if rebuild_lists:
+		for npc_init in all_npcs:
+			npc_init.ensure_npc_relationships_initialized()
 
-	# 1. Poblar Columna Izquierda (Lista de Vecinos)
-	for ch in _npc_list_vbox.get_children():
-		ch.queue_free()
+	# 1. Poblar Columna Izquierda (Lista de Vecinos) — solo al abrir o cambiar selección (evita lag)
+	if rebuild_lists:
+		for ch in _npc_list_vbox.get_children():
+			ch.queue_free()
 
-	for v in all_npcs:
+	for v in (all_npcs if rebuild_lists else []):
 		var btn := Button.new()
 		btn.alignment = HORIZONTAL_ALIGNMENT_LEFT
 		btn.custom_minimum_size = Vector2(0, 32)
@@ -400,7 +407,9 @@ func refresh_ui() -> void:
 		"[color=#ff8866][b]💢 Enemistades Principales / Rivales:[/b][/color] %s" % enemies_str
 	)
 
-	# 5. Poblar Tabla Social RimWorld Completa
+	# 5. Poblar Tabla Social RimWorld Completa — solo al abrir o cambiar selección (evita lag)
+	if not rebuild_lists:
+		return
 	for ch_t in _social_table_vbox.get_children():
 		ch_t.queue_free()
 

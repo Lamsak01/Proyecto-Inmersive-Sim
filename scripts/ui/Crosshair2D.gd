@@ -26,6 +26,7 @@ var _arrow_active_timer: float = 0.0
 var _cached_inv_panel: Control = null
 var _cached_wheel_panel: Control = null
 var _cached_games_panel: Control = null
+var _cached_glossary_panel: Control = null
 var _ui_lookup_cooldown: float = 0.0
 var _target_color_timer: float = 0.0
 
@@ -66,6 +67,8 @@ func _refresh_cached_ui_panels(delta: float) -> void:
 		_cached_wheel_panel = root_node.find_child("ToolWheelUI", true, false) as Control
 	if not is_instance_valid(_cached_games_panel):
 		_cached_games_panel = root_node.find_child("TavernGamesUI", true, false) as Control
+	if not is_instance_valid(_cached_glossary_panel):
+		_cached_glossary_panel = root_node.find_child("SocialGlossaryUI", true, false) as Control
 
 func _process(delta: float) -> void:
 	if not is_instance_valid(player):
@@ -85,6 +88,8 @@ func _process(delta: float) -> void:
 	if is_instance_valid(_cached_wheel_panel) and _cached_wheel_panel.visible:
 		ui_open = true
 	if is_instance_valid(_cached_games_panel) and _cached_games_panel.visible:
+		ui_open = true
+	if is_instance_valid(_cached_glossary_panel) and _cached_glossary_panel.visible:
 		ui_open = true
 
 	if ui_open:
