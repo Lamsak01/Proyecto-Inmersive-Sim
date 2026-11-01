@@ -22,6 +22,8 @@ const NPCData = preload("res://scripts/data/NPCData.gd")
 var _newcomer_rng: RandomNumberGenerator = RandomNumberGenerator.new()
 var _used_first_names: Array = []
 var _used_person_ids: Dictionary = {}
+const MAX_SOCIAL_EVENT_LOG: int = 80
+var social_event_log: Array[Dictionary] = []
 var trade_configs: Dictionary = {}
 var domestic_pets: Array[DomesticPet] = []
 
@@ -152,7 +154,7 @@ func setup_village(target_entities_root: Node) -> void:
 	set_process_unhandled_input(not in_editor)
 	add_to_group("village_manager")
 
-	for arr in [building_footprints, _wall_occluder_rects, house_chests, building_doors, building_windows, streetlights, _authority_slots, morgue_active_corpses, buried_graves, _cemetery_grave_positions, _cemetery_grave_nodes, blood_puddles]:
+	for arr in [building_footprints, _wall_occluder_rects, house_chests, building_doors, building_windows, streetlights, _authority_slots, morgue_active_corpses, buried_graves, _cemetery_grave_positions, _cemetery_grave_nodes, blood_puddles, social_event_log]:
 		arr.clear()
 	active_sheriff_investigation.clear()
 	shop_businesses.clear()
@@ -1307,7 +1309,58 @@ func _spawn_generated_newcomer(
 	entities_root.add_child(new_npc)
 	new_npc.setup_npc(tex, work_pos, bed_pos, stock, table_pos, fam_id, fam_name)
 	new_npc.global_position = _get_map_edge_arrival_pos(_rehire_counter)
+	record_social_event("arrival", new_npc, null, "%s llegó al valle (%s)" % [new_npc.npc_name, role_label])
 	return new_npc
+
+## B0.6: Registra un evento social relevante (base de "Noticias del pueblo" y chismes entre vecinos) con tope de memoria.
+func record_social_event(type_str: String, actor: VillageNPC, target: VillageNPC = null, summary_str: String = "") -> Dictionary:
+	var a_id: String = ""
+	var a_name: String = ""
+	if is_instance_valid(actor):
+		a_id = str(actor.person_profile.person_id) if actor.person_profile != null and str(actor.person_profile.person_id) != "" else actor.npc_id
+		a_name = actor.npc_name
+	var t_id: String = ""
+	var t_name: String = ""
+	if is_instance_valid(target):
+		t_id = str(target.person_profile.person_id) if target.person_profile != null and str(target.person_profile.person_id) != "" else target.npc_id
+		t_name = target.npc_name
+	var entry: Dictionary = {
+		"day": WorldClock.current_day if WorldClock else 1,
+		"hour": WorldClock.current_hour if WorldClock else 12,
+		"minute": WorldClock.current_minute if WorldClock else 0,
+		"type": type_str,
+		"actor_id": a_id,
+		"actor_name": a_name,
+		"target_id": t_id,
+		"target_name": t_name,
+		"summary": summary_str,
+	}
+	social_event_log.append(entry)
+	while social_event_log.size() > MAX_SOCIAL_EVENT_LOG:
+		social_event_log.remove_at(0)
+	return entry
+
+## Devuelve los eventos sociales más recientes (del más nuevo al más antiguo), con filtro opcional por tipo o vecino.
+func get_recent_social_events(limit: int = 15, filter_type: String = "", person_id_or_name: String = "") -> Array[Dictionary]:
+	var res: Array[Dictionary] = []
+	var p_clean: String = person_id_or_name.strip_edges()
+	var i: int = social_event_log.size() - 1
+	while i >= 0 and res.size() < limit:
+		var ev: Dictionary = social_event_log[i]
+		i -= 1
+		if filter_type != "" and str(ev.get("type", "")) != filter_type:
+			continue
+		if p_clean != "":
+			var match_p: bool = (
+				str(ev.get("actor_id", "")) == p_clean or
+				str(ev.get("target_id", "")) == p_clean or
+				str(ev.get("actor_name", "")) == p_clean or
+				str(ev.get("target_name", "")) == p_clean
+			)
+			if not match_p:
+				continue
+		res.append(ev)
+	return res
 
 # PASO 2B: ⛪ CAPILLA DE SAN CIPRIANO Y 🪦 CEMENTERIO PARROQUIAL (`Vector2(745, 312)`)
 func _spawn_church_and_cemetery() -> void:
@@ -6026,7 +6079,8 @@ func get_economy_save_dict() -> Dictionary:
 		"building_windows": saved_windows, "deployed_bear_traps": saved_traps,
 		"used_first_names": _used_first_names.duplicate(),
 		"used_person_ids": _used_person_ids.keys(),
-		"newcomer_rng_state": _newcomer_rng.state
+		"newcomer_rng_state": _newcomer_rng.state,
+		"social_event_log": social_event_log.duplicate(true)
 	}
 
 func _free_transient_npc(npc: VillageNPC) -> void:
@@ -6058,6 +6112,13 @@ func load_economy_save_dict(data: Dictionary) -> void:
 				_used_person_ids[pid_s] = true
 	if data.has("newcomer_rng_state"):
 		_newcomer_rng.state = int(data["newcomer_rng_state"])
+	if data.has("social_event_log") and typeof(data["social_event_log"]) == TYPE_ARRAY:
+		social_event_log.clear()
+		for ev_it in (data["social_event_log"] as Array):
+			if typeof(ev_it) == TYPE_DICTIONARY:
+				social_event_log.append((ev_it as Dictionary).duplicate())
+		while social_event_log.size() > MAX_SOCIAL_EVENT_LOG:
+			social_event_log.remove_at(0)
 	if data.has("crime_history") and typeof(data["crime_history"]) == TYPE_ARRAY:
 		crime_history.clear()
 		for ch_item in (data["crime_history"] as Array):

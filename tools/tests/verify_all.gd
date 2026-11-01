@@ -410,6 +410,13 @@ func _initialize() -> void:
 	bram_npc.from_save_dict(bram_saved)
 	var vm_econ_save: Dictionary = vm.get_economy_save_dict()
 	assert(vm_econ_save.has("used_first_names") and vm_econ_save.has("used_person_ids"), "B0.5: VillageManager save must persist used names and IDs!")
+	# B0.6: Verify social event log recorded Bram + Sheriff Vane reconciliation, filtering, and cap (80)
+	var rec_events: Array = vm.get_recent_social_events(10, "reconciliation", "bram")
+	assert(not rec_events.is_empty() and str(rec_events[0].get("target_id", "")) == "vane", "B0.6: social_event_log must record reconciliation with actor/target person_ids!")
+	for cap_i in range(90):
+		vm.record_social_event("chat", bram_npc, mila_npc, "Charla de prueba %d" % cap_i)
+	assert(vm.social_event_log.size() == vm.MAX_SOCIAL_EVENT_LOG, "B0.6: social_event_log must respect MAX_SOCIAL_EVENT_LOG (80)!")
+	assert(vm.get_economy_save_dict().has("social_event_log"), "B0.6: social_event_log must be persisted in save dict!")
 
 	# 16. Test Worried Family Missing-Person Search (Shop Search 8s -> Police Report 10s -> Police Search Patrol)
 	assert(elena_npc != null and tomas_npc != null, "Elena and Tomás must exist for family search test")

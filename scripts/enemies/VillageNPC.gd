@@ -811,12 +811,18 @@ func modify_npc_relationship(other: VillageNPC, delta_val: int, reason: String =
 		add_thought("Me reconcilié con mi antiguo rival %s (+12)" % other.npc_name, 12.0)
 		other.add_thought("Me reconcilié con mi antiguo rival %s (+12)" % npc_name, 12.0)
 		_spawn_floating_text("🌟🤝 ¡Por azares del destino, %s y %s dejaron atrás su enemistad!" % [npc_name, other.npc_name], Color.GOLD, -44.0)
+		var vm_rec = _get_vm()
+		if vm_rec and vm_rec.has_method("record_social_event"):
+			vm_rec.call("record_social_event", "reconciliation", self, other, "%s y %s dejaron atrás su enemistad (%s)" % [npc_name, other.npc_name, reason if reason != "" else "Reconciliación"])
 	elif old_val >= 30 and new_val <= -20:
 		var feud_note: String = "⚡ Antiguos amigos enemistados (%s)" % (reason if reason != "" else "Disputa grave")
 		npc_relationship_notes[other_key] = feud_note
 		other.npc_relationship_notes[my_key] = feud_note
 		add_thought("Ruptura de amistad con %s (-10)" % other.npc_name, -10.0)
 		_spawn_floating_text("💢⚡ ¡%s y %s rompieron su amistad tras una fuerte disputa!" % [npc_name, other.npc_name], Color.ORANGE_RED, -44.0)
+		var vm_feud = _get_vm()
+		if vm_feud and vm_feud.has_method("record_social_event"):
+			vm_feud.call("record_social_event", "feud", self, other, "%s y %s rompieron su amistad (%s)" % [npc_name, other.npc_name, reason if reason != "" else "Disputa grave"])
 
 func _trigger_dynamic_npc_social_interaction(partner: VillageNPC) -> void:
 	if not is_instance_valid(partner) or partner == self or partner.is_dead or partner.is_downed:
