@@ -607,5 +607,32 @@ func _initialize() -> void:
 	wc_speed.set_persistent_time_scale(1.0)
 	assert(is_equal_approx(Engine.time_scale, 1.0) and Engine.physics_ticks_per_second == 60, "Resetting to 1x must restore Engine.time_scale=1.0 and 60 physics TPS!")
 
+	# 21. B1.3: Escena de conversación en vivo de 2 turnos (SocialDirector + VillageNPC)
+	assert(smith_npc != null and bram2_npc != null and vm.social_director != null, "Thoran, Bram and SocialDirector must exist")
+	vm.social_director.active_scenes.clear()
+	smith_npc.is_dead = false
+	smith_npc.is_downed = false
+	smith_npc.is_sleeping = false
+	smith_npc.sedated_timer = 0.0
+	smith_npc._npc_social_event_cooldown = 0.0
+	smith_npc._pending_social_reply_timer = 0.0
+	bram2_npc.is_dead = false
+	bram2_npc.is_downed = false
+	bram2_npc.is_sleeping = false
+	bram2_npc.sedated_timer = 0.0
+	bram2_npc._npc_social_event_cooldown = 0.0
+	bram2_npc._pending_social_reply_timer = 0.0
+	smith_npc.global_position = Vector2(300, 300)
+	bram2_npc.global_position = Vector2(316, 300)
+	var rel_before_conv: int = smith_npc.get_relationship_with_npc("bram")
+	smith_npc._trigger_dynamic_npc_social_interaction(bram2_npc)
+	assert(smith_npc.last_social_line_spoken != "", "Initiator Thoran must speak a real opening phrase in Turn 1!")
+	assert(bram2_npc._pending_social_reply_timer > 1.0 and not bram2_npc._pending_social_reply_data.is_empty(), "Partner Bram must have a pending Turn 2 reply scheduled (~1.8s)!")
+	assert(vm.social_director.active_scenes.size() == 1, "SocialDirector must track the active conversation scene!")
+	assert(smith_npc.get_relationship_with_npc("bram") == rel_before_conv, "Relationship change must wait until Turn 2 reply completes!")
+	bram2_npc._process_pending_social_reply(2.0)
+	assert(bram2_npc._pending_social_reply_timer == 0.0 and bram2_npc.last_social_line_spoken != "", "Partner Bram must speak his Turn 2 reply after 1.8s!")
+	assert(smith_npc.get_relationship_with_npc("bram") != rel_before_conv, "Relationship must update after Turn 2 reply completes!")
+
 	print("ALL RIMWORLD MEDICAL, FOOTPRINTS, 3-PHASE CORPSE REPORT, MULTI-CORPSE FIX, RPG INTERROGATION, PUBLIC TRIAL, DYNAMIC RELATIONSHIPS, MISSING FAMILY SEARCH, SOCIAL GLOSSARY & UNCONSCIOUS REACTION TESTS PASSED!")
 	quit(0)

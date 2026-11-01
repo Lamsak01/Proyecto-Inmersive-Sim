@@ -144,6 +144,9 @@ var _active_downed_patient: VillageNPC = null
 var npc_relationships: Dictionary = {} # other_npc_name -> int (-100..100)
 var npc_relationship_notes: Dictionary = {} # other_npc_name -> String (motivo actual / historia común)
 var _npc_social_event_cooldown: float = 0.0
+var _pending_social_reply_timer: float = 0.0
+var _pending_social_reply_data: Dictionary = {}
+var last_social_line_spoken: String = ""
 var _searching_missing_kin: VillageNPC = null
 var _missing_kin_phase: int = 0
 var _missing_kin_timer: float = 0.0
@@ -829,6 +832,40 @@ func modify_npc_relationship(other: VillageNPC, delta_val: int, reason: String =
 func _trigger_dynamic_npc_social_interaction(partner: VillageNPC) -> void:
 	if not is_instance_valid(partner) or partner == self or partner.is_dead or partner.is_downed:
 		return
+	if _pending_social_reply_timer > 0.0 or partner._pending_social_reply_timer > 0.0:
+		return
+	var vm_soc = _get_vm()
+	var sdir = vm_soc.get("social_director") if vm_soc != null else null
+	if sdir != null and sdir.has_method("resolve_live_conversation"):
+		var cur_day: int = int(WorldClock.current_day) if WorldClock != null else 1
+		var ex: Dictionary = sdir.call("resolve_live_conversation", self, partner, cur_day)
+		if not bool(ex.get("allowed", false)):
+			_spawn_floating_text("💬", Color(0.75, 0.95, 1.0), -28.0)
+			return
+		_npc_social_event_cooldown = randf_range(16.0, 26.0)
+		partner._npc_social_event_cooldown = randf_range(16.0, 26.0)
+		var line_a: String = str(ex.get("line_a", ""))
+		var line_b: String = str(ex.get("line_b", ""))
+		var icon: String = str(ex.get("icon", "💬"))
+		var col: Color = ex.get("color", Color(0.75, 0.96, 1.0))
+		last_social_line_spoken = line_a
+		_spawn_floating_text("%s «%s»" % [icon, line_a], col, -34.0)
+		var dx: float = partner.global_position.x - global_position.x
+		if absf(dx) > 2.0:
+			if sprite:
+				sprite.flip_h = (dx < 0.0)
+			if partner.sprite:
+				partner.sprite.flip_h = (dx > 0.0)
+		partner._pending_social_reply_timer = 1.8
+		partner._pending_social_reply_data = {
+			"initiator": self,
+			"line_b": line_b,
+			"delta_rel": int(ex.get("delta_rel", 0)),
+			"note": str(ex.get("note", "Charlaron en el pueblo")),
+			"icon": icon,
+			"color": col,
+		}
+		return
 	_npc_social_event_cooldown = randf_range(16.0, 26.0)
 	partner._npc_social_event_cooldown = randf_range(16.0, 26.0)
 	var cur_rel: int = get_relationship_with_npc(partner.npc_name)
@@ -861,6 +898,33 @@ func _trigger_dynamic_npc_social_interaction(partner: VillageNPC) -> void:
 			var drop_n: int = randi_range(-12, -6)
 			modify_npc_relationship(partner, drop_n, "Choque de opiniones durante la jornada")
 			_spawn_floating_text("😒💬 Discusión con %s (%d Relación vecinal)" % [partner.npc_name, drop_n], Color.ORANGE, -34.0)
+
+func _process_pending_social_reply(delta: float) -> void:
+	if _pending_social_reply_timer <= 0.0:
+		return
+	if is_incapacitated() or is_sleeping or is_hostile:
+		_pending_social_reply_timer = 0.0
+		_pending_social_reply_data.clear()
+		return
+	_pending_social_reply_timer -= delta
+	if _pending_social_reply_timer > 0.0:
+		return
+	_pending_social_reply_timer = 0.0
+	var initiator: VillageNPC = _pending_social_reply_data.get("initiator", null)
+	var line_b: String = str(_pending_social_reply_data.get("line_b", ""))
+	var delta_rel: int = int(_pending_social_reply_data.get("delta_rel", 0))
+	var note_str: String = str(_pending_social_reply_data.get("note", "Charlaron en el pueblo"))
+	var icon_str: String = str(_pending_social_reply_data.get("icon", "💬"))
+	var col: Color = _pending_social_reply_data.get("color", Color(0.75, 0.96, 1.0))
+	_pending_social_reply_data.clear()
+	if not is_instance_valid(initiator) or initiator.is_incapacitated() or initiator.is_sleeping:
+		return
+	if global_position.distance_to(initiator.global_position) > 140.0:
+		return
+	last_social_line_spoken = line_b
+	initiator.modify_npc_relationship(self, delta_rel, note_str)
+	var sign_tag: String = "+%d" % delta_rel if delta_rel >= 0 else "%d" % delta_rel
+	_spawn_floating_text("%s «%s» (%s Rel)" % [icon_str, line_b, sign_tag], col, -36.0)
 
 ## Inicia la búsqueda física de un familiar que no llegó a dormir a casa ni sigue su rutina habitual:
 ## Fase 1: Ir a la tienda/taller familiar a buscarlo (8s). Si encuentra su cadáver allí, activa el reporte físico de inmediato.
@@ -1517,6 +1581,8 @@ func _physics_process(delta: float) -> void:
 		bloodstained_timer = maxf(0.0, bloodstained_timer - delta)
 	if _npc_social_event_cooldown > 0.0:
 		_npc_social_event_cooldown = maxf(0.0, _npc_social_event_cooldown - delta)
+	if _pending_social_reply_timer > 0.0:
+		_process_pending_social_reply(delta)
 	if is_conscious():
 		_update_visual_memory(delta)
 	if health_comp and velocity.length_squared() > 9.0 and health_comp.is_resting_in_bed and global_position.distance_to(Vector2(718, 136)) > 26.0 and global_position.distance_to(bed_position) > 20.0:
