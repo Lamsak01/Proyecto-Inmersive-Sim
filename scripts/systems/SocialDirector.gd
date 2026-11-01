@@ -39,6 +39,24 @@ const DIALS: Dictionary = {
 	"stage_advance_base_chance": 0.36,
 	"fight_tension_threshold": 36,
 	"fight_daily_base_chance": 0.38,
+	# B2.1: Pasar tiempo juntos (quedadas entre amigos / parejas) y evitar rivales
+	"max_concurrent_hangouts": 2,
+	"hangout_min_affinity": 25,
+	"hangout_min_spark": 18,
+	"hangout_social_hours": [12, 18, 19, 20, 21],  # Comida (12h) y tarde libre (18-21h)
+	"hangout_max_per_person_per_day": 1,
+	"hangout_travel_timeout_sec": 60.0,
+	"hangout_together_sec": 45.0,
+	"hangout_bonus_affinity_min": 3,
+	"hangout_bonus_affinity_max": 6,
+	"hangout_bonus_familiarity_min": 4,
+	"hangout_bonus_familiarity_max": 7,
+	"hangout_bonus_spark_min": 2,
+	"hangout_bonus_spark_max": 4,
+	"hangout_tension_relief_min": 3,
+	"hangout_tension_relief_max": 6,
+	"avoid_affinity_threshold": -25,
+	"avoid_tension_threshold": 30,
 }
 
 const STAGE_NONE := "none"
@@ -56,6 +74,13 @@ var total_new_couples_formed: int = 0
 var total_fights_triggered: int = 0
 var _tick_accum: float = 0.0
 var _scene_seq: int = 0
+# B2.1: Quedadas activas (transitorias, no se guardan) y contador diario por persona (se guarda)
+const HANGOUT_PHASE_TRAVEL := "travel"
+const HANGOUT_PHASE_TOGETHER := "together"
+var active_hangouts: Array[Dictionary] = []   # [{id, actor_a_id, actor_b_id, spot_id, spot_kind, spot_pos, phase, arrived_a, arrived_b, travel_remaining, together_remaining, started_day}]
+var finished_hangouts: Array[Dictionary] = [] # Resultados pendientes de recoger con pop_finished_hangouts()
+var hangout_day_counts: Dictionary = {}       # person_id -> {"day": int, "count": int}
+var _hangout_seq: int = 0
 
 func _init(seed_val: int = 20261101) -> void:
 	rng.seed = seed_val
@@ -107,6 +132,11 @@ func purge_deceased(dead_id: String) -> void:
 		var sc: Dictionary = active_scenes[i]
 		if str(sc.get("actor_a_id", "")) == dead_id or str(sc.get("actor_b_id", "")) == dead_id:
 			active_scenes.remove_at(i)
+	for j in range(active_hangouts.size() - 1, -1, -1):
+		var hg: Dictionary = active_hangouts[j]
+		if str(hg.get("actor_a_id", "")) == dead_id or str(hg.get("actor_b_id", "")) == dead_id:
+			active_hangouts.remove_at(j)
+	hangout_day_counts.erase(dead_id)
 
 ## Calcula la compatibilidad romántica (0..100) entre dos fichas. Devuelve 0 si son del mismo hogar/familia o mismo género con orientación heterosexual.
 func compute_compatibility(prof_a, prof_b, same_family: bool = false) -> int:
@@ -315,11 +345,250 @@ func tick(delta: float, _vm: Node = null) -> void:
 			active_scenes.remove_at(i)
 		else:
 			active_scenes[i]["remaining_sec"] = rem
+	_tick_hangouts(delta)
 	_tick_accum += delta
 	var interval: float = maxf(0.5, float(dials.get("tick_interval_sec", 4.0)))
 	if _tick_accum < interval:
 		return
 	_tick_accum = 0.0
+
+# ==============================================================================
+# B2.1: PASAR TIEMPO JUNTOS — selección de compañero, punto de encuentro y gestión de quedadas
+# ==============================================================================
+
+## ¿Es hora libre/social? (comida y tarde tras el turno laboral 08-18h)
+func is_social_hour(hour: int) -> bool:
+	var hours: Array = dials.get("hangout_social_hours", [12, 18, 19, 20, 21])
+	return hour in hours
+
+## Los rivales se evitan: afinidad muy baja o tensión alta.
+func should_avoid(id_a: String, id_b: String) -> bool:
+	var k: String = make_pair_key(id_a, id_b)
+	if k == "" or not pair_metrics.has(k):
+		return false
+	var pe: Dictionary = pair_metrics[k]
+	return int(pe.get("affinity", 0)) <= int(dials.get("avoid_affinity_threshold", -25)) \
+		or int(pe.get("tension", 0)) >= int(dials.get("avoid_tension_threshold", 30))
+
+## Devuelve los ids de `candidate_ids` a los que `person_id` debería evitar.
+func get_avoid_ids(person_id: String, candidate_ids: Array) -> Array[String]:
+	var out: Array[String] = []
+	for cid in candidate_ids:
+		var c: String = str(cid)
+		if c != person_id and should_avoid(person_id, c):
+			out.append(c)
+	return out
+
+## Cuántas quedadas lleva hoy una persona.
+func get_hangouts_today(person_id: String, current_day: int) -> int:
+	var rec: Dictionary = hangout_day_counts.get(person_id, {})
+	return int(rec.get("count", 0)) if int(rec.get("day", -1)) == current_day else 0
+
+func _register_hangout_today(person_id: String, current_day: int) -> void:
+	hangout_day_counts[person_id] = {"day": current_day, "count": get_hangouts_today(person_id, current_day) + 1}
+
+## Puntuación de "ganas de quedar" de un par (-1 si no es elegible: rivales, poca relación o sin chispa).
+func get_hangout_score(id_a: String, id_b: String) -> int:
+	var k: String = make_pair_key(id_a, id_b)
+	if k == "" or not pair_metrics.has(k) or should_avoid(id_a, id_b):
+		return -1
+	var pe: Dictionary = pair_metrics[k]
+	var aff: int = int(pe.get("affinity", 0))
+	var spk: int = int(pe.get("spark", 0))
+	var stage: String = str(pe.get("stage", STAGE_NONE))
+	var romantic: bool = stage in [STAGE_FLIRT, STAGE_DATING, STAGE_COUPLE]
+	if aff < int(dials.get("hangout_min_affinity", 25)) and spk < int(dials.get("hangout_min_spark", 18)) and not romantic:
+		return -1
+	var score: int = aff + int(float(spk) * 0.8)
+	match stage:
+		STAGE_COUPLE: score += 30
+		STAGE_DATING: score += 20
+		STAGE_FLIRT: score += 10
+	return maxi(1, score)
+
+func is_person_in_hangout(person_id: String) -> bool:
+	return not get_active_hangout_for(person_id).is_empty()
+
+func get_active_hangout_for(person_id: String) -> Dictionary:
+	for hg in active_hangouts:
+		if str(hg.get("actor_a_id", "")) == person_id or str(hg.get("actor_b_id", "")) == person_id:
+			return hg
+	return {}
+
+## Elige con quién quedar entre `candidate_ids` (amigos o vecinos con chispa, libres y sin cupo diario agotado).
+## Selección ponderada por puntuación para que no salga siempre el mismo. Devuelve "" si nadie encaja.
+func pick_hangout_partner(person_id: String, candidate_ids: Array, hour: int, current_day: int) -> String:
+	if person_id == "" or not is_social_hour(hour):
+		return ""
+	var max_per_day: int = int(dials.get("hangout_max_per_person_per_day", 1))
+	if is_person_in_hangout(person_id) or get_hangouts_today(person_id, current_day) >= max_per_day:
+		return ""
+	var pool: Array[String] = []
+	var weights: Array[int] = []
+	var total: int = 0
+	for cid in candidate_ids:
+		var c: String = str(cid)
+		if c == "" or c == person_id or is_person_in_hangout(c) or get_hangouts_today(c, current_day) >= max_per_day:
+			continue
+		var sc: int = get_hangout_score(person_id, c)
+		if sc <= 0:
+			continue
+		pool.append(c)
+		weights.append(sc)
+		total += sc
+	if pool.is_empty():
+		return ""
+	var r: int = rng.randi_range(1, total)
+	for i in range(pool.size()):
+		r -= weights[i]
+		if r <= 0:
+			return pool[i]
+	return pool[pool.size() - 1]
+
+## Elige el punto de encuentro compartido entre los `spots` ofrecidos por el mundo: [{id, pos: Vector2, kind}].
+## kinds: "tavern" (mejor por la tarde), "plaza"/"well" (mejor de día), "bench"/"campfire" (preferidos por parejas).
+## Penaliza la distancia total de ambos y descarta los puntos ya ocupados por otra quedada.
+func pick_shared_hangout_spot(spots: Array, pos_a: Vector2, pos_b: Vector2, hour: int, stage: String = STAGE_NONE) -> Dictionary:
+	var best: Dictionary = {}
+	var best_score: float = -INF
+	var romantic: bool = stage in [STAGE_FLIRT, STAGE_DATING, STAGE_COUPLE]
+	for sp in spots:
+		if typeof(sp) != TYPE_DICTIONARY or not sp.has("pos"):
+			continue
+		var sid: String = str(sp.get("id", ""))
+		var occupied: bool = false
+		for hg in active_hangouts:
+			if str(hg.get("spot_id", "")) == sid and sid != "":
+				occupied = true
+				break
+		if occupied:
+			continue
+		var p: Vector2 = sp["pos"]
+		var kind: String = str(sp.get("kind", "plaza"))
+		var s: float = -(pos_a.distance_to(p) + pos_b.distance_to(p)) * 0.05
+		match kind:
+			"tavern": s += 14.0 if hour >= 18 else 2.0
+			"plaza", "well": s += 10.0 if hour < 18 else 4.0
+			"bench", "campfire": s += 12.0 if romantic else 5.0
+		s += rng.randf_range(0.0, 6.0)
+		if s > best_score:
+			best_score = s
+			best = sp
+	return best
+
+## Abre una quedada (fase de viaje). Respeta `max_concurrent_hangouts` y el cupo diario de cada uno.
+func start_hangout(id_a: String, id_b: String, spot: Dictionary, current_day: int) -> Dictionary:
+	if make_pair_key(id_a, id_b) == "" or spot.is_empty() or not spot.has("pos"):
+		return {}
+	if active_hangouts.size() >= int(dials.get("max_concurrent_hangouts", 2)):
+		return {}
+	if is_person_in_hangout(id_a) or is_person_in_hangout(id_b) or should_avoid(id_a, id_b):
+		return {}
+	var max_per_day: int = int(dials.get("hangout_max_per_person_per_day", 1))
+	if get_hangouts_today(id_a, current_day) >= max_per_day or get_hangouts_today(id_b, current_day) >= max_per_day:
+		return {}
+	_hangout_seq += 1
+	var hg: Dictionary = {
+		"id": _hangout_seq,
+		"actor_a_id": id_a,
+		"actor_b_id": id_b,
+		"spot_id": str(spot.get("id", "")),
+		"spot_kind": str(spot.get("kind", "plaza")),
+		"spot_pos": spot["pos"],
+		"phase": HANGOUT_PHASE_TRAVEL,
+		"arrived_a": false,
+		"arrived_b": false,
+		"travel_remaining": float(dials.get("hangout_travel_timeout_sec", 60.0)),
+		"together_remaining": float(dials.get("hangout_together_sec", 45.0)),
+		"started_day": current_day,
+	}
+	active_hangouts.append(hg)
+	_register_hangout_today(id_a, current_day)
+	_register_hangout_today(id_b, current_day)
+	var pe: Dictionary = get_pair_entry(id_a, id_b)
+	if not pe.is_empty():
+		pe["last_contact_day"] = current_day
+	return hg
+
+## Atajo: elige compañero + punto y abre la quedada en un solo paso. `positions` = {person_id: Vector2}.
+func try_plan_hangout(person_id: String, candidate_ids: Array, positions: Dictionary, spots: Array, hour: int, current_day: int) -> Dictionary:
+	var partner: String = pick_hangout_partner(person_id, candidate_ids, hour, current_day)
+	if partner == "":
+		return {}
+	var stage: String = str(get_pair_entry(person_id, partner).get("stage", STAGE_NONE))
+	var spot: Dictionary = pick_shared_hangout_spot(spots, positions.get(person_id, Vector2.ZERO), positions.get(partner, Vector2.ZERO), hour, stage)
+	if spot.is_empty():
+		return {}
+	return start_hangout(person_id, partner, spot, current_day)
+
+## Marca la llegada de un participante al punto. Cuando llegan ambos, pasa a fase "together". Devuelve true si ya están juntos.
+func mark_hangout_arrival(hangout_id: int, person_id: String) -> bool:
+	for hg in active_hangouts:
+		if int(hg.get("id", -1)) != hangout_id:
+			continue
+		if str(hg.get("actor_a_id", "")) == person_id:
+			hg["arrived_a"] = true
+		elif str(hg.get("actor_b_id", "")) == person_id:
+			hg["arrived_b"] = true
+		if bool(hg.get("arrived_a", false)) and bool(hg.get("arrived_b", false)):
+			hg["phase"] = HANGOUT_PHASE_TOGETHER
+		return str(hg.get("phase", "")) == HANGOUT_PHASE_TOGETHER
+	return false
+
+func cancel_hangout(hangout_id: int, reason: String = "cancelled") -> void:
+	for i in range(active_hangouts.size() - 1, -1, -1):
+		if int(active_hangouts[i].get("id", -1)) == hangout_id:
+			var hg: Dictionary = active_hangouts[i]
+			active_hangouts.remove_at(i)
+			finished_hangouts.append({"id": hangout_id, "actor_a_id": hg.get("actor_a_id", ""), "actor_b_id": hg.get("actor_b_id", ""), "success": false, "reason": reason})
+			return
+
+## Cierra una quedada completada y aplica el bono suave al par (afinidad, familiaridad, chispa si procede, alivio de tensión).
+func _complete_hangout(hg: Dictionary) -> Dictionary:
+	var id_a: String = str(hg.get("actor_a_id", ""))
+	var id_b: String = str(hg.get("actor_b_id", ""))
+	var pe: Dictionary = get_pair_entry(id_a, id_b)
+	var res: Dictionary = {"id": int(hg.get("id", 0)), "actor_a_id": id_a, "actor_b_id": id_b, "spot_kind": str(hg.get("spot_kind", "")), "success": true, "reason": "completed"}
+	if pe.is_empty():
+		return res
+	var d_aff: int = rng.randi_range(int(dials.get("hangout_bonus_affinity_min", 3)), int(dials.get("hangout_bonus_affinity_max", 6)))
+	var d_fam: int = rng.randi_range(int(dials.get("hangout_bonus_familiarity_min", 4)), int(dials.get("hangout_bonus_familiarity_max", 7)))
+	var d_ten: int = rng.randi_range(int(dials.get("hangout_tension_relief_min", 3)), int(dials.get("hangout_tension_relief_max", 6)))
+	var d_spk: int = 0
+	if int(pe.get("spark", 0)) > 0 or str(pe.get("stage", STAGE_NONE)) != STAGE_NONE:
+		d_spk = rng.randi_range(int(dials.get("hangout_bonus_spark_min", 2)), int(dials.get("hangout_bonus_spark_max", 4)))
+	pe["affinity"] = clampi(int(pe.get("affinity", 0)) + d_aff, -100, 100)
+	pe["familiarity"] = clampi(int(pe.get("familiarity", 0)) + d_fam, 0, 100)
+	pe["tension"] = clampi(int(pe.get("tension", 0)) - d_ten, 0, 100)
+	pe["spark"] = clampi(int(pe.get("spark", 0)) + d_spk, 0, 100)
+	res["delta_affinity"] = d_aff
+	res["delta_familiarity"] = d_fam
+	res["delta_spark"] = d_spk
+	res["delta_tension"] = -d_ten
+	res["affinity"] = int(pe["affinity"])
+	return res
+
+func _tick_hangouts(delta: float) -> void:
+	for i in range(active_hangouts.size() - 1, -1, -1):
+		var hg: Dictionary = active_hangouts[i]
+		if str(hg.get("phase", "")) == HANGOUT_PHASE_TOGETHER:
+			var rem_t: float = float(hg.get("together_remaining", 0.0)) - delta
+			hg["together_remaining"] = rem_t
+			if rem_t <= 0.0:
+				active_hangouts.remove_at(i)
+				finished_hangouts.append(_complete_hangout(hg))
+		else:
+			var rem_v: float = float(hg.get("travel_remaining", 0.0)) - delta
+			hg["travel_remaining"] = rem_v
+			if rem_v <= 0.0:
+				active_hangouts.remove_at(i)
+				finished_hangouts.append({"id": int(hg.get("id", 0)), "actor_a_id": hg.get("actor_a_id", ""), "actor_b_id": hg.get("actor_b_id", ""), "success": false, "reason": "travel_timeout"})
+
+## Devuelve y vacía los resultados de quedadas terminadas (para que el mundo muestre burbujas / humor en B2.2).
+func pop_finished_hangouts() -> Array[Dictionary]:
+	var out: Array[Dictionary] = finished_hangouts.duplicate()
+	finished_hangouts.clear()
+	return out
 
 ## Enfriamiento diario para pares sin contacto en `current_day`.
 func on_day_passed(current_day: int) -> void:
@@ -339,6 +608,7 @@ func to_save_dict() -> Dictionary:
 		"rng_state": rng.state,
 		"last_drama_day": last_drama_day,
 		"pair_metrics": pair_metrics.duplicate(true),
+		"hangout_day_counts": hangout_day_counts.duplicate(true),
 	}
 
 func from_save_dict(d: Dictionary) -> void:
@@ -347,7 +617,11 @@ func from_save_dict(d: Dictionary) -> void:
 	last_drama_day = int(d.get("last_drama_day", -10))
 	if d.has("pair_metrics") and typeof(d["pair_metrics"]) == TYPE_DICTIONARY:
 		pair_metrics = (d["pair_metrics"] as Dictionary).duplicate(true)
+	if d.has("hangout_day_counts") and typeof(d["hangout_day_counts"]) == TYPE_DICTIONARY:
+		hangout_day_counts = (d["hangout_day_counts"] as Dictionary).duplicate(true)
 	active_scenes.clear()
+	active_hangouts.clear()
+	finished_hangouts.clear()
 
 ## B0.9: Simula un día completo de interacciones sociales entre un conjunto de fichas (`id -> PersonProfile`) y familias (`id -> family_id`).
 ## Devuelve las novedades ocurridas en el día: `{"new_couples": Array, "fights": Array}`.

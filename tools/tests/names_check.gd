@@ -138,5 +138,58 @@ func _initialize() -> void:
 	sdir.tick(4.0)
 	var conv_after_tick: Dictionary = sdir.resolve_live_conversation(mock_pairs[3][0], mock_pairs[3][1], 5)
 	assert(bool(conv_after_tick.get("allowed", false)), "Tras expirar las escenas de 3.2s, debe permitirse una nueva conversacion")
-	print("NAMES CHECK PASSED (200 F / 200 M / 200 apellidos + 17 PersonProfile + B0.3 generator + B1.1/B1.2 social)")
+	# B2.1: Quedadas (pasar tiempo juntos) y rivales que se evitan
+	var hd = SocialDirector.new(777)
+	hd.set_pair_metrics("kael", "mila", 60, 40, 0, 0)       # amigos
+	hd.set_pair_metrics("kael", "nora", 10, 10, 25, 0, SocialDirector.STAGE_FLIRT)  # coqueteo
+	hd.set_pair_metrics("kael", "garrick", -40, 10, 0, 45)  # rivales
+	hd.set_pair_metrics("kael", "bram", 5, 5, 0, 0)         # neutros
+	assert(hd.should_avoid("kael", "garrick"), "Rivales deben evitarse")
+	assert(not hd.should_avoid("kael", "mila"), "Amigos no deben evitarse")
+	var avoid_ids: Array = hd.get_avoid_ids("kael", ["mila", "garrick", "bram"])
+	assert(avoid_ids.size() == 1 and str(avoid_ids[0]) == "garrick", "get_avoid_ids debe devolver solo al rival")
+	assert(hd.get_hangout_score("kael", "garrick") == -1 and hd.get_hangout_score("kael", "bram") == -1, "Rival y neutro no son elegibles")
+	assert(hd.get_hangout_score("kael", "mila") > 0 and hd.get_hangout_score("kael", "nora") > 0, "Amigo y coqueteo si son elegibles")
+	assert(not hd.is_social_hour(10) and hd.is_social_hour(19), "Horas sociales: 12h y 18-21h")
+	assert(hd.pick_hangout_partner("kael", ["mila", "nora", "garrick", "bram"], 10, 3) == "", "Fuera de hora social no se queda")
+	var cands: Array = ["mila", "nora", "garrick", "bram"]
+	for _r in range(40):
+		var pk: String = hd.pick_hangout_partner("kael", cands, 19, 3)
+		assert(pk == "mila" or pk == "nora", "Solo amigos o con chispa pueden ser elegidos (salio: %s)" % pk)
+	var spots: Array = [
+		{"id": "tavern", "pos": Vector2(375, -182), "kind": "tavern"},
+		{"id": "plaza", "pos": Vector2(412, 54), "kind": "plaza"},
+		{"id": "far_bench", "pos": Vector2(5000, 5000), "kind": "bench"},
+	]
+	var sp_ev: Dictionary = hd.pick_shared_hangout_spot(spots, Vector2(380, -150), Vector2(400, -170), 19)
+	assert(str(sp_ev.get("id", "")) == "tavern", "Por la tarde y cerca, debe elegirse la taberna")
+	var sp_far: Dictionary = hd.pick_shared_hangout_spot(spots, Vector2(400, 40), Vector2(420, 60), 12)
+	assert(str(sp_far.get("id", "")) == "plaza", "A mediodia junto a la plaza debe elegirse la plaza (nunca el banco lejano)")
+	var positions: Dictionary = {"kael": Vector2(380, -150), "mila": Vector2(400, -170), "nora": Vector2(390, -160)}
+	var hg: Dictionary = hd.try_plan_hangout("kael", ["mila"], positions, spots, 19, 3)
+	assert(not hg.is_empty() and str(hg.get("phase", "")) == SocialDirector.HANGOUT_PHASE_TRAVEL, "Debe abrirse una quedada en fase de viaje")
+	assert(hd.is_person_in_hangout("kael") and hd.is_person_in_hangout("mila"), "Ambos deben quedar ocupados")
+	assert(hd.pick_hangout_partner("nora", ["kael"], 19, 3) == "", "No se puede quedar con alguien ya ocupado")
+	assert(hd.start_hangout("kael", "nora", spots[1], 3).is_empty(), "Nadie puede estar en dos quedadas")
+	assert(hd.pick_shared_hangout_spot([spots[0]], Vector2.ZERO, Vector2.ZERO, 19).is_empty(), "Un punto ocupado no se reutiliza")
+	var aff_before: int = int(hd.get_pair_entry("kael", "mila")["affinity"])
+	assert(not hd.mark_hangout_arrival(int(hg["id"]), "kael"), "Con uno solo no estan juntos")
+	assert(hd.mark_hangout_arrival(int(hg["id"]), "mila"), "Al llegar ambos pasan a fase juntos")
+	hd.tick(50.0)
+	var fin: Array = hd.pop_finished_hangouts()
+	assert(fin.size() == 1 and bool(fin[0].get("success", false)), "La quedada debe completarse con exito")
+	assert(int(hd.get_pair_entry("kael", "mila")["affinity"]) > aff_before, "La quedada sube la afinidad")
+	assert(not hd.is_person_in_hangout("kael"), "Al terminar quedan libres")
+	assert(hd.pick_hangout_partner("kael", cands, 20, 3) == "", "Cupo de 1 quedada por persona y dia")
+	assert(hd.pick_hangout_partner("kael", cands, 19, 4) != "", "Al dia siguiente puede volver a quedar")
+	var hg2: Dictionary = hd.start_hangout("kael", "nora", spots[1], 4)
+	assert(not hg2.is_empty(), "Segunda quedada (dia 4) debe abrirse")
+	hd.tick(61.0)
+	var fin2: Array = hd.pop_finished_hangouts()
+	assert(fin2.size() == 1 and str(fin2[0].get("reason", "")) == "travel_timeout", "Si no llegan, la quedada caduca sin bono")
+	var hd_save: Dictionary = hd.to_save_dict()
+	var hd2 = SocialDirector.new(1)
+	hd2.from_save_dict(hd_save)
+	assert(hd2.get_hangouts_today("kael", 4) == 1 and hd2.active_hangouts.is_empty(), "Guardado: cupo diario persiste, quedadas activas no")
+	print("NAMES CHECK PASSED (200 F / 200 M / 200 apellidos + 17 PersonProfile + B0.3 generator + B1.1/B1.2 social + B2.1 hangouts)")
 	quit(0)

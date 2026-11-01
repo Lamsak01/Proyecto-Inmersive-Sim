@@ -154,7 +154,7 @@ Otros documentos antiguos en la raíz: `ROADMAP_PROYECTO.md`, `AUDIT_LOG.md`, `S
 - [x] **B1.3** HECHO. Escena en vivo de 2 turnos en `VillageNPC.gd` (burbuja de apertura de A → respuesta diferida ~1.8 s de B con actualización de relación y nota) y test automático #21 en `tools/tests/verify_all.gd`.
 
 **Fase 2 — Pasar tiempo juntos**
-- [ ] **B2.1** Selección de punto de encuentro compartido (`pick_shared_hangout_spot`) y gestión de actividad compartida activa en `SocialDirector.gd` (para amigos o vecinos con buena chispa en horario libre/social).
+- [x] **B2.1** HECHO. Lógica de quedadas en `SocialDirector.gd` (sin física): `is_social_hour` (12h y 18-21h), `should_avoid`/`get_avoid_ids` (rivales: afinidad ≤ −25 o tensión ≥ 30), `get_hangout_score`, `pick_hangout_partner` (ponderado, solo amigos/chispa/coqueteo, libres y con cupo de 1 quedada/día), `pick_shared_hangout_spot` (spots `{id,pos,kind}` del mundo: taberna por la tarde, plaza/pozo de día, banco/fogata para parejas; penaliza distancia y descarta ocupados), `start_hangout`/`try_plan_hangout`, `mark_hangout_arrival` (viaje → juntos), caducidad por viaje (60 s), bono suave al completar (45 s juntos) y `pop_finished_hangouts()`. Máx. 2 quedadas simultáneas; cupo diario guardado en partida. Diales en `DIALS`. Verificado en `tools/tests/names_check.gd`.
 - [ ] **B2.2** Ejecución física en `VillageNPC.gd` y `VillageManager.gd` (ambos vecinos caminan al mismo banco/mesa/fogata, charlan al coincidir y ganan un bono suave de humor y afinidad) + test automático en `tools/tests/verify_all.gd`.
 
 **Fase 3** Parejas (chispa, etapas, celos, duelo) ·
