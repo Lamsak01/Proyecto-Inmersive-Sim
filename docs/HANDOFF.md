@@ -57,6 +57,9 @@ en los bloques de la sección 7. Continúa por el primer bloque sin marcar [x].
 # Test completo (debe imprimir "...TESTS PASSED!" y salir con código 0). Tarda ~15 s.
 timeout 80 flatpak run org.godotengine.Godot --headless --path . -s tools/tests/verify_all.gd > /tmp/t.log 2>&1; grep -c 'TESTS PASSED' /tmp/t.log
 
+# Test de nombres (rápido, ~2 s; debe imprimir "NAMES CHECK PASSED"):
+timeout 60 flatpak run org.godotengine.Godot --headless --path . -s tools/tests/names_check.gd 2>&1 | tail -3
+
 # Cobertura de diálogos: ejecuta todas las acciones de diálogo de todos los NPC. Debe dar 0 "SCRIPT ERROR".
 timeout 80 flatpak run org.godotengine.Godot --headless --path . -s tools/tests/dialogue_coverage.gd > /tmp/c.log 2>&1; grep 'COVERAGE DONE' /tmp/c.log; grep -c 'SCRIPT ERROR' /tmp/c.log
 ```
@@ -122,7 +125,7 @@ Otros documentos antiguos en la raíz: `ROADMAP_PROYECTO.md`, `AUDIT_LOG.md`, `S
 ### Bloques del sistema de Vida Social (marca [x] al terminar y commitea)
 
 **Fase 0 — Cimientos**
-- [ ] **B0.1** `scripts/data/NPCNames.gd`: 200 nombres femeninos, 200 masculinos (variedad latina/europea/americana) y apellidos. Función para elegir un nombre único. Sin tocar el juego.
+- [x] **B0.1** HECHO. `scripts/data/NPCNames.gd`: 200 nombres femeninos, 200 masculinos y 200 apellidos (variedad latina/europea/americana). API: `pick_first_name(gender, rng, used_names)`, `pick_surname(rng)`, `make_person_name(gender, rng, used_names)`; género `"F"`/`"M"`; reproducible con semilla. Test: `tools/tests/names_check.gd`. Aún NO está conectado al juego (eso es B0.3).
 - [ ] **B0.2** Ficha de persona (`PersonProfile`): id único, género, edad numérica, personalidad (3 rasgos), gustos, estado sentimental. Tabla con los 17 vecinos actuales (género y edad según su historia; el lore puede retocarse).
 - [ ] **B0.3** Generador de vecinos nuevos (nombre único, género equilibrado, edad según oficio, personalidad y gustos) y **unificar los 5 puntos de creación** para que lo usen.
 - [ ] **B0.4** Migrar las relaciones a claves únicas; que un fallecido no pueda heredarse; limpiar entradas de muertos.
