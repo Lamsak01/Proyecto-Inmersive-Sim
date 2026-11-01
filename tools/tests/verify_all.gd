@@ -382,12 +382,19 @@ func _initialize() -> void:
 	bram_npc.ensure_npc_relationships_initialized()
 	mila_npc.ensure_npc_relationships_initialized()
 	assert(bram_npc.get_relationship_with_npc("Mila") == 85, "Family members Bram and Mila must start at +85 close family relationship!")
+	assert(bram_npc.npc_relationships.has("mila") and not bram_npc.npc_relationships.has("Mila"), "B0.4: relationships must be indexed by unique person_id ('mila'), not display name!")
 	assert(bram_npc.get_relationship_with_npc("Comisario Vane") == -26, "Bram and Sheriff Vane must start with their predefined lore relationship (-26)!")
 	# Simulate a "por azares del destino" reconciliation from rival (-30) to friend (+25)
 	bram_npc.npc_relationships["Comisario Vane"] = -30
 	sheriff_npc.npc_relationships["Bram"] = -30
 	bram_npc.modify_npc_relationship(sheriff_npc, 55, "Se salvaron mutuamente durante una tormenta")
 	assert(bram_npc.get_relationship_with_npc("Comisario Vane") == 25 and "Por azares del destino" in bram_npc.get_relationship_note_with_npc("Comisario Vane"), "Rivals crossing from <= -20 to >= +20 must record a 'Por azares del destino' reconciliation note!")
+	assert(bram_npc.npc_relationships.has("vane") and not bram_npc.npc_relationships.has("Comisario Vane"), "B0.4: legacy name keys must migrate to person_id!")
+	# B0.4: Verify deceased relationship cleanup and non-inheritance
+	bram_npc.purge_deceased_relationship("mila", "Mila")
+	assert(not bram_npc.npc_relationships.has("mila"), "B0.4: purge_deceased_relationship must remove deceased entry!")
+	bram_npc.ensure_npc_relationships_initialized()
+	assert(bram_npc.get_relationship_with_npc("mila") == 85, "Living Mila re-initializes cleanly")
 
 	# 16. Test Worried Family Missing-Person Search (Shop Search 8s -> Police Report 10s -> Police Search Patrol)
 	assert(elena_npc != null and tomas_npc != null, "Elena and Tomás must exist for family search test")

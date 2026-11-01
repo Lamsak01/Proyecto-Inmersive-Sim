@@ -665,55 +665,111 @@ func _resolve_unique_64_visuals_and_lore(fallback_tex: Texture2D = null) -> void
 
 const INITIAL_NPC_RELATIONS: Dictionary = NPCData.INITIAL_NPC_RELATIONS
 
-## Inicializa de forma determinista y basada en el lore las relaciones iniciales de este NPC con todos los vecinos del pueblo
+## Devuelve el identificador único (`person_id`) de un vecino a partir de su `person_id` o `npc_name` (solo entre vecinos vivos).
+func resolve_person_id_key(key_or_name: String) -> String:
+	var clean := key_or_name.strip_edges()
+	if clean == "":
+		return ""
+	if is_inside_tree():
+		for n in get_tree().get_nodes_in_group("village_npcs"):
+			if n is VillageNPC and not n.is_dead:
+				var vn := n as VillageNPC
+				var pid: String = str(vn.person_profile.person_id) if vn.person_profile != null else vn.npc_id
+				if pid == clean or vn.npc_name == clean:
+					return pid if pid != "" else vn.npc_name
+	var lookup_name: String = str(NPC_NAME_ALIASES.get(clean, clean))
+	if INITIAL_PERSON_PROFILES.has(lookup_name):
+		return str(INITIAL_PERSON_PROFILES[lookup_name].get("person_id", clean))
+	return clean
+
+## Migra al vuelo cualquier entrada en `npc_relationships` / `npc_relationship_notes` que hubiera sido escrita con `npc_name` en vez de `person_id`.
+func _migrate_legacy_relationship_keys() -> void:
+	if not is_inside_tree():
+		return
+	for n in get_tree().get_nodes_in_group("village_npcs"):
+		if not (n is VillageNPC) or n == self or n.is_dead:
+			continue
+		var other := n as VillageNPC
+		var o_id: String = str(other.person_profile.person_id) if other.person_profile != null else other.npc_id
+		var o_name: String = other.npc_name
+		if o_id != "" and o_name != "" and o_id != o_name:
+			if npc_relationships.has(o_name):
+				npc_relationships[o_id] = int(npc_relationships[o_name])
+				npc_relationships.erase(o_name)
+			if npc_relationship_notes.has(o_name):
+				npc_relationship_notes[o_id] = str(npc_relationship_notes[o_name])
+				npc_relationship_notes.erase(o_name)
+
+## Elimina de este NPC cualquier vínculo con un fallecido para no acumular basura ni permitir herencias fantasma.
+func purge_deceased_relationship(dead_id: String, dead_name: String = "") -> void:
+	if dead_id != "":
+		npc_relationships.erase(dead_id)
+		npc_relationship_notes.erase(dead_id)
+	if dead_name != "":
+		npc_relationships.erase(dead_name)
+		npc_relationship_notes.erase(dead_name)
+
+## Inicializa de forma determinista y basada en el lore las relaciones iniciales de este NPC con todos los vecinos vivos del pueblo (indexadas por `person_id`).
 func ensure_npc_relationships_initialized() -> void:
 	if not is_inside_tree():
 		return
+	_migrate_legacy_relationship_keys()
+	var my_id: String = str(person_profile.person_id) if person_profile != null else npc_id
 	for n in get_tree().get_nodes_in_group("village_npcs"):
 		if not (n is VillageNPC) or n == self:
 			continue
 		var other := n as VillageNPC
+		if other.is_dead:
+			continue
 		var o_name: String = other.npc_name
-		if o_name == "" or npc_relationships.has(o_name):
+		var o_id: String = str(other.person_profile.person_id) if other.person_profile != null else other.npc_id
+		var key: String = o_id if o_id != "" else o_name
+		if key == "" or npc_relationships.has(key):
 			continue
 		if family_id != "none" and family_id != "" and family_id != "family_police" and other.family_id == family_id:
-			npc_relationships[o_name] = 85
-			npc_relationship_notes[o_name] = "Familia cercana (%s)" % family_name
+			npc_relationships[key] = 85
+			npc_relationship_notes[key] = "Familia cercana (%s)" % family_name
 			continue
 		var k1: String = "%s|%s" % [npc_name, o_name]
 		var k2: String = "%s|%s" % [o_name, npc_name]
 		if INITIAL_NPC_RELATIONS.has(k1):
 			var info1: Array = INITIAL_NPC_RELATIONS[k1]
-			npc_relationships[o_name] = int(info1[0])
-			npc_relationship_notes[o_name] = str(info1[1])
+			npc_relationships[key] = int(info1[0])
+			npc_relationship_notes[key] = str(info1[1])
 		elif INITIAL_NPC_RELATIONS.has(k2):
 			var info2: Array = INITIAL_NPC_RELATIONS[k2]
-			npc_relationships[o_name] = int(info2[0])
-			npc_relationship_notes[o_name] = str(info2[1])
+			npc_relationships[key] = int(info2[0])
+			npc_relationship_notes[key] = str(info2[1])
 		else:
-			var pair_hash: int = abs((npc_name + "_" + o_name).hash() if npc_name < o_name else (o_name + "_" + npc_name).hash())
+			var a_key: String = my_id if my_id != "" else npc_name
+			var pair_hash: int = abs((a_key + "_" + key).hash() if a_key < key else (key + "_" + a_key).hash())
 			var base_rel: int = (pair_hash % 45) - 18
 			if trade_role == TradeRole.INNKEEPER or other.trade_role == TradeRole.INNKEEPER:
 				base_rel = maxi(base_rel, 18)
-			npc_relationships[o_name] = clampi(base_rel, -100, 100)
+			npc_relationships[key] = clampi(base_rel, -100, 100)
 			if base_rel >= 20:
-				npc_relationship_notes[o_name] = "Simpatía vecinal y charlas en la plaza"
+				npc_relationship_notes[key] = "Simpatía vecinal y charlas en la plaza"
 			elif base_rel <= -12:
-				npc_relationship_notes[o_name] = "Roce de carácter y opiniones distintas"
+				npc_relationship_notes[key] = "Roce de carácter y opiniones distintas"
 			else:
-				npc_relationship_notes[o_name] = "Trato vecinal cotidiano"
+				npc_relationship_notes[key] = "Trato vecinal cotidiano"
 
-func get_relationship_with_npc(other_name: String) -> int:
-	if other_name == "" or other_name == npc_name:
+func get_relationship_with_npc(other_key_or_name: String) -> int:
+	var my_id: String = str(person_profile.person_id) if person_profile != null else npc_id
+	if other_key_or_name == "" or other_key_or_name == npc_name or other_key_or_name == my_id:
 		return 0
-	if not npc_relationships.has(other_name):
+	_migrate_legacy_relationship_keys()
+	var key: String = resolve_person_id_key(other_key_or_name)
+	if not npc_relationships.has(key):
 		ensure_npc_relationships_initialized()
-	return clampi(int(npc_relationships.get(other_name, 0)), -100, 100)
+	return clampi(int(npc_relationships.get(key, 0)), -100, 100)
 
-func get_relationship_note_with_npc(other_name: String) -> String:
-	if not npc_relationship_notes.has(other_name):
+func get_relationship_note_with_npc(other_key_or_name: String) -> String:
+	_migrate_legacy_relationship_keys()
+	var key: String = resolve_person_id_key(other_key_or_name)
+	if not npc_relationship_notes.has(key):
 		ensure_npc_relationships_initialized()
-	return str(npc_relationship_notes.get(other_name, "Trato vecinal cotidiano"))
+	return str(npc_relationship_notes.get(key, "Trato vecinal cotidiano"))
 
 static func get_relationship_tier_label(val: int, is_same_family: bool = false) -> String:
 	if is_same_family and val >= 50:
@@ -734,29 +790,31 @@ static func get_relationship_tier_label(val: int, is_same_family: bool = false) 
 
 ## Modifica dinámicamente la relación mutua entre dos NPCs y detecta giros dramáticos ("por azares del destino")
 func modify_npc_relationship(other: VillageNPC, delta_val: int, reason: String = "") -> void:
-	if other == null or other == self or other.npc_name == "":
+	if other == null or other == self or other.is_dead or other.npc_name == "":
 		return
 	ensure_npc_relationships_initialized()
 	other.ensure_npc_relationships_initialized()
-	var old_val: int = get_relationship_with_npc(other.npc_name)
+	var my_key: String = str(person_profile.person_id) if person_profile != null and str(person_profile.person_id) != "" else (npc_id if npc_id != "" else npc_name)
+	var other_key: String = str(other.person_profile.person_id) if other.person_profile != null and str(other.person_profile.person_id) != "" else (other.npc_id if other.npc_id != "" else other.npc_name)
+	var old_val: int = get_relationship_with_npc(other_key)
 	var new_val: int = clampi(old_val + delta_val, -100, 100)
-	npc_relationships[other.npc_name] = new_val
-	other.npc_relationships[npc_name] = clampi(other.get_relationship_with_npc(npc_name) + delta_val, -100, 100)
+	npc_relationships[other_key] = new_val
+	other.npc_relationships[my_key] = clampi(other.get_relationship_with_npc(my_key) + delta_val, -100, 100)
 	if reason != "":
-		npc_relationship_notes[other.npc_name] = reason
-		other.npc_relationship_notes[npc_name] = reason
+		npc_relationship_notes[other_key] = reason
+		other.npc_relationship_notes[my_key] = reason
 	# Giro de "azares del destino": dos rivales/enemigos que pasan a llevarse bien (o amigos que riñen)
 	if old_val <= -20 and new_val >= 20:
 		var twist_note: String = "🌟 Por azares del destino dejaron atrás su enemistad (%s)" % (reason if reason != "" else "Reconciliación inesperada")
-		npc_relationship_notes[other.npc_name] = twist_note
-		other.npc_relationship_notes[npc_name] = twist_note
+		npc_relationship_notes[other_key] = twist_note
+		other.npc_relationship_notes[my_key] = twist_note
 		add_thought("Me reconcilié con mi antiguo rival %s (+12)" % other.npc_name, 12.0)
 		other.add_thought("Me reconcilié con mi antiguo rival %s (+12)" % npc_name, 12.0)
 		_spawn_floating_text("🌟🤝 ¡Por azares del destino, %s y %s dejaron atrás su enemistad!" % [npc_name, other.npc_name], Color.GOLD, -44.0)
 	elif old_val >= 30 and new_val <= -20:
 		var feud_note: String = "⚡ Antiguos amigos enemistados (%s)" % (reason if reason != "" else "Disputa grave")
-		npc_relationship_notes[other.npc_name] = feud_note
-		other.npc_relationship_notes[npc_name] = feud_note
+		npc_relationship_notes[other_key] = feud_note
+		other.npc_relationship_notes[my_key] = feud_note
 		add_thought("Ruptura de amistad con %s (-10)" % other.npc_name, -10.0)
 		_spawn_floating_text("💢⚡ ¡%s y %s rompieron su amistad tras una fuerte disputa!" % [npc_name, other.npc_name], Color.ORANGE_RED, -44.0)
 
@@ -3709,6 +3767,11 @@ func _confirm_true_death() -> void:
 	is_downed = false
 	bleedout_timer = 0.0
 	is_dead = true
+	var my_dead_id: String = str(person_profile.person_id) if person_profile != null and str(person_profile.person_id) != "" else npc_id
+	if is_inside_tree():
+		for n_other in get_tree().get_nodes_in_group("village_npcs"):
+			if n_other is VillageNPC and n_other != self and not n_other.is_dead:
+				(n_other as VillageNPC).purge_deceased_relationship(my_dead_id, npc_name)
 	_stop_crafting_bar()
 	corpse_on_ground = true
 	corpse_discovered = false
