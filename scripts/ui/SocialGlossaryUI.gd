@@ -313,31 +313,9 @@ func refresh_ui(rebuild_lists: bool = true) -> void:
 		for npc_init in all_npcs:
 			npc_init.ensure_npc_relationships_initialized()
 
-	# 1. Poblar Columna Izquierda (Lista de Vecinos) — solo al abrir o cambiar selección (evita lag)
+	# 1. Lista de Vecinos (Izquierda) — los botones se crean UNA sola vez y luego solo se actualiza su texto/estilo (evita micro-lag al cambiar de vecino)
 	if rebuild_lists:
-		for ch in _npc_list_vbox.get_children():
-			ch.queue_free()
-
-	for v in (all_npcs if rebuild_lists else []):
-		var btn := Button.new()
-		btn.alignment = HORIZONTAL_ALIGNMENT_LEFT
-		btn.custom_minimum_size = Vector2(0, 32)
-		var st_icon: String = "💀" if v.is_dead else ("😟" if is_instance_valid(v._searching_missing_kin) else ("🩸" if v.is_downed else "🟢"))
-		var r_icon: String = _get_role_icon(int(v.trade_role))
-		var aff_str: String = "%+d" % v.affinity
-		btn.text = "%s %s %s (%s) [Tú: %s]" % [st_icon, r_icon, v.npc_name, v.npc_role.split(" ")[0], aff_str]
-		if v == selected_npc:
-			btn.add_theme_color_override("font_color", Color(1.0, 0.92, 0.45))
-			btn.add_theme_stylebox_override("normal", _make_box_style(Color(0.20, 0.25, 0.34, 0.98), Color(0.95, 0.78, 0.35, 0.95), 1, 5))
-		else:
-			var col_txt: Color = Color(0.62, 0.55, 0.55) if v.is_dead else Color(0.88, 0.92, 0.96)
-			btn.add_theme_color_override("font_color", col_txt)
-		var target_ref: VillageNPC = v
-		btn.pressed.connect(func() -> void:
-			selected_npc = target_ref
-			refresh_ui()
-		)
-		_npc_list_vbox.add_child(btn)
+		_sync_neighbor_list_buttons(all_npcs)
 
 	# 2. Poblar Ficha Superior del Vecino Seleccionado
 	var sel: VillageNPC = selected_npc
@@ -407,65 +385,124 @@ func refresh_ui(rebuild_lists: bool = true) -> void:
 		"[color=#ff8866][b]💢 Enemistades Principales / Rivales:[/b][/color] %s" % enemies_str
 	)
 
-	# 5. Poblar Tabla Social RimWorld Completa — solo al abrir o cambiar selección (evita lag)
+	# 5. Tabla Social RimWorld — filas reutilizadas (pool): solo se actualizan textos/colores, sin crear ni destruir nodos
 	if not rebuild_lists:
 		return
-	for ch_t in _social_table_vbox.get_children():
-		ch_t.queue_free()
+	_sync_social_table_rows(rel_entries)
 
-	for entry in rel_entries:
+var _list_buttons: Dictionary = {} # VillageNPC -> Button
+var _table_rows: Array[Dictionary] = []
+var _style_sel_btn: StyleBoxFlat = null
+var _style_row_good: StyleBoxFlat = null
+var _style_row_bad: StyleBoxFlat = null
+var _style_row_neutral: StyleBoxFlat = null
+
+func _ensure_cached_styles() -> void:
+	if _style_sel_btn != null:
+		return
+	_style_sel_btn = _make_box_style(Color(0.20, 0.25, 0.34, 0.98), Color(0.95, 0.78, 0.35, 0.95), 1, 5)
+	_style_row_good = _make_box_style(Color(0.09, 0.11, 0.15, 0.94), Color(0.32, 0.65, 0.42, 0.85), 1, 4)
+	_style_row_bad = _make_box_style(Color(0.09, 0.11, 0.15, 0.94), Color(0.72, 0.30, 0.30, 0.85), 1, 4)
+	_style_row_neutral = _make_box_style(Color(0.09, 0.11, 0.15, 0.94), Color(0.24, 0.30, 0.38, 0.75), 1, 4)
+
+func _select_npc(target: VillageNPC) -> void:
+	selected_npc = target
+	refresh_ui()
+
+func _sync_neighbor_list_buttons(all_npcs: Array[VillageNPC]) -> void:
+	_ensure_cached_styles()
+	# Retirar botones de NPC que ya no existen
+	for key in _list_buttons.keys():
+		if not is_instance_valid(key) or not (key in all_npcs):
+			var old_btn: Button = _list_buttons[key]
+			if is_instance_valid(old_btn):
+				old_btn.queue_free()
+			_list_buttons.erase(key)
+	var order_idx: int = 0
+	for v in all_npcs:
+		var btn: Button = _list_buttons.get(v, null)
+		if btn == null:
+			btn = Button.new()
+			btn.alignment = HORIZONTAL_ALIGNMENT_LEFT
+			btn.custom_minimum_size = Vector2(0, 32)
+			var target_ref: VillageNPC = v
+			btn.pressed.connect(func() -> void: _select_npc(target_ref))
+			_npc_list_vbox.add_child(btn)
+			_list_buttons[v] = btn
+		if btn.get_index() != order_idx:
+			_npc_list_vbox.move_child(btn, order_idx)
+		order_idx += 1
+		var st_icon: String = "💀" if v.is_dead else ("😟" if is_instance_valid(v._searching_missing_kin) else ("🩸" if v.is_downed else "🟢"))
+		btn.text = "%s %s %s (%s) [Tú: %+d]" % [st_icon, _get_role_icon(int(v.trade_role)), v.npc_name, v.npc_role.split(" ")[0], v.affinity]
+		if v == selected_npc:
+			btn.add_theme_color_override("font_color", Color(1.0, 0.92, 0.45))
+			btn.add_theme_stylebox_override("normal", _style_sel_btn)
+		else:
+			btn.add_theme_color_override("font_color", Color(0.62, 0.55, 0.55) if v.is_dead else Color(0.88, 0.92, 0.96))
+			btn.remove_theme_stylebox_override("normal")
+
+func _create_table_row() -> Dictionary:
+	var row_panel := PanelContainer.new()
+	var row_margin := MarginContainer.new()
+	for side in ["margin_left", "margin_right", "margin_top", "margin_bottom"]:
+		row_margin.add_theme_constant_override(side, 6)
+	row_panel.add_child(row_margin)
+	var row_hbox := HBoxContainer.new()
+	row_hbox.add_theme_constant_override("separation", 10)
+	row_margin.add_child(row_hbox)
+	var score_lbl := Label.new()
+	score_lbl.custom_minimum_size = Vector2(54, 0)
+	score_lbl.add_theme_font_size_override("font_size", 13)
+	row_hbox.add_child(score_lbl)
+	var info_vbox := VBoxContainer.new()
+	info_vbox.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	info_vbox.add_theme_constant_override("separation", 2)
+	row_hbox.add_child(info_vbox)
+	var name_tier_lbl := Label.new()
+	name_tier_lbl.add_theme_font_size_override("font_size", 12)
+	info_vbox.add_child(name_tier_lbl)
+	var reason_lbl := Label.new()
+	reason_lbl.add_theme_font_size_override("font_size", 10)
+	reason_lbl.add_theme_color_override("font_color", Color(0.76, 0.80, 0.88))
+	info_vbox.add_child(reason_lbl)
+	var jump_btn := Button.new()
+	jump_btn.text = "Ver Ficha ➡️"
+	jump_btn.custom_minimum_size = Vector2(88, 24)
+	row_hbox.add_child(jump_btn)
+	_social_table_vbox.add_child(row_panel)
+	var row: Dictionary = {"panel": row_panel, "score": score_lbl, "name": name_tier_lbl, "reason": reason_lbl, "jump": jump_btn, "target": null}
+	jump_btn.pressed.connect(func() -> void:
+		var tgt = row.get("target")
+		if tgt is VillageNPC and is_instance_valid(tgt):
+			_select_npc(tgt as VillageNPC)
+	)
+	return row
+
+func _sync_social_table_rows(rel_entries: Array[Dictionary]) -> void:
+	_ensure_cached_styles()
+	while _table_rows.size() < rel_entries.size():
+		_table_rows.append(_create_table_row())
+	for i in range(_table_rows.size()):
+		var row: Dictionary = _table_rows[i]
+		var panel: PanelContainer = row["panel"]
+		if i >= rel_entries.size():
+			panel.visible = false
+			row["target"] = null
+			continue
+		panel.visible = true
+		var entry: Dictionary = rel_entries[i]
 		var other_npc: VillageNPC = entry["npc"] as VillageNPC
 		var r_val: int = int(entry["val"])
 		var is_fam: bool = bool(entry["same_fam"])
-		var r_note: String = str(entry["note"])
 		var tier_lbl: String = VillageNPC.get_relationship_tier_label(r_val, is_fam)
-
-		var row_panel := PanelContainer.new()
-		var border_col: Color = Color(0.32, 0.65, 0.42, 0.85) if r_val >= 35 else (Color(0.72, 0.30, 0.30, 0.85) if r_val <= -25 else Color(0.24, 0.30, 0.38, 0.75))
-		row_panel.add_theme_stylebox_override("panel", _make_box_style(Color(0.09, 0.11, 0.15, 0.94), border_col, 1, 4))
-		_social_table_vbox.add_child(row_panel)
-
-		var row_margin := MarginContainer.new()
-		for side in ["margin_left", "margin_right", "margin_top", "margin_bottom"]:
-			row_margin.add_theme_constant_override(side, 6)
-		row_panel.add_child(row_margin)
-
-		var row_hbox := HBoxContainer.new()
-		row_hbox.add_theme_constant_override("separation", 10)
-		row_margin.add_child(row_hbox)
-
-		var score_lbl := Label.new()
-		score_lbl.custom_minimum_size = Vector2(54, 0)
-		score_lbl.text = "%+d" % r_val
-		score_lbl.add_theme_font_size_override("font_size", 13)
+		panel.add_theme_stylebox_override("panel", _style_row_good if r_val >= 35 else (_style_row_bad if r_val <= -25 else _style_row_neutral))
 		var sc_col: Color = Color(0.45, 1.0, 0.62) if r_val >= 35 else (Color(0.75, 0.95, 0.75) if r_val >= 12 else (Color(1.0, 0.45, 0.42) if r_val <= -25 else Color(0.85, 0.85, 0.85)))
+		var score_lbl: Label = row["score"]
+		score_lbl.text = "%+d" % r_val
 		score_lbl.add_theme_color_override("font_color", sc_col)
-		row_hbox.add_child(score_lbl)
-
-		var info_vbox := VBoxContainer.new()
-		info_vbox.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		info_vbox.add_theme_constant_override("separation", 2)
-		row_hbox.add_child(info_vbox)
-
 		var dead_tag: String = " [💀 Difunto]" if other_npc.is_dead else ""
-		var name_tier_lbl := Label.new()
-		name_tier_lbl.text = "%s %s (%s)%s — %s" % [_get_role_icon(int(other_npc.trade_role)), other_npc.npc_name, other_npc.npc_role, dead_tag, tier_lbl]
-		name_tier_lbl.add_theme_font_size_override("font_size", 12)
-		name_tier_lbl.add_theme_color_override("font_color", sc_col)
-		info_vbox.add_child(name_tier_lbl)
-
-		var reason_lbl := Label.new()
-		reason_lbl.text = "↳ Motivo / Vínculo: %s" % r_note
-		reason_lbl.add_theme_font_size_override("font_size", 10)
-		reason_lbl.add_theme_color_override("font_color", Color(0.76, 0.80, 0.88))
-		info_vbox.add_child(reason_lbl)
-
-		var jump_btn := Button.new()
-		jump_btn.text = "Ver Ficha ➡️"
-		jump_btn.custom_minimum_size = Vector2(88, 24)
-		var jump_target: VillageNPC = other_npc
-		jump_btn.pressed.connect(func() -> void:
-			selected_npc = jump_target
-			refresh_ui()
-		)
-		row_hbox.add_child(jump_btn)
+		var name_lbl: Label = row["name"]
+		name_lbl.text = "%s %s (%s)%s — %s" % [_get_role_icon(int(other_npc.trade_role)), other_npc.npc_name, other_npc.npc_role, dead_tag, tier_lbl]
+		name_lbl.add_theme_color_override("font_color", sc_col)
+		(row["reason"] as Label).text = "↳ Motivo / Vínculo: %s" % str(entry["note"])
+		row["target"] = other_npc
