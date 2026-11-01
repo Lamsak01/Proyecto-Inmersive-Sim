@@ -702,6 +702,12 @@ func _try_cook(inv: SimpleInventory, player: Node2D, in_id: String, out_id: Stri
 	inv.add_item(out_id, 1)
 	if player.has_method("_spawn_floating_text"):
 		player._spawn_floating_text(msg, col, -42.0)
+	if player.has_method("get_skill_bonus") and randf() < float(player.call("get_skill_bonus", "cooking")) * 0.6:
+		inv.add_item(out_id, 1)
+		if player.has_method("_spawn_floating_text"):
+			player._spawn_floating_text("🍲✨ ¡Ración extra por tu Cocina!", Color(1.0, 0.92, 0.45), -58.0)
+	if player.has_method("add_skill_xp"):
+		player.call("add_skill_xp", "cooking", 6)
 	return true
 
 func _interact_pot(player: Node2D) -> void:

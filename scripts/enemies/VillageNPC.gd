@@ -3569,6 +3569,8 @@ func stealth_knockout(player: Node = null) -> void:
 	_set_sprite_pose(90.0, Color(0.55, 0.65, 1.0))
 	add_thought("Aturdido por la espalda (-12)", -12.0)
 	_spawn_floating_text("💤🤫 ¡%s aturdido en sigilo! (No Letal — 25s)" % npc_name, Color.AQUA, -44.0)
+	if player and player.has_method("add_skill_xp"):
+		player.call("add_skill_xp", "stealth", 10)
 	if player and player.has_method("show_hint"):
 		player.call("show_hint", "💤 Has aturdido en sigilo a %s sin matarlo (Inconsciente durante 25s)." % npc_name)
 
@@ -3973,6 +3975,8 @@ func attempt_pickpocket_or_plant(player: Node, mode: String, item_id: String = "
 		var stolen_g: int = personal_gold
 		personal_gold = 0
 		inv.add_gold(stolen_g)
+		if player.has_method("add_skill_xp"):
+			player.call("add_skill_xp", "stealth", 8)
 		_spawn_floating_text("🕵️💰 Hurtaste +%d Oro de %s en sigilo" % [stolen_g, npc_name], Color.GOLD, -44.0)
 		return true
 	elif mode == "steal_item":
@@ -4666,6 +4670,8 @@ func on_dialogue_action(action_id: String) -> void:
 		inv.remove_item("iron_ore", 2)
 		inv.remove_item("wood", 1)
 		inv.add_item("steel_ingot", 1)
+		if player.has_method("add_skill_xp"):
+			player.call("add_skill_xp", "crafting", 10)
 		modify_affinity(6)
 		add_thought("Forjó acero de primera calidad (+8)", 8.0)
 		_spawn_floating_text("🔥 +1 Lingote de Acero Forjado (-10 Oro)", Color.CYAN, -44.0)
@@ -4685,6 +4691,8 @@ func on_dialogue_action(action_id: String) -> void:
 			return
 		if player.has_method("upgrade_tool"):
 			if bool(player.call("upgrade_tool", t_id)):
+				if player.has_method("add_skill_xp"):
+					player.call("add_skill_xp", "crafting", 20)
 				modify_affinity(10)
 				add_thought("Mejoró un arma/herramienta en la fragua (+10)", 10.0)
 		return

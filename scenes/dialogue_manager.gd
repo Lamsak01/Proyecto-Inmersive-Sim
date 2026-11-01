@@ -290,7 +290,12 @@ func _on_choice_pressed(index: int) -> void:
 
 	# Aplicar cambio de afinidad/relación si la opción lo define
 	if chosen.has("affinity") and is_instance_valid(current_speaker) and current_speaker.has_method("modify_affinity"):
+		var aff_before: int = int(current_speaker.get("affinity")) if current_speaker.get("affinity") != null else 0
 		current_speaker.modify_affinity(int(chosen["affinity"]))
+		if int(chosen["affinity"]) > 0 and aff_before < 100:
+			var talker = get_tree().get_first_node_in_group("player")
+			if talker and talker.has_method("add_skill_xp"):
+				talker.call("add_skill_xp", "charisma", 3)
 		_update_header()
 
 	# Ejecutar acción de diálogo si existe

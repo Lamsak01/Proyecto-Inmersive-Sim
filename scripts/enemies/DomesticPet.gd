@@ -445,7 +445,10 @@ func interact(player: Node2D) -> void:
 				digestion_buffer = clampf(digestion_buffer + 42.0, 0.0, maxf(20.0, 100.0 - need_hunger))
 				if health_comp:
 					health_comp.heal(15.0)
-				affection = clampf(affection + 20.0, 0.0, 100.0)
+				var animals_mult: float = 1.0 + (float(player.call("get_skill_bonus", "animals")) if player.has_method("get_skill_bonus") else 0.0)
+				affection = clampf(affection + 20.0 * animals_mult, 0.0, 100.0)
+				if player.has_method("add_skill_xp"):
+					player.call("add_skill_xp", "animals", 8)
 				_play_happy_bounce()
 				_spawn_floating_text("%s🍖↗ %s comió %s (Digeriendo gradualmente | Lealtad %d%%)" % [icon_str, pet_name, f_name, int(affection)], Color.SPRING_GREEN)
 				_boost_nearby_npc_mood()

@@ -74,7 +74,41 @@ func get_skill_level(skill_id: String) -> int:
 	return maxi(1, int(player_skills.get(skill_id.to_lower(), 1)))
 
 func get_skill_bonus(skill_id: String) -> float:
-	return float(get_skill_level(skill_id) - 1) * 0.05
+	return float(get_skill_level(skill_id) - 1) * SkillCatalog.BONUS_PER_LEVEL
+
+const SkillCatalog = preload("res://scripts/systems/SkillCatalog.gd")
+
+signal skill_leveled_up(skill_id: String, new_level: int)
+
+## Experiencia acumulada hacia el siguiente nivel de cada habilidad
+var player_skill_xp: Dictionary = {}
+
+func get_skill_xp(skill_id: String) -> int:
+	return int(player_skill_xp.get(skill_id.to_lower(), 0))
+
+## Otorga experiencia a una habilidad; sube de nivel automáticamente (máx. SkillCatalog.MAX_LEVEL) y avisa al jugador.
+func add_skill_xp(skill_id: String, amount: int) -> void:
+	var key: String = skill_id.to_lower()
+	if amount <= 0 or not player_skills.has(key):
+		return
+	var lvl: int = get_skill_level(key)
+	if lvl >= SkillCatalog.MAX_LEVEL:
+		return
+	var xp: int = get_skill_xp(key) + amount
+	var leveled: bool = false
+	while lvl < SkillCatalog.MAX_LEVEL and xp >= SkillCatalog.xp_for_next(lvl):
+		xp -= SkillCatalog.xp_for_next(lvl)
+		lvl += 1
+		leveled = true
+	if lvl >= SkillCatalog.MAX_LEVEL:
+		xp = 0
+	player_skills[key] = lvl
+	player_skill_xp[key] = xp
+	if leveled:
+		skill_leveled_up.emit(key, lvl)
+		if has_method("_spawn_floating_text"):
+			call("_spawn_floating_text", "%s %s subió al nivel %d" % [SkillCatalog.skill_icon(key), SkillCatalog.skill_name(key), lvl], Color(1.0, 0.92, 0.45), -50.0)
+		show_hint("%s ¡%s nivel %d! (+%d%% de bono)" % [SkillCatalog.skill_icon(key), SkillCatalog.skill_name(key), lvl, int(round(get_skill_bonus(key) * 100.0))])
 
 func _get(property: StringName) -> Variant:
 	if property == &"MAX_WATER_CHARGES":
@@ -550,7 +584,7 @@ func is_any_ui_modal_open() -> bool:
 		return true
 	var ui_root = get_tree().current_scene.get_node_or_null("UI/UIRoot") if get_tree().current_scene else null
 	if ui_root:
-		for ui_key in ["inv_panel", "tool_wheel", "tavern_games", "medical_panel", "social_glossary"]:
+		for ui_key in ["inv_panel", "tool_wheel", "tavern_games", "medical_panel", "social_glossary", "skills_panel"]:
 			var ctrl = ui_root.get(ui_key)
 			if ctrl is Control and ctrl.visible:
 				return true
@@ -746,6 +780,7 @@ func to_save_dict() -> Dictionary:
 		"bloodstained_timer": bloodstained_timer,
 		"tool_tiers": tool_tiers.duplicate(),
 		"player_skills": player_skills.duplicate(),
+		"player_skill_xp": player_skill_xp.duplicate(),
 		"weapon": weapon_id,
 		"medical": health_comp.to_medical_dict() if health_comp else {},
 		"inventory": inventory.to_dict() if inventory else {}
@@ -773,6 +808,12 @@ func from_save_dict(data: Dictionary) -> void:
 		for sk_k in player_skills.keys():
 			if saved_sk.has(sk_k):
 				player_skills[sk_k] = maxi(1, int(saved_sk[sk_k]))
+	if data.has("player_skill_xp") and typeof(data["player_skill_xp"]) == TYPE_DICTIONARY:
+		var saved_xp: Dictionary = data["player_skill_xp"]
+		player_skill_xp.clear()
+		for xp_k in saved_xp.keys():
+			if player_skills.has(xp_k):
+				player_skill_xp[xp_k] = maxi(0, int(saved_xp[xp_k]))
 	if stun_comp and stun_comp.has_method("clear_stun"):
 		stun_comp.clear_stun()
 	is_stunned_flag = false

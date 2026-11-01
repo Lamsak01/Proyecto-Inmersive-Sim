@@ -406,6 +406,8 @@ func use_item(item_id: String, player: Node) -> bool:
 		if best_npc and best_npc.has_method("apply_sleeping_draught"):
 			remove_item(item_id, 1)
 			best_npc.call("apply_sleeping_draught", 40.0)
+			if player.has_method("add_skill_xp"):
+				player.call("add_skill_xp", "alchemy", 10)
 			if player.has_method("_spawn_floating_text"):
 				player._spawn_floating_text("🧪💤 Somnífero aplicado a %s (Dormido 40s)" % str(best_npc.get("npc_name")), Color(0.75, 0.58, 1.0), -44.0)
 			return true

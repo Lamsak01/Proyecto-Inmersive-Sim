@@ -21,12 +21,14 @@ var inv_recipes_box: VBoxContainer = null
 const ValleyMapUIScript = preload("res://scripts/ui/ValleyMapUI.gd")
 const MedicalPanelUIScript = preload("res://scripts/ui/MedicalPanelUI.gd")
 const SocialGlossaryUIScript = preload("res://scripts/ui/SocialGlossaryUI.gd")
+const SkillsPanelUIScript = preload("res://scripts/ui/SkillsPanelUI.gd")
 
 var tool_wheel: ToolWheelUI = null
 var tavern_games: TavernGamesUI = null
 var valley_map: Control = null
 var medical_panel: Control = null
 var social_glossary: Control = null
+var skills_panel: Control = null
 
 func _ready() -> void:
 	# 1. Find Player if not assigned
@@ -101,6 +103,7 @@ func _ready() -> void:
 	_setup_valley_map_ui()
 	_setup_medical_panel_ui()
 	_setup_social_glossary_ui()
+	_setup_skills_panel_ui()
 	_init_default_objectives()
 	if "inventory" in player and player.inventory:
 		_bind_player_inventory()
@@ -171,6 +174,7 @@ func _unhandled_input(event: InputEvent) -> void:
 						medical_panel.call("close_panel")
 					if social_glossary and social_glossary.visible:
 						social_glossary.call("close_panel")
+					_close_skills_panel()
 					if valley_map and bool(valley_map.get("is_full_map_open")):
 						valley_map.call("close_full_map")
 					tool_wheel.open_wheel()
@@ -182,6 +186,7 @@ func _unhandled_input(event: InputEvent) -> void:
 
 		if event.pressed:
 			if event.physical_keycode == KEY_I:
+				_close_skills_panel()
 				if tool_wheel and tool_wheel.visible:
 					tool_wheel.close_wheel(false)
 				if medical_panel and medical_panel.visible:
@@ -193,6 +198,7 @@ func _unhandled_input(event: InputEvent) -> void:
 				_toggle_inventory()
 				get_viewport().set_input_as_handled()
 			elif event.physical_keycode == KEY_H:
+				_close_skills_panel()
 				if tool_wheel and tool_wheel.visible:
 					tool_wheel.close_wheel(false)
 				if inv_panel and inv_panel.visible:
@@ -205,6 +211,7 @@ func _unhandled_input(event: InputEvent) -> void:
 					medical_panel.call("toggle_panel")
 				get_viewport().set_input_as_handled()
 			elif event.physical_keycode == KEY_M:
+				_close_skills_panel()
 				if tool_wheel and tool_wheel.visible:
 					tool_wheel.close_wheel(false)
 				if inv_panel and inv_panel.visible:
@@ -217,6 +224,7 @@ func _unhandled_input(event: InputEvent) -> void:
 					valley_map.call("toggle_full_map")
 				get_viewport().set_input_as_handled()
 			elif event.physical_keycode == KEY_J:
+				_close_skills_panel()
 				if tool_wheel and tool_wheel.visible:
 					tool_wheel.close_wheel(false)
 				if inv_panel and inv_panel.visible:
@@ -228,7 +236,25 @@ func _unhandled_input(event: InputEvent) -> void:
 				if social_glossary and social_glossary.has_method("toggle_panel"):
 					social_glossary.call("toggle_panel")
 				get_viewport().set_input_as_handled()
+			elif event.physical_keycode == KEY_K:
+				if tool_wheel and tool_wheel.visible:
+					tool_wheel.close_wheel(false)
+				if inv_panel and inv_panel.visible:
+					inv_panel.visible = false
+				if medical_panel and medical_panel.visible:
+					medical_panel.call("close_panel")
+				if social_glossary and social_glossary.visible:
+					social_glossary.call("close_panel")
+				if valley_map and bool(valley_map.get("is_full_map_open")):
+					valley_map.call("close_full_map")
+				if skills_panel and skills_panel.has_method("toggle_panel"):
+					skills_panel.call("toggle_panel")
+				get_viewport().set_input_as_handled()
 			elif event.keycode == KEY_ESCAPE:
+				if skills_panel and skills_panel.visible:
+					skills_panel.call("close_panel")
+					get_viewport().set_input_as_handled()
+					return
 				if tool_wheel and tool_wheel.visible:
 					tool_wheel.close_wheel(false)
 					get_viewport().set_input_as_handled()
@@ -244,6 +270,16 @@ func _unhandled_input(event: InputEvent) -> void:
 				elif inv_panel and inv_panel.visible:
 					inv_panel.visible = false
 					get_viewport().set_input_as_handled()
+
+func _setup_skills_panel_ui() -> void:
+	skills_panel = SkillsPanelUIScript.new()
+	skills_panel.name = "SkillsPanelUI"
+	skills_panel.set("player", player)
+	add_child(skills_panel)
+
+func _close_skills_panel() -> void:
+	if skills_panel and skills_panel.visible:
+		skills_panel.call("close_panel")
 
 func _setup_social_glossary_ui() -> void:
 	social_glossary = SocialGlossaryUIScript.new()

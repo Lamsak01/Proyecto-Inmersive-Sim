@@ -1065,6 +1065,10 @@ func interact(player: Node) -> void:
 
 func _finish_butchering() -> void:
 	state = AnimalState.BUTCHERED
+	if is_inside_tree() and not Engine.is_editor_hint():
+		var hunter = get_tree().get_first_node_in_group("player")
+		if hunter and hunter.has_method("add_skill_xp"):
+			hunter.call("add_skill_xp", "hunting", 12)
 	if not Engine.is_editor_hint():
 		var cur_day: int = WorldClock.current_day if WorldClock else 1
 		respawn_on_day = cur_day + max(1, respawn_days)

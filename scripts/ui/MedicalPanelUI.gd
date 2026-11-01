@@ -394,6 +394,8 @@ func _apply_treatment(hc: HealthComponent, wound_id: int, action: String) -> voi
 			if player.has_method("try_consume_water_for_washing") and not bool(player.call("try_consume_water_for_washing", true)):
 				return
 			hc.treat_wound(wound_id, "wash")
+			if player.has_method("add_skill_xp"):
+				player.call("add_skill_xp", "medicine", 4)
 			if player.has_method("wash_bloodstains"):
 				player.call("wash_bloodstains", false, true)
 			if player.has_method("_spawn_floating_text"):
@@ -401,6 +403,8 @@ func _apply_treatment(hc: HealthComponent, wound_id: int, action: String) -> voi
 				player.call("_spawn_floating_text", "💧 Herida lavada y limpia%s" % src_note, Color.AQUA, -40.0)
 		"tend_makeshift":
 			hc.treat_wound(wound_id, "tend_makeshift")
+			if player.has_method("add_skill_xp"):
+				player.call("add_skill_xp", "medicine", 4)
 			if player.has_method("_spawn_floating_text"):
 				player.call("_spawn_floating_text", "🖐️ Vendaje rudimentario aplicado (Sangrado detenido, calidad 25%)", Color(0.95, 0.80, 0.42), -40.0)
 		"bandage":
@@ -413,6 +417,8 @@ func _apply_treatment(hc: HealthComponent, wound_id: int, action: String) -> voi
 					player.call("_spawn_floating_text", "❌ Necesitas 1 Vendaje o 1 Hierba Medicinal", Color.CORAL, -40.0)
 				return
 			hc.treat_wound(wound_id, "bandage")
+			if player.has_method("add_skill_xp"):
+				player.call("add_skill_xp", "medicine", 4)
 			if player.has_method("_spawn_floating_text"):
 				player.call("_spawn_floating_text", "🩹 Herida vendada (Sangrado detenido)", Color.SPRING_GREEN, -40.0)
 		"poultice":
@@ -422,6 +428,8 @@ func _apply_treatment(hc: HealthComponent, wound_id: int, action: String) -> voi
 				return
 			inv.remove_item("herbal_poultice", 1)
 			hc.treat_wound(wound_id, "poultice")
+			if player.has_method("add_skill_xp"):
+				player.call("add_skill_xp", "medicine", 4)
 			if player.has_method("_spawn_floating_text"):
 				player.call("_spawn_floating_text", "🌿 Cataplasma aplicada (-Severidad y Dolor)", Color.SPRING_GREEN, -40.0)
 		"stitch":
@@ -435,6 +443,8 @@ func _apply_treatment(hc: HealthComponent, wound_id: int, action: String) -> voi
 					player.call("_spawn_floating_text", "❌ Necesitas 1 Botiquín Quirúrgico (o 1 Vendaje + 1 Tendones)", Color.CORAL, -40.0)
 				return
 			hc.treat_wound(wound_id, "stitch")
+			if player.has_method("add_skill_xp"):
+				player.call("add_skill_xp", "medicine", 4)
 			if player.has_method("_spawn_floating_text"):
 				player.call("_spawn_floating_text", "🧵 Herida profunda suturada con éxito", Color.AQUA, -40.0)
 		"splint":
@@ -448,6 +458,8 @@ func _apply_treatment(hc: HealthComponent, wound_id: int, action: String) -> voi
 					player.call("_spawn_floating_text", "❌ Necesitas 1 Madera + 1 Vendaje (o 1 Botiquín Quirúrgico)", Color.CORAL, -40.0)
 				return
 			hc.treat_wound(wound_id, "splint")
+			if player.has_method("add_skill_xp"):
+				player.call("add_skill_xp", "medicine", 4)
 			if player.has_method("_spawn_floating_text"):
 				player.call("_spawn_floating_text", "🩼 Fractura entablillada (+Movilidad)", Color.SPRING_GREEN, -40.0)
 		"cure_sickness":
