@@ -31,6 +31,8 @@ func _process(delta: float) -> void:
 		return
 	if Input.get_mouse_mode() != Input.MOUSE_MODE_VISIBLE:
 		Input.set_mouse_mode(Input.MOUSE_MODE_VISIBLE)
+	if _row_fill_idx < _row_fill_entries.size():
+		_fill_rows_step(ROWS_PER_FRAME)
 	_refresh_timer += delta
 	if _refresh_timer >= 2.0:
 		_refresh_timer = 0.0
@@ -277,6 +279,7 @@ func open_panel(focus_npc: Node = null) -> void:
 	if focus_npc is VillageNPC and is_instance_valid(focus_npc):
 		selected_npc = focus_npc as VillageNPC
 	visible = true
+	_relations_initialized = false
 	Input.set_mouse_mode(Input.MOUSE_MODE_VISIBLE)
 	refresh_ui()
 
@@ -309,7 +312,8 @@ func refresh_ui(rebuild_lists: bool = true) -> void:
 	if not is_instance_valid(selected_npc) or not (selected_npc in all_npcs):
 		selected_npc = all_npcs[0]
 
-	if rebuild_lists:
+	if not _relations_initialized:
+		_relations_initialized = true
 		for npc_init in all_npcs:
 			npc_init.ensure_npc_relationships_initialized()
 
@@ -390,6 +394,7 @@ func refresh_ui(rebuild_lists: bool = true) -> void:
 		return
 	_sync_social_table_rows(rel_entries)
 
+var _relations_initialized: bool = false
 var _list_buttons: Dictionary = {} # VillageNPC -> Button
 var _table_rows: Array[Dictionary] = []
 var _style_sel_btn: StyleBoxFlat = null
@@ -478,31 +483,45 @@ func _create_table_row() -> Dictionary:
 	)
 	return row
 
+var _row_fill_entries: Array[Dictionary] = []
+var _row_fill_idx: int = 0
+const ROWS_PER_FRAME: int = 5
+
+## Reparte la actualización de la tabla social en varios fotogramas (5 filas por frame) para evitar un tirón al cambiar de vecino.
 func _sync_social_table_rows(rel_entries: Array[Dictionary]) -> void:
 	_ensure_cached_styles()
-	while _table_rows.size() < rel_entries.size():
-		_table_rows.append(_create_table_row())
-	for i in range(_table_rows.size()):
-		var row: Dictionary = _table_rows[i]
-		var panel: PanelContainer = row["panel"]
-		if i >= rel_entries.size():
-			panel.visible = false
-			row["target"] = null
-			continue
-		panel.visible = true
-		var entry: Dictionary = rel_entries[i]
-		var other_npc: VillageNPC = entry["npc"] as VillageNPC
-		var r_val: int = int(entry["val"])
-		var is_fam: bool = bool(entry["same_fam"])
-		var tier_lbl: String = VillageNPC.get_relationship_tier_label(r_val, is_fam)
-		panel.add_theme_stylebox_override("panel", _style_row_good if r_val >= 35 else (_style_row_bad if r_val <= -25 else _style_row_neutral))
-		var sc_col: Color = Color(0.45, 1.0, 0.62) if r_val >= 35 else (Color(0.75, 0.95, 0.75) if r_val >= 12 else (Color(1.0, 0.45, 0.42) if r_val <= -25 else Color(0.85, 0.85, 0.85)))
-		var score_lbl: Label = row["score"]
-		score_lbl.text = "%+d" % r_val
-		score_lbl.add_theme_color_override("font_color", sc_col)
-		var dead_tag: String = " [💀 Difunto]" if other_npc.is_dead else ""
-		var name_lbl: Label = row["name"]
-		name_lbl.text = "%s %s (%s)%s — %s" % [_get_role_icon(int(other_npc.trade_role)), other_npc.npc_name, other_npc.npc_role, dead_tag, tier_lbl]
-		name_lbl.add_theme_color_override("font_color", sc_col)
-		(row["reason"] as Label).text = "↳ Motivo / Vínculo: %s" % str(entry["note"])
-		row["target"] = other_npc
+	_row_fill_entries = rel_entries
+	_row_fill_idx = 0
+	# Ocultar de inmediato las filas sobrantes
+	for i in range(rel_entries.size(), _table_rows.size()):
+		(_table_rows[i]["panel"] as PanelContainer).visible = false
+		_table_rows[i]["target"] = null
+	_fill_rows_step(ROWS_PER_FRAME)
+
+func _fill_rows_step(max_rows: int) -> void:
+	var done: int = 0
+	while _row_fill_idx < _row_fill_entries.size() and done < max_rows:
+		if _table_rows.size() <= _row_fill_idx:
+			_table_rows.append(_create_table_row())
+		_fill_table_row(_table_rows[_row_fill_idx], _row_fill_entries[_row_fill_idx])
+		_row_fill_idx += 1
+		done += 1
+
+func _fill_table_row(row: Dictionary, entry: Dictionary) -> void:
+	var panel: PanelContainer = row["panel"]
+	panel.visible = true
+	var other_npc: VillageNPC = entry["npc"] as VillageNPC
+	var r_val: int = int(entry["val"])
+	var is_fam: bool = bool(entry["same_fam"])
+	var tier_lbl: String = VillageNPC.get_relationship_tier_label(r_val, is_fam)
+	panel.add_theme_stylebox_override("panel", _style_row_good if r_val >= 35 else (_style_row_bad if r_val <= -25 else _style_row_neutral))
+	var sc_col: Color = Color(0.45, 1.0, 0.62) if r_val >= 35 else (Color(0.75, 0.95, 0.75) if r_val >= 12 else (Color(1.0, 0.45, 0.42) if r_val <= -25 else Color(0.85, 0.85, 0.85)))
+	var score_lbl: Label = row["score"]
+	score_lbl.text = "%+d" % r_val
+	score_lbl.add_theme_color_override("font_color", sc_col)
+	var dead_tag: String = " [💀 Difunto]" if other_npc.is_dead else ""
+	var name_lbl: Label = row["name"]
+	name_lbl.text = "%s %s (%s)%s — %s" % [_get_role_icon(int(other_npc.trade_role)), other_npc.npc_name, other_npc.npc_role, dead_tag, tier_lbl]
+	name_lbl.add_theme_color_override("font_color", sc_col)
+	(row["reason"] as Label).text = "↳ Motivo / Vínculo: %s" % str(entry["note"])
+	row["target"] = other_npc
