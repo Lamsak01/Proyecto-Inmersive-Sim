@@ -158,6 +158,8 @@ var _unconscious_react_timer: float = 0.0
 var _unconscious_helper_npc: VillageNPC = null
 var _unconscious_ignored_by: Dictionary = {} # npc_name -> bool (rivales que ya le robaron o desistieron en este desmayo)
 var _unconscious_scan_timer: float = 0.0
+var _witness_check_timer: float = 0.0
+var _witness_check_cached: Node2D = null
 
 # Cachés de rendimiento por fotograma (evita escaneos redundantes a 60 FPS en laptops)
 var _cached_player: Node2D = null
@@ -826,6 +828,7 @@ func begin_missing_family_search(kin: VillageNPC) -> void:
 		return
 	if is_instance_valid(_reporting_corpse_target) or is_instance_valid(_searching_missing_kin):
 		return
+	_clear_unconscious_reaction_state()
 	_searching_missing_kin = kin
 	_missing_kin_phase = 1
 	_missing_kin_timer = 0.0
@@ -1101,6 +1104,7 @@ func set_poker_seating(active: bool, seat_world_pos: Vector2 = Vector2.ZERO) -> 
 func apply_sleeping_draught(duration: float = 40.0) -> void:
 	if is_dead or is_downed:
 		return
+	_clear_unconscious_reaction_state()
 	_stop_crafting_bar()
 	sedated_timer = maxf(sedated_timer, duration)
 	is_sleeping = true
@@ -1246,7 +1250,11 @@ func _process_unconscious_neighbor_reaction(delta: float) -> bool:
 		if not target.is_unconscious_on_ground():
 			_clear_unconscious_reaction_state()
 			return false
-		var watcher: Node2D = _has_any_witness_watching_opportunist(target)
+		_witness_check_timer -= delta
+		if _witness_check_timer <= 0.0:
+			_witness_check_timer = 0.2
+			_witness_check_cached = _has_any_witness_watching_opportunist(target)
+		var watcher: Node2D = _witness_check_cached if is_instance_valid(_witness_check_cached) else null
 		if watcher != null:
 			target._unconscious_ignored_by[npc_name] = true
 			_spawn_floating_text("😳👀 ¡Alguien está mirando! Mejor disimulo y me alejo de %s..." % target.npc_name, Color.ORANGE, -42.0)
@@ -1696,6 +1704,7 @@ func begin_physical_corpse_discovery(discoverer: VillageNPC) -> void:
 		corpse_discovered_by = discoverer.npc_name
 		discoverer.add_thought("Descubrió el cuerpo de %s (-15)" % npc_name, -15.0)
 	corpse_reporter_npc = discoverer
+	discoverer._clear_unconscious_reaction_state()
 	discoverer._reporting_corpse_target = self
 	discoverer._corpse_report_phase = 1
 	discoverer._corpse_report_timer = 0.0
@@ -3537,6 +3546,7 @@ func stealth_knockout(player: Node = null) -> void:
 	if is_instance_valid(_reporting_corpse_target) and _reporting_corpse_target.corpse_reporter_npc == self:
 		_reporting_corpse_target.corpse_reporter_npc = null
 	_reporting_corpse_target = null
+	_clear_unconscious_reaction_state()
 	_stop_crafting_bar()
 	_clear_combat_hostility()
 	velocity = Vector2.ZERO
