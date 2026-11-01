@@ -59,16 +59,7 @@ var last_damage_source: Node = null
 var _hit_flash_timer: float = 0.0
 
 ## Hook arquitectónico preparado para el futuro Sistema de Habilidades RPG (Carisma, Caza, Elaboración, Cocina, Alquimia, Trato con Animales, Sigilo, Medicina)
-var player_skills: Dictionary = {
-	"charisma": 1,
-	"hunting": 1,
-	"crafting": 1,
-	"cooking": 1,
-	"alchemy": 1,
-	"animals": 1,
-	"stealth": 1,
-	"medicine": 1
-}
+var player_skills: Dictionary = SkillCatalog.default_levels()
 
 func get_skill_level(skill_id: String) -> int:
 	return maxi(1, int(player_skills.get(skill_id.to_lower(), 1)))
