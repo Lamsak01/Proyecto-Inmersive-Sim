@@ -139,7 +139,7 @@ Otros documentos antiguos en la raíz: `ROADMAP_PROYECTO.md`, `AUDIT_LOG.md`, `S
 
 **Fase 0 — Cimientos**
 - [x] **B0.1** HECHO. `scripts/data/NPCNames.gd`: 200 nombres femeninos, 200 masculinos y 200 apellidos (variedad latina/europea/americana). API: `pick_first_name(gender, rng, used_names)`, `pick_surname(rng)`, `make_person_name(gender, rng, used_names)`; género `"F"`/`"M"`; reproducible con semilla. Test: `tools/tests/names_check.gd`. Aún NO está conectado al juego (eso es B0.3).
-- [ ] **B0.2** Ficha de persona (`PersonProfile`): id único, género, edad numérica, personalidad (3 rasgos), gustos, estado sentimental. Tabla con los 17 vecinos actuales (género y edad según su historia; el lore puede retocarse).
+- [x] **B0.2** HECHO. `scripts/data/PersonProfile.gd` (`person_id`, `gender`, `orientation`, `age`, `personality` de 3 rasgos, `likes`/`dislikes`, `favorite_item`, `romance_status`, `partner_id`) y tabla `INITIAL_PERSON_PROFILES` en `scripts/data/NPCData.gd` para los 17 vecinos (6 F / 11 M) + 3 visitantes. Conectado en `VillageNPC._init_person_profile()`. Lore de Lina y Tomás ajustado a hermanos de hogar/taller.
 - [ ] **B0.3** Generador de vecinos nuevos (nombre único, género equilibrado, edad según oficio, personalidad y gustos) y **unificar los 5 puntos de creación** para que lo usen.
 - [ ] **B0.4** Migrar las relaciones a claves únicas; que un fallecido no pueda heredarse; limpiar entradas de muertos.
 - [ ] **B0.5** Guardado/carga de la ficha y de las relaciones, con valores por defecto para partidas antiguas.

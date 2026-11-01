@@ -2,6 +2,8 @@ extends SceneTree
 
 ## Comprueba NPCNames: 200/200/200, sin repetidos, sin nombres reservados, unicidad y reproducibilidad con semilla.
 const NPCNames = preload("res://scripts/data/NPCNames.gd")
+const NPCData = preload("res://scripts/data/NPCData.gd")
+const PersonProfile = preload("res://scripts/data/PersonProfile.gd")
 
 func _norm(s: String) -> String:
 	return s.to_lower()
@@ -39,5 +41,34 @@ func _initialize() -> void:
 	assert(NPCNames.make_person_name("M", r1, []) == NPCNames.make_person_name("M", r2, []), "Misma semilla debe dar el mismo nombre")
 	var pn: Dictionary = NPCNames.make_person_name("F", r1, [])
 	assert(pn["full"] == "%s %s" % [pn["first"], pn["last"]] and pn["gender"] == "F", "Estructura de make_person_name")
-	print("NAMES CHECK PASSED (200 F / 200 M / 200 apellidos)")
+	# B0.2: Comprobar fichas PersonProfile de los 17 residentes
+	var residents: Array[String] = [
+		"Thoran", "Kael", "Garrick", "Lina", "Bram", "Mila", "Marlo", "Nora",
+		"Elena", "Tomás", "Marta", "Dr. Valen", "Comisario Vane", "Guardia Rodric",
+		"Aldric", "Sora", "Darío"
+	]
+	var seen_ids: Dictionary = {}
+	var fem_count: int = 0
+	var male_count: int = 0
+	for r_name in residents:
+		assert(NPCData.INITIAL_PERSON_PROFILES.has(r_name), "Falta ficha de: %s" % r_name)
+		var prof = PersonProfile.from_dict(NPCData.INITIAL_PERSON_PROFILES[r_name])
+		assert(prof.person_id != "" and not seen_ids.has(prof.person_id), "person_id invalido o repetido: %s" % prof.person_id)
+		seen_ids[prof.person_id] = true
+		assert(prof.gender in ["F", "M"], "Genero invalido en %s" % r_name)
+		if prof.gender == "F":
+			fem_count += 1
+		else:
+			male_count += 1
+		assert(prof.age >= 18 and prof.age <= 75, "Edad fuera de rango en %s: %d" % [r_name, prof.age])
+		assert(prof.get_age_group() in ["young", "adult", "senior"], "Grupo de edad invalido")
+		assert(prof.personality.size() == 3, "Personalidad debe tener 3 rasgos en %s" % r_name)
+		for tr in prof.personality:
+			assert(tr in PersonProfile.PERSONALITY_TRAITS, "Rasgo fuera de catalogo en %s: %s" % [r_name, tr])
+			var opp: String = str(PersonProfile.OPPOSITE_TRAITS.get(tr, ""))
+			assert(opp == "" or not (opp in prof.personality), "Rasgos opuestos en %s: %s y %s" % [r_name, tr, opp])
+		assert(prof.likes.size() >= 1 and prof.dislikes.size() >= 1, "Gustos vacios en %s" % r_name)
+		assert(prof.romance_status == PersonProfile.ROMANCE_SINGLE and prof.partner_id == "", "En B0.2 deben iniciar single: %s" % r_name)
+	assert(fem_count == 6 and male_count == 11, "Reparto esperado 6 F / 11 M, obtenido %d F / %d M" % [fem_count, male_count])
+	print("NAMES CHECK PASSED (200 F / 200 M / 200 apellidos + 17 PersonProfile)")
 	quit(0)

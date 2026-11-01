@@ -13,7 +13,7 @@ const NPC_LORE_PROFILES: Dictionary = {
 	"Thoran": ["thoran", "Antiguo maestro armero de la Fundición Imperial de Vaelgard; desertó tras negarse a forjar grilletes de plomo para las cuencas mineras.", "«No siempre forjé herraduras y azadas, forastero. Durante veinte años dirigí los altos hornos de la guarnición de Vaelgard. La cicatriz que me cruza el pómulo me la dejó un crisol de bronce cuando saboteé mis propios moldes la noche antes de que marcharan contra los mineros de Cima Quebrada.\n\nHuí al sur con mi hijo Kael entre la ceniza, jurando no volver a templar una hoja que sirviera a un tirano... aunque en este valle el hierro vuelve a pedir sangre.»", "«El Comisario Vane y yo nos conocemos de aquella guerra, aunque ambos fingimos que no cuando nos cruzamos en la plaza. Él perdió el ojo en el mismo asedio donde yo deserté. Quemó mi cartel de búsqueda porque sabe que este valle necesita mi yunque más que otra soga en el patíbulo.»"],
 	"Kael": ["kael", "Aprendiz de forja obsesionado con descifrar las bobinas y conductos de tecnología antigua enterrados bajo las ruinas del oeste.", "«Mi padre cree que el acero solo sirve para protegerse o arar la tierra, pero bajo este valle hay conductos de cobre y generadores que no forjó ningún herrero común.\n\nCuando cae la noche y Thoran duerme, estudio los fragmentos que los viajeros traen de la Llanura Salvaje. No quiero pasar mi vida reparando rejas; quiero entender qué civilización levantó las máquinas que aún laten bajo la roca.»", "«Le he estado comprando reliquias y bobinas en secreto a Aldric en la posada. Si mi padre descubre que enciendo la fragua de madrugada para ensayar aleaciones antiguas, me quitará las llaves del taller.»"],
 	"Garrick": ["garrick", "Único superviviente de una expedición de tramperos sepultada en el Paso del Aullido; conoce la anatomía de cada bestia del bosque.", "«La gente del pueblo me mira las manos manchadas y piensa que disfruto con el cuchillo. No saben lo que es pasar cuarenta días atrapado por un alud en las cumbres del norte, viendo apagarse a tu cuadrilla uno tras otro.\n\nAprendí a desollar y aprovechar hasta el último hueso y tendón porque el desperdicio en la frontera se paga con la muerte. Aquí cada corte mío mantiene vivo al valle.»", "«El Dr. Valen acude a veces por la puerta trasera cuando cierro la carnicería. No busca carne para cenar: me pide huesos limpios y articulaciones para sus estudios anatómicos en la Morgue. Yo no hago preguntas, y él me cose cuando un jabalí me embiste en el bosque.»"],
-	"Lina": ["lina", "Cartógrafa autodidacta y maestra curtidora llegada de las estepas de sal; traza mapas de las sendas de caza en el reverso del cuero.", "«Antes de casarme con Garrick, viajaba con las caravanas que cruzaban los pantanos orientales. Allí aprendí que un buen jubón de cuero curado con corteza de roble salva más vidas que una coraza pesada que te hunde en el barro.\n\nEn los recortes de piel que descarto llevo el mapa de las manadas del bosque sur: sé cuándo escasean los ciervos y cuándo bajan los zorros hambrientos hacia los corrales.»", "«Todavía oigo a Garrick hablar entre sueños sobre el invierno en que perdió a su antigua cuadrilla en la montaña. Nunca pronuncia el nombre del explorador que los dejó atrás... pero siempre aprieta el cuchillo cuando Aldric entra en la taberna.»"],
+	"Lina": ["lina", "Cartógrafa autodidacta y maestra curtidora llegada de las estepas de sal; traza mapas de las sendas de caza en el reverso del cuero.", "«Antes de instalarme en el valle con mi hermano Garrick, viajaba con las caravanas que cruzaban los pantanos orientales. Allí aprendí que un buen jubón de cuero curado con corteza de roble salva más vidas que una coraza pesada que te hunde en el barro.\n\nEn los recortes de piel que descarto llevo el mapa de las manadas del bosque sur: sé cuándo escasean los ciervos y cuándo bajan los zorros hambrientos hacia los corrales.»", "«Todavía oigo a Garrick hablar entre sueños sobre el invierno en que perdió a su antigua cuadrilla en la montaña. Nunca pronuncia el nombre del explorador que los dejó atrás... pero siempre aprieta el cuchillo cuando Aldric entra en la taberna.»"],
 	"Bram": ["bram", "Arquitecto gremial exiliado de la capital tras el derrumbe del Gran Teatro, donde un intendente corrupto sustituyó su roble por madera podrida.", "«Cada viga, cada puerta y cada umbral que ves en esta aldea pasó por mis manos. En la capital me cargaron la culpa cuando cedió la cúpula del teatro real: el intendente se embolsó el oro del roble curado y compró pino húmedo, pero fui yo quien pagó con su nombre.\n\nPor eso aquí levanto casas con muros de piedra y maderas que ni un vendaval ni una patrulla puedan derribar sin sudar sangre.»", "«Le diseñé a cada edificio del pueblo un postigo lateral con bisagras ocultas. Llámalo manía de un constructor que conoció los calabozos de la corte: nunca me gustó levantar cuatro paredes de las que un hombre acorralado no pudiera escapar.»"],
 	"Mila": ["mila", "Ebanista de precisión y maestra cerrajera; vendió sus herramientas de plata en la ciudad para pagar la fianza de su hermano Bram.", "«Bram levanta paredes; yo me ocupo de lo que guarda secretos: cerraduras de muelle, cofres de doble fondo y muebles ensamblados sin un solo clavo.\n\nEn la capital tallaba clavicordios para la nobleza, pero cuando hundieron a mi hermano en aquel juicio amañado, malvendí mi taller para sacarlo de la celda y vinimos a empezar de cero entre los pinos.»", "«Todos los cofres domésticos de las casas del pueblo llevan mi sello. Tienen un fiador interno que cede en silencio si te acercas agachado y con pulso firme... pero si alguien intenta abrirlos a plena vista, el trinquete suena como una campana.»"],
 	"Marlo": ["marlo", "Antiguo timonel del bergantín contrabandista 'La Estrella Hundida'; cambió el mar abierto por el sosiego del lago y la rueda del molino.", "«Este aro de oro en mi oreja es lo único que saqué a flote cuando *La Estrella Hundida* se partió contra los escollos del Cabo Gris. Navegué quince años burlando bloqueos navales con sacos de trigo y barriles de pólvora.\n\nCuando la resaca me escupió en la playa, juré que no volvería a echar el ancla en aguas donde no pudiera ver la otra orilla. Ahora el rumor del molino y las truchas del lago me bastan.»", "«En las mañanas de niebla cerrada, cuando bajo al muelle antes de las siete, he visto fogatas apagándose hacia la Ciénaga de las Ranas. Esos bandidos de las ruinas no acampan ahí por azar: desentierran conductos del viejo mundo.»"],
@@ -63,4 +63,131 @@ const INITIAL_NPC_RELATIONS: Dictionary = {
 	"Aldric|Sora": [52, "Cómplices de apuestas en la mesa de la posada"],
 	"Aldric|Darío": [-40, "Choque entre buscavidas oportunista y capataz honrado"],
 }
+
+## Tabla de fichas de persona (PersonProfile) para los 17 residentes iniciales (+ 3 visitantes reales).
+## Reparto residente: 6 mujeres (Lina, Mila, Nora, Elena, Marta, Sora) y 11 hombres.
+## Todos empiezan solteros en B0.2; la pareja inicial Elena + Dr. Valen se activa en B0.8.
+const INITIAL_PERSON_PROFILES: Dictionary = {
+	"Thoran": {
+		"person_id": "thoran", "gender": "M", "orientation": "H", "age": 52,
+		"personality": ["Trabajador", "Orgulloso", "Honrado"],
+		"likes": ["forja", "carne_asada"], "dislikes": ["cartas"],
+		"favorite_item": "iron_ore", "romance_status": "single", "partner_id": ""
+	},
+	"Kael": {
+		"person_id": "kael", "gender": "M", "orientation": "H", "age": 22,
+		"personality": ["Curioso", "Noctámbulo", "Paciente"],
+		"likes": ["reliquias", "forja"], "dislikes": ["silencio"],
+		"favorite_item": "bread", "romance_status": "single", "partner_id": ""
+	},
+	"Garrick": {
+		"person_id": "garrick", "gender": "M", "orientation": "H", "age": 38,
+		"personality": ["Valiente", "Desconfiado", "Rencoroso"],
+		"likes": ["caza", "carne_asada"], "dislikes": ["historias"],
+		"favorite_item": "fox_pelt", "romance_status": "single", "partner_id": ""
+	},
+	"Lina": {
+		"person_id": "lina", "gender": "F", "orientation": "H", "age": 34,
+		"personality": ["Leal", "Paciente", "Curioso"],
+		"likes": ["caza", "animales"], "dislikes": ["cartas"],
+		"favorite_item": "roasted_chicken", "romance_status": "single", "partner_id": ""
+	},
+	"Bram": {
+		"person_id": "bram", "gender": "M", "orientation": "H", "age": 41,
+		"personality": ["Trabajador", "Honrado", "Desconfiado"],
+		"likes": ["carpinteria", "estofado"], "dislikes": ["reliquias"],
+		"favorite_item": "wood", "romance_status": "single", "partner_id": ""
+	},
+	"Mila": {
+		"person_id": "mila", "gender": "F", "orientation": "H", "age": 33,
+		"personality": ["Paciente", "Leal", "Curioso"],
+		"likes": ["carpinteria", "musica"], "dislikes": ["caza"],
+		"favorite_item": "country_stew", "romance_status": "single", "partner_id": ""
+	},
+	"Marlo": {
+		"person_id": "marlo", "gender": "M", "orientation": "H", "age": 54,
+		"personality": ["Paciente", "Alegre", "Bondadoso"],
+		"likes": ["pesca", "historias"], "dislikes": ["forja"],
+		"favorite_item": "night_catfish", "romance_status": "single", "partner_id": ""
+	},
+	"Nora": {
+		"person_id": "nora", "gender": "F", "orientation": "H", "age": 23,
+		"personality": ["Paciente", "Desconfiado", "Noctámbulo"],
+		"likes": ["pescado", "silencio"], "dislikes": ["cartas"],
+		"favorite_item": "cooked_fish", "romance_status": "single", "partner_id": ""
+	},
+	"Elena": {
+		"person_id": "elena", "gender": "F", "orientation": "H", "age": 36,
+		"personality": ["Pacífico", "Bondadoso", "Curioso"],
+		"likes": ["hierbas", "lluvia"], "dislikes": ["caza"],
+		"favorite_item": "herbs", "romance_status": "single", "partner_id": ""
+	},
+	"Tomás": {
+		"person_id": "tomas", "gender": "M", "orientation": "H", "age": 39,
+		"personality": ["Paciente", "Trabajador", "Pacífico"],
+		"likes": ["lluvia", "hierbas"], "dislikes": ["cartas"],
+		"favorite_item": "bread", "romance_status": "single", "partner_id": ""
+	},
+	"Marta": {
+		"person_id": "marta", "gender": "F", "orientation": "H", "age": 44,
+		"personality": ["Alegre", "Orgulloso", "Chismoso"],
+		"likes": ["estofado", "cartas"], "dislikes": ["silencio"],
+		"favorite_item": "roasted_chicken", "romance_status": "single", "partner_id": ""
+	},
+	"Dr. Valen": {
+		"person_id": "valen", "gender": "M", "orientation": "H", "age": 40,
+		"personality": ["Curioso", "Paciente", "Honrado"],
+		"likes": ["hierbas", "silencio"], "dislikes": ["cartas"],
+		"favorite_item": "surgical_kit", "romance_status": "single", "partner_id": ""
+	},
+	"Comisario Vane": {
+		"person_id": "vane", "gender": "M", "orientation": "H", "age": 55,
+		"personality": ["Honrado", "Valiente", "Frío"],
+		"likes": ["carne_asada", "silencio"], "dislikes": ["cartas"],
+		"favorite_item": "cooked_meat", "romance_status": "single", "partner_id": ""
+	},
+	"Guardia Rodric": {
+		"person_id": "rodric", "gender": "M", "orientation": "H", "age": 24,
+		"personality": ["Leal", "Valiente", "Honrado"],
+		"likes": ["pan_caliente", "animales"], "dislikes": ["reliquias"],
+		"favorite_item": "bread", "romance_status": "single", "partner_id": ""
+	},
+	"Aldric": {
+		"person_id": "aldric", "gender": "M", "orientation": "H", "age": 35,
+		"personality": ["Tahúr", "Codicioso", "Noctámbulo"],
+		"likes": ["reliquias", "cartas"], "dislikes": ["silencio"],
+		"favorite_item": "cooked_meat", "romance_status": "single", "partner_id": ""
+	},
+	"Sora": {
+		"person_id": "sora", "gender": "F", "orientation": "H", "age": 28,
+		"personality": ["Tahúr", "Alegre", "Curioso"],
+		"likes": ["cartas", "musica"], "dislikes": ["lluvia"],
+		"favorite_item": "roasted_chicken", "romance_status": "single", "partner_id": ""
+	},
+	"Darío": {
+		"person_id": "dario", "gender": "M", "orientation": "H", "age": 42,
+		"personality": ["Honrado", "Trabajador", "Bondadoso"],
+		"likes": ["estofado", "forja"], "dislikes": ["cartas"],
+		"favorite_item": "country_stew", "romance_status": "single", "partner_id": ""
+	},
+	"Maese Casimir": {
+		"person_id": "casimir", "gender": "M", "orientation": "H", "age": 48,
+		"personality": ["Orgulloso", "Trabajador", "Desconfiado"],
+		"likes": ["forja", "carpinteria"], "dislikes": ["lluvia"],
+		"favorite_item": "royal_ration", "romance_status": "single", "partner_id": ""
+	},
+	"Valeria la Tratante": {
+		"person_id": "valeria", "gender": "F", "orientation": "H", "age": 37,
+		"personality": ["Orgulloso", "Curioso", "Valiente"],
+		"likes": ["caza", "carne_asada"], "dislikes": ["pescado"],
+		"favorite_item": "royal_ration", "romance_status": "single", "partner_id": ""
+	},
+	"Inquisidor Real Alistair": {
+		"person_id": "alistair", "gender": "M", "orientation": "H", "age": 51,
+		"personality": ["Frío", "Orgulloso", "Rencoroso"],
+		"likes": ["silencio", "historias"], "dislikes": ["cartas"],
+		"favorite_item": "royal_ration", "romance_status": "single", "partner_id": ""
+	},
+}
+
 

@@ -74,7 +74,8 @@ var digestion_buffer: float = 0.0 # Reserva en estómago (se absorbe gradualment
 var need_energy: float = 85.0
 var need_social: float = 75.0
 
-# Psicología Estilo RimWorld (Rasgos, Humor, Gustos y Pensamientos) + Retratos 64x64 y Contexto Narrativo
+# Psicología Estilo RimWorld (Rasgos, Humor, Gustos y Pensamientos) + Ficha Social + Retratos 64x64 y Contexto Narrativo
+var person_profile: RefCounted = null
 var traits: Array[String] = []
 var favorite_item: String = "bread"
 var mood: float = 82.0
@@ -268,10 +269,12 @@ const ROLE_PSYCHOLOGY: Dictionary = {
 }
 
 const NPCData = preload("res://scripts/data/NPCData.gd")
+const PersonProfile = preload("res://scripts/data/PersonProfile.gd")
 const NPCDialogue = preload("res://scripts/enemies/NPCDialogue.gd")
 const NPC_NAME_ALIASES: Dictionary = NPCData.NPC_NAME_ALIASES
 
 const NPC_LORE_PROFILES: Dictionary = NPCData.NPC_LORE_PROFILES
+const INITIAL_PERSON_PROFILES: Dictionary = NPCData.INITIAL_PERSON_PROFILES
 
 const ROLE_FALLBACK_LORE: Dictionary = {
 	TradeRole.DOCTOR: ["valen", "valen", "Médico forense y cirujano rural enviado por el Colegio Médico para mantener operativo el Hospital y la Morgue del valle."],
@@ -589,7 +592,22 @@ func _init_rimworld_psychology() -> void:
 		var fav_pool: Array[String] = ["bread", "cooked_meat", "roasted_chicken", "country_stew", "cooked_fish"]
 		favorite_item = fav_pool[abs(npc_name.hash()) % fav_pool.size()]
 		thoughts = ["Paseando por el valle (+5)"]
+	_init_person_profile()
 	mood = clampf(78.0 + randf_range(-6.0, 12.0), 40.0, 98.0)
+
+func _init_person_profile() -> void:
+	var clean_name := npc_name.strip_edges()
+	var lookup_name: String = str(NPC_NAME_ALIASES.get(clean_name, clean_name))
+	if INITIAL_PERSON_PROFILES.has(lookup_name):
+		person_profile = PersonProfile.from_dict(INITIAL_PERSON_PROFILES[lookup_name])
+	else:
+		person_profile = PersonProfile.make_fallback_for_name(clean_name)
+	if person_profile != null:
+		npc_id = str(person_profile.person_id)
+		if not person_profile.personality.is_empty():
+			traits.assign(person_profile.personality)
+		if str(person_profile.favorite_item) != "":
+			favorite_item = str(person_profile.favorite_item)
 
 func get_portrait_texture() -> Texture2D:
 	return portrait_texture if portrait_texture != null else (sprite.texture if sprite else null)

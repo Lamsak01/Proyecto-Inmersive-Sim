@@ -927,7 +927,7 @@ func _spawn_five_family_houses_and_trades() -> void:
 			"name": "Garrick", "title": "Maestro Carnicero",
 			"tex": _load_tex("res://assests/world/village/villager_butcher.png"),
 			"stock": {"cooked_meat": 5, "leather": 4, "roasted_chicken": 2},
-			"kin_name": "Lina", "kin_title": "Esposa y Curtidora"
+			"kin_name": "Lina", "kin_title": "Hermana y Curtidora"
 		},
 		VillageNPC.TradeRole.CARPENTER: {
 			"family_id": "family_carpenter", "family_name": "Familia Roble Viejo",
@@ -957,7 +957,7 @@ func _spawn_five_family_houses_and_trades() -> void:
 			"name": "Elena", "title": "Herborista y Alquimista",
 			"tex": _load_tex("res://assests/world/village/villager_herbalist.png"),
 			"stock": {"carrot_seeds": 8, "cabbage_seeds": 8, "wheat_seeds": 8, "herbal_poultice": 4, "sleeping_draught": 2, "surgical_kit": 1, "clean_water": 3, "empty_flask": 2},
-			"kin_name": "Tomás", "kin_title": "Esposo y Hortelano"
+			"kin_name": "Tomás", "kin_title": "Hermano y Hortelano"
 		}
 	}
 
