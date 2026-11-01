@@ -795,22 +795,21 @@ func _avoid_outdoor_buildings(from_pos: Vector2, target_pos: Vector2, ignore_b_i
 # ==============================================================================
 func _spawn_village_roads_and_plaza() -> void:
 	var dirt_col := Color(0.46, 0.36, 0.24, 0.65)
-	var stone_col := Color(0.42, 0.43, 0.46, 0.72)
 
 	# 1. Camino Largo Oeste-Este desde el Borde Oeste del Mapa (-940, 36) hasta el Borde Este (1010, 48)
 	_add_road_rect(Rect2(Vector2(-940, 36), Vector2(1950, 28)), dirt_col)
 	_add_road_rect(Rect2(Vector2(20, 48), Vector2(22, 80)), dirt_col)
 
 	# 2. Plaza Central Empedrada (x = 395..535, y = 10..88) y Patio Trasero del Pozo de la Taberna
-	_add_road_rect(Rect2(Vector2(395, 10), Vector2(140, 78)), stone_col)
-	_add_road_rect(Rect2(Vector2(414, -326), Vector2(52, 46)), stone_col)
+	_add_cobble_rect(Rect2(Vector2(395, 10), Vector2(140, 78)))
+	_add_cobble_rect(Rect2(Vector2(414, -326), Vector2(52, 46)))
 	var plaza_border := Line2D.new()
 	plaza_border.width = 2.0
-	plaza_border.default_color = Color(0.62, 0.58, 0.48, 0.75)
+	plaza_border.default_color = Color(0.28, 0.24, 0.20, 0.90)
 	plaza_border.points = PackedVector2Array([
 		Vector2(395, 10), Vector2(535, 10), Vector2(535, 88), Vector2(395, 88), Vector2(395, 10)
 	])
-	plaza_border.z_index = -3
+	plaza_border.z_index = -2
 	entities_root.add_child(plaza_border)
 
 	# 3. Avenida Norte-Sur desde la Gran Posada (-135) hasta el Bosque Profundo (+630)
@@ -823,9 +822,9 @@ func _spawn_village_roads_and_plaza() -> void:
 	# 4. Calles del Barrio Residencial, Distrito Hospital/Comisaría Este y Callejón hacia la Iglesia y Cementerio Parroquial
 	_add_road_rect(Rect2(Vector2(660, -135), Vector2(310, 24)), dirt_col)
 	_add_road_rect(Rect2(Vector2(660, -135), Vector2(24, 240)), dirt_col)
-	_add_road_rect(Rect2(Vector2(660, 76), Vector2(325, 22)), stone_col)
-	_add_road_rect(Rect2(Vector2(819, 76), Vector2(20, 186)), stone_col)
-	_add_road_rect(Rect2(Vector2(720, 244), Vector2(240, 18)), stone_col)
+	_add_cobble_rect(Rect2(Vector2(660, 76), Vector2(325, 22)))
+	_add_cobble_rect(Rect2(Vector2(819, 76), Vector2(20, 186)))
+	_add_cobble_rect(Rect2(Vector2(720, 244), Vector2(240, 18)))
 
 	_spawn_world_signpost(Vector2(-245, 12), "⬅️ Camino a la Llanura Salvaje y Ciénaga de Ranas", Color(1.0, 0.86, 0.48))
 	_spawn_world_signpost(Vector2(465, 345), "⬇️ Sendero al Bosque Profundo (A 250m al Sur)", Color(0.76, 0.96, 0.68))
@@ -854,6 +853,21 @@ func _spawn_western_plains_and_frog_marsh() -> void:
 
 func _add_road_rect(rect: Rect2, col: Color) -> void:
 	_add_poly(PackedVector2Array([rect.position, Vector2(rect.end.x, rect.position.y), rect.end, Vector2(rect.position.x, rect.end.y)]), col, -3)
+
+func _add_cobble_rect(rect: Rect2) -> void:
+	var cobble_tex := _load_tex("res://assests/world/village/floor_plaza_cobble.png")
+	if cobble_tex:
+		var c_rect := TextureRect.new()
+		c_rect.texture = cobble_tex
+		c_rect.stretch_mode = TextureRect.STRETCH_TILE
+		c_rect.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+		c_rect.position = rect.position
+		c_rect.size = rect.size
+		c_rect.z_index = -3
+		c_rect.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		entities_root.add_child(c_rect)
+	else:
+		_add_road_rect(rect, Color(0.46, 0.42, 0.36, 0.90))
 
 # EDIFICIO MIXTO #1: GRAN POSADA, TABERNA Y SALA DE CASINO/BILLAR
 func _spawn_tavern_and_rooms() -> void:
