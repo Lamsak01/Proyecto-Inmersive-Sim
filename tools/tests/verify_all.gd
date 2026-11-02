@@ -895,5 +895,26 @@ func _initialize() -> void:
 	player.global_position = pos51
 	print("B5.1 opinions & eavesdropping OK")
 
+	# Test #29 (B5.2): Hablar mal de un vecino, una vez al día, y fallar se vuelve contra el jugador
+	var key52: String = f_b.get_person_key()
+	f_a.npc_relationships[key52] = 0
+	sd4.dials["gossip_min_chance"] = 1.0
+	sd4.player_influence_day = -1
+	f_a.on_dialogue_action("social_gossip:bad:" + key52)
+	var rel52: int = f_a.get_relationship_with_npc(key52)
+	assert(rel52 <= -4 and rel52 >= -8, "B5.2: Successful slander must slightly lower the relationship")
+	assert(not str(f_a._inject_character_lore_into_dialogue(f_a._build_dialogue())["opinion_0"]["choices"]).contains("social_gossip"), "B5.2: Only one influence per day")
+	f_a.on_dialogue_action("social_gossip:bad:" + key52)
+	assert(f_a.get_relationship_with_npc(key52) == rel52, "B5.2: A second attempt the same day does nothing")
+	sd4.dials["gossip_min_chance"] = 0.0
+	sd4.dials["gossip_max_chance"] = 0.0
+	sd4.player_influence_day = -1
+	var aff52: int = f_a.affinity
+	f_a.on_dialogue_action("social_gossip:bad:" + key52)
+	assert(f_a.affinity < aff52 and f_a.get_relationship_with_npc(key52) == rel52, "B5.2: Failure must hurt the player, not the neighbors")
+	sd4.dials["gossip_min_chance"] = 0.15
+	sd4.dials["gossip_max_chance"] = 0.90
+	print("B5.2 player gossip OK")
+
 	print("ALL RIMWORLD MEDICAL, FOOTPRINTS, 3-PHASE CORPSE REPORT, MULTI-CORPSE FIX, RPG INTERROGATION, PUBLIC TRIAL, DYNAMIC RELATIONSHIPS, MISSING FAMILY SEARCH, SOCIAL GLOSSARY & UNCONSCIOUS REACTION TESTS PASSED!")
 	quit(0)

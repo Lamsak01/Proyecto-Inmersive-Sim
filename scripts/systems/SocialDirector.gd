@@ -45,6 +45,9 @@ const DIALS: Dictionary = {
 	"live_fight_min_enmity_days": 10, # Días distintos de roce antes de poder llegar a las manos
 	"live_fight_cooldown_days": 12, # Días mínimos entre dos peleas en todo el pueblo
 	"live_fight_daily_chance": 0.15,
+	"gossip_base_chance": 0.35,
+	"gossip_min_chance": 0.15,
+	"gossip_max_chance": 0.90,
 	# B2.1: Pasar tiempo juntos (quedadas entre amigos / parejas) y evitar rivales
 	"max_concurrent_hangouts": 2,
 	"hangout_min_affinity": 25,
@@ -98,6 +101,7 @@ var dials: Dictionary = DIALS.duplicate(true)
 var pair_metrics: Dictionary = {}      # "idA|idB" -> {affinity, familiarity, spark, tension, stage, fights_count, last_contact_day}
 var active_scenes: Array[Dictionary] = [] # [{id, type, actor_a_id, actor_b_id, remaining_sec}]
 var last_drama_day: int = -10
+var player_influence_day: int = -1
 var total_new_couples_formed: int = 0
 var total_fights_triggered: int = 0
 var _tick_accum: float = 0.0
@@ -931,6 +935,27 @@ func register_rival_encounter(id_a: String, id_b: String, relationship: int, cur
 	pe["tension"] = clampi(int(pe.get("tension", 0)) + rng.randi_range(2, 4), 0, 100)
 	return true
 
+## B5.2: El jugador solo puede influir en un vecino al día.
+func can_player_influence(current_day: int) -> bool:
+	return player_influence_day != current_day
+
+## B5.2: Resuelve con Carisma y confianza si `listener` se cree lo que el jugador dice de `target_id`.
+## Cuesta más convencer a alguien en contra de lo que ya siente. Nunca crea enemistad de golpe: solo mueve un poco la relación y la tensión.
+func resolve_player_gossip(listener_id: String, target_id: String, listener_rel: int, positive: bool, charisma_level: int, player_affinity: int, current_day: int) -> Dictionary:
+	if not can_player_influence(current_day):
+		return {"allowed": false}
+	player_influence_day = current_day
+	var chance: float = float(dials.get("gossip_base_chance", 0.35)) + 0.08 * float(charisma_level - 1) + 0.003 * float(clampi(player_affinity, 0, 100))
+	if (positive and listener_rel <= -40) or (not positive and listener_rel >= 40):
+		chance -= 0.20
+	chance = clampf(chance, float(dials.get("gossip_min_chance", 0.15)), float(dials.get("gossip_max_chance", 0.90)))
+	if rng.randf() >= chance:
+		return {"allowed": true, "success": false}
+	var sign_v: int = 1 if positive else -1
+	var pe: Dictionary = get_pair_entry(listener_id, target_id, listener_rel)
+	pe["tension"] = clampi(int(pe.get("tension", 0)) - 3 * sign_v, 0, 100)
+	return {"allowed": true, "success": true, "delta_rel": rng.randi_range(4, 8) * sign_v}
+
 ## B4.2: Pares que hoy podrían pelear (no comprueba la familia; lo hace `try_resolve_live_fight`).
 func get_fight_ready_pairs(current_day: int) -> Array:
 	var out: Array = []
@@ -1038,6 +1063,7 @@ func to_save_dict() -> Dictionary:
 	return {
 		"rng_state": rng.state,
 		"last_drama_day": last_drama_day,
+		"player_influence_day": player_influence_day,
 		"pair_metrics": pair_metrics.duplicate(true),
 		"hangout_day_counts": hangout_day_counts.duplicate(true),
 	}
@@ -1046,6 +1072,7 @@ func from_save_dict(d: Dictionary) -> void:
 	if d.has("rng_state"):
 		rng.state = int(d["rng_state"])
 	last_drama_day = int(d.get("last_drama_day", -10))
+	player_influence_day = int(d.get("player_influence_day", -1))
 	if d.has("pair_metrics") and typeof(d["pair_metrics"]) == TYPE_DICTIONARY:
 		pair_metrics = (d["pair_metrics"] as Dictionary).duplicate(true)
 	if d.has("hangout_day_counts") and typeof(d["hangout_day_counts"]) == TYPE_DICTIONARY:
