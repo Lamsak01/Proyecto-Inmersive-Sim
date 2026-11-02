@@ -858,6 +858,131 @@ func advance_live_romance_day(current_day: int, profiles_by_id: Dictionary, fami
 			new_couples.append({"id_a": id_a, "id_b": id_b})
 	return {"advanced": advanced, "new_couples": new_couples, "fizzled": fizzled, "breakups": breakups, "reconciled": reconciled}
 
+# ==============================================================================
+# B4.1: PELEAS DISCRETAS POR DADOS — poder ponderado y resolución sin muerte
+# ==============================================================================
+const ROLE_FIGHT_BONUS: Dictionary = {
+	0: 2,  # UNEMPLOYED
+	1: 1,  # FAMILY_MEMBER
+	2: 2,  # INNKEEPER
+	3: 4,  # BUTCHER
+	4: 4,  # BLACKSMITH
+	5: 3,  # CARPENTER
+	6: 1,  # HERBALIST
+	7: 2,  # FISHMONGER
+	8: 1,  # DOCTOR
+	9: 5,  # SHERIFF
+	10: 5, # GUARD
+}
+
+## Calcula el poder de pelea interno de un vecino ponderado por oficio, edad, salud (0.4..1.0) y personalidad.
+func compute_fight_power(prof, role_id: int = 0, health_ratio: float = 1.0) -> int:
+	var score: int = 10 + int(ROLE_FIGHT_BONUS.get(role_id, 1))
+	if prof != null:
+		var age_v: int = int(prof.age)
+		if age_v < 30:
+			score += 2
+		elif age_v <= 48:
+			score += 3
+		elif age_v >= 55:
+			score -= 2
+		for tr in prof.personality:
+			match str(tr):
+				"Valiente": score += 3
+				"Rencoroso": score += 2
+				"Trabajador", "Orgulloso": score += 1
+				"Pacífico": score -= 3
+				"Bondadoso": score -= 1
+	var mult: float = clampf(health_ratio, 0.40, 1.0)
+	return maxi(2, int(round(float(score) * mult)))
+
+## Comprueba si un par cumple las condiciones de tensión, cupo por par (`max_fights_per_pair = 2`) y enfriamiento global (`drama_cooldown_days`).
+func can_pair_fight(id_a: String, id_b: String, current_day: int, same_family: bool = false) -> bool:
+	if same_family or id_a == "" or id_b == "" or id_a == id_b:
+		return false
+	if (current_day - last_drama_day) < int(dials.get("drama_cooldown_days", 2)):
+		return false
+	var k: String = make_pair_key(id_a, id_b)
+	if k == "" or not pair_metrics.has(k):
+		return false
+	var pe: Dictionary = pair_metrics[k]
+	if int(pe.get("fights_count", 0)) >= int(dials.get("max_fights_per_pair", 2)):
+		return false
+	return int(pe.get("tension", 0)) >= int(dials.get("fight_tension_threshold", 36))
+
+## B4.1: Evalúa y resuelve con dados internos (`2d6` + poder) una pelea discreta en vivo entre dos vecinos.
+## Devuelve `{"triggered": false, "reason": ...}` o el diccionario completo del resultado con `winner_id` y `loser_id`.
+func try_resolve_live_fight(npc_a, npc_b, current_day: int = 1, force_roll: bool = false) -> Dictionary:
+	if npc_a == null or npc_b == null or npc_a == npc_b:
+		return {"triggered": false, "reason": "invalid_actors"}
+	var prof_a = npc_a.get("person_profile")
+	var prof_b = npc_b.get("person_profile")
+	var name_a: String = str(npc_a.get("npc_name"))
+	var name_b: String = str(npc_b.get("npc_name"))
+	if prof_a == null:
+		prof_a = PersonProfile.make_fallback_for_name(name_a if name_a != "" else "Vecino A")
+	if prof_b == null:
+		prof_b = PersonProfile.make_fallback_for_name(name_b if name_b != "" else "Vecino B")
+	var id_a: String = str(prof_a.person_id)
+	var id_b: String = str(prof_b.person_id)
+	var fam_a: String = str(npc_a.get("family_id")) if "family_id" in npc_a else "none"
+	var fam_b: String = str(npc_b.get("family_id")) if "family_id" in npc_b else "none"
+	var same_fam: bool = (fam_a != "none" and fam_a != "" and fam_a != "family_police" and fam_a == fam_b)
+	if not can_pair_fight(id_a, id_b, current_day, same_fam):
+		return {"triggered": false, "reason": "conditions_not_met"}
+	if not can_start_scene(id_a, id_b):
+		return {"triggered": false, "reason": "max_scenes_or_busy"}
+	var has_pacifist: bool = ("Pacífico" in prof_a.personality) or ("Pacífico" in prof_b.personality)
+	var f_chance: float = float(dials.get("fight_daily_base_chance", 0.38))
+	if has_pacifist:
+		f_chance *= 0.15
+	if not force_roll and rng.randf() >= f_chance:
+		return {"triggered": false, "reason": "dice_skipped"}
+	var sc: Dictionary = start_scene("fight", id_a, id_b, 3.5, current_day)
+	if sc.is_empty():
+		return {"triggered": false, "reason": "scene_rejected"}
+	var role_a: int = int(npc_a.get("trade_role")) if "trade_role" in npc_a else 0
+	var role_b: int = int(npc_b.get("trade_role")) if "trade_role" in npc_b else 0
+	var hp_a: float = 1.0
+	var hp_b: float = 1.0
+	if "health_comp" in npc_a and npc_a.get("health_comp") != null and npc_a.get("health_comp").has_method("get_overall_health_pct"):
+		hp_a = float(npc_a.get("health_comp").call("get_overall_health_pct")) / 100.0
+	if "health_comp" in npc_b and npc_b.get("health_comp") != null and npc_b.get("health_comp").has_method("get_overall_health_pct"):
+		hp_b = float(npc_b.get("health_comp").call("get_overall_health_pct")) / 100.0
+	var pwr_a: int = compute_fight_power(prof_a, role_a, hp_a)
+	var pwr_b: int = compute_fight_power(prof_b, role_b, hp_b)
+	var dice_a: int = rng.randi_range(1, 6) + rng.randi_range(1, 6)
+	var dice_b: int = rng.randi_range(1, 6) + rng.randi_range(1, 6)
+	var total_a: int = pwr_a + dice_a
+	var total_b: int = pwr_b + dice_b
+	var a_wins: bool = total_a > total_b if total_a != total_b else (rng.randf() < 0.5)
+	var winner_id: String = id_a if a_wins else id_b
+	var loser_id: String = id_b if a_wins else id_a
+	var winner_name: String = name_a if a_wins else name_b
+	var loser_name: String = name_b if a_wins else name_a
+	var pe: Dictionary = get_pair_entry(id_a, id_b)
+	pe["fights_count"] = int(pe.get("fights_count", 0)) + 1
+	pe["tension"] = clampi(int(pe.get("tension", 0)) - 26, 0, 100)
+	pe["affinity"] = clampi(int(pe.get("affinity", 0)) - 14, -100, 100)
+	pe["last_contact_day"] = current_day
+	last_drama_day = current_day
+	total_fights_triggered += 1
+	return {
+		"triggered": true,
+		"scene_id": int(sc.get("id", 0)),
+		"winner_id": winner_id,
+		"loser_id": loser_id,
+		"winner_name": winner_name,
+		"loser_name": loser_name,
+		"power_a": pwr_a,
+		"power_b": pwr_b,
+		"roll_a": total_a,
+		"roll_b": total_b,
+		"fights_count": int(pe["fights_count"]),
+		"tension_after": int(pe["tension"]),
+		"affinity_after": int(pe["affinity"]),
+	}
+
 ## Enfriamiento diario para pares sin contacto en `current_day`.
 func on_day_passed(current_day: int) -> void:
 	var fam_dec: int = int(dials.get("decay_familiarity_no_contact", 1))

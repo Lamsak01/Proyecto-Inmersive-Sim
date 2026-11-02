@@ -311,5 +311,28 @@ func _initialize() -> void:
 	assert(not p_kael.tick_bereavement_day() and int(p_kael.bereavement_days_left) == 2, "B3.4: Dia 1 de luto")
 	assert(not p_kael.tick_bereavement_day() and int(p_kael.bereavement_days_left) == 1, "B3.4: Dia 2 de luto")
 	assert(p_kael.tick_bereavement_day() and int(p_kael.bereavement_days_left) == 0 and str(p_kael.romance_status) == PersonProfile.ROMANCE_SINGLE, "B3.4: Al terminar el luto vuelve a single conservando deceased_partner_name")
-	print("NAMES CHECK PASSED (200 F / 200 M / 200 apellidos + 17 PersonProfile + B0.3 generator + B1.1/B1.2 social + B2.1 hangouts + B3.1/B3.2/B3.3/B3.4 romance)")
+	# B4.1: Resolución de peleas discretas por dados en SocialDirector
+	var fd = SocialDirector.new(9191)
+	var p_garrick = PersonProfile.from_dict(NPCData.INITIAL_PERSON_PROFILES["Garrick"])
+	var p_elena = PersonProfile.from_dict(NPCData.INITIAL_PERSON_PROFILES["Elena"])
+	var pwr_butcher: int = fd.compute_fight_power(p_garrick, 3, 1.0)
+	var pwr_herbalist: int = fd.compute_fight_power(p_elena, 6, 1.0)
+	assert(pwr_butcher > pwr_herbalist, "B4.1: Carnicero valiente (%d) debe tener mayor poder de pelea que herborista pacifica (%d)" % [pwr_butcher, pwr_herbalist])
+	var mock_g: Dictionary = {"npc_name": "Garrick", "person_profile": p_garrick, "trade_role": 3, "family_id": "family_butcher"}
+	var mock_th: Dictionary = {"npc_name": "Thoran", "person_profile": PersonProfile.from_dict(NPCData.INITIAL_PERSON_PROFILES["Thoran"]), "trade_role": 4, "family_id": "family_smith"}
+	fd.set_pair_metrics("garrick", "thoran", -35, 30, 0, 50)
+	var f1: Dictionary = fd.try_resolve_live_fight(mock_g, mock_th, 10, true)
+	assert(bool(f1.get("triggered", false)) and int(f1.get("fights_count", 0)) == 1, "B4.1: Primera pelea con tension 50 debe activarse")
+	assert(int(f1.get("tension_after", 99)) < 50 and int(f1.get("affinity_after", 0)) < -35, "B4.1: La pelea descarga tension y baja la afinidad")
+	var f_cd: Dictionary = fd.try_resolve_live_fight(mock_g, mock_th, 11, true)
+	assert(not bool(f_cd.get("triggered", true)), "B4.1: Enfriamiento drama_cooldown_days=2 debe impedir otra pelea al dia siguiente")
+	fd.active_scenes.clear()
+	fd.get_pair_entry("garrick", "thoran")["tension"] = 55
+	var f2: Dictionary = fd.try_resolve_live_fight(mock_g, mock_th, 13, true)
+	assert(bool(f2.get("triggered", false)) and int(f2.get("fights_count", 0)) == 2, "B4.1: Segunda pelea tras enfriamiento debe activarse")
+	fd.active_scenes.clear()
+	fd.get_pair_entry("garrick", "thoran")["tension"] = 60
+	var f3: Dictionary = fd.try_resolve_live_fight(mock_g, mock_th, 16, true)
+	assert(not bool(f3.get("triggered", true)), "B4.1: Ningun par puede pelear mas de max_fights_per_pair=2 veces")
+	print("NAMES CHECK PASSED (200 F / 200 M / 200 apellidos + 17 PersonProfile + B0.3 generator + B1.1/B1.2 social + B2.1 hangouts + B3.1-B3.4 romance + B4.1 fights)")
 	quit(0)
