@@ -15,6 +15,7 @@ El detalle técnico está en `docs/HANDOFF.md` (sección 7) y el historial compl
 - Nueva prueba de guardar y cargar con misiones, ofertas y rasgos descubiertos; todo se conserva bien.
 
 ### Rasgos de personalidad
+- **T2b**: lo que te cuentan otros vecinos sobre el carácter de alguien sale como «Se dice: Violento (según Marta)» hasta que lo compruebes. Un vecino mentiroso o malicioso que se lleva mal con otro puede inventárselo; si luego descubres un rasgo que lo contradice, o le conoces del todo, el bulo desaparece.
 - **T2**: ya están los 140 rasgos en el juego. Cada vecino tiene 6, nunca dos opuestos, casi siempre con uno o dos difíciles y a veces uno raro. Los vecinos de siempre conservan sus 3 rasgos y ganan otros 3 (siempre los mismos); las partidas guardadas se completan igual. Los rasgos se muestran en femenino cuando toca (Celosa, Trabajadora). Además, las investigaciones ya tienen en cuenta el carácter real del sospechoso (antes miraban otra lista).
 - **T2 (preparación)**: listo el reparto de rasgos para cuando apruebes la lista: nunca junta opuestos, admite como mucho un rasgo raro y respeta los que ya tiene cada vecino. Aún no cambia nada en el juego.
 - **T4 (2)**: los vecinos sociables charlan más a menudo y proponen más quedadas, y los fríos menos; los trabajadores rinden hasta un 15 % más en su oficio.

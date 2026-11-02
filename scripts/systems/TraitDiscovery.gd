@@ -11,6 +11,12 @@ const TraitCatalog = preload("res://scripts/data/TraitCatalog.gd")
 const TRUST_TIERS: Array[int] = [20, 40, 60, 80] # Cada umbral de afinidad que se alcanza revela un rasgo
 const FIRST_IMPRESSION_CHARISMA: int = 3
 const WITNESS_RADIUS: float = 170.0 # Distancia para «verle actuar»
+## T2b: lo que cuenta otro vecino queda como rumor («según X») en `VillageNPC.rumored_traits` hasta que lo compruebes.
+## Miente quien es poco honesto o malicioso y se lleva mal con el otro (siempre el mismo bulo para la misma pareja).
+const LIE_HONESTY: float = -0.5
+const LIE_MALICE: float = 0.8
+const LIE_REL: int = -30
+const LIE_CHANCE_PCT: int = 60
 
 static func all_traits(npc: VillageNPC) -> Array:
 	return npc.person_profile.personality if npc.person_profile != null else npc.traits
@@ -27,6 +33,7 @@ static func reveal(npc: VillageNPC, trait_id: String, how: String = "") -> bool:
 	if npc == null or trait_id == "" or trait_id in npc.known_traits or not trait_id in all_traits(npc):
 		return false
 	npc.known_traits.append(trait_id)
+	_settle_rumors(npc, trait_id)
 	npc._spawn_floating_text("💡 %s es %s%s" % [npc.npc_name, TraitCatalog.npc_display(npc, trait_id), (" (" + how + ")") if how != "" else ""], Color(0.95, 0.85, 1.0), -58.0)
 	return true
 
@@ -68,14 +75,58 @@ static func on_dialogue_opened(npc: VillageNPC) -> void:
 			npc.trait_first_impression_done = true
 			reveal_next(npc, "le calas a primera vista")
 
-## Lo que `teller` cuenta del carácter de `other` en el menú de opiniones (el mismo rasgo al construir y al elegir).
-static func hearsay_trait(other: VillageNPC) -> String:
-	var unk: Array[String] = unknown_traits(other)
-	return unk[0] if not unk.is_empty() else ""
+## Al confirmar `trait_id` por tu cuenta: ese rumor ya no hace falta y los rumores que lo contradicen (mismo eje)
+## quedan desmentidos. Si ya conoces todos sus rasgos, cualquier otro rumor era falso.
+static func _settle_rumors(npc: VillageNPC, trait_id: String) -> void:
+	var all_known: bool = unknown_traits(npc).is_empty()
+	for r in npc.rumored_traits.keys():
+		var rs: String = str(r)
+		if rs == trait_id or TraitCatalog.conflicts(rs, trait_id) or all_known:
+			npc.rumored_traits.erase(r)
+
+## T2b: ¿`teller` mentiría sobre el carácter de `other`?
+static func would_lie_about(teller: VillageNPC, other: VillageNPC) -> bool:
+	if teller == null or other == null or teller.person_profile == null:
+		return false
+	var shady: bool = TraitCatalog.npc_tendency(teller, "honesty") <= LIE_HONESTY or TraitCatalog.npc_tendency(teller, "malice") >= LIE_MALICE
+	if not shady or teller.get_relationship_with_npc(other.get_person_key()) > LIE_REL:
+		return false
+	return abs(("lie:" + teller.get_person_key() + ":" + other.get_person_key()).hash()) % 100 < LIE_CHANCE_PCT
+
+## Lo que `teller` cuenta del carácter de `other` (el mismo rasgo al construir el menú y al elegir). Puede ser falso.
+static func hearsay_trait(teller: VillageNPC, other: VillageNPC) -> String:
+	if other == null:
+		return ""
+	if would_lie_about(teller, other):
+		var fakes: Array = []
+		for t in TraitCatalog.traits_with_tone("h"):
+			var ts: String = str(t)
+			if not TraitCatalog.is_rare(ts) and not ts in all_traits(other) and not other.rumored_traits.has(ts) and not TraitCatalog.conflicts_with_any(ts, other.known_traits):
+				fakes.append(ts)
+		fakes.sort()
+		if not fakes.is_empty():
+			return str(fakes[abs(("fake:" + teller.get_person_key() + ":" + other.get_person_key()).hash()) % fakes.size()])
+	for t in unknown_traits(other):
+		if not other.rumored_traits.has(t):
+			return t
+	return ""
+
+## T2b: `teller` te cuenta un rasgo de `other`; queda apuntado como rumor con su fuente.
+static func hear_trait(teller: VillageNPC, other: VillageNPC) -> bool:
+	var t: String = hearsay_trait(teller, other)
+	if t == "" or t in other.known_traits:
+		return false
+	other.rumored_traits[t] = teller.npc_name
+	other._spawn_floating_text("💬 Según %s, %s es %s" % [teller.npc_name, other.npc_name, TraitCatalog.npc_display(other, t)], Color(0.85, 0.85, 0.95), -58.0)
+	return true
 
 ## Texto para el jugador: rasgos conocidos y una ❓ por cada uno sin descubrir.
 static func known_traits_text(npc: VillageNPC) -> String:
 	var parts: Array[String] = []
 	for t in all_traits(npc):
 		parts.append(TraitCatalog.npc_display(npc, str(t)) if str(t) in npc.known_traits else "❓")
-	return ", ".join(parts) if not parts.is_empty() else "Equilibrado"
+	var txt: String = ", ".join(parts) if not parts.is_empty() else "Equilibrado"
+	var rumors: Array[String] = []
+	for r in npc.rumored_traits.keys():
+		rumors.append("%s (según %s)" % [TraitCatalog.npc_display(npc, str(r)), str(npc.rumored_traits[r])])
+	return txt + ((" · Se dice: " + ", ".join(rumors)) if not rumors.is_empty() else "")

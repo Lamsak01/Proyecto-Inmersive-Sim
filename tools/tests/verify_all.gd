@@ -1236,8 +1236,15 @@ func _initialize() -> void:
 	m1_s.on_dialogue_action("trait_lore")
 	assert(m1_s.known_traits.size() == 1, "T3: Personal story reveals one trait, once")
 	r1a.affinity = 50
+	r1a.npc_relationships[m1_s.get_person_key()] = 10 # Sin enemistad: dice la verdad
+	m1_s.rumored_traits.clear()
 	r1a.on_dialogue_action("quest_opinion_seen:" + m1_s.get_person_key())
-	assert(m1_s.known_traits.size() == 2, "T3: A trusting neighbor tells you a trait of another")
+	assert(m1_s.known_traits.size() == 1 and m1_s.rumored_traits.size() == 1 and str(m1_s.rumored_traits.keys()[0]) in m1_s.person_profile.personality, "T3/T2b: A trusting neighbor tells you a true trait, kept as hearsay")
+	assert(m1_s.get_known_traits_text().contains("(según %s)" % r1a.npc_name), "T2b: Hearsay shows who said it")
+	var t_disc = load("res://scripts/systems/TraitDiscovery.gd")
+	var heard_t: String = str(m1_s.rumored_traits.keys()[0])
+	t_disc.reveal(m1_s, heard_t, "test")
+	assert(m1_s.rumored_traits.is_empty(), "T2b: Confirming a rumored trait clears the rumor")
 	player.global_position = m1_s.global_position + Vector2(40, 0)
 	m1_s.known_traits.clear()
 	m1_s.npc_relationships[k_br] = -80
@@ -1347,6 +1354,34 @@ func _initialize() -> void:
 	t_rng.seed = 7
 	assert(t_cat.roll_traits(t_rng, 6) == roll_a, "T2: Same seed, same traits")
 	print("T2 trait roller OK")
+
+	# Test #46 (T2b): un vecino malicioso enemistado puede inventarse un rasgo; queda «según X», se guarda y se desmiente al conocerle
+	var liar = r1a
+	liar.person_profile.personality.assign(["Mentiroso", "Rencoroso"])
+	var lie_target = null
+	for cand_t in vm._get_npcs_by_person_key().values():
+		if cand_t != liar and not cand_t.is_dead and cand_t.person_profile != null:
+			liar.npc_relationships[cand_t.get_person_key()] = -60
+			if t_disc.would_lie_about(liar, cand_t):
+				lie_target = cand_t
+				break
+	assert(lie_target != null, "T2b: Some enemy gets a made-up trait")
+	lie_target.known_traits.clear()
+	lie_target.rumored_traits.clear()
+	assert(t_disc.hearsay_trait(liar, lie_target) == t_disc.hearsay_trait(liar, lie_target), "T2b: Always the same lie")
+	assert(t_disc.hear_trait(liar, lie_target), "T2b: The liar tells you something")
+	var fake_t: String = str(lie_target.rumored_traits.keys()[0])
+	assert(not fake_t in lie_target.person_profile.personality and t_cat.tone_of(fake_t) == "h", "T2b: The made-up trait is a nasty one they do not have")
+	liar.npc_relationships[lie_target.get_person_key()] = 20
+	assert(not t_disc.would_lie_about(liar, lie_target), "T2b: No lies without enmity")
+	var rt_save: Dictionary = lie_target.to_save_dict()
+	lie_target.rumored_traits.clear()
+	lie_target.from_save_dict(rt_save)
+	assert(str(lie_target.rumored_traits.get(fake_t, "")) == liar.npc_name, "T2b: Rumors survive saving")
+	for real_t in lie_target.person_profile.personality.duplicate():
+		t_disc.reveal(lie_target, real_t, "test")
+	assert(lie_target.rumored_traits.is_empty(), "T2b: Knowing them fully disproves the lie")
+	print("T2b trait rumors OK")
 
 	print("ALL RIMWORLD MEDICAL, FOOTPRINTS, 3-PHASE CORPSE REPORT, MULTI-CORPSE FIX, RPG INTERROGATION, PUBLIC TRIAL, DYNAMIC RELATIONSHIPS, MISSING FAMILY SEARCH, SOCIAL GLOSSARY & UNCONSCIOUS REACTION TESTS PASSED!")
 	quit(0)

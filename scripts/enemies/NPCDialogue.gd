@@ -205,7 +205,7 @@ static func _add_neighbor_opinions(npc: VillageNPC, diag: Dictionary, ch_arr: Ar
 		var note: String = npc.get_relationship_note_with_npc(other.get_person_key())
 		if shares_reason and note != "":
 			text += "\nMotivo: %s" % note
-		var heard_trait: String = TraitDiscovery.hearsay_trait(other) if shares_reason else ""
+		var heard_trait: String = TraitDiscovery.hearsay_trait(npc, other) if shares_reason else ""
 		if heard_trait != "":
 			text += "\n«Por lo que sé, es %s.»" % TraitCatalog.npc_display(other, heard_trait).to_lower()
 		choices.append({"label": "👤 %s" % other.npc_name, "next": "opinion_%d" % i, "action": "quest_opinion_seen:" + other.get_person_key()})
@@ -586,7 +586,7 @@ static func on_dialogue_action(npc: VillageNPC, action_id: String) -> void:
 	if action_id.begins_with("quest_opinion_seen:") and (npc.affinity >= 35 or int(player.call("get_skill_level", "charisma")) >= 2):
 		var about: VillageNPC = vm._get_npcs_by_person_key().get(action_id.get_slice(":", 1), null) if vm != null else null
 		if about != null:
-			TraitDiscovery.reveal(about, TraitDiscovery.hearsay_trait(about), "te lo ha contado %s" % npc.npc_name)
+			TraitDiscovery.hear_trait(npc, about)
 
 	if vm != null and VillageQuests.on_dialogue_action(vm, npc, player, action_id):
 		return
