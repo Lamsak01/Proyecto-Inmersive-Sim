@@ -1,7 +1,7 @@
 # HANDOFF — Traspaso del proyecto "La Placa de Petri" (Godot 4.7.2)
 
 > Documento para el siguiente agente de IA (o persona) que continúe el proyecto. **Léelo entero antes de tocar nada.**
-> Última actualización: tras el commit `d07afa3` + bloque de traspaso. Plan detallado en `docs/PLAN_VIDA_SOCIAL.md`.
+> Última actualización: 2026-11-02, tras cerrar B6.4 (vida social completa). Plan detallado en `docs/PLAN_VIDA_SOCIAL.md`.
 
 ---
 
@@ -12,8 +12,8 @@ Eres el asistente técnico principal del proyecto "La Placa de Petri": un Immers
 
 ANTES DE HACER NADA:
 1. Lee completo docs/HANDOFF.md y docs/PLAN_VIDA_SOCIAL.md.
-2. Ejecuta `git log --oneline | head` y `git status`. Último commit esperado: "B0.1: add NPCNames data..." (97126d6), repositorio limpio.
-3. Ejecuta los tests de tools/tests/ con los comandos de HANDOFF.md (sección 3) y confirma que pasan ANTES de tocar nada. Si algo falla, avísame primero.
+2. Ejecuta `git log --oneline | head` y `git status`. El repositorio debe estar limpio en `main`; si esto no coincide con git, manda git.
+3. Si el trabajo anterior no terminó limpio, ejecuta los tests de tools/tests/ con los comandos de la sección 3 antes de tocar nada. Si algo falla, avísame primero.
 
 TU PAPEL: NO eres un asistente complaciente. Eres mi guía técnico y debes protegerme de malas decisiones.
 - No me des la razón por defecto. Evalúa cada idea con honestidad y dime claramente si es poco realista, exagerada, arriesgada o prematura. Puedo pedir cosas desproporcionadas porque no sé programar.
@@ -41,9 +41,9 @@ FORMA DE TRABAJO:
 - Avanza en BLOQUES PEQUEÑOS (una idea verificable cada uno). Tras cada bloque: prueba, commit y un resumen de 3 líneas (hecho / verificado / pendiente).
 - Nada de refactors grandes sin pedírmelo. No cambies comportamiento visible sin avisarme.
 - Cuando necesites datos que solo veo yo (por ejemplo avisos del panel de errores de Godot), pídeme captura con archivo y línea.
-- Al terminar cada sesión, marca los bloques hechos en la sección 7 de docs/HANDOFF.md y haz commit.
+- Al cerrar cada bloque, márcalo en la sección 7 de docs/HANDOFF.md, añade una entrada a CHANGELOG.md, haz commit y push a `main`.
 
-TAREA ACTUAL: sistema de VIDA SOCIAL procedural de los aldeanos (parejas que surgen de forma natural, conversaciones, peleas discretas sin muerte, y mi papel de observador/instigador/mediador), según las decisiones de la sección 8 de HANDOFF.md. No me preguntes de nuevo lo ya decidido. El bloque B0.1 (nombres) está hecho. Continúa por el siguiente bloque sin marcar: B0.2 (ficha de persona con id único, género, edad numérica, personalidad de 3 rasgos, gustos y estado sentimental, y su tabla para los 17 vecinos actuales). Antes de implementar, dame el plan corto de ese bloque y, si me parece bien, procede.
+TAREA ACTUAL: la vida social (Fases 0 a 6) está terminada. Toca reforzar lo existente: reducir el riesgo de `VillageManager.gd` y `VillageNPC.gd` sin cambiar el juego. Antes de tocar nada, dame un plan corto por bloques y espera mi aprobación.
 ```
 
 ---
@@ -75,6 +75,9 @@ timeout 80 flatpak run org.godotengine.Godot --headless --path . -s tools/tests/
 
 # Test de nombres (rápido, ~2 s; debe imprimir "NAMES CHECK PASSED"):
 timeout 60 flatpak run org.godotengine.Godot --headless --path . -s tools/tests/names_check.gd 2>&1 | tail -3
+
+# Simulador social de 60 días (debe imprimir "SOCIAL SIM CHECK PASSED"):
+timeout 150 flatpak run org.godotengine.Godot --headless --path . -s tools/tests/social_sim.gd 2>&1 | tail -3
 
 # Cobertura de diálogos: ejecuta todas las acciones de diálogo de todos los NPC. Debe dar 0 "SCRIPT ERROR".
 timeout 80 flatpak run org.godotengine.Godot --headless --path . -s tools/tests/dialogue_coverage.gd > /tmp/c.log 2>&1; grep 'COVERAGE DONE' /tmp/c.log; grep -c 'SCRIPT ERROR' /tmp/c.log
@@ -119,7 +122,8 @@ timeout 80 flatpak run org.godotengine.Godot --headless --path . -s tools/tests/
 | `scripts/ui/SkillsPanelUI.gd` | Panel de habilidades `[K]` |
 | `scenes/ui_root.gd` | Registra paneles y teclas (I, H, M, J, K, Tab, Esc) |
 | `scenes/dialogue_manager.gd` | Rueda de diálogo |
-| `tools/tests/` | `verify_all.gd`, `dialogue_coverage.gd` |
+| `scripts/systems/SocialDirector.gd` | Director Social: diales, medidas por par, romance, quedadas, peleas e influencia del jugador |
+| `tools/tests/` | `verify_all.gd`, `names_check.gd`, `social_sim.gd`, `dialogue_coverage.gd` |
 
 Otros documentos antiguos en la raíz: `ROADMAP_PROYECTO.md`, `AUDIT_LOG.md`, `SESSION_CONTEXT_LOG.md` (contexto histórico).
 
@@ -139,7 +143,7 @@ Otros documentos antiguos en la raíz: `ROADMAP_PROYECTO.md`, `AUDIT_LOG.md`, `S
 
 ## 7. Estado y siguiente bloque
 
-**Estado del código:** limpio, todo commiteado, tests pasando (`verify_all.gd`, `dialogue_coverage.gd`).
+**Estado del código:** vida social completa (Fases 0 a 6) y subida a `main`; los cuatro tests pasan. **Siguiente:** reforzar `VillageManager.gd` y `VillageNPC.gd`, con plan aprobado antes de tocar nada. Historial en `CHANGELOG.md`.
 
 ### Bloques del sistema de Vida Social (marca [x] al terminar y commitea)
 
