@@ -1051,5 +1051,24 @@ func _initialize() -> void:
 	DirAccess.remove_absolute(ProjectSettings.globalize_path(save_path))
 	print("R1 save/load round trip OK")
 
+	# Test #34 (M1): Las enemistades y los rumores dan móvil en una investigación
+	var m1_v = vm._find_npc_by_name("Bram")
+	var m1_s = vm._find_npc_by_name("Sora")
+	var m1_x = null
+	for n in vm.get_tree().get_nodes_in_group("village_npcs"):
+		if n != r1a and n != m1_v and n != m1_s and not n.is_dead:
+			m1_x = n
+			break
+	vm.social_event_log.clear()
+	var m1_ev: Dictionary = vm.record_social_event("breakup", m1_x, m1_v, "Rompieron")
+	m1_ev["known_by"][m1_s.get_person_key()] = true
+	var m1_case: Dictionary = vm._build_investigation_case_dict(m1_v, m1_v.global_position, "Cuchillo", "", 5, false)
+	var m1_sus: Dictionary = m1_case["suspects"]
+	assert(bool(m1_sus["Thoran"].get("motive_known", false)) and int(m1_sus["Thoran"]["motive_pts"]) == 10, "M1: A past fight with the victim is a known motive")
+	assert(not bool(m1_sus[m1_x.npc_name].get("motive_known", false)), "M1: A private breakup is not known before interviews")
+	vm._evaluate_npc_interview(r1a, m1_s, m1_sus, m1_case["clues_log"], m1_case)
+	assert(int(m1_sus[m1_x.npc_name].get("motive_pts", 0)) == 8, "M1: A witness who knows the rumor reveals the motive")
+	print("M1 social motives OK")
+
 	print("ALL RIMWORLD MEDICAL, FOOTPRINTS, 3-PHASE CORPSE REPORT, MULTI-CORPSE FIX, RPG INTERROGATION, PUBLIC TRIAL, DYNAMIC RELATIONSHIPS, MISSING FAMILY SEARCH, SOCIAL GLOSSARY & UNCONSCIOUS REACTION TESTS PASSED!")
 	quit(0)

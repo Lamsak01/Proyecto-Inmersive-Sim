@@ -5,6 +5,79 @@ extends RefCounted
 ## Extraído de VillageManager.gd: cada función recibe al VillageManager como primer parámetro (`vm`).
 ## VillageManager mantiene llamadas finas con los mismos nombres y conserva el estado de los casos.
 
+# M1: Móvil social. Suma algo de sospecha, pero nunca decide un culpable por sí solo.
+const MOTIVE_PUBLIC_PTS: int = 10 # Enemistad larga o peleas conocidas por el pueblo
+const MOTIVE_RUMOR_PTS: int = 8 # Rumor que cuenta un testigo en el interrogatorio
+const MOTIVE_ENMITY_REL: int = -30
+const MOTIVE_EVENT_TYPES: Array[String] = ["fight", "feud", "breakup", "player_slander"]
+
+static func _social_key(v: VillageNPC) -> String:
+	if v == null:
+		return ""
+	return str(v.person_profile.person_id) if v.person_profile != null and str(v.person_profile.person_id) != "" else v.npc_id
+
+static func _set_motive(entry: Dictionary, pts: int, text: String) -> bool:
+	if bool(entry.get("motive_known", false)):
+		return false
+	entry["motive_known"] = true
+	entry["motive_pts"] = pts
+	entry["motive_note"] = text
+	entry["score"] = int(entry.get("score", 10)) + pts
+	return true
+
+## Al abrir el caso: enemistades largas o peleas con la víctima, y calumnias del jugador que ya conoce medio pueblo.
+static func _apply_public_motives(vm: VillageManager, victim: VillageNPC, suspects: Dictionary, all_living: Array[VillageNPC], clues: Array) -> void:
+	if victim == null:
+		return
+	var vkey: String = _social_key(victim)
+	var sd = vm.social_director
+	var min_days: int = int(sd.dials.get("live_fight_min_enmity_days", 10)) if sd != null else 10
+	for v in all_living:
+		if not suspects.has(v.npc_name):
+			continue
+		var pe: Dictionary = sd.pair_metrics.get(sd.make_pair_key(vkey, _social_key(v)), {}) if sd != null else {}
+		var fights: int = int(pe.get("fights_count", 0))
+		var rel: int = victim.get_relationship_with_npc(v.npc_name)
+		if fights <= 0 and not (rel <= MOTIVE_ENMITY_REL and int(pe.get("enmity_days", 0)) >= min_days):
+			continue
+		var txt: String = "Vieja enemistad con la víctima" + ((" (%d pelea%s)" % [fights, "" if fights == 1 else "s"]) if fights > 0 else "")
+		if _set_motive(suspects[v.npc_name], MOTIVE_PUBLIC_PTS, txt):
+			clues.append("Móvil: %s tenía una vieja enemistad con %s%s (+%d%% sospecha)." % [v.npc_name, victim.npc_name, (" y llegaron a pelearse %d vez/veces" % fights) if fights > 0 else "", MOTIVE_PUBLIC_PTS])
+	if suspects.has("Jugador"):
+		for ev in vm.social_event_log:
+			if str(ev.get("type", "")) == "player_slander" and str(ev.get("target_id", "")) == vkey and (ev.get("known_by", {}) as Dictionary).size() >= vm.NEWS_MIN_KNOWERS:
+				if _set_motive(suspects["Jugador"], MOTIVE_PUBLIC_PTS, "Habló mal de la víctima por el pueblo"):
+					clues.append("Móvil: medio pueblo sabe que el Forastero iba hablando mal de %s (+%d%% sospecha)." % [victim.npc_name, MOTIVE_PUBLIC_PTS])
+				break
+
+## En el interrogatorio: el testigo cuenta lo que sabe de peleas, rupturas o calumnias relacionadas con la víctima.
+static func _reveal_motives_known_by_witness(vm: VillageManager, witness: VillageNPC, suspects: Dictionary, clues: Array, case_dict: Dictionary) -> void:
+	var vkey: String = str(case_dict.get("victim_key", ""))
+	if vkey == "":
+		return
+	var wkey: String = _social_key(witness)
+	for ev in vm.social_event_log:
+		var t: String = str(ev.get("type", ""))
+		if not (t in MOTIVE_EVENT_TYPES) or not (ev.get("known_by", {}) as Dictionary).has(wkey):
+			continue
+		var other_name: String = ""
+		var other_key: String = ""
+		if t == "player_slander":
+			if str(ev.get("target_id", "")) == vkey:
+				other_name = "Jugador"
+		elif str(ev.get("actor_id", "")) == vkey:
+			other_name = str(ev.get("target_name", ""))
+			other_key = str(ev.get("target_id", ""))
+		elif str(ev.get("target_id", "")) == vkey:
+			other_name = str(ev.get("actor_name", ""))
+			other_key = str(ev.get("actor_id", ""))
+		if other_name == "" or other_key == wkey or other_name == witness.npc_name or not suspects.has(other_name):
+			continue
+		var label: String = "el Forastero" if other_name == "Jugador" else other_name
+		var what: String = {"fight": "se peleó con", "feud": "estaba enemistado con", "breakup": "rompió con", "player_slander": "iba hablando mal de"}.get(t, "tuvo un problema con")
+		if _set_motive(suspects[other_name], MOTIVE_RUMOR_PTS, "Según %s, %s la víctima" % [witness.npc_name, what]):
+			clues.append("Móvil: %s contó que %s %s %s el Día %d (+%d%% sospecha)." % [witness.npc_name, label, what, str(case_dict.get("victim_name", "la víctima")), int(ev.get("day", 0)), MOTIVE_RUMOR_PTS])
+
 static func _build_investigation_case_dict(vm: VillageManager, victim: VillageNPC, crime_pos: Vector2, weapon_used: String, discoverer_name: String, max_interviews_cap: int, is_royal: bool, m_id: String = "", embargo_days: int = 0) -> Dictionary:
 	var crime_hour: int = victim.death_hour if (victim != null and "death_hour" in victim and victim.death_hour >= 0) else (WorldClock.current_hour if WorldClock else 12)
 	var crime_min: int = victim.death_minute if (victim != null and "death_minute" in victim and victim.death_minute >= 0) else (WorldClock.current_minute if WorldClock else 0)
@@ -136,9 +209,10 @@ static func _build_investigation_case_dict(vm: VillageManager, victim: VillageNP
 	]
 	if direct_murder_witness != "":
 		initial_clues.append("Parte Policial: %s denunció al Forastero como autor presencial." % direct_murder_witness)
+	_apply_public_motives(vm, victim, suspects_dict, all_living, initial_clues)
 
 	return {
-		"active": true, "is_royal": is_royal, "victim_name": v_label, "victim_id": m_id, "embargo_days": embargo_days,
+		"active": true, "is_royal": is_royal, "victim_name": v_label, "victim_id": m_id, "victim_key": _social_key(victim), "embargo_days": embargo_days,
 		"crime_pos_x": crime_pos.x, "crime_pos_y": crime_pos.y, "crime_hour": crime_hour, "crime_day": crime_day,
 		"crime_total_mins": crime_total_mins, "reporter_name": first_witness,
 		"flee_dir_x": 0.0, "flee_dir_y": 0.0, "flee_compass": "",
@@ -863,6 +937,7 @@ static func _evaluate_npc_interview(vm: VillageManager, inv_npc: VillageNPC, wit
 	var active_case: Dictionary = vm.active_royal_investigation if case_dict.is_empty() else case_dict
 	var entry: Dictionary = suspects[witness.npc_name]
 	entry["interviewed"] = true
+	_reveal_motives_known_by_witness(vm, witness, suspects, clues, active_case)
 	var alibi: String = str(entry.get("mem_alibi_partner", entry.get("alibi_partner", "")))
 	var dist_to_crime: float = float(entry.get("mem_dist_to_crime", entry.get("dist_to_crime", 999.0)))
 	entry["known_dist"] = dist_to_crime
@@ -1044,7 +1119,7 @@ static func _evaluate_npc_interview(vm: VillageManager, inv_npc: VillageNPC, wit
 			elif trait_name in ["Pacífico", "Bondadoso", "Leal", "Honrado"]:
 				new_sc = maxi(10, new_sc - 8)
 				break
-		entry["score"] = maxi(int(entry.get("score", 10)), new_sc)
+		entry["score"] = maxi(int(entry.get("score", 10)), new_sc + int(entry.get("motive_pts", 0)))
 		var note_suffix: String = (" [" + ", ".join(extra_notes) + "]") if not extra_notes.is_empty() else ""
 		entry["status_note"] = "Estaba a %dm de la escena SIN coartada%s" % [dist_m, note_suffix]
 		clues.append("%s admitió estar a %d m de la escena SIN coartada%s (%d%% sospecha)." % [witness.npc_name, dist_m, note_suffix, int(entry["score"])])
@@ -1511,5 +1586,7 @@ static func get_royal_investigation_detailed_suspects_text(vm: VillageManager) -
 		var dist_tag: String = ("A %d m de la escena" % int(round(kd / 16.0))) if kd >= 0.0 else "Paradero desconocido"
 		var iv_tag: String = "✅Interrogado" if bool(s.get("interviewed", false)) else "⏳Pendiente"
 		var note: String = str(s.get("status_note", ""))
+		if str(s.get("motive_note", "")) != "":
+			note += " · Móvil: " + str(s.get("motive_note", ""))
 		lines.append("• #%d %s — %d%% sospecha | %s | [%s] %s" % [i + 1, s_name, sc, dist_tag, iv_tag, note])
 	return "\n".join(lines)

@@ -146,7 +146,7 @@ Otros documentos antiguos en la raíz: `ROADMAP_PROYECTO.md`, `AUDIT_LOG.md`, `S
 
 ## 7. Estado y siguiente bloque
 
-**Estado del código:** vida social completa (Fases 0 a 6) y subida a `main`; los cuatro tests pasan. Refuerzo del código (R1–R5) terminado. **Siguiente:** sin tarea aprobada; pregunta al usuario. Historial en `CHANGELOG.md`.
+**Estado del código:** vida social completa (Fases 0 a 6) y subida a `main`; los cuatro tests pasan. Refuerzo del código (R1–R5) terminado. M1 (móvil social en investigaciones) hecho. **Siguiente:** M2 (vida social en el tablón de encargos): el usuario quiere hacerlo de otra forma distinta a la propuesta (mediación como 4.º encargo, rechazada); pregúntale cómo antes de empezar. Historial en `CHANGELOG.md`.
 
 ### Bloques del sistema de Vida Social (marca [x] al terminar y commitea)
 
@@ -202,6 +202,10 @@ Cada fase se dividirá en bloques pequeños cuando se llegue a ella (detalle en 
 - [x] **R3** HECHO. 13 funciones (308 líneas) de quedadas, peleas y chismes movidas a `scripts/systems/VillageSocialLife.gd`. `VillageManager.gd` conserva llamadas finas con los mismos nombres y el estado (`_live_fights`, temporizadores, constantes). `_advance_live_romances` sigue en `VillageManager.gd`.
 - [x] **R4** HECHO. 24 funciones (unas 1.500 líneas) de investigación, interrogatorios, veredictos y juicio movidas a `scripts/systems/VillageJustice.gd`. `VillageManager.gd` conserva llamadas finas con los mismos nombres y el estado de los casos.
 - [x] **R5** HECHO. `VillageManager.gd` bajó de 6.911 a unas 4.700 líneas, pero conserva 115 variables. `VillageNPC._physics_process` pasó de 211 a 25 líneas en 8 pasos con nombre (mismo orden, dentro del mismo archivo). Decisión: no partir más `VillageNPC.gd` salvo que un problema concreto lo justifique.
+
+### Vida social conectada con misiones e investigaciones
+- [x] **M1** HECHO. Móvil social en `VillageJustice.gd`: al abrir el caso, quien se peleó con la víctima o tiene una enemistad larga con ella (relación ≤ −30 y ≥10 días de roce) suma +10 de sospecha y una pista; las calumnias del jugador sobre la víctima que conocen ≥3 vecinos le dan móvil a él. En el interrogatorio, un testigo que conozca una pelea, enemistad, ruptura o calumnia con la víctima la cuenta (+8). Un solo móvil por sospechoso; nunca decide solo (la coartada sigue mandando). Test #34.
+- [ ] **M2** Vida social en el tablón: la propuesta de "reconciliar a X e Y" fue rechazada; preguntar al usuario su idea.
 
 ## 8. Decisiones de diseño ya tomadas (no volver a preguntarlas)
 
