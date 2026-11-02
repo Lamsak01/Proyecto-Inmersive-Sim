@@ -181,7 +181,11 @@ Otros documentos antiguos en la raíz: `ROADMAP_PROYECTO.md`, `AUDIT_LOG.md`, `S
 - [x] **B5.3** HECHO. Mediador: "🕊️ Pedirle que haga las paces" si la relación es ≤ −15 (gasta la influencia del día; `resolve_player_mediation`: relación +4–8, tensión −11, enemistad −4 días, evento `player_mediation`). "✋ Separar" al hablar con un vecino en plena pelea (`player_stop_live_fight`, sin heridas, +3 afinidad, +5 XP; la pelea espera mientras el diálogo está abierto). Test #30 en `verify_all.gd`; la espera con diálogo abierto no tiene test automático.
 - [x] **B5.4** HECHO. Casamentero: "💘 Animarle a acercarse" si ambos están solteros y son compatibles (`can_matchmake`, `resolve_player_matchmaking`): gasta la influencia del día, suma chispa 6–10 con tope diario, relación +4–8 y evento `player_matchmaking`; no salta etapas. Solo se ofrece para los 6 vecinos que aparecen en el menú de opiniones. Test #31 en `verify_all.gd`.
 
-**Fase 6** Chismes, noticias y pulido.
+**Fase 6 — Chismes y pulido** (regla: los chismes son información y no mueven relaciones entre vecinos)
+- [x] **B6.1** HECHO. Eventos de `GOSSIP_EVENT_TYPES` con `known_by` en `social_event_log` (se guarda con la partida). Al acabar una conversación, 50 % de que se cuente la novedad más reciente que el otro ignora (`spread_gossip`, máximo 10 días de antigüedad). "🗞️ Preguntar si hay alguna novedad" en el diálogo. `player_slander`: al enterarse el aludido, −5 de afinidad con el jugador. Test #32 en `verify_all.gd`.
+- [x] **B6.2** HECHO. "🗞️ NOTICIAS DEL PUEBLO" en el tablón de la plaza (`get_public_news`): hasta 4 novedades que conozcan al menos 3 vecinos, sin comentarios del jugador. Las muertes no se publican, para no estropear la investigación de crímenes.
+- [ ] **B6.3** Calibración con varias partidas largas (avisar antes por su coste).
+- [ ] **B6.4** Pulido y revisión completa (avisar antes por su coste).
 Cada fase se dividirá en bloques pequeños cuando se llegue a ella (detalle en `docs/PLAN_VIDA_SOCIAL.md`).
 
 ## 8. Decisiones de diseño ya tomadas (no volver a preguntarlas)

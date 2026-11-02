@@ -940,6 +940,11 @@ func _process_pending_social_reply(delta: float) -> void:
 	var sign_tag: String = "+%d" % delta_rel if delta_rel >= 0 else "%d" % delta_rel
 	_spawn_floating_text("%s «%s» (%s Rel)" % [icon_str, line_b, sign_tag], col, -36.0)
 	_try_player_overhear(initiator, note_str)
+	var vm_news = _get_vm()
+	if vm_news != null and randf() < 0.5:
+		var news: Dictionary = vm_news.spread_gossip(initiator, self)
+		if not news.is_empty():
+			initiator._spawn_floating_text("🗣️ «¿Te has enterado? %s»" % str(news.get("summary", "")), Color(1.0, 0.92, 0.65), -46.0)
 
 ## B5.1: Si el jugador está en sigilo y a distancia de oído, se entera de cómo están realmente las cosas entre los dos.
 func _try_player_overhear(other: VillageNPC, note_str: String) -> bool:

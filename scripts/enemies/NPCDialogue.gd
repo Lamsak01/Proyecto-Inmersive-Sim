@@ -164,6 +164,12 @@ static func _add_neighbor_opinions(npc: VillageNPC, diag: Dictionary, ch_arr: Ar
 	if npc.affinity < 0:
 		diag["neighbor_opinions"] = {"text": "«No hablo de mis vecinos con quien no conozco.»", "choices": [{"label": "Entendido. [Volver]", "next": "start"}]}
 		return
+	var news_lines: PackedStringArray = []
+	if npc._get_vm() != null:
+		for ev in npc._get_vm().get_news_known_by(npc):
+			news_lines.append("• %s" % str(ev.get("summary", "")))
+	ch_arr.insert(maxi(0, ch_arr.size() - 1), {"label": "🗞️ Preguntar si hay alguna novedad", "next": "npc_news"})
+	diag["npc_news"] = {"text": "«Dicen por ahí...»\n%s" % "\n".join(news_lines) if not news_lines.is_empty() else "«Nada nuevo por aquí.»", "choices": [{"label": "⬅️ Volver a la conversación", "next": "start"}]}
 	var rows: Array = []
 	for n in npc.get_tree().get_nodes_in_group("village_npcs"):
 		if n != npc and n is VillageNPC and not (n as VillageNPC).is_dead:
@@ -234,7 +240,7 @@ static func _player_gossip(npc: VillageNPC, player: Node, mode: String, target_k
 		vm.record_social_event("player_matchmaking", npc, target, "El forastero animó a %s a acercarse a %s" % [npc.npc_name, target.npc_name])
 		return
 	npc._spawn_floating_text("🤫 %s se queda pensando en %s" % [npc.npc_name, target.npc_name], Color(0.80, 0.90, 1.0), -36.0)
-	vm.record_social_event("player_gossip", npc, target, "El forastero habló %s de %s a %s" % ["bien" if positive else "mal", target.npc_name, npc.npc_name])
+	vm.record_social_event("player_gossip" if positive else "player_slander", npc, target, "El forastero habló %s de %s a %s" % ["bien" if positive else "mal", target.npc_name, npc.npc_name])
 
 static func _make_armor_menu(npc: VillageNPC, title: String, menu_key: String, items: Array) -> Dictionary:
 	var ch: Array[Dictionary] = []

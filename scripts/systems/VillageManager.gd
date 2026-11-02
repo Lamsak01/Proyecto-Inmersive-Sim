@@ -1360,10 +1360,59 @@ func record_social_event(type_str: String, actor: VillageNPC, target: VillageNPC
 		"target_name": t_name,
 		"summary": summary_str,
 	}
+	if type_str in GOSSIP_EVENT_TYPES:
+		# B6.1: Al principio solo lo saben sus protagonistas; lo que el jugador dijo a escondidas no lo sabe el aludido
+		entry["known_by"] = {a_id: true}
+		if t_id != "" and type_str != "player_slander":
+			entry["known_by"][t_id] = true
 	social_event_log.append(entry)
 	while social_event_log.size() > MAX_SOCIAL_EVENT_LOG:
 		social_event_log.remove_at(0)
 	return entry
+
+## B6.1: Eventos que merecen chisme. Son solo información: no mueven relaciones entre vecinos.
+const GOSSIP_EVENT_TYPES: Array[String] = ["fight", "breakup", "couple", "couple_reconciled", "widowed", "feud", "reconciliation", "player_slander"]
+const GOSSIP_MAX_AGE_DAYS: int = 10
+const NEWS_MIN_KNOWERS: int = 3
+
+func _get_live_gossip() -> Array[Dictionary]:
+	var today: int = int(WorldClock.current_day) if WorldClock != null else 1
+	var res: Array[Dictionary] = []
+	for i in range(social_event_log.size() - 1, -1, -1):
+		var ev: Dictionary = social_event_log[i]
+		if ev.has("known_by") and today - int(ev.get("day", 0)) <= GOSSIP_MAX_AGE_DAYS:
+			res.append(ev)
+	return res
+
+## B6.1: `teller` cuenta a `listener` la novedad más reciente que este aún no sabe. Si era lo que dijiste de él, le cae mal saberlo.
+func spread_gossip(teller: VillageNPC, listener: VillageNPC) -> Dictionary:
+	var teller_key: String = teller.get_person_key()
+	var listener_key: String = listener.get_person_key()
+	for ev in _get_live_gossip():
+		var known: Dictionary = ev["known_by"]
+		if known.has(teller_key) and not known.has(listener_key):
+			known[listener_key] = true
+			if str(ev.get("type", "")) == "player_slander" and str(ev.get("target_id", "")) == listener_key:
+				listener.modify_affinity(-5)
+				listener._spawn_floating_text("😠 Se ha enterado de lo que dijiste de él/ella", Color.ORANGE, -46.0)
+			return ev
+	return {}
+
+func get_news_known_by(npc: VillageNPC, limit: int = 3) -> Array[Dictionary]:
+	var key: String = npc.get_person_key()
+	var res: Array[Dictionary] = []
+	for ev in _get_live_gossip():
+		if res.size() < limit and (ev["known_by"] as Dictionary).has(key):
+			res.append(ev)
+	return res
+
+## B6.2: Noticias públicas: lo que ya corre de boca en boca, sin los comentarios del jugador.
+func get_public_news(limit: int = 4) -> Array[Dictionary]:
+	var res: Array[Dictionary] = []
+	for ev in _get_live_gossip():
+		if res.size() < limit and str(ev.get("type", "")) != "player_slander" and (ev["known_by"] as Dictionary).size() >= NEWS_MIN_KNOWERS:
+			res.append(ev)
+	return res
 
 ## Devuelve los eventos sociales más recientes (del más nuevo al más antiguo), con filtro opcional por tipo o vecino.
 func get_recent_social_events(limit: int = 15, filter_type: String = "", person_id_or_name: String = "") -> Array[Dictionary]:
@@ -2412,6 +2461,11 @@ func _open_notice_board_ui() -> void:
 	var c2: String = "✅ COMPLETADO" if int(completed_contracts_today.get(2, -1)) == d else "🟢 DISPONIBLE"
 	var c3: String = "✅ COMPLETADO" if int(completed_contracts_today.get(3, -1)) == d else "🟢 DISPONIBLE"
 	board_info_lbl.text = "📋 TABLÓN DE ENCARGOS DE LA PLAZA CENTRAL (Día %d)\nEstado hoy -> [1] Gremios: %s | [2] Hospital: %s | [3] Comisaría: %s" % [d, c1, c2, c3]
+	var news: Array[Dictionary] = get_public_news()
+	if not news.is_empty():
+		board_info_lbl.text += "\n🗞️ NOTICIAS DEL PUEBLO"
+		for ev in news:
+			board_info_lbl.text += "\n• Día %d: %s" % [int(ev.get("day", 0)), str(ev.get("summary", ""))]
 	board_panel.visible = true
 
 func _complete_board_contract(player: Node2D, contract_idx: int) -> void:

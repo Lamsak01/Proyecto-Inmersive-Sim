@@ -961,5 +961,25 @@ func _initialize() -> void:
 	sd4.dials["gossip_min_chance"] = 0.15
 	print("B5.4 matchmaking OK")
 
+	# Test #32 (B6.1/B6.2): Los chismes corren de uno en uno y solo lo muy sabido llega al tablón
+	vm.social_event_log.clear()
+	var g_c = vm._find_npc_by_name("Sora")
+	vm.record_social_event("fight", f_a, f_b, "Thoran y Bram se pelearon")
+	vm.record_social_event("hangout", f_a, f_b, "Pasaron un rato juntos")
+	assert(vm.get_public_news().is_empty(), "B6.2: News known only by its protagonists is not public yet")
+	assert(str(vm.spread_gossip(f_a, g_c).get("type", "")) == "fight", "B6.1: A teller shares news the listener ignores")
+	assert(vm.spread_gossip(f_a, g_c).is_empty(), "B6.1: The same news is not told twice")
+	assert(vm.get_news_known_by(g_c).size() == 1, "B6.1: Listener can now tell the player")
+	assert(vm.get_public_news().size() == 1, "B6.2: Widely known news reaches the board")
+	vm._open_notice_board_ui()
+	assert(not vm.board_panel or vm.board_info_lbl.text.contains("se pelearon"), "B6.2: Board must show the news")
+	vm.board_panel.visible = false
+	vm.social_event_log.clear()
+	vm.record_social_event("player_slander", f_a, f_b, "El forastero habló mal de Bram a Thoran")
+	var aff_b6: int = f_b.affinity
+	vm.spread_gossip(f_a, f_b)
+	assert(f_b.affinity < aff_b6, "B6.1: Learning what the player said hurts their affinity")
+	print("B6.1/B6.2 gossip & news OK")
+
 	print("ALL RIMWORLD MEDICAL, FOOTPRINTS, 3-PHASE CORPSE REPORT, MULTI-CORPSE FIX, RPG INTERROGATION, PUBLIC TRIAL, DYNAMIC RELATIONSHIPS, MISSING FAMILY SEARCH, SOCIAL GLOSSARY & UNCONSCIOUS REACTION TESTS PASSED!")
 	quit(0)
