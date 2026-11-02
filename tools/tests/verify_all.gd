@@ -1090,5 +1090,51 @@ func _initialize() -> void:
 	qm.clear_all()
 	print("Q1 quest log OK")
 
+	# Test #36 (Q2): Un enemistado pide ayuda en persona; se acepta, se cumple y se cobra hablando con él
+	var vq = load("res://scripts/systems/VillageQuests.gd")
+	var sd_q = vm.social_director
+	var k_th: String = r1a.get_person_key()
+	var k_br: String = m1_v.get_person_key()
+	vq.on_day_passed(vm, 1.0)
+	assert(qm.offers.size() >= 1 and qm.offers.size() <= vq.MAX_OPEN_SOCIAL, "Q2: Long enmities produce a few offers, capped")
+	assert(r1a.get_node_or_null("QuestMarker") == null or r1a.get_node("QuestMarker").visible == qm.offers.has(k_th), "Q2: Marker follows offers")
+	qm.clear_all()
+	qm.set_offer(k_th, {"type": "peace", "giver_name": "Thoran", "target_key": k_br, "target_name": "Bram", "day_offered": int(wc_speed.current_day)})
+	assert(r1a.get_node("QuestMarker").visible, "Q2: Giver shows ❗")
+	assert(str(r1a._inject_character_lore_into_dialogue(r1a._build_dialogue())).contains("quest_accept"), "Q2: Giver offers the quest in dialogue")
+	r1a.on_dialogue_action("quest_accept")
+	assert(qm.get_active_quests("side").size() == 1 and not r1a.get_node("QuestMarker").visible, "Q2: Accepting moves it to the quest log")
+	m1_v.npc_relationships[k_th] = -40
+	sd_q.dials["gossip_min_chance"] = 1.0
+	sd_q.dials["gossip_max_chance"] = 1.0
+	var q2_tries: int = 0
+	while not vq.is_quest_done(vm, qm.get_active_quest_by_giver(k_th)) and q2_tries < 10:
+		sd_q.player_influence_day = -1
+		m1_v.on_dialogue_action("social_gossip:peace:" + k_th)
+		q2_tries += 1
+	assert(q2_tries >= 2 and q2_tries < 10, "Q2: Peace takes more than one mediation")
+	var gold_q2: int = int(player.inventory.gold)
+	r1a.on_dialogue_action("quest_turn_in")
+	assert(int(player.inventory.gold) == gold_q2 + 30 and qm.get_quests("side", "completed").size() == 1, "Q2: Turning in pays and completes")
+	qm.giver_cooldowns.clear()
+	qm.set_offer(k_th, {"type": "slander", "giver_name": "Thoran", "target_key": k_br, "target_name": "Bram", "day_offered": int(wc_speed.current_day)})
+	r1a.on_dialogue_action("quest_accept")
+	sd_q.player_influence_day = -1
+	m1_s.on_dialogue_action("social_gossip:bad:" + k_br)
+	sd_q.player_influence_day = -1
+	m1_s.on_dialogue_action("social_gossip:bad:" + k_br)
+	assert(not vq.is_quest_done(vm, qm.get_active_quest_by_giver(k_th)), "Q2: Slander needs different listeners")
+	sd_q.player_influence_day = -1
+	m1_x.on_dialogue_action("social_gossip:bad:" + k_br)
+	assert(vq.is_quest_done(vm, qm.get_active_quest_by_giver(k_th)), "Q2: Two listeners complete the slander")
+	m1_v.is_dead = true
+	vq.check_failures(vm)
+	assert(qm.get_quests("side", "failed").size() == 1, "Q2: A quest fails if its target dies")
+	m1_v.is_dead = false
+	sd_q.dials["gossip_min_chance"] = 0.15
+	sd_q.dials["gossip_max_chance"] = 0.90
+	qm.clear_all()
+	print("Q2 social quests OK")
+
 	print("ALL RIMWORLD MEDICAL, FOOTPRINTS, 3-PHASE CORPSE REPORT, MULTI-CORPSE FIX, RPG INTERROGATION, PUBLIC TRIAL, DYNAMIC RELATIONSHIPS, MISSING FAMILY SEARCH, SOCIAL GLOSSARY & UNCONSCIOUS REACTION TESTS PASSED!")
 	quit(0)

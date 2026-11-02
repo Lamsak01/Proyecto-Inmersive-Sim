@@ -1,5 +1,7 @@
 extends RefCounted
 
+const VillageQuests = preload("res://scripts/systems/VillageQuests.gd")
+
 ## Menús y acciones de diálogo de los habitantes (tiendas, interrogatorios, lore, acciones de las opciones).
 ## Extraído de VillageNPC.gd. Cada función recibe al NPC como primer parámetro (`npc`); VillageNPC mantiene
 ## funciones delgadas con los mismos nombres que delegan aquí, así que el resto del proyecto no cambia.
@@ -146,6 +148,8 @@ static func _inject_character_lore_into_dialogue(npc: VillageNPC, diag: Dictiona
 			]
 		}
 	_add_neighbor_opinions(npc, diag, ch_arr)
+	if vm_diag != null:
+		VillageQuests.add_quest_dialogue(vm_diag, npc, diag, ch_arr)
 	return diag
 
 ## B5.1: Texto corto de lo que un vecino siente por otro; lo comparten el diálogo y la escucha a escondidas.
@@ -230,6 +234,7 @@ static func _player_gossip(npc: VillageNPC, player: Node, mode: String, target_k
 		player.call("add_skill_xp", "charisma", 1)
 		return
 	npc.modify_npc_relationship(target, int(res.get("delta_rel", 0)), "Lo que el forastero contó de %s" % target.npc_name)
+	VillageQuests.on_player_influence(vm, npc, target, mode)
 	player.call("add_skill_xp", "charisma", 4)
 	if mode == "peace":
 		npc._spawn_floating_text("🕊️ %s promete darle otra oportunidad a %s" % [npc.npc_name, target.npc_name], Color(0.70, 1.0, 0.85), -36.0)
@@ -553,6 +558,9 @@ static func on_dialogue_action(npc: VillageNPC, action_id: String) -> void:
 		var soc_ui = npc.get_tree().root.find_child("SocialGlossaryUI", true, false)
 		if soc_ui and soc_ui.has_method("open_panel"):
 			soc_ui.call_deferred("open_panel", npc)
+		return
+
+	if vm != null and VillageQuests.on_dialogue_action(vm, npc, player, action_id):
 		return
 
 	if action_id.begins_with("social_gossip:"):

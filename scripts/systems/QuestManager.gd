@@ -14,6 +14,10 @@ const STATUS_FAILED: String = "failed"
 
 var quests: Dictionary = {} # id -> Dictionary
 var _next_id: int = 1
+## Q2: Misiones que un vecino quiere pedir pero el jugador aún no ha aceptado. giver_key -> Dictionary
+var offers: Dictionary = {}
+## Q2: Día hasta el que un vecino no vuelve a pedir nada. giver_key -> int
+var giver_cooldowns: Dictionary = {}
 
 func _current_day() -> int:
 	var wc = get_node_or_null("/root/WorldClock")
@@ -84,13 +88,30 @@ func get_quests(category: String = "", status: String = "") -> Array[Dictionary]
 func get_active_quests(category: String = "") -> Array[Dictionary]:
 	return get_quests(category, STATUS_ACTIVE)
 
+func set_offer(giver_key: String, offer: Dictionary) -> void:
+	offers[giver_key] = offer
+	quest_changed.emit("")
+
+func remove_offer(giver_key: String) -> void:
+	if offers.erase(giver_key):
+		quest_changed.emit("")
+
+## Misión activa que pidió este vecino (vacía si no hay).
+func get_active_quest_by_giver(giver_key: String) -> Dictionary:
+	for q in quests.values():
+		if str(q.get("status", "")) == STATUS_ACTIVE and str(q.get("giver_key", "")) == giver_key:
+			return q
+	return {}
+
 func clear_all() -> void:
 	quests.clear()
+	offers.clear()
+	giver_cooldowns.clear()
 	_next_id = 1
 	quest_changed.emit("")
 
 func to_save_dict() -> Dictionary:
-	return {"quests": quests.duplicate(true), "next_id": _next_id}
+	return {"quests": quests.duplicate(true), "next_id": _next_id, "offers": offers.duplicate(true), "giver_cooldowns": giver_cooldowns.duplicate(true)}
 
 func from_save_dict(data: Dictionary) -> void:
 	quests.clear()
@@ -104,4 +125,10 @@ func from_save_dict(data: Dictionary) -> void:
 					q[f] = int(q.get(f, -1))
 				quests[str(k)] = q
 	_next_id = maxi(int(data.get("next_id", 1)), quests.size() + 1)
+	offers = (data.get("offers", {}) as Dictionary).duplicate(true) if typeof(data.get("offers", {})) == TYPE_DICTIONARY else {}
+	giver_cooldowns.clear()
+	var cds: Variant = data.get("giver_cooldowns", {})
+	if typeof(cds) == TYPE_DICTIONARY:
+		for k in cds.keys():
+			giver_cooldowns[str(k)] = int(cds[k])
 	quest_changed.emit("")

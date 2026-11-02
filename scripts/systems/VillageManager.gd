@@ -5,6 +5,7 @@ class_name VillageManager
 const VillageJustice = preload("res://scripts/systems/VillageJustice.gd")
 
 const VillageSocialLife = preload("res://scripts/systems/VillageSocialLife.gd")
+const VillageQuests = preload("res://scripts/systems/VillageQuests.gd")
 
 const VillageWorldBuilder = preload("res://scripts/systems/VillageWorldBuilder.gd")
 
@@ -194,6 +195,9 @@ func setup_village(target_entities_root: Node) -> void:
 		if WorldClock:
 			if not WorldClock.day_passed.is_connected(_on_day_passed):
 				WorldClock.day_passed.connect(_on_day_passed)
+			var qm_node = get_node_or_null("/root/QuestManager")
+			if qm_node and not qm_node.quest_changed.is_connected(_on_quests_changed):
+				qm_node.quest_changed.connect(_on_quests_changed)
 			if not WorldClock.hour_passed.is_connected(_on_hour_passed):
 				WorldClock.hour_passed.connect(_on_hour_passed)
 			_apply_hourly_door_security_schedule(WorldClock.current_hour)
@@ -2905,11 +2909,15 @@ func _advance_live_romances(cur_day: int) -> Dictionary:
 			record_social_event("couple_reconciled", rca, rcb, "%s y %s se han reconciliado y vuelven a ser pareja" % [rca.npc_name, rcb.npc_name])
 	return res
 
+func _on_quests_changed(_qid: String) -> void:
+	VillageQuests.refresh_markers(self)
+
 func _on_day_passed(_new_day: int) -> void:
 	arrivals_today_count = 0
 	if social_director != null:
 		_advance_live_romances(_new_day)
 		social_director.on_day_passed(_new_day)
+		VillageQuests.on_day_passed(self)
 
 	# Descontar 1 día del embargo comercial (20..30 días) si alguno de los 2 mercaderes semanales fue asesinado
 	for m_key in ["casimir", "valeria"]:

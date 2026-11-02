@@ -146,7 +146,7 @@ Otros documentos antiguos en la raíz: `ROADMAP_PROYECTO.md`, `AUDIT_LOG.md`, `S
 
 ## 7. Estado y siguiente bloque
 
-**Estado del código:** vida social completa (Fases 0 a 6) y subida a `main`; los cuatro tests pasan. Refuerzo del código (R1–R5) terminado. M1 (móvil social en investigaciones) y Q1 (panel de misiones) hechos. **Siguiente:** Q2 (los vecinos generan misiones), pedir aprobación antes de empezar. Historial en `CHANGELOG.md`.
+**Estado del código:** vida social completa (Fases 0 a 6) y subida a `main`; los cuatro tests pasan. Refuerzo del código (R1–R5) terminado. M1 (móvil social en investigaciones), Q1 (panel de misiones) y Q2 (primeras misiones de vecinos) hechos. **Siguiente:** Q3 (tipos 3, 4 y 5), pedir aprobación antes de empezar. Historial en `CHANGELOG.md`.
 
 ### Bloques del sistema de Vida Social (marca [x] al terminar y commitea)
 
@@ -207,7 +207,7 @@ Cada fase se dividirá en bloques pequeños cuando se llegue a ella (detalle en 
 - [x] **M1** HECHO. Móvil social en `VillageJustice.gd`: al abrir el caso, quien se peleó con la víctima o tiene una enemistad larga con ella (relación ≤ −30 y ≥10 días de roce) suma +10 de sospecha y una pista; las calumnias del jugador sobre la víctima que conocen ≥3 vecinos le dan móvil a él. En el interrogatorio, un testigo que conozca una pelea, enemistad, ruptura o calumnia con la víctima la cuenta (+8). Un solo móvil por sospechoso; nunca decide solo (la coartada sigue mandando). Test #34.
 - [x] **M2** Sustituido por las misiones personales (bloques Q). El tablón no se toca.
 - [x] **Q1** HECHO. Autoload `QuestManager` (`scripts/systems/QuestManager.gd`): misiones con categoría `side`/`main` y estado `active`/`completed`/`failed`, notas y `data` libre; se guarda en la partida (clave `quests`). Panel `scripts/ui/QuestLogUI.gd` con la tecla **L** (la J es el glosario), pestañas Secundarias y Principal. `ObjectiveManager` (objetivos antiguos) no se toca. Test #35.
-- [ ] **Q2** Los vecinos generan misiones: probabilidad diaria baja si viven algo fuerte, máximo 2–3 a la vez, ❗ sobre la cabeza, aceptar o rechazar en el diálogo. Primeros tipos: 1 y 2.
+- [x] **Q2** HECHO. `scripts/systems/VillageQuests.gd` (funciones estáticas con `vm`). Cada día (`VillageManager._on_day_passed`), un vecino con enemistad (relación ≤ −30 y ≥5 días de roce o alguna pelea) tiene un 12 % de pedir ayuda; máximo 3 ofertas+misiones de vecinos a la vez; la oferta caduca en 4 días; tras rechazar/cobrar/fallar el vecino espera 10 días. El tipo depende de su carácter: rencoroso → «Ensúciale el nombre» (relación ≤ −40; hablar mal del rival a 2 vecinos distintos), pacífico → «Haz las paces por mí» (mediar con el rival hasta que vea al otro en ≥ −15 o mejore 12). Ofertas y esperas viven en `QuestManager.offers`/`giver_cooldowns` (se guardan). ❗ = nodo `QuestMarker` sobre el vecino. Se acepta, abandona y cobra hablando con quien lo pidió (acciones `quest_*` en `NPCDialogue`). Falla si muere quien la pidió o el rival. Test #36.
 - [ ] **Q3** Resto de tipos: 3, 4 y 5.
 - [ ] **Q4** Medir en partidas largas que salgan de forma ocasional.
 
