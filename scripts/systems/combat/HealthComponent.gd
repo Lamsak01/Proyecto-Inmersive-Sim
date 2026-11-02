@@ -121,6 +121,27 @@ func get_effective_max_health() -> float:
 func get_overall_health_pct() -> float:
 	return clampf(current_health / get_effective_max_health() * 100.0, 0.0, 100.0)
 
+## Contusión leve de una pelea: sin fracturas, órganos ni sangrado, y nunca baja de `floor_ratio` de la salud. Devuelve el daño real.
+func apply_minor_bruise(amount: float, floor_ratio: float = 0.35, cause: String = "Pelea a puñetazos") -> float:
+	var dealt: float = minf(amount, current_health - get_effective_max_health() * floor_ratio)
+	if dealt <= 0.0:
+		return 0.0
+	current_health -= dealt
+	var r_id: String = ["torso", "left_arm", "right_arm"][randi() % 3]
+	region_hp[r_id] = maxf(1.0, float(region_hp.get(r_id, 40.0)) - dealt)
+	wounds.append({
+		"id": _next_wound_id, "region": r_id, "organ": "", "type": "bruise",
+		"name": str(WOUND_NAMES["bruise"]), "severity": 18.0, "bleed_rate": 0.0, "pain": 6.0,
+		"bandaged": false, "bandage_dirty": 0.0, "stitched": false, "splinted": false, "clean": false,
+		"infection": 0.0, "immunity": 0.0, "tend_quality": 0.0, "tend_tier": "none", "weapon_cause": cause,
+	})
+	_next_wound_id += 1
+	while wounds.size() > 14:
+		wounds.pop_front()
+	health_changed.emit(current_health, max_health)
+	anatomy_changed.emit()
+	return dealt
+
 func _process(delta: float) -> void:
 	if Engine.is_editor_hint() or current_health <= 0.0 or (WorldClock and WorldClock.has_method("is_time_frozen") and WorldClock.is_time_frozen()):
 		return

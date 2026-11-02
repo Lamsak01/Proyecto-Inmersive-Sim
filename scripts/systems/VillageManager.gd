@@ -205,6 +205,7 @@ func _process(delta: float) -> void:
 	if social_director != null:
 		social_director.tick(delta, self)
 		_update_social_hangouts(delta)
+		_update_live_fights(delta)
 
 	if not is_instance_valid(_cached_player):
 		_cached_player = get_tree().get_first_node_in_group("player") as Node2D
@@ -3283,6 +3284,120 @@ func _spot_label_for(spot_id: String) -> String:
 		if str(sp.get("id", "")) == spot_id:
 			return str(sp.get("label", ""))
 	return ""
+
+# ==============================================================================
+# B4.2: PELEAS DISCRETAS EN VIVO — el Director decide, aquí se representan y se aplican las consecuencias
+# ==============================================================================
+const FIGHT_TRIGGER_RADIUS: float = 72.0
+const FIGHT_GUARD_RADIUS: float = 140.0
+const FIGHT_WITNESS_RADIUS: float = 110.0
+const FIGHT_DURATION_SEC: float = 3.5
+const FIGHT_GUARD_STOP_SEC: float = 1.6
+const FIGHT_HEALTH_FLOOR: float = 0.35
+var _live_fights: Array[Dictionary] = []
+var _fight_scan_timer: float = 3.0
+
+func _is_npc_free_to_fight(v: VillageNPC) -> bool:
+	if not is_instance_valid(v) or v.is_dead or v.is_sleeping or v.is_hostile or v.is_incapacitated():
+		return false
+	if v.trade_role in [VillageNPC.TradeRole.TRAVELING_MERCHANT, VillageNPC.TradeRole.ROYAL_INVESTIGATOR]:
+		return false
+	if v.is_vagrant_camper or v.is_at_poker_table or v.hangout_id >= 0 or v.is_in_live_fight() or v == escorting_officer:
+		return false
+	if v.is_busy_with_player() or v.is_busy_with_emergency():
+		return false
+	return v.person_profile == null or int(v.person_profile.bereavement_days_left) <= 0
+
+func _find_fight_guard(pos: Vector2, a: VillageNPC, b: VillageNPC) -> VillageNPC:
+	var best: VillageNPC = null
+	var best_d: float = FIGHT_GUARD_RADIUS
+	for n in get_tree().get_nodes_in_group("village_npcs"):
+		if n == a or n == b or not (n is VillageNPC):
+			continue
+		var v: VillageNPC = n as VillageNPC
+		if v.trade_role in [VillageNPC.TradeRole.SHERIFF, VillageNPC.TradeRole.GUARD] and v.is_conscious():
+			var d: float = pos.distance_to(v.global_position)
+			if d <= best_d:
+				best_d = d
+				best = v
+	return best
+
+func _try_start_live_fight() -> void:
+	var cur_day: int = int(WorldClock.current_day) if WorldClock != null else 1
+	var pairs: Array = social_director.get_fight_ready_pairs(cur_day)
+	if pairs.is_empty():
+		return
+	var by_key: Dictionary = _get_npcs_by_person_key()
+	for p in pairs:
+		var a: VillageNPC = by_key.get(str(p[0]), null)
+		var b: VillageNPC = by_key.get(str(p[1]), null)
+		if not _is_npc_free_to_fight(a) or not _is_npc_free_to_fight(b):
+			continue
+		if a.global_position.distance_to(b.global_position) > FIGHT_TRIGGER_RADIUS:
+			continue
+		var res: Dictionary = social_director.try_resolve_live_fight(a, b, cur_day)
+		if bool(res.get("triggered", false)):
+			a.begin_live_fight(b)
+			b.begin_live_fight(a)
+			_live_fights.append({"a": a, "b": b, "res": res, "elapsed": 0.0, "guard": _find_fight_guard(a.global_position, a, b)})
+			return
+
+func _update_live_fights(delta: float) -> void:
+	if WorldClock != null and WorldClock.has_method("is_time_frozen") and WorldClock.is_time_frozen():
+		return
+	for i in range(_live_fights.size() - 1, -1, -1):
+		var fight: Dictionary = _live_fights[i]
+		var a: VillageNPC = fight["a"] if is_instance_valid(fight["a"]) else null
+		var b: VillageNPC = fight["b"] if is_instance_valid(fight["b"]) else null
+		var interrupted: bool = false
+		for v in [a, b]:
+			if v == null or v.is_dead or v.is_hostile or v.is_incapacitated():
+				interrupted = true
+		fight["elapsed"] = float(fight["elapsed"]) + delta
+		var guard_stops: bool = is_instance_valid(fight["guard"]) and float(fight["elapsed"]) >= FIGHT_GUARD_STOP_SEC
+		if interrupted or guard_stops or float(fight["elapsed"]) >= FIGHT_DURATION_SEC:
+			_live_fights.remove_at(i)
+			_finish_live_fight(fight, a, b, interrupted, guard_stops)
+	_fight_scan_timer -= delta
+	if _fight_scan_timer <= 0.0:
+		_fight_scan_timer = randf_range(3.5, 6.0)
+		_try_start_live_fight()
+
+func _finish_live_fight(fight: Dictionary, a: VillageNPC, b: VillageNPC, interrupted: bool, guard_stops: bool) -> void:
+	var res: Dictionary = fight["res"]
+	social_director.end_scene(int(res.get("scene_id", 0)))
+	for v in [a, b]:
+		if v != null:
+			v.end_live_fight()
+	if interrupted:
+		return
+	a.modify_npc_relationship(b, int(res.get("relationship_delta", -14)), "💢 Llegaron a las manos")
+	a._npc_social_event_cooldown = randf_range(40.0, 70.0)
+	b._npc_social_event_cooldown = randf_range(40.0, 70.0)
+	var winner: VillageNPC = a if a.get_person_key() == str(res.get("winner_id", "")) else b
+	var loser: VillageNPC = b if winner == a else a
+	var summary: String
+	if guard_stops:
+		var guard: VillageNPC = fight["guard"]
+		guard._spawn_floating_text("👮 «¡Basta ya, separaos!»", Color(0.65, 0.82, 1.0), -38.0)
+		a.add_thought("La guardia me separó de %s (-4)" % b.npc_name, -4.0)
+		b.add_thought("La guardia me separó de %s (-4)" % a.npc_name, -4.0)
+		summary = "%s separó a %s y %s antes de que llegaran a más" % [guard.npc_name, a.npc_name, b.npc_name]
+	else:
+		loser.health_comp.apply_minor_bruise(randf_range(6.0, 10.0), FIGHT_HEALTH_FLOOR, "Pelea con %s" % winner.npc_name)
+		loser._spawn_floating_text("🤕 Magullado", Color(1.0, 0.70, 0.55), -34.0)
+		winner.add_thought("Le paré los pies a %s (+2)" % loser.npc_name, 2.0)
+		loser.add_thought("%s me dio una paliza (-8)" % winner.npc_name, -8.0)
+		summary = "%s y %s se pelearon; %s salió peor parado" % [winner.npc_name, loser.npc_name, loser.npc_name]
+	var witnesses: int = 0
+	for n in get_tree().get_nodes_in_group("village_npcs"):
+		if n == a or n == b or not (n is VillageNPC) or witnesses >= 3:
+			continue
+		var w: VillageNPC = n as VillageNPC
+		if w.is_conscious() and w.global_position.distance_to(a.global_position) <= FIGHT_WITNESS_RADIUS:
+			w.add_thought("Vi pelearse a %s y %s (-2)" % [a.npc_name, b.npc_name], -2.0)
+			witnesses += 1
+	record_social_event("fight", winner, loser, summary)
 
 func _update_social_hangouts(delta: float) -> void:
 	if social_director == null or not is_inside_tree():

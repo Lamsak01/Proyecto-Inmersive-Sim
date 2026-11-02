@@ -38,6 +38,7 @@ const DIALS: Dictionary = {
 	"spark_daily_gain_max": 8,
 	"stage_advance_base_chance": 0.36,
 	"fight_tension_threshold": 36,
+	"live_fight_tension_threshold": 28, # En vivo los rivales se evitan desde 30 de tensión: con 36 casi nunca habría peleas
 	"fight_daily_base_chance": 0.38,
 	# B2.1: Pasar tiempo juntos (quedadas entre amigos / parejas) y evitar rivales
 	"max_concurrent_hangouts": 2,
@@ -908,7 +909,16 @@ func can_pair_fight(id_a: String, id_b: String, current_day: int, same_family: b
 	var pe: Dictionary = pair_metrics[k]
 	if int(pe.get("fights_count", 0)) >= int(dials.get("max_fights_per_pair", 2)):
 		return false
-	return int(pe.get("tension", 0)) >= int(dials.get("fight_tension_threshold", 36))
+	return int(pe.get("tension", 0)) >= int(dials.get("live_fight_tension_threshold", 28))
+
+## B4.2: Pares que hoy podrían pelear (no comprueba la familia; lo hace `try_resolve_live_fight`).
+func get_fight_ready_pairs(current_day: int) -> Array:
+	var out: Array = []
+	for k in pair_metrics.keys():
+		var parts: PackedStringArray = str(k).split("|")
+		if parts.size() == 2 and can_pair_fight(parts[0], parts[1], current_day):
+			out.append(parts)
+	return out
 
 ## B4.1: Evalúa y resuelve con dados internos (`2d6` + poder) una pelea discreta en vivo entre dos vecinos.
 ## Devuelve `{"triggered": false, "reason": ...}` o el diccionario completo del resultado con `winner_id` y `loser_id`.
@@ -969,7 +979,8 @@ func try_resolve_live_fight(npc_a, npc_b, current_day: int = 1, force_roll: bool
 	var pe: Dictionary = get_pair_entry(id_a, id_b)
 	pe["fights_count"] = int(pe.get("fights_count", 0)) + 1
 	pe["tension"] = clampi(int(pe.get("tension", 0)) - 26, 0, 100)
-	pe["affinity"] = clampi(int(pe.get("affinity", 0)) - 14, -100, 100)
+	var rel_delta: int = -14
+	pe["affinity"] = clampi(int(pe.get("affinity", 0)) + rel_delta, -100, 100)
 	pe["last_contact_day"] = current_day
 	last_drama_day = current_day
 	total_fights_triggered += 1
@@ -984,6 +995,7 @@ func try_resolve_live_fight(npc_a, npc_b, current_day: int = 1, force_roll: bool
 		"power_b": pwr_b,
 		"roll_a": total_a,
 		"roll_b": total_b,
+		"relationship_delta": rel_delta,
 		"fights_count": int(pe["fights_count"]),
 		"tension_after": int(pe["tension"]),
 		"affinity_after": int(pe["affinity"]),

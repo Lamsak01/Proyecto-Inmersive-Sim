@@ -8,7 +8,7 @@
 ## 0. PROMPT LISTO PARA PEGAR AL SIGUIENTE AGENTE
 
 ```
-Eres el asistente técnico principal del proyecto "La Placa de Petri": un Immersive Sim / sandbox 2D top-down en pixel art hecho en Godot 4.7.2 (GDScript). La carpeta es /home/lamsaktp/Proyecto-Inmersive-Sim. Yo NO sé programar y mi PC es antigua. Háblame siempre en español.
+Eres el asistente técnico principal del proyecto "La Placa de Petri": un Immersive Sim / sandbox 2D top-down en pixel art hecho en Godot 4.7.2 (GDScript). La carpeta es /home/lamsaktp/Proyecto-Inmersive-Sim. Yo NO sé programar. Háblame siempre en español.
 
 ANTES DE HACER NADA:
 1. Lee completo docs/HANDOFF.md y docs/PLAN_VIDA_SOCIAL.md.
@@ -31,7 +31,10 @@ PLAN ANTES DE IMPLEMENTAR (obligatorio):
 AHORRO DE TOKENS (comunicación y código):
 - Conmigo: respuestas cortas y directas, con listas. Sin repetir lo que ya sé, sin resúmenes largos ni florituras. Si basta una frase, usa una frase.
 - Código: cambios mínimos y localizados (parches), nunca reescribir archivos enteros sin necesidad. No leas archivos grandes completos: busca con grep y lee solo los rangos necesarios. No repitas salidas largas de comandos: resume lo importante.
-- Ejecuta tests solo cuando toque (al cerrar un bloque o ante una duda real), de uno en uno y con `timeout`.
+- Mientras trabajes, pasa solo el test afectado. Pasa los cuatro una sola vez, al cerrar cada bloque, de uno en uno y con `timeout`.
+- Usa un solo test por comportamiento nuevo.
+- Nada de comprobaciones repetidas ni revisiones grandes sin avisarme antes.
+- Dame resúmenes de 3 líneas por bloque.
 - Reutiliza lo que ya existe (tablas de datos, tests, helpers) en lugar de crear cosas nuevas.
 
 FORMA DE TRABAJO:
@@ -58,7 +61,7 @@ TAREA ACTUAL: sistema de VIDA SOCIAL procedural de los aldeanos (parejas que sur
 - Idioma: **español**. Conciso. Explica el "qué" y el "por qué" sin jerga.
 - El usuario **no programa**; prefiere que decidas lo técnico y le preguntes lo de diseño con opciones claras.
 - Le preocupan los **tokens**: bloques pequeños, bien documentados, siempre dejando el repositorio en estado limpio y commiteado.
-- Le gusta: planificar antes, probar jugando y reportar lo que ve. Su PC es **antigua**: cuida el rendimiento.
+- Le gusta: planificar antes, probar jugando y reportar lo que ve.
 - Preferencias de diseño ya decididas: ver sección 8.
 
 ## 3. Entorno y cómo probar
@@ -170,7 +173,7 @@ Otros documentos antiguos en la raíz: `ROADMAP_PROYECTO.md`, `AUDIT_LOG.md`, `S
 
 **Fase 4 — Peleas discretas por dados**
 - [x] **B4.1** HECHO. Resolución por dados en `SocialDirector.gd` (`compute_fight_power`, `can_pair_fight`, `try_resolve_live_fight` con poder ponderado por oficio, edad, salud y personalidad; tirada interna con ganador/perdedor, alivio de tensión, caída de relación y respeto a `drama_cooldown_days` y `max_fights_per_pair = 2`). Verificado en `names_check.gd`.
-- [ ] **B4.2** Escena discreta en vivo en `VillageNPC.gd` y `VillageManager.gd` (dos vecinos frente a frente unos segundos con pequeños empujones/temblor leve y "💢", contusión leve sin muerte en `HealthComponent`, reacción de testigos/guardia y evento `fight` en el registro social).
+- [x] **B4.2** HECHO. Peleas en vivo: `VillageManager._update_live_fights()` busca cada 3,5–6 s pares con tensión ≥ `live_fight_tension_threshold` (28) a ≤ 72 px y lanza `try_resolve_live_fight` (una tirada por par y día). Escena de 3,5 s en `VillageNPC.gd` (temblor y "💢"), moratón con `HealthComponent.apply_minor_bruise()` (sin órganos, fracturas ni sangrado; suelo del 35 %), relación −14, pensamientos y hasta 3 testigos a ≤ 110 px, evento `fight`. Un guardia a ≤ 140 px los separa a los 1,6 s, sin herida. Test #27 en `verify_all.gd`. El umbral 28 sale de una medición aproximada de conversaciones; falta confirmar la frecuencia jugando.
 
 **Fase 5** Rol del jugador (observador/instigador/mediador) · **Fase 6** Chismes, noticias y pulido.
 Cada fase se dividirá en bloques pequeños cuando se llegue a ella (detalle en `docs/PLAN_VIDA_SOCIAL.md`).

@@ -104,6 +104,8 @@ var _social_partner: VillageNPC = null
 var _decision_timer: float = 0.0
 # B2.2: Quedada activa organizada por el SocialDirector (-1 = ninguna). El VillageManager la asigna y la limpia.
 var hangout_id: int = -1
+var live_fight_partner: VillageNPC = null
+var _live_fight_clock: float = 0.0
 var hangout_spot_pos: Vector2 = Vector2.ZERO
 var hangout_side: int = 0  # -1 / +1: cada participante se coloca a un lado del punto de encuentro
 var hangout_spot_label: String = ""
@@ -1630,6 +1632,10 @@ func _physics_process(delta: float) -> void:
 		trigger_action_animation(0.4)
 		_update_visual_animation(delta)
 		_update_hover_label(delta)
+		return
+
+	if is_in_live_fight() and not is_hostile:
+		_process_live_fight(delta)
 		return
 
 	var vm_escort = _cached_vm
@@ -3350,6 +3356,41 @@ func clear_hangout() -> void:
 	hangout_side = 0
 	hangout_spot_label = ""
 
+## B4.2: Escena discreta de pelea. `VillageManager` decide inicio, fin y consecuencias; aquí solo se representa.
+func is_in_live_fight() -> bool:
+	return is_instance_valid(live_fight_partner)
+
+func is_busy_with_player() -> bool:
+	return _being_interviewed_timer > 0.0 or (is_instance_valid(_cached_dm) and bool(_cached_dm.get("active")) and _cached_dm.get("current_speaker") == self)
+
+func is_busy_with_emergency() -> bool:
+	return is_instance_valid(_reporting_corpse_target) or is_instance_valid(_searching_missing_kin) or is_instance_valid(_reacting_unconscious_target)
+
+func begin_live_fight(partner: VillageNPC) -> void:
+	live_fight_partner = partner
+	_live_fight_clock = 0.0
+	velocity = Vector2.ZERO
+	_stop_crafting_bar()
+
+func end_live_fight() -> void:
+	live_fight_partner = null
+	if sprite:
+		sprite.offset = Vector2.ZERO
+
+func _process_live_fight(delta: float) -> void:
+	velocity = Vector2.ZERO
+	_stop_crafting_bar()
+	var prev_beat: int = int(_live_fight_clock / 1.3)
+	_live_fight_clock += delta
+	if sprite:
+		sprite.flip_h = live_fight_partner.global_position.x < global_position.x
+		sprite.offset.x = sin(_live_fight_clock * 26.0) * 1.2
+	if int(_live_fight_clock / 1.3) != prev_beat:
+		_spawn_floating_text("💢", Color(1.0, 0.45, 0.35), -30.0)
+	trigger_action_animation(0.4)
+	_update_visual_animation(delta)
+	_update_hover_label(delta)
+
 func is_at_hangout_spot(tol: float = 20.0) -> bool:
 	return hangout_id >= 0 and global_position.distance_to(_get_social_target_pos()) <= tol
 
@@ -3369,7 +3410,7 @@ func _find_best_social_partner() -> VillageNPC:
 		# B2.2: los rivales se evitan (no se buscan para charlar) y no se interrumpe una quedada ajena
 		if sdir_s != null and bool(sdir_s.call("should_avoid", my_key, other.get_person_key())):
 			continue
-		if other.hangout_id >= 0:
+		if other.hangout_id >= 0 or other.is_in_live_fight():
 			continue
 		var dist: float = global_position.distance_to(other.global_position)
 		var other_key: String = other.get_person_key()
@@ -3418,6 +3459,7 @@ func _get_social_target_pos() -> Vector2:
 func get_activity_description() -> String:
 	if is_downed: return "🩸 Agonizando (%ds)" % maxi(1, int(ceil(bleedout_timer)))
 	if sedated_timer > 0.0: return "💤 Sedado (%ds)" % maxi(1, int(ceil(sedated_timer)))
+	if is_in_live_fight(): return "💢 Peleando con %s" % live_fight_partner.npc_name
 	if is_instance_valid(_reporting_corpse_target):
 		if _corpse_report_phase == 1:
 			return "🔍 Comprobando si %s respira (%ds)" % [_reporting_corpse_target.npc_name, maxi(1, int(ceil(10.0 - _corpse_report_timer)))]
