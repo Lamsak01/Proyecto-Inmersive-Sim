@@ -817,7 +817,8 @@ static func get_relationship_tier_label(val: int, is_same_family: bool = false, 
 	return "⚔️ Enemigo Acérrimo"
 
 ## Modifica dinámicamente la relación mutua entre dos NPCs y detecta giros dramáticos ("por azares del destino")
-func modify_npc_relationship(other: VillageNPC, delta_val: int, reason: String = "") -> void:
+## `one_way` (U1): solo cambia lo que ESTE vecino siente por `other`; el otro no se entera y no hay avisos de reconciliación o ruptura.
+func modify_npc_relationship(other: VillageNPC, delta_val: int, reason: String = "", one_way: bool = false) -> void:
 	if other == null or other == self or other.is_dead or other.npc_name == "":
 		return
 	ensure_npc_relationships_initialized()
@@ -827,6 +828,10 @@ func modify_npc_relationship(other: VillageNPC, delta_val: int, reason: String =
 	var old_val: int = get_relationship_with_npc(other_key)
 	var new_val: int = clampi(old_val + delta_val, -100, 100)
 	npc_relationships[other_key] = new_val
+	if one_way:
+		if reason != "":
+			npc_relationship_notes[other_key] = reason
+		return
 	other.npc_relationships[my_key] = clampi(other.get_relationship_with_npc(my_key) + delta_val, -100, 100)
 	if reason != "":
 		npc_relationship_notes[other_key] = reason

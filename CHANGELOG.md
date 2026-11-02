@@ -5,6 +5,9 @@ El detalle técnico está en `docs/HANDOFF.md` (sección 7) y el historial compl
 
 ## 2026-11-02
 
+### Relaciones de un solo sentido
+- **U1**: preparada la base para que lo que siente un vecino por otro pueda ser distinto de lo que siente el otro (aprecio y chispa de cada uno). Todavía no cambia nada en el juego; las partidas guardadas se adaptan solas.
+
 ### Planificación
 - Nuevo documento `docs/VISION_Y_FUTURO.md` con la visión del juego, el orden acordado para construirlo y toda la lluvia de ideas (secta, corrupción, higiene, niños, vehículos, alcantarillas...). Es el objetivo a largo plazo; nada se construye sin plan aprobado.
 

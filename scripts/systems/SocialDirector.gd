@@ -141,6 +141,43 @@ func get_pair_entry(id_a: String, id_b: String, initial_affinity: int = 0) -> Di
 		}
 	return pair_metrics[k]
 
+## U1: chispa de cada uno. `spark_by` = {id: chispa de ese vecino hacia el otro}; `spark` es la mutua (la menor de
+## las dos), que es la que usan las etapas del cortejo. Si código antiguo escribe `spark` directamente, se toma
+## como valor para los dos lados. Las partidas viejas no tienen `spark_by`: se crea igual para los dos al usarlo.
+static func _min_side(sb: Dictionary) -> int:
+	var m: int = 100
+	for v in sb.values():
+		m = mini(m, int(v))
+	return m
+
+func _spark_sides(k: String, pe: Dictionary) -> Dictionary:
+	var cur: int = int(pe.get("spark", 0))
+	var sb = pe.get("spark_by", null)
+	if typeof(sb) != TYPE_DICTIONARY or (sb as Dictionary).size() != 2 or _min_side(sb) != cur:
+		var ids: PackedStringArray = k.split("|")
+		sb = {ids[0]: cur, ids[1]: cur}
+		pe["spark_by"] = sb
+	return sb
+
+## Chispa que siente `from_id` por `to_id`.
+func get_spark(from_id: String, to_id: String) -> int:
+	var k: String = make_pair_key(from_id, to_id)
+	if k == "" or not pair_metrics.has(k):
+		return 0
+	return int(_spark_sides(k, pair_metrics[k]).get(from_id.strip_edges(), 0))
+
+## Cambia solo la chispa de `from_id` hacia `to_id` (sin tope diario). Devuelve la nueva.
+func add_spark_one_way(from_id: String, to_id: String, amount: int) -> int:
+	var k: String = make_pair_key(from_id, to_id)
+	if k == "":
+		return 0
+	var pe: Dictionary = get_pair_entry(from_id, to_id)
+	var sb: Dictionary = _spark_sides(k, pe)
+	var f: String = from_id.strip_edges()
+	sb[f] = clampi(int(sb.get(f, 0)) + amount, 0, 100)
+	pe["spark"] = _min_side(sb)
+	return int(sb[f])
+
 func set_pair_metrics(id_a: String, id_b: String, affinity_val: int, familiarity_val: int, spark_val: int, tension_val: int, stage_str: String = STAGE_NONE) -> void:
 	var entry: Dictionary = get_pair_entry(id_a, id_b, affinity_val)
 	if entry.is_empty():
@@ -688,7 +725,14 @@ func _add_spark_capped(pe: Dictionary, amount: int, current_day: int) -> int:
 	var cap: int = int(dials.get("spark_daily_gain_cap", 10))
 	var add: int = mini(amount, maxi(0, cap - int(pe.get("spark_gain_today", 0))))
 	pe["spark_gain_today"] = int(pe.get("spark_gain_today", 0)) + add
-	pe["spark"] = clampi(int(pe.get("spark", 0)) + add, 0, 100)
+	var old_spk: int = int(pe.get("spark", 0))
+	var sb = pe.get("spark_by", null)
+	if typeof(sb) == TYPE_DICTIONARY and (sb as Dictionary).size() == 2 and _min_side(sb) == old_spk:
+		for side in (sb as Dictionary).keys():
+			sb[side] = clampi(int(sb[side]) + add, 0, 100)
+		pe["spark"] = _min_side(sb)
+	else:
+		pe["spark"] = clampi(old_spk + add, 0, 100)
 	return add
 
 static func get_stage_label(stage: String) -> String:

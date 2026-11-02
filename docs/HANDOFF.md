@@ -224,7 +224,8 @@ Cada fase se dividirá en bloques pequeños cuando se llegue a ella (detalle en 
 - [ ] **T5** Medir en partidas largas.
 
 ### Relaciones de un solo sentido (bloques U)
-- [ ] **U1–U7** Plan en `docs/PLAN_RELACIONES.md`, **pendiente de aprobación** (3 preguntas al final). Va después de T5.
+- [x] **U1** HECHO. Sin cambio visible. `SocialDirector`: `spark_by` por pareja (id → chispa hacia el otro), `get_spark(de, a)`, `add_spark_one_way(de, a, n)`; `spark` sigue siendo la chispa mutua (= la menor) que usan las etapas; `_add_spark_capped` suma a los dos lados; si código antiguo escribe `spark` a mano se toma para los dos; partidas viejas lo crean al usarlo. `VillageNPC.modify_npc_relationship(..., one_way)` cambia solo un lado (sin avisos de reconciliación/ruptura). Test #47. Nota: el número de acciones de `dialogue_coverage` varía entre ejecuciones (484→474 sin tocar diálogos): es azar, no un fallo.
+- [ ] **U2–U7** Plan **aprobado** en `docs/PLAN_RELACIONES.md` (tensión compartida, reciprocidad lenta, sentimientos ocultos al principio).
 
 ## 8. Decisiones de diseño ya tomadas (no volver a preguntarlas)
 

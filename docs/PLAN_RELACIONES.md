@@ -1,6 +1,6 @@
 # Plan: relaciones de un solo sentido (bloques U)
 
-Estado: **propuesta, pendiente de aprobación del usuario** (2026-11-02). Va después de T5 (medición de rasgos).
+Estado: **aprobado por el usuario** (2026-11-02). Va después de T5 (medición de rasgos).
 Contexto y visión: `docs/VISION_Y_FUTURO.md` (pieza P1 «Persona»).
 
 ## Qué existe hoy
@@ -56,8 +56,8 @@ degradación de recuerdos concretos.
 - Si el jugador no lo ve, no sirve: U5 es obligatorio, no opcional.
 - Esfuerzo total: medio-grande (7 bloques pequeños).
 
-## Preguntas para el usuario
+## Decisiones del usuario (2026-11-02)
 
-1. ¿Tensión compartida (recomendado) o también de cada uno?
-2. Reciprocidad: ¿lenta (recomendado: los amores no correspondidos duran semanas) o casi nula (pueden durar siempre)?
-3. ¿Los sentimientos de cada uno empiezan ocultos como los rasgos (recomendado) o se ven desde el principio?
+1. Tensión compartida.
+2. Reciprocidad lenta: los amores no correspondidos pueden durar semanas.
+3. Los sentimientos de cada uno empiezan ocultos, como los rasgos.

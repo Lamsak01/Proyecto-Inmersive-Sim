@@ -1383,5 +1383,25 @@ func _initialize() -> void:
 	assert(lie_target.rumored_traits.is_empty(), "T2b: Knowing them fully disproves the lie")
 	print("T2b trait rumors OK")
 
+	# Test #47 (U1): chispa y aprecio de cada uno; lo de siempre sigue siendo mutuo y las partidas lo guardan
+	var sd_u = vm.social_director
+	sd_u.add_spark_one_way("u1a", "u1b", 30)
+	var pe_u: Dictionary = sd_u.get_pair_entry("u1a", "u1b")
+	assert(sd_u.get_spark("u1a", "u1b") == 30 and sd_u.get_spark("u1b", "u1a") == 0 and int(pe_u["spark"]) == 0, "U1: One-sided spark; the shared one is the lower")
+	sd_u._add_spark_capped(pe_u, 5, 900)
+	assert(sd_u.get_spark("u1a", "u1b") == 35 and sd_u.get_spark("u1b", "u1a") == 5 and int(pe_u["spark"]) == 5, "U1: Old mutual gains reach both sides")
+	var u_save: Dictionary = sd_u.to_save_dict()
+	sd_u.from_save_dict(u_save)
+	assert(sd_u.get_spark("u1a", "u1b") == 35 and sd_u.get_spark("u1b", "u1a") == 5, "U1: One-sided spark survives saving")
+	sd_u.get_pair_entry("u1a", "u1b")["spark"] = 12
+	assert(sd_u.get_spark("u1a", "u1b") == 12 and sd_u.get_spark("u1b", "u1a") == 12, "U1: Writing the old shared value sets both sides")
+	var u_ka: String = r1a.get_person_key()
+	var u_kb: String = m1_s.get_person_key()
+	var u_rel_b: int = m1_s.get_relationship_with_npc(u_ka)
+	var u_rel_a: int = r1a.get_relationship_with_npc(u_kb)
+	r1a.modify_npc_relationship(m1_s, 15, "", true)
+	assert(r1a.get_relationship_with_npc(u_kb) == clampi(u_rel_a + 15, -100, 100) and m1_s.get_relationship_with_npc(u_ka) == u_rel_b, "U1: One-way change leaves the other side alone")
+	print("U1 one-sided relationships OK")
+
 	print("ALL RIMWORLD MEDICAL, FOOTPRINTS, 3-PHASE CORPSE REPORT, MULTI-CORPSE FIX, RPG INTERROGATION, PUBLIC TRIAL, DYNAMIC RELATIONSHIPS, MISSING FAMILY SEARCH, SOCIAL GLOSSARY & UNCONSCIOUS REACTION TESTS PASSED!")
 	quit(0)
