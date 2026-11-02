@@ -4,7 +4,10 @@ extends RefCounted
 ## Q2: Misiones secundarias que nacen de la vida social de los vecinos.
 ## Un vecino con una enemistad larga puede pedir ayuda al jugador (❗ sobre la cabeza). Se acepta o rechaza
 ## hablando con él, y se cobra volviendo a hablar con él cuando se ha conseguido.
-## Tipos: "peace" (Haz las paces por mí) y "slander" (Ensúciale el nombre).
+## Tipos: "peace" (Haz las paces por mí), "slander" (Ensúciale el nombre), "justice" (Encuentra a quien lo mató)
+## y "opinion" (Averigua qué piensa de mí).
+
+const PersonProfile = preload("res://scripts/data/PersonProfile.gd")
 
 const OFFER_DAILY_CHANCE: float = 0.12 # Por vecino que cumple las condiciones, cada día
 const MAX_OPEN_SOCIAL: int = 3 # Ofertas + misiones activas de vecinos a la vez
@@ -16,6 +19,9 @@ const SLANDER_REL: int = -40
 const PEACE_DONE_REL: int = -15 # El rival ya ve al que pidió ayuda así o mejor
 const PEACE_DONE_GAIN: int = 12 # ...o ha mejorado al menos esto desde que aceptaste
 const SLANDER_LISTENERS_NEEDED: int = 2
+const JUSTICE_OFFER_CHANCE: float = 0.6 # Al abrirse un caso de asesinato
+const JUSTICE_MIN_REL: int = 40 # Cercanía con la víctima para pedir justicia
+const OPINION_MIN_SPARK: int = 14 # Igual que la etapa "interés"
 const SPITEFUL_TRAITS: Array[String] = ["Rencoroso", "Orgulloso", "Celoso", "Frío", "Codicioso"]
 const PEACEFUL_TRAITS: Array[String] = ["Pacífico", "Bondadoso", "Leal", "Paciente", "Honrado", "Alegre"]
 
@@ -69,7 +75,8 @@ static func on_day_passed(vm: VillageManager, chance: float = OFFER_DAILY_CHANCE
 		var off: Dictionary = qm.offers[gk]
 		var giver: VillageNPC = by_key.get(gk, null)
 		var rival: VillageNPC = by_key.get(str(off.get("target_key", "")), null)
-		if today - int(off.get("day_offered", today)) >= OFFER_EXPIRE_DAYS or not _is_available_giver(vm, giver) or rival == null or rival.is_dead:
+		var needs_alive_target: bool = str(off.get("type", "")) != "justice"
+		if today - int(off.get("day_offered", today)) >= OFFER_EXPIRE_DAYS or not _is_available_giver(vm, giver) or (needs_alive_target and (rival == null or rival.is_dead)):
 			qm.remove_offer(gk)
 	check_failures(vm)
 	if _open_social_count(qm) >= MAX_OPEN_SOCIAL:
@@ -91,31 +98,109 @@ static func on_day_passed(vm: VillageManager, chance: float = OFFER_DAILY_CHANCE
 			if r < best_rel:
 				best_rel = r
 				best = other
-		if best == null:
-			continue
-		var t: String = pick_offer_type(vm, giver, best)
+		var t: String = pick_offer_type(vm, giver, best) if best != null else ""
+		if t == "":
+			best = _find_crush(vm, giver, npcs)
+			t = "opinion" if best != null else ""
 		if t == "" or vm.social_director == null or vm.social_director.rng.randf() >= chance:
 			continue
 		qm.set_offer(gk, {"type": t, "giver_name": giver.npc_name, "target_key": best.get_person_key(), "target_name": best.npc_name, "day_offered": today})
+
+## Vecino soltero por quien `giver` siente algo de chispa sin que haya cortejo avanzado (ambos solteros).
+static func _find_crush(vm: VillageManager, giver: VillageNPC, npcs: Array) -> VillageNPC:
+	var sd = vm.social_director
+	if sd == null or giver.person_profile == null or str(giver.person_profile.romance_status) != PersonProfile.ROMANCE_SINGLE:
+		return null
+	var best: VillageNPC = null
+	var best_spark: int = OPINION_MIN_SPARK - 1
+	for other in npcs:
+		if other == giver or other.is_dead or other.person_profile == null or str(other.person_profile.romance_status) != PersonProfile.ROMANCE_SINGLE:
+			continue
+		var pe: Dictionary = sd.pair_metrics.get(sd.make_pair_key(giver.get_person_key(), other.get_person_key()), {})
+		if str(pe.get("stage", "none")) in ["none", "interest"] and int(pe.get("spark", 0)) > best_spark:
+			best_spark = int(pe.get("spark", 0))
+			best = other
+	return best
+
+## Al abrirse un caso de asesinato: alguien muy cercano a la víctima puede pedirte que encuentres al culpable.
+static func on_murder_case_opened(vm: VillageManager, victim: VillageNPC, chance: float = JUSTICE_OFFER_CHANCE) -> void:
+	var qm := _qm(vm)
+	if qm == null or victim == null:
+		return
+	var vkey: String = victim.get_person_key()
+	var mark: String = "justice:" + vkey
+	if qm.giver_cooldowns.has(mark):
+		return
+	qm.giver_cooldowns[mark] = 999999 # Un solo intento por víctima
+	var best: VillageNPC = null
+	var best_rel: int = JUSTICE_MIN_REL - 1
+	var today: int = _day()
+	for n in vm.get_tree().get_nodes_in_group("village_npcs"):
+		if not n is VillageNPC or n == victim:
+			continue
+		var g := n as VillageNPC
+		var gk: String = g.get_person_key()
+		if not _is_available_giver(vm, g) or qm.offers.has(gk) or not qm.get_active_quest_by_giver(gk).is_empty():
+			continue
+		var r: int = g.get_relationship_with_npc(vkey)
+		if r > best_rel:
+			best_rel = r
+			best = g
+	if best == null or vm.social_director == null or vm.social_director.rng.randf() >= chance:
+		return
+	qm.set_offer(best.get_person_key(), {"type": "justice", "giver_name": best.npc_name, "target_key": vkey, "target_name": victim.npc_name, "day_offered": today})
+
+## Al cerrarse un caso: las misiones de justicia de esa víctima quedan listas para cobrar o fallan.
+static func on_case_resolved(vm: VillageManager, victim_name: String, note: String) -> void:
+	var qm := _qm(vm)
+	if qm == null:
+		return
+	for gk in qm.offers.keys().duplicate():
+		if str(qm.offers[gk].get("type", "")) == "justice" and str(qm.offers[gk].get("target_name", "")) == victim_name:
+			qm.remove_offer(gk)
+	for q in qm.get_active_quests("side"):
+		if str(q.get("type", "")) != "justice" or str(q.get("target_name", "")) != victim_name:
+			continue
+		if note.begins_with("Jugador"):
+			qm.fail_quest(str(q["id"]), "Te declararon culpable a ti de la muerte de %s." % victim_name)
+		elif note.contains("Archivado") or note.contains("Fianza") or note.contains("Indult"):
+			qm.fail_quest(str(q["id"]), "El caso se cerró sin culpable: %s." % note)
+		else:
+			q["data"]["verdict"] = note
+			qm.add_note(str(q["id"]), "Veredicto: %s. Vuelve con %s." % [note, str(q.get("giver_name", ""))])
+			continue
+		qm.giver_cooldowns[str(q.get("giver_key", ""))] = _day() + GIVER_COOLDOWN_DAYS
 
 ## Falla las misiones cuyo protagonista ha muerto.
 static func check_failures(vm: VillageManager) -> void:
 	var qm := _qm(vm)
 	var by_key: Dictionary = vm._get_npcs_by_person_key()
 	for q in qm.get_active_quests("side"):
-		if not str(q.get("type", "")) in ["peace", "slander"]:
+		if not str(q.get("type", "")) in ["peace", "slander", "justice", "opinion"]:
 			continue
 		var giver: VillageNPC = by_key.get(str(q.get("giver_key", "")), null)
 		var rival: VillageNPC = by_key.get(str(q.get("target_key", "")), null)
 		if giver == null or giver.is_dead:
 			qm.fail_quest(str(q["id"]), "%s ha muerto." % str(q.get("giver_name", "Quien te lo pidió")))
 			qm.giver_cooldowns[str(q.get("giver_key", ""))] = _day() + GIVER_COOLDOWN_DAYS
-		elif rival == null or rival.is_dead:
+		elif str(q.get("type", "")) != "justice" and (rival == null or rival.is_dead):
 			qm.fail_quest(str(q["id"]), "%s ha muerto; ya no hay nada que hacer." % str(q.get("target_name", "El otro vecino")))
 			qm.giver_cooldowns[str(q.get("giver_key", ""))] = _day() + GIVER_COOLDOWN_DAYS
 
 static func _offer_texts(off: Dictionary) -> Dictionary:
 	var tn: String = str(off.get("target_name", "ese vecino"))
+	if str(off.get("type", "")) == "justice":
+		return {
+			"title": "Encuentra a quien mató a %s" % tn,
+			"ask": "«No puedo dormir desde lo de %s. Alguien de este pueblo lo hizo y anda por ahí como si nada... Ayúdame a que pague por ello.»" % tn,
+			"desc": "%s quiere que el asesino de %s sea juzgado. La misión se resuelve con el veredicto de la investigación; puedes aportar pistas, presionar a testigos... o dirigir las sospechas. Si te culpan a ti o el caso se archiva, fallará." % [str(off.get("giver_name", "")), tn],
+		}
+	if str(off.get("type", "")) == "opinion":
+		return {
+			"title": "Averigua qué piensa %s" % tn,
+			"ask": "«Esto es un poco embarazoso... ¿Podrías averiguar qué piensa %s de mí? Sin que se note que te lo he pedido, por favor.»" % tn,
+			"desc": "%s quiere saber qué opina %s de él/ella. Habla con %s y pregúntale qué opina de los vecinos; luego vuelve y cuéntaselo (o no)." % [str(off.get("giver_name", "")), tn, tn],
+		}
 	if str(off.get("type", "")) == "slander":
 		return {
 			"title": "Ensúciale el nombre a %s" % tn,
@@ -146,10 +231,25 @@ static func add_quest_dialogue(vm: VillageManager, npc: VillageNPC, diag: Dictio
 	if q.is_empty():
 		return
 	ch_arr.insert(0, {"label": "📜 Sobre lo que me pediste (%s)" % str(q.get("target_name", "")), "next": "quest_progress"})
-	if is_quest_done(vm, q):
-		diag["quest_progress"] = {"text": "«¿De verdad? ¡Gracias! Sabía que podía contar contigo.»", "choices": [{"label": "💰 Cobrar", "next": "END", "action": "quest_turn_in"}]}
+	var qtype: String = str(q.get("type", ""))
+	var tname: String = str(q.get("target_name", ""))
+	if is_quest_done(vm, q) and qtype == "opinion":
+		var truth: String = describe_crush_answer(int(q["data"].get("learned_rel", 0)))
+		diag["quest_progress"] = {"text": "«¿Y bien? ¿Qué te dijo %s?»" % tname, "choices": [
+			{"label": "🗣️ La verdad: «%s»" % truth, "next": "END", "action": "quest_turn_in:truth"},
+			{"label": "😊 Mentir: «Le caes muy bien.»", "next": "END", "action": "quest_turn_in:lie_good"},
+			{"label": "😞 Mentir: «No le interesas.»", "next": "END", "action": "quest_turn_in:lie_bad"},
+		]}
+	elif is_quest_done(vm, q):
+		var thanks: String = "«Al menos se ha hecho justicia por %s. Gracias.»" % tname if qtype == "justice" else "«¿De verdad? ¡Gracias! Sabía que podía contar contigo.»"
+		diag["quest_progress"] = {"text": thanks, "choices": [{"label": "💰 Cobrar", "next": "END", "action": "quest_turn_in"}]}
 	else:
-		var hint: String = "«¿Has hablado ya con %s? Sigue igual conmigo...»" % str(q.get("target_name", "")) if str(q.get("type", "")) == "peace" else "«Todavía no he oído a nadie hablar mal de %s. Sigue en ello.»" % str(q.get("target_name", ""))
+		var hint: String = {
+			"peace": "«¿Has hablado ya con %s? Sigue igual conmigo...»" % tname,
+			"slander": "«Todavía no he oído a nadie hablar mal de %s. Sigue en ello.»" % tname,
+			"justice": "«¿Se sabe ya quién mató a %s?»" % tname,
+			"opinion": "«¿Has podido hablar con %s? No le digas que te lo pedí yo...»" % tname,
+		}.get(qtype, "«¿Cómo va eso?»")
 		diag["quest_progress"] = {"text": hint, "choices": [
 			{"label": "⬅️ «Sigo en ello.»", "next": "start"},
 			{"label": "🚫 «Lo dejo, no puedo hacerlo.»", "next": "start", "action": "quest_abandon"},
@@ -157,16 +257,26 @@ static func add_quest_dialogue(vm: VillageManager, npc: VillageNPC, diag: Dictio
 
 static func is_quest_done(vm: VillageManager, q: Dictionary) -> bool:
 	var by_key: Dictionary = vm._get_npcs_by_person_key()
+	var data: Dictionary = q.get("data", {})
+	if str(q.get("type", "")) == "justice":
+		return str(data.get("verdict", "")) != ""
 	var rival: VillageNPC = by_key.get(str(q.get("target_key", "")), null)
 	if rival == null or rival.is_dead:
 		return false
-	var data: Dictionary = q.get("data", {})
 	if str(q.get("type", "")) == "peace":
 		var rel: int = rival.get_relationship_with_npc(str(q.get("giver_key", "")))
 		return rel >= PEACE_DONE_REL or rel - int(data.get("start_rel", rel)) >= PEACE_DONE_GAIN
 	if str(q.get("type", "")) == "slander":
 		return (data.get("slandered_to", []) as Array).size() >= SLANDER_LISTENERS_NEEDED
+	if str(q.get("type", "")) == "opinion":
+		return data.has("learned_rel")
 	return false
+
+static func describe_crush_answer(rel: int) -> String:
+	if rel >= 40: return "Habla muy bien de ti."
+	if rel >= 15: return "Le caes bien."
+	if rel > -15: return "Le eres indiferente."
+	return "No le caes nada bien."
 
 ## Acciones del diálogo. Devuelve true si la acción era de misiones.
 static func on_dialogue_action(vm: VillageManager, npc: VillageNPC, player: Node, action_id: String) -> bool:
@@ -174,6 +284,13 @@ static func on_dialogue_action(vm: VillageManager, npc: VillageNPC, player: Node
 	if qm == null or not action_id.begins_with("quest_"):
 		return false
 	var gk: String = npc.get_person_key()
+	var turn_mode: String = ""
+	if action_id.begins_with("quest_turn_in"):
+		turn_mode = action_id.get_slice(":", 1) if action_id.contains(":") else "truth"
+		action_id = "quest_turn_in"
+	if action_id.begins_with("quest_opinion_seen:"):
+		_on_opinion_seen(qm, npc, action_id.get_slice(":", 1))
+		return true
 	match action_id:
 		"quest_accept":
 			if not qm.offers.has(gk):
@@ -202,14 +319,38 @@ static func on_dialogue_action(vm: VillageManager, npc: VillageNPC, player: Node
 			var qt: Dictionary = qm.get_active_quest_by_giver(gk)
 			if qt.is_empty() or not is_quest_done(vm, qt):
 				return true
-			var gold: int = 30 if str(qt.get("type", "")) == "peace" else 25
+			var qt_type: String = str(qt.get("type", ""))
+			var gold: int = int({"peace": 30, "slander": 25, "justice": 40, "opinion": 20}.get(qt_type, 20))
 			if player != null and "inventory" in player and player.inventory:
 				player.inventory.add_gold(gold)
-			npc.modify_affinity(15 if str(qt.get("type", "")) == "peace" else 12)
+			npc.modify_affinity(int({"peace": 15, "slander": 12, "justice": 20, "opinion": 8}.get(qt_type, 8)))
+			if qt_type == "opinion":
+				_apply_crush_answer(vm, npc, qt, turn_mode)
 			qm.complete_quest(str(qt["id"]), "%s te pagó %d de oro." % [npc.npc_name, gold])
 			qm.giver_cooldowns[gk] = _day() + GIVER_COOLDOWN_DAYS
 			npc._spawn_floating_text("✅ Misión completada (+%d Oro)" % gold, Color.SPRING_GREEN, -36.0)
 	return true
+
+## El jugador ha escuchado lo que `npc` opina de `about_key` (menú de opiniones).
+static func _on_opinion_seen(qm: Node, npc: VillageNPC, about_key: String) -> void:
+	for q in qm.get_active_quests("side"):
+		if str(q.get("type", "")) == "opinion" and str(q.get("target_key", "")) == npc.get_person_key() and str(q.get("giver_key", "")) == about_key and not q["data"].has("learned_rel"):
+			var rel: int = npc.get_relationship_with_npc(about_key)
+			q["data"]["learned_rel"] = rel
+			qm.add_note(str(q["id"]), "%s: «%s». Vuelve con %s." % [npc.npc_name, describe_crush_answer(rel), str(q.get("giver_name", ""))])
+
+## Solo información: lo que le cuentes puede apagarle la ilusión, nunca crear una pareja.
+static func _apply_crush_answer(vm: VillageManager, giver: VillageNPC, q: Dictionary, mode: String) -> void:
+	var sd = vm.social_director
+	if sd == null:
+		return
+	var told_bad: bool = mode == "lie_bad" or (mode == "truth" and int(q["data"].get("learned_rel", 0)) < 0)
+	q["data"]["told"] = mode
+	if told_bad:
+		var pe: Dictionary = sd.get_pair_entry(giver.get_person_key(), str(q.get("target_key", "")))
+		if not pe.is_empty():
+			pe["spark"] = maxi(0, int(pe.get("spark", 0)) - 6)
+		giver._spawn_floating_text("💔 %s se queda cabizbajo/a" % giver.npc_name, Color(0.75, 0.80, 1.0), -46.0)
 
 ## Avisa a las misiones de lo que el jugador ha contado a un vecino (llamado tras convencerle).
 static func on_player_influence(vm: VillageManager, listener: VillageNPC, target: VillageNPC, mode: String) -> void:

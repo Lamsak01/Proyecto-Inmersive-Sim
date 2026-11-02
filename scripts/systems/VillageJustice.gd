@@ -6,6 +6,8 @@ extends RefCounted
 ## VillageManager mantiene llamadas finas con los mismos nombres y conserva el estado de los casos.
 
 # M1: Móvil social. Suma algo de sospecha, pero nunca decide un culpable por sí solo.
+const VillageQuests = preload("res://scripts/systems/VillageQuests.gd")
+
 const MOTIVE_PUBLIC_PTS: int = 10 # Enemistad larga o peleas conocidas por el pueblo
 const MOTIVE_RUMOR_PTS: int = 8 # Rumor que cuenta un testigo en el interrogatorio
 const MOTIVE_ENMITY_REL: int = -30
@@ -210,6 +212,7 @@ static func _build_investigation_case_dict(vm: VillageManager, victim: VillageNP
 	if direct_murder_witness != "":
 		initial_clues.append("Parte Policial: %s denunció al Forastero como autor presencial." % direct_murder_witness)
 	_apply_public_motives(vm, victim, suspects_dict, all_living, initial_clues)
+	VillageQuests.on_murder_case_opened(vm, victim)
 
 	return {
 		"active": true, "is_royal": is_royal, "victim_name": v_label, "victim_id": m_id, "victim_key": _social_key(victim), "embargo_days": embargo_days,

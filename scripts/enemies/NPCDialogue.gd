@@ -179,6 +179,17 @@ static func _add_neighbor_opinions(npc: VillageNPC, diag: Dictionary, ch_arr: Ar
 		if n != npc and n is VillageNPC and not (n as VillageNPC).is_dead:
 			rows.append({"npc": n, "rel": npc.get_relationship_with_npc((n as VillageNPC).get_person_key())})
 	rows.sort_custom(func(x, y): return absi(int(x["rel"])) > absi(int(y["rel"])))
+	# Q3: si alguien te pidió averiguar qué piensa este vecino de él/ella, que salga en la lista
+	var qm_op = npc.get_node_or_null("/root/QuestManager")
+	if qm_op != null:
+		for q in qm_op.get_active_quests("side"):
+			if str(q.get("type", "")) == "opinion" and str(q.get("target_key", "")) == npc.get_person_key():
+				for ri in range(rows.size()):
+					if ri >= 5 and (rows[ri]["npc"] as VillageNPC).get_person_key() == str(q.get("giver_key", "")):
+						var row_q = rows[ri]
+						rows.remove_at(ri)
+						rows.insert(0, row_q)
+						break
 	var player = npc._get_player()
 	var shares_reason: bool = npc.affinity >= 35 or (player != null and player.has_method("get_skill_level") and int(player.call("get_skill_level", "charisma")) >= 2)
 	var vm_op = npc._get_vm()
@@ -191,7 +202,7 @@ static func _add_neighbor_opinions(npc: VillageNPC, diag: Dictionary, ch_arr: Ar
 		var note: String = npc.get_relationship_note_with_npc(other.get_person_key())
 		if shares_reason and note != "":
 			text += "\nMotivo: %s" % note
-		choices.append({"label": "👤 %s" % other.npc_name, "next": "opinion_%d" % i})
+		choices.append({"label": "👤 %s" % other.npc_name, "next": "opinion_%d" % i, "action": "quest_opinion_seen:" + other.get_person_key()})
 		var op_choices: Array = []
 		if can_influence:
 			op_choices.append({"label": "👍 Hablar bien de %s" % other.npc_name, "next": "start", "action": "social_gossip:good:" + other.get_person_key()})

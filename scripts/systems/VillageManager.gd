@@ -1042,6 +1042,7 @@ func _mark_morgue_case_resolved(victim_name: String, resolution_note: String = "
 	var cur_d: int = WorldClock.current_day if WorldClock else 1
 	var cur_h: int = WorldClock.current_hour if WorldClock else 12
 	var cur_tot_h: int = cur_d * 24 + cur_h
+	VillageQuests.on_case_resolved(self, victim_name, resolution_note)
 	for rec in morgue_active_corpses:
 		if str(rec.get("victim_name", "")) == victim_name:
 			rec["case_resolved"] = true

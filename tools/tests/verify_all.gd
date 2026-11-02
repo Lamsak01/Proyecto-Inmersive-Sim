@@ -1136,5 +1136,30 @@ func _initialize() -> void:
 	qm.clear_all()
 	print("Q2 social quests OK")
 
+	# Test #37 (Q3): Justicia por un asesinato (se resuelve con el veredicto) y averiguar qué piensa alguien
+	vq.on_murder_case_opened(vm, m1_v, 1.0)
+	assert(qm.offers.size() == 1 and str(qm.offers.values()[0]["type"]) == "justice", "Q3: Someone close to the victim asks for justice")
+	vq.on_murder_case_opened(vm, m1_v, 1.0)
+	assert(qm.offers.size() == 1, "Q3: Only one justice offer per victim")
+	var j_giver = vm._get_npcs_by_person_key()[qm.offers.keys()[0]]
+	j_giver.on_dialogue_action("quest_accept")
+	assert(not vq.is_quest_done(vm, qm.get_active_quest_by_giver(j_giver.get_person_key())), "Q3: Justice waits for the verdict")
+	vm._mark_morgue_case_resolved("Bram", "Sora (Arrestado por el Comisario Vane: 60%)")
+	var gold_q3: int = int(player.inventory.gold)
+	j_giver.on_dialogue_action("quest_turn_in")
+	assert(int(player.inventory.gold) == gold_q3 + 40, "Q3: A verdict lets you collect the justice reward")
+	qm.clear_all()
+	sd_q.get_pair_entry(k_th, m1_s.get_person_key())["spark"] = 20
+	qm.set_offer(k_th, {"type": "opinion", "giver_name": "Thoran", "target_key": m1_s.get_person_key(), "target_name": "Sora", "day_offered": int(wc_speed.current_day)})
+	r1a.on_dialogue_action("quest_accept")
+	m1_s.affinity = 10
+	m1_s.npc_relationships[k_th] = -30
+	assert(str(m1_s._inject_character_lore_into_dialogue(m1_s._build_dialogue())).contains("quest_opinion_seen:" + k_th), "Q3: The asked neighbor appears in the opinions menu")
+	m1_s.on_dialogue_action("quest_opinion_seen:" + k_th)
+	r1a.on_dialogue_action("quest_turn_in:truth")
+	assert(qm.get_quests("side", "completed").size() == 1 and int(sd_q.get_pair_entry(k_th, m1_s.get_person_key())["spark"]) == 14, "Q3: A hard truth cools the crush, never creates a couple")
+	qm.clear_all()
+	print("Q3 justice & crush quests OK")
+
 	print("ALL RIMWORLD MEDICAL, FOOTPRINTS, 3-PHASE CORPSE REPORT, MULTI-CORPSE FIX, RPG INTERROGATION, PUBLIC TRIAL, DYNAMIC RELATIONSHIPS, MISSING FAMILY SEARCH, SOCIAL GLOSSARY & UNCONSCIOUS REACTION TESTS PASSED!")
 	quit(0)
