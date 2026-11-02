@@ -145,7 +145,41 @@ static func _inject_character_lore_into_dialogue(npc: VillageNPC, diag: Dictiona
 				{"label": "🤐 Guardar silencio y concluir el interrogatorio.", "next": "END", "action": "interrog_step:r3_silent"}
 			]
 		}
+	_add_neighbor_opinions(npc, diag, ch_arr)
 	return diag
+
+## B5.1: Texto corto de lo que un vecino siente por otro; lo comparten el diálogo y la escucha a escondidas.
+static func describe_feeling(rel: int) -> String:
+	if rel >= 60: return "se tienen plena confianza"
+	if rel >= 20: return "se llevan bien"
+	if rel > -20: return "ni fu ni fa"
+	if rel > -50: return "se llevan mal"
+	return "se detestan"
+
+## B5.1: Menú "qué opina de los vecinos". Con confianza o Carisma el vecino también explica el motivo.
+static func _add_neighbor_opinions(npc: VillageNPC, diag: Dictionary, ch_arr: Array) -> void:
+	ch_arr.insert(maxi(0, ch_arr.size() - 1), {"label": "🗣️ Preguntar qué opina de los vecinos", "next": "neighbor_opinions"})
+	if npc.affinity < 0:
+		diag["neighbor_opinions"] = {"text": "«No hablo de mis vecinos con quien no conozco.»", "choices": [{"label": "Entendido. [Volver]", "next": "start"}]}
+		return
+	var rows: Array = []
+	for n in npc.get_tree().get_nodes_in_group("village_npcs"):
+		if n != npc and n is VillageNPC and not (n as VillageNPC).is_dead:
+			rows.append({"npc": n, "rel": npc.get_relationship_with_npc((n as VillageNPC).get_person_key())})
+	rows.sort_custom(func(x, y): return absi(int(x["rel"])) > absi(int(y["rel"])))
+	var player = npc._get_player()
+	var shares_reason: bool = npc.affinity >= 35 or (player != null and player.has_method("get_skill_level") and int(player.call("get_skill_level", "charisma")) >= 2)
+	var choices: Array = []
+	for i in range(mini(6, rows.size())):
+		var other: VillageNPC = rows[i]["npc"]
+		var text: String = "«%s y yo... %s.»" % [other.npc_name, describe_feeling(int(rows[i]["rel"]))]
+		var note: String = npc.get_relationship_note_with_npc(other.get_person_key())
+		if shares_reason and note != "":
+			text += "\nMotivo: %s" % note
+		choices.append({"label": "👤 %s" % other.npc_name, "next": "opinion_%d" % i})
+		diag["opinion_%d" % i] = {"text": text, "choices": [{"label": "⬅️ Preguntar por otro vecino", "next": "neighbor_opinions"}]}
+	choices.append({"label": "⬅️ Volver a la conversación", "next": "start"})
+	diag["neighbor_opinions"] = {"text": "«¿Sobre quién quieres saber?»", "choices": choices}
 
 static func _make_armor_menu(npc: VillageNPC, title: String, menu_key: String, items: Array) -> Dictionary:
 	var ch: Array[Dictionary] = []

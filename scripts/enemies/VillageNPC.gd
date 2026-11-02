@@ -939,6 +939,20 @@ func _process_pending_social_reply(delta: float) -> void:
 	initiator.modify_npc_relationship(self, delta_rel, note_str)
 	var sign_tag: String = "+%d" % delta_rel if delta_rel >= 0 else "%d" % delta_rel
 	_spawn_floating_text("%s «%s» (%s Rel)" % [icon_str, line_b, sign_tag], col, -36.0)
+	_try_player_overhear(initiator, note_str)
+
+## B5.1: Si el jugador está en sigilo y a distancia de oído, se entera de cómo están realmente las cosas entre los dos.
+func _try_player_overhear(other: VillageNPC, note_str: String) -> bool:
+	var player = _get_player()
+	if player == null or not player.has_method("is_stealthing") or not player.is_stealthing():
+		return false
+	var hearing: float = 96.0 + 12.0 * float(int(player.call("get_skill_level", "stealth")) - 1)
+	if global_position.distance_to(player.global_position) > hearing:
+		return false
+	var feeling: String = NPCDialogue.describe_feeling(get_relationship_with_npc(other.get_person_key()))
+	_spawn_floating_text("👂 %s y %s %s: %s" % [other.npc_name, npc_name, feeling, note_str], Color(0.80, 0.75, 1.0), -52.0)
+	player.call("add_skill_xp", "stealth", 3)
+	return true
 
 ## Inicia la búsqueda física de un familiar que no llegó a dormir a casa ni sigue su rutina habitual:
 ## Fase 1: Ir a la tienda/taller familiar a buscarlo (8s). Si encuentra su cadáver allí, activa el reporte físico de inmediato.

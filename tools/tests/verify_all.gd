@@ -870,5 +870,30 @@ func _initialize() -> void:
 	vm._fight_scan_timer = 3.0
 	print("B4.2 live fights OK")
 
+	# Test #28 (B5.1): Preguntar opiniones y escuchar a escondidas
+	for k51 in f_a.npc_relationships.keys():
+		f_a.npc_relationships[k51] = 0
+	f_a.npc_relationships[f_b.get_person_key()] = -80
+	f_a.affinity = 50
+	var diag51: Dictionary = f_a._inject_character_lore_into_dialogue(f_a._build_dialogue())
+	assert(str(diag51["neighbor_opinions"]["choices"][0]["label"]).contains("Bram"), "B5.1: Strongest feeling must be listed first")
+	assert(str(diag51["opinion_0"]["text"]).contains("detestan"), "B5.1: Opinion must describe the real relationship")
+	f_a.affinity = -5
+	assert(not f_a._inject_character_lore_into_dialogue(f_a._build_dialogue()).has("opinion_0"), "B5.1: Neighbors do not open up to someone they dislike")
+	f_a.affinity = 50
+	var pos51: Vector2 = player.global_position
+	var mv51 = player.get_node("PlayerMovementController")
+	var st51: bool = mv51.is_stealthing
+	player.global_position = f_a.global_position + Vector2(40, 0)
+	mv51.is_stealthing = false
+	assert(not f_a._try_player_overhear(f_b, "Discutieron"), "B5.1: Without stealth nothing is overheard")
+	mv51.is_stealthing = true
+	assert(f_a._try_player_overhear(f_b, "Discutieron"), "B5.1: Stealthing nearby must overhear")
+	player.global_position = f_a.global_position + Vector2(400, 0)
+	assert(not f_a._try_player_overhear(f_b, "Discutieron"), "B5.1: Too far to overhear")
+	mv51.is_stealthing = st51
+	player.global_position = pos51
+	print("B5.1 opinions & eavesdropping OK")
+
 	print("ALL RIMWORLD MEDICAL, FOOTPRINTS, 3-PHASE CORPSE REPORT, MULTI-CORPSE FIX, RPG INTERROGATION, PUBLIC TRIAL, DYNAMIC RELATIONSHIPS, MISSING FAMILY SEARCH, SOCIAL GLOSSARY & UNCONSCIOUS REACTION TESTS PASSED!")
 	quit(0)

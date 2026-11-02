@@ -175,7 +175,13 @@ Otros documentos antiguos en la raíz: `ROADMAP_PROYECTO.md`, `AUDIT_LOG.md`, `S
 - [x] **B4.1** HECHO. Resolución por dados en `SocialDirector.gd` (`compute_fight_power`, `can_pair_fight`, `try_resolve_live_fight` con poder ponderado por oficio, edad, salud y personalidad; tirada interna con ganador/perdedor, alivio de tensión, caída de relación y respeto a `drama_cooldown_days` y `max_fights_per_pair = 2`). Verificado en `names_check.gd`.
 - [x] **B4.2** HECHO. Peleas en vivo: `VillageManager._update_live_fights()` busca cada 3,5–6 s pares con tensión ≥ `live_fight_tension_threshold` (28) a ≤ 72 px y lanza `try_resolve_live_fight` (una tirada por par y día). Escena de 3,5 s en `VillageNPC.gd` (temblor y "💢"), moratón con `HealthComponent.apply_minor_bruise()` (sin órganos, fracturas ni sangrado; suelo del 35 %), relación −14, pensamientos y hasta 3 testigos a ≤ 110 px, evento `fight`. Un guardia a ≤ 140 px los separa a los 1,6 s, sin herida. Test #27 en `verify_all.gd`. Peleas raras: enemistad con relación ≤ −30 (`rival_friction_max_rel`), 10 días distintos de roce al cruzarse (`live_fight_min_enmity_days`), 15 % diario (`live_fight_daily_chance`) y 12 días entre peleas del pueblo (`live_fight_cooldown_days`). Medido en el juego real sin pantalla, una partida de 60 días.
 
-**Fase 5** Rol del jugador (observador/instigador/mediador) · **Fase 6** Chismes, noticias y pulido.
+**Fase 5 — Tu papel** (reglas: un solo vecino influido por día, efectos pequeños; hablar mal no fabrica peleas, siguen haciendo falta los 10 días de roce)
+- [x] **B5.1** HECHO. Observador: menú "🗣️ Preguntar qué opina de los vecinos" (`NPCDialogue._add_neighbor_opinions`, 6 vecinos con sentimiento más fuerte; el motivo solo con afinidad ≥ 35 o Carisma ≥ 2; con afinidad < 0 no cuenta nada) y escucha a escondidas (`VillageNPC._try_player_overhear`: en sigilo a ≤ 96 px, +12 px por nivel de Sigilo, +3 XP). Test #28 en `verify_all.gd`.
+- [ ] **B5.2** Hablar bien o mal de un vecino, con Carisma; si falla, se vuelve contra el jugador.
+- [ ] **B5.3** Mediador: calmar a dos enemigos o parar una pelea en marcha.
+- [ ] **B5.4** Casamentero: animar a dos vecinos compatibles a acercarse.
+
+**Fase 6** Chismes, noticias y pulido.
 Cada fase se dividirá en bloques pequeños cuando se llegue a ella (detalle en `docs/PLAN_VIDA_SOCIAL.md`).
 
 ## 8. Decisiones de diseño ya tomadas (no volver a preguntarlas)
