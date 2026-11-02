@@ -15,6 +15,12 @@ Un pueblo **realista, con lo bueno y lo malo**, con la profundidad de mecánicas
 Época **anacrónica**: conviven lo tradicional con tecnología (electricidad, ordenadores, armas de fuego...).
 Cuando muere alguien llegan personas nuevas generadas al azar, así que todo sistema debe funcionar con gente procedural.
 
+### Decisiones firmes del usuario (2026-11-02)
+- **Tamaño**: se empieza pequeño (máxima profundidad en pocas casas), pero el **objetivo final es una ciudad de al menos 100 vecinos**. Orden: profundidad primero, tamaño después. Hará falta simulación simplificada para los vecinos lejanos o en otro nivel (rendimiento).
+- **Habrá sótanos y varios pisos.**
+  - Sótanos: como en otros juegos del estilo, un mapa aparte que se desarrolla debajo del mapa principal (bodegas, túneles, alcantarillas; puede extenderse más allá de los edificios).
+  - Pisos superiores: forma de mostrarlos en vista cenital aún por decidir (propuesta en la sección 6).
+
 ## 2. Principio de diseño (acordado)
 
 La profundidad sale de **pocas piezas generales que se combinan**, no de muchas mecánicas sueltas.
@@ -133,3 +139,18 @@ simulación simplificada para quien esté lejos, por rendimiento).
 
 **Riesgos generales**: alcance enorme (años, no meses); cada pieza multiplica los fallos posibles; el dibujo en
 pixel art cuesta, así que mejor mecánicas que se expresen con texto, iconos y comportamiento.
+
+## 6. Niveles verticales: propuesta técnica (pendiente de aprobar)
+
+Hoy los interiores están abiertos en el mismo mapa (sin techos ni cambio de escena).
+Propuesta: **un solo sistema de "niveles" para sótanos y pisos**. Cada nivel (−1 sótano, 0 calle, 1 primer piso, 2...)
+es una capa con las **mismas coordenadas** que el mapa principal; solo se ve y se choca con el nivel en que estás;
+las escaleras y trampillas te cambian de nivel.
+- Sótanos/alcantarillas: nivel −1, oscuro, con su propio trazado.
+- Pisos superiores: al subir, desaparece la planta baja de ese edificio y ves la planta de arriba; la calle de alrededor
+  se ve oscurecida debajo (como *Project Zomboid*). Encaja con los interiores abiertos actuales.
+- Alternativa más simple: cada piso como escena aparte (estilo *Stardew Valley*). Más fácil, pero se pierde la
+  sensación de mundo continuo y los vecinos de otros pisos dejan de verse.
+- Consecuencias: cada vecino tendrá un nivel además de su posición; los caminos de los vecinos, los testigos, el
+  sonido y el sigilo deberán comprobar «mismo nivel». **Regla desde ya**: los sistemas nuevos que miren distancias
+  (testigos, oír, ver) deben pasar por una función común, para que añadir niveles sea cambiar un solo sitio.
