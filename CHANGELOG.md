@@ -6,6 +6,9 @@ El detalle técnico está en `docs/HANDOFF.md` (sección 7) y el historial compl
 ## 2026-11-02
 
 ### Relaciones de un solo sentido
+- **U6**: si dos vecinos dejan de verse una semana, lo que sienten (bueno o malo) se va apagando poco a poco. Parejas y familia no.
+- **U5**: lo que siente cada vecino por los demás empieza oculto: lo descubres preguntándole qué opina de los vecinos. En el glosario verás lo que siente cada uno por separado («↩»), así se notan los cariños no correspondidos. Las partidas guardadas antes de este cambio lo siguen viendo todo.
+- **U4**: amistad desigual: si invitas a alguien que apenas te aprecia, te pondrá una excusa. Y los vecinos hablan de lo que sienten ellos («es mi mejor amiga», «no lo soporto»).
 - **U3**: amores no correspondidos. Quien está muy ilusionado con alguien que no siente lo mismo puede declararse y llevarse un «no» (se entera el pueblo). Si la persona que te gusta se empareja con otro, le coges celos a su nueva pareja. Y la misión «Averigua qué piensa de mí» ahora dice la verdad del otro: si le gustas, si solo te ve como amigo o si le eres indiferente.
 - **U2**: ahora cada vecino vive a su manera lo que pasa. Una misma charla le sabe mejor al sociable; hay manías de un solo lado (al Honrado le irrita el Chismoso, al Serio el Bromista...); el Romántico se ilusiona antes que el Desapegado; un favor pesa más para quien lo recibe; y lo que cuentas de alguien solo cambia la opinión de quien te escucha. Con el tiempo se tiende un poco a corresponder, sin igualarse: pueden surgir amores no correspondidos.
 - **U1**: preparada la base para que lo que siente un vecino por otro pueda ser distinto de lo que siente el otro (aprecio y chispa de cada uno). Todavía no cambia nada en el juego; las partidas guardadas se adaptan solas.

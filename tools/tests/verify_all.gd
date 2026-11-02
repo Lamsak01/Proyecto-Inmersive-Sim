@@ -894,7 +894,7 @@ func _initialize() -> void:
 	f_a.affinity = 50
 	var diag51: Dictionary = f_a._inject_character_lore_into_dialogue(f_a._build_dialogue())
 	assert(str(diag51["neighbor_opinions"]["choices"][0]["label"]).contains("Bram"), "B5.1: Strongest feeling must be listed first")
-	assert(str(diag51["opinion_0"]["text"]).contains("detestan"), "B5.1: Opinion must describe the real relationship")
+	assert(str(diag51["opinion_0"]["text"]).contains("No lo soporto") or str(diag51["opinion_0"]["text"]).contains("No la soporto"), "B5.1/U5: Opinion must describe their own real feeling")
 	f_a.affinity = -5
 	assert(not f_a._inject_character_lore_into_dialogue(f_a._build_dialogue()).has("opinion_0"), "B5.1: Neighbors do not open up to someone they dislike")
 	f_a.affinity = 50
@@ -1487,6 +1487,7 @@ func _initialize() -> void:
 	ex_a.from_save_dict(kf_save)
 	assert(ex_a.get_person_key() != "" and ex_b.get_person_key() in ex_a.known_feelings and not ex_a.feelings_all_known, "U5: Known feelings survive saving")
 	kf_save.erase("known_feelings")
+	kf_save.erase("feelings_all_known") # Una partida de antes de U5 no tiene ninguno de los dos
 	ex_a.from_save_dict(kf_save)
 	assert(ex_a.feelings_all_known, "U5: Saves from before U5 keep everything visible")
 	ex_a.feelings_all_known = false
@@ -1501,9 +1502,10 @@ func _initialize() -> void:
 	vsl.daily_distance_cooling(vm, 920)
 	if not (ex_a.family_id != "none" and ex_a.family_id == ex_b.family_id):
 		assert(ex_a.get_relationship_with_npc(ex_b.get_person_key()) == 49 and ex_b.get_relationship_with_npc(ex_a.get_person_key()) == -39, "U6: Distance cools both feelings")
+	var cool_before: int = ex_a.get_relationship_with_npc(ex_b.get_person_key())
 	cool_pe["last_contact_day"] = 919
 	vsl.daily_distance_cooling(vm, 920)
-	assert(ex_a.get_relationship_with_npc(ex_b.get_person_key()) <= 49 and ex_a.get_relationship_with_npc(ex_b.get_person_key()) >= 48, "U6: Recent contact stops the cooling")
+	assert(ex_a.get_relationship_with_npc(ex_b.get_person_key()) == cool_before, "U6: Recent contact stops the cooling")
 	sd_u.get_pair_entry("u6a", "u6b")
 	sd_u.add_spark_one_way("u6a", "u6b", 30)
 	sd_u.get_pair_entry("u6a", "u6b")["last_contact_day"] = 1
