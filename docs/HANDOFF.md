@@ -146,7 +146,7 @@ Otros documentos antiguos en la raíz: `ROADMAP_PROYECTO.md`, `AUDIT_LOG.md`, `S
 
 ## 7. Estado y siguiente bloque
 
-**Estado del código:** vida social completa (Fases 0 a 6) y subida a `main`; los cuatro tests pasan. Refuerzo del código (R1–R5) terminado. M1 (móvil social en investigaciones), Q1 (panel de misiones) Q1–Q4 hechos (5 tipos de misión, con estructura lista para muchos más). T1 (catálogo de rasgos y tendencias) hecho. **Siguiente:** que el usuario revise `docs/RASGOS_BORRADOR.md` (100 rasgos) antes de T2. Pendiente aparte: diseñar con el usuario los tipos de misión hasta 25 (`docs/MISIONES.md`). Historial en `CHANGELOG.md`.
+**Estado del código:** vida social completa (Fases 0 a 6) y subida a `main`; los cuatro tests pasan. Refuerzo del código (R1–R5) terminado. M1 (móvil social en investigaciones), Q1 (panel de misiones) Q1–Q4 hechos (5 tipos de misión, con estructura lista para muchos más). T1 (catálogo de rasgos y tendencias) y T3 (descubrir rasgos) hechos. **Siguiente:** que el usuario revise `docs/RASGOS_BORRADOR.md` (100 rasgos) antes de T2. Pendiente aparte: diseñar con el usuario los tipos de misión hasta 25 (`docs/MISIONES.md`). Historial en `CHANGELOG.md`.
 
 ### Bloques del sistema de Vida Social (marca [x] al terminar y commitea)
 
@@ -214,7 +214,7 @@ Cada fase se dividirá en bloques pequeños cuando se llegue a ella (detalle en 
 ### Rasgos de personalidad (bloques T)
 - [x] **T1** HECHO. `scripts/data/TraitCatalog.gd`: los 18 rasgos actuales con descripción y «tendencias» (malice, grudge, gossip, aggression, honesty, trust, diligence, generosity, sociability); la tendencia de un vecino es la suma de sus rasgos. Calumnias entre vecinos: probabilidad por charla = 0,15 × malicia (máx. 45 %; sin malicia, nunca). Sustituye a la regla fija «solo Rencoroso/Chismoso al 25 %». Test #40.
 - [ ] **T2** Lista de 100 rasgos con ejes de opuestos (uno por eje), 6 por vecino, adaptar partidas guardadas. Requiere la revisión del usuario de `docs/RASGOS_BORRADOR.md`.
-- [ ] **T3** Descubrir los rasgos al interactuar (6 casillas ocultas en el glosario J).
+- [x] **T3** HECHO (antes que T2, que espera la revisión del usuario). `scripts/systems/TraitDiscovery.gd`; lo conocido vive en `VillageNPC.known_traits` (+ `trait_trust_tier`, `trait_first_impression_done`, `trait_lore_done`), guardado con la partida. Se revela: 1 rasgo por cada umbral de afinidad 20/40/60/80; 1 con «Conocer la historia personal» (acción `trait_lore`); 1 con Carisma ≥ 3 al hablar por primera vez; 1 al espiar en sigilo; el rasgo que explica la conducta al ver calumniar (malicia) o pelear (agresividad) a ≤170 px; y en el menú de opiniones, un vecino que confía en ti (afinidad ≥ 35 o Carisma ≥ 2) cuenta un rasgo del otro. Glosario, mapa y taberna muestran «Rasgo, ❓, ❓» (`get_known_traits_text`). Partidas guardadas antes de T3: todos los rasgos empiezan ocultos. Test #41.
 - [ ] **T4** Conectar el resto de tendencias (peleas, parejas, chismes, investigaciones, misiones).
 - [ ] **T5** Medir en partidas largas.
 

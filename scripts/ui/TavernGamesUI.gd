@@ -302,7 +302,7 @@ func _refresh_portraits_bar() -> void:
 		vbox.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		hbox.add_child(vbox)
 
-		var traits_txt: String = ", ".join(npc.traits) if (npc and not npc.traits.is_empty()) else "Tahúr"
+		var traits_txt: String = npc.get_known_traits_text() if npc else "Tahúr"
 		_make_lbl(vbox, "%s  [%s]" % [_get_npc_name(i), traits_txt], 11, Color(0.98, 0.92, 0.72))
 
 		var mood_val: int = int(round(npc.mood)) if npc else 85

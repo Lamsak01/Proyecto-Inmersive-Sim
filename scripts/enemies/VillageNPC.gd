@@ -44,6 +44,11 @@ enum ActivityState {
 @export var trade_role: TradeRole = TradeRole.UNEMPLOYED
 @export var linked_trade: TradeRole = TradeRole.UNEMPLOYED
 @export var affinity: int = 10
+## T3: rasgos de este vecino que el jugador ya conoce, y cómo se han ido revelando (ver TraitDiscovery).
+var known_traits: Array[String] = []
+var trait_trust_tier: int = 0
+var trait_first_impression_done: bool = false
+var trait_lore_done: bool = false
 
 # Experiencia y Curva de Eficiencia Laboral (0 días = Novato 35%, 2 días = Aprendiz Familiar 54%, 7+ días = Maestro 100%)
 var days_in_role: int = 7
@@ -281,6 +286,7 @@ const ROLE_PSYCHOLOGY: Dictionary = {
 const NPCData = preload("res://scripts/data/NPCData.gd")
 const PersonProfile = preload("res://scripts/data/PersonProfile.gd")
 const NPCDialogue = preload("res://scripts/enemies/NPCDialogue.gd")
+const TraitDiscovery = preload("res://scripts/systems/TraitDiscovery.gd")
 const NPC_NAME_ALIASES: Dictionary = NPCData.NPC_NAME_ALIASES
 
 const NPC_LORE_PROFILES: Dictionary = NPCData.NPC_LORE_PROFILES
@@ -959,6 +965,7 @@ func _try_player_overhear(other: VillageNPC, note_str: String) -> bool:
 	var feeling: String = NPCDialogue.describe_feeling(get_relationship_with_npc(other.get_person_key()))
 	_spawn_floating_text("👂 %s y %s %s: %s" % [other.npc_name, npc_name, feeling, note_str], Color(0.80, 0.75, 1.0), -52.0)
 	player.call("add_skill_xp", "stealth", 3)
+	TraitDiscovery.reveal_next(self, "le has espiado")
 	return true
 
 ## Inicia la búsqueda física de un familiar que no llegó a dormir a casa ni sigue su rutina habitual:
@@ -3423,6 +3430,7 @@ func is_busy_with_emergency() -> bool:
 
 func begin_live_fight(partner: VillageNPC) -> void:
 	live_fight_partner = partner
+	TraitDiscovery.on_witnessed_behavior(self, "aggression", "le has visto pelear")
 	_live_fight_clock = 0.0
 	velocity = Vector2.ZERO
 	_stop_crafting_bar()
@@ -3725,6 +3733,11 @@ func modify_affinity(delta_amount: int) -> void:
 	affinity = clampi(affinity + delta_amount, -100, 100)
 	var sign_str := "+" if delta_amount >= 0 else ""
 	_spawn_floating_text("%s%d Relación" % [sign_str, delta_amount], Color.SPRING_GREEN if delta_amount >= 0 else Color.CORAL, -42.0)
+	TraitDiscovery.check_trust(self)
+
+## T3: rasgos tal como los ve el jugador («Rencoroso, ❓, ❓»).
+func get_known_traits_text() -> String:
+	return TraitDiscovery.known_traits_text(self)
 
 func get_relationship_status_text() -> String:
 	var rel := "Aliado Familiar (-20% Precios)" if affinity >= 45 else ("Amistoso" if affinity >= 20 else ("Familia Agraviada" if affinity <= -35 else ("Desconfiado" if affinity <= -10 else "Neutral")))
@@ -4316,7 +4329,8 @@ func to_save_dict() -> Dictionary:
 		"person_profile": person_profile.to_dict() if person_profile != null else {},
 		"npc_name": npc_name, "npc_role": npc_role, "family_id": family_id, "family_name": family_name,
 		"trade_role": int(trade_role), "linked_trade": int(linked_trade), "days_in_role": days_in_role,
-		"affinity": affinity, "personal_gold": personal_gold, "carries_royal_safe_conduct": carries_royal_safe_conduct,
+		"affinity": affinity, "known_traits": known_traits.duplicate(), "trait_trust_tier": trait_trust_tier,
+		"trait_first_impression_done": trait_first_impression_done, "trait_lore_done": trait_lore_done, "personal_gold": personal_gold, "carries_royal_safe_conduct": carries_royal_safe_conduct,
 		"pocket_items": pocket_items.duplicate(), "corpse_pocket_looted": corpse_pocket_looted, "is_vagrant_camper": is_vagrant_camper,
 		"vagrant_camp_x": vagrant_camp_pos.x, "vagrant_camp_y": vagrant_camp_pos.y, "merchant_id": merchant_id,
 		"need_hunger": need_hunger, "digestion_buffer": digestion_buffer, "need_energy": need_energy, "need_social": need_social,
@@ -4354,6 +4368,12 @@ func from_save_dict(data: Dictionary) -> void:
 	if data.has("npc_id") and str(data["npc_id"]) != "" and (person_profile == null or str(person_profile.person_id) == ""):
 		npc_id = str(data["npc_id"])
 	bloodstained_timer = maxf(0.0, float(data.get("bloodstained_timer", 0.0)))
+	known_traits.clear()
+	for kt in data.get("known_traits", []):
+		known_traits.append(str(kt))
+	trait_trust_tier = int(data.get("trait_trust_tier", 0))
+	trait_first_impression_done = bool(data.get("trait_first_impression_done", false))
+	trait_lore_done = bool(data.get("trait_lore_done", false))
 	witness_silenced_player = bool(data.get("witness_silenced_player", false))
 	witness_alibi_for_player = bool(data.get("witness_alibi_for_player", false))
 	witness_framed_target_name = str(data.get("witness_framed_target_name", ""))

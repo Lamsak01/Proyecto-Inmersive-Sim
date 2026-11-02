@@ -1,6 +1,7 @@
 extends RefCounted
 
 const VillageQuests = preload("res://scripts/systems/VillageQuests.gd")
+const TraitDiscovery = preload("res://scripts/systems/TraitDiscovery.gd")
 
 ## Menús y acciones de diálogo de los habitantes (tiendas, interrogatorios, lore, acciones de las opciones).
 ## Extraído de VillageNPC.gd. Cada función recibe al NPC como primer parámetro (`npc`); VillageNPC mantiene
@@ -18,6 +19,7 @@ static func _inject_character_lore_into_dialogue(npc: VillageNPC, diag: Dictiona
 		if typeof(c) == TYPE_DICTIONARY and str(c.get("action", "")) == "compensate_family":
 			return diag
 
+	TraitDiscovery.on_dialogue_opened(npc)
 	var insert_idx: int = maxi(0, ch_arr.size() - 1)
 	var vm_diag = npc._get_vm()
 	if npc.trade_role in [VillageNPC.TradeRole.SHERIFF, VillageNPC.TradeRole.GUARD, VillageNPC.TradeRole.ROYAL_INVESTIGATOR]:
@@ -46,7 +48,7 @@ static func _inject_character_lore_into_dialogue(npc: VillageNPC, diag: Dictiona
 		ch_arr.insert(0, {"label": "🚨🤫 ¡DETENER REPORTE DE %s! (Sobornar, Convencer o Intimidar)" % npc._reporting_corpse_target.npc_name, "next": "witness_manipulation_menu"})
 	elif not (npc.trade_role in [VillageNPC.TradeRole.SHERIFF, VillageNPC.TradeRole.GUARD, VillageNPC.TradeRole.ROYAL_INVESTIGATOR]):
 		ch_arr.insert(insert_idx, {"label": "🤫 Manipular Testigo / Coartada (Silenciar, Sobornar o Inculpar a otro)", "next": "witness_manipulation_menu"})
-	ch_arr.insert(insert_idx, {"label": "📖 Conocer la historia personal y el pasado de %s (+10 Relación)" % npc.npc_name, "next": "character_lore", "affinity": 10})
+	ch_arr.insert(insert_idx, {"label": "📖 Conocer la historia personal y el pasado de %s (+10 Relación)" % npc.npc_name, "next": "character_lore", "affinity": 10, "action": "trait_lore"})
 	ch_arr.insert(insert_idx, {"label": "🤝📓 Ver Red Social, Amigos y Rivales de %s [Glosario J]" % npc.npc_name, "next": "END", "action": "open_social_glossary"})
 	ch_arr.insert(insert_idx, {"label": "🕵️ Bolsillos de %s: Hurtar o Meter objeto en sigilo [O pulsa H]" % npc.npc_name, "next": "pocket_stealth_menu"})
 	if npc.need_hunger < 75.0:
@@ -202,6 +204,9 @@ static func _add_neighbor_opinions(npc: VillageNPC, diag: Dictionary, ch_arr: Ar
 		var note: String = npc.get_relationship_note_with_npc(other.get_person_key())
 		if shares_reason and note != "":
 			text += "\nMotivo: %s" % note
+		var heard_trait: String = TraitDiscovery.hearsay_trait(other) if shares_reason else ""
+		if heard_trait != "":
+			text += "\n«Por lo que sé, es %s.»" % heard_trait.to_lower()
 		choices.append({"label": "👤 %s" % other.npc_name, "next": "opinion_%d" % i, "action": "quest_opinion_seen:" + other.get_person_key()})
 		var op_choices: Array = []
 		if can_influence:
@@ -570,6 +575,16 @@ static func on_dialogue_action(npc: VillageNPC, action_id: String) -> void:
 		if soc_ui and soc_ui.has_method("open_panel"):
 			soc_ui.call_deferred("open_panel", npc)
 		return
+
+	if action_id == "trait_lore":
+		if not npc.trait_lore_done:
+			npc.trait_lore_done = true
+			TraitDiscovery.reveal_next(npc, "por su historia")
+		return
+	if action_id.begins_with("quest_opinion_seen:") and (npc.affinity >= 35 or int(player.call("get_skill_level", "charisma")) >= 2):
+		var about: VillageNPC = vm._get_npcs_by_person_key().get(action_id.get_slice(":", 1), null) if vm != null else null
+		if about != null:
+			TraitDiscovery.reveal(about, TraitDiscovery.hearsay_trait(about), "te lo ha contado %s" % npc.npc_name)
 
 	if vm != null and VillageQuests.on_dialogue_action(vm, npc, player, action_id):
 		return

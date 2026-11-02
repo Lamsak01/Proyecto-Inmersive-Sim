@@ -377,7 +377,7 @@ func _update_census_and_hover() -> void:
 			if d2 < best_d2:
 				best_d2 = d2
 				best_txt = "👤 %s (%s) — %s | Humor: %d%% | Rasgos: %s" % [
-					n.npc_name, n.npc_role, n.get_activity_description(), int(round(n.mood)), ", ".join(n.traits)
+					n.npc_name, n.npc_role, n.get_activity_description(), int(round(n.mood)), n.get_known_traits_text()
 				]
 
 	hover_info_label.text = best_txt

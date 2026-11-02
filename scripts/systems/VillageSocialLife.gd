@@ -6,6 +6,7 @@ const VillageQuests = preload("res://scripts/systems/VillageQuests.gd")
 ## Q3: Un vecino rencoroso o chismoso a veces habla mal de su rival a quien tiene delante.
 ## T1: la probabilidad por charla depende de la malicia de sus rasgos (TraitCatalog); sin malicia, nunca calumnia.
 const TraitCatalog = preload("res://scripts/data/TraitCatalog.gd")
+const TraitDiscoveryRef = preload("res://scripts/systems/TraitDiscovery.gd")
 const NPC_SLANDER_PER_MALICE: float = 0.15 # Rencoroso solo: 15 %; Rencoroso + Celoso: 27 %
 const NPC_SLANDER_MAX_CHANCE: float = 0.45
 const NPC_SLANDER_REL: int = -30
@@ -368,6 +369,7 @@ static func try_npc_slander(vm: VillageManager, speaker: VillageNPC, listener: V
 	ev["heard_from"][listener.get_person_key()] = speaker.get_person_key()
 	listener.modify_npc_relationship(rival, -3, "Lo que %s le contó de %s" % [speaker.npc_name, rival.npc_name])
 	speaker._spawn_floating_text("🤫 «¿Sabes lo que dicen de %s...?»" % rival.npc_name, Color(0.95, 0.75, 1.0), -46.0)
+	TraitDiscoveryRef.on_witnessed_behavior(speaker, "malice", "le has oído calumniar")
 	return ev
 
 static func get_news_known_by(vm: VillageManager, npc: VillageNPC, limit: int = 3) -> Array[Dictionary]:

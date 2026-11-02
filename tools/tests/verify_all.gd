@@ -1211,5 +1211,35 @@ func _initialize() -> void:
 	assert(t_chances[0] > t_chances[1] and t_chances[1] > 0.0 and t_chances[2] == 0.0, "T1: Slander chance follows malice: %s" % str(t_chances))
 	print("T1 trait tendencies OK")
 
+	# Test #41 (T3): Los rasgos empiezan ocultos y se descubren por confianza, historia, rumores y viendo actuar
+	m1_s.person_profile.personality.clear()
+	m1_s.person_profile.personality.append_array(["Rencoroso", "Curioso", "Trabajador"])
+	m1_s.known_traits.clear()
+	m1_s.trait_trust_tier = 0
+	m1_s.trait_lore_done = false
+	m1_s.affinity = 0
+	assert(m1_s.get_known_traits_text() == "❓, ❓, ❓", "T3: Traits start hidden")
+	m1_s.modify_affinity(41)
+	assert(m1_s.known_traits.size() == 2, "T3: Reaching trust 20 and 40 reveals two traits")
+	m1_s.modify_affinity(1)
+	assert(m1_s.known_traits.size() == 2, "T3: The same trust level never reveals twice")
+	m1_s.known_traits.clear()
+	m1_s.on_dialogue_action("trait_lore")
+	m1_s.on_dialogue_action("trait_lore")
+	assert(m1_s.known_traits.size() == 1, "T3: Personal story reveals one trait, once")
+	r1a.affinity = 50
+	r1a.on_dialogue_action("quest_opinion_seen:" + m1_s.get_person_key())
+	assert(m1_s.known_traits.size() == 2, "T3: A trusting neighbor tells you a trait of another")
+	player.global_position = m1_s.global_position + Vector2(40, 0)
+	m1_s.known_traits.clear()
+	m1_s.npc_relationships[k_br] = -80
+	vm.try_npc_slander(m1_s, m1_x, 1.0)
+	assert(m1_s.known_traits == ["Rencoroso"], "T3: Hearing them slander reveals their spiteful trait")
+	var t3_saved: Dictionary = m1_s.to_save_dict()
+	m1_s.known_traits.clear()
+	m1_s.from_save_dict(t3_saved)
+	assert(m1_s.known_traits == ["Rencoroso"] and m1_s.trait_lore_done, "T3: Discovered traits survive saving")
+	print("T3 trait discovery OK")
+
 	print("ALL RIMWORLD MEDICAL, FOOTPRINTS, 3-PHASE CORPSE REPORT, MULTI-CORPSE FIX, RPG INTERROGATION, PUBLIC TRIAL, DYNAMIC RELATIONSHIPS, MISSING FAMILY SEARCH, SOCIAL GLOSSARY & UNCONSCIOUS REACTION TESTS PASSED!")
 	quit(0)
