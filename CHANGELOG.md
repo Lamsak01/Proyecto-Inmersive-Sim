@@ -10,6 +10,7 @@ El detalle técnico está en `docs/HANDOFF.md` (sección 7) y el historial compl
 - Nueva prueba de guardar y cargar con misiones, ofertas y rasgos descubiertos; todo se conserva bien.
 
 ### Rasgos de personalidad
+- **T2 (preparación)**: listo el reparto de rasgos para cuando apruebes la lista: nunca junta opuestos, admite como mucho un rasgo raro y respeta los que ya tiene cada vecino. Aún no cambia nada en el juego.
 - **T4 (2)**: los vecinos sociables charlan más a menudo y proponen más quedadas, y los fríos menos; los trabajadores rinden hasta un 15 % más en su oficio.
 - **T4**: el carácter influye en más cosas: los agresivos pegan más fuerte y acumulan tensión antes; los desconfiados se creen menos lo que les cuentas; los honrados cuesta más que te cubran y pueden rechazar sobornos; los chismosos cuentan más novedades; los investigadores sospechan de los caracteres oscuros; y los generosos pagan mejor las misiones.
 - **T3**: los rasgos de los vecinos empiezan ocultos (❓ en el glosario, el mapa y la taberna) y se descubren al ganar su confianza, al conocer su historia, con Carisma alto, espiándoles, viéndoles calumniar o pelear, o porque otro vecino de confianza te lo cuenta.

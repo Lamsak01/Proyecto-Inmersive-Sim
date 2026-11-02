@@ -1301,5 +1301,22 @@ func _initialize() -> void:
 	assert(vm._live_fights.is_empty() and not esc_a.is_in_live_fight() and not esc_b.is_in_live_fight(), "An escort interrupts a live fight at once")
 	print("Escort interrupts fight OK")
 
+	# Test #45 (T2, preparado): el reparto de rasgos nunca junta opuestos, conserva los que ya tiene y es reproducible
+	for pair_k in pp_script.OPPOSITE_TRAITS.keys():
+		assert(t_cat.conflicts(pair_k, pp_script.OPPOSITE_TRAITS[pair_k]), "T2: Catalog axes must match current opposites (%s)" % pair_k)
+	var t_rng := RandomNumberGenerator.new()
+	for roll_i in range(200):
+		t_rng.seed = roll_i
+		var rolled: Array[String] = t_cat.roll_traits(t_rng, 6, ["Rencoroso"])
+		assert(rolled.size() == 6 and rolled[0] == "Rencoroso", "T2: Six traits, keeping the existing ones")
+		for ia in range(rolled.size()):
+			for ib in range(ia + 1, rolled.size()):
+				assert(not t_cat.conflicts(rolled[ia], rolled[ib]), "T2: No opposite traits together: %s" % str(rolled))
+	t_rng.seed = 7
+	var roll_a: Array[String] = t_cat.roll_traits(t_rng, 6)
+	t_rng.seed = 7
+	assert(t_cat.roll_traits(t_rng, 6) == roll_a, "T2: Same seed, same traits")
+	print("T2 trait roller OK")
+
 	print("ALL RIMWORLD MEDICAL, FOOTPRINTS, 3-PHASE CORPSE REPORT, MULTI-CORPSE FIX, RPG INTERROGATION, PUBLIC TRIAL, DYNAMIC RELATIONSHIPS, MISSING FAMILY SEARCH, SOCIAL GLOSSARY & UNCONSCIOUS REACTION TESTS PASSED!")
 	quit(0)

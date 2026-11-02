@@ -41,6 +41,64 @@ const TRAITS: Dictionary = {
 	"Chismoso": {"desc": "No sabe guardar un secreto.", "tend": {"malice": 0.6, "gossip": 1.0}},
 }
 
+## T2 (preparado, sin conectar aún a PersonProfile): ejes de opuestos. Un vecino nunca tiene dos rasgos del mismo eje.
+## De momento reproduce los pares de `PersonProfile.OPPOSITE_TRAITS`; con la lista de 100 cada rasgo llevará su eje.
+const AXES: Dictionary = {
+	"Leal": "lealtad", "Tahúr": "lealtad",
+	"Honrado": "honradez", "Codicioso": "honradez",
+	"Pacífico": "perdon", "Rencoroso": "perdon",
+	"Bondadoso": "calidez", "Frío": "calidez",
+	"Alegre": "animo", "Desconfiado": "animo",
+	"Paciente": "paciencia", "Celoso": "paciencia",
+}
+## Rasgos raros (como mucho `max_rare` por vecino). Vacío hasta T2.
+const RARE: Array[String] = []
+
+static func axis_of(trait_id: String) -> String:
+	return str(AXES.get(trait_id, ""))
+
+static func conflicts(a: String, b: String) -> bool:
+	if a == b:
+		return true
+	var ax: String = axis_of(a)
+	return ax != "" and ax == axis_of(b)
+
+static func conflicts_with_any(trait_id: String, traits: Array) -> bool:
+	for t in traits:
+		if conflicts(trait_id, str(t)):
+			return true
+	return false
+
+## Reparte hasta `count` rasgos sin choques de eje y con como mucho `max_rare` raros.
+## `keep`: rasgos que ya tiene y se conservan (para completar partidas guardadas). `pool`: candidatos (todos por defecto).
+## Con la misma semilla en `rng` el resultado es siempre el mismo.
+static func roll_traits(rng: RandomNumberGenerator, count: int, keep: Array = [], pool: Array = [], max_rare: int = 1) -> Array[String]:
+	var res: Array[String] = []
+	var rare_n: int = 0
+	for t in keep:
+		var ts: String = str(t)
+		if res.size() < count and not conflicts_with_any(ts, res):
+			res.append(ts)
+			if ts in RARE:
+				rare_n += 1
+	var cands: Array = (pool if not pool.is_empty() else TRAITS.keys()).duplicate()
+	cands.sort() # Orden fijo antes de barajar con la semilla
+	for i in range(cands.size() - 1, 0, -1):
+		var j: int = rng.randi_range(0, i)
+		var tmp = cands[i]
+		cands[i] = cands[j]
+		cands[j] = tmp
+	for c in cands:
+		if res.size() >= count:
+			break
+		var cs: String = str(c)
+		if conflicts_with_any(cs, res) or (cs in RARE and rare_n >= max_rare):
+			continue
+		res.append(cs)
+		if cs in RARE:
+			rare_n += 1
+	return res
+
 static func has_trait_id(trait_id: String) -> bool:
 	return TRAITS.has(trait_id)
 
