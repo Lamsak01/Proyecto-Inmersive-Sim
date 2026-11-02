@@ -872,11 +872,17 @@ func _initialize() -> void:
 	# Dos rivales que se cruzan acumulan tensión, una sola vez al día
 	prepare_fight.call(0, int(wc_speed.current_day) + 20)
 	f_a.npc_relationships[f_b.get_person_key()] = -30
+	var keep_pa: Array[String] = f_a.person_profile.personality.duplicate()
+	var keep_pb: Array[String] = f_b.person_profile.personality.duplicate()
+	f_a.person_profile.personality.assign(["Curioso"]) # Carácter neutro: el multiplicador por rasgos se prueba en #42
+	f_b.person_profile.personality.assign(["Curioso"])
 	vm._scan_rival_friction()
 	vm._scan_rival_friction()
 	var tension4: int = int(sd4.get_pair_entry(f_a.get_person_key(), f_b.get_person_key()).get("tension", 0))
 	assert(tension4 >= 2 and tension4 <= 4, "B4.2: Enemies crossing paths gain tension once per day")
 	assert(int(sd4.get_pair_entry(f_a.get_person_key(), f_b.get_person_key()).get("enmity_days", 0)) == 11, "B4.2: Crossing paths adds one enmity day")
+	f_a.person_profile.personality.assign(keep_pa)
+	f_b.person_profile.personality.assign(keep_pb)
 	sd4.dials["live_fight_daily_chance"] = old_chance4
 	vm._fight_scan_timer = 3.0
 	print("B4.2 live fights OK")
@@ -1202,8 +1208,8 @@ func _initialize() -> void:
 	# Test #40 (T1): Los rasgos dan tendencias; calumnia más quien tiene más malicia y nunca quien no tiene
 	var t_cat = load("res://scripts/data/TraitCatalog.gd")
 	var pp_script = load("res://scripts/data/PersonProfile.gd")
-	for tr_id in pp_script.PERSONALITY_TRAITS:
-		assert(t_cat.has_trait_id(tr_id) and t_cat.describe(tr_id) != "", "T1: Trait %s must be in the catalog" % tr_id)
+	for tr_id in t_cat.TRAITS.keys():
+		assert(t_cat.describe(tr_id) != "" and not (t_cat.TRAITS[tr_id]["tend"] as Dictionary).is_empty(), "T1: Trait %s needs a description and an effect" % tr_id)
 	var vsl = load("res://scripts/systems/VillageSocialLife.gd")
 	var t_chances: Array[float] = []
 	for t_set in [["Rencoroso", "Celoso", "Chismoso"], ["Rencoroso", "Trabajador", "Curioso"], ["Bondadoso", "Leal", "Orgulloso"]]:
@@ -1302,10 +1308,33 @@ func _initialize() -> void:
 	assert(vm._live_fights.is_empty() and not esc_a.is_in_live_fight() and not esc_b.is_in_live_fight(), "An escort interrupts a live fight at once")
 	print("Escort interrupts fight OK")
 
-	# Test #45 (T2, preparado): el reparto de rasgos nunca junta opuestos, conserva los que ya tiene y es reproducible
-	for pair_k in pp_script.OPPOSITE_TRAITS.keys():
-		assert(t_cat.conflicts(pair_k, pp_script.OPPOSITE_TRAITS[pair_k]), "T2: Catalog axes must match current opposites (%s)" % pair_k)
+	# Test #45 (T2): 140 rasgos con ejes; 6 por vecino sin opuestos, como mucho 1 raro, nombres según género,
+	# y las fichas de 3 rasgos (iniciales o de partidas viejas) se completan igual siempre
+	assert(t_cat.TRAITS.size() == 140, "T2: 140 traits in the catalog")
 	var t_rng := RandomNumberGenerator.new()
+	var axis_n: Dictionary = {}
+	for tr_id in t_cat.TRAITS.keys():
+		var ax_id: String = t_cat.axis_of(tr_id)
+		if ax_id != "":
+			axis_n[ax_id] = int(axis_n.get(ax_id, 0)) + 1
+	for ax_id in axis_n.keys():
+		assert(int(axis_n[ax_id]) >= 2, "T2: Axis %s needs two ends" % ax_id)
+	assert(t_cat.conflicts("Trabajador", "Holgazán") and not t_cat.conflicts("Trabajador", "Leal"), "T2: Axes block opposites only")
+	for g_pair in [["Celoso", "Celosa"], ["Trabajador", "Trabajadora"], ["Leal", "Leal"], ["Seguro de sí", "Segura de sí"], ["Holgazán", "Holgazana"], ["Fanfarrón", "Fanfarrona"], ["Frío", "Fría"]]:
+		assert(t_cat.display(g_pair[0], "F") == g_pair[1] and t_cat.display(g_pair[0], "M") == g_pair[0], "T2: Gendered name for %s" % g_pair[0])
+	for bal_i in range(300):
+		t_rng.seed = 1000 + bal_i
+		var bal: Array[String] = t_cat.roll_balanced(t_rng, ["Rencoroso"])
+		var rare_c: int = 0
+		for ia in range(bal.size()):
+			rare_c += 1 if t_cat.is_rare(bal[ia]) else 0
+			for ib in range(ia + 1, bal.size()):
+				assert(not t_cat.conflicts(bal[ia], bal[ib]), "T2: Balanced roll without opposites: %s" % str(bal))
+		assert(bal.size() == 6 and "Rencoroso" in bal and rare_c <= 1, "T2: Six traits, keeps old, at most one rare: %s" % str(bal))
+	var old_d: Dictionary = {"person_id": "t2_old", "personality": ["Valiente", "Desconfiado", "Rencoroso"]}
+	var old_a = pp_script.from_dict(old_d)
+	var old_b = pp_script.from_dict(old_d)
+	assert(old_a.personality.size() == 6 and old_a.personality == old_b.personality and old_a.personality.slice(0, 3) == ["Valiente", "Desconfiado", "Rencoroso"], "T2: Old 3-trait profiles complete to 6 the same way")
 	for roll_i in range(200):
 		t_rng.seed = roll_i
 		var rolled: Array[String] = t_cat.roll_traits(t_rng, 6, ["Rencoroso"])

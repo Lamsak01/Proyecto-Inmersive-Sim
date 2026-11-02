@@ -207,7 +207,7 @@ static func _add_neighbor_opinions(npc: VillageNPC, diag: Dictionary, ch_arr: Ar
 			text += "\nMotivo: %s" % note
 		var heard_trait: String = TraitDiscovery.hearsay_trait(other) if shares_reason else ""
 		if heard_trait != "":
-			text += "\n«Por lo que sé, es %s.»" % heard_trait.to_lower()
+			text += "\n«Por lo que sé, es %s.»" % TraitCatalog.npc_display(other, heard_trait).to_lower()
 		choices.append({"label": "👤 %s" % other.npc_name, "next": "opinion_%d" % i, "action": "quest_opinion_seen:" + other.get_person_key()})
 		var op_choices: Array = []
 		if can_influence:

@@ -195,12 +195,15 @@ func compute_compatibility(prof_a, prof_b, same_family: bool = false) -> int:
 	for dl in prof_a.dislikes:
 		if dl in prof_b.likes:
 			score += int(dials.get("compat_like_vs_dislike_penalty", -16))
+	# T2: con 6 rasgos por persona (antes 3) cada coincidencia u oposición pesa la mitad, para no inflar la compatibilidad
+	var trait_score: float = 0.0
 	for t_name in prof_a.personality:
 		if t_name in prof_b.personality:
-			score += int(dials.get("compat_shared_trait_bonus", 10))
-		var opp: String = str(PersonProfile.OPPOSITE_TRAITS.get(t_name, ""))
-		if opp != "" and (opp in prof_b.personality):
-			score += int(dials.get("compat_opposite_trait_penalty", -22))
+			trait_score += float(dials.get("compat_shared_trait_bonus", 10))
+		for t_b in prof_b.personality:
+			if TraitCatalog.are_opposed(t_name, t_b):
+				trait_score += float(dials.get("compat_opposite_trait_penalty", -22))
+	score += int(round(trait_score * 0.5))
 	return clampi(score, 0, 100)
 
 func is_person_in_scene(person_id: String) -> bool:
@@ -1160,8 +1163,8 @@ func simulate_social_day(current_day: int, profiles_by_id: Dictionary, families_
 			if lk in prof_b.dislikes: social_harmony -= 1
 		for t_name in prof_a.personality:
 			if t_name in prof_b.personality: social_harmony += 1
-			var opp: String = str(PersonProfile.OPPOSITE_TRAITS.get(t_name, ""))
-			if opp != "" and (opp in prof_b.personality): social_harmony -= 2
+			for t_b in prof_b.personality:
+				if TraitCatalog.are_opposed(t_name, t_b): social_harmony -= 2
 
 		var cur_aff: int = int(pe.get("affinity", 0))
 		var roll: float = rng.randf()

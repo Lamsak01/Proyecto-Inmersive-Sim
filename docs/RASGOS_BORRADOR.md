@@ -117,4 +117,4 @@ Total: 118 + 22 = **140 rasgos** (17 raros). Se pueden añadir más con el tiemp
 4. Celoso = solo celos de pareja; Envidioso aparte.
 5. Más de 100 rasgos: la cifra era orientativa; la ciudad final tendrá 100+ vecinos. Añadidos los ejes 37–51 y 10 sueltos.
 
-Pendiente: que el usuario dé el visto bueno a la lista (puede tachar, renombrar o añadir).
+**Aprobada y cargada en el juego (T2, 2026-11-02).** Los datos viven en `scripts/data/TraitCatalog.gd`; para cambiar un rasgo, edita ahí (no renombres ids ya publicados).

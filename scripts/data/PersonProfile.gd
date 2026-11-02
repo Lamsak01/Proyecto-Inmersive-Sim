@@ -11,22 +11,8 @@ const ROMANCE_SINGLE := "single"
 const ROMANCE_PARTNERED := "partnered"
 const ROMANCE_WIDOWED := "widowed"
 
-## Catálogo de rasgos personales (compatibles con la evaluación policial de VillageManager).
-const PERSONALITY_TRAITS: Array[String] = [
-	"Leal", "Honrado", "Pacífico", "Bondadoso", "Alegre", "Curioso",
-	"Trabajador", "Paciente", "Valiente", "Orgulloso", "Desconfiado",
-	"Celoso", "Rencoroso", "Codicioso", "Frío", "Tahúr", "Noctámbulo", "Chismoso"
-]
-
-## Pares de rasgos opuestos que no deben coincidir en la misma persona y restan compatibilidad.
-const OPPOSITE_TRAITS: Dictionary = {
-	"Leal": "Tahúr", "Tahúr": "Leal",
-	"Honrado": "Codicioso", "Codicioso": "Honrado",
-	"Pacífico": "Rencoroso", "Rencoroso": "Pacífico",
-	"Bondadoso": "Frío", "Frío": "Bondadoso",
-	"Alegre": "Desconfiado", "Desconfiado": "Alegre",
-	"Paciente": "Celoso", "Celoso": "Paciente",
-}
+## T2: los rasgos viven en `TraitCatalog.gd` (140, con ejes de opuestos). Cada persona tiene 6.
+const TraitCatalog = preload("res://scripts/data/TraitCatalog.gd")
 
 ## Catálogo de gustos y disgustos (comidas, oficios y aficiones del valle).
 const TASTE_TOPICS: Array[String] = [
@@ -39,7 +25,7 @@ var person_id: String = ""
 var gender: String = "M"          # "M" o "F"
 var orientation: String = "H"     # "H" (heterosexual por ahora; previsto para ampliar)
 var age: int = 30
-var personality: Array[String] = [] # 3 rasgos de PERSONALITY_TRAITS
+var personality: Array[String] = [] # 6 rasgos de TraitCatalog
 var likes: Array[String] = []       # 2 gustos de TASTE_TOPICS
 var dislikes: Array[String] = []    # 1 disgusto de TASTE_TOPICS
 var favorite_item: String = "bread"
@@ -84,6 +70,7 @@ static func from_dict(d: Dictionary):
 	p.personality.clear()
 	for t in d.get("personality", []):
 		p.personality.append(str(t))
+	p.complete_personality()
 	p.likes.clear()
 	for l in d.get("likes", []):
 		p.likes.append(str(l))
@@ -115,20 +102,26 @@ func to_dict() -> Dictionary:
 	}
 
 ## Construye una ficha determinista a partir del nombre cuando un NPC aún no está en la tabla fija (puente hasta B0.3).
+## T2: completa hasta 6 rasgos (fichas fijas de 3 y partidas antiguas). Determinista: misma persona, mismos rasgos.
+func complete_personality() -> void:
+	if personality.size() >= TraitCatalog.TRAITS_PER_PERSON:
+		return
+	var rng := RandomNumberGenerator.new()
+	rng.seed = abs(("traits:" + person_id + ":" + ",".join(personality)).hash())
+	var full: Array[String] = TraitCatalog.roll_balanced(rng, personality)
+	# Conserva siempre los que ya tenía, aunque choquen entre sí (no se pierde nada de la partida)
+	for t in personality:
+		if not (t in full):
+			full.push_front(t)
+	personality.assign(full)
+
 static func make_fallback_for_name(npc_name_str: String):
 	var clean := npc_name_str.strip_edges()
 	var h: int = abs(clean.hash())
 	var is_fem: bool = clean.ends_with("a") or clean.begins_with("Dra.") or clean.begins_with("Comisaria") or clean.begins_with("Inspectora")
-	var traits_picked: Array[String] = []
-	var idx: int = h % PERSONALITY_TRAITS.size()
-	var step: int = 5
-	while traits_picked.size() < 3:
-		var cand: String = PERSONALITY_TRAITS[idx % PERSONALITY_TRAITS.size()]
-		var opp: String = str(OPPOSITE_TRAITS.get(cand, ""))
-		if not (cand in traits_picked) and (opp == "" or not (opp in traits_picked)):
-			traits_picked.append(cand)
-		idx += step
-		step += 1
+	var fb_rng := RandomNumberGenerator.new()
+	fb_rng.seed = h
+	var traits_picked: Array[String] = TraitCatalog.roll_balanced(fb_rng)
 	var l1: String = TASTE_TOPICS[h % TASTE_TOPICS.size()]
 	var l2: String = TASTE_TOPICS[(h + 5) % TASTE_TOPICS.size()]
 	var dl1: String = TASTE_TOPICS[(h + 11) % TASTE_TOPICS.size()]
@@ -203,18 +196,12 @@ static func generate_newcomer(
 	var age_range: Vector2i = hint.get("age", Vector2i(22, 48))
 	var age_val: int = rng.randi_range(age_range.x, age_range.y)
 
-	# 3 rasgos: 1 afín al oficio + 2 del catálogo general (sin duplicados ni opuestos)
-	var traits_picked: Array[String] = []
+	# 6 rasgos: 1 afín al oficio + el resto repartidos con equilibrio (sin opuestos, como mucho 1 raro)
+	var role_keep: Array = []
 	var role_traits: Array = hint.get("traits", [])
 	if not role_traits.is_empty():
-		traits_picked.append(str(role_traits[rng.randi_range(0, role_traits.size() - 1)]))
-	var safety: int = 0
-	while traits_picked.size() < 3 and safety < 60:
-		safety += 1
-		var cand: String = PERSONALITY_TRAITS[rng.randi_range(0, PERSONALITY_TRAITS.size() - 1)]
-		var opp: String = str(OPPOSITE_TRAITS.get(cand, ""))
-		if not (cand in traits_picked) and (opp == "" or not (opp in traits_picked)):
-			traits_picked.append(cand)
+		role_keep.append(str(role_traits[rng.randi_range(0, role_traits.size() - 1)]))
+	var traits_picked: Array[String] = TraitCatalog.roll_balanced(rng, role_keep)
 
 	# 2 gustos y 1 disgusto sin solaparse
 	var likes_picked: Array[String] = []

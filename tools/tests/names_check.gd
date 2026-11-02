@@ -68,11 +68,12 @@ func _initialize() -> void:
 			male_count += 1
 		assert(prof.age >= 18 and prof.age <= 75, "Edad fuera de rango en %s: %d" % [r_name, prof.age])
 		assert(prof.get_age_group() in ["young", "adult", "senior"], "Grupo de edad invalido")
-		assert(prof.personality.size() == 3, "Personalidad debe tener 3 rasgos en %s" % r_name)
-		for tr in prof.personality:
-			assert(tr in PersonProfile.PERSONALITY_TRAITS, "Rasgo fuera de catalogo en %s: %s" % [r_name, tr])
-			var opp: String = str(PersonProfile.OPPOSITE_TRAITS.get(tr, ""))
-			assert(opp == "" or not (opp in prof.personality), "Rasgos opuestos en %s: %s y %s" % [r_name, tr, opp])
+		assert(prof.personality.size() == 6, "Personalidad debe tener 6 rasgos en %s" % r_name)
+		for ti in range(prof.personality.size()):
+			var tr: String = prof.personality[ti]
+			assert(PersonProfile.TraitCatalog.has_trait_id(tr), "Rasgo fuera de catalogo en %s: %s" % [r_name, tr])
+			for tj in range(ti + 1, prof.personality.size()):
+				assert(not PersonProfile.TraitCatalog.conflicts(tr, prof.personality[tj]), "Rasgos opuestos en %s: %s y %s" % [r_name, tr, prof.personality[tj]])
 		assert(prof.likes.size() >= 1 and prof.dislikes.size() >= 1, "Gustos vacios en %s" % r_name)
 		if r_name == "Elena":
 			assert(prof.romance_status == PersonProfile.ROMANCE_PARTNERED and prof.partner_id == "valen", "Elena debe iniciar en pareja con Dr. Valen")
@@ -99,7 +100,7 @@ func _initialize() -> void:
 		assert(g_prof.person_id != "" and not seen_ids.has(g_prof.person_id), "ID choca con residente inicial: %s" % g_prof.person_id)
 		var expected_range: Vector2i = PersonProfile.ROLE_GENERATION_HINTS[role_id]["age"]
 		assert(g_prof.age >= expected_range.x and g_prof.age <= expected_range.y, "Edad fuera del rango del oficio %d: %d" % [role_id, g_prof.age])
-		assert(g_prof.personality.size() == 3 and g_prof.likes.size() == 2 and g_prof.dislikes.size() == 1, "Ficha generada incompleta")
+		assert(g_prof.personality.size() == 6 and g_prof.likes.size() == 2 and g_prof.dislikes.size() == 1, "Ficha generada incompleta")
 		if g_prof.gender == "F":
 			live_f += 1
 		else:

@@ -27,7 +27,7 @@ static func reveal(npc: VillageNPC, trait_id: String, how: String = "") -> bool:
 	if npc == null or trait_id == "" or trait_id in npc.known_traits or not trait_id in all_traits(npc):
 		return false
 	npc.known_traits.append(trait_id)
-	npc._spawn_floating_text("💡 %s es %s%s" % [npc.npc_name, trait_id, (" (" + how + ")") if how != "" else ""], Color(0.95, 0.85, 1.0), -58.0)
+	npc._spawn_floating_text("💡 %s es %s%s" % [npc.npc_name, TraitCatalog.npc_display(npc, trait_id), (" (" + how + ")") if how != "" else ""], Color(0.95, 0.85, 1.0), -58.0)
 	return true
 
 ## Revela el primer rasgo aún desconocido (orden fijo: siempre el mismo para la misma persona).
@@ -77,5 +77,5 @@ static func hearsay_trait(other: VillageNPC) -> String:
 static func known_traits_text(npc: VillageNPC) -> String:
 	var parts: Array[String] = []
 	for t in all_traits(npc):
-		parts.append(str(t) if str(t) in npc.known_traits else "❓")
+		parts.append(TraitCatalog.npc_display(npc, str(t)) if str(t) in npc.known_traits else "❓")
 	return ", ".join(parts) if not parts.is_empty() else "Equilibrado"
