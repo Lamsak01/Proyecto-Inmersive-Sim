@@ -184,7 +184,7 @@ Otros documentos antiguos en la raíz: `ROADMAP_PROYECTO.md`, `AUDIT_LOG.md`, `S
 **Fase 6 — Chismes y pulido** (regla: los chismes son información y no mueven relaciones entre vecinos)
 - [x] **B6.1** HECHO. Eventos de `GOSSIP_EVENT_TYPES` con `known_by` en `social_event_log` (se guarda con la partida). Al acabar una conversación, 50 % de que se cuente la novedad más reciente que el otro ignora (`spread_gossip`, máximo 10 días de antigüedad). "🗞️ Preguntar si hay alguna novedad" en el diálogo. `player_slander`: al enterarse el aludido, −5 de afinidad con el jugador. Test #32 en `verify_all.gd`.
 - [x] **B6.2** HECHO. "🗞️ NOTICIAS DEL PUEBLO" en el tablón de la plaza (`get_public_news`): hasta 4 novedades que conozcan al menos 3 vecinos, sin comentarios del jugador. Las muertes no se publican, para no estropear la investigación de crímenes.
-- [ ] **B6.3** Calibración con varias partidas largas (avisar antes por su coste).
+- [x] **B6.3** HECHO, sin cambiar valores. Dos partidas reales de 60 días, sin pantalla y sin jugador activo (semillas 101 y 202): 4 peleas, 3 parejas nuevas, 17 vivos, 0 aislados, 68–69 % de relaciones entre −20 y +40, noticias 30–35 días en cada partida. Sin errores. A vigilar: solo 4–8 quedadas y 1–2 citas completadas por partida; quizá muchas se cancelan al acabar la hora social, pero no está comprobado.
 - [ ] **B6.4** Pulido y revisión completa (avisar antes por su coste).
 Cada fase se dividirá en bloques pequeños cuando se llegue a ella (detalle en `docs/PLAN_VIDA_SOCIAL.md`).
 
