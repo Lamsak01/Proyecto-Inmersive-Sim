@@ -188,6 +188,9 @@ static func _add_neighbor_opinions(npc: VillageNPC, diag: Dictionary, ch_arr: Ar
 			op_choices.append({"label": "👎 Hablar mal de %s" % other.npc_name, "next": "start", "action": "social_gossip:bad:" + other.get_person_key()})
 			if int(rows[i]["rel"]) <= -15:
 				op_choices.append({"label": "🕊️ Pedirle que haga las paces con %s" % other.npc_name, "next": "start", "action": "social_gossip:peace:" + other.get_person_key()})
+			var same_fam: bool = npc.family_id != "none" and npc.family_id != "family_police" and npc.family_id == other.family_id
+			if int(rows[i]["rel"]) > -15 and vm_op.social_director.can_matchmake(npc.person_profile, other.person_profile, same_fam):
+				op_choices.append({"label": "💘 Animarle a acercarse a %s" % other.npc_name, "next": "start", "action": "social_gossip:match:" + other.get_person_key()})
 		op_choices.append({"label": "⬅️ Preguntar por otro vecino", "next": "neighbor_opinions"})
 		diag["opinion_%d" % i] = {"text": text, "choices": op_choices}
 	choices.append({"label": "⬅️ Volver a la conversación", "next": "start"})
@@ -206,6 +209,8 @@ static func _player_gossip(npc: VillageNPC, player: Node, mode: String, target_k
 	var res: Dictionary
 	if mode == "peace":
 		res = vm.social_director.resolve_player_mediation(npc.get_person_key(), target_key, rel_now, charisma, npc.affinity, cur_day)
+	elif mode == "match":
+		res = vm.social_director.resolve_player_matchmaking(npc.get_person_key(), target_key, rel_now, charisma, npc.affinity, cur_day)
 	else:
 		res = vm.social_director.resolve_player_gossip(npc.get_person_key(), target_key, rel_now, positive, charisma, npc.affinity, cur_day)
 	if not bool(res.get("allowed", false)):
@@ -223,6 +228,10 @@ static func _player_gossip(npc: VillageNPC, player: Node, mode: String, target_k
 	if mode == "peace":
 		npc._spawn_floating_text("🕊️ %s promete darle otra oportunidad a %s" % [npc.npc_name, target.npc_name], Color(0.70, 1.0, 0.85), -36.0)
 		vm.record_social_event("player_mediation", npc, target, "El forastero medió entre %s y %s" % [npc.npc_name, target.npc_name])
+		return
+	if mode == "match":
+		npc._spawn_floating_text("💘 %s mira a %s con otros ojos" % [npc.npc_name, target.npc_name], Color(1.0, 0.70, 0.88), -36.0)
+		vm.record_social_event("player_matchmaking", npc, target, "El forastero animó a %s a acercarse a %s" % [npc.npc_name, target.npc_name])
 		return
 	npc._spawn_floating_text("🤫 %s se queda pensando en %s" % [npc.npc_name, target.npc_name], Color(0.80, 0.90, 1.0), -36.0)
 	vm.record_social_event("player_gossip", npc, target, "El forastero habló %s de %s a %s" % ["bien" if positive else "mal", target.npc_name, npc.npc_name])

@@ -937,5 +937,29 @@ func _initialize() -> void:
 	sd4.dials["live_fight_daily_chance"] = old_chance53
 	print("B5.3 mediation OK")
 
+	# Test #31 (B5.4): Casamentero solo entre solteros compatibles; suma chispa sin saltarse etapas
+	var pair54: Array = []
+	for x54 in live3:
+		for y54 in live3:
+			if pair54.is_empty() and x54 != y54 and x54.family_id != y54.family_id and not x54.is_dead and not y54.is_dead and sd4.can_matchmake(x54.person_profile, y54.person_profile, false):
+				pair54 = [x54, y54]
+	assert(pair54.size() == 2, "B5.4: The village must have a compatible single pair")
+	var m_a = pair54[0]
+	var key54: String = pair54[1].get_person_key()
+	var keep_status54: String = str(pair54[1].person_profile.romance_status)
+	pair54[1].person_profile.romance_status = "partnered"
+	assert(not sd4.can_matchmake(m_a.person_profile, pair54[1].person_profile, false), "B5.4: Someone with a partner cannot be matched")
+	pair54[1].person_profile.romance_status = keep_status54
+	sd4.pair_metrics.clear()
+	sd4.set_pair_metrics(m_a.get_person_key(), key54, 10, 20, 0, 0)
+	sd4.dials["gossip_min_chance"] = 1.0
+	sd4.player_influence_day = -1
+	m_a.affinity = 50
+	m_a.on_dialogue_action("social_gossip:match:" + key54)
+	var pe54: Dictionary = sd4.get_pair_entry(m_a.get_person_key(), key54)
+	assert(int(pe54["spark"]) >= 6 and str(pe54.get("stage", "none")) == "none", "B5.4: Matchmaking adds spark without forcing a romance stage")
+	sd4.dials["gossip_min_chance"] = 0.15
+	print("B5.4 matchmaking OK")
+
 	print("ALL RIMWORLD MEDICAL, FOOTPRINTS, 3-PHASE CORPSE REPORT, MULTI-CORPSE FIX, RPG INTERROGATION, PUBLIC TRIAL, DYNAMIC RELATIONSHIPS, MISSING FAMILY SEARCH, SOCIAL GLOSSARY & UNCONSCIOUS REACTION TESTS PASSED!")
 	quit(0)

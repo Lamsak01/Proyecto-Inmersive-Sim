@@ -965,6 +965,19 @@ func resolve_player_mediation(listener_id: String, target_id: String, listener_r
 		pe["enmity_days"] = maxi(0, int(pe.get("enmity_days", 0)) - 4)
 	return res
 
+## B5.4: Solo se puede emparejar a dos solteros compatibles que no sean ya pareja.
+func can_matchmake(prof_a, prof_b, same_family: bool) -> bool:
+	if prof_a == null or prof_b == null or str(prof_a.romance_status) != PersonProfile.ROMANCE_SINGLE or str(prof_b.romance_status) != PersonProfile.ROMANCE_SINGLE:
+		return false
+	return compute_compatibility(prof_a, prof_b, same_family) >= int(dials.get("romance_min_compat", 40))
+
+## B5.4: Casamentero: si convence, suma algo de chispa; la etapa romántica sigue avanzando por sí sola.
+func resolve_player_matchmaking(listener_id: String, target_id: String, listener_rel: int, charisma_level: int, player_affinity: int, current_day: int) -> Dictionary:
+	var res: Dictionary = resolve_player_gossip(listener_id, target_id, listener_rel, true, charisma_level, player_affinity, current_day)
+	if bool(res.get("success", false)):
+		_add_spark_capped(get_pair_entry(listener_id, target_id, listener_rel), rng.randi_range(6, 10), current_day)
+	return res
+
 ## B4.2: Pares que hoy podrían pelear (no comprueba la familia; lo hace `try_resolve_live_fight`).
 func get_fight_ready_pairs(current_day: int) -> Array:
 	var out: Array = []
