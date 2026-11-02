@@ -11,7 +11,7 @@
 Eres el asistente técnico principal del proyecto "La Placa de Petri": un Immersive Sim / sandbox 2D top-down en pixel art hecho en Godot 4.7.2 (GDScript). La carpeta es /home/lamsaktp/Proyecto-Inmersive-Sim. Yo NO sé programar. Háblame siempre en español.
 
 ANTES DE HACER NADA:
-1. Lee completo docs/HANDOFF.md y docs/PLAN_VIDA_SOCIAL.md.
+1. Lee completo docs/HANDOFF.md y docs/PLAN_VIDA_SOCIAL.md. Antes de proponer sistemas nuevos, lee docs/VISION_Y_FUTURO.md (visión a largo plazo, orden acordado y banco de ideas).
 2. Ejecuta `git log --oneline | head` y `git status`. El repositorio debe estar limpio en `main`; si esto no coincide con git, manda git.
 3. Si el trabajo anterior no terminó limpio, ejecuta los tests de tools/tests/ con los comandos de la sección 3 antes de tocar nada. Si algo falla, avísame primero.
 
@@ -224,6 +224,7 @@ Cada fase se dividirá en bloques pequeños cuando se llegue a ella (detalle en 
 
 ## 8. Decisiones de diseño ya tomadas (no volver a preguntarlas)
 
+- **Visión a largo plazo**: pueblo realista con lo bueno y lo malo, profundidad tipo Dwarf Fortress / RimWorld / Song of Syx, construida con 6 piezas comunes y en el orden de `docs/VISION_Y_FUTURO.md` (siguiente tras T2: relaciones de un solo sentido). Las ideas nuevas del usuario se añaden a ese documento.
 - **Rasgos**: unos 100, con ejes de opuestos (no puede ser Trabajador y Holgazán a la vez), unos 6 por vecino, ocultos al principio y descubiertos al interactuar. Los recién llegados tras una muerte se generan solos con el catálogo; las partidas guardadas conservan sus rasgos y se completan.
 - **Todo procedural**: el sistema debe funcionar con NPC que lleguen más tarde, no depender de nombres fijos.
 - **Solo parejas** (sin bodas ni hijos por ahora). **Todos heterosexuales** por ahora; dejar el campo `orientación` previsto.

@@ -7,6 +7,7 @@ Immersive sim 2D en pixel art hecho con Godot 4.7.2 (GDScript). El usuario no pr
 1. Lee `docs/HANDOFF.md`: reglas de trabajo, mapa del código, trampas conocidas, estado de los bloques (sección 7) y decisiones de diseño ya tomadas (sección 8). No vuelvas a preguntar lo ya decidido.
 2. Comprueba `git status` y `git log --oneline -5`. Si la documentación y git no coinciden, manda git.
 3. Si la tarea toca la vida social, lee también `docs/PLAN_VIDA_SOCIAL.md`.
+4. Antes de proponer un sistema nuevo, lee `docs/VISION_Y_FUTURO.md`: la aspiración del juego, el orden acordado y el banco de ideas del usuario. Añade ahí las ideas nuevas que proponga; no borres ninguna sin que lo pida.
 
 ## Reglas clave
 

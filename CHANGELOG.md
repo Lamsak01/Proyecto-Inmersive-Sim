@@ -5,6 +5,9 @@ El detalle técnico está en `docs/HANDOFF.md` (sección 7) y el historial compl
 
 ## 2026-11-02
 
+### Planificación
+- Nuevo documento `docs/VISION_Y_FUTURO.md` con la visión del juego, el orden acordado para construirlo y toda la lluvia de ideas (secta, corrupción, higiene, niños, vehículos, alcantarillas...). Es el objetivo a largo plazo; nada se construye sin plan aprobado.
+
 ### Correcciones y pruebas
 - Limpiados los 14 avisos amarillos que mostraba Godot. No eran fallos y el juego no cambia.
 - Los rumores que corren de boca en boca ya no dicen quién los empezó (antes se colaba el nombre del autor, lo que estropeaba la misión de averiguarlo).
