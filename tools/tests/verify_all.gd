@@ -1113,9 +1113,10 @@ func _initialize() -> void:
 		m1_v.on_dialogue_action("social_gossip:peace:" + k_th)
 		q2_tries += 1
 	assert(q2_tries >= 2 and q2_tries < 10, "Q2: Peace takes more than one mediation")
+	var q_base = load("res://scripts/systems/quests/QuestType.gd")
 	var gold_q2: int = int(player.inventory.gold)
 	r1a.on_dialogue_action("quest_turn_in")
-	assert(int(player.inventory.gold) == gold_q2 + 30 and qm.get_quests("side", "completed").size() == 1, "Q2: Turning in pays and completes")
+	assert(int(player.inventory.gold) == gold_q2 + q_base.reward_gold(r1a, 30) and qm.get_quests("side", "completed").size() == 1, "Q2: Turning in pays and completes")
 	qm.giver_cooldowns.clear()
 	qm.set_offer(k_th, {"type": "slander", "giver_name": "Thoran", "target_key": k_br, "target_name": "Bram", "day_offered": int(wc_speed.current_day)})
 	r1a.on_dialogue_action("quest_accept")
@@ -1147,7 +1148,7 @@ func _initialize() -> void:
 	vm._mark_morgue_case_resolved("Bram", "Sora (Arrestado por el Comisario Vane: 60%)")
 	var gold_q3: int = int(player.inventory.gold)
 	j_giver.on_dialogue_action("quest_turn_in")
-	assert(int(player.inventory.gold) == gold_q3 + 40, "Q3: A verdict lets you collect the justice reward")
+	assert(int(player.inventory.gold) == gold_q3 + q_base.reward_gold(j_giver, 40), "Q3: A verdict lets you collect the justice reward")
 	qm.clear_all()
 	sd_q.get_pair_entry(k_th, m1_s.get_person_key())["spark"] = 20
 	qm.set_offer(k_th, {"type": "opinion", "giver_name": "Thoran", "target_key": m1_s.get_person_key(), "target_name": "Sora", "day_offered": int(wc_speed.current_day)})
@@ -1184,7 +1185,7 @@ func _initialize() -> void:
 	assert(str(r_q["data"]["asked"][m1_x.get_person_key()]) == m1_s.get_person_key() and str(r_q["data"]["asked"][k_th]) == "self", "Q3: The chain leads back to the origin")
 	var gold_r: int = int(player.inventory.gold)
 	m1_v.on_dialogue_action("quest_turn_in:accuse:" + k_th)
-	assert(int(player.inventory.gold) == gold_r + 25 and m1_v.get_relationship_with_npc(k_th) <= br_th_before - 15, "Q3: Naming the culprit pays and turns the victim against them")
+	assert(int(player.inventory.gold) == gold_r + q_base.reward_gold(m1_v, 25) and m1_v.get_relationship_with_npc(k_th) <= br_th_before - 15, "Q3: Naming the culprit pays and turns the victim against them")
 	qm.clear_all()
 	print("Q3 rumor quest OK")
 
@@ -1240,6 +1241,19 @@ func _initialize() -> void:
 	m1_s.from_save_dict(t3_saved)
 	assert(m1_s.known_traits == ["Rencoroso"] and m1_s.trait_lore_done, "T3: Discovered traits survive saving")
 	print("T3 trait discovery OK")
+
+	# Test #42 (T4): Las tendencias llegan a peleas, pagos y a qué misión pide cada uno
+	var sd_t4 = vm.social_director
+	var prof_t4 = pp_script.new()
+	prof_t4.personality.append_array(["Valiente", "Orgulloso", "Trabajador"])
+	var prof_t4b = pp_script.new()
+	prof_t4b.personality.append_array(["Pacífico", "Bondadoso", "Paciente"])
+	assert(sd_t4.compute_fight_power(prof_t4, 0, 1.0) > sd_t4.compute_fight_power(prof_t4b, 0, 1.0), "T4: Aggressive neighbors hit harder than peaceful ones")
+	m1_s.person_profile.personality.clear()
+	m1_s.person_profile.personality.append_array(["Bondadoso", "Leal", "Alegre"])
+	assert(q_base.reward_gold(m1_s, 40) > 40, "T4: Generous neighbors pay more")
+	assert(vq.pick_offer_type(vm, r1a, m1_v) == "slander", "T4: A spiteful neighbor asks to slander the rival")
+	print("T4 tendencies connected OK")
 
 	print("ALL RIMWORLD MEDICAL, FOOTPRINTS, 3-PHASE CORPSE REPORT, MULTI-CORPSE FIX, RPG INTERROGATION, PUBLIC TRIAL, DYNAMIC RELATIONSHIPS, MISSING FAMILY SEARCH, SOCIAL GLOSSARY & UNCONSCIOUS REACTION TESTS PASSED!")
 	quit(0)

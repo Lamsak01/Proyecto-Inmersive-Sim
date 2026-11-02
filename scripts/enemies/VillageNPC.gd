@@ -287,6 +287,7 @@ const NPCData = preload("res://scripts/data/NPCData.gd")
 const PersonProfile = preload("res://scripts/data/PersonProfile.gd")
 const NPCDialogue = preload("res://scripts/enemies/NPCDialogue.gd")
 const TraitDiscovery = preload("res://scripts/systems/TraitDiscovery.gd")
+const TraitCatalog = preload("res://scripts/data/TraitCatalog.gd")
 const NPC_NAME_ALIASES: Dictionary = NPCData.NPC_NAME_ALIASES
 
 const NPC_LORE_PROFILES: Dictionary = NPCData.NPC_LORE_PROFILES
@@ -947,7 +948,8 @@ func _process_pending_social_reply(delta: float) -> void:
 	_spawn_floating_text("%s «%s» (%s Rel)" % [icon_str, line_b, sign_tag], col, -36.0)
 	_try_player_overhear(initiator, note_str)
 	var vm_news = _get_vm()
-	if vm_news != null and randf() < 0.5:
+	# T4: el chismoso cuenta novedades más a menudo y el frío menos (Chismoso solo: 75 %)
+	if vm_news != null and randf() < clampf(0.5 + 0.25 * TraitCatalog.npc_tendency(initiator, "gossip"), 0.15, 0.85):
 		var news: Dictionary = vm_news.spread_gossip(initiator, self)
 		if not news.is_empty():
 			initiator._spawn_floating_text("🗣️ «¿Te has enterado? %s»" % str(news.get("summary", "")), Color(1.0, 0.92, 0.65), -46.0)

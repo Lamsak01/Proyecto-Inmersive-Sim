@@ -7,6 +7,8 @@ extends RefCounted
 
 # M1: Móvil social. Suma algo de sospecha, pero nunca decide un culpable por sí solo.
 const VillageQuests = preload("res://scripts/systems/VillageQuests.gd")
+const TraitCatalog = preload("res://scripts/data/TraitCatalog.gd")
+const LEGACY_DARK_TRAITS: Array[String] = ["Sanguinario", "Avaricioso", "Cruel"] # Aún fuera del catálogo (llegarán en T2)
 
 const MOTIVE_PUBLIC_PTS: int = 10 # Enemistad larga o peleas conocidas por el pueblo
 const MOTIVE_RUMOR_PTS: int = 8 # Rumor que cuenta un testigo en el interrogatorio
@@ -1116,14 +1118,24 @@ static func _evaluate_npc_interview(vm: VillageManager, inv_npc: VillageNPC, wit
 		if role_matches_weapon:
 			new_sc += 18
 			extra_notes.append("Oficio compatible con el arma/método forense")
+		# T4: carácter según la tabla de rasgos: malicia y agresividad suman, honestidad resta
+		var dark_v: float = TraitCatalog.tendency(witness.traits, "malice") + 0.5 * maxf(0.0, TraitCatalog.tendency(witness.traits, "aggression")) - 0.5 * TraitCatalog.tendency(witness.traits, "honesty")
+		var dark_trait: String = ""
 		for trait_name in witness.traits:
-			if trait_name in ["Sanguinario", "Codicioso", "Avaricioso", "Rencoroso", "Frío", "Cruel", "Tahúr"]:
-				new_sc += 10
-				extra_notes.append("Rasgo: " + trait_name)
-				break
-			elif trait_name in ["Pacífico", "Bondadoso", "Leal", "Honrado"]:
-				new_sc = maxi(10, new_sc - 8)
-				break
+			if trait_name in LEGACY_DARK_TRAITS:
+				dark_trait = trait_name
+		if dark_trait == "" and dark_v >= 0.6:
+			var best_t: float = 0.0
+			for trait_name in witness.traits:
+				var tv: float = TraitCatalog.tendency([trait_name], "malice") + 0.5 * maxf(0.0, TraitCatalog.tendency([trait_name], "aggression")) - 0.5 * TraitCatalog.tendency([trait_name], "honesty")
+				if tv > best_t:
+					best_t = tv
+					dark_trait = trait_name
+		if dark_trait != "":
+			new_sc += 10
+			extra_notes.append("Rasgo: " + dark_trait)
+		elif dark_v <= -0.6:
+			new_sc = maxi(10, new_sc - 8)
 		entry["score"] = maxi(int(entry.get("score", 10)), new_sc + int(entry.get("motive_pts", 0)))
 		var note_suffix: String = (" [" + ", ".join(extra_notes) + "]") if not extra_notes.is_empty() else ""
 		entry["status_note"] = "Estaba a %dm de la escena SIN coartada%s" % [dist_m, note_suffix]

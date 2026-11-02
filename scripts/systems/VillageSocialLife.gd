@@ -66,7 +66,8 @@ static func _scan_rival_friction(vm: VillageManager) -> void:
 			if a.family_id != "none" and a.family_id != "family_police" and a.family_id == b.family_id:
 				continue
 			var rel: int = a.get_relationship_with_npc(b.get_person_key())
-			if vm.social_director.register_rival_encounter(a.get_person_key(), b.get_person_key(), rel, cur_day):
+			var t_mult: float = clampf(1.0 + 0.25 * (TraitCatalog.npc_tendency(a, "aggression") + TraitCatalog.npc_tendency(b, "aggression")) + 0.15 * (TraitCatalog.npc_tendency(a, "grudge") + TraitCatalog.npc_tendency(b, "grudge")), 0.5, 1.6)
+			if vm.social_director.register_rival_encounter(a.get_person_key(), b.get_person_key(), rel, cur_day, t_mult):
 				a._spawn_floating_text("😠", Color(1.0, 0.60, 0.40), -28.0)
 
 static func _try_start_live_fight(vm: VillageManager) -> void:

@@ -2,6 +2,7 @@ extends RefCounted
 
 const VillageQuests = preload("res://scripts/systems/VillageQuests.gd")
 const TraitDiscovery = preload("res://scripts/systems/TraitDiscovery.gd")
+const TraitCatalog = preload("res://scripts/data/TraitCatalog.gd")
 
 ## Menús y acciones de diálogo de los habitantes (tiendas, interrogatorios, lore, acciones de las opciones).
 ## Extraído de VillageNPC.gd. Cada función recibe al NPC como primer parámetro (`npc`); VillageNPC mantiene
@@ -232,13 +233,14 @@ static func _player_gossip(npc: VillageNPC, player: Node, mode: String, target_k
 	var cur_day: int = int(WorldClock.current_day) if WorldClock != null else 1
 	var rel_now: int = npc.get_relationship_with_npc(target_key)
 	var charisma: int = int(player.call("get_skill_level", "charisma"))
+	var trust_bonus: float = 0.08 * TraitCatalog.npc_tendency(npc, "trust") # T4: el confiado se lo cree antes; el desconfiado, menos
 	var res: Dictionary
 	if mode == "peace":
-		res = vm.social_director.resolve_player_mediation(npc.get_person_key(), target_key, rel_now, charisma, npc.affinity, cur_day)
+		res = vm.social_director.resolve_player_mediation(npc.get_person_key(), target_key, rel_now, charisma, npc.affinity, cur_day, trust_bonus - 0.08 * TraitCatalog.npc_tendency(npc, "grudge"))
 	elif mode == "match":
-		res = vm.social_director.resolve_player_matchmaking(npc.get_person_key(), target_key, rel_now, charisma, npc.affinity, cur_day)
+		res = vm.social_director.resolve_player_matchmaking(npc.get_person_key(), target_key, rel_now, charisma, npc.affinity, cur_day, trust_bonus)
 	else:
-		res = vm.social_director.resolve_player_gossip(npc.get_person_key(), target_key, rel_now, positive, charisma, npc.affinity, cur_day)
+		res = vm.social_director.resolve_player_gossip(npc.get_person_key(), target_key, rel_now, positive, charisma, npc.affinity, cur_day, trust_bonus)
 	if not bool(res.get("allowed", false)):
 		npc._spawn_floating_text("🤐 Ya has metido cizaña o hablado de más por hoy", Color.ORANGE, -36.0)
 		return
@@ -649,7 +651,7 @@ static func on_dialogue_action(npc: VillageNPC, action_id: String) -> void:
 
 	if action_id == "witness_convince_alibi":
 		var charisma_bonus_aff: int = int(round(float(player.call("get_skill_bonus", "charisma")) * 100.0)) if player.has_method("get_skill_bonus") else 0
-		var req_aff: int = maxi(15, 35 - charisma_bonus_aff)
+		var req_aff: int = maxi(15, 35 - charisma_bonus_aff) + maxi(0, int(round(10.0 * TraitCatalog.npc_tendency(npc, "honesty")))) # T4: al honrado le cuesta más mentir por ti
 		if npc.affinity < req_aff:
 			npc._spawn_floating_text("❌ Necesitas al menos %d de Relación para pedirle una coartada (Actual: %d)" % [req_aff, npc.affinity], Color.ORANGE_RED, -44.0)
 			return
@@ -662,6 +664,13 @@ static func on_dialogue_action(npc: VillageNPC, action_id: String) -> void:
 	if action_id == "witness_bribe_silence":
 		if inv.gold < 25:
 			npc._spawn_floating_text("❌ Necesitas 25 Oro para sobornar a %s" % npc.npc_name, Color.ORANGE_RED, -44.0)
+			return
+		# T4: un vecino honesto puede rechazar el soborno (Honrado solo: 35 %)
+		var refuse_p: float = clampf(0.35 * TraitCatalog.npc_tendency(npc, "honesty"), 0.0, 0.7)
+		if refuse_p > 0.0 and randf() < refuse_p:
+			npc.modify_affinity(-5)
+			npc._spawn_floating_text("😤 «¿Me tomas por alguien que se vende?»", Color.ORANGE, -46.0)
+			TraitDiscovery.reveal_by_tendency(npc, "honesty", "ha rechazado tu soborno")
 			return
 		inv.add_gold(-25)
 		npc.personal_gold = maxi(0, npc.personal_gold) + 25

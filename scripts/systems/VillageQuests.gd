@@ -6,6 +6,7 @@ extends RefCounted
 ## Ciclo: oferta (❗) → aceptar hablando → misión activa (panel L) → hecha → volver y cobrar. Falla si pasa algo en el mundo.
 
 const QuestRegistry = preload("res://scripts/systems/quests/QuestRegistry.gd")
+const TraitCatalog = preload("res://scripts/data/TraitCatalog.gd")
 
 const OFFER_DAILY_CHANCE: float = 0.12 # Por vecino que tiene algo que pedir, cada día
 const MAX_OPEN_SOCIAL: int = 3 # Ofertas + misiones activas de vecinos a la vez
@@ -14,8 +15,8 @@ const GIVER_COOLDOWN_DAYS: int = 10 # Tras rechazar, cobrar o fallar
 const MIN_ENMITY_DAYS: int = 5
 const ENMITY_REL: int = -30
 const SLANDER_REL: int = -40
-const SPITEFUL_TRAITS: Array[String] = ["Rencoroso", "Orgulloso", "Celoso", "Frío", "Codicioso"]
-const PEACEFUL_TRAITS: Array[String] = ["Pacífico", "Bondadoso", "Leal", "Paciente", "Honrado", "Alegre"]
+const SPITEFUL_MALICE: float = 0.5 # T4: con esta malicia o más, pide ensuciar el nombre del rival
+const PEACEFUL_MALICE: float = -0.3 # ...con esta o menos, pide hacer las paces
 
 static func _qm(vm: Node) -> Node:
 	return vm.get_node_or_null("/root/QuestManager")
@@ -50,11 +51,10 @@ static func pick_offer_type(vm: VillageManager, giver: VillageNPC, rival: Villag
 	var pe: Dictionary = sd.pair_metrics.get(sd.make_pair_key(giver.get_person_key(), rival.get_person_key()), {}) if sd != null else {}
 	if int(pe.get("enmity_days", 0)) < MIN_ENMITY_DAYS and int(pe.get("fights_count", 0)) <= 0:
 		return ""
-	var spiteful: bool = QuestRegistry.get_type("peace").has_trait(giver, SPITEFUL_TRAITS)
-	var peaceful: bool = QuestRegistry.get_type("peace").has_trait(giver, PEACEFUL_TRAITS)
-	if spiteful and not peaceful:
+	var malice: float = TraitCatalog.npc_tendency(giver, "malice")
+	if malice >= SPITEFUL_MALICE:
 		return "slander" if rel <= SLANDER_REL else ""
-	if peaceful and not spiteful:
+	if malice <= PEACEFUL_MALICE:
 		return "peace"
 	if rel <= SLANDER_REL and sd != null and sd.rng.randf() < 0.5:
 		return "slander"

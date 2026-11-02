@@ -7,6 +7,7 @@ extends RefCounted
 
 const PersonProfile = preload("res://scripts/data/PersonProfile.gd")
 const SocialDialogueData = preload("res://scripts/data/SocialDialogueData.gd")
+const TraitCatalog = preload("res://scripts/data/TraitCatalog.gd")
 
 ## Tabla única de diales de calibración.
 const DIALS: Dictionary = {
@@ -896,13 +897,8 @@ func compute_fight_power(prof, role_id: int = 0, health_ratio: float = 1.0) -> i
 			score += 3
 		elif age_v >= 55:
 			score -= 2
-		for tr in prof.personality:
-			match str(tr):
-				"Valiente": score += 3
-				"Rencoroso": score += 2
-				"Trabajador", "Orgulloso": score += 1
-				"Pacífico": score -= 3
-				"Bondadoso": score -= 1
+		# T4: carácter según la tabla de rasgos (agresividad y, un poco, laboriosidad = fuerza física)
+		score += int(round(3.0 * TraitCatalog.tendency(prof.personality, "aggression") + TraitCatalog.tendency(prof.personality, "diligence")))
 	var mult: float = clampf(health_ratio, 0.40, 1.0)
 	return maxi(2, int(round(float(score) * mult)))
 
@@ -925,7 +921,8 @@ func can_pair_fight(id_a: String, id_b: String, current_day: int, same_family: b
 	return int(pe.get("tension", 0)) >= int(dials.get("live_fight_tension_threshold", 28))
 
 ## B4.2: Roce al cruzarse dos enemigos: acumula días de enemistad y algo de tensión, una vez al día por par.
-func register_rival_encounter(id_a: String, id_b: String, relationship: int, current_day: int) -> bool:
+## `tension_mult` (T4): los agresivos y rencorosos acumulan tensión más deprisa al cruzarse.
+func register_rival_encounter(id_a: String, id_b: String, relationship: int, current_day: int, tension_mult: float = 1.0) -> bool:
 	if relationship > int(dials.get("rival_friction_max_rel", -30)):
 		var k: String = make_pair_key(id_a, id_b)
 		if pair_metrics.has(k):
@@ -938,7 +935,7 @@ func register_rival_encounter(id_a: String, id_b: String, relationship: int, cur
 	pe["friction_day"] = current_day
 	pe["enmity_days"] = int(pe.get("enmity_days", 0)) + 1
 	pe["last_contact_day"] = current_day
-	pe["tension"] = clampi(int(pe.get("tension", 0)) + rng.randi_range(2, 4), 0, 100)
+	pe["tension"] = clampi(int(pe.get("tension", 0)) + int(round(float(rng.randi_range(2, 4)) * tension_mult)), 0, 100)
 	return true
 
 ## B5.2: El jugador solo puede influir en un vecino al día.
@@ -947,13 +944,15 @@ func can_player_influence(current_day: int) -> bool:
 
 ## B5.2: Resuelve con Carisma y confianza si `listener` se cree lo que el jugador dice de `target_id`.
 ## Cuesta más convencer a alguien en contra de lo que ya siente. Nunca crea enemistad de golpe: solo mueve un poco la relación y la tensión.
-func resolve_player_gossip(listener_id: String, target_id: String, listener_rel: int, positive: bool, charisma_level: int, player_affinity: int, current_day: int) -> Dictionary:
+## `chance_bonus` (T4): según el carácter del oyente (confianza, rencor), dentro de los límites de los diales.
+func resolve_player_gossip(listener_id: String, target_id: String, listener_rel: int, positive: bool, charisma_level: int, player_affinity: int, current_day: int, chance_bonus: float = 0.0) -> Dictionary:
 	if not can_player_influence(current_day):
 		return {"allowed": false}
 	player_influence_day = current_day
 	var chance: float = float(dials.get("gossip_base_chance", 0.35)) + 0.08 * float(charisma_level - 1) + 0.003 * float(clampi(player_affinity, 0, 100))
 	if (positive and listener_rel <= -40) or (not positive and listener_rel >= 40):
 		chance -= 0.20
+	chance += chance_bonus
 	chance = clampf(chance, float(dials.get("gossip_min_chance", 0.15)), float(dials.get("gossip_max_chance", 0.90)))
 	if rng.randf() >= chance:
 		return {"allowed": true, "success": false}
@@ -965,8 +964,8 @@ func resolve_player_gossip(listener_id: String, target_id: String, listener_rel:
 	return {"allowed": true, "success": true, "delta_rel": delta_rel}
 
 ## B5.3: Mediar: como hablar bien, pero si convence también enfría la enemistad acumulada.
-func resolve_player_mediation(listener_id: String, target_id: String, listener_rel: int, charisma_level: int, player_affinity: int, current_day: int) -> Dictionary:
-	var res: Dictionary = resolve_player_gossip(listener_id, target_id, listener_rel, true, charisma_level, player_affinity, current_day)
+func resolve_player_mediation(listener_id: String, target_id: String, listener_rel: int, charisma_level: int, player_affinity: int, current_day: int, chance_bonus: float = 0.0) -> Dictionary:
+	var res: Dictionary = resolve_player_gossip(listener_id, target_id, listener_rel, true, charisma_level, player_affinity, current_day, chance_bonus)
 	if bool(res.get("success", false)):
 		var pe: Dictionary = get_pair_entry(listener_id, target_id, listener_rel)
 		pe["tension"] = clampi(int(pe.get("tension", 0)) - 8, 0, 100)
@@ -980,8 +979,8 @@ func can_matchmake(prof_a, prof_b, same_family: bool) -> bool:
 	return compute_compatibility(prof_a, prof_b, same_family) >= int(dials.get("romance_min_compat", 40))
 
 ## B5.4: Casamentero: si convence, suma algo de chispa; la etapa romántica sigue avanzando por sí sola.
-func resolve_player_matchmaking(listener_id: String, target_id: String, listener_rel: int, charisma_level: int, player_affinity: int, current_day: int) -> Dictionary:
-	var res: Dictionary = resolve_player_gossip(listener_id, target_id, listener_rel, true, charisma_level, player_affinity, current_day)
+func resolve_player_matchmaking(listener_id: String, target_id: String, listener_rel: int, charisma_level: int, player_affinity: int, current_day: int, chance_bonus: float = 0.0) -> Dictionary:
+	var res: Dictionary = resolve_player_gossip(listener_id, target_id, listener_rel, true, charisma_level, player_affinity, current_day, chance_bonus)
 	if bool(res.get("success", false)):
 		_add_spark_capped(get_pair_entry(listener_id, target_id, listener_rel), rng.randi_range(6, 10), current_day)
 	return res

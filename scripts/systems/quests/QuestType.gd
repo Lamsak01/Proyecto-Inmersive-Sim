@@ -86,7 +86,15 @@ static func has_trait(npc: VillageNPC, traits: Array[String]) -> bool:
 			return true
 	return false
 
-static func pay_and_complete(qm: Node, giver: VillageNPC, player: Node, q: Dictionary, gold_v: int, affinity_v: int, extra_note: String = "") -> void:
+## T4: el generoso paga más y el tacaño menos (Bondadoso: +25 %; Codicioso: −25 %).
+static func reward_gold(giver: VillageNPC, base_gold: int) -> int:
+	if base_gold <= 0:
+		return base_gold
+	var gen: float = preload("res://scripts/data/TraitCatalog.gd").npc_tendency(giver, "generosity")
+	return maxi(1, int(round(float(base_gold) * clampf(1.0 + 0.25 * gen, 0.5, 1.5))))
+
+static func pay_and_complete(qm: Node, giver: VillageNPC, player: Node, q: Dictionary, base_gold: int, affinity_v: int, extra_note: String = "") -> void:
+	var gold_v: int = reward_gold(giver, base_gold)
 	if gold_v > 0 and player != null and "inventory" in player and player.inventory:
 		player.inventory.add_gold(gold_v)
 	giver.modify_affinity(affinity_v)
