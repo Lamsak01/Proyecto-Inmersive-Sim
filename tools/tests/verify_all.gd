@@ -1188,5 +1188,14 @@ func _initialize() -> void:
 	qm.clear_all()
 	print("Q3 rumor quest OK")
 
+	# Test #39 (Q4): Catálogo de tipos de misión: ids únicos, textos completos y todos con su archivo
+	var q_reg = load("res://scripts/systems/quests/QuestRegistry.gd")
+	assert(q_reg.all_types().size() == q_reg.TYPE_SCRIPTS.size(), "Q4: Every registered quest type loads with a unique id")
+	for q_t in q_reg.all_types():
+		var q_tx: Dictionary = q_t.texts({"target_name": "X", "giver_name": "Y"})
+		assert(str(q_tx.get("title", "")) != "" and str(q_tx.get("ask", "")) != "" and str(q_tx.get("desc", "")) != "", "Q4: Quest type %s needs title, ask and desc" % q_t.id)
+		assert(q_t.trigger in ["daily", "event"], "Q4: Quest type %s has a valid trigger" % q_t.id)
+	print("Q4 quest catalog OK")
+
 	print("ALL RIMWORLD MEDICAL, FOOTPRINTS, 3-PHASE CORPSE REPORT, MULTI-CORPSE FIX, RPG INTERROGATION, PUBLIC TRIAL, DYNAMIC RELATIONSHIPS, MISSING FAMILY SEARCH, SOCIAL GLOSSARY & UNCONSCIOUS REACTION TESTS PASSED!")
 	quit(0)

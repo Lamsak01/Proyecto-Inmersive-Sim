@@ -945,8 +945,8 @@ func _process_pending_social_reply(delta: float) -> void:
 		var news: Dictionary = vm_news.spread_gossip(initiator, self)
 		if not news.is_empty():
 			initiator._spawn_floating_text("🗣️ «¿Te has enterado? %s»" % str(news.get("summary", "")), Color(1.0, 0.92, 0.65), -46.0)
-		else:
-			vm_news.try_npc_slander(initiator, self)
+	if vm_news != null:
+		vm_news.try_npc_slander(initiator, self)
 
 ## B5.1: Si el jugador está en sigilo y a distancia de oído, se entera de cómo están realmente las cosas entre los dos.
 func _try_player_overhear(other: VillageNPC, note_str: String) -> bool:

@@ -4,8 +4,8 @@ extends RefCounted
 const VillageQuests = preload("res://scripts/systems/VillageQuests.gd")
 
 ## Q3: Un vecino rencoroso o chismoso a veces habla mal de su rival a quien tiene delante.
-const NPC_SLANDER_CHANCE: float = 0.10
-const NPC_SLANDER_REL: int = -40
+const NPC_SLANDER_CHANCE: float = 0.25 # Por charla (Q4: con 0.10 y −40 no hubo ninguna en 65 días)
+const NPC_SLANDER_REL: int = -30
 const NPC_SLANDER_TRAITS: Array[String] = ["Rencoroso", "Chismoso"]
 
 ## Vida social en el mundo: quedadas, peleas en vivo y chismes. Extraído de VillageManager.gd:
