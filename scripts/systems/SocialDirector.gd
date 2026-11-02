@@ -936,8 +936,14 @@ func try_resolve_live_fight(npc_a, npc_b, current_day: int = 1, force_roll: bool
 	var f_chance: float = float(dials.get("fight_daily_base_chance", 0.38))
 	if has_pacifist:
 		f_chance *= 0.15
-	if not force_roll and rng.randf() >= f_chance:
-		return {"triggered": false, "reason": "dice_skipped"}
+	if not force_roll:
+		# La probabilidad es diaria: cada par tira como mucho una vez al día, aunque coincidan muchas veces.
+		var pe_roll: Dictionary = get_pair_entry(id_a, id_b)
+		if int(pe_roll.get("fight_roll_day", -1)) == current_day:
+			return {"triggered": false, "reason": "already_rolled_today"}
+		pe_roll["fight_roll_day"] = current_day
+		if rng.randf() >= f_chance:
+			return {"triggered": false, "reason": "dice_skipped"}
 	var sc: Dictionary = start_scene("fight", id_a, id_b, 3.5, current_day)
 	if sc.is_empty():
 		return {"triggered": false, "reason": "scene_rejected"}

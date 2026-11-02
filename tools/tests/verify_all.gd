@@ -783,5 +783,12 @@ func _initialize() -> void:
 	assert(vm.get_recent_social_events(5, "bereavement_ended").size() >= 1, "B3.4: Ending bereavement must record 'bereavement_ended' social event")
 	print("B3.4 bereavement & grave visits OK")
 
+	# B4.1: Un vecino real expone su salud para el poder de pelea
+	var hp_saved: float = smith.health_comp.current_health
+	smith.health_comp.current_health = smith.health_comp.get_effective_max_health() * 0.5
+	assert(absf(smith.health_comp.get_overall_health_pct() - 50.0) < 0.01, "B4.1: Salud a la mitad debe dar 50%")
+	smith.health_comp.current_health = hp_saved
+	print("B4.1 real health for fight power OK")
+
 	print("ALL RIMWORLD MEDICAL, FOOTPRINTS, 3-PHASE CORPSE REPORT, MULTI-CORPSE FIX, RPG INTERROGATION, PUBLIC TRIAL, DYNAMIC RELATIONSHIPS, MISSING FAMILY SEARCH, SOCIAL GLOSSARY & UNCONSCIOUS REACTION TESTS PASSED!")
 	quit(0)

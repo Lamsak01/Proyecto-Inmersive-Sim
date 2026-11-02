@@ -117,6 +117,10 @@ func get_effective_max_health() -> float:
 	var cap_mult: float = clampf(1.0 - sick_factor * 0.50, 0.50, 1.0)
 	return maxf(25.0, max_health * cap_mult)
 
+## Porcentaje de salud actual (0..100) respecto al tope efectivo; lo usa el poder de pelea de `SocialDirector`.
+func get_overall_health_pct() -> float:
+	return clampf(current_health / get_effective_max_health() * 100.0, 0.0, 100.0)
+
 func _process(delta: float) -> void:
 	if Engine.is_editor_hint() or current_health <= 0.0 or (WorldClock and WorldClock.has_method("is_time_frozen") and WorldClock.is_time_frozen()):
 		return

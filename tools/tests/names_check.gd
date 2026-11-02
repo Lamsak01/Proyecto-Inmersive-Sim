@@ -7,6 +7,10 @@ const PersonProfile = preload("res://scripts/data/PersonProfile.gd")
 const SocialDialogueData = preload("res://scripts/data/SocialDialogueData.gd")
 const SocialDirector = preload("res://scripts/systems/SocialDirector.gd")
 
+class FakeHurtHealth:
+	func get_overall_health_pct() -> float:
+		return 50.0
+
 func _norm(s: String) -> String:
 	return s.to_lower()
 
@@ -334,5 +338,21 @@ func _initialize() -> void:
 	fd.get_pair_entry("garrick", "thoran")["tension"] = 60
 	var f3: Dictionary = fd.try_resolve_live_fight(mock_g, mock_th, 16, true)
 	assert(not bool(f3.get("triggered", true)), "B4.1: Ningun par puede pelear mas de max_fights_per_pair=2 veces")
+	# B4.1: La salud del vecino debe reducir el poder de pelea (el HealthComponent real se prueba en verify_all.gd)
+	var hc_hurt = FakeHurtHealth.new()
+	var fd_hp = SocialDirector.new(9192)
+	fd_hp.set_pair_metrics("garrick", "thoran", -35, 30, 0, 50)
+	var mock_g_hurt: Dictionary = mock_g.duplicate()
+	mock_g_hurt["health_comp"] = hc_hurt
+	var f_hp: Dictionary = fd_hp.try_resolve_live_fight(mock_g_hurt, mock_th, 10, true)
+	assert(int(f_hp.get("power_a", 0)) == fd_hp.compute_fight_power(p_garrick, 3, 0.5), "B4.1: La pelea debe usar la salud real del vecino")
+	assert(int(f_hp.get("power_a", 0)) < pwr_butcher, "B4.1: Un vecino herido pelea con menos poder")
+	# B4.1: La probabilidad es diaria: una sola tirada por par y dia
+	var fd_day = SocialDirector.new(9193)
+	fd_day.dials["fight_daily_base_chance"] = 0.0
+	fd_day.set_pair_metrics("garrick", "thoran", -35, 30, 0, 50)
+	assert(str(fd_day.try_resolve_live_fight(mock_g, mock_th, 10).get("reason", "")) == "dice_skipped", "B4.1: Primera tirada del dia")
+	assert(str(fd_day.try_resolve_live_fight(mock_g, mock_th, 10).get("reason", "")) == "already_rolled_today", "B4.1: No se repite la tirada el mismo dia")
+	assert(str(fd_day.try_resolve_live_fight(mock_g, mock_th, 11).get("reason", "")) == "dice_skipped", "B4.1: Al dia siguiente se vuelve a tirar")
 	print("NAMES CHECK PASSED (200 F / 200 M / 200 apellidos + 17 PersonProfile + B0.3 generator + B1.1/B1.2 social + B2.1 hangouts + B3.1-B3.4 romance + B4.1 fights)")
 	quit(0)
