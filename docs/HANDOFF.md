@@ -115,9 +115,10 @@ timeout 80 flatpak run org.godotengine.Godot --headless --path . -s tools/tests/
 | `scripts/enemies/VillageNPC.gd` | **Aldeano**: estado, necesidades, rutinas, reportes de cadáver, reacciones a inconscientes, relaciones entre vecinos |
 | `scripts/enemies/NPCDialogue.gd` | Menús y acciones de diálogo (funciones `static` que reciben `npc`); `VillageNPC` mantiene envoltorios con los mismos nombres |
 | `scripts/data/NPCData.gd` | Tablas de datos: alias, perfiles de lore, relaciones iniciales entre vecinos |
-| `scripts/systems/VillageManager.gd` | Mundo del pueblo (6.100 líneas): tiendas, puertas, justicia, llegadas de NPC nuevos (`_process_daily_map_edge_arrivals`), guardado |
+| `scripts/systems/VillageManager.gd` | Mundo del pueblo (4.700 líneas): tiendas, puertas, justicia, llegadas de NPC nuevos (`_process_daily_map_edge_arrivals`), guardado |
 | `scripts/systems/VillageWorldBuilder.gd` | Construcción inicial del pueblo (caminos, edificios y mobiliario) |
 | `scripts/systems/VillageSocialLife.gd` | Quedadas, peleas en vivo y chismes aplicados al mundo |
+| `scripts/systems/VillageJustice.gd` | Investigaciones del Comisario y del Inquisidor, interrogatorios, veredictos y juicio público |
 | `scripts/systems/SkillCatalog.gd` | Catálogo de habilidades (datos) |
 | `scripts/Player.gd` | Jugador; habilidades (`add_skill_xp`, `get_skill_level`, `get_skill_bonus`), guardado |
 | `scripts/ui/SocialGlossaryUI.gd` | Glosario social `[J]` (nodos reutilizados, relleno repartido en frames) |
@@ -199,7 +200,7 @@ Cada fase se dividirá en bloques pequeños cuando se llegue a ella (detalle en 
 - [x] **R1** HECHO. Test #33 en `verify_all.gd`: ciclo real con `GameManager` de guardar en archivo, cambiar el mundo y cargar (día, medidas por par, Director, relaciones, ficha, salud, delito, oro, chismes y pelea en marcha). No encontró errores; el juego no cambió.
 - [x] **R2** HECHO. 16 funciones de construcción (494 líneas) movidas a `scripts/systems/VillageWorldBuilder.gd` (`@tool`, estático, primer parámetro `vm`). Comprobado con una foto de los 2.203 objetos y datos del mundo antes y después: idéntica salvo identificadores internos.
 - [x] **R3** HECHO. 13 funciones (308 líneas) de quedadas, peleas y chismes movidas a `scripts/systems/VillageSocialLife.gd`. `VillageManager.gd` conserva llamadas finas con los mismos nombres y el estado (`_live_fights`, temporizadores, constantes). `_advance_live_romances` sigue en `VillageManager.gd`.
-- [ ] **R4** Sacar investigación, interrogatorios y juicio de `VillageManager.gd`.
+- [x] **R4** HECHO. 24 funciones (unas 1.500 líneas) de investigación, interrogatorios, veredictos y juicio movidas a `scripts/systems/VillageJustice.gd`. `VillageManager.gd` conserva llamadas finas con los mismos nombres y el estado de los casos.
 - [ ] **R5** Medir lo logrado y decidir si seguir con `VillageNPC.gd` (incluido dividir `_physics_process`).
 
 ## 8. Decisiones de diseño ya tomadas (no volver a preguntarlas)

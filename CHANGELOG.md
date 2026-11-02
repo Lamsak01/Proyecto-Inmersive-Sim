@@ -6,6 +6,7 @@ El detalle técnico está en `docs/HANDOFF.md` (sección 7) y el historial compl
 ## 2026-11-02
 
 ### Refuerzo del código
+- **R4**: investigaciones, interrogatorios y juicio pasan a `VillageJustice.gd`; el juego no cambia.
 - **R3**: quedadas, peleas y chismes pasan a `VillageSocialLife.gd`; el juego no cambia.
 - **R2**: la construcción del pueblo pasa a `VillageWorldBuilder.gd`; el mundo sigue idéntico.
 - **R1**: nuevo test del ciclo completo de guardar y cargar una partida; no encontró errores y el juego no cambia.
