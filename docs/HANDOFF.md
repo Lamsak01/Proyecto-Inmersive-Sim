@@ -178,7 +178,7 @@ Otros documentos antiguos en la raíz: `ROADMAP_PROYECTO.md`, `AUDIT_LOG.md`, `S
 **Fase 5 — Tu papel** (reglas: un solo vecino influido por día, efectos pequeños; hablar mal no fabrica peleas, siguen haciendo falta los 10 días de roce)
 - [x] **B5.1** HECHO. Observador: menú "🗣️ Preguntar qué opina de los vecinos" (`NPCDialogue._add_neighbor_opinions`, 6 vecinos con sentimiento más fuerte; el motivo solo con afinidad ≥ 35 o Carisma ≥ 2; con afinidad < 0 no cuenta nada) y escucha a escondidas (`VillageNPC._try_player_overhear`: en sigilo a ≤ 96 px, +12 px por nivel de Sigilo, +3 XP). Test #28 en `verify_all.gd`.
 - [x] **B5.2** HECHO. Desde la opinión sobre un vecino: "👍 Hablar bien" / "👎 Hablar mal" (`NPCDialogue._player_gossip`, `SocialDirector.resolve_player_gossip`). Una sola influencia al día (`player_influence_day`, guardado). Probabilidad por Carisma y afinidad, −20 % si contradice lo que el vecino siente. Éxito: relación ±4–8 entre ambos, tensión ±3, evento `player_gossip`, +4 XP. Fallo: −6 afinidad con el oyente (−4 con el aludido si hablabas mal), +1 XP. Test #29 en `verify_all.gd`.
-- [ ] **B5.3** Mediador: calmar a dos enemigos o parar una pelea en marcha.
+- [x] **B5.3** HECHO. Mediador: "🕊️ Pedirle que haga las paces" si la relación es ≤ −15 (gasta la influencia del día; `resolve_player_mediation`: relación +4–8, tensión −11, enemistad −4 días, evento `player_mediation`). "✋ Separar" al hablar con un vecino en plena pelea (`player_stop_live_fight`, sin heridas, +3 afinidad, +5 XP; la pelea espera mientras el diálogo está abierto). Test #30 en `verify_all.gd`; la espera con diálogo abierto no tiene test automático.
 - [ ] **B5.4** Casamentero: animar a dos vecinos compatibles a acercarse.
 
 **Fase 6** Chismes, noticias y pulido.

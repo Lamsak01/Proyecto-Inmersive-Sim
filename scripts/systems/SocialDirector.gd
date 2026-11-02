@@ -956,6 +956,15 @@ func resolve_player_gossip(listener_id: String, target_id: String, listener_rel:
 	pe["tension"] = clampi(int(pe.get("tension", 0)) - 3 * sign_v, 0, 100)
 	return {"allowed": true, "success": true, "delta_rel": rng.randi_range(4, 8) * sign_v}
 
+## B5.3: Mediar: como hablar bien, pero si convence también enfría la enemistad acumulada.
+func resolve_player_mediation(listener_id: String, target_id: String, listener_rel: int, charisma_level: int, player_affinity: int, current_day: int) -> Dictionary:
+	var res: Dictionary = resolve_player_gossip(listener_id, target_id, listener_rel, true, charisma_level, player_affinity, current_day)
+	if bool(res.get("success", false)):
+		var pe: Dictionary = get_pair_entry(listener_id, target_id, listener_rel)
+		pe["tension"] = clampi(int(pe.get("tension", 0)) - 8, 0, 100)
+		pe["enmity_days"] = maxi(0, int(pe.get("enmity_days", 0)) - 4)
+	return res
+
 ## B4.2: Pares que hoy podrían pelear (no comprueba la familia; lo hace `try_resolve_live_fight`).
 func get_fight_ready_pairs(current_day: int) -> Array:
 	var out: Array = []

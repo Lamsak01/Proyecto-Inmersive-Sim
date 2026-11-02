@@ -3371,7 +3371,9 @@ func _update_live_fights(delta: float) -> void:
 		for v in [a, b]:
 			if v == null or v.is_dead or v.is_hostile or v.is_incapacitated():
 				interrupted = true
-		fight["elapsed"] = float(fight["elapsed"]) + delta
+		# Mientras el jugador habla con uno de ellos la pelea espera, para que pueda decidir si los separa
+		if interrupted or not (a.is_busy_with_player() or b.is_busy_with_player()):
+			fight["elapsed"] = float(fight["elapsed"]) + delta
 		var guard_stops: bool = is_instance_valid(fight["guard"]) and float(fight["elapsed"]) >= FIGHT_GUARD_STOP_SEC
 		if interrupted or guard_stops or float(fight["elapsed"]) >= FIGHT_DURATION_SEC:
 			_live_fights.remove_at(i)
@@ -3381,6 +3383,17 @@ func _update_live_fights(delta: float) -> void:
 		_fight_scan_timer = randf_range(3.5, 6.0)
 		_scan_rival_friction()
 		_try_start_live_fight()
+
+## B5.3: El jugador separa a los vecinos: mismo desenlace que un guardia, sin heridas.
+func player_stop_live_fight(npc: VillageNPC) -> bool:
+	for i in range(_live_fights.size()):
+		var fight: Dictionary = _live_fights[i]
+		if fight["a"] == npc or fight["b"] == npc:
+			_live_fights.remove_at(i)
+			fight["guard"] = null
+			_finish_live_fight(fight, fight["a"], fight["b"], false, true)
+			return true
+	return false
 
 func _finish_live_fight(fight: Dictionary, a: VillageNPC, b: VillageNPC, interrupted: bool, guard_stops: bool) -> void:
 	var res: Dictionary = fight["res"]
@@ -3397,11 +3410,13 @@ func _finish_live_fight(fight: Dictionary, a: VillageNPC, b: VillageNPC, interru
 	var loser: VillageNPC = b if winner == a else a
 	var summary: String
 	if guard_stops:
-		var guard: VillageNPC = fight["guard"]
-		guard._spawn_floating_text("👮 «¡Basta ya, separaos!»", Color(0.65, 0.82, 1.0), -38.0)
-		a.add_thought("La guardia me separó de %s (-4)" % b.npc_name, -4.0)
-		b.add_thought("La guardia me separó de %s (-4)" % a.npc_name, -4.0)
-		summary = "%s separó a %s y %s antes de que llegaran a más" % [guard.npc_name, a.npc_name, b.npc_name]
+		var guard: VillageNPC = fight["guard"] if is_instance_valid(fight["guard"]) else null
+		var stopper: String = guard.npc_name if guard != null else "El forastero"
+		if guard != null:
+			guard._spawn_floating_text("👮 «¡Basta ya, separaos!»", Color(0.65, 0.82, 1.0), -38.0)
+		a.add_thought("%s me separó de %s (-4)" % [stopper, b.npc_name], -4.0)
+		b.add_thought("%s me separó de %s (-4)" % [stopper, a.npc_name], -4.0)
+		summary = "%s separó a %s y %s antes de que llegaran a más" % [stopper, a.npc_name, b.npc_name]
 	else:
 		loser.health_comp.apply_minor_bruise(randf_range(6.0, 10.0), FIGHT_HEALTH_FLOOR, "Pelea con %s" % winner.npc_name)
 		loser._spawn_floating_text("🤕 Magullado", Color(1.0, 0.70, 0.55), -34.0)

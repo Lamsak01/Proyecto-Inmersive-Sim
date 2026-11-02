@@ -916,5 +916,26 @@ func _initialize() -> void:
 	sd4.dials["gossip_max_chance"] = 0.90
 	print("B5.2 player gossip OK")
 
+	# Test #30 (B5.3): Mediar enfría la enemistad y el jugador puede separar una pelea sin heridas
+	var old_chance53 = sd4.dials["live_fight_daily_chance"]
+	prepare_fight.call(45, int(wc_speed.current_day) + 20)
+	f_a.npc_relationships[key52] = -30
+	sd4.dials["gossip_min_chance"] = 1.0
+	sd4.player_influence_day = -1
+	assert(str(f_a._inject_character_lore_into_dialogue(f_a._build_dialogue())).contains("social_gossip:peace:" + key52), "B5.3: Enemies must offer the mediation option")
+	f_a.on_dialogue_action("social_gossip:peace:" + key52)
+	var pe53: Dictionary = sd4.get_pair_entry(f_a.get_person_key(), key52)
+	assert(f_a.get_relationship_with_npc(key52) > -30 and int(pe53["tension"]) <= 34 and int(pe53["enmity_days"]) == 6, "B5.3: Mediation must cool the enmity")
+	sd4.dials["gossip_min_chance"] = 0.15
+	prepare_fight.call(45, int(wc_speed.current_day) + 20)
+	vm._try_start_live_fight()
+	assert(str(f_a._inject_character_lore_into_dialogue(f_a._build_dialogue())).contains("social_stop_fight"), "B5.3: A fight must offer to separate them")
+	var wounds53: int = f_a.health_comp.wounds.size() + f_b.health_comp.wounds.size()
+	f_a.on_dialogue_action("social_stop_fight")
+	assert(vm._live_fights.is_empty() and not f_a.is_in_live_fight() and not f_b.is_in_live_fight() and sd4.active_scenes.is_empty(), "B5.3: Player must end the fight")
+	assert(f_a.health_comp.wounds.size() + f_b.health_comp.wounds.size() == wounds53, "B5.3: A separated fight leaves no wound")
+	sd4.dials["live_fight_daily_chance"] = old_chance53
+	print("B5.3 mediation OK")
+
 	print("ALL RIMWORLD MEDICAL, FOOTPRINTS, 3-PHASE CORPSE REPORT, MULTI-CORPSE FIX, RPG INTERROGATION, PUBLIC TRIAL, DYNAMIC RELATIONSHIPS, MISSING FAMILY SEARCH, SOCIAL GLOSSARY & UNCONSCIOUS REACTION TESTS PASSED!")
 	quit(0)

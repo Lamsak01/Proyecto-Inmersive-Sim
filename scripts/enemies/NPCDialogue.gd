@@ -158,6 +158,8 @@ static func describe_feeling(rel: int) -> String:
 
 ## B5.1: Menú "qué opina de los vecinos". Con confianza o Carisma el vecino también explica el motivo.
 static func _add_neighbor_opinions(npc: VillageNPC, diag: Dictionary, ch_arr: Array) -> void:
+	if npc.is_in_live_fight():
+		ch_arr.insert(0, {"label": "✋ Separar a %s y %s" % [npc.npc_name, npc.live_fight_partner.npc_name], "next": "END", "action": "social_stop_fight"})
 	ch_arr.insert(maxi(0, ch_arr.size() - 1), {"label": "🗣️ Preguntar qué opina de los vecinos", "next": "neighbor_opinions"})
 	if npc.affinity < 0:
 		diag["neighbor_opinions"] = {"text": "«No hablo de mis vecinos con quien no conozco.»", "choices": [{"label": "Entendido. [Volver]", "next": "start"}]}
@@ -184,19 +186,28 @@ static func _add_neighbor_opinions(npc: VillageNPC, diag: Dictionary, ch_arr: Ar
 		if can_influence:
 			op_choices.append({"label": "👍 Hablar bien de %s" % other.npc_name, "next": "start", "action": "social_gossip:good:" + other.get_person_key()})
 			op_choices.append({"label": "👎 Hablar mal de %s" % other.npc_name, "next": "start", "action": "social_gossip:bad:" + other.get_person_key()})
+			if int(rows[i]["rel"]) <= -15:
+				op_choices.append({"label": "🕊️ Pedirle que haga las paces con %s" % other.npc_name, "next": "start", "action": "social_gossip:peace:" + other.get_person_key()})
 		op_choices.append({"label": "⬅️ Preguntar por otro vecino", "next": "neighbor_opinions"})
 		diag["opinion_%d" % i] = {"text": text, "choices": op_choices}
 	choices.append({"label": "⬅️ Volver a la conversación", "next": "start"})
 	diag["neighbor_opinions"] = {"text": "«¿Sobre quién quieres saber?»", "choices": choices}
 
 ## B5.2: Hablar bien o mal de un vecino. Si sale mal, la desconfianza recae en el jugador.
-static func _player_gossip(npc: VillageNPC, player: Node, positive: bool, target_key: String) -> void:
+static func _player_gossip(npc: VillageNPC, player: Node, mode: String, target_key: String) -> void:
+	var positive: bool = mode != "bad"
 	var vm = npc._get_vm()
 	var target: VillageNPC = vm._get_npcs_by_person_key().get(target_key, null) if vm != null else null
 	if target == null or target == npc:
 		return
 	var cur_day: int = int(WorldClock.current_day) if WorldClock != null else 1
-	var res: Dictionary = vm.social_director.resolve_player_gossip(npc.get_person_key(), target_key, npc.get_relationship_with_npc(target_key), positive, int(player.call("get_skill_level", "charisma")), npc.affinity, cur_day)
+	var rel_now: int = npc.get_relationship_with_npc(target_key)
+	var charisma: int = int(player.call("get_skill_level", "charisma"))
+	var res: Dictionary
+	if mode == "peace":
+		res = vm.social_director.resolve_player_mediation(npc.get_person_key(), target_key, rel_now, charisma, npc.affinity, cur_day)
+	else:
+		res = vm.social_director.resolve_player_gossip(npc.get_person_key(), target_key, rel_now, positive, charisma, npc.affinity, cur_day)
 	if not bool(res.get("allowed", false)):
 		npc._spawn_floating_text("🤐 Ya has metido cizaña o hablado de más por hoy", Color.ORANGE, -36.0)
 		return
@@ -208,8 +219,12 @@ static func _player_gossip(npc: VillageNPC, player: Node, positive: bool, target
 		player.call("add_skill_xp", "charisma", 1)
 		return
 	npc.modify_npc_relationship(target, int(res.get("delta_rel", 0)), "Lo que el forastero contó de %s" % target.npc_name)
-	npc._spawn_floating_text("🤫 %s se queda pensando en %s" % [npc.npc_name, target.npc_name], Color(0.80, 0.90, 1.0), -36.0)
 	player.call("add_skill_xp", "charisma", 4)
+	if mode == "peace":
+		npc._spawn_floating_text("🕊️ %s promete darle otra oportunidad a %s" % [npc.npc_name, target.npc_name], Color(0.70, 1.0, 0.85), -36.0)
+		vm.record_social_event("player_mediation", npc, target, "El forastero medió entre %s y %s" % [npc.npc_name, target.npc_name])
+		return
+	npc._spawn_floating_text("🤫 %s se queda pensando en %s" % [npc.npc_name, target.npc_name], Color(0.80, 0.90, 1.0), -36.0)
 	vm.record_social_event("player_gossip", npc, target, "El forastero habló %s de %s a %s" % ["bien" if positive else "mal", target.npc_name, npc.npc_name])
 
 static func _make_armor_menu(npc: VillageNPC, title: String, menu_key: String, items: Array) -> Dictionary:
@@ -527,7 +542,13 @@ static func on_dialogue_action(npc: VillageNPC, action_id: String) -> void:
 
 	if action_id.begins_with("social_gossip:"):
 		var gossip_parts: PackedStringArray = action_id.split(":")
-		_player_gossip(npc, player, gossip_parts[1] == "good", gossip_parts[2])
+		_player_gossip(npc, player, gossip_parts[1], gossip_parts[2])
+		return
+
+	if action_id == "social_stop_fight":
+		if vm != null and vm.player_stop_live_fight(npc):
+			npc.modify_affinity(3)
+			player.call("add_skill_xp", "charisma", 5)
 		return
 
 	if action_id == "pickpocket_gold":
