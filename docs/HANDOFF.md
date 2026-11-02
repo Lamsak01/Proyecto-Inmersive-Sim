@@ -166,7 +166,7 @@ Otros documentos antiguos en la raíz: `ROADMAP_PROYECTO.md`, `AUDIT_LOG.md`, `S
 
 
 **Fase 4 — Peleas discretas por dados**
-- [ ] **B4.1** Resolución por dados en `SocialDirector.gd` (poder de pelea ponderado por oficio, edad, salud y personalidad; tirada interna con ganador/perdedor, alivio de tensión, caída de relación y respeto a `drama_cooldown_days` y `max_fights_per_pair = 2`).
+- [x] **B4.1** HECHO. Resolución por dados en `SocialDirector.gd` (`compute_fight_power`, `can_pair_fight`, `try_resolve_live_fight` con poder ponderado por oficio, edad, salud y personalidad; tirada interna con ganador/perdedor, alivio de tensión, caída de relación y respeto a `drama_cooldown_days` y `max_fights_per_pair = 2`). Verificado en `names_check.gd`.
 - [ ] **B4.2** Escena discreta en vivo en `VillageNPC.gd` y `VillageManager.gd` (dos vecinos frente a frente unos segundos con pequeños empujones/temblor leve y "💢", contusión leve sin muerte en `HealthComponent`, reacción de testigos/guardia y evento `fight` en el registro social).
 
 **Fase 5** Rol del jugador (observador/instigador/mediador) · **Fase 6** Chismes, noticias y pulido.
