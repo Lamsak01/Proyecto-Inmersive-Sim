@@ -251,7 +251,7 @@ static func _player_gossip(npc: VillageNPC, player: Node, mode: String, target_k
 		npc._spawn_floating_text("😒 «No me gustan esos comentarios»", Color.ORANGE, -36.0)
 		player.call("add_skill_xp", "charisma", 1)
 		return
-	npc.modify_npc_relationship(target, int(res.get("delta_rel", 0)), "Lo que el forastero contó de %s" % target.npc_name)
+	npc.modify_npc_relationship(target, int(res.get("delta_rel", 0)), "Lo que el forastero contó de %s" % target.npc_name, true)
 	VillageQuests.on_player_influence(vm, npc, target, mode)
 	player.call("add_skill_xp", "charisma", 4)
 	if mode == "peace":

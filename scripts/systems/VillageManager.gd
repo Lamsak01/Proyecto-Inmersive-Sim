@@ -2932,6 +2932,7 @@ func _on_day_passed(_new_day: int) -> void:
 	if social_director != null:
 		_advance_live_romances(_new_day)
 		social_director.on_day_passed(_new_day)
+		VillageSocialLife.daily_reciprocity(self)
 		VillageQuests.on_day_passed(self)
 
 	# Descontar 1 día del embargo comercial (20..30 días) si alguno de los 2 mercaderes semanales fue asesinado

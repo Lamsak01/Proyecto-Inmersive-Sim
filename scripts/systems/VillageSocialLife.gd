@@ -260,8 +260,8 @@ static func _update_social_hangouts(vm: VillageManager, delta: float) -> void:
 					var jc: VillageNPC = by_key.get(str(jev.get("cheater_id", "")), null)
 					var jr: VillageNPC = by_key.get(str(jev.get("rival_id", "")), null)
 					if is_instance_valid(jp) and is_instance_valid(jc) and is_instance_valid(jr):
-						jp.modify_npc_relationship(jc, -8, "💢💔 Celos por pasar tiempo a solas con %s" % jr.npc_name)
-						jp.modify_npc_relationship(jr, -8, "💢 Rival de celos por %s" % jc.npc_name)
+						jp.modify_npc_relationship(jc, -8, "💢💔 Celos por pasar tiempo a solas con %s" % jr.npc_name, true)
+						jp.modify_npc_relationship(jr, -8, "💢 Rival de celos por %s" % jc.npc_name, true)
 						jp.add_thought("No me gustó ver a %s tan cerca de %s (-8)" % [jc.npc_name, jr.npc_name], -8.0)
 						jp._spawn_floating_text("💢💔 ¡Celos de %s al ver a %s con %s!" % [jp.npc_name, jc.npc_name, jr.npc_name], Color(1.0, 0.42, 0.42), -44.0)
 						vm.record_social_event("jealousy", jp, jc, "%s sintió celos al ver a %s con %s" % [jp.npc_name, jc.npc_name, jr.npc_name])
@@ -359,7 +359,7 @@ static func _on_slander_reached_target(vm: VillageManager, ev: Dictionary, telle
 	else:
 		var origin: VillageNPC = vm._get_npcs_by_person_key().get(origin_key, null)
 		if origin != null:
-			listener.modify_npc_relationship(origin, -6, "Se enteró de que %s hablaba mal de él/ella" % origin.npc_name)
+			listener.modify_npc_relationship(origin, -6, "Se enteró de que %s hablaba mal de él/ella" % origin.npc_name, true)
 			listener._spawn_floating_text("😠 Se ha enterado de lo que %s dice de él/ella" % origin.npc_name, Color.ORANGE, -46.0)
 
 ## T1: Probabilidad por charla de que `npc` hable mal de su peor rival, según la malicia de sus rasgos.
@@ -386,7 +386,7 @@ static func try_npc_slander(vm: VillageManager, speaker: VillageNPC, listener: V
 	var ev: Dictionary = vm.record_social_event("npc_slander", speaker, rival, "%s va diciendo cosas feas de %s" % [speaker.npc_name, rival.npc_name])
 	ev["known_by"][listener.get_person_key()] = true
 	ev["heard_from"][listener.get_person_key()] = speaker.get_person_key()
-	listener.modify_npc_relationship(rival, -3, "Lo que %s le contó de %s" % [speaker.npc_name, rival.npc_name])
+	listener.modify_npc_relationship(rival, -3, "Lo que %s le contó de %s" % [speaker.npc_name, rival.npc_name], true)
 	speaker._spawn_floating_text("🤫 «¿Sabes lo que dicen de %s...?»" % rival.npc_name, Color(0.95, 0.75, 1.0), -46.0)
 	TraitDiscoveryRef.on_witnessed_behavior(speaker, "malice", "le has oído calumniar")
 	return ev
@@ -414,3 +414,25 @@ static func get_public_news(vm: VillageManager, limit: int = 4) -> Array[Diction
 		if res.size() < limit and not str(ev.get("type", "")) in ["player_slander", "npc_slander"] and (ev["known_by"] as Dictionary).size() >= vm.NEWS_MIN_KNOWERS:
 			res.append(ev)
 	return res
+
+
+## U2: reciprocidad lenta del aprecio. Cada día, quien siente bastante menos que el otro se acerca un 5 % de la
+## diferencia (1 o 2 puntos): a uno le acaba cayendo mejor quien le aprecia, y peor quien le desprecia, sin igualarse del todo.
+static func daily_reciprocity(vm: VillageManager) -> void:
+	var npcs: Array = []
+	for n in vm.get_tree().get_nodes_in_group("village_npcs"):
+		if n is VillageNPC and not n.is_dead:
+			npcs.append(n)
+	for i in range(npcs.size()):
+		for j in range(i + 1, npcs.size()):
+			var a: VillageNPC = npcs[i]
+			var b: VillageNPC = npcs[j]
+			var ra: int = a.get_relationship_with_npc(b.get_person_key())
+			var rb: int = b.get_relationship_with_npc(a.get_person_key())
+			var gap: int = ra - rb
+			if absi(gap) < 10:
+				continue
+			var step: int = clampi(int(round(float(gap) * 0.05)), -2, 2)
+			if step == 0:
+				step = 1 if gap > 0 else -1
+			b.modify_npc_relationship(a, step, "", true)

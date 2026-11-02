@@ -192,6 +192,28 @@ const TRAITS: Dictionary = {
 	"Chantajista": {"axis": "", "tone": "h", "rare": true, "desc": "Usa los secretos ajenos para sacar provecho.", "tend": {"malice": 0.8, "honesty": -0.6}},
 }
 
+## U2: manías de un solo lado. Al vecino con el rasgo de la izquierda le irritan quienes tienen alguno de la derecha
+## (al otro no tiene por qué molestarle él).
+const IRRITATES: Dictionary = {
+	"Honrado": ["Mentiroso", "Manipulador", "Chismoso"], "Íntegro": ["Sobornable"], "Serio": ["Bromista"],
+	"Pulcro": ["Desaliñado"], "Ordenado": ["Desordenado"], "Trabajador": ["Holgazán"], "Responsable": ["Irresponsable"],
+	"Sobrio": ["Bebedor"], "Respetuoso": ["Insolente"], "Callado": ["Hablador"], "Huraño": ["Hablador", "Amigable", "Bromista"],
+	"Discreto": ["Chismoso"], "Estricto": ["Rebelde", "Irresponsable"], "Cumplidor": ["Delincuente", "Rebelde"],
+	"Modesto": ["Vanidoso", "Fanfarrón"], "Humilde": ["Arrogante", "Fanfarrón"], "Pacífico": ["Pendenciero", "Violento"],
+	"Fanático": ["Escéptico"], "Tradicionalista": ["Innovador"], "Fiel": ["Infiel"], "Metódico": ["Impulsivo"],
+	"Impaciente": ["Despistado"], "Intolerante": ["Rebelde", "Escéptico", "Devoto"], "Arrogante": ["Torpe", "Despistado"],
+	"Envidioso": ["Vanidoso", "Ambicioso"], "Amante de los animales": ["Cruel", "Sanguinario"],
+}
+
+## Cuántos rasgos de `other_traits` irritan a quien tiene `self_traits`.
+static func irritation_count(self_traits: Array, other_traits: Array) -> int:
+	var n: int = 0
+	for st in self_traits:
+		for ot in IRRITATES.get(str(st), []):
+			if ot in other_traits:
+				n += 1
+	return n
+
 static func axis_of(trait_id: String) -> String:
 	return str((TRAITS.get(trait_id, {}) as Dictionary).get("axis", ""))
 

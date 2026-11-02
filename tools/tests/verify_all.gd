@@ -553,7 +553,7 @@ func _initialize() -> void:
 	assert(started_friend and bram2_npc._unconscious_react_mode == "friend_rescue", "Friend Bram must start 'friend_rescue' when finding unconscious Thoran!")
 	for fr_i in range(45):
 		bram2_npc._process_unconscious_neighbor_reaction(0.1)
-	assert(not smith_npc.is_unconscious_on_ground() and bram2_npc._unconscious_react_phase == 2 and bram2_npc.get_relationship_with_npc("Thoran") >= 53, "After 4s of friend rescue, Bram must wake Thoran up (+8 rel) and advance to Phase 2 (report attack to police)!")
+	assert(not smith_npc.is_unconscious_on_ground() and bram2_npc._unconscious_react_phase == 2 and smith_npc.get_relationship_with_npc("Bram") >= 53 and bram2_npc.get_relationship_with_npc("Thoran") >= 48, "After 4s of friend rescue, Bram must wake Thoran up (U2: +8 for the rescued, +3 for the rescuer) and advance to Phase 2 (report attack to police)!")
 
 	# 19. Sistema de Habilidades RPG (XP, niveles, guardado/carga, panel [K] modal, XP de sigilo)
 	player.player_skills["cooking"] = 1
@@ -974,7 +974,7 @@ func _initialize() -> void:
 	m_a.affinity = 50
 	m_a.on_dialogue_action("social_gossip:match:" + key54)
 	var pe54: Dictionary = sd4.get_pair_entry(m_a.get_person_key(), key54)
-	assert(int(pe54["spark"]) >= 6 and str(pe54.get("stage", "none")) == "none", "B5.4: Matchmaking adds spark without forcing a romance stage")
+	assert(sd4.get_spark(m_a.get_person_key(), key54) >= 6 and sd4.get_spark(key54, m_a.get_person_key()) == 0 and str(pe54.get("stage", "none")) == "none", "B5.4/U2: Matchmaking sparks only the listener, without forcing a romance stage")
 	sd4.dials["gossip_min_chance"] = 0.15
 	print("B5.4 matchmaking OK")
 
@@ -1402,6 +1402,29 @@ func _initialize() -> void:
 	r1a.modify_npc_relationship(m1_s, 15, "", true)
 	assert(r1a.get_relationship_with_npc(u_kb) == clampi(u_rel_a + 15, -100, 100) and m1_s.get_relationship_with_npc(u_ka) == u_rel_b, "U1: One-way change leaves the other side alone")
 	print("U1 one-sided relationships OK")
+
+	# Test #48 (U2): un mismo suceso se vive distinto; manías de un solo lado; chispa según carácter; reciprocidad lenta
+	var pp_u = load("res://scripts/data/PersonProfile.gd")
+	var hon = pp_u.from_dict({"person_id": "u2h", "personality": ["Honrado", "Curioso", "Prudente", "Ordenado", "Familiar", "Serio"]})
+	var cha = pp_u.from_dict({"person_id": "u2c", "personality": ["Chismoso", "Curioso", "Prudente", "Ordenado", "Familiar", "Bromista"]})
+	assert(sd_u.side_delta(hon, cha, 10) + 5 < sd_u.side_delta(cha, hon, 10), "U2: The honest one is irritated by the gossip, not the other way round (%d vs %d)" % [sd_u.side_delta(hon, cha, 10), sd_u.side_delta(cha, hon, 10)])
+	assert(sd_u.side_delta(hon, cha, -10) < sd_u.side_delta(cha, hon, -10), "U2: A bad moment hurts more who is irritated")
+	var rom = pp_u.from_dict({"person_id": "u2r", "personality": ["Romántico", "Curioso", "Prudente", "Ordenado", "Familiar", "Serio"]})
+	var cold = pp_u.from_dict({"person_id": "u2d", "personality": ["Desapegado", "Curioso", "Prudente", "Ordenado", "Familiar", "Serio"]})
+	sd_u.get_pair_entry("u2r", "u2d")["spark"] = 0
+	sd_u._apply_spark_bias("u2r", rom, "u2d", cold, sd_u._add_spark_capped(sd_u.get_pair_entry("u2r", "u2d"), 8, 901))
+	assert(sd_u.get_spark("u2r", "u2d") > sd_u.get_spark("u2d", "u2r"), "U2: The romantic falls harder than the detached")
+	var rc_a = r1a
+	var rc_b = m1_s
+	var rc_ka: String = rc_a.get_person_key()
+	var rc_kb: String = rc_b.get_person_key()
+	rc_a.npc_relationships[rc_kb] = 60
+	rc_b.npc_relationships[rc_ka] = 0
+	for rc_d in range(7):
+		vsl.daily_reciprocity(vm)
+	var rc_now: int = rc_b.get_relationship_with_npc(rc_ka)
+	assert(rc_now > 0 and rc_now < 30 and rc_a.get_relationship_with_npc(rc_kb) == 60, "U2: Feelings slowly become mutual, without matching (%d)" % rc_now)
+	print("U2 asymmetric feelings OK")
 
 	print("ALL RIMWORLD MEDICAL, FOOTPRINTS, 3-PHASE CORPSE REPORT, MULTI-CORPSE FIX, RPG INTERROGATION, PUBLIC TRIAL, DYNAMIC RELATIONSHIPS, MISSING FAMILY SEARCH, SOCIAL GLOSSARY & UNCONSCIOUS REACTION TESTS PASSED!")
 	quit(0)

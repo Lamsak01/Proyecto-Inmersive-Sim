@@ -889,6 +889,8 @@ func _trigger_dynamic_npc_social_interaction(partner: VillageNPC) -> void:
 			"initiator": self,
 			"line_b": line_b,
 			"delta_rel": int(ex.get("delta_rel", 0)),
+			"delta_rel_a": int(ex.get("delta_rel_a", ex.get("delta_rel", 0))),
+			"delta_rel_b": int(ex.get("delta_rel_b", ex.get("delta_rel", 0))),
 			"note": str(ex.get("note", "Charlaron en el pueblo")),
 			"icon": icon,
 			"color": col,
@@ -941,6 +943,8 @@ func _process_pending_social_reply(delta: float) -> void:
 	var initiator: VillageNPC = _pending_social_reply_data.get("initiator", null)
 	var line_b: String = str(_pending_social_reply_data.get("line_b", ""))
 	var delta_rel: int = int(_pending_social_reply_data.get("delta_rel", 0))
+	var d_init: int = int(_pending_social_reply_data.get("delta_rel_a", delta_rel)) # U2: lo que gana quien empezó la charla
+	var d_self: int = int(_pending_social_reply_data.get("delta_rel_b", delta_rel)) # y lo que gana quien responde
 	var note_str: String = str(_pending_social_reply_data.get("note", "Charlaron en el pueblo"))
 	var icon_str: String = str(_pending_social_reply_data.get("icon", "💬"))
 	var col: Color = _pending_social_reply_data.get("color", Color(0.75, 0.96, 1.0))
@@ -950,8 +954,14 @@ func _process_pending_social_reply(delta: float) -> void:
 	if global_position.distance_to(initiator.global_position) > 140.0:
 		return
 	last_social_line_spoken = line_b
-	initiator.modify_npc_relationship(self, delta_rel, note_str)
-	var sign_tag: String = "+%d" % delta_rel if delta_rel >= 0 else "%d" % delta_rel
+	# U2: la parte común se suma a los dos (con sus avisos de reconciliación o ruptura); el resto, a cada uno por su lado
+	var d_common: int = int(round(float(d_init + d_self) / 2.0))
+	initiator.modify_npc_relationship(self, d_common, note_str)
+	if d_init != d_common:
+		initiator.modify_npc_relationship(self, d_init - d_common, "", true)
+	if d_self != d_common:
+		modify_npc_relationship(initiator, d_self - d_common, "", true)
+	var sign_tag: String = "+%d" % d_self if d_self >= 0 else "%d" % d_self
 	_spawn_floating_text("%s «%s» (%s Rel)" % [icon_str, line_b, sign_tag], col, -36.0)
 	_try_player_overhear(initiator, note_str)
 	var vm_news = _get_vm()
@@ -1447,7 +1457,7 @@ func _process_unconscious_neighbor_reaction(delta: float) -> bool:
 			target._unconscious_ignored_by[npc_name] = true
 			add_thought("Aproveché que mi rival %s estaba inconsciente para robarle (+10)" % target.npc_name, 10.0)
 			target.add_thought("Alguien me vació los bolsillos mientras estaba inconsciente (-14)", -14.0)
-			target.modify_npc_relationship(self, -12, "Sospecha que le robó mientras estaba inconsciente en el suelo")
+			target.modify_npc_relationship(self, -12, "Sospecha que le robó mientras estaba inconsciente en el suelo", true)
 			var loot_desc: String = "%d Oro" % stolen_g if stolen_g > 0 else "sus bolsillos"
 			if stolen_item_id != "":
 				loot_desc += " + 1x %s" % stolen_item_id
@@ -1478,7 +1488,9 @@ func _process_unconscious_neighbor_reaction(delta: float) -> bool:
 				_stop_crafting_bar()
 				_unconscious_react_timer = 0.0
 				target.wake_up_from_unconscious(self)
-				modify_npc_relationship(target, 8, "Lo socorrió y despertó rápidamente al hallarlo inconsciente")
+				# U2: el favor pesa más para quien lo recibe
+				target.modify_npc_relationship(self, 8, "Lo socorrió y despertó rápidamente al hallarlo inconsciente", true)
+				modify_npc_relationship(target, 3, "Lo socorrió y despertó rápidamente al hallarlo inconsciente", true)
 				if trade_role in [TradeRole.SHERIFF, TradeRole.GUARD]:
 					_spawn_floating_text("🚓⚡ ¡%s reanimó a %s y patrullará la zona del ataque!" % [npc_name, target.npc_name], Color.AQUA, -42.0)
 					_patrol_search_target_npc = target
@@ -1555,7 +1567,8 @@ func _process_unconscious_neighbor_reaction(delta: float) -> bool:
 	_finish_frame_movement(delta)
 	if _unconscious_react_timer >= 7.0:
 		target.wake_up_from_unconscious(self)
-		modify_npc_relationship(target, 3, "Le ayudó a despertarse cuando estaba tirado en el suelo")
+		target.modify_npc_relationship(self, 3, "Le ayudó a despertarse cuando estaba tirado en el suelo", true)
+		modify_npc_relationship(target, 1, "Le ayudó a despertarse cuando estaba tirado en el suelo", true)
 		_spawn_floating_text("😮‍💨🤚 %s despertó a %s y continúa con su jornada." % [npc_name, target.npc_name], Color(0.78, 0.94, 1.0), -40.0)
 		_clear_unconscious_reaction_state()
 	return true

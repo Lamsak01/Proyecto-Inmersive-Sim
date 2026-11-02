@@ -77,7 +77,7 @@ func on_turn_in(vm: VillageManager, qm: Node, giver: VillageNPC, player: Node, q
 		var accused: VillageNPC = vm._get_npcs_by_person_key().get(action_full.get_slice(":", 2), null)
 		if accused == null:
 			return
-		giver.modify_npc_relationship(accused, -15, "El forastero le contó que %s iba hablando mal de él/ella" % accused.npc_name)
+		giver.modify_npc_relationship(accused, -15, "El forastero le contó que %s iba hablando mal de él/ella" % accused.npc_name, true)
 		q["data"]["accused"] = accused.get_person_key()
 		pay_and_complete(qm, giver, player, q, gold, affinity, "Señalaste a %s." % accused.npc_name)
 		giver._spawn_floating_text("😠 «¡Así que fue %s!»" % accused.npc_name, Color.ORANGE, -46.0)

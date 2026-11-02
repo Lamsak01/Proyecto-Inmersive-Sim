@@ -159,6 +159,47 @@ func _spark_sides(k: String, pe: Dictionary) -> Dictionary:
 		pe["spark_by"] = sb
 	return sb
 
+## U2: cuánto cambia lo que siente `prof_self` por `prof_other` con un mismo suceso de valor `d`.
+## Lo bueno cala más en el sociable; las manías (`TraitCatalog.IRRITATES`) lo estropean; lo malo duele más al rencoroso.
+static func side_delta(prof_self, prof_other, d: int) -> int:
+	if prof_self == null or prof_other == null or d == 0:
+		return d
+	var irr: int = TraitCatalog.irritation_count(prof_self.personality, prof_other.personality)
+	var v: float = float(d)
+	if d > 0:
+		v *= clampf(1.0 + 0.15 * TraitCatalog.tendency(prof_self.personality, "sociability"), 0.6, 1.4)
+		if irr > 0:
+			v = v * 0.5 - 2.0 * float(irr)
+	else:
+		v *= (1.0 + 0.3 * float(irr)) * clampf(1.0 + 0.15 * TraitCatalog.tendency(prof_self.personality, "grudge"), 0.7, 1.4)
+	return int(round(v))
+
+## U2: tras ganar chispa mutua `base`, cada uno la siente a su manera: el Romántico más, el Desapegado menos,
+## y a todos les cuesta menos con alguien Coqueto. Así aparecen los amores no correspondidos.
+func _apply_spark_bias(id_a: String, prof_a, id_b: String, prof_b, base: int) -> void:
+	if base <= 0 or prof_a == null or prof_b == null:
+		return
+	for side in [[id_a, prof_a, id_b, prof_b], [id_b, prof_b, id_a, prof_a]]:
+		var b: float = 0.5 * TraitCatalog.tendency(side[1].personality, "romance") + (0.5 if "Coqueto" in side[3].personality else 0.0)
+		var extra: int = int(round(float(base) * clampf(b, -1.0, 1.0)))
+		if extra != 0:
+			add_spark_one_way(str(side[0]), str(side[2]), extra)
+
+## U2: reciprocidad lenta de la chispa: si el otro siente bastante más y se han visto hace poco, sube 1 al día.
+func _spark_reciprocity(current_day: int) -> void:
+	for k in pair_metrics.keys():
+		var pe: Dictionary = pair_metrics[k]
+		var sb = pe.get("spark_by", null)
+		if typeof(sb) != TYPE_DICTIONARY or (sb as Dictionary).size() != 2 or int(pe.get("last_contact_day", 0)) < current_day - 3:
+			continue
+		var ids: Array = (sb as Dictionary).keys()
+		var va: int = int(sb[ids[0]])
+		var vb: int = int(sb[ids[1]])
+		if absi(va - vb) >= 10:
+			var low: String = str(ids[0]) if va < vb else str(ids[1])
+			var high: String = str(ids[1]) if va < vb else str(ids[0])
+			add_spark_one_way(low, high, 1)
+
 ## Chispa que siente `from_id` por `to_id`.
 func get_spark(from_id: String, to_id: String) -> int:
 	var k: String = make_pair_key(from_id, to_id)
@@ -437,13 +478,15 @@ func resolve_live_conversation(npc_a, npc_b, current_day: int = 1) -> Dictionary
 	var rom_compat: int = compute_compatibility(prof_a, prof_b, same_fam)
 	var both_single: bool = (str(prof_a.romance_status) == PersonProfile.ROMANCE_SINGLE and str(prof_b.romance_status) == PersonProfile.ROMANCE_SINGLE)
 	if delta_rel > 0 and both_single and rom_compat >= 40 and int(pe["affinity"]) >= int(dials.get("spark_min_affinity", 14)) and int(pe["familiarity"]) >= int(dials.get("spark_min_familiarity", 12)):
-		_add_spark_capped(pe, rng.randi_range(2, 5), current_day)
+		_apply_spark_bias(id_a, prof_a, id_b, prof_b, _add_spark_capped(pe, rng.randi_range(2, 5), current_day))
 
 	var ex: Dictionary = SocialDialogueData.build_exchange(action_id, dict_a, name_a, dict_b, name_b, topic_used, rng)
 	ex["allowed"] = true
 	ex["scene_id"] = int(sc.get("id", 0))
 	ex["stage"] = str(pe.get("stage", STAGE_NONE))
 	ex["delta_rel"] = delta_rel
+	ex["delta_rel_a"] = side_delta(prof_a, prof_b, delta_rel)
+	ex["delta_rel_b"] = side_delta(prof_b, prof_a, delta_rel)
 	ex["affinity"] = int(pe["affinity"])
 	ex["familiarity"] = int(pe["familiarity"])
 	ex["spark"] = int(pe["spark"])
@@ -1029,7 +1072,7 @@ func can_matchmake(prof_a, prof_b, same_family: bool) -> bool:
 func resolve_player_matchmaking(listener_id: String, target_id: String, listener_rel: int, charisma_level: int, player_affinity: int, current_day: int, chance_bonus: float = 0.0) -> Dictionary:
 	var res: Dictionary = resolve_player_gossip(listener_id, target_id, listener_rel, true, charisma_level, player_affinity, current_day, chance_bonus)
 	if bool(res.get("success", false)):
-		_add_spark_capped(get_pair_entry(listener_id, target_id, listener_rel), rng.randi_range(6, 10), current_day)
+		add_spark_one_way(listener_id, target_id, rng.randi_range(6, 10)) # U2: solo se ilusiona quien te escucha
 	return res
 
 ## B6.4: Una pelea interrumpida (alguien cae o se vuelve hostil) no cuenta: devuelve lo que `try_resolve_live_fight` anotó.
@@ -1142,6 +1185,7 @@ func on_day_passed(current_day: int) -> void:
 	var fam_dec: int = int(dials.get("decay_familiarity_no_contact", 1))
 	var spk_dec: int = int(dials.get("decay_spark_no_contact", 1))
 	var ten_dec: int = int(dials.get("decay_tension_no_contact", 2))
+	_spark_reciprocity(current_day)
 	for k in pair_metrics.keys():
 		var pe: Dictionary = pair_metrics[k]
 		if int(pe.get("last_contact_day", 0)) < current_day - 1:
@@ -1240,7 +1284,7 @@ func simulate_social_day(current_day: int, profiles_by_id: Dictionary, families_
 			var spk_gain: int = rng.randi_range(3, int(dials.get("spark_daily_gain_max", 8)))
 			if rom_compat >= 60:
 				spk_gain += 2
-			_add_spark_capped(pe, spk_gain, current_day)
+			_apply_spark_bias(id_a, prof_a, id_b, prof_b, _add_spark_capped(pe, spk_gain, current_day))
 
 		# Evaluación de pelea discreta por tensión (sin muerte, respetando drama_cooldown_days y max_fights_per_pair)
 		var ten_now: int = int(pe.get("tension", 0))
