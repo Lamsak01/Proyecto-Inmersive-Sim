@@ -7,8 +7,8 @@ const VillageQuests = preload("res://scripts/systems/VillageQuests.gd")
 ## T1: la probabilidad por charla depende de la malicia de sus rasgos (TraitCatalog); sin malicia, nunca calumnia.
 const TraitCatalog = preload("res://scripts/data/TraitCatalog.gd")
 const TraitDiscoveryRef = preload("res://scripts/systems/TraitDiscovery.gd")
-const NPC_SLANDER_PER_MALICE: float = 0.15 # Rencoroso solo: 15 %; Rencoroso + Celoso: 27 %
-const NPC_SLANDER_MAX_CHANCE: float = 0.45
+const NPC_SLANDER_PER_MALICE: float = 0.075 # T5: a la mitad tras pasar a 6 rasgos (Rencoroso solo: 7,5 %)
+const NPC_SLANDER_MAX_CHANCE: float = 0.25
 const NPC_SLANDER_REL: int = -30
 
 ## Vida social en el mundo: quedadas, peleas en vivo y chismes. Extraído de VillageManager.gd:
