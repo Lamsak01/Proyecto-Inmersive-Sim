@@ -1157,6 +1157,7 @@ func _initialize() -> void:
 	assert(int(player.inventory.gold) == gold_q3 + q_base.reward_gold(j_giver, 40), "Q3: A verdict lets you collect the justice reward")
 	qm.clear_all()
 	sd_q.get_pair_entry(k_th, m1_s.get_person_key())["spark"] = 20
+	sd_q.add_spark_one_way(m1_s.get_person_key(), k_th, -20) # U3: Thoran está ilusionado; Sora no siente nada por él
 	qm.set_offer(k_th, {"type": "opinion", "giver_name": "Thoran", "target_key": m1_s.get_person_key(), "target_name": "Sora", "day_offered": int(wc_speed.current_day)})
 	r1a.on_dialogue_action("quest_accept")
 	m1_s.affinity = 10
@@ -1164,7 +1165,7 @@ func _initialize() -> void:
 	assert(str(m1_s._inject_character_lore_into_dialogue(m1_s._build_dialogue())).contains("quest_opinion_seen:" + k_th), "Q3: The asked neighbor appears in the opinions menu")
 	m1_s.on_dialogue_action("quest_opinion_seen:" + k_th)
 	r1a.on_dialogue_action("quest_turn_in:truth")
-	assert(qm.get_quests("side", "completed").size() == 1 and int(sd_q.get_pair_entry(k_th, m1_s.get_person_key())["spark"]) == 14, "Q3: A hard truth cools the crush, never creates a couple")
+	assert(qm.get_quests("side", "completed").size() == 1 and sd_q.get_spark(k_th, m1_s.get_person_key()) == 14, "Q3/U3: A hard truth cools the crush, never creates a couple")
 	qm.clear_all()
 	print("Q3 justice & crush quests OK")
 
@@ -1425,6 +1426,42 @@ func _initialize() -> void:
 	var rc_now: int = rc_b.get_relationship_with_npc(rc_ka)
 	assert(rc_now > 0 and rc_now < 30 and rc_a.get_relationship_with_npc(rc_kb) == 60, "U2: Feelings slowly become mutual, without matching (%d)" % rc_now)
 	print("U2 asymmetric feelings OK")
+
+	# Test #49 (U3): quien está ilusionado sin ser correspondido se declara y le dicen que no; celos ante una nueva pareja
+	var rj_a = r1a
+	var rj_b = m1_s
+	var rj_ka: String = rj_a.get_person_key()
+	var rj_kb: String = rj_b.get_person_key()
+	var rj_keep: Array = [str(rj_a.person_profile.romance_status), str(rj_b.person_profile.romance_status)]
+	rj_a.person_profile.romance_status = "single"
+	rj_b.person_profile.romance_status = "single"
+	sd_u.pair_metrics.erase(sd_u.make_pair_key(rj_ka, rj_kb))
+	var rj_pe: Dictionary = sd_u.get_pair_entry(rj_ka, rj_kb)
+	sd_u.add_spark_one_way(rj_ka, rj_kb, 40)
+	rj_pe["last_contact_day"] = 950
+	sd_u.dials["rejection_daily_chance"] = 1.0
+	var rj_res: Dictionary = sd_u.advance_live_romance_day(950, {rj_ka: rj_a.person_profile, rj_kb: rj_b.person_profile})
+	assert((rj_res["rejections"] as Array).size() == 1 and str(rj_res["rejections"][0]["from"]) == rj_ka and sd_u.get_spark(rj_ka, rj_kb) == 25, "U3: A one-sided crush ends in a rejection")
+	rj_res = sd_u.advance_live_romance_day(951, {rj_ka: rj_a.person_profile, rj_kb: rj_b.person_profile})
+	assert((rj_res["rejections"] as Array).is_empty(), "U3: No second declaration right away")
+	sd_u.dials["rejection_daily_chance"] = 0.25
+	var rj_rel: int = rj_a.get_relationship_with_npc(rj_kb)
+	vsl.on_rejection(vm, rj_a, rj_b)
+	assert(rj_a.get_relationship_with_npc(rj_kb) == rj_rel - 5 and vm.get_recent_social_events(80, "rejection").size() >= 1, "U3: Rejection hurts and becomes news")
+	var jz_c = null
+	for jz_n in vm._get_npcs_by_person_key().values():
+		if jz_n != rj_a and jz_n != rj_b and not jz_n.is_dead:
+			jz_c = jz_n
+			break
+	var jz_rel: int = rj_a.get_relationship_with_npc(jz_c.get_person_key())
+	vsl.on_new_couple_jealousy(vm, rj_b, jz_c) # rj_a sigue ilusionado (25 < 28): sin celos
+	assert(rj_a.get_relationship_with_npc(jz_c.get_person_key()) == jz_rel, "U3: A faded crush brings no jealousy")
+	sd_u.add_spark_one_way(rj_ka, rj_kb, 10)
+	vsl.on_new_couple_jealousy(vm, rj_b, jz_c)
+	assert(rj_a.get_relationship_with_npc(jz_c.get_person_key()) == clampi(jz_rel - 10, -100, 100), "U3: Jealous of the new partner")
+	rj_a.person_profile.romance_status = rj_keep[0]
+	rj_b.person_profile.romance_status = rj_keep[1]
+	print("U3 rejection and jealousy OK")
 
 	print("ALL RIMWORLD MEDICAL, FOOTPRINTS, 3-PHASE CORPSE REPORT, MULTI-CORPSE FIX, RPG INTERROGATION, PUBLIC TRIAL, DYNAMIC RELATIONSHIPS, MISSING FAMILY SEARCH, SOCIAL GLOSSARY & UNCONSCIOUS REACTION TESTS PASSED!")
 	quit(0)

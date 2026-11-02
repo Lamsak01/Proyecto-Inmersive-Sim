@@ -23,8 +23,9 @@ func find_daily_offer(vm: VillageManager, giver: VillageNPC, npcs: Array, _ctx: 
 		if other == giver or other.is_dead or other.person_profile == null or str(other.person_profile.romance_status) != PersonProfile.ROMANCE_SINGLE:
 			continue
 		var pe: Dictionary = sd.pair_metrics.get(sd.make_pair_key(giver.get_person_key(), other.get_person_key()), {})
-		if str(pe.get("stage", "none")) in ["none", "interest"] and int(pe.get("spark", 0)) > best_spark:
-			best_spark = int(pe.get("spark", 0))
+		var own_spark: int = sd.get_spark(giver.get_person_key(), other.get_person_key()) # U3: lo que siente quien pregunta
+		if str(pe.get("stage", "none")) in ["none", "interest"] and own_spark > best_spark:
+			best_spark = own_spark
 			best = other
 	return {"target_key": best.get_person_key(), "target_name": best.npc_name} if best != null else {}
 
@@ -43,14 +44,16 @@ func is_done(vm: VillageManager, q: Dictionary) -> bool:
 func progress_hint(q: Dictionary) -> String:
 	return "«¿Has podido hablar con %s? No le digas que te lo pedí yo...»" % str(q.get("target_name", ""))
 
-static func describe_answer(rel: int) -> String:
-	if rel >= 40: return "Habla muy bien de ti."
-	if rel >= 15: return "Le caes bien."
+## U3: lo primero es la chispa real del otro hacia quien pregunta; si no hay, cómo le cae.
+static func describe_answer(rel: int, spark: int = 0) -> String:
+	if spark >= 28: return "Le gustas, y mucho."
+	if spark >= 14: return "Creo que le gustas un poco."
+	if rel >= 15: return "Te aprecia, pero solo como amigo/a."
 	if rel > -15: return "Le eres indiferente."
 	return "No le caes nada bien."
 
 func done_dialogue(_vm: VillageManager, q: Dictionary) -> Dictionary:
-	var truth: String = describe_answer(int(q["data"].get("learned_rel", 0)))
+	var truth: String = describe_answer(int(q["data"].get("learned_rel", 0)), int(q["data"].get("learned_spark", 0)))
 	return {"text": "«¿Y bien? ¿Qué te dijo %s?»" % str(q.get("target_name", "")), "choices": [
 		{"label": "🗣️ La verdad: «%s»" % truth, "next": "END", "action": "quest_turn_in:truth"},
 		{"label": "😊 Mentir: «Le caes muy bien.»", "next": "END", "action": "quest_turn_in:lie_good"},
@@ -60,11 +63,9 @@ func done_dialogue(_vm: VillageManager, q: Dictionary) -> Dictionary:
 func on_turn_in(vm: VillageManager, qm: Node, giver: VillageNPC, player: Node, q: Dictionary, action_full: String) -> void:
 	var mode: String = action_full.get_slice(":", 1) if action_full.contains(":") else "truth"
 	q["data"]["told"] = mode
-	var told_bad: bool = mode == "lie_bad" or (mode == "truth" and int(q["data"].get("learned_rel", 0)) < 0)
+	var told_bad: bool = mode == "lie_bad" or (mode == "truth" and int(q["data"].get("learned_spark", 0)) < 14)
 	if told_bad and vm.social_director != null:
-		var pe: Dictionary = vm.social_director.get_pair_entry(giver.get_person_key(), str(q.get("target_key", "")))
-		if not pe.is_empty():
-			pe["spark"] = maxi(0, int(pe.get("spark", 0)) - 6)
+		vm.social_director.add_spark_one_way(giver.get_person_key(), str(q.get("target_key", "")), -6) # Solo se desilusiona quien preguntó
 		giver._spawn_floating_text("💔 %s se queda cabizbajo/a" % giver.npc_name, Color(0.75, 0.80, 1.0), -46.0)
 	pay_and_complete(qm, giver, player, q, gold, affinity)
 
@@ -76,6 +77,8 @@ func on_extra_action(_vm: VillageManager, qm: Node, npc: VillageNPC, action_id: 
 	for q in qm.get_active_quests("side"):
 		if str(q.get("type", "")) == id and str(q.get("target_key", "")) == npc.get_person_key() and str(q.get("giver_key", "")) == about_key and not q["data"].has("learned_rel"):
 			var rel: int = npc.get_relationship_with_npc(about_key)
+			var spk: int = _vm.social_director.get_spark(npc.get_person_key(), about_key) if _vm.social_director != null else 0
 			q["data"]["learned_rel"] = rel
-			qm.add_note(str(q["id"]), "%s: «%s». Vuelve con %s." % [npc.npc_name, describe_answer(rel), str(q.get("giver_name", ""))])
+			q["data"]["learned_spark"] = spk
+			qm.add_note(str(q["id"]), "%s: «%s». Vuelve con %s." % [npc.npc_name, describe_answer(rel, spk), str(q.get("giver_name", ""))])
 	return true

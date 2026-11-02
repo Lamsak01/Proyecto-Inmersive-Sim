@@ -968,7 +968,7 @@ func record_social_event(type_str: String, actor: VillageNPC, target: VillageNPC
 	return entry
 
 ## B6.1: Eventos que merecen chisme. Son solo información: no mueven relaciones entre vecinos.
-const GOSSIP_EVENT_TYPES: Array[String] = ["fight", "breakup", "couple", "couple_reconciled", "feud", "reconciliation", "player_slander", "npc_slander"] # Sin "widowed": revelaría muertes aún sin descubrir
+const GOSSIP_EVENT_TYPES: Array[String] = ["fight", "breakup", "couple", "couple_reconciled", "feud", "reconciliation", "player_slander", "npc_slander", "rejection"] # Sin "widowed": revelaría muertes aún sin descubrir
 const GOSSIP_MAX_AGE_DAYS: int = 10
 const NEWS_MIN_KNOWERS: int = 3
 
@@ -2893,11 +2893,14 @@ func _advance_live_romances(cur_day: int) -> Dictionary:
 			b.add_thought("¡Ahora estoy en pareja con %s! (+15)" % a.npc_name, 15.0)
 			a._spawn_floating_text("💑 ¡%s y %s ahora son pareja!" % [a.npc_name, b.npc_name], Color(1.0, 0.55, 0.75), -46.0)
 			record_social_event("couple", a, b, "%s y %s ahora son pareja" % [a.npc_name, b.npc_name])
+			VillageSocialLife.on_new_couple_jealousy(self, a, b)
 		else:
 			if to_st in ["flirt", "dating"]:
 				a.add_thought("Me hace ilusión lo que tengo con %s (+5)" % b.npc_name, 5.0)
 				b.add_thought("Me hace ilusión lo que tengo con %s (+5)" % a.npc_name, 5.0)
 			record_social_event("romance_" + to_st, a, b, "%s y %s %s" % [a.npc_name, b.npc_name, str(ROMANCE_STAGE_NAMES.get(to_st, "se acercan"))])
+	for rj in res.get("rejections", []):
+		VillageSocialLife.on_rejection(self, by_key.get(str(rj.get("from", "")), null), by_key.get(str(rj.get("to", "")), null))
 	for fz in res.get("fizzled", []):
 		var fa: VillageNPC = by_key.get(str(fz.get("id_a", "")), null)
 		var fb: VillageNPC = by_key.get(str(fz.get("id_b", "")), null)

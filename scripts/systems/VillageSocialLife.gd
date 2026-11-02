@@ -436,3 +436,31 @@ static func daily_reciprocity(vm: VillageManager) -> void:
 			if step == 0:
 				step = 1 if gap > 0 else -1
 			b.modify_npc_relationship(a, step, "", true)
+
+
+## U3: `from` se ha declarado a `to` y le ha dicho que no. Duele al que se declara y deja algo de incomodidad al otro.
+static func on_rejection(vm: VillageManager, from: VillageNPC, to: VillageNPC) -> void:
+	if not is_instance_valid(from) or not is_instance_valid(to) or from.is_dead or to.is_dead:
+		return
+	from.modify_npc_relationship(to, -5, "💔 Le dijo que no cuando se le declaró", true)
+	to.modify_npc_relationship(from, -2, "Se le declaró y no siente lo mismo", true)
+	from.add_thought("%s no siente lo mismo por mí (-10)" % to.npc_name, -10.0)
+	from._spawn_floating_text("💔 %s se ha declarado a %s... y le ha dicho que no" % [from.npc_name, to.npc_name], Color(0.80, 0.70, 1.0), -46.0)
+	vm.record_social_event("rejection", from, to, "%s se declaró a %s y le dijo que no" % [from.npc_name, to.npc_name])
+
+## U3: quien estaba ilusionado con alguien que acaba de emparejarse siente celos de su nueva pareja.
+const JEALOUSY_MIN_SPARK: int = 28
+static func on_new_couple_jealousy(vm: VillageManager, a: VillageNPC, b: VillageNPC) -> void:
+	var sd = vm.social_director
+	if sd == null or not is_instance_valid(a) or not is_instance_valid(b):
+		return
+	for x in vm.get_tree().get_nodes_in_group("village_npcs"):
+		if not (x is VillageNPC) or x == a or x == b or x.is_dead:
+			continue
+		for pair in [[a, b], [b, a]]:
+			var loved: VillageNPC = pair[0]
+			var rival: VillageNPC = pair[1]
+			if sd.get_spark(x.get_person_key(), loved.get_person_key()) >= JEALOUSY_MIN_SPARK:
+				x.modify_npc_relationship(rival, -10, "💢💔 Celos: está con %s" % loved.npc_name, true)
+				x.add_thought("%s está con %s... (-8)" % [loved.npc_name, rival.npc_name], -8.0)
+				vm.record_social_event("jealousy", x, rival, "%s tiene celos de %s por %s" % [x.npc_name, rival.npc_name, loved.npc_name])

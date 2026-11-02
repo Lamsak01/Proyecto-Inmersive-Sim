@@ -87,6 +87,9 @@ const DIALS: Dictionary = {
 	"breakup_max_affinity": 12,
 	"breakup_daily_chance": 0.28,
 	"reconcile_ex_min_spark": 35,
+	"rejection_daily_chance": 0.25,    # U3: quien siente mucha chispa sin ser correspondido se declara y le dicen que no
+	"rejection_cooldown_days": 20,
+	"rejection_spark_drop": 15,
 	"reconcile_ex_max_tension": 18,
 	"reconcile_ex_chance": 0.35,
 }
@@ -877,6 +880,7 @@ func advance_live_romance_day(current_day: int, profiles_by_id: Dictionary, fami
 	var fizzled: Array = []
 	var breakups: Array = []
 	var reconciled: Array = []
+	var rejections: Array = []
 	var keys: Array = pair_metrics.keys()
 	keys.sort()
 	var window: int = int(dials.get("live_stage_contact_window_days", 1))
@@ -908,6 +912,18 @@ func advance_live_romance_day(current_day: int, profiles_by_id: Dictionary, fami
 						prof_b.partner_id = ""
 					breakups.append({"id_a": id_a, "id_b": id_b})
 			continue
+		# U3: declaración no correspondida (solteros, sin cortejo, vistos hace poco, uno ilusionado y el otro no)
+		if stage == STAGE_NONE and str(prof_a.romance_status) == PersonProfile.ROMANCE_SINGLE and str(prof_b.romance_status) == PersonProfile.ROMANCE_SINGLE \
+				and int(pe.get("last_contact_day", 0)) >= current_day - window and current_day - int(pe.get("rejected_day", -999)) >= int(dials.get("rejection_cooldown_days", 20)):
+			var s_ab: int = get_spark(id_a, id_b)
+			var s_ba: int = get_spark(id_b, id_a)
+			var hi_id: String = id_a if s_ab >= s_ba else id_b
+			var lo_id: String = id_b if hi_id == id_a else id_a
+			if maxi(s_ab, s_ba) >= _stage_threshold(STAGE_FLIRT) and mini(s_ab, s_ba) < _stage_threshold(STAGE_INTEREST) and rng.randf() < float(dials.get("rejection_daily_chance", 0.25)):
+				pe["rejected_day"] = current_day
+				add_spark_one_way(hi_id, lo_id, -int(dials.get("rejection_spark_drop", 15)))
+				rejections.append({"from": hi_id, "to": lo_id})
+				continue
 		var spk: int = int(pe.get("spark", 0))
 		if stage != STAGE_NONE and spk < int(dials.get("stage_fizzle_spark", 8)):
 			pe["stage"] = STAGE_NONE
@@ -957,7 +973,7 @@ func advance_live_romance_day(current_day: int, profiles_by_id: Dictionary, fami
 			pe["affinity"] = maxi(int(pe.get("affinity", 0)), 68)
 			total_new_couples_formed += 1
 			new_couples.append({"id_a": id_a, "id_b": id_b})
-	return {"advanced": advanced, "new_couples": new_couples, "fizzled": fizzled, "breakups": breakups, "reconciled": reconciled}
+	return {"advanced": advanced, "new_couples": new_couples, "fizzled": fizzled, "breakups": breakups, "reconciled": reconciled, "rejections": rejections}
 
 # ==============================================================================
 # B4.1: PELEAS DISCRETAS POR DADOS — poder ponderado y resolución sin muerte
