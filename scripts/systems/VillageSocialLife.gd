@@ -1,0 +1,327 @@
+@tool
+extends RefCounted
+
+## Vida social en el mundo: quedadas, peleas en vivo y chismes. Extraído de VillageManager.gd:
+## cada función recibe al VillageManager como primer parámetro (`vm`); VillageManager mantiene llamadas finas con los mismos nombres
+## y conserva el estado (`_live_fights`, temporizadores y constantes). `SocialDirector` decide; aquí se aplica en el mundo.
+
+static func _is_npc_eligible_for_hangout(vm: VillageManager, v: VillageNPC) -> bool:
+	if not is_instance_valid(v) or v.is_dead or v.is_downed or v.is_sleeping or v.is_hostile or v.is_incapacitated():
+		return false
+	if v.trade_role in [VillageNPC.TradeRole.TRAVELING_MERCHANT, VillageNPC.TradeRole.ROYAL_INVESTIGATOR]:
+		return false
+	if v.is_vagrant_camper or v.is_in_live_fight() or v.current_activity != VillageNPC.ActivityState.SOCIALIZING:
+		return false
+	if v.person_profile != null and int(v.person_profile.bereavement_days_left) > 0:
+		return false
+	return true
+
+static func _is_npc_free_to_fight(vm: VillageManager, v: VillageNPC) -> bool:
+	if not is_instance_valid(v) or v.is_dead or v.is_sleeping or v.is_hostile or v.is_incapacitated():
+		return false
+	if v.trade_role in [VillageNPC.TradeRole.TRAVELING_MERCHANT, VillageNPC.TradeRole.ROYAL_INVESTIGATOR]:
+		return false
+	if v.is_vagrant_camper or v.is_at_poker_table or v.hangout_id >= 0 or v.is_in_live_fight() or v == vm.escorting_officer:
+		return false
+	if v.is_busy_with_player() or v.is_busy_with_emergency():
+		return false
+	return v.person_profile == null or int(v.person_profile.bereavement_days_left) <= 0
+
+static func _find_fight_guard(vm: VillageManager, pos: Vector2, a: VillageNPC, b: VillageNPC) -> VillageNPC:
+	var best: VillageNPC = null
+	var best_d: float = vm.FIGHT_GUARD_RADIUS
+	for n in vm.get_tree().get_nodes_in_group("village_npcs"):
+		if n == a or n == b or not (n is VillageNPC):
+			continue
+		var v: VillageNPC = n as VillageNPC
+		if v.trade_role in [VillageNPC.TradeRole.SHERIFF, VillageNPC.TradeRole.GUARD] and v.is_conscious():
+			var d: float = pos.distance_to(v.global_position)
+			if d <= best_d:
+				best_d = d
+				best = v
+	return best
+
+static func _scan_rival_friction(vm: VillageManager) -> void:
+	var cur_day: int = int(WorldClock.current_day) if WorldClock != null else 1
+	var npcs: Array = []
+	for n in vm.get_tree().get_nodes_in_group("village_npcs"):
+		if n is VillageNPC and _is_npc_free_to_fight(vm, n as VillageNPC):
+			npcs.append(n)
+	for i in range(npcs.size()):
+		for j in range(i + 1, npcs.size()):
+			var a: VillageNPC = npcs[i]
+			var b: VillageNPC = npcs[j]
+			if a.global_position.distance_squared_to(b.global_position) > vm.FIGHT_TRIGGER_RADIUS * vm.FIGHT_TRIGGER_RADIUS:
+				continue
+			if a.family_id != "none" and a.family_id != "family_police" and a.family_id == b.family_id:
+				continue
+			var rel: int = a.get_relationship_with_npc(b.get_person_key())
+			if vm.social_director.register_rival_encounter(a.get_person_key(), b.get_person_key(), rel, cur_day):
+				a._spawn_floating_text("😠", Color(1.0, 0.60, 0.40), -28.0)
+
+static func _try_start_live_fight(vm: VillageManager) -> void:
+	var cur_day: int = int(WorldClock.current_day) if WorldClock != null else 1
+	var pairs: Array = vm.social_director.get_fight_ready_pairs(cur_day)
+	if pairs.is_empty():
+		return
+	var by_key: Dictionary = vm._get_npcs_by_person_key()
+	for p in pairs:
+		var a: VillageNPC = by_key.get(str(p[0]), null)
+		var b: VillageNPC = by_key.get(str(p[1]), null)
+		if not _is_npc_free_to_fight(vm, a) or not _is_npc_free_to_fight(vm, b):
+			continue
+		if a.global_position.distance_to(b.global_position) > vm.FIGHT_TRIGGER_RADIUS:
+			continue
+		var res: Dictionary = vm.social_director.try_resolve_live_fight(a, b, cur_day)
+		if bool(res.get("triggered", false)):
+			a.begin_live_fight(b)
+			b.begin_live_fight(a)
+			vm._live_fights.append({"a": a, "b": b, "res": res, "elapsed": 0.0, "guard": _find_fight_guard(vm, a.global_position, a, b)})
+			return
+
+static func _update_live_fights(vm: VillageManager, delta: float) -> void:
+	if WorldClock != null and WorldClock.has_method("is_time_frozen") and WorldClock.is_time_frozen():
+		return
+	for i in range(vm._live_fights.size() - 1, -1, -1):
+		var fight: Dictionary = vm._live_fights[i]
+		var a: VillageNPC = fight["a"] if is_instance_valid(fight["a"]) else null
+		var b: VillageNPC = fight["b"] if is_instance_valid(fight["b"]) else null
+		var interrupted: bool = false
+		for v in [a, b]:
+			if v == null or v.is_dead or v.is_hostile or v.is_incapacitated():
+				interrupted = true
+		# Mientras el jugador habla con uno de ellos la pelea espera, para que pueda decidir si los separa
+		if interrupted or not (a.is_busy_with_player() or b.is_busy_with_player()):
+			fight["elapsed"] = float(fight["elapsed"]) + delta
+		var guard_stops: bool = is_instance_valid(fight["guard"]) and fight["guard"].is_conscious() and float(fight["elapsed"]) >= vm.FIGHT_GUARD_STOP_SEC
+		if interrupted or guard_stops or float(fight["elapsed"]) >= vm.FIGHT_DURATION_SEC:
+			vm._live_fights.remove_at(i)
+			_finish_live_fight(vm, fight, a, b, interrupted, guard_stops)
+	vm._fight_scan_timer -= delta
+	if vm._fight_scan_timer <= 0.0:
+		vm._fight_scan_timer = randf_range(3.5, 6.0)
+		_scan_rival_friction(vm)
+		_try_start_live_fight(vm)
+
+## B5.3: El jugador separa a los vecinos: mismo desenlace que un guardia, sin heridas.
+static func player_stop_live_fight(vm: VillageManager, npc: VillageNPC) -> bool:
+	for i in range(vm._live_fights.size()):
+		var fight: Dictionary = vm._live_fights[i]
+		if fight["a"] == npc or fight["b"] == npc:
+			vm._live_fights.remove_at(i)
+			fight["guard"] = null
+			_finish_live_fight(vm, fight, fight["a"], fight["b"], false, true)
+			return true
+	return false
+
+static func _finish_live_fight(vm: VillageManager, fight: Dictionary, a: VillageNPC, b: VillageNPC, interrupted: bool, guard_stops: bool) -> void:
+	var res: Dictionary = fight["res"]
+	vm.social_director.end_scene(int(res.get("scene_id", 0)))
+	for v in [a, b]:
+		if v != null:
+			v.end_live_fight()
+	if interrupted:
+		vm.social_director.refund_live_fight(res)
+		return
+	a.modify_npc_relationship(b, int(res.get("relationship_delta", -14)), "💢 Llegaron a las manos")
+	a._npc_social_event_cooldown = randf_range(40.0, 70.0)
+	b._npc_social_event_cooldown = randf_range(40.0, 70.0)
+	var winner: VillageNPC = a if a.get_person_key() == str(res.get("winner_id", "")) else b
+	var loser: VillageNPC = b if winner == a else a
+	var summary: String
+	if guard_stops:
+		var guard: VillageNPC = fight["guard"] if is_instance_valid(fight["guard"]) else null
+		var stopper: String = guard.npc_name if guard != null else "El forastero"
+		if guard != null:
+			guard._spawn_floating_text("👮 «¡Basta ya, separaos!»", Color(0.65, 0.82, 1.0), -38.0)
+		a.add_thought("%s me separó de %s (-4)" % [stopper, b.npc_name], -4.0)
+		b.add_thought("%s me separó de %s (-4)" % [stopper, a.npc_name], -4.0)
+		summary = "%s separó a %s y %s antes de que llegaran a más" % [stopper, a.npc_name, b.npc_name]
+	else:
+		loser.health_comp.apply_minor_bruise(randf_range(6.0, 10.0), vm.FIGHT_HEALTH_FLOOR, "Pelea con %s" % winner.npc_name)
+		loser._spawn_floating_text("🤕 Magullado", Color(1.0, 0.70, 0.55), -34.0)
+		winner.add_thought("Le paré los pies a %s (+2)" % loser.npc_name, 2.0)
+		loser.add_thought("%s me dio una paliza (-8)" % winner.npc_name, -8.0)
+		summary = "%s y %s se pelearon; %s salió peor parado" % [winner.npc_name, loser.npc_name, loser.npc_name]
+	var knowers: Dictionary = {}
+	if guard_stops and is_instance_valid(fight["guard"]):
+		knowers[fight["guard"].get_person_key()] = true
+	var witnesses: int = 0
+	for n in vm.get_tree().get_nodes_in_group("village_npcs"):
+		if n == a or n == b or not (n is VillageNPC) or witnesses >= 3:
+			continue
+		var w: VillageNPC = n as VillageNPC
+		if w.is_conscious() and w.global_position.distance_to(a.global_position) <= vm.FIGHT_WITNESS_RADIUS:
+			w.add_thought("Vi pelearse a %s y %s (-2)" % [a.npc_name, b.npc_name], -2.0)
+			knowers[w.get_person_key()] = true
+			witnesses += 1
+	(vm.record_social_event("fight", winner, loser, summary)["known_by"] as Dictionary).merge(knowers)
+
+static func _update_social_hangouts(vm: VillageManager, delta: float) -> void:
+	if vm.social_director == null or not vm.is_inside_tree():
+		return
+	var by_key: Dictionary = vm._get_npcs_by_person_key()
+	var cur_day: int = int(WorldClock.current_day) if WorldClock != null else 1
+	var cur_hour: int = int(WorldClock.current_hour) if WorldClock != null else 12
+
+	# 1. Seguimiento de quedadas activas: llegadas y cancelaciones si alguien deja de estar disponible
+	for hg in vm.social_director.active_hangouts.duplicate():
+		var h_id: int = int(hg.get("id", -1))
+		var a: VillageNPC = by_key.get(str(hg.get("actor_a_id", "")), null)
+		var b: VillageNPC = by_key.get(str(hg.get("actor_b_id", "")), null)
+		var broken: bool = false
+		for v in [a, b]:
+			if not is_instance_valid(v) or v.is_dead or v.is_downed or v.is_hostile or v.is_sleeping or v.hangout_id != h_id or v.current_activity != VillageNPC.ActivityState.SOCIALIZING:
+				broken = true
+		if broken:
+			vm.social_director.cancel_hangout(h_id, "interrupted")
+			continue
+		if a.is_at_hangout_spot(vm.HANGOUT_ARRIVAL_RADIUS):
+			vm.social_director.mark_hangout_arrival(h_id, a.get_person_key())
+		if b.is_at_hangout_spot(vm.HANGOUT_ARRIVAL_RADIUS):
+			vm.social_director.mark_hangout_arrival(h_id, b.get_person_key())
+
+	# 2. Resultados de quedadas terminadas: bono suave de relación y humor, o liberar a los participantes
+	for res in vm.social_director.pop_finished_hangouts():
+		var ra: VillageNPC = by_key.get(str(res.get("actor_a_id", "")), null)
+		var rb: VillageNPC = by_key.get(str(res.get("actor_b_id", "")), null)
+		var res_id: int = int(res.get("id", -1))
+		for v2 in [ra, rb]:
+			if is_instance_valid(v2) and v2.hangout_id == res_id:
+				v2.clear_hangout()
+		if bool(res.get("success", false)) and is_instance_valid(ra) and is_instance_valid(rb) and not ra.is_dead and not rb.is_dead:
+			var d_aff: int = int(res.get("delta_affinity", 3))
+			var st_done: String = vm.social_director.get_pair_stage(ra.get_person_key(), rb.get_person_key())
+			var spot_lbl: String = vm._spot_label_for(str(res.get("spot_id", ""))) if str(res.get("spot_id", "")) != "" else "el pueblo"
+			if st_done == "couple" or (ra.person_profile != null and str(ra.person_profile.partner_id) == rb.get_person_key()):
+				ra.modify_npc_relationship(rb, d_aff + 2, "💑 Pasaron la tarde juntos en pareja")
+				ra.add_thought("Pasé una tarde preciosa con %s (+10)" % rb.npc_name, 10.0)
+				rb.add_thought("Pasé una tarde preciosa con %s (+10)" % ra.npc_name, 10.0)
+				ra.need_social = minf(100.0, ra.need_social + 26.0)
+				rb.need_social = minf(100.0, rb.need_social + 26.0)
+				ra._spawn_floating_text("💑✨ Tarde en pareja con %s (+%d)" % [rb.npc_name, d_aff + 2], Color(1.0, 0.62, 0.80), -40.0)
+				vm.record_social_event("date", ra, rb, "%s y %s pasaron la tarde juntos como pareja en %s" % [ra.npc_name, rb.npc_name, spot_lbl])
+			elif st_done in ["dating", "flirt"]:
+				ra.modify_npc_relationship(rb, d_aff + 1, "💞 Tuvieron una cita juntos")
+				ra.add_thought("Disfruté mucho de mi cita con %s (+8)" % rb.npc_name, 8.0)
+				rb.add_thought("Disfruté mucho de mi cita con %s (+8)" % ra.npc_name, 8.0)
+				ra.need_social = minf(100.0, ra.need_social + 24.0)
+				rb.need_social = minf(100.0, rb.need_social + 24.0)
+				ra._spawn_floating_text("💞✨ Cita con %s (+%d)" % [rb.npc_name, d_aff + 1], Color(1.0, 0.70, 0.88), -40.0)
+				vm.record_social_event("date", ra, rb, "%s y %s tuvieron una cita en %s" % [ra.npc_name, rb.npc_name, spot_lbl])
+			else:
+				ra.modify_npc_relationship(rb, d_aff, "Pasaron un buen rato juntos")
+				ra.add_thought("Pasé un buen rato con %s (+6)" % rb.npc_name, 6.0)
+				rb.add_thought("Pasé un buen rato con %s (+6)" % ra.npc_name, 6.0)
+				ra.need_social = minf(100.0, ra.need_social + 20.0)
+				rb.need_social = minf(100.0, rb.need_social + 20.0)
+				ra._spawn_floating_text("☕🤝 Buen rato con %s (+%d)" % [rb.npc_name, d_aff], Color(0.70, 1.0, 0.80), -40.0)
+				vm.record_social_event("hangout", ra, rb, "%s y %s pasaron un rato juntos en %s" % [ra.npc_name, rb.npc_name, spot_lbl])
+			# B3.3: Comprobar si quedar con un tercero despierta celos en alguna pareja actual
+			if st_done != "couple" and (ra.person_profile == null or str(ra.person_profile.partner_id) != rb.get_person_key()):
+				var profs_j: Dictionary = {}
+				var fams_j: Dictionary = {}
+				for kj in by_key.keys():
+					var vj: VillageNPC = by_key[kj]
+					if vj.person_profile != null and not vj.is_dead:
+						profs_j[kj] = vj.person_profile
+						fams_j[kj] = vj.family_id
+				for jev in vm.social_director.trigger_jealousy_if_any(ra.get_person_key(), rb.get_person_key(), profs_j, fams_j, cur_day):
+					var jp: VillageNPC = by_key.get(str(jev.get("partner_id", "")), null)
+					var jc: VillageNPC = by_key.get(str(jev.get("cheater_id", "")), null)
+					var jr: VillageNPC = by_key.get(str(jev.get("rival_id", "")), null)
+					if is_instance_valid(jp) and is_instance_valid(jc) and is_instance_valid(jr):
+						jp.modify_npc_relationship(jc, -8, "💢💔 Celos por pasar tiempo a solas con %s" % jr.npc_name)
+						jp.modify_npc_relationship(jr, -8, "💢 Rival de celos por %s" % jc.npc_name)
+						jp.add_thought("No me gustó ver a %s tan cerca de %s (-8)" % [jc.npc_name, jr.npc_name], -8.0)
+						jp._spawn_floating_text("💢💔 ¡Celos de %s al ver a %s con %s!" % [jp.npc_name, jc.npc_name, jr.npc_name], Color(1.0, 0.42, 0.42), -44.0)
+						vm.record_social_event("jealousy", jp, jc, "%s sintió celos al ver a %s con %s" % [jp.npc_name, jc.npc_name, jr.npc_name])
+
+	# 3. Planificar nuevas quedadas cada pocos segundos en horario social
+	vm._hangout_plan_timer -= delta
+	if vm._hangout_plan_timer > 0.0:
+		return
+	vm._hangout_plan_timer = randf_range(5.0, 8.0)
+	if not vm.social_director.is_social_hour(cur_hour):
+		return
+	# A las 22h se van a dormir: más tarde de las 20:15 no daría tiempo a llegar y pasar el rato
+	if cur_hour == 20 and WorldClock != null and int(WorldClock.current_minute) > 15:
+		return
+	var eligible: Array[VillageNPC] = []
+	for k in by_key.keys():
+		var v3: VillageNPC = by_key[k]
+		if _is_npc_eligible_for_hangout(vm, v3) and v3.hangout_id < 0:
+			eligible.append(v3)
+	if eligible.size() < 2:
+		return
+	var initiator: VillageNPC = eligible[randi() % eligible.size()]
+	var cand_ids: Array = []
+	var positions: Dictionary = {}
+	for v4 in eligible:
+		var key4: String = v4.get_person_key()
+		positions[key4] = v4.global_position
+		if v4 == initiator:
+			continue
+		cand_ids.append(key4)
+		# Sincroniza la afinidad del par con la relación vecinal real (fuente de verdad en VillageNPC)
+		var pe: Dictionary = vm.social_director.get_pair_entry(initiator.get_person_key(), key4, initiator.get_relationship_with_npc(key4))
+		if not pe.is_empty():
+			pe["affinity"] = initiator.get_relationship_with_npc(key4)
+	var hg_new: Dictionary = vm.social_director.try_plan_hangout(initiator.get_person_key(), cand_ids, positions, vm.get_hangout_spots(), cur_hour, cur_day)
+	if hg_new.is_empty():
+		return
+	var pa: VillageNPC = by_key.get(str(hg_new.get("actor_a_id", "")), null)
+	var pb: VillageNPC = by_key.get(str(hg_new.get("actor_b_id", "")), null)
+	if not is_instance_valid(pa) or not is_instance_valid(pb):
+		vm.social_director.cancel_hangout(int(hg_new.get("id", -1)), "missing_actor")
+		return
+	var lbl: String = vm._spot_label_for(str(hg_new.get("spot_id", "")))
+	var sp_pos: Vector2 = hg_new.get("spot_pos", pa.global_position)
+	pa.assign_hangout(int(hg_new["id"]), sp_pos, pb, -1, lbl)
+	pb.assign_hangout(int(hg_new["id"]), sp_pos, pa, 1, lbl)
+	var st_inv: String = vm.social_director.get_pair_stage(pa.get_person_key(), pb.get_person_key())
+	if st_inv == "couple" or (pa.person_profile != null and str(pa.person_profile.partner_id) == pb.get_person_key()):
+		pa._spawn_floating_text("💑 «%s, ¿pasamos la tarde juntos en %s?»" % [pb.npc_name, lbl], Color(1.0, 0.65, 0.82), -36.0)
+	elif st_inv in ["dating", "flirt"]:
+		pa._spawn_floating_text("💞 «%s, ¿vamos un rato a %s?»" % [pb.npc_name, lbl], Color(1.0, 0.72, 0.88), -36.0)
+	else:
+		pa._spawn_floating_text("☕ «%s, ¿nos vemos en %s?»" % [pb.npc_name, lbl], Color(0.85, 0.95, 1.0), -36.0)
+
+static func _get_live_gossip(vm: VillageManager) -> Array[Dictionary]:
+	var today: int = int(WorldClock.current_day) if WorldClock != null else 1
+	var res: Array[Dictionary] = []
+	for i in range(vm.social_event_log.size() - 1, -1, -1):
+		var ev: Dictionary = vm.social_event_log[i]
+		if ev.has("known_by") and today - int(ev.get("day", 0)) <= vm.GOSSIP_MAX_AGE_DAYS:
+			res.append(ev)
+	return res
+
+## B6.1: `teller` cuenta a `listener` la novedad más reciente que este aún no sabe. Si era lo que dijiste de él, le cae mal saberlo.
+static func spread_gossip(vm: VillageManager, teller: VillageNPC, listener: VillageNPC) -> Dictionary:
+	var teller_key: String = teller.get_person_key()
+	var listener_key: String = listener.get_person_key()
+	for ev in _get_live_gossip(vm):
+		var known: Dictionary = ev["known_by"]
+		if known.has(teller_key) and not known.has(listener_key):
+			known[listener_key] = true
+			if str(ev.get("type", "")) == "player_slander" and str(ev.get("target_id", "")) == listener_key:
+				listener.modify_affinity(-5)
+				listener._spawn_floating_text("😠 Se ha enterado de lo que dijiste de él/ella", Color.ORANGE, -46.0)
+			return ev
+	return {}
+
+static func get_news_known_by(vm: VillageManager, npc: VillageNPC, limit: int = 3) -> Array[Dictionary]:
+	var key: String = npc.get_person_key()
+	var res: Array[Dictionary] = []
+	for ev in _get_live_gossip(vm):
+		if res.size() < limit and (ev["known_by"] as Dictionary).has(key):
+			res.append(ev)
+	return res
+
+## B6.2: Noticias públicas: lo que ya corre de boca en boca, sin los comentarios del jugador.
+static func get_public_news(vm: VillageManager, limit: int = 4) -> Array[Dictionary]:
+	var res: Array[Dictionary] = []
+	for ev in _get_live_gossip(vm):
+		if res.size() < limit and str(ev.get("type", "")) != "player_slander" and (ev["known_by"] as Dictionary).size() >= vm.NEWS_MIN_KNOWERS:
+			res.append(ev)
+	return res
