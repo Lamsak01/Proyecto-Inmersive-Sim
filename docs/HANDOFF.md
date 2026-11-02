@@ -96,7 +96,10 @@ timeout 80 flatpak run org.godotengine.Godot --headless --path . -s tools/tests/
 - Los autoloads (`WorldClock`, `GameManager`) **no existen** en `--check-only`; no uses `--check-only` para validar scripts que los usen.
   Valida ejecutando los tests.
 - En scripts de test `extends SceneTree`: asigna `current_scene = main_inst` justo antes de usar código que busca `UI/UIRoot` desde la escena actual.
-- Los Nodos NPC se identifican hoy por `npc_name` (ver riesgo en sección 6).
+- En `tools/tests/verify_all.gd`: NO uses `WorldClock` como identificador directo (usa `wc_speed = root.get_node_or_null("/root/WorldClock")`) ni `VillageNPC.ActivityState.*` (usa los enteros `0`=WORKING, `1`=EATING, `2`=SLEEPING, `3`=SOCIALIZING) para evitar recargas circulares de `VillageNPC.gd` en modo headless.
+- En `tools/tests/names_check.gd`: la línea 111 comprueba el tamaño exacto de `SocialDialogueData.ALL_ACTIONS.size()` (actualmente `11`); actualízalo si añades nuevas acciones sociales.
+- En `VillageManager.gd` y `CampSite.gd`: cualquier `TextureRect` de muro o suelo debe llevar `expand_mode = TextureRect.EXPAND_IGNORE_SIZE` para que las texturas de 128 px no sobresalgan de los tramos cortos.
+- Los Nodos NPC se identifican por `get_person_key()` (`person_profile.person_id`).
 - `VillageNPC.gd` (~4.150 líneas) sigue siendo grande. Intentos de partirlo más: ver nota en sección 6.
 
 ## 5. Mapa del código (lo imprescindible)
