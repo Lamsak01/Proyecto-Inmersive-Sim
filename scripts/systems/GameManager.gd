@@ -101,7 +101,8 @@ func save_game(filepath: String = SAVE_FILE_PATH) -> bool:
 		"domestic_pets": pets_dict,
 		"plains_hostiles": hostiles_dict,
 		"ecosystem": eco_dict,
-		"objectives": ObjectiveManager.to_save_dict() if (ObjectiveManager and ObjectiveManager.has_method("to_save_dict")) else {}
+		"objectives": ObjectiveManager.to_save_dict() if (ObjectiveManager and ObjectiveManager.has_method("to_save_dict")) else {},
+		"quests": QuestManager.to_save_dict() if QuestManager else {}
 	}
 
 	var file := FileAccess.open(filepath, FileAccess.WRITE)
@@ -269,6 +270,10 @@ func load_game(filepath: String = SAVE_FILE_PATH) -> bool:
 		eco.from_save_dict(data["ecosystem"])
 	if ObjectiveManager and ObjectiveManager.has_method("from_save_dict") and data.has("objectives") and typeof(data["objectives"]) == TYPE_DICTIONARY:
 		ObjectiveManager.from_save_dict(data["objectives"])
+	if QuestManager and data.has("quests") and typeof(data["quests"]) == TYPE_DICTIONARY:
+		QuestManager.from_save_dict(data["quests"])
+	elif QuestManager:
+		QuestManager.clear_all() # Partida guardada antes de existir las misiones
 	var c_state: Variant = get_flag("village_crime_state", null)
 	if vm and typeof(c_state) == TYPE_DICTIONARY:
 		vm.player_being_escorted_to_jail = false

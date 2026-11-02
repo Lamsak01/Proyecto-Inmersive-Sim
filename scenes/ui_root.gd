@@ -22,6 +22,7 @@ const ValleyMapUIScript = preload("res://scripts/ui/ValleyMapUI.gd")
 const MedicalPanelUIScript = preload("res://scripts/ui/MedicalPanelUI.gd")
 const SocialGlossaryUIScript = preload("res://scripts/ui/SocialGlossaryUI.gd")
 const SkillsPanelUIScript = preload("res://scripts/ui/SkillsPanelUI.gd")
+const QuestLogUIScript = preload("res://scripts/ui/QuestLogUI.gd")
 
 var tool_wheel: ToolWheelUI = null
 var tavern_games: TavernGamesUI = null
@@ -29,6 +30,7 @@ var valley_map: Control = null
 var medical_panel: Control = null
 var social_glossary: Control = null
 var skills_panel: Control = null
+var quest_log: Control = null
 
 func _ready() -> void:
 	# 1. Find Player if not assigned
@@ -104,6 +106,7 @@ func _ready() -> void:
 	_setup_medical_panel_ui()
 	_setup_social_glossary_ui()
 	_setup_skills_panel_ui()
+	_setup_quest_log_ui()
 	_init_default_objectives()
 	if "inventory" in player and player.inventory:
 		_bind_player_inventory()
@@ -237,6 +240,7 @@ func _unhandled_input(event: InputEvent) -> void:
 					social_glossary.call("toggle_panel")
 				get_viewport().set_input_as_handled()
 			elif event.physical_keycode == KEY_K:
+				_close_quest_log()
 				if tool_wheel and tool_wheel.visible:
 					tool_wheel.close_wheel(false)
 				if inv_panel and inv_panel.visible:
@@ -250,7 +254,27 @@ func _unhandled_input(event: InputEvent) -> void:
 				if skills_panel and skills_panel.has_method("toggle_panel"):
 					skills_panel.call("toggle_panel")
 				get_viewport().set_input_as_handled()
+			elif event.physical_keycode == KEY_L:
+				var was_open: bool = quest_log != null and quest_log.visible
+				_close_skills_panel()
+				if tool_wheel and tool_wheel.visible:
+					tool_wheel.close_wheel(false)
+				if inv_panel and inv_panel.visible:
+					inv_panel.visible = false
+				if medical_panel and medical_panel.visible:
+					medical_panel.call("close_panel")
+				if social_glossary and social_glossary.visible:
+					social_glossary.call("close_panel")
+				if valley_map and bool(valley_map.get("is_full_map_open")):
+					valley_map.call("close_full_map")
+				if quest_log and not was_open:
+					quest_log.call("open_panel")
+				get_viewport().set_input_as_handled()
 			elif event.keycode == KEY_ESCAPE:
+				if quest_log and quest_log.visible:
+					quest_log.call("close_panel")
+					get_viewport().set_input_as_handled()
+					return
 				if skills_panel and skills_panel.visible:
 					skills_panel.call("close_panel")
 					get_viewport().set_input_as_handled()
@@ -277,7 +301,16 @@ func _setup_skills_panel_ui() -> void:
 	skills_panel.set("player", player)
 	add_child(skills_panel)
 
+func _close_quest_log() -> void:
+	if quest_log and quest_log.visible:
+		quest_log.call("close_panel")
+
+func _setup_quest_log_ui() -> void:
+	quest_log = QuestLogUIScript.new()
+	add_child(quest_log)
+
 func _close_skills_panel() -> void:
+	_close_quest_log()
 	if skills_panel and skills_panel.visible:
 		skills_panel.call("close_panel")
 

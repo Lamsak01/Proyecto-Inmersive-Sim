@@ -146,7 +146,7 @@ Otros documentos antiguos en la raíz: `ROADMAP_PROYECTO.md`, `AUDIT_LOG.md`, `S
 
 ## 7. Estado y siguiente bloque
 
-**Estado del código:** vida social completa (Fases 0 a 6) y subida a `main`; los cuatro tests pasan. Refuerzo del código (R1–R5) terminado. M1 (móvil social en investigaciones) hecho. **Siguiente:** M2 (vida social en el tablón de encargos): el usuario quiere hacerlo de otra forma distinta a la propuesta (mediación como 4.º encargo, rechazada); pregúntale cómo antes de empezar. Historial en `CHANGELOG.md`.
+**Estado del código:** vida social completa (Fases 0 a 6) y subida a `main`; los cuatro tests pasan. Refuerzo del código (R1–R5) terminado. M1 (móvil social en investigaciones) y Q1 (panel de misiones) hechos. **Siguiente:** Q2 (los vecinos generan misiones), pedir aprobación antes de empezar. Historial en `CHANGELOG.md`.
 
 ### Bloques del sistema de Vida Social (marca [x] al terminar y commitea)
 
@@ -205,7 +205,11 @@ Cada fase se dividirá en bloques pequeños cuando se llegue a ella (detalle en 
 
 ### Vida social conectada con misiones e investigaciones
 - [x] **M1** HECHO. Móvil social en `VillageJustice.gd`: al abrir el caso, quien se peleó con la víctima o tiene una enemistad larga con ella (relación ≤ −30 y ≥10 días de roce) suma +10 de sospecha y una pista; las calumnias del jugador sobre la víctima que conocen ≥3 vecinos le dan móvil a él. En el interrogatorio, un testigo que conozca una pelea, enemistad, ruptura o calumnia con la víctima la cuenta (+8). Un solo móvil por sospechoso; nunca decide solo (la coartada sigue mandando). Test #34.
-- [ ] **M2** Vida social en el tablón: la propuesta de "reconciliar a X e Y" fue rechazada; preguntar al usuario su idea.
+- [x] **M2** Sustituido por las misiones personales (bloques Q). El tablón no se toca.
+- [x] **Q1** HECHO. Autoload `QuestManager` (`scripts/systems/QuestManager.gd`): misiones con categoría `side`/`main` y estado `active`/`completed`/`failed`, notas y `data` libre; se guarda en la partida (clave `quests`). Panel `scripts/ui/QuestLogUI.gd` con la tecla **L** (la J es el glosario), pestañas Secundarias y Principal. `ObjectiveManager` (objetivos antiguos) no se toca. Test #35.
+- [ ] **Q2** Los vecinos generan misiones: probabilidad diaria baja si viven algo fuerte, máximo 2–3 a la vez, ❗ sobre la cabeza, aceptar o rechazar en el diálogo. Primeros tipos: 1 y 2.
+- [ ] **Q3** Resto de tipos: 3, 4 y 5.
+- [ ] **Q4** Medir en partidas largas que salgan de forma ocasional.
 
 ## 8. Decisiones de diseño ya tomadas (no volver a preguntarlas)
 
@@ -224,6 +228,10 @@ Cada fase se dividirá en bloques pequeños cuando se llegue a ella (detalle en 
   vecinos pelea >2 veces); ningún vecino sin amigos; más de la mitad de las relaciones entre −20 y +40.
 - Arquitectura: **Director Social central** (decide la escena), aldeanos solo ejecutan; relaciones con 4 medidas (afinidad, familiaridad, atracción, tensión),
   enfriamiento sin contacto, "narrador" que dosifica el drama, todos los ajustes en una única tabla de diales, aleatoriedad con semilla.
+
+- **Misiones secundarias**: nacen de los vecinos en persona (nunca del tablón), con baja probabilidad, y se ven en un panel propio (tecla L) que tendrá también la historia principal. Sin fecha límite fija; fallan si pasa algo en el mundo (p. ej. muere quien la pidió).
+  Tipos aprobados: 1) «Haz las paces por mí» (mediación), 2) «Ensúciale el nombre» (calumnia; da móvil en investigaciones), 3) «¿Quién va contando eso de mí?» (puedes mentir si fuiste tú),
+  4) «Encuentra a quien lo mató» (se resuelve con el veredicto), 5) «Averigua qué piensa de mí» (solo información, no fuerza parejas).
 
 ## 9. Cómo cerrar una sesión
 

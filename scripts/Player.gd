@@ -575,7 +575,7 @@ func is_any_ui_modal_open() -> bool:
 		return true
 	var ui_root = get_tree().current_scene.get_node_or_null("UI/UIRoot") if get_tree().current_scene else null
 	if ui_root:
-		for ui_key in ["inv_panel", "tool_wheel", "tavern_games", "medical_panel", "social_glossary", "skills_panel"]:
+		for ui_key in ["inv_panel", "tool_wheel", "tavern_games", "medical_panel", "social_glossary", "skills_panel", "quest_log"]:
 			var ctrl = ui_root.get(ui_key)
 			if ctrl is Control and ctrl.visible:
 				return true
