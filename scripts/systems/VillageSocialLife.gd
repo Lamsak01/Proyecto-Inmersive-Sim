@@ -423,6 +423,7 @@ static func get_public_news(vm: VillageManager, limit: int = 4) -> Array[Diction
 
 ## U2: reciprocidad lenta del aprecio. Cada día, quien siente bastante menos que el otro se acerca un 5 % de la
 ## diferencia (1 o 2 puntos): a uno le acaba cayendo mejor quien le aprecia, y peor quien le desprecia, sin igualarse del todo.
+const RECIPROCITY_MIN_GAP: int = 20 # U7: por debajo no se corrige (deja sitio a cariños desiguales)
 static func daily_reciprocity(vm: VillageManager) -> void:
 	var npcs: Array = []
 	for n in vm.get_tree().get_nodes_in_group("village_npcs"):
@@ -435,7 +436,7 @@ static func daily_reciprocity(vm: VillageManager) -> void:
 			var ra: int = a.get_relationship_with_npc(b.get_person_key())
 			var rb: int = b.get_relationship_with_npc(a.get_person_key())
 			var gap: int = ra - rb
-			if absi(gap) < 10:
+			if absi(gap) < RECIPROCITY_MIN_GAP:
 				continue
 			var step: int = clampi(int(round(float(gap) * 0.05)), -2, 2)
 			if step == 0:

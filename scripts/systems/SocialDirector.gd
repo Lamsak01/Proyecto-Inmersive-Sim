@@ -164,13 +164,18 @@ func _spark_sides(k: String, pe: Dictionary) -> Dictionary:
 
 ## U2: cuánto cambia lo que siente `prof_self` por `prof_other` con un mismo suceso de valor `d`.
 ## Lo bueno cala más en el sociable; las manías (`TraitCatalog.IRRITATES`) lo estropean; lo malo duele más al rencoroso.
+## U7: «química» fija de cada uno hacia cada otro (−0,35 a +0,35): hay gente con la que simplemente se conecta más.
+static func chemistry(prof_self, prof_other) -> float:
+	var h: int = abs(("chem:" + str(prof_self.person_id) + ">" + str(prof_other.person_id)).hash())
+	return float(h % 71 - 35) / 100.0
+
 static func side_delta(prof_self, prof_other, d: int) -> int:
 	if prof_self == null or prof_other == null or d == 0:
 		return d
 	var irr: int = TraitCatalog.irritation_count(prof_self.personality, prof_other.personality)
 	var v: float = float(d)
 	if d > 0:
-		v *= clampf(1.0 + 0.15 * TraitCatalog.tendency(prof_self.personality, "sociability"), 0.6, 1.4)
+		v *= clampf(1.0 + 0.3 * TraitCatalog.tendency(prof_self.personality, "sociability"), 0.4, 1.8) * (1.0 + chemistry(prof_self, prof_other))
 		if irr > 0:
 			v = v * 0.5 - 2.0 * float(irr)
 	else:
