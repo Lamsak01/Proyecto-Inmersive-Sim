@@ -6,6 +6,7 @@ El detalle técnico está en `docs/HANDOFF.md` (sección 7) y el historial compl
 ## 2026-11-02
 
 ### Correcciones y pruebas
+- Limpiados los 14 avisos amarillos que mostraba Godot. No eran fallos y el juego no cambia.
 - Los rumores que corren de boca en boca ya no dicen quién los empezó (antes se colaba el nombre del autor, lo que estropeaba la misión de averiguarlo).
 - Si un guardia tiene que escoltarte mientras está peleando con un vecino, ahora deja la pelea al momento (antes tardaba unos segundos).
 - Nueva prueba de guardar y cargar con misiones, ofertas y rasgos descubiertos; todo se conserva bien.

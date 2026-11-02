@@ -265,7 +265,7 @@ static func _player_gossip(npc: VillageNPC, player: Node, mode: String, target_k
 	npc._spawn_floating_text("🤫 %s se queda pensando en %s" % [npc.npc_name, target.npc_name], Color(0.80, 0.90, 1.0), -36.0)
 	vm.record_social_event("player_gossip" if positive else "player_slander", npc, target, "El forastero habló %s de %s a %s" % ["bien" if positive else "mal", target.npc_name, npc.npc_name])
 
-static func _make_armor_menu(npc: VillageNPC, title: String, menu_key: String, items: Array) -> Dictionary:
+static func _make_armor_menu(_npc: VillageNPC, title: String, menu_key: String, items: Array) -> Dictionary:
 	var ch: Array[Dictionary] = []
 	for it in items:
 		ch.append({"label": str(it[0]), "next": menu_key, "action": "buy_armor:%s:%d" % [str(it[1]), int(it[2])]})

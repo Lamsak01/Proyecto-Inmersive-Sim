@@ -41,6 +41,7 @@ var building_footprints: Array[Dictionary] = []
 var _wall_occluder_rects: Array[Rect2] = []
 
 # Paso 1: Hospital de Urgencias, Morgue Forense (Máx. 3 Camillas), Iglesia y Cementerio Parroquial
+@warning_ignore("unused_private_class_variable") # Se usa desde otro script (vm._hospital_center)
 var _hospital_center := Vector2(745, 148)
 var _hospital_bed_pos := Vector2(710, 132)
 var _morgue_table_positions: Array[Vector2] = [
@@ -56,6 +57,7 @@ var _hospital_bed_label: Label = null
 var _morgue_label: Label = null
 
 # Iglesia de San Cipriano y Cementerio Parroquial (Sur del Hospital y la Comisaría)
+@warning_ignore("unused_private_class_variable") # Se usa desde otro script (vm._church_center)
 var _church_center := Vector2(745, 312)
 var _church_altar_pos := Vector2(745, 336)
 var _cemetery_gate_pos := Vector2(888, 262)
@@ -68,6 +70,7 @@ var church_panel: PanelContainer = null
 var church_info_lbl: Label = null
 
 # Paso 2: Comisaría, Cárcel y Sistema Realista de Testigos ("Me vieron entrar a la casa")
+@warning_ignore("unused_private_class_variable") # Se usa desde otro script (vm._police_center)
 var _police_center := Vector2(915, 148)
 var _jail_cell_pos := Vector2(886, 172)
 var wanted_level: int = 0
@@ -88,6 +91,7 @@ var _last_player_building_id: String = ""
 var _sighting_check_timer: float = 0.0
 var _police_confront_cooldown: float = 0.0
 var _jail_label: Label = null
+@warning_ignore("unused_private_class_variable") # Se usa desde otro script (vm._jail_cell_gate_body)
 var _jail_cell_gate_body: StaticBody2D = null
 var _jail_cell_gate_col: CollisionShape2D = null
 var _jail_cell_gate_spr_closed: Sprite2D = null
@@ -2783,6 +2787,7 @@ func _use_compost_bin(player: Node2D) -> void:
 # ==============================================================================
 # B2.2: QUEDADAS FÍSICAS (Pasar tiempo juntos) — el SocialDirector decide, aquí se ejecuta en el mundo
 # ==============================================================================
+@warning_ignore("unused_private_class_variable") # Se usa desde otro script (vm._hangout_plan_timer)
 var _hangout_plan_timer: float = 6.0
 const HANGOUT_ARRIVAL_RADIUS: float = 20.0
 
@@ -2823,6 +2828,7 @@ const FIGHT_DURATION_SEC: float = 3.5
 const FIGHT_GUARD_STOP_SEC: float = 1.6
 const FIGHT_HEALTH_FLOOR: float = 0.35
 var _live_fights: Array[Dictionary] = []
+@warning_ignore("unused_private_class_variable") # Se usa desde otro script (vm._fight_scan_timer)
 var _fight_scan_timer: float = 3.0
 
 func _is_npc_free_to_fight(v: VillageNPC) -> bool:

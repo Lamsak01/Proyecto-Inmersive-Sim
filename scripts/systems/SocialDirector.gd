@@ -132,9 +132,9 @@ func get_pair_entry(id_a: String, id_b: String, initial_affinity: int = 0) -> Di
 	if not pair_metrics.has(k):
 		pair_metrics[k] = {
 			"affinity": clampi(initial_affinity, -100, 100),
-			"familiarity": clampi(maxi(0, initial_affinity / 2), 0, 100),
+			"familiarity": clampi(maxi(0, int(initial_affinity / 2.0)), 0, 100),
 			"spark": 0,
-			"tension": clampi(maxi(0, -initial_affinity / 2), 0, 100),
+			"tension": clampi(maxi(0, int(-initial_affinity / 2.0)), 0, 100),
 			"stage": STAGE_NONE,
 			"fights_count": 0,
 			"last_contact_day": 1,
@@ -195,10 +195,10 @@ func compute_compatibility(prof_a, prof_b, same_family: bool = false) -> int:
 	for dl in prof_a.dislikes:
 		if dl in prof_b.likes:
 			score += int(dials.get("compat_like_vs_dislike_penalty", -16))
-	for tr in prof_a.personality:
-		if tr in prof_b.personality:
+	for t_name in prof_a.personality:
+		if t_name in prof_b.personality:
 			score += int(dials.get("compat_shared_trait_bonus", 10))
-		var opp: String = str(PersonProfile.OPPOSITE_TRAITS.get(tr, ""))
+		var opp: String = str(PersonProfile.OPPOSITE_TRAITS.get(t_name, ""))
 		if opp != "" and (opp in prof_b.personality):
 			score += int(dials.get("compat_opposite_trait_penalty", -22))
 	return clampi(score, 0, 100)
@@ -1158,9 +1158,9 @@ func simulate_social_day(current_day: int, profiles_by_id: Dictionary, families_
 		for lk in prof_a.likes:
 			if lk in prof_b.likes: social_harmony += 1
 			if lk in prof_b.dislikes: social_harmony -= 1
-		for tr in prof_a.personality:
-			if tr in prof_b.personality: social_harmony += 1
-			var opp: String = str(PersonProfile.OPPOSITE_TRAITS.get(tr, ""))
+		for t_name in prof_a.personality:
+			if t_name in prof_b.personality: social_harmony += 1
+			var opp: String = str(PersonProfile.OPPOSITE_TRAITS.get(t_name, ""))
 			if opp != "" and (opp in prof_b.personality): social_harmony -= 2
 
 		var cur_aff: int = int(pe.get("affinity", 0))

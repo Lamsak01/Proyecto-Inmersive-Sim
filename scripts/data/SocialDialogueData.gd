@@ -467,8 +467,8 @@ static func find_clashing_taste(profile_a: Dictionary, profile_b: Dictionary) ->
 
 static func _pick_from_pool(pool_by_trait: Dictionary, traits: Array, rng: RandomNumberGenerator = null) -> String:
 	var candidates: Array[String] = []
-	for tr in traits:
-		var tr_str := str(tr)
+	for t_name in traits:
+		var tr_str := str(t_name)
 		if pool_by_trait.has(tr_str):
 			for line in pool_by_trait[tr_str]:
 				candidates.append(str(line))

@@ -15,7 +15,7 @@ const NPC_SLANDER_REL: int = -30
 ## cada función recibe al VillageManager como primer parámetro (`vm`); VillageManager mantiene llamadas finas con los mismos nombres
 ## y conserva el estado (`_live_fights`, temporizadores y constantes). `SocialDirector` decide; aquí se aplica en el mundo.
 
-static func _is_npc_eligible_for_hangout(vm: VillageManager, v: VillageNPC) -> bool:
+static func _is_npc_eligible_for_hangout(_vm: VillageManager, v: VillageNPC) -> bool:
 	if not is_instance_valid(v) or v.is_dead or v.is_downed or v.is_sleeping or v.is_hostile or v.is_incapacitated():
 		return false
 	if v.trade_role in [VillageNPC.TradeRole.TRAVELING_MERCHANT, VillageNPC.TradeRole.ROYAL_INVESTIGATOR]:
