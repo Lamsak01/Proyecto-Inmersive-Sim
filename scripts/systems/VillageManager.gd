@@ -1371,7 +1371,7 @@ func record_social_event(type_str: String, actor: VillageNPC, target: VillageNPC
 	return entry
 
 ## B6.1: Eventos que merecen chisme. Son solo información: no mueven relaciones entre vecinos.
-const GOSSIP_EVENT_TYPES: Array[String] = ["fight", "breakup", "couple", "couple_reconciled", "widowed", "feud", "reconciliation", "player_slander"]
+const GOSSIP_EVENT_TYPES: Array[String] = ["fight", "breakup", "couple", "couple_reconciled", "feud", "reconciliation", "player_slander"] # Sin "widowed": revelaría muertes aún sin descubrir
 const GOSSIP_MAX_AGE_DAYS: int = 10
 const NEWS_MIN_KNOWERS: int = 3
 
@@ -3320,7 +3320,7 @@ func _is_npc_eligible_for_hangout(v: VillageNPC) -> bool:
 		return false
 	if v.trade_role in [VillageNPC.TradeRole.TRAVELING_MERCHANT, VillageNPC.TradeRole.ROYAL_INVESTIGATOR]:
 		return false
-	if v.is_vagrant_camper or v.current_activity != VillageNPC.ActivityState.SOCIALIZING:
+	if v.is_vagrant_camper or v.is_in_live_fight() or v.current_activity != VillageNPC.ActivityState.SOCIALIZING:
 		return false
 	if v.person_profile != null and int(v.person_profile.bereavement_days_left) > 0:
 		return false
@@ -3428,7 +3428,7 @@ func _update_live_fights(delta: float) -> void:
 		# Mientras el jugador habla con uno de ellos la pelea espera, para que pueda decidir si los separa
 		if interrupted or not (a.is_busy_with_player() or b.is_busy_with_player()):
 			fight["elapsed"] = float(fight["elapsed"]) + delta
-		var guard_stops: bool = is_instance_valid(fight["guard"]) and float(fight["elapsed"]) >= FIGHT_GUARD_STOP_SEC
+		var guard_stops: bool = is_instance_valid(fight["guard"]) and fight["guard"].is_conscious() and float(fight["elapsed"]) >= FIGHT_GUARD_STOP_SEC
 		if interrupted or guard_stops or float(fight["elapsed"]) >= FIGHT_DURATION_SEC:
 			_live_fights.remove_at(i)
 			_finish_live_fight(fight, a, b, interrupted, guard_stops)
@@ -3456,6 +3456,7 @@ func _finish_live_fight(fight: Dictionary, a: VillageNPC, b: VillageNPC, interru
 		if v != null:
 			v.end_live_fight()
 	if interrupted:
+		social_director.refund_live_fight(res)
 		return
 	a.modify_npc_relationship(b, int(res.get("relationship_delta", -14)), "💢 Llegaron a las manos")
 	a._npc_social_event_cooldown = randf_range(40.0, 70.0)
@@ -3477,6 +3478,9 @@ func _finish_live_fight(fight: Dictionary, a: VillageNPC, b: VillageNPC, interru
 		winner.add_thought("Le paré los pies a %s (+2)" % loser.npc_name, 2.0)
 		loser.add_thought("%s me dio una paliza (-8)" % winner.npc_name, -8.0)
 		summary = "%s y %s se pelearon; %s salió peor parado" % [winner.npc_name, loser.npc_name, loser.npc_name]
+	var knowers: Dictionary = {}
+	if guard_stops and is_instance_valid(fight["guard"]):
+		knowers[fight["guard"].get_person_key()] = true
 	var witnesses: int = 0
 	for n in get_tree().get_nodes_in_group("village_npcs"):
 		if n == a or n == b or not (n is VillageNPC) or witnesses >= 3:
@@ -3484,8 +3488,9 @@ func _finish_live_fight(fight: Dictionary, a: VillageNPC, b: VillageNPC, interru
 		var w: VillageNPC = n as VillageNPC
 		if w.is_conscious() and w.global_position.distance_to(a.global_position) <= FIGHT_WITNESS_RADIUS:
 			w.add_thought("Vi pelearse a %s y %s (-2)" % [a.npc_name, b.npc_name], -2.0)
+			knowers[w.get_person_key()] = true
 			witnesses += 1
-	record_social_event("fight", winner, loser, summary)
+	(record_social_event("fight", winner, loser, summary)["known_by"] as Dictionary).merge(knowers)
 
 func _update_social_hangouts(delta: float) -> void:
 	if social_director == null or not is_inside_tree():
@@ -3573,6 +3578,9 @@ func _update_social_hangouts(delta: float) -> void:
 		return
 	_hangout_plan_timer = randf_range(5.0, 8.0)
 	if not social_director.is_social_hour(cur_hour):
+		return
+	# A las 22h se van a dormir: más tarde de las 20:15 no daría tiempo a llegar y pasar el rato
+	if cur_hour == 20 and WorldClock != null and int(WorldClock.current_minute) > 15:
 		return
 	var eligible: Array[VillageNPC] = []
 	for k in by_key.keys():
@@ -6599,6 +6607,11 @@ func load_economy_save_dict(data: Dictionary) -> void:
 				social_event_log.append((ev_it as Dictionary).duplicate())
 		while social_event_log.size() > MAX_SOCIAL_EVENT_LOG:
 			social_event_log.remove_at(0)
+	for live_fight in _live_fights:
+		for fighter in [live_fight["a"], live_fight["b"]]:
+			if is_instance_valid(fighter):
+				fighter.end_live_fight()
+	_live_fights.clear()
 	if data.has("social_director") and typeof(data["social_director"]) == TYPE_DICTIONARY and social_director != null:
 		social_director.from_save_dict(data["social_director"] as Dictionary)
 	if data.has("crime_history") and typeof(data["crime_history"]) == TYPE_ARRAY:

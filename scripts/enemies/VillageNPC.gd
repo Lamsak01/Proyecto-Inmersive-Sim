@@ -3383,7 +3383,7 @@ func is_busy_with_player() -> bool:
 	return _being_interviewed_timer > 0.0 or (is_instance_valid(_cached_dm) and bool(_cached_dm.get("active")) and _cached_dm.get("current_speaker") == self)
 
 func is_busy_with_emergency() -> bool:
-	return is_instance_valid(_reporting_corpse_target) or is_instance_valid(_searching_missing_kin) or is_instance_valid(_reacting_unconscious_target)
+	return is_instance_valid(_reporting_corpse_target) or is_instance_valid(_searching_missing_kin) or is_instance_valid(_reacting_unconscious_target) or is_instance_valid(_carrying_corpse_target)
 
 func begin_live_fight(partner: VillageNPC) -> void:
 	live_fight_partner = partner

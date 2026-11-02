@@ -805,7 +805,7 @@ func _initialize() -> void:
 		sd4.last_drama_day = -10
 		vm._live_fights.clear()
 		sd4.dials["live_fight_daily_chance"] = 10.0
-		sd4.set_pair_metrics(f_a.get_person_key(), f_b.get_person_key(), -20, 40, 0, tension_v)
+		sd4.set_pair_metrics(f_a.get_person_key(), f_b.get_person_key(), -35, 40, 0, tension_v)
 		sd4.get_pair_entry(f_a.get_person_key(), f_b.get_person_key())["enmity_days"] = 10
 		for fv in [f_a, f_b]:
 			fv.is_sleeping = false
@@ -858,6 +858,17 @@ func _initialize() -> void:
 	vm._update_live_fights(1.7)
 	assert(vm._live_fights.is_empty(), "B4.2: Guard must stop the fight early")
 	assert(f_a.health_comp.wounds.size() + f_b.health_comp.wounds.size() == wounds_guard4, "B4.2: A stopped fight leaves no wound")
+	# Una pelea interrumpida no gasta el cupo y unos ex enemigos reconciliados ya no pelean
+	prepare_fight.call(45, int(wc_speed.current_day) + 20)
+	vm._try_start_live_fight()
+	vm._fight_scan_timer = 999.0
+	f_b.is_hostile = true
+	vm._update_live_fights(0.01)
+	f_b.is_hostile = false
+	var pe_refund: Dictionary = sd4.get_pair_entry(f_a.get_person_key(), f_b.get_person_key())
+	assert(int(pe_refund["fights_count"]) == 0 and int(pe_refund["tension"]) == 45, "B6.4: An interrupted fight must be refunded")
+	pe_refund["affinity"] = 40
+	assert(not sd4.can_pair_fight(f_a.get_person_key(), f_b.get_person_key(), int(wc_speed.current_day) + 40), "B6.4: Reconciled pairs must not fight")
 	# Dos rivales que se cruzan acumulan tensión, una sola vez al día
 	prepare_fight.call(0, int(wc_speed.current_day) + 20)
 	f_a.npc_relationships[f_b.get_person_key()] = -30

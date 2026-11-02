@@ -52,10 +52,10 @@ const DIALS: Dictionary = {
 	"max_concurrent_hangouts": 2,
 	"hangout_min_affinity": 25,
 	"hangout_min_spark": 18,
-	"hangout_social_hours": [12, 18, 19, 20, 21],  # Comida (12h) y tarde libre (18-21h)
+	"hangout_social_hours": [12, 18, 19, 20],  # Comida (12h) y tarde libre; a las 21h ya no da tiempo antes de ir a dormir (22h)
 	"hangout_max_per_person_per_day": 1,
 	"hangout_travel_timeout_sec": 60.0,
-	"hangout_together_sec": 45.0,
+	"hangout_together_sec": 22.0, # ~1,5 horas de juego: con 45 s casi todas se cortaban a las 22h
 	"hangout_bonus_affinity_min": 3,
 	"hangout_bonus_affinity_max": 6,
 	"hangout_bonus_familiarity_min": 4,
@@ -429,7 +429,7 @@ func tick(delta: float, _vm: Node = null) -> void:
 
 ## ¿Es hora libre/social? (comida y tarde tras el turno laboral 08-18h)
 func is_social_hour(hour: int) -> bool:
-	var hours: Array = dials.get("hangout_social_hours", [12, 18, 19, 20, 21])
+	var hours: Array = dials.get("hangout_social_hours", [12, 18, 19, 20])
 	return hour in hours
 
 ## Los rivales se evitan: afinidad muy baja o tensión alta.
@@ -571,7 +571,7 @@ func start_hangout(id_a: String, id_b: String, spot: Dictionary, current_day: in
 		"arrived_a": false,
 		"arrived_b": false,
 		"travel_remaining": float(dials.get("hangout_travel_timeout_sec", 60.0)),
-		"together_remaining": float(dials.get("hangout_together_sec", 45.0)),
+		"together_remaining": float(dials.get("hangout_together_sec", 22.0)),
 		"started_day": current_day,
 	}
 	active_hangouts.append(hg)
@@ -918,17 +918,23 @@ func can_pair_fight(id_a: String, id_b: String, current_day: int, same_family: b
 	var pe: Dictionary = pair_metrics[k]
 	if int(pe.get("enmity_days", 0)) < int(dials.get("live_fight_min_enmity_days", 10)):
 		return false
+	if int(pe.get("affinity", 0)) > int(dials.get("rival_friction_max_rel", -30)):
+		return false # Ya no son enemigos, aunque lo fueran en el pasado
 	if int(pe.get("fights_count", 0)) >= int(dials.get("max_fights_per_pair", 2)):
 		return false
 	return int(pe.get("tension", 0)) >= int(dials.get("live_fight_tension_threshold", 28))
 
 ## B4.2: Roce al cruzarse dos enemigos: acumula días de enemistad y algo de tensión, una vez al día por par.
 func register_rival_encounter(id_a: String, id_b: String, relationship: int, current_day: int) -> bool:
-	if relationship > int(dials.get("rival_friction_max_rel", -15)):
+	if relationship > int(dials.get("rival_friction_max_rel", -30)):
+		var k: String = make_pair_key(id_a, id_b)
+		if pair_metrics.has(k):
+			pair_metrics[k]["enmity_days"] = 0 # Si dejan de ser enemigos, la enemistad hay que volver a cultivarla
 		return false
 	var pe: Dictionary = get_pair_entry(id_a, id_b, relationship)
 	if pe.is_empty() or int(pe.get("friction_day", -1)) == current_day:
 		return false
+	pe["affinity"] = relationship
 	pe["friction_day"] = current_day
 	pe["enmity_days"] = int(pe.get("enmity_days", 0)) + 1
 	pe["last_contact_day"] = current_day
@@ -954,7 +960,9 @@ func resolve_player_gossip(listener_id: String, target_id: String, listener_rel:
 	var sign_v: int = 1 if positive else -1
 	var pe: Dictionary = get_pair_entry(listener_id, target_id, listener_rel)
 	pe["tension"] = clampi(int(pe.get("tension", 0)) - 3 * sign_v, 0, 100)
-	return {"allowed": true, "success": true, "delta_rel": rng.randi_range(4, 8) * sign_v}
+	var delta_rel: int = rng.randi_range(4, 8) * sign_v
+	pe["affinity"] = clampi(listener_rel + delta_rel, -100, 100)
+	return {"allowed": true, "success": true, "delta_rel": delta_rel}
 
 ## B5.3: Mediar: como hablar bien, pero si convence también enfría la enemistad acumulada.
 func resolve_player_mediation(listener_id: String, target_id: String, listener_rel: int, charisma_level: int, player_affinity: int, current_day: int) -> Dictionary:
@@ -977,6 +985,17 @@ func resolve_player_matchmaking(listener_id: String, target_id: String, listener
 	if bool(res.get("success", false)):
 		_add_spark_capped(get_pair_entry(listener_id, target_id, listener_rel), rng.randi_range(6, 10), current_day)
 	return res
+
+## B6.4: Una pelea interrumpida (alguien cae o se vuelve hostil) no cuenta: devuelve lo que `try_resolve_live_fight` anotó.
+func refund_live_fight(res: Dictionary) -> void:
+	last_drama_day = int(res.get("prev_drama_day", -10))
+	total_fights_triggered = maxi(0, total_fights_triggered - 1)
+	var k: String = make_pair_key(str(res.get("id_a", "")), str(res.get("id_b", "")))
+	if pair_metrics.has(k):
+		var pe: Dictionary = pair_metrics[k]
+		pe["fights_count"] = maxi(0, int(pe.get("fights_count", 0)) - 1)
+		pe["tension"] = clampi(int(pe.get("tension", 0)) + 26, 0, 100)
+		pe["affinity"] = clampi(int(pe.get("affinity", 0)) - int(res.get("relationship_delta", -14)), -100, 100)
 
 ## B4.2: Pares que hoy podrían pelear (no comprueba la familia; lo hace `try_resolve_live_fight`).
 func get_fight_ready_pairs(current_day: int) -> Array:
@@ -1047,6 +1066,7 @@ func try_resolve_live_fight(npc_a, npc_b, current_day: int = 1, force_roll: bool
 	pe["fights_count"] = int(pe.get("fights_count", 0)) + 1
 	pe["tension"] = clampi(int(pe.get("tension", 0)) - 26, 0, 100)
 	var rel_delta: int = -14
+	var prev_drama_day: int = last_drama_day
 	pe["affinity"] = clampi(int(pe.get("affinity", 0)) + rel_delta, -100, 100)
 	pe["last_contact_day"] = current_day
 	last_drama_day = current_day
@@ -1063,6 +1083,9 @@ func try_resolve_live_fight(npc_a, npc_b, current_day: int = 1, force_roll: bool
 		"roll_a": total_a,
 		"roll_b": total_b,
 		"relationship_delta": rel_delta,
+		"id_a": id_a,
+		"id_b": id_b,
+		"prev_drama_day": prev_drama_day,
 		"fights_count": int(pe["fights_count"]),
 		"tension_after": int(pe["tension"]),
 		"affinity_after": int(pe["affinity"]),
