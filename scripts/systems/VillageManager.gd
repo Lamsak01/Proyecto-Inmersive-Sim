@@ -954,15 +954,17 @@ func record_social_event(type_str: String, actor: VillageNPC, target: VillageNPC
 	if type_str in GOSSIP_EVENT_TYPES:
 		# B6.1: Al principio solo lo saben sus protagonistas; lo que el jugador dijo a escondidas no lo sabe el aludido
 		entry["known_by"] = {a_id: true}
-		if t_id != "" and type_str != "player_slander":
+		if t_id != "" and not type_str in ["player_slander", "npc_slander"]:
 			entry["known_by"][t_id] = true
+		# Q3: de quién oyó cada uno el chisme, para poder seguir la pista hasta el origen
+		entry["heard_from"] = {a_id: "player"} if type_str == "player_slander" else {}
 	social_event_log.append(entry)
 	while social_event_log.size() > MAX_SOCIAL_EVENT_LOG:
 		social_event_log.remove_at(0)
 	return entry
 
 ## B6.1: Eventos que merecen chisme. Son solo información: no mueven relaciones entre vecinos.
-const GOSSIP_EVENT_TYPES: Array[String] = ["fight", "breakup", "couple", "couple_reconciled", "feud", "reconciliation", "player_slander"] # Sin "widowed": revelaría muertes aún sin descubrir
+const GOSSIP_EVENT_TYPES: Array[String] = ["fight", "breakup", "couple", "couple_reconciled", "feud", "reconciliation", "player_slander", "npc_slander"] # Sin "widowed": revelaría muertes aún sin descubrir
 const GOSSIP_MAX_AGE_DAYS: int = 10
 const NEWS_MIN_KNOWERS: int = 3
 
@@ -971,6 +973,9 @@ func _get_live_gossip() -> Array[Dictionary]:
 
 func spread_gossip(teller: VillageNPC, listener: VillageNPC) -> Dictionary:
 	return VillageSocialLife.spread_gossip(self, teller, listener)
+
+func try_npc_slander(speaker: VillageNPC, listener: VillageNPC, chance: float = VillageSocialLife.NPC_SLANDER_CHANCE) -> Dictionary:
+	return VillageSocialLife.try_npc_slander(self, speaker, listener, chance)
 
 func get_news_known_by(npc: VillageNPC, limit: int = 3) -> Array[Dictionary]:
 	return VillageSocialLife.get_news_known_by(self, npc, limit)

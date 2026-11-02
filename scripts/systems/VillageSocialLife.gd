@@ -1,6 +1,13 @@
 @tool
 extends RefCounted
 
+const VillageQuests = preload("res://scripts/systems/VillageQuests.gd")
+
+## Q3: Un vecino rencoroso o chismoso a veces habla mal de su rival a quien tiene delante.
+const NPC_SLANDER_CHANCE: float = 0.10
+const NPC_SLANDER_REL: int = -40
+const NPC_SLANDER_TRAITS: Array[String] = ["Rencoroso", "Chismoso"]
+
 ## Vida social en el mundo: quedadas, peleas en vivo y chismes. Extraído de VillageManager.gd:
 ## cada función recibe al VillageManager como primer parámetro (`vm`); VillageManager mantiene llamadas finas con los mismos nombres
 ## y conserva el estado (`_live_fights`, temporizadores y constantes). `SocialDirector` decide; aquí se aplica en el mundo.
@@ -304,11 +311,61 @@ static func spread_gossip(vm: VillageManager, teller: VillageNPC, listener: Vill
 		var known: Dictionary = ev["known_by"]
 		if known.has(teller_key) and not known.has(listener_key):
 			known[listener_key] = true
-			if str(ev.get("type", "")) == "player_slander" and str(ev.get("target_id", "")) == listener_key:
-				listener.modify_affinity(-5)
-				listener._spawn_floating_text("😠 Se ha enterado de lo que dijiste de él/ella", Color.ORANGE, -46.0)
+			if not ev.has("heard_from"):
+				ev["heard_from"] = {}
+			ev["heard_from"][listener_key] = teller_key
+			var ev_type: String = str(ev.get("type", ""))
+			if ev_type in ["player_slander", "npc_slander"] and str(ev.get("target_id", "")) == listener_key:
+				_on_slander_reached_target(vm, ev, teller, listener)
 			return ev
 	return {}
+
+## Q3: El calumniado se entera. Si se lo cuenta quien lo oyó directamente del autor, sabe quién fue;
+## si le llega de segunda mano, no sabe quién lo empezó y puede pedir al jugador que lo averigüe.
+static func _on_slander_reached_target(vm: VillageManager, ev: Dictionary, teller: VillageNPC, listener: VillageNPC) -> void:
+	var by_player: bool = str(ev.get("type", "")) == "player_slander"
+	var origin_key: String = "player" if by_player else str(ev.get("actor_id", ""))
+	var teller_source: String = str((ev.get("heard_from", {}) as Dictionary).get(teller.get_person_key(), ""))
+	var direct: bool = teller_source == origin_key or teller.get_person_key() == origin_key
+	if not direct:
+		listener._spawn_floating_text("😟 «¿Quién anda diciendo eso de mí?»", Color(1.0, 0.80, 0.55), -46.0)
+		VillageQuests.on_rumor_reached_target(vm, ev, teller, listener)
+		return
+	if by_player:
+		listener.modify_affinity(-5)
+		listener._spawn_floating_text("😠 Se ha enterado de lo que dijiste de él/ella", Color.ORANGE, -46.0)
+	else:
+		var origin: VillageNPC = vm._get_npcs_by_person_key().get(origin_key, null)
+		if origin != null:
+			listener.modify_npc_relationship(origin, -6, "Se enteró de que %s hablaba mal de él/ella" % origin.npc_name)
+			listener._spawn_floating_text("😠 Se ha enterado de lo que %s dice de él/ella" % origin.npc_name, Color.ORANGE, -46.0)
+
+## Q3: `speaker` habla mal de su peor rival delante de `listener` (si es rencoroso o chismoso y lo detesta).
+static func try_npc_slander(vm: VillageManager, speaker: VillageNPC, listener: VillageNPC, chance: float) -> Dictionary:
+	if speaker.person_profile == null or vm.social_director == null:
+		return {}
+	var has_trait: bool = false
+	for t in speaker.person_profile.personality:
+		if str(t) in NPC_SLANDER_TRAITS:
+			has_trait = true
+	if not has_trait or vm.social_director.rng.randf() >= chance:
+		return {}
+	var rival: VillageNPC = null
+	var worst: int = NPC_SLANDER_REL + 1
+	for n in vm.get_tree().get_nodes_in_group("village_npcs"):
+		if n is VillageNPC and n != speaker and n != listener and not n.is_dead:
+			var r: int = speaker.get_relationship_with_npc((n as VillageNPC).get_person_key())
+			if r < worst:
+				worst = r
+				rival = n
+	if rival == null:
+		return {}
+	var ev: Dictionary = vm.record_social_event("npc_slander", speaker, rival, "%s va diciendo cosas feas de %s" % [speaker.npc_name, rival.npc_name])
+	ev["known_by"][listener.get_person_key()] = true
+	ev["heard_from"][listener.get_person_key()] = speaker.get_person_key()
+	listener.modify_npc_relationship(rival, -3, "Lo que %s le contó de %s" % [speaker.npc_name, rival.npc_name])
+	speaker._spawn_floating_text("🤫 «¿Sabes lo que dicen de %s...?»" % rival.npc_name, Color(0.95, 0.75, 1.0), -46.0)
+	return ev
 
 static func get_news_known_by(vm: VillageManager, npc: VillageNPC, limit: int = 3) -> Array[Dictionary]:
 	var key: String = npc.get_person_key()
@@ -322,6 +379,6 @@ static func get_news_known_by(vm: VillageManager, npc: VillageNPC, limit: int = 
 static func get_public_news(vm: VillageManager, limit: int = 4) -> Array[Dictionary]:
 	var res: Array[Dictionary] = []
 	for ev in _get_live_gossip(vm):
-		if res.size() < limit and str(ev.get("type", "")) != "player_slander" and (ev["known_by"] as Dictionary).size() >= vm.NEWS_MIN_KNOWERS:
+		if res.size() < limit and not str(ev.get("type", "")) in ["player_slander", "npc_slander"] and (ev["known_by"] as Dictionary).size() >= vm.NEWS_MIN_KNOWERS:
 			res.append(ev)
 	return res

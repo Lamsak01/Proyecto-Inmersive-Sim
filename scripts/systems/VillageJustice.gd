@@ -11,7 +11,7 @@ const VillageQuests = preload("res://scripts/systems/VillageQuests.gd")
 const MOTIVE_PUBLIC_PTS: int = 10 # Enemistad larga o peleas conocidas por el pueblo
 const MOTIVE_RUMOR_PTS: int = 8 # Rumor que cuenta un testigo en el interrogatorio
 const MOTIVE_ENMITY_REL: int = -30
-const MOTIVE_EVENT_TYPES: Array[String] = ["fight", "feud", "breakup", "player_slander"]
+const MOTIVE_EVENT_TYPES: Array[String] = ["fight", "feud", "breakup", "player_slander", "npc_slander"]
 
 static func _social_key(v: VillageNPC) -> String:
 	if v == null:
@@ -62,6 +62,8 @@ static func _reveal_motives_known_by_witness(vm: VillageManager, witness: Villag
 		var t: String = str(ev.get("type", ""))
 		if not (t in MOTIVE_EVENT_TYPES) or not (ev.get("known_by", {}) as Dictionary).has(wkey):
 			continue
+		if t == "npc_slander" and str(ev.get("target_id", "")) != vkey:
+			continue
 		var other_name: String = ""
 		var other_key: String = ""
 		if t == "player_slander":
@@ -76,7 +78,7 @@ static func _reveal_motives_known_by_witness(vm: VillageManager, witness: Villag
 		if other_name == "" or other_key == wkey or other_name == witness.npc_name or not suspects.has(other_name):
 			continue
 		var label: String = "el Forastero" if other_name == "Jugador" else other_name
-		var what: String = {"fight": "se peleó con", "feud": "estaba enemistado con", "breakup": "rompió con", "player_slander": "iba hablando mal de"}.get(t, "tuvo un problema con")
+		var what: String = {"fight": "se peleó con", "feud": "estaba enemistado con", "breakup": "rompió con", "player_slander": "iba hablando mal de", "npc_slander": "iba hablando mal de"}.get(t, "tuvo un problema con")
 		if _set_motive(suspects[other_name], MOTIVE_RUMOR_PTS, "Según %s, %s la víctima" % [witness.npc_name, what]):
 			clues.append("Móvil: %s contó que %s %s %s el Día %d (+%d%% sospecha)." % [witness.npc_name, label, what, str(case_dict.get("victim_name", "la víctima")), int(ev.get("day", 0)), MOTIVE_RUMOR_PTS])
 

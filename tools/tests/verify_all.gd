@@ -1161,5 +1161,32 @@ func _initialize() -> void:
 	qm.clear_all()
 	print("Q3 justice & crush quests OK")
 
+	# Test #38 (Q3): Un vecino calumnia; si le llega al afectado de segunda mano, se sigue la pista hasta el origen
+	vm.social_event_log.clear()
+	r1a.person_profile.personality.clear()
+	r1a.person_profile.personality.append_array(["Rencoroso", "Valiente", "Trabajador"])
+	r1a.npc_relationships[k_br] = -90
+	var r_ev: Dictionary = vm.try_npc_slander(r1a, m1_s, 1.0)
+	assert(str(r_ev.get("type", "")) == "npc_slander" and str(r_ev["target_id"]) == k_br and not r_ev["known_by"].has(k_br), "Q3: A spiteful neighbor badmouths the rival behind their back")
+	vm.spread_gossip(m1_s, m1_x)
+	var br_th_before: int = m1_v.get_relationship_with_npc(k_th)
+	vm.spread_gossip(m1_x, m1_v)
+	assert(m1_v.get_relationship_with_npc(k_th) == br_th_before, "Q3: Second-hand slander does not reveal its author")
+	if not qm.offers.has(k_br):
+		vq.on_rumor_reached_target(vm, r_ev, m1_x, m1_v, 1.0)
+	assert(str(qm.offers[k_br]["type"]) == "rumor", "Q3: The victim of the rumor asks for help")
+	m1_v.on_dialogue_action("quest_accept")
+	for asked_npc in [m1_x, m1_s, r1a]:
+		asked_npc.affinity = 10
+		assert(str(asked_npc._inject_character_lore_into_dialogue(asked_npc._build_dialogue())).contains("quest_rumor_ask"), "Q3: Those who know the rumor can be asked")
+		asked_npc.on_dialogue_action("quest_rumor_ask:" + str(qm.get_active_quest_by_giver(k_br)["id"]))
+	var r_q: Dictionary = qm.get_active_quest_by_giver(k_br)
+	assert(str(r_q["data"]["asked"][m1_x.get_person_key()]) == m1_s.get_person_key() and str(r_q["data"]["asked"][k_th]) == "self", "Q3: The chain leads back to the origin")
+	var gold_r: int = int(player.inventory.gold)
+	m1_v.on_dialogue_action("quest_turn_in:accuse:" + k_th)
+	assert(int(player.inventory.gold) == gold_r + 25 and m1_v.get_relationship_with_npc(k_th) <= br_th_before - 15, "Q3: Naming the culprit pays and turns the victim against them")
+	qm.clear_all()
+	print("Q3 rumor quest OK")
+
 	print("ALL RIMWORLD MEDICAL, FOOTPRINTS, 3-PHASE CORPSE REPORT, MULTI-CORPSE FIX, RPG INTERROGATION, PUBLIC TRIAL, DYNAMIC RELATIONSHIPS, MISSING FAMILY SEARCH, SOCIAL GLOSSARY & UNCONSCIOUS REACTION TESTS PASSED!")
 	quit(0)

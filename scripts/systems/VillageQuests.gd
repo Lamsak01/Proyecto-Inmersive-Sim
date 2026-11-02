@@ -5,7 +5,7 @@ extends RefCounted
 ## Un vecino con una enemistad larga puede pedir ayuda al jugador (❗ sobre la cabeza). Se acepta o rechaza
 ## hablando con él, y se cobra volviendo a hablar con él cuando se ha conseguido.
 ## Tipos: "peace" (Haz las paces por mí), "slander" (Ensúciale el nombre), "justice" (Encuentra a quien lo mató)
-## y "opinion" (Averigua qué piensa de mí).
+## "opinion" (Averigua qué piensa de mí) y "rumor" (¿Quién va contando eso de mí?).
 
 const PersonProfile = preload("res://scripts/data/PersonProfile.gd")
 
@@ -22,6 +22,7 @@ const SLANDER_LISTENERS_NEEDED: int = 2
 const JUSTICE_OFFER_CHANCE: float = 0.6 # Al abrirse un caso de asesinato
 const JUSTICE_MIN_REL: int = 40 # Cercanía con la víctima para pedir justicia
 const OPINION_MIN_SPARK: int = 14 # Igual que la etapa "interés"
+const RUMOR_OFFER_CHANCE: float = 0.5 # Cuando una calumnia le llega de segunda mano
 const SPITEFUL_TRAITS: Array[String] = ["Rencoroso", "Orgulloso", "Celoso", "Frío", "Codicioso"]
 const PEACEFUL_TRAITS: Array[String] = ["Pacífico", "Bondadoso", "Leal", "Paciente", "Honrado", "Alegre"]
 
@@ -75,7 +76,7 @@ static func on_day_passed(vm: VillageManager, chance: float = OFFER_DAILY_CHANCE
 		var off: Dictionary = qm.offers[gk]
 		var giver: VillageNPC = by_key.get(gk, null)
 		var rival: VillageNPC = by_key.get(str(off.get("target_key", "")), null)
-		var needs_alive_target: bool = str(off.get("type", "")) != "justice"
+		var needs_alive_target: bool = not str(off.get("type", "")) in ["justice", "rumor"]
 		if today - int(off.get("day_offered", today)) >= OFFER_EXPIRE_DAYS or not _is_available_giver(vm, giver) or (needs_alive_target and (rival == null or rival.is_dead)):
 			qm.remove_offer(gk)
 	check_failures(vm)
@@ -171,24 +172,71 @@ static func on_case_resolved(vm: VillageManager, victim_name: String, note: Stri
 			continue
 		qm.giver_cooldowns[str(q.get("giver_key", ""))] = _day() + GIVER_COOLDOWN_DAYS
 
+## Una calumnia le llega al afectado de segunda mano: no sabe quién la empezó y puede pedirte que lo averigües.
+static func on_rumor_reached_target(vm: VillageManager, ev: Dictionary, teller: VillageNPC, listener: VillageNPC, chance: float = RUMOR_OFFER_CHANCE) -> void:
+	var qm := _qm(vm)
+	if qm == null:
+		return
+	var gk: String = listener.get_person_key()
+	if not _is_available_giver(vm, listener) or qm.offers.has(gk) or not qm.get_active_quest_by_giver(gk).is_empty() or int(qm.giver_cooldowns.get(gk, -1)) > _day():
+		return
+	if _open_social_count(qm) >= MAX_OPEN_SOCIAL or vm.social_director == null or vm.social_director.rng.randf() >= chance:
+		return
+	var origin: String = "player" if str(ev.get("type", "")) == "player_slander" else str(ev.get("actor_id", ""))
+	qm.set_offer(gk, {"type": "rumor", "giver_name": listener.npc_name, "target_key": "", "target_name": "", "day_offered": _day(),
+		"rumor": {"origin": origin, "heard_from": (ev.get("heard_from", {}) as Dictionary).duplicate(), "first_teller": teller.get_person_key(), "first_teller_name": teller.npc_name}})
+
+## Respuesta de `npc` a «¿quién te contó lo que se dice de...?» para una misión de rumor.
+static func _rumor_answer(vm: VillageManager, npc: VillageNPC, rumor: Dictionary) -> Dictionary:
+	var nk: String = npc.get_person_key()
+	if npc.affinity < 0:
+		return {"text": "«Eso no es asunto tuyo.»", "source": ""}
+	if str(rumor.get("origin", "")) == nk:
+		return {"text": "«¿Yo? Nadie me lo contó... ¿Por qué lo preguntas?» (Se pone nervioso/a.)", "source": "self"}
+	var src: String = str((rumor.get("heard_from", {}) as Dictionary).get(nk, ""))
+	if src == "player":
+		return {"text": "«¡Pero si me lo contaste tú!»", "source": "player"}
+	var src_npc: VillageNPC = vm._get_npcs_by_person_key().get(src, null)
+	if src_npc == null:
+		return {"text": "«Ya no me acuerdo de quién me lo dijo.»", "source": ""}
+	return {"text": "«Me lo contó %s.»" % src_npc.npc_name, "source": src}
+
+## Quién puede ser acusado en una misión de rumor: los que se pusieron nerviosos y los que contaron el chisme.
+static func _rumor_suspects(q: Dictionary) -> Array[String]:
+	var res: Array[String] = []
+	var asked: Dictionary = q["data"].get("asked", {})
+	for k in asked.keys():
+		var v: String = str(asked[k])
+		var cand: String = str(k) if v == "self" else v
+		if cand != "" and cand != "player" and cand != str(q.get("giver_key", "")) and not cand in res:
+			res.append(cand)
+	return res
+
 ## Falla las misiones cuyo protagonista ha muerto.
 static func check_failures(vm: VillageManager) -> void:
 	var qm := _qm(vm)
 	var by_key: Dictionary = vm._get_npcs_by_person_key()
 	for q in qm.get_active_quests("side"):
-		if not str(q.get("type", "")) in ["peace", "slander", "justice", "opinion"]:
+		if not str(q.get("type", "")) in ["peace", "slander", "justice", "opinion", "rumor"]:
 			continue
 		var giver: VillageNPC = by_key.get(str(q.get("giver_key", "")), null)
 		var rival: VillageNPC = by_key.get(str(q.get("target_key", "")), null)
 		if giver == null or giver.is_dead:
 			qm.fail_quest(str(q["id"]), "%s ha muerto." % str(q.get("giver_name", "Quien te lo pidió")))
 			qm.giver_cooldowns[str(q.get("giver_key", ""))] = _day() + GIVER_COOLDOWN_DAYS
-		elif str(q.get("type", "")) != "justice" and (rival == null or rival.is_dead):
+		elif not str(q.get("type", "")) in ["justice", "rumor"] and (rival == null or rival.is_dead):
 			qm.fail_quest(str(q["id"]), "%s ha muerto; ya no hay nada que hacer." % str(q.get("target_name", "El otro vecino")))
 			qm.giver_cooldowns[str(q.get("giver_key", ""))] = _day() + GIVER_COOLDOWN_DAYS
 
 static func _offer_texts(off: Dictionary) -> Dictionary:
 	var tn: String = str(off.get("target_name", "ese vecino"))
+	if str(off.get("type", "")) == "rumor":
+		var ft: String = str((off.get("rumor", {}) as Dictionary).get("first_teller_name", "alguien"))
+		return {
+			"title": "¿Quién va contando eso de %s?" % str(off.get("giver_name", "")),
+			"ask": "«Me ha dicho %s que por ahí se cuentan cosas horribles de mí. Quiero saber quién empezó. ¿Me ayudas a averiguarlo?»" % ft,
+			"desc": "Alguien va hablando mal de %s. Se lo contó %s: pregunta a cada uno «¿quién te lo contó?» hasta dar con el origen y vuelve a decírselo. Puedes decir la verdad... o señalar a otro." % [str(off.get("giver_name", "")), ft],
+		}
 	if str(off.get("type", "")) == "justice":
 		return {
 			"title": "Encuentra a quien mató a %s" % tn,
@@ -219,6 +267,15 @@ static func add_quest_dialogue(vm: VillageManager, npc: VillageNPC, diag: Dictio
 	if qm == null:
 		return
 	var gk: String = npc.get_person_key()
+	for rq in qm.get_active_quests("side"):
+		if str(rq.get("type", "")) != "rumor" or str(rq.get("giver_key", "")) == gk:
+			continue
+		var rumor: Dictionary = rq["data"].get("rumor", {})
+		if not (rumor.get("heard_from", {}) as Dictionary).has(gk) and str(rumor.get("origin", "")) != gk:
+			continue
+		var node_id: String = "quest_rumor_%s" % str(rq["id"])
+		ch_arr.insert(0, {"label": "🔎 ¿Quién te contó lo que se dice de %s?" % str(rq.get("giver_name", "")), "next": node_id, "action": "quest_rumor_ask:%s" % str(rq["id"])})
+		diag[node_id] = {"text": str(_rumor_answer(vm, npc, rumor)["text"]), "choices": [{"label": "⬅️ Volver a la conversación", "next": "start"}]}
 	if qm.offers.has(gk):
 		var tx: Dictionary = _offer_texts(qm.offers[gk])
 		ch_arr.insert(0, {"label": "❗ «Te noto preocupado. ¿Pasa algo?»", "next": "quest_offer"})
@@ -233,7 +290,16 @@ static func add_quest_dialogue(vm: VillageManager, npc: VillageNPC, diag: Dictio
 	ch_arr.insert(0, {"label": "📜 Sobre lo que me pediste (%s)" % str(q.get("target_name", "")), "next": "quest_progress"})
 	var qtype: String = str(q.get("type", ""))
 	var tname: String = str(q.get("target_name", ""))
-	if is_quest_done(vm, q) and qtype == "opinion":
+	if is_quest_done(vm, q) and qtype == "rumor":
+		var by_key: Dictionary = vm._get_npcs_by_person_key()
+		var accuse: Array = []
+		for sk in _rumor_suspects(q):
+			if by_key.has(sk):
+				accuse.append({"label": "👉 «Fue %s.»" % (by_key[sk] as VillageNPC).npc_name, "next": "END", "action": "quest_turn_in:accuse:" + sk})
+		accuse.append({"label": "✋ «Fui yo. Lo siento.»", "next": "END", "action": "quest_turn_in:confess"})
+		accuse.append({"label": "⬅️ «Aún no lo sé.»", "next": "start"})
+		diag["quest_progress"] = {"text": "«¿Has averiguado quién va diciendo esas cosas de mí?»", "choices": accuse}
+	elif is_quest_done(vm, q) and qtype == "opinion":
 		var truth: String = describe_crush_answer(int(q["data"].get("learned_rel", 0)))
 		diag["quest_progress"] = {"text": "«¿Y bien? ¿Qué te dijo %s?»" % tname, "choices": [
 			{"label": "🗣️ La verdad: «%s»" % truth, "next": "END", "action": "quest_turn_in:truth"},
@@ -249,6 +315,7 @@ static func add_quest_dialogue(vm: VillageManager, npc: VillageNPC, diag: Dictio
 			"slander": "«Todavía no he oído a nadie hablar mal de %s. Sigue en ello.»" % tname,
 			"justice": "«¿Se sabe ya quién mató a %s?»" % tname,
 			"opinion": "«¿Has podido hablar con %s? No le digas que te lo pedí yo...»" % tname,
+			"rumor": "«¿Sabes ya quién lo empezó?»",
 		}.get(qtype, "«¿Cómo va eso?»")
 		diag["quest_progress"] = {"text": hint, "choices": [
 			{"label": "⬅️ «Sigo en ello.»", "next": "start"},
@@ -258,6 +325,8 @@ static func add_quest_dialogue(vm: VillageManager, npc: VillageNPC, diag: Dictio
 static func is_quest_done(vm: VillageManager, q: Dictionary) -> bool:
 	var by_key: Dictionary = vm._get_npcs_by_person_key()
 	var data: Dictionary = q.get("data", {})
+	if str(q.get("type", "")) == "rumor":
+		return not (data.get("asked", {}) as Dictionary).is_empty()
 	if str(q.get("type", "")) == "justice":
 		return str(data.get("verdict", "")) != ""
 	var rival: VillageNPC = by_key.get(str(q.get("target_key", "")), null)
@@ -285,9 +354,20 @@ static func on_dialogue_action(vm: VillageManager, npc: VillageNPC, player: Node
 		return false
 	var gk: String = npc.get_person_key()
 	var turn_mode: String = ""
+	var action_id_full: String = action_id
 	if action_id.begins_with("quest_turn_in"):
 		turn_mode = action_id.get_slice(":", 1) if action_id.contains(":") else "truth"
 		action_id = "quest_turn_in"
+	if action_id.begins_with("quest_rumor_ask:"):
+		var rq: Dictionary = qm.get_quest(action_id.get_slice(":", 1))
+		if not rq.is_empty() and str(rq.get("status", "")) == "active":
+			var ans: Dictionary = _rumor_answer(vm, npc, rq["data"].get("rumor", {}))
+			if str(ans["source"]) != "" and not (rq["data"].get("asked", {}) as Dictionary).has(gk):
+				var asked: Dictionary = rq["data"].get("asked", {})
+				asked[gk] = str(ans["source"])
+				rq["data"]["asked"] = asked
+				qm.add_note(str(rq["id"]), "%s: %s" % [npc.npc_name, str(ans["text"])])
+		return true
 	if action_id.begins_with("quest_opinion_seen:"):
 		_on_opinion_seen(qm, npc, action_id.get_slice(":", 1))
 		return true
@@ -298,7 +378,7 @@ static func on_dialogue_action(vm: VillageManager, npc: VillageNPC, player: Node
 			var off: Dictionary = qm.offers[gk]
 			var tx: Dictionary = _offer_texts(off)
 			var rival: VillageNPC = vm._get_npcs_by_person_key().get(str(off.get("target_key", "")), null)
-			var data: Dictionary = {"slandered_to": []}
+			var data: Dictionary = {"slandered_to": [], "rumor": off.get("rumor", {}), "asked": {}}
 			if rival != null:
 				data["start_rel"] = rival.get_relationship_with_npc(gk)
 			qm.remove_offer(gk)
@@ -320,6 +400,9 @@ static func on_dialogue_action(vm: VillageManager, npc: VillageNPC, player: Node
 			if qt.is_empty() or not is_quest_done(vm, qt):
 				return true
 			var qt_type: String = str(qt.get("type", ""))
+			if qt_type == "rumor":
+				_turn_in_rumor(vm, qm, npc, player, qt, action_id_full)
+				return true
 			var gold: int = int({"peace": 30, "slander": 25, "justice": 40, "opinion": 20}.get(qt_type, 20))
 			if player != null and "inventory" in player and player.inventory:
 				player.inventory.add_gold(gold)
@@ -330,6 +413,27 @@ static func on_dialogue_action(vm: VillageManager, npc: VillageNPC, player: Node
 			qm.giver_cooldowns[gk] = _day() + GIVER_COOLDOWN_DAYS
 			npc._spawn_floating_text("✅ Misión completada (+%d Oro)" % gold, Color.SPRING_GREEN, -36.0)
 	return true
+
+## Cerrar «¿Quién va contando eso de mí?»: señalar a alguien (sea verdad o no) o confesar.
+static func _turn_in_rumor(vm: VillageManager, qm: Node, giver: VillageNPC, player: Node, q: Dictionary, action_full: String) -> void:
+	var gk: String = giver.get_person_key()
+	if action_full.get_slice(":", 1) == "accuse":
+		var accused: VillageNPC = vm._get_npcs_by_person_key().get(action_full.get_slice(":", 2), null)
+		if accused == null:
+			return
+		giver.modify_npc_relationship(accused, -15, "El forastero le contó que %s iba hablando mal de él/ella" % accused.npc_name)
+		q["data"]["accused"] = accused.get_person_key()
+		if player != null and "inventory" in player and player.inventory:
+			player.inventory.add_gold(25)
+		giver.modify_affinity(10)
+		qm.complete_quest(str(q["id"]), "Señalaste a %s. %s te pagó 25 de oro." % [accused.npc_name, giver.npc_name])
+		giver._spawn_floating_text("😠 «¡Así que fue %s!»" % accused.npc_name, Color.ORANGE, -46.0)
+	else:
+		q["data"]["accused"] = "player"
+		giver.modify_affinity(-10)
+		qm.complete_quest(str(q["id"]), "Confesaste que fuiste tú.")
+		giver._spawn_floating_text("😞 «No me lo esperaba de ti...»", Color(0.75, 0.80, 1.0), -46.0)
+	qm.giver_cooldowns[gk] = _day() + GIVER_COOLDOWN_DAYS
 
 ## El jugador ha escuchado lo que `npc` opina de `about_key` (menú de opiniones).
 static func _on_opinion_seen(qm: Node, npc: VillageNPC, about_key: String) -> void:
