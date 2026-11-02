@@ -101,6 +101,9 @@ static func _update_live_fights(vm: VillageManager, delta: float) -> void:
 		for v in [a, b]:
 			if v == null or v.is_dead or v.is_hostile or v.is_incapacitated():
 				interrupted = true
+			# Una escolta o emergencia (p. ej. un guardia que tiene que llevarte a la celda) corta la pelea al momento
+			elif v == vm.escorting_officer or v.is_busy_with_emergency():
+				interrupted = true
 		# Mientras el jugador habla con uno de ellos la pelea espera, para que pueda decidir si los separa
 		if interrupted or not (a.is_busy_with_player() or b.is_busy_with_player()):
 			fight["elapsed"] = float(fight["elapsed"]) + delta

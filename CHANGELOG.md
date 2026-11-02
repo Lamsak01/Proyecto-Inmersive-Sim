@@ -5,6 +5,10 @@ El detalle técnico está en `docs/HANDOFF.md` (sección 7) y el historial compl
 
 ## 2026-11-02
 
+### Correcciones y pruebas
+- Si un guardia tiene que escoltarte mientras está peleando con un vecino, ahora deja la pelea al momento (antes tardaba unos segundos).
+- Nueva prueba de guardar y cargar con misiones, ofertas y rasgos descubiertos; todo se conserva bien.
+
 ### Rasgos de personalidad
 - **T4 (2)**: los vecinos sociables charlan más a menudo y proponen más quedadas, y los fríos menos; los trabajadores rinden hasta un 15 % más en su oficio.
 - **T4**: el carácter influye en más cosas: los agresivos pegan más fuerte y acumulan tensión antes; los desconfiados se creen menos lo que les cuentas; los honrados cuesta más que te cubran y pueden rechazar sobornos; los chismosos cuentan más novedades; los investigadores sospechan de los caracteres oscuros; y los generosos pagan mejor las misiones.

@@ -1260,5 +1260,46 @@ func _initialize() -> void:
 	assert(m1_s.get_diligence_mult() > 1.0 and m1_x.get_diligence_mult() == 1.0, "T4: Hard workers work faster")
 	print("T4 tendencies connected OK")
 
+	# Test #43: Guardar en archivo y cargar conserva misiones, ofertas, esperas y rasgos descubiertos
+	var save_q: String = "user://test_roundtrip_quests.json"
+	qm.clear_all()
+	qm.set_offer(k_br, {"type": "peace", "giver_name": "Bram", "target_key": k_th, "target_name": "Thoran", "day_offered": int(wc_speed.current_day)})
+	qm.set_offer(k_th, {"type": "slander", "giver_name": "Thoran", "target_key": k_br, "target_name": "Bram", "day_offered": int(wc_speed.current_day)})
+	r1a.on_dialogue_action("quest_accept")
+	var q_act_id: String = str(qm.get_active_quest_by_giver(k_th)["id"])
+	qm.get_quest(q_act_id)["data"]["slandered_to"] = [m1_s.get_person_key()]
+	qm.giver_cooldowns[m1_x.get_person_key()] = 99
+	r1a.known_traits.assign(["Rencoroso"])
+	r1a.trait_trust_tier = 2
+	assert(gm.save_game(save_q), "Save must succeed")
+	qm.clear_all()
+	r1a.known_traits.clear()
+	r1a.trait_trust_tier = 0
+	assert(gm.load_game(save_q), "Load must succeed")
+	await process_frame
+	var r43 = vm._find_npc_by_name("Thoran")
+	var q43: Dictionary = qm.get_quest(q_act_id)
+	assert(str(q43.get("status", "")) == "active" and (q43["data"]["slandered_to"] as Array).size() == 1, "Active quest and its progress survive the file")
+	assert(qm.offers.has(k_br) and str(qm.offers[k_br]["type"]) == "peace" and int(qm.giver_cooldowns.get(m1_x.get_person_key(), 0)) == 99, "Offers and cooldowns survive the file")
+	assert(r43.known_traits == ["Rencoroso"] and r43.trait_trust_tier == 2, "Discovered traits survive the file")
+	assert(r43.get_node_or_null("QuestMarker") == null or not r43.get_node("QuestMarker").visible, "Giver with an active quest shows no ❗ after loading")
+	assert(vm._find_npc_by_name("Bram").get_node("QuestMarker").visible, "Pending offer shows ❗ after loading")
+	DirAccess.remove_absolute(ProjectSettings.globalize_path(save_q))
+	qm.clear_all()
+	print("Quests & traits save/load round trip OK")
+
+	# Test #44: Si un luchador tiene que empezar una escolta, la pelea se corta al momento
+	var esc_a = vm._find_npc_by_name("Thoran")
+	var esc_b = vm._find_npc_by_name("Bram")
+	esc_a.begin_live_fight(esc_b)
+	esc_b.begin_live_fight(esc_a)
+	vm._live_fights.append({"a": esc_a, "b": esc_b, "res": {}, "elapsed": 0.0, "guard": null})
+	var prev_officer = vm.escorting_officer
+	vm.escorting_officer = esc_a
+	vm._update_live_fights(0.01)
+	vm.escorting_officer = prev_officer
+	assert(vm._live_fights.is_empty() and not esc_a.is_in_live_fight() and not esc_b.is_in_live_fight(), "An escort interrupts a live fight at once")
+	print("Escort interrupts fight OK")
+
 	print("ALL RIMWORLD MEDICAL, FOOTPRINTS, 3-PHASE CORPSE REPORT, MULTI-CORPSE FIX, RPG INTERROGATION, PUBLIC TRIAL, DYNAMIC RELATIONSHIPS, MISSING FAMILY SEARCH, SOCIAL GLOSSARY & UNCONSCIOUS REACTION TESTS PASSED!")
 	quit(0)
