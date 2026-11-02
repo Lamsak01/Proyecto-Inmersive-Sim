@@ -223,6 +223,9 @@ Cada fase se dividirá en bloques pequeños cuando se llegue a ella (detalle en 
 - [x] **T4** HECHO. Tendencias conectadas: agresividad (+laboriosidad) → fuerza en peleas (`SocialDirector.compute_fight_power`); agresividad y rencor → tensión al cruzarse rivales (×0,5–1,6); confianza del oyente → éxito al hablarle bien/mal, mediar o emparejar (±0,08 por punto; el rencor resta al mediar); honestidad → le cuesta más darte coartada y puede rechazar sobornos (0,35 × honestidad); chismorreo → probabilidad de contar novedades (0,5 + 0,25 × chismorreo); malicia y agresividad (− honestidad) → rasgo sospechoso en investigaciones (Sanguinario, Avaricioso y Cruel siguen por nombre hasta T2); malicia → paz o calumnia en misiones (≤ −0,3 / ≥ 0,5); generosidad → pago de misiones (±25 %). Sociabilidad → tiempo entre charlas (`get_social_cooldown_mult`, ×0,6–1,5) y peso para proponer quedadas (`VillageSocialLife.pick_hangout_initiator`, 0,3–2); laboriosidad → rendimiento en el oficio (`get_diligence_mult`, ×0,75–1,15; el tope de eficiencia sube a 115 %). Simulador abstracto tras el cambio: 3 parejas y 5 peleas por 60 días en 5 semillas. Test #42.
 - [ ] **T5** Medir en partidas largas.
 
+### Relaciones de un solo sentido (bloques U)
+- [ ] **U1–U7** Plan en `docs/PLAN_RELACIONES.md`, **pendiente de aprobación** (3 preguntas al final). Va después de T5.
+
 ## 8. Decisiones de diseño ya tomadas (no volver a preguntarlas)
 
 - **Tamaño y niveles**: empezar pequeño, objetivo final una ciudad de 100+ vecinos. Habrá sótanos (mapa aparte debajo del principal) y varios pisos con un sistema de capas tipo Project Zomboid, el mismo para sótanos y pisos (`docs/VISION_Y_FUTURO.md` §6; construir más adelante). Los sistemas nuevos que usen distancias (testigos, oír, ver) deben pasar por una función común para poder añadir «mismo nivel» después.
