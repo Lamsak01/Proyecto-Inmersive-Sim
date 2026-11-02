@@ -863,8 +863,8 @@ func _trigger_dynamic_npc_social_interaction(partner: VillageNPC) -> void:
 		if not bool(ex.get("allowed", false)):
 			_spawn_floating_text("💬", Color(0.75, 0.95, 1.0), -28.0)
 			return
-		_npc_social_event_cooldown = randf_range(16.0, 26.0)
-		partner._npc_social_event_cooldown = randf_range(16.0, 26.0)
+		_npc_social_event_cooldown = randf_range(16.0, 26.0) * get_social_cooldown_mult()
+		partner._npc_social_event_cooldown = randf_range(16.0, 26.0) * partner.get_social_cooldown_mult()
 		var line_a: String = str(ex.get("line_a", ""))
 		var line_b: String = str(ex.get("line_b", ""))
 		var icon: String = str(ex.get("icon", "💬"))
@@ -887,8 +887,8 @@ func _trigger_dynamic_npc_social_interaction(partner: VillageNPC) -> void:
 			"color": col,
 		}
 		return
-	_npc_social_event_cooldown = randf_range(16.0, 26.0)
-	partner._npc_social_event_cooldown = randf_range(16.0, 26.0)
+	_npc_social_event_cooldown = randf_range(16.0, 26.0) * get_social_cooldown_mult()
+	partner._npc_social_event_cooldown = randf_range(16.0, 26.0) * partner.get_social_cooldown_mult()
 	var cur_rel: int = get_relationship_with_npc(partner.npc_name)
 	var roll: float = randf()
 	if cur_rel <= -20:
@@ -2645,7 +2645,15 @@ func get_job_efficiency() -> float:
 	if trade_role in [TradeRole.UNEMPLOYED, TradeRole.FAMILY_MEMBER]:
 		return clampf(mult, 0.15, 1.0)
 	var base_exp: float = clampf(0.35 + (float(days_in_role) / 7.0) * 0.65, 0.35, 1.0)
-	return clampf(base_exp * mult, 0.12, 1.0)
+	return clampf(base_exp * mult * get_diligence_mult(), 0.12, 1.15)
+
+## T4: el trabajador rinde más en su oficio y el holgazán menos (Trabajador: +15 %).
+func get_diligence_mult() -> float:
+	return clampf(1.0 + 0.15 * TraitCatalog.npc_tendency(self, "diligence"), 0.75, 1.15)
+
+## T4: el sociable vuelve a charlar antes y el frío tarda más (Alegre: ×0,82; Frío: ×1,18).
+func get_social_cooldown_mult() -> float:
+	return clampf(1.0 - 0.3 * TraitCatalog.npc_tendency(self, "sociability"), 0.6, 1.5)
 
 ## Etiqueta descriptiva del nivel de dominio del oficio, curva de aprendizaje de 7 días y penalización por desnutrición/sueño
 func get_job_efficiency_label() -> String:

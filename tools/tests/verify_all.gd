@@ -1253,6 +1253,11 @@ func _initialize() -> void:
 	m1_s.person_profile.personality.append_array(["Bondadoso", "Leal", "Alegre"])
 	assert(q_base.reward_gold(m1_s, 40) > 40, "T4: Generous neighbors pay more")
 	assert(vq.pick_offer_type(vm, r1a, m1_v) == "slander", "T4: A spiteful neighbor asks to slander the rival")
+	m1_x.person_profile.personality.clear()
+	m1_x.person_profile.personality.append_array(["Frío", "Desconfiado", "Noctámbulo"])
+	m1_s.person_profile.personality.append("Trabajador")
+	assert(m1_s.get_social_cooldown_mult() < 1.0 and m1_x.get_social_cooldown_mult() > 1.0, "T4: Sociable neighbors chat more often than cold ones")
+	assert(m1_s.get_diligence_mult() > 1.0 and m1_x.get_diligence_mult() == 1.0, "T4: Hard workers work faster")
 	print("T4 tendencies connected OK")
 
 	print("ALL RIMWORLD MEDICAL, FOOTPRINTS, 3-PHASE CORPSE REPORT, MULTI-CORPSE FIX, RPG INTERROGATION, PUBLIC TRIAL, DYNAMIC RELATIONSHIPS, MISSING FAMILY SEARCH, SOCIAL GLOSSARY & UNCONSCIOUS REACTION TESTS PASSED!")

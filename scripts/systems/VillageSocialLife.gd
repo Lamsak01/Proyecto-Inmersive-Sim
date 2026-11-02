@@ -168,6 +168,21 @@ static func _finish_live_fight(vm: VillageManager, fight: Dictionary, a: Village
 			witnesses += 1
 	(vm.record_social_event("fight", winner, loser, summary)["known_by"] as Dictionary).merge(knowers)
 
+## T4: quien propone quedar se elige al azar, pero los sociables proponen más a menudo (peso 0,3–2).
+static func pick_hangout_initiator(eligible: Array[VillageNPC]) -> VillageNPC:
+	var weights: Array[float] = []
+	var total: float = 0.0
+	for v in eligible:
+		var w: float = clampf(1.0 + 0.5 * TraitCatalog.npc_tendency(v, "sociability"), 0.3, 2.0)
+		weights.append(w)
+		total += w
+	var r: float = randf() * total
+	for i in range(eligible.size()):
+		r -= weights[i]
+		if r <= 0.0:
+			return eligible[i]
+	return eligible[eligible.size() - 1]
+
 static func _update_social_hangouts(vm: VillageManager, delta: float) -> void:
 	if vm.social_director == null or not vm.is_inside_tree():
 		return
@@ -265,7 +280,7 @@ static func _update_social_hangouts(vm: VillageManager, delta: float) -> void:
 			eligible.append(v3)
 	if eligible.size() < 2:
 		return
-	var initiator: VillageNPC = eligible[randi() % eligible.size()]
+	var initiator: VillageNPC = pick_hangout_initiator(eligible)
 	var cand_ids: Array = []
 	var positions: Dictionary = {}
 	for v4 in eligible:
