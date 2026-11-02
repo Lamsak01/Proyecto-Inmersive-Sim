@@ -193,6 +193,13 @@ Otros documentos antiguos en la raíz: `ROADMAP_PROYECTO.md`, `AUDIT_LOG.md`, `S
   Sin medir: la partida de 60 días tras estos cambios se detuvo en el día 16 a petición del usuario, así que el efecto en quedadas y parejas no está comprobado (más quedadas pueden subir las 3 parejas nuevas por partida). Sin corregir, por menor: un guardia que empiece una escolta durante su pelea tarda hasta 3,5 s.
 Cada fase se dividirá en bloques pequeños cuando se llegue a ella (detalle en `docs/PLAN_VIDA_SOCIAL.md`).
 
+**Refuerzo del código** (aprobado; mover temas a archivos nuevos dejando llamadas finas, como `NPCDialogue.gd`, sin cambios visibles)
+- [x] **R1** HECHO. Test #33 en `verify_all.gd`: ciclo real con `GameManager` de guardar en archivo, cambiar el mundo y cargar (día, medidas por par, Director, relaciones, ficha, salud, delito, oro, chismes y pelea en marcha). No encontró errores; el juego no cambió.
+- [ ] **R2** Sacar la construcción del mundo de `VillageManager.gd`.
+- [ ] **R3** Sacar quedadas y peleas de `VillageManager.gd`.
+- [ ] **R4** Sacar investigación, interrogatorios y juicio de `VillageManager.gd`.
+- [ ] **R5** Medir lo logrado y decidir si seguir con `VillageNPC.gd` (incluido dividir `_physics_process`).
+
 ## 8. Decisiones de diseño ya tomadas (no volver a preguntarlas)
 
 - **Todo procedural**: el sistema debe funcionar con NPC que lleguen más tarde, no depender de nombres fijos.

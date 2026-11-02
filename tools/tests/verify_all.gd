@@ -992,5 +992,64 @@ func _initialize() -> void:
 	assert(f_b.affinity < aff_b6, "B6.1: Learning what the player said hurts their affinity")
 	print("B6.1/B6.2 gossip & news OK")
 
+	# Test #33 (R1): Ciclo real de guardar en archivo, cambiar el mundo y cargar
+	var gm = root.get_node("/root/GameManager")
+	var save_path: String = "user://test_roundtrip_r1.json"
+	var key_a: String = f_a.get_person_key()
+	var key_b: String = f_b.get_person_key()
+	sd4.set_pair_metrics(key_a, key_b, -40, 40, 12, 33)
+	sd4.get_pair_entry(key_a, key_b)["enmity_days"] = 7
+	sd4.get_pair_entry(key_a, key_b)["fights_count"] = 1
+	sd4.player_influence_day = 77
+	sd4.last_drama_day = 55
+	vm.social_event_log.clear()
+	vm.record_social_event("fight", f_a, f_b, "Pelea guardada")
+	vm.spread_gossip(f_a, g_c)
+	f_a.npc_relationships[key_b] = -44
+	f_a.health_comp.apply_minor_bruise(8.0)
+	var hp_r1: float = f_a.health_comp.current_health
+	var wounds_r1: int = f_a.health_comp.wounds.size()
+	f_a.person_profile.age = 51
+	f_a.affinity = 23
+	vm.wanted_level = 2
+	vm.bounty_gold = 40
+	var gold_r1: int = int(player.inventory.gold)
+	var day_r1: int = int(wc_speed.current_day)
+	assert(gm.save_game(save_path), "R1: Save must succeed")
+	# Cambiar todo lo anterior, incluida una pelea en marcha
+	sd4.set_pair_metrics(key_a, key_b, 90, 1, 1, 1)
+	sd4.player_influence_day = 1
+	sd4.last_drama_day = 1
+	vm.social_event_log.clear()
+	f_a.npc_relationships[key_b] = 90
+	f_a.health_comp.current_health = 5.0
+	f_a.health_comp.wounds.clear()
+	f_a.person_profile.age = 20
+	f_a.affinity = 0
+	vm.wanted_level = 0
+	vm.bounty_gold = 0
+	player.inventory.gold = gold_r1 + 500
+	wc_speed.current_day = day_r1 + 9
+	f_a.begin_live_fight(f_b)
+	f_b.begin_live_fight(f_a)
+	vm._live_fights.append({"a": f_a, "b": f_b, "res": {}, "elapsed": 0.0, "guard": null})
+	vm._fight_scan_timer = 999.0 # Evita que el roce entre estos enemigos cambie los datos justo tras cargar
+	assert(gm.load_game(save_path), "R1: Load must succeed")
+	await process_frame
+	var r1a = vm._find_npc_by_name("Thoran")
+	var pe_r1: Dictionary = vm.social_director.get_pair_entry(key_a, key_b)
+	assert(int(wc_speed.current_day) == day_r1, "R1: Day must be restored")
+	assert(int(pe_r1["affinity"]) == -40 and int(pe_r1["tension"]) == 33 and int(pe_r1["enmity_days"]) == 7 and int(pe_r1["fights_count"]) == 1, "R1: Pair metrics must survive the file")
+	assert(int(vm.social_director.player_influence_day) == 77 and int(vm.social_director.last_drama_day) == 55, "R1: Director state must be restored")
+	assert(r1a.get_relationship_with_npc(key_b) == -44, "R1: Relationships must be restored")
+	assert(r1a.affinity == 23 and int(r1a.person_profile.age) == 51, "R1: NPC data must be restored")
+	assert(absf(r1a.health_comp.current_health - hp_r1) < 0.01 and r1a.health_comp.wounds.size() == wounds_r1, "R1: Health and wounds must be restored")
+	assert(int(vm.wanted_level) == 2 and int(vm.bounty_gold) == 40, "R1: Crime state must be restored")
+	assert(int(player.inventory.gold) == gold_r1, "R1: Player gold must be restored")
+	assert(vm.get_news_known_by(g_c).size() == 1, "R1: Gossip knowledge must survive the file")
+	assert(vm._live_fights.is_empty() and not r1a.is_in_live_fight(), "R1: A live fight must not survive loading")
+	DirAccess.remove_absolute(ProjectSettings.globalize_path(save_path))
+	print("R1 save/load round trip OK")
+
 	print("ALL RIMWORLD MEDICAL, FOOTPRINTS, 3-PHASE CORPSE REPORT, MULTI-CORPSE FIX, RPG INTERROGATION, PUBLIC TRIAL, DYNAMIC RELATIONSHIPS, MISSING FAMILY SEARCH, SOCIAL GLOSSARY & UNCONSCIOUS REACTION TESTS PASSED!")
 	quit(0)
