@@ -4,9 +4,11 @@ extends RefCounted
 const VillageQuests = preload("res://scripts/systems/VillageQuests.gd")
 
 ## Q3: Un vecino rencoroso o chismoso a veces habla mal de su rival a quien tiene delante.
-const NPC_SLANDER_CHANCE: float = 0.25 # Por charla (Q4: con 0.10 y −40 no hubo ninguna en 65 días)
+## T1: la probabilidad por charla depende de la malicia de sus rasgos (TraitCatalog); sin malicia, nunca calumnia.
+const TraitCatalog = preload("res://scripts/data/TraitCatalog.gd")
+const NPC_SLANDER_PER_MALICE: float = 0.15 # Rencoroso solo: 15 %; Rencoroso + Celoso: 27 %
+const NPC_SLANDER_MAX_CHANCE: float = 0.45
 const NPC_SLANDER_REL: int = -30
-const NPC_SLANDER_TRAITS: Array[String] = ["Rencoroso", "Chismoso"]
 
 ## Vida social en el mundo: quedadas, peleas en vivo y chismes. Extraído de VillageManager.gd:
 ## cada función recibe al VillageManager como primer parámetro (`vm`); VillageManager mantiene llamadas finas con los mismos nombres
@@ -340,15 +342,16 @@ static func _on_slander_reached_target(vm: VillageManager, ev: Dictionary, telle
 			listener.modify_npc_relationship(origin, -6, "Se enteró de que %s hablaba mal de él/ella" % origin.npc_name)
 			listener._spawn_floating_text("😠 Se ha enterado de lo que %s dice de él/ella" % origin.npc_name, Color.ORANGE, -46.0)
 
-## Q3: `speaker` habla mal de su peor rival delante de `listener` (si es rencoroso o chismoso y lo detesta).
-static func try_npc_slander(vm: VillageManager, speaker: VillageNPC, listener: VillageNPC, chance: float) -> Dictionary:
+## T1: Probabilidad por charla de que `npc` hable mal de su peor rival, según la malicia de sus rasgos.
+static func npc_slander_chance(npc: VillageNPC) -> float:
+	return clampf(NPC_SLANDER_PER_MALICE * TraitCatalog.npc_tendency(npc, "malice"), 0.0, NPC_SLANDER_MAX_CHANCE)
+
+## Q3: `speaker` habla mal de su peor rival delante de `listener` si lo detesta. `chance` < 0 = según su malicia.
+static func try_npc_slander(vm: VillageManager, speaker: VillageNPC, listener: VillageNPC, chance: float = -1.0) -> Dictionary:
 	if speaker.person_profile == null or vm.social_director == null:
 		return {}
-	var has_trait: bool = false
-	for t in speaker.person_profile.personality:
-		if str(t) in NPC_SLANDER_TRAITS:
-			has_trait = true
-	if not has_trait or vm.social_director.rng.randf() >= chance:
+	var p: float = npc_slander_chance(speaker) if chance < 0.0 else chance
+	if p <= 0.0 or vm.social_director.rng.randf() >= p:
 		return {}
 	var rival: VillageNPC = null
 	var worst: int = NPC_SLANDER_REL + 1

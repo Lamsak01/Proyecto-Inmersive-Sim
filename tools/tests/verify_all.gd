@@ -1197,5 +1197,19 @@ func _initialize() -> void:
 		assert(q_t.trigger in ["daily", "event"], "Q4: Quest type %s has a valid trigger" % q_t.id)
 	print("Q4 quest catalog OK")
 
+	# Test #40 (T1): Los rasgos dan tendencias; calumnia más quien tiene más malicia y nunca quien no tiene
+	var t_cat = load("res://scripts/data/TraitCatalog.gd")
+	var pp_script = load("res://scripts/data/PersonProfile.gd")
+	for tr_id in pp_script.PERSONALITY_TRAITS:
+		assert(t_cat.has_trait_id(tr_id) and t_cat.describe(tr_id) != "", "T1: Trait %s must be in the catalog" % tr_id)
+	var vsl = load("res://scripts/systems/VillageSocialLife.gd")
+	var t_chances: Array[float] = []
+	for t_set in [["Rencoroso", "Celoso", "Chismoso"], ["Rencoroso", "Trabajador", "Curioso"], ["Bondadoso", "Leal", "Orgulloso"]]:
+		m1_s.person_profile.personality.clear()
+		m1_s.person_profile.personality.append_array(t_set)
+		t_chances.append(vsl.npc_slander_chance(m1_s))
+	assert(t_chances[0] > t_chances[1] and t_chances[1] > 0.0 and t_chances[2] == 0.0, "T1: Slander chance follows malice: %s" % str(t_chances))
+	print("T1 trait tendencies OK")
+
 	print("ALL RIMWORLD MEDICAL, FOOTPRINTS, 3-PHASE CORPSE REPORT, MULTI-CORPSE FIX, RPG INTERROGATION, PUBLIC TRIAL, DYNAMIC RELATIONSHIPS, MISSING FAMILY SEARCH, SOCIAL GLOSSARY & UNCONSCIOUS REACTION TESTS PASSED!")
 	quit(0)

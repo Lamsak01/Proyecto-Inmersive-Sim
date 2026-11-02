@@ -5,6 +5,9 @@ El detalle técnico está en `docs/HANDOFF.md` (sección 7) y el historial compl
 
 ## 2026-11-02
 
+### Rasgos de personalidad
+- **T1**: nuevo catálogo de rasgos. Cada rasgo sube o baja tendencias como la malicia o el rencor. Ahora las calumnias dependen de la malicia: un vecino rencoroso y celoso calumnia bastante, uno con un solo rasgo malo a veces, y uno bondadoso y leal nunca.
+
 ### Misiones
 - **Q4**: se midió la frecuencia en partidas largas: unas 7 ofertas de misión cada 25 días y nunca más de 3 a la vez. Dos ajustes: un vecino al que no hiciste caso ya no te vuelve a pedir lo mismo al día siguiente, y los vecinos rencorosos o chismosos ahora sí calumnian alguna vez (antes no lo hacían nunca). Las misiones quedan organizadas para poder añadir muchos tipos más; la guía está en `docs/MISIONES.md`.
 - **Q3 (parte 2)**: los vecinos rencorosos o chismosos a veces hablan mal de su rival a sus espaldas. Si el rumor le llega al afectado de segunda mano, no sabe quién lo empezó y puede pedirte que lo averigües: preguntas «¿quién te lo contó?» hasta llegar al origen y luego señalas a alguien (sea verdad o no) o confiesas si fuiste tú. Con esto ya están los 5 tipos de misión.
