@@ -325,23 +325,25 @@ func _initialize() -> void:
 	var mock_g: Dictionary = {"npc_name": "Garrick", "person_profile": p_garrick, "trade_role": 3, "family_id": "family_butcher"}
 	var mock_th: Dictionary = {"npc_name": "Thoran", "person_profile": PersonProfile.from_dict(NPCData.INITIAL_PERSON_PROFILES["Thoran"]), "trade_role": 4, "family_id": "family_smith"}
 	fd.set_pair_metrics("garrick", "thoran", -35, 30, 0, 50)
+	fd.get_pair_entry("garrick", "thoran")["enmity_days"] = 10
 	var f1: Dictionary = fd.try_resolve_live_fight(mock_g, mock_th, 10, true)
 	assert(bool(f1.get("triggered", false)) and int(f1.get("fights_count", 0)) == 1, "B4.1: Primera pelea con tension 50 debe activarse")
 	assert(int(f1.get("tension_after", 99)) < 50 and int(f1.get("affinity_after", 0)) < -35, "B4.1: La pelea descarga tension y baja la afinidad")
 	var f_cd: Dictionary = fd.try_resolve_live_fight(mock_g, mock_th, 11, true)
-	assert(not bool(f_cd.get("triggered", true)), "B4.1: Enfriamiento drama_cooldown_days=2 debe impedir otra pelea al dia siguiente")
+	assert(not bool(f_cd.get("triggered", true)), "B4.2: Enfriamiento live_fight_cooldown_days=12 debe impedir otra pelea al dia siguiente")
 	fd.active_scenes.clear()
 	fd.get_pair_entry("garrick", "thoran")["tension"] = 55
-	var f2: Dictionary = fd.try_resolve_live_fight(mock_g, mock_th, 13, true)
+	var f2: Dictionary = fd.try_resolve_live_fight(mock_g, mock_th, 22, true)
 	assert(bool(f2.get("triggered", false)) and int(f2.get("fights_count", 0)) == 2, "B4.1: Segunda pelea tras enfriamiento debe activarse")
 	fd.active_scenes.clear()
 	fd.get_pair_entry("garrick", "thoran")["tension"] = 60
-	var f3: Dictionary = fd.try_resolve_live_fight(mock_g, mock_th, 16, true)
+	var f3: Dictionary = fd.try_resolve_live_fight(mock_g, mock_th, 34, true)
 	assert(not bool(f3.get("triggered", true)), "B4.1: Ningun par puede pelear mas de max_fights_per_pair=2 veces")
 	# B4.1: La salud del vecino debe reducir el poder de pelea (el HealthComponent real se prueba en verify_all.gd)
 	var hc_hurt = FakeHurtHealth.new()
 	var fd_hp = SocialDirector.new(9192)
 	fd_hp.set_pair_metrics("garrick", "thoran", -35, 30, 0, 50)
+	fd_hp.get_pair_entry("garrick", "thoran")["enmity_days"] = 10
 	var mock_g_hurt: Dictionary = mock_g.duplicate()
 	mock_g_hurt["health_comp"] = hc_hurt
 	var f_hp: Dictionary = fd_hp.try_resolve_live_fight(mock_g_hurt, mock_th, 10, true)
@@ -349,8 +351,9 @@ func _initialize() -> void:
 	assert(int(f_hp.get("power_a", 0)) < pwr_butcher, "B4.1: Un vecino herido pelea con menos poder")
 	# B4.1: La probabilidad es diaria: una sola tirada por par y dia
 	var fd_day = SocialDirector.new(9193)
-	fd_day.dials["fight_daily_base_chance"] = 0.0
+	fd_day.dials["live_fight_daily_chance"] = 0.0
 	fd_day.set_pair_metrics("garrick", "thoran", -35, 30, 0, 50)
+	fd_day.get_pair_entry("garrick", "thoran")["enmity_days"] = 10
 	assert(str(fd_day.try_resolve_live_fight(mock_g, mock_th, 10).get("reason", "")) == "dice_skipped", "B4.1: Primera tirada del dia")
 	assert(str(fd_day.try_resolve_live_fight(mock_g, mock_th, 10).get("reason", "")) == "already_rolled_today", "B4.1: No se repite la tirada el mismo dia")
 	assert(str(fd_day.try_resolve_live_fight(mock_g, mock_th, 11).get("reason", "")) == "dice_skipped", "B4.1: Al dia siguiente se vuelve a tirar")

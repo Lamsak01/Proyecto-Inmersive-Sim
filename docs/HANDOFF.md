@@ -173,7 +173,7 @@ Otros documentos antiguos en la raíz: `ROADMAP_PROYECTO.md`, `AUDIT_LOG.md`, `S
 
 **Fase 4 — Peleas discretas por dados**
 - [x] **B4.1** HECHO. Resolución por dados en `SocialDirector.gd` (`compute_fight_power`, `can_pair_fight`, `try_resolve_live_fight` con poder ponderado por oficio, edad, salud y personalidad; tirada interna con ganador/perdedor, alivio de tensión, caída de relación y respeto a `drama_cooldown_days` y `max_fights_per_pair = 2`). Verificado en `names_check.gd`.
-- [x] **B4.2** HECHO. Peleas en vivo: `VillageManager._update_live_fights()` busca cada 3,5–6 s pares con tensión ≥ `live_fight_tension_threshold` (28) a ≤ 72 px y lanza `try_resolve_live_fight` (una tirada por par y día). Escena de 3,5 s en `VillageNPC.gd` (temblor y "💢"), moratón con `HealthComponent.apply_minor_bruise()` (sin órganos, fracturas ni sangrado; suelo del 35 %), relación −14, pensamientos y hasta 3 testigos a ≤ 110 px, evento `fight`. Un guardia a ≤ 140 px los separa a los 1,6 s, sin herida. Test #27 en `verify_all.gd`. El umbral 28 sale de una medición aproximada de conversaciones; falta confirmar la frecuencia jugando.
+- [x] **B4.2** HECHO. Peleas en vivo: `VillageManager._update_live_fights()` busca cada 3,5–6 s pares con tensión ≥ `live_fight_tension_threshold` (28) a ≤ 72 px y lanza `try_resolve_live_fight` (una tirada por par y día). Escena de 3,5 s en `VillageNPC.gd` (temblor y "💢"), moratón con `HealthComponent.apply_minor_bruise()` (sin órganos, fracturas ni sangrado; suelo del 35 %), relación −14, pensamientos y hasta 3 testigos a ≤ 110 px, evento `fight`. Un guardia a ≤ 140 px los separa a los 1,6 s, sin herida. Test #27 en `verify_all.gd`. Peleas raras: enemistad con relación ≤ −30 (`rival_friction_max_rel`), 10 días distintos de roce al cruzarse (`live_fight_min_enmity_days`), 15 % diario (`live_fight_daily_chance`) y 12 días entre peleas del pueblo (`live_fight_cooldown_days`). Medido en el juego real sin pantalla, una partida de 60 días.
 
 **Fase 5** Rol del jugador (observador/instigador/mediador) · **Fase 6** Chismes, noticias y pulido.
 Cada fase se dividirá en bloques pequeños cuando se llegue a ella (detalle en `docs/PLAN_VIDA_SOCIAL.md`).
@@ -189,8 +189,9 @@ Cada fase se dividirá en bloques pequeños cuando se llegue a ella (detalle en 
 - Edades **numéricas**. Nombres: **200 femeninos + 200 masculinos + apellidos**, estilo variado (latino, europeo, americano).
 - **Peleas**: sin muerte; simuladas con dados por dentro (ponderados por oficio, edad, salud, personalidad); en pantalla algo **discreto**
   (dos vecinos frente a frente, movimientos sutiles, algún "💢"); guardias pueden intervenir; consecuencias: heridas leves y relación peor.
+  Son **raras y excepcionales**: solo tras una enemistad cultivada durante mucho tiempo, nunca la norma. Una partida larga sin peleas es válida; el pueblo no debe vivir peleándose.
 - Jugador: **observador, instigador y mediador** (apoyado en Carisma y Sigilo). Se implementa al final.
-- **Calibración**: simulaciones automáticas de cientos de días. Metas de ejemplo para 60 días: 1–3 parejas nuevas; 2–6 peleas (ninguna pareja de
+- **Calibración**: simulaciones automáticas de cientos de días. Metas de ejemplo para 60 días: 1–3 parejas nuevas; 2–6 peleas en el simulador abstracto, pero en vivo pocas o ninguna (ninguna pareja de
   vecinos pelea >2 veces); ningún vecino sin amigos; más de la mitad de las relaciones entre −20 y +40.
 - Arquitectura: **Director Social central** (decide la escena), aldeanos solo ejecutan; relaciones con 4 medidas (afinidad, familiaridad, atracción, tensión),
   enfriamiento sin contacto, "narrador" que dosifica el drama, todos los ajustes en una única tabla de diales, aleatoriedad con semilla.

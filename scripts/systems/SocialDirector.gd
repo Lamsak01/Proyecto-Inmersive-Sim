@@ -40,6 +40,11 @@ const DIALS: Dictionary = {
 	"fight_tension_threshold": 36,
 	"live_fight_tension_threshold": 28, # En vivo los rivales se evitan desde 30 de tensión: con 36 casi nunca habría peleas
 	"fight_daily_base_chance": 0.38,
+	# Peleas en vivo: raras y solo tras una enemistad cultivada; pasar semanas sin ninguna es normal.
+	"rival_friction_max_rel": -30, # Relación a partir de la cual cruzarse cuenta como enemistad
+	"live_fight_min_enmity_days": 10, # Días distintos de roce antes de poder llegar a las manos
+	"live_fight_cooldown_days": 12, # Días mínimos entre dos peleas en todo el pueblo
+	"live_fight_daily_chance": 0.15,
 	# B2.1: Pasar tiempo juntos (quedadas entre amigos / parejas) y evitar rivales
 	"max_concurrent_hangouts": 2,
 	"hangout_min_affinity": 25,
@@ -901,15 +906,30 @@ func compute_fight_power(prof, role_id: int = 0, health_ratio: float = 1.0) -> i
 func can_pair_fight(id_a: String, id_b: String, current_day: int, same_family: bool = false) -> bool:
 	if same_family or id_a == "" or id_b == "" or id_a == id_b:
 		return false
-	if (current_day - last_drama_day) < int(dials.get("drama_cooldown_days", 2)):
+	if (current_day - last_drama_day) < int(dials.get("live_fight_cooldown_days", 12)):
 		return false
 	var k: String = make_pair_key(id_a, id_b)
 	if k == "" or not pair_metrics.has(k):
 		return false
 	var pe: Dictionary = pair_metrics[k]
+	if int(pe.get("enmity_days", 0)) < int(dials.get("live_fight_min_enmity_days", 10)):
+		return false
 	if int(pe.get("fights_count", 0)) >= int(dials.get("max_fights_per_pair", 2)):
 		return false
 	return int(pe.get("tension", 0)) >= int(dials.get("live_fight_tension_threshold", 28))
+
+## B4.2: Roce al cruzarse dos enemigos: acumula días de enemistad y algo de tensión, una vez al día por par.
+func register_rival_encounter(id_a: String, id_b: String, relationship: int, current_day: int) -> bool:
+	if relationship > int(dials.get("rival_friction_max_rel", -15)):
+		return false
+	var pe: Dictionary = get_pair_entry(id_a, id_b, relationship)
+	if pe.is_empty() or int(pe.get("friction_day", -1)) == current_day:
+		return false
+	pe["friction_day"] = current_day
+	pe["enmity_days"] = int(pe.get("enmity_days", 0)) + 1
+	pe["last_contact_day"] = current_day
+	pe["tension"] = clampi(int(pe.get("tension", 0)) + rng.randi_range(2, 4), 0, 100)
+	return true
 
 ## B4.2: Pares que hoy podrían pelear (no comprueba la familia; lo hace `try_resolve_live_fight`).
 func get_fight_ready_pairs(current_day: int) -> Array:
@@ -943,7 +963,7 @@ func try_resolve_live_fight(npc_a, npc_b, current_day: int = 1, force_roll: bool
 	if not can_start_scene(id_a, id_b):
 		return {"triggered": false, "reason": "max_scenes_or_busy"}
 	var has_pacifist: bool = ("Pacífico" in prof_a.personality) or ("Pacífico" in prof_b.personality)
-	var f_chance: float = float(dials.get("fight_daily_base_chance", 0.38))
+	var f_chance: float = float(dials.get("live_fight_daily_chance", 0.15))
 	if has_pacifist:
 		f_chance *= 0.15
 	if not force_roll:

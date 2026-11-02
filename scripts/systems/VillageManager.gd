@@ -3322,6 +3322,24 @@ func _find_fight_guard(pos: Vector2, a: VillageNPC, b: VillageNPC) -> VillageNPC
 				best = v
 	return best
 
+func _scan_rival_friction() -> void:
+	var cur_day: int = int(WorldClock.current_day) if WorldClock != null else 1
+	var npcs: Array = []
+	for n in get_tree().get_nodes_in_group("village_npcs"):
+		if n is VillageNPC and _is_npc_free_to_fight(n as VillageNPC):
+			npcs.append(n)
+	for i in range(npcs.size()):
+		for j in range(i + 1, npcs.size()):
+			var a: VillageNPC = npcs[i]
+			var b: VillageNPC = npcs[j]
+			if a.global_position.distance_squared_to(b.global_position) > FIGHT_TRIGGER_RADIUS * FIGHT_TRIGGER_RADIUS:
+				continue
+			if a.family_id != "none" and a.family_id != "family_police" and a.family_id == b.family_id:
+				continue
+			var rel: int = a.get_relationship_with_npc(b.get_person_key())
+			if social_director.register_rival_encounter(a.get_person_key(), b.get_person_key(), rel, cur_day):
+				a._spawn_floating_text("😠", Color(1.0, 0.60, 0.40), -28.0)
+
 func _try_start_live_fight() -> void:
 	var cur_day: int = int(WorldClock.current_day) if WorldClock != null else 1
 	var pairs: Array = social_director.get_fight_ready_pairs(cur_day)
@@ -3361,6 +3379,7 @@ func _update_live_fights(delta: float) -> void:
 	_fight_scan_timer -= delta
 	if _fight_scan_timer <= 0.0:
 		_fight_scan_timer = randf_range(3.5, 6.0)
+		_scan_rival_friction()
 		_try_start_live_fight()
 
 func _finish_live_fight(fight: Dictionary, a: VillageNPC, b: VillageNPC, interrupted: bool, guard_stops: bool) -> void:

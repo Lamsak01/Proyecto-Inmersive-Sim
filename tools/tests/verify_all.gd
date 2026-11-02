@@ -804,8 +804,9 @@ func _initialize() -> void:
 		sd4.pair_metrics.clear()
 		sd4.last_drama_day = -10
 		vm._live_fights.clear()
-		sd4.dials["fight_daily_base_chance"] = 10.0
+		sd4.dials["live_fight_daily_chance"] = 10.0
 		sd4.set_pair_metrics(f_a.get_person_key(), f_b.get_person_key(), -20, 40, 0, tension_v)
+		sd4.get_pair_entry(f_a.get_person_key(), f_b.get_person_key())["enmity_days"] = 10
 		for fv in [f_a, f_b]:
 			fv.is_sleeping = false
 			fv.is_hostile = false
@@ -819,14 +820,14 @@ func _initialize() -> void:
 		f_b.global_position = Vector2(330, 300)
 		wc_speed.current_day = day_v
 		vm._fight_scan_timer = 0.0
-	var old_chance4 = sd4.dials["fight_daily_base_chance"]
+	var old_chance4 = sd4.dials["live_fight_daily_chance"]
 	var rel_before4: int = f_a.get_relationship_with_npc(f_b.get_person_key())
 	var ev_before4: int = vm.get_recent_social_events(80, "fight").size()
-	prepare_fight.call(20, int(wc_speed.current_day) + 10)
-	vm._update_live_fights(0.01)
+	prepare_fight.call(20, int(wc_speed.current_day) + 20)
+	vm._try_start_live_fight()
 	assert(vm._live_fights.is_empty(), "B4.2: Below the live threshold there must be no fight")
-	prepare_fight.call(45, int(wc_speed.current_day) + 10)
-	vm._update_live_fights(0.01)
+	prepare_fight.call(45, int(wc_speed.current_day) + 20)
+	vm._try_start_live_fight()
 	assert(vm._live_fights.size() == 1 and f_a.is_in_live_fight() and f_b.is_in_live_fight(), "B4.2: Tense neighbors close together must start a fight")
 	assert(f_a.get_activity_description().contains("Peleando"), "B4.2: Fight must be visible in the activity text")
 	var wounds_before4: int = f_a.health_comp.wounds.size() + f_b.health_comp.wounds.size()
@@ -847,17 +848,25 @@ func _initialize() -> void:
 	assert(f_a.health_comp.apply_minor_bruise(20.0, 0.35) == 0.0, "B4.2: At the floor a bruise does nothing")
 	f_a.health_comp.current_health = f_a.health_comp.get_effective_max_health()
 	# Un guardia a 140 px o menos separa a los vecinos antes de que haya heridas
-	prepare_fight.call(45, int(wc_speed.current_day) + 10)
+	prepare_fight.call(45, int(wc_speed.current_day) + 20)
 	police4[0].global_position = Vector2(315, 400)
 	police4[0].is_sleeping = false
-	vm._update_live_fights(0.01)
+	vm._try_start_live_fight()
 	assert(vm._live_fights.size() == 1 and vm._live_fights[0]["guard"] == police4[0], "B4.2: Nearby guard must be assigned")
 	var wounds_guard4: int = f_a.health_comp.wounds.size() + f_b.health_comp.wounds.size()
 	vm._fight_scan_timer = 999.0
 	vm._update_live_fights(1.7)
 	assert(vm._live_fights.is_empty(), "B4.2: Guard must stop the fight early")
 	assert(f_a.health_comp.wounds.size() + f_b.health_comp.wounds.size() == wounds_guard4, "B4.2: A stopped fight leaves no wound")
-	sd4.dials["fight_daily_base_chance"] = old_chance4
+	# Dos rivales que se cruzan acumulan tensión, una sola vez al día
+	prepare_fight.call(0, int(wc_speed.current_day) + 20)
+	f_a.npc_relationships[f_b.get_person_key()] = -30
+	vm._scan_rival_friction()
+	vm._scan_rival_friction()
+	var tension4: int = int(sd4.get_pair_entry(f_a.get_person_key(), f_b.get_person_key()).get("tension", 0))
+	assert(tension4 >= 2 and tension4 <= 4, "B4.2: Enemies crossing paths gain tension once per day")
+	assert(int(sd4.get_pair_entry(f_a.get_person_key(), f_b.get_person_key()).get("enmity_days", 0)) == 11, "B4.2: Crossing paths adds one enmity day")
+	sd4.dials["live_fight_daily_chance"] = old_chance4
 	vm._fight_scan_timer = 3.0
 	print("B4.2 live fights OK")
 
