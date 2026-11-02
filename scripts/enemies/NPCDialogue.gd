@@ -1,6 +1,7 @@
 extends RefCounted
 
 const VillageQuests = preload("res://scripts/systems/VillageQuests.gd")
+const VillageSocialLife = preload("res://scripts/systems/VillageSocialLife.gd")
 const TraitDiscovery = preload("res://scripts/systems/TraitDiscovery.gd")
 const TraitCatalog = preload("res://scripts/data/TraitCatalog.gd")
 
@@ -201,7 +202,12 @@ static func _add_neighbor_opinions(npc: VillageNPC, diag: Dictionary, ch_arr: Ar
 	var choices: Array = []
 	for i in range(mini(6, rows.size())):
 		var other: VillageNPC = rows[i]["npc"]
-		var text: String = "«%s y yo... %s.»" % [other.npc_name, describe_feeling(int(rows[i]["rel"]))]
+		# U5: cada uno habla de lo que siente él; si ya sabes lo que siente el otro y no coincide, lo notas
+		var phrase: String = VillageSocialLife.feeling_phrase(int(rows[i]["rel"]), other)
+		var text: String = "«¿%s? %s.»" % [other.npc_name, phrase.substr(0, 1).to_upper() + phrase.substr(1)]
+		var back_rel: int = other.get_relationship_with_npc(npc.get_person_key())
+		if other.knows_feeling_toward(npc.get_person_key()) and absi(back_rel - int(rows[i]["rel"])) >= 30:
+			text += "\n(Tú sabes que, para %s, %s: «%s».)" % [other.npc_name, npc.npc_name, VillageSocialLife.feeling_phrase(back_rel, npc)]
 		var note: String = npc.get_relationship_note_with_npc(other.get_person_key())
 		if shares_reason and note != "":
 			text += "\nMotivo: %s" % note
@@ -583,6 +589,8 @@ static func on_dialogue_action(npc: VillageNPC, action_id: String) -> void:
 			npc.trait_lore_done = true
 			TraitDiscovery.reveal_next(npc, "por su historia")
 		return
+	if action_id.begins_with("quest_opinion_seen:"):
+		npc.learn_feeling_toward(action_id.get_slice(":", 1)) # U5: ya sabes lo que siente por ese vecino
 	if action_id.begins_with("quest_opinion_seen:") and (npc.affinity >= 35 or int(player.call("get_skill_level", "charisma")) >= 2):
 		var about: VillageNPC = vm._get_npcs_by_person_key().get(action_id.get_slice(":", 1), null) if vm != null else null
 		if about != null:

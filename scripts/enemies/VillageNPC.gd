@@ -48,6 +48,10 @@ enum ActivityState {
 var known_traits: Array[String] = []
 ## T2b: rasgos que te han contado otros y aún no has comprobado: id -> nombre de quien lo dijo (puede ser falso).
 var rumored_traits: Dictionary = {}
+## U5: lo que siente ESTE vecino por otros empieza oculto. Claves de los vecinos cuyo sentimiento ya conoce el jugador.
+var known_feelings: Array[String] = []
+## Partidas de antes de U5: el glosario ya lo enseñaba todo, así que se conserva todo a la vista.
+var feelings_all_known: bool = false
 var trait_trust_tier: int = 0
 var trait_first_impression_done: bool = false
 var trait_lore_done: bool = false
@@ -3766,6 +3770,23 @@ func modify_affinity(delta_amount: int) -> void:
 	TraitDiscovery.check_trust(self)
 
 ## T3: rasgos tal como los ve el jugador («Rencoroso, ❓, ❓»).
+## U5: ¿sabe el jugador lo que siente este vecino por `other_key`? La pareja y la familia se ven siempre.
+func knows_feeling_toward(other_key: String) -> bool:
+	if feelings_all_known or other_key in known_feelings:
+		return true
+	if person_profile != null and str(person_profile.partner_id) == other_key:
+		return true
+	var vm_k = _get_vm()
+	if vm_k != null:
+		var o: VillageNPC = vm_k._get_npcs_by_person_key().get(other_key, null)
+		if o != null and family_id != "none" and family_id != "" and family_id != "family_police" and o.family_id == family_id:
+			return true
+	return false
+
+func learn_feeling_toward(other_key: String) -> void:
+	if other_key != "" and not other_key in known_feelings:
+		known_feelings.append(other_key)
+
 func get_known_traits_text() -> String:
 	return TraitDiscovery.known_traits_text(self)
 
@@ -4359,7 +4380,7 @@ func to_save_dict() -> Dictionary:
 		"person_profile": person_profile.to_dict() if person_profile != null else {},
 		"npc_name": npc_name, "npc_role": npc_role, "family_id": family_id, "family_name": family_name,
 		"trade_role": int(trade_role), "linked_trade": int(linked_trade), "days_in_role": days_in_role,
-		"affinity": affinity, "known_traits": known_traits.duplicate(), "rumored_traits": rumored_traits.duplicate(), "trait_trust_tier": trait_trust_tier,
+		"affinity": affinity, "known_traits": known_traits.duplicate(), "rumored_traits": rumored_traits.duplicate(), "known_feelings": known_feelings.duplicate(), "feelings_all_known": feelings_all_known, "trait_trust_tier": trait_trust_tier,
 		"trait_first_impression_done": trait_first_impression_done, "trait_lore_done": trait_lore_done, "personal_gold": personal_gold, "carries_royal_safe_conduct": carries_royal_safe_conduct,
 		"pocket_items": pocket_items.duplicate(), "corpse_pocket_looted": corpse_pocket_looted, "is_vagrant_camper": is_vagrant_camper,
 		"vagrant_camp_x": vagrant_camp_pos.x, "vagrant_camp_y": vagrant_camp_pos.y, "merchant_id": merchant_id,
@@ -4401,6 +4422,10 @@ func from_save_dict(data: Dictionary) -> void:
 	known_traits.clear()
 	for kt in data.get("known_traits", []):
 		known_traits.append(str(kt))
+	known_feelings.clear()
+	for kf in data.get("known_feelings", []):
+		known_feelings.append(str(kf))
+	feelings_all_known = bool(data.get("feelings_all_known", not data.has("known_feelings")))
 	rumored_traits.clear()
 	var rt_data = data.get("rumored_traits", {})
 	if typeof(rt_data) == TYPE_DICTIONARY:

@@ -304,6 +304,11 @@ static func _update_social_hangouts(vm: VillageManager, delta: float) -> void:
 	if not is_instance_valid(pa) or not is_instance_valid(pb):
 		vm.social_director.cancel_hangout(int(hg_new.get("id", -1)), "missing_actor")
 		return
+	# U4: si el invitado no aprecia a quien le invita tanto como al revés, puede poner una excusa
+	var invitee: VillageNPC = pb if pa == initiator else pa
+	if try_hangout_excuse(vm, initiator, invitee, randf()):
+		vm.social_director.cancel_hangout(int(hg_new.get("id", -1)), "excuse")
+		return
 	var lbl: String = vm._spot_label_for(str(hg_new.get("spot_id", "")))
 	var sp_pos: Vector2 = hg_new.get("spot_pos", pa.global_position)
 	pa.assign_hangout(int(hg_new["id"]), sp_pos, pb, -1, lbl)
@@ -464,3 +469,61 @@ static func on_new_couple_jealousy(vm: VillageManager, a: VillageNPC, b: Village
 				x.modify_npc_relationship(rival, -10, "💢💔 Celos: está con %s" % loved.npc_name, true)
 				x.add_thought("%s está con %s... (-8)" % [loved.npc_name, rival.npc_name], -8.0)
 				vm.record_social_event("jealousy", x, rival, "%s tiene celos de %s por %s" % [x.npc_name, rival.npc_name, loved.npc_name])
+
+
+## U4: amistad desigual. Quien invita aprecia bastante al otro (≥ 35) pero el invitado apenas a él (< 15):
+## con `EXCUSE_CHANCE` pone una excusa y no van. No pasa entre parejas ni en pleno cortejo.
+const EXCUSE_INVITER_MIN: int = 35
+const EXCUSE_INVITEE_MAX: int = 15
+const EXCUSE_CHANCE: float = 0.7
+static func try_hangout_excuse(vm: VillageManager, inviter: VillageNPC, invitee: VillageNPC, roll: float) -> bool:
+	if not is_instance_valid(inviter) or not is_instance_valid(invitee) or roll >= EXCUSE_CHANCE:
+		return false
+	var st: String = vm.social_director.get_pair_stage(inviter.get_person_key(), invitee.get_person_key()) if vm.social_director != null else "none"
+	if st in ["couple", "dating", "flirt"]:
+		return false
+	if inviter.get_relationship_with_npc(invitee.get_person_key()) < EXCUSE_INVITER_MIN or invitee.get_relationship_with_npc(inviter.get_person_key()) >= EXCUSE_INVITEE_MAX:
+		return false
+	invitee._spawn_floating_text("🙄 «Hoy no me viene bien, %s...»" % inviter.npc_name, Color(0.85, 0.85, 0.75), -36.0)
+	inviter.add_thought("%s siempre me pone excusas (-3)" % invitee.npc_name, -3.0)
+	inviter.modify_npc_relationship(invitee, -1, "", true)
+	return true
+
+## U4/U5: cómo describe un vecino lo que siente él por `other` (de un solo lado, con el género de `other`).
+static func feeling_phrase(rel: int, other: VillageNPC) -> String:
+	var fem: bool = other != null and other.person_profile != null and str(other.person_profile.gender) == "F"
+	if rel >= 65: return "es mi mejor amiga" if fem else "es mi mejor amigo"
+	if rel >= 35: return "es una buena amiga" if fem else "es un buen amigo"
+	if rel >= 12: return "me cae bien"
+	if rel > -12: return "ni fu ni fa"
+	if rel > -30: return "no me termina de caer bien"
+	if rel > -60: return "me cae mal"
+	return "no la soporto" if fem else "no lo soporto"
+
+
+## U6: enfriamiento por distancia. Si dos vecinos llevan más de `COOL_AFTER_DAYS` sin cruzarse, lo que siente cada uno
+## (bueno o malo) se acerca 1 punto al día a neutro, sin bajar de ±`COOL_FLOOR`. No afecta a parejas ni familia.
+const COOL_AFTER_DAYS: int = 7
+const COOL_FLOOR: int = 10
+static func daily_distance_cooling(vm: VillageManager, current_day: int) -> void:
+	var sd = vm.social_director
+	if sd == null:
+		return
+	var by_key: Dictionary = vm._get_npcs_by_person_key()
+	for k in sd.pair_metrics.keys():
+		var pe: Dictionary = sd.pair_metrics[k]
+		if str(pe.get("stage", "none")) == "couple" or int(pe.get("last_contact_day", current_day)) >= current_day - COOL_AFTER_DAYS:
+			continue
+		var ids: PackedStringArray = str(k).split("|")
+		if ids.size() != 2:
+			continue
+		var a: VillageNPC = by_key.get(ids[0], null)
+		var b: VillageNPC = by_key.get(ids[1], null)
+		if a == null or b == null or a.is_dead or b.is_dead:
+			continue
+		if a.family_id != "none" and a.family_id != "" and a.family_id != "family_police" and a.family_id == b.family_id:
+			continue
+		for side in [[a, b], [b, a]]:
+			var r: int = (side[0] as VillageNPC).get_relationship_with_npc((side[1] as VillageNPC).get_person_key())
+			if absi(r) > COOL_FLOOR:
+				(side[0] as VillageNPC).modify_npc_relationship(side[1], -1 if r > 0 else 1, "", true)

@@ -1463,5 +1463,53 @@ func _initialize() -> void:
 	rj_b.person_profile.romance_status = rj_keep[1]
 	print("U3 rejection and jealousy OK")
 
+	# Test #50 (U4): amistad desigual: excusa cuando solo uno aprecia al otro; frases de un solo lado
+	var ex_a = r1a
+	var ex_b = jz_c
+	sd_u.pair_metrics.erase(sd_u.make_pair_key(ex_a.get_person_key(), ex_b.get_person_key()))
+	ex_a.npc_relationships[ex_b.get_person_key()] = 60
+	ex_b.npc_relationships[ex_a.get_person_key()] = 0
+	assert(vsl.try_hangout_excuse(vm, ex_a, ex_b, 0.0), "U4: The one who barely cares makes an excuse")
+	assert(not vsl.try_hangout_excuse(vm, ex_b, ex_a, 0.0), "U4: The one who cares does not")
+	assert(not vsl.try_hangout_excuse(vm, ex_a, ex_b, 0.99), "U4: Not always")
+	assert(vsl.feeling_phrase(70, ex_b).begins_with("es mi mejor amig") and vsl.feeling_phrase(0, ex_b) == "ni fu ni fa", "U4: One-sided feeling phrases")
+	print("U4 uneven friendship OK")
+
+	# Test #51 (U5): lo que siente cada uno empieza oculto, se descubre al preguntar y se guarda; partidas viejas lo ven todo
+	ex_a.known_feelings.clear()
+	ex_a.feelings_all_known = false
+	if str(ex_a.person_profile.partner_id) != ex_b.get_person_key() and not (ex_a.family_id != "none" and ex_a.family_id == ex_b.family_id):
+		assert(not ex_a.knows_feeling_toward(ex_b.get_person_key()), "U5: Feelings start hidden")
+	ex_a.on_dialogue_action("quest_opinion_seen:" + ex_b.get_person_key())
+	assert(ex_a.knows_feeling_toward(ex_b.get_person_key()), "U5: Asking their opinion reveals it")
+	var kf_save: Dictionary = ex_a.to_save_dict()
+	ex_a.known_feelings.clear()
+	ex_a.from_save_dict(kf_save)
+	assert(ex_a.get_person_key() != "" and ex_b.get_person_key() in ex_a.known_feelings and not ex_a.feelings_all_known, "U5: Known feelings survive saving")
+	kf_save.erase("known_feelings")
+	ex_a.from_save_dict(kf_save)
+	assert(ex_a.feelings_all_known, "U5: Saves from before U5 keep everything visible")
+	ex_a.feelings_all_known = false
+	print("U5 hidden feelings OK")
+
+	# Test #52 (U6): sin verse una semana, lo que sienten se apaga poco a poco; la chispa se enfría sin igualarse
+	var cool_pe: Dictionary = sd_u.get_pair_entry(ex_a.get_person_key(), ex_b.get_person_key())
+	cool_pe["last_contact_day"] = 900
+	cool_pe["stage"] = "none"
+	ex_a.npc_relationships[ex_b.get_person_key()] = 50
+	ex_b.npc_relationships[ex_a.get_person_key()] = -40
+	vsl.daily_distance_cooling(vm, 920)
+	if not (ex_a.family_id != "none" and ex_a.family_id == ex_b.family_id):
+		assert(ex_a.get_relationship_with_npc(ex_b.get_person_key()) == 49 and ex_b.get_relationship_with_npc(ex_a.get_person_key()) == -39, "U6: Distance cools both feelings")
+	cool_pe["last_contact_day"] = 919
+	vsl.daily_distance_cooling(vm, 920)
+	assert(ex_a.get_relationship_with_npc(ex_b.get_person_key()) <= 49 and ex_a.get_relationship_with_npc(ex_b.get_person_key()) >= 48, "U6: Recent contact stops the cooling")
+	sd_u.get_pair_entry("u6a", "u6b")
+	sd_u.add_spark_one_way("u6a", "u6b", 30)
+	sd_u.get_pair_entry("u6a", "u6b")["last_contact_day"] = 1
+	sd_u.on_day_passed(50)
+	assert(sd_u.get_spark("u6a", "u6b") == 29 and sd_u.get_spark("u6b", "u6a") == 0, "U6: Spark cools on each side without being equalized")
+	print("U6 distance cooling OK")
+
 	print("ALL RIMWORLD MEDICAL, FOOTPRINTS, 3-PHASE CORPSE REPORT, MULTI-CORPSE FIX, RPG INTERROGATION, PUBLIC TRIAL, DYNAMIC RELATIONSHIPS, MISSING FAMILY SEARCH, SOCIAL GLOSSARY & UNCONSCIOUS REACTION TESTS PASSED!")
 	quit(0)

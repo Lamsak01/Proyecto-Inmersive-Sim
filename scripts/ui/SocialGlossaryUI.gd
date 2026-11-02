@@ -390,7 +390,13 @@ func refresh_ui(rebuild_lists: bool = true) -> void:
 		if same_fam:
 			var kin_state: String = "💀 Difunto" if other.is_dead else ("😟 Buscando" if is_instance_valid(other._searching_missing_kin) else "🟢 En el valle")
 			family_list.append("%s (%s · %+d · %s)" % [other.npc_name, other.npc_role, rel_val, kin_state])
+		var other_key: String = other.get_person_key()
+		var known_f: bool = sel.knows_feeling_toward(other_key)
+		var rev_known: bool = other.knows_feeling_toward(sel.get_person_key())
 		rel_entries.append({
+			"known": known_f,
+			"rev_known": rev_known,
+			"rev_val": other.get_relationship_with_npc(sel.get_person_key()),
 			"npc": other,
 			"name": other.npc_name,
 			"role": other.npc_role,
@@ -402,6 +408,8 @@ func refresh_ui(rebuild_lists: bool = true) -> void:
 		})
 
 	rel_entries.sort_custom(func(a: Dictionary, b: Dictionary) -> bool:
+		if bool(a["known"]) != bool(b["known"]):
+			return bool(a["known"]) # U5: primero lo que ya sabes
 		return int(a["val"]) > int(b["val"])
 	)
 
@@ -409,6 +417,8 @@ func refresh_ui(rebuild_lists: bool = true) -> void:
 	var main_enemies: Array[String] = []
 	for e in rel_entries:
 		var v_sc: int = int(e["val"])
+		if not bool(e["known"]):
+			continue
 		if not bool(e["same_fam"]) and v_sc >= 20 and best_friends.size() < 3:
 			best_friends.append("%s (%+d)" % [str(e["name"]), v_sc])
 		if v_sc <= -20 and main_enemies.size() < 3:
@@ -553,6 +563,20 @@ func _fill_table_row(row: Dictionary, entry: Dictionary) -> void:
 	var st_tag: String = str(entry.get("stage_tag", ""))
 	if st_tag != "":
 		tier_lbl += " · " + st_tag
+	# U5: lo que siente el otro, si ya lo sabes (así se ven los cariños no correspondidos)
+	if bool(entry.get("rev_known", false)):
+		tier_lbl += " · ↩ " + VillageNPC.get_relationship_tier_label(int(entry.get("rev_val", 0)), is_fam, is_part)
+	if not bool(entry.get("known", true)):
+		var other_hidden: VillageNPC = entry["npc"] as VillageNPC
+		panel.visible = true
+		panel.add_theme_stylebox_override("panel", _style_row_neutral)
+		(row["score"] as Label).text = "❓"
+		(row["score"] as Label).add_theme_color_override("font_color", Color(0.7, 0.7, 0.75))
+		(row["name"] as Label).text = "%s %s (%s) — ❓ No sabes qué siente por él/ella%s" % [_get_role_icon(int(other_hidden.trade_role)), other_hidden.npc_name, other_hidden.npc_role, (" · ↩ " + VillageNPC.get_relationship_tier_label(int(entry.get("rev_val", 0)), is_fam, is_part)) if bool(entry.get("rev_known", false)) else ""]
+		(row["name"] as Label).add_theme_color_override("font_color", Color(0.7, 0.7, 0.75))
+		(row["reason"] as Label).text = "↳ Pregúntale qué opina de los vecinos"
+		row["target"] = other_hidden
+		return
 	panel.add_theme_stylebox_override("panel", _style_row_good if r_val >= 35 else (_style_row_bad if r_val <= -25 else _style_row_neutral))
 	var sc_col: Color = Color(0.45, 1.0, 0.62) if r_val >= 35 else (Color(0.75, 0.95, 0.75) if r_val >= 12 else (Color(1.0, 0.45, 0.42) if r_val <= -25 else Color(0.85, 0.85, 0.85)))
 	var score_lbl: Label = row["score"]

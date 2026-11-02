@@ -203,6 +203,13 @@ func _spark_reciprocity(current_day: int) -> void:
 			var high: String = str(ids[1]) if va < vb else str(ids[0])
 			add_spark_one_way(low, high, 1)
 
+## Cambia la chispa de los dos lados a la vez (sin igualarlos), con un suelo opcional. Para enfriamientos y rupturas.
+func _change_spark_both(k: String, pe: Dictionary, delta_v: int, floor_v: int = 0) -> void:
+	var sb: Dictionary = _spark_sides(k, pe)
+	for side in sb.keys():
+		sb[side] = clampi(maxi(floor_v, int(sb[side]) + delta_v), 0, 100)
+	pe["spark"] = _min_side(sb)
+
 ## Chispa que siente `from_id` por `to_id`.
 func get_spark(from_id: String, to_id: String) -> int:
 	var k: String = make_pair_key(from_id, to_id)
@@ -902,7 +909,7 @@ func advance_live_romance_day(current_day: int, profiles_by_id: Dictionary, fami
 				if rng.randf() < float(dials.get("breakup_daily_chance", 0.28)):
 					pe["stage"] = STAGE_NONE
 					pe["ex_couple"] = true
-					pe["spark"] = maxi(20, int(pe.get("spark", 0)) - 25)
+					_change_spark_both(str(k), pe, -25, 20)
 					pe["tension"] = clampi(int(pe.get("tension", 0)) - 20, 0, 100)
 					if str(prof_a.partner_id) == id_b:
 						prof_a.romance_status = PersonProfile.ROMANCE_SINGLE
@@ -1207,7 +1214,7 @@ func on_day_passed(current_day: int) -> void:
 		if int(pe.get("last_contact_day", 0)) < current_day - 1:
 			pe["familiarity"] = clampi(int(pe.get("familiarity", 0)) - fam_dec, 0, 100)
 			if str(pe.get("stage", STAGE_NONE)) != STAGE_COUPLE:
-				pe["spark"] = clampi(int(pe.get("spark", 0)) - spk_dec, 0, 100)
+				_change_spark_both(str(k), pe, -spk_dec)
 			pe["tension"] = clampi(int(pe.get("tension", 0)) - ten_dec, 0, 100)
 
 func to_save_dict() -> Dictionary:
