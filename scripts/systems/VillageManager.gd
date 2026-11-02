@@ -977,6 +977,9 @@ func spread_gossip(teller: VillageNPC, listener: VillageNPC) -> Dictionary:
 func try_npc_slander(speaker: VillageNPC, listener: VillageNPC, chance: float = -1.0) -> Dictionary:
 	return VillageSocialLife.try_npc_slander(self, speaker, listener, chance)
 
+func gossip_text(ev: Dictionary, listener: VillageNPC = null) -> String:
+	return VillageSocialLife.gossip_text(ev, listener)
+
 func get_news_known_by(npc: VillageNPC, limit: int = 3) -> Array[Dictionary]:
 	return VillageSocialLife.get_news_known_by(self, npc, limit)
 

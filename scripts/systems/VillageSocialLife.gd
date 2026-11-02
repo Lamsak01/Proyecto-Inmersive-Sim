@@ -391,6 +391,14 @@ static func try_npc_slander(vm: VillageManager, speaker: VillageNPC, listener: V
 	TraitDiscoveryRef.on_witnessed_behavior(speaker, "malice", "le has oído calumniar")
 	return ev
 
+## Texto del chisme tal como se cuenta. Las calumnias no dicen quién las empezó (eso se averigua siguiendo la cadena).
+static func gossip_text(ev: Dictionary, listener: VillageNPC = null) -> String:
+	if str(ev.get("type", "")) in ["player_slander", "npc_slander"]:
+		if listener != null and listener.get_person_key() == str(ev.get("target_id", "")):
+			return "Andan diciendo cosas feas de ti."
+		return "Andan diciendo cosas feas de %s." % str(ev.get("target_name", "alguien"))
+	return str(ev.get("summary", ""))
+
 static func get_news_known_by(vm: VillageManager, npc: VillageNPC, limit: int = 3) -> Array[Dictionary]:
 	var key: String = npc.get_person_key()
 	var res: Array[Dictionary] = []

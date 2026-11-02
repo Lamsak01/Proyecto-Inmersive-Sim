@@ -1173,6 +1173,7 @@ func _initialize() -> void:
 	var br_th_before: int = m1_v.get_relationship_with_npc(k_th)
 	vm.spread_gossip(m1_x, m1_v)
 	assert(m1_v.get_relationship_with_npc(k_th) == br_th_before, "Q3: Second-hand slander does not reveal its author")
+	assert(not vm.gossip_text(r_ev).contains("Thoran") and not str(m1_x._inject_character_lore_into_dialogue(m1_x._build_dialogue()).get("npc_news", {})).contains("Thoran"), "Q3: Retold slander hides who started it")
 	if not qm.offers.has(k_br):
 		vq.on_rumor_reached_target(vm, r_ev, m1_x, m1_v, 1.0)
 	assert(str(qm.offers[k_br]["type"]) == "rumor", "Q3: The victim of the rumor asks for help")

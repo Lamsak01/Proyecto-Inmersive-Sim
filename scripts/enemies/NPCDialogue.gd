@@ -174,7 +174,7 @@ static func _add_neighbor_opinions(npc: VillageNPC, diag: Dictionary, ch_arr: Ar
 	var news_lines: PackedStringArray = []
 	if npc._get_vm() != null:
 		for ev in npc._get_vm().get_news_known_by(npc):
-			news_lines.append("• %s" % str(ev.get("summary", "")))
+			news_lines.append("• %s" % npc._get_vm().gossip_text(ev))
 	ch_arr.insert(maxi(0, ch_arr.size() - 1), {"label": "🗞️ Preguntar si hay alguna novedad", "next": "npc_news"})
 	diag["npc_news"] = {"text": "«Dicen por ahí...»\n%s" % "\n".join(news_lines) if not news_lines.is_empty() else "«Nada nuevo por aquí.»", "choices": [{"label": "⬅️ Volver a la conversación", "next": "start"}]}
 	var rows: Array = []

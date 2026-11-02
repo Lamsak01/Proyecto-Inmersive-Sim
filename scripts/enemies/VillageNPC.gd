@@ -952,7 +952,7 @@ func _process_pending_social_reply(delta: float) -> void:
 	if vm_news != null and randf() < clampf(0.5 + 0.25 * TraitCatalog.npc_tendency(initiator, "gossip"), 0.15, 0.85):
 		var news: Dictionary = vm_news.spread_gossip(initiator, self)
 		if not news.is_empty():
-			initiator._spawn_floating_text("🗣️ «¿Te has enterado? %s»" % str(news.get("summary", "")), Color(1.0, 0.92, 0.65), -46.0)
+			initiator._spawn_floating_text("🗣️ «¿Te has enterado? %s»" % vm_news.gossip_text(news, self), Color(1.0, 0.92, 0.65), -46.0)
 	if vm_news != null:
 		vm_news.try_npc_slander(initiator, self)
 
