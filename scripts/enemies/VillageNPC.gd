@@ -1545,11 +1545,34 @@ func _process_unconscious_neighbor_reaction(delta: float) -> bool:
 func _physics_process(delta: float) -> void:
 	if Engine.is_editor_hint():
 		return
+	if _process_inactive_states(delta):
+		return
+	_tick_frame_upkeep(delta)
+	_tick_self_tending(delta)
+	if _process_player_attention(delta):
+		return
+	if is_in_live_fight() and not is_hostile:
+		_process_live_fight(delta)
+		return
+	if _process_duties(delta):
+		return
+	if is_hostile:
+		_process_hostile_combat(delta)
+		_finish_frame_movement(delta)
+		return
+	_update_needs_and_decisions(delta)
+	if _process_hospital_care(delta):
+		return
+	_execute_dynamic_activity(delta)
+	_finish_frame_movement(delta, true)
+
+## Estados en los que el vecino no actúa: muerto, agonizando, inconsciente, aturdido, sentado al póker o tiempo congelado.
+func _process_inactive_states(delta: float) -> bool:
 	if is_dead:
 		velocity = Vector2.ZERO
 		_stop_crafting_bar()
 		_process_corpse_state(delta)
-		return
+		return true
 
 	if is_downed:
 		velocity = Vector2.ZERO
@@ -1561,7 +1584,7 @@ func _physics_process(delta: float) -> void:
 		_show_status_label("🩸 %s — ¡AGONIZANDO! (%ds)\n[E: Salvar y llevar al Hospital | Atacar: Rematar]" % [npc_name, maxi(1, int(ceil(bleedout_timer)))], Color(1.0, 0.35, 0.35))
 		if bleedout_timer <= 0.0:
 			_confirm_true_death()
-		return
+		return true
 
 	if sedated_timer > 0.0:
 		if not (WorldClock and WorldClock.has_method("is_time_frozen") and WorldClock.is_time_frozen()):
@@ -1583,14 +1606,14 @@ func _physics_process(delta: float) -> void:
 		_show_status_label("💤 %s — Inconsciente / Dormido (%ds)%s%s" % [npc_name, maxi(1, int(ceil(sedated_timer))), _get_pocket_loot_hint(), helper_tag], Color(0.78, 0.65, 1.0))
 		if sedated_timer <= 0.0:
 			wake_up_from_unconscious()
-		return
+		return true
 
 	if is_stunned_flag:
 		velocity = Vector2.ZERO
 		_stop_crafting_bar()
 		_scan_unconscious_victim_for_passersby(delta)
 		_show_status_label("💫 %s — Aturdido%s" % [npc_name, _get_pocket_loot_hint()], Color(0.75, 0.85, 1.0))
-		return
+		return true
 
 	if is_at_poker_table:
 		if poker_seat_pos != Vector2.ZERO and global_position.distance_to(poker_seat_pos) > 3.0:
@@ -1599,13 +1622,16 @@ func _physics_process(delta: float) -> void:
 		_stop_crafting_bar()
 		_update_visual_animation(delta)
 		_update_hover_label()
-		return
+		return true
 
 	if WorldClock and WorldClock.has_method("is_time_frozen") and WorldClock.is_time_frozen():
 		velocity = Vector2.ZERO
 		_update_hover_label()
-		return
+		return true
+	return false
 
+## Temporizadores y comprobaciones que corren en cada fotograma si el vecino está activo.
+func _tick_frame_upkeep(delta: float) -> void:
 	if body_col:
 		body_col.disabled = not is_hostile
 	_get_vm()
@@ -1623,7 +1649,8 @@ func _physics_process(delta: float) -> void:
 	if not is_instance_valid(_cached_dm) and get_tree().current_scene:
 		_cached_dm = get_tree().current_scene.get_node_or_null("Systems/dialogue_manager")
 
-	# Auto-cura de supervivencia (RimWorld Self-Tend): si el NPC no está en combate y está sangrando, se aplica un vendaje o torniquete rudimentario
+## Auto-cura de supervivencia (RimWorld Self-Tend): fuera de combate, si sangra se aplica un vendaje o torniquete rudimentario.
+func _tick_self_tending(delta: float) -> void:
 	if not is_hostile and health_comp and health_comp.get_total_wound_bleed_rate() > 0.0:
 		_self_tend_timer += delta
 		if _self_tend_timer >= 3.5:
@@ -1639,6 +1666,8 @@ func _physics_process(delta: float) -> void:
 	else:
 		_self_tend_timer = 0.0
 
+## Se detiene y mira al jugador mientras habla con él o a quien lo interroga.
+func _process_player_attention(delta: float) -> bool:
 	var talking_to_player: bool = not is_hostile and is_instance_valid(_cached_dm) and bool(_cached_dm.get("active")) and _cached_dm.get("current_speaker") == self
 	if talking_to_player or (_being_interviewed_timer > 0.0 and not is_hostile):
 		if not talking_to_player:
@@ -1651,19 +1680,42 @@ func _physics_process(delta: float) -> void:
 		trigger_action_animation(0.4)
 		_update_visual_animation(delta)
 		_update_hover_label(delta)
-		return
+		return true
+	return false
 
-	if is_in_live_fight() and not is_hostile:
-		_process_live_fight(delta)
-		return
-
+## Obligaciones por orden de prioridad: escolta, urgencias, emergencias vecinales, policía, investigación y ruta comercial.
+func _process_duties(delta: float) -> bool:
 	var vm_escort = _cached_vm
 	if vm_escort and bool(vm_escort.get("player_being_escorted_to_jail")) and vm_escort.get("escorting_officer") == self:
 		var jail_target: Vector2 = vm_escort.get("_jail_cell_pos") if "_jail_cell_pos" in vm_escort else Vector2(886, 172)
 		_move_towards_point(jail_target, 64.0, delta)
 		_finish_frame_movement(delta)
-		return
+		return true
 
+	if _process_doctor_duty(delta):
+		return true
+
+	if not is_hostile and (_process_witness_corpse_reporting(delta) or _process_corpse_morgue_transport(delta) or _process_family_missing_search(delta) or _process_unconscious_neighbor_reaction(delta)):
+		return true
+
+	if _process_police_duty(delta):
+		return true
+
+	if trade_role == TradeRole.ROYAL_INVESTIGATOR:
+		if is_hostile:
+			_police_alerted_timer = maxf(_police_alerted_timer, 25.0)
+			if is_instance_valid(_cached_player):
+				_last_seen_player_pos = _cached_player.global_position
+		_process_royal_investigator_ai(delta)
+		return true
+
+	if trade_role == TradeRole.TRAVELING_MERCHANT and not is_hostile:
+		_process_traveling_merchant_routine(delta)
+		return true
+	return false
+
+## El médico atiende primero a los agonizantes y luego a sus pacientes del hospital.
+func _process_doctor_duty(delta: float) -> bool:
 	if trade_role == TradeRole.DOCTOR and not is_hostile:
 		_doctor_scan_timer -= delta
 		if not is_instance_valid(_active_downed_patient) or not _active_downed_patient.is_downed or _active_downed_patient.is_dead:
@@ -1681,46 +1733,30 @@ func _physics_process(delta: float) -> void:
 				_spawn_floating_text("🩺 ¡%s trasladó a %s a la camilla de urgencias!" % [npc_name, _active_downed_patient.npc_name], Color.SPRING_GREEN, -42.0)
 				_active_hospital_patient = _active_downed_patient
 				_active_downed_patient = null
-			return
+			return true
 		if _process_doctor_hospital_treatment(delta):
 			_finish_frame_movement(delta)
-			return
+			return true
+	return false
 
-	if not is_hostile and (_process_witness_corpse_reporting(delta) or _process_corpse_morgue_transport(delta) or _process_family_missing_search(delta) or _process_unconscious_neighbor_reaction(delta)):
-		return
-
+## Policía: aplicar la ley, investigar y buscar desaparecidos.
+func _process_police_duty(delta: float) -> bool:
 	if trade_role in [TradeRole.SHERIFF, TradeRole.GUARD]:
 		var vm = _cached_vm
 		if vm and (int(vm.get("wanted_level")) > 0 or bool(vm.get("is_resisting_arrest")) or is_hostile) and not bool(vm.get("player_in_jail")) and not bool(vm.get("player_being_escorted_to_jail")):
 			if _process_police_law_enforcement(delta, vm):
-				return
+				return true
 		if trade_role == TradeRole.SHERIFF and vm and "active_sheriff_investigation" in vm and bool(vm.active_sheriff_investigation.get("active", false)):
 			if vm.has_method("update_sheriff_investigator_ai"):
 				vm.call("update_sheriff_investigator_ai", self, delta)
 				_finish_frame_movement(delta, true)
-				return
+				return true
 		if not is_hostile and _process_police_missing_person_patrol(delta):
-			return
+			return true
+	return false
 
-	if trade_role == TradeRole.ROYAL_INVESTIGATOR:
-		if is_hostile:
-			_police_alerted_timer = maxf(_police_alerted_timer, 25.0)
-			if is_instance_valid(_cached_player):
-				_last_seen_player_pos = _cached_player.global_position
-		_process_royal_investigator_ai(delta)
-		return
-
-	if trade_role == TradeRole.TRAVELING_MERCHANT and not is_hostile:
-		_process_traveling_merchant_routine(delta)
-		return
-
-	if is_hostile:
-		_process_hostile_combat(delta)
-		_finish_frame_movement(delta)
-		return
-
-	_update_needs_and_decisions(delta)
-
+## Si está herido o enfermo, va a la cama del hospital y descansa allí.
+func _process_hospital_care(delta: float) -> bool:
 	var needs_hospital_care: bool = false
 	if health_comp and need_hunger > 5.0 and trade_role != TradeRole.DOCTOR:
 		if health_comp.current_blood >= 22.0 or health_comp.get_most_urgent_untreated_wound_id(false) != -1:
@@ -1748,10 +1784,8 @@ func _physics_process(delta: float) -> void:
 			if health_comp.get_total_wound_bleed_rate() <= 0.0 and not health_comp.is_bleeding:
 				health_comp.heal(1.8 * delta)
 		_finish_frame_movement(delta)
-		return
-
-	_execute_dynamic_activity(delta)
-	_finish_frame_movement(delta, true)
+		return true
+	return false
 
 ## Gestiona un cadáver en el suelo o en la Morgue: se pudre con el paso de las horas/días hasta que otro NPC lo vea en su rutina natural (con línea de visión)
 ## o el jugador lo reporte con [E]. En la Morgue conserva sus bolsillos y órganos hasta que el caso se resuelva/archive y sea sepultado.

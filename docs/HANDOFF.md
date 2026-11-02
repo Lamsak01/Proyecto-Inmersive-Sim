@@ -43,7 +43,7 @@ FORMA DE TRABAJO:
 - Cuando necesites datos que solo veo yo (por ejemplo avisos del panel de errores de Godot), pídeme captura con archivo y línea.
 - Al cerrar cada bloque, márcalo en la sección 7 de docs/HANDOFF.md, añade una entrada a CHANGELOG.md, haz commit y push a `main`.
 
-TAREA ACTUAL: la vida social (Fases 0 a 6) está terminada. Toca reforzar lo existente: reducir el riesgo de `VillageManager.gd` y `VillageNPC.gd` sin cambiar el juego. Antes de tocar nada, dame un plan corto por bloques y espera mi aprobación.
+TAREA ACTUAL: la vida social (Fases 0 a 6) y el refuerzo del código (R1 a R5) están terminados. No hay tarea aprobada: pregúntame qué quiero hacer antes de empezar.
 ```
 
 ---
@@ -146,7 +146,7 @@ Otros documentos antiguos en la raíz: `ROADMAP_PROYECTO.md`, `AUDIT_LOG.md`, `S
 
 ## 7. Estado y siguiente bloque
 
-**Estado del código:** vida social completa (Fases 0 a 6) y subida a `main`; los cuatro tests pasan. **Siguiente:** reforzar `VillageManager.gd` y `VillageNPC.gd`, con plan aprobado antes de tocar nada. Historial en `CHANGELOG.md`.
+**Estado del código:** vida social completa (Fases 0 a 6) y subida a `main`; los cuatro tests pasan. Refuerzo del código (R1–R5) terminado. **Siguiente:** sin tarea aprobada; pregunta al usuario. Historial en `CHANGELOG.md`.
 
 ### Bloques del sistema de Vida Social (marca [x] al terminar y commitea)
 
@@ -201,7 +201,7 @@ Cada fase se dividirá en bloques pequeños cuando se llegue a ella (detalle en 
 - [x] **R2** HECHO. 16 funciones de construcción (494 líneas) movidas a `scripts/systems/VillageWorldBuilder.gd` (`@tool`, estático, primer parámetro `vm`). Comprobado con una foto de los 2.203 objetos y datos del mundo antes y después: idéntica salvo identificadores internos.
 - [x] **R3** HECHO. 13 funciones (308 líneas) de quedadas, peleas y chismes movidas a `scripts/systems/VillageSocialLife.gd`. `VillageManager.gd` conserva llamadas finas con los mismos nombres y el estado (`_live_fights`, temporizadores, constantes). `_advance_live_romances` sigue en `VillageManager.gd`.
 - [x] **R4** HECHO. 24 funciones (unas 1.500 líneas) de investigación, interrogatorios, veredictos y juicio movidas a `scripts/systems/VillageJustice.gd`. `VillageManager.gd` conserva llamadas finas con los mismos nombres y el estado de los casos.
-- [ ] **R5** Medir lo logrado y decidir si seguir con `VillageNPC.gd` (incluido dividir `_physics_process`).
+- [x] **R5** HECHO. `VillageManager.gd` bajó de 6.911 a unas 4.700 líneas, pero conserva 115 variables. `VillageNPC._physics_process` pasó de 211 a 25 líneas en 8 pasos con nombre (mismo orden, dentro del mismo archivo). Decisión: no partir más `VillageNPC.gd` salvo que un problema concreto lo justifique.
 
 ## 8. Decisiones de diseño ya tomadas (no volver a preguntarlas)
 
