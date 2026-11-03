@@ -1,6 +1,9 @@
 # Plan: economía y necesidades ampliadas (bloques E)
 
-Estado: **propuesta, pendiente de aprobación del usuario** (2026-11-03). Paso 6 de `docs/VISION_Y_FUTURO.md`.
+Estado: **hecho** (2026-11-03, ver HANDOFF). Decisiones del usuario: 1) higiene **para ti y para los vecinos**;
+2) las enfermedades **pueden matar, muy raramente y según la enfermedad** (solo la fiebre gris, sin médico; al
+jugador de momento le deja a 5 de vida, sin matarle); 3) **bebida y juego**; 4) los ladrones **también te roban**;
+5) todo de una vez, tests al final. Paso 6 de `docs/VISION_Y_FUTURO.md`.
 Prepara el terreno para instituciones y corrupción (paso 7): ricos que mandan, pobres que roban y policía que persigue.
 
 ## Qué existe hoy

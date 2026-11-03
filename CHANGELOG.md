@@ -5,6 +5,9 @@ El detalle técnico está en `docs/HANDOFF.md` (sección 7) y el historial compl
 
 ## 2026-11-03
 
+### Economía y necesidades
+- **E1–E7**: vecinos y tú tenéis **higiene** (nueva barra 🧼): se lavan en los pozos o en casa; si van sucios están de peor humor, caen peor y enferman más; si tú hueles mal, te lo notan. Hay **enfermedades que se contagian**: un resfriado y la fiebre gris, que obliga a guardar cama y, si nadie la trata, muy rara vez mata; el médico cura (a ti por 8 de oro). Cada vecino es **rico, acomodado, humilde, pobre o mendigo**; los mendigos piden limosna en la plaza. Hay **ladrones** de noche (a vecinos, a los puestos o a ti): si alguien los ve, el comisario les hace devolverlo; tú puedes denunciarlos o callar. Algunos se enganchan a la **bebida o al juego**, gastan su oro en la taberna y, borrachos, se les escapan secretos. Tú puedes dar limosna, regalar oro o invitar a una ronda para que te cuenten cosas.
+
 ### Grupos y fe
 - **G1–G7**: el pueblo tiene una fe propia, la **Fe del Alba** (provisional), y la capilla se llama ahora **Capilla del Alba**. Llega un personaje nuevo, el **Hermano Anselmo**, el sacerdote. La semana tiene 7 días y el reloj dice cuál es: el **sábado** se trabaja solo por la mañana y el **domingo** se descansa; el fin de semana los vecinos salen más. El domingo por la mañana los creyentes **caminan a la capilla** para el Oficio: salen de allí llevándose mejor y con chismes nuevos, los más devotos se fijan en quién faltó y, si el sacerdote le tiene manía a alguien, lo nota todo el que fue. Si tú vas, los creyentes te aprecian más. Los vecinos forman **bandos** (familias, pandillas de amigos, seguidores de un líder) que defienden a los suyos. Tienes **fama con los creyentes, los escépticos y cada bando** (se ve en el glosario, tecla J), y puedes preguntar al sacerdote por la fe, donar o burlarte.
 

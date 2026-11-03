@@ -10,6 +10,7 @@ extends RefCounted
 const VillageChronicle = preload("res://scripts/systems/VillageChronicle.gd")
 const GossipMemory = preload("res://scripts/systems/GossipMemory.gd")
 const TraitCatalog = preload("res://scripts/data/TraitCatalog.gd")
+const VillageNeeds = preload("res://scripts/systems/VillageNeeds.gd")
 
 # --- Diales (ajustar con la sonda) ---
 const MIN_AGE: int = 18
@@ -194,9 +195,12 @@ static func secret_of_event(vm: VillageManager, ev: Dictionary) -> Dictionary:
 
 ## Los amantes no van contando lo suyo.
 static func keeps_quiet(ev: Dictionary, teller_key: String) -> bool:
-	if teller_key in (ev.get("quiet", []) as Array): # D5: quien planea algo no lo va contando
-		return true
-	return str(ev.get("type", "")) == "affair" and (teller_key == str(ev.get("actor_id", "")) or teller_key == str(ev.get("target_id", "")))
+	var quiet: bool = teller_key in (ev.get("quiet", []) as Array) # D5: quien planea algo no lo va contando
+	if not quiet:
+		quiet = str(ev.get("type", "")) == "affair" and (teller_key == str(ev.get("actor_id", "")) or teller_key == str(ev.get("target_id", "")))
+	if quiet and VillageNeeds.is_drunk_key(teller_key) and randf() < VillageNeeds.DRUNK_TELL_CHANCE:
+		return false # E5: bebido habla de más
+	return quiet
 
 # ==============================================================================
 # S3: consecuencias al oírlo

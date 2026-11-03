@@ -7,6 +7,7 @@ class_name SurvivalComponent
 
 signal hunger_changed(current: float, maximum: float)
 signal sleep_changed(current: float, maximum: float)
+signal hygiene_changed(current: float, maximum: float)
 
 @export var max_hunger: float = 100.0
 @export var max_sleep: float = 100.0
@@ -15,6 +16,11 @@ signal sleep_changed(current: float, maximum: float)
 
 var current_hunger: float = 100.0
 var current_sleep: float = 100.0
+## E1: higiene del jugador (se lava en pozos y fuentes); E2: enfermedad (0 sano, 1 leve, 2 grave; la pone VillageIllness)
+@export var max_hygiene: float = 100.0
+@export var hygiene_drain_per_sec: float = 0.04
+var current_hygiene: float = 100.0
+var sick_level: int = 0
 var is_sitting_resting: bool = false
 
 var _starve_tick: float = 0.0
@@ -38,6 +44,7 @@ func _process(delta: float) -> void:
 	var drain_mult: float = 0.15 if is_sitting_resting else 1.0
 	current_hunger = maxf(0.0, current_hunger - (hunger_drain_per_sec * drain_mult) * delta)
 	current_sleep = maxf(0.0, current_sleep - (sleep_drain_per_sec * drain_mult) * delta)
+	current_hygiene = maxf(0.0, current_hygiene - hygiene_drain_per_sec * delta)
 
 	_ui_emit_tick += delta
 	if _ui_emit_tick >= 0.35 or absf(prev_h - current_hunger) > 1.0 or absf(prev_s - current_sleep) > 1.0:
@@ -46,10 +53,13 @@ func _process(delta: float) -> void:
 
 	# Penalizaciones suaves si llegas a 0 de Hambre o 0 de Sueño
 	var player := get_parent()
-	if current_sleep <= 12.0 and player:
+	var stam_cap: float = 55.0 if current_sleep <= 12.0 else 101.0
+	if sick_level > 0:
+		stam_cap = minf(stam_cap, 65.0 if sick_level == 1 else 40.0) # E2: enfermo te cansas antes
+	if stam_cap < 100.0 and player:
 		var stam: StaminaComponent = player.get_node_or_null("StaminaComponent")
-		if stam and stam.current_stamina > 55.0:
-			stam.current_stamina = lerpf(stam.current_stamina, 55.0, delta * 2.0)
+		if stam and stam.current_stamina > stam_cap:
+			stam.current_stamina = lerpf(stam.current_stamina, stam_cap, delta * 2.0)
 			stam.stamina_changed.emit(stam.current_stamina, stam.max_stamina)
 
 	if current_hunger <= 0.0 and player:
@@ -71,6 +81,11 @@ func restore_sleep(amount: float) -> void:
 	current_sleep = clampf(current_sleep + amount, 0.0, max_sleep)
 	sleep_changed.emit(current_sleep, max_sleep)
 
+func restore_hygiene(amount: float) -> void:
+	current_hygiene = clampf(current_hygiene + amount, 0.0, max_hygiene)
+	hygiene_changed.emit(current_hygiene, max_hygiene)
+
 func _emit_all() -> void:
 	hunger_changed.emit(current_hunger, max_hunger)
 	sleep_changed.emit(current_sleep, max_sleep)
+	hygiene_changed.emit(current_hygiene, max_hygiene)

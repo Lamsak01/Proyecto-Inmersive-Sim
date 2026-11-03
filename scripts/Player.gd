@@ -365,6 +365,9 @@ func try_consume_water_for_washing(show_error_if_missing: bool = true) -> bool:
 	return false
 
 func wash_bloodstains(show_even_if_clean: bool = false, free_from_water_source: bool = false) -> bool:
+	if survival_comp and survival_comp.current_hygiene < 95.0 and (free_from_water_source or is_near_water_source(2.0)):
+		survival_comp.restore_hygiene(100.0) # E1: lavarse junto al agua también te asea
+		_spawn_floating_text("🧼 Te lavas a fondo", Color.AQUA, -52.0)
 	var had_blood: bool = bloodstained_timer > 0.0 or int(get_meta("bloody_steps_left", 0)) > 0
 	var has_dirty_wounds: bool = false
 	if health_comp:
@@ -765,6 +768,7 @@ func to_save_dict() -> Dictionary:
 		"stamina": stam_comp.current_stamina if stam_comp else 100.0,
 		"hunger": survival_comp.current_hunger if survival_comp else 100.0,
 		"sleep": survival_comp.current_sleep if survival_comp else 100.0,
+		"hygiene": survival_comp.current_hygiene if survival_comp else 100.0,
 		"watering_can_charges": watering_can_charges,
 		"speed_tonic_timer": speed_tonic_timer,
 		"paralytic_venom_timer": paralytic_venom_timer,
@@ -840,6 +844,8 @@ func from_save_dict(data: Dictionary) -> void:
 			survival_comp.current_hunger = clampf(float(data["hunger"]), 0.0, survival_comp.max_hunger)
 		if data.has("sleep"):
 			survival_comp.current_sleep = clampf(float(data["sleep"]), 0.0, survival_comp.max_sleep)
+		if data.has("hygiene"):
+			survival_comp.current_hygiene = clampf(float(data["hygiene"]), 0.0, survival_comp.max_hygiene)
 		survival_comp._emit_all()
 	if combat_ctrl:
 		combat_ctrl._cancel_bow_draw()

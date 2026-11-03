@@ -6,6 +6,7 @@ extends Control
 @export var blood_bar: ProgressBar
 @export var stun_bar: ProgressBar
 var hunger_bar: ProgressBar = null
+var hygiene_bar: ProgressBar = null
 var sleep_bar: ProgressBar = null
 
 var clock_panel: PanelContainer = null
@@ -78,6 +79,11 @@ func _ready() -> void:
 		sleep_bar.value = 100.0
 		stats_box.add_child(sleep_bar)
 
+	if not hygiene_bar:
+		hygiene_bar = _create_fallback_bar(Color(0.55, 0.85, 0.95), Vector2.ZERO, "🧼 Higiene")
+		hygiene_bar.value = 100.0
+		stats_box.add_child(hygiene_bar)
+
 	# 3. Connect Signals
 	if player.has_node("HealthComponent"):
 		var health: HealthComponent = player.get_node("HealthComponent")
@@ -141,6 +147,8 @@ func _bind_survival_component() -> void:
 			surv.hunger_changed.connect(_on_hunger_changed)
 		if not surv.sleep_changed.is_connected(_on_sleep_changed):
 			surv.sleep_changed.connect(_on_sleep_changed)
+		if not surv.hygiene_changed.is_connected(_on_hygiene_changed):
+			surv.hygiene_changed.connect(_on_hygiene_changed)
 		surv._emit_all()
 
 func _is_external_world_modal_open() -> bool:
@@ -752,6 +760,11 @@ func _on_blood_changed(current: float, max_val: float) -> void:
 func _on_stun_changed(current: float, max_val: float) -> void:
 	stun_bar.value = current
 	stun_bar.max_value = max_val
+
+func _on_hygiene_changed(current: float, max_val: float) -> void:
+	if hygiene_bar:
+		hygiene_bar.max_value = max_val
+		hygiene_bar.value = current
 
 func _on_hunger_changed(current: float, max_val: float) -> void:
 	if hunger_bar:

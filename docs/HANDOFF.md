@@ -329,7 +329,35 @@ Cada fase se dividirá en bloques pequeños cuando se llegue a ella (detalle en 
   29 versiones deformadas (antes 6: vigilar); calumnias 7, peleas 1, 18 vivos, 78 % de relaciones en la franja media.
 
 ### Economía y necesidades ampliadas (bloques E)
-- [ ] **E1–E7** Plan en `docs/PLAN_ECONOMIA_NECESIDADES.md`, **pendiente de aprobación** (5 preguntas al final).
+- [x] **E1–E7** Hecho (plan y decisiones en `docs/PLAN_ECONOMIA_NECESIDADES.md`). Módulos `VillageNeeds.gd` (higiene,
+  posición, vicios, limosna, diálogo), `VillageIllness.gd` (enfermedades) y `VillageCrime.gd` (robos); estado en
+  `VillageManager.needs_state` (se guarda: `addict`, `drunk`, `ill`, `immune`, `thefts`, `smell_day`, `craving`, contadores).
+  Vecino: `need_hygiene` (guardada), `sick_level`, y **encargos a pie** `start_errand(kind, pos)` / `end_errand()`
+  (`errand_kind`: wash, drink, gamble, beg; van segundos después de `rite_pos` en `_get_social_target_pos`, no se
+  interrumpen salvo hambre/cansancio/noche, caducan a las 3 h salvo pedir). `VillageNeeds.tick` (cada segundo real desde
+  `VillageManager._process`) los termina al llegar; `on_hour` y `daily` desde los relojes del VM.
+  E1 higiene: −1,4/h (×1,5 carnicero y herrero; Pulcro más lento, Desaliñado más rápido); a las 7, 8, 18, 19 y 20 h, si
+  está libre y por debajo de 45 (+15 × tendencia), va al pozo más cercano o a casa. Por debajo de 20: −5 de humor y dos
+  vecinos −1 («Huele mal»). Jugador: `SurvivalComponent.current_hygiene` (−0,04/s, guardada, barra 🧼 en el HUD); se lava
+  en los pozos (`_use_water_well`) o al lavarse junto al agua (`wash_bloodstains`); por debajo de 25 cada vecino con el que
+  hablas te baja 1 de afinidad una vez al día. E2: resfriado (3–5 días, contagio 10 %/h a ≤ 60 px, leve) y fiebre gris
+  (6–10 días, 6 %/h, guarda cama `sick_level` 2, sin tratar desde el día 5 muere un 4 %/día). Inicio diario 0,6 % (+3 %
+  si higiene < 30, +0,6 % con lluvia; miasma → fiebre). Tope 3 contagios/día, inmunidad 20 días. El médico trata 3 al día
+  (graves primero; acorta a la mitad). Jugador: se contagia; enfermo, el aguante se queda en 65/40; la fiebre sin tratar
+  le baja 12 de vida al día **sin matarle** (mínimo 5); el médico te cura por 8 de oro. E3: rico ≥ 160, acomodado ≥ 70,
+  humilde ≥ 20, pobre, mendigo (campamento o parado con < 5). Los ricos comen en la taberna más (35 %); envidia pequeña;
+  los mendigos piden en la plaza de 9 a 18 y los que pasan dan 1–2 de oro. E4: un robo por noche como mucho; ganas
+  según pobreza, mono sin oro y Cleptómano, por (1 − 0,6 × honradez − 0,4 × ley); con honradez ≥ 1 nunca (salvo
+  Cleptómano). Víctima: otro vecino (no de su familia ni bando), la caja de un puesto o tú (25 %); se lleva el 20 %
+  (máx. 25). Testigo cercano o un 25 % de que alguien lo viera de lejos: si es honrado y no es de su bando, lo denuncia
+  y el comisario le obliga a devolverlo con multa (`theft_caught`, público); si no, chisme `theft` (el ladrón calla).
+  La víctima −40 hacia él (puede volverse venganza). Tú: denunciar al comisario o guardia lo que sepas, decirle al
+  ladrón que lo sabes (callar, +8; o exigir tu oro). E5: a las 19 y 20 h van a beber (3 de oro a la tabernera) o a
+  jugar (apuesta 8, gana el 45 %) según Bebedor/Tahúr/vicio y su enganche (+8 por vez, −3/día; enganchado ≥ 50);
+  sin oro y enganchados: mono (−6 y más ganas de robar). Borrachos 3 h: el 50 % de las veces cuentan lo que callaban
+  (`VillageSecrets.keeps_quiet`). E6: limosna (3) y regalar oro (10) a pobres; invitar a una ronda en la taberna (4):
+  te cuenta novedades y un rasgo. Glosario (J): higiene, posición, vicios y enfermedad. Crónica: theft, theft_caught,
+  illness, illness_death, player_alms. Test #58. La sonda imprime NEEDS. No hay adicción para el jugador.
 
 ### Interfaz
 - [x] **HUD1** Barras de estado (`scenes/ui_root.gd`, `_create_stats_box` / `_create_fallback_bar`): recuadro oscuro arriba a

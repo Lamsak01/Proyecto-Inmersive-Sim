@@ -6,6 +6,9 @@ const VillageChronicle = preload("res://scripts/systems/VillageChronicle.gd")
 const VillageSecrets = preload("res://scripts/systems/VillageSecrets.gd")
 const VillageDesires = preload("res://scripts/systems/VillageDesires.gd")
 const VillageFaith = preload("res://scripts/systems/VillageFaith.gd")
+const VillageNeeds = preload("res://scripts/systems/VillageNeeds.gd")
+const VillageIllness = preload("res://scripts/systems/VillageIllness.gd")
+const VillageCrime = preload("res://scripts/systems/VillageCrime.gd")
 const TraitDiscovery = preload("res://scripts/systems/TraitDiscovery.gd")
 const TraitCatalog = preload("res://scripts/data/TraitCatalog.gd")
 
@@ -178,6 +181,9 @@ static func _add_neighbor_opinions(npc: VillageNPC, diag: Dictionary, ch_arr: Ar
 	VillageSecrets.add_dialogue_choices(npc._get_vm(), npc, diag, ch_arr) # S5
 	VillageDesires.add_dialogue_choices(npc._get_vm(), npc, diag, ch_arr) # D
 	VillageFaith.add_dialogue_choices(npc._get_vm(), npc, diag, ch_arr) # G6
+	VillageNeeds.add_dialogue_choices(npc._get_vm(), npc, diag, ch_arr) # E6
+	VillageIllness.add_dialogue_choices(npc._get_vm(), npc, diag, ch_arr) # E2
+	VillageCrime.add_dialogue_choices(npc._get_vm(), npc, diag, ch_arr) # E4
 	if npc.affinity < 0:
 		diag["neighbor_opinions"] = {"text": "«No hablo de mis vecinos con quien no conozco.»", "choices": [{"label": "Entendido. [Volver]", "next": "start"}]}
 		return
@@ -598,6 +604,24 @@ static func on_dialogue_action(npc: VillageNPC, action_id: String) -> void:
 			VillageChronicle.learn_news_from(vm, npc) # C: lo que te cuentan pasa a tu crónica
 			VillageSecrets.on_player_news(vm, npc) # S5: si te cuenta una aventura, ya la sabes
 			VillageDesires.on_player_news(vm, npc) # D: y lo que quiere hacer alguien
+			VillageCrime.on_player_news(vm, npc) # E4: y quién robó
+		return
+	if action_id.begins_with("needs_"):
+		if vm != null and VillageNeeds.on_player_action(vm, npc, action_id, inv) and action_id == "needs_round":
+			# E5: con unas copas te cuenta lo que sabe
+			VillageChronicle.learn_news_from(vm, npc)
+			VillageSecrets.on_player_news(vm, npc)
+			VillageDesires.on_player_news(vm, npc)
+			VillageCrime.on_player_news(vm, npc)
+			TraitDiscovery.reveal_next(npc, "con unas copas")
+		return
+	if action_id.begins_with("illness_"):
+		if vm != null:
+			VillageIllness.on_player_action(vm, npc, action_id, inv)
+		return
+	if action_id.begins_with("crime_"):
+		if vm != null:
+			VillageCrime.on_player_action(vm, npc, action_id)
 		return
 	if action_id.begins_with("desire_"):
 		if vm != null:

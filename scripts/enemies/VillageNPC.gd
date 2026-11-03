@@ -118,6 +118,13 @@ var _decision_timer: float = 0.0
 var hangout_id: int = -1
 ## G2: sitio en la capilla durante el Oficio del Alba (ZERO = no va al Oficio)
 var rite_pos: Vector2 = Vector2.ZERO
+## E1/E3/E5: encargos cortos a pie (lavarse «wash», beber «drink», jugar «gamble», pedir limosna «beg»); ver VillageNeeds
+var errand_kind: String = ""
+var errand_pos: Vector2 = Vector2.ZERO
+var errand_since: int = 0
+## E1: higiene (100 limpio → 0 sucio). E2: 0 sano, 1 enfermo leve, 2 guarda cama (lo pone VillageIllness)
+var need_hygiene: float = 80.0
+var sick_level: int = 0
 var live_fight_partner: VillageNPC = null
 var _live_fight_clock: float = 0.0
 var hangout_spot_pos: Vector2 = Vector2.ZERO
@@ -2601,7 +2608,7 @@ func _get_expedition_description() -> String:
 	return str(EXPEDITION_DESCS.get(trade_role, "🚶 En Expedición"))
 
 func _is_mandatory_work_hours() -> bool:
-	if trade_role == TradeRole.UNEMPLOYED or rite_pos != Vector2.ZERO:
+	if trade_role == TradeRole.UNEMPLOYED or rite_pos != Vector2.ZERO or sick_level >= 2:
 		return false
 	if not WorldClock or _is_morning_expedition_hours():
 		return true
@@ -2728,7 +2735,7 @@ func _choose_preferred_meal_location() -> bool:
 		return true
 	if trade_role == TradeRole.UNEMPLOYED:
 		return not is_vagrant_camper and personal_gold >= 13
-	return personal_gold >= 36 and randf() < 0.10
+	return personal_gold >= 36 and randf() < (0.35 if personal_gold >= 160 else 0.10) # E3: los ricos comen fuera más a menudo
 
 ## Actualiza Hambre (escala de 3 días estilo Kenshi + digestión gradual), Energía (16h despierto / 8h de sueño nocturno 22:00-06:00) y Socialización.
 func _update_needs_and_decisions(delta: float) -> void:
@@ -2871,7 +2878,7 @@ func _update_needs_and_decisions(delta: float) -> void:
 
 	# Si por alguna razón extrema llega a 0% de energía fuera del turno obligatorio, NO se desmaya en el suelo:
 	# sufre los debufos severos de privación de sueño y camina hacia su cama/campamento a dormir.
-	if (need_energy <= 0.0 or (health_comp and health_comp.fever >= 25.0)) and not in_work_shift and current_activity != ActivityState.SLEEPING:
+	if (need_energy <= 0.0 or (health_comp and health_comp.fever >= 25.0) or sick_level >= 2) and not in_work_shift and current_activity != ActivityState.SLEEPING:
 		current_activity = ActivityState.SLEEPING
 		return
 	if in_work_shift and current_activity == ActivityState.WORKING:
@@ -2906,6 +2913,10 @@ func _update_needs_and_decisions(delta: float) -> void:
 			return # G2: en el Oficio se quedan hasta que termina, salvo hambre o cansancio fuertes
 		if rite_pos != Vector2.ZERO:
 			leave_rite()
+		if errand_kind != "" and need_energy > 12.0 and need_hunger >= 30.0 and not is_night_env:
+			return # E: termina su encargo (lavarse, taberna, limosna) antes de cambiar de idea
+		if errand_kind != "":
+			end_errand()
 		if is_night_env or need_energy <= 12.0 or (need_hunger < 65.0 and digestion_buffer < 10.0) or (need_social >= 92.0 and hangout_id < 0):
 			_social_partner = null
 			if need_hunger < 70.0 and digestion_buffer < 12.0 and not is_night_env:
@@ -3483,6 +3494,20 @@ func join_rite(spot: Vector2) -> void:
 func leave_rite() -> void:
 	rite_pos = Vector2.ZERO
 
+## E: encargo corto a pie (lo decide VillageNeeds; lo termina al llegar).
+func start_errand(kind: String, spot: Vector2) -> void:
+	errand_kind = kind
+	errand_pos = spot
+	errand_since = (int(WorldClock.current_day) * 24 + int(WorldClock.current_hour)) if WorldClock else 0
+	is_sleeping = false
+	_social_partner = null
+	current_activity = ActivityState.SOCIALIZING
+	_decision_timer = randf_range(1.0, 2.0)
+
+func end_errand() -> void:
+	errand_kind = ""
+	errand_pos = Vector2.ZERO
+
 ## B4.2: Escena discreta de pelea. `VillageManager` decide inicio, fin y consecuencias; aquí solo se representa.
 func is_in_live_fight() -> bool:
 	return is_instance_valid(live_fight_partner)
@@ -3566,6 +3591,8 @@ func is_visiting_grave() -> bool:
 func _get_social_target_pos() -> Vector2:
 	if rite_pos != Vector2.ZERO:
 		return rite_pos
+	if errand_kind != "":
+		return errand_pos
 	if hangout_id >= 0:
 		return hangout_spot_pos + Vector2(float(hangout_side) * 11.0, 0.0)
 	if is_visiting_grave():
@@ -3635,6 +3662,13 @@ func get_activity_description() -> String:
 			var loc := "en la Taberna" if _eat_at_tavern else ("en su Fogata" if is_vagrant_camper else "en Casa")
 			return "🍲 Comiendo %s" % loc
 		ActivityState.SOCIALIZING:
+			if errand_kind != "":
+				var at_e: bool = global_position.distance_to(errand_pos) <= 30.0
+				match errand_kind:
+					"wash": return "🧼 Lavándose" if at_e else "🚶🧼 Yendo a lavarse"
+					"drink": return "🍺 Bebiendo en la taberna" if at_e else "🚶🍺 Yendo a la taberna a beber"
+					"gamble": return "🎲 Jugando en la taberna" if at_e else "🚶🎲 Yendo a jugar a la taberna"
+					"beg": return "🥺 Pidiendo limosna en la plaza" if at_e else "🚶🥺 Yendo a pedir a la plaza"
 			if rite_pos != Vector2.ZERO:
 				if trade_role == TradeRole.PRIEST:
 					return "☀️ Dirigiendo el Oficio del Alba"
@@ -4423,7 +4457,7 @@ func to_save_dict() -> Dictionary:
 		"trait_first_impression_done": trait_first_impression_done, "trait_lore_done": trait_lore_done, "personal_gold": personal_gold, "carries_royal_safe_conduct": carries_royal_safe_conduct,
 		"pocket_items": pocket_items.duplicate(), "corpse_pocket_looted": corpse_pocket_looted, "is_vagrant_camper": is_vagrant_camper,
 		"vagrant_camp_x": vagrant_camp_pos.x, "vagrant_camp_y": vagrant_camp_pos.y, "merchant_id": merchant_id,
-		"need_hunger": need_hunger, "digestion_buffer": digestion_buffer, "need_energy": need_energy, "need_social": need_social,
+		"need_hunger": need_hunger, "digestion_buffer": digestion_buffer, "need_energy": need_energy, "need_social": need_social, "need_hygiene": need_hygiene,
 		"mood": mood, "thoughts": thoughts.duplicate(), "activity": int(current_activity),
 		"is_dead": is_dead, "is_downed": is_downed, "bleedout_timer": bleedout_timer, "sedated_timer": sedated_timer,
 		"corpse_on_ground": corpse_on_ground, "corpse_discovered": corpse_discovered, "corpse_discovered_by": corpse_discovered_by,
@@ -4545,6 +4579,7 @@ func from_save_dict(data: Dictionary) -> void:
 	digestion_buffer = clampf(float(data.get("digestion_buffer", digestion_buffer)), 0.0, 100.0)
 	need_energy = clampf(float(data.get("need_energy", need_energy)), 0.0, 100.0)
 	need_social = clampf(float(data.get("need_social", need_social)), 0.0, 100.0)
+	need_hygiene = clampf(float(data.get("need_hygiene", need_hygiene)), 0.0, 100.0)
 	current_activity = int(data.get("activity", current_activity)) as ActivityState
 	global_position = _read_vec2(data, "pos_x", "pos_y", global_position)
 	work_position = _read_vec2(data, "work_x", "work_y", work_position)

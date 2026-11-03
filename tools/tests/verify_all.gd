@@ -1952,5 +1952,122 @@ func _initialize() -> void:
 	wclock.current_hour = g_old_hour
 	print("G groups and faith OK")
 
+	# Test #58 (E1-E6): higiene, enfermedades, ricos y pobres, ladrones, bebida y juego
+	var vne = load("res://scripts/systems/VillageNeeds.gd")
+	var vil = load("res://scripts/systems/VillageIllness.gd")
+	var vcr = load("res://scripts/systems/VillageCrime.gd")
+	var e_roles = load("res://scripts/enemies/VillageNPC.gd").TradeRole
+	var e_old_day: int = int(wclock.current_day)
+	var e_old_hour: int = int(wclock.current_hour)
+	wclock.current_day = 3
+	vm.needs_state = {}
+	var e_live: Array = []
+	for en in get_nodes_in_group("village_npcs"):
+		if not en.is_dead and en.person_profile != null and not (int(en.trade_role) in [int(e_roles.SHERIFF), int(e_roles.GUARD), int(e_roles.TRAVELING_MERCHANT), int(e_roles.ROYAL_INVESTIGATOR), int(e_roles.DOCTOR), int(e_roles.PRIEST)]):
+			e_live.append(en)
+	var e_a = e_live[0]
+	var e_b = e_live[1]
+	var e_c = e_live[2]
+	var e_saved: Array = [e_a.person_profile.personality.duplicate(), e_b.person_profile.personality.duplicate(), e_c.person_profile.personality.duplicate()]
+	var e_gold: Array = [e_a.personal_gold, e_b.personal_gold, e_c.personal_gold]
+	# E1: higiene y lavarse
+	e_a.person_profile.personality.assign(["Pulcro"])
+	e_b.person_profile.personality.assign(["Desaliñado"])
+	assert(vne.hygiene_decay(e_a) < vne.hygiene_decay(e_b) and vne.wash_threshold(e_a) > vne.wash_threshold(e_b), "E1: Tidy people get dirty slower and wash sooner")
+	e_a.need_hygiene = 10.0
+	e_a.start_errand("wash", vne.wash_spot(vm, e_a))
+	assert(e_a._get_social_target_pos() == e_a.errand_pos, "E1: They really walk to wash")
+	e_a.global_position = e_a.errand_pos
+	vne.tick(vm)
+	assert(e_a.need_hygiene == 100.0 and e_a.errand_kind == "", "E1: Arriving at the well cleans them")
+	var e_pl = get_first_node_in_group("player")
+	if e_pl != null and e_pl.survival_comp != null:
+		e_pl.survival_comp.current_hygiene = 10.0
+		vm._use_water_well(e_pl)
+		assert(e_pl.survival_comp.current_hygiene == 100.0, "E1: The player washes at a well")
+	# E3: posición económica
+	e_a.personal_gold = 200
+	e_b.personal_gold = 3
+	e_c.personal_gold = 40
+	assert(vne.class_of(e_a) == "rico" and vne.class_of(e_b) == "pobre" and vne.class_of(e_c) == "humilde", "E3: Wealth sets social position")
+	# E2: enfermedades
+	assert(vil.infect(vm, e_b.get_person_key(), "fever") and e_b.sick_level == 2 and not e_b._is_mandatory_work_hours(), "E2: A serious illness keeps them in bed")
+	e_c.global_position = e_b.global_position + Vector2(10, 0)
+	e_c.need_hygiene = 10.0
+	var e_spread: bool = false
+	for ei in range(200):
+		vm.needs_state["inf_count"] = 0
+		vil.on_hour(vm, 10)
+		if vil.is_ill(vm, e_c.get_person_key()):
+			e_spread = true
+			break
+	assert(e_spread, "E2: Illness spreads to people nearby")
+	vil.treat(vm, e_b.get_person_key())
+	assert(bool(vil.ill_of(vm, e_b.get_person_key())["treated"]), "E2: The doctor can treat it")
+	vil.recover(vm, e_b.get_person_key())
+	assert(e_b.sick_level == 0 and not vil.infect(vm, e_b.get_person_key(), "fever"), "E2: After recovering they are immune for a while")
+	vil.recover(vm, e_c.get_person_key())
+	# E4: ladrones
+	e_b.person_profile.personality.assign(["Cleptómano"])
+	e_a.person_profile.personality.assign(["Honrado"])
+	assert(vcr.drive(vm, e_b) > 0.0 and vcr.drive(vm, e_a) == 0.0, "E4: Poor or kleptomaniac people may steal; honest people never")
+	e_c.personal_gold = 100
+	e_c.npc_relationships[e_b.get_person_key()] = 0
+	var e_b_gold: int = e_b.personal_gold
+	var e_t: Dictionary = vcr.commit(vm, e_b, e_c)
+	assert(not e_t.is_empty() and (str(e_t["status"]) == "caught" or (e_c.personal_gold == 100 - int(e_t["amount"]) and e_b.personal_gold == e_b_gold + int(e_t["amount"]))), "E4: A theft moves the gold (unless a witness reports it at once)")
+	if str(e_t["status"]) == "open":
+		e_t["player_knows"] = true
+		var e_sheriff = null
+		for es in get_nodes_in_group("village_npcs"):
+			if not es.is_dead and int(es.trade_role) == int(e_roles.SHERIFF):
+				e_sheriff = es
+		if e_sheriff != null:
+			vcr.on_player_action(vm, e_sheriff, "crime_report:%d" % int(e_t["id"]))
+	assert(str(e_t["status"]) == "caught" and e_c.personal_gold >= 100 - 1, "E4: Reporting a thief makes them give it back")
+	assert(e_c.get_relationship_with_npc(e_b.get_person_key()) <= vcr.VICTIM_REL, "E4: The victim resents the thief")
+	# E5: bebida y juego
+	e_a.person_profile.personality.assign(["Bebedor"])
+	e_a.personal_gold = 50
+	assert(vne.vice_chance(vm, e_a, "drink") > vne.vice_chance(vm, e_c, "drink"), "E5: Drinkers go to the tavern more often")
+	for ek in range(8):
+		vne.do_vice(vm, e_a, "drink")
+	assert(e_a.personal_gold == 50 - 8 * vne.DRINK_COST and vne.is_addicted(vm, e_a.get_person_key(), "drink"), "E5: Drinking costs gold and hooks them")
+	assert(vne.is_drunk_key(e_a.get_person_key()), "E5: They get drunk")
+	var e_qev: Dictionary = {"type": "affair", "actor_id": e_a.get_person_key(), "target_id": "x"}
+	var e_told: bool = false
+	for ej in range(40):
+		if not vsec.keeps_quiet(e_qev, e_a.get_person_key()):
+			e_told = true
+			break
+	assert(e_told, "E5: Drunk people let secrets slip")
+	# E6: limosna y ronda
+	var e_inv = load("res://scripts/systems/SimpleInventory.gd").new()
+	e_inv.gold = 30
+	e_b.personal_gold = 0
+	e_b.affinity = 0
+	assert(vne.on_player_action(vm, e_b, "needs_gift", e_inv) and int(e_inv.gold) == 30 - vne.GIFT_GOLD and e_b.affinity > 0, "E6: Giving gold to the poor pleases them")
+	e_inv.free()
+	# Guardado
+	e_a.need_hygiene = 33.0
+	var e_nd: Dictionary = e_a.to_save_dict()
+	var e_save: Dictionary = vm.get_economy_save_dict()
+	var e_nthefts: int = (vm.needs_state["thefts"] as Array).size()
+	vm.needs_state = {}
+	vm.load_economy_save_dict(e_save)
+	assert((vm.needs_state["thefts"] as Array).size() == e_nthefts and vne.is_addicted(vm, e_a.get_person_key(), "drink") and is_equal_approx(float(e_nd["need_hygiene"]), 33.0), "E: Needs, vices and thefts survive save and load")
+	e_a.person_profile.personality.assign(e_saved[0])
+	e_b.person_profile.personality.assign(e_saved[1])
+	e_c.person_profile.personality.assign(e_saved[2])
+	e_a.personal_gold = e_gold[0]
+	e_b.personal_gold = e_gold[1]
+	e_c.personal_gold = e_gold[2]
+	vm.needs_state = {}
+	vne.drunk_now = {}
+	vil.apply_levels(vm)
+	wclock.current_day = e_old_day
+	wclock.current_hour = e_old_hour
+	print("E economy and needs OK")
+
 	print("ALL RIMWORLD MEDICAL, FOOTPRINTS, 3-PHASE CORPSE REPORT, MULTI-CORPSE FIX, RPG INTERROGATION, PUBLIC TRIAL, DYNAMIC RELATIONSHIPS, MISSING FAMILY SEARCH, SOCIAL GLOSSARY & UNCONSCIOUS REACTION TESTS PASSED!")
 	quit(0)

@@ -9,6 +9,9 @@ const VillageChronicle = preload("res://scripts/systems/VillageChronicle.gd")
 const VillageSecrets = preload("res://scripts/systems/VillageSecrets.gd")
 const VillageDesires = preload("res://scripts/systems/VillageDesires.gd")
 const VillageFaith = preload("res://scripts/systems/VillageFaith.gd")
+const VillageNeeds = preload("res://scripts/systems/VillageNeeds.gd")
+const VillageIllness = preload("res://scripts/systems/VillageIllness.gd")
+const VillageCrime = preload("res://scripts/systems/VillageCrime.gd")
 const VillageQuests = preload("res://scripts/systems/VillageQuests.gd")
 
 const VillageWorldBuilder = preload("res://scripts/systems/VillageWorldBuilder.gd")
@@ -55,6 +58,9 @@ var last_npc_murder_day: int = -9999
 ## Grupos y fe (G): ver `VillageFaith.gd`. faith_state se guarda; los bandos se recalculan cada día.
 var faith_state: Dictionary = {}
 var faith_bands: Array = []
+## Economía y necesidades (E): vicios, enfermedades, robos… ver `VillageNeeds.gd`. Se guarda.
+var needs_state: Dictionary = {}
+var _needs_tick_acc: float = 0.0
 var _social_event_uid: int = 0
 var trade_configs: Dictionary = {}
 var domestic_pets: Array[DomesticPet] = []
@@ -239,6 +245,10 @@ func _process(delta: float) -> void:
 		return
 	if _police_confront_cooldown > 0.0:
 		_police_confront_cooldown -= delta
+	_needs_tick_acc += delta
+	if _needs_tick_acc >= 1.0:
+		_needs_tick_acc = 0.0
+		VillageNeeds.tick(self) # E: terminar encargos al llegar
 	if social_director != null:
 		social_director.tick(delta, self)
 		_update_social_hangouts(delta)
@@ -996,7 +1006,7 @@ func record_social_event(type_str: String, actor: VillageNPC, target: VillageNPC
 
 ## B6.1: Eventos que merecen chisme. Son solo información: no mueven relaciones entre vecinos.
 const GOSSIP_EVENT_TYPES: Array[String] = ["fight", "breakup", "couple", "couple_reconciled", "feud", "reconciliation", "player_slander", "npc_slander", "rejection",
-	"date", "romance_flirt", "romance_dating", "jealousy", "arrival", "departure", "affair_forgiven"] # R5: más cosas de las que hablar # Sin "widowed": revelaría muertes aún sin descubrir
+	"date", "romance_flirt", "romance_dating", "jealousy", "arrival", "departure", "affair_forgiven", "theft", "theft_caught"] # R5: más cosas de las que hablar # Sin "widowed": revelaría muertes aún sin descubrir
 const GOSSIP_MAX_AGE_DAYS: int = 20 # R1: tope; antes lo decide la memoria de cada vecino (GossipMemory)
 const NEWS_MIN_KNOWERS: int = 3
 
@@ -2316,6 +2326,8 @@ func _on_hour_passed(_day: int, new_hour: int = 8) -> void:
 	var actual_day: int = WorldClock.current_day if WorldClock else 1
 	_apply_hourly_door_security_schedule(actual_hour)
 	VillageFaith.on_hour(self, actual_hour) # G2: Oficio del Alba (domingo por la mañana)
+	VillageNeeds.on_hour(self, actual_hour) # E: higiene, taberna, limosna
+	VillageIllness.on_hour(self, actual_hour) # E2: contagios
 
 	# 07:00 AM -> Comprobar llegada semanal de los 2 Mercaderes Ambulantes (Día 3: Maese Casimir | Día 6: Valeria la Tratante)
 	if actual_hour == 7:
@@ -2798,6 +2810,7 @@ func _use_tavern_bed(player: Node2D) -> void:
 	_msg_player(player, "🛌 Dormiste en la Posada (-8 Oro, +100% Sueño)", Color.GOLD, -42.0)
 
 func _use_water_well(player: Node2D) -> void:
+	VillageNeeds.player_wash(self) # E1: también te lavas
 	if player.has_method("refill_watering_can"):
 		player.call("refill_watering_can")
 	else:
@@ -2978,6 +2991,9 @@ func _on_day_passed(_new_day: int) -> void:
 		VillageSecrets.daily(self)
 		VillageDesires.daily(self)
 		VillageFaith.daily(self) # G: roces de fe, sacerdote y bandos
+		VillageNeeds.daily(self) # E1/E3/E5
+		VillageIllness.daily(self) # E2
+		VillageCrime.daily(self) # E4: como mucho un robo por noche
 		VillageQuests.on_day_passed(self)
 	chronicle_daily = false
 
@@ -4416,6 +4432,7 @@ func get_economy_save_dict() -> Dictionary:
 		"npc_murders": npc_murders.duplicate(),
 		"last_npc_murder_day": last_npc_murder_day,
 		"faith_state": faith_state.duplicate(true),
+		"needs_state": needs_state.duplicate(true),
 		"social_event_uid": _social_event_uid,
 		"social_director": social_director.to_save_dict() if social_director != null else {}
 	}
@@ -4475,6 +4492,8 @@ func load_economy_save_dict(data: Dictionary) -> void:
 	last_npc_murder_day = int(data.get("last_npc_murder_day", -9999))
 	faith_state = (data["faith_state"] as Dictionary).duplicate(true) if typeof(data.get("faith_state")) == TYPE_DICTIONARY else {}
 	faith_bands = []
+	needs_state = (data["needs_state"] as Dictionary).duplicate(true) if typeof(data.get("needs_state")) == TYPE_DICTIONARY else {}
+	VillageNeeds.drunk_now = (VillageNeeds.state(self)["drunk"] as Dictionary).duplicate()
 	if data.has("chronicle") and typeof(data["chronicle"]) == TYPE_ARRAY:
 		chronicle.clear()
 		for ch_it in (data["chronicle"] as Array):
