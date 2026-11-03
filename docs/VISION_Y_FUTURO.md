@@ -81,6 +81,7 @@ Estado: **Base** = ya existe algo en el juego sobre lo que construir. **Idea** =
 
 ### Sociedad, crimen y poder (P4, P6)
 - Secta secreta en el pueblo. *(Base: hecho en O, «los Hijos del Ocaso» provisional: captación, reuniones de noche, bando oculto, profanaciones, rito de sangre muy raro; puedes unirte o denunciarla.)*
+- **El usuario ampliará el sistema de sectas más adelante** (2026-11-03): lo que se construya debe dejarle sitio.
 - Ideas tras O (2026-11-03): encargos de la secta para el jugador (cuando haya misiones), la droga «polvo de ocaso» como cebo, que la secta capte al comisario o al alcalde a propósito, rivalidad abierta con el sacerdote, varias sectas o cultos, que el fundador huya en vez de pagar multa, un lugar de reunión propio (cripta o sótano), la secta como gancho de la historia principal.
 - Alcalde que puede ser corrupto; policías corruptos. *(Base: hecho en I: alcalde elegido, impuestos, desfalco, comisario sobornable.)*
 - Ideas tras E e I (2026-11-03): nobles y señor del valle (aplazado al paso 9), que el jugador pueda presentarse a alcalde, campañas y promesas electorales, obras públicas pagadas con las arcas, adicción del jugador, más enfermedades (epidemias, cuarentena), mercado negro de lo robado, una casa de baños.
