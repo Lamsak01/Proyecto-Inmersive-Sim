@@ -2901,5 +2901,33 @@ func _initialize() -> void:
 	vf_m.shop_stock = vf_stock
 	print("Block F need-based hiring OK")
 
+	# 77. Bloque G: el ayudante del negocio familiar recibe su parte del dueño.
+	var vg_h = null
+	for vg_n in vm.get_tree().get_nodes_in_group("village_npcs"):
+		if vg_h == null and int(vg_n.trade_role) == int(load("res://scripts/enemies/VillageNPC.gd").TradeRole.FAMILY_MEMBER) and not vg_n.is_dead:
+			for vg_r in vm.trade_npcs.keys():
+				var vg_o = vm.trade_npcs[vg_r]
+				if vg_o != null and is_instance_valid(vg_o) and vg_o.family_id == vg_n.family_id and vg_o != vg_n:
+					vg_h = vg_n
+	assert(vg_h != null, "G: Some shop has a family helper")
+	var vg_owner = null
+	for vg_r2 in vm.trade_npcs.keys():
+		var vg_o2 = vm.trade_npcs[vg_r2]
+		if vg_owner == null and vg_o2 != null and is_instance_valid(vg_o2) and vg_o2.family_id == vg_h.family_id and vg_o2 != vg_h:
+			vg_owner = vg_o2
+	var vg_hg: int = vg_h.personal_gold
+	var vg_og: int = vg_owner.personal_gold
+	vg_h.personal_gold = 0
+	vg_owner.personal_gold = 100
+	vfm.pay_helpers(vm)
+	assert(vg_h.personal_gold == vfm.HELPER_SHARE and vg_owner.personal_gold <= 100 - vfm.HELPER_SHARE, "G: The helper gets a share from the family shop")
+	vg_h.personal_gold = 0
+	vg_owner.personal_gold = 10
+	vfm.pay_helpers(vm)
+	assert(vg_h.personal_gold == 0, "G: A broke owner keeps what they need to eat")
+	vg_h.personal_gold = vg_hg
+	vg_owner.personal_gold = vg_og
+	print("Block G family helpers paid OK")
+
 	print("ALL RIMWORLD MEDICAL, FOOTPRINTS, 3-PHASE CORPSE REPORT, MULTI-CORPSE FIX, RPG INTERROGATION, PUBLIC TRIAL, DYNAMIC RELATIONSHIPS, MISSING FAMILY SEARCH, SOCIAL GLOSSARY & UNCONSCIOUS REACTION TESTS PASSED!")
 	quit(0)

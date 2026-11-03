@@ -91,3 +91,18 @@ Leyenda: ✅ probado y subido · 🟡 escrito, sin probar · 🔴 falló (ver no
 - Ganaderos, canteros y granjeros **ya no se quedan sin oro** (antes 30 comidas fallidas; ahora 1).
 - Siguen fallando: ayudantes de negocio familiar **sin oro** (18) y parados con comida en el pueblo pero cara o cerrada (23).
   Se encargó y terminó 1 casa (día 9–12). Siguiente: ver por qué los ayudantes no tienen dinero.
+
+## Bloque G — Los ayudantes de negocio familiar no cobraban nada
+
+| # | Paso | Estado | Archivos | Nota |
+|---|------|--------|----------|------|
+| G1 | Quien ayuda en el negocio de su familia (`FAMILY_MEMBER`) no tenía ningún ingreso ni podía hacer jornales. Ahora, cada día, si tiene menos de 15 de oro, el dueño del negocio de su familia le da 6 (si al dueño le quedan 20) | ✅ | VillageFamily.pay_helpers | Igual que la paga de los niños |
+| G2 | Test #77 | ✅ | verify_all.gd | |
+| — | **Sin tocar, para hablarlo:** parados que no comen aunque hay comida (cara o tienda cerrada a esa hora). Hace falta saber a qué hora y a qué precio fallan antes de cambiar nada | — | | |
+
+### Pruebas del bloque G (todas pasan) y sonda
+- Los cuatro tests pasan (con #77). Con 50 vecinos: plaza 5,9 ms, lejos 4,0 ms, peor 23 ms, ninguno > 33 ms.
+- Comidas fallidas en 12 días: **16** (antes de E–G, 58; tras F, 50). Ayudantes: de 18 a 1; parados: de 23 a 3.
+  Lo que queda está repartido entre oficios y horas (6–7 h, 10–11 h, 18 h, 23 h): no hay una causa única.
+- Primer embarazo y nacimiento en la sonda (días 4 y 13). Ninguna casa nueva: las arcas acaban en 48 (pagan la paga
+  de los niños, al maestro y la ayuda a los pobres) y nadie sin casa tiene 80. Queda para equilibrar con el usuario.

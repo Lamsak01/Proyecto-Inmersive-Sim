@@ -400,6 +400,28 @@ static func give_allowances(vm) -> int:
 			given += ALLOWANCE
 	return given
 
+## G1: quien ayuda en el negocio de su familia (FAMILY_MEMBER) no tenía ingreso ninguno. Cada día, si le quedan menos
+## de 15 de oro, el dueño del negocio de su familia le da 6 (solo si al dueño le quedan 20 para comer él).
+const HELPER_SHARE: int = 6
+const HELPER_OWNER_RESERVE: int = 20
+static func pay_helpers(vm) -> int:
+	var given: int = 0
+	for h in VillageNeeds.living(vm):
+		if int(h.trade_role) != int(VillageNPC.TradeRole.FAMILY_MEMBER) or h.personal_gold >= ALLOWANCE_CAP or h.family_id in ["", "none"]:
+			continue
+		var owner = null
+		for r in vm.trade_npcs.keys():
+			var o = vm.trade_npcs[r]
+			if o != null and is_instance_valid(o) and not o.is_dead and o != h and o.family_id == h.family_id:
+				owner = o
+				break
+		if owner == null or owner.personal_gold < HELPER_SHARE + HELPER_OWNER_RESERVE:
+			continue
+		owner.personal_gold -= HELPER_SHARE
+		h.personal_gold += HELPER_SHARE
+		given += HELPER_SHARE
+	return given
+
 # ---------------------------------------------------------------- cada día
 static func daily(vm) -> void:
 	update_ages(vm)
@@ -407,6 +429,7 @@ static func daily(vm) -> void:
 	try_conceptions(vm)
 	update_school(vm)
 	give_allowances(vm)
+	pay_helpers(vm)
 
 ## Al cargar: tamaños y pupitres (las marcas no se guardan).
 static func after_load(vm) -> void:

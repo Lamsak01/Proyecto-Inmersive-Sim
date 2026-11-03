@@ -5,6 +5,9 @@ El detalle técnico está en `docs/HANDOFF.md` (sección 7) y el historial compl
 
 ## 2026-11-03
 
+### Ayudantes que cobran
+- Quien ayuda en el negocio de su familia recibe ahora una parte del dueño cada día; antes no cobraba nada y acababa sin poder comer. En total, las comidas que fallan en el pueblo bajan a menos de un tercio.
+
 ### Granjeros que ya comen
 - **Arreglado:** los dueños de la granja, el rancho y la cantera contrataban jornaleros con todo su dinero, aunque el almacén estuviera lleno, y luego no podían comprar comida. Ahora contratan solo a los que hacen falta y se guardan para comer.
 

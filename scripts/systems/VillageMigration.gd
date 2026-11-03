@@ -56,6 +56,9 @@ static func note_meal_failure(vm, npc) -> void:
 	var role: String = str(VillageNPC.TradeRole.keys()[int(npc.trade_role)]).to_lower() if int(npc.trade_role) < VillageNPC.TradeRole.size() else str(npc.trade_role)
 	var k: String = "%s/%s" % [why, role]
 	st["meal_fails"][k] = int(st["meal_fails"].get(k, 0)) + 1
+	if why == "caro_o_cerrado": # G3: a qué hora pasa (¿tiendas cerradas?)
+		var hk: String = "hora_%02d" % int(WorldClock.current_hour)
+		st["meal_fails"][hk] = int(st["meal_fails"].get(hk, 0)) + 1
 
 static func residents(vm) -> Array:
 	return VillageNeeds.living(vm).filter(func(n): return not VillageNeeds.is_outsider(n))

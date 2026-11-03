@@ -602,6 +602,9 @@ Cada fase se dividirá en bloques pequeños cuando se llegue a ella (detalle en 
 - [x] **Bloque F** (test #76). `VillageWork.hire`: el dueño se guarda 20 de oro (`OWNER_FOOD_RESERVE`) y solo contrata
   los jornaleros que llenan el hueco del producto principal (`workers_needed`); antes se arruinaba contratando con el
   almacén lleno. El diagnóstico de comidas fallidas distingue `sin_oro`, `agotado` y `caro_o_cerrado`.
+- [x] **Bloque G** (test #77). `VillageFamily.pay_helpers`: el ayudante de negocio familiar con menos de 15 de oro
+  recibe 6 al día del dueño de su familia (si al dueño le quedan 20). La sonda apunta además la hora de cada comida
+  «cara o cerrada». Comidas fallidas en 12 días: de 58 a 16.
 - [x] **Bloque E** (probado, test #75; detalle en `docs/REGISTRO_TRABAJO.md`). Diagnóstico de comidas fallidas
   (`migration_state.meal_fails`, «motivo/oficio»); casas: la pareja junta ahorros y, si alguien duerme al raso, el
   pueblo paga sin reserva; camas de posada sin repetir (cuenta a quien tenga oficio y duerma allí); U5 «según X»
