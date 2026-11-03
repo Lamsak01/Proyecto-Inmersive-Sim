@@ -1501,7 +1501,7 @@ func _initialize() -> void:
 	ex_b.npc_relationships[ex_a.get_person_key()] = -40
 	vsl.daily_distance_cooling(vm, 920)
 	if not (ex_a.family_id != "none" and ex_a.family_id == ex_b.family_id):
-		assert(ex_a.get_relationship_with_npc(ex_b.get_person_key()) == 49 and ex_b.get_relationship_with_npc(ex_a.get_person_key()) == -39, "U6: Distance cools both feelings")
+		assert(ex_a.get_relationship_with_npc(ex_b.get_person_key()) == 48 and ex_b.get_relationship_with_npc(ex_a.get_person_key()) == -39, "U6: Distance cools both feelings")
 	var cool_before: int = ex_a.get_relationship_with_npc(ex_b.get_person_key())
 	cool_pe["last_contact_day"] = 919
 	vsl.daily_distance_cooling(vm, 920)

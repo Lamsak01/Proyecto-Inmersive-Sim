@@ -503,7 +503,9 @@ static func feeling_phrase(rel: int, other: VillageNPC) -> String:
 
 
 ## U6: enfriamiento por distancia. Si dos vecinos llevan más de `COOL_AFTER_DAYS` sin cruzarse, lo que siente cada uno
-## (bueno o malo) se acerca 1 punto al día a neutro, sin bajar de ±`COOL_FLOOR`. No afecta a parejas ni familia.
+## (bueno o malo) se acerca un `COOL_RATE` al día a neutro (en proporción, así no se borran las diferencias entre los dos),
+## sin bajar de ±`COOL_FLOOR`. No afecta a parejas ni familia.
+const COOL_RATE: float = 0.03
 const COOL_AFTER_DAYS: int = 7
 const COOL_FLOOR: int = 10
 static func daily_distance_cooling(vm: VillageManager, current_day: int) -> void:
@@ -526,5 +528,6 @@ static func daily_distance_cooling(vm: VillageManager, current_day: int) -> void
 			continue
 		for side in [[a, b], [b, a]]:
 			var r: int = (side[0] as VillageNPC).get_relationship_with_npc((side[1] as VillageNPC).get_person_key())
-			if absi(r) > COOL_FLOOR:
-				(side[0] as VillageNPC).modify_npc_relationship(side[1], -1 if r > 0 else 1, "", true)
+			var step: int = int(round(float(absi(r)) * COOL_RATE))
+			if absi(r) > COOL_FLOOR and step > 0:
+				(side[0] as VillageNPC).modify_npc_relationship(side[1], -step if r > 0 else step, "", true)
