@@ -596,8 +596,9 @@ Cada fase se dividirá en bloques pequeños cuando se llegue a ella (detalle en 
   social) y Salir. La cabecera cambia la línea de estado larga por `_short_status` (actividad, humor y mostrador). «Manipular
   testigo» solo sale con un caso abierto (`_case_open`: investigación del comisario o del inquisidor, o el vecino va a
   denunciar un cuerpo); el aviso urgente «🚨 ¡Detener reporte!» sigue arriba. Nobles y niños ya no muestran «Dominio».
-- [ ] **Bloque B/C** (trabajo autónomo, detalle paso a paso en `docs/REGISTRO_TRABAJO.md`; escrito, pendiente de las
-  pruebas del bloque). Cartel de la escuela vivo (`vm` meta `school_sign`). Llegan **familias** con 1–2 hijos de 2–12
+- [x] **Bloque B/C/D** (trabajo autónomo, detalle paso a paso en `docs/REGISTRO_TRABAJO.md`; probado: tests #73, #74 y la
+  sonda). Solares n6 y m6 añadidos (11 de casa en total; con todos construidos se llega a 50). Con 50 vecinos: 5,7 ms
+  por fotograma en la plaza, peor 22 ms. Cartel de la escuela vivo (`vm` meta `school_sign`). Llegan **familias** con 1–2 hijos de 2–12
   años (`VillageMigration` tipo «familia», casados con `VillageFamily.marry`; niños con `VillageFamily.spawn_child`).
   Un hijo que cumple 16 en una casa con negocio sin ayudante pasa a `FAMILY_MEMBER` de ese oficio (lo heredará). Los
   niños salen a jugar entre semana de 14 a 20 h (`VillagePlaces.is_leisure_hour(hour, n)`). Paga diaria de 6 de oro a

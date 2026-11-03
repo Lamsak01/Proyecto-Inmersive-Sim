@@ -5,6 +5,11 @@ El detalle técnico está en `docs/HANDOFF.md` (sección 7) y el historial compl
 
 ## 2026-11-03
 
+### Pulido del pueblo que crece
+- Llegan **familias con hijos**; los niños reciben una paga de sus padres para comer y salen a jugar al acabar la escuela; el cartel de la escuela dice si está abierta, quién enseña y cuántos alumnos hay; un hijo que se hace mayor puede quedarse a ayudar en el negocio de casa.
+- **Arreglado:** al cargar una partida se perdían los nobles y los niños. **Arreglado:** el pueblo parecía tener hambre para siempre tras la primera comida que alguien no pudo pagar.
+- Dos solares más para casas: ya caben 50 vecinos. Con 50, el juego va fluido (unos 6 ms por fotograma).
+
 ### Diálogos más limpios
 - **UI1**: al hablar con alguien, arriba solo sale su nombre, lo que hace y su humor, y unas pocas opciones: lo importante del momento, «Charlar…», «Invitar o regalar…», «Lo turbio…», «Ver ficha» (con todos sus datos y su red social) y Salir. «Manipular testigo» solo aparece si hay un caso abierto.
 
