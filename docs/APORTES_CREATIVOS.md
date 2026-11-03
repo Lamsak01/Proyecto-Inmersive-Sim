@@ -168,10 +168,10 @@ La **historia principal** no existe: el panel L tiene la pestaña preparada y va
 **Dónde:** `scripts/systems/quests/types/` (un archivo por misión) y `docs/MISIONES.md` (la regla del usuario: no
 inventar tipos nuevos sin su aprobación).
 
-## 9. Personalidad: los 100 rasgos
+## 9. Personalidad: los 140 rasgos
 
 **Qué hay:**
-- 100 rasgos con nombre, descripción corta y opuestos (Honrado/Mentiroso, Fanático/Escéptico...).
+- 140 rasgos (118 en 51 pares o grupos de opuestos, 22 sueltos y 17 raros) con nombre, descripción corta y opuestos (Honrado/Mentiroso, Fanático/Escéptico...).
 - Frases con las que los vecinos los comentan («rumores de rasgos»).
 
 **Dónde:** `scripts/data/TraitCatalog.gd` y `docs/RASGOS_BORRADOR.md`.

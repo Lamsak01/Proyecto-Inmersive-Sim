@@ -28,7 +28,7 @@ Cada idea nueva debe construirse sobre estas piezas; si no encaja en ninguna, es
 
 | Pieza | Qué es |
 |---|---|
-| P1 Persona | Rasgos (100, con opuestos), relaciones de un solo sentido, recuerdos que se degradan con el tiempo |
+| P1 Persona | Rasgos (140, con opuestos), relaciones de un solo sentido, recuerdos que se degradan con el tiempo |
 | P2 Secretos | Quién sabe qué y quién se lo contó (base: los chismes con `heard_from`) |
 | P3 Deseos propios | Cada vecino persigue algo: amor, dinero, poder, venganza, fe, fama |
 | P4 Grupos | Familia, iglesia, policía, ayuntamiento, bandas, secta; lealtad y miembros ocultos |
@@ -43,7 +43,7 @@ Reglas que acompañan al principio:
 
 ## 3. Orden recomendado (acordado en principio)
 
-1. Los 100 rasgos (T2) → relaciones de un solo sentido → recuerdos que se degradan.
+1. Los 140 rasgos (T2) → relaciones de un solo sentido → recuerdos que se degradan.
 2. **Crónica del pueblo** (registro histórico, como las "leyendas" de Dwarf Fortress): hace visible lo que pasa y ayuda a detectar fallos.
 3. Secretos (infidelidad, chantaje).
 4. Deseos propios (planes de asesinato, ambición, conspiraciones contra el jugador).
