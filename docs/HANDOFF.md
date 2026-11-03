@@ -275,7 +275,9 @@ Cada fase se dividirá en bloques pequeños cuando se llegue a ella (detalle en 
   Medido antes de S: los chismes circulaban muy poco (25 días: 1 chisme contado).
 - [x] **R5** Más ritmo de chismes (pedido por el usuario): `GOSSIP_EVENT_TYPES` suma citas, coqueteos, noviazgos, celos,
   llegadas, marchas y perdones de infidelidad; en cada charla también puede contar novedades quien contesta
-  (`VillageNPC`, «¿Y sabes qué? …»). Exageraciones propias para lo romántico. Pendiente: confirmar con la sonda.
+  (`VillageNPC`, «¿Y sabes qué? …»). Exageraciones propias para lo romántico. Sonda (semilla 303, 25 días): 12 chismes, 61 personas los
+  sabían, 38 veces contados, 10 olvidos, 6 versiones deformadas (antes: 3 / 8 / 1 / 0 / 0). Calumnias 3, peleas 2, parejas
+  1 → 2, 0 aventuras (con solo 1–2 parejas es lo esperable: raro y orgánico). Sin errores.
 
 ### Interfaz
 - [x] **HUD1** Barras de estado (`scenes/ui_root.gd`, `_create_stats_box` / `_create_fallback_bar`): recuadro oscuro arriba a
