@@ -78,7 +78,7 @@ Cada vecino tiene nombre, edad, tres rasgos, gustos, un pasado (una frase) y un 
 | Hermano Anselmo (61) | Sacerdote del Alba | Llegó con un carro de libros y se quedó a cuidar de los muertos. |
 | Comisario Vane (55) | Comisario | Veterano tuerto, aplica la ley con pragmatismo. |
 | Guardia Rodric (24) | Guardia | Los bandidos arrasaron su granja. |
-| Aldric (35) | Sin oficio, buscavidas | Ex batidor militar y buscador de reliquias. |
+| Aldric (35) | Sin oficio, buscavidas | Ex batidor militar y buscador de reliquias. Manipulador: posible fundador de una secta (pedido por el usuario). |
 | Sora (28) | Sin oficio, tahúr | Desplumó a un magistrado y se escondió aquí. |
 | Darío (42) | Sin oficio | Capataz despedido por salvar a sus mineros. |
 | Maese Casimir (48) | Mercader de visita semanal | Intendente de la Liga Minera. |

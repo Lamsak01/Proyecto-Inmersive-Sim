@@ -417,6 +417,10 @@ Cada fase se dividirá en bloques pequeños cuando se llegue a ella (detalle en 
   Sonda (303, 25 días): la crisis subió de 0,02 a 0,27 (umbral 0,18) y el aburrimiento máximo fue 0,19, pero **no nació
   ninguna secta**: con el reparto actual la labia máxima es 0,29 (Mila); nadie llega a 0,45. Nacería si llega un vecino
   nuevo con Líder, Manipulador o Místico, o si alguien gana mucho aprecio del pueblo.
+  Después, a petición del usuario, **Aldric es Manipulador** (`NPCData`, 4 rasgos fijos; al completarse a 6 cambian sus
+  2 rasgos de relleno: ahora Cumplidor y Mentor en vez de Humilde, Permisivo y Disciplinado). Manipulador y Codicioso
+  dan motivo 0,4 (el oportunista). Labia de Aldric 0,54; probabilidad de fundar: 0,3 % al día con crisis 0,27 y 0,8 %
+  con 0,40. Las partidas guardadas conservan sus rasgos de antes. Sin sonda nueva.
 
 ### Interfaz
 - [x] **HUD1** Barras de estado (`scenes/ui_root.gd`, `_create_stats_box` / `_create_fallback_bar`): recuadro oscuro arriba a

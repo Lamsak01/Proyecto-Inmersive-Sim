@@ -272,6 +272,8 @@ static func motive(vm, npc) -> float:
 	var m: float = maxf(crisis_of(vm, npc), boredom_of(npc))
 	if TraitCatalog.npc_tendency(npc, "ambition") >= 0.5:
 		m = maxf(m, 0.4)
+	if _has(npc, "Manipulador") or _has(npc, "Codicioso"):
+		m = maxf(m, 0.4) # El oportunista ve en la desesperación ajena una ocasión de poder y dinero
 	var priest = VillageFaith.priest_of(vm)
 	if VillageFaith.grade_of(npc) == VillageFaith.GRADE_SKEPTIC or (priest != null and npc.get_person_key() != priest.get_person_key() and npc.get_relationship_with_npc(priest.get_person_key()) <= -30):
 		m = maxf(m, 0.3)

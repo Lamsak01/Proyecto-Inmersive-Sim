@@ -161,7 +161,7 @@ const INITIAL_PERSON_PROFILES: Dictionary = {
 	},
 	"Aldric": {
 		"person_id": "aldric", "gender": "M", "orientation": "H", "age": 35,
-		"personality": ["Tahúr", "Codicioso", "Noctámbulo"],
+		"personality": ["Tahúr", "Codicioso", "Noctámbulo", "Manipulador"],
 		"likes": ["reliquias", "cartas"], "dislikes": ["silencio"],
 		"favorite_item": "cooked_meat", "romance_status": "single", "partner_id": ""
 	},
