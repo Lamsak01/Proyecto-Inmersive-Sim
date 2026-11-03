@@ -154,10 +154,11 @@ static func _finish_live_fight(vm: VillageManager, fight: Dictionary, a: Village
 		summary = "%s separó a %s y %s antes de que llegaran a más" % [stopper, a.npc_name, b.npc_name]
 	else:
 		loser.health_comp.apply_minor_bruise(randf_range(6.0, 10.0), vm.FIGHT_HEALTH_FLOOR, "Pelea con %s" % winner.npc_name)
-		loser._spawn_floating_text("🤕 Magullado", Color(1.0, 0.70, 0.55), -34.0)
+		var loser_fem: bool = loser.person_profile != null and str(loser.person_profile.gender) == "F"
+		loser._spawn_floating_text("🤕 Magullada" if loser_fem else "🤕 Magullado", Color(1.0, 0.70, 0.55), -34.0)
 		winner.add_thought("Le paré los pies a %s (+2)" % loser.npc_name, 2.0)
 		loser.add_thought("%s me dio una paliza (-8)" % winner.npc_name, -8.0)
-		summary = "%s y %s se pelearon; %s salió peor parado" % [winner.npc_name, loser.npc_name, loser.npc_name]
+		summary = "%s y %s se pelearon; %s salió peor %s" % [winner.npc_name, loser.npc_name, loser.npc_name, "parada" if loser_fem else "parado"]
 	var knowers: Dictionary = {}
 	if guard_stops and is_instance_valid(fight["guard"]):
 		knowers[fight["guard"].get_person_key()] = true

@@ -246,6 +246,9 @@ Cada fase se dividirá en bloques pequeños cuando se llegue a ella (detalle en 
   Pestañas nuevas Amistad y Chismes, nombres cortos para que quepan. Las charlas normales no se apuntan.
   Arreglo tras probarlo el usuario: el panel abría en la última pestaña usada y no se refrescaba estando abierto
   (parecía vacío). Ahora abre siempre en «Todo» y se repinta solo cada 0,5 s si hay líneas nuevas (`_signature`).
+  Pulido: lo apuntado durante el cambio de día (`VillageManager.chronicle_daily`) va al día anterior como «Durante el día»
+  en vez de «00:00»; el panel ocupa la pantalla con `top_level` para salir centrado (el `ui_root` es más pequeño que la
+  pantalla; el diario de misiones tiene el mismo problema, sin tocar); «salió peor parada/Magullada» según el género.
 
 ## 8. Decisiones de diseño ya tomadas (no volver a preguntarlas)
 

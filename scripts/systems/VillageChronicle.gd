@@ -49,6 +49,10 @@ static func add(vm: VillageManager, type_str: String, text: String, known: bool,
 	if vm == null or type_str in SKIP_TYPES or text == "":
 		return {}
 	var e: Dictionary = _now()
+	if vm.chronicle_daily:
+		# Se apunta al cambiar de día, pero pasó a lo largo del día anterior: sin hora falsa de medianoche
+		e["day"] = maxi(1, int(e["day"]) - 1)
+		e["daily"] = true
 	e["type"] = type_str
 	e["text"] = text
 	e["known"] = known
@@ -106,7 +110,8 @@ static func visible_entries(vm: VillageManager, category: String = "all", show_a
 
 static func line_text(e: Dictionary, show_lock: bool = SHOW_ALL_DEBUG) -> String:
 	var lock: String = "🔒 " if show_lock and not bool(e.get("known", false)) else ""
-	return "%02d:%02d — %s%s %s" % [int(e.get("hour", 0)), int(e.get("minute", 0)), lock, str(TYPE_ICON.get(str(e.get("type", "")), "•")), str(e.get("text", ""))]
+	var when: String = "Durante el día" if bool(e.get("daily", false)) else "%02d:%02d" % [int(e.get("hour", 0)), int(e.get("minute", 0))]
+	return "%s — %s%s %s" % [when, lock, str(TYPE_ICON.get(str(e.get("type", "")), "•")), str(e.get("text", ""))]
 
 ## Partidas sin crónica: se empieza con lo que quede en el registro social (lo público como sabido).
 static func seed_from_social_log(vm: VillageManager) -> void:

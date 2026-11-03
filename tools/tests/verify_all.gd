@@ -1556,6 +1556,10 @@ func _initialize() -> void:
 	assert(vch.visible_entries(vm, "friends", true).size() == 2, "C5: Growing apart is written")
 	vch.on_gossip(vm, {"type": "fight", "summary": "C test chisme", "uid": 990002}, ex_a, ex_b)
 	assert(vch.visible_entries(vm, "gossip", true).size() == 1 and str(vm.chronicle.back()["text"]).contains("C test chisme"), "C5: Gossip is written")
+	vm.chronicle_daily = true
+	var daily_e: Dictionary = vch.add(vm, "friendship", "C test diario", false)
+	vm.chronicle_daily = false
+	assert(bool(daily_e.get("daily", false)) and vch.line_text(daily_e).begins_with("Durante el día"), "C5: Day-change entries show no fake midnight time")
 	vm.chronicle.clear()
 	print("C chronicle OK")
 

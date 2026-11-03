@@ -126,9 +126,16 @@ func _signature(vm_c: VillageManager) -> String:
 	var last: Dictionary = vm_c.chronicle.back()
 	return "%d|%d|%d|%d|%s|%s" % [vm_c.chronicle.size(), int(last.get("day", 0)), int(last.get("hour", 0)), int(last.get("minute", 0)), str(last.get("text", "")), str(last.get("known", false))]
 
+## Ocupa la pantalla entera (no solo la zona del marcador donde vive), para que el libro salga centrado.
+func _fit_to_screen() -> void:
+	top_level = true
+	global_position = Vector2.ZERO
+	size = get_viewport_rect().size
+
 func open_panel() -> void:
 	if _tab_bar:
 		_tab_bar.current_tab = 0 # Siempre abre en «Todo»
+	_fit_to_screen()
 	visible = true
 	Input.set_mouse_mode(Input.MOUSE_MODE_VISIBLE)
 	refresh_ui()

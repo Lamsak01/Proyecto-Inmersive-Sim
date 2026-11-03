@@ -38,6 +38,8 @@ var social_event_log: Array[Dictionary] = []
 var chronicle: Array[Dictionary] = []
 ## Escalón de amistad apuntado por cada vecino hacia cada otro («a>b»), para la crónica.
 var chronicle_tiers: Dictionary = {}
+## true mientras se procesa el cambio de día: lo que se apunte entonces pasó durante el día anterior.
+var chronicle_daily: bool = false
 var _social_event_uid: int = 0
 var trade_configs: Dictionary = {}
 var domestic_pets: Array[DomesticPet] = []
@@ -2947,6 +2949,7 @@ func _on_quests_changed(_qid: String) -> void:
 
 func _on_day_passed(_new_day: int) -> void:
 	arrivals_today_count = 0
+	chronicle_daily = true
 	if social_director != null:
 		_advance_live_romances(_new_day)
 		social_director.on_day_passed(_new_day)
@@ -2954,6 +2957,7 @@ func _on_day_passed(_new_day: int) -> void:
 		VillageSocialLife.daily_distance_cooling(self, _new_day)
 		VillageChronicle.daily_friendship_scan(self)
 		VillageQuests.on_day_passed(self)
+	chronicle_daily = false
 
 	# Descontar 1 día del embargo comercial (20..30 días) si alguno de los 2 mercaderes semanales fue asesinado
 	for m_key in ["casimir", "valeria"]:
