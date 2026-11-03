@@ -5,6 +5,9 @@ El detalle técnico está en `docs/HANDOFF.md` (sección 7) y el historial compl
 
 ## 2026-11-02
 
+### Interfaz
+- **HUD1**: barras de estado más bonitas y legibles, en un recuadro arriba a la izquierda. Ya no salen las de aguante y sangre; la de aturdido solo aparece cuando lo estás.
+
 ### Crónica del pueblo
 - **C5**: la crónica ya cuenta la vida diaria: quedadas, chismes («Ana le contó a Luis…») y cuándo alguien se hace amigo, se distancia o empieza a caerle mal otro vecino. Guarda los 500 últimos sucesos y las pestañas caben todas.
 - Arreglo: la crónica parecía vacía porque abría en la última pestaña usada y no se actualizaba estando abierta. Ahora abre en «Todo» y lo nuevo aparece solo.

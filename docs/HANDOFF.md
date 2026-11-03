@@ -250,6 +250,11 @@ Cada fase se dividirá en bloques pequeños cuando se llegue a ella (detalle en 
   en vez de «00:00»; el panel ocupa la pantalla con `top_level` para salir centrado (el `ui_root` es más pequeño que la
   pantalla; el diario de misiones tiene el mismo problema, sin tocar); «salió peor parada/Magullada» según el género.
 
+### Interfaz
+- [x] **HUD1** Barras de estado (`scenes/ui_root.gd`, `_create_stats_box` / `_create_fallback_bar`): recuadro oscuro arriba a
+  la izquierda, barras finas con relleno de color y texto blanco (antes `modulate` teñía también el texto). Aguante (STM) y
+  sangre (BLD) ocultas por petición del usuario (siguen existiendo y actualizándose). Aturdido solo se ve si hay aturdimiento.
+
 ## 8. Decisiones de diseño ya tomadas (no volver a preguntarlas)
 
 - **Tamaño y niveles**: empezar pequeño, objetivo final una ciudad de 100+ vecinos. Habrá sótanos (mapa aparte debajo del principal) y varios pisos con un sistema de capas tipo Project Zomboid, el mismo para sótanos y pisos (`docs/VISION_Y_FUTURO.md` §6; construir más adelante). Los sistemas nuevos que usen distancias (testigos, oír, ver) deben pasar por una función común para poder añadir «mismo nivel» después.

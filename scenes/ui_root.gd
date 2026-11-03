@@ -46,33 +46,38 @@ func _ready() -> void:
 		return
 
 	# 2. Setup Bars if not assigned
+	# Recuadro de estado (arriba a la izquierda). Aguante y sangre siguen funcionando por dentro, pero no se muestran.
+	var stats_box: VBoxContainer = _create_stats_box()
 	if not health_bar:
-		health_bar = _create_fallback_bar(Color.RED, Vector2(20, 20), "HP")
-		add_child(health_bar)
-	
+		health_bar = _create_fallback_bar(Color(0.86, 0.26, 0.26), Vector2.ZERO, "🛡️ Res")
+		stats_box.add_child(health_bar)
+
 	if not stamina_bar:
-		stamina_bar = _create_fallback_bar(Color.GREEN, Vector2(20, 46), "STM")
-		add_child(stamina_bar)
+		stamina_bar = _create_fallback_bar(Color(0.35, 0.80, 0.40), Vector2.ZERO, "STM")
+		stamina_bar.visible = false
+		stats_box.add_child(stamina_bar)
 
 	if not blood_bar:
-		blood_bar = _create_fallback_bar(Color.CRIMSON, Vector2(20, 72), "BLD")
+		blood_bar = _create_fallback_bar(Color(0.70, 0.10, 0.16), Vector2.ZERO, "BLD")
 		blood_bar.value = 0.0
-		add_child(blood_bar)
+		blood_bar.visible = false
+		stats_box.add_child(blood_bar)
 
 	if not stun_bar:
-		stun_bar = _create_fallback_bar(Color.GOLD, Vector2(20, 98), "STN")
+		stun_bar = _create_fallback_bar(Color(0.95, 0.80, 0.25), Vector2.ZERO, "💫 Aturdido")
 		stun_bar.value = 0.0
-		add_child(stun_bar)
+		stun_bar.visible = false # Solo aparece cuando estás aturdido
+		stats_box.add_child(stun_bar)
 
 	if not hunger_bar:
-		hunger_bar = _create_fallback_bar(Color(0.95, 0.58, 0.22), Vector2(20, 124), "🍖 Hambre")
+		hunger_bar = _create_fallback_bar(Color(0.95, 0.58, 0.22), Vector2.ZERO, "🍖 Hambre")
 		hunger_bar.value = 100.0
-		add_child(hunger_bar)
+		stats_box.add_child(hunger_bar)
 
 	if not sleep_bar:
-		sleep_bar = _create_fallback_bar(Color(0.45, 0.72, 1.0), Vector2(20, 150), "💤 Sueño")
+		sleep_bar = _create_fallback_bar(Color(0.45, 0.72, 1.0), Vector2.ZERO, "💤 Sueño")
 		sleep_bar.value = 100.0
-		add_child(sleep_bar)
+		stats_box.add_child(sleep_bar)
 
 	# 3. Connect Signals
 	if player.has_node("HealthComponent"):
@@ -748,6 +753,7 @@ func _on_blood_changed(current: float, max_val: float) -> void:
 func _on_stun_changed(current: float, max_val: float) -> void:
 	stun_bar.value = current
 	stun_bar.max_value = max_val
+	stun_bar.visible = current > 0.5
 
 func _on_hunger_changed(current: float, max_val: float) -> void:
 	if hunger_bar:
@@ -761,18 +767,55 @@ func _on_sleep_changed(current: float, max_val: float) -> void:
 
 func _on_exhausted() -> void:
 	stamina_bar.modulate = Color.GRAY
-	get_tree().create_timer(1.0).timeout.connect(func(): stamina_bar.modulate = Color.GREEN)
+	get_tree().create_timer(1.0).timeout.connect(func(): stamina_bar.modulate = Color.WHITE)
 
+## Recuadro oscuro donde van las barras; devuelve la columna donde se apilan (las ocultas no dejan hueco).
+func _create_stats_box() -> VBoxContainer:
+	var panel := PanelContainer.new()
+	panel.name = "StatsBox"
+	panel.position = Vector2(14, 14)
+	panel.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	var st := StyleBoxFlat.new()
+	st.bg_color = Color(0.06, 0.07, 0.09, 0.78)
+	st.border_color = Color(0.70, 0.55, 0.32, 0.55)
+	st.set_border_width_all(1)
+	st.set_corner_radius_all(6)
+	st.content_margin_left = 8
+	st.content_margin_right = 8
+	st.content_margin_top = 6
+	st.content_margin_bottom = 6
+	panel.add_theme_stylebox_override("panel", st)
+	add_child(panel)
+	var col := VBoxContainer.new()
+	col.add_theme_constant_override("separation", 4)
+	col.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	panel.add_child(col)
+	return col
+
+## Barra fina: fondo oscuro, relleno del color dado y el texto encima en blanco (el color ya no tiñe el texto).
 func _create_fallback_bar(color: Color, pos: Vector2, label_text: String = "") -> ProgressBar:
 	var bar = ProgressBar.new()
 	bar.position = pos
-	bar.size = Vector2(180, 20)
-	bar.modulate = color
+	bar.custom_minimum_size = Vector2(170, 16)
 	bar.show_percentage = false
+	bar.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	var bg := StyleBoxFlat.new()
+	bg.bg_color = Color(0.14, 0.15, 0.18, 0.95)
+	bg.set_corner_radius_all(4)
+	var fill := StyleBoxFlat.new()
+	fill.bg_color = color.darkened(0.15)
+	fill.set_corner_radius_all(4)
+	bar.add_theme_stylebox_override("background", bg)
+	bar.add_theme_stylebox_override("fill", fill)
 	if label_text != "":
 		var lbl = Label.new()
 		lbl.text = label_text
-		lbl.position = Vector2(6, 0)
-		lbl.add_theme_font_size_override("font_size", 12)
+		lbl.set_anchors_preset(Control.PRESET_FULL_RECT)
+		lbl.offset_left = 6
+		lbl.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+		lbl.add_theme_font_size_override("font_size", 11)
+		lbl.add_theme_color_override("font_color", Color(0.96, 0.96, 0.96))
+		lbl.add_theme_color_override("font_outline_color", Color(0, 0, 0, 0.85))
+		lbl.add_theme_constant_override("outline_size", 3)
 		bar.add_child(lbl)
 	return bar
