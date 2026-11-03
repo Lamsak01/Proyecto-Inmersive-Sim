@@ -244,6 +244,8 @@ Cada fase se dividirá en bloques pequeños cuando se llegue a ella (detalle en 
   suceso) y cambios de escalón de amistad, de un solo sentido (`daily_friendship_scan`, una vez al día; escalones 65/35/−30/−60
   con margen de 5; guardado en `VillageManager.chronicle_tiers`; secreto salvo que el jugador conozca ese sentimiento).
   Pestañas nuevas Amistad y Chismes, nombres cortos para que quepan. Las charlas normales no se apuntan.
+  Arreglo tras probarlo el usuario: el panel abría en la última pestaña usada y no se refrescaba estando abierto
+  (parecía vacío). Ahora abre siempre en «Todo» y se repinta solo cada 0,5 s si hay líneas nuevas (`_signature`).
 
 ## 8. Decisiones de diseño ya tomadas (no volver a preguntarlas)
 

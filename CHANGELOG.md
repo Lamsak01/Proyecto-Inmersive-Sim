@@ -7,6 +7,7 @@ El detalle técnico está en `docs/HANDOFF.md` (sección 7) y el historial compl
 
 ### Crónica del pueblo
 - **C5**: la crónica ya cuenta la vida diaria: quedadas, chismes («Ana le contó a Luis…») y cuándo alguien se hace amigo, se distancia o empieza a caerle mal otro vecino. Guarda los 500 últimos sucesos y las pestañas caben todas.
+- Arreglo: la crónica parecía vacía porque abría en la última pestaña usada y no se actualizaba estando abierta. Ahora abre en «Todo» y lo nuevo aparece solo.
 - **C1–C4**: nueva crónica con la tecla **O** (la C ya era agacharse): un libro con los 160 últimos sucesos del pueblo, por días y con pestañas (Amor, Peleas, Muertes, Llegadas, Tú). Apunta también muertes descubiertas, casos cerrados y misiones. En el juego final solo verás lo que sabes; ahora, en pruebas, se ve todo y lo secreto lleva 🔒.
 
 ### Relaciones de un solo sentido

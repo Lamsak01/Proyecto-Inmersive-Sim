@@ -8,6 +8,8 @@ const VillageChronicle = preload("res://scripts/systems/VillageChronicle.gd")
 var _tab_bar: TabBar = null
 var _text: RichTextLabel = null
 var _debug_lbl: Label = null
+var _shown_sig: String = "" # Huella de la crónica la última vez que se pintó (para refrescar solo si hay novedades)
+var _poll_t: float = 0.0
 
 func _ready() -> void:
 	name = "ChronicleUI"
@@ -88,8 +90,7 @@ func refresh_ui() -> void:
 	_debug_lbl.text = "🔧 Modo pruebas: se ve todo (🔒 = no lo sabrías)  " if VillageChronicle.SHOW_ALL_DEBUG else ""
 	var vm_c: VillageManager = _vm()
 	var entries: Array = VillageChronicle.visible_entries(vm_c, current_category())
-	if VillageChronicle.SHOW_ALL_DEBUG:
-		print("[CRONICA] panel abierto: vm=%s guardadas=%d visibles=%d dia=%d" % [str(vm_c != null), vm_c.chronicle.size() if vm_c else -1, entries.size(), int(WorldClock.current_day)])
+	_shown_sig = _signature(vm_c)
 	if entries.is_empty():
 		_text.text = "[color=#9aa4b5]Aún no hay nada escrito aquí. La crónica se llena con lo que pasa en el pueblo y con lo que vas descubriendo.[/color]"
 		return
@@ -106,7 +107,28 @@ func refresh_ui() -> void:
 		lines.append("[color=%s]%s[/color]" % [col, VillageChronicle.line_text(e)])
 	_text.text = "\n".join(lines)
 
+## Mientras está abierto, si se apunta algo nuevo, se vuelve a pintar.
+func _process(delta: float) -> void:
+	if not visible:
+		return
+	_poll_t += delta
+	if _poll_t < 0.5:
+		return
+	_poll_t = 0.0
+	var vm_c: VillageManager = _vm()
+	if vm_c != null and _signature(vm_c) != _shown_sig:
+		refresh_ui()
+
+## Cambia cuando entra una línea nueva, también con la crónica llena (500).
+func _signature(vm_c: VillageManager) -> String:
+	if vm_c == null or vm_c.chronicle.is_empty():
+		return "0"
+	var last: Dictionary = vm_c.chronicle.back()
+	return "%d|%d|%d|%d|%s|%s" % [vm_c.chronicle.size(), int(last.get("day", 0)), int(last.get("hour", 0)), int(last.get("minute", 0)), str(last.get("text", "")), str(last.get("known", false))]
+
 func open_panel() -> void:
+	if _tab_bar:
+		_tab_bar.current_tab = 0 # Siempre abre en «Todo»
 	visible = true
 	Input.set_mouse_mode(Input.MOUSE_MODE_VISIBLE)
 	refresh_ui()

@@ -56,8 +56,6 @@ static func add(vm: VillageManager, type_str: String, text: String, known: bool,
 	for k in extra.keys():
 		e[k] = extra[k]
 	vm.chronicle.append(e)
-	if SHOW_ALL_DEBUG:
-		print("[CRONICA] +%s (%d) %s" % [type_str, vm.chronicle.size(), text])
 	while vm.chronicle.size() > MAX_ENTRIES:
 		vm.chronicle.remove_at(0)
 	return e
