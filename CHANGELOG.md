@@ -5,6 +5,9 @@ El detalle técnico está en `docs/HANDOFF.md` (sección 7) y el historial compl
 
 ## 2026-11-03
 
+### Crecer el pueblo: solares
+- **V4**: alrededor del pueblo hay ahora **16 solares** con su cartel: una calle nueva al norte, el camino del este alargado, campos al sur, una ladera al noroeste y dos lomas apartadas para mansiones. Se puede encargar una **casa**: alguien la paga y el **carpintero va en persona a construirla**; solo avanza mientras trabaja allí, así que si enferma o falta, la obra se para. Al terminar es una casa de verdad, con puerta, cama y cofre, y se guarda con la partida. Todavía nadie las encarga: eso llega con las llegadas de gente (V3).
+
 ### Crecer el pueblo: rendimiento
 - **V2**: los vecinos que están **fuera de la pantalla** se mueven y piensan con menos frecuencia (lo social sigue igual). Con 50 vecinos ahorra un tercio cuando estás lejos. Queda pendiente un coste alto cuando estás en medio de la multitud de la plaza; se volverá a medir con el mapa ampliado.
 - **V8**: el **panel de misiones** (L) sale centrado. Si un negocio se queda sin dueño, un **vecino ambicioso** del pueblo puede quedárselo antes de que llegue un forastero. Descubrir una **infidelidad** puede, muy raramente, acabar en un plan de asesinato por celos, con señales antes.

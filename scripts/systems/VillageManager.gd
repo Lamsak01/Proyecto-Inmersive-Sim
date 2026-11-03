@@ -18,6 +18,7 @@ const VillageSect = preload("res://scripts/systems/VillageSect.gd")
 const VillageQuests = preload("res://scripts/systems/VillageQuests.gd")
 
 const VillageWorldBuilder = preload("res://scripts/systems/VillageWorldBuilder.gd")
+const VillageLots = preload("res://scripts/systems/VillageLots.gd")
 
 ## Gestor Integral de Urbanismo Sólido, Hospital/Morgue Forense, Comisaría/Cárcel, Testigos,
 ## Sigilo Doméstico, Reputación Familiar, Tablón de Encargos y Red Eléctrica (10 Pasos de Expansión)
@@ -65,6 +66,8 @@ var faith_bands: Array = []
 var needs_state: Dictionary = {}
 ## Instituciones (I): alcalde, arcas, corrupción. Ver `VillageTown.gd`. Se guarda.
 var town_state: Dictionary = {}
+var lots_state: Dictionary = {} # V4: solares y obras (VillageLots)
+var _lot_visuals: Dictionary = {}
 ## La secta secreta (O). Ver `VillageSect.gd`. Se guarda.
 var sect_state: Dictionary = {}
 var _needs_tick_acc: float = 0.0
@@ -228,6 +231,7 @@ func setup_village(target_entities_root: Node) -> void:
 	VillageWorldBuilder._spawn_electric_streetlights(self)
 	_spawn_unemployed_tavern_guests()
 	VillageWorldBuilder._spawn_farm_well_and_compost(self)
+	VillageLots.build_world(self) # V4: calles y solares del borde, afueras y lomas
 	_spawn_domestic_pets()
 
 	if not in_editor:
@@ -2336,6 +2340,7 @@ func _on_hour_passed(_day: int, new_hour: int = 8) -> void:
 	VillageNeeds.on_hour(self, actual_hour) # E: higiene, taberna, limosna
 	VillageIllness.on_hour(self, actual_hour) # E2: contagios
 	VillageSect.on_hour(self, actual_hour) # O3: reunión de la secta (viernes de madrugada)
+	VillageLots.on_hour(self, actual_hour) # V4: el carpintero avanza la obra si está allí
 
 	# 07:00 AM -> Comprobar llegada semanal de los 2 Mercaderes Ambulantes (Día 3: Maese Casimir | Día 6: Valeria la Tratante)
 	if actual_hour == 7:
@@ -4485,6 +4490,7 @@ func get_economy_save_dict() -> Dictionary:
 		"faith_state": faith_state.duplicate(true),
 		"needs_state": needs_state.duplicate(true),
 		"town_state": town_state.duplicate(true),
+		"lots_state": lots_state.duplicate(true),
 		"sect_state": sect_state.duplicate(true),
 		"social_event_uid": _social_event_uid,
 		"social_director": social_director.to_save_dict() if social_director != null else {}
@@ -4549,6 +4555,8 @@ func load_economy_save_dict(data: Dictionary) -> void:
 	VillageNeeds.drunk_now = (VillageNeeds.state(self)["drunk"] as Dictionary).duplicate()
 	town_state = (data["town_state"] as Dictionary).duplicate(true) if typeof(data.get("town_state")) == TYPE_DICTIONARY else {}
 	sect_state = (data["sect_state"] as Dictionary).duplicate(true) if typeof(data.get("sect_state")) == TYPE_DICTIONARY else {}
+	lots_state = (data["lots_state"] as Dictionary).duplicate(true) if typeof(data.get("lots_state")) == TYPE_DICTIONARY else {}
+	VillageLots.after_load(self)
 	VillageSect._update_band(self)
 	if data.has("chronicle") and typeof(data["chronicle"]) == TYPE_ARRAY:
 		chronicle.clear()

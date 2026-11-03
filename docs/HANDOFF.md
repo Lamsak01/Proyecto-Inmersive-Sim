@@ -117,6 +117,7 @@ timeout 80 flatpak run org.godotengine.Godot --headless --path . -s tools/tests/
 | `scripts/data/NPCData.gd` | Tablas de datos: alias, perfiles de lore, relaciones iniciales entre vecinos |
 | `scripts/systems/VillageManager.gd` | Mundo del pueblo (4.700 líneas): tiendas, puertas, justicia, llegadas de NPC nuevos (`_process_daily_map_edge_arrivals`), guardado |
 | `scripts/systems/VillageWorldBuilder.gd` | Construcción inicial del pueblo (caminos, edificios y mobiliario) |
+| `scripts/systems/VillageLots.gd` | Solares (V4): dónde se puede construir, obras del carpintero, casas nuevas y sus camas |
 | `scripts/systems/VillageSocialLife.gd` | Quedadas, peleas en vivo y chismes aplicados al mundo |
 | `scripts/systems/VillageJustice.gd` | Investigaciones del Comisario y del Inquisidor, interrogatorios, veredictos y juicio público |
 | `scripts/systems/SkillCatalog.gd` | Catálogo de habilidades (datos) |
@@ -447,6 +448,19 @@ Cada fase se dividirá en bloques pequeños cuando se llegue a ella (detalle en 
   (`ambition_business`). Celos: al descubrir una infidelidad, `VillageSecrets._maybe_passion_revenge` puede crear una
   venganza «pasional» (15 % + Celoso, rencor y agresividad; máx. 60 %) contra el infiel o el amante; ese deseo puede
   volverse plan de asesinato con umbral propio (relación ≤ −60, oscuridad 0,9, 5 días) y las señales y pistas de siempre.
+- [x] **V4** Solares (`scripts/systems/VillageLots.gd`, estado en `vm.lots_state`, guardado). 16 solares en `LOTS`:
+  10 de «borde» (5 en una calle norte nueva detrás de la posada, 5 en el camino del este alargado hasta x 1480),
+  4 de «afueras» (3 campos al sur entre el pueblo y el bosque, 1 en la ladera del noroeste) y 2 «apartados» (lomas
+  del este y del norte, para mansiones), con sendas hasta cada uno; comprobado con números que no pisan edificios,
+  caminos, ruinas, lago ni bosque. `request_build(vm, lote, clase, quien_paga|null=arcas)`: cobra en el acto
+  (`KINDS`: de momento solo «house», 60 de oro, 24 h de trabajo, 2 camas; el 40 % al carpintero) y solo hay una obra a
+  la vez. Cada hora (`on_hour`) el puesto de trabajo del carpintero pasa a ser la obra y solo avanza si está allí
+  trabajando (0,7 + 0,6·diligencia por hora); al terminar vuelve a su taller (`trade_configs[CARPINTERO].work_pos`).
+  Sin carpintero vivo la obra se queda parada. Dibujo: cartel de solar libre, obra con cajas y porcentaje, o la casa de
+  verdad (`_construct_solid_building`: puertas, ventanas, cofre, camas). Lo que dibuja cada solar se apunta
+  (`vm._lot_visuals`: nodos y entradas de las listas de edificios, puertas, ventanas, muros y cofres) para quitarlo al
+  cargar otra partida; `after_load` recalcula las camas y redibuja. `free_house_bed` / `add_resident` quedan para V3,
+  que decidirá cuándo hace falta una casa y quién la paga. Crónica: tipo público «construction».
 
 ### Interfaz
 - [x] **HUD1** Barras de estado (`scenes/ui_root.gd`, `_create_stats_box` / `_create_fallback_bar`): recuadro oscuro arriba a

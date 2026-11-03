@@ -2303,5 +2303,62 @@ func _initialize() -> void:
 	v8_h.person_profile.personality.assign(v8_hp)
 	print("V8 ambition and jealousy OK")
 
+	# 63. V4: solares. Una casa la paga un vecino, la levanta el carpintero solo mientras trabaja allí, deja camas
+	# libres y sobrevive a guardar y cargar.
+	var vl = load("res://scripts/systems/VillageLots.gd")
+	var v4_carp = null
+	var v4_payer = vm._find_npc_by_name("Garrick")
+	for n4 in get_nodes_in_group("village_npcs"):
+		if v4_carp == null and not n4.is_dead and not n4.is_downed and n4 != v4_payer:
+			v4_carp = n4 # Bram puede haber muerto en tests anteriores: hace de carpintero cualquier vecino vivo
+	assert(v4_carp != null and v4_payer != null, "V4: A carpenter and Garrick exist")
+	var v4_role = vm.trade_configs.keys().filter(func(k): return str(vm.trade_configs[k]["name"]) == "Bram")[0]
+	var v4_holder = vm.trade_npcs.get(v4_role)
+	vm.trade_npcs[v4_role] = v4_carp
+	var v4_cw: Vector2 = v4_carp.work_position
+	var v4_cg: int = v4_carp.personal_gold
+	var v4_pg: int = v4_payer.personal_gold
+	assert("n1" in vl.free_lots(vm, "house"), "V4: The town starts with free lots")
+	v4_payer.personal_gold = 10
+	assert(vl.request_build(vm, "n1", "house", v4_payer) == "", "V4: Nobody builds without the money")
+	v4_payer.personal_gold = 100
+	assert(vl.request_build(vm, "n1", "house", v4_payer) == "n1" and v4_payer.personal_gold == 40, "V4: The payer pays for the house")
+	assert(vl.request_build(vm, "n2", "house", v4_payer) == "", "V4: The carpenter takes one job at a time")
+	var v4_wp: Vector2 = vl.site_work_pos("n1")
+	v4_carp.is_sleeping = false
+	v4_carp.current_activity = 0
+	v4_carp.global_position = Vector2(585, 148) # En su taller, lejos de la obra
+	for _h4 in range(10):
+		vl.on_hour(vm, 10)
+	assert(v4_carp.work_position == v4_wp and float(vl.lot(vm, "n1")["progress"]) == 0.0, "V4: The work only advances with the carpenter on site")
+	var v4_hours: int = 0
+	while str(vl.lot(vm, "n1")["status"]) != "built" and v4_hours < 80:
+		v4_carp.global_position = v4_wp
+		v4_carp.current_activity = 0
+		vl.on_hour(vm, 10)
+		v4_hours += 1
+	assert(str(vl.lot(vm, "n1")["status"]) == "built" and v4_hours >= 15, "V4: A house takes days of real work (%d h)" % v4_hours)
+	var v4_bed: Dictionary = vl.free_house_bed(vm)
+	assert(str(v4_bed.get("lot", "")) == "n1" and v4_carp.work_position == vm.trade_configs[v4_role]["work_pos"], "V4: The new house has free beds and the carpenter goes back to his shop")
+	var v4_fp = func(): return vm.building_footprints.filter(func(f): return str(f["id"]) == "house_family_lot_n1").size()
+	assert(v4_fp.call() == 1, "V4: The house is a real building")
+	var v4_saved: Dictionary = JSON.parse_string(JSON.stringify(vm.lots_state))
+	vm.lots_state = {}
+	vl.after_load(vm)
+	assert(v4_fp.call() == 0, "V4: Loading a game without the house removes it")
+	vm.lots_state = v4_saved
+	vl.after_load(vm)
+	assert(v4_fp.call() == 1 and not vl.free_house_bed(vm).is_empty(), "V4: Loading a game with the house rebuilds it once")
+	vm.lots_state = {}
+	vl.after_load(vm)
+	v4_carp.work_position = v4_cw
+	v4_carp.personal_gold = v4_cg
+	v4_payer.personal_gold = v4_pg
+	if v4_holder != null:
+		vm.trade_npcs[v4_role] = v4_holder
+	else:
+		vm.trade_npcs.erase(v4_role)
+	print("V4 lots and buildings OK")
+
 	print("ALL RIMWORLD MEDICAL, FOOTPRINTS, 3-PHASE CORPSE REPORT, MULTI-CORPSE FIX, RPG INTERROGATION, PUBLIC TRIAL, DYNAMIC RELATIONSHIPS, MISSING FAMILY SEARCH, SOCIAL GLOSSARY & UNCONSCIOUS REACTION TESTS PASSED!")
 	quit(0)
