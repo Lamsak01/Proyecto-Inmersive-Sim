@@ -328,6 +328,9 @@ Cada fase se dividirá en bloques pequeños cuando se llegue a ella (detalle en 
   ninguna pandilla ni seguidores; 2 defensas de bando; chismes 16 sucesos / 98 que los saben (antes 73), 22 olvidos,
   29 versiones deformadas (antes 6: vigilar); calumnias 7, peleas 1, 18 vivos, 78 % de relaciones en la franja media.
 
+### Economía y necesidades ampliadas (bloques E)
+- [ ] **E1–E7** Plan en `docs/PLAN_ECONOMIA_NECESIDADES.md`, **pendiente de aprobación** (5 preguntas al final).
+
 ### Interfaz
 - [x] **HUD1** Barras de estado (`scenes/ui_root.gd`, `_create_stats_box` / `_create_fallback_bar`): recuadro oscuro arriba a
   la izquierda, barras finas con relleno de color y texto blanco (antes `modulate` teñía también el texto). Se ven
