@@ -233,7 +233,12 @@ Cada fase se dividirá en bloques pequeños cuando se llegue a ella (detalle en 
 - [x] **U7** HECHO. Tres partidas reales (semilla 303, 25 días, sin jugador). 1ª: 0/136 parejas con diferencia ≥ 30, 0 amores no correspondidos. Ajustes: «química» fija de cada uno hacia cada otro (`SocialDirector.chemistry`, ±35 % en lo bueno), sociabilidad ×2 en `side_delta` (0,4–1,8), reciprocidad solo desde 20 puntos de diferencia (`RECIPROCITY_MIN_GAP`), enfriamiento por distancia proporcional (3 %/día, `COOL_RATE`). 3ª: 2 parejas con diferencia ≥ 15 (máx. 43), 4 parejas con chispa (máx. diferencia de chispa 32), 4 calumnias, 0 peleas, parejas 1 → 2, 79 % de relaciones en la franja media, 0 errores. **Conclusión**: el sistema funciona (tests #47–#52), pero sin jugador, en 25 días y con 17 vecinos, muy pocas parejas tratan lo bastante como para separarse; las diferencias grandes saldrán sobre todo de lo que haga el jugador (cizaña, favores, emparejar) y de partidas más largas. La meta del plan (15–25 %) era optimista; no se fuerza más para no inventar dramas. Sonda: `tools/tests/t5_probe.gd` (sin subir). en `docs/PLAN_RELACIONES.md` (tensión compartida, reciprocidad lenta, sentimientos ocultos al principio).
 
 ### Crónica del pueblo (bloques C)
-- [ ] **C1–C4** Plan en `docs/PLAN_CRONICA.md`, **pendiente de aprobación** (2 preguntas al final).
+- [x] **C1–C4** Hecho (plan en `docs/PLAN_CRONICA.md`). `scripts/systems/VillageChronicle.gd` + `scripts/ui/ChronicleUI.gd`, tecla **O**
+  (la C ya era sigilo). Guarda los 160 últimos sucesos en `VillageManager.chronicle` (se guarda con la partida; las viejas
+  empiezan con el registro social). Cada línea lleva `known`: público, del jugador o visto a ≤170 px; lo secreto se revela con
+  `learn_event` (al preguntar por novedades). `SHOW_ALL_DEBUG = true` mientras estamos en pruebas: se ve todo y lo secreto
+  lleva 🔒; **ponerlo en false para la versión final**. También apunta muertes descubiertas, casos cerrados y misiones
+  cumplidas o fallidas. Test #53. La sonda imprime una línea CHRONICLE.
 
 ## 8. Decisiones de diseño ya tomadas (no volver a preguntarlas)
 

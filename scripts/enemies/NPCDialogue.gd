@@ -2,6 +2,7 @@ extends RefCounted
 
 const VillageQuests = preload("res://scripts/systems/VillageQuests.gd")
 const VillageSocialLife = preload("res://scripts/systems/VillageSocialLife.gd")
+const VillageChronicle = preload("res://scripts/systems/VillageChronicle.gd")
 const TraitDiscovery = preload("res://scripts/systems/TraitDiscovery.gd")
 const TraitCatalog = preload("res://scripts/data/TraitCatalog.gd")
 
@@ -176,7 +177,7 @@ static func _add_neighbor_opinions(npc: VillageNPC, diag: Dictionary, ch_arr: Ar
 	if npc._get_vm() != null:
 		for ev in npc._get_vm().get_news_known_by(npc):
 			news_lines.append("• %s" % npc._get_vm().gossip_text(ev))
-	ch_arr.insert(maxi(0, ch_arr.size() - 1), {"label": "🗞️ Preguntar si hay alguna novedad", "next": "npc_news"})
+	ch_arr.insert(maxi(0, ch_arr.size() - 1), {"label": "🗞️ Preguntar si hay alguna novedad", "next": "npc_news", "action": "chronicle_hear_news"})
 	diag["npc_news"] = {"text": "«Dicen por ahí...»\n%s" % "\n".join(news_lines) if not news_lines.is_empty() else "«Nada nuevo por aquí.»", "choices": [{"label": "⬅️ Volver a la conversación", "next": "start"}]}
 	var rows: Array = []
 	for n in npc.get_tree().get_nodes_in_group("village_npcs"):
@@ -584,6 +585,10 @@ static func on_dialogue_action(npc: VillageNPC, action_id: String) -> void:
 			soc_ui.call_deferred("open_panel", npc)
 		return
 
+	if action_id == "chronicle_hear_news":
+		if vm != null:
+			VillageChronicle.learn_news_from(vm, npc) # C: lo que te cuentan pasa a tu crónica
+		return
 	if action_id == "trait_lore":
 		if not npc.trait_lore_done:
 			npc.trait_lore_done = true

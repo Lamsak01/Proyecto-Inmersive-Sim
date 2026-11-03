@@ -5,6 +5,9 @@ El detalle técnico está en `docs/HANDOFF.md` (sección 7) y el historial compl
 
 ## 2026-11-02
 
+### Crónica del pueblo
+- **C1–C4**: nueva crónica con la tecla **O** (la C ya era agacharse): un libro con los 160 últimos sucesos del pueblo, por días y con pestañas (Amor, Peleas, Muertes, Llegadas, Tú). Apunta también muertes descubiertas, casos cerrados y misiones. En el juego final solo verás lo que sabes; ahora, en pruebas, se ve todo y lo secreto lleva 🔒.
+
 ### Relaciones de un solo sentido
 - **U7**: medido en partidas largas. Ajustes: cada vecino tiene más o menos «química» con cada otro, el carácter sociable pesa más y el enfriamiento por distancia ya no borra las diferencias. Sin jugador, en 25 días aún son pocas las relaciones muy desiguales: aparecerán sobre todo con lo que tú hagas y con el paso del tiempo. Bloque de relaciones terminado.
 - **U6**: si dos vecinos dejan de verse una semana, lo que sienten (bueno o malo) se va apagando poco a poco. Parejas y familia no.

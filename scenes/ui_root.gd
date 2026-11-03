@@ -23,6 +23,7 @@ const MedicalPanelUIScript = preload("res://scripts/ui/MedicalPanelUI.gd")
 const SocialGlossaryUIScript = preload("res://scripts/ui/SocialGlossaryUI.gd")
 const SkillsPanelUIScript = preload("res://scripts/ui/SkillsPanelUI.gd")
 const QuestLogUIScript = preload("res://scripts/ui/QuestLogUI.gd")
+const ChronicleUIScript = preload("res://scripts/ui/ChronicleUI.gd")
 
 var tool_wheel: ToolWheelUI = null
 var tavern_games: TavernGamesUI = null
@@ -31,6 +32,7 @@ var medical_panel: Control = null
 var social_glossary: Control = null
 var skills_panel: Control = null
 var quest_log: Control = null
+var chronicle_panel: Control = null
 
 func _ready() -> void:
 	# 1. Find Player if not assigned
@@ -107,6 +109,8 @@ func _ready() -> void:
 	_setup_social_glossary_ui()
 	_setup_skills_panel_ui()
 	_setup_quest_log_ui()
+	chronicle_panel = ChronicleUIScript.new()
+	add_child(chronicle_panel)
 	_init_default_objectives()
 	if "inventory" in player and player.inventory:
 		_bind_player_inventory()
@@ -270,7 +274,27 @@ func _unhandled_input(event: InputEvent) -> void:
 				if quest_log and not was_open:
 					quest_log.call("open_panel")
 				get_viewport().set_input_as_handled()
+			elif event.physical_keycode == KEY_O:
+				var chron_open: bool = chronicle_panel != null and chronicle_panel.visible
+				_close_skills_panel()
+				if tool_wheel and tool_wheel.visible:
+					tool_wheel.close_wheel(false)
+				if inv_panel and inv_panel.visible:
+					inv_panel.visible = false
+				if medical_panel and medical_panel.visible:
+					medical_panel.call("close_panel")
+				if social_glossary and social_glossary.visible:
+					social_glossary.call("close_panel")
+				if valley_map and bool(valley_map.get("is_full_map_open")):
+					valley_map.call("close_full_map")
+				if chronicle_panel and not chron_open:
+					chronicle_panel.call("open_panel")
+				get_viewport().set_input_as_handled()
 			elif event.keycode == KEY_ESCAPE:
+				if chronicle_panel and chronicle_panel.visible:
+					chronicle_panel.call("close_panel")
+					get_viewport().set_input_as_handled()
+					return
 				if quest_log and quest_log.visible:
 					quest_log.call("close_panel")
 					get_viewport().set_input_as_handled()
@@ -304,6 +328,8 @@ func _setup_skills_panel_ui() -> void:
 func _close_quest_log() -> void:
 	if quest_log and quest_log.visible:
 		quest_log.call("close_panel")
+	if chronicle_panel and chronicle_panel.visible:
+		chronicle_panel.call("close_panel")
 
 func _setup_quest_log_ui() -> void:
 	quest_log = QuestLogUIScript.new()

@@ -1,6 +1,6 @@
 # Plan: crónica del pueblo (bloques C)
 
-Estado: **propuesta, pendiente de aprobación del usuario** (2026-11-02).
+Estado: **aprobado y hecho** (2026-11-02). Ver decisiones al final.
 Contexto: `docs/VISION_Y_FUTURO.md`, paso 2 del orden («hace visible lo que pasa y ayuda a detectar fallos»).
 
 ## Qué existe hoy
@@ -40,3 +40,10 @@ Para mí habrá un modo «todo» oculto, útil para medir partidas largas.
 
 1. ¿Tecla **C** para abrirla (recomendado) u otra?
 2. ¿Solo lo que podrías saber (recomendado) o todo lo que pasa en el pueblo?
+
+## Decisiones del usuario (2026-11-02)
+
+- Tecla: pidió la **C**, pero ya era la de sigilo; se usa la **O**.
+- En la versión final, solo lo que el jugador podría saber. Mientras estamos en pruebas se ve todo (`SHOW_ALL_DEBUG`), con 🔒 en lo secreto.
+- Tope: los **160** últimos sucesos (no 3000).
+- Hecho de una vez (C1–C4), no en bloques pequeños.

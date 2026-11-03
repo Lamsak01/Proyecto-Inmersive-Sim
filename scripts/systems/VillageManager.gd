@@ -5,6 +5,7 @@ class_name VillageManager
 const VillageJustice = preload("res://scripts/systems/VillageJustice.gd")
 
 const VillageSocialLife = preload("res://scripts/systems/VillageSocialLife.gd")
+const VillageChronicle = preload("res://scripts/systems/VillageChronicle.gd")
 const VillageQuests = preload("res://scripts/systems/VillageQuests.gd")
 
 const VillageWorldBuilder = preload("res://scripts/systems/VillageWorldBuilder.gd")
@@ -33,6 +34,9 @@ var _used_first_names: Array = []
 var _used_person_ids: Dictionary = {}
 const MAX_SOCIAL_EVENT_LOG: int = 80
 var social_event_log: Array[Dictionary] = []
+## Crónica del pueblo (C): historia permanente de los últimos sucesos (ver `VillageChronicle.gd`).
+var chronicle: Array[Dictionary] = []
+var _social_event_uid: int = 0
 var trade_configs: Dictionary = {}
 var domestic_pets: Array[DomesticPet] = []
 
@@ -954,7 +958,9 @@ func record_social_event(type_str: String, actor: VillageNPC, target: VillageNPC
 		"target_id": t_id,
 		"target_name": t_name,
 		"summary": summary_str,
+		"uid": _social_event_uid,
 	}
+	_social_event_uid += 1
 	if type_str in GOSSIP_EVENT_TYPES:
 		# B6.1: Al principio solo lo saben sus protagonistas; lo que el jugador dijo a escondidas no lo sabe el aludido
 		entry["known_by"] = {a_id: true}
@@ -963,6 +969,7 @@ func record_social_event(type_str: String, actor: VillageNPC, target: VillageNPC
 		# Q3: de quién oyó cada uno el chisme, para poder seguir la pista hasta el origen
 		entry["heard_from"] = {a_id: "player"} if type_str == "player_slander" else {}
 	social_event_log.append(entry)
+	VillageChronicle.on_social_event(self, entry, actor, target)
 	while social_event_log.size() > MAX_SOCIAL_EVENT_LOG:
 		social_event_log.remove_at(0)
 	return entry
@@ -1055,6 +1062,7 @@ func _mark_morgue_case_resolved(victim_name: String, resolution_note: String = "
 	var cur_h: int = WorldClock.current_hour if WorldClock else 12
 	var cur_tot_h: int = cur_d * 24 + cur_h
 	VillageQuests.on_case_resolved(self, victim_name, resolution_note)
+	VillageChronicle.add(self, "case_closed", "Se cerró el caso de la muerte de %s%s" % [victim_name, (": " + resolution_note) if resolution_note != "" else ""], true)
 	for rec in morgue_active_corpses:
 		if str(rec.get("victim_name", "")) == victim_name:
 			rec["case_resolved"] = true
@@ -2929,6 +2937,11 @@ func _advance_live_romances(cur_day: int) -> Dictionary:
 
 func _on_quests_changed(_qid: String) -> void:
 	VillageQuests.refresh_markers(self)
+	var qm_c = get_node_or_null("/root/QuestManager")
+	if qm_c != null and _qid != "":
+		var q_c: Dictionary = qm_c.get_quest(_qid)
+		if not q_c.is_empty():
+			VillageChronicle.on_quest_changed(self, q_c)
 
 func _on_day_passed(_new_day: int) -> void:
 	arrivals_today_count = 0
@@ -4364,6 +4377,8 @@ func get_economy_save_dict() -> Dictionary:
 		"used_person_ids": _used_person_ids.keys(),
 		"newcomer_rng_state": _newcomer_rng.state,
 		"social_event_log": social_event_log.duplicate(true),
+		"chronicle": chronicle.duplicate(true),
+		"social_event_uid": _social_event_uid,
 		"social_director": social_director.to_save_dict() if social_director != null else {}
 	}
 
@@ -4403,6 +4418,16 @@ func load_economy_save_dict(data: Dictionary) -> void:
 				social_event_log.append((ev_it as Dictionary).duplicate())
 		while social_event_log.size() > MAX_SOCIAL_EVENT_LOG:
 			social_event_log.remove_at(0)
+	_social_event_uid = int(data.get("social_event_uid", social_event_log.size()))
+	if data.has("chronicle") and typeof(data["chronicle"]) == TYPE_ARRAY:
+		chronicle.clear()
+		for ch_it in (data["chronicle"] as Array):
+			if typeof(ch_it) == TYPE_DICTIONARY:
+				chronicle.append((ch_it as Dictionary).duplicate())
+		while chronicle.size() > VillageChronicle.MAX_ENTRIES:
+			chronicle.remove_at(0)
+	else:
+		VillageChronicle.seed_from_social_log(self) # Partidas de antes de la crónica
 	for live_fight in _live_fights:
 		for fighter in [live_fight["a"], live_fight["b"]]:
 			if is_instance_valid(fighter):
