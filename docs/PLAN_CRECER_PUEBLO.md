@@ -32,6 +32,12 @@ Regla del usuario: nada «porque sí». La gente llega o se va según cómo le v
   **jornaleros**: trabajo sencillo y mal pagado para quien llega sin oficio.
 - **V6 – Los nobles.** Un **señor del valle** y su familia, en una casa señorial en un solar del pueblo. Son muy ricos,
   cobran rentas por las tierras y pesan en las elecciones. Encajan con los «ricos aburridos» de la secta.
+- **V8 – Pendientes cortos** (tres cosas sueltas):
+  - **Ambición y negocios vacantes:** cuando un negocio se queda sin dueño, un vecino ambicioso del pueblo puede
+    quedárselo antes de que llegue un forastero. Encaja con V3: la vacante se llena desde dentro o desde fuera.
+  - **Infidelidad como motivo de asesinato:** muy raro, con las mismas señales previas y pistas que los planes de
+    asesinato que ya existen. Lo puede sentir el engañado al enterarse, o el amante celoso.
+  - **Panel de misiones (tecla L) centrado en pantalla.**
 - **V7 – Medición y tests.** Un test por comportamiento, al final. La sonda cuenta la población, las llegadas y
   marchas, las casas construidas y la velocidad.
 
@@ -45,7 +51,8 @@ Regla del usuario: nada «porque sí». La gente llega o se va según cómo le v
 4. **Nobles:** ¿entran en este paso (V6) o más adelante? Recomiendo que entren, pero al final del paso.
 5. **El mapa:** ¿solares nuevos en los bordes del pueblo actual, o una zona nueva (un barrio)? Recomiendo **solares en
    los bordes**, porque no cambia lo que ya funciona.
-6. **Cómo hacerlo:** recomiendo **V1 y V2 primero**, con una medición, y el resto después. Si el rendimiento no da, hay
+6. **Cómo hacerlo:** recomiendo **V1 y V2 primero**, con una medición, y el resto después; los pendientes cortos (V8),
+   en cualquier momento, porque no dependen del resto. Si el rendimiento no da, hay
    que saberlo antes de traer a más gente.
 
 ## Riesgos
