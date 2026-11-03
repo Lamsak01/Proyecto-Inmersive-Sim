@@ -2158,5 +2158,74 @@ func _initialize() -> void:
 	wclock.current_day = it_old_day
 	print("I institutions and corruption OK")
 
+	# Test #60 (O1-O6): la secta secreta
+	var vsc = load("res://scripts/systems/VillageSect.gd")
+	var vfa_o = load("res://scripts/systems/VillageFaith.gd")
+	vm.sect_state = {}
+	vm.needs_state = {}
+	var os_people: Array = []
+	for on in get_nodes_in_group("village_npcs"):
+		if not on.is_dead and vsc._can_be_member(on):
+			os_people.append(on)
+	assert(os_people.size() >= 5, "O: There are enough villagers for the sect test")
+	var os_f = os_people[0]
+	var os_t = os_people[1]
+	var os_r = os_people[2]
+	var os_v = os_people[3]
+	var os_saved: Dictionary = {}
+	for on in [os_f, os_t, os_r, os_v]:
+		os_saved[on] = on.person_profile.personality.duplicate()
+	os_f.person_profile.personality.assign(["Místico", "Manipulador"])
+	os_t.person_profile.personality.assign(["Místico"])
+	os_r.person_profile.personality.assign(["Íntegro", "Devoto"])
+	assert(vsc.founder_score(os_f) >= vsc.FOUND_MIN_SCORE, "O1: A mystic manipulator has the profile to found the sect")
+	vsc.found(vm, os_f)
+	assert(vsc.active(vm) and vsc.is_member(vm, os_f), "O1: The founder starts the sect")
+	for k in vm.sect_state["members"].keys():
+		if k != os_f.get_person_key():
+			vm.sect_state["members"].erase(k)
+	os_t.npc_relationships[os_f.get_person_key()] = 50
+	os_f.npc_relationships[os_t.get_person_key()] = 50
+	assert(vsc.try_recruit(vm, os_f, os_t, 10.0) == "joined" and vsc.is_member(vm, os_t), "O2: A vulnerable mystic friend joins the sect")
+	assert(vfa_o.same_band(vm, os_f, os_t), "O4: Sect members are a hidden band that covers for each other")
+	assert(not ("Hijos" in vfa_o.glossary_line(vm, os_f)) and vsc.glossary_line(vm, os_f) == "", "O5: The sect stays hidden until you discover it")
+	var os_log: int = vm.social_event_log.size()
+	assert(vsc.try_recruit(vm, os_f, os_r) == "refused" and not vsc.is_member(vm, os_r), "O2: Upright believers refuse to join")
+	assert(vm.social_event_log.size() > os_log and str(vm.social_event_log[-1]["type"]) == "sect_rumor" and int(vm.sect_state["suspicion"]) > 0, "O5: Whoever refuses spreads a rumor and suspicion grows")
+	# O3: reunión de madrugada
+	vm.sect_state["last_meeting_day"] = -1
+	for on in [os_f, os_t]:
+		on.join_rite(vsc.meeting_spot(vm, 0), "sect")
+		on.global_position = on.rite_pos
+	var os_meet: Dictionary = vsc.finish_meeting(vm)
+	assert(int(os_meet["attendees"]) == 2 and int(vm.sect_state["meetings"]) == 1 and os_f.rite_kind == "", "O3: Members meet at night in the cemetery")
+	# O6: el jugador se une
+	vm.sect_state["invite_by"] = os_t.get_person_key()
+	vsc.on_player_action(vm, os_t, "sect_join", null)
+	assert(vsc.player_member(vm) and vsc.known_member(vm, os_f) and "miembro" in vsc.glossary_line(vm, os_f), "O6: You can join and then know the members")
+	# O4: rito de sangre (muy raro; aquí forzado)
+	vsc.start_plan(vm, os_v)
+	vm.sect_state["last_meeting_day"] = -1
+	for on in [os_f, os_t]:
+		on.join_rite(vsc.meeting_spot(vm, 1), "sect")
+		on.global_position = on.rite_pos
+	os_v.join_rite(vsc.meeting_spot(vm, 9), "sect_lure")
+	os_v.global_position = os_v.rite_pos
+	var os_rite: Dictionary = vsc.finish_meeting(vm)
+	assert(str(os_rite["rite"]) == os_v.npc_name and os_v.is_dead and str(vm.npc_murders.get(os_v.npc_name, "")) == os_f.npc_name, "O4: A prepared blood rite kills the lured victim and leaves a trail for the sheriff")
+	var os_save: Dictionary = vm.get_economy_save_dict()
+	vm.sect_state = {}
+	vm.load_economy_save_dict(os_save)
+	assert(vsc.is_member(vm, os_t) and vsc.player_member(vm), "O: The sect survives save and load")
+	# O5: se destapa
+	var os_rel: int = os_r.get_relationship_with_npc(os_f.get_person_key())
+	vsc.expose(vm, "prueba")
+	assert(not vsc.active(vm) and not vsc.player_member(vm) and os_r.get_relationship_with_npc(os_f.get_person_key()) < os_rel, "O5: Once exposed the sect dissolves and its members are shunned")
+	for on in os_saved.keys():
+		on.person_profile.personality.assign(os_saved[on])
+	vm.sect_state = {}
+	vm.needs_state = {}
+	print("O secret sect OK")
+
 	print("ALL RIMWORLD MEDICAL, FOOTPRINTS, 3-PHASE CORPSE REPORT, MULTI-CORPSE FIX, RPG INTERROGATION, PUBLIC TRIAL, DYNAMIC RELATIONSHIPS, MISSING FAMILY SEARCH, SOCIAL GLOSSARY & UNCONSCIOUS REACTION TESTS PASSED!")
 	quit(0)

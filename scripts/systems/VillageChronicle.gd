@@ -15,7 +15,7 @@ const WITNESS_RADIUS: float = 170.0
 ## Sucesos que no se apuntan (demasiado frecuentes para ser historia). Las quedadas sí entran desde la revisión de C.
 const SKIP_TYPES: Array[String] = []
 ## Lo sabe todo el pueblo al momento.
-const PUBLIC_TYPES: Array[String] = ["election", "taxes", "embezzle_exposed", "theft_caught", "couple", "breakup", "couple_reconciled", "arrival", "departure", "bereavement_ended", "fight", "feud", "reconciliation", "date", "death_found", "case_closed"]
+const PUBLIC_TYPES: Array[String] = ["sect_profane", "sect_exposed", "election", "taxes", "embezzle_exposed", "theft_caught", "couple", "breakup", "couple_reconciled", "arrival", "departure", "bereavement_ended", "fight", "feud", "reconciliation", "date", "death_found", "case_closed"]
 ## Lo ha hecho el jugador: lo sabe siempre.
 const PLAYER_TYPES: Array[String] = ["player_gossip", "player_mediation", "player_matchmaking", "player_slander", "quest_done", "quest_failed"]
 
@@ -34,6 +34,8 @@ const TYPE_CATEGORY: Dictionary = {
 	"rite": "faith", "faith_mock": "player", "faith_donation": "player", "band_defend": "conflict",
 	"theft": "conflict", "theft_caught": "conflict", "illness": "people", "illness_death": "death", "player_alms": "player",
 	"election": "people", "taxes": "people", "embezzle": "conflict", "embezzle_exposed": "conflict", "police_bribe": "conflict", "player_bribe": "player",
+	"sect_found": "faith", "sect_join": "faith", "sect_meeting": "faith", "sect_profane": "faith", "sect_plan": "death", "sect_rite": "death",
+	"sect_exposed": "faith", "sect_player": "player", "sect_rumor": "gossip", "sect_night": "gossip",
 	"fight": "conflict", "feud": "conflict", "reconciliation": "conflict", "npc_slander": "conflict",
 	"widowed": "death", "death_found": "death", "case_closed": "death",
 	"arrival": "people", "departure": "people",
@@ -50,6 +52,8 @@ const TYPE_ICON: Dictionary = {
 	"rite": "☀️", "faith_mock": "😏", "faith_donation": "🪙", "band_defend": "🛡️",
 	"theft": "💸", "theft_caught": "🚓", "illness": "🤒", "illness_death": "⚰️", "player_alms": "🙏",
 	"election": "🗳️", "taxes": "🏛️", "embezzle": "💰", "embezzle_exposed": "📢", "police_bribe": "🤫", "player_bribe": "💰",
+	"sect_found": "🌑", "sect_join": "🌑", "sect_meeting": "🌑", "sect_profane": "🌑", "sect_plan": "🩸", "sect_rite": "🩸",
+	"sect_exposed": "📢", "sect_player": "🌑", "sect_rumor": "🗣️", "sect_night": "🌙",
 	"couple": "💑", "breakup": "💔", "couple_reconciled": "💞", "rejection": "💔", "jealousy": "😠", "date": "🌹",
 	"romance_interest": "💗", "romance_flirt": "😊", "romance_dating": "💞", "romance_fizzle": "🥀", "bereavement_ended": "🕯️",
 	"fight": "👊", "feud": "⚡", "reconciliation": "🤝", "npc_slander": "🗣️", "widowed": "🖤", "death_found": "💀", "case_closed": "⚖️",

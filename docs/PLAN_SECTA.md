@@ -1,6 +1,10 @@
-# Plan: la secta secreta (bloques S)
+# Plan: la secta secreta (bloques O)
 
-Estado: **pendiente de aprobación**. Paso 8 de `docs/VISION_Y_FUTURO.md`. Usa todo lo anterior: secretos (quién sabe
+Estado: **hecho** (2026-11-03, ver HANDOFF). El usuario delegó lo creativo y las decisiones de abajo las tomé yo con
+lo recomendado: 1) **sí puede matar** en un rito, muy raramente y con señales; 2) **puedes unirte**; 3) **sin droga** por
+ahora; 4) **nace en los primeros días** (día 3–6) si hay alguien con perfil; 5) todo de una vez. Nombre, símbolo, lore y
+rangos son provisionales (ver `docs/APORTES_CREATIVOS.md`). Los bloques se llaman O (de Ocaso) para no chocar con los
+de secretos (S). Paso 8 de `docs/VISION_Y_FUTURO.md`. Usa todo lo anterior: secretos (quién sabe
 qué), deseos (poder, venganza), grupos y fe, pobreza y vicios, e instituciones corruptas. Posible gancho de la
 historia principal, pero sin misiones por ahora.
 
@@ -15,18 +19,18 @@ historia principal, pero sin misiones por ahora.
 
 ## Bloques
 
-- **S1 – La secta y su fundador.** Una secta con nombre propio (propuesta: **«los Hijos del Ocaso»**, lo contrario del
+- **O1 – La secta y su fundador.** Una secta con nombre propio (propuesta: **«los Hijos del Ocaso»**, lo contrario del
   Alba). La funda un vecino con perfil: Místico, Fanático, Manipulador o ambicioso con pocos escrúpulos. Nunca
   autoridades ni el sacerdote. Empieza con el fundador y uno o dos fieles. Ser miembro es un **secreto**: cada miembro
   sabe quiénes son los demás; los de fuera, no.
-- **S2 – Reclutamiento.** Cada semana los miembros intentan captar a alguien vulnerable: pobres, mendigos, adictos,
+- **O2 – Reclutamiento.** Cada semana los miembros intentan captar a alguien vulnerable: pobres, mendigos, adictos,
   solitarios, gente con un rencor fuerte, enfermos sin médico y Místicos. Los Devotos del Alba, los Íntegros y las
   autoridades se resisten. Quien rechaza la oferta puede ir contándolo (chisme). Tope de tamaño (unos 5 de 18) para que
   no se trague el pueblo.
-- **S3 – Reuniones de noche.** Una vez por semana se reúnen a escondidas en un lugar apartado (propuesta: un claro del
+- **O3 – Reuniones de noche.** Una vez por semana se reúnen a escondidas en un lugar apartado (propuesta: un claro del
   bosque o el cementerio). Dejan la cama a medianoche: si alguien les ve salir o tú les sigues, es una pista. Las
   reuniones refuerzan sus lazos y les alejan de los creyentes del Alba.
-- **S4 – Lo que hace la secta.**
+- **O4 – Lo que hace la secta.**
   - **Dinero:** los miembros pagan un diezmo; el fundador lo guarda.
   - **Poder:** votan juntos en las elecciones y empujan a uno de los suyos a alcalde. Intentan comprar o captar al
     comisario.
@@ -34,17 +38,17 @@ historia principal, pero sin misiones por ahora.
   - **Contra el Alba:** calumnias contra el sacerdote, profanaciones en la capilla (un símbolo pintado, velas rotas) y
     menos gente en el Oficio.
   - **Lo oscuro (ver decisión 1):** cuando la secta es grande y vieja, muy raramente prepara un **rito de sangre**.
-- **S5 – Descubrirla.** Pistas que se van sumando: salidas de noche, el símbolo, el rumor de quien rechazó entrar,
+- **O5 – Descubrirla.** Pistas que se van sumando: salidas de noche, el símbolo, el rumor de quien rechazó entrar,
   diezmos que no cuadran. El sacerdote sospecha y predica contra ella. Si se destapa, los miembros pierden aprecio en
   el pueblo, el comisario detiene al fundador y algunos lo dejan. La secta puede volver a nacer más tarde con otro
   fundador.
-- **S6 – Tú.** Notar las pistas y seguirles de noche, preguntar por ellos, denunciarles ante el sacerdote o el
+- **O6 – Tú.** Notar las pistas y seguirles de noche, preguntar por ellos, denunciarles ante el sacerdote o el
   comisario, chantajear a un miembro, o **unirte** (ver decisión 2): reuniones, diezmo, rangos y encargos sencillos.
   Tu fama con la Fe del Alba baja si se sabe.
-- **S7 – Medición y tests.** Un test por comportamiento (al final). La sonda cuenta miembros, reclutados y rechazos,
+- **O7 – Medición y tests.** Un test por comportamiento (al final). La sonda cuenta miembros, reclutados y rechazos,
   reuniones, pistas, si se destapa y lo que hizo.
 
-## Decisiones que necesito
+## Decisiones (tomadas, ver arriba)
 
 1. **Lo oscuro:** ¿la secta puede llegar a matar en un rito (muy raro, con señales antes y pistas para el comisario,
    como los planes de asesinato), o solo dinero, poder y profanaciones? Recomiendo que pueda, muy raramente.
@@ -62,3 +66,14 @@ historia principal, pero sin misiones por ahora.
 - Que nunca se note: cada pieza deja rastro (textos flotantes, crónica, chismes, glosario cuando la conoces).
 - Que se descubra al instante: las pistas se suman poco a poco y sus miembros se encubren.
 - Que choque con lo ya hecho (Oficio, bandos, elecciones): la secta es un bando oculto más y reutiliza esas piezas.
+
+## Cómo quedó (resumen técnico)
+
+- `scripts/systems/VillageSect.gd`; estado en `vm.sect_state` (se guarda). Test #60.
+- Fundador por perfil (Místico, Fanático, Manipulador, Cruel, ambición, malicia; nunca autoridades, sacerdote ni
+  forasteros). Tope 5 miembros. Si se destapa o muere el fundador sin heredero, renace a los 30 días con otro.
+- La secta es un **bando oculto** en `vm.faith_bands` (kind "sect"): se encubren en los robos, se defienden y se votan;
+  el glosario de bandos no lo muestra. En las elecciones empuja a uno de los suyos a candidato.
+- Reunión: viernes 0–1 h llamada, 3 h fin, en `_cemetery_burial_pos`. Usa `join_rite(spot, "sect")` del vecino.
+- Encargos del jugador como miembro: **no** (evitamos misiones por ahora). Rangos solo por asistencia; desde
+  «Hermano de la Sombra» la secta te paga algo de su caja.

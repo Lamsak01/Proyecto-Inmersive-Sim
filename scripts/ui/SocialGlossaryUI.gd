@@ -445,6 +445,10 @@ func refresh_ui(rebuild_lists: bool = true) -> void:
 		_highlights_label.text += "\n" + VillageNeeds.glossary_line(vm_g, sel) # E
 	if vm_g != null and "town_state" in vm_g:
 		_highlights_label.text += "\n" + VillageTown.glossary_line(vm_g, sel) # I
+	if vm_g != null and "sect_state" in vm_g:
+		var sect_line: String = load("res://scripts/systems/VillageSect.gd").glossary_line(vm_g, sel)
+		if sect_line != "":
+			_highlights_label.text += "\n" + sect_line # O
 
 	# 5. Tabla Social RimWorld — filas reutilizadas (pool): solo se actualizan textos/colores, sin crear ni destruir nodos
 	if not rebuild_lists:

@@ -381,6 +381,32 @@ Cada fase se dividirá en bloques pequeños cuando se llegue a ella (detalle en 
   alcaldesa Marta (no corrupta), 448 de impuestos y 348 sin gastar en las arcas (subí la ayuda a 10 por pobre);
   3 Oficios (23 asistentes); calumnias 5, peleas 1, 82 % de relaciones en la franja media. Ajustes sin volver a medir.
 
+### La secta secreta (bloques O)
+- [x] **O1–O7** Hecho con las decisiones recomendadas (el usuario delegó lo creativo; ver `docs/PLAN_SECTA.md`). Nombre,
+  lore y rangos provisionales, apuntados en `docs/APORTES_CREATIVOS.md`. `scripts/systems/VillageSect.gd`; estado en
+  `VillageManager.sect_state` (se guarda). O1 funda (día 3–6) el vecino con más `founder_score` ≥ 0,3 (Místico, Fanático,
+  Manipulador, Cruel, ambición, mando, malicia; nunca autoridades, sacerdote, forasteros ni menores de 16). O2 cada miembro,
+  1/7 al día, intenta captar al más vulnerable que aprecie (pobre, mendigo, adicto, sin amigos, con un rencor fuerte,
+  enfermo sin tratar, Místico) contra su resistencia (fe, Íntegro, honradez); tope 5. Quien se niega y es creyente u honrado
+  suelta el chisme `sect_rumor`. O3 reunión viernes (`get_weekday() == 4`) a las 0–1 h en `_cemetery_burial_pos`, fin a
+  las 3; el vecino usa `join_rite(spot, "sect")` (`rite_kind`); al salir de la cama, 20 % de que alguien de su familia lo
+  note (`sect_night`). O4 diezmo (máx 3) y ayuda de 5 a los pobres de la secta; −2 al sacerdote; profanación (30 % con ≥ 3,
+  cartel «sol negro» 3 días); la secta es un **bando oculto** en `faith_bands` (kind "sect", `hidden`), así que se
+  encubren en robos, se defienden y se votan; `VillageTown.candidates` mete a un miembro entre los candidatos; van al
+  Oficio al 40 %. Rito de sangre: con ≥ 4 miembros, 21 días de secta, fundador oscuro (malicia + agresividad − honradez ≥ 1,
+  o Cruel o Fanático) y 10 días sin asesinatos: 25 % por reunión de elegir víctima; señales (`sect_rumor` del miembro con
+  más reparos, 30 % diario); a la reunión siguiente la víctima acude engañada (`sect_lure`) y muere; queda en
+  `vm.npc_murders` para el comisario. O5 sospecha 0–100 (rechazos, salidas de noche, profanaciones, señales, ritos; −2 al
+  día); a 100 el sacerdote los señala → `expose`: todos −15 hacia cada miembro, multa al fundador, la caja va a las arcas
+  y se disuelve; renace a los 30 días con otro fundador. O6 jugador: verla en el cementerio, enterarse por chismes,
+  chantajear, sonsacar nombres, denunciar ante el comisario (si no está comprado) o el sacerdote, avisar a la víctima, unirse
+  (te invita un miembro con afinidad ≥ 45 si tu fama de fe ≤ 10, o lo pides si sabes que es miembro) y dejarla. Rangos por
+  asistencia (0/3/6). Sin encargos (evitamos misiones). Glosario (J): línea 🌑 solo si conoces la secta. Crónica: sect_found,
+  sect_join, sect_meeting, sect_profane, sect_plan, sect_rite, sect_exposed, sect_player. Test #60. La sonda imprime SECT.
+  Sonda (semilla 303, 25 días): con el umbral 0,8 no nacía (el máximo del reparto es 0,42); bajado a 0,3. Segunda
+  sonda: fundó Aldric, 4 captados (lleno a 5), 3 rechazos, 3 reuniones, sin profanación ni rito, sin destapar; 18 vivos.
+  Salieron 12 errores al mirar adicciones (`int` sobre un diccionario), ya corregido; no he vuelto a pasar la sonda.
+
 ### Interfaz
 - [x] **HUD1** Barras de estado (`scenes/ui_root.gd`, `_create_stats_box` / `_create_fallback_bar`): recuadro oscuro arriba a
   la izquierda, barras finas con relleno de color y texto blanco (antes `modulate` teñía también el texto). Se ven

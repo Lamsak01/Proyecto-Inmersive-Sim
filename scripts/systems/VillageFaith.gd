@@ -141,6 +141,9 @@ static func wants_attend(npc, week: int) -> bool:
 	if is_priest(npc):
 		return true
 	var ch: int = int(ATTEND_CHANCE.get(grade_of(npc), 0))
+	var vm_s = npc._get_vm() if npc.has_method("_get_vm") else null
+	if vm_s != null and "sect_state" in vm_s and vm_s.sect_state is Dictionary and (vm_s.sect_state.get("members", {}) as Dictionary).has(npc.get_person_key()):
+		ch = int(ch * 0.4) # O4: los de la secta van poco al Oficio (solo para disimular)
 	return ch > 0 and (abs(("%s#%d" % [npc.get_person_key(), week]).hash()) % 100) < ch
 
 static func can_join(npc) -> bool:
@@ -400,6 +403,8 @@ static func on_affinity_change(vm, npc, delta: int) -> void:
 static func glossary_line(vm, npc) -> String:
 	var parts: Array[String] = []
 	for band in bands_of(vm, npc.get_person_key()):
+		if bool(band.get("hidden", false)):
+			continue # O: la secta no se ve aquí (tiene su propia línea si la conoces)
 		parts.append("%s (tú: %+d)" % [band["name"], rep_of(vm, str(band["id"]))])
 	var band_txt: String = ", ".join(parts) if not parts.is_empty() else "ninguno"
 	return "[color=#ffe08a][b]☀️ Fe:[/b][/color] %s   [color=#ffe08a][b]🛡️ Bandos:[/b][/color] %s   [color=#ffe08a][b]Tu fama:[/b][/color] creyentes %+d, escépticos %+d" % [

@@ -10,6 +10,7 @@ const VillageNeeds = preload("res://scripts/systems/VillageNeeds.gd")
 const VillageIllness = preload("res://scripts/systems/VillageIllness.gd")
 const VillageCrime = preload("res://scripts/systems/VillageCrime.gd")
 const VillageTown = preload("res://scripts/systems/VillageTown.gd")
+const VillageSect = preload("res://scripts/systems/VillageSect.gd")
 const TraitDiscovery = preload("res://scripts/systems/TraitDiscovery.gd")
 const TraitCatalog = preload("res://scripts/data/TraitCatalog.gd")
 
@@ -186,6 +187,7 @@ static func _add_neighbor_opinions(npc: VillageNPC, diag: Dictionary, ch_arr: Ar
 	VillageIllness.add_dialogue_choices(npc._get_vm(), npc, diag, ch_arr) # E2
 	VillageCrime.add_dialogue_choices(npc._get_vm(), npc, diag, ch_arr) # E4
 	VillageTown.add_dialogue_choices(npc._get_vm(), npc, diag, ch_arr) # I5
+	VillageSect.add_dialogue_choices(npc._get_vm(), npc, diag, ch_arr) # O6
 	if npc.affinity < 0:
 		diag["neighbor_opinions"] = {"text": "«No hablo de mis vecinos con quien no conozco.»", "choices": [{"label": "Entendido. [Volver]", "next": "start"}]}
 		return
@@ -608,6 +610,7 @@ static func on_dialogue_action(npc: VillageNPC, action_id: String) -> void:
 			VillageDesires.on_player_news(vm, npc) # D: y lo que quiere hacer alguien
 			VillageCrime.on_player_news(vm, npc) # E4: y quién robó
 			VillageTown.on_player_news(vm, npc) # I3: y si el alcalde roba
+			VillageSect.on_player_news(vm, npc) # O5: y lo que se dice de la secta
 		return
 	if action_id.begins_with("needs_"):
 		if vm != null and VillageNeeds.on_player_action(vm, npc, action_id, inv) and action_id == "needs_round":
@@ -617,11 +620,16 @@ static func on_dialogue_action(npc: VillageNPC, action_id: String) -> void:
 			VillageDesires.on_player_news(vm, npc)
 			VillageCrime.on_player_news(vm, npc)
 			VillageTown.on_player_news(vm, npc)
+			VillageSect.on_player_news(vm, npc)
 			TraitDiscovery.reveal_next(npc, "con unas copas")
 		return
 	if action_id.begins_with("illness_"):
 		if vm != null:
 			VillageIllness.on_player_action(vm, npc, action_id, inv)
+		return
+	if action_id.begins_with("sect_"):
+		if vm != null:
+			VillageSect.on_player_action(vm, npc, action_id, inv)
 		return
 	if action_id.begins_with("town_"):
 		if vm != null:

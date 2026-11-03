@@ -118,6 +118,7 @@ var _decision_timer: float = 0.0
 var hangout_id: int = -1
 ## G2: sitio en la capilla durante el Oficio del Alba (ZERO = no va al Oficio)
 var rite_pos: Vector2 = Vector2.ZERO
+var rite_kind: String = "" # "rite" (Oficio del Alba), "sect" (reunión de la secta), "sect_lure" (víctima engañada)
 ## E1/E3/E5: encargos cortos a pie (lavarse «wash», beber «drink», jugar «gamble», pedir limosna «beg»); ver VillageNeeds
 var errand_kind: String = ""
 var errand_pos: Vector2 = Vector2.ZERO
@@ -2826,7 +2827,9 @@ func _update_needs_and_decisions(delta: float) -> void:
 				_chat_bubble_timer -= delta
 				if _chat_bubble_timer <= 0.0:
 					_chat_bubble_timer = randf_range(4.5, 7.5)
-					if rite_pos != Vector2.ZERO:
+					if rite_kind in ["sect", "sect_lure"]:
+						_spawn_floating_text("🌑" if rite_kind == "sect" else "❔", Color(0.7, 0.55, 0.95), -30.0)
+					elif rite_pos != Vector2.ZERO:
 						_spawn_floating_text("☀️🙏" if trade_role != TradeRole.PRIEST else "☀️ «Compartid el pan y perdonad...»", Color(1.0, 0.92, 0.65), -30.0)
 					elif is_visiting_grave():
 						_spawn_floating_text("🕯️ «No te olvido, %s...»" % str(person_profile.deceased_partner_name), Color(0.82, 0.80, 0.98), -30.0)
@@ -3484,8 +3487,9 @@ func clear_hangout() -> void:
 	hangout_spot_label = ""
 
 ## G2: el vecino deja lo que hace y camina a la capilla para el Oficio del Alba (lo llama VillageFaith).
-func join_rite(spot: Vector2) -> void:
+func join_rite(spot: Vector2, kind: String = "rite") -> void:
 	rite_pos = spot
+	rite_kind = kind
 	is_sleeping = false
 	_social_partner = null
 	current_activity = ActivityState.SOCIALIZING
@@ -3493,6 +3497,7 @@ func join_rite(spot: Vector2) -> void:
 
 func leave_rite() -> void:
 	rite_pos = Vector2.ZERO
+	rite_kind = ""
 
 ## E: encargo corto a pie (lo decide VillageNeeds; lo termina al llegar).
 func start_errand(kind: String, spot: Vector2) -> void:
@@ -3669,6 +3674,12 @@ func get_activity_description() -> String:
 					"drink": return "🍺 Bebiendo en la taberna" if at_e else "🚶🍺 Yendo a la taberna a beber"
 					"gamble": return "🎲 Jugando en la taberna" if at_e else "🚶🎲 Yendo a jugar a la taberna"
 					"beg": return "🥺 Pidiendo limosna en la plaza" if at_e else "🚶🥺 Yendo a pedir a la plaza"
+			if rite_kind in ["sect", "sect_lure"]:
+				var vm_sc = _get_vm()
+				var known_sc: bool = vm_sc != null and "sect_state" in vm_sc and (bool(vm_sc.sect_state.get("player_member", false)) or (vm_sc.sect_state.get("known", {}) as Dictionary).has(get_person_key()))
+				if rite_kind == "sect" and known_sc:
+					return "🌑 En una reunión secreta de la secta" if global_position.distance_to(rite_pos) <= 30.0 else "🚶🌑 Yendo a una reunión secreta"
+				return "🌙 Junto al cementerio, de madrugada" if global_position.distance_to(rite_pos) <= 30.0 else "🚶🌙 Paseando de madrugada"
 			if rite_pos != Vector2.ZERO:
 				if trade_role == TradeRole.PRIEST:
 					return "☀️ Dirigiendo el Oficio del Alba"

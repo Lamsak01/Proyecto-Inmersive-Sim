@@ -5,6 +5,9 @@ El detalle técnico está en `docs/HANDOFF.md` (sección 7) y el historial compl
 
 ## 2026-11-03
 
+### La secta secreta
+- **O1–O7**: en los primeros días, un vecino de perfil inquietante funda en secreto **«los Hijos del Ocaso»** (nombre provisional) y capta a gente vulnerable: pobres, adictos, solitarios, resentidos. Quien se niega puede ir contándolo. Se reúnen **los viernes de madrugada en el cementerio** (si alguien de su casa les oye salir, corre el rumor), pagan un diezmo, se encubren y se votan entre ellos, y a veces pintan un **sol negro** en la capilla. Muy raramente preparan un **rito de sangre**, con señales antes. Si la sospecha crece, el sacerdote los señala; tú puedes descubrirlos, chantajearlos, denunciarlos, avisar a la víctima o **unirte** (con rangos). Nuevo documento `docs/APORTES_CREATIVOS.md`: todo el lore, nombres y misiones provisionales del proyecto, por temas, para revisarlos.
+
 ### Instituciones y corrupción
 - **I1–I6**: el pueblo elige **alcalde** al empezar y cada 28 días (votan los vecinos según a quién aprecian y su bando; tú puedes pedirles el voto). Cada **sábado se cobran impuestos** y el alcalde reparte una ayuda a los pobres. Un alcalde **corrupto** se queda parte; si se destapa (porque lo sabe medio pueblo o porque lo denuncias al comisario) devuelve lo robado y hay elecciones anticipadas. Un **comisario corrupto** deja escapar a ladrones por dinero, y **tú puedes sobornarle** para que olvide tus cargos (si es honrado, la multa sube). Los nobles quedan para más adelante.
 

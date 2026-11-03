@@ -85,7 +85,20 @@ static func candidates(vm) -> Array:
 		if eligible(n) and n.get_person_key() != banned:
 			c.append(n)
 	c.sort_custom(func(a, b): return candidate_score(a) > candidate_score(b))
-	return c.slice(0, CANDIDATES)
+	var top: Array = c.slice(0, CANDIDATES)
+	# O4: la secta empuja a uno de los suyos a presentarse
+	var members: Dictionary = vm.sect_state.get("members", {}) if ("sect_state" in vm and vm.sect_state is Dictionary) else {}
+	if not members.is_empty() and top.size() == CANDIDATES:
+		var has_member: bool = false
+		for t in top:
+			if members.has(t.get_person_key()):
+				has_member = true
+		if not has_member:
+			for n in c:
+				if members.has(n.get_person_key()):
+					top[CANDIDATES - 1] = n
+					break
+	return top
 
 static func vote_of(vm, voter, cands: Array):
 	var pledged: String = str(state(vm)["pledges"].get(voter.get_person_key(), ""))
