@@ -9,6 +9,7 @@ extends RefCounted
 const VillageChronicle = preload("res://scripts/systems/VillageChronicle.gd")
 const VillageQuests = preload("res://scripts/systems/VillageQuests.gd")
 const TraitCatalog = preload("res://scripts/data/TraitCatalog.gd")
+const GossipMemory = preload("res://scripts/systems/GossipMemory.gd")
 
 const MOTIVE_PUBLIC_PTS: int = 10 # Enemistad larga o peleas conocidas por el pueblo
 const MOTIVE_RUMOR_PTS: int = 8 # Rumor que cuenta un testigo en el interrogatorio
@@ -62,7 +63,7 @@ static func _reveal_motives_known_by_witness(vm: VillageManager, witness: Villag
 	var wkey: String = _social_key(witness)
 	for ev in vm.social_event_log:
 		var t: String = str(ev.get("type", ""))
-		if not (t in MOTIVE_EVENT_TYPES) or not (ev.get("known_by", {}) as Dictionary).has(wkey):
+		if not (t in MOTIVE_EVENT_TYPES) or not GossipMemory.knows(ev, wkey): # R1: si lo olvidó, no lo cuenta
 			continue
 		if t == "npc_slander" and str(ev.get("target_id", "")) != vkey:
 			continue

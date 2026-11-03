@@ -5,6 +5,9 @@ El detalle técnico está en `docs/HANDOFF.md` (sección 7) y el historial compl
 
 ## 2026-11-02
 
+### Recuerdos que se degradan
+- **R1–R4**: los vecinos olvidan los chismes con el tiempo (los memoriosos tardan más, los olvidadizos menos; los protagonistas casi nunca) y al contarlos pueden deformarlos: exageran o se equivocan de persona, y el error se contagia. Lo que te cuentan es su versión, y la crónica la apunta («❓ … te contó»). Un testigo que olvidó algo ya no se lo dirá al investigador.
+
 ### Interfaz
 - **HUD1**: barras de estado más bonitas y legibles, en un recuadro arriba a la izquierda. Se ven resistencia, aguante, hambre y sueño; ya no salen las de sangre ni aturdimiento.
 

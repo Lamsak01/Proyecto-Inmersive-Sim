@@ -980,7 +980,7 @@ func record_social_event(type_str: String, actor: VillageNPC, target: VillageNPC
 
 ## B6.1: Eventos que merecen chisme. Son solo información: no mueven relaciones entre vecinos.
 const GOSSIP_EVENT_TYPES: Array[String] = ["fight", "breakup", "couple", "couple_reconciled", "feud", "reconciliation", "player_slander", "npc_slander", "rejection"] # Sin "widowed": revelaría muertes aún sin descubrir
-const GOSSIP_MAX_AGE_DAYS: int = 10
+const GOSSIP_MAX_AGE_DAYS: int = 20 # R1: tope; antes lo decide la memoria de cada vecino (GossipMemory)
 const NEWS_MIN_KNOWERS: int = 3
 
 func _get_live_gossip() -> Array[Dictionary]:
@@ -992,8 +992,8 @@ func spread_gossip(teller: VillageNPC, listener: VillageNPC) -> Dictionary:
 func try_npc_slander(speaker: VillageNPC, listener: VillageNPC, chance: float = -1.0) -> Dictionary:
 	return VillageSocialLife.try_npc_slander(self, speaker, listener, chance)
 
-func gossip_text(ev: Dictionary, listener: VillageNPC = null) -> String:
-	return VillageSocialLife.gossip_text(ev, listener)
+func gossip_text(ev: Dictionary, listener: VillageNPC = null, ver_key: String = "") -> String:
+	return VillageSocialLife.gossip_text(ev, listener, ver_key)
 
 func get_news_known_by(npc: VillageNPC, limit: int = 3) -> Array[Dictionary]:
 	return VillageSocialLife.get_news_known_by(self, npc, limit)
@@ -2956,6 +2956,7 @@ func _on_day_passed(_new_day: int) -> void:
 		VillageSocialLife.daily_reciprocity(self)
 		VillageSocialLife.daily_distance_cooling(self, _new_day)
 		VillageChronicle.daily_friendship_scan(self)
+		VillageSocialLife.GossipMemory.daily_decay(self)
 		VillageQuests.on_day_passed(self)
 	chronicle_daily = false
 

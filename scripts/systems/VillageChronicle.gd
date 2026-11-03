@@ -6,6 +6,8 @@ extends RefCounted
 ## Regla: el jugador solo ve lo que podría saber (lo público, lo suyo, lo que vio de cerca o le contaron).
 ## `SHOW_ALL_DEBUG` = true mientras el juego está en pruebas: se ve todo y lo secreto lleva 🔒.
 
+const GossipMemory = preload("res://scripts/systems/GossipMemory.gd")
+
 const MAX_ENTRIES: int = 500
 const SHOW_ALL_DEBUG: bool = true # Poner en false para la versión final
 const WITNESS_RADIUS: float = 170.0
@@ -22,14 +24,14 @@ const CATEGORY_NAMES: Dictionary = {"all": "📖 Todo", "love": "💞 Amor", "fr
 const TYPE_CATEGORY: Dictionary = {
 	"couple": "love", "breakup": "love", "couple_reconciled": "love", "rejection": "love", "jealousy": "love", "date": "love",
 	"romance_interest": "love", "romance_flirt": "love", "romance_dating": "love", "romance_fizzle": "love", "bereavement_ended": "love",
-	"hangout": "friends", "friendship": "friends", "gossip": "gossip",
+	"hangout": "friends", "friendship": "friends", "gossip": "gossip", "hearsay": "gossip",
 	"fight": "conflict", "feud": "conflict", "reconciliation": "conflict", "npc_slander": "conflict",
 	"widowed": "death", "death_found": "death", "case_closed": "death",
 	"arrival": "people", "departure": "people",
 	"player_gossip": "player", "player_mediation": "player", "player_matchmaking": "player", "player_slander": "player", "quest_done": "player", "quest_failed": "player",
 }
 const TYPE_ICON: Dictionary = {
-	"hangout": "☕", "friendship": "🤝", "gossip": "🗣️",
+	"hangout": "☕", "friendship": "🤝", "gossip": "🗣️", "hearsay": "❓",
 	"couple": "💑", "breakup": "💔", "couple_reconciled": "💞", "rejection": "💔", "jealousy": "😠", "date": "🌹",
 	"romance_interest": "💗", "romance_flirt": "😊", "romance_dating": "💞", "romance_fizzle": "🥀", "bereavement_ended": "🕯️",
 	"fight": "👊", "feud": "⚡", "reconciliation": "🤝", "npc_slander": "🗣️", "widowed": "🖤", "death_found": "💀", "case_closed": "⚖️",
@@ -90,9 +92,24 @@ static func learn_event(vm: VillageManager, ev_uid: int) -> void:
 			e["known"] = true
 
 ## Al preguntar a `npc` por las novedades: lo que te cuenta pasa a la crónica.
+## R3: si su versión está deformada, se apunta tal cual te la contó (una vez por suceso y vecino).
 static func learn_news_from(vm: VillageManager, npc: VillageNPC) -> void:
+	var nk: String = npc.get_person_key()
 	for ev in vm.get_news_known_by(npc):
 		learn_event(vm, int(ev.get("uid", -1)))
+		if not GossipMemory.is_distorted(ev, nk):
+			continue
+		var hs_key: String = "%d|%s" % [int(ev.get("uid", -1)), nk]
+		var seen: bool = false
+		for e in vm.chronicle:
+			if str(e.get("hs_key", "")) == hs_key:
+				seen = true
+				break
+		if not seen:
+			add(vm, "hearsay", "%s te contó: «%s»%s" % [npc.npc_name, vm.gossip_text(ev, null, nk), _debug_tag(ev, nk)], true, -1, {"hs_key": hs_key})
+
+static func _debug_tag(ev: Dictionary, ver_key: String) -> String:
+	return " [deformado]" if SHOW_ALL_DEBUG and GossipMemory.is_distorted(ev, ver_key) else ""
 
 ## Líneas visibles de una categoría, de la más nueva a la más antigua.
 static func visible_entries(vm: VillageManager, category: String = "all", show_all: bool = SHOW_ALL_DEBUG) -> Array:
@@ -144,10 +161,11 @@ static func on_gossip(vm: VillageManager, ev: Dictionary, teller: VillageNPC, li
 	if vm == null or ev.is_empty() or teller == null or listener == null:
 		return
 	var heard: bool = _player_near(vm, teller) or _player_near(vm, listener)
-	var what: String = str(ev.get("summary", ""))
+	var lk: String = listener.get_person_key()
+	var what: String = vm.gossip_text(ev, listener, lk) # R2: lo que de verdad le dijo (su versión)
 	if what == "":
 		what = str(ev.get("type", "algo"))
-	add(vm, "gossip", "%s le contó a %s: «%s»" % [teller.npc_name, listener.npc_name, what], heard)
+	add(vm, "gossip", "%s le contó a %s: «%s»%s" % [teller.npc_name, listener.npc_name, what, _debug_tag(ev, lk)], heard)
 	if heard:
 		learn_event(vm, int(ev.get("uid", -1)))
 

@@ -1563,5 +1563,39 @@ func _initialize() -> void:
 	vm.chronicle.clear()
 	print("C chronicle OK")
 
+	# Test #54 (R1-R3): los chismes se olvidan y se deforman al contarlos; la crónica apunta la versión que te cuentan
+	var gmem = load("res://scripts/systems/GossipMemory.gd")
+	var r_others: Array = []
+	for rn in get_nodes_in_group("village_npcs"):
+		if rn != ex_a and rn != ex_b and not rn.is_dead:
+			r_others.append(rn)
+	var rg_c = r_others[0]
+	var rg_d = r_others[1]
+	var rg_ev: Dictionary = vm.record_social_event("fight", ex_a, ex_b, "%s y %s se pelearon" % [ex_a.npc_name, ex_b.npc_name])
+	var rg_ak: String = ex_a.get_person_key()
+	var rg_ck: String = rg_c.get_person_key()
+	var rg_dk: String = rg_d.get_person_key()
+	assert(gmem.knows(rg_ev, rg_ak) and gmem.strength(rg_ev, rg_ak) == 100.0, "R1: Protagonists remember fully")
+	assert(vm.spread_gossip(ex_a, rg_c) == rg_ev and gmem.knows(rg_ev, rg_ck) and gmem.strength(rg_ev, rg_ck) == 70.0, "R1: Hearing it starts a weaker memory")
+	rg_ev["mem"][rg_ck] = 1.0
+	gmem.daily_decay(vm)
+	assert(not gmem.knows(rg_ev, rg_ck) and gmem.knows(rg_ev, rg_ak), "R1: Weak memories are forgotten, protagonists keep theirs")
+	assert(not rg_ev in vm.get_news_known_by(rg_c) and vm.spread_gossip(rg_c, rg_d) != rg_ev, "R1: Forgotten gossip is neither news nor retold")
+	assert(vm.spread_gossip(ex_a, rg_c) == rg_ev and gmem.knows(rg_ev, rg_ck), "R1: Being told again brings it back")
+	rg_ev["ver"][rg_ck] = {"swap_from": ex_a.npc_name, "swap_to": "Zeta", "exag": 1}
+	var r_txt: String = vm.gossip_text(rg_ev, null, rg_ck)
+	assert(r_txt.contains("Zeta") and not r_txt.contains(ex_a.npc_name) and r_txt.ends_with("corrió la sangre"), "R2: A distorted version changes who and exaggerates")
+	assert(vm.gossip_text(rg_ev) == "%s y %s se pelearon" % [ex_a.npc_name, ex_b.npc_name], "R2: The truth is kept apart")
+	(rg_ev["known_by"] as Dictionary).erase(rg_dk)
+	assert(vm.spread_gossip(rg_c, rg_d) == rg_ev and str(gmem.version(rg_ev, rg_dk).get("swap_to", "")) == "Zeta", "R2: Errors spread from mouth to mouth")
+	assert(gmem.distort_chance(rg_ev, ex_a) < gmem.distort_chance(rg_ev, rg_c) + 0.001, "R2: Protagonists distort less")
+	vm.chronicle.clear()
+	vch.learn_news_from(vm, rg_c)
+	vch.learn_news_from(vm, rg_c)
+	var rg_hs: Array = vch.visible_entries(vm, "gossip", true).filter(func(e): return str(e.get("type", "")) == "hearsay")
+	assert(rg_hs.size() == 1 and str(rg_hs[0]["text"]).contains("Zeta") and str(rg_hs[0]["text"]).contains("[deformado]"), "R3: The chronicle keeps the distorted version you heard, once")
+	vm.chronicle.clear()
+	print("R gossip memory OK")
+
 	print("ALL RIMWORLD MEDICAL, FOOTPRINTS, 3-PHASE CORPSE REPORT, MULTI-CORPSE FIX, RPG INTERROGATION, PUBLIC TRIAL, DYNAMIC RELATIONSHIPS, MISSING FAMILY SEARCH, SOCIAL GLOSSARY & UNCONSCIOUS REACTION TESTS PASSED!")
 	quit(0)

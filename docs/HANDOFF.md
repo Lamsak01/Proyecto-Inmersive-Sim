@@ -250,6 +250,17 @@ Cada fase se dividirá en bloques pequeños cuando se llegue a ella (detalle en 
   en vez de «00:00»; el panel ocupa la pantalla con `top_level` para salir centrado (el `ui_root` es más pequeño que la
   pantalla; el diario de misiones tiene el mismo problema, sin tocar); «salió peor parada/Magullada» según el género.
 
+### Recuerdos que se degradan (bloques R)
+- [x] **R1–R4** Hecho (plan en `docs/PLAN_RECUERDOS.md`). `scripts/systems/GossipMemory.gd`: por chisme y vecino,
+  fuerza del recuerdo (`ev["mem"]`, 100 protagonistas / 80 testigos / 70 al oírlo, −8 al día; protagonistas −1,5; tendencia
+  `memory` despierta: Memorioso/Estudioso/Nostálgico más lento, Olvidadizo más rápido; contarlo +10). A 0 lo olvida
+  (`ev["forgot"]`; sigue en `known_by` para no romper `heard_from`). `knows()` sustituye a `known_by.has()` en chismes,
+  novedades y motivos que cuenta un testigo al investigador. Tope de edad `GOSSIP_MAX_AGE_DAYS` 10 → 20.
+  Deformación al contar (`ev["ver"][clave]`: exagerar hasta 2 niveles o cambiar a una persona; se hereda de boca en boca;
+  más si miente, lo recuerda mal o no es protagonista, tope 40 %). `gossip_text(ev, listener, ver_key)` dice la versión.
+  Crónica: «❓ X te contó: …» con «[deformado]» en modo pruebas. Las versiones aún no cambian relaciones (va con Secretos).
+  Test #54. La sonda imprime MEMORY.
+
 ### Interfaz
 - [x] **HUD1** Barras de estado (`scenes/ui_root.gd`, `_create_stats_box` / `_create_fallback_bar`): recuadro oscuro arriba a
   la izquierda, barras finas con relleno de color y texto blanco (antes `modulate` teñía también el texto). Se ven

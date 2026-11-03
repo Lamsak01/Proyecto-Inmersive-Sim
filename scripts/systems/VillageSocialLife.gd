@@ -7,6 +7,7 @@ const VillageQuests = preload("res://scripts/systems/VillageQuests.gd")
 ## T1: la probabilidad por charla depende de la malicia de sus rasgos (TraitCatalog); sin malicia, nunca calumnia.
 const TraitCatalog = preload("res://scripts/data/TraitCatalog.gd")
 const VillageChronicle = preload("res://scripts/systems/VillageChronicle.gd")
+const GossipMemory = preload("res://scripts/systems/GossipMemory.gd")
 const TraitDiscoveryRef = preload("res://scripts/systems/TraitDiscovery.gd")
 const NPC_SLANDER_PER_MALICE: float = 0.075 # T5: a la mitad tras pasar a 6 rasgos (Rencoroso solo: 7,5 %)
 const NPC_SLANDER_MAX_CHANCE: float = 0.25
@@ -338,7 +339,8 @@ static func spread_gossip(vm: VillageManager, teller: VillageNPC, listener: Vill
 	var listener_key: String = listener.get_person_key()
 	for ev in _get_live_gossip(vm):
 		var known: Dictionary = ev["known_by"]
-		if known.has(teller_key) and not known.has(listener_key):
+		# R1: solo cuenta lo que aún recuerda; a quien lo olvidó se le puede volver a contar
+		if GossipMemory.knows(ev, teller_key) and not GossipMemory.knows(ev, listener_key):
 			known[listener_key] = true
 			if not ev.has("heard_from"):
 				ev["heard_from"] = {}
@@ -346,6 +348,7 @@ static func spread_gossip(vm: VillageManager, teller: VillageNPC, listener: Vill
 			var ev_type: String = str(ev.get("type", ""))
 			if ev_type in ["player_slander", "npc_slander"] and str(ev.get("target_id", "")) == listener_key:
 				_on_slander_reached_target(vm, ev, teller, listener)
+			GossipMemory.on_told(vm, ev, teller, listener) # R2: puede llegar deformado
 			VillageChronicle.on_gossip(vm, ev, teller, listener)
 			return ev
 	return {}
@@ -400,18 +403,20 @@ static func try_npc_slander(vm: VillageManager, speaker: VillageNPC, listener: V
 	return ev
 
 ## Texto del chisme tal como se cuenta. Las calumnias no dicen quién las empezó (eso se averigua siguiendo la cadena).
-static func gossip_text(ev: Dictionary, listener: VillageNPC = null) -> String:
+## R2: `ver_key` = de quién es la versión que se cuenta ("" = la verdad).
+static func gossip_text(ev: Dictionary, listener: VillageNPC = null, ver_key: String = "") -> String:
 	if str(ev.get("type", "")) in ["player_slander", "npc_slander"]:
-		if listener != null and listener.get_person_key() == str(ev.get("target_id", "")):
-			return "Andan diciendo cosas feas de ti."
-		return "Andan diciendo cosas feas de %s." % str(ev.get("target_name", "alguien"))
-	return str(ev.get("summary", ""))
+		var believed: String = GossipMemory.render(ev, str(ev.get("target_name", "alguien")), ver_key, false, true)
+		if listener != null and listener.npc_name == believed:
+			return GossipMemory.render(ev, "Andan diciendo cosas feas de ti.", ver_key, true, false)
+		return GossipMemory.render(ev, "Andan diciendo cosas feas de %s." % str(ev.get("target_name", "alguien")), ver_key)
+	return GossipMemory.render(ev, str(ev.get("summary", "")), ver_key)
 
 static func get_news_known_by(vm: VillageManager, npc: VillageNPC, limit: int = 3) -> Array[Dictionary]:
 	var key: String = npc.get_person_key()
 	var res: Array[Dictionary] = []
 	for ev in _get_live_gossip(vm):
-		if res.size() < limit and (ev["known_by"] as Dictionary).has(key):
+		if res.size() < limit and GossipMemory.knows(ev, key):
 			res.append(ev)
 	return res
 
