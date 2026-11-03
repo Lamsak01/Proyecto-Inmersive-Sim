@@ -324,6 +324,9 @@ Cada fase se dividirá en bloques pequeños cuando se llegue a ella (detalle en 
   al sacerdote, «☀️ Preguntar por la Fe del Alba» → donar 10 de oro o burlarte (−12 con él, −4 con creyentes cerca, +2 con
   escépticos); a los demás, «¿Vas al Oficio?» (te lo dicen si te aprecian ≥ 0). Crónica: pestaña «☀️ Fe» (`rite`) y tipos
   `faith_mock`, `faith_donation`, `band_defend`. Test #57. La sonda imprime FAITH.
+  Sonda (semilla 303, 25 días, sin jugador, 18 vecinos): 3 Oficios con 8 asistentes de media; bandos solo familias (6),
+  ninguna pandilla ni seguidores; 2 defensas de bando; chismes 16 sucesos / 98 que los saben (antes 73), 22 olvidos,
+  29 versiones deformadas (antes 6: vigilar); calumnias 7, peleas 1, 18 vivos, 78 % de relaciones en la franja media.
 
 ### Interfaz
 - [x] **HUD1** Barras de estado (`scenes/ui_root.gd`, `_create_stats_box` / `_create_fallback_bar`): recuadro oscuro arriba a
