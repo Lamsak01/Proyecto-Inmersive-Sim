@@ -2398,5 +2398,74 @@ func _initialize() -> void:
 	v5_poor.personal_gold = v5_pg
 	print("V5a bakery and tailor OK")
 
+	# 65. V5b: ayuntamiento (votar en persona, arcas que se pueden robar), Albergue del Alba y El Candil.
+	var vc = load("res://scripts/systems/VillageCivic.gd")
+	var v5b_fp = func(bid): return vm.building_footprints.filter(func(f): return str(f["id"]) == bid).size()
+	assert(v5b_fp.call("building_town_hall") == 1 and v5b_fp.call("building_shelter") == 1 and vm.shop_businesses.has(14), "V5b: Town hall, shelter and El Candil stand on their lots")
+	var v5b_ts: Dictionary = vm.town_state.duplicate(true)
+	# Votar en persona: solo cuenta quien fue
+	var v5b_people: Array = []
+	for n5 in get_nodes_in_group("village_npcs"):
+		if not n5.is_dead and not n5.is_downed and v5b_people.size() < 3 and n5.person_profile != null:
+			v5b_people.append(n5)
+	vc.open_voting(vm)
+	assert(vc.is_voting_today(vm), "V5b: Election day opens the town hall")
+	for n5 in v5b_people:
+		n5.start_errand("vote", vc.hall_spots()["ballot"])
+		vc.on_errand_arrived(vm, n5)
+		assert(n5.errand_kind == "", "V5b: After voting they go back to their day")
+	var v5b_res: Dictionary = vc.close_voting(vm)
+	var v5b_total: int = 0
+	for vk in (v5b_res.get("votes", {}) as Dictionary).values():
+		v5b_total += int(vk)
+	assert(not v5b_res.is_empty() and v5b_total >= 1 and v5b_total <= 3, "V5b: Only those who went to vote are counted (%d)" % v5b_total)
+	# Arcas
+	vm.town_state["treasury"] = 100
+	var v5b_take: int = vc.rob_coffers(vm)
+	assert(v5b_take >= 25 and v5b_take <= 60 and int(vm.town_state["treasury"]) == 100 - v5b_take, "V5b: Forcing the coffers takes the town's real money")
+	vc.daily(vm)
+	assert(int(vm.town_state.get("coffers_missing", 0)) == 0 and vm.chronicle.filter(func(e): return str(e.get("type", "")) == "coffers_robbed").size() >= 1, "V5b: Next day the town learns money is missing")
+	vm.town_state = v5b_ts
+	# Albergue: cuatro camas; el quinto acaba a la intemperie
+	var v5b_saved: Array = []
+	var v5b_n: Array = []
+	for n5 in get_nodes_in_group("village_npcs"):
+		if not n5.is_dead and not n5.in_shelter and v5b_n.size() < 5:
+			v5b_n.append(n5)
+			v5b_saved.append([n5.bed_position, n5.is_vagrant_camper, n5.lodging, n5.vagrant_camp_pos])
+	for n5 in v5b_n:
+		vm.evict_npc_to_vagrant_camp(n5)
+	var v5b_in: int = v5b_n.filter(func(x): return x.in_shelter).size()
+	assert(v5b_in == 4 and not v5b_n[4].in_shelter and v5b_n[4].is_vagrant_camper, "V5b: The shelter takes four; the fifth sleeps outdoors")
+	assert(v5b_n[0].bed_position in vc.shelter_beds(), "V5b: Sheltered people sleep in the shelter beds")
+	for i5 in range(v5b_n.size()):
+		var n5 = v5b_n[i5]
+		n5.in_shelter = false
+		n5.bed_position = v5b_saved[i5][0]
+		n5.is_vagrant_camper = v5b_saved[i5][1]
+		n5.lodging = v5b_saved[i5][2]
+		n5.vagrant_camp_pos = v5b_saved[i5][3]
+		if vm.vagrant_camp_nodes.has(n5.npc_name) and is_instance_valid(vm.vagrant_camp_nodes[n5.npc_name]) and not n5.is_vagrant_camper:
+			vm.vagrant_camp_nodes[n5.npc_name].visible = false
+	# El Candil: quien no llega para El Jabalí pero sí para 3 de oro, duerme allí; sin dinero, sale
+	var v5b_keeper_old = vm.trade_npcs.get(14)
+	var v5b_keeper = v5b_people[0]
+	var v5b_guest = v5b_people[1]
+	vm.trade_npcs[14] = v5b_keeper
+	var v5b_gs: Array = [v5b_guest.personal_gold, v5b_guest.bed_position, v5b_guest.is_vagrant_camper]
+	v5b_guest.is_vagrant_camper = false
+	v5b_guest.lodging = ""
+	v5b_guest.personal_gold = 4
+	assert(vc.nightly_guest(vm, v5b_guest, 6) and v5b_guest.lodging == "candil" and v5b_guest.personal_gold == 1, "V5b: A guest short of money lodges at El Candil")
+	assert(not vc.nightly_guest(vm, v5b_guest, 6) and v5b_guest.lodging == "", "V5b: Without even 3 gold they lose the bed at El Candil")
+	v5b_guest.personal_gold = v5b_gs[0]
+	v5b_guest.bed_position = v5b_gs[1]
+	v5b_guest.is_vagrant_camper = v5b_gs[2]
+	if v5b_keeper_old != null:
+		vm.trade_npcs[14] = v5b_keeper_old
+	else:
+		vm.trade_npcs.erase(14)
+	print("V5b town hall, shelter and inn OK")
+
 	print("ALL RIMWORLD MEDICAL, FOOTPRINTS, 3-PHASE CORPSE REPORT, MULTI-CORPSE FIX, RPG INTERROGATION, PUBLIC TRIAL, DYNAMIC RELATIONSHIPS, MISSING FAMILY SEARCH, SOCIAL GLOSSARY & UNCONSCIOUS REACTION TESTS PASSED!")
 	quit(0)

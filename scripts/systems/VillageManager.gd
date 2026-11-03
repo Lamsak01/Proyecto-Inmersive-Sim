@@ -20,6 +20,7 @@ const VillageQuests = preload("res://scripts/systems/VillageQuests.gd")
 const VillageWorldBuilder = preload("res://scripts/systems/VillageWorldBuilder.gd")
 const VillageLots = preload("res://scripts/systems/VillageLots.gd")
 const VillageTrades = preload("res://scripts/systems/VillageTrades.gd")
+const VillageCivic = preload("res://scripts/systems/VillageCivic.gd")
 
 ## Gestor Integral de Urbanismo Sólido, Hospital/Morgue Forense, Comisaría/Cárcel, Testigos,
 ## Sigilo Doméstico, Reputación Familiar, Tablón de Encargos y Red Eléctrica (10 Pasos de Expansión)
@@ -233,6 +234,7 @@ func setup_village(target_entities_root: Node) -> void:
 	_spawn_unemployed_tavern_guests()
 	VillageWorldBuilder._spawn_farm_well_and_compost(self)
 	VillageTrades.setup_world(self) # V5: panadería y sastrería (puestos vacantes al empezar)
+	VillageCivic.setup_world(self) # V5b: ayuntamiento, albergue y El Candil
 	VillageLots.build_world(self) # V4: calles y solares del borde, afueras y lomas
 	_spawn_domestic_pets()
 
@@ -2343,6 +2345,7 @@ func _on_hour_passed(_day: int, new_hour: int = 8) -> void:
 	VillageIllness.on_hour(self, actual_hour) # E2: contagios
 	VillageSect.on_hour(self, actual_hour) # O3: reunión de la secta (viernes de madrugada)
 	VillageLots.on_hour(self, actual_hour) # V4: el carpintero avanza la obra si está allí
+	VillageCivic.on_hour(self, actual_hour) # V5b: votar en persona y el alcalde en el ayuntamiento
 
 	# 07:00 AM -> Comprobar llegada semanal de los 2 Mercaderes Ambulantes (Día 3: Maese Casimir | Día 6: Valeria la Tratante)
 	if actual_hour == 7:
@@ -2729,6 +2732,8 @@ func _interact_house_chest(player: Node2D, ch: Dictionary) -> void:
 		spr.texture = _load_tex("res://assests/world/village/house_chest_open.png")
 
 	var gold_loot: int = randi_range(18, 32)
+	if str(ch.get("family_id", "")) == "town_hall":
+		gold_loot = VillageCivic.rob_coffers(self) # V5b: sale de las arcas de verdad (puede estar casi vacía)
 	var bonus_pool: Array[String] = ["bread", "iron_ore", "copper_coil", "herbal_poultice", "sleeping_draught"]
 	var bonus_item: String = bonus_pool[randi() % bonus_pool.size()]
 	if inv:
@@ -3009,6 +3014,7 @@ func _on_day_passed(_new_day: int) -> void:
 		VillageSect.daily(self) # O: la secta (justo después: vuelve a añadir su bando oculto)
 		VillageNeeds.daily(self) # E1/E3/E5
 		VillageTrades.daily(self) # V5: estrenar ropa en la sastrería
+		VillageCivic.daily(self) # V5b: arcas robadas y albergue
 		VillageIllness.daily(self) # E2
 		VillageCrime.daily(self) # E4: como mucho un robo por noche
 		VillageTown.daily(self) # I: elecciones, impuestos del sábado, desfalcos
@@ -3276,6 +3282,7 @@ func _register_shop_business_stall(role_id: int, shop_title: String, fam_id: Str
 		int(VillageNPC.TradeRole.HERBALIST): sup_items = ["herbal_poultice", "herbs", "mushroom", "carrot", "cabbage", "sleeping_draught", "surgical_kit"]
 		int(VillageNPC.TradeRole.BAKER): sup_items = ["bread", "wheat"]
 		int(VillageNPC.TradeRole.TAILOR): sup_items = ["clothes", "leather", "fox_pelt"]
+		int(VillageNPC.TradeRole.LODGEKEEPER): sup_items = ["country_stew", "cooked_meat"]
 
 	var cfg: Dictionary = trade_configs.get(role_id, {})
 	var init_stock: Dictionary = (cfg.get("stock", {}) as Dictionary).duplicate()
@@ -3940,11 +3947,15 @@ func _process_nightly_tavern_rent_and_vagrant_camps() -> void:
 	for guest in unemployed_npcs:
 		if not is_instance_valid(guest) or guest.is_dead or guest.trade_role != VillageNPC.TradeRole.UNEMPLOYED:
 			continue
+		if VillageCivic.nightly_guest(self, guest, rent_cost): # V5b: El Candil, más barata
+			continue
 		# Si ya era vagabundo pero ha ahorrado >= 18 Oro y la Posada está abierta, recupera su cama bajo techo
 		if guest.is_vagrant_camper and not tav_blocked and inn_alive and guest.personal_gold >= 18:
 			guest.personal_gold -= rent_cost
 			_innkeeper_npc.personal_gold += rent_cost
 			guest.is_vagrant_camper = false
+			guest.in_shelter = false
+			guest.lodging = ""
 			var guest_beds: Array[Vector2] = [Vector2(435, -252), Vector2(468, -252), Vector2(502, -252)]
 			guest.bed_position = guest_beds[abs(guest.npc_name.hash()) % guest_beds.size()]
 			if vagrant_camp_nodes.has(guest.npc_name) and is_instance_valid(vagrant_camp_nodes[guest.npc_name]):
@@ -3964,6 +3975,8 @@ func _process_nightly_tavern_rent_and_vagrant_camps() -> void:
 ## Convierte a un NPC sin dinero o sin acceso a su cama en Vagabundo y levanta su Campamento Rústico físico en las afueras
 func evict_npc_to_vagrant_camp(npc: VillageNPC, _reason: String = "") -> void:
 	if npc == null or npc.is_dead:
+		return
+	if npc.in_shelter or VillageCivic.try_shelter(self, npc): # V5b: antes que a la intemperie, el Albergue del Alba
 		return
 	var camp_spots: Array[Vector2] = [Vector2(360, 345), Vector2(412, 355), Vector2(522, 348), Vector2(310, 348)]
 	var c_pos: Vector2 = camp_spots[abs(npc.npc_name.hash()) % camp_spots.size()]
@@ -4793,7 +4806,7 @@ func reconcile_npc_registries_after_load() -> void:
 						slot["npc"] = v
 						slot["rehire_timer"] = 0.0
 						slot["vacancy_announced"] = false
-			if v.is_vagrant_camper and not v.is_dead:
+			if v.is_vagrant_camper and not v.is_dead and not v.in_shelter:
 				_spawn_or_update_vagrant_camp_visual(v, v.vagrant_camp_pos)
 
 func _add_poly(pts: PackedVector2Array, col: Color, z_idx: int = -1, pos: Vector2 = Vector2.ZERO, parent_node: Node = null) -> Polygon2D:

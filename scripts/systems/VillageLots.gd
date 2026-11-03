@@ -170,6 +170,8 @@ static func _build_kind(vm, id: String, st: Dictionary) -> void:
 			vm._spawn_house_chest(hc + Vector2(0, -24 if bool(d["door_south"]) else 24), "Cofre Familiar (" + str(st["title"]) + ")", fam)
 		"shop_house":
 			_build_shop_house(vm, id, st)
+		"civic", "shelter", "inn":
+			load("res://scripts/systems/VillageCivic.gd").build(vm, id, st)
 
 ## V5: tienda y vivienda en un solo edificio (como la Botica), con la puerta hacia la calle del solar.
 ## Posiciones relativas a la Botica (puerta al norte); con la puerta al sur se reflejan.
@@ -349,5 +351,6 @@ static func after_load(vm) -> void:
 		if not st.has("residents"):
 			st["residents"] = []
 	load("res://scripts/systems/VillageTrades.gd").ensure_lots(vm) # Partidas de antes de V5: sus tiendas siguen en pie
+	load("res://scripts/systems/VillageCivic.gd").ensure_lots(vm)
 	for l in LOTS:
 		_draw_lot(vm, str(l["id"]), lot(vm, str(l["id"])))

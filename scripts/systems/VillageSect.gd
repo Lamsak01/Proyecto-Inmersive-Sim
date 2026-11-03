@@ -168,7 +168,7 @@ static func crisis_of(vm, npc) -> float:
 	c += clampf((55.0 - float(npc.mood)) / 55.0, 0.0, 1.0) * 0.35
 	match VillageNeeds.class_of(npc):
 		"pobre": c += 0.15
-		"mendigo": c += 0.25
+		"mendigo": c += 0.15 if npc.in_shelter else 0.25 # V5b: con techo en el albergue, menos desesperado
 	var key: String = npc.get_person_key()
 	if not (VillageNeeds.state(vm)["ill"].get(key, {}) as Dictionary).is_empty():
 		c += 0.12

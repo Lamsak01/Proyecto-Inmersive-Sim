@@ -119,13 +119,14 @@ static func vote_of(vm, voter, cands: Array):
 			best = c
 	return best
 
-static func hold_election(vm, reason: String = "") -> Dictionary:
+## `voters`: quienes fueron a votar en persona (V5b); vacío = vota todo el pueblo (primera elección o anticipadas).
+static func hold_election(vm, reason: String = "", voters: Array = []) -> Dictionary:
 	var st: Dictionary = state(vm)
 	var cands: Array = candidates(vm)
 	if cands.is_empty():
 		return {}
 	var votes: Dictionary = {}
-	for v in VillageNeeds.living(vm):
+	for v in (voters if not voters.is_empty() else VillageNeeds.living(vm)):
 		if VillageNeeds.is_outsider(v):
 			continue
 		var choice = vote_of(vm, v, cands)
@@ -253,8 +254,10 @@ static func expose(vm, how: String) -> void:
 
 static func daily(vm) -> void:
 	var st: Dictionary = state(vm)
-	if mayor_of(vm) == null or VillageNeeds.today() >= int(st.get("next_election", 0)):
+	if mayor_of(vm) == null:
 		hold_election(vm)
+	elif VillageNeeds.today() >= int(st.get("next_election", 0)) and int(st.get("voting_day", -1)) != VillageNeeds.today():
+		load("res://scripts/systems/VillageCivic.gd").open_voting(vm) # V5b: hoy se vota en el ayuntamiento, en persona
 	if WorldClock != null and WorldClock.has_method("get_weekday") and int(WorldClock.get_weekday()) == 5 and int(st.get("last_tax_day", -1)) != VillageNeeds.today():
 		st["last_tax_day"] = VillageNeeds.today()
 		collect_taxes(vm)

@@ -52,6 +52,9 @@ pequeño, con gente que huyó de algo.
 | Afueras | Llanura Salvaje del Oeste, Ciénaga de las Ranas, Bosque Profundo, Ruinas de los Bandidos |
 | Panadería (V5) | «La Espiga»; la familia que la lleve, «Casa de la Espiga» |
 | Sastrería (V5) | «El Dedal»; «Casa del Dedal». Objeto nuevo: «Ropa de Lana» |
+| Ayuntamiento (V5b) | «Ayuntamiento del Valle», con la urna y el cofre «Arcas del Pueblo» |
+| Albergue (V5b) | «Albergue del Alba», de la capilla |
+| Segunda posada (V5b) | «El Candil», posada humilde; la familia, «Casa del Candil» |
 | Solares nuevos (V4) | Calle norte, camino del este, campos del sur, ladera del noroeste y las lomas del este y del norte (sitios para mansiones). Carteles «📜 Solar libre» y «🚧 En obra». Las casas nuevas se llaman de momento «🏠 Casa nueva» |
 
 Las familias toman el nombre de su negocio: Yunque Gris, Colmillo, Roble Viejo, Aguas Claras.

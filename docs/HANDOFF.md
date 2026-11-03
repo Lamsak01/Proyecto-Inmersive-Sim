@@ -475,6 +475,25 @@ Cada fase se dividirá en bloques pequeños cuando se llegue a ella (detalle en 
   de V5 también tienen las dos tiendas. Mapa del valle (`ValleyMapUI`): más grande (llega al norte y al este) y dibuja
   solares, obras, casas nuevas y calles nuevas. **Sin probar en juego:** que el panadero y el sastre lleguen andando
   a su mostrador y horneen y cosan de verdad (el test comprueba el negocio, la llegada y las compras de ropa).
+  El usuario lo ha visto en juego: «parecen funcionar bien».
+- [x] **V5b** Ayuntamiento, albergue y segunda posada (`scripts/systems/VillageCivic.gd`), en pie desde el principio
+  (`ensure_lots`, también al cargar partidas antiguas). Clases de solar «civic», «shelter» e «inn» (las dibuja
+  `VillageCivic.build`). **Ayuntamiento** (n4): cuando tocan elecciones normales, `VillageTown.daily` llama a
+  `open_voting` en vez de votar al instante; de 9 a 20 h los vecinos libres (`VillageNeeds.is_free`: no en horas de
+  trabajo, no enfermos) van con el encargo «vote» a la urna (más por la tarde; los Desconfiados, menos) y a las 21 h
+  `close_voting` llama a `hold_election(vm, "", votantes)`: solo cuenta quien fue (si nadie fue, vota todo el pueblo).
+  La primera elección y las anticipadas siguen siendo al instante. El sábado a las 14 h el alcalde va a «cuadrar las
+  cuentas» (encargo «mayor_office»). El cofre «Arcas del Pueblo» (familia «town_hall») da el oro de las arcas de
+  verdad (`rob_coffers`, 25–60 o lo que quede); al día siguiente sale en la crónica, el alcalde se lleva −10 de humor
+  y algunos le cogen manía. Los encargos nuevos los termina `VillageNeeds.tick` → `VillageCivic.on_errand_arrived`.
+  **Albergue del Alba** (e4, 4 camas): `evict_npc_to_vagrant_camp` intenta primero `try_shelter` (variable nueva
+  `in_shelter`, guardada). Sigue contando como mendigo (`is_vagrant_camper`), pero duerme sin el tope de la intemperie,
+  sin campamento, con −3 de humor en vez de −10, su desesperación para la secta baja de 0,25 a 0,15 y cada día gana +2
+  con el sacerdote. **El Candil** (e2): oficio nuevo `LODGEKEEPER` (14, en `SHOP_ROLES`), puesto vacante al empezar;
+  guisa estofado con carne del carnicero; 3 camas de huésped a 3 de oro (`lodging` = «candil», guardado). En el cobro
+  nocturno, `nightly_guest` aloja allí al viajero que no llega a los 6 de El Jabalí; si no llega ni a 3, la regla de
+  siempre (albergue o calle). El tope de 3 viajeros sigue igual: lo cambiará V3. **Sin probar en juego:** que la gente
+  llegue andando a votar dentro del plazo del encargo (3 h) y que el posadero se instale bien.
 
 ### Interfaz
 - [x] **HUD1** Barras de estado (`scenes/ui_root.gd`, `_create_stats_box` / `_create_fallback_bar`): recuadro oscuro arriba a

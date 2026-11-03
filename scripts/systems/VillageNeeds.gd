@@ -225,6 +225,8 @@ static func tick(vm) -> void:
 				n.end_errand()
 			"beg":
 				pass # Se queda pidiendo hasta la tarde (on_hour)
+			_:
+				vm.VillageCivic.on_errand_arrived(vm, n) # V5b: votar, el alcalde en el ayuntamiento
 
 static func on_hour(vm, hour: int) -> void:
 	var st: Dictionary = state(vm)

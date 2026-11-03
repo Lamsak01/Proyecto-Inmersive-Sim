@@ -29,11 +29,12 @@ enum TradeRole {
 	ROYAL_INVESTIGATOR, # 10. Inquisidor Real enviado por la Corona si asesinan a un Mercader Semanal
 	PRIEST,             # 11. Sacerdote de la Capilla del Alba (G3): dirige el Oficio de los domingos
 	BAKER,              # 12. Panadero (V5): hornea pan con harina del molino y leña
-	TAILOR              # 13. Sastre (V5): cose ropa con cuero; los ricos compran más
+	TAILOR,             # 13. Sastre (V5): cose ropa con cuero; los ricos compran más
+	LODGEKEEPER         # 14. Posadero de El Candil (V5b): camas baratas y estofado sencillo
 }
 
 ## Oficios con taller y mostrador propios (V5: lista común para no repetirla en cada sitio)
-const SHOP_ROLES: Array = [TradeRole.BLACKSMITH, TradeRole.BUTCHER, TradeRole.CARPENTER, TradeRole.HERBALIST, TradeRole.FISHMONGER, TradeRole.BAKER, TradeRole.TAILOR]
+const SHOP_ROLES: Array = [TradeRole.BLACKSMITH, TradeRole.BUTCHER, TradeRole.CARPENTER, TradeRole.HERBALIST, TradeRole.FISHMONGER, TradeRole.BAKER, TradeRole.TAILOR, TradeRole.LODGEKEEPER]
 
 enum ActivityState {
 	WORKING,     # Atendiendo su taller, ayudando en casa o paseando
@@ -78,6 +79,8 @@ var carries_royal_safe_conduct: bool = false
 var pocket_items: Dictionary = {}
 var corpse_pocket_looted: bool = false
 var is_vagrant_camper: bool = false
+var in_shelter: bool = false # V5b: sin dinero, pero duerme bajo techo en el Albergue del Alba
+var lodging: String = "" # V5b: "candil" si se aloja en la posada humilde
 var vagrant_camp_pos: Vector2 = Vector2.ZERO
 var _is_amateur_foraging: bool = false
 var _amateur_forage_timer: float = 0.0
@@ -280,7 +283,7 @@ const ROLE_INITIAL_GOLD: Dictionary = {
 	TradeRole.INNKEEPER: Vector2i(68, 95), TradeRole.BLACKSMITH: Vector2i(68, 95),
 	TradeRole.BUTCHER: Vector2i(48, 72), TradeRole.CARPENTER: Vector2i(48, 72),
 	TradeRole.HERBALIST: Vector2i(48, 72), TradeRole.FISHMONGER: Vector2i(48, 72),
-	TradeRole.BAKER: Vector2i(40, 62), TradeRole.TAILOR: Vector2i(48, 72),
+	TradeRole.BAKER: Vector2i(40, 62), TradeRole.TAILOR: Vector2i(48, 72), TradeRole.LODGEKEEPER: Vector2i(36, 58),
 	TradeRole.DOCTOR: Vector2i(52, 78), TradeRole.SHERIFF: Vector2i(52, 78), TradeRole.GUARD: Vector2i(52, 78),
 	TradeRole.FAMILY_MEMBER: Vector2i(26, 44), TradeRole.TRAVELING_MERCHANT: Vector2i(172, 238), TradeRole.ROYAL_INVESTIGATOR: Vector2i(110, 155),
 }
@@ -290,7 +293,7 @@ const ROLE_INITIAL_MATERIALS: Dictionary = {
 	TradeRole.BUTCHER: {"wood": 1, "herbal_poultice": 1}, TradeRole.HERBALIST: {"bread": 1, "fertilizer": 1},
 	TradeRole.FISHMONGER: {"wood": 1, "herbal_poultice": 1}, TradeRole.INNKEEPER: {"cooked_meat": 1, "bread": 1},
 	TradeRole.DOCTOR: {"herbal_poultice": 2, "leather": 1},
-	TradeRole.BAKER: {"bread": 1, "wood": 1}, TradeRole.TAILOR: {"leather": 2},
+	TradeRole.BAKER: {"bread": 1, "wood": 1}, TradeRole.TAILOR: {"leather": 2}, TradeRole.LODGEKEEPER: {"cooked_meat": 1},
 }
 
 const ROLE_PSYCHOLOGY: Dictionary = {
@@ -301,6 +304,7 @@ const ROLE_PSYCHOLOGY: Dictionary = {
 	TradeRole.HERBALIST: [["Naturista", "Pacífica"], "herbs", ["Las plantas crecen sanas (+7)"]],
 	TradeRole.FISHMONGER: [["Paciente", "Madrugador"], "night_catfish", ["Brisa fresca junto al molino (+6)"]],
 	TradeRole.BAKER: [["Madrugador", "Hogareño"], "bread", ["Huele a pan recién hecho (+7)"]],
+	TradeRole.LODGEKEEPER: [["Hospitalario", "Sencillo"], "country_stew", ["Hay luz en El Candil (+5)"]],
 	TradeRole.TAILOR: [["Perfeccionista", "Coqueto"], "clothes", ["Una costura perfecta (+6)"]],
 	TradeRole.DOCTOR: [["Cirujano Experto", "Forense Meticuloso"], "surgical_kit", ["Urgencias y morgue en orden (+8)"]],
 	TradeRole.SHERIFF: [["Justiciero", "Observador"], "cooked_meat", ["Vigilando la ley en el valle (+7)"]],
@@ -329,6 +333,7 @@ const ROLE_FALLBACK_LORE: Dictionary = {
 	TradeRole.BUTCHER: ["garrick", "lina", "Cazador y maestro carnicero encargado de abastecer de carne fresca y cuero curado a la aldea."],
 	TradeRole.CARPENTER: ["bram", "mila", "Maestro ebanista y carpintero llegado para mantener en pie el aserradero y los talleres locales."],
 	TradeRole.FISHMONGER: ["marlo", "nora", "Pescador y molinero encargado de las redes del lago y de la molienda de grano para el valle."],
+	TradeRole.LODGEKEEPER: ["dario", "nora", "Posadero modesto que alquila camas baratas a quien no puede pagar El Jabalí Dorado."],
 	TradeRole.BAKER: ["marlo", "marta", "Panadero llegado de un valle vecino para encender el horno de la calle norte y dar pan a casas y posadas."],
 	TradeRole.TAILOR: ["dario", "mila", "Sastre de mano fina que remienda la ropa del pueblo y cose prendas nuevas para quien pueda pagarlas."],
 	TradeRole.HERBALIST: ["tomas", "elena", "Herborista y botánico rural dedicado al cultivo de semillas y a la preparación de cataplasmas medicinales."],
@@ -2901,7 +2906,7 @@ func _update_needs_and_decisions(delta: float) -> void:
 				vm_slp.call("evict_npc_to_vagrant_camp", self, "Puerta de la Taberna bloqueada")
 			if global_position.distance_to(bed_position) <= 12.0:
 				is_sleeping = true
-				if is_vagrant_camper:
+				if is_vagrant_camper and not in_shelter:
 					var max_camp_energy: float = 62.0 if (WorldClock != null and int(WorldClock.current_weather) == 1) else 74.0
 					need_energy = minf(max_camp_energy, need_energy + 0.72 * delta)
 				else:
@@ -3080,6 +3085,7 @@ const ARTISAN_RECIPES: Dictionary = {
 	TradeRole.DOCTOR: [{"output": "bandage", "label": "Vendaje Limpio", "verb": "🩹 Esterilizando", "input": "herbal_poultice", "supplier": int(TradeRole.HERBALIST), "input_name": "Cataplasma"}, {"output": "herbal_poultice", "label": "Cataplasma", "verb": "🧪 Preparando", "input": "bread", "supplier": int(TradeRole.FISHMONGER), "input_name": "Base Vegetal"}, {"output": "surgical_kit", "label": "Botiquín Quir.", "verb": "🩺 Ensamblando", "input": "leather", "supplier": int(TradeRole.BUTCHER), "input_name": "Sutura/Cuero"}],
 	TradeRole.BAKER: [{"output": "bread", "label": "Hogaza", "verb": "🍞 Horneando", "input": "bread", "supplier": int(TradeRole.FISHMONGER), "input_name": "Harina"}, {"output": "bread", "label": "Pan de Leña", "verb": "🔥 Avivando el horno", "input": "wood", "supplier": int(TradeRole.CARPENTER), "input_name": "Leña"}],
 	TradeRole.TAILOR: [{"output": "clothes", "label": "Ropa", "verb": "🧵 Cosiendo", "input": "leather", "supplier": int(TradeRole.BUTCHER), "input_name": "Cuero"}],
+	TradeRole.LODGEKEEPER: [{"output": "country_stew", "label": "Estofado", "verb": "🍲 Guisando", "input": "cooked_meat", "supplier": int(TradeRole.BUTCHER), "input_name": "Carne"}],
 }
 
 func _get_artisan_recipes() -> Array[Dictionary]:
@@ -3717,13 +3723,17 @@ func get_activity_description() -> String:
 		return "🏥 Ingresado en el Hospital tratándose la Fiebre/Infección" + sick_tag
 	match current_activity:
 		ActivityState.SLEEPING:
+			if in_shelter:
+				return ("🕯️ Durmiendo en el Albergue del Alba" if is_sleeping else "🚶🕯️ Yendo al Albergue") + sick_tag
+			if lodging == "candil":
+				return ("💤 Durmiendo en El Candil" if is_sleeping else "🚶 Yendo a El Candil") + sick_tag
 			if is_vagrant_camper:
 				return ("⛺ Durmiendo a la Intemperie (Campamento)" if is_sleeping else "🚶⛺ Yendo a su Campamento Rústico") + sick_tag
 			return ("💤 Durmiendo en Cama" if is_sleeping else "🚶 Yendo a Dormir") + sick_tag
 		ActivityState.EATING:
 			if _is_amateur_foraging:
 				return "🏹💦 Cazando/Recolectando Torpemente (Sin Dinero/Comida)"
-			var loc := "en la Taberna" if _eat_at_tavern else ("en su Fogata" if is_vagrant_camper else "en Casa")
+			var loc := "en la Taberna" if _eat_at_tavern else ("en el Albergue" if in_shelter else ("en su Fogata" if is_vagrant_camper else "en Casa"))
 			return "🍲 Comiendo %s" % loc
 		ActivityState.SOCIALIZING:
 			if errand_kind != "":
@@ -3733,6 +3743,8 @@ func get_activity_description() -> String:
 					"drink": return "🍺 Bebiendo en la taberna" if at_e else "🚶🍺 Yendo a la taberna a beber"
 					"gamble": return "🎲 Jugando en la taberna" if at_e else "🚶🎲 Yendo a jugar a la taberna"
 					"beg": return "🥺 Pidiendo limosna en la plaza" if at_e else "🚶🥺 Yendo a pedir a la plaza"
+					"vote": return "🗳️ Votando en el ayuntamiento" if at_e else "🚶🗳️ Yendo a votar"
+					"mayor_office": return "🏛️ Cuadrando las cuentas del pueblo" if at_e else "🚶🏛️ Yendo al ayuntamiento"
 			if rite_kind in ["sect", "sect_lure"]:
 				var vm_sc = _get_vm()
 				var known_sc: bool = vm_sc != null and "sect_state" in vm_sc and (bool(vm_sc.sect_state.get("player_member", false)) or (vm_sc.sect_state.get("known", {}) as Dictionary).has(get_person_key()))
@@ -3768,7 +3780,7 @@ func get_activity_description() -> String:
 			if trade_role == TradeRole.GUARD: return "🛡️ Patrullando la Aldea"
 			if trade_role == TradeRole.PRIEST: return "☀️ Cuidando la Capilla del Alba"
 			if trade_role == TradeRole.UNEMPLOYED:
-				return "⛺ Sobreviviendo en las Afueras" if is_vagrant_camper else "🚶 Paseando / Jornalero"
+				return ("🕯️ Sin oficio, acogido en el Albergue" if in_shelter else "⛺ Sobreviviendo en las Afueras") if is_vagrant_camper else "🚶 Paseando / Jornalero"
 			elif trade_role == TradeRole.FAMILY_MEMBER:
 				return "🏠 Turno del Hogar (08-18h)" if _is_mandatory_work_hours() else "🏠 Cuidando el Hogar"
 			return "⚒️ En Turno Laboral (08-18h)" if _is_mandatory_work_hours() else "⚒️ Atendiendo su Oficio"
@@ -4281,6 +4293,8 @@ func promote_to_trade(new_role: TradeRole, new_title: String, new_work_pos: Vect
 	if new_family_name != "": family_name = new_family_name
 	shop_stock = inherited_stock.duplicate()
 	is_vagrant_camper = false
+	in_shelter = false
+	lodging = ""
 	if is_at_poker_table:
 		set_poker_seating(false)
 	_init_workshop_materials()
@@ -4525,7 +4539,7 @@ func to_save_dict() -> Dictionary:
 		"trade_role": int(trade_role), "linked_trade": int(linked_trade), "days_in_role": days_in_role,
 		"affinity": affinity, "known_traits": known_traits.duplicate(), "rumored_traits": rumored_traits.duplicate(), "known_feelings": known_feelings.duplicate(), "feelings_all_known": feelings_all_known, "trait_trust_tier": trait_trust_tier,
 		"trait_first_impression_done": trait_first_impression_done, "trait_lore_done": trait_lore_done, "personal_gold": personal_gold, "carries_royal_safe_conduct": carries_royal_safe_conduct,
-		"pocket_items": pocket_items.duplicate(), "corpse_pocket_looted": corpse_pocket_looted, "is_vagrant_camper": is_vagrant_camper,
+		"pocket_items": pocket_items.duplicate(), "corpse_pocket_looted": corpse_pocket_looted, "is_vagrant_camper": is_vagrant_camper, "in_shelter": in_shelter, "lodging": lodging,
 		"vagrant_camp_x": vagrant_camp_pos.x, "vagrant_camp_y": vagrant_camp_pos.y, "merchant_id": merchant_id,
 		"need_hunger": need_hunger, "digestion_buffer": digestion_buffer, "need_energy": need_energy, "need_social": need_social, "need_hygiene": need_hygiene,
 		"mood": mood, "thoughts": thoughts.duplicate(), "activity": int(current_activity),
@@ -4643,6 +4657,8 @@ func from_save_dict(data: Dictionary) -> void:
 		pocket_items["royal_safe_conduct"] = maxi(1, int(pocket_items.get("royal_safe_conduct", 0)))
 	corpse_pocket_looted = bool(data.get("corpse_pocket_looted", corpse_pocket_looted))
 	is_vagrant_camper = bool(data.get("is_vagrant_camper", is_vagrant_camper))
+	in_shelter = bool(data.get("in_shelter", in_shelter))
+	lodging = str(data.get("lodging", lodging))
 	vagrant_camp_pos = _read_vec2(data, "vagrant_camp_x", "vagrant_camp_y", vagrant_camp_pos)
 	merchant_id = str(data.get("merchant_id", merchant_id))
 	need_hunger = clampf(float(data.get("need_hunger", need_hunger)), 0.0, 100.0)

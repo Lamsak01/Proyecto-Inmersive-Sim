@@ -254,7 +254,7 @@ func _draw_valley_cartography(canvas: Control, detailed: bool) -> void:
 			var lsz: Vector2 = l["size"]
 			match str(lst["status"]):
 				"built":
-					var bsz: Vector2 = Vector2(128, 96) if str(lst["kind"]) == "shop_house" else Vector2(112, 78)
+					var bsz: Vector2 = Vector2(128, 96) if str(lst["kind"]) in ["shop_house", "civic", "inn"] else Vector2(112, 78)
 					buildings.append({"rect": Rect2((l["center"] as Vector2) - bsz * 0.5, bsz), "col": Color(0.60, 0.46, 0.28), "label": str(lst["title"])})
 				"building":
 					buildings.append({"rect": Rect2((l["center"] as Vector2) - lsz * 0.5, lsz), "col": Color(0.74, 0.52, 0.22, 0.7), "label": "🚧 Obra"})

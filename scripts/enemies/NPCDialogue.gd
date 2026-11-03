@@ -471,6 +471,20 @@ static func _build_dialogue(npc: VillageNPC) -> Dictionary:
 				},
 				"family_chat": {"text": "El horno se enciende antes del alba. Si el molino no muele o no llega leña, no hay pan para nadie: así de sencillo.", "choices": [{"label": "Entendido. [Volver]", "next": "start"}]}
 			}
+		VillageNPC.TradeRole.LODGEKEEPER:
+			return {
+				"start": {
+					"text": "Soy %s, de %s (%s). %s%s%s\n[Estofado: %d | Camas para huéspedes: 3 a 3 de oro la noche]" % [npc.npc_name, npc.family_name, npc.npc_role, needs_line, discount_tag, npc._get_market_header_line(), int(npc.shop_stock.get("country_stew", 0))],
+					"choices": [
+						{"label": "📜 Negocio, Escritura de Propiedad y Caja Registradora", "next": "END", "action": "open_business_panel"},
+						{"label": "🍲 Comprar 1 Estofado Sencillo (-%d Oro) [Stock: %d]" % [npc._get_dynamic_buy_price(8), int(npc.shop_stock.get("country_stew", 0))], "next": "start", "action": "buy:country_stew:8"},
+						{"label": "🥩 Vender 1 Carne Asada (+%d Oro)" % npc._get_dynamic_sell_price(6), "next": "start", "action": "sell:cooked_meat:6"},
+						{"label": "💬 Charlar un rato (+8 Relación)", "next": "family_chat", "affinity": 8},
+						{"label": "Hasta pronto. [Salir]", "next": "END"}
+					]
+				},
+				"family_chat": {"text": "Aquí no hay mesas de juego ni música: cama, techo y un plato caliente. Viene quien no llega para El Jabalí Dorado, y no es poca gente.", "choices": [{"label": "Entiendo. [Volver]", "next": "start"}]}
+			}
 		VillageNPC.TradeRole.TAILOR:
 			return {
 				"start": {
@@ -611,7 +625,7 @@ static func _build_dialogue(npc: VillageNPC) -> Dictionary:
 				"philosophy_info": {"text": "«La Corona me envió a este rincón olvidado con una única orden: hallar al asesino del mercader real antes de que se reanude la ruta comercial (plazo máximo de 19 días).\n\nNo tengo prisa por cerrar el caso en un solo día: interrogo uno por uno a TODOS los habitantes del pueblo (empezando por quienes estaban más cerca de la escena), compruebo líneas de visión, descarto a quienes estaban lejos del lugar del crimen y verifico coartadas mutuas. Pero cuando concluya el expediente, alguien pagará con su cuello.»", "choices": [{"label": "Una justicia metódica e implacable. [Volver]", "next": "start"}]}
 			}
 		_:
-			var camp_note: String = "\n[⛺ Desahuciado de la Posada: Sobreviviendo en un Campamento Rústico a las afueras por falta de oro]" if npc.is_vagrant_camper else ""
+			var camp_note: String = ("\n[🕯️ Sin dinero para la posada: duerme en el Albergue del Alba]" if npc.in_shelter else "\n[⛺ Desahuciado de la Posada: Sobreviviendo en un Campamento Rústico a las afueras por falta de oro]") if npc.is_vagrant_camper else ""
 			return {"start": {
 				"text": "Soy %s (%s). %s%s\n%s" % [npc.npc_name, npc.npc_role, needs_line, camp_note, npc.character_tagline],
 				"choices": [
