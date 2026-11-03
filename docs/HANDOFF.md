@@ -422,6 +422,17 @@ Cada fase se dividirá en bloques pequeños cuando se llegue a ella (detalle en 
   dan motivo 0,4 (el oportunista). Labia de Aldric 0,54; probabilidad de fundar: 0,3 % al día con crisis 0,27 y 0,8 %
   con 0,40. Las partidas guardadas conservan sus rasgos de antes. Sin sonda nueva.
 
+### Crecer el pueblo (bloques V, `docs/PLAN_CRECER_PUEBLO.md`)
+- [x] **V1** Medición: `tools/tests/perf_probe.gd -- 18,30,50,70` (con `--fixed-fps 60`; sin pantalla, solo lógica).
+  Mide ms por fotograma, coste de una hora y de un día, y el de cada sistema diario por separado. Hallazgo: el cambio de
+  día costaba 0,45 s con 18 vecinos, 1,3 s con 50 y 3,6 s con 70 (tirón a medianoche), porque
+  `get_relationship_with_npc` recorría el pueblo dos veces en cada consulta (`_migrate_legacy_relationship_keys` +
+  `resolve_person_id_key`) y `modify_npc_relationship` llamaba siempre a `ensure_npc_relationships_initialized`.
+  Arreglo: camino rápido si la clave ya está guardada por id; inicializar o migrar solo si falta la clave o hay una
+  clave antigua por nombre. Ahora el cambio de día cuesta 80 ms con 50 y 157 ms con 70; el primero tras una llegada masiva
+  de gente, ~0,5 s (inicializa sus relaciones). Por fotograma: vecinos 0,9 ms (18), 2,6–3 ms (50), 6,3 ms (70); la hora,
+  ~1 ms. Lo más caro del día con 50: bandos de Fe (26 ms), secta (21 ms) y misiones (16 ms).
+
 ### Interfaz
 - [x] **HUD1** Barras de estado (`scenes/ui_root.gd`, `_create_stats_box` / `_create_fallback_bar`): recuadro oscuro arriba a
   la izquierda, barras finas con relleno de color y texto blanco (antes `modulate` teñía también el texto). Se ven

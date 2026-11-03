@@ -800,6 +800,8 @@ func get_relationship_with_npc(other_key_or_name: String) -> int:
 	var my_id: String = str(person_profile.person_id) if person_profile != null else npc_id
 	if other_key_or_name == "" or other_key_or_name == npc_name or other_key_or_name == my_id:
 		return 0
+	if npc_relationships.has(other_key_or_name):
+		return clampi(int(npc_relationships[other_key_or_name]), -100, 100) # V1: camino rápido (ya guardado por id); antes recorría el pueblo dos veces en cada consulta
 	_migrate_legacy_relationship_keys()
 	var key: String = resolve_person_id_key(other_key_or_name)
 	if not npc_relationships.has(key):
@@ -807,6 +809,8 @@ func get_relationship_with_npc(other_key_or_name: String) -> int:
 	return clampi(int(npc_relationships.get(key, 0)), -100, 100)
 
 func get_relationship_note_with_npc(other_key_or_name: String) -> String:
+	if npc_relationship_notes.has(other_key_or_name):
+		return str(npc_relationship_notes[other_key_or_name])
 	_migrate_legacy_relationship_keys()
 	var key: String = resolve_person_id_key(other_key_or_name)
 	if not npc_relationship_notes.has(key):
@@ -837,10 +841,13 @@ static func get_relationship_tier_label(val: int, is_same_family: bool = false, 
 func modify_npc_relationship(other: VillageNPC, delta_val: int, reason: String = "", one_way: bool = false) -> void:
 	if other == null or other == self or other.is_dead or other.npc_name == "":
 		return
-	ensure_npc_relationships_initialized()
-	other.ensure_npc_relationships_initialized()
 	var my_key: String = str(person_profile.person_id) if person_profile != null and str(person_profile.person_id) != "" else (npc_id if npc_id != "" else npc_name)
 	var other_key: String = str(other.person_profile.person_id) if other.person_profile != null and str(other.person_profile.person_id) != "" else (other.npc_id if other.npc_id != "" else other.npc_name)
+	# V1: solo se inicializa (y migra claves antiguas por nombre) si hace falta; antes recorría el pueblo en cada cambio
+	if not npc_relationships.has(other_key) or npc_relationships.has(other.npc_name):
+		ensure_npc_relationships_initialized()
+	if not other.npc_relationships.has(my_key) or other.npc_relationships.has(npc_name):
+		other.ensure_npc_relationships_initialized()
 	var old_val: int = get_relationship_with_npc(other_key)
 	var new_val: int = clampi(old_val + delta_val, -100, 100)
 	npc_relationships[other_key] = new_val

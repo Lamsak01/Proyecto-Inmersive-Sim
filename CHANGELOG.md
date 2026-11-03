@@ -5,6 +5,9 @@ El detalle técnico está en `docs/HANDOFF.md` (sección 7) y el historial compl
 
 ## 2026-11-03
 
+### Crecer el pueblo: rendimiento
+- **V1**: medido cuánto aguanta el juego con más vecinos. A medianoche había un **tirón** que crecía mucho con la gente: medio segundo con 18 vecinos y casi 4 segundos con 70. Arreglado: ahora es una décima con 50. Se nota también algo menos de trabajo en cada fotograma.
+
 ### La secta: surge sola
 - **O8**: la secta ya **no nace en una fecha fija** ni renace a los 30 días. Nace solo si el pueblo **lo pasa mal** (pobreza, enfermedad, duelo, robos, muertes, escándalos) o hay **ricos aburridos**, y además hay alguien con **poder de convencimiento** y un motivo. Si no, no nace nunca. Hay dos clases: «los Hijos del Ocaso» (desesperados, de madrugada en el cementerio) y «el Círculo de la Luna Velada» (ricos, en casa del líder). Crece despacio, hasta unos 13, y se apaga poco a poco cuando la crisis pasa. El fundador destapado ya no convence a nadie. **Aldric ahora es Manipulador**: es el candidato natural a fundar una secta si el pueblo cae en crisis.
 
