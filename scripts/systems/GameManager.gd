@@ -232,7 +232,7 @@ func load_game(filepath: String = SAVE_FILE_PATH) -> bool:
 				npc.from_save_dict(saved_npcs[path_key])
 			else:
 				var n_str := str(npc.name)
-				if n_str.begins_with("NPC_Newcomer_") or n_str.begins_with("NPC_Hired_") or n_str.begins_with("NPC_Traveler_") or n_str.begins_with("NPC_Rehired_") or n_str.begins_with("NPC_Innkeeper_") or n_str.begins_with("NPC_Royal_Investigator_") or n_str.begins_with("NPC_Merchant_"):
+				if n_str.begins_with("NPC_Newcomer_") or n_str.begins_with("NPC_Hired_") or n_str.begins_with("NPC_Traveler_") or n_str.begins_with("NPC_Rehired_") or n_str.begins_with("NPC_Innkeeper_") or n_str.begins_with("NPC_Royal_Investigator_") or n_str.begins_with("NPC_Merchant_") or n_str.begins_with("NPC_Noble_") or n_str.begins_with("NPC_Child_"): # V6/V9: nobles y niños también se guardan
 					npc.remove_from_group("village_npcs")
 					npc.remove_from_group("npcs")
 					npc.remove_from_group("enemies")
@@ -246,7 +246,7 @@ func load_game(filepath: String = SAVE_FILE_PATH) -> bool:
 			var sk_str := str(s_key)
 			if not matched_npc_keys.has(sk_str) and typeof(saved_npcs[s_key]) == TYPE_DICTIONARY:
 				var n_name := sk_str.get_file()
-				if n_name.begins_with("NPC_Newcomer_") or n_name.begins_with("NPC_Hired_") or n_name.begins_with("NPC_Traveler_") or n_name.begins_with("NPC_Rehired_") or n_name.begins_with("NPC_Innkeeper_") or n_name.begins_with("NPC_Royal_Investigator_") or n_name.begins_with("NPC_Merchant_"):
+				if n_name.begins_with("NPC_Newcomer_") or n_name.begins_with("NPC_Hired_") or n_name.begins_with("NPC_Traveler_") or n_name.begins_with("NPC_Rehired_") or n_name.begins_with("NPC_Innkeeper_") or n_name.begins_with("NPC_Royal_Investigator_") or n_name.begins_with("NPC_Merchant_") or n_name.begins_with("NPC_Noble_") or n_name.begins_with("NPC_Child_"): # V6/V9: nobles y niños también se guardan
 					vm.call("spawn_dynamic_npc_from_save", n_name, saved_npcs[s_key])
 
 	var saved_pets: Dictionary = data.get("domestic_pets", {})

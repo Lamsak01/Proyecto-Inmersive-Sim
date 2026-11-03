@@ -2786,5 +2786,52 @@ func _initialize() -> void:
 	assert(not str(ui1_d["start"]["text"]).contains("Rasgos:"), "UI1: The header is short")
 	print("UI1 dialogue menu OK")
 
+	# 73. Bloque B: hijo mayor que ayuda en el negocio de casa; niño que llega con su familia; cartel de la escuela.
+	var b_m = vmi._spawn_one(vm, {"label": "Madre B", "gold": Vector2i(40, 40)}, 0)
+	var b_role: int = vt.role_of("tailor")
+	var b_old = vm.trade_npcs.get(b_role)
+	var b_kin_old = vm.family_npcs.get(b_role)
+	vm.family_npcs.erase(b_role)
+	var b_owner = v5b_people[1]
+	var b_owner_fam: String = b_owner.family_id
+	var b_owner_role: int = int(b_owner.trade_role)
+	b_owner.trade_role = b_role
+	b_owner.family_id = "family_test_b"
+	b_m.family_id = "family_test_b"
+	var b_kid = vfm.spawn_child(vm, b_m, b_owner, 9)
+	assert(int(b_kid.person_profile.age) == 9 and vfm.is_child(b_kid), "B2: A child can arrive already grown a bit")
+	vfm.grow_up(vm, b_kid)
+	assert(int(b_kid.trade_role) == int(load("res://scripts/enemies/VillageNPC.gd").TradeRole.FAMILY_MEMBER) and vm.family_npcs.get(b_role) == b_kid, "B3: A grown child helps in the family business")
+	var b_lbl = vm.get_meta("school_sign", null)
+	assert(b_lbl != null and is_instance_valid(b_lbl), "B1: The school has a sign to update")
+	b_owner.trade_role = b_owner_role
+	b_owner.family_id = b_owner_fam
+	vm.family_npcs.erase(b_role)
+	if b_kin_old != null:
+		vm.family_npcs[b_role] = b_kin_old
+	if b_old != null:
+		vm.trade_npcs[b_role] = b_old
+	for nb in [b_kid, b_m]:
+		vm.unemployed_npcs.erase(nb)
+		vm._free_transient_npc(nb)
+	print("Block B loose ends OK")
+
+	# 74. Guardar y cargar conserva a los nobles y a los niños (prefijos NPC_Noble_ y NPC_Child_).
+	var s_m = vmi._spawn_one(vm, {"label": "Madre S", "gold": Vector2i(40, 40)}, 0)
+	var s_kid = vfm.spawn_child(vm, s_m, null, 5)
+	var s_kid_name: String = s_kid.npc_name
+	var s_nobles: int = vno.nobles(vm).size()
+	var s_path: String = "user://test_v9_save.json"
+	assert(gm.save_game(s_path), "SAVE9: Save must succeed")
+	assert(gm.load_game(s_path), "SAVE9: Load must succeed")
+	await process_frame
+	var s_back = null
+	for nn in get_nodes_in_group("village_npcs"):
+		if is_instance_valid(nn) and not nn.is_dead and nn.npc_name == s_kid_name:
+			s_back = nn
+	assert(s_back != null and vfm.is_child(s_back) and int(s_back.person_profile.age) == 5 and s_back.scale.x < 0.9, "SAVE9: The child survives a save and load")
+	assert(vno.nobles(vm).size() == s_nobles, "SAVE9: The nobles survive a save and load (%d vs %d)" % [vno.nobles(vm).size(), s_nobles])
+	print("Save and load of nobles and children OK")
+
 	print("ALL RIMWORLD MEDICAL, FOOTPRINTS, 3-PHASE CORPSE REPORT, MULTI-CORPSE FIX, RPG INTERROGATION, PUBLIC TRIAL, DYNAMIC RELATIONSHIPS, MISSING FAMILY SEARCH, SOCIAL GLOSSARY & UNCONSCIOUS REACTION TESTS PASSED!")
 	quit(0)

@@ -28,3 +28,11 @@ Leyenda: ✅ probado y subido · 🟡 escrito, sin probar · 🔴 falló (ver no
 | B3 | Al hacerse mayor, si su madre o padre lleva un negocio sin ayudante, se queda de ayudante (`FAMILY_MEMBER`) y lo heredará | 🟡 | VillageFamily.grow_up | Si no, sigue como antes (sin oficio) |
 | B4 | Los nobles ya no aparecen como «llegó al valle» en los sucesos | 🟡 | VillageNobility.spawn_households | |
 | B5 | Los niños salen a jugar entre semana de 14 a 20 h (+0,15 de ganas) y se ve «🧒 Jugando en…» | 🟡 | VillagePlaces.is_leisure_hour(hour, n) | |
+
+## Bloque C — Guardado de lo nuevo y equilibrio del crecimiento
+
+| # | Paso | Estado | Archivos | Nota |
+|---|------|--------|----------|------|
+| C1 | **Fallo real**: al cargar partida, nobles (`NPC_Noble_`) y niños (`NPC_Child_`) se perdían porque GameManager solo recupera ciertos prefijos | 🟡 | GameManager.gd (dos listas de prefijos) | Test #74 guarda y carga con un niño y los nobles |
+| C2 | Test #73 de los cabos sueltos del bloque B | 🟡 | verify_all.gd | |
+| C3 | Sonda: 30 días era demasiado (≈4 min reales por día de juego); relanzada con 12 días | ⏳ | growth_probe.gd | Primeros datos (intento 1): de 18 a 28 vecinos en 3 días, casi todos por tiendas vacantes; escasez de comida desde el día 3 (atractivo −0,4) |
