@@ -31,6 +31,26 @@ func _initialize() -> void:
 			n.global_position = spots[i % spots.size()] + Vector2(float(i % 7) * 9.0, float(i % 5) * 9.0)
 			living += 1
 			i += 1
+		for cfg in [[false, Vector2(-700, 48)], [true, Vector2(-700, 48)], [false, Vector2(412, 54)], [true, Vector2(412, 54)], [false, Vector2(412, 54), "npcs_off"], [false, Vector2(-700, 48), "npcs_off"], [false, Vector2(412, 54)]]:
+			var lod: bool = cfg[0]
+			wc.current_hour = 14
+			wc.current_minute = 0
+			load("res://scripts/enemies/VillageNPC.gd").lod_enabled = lod
+			var pl = get_first_node_in_group("player")
+			if pl != null:
+				pl.global_position = cfg[1] # En la plaza (casi todo cerca) o en el borde oeste (casi todo lejos)
+			for nn in get_nodes_in_group("village_npcs"):
+				nn.process_mode = Node.PROCESS_MODE_DISABLED if (cfg.size() > 2 and cfg[2] == "npcs_off") else Node.PROCESS_MODE_INHERIT
+			for _w2 in range(240):
+				await process_frame
+			var tl: int = Time.get_ticks_usec()
+			for _f2 in range(300):
+				await process_frame
+			var far: int = 0
+			for nn in get_nodes_in_group("village_npcs"):
+				if not nn.is_dead and nn._lod_far():
+					far += 1
+			print("PERF_LOD npcs=%d lod=%s far=%d %s frame_wall=%.2fms" % [_living(), str(lod), far, str(cfg[2]) if cfg.size() > 2 else "", float(Time.get_ticks_usec() - tl) / 1000.0 / 300.0])
 		for _w in range(WARMUP):
 			await process_frame
 		var proc_tot: float = 0.0

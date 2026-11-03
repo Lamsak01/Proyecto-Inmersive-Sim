@@ -6,6 +6,8 @@ El detalle técnico está en `docs/HANDOFF.md` (sección 7) y el historial compl
 ## 2026-11-03
 
 ### Crecer el pueblo: rendimiento
+- **V2**: los vecinos que están **fuera de la pantalla** se mueven y piensan con menos frecuencia (lo social sigue igual). Con 50 vecinos ahorra un tercio cuando estás lejos. Queda pendiente un coste alto cuando estás en medio de la multitud de la plaza; se volverá a medir con el mapa ampliado.
+- **V8**: el **panel de misiones** (L) sale centrado. Si un negocio se queda sin dueño, un **vecino ambicioso** del pueblo puede quedárselo antes de que llegue un forastero. Descubrir una **infidelidad** puede, muy raramente, acabar en un plan de asesinato por celos, con señales antes.
 - **V1**: medido cuánto aguanta el juego con más vecinos. A medianoche había un **tirón** que crecía mucho con la gente: medio segundo con 18 vecinos y casi 4 segundos con 70. Arreglado: ahora es una décima con 50. Se nota también algo menos de trabajo en cada fotograma.
 
 ### La secta: surge sola

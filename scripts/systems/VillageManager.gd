@@ -8,6 +8,7 @@ const VillageSocialLife = preload("res://scripts/systems/VillageSocialLife.gd")
 const VillageChronicle = preload("res://scripts/systems/VillageChronicle.gd")
 const VillageSecrets = preload("res://scripts/systems/VillageSecrets.gd")
 const VillageDesires = preload("res://scripts/systems/VillageDesires.gd")
+const TraitCatalog = preload("res://scripts/data/TraitCatalog.gd")
 const VillageFaith = preload("res://scripts/systems/VillageFaith.gd")
 const VillageNeeds = preload("res://scripts/systems/VillageNeeds.gd")
 const VillageIllness = preload("res://scripts/systems/VillageIllness.gd")
@@ -3092,8 +3093,11 @@ func _on_day_passed(_new_day: int) -> void:
 			if sab_days > 0:
 				continue
 
-			# Sucesión Interna #2: Viajero sin oficio que ya se alojaba en la Posada (Empieza con `days_in_role = 0` -> 35% Novato)
-			var outsider: VillageNPC = _pop_living_unemployed()
+			# Sucesión Interna #2 (V8): el más ambicioso y capaz del pueblo (un sin oficio, o un familiar de otra casa que
+			# quiere prosperar) se queda el taller; si no hay nadie, el primer viajero sin oficio de la posada
+			var outsider: VillageNPC = _pick_ambitious_successor(role_key, str(cfg["title"]))
+			if outsider == null:
+				outsider = _pop_living_unemployed()
 			if outsider:
 				var inh_stock2: Dictionary = (biz.get("stock_override", cfg["stock"]) as Dictionary).duplicate()
 				outsider.promote_to_trade(role_key, str(cfg["title"]), cfg["work_pos"], inh_stock2, cfg["tex"], cfg["bed1_pos"], cfg["table_pos"], str(cfg["family_id"]), str(cfg["family_name"]))
@@ -3199,6 +3203,44 @@ func _process_daily_map_edge_arrivals() -> void:
 		unemployed_npcs.append(t_npc)
 		arrivals_today_count += 1
 		_hint_player("🎒🚶 Un nuevo viajero (%s) acaba de entrar al valle por el camino principal." % t_npc.npc_name)
+
+## V8: quién se queda un negocio sin dueño. Puntúa ambición, diligencia y ahorros; un familiar de otra casa solo deja
+## la suya si es ambicioso. Los otros ambiciosos que se quedan sin él le cogen algo de envidia.
+func _pick_ambitious_successor(role_key, title: String) -> VillageNPC:
+	var best: VillageNPC = null
+	var best_s: float = -INF
+	var rivals: Array = []
+	for n in get_tree().get_nodes_in_group("village_npcs"):
+		if not (n is VillageNPC) or n.is_dead or n.is_downed or VillageNeeds.is_outsider(n) or n.person_profile == null or int(n.person_profile.age) < 16:
+			continue
+		var amb: float = TraitCatalog.npc_tendency(n, "ambition")
+		if n.trade_role == VillageNPC.TradeRole.FAMILY_MEMBER:
+			if amb < 0.5:
+				continue
+		elif n.trade_role != VillageNPC.TradeRole.UNEMPLOYED:
+			continue
+		var sc: float = 1.2 * amb + 0.4 * TraitCatalog.npc_tendency(n, "diligence") + float(n.personal_gold) / 150.0
+		if amb >= 0.5:
+			rivals.append(n)
+		if sc > best_s:
+			best_s = sc
+			best = n
+	if best == null or (best.trade_role == VillageNPC.TradeRole.UNEMPLOYED and TraitCatalog.npc_tendency(best, "ambition") < 0.5):
+		return null # Sin nadie ambicioso: sigue la regla de siempre (el primero sin oficio)
+	unemployed_npcs.erase(best)
+	for fk in family_npcs.keys():
+		if family_npcs[fk] == best:
+			family_npcs.erase(fk)
+			break
+	for r in rivals:
+		if r != best:
+			r.modify_npc_relationship(best, -6, "Se quedó el taller que yo quería", true)
+	var d: Dictionary = VillageDesires.active_of(self, best.get_person_key())
+	if not d.is_empty() and str(d.get("type", "")) == "ambition":
+		VillageDesires.finish(self, d, "satisfied")
+	best.add_thought("¡Por fin un negocio propio! (+12)", 12.0)
+	VillageChronicle.add(self, "ambition_business", "%s, con ganas de prosperar, se quedó el puesto vacante de %s" % [best.npc_name, title], true)
+	return best
 
 func _pop_living_unemployed() -> VillageNPC:
 	for i in range(unemployed_npcs.size()):

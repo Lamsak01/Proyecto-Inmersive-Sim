@@ -432,6 +432,21 @@ Cada fase se dividirá en bloques pequeños cuando se llegue a ella (detalle en 
   clave antigua por nombre. Ahora el cambio de día cuesta 80 ms con 50 y 157 ms con 70; el primero tras una llegada masiva
   de gente, ~0,5 s (inicializa sus relaciones). Por fotograma: vecinos 0,9 ms (18), 2,6–3 ms (50), 6,3 ms (70); la hora,
   ~1 ms. Lo más caro del día con 50: bandos de Fe (26 ms), secta (21 ms) y misiones (16 ms).
+- [x] **V2** Simulación simplificada (`VillageNPC._lod_far`, `LOD_DIST` 360, `LOD_STEP` 4): el vecino a más de 360 px del
+  jugador (fuera de pantalla con margen) solo ejecuta `_physics_process` 1 de cada 4 fotogramas, con el tiempo acumulado
+  (contador propio `_lod_tick`, no el del motor, porque los tests llaman a `_physics_process` a mano). En ese paso
+  `_lod_k` multiplica la velocidad en `_finish_frame_movement` para recorrer la distancia de los 4 fotogramas; fuera de él
+  vale 1 (si no, quien llama con pasos largos a mano, como el testigo de un cadáver, se teletransporta). Nunca se
+  simplifica a hostiles, peleas, quien habla contigo ni autoridades/médico. Lo social va por horas y días, sin cambios.
+  Medido con 50: jugador en el borde, 11,3 → 7,9 ms por fotograma. **Sin resolver**: con el jugador en la plaza junto a
+  la multitud cuesta 16–19 ms con o sin LOD (no es el código del jugador; con los vecinos apagados baja a 1,4 ms). La
+  sonda los amontona en la plaza; se vuelve a medir tras ampliar el mapa (V4–V5).
+- [x] **V8** Pendientes cortos: panel de misiones (L) centrado (`QuestLogUI._fit_to_screen`, como la crónica). Negocio
+  vacante: `VillageManager._pick_ambitious_successor` elige entre parados y familiares con ambición ≥ 0,5 (puntúa
+  ambición, diligencia y oro) antes de traer a un forastero; los rivales le cogen algo de manía y sale en la crónica
+  (`ambition_business`). Celos: al descubrir una infidelidad, `VillageSecrets._maybe_passion_revenge` puede crear una
+  venganza «pasional» (15 % + Celoso, rencor y agresividad; máx. 60 %) contra el infiel o el amante; ese deseo puede
+  volverse plan de asesinato con umbral propio (relación ≤ −60, oscuridad 0,9, 5 días) y las señales y pistas de siempre.
 
 ### Interfaz
 - [x] **HUD1** Barras de estado (`scenes/ui_root.gd`, `_create_stats_box` / `_create_fallback_bar`): recuadro oscuro arriba a

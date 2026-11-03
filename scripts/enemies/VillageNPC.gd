@@ -361,7 +361,12 @@ func _set_sprite_pose(rot_deg: float, mod_col: Color = Color.WHITE) -> void:
 func _finish_frame_movement(delta: float, apply_yield: bool = false) -> void:
 	if apply_yield:
 		_apply_player_and_doorway_yield(delta)
+	var lod_k: float = _lod_k # V2: solo en los pasos simplificados de quien está lejos
+	if lod_k > 1.0:
+		velocity *= lod_k # V2: un paso de varios fotogramas recorre la distancia de todos ellos
 	move_and_slide()
+	if lod_k > 1.0:
+		velocity /= lod_k
 	if _cached_vm:
 		if not _footprint_check_done:
 			_footprint_check_done = true
@@ -1601,9 +1606,41 @@ func _process_unconscious_neighbor_reaction(delta: float) -> bool:
 		_clear_unconscious_reaction_state()
 	return true
 
+## V2: simulación simplificada lejos del jugador. Fuera de la vista, el vecino piensa y se mueve 1 de cada
+## LOD_STEP fotogramas con el tiempo acumulado (llega igual de lejos, solo que a saltos que nadie ve).
+const LOD_DIST: float = 360.0 # La cámara (zoom 3, 1280x720) ve unos 430x240; con margen
+const LOD_STEP: int = 4
+var _lod_acc: float = 0.0
+var _lod_phase: int = -1
+var _lod_tick: int = 0
+var _lod_k: float = 1.0
+static var lod_enabled: bool = true
+
+func _lod_far() -> bool:
+	if not lod_enabled or is_hostile or is_in_live_fight() or is_busy_with_player():
+		return false
+	if trade_role in [TradeRole.SHERIFF, TradeRole.GUARD, TradeRole.DOCTOR, TradeRole.ROYAL_INVESTIGATOR]:
+		return false # Patrullas, urgencias e investigaciones: siempre al detalle
+	var pl: Node2D = _get_player()
+	return pl != null and global_position.distance_squared_to(pl.global_position) > LOD_DIST * LOD_DIST
+
 func _physics_process(delta: float) -> void:
 	if Engine.is_editor_hint():
 		return
+	_lod_k = 1.0
+	if _lod_far():
+		if _lod_phase < 0:
+			_lod_phase = randi() % LOD_STEP
+		_lod_acc += delta
+		_lod_tick += 1
+		if (_lod_tick + _lod_phase) % LOD_STEP != 0:
+			return
+		_lod_k = _lod_acc / delta if delta > 0.0 else 1.0
+		delta = _lod_acc
+		_lod_acc = 0.0
+	elif _lod_acc > 0.0:
+		delta += _lod_acc # Vuelve al detalle: recupera el tiempo pendiente
+		_lod_acc = 0.0
 	if _process_inactive_states(delta):
 		return
 	_tick_frame_upkeep(delta)

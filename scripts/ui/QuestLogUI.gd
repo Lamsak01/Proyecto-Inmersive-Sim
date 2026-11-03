@@ -157,7 +157,14 @@ func _on_quest_changed(_qid: String) -> void:
 	if visible:
 		refresh_ui()
 
+## V8: ocupa la pantalla entera (el `ui_root` es más pequeño), para que el panel salga centrado, como la crónica.
+func _fit_to_screen() -> void:
+	top_level = true
+	global_position = Vector2.ZERO
+	size = get_viewport_rect().size
+
 func open_panel() -> void:
+	_fit_to_screen()
 	visible = true
 	Input.set_mouse_mode(Input.MOUSE_MODE_VISIBLE)
 	refresh_ui()

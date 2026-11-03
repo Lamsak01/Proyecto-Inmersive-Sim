@@ -248,6 +248,7 @@ static func partner_reaction(vm: VillageManager, s: Dictionary, partner: Village
 	if lover != null and lover != partner:
 		partner.modify_npc_relationship(lover, PARTNER_REL_LOVER, "Se veía a escondidas con %s" % cheater_name, true)
 	partner.add_thought("Me enteré de que %s me engaña (-20)" % cheater_name, -20.0)
+	_maybe_passion_revenge(vm, partner, cheater, lover)
 	var sd = vm.social_director
 	var pe: Dictionary = sd.get_pair_entry(partner.get_person_key(), cheater.get_person_key())
 	pe["tension"] = clampi(int(pe.get("tension", 0)) + PARTNER_TENSION, 0, 100)
@@ -257,6 +258,20 @@ static func partner_reaction(vm: VillageManager, s: Dictionary, partner: Village
 	else:
 		partner._spawn_floating_text("💔 «%s... ¿cómo has podido?»" % cheater.npc_name, Color(1.0, 0.45, 0.50), -46.0)
 		vm.record_social_event("affair_forgiven", partner, cheater, "%s descubrió que %s le engañaba (%s), pero siguen juntos" % [partner.npc_name, cheater.npc_name, how])
+
+## V8: el engañado puede jurar venganza «por celos»: contra el amante o, si es muy celoso, contra quien le engañó.
+## Es una venganza normal (D2) marcada `passion`, que puede acabar antes en un plan de asesinato (muy raro, con señales).
+static func _maybe_passion_revenge(vm: VillageManager, partner: VillageNPC, cheater: VillageNPC, lover: VillageNPC) -> void:
+	var desires = load("res://scripts/systems/VillageDesires.gd")
+	if not desires.active_of(vm, partner.get_person_key()).is_empty():
+		return
+	var jealous: bool = partner.person_profile != null and "Celoso" in partner.person_profile.personality
+	var ch: float = clampf(0.15 + (0.2 if jealous else 0.0) + 0.15 * TraitCatalog.npc_tendency(partner, "grudge") + 0.1 * TraitCatalog.npc_tendency(partner, "aggression"), 0.0, 0.6)
+	if vm.social_director.rng.randf() >= ch:
+		return
+	var target: VillageNPC = cheater if (jealous or lover == null or lover == partner) else lover
+	var d: Dictionary = desires.create(vm, "revenge", partner, target.get_person_key(), target.npc_name, "por celos: la infidelidad de %s" % cheater.npc_name, false)
+	d["passion"] = true
 
 static func breakup(vm: VillageManager, p: VillageNPC, c: VillageNPC, summary: String) -> void:
 	var sd = vm.social_director

@@ -2239,5 +2239,69 @@ func _initialize() -> void:
 	vm.needs_state = {}
 	print("O secret sect OK")
 
+	# Test #61 (V2): simulación simplificada lejos del jugador
+	var v2_pl = get_first_node_in_group("player")
+	var v2_n = null
+	for vn in get_nodes_in_group("village_npcs"):
+		if not vn.is_dead and not vn.is_hostile and not (int(vn.trade_role) in [int(it_roles.SHERIFF), int(it_roles.GUARD), int(it_roles.DOCTOR), int(it_roles.ROYAL_INVESTIGATOR)]):
+			v2_n = vn
+			break
+	if v2_pl != null and v2_n != null:
+		var v2_pos: Vector2 = v2_n.global_position
+		var v2_ppos: Vector2 = v2_pl.global_position
+		v2_pl.global_position = v2_n.global_position + Vector2(v2_n.LOD_DIST + 200.0, 0.0)
+		assert(v2_n._lod_far(), "V2: A villager off screen is simulated in less detail")
+		v2_pl.global_position = v2_n.global_position + Vector2(40.0, 0.0)
+		assert(not v2_n._lod_far(), "V2: A villager near you is simulated in full detail")
+		var v2_dt: float = v2_n.get_physics_process_delta_time()
+		v2_n.velocity = Vector2(30.0, 0.0)
+		var v2_p0: Vector2 = v2_n.global_position
+		v2_n._lod_k = 4.0
+		v2_n._finish_frame_movement(v2_dt * 4.0)
+		v2_n._lod_k = 1.0
+		assert(v2_n.global_position.distance_to(v2_p0) > 30.0 * v2_dt * 2.0 and v2_n.velocity.is_equal_approx(Vector2(30.0, 0.0)), "V2: A simplified step covers the distance of the frames it skipped")
+		v2_n.velocity = Vector2.ZERO
+		v2_n.global_position = v2_pos
+		v2_pl.global_position = v2_ppos
+	print("V2 far simulation OK")
+
+	# Test #62 (V8): un ambicioso se queda un negocio vacante; la venganza por celos llega antes a la idea de matar
+	var v8_c = null
+	for vn8 in vm.unemployed_npcs:
+		if is_instance_valid(vn8) and not vn8.is_dead:
+			v8_c = vn8
+			break
+	if v8_c != null:
+		var v8_pers: Array = v8_c.person_profile.personality.duplicate()
+		var v8_gold: int = v8_c.personal_gold
+		v8_c.person_profile.personality.assign(["Ambicioso", "Trabajador"])
+		v8_c.personal_gold = 900
+		assert(vm._pick_ambitious_successor(0, "Prueba") == v8_c and not (v8_c in vm.unemployed_npcs), "V8: The most ambitious villager takes over a vacant business")
+		vm.unemployed_npcs.append(v8_c)
+		v8_c.person_profile.personality.assign(v8_pers)
+		v8_c.personal_gold = v8_gold
+	var vde = load("res://scripts/systems/VillageDesires.gd")
+	var v8_h = os_r
+	var v8_t = os_t
+	var v8_hp: Array = v8_h.person_profile.personality.duplicate()
+	v8_h.person_profile.personality.assign(["Cruel", "Celoso"])
+	v8_h.npc_relationships[v8_t.get_person_key()] = -65
+	var v8_gap: int = vm.last_npc_murder_day
+	vm.last_npc_murder_day = -999
+	var v8_d: Dictionary = vde.create(vm, "revenge", v8_h, v8_t.get_person_key(), v8_t.npc_name, "prueba", false)
+	v8_d["day"] = int(wclock.current_day) - 6
+	assert(not vde._maybe_turn_murder(vm, v8_d, v8_h, v8_t, int(wclock.current_day)), "V8: An ordinary grudge of -65 is not enough to plan a murder")
+	v8_d["passion"] = true
+	var v8_turned: bool = false
+	for _i8 in range(400):
+		if vde._maybe_turn_murder(vm, v8_d, v8_h, v8_t, int(wclock.current_day)):
+			v8_turned = true
+			break
+	assert(v8_turned and str(v8_d["type"]) == "murder", "V8: Jealous revenge after an affair can turn into a (rare) murder plan sooner")
+	vde.finish(vm, v8_d, "foiled")
+	vm.last_npc_murder_day = v8_gap
+	v8_h.person_profile.personality.assign(v8_hp)
+	print("V8 ambition and jealousy OK")
+
 	print("ALL RIMWORLD MEDICAL, FOOTPRINTS, 3-PHASE CORPSE REPORT, MULTI-CORPSE FIX, RPG INTERROGATION, PUBLIC TRIAL, DYNAMIC RELATIONSHIPS, MISSING FAMILY SEARCH, SOCIAL GLOSSARY & UNCONSCIOUS REACTION TESTS PASSED!")
 	quit(0)

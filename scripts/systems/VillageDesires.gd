@@ -38,6 +38,10 @@ const MURDER_DARKNESS: float = 1.5 # malicia + agresividad − honestidad
 const MURDER_DAILY: float = 0.05
 const MURDER_GLOBAL_GAP: int = 30 # Como mucho un asesinato entre vecinos al mes
 const MURDER_SIGN_CHANCE: float = 0.35
+## V8: la venganza por celos (infidelidad) llega antes a la idea de matar, pero sigue siendo muy rara
+const PASSION_MURDER_REL: int = -60
+const PASSION_MURDER_DARKNESS: float = 0.9
+const PASSION_MURDER_MIN_DAYS: int = 5
 const MURDER_THREAT_FOIL: float = 0.5 # Si la amenaza llega a la víctima, se pone en guardia
 const WITNESS_RADIUS: float = 170.0
 const TELL_OPEN_AFF: int = 10
@@ -359,7 +363,8 @@ static func darkness(n: VillageNPC) -> float:
 static func _maybe_turn_murder(vm: VillageManager, d: Dictionary, h: VillageNPC, t: VillageNPC, today: int) -> bool:
 	if t.trade_role in [VillageNPC.TradeRole.SHERIFF, VillageNPC.TradeRole.ROYAL_INVESTIGATOR] or h.trade_role == VillageNPC.TradeRole.SHERIFF:
 		return false
-	if h.get_relationship_with_npc(t.get_person_key()) > MURDER_REL or today - int(d["day"]) < MURDER_MIN_DAYS or darkness(h) < MURDER_DARKNESS:
+	var passion: bool = bool(d.get("passion", false))
+	if h.get_relationship_with_npc(t.get_person_key()) > (PASSION_MURDER_REL if passion else MURDER_REL) or today - int(d["day"]) < (PASSION_MURDER_MIN_DAYS if passion else MURDER_MIN_DAYS) or darkness(h) < (PASSION_MURDER_DARKNESS if passion else MURDER_DARKNESS):
 		return false
 	if today - vm.last_npc_murder_day < MURDER_GLOBAL_GAP or vm.social_director.rng.randf() >= MURDER_DAILY:
 		return false
