@@ -3,6 +3,7 @@ class_name SocialGlossaryUI
 
 const VillageFaith = preload("res://scripts/systems/VillageFaith.gd")
 const VillageNeeds = preload("res://scripts/systems/VillageNeeds.gd")
+const VillageTown = preload("res://scripts/systems/VillageTown.gd")
 
 ## Panel de Glosario de Vecinos y Red Social Dinámica (Estilo RimWorld + Compendio Red Dead Redemption 2):
 ## Permite consultar la biografía, estado vital, rutina, familia cercana, mejores amigos, rivales principales
@@ -442,6 +443,8 @@ func refresh_ui(rebuild_lists: bool = true) -> void:
 		_highlights_label.text += "\n" + VillageFaith.glossary_line(vm_g, sel) # G5
 	if vm_g != null and "needs_state" in vm_g:
 		_highlights_label.text += "\n" + VillageNeeds.glossary_line(vm_g, sel) # E
+	if vm_g != null and "town_state" in vm_g:
+		_highlights_label.text += "\n" + VillageTown.glossary_line(vm_g, sel) # I
 
 	# 5. Tabla Social RimWorld — filas reutilizadas (pool): solo se actualizan textos/colores, sin crear ni destruir nodos
 	if not rebuild_lists:

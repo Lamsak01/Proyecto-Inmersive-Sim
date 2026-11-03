@@ -5,6 +5,9 @@ El detalle técnico está en `docs/HANDOFF.md` (sección 7) y el historial compl
 
 ## 2026-11-03
 
+### Instituciones y corrupción
+- **I1–I6**: el pueblo elige **alcalde** al empezar y cada 28 días (votan los vecinos según a quién aprecian y su bando; tú puedes pedirles el voto). Cada **sábado se cobran impuestos** y el alcalde reparte una ayuda a los pobres. Un alcalde **corrupto** se queda parte; si se destapa (porque lo sabe medio pueblo o porque lo denuncias al comisario) devuelve lo robado y hay elecciones anticipadas. Un **comisario corrupto** deja escapar a ladrones por dinero, y **tú puedes sobornarle** para que olvide tus cargos (si es honrado, la multa sube). Los nobles quedan para más adelante.
+
 ### Economía y necesidades
 - **E1–E7**: vecinos y tú tenéis **higiene** (nueva barra 🧼): se lavan en los pozos o en casa; si van sucios están de peor humor, caen peor y enferman más; si tú hueles mal, te lo notan. Hay **enfermedades que se contagian**: un resfriado y la fiebre gris, que obliga a guardar cama y, si nadie la trata, muy rara vez mata; el médico cura (a ti por 8 de oro). Cada vecino es **rico, acomodado, humilde, pobre o mendigo**; los mendigos piden limosna en la plaza. Hay **ladrones** de noche (a vecinos, a los puestos o a ti): si alguien los ve, el comisario les hace devolverlo; tú puedes denunciarlos o callar. Algunos se enganchan a la **bebida o al juego**, gastan su oro en la taberna y, borrachos, se les escapan secretos. Tú puedes dar limosna, regalar oro o invitar a una ronda para que te cuenten cosas.
 

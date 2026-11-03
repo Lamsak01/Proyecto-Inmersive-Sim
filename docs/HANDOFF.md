@@ -359,6 +359,23 @@ Cada fase se dividirá en bloques pequeños cuando se llegue a ella (detalle en 
   te cuenta novedades y un rasgo. Glosario (J): higiene, posición, vicios y enfermedad. Crónica: theft, theft_caught,
   illness, illness_death, player_alms. Test #58. La sonda imprime NEEDS. No hay adicción para el jugador.
 
+### Instituciones y corrupción (bloques I)
+- [x] **I1–I6** Hecho por mi cuenta (el usuario pidió terminar hasta el paso 7 sin él; decisiones mías en
+  `docs/PLAN_INSTITUCIONES.md`). `scripts/systems/VillageTown.gd`; estado en `VillageManager.town_state` (se guarda:
+  `mayor`, `mayor_name`, `next_election`, `treasury`, `pledges`, `banned`, `history`, contadores). I2 alcalde: elecciones
+  el primer día y cada 28; candidatos los 3 elegibles (no autoridades, sacerdote, forasteros ni acampados) con más
+  2×mando + ambición + oro/100; cada uno se vota a sí mismo; los demás votan por relación (+15 si es de su bando, +5×mando)
+  o por la promesa que les pediste. I1 impuestos cada sábado (`get_weekday() == 5`): 5 % del oro por encima de 20 (ricos
+  8 %) y 5 % de la caja de cada negocio; el alcalde cobra 5 y reparte 5 a cada pobre o mendigo mientras haya. Sueldos de
+  autoridades: siguen saliendo de la Corona. I3 `corruptibility` (Íntegro 0; Sobornable +0,3; honradez, ley, ambición,
+  generosidad); corrupto ≥ 0,5. Alcalde corrupto: se queda 30–60 % de cada cobro; 25 % de que alguien lo note (chisme
+  `embezzle`, el alcalde calla); con 5 que lo sepan o si lo denuncias al comisario (no corrupto), `expose`: devuelve lo del
+  mandato, todos −10 hacia él y elecciones anticipadas sin él (`banned`). Comisario corrupto: el ladrón denunciado le paga
+  hasta 15 y se libra (`police_bribe`, estado del robo `bribed`; el testigo −10 al comisario). I5: sobornar al comisario o
+  guardia (máx(20, 1,5 × multa); si no es corrupto, multa +10), pedir el voto (afinidad ≥ 30, o 10 de oro a un corrupto),
+  denunciar al alcalde. Fama `law` (denunciar +, sobornar −). I4 nobles aplazado al paso 9. Glosario (J): línea del pueblo.
+  Crónica: election, taxes, embezzle, embezzle_exposed, police_bribe, player_bribe. Test #59. La sonda imprime TOWN.
+
 ### Interfaz
 - [x] **HUD1** Barras de estado (`scenes/ui_root.gd`, `_create_stats_box` / `_create_fallback_bar`): recuadro oscuro arriba a
   la izquierda, barras finas con relleno de color y texto blanco (antes `modulate` teñía también el texto). Se ven

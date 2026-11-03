@@ -2013,6 +2013,13 @@ func _initialize() -> void:
 	assert(vcr.drive(vm, e_b) > 0.0 and vcr.drive(vm, e_a) == 0.0, "E4: Poor or kleptomaniac people may steal; honest people never")
 	e_c.personal_gold = 100
 	e_c.npc_relationships[e_b.get_person_key()] = 0
+	var e_hon_sheriff = null
+	var e_hon_pers: Array = []
+	for eh in get_nodes_in_group("village_npcs"):
+		if not eh.is_dead and int(eh.trade_role) == int(e_roles.SHERIFF):
+			e_hon_sheriff = eh
+			e_hon_pers = eh.person_profile.personality.duplicate()
+			eh.person_profile.personality.assign(["Íntegro"])
 	var e_b_gold: int = e_b.personal_gold
 	var e_t: Dictionary = vcr.commit(vm, e_b, e_c)
 	assert(not e_t.is_empty() and (str(e_t["status"]) == "caught" or (e_c.personal_gold == 100 - int(e_t["amount"]) and e_b.personal_gold == e_b_gold + int(e_t["amount"]))), "E4: A theft moves the gold (unless a witness reports it at once)")
@@ -2026,6 +2033,8 @@ func _initialize() -> void:
 			vcr.on_player_action(vm, e_sheriff, "crime_report:%d" % int(e_t["id"]))
 	assert(str(e_t["status"]) == "caught" and e_c.personal_gold >= 100 - 1, "E4: Reporting a thief makes them give it back")
 	assert(e_c.get_relationship_with_npc(e_b.get_person_key()) <= vcr.VICTIM_REL, "E4: The victim resents the thief")
+	if e_hon_sheriff != null:
+		e_hon_sheriff.person_profile.personality.assign(e_hon_pers)
 	# E5: bebida y juego
 	e_a.person_profile.personality.assign(["Bebedor"])
 	e_a.personal_gold = 50
@@ -2068,6 +2077,86 @@ func _initialize() -> void:
 	wclock.current_day = e_old_day
 	wclock.current_hour = e_old_hour
 	print("E economy and needs OK")
+
+	# Test #59 (I1-I5): alcalde y elecciones, impuestos, desfalco, policía corrupta y sobornos
+	var vto = load("res://scripts/systems/VillageTown.gd")
+	var vne2 = load("res://scripts/systems/VillageNeeds.gd")
+	var vcr2 = load("res://scripts/systems/VillageCrime.gd")
+	var it_roles = load("res://scripts/enemies/VillageNPC.gd").TradeRole
+	var it_old_day: int = int(wclock.current_day)
+	vm.town_state = {}
+	vm.needs_state = {}
+	var it_res: Dictionary = vto.hold_election(vm)
+	var it_mayor = vto.mayor_of(vm)
+	assert(not it_res.is_empty() and it_mayor != null and vto.eligible(it_mayor), "I2: An election picks a mayor among eligible villagers")
+	var it_cands: Array = vto.candidates(vm)
+	var it_voter = null
+	for iv in get_nodes_in_group("village_npcs"):
+		if not iv.is_dead and vto.eligible(iv) and not (iv in it_cands):
+			it_voter = iv
+			break
+	if it_voter != null and it_cands.size() >= 2:
+		it_voter.affinity = 50
+		vto.on_player_action(vm, it_voter, "town_pledge:%s" % it_cands[1].get_person_key(), null)
+		assert(vto.vote_of(vm, it_voter, it_cands) == it_cands[1], "I5: Someone who likes you votes for your candidate")
+	# I3: corrupción según los rasgos
+	var it_m_pers: Array = it_mayor.person_profile.personality.duplicate()
+	it_mayor.person_profile.personality.assign(["Íntegro"])
+	assert(not vto.is_corrupt(it_mayor), "I3: Upright people are never corrupt")
+	it_mayor.person_profile.personality.assign(["Sobornable", "Codicioso"])
+	assert(vto.is_corrupt(it_mayor), "I3: Bribable and greedy people are corrupt")
+	# I1: impuestos y desfalco
+	var it_payer = null
+	for ip in get_nodes_in_group("village_npcs"):
+		if not ip.is_dead and ip != it_mayor and not vne2.is_outsider(ip):
+			it_payer = ip
+			break
+	var it_payer_gold: int = it_payer.personal_gold
+	it_payer.personal_gold = 120
+	var it_mgold: int = it_mayor.personal_gold
+	var it_tax: Dictionary = vto.collect_taxes(vm)
+	assert(int(it_tax["taxed"]) > 0 and it_payer.personal_gold < 120, "I1: Villagers pay taxes on Saturdays")
+	assert(int(it_tax["embezzled"]) > 0 and it_mayor.personal_gold > it_mgold, "I3: A corrupt mayor keeps part of the taxes")
+	vm.town_state["embezzled_term"] = 30
+	it_mayor.personal_gold += 30
+	vto.expose(vm, "prueba")
+	assert(vto.mayor_of(vm) != it_mayor and int(vm.town_state.get("exposed", 0)) == 1, "I3: An exposed mayor loses the post in a snap election")
+	it_mayor.person_profile.personality.assign(it_m_pers)
+	it_payer.personal_gold = it_payer_gold
+	# I3: comisario corrupto y soborno del jugador
+	var it_sheriff = null
+	for isf in get_nodes_in_group("village_npcs"):
+		if not isf.is_dead and int(isf.trade_role) == int(it_roles.SHERIFF):
+			it_sheriff = isf
+	if it_sheriff != null:
+		var it_s_pers: Array = it_sheriff.person_profile.personality.duplicate()
+		it_sheriff.person_profile.personality.assign(["Sobornable", "Codicioso"])
+		var it_thief = it_payer
+		it_thief.personal_gold = 40
+		assert(vto.police_takes_bribe(vm, it_thief, null) and it_thief.personal_gold == 25, "I3: A corrupt sheriff lets a thief go for gold")
+		vm.bounty_gold = 10
+		vm.wanted_level = 1
+		var it_inv = load("res://scripts/systems/SimpleInventory.gd").new()
+		it_inv.gold = 100
+		vto.on_player_action(vm, it_sheriff, "town_bribe", it_inv)
+		assert(vm.bounty_gold == 0 and vm.wanted_level == 0 and int(it_inv.gold) == 100 - vto.BRIBE_MIN, "I5: You can bribe a corrupt sheriff to drop your charges")
+		it_sheriff.person_profile.personality.assign(["Íntegro"])
+		vm.bounty_gold = 10
+		vto.on_player_action(vm, it_sheriff, "town_bribe", it_inv)
+		assert(vm.bounty_gold == 10 + vto.BRIBE_FAIL_FINE, "I5: An upright sheriff raises your fine")
+		vm.bounty_gold = 0
+		vm.wanted_level = 0
+		it_inv.free()
+		it_sheriff.person_profile.personality.assign(it_s_pers)
+	var it_save: Dictionary = vm.get_economy_save_dict()
+	var it_mk: String = str(vm.town_state["mayor"])
+	vm.town_state = {}
+	vm.load_economy_save_dict(it_save)
+	assert(str(vm.town_state.get("mayor", "")) == it_mk and it_mk != "", "I: The mayor and the treasury survive save and load")
+	vm.town_state = {}
+	vm.needs_state = {}
+	wclock.current_day = it_old_day
+	print("I institutions and corruption OK")
 
 	print("ALL RIMWORLD MEDICAL, FOOTPRINTS, 3-PHASE CORPSE REPORT, MULTI-CORPSE FIX, RPG INTERROGATION, PUBLIC TRIAL, DYNAMIC RELATIONSHIPS, MISSING FAMILY SEARCH, SOCIAL GLOSSARY & UNCONSCIOUS REACTION TESTS PASSED!")
 	quit(0)

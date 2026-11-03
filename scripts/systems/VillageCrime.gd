@@ -11,6 +11,7 @@ const TraitCatalog = preload("res://scripts/data/TraitCatalog.gd")
 const VillageNeeds = preload("res://scripts/systems/VillageNeeds.gd")
 const VillageChronicle = preload("res://scripts/systems/VillageChronicle.gd")
 const VillageFaith = preload("res://scripts/systems/VillageFaith.gd")
+const VillageTown = preload("res://scripts/systems/VillageTown.gd")
 
 const DRIVE_POOR: float = 0.03
 const DRIVE_BEGGAR: float = 0.05
@@ -129,6 +130,9 @@ static func commit(vm, thief, force_target = null) -> Dictionary:
 	if w != null:
 		t["witness"] = w.get_person_key()
 		if TraitCatalog.npc_tendency(w, "honesty") >= 0.0 and TraitCatalog.npc_tendency(w, "law") >= 0.0 and not VillageFaith.same_band(vm, w, thief):
+			if VillageTown.police_takes_bribe(vm, thief, w): # I3: comisario corrupto
+				t["status"] = "bribed"
+				return t
 			catch(vm, t, "lo denunció %s" % w.npc_name)
 			return t
 		var ev: Dictionary = vm.record_social_event("theft", thief, victim, "%s le robó %d de oro a %s" % [thief.npc_name, amount, what])

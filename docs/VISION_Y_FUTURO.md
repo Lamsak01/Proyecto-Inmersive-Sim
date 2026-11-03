@@ -81,7 +81,8 @@ Estado: **Base** = ya existe algo en el juego sobre lo que construir. **Idea** =
 
 ### Sociedad, crimen y poder (P4, P6)
 - Secta secreta en el pueblo.
-- Alcalde que puede ser corrupto; policías corruptos. *(Base: policía, justicia, juicios.)*
+- Alcalde que puede ser corrupto; policías corruptos. *(Base: hecho en I: alcalde elegido, impuestos, desfalco, comisario sobornable.)*
+- Ideas tras E e I (2026-11-03): nobles y señor del valle (aplazado al paso 9), que el jugador pueda presentarse a alcalde, campañas y promesas electorales, obras públicas pagadas con las arcas, adicción del jugador, más enfermedades (epidemias, cuarentena), mercado negro de lo robado, una casa de baños.
 - Planes de asesinato entre vecinos. *(Base: hecho en D5, muy raros, con señales previas y pistas para el comisario.)*
 - Ideas tras D (2026-11-03): que el ambicioso se quede un negocio vacante (hoy la sucesión ya existe, sin ambición), venganzas heredadas por la familia, que el asesino intente culpar a otro, que el jugador pueda ser víctima de un plan.
 - Personas religiosas y no creyentes. *(Base: hecho en G, la Fe del Alba provisional, con sacerdote y Oficio los domingos.)*

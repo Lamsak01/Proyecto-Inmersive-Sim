@@ -12,6 +12,7 @@ const VillageFaith = preload("res://scripts/systems/VillageFaith.gd")
 const VillageNeeds = preload("res://scripts/systems/VillageNeeds.gd")
 const VillageIllness = preload("res://scripts/systems/VillageIllness.gd")
 const VillageCrime = preload("res://scripts/systems/VillageCrime.gd")
+const VillageTown = preload("res://scripts/systems/VillageTown.gd")
 const VillageQuests = preload("res://scripts/systems/VillageQuests.gd")
 
 const VillageWorldBuilder = preload("res://scripts/systems/VillageWorldBuilder.gd")
@@ -60,6 +61,8 @@ var faith_state: Dictionary = {}
 var faith_bands: Array = []
 ## Economía y necesidades (E): vicios, enfermedades, robos… ver `VillageNeeds.gd`. Se guarda.
 var needs_state: Dictionary = {}
+## Instituciones (I): alcalde, arcas, corrupción. Ver `VillageTown.gd`. Se guarda.
+var town_state: Dictionary = {}
 var _needs_tick_acc: float = 0.0
 var _social_event_uid: int = 0
 var trade_configs: Dictionary = {}
@@ -1006,7 +1009,7 @@ func record_social_event(type_str: String, actor: VillageNPC, target: VillageNPC
 
 ## B6.1: Eventos que merecen chisme. Son solo información: no mueven relaciones entre vecinos.
 const GOSSIP_EVENT_TYPES: Array[String] = ["fight", "breakup", "couple", "couple_reconciled", "feud", "reconciliation", "player_slander", "npc_slander", "rejection",
-	"date", "romance_flirt", "romance_dating", "jealousy", "arrival", "departure", "affair_forgiven", "theft", "theft_caught"] # R5: más cosas de las que hablar # Sin "widowed": revelaría muertes aún sin descubrir
+	"date", "romance_flirt", "romance_dating", "jealousy", "arrival", "departure", "affair_forgiven", "theft", "theft_caught", "embezzle", "police_bribe"] # R5: más cosas de las que hablar # Sin "widowed": revelaría muertes aún sin descubrir
 const GOSSIP_MAX_AGE_DAYS: int = 20 # R1: tope; antes lo decide la memoria de cada vecino (GossipMemory)
 const NEWS_MIN_KNOWERS: int = 3
 
@@ -2994,6 +2997,7 @@ func _on_day_passed(_new_day: int) -> void:
 		VillageNeeds.daily(self) # E1/E3/E5
 		VillageIllness.daily(self) # E2
 		VillageCrime.daily(self) # E4: como mucho un robo por noche
+		VillageTown.daily(self) # I: elecciones, impuestos del sábado, desfalcos
 		VillageQuests.on_day_passed(self)
 	chronicle_daily = false
 
@@ -4433,6 +4437,7 @@ func get_economy_save_dict() -> Dictionary:
 		"last_npc_murder_day": last_npc_murder_day,
 		"faith_state": faith_state.duplicate(true),
 		"needs_state": needs_state.duplicate(true),
+		"town_state": town_state.duplicate(true),
 		"social_event_uid": _social_event_uid,
 		"social_director": social_director.to_save_dict() if social_director != null else {}
 	}
@@ -4494,6 +4499,7 @@ func load_economy_save_dict(data: Dictionary) -> void:
 	faith_bands = []
 	needs_state = (data["needs_state"] as Dictionary).duplicate(true) if typeof(data.get("needs_state")) == TYPE_DICTIONARY else {}
 	VillageNeeds.drunk_now = (VillageNeeds.state(self)["drunk"] as Dictionary).duplicate()
+	town_state = (data["town_state"] as Dictionary).duplicate(true) if typeof(data.get("town_state")) == TYPE_DICTIONARY else {}
 	if data.has("chronicle") and typeof(data["chronicle"]) == TYPE_ARRAY:
 		chronicle.clear()
 		for ch_it in (data["chronicle"] as Array):
