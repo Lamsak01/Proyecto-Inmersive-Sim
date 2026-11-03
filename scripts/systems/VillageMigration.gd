@@ -171,7 +171,11 @@ static func attractiveness(vm) -> Dictionary:
 		if bool(e.get("known", false)) and today - int(e.get("day", 0)) <= SAFETY_DAYS:
 			safety -= float(SAFETY_WEIGHTS.get(str(e.get("type", "")), 0.0))
 	safety = maxf(-1.0, safety)
-	var food: float = -0.4 if int(vm.village_food_shortage_days) > 0 else 0.0
+	# `village_food_shortage_days` solo crece (cuenta comidas fallidas): miramos las del último día, según la población
+	var ms: Dictionary = state(vm)
+	var hungry: int = maxi(0, int(vm.village_food_shortage_days) - int(ms.get("food_seen", vm.village_food_shortage_days)))
+	ms["food_seen"] = int(vm.village_food_shortage_days)
+	var food: float = -0.4 * clampf(float(hungry) / maxf(1.0, float(pop) * 0.15), 0.0, 1.0)
 	var parts: Dictionary = {"jobs": jobs, "housing": housing, "poverty": poverty, "safety": safety, "food": food}
 	var score: float = 0.4 * jobs + 0.3 * housing + poverty + safety + food
 	return {"score": score, "parts": parts}
