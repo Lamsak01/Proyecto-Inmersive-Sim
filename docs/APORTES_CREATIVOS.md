@@ -111,7 +111,7 @@ europeo y americano), en `scripts/data/NPCNames.gd`. Hay un test que comprueba q
 escépticos) no depende del contenido de la fe. Una religión con otro día de culto exige cambiar
 `WorldClock.is_rite_day()`.
 
-## 5. La secta: los Hijos del Ocaso
+## 5. Las sectas: los Hijos del Ocaso y el Círculo de la Luna Velada
 
 **Qué hay:**
 - Lo contrario del Alba: creen que antes del Hacedor estaba **la Noche** y que volverá.
@@ -122,9 +122,13 @@ escépticos) no depende del contenido de la fe. Una religión con otro día de c
   «daga ceremonial».
 - Frases de invitación, de chantaje y de denuncia.
 
-**Dónde:** `scripts/systems/VillageSect.gd` (`SECT_NAME`, `SECT_SIGN`, `RANK_NAMES`, `LORE_TEXT` y frases del diálogo).
-**Depende:** nombre, símbolo, rangos y textos se cambian sin tocar nada más. El lugar y el día de la reunión están en
-`meeting_spot` y `MEETING_WEEKDAY`. La idea de que sea «lo contrario del Alba» solo está en los textos. VISION apunta la
+Hay una segunda clase de secta, para cuando nace entre ricos aburridos: **el Círculo de la Luna Velada**. Promete
+«saberes antiguos» y «placeres que el Libro prohíbe», solo admite gente de su posición y se reúne de noche en casa del
+líder.
+
+**Dónde:** `scripts/systems/VillageSect.gd` (`NAMES`, `NAMES_CAP`, `SECT_SIGN`, `RANK_NAMES`, `LORE` y frases del diálogo).
+**Depende:** nombre, símbolo, rangos y textos se cambian sin tocar nada más. El lugar y la hora de la reunión están en
+`meeting_base` y `meeting_hours`; el día lo elige el líder. La idea de que sea «lo contrario del Alba» solo está en los textos. VISION apunta la
 secta como posible gancho de la historia principal.
 
 ## 6. Instituciones

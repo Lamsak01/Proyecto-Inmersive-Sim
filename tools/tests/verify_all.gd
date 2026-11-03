@@ -2175,11 +2175,21 @@ func _initialize() -> void:
 	var os_saved: Dictionary = {}
 	for on in [os_f, os_t, os_r, os_v]:
 		os_saved[on] = on.person_profile.personality.duplicate()
+	var os_moods: Array = [os_f.mood, os_t.mood]
 	os_f.person_profile.personality.assign(["Místico", "Manipulador"])
 	os_t.person_profile.personality.assign(["Místico"])
+	os_t.mood = 20.0
 	os_r.person_profile.personality.assign(["Íntegro", "Devoto"])
-	assert(vsc.founder_score(os_f) >= vsc.FOUND_MIN_SCORE, "O1: A mystic manipulator has the profile to found the sect")
-	vsc.found(vm, os_f)
+	os_f.person_profile.personality.assign(["Místico", "Manipulador", "Líder"])
+	assert(vsc.persuasion(vm, os_f) >= vsc.PERSUADE_MIN, "O1: A mystic manipulator leader can convince others")
+	# O1: sin crisis ni aburrimiento no nace nada; con crisis, puede nacer
+	assert(float(vsc.found_chance(vm, os_f, 0.0, 0.0)["p"]) == 0.0, "O1: In calm times no sect is born")
+	os_f.mood = 20.0
+	assert(float(vsc.found_chance(vm, os_f, 0.5, 0.0)["p"]) > 0.0 and str(vsc.found_chance(vm, os_f, 0.5, 0.0)["kind"]) == "desperate", "O1: Hard times and a persuasive leader can start a sect of the desperate")
+	os_f.person_profile.personality.assign(["Trabajador"])
+	assert(float(vsc.found_chance(vm, os_f, 0.9, 0.0)["p"]) == 0.0, "O1: Without a persuasive leader no sect is born, even in a crisis")
+	os_f.person_profile.personality.assign(["Místico", "Manipulador", "Líder"])
+	vsc.found(vm, os_f, "desperate")
 	assert(vsc.active(vm) and vsc.is_member(vm, os_f), "O1: The founder starts the sect")
 	for k in vm.sect_state["members"].keys():
 		if k != os_f.get_person_key():
@@ -2223,6 +2233,8 @@ func _initialize() -> void:
 	assert(not vsc.active(vm) and not vsc.player_member(vm) and os_r.get_relationship_with_npc(os_f.get_person_key()) < os_rel, "O5: Once exposed the sect dissolves and its members are shunned")
 	for on in os_saved.keys():
 		on.person_profile.personality.assign(os_saved[on])
+	os_f.mood = os_moods[0]
+	os_t.mood = os_moods[1]
 	vm.sect_state = {}
 	vm.needs_state = {}
 	print("O secret sect OK")

@@ -77,3 +77,21 @@ historia principal, pero sin misiones por ahora.
 - Reunión: viernes 0–1 h llamada, 3 h fin, en `_cemetery_burial_pos`. Usa `join_rite(spot, "sect")` del vecino.
 - Encargos del jugador como miembro: **no** (evitamos misiones por ahora). Rangos solo por asistencia; desde
   «Hermano de la Sombra» la secta te paga algo de su caja.
+
+## Cambio pedido por el usuario (2026-11-03): que surja sola, sin fechas
+
+«No quiero sistemas rígidos de cosas que tienen que pasar porque sí». Ya no hay día de fundación ni renacer a los 30
+días. Ahora:
+- **Nace** solo si se juntan un pueblo que lo pasa mal (malestar medio + golpes recientes: muertes, robos, escándalos,
+  contagios) **o** ricos aburridos, y alguien con **poder de convencimiento** (mando, trato, Manipulador, Místico,
+  Fanático y lo que le aprecia el pueblo; mínimo 0,45) y un **motivo** (lo pasa mal, se aburre, ambiciona o está
+  resentido con el Alba). Puede no nacer nunca.
+- **Dos clases:** «los Hijos del Ocaso» (desesperados; de madrugada en el cementerio) y «el Círculo de la Luna Velada»
+  (ricos aburridos; de noche en casa del líder, solo gente de su posición, diezmo mayor, casi no profanan).
+- **Crece despacio:** como mucho un intento de captación al día (12 % + 1,5 % por miembro), y cuanto más grande, más
+  cuesta. Techo de 13.
+- **Se apaga despacio:** quien ya no lo pasa mal puede irse (0,8 % al día, menos cuanto más veterano); el líder solo
+  abandona si se queda solo y sin motivo. Si muere el líder, hereda el miembro con más labia; si no hay nadie capaz, se
+  deshace.
+- **Sin renacer automático:** el fundador destapado queda desprestigiado (−0,6 de labia) y nadie le vuelve a seguir.
+- El líder elige el día de reunión (nunca el domingo).

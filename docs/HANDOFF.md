@@ -405,7 +405,18 @@ Cada fase se dividirá en bloques pequeños cuando se llegue a ella (detalle en 
   sect_join, sect_meeting, sect_profane, sect_plan, sect_rite, sect_exposed, sect_player. Test #60. La sonda imprime SECT.
   Sonda (semilla 303, 25 días): con el umbral 0,8 no nacía (el máximo del reparto es 0,42); bajado a 0,3. Segunda
   sonda: fundó Aldric, 4 captados (lleno a 5), 3 rechazos, 3 reuniones, sin profanación ni rito, sin destapar; 18 vivos.
-  Salieron 12 errores al mirar adicciones (`int` sobre un diccionario), ya corregido; no he vuelto a pasar la sonda.
+  Salieron 12 errores al mirar adicciones (`int` sobre un diccionario), ya corregido.
+- [x] **O8** Rediseño pedido por el usuario: **nada programado por fecha** (ver `docs/PLAN_SECTA.md`, última sección).
+  Sin `found_day` ni renacer a los 30 días. Nace con `try_found` cada día: `FOUND_BASE` × crisis del pueblo
+  (`town_crisis`: media de `crisis_of` + `crisis_events`, que suben con muertes, robos, escándalos y contagios y se
+  olvidan un 6 % al día) o aburrimiento de los ricos (`town_boredom`, `boredom_of`) × labia del líder (`persuasion`
+  ≥ 0,45) × su `motive`. Dos clases (`kind`): desperate (cementerio, 0–3 h) y rich (casa del líder, 20–23 h, solo ricos y
+  acomodados). El líder elige `meet_day`. Captación: un intento al día como mucho (12 % + 1,5 % por miembro), más difícil
+  cuanto más grande; techo 13. Se van despacio los que ya no lo necesitan (`LEAVE_CHANCE` 0,8 %, menos si son veteranos).
+  Fundador destapado: `discredited` (−0,6 de labia). Test #60 ampliado (sin crisis o sin líder no nace).
+  Sonda (303, 25 días): la crisis subió de 0,02 a 0,27 (umbral 0,18) y el aburrimiento máximo fue 0,19, pero **no nació
+  ninguna secta**: con el reparto actual la labia máxima es 0,29 (Mila); nadie llega a 0,45. Nacería si llega un vecino
+  nuevo con Líder, Manipulador o Místico, o si alguien gana mucho aprecio del pueblo.
 
 ### Interfaz
 - [x] **HUD1** Barras de estado (`scenes/ui_root.gd`, `_create_stats_box` / `_create_fallback_bar`): recuadro oscuro arriba a

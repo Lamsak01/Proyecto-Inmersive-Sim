@@ -5,6 +5,9 @@ El detalle técnico está en `docs/HANDOFF.md` (sección 7) y el historial compl
 
 ## 2026-11-03
 
+### La secta: surge sola
+- **O8**: la secta ya **no nace en una fecha fija** ni renace a los 30 días. Nace solo si el pueblo **lo pasa mal** (pobreza, enfermedad, duelo, robos, muertes, escándalos) o hay **ricos aburridos**, y además hay alguien con **poder de convencimiento** y un motivo. Si no, no nace nunca. Hay dos clases: «los Hijos del Ocaso» (desesperados, de madrugada en el cementerio) y «el Círculo de la Luna Velada» (ricos, en casa del líder). Crece despacio, hasta unos 13, y se apaga poco a poco cuando la crisis pasa. El fundador destapado ya no convence a nadie.
+
 ### La secta secreta
 - **O1–O7**: en los primeros días, un vecino de perfil inquietante funda en secreto **«los Hijos del Ocaso»** (nombre provisional) y capta a gente vulnerable: pobres, adictos, solitarios, resentidos. Quien se niega puede ir contándolo. Se reúnen **los viernes de madrugada en el cementerio** (si alguien de su casa les oye salir, corre el rumor), pagan un diezmo, se encubren y se votan entre ellos, y a veces pintan un **sol negro** en la capilla. Muy raramente preparan un **rito de sangre**, con señales antes. Si la sospecha crece, el sacerdote los señala; tú puedes descubrirlos, chantajearlos, denunciarlos, avisar a la víctima o **unirte** (con rangos). Nuevo documento `docs/APORTES_CREATIVOS.md`: todo el lore, nombres y misiones provisionales del proyecto, por temas, para revisarlos.
 

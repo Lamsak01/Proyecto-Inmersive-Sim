@@ -1,12 +1,15 @@
 @tool
 extends RefCounted
 
-## La secta secreta (bloques O, `docs/PLAN_SECTA.md`). Nombre, lore y rangos son PROVISIONALES (ver docs/APORTES_CREATIVOS.md).
-## - O1: un vecino de perfil inquietante la funda en los primeros días; ser miembro es un secreto.
-## - O2: los miembros captan a gente vulnerable (pobres, adictos, solitarios, resentidos, Místicos). Tope de miembros.
-## - O3: reunión el viernes de madrugada en el cementerio. Salir de casa de noche deja pistas.
-## - O4: diezmo, votan juntos, se encubren (es un bando oculto), profanan la capilla y, muy raramente, un rito de sangre.
-## - O5: las pistas suben la sospecha; si llega al tope o la denuncias, se destapa y se disuelve. Puede renacer.
+## La secta secreta (bloques O, `docs/PLAN_SECTA.md`). Nombres, lore y rangos son PROVISIONALES (ver docs/APORTES_CREATIVOS.md).
+## Nada está programado por fecha: una secta nace solo si se juntan un pueblo que lo pasa mal (o ricos aburridos)
+## y alguien con poder de convencimiento y un motivo. Crece despacio, tiene un techo (~13) y se apaga poco a poco si
+## la crisis pasa. Puede no nacer nunca.
+## - O1: nacimiento (clima del pueblo × labia del líder × su motivo). Dos clases: «desesperados» y «ricos aburridos».
+## - O2: captación lenta según la labia de quien capta y el mal momento (o el aburrimiento) del otro.
+## - O3: reunión semanal que elige el líder (los desesperados, de madrugada en el cementerio; los ricos, en su casa).
+## - O4: diezmo, votan juntos, se encubren (bando oculto), profanan la capilla y, muy raramente, un rito de sangre.
+## - O5: las pistas suben la sospecha; si llega al tope o la denuncias, se destapa y se disuelve.
 ## - O6: el jugador puede descubrirla, chantajear, denunciar o unirse (rangos).
 ## Estado en `vm.sect_state` (se guarda).
 
@@ -15,33 +18,45 @@ const VillageChronicle = preload("res://scripts/systems/VillageChronicle.gd")
 const VillageFaith = preload("res://scripts/systems/VillageFaith.gd")
 const VillageNeeds = preload("res://scripts/systems/VillageNeeds.gd")
 
-const SECT_NAME: String = "los Hijos del Ocaso"
-const SECT_NAME_CAP: String = "Los Hijos del Ocaso"
+const KIND_DESPERATE: String = "desperate"
+const KIND_RICH: String = "rich"
+const NAMES: Dictionary = {"desperate": "los Hijos del Ocaso", "rich": "el Círculo de la Luna Velada"}
+const NAMES_CAP: Dictionary = {"desperate": "Los Hijos del Ocaso", "rich": "El Círculo de la Luna Velada"}
 const SECT_SIGN: String = "sol negro"
 const RANK_NAMES: Array[String] = ["Iniciado", "Hermano de la Sombra", "Mano del Ocaso"]
 const RANK_MEETINGS: Array[int] = [0, 3, 6]
-const LORE_TEXT: String = "«El Alba es una mentira para tenernos quietos. Antes del Hacedor estaba la Noche, y la Noche volverá. Los que la esperan con los ojos abiertos no tendrán que temerla.\n\nNos vemos los viernes, de madrugada, en el cementerio. Nadie debe saberlo. Nadie.»"
+const LORE: Dictionary = {
+	"desperate": "«El Alba es una mentira para tenernos quietos. Antes del Hacedor estaba la Noche, y la Noche volverá. Los que la esperan con los ojos abiertos no tendrán que temerla.\n\nNos vemos de madrugada, en el cementerio. Nadie debe saberlo. Nadie.»",
+	"rich": "«Los demás rezan al Alba porque no conocen nada mejor. Nosotros sí: hay saberes antiguos que no son para cualquiera, y placeres que el Libro prohíbe.\n\nNos reunimos de noche, en mi casa. Solo gente de nuestra posición. Discreción absoluta.»",
+}
+const WEEKDAY_NAMES: Array[String] = ["los lunes", "los martes", "los miércoles", "los jueves", "los viernes", "los sábados", "los domingos"]
 
-const FOUND_DAY_MIN: int = 3
-const FOUND_DAY_MAX: int = 6
-const FOUND_MIN_SCORE: float = 0.3 # Con el reparto actual el máximo ronda 0,42 (Garrick, Aldric)
-const REBIRTH_DAYS: int = 30
-const MAX_MEMBERS: int = 5
+## Nacimiento
+const PERSUADE_MIN: float = 0.45
+const FOUND_BASE: float = 0.03
+const CRISIS_MIN: float = 0.18
+const BOREDOM_MIN: float = 0.25
+const DISCREDIT: float = 0.6
 const MIN_AGE: int = 16
-const RECRUIT_DAILY: float = 1.0 / 7.0
+
+## Crecimiento y declive (lentos)
+const MAX_MEMBERS: int = 13
+const RECRUIT_TRY_BASE: float = 0.12
+const RECRUIT_TRY_PER_MEMBER: float = 0.015
 const RECRUIT_MIN_REL: int = 10
 const REFUSAL_REL: int = -5
+const LEAVE_NEED: float = 0.12
+const LEAVE_CHANCE: float = 0.008
+const LOYAL_DAYS: float = 60.0
+const GIVE_UP_CHANCE: float = 0.004
 
-## Reunión: viernes (día de la semana 4) a medianoche
-const MEETING_WEEKDAY: int = 4
-const MEETING_CALL_HOURS: Array[int] = [0, 1]
-const MEETING_END_HOUR: int = 3
+## Reunión
 const MEETING_RADIUS: float = 50.0
 const PLAYER_SPOT_RADIUS: float = 200.0
 const MEETING_BOND: int = 3
 const MEETING_PRIEST_REL: int = -2
 const NIGHT_WITNESS_CHANCE: float = 0.2
-const TITHE_MAX: int = 3
+const TITHE_MAX: Dictionary = {"desperate": 3, "rich": 10}
 const POOR_HELP: int = 5
 const PLAYER_RANK_PAY: int = 8
 
@@ -53,7 +68,7 @@ const SUSPICION_LEAK: int = 10
 const SUSPICION_RITE: int = 30
 const SUSPICION_DECAY: int = 2
 const SUSPICION_MAX: int = 100
-const PROFANE_CHANCE: float = 0.3
+const PROFANE_CHANCE: Dictionary = {"desperate": 0.3, "rich": 0.08}
 const PROFANE_MIN_MEMBERS: int = 3
 const PROFANE_SHOW_DAYS: int = 3
 
@@ -77,18 +92,27 @@ static func state(vm) -> Dictionary:
 	if not (vm.sect_state is Dictionary):
 		vm.sect_state = {}
 	var st: Dictionary = vm.sect_state
-	for k in ["members", "known", "player_attend"]:
+	for k in ["members", "known", "player_attend", "discredited", "seen"]:
 		if not st.has(k) or not (st[k] is Dictionary):
 			st[k] = {}
-	for k in ["gold", "suspicion", "meetings", "recruits", "refusals", "profanations", "rites", "exposed", "foundings", "player_meetings", "player_misses"]:
+	for k in ["gold", "suspicion", "meetings", "recruits", "refusals", "leavers", "profanations", "rites", "exposed", "foundings", "player_meetings", "player_misses", "crisis_events"]:
 		if not st.has(k):
 			st[k] = 0
 	for k in ["founder", "founder_name", "plan_victim", "plan_victim_name", "invite_by"]:
 		if not st.has(k):
 			st[k] = ""
-	if not st.has("found_day"):
-		st["found_day"] = randi_range(FOUND_DAY_MIN, FOUND_DAY_MAX)
+	if not st.has("kind"):
+		st["kind"] = KIND_DESPERATE
 	return st
+
+static func kind_of(vm) -> String:
+	return str(state(vm)["kind"])
+
+static func sect_name(vm) -> String:
+	return str(NAMES.get(kind_of(vm), NAMES[KIND_DESPERATE]))
+
+static func sect_name_cap(vm) -> String:
+	return str(NAMES_CAP.get(kind_of(vm), NAMES_CAP[KIND_DESPERATE]))
 
 static func active(vm) -> bool:
 	return str(state(vm)["founder"]) != ""
@@ -136,62 +160,20 @@ static func _has(npc, trait_name: String) -> bool:
 static func darkness(npc) -> float:
 	return TraitCatalog.npc_tendency(npc, "malice") + TraitCatalog.npc_tendency(npc, "aggression") - TraitCatalog.npc_tendency(npc, "honesty")
 
-# ---------------------------------------------------------------- O1 fundación
+# ---------------------------------------------------------------- O1 cómo nace
 
-static func founder_score(npc) -> float:
-	if not _can_be_member(npc):
-		return -INF
-	var s: float = 0.0
-	s += 1.5 if _has(npc, "Místico") else 0.0
-	s += 1.5 if _has(npc, "Fanático") else 0.0
-	s += 1.0 if _has(npc, "Manipulador") else 0.0
-	s += 0.8 if _has(npc, "Cruel") else 0.0
-	s += 0.6 * maxf(0.0, TraitCatalog.npc_tendency(npc, "ambition"))
-	s += 0.4 * maxf(0.0, TraitCatalog.npc_tendency(npc, "leadership"))
-	s += 0.3 * darkness(npc)
-	if _has(npc, "Íntegro") or _has(npc, "Devoto"):
-		s -= 1.5
-	return s
-
-static func found(vm, founder = null) -> bool:
-	var st: Dictionary = state(vm)
-	if founder == null:
-		var best_s: float = FOUND_MIN_SCORE
-		for n in VillageNeeds.living(vm):
-			if n.get_person_key() == str(st.get("last_founder", "")):
-				continue
-			var s: float = founder_score(n)
-			if s >= best_s:
-				best_s = s
-				founder = n
-	if founder == null:
-		return false
-	st["founder"] = founder.get_person_key()
-	st["founder_name"] = founder.npc_name
-	st["members"] = {founder.get_person_key(): VillageNeeds.today()}
-	st["founded_on"] = VillageNeeds.today()
-	st["foundings"] = int(st["foundings"]) + 1
-	st["suspicion"] = 0
-	st["gold"] = 0
-	st["plan_victim"] = ""
-	st["plan_tries"] = 0
-	founder.add_thought("He encontrado la verdad de la Noche (+6)", 6.0)
-	VillageChronicle.add(vm, "sect_found", "%s fundó en secreto %s" % [founder.npc_name, SECT_NAME], false)
-	# Los primeros fieles: dos intentos con el doble de facilidad
-	for _i in range(2):
-		try_recruit(vm, founder, null, 2.0)
-	_update_band(vm)
-	return true
-
-# ---------------------------------------------------------------- O2 captación
-
-static func vulnerability(vm, npc) -> float:
-	var v: float = 0.0
+## Lo mal que lo pasa un vecino ahora mismo (0..1): ánimo, pobreza, enfermedad, vicio, soledad, rencor, duelo, hambre.
+static func crisis_of(vm, npc) -> float:
+	var c: float = 0.0
+	c += clampf((55.0 - float(npc.mood)) / 55.0, 0.0, 1.0) * 0.35
 	match VillageNeeds.class_of(npc):
-		"pobre": v += 0.2
-		"mendigo": v += 0.3
-	if VillageNeeds.is_addicted(vm, npc.get_person_key(), "drink") or VillageNeeds.is_addicted(vm, npc.get_person_key(), "gamble"):
-		v += 0.2
+		"pobre": c += 0.15
+		"mendigo": c += 0.25
+	var key: String = npc.get_person_key()
+	if not (VillageNeeds.state(vm)["ill"].get(key, {}) as Dictionary).is_empty():
+		c += 0.12
+	if VillageNeeds.is_addicted(vm, key, "drink") or VillageNeeds.is_addicted(vm, key, "gamble"):
+		c += 0.12
 	var friends: int = 0
 	var worst: int = 100
 	for o in VillageNeeds.living(vm):
@@ -202,15 +184,159 @@ static func vulnerability(vm, npc) -> float:
 			friends += 1
 		worst = mini(worst, r)
 	if friends < 2:
-		v += 0.15
+		c += 0.1
 	if worst <= -50:
-		v += 0.15
-	var ill: Dictionary = VillageNeeds.state(vm)["ill"].get(npc.get_person_key(), {})
-	if not ill.is_empty() and not bool(ill.get("treated", false)):
-		v += 0.1
-	if _has(npc, "Místico") or _has(npc, "Supersticioso"):
-		v += 0.3
-	return v
+		c += 0.08
+	if npc.person_profile != null and str(npc.person_profile.get("deceased_partner_name")) not in ["", "<null>"]:
+		c += 0.12
+	if npc.need_hunger < 25.0:
+		c += 0.08
+	if _has(npc, "Melancólico"):
+		c += 0.05
+	return clampf(c, 0.0, 1.0)
+
+## El aburrimiento del rico satisfecho (0..1).
+static func boredom_of(npc) -> float:
+	if not (VillageNeeds.class_of(npc) in ["rico", "acomodado"]) or float(npc.mood) < 50.0:
+		return 0.0
+	var b: float = 0.2 if VillageNeeds.class_of(npc) == "rico" else 0.08
+	for t in ["Aventurero", "Tahúr", "Noctámbulo", "Místico", "Vanidoso", "Curioso"]:
+		if _has(npc, t):
+			b += 0.08
+	b += 0.1 * maxf(0.0, TraitCatalog.npc_tendency(npc, "ambition"))
+	b -= 0.1 * maxf(0.0, TraitCatalog.npc_tendency(npc, "diligence"))
+	return clampf(b, 0.0, 1.0)
+
+## El clima del pueblo: media de malestar más los golpes recientes (muertes, robos, escándalos, epidemias).
+static func town_crisis(vm) -> float:
+	var tot: float = 0.0
+	var n: int = 0
+	for v in VillageNeeds.living(vm):
+		if VillageNeeds.is_outsider(v):
+			continue
+		tot += crisis_of(vm, v)
+		n += 1
+	return clampf((tot / float(maxi(1, n))) + float(state(vm)["crisis_events"]), 0.0, 1.0)
+
+static func town_boredom(vm) -> float:
+	var tot: float = 0.0
+	var n: int = 0
+	for v in VillageNeeds.living(vm):
+		if VillageNeeds.class_of(v) in ["rico", "acomodado"] and not VillageNeeds.is_outsider(v):
+			tot += boredom_of(v)
+			n += 1
+	return tot / float(maxi(1, n)) if n >= 3 else 0.0
+
+## Los golpes recientes del pueblo suben el malestar general y se olvidan poco a poco.
+static func _track_crisis_events(vm) -> void:
+	var st: Dictionary = state(vm)
+	var seen: Dictionary = st["seen"]
+	var ns: Dictionary = VillageNeeds.state(vm)
+	var ts: Dictionary = vm.town_state if ("town_state" in vm and vm.town_state is Dictionary) else {}
+	var now: Dictionary = {
+		"deaths": int(ns.get("illness_deaths", 0)) + (vm.npc_murders as Dictionary).size(),
+		"thefts": (ns.get("thefts", []) as Array).size(),
+		"infections": int(ns.get("infections", 0)),
+		"scandals": int(ts.get("exposed", 0)),
+	}
+	var weight: Dictionary = {"deaths": 0.06, "thefts": 0.015, "infections": 0.008, "scandals": 0.04}
+	var ev: float = float(st["crisis_events"]) * 0.94
+	for k in now.keys():
+		var d: int = int(now[k]) - int(seen.get(k, now[k]))
+		if d > 0:
+			ev += float(d) * float(weight[k])
+		seen[k] = now[k]
+	st["crisis_events"] = minf(0.4, ev)
+
+## Poder de convencimiento: mando, trato, labia (Manipulador), misticismo, y lo que le aprecia el pueblo.
+static func persuasion(vm, npc) -> float:
+	var p: float = 0.5 * maxf(0.0, TraitCatalog.npc_tendency(npc, "leadership"))
+	p += 0.25 * TraitCatalog.npc_tendency(npc, "sociability")
+	p += 0.15 * maxf(0.0, TraitCatalog.npc_tendency(npc, "ambition"))
+	p += 0.5 if _has(npc, "Manipulador") else 0.0
+	p += 0.3 if _has(npc, "Místico") else 0.0
+	p += 0.3 if _has(npc, "Fanático") else 0.0
+	var tot: int = 0
+	var n: int = 0
+	for o in VillageNeeds.living(vm):
+		if o != npc and not VillageNeeds.is_outsider(o):
+			tot += o.get_relationship_with_npc(npc.get_person_key())
+			n += 1
+	p += float(tot) / float(maxi(1, n)) / 200.0
+	if (state(vm)["discredited"] as Dictionary).has(npc.get_person_key()):
+		p -= DISCREDIT
+	return p
+
+## Por qué querría alguien fundar una secta: lo pasa mal, se aburre, ambiciona o está resentido con el Alba.
+static func motive(vm, npc) -> float:
+	var m: float = maxf(crisis_of(vm, npc), boredom_of(npc))
+	if TraitCatalog.npc_tendency(npc, "ambition") >= 0.5:
+		m = maxf(m, 0.4)
+	var priest = VillageFaith.priest_of(vm)
+	if VillageFaith.grade_of(npc) == VillageFaith.GRADE_SKEPTIC or (priest != null and npc.get_person_key() != priest.get_person_key() and npc.get_relationship_with_npc(priest.get_person_key()) <= -30):
+		m = maxf(m, 0.3)
+	if _has(npc, "Íntegro") or VillageFaith.grade_of(npc) == VillageFaith.GRADE_FERVENT and not _has(npc, "Fanático"):
+		m *= 0.3
+	return m
+
+## Probabilidad de que `npc` funde hoy una secta, y de qué clase. {"p": float, "kind": String}
+static func found_chance(vm, npc, crisis: float, boredom: float) -> Dictionary:
+	if not _can_be_member(npc):
+		return {"p": 0.0, "kind": ""}
+	var pers: float = persuasion(vm, npc)
+	if pers < PERSUADE_MIN:
+		return {"p": 0.0, "kind": ""}
+	var skill: float = clampf(0.5 + (pers - PERSUADE_MIN), 0.5, 1.5)
+	var mot: float = motive(vm, npc)
+	var p_d: float = FOUND_BASE * clampf((crisis - CRISIS_MIN) / 0.2, 0.0, 1.5) * skill * mot
+	var p_r: float = 0.0
+	if VillageNeeds.class_of(npc) in ["rico", "acomodado"]:
+		p_r = FOUND_BASE * clampf((boredom - BOREDOM_MIN) / 0.2, 0.0, 1.5) * skill * maxf(boredom_of(npc), mot * 0.5)
+	return {"p": p_d, "kind": KIND_DESPERATE} if p_d >= p_r else {"p": p_r, "kind": KIND_RICH}
+
+static func try_found(vm) -> bool:
+	var crisis: float = town_crisis(vm)
+	var boredom: float = town_boredom(vm)
+	var best = null
+	var best_c: Dictionary = {"p": 0.0, "kind": ""}
+	for n in VillageNeeds.living(vm):
+		var c: Dictionary = found_chance(vm, n, crisis, boredom)
+		if float(c["p"]) > float(best_c["p"]):
+			best_c = c
+			best = n
+	if best == null or randf() >= float(best_c["p"]):
+		return false
+	return found(vm, best, str(best_c["kind"]))
+
+static func found(vm, founder, kind: String = KIND_DESPERATE) -> bool:
+	if founder == null:
+		return false
+	var st: Dictionary = state(vm)
+	st["kind"] = kind
+	st["founder"] = founder.get_person_key()
+	st["founder_name"] = founder.npc_name
+	st["members"] = {founder.get_person_key(): VillageNeeds.today()}
+	st["founded_on"] = VillageNeeds.today()
+	st["foundings"] = int(st["foundings"]) + 1
+	st["suspicion"] = 0
+	st["gold"] = 0
+	st["plan_victim"] = ""
+	st["plan_tries"] = 0
+	# El líder elige su día de reunión (nunca el domingo del Oficio)
+	st["meet_day"] = abs(founder.get_person_key().hash()) % 6
+	founder.add_thought("He encontrado la verdad que los demás no ven (+6)", 6.0)
+	VillageChronicle.add(vm, "sect_found", "%s fundó en secreto %s (%s)" % [founder.npc_name, sect_name(vm),
+		"en tiempos difíciles" if kind == KIND_DESPERATE else "entre la gente acomodada y aburrida"], false)
+	_update_band(vm)
+	return true
+
+# ---------------------------------------------------------------- O2 captación
+
+## Lo que empuja a alguien a escuchar al que capta: su mal momento (o su aburrimiento, en el círculo de ricos).
+static func need_of(vm, npc) -> float:
+	if kind_of(vm) == KIND_RICH:
+		return boredom_of(npc) + (0.15 if _has(npc, "Místico") else 0.0)
+	return crisis_of(vm, npc) + (0.2 if (_has(npc, "Místico") or _has(npc, "Supersticioso")) else 0.0)
 
 static func resistance(npc) -> float:
 	var r: float = 0.0
@@ -225,8 +351,12 @@ static func resistance(npc) -> float:
 static func recruit_chance(vm, recruiter, target) -> float:
 	if not _can_be_member(target) or is_member(vm, target):
 		return 0.0
-	var c: float = 0.05 + vulnerability(vm, target) - resistance(target) + float(target.get_relationship_with_npc(recruiter.get_person_key())) / 200.0
-	return clampf(c, 0.0, 0.8)
+	if kind_of(vm) == KIND_RICH and not (VillageNeeds.class_of(target) in ["rico", "acomodado"]):
+		return 0.0 # El círculo solo admite a gente de su posición
+	var size: int = (state(vm)["members"] as Dictionary).size()
+	var c: float = 0.02 + 0.45 * need_of(vm, target) + 0.3 * maxf(0.0, persuasion(vm, recruiter)) + float(target.get_relationship_with_npc(recruiter.get_person_key())) / 250.0
+	c -= resistance(target) + 0.25 * float(size) / float(MAX_MEMBERS) # Cuanto más grande, más cuesta guardar el secreto
+	return clampf(c, 0.0, 0.6)
 
 ## Un miembro intenta captar a alguien. Devuelve "joined", "refused" o "" si no había a quién.
 static func try_recruit(vm, recruiter, target = null, mult: float = 1.0) -> String:
@@ -262,17 +392,18 @@ static func join(vm, npc, recruiter = null) -> void:
 	var st: Dictionary = state(vm)
 	st["members"][npc.get_person_key()] = VillageNeeds.today()
 	st["recruits"] = int(st["recruits"]) + 1
-	npc.add_thought("Ahora soy de %s (+5)" % SECT_NAME, 5.0)
+	npc.add_thought("Ahora soy de %s (+5)" % sect_name(vm), 5.0)
 	if recruiter != null:
 		npc.modify_npc_relationship(recruiter, 10, "Me abrió los ojos")
 		recruiter.modify_npc_relationship(npc, 6, "Se ha unido a nosotros")
-	VillageChronicle.add(vm, "sect_join", "%s se unió en secreto a %s%s" % [npc.npc_name, SECT_NAME, (" (le convenció %s)" % recruiter.npc_name) if recruiter != null else ""], false)
+	VillageChronicle.add(vm, "sect_join", "%s se unió en secreto a %s%s" % [npc.npc_name, sect_name(vm), (" (le convenció %s)" % recruiter.npc_name) if recruiter != null else ""], false)
 	_update_band(vm)
 
 static func leave(vm, npc, why: String) -> void:
 	var st: Dictionary = state(vm)
 	(st["members"] as Dictionary).erase(npc.get_person_key())
-	VillageChronicle.add(vm, "sect_join", "%s dejó %s (%s)" % [npc.npc_name, SECT_NAME, why], false)
+	st["leavers"] = int(st["leavers"]) + 1
+	VillageChronicle.add(vm, "sect_join", "%s dejó %s (%s)" % [npc.npc_name, sect_name(vm), why], false)
 	_update_band(vm)
 
 ## La secta es un bando oculto: sus miembros se encubren y se defienden (G4) y se votan entre ellos (I2).
@@ -287,7 +418,7 @@ static func _update_band(vm) -> void:
 	for n in member_nodes(vm):
 		keys.append(n.get_person_key())
 	if keys.size() >= 2:
-		keep.append({"id": "sect", "kind": "sect", "name": SECT_NAME_CAP, "members": keys, "leader": str(state(vm)["founder"]), "hidden": true})
+		keep.append({"id": "sect", "kind": "sect", "name": sect_name_cap(vm), "members": keys, "leader": str(state(vm)["founder"]), "hidden": true})
 	vm.faith_bands = keep
 
 # ---------------------------------------------------------------- relojes
@@ -296,10 +427,14 @@ static func daily(vm) -> void:
 	var st: Dictionary = state(vm)
 	var t: int = VillageNeeds.today()
 	st["suspicion"] = maxi(0, int(st["suspicion"]) - SUSPICION_DECAY)
+	_track_crisis_events(vm)
+	var cr: float = town_crisis(vm)
+	var bo: float = town_boredom(vm)
+	st["crisis_now"] = snappedf(cr, 0.01)
+	st["max_crisis"] = maxf(float(st.get("max_crisis", 0.0)), snappedf(cr, 0.01))
+	st["max_boredom"] = maxf(float(st.get("max_boredom", 0.0)), snappedf(bo, 0.01))
 	if not active(vm):
-		if t >= int(st["found_day"]) and t >= int(st.get("rebirth_day", 0)):
-			if not found(vm):
-				st["found_day"] = t + 7 # Nadie con perfil: se vuelve a mirar dentro de una semana
+		try_found(vm)
 		return
 	# Muertos y fundador
 	for k in (st["members"] as Dictionary).keys():
@@ -308,22 +443,33 @@ static func daily(vm) -> void:
 			(st["members"] as Dictionary).erase(k)
 	if founder_of(vm) == null:
 		var heir = null
-		var best_s: float = -INF
+		var best_s: float = PERSUADE_MIN * 0.5
 		for m in member_nodes(vm):
-			var s: float = founder_score(m)
+			var s: float = persuasion(vm, m)
 			if s > best_s:
 				best_s = s
 				heir = m
 		if heir == null:
-			dissolve(vm, "murió su fundador")
+			dissolve(vm, "se quedaron sin nadie capaz de guiarlos")
 			return
 		st["founder"] = heir.get_person_key()
 		st["founder_name"] = heir.npc_name
-		VillageChronicle.add(vm, "sect_found", "%s toma el mando de %s" % [heir.npc_name, SECT_NAME], false)
-	# Captación
+		VillageChronicle.add(vm, "sect_found", "%s toma el mando de %s" % [heir.npc_name, sect_name(vm)], false)
+	# Declive lento: quien ya no lo pasa mal (o ya no se aburre) puede irse; los veteranos casi nunca
+	var f = founder_of(vm)
 	for m in member_nodes(vm):
-		if randf() < RECRUIT_DAILY:
-			try_recruit(vm, m)
+		if m == f or need_of(vm, m) >= LEAVE_NEED:
+			continue
+		var loyal: float = clampf(float(t - int(st["members"].get(m.get_person_key(), t))) / LOYAL_DAYS, 0.0, 0.9)
+		if randf() < LEAVE_CHANCE * (1.0 - loyal):
+			leave(vm, m, "las cosas le van mejor y ya no lo necesita")
+	if member_nodes(vm).size() <= 1 and need_of(vm, f) < LEAVE_NEED and randf() < GIVE_UP_CHANCE:
+		dissolve(vm, "%s se cansó de predicar sin que nadie le siguiera" % f.npc_name)
+		return
+	# Captación lenta: como mucho un intento al día, más probable cuantos más son
+	var mems: Array = member_nodes(vm)
+	if not mems.is_empty() and randf() < RECRUIT_TRY_BASE + RECRUIT_TRY_PER_MEMBER * float(mems.size()):
+		try_recruit(vm, mems[randi() % mems.size()])
 	# El sol negro se borra a los pocos días
 	if int(st.get("profane_day", -99)) + PROFANE_SHOW_DAYS <= t:
 		_set_sign_visible(vm, false)
@@ -337,16 +483,32 @@ static func daily(vm) -> void:
 		if priest != null and not is_member(vm, priest):
 			expose(vm, "el sacerdote %s los señaló delante de todo el pueblo" % priest.npc_name)
 
+## Horario de la reunión según la clase: los desesperados, de madrugada; los ricos, al caer la noche.
+static func meeting_hours(vm) -> Dictionary:
+	if kind_of(vm) == KIND_RICH:
+		return {"call": [20, 21], "end": 23}
+	return {"call": [0, 1], "end": 3}
+
+static func meeting_place_name(vm) -> String:
+	return ("en casa de %s" % state(vm)["founder_name"]) if kind_of(vm) == KIND_RICH else "en el cementerio"
+
 static func on_hour(vm, hour: int) -> void:
-	if not active(vm) or WorldClock == null or not WorldClock.has_method("get_weekday") or int(WorldClock.get_weekday()) != MEETING_WEEKDAY:
+	if not active(vm) or WorldClock == null or not WorldClock.has_method("get_weekday") or int(WorldClock.get_weekday()) != int(state(vm).get("meet_day", 4)):
 		return
-	if hour in MEETING_CALL_HOURS:
+	var h: Dictionary = meeting_hours(vm)
+	if hour in (h["call"] as Array):
 		call_meeting(vm)
-	elif hour == MEETING_END_HOUR:
+	elif hour == int(h["end"]):
 		finish_meeting(vm)
 
+static func meeting_base(vm) -> Vector2:
+	var f = founder_of(vm)
+	if kind_of(vm) == KIND_RICH and f != null and f.bed_position != Vector2.ZERO:
+		return f.bed_position
+	return vm._cemetery_burial_pos
+
 static func meeting_spot(vm, i: int) -> Vector2:
-	var base: Vector2 = vm._cemetery_burial_pos
+	var base: Vector2 = meeting_base(vm)
 	return base + Vector2(cos(float(i) * 1.3) * 22.0, sin(float(i) * 1.3) * 14.0)
 
 static func _can_attend(npc) -> bool:
@@ -370,7 +532,7 @@ static func call_meeting(vm) -> int:
 		m.join_rite(meeting_spot(vm, i), "sect")
 		i += 1
 		called += 1
-		if was_in_bed:
+		if was_in_bed or kind_of(vm) == KIND_RICH:
 			_night_witness(vm, m)
 	# La víctima elegida, engañada para acudir
 	var victim = vm._get_npcs_by_person_key().get(str(st["plan_victim"]), null)
@@ -378,22 +540,27 @@ static func call_meeting(vm) -> int:
 		victim.join_rite(meeting_spot(vm, 9), "sect_lure")
 	if player_member(vm) and called > 0:
 		var pl = VillageNeeds.player_of(vm)
-		if pl != null and pl.has_method("show_hint") and int(WorldClock.current_hour) == MEETING_CALL_HOURS[0]:
-			pl.show_hint("🌑 Esta noche se reúnen %s en el cementerio." % SECT_NAME)
+		if pl != null and pl.has_method("show_hint") and int(WorldClock.current_hour) == int(meeting_hours(vm)["call"][0]):
+			pl.show_hint("🌑 Esta noche se reúnen %s %s." % [sect_name(vm), meeting_place_name(vm)])
 	return called
 
-## Alguien de su casa le oye salir a medianoche.
+## Alguien de su casa le oye salir a medianoche (o, en el círculo de ricos, un vecino ve las visitas nocturnas).
 static func _night_witness(vm, m) -> void:
-	if randf() >= NIGHT_WITNESS_CHANCE:
+	var rich: bool = kind_of(vm) == KIND_RICH
+	if randf() >= NIGHT_WITNESS_CHANCE * (0.5 if rich else 1.0):
 		return
 	var w = null
 	for o in VillageNeeds.living(vm):
-		if o != m and not is_member(vm, o) and str(o.family_id) == str(m.family_id) and str(m.family_id) not in ["", "none"]:
+		if o == m or is_member(vm, o):
+			continue
+		if rich or (str(o.family_id) == str(m.family_id) and str(m.family_id) not in ["", "none"]):
 			w = o
 			break
 	if w == null:
 		return
-	var ev: Dictionary = vm.record_social_event("sect_night", m, null, "%s sale de casa a medianoche los viernes y no dice adónde va" % m.npc_name)
+	var day_txt: String = WEEKDAY_NAMES[int(state(vm).get("meet_day", 4)) % 7]
+	var summary: String = ("%s va de noche a casa de %s %s, con otra gente bien, y cierran las contraventanas" % [m.npc_name, state(vm)["founder_name"], day_txt]) if rich else ("%s sale de casa a medianoche %s y no dice adónde va" % [m.npc_name, day_txt])
+	var ev: Dictionary = vm.record_social_event("sect_night", m, null, summary)
 	ev["known_by"][w.get_person_key()] = true
 	ev["quiet"] = [m.get_person_key()]
 	_add_suspicion(vm, SUSPICION_NIGHT)
@@ -423,18 +590,18 @@ static func finish_meeting(vm) -> Dictionary:
 			att[j].modify_npc_relationship(att[i], MEETING_BOND, "Compartimos el secreto de la Noche")
 		if priest != null and not is_member(vm, priest):
 			att[i].modify_npc_relationship(priest, MEETING_PRIEST_REL, "Predica la mentira del Alba", true)
-		var tithe: int = mini(TITHE_MAX, int(att[i].personal_gold / 10))
+		var tithe: int = mini(int(TITHE_MAX.get(kind_of(vm), 3)), int(att[i].personal_gold / 10))
 		if tithe > 0:
 			att[i].personal_gold -= tithe
 			st["gold"] = int(st["gold"]) + tithe
 	for m in att:
-		if VillageNeeds.class_of(m) in ["pobre", "mendigo"] and int(st["gold"]) >= POOR_HELP:
+		if kind_of(vm) == KIND_DESPERATE and VillageNeeds.class_of(m) in ["pobre", "mendigo"] and int(st["gold"]) >= POOR_HELP:
 			st["gold"] = int(st["gold"]) - POOR_HELP
 			m.personal_gold += POOR_HELP
 			m.add_thought("La Noche cuida de los suyos (+4)", 4.0)
 	# El jugador
 	var pl = VillageNeeds.player_of(vm)
-	var here: bool = pl is Node2D and (pl as Node2D).global_position.distance_to(vm._cemetery_burial_pos) <= PLAYER_SPOT_RADIUS
+	var here: bool = pl is Node2D and (pl as Node2D).global_position.distance_to(meeting_base(vm)) <= PLAYER_SPOT_RADIUS
 	res["player"] = here
 	if here and not att.is_empty():
 		if player_member(vm):
@@ -454,7 +621,7 @@ static func finish_meeting(vm) -> Dictionary:
 				names.append(m.npc_name)
 				m.modify_affinity(-6)
 			if pl.has_method("show_hint"):
-				pl.show_hint("👀 Has visto una reunión secreta en el cementerio: %s." % ", ".join(names))
+				pl.show_hint("👀 Has visto una reunión secreta %s: %s." % [meeting_place_name(vm), ", ".join(names)])
 	elif player_member(vm) and not att.is_empty():
 		st["player_misses"] = int(st["player_misses"]) + 1
 		if int(st["player_misses"]) >= PLAYER_MISS_LIMIT:
@@ -462,7 +629,7 @@ static func finish_meeting(vm) -> Dictionary:
 			for m in member_nodes(vm):
 				m.modify_affinity(-5)
 			if pl != null and pl.has_method("show_hint"):
-				pl.show_hint("🌑 %s empiezan a desconfiar de ti: faltas a las reuniones." % SECT_NAME_CAP)
+				pl.show_hint("🌑 %s empiezan a desconfiar de ti: faltas a las reuniones." % sect_name_cap(vm))
 	# El rito de sangre, si estaba preparado y la víctima acudió
 	if lured != null and str(st["plan_victim"]) == lured.get_person_key() and att.size() >= 2:
 		res["rite"] = blood_rite(vm, lured, att)
@@ -473,10 +640,10 @@ static func finish_meeting(vm) -> Dictionary:
 	else:
 		_maybe_plan_rite(vm)
 	# Profanación de la capilla
-	if att.size() >= PROFANE_MIN_MEMBERS and randf() < PROFANE_CHANCE:
+	if att.size() >= PROFANE_MIN_MEMBERS and randf() < float(PROFANE_CHANCE.get(kind_of(vm), 0.3)):
 		profane(vm)
 		res["profaned"] = true
-	VillageChronicle.add(vm, "sect_meeting", "%s se reunieron de madrugada en el cementerio (%d)" % [SECT_NAME_CAP, att.size()], here)
+	VillageChronicle.add(vm, "sect_meeting", "%s se reunieron en secreto %s (%d)" % [sect_name_cap(vm), meeting_place_name(vm), att.size()], here)
 	return res
 
 # ---------------------------------------------------------------- O4 lo que hace
@@ -539,7 +706,7 @@ static func start_plan(vm, victim) -> void:
 	st["plan_victim_name"] = victim.npc_name
 	st["plan_tries"] = 0
 	st["plan_warned"] = false
-	VillageChronicle.add(vm, "sect_plan", "%s preparan un rito de sangre: la víctima será %s" % [SECT_NAME_CAP, victim.npc_name], player_member(vm))
+	VillageChronicle.add(vm, "sect_plan", "%s preparan un rito de sangre: la víctima será %s" % [sect_name_cap(vm), victim.npc_name], player_member(vm))
 	if player_member(vm):
 		st["player_knows_plan"] = true
 		var pl = VillageNeeds.player_of(vm)
@@ -567,7 +734,7 @@ static func _drop_plan(vm, why: String) -> void:
 	var st: Dictionary = state(vm)
 	if str(st["plan_victim"]) == "":
 		return
-	VillageChronicle.add(vm, "sect_plan", "%s renuncian al rito contra %s (%s)" % [SECT_NAME_CAP, st["plan_victim_name"], why], player_member(vm) or bool(st.get("player_knows_plan", false)))
+	VillageChronicle.add(vm, "sect_plan", "%s renuncian al rito contra %s (%s)" % [sect_name_cap(vm), st["plan_victim_name"], why], player_member(vm) or bool(st.get("player_knows_plan", false)))
 	st["plan_victim"] = ""
 	st["plan_victim_name"] = ""
 	st["plan_tries"] = 0
@@ -583,7 +750,7 @@ static func blood_rite(vm, victim, att: Array) -> String:
 	vm.last_npc_murder_day = VillageNeeds.today()
 	st["rites"] = int(st["rites"]) + 1
 	_drop_plan(vm, "consumado")
-	VillageChronicle.add(vm, "sect_rite", "%s sacrificaron a %s en el cementerio" % [SECT_NAME_CAP, vname], player_member(vm))
+	VillageChronicle.add(vm, "sect_rite", "%s sacrificaron a %s %s" % [sect_name_cap(vm), vname, meeting_place_name(vm)], player_member(vm))
 	_add_suspicion(vm, SUSPICION_RITE)
 	victim.last_hit_by_player = false
 	victim.last_hit_weapon_name = "Daga ceremonial (rito de sangre)"
@@ -608,7 +775,7 @@ static func expose(vm, how: String) -> void:
 		m.add_thought("Todo el pueblo sabe que era de la secta (-12)", -12.0)
 		for n in VillageNeeds.living(vm):
 			if n != m and not is_member(vm, n) and not VillageNeeds.is_outsider(n):
-				n.modify_npc_relationship(m, EXPOSE_REL, "Era de %s" % SECT_NAME, true)
+				n.modify_npc_relationship(m, EXPOSE_REL, "Era de %s" % sect_name(vm), true)
 	var f = founder_of(vm)
 	var to_town: int = int(st["gold"])
 	if f != null:
@@ -620,7 +787,8 @@ static func expose(vm, how: String) -> void:
 	if player_member(vm):
 		VillageFaith.add_rep(vm, "faith", -20)
 	st["exposed"] = int(st["exposed"]) + 1
-	VillageChronicle.add(vm, "sect_exposed", "Se destapó %s (%s): %s. El fundador, %s, pagó una multa y la secta se disolvió" % [SECT_NAME, how, ", ".join(names), st["founder_name"]], true)
+	st["discredited"][str(st["founder"])] = true # Nadie vuelve a creer al fundador destapado
+	VillageChronicle.add(vm, "sect_exposed", "Se destapó %s (%s): %s. El fundador, %s, pagó una multa y la secta se disolvió" % [sect_name(vm), how, ", ".join(names), st["founder_name"]], true)
 	dissolve(vm, "destapada")
 
 static func dissolve(vm, why: String) -> void:
@@ -629,8 +797,7 @@ static func dissolve(vm, why: String) -> void:
 		if n.rite_kind in ["sect", "sect_lure"]:
 			n.leave_rite()
 	if why != "destapada":
-		VillageChronicle.add(vm, "sect_exposed", "%s se deshicieron (%s)" % [SECT_NAME_CAP, why], false)
-	st["last_founder"] = str(st["founder"])
+		VillageChronicle.add(vm, "sect_exposed", "%s se deshicieron (%s)" % [sect_name_cap(vm), why], false)
 	st["founder"] = ""
 	st["founder_name"] = ""
 	st["members"] = {}
@@ -641,8 +808,6 @@ static func dissolve(vm, why: String) -> void:
 	st["plan_victim"] = ""
 	st["plan_victim_name"] = ""
 	st["player_knows_plan"] = false
-	st["rebirth_day"] = VillageNeeds.today() + REBIRTH_DAYS
-	st["found_day"] = int(st["rebirth_day"])
 	_set_sign_visible(vm, false)
 	_update_band(vm)
 
@@ -685,26 +850,26 @@ static func add_dialogue_choices(vm, npc, diag: Dictionary, ch_arr: Array) -> vo
 	var knowns: Array[String] = _known_names(vm)
 	# Denunciar ante el comisario o el sacerdote
 	if law and not is_member(vm, npc) and player_knows_sect(vm) and (knowns.size() >= 2 or known_member(vm, founder_of(vm))):
-		ch_arr.insert(0, {"label": "🌑 Denunciar a %s (%s)" % [SECT_NAME, ", ".join(knowns)], "next": "END", "action": "sect_report"})
+		ch_arr.insert(0, {"label": "🌑 Denunciar a %s (%s)" % [sect_name(vm), ", ".join(knowns)], "next": "END", "action": "sect_report"})
 	# Avisar a la víctima
 	if bool(st.get("player_knows_plan", false)) and str(st["plan_victim"]) == npc.get_person_key():
 		ch_arr.insert(0, {"label": "⚠️ Avisarle de que la secta va a por %s" % npc.npc_name, "next": "END", "action": "sect_warn"})
 	# Invitación a entrar
 	if not player_member(vm) and is_member(vm, npc):
 		if str(st["invite_by"]) == npc.get_person_key() or (known_member(vm, npc) and npc.affinity >= PLAYER_ASK_AFF):
-			diag["sect_invite"] = {"text": LORE_TEXT, "choices": [
-				{"label": "🌑 Unirte a %s" % SECT_NAME, "next": "END", "action": "sect_join"},
+			diag["sect_invite"] = {"text": str(LORE.get(kind_of(vm), LORE[KIND_DESPERATE])), "choices": [
+				{"label": "🌑 Unirte a %s" % sect_name(vm), "next": "END", "action": "sect_join"},
 				{"label": "🙅 Decir que no quieres saber nada", "next": "END", "action": "sect_refuse"}, back]}
-			var lbl: String = "🌑 «Quiero enseñarte algo... si sabes guardar un secreto»" if str(st["invite_by"]) == npc.get_person_key() else "🌑 Pedirle entrar en %s" % SECT_NAME
+			var lbl: String = "🌑 «Quiero enseñarte algo... si sabes guardar un secreto»" if str(st["invite_by"]) == npc.get_person_key() else "🌑 Pedirle entrar en %s" % sect_name(vm)
 			ch_arr.insert(maxi(0, ch_arr.size() - 1), {"label": lbl, "next": "sect_invite"})
 		elif known_member(vm, npc):
 			diag["sect_know"] = {"text": "«...¿Quién te ha contado eso? Baja la voz.»", "choices": [
 				{"label": "💰 Pedirle %d de oro por tu silencio" % BLACKMAIL_GOLD, "next": "END", "action": "sect_blackmail"},
 				{"label": "🗣️ Que te diga quién más está", "next": "END", "action": "sect_who"}, back]}
-			ch_arr.insert(maxi(0, ch_arr.size() - 1), {"label": "🤫 Decirle que sabes que es de %s" % SECT_NAME, "next": "sect_know"})
+			ch_arr.insert(maxi(0, ch_arr.size() - 1), {"label": "🤫 Decirle que sabes que es de %s" % sect_name(vm), "next": "sect_know"})
 	# Ya eres de la secta: hablar con los tuyos
 	if player_member(vm) and is_member(vm, npc):
-		var txt: String = "«Hermano. Eres %s. Nos vemos el viernes de madrugada en el cementerio.»" % RANK_NAMES[player_rank(vm)]
+		var txt: String = "«Hermano. Eres %s. Nos vemos %s %s.»" % [RANK_NAMES[player_rank(vm)], WEEKDAY_NAMES[int(st.get("meet_day", 4)) % 7], meeting_place_name(vm)]
 		if str(st["plan_victim"]) != "":
 			txt += "\n«La Noche pide sangre: %s.»" % st["plan_victim_name"]
 		diag["sect_talk"] = {"text": txt, "choices": [{"label": "🚪 Dejar la secta", "next": "END", "action": "sect_quit"}, back]}
@@ -734,8 +899,8 @@ static func on_player_action(vm, npc, action_id: String, inv) -> void:
 			st["invite_by"] = ""
 			st["player_meetings"] = 0
 			npc.modify_affinity(8)
-			npc._spawn_floating_text("🌑 «Bienvenido a la Noche. Viernes, de madrugada, en el cementerio.»", Color(0.75, 0.6, 1.0), -46.0)
-			VillageChronicle.add(vm, "sect_player", "Te uniste en secreto a %s" % SECT_NAME, true)
+			npc._spawn_floating_text("🌑 «Bienvenido. Nos vemos %s %s.»" % [WEEKDAY_NAMES[int(st.get("meet_day", 4)) % 7], meeting_place_name(vm)], Color(0.75, 0.6, 1.0), -46.0)
+			VillageChronicle.add(vm, "sect_player", "Te uniste en secreto a %s" % sect_name(vm), true)
 		"sect_refuse":
 			st["invite_by"] = ""
 			st["player_knows"] = true
@@ -748,7 +913,7 @@ static func on_player_action(vm, npc, action_id: String, inv) -> void:
 				m.modify_affinity(-20)
 				st["known"][m.get_person_key()] = true
 			npc._spawn_floating_text("😠 «Nadie deja la Noche así como así.»", Color.ORANGE_RED, -46.0)
-			VillageChronicle.add(vm, "sect_player", "Dejaste %s" % SECT_NAME, true)
+			VillageChronicle.add(vm, "sect_player", "Dejaste %s" % sect_name(vm), true)
 		"sect_blackmail":
 			if npc.personal_gold >= BLACKMAIL_GOLD and npc.affinity > -40:
 				npc.personal_gold -= BLACKMAIL_GOLD
@@ -772,7 +937,7 @@ static func on_player_action(vm, npc, action_id: String, inv) -> void:
 			else:
 				npc._spawn_floating_text("🤐 «No sé de qué hablas.»", Color(0.8, 0.8, 0.8), -46.0)
 	if pl != null and pl.has_method("show_hint") and action_id in ["sect_report", "sect_join"]:
-		pl.show_hint("🌑 %s" % ("Has denunciado a la secta." if action_id == "sect_report" else "Ahora eres de %s." % SECT_NAME))
+		pl.show_hint("🌑 %s" % ("Has denunciado a la secta." if action_id == "sect_report" else "Ahora eres de %s." % sect_name(vm)))
 
 ## Con el oro de la secta compran al comisario corrupto para que no investigue.
 static func _sheriff_bought(vm, sheriff) -> bool:
@@ -799,7 +964,7 @@ static func check_player_invite(vm) -> void:
 static func glossary_line(vm, npc) -> String:
 	if not active(vm) or not player_knows_sect(vm):
 		return ""
-	var txt: String = "[color=#b48cff][b]🌑 %s:[/b][/color] " % SECT_NAME_CAP
+	var txt: String = "[color=#b48cff][b]🌑 %s:[/b][/color] " % sect_name_cap(vm)
 	if known_member(vm, npc):
 		txt += "es miembro" + (" (fundador)" if npc.get_person_key() == str(state(vm)["founder"]) else "")
 	else:
