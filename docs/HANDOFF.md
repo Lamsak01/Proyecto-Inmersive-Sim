@@ -596,6 +596,15 @@ Cada fase se dividirá en bloques pequeños cuando se llegue a ella (detalle en 
   social) y Salir. La cabecera cambia la línea de estado larga por `_short_status` (actividad, humor y mostrador). «Manipular
   testigo» solo sale con un caso abierto (`_case_open`: investigación del comisario o del inquisidor, o el vecino va a
   denunciar un cuerpo); el aviso urgente «🚨 ¡Detener reporte!» sigue arriba. Nobles y niños ya no muestran «Dominio».
+- [ ] **Bloque B/C** (trabajo autónomo, detalle paso a paso en `docs/REGISTRO_TRABAJO.md`; escrito, pendiente de las
+  pruebas del bloque). Cartel de la escuela vivo (`vm` meta `school_sign`). Llegan **familias** con 1–2 hijos de 2–12
+  años (`VillageMigration` tipo «familia», casados con `VillageFamily.marry`; niños con `VillageFamily.spawn_child`).
+  Un hijo que cumple 16 en una casa con negocio sin ayudante pasa a `FAMILY_MEMBER` de ese oficio (lo heredará). Los
+  niños salen a jugar entre semana de 14 a 20 h (`VillagePlaces.is_leisure_hour(hour, n)`). Paga diaria de 6 de oro a
+  los niños (`give_allowances`). Historias propias para niños, nobles y maestro. **Fallos arreglados:** al cargar
+  partida se perdían nobles y niños (GameManager solo recuperaba ciertos prefijos de nombre: añadidos `NPC_Noble_` y
+  `NPC_Child_`; test #74); el atractivo de V3 tomaba el total de comidas fallidas (que nunca baja) como hambre actual
+  (ahora cuenta las del último día, `food_seen`).
 
 ### Interfaz
 - [x] **HUD1** Barras de estado (`scenes/ui_root.gd`, `_create_stats_box` / `_create_fallback_bar`): recuadro oscuro arriba a
