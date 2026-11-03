@@ -194,6 +194,8 @@ static func secret_of_event(vm: VillageManager, ev: Dictionary) -> Dictionary:
 
 ## Los amantes no van contando lo suyo.
 static func keeps_quiet(ev: Dictionary, teller_key: String) -> bool:
+	if teller_key in (ev.get("quiet", []) as Array): # D5: quien planea algo no lo va contando
+		return true
 	return str(ev.get("type", "")) == "affair" and (teller_key == str(ev.get("actor_id", "")) or teller_key == str(ev.get("target_id", "")))
 
 # ==============================================================================

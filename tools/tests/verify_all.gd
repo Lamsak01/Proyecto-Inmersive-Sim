@@ -1725,5 +1725,109 @@ func _initialize() -> void:
 		sn.personal_gold = s_keys[sn]["gold"]
 	print("S secrets OK")
 
+	# Test #56 (D1-D5): deseos propios — venganza, contra el jugador, ambición abierta y planes de asesinato
+	var vdes = load("res://scripts/systems/VillageDesires.gd")
+	var wclock = root.get_node("/root/WorldClock")
+	var d_today: int = int(wclock.current_day)
+	var d_bykey: Dictionary = vm._get_npcs_by_person_key()
+	var d_shop = null
+	for rk in vm.trade_npcs.keys():
+		var tn = vm.trade_npcs[rk]
+		if is_instance_valid(tn) and not tn.is_dead and vm.shop_businesses.has(int(rk)):
+			d_shop = tn
+			break
+	var d_live: Array = []
+	for dn in get_nodes_in_group("village_npcs"):
+		if not dn.is_dead and dn != d_shop and dn.person_profile != null:
+			d_live.append(dn)
+	var d_h = d_live[0]
+	var d_x = d_live[1]
+	var d_v = d_live[2]
+	var d_y = d_live[3]
+	var d_hk: String = d_h.get_person_key()
+	var d_saved_pers: Array = d_h.person_profile.personality.duplicate()
+	d_h.person_profile.personality.assign([])
+	d_h.affinity = 20
+	vm.desires.clear()
+	var d_tk: String = d_v.get_person_key()
+	d_h.npc_relationships[d_tk] = -70
+	var d_new: Dictionary = {}
+	for di in range(300):
+		vdes.daily(vm)
+		d_new = vdes.active_of(vm, d_hk)
+		if not d_new.is_empty():
+			break
+	assert(not d_new.is_empty() and str(d_new["type"]) == "revenge", "D2: Strong hatred can turn into a revenge plan")
+	vm.desires.clear()
+	var d_rev: Dictionary = vdes.create(vm, "revenge", d_h, d_tk, d_v.npc_name, "prueba", false)
+	assert(not vdes.would_tell(d_h, d_rev), "D1: A secret desire is not told to someone they barely like")
+	d_h.affinity = 60
+	assert(vdes.would_tell(d_h, d_rev), "D1: With enough affinity they tell you")
+	vdes.on_player_action(vm, d_h, "desire_ask")
+	assert(bool(d_rev["player_knows"]), "D1: Asking reveals it")
+	d_rev["next_day"] = 0
+	vdes._advance(vm, d_rev, d_bykey, d_today)
+	assert(str(vm.social_event_log.back()["type"]) == "npc_slander" and str(vm.social_event_log.back()["actor_id"]) == d_hk, "D2: The first step is badmouthing")
+	d_h.npc_relationships[d_tk] = 0
+	vdes._advance(vm, d_rev, d_bykey, d_today)
+	assert(not bool(d_rev["active"]) and str(d_rev["outcome"]) == "reconciled", "D2: Revenge ends if the hatred fades")
+	if d_shop != null:
+		assert(vdes._sabotage(vm, d_h, d_shop) and int(vm.shop_businesses[int(d_shop.trade_role)]["sabotaged_days"]) > 0, "D2: Revenge can sabotage a business")
+		vm.shop_businesses[int(d_shop.trade_role)]["sabotaged_days"] = 0
+	var d_amb: Dictionary = vdes.create(vm, "ambition", d_x, d_tk, d_v.npc_name, "quiere prosperar", true)
+	d_x.affinity = 15
+	assert(vdes.would_tell(d_x, d_amb), "D3: Open desires are told easily")
+	vdes.daily(vm)
+	var d_amb_ev: Dictionary = vdes._rumor_event(vm, d_amb)
+	assert(not d_amb_ev.is_empty() and gmem.knows(d_amb_ev, d_x.get_person_key()), "D3: Open desires become gossip told by the holder")
+	vdes.finish(vm, d_amb, "satisfied")
+	# D4: contra el jugador
+	vm.desires.clear()
+	var d_ap: Dictionary = vdes.create(vm, "against_player", d_y, "player", "el forastero", "odio", false)
+	d_ap["step"] = 2
+	vdes._player_step(vm, d_ap, d_y)
+	var d_diag: Dictionary = {"start": {"text": "Hola", "choices": [{"label": "Comprar pan", "action": "buy:bread:2"}, {"label": "Salir", "next": "END"}]}}
+	vdes.filter_dialogue(vm, d_y, d_diag)
+	assert((d_diag["start"]["choices"] as Array).size() == 1, "D4: Someone who hates you refuses to sell")
+	var d_bounty: int = vm.bounty_gold
+	var d_crimes: Array = vm.crime_history.duplicate()
+	vm.crime_history.clear()
+	vm.crime_history.append("prueba")
+	vdes.report_player(vm, d_y)
+	assert(vm.bounty_gold == d_bounty + vdes.REPORT_BOUNTY_TRUE, "D4: They report your real crimes")
+	vm.bounty_gold = d_bounty
+	vm.crime_history.clear()
+	vm.crime_history.append_array(d_crimes)
+	vdes._player_rumor(vm, d_y, "player_badmouth", "prueba de mala fama")
+	var d_bm: Dictionary = vm.social_event_log.back()
+	for gev in vm.social_event_log:
+		if gev != d_bm and gev.has("known_by"):
+			(gev["known_by"] as Dictionary)[d_x.get_person_key()] = true
+	var d_aff0: int = d_x.affinity
+	assert(vm.spread_gossip(d_y, d_x) == d_bm and d_x.affinity == d_aff0 + vdes.PLAYER_BADMOUTH_AFF, "D4: Their badmouthing lowers others' opinion of you")
+	vdes.finish(vm, d_ap, "satisfied")
+	# D5: plan de asesinato (señales, aviso y crimen)
+	var d_m2: Dictionary = vdes.create(vm, "murder", d_x, d_y.get_person_key(), d_y.npc_name, "", false)
+	vdes.learn(vm, d_m2, d_h)
+	var d_thr: Dictionary = vdes._rumor_event(vm, d_m2)
+	assert(str(d_thr.get("type", "")) == "murder_threat" and vsec.keeps_quiet(d_thr, d_x.get_person_key()), "D5: Threats can be overheard; the plotter keeps quiet")
+	d_m2["player_knows"] = true
+	vdes.on_player_action(vm, d_y, "desire_warn:%d" % int(d_m2["id"]))
+	assert(str(d_m2["outcome"]) == "foiled", "D5: Warning the victim stops the plan")
+	var d_mur: Dictionary = vdes.create(vm, "murder", d_h, d_tk, d_v.npc_name, "", false)
+	d_v.global_position = Vector2(-9000, -9000)
+	assert(vdes.try_commit_murder(vm, d_mur, d_h, d_v) and d_v.is_dead and vdes.killer_of(vm, d_v.npc_name) == d_h.npc_name, "D5: The plan can end in murder")
+	var d_case: Dictionary = load("res://scripts/systems/VillageJustice.gd")._build_investigation_case_dict(vm, d_v, d_v.global_position, "Puñalada", "", 5, false)
+	assert(int(d_case["suspects"][d_h.npc_name]["score"]) >= 40, "D5: The investigation points at the real killer")
+	var d_save: Dictionary = vm.get_economy_save_dict()
+	var d_n: int = vm.desires.size()
+	vm.desires.clear()
+	vm.npc_murders.clear()
+	vm.load_economy_save_dict(d_save)
+	assert(vm.desires.size() == d_n and vdes.killer_of(vm, d_v.npc_name) == d_h.npc_name, "D: Desires and murders survive save and load")
+	d_h.person_profile.personality.assign(d_saved_pers)
+	vm.desires.clear()
+	print("D desires OK")
+
 	print("ALL RIMWORLD MEDICAL, FOOTPRINTS, 3-PHASE CORPSE REPORT, MULTI-CORPSE FIX, RPG INTERROGATION, PUBLIC TRIAL, DYNAMIC RELATIONSHIPS, MISSING FAMILY SEARCH, SOCIAL GLOSSARY & UNCONSCIOUS REACTION TESTS PASSED!")
 	quit(0)

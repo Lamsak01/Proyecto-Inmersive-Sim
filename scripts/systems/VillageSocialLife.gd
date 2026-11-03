@@ -9,6 +9,7 @@ const TraitCatalog = preload("res://scripts/data/TraitCatalog.gd")
 const VillageChronicle = preload("res://scripts/systems/VillageChronicle.gd")
 const GossipMemory = preload("res://scripts/systems/GossipMemory.gd")
 const VillageSecrets = preload("res://scripts/systems/VillageSecrets.gd")
+const VillageDesires = preload("res://scripts/systems/VillageDesires.gd")
 const TraitDiscoveryRef = preload("res://scripts/systems/TraitDiscovery.gd")
 const NPC_SLANDER_PER_MALICE: float = 0.075 # T5: a la mitad tras pasar a 6 rasgos (Rencoroso solo: 7,5 %)
 const NPC_SLANDER_MAX_CHANCE: float = 0.25
@@ -353,6 +354,7 @@ static func spread_gossip(vm: VillageManager, teller: VillageNPC, listener: Vill
 				_on_slander_reached_target(vm, ev, teller, listener)
 			GossipMemory.on_told(vm, ev, teller, listener) # R2: puede llegar deformado
 			VillageSecrets.on_heard(vm, ev, teller, listener) # S3: quien lo oye piensa peor del que cree culpable
+			VillageDesires.on_heard(vm, ev, teller, listener) # D: rumores de deseos y contra el jugador
 			VillageChronicle.on_gossip(vm, ev, teller, listener)
 			return ev
 	return {}

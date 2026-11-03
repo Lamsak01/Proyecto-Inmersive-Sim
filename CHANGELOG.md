@@ -3,6 +3,11 @@
 Cambios del juego, del más nuevo al más antiguo. Añade una entrada al cerrar cada bloque, en lenguaje sencillo.
 El detalle técnico está en `docs/HANDOFF.md` (sección 7) y el historial completo en `git log`. Lo anterior a B0.1 está en `AUDIT_LOG.md` y `SESSION_CONTEXT_LOG.md`.
 
+## 2026-11-03
+
+### Deseos propios
+- **D1–D6**: algunos vecinos quieren algo y dan pasos para lograrlo. **Venganza** contra quien odian (hablar mal, contar sus secretos, estropearle el negocio, buscar pelea). **Ambición** (ahorrar, envidiar y perjudicar al que más tiene). **Contra ti**, si te odian: van diciendo que no eres de fiar, no te venden, te denuncian o cuentan tus chantajes. Y, muy raramente, **planes de asesinato**: hay señales unos días antes; si te enteras puedes avisar a la víctima o al comisario, y si ocurre, el comisario tendrá pistas del asesino. Los deseos se descubren preguntando «¿qué te ronda la cabeza?» (si te aprecian), por chismes, o porque algunos lo dicen abiertamente.
+
 ## 2026-11-02
 
 ### Chismes

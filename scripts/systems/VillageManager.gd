@@ -7,6 +7,7 @@ const VillageJustice = preload("res://scripts/systems/VillageJustice.gd")
 const VillageSocialLife = preload("res://scripts/systems/VillageSocialLife.gd")
 const VillageChronicle = preload("res://scripts/systems/VillageChronicle.gd")
 const VillageSecrets = preload("res://scripts/systems/VillageSecrets.gd")
+const VillageDesires = preload("res://scripts/systems/VillageDesires.gd")
 const VillageQuests = preload("res://scripts/systems/VillageQuests.gd")
 
 const VillageWorldBuilder = preload("res://scripts/systems/VillageWorldBuilder.gd")
@@ -44,6 +45,12 @@ var chronicle_daily: bool = false
 ## Secretos (S): aventuras y chantajes, ver `VillageSecrets.gd`.
 var secrets: Array[Dictionary] = []
 var secret_uid: int = 0
+## Deseos propios (D): ver `VillageDesires.gd`.
+var desires: Array[Dictionary] = []
+var desire_uid: int = 0
+var desire_hate_since: Dictionary = {} # clave del vecino -> día desde el que odia al jugador
+var npc_murders: Dictionary = {} # nombre de la víctima -> nombre del asesino (para el comisario)
+var last_npc_murder_day: int = -9999
 var _social_event_uid: int = 0
 var trade_configs: Dictionary = {}
 var domestic_pets: Array[DomesticPet] = []
@@ -2963,6 +2970,7 @@ func _on_day_passed(_new_day: int) -> void:
 		VillageChronicle.daily_friendship_scan(self)
 		VillageSocialLife.GossipMemory.daily_decay(self)
 		VillageSecrets.daily(self)
+		VillageDesires.daily(self)
 		VillageQuests.on_day_passed(self)
 	chronicle_daily = false
 
@@ -4395,6 +4403,11 @@ func get_economy_save_dict() -> Dictionary:
 		"chronicle_tiers": chronicle_tiers.duplicate(),
 		"secrets": secrets.duplicate(true),
 		"secret_uid": secret_uid,
+		"desires": desires.duplicate(true),
+		"desire_uid": desire_uid,
+		"desire_hate_since": desire_hate_since.duplicate(),
+		"npc_murders": npc_murders.duplicate(),
+		"last_npc_murder_day": last_npc_murder_day,
 		"social_event_uid": _social_event_uid,
 		"social_director": social_director.to_save_dict() if social_director != null else {}
 	}
@@ -4443,6 +4456,15 @@ func load_economy_save_dict(data: Dictionary) -> void:
 			if typeof(sc_it) == TYPE_DICTIONARY:
 				secrets.append((sc_it as Dictionary).duplicate(true))
 	secret_uid = int(data.get("secret_uid", secrets.size()))
+	desires.clear()
+	if typeof(data.get("desires")) == TYPE_ARRAY:
+		for de_it in (data["desires"] as Array):
+			if typeof(de_it) == TYPE_DICTIONARY:
+				desires.append((de_it as Dictionary).duplicate(true))
+	desire_uid = int(data.get("desire_uid", desires.size()))
+	desire_hate_since = (data["desire_hate_since"] as Dictionary).duplicate() if typeof(data.get("desire_hate_since")) == TYPE_DICTIONARY else {}
+	npc_murders = (data["npc_murders"] as Dictionary).duplicate() if typeof(data.get("npc_murders")) == TYPE_DICTIONARY else {}
+	last_npc_murder_day = int(data.get("last_npc_murder_day", -9999))
 	if data.has("chronicle") and typeof(data["chronicle"]) == TYPE_ARRAY:
 		chronicle.clear()
 		for ch_it in (data["chronicle"] as Array):

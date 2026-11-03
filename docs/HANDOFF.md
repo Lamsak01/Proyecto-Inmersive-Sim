@@ -280,7 +280,22 @@ Cada fase se dividirá en bloques pequeños cuando se llegue a ella (detalle en 
   1 → 2, 0 aventuras (con solo 1–2 parejas es lo esperable: raro y orgánico). Sin errores.
 
 ### Deseos propios (bloques D)
-- [ ] **D1–D6** Plan en `docs/PLAN_DESEOS.md`, **pendiente de aprobación** (4 preguntas al final).
+- [x] **D1–D6** Hecho (plan y decisiones en `docs/PLAN_DESEOS.md`). `scripts/systems/VillageDesires.gd`; datos en
+  `VillageManager.desires`, `desire_uid`, `desire_hate_since`, `npc_murders`, `last_npc_murder_day` (se guardan). Un deseo
+  activo por vecino, pasos cada 2–4 días, 10 días de descanso entre deseos. D2 venganza (odio ≤ −50; 10 %/día × rencor):
+  hablar mal → contar su aventura a la pareja → sabotear su puesto → buscar pelea (tensión +30) → satisfecho; se acaba si
+  el odio baja de −30 o pasan 20 + 15×rencor días. D3 ambición (Ambicioso, Sediento de poder, Envidioso, Codicioso; 5 %/día;
+  abierta): ahorrar, hablar mal del más rico, sabotearle. D4 contra el jugador (afinidad ≤ −50 durante 7 días; 20 %/día):
+  ir diciendo que no eres de fiar (−2 de afinidad a quien lo oye), negarse a venderte (`filter_dialogue` quita compras),
+  denunciarte (multa +15 si tienes antecedentes; +10 inventada si es mentiroso), contar tus secretos (chantajes; −3).
+  D5 asesinato: desde una venganza de ≥10 días con odio ≤ −80, oscuridad (malicia+agresividad−honestidad) ≥ 1,5, 5 %/día,
+  máximo uno al mes en el pueblo; 3–5 días de preparación con señales (35 %/día, quien está cerca se entera; el chisme
+  `murder_threat` no lo cuenta el asesino; si llega a la víctima, 50 % de que se ponga en guardia). Solo actúa de noche si
+  nadie despierto está cerca de la víctima (si no, otra noche). Nunca contra el comisario ni el inquisidor. El caso del
+  comisario suma +30 de sospecha al asesino, sin coartada y con pista. Descubrir deseos: «💭 ¿Qué le ronda la cabeza?»
+  (abiertos con afinidad ≥ 10, secretos ≥ 50; los de asesinato nunca, solo una pista con ≥ 60), por chismes
+  (`desire_rumor`) o porque los abiertos los cuenta el propio vecino. Con lo que sabes: convencerle de que lo deje (afinidad
+  ≥ 40, 50 %), avisar a la víctima o denunciar el plan al comisario o un guardia. Test #56. La sonda imprime DESIRES.
 
 ### Interfaz
 - [x] **HUD1** Barras de estado (`scenes/ui_root.gd`, `_create_stats_box` / `_create_fallback_bar`): recuadro oscuro arriba a

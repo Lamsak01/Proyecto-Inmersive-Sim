@@ -10,6 +10,7 @@ const VillageChronicle = preload("res://scripts/systems/VillageChronicle.gd")
 const VillageQuests = preload("res://scripts/systems/VillageQuests.gd")
 const TraitCatalog = preload("res://scripts/data/TraitCatalog.gd")
 const GossipMemory = preload("res://scripts/systems/GossipMemory.gd")
+const VillageDesires = preload("res://scripts/systems/VillageDesires.gd")
 
 const MOTIVE_PUBLIC_PTS: int = 10 # Enemistad larga o peleas conocidas por el pueblo
 const MOTIVE_RUMOR_PTS: int = 8 # Rumor que cuenta un testigo en el interrogatorio
@@ -216,6 +217,14 @@ static func _build_investigation_case_dict(vm: VillageManager, victim: VillageNP
 	]
 	if direct_murder_witness != "":
 		initial_clues.append("Parte Policial: %s denunció al Forastero como autor presencial." % direct_murder_witness)
+	# D5: si lo mató un vecino, no tiene coartada y deja rastro
+	var npc_killer: String = VillageDesires.killer_of(vm, v_label)
+	if npc_killer != "" and suspects_dict.has(npc_killer):
+		var ks: Dictionary = suspects_dict[npc_killer]
+		ks["score"] = int(ks.get("score", 10)) + 30
+		ks["mem_alibi_partner"] = ""
+		ks["status_note"] = "Nadie sabe dónde estuvo aquella noche"
+		initial_clues.append("Nadie recuerda haber visto a %s aquella noche, y se le vio salir con prisa de casa." % npc_killer)
 	_apply_public_motives(vm, victim, suspects_dict, all_living, initial_clues)
 	VillageQuests.on_murder_case_opened(vm, victim)
 	VillageChronicle.add(vm, "death_found", "Hallaron el cuerpo sin vida de %s" % victim.npc_name, true)

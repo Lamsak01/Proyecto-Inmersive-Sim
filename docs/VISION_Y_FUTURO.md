@@ -82,7 +82,8 @@ Estado: **Base** = ya existe algo en el juego sobre lo que construir. **Idea** =
 ### Sociedad, crimen y poder (P4, P6)
 - Secta secreta en el pueblo.
 - Alcalde que puede ser corrupto; policías corruptos. *(Base: policía, justicia, juicios.)*
-- Planes de asesinato entre vecinos. *(Base: investigaciones con móvil social, M1.)*
+- Planes de asesinato entre vecinos. *(Base: hecho en D5, muy raros, con señales previas y pistas para el comisario.)*
+- Ideas tras D (2026-11-03): que el ambicioso se quede un negocio vacante (hoy la sucesión ya existe, sin ambición), venganzas heredadas por la familia, que el asesino intente culpar a otro, que el jugador pueda ser víctima de un plan.
 - Personas religiosas y no creyentes. *(Recomendación: una fe inventada del mundo, no una real.)*
 - Ladrones.
 - Prostitución. *(Recomendación: solo implícita, fuera de cámara, como oficio y hecho social; nunca explícita. Se puede quitar sin perder nada importante.)*

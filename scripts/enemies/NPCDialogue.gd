@@ -4,6 +4,7 @@ const VillageQuests = preload("res://scripts/systems/VillageQuests.gd")
 const VillageSocialLife = preload("res://scripts/systems/VillageSocialLife.gd")
 const VillageChronicle = preload("res://scripts/systems/VillageChronicle.gd")
 const VillageSecrets = preload("res://scripts/systems/VillageSecrets.gd")
+const VillageDesires = preload("res://scripts/systems/VillageDesires.gd")
 const TraitDiscovery = preload("res://scripts/systems/TraitDiscovery.gd")
 const TraitCatalog = preload("res://scripts/data/TraitCatalog.gd")
 
@@ -18,6 +19,8 @@ static func _inject_character_lore_into_dialogue(npc: VillageNPC, diag: Dictiona
 	if not start_node.has("choices") or typeof(start_node["choices"]) != TYPE_ARRAY:
 		return diag
 	var ch_arr: Array = start_node["choices"]
+	VillageDesires.filter_dialogue(npc._get_vm(), npc, diag) # D4: quien te odia no te vende
+	ch_arr = start_node["choices"]
 	# Si está agraviado (compensate_family), no añadir charla amistosa hasta reconciliar
 	for c in ch_arr:
 		if typeof(c) == TYPE_DICTIONARY and str(c.get("action", "")) == "compensate_family":
@@ -172,6 +175,7 @@ static func _add_neighbor_opinions(npc: VillageNPC, diag: Dictionary, ch_arr: Ar
 		ch_arr.insert(0, {"label": "✋ Separar a %s y %s" % [npc.npc_name, npc.live_fight_partner.npc_name], "next": "END", "action": "social_stop_fight"})
 	ch_arr.insert(maxi(0, ch_arr.size() - 1), {"label": "🗣️ Preguntar qué opina de los vecinos", "next": "neighbor_opinions"})
 	VillageSecrets.add_dialogue_choices(npc._get_vm(), npc, diag, ch_arr) # S5
+	VillageDesires.add_dialogue_choices(npc._get_vm(), npc, diag, ch_arr) # D
 	if npc.affinity < 0:
 		diag["neighbor_opinions"] = {"text": "«No hablo de mis vecinos con quien no conozco.»", "choices": [{"label": "Entendido. [Volver]", "next": "start"}]}
 		return
@@ -591,6 +595,11 @@ static func on_dialogue_action(npc: VillageNPC, action_id: String) -> void:
 		if vm != null:
 			VillageChronicle.learn_news_from(vm, npc) # C: lo que te cuentan pasa a tu crónica
 			VillageSecrets.on_player_news(vm, npc) # S5: si te cuenta una aventura, ya la sabes
+			VillageDesires.on_player_news(vm, npc) # D: y lo que quiere hacer alguien
+		return
+	if action_id.begins_with("desire_"):
+		if vm != null:
+			VillageDesires.on_player_action(vm, npc, action_id)
 		return
 	if action_id.begins_with("secret_"):
 		if vm != null:

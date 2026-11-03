@@ -1,6 +1,8 @@
 # Plan: deseos propios (bloques D)
 
-Estado: **propuesta, pendiente de aprobación del usuario** (2026-11-03). Paso 4 de `docs/VISION_Y_FUTURO.md`.
+Estado: **hecho** (2026-11-03, ver HANDOFF). Decisiones del usuario: 1) asesinatos entre vecinos **sí**, muy raros;
+2) contra el jugador **todo** lo de D4; 3) los deseos **se descubren**: hablando con afinidad suficiente, contados por otros
+vecinos o porque el propio vecino los dice abiertamente si no son secreto para él; 4) **todo de una vez**, tests al final. Paso 4 de `docs/VISION_Y_FUTURO.md`.
 Se apoya en: rasgos y tendencias (T2), relaciones de un solo sentido (U), crónica (C), recuerdos (R) y secretos (S).
 
 ## Idea
