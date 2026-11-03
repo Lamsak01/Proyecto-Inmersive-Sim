@@ -5,6 +5,9 @@ El detalle técnico está en `docs/HANDOFF.md` (sección 7) y el historial compl
 
 ## 2026-11-03
 
+### Crecer el pueblo: sitios para pasar el rato
+- **V5c**: hay un **parque** (el Parque del Roble, junto a la Botica), **bancos en la plaza** y un **mirador** junto al lago. Al salir del trabajo y los fines de semana, algunos vecinos van a pasar el rato: más los sociables o los que se sienten solos, casi nadie si llueve. Quien coincide charla, se cuenta chismes y se va llevando mejor (o se roza, si ya se llevaban mal). Las quedadas también usan estos sitios; el mirador gusta a las parejas.
+
 ### Crecer el pueblo: ayuntamiento, albergue y El Candil
 - **V5b**: en la calle norte está el **Ayuntamiento**. El día de elecciones los vecinos **van en persona a votar** cuando están libres (sobre todo al salir del trabajo); quien no va no vota. El sábado por la tarde el alcalde pasa a cuadrar las cuentas. Las **arcas del pueblo** están en un cofre que se puede forzar: el oro sale de las arcas de verdad, y al día siguiente todo el pueblo sabe que falta dinero y el alcalde queda mal. Junto al camino del este están el **Albergue del Alba**, donde quien se queda sin dinero duerme bajo techo (si hay sitio) en vez de a la intemperie, y **El Candil**, una posada humilde a 3 de oro la noche para quien no puede pagar El Jabalí Dorado. Nombres provisionales.
 

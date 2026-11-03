@@ -2467,5 +2467,40 @@ func _initialize() -> void:
 		vm.trade_npcs.erase(14)
 	print("V5b town hall, shelter and inn OK")
 
+	# 66. V5c: terceros espacios. En su rato libre, quien es sociable sale; con lluvia casi nadie; quien coincide charla.
+	var vp = load("res://scripts/systems/VillagePlaces.gd")
+	assert(vm.get_hangout_spots().filter(func(sp): return str(sp["id"]) == "park_lawn").size() == 1, "V5c: Hangouts can use the park")
+	var v5c_a = v5b_people[0]
+	var v5c_b = v5b_people[1]
+	var v5c_wc = root.get_node_or_null("/root/WorldClock")
+	var v5c_weather: int = int(v5c_wc.current_weather)
+	v5c_wc.current_weather = 0
+	var v5c_dry: float = vp.leisure_chance(v5c_a)
+	v5c_wc.current_weather = 1
+	assert(vp.leisure_chance(v5c_a) < v5c_dry * 0.5, "V5c: Rain keeps people at home")
+	v5c_wc.current_weather = 0
+	var v5c_rel: int = v5c_a.get_relationship_with_npc(v5c_b.get_person_key())
+	if v5c_rel <= vp.FRICTION_REL:
+		v5c_a.modify_npc_relationship(v5c_b, 60, "test", true)
+		v5c_rel = v5c_a.get_relationship_with_npc(v5c_b.get_person_key())
+	var v5c_pos: Array = [v5c_a.global_position, v5c_b.global_position]
+	var v5c_soc: float = v5c_a.need_social
+	for n5 in [v5c_a, v5c_b]:
+		n5.set_meta("leisure_place", "park_lawn")
+		n5.start_errand("leisure", vp.place("park_lawn")["pos"])
+		n5.global_position = vp.place("park_lawn")["pos"] + Vector2(randf_range(-8, 8), 0)
+		vp.on_arrived(vm, n5)
+	assert(v5c_a.errand_kind == "leisure" and v5c_a.has_meta("leisure_since"), "V5c: On arrival they stay a while")
+	var v5c_chats: int = int(vp.state(vm)["chats"])
+	vp._chat_round(vm, [v5c_a, v5c_b])
+	assert(int(vp.state(vm)["chats"]) == v5c_chats + 1 and v5c_a.get_relationship_with_npc(v5c_b.get_person_key()) > v5c_rel and v5c_a.need_social >= minf(100.0, v5c_soc), "V5c: People who meet in the park chat and get closer")
+	for n5 in [v5c_a, v5c_b]:
+		vp._leave(n5)
+	assert(v5c_a.errand_kind == "" and not v5c_a.has_meta("leisure_place"), "V5c: Leaving ends the outing")
+	v5c_a.global_position = v5c_pos[0]
+	v5c_b.global_position = v5c_pos[1]
+	v5c_wc.current_weather = v5c_weather
+	print("V5c third places OK")
+
 	print("ALL RIMWORLD MEDICAL, FOOTPRINTS, 3-PHASE CORPSE REPORT, MULTI-CORPSE FIX, RPG INTERROGATION, PUBLIC TRIAL, DYNAMIC RELATIONSHIPS, MISSING FAMILY SEARCH, SOCIAL GLOSSARY & UNCONSCIOUS REACTION TESTS PASSED!")
 	quit(0)

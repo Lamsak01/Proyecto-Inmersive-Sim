@@ -494,6 +494,17 @@ Cada fase se dividirá en bloques pequeños cuando se llegue a ella (detalle en 
   nocturno, `nightly_guest` aloja allí al viajero que no llega a los 6 de El Jabalí; si no llega ni a 3, la regla de
   siempre (albergue o calle). El tope de 3 viajeros sigue igual: lo cambiará V3. **Sin probar en juego:** que la gente
   llegue andando a votar dentro del plazo del encargo (3 h) y que el posadero se instale bien.
+- [x] **V5c** Terceros espacios (`scripts/systems/VillagePlaces.gd`, contadores en `vm.places_state`, guardado): el
+  Parque del Roble (x 184–424, y 216–300, entre la Botica y la senda sur: césped, pinos de adorno sin colisión, flores
+  y dos bancos), dos bancos más en la plaza y el Mirador del Lago (orilla sur, barandilla y banco). Cada hora de ocio
+  (entre semana 17–21; fin de semana 10–21, salvo el domingo por la mañana del Oficio) cada vecino libre
+  (`VillageNeeds.is_free`) puede salir con el encargo «leisure»: 8 % + 12 %·sociabilidad, +10 % si se siente solo,
+  ×0,6 si está muy decaído, ×0,15 con lluvia, ×0,5 si es mendigo (máx. 50 %). Elige sitio por cercanía con algo de azar
+  (el mirador atrae a quien tiene pareja o es Melancólico). Al llegar se queda (`leisure_since`); cada hora, a partir de
+  la primera, se va con un 50 %, y siempre al acabar el ocio, con lluvia o a las 3 h del encargo. Quienes coinciden a
+  menos de 46 px charlan por parejas: +2 de relación, +12 de compañía y 50 % de contarse un chisme
+  (`VillageSocialLife.spread_gossip`); si se llevan a −40 o peor, −2. Las quedadas del SocialDirector usan los cuatro
+  sitios nuevos (clases «park» y «overlook» con su propia puntuación).
 
 ### Interfaz
 - [x] **HUD1** Barras de estado (`scenes/ui_root.gd`, `_create_stats_box` / `_create_fallback_bar`): recuadro oscuro arriba a

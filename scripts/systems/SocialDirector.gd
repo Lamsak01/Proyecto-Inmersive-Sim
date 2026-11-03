@@ -641,6 +641,8 @@ func pick_shared_hangout_spot(spots: Array, pos_a: Vector2, pos_b: Vector2, hour
 			"tavern": s += 14.0 if hour >= 18 else 2.0
 			"plaza", "well": s += 10.0 if hour < 18 else 4.0
 			"bench", "campfire": s += 12.0 if romantic else 5.0
+			"park": s += 11.0 if hour < 20 else 3.0 # V5c
+			"overlook": s += 14.0 if romantic else 6.0 # V5c
 		s += rng.randf_range(0.0, 6.0)
 		if s > best_score:
 			best_score = s

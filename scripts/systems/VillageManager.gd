@@ -21,6 +21,7 @@ const VillageWorldBuilder = preload("res://scripts/systems/VillageWorldBuilder.g
 const VillageLots = preload("res://scripts/systems/VillageLots.gd")
 const VillageTrades = preload("res://scripts/systems/VillageTrades.gd")
 const VillageCivic = preload("res://scripts/systems/VillageCivic.gd")
+const VillagePlaces = preload("res://scripts/systems/VillagePlaces.gd")
 
 ## Gestor Integral de Urbanismo Sólido, Hospital/Morgue Forense, Comisaría/Cárcel, Testigos,
 ## Sigilo Doméstico, Reputación Familiar, Tablón de Encargos y Red Eléctrica (10 Pasos de Expansión)
@@ -70,6 +71,7 @@ var needs_state: Dictionary = {}
 var town_state: Dictionary = {}
 var lots_state: Dictionary = {} # V4: solares y obras (VillageLots)
 var _lot_visuals: Dictionary = {}
+var places_state: Dictionary = {} # V5c: terceros espacios (contadores)
 ## La secta secreta (O). Ver `VillageSect.gd`. Se guarda.
 var sect_state: Dictionary = {}
 var _needs_tick_acc: float = 0.0
@@ -236,6 +238,7 @@ func setup_village(target_entities_root: Node) -> void:
 	VillageTrades.setup_world(self) # V5: panadería y sastrería (puestos vacantes al empezar)
 	VillageCivic.setup_world(self) # V5b: ayuntamiento, albergue y El Candil
 	VillageLots.build_world(self) # V4: calles y solares del borde, afueras y lomas
+	VillagePlaces.build_world(self) # V5c: parque, bancos de la plaza y mirador del lago
 	_spawn_domestic_pets()
 
 	if not in_editor:
@@ -2346,6 +2349,7 @@ func _on_hour_passed(_day: int, new_hour: int = 8) -> void:
 	VillageSect.on_hour(self, actual_hour) # O3: reunión de la secta (viernes de madrugada)
 	VillageLots.on_hour(self, actual_hour) # V4: el carpintero avanza la obra si está allí
 	VillageCivic.on_hour(self, actual_hour) # V5b: votar en persona y el alcalde en el ayuntamiento
+	VillagePlaces.on_hour(self, actual_hour) # V5c: ratos libres en el parque, la plaza o el mirador
 
 	# 07:00 AM -> Comprobar llegada semanal de los 2 Mercaderes Ambulantes (Día 3: Maese Casimir | Día 6: Valeria la Tratante)
 	if actual_hour == 7:
@@ -2863,6 +2867,7 @@ func get_hangout_spots() -> Array:
 	spots.append({"id": "plaza_bench", "pos": Vector2(468, 54), "kind": "bench", "label": "el Rincón de la Plaza"})
 	spots.append({"id": "plaza_board", "pos": _notice_board_pos + Vector2(0, 26), "kind": "plaza", "label": "la Plaza Central"})
 	spots.append({"id": "farm_well", "pos": _well_pos + Vector2(0, 24), "kind": "well", "label": "el Pozo de la Granja"})
+	spots.append_array(VillagePlaces.hangout_spots()) # V5c
 	return spots
 
 func _is_npc_eligible_for_hangout(v: VillageNPC) -> bool:
@@ -4509,6 +4514,7 @@ func get_economy_save_dict() -> Dictionary:
 		"needs_state": needs_state.duplicate(true),
 		"town_state": town_state.duplicate(true),
 		"lots_state": lots_state.duplicate(true),
+		"places_state": places_state.duplicate(true),
 		"sect_state": sect_state.duplicate(true),
 		"social_event_uid": _social_event_uid,
 		"social_director": social_director.to_save_dict() if social_director != null else {}
@@ -4575,6 +4581,7 @@ func load_economy_save_dict(data: Dictionary) -> void:
 	sect_state = (data["sect_state"] as Dictionary).duplicate(true) if typeof(data.get("sect_state")) == TYPE_DICTIONARY else {}
 	lots_state = (data["lots_state"] as Dictionary).duplicate(true) if typeof(data.get("lots_state")) == TYPE_DICTIONARY else {}
 	VillageLots.after_load(self)
+	places_state = (data["places_state"] as Dictionary).duplicate(true) if typeof(data.get("places_state")) == TYPE_DICTIONARY else {}
 	VillageSect._update_band(self)
 	if data.has("chronicle") and typeof(data["chronicle"]) == TYPE_ARRAY:
 		chronicle.clear()

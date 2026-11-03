@@ -3744,6 +3744,7 @@ func get_activity_description() -> String:
 					"gamble": return "🎲 Jugando en la taberna" if at_e else "🚶🎲 Yendo a jugar a la taberna"
 					"beg": return "🥺 Pidiendo limosna en la plaza" if at_e else "🚶🥺 Yendo a pedir a la plaza"
 					"vote": return "🗳️ Votando en el ayuntamiento" if at_e else "🚶🗳️ Yendo a votar"
+					"leisure": return load("res://scripts/systems/VillagePlaces.gd").activity_text(self, at_e)
 					"mayor_office": return "🏛️ Cuadrando las cuentas del pueblo" if at_e else "🚶🏛️ Yendo al ayuntamiento"
 			if rite_kind in ["sect", "sect_lure"]:
 				var vm_sc = _get_vm()

@@ -211,6 +211,9 @@ static func tick(vm) -> void:
 		if n.errand_kind == "":
 			continue
 		if now - int(n.errand_since) > ERRAND_TIMEOUT_HOURS and n.errand_kind != "beg":
+			if n.errand_kind == "leisure":
+				vm.VillagePlaces._leave(n)
+				continue
 			n.end_errand()
 			continue
 		if n.global_position.distance_to(n.errand_pos) > ARRIVE_RADIUS:
@@ -225,6 +228,8 @@ static func tick(vm) -> void:
 				n.end_errand()
 			"beg":
 				pass # Se queda pidiendo hasta la tarde (on_hour)
+			"leisure":
+				vm.VillagePlaces.on_arrived(vm, n) # V5c: se queda un rato (lo cierra VillagePlaces)
 			_:
 				vm.VillageCivic.on_errand_arrived(vm, n) # V5b: votar, el alcalde en el ayuntamiento
 
