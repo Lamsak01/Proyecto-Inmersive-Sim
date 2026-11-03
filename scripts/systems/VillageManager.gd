@@ -36,6 +36,8 @@ const MAX_SOCIAL_EVENT_LOG: int = 80
 var social_event_log: Array[Dictionary] = []
 ## Crónica del pueblo (C): historia permanente de los últimos sucesos (ver `VillageChronicle.gd`).
 var chronicle: Array[Dictionary] = []
+## Escalón de amistad apuntado por cada vecino hacia cada otro («a>b»), para la crónica.
+var chronicle_tiers: Dictionary = {}
 var _social_event_uid: int = 0
 var trade_configs: Dictionary = {}
 var domestic_pets: Array[DomesticPet] = []
@@ -2950,6 +2952,7 @@ func _on_day_passed(_new_day: int) -> void:
 		social_director.on_day_passed(_new_day)
 		VillageSocialLife.daily_reciprocity(self)
 		VillageSocialLife.daily_distance_cooling(self, _new_day)
+		VillageChronicle.daily_friendship_scan(self)
 		VillageQuests.on_day_passed(self)
 
 	# Descontar 1 día del embargo comercial (20..30 días) si alguno de los 2 mercaderes semanales fue asesinado
@@ -4378,6 +4381,7 @@ func get_economy_save_dict() -> Dictionary:
 		"newcomer_rng_state": _newcomer_rng.state,
 		"social_event_log": social_event_log.duplicate(true),
 		"chronicle": chronicle.duplicate(true),
+		"chronicle_tiers": chronicle_tiers.duplicate(),
 		"social_event_uid": _social_event_uid,
 		"social_director": social_director.to_save_dict() if social_director != null else {}
 	}
@@ -4419,6 +4423,7 @@ func load_economy_save_dict(data: Dictionary) -> void:
 		while social_event_log.size() > MAX_SOCIAL_EVENT_LOG:
 			social_event_log.remove_at(0)
 	_social_event_uid = int(data.get("social_event_uid", social_event_log.size()))
+	chronicle_tiers = (data["chronicle_tiers"] as Dictionary).duplicate() if typeof(data.get("chronicle_tiers")) == TYPE_DICTIONARY else {}
 	if data.has("chronicle") and typeof(data["chronicle"]) == TYPE_ARRAY:
 		chronicle.clear()
 		for ch_it in (data["chronicle"] as Array):

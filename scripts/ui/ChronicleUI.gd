@@ -34,7 +34,7 @@ func _build_ui() -> void:
 	center.set_anchors_preset(Control.PRESET_FULL_RECT)
 	add_child(center)
 	var main_panel := PanelContainer.new()
-	main_panel.custom_minimum_size = Vector2(760, 440)
+	main_panel.custom_minimum_size = Vector2(900, 480)
 	main_panel.add_theme_stylebox_override("panel", _make_box_style(Color(0.08, 0.07, 0.06, 0.98), Color(0.70, 0.55, 0.32, 0.95), 2, 8))
 	center.add_child(main_panel)
 	var margin := MarginContainer.new()

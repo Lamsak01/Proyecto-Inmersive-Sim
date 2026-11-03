@@ -6,28 +6,30 @@ extends RefCounted
 ## Regla: el jugador solo ve lo que podría saber (lo público, lo suyo, lo que vio de cerca o le contaron).
 ## `SHOW_ALL_DEBUG` = true mientras el juego está en pruebas: se ve todo y lo secreto lleva 🔒.
 
-const MAX_ENTRIES: int = 160
+const MAX_ENTRIES: int = 500
 const SHOW_ALL_DEBUG: bool = true # Poner en false para la versión final
 const WITNESS_RADIUS: float = 170.0
 
-## Sucesos que no se apuntan (demasiado frecuentes para ser historia).
-const SKIP_TYPES: Array[String] = ["hangout"]
+## Sucesos que no se apuntan (demasiado frecuentes para ser historia). Las quedadas sí entran desde la revisión de C.
+const SKIP_TYPES: Array[String] = []
 ## Lo sabe todo el pueblo al momento.
 const PUBLIC_TYPES: Array[String] = ["couple", "breakup", "couple_reconciled", "arrival", "departure", "bereavement_ended", "fight", "feud", "reconciliation", "date", "death_found", "case_closed"]
 ## Lo ha hecho el jugador: lo sabe siempre.
 const PLAYER_TYPES: Array[String] = ["player_gossip", "player_mediation", "player_matchmaking", "player_slander", "quest_done", "quest_failed"]
 
-const CATEGORIES: Array[String] = ["all", "love", "conflict", "death", "people", "player"]
-const CATEGORY_NAMES: Dictionary = {"all": "📖 Todo", "love": "💞 Amor", "conflict": "💢 Peleas y roces", "death": "💀 Muertes y crímenes", "people": "🧳 Llegadas y marchas", "player": "🧑 Tú"}
+const CATEGORIES: Array[String] = ["all", "love", "friends", "gossip", "conflict", "death", "people", "player"]
+const CATEGORY_NAMES: Dictionary = {"all": "📖 Todo", "love": "💞 Amor", "friends": "🤝 Amistad", "gossip": "🗣️ Chismes", "conflict": "💢 Roces", "death": "💀 Muertes", "people": "🧳 Gente", "player": "🧑 Tú"}
 const TYPE_CATEGORY: Dictionary = {
 	"couple": "love", "breakup": "love", "couple_reconciled": "love", "rejection": "love", "jealousy": "love", "date": "love",
 	"romance_interest": "love", "romance_flirt": "love", "romance_dating": "love", "romance_fizzle": "love", "bereavement_ended": "love",
+	"hangout": "friends", "friendship": "friends", "gossip": "gossip",
 	"fight": "conflict", "feud": "conflict", "reconciliation": "conflict", "npc_slander": "conflict",
 	"widowed": "death", "death_found": "death", "case_closed": "death",
 	"arrival": "people", "departure": "people",
 	"player_gossip": "player", "player_mediation": "player", "player_matchmaking": "player", "player_slander": "player", "quest_done": "player", "quest_failed": "player",
 }
 const TYPE_ICON: Dictionary = {
+	"hangout": "☕", "friendship": "🤝", "gossip": "🗣️",
 	"couple": "💑", "breakup": "💔", "couple_reconciled": "💞", "rejection": "💔", "jealousy": "😠", "date": "🌹",
 	"romance_interest": "💗", "romance_flirt": "😊", "romance_dating": "💞", "romance_fizzle": "🥀", "bereavement_ended": "🕯️",
 	"fight": "👊", "feud": "⚡", "reconciliation": "🤝", "npc_slander": "🗣️", "widowed": "🖤", "death_found": "💀", "case_closed": "⚖️",
@@ -131,3 +133,73 @@ static func on_quest_changed(vm: VillageManager, q: Dictionary) -> void:
 	var t: String = "quest_done" if st == "completed" else "quest_failed"
 	var txt: String = ("Cumpliste la misión «%s»" if st == "completed" else "Fallaste la misión «%s»") % str(q.get("title", "Misión"))
 	add(vm, t, txt, true, -1, {"quest_id": qid})
+
+## Chismes: `teller` le cuenta a `listener` el suceso `ev`. Si el jugador estaba cerca, lo oye y se entera también del suceso.
+static func on_gossip(vm: VillageManager, ev: Dictionary, teller: VillageNPC, listener: VillageNPC) -> void:
+	if vm == null or ev.is_empty() or teller == null or listener == null:
+		return
+	var heard: bool = _player_near(vm, teller) or _player_near(vm, listener)
+	var what: String = str(ev.get("summary", ""))
+	if what == "":
+		what = str(ev.get("type", "algo"))
+	add(vm, "gossip", "%s le contó a %s: «%s»" % [teller.npc_name, listener.npc_name, what], heard)
+	if heard:
+		learn_event(vm, int(ev.get("uid", -1)))
+
+## Amistad (una vez al día): cuando lo que siente un vecino por otro cambia de escalón, se apunta.
+## Es de un solo sentido. Margen `TIER_MARGIN` para que no salgan avisos de ida y vuelta.
+## Lo sabe el jugador si ya conoce lo que siente ese vecino por el otro.
+const TIER_MARGIN: int = 5
+static func tier_of(v: int) -> int:
+	if v >= 65: return 2
+	if v >= 35: return 1
+	if v > -30: return 0
+	if v > -60: return -1
+	return -2
+
+static func tier_with_margin(v: int, prev: int) -> int:
+	if tier_of(v - TIER_MARGIN) <= prev and prev <= tier_of(v + TIER_MARGIN):
+		return prev
+	return tier_of(v)
+
+static func friendship_text(a: VillageNPC, b: VillageNPC, prev: int, now: int) -> String:
+	var fem: bool = b.person_profile != null and str(b.person_profile.gender) == "F"
+	var an: String = a.npc_name
+	var bn: String = b.npc_name
+	if now > prev:
+		match now:
+			2: return "%s ya considera a %s %s" % [an, bn, "su mejor amiga" if fem else "su mejor amigo"]
+			1: return "%s ya ve a %s como %s" % [an, bn, "una buena amiga" if fem else "un buen amigo"]
+			0: return "%s ya no le guarda rencor a %s" % [an, bn]
+			-1: return "%s ya no odia a %s, aunque le sigue cayendo mal" % [an, bn]
+	match now:
+		1: return "%s ya no ve a %s como %s" % [an, bn, "su mejor amiga" if fem else "su mejor amigo"]
+		0: return "%s se ha distanciado de %s" % [an, bn]
+		-1: return "A %s empieza a caerle mal %s" % [an, bn]
+		-2: return "%s ya no soporta a %s" % [an, bn]
+	return ""
+
+static func daily_friendship_scan(vm: VillageManager) -> void:
+	if vm == null:
+		return
+	var npcs: Array = []
+	for n in (vm.get_tree().get_nodes_in_group("village_npcs") if vm.is_inside_tree() else []):
+		if is_instance_valid(n) and n is VillageNPC and not n.is_dead and n.npc_name != "":
+			npcs.append(n)
+	for a in npcs:
+		var ak: String = a.get_person_key()
+		for b in npcs:
+			if a == b:
+				continue
+			var bk: String = b.get_person_key()
+			var tk: String = ak + ">" + bk
+			var v: int = a.get_relationship_with_npc(bk)
+			if not vm.chronicle_tiers.has(tk):
+				vm.chronicle_tiers[tk] = tier_of(v) # Primera vez: punto de partida, sin apuntar nada
+				continue
+			var prev: int = int(vm.chronicle_tiers[tk])
+			var now: int = tier_with_margin(v, prev)
+			if now == prev:
+				continue
+			vm.chronicle_tiers[tk] = now
+			add(vm, "friendship", friendship_text(a, b, prev, now), a.knows_feeling_toward(bk))

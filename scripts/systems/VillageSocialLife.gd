@@ -6,6 +6,7 @@ const VillageQuests = preload("res://scripts/systems/VillageQuests.gd")
 ## Q3: Un vecino rencoroso o chismoso a veces habla mal de su rival a quien tiene delante.
 ## T1: la probabilidad por charla depende de la malicia de sus rasgos (TraitCatalog); sin malicia, nunca calumnia.
 const TraitCatalog = preload("res://scripts/data/TraitCatalog.gd")
+const VillageChronicle = preload("res://scripts/systems/VillageChronicle.gd")
 const TraitDiscoveryRef = preload("res://scripts/systems/TraitDiscovery.gd")
 const NPC_SLANDER_PER_MALICE: float = 0.075 # T5: a la mitad tras pasar a 6 rasgos (Rencoroso solo: 7,5 %)
 const NPC_SLANDER_MAX_CHANCE: float = 0.25
@@ -344,6 +345,7 @@ static func spread_gossip(vm: VillageManager, teller: VillageNPC, listener: Vill
 			var ev_type: String = str(ev.get("type", ""))
 			if ev_type in ["player_slander", "npc_slander"] and str(ev.get("target_id", "")) == listener_key:
 				_on_slander_reached_target(vm, ev, teller, listener)
+			VillageChronicle.on_gossip(vm, ev, teller, listener)
 			return ev
 	return {}
 

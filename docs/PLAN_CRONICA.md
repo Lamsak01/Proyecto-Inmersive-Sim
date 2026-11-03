@@ -45,5 +45,5 @@ Para mí habrá un modo «todo» oculto, útil para medir partidas largas.
 
 - Tecla: pidió la **C**, pero ya era la de sigilo; se usa la **O**.
 - En la versión final, solo lo que el jugador podría saber. Mientras estamos en pruebas se ve todo (`SHOW_ALL_DEBUG`), con 🔒 en lo secreto.
-- Tope: los **160** últimos sucesos (no 3000).
+- Tope: los **160** últimos sucesos (no 3000); subido a **500** en C5, al añadir quedadas, chismes y cambios de amistad.
 - Hecho de una vez (C1–C4), no en bloques pequeños.

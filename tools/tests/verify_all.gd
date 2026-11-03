@@ -1535,9 +1535,27 @@ func _initialize() -> void:
 	ch_save.erase("chronicle")
 	vm.load_economy_save_dict(ch_save)
 	assert(vm.chronicle.size() > 0 and str(vm.chronicle.back()["text"]) == "C test pareja", "C1: Old saves start from the social log")
-	for ci in range(200):
+	for ci in range(600):
 		vch.add(vm, "fight", "C relleno %d" % ci, true)
-	assert(vm.chronicle.size() == vch.MAX_ENTRIES and str(vm.chronicle.back()["text"]) == "C relleno 199", "C1: Keeps only the last 160 entries")
+	assert(vm.chronicle.size() == 500 and str(vm.chronicle.back()["text"]) == "C relleno 599", "C1: Keeps only the last 500 entries")
+	vm.chronicle.clear()
+	# Amistad: un salto de escalón se apunta una vez; quedarse cerca del borde no repite avisos
+	vm.chronicle_tiers.clear()
+	ex_a.npc_relationships[ex_b.get_person_key()] = 10
+	vch.daily_friendship_scan(vm)
+	assert(vm.chronicle.is_empty(), "C5: The first scan only sets the starting point")
+	ex_a.npc_relationships[ex_b.get_person_key()] = 40
+	vch.daily_friendship_scan(vm)
+	var fr_n: int = vch.visible_entries(vm, "friends", true).size()
+	assert(fr_n == 1 and str(vch.visible_entries(vm, "friends", true)[0]["text"]).contains(ex_a.npc_name), "C5: Becoming friends is written")
+	ex_a.npc_relationships[ex_b.get_person_key()] = 33
+	vch.daily_friendship_scan(vm)
+	assert(vch.visible_entries(vm, "friends", true).size() == 1, "C5: Small dips near the edge are not written")
+	ex_a.npc_relationships[ex_b.get_person_key()] = 20
+	vch.daily_friendship_scan(vm)
+	assert(vch.visible_entries(vm, "friends", true).size() == 2, "C5: Growing apart is written")
+	vch.on_gossip(vm, {"type": "fight", "summary": "C test chisme", "uid": 990002}, ex_a, ex_b)
+	assert(vch.visible_entries(vm, "gossip", true).size() == 1 and str(vm.chronicle.back()["text"]).contains("C test chisme"), "C5: Gossip is written")
 	vm.chronicle.clear()
 	print("C chronicle OK")
 

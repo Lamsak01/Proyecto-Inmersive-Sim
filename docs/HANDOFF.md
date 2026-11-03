@@ -239,6 +239,11 @@ Cada fase se dividirá en bloques pequeños cuando se llegue a ella (detalle en 
   `learn_event` (al preguntar por novedades). `SHOW_ALL_DEBUG = true` mientras estamos en pruebas: se ve todo y lo secreto
   lleva 🔒; **ponerlo en false para la versión final**. También apunta muertes descubiertas, casos cerrados y misiones
   cumplidas o fallidas. Test #53. La sonda imprime una línea CHRONICLE.
+- [x] **C5** (revisión tras probarla el usuario: en una semana no salía nada de los vecinos). Tope subido a **500**. Ahora
+  también apunta quedadas (`hangout`), chismes (`on_gossip`, desde `spread_gossip`; si el jugador está cerca se entera del
+  suceso) y cambios de escalón de amistad, de un solo sentido (`daily_friendship_scan`, una vez al día; escalones 65/35/−30/−60
+  con margen de 5; guardado en `VillageManager.chronicle_tiers`; secreto salvo que el jugador conozca ese sentimiento).
+  Pestañas nuevas Amistad y Chismes, nombres cortos para que quepan. Las charlas normales no se apuntan.
 
 ## 8. Decisiones de diseño ya tomadas (no volver a preguntarlas)
 
