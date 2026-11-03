@@ -68,7 +68,7 @@ const ROADS: Array = [
 
 ## Clases de edificio. `hours`: horas de trabajo del carpintero (a diligencia media). `beds`: camas para vecinos.
 const KINDS: Dictionary = {
-	"house": {"title": "Casa", "cost": 60, "hours": 24.0, "beds": 2, "zones": ["borde"]},
+	"house": {"title": "Casa", "cost": 100, "hours": 24.0, "beds": 2, "zones": ["borde"]},
 	"shop_house": {"title": "Tienda con vivienda", "cost": 90, "hours": 34.0, "beds": 2, "zones": ["borde"]}, # V5: `st.role` = oficio
 }
 

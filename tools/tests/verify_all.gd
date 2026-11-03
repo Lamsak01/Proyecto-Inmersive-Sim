@@ -2321,8 +2321,8 @@ func _initialize() -> void:
 	assert("n1" in vl.free_lots(vm, "house"), "V4: The town starts with free lots")
 	v4_payer.personal_gold = 10
 	assert(vl.request_build(vm, "n1", "house", v4_payer) == "", "V4: Nobody builds without the money")
-	v4_payer.personal_gold = 100
-	assert(vl.request_build(vm, "n1", "house", v4_payer) == "n1" and v4_payer.personal_gold == 40, "V4: The payer pays for the house")
+	v4_payer.personal_gold = 160
+	assert(vl.request_build(vm, "n1", "house", v4_payer) == "n1" and v4_payer.personal_gold == 160 - int(vl.KINDS["house"]["cost"]), "V4: The payer pays for the house")
 	assert(vl.request_build(vm, "n2", "house", v4_payer) == "", "V4: The carpenter takes one job at a time")
 	var v4_wp: Vector2 = vl.site_work_pos("n1")
 	v4_carp.is_sleeping = false
@@ -2846,14 +2846,14 @@ func _initialize() -> void:
 	for ve_h in vmi.residents(vm):
 		if vmi.is_unemployed(ve_h):
 			ve_h.personal_gold = mini(ve_h.personal_gold, 10)
-	ve_a.personal_gold = 70
-	ve_b.personal_gold = 30
+	ve_a.personal_gold = 90
+	ve_b.personal_gold = 40
 	ve_a.is_vagrant_camper = true
 	vm.town_state["treasury"] = 0
 	assert(vl.active_site(vm) == "" and vmi.free_house_beds(vm) == 0, "E: Test starts with no site and no free house bed")
 	var ve_id: String = vmi.maybe_order_house(vm, 0.5)
 	assert(ve_id != "" and str(vl.lot(vm, ve_id)["payer"]) == ve_a.get_person_key(), "E: A couple pools its savings to order a house")
-	assert(ve_a.personal_gold + ve_b.personal_gold == 100 - 60, "E: The house cost comes out of the couple's savings")
+	assert(ve_a.personal_gold + ve_b.personal_gold == 130 - int(vl.KINDS["house"]["cost"]) and not vl.lot(vm, ve_id).has("loan"), "E: The house cost comes out of the couple's savings")
 	# Una cama de posada ocupada por alguien con oficio (p. ej. el maestro) ya no cuenta como libre
 	ve_b.trade_role = load("res://scripts/enemies/VillageNPC.gd").TradeRole.TEACHER
 	ve_b.lodging = ""
@@ -2928,6 +2928,58 @@ func _initialize() -> void:
 	vg_h.personal_gold = vg_hg
 	vg_owner.personal_gold = vg_og
 	print("Block G family helpers paid OK")
+
+	# 78. Bloque H: casas a plazos con interés; cuotas, recargo y desahucio; el noble presta si las arcas no pueden.
+	var vln = load("res://scripts/systems/VillageLoans.gd")
+	var vh_saved: Dictionary = {}
+	for lh in vl.LOTS:
+		vh_saved[str(lh["id"])] = vl.lot(vm, str(lh["id"])).duplicate(true)
+	var vh_tr: int = int(vm.town_state.get("treasury", 0))
+	var vh_arr: int = vm.arrivals_today_count
+	vm.arrivals_today_count = 0
+	var vh_b = vmi._spawn_one(vm, vmi.SETTLER_KINDS[0], 0)
+	for vh_h in vmi.residents(vm):
+		if vmi.is_unemployed(vh_h) and vh_h != vh_b:
+			vh_h.personal_gold = mini(vh_h.personal_gold, 10)
+	vh_b.personal_gold = 30
+	vh_b.is_vagrant_camper = true
+	vm.town_state["treasury"] = 200
+	var vh_id: String = vmi.maybe_order_house(vm, 0.5)
+	assert(vh_id != "" and vl.lot(vm, vh_id).has("loan"), "H: With only the down payment, the house is bought on credit")
+	var vh_loan: Dictionary = vl.lot(vm, vh_id)["loan"]
+	assert(str(vh_loan["lender"]) == "town" and int(vh_loan["owed"]) == int(round(float(int(vh_loan["principal"])) * 1.25)) and vh_b.personal_gold == 5, "H: The town lends the rest at 25 %% interest (owes %d, has %d)" % [int(vh_loan["owed"]), vh_b.personal_gold])
+	assert(vln.debt_text(vm, vh_b).begins_with("🏦 Debe"), "H: The debt shows on the villager's card")
+	var vh_owed: int = int(vh_loan["owed"])
+	var vh_t1: int = int(vm.town_state["treasury"])
+	vln.daily(vm)
+	assert(int(vh_loan["owed"]) == vh_owed - vln.INSTALLMENT and int(vm.town_state["treasury"]) == vh_t1 + vln.INSTALLMENT, "H: A daily installment goes back to the lender")
+	vh_b.personal_gold = 0
+	for _dh in range(vln.MAX_MISSED - 1):
+		vln.daily(vm)
+	assert(int(vh_loan["missed"]) == vln.MAX_MISSED - 1 and int(vh_loan["owed"]) == vh_owed - vln.INSTALLMENT + vln.MAX_MISSED - 1, "H: Missed installments add a late fee")
+	vln.daily(vm)
+	assert(not vl.lot(vm, vh_id).has("loan") and str(vl.lot(vm, vh_id)["payer"]) == "town", "H: Too many missed installments and the lender takes the house")
+	vm.town_state["treasury"] = 0
+	var vh_nob = null
+	for vh_n in vm.VillageNobility.nobles(vm):
+		if vh_nob == null:
+			vh_nob = vh_n
+	assert(vh_nob != null, "H: There is a noble to borrow from")
+	var vh_ng: int = vh_nob.personal_gold
+	vh_nob.personal_gold = 100000
+	assert(str(vln.find_lender(vm, 80).get("key", "")) == vh_nob.get_person_key(), "H: With empty coffers, the richest noble lends")
+	vh_nob.personal_gold = vh_ng
+	for lh_id in vh_saved.keys():
+		var lh_st: Dictionary = vl.lot(vm, lh_id)
+		lh_st.erase("loan")
+		for k in (vh_saved[lh_id] as Dictionary).keys():
+			lh_st[k] = vh_saved[lh_id][k]
+		vl._draw_lot(vm, lh_id, lh_st)
+	vm.town_state["treasury"] = vh_tr
+	vm.arrivals_today_count = vh_arr
+	vm.unemployed_npcs.erase(vh_b)
+	vh_b.queue_free()
+	print("Block H house loans OK")
 
 	print("ALL RIMWORLD MEDICAL, FOOTPRINTS, 3-PHASE CORPSE REPORT, MULTI-CORPSE FIX, RPG INTERROGATION, PUBLIC TRIAL, DYNAMIC RELATIONSHIPS, MISSING FAMILY SEARCH, SOCIAL GLOSSARY & UNCONSCIOUS REACTION TESTS PASSED!")
 	quit(0)

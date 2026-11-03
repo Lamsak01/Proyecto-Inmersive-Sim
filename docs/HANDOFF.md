@@ -605,6 +605,13 @@ Cada fase se dividirá en bloques pequeños cuando se llegue a ella (detalle en 
 - [x] **Bloque G** (test #77). `VillageFamily.pay_helpers`: el ayudante de negocio familiar con menos de 15 de oro
   recibe 6 al día del dueño de su familia (si al dueño le quedan 20). La sonda apunta además la hora de cada comida
   «cara o cerrada». Comidas fallidas en 12 días: de 58 a 16.
+- [x] **Bloque H** Casas a plazos (test #78; `scripts/systems/VillageLoans.gd`). Casa 100 de oro. Con 15 de entrada (con
+  la pareja) se pide el resto a las arcas (si les quedan 40) o al noble más rico (si le quedan 50); se devuelve +25 % a 3
+  al día. Impago: +1 de recargo, −6 de humor, el noble −4; a los 5 seguidos, la casa pasa al prestamista y los moradores
+  van a la posada o a la calle. El préstamo vive en `lots_state[id]["loan"]`. Casa de otro: el alquiler de 2 va a su
+  dueño. Ficha («🏦 Debe…») y crónica (`loan`, `loan_paid`, `eviction`). Sonda: 2 casas a plazos en 12 días.
+- [ ] **Bloque I** Mapa grande: ocupa casi toda la pantalla, nombres sin pisarse (fondo, versión corta, debajo u
+  omitido) y el cursor da el nombre completo de cualquier edificio. Sin probar en juego.
 - [x] **Bloque E** (probado, test #75; detalle en `docs/REGISTRO_TRABAJO.md`). Diagnóstico de comidas fallidas
   (`migration_state.meal_fails`, «motivo/oficio»); casas: la pareja junta ahorros y, si alguien duerme al raso, el
   pueblo paga sin reserva; camas de posada sin repetir (cuenta a quien tenga oficio y duerma allí); U5 «según X»

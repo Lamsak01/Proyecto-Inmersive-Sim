@@ -106,3 +106,28 @@ Leyenda: ✅ probado y subido · 🟡 escrito, sin probar · 🔴 falló (ver no
   Lo que queda está repartido entre oficios y horas (6–7 h, 10–11 h, 18 h, 23 h): no hay una causa única.
 - Primer embarazo y nacimiento en la sonda (días 4 y 13). Ninguna casa nueva: las arcas acaban en 48 (pagan la paga
   de los niños, al maestro y la ayuda a los pobres) y nadie sin casa tiene 80. Queda para equilibrar con el usuario.
+
+## Bloque H — Casas a plazos con interés (aprobado por el usuario: casa 100 de oro, interés 25 %)
+
+| # | Paso | Estado | Archivos | Nota |
+|---|------|--------|----------|------|
+| H1 | La casa cuesta 100 (antes 60). Quien no tiene casa y junta 15 de entrada (con su pareja) pide el resto: a las arcas si les sobra (se guardan 40) o, si no, al noble más rico (se guarda 50), que se queda con los intereses. Devuelve el préstamo +25 % a 3 de oro al día | ✅ | VillageLoans.gd (nuevo), VillageMigration.maybe_order_house, VillageLots (coste) | El préstamo vive en el solar (`loan`), se guarda con los solares |
+| H2 | Si no llega a la cuota: +1 de recargo, −6 de humor y el noble prestamista le aprecia −4. A los 5 impagos seguidos, la casa pasa al prestamista y los moradores van a la posada (si hay cama) o a la calle (−15 y −20 con el noble) | ✅ | VillageLoans.daily / evict | |
+| H3 | Una casa de otro (p. ej. del noble tras un desahucio) cobra el alquiler de 2 para su dueño | ✅ | VillageMigration.nightly | |
+| H4 | Se ve en la ficha («🏦 Debe 94 al pueblo · ⚠️ 2 cuotas sin pagar») y en la crónica (préstamo 🏦, casa pagada 🔑, desahucio 📦) | ✅ | VillageNPC._get_needs_status_line, VillageChronicle | |
+| H5 | Test #78 (y #4/#75 ajustados al nuevo precio) | ✅ | verify_all.gd | |
+
+### Pruebas del bloque H (todas pasan) y sonda
+- Los cuatro tests pasan (con #78). La sonda: **2 casas encargadas a plazos** (antes 0–1 en 12 días), las dos prestadas por
+  un noble (Dagoberto Lagos), que va cobrando sin impagos (debe 90 y 93). Las arcas acaban en 217.
+- Rendimiento con 50: plaza 7,4 ms y algún fotograma > 33 ms (peor 42 ms). Peor que antes, pero esta vez la sonda tardó un
+  12 % más en tiempo real (588 s frente a 527): el ordenador estaba ocupado (el usuario jugaba a la vez). Repetir en frío.
+- Comidas fallidas: los canteros vuelven a quedarse sin oro (12) y los parados (9). A vigilar.
+
+## Bloque I — Mapa grande legible (captura del usuario: nombres pisados)
+
+| # | Paso | Estado | Archivos | Nota |
+|---|------|--------|----------|------|
+| I1 | El mapa grande ocupa casi toda la pantalla (antes 900×550 fijos) | 🟡 | ValleyMapUI._fit_full_map | |
+| I2 | Nombres de edificios con fondo oscuro; si no caben se acortan; si chocan, van debajo o se omiten | 🟡 | ValleyMapUI._draw_building_labels | |
+| I3 | Al pasar el cursor por cualquier edificio sale su nombre completo (antes solo las 5 tiendas originales) | 🟡 | ValleyMapUI._update_census_and_hover | Sin test: es dibujo; el juego carga sin errores |

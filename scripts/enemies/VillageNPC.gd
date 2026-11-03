@@ -4542,6 +4542,11 @@ func _get_needs_status_line() -> String:
 			shop_state = " · 🟢 En Mostrador" if is_at_shop_counter() else " · 🔴 Fuera del Mostrador (No vende aquí)"
 		eff_info = " | ⚒️ Dominio: %s%s" % [get_job_efficiency_label(), shop_state]
 	var seal_str: String = " · 📜Salvoconducto Real" if carries_royal_safe_conduct else ""
+	var vm_d = _get_vm()
+	if vm_d != null and vm_d.has_method("_get_npcs_by_person_key"): # H: deuda de la casa
+		var debt: String = vm_d.VillageLoans.debt_text(vm_d, self)
+		if debt != "":
+			seal_str += " · " + debt
 	return "[%s%s | 💰 Oro: %d%s | 😊 Humor: %d%% | 🍖%d%% (%s) 💤%d%% (%s) 💬%d%%]\n[Rasgos: %s | Favorito: %s | 💭 \"%s\"]" % [
 		get_activity_description(), eff_info, maxi(0, personal_gold), seal_str, int(round(mood)),
 		int(round(need_hunger)), get_nutrition_status_label(), int(round(need_energy)), get_sleep_status_label(), int(round(need_social)),

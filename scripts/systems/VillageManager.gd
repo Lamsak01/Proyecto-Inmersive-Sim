@@ -26,6 +26,7 @@ const VillageCulture = preload("res://scripts/systems/VillageCulture.gd")
 const VillageMigration = preload("res://scripts/systems/VillageMigration.gd")
 const VillageNobility = preload("res://scripts/systems/VillageNobility.gd")
 const VillageFamily = preload("res://scripts/systems/VillageFamily.gd")
+const VillageLoans = preload("res://scripts/systems/VillageLoans.gd")
 const VillageWork = preload("res://scripts/systems/VillageWork.gd")
 
 ## Gestor Integral de Urbanismo Sólido, Hospital/Morgue Forense, Comisaría/Cárcel, Testigos,

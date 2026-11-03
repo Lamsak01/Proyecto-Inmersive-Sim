@@ -18,6 +18,7 @@ var hover_info_label: Label = null
 var census_label: Label = null
 
 var _pulse_phase: float = 0.0
+var _label_hits: Array[Dictionary] = [] # rectángulos del mapa grande con su nombre completo (para el cursor)
 var _minimap_redraw_timer: float = 0.0
 var _fullmap_redraw_timer: float = 0.0
 
@@ -50,9 +51,22 @@ func toggle_full_map() -> void:
 	is_full_map_open = not is_full_map_open
 	if full_map_panel:
 		full_map_panel.visible = is_full_map_open
+	if is_full_map_open:
+		_fit_full_map()
 	if is_full_map_open and full_map_canvas:
 		full_map_canvas.queue_redraw()
 		_update_census_and_hover()
+
+## El mapa grande ocupa casi toda la pantalla (antes, 900×550 fijos: los nombres se pisaban).
+func _fit_full_map() -> void:
+	if full_map_panel == null:
+		return
+	var half: Vector2 = get_viewport_rect().size * Vector2(0.47, 0.45)
+	half = Vector2(maxf(half.x, 450.0), maxf(half.y, 275.0))
+	full_map_panel.offset_left = -half.x
+	full_map_panel.offset_right = half.x
+	full_map_panel.offset_top = -half.y
+	full_map_panel.offset_bottom = half.y
 
 func close_full_map() -> void:
 	is_full_map_open = false
@@ -268,8 +282,8 @@ func _draw_valley_cartography(canvas: Control, detailed: bool) -> void:
 		var br := _world_rect_to_map(b["rect"], csize)
 		canvas.draw_rect(br, b["col"], true)
 		canvas.draw_rect(br, Color(0.92, 0.85, 0.65, 0.85), false, 1.0)
-		if detailed and font:
-			canvas.draw_string(font, br.position + Vector2(2, -3), str(b["label"]), HORIZONTAL_ALIGNMENT_LEFT, -1, 10, Color(0.98, 0.94, 0.78))
+	if detailed and font:
+		_draw_building_labels(canvas, font, buildings, csize)
 
 	# Etiquetas de Regiones en el Mapa Completo
 	if detailed and font:
@@ -323,6 +337,37 @@ func _draw_valley_cartography(canvas: Control, detailed: bool) -> void:
 		if detailed and font:
 			canvas.draw_string(font, pp + Vector2(7, 4), "★ TÚ", HORIZONTAL_ALIGNMENT_LEFT, -1, 11, Color(0.35, 1.0, 1.0))
 
+## Nombres de edificios sin pisarse: si no cabe, se acorta (icono + primera palabra); va con un fondo oscuro encima del
+## edificio, o debajo si arriba choca con otro; si tampoco cabe, se omite (al pasar el cursor sigue saliendo).
+func _draw_building_labels(canvas: Control, font: Font, buildings: Array, csize: Vector2) -> void:
+	var placed: Array[Rect2] = []
+	var fs: int = 10
+	_label_hits.clear()
+	for b in buildings:
+		var br := _world_rect_to_map(b["rect"], csize)
+		var full: String = str(b["label"])
+		_label_hits.append({"rect": br, "label": full})
+		var options: Array[String] = [full]
+		var words: PackedStringArray = full.split(" ", false)
+		if words.size() > 2:
+			options.append(words[0] + " " + words[1])
+		for txt in options:
+			var tw: float = font.get_string_size(txt, HORIZONTAL_ALIGNMENT_LEFT, -1, fs).x
+			if tw > br.size.x + 24.0 and txt != options[options.size() - 1]:
+				continue # demasiado largo para su edificio: probamos la versión corta
+			var done: bool = false
+			for pos in [br.position + Vector2(0, -13), Vector2(br.position.x, br.end.y + 1)]:
+				var lr := Rect2(pos, Vector2(tw + 4.0, 12.0))
+				if placed.any(func(r): return r.intersects(lr)):
+					continue
+				placed.append(lr)
+				canvas.draw_rect(lr, Color(0.05, 0.06, 0.08, 0.72), true)
+				canvas.draw_string(font, lr.position + Vector2(2, 10), txt, HORIZONTAL_ALIGNMENT_LEFT, -1, fs, Color(0.98, 0.94, 0.78))
+				done = true
+				break
+			if done:
+				break
+
 func _update_census_and_hover() -> void:
 	if not full_map_canvas:
 		return
@@ -360,6 +405,9 @@ func _update_census_and_hover() -> void:
 	var best_txt := "💡 Leyenda: 🔵 Tú | 🟡 Maestro Artesano | 🟢 Familiar | 🔹 Huésped | 🔴 Hostil Llanura | 🐇🦌🦊🐗 Fauna del Bosque"
 	var best_d2: float = 14.0 * 14.0
 
+	for hit in _label_hits:
+		if (hit["rect"] as Rect2).has_point(mpos):
+			best_txt = "🏛️ " + str(hit["label"])
 	var vm = get_tree().get_first_node_in_group("village_manager")
 	if vm and "shop_businesses" in vm:
 		var shop_rects: Array[Dictionary] = [

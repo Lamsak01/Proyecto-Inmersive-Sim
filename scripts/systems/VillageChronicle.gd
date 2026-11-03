@@ -15,7 +15,7 @@ const WITNESS_RADIUS: float = 170.0
 ## Sucesos que no se apuntan (demasiado frecuentes para ser historia). Las quedadas sí entran desde la revisión de C.
 const SKIP_TYPES: Array[String] = []
 ## Lo sabe todo el pueblo al momento.
-const PUBLIC_TYPES: Array[String] = ["construction", "election_call", "coffers_robbed", "sect_profane", "sect_exposed", "election", "taxes", "embezzle_exposed", "theft_caught", "couple", "breakup", "couple_reconciled", "arrival", "departure", "birth", "grown_up", "teacher", "bereavement_ended", "fight", "feud", "reconciliation", "date", "death_found", "case_closed"]
+const PUBLIC_TYPES: Array[String] = ["construction", "election_call", "coffers_robbed", "sect_profane", "sect_exposed", "election", "taxes", "embezzle_exposed", "theft_caught", "couple", "breakup", "couple_reconciled", "arrival", "departure", "birth", "grown_up", "teacher", "loan", "loan_paid", "eviction", "bereavement_ended", "fight", "feud", "reconciliation", "date", "death_found", "case_closed"]
 ## Lo ha hecho el jugador: lo sabe siempre.
 const PLAYER_TYPES: Array[String] = ["player_gossip", "player_mediation", "player_matchmaking", "player_slander", "quest_done", "quest_failed"]
 
@@ -44,6 +44,7 @@ const TYPE_CATEGORY: Dictionary = {
 	"widowed": "death", "death_found": "death", "case_closed": "death",
 	"arrival": "people", "departure": "people",
 	"pregnancy": "love", "birth": "people", "grown_up": "people", "teacher": "people",
+	"loan": "people", "loan_paid": "people", "eviction": "conflict",
 	"player_gossip": "player", "player_mediation": "player", "player_matchmaking": "player", "player_slander": "player", "quest_done": "player", "quest_failed": "player",
 }
 const TYPE_ICON: Dictionary = {
@@ -66,7 +67,7 @@ const TYPE_ICON: Dictionary = {
 	"couple": "💑", "breakup": "💔", "couple_reconciled": "💞", "rejection": "💔", "jealousy": "😠", "date": "🌹",
 	"romance_interest": "💗", "romance_flirt": "😊", "romance_dating": "💞", "romance_fizzle": "🥀", "bereavement_ended": "🕯️",
 	"fight": "👊", "feud": "⚡", "reconciliation": "🤝", "npc_slander": "🗣️", "widowed": "🖤", "death_found": "💀", "case_closed": "⚖️",
-	"arrival": "🧳", "departure": "🚪", "player_gossip": "🗣️", "player_mediation": "🕊️", "player_matchmaking": "💘",
+	"arrival": "🧳", "departure": "🚪", "loan": "🏦", "loan_paid": "🔑", "eviction": "📦", "player_gossip": "🗣️", "player_mediation": "🕊️", "player_matchmaking": "💘",
 	"player_slander": "🐍", "quest_done": "✅", "quest_failed": "❌",
 }
 

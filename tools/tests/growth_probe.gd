@@ -51,7 +51,12 @@ func _initialize() -> void:
 				(fs["pregnancies"] as Dictionary).size(), int(fs["births"]), kids, int(fs["grown_up"]), str(fam.teacher_of(vm) != null),
 				float(ms["last_score"]), _fmt(ms["last_parts"])])
 	print("MEAL_FAILS %s" % str(mig.state(vm).get("meal_fails", {})))
-	print("TREASURY %d houses_ordered=%d" % [int(vm.town_state.get("treasury", 0)), int(mig.state(vm)["houses_ordered"])])
+	var loans_open: Array = []
+	for l in lots.LOTS:
+		var lst: Dictionary = lots.lot(vm, str(l["id"]))
+		if lst.has("loan"):
+			loans_open.append("%s:%s debe %d (impagos %d)" % [str(l["id"]), str(lst["loan"]["lender_name"]), int(lst["loan"]["owed"]), int(lst["loan"]["missed"])])
+	print("TREASURY %d houses_ordered=%d loans_given=%d open=%s" % [int(vm.town_state.get("treasury", 0)), int(mig.state(vm)["houses_ordered"]), int(mig.state(vm).get("loans_given", 0)), str(loans_open)])
 	print("PHASE1 days=%d max_pop=%d real_seconds=%.0f" % [days, max_pop, float(Time.get_ticks_msec() - t_start) / 1000.0])
 	# ---------------------------------------------------------------- fase 2
 	wc.set_persistent_time_scale(1.0)

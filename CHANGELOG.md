@@ -5,6 +5,10 @@ El detalle técnico está en `docs/HANDOFF.md` (sección 7) y el historial compl
 
 ## 2026-11-03
 
+### Casas a plazos y mapa más claro
+- Las casas cuestan 100 de oro y se pueden comprar a plazos: con 15 de entrada, el pueblo o un noble presta el resto con un 25 % de interés. Quien deja de pagar 5 días seguidos pierde la casa. La deuda se ve en la ficha y en la crónica.
+- El mapa grande (M) ocupa casi toda la pantalla y los nombres de los edificios ya no se pisan; al pasar el cursor sale el nombre completo.
+
 ### Ayudantes que cobran
 - Quien ayuda en el negocio de su familia recibe ahora una parte del dueño cada día; antes no cobraba nada y acababa sin poder comer. En total, las comidas que fallan en el pueblo bajan a menos de un tercio.
 

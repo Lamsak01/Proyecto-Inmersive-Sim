@@ -165,9 +165,18 @@ static func nightly(vm, n) -> bool:
 	var id: String = house_of(n)
 	if id == "":
 		return false
-	if str(VillageLots.lot(vm, id).get("payer", "")) == "town" and n.personal_gold >= TOWN_HOUSE_RENT:
+	var owner_key: String = str(VillageLots.lot(vm, id).get("payer", ""))
+	if owner_key == "town" and n.personal_gold >= TOWN_HOUSE_RENT:
 		n.personal_gold -= TOWN_HOUSE_RENT
 		vm.town_state["treasury"] = int(vm.town_state.get("treasury", 0)) + TOWN_HOUSE_RENT
+	elif owner_key != "" and owner_key != n.get_person_key() and n.personal_gold >= TOWN_HOUSE_RENT:
+		# H: casa de otro (p. ej. un noble que la recuperó por deudas): el alquiler va a su dueño
+		var landlord = vm._get_npcs_by_person_key().get(owner_key, null)
+		var res_keys: Array = VillageLots.lot(vm, id).get("residents", [])
+		var owner_lives_here: bool = res_keys.any(func(rk): return str(rk) == owner_key) # su familia no paga
+		if landlord != null and is_instance_valid(landlord) and not landlord.is_dead and not owner_lives_here:
+				n.personal_gold -= TOWN_HOUSE_RENT
+				landlord.personal_gold += TOWN_HOUSE_RENT
 	return true
 
 # ---------------------------------------------------------------- atractivo
@@ -338,6 +347,13 @@ static func maybe_order_house(vm, score: float) -> String:
 		var need: int = cost - int(buyer.personal_gold)
 		mate.personal_gold -= need
 		buyer.personal_gold += need
+	# H: sin dinero para pagarla entera, con la entrada se pide prestado el resto (al pueblo o a un noble)
+	var loan: Dictionary = {}
+	if payer == null:
+		loan = vm.VillageLoans.arrange(vm, buyer, mate, cost)
+		if not loan.is_empty():
+			vm.VillageLoans.disburse(vm, loan, buyer, mate)
+			payer = buyer
 	var title: String = ("🏠 Casa de %s" % str(payer.npc_name).split(" ")[0]) if payer != null else "🏠 Casa del pueblo"
 	# E2: si alguien duerme al raso, el pueblo no se guarda la reserva
 	var reserve: int = 0 if street else TREASURY_RESERVE
@@ -346,6 +362,10 @@ static func maybe_order_house(vm, score: float) -> String:
 	var id: String = VillageLots.request_build(vm, str(lots[0]), "house", payer, title)
 	if id != "":
 		state(vm)["houses_ordered"] = int(state(vm)["houses_ordered"]) + 1
+		if not loan.is_empty():
+			vm.VillageLoans.open_loan(vm, id, buyer, loan)
+	elif not loan.is_empty():
+		vm.VillageLoans.undo(vm, loan, buyer)
 	return id
 
 static func _partner_of(vm, n):
@@ -363,6 +383,7 @@ static func daily(vm) -> void:
 		if not is_instance_valid(g) or g.is_dead or not is_unemployed(g):
 			vm.unemployed_npcs.remove_at(i)
 	prune_residents(vm)
+	vm.VillageLoans.daily(vm) # H: cuotas y desahucios antes de repartir casas libres
 	assign_houses(vm)
 	var a: Dictionary = attractiveness(vm)
 	var score: float = float(a["score"])
