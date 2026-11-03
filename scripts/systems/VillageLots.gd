@@ -19,6 +19,7 @@ const CARPENTER_SHARE: float = 0.4 # Lo que cobra el carpintero; el resto son ma
 ## Solares. `door_south`: la puerta mira al sur (si no, al norte). Tamaños de terreno, no del edificio.
 const LOTS: Array = [
 	# Borde norte, en fila sobre una calle nueva detrás de la posada y las casas
+	{"id": "n0", "zone": "borde", "center": Vector2(190, -420), "size": Vector2(130, 96), "door_south": true}, # V3
 	{"id": "n1", "zone": "borde", "center": Vector2(330, -420), "size": Vector2(130, 96), "door_south": true},
 	{"id": "n2", "zone": "borde", "center": Vector2(470, -420), "size": Vector2(130, 96), "door_south": true},
 	{"id": "n3", "zone": "borde", "center": Vector2(610, -420), "size": Vector2(130, 96), "door_south": true},
@@ -30,6 +31,7 @@ const LOTS: Array = [
 	{"id": "e3", "zone": "borde", "center": Vector2(1400, -36), "size": Vector2(130, 96), "door_south": true},
 	{"id": "e4", "zone": "borde", "center": Vector2(1090, 140), "size": Vector2(130, 96), "door_south": false},
 	{"id": "e5", "zone": "borde", "center": Vector2(1230, 140), "size": Vector2(130, 96), "door_south": false},
+	{"id": "e6", "zone": "borde", "center": Vector2(1400, 140), "size": Vector2(130, 96), "door_south": false}, # V3
 	# Afueras: campos al sur, entre el pueblo y el bosque, y la ladera del noroeste
 	# `offset`: en los solares grandes el edificio va a un lado y deja sitio a campos, corrales o la cantera
 	{"id": "s1", "zone": "afueras", "center": Vector2(-220, 470), "size": Vector2(230, 160), "door_south": false, "offset": Vector2(-50, 0)},
@@ -44,7 +46,7 @@ const LOTS: Array = [
 
 ## Calles y sendas nuevas hacia los solares (también las dibuja el mapa).
 const ROADS: Array = [
-	Rect2(Vector2(270, -362), Vector2(720, 22)), # Calle norte
+	Rect2(Vector2(130, -362), Vector2(860, 22)), # Calle norte (V3: alargada hasta el solar n0)
 	Rect2(Vector2(660, -362), Vector2(24, 230)), # Enlace con la calle de las casas
 	Rect2(Vector2(1010, 36), Vector2(470, 28)), # Camino principal hacia el este
 	Rect2(Vector2(-290, -250), Vector2(20, 286)), # Senda a la ladera del noroeste (puerta de la cantera)

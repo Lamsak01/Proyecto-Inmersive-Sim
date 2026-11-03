@@ -5,6 +5,9 @@ El detalle técnico está en `docs/HANDOFF.md` (sección 7) y el historial compl
 
 ## 2026-11-03
 
+### Crecer el pueblo: llegadas y marchas
+- **V3**: ya no llegan siempre tres viajeros. El pueblo tiene un **atractivo** que sube con el trabajo libre y las camas libres, y baja con los mendigos, las muertes, las peleas y el hambre. Si va bien, llega gente a quedarse (jornaleros, artesanos con ahorros o una pareja), siempre que haya donde dormir, hasta 50 vecinos. Si va mal, se marchan los que no tienen casa ni amigos, sobre todo si duermen en la calle. Cuando faltan casas, el carpintero construye una: la paga quien llegó con ahorros o, si no, las arcas del pueblo. Hay dos solares nuevos para casas.
+
 ### Crecer el pueblo: biblioteca, escuela, mercado y taller
 - **V5e**: en la calle norte hay una **biblioteca**: algunos vecinos van a leer en su tiempo libre (sobre todo los curiosos), y cuando llueve es casi el único sitio al que la gente sale. Tú puedes leer un rato una vez al día y aprender algo de un oficio. Al este está la **escuela**, vacía hasta que haya niños. Los **miércoles por la mañana** hay **mercado** en la plaza: las tiendas con género de sobra montan un puesto y los vecinos se acercan a comprar y charlar. Y hay un **Taller de Reparaciones**: si te sabotean un negocio, el arreglador lo deja como nuevo antes, cobrando. Nombres provisionales.
 

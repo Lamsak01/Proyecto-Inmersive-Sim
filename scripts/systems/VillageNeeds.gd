@@ -233,6 +233,8 @@ static func tick(vm) -> void:
 				vm.VillagePlaces.on_arrived(vm, n) # V5c: se queda un rato (lo cierra VillagePlaces)
 			"market":
 				vm.VillageCulture.on_market_arrived(vm, n) # V5e: compra en el mercado
+			"leave":
+				vm.VillageMigration.on_left(vm, n) # V3: se marcha del valle
 			_:
 				vm.VillageCivic.on_errand_arrived(vm, n) # V5b: votar, el alcalde en el ayuntamiento
 

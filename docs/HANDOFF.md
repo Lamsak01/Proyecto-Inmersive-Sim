@@ -540,6 +540,27 @@ Cada fase se dividirá en bloques pequeños cuando se llegue a ella (detalle en 
   de reparación con hierro del herrero): cada día, hasta 2 negocios saboteados cuyo dueño tenga 8 de oro pagan, el
   arreglador gasta un kit y les quita un día de avería. **Sin probar en juego:** que los vendedores lleguen a la plaza
   y vuelvan, la afluencia del mercado y de la biblioteca, y el precio de los arreglos.
+- [x] **V3** Llegadas y marchas (`scripts/systems/VillageMigration.gd`, `vm.migration_state`, se guarda). Sustituye a la
+  «Prioridad 4» de `_process_daily_map_edge_arrivals` (siempre 3 viajeros): ahora `VillageMigration.daily` (justo
+  después) calcula el **atractivo** = 0,4·trabajo + 0,3·vivienda + pobreza + seguridad + comida. Trabajo: (tiendas
+  vacantes·2 + huecos de jornal con dueño − parados) / 6, entre −1 y 1. Vivienda: camas libres en casas + 1 si queda
+  cama de huésped en El Jabalí, /3 (−0,3 si no hay ninguna). Pobreza: −1,5 · proporción de mendigos. Seguridad: crónica
+  sabida de los últimos 7 días (asesinato y muerto hallado −0,25, muerte por enfermedad −0,1, pelea −0,05; tope −1).
+  Comida: −0,4 con escasez. Si el atractivo pasa de 0,05, llega alguien con probabilidad atractivo·0,8 (tope 0,6; a
+  veces dos si pasa de 0,5), solo si hay cama (casa o El Jabalí) y menos de 50 vecinos (`POP_CAP`), respetando
+  `MAX_DAILY_ARRIVALS`. Tipos: jornalero (8–25 de oro), artesano (70–130) o pareja (40–70 cada uno, +60 de relación;
+  solo si hay casa con 2 camas). Siguen siendo `UNEMPLOYED` (jornales, sucesiones). **Casas**: `assign_houses` mete en
+  las camas libres primero a quien pagó la casa, luego a quien duerme en la calle o el albergue, luego a los huéspedes
+  (`lodging` = «house:<solar>», nueva familia `family_lot_<solar>`); en casa no pagan posada (`nightly`), salvo 2 de oro
+  a las arcas en las casas del pueblo. `maybe_order_house`: sin camas libres en casas, con gente sin casa y atractivo
+  ≥ 0,1 (o alguien en la calle), el carpintero levanta una casa en un solar libre del borde: la paga el más rico sin casa
+  si tiene 80, si no las arcas si tienen 100. **Marchas** (como mucho una al día): solo parados sin casa, sin pareja y
+  con menos de 2 amigos (relación ≥ 40), si el atractivo baja de 0,2; probabilidad (0,2 − atractivo)·0,5 si duerme en la
+  calle o el albergue, ·0,15 si no (tope 0,3). Van andando al borde (encargo «leave», meta `leaving`, se reanuda cada
+  hora) y allí desaparecen (`_free_transient_npc`, crónica «departure»). Dos solares nuevos para casas: n0 (190, −420),
+  con la calle norte alargada, y e6 (1400, 140). **Ojo:** con los solares libres que quedan (n0, n1, e1, e6) caben unas
+  8 personas más en casas; para llegar a 50 hará falta más sitio (más solares o casas más grandes). **Sin probar en
+  juego:** el ritmo real de llegadas y marchas y que el pueblo no se vacíe ni se llene de golpe.
 
 ### Interfaz
 - [x] **HUD1** Barras de estado (`scenes/ui_root.gd`, `_create_stats_box` / `_create_fallback_bar`): recuadro oscuro arriba a

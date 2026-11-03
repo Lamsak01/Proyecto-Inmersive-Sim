@@ -2517,7 +2517,9 @@ func _initialize() -> void:
 	for n5 in get_nodes_in_group("village_npcs"):
 		if v5d_worker == null and vw.can_be_hired(n5) and n5 != v5d_master:
 			v5d_worker = n5
-	assert(v5d_worker != null, "V5d: There is somebody without a trade to hire")
+	if v5d_worker == null: # V3: ya no hay siempre viajeros parados; traemos uno
+		v5d_worker = load("res://scripts/systems/VillageMigration.gd")._spawn_one(vm, {"label": "Jornalero de prueba", "gold": Vector2i(10, 10)}, 0)
+	assert(v5d_worker != null and vw.can_be_hired(v5d_worker), "V5d: There is somebody without a trade to hire")
 	var v5d_wg: int = v5d_worker.personal_gold
 	var v5d_wp: Vector2 = v5d_worker.global_position
 	v5d_master.personal_gold = 200
@@ -2627,6 +2629,49 @@ func _initialize() -> void:
 		else:
 			vm.trade_npcs.erase(e5[0])
 	print("V5e library, school, market and repairs OK")
+
+	# 69. V3: llegadas y marchas según el atractivo del pueblo; casas para quien llega.
+	var vmi = load("res://scripts/systems/VillageMigration.gd")
+	for id3 in ["n0", "e6"]:
+		var r3 := Rect2(vl.lot_def(id3)["center"] - vl.lot_def(id3)["size"] * 0.5, vl.lot_def(id3)["size"])
+		for f3 in vm.building_footprints:
+			assert(not r3.intersects(f3["rect"]), "V3: Lot %s is clear of %s" % [id3, str(f3["id"])])
+	var v3_a: Dictionary = vmi.attractiveness(vm)
+	assert(v3_a.has("score") and (v3_a["parts"] as Dictionary).has("jobs"), "V3: The town has an attractiveness score")
+	# Una casa construida acoge a un recién llegado, que no paga posada
+	var v3_st: Dictionary = vl.lot(vm, "n0")
+	var v3_saved: Dictionary = v3_st.duplicate(true)
+	v3_st["status"] = "built"
+	v3_st["kind"] = "house"
+	v3_st["title"] = "🏠 Casa de prueba"
+	v3_st["payer"] = "town"
+	v3_st["beds"] = vl._house_beds("n0")
+	v3_st["residents"] = []
+	var v3_pop: int = vmi.population(vm)
+	var v3_arr: int = vm.arrivals_today_count
+	vm.arrivals_today_count = 0
+	var v3_n = vmi._spawn_one(vm, vmi.SETTLER_KINDS[0], 0)
+	assert(vmi.population(vm) == v3_pop + 1, "V3: A settler arrives")
+	assert(vmi.move_into_house(vm, v3_n) and vmi.house_of(v3_n) == "n0" and v3_n.bed_position in v3_st["beds"], "V3: The settler moves into a free house")
+	v3_n.personal_gold = 5
+	var v3_tr: int = int(vm.town_state.get("treasury", 0))
+	assert(vmi.nightly(vm, v3_n) and v3_n.personal_gold == 3 and int(vm.town_state["treasury"]) == v3_tr + 2, "V3: Town houses pay a small rent to the coffers")
+	# Si el pueblo va mal, quien no tiene casa ni lazos se marcha
+	v3_n.lodging = ""
+	vmi.prune_residents(vm)
+	assert((v3_st["residents"] as Array).is_empty(), "V3: Residents who left the house are pruned")
+	v3_n.is_vagrant_camper = true
+	assert(vmi.leave_chance(vm, v3_n, -0.5) > 0.2 and vmi.leave_chance(vm, v3_n, 0.6) == 0.0, "V3: Homeless people leave a failing town, not a good one")
+	vmi.start_leaving(vm, v3_n)
+	assert(v3_n.errand_kind == "leave", "V3: The leaver walks to the edge of the valley")
+	var v3_dep: int = int(vmi.state(vm)["departures"])
+	vmi.on_left(vm, v3_n)
+	assert(int(vmi.state(vm)["departures"]) == v3_dep + 1 and vmi.population(vm) == v3_pop, "V3: Once at the edge, they are gone")
+	for k3 in v3_saved.keys():
+		v3_st[k3] = v3_saved[k3]
+	v3_st["residents"] = []
+	vm.arrivals_today_count = v3_arr
+	print("V3 arrivals and departures OK")
 
 	print("ALL RIMWORLD MEDICAL, FOOTPRINTS, 3-PHASE CORPSE REPORT, MULTI-CORPSE FIX, RPG INTERROGATION, PUBLIC TRIAL, DYNAMIC RELATIONSHIPS, MISSING FAMILY SEARCH, SOCIAL GLOSSARY & UNCONSCIOUS REACTION TESTS PASSED!")
 	quit(0)

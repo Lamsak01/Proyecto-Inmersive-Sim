@@ -23,6 +23,7 @@ const VillageTrades = preload("res://scripts/systems/VillageTrades.gd")
 const VillageCivic = preload("res://scripts/systems/VillageCivic.gd")
 const VillagePlaces = preload("res://scripts/systems/VillagePlaces.gd")
 const VillageCulture = preload("res://scripts/systems/VillageCulture.gd")
+const VillageMigration = preload("res://scripts/systems/VillageMigration.gd")
 const VillageWork = preload("res://scripts/systems/VillageWork.gd")
 
 ## Gestor Integral de Urbanismo Sólido, Hospital/Morgue Forense, Comisaría/Cárcel, Testigos,
@@ -75,6 +76,7 @@ var lots_state: Dictionary = {} # V4: solares y obras (VillageLots)
 var _lot_visuals: Dictionary = {}
 var places_state: Dictionary = {} # V5c: terceros espacios (contadores)
 var culture_state: Dictionary = {} # V5e: biblioteca, mercado y arreglos
+var migration_state: Dictionary = {} # V3: llegadas, marchas y atractivo del pueblo
 var work_state: Dictionary = {} # V5d: jornaleros del día
 ## La secta secreta (O). Ver `VillageSect.gd`. Se guarda.
 var sect_state: Dictionary = {}
@@ -2360,6 +2362,7 @@ func _on_hour_passed(_day: int, new_hour: int = 8) -> void:
 	VillagePlaces.on_hour(self, actual_hour) # V5c: ratos libres en el parque, la plaza o el mirador
 	VillageWork.on_hour(self, actual_hour) # V5d: jornaleros (contratar, contar horas, pagar)
 	VillageCulture.on_hour(self, actual_hour) # V5e: mercado de los miércoles
+	VillageMigration.on_hour(self, actual_hour) # V3: los que se marchan siguen su camino
 
 	# 07:00 AM -> Comprobar llegada semanal de los 2 Mercaderes Ambulantes (Día 3: Maese Casimir | Día 6: Valeria la Tratante)
 	if actual_hour == 7:
@@ -3138,6 +3141,7 @@ func _on_day_passed(_new_day: int) -> void:
 
 	# 2. LLEGADAS EXTERNAS DESDE EL BORDE DEL MAPA (Estricto límite de `MAX_DAILY_ARRIVALS = 2` personas por día)
 	_process_daily_map_edge_arrivals()
+	VillageMigration.daily(self) # V3: casas, marchas y llegadas según el atractivo del pueblo
 
 	if total_player_dividends > 0:
 		var p_div = get_tree().get_first_node_in_group("player")
@@ -3205,34 +3209,7 @@ func _process_daily_map_edge_arrivals() -> void:
 		arrivals_today_count += 1
 		_hint_player("⚒️🚶 %s (%s Novato · 35%% Eficiencia) está entrando al valle desde el borde del mapa." % [new_art.npc_name, str(cfg.get("title", "Artesano"))])
 
-	# Prioridad 4: Si aún queda cupo en el límite diario (<= 2/día) y hay camas de viajeros vacías en la Posada (máx. 3 huéspedes)
-	var living_guests: Array[VillageNPC] = []
-	for g in unemployed_npcs:
-		if is_instance_valid(g) and not g.is_dead and g.trade_role == VillageNPC.TradeRole.UNEMPLOYED:
-			living_guests.append(g)
-	unemployed_npcs = living_guests
-
-	var guest_beds: Array[Vector2] = [Vector2(435, -252), Vector2(468, -252), Vector2(502, -252)]
-	var guest_day_spots: Array[Vector2] = [Vector2(440, 44), Vector2(495, 44), Vector2(415, -105)]
-	var tex_traveler := _load_tex("res://assests/world/village/villager_traveler.png")
-	while unemployed_npcs.size() < 3 and arrivals_today_count < MAX_DAILY_ARRIVALS:
-		var slot_idx: int = unemployed_npcs.size()
-		var t_npc: VillageNPC = _spawn_generated_newcomer(
-			"NPC_Traveler_",
-			VillageNPC.TradeRole.UNEMPLOYED,
-			VillageNPC.TradeRole.UNEMPLOYED,
-			"Viajero Recién Llegado",
-			tex_traveler,
-			guest_day_spots[slot_idx % guest_day_spots.size()],
-			guest_beds[slot_idx % guest_beds.size()],
-			{},
-			_tavern_social_pos,
-			"none",
-			"Huésped de Posada"
-		)
-		unemployed_npcs.append(t_npc)
-		arrivals_today_count += 1
-		_hint_player("🎒🚶 Un nuevo viajero (%s) acaba de entrar al valle por el camino principal." % t_npc.npc_name)
+	# Prioridad 4 (V3): ya no hay «siempre 3 viajeros»; llegan según el atractivo del pueblo (VillageMigration.daily)
 
 ## V8: quién se queda un negocio sin dueño. Puntúa ambición, diligencia y ahorros; un familiar de otra casa solo deja
 ## la suya si es ambicioso. Los otros ambiciosos que se quedan sin él le cogen algo de envidia.
@@ -3964,6 +3941,8 @@ func _process_nightly_tavern_rent_and_vagrant_camps() -> void:
 	for guest in unemployed_npcs:
 		if not is_instance_valid(guest) or guest.is_dead or guest.trade_role != VillageNPC.TradeRole.UNEMPLOYED:
 			continue
+		if VillageMigration.nightly(self, guest): # V3: vive en una casa, no paga posada
+			continue
 		if VillageCivic.nightly_guest(self, guest, rent_cost): # V5b: El Candil, más barata
 			continue
 		# Si ya era vagabundo pero ha ahorrado >= 18 Oro y la Posada está abierta, recupera su cama bajo techo
@@ -4528,6 +4507,7 @@ func get_economy_save_dict() -> Dictionary:
 		"lots_state": lots_state.duplicate(true),
 		"places_state": places_state.duplicate(true),
 		"culture_state": culture_state.duplicate(true),
+		"migration_state": migration_state.duplicate(true),
 		"work_state": work_state.duplicate(true),
 		"sect_state": sect_state.duplicate(true),
 		"social_event_uid": _social_event_uid,
@@ -4600,6 +4580,8 @@ func load_economy_save_dict(data: Dictionary) -> void:
 	VillageWork.after_load(self)
 	culture_state = (data["culture_state"] as Dictionary).duplicate(true) if typeof(data.get("culture_state")) == TYPE_DICTIONARY else {}
 	VillageCulture.after_load(self)
+	migration_state = (data["migration_state"] as Dictionary).duplicate(true) if typeof(data.get("migration_state")) == TYPE_DICTIONARY else {}
+	VillageMigration.after_load(self)
 	VillageSect._update_band(self)
 	if data.has("chronicle") and typeof(data["chronicle"]) == TYPE_ARRAY:
 		chronicle.clear()
