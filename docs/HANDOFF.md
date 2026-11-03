@@ -252,8 +252,9 @@ Cada fase se dividirá en bloques pequeños cuando se llegue a ella (detalle en 
 
 ### Interfaz
 - [x] **HUD1** Barras de estado (`scenes/ui_root.gd`, `_create_stats_box` / `_create_fallback_bar`): recuadro oscuro arriba a
-  la izquierda, barras finas con relleno de color y texto blanco (antes `modulate` teñía también el texto). Aguante (STM) y
-  sangre (BLD) ocultas por petición del usuario (siguen existiendo y actualizándose). Aturdido solo se ve si hay aturdimiento.
+  la izquierda, barras finas con relleno de color y texto blanco (antes `modulate` teñía también el texto). Se ven
+  Resistencia, ⚡ Aguante, Hambre y Sueño. Sangre (BLD) y aturdimiento (STN) ocultas por petición del usuario (siguen
+  existiendo y actualizándose por dentro).
 
 ## 8. Decisiones de diseño ya tomadas (no volver a preguntarlas)
 

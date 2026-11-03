@@ -46,15 +46,14 @@ func _ready() -> void:
 		return
 
 	# 2. Setup Bars if not assigned
-	# Recuadro de estado (arriba a la izquierda). Aguante y sangre siguen funcionando por dentro, pero no se muestran.
+	# Recuadro de estado (arriba a la izquierda). Sangre y aturdimiento siguen funcionando por dentro, pero no se muestran.
 	var stats_box: VBoxContainer = _create_stats_box()
 	if not health_bar:
 		health_bar = _create_fallback_bar(Color(0.86, 0.26, 0.26), Vector2.ZERO, "🛡️ Res")
 		stats_box.add_child(health_bar)
 
 	if not stamina_bar:
-		stamina_bar = _create_fallback_bar(Color(0.35, 0.80, 0.40), Vector2.ZERO, "STM")
-		stamina_bar.visible = false
+		stamina_bar = _create_fallback_bar(Color(0.35, 0.80, 0.40), Vector2.ZERO, "⚡ Aguante")
 		stats_box.add_child(stamina_bar)
 
 	if not blood_bar:
@@ -66,7 +65,7 @@ func _ready() -> void:
 	if not stun_bar:
 		stun_bar = _create_fallback_bar(Color(0.95, 0.80, 0.25), Vector2.ZERO, "💫 Aturdido")
 		stun_bar.value = 0.0
-		stun_bar.visible = false # Solo aparece cuando estás aturdido
+		stun_bar.visible = false
 		stats_box.add_child(stun_bar)
 
 	if not hunger_bar:
@@ -753,7 +752,6 @@ func _on_blood_changed(current: float, max_val: float) -> void:
 func _on_stun_changed(current: float, max_val: float) -> void:
 	stun_bar.value = current
 	stun_bar.max_value = max_val
-	stun_bar.visible = current > 0.5
 
 func _on_hunger_changed(current: float, max_val: float) -> void:
 	if hunger_bar:
