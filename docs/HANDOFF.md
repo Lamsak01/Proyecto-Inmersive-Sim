@@ -272,8 +272,10 @@ Cada fase se dividirá en bloques pequeños cuando se llegue a ella (detalle en 
   chantajea (paga la mitad de su oro, hasta 30, o se niega y se lo cuenta a la pareja). S5: diálogo «🤫 Sé lo tuyo con…»
   (pedir oro / prometer callar) y «💔 Tengo algo que contarte» a la pareja; si el rumor que oíste señalaba a otra persona,
   lo niega. Test #55. La sonda imprime SECRETS.
-  **Pendiente de medir**: los chismes circulan muy poco en partidas largas (25 días: 1 chisme contado), así que olvidos,
-  deformaciones y aventuras descubiertas serán raros. Decidir con el usuario si se sube el ritmo de los chismes.
+  Medido antes de S: los chismes circulaban muy poco (25 días: 1 chisme contado).
+- [x] **R5** Más ritmo de chismes (pedido por el usuario): `GOSSIP_EVENT_TYPES` suma citas, coqueteos, noviazgos, celos,
+  llegadas, marchas y perdones de infidelidad; en cada charla también puede contar novedades quien contesta
+  (`VillageNPC`, «¿Y sabes qué? …»). Exageraciones propias para lo romántico. Pendiente: confirmar con la sonda.
 
 ### Interfaz
 - [x] **HUD1** Barras de estado (`scenes/ui_root.gd`, `_create_stats_box` / `_create_fallback_bar`): recuadro oscuro arriba a

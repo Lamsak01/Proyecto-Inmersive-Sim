@@ -983,7 +983,8 @@ func record_social_event(type_str: String, actor: VillageNPC, target: VillageNPC
 	return entry
 
 ## B6.1: Eventos que merecen chisme. Son solo información: no mueven relaciones entre vecinos.
-const GOSSIP_EVENT_TYPES: Array[String] = ["fight", "breakup", "couple", "couple_reconciled", "feud", "reconciliation", "player_slander", "npc_slander", "rejection"] # Sin "widowed": revelaría muertes aún sin descubrir
+const GOSSIP_EVENT_TYPES: Array[String] = ["fight", "breakup", "couple", "couple_reconciled", "feud", "reconciliation", "player_slander", "npc_slander", "rejection",
+	"date", "romance_flirt", "romance_dating", "jealousy", "arrival", "departure", "affair_forgiven"] # R5: más cosas de las que hablar # Sin "widowed": revelaría muertes aún sin descubrir
 const GOSSIP_MAX_AGE_DAYS: int = 20 # R1: tope; antes lo decide la memoria de cada vecino (GossipMemory)
 const NEWS_MIN_KNOWERS: int = 3
 

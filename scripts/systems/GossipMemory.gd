@@ -28,6 +28,9 @@ const EXAG_BY_TYPE: Dictionary = {
 	"breakup": [" y dicen que a gritos", " y dicen que se tiraron los platos a la cabeza"],
 	"couple": [" y dicen que ya hablan de boda", " y dicen que esperan un hijo"],
 	"rejection": [" y dicen que delante de todos", " y dicen que se rió en su cara"],
+	"date": [" y dicen que no se separan", " y dicen que ya viven juntos"],
+	"romance_flirt": [" y dicen que no se quitan los ojos de encima", " y dicen que ya se han besado"],
+	"romance_dating": [" y dicen que va muy en serio", " y dicen que ya hablan de boda"],
 	"feud": [" y dicen que no se pueden ni ver", " y dicen que se juraron venganza"],
 }
 const EXAG_GENERIC: Array = [" (o eso dicen)", ", y dicen que es peor de lo que parece"]

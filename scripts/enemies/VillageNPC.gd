@@ -974,6 +974,11 @@ func _process_pending_social_reply(delta: float) -> void:
 		var news: Dictionary = vm_news.spread_gossip(initiator, self)
 		if not news.is_empty():
 			initiator._spawn_floating_text("🗣️ «¿Te has enterado? %s»" % vm_news.gossip_text(news, self, get_person_key()), Color(1.0, 0.92, 0.65), -46.0)
+	# R5: quien contesta también puede contar algo que el otro no sepa
+	if vm_news != null and randf() < clampf(0.5 + 0.25 * TraitCatalog.npc_tendency(self, "gossip"), 0.15, 0.85):
+		var news_b: Dictionary = vm_news.spread_gossip(self, initiator)
+		if not news_b.is_empty():
+			_spawn_floating_text("🗣️ «¿Y sabes qué? %s»" % vm_news.gossip_text(news_b, initiator, initiator.get_person_key()), Color(1.0, 0.92, 0.65), -50.0)
 	if vm_news != null:
 		vm_news.try_npc_slander(initiator, self)
 

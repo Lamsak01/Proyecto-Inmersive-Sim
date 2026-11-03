@@ -5,6 +5,9 @@ El detalle técnico está en `docs/HANDOFF.md` (sección 7) y el historial compl
 
 ## 2026-11-02
 
+### Chismes
+- **R5**: en el pueblo se habla más. Ahora también se comentan citas, coqueteos, noviazgos, celos, llegadas y marchas, y en cada charla pueden contar novedades los dos vecinos.
+
 ### Secretos
 - **S1–S6**: infidelidades raras (las personas fieles nunca; las infieles bastante más) que pueden descubrirse si alguien los ve juntos. Entonces corre el chisme, deformado a veces: puede acabar señalando a un inocente. Si llega a la pareja, lo normal es que rompan. Un vecino malicioso puede chantajear al infiel. Tú también: si sabes el secreto puedes pedirle oro, prometerle callar o contárselo a su pareja.
 
