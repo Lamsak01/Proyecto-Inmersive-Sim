@@ -299,6 +299,9 @@ Cada fase se dividirá en bloques pequeños cuando se llegue a ella (detalle en 
   Sonda (semilla 303, 25 días, sin jugador): 7 deseos (5 venganzas, 2 ambiciones; 3 cumplidos, 1 olvidado, 3 en curso),
   2 sabotajes, 0 asesinatos, calumnias 5 (antes 3), peleas 2, 17 vivos, 76 % de relaciones en la franja media. Sin errores.
 
+### Grupos y fe (bloques G)
+- [ ] **G1–G7** Plan en `docs/PLAN_GRUPOS_FE.md`, **pendiente de aprobación** (5 preguntas al final).
+
 ### Interfaz
 - [x] **HUD1** Barras de estado (`scenes/ui_root.gd`, `_create_stats_box` / `_create_fallback_bar`): recuadro oscuro arriba a
   la izquierda, barras finas con relleno de color y texto blanco (antes `modulate` teñía también el texto). Se ven
