@@ -340,9 +340,9 @@ Cada fase se dividirá en bloques pequeños cuando se llegue a ella (detalle en 
   está libre y por debajo de 45 (+15 × tendencia), va al pozo más cercano o a casa. Por debajo de 20: −5 de humor y dos
   vecinos −1 («Huele mal»). Jugador: `SurvivalComponent.current_hygiene` (−0,04/s, guardada, barra 🧼 en el HUD); se lava
   en los pozos (`_use_water_well`) o al lavarse junto al agua (`wash_bloodstains`); por debajo de 25 cada vecino con el que
-  hablas te baja 1 de afinidad una vez al día. E2: resfriado (3–5 días, contagio 10 %/h a ≤ 60 px, leve) y fiebre gris
-  (6–10 días, 6 %/h, guarda cama `sick_level` 2, sin tratar desde el día 5 muere un 4 %/día). Inicio diario 0,6 % (+3 %
-  si higiene < 30, +0,6 % con lluvia; miasma → fiebre). Tope 3 contagios/día, inmunidad 20 días. El médico trata 3 al día
+  hablas te baja 1 de afinidad una vez al día. E2: resfriado (3–5 días, contagio 6 %/h a ≤ 60 px, leve) y fiebre gris
+  (6–10 días, 4 %/h, guarda cama `sick_level` 2, sin tratar desde el día 5 muere un 4 %/día). Inicio diario 0,6 % (+3 %
+  si higiene < 30, +0,6 % con lluvia; miasma → fiebre). Tope 2 contagios/día, inmunidad 20 días. El médico trata 3 al día
   (graves primero; acorta a la mitad). Jugador: se contagia; enfermo, el aguante se queda en 65/40; la fiebre sin tratar
   le baja 12 de vida al día **sin matarle** (mínimo 5); el médico te cura por 8 de oro. E3: rico ≥ 160, acomodado ≥ 70,
   humilde ≥ 20, pobre, mendigo (campamento o parado con < 5). Los ricos comen en la taberna más (35 %); envidia pequeña;
@@ -366,7 +366,7 @@ Cada fase se dividirá en bloques pequeños cuando se llegue a ella (detalle en 
   el primer día y cada 28; candidatos los 3 elegibles (no autoridades, sacerdote, forasteros ni acampados) con más
   2×mando + ambición + oro/100; cada uno se vota a sí mismo; los demás votan por relación (+15 si es de su bando, +5×mando)
   o por la promesa que les pediste. I1 impuestos cada sábado (`get_weekday() == 5`): 5 % del oro por encima de 20 (ricos
-  8 %) y 5 % de la caja de cada negocio; el alcalde cobra 5 y reparte 5 a cada pobre o mendigo mientras haya. Sueldos de
+  8 %) y 5 % de la caja de cada negocio; el alcalde cobra 5 y reparte 10 a cada pobre o mendigo mientras haya. Sueldos de
   autoridades: siguen saliendo de la Corona. I3 `corruptibility` (Íntegro 0; Sobornable +0,3; honradez, ley, ambición,
   generosidad); corrupto ≥ 0,5. Alcalde corrupto: se queda 30–60 % de cada cobro; 25 % de que alguien lo note (chisme
   `embezzle`, el alcalde calla); con 5 que lo sepan o si lo denuncias al comisario (no corrupto), `expose`: devuelve lo del
@@ -375,6 +375,11 @@ Cada fase se dividirá en bloques pequeños cuando se llegue a ella (detalle en 
   guardia (máx(20, 1,5 × multa); si no es corrupto, multa +10), pedir el voto (afinidad ≥ 30, o 10 de oro a un corrupto),
   denunciar al alcalde. Fama `law` (denunciar +, sobornar −). I4 nobles aplazado al paso 9. Glosario (J): línea del pueblo.
   Crónica: election, taxes, embezzle, embezzle_exposed, police_bribe, player_bribe. Test #59. La sonda imprime TOWN.
+  Sonda E+I (semilla 303, 25 días, sin jugador): sin errores, 18 vivos; higiene media 59; 18 contagios y 0 muertes
+  (demasiados: bajé el contagio a 6 %/4 % y el tope a 2/día); posiciones 7 ricos, 3 humildes, 7 pobres, 1 mendigo
+  (los sueldos de la Corona enriquecen a las autoridades: vigilar); 4 robos, ninguno pillado; 2 enganchados;
+  alcaldesa Marta (no corrupta), 448 de impuestos y 348 sin gastar en las arcas (subí la ayuda a 10 por pobre);
+  3 Oficios (23 asistentes); calumnias 5, peleas 1, 82 % de relaciones en la franja media. Ajustes sin volver a medir.
 
 ### Interfaz
 - [x] **HUD1** Barras de estado (`scenes/ui_root.gd`, `_create_stats_box` / `_create_fallback_bar`): recuadro oscuro arriba a

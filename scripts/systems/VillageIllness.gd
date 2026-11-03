@@ -10,15 +10,15 @@ const VillageNeeds = preload("res://scripts/systems/VillageNeeds.gd")
 const VillageChronicle = preload("res://scripts/systems/VillageChronicle.gd")
 
 const DISEASES: Dictionary = {
-	"cold": {"name": "Resfriado", "min_days": 3, "max_days": 5, "contagion": 0.10, "level": 1, "death": 0.0, "death_after": 99},
-	"fever": {"name": "Fiebre gris", "min_days": 6, "max_days": 10, "contagion": 0.06, "level": 2, "death": 0.04, "death_after": 5},
+	"cold": {"name": "Resfriado", "min_days": 3, "max_days": 5, "contagion": 0.06, "level": 1, "death": 0.0, "death_after": 99},
+	"fever": {"name": "Fiebre gris", "min_days": 6, "max_days": 10, "contagion": 0.04, "level": 2, "death": 0.04, "death_after": 5},
 }
 const ONSET_BASE: float = 0.006
 const ONSET_DIRTY: float = 0.03
 const ONSET_RAIN: float = 0.006
 const FEVER_SHARE: float = 0.2
 const CONTAGION_RADIUS: float = 60.0
-const DAILY_INFECTION_CAP: int = 3
+const DAILY_INFECTION_CAP: int = 2
 const IMMUNE_DAYS: int = 20
 const DOCTOR_PER_DAY: int = 3
 const PLAYER_CURE_COST: int = 8

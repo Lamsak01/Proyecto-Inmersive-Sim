@@ -13,7 +13,7 @@ Paso 7 de `docs/VISION_Y_FUTURO.md`. Prepara la secta secreta (paso 8): poder, d
 ## Bloques
 
 - **I1 – Las arcas del pueblo.** Cada sábado se cobra un impuesto: 5 % del oro de cada vecino por encima de 20 (los
-  ricos, 8 %) y 5 % de la caja de cada negocio. Con las arcas, el alcalde reparte una ayuda a los pobres y mendigos y
+  ricos, 8 %) y 5 % de la caja de cada negocio. Con las arcas, el alcalde reparte una ayuda a los pobres (10 de oro a cada uno) y mendigos y
   cobra su sueldo. Los sueldos de las autoridades siguen viniendo de la Corona (decidido: cambiarlos podía dejar sin
   oro a la policía y romper la economía).
 - **I2 – El alcalde y las elecciones.** Un vecino del pueblo (no autoridades, sacerdote ni forasteros), elegido por
