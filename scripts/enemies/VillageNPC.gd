@@ -34,11 +34,12 @@ enum TradeRole {
 	FARMER,             # 15. Granjero (V5d): trigo y hortalizas en la Granja del Sur, con jornaleros
 	RANCHER,            # 16. Ganadero (V5d): lana y carne en el rancho
 	QUARRYMAN,          # 17. Cantero (V5d): piedra en la cantera del noroeste
-	WOODCUTTER          # 18. Leñador (V5d): madera en la linde del bosque
+	WOODCUTTER,         # 18. Leñador (V5d): madera en la linde del bosque
+	TINKER              # 21. Arreglador del Taller de Reparaciones (V5e): arregla tiendas saboteadas
 }
 
 ## Oficios con taller y mostrador propios (V5: lista común para no repetirla en cada sitio)
-const SHOP_ROLES: Array = [TradeRole.BLACKSMITH, TradeRole.BUTCHER, TradeRole.CARPENTER, TradeRole.HERBALIST, TradeRole.FISHMONGER, TradeRole.BAKER, TradeRole.TAILOR, TradeRole.LODGEKEEPER, TradeRole.FARMER, TradeRole.RANCHER, TradeRole.QUARRYMAN, TradeRole.WOODCUTTER]
+const SHOP_ROLES: Array = [TradeRole.BLACKSMITH, TradeRole.BUTCHER, TradeRole.CARPENTER, TradeRole.HERBALIST, TradeRole.FISHMONGER, TradeRole.BAKER, TradeRole.TAILOR, TradeRole.LODGEKEEPER, TradeRole.FARMER, TradeRole.RANCHER, TradeRole.QUARRYMAN, TradeRole.WOODCUTTER, TradeRole.TINKER]
 
 enum ActivityState {
 	WORKING,     # Atendiendo su taller, ayudando en casa o paseando
@@ -288,7 +289,7 @@ const ROLE_INITIAL_GOLD: Dictionary = {
 	TradeRole.BUTCHER: Vector2i(48, 72), TradeRole.CARPENTER: Vector2i(48, 72),
 	TradeRole.HERBALIST: Vector2i(48, 72), TradeRole.FISHMONGER: Vector2i(48, 72),
 	TradeRole.BAKER: Vector2i(40, 62), TradeRole.TAILOR: Vector2i(48, 72), TradeRole.LODGEKEEPER: Vector2i(36, 58),
-	TradeRole.FARMER: Vector2i(55, 80), TradeRole.RANCHER: Vector2i(55, 80), TradeRole.QUARRYMAN: Vector2i(45, 70), TradeRole.WOODCUTTER: Vector2i(40, 62),
+	TradeRole.FARMER: Vector2i(55, 80), TradeRole.RANCHER: Vector2i(55, 80), TradeRole.QUARRYMAN: Vector2i(45, 70), TradeRole.WOODCUTTER: Vector2i(40, 62), TradeRole.TINKER: Vector2i(45, 70),
 	TradeRole.DOCTOR: Vector2i(52, 78), TradeRole.SHERIFF: Vector2i(52, 78), TradeRole.GUARD: Vector2i(52, 78),
 	TradeRole.FAMILY_MEMBER: Vector2i(26, 44), TradeRole.TRAVELING_MERCHANT: Vector2i(172, 238), TradeRole.ROYAL_INVESTIGATOR: Vector2i(110, 155),
 }
@@ -299,7 +300,7 @@ const ROLE_INITIAL_MATERIALS: Dictionary = {
 	TradeRole.FISHMONGER: {"wood": 1, "herbal_poultice": 1}, TradeRole.INNKEEPER: {"cooked_meat": 1, "bread": 1},
 	TradeRole.DOCTOR: {"herbal_poultice": 2, "leather": 1},
 	TradeRole.BAKER: {"bread": 1, "wood": 1}, TradeRole.TAILOR: {"leather": 2}, TradeRole.LODGEKEEPER: {"cooked_meat": 1},
-	TradeRole.FARMER: {"fertilizer": 1}, TradeRole.RANCHER: {"wheat": 1}, TradeRole.QUARRYMAN: {"repair_kit": 1}, TradeRole.WOODCUTTER: {"repair_kit": 1},
+	TradeRole.FARMER: {"fertilizer": 1}, TradeRole.RANCHER: {"wheat": 1}, TradeRole.QUARRYMAN: {"repair_kit": 1}, TradeRole.WOODCUTTER: {"repair_kit": 1}, TradeRole.TINKER: {"iron_ore": 1},
 }
 
 const ROLE_PSYCHOLOGY: Dictionary = {
@@ -314,6 +315,7 @@ const ROLE_PSYCHOLOGY: Dictionary = {
 	TradeRole.RANCHER: [["Paciente", "Amante de Animales"], "wool", ["Los animales están sanos (+6)"]],
 	TradeRole.QUARRYMAN: [["Fuerte", "Callado"], "stone", ["Buena veta de piedra hoy (+5)"]],
 	TradeRole.WOODCUTTER: [["Fuerte", "Amante del Bosque"], "wood", ["El hacha corta bien (+5)"]],
+	TradeRole.TINKER: [["Mañoso", "Paciente"], "repair_kit", ["Lo roto, arreglado (+6)"]],
 	TradeRole.LODGEKEEPER: [["Hospitalario", "Sencillo"], "country_stew", ["Hay luz en El Candil (+5)"]],
 	TradeRole.TAILOR: [["Perfeccionista", "Coqueto"], "clothes", ["Una costura perfecta (+6)"]],
 	TradeRole.DOCTOR: [["Cirujano Experto", "Forense Meticuloso"], "surgical_kit", ["Urgencias y morgue en orden (+8)"]],
@@ -346,6 +348,7 @@ const ROLE_FALLBACK_LORE: Dictionary = {
 	TradeRole.FARMER: ["tomas", "lina", "Granjero que labra los campos del sur con ayuda de jornaleros y vende trigo al molino y a la panadería."],
 	TradeRole.RANCHER: ["garrick", "nora", "Ganadero del rancho del sur: cría animales por su lana y su carne."],
 	TradeRole.QUARRYMAN: ["thoran", "kiera", "Cantero que saca piedra en la ladera del noroeste para las obras del pueblo."],
+	TradeRole.TINKER: ["kael", "kiera", "Arreglador que remienda lo que se rompe en el pueblo: puestos, herramientas y cerrojos."],
 	TradeRole.WOODCUTTER: ["bram", "mila", "Leñador que corta madera en la linde del bosque para carpinteros, hornos y hogares."],
 	TradeRole.LODGEKEEPER: ["dario", "nora", "Posadero modesto que alquila camas baratas a quien no puede pagar El Jabalí Dorado."],
 	TradeRole.BAKER: ["marlo", "marta", "Panadero llegado de un valle vecino para encender el horno de la calle norte y dar pan a casas y posadas."],
@@ -3105,6 +3108,7 @@ const ARTISAN_RECIPES: Dictionary = {
 	TradeRole.RANCHER: [{"output": "wool", "label": "Lana", "verb": "🐑 Esquilando", "input": "wheat", "supplier": int(TradeRole.FARMER), "input_name": "Pienso"}, {"output": "raw_meat", "label": "Carne", "verb": "🐖 Cuidando el ganado", "input": "wheat", "supplier": int(TradeRole.FARMER), "input_name": "Pienso"}],
 	TradeRole.QUARRYMAN: [{"output": "stone", "label": "Piedra", "verb": "⛏️ Picando piedra", "input": "repair_kit", "supplier": int(TradeRole.BLACKSMITH), "input_name": "Herramientas"}],
 	TradeRole.WOODCUTTER: [{"output": "wood", "label": "Madera", "verb": "🪓 Talando", "input": "repair_kit", "supplier": int(TradeRole.BLACKSMITH), "input_name": "Hacha afilada"}],
+	TradeRole.TINKER: [{"output": "repair_kit", "label": "Kit de Reparación", "verb": "🔧 Remendando", "input": "iron_ore", "supplier": int(TradeRole.BLACKSMITH), "input_name": "Hierro"}],
 }
 
 func _get_artisan_recipes() -> Array[Dictionary]:
@@ -3764,6 +3768,7 @@ func get_activity_description() -> String:
 					"beg": return "🥺 Pidiendo limosna en la plaza" if at_e else "🚶🥺 Yendo a pedir a la plaza"
 					"vote": return "🗳️ Votando en el ayuntamiento" if at_e else "🚶🗳️ Yendo a votar"
 					"leisure": return load("res://scripts/systems/VillagePlaces.gd").activity_text(self, at_e)
+					"market": return "🧺 Comprando en el mercado" if at_e else "🚶🧺 Yendo al mercado"
 					"mayor_office": return "🏛️ Cuadrando las cuentas del pueblo" if at_e else "🚶🏛️ Yendo al ayuntamiento"
 			if rite_kind in ["sect", "sect_lure"]:
 				var vm_sc = _get_vm()

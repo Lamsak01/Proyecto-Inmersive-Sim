@@ -524,6 +524,22 @@ Cada fase se dividirá en bloques pequeños cuando se llegue a ella (detalle en 
   14). A las 18 h cobran 1 de oro por hora; si el dueño no llega, −8 de humor y −6 con él. **Lavadero** (−140, 105):
   un 30 % de los que van a lavarse (a menos de 700 px) van allí; al terminar charlan con quien esté (+1 y un chisme).
   **Sin probar en juego:** caminos hasta las afueras, que los jornaleros lleguen a tiempo y el equilibrio del dinero.
+- [x] **V5e** Biblioteca, escuela, mercado y arreglos (`scripts/systems/VillageCulture.gd`, `vm.culture_state`, se
+  guarda). Biblioteca en el solar n5 y escuela en e3 (clases de solar «library» y «school», edificio construido por
+  `VillageCulture.build`). La biblioteca es un sitio más de `VillagePlaces` con `indoor: true`: con lluvia solo se elige
+  ella (la lluvia ahora multiplica las ganas por 0,3 en vez de 0,15) y quien está dentro no se va por la lluvia; los
+  «Curioso» la prefieren (+1,2), el resto un poco menos (−0,8). Cada llegada suma `readings` (para la escuela y la secta
+  más adelante). El jugador lee en la mesa (E, `try_interact`, enganchado tras los cofres en la función de interacción
+  de VillageManager) una vez al día: +12 de experiencia en cocina, alquimia, medicina, animales u oficio, al azar. La
+  escuela tiene pupitres y pizarra y el cartel «Esperando alumnos»: el maestro llega con los niños (V9). **Mercado**
+  (miércoles, `get_weekday() == 2`): a las 8 h las tiendas sanas con algún género ≥ 8 (las más lejanas primero, hasta 4)
+  mueven su `work_position` a un puesto de la plaza; el original se guarda en `market_sellers` y se devuelve a las 13 h
+  o al cargar. Cada hora (8–11) los vecinos libres con ≥ 6 de oro van un 25 % de las veces (encargo «market»), compran
+  una pieza a 5 de oro al puesto más cercano (si es comida, +1 a la despensa de su casa) y +2 con el vendedor. Sin
+  género de sobra no hay mercado. **Taller de Reparaciones** (solar e5, oficio `TINKER` 21 en `SHOP_ROLES`, receta kit
+  de reparación con hierro del herrero): cada día, hasta 2 negocios saboteados cuyo dueño tenga 8 de oro pagan, el
+  arreglador gasta un kit y les quita un día de avería. **Sin probar en juego:** que los vendedores lleguen a la plaza
+  y vuelvan, la afluencia del mercado y de la biblioteca, y el precio de los arreglos.
 
 ### Interfaz
 - [x] **HUD1** Barras de estado (`scenes/ui_root.gd`, `_create_stats_box` / `_create_fallback_bar`): recuadro oscuro arriba a

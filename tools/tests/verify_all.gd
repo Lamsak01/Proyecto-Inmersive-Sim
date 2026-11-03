@@ -2566,5 +2566,67 @@ func _initialize() -> void:
 		vm.trade_npcs.erase(v5d_fr)
 	print("V5d outskirts and laborers OK")
 
+	# 68. V5e: biblioteca, escuela, mercado de los miércoles y arreglos del Taller de Reparaciones.
+	var vcu = load("res://scripts/systems/VillageCulture.gd")
+	assert(str(vl.lot(vm, "n5")["kind"]) == "library" and str(vl.lot(vm, "e3")["kind"]) == "school", "V5e: Library and school stand on their lots")
+	assert(vm.building_footprints.filter(func(f): return str(f["id"]) in ["building_library", "building_school"]).size() == 2, "V5e: Both buildings are built")
+	assert(vm.shop_businesses.has(vt.role_of("tinker")), "V5e: The repair workshop exists")
+	# Leer en la biblioteca: una vez al día
+	var v5e_pl = get_first_node_in_group("player")
+	if v5e_pl != null:
+		vcu.state(vm)["player_read_day"] = -1
+		var v5e_rd: int = int(vcu.state(vm)["readings"])
+		assert(vcu.try_interact(vm, v5e_pl, vcu.reading_spot()) and int(vcu.state(vm)["readings"]) == v5e_rd + 1, "V5e: The player reads at the library")
+		vcu.try_interact(vm, v5e_pl, vcu.reading_spot())
+		assert(int(vcu.state(vm)["readings"]) == v5e_rd + 1, "V5e: Only once a day")
+	# Mercado: quien tiene género de sobra baja a la plaza y vuelve a su tienda al cerrar
+	var v5e_s = v5b_people[2]
+	var v5e_role: int = vt.role_of("farmer")
+	var v5e_old = vm.trade_npcs.get(v5e_role)
+	vm.trade_npcs[v5e_role] = v5e_s
+	var v5e_stock: Dictionary = v5e_s.shop_stock.duplicate()
+	var v5e_wp: Vector2 = v5e_s.work_position
+	v5e_s.shop_stock["wheat"] = 12
+	vm.shop_businesses[v5e_role]["sabotaged_days"] = 0
+	assert(vcu.open_market(vm) >= 1 and v5e_s.work_position in vcu.MARKET_SPOTS, "V5e: A seller with surplus sets up in the plaza")
+	var v5e_b = v5b_people[0]
+	var v5e_bg: int = v5e_b.personal_gold
+	var v5e_bp: Vector2 = v5e_b.global_position
+	v5e_b.personal_gold = 20
+	v5e_b.global_position = v5e_s.global_position + Vector2(0, 10)
+	var v5e_sales: int = int(vcu.state(vm)["market_sales"])
+	vcu.on_market_arrived(vm, v5e_b)
+	assert(int(vcu.state(vm)["market_sales"]) == v5e_sales + 1 and v5e_b.personal_gold == 15, "V5e: A neighbour buys at the market")
+	vcu.close_market(vm)
+	assert(v5e_s.work_position == v5e_wp and not vcu.is_market_open(vm), "V5e: Sellers return to their shops when the market closes")
+	# Arreglos: un negocio saboteado paga y pierde un día de avería
+	var v5e_tr: int = vt.role_of("tinker")
+	var v5e_told = vm.trade_npcs.get(v5e_tr)
+	var v5e_t = v5b_people[1]
+	var v5e_tstock: Dictionary = v5e_t.shop_stock.duplicate()
+	var v5e_trole: int = int(v5e_t.trade_role)
+	v5e_t.trade_role = v5e_tr
+	vm.trade_npcs[v5e_tr] = v5e_t
+	v5e_t.shop_stock["repair_kit"] = 3
+	vm.shop_businesses[v5e_tr]["sabotaged_days"] = 0
+	vm.shop_businesses[v5e_role]["sabotaged_days"] = 2
+	var v5e_sg: int = v5e_s.personal_gold
+	v5e_s.personal_gold = 50
+	assert(vcu.daily(vm) >= 1 and int(vm.shop_businesses[v5e_role]["sabotaged_days"]) == 1 and v5e_s.personal_gold == 42, "V5e: The tinker repairs a sabotaged business for a fee")
+	vm.shop_businesses[v5e_role]["sabotaged_days"] = 0
+	vm._refresh_shop_stall_visual(v5e_role)
+	v5e_t.trade_role = v5e_trole
+	v5e_t.shop_stock = v5e_tstock
+	v5e_s.shop_stock = v5e_stock
+	v5e_s.personal_gold = v5e_sg
+	v5e_b.personal_gold = v5e_bg
+	v5e_b.global_position = v5e_bp
+	for e5 in [[v5e_tr, v5e_told], [v5e_role, v5e_old]]:
+		if e5[1] != null:
+			vm.trade_npcs[e5[0]] = e5[1]
+		else:
+			vm.trade_npcs.erase(e5[0])
+	print("V5e library, school, market and repairs OK")
+
 	print("ALL RIMWORLD MEDICAL, FOOTPRINTS, 3-PHASE CORPSE REPORT, MULTI-CORPSE FIX, RPG INTERROGATION, PUBLIC TRIAL, DYNAMIC RELATIONSHIPS, MISSING FAMILY SEARCH, SOCIAL GLOSSARY & UNCONSCIOUS REACTION TESTS PASSED!")
 	quit(0)

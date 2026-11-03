@@ -43,6 +43,11 @@ const CONFIG: Dictionary = {
 		"stock": {"wood": 5}, "supply": ["wood"], "extras": "woods",
 		"goods": {"buy": [["wood", 7]], "sell": [["repair_kit", 10]]},
 		"chat": "Corto lo justo: si el bosque se queda pelado, se acaba el trabajo y la caza."},
+	"tinker": {"lot": "e5", "role_name": "TINKER", "family_id": "family_tinker", "family_name": "Casa del Arreglador",
+		"shop_title": "🔧 Taller de Reparaciones", "title": "Arreglador", "tex": "res://assests/world/village/villager_smith.png",
+		"stock": {"repair_kit": 2}, "supply": ["repair_kit", "bandit_scrap"],
+		"goods": {"buy": [["repair_kit", 14]], "sell": [["bandit_scrap", 16], ["iron_ore", 10]]},
+		"chat": "Si te rompen el puesto, ven a verme: lo dejo como nuevo antes de que el gremio lo note. Eso sí, cobro."},
 }
 
 ## Probabilidad diaria de estrenar ropa según la clase, si le sobra el dinero.

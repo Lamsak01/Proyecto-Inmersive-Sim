@@ -18,6 +18,7 @@ const PLACES: Array = [
 	{"id": "park_bench", "kind": "bench", "pos": Vector2(232, 236), "label": "un banco del parque", "text": "🪑 Sentado en el parque"},
 	{"id": "plaza_benches", "kind": "bench", "pos": Vector2(500, 74), "label": "los bancos de la plaza", "text": "🪑 Sentado en la plaza"},
 	{"id": "lake_view", "kind": "overlook", "pos": Vector2(-65, 166), "label": "el Mirador del Lago", "text": "🌅 Mirando el lago"},
+	{"id": "library", "kind": "library", "pos": Vector2(910, -436), "label": "la Biblioteca", "text": "📖 Leyendo en la biblioteca", "indoor": true}, # V5e
 ]
 const LEISURE_FREE_HOURS: Vector2i = Vector2i(17, 21) # Entre semana, al salir del trabajo
 const LEISURE_WEEKEND_HOURS: Vector2i = Vector2i(10, 21)
@@ -99,7 +100,7 @@ static func leisure_chance(n) -> float:
 	if float(n.mood) < 30.0:
 		c *= 0.6 # Muy decaído, se queda en casa
 	if is_raining():
-		c *= 0.15
+		c *= 0.3 # Con lluvia solo se sale a sitios con techo (la biblioteca)
 	if VillageNeeds.class_of(n) == "mendigo":
 		c *= 0.5
 	return clampf(c, 0.0, 0.5)
@@ -108,8 +109,13 @@ static func pick_place(n) -> Dictionary:
 	var best: Dictionary = {}
 	var best_s: float = -INF
 	var romantic: bool = n.person_profile != null and str(n.person_profile.partner_id) != ""
+	var curious: bool = n.person_profile != null and "Curioso" in n.person_profile.personality
 	for p in PLACES:
+		if is_raining() and not bool(p.get("indoor", false)):
+			continue
 		var s: float = -n.global_position.distance_to(p["pos"]) / 120.0 + randf_range(0.0, 2.5)
+		if str(p["kind"]) == "library":
+			s += 1.2 if curious else -0.8
 		if str(p["kind"]) == "overlook" and (romantic or (n.person_profile != null and "Melancólico" in n.person_profile.personality)):
 			s += 1.0
 		if s > best_s:
@@ -127,7 +133,8 @@ static func on_hour(vm, hour: int) -> void:
 			continue
 		if not n.has_meta("leisure_since"):
 			continue # Aún de camino
-		if not is_leisure_hour(hour) or (now - int(n.get_meta("leisure_since")) >= STAY_HOURS and randf() < 0.5) or is_raining():
+		var indoor: bool = bool(place(str(n.get_meta("leisure_place", ""))).get("indoor", false))
+		if not is_leisure_hour(hour) or (now - int(n.get_meta("leisure_since")) >= STAY_HOURS and randf() < 0.5) or (is_raining() and not indoor):
 			_leave(n)
 			continue
 		var pid: String = str(n.get_meta("leisure_place", ""))
@@ -161,6 +168,8 @@ static func on_arrived(vm, n) -> void:
 	if not n.has_meta("leisure_since"):
 		n.set_meta("leisure_since", VillageNeeds.total_hours())
 		state(vm)["visits"] = int(state(vm)["visits"]) + 1
+		if str(n.get_meta("leisure_place", "")) == "library":
+			vm.VillageCulture.on_read(vm, n) # V5e: lecturas del pueblo
 
 ## Quienes coinciden en un sitio charlan por parejas (una vez por hora).
 static func _chat_round(vm, group: Array) -> void:

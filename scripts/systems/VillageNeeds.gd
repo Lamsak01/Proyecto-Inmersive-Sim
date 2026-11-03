@@ -231,6 +231,8 @@ static func tick(vm) -> void:
 				pass # Se queda pidiendo hasta la tarde (on_hour)
 			"leisure":
 				vm.VillagePlaces.on_arrived(vm, n) # V5c: se queda un rato (lo cierra VillagePlaces)
+			"market":
+				vm.VillageCulture.on_market_arrived(vm, n) # V5e: compra en el mercado
 			_:
 				vm.VillageCivic.on_errand_arrived(vm, n) # V5b: votar, el alcalde en el ayuntamiento
 

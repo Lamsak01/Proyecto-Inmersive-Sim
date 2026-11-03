@@ -5,6 +5,9 @@ El detalle técnico está en `docs/HANDOFF.md` (sección 7) y el historial compl
 
 ## 2026-11-03
 
+### Crecer el pueblo: biblioteca, escuela, mercado y taller
+- **V5e**: en la calle norte hay una **biblioteca**: algunos vecinos van a leer en su tiempo libre (sobre todo los curiosos), y cuando llueve es casi el único sitio al que la gente sale. Tú puedes leer un rato una vez al día y aprender algo de un oficio. Al este está la **escuela**, vacía hasta que haya niños. Los **miércoles por la mañana** hay **mercado** en la plaza: las tiendas con género de sobra montan un puesto y los vecinos se acercan a comprar y charlar. Y hay un **Taller de Reparaciones**: si te sabotean un negocio, el arreglador lo deja como nuevo antes, cobrando. Nombres provisionales.
+
 ### Crecer el pueblo: las afueras
 - **V5d**: al sur están la **Granja del Sur** con sus campos y el **Rancho** con su corral, al noroeste la **Cantera** y en la linde del bosque la **Cabaña del Leñador** (nombres provisionales). Empiezan sin dueño. Venden trigo, zanahorias, lana, carne, piedra y madera, y los oficios de siempre les compran. Cada mañana sus dueños **contratan jornaleros** entre la gente sin oficio, primero a los más necesitados: van andando a trabajar y cobran por las horas que de verdad trabajan; si el dueño no puede pagar, se enfadan. Junto al lago hay un **lavadero** donde algunos van a lavarse y, de paso, a contarse chismes.
 

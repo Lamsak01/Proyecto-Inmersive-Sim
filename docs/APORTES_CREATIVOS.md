@@ -57,6 +57,7 @@ pequeño, con gente que huyó de algo.
 | Segunda posada (V5b) | «El Candil», posada humilde; la familia, «Casa del Candil» |
 | Terceros espacios (V5c) | «Parque del Roble», los bancos de la plaza y el «Mirador del Lago» |
 | Afueras (V5d) | «Granja del Sur» y sus «Campos de la Granja», «Rancho del Sur», «Cantera del Noroeste», «Cabaña del Leñador» y el «Lavadero» del lago; familias «Casa de la Granja / del Rancho / de la Cantera / del Leñador». Objeto nuevo: «Lana» |
+| Cultura y oficios (V5e) | «Biblioteca», «Escuela» («Esperando alumnos»), «Mercado del Miércoles», «Taller de Reparaciones» y el oficio de «Arreglador» («Casa del Arreglador») |
 | Solares nuevos (V4) | Calle norte, camino del este, campos del sur, ladera del noroeste y las lomas del este y del norte (sitios para mansiones). Carteles «📜 Solar libre» y «🚧 En obra». Las casas nuevas se llaman de momento «🏠 Casa nueva» |
 
 Las familias toman el nombre de su negocio: Yunque Gris, Colmillo, Roble Viejo, Aguas Claras.

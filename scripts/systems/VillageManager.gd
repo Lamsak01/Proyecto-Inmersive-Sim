@@ -22,6 +22,7 @@ const VillageLots = preload("res://scripts/systems/VillageLots.gd")
 const VillageTrades = preload("res://scripts/systems/VillageTrades.gd")
 const VillageCivic = preload("res://scripts/systems/VillageCivic.gd")
 const VillagePlaces = preload("res://scripts/systems/VillagePlaces.gd")
+const VillageCulture = preload("res://scripts/systems/VillageCulture.gd")
 const VillageWork = preload("res://scripts/systems/VillageWork.gd")
 
 ## Gestor Integral de Urbanismo Sólido, Hospital/Morgue Forense, Comisaría/Cárcel, Testigos,
@@ -73,6 +74,7 @@ var town_state: Dictionary = {}
 var lots_state: Dictionary = {} # V4: solares y obras (VillageLots)
 var _lot_visuals: Dictionary = {}
 var places_state: Dictionary = {} # V5c: terceros espacios (contadores)
+var culture_state: Dictionary = {} # V5e: biblioteca, mercado y arreglos
 var work_state: Dictionary = {} # V5d: jornaleros del día
 ## La secta secreta (O). Ver `VillageSect.gd`. Se guarda.
 var sect_state: Dictionary = {}
@@ -239,6 +241,7 @@ func setup_village(target_entities_root: Node) -> void:
 	VillageWorldBuilder._spawn_farm_well_and_compost(self)
 	VillageTrades.setup_world(self) # V5: panadería y sastrería (puestos vacantes al empezar)
 	VillageCivic.setup_world(self) # V5b: ayuntamiento, albergue y El Candil
+	VillageCulture.ensure_lots(self) # V5e: biblioteca y escuela
 	VillageLots.build_world(self) # V4: calles y solares del borde, afueras y lomas
 	VillagePlaces.build_world(self) # V5c: parque, bancos de la plaza y mirador del lago
 	VillageWork.build_world(self) # V5d: lavadero
@@ -2264,6 +2267,8 @@ func interact(player: Node2D) -> void:
 		if pos.distance_squared_to(c_pos) <= 22.0 * 22.0:
 			_interact_house_chest(player, ch)
 			return
+	if VillageCulture.try_interact(self, player, pos): # V5e: leer en la biblioteca
+		return
 
 	# 2. Tablón de Encargos de la Plaza
 	if pos.distance_squared_to(_notice_board_pos) <= 28.0 * 28.0:
@@ -2354,6 +2359,7 @@ func _on_hour_passed(_day: int, new_hour: int = 8) -> void:
 	VillageCivic.on_hour(self, actual_hour) # V5b: votar en persona y el alcalde en el ayuntamiento
 	VillagePlaces.on_hour(self, actual_hour) # V5c: ratos libres en el parque, la plaza o el mirador
 	VillageWork.on_hour(self, actual_hour) # V5d: jornaleros (contratar, contar horas, pagar)
+	VillageCulture.on_hour(self, actual_hour) # V5e: mercado de los miércoles
 
 	# 07:00 AM -> Comprobar llegada semanal de los 2 Mercaderes Ambulantes (Día 3: Maese Casimir | Día 6: Valeria la Tratante)
 	if actual_hour == 7:
@@ -3024,6 +3030,7 @@ func _on_day_passed(_new_day: int) -> void:
 		VillageNeeds.daily(self) # E1/E3/E5
 		VillageTrades.daily(self) # V5: estrenar ropa en la sastrería
 		VillageCivic.daily(self) # V5b: arcas robadas y albergue
+		VillageCulture.daily(self) # V5e: el arreglador repara puestos saboteados
 		VillageIllness.daily(self) # E2
 		VillageCrime.daily(self) # E4: como mucho un robo por noche
 		VillageTown.daily(self) # I: elecciones, impuestos del sábado, desfalcos
@@ -4520,6 +4527,7 @@ func get_economy_save_dict() -> Dictionary:
 		"town_state": town_state.duplicate(true),
 		"lots_state": lots_state.duplicate(true),
 		"places_state": places_state.duplicate(true),
+		"culture_state": culture_state.duplicate(true),
 		"work_state": work_state.duplicate(true),
 		"sect_state": sect_state.duplicate(true),
 		"social_event_uid": _social_event_uid,
@@ -4590,6 +4598,8 @@ func load_economy_save_dict(data: Dictionary) -> void:
 	places_state = (data["places_state"] as Dictionary).duplicate(true) if typeof(data.get("places_state")) == TYPE_DICTIONARY else {}
 	work_state = (data["work_state"] as Dictionary).duplicate(true) if typeof(data.get("work_state")) == TYPE_DICTIONARY else {}
 	VillageWork.after_load(self)
+	culture_state = (data["culture_state"] as Dictionary).duplicate(true) if typeof(data.get("culture_state")) == TYPE_DICTIONARY else {}
+	VillageCulture.after_load(self)
 	VillageSect._update_band(self)
 	if data.has("chronicle") and typeof(data["chronicle"]) == TYPE_ARRAY:
 		chronicle.clear()
