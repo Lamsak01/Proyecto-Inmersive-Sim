@@ -296,6 +296,8 @@ Cada fase se dividirá en bloques pequeños cuando se llegue a ella (detalle en 
   (abiertos con afinidad ≥ 10, secretos ≥ 50; los de asesinato nunca, solo una pista con ≥ 60), por chismes
   (`desire_rumor`) o porque los abiertos los cuenta el propio vecino. Con lo que sabes: convencerle de que lo deje (afinidad
   ≥ 40, 50 %), avisar a la víctima o denunciar el plan al comisario o un guardia. Test #56. La sonda imprime DESIRES.
+  Sonda (semilla 303, 25 días, sin jugador): 7 deseos (5 venganzas, 2 ambiciones; 3 cumplidos, 1 olvidado, 3 en curso),
+  2 sabotajes, 0 asesinatos, calumnias 5 (antes 3), peleas 2, 17 vivos, 76 % de relaciones en la franja media. Sin errores.
 
 ### Interfaz
 - [x] **HUD1** Barras de estado (`scenes/ui_root.gd`, `_create_stats_box` / `_create_fallback_bar`): recuadro oscuro arriba a
