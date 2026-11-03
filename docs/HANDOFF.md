@@ -279,6 +279,9 @@ Cada fase se dividirá en bloques pequeños cuando se llegue a ella (detalle en 
   sabían, 38 veces contados, 10 olvidos, 6 versiones deformadas (antes: 3 / 8 / 1 / 0 / 0). Calumnias 3, peleas 2, parejas
   1 → 2, 0 aventuras (con solo 1–2 parejas es lo esperable: raro y orgánico). Sin errores.
 
+### Deseos propios (bloques D)
+- [ ] **D1–D6** Plan en `docs/PLAN_DESEOS.md`, **pendiente de aprobación** (4 preguntas al final).
+
 ### Interfaz
 - [x] **HUD1** Barras de estado (`scenes/ui_root.gd`, `_create_stats_box` / `_create_fallback_bar`): recuadro oscuro arriba a
   la izquierda, barras finas con relleno de color y texto blanco (antes `modulate` teñía también el texto). Se ven
