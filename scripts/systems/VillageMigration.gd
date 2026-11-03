@@ -178,15 +178,16 @@ static func attractiveness(vm) -> Dictionary:
 
 # ---------------------------------------------------------------- llegadas
 const SETTLER_KINDS: Array = [
-	{"id": "jornalero", "weight": 0.55, "gold": Vector2i(8, 25), "label": "Jornalero Recién Llegado"},
-	{"id": "artesano", "weight": 0.3, "gold": Vector2i(70, 130), "label": "Artesano Recién Llegado"},
-	{"id": "pareja", "weight": 0.15, "gold": Vector2i(40, 70), "label": "Recién Llegado"},
+	{"id": "jornalero", "weight": 0.5, "gold": Vector2i(8, 25), "label": "Jornalero Recién Llegado"},
+	{"id": "artesano", "weight": 0.28, "gold": Vector2i(70, 130), "label": "Artesano Recién Llegado"},
+	{"id": "pareja", "weight": 0.12, "gold": Vector2i(40, 70), "label": "Recién Llegado"},
+	{"id": "familia", "weight": 0.1, "gold": Vector2i(50, 90), "label": "Recién Llegado"}, # V9: con 1 o 2 hijos
 ]
 
 static func _pick_kind(couple_ok: bool) -> Dictionary:
 	var r: float = randf()
 	for k in SETTLER_KINDS:
-		if str(k["id"]) == "pareja" and not couple_ok:
+		if str(k["id"]) in ["pareja", "familia"] and not couple_ok:
 			continue
 		r -= float(k["weight"])
 		if r <= 0.0:
@@ -215,13 +216,22 @@ static func try_arrival(vm) -> int:
 	var couple_ok: bool = house_beds >= 2 and population(vm) + 2 <= POP_CAP and vm.arrivals_today_count + 2 <= vm.MAX_DAILY_ARRIVALS
 	var kind: Dictionary = _pick_kind(couple_ok)
 	var who: Array = [_spawn_one(vm, kind, int(state(vm)["arrivals"]))]
-	if str(kind["id"]) == "pareja":
+	if str(kind["id"]) in ["pareja", "familia"]:
 		who.append(_spawn_one(vm, kind, int(state(vm)["arrivals"])))
 		who[0].modify_npc_relationship(who[1], 60, "Llegamos juntos al valle", true)
 		who[1].modify_npc_relationship(who[0], 60, "Llegamos juntos al valle", true)
+		vm.VillageFamily.marry(who[0], who[1])
 	for n in who:
 		if not move_into_house(vm, n):
 			n.bed_position = tav if tav != null else n.bed_position
+	if str(kind["id"]) == "familia" and house_of(who[0]) != "":
+		var mother = who[0] if who[0].person_profile != null and str(who[0].person_profile.gender) == "F" else who[1]
+		var father = who[1] if mother == who[0] else who[0]
+		for _k in range(randi_range(1, 2)):
+			if population(vm) < POP_CAP:
+				var kid = vm.VillageFamily.spawn_child(vm, mother, father, randi_range(2, 12))
+				kid.global_position = mother.global_position + Vector2(-10, 6)
+				who.append(kid)
 	var names: String = " y ".join(who.map(func(n): return n.npc_name))
 	vm._hint_player("🎒🚶 %s %s al valle para quedarse." % [names, "llegan" if who.size() > 1 else "llega"])
 	return who.size()

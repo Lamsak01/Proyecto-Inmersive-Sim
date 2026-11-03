@@ -18,3 +18,13 @@ Leyenda: ✅ probado y subido · 🟡 escrito, sin probar · 🔴 falló (ver no
 | A6 | UI1 diálogo ordenado | ✅ | NPCDialogue.gd | |
 | A7 | Pruebas del bloque (4 suites) | ✅ | verify_all.gd | Fallo en el test del señor (dependía del oro tras impuestos), corregido |
 | A8 | Sonda de crecimiento (30 días) | ⏳ | growth_probe.gd | En segundo plano |
+
+## Bloque B — Cabos sueltos del plan (V3 familias, V9 oficio y juego, escuela)
+
+| # | Paso | Estado | Archivos | Nota |
+|---|------|--------|----------|------|
+| B1 | Cartel de la escuela: «Abierta · maestro · N alumnos» / «Esperando alumnos» | 🟡 | VillageCulture.gd (`school_sign` en meta de vm), VillageFamily.update_school | |
+| B2 | Llegan familias con 1–2 hijos (2–12 años), casados | 🟡 | VillageMigration (tipo «familia», peso 0,1), VillageFamily.spawn_child / marry | Solo si hay casa con 2 camas; los niños no ocupan cama |
+| B3 | Al hacerse mayor, si su madre o padre lleva un negocio sin ayudante, se queda de ayudante (`FAMILY_MEMBER`) y lo heredará | 🟡 | VillageFamily.grow_up | Si no, sigue como antes (sin oficio) |
+| B4 | Los nobles ya no aparecen como «llegó al valle» en los sucesos | 🟡 | VillageNobility.spawn_households | |
+| B5 | Los niños salen a jugar entre semana de 14 a 20 h (+0,15 de ganas) y se ve «🧒 Jugando en…» | 🟡 | VillagePlaces.is_leisure_hour(hour, n) | |

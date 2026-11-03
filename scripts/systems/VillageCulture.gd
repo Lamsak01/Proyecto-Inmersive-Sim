@@ -75,7 +75,7 @@ static func build(vm, id: String, st: Dictionary) -> void:
 			for p in [Vector2(-30, 6), Vector2(0, 6), Vector2(30, 6), Vector2(-30, 26), Vector2(0, 26), Vector2(30, 26)]:
 				vm._add_rect_poly(c + Vector2(p.x, p.y * m), Vector2(9, 5), Color(0.55, 0.38, 0.20, 1.0), -1) # Pupitres
 			vm._add_rect_poly(c + Vector2(0, -26 * m), Vector2(30, 3), Color(0.15, 0.25, 0.18, 1.0), -1) # Pizarra
-			vm._add_title_label(c + Vector2(-60, 38 * m - 6), Vector2(120, 12), "Esperando alumnos", Color(0.8, 0.8, 0.8), 7)
+			vm.set_meta("school_sign", vm._add_title_label(c + Vector2(-80, 38 * m - 6), Vector2(160, 12), "Esperando alumnos", Color(0.8, 0.8, 0.8), 7)) # V9 lo actualiza
 
 # ---------------------------------------------------------------- biblioteca
 ## VillagePlaces: alguien ha llegado a la biblioteca.

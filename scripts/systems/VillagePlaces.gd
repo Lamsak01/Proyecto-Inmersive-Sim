@@ -82,9 +82,11 @@ static func hangout_spots() -> Array:
 	return out
 
 # ---------------------------------------------------------------- ocio
-static func is_leisure_hour(hour: int) -> bool:
+static func is_leisure_hour(hour: int, n = null) -> bool:
 	var weekend: bool = WorldClock != null and WorldClock.has_method("is_weekend") and WorldClock.is_weekend()
 	var span: Vector2i = LEISURE_WEEKEND_HOURS if weekend else LEISURE_FREE_HOURS
+	if n != null and int(n.trade_role) == int(VillageNPC.TradeRole.CHILD) and not weekend:
+		span = Vector2i(14, 20) # V9: los niños salen a jugar al acabar la escuela
 	if weekend and WorldClock.has_method("is_rite_day") and WorldClock.is_rite_day() and hour < 13:
 		return false # Domingo por la mañana: el Oficio del Alba
 	return hour >= span.x and hour < span.y
@@ -103,6 +105,8 @@ static func leisure_chance(n) -> float:
 		c *= 0.3 # Con lluvia solo se sale a sitios con techo (la biblioteca)
 	if VillageNeeds.class_of(n) == "mendigo":
 		c *= 0.5
+	if int(n.trade_role) == int(VillageNPC.TradeRole.CHILD):
+		c += 0.15 # V9: a los niños les gusta salir a jugar
 	return clampf(c, 0.0, 0.5)
 
 static func pick_place(n) -> Dictionary:
@@ -134,7 +138,7 @@ static func on_hour(vm, hour: int) -> void:
 		if not n.has_meta("leisure_since"):
 			continue # Aún de camino
 		var indoor: bool = bool(place(str(n.get_meta("leisure_place", ""))).get("indoor", false))
-		if not is_leisure_hour(hour) or (now - int(n.get_meta("leisure_since")) >= STAY_HOURS and randf() < 0.5) or (is_raining() and not indoor):
+		if not is_leisure_hour(hour, n) or (now - int(n.get_meta("leisure_since")) >= STAY_HOURS and randf() < 0.5) or (is_raining() and not indoor):
 			_leave(n)
 			continue
 		var pid: String = str(n.get_meta("leisure_place", ""))
@@ -144,10 +148,8 @@ static func on_hour(vm, hour: int) -> void:
 	for pid in at_place.keys():
 		_chat_round(vm, at_place[pid])
 	# 2. Quién sale un rato
-	if not is_leisure_hour(hour):
-		return
 	for n in people:
-		if not VillageNeeds.is_free(n) or randf() >= leisure_chance(n):
+		if not is_leisure_hour(hour, n) or not VillageNeeds.is_free(n) or randf() >= leisure_chance(n):
 			continue
 		var p: Dictionary = pick_place(n)
 		if p.is_empty():

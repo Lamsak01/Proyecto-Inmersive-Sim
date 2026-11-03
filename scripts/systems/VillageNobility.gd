@@ -104,6 +104,7 @@ static func spawn_households(vm) -> Array:
 		return []
 	st["spawned"] = true
 	var out: Array = []
+	var log_size: int = vm.social_event_log.size()
 	var tex: Texture2D = vm._load_tex("res://assests/world/village/villager_traveler.png")
 	for id in HOUSEHOLDS.keys():
 		var h: Dictionary = HOUSEHOLDS[id]
@@ -126,6 +127,8 @@ static func spawn_households(vm) -> Array:
 				if a != b:
 					a.modify_npc_relationship(b, 55, "Somos de la misma casa", true)
 		_marry(fam_people[0], fam_people[1])
+	while vm.social_event_log.size() > log_size:
+		vm.social_event_log.pop_back() # Ya vivían aquí: no «llegaron»
 	vm.VillageChronicle.add(vm, "people", "En las lomas viven el señor del valle y una familia de rentistas: las tierras de labor son suyas", true)
 	return out
 

@@ -142,15 +142,17 @@ static func apply_look(n) -> void:
 		return
 	n.scale = Vector2.ONE * child_scale(int(n.person_profile.age))
 
-static func give_birth(vm, mother, father):
+## Crea un niño de esta familia. `age` 0 = recién nacido aquí; mayor que 0 = llega al valle con sus padres (V3).
+static func spawn_child(vm, mother, father, age: int = 0):
 	var st: Dictionary = state(vm)
 	var log_size: int = vm.social_event_log.size()
 	var tex: Texture2D = vm._load_tex("res://assests/world/village/villager_traveler.png")
-	var bed: Vector2 = mother.bed_position + Vector2(16, 6)
+	var bed: Vector2 = mother.bed_position + Vector2(16, 6 + 6 * children_of_family(vm, mother.family_id).size())
 	var kid = vm._spawn_generated_newcomer("NPC_Child_", VillageNPC.TradeRole.CHILD, VillageNPC.TradeRole.CHILD, "Criatura del valle",
 		tex, mother.home_table_pos, bed, {}, mother.home_table_pos, mother.family_id, mother.family_name)
-	while vm.social_event_log.size() > log_size:
-		vm.social_event_log.pop_back() # No «llegó al valle»: ha nacido aquí
+	if age == 0:
+		while vm.social_event_log.size() > log_size:
+			vm.social_event_log.pop_back() # No «llegó al valle»: ha nacido aquí
 	var sur: String = _surname(father) if father != null else _surname(mother)
 	var first: String = str(kid.npc_name).split(" ", false)[0]
 	kid.npc_name = first + (" " + sur if sur != "" else "")
@@ -158,25 +160,40 @@ static func give_birth(vm, mother, father):
 	kid.global_position = mother.global_position + Vector2(10, 4)
 	kid.personal_gold = 0
 	if kid.person_profile != null:
-		kid.person_profile.age = 0
+		kid.person_profile.age = age
 		kid.person_profile.personality = inherited_traits(mother, father)
-	st["born"][kid.get_person_key()] = today()
-	st["births"] = int(st["births"]) + 1
-	if father != null:
-		st["last_birth"][_couple_key(mother, father)] = today()
+	st["born"][kid.get_person_key()] = today() - age * CHILD_YEAR_DAYS
 	for p in [mother, father]:
 		if p != null:
 			p.modify_npc_relationship(kid, 80, "Es mi hijo", true)
 			kid.modify_npc_relationship(p, 80, "Es mi madre o mi padre", true)
-			p.add_thought("Ha nacido nuestro bebé (+20)", 20.0)
+			if age == 0:
+				p.add_thought("Ha nacido nuestro bebé (+20)", 20.0)
 	for sib in children_of_family(vm, mother.family_id):
 		if sib != kid:
 			sib.modify_npc_relationship(kid, 40, "Es mi hermano", true)
 			kid.modify_npc_relationship(sib, 40, "Es mi hermano", true)
 	apply_look(kid)
+	return kid
+
+static func give_birth(vm, mother, father):
+	var st: Dictionary = state(vm)
+	var kid = spawn_child(vm, mother, father, 0)
+	st["births"] = int(st["births"]) + 1
+	if father != null:
+		st["last_birth"][_couple_key(mother, father)] = today()
 	vm.VillageChronicle.add(vm, "birth", "Ha nacido %s, hijo de %s%s" % [kid.npc_name, mother.npc_name, (" y " + father.npc_name) if father != null else ""], true)
 	vm.record_social_event("birth", kid, mother, "%s nació en el valle" % kid.npc_name)
 	return kid
+
+## Casa a dos vecinos (pareja estable).
+static func marry(a, b) -> void:
+	if a.person_profile == null or b.person_profile == null:
+		return
+	a.person_profile.partner_id = str(b.person_profile.person_id)
+	b.person_profile.partner_id = str(a.person_profile.person_id)
+	a.person_profile.romance_status = "partnered"
+	b.person_profile.romance_status = "partnered"
 
 static func process_births(vm) -> int:
 	var st: Dictionary = state(vm)
@@ -229,9 +246,25 @@ static func grow_up(vm, n) -> void:
 		if o.family_id == n.family_id and o != n and not is_child(o) and o.personal_gold >= 30:
 			o.personal_gold -= 10
 			n.personal_gold += 10
-	if not vm.unemployed_npcs.has(n):
-		vm.unemployed_npcs.append(n)
-	n.add_thought("Ya soy mayor: me toca buscarme la vida (+5)", 5.0)
+	# Si su madre o su padre lleva un negocio sin ayudante, se queda a ayudar en la familia (y lo heredará)
+	var helper_role: int = -1
+	for o in VillageNeeds.living(vm):
+		if o.family_id == n.family_id and o != n and o.trade_role in VillageNPC.SHOP_ROLES:
+			var kin = vm.family_npcs.get(int(o.trade_role))
+			if kin == null or not is_instance_valid(kin) or kin.is_dead:
+				helper_role = int(o.trade_role)
+				n.work_position = o.work_position + Vector2(-24, 4)
+				break
+	if helper_role >= 0:
+		n.trade_role = VillageNPC.TradeRole.FAMILY_MEMBER
+		n.linked_trade = helper_role as VillageNPC.TradeRole
+		n.npc_role = "Ayudante de la familia"
+		vm.family_npcs[helper_role] = n
+		n.add_thought("Ya soy mayor: ayudo en el negocio de casa (+6)", 6.0)
+	else:
+		if not vm.unemployed_npcs.has(n):
+			vm.unemployed_npcs.append(n)
+		n.add_thought("Ya soy mayor: me toca buscarme la vida (+5)", 5.0)
 	apply_look(n)
 	vm.VillageChronicle.add(vm, "grown_up", "%s ya es mayor y busca su sitio en el valle" % n.npc_name, true)
 
@@ -315,6 +348,9 @@ static func update_school(vm, pay: bool = true) -> void:
 			if n.has_meta("school_pos"):
 				n.remove_meta("school_pos")
 			n.work_position = n.home_table_pos
+	var school_lbl = vm.get_meta("school_sign", null)
+	if school_lbl != null and is_instance_valid(school_lbl):
+		school_lbl.text = ("Abierta · %s · %d alumnos" % [t.npc_name, i]) if t != null else "Esperando alumnos"
 	if pay and t != null and not (WorldClock != null and WorldClock.has_method("is_weekend") and WorldClock.is_weekend()):
 		var ts: Dictionary = vm.town_state
 		if int(ts.get("treasury", 0)) >= TEACHER_PAY:
