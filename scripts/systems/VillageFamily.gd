@@ -370,12 +370,39 @@ static func on_hour(vm, hour: int) -> void:
 			st["lessons"] = int(st["lessons"]) + 1
 			n.add_thought("Hoy aprendí algo en la escuela (+3)", 3.0)
 
+# ---------------------------------------------------------------- paga
+const ALLOWANCE: int = 6 # Lo justo para comer si la despensa de casa está vacía
+const ALLOWANCE_CAP: int = 15
+
+## Los niños no ganan dinero: cada día sus padres (o, si no tienen, las arcas) les dan para comer.
+static func give_allowances(vm) -> int:
+	var given: int = 0
+	var people: Array = VillageNeeds.living(vm)
+	for kid in people:
+		if not is_child(kid) or kid.personal_gold >= ALLOWANCE_CAP:
+			continue
+		var payer = null
+		for o in people:
+			if o != kid and not is_child(o) and o.family_id == kid.family_id and o.personal_gold >= ALLOWANCE + 4:
+				if payer == null or o.personal_gold > payer.personal_gold:
+					payer = o
+		if payer != null:
+			payer.personal_gold -= ALLOWANCE
+			kid.personal_gold += ALLOWANCE
+			given += ALLOWANCE
+		elif int(vm.town_state.get("treasury", 0)) >= ALLOWANCE:
+			vm.town_state["treasury"] = int(vm.town_state["treasury"]) - ALLOWANCE # Huérfano o familia sin nada
+			kid.personal_gold += ALLOWANCE
+			given += ALLOWANCE
+	return given
+
 # ---------------------------------------------------------------- cada día
 static func daily(vm) -> void:
 	update_ages(vm)
 	process_births(vm)
 	try_conceptions(vm)
 	update_school(vm)
+	give_allowances(vm)
 
 ## Al cargar: tamaños y pupitres (las marcas no se guardan).
 static func after_load(vm) -> void:
