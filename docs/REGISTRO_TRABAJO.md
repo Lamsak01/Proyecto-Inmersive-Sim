@@ -39,3 +39,15 @@ Leyenda: ✅ probado y subido · 🟡 escrito, sin probar · 🔴 falló (ver no
 | C4 | **Fallo mío en V3**: el atractivo leía `village_food_shortage_days` (un total que nunca baja) como «hay hambre ahora» → −0,4 para siempre tras la primera comida fallida. Ahora cuenta las comidas fallidas del último día frente a la población (−0,4 si fallan el 15 % o más) | 🟡 | VillageMigration.attractiveness (`food_seen` en migration_state) | La sonda en marcha usa aún la versión vieja |
 | C5 | **Fallo de diseño en V9**: los niños tienen 0 de oro y, con la despensa vacía, no podían comer. Ahora reciben cada día 6 de oro (hasta tener 15) del adulto más rico de su familia, o de las arcas si no hay nadie | 🟡 | VillageFamily.give_allowances | |
 | C6 | Historia personal propia para niños, nobles y maestro (antes decían «Llegué al valle…») | 🟡 | VillageNPC._resolve_unique_64_visuals_and_lore | Textos provisionales (APORTES) |
+
+### Resultados de la sonda (intento 2, 12 días, semilla 11; versión anterior al arreglo de la comida)
+- Población 18 → 29 en 12 días; 27 de esas llegadas cubren tiendas vacantes y 2 son de V3. El freno es la vivienda (1 casa terminada el día 10) y, del día 7 al 12, el falso «hambre» (C4).
+- Con todos los solares libres construidos se llega a **45** (faltan solares para 50).
+- Rendimiento con 45: plaza 6,35 ms/fotograma de media (lejos 3,67 ms); una hora de juego 2,16 ms. **Un tirón de 270 ms en la plaza** sin explicar todavía.
+
+## Bloque D — Llegar a 50 y el tirón
+
+| # | Paso | Estado | Archivos | Nota |
+|---|------|--------|----------|------|
+| D1 | Dos solares más (n6 en 1070,−420 y m6 en 1070,−580; calle norte y calleja alargadas) | 🟡 | VillageLots.gd, test #69 | 11 solares de casa → 22 camas |
+| D2 | La sonda apunta cuándo ocurre el peor fotograma (tiempo real) y cuántos pasan de 33 ms | 🟡 | growth_probe.gd | |

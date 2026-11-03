@@ -2632,7 +2632,7 @@ func _initialize() -> void:
 
 	# 69. V3: llegadas y marchas según el atractivo del pueblo; casas para quien llega.
 	var vmi = load("res://scripts/systems/VillageMigration.gd")
-	for id3 in ["n0", "e6", "m1", "m2", "m3", "m4", "m5"]:
+	for id3 in ["n0", "e6", "m1", "m2", "m3", "m4", "m5", "n6", "m6"]:
 		var r3 := Rect2(vl.lot_def(id3)["center"] - vl.lot_def(id3)["size"] * 0.5, vl.lot_def(id3)["size"])
 		for f3 in vm.building_footprints:
 			assert(not r3.intersects(f3["rect"]), "V3: Lot %s is clear of %s" % [id3, str(f3["id"])])

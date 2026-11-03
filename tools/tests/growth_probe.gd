@@ -85,16 +85,25 @@ func _initialize() -> void:
 		var proc_tot: float = 0.0
 		var phys_tot: float = 0.0
 		var worst: float = 0.0
+		var worst_at: String = ""
+		var slow: int = 0
 		var t0: int = Time.get_ticks_usec()
+		var tf: int = Time.get_ticks_usec()
 		for _f in range(600):
 			await process_frame
 			var p: float = Performance.get_monitor(Performance.TIME_PROCESS) * 1000.0
 			var ph: float = Performance.get_monitor(Performance.TIME_PHYSICS_PROCESS) * 1000.0
+			var wall_f: float = float(Time.get_ticks_usec() - tf) / 1000.0
+			tf = Time.get_ticks_usec()
 			proc_tot += p
 			phys_tot += ph
-			worst = maxf(worst, p + ph)
-		print("PERF50 where=%s npcs=%d frame_wall=%.2fms process=%.2fms physics=%.2fms worst=%.2fms" % [cfg[0], mig.population(vm),
-			float(Time.get_ticks_usec() - t0) / 1000.0 / 600.0, proc_tot / 600.0, phys_tot / 600.0, worst])
+			if wall_f > 33.0:
+				slow += 1
+			if wall_f > worst:
+				worst = wall_f
+				worst_at = "frame %d, %02d:%02d" % [_f, int(wc.current_hour), int(wc.current_minute)]
+		print("PERF50 where=%s npcs=%d frame_wall=%.2fms process=%.2fms physics=%.2fms worst_wall=%.2fms (%s) frames_over_33ms=%d" % [cfg[0], mig.population(vm),
+			float(Time.get_ticks_usec() - t0) / 1000.0 / 600.0, proc_tot / 600.0, phys_tot / 600.0, worst, worst_at, slow])
 	var day: int = int(wc.current_day)
 	var tt: int = Time.get_ticks_usec()
 	for _h in range(3):

@@ -25,12 +25,14 @@ const LOTS: Array = [
 	{"id": "n3", "zone": "borde", "center": Vector2(610, -420), "size": Vector2(130, 96), "door_south": true},
 	{"id": "n4", "zone": "borde", "center": Vector2(760, -420), "size": Vector2(130, 96), "door_south": true},
 	{"id": "n5", "zone": "borde", "center": Vector2(910, -420), "size": Vector2(130, 96), "door_south": true},
+	{"id": "n6", "zone": "borde", "center": Vector2(1070, -420), "size": Vector2(130, 96), "door_south": true}, # Para llegar a 50
 	# Segunda fila al norte (para crecer): dan a una calleja nueva detrás de la calle norte
 	{"id": "m1", "zone": "borde", "center": Vector2(330, -580), "size": Vector2(130, 96), "door_south": true}, # Calleja de atrás
 	{"id": "m2", "zone": "borde", "center": Vector2(470, -580), "size": Vector2(130, 96), "door_south": true}, # Calleja de atrás
 	{"id": "m3", "zone": "borde", "center": Vector2(610, -580), "size": Vector2(130, 96), "door_south": true}, # Calleja de atrás
 	{"id": "m4", "zone": "borde", "center": Vector2(760, -580), "size": Vector2(130, 96), "door_south": true}, # Calleja de atrás
 	{"id": "m5", "zone": "borde", "center": Vector2(910, -580), "size": Vector2(130, 96), "door_south": true}, # Calleja de atrás
+	{"id": "m6", "zone": "borde", "center": Vector2(1070, -580), "size": Vector2(130, 96), "door_south": true}, # Para llegar a 50
 	# Borde este, a los dos lados del camino principal alargado
 	{"id": "e1", "zone": "borde", "center": Vector2(1090, -36), "size": Vector2(130, 96), "door_south": true},
 	{"id": "e2", "zone": "borde", "center": Vector2(1230, -36), "size": Vector2(130, 96), "door_south": true},
@@ -52,8 +54,8 @@ const LOTS: Array = [
 
 ## Calles y sendas nuevas hacia los solares (también las dibuja el mapa).
 const ROADS: Array = [
-	Rect2(Vector2(130, -362), Vector2(860, 22)), # Calle norte (V3: alargada hasta el solar n0)
-	Rect2(Vector2(270, -526), Vector2(730, 20)), # Calleja de atrás (fila m)
+	Rect2(Vector2(130, -362), Vector2(1010, 22)), # Calle norte (alargada hasta los solares n0 y n6)
+	Rect2(Vector2(270, -526), Vector2(870, 20)), # Calleja de atrás (fila m, hasta m6)
 	Rect2(Vector2(980, -526), Vector2(20, 186)), # Enlace de la calleja con la calle norte
 	Rect2(Vector2(660, -362), Vector2(24, 230)), # Enlace con la calle de las casas
 	Rect2(Vector2(1010, 36), Vector2(470, 28)), # Camino principal hacia el este
