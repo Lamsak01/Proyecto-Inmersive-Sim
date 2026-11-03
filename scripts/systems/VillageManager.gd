@@ -3552,6 +3552,7 @@ func consume_village_meal_for_npc(npc: VillageNPC) -> bool:
 
 	# ¡Escasez o falta de dinero! El NPC no pudo comprar comida y recurrirá a cazar/recolectar torpemente en el bosque
 	village_food_shortage_days += 1
+	VillageMigration.note_meal_failure(self, npc)
 	npc.add_thought("¡Sin comida o sin oro para pagar precios de crisis! (-12)", -12.0)
 	npc._spawn_floating_text("🍽️💸 ¡Sin comida accesible (Irá a buscar/cazar al bosque)!", Color.ORANGE_RED, -34.0)
 	return false
@@ -3962,7 +3963,8 @@ func _process_nightly_tavern_rent_and_vagrant_camps() -> void:
 			guest.in_shelter = false
 			guest.lodging = ""
 			var guest_beds: Array[Vector2] = [Vector2(435, -252), Vector2(468, -252), Vector2(502, -252)]
-			guest.bed_position = guest_beds[abs(guest.npc_name.hash()) % guest_beds.size()]
+			var free_b = VillageMigration.free_tavern_bed(self) # E3: cama libre, no la que toque por el nombre
+			guest.bed_position = free_b if free_b != null else guest_beds[abs(guest.npc_name.hash()) % guest_beds.size()]
 			if vagrant_camp_nodes.has(guest.npc_name) and is_instance_valid(vagrant_camp_nodes[guest.npc_name]):
 				vagrant_camp_nodes[guest.npc_name].visible = false
 			guest.add_thought("Volvió a pagar cama caliente en la Posada (+8)", 8.0)

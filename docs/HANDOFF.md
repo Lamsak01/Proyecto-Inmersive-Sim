@@ -583,10 +583,10 @@ Cada fase se dividirá en bloques pequeños cuando se llegue a ella (detalle en 
   queja). Los niños apuntados (`school_pos`, no se guarda: se recalcula a diario y al cargar) van de 9 a 14 h entre
   semana a su pupitre; a las 14 h cuentan `lessons`. Filtros de edad: sin romance (<18, `compute_compatibility`), sin
   peleas (<16), no votan ni se presentan (<16, también al mandar a votar), la secta ya tenía `MIN_AGE`. Crónica:
-  «pregnancy», «birth», «grown_up», «teacher». El cartel de la escuela sigue diciendo «Esperando alumnos» aunque haya
-  maestro (pendiente). **Sin probar en juego:** nada de esto (solo los tests).
-- [x] **V7** Medición (`tools/tests/growth_probe.gd -- <días> <semilla>`, con `--fixed-fps 60`). **Escrita, sin
-  ejecutar** (pendiente del permiso del usuario). Fase 1: deja correr la partida y apunta cada día población, llegadas,
+  «pregnancy», «birth», «grown_up», «teacher». El cartel de la escuela ya dice si está abierta, quién enseña y cuántos
+  alumnos hay (bloque B). **Sin probar en juego:** nada de esto (solo los tests).
+- [x] **V7** Medición (`tools/tests/growth_probe.gd -- <días> <semilla>`, con `--fixed-fps 60`). Ejecutada en el
+  bloque D (resultados en `docs/REGISTRO_TRABAJO.md`). Fase 1: deja correr la partida y apunta cada día población, llegadas,
   marchas, casas, embarazos, nacimientos, niños, maestro y atractivo. Fase 2: completa hasta 50 vecinos con casas y
   recién llegados y mide el fotograma (plaza y lejos) y el coste de una hora de juego.
 - [x] **UI1** Menú del diálogo ordenado (`NPCDialogue._organize_start`, al final de `_inject_character_lore_into_dialogue`).
@@ -598,7 +598,11 @@ Cada fase se dividirá en bloques pequeños cuando se llegue a ella (detalle en 
   denunciar un cuerpo); el aviso urgente «🚨 ¡Detener reporte!» sigue arriba. Nobles y niños ya no muestran «Dominio».
 - [x] **Bloque B/C/D** (trabajo autónomo, detalle paso a paso en `docs/REGISTRO_TRABAJO.md`; probado: tests #73, #74 y la
   sonda). Solares n6 y m6 añadidos (11 de casa en total; con todos construidos se llega a 50). Con 50 vecinos: 5,7 ms
-  por fotograma en la plaza, peor 22 ms. Cartel de la escuela vivo (`vm` meta `school_sign`). Llegan **familias** con 1–2 hijos de 2–12
+  por fotograma en la plaza, peor 22 ms.
+- [x] **Bloque E** (probado, test #75; detalle en `docs/REGISTRO_TRABAJO.md`). Diagnóstico de comidas fallidas
+  (`migration_state.meal_fails`, «motivo/oficio»); casas: la pareja junta ahorros y, si alguien duerme al raso, el
+  pueblo paga sin reserva; camas de posada sin repetir (cuenta a quien tenga oficio y duerma allí); U5 «según X»
+  (`VillageNPC.heard_feelings`, `NPCDialogue._hearsay_feeling`, se ve en la red social). Test #75. Cartel de la escuela vivo (`vm` meta `school_sign`). Llegan **familias** con 1–2 hijos de 2–12
   años (`VillageMigration` tipo «familia», casados con `VillageFamily.marry`; niños con `VillageFamily.spawn_child`).
   Un hijo que cumple 16 en una casa con negocio sin ayudante pasa a `FAMILY_MEMBER` de ese oficio (lo heredará). Los
   niños salen a jugar entre semana de 14 a 20 h (`VillagePlaces.is_leisure_hour(hour, n)`). Paga diaria de 6 de oro a

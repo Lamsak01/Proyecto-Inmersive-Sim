@@ -5,6 +5,11 @@ El detalle técnico está en `docs/HANDOFF.md` (sección 7) y el historial compl
 
 ## 2026-11-03
 
+### Casas, camas y rumores
+- Una pareja sin casa puede juntar sus ahorros para encargarla; si alguien duerme al raso, el pueblo paga la casa antes.
+- Ya no pueden tocarle a dos vecinos la misma cama de la posada.
+- Si preguntas a alguien de confianza por un amigo suyo, puede contarte lo que ese amigo siente por otra persona. En la red social sale «🗣️ Según…» hasta que lo confirmes tú.
+
 ### Pulido del pueblo que crece
 - Llegan **familias con hijos**; los niños reciben una paga de sus padres para comer y salen a jugar al acabar la escuela; el cartel de la escuela dice si está abierta, quién enseña y cuántos alumnos hay; un hijo que se hace mayor puede quedarse a ayudar en el negocio de casa.
 - **Arreglado:** al cargar una partida se perdían los nobles y los niños. **Arreglado:** el pueblo parecía tener hambre para siempre tras la primera comida que alguien no pudo pagar.

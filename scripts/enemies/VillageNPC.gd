@@ -67,6 +67,8 @@ var rumored_traits: Dictionary = {}
 var known_feelings: Array[String] = []
 ## Partidas de antes de U5: el glosario ya lo enseñaba todo, así que se conserva todo a la vista.
 var feelings_all_known: bool = false
+## E4: lo que otros te han contado que siente este vecino: clave → {"by": quién lo contó, "rel": lo que sentía entonces}
+var heard_feelings: Dictionary = {}
 var trait_trust_tier: int = 0
 var trait_first_impression_done: bool = false
 var trait_lore_done: bool = false
@@ -3996,6 +3998,13 @@ func knows_feeling_toward(other_key: String) -> bool:
 func learn_feeling_toward(other_key: String) -> void:
 	if other_key != "" and not other_key in known_feelings:
 		known_feelings.append(other_key)
+	heard_feelings.erase(other_key) # ya lo sabes de primera mano
+
+## E4: alguien te cuenta lo que este vecino siente por `other_key` (de oídas: puede quedarse viejo).
+func hear_feeling_toward(other_key: String, teller_name: String) -> void:
+	if other_key == "" or knows_feeling_toward(other_key):
+		return
+	heard_feelings[other_key] = {"by": teller_name, "rel": get_relationship_with_npc(other_key)}
 
 func get_known_traits_text() -> String:
 	return TraitDiscovery.known_traits_text(self)
@@ -4592,7 +4601,7 @@ func to_save_dict() -> Dictionary:
 		"person_profile": person_profile.to_dict() if person_profile != null else {},
 		"npc_name": npc_name, "npc_role": npc_role, "family_id": family_id, "family_name": family_name,
 		"trade_role": int(trade_role), "linked_trade": int(linked_trade), "days_in_role": days_in_role,
-		"affinity": affinity, "known_traits": known_traits.duplicate(), "rumored_traits": rumored_traits.duplicate(), "known_feelings": known_feelings.duplicate(), "feelings_all_known": feelings_all_known, "trait_trust_tier": trait_trust_tier,
+		"affinity": affinity, "known_traits": known_traits.duplicate(), "rumored_traits": rumored_traits.duplicate(), "known_feelings": known_feelings.duplicate(), "feelings_all_known": feelings_all_known, "heard_feelings": heard_feelings.duplicate(true), "trait_trust_tier": trait_trust_tier,
 		"trait_first_impression_done": trait_first_impression_done, "trait_lore_done": trait_lore_done, "personal_gold": personal_gold, "carries_royal_safe_conduct": carries_royal_safe_conduct,
 		"pocket_items": pocket_items.duplicate(), "corpse_pocket_looted": corpse_pocket_looted, "is_vagrant_camper": is_vagrant_camper, "in_shelter": in_shelter, "lodging": lodging,
 		"vagrant_camp_x": vagrant_camp_pos.x, "vagrant_camp_y": vagrant_camp_pos.y, "merchant_id": merchant_id,
@@ -4638,6 +4647,7 @@ func from_save_dict(data: Dictionary) -> void:
 	for kf in data.get("known_feelings", []):
 		known_feelings.append(str(kf))
 	feelings_all_known = bool(data.get("feelings_all_known", not data.has("known_feelings")))
+	heard_feelings = (data.get("heard_feelings", {}) as Dictionary).duplicate(true) if data.get("heard_feelings", {}) is Dictionary else {}
 	rumored_traits.clear()
 	var rt_data = data.get("rumored_traits", {})
 	if typeof(rt_data) == TYPE_DICTIONARY:

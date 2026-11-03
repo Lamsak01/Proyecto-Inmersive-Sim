@@ -36,6 +36,16 @@ static func state(vm) -> Dictionary:
 			vm.migration_state[k] = defs[k]
 	return vm.migration_state
 
+## E1: apunta por qué falló una comida (sin oro o sin comida a la venta) y de qué oficio era, para la sonda
+static func note_meal_failure(vm, npc) -> void:
+	var st: Dictionary = state(vm)
+	if not st.has("meal_fails"):
+		st["meal_fails"] = {}
+	var why: String = "sin_oro" if int(npc.personal_gold) < 3 else "sin_comida"
+	var role: String = str(VillageNPC.TradeRole.keys()[int(npc.trade_role)]).to_lower() if int(npc.trade_role) < VillageNPC.TradeRole.size() else str(npc.trade_role)
+	var k: String = "%s/%s" % [why, role]
+	st["meal_fails"][k] = int(st["meal_fails"].get(k, 0)) + 1
+
 static func residents(vm) -> Array:
 	return VillageNeeds.living(vm).filter(func(n): return not VillageNeeds.is_outsider(n))
 
@@ -64,7 +74,8 @@ static func free_house_beds(vm) -> int:
 static func free_tavern_bed(vm):
 	var used: Array = []
 	for n in residents(vm):
-		if is_tavern_guest(n):
+		# E3: cuenta cualquier vecino que duerma ahí (también un maestro que ya tiene oficio), no solo los parados
+		if house_of(n) == "" and n.bed_position in TAVERN_GUEST_BEDS:
 			used.append(n.bed_position)
 	for b in TAVERN_GUEST_BEDS:
 		if not b in used:
@@ -304,14 +315,32 @@ static func maybe_order_house(vm, score: float) -> String:
 		return ""
 	var cost: int = int(VillageLots.KINDS["house"]["cost"])
 	homeless.sort_custom(func(a, b): return a.personal_gold > b.personal_gold)
-	var payer = homeless[0] if homeless[0].personal_gold >= cost + 20 else null
+	# E2: una pareja junta sus ahorros para la casa
+	var buyer = homeless[0]
+	var mate = _partner_of(vm, buyer)
+	var pooled: int = int(buyer.personal_gold) + (int(mate.personal_gold) if mate != null else 0)
+	var payer = buyer if pooled >= cost + 20 else null
+	if payer != null and int(buyer.personal_gold) < cost and mate != null:
+		var need: int = cost - int(buyer.personal_gold)
+		mate.personal_gold -= need
+		buyer.personal_gold += need
 	var title: String = ("🏠 Casa de %s" % str(payer.npc_name).split(" ")[0]) if payer != null else "🏠 Casa del pueblo"
-	if payer == null and int(vm.town_state.get("treasury", 0)) < cost + TREASURY_RESERVE:
+	# E2: si alguien duerme al raso, el pueblo no se guarda la reserva
+	var reserve: int = 0 if street else TREASURY_RESERVE
+	if payer == null and int(vm.town_state.get("treasury", 0)) < cost + reserve:
 		return ""
 	var id: String = VillageLots.request_build(vm, str(lots[0]), "house", payer, title)
 	if id != "":
 		state(vm)["houses_ordered"] = int(state(vm)["houses_ordered"]) + 1
 	return id
+
+static func _partner_of(vm, n):
+	if n.person_profile == null or str(n.person_profile.partner_id) == "":
+		return null
+	var m = vm.VillageFamily.by_key(vm).get(str(n.person_profile.partner_id))
+	if m == null or not is_instance_valid(m) or m.is_dead:
+		return null
+	return m
 
 # ---------------------------------------------------------------- cada día
 static func daily(vm) -> void:

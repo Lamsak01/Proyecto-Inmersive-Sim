@@ -308,6 +308,9 @@ static func _add_neighbor_opinions(npc: VillageNPC, diag: Dictionary, ch_arr: Ar
 		var note: String = npc.get_relationship_note_with_npc(other.get_person_key())
 		if shares_reason and note != "":
 			text += "\nMotivo: %s" % note
+		var heard_f: Dictionary = _hearsay_feeling(npc, other, int(rows[i]["rel"])) if shares_reason else {}
+		if not heard_f.is_empty():
+			text += "\n«Y te diré más: %s %s.»" % [other.npc_name, VillageSocialLife.feeling_phrase(int(heard_f["rel"]), heard_f["npc"])]
 		var heard_trait: String = TraitDiscovery.hearsay_trait(npc, other) if shares_reason else ""
 		if heard_trait != "":
 			text += "\n«Por lo que sé, es %s.»" % TraitCatalog.npc_display(other, heard_trait).to_lower()
@@ -325,6 +328,28 @@ static func _add_neighbor_opinions(npc: VillageNPC, diag: Dictionary, ch_arr: Ar
 		diag["opinion_%d" % i] = {"text": text, "choices": op_choices}
 	choices.append({"label": "⬅️ Volver a la conversación", "next": "start"})
 	diag["neighbor_opinions"] = {"text": "«¿Sobre quién quieres saber?»", "choices": choices}
+
+## E4: si `npc` es íntimo de `other` (≥ 30), puede contarte lo que `other` siente con fuerza (≥ 40 o ≤ −40) por un
+## tercero que aún no sabes. Siempre elige el sentimiento más fuerte, así el texto y lo que se apunta coinciden.
+static func _hearsay_feeling(npc: VillageNPC, other: VillageNPC, rel_to_other: int) -> Dictionary:
+	if rel_to_other < 30:
+		return {}
+	var vm = npc._get_vm()
+	if vm == null:
+		return {}
+	var best: Dictionary = {}
+	for k in other.npc_relationships.keys():
+		var key: String = str(k)
+		if key == npc.get_person_key() or other.knows_feeling_toward(key) or other.heard_feelings.has(key):
+			continue
+		var v: int = other.get_relationship_with_npc(key)
+		if absi(v) < 40 or (not best.is_empty() and absi(v) <= absi(int(best["rel"]))):
+			continue
+		var third = vm._get_npcs_by_person_key().get(key, null)
+		if third == null or not is_instance_valid(third) or third.is_dead or third == other:
+			continue
+		best = {"key": key, "rel": v, "npc": third}
+	return best
 
 ## B5.2: Hablar bien o mal de un vecino. Si sale mal, la desconfianza recae en el jugador.
 static func _player_gossip(npc: VillageNPC, player: Node, mode: String, target_key: String) -> void:
@@ -787,6 +812,9 @@ static func on_dialogue_action(npc: VillageNPC, action_id: String) -> void:
 		var about: VillageNPC = vm._get_npcs_by_person_key().get(action_id.get_slice(":", 1), null) if vm != null else null
 		if about != null:
 			TraitDiscovery.hear_trait(npc, about)
+			var hf: Dictionary = _hearsay_feeling(npc, about, npc.get_relationship_with_npc(about.get_person_key()))
+			if not hf.is_empty():
+				about.hear_feeling_toward(str(hf["key"]), npc.npc_name)
 
 	if vm != null and VillageQuests.on_dialogue_action(vm, npc, player, action_id):
 		return

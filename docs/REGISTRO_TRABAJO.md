@@ -60,3 +60,20 @@ Leyenda: ✅ probado y subido · 🟡 escrito, sin probar · 🔴 falló (ver no
   no se repite (aquel número sumaba los contadores internos de Godot, no el tiempo real de pared).
 - **Para equilibrar más adelante:** el crecimiento por V3 es lento (2 llegadas en 12 días). Lo frena la vivienda: la primera casa
   se encarga el día 11, seguramente porque ni las arcas (necesitan 100) ni los recién llegados (80) tienen dinero antes.
+
+## Bloque E — Lo que enseñó la sonda y el último pendiente del plan (U5 «según X»)
+
+| # | Paso | Estado | Archivos | Nota |
+|---|------|--------|----------|------|
+| E1 | Cada comida fallida se apunta por motivo (`sin_oro` / `sin_comida`) y oficio; la sonda lo imprime (`MEAL_FAILS`) junto a las arcas | ✅ | VillageMigration.note_meal_failure, VillageManager.consume_village_meal_for_npc, growth_probe.gd | Solo diagnóstico: no cambia el juego |
+| E2 | Casas: una pareja sin casa junta sus ahorros (si entre los dos llegan a 80); si alguien duerme al raso, el pueblo paga la casa sin guardarse la reserva de 40 | ✅ | VillageMigration.maybe_order_house, `_partner_of` | Cambio de equilibrio: debería haber casas antes |
+| E3 | Camas de la posada: un vecino con oficio que duerme ahí (p. ej. el maestro) ya cuenta como ocupada; el maestro de fuera solo llega si hay cama; quien vuelve del raso coge una cama libre (antes la elegía por su nombre y podía repetirse) | ✅ | VillageMigration.free_tavern_bed, VillageFamily.ensure_teacher, VillageManager (noche) | Cierra el cabo «el maestro puede compartir cama» |
+| E4 | U5 «según X»: si preguntas a alguien por un íntimo suyo (≥ 30) y te tiene confianza, te cuenta el sentimiento más fuerte (±40) de ese íntimo por un tercero. En la red social sale «🗣️ Según X: …» (lo que sentía entonces; puede quedarse viejo) hasta que se lo preguntes a él | ✅ | VillageNPC.heard_feelings (se guarda), NPCDialogue._hearsay_feeling, SocialGlossaryUI | No cuenta para «mejores amigos / enemigos» |
+| E5 | Test #75 (E2, E3, E4) | ✅ | verify_all.gd | |
+
+### Pruebas del bloque E (todas pasan) y lo que dice la sonda
+- verify_all (con #75), names_check, social_sim, dialogue_coverage: pasan. Con 50 vecinos: plaza 6,1 ms, peor 22 ms, ninguno > 33 ms.
+- Comidas fallidas en 12 días (`MEAL_FAILS`): **sin oro**: ganadero 13, cantero 10, granjero 7; **sin comida a la venta**:
+  parados 20, calderero 4, leñador 2, otros 2. Los que producen materia prima se quedan sin dinero: ese es el problema real.
+- Desde el día 8 el atractivo cae a −0,15 (comida −0,40 y una muerte, −0,25), y con el pueblo así no se encargan casas
+  (`houses_ordered=0` aunque las arcas llegaron a 102). Es coherente con el diseño, pero la comida lo provoca → bloque F.

@@ -325,9 +325,13 @@ static func ensure_teacher(vm):
 		if s > best_s:
 			best_s = s
 			best = n
-	if best == null and vm.VillageMigration.population(vm) < vm.VillageMigration.POP_CAP and vm.arrivals_today_count < vm.MAX_DAILY_ARRIVALS:
-		best = vm.VillageMigration._spawn_one(vm, {"label": "Maestro Recién Llegado", "gold": Vector2i(20, 40)}, 1)
-		vm.VillageMigration.move_into_house(vm, best)
+	var mig = vm.VillageMigration
+	# E3: el maestro de fuera solo viene si tiene cama propia (casa libre o cama de posada libre)
+	var tav = mig.free_tavern_bed(vm)
+	if best == null and mig.population(vm) < mig.POP_CAP and vm.arrivals_today_count < vm.MAX_DAILY_ARRIVALS and (mig.free_house_beds(vm) > 0 or tav != null):
+		best = mig._spawn_one(vm, {"label": "Maestro Recién Llegado", "gold": Vector2i(20, 40)}, 1)
+		if not mig.move_into_house(vm, best) and tav != null:
+			best.bed_position = tav
 	if best != null:
 		make_teacher(vm, best)
 	return best

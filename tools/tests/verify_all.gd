@@ -2833,5 +2833,58 @@ func _initialize() -> void:
 	assert(vno.nobles(vm).size() == s_nobles, "SAVE9: The nobles survive a save and load (%d vs %d)" % [vno.nobles(vm).size(), s_nobles])
 	print("Save and load of nobles and children OK")
 
+	# 75. Bloque E: una pareja sin casa junta sus ahorros para encargarla; las camas de posada no se reparten dos veces.
+	var ve_saved: Dictionary = {}
+	for le in vl.LOTS:
+		ve_saved[str(le["id"])] = vl.lot(vm, str(le["id"])).duplicate(true)
+	var ve_tr: int = int(vm.town_state.get("treasury", 0))
+	var ve_arr: int = vm.arrivals_today_count
+	vm.arrivals_today_count = 0
+	var ve_a = vmi._spawn_one(vm, vmi.SETTLER_KINDS[0], 0)
+	var ve_b = vmi._spawn_one(vm, vmi.SETTLER_KINDS[0], 1)
+	vfm.marry(ve_a, ve_b)
+	for ve_h in vmi.residents(vm):
+		if vmi.is_unemployed(ve_h):
+			ve_h.personal_gold = mini(ve_h.personal_gold, 10)
+	ve_a.personal_gold = 70
+	ve_b.personal_gold = 30
+	ve_a.is_vagrant_camper = true
+	vm.town_state["treasury"] = 0
+	assert(vl.active_site(vm) == "" and vmi.free_house_beds(vm) == 0, "E: Test starts with no site and no free house bed")
+	var ve_id: String = vmi.maybe_order_house(vm, 0.5)
+	assert(ve_id != "" and str(vl.lot(vm, ve_id)["payer"]) == ve_a.get_person_key(), "E: A couple pools its savings to order a house")
+	assert(ve_a.personal_gold + ve_b.personal_gold == 100 - 60, "E: The house cost comes out of the couple's savings")
+	# Una cama de posada ocupada por alguien con oficio (p. ej. el maestro) ya no cuenta como libre
+	ve_b.trade_role = load("res://scripts/enemies/VillageNPC.gd").TradeRole.TEACHER
+	ve_b.lodging = ""
+	ve_b.bed_position = vmi.TAVERN_GUEST_BEDS[0]
+	var ve_bed = vmi.free_tavern_bed(vm)
+	assert(ve_bed == null or ve_bed != vmi.TAVERN_GUEST_BEDS[0], "E: A tavern bed held by a working resident is not handed out again")
+	for le_id in ve_saved.keys():
+		var le_st: Dictionary = vl.lot(vm, le_id)
+		for k in (ve_saved[le_id] as Dictionary).keys():
+			le_st[k] = ve_saved[le_id][k]
+		vl._draw_lot(vm, le_id, le_st)
+	vm.town_state["treasury"] = ve_tr
+	vm.arrivals_today_count = ve_arr
+	# E4: un íntimo te cuenta lo que siente su pareja por un tercero; sale «según» él hasta que lo confirmas
+	var ve_c = vmi._spawn_one(vm, vmi.SETTLER_KINDS[0], 2)
+	ve_b.feelings_all_known = false
+	ve_b.known_feelings.clear()
+	ve_b.heard_feelings.clear()
+	ve_b.npc_relationships.clear()
+	ve_a.npc_relationships[ve_b.get_person_key()] = 60
+	ve_b.npc_relationships[ve_c.get_person_key()] = -70
+	var ve_hf: Dictionary = load("res://scripts/enemies/NPCDialogue.gd")._hearsay_feeling(ve_a, ve_b, 60)
+	assert(str(ve_hf.get("key", "")) == ve_c.get_person_key(), "E4: A close friend tells you a strong feeling of theirs")
+	ve_b.hear_feeling_toward(ve_c.get_person_key(), ve_a.npc_name)
+	assert(int(ve_b.heard_feelings[ve_c.get_person_key()]["rel"]) == -70 and not ve_b.knows_feeling_toward(ve_c.get_person_key()), "E4: It is noted as hearsay, not as known")
+	ve_b.learn_feeling_toward(ve_c.get_person_key())
+	assert(not ve_b.heard_feelings.has(ve_c.get_person_key()), "E4: Asking them yourself replaces the hearsay")
+	for ve_n in [ve_a, ve_b, ve_c]:
+		vm.unemployed_npcs.erase(ve_n)
+		ve_n.queue_free()
+	print("Block E house pooling and tavern beds OK")
+
 	print("ALL RIMWORLD MEDICAL, FOOTPRINTS, 3-PHASE CORPSE REPORT, MULTI-CORPSE FIX, RPG INTERROGATION, PUBLIC TRIAL, DYNAMIC RELATIONSHIPS, MISSING FAMILY SEARCH, SOCIAL GLOSSARY & UNCONSCIOUS REACTION TESTS PASSED!")
 	quit(0)

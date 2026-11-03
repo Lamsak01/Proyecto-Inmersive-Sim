@@ -412,6 +412,7 @@ func refresh_ui(rebuild_lists: bool = true) -> void:
 		rel_entries.append({
 			"known": known_f,
 			"rev_known": rev_known,
+			"sel": sel,
 			"rev_val": other.get_relationship_with_npc(sel.get_person_key()),
 			"npc": other,
 			"name": other.npc_name,
@@ -602,6 +603,11 @@ func _fill_table_row(row: Dictionary, entry: Dictionary) -> void:
 		(row["name"] as Label).text = "%s %s (%s) — ❓ No sabes qué siente por él/ella%s" % [_get_role_icon(int(other_hidden.trade_role)), other_hidden.npc_name, other_hidden.npc_role, (" · ↩ " + VillageNPC.get_relationship_tier_label(int(entry.get("rev_val", 0)), is_fam, is_part)) if bool(entry.get("rev_known", false)) else ""]
 		(row["name"] as Label).add_theme_color_override("font_color", Color(0.7, 0.7, 0.75))
 		(row["reason"] as Label).text = "↳ Pregúntale qué opina de los vecinos"
+		var sel_h: VillageNPC = entry.get("sel", null)
+		if sel_h != null and sel_h.heard_feelings.has(other_hidden.get_person_key()):
+			var hd: Dictionary = sel_h.heard_feelings[other_hidden.get_person_key()]
+			(row["name"] as Label).text = (row["name"] as Label).text.replace("❓ No sabes qué siente por él/ella", "🗣️ Según %s: %s" % [str(hd.get("by", "?")), VillageNPC.get_relationship_tier_label(int(hd.get("rel", 0)), is_fam, is_part)])
+			(row["reason"] as Label).text = "↳ De oídas; pregúntale a él/ella para confirmarlo"
 		row["target"] = other_hidden
 		return
 	panel.add_theme_stylebox_override("panel", _style_row_good if r_val >= 35 else (_style_row_bad if r_val <= -25 else _style_row_neutral))
