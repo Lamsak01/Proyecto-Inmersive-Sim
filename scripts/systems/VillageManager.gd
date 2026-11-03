@@ -22,6 +22,7 @@ const VillageLots = preload("res://scripts/systems/VillageLots.gd")
 const VillageTrades = preload("res://scripts/systems/VillageTrades.gd")
 const VillageCivic = preload("res://scripts/systems/VillageCivic.gd")
 const VillagePlaces = preload("res://scripts/systems/VillagePlaces.gd")
+const VillageWork = preload("res://scripts/systems/VillageWork.gd")
 
 ## Gestor Integral de Urbanismo Sólido, Hospital/Morgue Forense, Comisaría/Cárcel, Testigos,
 ## Sigilo Doméstico, Reputación Familiar, Tablón de Encargos y Red Eléctrica (10 Pasos de Expansión)
@@ -72,6 +73,7 @@ var town_state: Dictionary = {}
 var lots_state: Dictionary = {} # V4: solares y obras (VillageLots)
 var _lot_visuals: Dictionary = {}
 var places_state: Dictionary = {} # V5c: terceros espacios (contadores)
+var work_state: Dictionary = {} # V5d: jornaleros del día
 ## La secta secreta (O). Ver `VillageSect.gd`. Se guarda.
 var sect_state: Dictionary = {}
 var _needs_tick_acc: float = 0.0
@@ -239,6 +241,7 @@ func setup_village(target_entities_root: Node) -> void:
 	VillageCivic.setup_world(self) # V5b: ayuntamiento, albergue y El Candil
 	VillageLots.build_world(self) # V4: calles y solares del borde, afueras y lomas
 	VillagePlaces.build_world(self) # V5c: parque, bancos de la plaza y mirador del lago
+	VillageWork.build_world(self) # V5d: lavadero
 	_spawn_domestic_pets()
 
 	if not in_editor:
@@ -2350,6 +2353,7 @@ func _on_hour_passed(_day: int, new_hour: int = 8) -> void:
 	VillageLots.on_hour(self, actual_hour) # V4: el carpintero avanza la obra si está allí
 	VillageCivic.on_hour(self, actual_hour) # V5b: votar en persona y el alcalde en el ayuntamiento
 	VillagePlaces.on_hour(self, actual_hour) # V5c: ratos libres en el parque, la plaza o el mirador
+	VillageWork.on_hour(self, actual_hour) # V5d: jornaleros (contratar, contar horas, pagar)
 
 	# 07:00 AM -> Comprobar llegada semanal de los 2 Mercaderes Ambulantes (Día 3: Maese Casimir | Día 6: Valeria la Tratante)
 	if actual_hour == 7:
@@ -3288,6 +3292,7 @@ func _register_shop_business_stall(role_id: int, shop_title: String, fam_id: Str
 		int(VillageNPC.TradeRole.BAKER): sup_items = ["bread", "wheat"]
 		int(VillageNPC.TradeRole.TAILOR): sup_items = ["clothes", "leather", "fox_pelt"]
 		int(VillageNPC.TradeRole.LODGEKEEPER): sup_items = ["country_stew", "cooked_meat"]
+		_: sup_items = VillageTrades.supply_items_for(role_id) # V5d
 
 	var cfg: Dictionary = trade_configs.get(role_id, {})
 	var init_stock: Dictionary = (cfg.get("stock", {}) as Dictionary).duplicate()
@@ -4515,6 +4520,7 @@ func get_economy_save_dict() -> Dictionary:
 		"town_state": town_state.duplicate(true),
 		"lots_state": lots_state.duplicate(true),
 		"places_state": places_state.duplicate(true),
+		"work_state": work_state.duplicate(true),
 		"sect_state": sect_state.duplicate(true),
 		"social_event_uid": _social_event_uid,
 		"social_director": social_director.to_save_dict() if social_director != null else {}
@@ -4582,6 +4588,8 @@ func load_economy_save_dict(data: Dictionary) -> void:
 	lots_state = (data["lots_state"] as Dictionary).duplicate(true) if typeof(data.get("lots_state")) == TYPE_DICTIONARY else {}
 	VillageLots.after_load(self)
 	places_state = (data["places_state"] as Dictionary).duplicate(true) if typeof(data.get("places_state")) == TYPE_DICTIONARY else {}
+	work_state = (data["work_state"] as Dictionary).duplicate(true) if typeof(data.get("work_state")) == TYPE_DICTIONARY else {}
+	VillageWork.after_load(self)
 	VillageSect._update_band(self)
 	if data.has("chronicle") and typeof(data["chronicle"]) == TYPE_ARRAY:
 		chronicle.clear()

@@ -223,6 +223,7 @@ static func tick(vm) -> void:
 				n.need_hygiene = 100.0
 				n._spawn_floating_text("🧼", Color(0.7, 0.95, 1.0), -30.0)
 				n.end_errand()
+				vm.VillageWork.on_washed(vm, n) # V5d: chismes en el lavadero
 			"drink", "gamble":
 				do_vice(vm, n, n.errand_kind)
 				n.end_errand()
@@ -254,7 +255,7 @@ static func on_hour(vm, hour: int) -> void:
 		if not is_free(n):
 			continue
 		if hour in WASH_HOURS and n.need_hygiene < wash_threshold(n):
-			n.start_errand("wash", wash_spot(vm, n))
+			n.start_errand("wash", vm.VillageWork.wash_spot(vm, n, wash_spot(vm, n))) # V5d: a veces, al lavadero
 		elif hour in VICE_HOURS and not vm.is_building_door_blocked("tavern"):
 			var key: String = n.get_person_key()
 			if randf() < vice_chance(vm, n, "drink"):

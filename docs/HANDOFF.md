@@ -462,7 +462,7 @@ Cada fase se dividirá en bloques pequeños cuando se llegue a ella (detalle en 
   cargar otra partida; `after_load` recalcula las camas y redibuja. `free_house_bed` / `add_resident` quedan para V3,
   que decidirá cuándo hace falta una casa y quién la paga. Crónica: tipo público «construction».
 - [x] **V5a** Panadería y sastrería (`scripts/systems/VillageTrades.gd`). Oficios nuevos al final del enum
-  (`BAKER` 12, `TAILOR` 13) y lista común `VillageNPC.SHOP_ROLES` (sustituye listas repetidas: horario de fin de semana,
+  (`BAKER` 14, `TAILOR` 15) y lista común `VillageNPC.SHOP_ROLES` (sustituye listas repetidas: horario de fin de semana,
   taller, mostrador en el diálogo y en la ficha, reidentificar oficios al cargar). Edificio nuevo de solar
   «shop_house» (tienda con vivienda como la Botica, con la puerta hacia la calle; `VillageLots.shop_house_layout`).
   Los dos están en pie desde el principio en los solares n2 y n3 (calle norte) y **empiezan vacantes**: los ocupa la
@@ -489,7 +489,7 @@ Cada fase se dividirá en bloques pequeños cuando se llegue a ella (detalle en 
   **Albergue del Alba** (e4, 4 camas): `evict_npc_to_vagrant_camp` intenta primero `try_shelter` (variable nueva
   `in_shelter`, guardada). Sigue contando como mendigo (`is_vagrant_camper`), pero duerme sin el tope de la intemperie,
   sin campamento, con −3 de humor en vez de −10, su desesperación para la secta baja de 0,25 a 0,15 y cada día gana +2
-  con el sacerdote. **El Candil** (e2): oficio nuevo `LODGEKEEPER` (14, en `SHOP_ROLES`), puesto vacante al empezar;
+  con el sacerdote. **El Candil** (e2): oficio nuevo `LODGEKEEPER` (16, en `SHOP_ROLES`), puesto vacante al empezar;
   guisa estofado con carne del carnicero; 3 camas de huésped a 3 de oro (`lodging` = «candil», guardado). En el cobro
   nocturno, `nightly_guest` aloja allí al viajero que no llega a los 6 de El Jabalí; si no llega ni a 3, la regla de
   siempre (albergue o calle). El tope de 3 viajeros sigue igual: lo cambiará V3. **Sin probar en juego:** que la gente
@@ -505,6 +505,25 @@ Cada fase se dividirá en bloques pequeños cuando se llegue a ella (detalle en 
   menos de 46 px charlan por parejas: +2 de relación, +12 de compañía y 50 % de contarse un chisme
   (`VillageSocialLife.spread_gossip`); si se llevan a −40 o peor, −2. Las quedadas del SocialDirector usan los cuatro
   sitios nuevos (clases «park» y «overlook» con su propia puntuación).
+- [x] **V5d** Afueras. Cuatro oficios más en `VillageTrades.CONFIG` (enum: `FARMER` 17, `RANCHER` 18, `QUARRYMAN` 19,
+  `WOODCUTTER` 20; ojo, `PRIEST` es 13, así que `BAKER` es 14, `TAILOR` 15 y `LODGEKEEPER` 16: en los tests usa
+  `VillageTrades.role_of(...)` / `VillageCivic.lodge_role()`, nunca números). Granja del Sur (solar s1; sus campos
+  ocupan también s2, clase «fields»), Rancho (s3), Cantera (w1) y Cabaña del Leñador (solar nuevo «fw», linde del
+  bosque, con su tramo de camino). En los solares grandes el edificio va a un lado (`offset`,
+  `VillageLots.building_center`) y `VillageTrades.build_extras` dibuja campos con surcos, corral con animales (sprites de
+  gallina y jabalí de momento), roca de cantera o troncos. Empiezan vacantes. Recetas propias (trigo con abono, lana y
+  carne con pienso, piedra y madera con herramientas del herrero) y una receta más en los oficios de siempre que
+  compra a los nuevos: panadero trigo, sastre lana, carnicero carne del rancho, carpintero troncos, herrero piedra (si
+  el proveedor falta, fabrican más despacio, como siempre). Diálogo genérico de compra y venta desde `goods`
+  (`VillageTrades.shop_dialogue`). **Jornaleros** (`scripts/systems/VillageWork.gd`, `vm.work_state`): a las 7 h
+  (no en domingo) cada dueño con oro para un día contrata a parados (`UNEMPLOYED`) por sus huecos (granja 4, resto 2),
+  primero los más pobres; aceptan un 90 % si tienen menos de 30 de oro (45 % si no; + diligencia). Marcas
+  `day_job` / `day_job_pos` (no se guardan: al cargar se cancelan los jornales del día). Con jornal tienen horario de
+  8 a 18 (`_is_mandatory_work_hours`) y deambulan en su sitio. Cada hora en su sitio y trabajando cuenta y produce
+  (granja 0,25 trigo + 0,08 zanahoria; rancho 0,15 lana + 0,1 carne; cantera 0,3 piedra; leñador 0,35 madera; tope
+  14). A las 18 h cobran 1 de oro por hora; si el dueño no llega, −8 de humor y −6 con él. **Lavadero** (−140, 105):
+  un 30 % de los que van a lavarse (a menos de 700 px) van allí; al terminar charlan con quien esté (+1 y un chisme).
+  **Sin probar en juego:** caminos hasta las afueras, que los jornaleros lleguen a tiempo y el equilibrio del dinero.
 
 ### Interfaz
 - [x] **HUD1** Barras de estado (`scenes/ui_root.gd`, `_create_stats_box` / `_create_fallback_bar`): recuadro oscuro arriba a

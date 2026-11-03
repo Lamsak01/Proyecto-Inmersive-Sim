@@ -61,6 +61,7 @@ const CATALOG: Dictionary = {
 	"sinew_viscera": {"name": "Vísceras y Tendones", "category": "Despiece", "desc": "Fibras resistentes para fabricar cuerdas de arco y costuras de armadura.", "usable": false},
 	"animal_fat": {"name": "Grasa Animal", "category": "Despiece", "desc": "Sebo útil para templar acero, ungüentos o impermeabilizar cuero.", "usable": false},
 	"cooked_meat": {"name": "Carne Cocida", "category": "Alimento", "desc": "Carne cocinada en la cacerola de la hoguera (+40 HP, +60 STM, +55 Hambre).", "usable": true, "heal_hp": 40.0, "restore_stamina": 60.0, "restore_hunger": 55.0},
+	"wool": {"name": "Lana", "category": "Material", "desc": "Vellón esquilado en el rancho. La sastrería la teje.", "usable": false},
 	"clothes": {"name": "Ropa de Lana", "category": "Vestimenta", "desc": "Prenda cosida en la Sastrería. Los vecinos estrenan ropa cuando pueden permitírselo.", "usable": false},
 	"repair_kit": {"name": "Tablones Reforzados", "category": "Construcción", "desc": "Material elaborado con madera y piedra para construir o comerciar en el pueblo.", "usable": false},
 	"sleeping_draught": {"name": "Somnífero Nocturno", "category": "Alquimia / Sigilo", "desc": "Elixir sedante de la Botica. Úsalo cerca de un NPC o guardia para dormirlo profundamente 40s sin matarlo ni dejar rastro forense.", "usable": true, "is_sleeping_draught": true, "icon": "res://assests/items/icons/sleeping_draught.png"},

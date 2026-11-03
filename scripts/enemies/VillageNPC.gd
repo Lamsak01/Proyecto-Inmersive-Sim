@@ -30,11 +30,15 @@ enum TradeRole {
 	PRIEST,             # 11. Sacerdote de la Capilla del Alba (G3): dirige el Oficio de los domingos
 	BAKER,              # 12. Panadero (V5): hornea pan con harina del molino y leña
 	TAILOR,             # 13. Sastre (V5): cose ropa con cuero; los ricos compran más
-	LODGEKEEPER         # 14. Posadero de El Candil (V5b): camas baratas y estofado sencillo
+	LODGEKEEPER,        # 14. Posadero de El Candil (V5b): camas baratas y estofado sencillo
+	FARMER,             # 15. Granjero (V5d): trigo y hortalizas en la Granja del Sur, con jornaleros
+	RANCHER,            # 16. Ganadero (V5d): lana y carne en el rancho
+	QUARRYMAN,          # 17. Cantero (V5d): piedra en la cantera del noroeste
+	WOODCUTTER          # 18. Leñador (V5d): madera en la linde del bosque
 }
 
 ## Oficios con taller y mostrador propios (V5: lista común para no repetirla en cada sitio)
-const SHOP_ROLES: Array = [TradeRole.BLACKSMITH, TradeRole.BUTCHER, TradeRole.CARPENTER, TradeRole.HERBALIST, TradeRole.FISHMONGER, TradeRole.BAKER, TradeRole.TAILOR, TradeRole.LODGEKEEPER]
+const SHOP_ROLES: Array = [TradeRole.BLACKSMITH, TradeRole.BUTCHER, TradeRole.CARPENTER, TradeRole.HERBALIST, TradeRole.FISHMONGER, TradeRole.BAKER, TradeRole.TAILOR, TradeRole.LODGEKEEPER, TradeRole.FARMER, TradeRole.RANCHER, TradeRole.QUARRYMAN, TradeRole.WOODCUTTER]
 
 enum ActivityState {
 	WORKING,     # Atendiendo su taller, ayudando en casa o paseando
@@ -284,6 +288,7 @@ const ROLE_INITIAL_GOLD: Dictionary = {
 	TradeRole.BUTCHER: Vector2i(48, 72), TradeRole.CARPENTER: Vector2i(48, 72),
 	TradeRole.HERBALIST: Vector2i(48, 72), TradeRole.FISHMONGER: Vector2i(48, 72),
 	TradeRole.BAKER: Vector2i(40, 62), TradeRole.TAILOR: Vector2i(48, 72), TradeRole.LODGEKEEPER: Vector2i(36, 58),
+	TradeRole.FARMER: Vector2i(55, 80), TradeRole.RANCHER: Vector2i(55, 80), TradeRole.QUARRYMAN: Vector2i(45, 70), TradeRole.WOODCUTTER: Vector2i(40, 62),
 	TradeRole.DOCTOR: Vector2i(52, 78), TradeRole.SHERIFF: Vector2i(52, 78), TradeRole.GUARD: Vector2i(52, 78),
 	TradeRole.FAMILY_MEMBER: Vector2i(26, 44), TradeRole.TRAVELING_MERCHANT: Vector2i(172, 238), TradeRole.ROYAL_INVESTIGATOR: Vector2i(110, 155),
 }
@@ -294,6 +299,7 @@ const ROLE_INITIAL_MATERIALS: Dictionary = {
 	TradeRole.FISHMONGER: {"wood": 1, "herbal_poultice": 1}, TradeRole.INNKEEPER: {"cooked_meat": 1, "bread": 1},
 	TradeRole.DOCTOR: {"herbal_poultice": 2, "leather": 1},
 	TradeRole.BAKER: {"bread": 1, "wood": 1}, TradeRole.TAILOR: {"leather": 2}, TradeRole.LODGEKEEPER: {"cooked_meat": 1},
+	TradeRole.FARMER: {"fertilizer": 1}, TradeRole.RANCHER: {"wheat": 1}, TradeRole.QUARRYMAN: {"repair_kit": 1}, TradeRole.WOODCUTTER: {"repair_kit": 1},
 }
 
 const ROLE_PSYCHOLOGY: Dictionary = {
@@ -304,6 +310,10 @@ const ROLE_PSYCHOLOGY: Dictionary = {
 	TradeRole.HERBALIST: [["Naturista", "Pacífica"], "herbs", ["Las plantas crecen sanas (+7)"]],
 	TradeRole.FISHMONGER: [["Paciente", "Madrugador"], "night_catfish", ["Brisa fresca junto al molino (+6)"]],
 	TradeRole.BAKER: [["Madrugador", "Hogareño"], "bread", ["Huele a pan recién hecho (+7)"]],
+	TradeRole.FARMER: [["Trabajador", "Madrugador"], "wheat", ["La cosecha viene bien (+6)"]],
+	TradeRole.RANCHER: [["Paciente", "Amante de Animales"], "wool", ["Los animales están sanos (+6)"]],
+	TradeRole.QUARRYMAN: [["Fuerte", "Callado"], "stone", ["Buena veta de piedra hoy (+5)"]],
+	TradeRole.WOODCUTTER: [["Fuerte", "Amante del Bosque"], "wood", ["El hacha corta bien (+5)"]],
 	TradeRole.LODGEKEEPER: [["Hospitalario", "Sencillo"], "country_stew", ["Hay luz en El Candil (+5)"]],
 	TradeRole.TAILOR: [["Perfeccionista", "Coqueto"], "clothes", ["Una costura perfecta (+6)"]],
 	TradeRole.DOCTOR: [["Cirujano Experto", "Forense Meticuloso"], "surgical_kit", ["Urgencias y morgue en orden (+8)"]],
@@ -333,6 +343,10 @@ const ROLE_FALLBACK_LORE: Dictionary = {
 	TradeRole.BUTCHER: ["garrick", "lina", "Cazador y maestro carnicero encargado de abastecer de carne fresca y cuero curado a la aldea."],
 	TradeRole.CARPENTER: ["bram", "mila", "Maestro ebanista y carpintero llegado para mantener en pie el aserradero y los talleres locales."],
 	TradeRole.FISHMONGER: ["marlo", "nora", "Pescador y molinero encargado de las redes del lago y de la molienda de grano para el valle."],
+	TradeRole.FARMER: ["tomas", "lina", "Granjero que labra los campos del sur con ayuda de jornaleros y vende trigo al molino y a la panadería."],
+	TradeRole.RANCHER: ["garrick", "nora", "Ganadero del rancho del sur: cría animales por su lana y su carne."],
+	TradeRole.QUARRYMAN: ["thoran", "kiera", "Cantero que saca piedra en la ladera del noroeste para las obras del pueblo."],
+	TradeRole.WOODCUTTER: ["bram", "mila", "Leñador que corta madera en la linde del bosque para carpinteros, hornos y hogares."],
 	TradeRole.LODGEKEEPER: ["dario", "nora", "Posadero modesto que alquila camas baratas a quien no puede pagar El Jabalí Dorado."],
 	TradeRole.BAKER: ["marlo", "marta", "Panadero llegado de un valle vecino para encender el horno de la calle norte y dar pan a casas y posadas."],
 	TradeRole.TAILOR: ["dario", "mila", "Sastre de mano fina que remienda la ropa del pueblo y cose prendas nuevas para quien pueda pagarlas."],
@@ -2669,8 +2683,8 @@ func _get_expedition_description() -> String:
 	return str(EXPEDITION_DESCS.get(trade_role, "🚶 En Expedición"))
 
 func _is_mandatory_work_hours() -> bool:
-	if trade_role == TradeRole.UNEMPLOYED or rite_pos != Vector2.ZERO or sick_level >= 2:
-		return false
+	if (trade_role == TradeRole.UNEMPLOYED and not has_meta("day_job")) or rite_pos != Vector2.ZERO or sick_level >= 2:
+		return false # V5d: el jornalero con jornal sí tiene horario de trabajo (8–18)
 	if not WorldClock or _is_morning_expedition_hours():
 		return true
 	var h: int = WorldClock.current_hour
@@ -3067,25 +3081,30 @@ func _execute_dynamic_activity(delta: float) -> void:
 				_wander_timer = randf_range(2.2, 4.6)
 				var radius: float = 26.0 if (trade_role == TradeRole.UNEMPLOYED or trade_role == TradeRole.GUARD) else 8.0
 				_wander_offset = Vector2.ZERO if randf() < 0.55 else Vector2.RIGHT.rotated(randf() * TAU) * randf_range(3.0, radius)
-			var target_pos: Vector2 = work_position + _wander_offset
+			var anchor: Vector2 = get_meta("day_job_pos") if has_meta("day_job_pos") else work_position # V5d: jornalero en el campo
+			var target_pos: Vector2 = anchor + _wander_offset
 			var vm = _get_vm()
 			if vm and vm.has_method("clamp_point_to_building_interior"):
-				target_pos = vm.call("clamp_point_to_building_interior", work_position, target_pos)
+				target_pos = vm.call("clamp_point_to_building_interior", anchor, target_pos)
 			if vm and vm.has_method("clamp_point_outside_buildings"):
-				target_pos = vm.call("clamp_point_outside_buildings", work_position, target_pos)
+				target_pos = vm.call("clamp_point_outside_buildings", anchor, target_pos)
 			_approach_or_stop(target_pos, 5.0, 44.0, delta)
 
 const ARTISAN_RECIPES: Dictionary = {
-	TradeRole.BLACKSMITH: [{"output": "steel_ingot", "label": "Lingote Acero", "verb": "⚒️ Forjando", "input": "wood", "supplier": int(TradeRole.CARPENTER), "input_name": "Madera"}, {"output": "repair_kit", "label": "Kit Herrero", "verb": "⚒️ Templando", "input": "leather", "supplier": int(TradeRole.BUTCHER), "input_name": "Cuero"}],
-	TradeRole.CARPENTER: [{"output": "repair_kit", "label": "Tablones", "verb": "🪚 Aserrando", "input": "iron_ore", "supplier": int(TradeRole.BLACKSMITH), "input_name": "Clavos/Hierro"}, {"output": "wood", "label": "Vigas Pino", "verb": "🪚 Cepillando", "input": "herbal_poultice", "supplier": int(TradeRole.HERBALIST), "input_name": "Resina/Hierbas"}, {"output": "copper_coil", "label": "Bobina Cobre", "verb": "⚡ Bobinando", "input": "iron_ore", "supplier": int(TradeRole.BLACKSMITH), "input_name": "Hierro/Cobre"}],
-	TradeRole.BUTCHER: [{"output": "cooked_meat", "label": "Carne Asada", "verb": "🥩 Ahumando", "input": "wood", "supplier": int(TradeRole.CARPENTER), "input_name": "Leña"}, {"output": "leather", "label": "Cuero Curtido", "verb": "🔪 Curtiendo", "input": "herbal_poultice", "supplier": int(TradeRole.HERBALIST), "input_name": "Tanino/Hierbas"}],
+	TradeRole.BLACKSMITH: [{"output": "steel_ingot", "label": "Lingote Acero", "verb": "⚒️ Forjando", "input": "wood", "supplier": int(TradeRole.CARPENTER), "input_name": "Madera"}, {"output": "repair_kit", "label": "Kit Herrero", "verb": "⚒️ Templando", "input": "leather", "supplier": int(TradeRole.BUTCHER), "input_name": "Cuero"}, {"output": "steel_ingot", "label": "Lingote Acero", "verb": "⚒️ Fundiendo", "input": "stone", "supplier": int(TradeRole.QUARRYMAN), "input_name": "Piedra de horno"}],
+	TradeRole.CARPENTER: [{"output": "repair_kit", "label": "Tablones", "verb": "🪚 Aserrando", "input": "iron_ore", "supplier": int(TradeRole.BLACKSMITH), "input_name": "Clavos/Hierro"}, {"output": "wood", "label": "Vigas Pino", "verb": "🪚 Cepillando", "input": "herbal_poultice", "supplier": int(TradeRole.HERBALIST), "input_name": "Resina/Hierbas"}, {"output": "copper_coil", "label": "Bobina Cobre", "verb": "⚡ Bobinando", "input": "iron_ore", "supplier": int(TradeRole.BLACKSMITH), "input_name": "Hierro/Cobre"}, {"output": "repair_kit", "label": "Tablones", "verb": "🪚 Serrando troncos", "input": "wood", "supplier": int(TradeRole.WOODCUTTER), "input_name": "Troncos"}],
+	TradeRole.BUTCHER: [{"output": "cooked_meat", "label": "Carne Asada", "verb": "🥩 Ahumando", "input": "wood", "supplier": int(TradeRole.CARPENTER), "input_name": "Leña"}, {"output": "leather", "label": "Cuero Curtido", "verb": "🔪 Curtiendo", "input": "herbal_poultice", "supplier": int(TradeRole.HERBALIST), "input_name": "Tanino/Hierbas"}, {"output": "cooked_meat", "label": "Carne del Rancho", "verb": "🥩 Despiezando", "input": "raw_meat", "supplier": int(TradeRole.RANCHER), "input_name": "Carne del rancho"}],
 	TradeRole.HERBALIST: [{"output": "herbal_poultice", "label": "Cataplasma", "verb": "🧪 Destilando", "input": "bread", "supplier": int(TradeRole.FISHMONGER), "input_name": "Grano/Harina"}, {"output": "carrot_seeds", "label": "Semillas", "verb": "🌱 Seleccionando", "input": "fertilizer", "supplier": int(TradeRole.FISHMONGER), "input_name": "Abono"}, {"output": "sleeping_draught", "label": "Somnífero", "verb": "🌙 Alambicando", "input": "bread", "supplier": int(TradeRole.FISHMONGER), "input_name": "Extracto"}, {"output": "surgical_kit", "label": "Botiquín Quir.", "verb": "🩺 Esterilizando", "input": "fertilizer", "supplier": int(TradeRole.FISHMONGER), "input_name": "Sales"}],
 	TradeRole.FISHMONGER: [{"output": "bread", "label": "Hogaza Pan", "verb": "🌾 Moliendo", "input": "wood", "supplier": int(TradeRole.CARPENTER), "input_name": "Leña"}, {"output": "fertilizer", "label": "Abono Org.", "verb": "♻️ Compostando", "input": "herbal_poultice", "supplier": int(TradeRole.HERBALIST), "input_name": "Hierbas"}],
 	TradeRole.INNKEEPER: [{"output": "country_stew", "label": "Estofado", "verb": "🍲 Guisando", "input": "cooked_meat", "supplier": int(TradeRole.BUTCHER), "input_name": "Carne"}, {"output": "bread", "label": "Pan Posada", "verb": "🍞 Horneando", "input": "bread", "supplier": int(TradeRole.FISHMONGER), "input_name": "Harina"}, {"output": "roasted_chicken", "label": "Pollo Asado", "verb": "🍗 Asando", "input": "cooked_meat", "supplier": int(TradeRole.BUTCHER), "input_name": "Aves/Carne"}],
 	TradeRole.DOCTOR: [{"output": "bandage", "label": "Vendaje Limpio", "verb": "🩹 Esterilizando", "input": "herbal_poultice", "supplier": int(TradeRole.HERBALIST), "input_name": "Cataplasma"}, {"output": "herbal_poultice", "label": "Cataplasma", "verb": "🧪 Preparando", "input": "bread", "supplier": int(TradeRole.FISHMONGER), "input_name": "Base Vegetal"}, {"output": "surgical_kit", "label": "Botiquín Quir.", "verb": "🩺 Ensamblando", "input": "leather", "supplier": int(TradeRole.BUTCHER), "input_name": "Sutura/Cuero"}],
-	TradeRole.BAKER: [{"output": "bread", "label": "Hogaza", "verb": "🍞 Horneando", "input": "bread", "supplier": int(TradeRole.FISHMONGER), "input_name": "Harina"}, {"output": "bread", "label": "Pan de Leña", "verb": "🔥 Avivando el horno", "input": "wood", "supplier": int(TradeRole.CARPENTER), "input_name": "Leña"}],
-	TradeRole.TAILOR: [{"output": "clothes", "label": "Ropa", "verb": "🧵 Cosiendo", "input": "leather", "supplier": int(TradeRole.BUTCHER), "input_name": "Cuero"}],
+	TradeRole.BAKER: [{"output": "bread", "label": "Hogaza", "verb": "🍞 Horneando", "input": "bread", "supplier": int(TradeRole.FISHMONGER), "input_name": "Harina"}, {"output": "bread", "label": "Pan de Leña", "verb": "🔥 Avivando el horno", "input": "wood", "supplier": int(TradeRole.CARPENTER), "input_name": "Leña"}, {"output": "bread", "label": "Pan de Trigo", "verb": "🍞 Amasando", "input": "wheat", "supplier": int(TradeRole.FARMER), "input_name": "Trigo"}],
+	TradeRole.TAILOR: [{"output": "clothes", "label": "Ropa", "verb": "🧵 Cosiendo", "input": "leather", "supplier": int(TradeRole.BUTCHER), "input_name": "Cuero"}, {"output": "clothes", "label": "Ropa de Lana", "verb": "🧶 Tejiendo", "input": "wool", "supplier": int(TradeRole.RANCHER), "input_name": "Lana"}],
 	TradeRole.LODGEKEEPER: [{"output": "country_stew", "label": "Estofado", "verb": "🍲 Guisando", "input": "cooked_meat", "supplier": int(TradeRole.BUTCHER), "input_name": "Carne"}],
+	TradeRole.FARMER: [{"output": "wheat", "label": "Trigo", "verb": "🌾 Segando", "input": "fertilizer", "supplier": int(TradeRole.FISHMONGER), "input_name": "Abono"}, {"output": "carrot", "label": "Zanahorias", "verb": "🥕 Recogiendo", "input": "fertilizer", "supplier": int(TradeRole.FISHMONGER), "input_name": "Abono"}],
+	TradeRole.RANCHER: [{"output": "wool", "label": "Lana", "verb": "🐑 Esquilando", "input": "wheat", "supplier": int(TradeRole.FARMER), "input_name": "Pienso"}, {"output": "raw_meat", "label": "Carne", "verb": "🐖 Cuidando el ganado", "input": "wheat", "supplier": int(TradeRole.FARMER), "input_name": "Pienso"}],
+	TradeRole.QUARRYMAN: [{"output": "stone", "label": "Piedra", "verb": "⛏️ Picando piedra", "input": "repair_kit", "supplier": int(TradeRole.BLACKSMITH), "input_name": "Herramientas"}],
+	TradeRole.WOODCUTTER: [{"output": "wood", "label": "Madera", "verb": "🪓 Talando", "input": "repair_kit", "supplier": int(TradeRole.BLACKSMITH), "input_name": "Hacha afilada"}],
 }
 
 func _get_artisan_recipes() -> Array[Dictionary]:
@@ -3781,6 +3800,8 @@ func get_activity_description() -> String:
 			if trade_role == TradeRole.GUARD: return "🛡️ Patrullando la Aldea"
 			if trade_role == TradeRole.PRIEST: return "☀️ Cuidando la Capilla del Alba"
 			if trade_role == TradeRole.UNEMPLOYED:
+				if has_meta("day_job"):
+					return str(get_meta("day_job"))
 				return ("🕯️ Sin oficio, acogido en el Albergue" if in_shelter else "⛺ Sobreviviendo en las Afueras") if is_vagrant_camper else "🚶 Paseando / Jornalero"
 			elif trade_role == TradeRole.FAMILY_MEMBER:
 				return "🏠 Turno del Hogar (08-18h)" if _is_mandatory_work_hours() else "🏠 Cuidando el Hogar"

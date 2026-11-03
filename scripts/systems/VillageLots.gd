@@ -31,10 +31,12 @@ const LOTS: Array = [
 	{"id": "e4", "zone": "borde", "center": Vector2(1090, 140), "size": Vector2(130, 96), "door_south": false},
 	{"id": "e5", "zone": "borde", "center": Vector2(1230, 140), "size": Vector2(130, 96), "door_south": false},
 	# Afueras: campos al sur, entre el pueblo y el bosque, y la ladera del noroeste
-	{"id": "s1", "zone": "afueras", "center": Vector2(-220, 470), "size": Vector2(230, 160), "door_south": false},
+	# `offset`: en los solares grandes el edificio va a un lado y deja sitio a campos, corrales o la cantera
+	{"id": "s1", "zone": "afueras", "center": Vector2(-220, 470), "size": Vector2(230, 160), "door_south": false, "offset": Vector2(-50, 0)},
 	{"id": "s2", "zone": "afueras", "center": Vector2(30, 470), "size": Vector2(230, 160), "door_south": false},
-	{"id": "s3", "zone": "afueras", "center": Vector2(290, 470), "size": Vector2(230, 160), "door_south": false},
-	{"id": "w1", "zone": "afueras", "center": Vector2(-230, -330), "size": Vector2(230, 160), "door_south": true},
+	{"id": "s3", "zone": "afueras", "center": Vector2(290, 470), "size": Vector2(230, 160), "door_south": false, "offset": Vector2(-50, 0)},
+	{"id": "w1", "zone": "afueras", "center": Vector2(-230, -330), "size": Vector2(230, 160), "door_south": true, "offset": Vector2(-50, 0)},
+	{"id": "fw", "zone": "afueras", "center": Vector2(-430, 556), "size": Vector2(130, 96), "door_south": true}, # Linde del bosque (V5d)
 	# Apartados: lejos del centro, para mansiones
 	{"id": "f1", "zone": "apartado", "center": Vector2(1315, -440), "size": Vector2(250, 180), "door_south": true},
 	{"id": "f2", "zone": "apartado", "center": Vector2(40, -560), "size": Vector2(250, 180), "door_south": true},
@@ -45,7 +47,8 @@ const ROADS: Array = [
 	Rect2(Vector2(270, -362), Vector2(720, 22)), # Calle norte
 	Rect2(Vector2(660, -362), Vector2(24, 230)), # Enlace con la calle de las casas
 	Rect2(Vector2(1010, 36), Vector2(470, 28)), # Camino principal hacia el este
-	Rect2(Vector2(-240, -250), Vector2(20, 286)), # Senda a la ladera del noroeste
+	Rect2(Vector2(-290, -250), Vector2(20, 286)), # Senda a la ladera del noroeste (puerta de la cantera)
+	Rect2(Vector2(-450, 606), Vector2(72, 24)), # Camino del bosque hasta la cabaña del leñador
 	Rect2(Vector2(-330, 362), Vector2(780, 20)), # Senda de los campos del sur
 	Rect2(Vector2(1305, -350), Vector2(20, 386)), # Senda a la loma del este
 	Rect2(Vector2(30, -470), Vector2(20, 506)), # Senda a la loma del norte
@@ -87,6 +90,11 @@ static func active_site(vm) -> String:
 		if str(lot(vm, str(l["id"]))["status"]) == "building":
 			return str(l["id"])
 	return ""
+
+## Centro del edificio dentro del solar (en los grandes, desplazado a un lado).
+static func building_center(id: String) -> Vector2:
+	var d: Dictionary = lot_def(id)
+	return (d["center"] as Vector2) + (d.get("offset", Vector2.ZERO) as Vector2)
 
 static func site_work_pos(id: String) -> Vector2:
 	var d: Dictionary = lot_def(id)
@@ -170,6 +178,8 @@ static func _build_kind(vm, id: String, st: Dictionary) -> void:
 			vm._spawn_house_chest(hc + Vector2(0, -24 if bool(d["door_south"]) else 24), "Cofre Familiar (" + str(st["title"]) + ")", fam)
 		"shop_house":
 			_build_shop_house(vm, id, st)
+		"fields":
+			load("res://scripts/systems/VillageTrades.gd").build_extras(vm, id)
 		"civic", "shelter", "inn":
 			load("res://scripts/systems/VillageCivic.gd").build(vm, id, st)
 
@@ -177,7 +187,7 @@ static func _build_kind(vm, id: String, st: Dictionary) -> void:
 ## Posiciones relativas a la Botica (puerta al norte); con la puerta al sur se reflejan.
 static func shop_house_layout(id: String) -> Dictionary:
 	var d: Dictionary = lot_def(id)
-	var c: Vector2 = d["center"]
+	var c: Vector2 = building_center(id)
 	var m: float = -1.0 if bool(d["door_south"]) else 1.0
 	var f := func(v: Vector2) -> Vector2: return c + Vector2(v.x, v.y * m)
 	return {"work_pos": f.call(Vector2(0, -18)), "bed1_pos": f.call(Vector2(-36, 26)), "bed2_pos": f.call(Vector2(36, 26)),
@@ -186,7 +196,7 @@ static func shop_house_layout(id: String) -> Dictionary:
 
 static func _build_shop_house(vm, id: String, st: Dictionary) -> void:
 	var d: Dictionary = lot_def(id)
-	var c: Vector2 = d["center"]
+	var c: Vector2 = building_center(id)
 	var lay: Dictionary = shop_house_layout(id)
 	var role: int = int(st["role"])
 	var fam: String = str(st.get("family_id", "family_lot_" + id))
@@ -203,6 +213,7 @@ static func _build_shop_house(vm, id: String, st: Dictionary) -> void:
 		vm._add_sprite_prop(tex_bed, b, Vector2(1.12, 1.12), -1)
 	vm._spawn_decor_prop("res://assests/Comprados/Epic RPG World - Village(interiors) V1.3/assets/furniture_and_props_sprites/table_chairs_1.png", lay["table_pos"], Vector2(0.45, 0.45))
 	vm._spawn_house_chest(lay["chest_pos"], "Cofre de " + str(st["title"]), fam)
+	load("res://scripts/systems/VillageTrades.gd").build_extras(vm, id) # V5d: campos, corrales, cantera…
 
 ## Camas dentro de la casa, lejos de la puerta.
 static func _house_beds(id: String) -> Array:

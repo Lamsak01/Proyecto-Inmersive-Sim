@@ -209,6 +209,9 @@ static func try_shelter(vm, npc) -> bool:
 	npc._spawn_floating_text("🕯️ Sin oro para la posada: duerme en el Albergue del Alba", Color(0.9, 0.85, 1.0), -38.0)
 	return true
 
+static func lodge_role() -> int:
+	return int(VillageNPC.TradeRole.LODGEKEEPER)
+
 static func inn_keeper(vm):
 	var k = vm.trade_npcs.get(VillageNPC.TradeRole.LODGEKEEPER)
 	if k != null and is_instance_valid(k) and not k.is_dead and not k.is_downed:

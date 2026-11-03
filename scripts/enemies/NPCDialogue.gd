@@ -373,6 +373,9 @@ static func _build_dialogue(npc: VillageNPC) -> Dictionary:
 			]
 		}}
 
+	var v5_goods: Dictionary = load("res://scripts/systems/VillageTrades.gd").config_for_role(int(npc.trade_role))
+	if v5_goods.has("goods"): # V5d: granja, rancho, cantera y leñador
+		return load("res://scripts/systems/VillageTrades.gd").shop_dialogue(npc, needs_line, discount_tag)
 	match npc.trade_role:
 		VillageNPC.TradeRole.DOCTOR:
 			return {

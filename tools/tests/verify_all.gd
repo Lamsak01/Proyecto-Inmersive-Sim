@@ -2401,7 +2401,7 @@ func _initialize() -> void:
 	# 65. V5b: ayuntamiento (votar en persona, arcas que se pueden robar), Albergue del Alba y El Candil.
 	var vc = load("res://scripts/systems/VillageCivic.gd")
 	var v5b_fp = func(bid): return vm.building_footprints.filter(func(f): return str(f["id"]) == bid).size()
-	assert(v5b_fp.call("building_town_hall") == 1 and v5b_fp.call("building_shelter") == 1 and vm.shop_businesses.has(14), "V5b: Town hall, shelter and El Candil stand on their lots")
+	assert(v5b_fp.call("building_town_hall") == 1 and v5b_fp.call("building_shelter") == 1 and vm.shop_businesses.has(vc.lodge_role()), "V5b: Town hall, shelter and El Candil stand on their lots")
 	var v5b_ts: Dictionary = vm.town_state.duplicate(true)
 	# Votar en persona: solo cuenta quien fue
 	var v5b_people: Array = []
@@ -2448,10 +2448,11 @@ func _initialize() -> void:
 		if vm.vagrant_camp_nodes.has(n5.npc_name) and is_instance_valid(vm.vagrant_camp_nodes[n5.npc_name]) and not n5.is_vagrant_camper:
 			vm.vagrant_camp_nodes[n5.npc_name].visible = false
 	# El Candil: quien no llega para El Jabalí pero sí para 3 de oro, duerme allí; sin dinero, sale
-	var v5b_keeper_old = vm.trade_npcs.get(14)
+	var v5b_lr: int = vc.lodge_role()
+	var v5b_keeper_old = vm.trade_npcs.get(v5b_lr)
 	var v5b_keeper = v5b_people[0]
 	var v5b_guest = v5b_people[1]
-	vm.trade_npcs[14] = v5b_keeper
+	vm.trade_npcs[v5b_lr] = v5b_keeper
 	var v5b_gs: Array = [v5b_guest.personal_gold, v5b_guest.bed_position, v5b_guest.is_vagrant_camper]
 	v5b_guest.is_vagrant_camper = false
 	v5b_guest.lodging = ""
@@ -2462,9 +2463,9 @@ func _initialize() -> void:
 	v5b_guest.bed_position = v5b_gs[1]
 	v5b_guest.is_vagrant_camper = v5b_gs[2]
 	if v5b_keeper_old != null:
-		vm.trade_npcs[14] = v5b_keeper_old
+		vm.trade_npcs[v5b_lr] = v5b_keeper_old
 	else:
-		vm.trade_npcs.erase(14)
+		vm.trade_npcs.erase(v5b_lr)
 	print("V5b town hall, shelter and inn OK")
 
 	# 66. V5c: terceros espacios. En su rato libre, quien es sociable sale; con lluvia casi nadie; quien coincide charla.
@@ -2501,6 +2502,69 @@ func _initialize() -> void:
 	v5c_b.global_position = v5c_pos[1]
 	v5c_wc.current_weather = v5c_weather
 	print("V5c third places OK")
+
+	# 67. V5d: afueras. Granja, rancho, cantera y leñador; los jornaleros cobran por las horas que trabajan de verdad.
+	var vw = load("res://scripts/systems/VillageWork.gd")
+	for r5 in [vt.role_of("farmer"), vt.role_of("rancher"), vt.role_of("quarry"), vt.role_of("woodcutter")]:
+		assert(vm.shop_businesses.has(r5), "V5d: The outskirts business %d exists" % r5)
+	assert(str(vl.lot(vm, "s2")["kind"]) == "fields" and vm.building_footprints.filter(func(f): return str(f["id"]) == "mixed_family_farm").size() == 1, "V5d: The farm and its fields stand on their lots")
+	var v5d_fr: int = vt.role_of("farmer")
+	var v5d_old = vm.trade_npcs.get(v5d_fr)
+	var v5d_master = v5b_people[2]
+	vm.trade_npcs[v5d_fr] = v5d_master
+	var v5d_mg: int = v5d_master.personal_gold
+	var v5d_worker = null
+	for n5 in get_nodes_in_group("village_npcs"):
+		if v5d_worker == null and vw.can_be_hired(n5) and n5 != v5d_master:
+			v5d_worker = n5
+	assert(v5d_worker != null, "V5d: There is somebody without a trade to hire")
+	var v5d_wg: int = v5d_worker.personal_gold
+	var v5d_wp: Vector2 = v5d_worker.global_position
+	v5d_master.personal_gold = 200
+	vw._assign(vm, v5d_worker, "farmer", vw.PLACES["farmer"]["spots"][0])
+	assert(v5d_worker.has_meta("day_job") and vm.work_state["jobs"].has(v5d_worker.get_person_key()), "V5d: The laborer is hired")
+	var v5d_wheat: int = int(v5d_master.shop_stock.get("wheat", 0))
+	v5d_worker.global_position = Vector2(400, 0) # Lejos del campo: esa hora no cuenta
+	v5d_worker.current_activity = 0
+	v5d_worker.is_sleeping = false
+	vw._count_hour(vm)
+	assert(int(vm.work_state["jobs"][v5d_worker.get_person_key()]["hours"]) == 0, "V5d: Hours away from the field do not count")
+	for _h5 in range(8):
+		v5d_worker.global_position = v5d_worker.get_meta("day_job_pos")
+		v5d_worker.current_activity = 0
+		vw._count_hour(vm)
+	assert(int(v5d_master.shop_stock.get("wheat", 0)) >= v5d_wheat + 1, "V5d: The laborer's work fills the farm's stock")
+	v5d_worker.personal_gold = 0
+	var v5d_pay: Dictionary = vw.pay(vm)
+	assert(int(v5d_pay["paid"]) == 8 and v5d_worker.personal_gold == 8 and v5d_master.personal_gold == 192 and not v5d_worker.has_meta("day_job"), "V5d: At six they get paid for their hours")
+	var v5d_rel: int = v5d_worker.get_relationship_with_npc(v5d_master.get_person_key())
+	vw._assign(vm, v5d_worker, "farmer", vw.PLACES["farmer"]["spots"][0])
+	vm.work_state["jobs"][v5d_worker.get_person_key()]["hours"] = 6
+	v5d_master.personal_gold = 2
+	v5d_pay = vw.pay(vm)
+	assert(int(v5d_pay["unpaid"]) == 4 and v5d_worker.get_relationship_with_npc(v5d_master.get_person_key()) < v5d_rel, "V5d: An unpaid laborer resents the owner")
+	# Lavadero
+	var v5d_lav: int = 0
+	for _i5 in range(200):
+		if vw.wash_spot(vm, v5d_worker, Vector2(412, 70)).distance_to(vw.LAVADERO_POS) < 30.0:
+			v5d_lav += 1
+	assert(v5d_lav > 20 and v5d_lav < 120, "V5d: Some people wash at the laundry (%d/200)" % v5d_lav)
+	var v5d_other = v5b_people[0]
+	var v5d_op: Vector2 = v5d_other.global_position
+	v5d_worker.global_position = vw.LAVADERO_POS
+	v5d_other.global_position = vw.LAVADERO_POS + Vector2(10, 0)
+	var v5d_r0: int = v5d_worker.get_relationship_with_npc(v5d_other.get_person_key())
+	vw.on_washed(vm, v5d_worker)
+	assert(v5d_worker.get_relationship_with_npc(v5d_other.get_person_key()) != v5d_r0 or v5d_r0 >= 100, "V5d: People who meet at the laundry chat")
+	v5d_other.global_position = v5d_op
+	v5d_worker.global_position = v5d_wp
+	v5d_worker.personal_gold = v5d_wg
+	v5d_master.personal_gold = v5d_mg
+	if v5d_old != null:
+		vm.trade_npcs[v5d_fr] = v5d_old
+	else:
+		vm.trade_npcs.erase(v5d_fr)
+	print("V5d outskirts and laborers OK")
 
 	print("ALL RIMWORLD MEDICAL, FOOTPRINTS, 3-PHASE CORPSE REPORT, MULTI-CORPSE FIX, RPG INTERROGATION, PUBLIC TRIAL, DYNAMIC RELATIONSHIPS, MISSING FAMILY SEARCH, SOCIAL GLOSSARY & UNCONSCIOUS REACTION TESTS PASSED!")
 	quit(0)

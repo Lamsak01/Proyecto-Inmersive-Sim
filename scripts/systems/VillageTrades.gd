@@ -1,12 +1,15 @@
 @tool
 extends RefCounted
 
-## V5: oficios nuevos que viven en los solares (panadería y sastrería, de momento).
+## V5: oficios nuevos que viven en los solares (panadería y sastrería en V5a; granja, rancho, cantera y leñador en V5d).
 ## - El edificio está desde el principio, pero el puesto empieza VACANTE: lo ocupa quien quiera y pueda, por las reglas
 ##   de siempre (un vecino ambicioso, un viajero sin oficio de la posada o, si no, un forastero que llega por el camino).
 ## - Panadería: pan con harina del molino (pescadería) y leña; vende a casas y posadas como una tienda de comida más.
 ## - Sastrería: ropa con cuero del carnicero. Los vecinos estrenan ropa cuando les sobra dinero, más los ricos; da buen
 ##   humor y se nota en cómo los ven los demás.
+## - V5d, las afueras: granja (trigo y zanahorias; sus campos ocupan también el solar s2), rancho (lana y carne),
+##   cantera (piedra) y leñador (madera). Los oficios de siempre les compran (panadero trigo, sastre lana, carnicero
+##   carne, carpintero troncos, herrero piedra) y dan trabajo de jornalero (VillageWork).
 ## Nombres provisionales (anotados en docs/APORTES_CREATIVOS.md).
 
 const VillageLots = preload("res://scripts/systems/VillageLots.gd")
@@ -19,6 +22,27 @@ const CONFIG: Dictionary = {
 	"tailor": {"lot": "n3", "role_name": "TAILOR", "family_id": "family_tailor", "family_name": "Casa del Dedal",
 		"shop_title": "🧵 Sastrería 'El Dedal'", "title": "Sastre", "tex": "res://assests/world/village/villager_traveler.png",
 		"stock": {"clothes": 2}},
+	# `goods`: lo que el jugador compra [objeto, precio] y vende [objeto, precio] en el diálogo genérico (V5d)
+	"farmer": {"lot": "s1", "role_name": "FARMER", "family_id": "family_farm", "family_name": "Casa de la Granja",
+		"shop_title": "🌾 Granja del Sur", "title": "Granjero", "tex": "res://assests/world/village/villager_herbalist.png",
+		"stock": {"wheat": 4, "carrot": 2}, "supply": ["wheat", "carrot", "cabbage"], "extras": "farm", "fields_lot": "s2",
+		"goods": {"buy": [["wheat", 6], ["carrot", 5]], "sell": [["fertilizer", 4]]},
+		"chat": "La tierra da lo que le das. Con buenos jornaleros, en la siega no falta pan en el valle."},
+	"rancher": {"lot": "s3", "role_name": "RANCHER", "family_id": "family_ranch", "family_name": "Casa del Rancho",
+		"shop_title": "🐑 Rancho del Sur", "title": "Ganadero", "tex": "res://assests/world/village/villager_butcher.png",
+		"stock": {"wool": 2, "raw_meat": 2}, "supply": ["wool", "raw_meat"], "extras": "ranch",
+		"goods": {"buy": [["wool", 7], ["raw_meat", 6]], "sell": [["wheat", 5]]},
+		"chat": "Los animales no entienden de domingos: hay que darles de comer cada día, llueva o no."},
+	"quarry": {"lot": "w1", "role_name": "QUARRYMAN", "family_id": "family_quarry", "family_name": "Casa de la Cantera",
+		"shop_title": "⛏️ Cantera del Noroeste", "title": "Cantero", "tex": "res://assests/world/village/villager_smith.png",
+		"stock": {"stone": 4}, "supply": ["stone"], "extras": "quarry",
+		"goods": {"buy": [["stone", 6]], "sell": [["repair_kit", 10]]},
+		"chat": "Cada casa nueva del pueblo sale de esta ladera, piedra a piedra."},
+	"woodcutter": {"lot": "fw", "role_name": "WOODCUTTER", "family_id": "family_woodcutter", "family_name": "Casa del Leñador",
+		"shop_title": "🪓 Cabaña del Leñador", "title": "Leñador", "tex": "res://assests/world/village/villager_carpenter.png",
+		"stock": {"wood": 5}, "supply": ["wood"], "extras": "woods",
+		"goods": {"buy": [["wood", 7]], "sell": [["repair_kit", 10]]},
+		"chat": "Corto lo justo: si el bosque se queda pelado, se acaba el trabajo y la caza."},
 }
 
 ## Probabilidad diaria de estrenar ropa según la clase, si le sobra el dinero.
@@ -41,9 +65,99 @@ static func setup_world(vm) -> void:
 			"title": c["title"], "tex": vm._load_tex(str(c["tex"])), "stock": (c["stock"] as Dictionary).duplicate(),
 			"work_pos": lay["work_pos"], "bed1_pos": lay["bed1_pos"], "bed2_pos": lay["bed2_pos"], "table_pos": lay["table_pos"],
 		}
+		vm.trade_configs[role_of(key)]["shop_center"] = VillageLots.building_center(str(c["lot"]))
+		vm.trade_configs[role_of(key)]["house_center"] = VillageLots.building_center(str(c["lot"]))
 		if not vm.house_pantry.has(str(c["family_id"])):
 			vm.house_pantry[str(c["family_id"])] = 2
 	ensure_lots(vm)
+
+## Lo que puede abastecer cada negocio nuevo (lo usa VillageManager al registrar el puesto).
+static func supply_items_for(role_id: int) -> Array[String]:
+	var out: Array[String] = []
+	for key in CONFIG.keys():
+		if role_of(key) == role_id:
+			out.assign(CONFIG[key].get("supply", []))
+	return out
+
+static func config_for_role(role_id: int) -> Dictionary:
+	for key in CONFIG.keys():
+		if role_of(key) == role_id:
+			return CONFIG[key]
+	return {}
+
+## Diálogo de compra y venta para los oficios con `goods` (V5d).
+static func shop_dialogue(npc, needs_line: String, discount_tag: String) -> Dictionary:
+	var c: Dictionary = config_for_role(int(npc.trade_role))
+	var cat: Dictionary = SimpleInventory.CATALOG
+	var stock_parts: Array[String] = []
+	var choices: Array = [{"label": "📜 Negocio, Escritura de Propiedad y Caja Registradora", "next": "END", "action": "open_business_panel"}]
+	for g in (c["goods"]["buy"] as Array):
+		var nm: String = str(cat.get(g[0], {}).get("name", g[0]))
+		stock_parts.append("%s: %d" % [nm, int(npc.shop_stock.get(g[0], 0))])
+		choices.append({"label": "🛒 Comprar 1 %s (-%d Oro) [Stock: %d]" % [nm, npc._get_dynamic_buy_price(int(g[1])), int(npc.shop_stock.get(g[0], 0))], "next": "start", "action": "buy:%s:%d" % [g[0], int(g[1])]})
+	for g in (c["goods"]["sell"] as Array):
+		var nm2: String = str(cat.get(g[0], {}).get("name", g[0]))
+		choices.append({"label": "💰 Vender 1 %s (+%d Oro)" % [nm2, npc._get_dynamic_sell_price(int(g[1]))], "next": "start", "action": "sell:%s:%d" % [g[0], int(g[1])]})
+	choices.append({"label": "💬 Charlar un rato (+8 Relación)", "next": "family_chat", "affinity": 8})
+	choices.append({"label": "Hasta pronto. [Salir]", "next": "END"})
+	return {
+		"start": {"text": "Soy %s de la %s (%s). %s%s%s\n[%s]" % [npc.npc_name, npc.family_name, npc.npc_role, needs_line, discount_tag, npc._get_market_header_line(), " | ".join(stock_parts)], "choices": choices},
+		"family_chat": {"text": str(c.get("chat", "")), "choices": [{"label": "Entiendo. [Volver]", "next": "start"}]}
+	}
+
+## Campos, corrales, cantera y troncos alrededor de los edificios de las afueras (forman parte del dibujo del solar).
+static func build_extras(vm, id: String) -> void:
+	var c: Dictionary = {}
+	for key in CONFIG.keys():
+		if str(CONFIG[key]["lot"]) == id or str(CONFIG[key].get("fields_lot", "")) == id:
+			c = CONFIG[key]
+	if c.is_empty() or not c.has("extras"):
+		return
+	var d: Dictionary = VillageLots.lot_def(id)
+	var lc: Vector2 = d["center"]
+	var half: Vector2 = (d["size"] as Vector2) * 0.5
+	var props: String = "res://assests/Comprados/Epic RPG World - The Village V2.1/tilesets and props/props-sprites/"
+	var is_fields_lot: bool = str(c.get("fields_lot", "")) == id
+	# Franja libre del solar (a la derecha del edificio, o el solar entero si es solo de campos)
+	var x0: float = lc.x - half.x + 8.0 if is_fields_lot else VillageLots.building_center(id).x + 70.0
+	var x1: float = lc.x + half.x - 8.0
+	var y0: float = lc.y - half.y + 10.0
+	var y1: float = lc.y + half.y - 10.0
+	match str(c["extras"]):
+		"farm":
+			vm._add_poly(_rect(x0, y0, x1, y1), Color(0.40, 0.30, 0.18, 0.75), -4) # Tierra arada
+			var yy: float = y0 + 8.0
+			while yy < y1 - 4.0:
+				vm._add_poly(_rect(x0 + 4.0, yy, x1 - 4.0, yy + 4.0), Color(0.62, 0.66, 0.24, 0.85), -3) # Surcos de trigo
+				yy += 14.0
+			if not is_fields_lot:
+				vm._spawn_decor_prop(props + "hay_0.png", Vector2(x1 - 14.0, y1 - 10.0), Vector2(0.7, 0.7))
+			else:
+				vm._add_title_label(Vector2(lc.x - 70, y0 - 16), Vector2(140, 14), "🌾 Campos de la Granja", Color(0.95, 0.9, 0.55), 7)
+		"ranch":
+			var border := Line2D.new() # Valla del corral
+			border.width = 2.0
+			border.default_color = Color(0.52, 0.36, 0.20, 0.95)
+			border.points = PackedVector2Array([Vector2(x0, y0), Vector2(x1, y0), Vector2(x1, y1), Vector2(x0, y1), Vector2(x0, y0)])
+			border.z_index = -2
+			vm.entities_root.add_child(border)
+			vm._add_poly(_rect(x0, y0, x1, y1), Color(0.44, 0.56, 0.26, 0.55), -4)
+			var hen: Texture2D = vm._load_tex("res://assests/world/camp/chicken.png")
+			var pig: Texture2D = vm._load_tex("res://assests/world/harvest/wild_boar.png")
+			for k in range(4):
+				vm._add_sprite_prop(pig if k % 2 == 0 else hen, Vector2(lerpf(x0 + 14, x1 - 14, float(k) / 3.0), lerpf(y0 + 20, y1 - 20, float(k % 2))), Vector2(0.6, 0.6) if k % 2 == 0 else Vector2(0.9, 0.9), 0)
+			vm._spawn_decor_prop(props + "hay_2.png", Vector2(x0 + 12.0, y1 - 12.0), Vector2(0.7, 0.7))
+		"quarry":
+			vm._add_poly(_rect(x0, y0, x1, y1), Color(0.46, 0.44, 0.40, 0.8), -4) # Roca a cielo abierto
+			var rock: Texture2D = vm._load_tex("res://assests/world/harvest/rock_iron_vein.png")
+			for rp in [Vector2(x0 + 18, y0 + 22), Vector2(x1 - 20, y0 + 40), Vector2(x0 + 30, y1 - 24), Vector2(x1 - 30, y1 - 18)]:
+				vm._add_sprite_prop(rock, rp, Vector2(0.8, 0.8), 0)
+		"woods":
+			for lp in [Vector2(-82, 10), Vector2(82, 14)]:
+				vm._spawn_decor_prop(props + "logs_0.png", VillageLots.building_center(id) + lp, Vector2(0.7, 0.7))
+
+static func _rect(x0: float, y0: float, x1: float, y1: float) -> PackedVector2Array:
+	return PackedVector2Array([Vector2(x0, y0), Vector2(x1, y0), Vector2(x1, y1), Vector2(x0, y1)])
 
 ## Los solares de estos oficios siempre tienen su tienda (también en partidas guardadas antes de V5).
 static func ensure_lots(vm) -> void:
@@ -57,6 +171,12 @@ static func ensure_lots(vm) -> void:
 		st["role"] = role_of(key)
 		st["title"] = c["shop_title"]
 		st["family_id"] = c["family_id"]
+		if c.has("fields_lot"):
+			var fs: Dictionary = VillageLots.lot(vm, str(c["fields_lot"]))
+			fs["status"] = "built"
+			fs["kind"] = "fields"
+			fs["progress"] = 1.0
+			fs["title"] = "🌾 Campos de la Granja"
 
 ## Cada día: quien tiene dinero de sobra puede estrenar ropa si la sastrería tiene y está abierta hoy.
 static func daily(vm) -> void:

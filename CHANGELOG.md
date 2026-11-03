@@ -5,6 +5,9 @@ El detalle técnico está en `docs/HANDOFF.md` (sección 7) y el historial compl
 
 ## 2026-11-03
 
+### Crecer el pueblo: las afueras
+- **V5d**: al sur están la **Granja del Sur** con sus campos y el **Rancho** con su corral, al noroeste la **Cantera** y en la linde del bosque la **Cabaña del Leñador** (nombres provisionales). Empiezan sin dueño. Venden trigo, zanahorias, lana, carne, piedra y madera, y los oficios de siempre les compran. Cada mañana sus dueños **contratan jornaleros** entre la gente sin oficio, primero a los más necesitados: van andando a trabajar y cobran por las horas que de verdad trabajan; si el dueño no puede pagar, se enfadan. Junto al lago hay un **lavadero** donde algunos van a lavarse y, de paso, a contarse chismes.
+
 ### Crecer el pueblo: sitios para pasar el rato
 - **V5c**: hay un **parque** (el Parque del Roble, junto a la Botica), **bancos en la plaza** y un **mirador** junto al lago. Al salir del trabajo y los fines de semana, algunos vecinos van a pasar el rato: más los sociables o los que se sienten solos, casi nadie si llueve. Quien coincide charla, se cuenta chismes y se va llevando mejor (o se roza, si ya se llevaban mal). Las quedadas también usan estos sitios; el mirador gusta a las parejas.
 
