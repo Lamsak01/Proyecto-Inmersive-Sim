@@ -86,7 +86,10 @@ func refresh_ui() -> void:
 	if not _text:
 		return
 	_debug_lbl.text = "🔧 Modo pruebas: se ve todo (🔒 = no lo sabrías)  " if VillageChronicle.SHOW_ALL_DEBUG else ""
-	var entries: Array = VillageChronicle.visible_entries(_vm(), current_category())
+	var vm_c: VillageManager = _vm()
+	var entries: Array = VillageChronicle.visible_entries(vm_c, current_category())
+	if VillageChronicle.SHOW_ALL_DEBUG:
+		print("[CRONICA] panel abierto: vm=%s guardadas=%d visibles=%d dia=%d" % [str(vm_c != null), vm_c.chronicle.size() if vm_c else -1, entries.size(), int(WorldClock.current_day)])
 	if entries.is_empty():
 		_text.text = "[color=#9aa4b5]Aún no hay nada escrito aquí. La crónica se llena con lo que pasa en el pueblo y con lo que vas descubriendo.[/color]"
 		return
