@@ -25,6 +25,8 @@ const TYPE_CATEGORY: Dictionary = {
 	"couple": "love", "breakup": "love", "couple_reconciled": "love", "rejection": "love", "jealousy": "love", "date": "love",
 	"romance_interest": "love", "romance_flirt": "love", "romance_dating": "love", "romance_fizzle": "love", "bereavement_ended": "love",
 	"hangout": "friends", "friendship": "friends", "gossip": "gossip", "hearsay": "gossip",
+	"affair": "love", "affair_start": "love", "affair_known": "love", "affair_forgiven": "love", "blackmail": "conflict",
+	"player_blackmail": "player", "player_told_secret": "player",
 	"fight": "conflict", "feud": "conflict", "reconciliation": "conflict", "npc_slander": "conflict",
 	"widowed": "death", "death_found": "death", "case_closed": "death",
 	"arrival": "people", "departure": "people",
@@ -32,6 +34,8 @@ const TYPE_CATEGORY: Dictionary = {
 }
 const TYPE_ICON: Dictionary = {
 	"hangout": "☕", "friendship": "🤝", "gossip": "🗣️", "hearsay": "❓",
+	"affair": "🤫", "affair_start": "🤫", "affair_known": "🤫", "affair_forgiven": "💔", "blackmail": "💰",
+	"player_blackmail": "💰", "player_told_secret": "💔",
 	"couple": "💑", "breakup": "💔", "couple_reconciled": "💞", "rejection": "💔", "jealousy": "😠", "date": "🌹",
 	"romance_interest": "💗", "romance_flirt": "😊", "romance_dating": "💞", "romance_fizzle": "🥀", "bereavement_ended": "🕯️",
 	"fight": "👊", "feud": "⚡", "reconciliation": "🤝", "npc_slander": "🗣️", "widowed": "🖤", "death_found": "💀", "case_closed": "⚖️",

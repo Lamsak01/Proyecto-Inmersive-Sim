@@ -60,7 +60,8 @@ Estado: **Base** = ya existe algo en el juego sobre lo que construir. **Idea** =
 
 ### Vida social y emocional (P1, P2, P3)
 - Relaciones de un solo sentido: amor no correspondido, amistad desigual, «le cae mal y el otro ni se entera». *(Base: cada vecino ya guarda su propio número; hoy se mueven a la vez. Propuesta detallada en la conversación del 2026-11-02: aprecio, chispa y molestia de cada uno; cuánto se conocen y la etapa, compartidos.)*
-- Triángulos amorosos, celos, infidelidades.
+- Triángulos amorosos, celos, infidelidades. *(Base: aventuras, descubrimiento, chantaje y rupturas por infidelidad, bloques S.)*
+- Ideas tras S (2026-11-02): hijos fuera de la pareja, venganzas del engañado, celos que acaben en violencia, la infidelidad como móvil de asesinato en las investigaciones, otros secretos (deudas, crímenes del pasado, vicios), olvidar también los rasgos que se rumorean.
 - Degradación de relaciones con la distancia (si llevan tiempo sin verse).
 - Idolatría u obsesión por un personaje (muy rara).
 - Fama: alguien puede volverse famoso (por sus obras, peleas, oficio, escándalos).

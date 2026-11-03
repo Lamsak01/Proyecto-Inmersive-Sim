@@ -261,6 +261,20 @@ Cada fase se dividirá en bloques pequeños cuando se llegue a ella (detalle en 
   Crónica: «❓ X te contó: …» con «[deformado]» en modo pruebas. Las versiones aún no cambian relaciones (va con Secretos).
   Test #54. La sonda imprime MEMORY.
 
+### Secretos: infidelidad y chantaje (bloques S)
+- [x] **S1–S6** Hecho (plan en `docs/PLAN_SECRETOS.md`). `scripts/systems/VillageSecrets.gd`, datos en
+  `VillageManager.secrets` / `secret_uid` (se guardan). S1: cada día, alguien con pareja puede empezar una aventura si hay
+  chispa en los dos sentidos (≥35 / ≥20), contacto reciente y no son familia; probabilidad `AFFAIR_DAILY` × tentación
+  (Fiel 0, normal 0,25, Infiel 0,55); una a la vez y 30 días de descanso. Al quedar, el infiel elige al amante la mitad de
+  las veces. S2: en cada encuentro, vecinos a ≤170 px (50 %) y el jugador los pillan; el testigo crea el chisme «affair»
+  (los amantes no lo cuentan; al deformarse solo cambia el amante, `swap_only`). S3: quien lo oye −4 al infiel y −2 a quien
+  cree amante (puede ser un inocente); la pareja −30/−20, tensión +40 y 70 % de ruptura. S4: un vecino malicioso que lo sabe
+  chantajea (paga la mitad de su oro, hasta 30, o se niega y se lo cuenta a la pareja). S5: diálogo «🤫 Sé lo tuyo con…»
+  (pedir oro / prometer callar) y «💔 Tengo algo que contarte» a la pareja; si el rumor que oíste señalaba a otra persona,
+  lo niega. Test #55. La sonda imprime SECRETS.
+  **Pendiente de medir**: los chismes circulan muy poco en partidas largas (25 días: 1 chisme contado), así que olvidos,
+  deformaciones y aventuras descubiertas serán raros. Decidir con el usuario si se sube el ritmo de los chismes.
+
 ### Interfaz
 - [x] **HUD1** Barras de estado (`scenes/ui_root.gd`, `_create_stats_box` / `_create_fallback_bar`): recuadro oscuro arriba a
   la izquierda, barras finas con relleno de color y texto blanco (antes `modulate` teñía también el texto). Se ven

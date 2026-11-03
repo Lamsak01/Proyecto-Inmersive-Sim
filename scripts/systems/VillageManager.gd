@@ -6,6 +6,7 @@ const VillageJustice = preload("res://scripts/systems/VillageJustice.gd")
 
 const VillageSocialLife = preload("res://scripts/systems/VillageSocialLife.gd")
 const VillageChronicle = preload("res://scripts/systems/VillageChronicle.gd")
+const VillageSecrets = preload("res://scripts/systems/VillageSecrets.gd")
 const VillageQuests = preload("res://scripts/systems/VillageQuests.gd")
 
 const VillageWorldBuilder = preload("res://scripts/systems/VillageWorldBuilder.gd")
@@ -40,6 +41,9 @@ var chronicle: Array[Dictionary] = []
 var chronicle_tiers: Dictionary = {}
 ## true mientras se procesa el cambio de día: lo que se apunte entonces pasó durante el día anterior.
 var chronicle_daily: bool = false
+## Secretos (S): aventuras y chantajes, ver `VillageSecrets.gd`.
+var secrets: Array[Dictionary] = []
+var secret_uid: int = 0
 var _social_event_uid: int = 0
 var trade_configs: Dictionary = {}
 var domestic_pets: Array[DomesticPet] = []
@@ -2957,6 +2961,7 @@ func _on_day_passed(_new_day: int) -> void:
 		VillageSocialLife.daily_distance_cooling(self, _new_day)
 		VillageChronicle.daily_friendship_scan(self)
 		VillageSocialLife.GossipMemory.daily_decay(self)
+		VillageSecrets.daily(self)
 		VillageQuests.on_day_passed(self)
 	chronicle_daily = false
 
@@ -4387,6 +4392,8 @@ func get_economy_save_dict() -> Dictionary:
 		"social_event_log": social_event_log.duplicate(true),
 		"chronicle": chronicle.duplicate(true),
 		"chronicle_tiers": chronicle_tiers.duplicate(),
+		"secrets": secrets.duplicate(true),
+		"secret_uid": secret_uid,
 		"social_event_uid": _social_event_uid,
 		"social_director": social_director.to_save_dict() if social_director != null else {}
 	}
@@ -4429,6 +4436,12 @@ func load_economy_save_dict(data: Dictionary) -> void:
 			social_event_log.remove_at(0)
 	_social_event_uid = int(data.get("social_event_uid", social_event_log.size()))
 	chronicle_tiers = (data["chronicle_tiers"] as Dictionary).duplicate() if typeof(data.get("chronicle_tiers")) == TYPE_DICTIONARY else {}
+	secrets.clear()
+	if typeof(data.get("secrets")) == TYPE_ARRAY:
+		for sc_it in (data["secrets"] as Array):
+			if typeof(sc_it) == TYPE_DICTIONARY:
+				secrets.append((sc_it as Dictionary).duplicate(true))
+	secret_uid = int(data.get("secret_uid", secrets.size()))
 	if data.has("chronicle") and typeof(data["chronicle"]) == TYPE_ARRAY:
 		chronicle.clear()
 		for ch_it in (data["chronicle"] as Array):

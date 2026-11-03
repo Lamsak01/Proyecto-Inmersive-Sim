@@ -114,12 +114,14 @@ static func _distort(vm: VillageManager, ev: Dictionary, ver: Dictionary, teller
 	var can_swap: bool = str(ver.get("swap_to", "")) == ""
 	if can_swap and (rng.randf() < SWAP_SHARE or int(ver.get("exag", 0)) >= 2):
 		var names: Array[String] = []
-		for nm in [str(ev.get("actor_name", "")), str(ev.get("target_name", ""))]:
+		var swappable: Array = [str(ev.get("target_name", ""))] if str(ev.get("swap_only", "")) == "target" else [str(ev.get("actor_name", "")), str(ev.get("target_name", ""))]
+		for nm in swappable:
 			if nm != "" and nm != listener.npc_name and nm != teller.npc_name:
 				names.append(nm)
 		var others: Array = []
 		for n in vm.get_tree().get_nodes_in_group("village_npcs"):
-			if n is VillageNPC and not n.is_dead and n != teller and n != listener and not (n.npc_name in [str(ev.get("actor_name", "")), str(ev.get("target_name", ""))]):
+			# Nadie que ya salga en el chisme (p. ej. la pareja engañada no puede acabar siendo «el amante»)
+			if n is VillageNPC and not n.is_dead and n != teller and n != listener and not (n.npc_name in [str(ev.get("actor_name", "")), str(ev.get("target_name", ""))]) and not str(ev.get("summary", "")).contains(n.npc_name):
 				others.append(n.npc_name)
 		if not names.is_empty() and not others.is_empty():
 			ver["swap_from"] = names[rng.randi() % names.size()]

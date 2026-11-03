@@ -1,6 +1,6 @@
 # Plan: recuerdos que se degradan (bloques R)
 
-Estado: **aprobado por el usuario para hacerlo entero** (2026-11-02: «haz la 1, crea el plan y síguelo completamente»).
+Estado: **hecho** (ver HANDOFF). **Aprobado por el usuario para hacerlo entero** (2026-11-02: «haz la 1, crea el plan y síguelo completamente»).
 Contexto: `docs/VISION_Y_FUTURO.md`, paso 1 del orden (última pieza: rasgos → relaciones de un solo sentido → recuerdos).
 
 ## Qué existe hoy

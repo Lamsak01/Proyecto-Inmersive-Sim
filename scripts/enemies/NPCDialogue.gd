@@ -3,6 +3,7 @@ extends RefCounted
 const VillageQuests = preload("res://scripts/systems/VillageQuests.gd")
 const VillageSocialLife = preload("res://scripts/systems/VillageSocialLife.gd")
 const VillageChronicle = preload("res://scripts/systems/VillageChronicle.gd")
+const VillageSecrets = preload("res://scripts/systems/VillageSecrets.gd")
 const TraitDiscovery = preload("res://scripts/systems/TraitDiscovery.gd")
 const TraitCatalog = preload("res://scripts/data/TraitCatalog.gd")
 
@@ -170,6 +171,7 @@ static func _add_neighbor_opinions(npc: VillageNPC, diag: Dictionary, ch_arr: Ar
 	if npc.is_in_live_fight():
 		ch_arr.insert(0, {"label": "✋ Separar a %s y %s" % [npc.npc_name, npc.live_fight_partner.npc_name], "next": "END", "action": "social_stop_fight"})
 	ch_arr.insert(maxi(0, ch_arr.size() - 1), {"label": "🗣️ Preguntar qué opina de los vecinos", "next": "neighbor_opinions"})
+	VillageSecrets.add_dialogue_choices(npc._get_vm(), npc, diag, ch_arr) # S5
 	if npc.affinity < 0:
 		diag["neighbor_opinions"] = {"text": "«No hablo de mis vecinos con quien no conozco.»", "choices": [{"label": "Entendido. [Volver]", "next": "start"}]}
 		return
@@ -588,6 +590,11 @@ static func on_dialogue_action(npc: VillageNPC, action_id: String) -> void:
 	if action_id == "chronicle_hear_news":
 		if vm != null:
 			VillageChronicle.learn_news_from(vm, npc) # C: lo que te cuentan pasa a tu crónica
+			VillageSecrets.on_player_news(vm, npc) # S5: si te cuenta una aventura, ya la sabes
+		return
+	if action_id.begins_with("secret_"):
+		if vm != null:
+			VillageSecrets.on_player_action(vm, npc, action_id, inv)
 		return
 	if action_id == "trait_lore":
 		if not npc.trait_lore_done:

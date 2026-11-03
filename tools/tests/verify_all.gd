@@ -1597,5 +1597,133 @@ func _initialize() -> void:
 	vm.chronicle.clear()
 	print("R gossip memory OK")
 
+	# Test #55 (S1-S5): aventuras raras según la fidelidad, se descubren, corren como chisme, chantaje y el jugador
+	var vsec = load("res://scripts/systems/VillageSecrets.gd")
+	var tcat = load("res://scripts/data/TraitCatalog.gd")
+	var s_pool: Array = []
+	for sn in get_nodes_in_group("village_npcs"):
+		if not sn.is_dead and sn.person_profile != null:
+			s_pool.append(sn)
+	var s_a = s_pool[0]
+	var s_p = null
+	var s_c = null
+	var s_w = null
+	var s_q = null
+	for sn in s_pool:
+		if sn == s_a:
+			continue
+		var fam_same: bool = s_a.family_id != "none" and s_a.family_id == sn.family_id
+		if s_c == null and not fam_same:
+			s_c = sn
+		elif s_p == null:
+			s_p = sn
+		elif s_w == null:
+			s_w = sn
+		elif s_q == null:
+			s_q = sn
+	var s_keys: Dictionary = {}
+	for sn in [s_a, s_p, s_c, s_w, s_q]:
+		s_keys[sn] = {"partner": str(sn.person_profile.partner_id), "status": str(sn.person_profile.romance_status), "pers": sn.person_profile.personality.duplicate(), "gold": sn.personal_gold}
+	var sak: String = s_a.get_person_key()
+	var spk: String = s_p.get_person_key()
+	var sck: String = s_c.get_person_key()
+	var set_couple = func() -> void:
+		s_a.person_profile.partner_id = spk
+		s_a.person_profile.romance_status = "partnered"
+		s_p.person_profile.partner_id = sak
+		s_p.person_profile.romance_status = "partnered"
+	set_couple.call()
+	s_a.person_profile.personality.assign(["Fiel"])
+	assert(vsec.temptation(s_a) == 0.0, "S1: Faithful people never cheat")
+	s_a.person_profile.personality.assign(["Infiel"])
+	var t_inf: float = vsec.temptation(s_a)
+	s_a.person_profile.personality.assign([])
+	assert(t_inf > vsec.temptation(s_a) and vsec.temptation(s_a) > 0.0, "S1: Unfaithful people are more tempted than others")
+	s_a.person_profile.personality.assign(["Infiel"])
+	vm.secrets.clear()
+	sd_u.add_spark_one_way(sak, sck, 50)
+	sd_u.add_spark_one_way(sck, sak, 30)
+	sd_u.get_pair_entry(sak, sck)["last_contact_day"] = int(root.get_node("/root/WorldClock").current_day)
+	var s_aff: Dictionary = {}
+	for si in range(400):
+		vsec.daily(vm)
+		s_aff = vsec.active_affair_of(vm, sak)
+		if not s_aff.is_empty():
+			break
+	assert(not s_aff.is_empty() and str(s_aff["b"]) == sck and str(s_aff["partner"]) == spk, "S1: With mutual spark an affair can start")
+	assert(vm.chronicle.back()["type"] == "affair_start" and not bool(vm.chronicle.back()["known"]), "S1: The affair is a secret in the chronicle")
+	# S2: alguien cerca los pilla
+	s_w.global_position = s_a.global_position
+	s_w.is_sleeping = false
+	for si in range(40):
+		vsec.on_meeting(vm, s_a, s_c)
+		if (s_aff["known_by"] as Dictionary).has(s_w.get_person_key()):
+			break
+	var s_ev: Dictionary = vsec._gossip_event(vm, s_aff)
+	assert(not s_ev.is_empty() and gmem.knows(s_ev, s_w.get_person_key()), "S2: A witness turns it into gossip")
+	assert(vsec.keeps_quiet(s_ev, sak) and vsec.keeps_quiet(s_ev, sck) and not vsec.keeps_quiet(s_ev, s_w.get_person_key()), "S2: Lovers keep quiet")
+	# S3: quien lo oye piensa peor del infiel; la pareja reacciona
+	var q_before: int = s_q.get_relationship_with_npc(sak)
+	(s_ev["known_by"] as Dictionary).erase(s_q.get_person_key())
+	for gev in vm.social_event_log:
+		if gev != s_ev and gev.has("known_by"):
+			(gev["known_by"] as Dictionary)[s_q.get_person_key()] = true # Que solo le quede por oír la aventura
+	assert(vm.spread_gossip(s_w, s_q) == s_ev and s_q.get_relationship_with_npc(sak) == q_before + vsec.HEARD_REL_CHEATER, "S3: Hearing it lowers their opinion of the cheater")
+	var p_before: int = s_p.get_relationship_with_npc(sak)
+	for gev in vm.social_event_log:
+		if gev != s_ev and gev.has("known_by"):
+			(gev["known_by"] as Dictionary)[spk] = true
+	assert(vm.spread_gossip(s_w, s_p) == s_ev, "S3: The gossip reaches the partner")
+	assert(s_p.get_relationship_with_npc(sak) <= p_before + vsec.PARTNER_REL_CHEATER and not bool(s_aff["active"]), "S3: The partner is hurt and the affair ends")
+	# S4: chantaje entre vecinos (paga / se niega y lo cuenta)
+	set_couple.call()
+	var s_aff2: Dictionary = vsec.start_affair(vm, s_a, s_c)
+	s_a.personal_gold = 40
+	var w_gold: int = maxi(0, s_w.personal_gold)
+	vsec.blackmail(vm, s_aff2, s_w, s_a, 0.0)
+	assert(s_a.personal_gold == 20 and s_w.personal_gold == w_gold + 20 and bool(s_aff2["active"]), "S4: Paying the blackmailer keeps the secret")
+	vsec.blackmail(vm, s_aff2, s_q, s_a, 0.99)
+	assert(not bool(s_aff2["active"]), "S4: Refusing to pay gets it told to the partner")
+	# S5: el jugador
+	set_couple.call()
+	var s_aff3: Dictionary = vsec.start_affair(vm, s_a, s_c)
+	vsec.player_learns(vm, s_aff3, s_c.npc_name, "prueba")
+	var s_diag: Dictionary = {}
+	var s_ch: Array = [{"label": "salir"}]
+	vsec.add_dialogue_choices(vm, s_a, s_diag, s_ch)
+	assert(s_diag.has("secret_a_%d" % int(s_aff3["id"])), "S5: You can confront the cheater")
+	var s_inv = load("res://scripts/systems/SimpleInventory.gd").new()
+	var inv_g0: int = s_inv.gold
+	s_a.personal_gold = 40
+	vsec.on_player_action(vm, s_a, "secret_blackmail:%d" % int(s_aff3["id"]), s_inv, 0.0)
+	assert(s_inv.gold == inv_g0 + 20 and s_a.personal_gold == 20, "S5: Blackmailing the cheater pays")
+	s_diag.clear()
+	vsec.add_dialogue_choices(vm, s_p, s_diag, s_ch)
+	assert(s_diag.has("secret_p_%d" % int(s_aff3["id"])), "S5: You can tell the partner")
+	s_p.npc_relationships[sak] = 0 # Las pruebas anteriores la dejaron en el mínimo
+	var p_before2: int = s_p.get_relationship_with_npc(sak)
+	vsec.on_player_action(vm, s_p, "secret_tell:%d" % int(s_aff3["id"]), s_inv, 0.0)
+	assert(not bool(s_aff3["active"]) and s_p.get_relationship_with_npc(sak) < p_before2, "S5: Telling the partner ends the affair")
+	set_couple.call()
+	var s_aff4: Dictionary = vsec.start_affair(vm, s_a, s_c)
+	vsec.player_learns(vm, s_aff4, "Nadie", "rumor deformado")
+	var g_wrong: int = s_inv.gold
+	vsec.on_player_action(vm, s_a, "secret_blackmail:%d" % int(s_aff4["id"]), s_inv, 0.0)
+	assert(s_inv.gold == g_wrong, "S5: A false rumor about the lover gets denied")
+	var sec_save: Dictionary = vm.get_economy_save_dict()
+	var sec_n: int = vm.secrets.size()
+	vm.secrets.clear()
+	vm.load_economy_save_dict(sec_save)
+	assert(vm.secrets.size() == sec_n and int(vm.secret_uid) == int(s_aff4["id"]), "S: Secrets survive save and load")
+	if s_inv is Node:
+		s_inv.free()
+	vm.secrets.clear()
+	for sn in s_keys.keys():
+		sn.person_profile.partner_id = s_keys[sn]["partner"]
+		sn.person_profile.romance_status = s_keys[sn]["status"]
+		sn.person_profile.personality.assign(s_keys[sn]["pers"])
+		sn.personal_gold = s_keys[sn]["gold"]
+	print("S secrets OK")
+
 	print("ALL RIMWORLD MEDICAL, FOOTPRINTS, 3-PHASE CORPSE REPORT, MULTI-CORPSE FIX, RPG INTERROGATION, PUBLIC TRIAL, DYNAMIC RELATIONSHIPS, MISSING FAMILY SEARCH, SOCIAL GLOSSARY & UNCONSCIOUS REACTION TESTS PASSED!")
 	quit(0)

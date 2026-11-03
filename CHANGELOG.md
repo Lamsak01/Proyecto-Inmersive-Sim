@@ -5,6 +5,9 @@ El detalle técnico está en `docs/HANDOFF.md` (sección 7) y el historial compl
 
 ## 2026-11-02
 
+### Secretos
+- **S1–S6**: infidelidades raras (las personas fieles nunca; las infieles bastante más) que pueden descubrirse si alguien los ve juntos. Entonces corre el chisme, deformado a veces: puede acabar señalando a un inocente. Si llega a la pareja, lo normal es que rompan. Un vecino malicioso puede chantajear al infiel. Tú también: si sabes el secreto puedes pedirle oro, prometerle callar o contárselo a su pareja.
+
 ### Recuerdos que se degradan
 - **R1–R4**: los vecinos olvidan los chismes con el tiempo (los memoriosos tardan más, los olvidadizos menos; los protagonistas casi nunca) y al contarlos pueden deformarlos: exageran o se equivocan de persona, y el error se contagia. Lo que te cuentan es su versión, y la crónica la apunta («❓ … te contó»). Un testigo que olvidó algo ya no se lo dirá al investigador.
 

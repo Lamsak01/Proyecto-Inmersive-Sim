@@ -8,6 +8,7 @@ const VillageQuests = preload("res://scripts/systems/VillageQuests.gd")
 const TraitCatalog = preload("res://scripts/data/TraitCatalog.gd")
 const VillageChronicle = preload("res://scripts/systems/VillageChronicle.gd")
 const GossipMemory = preload("res://scripts/systems/GossipMemory.gd")
+const VillageSecrets = preload("res://scripts/systems/VillageSecrets.gd")
 const TraitDiscoveryRef = preload("res://scripts/systems/TraitDiscovery.gd")
 const NPC_SLANDER_PER_MALICE: float = 0.075 # T5: a la mitad tras pasar a 6 rasgos (Rencoroso solo: 7,5 %)
 const NPC_SLANDER_MAX_CHANCE: float = 0.25
@@ -249,6 +250,7 @@ static func _update_social_hangouts(vm: VillageManager, delta: float) -> void:
 				rb.need_social = minf(100.0, rb.need_social + 20.0)
 				ra._spawn_floating_text("☕🤝 Buen rato con %s (+%d)" % [rb.npc_name, d_aff], Color(0.70, 1.0, 0.80), -40.0)
 				vm.record_social_event("hangout", ra, rb, "%s y %s pasaron un rato juntos en %s" % [ra.npc_name, rb.npc_name, spot_lbl])
+			VillageSecrets.on_meeting(vm, ra, rb) # S2: si son amantes, alguien puede pillarlos
 			# B3.3: Comprobar si quedar con un tercero despierta celos en alguna pareja actual
 			if st_done != "couple" and (ra.person_profile == null or str(ra.person_profile.partner_id) != rb.get_person_key()):
 				var profs_j: Dictionary = {}
@@ -299,6 +301,7 @@ static func _update_social_hangouts(vm: VillageManager, delta: float) -> void:
 		var pe: Dictionary = vm.social_director.get_pair_entry(initiator.get_person_key(), key4, initiator.get_relationship_with_npc(key4))
 		if not pe.is_empty():
 			pe["affinity"] = initiator.get_relationship_with_npc(key4)
+	cand_ids = VillageSecrets.bias_hangout_candidates(vm, initiator, cand_ids) # S1: el infiel busca al amante
 	var hg_new: Dictionary = vm.social_director.try_plan_hangout(initiator.get_person_key(), cand_ids, positions, vm.get_hangout_spots(), cur_hour, cur_day)
 	if hg_new.is_empty():
 		return
@@ -340,7 +343,7 @@ static func spread_gossip(vm: VillageManager, teller: VillageNPC, listener: Vill
 	for ev in _get_live_gossip(vm):
 		var known: Dictionary = ev["known_by"]
 		# R1: solo cuenta lo que aún recuerda; a quien lo olvidó se le puede volver a contar
-		if GossipMemory.knows(ev, teller_key) and not GossipMemory.knows(ev, listener_key):
+		if GossipMemory.knows(ev, teller_key) and not GossipMemory.knows(ev, listener_key) and not VillageSecrets.keeps_quiet(ev, teller_key):
 			known[listener_key] = true
 			if not ev.has("heard_from"):
 				ev["heard_from"] = {}
@@ -349,6 +352,7 @@ static func spread_gossip(vm: VillageManager, teller: VillageNPC, listener: Vill
 			if ev_type in ["player_slander", "npc_slander"] and str(ev.get("target_id", "")) == listener_key:
 				_on_slander_reached_target(vm, ev, teller, listener)
 			GossipMemory.on_told(vm, ev, teller, listener) # R2: puede llegar deformado
+			VillageSecrets.on_heard(vm, ev, teller, listener) # S3: quien lo oye piensa peor del que cree culpable
 			VillageChronicle.on_gossip(vm, ev, teller, listener)
 			return ev
 	return {}
