@@ -135,6 +135,8 @@ static func assign_houses(vm) -> int:
 ## Noche: quien vive en una casa del pueblo paga 2 a las arcas; si no puede, no pasa nada (es su casa).
 ## Devuelve true si el vecino vive en una casa (para que el cobro de la posada lo salte).
 static func nightly(vm, n) -> bool:
+	if str(n.lodging) == "family":
+		return true # V9: joven que aún vive con sus padres
 	var id: String = house_of(n)
 	if id == "":
 		return false

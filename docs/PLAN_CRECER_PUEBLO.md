@@ -73,16 +73,16 @@ vaya al pueblo, no por fecha. Nombres de lugares y oficios nuevos: provisionales
    - Si va mal, algunos se marchan, primero los que no tienen casa ni lazos.
    - Si falta vivienda, el carpintero levanta casas en los solares con el oro de quien llega o con las arcas.
    - El techo es de 50 vecinos.
-7. **V6 – Los nobles.**
+7. **V6 – Los nobles.** (hecho)
    - Un **señor del valle** y su familia en una mansión apartada, y alguna casa grande de ricos.
    - Cobran rentas por las tierras (granjas y rancho) y pesan en las elecciones.
    - Encajan con los «ricos aburridos» de la secta.
-8. **V9 – Hijos.**
+8. **V9 – Hijos.** (hecho)
    - Las parejas pueden tener hijos (con probabilidad según edad, relación y dinero).
    - Los niños crecen, van a la escuela, juegan y heredan rasgos de los padres.
    - Al hacerse mayores eligen oficio.
    - Es el bloque más grande, así que va al final, cuando ya hay escuela y sitio.
-9. **V7 – Medición y tests.** Un test por comportamiento. La sonda cuenta la población, las llegadas y marchas, las
+9. **V7 – Medición y tests.** (hecho) Un test por comportamiento. La sonda cuenta la población, las llegadas y marchas, las
    casas construidas, los nacimientos y la velocidad.
 
 ## Riesgos

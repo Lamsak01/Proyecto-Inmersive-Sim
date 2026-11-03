@@ -24,6 +24,8 @@ const VillageCivic = preload("res://scripts/systems/VillageCivic.gd")
 const VillagePlaces = preload("res://scripts/systems/VillagePlaces.gd")
 const VillageCulture = preload("res://scripts/systems/VillageCulture.gd")
 const VillageMigration = preload("res://scripts/systems/VillageMigration.gd")
+const VillageNobility = preload("res://scripts/systems/VillageNobility.gd")
+const VillageFamily = preload("res://scripts/systems/VillageFamily.gd")
 const VillageWork = preload("res://scripts/systems/VillageWork.gd")
 
 ## Gestor Integral de Urbanismo Sólido, Hospital/Morgue Forense, Comisaría/Cárcel, Testigos,
@@ -77,6 +79,8 @@ var _lot_visuals: Dictionary = {}
 var places_state: Dictionary = {} # V5c: terceros espacios (contadores)
 var culture_state: Dictionary = {} # V5e: biblioteca, mercado y arreglos
 var migration_state: Dictionary = {} # V3: llegadas, marchas y atractivo del pueblo
+var nobility_state: Dictionary = {} # V6: el señor del valle, los rentistas y las rentas
+var family_state: Dictionary = {} # V9: embarazos, nacimientos, edades y escuela
 var work_state: Dictionary = {} # V5d: jornaleros del día
 ## La secta secreta (O). Ver `VillageSect.gd`. Se guarda.
 var sect_state: Dictionary = {}
@@ -244,6 +248,7 @@ func setup_village(target_entities_root: Node) -> void:
 	VillageTrades.setup_world(self) # V5: panadería y sastrería (puestos vacantes al empezar)
 	VillageCivic.setup_world(self) # V5b: ayuntamiento, albergue y El Candil
 	VillageCulture.ensure_lots(self) # V5e: biblioteca y escuela
+	VillageNobility.ensure_lots(self) # V6: mansión y casa grande
 	VillageLots.build_world(self) # V4: calles y solares del borde, afueras y lomas
 	VillagePlaces.build_world(self) # V5c: parque, bancos de la plaza y mirador del lago
 	VillageWork.build_world(self) # V5d: lavadero
@@ -2363,6 +2368,8 @@ func _on_hour_passed(_day: int, new_hour: int = 8) -> void:
 	VillageWork.on_hour(self, actual_hour) # V5d: jornaleros (contratar, contar horas, pagar)
 	VillageCulture.on_hour(self, actual_hour) # V5e: mercado de los miércoles
 	VillageMigration.on_hour(self, actual_hour) # V3: los que se marchan siguen su camino
+	VillageNobility.on_hour(self, actual_hour) # V6: los nobles aparecen en la primera hora
+	VillageFamily.on_hour(self, actual_hour) # V9: lo que se aprende en la escuela
 
 	# 07:00 AM -> Comprobar llegada semanal de los 2 Mercaderes Ambulantes (Día 3: Maese Casimir | Día 6: Valeria la Tratante)
 	if actual_hour == 7:
@@ -3034,6 +3041,8 @@ func _on_day_passed(_new_day: int) -> void:
 		VillageTrades.daily(self) # V5: estrenar ropa en la sastrería
 		VillageCivic.daily(self) # V5b: arcas robadas y albergue
 		VillageCulture.daily(self) # V5e: el arreglador repara puestos saboteados
+		VillageNobility.daily(self) # V6: los lunes, rentas de las tierras
+		VillageFamily.daily(self) # V9: crecer, nacer, esperar un hijo y la escuela
 		VillageIllness.daily(self) # E2
 		VillageCrime.daily(self) # E4: como mucho un robo por noche
 		VillageTown.daily(self) # I: elecciones, impuestos del sábado, desfalcos
@@ -4508,6 +4517,8 @@ func get_economy_save_dict() -> Dictionary:
 		"places_state": places_state.duplicate(true),
 		"culture_state": culture_state.duplicate(true),
 		"migration_state": migration_state.duplicate(true),
+		"nobility_state": nobility_state.duplicate(true),
+		"family_state": family_state.duplicate(true),
 		"work_state": work_state.duplicate(true),
 		"sect_state": sect_state.duplicate(true),
 		"social_event_uid": _social_event_uid,
@@ -4582,6 +4593,9 @@ func load_economy_save_dict(data: Dictionary) -> void:
 	VillageCulture.after_load(self)
 	migration_state = (data["migration_state"] as Dictionary).duplicate(true) if typeof(data.get("migration_state")) == TYPE_DICTIONARY else {}
 	VillageMigration.after_load(self)
+	nobility_state = (data["nobility_state"] as Dictionary).duplicate(true) if typeof(data.get("nobility_state")) == TYPE_DICTIONARY else {}
+	family_state = (data["family_state"] as Dictionary).duplicate(true) if typeof(data.get("family_state")) == TYPE_DICTIONARY else {}
+	VillageFamily.after_load(self)
 	VillageSect._update_band(self)
 	if data.has("chronicle") and typeof(data["chronicle"]) == TYPE_ARRAY:
 		chronicle.clear()

@@ -120,7 +120,7 @@ static func _send_voters(vm, hour: int) -> void:
 	var voted: Array = vm.town_state.get("voted", [])
 	var ballot: Vector2 = hall_spots()["ballot"]
 	for n in VillageNeeds.living(vm):
-		if n.get_person_key() in voted or not VillageNeeds.is_free(n):
+		if n.get_person_key() in voted or not VillageNeeds.is_free(n) or (n.person_profile != null and int(n.person_profile.age) < 16):
 			continue
 		# Por la tarde, al salir del trabajo, va más gente; los que no se fían de nada a veces ni van
 		var ch: float = 0.55 if hour >= 16 else 0.25

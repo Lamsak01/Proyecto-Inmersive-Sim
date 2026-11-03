@@ -73,6 +73,8 @@ static func is_mayor(vm, npc) -> bool:
 static func eligible(npc) -> bool:
 	if npc.is_dead or VillageNeeds.is_outsider(npc) or npc.is_vagrant_camper:
 		return false
+	if npc.person_profile != null and int(npc.person_profile.age) < 16:
+		return false # V9: los niños no se presentan
 	return not (int(npc.trade_role) in [int(VillageNPC.TradeRole.SHERIFF), int(VillageNPC.TradeRole.GUARD), int(VillageNPC.TradeRole.DOCTOR), int(VillageNPC.TradeRole.PRIEST)])
 
 static func candidate_score(npc) -> float:
@@ -114,6 +116,7 @@ static func vote_of(vm, voter, cands: Array):
 		if VillageFaith.same_band(vm, voter, c):
 			s += BAND_VOTE_BONUS
 		s += 5.0 * TraitCatalog.npc_tendency(c, "leadership")
+		s += load("res://scripts/systems/VillageNobility.gd").sway(vm, voter, c, cands) # V6: quien vive de las tierras del señor
 		if s > best_s:
 			best_s = s
 			best = c
@@ -127,8 +130,8 @@ static func hold_election(vm, reason: String = "", voters: Array = []) -> Dictio
 		return {}
 	var votes: Dictionary = {}
 	for v in (voters if not voters.is_empty() else VillageNeeds.living(vm)):
-		if VillageNeeds.is_outsider(v):
-			continue
+		if VillageNeeds.is_outsider(v) or (v.person_profile != null and int(v.person_profile.age) < 16):
+			continue # V9: los niños no votan
 		var choice = vote_of(vm, v, cands)
 		if choice != null:
 			votes[choice.get_person_key()] = int(votes.get(choice.get_person_key(), 0)) + 1

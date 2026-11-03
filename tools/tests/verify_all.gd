@@ -2632,7 +2632,7 @@ func _initialize() -> void:
 
 	# 69. V3: llegadas y marchas según el atractivo del pueblo; casas para quien llega.
 	var vmi = load("res://scripts/systems/VillageMigration.gd")
-	for id3 in ["n0", "e6"]:
+	for id3 in ["n0", "e6", "m1", "m2", "m3", "m4", "m5"]:
 		var r3 := Rect2(vl.lot_def(id3)["center"] - vl.lot_def(id3)["size"] * 0.5, vl.lot_def(id3)["size"])
 		for f3 in vm.building_footprints:
 			assert(not r3.intersects(f3["rect"]), "V3: Lot %s is clear of %s" % [id3, str(f3["id"])])
@@ -2672,6 +2672,119 @@ func _initialize() -> void:
 	v3_st["residents"] = []
 	vm.arrivals_today_count = v3_arr
 	print("V3 arrivals and departures OK")
+
+	# 70. V6: el señor del valle y los rentistas; rentas de las tierras y peso en las elecciones.
+	var vno = load("res://scripts/systems/VillageNobility.gd")
+	assert(str(vl.lot(vm, "f1")["kind"]) == "mansion" and str(vl.lot(vm, "f2")["kind"]) == "manor", "V6: Mansion and manor stand on their lots")
+	assert(vm.building_footprints.filter(func(f): return str(f["id"]) in ["building_mansion", "building_manor"]).size() == 2, "V6: Both noble houses are built")
+	vno.spawn_households(vm)
+	assert(vno.nobles(vm).size() == 5 and vno.lord_of(vm) != null, "V6: The lord's family and the rentiers live in the valley")
+	var v6_lord = vno.lord_of(vm)
+	assert(vno.is_noble(v6_lord) and v6_lord.family_id == vno.MANSION_FAMILY and v6_lord.bed_position in vno.beds("f1"), "V6: The lord lives and sleeps in the mansion (fam=%s bed=%s)" % [v6_lord.family_id, str(v6_lord.bed_position)])
+	assert(v6_lord.person_profile != null and str(v6_lord.person_profile.partner_id) != "", "V6: The lord is married")
+	# Rentas
+	var v6_fr: int = vt.role_of("farmer")
+	var v6_old = vm.trade_npcs.get(v6_fr)
+	var v6_t = v5b_people[2]
+	vm.trade_npcs[v6_fr] = v6_t
+	var v6_rr: int = vt.role_of("rancher")
+	var v6_rold = vm.trade_npcs.get(v6_rr)
+	vm.trade_npcs.erase(v6_rr)
+	var v6_tg: int = v6_t.personal_gold
+	var v6_lg: int = v6_lord.personal_gold
+	v6_t.personal_gold = 100
+	var v6_res: Dictionary = vno.collect_rents(vm)
+	assert(int(v6_res["paid"]) == 10 and v6_t.personal_gold == 90 and v6_lord.personal_gold == v6_lg + 10, "V6: The tenant pays rent to the lord")
+	v6_t.personal_gold = 1
+	var v6_rel: int = v6_lord.get_relationship_with_npc(v6_t.get_person_key())
+	v6_res = vno.collect_rents(vm)
+	assert(int(v6_res["unpaid"]) == 3 and v6_lord.get_relationship_with_npc(v6_t.get_person_key()) < v6_rel, "V6: A tenant who cannot pay angers the lord")
+	# Elecciones: el arrendatario tira hacia el favorito del señor
+	var v6_c1 = v5b_people[0]
+	var v6_c2 = v5b_people[1]
+	v6_lord.modify_npc_relationship(v6_c2, 80, "Prueba", true)
+	v6_lord.modify_npc_relationship(v6_c1, -80, "Prueba", true)
+	assert(vno.lord_favourite(vm, [v6_c1, v6_c2]) == v6_c2, "V6: The lord has a favourite")
+	assert(vno.sway(vm, v6_t, v6_c2, [v6_c1, v6_c2]) > 0.0 and vno.sway(vm, v6_c1, v6_c2, [v6_c1, v6_c2]) == 0.0, "V6: Only those who live off the lord's land are swayed")
+	# Si el señor falta, manda el mayor de su casa
+	var v6_key: String = str(vno.state(vm)["lord"])
+	vno.state(vm)["lord"] = "nadie"
+	var v6_heir = vno.lord_of(vm)
+	assert(v6_heir != null and v6_heir.family_id == vno.MANSION_FAMILY, "V6: A family member inherits the lordship")
+	vno.state(vm)["lord"] = v6_key
+	v6_t.personal_gold = v6_tg
+	v6_lord.personal_gold = v6_lg
+	if v6_old != null:
+		vm.trade_npcs[v6_fr] = v6_old
+	else:
+		vm.trade_npcs.erase(v6_fr)
+	if v6_rold != null:
+		vm.trade_npcs[v6_rr] = v6_rold
+	print("V6 nobles OK")
+
+	# 71. V9: hijos. Embarazo, nacimiento con rasgos y apellido heredados, crecer, escuela y maestro.
+	var vfm = load("res://scripts/systems/VillageFamily.gd")
+	var v9_m = vmi._spawn_one(vm, {"label": "Madre de prueba", "gold": Vector2i(60, 60)}, 0)
+	var v9_f = vmi._spawn_one(vm, {"label": "Padre de prueba", "gold": Vector2i(60, 60)}, 1)
+	v9_m.person_profile.gender = "F"
+	v9_f.person_profile.gender = "M"
+	v9_m.person_profile.age = 28
+	v9_f.person_profile.age = 30
+	v9_m.person_profile.partner_id = str(v9_f.person_profile.person_id)
+	v9_f.person_profile.partner_id = str(v9_m.person_profile.person_id)
+	v9_m.family_id = "family_test_v9"
+	v9_f.family_id = "family_test_v9"
+	v9_m.modify_npc_relationship(v9_f, 70, "Prueba", true)
+	v9_f.modify_npc_relationship(v9_m, 70, "Prueba", true)
+	assert(vfm.conceive_chance(vm, v9_m, v9_f) > 0.0, "V9: A housed, loving couple can have a child")
+	v9_m.person_profile.age = 50
+	assert(vfm.conceive_chance(vm, v9_m, v9_f) == 0.0, "V9: Not past the age")
+	v9_m.person_profile.age = 28
+	vfm.start_pregnancy(vm, v9_m, v9_f)
+	assert(vfm.conceive_chance(vm, v9_m, v9_f) == 0.0, "V9: Not while already expecting")
+	vfm.state(vm)["pregnancies"][v9_m.get_person_key()]["due"] = vfm.today()
+	var v9_births: int = int(vfm.state(vm)["births"])
+	assert(vfm.process_births(vm) == 1 and int(vfm.state(vm)["births"]) == v9_births + 1, "V9: The baby is born when due")
+	var v9_kid = vfm.children_of_family(vm, "family_test_v9")[0]
+	assert(vfm.is_child(v9_kid) and int(v9_kid.person_profile.age) == 0 and v9_kid.npc_name.ends_with(vfm._surname(v9_f)), "V9: A newborn with the father's surname")
+	assert(v9_kid.get_relationship_with_npc(v9_m.get_person_key()) > 50 and v9_kid.scale.x < 0.7, "V9: Loves its parents and is small")
+	assert(vm.social_director.compute_compatibility(v9_kid.person_profile, v9_m.person_profile) == 0 and not vm.VillageTown.eligible(v9_kid), "V9: Children have no romance and do not run for mayor")
+	# Crecer y escuela
+	var v9_kid2 = vfm.give_birth(vm, v9_m, v9_f)
+	vfm.state(vm)["born"][v9_kid.get_person_key()] = vfm.today() - 7 * vfm.CHILD_YEAR_DAYS
+	vfm.state(vm)["born"][v9_kid2.get_person_key()] = vfm.today() - 8 * vfm.CHILD_YEAR_DAYS
+	vfm.update_ages(vm)
+	assert(int(v9_kid.person_profile.age) == 7 and int(v9_kid2.person_profile.age) == 8, "V9: Children grow a year every few days")
+	var v9_old_t: String = str(vfm.state(vm)["teacher"])
+	var v9_tr: int = int(vm.town_state.get("treasury", 0))
+	vm.town_state["treasury"] = 100
+	vfm.update_school(vm)
+	var v9_t = vfm.teacher_of(vm)
+	assert(v9_t != null and v9_kid.has_meta("school_pos") and v9_kid.work_position == v9_kid.get_meta("school_pos"), "V9: With two pupils there is a teacher and they go to school")
+	vfm.state(vm)["born"][v9_kid2.get_person_key()] = vfm.today() - 16 * vfm.CHILD_YEAR_DAYS
+	vfm.update_ages(vm)
+	assert(not vfm.is_child(v9_kid2) and int(v9_kid2.person_profile.age) == 16, "V9: At sixteen they grow up")
+	assert(vmi.nightly(vm, v9_kid2), "V9: A grown-up child still lives with the parents")
+	vm.town_state["treasury"] = v9_tr
+	for n9 in [v9_kid, v9_kid2, v9_m, v9_f]:
+		vfm.state(vm)["born"].erase(n9.get_person_key())
+		vm.unemployed_npcs.erase(n9)
+		vm._free_transient_npc(n9)
+	if v9_t != null and v9_old_t == "":
+		vfm.state(vm)["teacher"] = ""
+		if not v9_t in [v9_m, v9_f]:
+			v9_t.trade_role = 0 # Vuelve a ser un vecino sin oficio
+			vm.unemployed_npcs.append(v9_t)
+	print("V9 children OK")
+
+	# 72. UI1: el menú principal del diálogo es corto y agrupa el resto.
+	var ui1_n = v5b_people[0]
+	var ui1_d: Dictionary = ui1_n._inject_character_lore_into_dialogue(ui1_n._build_dialogue())
+	var ui1_start: Array = ui1_d["start"]["choices"]
+	assert(ui1_d.has("npc_ficha") and ui1_start.any(func(c): return str(c.get("next", "")) == "npc_ficha"), "UI1: There is a profile entry")
+	assert(not ui1_start.any(func(c): return str(c.get("next", "")) in ["neighbor_opinions", "npc_news"]) and ui1_d.has("talk_menu"), "UI1: Small talk goes into its own submenu")
+	assert(not str(ui1_d["start"]["text"]).contains("Rasgos:"), "UI1: The header is short")
+	print("UI1 dialogue menu OK")
 
 	print("ALL RIMWORLD MEDICAL, FOOTPRINTS, 3-PHASE CORPSE REPORT, MULTI-CORPSE FIX, RPG INTERROGATION, PUBLIC TRIAL, DYNAMIC RELATIONSHIPS, MISSING FAMILY SEARCH, SOCIAL GLOSSARY & UNCONSCIOUS REACTION TESTS PASSED!")
 	quit(0)

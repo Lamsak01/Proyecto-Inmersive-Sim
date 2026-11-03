@@ -5,6 +5,15 @@ El detalle técnico está en `docs/HANDOFF.md` (sección 7) y el historial compl
 
 ## 2026-11-03
 
+### Diálogos más limpios
+- **UI1**: al hablar con alguien, arriba solo sale su nombre, lo que hace y su humor, y unas pocas opciones: lo importante del momento, «Charlar…», «Invitar o regalar…», «Lo turbio…», «Ver ficha» (con todos sus datos y su red social) y Salir. «Manipular testigo» solo aparece si hay un caso abierto.
+
+### Crecer el pueblo: nobles, hijos y más casas
+- **V6**: en la loma del este vive el **señor del valle** en su mansión, con su pareja y su heredero; en la loma del norte, una familia de **rentistas** en una casa grande. Los lunes el señor cobra la renta a quien lleva la granja y el rancho, y quien vive de sus tierras tiende a votar a quien el señor prefiere.
+- **V9**: las parejas con casa pueden **tener hijos**. Los niños nacen en casa, se parecen algo a sus padres, crecen, juegan y, cuando hay bastantes, llega un **maestro** y van a la escuela. A los 16 son mayores y buscan su sitio.
+- **Más solares** para casas en una segunda fila al norte.
+- **V7**: una sonda que mide cómo crece el pueblo y cuánto cuesta el juego con 50 vecinos.
+
 ### Crecer el pueblo: llegadas y marchas
 - **V3**: ya no llegan siempre tres viajeros. El pueblo tiene un **atractivo** que sube con el trabajo libre y las camas libres, y baja con los mendigos, las muertes, las peleas y el hambre. Si va bien, llega gente a quedarse (jornaleros, artesanos con ahorros o una pareja), siempre que haya donde dormir, hasta 50 vecinos. Si va mal, se marchan los que no tienen casa ni amigos, sobre todo si duermen en la calle. Cuando faltan casas, el carpintero construye una: la paga quien llegó con ahorros o, si no, las arcas del pueblo. Hay dos solares nuevos para casas.
 

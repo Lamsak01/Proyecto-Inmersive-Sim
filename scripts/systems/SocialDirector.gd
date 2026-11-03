@@ -270,6 +270,8 @@ func compute_compatibility(prof_a, prof_b, same_family: bool = false) -> int:
 		return 0
 	if str(prof_a.person_id) == str(prof_b.person_id):
 		return 0
+	if int(prof_a.age) < 18 or int(prof_b.age) < 18:
+		return 0 # V9: los niños y los jóvenes no entran en el romance
 	# Por ahora todos heterosexuales ("H"): requiere géneros distintos
 	if str(prof_a.orientation) == "H" or str(prof_b.orientation) == "H":
 		if str(prof_a.gender) == str(prof_b.gender):
@@ -1145,6 +1147,8 @@ func try_resolve_live_fight(npc_a, npc_b, current_day: int = 1, force_roll: bool
 	var same_fam: bool = (fam_a != "none" and fam_a != "" and fam_a != "family_police" and fam_a == fam_b)
 	if not can_pair_fight(id_a, id_b, current_day, same_fam):
 		return {"triggered": false, "reason": "conditions_not_met"}
+	if int(prof_a.age) < 16 or int(prof_b.age) < 16:
+		return {"triggered": false, "reason": "child"} # V9: con niños no hay peleas
 	if not can_start_scene(id_a, id_b):
 		return {"triggered": false, "reason": "max_scenes_or_busy"}
 	var has_pacifist: bool = ("Pacífico" in prof_a.personality) or ("Pacífico" in prof_b.personality)

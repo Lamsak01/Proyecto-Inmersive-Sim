@@ -199,4 +199,6 @@ static func activity_text(n, arrived: bool) -> String:
 	var p: Dictionary = place(str(n.get_meta("leisure_place", "")))
 	if p.is_empty():
 		return "🌳 Dando un paseo"
+	if arrived and int(n.trade_role) == int(VillageNPC.TradeRole.CHILD) and str(p["kind"]) != "library":
+		return "🧒 Jugando en %s" % str(p["label"]) # V9
 	return str(p["text"]) if arrived else "🚶 Yendo a %s" % str(p["label"])

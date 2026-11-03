@@ -35,7 +35,10 @@ enum TradeRole {
 	RANCHER,            # 16. Ganadero (V5d): lana y carne en el rancho
 	QUARRYMAN,          # 17. Cantero (V5d): piedra en la cantera del noroeste
 	WOODCUTTER,         # 18. Leñador (V5d): madera en la linde del bosque
-	TINKER              # 21. Arreglador del Taller de Reparaciones (V5e): arregla tiendas saboteadas
+	TINKER,             # 21. Arreglador del Taller de Reparaciones (V5e): arregla tiendas saboteadas
+	NOBLE,              # 22. Señor del valle, su familia y los rentistas (V6): viven de rentas, no del oficio
+	CHILD,              # 23. Niño o niña (V9): nace en el pueblo, va a la escuela y a los 16 busca su sitio
+	TEACHER             # 24. Maestro de la escuela (V9): llega cuando hay niños en edad de ir
 }
 
 ## Oficios con taller y mostrador propios (V5: lista común para no repetirla en cada sitio)
@@ -289,7 +292,7 @@ const ROLE_INITIAL_GOLD: Dictionary = {
 	TradeRole.BUTCHER: Vector2i(48, 72), TradeRole.CARPENTER: Vector2i(48, 72),
 	TradeRole.HERBALIST: Vector2i(48, 72), TradeRole.FISHMONGER: Vector2i(48, 72),
 	TradeRole.BAKER: Vector2i(40, 62), TradeRole.TAILOR: Vector2i(48, 72), TradeRole.LODGEKEEPER: Vector2i(36, 58),
-	TradeRole.FARMER: Vector2i(55, 80), TradeRole.RANCHER: Vector2i(55, 80), TradeRole.QUARRYMAN: Vector2i(45, 70), TradeRole.WOODCUTTER: Vector2i(40, 62), TradeRole.TINKER: Vector2i(45, 70),
+	TradeRole.FARMER: Vector2i(55, 80), TradeRole.RANCHER: Vector2i(55, 80), TradeRole.QUARRYMAN: Vector2i(45, 70), TradeRole.WOODCUTTER: Vector2i(40, 62), TradeRole.TINKER: Vector2i(45, 70), TradeRole.NOBLE: Vector2i(200, 300), TradeRole.CHILD: Vector2i(0, 0), TradeRole.TEACHER: Vector2i(30, 50),
 	TradeRole.DOCTOR: Vector2i(52, 78), TradeRole.SHERIFF: Vector2i(52, 78), TradeRole.GUARD: Vector2i(52, 78),
 	TradeRole.FAMILY_MEMBER: Vector2i(26, 44), TradeRole.TRAVELING_MERCHANT: Vector2i(172, 238), TradeRole.ROYAL_INVESTIGATOR: Vector2i(110, 155),
 }
@@ -316,6 +319,9 @@ const ROLE_PSYCHOLOGY: Dictionary = {
 	TradeRole.QUARRYMAN: [["Fuerte", "Callado"], "stone", ["Buena veta de piedra hoy (+5)"]],
 	TradeRole.WOODCUTTER: [["Fuerte", "Amante del Bosque"], "wood", ["El hacha corta bien (+5)"]],
 	TradeRole.TINKER: [["Mañoso", "Paciente"], "repair_kit", ["Lo roto, arreglado (+6)"]],
+	TradeRole.NOBLE: [["Orgulloso", "Refinado"], "roasted_chicken", ["Las cuentas de las tierras cuadran (+4)"]],
+	TradeRole.CHILD: [["Juguetón", "Curioso"], "bread", ["Jugando con los demás (+6)"]],
+	TradeRole.TEACHER: [["Paciente", "Curioso"], "bread", ["Los niños aprenden (+5)"]],
 	TradeRole.LODGEKEEPER: [["Hospitalario", "Sencillo"], "country_stew", ["Hay luz en El Candil (+5)"]],
 	TradeRole.TAILOR: [["Perfeccionista", "Coqueto"], "clothes", ["Una costura perfecta (+6)"]],
 	TradeRole.DOCTOR: [["Cirujano Experto", "Forense Meticuloso"], "surgical_kit", ["Urgencias y morgue en orden (+8)"]],
@@ -348,7 +354,10 @@ const ROLE_FALLBACK_LORE: Dictionary = {
 	TradeRole.FARMER: ["tomas", "lina", "Granjero que labra los campos del sur con ayuda de jornaleros y vende trigo al molino y a la panadería."],
 	TradeRole.RANCHER: ["garrick", "nora", "Ganadero del rancho del sur: cría animales por su lana y su carne."],
 	TradeRole.QUARRYMAN: ["thoran", "kiera", "Cantero que saca piedra en la ladera del noroeste para las obras del pueblo."],
-	TradeRole.TINKER: ["kael", "kiera", "Arreglador que remienda lo que se rompe en el pueblo: puestos, herramientas y cerrojos."],
+	TradeRole.CHILD: ["tomas", "nora", "Criatura nacida en el valle: corretea por las calles, va a la escuela y lo pregunta todo."],
+	TradeRole.TEACHER: ["dario", "marta", "Maestro de la escuela del pueblo: enseña a leer, a contar y a portarse."],
+	TradeRole.NOBLE: ["thoran", "elena", "Gente de la loma: viven de las rentas de las tierras de labor y miran el pueblo desde arriba."],
+	TradeRole.TINKER: ["kael", "sora", "Arreglador que remienda lo que se rompe en el pueblo: puestos, herramientas y cerrojos."],
 	TradeRole.WOODCUTTER: ["bram", "mila", "Leñador que corta madera en la linde del bosque para carpinteros, hornos y hogares."],
 	TradeRole.LODGEKEEPER: ["dario", "nora", "Posadero modesto que alquila camas baratas a quien no puede pagar El Jabalí Dorado."],
 	TradeRole.BAKER: ["marlo", "marta", "Panadero llegado de un valle vecino para encender el horno de la calle norte y dar pan a casas y posadas."],
@@ -2702,6 +2711,12 @@ func _is_mandatory_work_hours() -> bool:
 		return h >= 8 and h < 20
 	if trade_role == TradeRole.BAKER:
 		return h >= 6 and h < 16 # El horno madruga
+	if trade_role in [TradeRole.CHILD, TradeRole.TEACHER]: # V9: escuela de 9 a 14 h entre semana (los niños, si están apuntados)
+		if trade_role == TradeRole.CHILD and not has_meta("school_pos"):
+			return false
+		return h >= 9 and h < 14 and not (WorldClock.has_method("is_weekend") and WorldClock.is_weekend())
+	if trade_role == TradeRole.NOBLE: # V6: de 10 a 13 h entre semana administran sus tierras en casa
+		return h >= 10 and h < 13 and not (WorldClock.has_method("is_weekend") and WorldClock.is_weekend())
 	return h >= 8 and h < 18
 
 ## Multiplicador continuo de velocidad por Nutrición estilo Kenshi (300 pts = 100% -> 3 días completos hasta 0%)
@@ -3805,6 +3820,9 @@ func get_activity_description() -> String:
 			if trade_role == TradeRole.SHERIFF: return "🚓 Dirigiendo la Comisaría"
 			if trade_role == TradeRole.GUARD: return "🛡️ Patrullando la Aldea"
 			if trade_role == TradeRole.PRIEST: return "☀️ Cuidando la Capilla del Alba"
+			if trade_role == TradeRole.NOBLE: return "📜 Administrando sus tierras"
+			if trade_role == TradeRole.CHILD: return "📚 En la escuela"
+			if trade_role == TradeRole.TEACHER: return "🧑‍🏫 Dando clase"
 			if trade_role == TradeRole.UNEMPLOYED:
 				if has_meta("day_job"):
 					return str(get_meta("day_job"))
@@ -4500,7 +4518,7 @@ func _get_needs_status_line() -> String:
 	var last_thought: String = thoughts[0] if not thoughts.is_empty() else "Todo tranquilo"
 	var fav_name: String = str(SimpleInventory.CATALOG.get(favorite_item, {}).get("name", favorite_item))
 	var eff_info: String = ""
-	if not (trade_role in [TradeRole.UNEMPLOYED, TradeRole.FAMILY_MEMBER]):
+	if not (trade_role in [TradeRole.UNEMPLOYED, TradeRole.FAMILY_MEMBER, TradeRole.NOBLE, TradeRole.CHILD]): # Nobles y niños no tienen oficio
 		var shop_state: String = ""
 		if trade_role in SHOP_ROLES or trade_role == TradeRole.INNKEEPER:
 			shop_state = " · 🟢 En Mostrador" if is_at_shop_counter() else " · 🔴 Fuera del Mostrador (No vende aquí)"

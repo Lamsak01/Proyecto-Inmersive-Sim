@@ -561,6 +561,41 @@ Cada fase se dividirá en bloques pequeños cuando se llegue a ella (detalle en 
   con la calle norte alargada, y e6 (1400, 140). **Ojo:** con los solares libres que quedan (n0, n1, e1, e6) caben unas
   8 personas más en casas; para llegar a 50 hará falta más sitio (más solares o casas más grandes). **Sin probar en
   juego:** el ritmo real de llegadas y marchas y que el pueblo no se vacíe ni se llene de golpe.
+- [x] **V6** Nobles (`scripts/systems/VillageNobility.gd`, `vm.nobility_state`, se guarda). Probado (test #70). Oficio nuevo `NOBLE` (22, fuera de `SHOP_ROLES`): horario 10–13 h entre
+  semana en su escritorio («Administrando sus tierras»), el resto libre. Mansión en f1 (clase «mansion», 180×120, 3
+  camas, familia `family_lord`) con el **señor**, su pareja (casados: `partner_id` y `ROMANCE_PARTNERED`) y el heredero;
+  casa grande en f2 (clase «manor», 2 camas, `family_rentiers`) con dos rentistas. Aparecen una vez en la primera hora
+  de juego (`spawn_households`, también en partidas viejas). Oro 140–460: son «rico» (secta de ricos aburridos,
+  impuestos de rico). **Rentas** los lunes (`collect_rents`): los dueños de la granja y el rancho pagan el 10 % de su
+  oro (3–20); quien paga −2 con el señor, quien no puede −3 y el señor −5 con él. Si el señor muere o se va, manda el
+  mayor de la mansión (`lord_of`). **Elecciones**: `VillageTown.vote_of` suma `VillageNobility.sway` (+25 al favorito
+  del señor) a los arrendatarios y a sus jornaleros.
+- [x] **Solares para crecer** (probado: sin solapes, test #69): fila m1–m5 en y −580 (x 330…910, puerta al sur) con una calleja
+  nueva (y −526) y su enlace con la calle norte en x 980. Con n0, n1, e1, e6 quedan 9 solares de casa (18 camas).
+- [x] **V9** Hijos (`scripts/systems/VillageFamily.gd`, `vm.family_state`, se guarda). Probado (test #71). Oficios nuevos `CHILD` (23) y `TEACHER` (24). Cada día una pareja (ella 18–42, él ≥ 18, con casa, sin ser de
+  fuera, relación media ≥ 30, menos de 3 hijos, 40 días desde el último) puede esperar un hijo: 1,2 % × relación ×
+  dinero × humor × edad × hijos (tope 5 %). Embarazo de 9 días; el bebé nace en casa con el apellido del padre y un
+  rasgo de cada progenitor (`roll_balanced`), +80 con sus padres y +40 con sus hermanos; dibujo de adulto a escala
+  0,55–1. Crecen un año cada 4 días (`CHILD_YEAR_DAYS`, provisional) contando desde `born`; a los 16 pasan a
+  `UNEMPLOYED`, `lodging` = «family» (siguen en casa sin pagar posada; VillageMigration los puede mudar a una casa
+  libre) y sus padres les dan 10 de oro. **Escuela**: con 2 niños de 6+ y sin maestro, se hace maestro el vecino sin
+  oficio de 20+ más curioso/paciente/diligente o, si no hay, llega uno; cobra 5 al día de las arcas (si no hay, se
+  queja). Los niños apuntados (`school_pos`, no se guarda: se recalcula a diario y al cargar) van de 9 a 14 h entre
+  semana a su pupitre; a las 14 h cuentan `lessons`. Filtros de edad: sin romance (<18, `compute_compatibility`), sin
+  peleas (<16), no votan ni se presentan (<16, también al mandar a votar), la secta ya tenía `MIN_AGE`. Crónica:
+  «pregnancy», «birth», «grown_up», «teacher». El cartel de la escuela sigue diciendo «Esperando alumnos» aunque haya
+  maestro (pendiente). **Sin probar en juego:** nada de esto (solo los tests).
+- [x] **V7** Medición (`tools/tests/growth_probe.gd -- <días> <semilla>`, con `--fixed-fps 60`). **Escrita, sin
+  ejecutar** (pendiente del permiso del usuario). Fase 1: deja correr la partida y apunta cada día población, llegadas,
+  marchas, casas, embarazos, nacimientos, niños, maestro y atractivo. Fase 2: completa hasta 50 vecinos con casas y
+  recién llegados y mide el fotograma (plaza y lejos) y el coste de una hora de juego.
+- [x] **UI1** Menú del diálogo ordenado (`NPCDialogue._organize_start`, al final de `_inject_character_lore_into_dialogue`).
+  Arriba lo del momento (comercio, encargos, juicio, avisos…); se agrupan por `next`/`action` (no por el texto)
+  «🗣️ Charlar…» (`TALK_NEXT`), «🎁 Invitar o regalar…» (`GIFT_ACTIONS` y `gift_*`) y «🕵️ Lo turbio…» (`SHADY_NEXT`; si un
+  grupo tiene una sola opción, queda suelta); luego «📋 Ver ficha» (`npc_ficha`: la línea de estado completa y la red
+  social) y Salir. La cabecera cambia la línea de estado larga por `_short_status` (actividad, humor y mostrador). «Manipular
+  testigo» solo sale con un caso abierto (`_case_open`: investigación del comisario o del inquisidor, o el vecino va a
+  denunciar un cuerpo); el aviso urgente «🚨 ¡Detener reporte!» sigue arriba. Nobles y niños ya no muestran «Dominio».
 
 ### Interfaz
 - [x] **HUD1** Barras de estado (`scenes/ui_root.gd`, `_create_stats_box` / `_create_fallback_bar`): recuadro oscuro arriba a
