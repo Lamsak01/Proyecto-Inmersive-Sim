@@ -734,6 +734,15 @@ func _resolve_unique_64_visuals_and_lore(fallback_tex: Texture2D = null) -> void
 		character_tagline = str(fb[2])
 		character_lore = "«Llegué al valle tras escuchar que la comunidad necesitaba manos expertas. No vengo a hacer preguntas sobre lo que le ocurrió a mi predecesor: mientras haya trabajo y corra el oro, cumpliré mi jornada de sol a sol.»"
 		character_secret = "«En este pueblo las paredes oyen y las puertas cerradas guardan más de un secreto. Conviene llevarse bien con los vecinos si quieres prosperar aquí.»"
+		match trade_role: # V6/V9: historias que no son de forastero recién llegado
+			TradeRole.CHILD:
+				character_lore = "«Nací aquí, en el valle. Mis padres dicen que pregunto demasiado. Cuando sea mayor quiero tener mi propio taller... o irme lejos, todavía no lo sé.»"
+				character_secret = "«Sé dónde se esconden los mayores cuando no quieren que los vean. Los niños nos fijamos en todo.»"
+			TradeRole.NOBLE:
+				character_lore = "«Mi familia lleva generaciones cobrando las rentas de estas tierras. El pueblo nos mira con respeto... o con envidia, según el día.»"
+				character_secret = "«Las cuentas de la casa no van tan bien como aparentamos. Que nadie lo sepa.»"
+			TradeRole.TEACHER:
+				character_lore = "«Alguien tiene que enseñar a leer y a contar a los críos del valle. No es mal oficio, aunque las arcas paguen tarde.»"
 
 	var anim_64 := _load_64_tex("res://assests/world/village/npcs_64/anim_%s.png" % key)
 	var spr_64 := _load_64_tex("res://assests/world/village/npcs_64/sprite_%s.png" % key)

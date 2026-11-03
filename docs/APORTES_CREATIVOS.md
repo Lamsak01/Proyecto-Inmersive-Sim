@@ -59,7 +59,7 @@ pequeño, con gente que huyó de algo.
 | Afueras (V5d) | «Granja del Sur» y sus «Campos de la Granja», «Rancho del Sur», «Cantera del Noroeste», «Cabaña del Leñador» y el «Lavadero» del lago; familias «Casa de la Granja / del Rancho / de la Cantera / del Leñador». Objeto nuevo: «Lana» |
 | Cultura y oficios (V5e) | «Biblioteca», «Escuela» («Esperando alumnos»), «Mercado del Miércoles», «Taller de Reparaciones» y el oficio de «Arreglador» («Casa del Arreglador») |
 | Nobles (V6) | «Señor del Valle», «Señora del Valle», «Heredero del Valle», «Mansión del Señor del Valle» («Casa del Señor»), «Casa Grande de los Rentistas»; renta del 10 % los lunes |
-| Hijos (V9) | «Criatura del valle», «Hijo/Hija del valle», «Joven del valle», «Maestro/Maestra de la Escuela»; un año cada 4 días; dibujos de adulto encogidos |
+| Hijos (V9) | Historias: niño «Nací aquí, en el valle…», noble «Mi familia lleva generaciones cobrando las rentas…», maestro «Alguien tiene que enseñar…»; «Criatura del valle», «Hijo/Hija del valle», «Joven del valle», «Maestro/Maestra de la Escuela»; un año cada 4 días; dibujos de adulto encogidos |
 | Solares (V3+) | «Calleja de atrás» (fila m), «Casa del pueblo», «Casa de <nombre>» |
 | Solares nuevos (V4) | Calle norte, camino del este, campos del sur, ladera del noroeste y las lomas del este y del norte (sitios para mansiones). Carteles «📜 Solar libre» y «🚧 En obra». Las casas nuevas se llaman de momento «🏠 Casa nueva» |
 
