@@ -1829,5 +1829,128 @@ func _initialize() -> void:
 	vm.desires.clear()
 	print("D desires OK")
 
+	# Test #57 (G1-G6): fe del Alba, semana con fin de semana, Oficio del domingo, sacerdote, bandos y reputación por grupo
+	var vfa = load("res://scripts/systems/VillageFaith.gd")
+	var g_old_day: int = int(wclock.current_day)
+	var g_old_hour: int = int(wclock.current_hour)
+	wclock.current_day = 7
+	assert(wclock.is_rite_day() and wclock.is_weekend() and wclock.get_weekday_name() == "Domingo", "G2: Day 7 is Sunday, the rite day")
+	var g_priest = vfa.priest_of(vm)
+	assert(g_priest != null, "G3: The chapel has a priest")
+	var g_pr_pers: Array = g_priest.person_profile.personality.duplicate()
+	g_priest.person_profile.personality.assign(["Escéptico"])
+	vfa.ensure_priest_faith(g_priest)
+	assert(vfa.faith_score(g_priest) >= vfa.FERVENT_MIN, "G3: A priest always has faith")
+	var g_roles = load("res://scripts/enemies/VillageNPC.gd").TradeRole
+	var g_live: Array = []
+	for gn in get_nodes_in_group("village_npcs"):
+		if not gn.is_dead and gn.person_profile != null and gn != g_priest and not (int(gn.trade_role) in [int(g_roles.SHERIFF), int(g_roles.GUARD), int(g_roles.TRAVELING_MERCHANT), int(g_roles.ROYAL_INVESTIGATOR)]):
+			g_live.append(gn)
+	var g_a = g_live[0]
+	var g_b = g_live[1]
+	var g_sk = g_live[2]
+	var g_x = g_live[3]
+	var g_saved: Array = [g_a.person_profile.personality.duplicate(), g_b.person_profile.personality.duplicate(), g_sk.person_profile.personality.duplicate()]
+	g_a.person_profile.personality.assign(["Devoto"])
+	g_b.person_profile.personality.assign(["Supersticioso"])
+	g_sk.person_profile.personality.assign(["Escéptico"])
+	assert(vfa.grade_of(g_a) == vfa.GRADE_FERVENT and vfa.grade_of(g_b) == vfa.GRADE_BELIEVER and vfa.grade_of(g_sk) == vfa.GRADE_SKEPTIC, "G1: Faith grade comes from traits")
+	# G2: fin de semana con menos trabajo
+	var g_w = null
+	for gr in vm.trade_npcs.keys():
+		var gt = vm.trade_npcs[gr]
+		if is_instance_valid(gt) and not gt.is_dead:
+			g_w = gt
+			break
+	if g_w != null:
+		wclock.current_hour = 15
+		if not g_w._is_morning_expedition_hours():
+			assert(not g_w._is_mandatory_work_hours(), "G2: Craftsmen rest on Sunday")
+			wclock.current_day = 6
+			assert(not g_w._is_mandatory_work_hours(), "G2: On Saturday they only work in the morning")
+			wclock.current_day = 3
+			assert(g_w._is_mandatory_work_hours(), "G2: On weekdays they work as usual")
+		wclock.current_day = 7
+	# G2: el Oficio
+	for gp in [g_a, g_b, g_sk, g_priest]:
+		gp.clear_hangout()
+		gp.leave_rite()
+		gp.is_sleeping = false
+		gp.current_activity = 0
+		gp.need_energy = 80.0
+		gp.need_hunger = 80.0
+	vm.faith_state = {}
+	wclock.current_hour = 9
+	vfa.call_to_rite(vm)
+	assert(g_a.rite_pos != Vector2.ZERO and g_priest.rite_pos != Vector2.ZERO and g_sk.rite_pos == Vector2.ZERO, "G2: Believers and the priest go to the rite; skeptics stay home")
+	assert(g_a._get_social_target_pos() == g_a.rite_pos and not g_a._is_mandatory_work_hours(), "G2: They really walk to the chapel")
+	g_b.leave_rite()
+	g_b.global_position = Vector2(-9000, -8000)
+	g_a.global_position = g_a.rite_pos
+	g_priest.global_position = g_priest.rite_pos
+	var g_pk: String = g_priest.get_person_key()
+	g_a.npc_relationships[g_pk] = 0
+	g_a.npc_relationships[g_b.get_person_key()] = 0
+	g_a.npc_relationships[g_sk.get_person_key()] = 0
+	g_priest.npc_relationships[g_sk.get_person_key()] = -100
+	g_a.affinity = 0
+	var g_pl = get_first_node_in_group("player")
+	var g_pl_pos: Vector2 = Vector2.ZERO
+	if g_pl != null:
+		g_pl_pos = g_pl.global_position
+		g_pl.global_position = vm._church_altar_pos
+	var g_res: Dictionary = vfa.finish_rite(vm)
+	assert(int(g_res["attendees"]) >= 2 and g_a.rite_pos == Vector2.ZERO, "G2: The rite ends and counts who came")
+	assert(g_a.get_relationship_with_npc(g_pk) > 0, "G2: Attendees bond")
+	assert(g_a.get_relationship_with_npc(g_b.get_person_key()) < 0, "G2: Fervent believers notice who missed the rite")
+	assert(str(g_res["sermon"]) == g_sk.npc_name and g_a.get_relationship_with_npc(g_sk.get_person_key()) < 0, "G3: The priest's sermon turns attendees against his enemy")
+	if g_pl != null:
+		assert(bool(g_res["player"]) and g_a.affinity > 0 and vfa.rep_of(vm, "faith") > 0 and vfa.grade_known(vm, g_a), "G5: Going to the rite pleases believers and shows their faith")
+		g_pl.global_position = g_pl_pos
+	# G4: bandos
+	vfa.refresh_bands(vm)
+	var g_fam_found: bool = false
+	for gband in vm.faith_bands:
+		if str(gband["kind"]) == "family":
+			g_fam_found = true
+	assert(g_fam_found, "G4: Families are detected as bands")
+	vm.faith_bands = [{"id": "gang:test", "kind": "gang", "name": "Prueba", "members": [g_a.get_person_key(), g_b.get_person_key(), g_sk.get_person_key()], "leader": ""}]
+	assert(vfa.same_band(vm, g_a, g_b) and not vfa.same_band(vm, g_a, g_x), "G4: Band membership")
+	g_a.npc_relationships[g_b.get_person_key()] = 60
+	g_a.npc_relationships[g_x.get_person_key()] = 0
+	vm.record_social_event("fight", g_x, g_b, "prueba de pelea de bando")
+	assert(g_a.get_relationship_with_npc(g_x.get_person_key()) == vfa.BAND_DEFEND, "G4: A band takes the side of its member")
+	var g_r0: int = vfa.rep_of(vm, "gang:test")
+	g_b.modify_affinity(8)
+	assert(vfa.rep_of(vm, "gang:test") > g_r0, "G5: Helping a member raises your standing with the band")
+	# G6: diálogo con el sacerdote
+	var g_diag: Dictionary = {"start": {"text": "Hola", "choices": [{"label": "Salir", "next": "END"}]}}
+	vfa.add_dialogue_choices(vm, g_priest, g_diag, g_diag["start"]["choices"])
+	assert(g_diag.has("faith_lore"), "G6: The priest talks about the faith")
+	var g_inv = load("res://scripts/systems/SimpleInventory.gd").new()
+	g_inv.gold = 50
+	var g_rep0: int = vfa.rep_of(vm, "faith")
+	vfa.on_player_action(vm, g_priest, "faith_donate", g_inv)
+	assert(int(g_inv.gold) == 50 - vfa.DONATION_GOLD and vfa.rep_of(vm, "faith") > g_rep0, "G6: Donating raises your standing with believers")
+	var g_paff: int = g_priest.affinity
+	vfa.on_player_action(vm, g_priest, "faith_mock", g_inv)
+	assert(g_priest.affinity < g_paff and vfa.rep_of(vm, "skeptics") > 0, "G6: Mocking the faith angers believers and pleases skeptics")
+	if g_inv is Node:
+		g_inv.free()
+	var g_rep_saved: int = vfa.rep_of(vm, "faith")
+	var g_save: Dictionary = vm.get_economy_save_dict()
+	vm.faith_state = {}
+	vm.load_economy_save_dict(g_save)
+	assert(vfa.rep_of(vm, "faith") == g_rep_saved, "G: Group reputation survives save and load")
+	g_a.person_profile.personality.assign(g_saved[0])
+	g_b.person_profile.personality.assign(g_saved[1])
+	g_sk.person_profile.personality.assign(g_saved[2])
+	g_priest.person_profile.personality.assign(g_pr_pers)
+	vm.faith_bands = []
+	vm.faith_state = {}
+	wclock.current_day = g_old_day
+	wclock.current_hour = g_old_hour
+	print("G groups and faith OK")
+
 	print("ALL RIMWORLD MEDICAL, FOOTPRINTS, 3-PHASE CORPSE REPORT, MULTI-CORPSE FIX, RPG INTERROGATION, PUBLIC TRIAL, DYNAMIC RELATIONSHIPS, MISSING FAMILY SEARCH, SOCIAL GLOSSARY & UNCONSCIOUS REACTION TESTS PASSED!")
 	quit(0)

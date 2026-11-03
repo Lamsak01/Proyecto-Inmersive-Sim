@@ -26,7 +26,8 @@ enum TradeRole {
 	SHERIFF,            # 7. Comisario Jefe de la Comisaría y Cárcel
 	GUARD,              # 8. Guardia de Patrulla Policial
 	TRAVELING_MERCHANT, # 9. Mercader Semanal de Extramuros con Salvoconducto Real (Casimir / Valeria)
-	ROYAL_INVESTIGATOR  # 10. Inquisidor Real enviado por la Corona si asesinan a un Mercader Semanal
+	ROYAL_INVESTIGATOR, # 10. Inquisidor Real enviado por la Corona si asesinan a un Mercader Semanal
+	PRIEST              # 11. Sacerdote de la Capilla del Alba (G3): dirige el Oficio de los domingos
 }
 
 enum ActivityState {
@@ -115,6 +116,8 @@ var _social_partner: VillageNPC = null
 var _decision_timer: float = 0.0
 # B2.2: Quedada activa organizada por el SocialDirector (-1 = ninguna). El VillageManager la asigna y la limpia.
 var hangout_id: int = -1
+## G2: sitio en la capilla durante el Oficio del Alba (ZERO = no va al Oficio)
+var rite_pos: Vector2 = Vector2.ZERO
 var live_fight_partner: VillageNPC = null
 var _live_fight_clock: float = 0.0
 var hangout_spot_pos: Vector2 = Vector2.ZERO
@@ -294,6 +297,7 @@ const PersonProfile = preload("res://scripts/data/PersonProfile.gd")
 const NPCDialogue = preload("res://scripts/enemies/NPCDialogue.gd")
 const TraitDiscovery = preload("res://scripts/systems/TraitDiscovery.gd")
 const TraitCatalog = preload("res://scripts/data/TraitCatalog.gd")
+const VillageFaith = preload("res://scripts/systems/VillageFaith.gd")
 const NPC_NAME_ALIASES: Dictionary = NPCData.NPC_NAME_ALIASES
 
 const NPC_LORE_PROFILES: Dictionary = NPCData.NPC_LORE_PROFILES
@@ -970,12 +974,12 @@ func _process_pending_social_reply(delta: float) -> void:
 	_try_player_overhear(initiator, note_str)
 	var vm_news = _get_vm()
 	# T4: el chismoso cuenta novedades más a menudo y el frío menos (Chismoso solo: 75 %)
-	if vm_news != null and randf() < clampf(0.5 + 0.25 * TraitCatalog.npc_tendency(initiator, "gossip"), 0.15, 0.85):
+	if vm_news != null and randf() < clampf(0.5 + 0.25 * TraitCatalog.npc_tendency(initiator, "gossip") + (VillageFaith.BAND_GOSSIP_BONUS if VillageFaith.same_band(vm_news, initiator, self) else 0.0), 0.15, 0.9):
 		var news: Dictionary = vm_news.spread_gossip(initiator, self)
 		if not news.is_empty():
 			initiator._spawn_floating_text("🗣️ «¿Te has enterado? %s»" % vm_news.gossip_text(news, self, get_person_key()), Color(1.0, 0.92, 0.65), -46.0)
 	# R5: quien contesta también puede contar algo que el otro no sepa
-	if vm_news != null and randf() < clampf(0.5 + 0.25 * TraitCatalog.npc_tendency(self, "gossip"), 0.15, 0.85):
+	if vm_news != null and randf() < clampf(0.5 + 0.25 * TraitCatalog.npc_tendency(self, "gossip") + (VillageFaith.BAND_GOSSIP_BONUS if VillageFaith.same_band(vm_news, initiator, self) else 0.0), 0.15, 0.9):
 		var news_b: Dictionary = vm_news.spread_gossip(self, initiator)
 		if not news_b.is_empty():
 			_spawn_floating_text("🗣️ «¿Y sabes qué? %s»" % vm_news.gossip_text(news_b, initiator, initiator.get_person_key()), Color(1.0, 0.92, 0.65), -50.0)
@@ -2597,11 +2601,16 @@ func _get_expedition_description() -> String:
 	return str(EXPEDITION_DESCS.get(trade_role, "🚶 En Expedición"))
 
 func _is_mandatory_work_hours() -> bool:
-	if trade_role == TradeRole.UNEMPLOYED:
+	if trade_role == TradeRole.UNEMPLOYED or rite_pos != Vector2.ZERO:
 		return false
 	if not WorldClock or _is_morning_expedition_hours():
 		return true
 	var h: int = WorldClock.current_hour
+	# G2: fin de semana. Los oficios y sus familias trabajan solo la mañana del sábado y descansan el domingo
+	if WorldClock.has_method("is_weekend") and WorldClock.is_weekend() and trade_role in [TradeRole.BUTCHER, TradeRole.BLACKSMITH, TradeRole.CARPENTER, TradeRole.HERBALIST, TradeRole.FISHMONGER, TradeRole.FAMILY_MEMBER]:
+		if WorldClock.is_rite_day():
+			return false
+		return h >= 9 and h < 13
 	if trade_role == TradeRole.INNKEEPER:
 		return h >= 8 and h < 23
 	if trade_role in [TradeRole.FISHMONGER, TradeRole.BUTCHER, TradeRole.HERBALIST]:
@@ -2810,7 +2819,9 @@ func _update_needs_and_decisions(delta: float) -> void:
 				_chat_bubble_timer -= delta
 				if _chat_bubble_timer <= 0.0:
 					_chat_bubble_timer = randf_range(4.5, 7.5)
-					if is_visiting_grave():
+					if rite_pos != Vector2.ZERO:
+						_spawn_floating_text("☀️🙏" if trade_role != TradeRole.PRIEST else "☀️ «Compartid el pan y perdonad...»", Color(1.0, 0.92, 0.65), -30.0)
+					elif is_visiting_grave():
 						_spawn_floating_text("🕯️ «No te olvido, %s...»" % str(person_profile.deceased_partner_name), Color(0.82, 0.80, 0.98), -30.0)
 					elif is_instance_valid(_social_partner) and _npc_social_event_cooldown <= 0.0:
 						_trigger_dynamic_npc_social_interaction(_social_partner)
@@ -2891,6 +2902,10 @@ func _update_needs_and_decisions(delta: float) -> void:
 		return
 
 	if current_activity == ActivityState.SOCIALIZING:
+		if rite_pos != Vector2.ZERO and need_energy > 12.0 and need_hunger >= 30.0:
+			return # G2: en el Oficio se quedan hasta que termina, salvo hambre o cansancio fuertes
+		if rite_pos != Vector2.ZERO:
+			leave_rite()
 		if is_night_env or need_energy <= 12.0 or (need_hunger < 65.0 and digestion_buffer < 10.0) or (need_social >= 92.0 and hangout_id < 0):
 			_social_partner = null
 			if need_hunger < 70.0 and digestion_buffer < 12.0 and not is_night_env:
@@ -2905,7 +2920,7 @@ func _update_needs_and_decisions(delta: float) -> void:
 		_eat_at_tavern = _choose_preferred_meal_location()
 	elif is_night_env or need_energy <= 12.0:
 		current_activity = ActivityState.SLEEPING
-	elif need_social <= 78.0:
+	elif need_social <= (90.0 if (WorldClock != null and WorldClock.has_method("is_weekend") and WorldClock.is_weekend()) else 78.0): # G2: el fin de semana salen más
 		current_activity = ActivityState.SOCIALIZING
 		_social_partner = _find_best_social_partner()
 
@@ -3457,6 +3472,17 @@ func clear_hangout() -> void:
 	hangout_side = 0
 	hangout_spot_label = ""
 
+## G2: el vecino deja lo que hace y camina a la capilla para el Oficio del Alba (lo llama VillageFaith).
+func join_rite(spot: Vector2) -> void:
+	rite_pos = spot
+	is_sleeping = false
+	_social_partner = null
+	current_activity = ActivityState.SOCIALIZING
+	_decision_timer = randf_range(1.0, 2.0)
+
+func leave_rite() -> void:
+	rite_pos = Vector2.ZERO
+
 ## B4.2: Escena discreta de pelea. `VillageManager` decide inicio, fin y consecuencias; aquí solo se representa.
 func is_in_live_fight() -> bool:
 	return is_instance_valid(live_fight_partner)
@@ -3538,6 +3564,8 @@ func is_visiting_grave() -> bool:
 	return current_activity == ActivityState.SOCIALIZING and hangout_id < 0 and person_profile != null and int(person_profile.bereavement_days_left) > 0 and str(person_profile.deceased_partner_name) != ""
 
 func _get_social_target_pos() -> Vector2:
+	if rite_pos != Vector2.ZERO:
+		return rite_pos
 	if hangout_id >= 0:
 		return hangout_spot_pos + Vector2(float(hangout_side) * 11.0, 0.0)
 	if is_visiting_grave():
@@ -3607,6 +3635,10 @@ func get_activity_description() -> String:
 			var loc := "en la Taberna" if _eat_at_tavern else ("en su Fogata" if is_vagrant_camper else "en Casa")
 			return "🍲 Comiendo %s" % loc
 		ActivityState.SOCIALIZING:
+			if rite_pos != Vector2.ZERO:
+				if trade_role == TradeRole.PRIEST:
+					return "☀️ Dirigiendo el Oficio del Alba"
+				return "☀️ En el Oficio del Alba" if global_position.distance_to(rite_pos) <= 30.0 else "🚶☀️ Yendo al Oficio del Alba"
 			if hangout_id >= 0 and is_instance_valid(_social_partner):
 				var vm_act = _get_vm()
 				var sdir_act = vm_act.get("social_director") if vm_act != null else null
@@ -3630,6 +3662,7 @@ func get_activity_description() -> String:
 			if trade_role == TradeRole.DOCTOR: return "🩺 En Guardia de Urgencias y Morgue"
 			if trade_role == TradeRole.SHERIFF: return "🚓 Dirigiendo la Comisaría"
 			if trade_role == TradeRole.GUARD: return "🛡️ Patrullando la Aldea"
+			if trade_role == TradeRole.PRIEST: return "☀️ Cuidando la Capilla del Alba"
 			if trade_role == TradeRole.UNEMPLOYED:
 				return "⛺ Sobreviviendo en las Afueras" if is_vagrant_camper else "🚶 Paseando / Jornalero"
 			elif trade_role == TradeRole.FAMILY_MEMBER:
@@ -3770,6 +3803,7 @@ func _update_hover_label(delta: float = 0.016) -> void:
 
 func modify_affinity(delta_amount: int) -> void:
 	affinity = clampi(affinity + delta_amount, -100, 100)
+	VillageFaith.on_affinity_change(_get_vm(), self, delta_amount) # G5: cuenta con sus bandos
 	var sign_str := "+" if delta_amount >= 0 else ""
 	_spawn_floating_text("%s%d Relación" % [sign_str, delta_amount], Color.SPRING_GREEN if delta_amount >= 0 else Color.CORAL, -42.0)
 	TraitDiscovery.check_trust(self)

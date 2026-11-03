@@ -1,6 +1,8 @@
 extends Control
 class_name SocialGlossaryUI
 
+const VillageFaith = preload("res://scripts/systems/VillageFaith.gd")
+
 ## Panel de Glosario de Vecinos y Red Social Dinámica (Estilo RimWorld + Compendio Red Dead Redemption 2):
 ## Permite consultar la biografía, estado vital, rutina, familia cercana, mejores amigos, rivales principales
 ## y la tabla completa de relaciones dinámicas (-100 a +100) de cada ciudadano del valle, además de su relación con el Jugador.
@@ -267,6 +269,7 @@ func _get_role_icon(role: int) -> String:
 		VillageNPC.TradeRole.FAMILY_MEMBER: return "🏠"
 		VillageNPC.TradeRole.TRAVELING_MERCHANT: return "🧳"
 		VillageNPC.TradeRole.ROYAL_INVESTIGATOR: return "👑"
+		VillageNPC.TradeRole.PRIEST: return "☀️"
 		_: return "🚶"
 
 func _get_all_sorted_npcs() -> Array[VillageNPC]:
@@ -433,6 +436,9 @@ func refresh_ui(rebuild_lists: bool = true) -> void:
 		"[color=#88ffaa][b]🌟 Mejores Amigos:[/b][/color] %s\n" % friends_str +
 		"[color=#ff8866][b]💢 Enemistades Principales / Rivales:[/b][/color] %s" % enemies_str
 	)
+	var vm_g = sel._get_vm()
+	if vm_g != null and "faith_bands" in vm_g:
+		_highlights_label.text += "\n" + VillageFaith.glossary_line(vm_g, sel) # G5
 
 	# 5. Tabla Social RimWorld — filas reutilizadas (pool): solo se actualizan textos/colores, sin crear ni destruir nodos
 	if not rebuild_lists:

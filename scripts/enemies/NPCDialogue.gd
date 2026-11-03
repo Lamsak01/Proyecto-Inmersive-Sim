@@ -5,6 +5,7 @@ const VillageSocialLife = preload("res://scripts/systems/VillageSocialLife.gd")
 const VillageChronicle = preload("res://scripts/systems/VillageChronicle.gd")
 const VillageSecrets = preload("res://scripts/systems/VillageSecrets.gd")
 const VillageDesires = preload("res://scripts/systems/VillageDesires.gd")
+const VillageFaith = preload("res://scripts/systems/VillageFaith.gd")
 const TraitDiscovery = preload("res://scripts/systems/TraitDiscovery.gd")
 const TraitCatalog = preload("res://scripts/data/TraitCatalog.gd")
 
@@ -176,6 +177,7 @@ static func _add_neighbor_opinions(npc: VillageNPC, diag: Dictionary, ch_arr: Ar
 	ch_arr.insert(maxi(0, ch_arr.size() - 1), {"label": "🗣️ Preguntar qué opina de los vecinos", "next": "neighbor_opinions"})
 	VillageSecrets.add_dialogue_choices(npc._get_vm(), npc, diag, ch_arr) # S5
 	VillageDesires.add_dialogue_choices(npc._get_vm(), npc, diag, ch_arr) # D
+	VillageFaith.add_dialogue_choices(npc._get_vm(), npc, diag, ch_arr) # G6
 	if npc.affinity < 0:
 		diag["neighbor_opinions"] = {"text": "«No hablo de mis vecinos con quien no conozco.»", "choices": [{"label": "Entendido. [Volver]", "next": "start"}]}
 		return
@@ -600,6 +602,10 @@ static func on_dialogue_action(npc: VillageNPC, action_id: String) -> void:
 	if action_id.begins_with("desire_"):
 		if vm != null:
 			VillageDesires.on_player_action(vm, npc, action_id)
+		return
+	if action_id.begins_with("faith_"):
+		if vm != null:
+			VillageFaith.on_player_action(vm, npc, action_id, inv)
 		return
 	if action_id.begins_with("secret_"):
 		if vm != null:

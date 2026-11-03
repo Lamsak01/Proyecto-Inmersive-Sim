@@ -8,6 +8,7 @@ const VillageSocialLife = preload("res://scripts/systems/VillageSocialLife.gd")
 const VillageChronicle = preload("res://scripts/systems/VillageChronicle.gd")
 const VillageSecrets = preload("res://scripts/systems/VillageSecrets.gd")
 const VillageDesires = preload("res://scripts/systems/VillageDesires.gd")
+const VillageFaith = preload("res://scripts/systems/VillageFaith.gd")
 const VillageQuests = preload("res://scripts/systems/VillageQuests.gd")
 
 const VillageWorldBuilder = preload("res://scripts/systems/VillageWorldBuilder.gd")
@@ -51,6 +52,9 @@ var desire_uid: int = 0
 var desire_hate_since: Dictionary = {} # clave del vecino -> día desde el que odia al jugador
 var npc_murders: Dictionary = {} # nombre de la víctima -> nombre del asesino (para el comisario)
 var last_npc_murder_day: int = -9999
+## Grupos y fe (G): ver `VillageFaith.gd`. faith_state se guarda; los bandos se recalculan cada día.
+var faith_state: Dictionary = {}
+var faith_bands: Array = []
 var _social_event_uid: int = 0
 var trade_configs: Dictionary = {}
 var domestic_pets: Array[DomesticPet] = []
@@ -75,7 +79,7 @@ var corpse_records: Array[Dictionary] = []        # Archivo histórico forense c
 var _hospital_bed_label: Label = null
 var _morgue_label: Label = null
 
-# Iglesia de San Cipriano y Cementerio Parroquial (Sur del Hospital y la Comisaría)
+# Capilla del Alba y Cementerio Parroquial (Sur del Hospital y la Comisaría)
 @warning_ignore("unused_private_class_variable") # Se usa desde otro script (vm._church_center)
 var _church_center := Vector2(745, 312)
 var _church_altar_pos := Vector2(745, 336)
@@ -332,7 +336,7 @@ func _process(delta: float) -> void:
 	if _church_altar_label:
 		_church_altar_label.visible = _is_near(player, mouse_pos, _church_altar_pos, 30.0, 22.0)
 		if _church_altar_label.visible:
-			_church_altar_label.text = "⛪ Altar de San Cipriano y Libro de Difuntos (%d Sepulturas) [E: Consultar / Orar]" % buried_graves.size()
+			_church_altar_label.text = "⛪ Altar del Alba y Libro de Difuntos (%d Sepulturas) [E: Consultar / Orar]" % buried_graves.size()
 	if _cemetery_label:
 		_cemetery_label.visible = _is_near(player, mouse_pos, _cemetery_gate_pos, 28.0, 20.0)
 		if _cemetery_label.visible:
@@ -880,8 +884,8 @@ func _spawn_authority_replacement(slot: Dictionary) -> VillageNPC:
 	slot["rehire_timer"] = 0.0
 	slot["vacancy_announced"] = false
 	authority_npcs.append(new_npc)
-	var dest_b: String = "Hospital" if slot["role"] == VillageNPC.TradeRole.DOCTOR else "Comisaría"
-	var icon_b: String = "🏥🚶" if slot["role"] == VillageNPC.TradeRole.DOCTOR else "🚓🚶"
+	var dest_b: String = "Hospital" if slot["role"] == VillageNPC.TradeRole.DOCTOR else ("Capilla del Alba" if slot["role"] == VillageNPC.TradeRole.PRIEST else "Comisaría")
+	var icon_b: String = "🏥🚶" if slot["role"] == VillageNPC.TradeRole.DOCTOR else ("☀️🚶" if slot["role"] == VillageNPC.TradeRole.PRIEST else "🚓🚶")
 	_hint_player("%s %s (%s · Novato 35%%) está entrando al valle por el camino principal hacia el/la %s." % [icon_b, new_npc.npc_name, str(slot["title"]), dest_b])
 	return new_npc
 
@@ -893,7 +897,7 @@ func _init_newcomer_generator_registries() -> void:
 	for k in NPCData.INITIAL_PERSON_PROFILES.keys():
 		var nm: String = str(k)
 		var parts: PackedStringArray = nm.split(" ", false)
-		var first_tok: String = parts[parts.size() - 1] if parts.size() > 1 and (parts[0] in ["Dr.", "Dra.", "Comisario", "Comisaria", "Guardia", "Maese"]) else parts[0]
+		var first_tok: String = parts[parts.size() - 1] if parts.size() > 1 and (parts[0] in ["Dr.", "Dra.", "Comisario", "Comisaria", "Guardia", "Maese", "Hermano", "Hermana"]) else parts[0]
 		_used_first_names.append(first_tok)
 		var prof_d: Dictionary = NPCData.INITIAL_PERSON_PROFILES[k]
 		var pid: String = str(prof_d.get("person_id", ""))
@@ -985,6 +989,7 @@ func record_social_event(type_str: String, actor: VillageNPC, target: VillageNPC
 		entry["heard_from"] = {a_id: "player"} if type_str == "player_slander" else {}
 	social_event_log.append(entry)
 	VillageChronicle.on_social_event(self, entry, actor, target)
+	VillageFaith.on_social_event(self, entry, actor, target) # G4: los bandos defienden a los suyos
 	while social_event_log.size() > MAX_SOCIAL_EVENT_LOG:
 		social_event_log.remove_at(0)
 	return entry
@@ -2239,7 +2244,7 @@ func interact(player: Node2D) -> void:
 		_open_morgue_autopsy_ui()
 		return
 
-	# 3b. Capilla de San Cipriano y Cementerio Parroquial
+	# 3b. Capilla del Alba y Cementerio Parroquial
 	if pos.distance_squared_to(_church_altar_pos) <= 34.0 * 34.0 or pos.distance_squared_to(_cemetery_gate_pos) <= 34.0 * 34.0 or Rect2(Vector2(822, 258), Vector2(174, 108)).has_point(pos):
 		_open_church_registry_ui()
 		return
@@ -2310,6 +2315,7 @@ func _on_hour_passed(_day: int, new_hour: int = 8) -> void:
 	var actual_hour: int = WorldClock.current_hour if WorldClock else new_hour
 	var actual_day: int = WorldClock.current_day if WorldClock else 1
 	_apply_hourly_door_security_schedule(actual_hour)
+	VillageFaith.on_hour(self, actual_hour) # G2: Oficio del Alba (domingo por la mañana)
 
 	# 07:00 AM -> Comprobar llegada semanal de los 2 Mercaderes Ambulantes (Día 3: Maese Casimir | Día 6: Valeria la Tratante)
 	if actual_hour == 7:
@@ -2971,6 +2977,7 @@ func _on_day_passed(_new_day: int) -> void:
 		VillageSocialLife.GossipMemory.daily_decay(self)
 		VillageSecrets.daily(self)
 		VillageDesires.daily(self)
+		VillageFaith.daily(self) # G: roces de fe, sacerdote y bandos
 		VillageQuests.on_day_passed(self)
 	chronicle_daily = false
 
@@ -4408,6 +4415,7 @@ func get_economy_save_dict() -> Dictionary:
 		"desire_hate_since": desire_hate_since.duplicate(),
 		"npc_murders": npc_murders.duplicate(),
 		"last_npc_murder_day": last_npc_murder_day,
+		"faith_state": faith_state.duplicate(true),
 		"social_event_uid": _social_event_uid,
 		"social_director": social_director.to_save_dict() if social_director != null else {}
 	}
@@ -4465,6 +4473,8 @@ func load_economy_save_dict(data: Dictionary) -> void:
 	desire_hate_since = (data["desire_hate_since"] as Dictionary).duplicate() if typeof(data.get("desire_hate_since")) == TYPE_DICTIONARY else {}
 	npc_murders = (data["npc_murders"] as Dictionary).duplicate() if typeof(data.get("npc_murders")) == TYPE_DICTIONARY else {}
 	last_npc_murder_day = int(data.get("last_npc_murder_day", -9999))
+	faith_state = (data["faith_state"] as Dictionary).duplicate(true) if typeof(data.get("faith_state")) == TYPE_DICTIONARY else {}
+	faith_bands = []
 	if data.has("chronicle") and typeof(data["chronicle"]) == TYPE_ARRAY:
 		chronicle.clear()
 		for ch_it in (data["chronicle"] as Array):
@@ -4688,7 +4698,7 @@ func reconcile_npc_registries_after_load() -> void:
 				unemployed_npcs.append(v)
 			elif v.trade_role == VillageNPC.TradeRole.INNKEEPER and not v.is_dead:
 				_innkeeper_npc = v
-			elif v.trade_role in [VillageNPC.TradeRole.DOCTOR, VillageNPC.TradeRole.SHERIFF, VillageNPC.TradeRole.GUARD] and not v.is_dead:
+			elif v.trade_role in [VillageNPC.TradeRole.DOCTOR, VillageNPC.TradeRole.SHERIFF, VillageNPC.TradeRole.GUARD, VillageNPC.TradeRole.PRIEST] and not v.is_dead:
 				authority_npcs.append(v)
 				for slot in _authority_slots:
 					if int(slot.get("role", -1)) == r_int:

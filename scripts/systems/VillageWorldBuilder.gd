@@ -415,10 +415,10 @@ static func _spawn_police_station_and_jail(vm: VillageManager) -> void:
 		["Guardia Kaelen", "Guardia Darian", "Guardia Brenna", "Guardia Tormund", "Guardia Soren"]
 	)
 
-# PASO 2B: ⛪ CAPILLA DE SAN CIPRIANO Y 🪦 CEMENTERIO PARROQUIAL (`Vector2(745, 312)`)
+# PASO 2B: ☀️ CAPILLA DEL ALBA Y 🪦 CEMENTERIO PARROQUIAL (`Vector2(745, 312)`)
 static func _spawn_church_and_cemetery(vm: VillageManager) -> void:
 	vm._construct_solid_building(
-		"building_church", "⛪ Capilla de San Cipriano",
+		"building_church", "☀️ Capilla del Alba",
 		vm._church_center, Vector2(132, 92), false,
 		"res://assests/world/village/floor_stone_forge.png",
 		"res://assests/world/village/wall_stone_h.png",
@@ -437,6 +437,17 @@ static func _spawn_church_and_cemetery(vm: VillageManager) -> void:
 	vm._church_altar_label = vm._make_station_label(vm._church_altar_pos + Vector2(-125, -28), "⛪ Altar y Libro de Difuntos [E: Consultar Sepulturas / Orar]")
 	vm.entities_root.add_child(vm._church_altar_label)
 
+	# G3: el sacerdote vive en la capilla (cama en la esquina noreste y mesa propia en la noroeste)
+	vm._add_sprite_prop(vm._load_tex("res://assests/world/village/tavern_bed.png"), Vector2(796, 280), Vector2.ONE, -1, true, Color(0.92, 0.88, 0.80, 1.0))
+	vm._spawn_decor_prop("res://assests/Comprados/Epic RPG World - Village(interiors) V1.3/assets/furniture_and_props_sprites/table_chairs_1.png", Vector2(696, 280), Vector2(0.45, 0.45))
+	vm._register_authority_npc(
+		"NPC_Priest_Anselmo", "Hermano Anselmo", "Sacerdote del Alba", VillageNPC.TradeRole.PRIEST,
+		"res://assests/world/village/villager_traveler.png",
+		vm._church_altar_pos + Vector2(0, -12), Vector2(796, 280), Vector2(696, 280), {},
+		"family_chapel", "Capilla del Alba",
+		["Hermano Teodoro", "Hermana Clara", "Hermano Bastián", "Hermana Inés", "Hermano Lucio"]
+	)
+
 	# 2. Cementerio Parroquial al Este de la Capilla (sur de la Comisaría, `Rect2(826, 262, 166, 98)`)
 	vm._add_poly(PackedVector2Array([Vector2(826, 262), Vector2(992, 262), Vector2(992, 360), Vector2(826, 360)]), Color(0.22, 0.30, 0.22, 0.78), -2)
 
@@ -447,7 +458,7 @@ static func _spawn_church_and_cemetery(vm: VillageManager) -> void:
 	fence_border.z_index = 0
 	vm.entities_root.add_child(fence_border)
 
-	vm._add_title_label(Vector2(784, 244), Vector2(250, 16), "🪦 Cementerio Parroquial de San Cipriano", Color(0.82, 0.86, 0.96), 8)
+	vm._add_title_label(Vector2(784, 244), Vector2(250, 16), "🪦 Cementerio Parroquial del Alba", Color(0.82, 0.86, 0.96), 8)
 	vm._add_station_area("CemeteryGateArea", vm._cemetery_gate_pos, 22.0, "cemetery_gate")
 	vm._cemetery_label = vm._make_station_label(vm._cemetery_gate_pos + Vector2(-125, -26), "🪦 Cementerio Parroquial [E: Inspeccionar Sepulturas]")
 	vm.entities_root.add_child(vm._cemetery_label)

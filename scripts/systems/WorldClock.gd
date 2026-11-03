@@ -280,8 +280,23 @@ func get_noise_weather_multiplier() -> float:
 func get_weather_vision_multiplier() -> float:
 	return get_vision_multiplier()
 
+## G2: semana de 7 días. Fin de semana = sábado y domingo; el domingo es el día del Oficio del Alba.
+const WEEKDAY_NAMES: Array[String] = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo"]
+
+func get_weekday() -> int:
+	return (maxi(1, current_day) - 1) % 7
+
+func get_weekday_name() -> String:
+	return WEEKDAY_NAMES[get_weekday()]
+
+func is_weekend() -> bool:
+	return get_weekday() >= 5
+
+func is_rite_day() -> bool:
+	return get_weekday() == 6
+
 func get_formatted_time() -> String:
-	return "Día %d | %02d:%02d (%s | %s %s) [%s]" % [current_day, current_hour, current_minute, get_phase_name(_current_phase), get_weather_icon(current_weather), get_weather_name(current_weather), get_speed_badge()]
+	return "Día %d, %s%s | %02d:%02d" % [current_day, get_weekday_name(), " ☀️" if is_rite_day() else "", current_hour, current_minute] + " (%s | %s %s) [%s]" % [get_phase_name(_current_phase), get_weather_icon(current_weather), get_weather_name(current_weather), get_speed_badge()]
 
 ## Multiplicador sistémico de visión según la luz del día y el clima actual (Niebla reduce -35%, Lluvia -15%)
 func get_vision_multiplier() -> float:

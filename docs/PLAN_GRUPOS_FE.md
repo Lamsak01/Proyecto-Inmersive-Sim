@@ -1,6 +1,10 @@
 # Plan: grupos y fe (bloques G)
 
-Estado: **propuesta, pendiente de aprobación del usuario** (2026-11-03). Paso 5 de `docs/VISION_Y_FUTURO.md`.
+Estado: **hecho** (2026-11-03, ver HANDOFF). Decisiones del usuario: 1) una religión inventada provisional, «básicamente
+el cristianismo cambiando lo necesario para no ofender» → la Fe del Alba, y la capilla pasa a Capilla del Alba;
+2) los vecinos **caminan de verdad**, y además **fines de semana** con menos trabajo y más tiempo libre; 3) un **personaje
+nuevo**, el sacerdote (no un vecino con título; G3 cambia en eso); 4) los bandos **sí** defienden a los suyos; 5) todo de
+una vez, tests al final. Paso 5 de `docs/VISION_Y_FUTURO.md`.
 Prepara el terreno para instituciones y corrupción (paso 7) y la secta secreta (paso 8).
 
 ## Qué existe hoy

@@ -243,7 +243,7 @@ func _draw_valley_cartography(canvas: Control, detailed: bool) -> void:
 		{"rect": Rect2(Vector2(849, -75), Vector2(112, 78)), "col": Color(0.52, 0.38, 0.26), "label": "🏠 Casa Pescador"},
 		{"rect": Rect2(Vector2(676, 100), Vector2(138, 96)), "col": Color(0.22, 0.64, 0.58), "label": "🏥 Hospital y Morgue"},
 		{"rect": Rect2(Vector2(844, 100), Vector2(142, 96)), "col": Color(0.26, 0.42, 0.72), "label": "🚓 Comisaría y Cárcel"},
-		{"rect": Rect2(Vector2(679, 266), Vector2(132, 92)), "col": Color(0.52, 0.36, 0.68), "label": "⛪ Capilla San Cipriano"},
+		{"rect": Rect2(Vector2(679, 266), Vector2(132, 92)), "col": Color(0.52, 0.36, 0.68), "label": "☀️ Capilla del Alba"},
 		{"rect": Rect2(Vector2(826, 262), Vector2(166, 98)), "col": Color(0.32, 0.42, 0.36), "label": "🪦 Cementerio Parroquial"}
 	]
 	var font: Font = ThemeDB.fallback_font

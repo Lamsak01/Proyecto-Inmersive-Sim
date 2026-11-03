@@ -19,8 +19,8 @@ const PUBLIC_TYPES: Array[String] = ["couple", "breakup", "couple_reconciled", "
 ## Lo ha hecho el jugador: lo sabe siempre.
 const PLAYER_TYPES: Array[String] = ["player_gossip", "player_mediation", "player_matchmaking", "player_slander", "quest_done", "quest_failed"]
 
-const CATEGORIES: Array[String] = ["all", "love", "friends", "gossip", "conflict", "death", "people", "player"]
-const CATEGORY_NAMES: Dictionary = {"all": "📖 Todo", "love": "💞 Amor", "friends": "🤝 Amistad", "gossip": "🗣️ Chismes", "conflict": "💢 Roces", "death": "💀 Muertes", "people": "🧳 Gente", "player": "🧑 Tú"}
+const CATEGORIES: Array[String] = ["all", "love", "friends", "gossip", "conflict", "faith", "death", "people", "player"]
+const CATEGORY_NAMES: Dictionary = {"all": "📖 Todo", "love": "💞 Amor", "friends": "🤝 Amistad", "gossip": "🗣️ Chismes", "conflict": "💢 Roces", "faith": "☀️ Fe", "death": "💀 Muertes", "people": "🧳 Gente", "player": "🧑 Tú"}
 const TYPE_CATEGORY: Dictionary = {
 	"couple": "love", "breakup": "love", "couple_reconciled": "love", "rejection": "love", "jealousy": "love", "date": "love",
 	"romance_interest": "love", "romance_flirt": "love", "romance_dating": "love", "romance_fizzle": "love", "bereavement_ended": "love",
@@ -31,6 +31,7 @@ const TYPE_CATEGORY: Dictionary = {
 	"desire_end": "conflict", "desire_known": "conflict", "desire_rumor": "gossip", "murder_threat": "death",
 	"player_badmouth": "player", "player_secret": "player", "sabotage": "conflict", "murder": "death",
 	"player_reported": "player", "player_foiled": "player",
+	"rite": "faith", "faith_mock": "player", "faith_donation": "player", "band_defend": "conflict",
 	"fight": "conflict", "feud": "conflict", "reconciliation": "conflict", "npc_slander": "conflict",
 	"widowed": "death", "death_found": "death", "case_closed": "death",
 	"arrival": "people", "departure": "people",
@@ -44,6 +45,7 @@ const TYPE_ICON: Dictionary = {
 	"desire_end": "🏁", "desire_known": "💭", "desire_rumor": "🗣️", "murder_threat": "🗡️",
 	"player_badmouth": "🗣️", "player_secret": "🤫", "sabotage": "🔧", "murder": "🗡️",
 	"player_reported": "🚨", "player_foiled": "🛡️",
+	"rite": "☀️", "faith_mock": "😏", "faith_donation": "🪙", "band_defend": "🛡️",
 	"couple": "💑", "breakup": "💔", "couple_reconciled": "💞", "rejection": "💔", "jealousy": "😠", "date": "🌹",
 	"romance_interest": "💗", "romance_flirt": "😊", "romance_dating": "💞", "romance_fizzle": "🥀", "bereavement_ended": "🕯️",
 	"fight": "👊", "feud": "⚡", "reconciliation": "🤝", "npc_slander": "🗣️", "widowed": "🖤", "death_found": "💀", "case_closed": "⚖️",

@@ -5,6 +5,9 @@ El detalle técnico está en `docs/HANDOFF.md` (sección 7) y el historial compl
 
 ## 2026-11-03
 
+### Grupos y fe
+- **G1–G7**: el pueblo tiene una fe propia, la **Fe del Alba** (provisional), y la capilla se llama ahora **Capilla del Alba**. Llega un personaje nuevo, el **Hermano Anselmo**, el sacerdote. La semana tiene 7 días y el reloj dice cuál es: el **sábado** se trabaja solo por la mañana y el **domingo** se descansa; el fin de semana los vecinos salen más. El domingo por la mañana los creyentes **caminan a la capilla** para el Oficio: salen de allí llevándose mejor y con chismes nuevos, los más devotos se fijan en quién faltó y, si el sacerdote le tiene manía a alguien, lo nota todo el que fue. Si tú vas, los creyentes te aprecian más. Los vecinos forman **bandos** (familias, pandillas de amigos, seguidores de un líder) que defienden a los suyos. Tienes **fama con los creyentes, los escépticos y cada bando** (se ve en el glosario, tecla J), y puedes preguntar al sacerdote por la fe, donar o burlarte.
+
 ### Deseos propios
 - **D1–D6**: algunos vecinos quieren algo y dan pasos para lograrlo. **Venganza** contra quien odian (hablar mal, contar sus secretos, estropearle el negocio, buscar pelea). **Ambición** (ahorrar, envidiar y perjudicar al que más tiene). **Contra ti**, si te odian: van diciendo que no eres de fiar, no te venden, te denuncian o cuentan tus chantajes. Y, muy raramente, **planes de asesinato**: hay señales unos días antes; si te enteras puedes avisar a la víctima o al comisario, y si ocurre, el comisario tendrá pistas del asesino. Los deseos se descubren preguntando «¿qué te ronda la cabeza?» (si te aprecian), por chismes, o porque algunos lo dicen abiertamente.
 

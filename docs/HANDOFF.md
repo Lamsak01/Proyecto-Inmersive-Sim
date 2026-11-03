@@ -300,7 +300,30 @@ Cada fase se dividirá en bloques pequeños cuando se llegue a ella (detalle en 
   2 sabotajes, 0 asesinatos, calumnias 5 (antes 3), peleas 2, 17 vivos, 76 % de relaciones en la franja media. Sin errores.
 
 ### Grupos y fe (bloques G)
-- [ ] **G1–G7** Plan en `docs/PLAN_GRUPOS_FE.md`, **pendiente de aprobación** (5 preguntas al final).
+- [x] **G1–G7** Hecho (plan y decisiones en `docs/PLAN_GRUPOS_FE.md`). `scripts/systems/VillageFaith.gd`; datos en
+  `VillageManager.faith_state` (se guarda: reputación por grupo `rep`, fe vista `seen`, contadores de Oficios) y
+  `faith_bands` (se recalcula cada día). G1 **Fe del Alba** (provisional, parecida al cristianismo sin nombres reales):
+  el Hacedor, el Libro del Alba, el círculo del sol naciente. Grado por la tendencia `faith` de los rasgos: ≥1 fervoroso,
+  ≥0,4 creyente, ≤−0,5 escéptico, si no tibio. La capilla pasa a llamarse **Capilla del Alba** (antes «San Cipriano»).
+  G2 `WorldClock`: `get_weekday`, `is_weekend` (sábado y domingo), `is_rite_day` (domingo); el reloj muestra el día de la
+  semana. Fin de semana (`VillageNPC._is_mandatory_work_hours`): oficios y familias trabajan el sábado de 9 a 13 y
+  descansan el domingo; tabernera, autoridades y sacerdote, igual que siempre; el fin de semana salen a socializar antes
+  (umbral 90 en vez de 78). Oficio el domingo: a las 8, 9 y 10 `VillageFaith.call_to_rite` llama (fervorosos siempre,
+  creyentes 85 %, tibios 30 %, escépticos nunca; fijo por semana) y `npc.join_rite(pos)` les hace caminar de verdad a los
+  bancos (`rite_pos`, primero en `_get_social_target_pos`; no se van salvo hambre < 30 o energía ≤ 12). Comisario y guardia
+  no van (de servicio). A las 11 `finish_rite`: cuentan los que están a ≤ 40 px; +2 entre asistentes (+3 si los dos
+  creen), 6 intentos de chisme entre ellos, el fervoroso apunta −2 a cada creyente que faltó, y si estás a ≤ 150 px del
+  altar los creyentes te dan +3 y ves su fe. Roces diarios (10 %): fervoroso y escéptico −2; dos creyentes +1.
+  G3 sacerdote **Hermano Anselmo** (`TradeRole.PRIEST`, nodo `NPC_Priest_Anselmo`, cama y mesa en la capilla, sprite
+  provisional `guia`); usa los huecos de autoridad, así que si muere llega un sustituto; `ensure_priest_faith` le da
+  Devoto si no tiene fe. Sermón: si odia a alguien (≤ −40), los asistentes −3 hacia él. G4 bandos: familias (≥ 2 vivos),
+  pandillas (≥ 3 que se aprecian ≥ 50 entre todos) y seguidores de un Líder (≥ 2). En `record_social_event` de pelea,
+  calumnia o chantaje, cada miembro que aprecia al dañado (≥ 30) coge −4 al agresor (una vez por suceso; nada si el
+  agresor es del mismo bando). En la charla, +15 % de contar chismes dentro del bando. G5 reputación: creyentes,
+  escépticos y cada bando (cambios de afinidad ≥ 3 con un miembro cuentan ¼); se ve en el glosario (J). G6 diálogo:
+  al sacerdote, «☀️ Preguntar por la Fe del Alba» → donar 10 de oro o burlarte (−12 con él, −4 con creyentes cerca, +2 con
+  escépticos); a los demás, «¿Vas al Oficio?» (te lo dicen si te aprecian ≥ 0). Crónica: pestaña «☀️ Fe» (`rite`) y tipos
+  `faith_mock`, `faith_donation`, `band_defend`. Test #57. La sonda imprime FAITH.
 
 ### Interfaz
 - [x] **HUD1** Barras de estado (`scenes/ui_root.gd`, `_create_stats_box` / `_create_fallback_bar`): recuadro oscuro arriba a
@@ -329,6 +352,7 @@ Cada fase se dividirá en bloques pequeños cuando se llegue a ella (detalle en 
 - Arquitectura: **Director Social central** (decide la escena), aldeanos solo ejecutan; relaciones con 4 medidas (afinidad, familiaridad, atracción, tensión),
   enfriamiento sin contacto, "narrador" que dosifica el drama, todos los ajustes en una única tabla de diales, aleatoriedad con semilla.
 
+- **Fe y semana**: religión inventada provisional (Fe del Alba, parecida al cristianismo sin nombres reales); el sacerdote es un personaje propio; los fieles caminan a la capilla de verdad; fin de semana con menos trabajo; los bandos defienden a los suyos con efecto pequeño.
 - **Misiones secundarias**: nacen de los vecinos en persona (nunca del tablón), con baja probabilidad, y se ven en un panel propio (tecla L) que tendrá también la historia principal. Sin fecha límite fija; fallan si pasa algo en el mundo (p. ej. muere quien la pidió).
   Tipos aprobados: 1) «Haz las paces por mí» (mediación), 2) «Ensúciale el nombre» (calumnia; da móvil en investigaciones), 3) «¿Quién va contando eso de mí?» (puedes mentir si fuiste tú),
   4) «Encuentra a quien lo mató» (se resuelve con el veredicto), 5) «Averigua qué piensa de mí» (solo información, no fuerza parejas).

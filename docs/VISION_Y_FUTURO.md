@@ -84,7 +84,8 @@ Estado: **Base** = ya existe algo en el juego sobre lo que construir. **Idea** =
 - Alcalde que puede ser corrupto; policías corruptos. *(Base: policía, justicia, juicios.)*
 - Planes de asesinato entre vecinos. *(Base: hecho en D5, muy raros, con señales previas y pistas para el comisario.)*
 - Ideas tras D (2026-11-03): que el ambicioso se quede un negocio vacante (hoy la sucesión ya existe, sin ambición), venganzas heredadas por la familia, que el asesino intente culpar a otro, que el jugador pueda ser víctima de un plan.
-- Personas religiosas y no creyentes. *(Recomendación: una fe inventada del mundo, no una real.)*
+- Personas religiosas y no creyentes. *(Base: hecho en G, la Fe del Alba provisional, con sacerdote y Oficio los domingos.)*
+- Ideas tras G (2026-11-03): confesión con el sacerdote como fuente de secretos (y un sacerdote que los use), fiestas del Alba al año, día de mercado entre semana, bodas y entierros en la capilla, un sacerdote corrupto o la secta nacida de los fanáticos (pasos 7 y 8), un aspecto propio para el sacerdote, rivalidad entre bandos que crece con el tiempo.
 - Ladrones.
 - Prostitución. *(Recomendación: solo implícita, fuera de cámara, como oficio y hecho social; nunca explícita. Se puede quitar sin perder nada importante.)*
 - Clases sociales: nobles, gente adinerada, mendigos.
