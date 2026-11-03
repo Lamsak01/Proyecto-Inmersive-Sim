@@ -77,3 +77,17 @@ Leyenda: ✅ probado y subido · 🟡 escrito, sin probar · 🔴 falló (ver no
   parados 20, calderero 4, leñador 2, otros 2. Los que producen materia prima se quedan sin dinero: ese es el problema real.
 - Desde el día 8 el atractivo cae a −0,15 (comida −0,40 y una muerte, −0,25), y con el pueblo así no se encargan casas
   (`houses_ordered=0` aunque las arcas llegaron a 102). Es coherente con el diseño, pero la comida lo provoca → bloque F.
+
+## Bloque F — Los dueños de las afueras se arruinaban pagando jornales
+
+| # | Paso | Estado | Archivos | Nota |
+|---|------|--------|----------|------|
+| F1 | **Causa encontrada**: granja, rancho y cantera contrataban jornaleros con todo su dinero (10 de oro por jornalero y día; la granja, hasta 4) aunque el almacén estuviera lleno y lo cosechado se tirara. Ahora el dueño se guarda 20 de oro para comer y solo contrata los que hacen falta para llenar el hueco del producto principal (`workers_needed`) | ✅ | VillageWork.hire | Menos jornales para los parados: cobrarán más de la ayuda a los pobres |
+| F2 | Diagnóstico más fino: «sin_comida» se parte en `agotado` (no queda comida a la venta en el pueblo) y `caro_o_cerrado` | ✅ | VillageMigration.note_meal_failure | Solo diagnóstico |
+| F3 | Test #76 | ✅ | verify_all.gd | |
+
+### Pruebas del bloque F (todas pasan) y sonda
+- Los cuatro tests pasan (con #76). Con 50 vecinos: plaza 4,8 ms, lejos 5,5 ms, peor 28 ms, ninguno > 33 ms.
+- Ganaderos, canteros y granjeros **ya no se quedan sin oro** (antes 30 comidas fallidas; ahora 1).
+- Siguen fallando: ayudantes de negocio familiar **sin oro** (18) y parados con comida en el pueblo pero cara o cerrada (23).
+  Se encargó y terminó 1 casa (día 9–12). Siguiente: ver por qué los ayudantes no tienen dinero.

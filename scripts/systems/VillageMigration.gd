@@ -15,6 +15,7 @@ extends RefCounted
 const VillageNeeds = preload("res://scripts/systems/VillageNeeds.gd")
 const VillageLots = preload("res://scripts/systems/VillageLots.gd")
 const VillageWork = preload("res://scripts/systems/VillageWork.gd")
+const SimpleInventory = preload("res://scripts/systems/SimpleInventory.gd")
 
 const POP_CAP: int = 50
 const TAVERN_GUEST_BEDS: Array = [Vector2(435, -252), Vector2(468, -252), Vector2(502, -252)]
@@ -41,7 +42,17 @@ static func note_meal_failure(vm, npc) -> void:
 	var st: Dictionary = state(vm)
 	if not st.has("meal_fails"):
 		st["meal_fails"] = {}
-	var why: String = "sin_oro" if int(npc.personal_gold) < 3 else "sin_comida"
+	var why: String = "sin_oro"
+	if int(npc.personal_gold) >= 3:
+		# F2: ¿no quedaba nada en todo el pueblo, o lo había pero era caro o la tienda no atendía?
+		var left: int = 0
+		for r in [VillageNPC.TradeRole.BAKER, VillageNPC.TradeRole.FISHMONGER, VillageNPC.TradeRole.BUTCHER, VillageNPC.TradeRole.HERBALIST, VillageNPC.TradeRole.INNKEEPER]:
+			var h = vm.trade_npcs.get(r)
+			if h != null and is_instance_valid(h) and not h.is_dead:
+				for item in (h.shop_stock as Dictionary).keys():
+					if float(SimpleInventory.CATALOG.get(str(item), {}).get("restore_hunger", 0.0)) > 0.0:
+						left += int(h.shop_stock[item])
+		why = "caro_o_cerrado" if left > 0 else "agotado"
 	var role: String = str(VillageNPC.TradeRole.keys()[int(npc.trade_role)]).to_lower() if int(npc.trade_role) < VillageNPC.TradeRole.size() else str(npc.trade_role)
 	var k: String = "%s/%s" % [why, role]
 	st["meal_fails"][k] = int(st["meal_fails"].get(k, 0)) + 1

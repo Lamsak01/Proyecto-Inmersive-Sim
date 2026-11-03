@@ -2886,5 +2886,20 @@ func _initialize() -> void:
 		ve_n.queue_free()
 	print("Block E house pooling and tavern beds OK")
 
+	# 76. Bloque F: el dueño contrata jornaleros según el hueco del almacén y se guarda dinero para comer.
+	var vwf = load("res://scripts/systems/VillageWork.gd")
+	var vf_m = vm.trade_npcs.get(vt.role_of("farmer"))
+	if vf_m == null or not is_instance_valid(vf_m):
+		vf_m = v5d_master # la granja empieza vacante; solo se mira su almacén
+	var vf_stock: Dictionary = vf_m.shop_stock.duplicate()
+	vf_m.shop_stock["wheat"] = vwf.STOCK_CAP
+	assert(vwf.workers_needed(vf_m, "farmer") == 0, "F: A full barn hires nobody")
+	vf_m.shop_stock["wheat"] = vwf.STOCK_CAP - 2
+	assert(vwf.workers_needed(vf_m, "farmer") == 1, "F: A nearly full barn hires one laborer")
+	vf_m.shop_stock["wheat"] = 0
+	assert(vwf.workers_needed(vf_m, "farmer") >= 4, "F: An empty barn wants every spot filled")
+	vf_m.shop_stock = vf_stock
+	print("Block F need-based hiring OK")
+
 	print("ALL RIMWORLD MEDICAL, FOOTPRINTS, 3-PHASE CORPSE REPORT, MULTI-CORPSE FIX, RPG INTERROGATION, PUBLIC TRIAL, DYNAMIC RELATIONSHIPS, MISSING FAMILY SEARCH, SOCIAL GLOSSARY & UNCONSCIOUS REACTION TESTS PASSED!")
 	quit(0)

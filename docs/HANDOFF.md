@@ -599,6 +599,9 @@ Cada fase se dividirá en bloques pequeños cuando se llegue a ella (detalle en 
 - [x] **Bloque B/C/D** (trabajo autónomo, detalle paso a paso en `docs/REGISTRO_TRABAJO.md`; probado: tests #73, #74 y la
   sonda). Solares n6 y m6 añadidos (11 de casa en total; con todos construidos se llega a 50). Con 50 vecinos: 5,7 ms
   por fotograma en la plaza, peor 22 ms.
+- [x] **Bloque F** (test #76). `VillageWork.hire`: el dueño se guarda 20 de oro (`OWNER_FOOD_RESERVE`) y solo contrata
+  los jornaleros que llenan el hueco del producto principal (`workers_needed`); antes se arruinaba contratando con el
+  almacén lleno. El diagnóstico de comidas fallidas distingue `sin_oro`, `agotado` y `caro_o_cerrado`.
 - [x] **Bloque E** (probado, test #75; detalle en `docs/REGISTRO_TRABAJO.md`). Diagnóstico de comidas fallidas
   (`migration_state.meal_fails`, «motivo/oficio»); casas: la pareja junta ahorros y, si alguien duerme al raso, el
   pueblo paga sin reserva; camas de posada sin repetir (cuenta a quien tenga oficio y duerma allí); U5 «según X»

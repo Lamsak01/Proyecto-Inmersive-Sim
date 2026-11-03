@@ -5,6 +5,9 @@ El detalle técnico está en `docs/HANDOFF.md` (sección 7) y el historial compl
 
 ## 2026-11-03
 
+### Granjeros que ya comen
+- **Arreglado:** los dueños de la granja, el rancho y la cantera contrataban jornaleros con todo su dinero, aunque el almacén estuviera lleno, y luego no podían comprar comida. Ahora contratan solo a los que hacen falta y se guardan para comer.
+
 ### Casas, camas y rumores
 - Una pareja sin casa puede juntar sus ahorros para encargarla; si alguien duerme al raso, el pueblo paga la casa antes.
 - Ya no pueden tocarle a dos vecinos la misma cama de la posada.

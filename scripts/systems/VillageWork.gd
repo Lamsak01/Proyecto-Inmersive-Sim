@@ -20,6 +20,7 @@ const PAY_HOUR: int = 18
 const WAGE_PER_HOUR: int = 1
 const SPOT_RADIUS: float = 50.0
 const STOCK_CAP: int = 14
+const OWNER_FOOD_RESERVE: int = 20 # F1: el dueño no se gasta en jornales lo que necesita para comer
 const LAVADERO_POS: Vector2 = Vector2(-140, 105)
 const LAVADERO_CHANCE: float = 0.3
 const LAVADERO_GOSSIP_RADIUS: float = 50.0
@@ -80,11 +81,12 @@ static func hire(vm) -> int:
 	var hired: int = 0
 	for key in PLACES.keys():
 		var m = master_of(vm, key)
-		if m == null or m.personal_gold < WAGE_PER_HOUR * (PAY_HOUR - WORK_FROM):
-			continue # Sin dueño o sin dinero para pagar un día, hoy no contrata
+		var day_wage: int = WAGE_PER_HOUR * (PAY_HOUR - WORK_FROM)
+		if m == null or m.personal_gold < day_wage + OWNER_FOOD_RESERVE:
+			continue # Sin dueño o sin dinero para pagar un día sin quedarse sin comer, hoy no contrata
 		var spots: Array = PLACES[key]["spots"]
-		var free: int = spots.size() - _workers_at(vm, key)
-		var budget: int = int(m.personal_gold / (WAGE_PER_HOUR * (PAY_HOUR - WORK_FROM)))
+		var free: int = mini(spots.size(), workers_needed(m, key)) - _workers_at(vm, key)
+		var budget: int = int((m.personal_gold - OWNER_FOOD_RESERVE) / day_wage)
 		var idx: int = _workers_at(vm, key)
 		while free > 0 and budget > 0 and not pool.is_empty():
 			var n = pool.pop_front()
@@ -97,6 +99,19 @@ static func hire(vm) -> int:
 			hired += 1
 	st["hired_total"] = int(st["hired_total"]) + hired
 	return hired
+
+## F1: cuántos jornaleros hacen falta hoy para llenar el almacén del producto principal (el de más rendimiento).
+## Con el almacén lleno no contrata a nadie: pagaría por una cosecha que se tira.
+static func workers_needed(m, key: String) -> int:
+	var y: Dictionary = PLACES[key]["yield"]
+	var main: String = ""
+	for item in y.keys():
+		if main == "" or float(y[item]) > float(y[main]):
+			main = str(item)
+	var room: int = STOCK_CAP - int(m.shop_stock.get(main, 0))
+	if room <= 0:
+		return 0
+	return ceili(float(room) / (float(y[main]) * float(PAY_HOUR - WORK_FROM)))
 
 static func _workers_at(vm, key: String) -> int:
 	var c: int = 0
