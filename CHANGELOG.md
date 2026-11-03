@@ -6,6 +6,7 @@ El detalle técnico está en `docs/HANDOFF.md` (sección 7) y el historial compl
 ## 2026-11-02
 
 ### Relaciones de un solo sentido
+- **U7**: medido en partidas largas. Ajustes: cada vecino tiene más o menos «química» con cada otro, el carácter sociable pesa más y el enfriamiento por distancia ya no borra las diferencias. Sin jugador, en 25 días aún son pocas las relaciones muy desiguales: aparecerán sobre todo con lo que tú hagas y con el paso del tiempo. Bloque de relaciones terminado.
 - **U6**: si dos vecinos dejan de verse una semana, lo que sienten (bueno o malo) se va apagando poco a poco. Parejas y familia no.
 - **U5**: lo que siente cada vecino por los demás empieza oculto: lo descubres preguntándole qué opina de los vecinos. En el glosario verás lo que siente cada uno por separado («↩»), así se notan los cariños no correspondidos. Las partidas guardadas antes de este cambio lo siguen viendo todo.
 - **U4**: amistad desigual: si invitas a alguien que apenas te aprecia, te pondrá una excusa. Y los vecinos hablan de lo que sienten ellos («es mi mejor amiga», «no lo soporto»).
