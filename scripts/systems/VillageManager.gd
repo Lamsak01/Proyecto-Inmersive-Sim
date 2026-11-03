@@ -19,6 +19,7 @@ const VillageQuests = preload("res://scripts/systems/VillageQuests.gd")
 
 const VillageWorldBuilder = preload("res://scripts/systems/VillageWorldBuilder.gd")
 const VillageLots = preload("res://scripts/systems/VillageLots.gd")
+const VillageTrades = preload("res://scripts/systems/VillageTrades.gd")
 
 ## Gestor Integral de Urbanismo Sólido, Hospital/Morgue Forense, Comisaría/Cárcel, Testigos,
 ## Sigilo Doméstico, Reputación Familiar, Tablón de Encargos y Red Eléctrica (10 Pasos de Expansión)
@@ -231,6 +232,7 @@ func setup_village(target_entities_root: Node) -> void:
 	VillageWorldBuilder._spawn_electric_streetlights(self)
 	_spawn_unemployed_tavern_guests()
 	VillageWorldBuilder._spawn_farm_well_and_compost(self)
+	VillageTrades.setup_world(self) # V5: panadería y sastrería (puestos vacantes al empezar)
 	VillageLots.build_world(self) # V4: calles y solares del borde, afueras y lomas
 	_spawn_domestic_pets()
 
@@ -2133,7 +2135,7 @@ func _spawn_pet_bed_and_bowl(pos: Vector2, p_type: int, _p_name: String) -> void
 
 func can_family_feed_pet(fam_id: String) -> bool:
 	if fam_id == "player_farm":
-		for r_id in [int(VillageNPC.TradeRole.FISHMONGER), int(VillageNPC.TradeRole.BUTCHER), int(VillageNPC.TradeRole.HERBALIST)]:
+		for r_id in [int(VillageNPC.TradeRole.FISHMONGER), int(VillageNPC.TradeRole.BUTCHER), int(VillageNPC.TradeRole.HERBALIST), int(VillageNPC.TradeRole.BAKER)]:
 			if get_trade_total_stock(r_id) > 0:
 				return true
 		return is_instance_valid(_innkeeper_npc) and not _innkeeper_npc.is_dead
@@ -3006,6 +3008,7 @@ func _on_day_passed(_new_day: int) -> void:
 		VillageFaith.daily(self) # G: roces de fe, sacerdote y bandos
 		VillageSect.daily(self) # O: la secta (justo después: vuelve a añadir su bando oculto)
 		VillageNeeds.daily(self) # E1/E3/E5
+		VillageTrades.daily(self) # V5: estrenar ropa en la sastrería
 		VillageIllness.daily(self) # E2
 		VillageCrime.daily(self) # E4: como mucho un robo por noche
 		VillageTown.daily(self) # I: elecciones, impuestos del sábado, desfalcos
@@ -3271,6 +3274,8 @@ func _register_shop_business_stall(role_id: int, shop_title: String, fam_id: Str
 		int(VillageNPC.TradeRole.CARPENTER): sup_items = ["wood", "repair_kit", "copper_coil"]
 		int(VillageNPC.TradeRole.FISHMONGER): sup_items = ["bread", "cooked_fish", "river_trout", "golden_carp", "night_catfish", "wheat", "fertilizer"]
 		int(VillageNPC.TradeRole.HERBALIST): sup_items = ["herbal_poultice", "herbs", "mushroom", "carrot", "cabbage", "sleeping_draught", "surgical_kit"]
+		int(VillageNPC.TradeRole.BAKER): sup_items = ["bread", "wheat"]
+		int(VillageNPC.TradeRole.TAILOR): sup_items = ["clothes", "leather", "fox_pelt"]
 
 	var cfg: Dictionary = trade_configs.get(role_id, {})
 	var init_stock: Dictionary = (cfg.get("stock", {}) as Dictionary).duplicate()
@@ -3449,9 +3454,9 @@ func consume_village_meal_for_npc(npc: VillageNPC) -> bool:
 		return true
 
 	# 2º PRIORIDAD: Comprar producto crudo/fresco barato (3-5 Oro × mercado) en las tiendas de alimentación abiertas y llevar a la despensa
-	var food_roles: Array[int] = [int(VillageNPC.TradeRole.FISHMONGER), int(VillageNPC.TradeRole.BUTCHER), int(VillageNPC.TradeRole.HERBALIST)]
+	var food_roles: Array[int] = [int(VillageNPC.TradeRole.BAKER), int(VillageNPC.TradeRole.FISHMONGER), int(VillageNPC.TradeRole.BUTCHER), int(VillageNPC.TradeRole.HERBALIST)]
 	if npc.trade_role == VillageNPC.TradeRole.BUTCHER:
-		food_roles = [int(VillageNPC.TradeRole.BUTCHER), int(VillageNPC.TradeRole.FISHMONGER), int(VillageNPC.TradeRole.HERBALIST)]
+		food_roles = [int(VillageNPC.TradeRole.BUTCHER), int(VillageNPC.TradeRole.BAKER), int(VillageNPC.TradeRole.FISHMONGER), int(VillageNPC.TradeRole.HERBALIST)]
 	if near_tavern:
 		food_roles.clear()
 
@@ -3894,7 +3899,7 @@ func _process_morning_salaries_and_inter_guild_circulation() -> void:
 	var smith_npc: VillageNPC = trade_npcs.get(int(VillageNPC.TradeRole.BLACKSMITH))
 	var carp_npc: VillageNPC = trade_npcs.get(int(VillageNPC.TradeRole.CARPENTER))
 	var food_sellers: Array[VillageNPC] = []
-	for r_food in [int(VillageNPC.TradeRole.BUTCHER), int(VillageNPC.TradeRole.FISHMONGER), int(VillageNPC.TradeRole.HERBALIST)]:
+	for r_food in [int(VillageNPC.TradeRole.BUTCHER), int(VillageNPC.TradeRole.FISHMONGER), int(VillageNPC.TradeRole.HERBALIST), int(VillageNPC.TradeRole.BAKER)]:
 		var fh: VillageNPC = trade_npcs.get(r_food)
 		if is_instance_valid(fh) and not fh.is_dead and not fh.is_downed:
 			food_sellers.append(fh)
@@ -4773,7 +4778,7 @@ func reconcile_npc_registries_after_load() -> void:
 			elif v.trade_role == VillageNPC.TradeRole.TRAVELING_MERCHANT and not v.is_dead and not str(v.name).begins_with("NPC_Merchant_Corpse_"):
 				_active_traveling_merchant = v
 			var r_int: int = int(v.trade_role)
-			if r_int in [int(VillageNPC.TradeRole.BLACKSMITH), int(VillageNPC.TradeRole.BUTCHER), int(VillageNPC.TradeRole.CARPENTER), int(VillageNPC.TradeRole.FISHMONGER), int(VillageNPC.TradeRole.HERBALIST)] and not v.is_dead:
+			if v.trade_role in VillageNPC.SHOP_ROLES and not v.is_dead:
 				trade_npcs[r_int] = v
 			elif v.trade_role == VillageNPC.TradeRole.FAMILY_MEMBER and not v.is_dead:
 				family_npcs[int(v.linked_trade)] = v

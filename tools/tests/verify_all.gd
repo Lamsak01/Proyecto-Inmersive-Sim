@@ -2312,7 +2312,7 @@ func _initialize() -> void:
 		if v4_carp == null and not n4.is_dead and not n4.is_downed and n4 != v4_payer:
 			v4_carp = n4 # Bram puede haber muerto en tests anteriores: hace de carpintero cualquier vecino vivo
 	assert(v4_carp != null and v4_payer != null, "V4: A carpenter and Garrick exist")
-	var v4_role = vm.trade_configs.keys().filter(func(k): return str(vm.trade_configs[k]["name"]) == "Bram")[0]
+	var v4_role = vm.trade_configs.keys().filter(func(k): return str(vm.trade_configs[k].get("name", "")) == "Bram")[0]
 	var v4_holder = vm.trade_npcs.get(v4_role)
 	vm.trade_npcs[v4_role] = v4_carp
 	var v4_cw: Vector2 = v4_carp.work_position
@@ -2359,6 +2359,44 @@ func _initialize() -> void:
 	else:
 		vm.trade_npcs.erase(v4_role)
 	print("V4 lots and buildings OK")
+
+	# 64. V5a: panadería y sastrería en los solares; el puesto vacante se ocupa; los ricos estrenan ropa y los pobres no.
+	var vt = load("res://scripts/systems/VillageTrades.gd")
+	var v5_bk: int = vt.role_of("baker")
+	var v5_tl: int = vt.role_of("tailor")
+	assert(vm.trade_configs.has(v5_bk) and vm.shop_businesses.has(v5_bk) and vm.shop_businesses.has(v5_tl), "V5: The bakery and the tailor exist as businesses")
+	assert(str(vl.lot(vm, "n2")["kind"]) == "shop_house" and vm.building_footprints.filter(func(f): return str(f["id"]) == "mixed_family_baker").size() == 1, "V5: The bakery stands on its lot")
+	var v5_tries: int = 0
+	while not (is_instance_valid(vm.trade_npcs.get(v5_bk)) and is_instance_valid(vm.trade_npcs.get(v5_tl))) and v5_tries < 4:
+		vm.arrivals_today_count = 0
+		vm._process_daily_map_edge_arrivals()
+		v5_tries += 1
+	var v5_tailor = vm.trade_npcs.get(v5_tl)
+	assert(is_instance_valid(vm.trade_npcs.get(v5_bk)) and is_instance_valid(v5_tailor), "V5: Somebody comes to run the vacant bakery and tailor's shop")
+	var v5_rich = vm._find_npc_by_name("Garrick")
+	var v5_poor = vm._find_npc_by_name("Thoran")
+	var v5_rg: int = v5_rich.personal_gold
+	var v5_pg: int = v5_poor.personal_gold
+	var v5_buys: int = 0
+	for _d5 in range(80):
+		v5_rich.personal_gold = 400
+		v5_poor.personal_gold = 15
+		v5_tailor.shop_stock["clothes"] = 5
+		v5_tailor.is_downed = false
+		vt.daily(vm)
+		if v5_rich.personal_gold < 400:
+			v5_buys += 1
+		assert(v5_poor.personal_gold == 15, "V5: Somebody poor does not buy clothes")
+	assert(v5_buys >= 1 and v5_buys < 40, "V5: The rich sometimes buy new clothes (%d/80)" % v5_buys)
+	vm.shop_businesses[v5_bk]["owner_mode"] = "PARTNER"
+	vm._lot_visuals["n2"][2] = "redibujar"
+	vm.lots_state = {}
+	vl.after_load(vm)
+	assert(vm.building_footprints.filter(func(f): return str(f["id"]) == "mixed_family_baker").size() == 1 and str(vm.shop_businesses[v5_bk]["owner_mode"]) == "PARTNER", "V5: An old save keeps the bakery and its business data")
+	vm.shop_businesses[v5_bk]["owner_mode"] = "NPC"
+	v5_rich.personal_gold = v5_rg
+	v5_poor.personal_gold = v5_pg
+	print("V5a bakery and tailor OK")
 
 	print("ALL RIMWORLD MEDICAL, FOOTPRINTS, 3-PHASE CORPSE REPORT, MULTI-CORPSE FIX, RPG INTERROGATION, PUBLIC TRIAL, DYNAMIC RELATIONSHIPS, MISSING FAMILY SEARCH, SOCIAL GLOSSARY & UNCONSCIOUS REACTION TESTS PASSED!")
 	quit(0)

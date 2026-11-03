@@ -50,6 +50,8 @@ pequeño, con gente que huyó de algo.
 | Capilla y cementerio | Capilla del Alba y Cementerio Parroquial del Alba |
 | Otros | Hospital y Morgue Forense, Comisaría y Cárcel del Valle, Plaza con pozo y tablón |
 | Afueras | Llanura Salvaje del Oeste, Ciénaga de las Ranas, Bosque Profundo, Ruinas de los Bandidos |
+| Panadería (V5) | «La Espiga»; la familia que la lleve, «Casa de la Espiga» |
+| Sastrería (V5) | «El Dedal»; «Casa del Dedal». Objeto nuevo: «Ropa de Lana» |
 | Solares nuevos (V4) | Calle norte, camino del este, campos del sur, ladera del noroeste y las lomas del este y del norte (sitios para mansiones). Carteles «📜 Solar libre» y «🚧 En obra». Las casas nuevas se llaman de momento «🏠 Casa nueva» |
 
 Las familias toman el nombre de su negocio: Yunque Gris, Colmillo, Roble Viejo, Aguas Claras.

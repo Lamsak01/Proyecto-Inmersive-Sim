@@ -21,7 +21,8 @@ var _pulse_phase: float = 0.0
 var _minimap_redraw_timer: float = 0.0
 var _fullmap_redraw_timer: float = 0.0
 
-const WORLD_RECT := Rect2(Vector2(-920.0, -340.0), Vector2(1920.0, 1640.0))
+const WORLD_RECT := Rect2(Vector2(-920.0, -680.0), Vector2(2420.0, 1980.0)) # V4: incluye los solares del norte y del este
+const VillageLots = preload("res://scripts/systems/VillageLots.gd")
 
 func _ready() -> void:
 	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
@@ -213,7 +214,7 @@ func _draw_valley_cartography(canvas: Control, detailed: bool) -> void:
 		Rect2(Vector2(130, 626), Vector2(26, 260)),
 		Rect2(Vector2(660, -135), Vector2(280, 24)),
 		Rect2(Vector2(660, -135), Vector2(24, 185))
-	]:
+	] + VillageLots.ROADS:
 		canvas.draw_rect(_world_rect_to_map(r_rect, csize), road_col, true)
 
 	var plaza_r := _world_rect_to_map(Rect2(Vector2(395, 10), Vector2(140, 78)), csize)
@@ -246,6 +247,19 @@ func _draw_valley_cartography(canvas: Control, detailed: bool) -> void:
 		{"rect": Rect2(Vector2(679, 266), Vector2(132, 92)), "col": Color(0.52, 0.36, 0.68), "label": "☀️ Capilla del Alba"},
 		{"rect": Rect2(Vector2(826, 262), Vector2(166, 98)), "col": Color(0.32, 0.42, 0.36), "label": "🪦 Cementerio Parroquial"}
 	]
+	var vm_lots = get_tree().get_first_node_in_group("village_manager")
+	if vm_lots and "lots_state" in vm_lots:
+		for l in VillageLots.LOTS: # V4: solares (libres, en obra o construidos)
+			var lst: Dictionary = VillageLots.lot(vm_lots, str(l["id"]))
+			var lsz: Vector2 = l["size"]
+			match str(lst["status"]):
+				"built":
+					var bsz: Vector2 = Vector2(128, 96) if str(lst["kind"]) == "shop_house" else Vector2(112, 78)
+					buildings.append({"rect": Rect2((l["center"] as Vector2) - bsz * 0.5, bsz), "col": Color(0.60, 0.46, 0.28), "label": str(lst["title"])})
+				"building":
+					buildings.append({"rect": Rect2((l["center"] as Vector2) - lsz * 0.5, lsz), "col": Color(0.74, 0.52, 0.22, 0.7), "label": "🚧 Obra"})
+				_:
+					canvas.draw_rect(_world_rect_to_map(Rect2((l["center"] as Vector2) - lsz * 0.5, lsz), csize), Color(0.62, 0.56, 0.40, 0.35), false, 1.0)
 	var font: Font = ThemeDB.fallback_font
 	for b in buildings:
 		var br := _world_rect_to_map(b["rect"], csize)

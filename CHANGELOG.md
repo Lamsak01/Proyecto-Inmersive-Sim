@@ -5,6 +5,9 @@ El detalle técnico está en `docs/HANDOFF.md` (sección 7) y el historial compl
 
 ## 2026-11-03
 
+### Crecer el pueblo: panadería y sastrería
+- **V5a**: en la calle norte hay una **panadería** («La Espiga») y una **sastrería** («El Dedal»), nombres provisionales. Empiezan sin dueño y se quedan con ellas un vecino con ganas de prosperar o alguien que llega al valle. El panadero madruga y hornea con harina del molino y leña; los vecinos compran allí el pan. El sastre cose ropa con cuero; quien tiene dinero de sobra estrena ropa de vez en cuando (los ricos más) y se pone de buen humor. Puedes comprar pan y ropa y venderles trigo, leña, cuero o pieles. El mapa del valle ahora llega a los solares nuevos.
+
 ### Crecer el pueblo: solares
 - **V4**: alrededor del pueblo hay ahora **16 solares** con su cartel: una calle nueva al norte, el camino del este alargado, campos al sur, una ladera al noroeste y dos lomas apartadas para mansiones. Se puede encargar una **casa**: alguien la paga y el **carpintero va en persona a construirla**; solo avanza mientras trabaja allí, así que si enferma o falta, la obra se para. Al terminar es una casa de verdad, con puerta, cama y cofre, y se guarda con la partida. Todavía nadie las encarga: eso llega con las llegadas de gente (V3).
 

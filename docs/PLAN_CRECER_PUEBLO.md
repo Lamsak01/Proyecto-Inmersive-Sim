@@ -63,6 +63,10 @@ vaya al pueblo, no por fecha. Nombres de lugares y oficios nuevos: provisionales
      - **Taller de reparaciones** de lo que se rompe.
 
      Si alguna no te convence, se quita.
+
+   V5 va en tandas cerradas y subidas por separado: **V5a** panadería y sastrería; **V5b** ayuntamiento, albergue y
+   segunda posada; **V5c** terceros espacios; **V5d** afueras (granjas, rancho, cantera, jornaleros, leñador,
+   lavadero); **V5e** biblioteca, escuela, mercado semanal y taller de reparaciones.
 6. **V3 – Llegadas y marchas según el pueblo.**
    - El pueblo tiene un **atractivo**: trabajo libre, vivienda libre, poca crisis, buena fama y seguridad.
    - Si es alto, llegan forasteros a quedarse: jornaleros, artesanos o familias.

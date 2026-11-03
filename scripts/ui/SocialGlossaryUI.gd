@@ -264,6 +264,8 @@ func _get_role_icon(role: int) -> String:
 		VillageNPC.TradeRole.CARPENTER: return "🪚"
 		VillageNPC.TradeRole.FISHMONGER: return "🐟"
 		VillageNPC.TradeRole.HERBALIST: return "🌿"
+		VillageNPC.TradeRole.BAKER: return "🍞"
+		VillageNPC.TradeRole.TAILOR: return "🧵"
 		VillageNPC.TradeRole.INNKEEPER: return "🍺"
 		VillageNPC.TradeRole.DOCTOR: return "🩺"
 		VillageNPC.TradeRole.SHERIFF: return "🚓"

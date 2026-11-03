@@ -461,6 +461,20 @@ Cada fase se dividirá en bloques pequeños cuando se llegue a ella (detalle en 
   (`vm._lot_visuals`: nodos y entradas de las listas de edificios, puertas, ventanas, muros y cofres) para quitarlo al
   cargar otra partida; `after_load` recalcula las camas y redibuja. `free_house_bed` / `add_resident` quedan para V3,
   que decidirá cuándo hace falta una casa y quién la paga. Crónica: tipo público «construction».
+- [x] **V5a** Panadería y sastrería (`scripts/systems/VillageTrades.gd`). Oficios nuevos al final del enum
+  (`BAKER` 12, `TAILOR` 13) y lista común `VillageNPC.SHOP_ROLES` (sustituye listas repetidas: horario de fin de semana,
+  taller, mostrador en el diálogo y en la ficha, reidentificar oficios al cargar). Edificio nuevo de solar
+  «shop_house» (tienda con vivienda como la Botica, con la puerta hacia la calle; `VillageLots.shop_house_layout`).
+  Los dos están en pie desde el principio en los solares n2 y n3 (calle norte) y **empiezan vacantes**: los ocupa la
+  regla de siempre (ambicioso del pueblo, viajero sin oficio o forastero del borde; en las pruebas llegan el día 1).
+  Panadero: horno de 6 a 16 h; pan con «harina» (pan del molino) o leña; es la primera tienda de comida que miran los
+  vecinos. Sastre: «Ropa de Lana» (objeto nuevo `clothes`) con cuero del carnicero; cada día los rico/acomodado/humilde
+  con dinero de sobra (≥ 52) pueden estrenar ropa (10 %, 5 %, 2 %, × gasto y fama de sus rasgos): +8 de humor.
+  Diálogos de compra y venta propios. `VillageLots`: al redibujar un solar conserva los datos del negocio (dueño, caja,
+  sabotaje) y no redibuja si nada cambió; `after_load` llama a `VillageTrades.ensure_lots`, así las partidas de antes
+  de V5 también tienen las dos tiendas. Mapa del valle (`ValleyMapUI`): más grande (llega al norte y al este) y dibuja
+  solares, obras, casas nuevas y calles nuevas. **Sin probar en juego:** que el panadero y el sastre lleguen andando
+  a su mostrador y horneen y cosan de verdad (el test comprueba el negocio, la llegada y las compras de ropa).
 
 ### Interfaz
 - [x] **HUD1** Barras de estado (`scenes/ui_root.gd`, `_create_stats_box` / `_create_fallback_bar`): recuadro oscuro arriba a

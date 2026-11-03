@@ -27,8 +27,13 @@ enum TradeRole {
 	GUARD,              # 8. Guardia de Patrulla Policial
 	TRAVELING_MERCHANT, # 9. Mercader Semanal de Extramuros con Salvoconducto Real (Casimir / Valeria)
 	ROYAL_INVESTIGATOR, # 10. Inquisidor Real enviado por la Corona si asesinan a un Mercader Semanal
-	PRIEST              # 11. Sacerdote de la Capilla del Alba (G3): dirige el Oficio de los domingos
+	PRIEST,             # 11. Sacerdote de la Capilla del Alba (G3): dirige el Oficio de los domingos
+	BAKER,              # 12. Panadero (V5): hornea pan con harina del molino y leña
+	TAILOR              # 13. Sastre (V5): cose ropa con cuero; los ricos compran más
 }
+
+## Oficios con taller y mostrador propios (V5: lista común para no repetirla en cada sitio)
+const SHOP_ROLES: Array = [TradeRole.BLACKSMITH, TradeRole.BUTCHER, TradeRole.CARPENTER, TradeRole.HERBALIST, TradeRole.FISHMONGER, TradeRole.BAKER, TradeRole.TAILOR]
 
 enum ActivityState {
 	WORKING,     # Atendiendo su taller, ayudando en casa o paseando
@@ -275,6 +280,7 @@ const ROLE_INITIAL_GOLD: Dictionary = {
 	TradeRole.INNKEEPER: Vector2i(68, 95), TradeRole.BLACKSMITH: Vector2i(68, 95),
 	TradeRole.BUTCHER: Vector2i(48, 72), TradeRole.CARPENTER: Vector2i(48, 72),
 	TradeRole.HERBALIST: Vector2i(48, 72), TradeRole.FISHMONGER: Vector2i(48, 72),
+	TradeRole.BAKER: Vector2i(40, 62), TradeRole.TAILOR: Vector2i(48, 72),
 	TradeRole.DOCTOR: Vector2i(52, 78), TradeRole.SHERIFF: Vector2i(52, 78), TradeRole.GUARD: Vector2i(52, 78),
 	TradeRole.FAMILY_MEMBER: Vector2i(26, 44), TradeRole.TRAVELING_MERCHANT: Vector2i(172, 238), TradeRole.ROYAL_INVESTIGATOR: Vector2i(110, 155),
 }
@@ -284,6 +290,7 @@ const ROLE_INITIAL_MATERIALS: Dictionary = {
 	TradeRole.BUTCHER: {"wood": 1, "herbal_poultice": 1}, TradeRole.HERBALIST: {"bread": 1, "fertilizer": 1},
 	TradeRole.FISHMONGER: {"wood": 1, "herbal_poultice": 1}, TradeRole.INNKEEPER: {"cooked_meat": 1, "bread": 1},
 	TradeRole.DOCTOR: {"herbal_poultice": 2, "leather": 1},
+	TradeRole.BAKER: {"bread": 1, "wood": 1}, TradeRole.TAILOR: {"leather": 2},
 }
 
 const ROLE_PSYCHOLOGY: Dictionary = {
@@ -293,6 +300,8 @@ const ROLE_PSYCHOLOGY: Dictionary = {
 	TradeRole.CARPENTER: [["Trabajador", "Amante del Bosque"], "wood", ["Madera de pino bien seca (+6)"]],
 	TradeRole.HERBALIST: [["Naturista", "Pacífica"], "herbs", ["Las plantas crecen sanas (+7)"]],
 	TradeRole.FISHMONGER: [["Paciente", "Madrugador"], "night_catfish", ["Brisa fresca junto al molino (+6)"]],
+	TradeRole.BAKER: [["Madrugador", "Hogareño"], "bread", ["Huele a pan recién hecho (+7)"]],
+	TradeRole.TAILOR: [["Perfeccionista", "Coqueto"], "clothes", ["Una costura perfecta (+6)"]],
 	TradeRole.DOCTOR: [["Cirujano Experto", "Forense Meticuloso"], "surgical_kit", ["Urgencias y morgue en orden (+8)"]],
 	TradeRole.SHERIFF: [["Justiciero", "Observador"], "cooked_meat", ["Vigilando la ley en el valle (+7)"]],
 	TradeRole.GUARD: [["Leal", "Alerta"], "bread", ["Patrulla sin novedad (+6)"]],
@@ -320,6 +329,8 @@ const ROLE_FALLBACK_LORE: Dictionary = {
 	TradeRole.BUTCHER: ["garrick", "lina", "Cazador y maestro carnicero encargado de abastecer de carne fresca y cuero curado a la aldea."],
 	TradeRole.CARPENTER: ["bram", "mila", "Maestro ebanista y carpintero llegado para mantener en pie el aserradero y los talleres locales."],
 	TradeRole.FISHMONGER: ["marlo", "nora", "Pescador y molinero encargado de las redes del lago y de la molienda de grano para el valle."],
+	TradeRole.BAKER: ["marlo", "marta", "Panadero llegado de un valle vecino para encender el horno de la calle norte y dar pan a casas y posadas."],
+	TradeRole.TAILOR: ["dario", "mila", "Sastre de mano fina que remienda la ropa del pueblo y cose prendas nuevas para quien pueda pagarlas."],
 	TradeRole.HERBALIST: ["tomas", "elena", "Herborista y botánico rural dedicado al cultivo de semillas y a la preparación de cataplasmas medicinales."],
 	TradeRole.FAMILY_MEMBER: ["aldric", "sora", "Viajero independiente recién llegado a la frontera en busca de fortuna y de un oficio estable en el valle."],
 	TradeRole.UNEMPLOYED: ["aldric", "sora", "Viajero independiente recién llegado a la frontera en busca de fortuna y de un oficio estable en el valle."],
@@ -2659,7 +2670,7 @@ func _is_mandatory_work_hours() -> bool:
 		return true
 	var h: int = WorldClock.current_hour
 	# G2: fin de semana. Los oficios y sus familias trabajan solo la mañana del sábado y descansan el domingo
-	if WorldClock.has_method("is_weekend") and WorldClock.is_weekend() and trade_role in [TradeRole.BUTCHER, TradeRole.BLACKSMITH, TradeRole.CARPENTER, TradeRole.HERBALIST, TradeRole.FISHMONGER, TradeRole.FAMILY_MEMBER]:
+	if WorldClock.has_method("is_weekend") and WorldClock.is_weekend() and (trade_role in SHOP_ROLES or trade_role == TradeRole.FAMILY_MEMBER):
 		if WorldClock.is_rite_day():
 			return false
 		return h >= 9 and h < 13
@@ -2667,6 +2678,8 @@ func _is_mandatory_work_hours() -> bool:
 		return h >= 8 and h < 23
 	if trade_role in [TradeRole.FISHMONGER, TradeRole.BUTCHER, TradeRole.HERBALIST]:
 		return h >= 8 and h < 20
+	if trade_role == TradeRole.BAKER:
+		return h >= 6 and h < 16 # El horno madruga
 	return h >= 8 and h < 18
 
 ## Multiplicador continuo de velocidad por Nutrición estilo Kenshi (300 pts = 100% -> 3 días completos hasta 0%)
@@ -3040,7 +3053,7 @@ func _execute_dynamic_activity(delta: float) -> void:
 				_stop_crafting_bar()
 				_process_physical_morning_expedition(delta)
 				return
-			if trade_role in [TradeRole.BLACKSMITH, TradeRole.BUTCHER, TradeRole.CARPENTER, TradeRole.HERBALIST, TradeRole.FISHMONGER, TradeRole.INNKEEPER, TradeRole.DOCTOR]:
+			if trade_role in SHOP_ROLES or trade_role in [TradeRole.INNKEEPER, TradeRole.DOCTOR]:
 				_process_artisan_workshop_crafting_and_supply_runs(delta)
 				return
 			_stop_crafting_bar()
@@ -3065,6 +3078,8 @@ const ARTISAN_RECIPES: Dictionary = {
 	TradeRole.FISHMONGER: [{"output": "bread", "label": "Hogaza Pan", "verb": "🌾 Moliendo", "input": "wood", "supplier": int(TradeRole.CARPENTER), "input_name": "Leña"}, {"output": "fertilizer", "label": "Abono Org.", "verb": "♻️ Compostando", "input": "herbal_poultice", "supplier": int(TradeRole.HERBALIST), "input_name": "Hierbas"}],
 	TradeRole.INNKEEPER: [{"output": "country_stew", "label": "Estofado", "verb": "🍲 Guisando", "input": "cooked_meat", "supplier": int(TradeRole.BUTCHER), "input_name": "Carne"}, {"output": "bread", "label": "Pan Posada", "verb": "🍞 Horneando", "input": "bread", "supplier": int(TradeRole.FISHMONGER), "input_name": "Harina"}, {"output": "roasted_chicken", "label": "Pollo Asado", "verb": "🍗 Asando", "input": "cooked_meat", "supplier": int(TradeRole.BUTCHER), "input_name": "Aves/Carne"}],
 	TradeRole.DOCTOR: [{"output": "bandage", "label": "Vendaje Limpio", "verb": "🩹 Esterilizando", "input": "herbal_poultice", "supplier": int(TradeRole.HERBALIST), "input_name": "Cataplasma"}, {"output": "herbal_poultice", "label": "Cataplasma", "verb": "🧪 Preparando", "input": "bread", "supplier": int(TradeRole.FISHMONGER), "input_name": "Base Vegetal"}, {"output": "surgical_kit", "label": "Botiquín Quir.", "verb": "🩺 Ensamblando", "input": "leather", "supplier": int(TradeRole.BUTCHER), "input_name": "Sutura/Cuero"}],
+	TradeRole.BAKER: [{"output": "bread", "label": "Hogaza", "verb": "🍞 Horneando", "input": "bread", "supplier": int(TradeRole.FISHMONGER), "input_name": "Harina"}, {"output": "bread", "label": "Pan de Leña", "verb": "🔥 Avivando el horno", "input": "wood", "supplier": int(TradeRole.CARPENTER), "input_name": "Leña"}],
+	TradeRole.TAILOR: [{"output": "clothes", "label": "Ropa", "verb": "🧵 Cosiendo", "input": "leather", "supplier": int(TradeRole.BUTCHER), "input_name": "Cuero"}],
 }
 
 func _get_artisan_recipes() -> Array[Dictionary]:
@@ -4445,7 +4460,7 @@ func _get_needs_status_line() -> String:
 	var eff_info: String = ""
 	if not (trade_role in [TradeRole.UNEMPLOYED, TradeRole.FAMILY_MEMBER]):
 		var shop_state: String = ""
-		if trade_role in [TradeRole.BLACKSMITH, TradeRole.BUTCHER, TradeRole.CARPENTER, TradeRole.FISHMONGER, TradeRole.HERBALIST, TradeRole.INNKEEPER]:
+		if trade_role in SHOP_ROLES or trade_role == TradeRole.INNKEEPER:
 			shop_state = " · 🟢 En Mostrador" if is_at_shop_counter() else " · 🔴 Fuera del Mostrador (No vende aquí)"
 		eff_info = " | ⚒️ Dominio: %s%s" % [get_job_efficiency_label(), shop_state]
 	var seal_str: String = " · 📜Salvoconducto Real" if carries_royal_safe_conduct else ""

@@ -456,6 +456,36 @@ static func _build_dialogue(npc: VillageNPC) -> Dictionary:
 			}
 		VillageNPC.TradeRole.BLACKSMITH:
 			return _build_blacksmith_dialogue(npc, needs_line + discount_tag)
+		VillageNPC.TradeRole.BAKER:
+			return {
+				"start": {
+					"text": "Soy %s de la %s (%s). %s%s%s\n[Stock Pan: %d]" % [npc.npc_name, npc.family_name, npc.npc_role, needs_line, discount_tag, npc._get_market_header_line(), int(npc.shop_stock.get("bread", 0))],
+					"choices": [
+						{"label": "📜 Negocio, Escritura de Propiedad y Caja Registradora", "next": "END", "action": "open_business_panel"},
+						{"label": "🍞 Comprar 1 Hogaza de Pan (-%d Oro) [Stock: %d]" % [npc._get_dynamic_buy_price(5), int(npc.shop_stock.get("bread", 0))], "next": "start", "action": "buy:bread:5"},
+						{"label": "🌾 Vender 1 Trigo (+%d Oro)" % npc._get_dynamic_sell_price(6), "next": "start", "action": "sell:wheat:6"},
+						{"label": "🪵 Vender 1 Madera para el horno (+%d Oro)" % npc._get_dynamic_sell_price(7), "next": "start", "action": "sell:wood:7"},
+						{"label": "💬 Charlar un rato (+8 Relación)", "next": "family_chat", "affinity": 8},
+						{"label": "Hasta pronto. [Salir]", "next": "END"}
+					]
+				},
+				"family_chat": {"text": "El horno se enciende antes del alba. Si el molino no muele o no llega leña, no hay pan para nadie: así de sencillo.", "choices": [{"label": "Entendido. [Volver]", "next": "start"}]}
+			}
+		VillageNPC.TradeRole.TAILOR:
+			return {
+				"start": {
+					"text": "Soy %s de la %s (%s). %s%s%s\n[Stock Ropa: %d]" % [npc.npc_name, npc.family_name, npc.npc_role, needs_line, discount_tag, npc._get_market_header_line(), int(npc.shop_stock.get("clothes", 0))],
+					"choices": [
+						{"label": "📜 Negocio, Escritura de Propiedad y Caja Registradora", "next": "END", "action": "open_business_panel"},
+						{"label": "🧥 Comprar 1 Ropa de Lana (-%d Oro) [Stock: %d]" % [npc._get_dynamic_buy_price(22), int(npc.shop_stock.get("clothes", 0))], "next": "start", "action": "buy:clothes:22"},
+						{"label": "🟫 Vender 1 Cuero (+%d Oro)" % npc._get_dynamic_sell_price(9), "next": "start", "action": "sell:leather:9"},
+						{"label": "🦊 Vender 1 Piel de Zorro (+%d Oro)" % npc._get_dynamic_sell_price(14), "next": "start", "action": "sell:fox_pelt:14"},
+						{"label": "💬 Charlar un rato (+8 Relación)", "next": "family_chat", "affinity": 8},
+						{"label": "Hasta pronto. [Salir]", "next": "END"}
+					]
+				},
+				"family_chat": {"text": "La gente rica estrena ropa cada pocas semanas; los demás remiendan. Por la ropa se sabe a quién le va bien en este pueblo.", "choices": [{"label": "Cierto. [Volver]", "next": "start"}]}
+			}
 		VillageNPC.TradeRole.CARPENTER:
 			return {
 				"start": {
@@ -944,7 +974,7 @@ static func on_dialogue_action(npc: VillageNPC, action_id: String) -> void:
 	var price := int(parts[2])
 
 	# Prohibido comprar o vender en cualquier tienda si el dependiente NO está físicamente atendiendo su mostrador
-	if npc.trade_role in [VillageNPC.TradeRole.BLACKSMITH, VillageNPC.TradeRole.BUTCHER, VillageNPC.TradeRole.CARPENTER, VillageNPC.TradeRole.FISHMONGER, VillageNPC.TradeRole.HERBALIST, VillageNPC.TradeRole.INNKEEPER]:
+	if npc.trade_role in VillageNPC.SHOP_ROLES or npc.trade_role == VillageNPC.TradeRole.INNKEEPER:
 		if not npc.is_at_shop_counter():
 			npc._spawn_floating_text("🚫 Estoy fuera del mostrador (%s). No puedo vender ni comprar hasta volver a la tienda." % npc.get_activity_description(), Color.ORANGE_RED, -44.0)
 			return

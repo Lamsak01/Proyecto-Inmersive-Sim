@@ -40,9 +40,21 @@ const LOTS: Array = [
 	{"id": "f2", "zone": "apartado", "center": Vector2(40, -560), "size": Vector2(250, 180), "door_south": true},
 ]
 
+## Calles y sendas nuevas hacia los solares (también las dibuja el mapa).
+const ROADS: Array = [
+	Rect2(Vector2(270, -362), Vector2(720, 22)), # Calle norte
+	Rect2(Vector2(660, -362), Vector2(24, 230)), # Enlace con la calle de las casas
+	Rect2(Vector2(1010, 36), Vector2(470, 28)), # Camino principal hacia el este
+	Rect2(Vector2(-240, -250), Vector2(20, 286)), # Senda a la ladera del noroeste
+	Rect2(Vector2(-330, 362), Vector2(780, 20)), # Senda de los campos del sur
+	Rect2(Vector2(1305, -350), Vector2(20, 386)), # Senda a la loma del este
+	Rect2(Vector2(30, -470), Vector2(20, 506)), # Senda a la loma del norte
+]
+
 ## Clases de edificio. `hours`: horas de trabajo del carpintero (a diligencia media). `beds`: camas para vecinos.
 const KINDS: Dictionary = {
 	"house": {"title": "Casa", "cost": 60, "hours": 24.0, "beds": 2, "zones": ["borde"]},
+	"shop_house": {"title": "Tienda con vivienda", "cost": 90, "hours": 34.0, "beds": 2, "zones": ["borde"]}, # V5: `st.role` = oficio
 }
 
 static func state(vm) -> Dictionary:
@@ -85,13 +97,8 @@ static func site_work_pos(id: String) -> Vector2:
 ## Al montar el pueblo: calles nuevas hacia los solares del borde y un cartel en cada solar libre.
 static func build_world(vm) -> void:
 	var dirt := Color(0.46, 0.36, 0.24, 0.65)
-	_road(vm, Rect2(Vector2(270, -362), Vector2(720, 22)), dirt) # Calle norte
-	_road(vm, Rect2(Vector2(660, -362), Vector2(24, 230)), dirt) # Enlace con la calle de las casas
-	_road(vm, Rect2(Vector2(1010, 36), Vector2(470, 28)), dirt) # Camino principal hacia el este
-	_road(vm, Rect2(Vector2(-240, -250), Vector2(20, 286)), dirt) # Senda a la ladera del noroeste
-	_road(vm, Rect2(Vector2(-330, 362), Vector2(780, 20)), dirt) # Senda de los campos del sur
-	_road(vm, Rect2(Vector2(1305, -350), Vector2(20, 386)), dirt) # Senda a la loma del este
-	_road(vm, Rect2(Vector2(30, -470), Vector2(20, 506)), dirt) # Senda a la loma del norte
+	for r in ROADS:
+		_road(vm, r, dirt)
 	for l in LOTS:
 		var id: String = str(l["id"])
 		var st: Dictionary = lot(vm, id)
@@ -102,7 +109,17 @@ static func _road(vm, rect: Rect2, col: Color) -> void:
 
 ## Dibuja lo que toque según el estado: cartel de solar libre, obra o edificio terminado. Lo creado se apunta para
 ## poder quitarlo al cargar otra partida.
+static func _sig(st: Dictionary) -> String:
+	return "%s|%s|%s" % [str(st.get("status", "")), str(st.get("kind", "")), str(st.get("role", ""))]
+
 static func _draw_lot(vm, id: String, st: Dictionary) -> void:
+	if vm._lot_visuals.has(id) and (vm._lot_visuals[id] as Array).size() > 2 and str(vm._lot_visuals[id][2]) == _sig(st):
+		if str(st["status"]) == "building":
+			_update_site_label(vm, id)
+		return # Ya está dibujado así (p. ej. al cargar una partida con el mismo pueblo)
+	var old_biz: Dictionary = {}
+	if st.has("role") and vm.shop_businesses.has(int(st["role"])):
+		old_biz = vm.shop_businesses[int(st["role"])]
 	_clear_lot_visuals(vm, id)
 	var d: Dictionary = lot_def(id)
 	var c: Vector2 = d["center"]
@@ -122,8 +139,14 @@ static func _draw_lot(vm, id: String, st: Dictionary) -> void:
 			_update_site_label(vm, id)
 		"built":
 			_build_kind(vm, id, st)
-	var nodes: Array = _capture_end(vm, snap)
-	vm._lot_visuals[id] = nodes
+	var rec: Array = _capture_end(vm, snap)
+	rec.append(_sig(st))
+	vm._lot_visuals[id] = rec
+	if not old_biz.is_empty() and vm.shop_businesses.has(int(st["role"])):
+		var nb: Dictionary = vm.shop_businesses[int(st["role"])]
+		for k in old_biz.keys():
+			if not k in ["stall_pos", "stall_sprite", "stall_label"]:
+				nb[k] = old_biz[k] # Conserva dueño, caja, sabotaje y existencias al redibujar
 
 static func _rect_pts(c: Vector2, sz: Vector2) -> PackedVector2Array:
 	var h := sz * 0.5
@@ -145,6 +168,39 @@ static func _build_kind(vm, id: String, st: Dictionary) -> void:
 				vm._add_sprite_prop(tex_bed, b, Vector2(1.12, 1.12), -1)
 			vm._spawn_decor_prop("res://assests/Comprados/Epic RPG World - Village(interiors) V1.3/assets/furniture_and_props_sprites/table_chairs_1.png", hc + Vector2(0, -2), Vector2(0.45, 0.45))
 			vm._spawn_house_chest(hc + Vector2(0, -24 if bool(d["door_south"]) else 24), "Cofre Familiar (" + str(st["title"]) + ")", fam)
+		"shop_house":
+			_build_shop_house(vm, id, st)
+
+## V5: tienda y vivienda en un solo edificio (como la Botica), con la puerta hacia la calle del solar.
+## Posiciones relativas a la Botica (puerta al norte); con la puerta al sur se reflejan.
+static func shop_house_layout(id: String) -> Dictionary:
+	var d: Dictionary = lot_def(id)
+	var c: Vector2 = d["center"]
+	var m: float = -1.0 if bool(d["door_south"]) else 1.0
+	var f := func(v: Vector2) -> Vector2: return c + Vector2(v.x, v.y * m)
+	return {"work_pos": f.call(Vector2(0, -18)), "bed1_pos": f.call(Vector2(-36, 26)), "bed2_pos": f.call(Vector2(36, 26)),
+		"table_pos": f.call(Vector2(0, 24)), "kin_work_pos": f.call(Vector2(-24, -14)), "stall_pos": f.call(Vector2(0, -10)),
+		"chest_pos": f.call(Vector2(42, -26)), "wall_l": f.call(Vector2(-42, 4)), "wall_r": f.call(Vector2(42, 4))}
+
+static func _build_shop_house(vm, id: String, st: Dictionary) -> void:
+	var d: Dictionary = lot_def(id)
+	var c: Vector2 = d["center"]
+	var lay: Dictionary = shop_house_layout(id)
+	var role: int = int(st["role"])
+	var fam: String = str(st.get("family_id", "family_lot_" + id))
+	vm._construct_solid_building("mixed_" + fam, str(st["title"]), c, Vector2(128, 96), bool(d["door_south"]),
+		"res://assests/world/village/floor_wood_planks.png", "res://assests/world/village/wall_timber_h.png",
+		"res://assests/world/village/wall_timber_v.png", 42.0, 0.0, Color(0.96, 0.86, 0.62))
+	var tex_wall_h: Texture2D = vm._load_tex("res://assests/world/village/wall_timber_h.png")
+	vm._add_solid_wall_segment(lay["wall_l"], Vector2(40, 6), tex_wall_h)
+	vm._add_solid_wall_segment(lay["wall_r"], Vector2(40, 6), tex_wall_h)
+	var stall: Sprite2D = vm._add_sprite_prop(vm._load_tex("res://assests/world/village/work_stall.png"), lay["stall_pos"], Vector2(1.3, 1.3), -1)
+	vm._register_shop_business_stall(role, str(st["title"]), fam, stall.global_position, stall)
+	var tex_bed: Texture2D = vm._load_tex("res://assests/world/village/tavern_bed.png")
+	for b in [lay["bed1_pos"], lay["bed2_pos"]]:
+		vm._add_sprite_prop(tex_bed, b, Vector2(1.12, 1.12), -1)
+	vm._spawn_decor_prop("res://assests/Comprados/Epic RPG World - Village(interiors) V1.3/assets/furniture_and_props_sprites/table_chairs_1.png", lay["table_pos"], Vector2(0.45, 0.45))
+	vm._spawn_house_chest(lay["chest_pos"], "Cofre de " + str(st["title"]), fam)
 
 ## Camas dentro de la casa, lejos de la puerta.
 static func _house_beds(id: String) -> Array:
@@ -292,5 +348,6 @@ static func after_load(vm) -> void:
 		st["progress"] = float(st.get("progress", 0.0))
 		if not st.has("residents"):
 			st["residents"] = []
+	load("res://scripts/systems/VillageTrades.gd").ensure_lots(vm) # Partidas de antes de V5: sus tiendas siguen en pie
 	for l in LOTS:
 		_draw_lot(vm, str(l["id"]), lot(vm, str(l["id"])))
