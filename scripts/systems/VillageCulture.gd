@@ -33,16 +33,154 @@ const MARKET_VISIT_CHANCE: float = 0.25
 const REPAIR_PRICE: int = 8
 const REPAIRS_PER_DAY: int = 2
 const GRID_REPAIR_REWARD: int = 12
+const SAPLING_COST: int = 6
+const ROUTE_CHARTER_COST: int = 25
 
 static func state(vm) -> Dictionary:
 	if not vm.culture_state is Dictionary:
 		vm.culture_state = {}
 	var defs: Dictionary = {"readings": 0, "player_read_day": -1, "market_day": -1, "market_sellers": {}, "market_sales": 0,
-		"markets_held": 0, "repairs": 0, "grid": {}}
+		"markets_held": 0, "repairs": 0, "grid": {}, "forest": {}, "trade_routes": {}}
 	for k in defs.keys():
 		if not vm.culture_state.has(k):
 			vm.culture_state[k] = defs[k]
 	return vm.culture_state
+
+static func forest_state(vm) -> Dictionary:
+	var st: Dictionary = state(vm)
+	if not (st.get("forest", null) is Dictionary):
+		st["forest"] = {}
+	var f: Dictionary = st["forest"]
+	for k in ["planted_trees", "soil_fertility"]:
+		if not f.has(k):
+			f[k] = 0
+	if not f.has("last_plant_day"):
+		f["last_plant_day"] = -99
+	return f
+
+static func plant_forest_tree(vm, planter_name: String = "Jugador") -> bool:
+	if vm == null:
+		return false
+	var eco = vm.get_tree().get_first_node_in_group("ecosystem_manager") if vm.is_inside_tree() else null
+	if eco != null and eco.has_method("plant_sapling"):
+		eco.plant_sapling()
+	var f: Dictionary = forest_state(vm)
+	f["planted_trees"] = int(f.get("planted_trees", 0)) + 1
+	f["soil_fertility"] = mini(10, int(f.get("soil_fertility", 0)) + 2)
+	f["last_plant_day"] = int(WorldClock.current_day) if WorldClock else 1
+	VillageChronicle.add(vm, "reforest", "%s sembró un pino joven en el bosque, enriqueciendo el suelo y atrayendo fauna" % planter_name, true)
+	return true
+
+static func trade_routes_of(vm) -> Dictionary:
+	var st: Dictionary = state(vm)
+	if not (st.get("trade_routes", null) is Dictionary):
+		st["trade_routes"] = {}
+	var tr: Dictionary = st["trade_routes"]
+	var route_defs: Dictionary = {
+		"high_pass": {
+			"name": "Paso Alto (Minas del Norte)",
+			"exports": "bread", "export_qty": 2,
+			"imports": "iron_ore", "import_qty": 2,
+			"seller_role": "baker", "buyer_role": "tinker",
+			"balance": 90, "tariff_gold": 8, "active": false, "last_ship_day": -99,
+		},
+		"river_port": {
+			"name": "Puerto Fluvial del Este",
+			"exports": "wood", "export_qty": 2,
+			"imports": "fish", "import_qty": 2,
+			"seller_role": "woodcutter", "buyer_role": "farmer",
+			"balance": 90, "tariff_gold": 8, "active": false, "last_ship_day": -99,
+		},
+		"sun_plain": {
+			"name": "Vega del Sol",
+			"exports": "clothes", "export_qty": 1,
+			"imports": "wheat", "import_qty": 3,
+			"seller_role": "tailor", "buyer_role": "baker",
+			"balance": 90, "tariff_gold": 10, "active": false, "last_ship_day": -99,
+		},
+	}
+	for r_id in route_defs.keys():
+		if not (tr.get(r_id, null) is Dictionary):
+			tr[r_id] = (route_defs[r_id] as Dictionary).duplicate()
+	return tr
+
+static func open_trade_route(vm, route_id: String, inv = null) -> bool:
+	if vm == null:
+		return false
+	var routes: Dictionary = trade_routes_of(vm)
+	if not routes.has(route_id):
+		return false
+	var r: Dictionary = routes[route_id]
+	if bool(r.get("active", false)):
+		return false
+	if inv != null:
+		if int(inv.gold) < ROUTE_CHARTER_COST:
+			return false
+		inv.add_gold(-ROUTE_CHARTER_COST)
+		vm.town_state["treasury"] = int(vm.town_state.get("treasury", 0)) + ROUTE_CHARTER_COST
+	r["active"] = true
+	routes[route_id] = r
+	VillageChronicle.add(vm, "trade_route", "Se abrió la ruta comercial con %s" % str(r.get("name", route_id)), true)
+	return true
+
+static func send_player_shipment(vm, route_id: String, inv) -> bool:
+	if vm == null or inv == null:
+		return false
+	var routes: Dictionary = trade_routes_of(vm)
+	if not routes.has(route_id):
+		return false
+	var r: Dictionary = routes[route_id]
+	var today: int = int(WorldClock.current_day) if WorldClock else 1
+	if not bool(r.get("active", false)) or int(r.get("last_ship_day", -99)) == today:
+		return false
+	var exp_item: String = str(r.get("exports", "wood"))
+	var exp_qty: int = int(r.get("export_qty", 2))
+	var imp_item: String = str(r.get("imports", "fish"))
+	var imp_qty: int = int(r.get("import_qty", 2))
+	var pay: int = int(r.get("tariff_gold", 8))
+	if int(inv.items.get(exp_item, 0)) < exp_qty or int(r.get("balance", 0)) < pay:
+		return false
+	inv.remove_item(exp_item, exp_qty)
+	inv.add_item(imp_item, imp_qty)
+	r["balance"] = int(r.get("balance", 0)) - pay
+	r["last_ship_day"] = today
+	inv.add_gold(pay)
+	routes[route_id] = r
+	return true
+
+static func process_trade_routes(vm) -> int:
+	if vm == null:
+		return 0
+	var routes: Dictionary = trade_routes_of(vm)
+	var exchanged: int = 0
+	for r_id in routes.keys():
+		var r: Dictionary = routes[r_id]
+		if not bool(r.get("active", false)):
+			continue
+		var pay: int = int(r.get("tariff_gold", 8))
+		if int(r.get("balance", 0)) < pay:
+			continue
+		var seller = vm.trade_npcs.get(VillageTrades.role_of(str(r.get("seller_role", "woodcutter"))))
+		var buyer = vm.trade_npcs.get(VillageTrades.role_of(str(r.get("buyer_role", "farmer"))))
+		if seller == null or not is_instance_valid(seller) or seller.is_dead:
+			continue
+		var exp_item: String = str(r.get("exports", "wood"))
+		var exp_qty: int = int(r.get("export_qty", 2))
+		if int(seller.shop_stock.get(exp_item, 0)) < exp_qty:
+			continue
+		seller.shop_stock[exp_item] = int(seller.shop_stock.get(exp_item, 0)) - exp_qty
+		seller._sync_shop_stock_to_vm()
+		var imp_item: String = str(r.get("imports", "fish"))
+		var imp_qty: int = int(r.get("import_qty", 2))
+		var dst = buyer if (buyer != null and is_instance_valid(buyer) and not buyer.is_dead) else seller
+		dst.shop_stock[imp_item] = int(dst.shop_stock.get(imp_item, 0)) + imp_qty
+		dst._sync_shop_stock_to_vm()
+		r["balance"] = int(r.get("balance", 0)) - pay
+		seller.personal_gold = maxi(0, seller.personal_gold) + (pay - 2)
+		vm.town_state["treasury"] = int(vm.town_state.get("treasury", 0)) + 2
+		routes[r_id] = r
+		exchanged += 1
+	return exchanged
 
 static func grid_state(vm) -> Dictionary:
 	var st: Dictionary = state(vm)
@@ -326,8 +464,20 @@ static func after_load(vm) -> void:
 		close_market(vm)
 
 # ---------------------------------------------------------------- arreglos
-## Cada día: el arreglador acude a los negocios saboteados cuyo dueño puede pagar, y repara la red eléctrica si el ayuntamiento tiene fondos.
+## Cada día: rutas comerciales, fertilidad forestal y arreglos del Taller de Reparaciones.
 static func daily(vm) -> int:
+	process_trade_routes(vm)
+	var f_st: Dictionary = forest_state(vm)
+	if int(f_st.get("soil_fertility", 0)) >= 2:
+		f_st["soil_fertility"] = maxi(0, int(f_st.get("soil_fertility", 0)) - 1)
+		var wc = vm.trade_npcs.get(VillageTrades.role_of("woodcutter"))
+		if wc != null and is_instance_valid(wc) and not wc.is_dead:
+			wc.shop_stock["wood"] = int(wc.shop_stock.get("wood", 0)) + 1
+			wc._sync_shop_stock_to_vm()
+		var frm = vm.trade_npcs.get(VillageTrades.role_of("farmer"))
+		if frm != null and is_instance_valid(frm) and not frm.is_dead:
+			frm.shop_stock["wheat"] = int(frm.shop_stock.get("wheat", 0)) + 1
+			frm._sync_shop_stock_to_vm()
 	var tinker = vm.trade_npcs.get(VillageTrades.role_of("tinker"))
 	if tinker == null or not is_instance_valid(tinker) or tinker.is_dead or tinker.is_downed or vm.is_trade_sabotaged(VillageTrades.role_of("tinker")):
 		return 0
@@ -364,23 +514,44 @@ static func daily(vm) -> int:
 	return done
 
 static func add_dialogue_choices(vm, npc, diag: Dictionary, ch_arr: Array) -> void:
-	if vm == null or int(npc.trade_role) != int(VillageNPC.TradeRole.TINKER):
+	if vm == null:
 		return
-	var g: Dictionary = grid_state(vm)
+	var role_i: int = int(npc.trade_role)
 	var today: int = int(WorldClock.current_day) if WorldClock else 1
-	if int(g.get("last_op_day", -99)) != today:
-		ch_arr.append({"label": "⚡🔧 Manipular a escondidas el cuadro eléctrico (1/día, riesgo de chispazo)", "next": "culture_grid_menu"})
-		diag["culture_grid_menu"] = {
-			"text": "«Mientras el arreglador mira hacia otro lado, ves los tres interruptores de cobre del tendido del pueblo...»",
-			"choices": [
-				{"label": "🌑 Cortar el circuito de farolas (Calles a oscuras)", "next": "END", "action": "culture_sabotage_grid:lamps"},
-				{"label": "🥀 Cortar la bomba eléctrica de riego (Secar aspersor)", "next": "END", "action": "culture_sabotage_grid:sprinkler"},
-				{"label": "💥 Cortocircuitar el generador general (Apagón 2 días)", "next": "END", "action": "culture_sabotage_grid:all"},
-				{"label": "⬅️ Volver", "next": "start"},
-			]
+	if role_i == int(VillageNPC.TradeRole.TINKER):
+		var g: Dictionary = grid_state(vm)
+		if int(g.get("last_op_day", -99)) != today:
+			ch_arr.append({"label": "⚡🔧 Manipular a escondidas el cuadro eléctrico (1/día, riesgo de chispazo)", "next": "culture_grid_menu"})
+			diag["culture_grid_menu"] = {
+				"text": "«Mientras el arreglador mira hacia otro lado, ves los tres interruptores de cobre del tendido del pueblo...»",
+				"choices": [
+					{"label": "🌑 Cortar el circuito de farolas (Calles a oscuras)", "next": "END", "action": "culture_sabotage_grid:lamps"},
+					{"label": "🥀 Cortar la bomba eléctrica de riego (Secar aspersor)", "next": "END", "action": "culture_sabotage_grid:sprinkler"},
+					{"label": "💥 Cortocircuitar el generador general (Apagón 2 días)", "next": "END", "action": "culture_sabotage_grid:all"},
+					{"label": "⬅️ Volver", "next": "start"},
+				]
+			}
+		if is_grid_sabotaged(vm):
+			ch_arr.append({"label": "🛠️⚡ Ayudar a reparar el tendido eléctrico (-1 Bobina de Cobre, +%d Oro del arca)" % GRID_REPAIR_REWARD, "next": "END", "action": "culture_repair_grid"})
+	if role_i == int(VillageNPC.TradeRole.WOODCUTTER):
+		ch_arr.append({"label": "🌲🌱 Sembrar pino joven en el bosque (-1 Semilla de Cultivo, enriquece suelo y fauna)", "next": "END", "action": "culture_plant_tree"})
+		ch_arr.append({"label": "🌲🪙 Comprar y plantar plantón de pino (-%d Oro al leñador, enriquece suelo y fauna)" % SAPLING_COST, "next": "END", "action": "culture_buy_sapling"})
+	if role_i in [int(VillageNPC.TradeRole.TRAVELING_MERCHANT), int(VillageNPC.TradeRole.WOODCUTTER), int(VillageNPC.TradeRole.BAKER), int(VillageNPC.TradeRole.TAILOR)]:
+		var routes: Dictionary = trade_routes_of(vm)
+		var r_choices: Array = []
+		for r_id in routes.keys():
+			var r: Dictionary = routes[r_id]
+			var r_name: String = str(r.get("name", r_id))
+			if not bool(r.get("active", false)):
+				r_choices.append({"label": "📜 Abrir ruta comercial con %s (-%d Oro de arancel municipal)" % [r_name, ROUTE_CHARTER_COST], "next": "END", "action": "culture_open_route:" + str(r_id)})
+			elif int(r.get("last_ship_day", -99)) != today:
+				r_choices.append({"label": "📦 Enviar remesa a %s (-%d %s → +%d %s y +%d Oro)" % [r_name, int(r["export_qty"]), str(r["exports"]), int(r["import_qty"]), str(r["imports"]), int(r["tariff_gold"])], "next": "END", "action": "culture_ship_route:" + str(r_id)})
+		r_choices.append({"label": "⬅️ Volver", "next": "start"})
+		ch_arr.append({"label": "🗺️📦 Rutas comerciales con otros asentamientos", "next": "culture_routes_menu"})
+		diag["culture_routes_menu"] = {
+			"text": "«Las caravanas regulares conectan nuestro valle con los asentamientos vecinos y traen suministros a cambio de nuestros excedentes.»",
+			"choices": r_choices,
 		}
-	if is_grid_sabotaged(vm) or bool(g.get("lamps_disabled", false)) or bool(g.get("sprinkler_disabled", false)):
-		ch_arr.append({"label": "🛠️⚡ Ayudar a reparar el tendido eléctrico (-1 Bobina de Cobre, +%d Oro del arca)" % GRID_REPAIR_REWARD, "next": "END", "action": "culture_repair_grid"})
 
 static func on_player_action(vm, npc, action_id: String, inv) -> void:
 	if action_id.begins_with("culture_sabotage_grid:"):
@@ -408,3 +579,33 @@ static func on_player_action(vm, npc, action_id: String, inv) -> void:
 			inv.add_gold(pay)
 		npc.affinity = clampi(npc.affinity + 10, -100, 100)
 		npc._spawn_floating_text("🛠️⚡ «¡Línea restablecida! Toma %d de oro del fondo municipal.»" % pay, Color.AQUAMARINE, -46.0)
+	elif action_id == "culture_plant_tree":
+		if inv == null or int(inv.items.get("crop_seeds", 0)) <= 0:
+			npc._spawn_floating_text("«Necesitas al menos 1 Semilla de Cultivo para plantar un pino joven.»", Color.ORANGE_RED, -46.0)
+			return
+		inv.remove_item("crop_seeds", 1)
+		plant_forest_tree(vm, "El forastero")
+		npc.affinity = clampi(npc.affinity + 6, -100, 100)
+		npc._spawn_floating_text("🌲🌱 «¡Buen ojo! Ese pino dará sombra, setas y cobijo a los venados.»", Color.SPRING_GREEN, -46.0)
+	elif action_id == "culture_buy_sapling":
+		if inv == null or int(inv.gold) < SAPLING_COST:
+			npc._spawn_floating_text("«Necesito %d de oro por el plantón de vivero.»" % SAPLING_COST, Color.ORANGE_RED, -46.0)
+			return
+		inv.add_gold(-SAPLING_COST)
+		npc.personal_gold += SAPLING_COST
+		plant_forest_tree(vm, npc.npc_name)
+		npc.affinity = clampi(npc.affinity + 6, -100, 100)
+		npc._spawn_floating_text("🌲🌱 «Lo plantaremos en el claro sur. El bosque te lo agradecerá.»", Color.SPRING_GREEN, -46.0)
+	elif action_id.begins_with("culture_open_route:"):
+		var r_id: String = action_id.substr("culture_open_route:".length())
+		if open_trade_route(vm, r_id, inv):
+			npc.affinity = clampi(npc.affinity + 8, -100, 100)
+			npc._spawn_floating_text("🗺️📜 ¡Ruta comercial abierta! Las caravanas ya cruzan el paso", Color.GOLD, -46.0)
+		else:
+			npc._spawn_floating_text("«Necesitas %d de oro para pagar la carta de arancel municipal.»" % ROUTE_CHARTER_COST, Color.ORANGE_RED, -46.0)
+	elif action_id.begins_with("culture_ship_route:"):
+		var r_id2: String = action_id.substr("culture_ship_route:".length())
+		if send_player_shipment(vm, r_id2, inv):
+			npc._spawn_floating_text("📦🪙 ¡Remesa enviada y mercancía importada recibida!", Color.AQUAMARINE, -46.0)
+		else:
+			npc._spawn_floating_text("«No tienes la mercancía requerida o hoy ya enviaste una remesa por esta ruta.»", Color.ORANGE_RED, -46.0)

@@ -121,7 +121,7 @@ Estado: **✅ HECHO** = ya construido y funcionando en el juego. **🟡 EN PARTE
 - ✅ **HECHO** — Más servicios y trabajos en el pueblo: panadería, sastrería, segunda posada («El Candil»), albergue, granja, rancho, cantera, cabaña del leñador, taller de reparaciones, biblioteca, escuela y jornaleros por horas. *(Hecho en V5a–V5e y V9.)*
 - ✅ **HECHO** — Maestros artesanos con estilos propios (`VillageFame.gd`, test #83): los artesanos con experiencia e inclinación por el oficio (`craft`, `diligence`, `trade`) alcanzan el título de Maestro Artesano con un estilo de autor propio de su gremio, elaboran Obras Maestras firmadas (`masterwork_piece`) que compran los vecinos ricos y nobles con oro de su bolsillo, cobran suplemento de prestigio en el mercado y permiten al jugador patrocinar talleres o comerciar con sus piezas.
 - ✅ **HECHO** — Montar tu propio negocio desde cero en un solar y hacerle publicidad en el pueblo (`VillageHousing.gd`, test #84): acondicionar mostrador en tu solar construido («Bazar del Forastero», 65 de oro al carpintero), abastecerlo con artículos reales de tu mochila, contratar a un vecino sin oficio como dependiente (cobra 4 de oro al día de la caja), pregonar y hacer publicidad por la plaza (12 de oro a las arcas, multiplica la clientela durante 3 días) y recaudar las compras que los vecinos pagan de su propio bolsillo. *(Hecho en bloque PG + propiedad híbrida y escrituras comerciales de P6.)*
-- 💡 **PENDIENTE** — Rutas de comercio con otros lugares.
+- ✅ **HECHO** — Rutas de comercio con otros lugares (`VillageCulture.gd`, test #88): puedes abrir rutas comerciales regulares con asentamientos vecinos («Paso Alto», «Puerto Fluvial del Este», «Vega del Sol») pagando la carta de arancel municipal (25 de oro a las arcas); cada día las rutas activas intercambian excedentes locales de los gremios por materias primas importadas y pagan derechos de paso al artesano y al ayuntamiento con cargo al fondo comercial de la ruta, y una vez al día puedes enviar tu propia remesa de mercancía. *(Hecho en bloque PK.)*
 - 💡 **PENDIENTE** — Ingenieros que investigan nuevas tecnologías (árbol de investigación).
 
 ### Ocio, apuestas y peleas
@@ -130,7 +130,7 @@ Estado: **✅ HECHO** = ya construido y funcionando en el juego. **🟡 EN PARTE
 - ✅ **HECHO** — Club de la lucha, boxeo, peleas callejeras. *(Peleas entre vecinos en B4.1–B4.2, misión de pelea anunciada en M17 y club de pelea clandestino a medianoche con apuestas y combate a puño limpio en P7 `VillageUnderworld.gd`.)*
 
 ### Mundo, ecosistema y exploración
-- 💡 **PENDIENTE** — Sembrar árboles y que influya en el ecosistema (fauna, suelo, recursos).
+- ✅ **HECHO** — Sembrar árboles y que influya en el ecosistema (`EcosystemManager.gd`, `VillageCulture.gd`, test #88): junto al leñador puedes sembrar pinos jóvenes en el bosque (con semillas de cultivo o comprando un plantón de vivero); cada pino plantado añade un árbol talable real al bosque, hace rebrotar flora silvestre agotada, atrae fauna herbívora (venados y conejos) y sube la fertilidad del suelo para aumentar las cosechas de madera y grano del valle. *(Hecho en bloque PK.)*
 - 💡 **PENDIENTE** — Ataques al pueblo (bandidos, fauna, otros asentamientos). *(Hoy hay asaltantes en los caminos de fuera, pero no incursiones organizadas contra el pueblo.)*
 - 💡 **PENDIENTE** — Investigación y exploración.
 - 💡 **PENDIENTE** — Alcantarillas con localizaciones nuevas.

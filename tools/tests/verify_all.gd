@@ -3931,5 +3931,59 @@ func _initialize() -> void:
 	vm.town_state["treasury"] = pj_tr0
 	print("Block PJ (Amputations & Prosthetics & Logical Electrical Grid) OK")
 
+	# 88. Bloque PK: Sembrar árboles que influyan en el ecosistema y Rutas de comercio con otros lugares
+	var pk_eco = get_first_node_in_group("ecosystem_manager")
+	assert(pk_eco != null, "PK: EcosystemManager exists")
+	var pk_wc_role: int = vt.role_of("woodcutter")
+	var pk_frm_role: int = vt.role_of("farmer")
+	var pk_wc_prev = vm.trade_npcs.get(pk_wc_role)
+	var pk_frm_prev = vm.trade_npcs.get(pk_frm_role)
+	vm.trade_npcs[pk_wc_role] = p70_a
+	vm.trade_npcs[pk_frm_role] = p70_b
+	var pk_ag0: int = p70_a.personal_gold
+	var pk_bg0: int = p70_b.personal_gold
+	var pk_tr0: int = int(vm.town_state.get("treasury", 0))
+	var pk_trees0: int = pk_eco.count_live_trees()
+	p70_inv.remove_item("crop_seeds", p70_inv.get_count("crop_seeds"))
+	p70_inv.add_item("crop_seeds", 1)
+	vcu_pj.forest_state(vm)["planted_trees"] = 0
+	vcu_pj.forest_state(vm)["soil_fertility"] = 0
+	vcu_pj.on_player_action(vm, p70_a, "culture_plant_tree", p70_inv)
+	assert(pk_eco.count_live_trees() == pk_trees0 + 1 and p70_inv.get_count("crop_seeds") == 0 and int(vcu_pj.forest_state(vm)["planted_trees"]) == 1 and int(vcu_pj.forest_state(vm)["soil_fertility"]) == 2, "PK.1a: Planting a pine sapling spawns a new tree node in the ecosystem and enriches soil fertility")
+	p70_a.shop_stock["wood"] = 4
+	p70_b.shop_stock["wheat"] = 3
+	# PK.2: Abrir ruta comercial con Puerto Fluvial del Este (exporta 2 wood -> importa 2 fish + 8 Oro) y ciclo diario
+	vcu_pj.state(vm)["trade_routes"] = {}
+	p70_inv.gold = 100
+	vm.town_state["treasury"] = 50
+	vcu_pj.on_player_action(vm, p70_a, "culture_open_route:river_port", p70_inv)
+	assert(bool(vcu_pj.trade_routes_of(vm)["river_port"]["active"]) and p70_inv.gold == 75 and int(vm.town_state["treasury"]) == 75, "PK.2a: Opening external trade route pays 25 gold charter fee into town treasury")
+	p70_a.personal_gold = 10
+	p70_b.shop_stock["fish"] = 0
+	vcu_pj.daily(vm)
+	# En daily: fertilidad (+1 wood a p70_a, +1 wheat a p70_b) y ruta river_port (-2 wood de p70_a, +2 fish a p70_b, +6 oro a p70_a y +2 a arcas)
+	assert(int(p70_a.shop_stock["wood"]) == 3 and int(p70_b.shop_stock["wheat"]) == 4 and int(p70_b.shop_stock["fish"]) == 2 and p70_a.personal_gold == 16 and int(vm.town_state["treasury"]) == 77, "PK.2b: Daily cycle applies forest soil fertility bonus and executes active external trade route")
+	p70_inv.remove_item("wood", p70_inv.get_count("wood"))
+	p70_inv.remove_item("fish", p70_inv.get_count("fish"))
+	p70_inv.add_item("wood", 2)
+	p70_inv.gold = 50
+	vcu_pj.trade_routes_of(vm)["river_port"]["last_ship_day"] = -99
+	vcu_pj.on_player_action(vm, p70_a, "culture_ship_route:river_port", p70_inv)
+	assert(p70_inv.get_count("wood") == 0 and p70_inv.get_count("fish") == 2 and p70_inv.gold == 58, "PK.2c: Player shipment exchanges 2 wood for 2 fish and 8 gold from the route's balance")
+	assert(not vcu_pj.send_player_shipment(vm, "river_port", p70_inv), "PK.2d: Daily cooldown prevents sending two player shipments on the same route in one day")
+	vcu_pj.state(vm)["trade_routes"] = {}
+	if pk_wc_prev != null:
+		vm.trade_npcs[pk_wc_role] = pk_wc_prev
+	else:
+		vm.trade_npcs.erase(pk_wc_role)
+	if pk_frm_prev != null:
+		vm.trade_npcs[pk_frm_role] = pk_frm_prev
+	else:
+		vm.trade_npcs.erase(pk_frm_role)
+	p70_a.personal_gold = pk_ag0
+	p70_b.personal_gold = pk_bg0
+	vm.town_state["treasury"] = pk_tr0
+	print("Block PK (Tree Planting & Ecosystem & External Trade Routes) OK")
+
 	print("ALL RIMWORLD MEDICAL, FOOTPRINTS, 3-PHASE CORPSE REPORT, MULTI-CORPSE FIX, RPG INTERROGATION, PUBLIC TRIAL, DYNAMIC RELATIONSHIPS, MISSING FAMILY SEARCH, SOCIAL GLOSSARY & UNCONSCIOUS REACTION TESTS PASSED!")
 	quit(0)

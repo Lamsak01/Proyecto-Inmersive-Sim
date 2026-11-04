@@ -452,3 +452,53 @@ func from_save_dict(data: Dictionary) -> void:
 	_load_pool(deer_pool, data, "deer")
 	_load_pool(fox_pool, data, "foxes")
 	_load_pool(boar_pool, data, "boars")
+
+func count_live_trees() -> int:
+	var root_search: Node = entities_root if entities_root else get_tree().current_scene
+	if not root_search:
+		return 0
+	var cnt: int = 0
+	for child in root_search.get_children():
+		if child is HarvestableNode:
+			var hn := child as HarvestableNode
+			if int(hn.harvest_type) == int(HarvestableNode.HarvestType.LOGGING) and not hn.is_depleted:
+				cnt += 1
+	return cnt
+
+func plant_sapling(world_pos: Vector2 = Vector2.ZERO) -> HarvestableNode:
+	var root_search: Node = entities_root if entities_root else get_tree().current_scene
+	if not root_search:
+		return null
+	# Rebrota primero una hierba o seta agotada por el enriquecimiento del suelo forestal
+	for child in root_search.get_children():
+		if child is HarvestableNode:
+			var f_node := child as HarvestableNode
+			if int(f_node.harvest_type) == int(HarvestableNode.HarvestType.FORAGE) and f_node.is_depleted:
+				f_node._regrow_node()
+				break
+	# Atrae fauna herbívora (venado o conejo) si hay hueco en la manada
+	if _get_live_animals(deer_pool).size() < deer_pool.size():
+		_spawn_from_pool(deer_pool, 1)
+	elif _get_live_animals(rabbit_pool).size() < rabbit_pool.size():
+		_spawn_from_pool(rabbit_pool, 1)
+	# Si había un tocón talado, también puede rebrotar; además planta un nuevo pino joven
+	var tex_tree: Texture2D = _load_tex("res://assests/Comprados/Epic RPG World - The Village V2.1/tilesets and props/props-sprites/pine-tree_0.png")
+	if not tex_tree:
+		tex_tree = _load_tex("res://assests/world/tree.png")
+	var tex_stump: Texture2D = _load_tex("res://assests/Comprados/Epic RPG World - The Village V2.1/tilesets and props/props-sprites/logs_0.png")
+	var idx: int = count_live_trees()
+	var pos: Vector2 = world_pos if world_pos != Vector2.ZERO else Vector2(-360.0 + float((idx % 6) * 65), 670.0 + float((idx / 6) * 55))
+	var node := HarvestableNode.new()
+	node.name = "PlantedPine_%d_%d" % [idx, randi() % 1000]
+	node.global_position = pos
+	node.harvest_type = HarvestableNode.HarvestType.LOGGING
+	node.node_title = "Pino Joven Reforestado"
+	node.primary_item_id = "wood"
+	node.primary_amount = 3
+	node.bonus_item_id = "crop_seeds"
+	node.bonus_amount = 1
+	node.max_hp = 30.0
+	node.respawn_days = 2
+	root_search.add_child(node)
+	node.setup_visuals(tex_tree, tex_stump, Color(0.88, 1.05, 0.88), Vector2(0.82, 0.82), 12.0)
+	return node

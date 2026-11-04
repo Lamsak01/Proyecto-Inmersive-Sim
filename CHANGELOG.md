@@ -5,6 +5,10 @@ El detalle técnico está en `docs/HANDOFF.md` (sección 7) y el historial compl
 
 ## 2026-11-04
 
+### Reforestación del ecosistema y Rutas de comercio con otros asentamientos
+- **Sembrar árboles que enriquecen el bosque y la fauna:** hablando con el leñador puedes plantar pinos jóvenes usando semillas de cultivo o comprando un plantón de vivero. Cada árbol plantado crece como un pino real en el bosque, hace rebrotar hierbas y setas silvestres, atrae venados y conejos a los claros y mejora la fertilidad del suelo para dar más madera y grano al valle.
+- **Rutas comerciales con otros lugares:** puedes abrir rutas regulares con asentamientos vecinos («Paso Alto», «Puerto Fluvial del Este» y «Vega del Sol») pagando la carta de arancel a las arcas municipales. Las rutas activas cambian a diario excedentes de los talleres locales por hierro, pescado o trigo importado (repartiendo los derechos de paso entre el artesano y el ayuntamiento) y te permiten enviar una remesa propia al día.
+
 ### Amputaciones y prótesis médicas y Sabotaje lógico de la red eléctrica
 - **Amputaciones de urgencia e implantes protésicos:** cuando una herida en un brazo o una pierna se gangrena por una infección grave, el médico la amputa de urgencia para salvar la vida del paciente. Tanto los vecinos con ahorros como tú en la consulta del médico podéis encargar una prótesis articulada de hierro y cuero (pagando al médico y al arreglador y usando un kit de reparación) para recuperar por completo el miembro perdido.
 - **Red eléctrica con circuitos independientes que se pueden sabotear:** en el cuadro eléctrico del taller puedes manipular por separado el circuito de las farolas (para dejar las calles a oscuras), la bomba eléctrica de riego (para cortar el aspersor) o el generador general (con riesgo de que salte un chispazo y te vea la guardia). Cuando la línea cae, el arreglador la repara a diario con cargo a las arcas municipales, o puedes repararla tú entregando una bobina de cobre para cobrar la recompensa del ayuntamiento.

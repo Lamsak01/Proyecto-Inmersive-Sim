@@ -315,6 +315,13 @@ Informe completo: `docs/AUDITORIA_P1_P7.md`.
 | PJ1 | Amputaciones de urgencia por gangrena (`amputate`, `infection >= 65.0`) e implantes de prótesis articuladas (`install_prosthetic`, `illness_prosthetic_self`, `illness_prosthetic_npc`, 25 de oro repartidos entre médico y arreglador + 1 kit de reparación) | ✅ | VillageIllness.gd, verify_all.gd | Test #87 |
 | PJ2 | Red eléctrica con circuitos lógicos independientes (`lamps`, `sprinkler`, `all` en `VillageCulture.grid_state`), sabotaje con riesgo de chispazo (`sabotage_grid`, `culture_sabotage_grid`) y reparación por el jugador (`culture_repair_grid`, 1 bobina de cobre, 12 de oro de las arcas) o por el arreglador en su ciclo diario | ✅ | VillageCulture.gd, VillageManager.gd, FarmPlot.gd, NPCDialogue.gd, verify_all.gd | Test #87 |
 
+## Bloque PK — Sembrar árboles que influyan en el ecosistema y Rutas de comercio con otros lugares (2026-11-04)
+
+| # | Paso | Estado | Archivos | Nota |
+|---|------|--------|----------|------|
+| PK1 | Sembrar pinos jóvenes en el bosque (`plant_sapling`, `count_live_trees`, `plant_forest_tree`, `culture_plant_tree`, `culture_buy_sapling`) que añaden árboles reales, rebrotan hierbas/setas, atraen venados y conejos y enriquecen la fertilidad del suelo (`soil_fertility`) | ✅ | EcosystemManager.gd, VillageCulture.gd, verify_all.gd | Test #88 |
+| PK2 | Rutas de comercio con otros asentamientos (`trade_routes_of`, `open_trade_route`, `process_trade_routes`, `send_player_shipment`, `culture_open_route`, `culture_ship_route`) con pago de arancel a las arcas, intercambio diario de mercancías entre gremios y envío de remesas del jugador | ✅ | VillageCulture.gd, verify_all.gd | Test #88 |
+
 
 
 
