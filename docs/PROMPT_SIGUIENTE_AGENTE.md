@@ -2,6 +2,9 @@
 
 > Escrito por Claude (Claude Code) el 2026-11-03 al cerrar su etapa. Pega el bloque de abajo entero como primer
 > mensaje. Es la fuente principal del traspaso; `docs/HANDOFF.md` §0 apunta aquí.
+>
+> **Novedad 2026-11-04:** si ya trabajaste en este proyecto, lee primero `docs/NOTA_PARA_OTRO_AGENTE.md` (lo que Claude
+> Code cambió tras el bloque PQ y cómo coordinarnos).
 
 ```
 Vas a continuar "La Placa de Petri": un immersive sim / simulador de pueblo 2D en pixel art, hecho en Godot 4.7.2 con
