@@ -229,7 +229,7 @@ static func _build_investigation_case_dict(vm: VillageManager, victim: VillageNP
 	VillageQuests.on_murder_case_opened(vm, victim)
 	VillageChronicle.add(vm, "death_found", "Hallaron el cuerpo sin vida de %s" % victim.npc_name, true)
 
-	return {
+	var case_dict: Dictionary = {
 		"active": true, "is_royal": is_royal, "victim_name": v_label, "victim_id": m_id, "victim_key": _social_key(victim), "embargo_days": embargo_days,
 		"crime_pos_x": crime_pos.x, "crime_pos_y": crime_pos.y, "crime_hour": crime_hour, "crime_day": crime_day,
 		"crime_total_mins": crime_total_mins, "reporter_name": first_witness,
@@ -240,6 +240,8 @@ static func _build_investigation_case_dict(vm: VillageManager, victim: VillageNP
 		"interview_queue": start_queue, "current_interview_target": "", "scapegoat_key": "",
 		"clues_log": initial_clues, "suspects": suspects_dict, "verdict_target": "", "verdict_reason": ""
 	}
+	vm.VillageForensics.apply_to_case(vm, victim, case_dict) # P2: pistas plantadas, cómplices, autopsia y seguro de vida
+	return case_dict
 
 static func start_sheriff_investigation(vm: VillageManager, victim: VillageNPC, death_pos: Vector2, weapon_name: String, discoverer_name: String, _death_mins: int = 0) -> void:
 	# J2: hambre, animales o enfermedad no son un crimen: se ve a simple vista y no se abre caso

@@ -243,6 +243,8 @@ static func tick(vm) -> void:
 				vm.VillageCulture.on_market_arrived(vm, n) # V5e: compra en el mercado
 			"leave":
 				vm.VillageMigration.on_left(vm, n) # V3: se marcha del valle
+			"confess":
+				vm.VillageConfession.on_errand_arrived(vm, n) # P4.1: confesión en la capilla
 			_:
 				vm.VillageCivic.on_errand_arrived(vm, n) # V5b: votar, el alcalde en el ayuntamiento
 
@@ -268,7 +270,7 @@ static func on_hour(vm, hour: int) -> void:
 			continue
 		if hour in WASH_HOURS and n.need_hygiene < wash_threshold(n):
 			n.start_errand("wash", vm.VillageWork.wash_spot(vm, n, wash_spot(vm, n))) # V5d: a veces, al lavadero
-		elif hour in VICE_HOURS and not vm.is_building_door_blocked("tavern"):
+		elif hour in VICE_HOURS and not vm.is_building_door_blocked("tavern") and not vm.VillageMayor.has_decree(vm, "dry_law"):
 			var key: String = n.get_person_key()
 			if randf() < vice_chance(vm, n, "drink"):
 				if n.personal_gold >= DRINK_COST:

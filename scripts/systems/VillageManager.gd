@@ -28,6 +28,13 @@ const VillageNobility = preload("res://scripts/systems/VillageNobility.gd")
 const VillageFamily = preload("res://scripts/systems/VillageFamily.gd")
 const VillageLoans = preload("res://scripts/systems/VillageLoans.gd")
 const VillageWork = preload("res://scripts/systems/VillageWork.gd")
+const VillageClans = preload("res://scripts/systems/VillageClans.gd")
+const VillageForensics = preload("res://scripts/systems/VillageForensics.gd")
+const VillageLineage = preload("res://scripts/systems/VillageLineage.gd")
+const VillageConfession = preload("res://scripts/systems/VillageConfession.gd")
+const VillageMayor = preload("res://scripts/systems/VillageMayor.gd")
+const VillageHousing = preload("res://scripts/systems/VillageHousing.gd")
+const VillageUnderworld = preload("res://scripts/systems/VillageUnderworld.gd")
 
 ## Gestor Integral de Urbanismo Sólido, Hospital/Morgue Forense, Comisaría/Cárcel, Testigos,
 ## Sigilo Doméstico, Reputación Familiar, Tablón de Encargos y Red Eléctrica (10 Pasos de Expansión)
@@ -1127,6 +1134,7 @@ func _mark_morgue_case_resolved(victim_name: String, resolution_note: String = "
 	var cur_h: int = WorldClock.current_hour if WorldClock else 12
 	var cur_tot_h: int = cur_d * 24 + cur_h
 	VillageQuests.on_case_resolved(self, victim_name, resolution_note)
+	VillageClans.on_murder_resolved(self, victim_name, resolution_note)
 	VillageChronicle.add(self, "case_closed", "Se cerró el caso de la muerte de %s%s" % [victim_name, (": " + resolution_note) if resolution_note != "" else ""], true)
 	for rec in morgue_active_corpses:
 		if str(rec.get("victim_name", "")) == victim_name:
@@ -2282,6 +2290,12 @@ func interact(player: Node2D) -> void:
 			return
 	if VillageCulture.try_interact(self, player, pos): # V5e: leer en la biblioteca
 		return
+	if VillageMayor.try_interact(self, player, pos): # P5: alcaldía y candidatura
+		return
+	if VillageHousing.try_interact(self, player, pos): # P6: solar o cama de tu casa
+		return
+	if VillageUnderworld.try_interact(self, player, pos): # P7: encargo nocturno del perista
+		return
 
 	# 2. Tablón de Encargos de la Plaza
 	if pos.distance_squared_to(_notice_board_pos) <= 28.0 * 28.0:
@@ -2376,6 +2390,7 @@ func _on_hour_passed(_day: int, new_hour: int = 8) -> void:
 	VillageMigration.on_hour(self, actual_hour) # V3: los que se marchan siguen su camino
 	VillageNobility.on_hour(self, actual_hour) # V6: los nobles aparecen en la primera hora
 	VillageFamily.on_hour(self, actual_hour) # V9: lo que se aprende en la escuela
+	VillageConfession.on_hour(self, actual_hour) # P4: confesiones entre semana en la capilla
 
 	# 07:00 AM -> Comprobar llegada semanal de los 2 Mercaderes Ambulantes (Día 3: Maese Casimir | Día 6: Valeria la Tratante)
 	if actual_hour == 7:
@@ -2770,6 +2785,11 @@ func _interact_house_chest(player: Node2D, ch: Dictionary) -> void:
 		inv.add_gold(gold_loot)
 		inv.add_item(bonus_item, 1)
 
+	if VillageHousing.is_player_family_chest(self, str(ch.get("family_id", ""))):
+		if player.has_method("_spawn_floating_text"):
+			player._spawn_floating_text("📦🏡 Recogiste las provisiones de tu propio cofre doméstico (+%d Oro, +1 %s)" % [gold_loot, SimpleInventory.CATALOG.get(bonus_item, {}).get("name", bonus_item)], Color.SPRING_GREEN, -46.0)
+		return
+
 	var in_stealth: bool = player.has_method("is_stealthing") and bool(player.call("is_stealthing"))
 	var cloak_mult3: float = float(player.call("get_stealth_detection_multiplier")) if player.has_method("get_stealth_detection_multiplier") else 1.0
 	var lockpick_mult3: float = 0.35 if (player.has_method("has_master_lockpick") and bool(player.call("has_master_lockpick"))) else 1.0
@@ -3052,6 +3072,13 @@ func _on_day_passed(_new_day: int) -> void:
 		VillageIllness.daily(self) # E2
 		VillageCrime.daily(self) # E4: como mucho un robo por noche
 		VillageTown.daily(self) # I: elecciones, impuestos del sábado, desfalcos
+		VillageClans.daily(self) # P1: romances prohibidos, ovejas negras y tumbas
+		VillageForensics.daily(self) # P2: sicarios y confesiones por embriaguez/fiebre
+		VillageLineage.daily(self) # P3: hijos secretos, manutención, cazafortunas y pasado
+		VillageConfession.daily(self) # P4: penitencias, santuario y excomuniones
+		VillageMayor.daily(self) # P5: promesas electorales, decretos y protestas
+		VillageHousing.daily(self) # P6: pareja en casa, huerto y rentas comerciales
+		VillageUnderworld.daily(self) # P7: mercado negro, usura, protección y jefe del hampa
 		VillageQuests.on_day_passed(self)
 	chronicle_daily = false
 

@@ -140,10 +140,12 @@ static func _week() -> int:
 static func wants_attend(npc, week: int) -> bool:
 	if is_priest(npc):
 		return true
+	var vm_s = npc._get_vm() if npc.has_method("_get_vm") else null
+	if vm_s != null and vm_s.VillageConfession.is_excommunicated(vm_s, npc):
+		return false # P4.8: excomulgado no va al Oficio
 	if npc.has_meta("rite_invited_week") and int(npc.get_meta("rite_invited_week")) == week and grade_of(npc) != GRADE_SKEPTIC:
 		return true # M7: el jugador le invitó a venir este domingo
 	var ch: int = int(ATTEND_CHANCE.get(grade_of(npc), 0))
-	var vm_s = npc._get_vm() if npc.has_method("_get_vm") else null
 	if vm_s != null and "sect_state" in vm_s and vm_s.sect_state is Dictionary and (vm_s.sect_state.get("members", {}) as Dictionary).has(npc.get_person_key()):
 		ch = int(ch * 0.4) # O4: los de la secta van poco al Oficio (solo para disimular)
 	return ch > 0 and (abs(("%s#%d" % [npc.get_person_key(), week]).hash()) % 100) < ch
@@ -233,6 +235,7 @@ static func finish_rite(vm) -> Dictionary:
 			m.modify_npc_relationship(x, ABSENT_NOTE, "No vino al %s" % RITE_NAME, true)
 			res["absent_noted"] = int(res["absent_noted"]) + 1
 	# El sermón: si el sacerdote detesta a alguien, los asistentes le miran peor
+	vm.VillageConfession.apply_sunday_indirect_sermon(vm, att) # P4.3: sermón con indirectas sobre pecados confesados
 	var priest = priest_of(vm)
 	if priest != null and priest in att:
 		var worst = null

@@ -404,8 +404,10 @@ static func try_commit_murder(vm: VillageManager, d: Dictionary, h: VillageNPC, 
 	finish(vm, d, "done")
 	t.last_hit_by_player = false
 	t.last_hit_weapon_name = "Puñalada (cuchillo)"
+	vm.VillageForensics.on_npc_murder_committed(vm, h, t, d) # P2: método según oficio, pista falsa o veneno lento
 	t._confirm_true_death()
 	t.murder_witness_name = ""
+	vm.VillageClans.on_murder_resolved(vm, t.npc_name, h.npc_name) # P1.1: rencor de clan hacia el asesino
 	return true
 
 ## Pista para el comisario al abrir el caso (VillageJustice).

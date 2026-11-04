@@ -184,6 +184,7 @@ static func give_birth(vm, mother, father):
 		st["last_birth"][_couple_key(mother, father)] = today()
 	vm.VillageChronicle.add(vm, "birth", "Ha nacido %s, hijo de %s%s" % [kid.npc_name, mother.npc_name, (" y " + father.npc_name) if father != null else ""], true)
 	vm.record_social_event("birth", kid, mother, "%s nació en el valle" % kid.npc_name)
+	vm.VillageLineage.on_child_born(vm, mother, father, kid) # P3
 	return kid
 
 ## Casa a dos vecinos (pareja estable).
@@ -266,6 +267,8 @@ static func grow_up(vm, n) -> void:
 			vm.unemployed_npcs.append(n)
 		n.add_thought("Ya soy mayor: me toca buscarme la vida (+5)", 5.0)
 	apply_look(n)
+	vm.VillageClans.on_child_grown_up(vm, n) # P1.2
+	vm.VillageLineage.on_child_grown_up(vm, n) # P3.2/P3.3
 	vm.VillageChronicle.add(vm, "grown_up", "%s ya es mayor y busca su sitio en el valle" % n.npc_name, true)
 
 # ---------------------------------------------------------------- escuela

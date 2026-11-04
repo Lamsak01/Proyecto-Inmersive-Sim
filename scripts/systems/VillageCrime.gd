@@ -52,7 +52,8 @@ static func drive(vm, n) -> float:
 		d += DRIVE_CRAVING
 	if klepto:
 		d += DRIVE_KLEPTO
-	return d * clampf(1.0 - 0.6 * honesty - 0.4 * TraitCatalog.npc_tendency(n, "law"), 0.1, 2.0)
+	var curfew_mult: float = 0.5 if vm.VillageMayor.has_decree(vm, "curfew") else 1.0
+	return d * curfew_mult * clampf(1.0 - 0.6 * honesty - 0.4 * TraitCatalog.npc_tendency(n, "law"), 0.1, 2.0)
 
 static func daily(vm) -> Dictionary:
 	var people: Array = VillageNeeds.living(vm)
@@ -70,7 +71,7 @@ static func commit(vm, thief, force_target = null) -> Dictionary:
 	var pl = VillageNeeds.player_of(vm)
 	if target == null:
 		var inv = pl.get("inventory") if pl != null else null
-		if inv != null and int(inv.gold) >= STEAL_MIN_TARGET_GOLD and randf() < PLAYER_TARGET_CHANCE:
+		if inv != null and int(inv.gold) >= STEAL_MIN_TARGET_GOLD and randf() < PLAYER_TARGET_CHANCE and not vm.VillageHousing.has_upgrade(vm, "strong_lock") and not vm.VillageUnderworld.is_guard_bribed_tonight(vm):
 			target = pl
 		else:
 			var cands: Array = []

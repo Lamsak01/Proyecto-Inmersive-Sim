@@ -4330,6 +4330,8 @@ func revive_from_downed(rescuer: Node, used_surgical_kit: bool = false) -> void:
 		var vm = _get_vm()
 		if vm and vm.has_method("modify_family_reputation") and family_id != "none":
 			vm.call("modify_family_reputation", family_id, 40, "Salvó la vida de " + npc_name, self)
+		if vm:
+			vm.VillageClans.grant_honor_debt(vm, self, "salvó la vida de " + npc_name)
 		if "inventory" in rescuer and rescuer.inventory:
 			rescuer.inventory.add_gold(25)
 		if rescuer.has_method("_spawn_floating_text"):
@@ -4361,6 +4363,8 @@ func _confirm_true_death() -> void:
 	is_downed = false
 	bleedout_timer = 0.0
 	is_dead = true
+	if vm:
+		vm.VillageClans.on_npc_death(vm, self)
 	var my_dead_id: String = str(person_profile.person_id) if person_profile != null and str(person_profile.person_id) != "" else npc_id
 	if is_inside_tree():
 		for n_other in get_tree().get_nodes_in_group("village_npcs"):
@@ -4629,6 +4633,10 @@ func _get_dynamic_buy_price(base_price: int) -> int:
 	var mult: float = float(vm.call("get_trade_market_multiplier", int(trade_role))) if (vm and vm.has_method("get_trade_market_multiplier")) else 1.0
 	var is_owner: bool = bool(vm.call("is_player_owner_or_partner", int(trade_role))) if (vm and vm.has_method("is_player_owner_or_partner")) else false
 	var disc: float = 0.70 if is_owner else (0.80 if affinity >= 45 else 1.0)
+	if vm != null:
+		disc *= vm.VillageClans.player_price_mult(vm, self)
+		if WorldClock != null and int(WorldClock.current_day) % 7 == 3 and vm.VillageMayor.has_decree(vm, "market_subsidy"):
+			disc *= 0.85
 	return maxi(1, int(round(float(base_price) * mult * disc)))
 
 func _make_armor_menu(title: String, menu_key: String, items: Array) -> Dictionary:

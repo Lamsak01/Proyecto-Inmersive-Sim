@@ -11,6 +11,13 @@ const VillageIllness = preload("res://scripts/systems/VillageIllness.gd")
 const VillageCrime = preload("res://scripts/systems/VillageCrime.gd")
 const VillageTown = preload("res://scripts/systems/VillageTown.gd")
 const VillageSect = preload("res://scripts/systems/VillageSect.gd")
+const VillageClans = preload("res://scripts/systems/VillageClans.gd")
+const VillageForensics = preload("res://scripts/systems/VillageForensics.gd")
+const VillageLineage = preload("res://scripts/systems/VillageLineage.gd")
+const VillageConfession = preload("res://scripts/systems/VillageConfession.gd")
+const VillageMayor = preload("res://scripts/systems/VillageMayor.gd")
+const VillageHousing = preload("res://scripts/systems/VillageHousing.gd")
+const VillageUnderworld = preload("res://scripts/systems/VillageUnderworld.gd")
 const TraitDiscovery = preload("res://scripts/systems/TraitDiscovery.gd")
 const TraitCatalog = preload("res://scripts/data/TraitCatalog.gd")
 
@@ -170,9 +177,9 @@ static func _inject_character_lore_into_dialogue(npc: VillageNPC, diag: Dictiona
 
 # ---------------------------------------------------------------- UI1: menú principal ordenado
 ## Qué va dentro de cada grupo (por adónde lleva o qué hace la opción, no por su texto).
-const TALK_NEXT: Array = ["neighbor_opinions", "npc_news", "town_vote", "desire_ask", "faith_lore", "faith_ask", "character_lore"]
+const TALK_NEXT: Array = ["neighbor_opinions", "npc_news", "town_vote", "desire_ask", "faith_lore", "faith_ask", "character_lore", "clan_menu", "lineage_menu", "faith_confess_menu", "town_mayor_menu", "housing_menu"]
 const GIFT_ACTIONS: Array = ["give_npc_food_ration", "needs_alms", "needs_gift", "needs_round"]
-const SHADY_NEXT: Array = ["pocket_stealth_menu", "witness_manipulation_menu"]
+const SHADY_NEXT: Array = ["pocket_stealth_menu", "witness_manipulation_menu", "forensic_menu", "underworld_menu"]
 
 static func _case_open(npc) -> bool:
 	if is_instance_valid(npc._reporting_corpse_target):
@@ -266,6 +273,15 @@ static func _add_neighbor_opinions(npc: VillageNPC, diag: Dictionary, ch_arr: Ar
 	VillageCrime.add_dialogue_choices(npc._get_vm(), npc, diag, ch_arr) # E4
 	VillageTown.add_dialogue_choices(npc._get_vm(), npc, diag, ch_arr) # I5
 	VillageSect.add_dialogue_choices(npc._get_vm(), npc, diag, ch_arr) # O6
+	if npc._get_vm() != null:
+		var vm_p = npc._get_vm()
+		VillageClans.add_dialogue_choices(vm_p, npc, diag, ch_arr) # P1
+		VillageForensics.add_dialogue_choices(vm_p, npc, diag, ch_arr) # P2
+		VillageLineage.add_dialogue_choices(vm_p, npc, diag, ch_arr) # P3
+		VillageConfession.add_dialogue_choices(vm_p, npc, diag, ch_arr) # P4
+		VillageMayor.add_dialogue_choices(vm_p, npc, diag, ch_arr) # P5
+		VillageHousing.add_dialogue_choices(vm_p, npc, diag, ch_arr) # P6
+		VillageUnderworld.add_dialogue_choices(vm_p, npc, diag, ch_arr) # P7
 	if npc.affinity < 0:
 		var hint_q: String = ""
 		var qm_h = npc.get_node_or_null("/root/QuestManager")
@@ -488,7 +504,8 @@ static func _build_dialogue(npc: VillageNPC) -> Dictionary:
 	var discount_tag: String = " [🌟 Aliado Familiar: -20% Dto]" if npc.affinity >= 45 else ""
 
 	# Paso 4: Si la familia está agraviada (`affinity <= -35`) por robo o agresión, exige compensación antes de comerciar
-	if npc.affinity <= -35 and not (npc.trade_role in [VillageNPC.TradeRole.SHERIFF, VillageNPC.TradeRole.GUARD, VillageNPC.TradeRole.DOCTOR, VillageNPC.TradeRole.ROYAL_INVESTIGATOR, VillageNPC.TradeRole.TRAVELING_MERCHANT]):
+	var vm_boycott = npc._get_vm()
+	if (npc.affinity <= -35 or (vm_boycott != null and VillageClans.is_boycotting_player(vm_boycott, npc))) and not (npc.trade_role in [VillageNPC.TradeRole.SHERIFF, VillageNPC.TradeRole.GUARD, VillageNPC.TradeRole.DOCTOR, VillageNPC.TradeRole.ROYAL_INVESTIGATOR, VillageNPC.TradeRole.TRAVELING_MERCHANT]):
 		return {"start": {
 			"text": "😠 ¡Soy %s de la %s! Has agraviado a nuestra familia (Afinidad: %d).\nNo comerciaremos contigo hasta que repares el daño o cumplas con la ley." % [npc.npc_name, npc.family_name, npc.affinity],
 			"choices": [
@@ -802,9 +819,30 @@ static func on_dialogue_action(npc: VillageNPC, action_id: String) -> void:
 		if vm != null:
 			VillageSect.on_player_action(vm, npc, action_id, inv)
 		return
+	if action_id.begins_with("clan_"):
+		if vm != null:
+			VillageClans.on_player_action(vm, npc, action_id, inv)
+		return
+	if action_id.begins_with("forensic_"):
+		if vm != null:
+			VillageForensics.on_player_action(vm, npc, action_id, inv)
+		return
+	if action_id.begins_with("lineage_"):
+		if vm != null:
+			VillageLineage.on_player_action(vm, npc, action_id, inv)
+		return
+	if action_id.begins_with("housing_"):
+		if vm != null:
+			VillageHousing.on_player_action(vm, npc, action_id, inv)
+		return
+	if action_id.begins_with("underworld_"):
+		if vm != null:
+			VillageUnderworld.on_player_action(vm, npc, action_id, inv)
+		return
 	if action_id.begins_with("town_"):
 		if vm != null:
-			VillageTown.on_player_action(vm, npc, action_id, inv)
+			if not VillageMayor.on_player_action(vm, npc, action_id, inv):
+				VillageTown.on_player_action(vm, npc, action_id, inv)
 		return
 	if action_id.begins_with("crime_"):
 		if vm != null:
@@ -816,6 +854,7 @@ static func on_dialogue_action(npc: VillageNPC, action_id: String) -> void:
 		return
 	if action_id.begins_with("faith_"):
 		if vm != null:
+			VillageConfession.on_player_action(vm, npc, action_id, inv)
 			VillageFaith.on_player_action(vm, npc, action_id, inv)
 		return
 	if action_id.begins_with("secret_"):
@@ -955,8 +994,10 @@ static func on_dialogue_action(npc: VillageNPC, action_id: String) -> void:
 			return
 		inv.add_gold(-20)
 		npc.affinity = maxi(10, npc.affinity + 50)
-		if vm and vm.has_method("modify_family_reputation") and npc.family_id != "none":
-			vm.call("modify_family_reputation", npc.family_id, 50, "Compensación familiar pagada", npc)
+		if vm:
+			VillageClans.state(vm)["feud_player"].erase(str(npc.family_id))
+			if vm.has_method("modify_family_reputation") and npc.family_id != "none":
+				vm.call("modify_family_reputation", npc.family_id, 50, "Compensación familiar pagada", npc)
 		npc._spawn_floating_text("🤝 Familia %s reconciliada (-20 Oro)" % npc.family_name, Color.SPRING_GREEN, -44.0)
 		return
 

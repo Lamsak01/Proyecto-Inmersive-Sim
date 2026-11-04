@@ -122,6 +122,7 @@ static func vote_of(vm, voter, cands: Array):
 			s += BAND_VOTE_BONUS
 		s += 5.0 * TraitCatalog.npc_tendency(c, "leadership")
 		s += load("res://scripts/systems/VillageNobility.gd").sway(vm, voter, c, cands) # V6: quien vive de las tierras del señor
+		s += float(vm.VillageMayor.candidate_penalty(vm, c.get_person_key())) # P5.2: difamación electoral
 		if s > best_s:
 			best_s = s
 			best = c
@@ -133,11 +134,22 @@ static func hold_election(vm, reason: String = "", voters: Array = []) -> Dictio
 	var cands: Array = candidates(vm)
 	if cands.is_empty():
 		return {}
+	var player_running: bool = bool(st.get("player_candidate", false))
 	var votes: Dictionary = {}
 	for v in (voters if not voters.is_empty() else VillageNeeds.living(vm)):
 		if VillageNeeds.is_outsider(v) or (v.person_profile != null and int(v.person_profile.age) < 16):
 			continue # V9: los niños no votan
+		var pledged_k: String = str(st["pledges"].get(v.get_person_key(), ""))
+		if player_running and pledged_k == "player":
+			votes["player"] = int(votes.get("player", 0)) + 1
+			continue
 		var choice = vote_of(vm, v, cands)
+		if player_running and not (v in cands):
+			var p_score: float = vm.VillageMayor.player_vote_score(vm, v)
+			var c_score: float = float(v.get_relationship_with_npc(choice.get_person_key())) if choice != null else -999.0
+			if p_score > c_score:
+				votes["player"] = int(votes.get("player", 0)) + 1
+				continue
 		if choice != null:
 			votes[choice.get_person_key()] = int(votes.get(choice.get_person_key(), 0)) + 1
 	var winner = cands[0]
@@ -145,17 +157,27 @@ static func hold_election(vm, reason: String = "", voters: Array = []) -> Dictio
 		if int(votes.get(c.get_person_key(), 0)) > int(votes.get(winner.get_person_key(), 0)):
 			winner = c
 	var old: String = str(st.get("mayor", ""))
-	st["mayor"] = winner.get_person_key()
-	st["mayor_name"] = winner.npc_name
 	st["term_start"] = VillageNeeds.today()
 	st["next_election"] = VillageNeeds.today() + TERM_DAYS
 	st["pledges"] = {}
+	st["player_candidate"] = false
 	st["elections"] = int(st["elections"]) + 1
 	if reason == "":
 		st["banned"] = "" # El destituido puede volver a presentarse en las elecciones normales
 	var parts: Array[String] = []
+	if player_running:
+		parts.append("El Forastero %d" % int(votes.get("player", 0)))
 	for c in cands:
 		parts.append("%s %d" % [c.npc_name, int(votes.get(c.get_person_key(), 0))])
+	if player_running and int(votes.get("player", 0)) >= int(votes.get(winner.get_person_key(), 0)) and int(votes.get("player", 0)) > 0:
+		st["mayor"] = "player"
+		st["mayor_name"] = "El Forastero"
+		var p_txt: String = "El Forastero es %s alcalde (%s)%s" % ["el nuevo" if old != "player" else "otra vez", ", ".join(parts), (" — " + reason) if reason != "" else ""]
+		(st["history"] as Array).append({"day": VillageNeeds.today(), "mayor": "El Forastero", "votes": votes.duplicate()})
+		VillageChronicle.add(vm, "election", p_txt, true)
+		return {"winner": "player", "votes": votes}
+	st["mayor"] = winner.get_person_key()
+	st["mayor_name"] = winner.npc_name
 	var txt: String = "%s es %s alcalde (%s)%s" % [winner.npc_name, "el nuevo" if old != winner.get_person_key() else "otra vez", ", ".join(parts), (" — " + reason) if reason != "" else ""]
 	(st["history"] as Array).append({"day": VillageNeeds.today(), "mayor": winner.npc_name, "votes": votes.duplicate()})
 	VillageChronicle.add(vm, "election", txt, true)
@@ -167,20 +189,22 @@ static func hold_election(vm, reason: String = "", voters: Array = []) -> Dictio
 static func collect_taxes(vm) -> Dictionary:
 	var st: Dictionary = state(vm)
 	var total: int = 0
-	for n in VillageNeeds.living(vm):
-		if VillageNeeds.is_outsider(n) or n.personal_gold <= TAX_FREE_GOLD:
-			continue
-		var rate: float = TAX_RATE_RICH if VillageNeeds.class_of(n) == "rico" else TAX_RATE
-		var tax: int = int(float(n.personal_gold - TAX_FREE_GOLD) * rate)
-		if tax > 0:
-			n.personal_gold -= tax
-			total += tax
-	for r in vm.shop_businesses.keys():
-		var b: Dictionary = vm.shop_businesses[r]
-		var t: int = int(float(int(b.get("vault_gold", 0))) * SHOP_TAX)
-		if t > 0:
-			b["vault_gold"] = int(b["vault_gold"]) - t
-			total += t
+	var tax_mult: float = vm.VillageMayor.tax_multiplier(vm) # P5.4: edicto fiscal
+	if tax_mult > 0.0:
+		for n in VillageNeeds.living(vm):
+			if VillageNeeds.is_outsider(n) or n.personal_gold <= TAX_FREE_GOLD:
+				continue
+			var rate: float = (TAX_RATE_RICH if VillageNeeds.class_of(n) == "rico" else TAX_RATE) * tax_mult
+			var tax: int = int(float(n.personal_gold - TAX_FREE_GOLD) * rate)
+			if tax > 0:
+				n.personal_gold -= tax
+				total += tax
+		for r in vm.shop_businesses.keys():
+			var b: Dictionary = vm.shop_businesses[r]
+			var t: int = int(float(int(b.get("vault_gold", 0))) * SHOP_TAX * tax_mult)
+			if t > 0:
+				b["vault_gold"] = int(b["vault_gold"]) - t
+				total += t
 	var res: Dictionary = {"taxed": total, "embezzled": 0, "relief": 0}
 	st["taxed_total"] = int(st["taxed_total"]) + total
 	var mayor = mayor_of(vm)
@@ -206,6 +230,7 @@ static func collect_taxes(vm) -> Dictionary:
 			res["relief"] = int(res["relief"]) + RELIEF_EACH
 			if mayor != null:
 				n.modify_npc_relationship(mayor, 1, "Repartió la ayuda del pueblo", true)
+	vm.VillageMayor.on_saturday_taxes(vm, res) # P5.4: sueldo del jugador alcalde y humor fiscal
 	VillageChronicle.add(vm, "taxes", "Se cobraron %d de oro de impuestos; %d para los pobres" % [res["taxed"], res["relief"]], true)
 	return res
 
@@ -262,7 +287,7 @@ static func expose(vm, how: String) -> void:
 
 static func daily(vm) -> void:
 	var st: Dictionary = state(vm)
-	if mayor_of(vm) == null:
+	if mayor_of(vm) == null and str(st.get("mayor", "")) != "player":
 		hold_election(vm)
 	elif VillageNeeds.today() >= int(st.get("next_election", 0)) and int(st.get("voting_day", -1)) != VillageNeeds.today():
 		load("res://scripts/systems/VillageCivic.gd").open_voting(vm) # V5b: hoy se vota en el ayuntamiento, en persona

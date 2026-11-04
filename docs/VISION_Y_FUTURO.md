@@ -61,17 +61,17 @@ Estado: **✅ HECHO** = ya construido y funcionando en el juego. **🟡 EN PARTE
 ### Vida social y emocional (P1, P2, P3)
 - ✅ **HECHO** — Relaciones de un solo sentido: amor no correspondido, amistad desigual, «le cae mal y el otro ni se entera», declaraciones con rechazo, excusas al quedar, sentimientos ocultos que descubres hablando y opiniones contadas por terceros («según X»). *(Hecho en U1–U7 y bloque E4.)*
 - ✅ **HECHO** — Triángulos amorosos, celos, infidelidades, descubrir aventuras, chantaje y rupturas. *(Hecho en B3.3, S1–S6 y U3.)*
-- 🟡 **EN PARTE** — Ideas tras S (2026-11-02):
+- ✅ **HECHO** — Ideas tras S y bloque P3 (2026-11-04):
   - ✅ **Hecho en V8:** venganzas del engañado y celos que acaban en violencia o asesinato pasional (en 5 días en vez de 14).
   - ✅ **Hecho en M1 / D5:** las rupturas por infidelidad y las amenazas cuentan como móvil en las investigaciones, y el asesino vecino deja rastro sin coartada.
-  - 💡 **Pendiente:** hijos fuera de la pareja (hoy `VillageFamily` solo concibe dentro de la pareja estable), otros secretos chantajeables (crímenes antiguos ocultos) y que los rasgos rumoreados falsos también se olviden solos con el paso del tiempo (hoy se borran al descubrir el rasgo real).
+  - ✅ **Hecho en P3 (`VillageLineage.gd`):** hijos secretos fruto de una infidelidad (con rasgo heredado del amante que despierta rumores al crecer), chantaje de paternidad, reclamar o repudiar al niño, manutención secreta semanal, expósitos dejados en la Capilla del Alba, adopción de huérfanos, rivalidad entre hermanastros por el taller, matrimonios por interés y pasado familiar fuera del valle.
 - ✅ **HECHO** — Degradación de relaciones con la distancia (si llevan más de 7 días sin verse, el aprecio y la chispa se enfrían poco a poco hacia neutro). *(Hecho en U6.)*
 - 💡 **PENDIENTE** — Idolatría u obsesión por un personaje (muy rara). *(Hoy existen seguidores de un vecino con rasgo Líder en G4 y amor no correspondido en U3, pero no obsesión patológica.)*
 - 🟡 **EN PARTE** — Fama: alguien puede volverse famoso (por sus obras, peleas, oficio, escándalos). *(Hoy el jugador tiene fama de ley y de fe, y los vecinos tienen la tendencia `fame` en sus rasgos, pero aún no hay puntuación de fama individual para cada vecino.)*
 - ✅ **HECHO** — Enemigos que conspiran contra el jugador (si te odian ≤ −50 durante 7 días: hablan mal de ti, se niegan a venderte en su tienda, te denuncian al comisario —incluso con cargos falsos si son mentirosos— y difunden tus secretos). *(Hecho en D4.)*
-- 🟡 **EN PARTE** — Rencores entre familias que pasan a los hijos; reputación del jugador por grupo:
+- ✅ **HECHO** — Rencores entre familias que pasan a los hijos y clanes (`VillageClans.gd`, P1):
   - ✅ **Hecho en G4 y G5:** reputación del jugador con cada grupo/familia en el glosario `[J]`, y defensa de bando en vivo (si peleas, calumnias o chantajeas a alguien, su familia te coge manía).
-  - 💡 **Pendiente:** que al morir un vecino (o marcharse), sus hijos y familiares hereden parte de sus odios y rencores profundos.
+  - ✅ **Hecho en P1 (`VillageClans.gd`):** al morir un vecino o marcharse, su familia hereda el 50 % de sus odios profundos y odio total hacia el asesino; feudos de sangre entre familias tras peleas o asesinatos; boicot comercial contra el jugador; romances prohibidos (Romeo y Julieta); venganza del huérfano al cumplir 16 años; cenas de paz entre clanes; desheredar a la oveja negra; deudas de honor familiares al salvar vidas; guerras por el testamento y profanación nocturna de tumbas.
 - ✅ **HECHO (25 de 25 tipos)** — Misiones nuevas que salen de estas piezas: «¿Me engaña X?», «Las cuentas de X», «La última copa», «Que no me quiten la casa», «La herencia de X», «El testigo con miedo», «La tumba sin nombre», etc. *(Hecho en Q1–Q4 y bloques M y N; ver `docs/MISIONES.md`.)*
 
 ### Ciclo de vida
@@ -81,9 +81,9 @@ Estado: **✅ HECHO** = ya construido y funcionando en el juego. **🟡 EN PARTE
 
 ### Salud y cuerpo (P5)
 - ✅ **HECHO** — Estadística de higiene para vecinos y jugador; lavarse en pozos y en el lavadero; mal olor que molesta a los demás; si no se cuidan surgen enfermedades contagiosas (resfriado y fiebre gris, que encama y puede matar si el médico no la trata). *(Hecho en E1–E2.)*
-- 🟡 **EN PARTE** — Adicciones (alcohol, drogas, juego):
+- ✅ **HECHO** — Adicciones y drogas (alcohol, «polvo de ocaso», juego):
   - ✅ **Hecho en E5 y M14:** adicción de los vecinos a la bebida y al juego, borracheras que sueltan secretos, síndrome de abstinencia que empuja a robar y misión para ayudar a dejar la bebida.
-  - 💡 **Pendiente:** drogas (como el «polvo de ocaso») y adicción para el propio jugador.
+  - ✅ **Hecho en P7 (`VillageUnderworld.gd`):** tráfico, destilación en banco de trabajo casero y venta clandestina de «polvo de ocaso» a ricos, nobles y adictos.
 - 🧱 **BASE** — Amputaciones e implantes / prótesis. *(Base: medicina anatómica estilo RimWorld con órganos, fracturas y sangrado; falta pérdida permanente de miembros y prótesis.)*
 
 ### Sociedad, crimen y poder (P4, P6)
@@ -91,19 +91,20 @@ Estado: **✅ HECHO** = ya construido y funcionando en el juego. **🟡 EN PARTE
 - **El usuario ampliará el sistema de sectas más adelante** (2026-11-03): lo construido le deja sitio.
 - 💡 **PENDIENTE** — Ideas tras O (2026-11-03): encargos internos de la secta para el jugador, la droga «polvo de ocaso» como cebo, que la secta capte al comisario o al alcalde a propósito, rivalidad abierta con el sacerdote, varias sectas o cultos, que el fundador huya en vez de pagar multa, un lugar de reunión propio (cripta o sótano), la secta como gancho de la historia principal. *(Nota: en M16 ya existe la misión externa «Lo que se lee de noche» para descubrir la secta desde la biblioteca.)*
 - ✅ **HECHO** — Alcalde que puede ser corrupto; policías corruptos (elecciones con urna en el Ayuntamiento, impuestos de los sábados, alcalde que desfalca las arcas y puede ser destapado, comisario sobornable por ladrones y por el jugador). *(Hecho en I1–I6 y V5b.)*
-- 🟡 **EN PARTE** — Ideas tras E e I (2026-11-03):
+- ✅ **HECHO** — Ideas tras E, I y bloques P2, P4, P5 y P7 (2026-11-04):
   - ✅ **Hecho en V6 y bloque H:** nobles y señor del valle (mansión, rentistas, cobro de rentas a granja y rancho, influencia en las elecciones y préstamos hipotecarios para casas con interés del 25 % y desahucio).
   - ✅ **Hecho en V4, V3 y J4:** obras públicas y gasto social pagados con las arcas (casas de oficio/vivienda y gachas del Albergue).
   - ✅ **Hecho en M4:** compra de votos y promesas electorales para un candidato (`vote_buying`).
-  - 💡 **Pendiente:** que el jugador pueda presentarse a alcalde y gobernar, adicción del jugador, epidemias con cuarentena, mercado negro de objetos robados y una casa de baños cubierta (el lavadero al aire libre ya está hecho en V5d).
+  - ✅ **Hecho en P5 (`VillageMayor.gd`):** presentarte a Alcalde en el Ayuntamiento, campañas de difamación, alcalde títere bajo chantaje, edictos de impuestos (0 %, bajos, normales, altos), decretos municipales (toque de queda, ley seca, subsidio del mercado, guardia reforzada), obras públicas, nombrar/destituir comisario, malversar fondos o maquillar libros y moción de censura.
+  - ✅ **Hecho en P7 (`VillageUnderworld.gd`):** mercado negro nocturno tras la taberna con perista, herramientas ilegales (ganzúas, veneno lento, somnífero, papeles falsos), encargos de robo a medida, usura del jugador, extorsión de «protección» a comercios, sicarios/saboteadores a sueldo, club de pelea clandestino a medianoche, soborno de ronda nocturna y convertirte en Jefe del Hampa.
 - ✅ **HECHO** — Planes de asesinato entre vecinos (muy raros, con señales previas, rumor de amenaza, opción de avisar a la víctima o denunciar al comisario, y pistas forenses). *(Hecho en D5.)*
-- 🟡 **EN PARTE** — Ideas tras D (2026-11-03):
+- ✅ **HECHO** — Ideas tras D y bloque P2 (`VillageForensics.gd`, 2026-11-04):
   - ✅ **Hecho en V8:** que el vecino ambicioso se quede con un negocio vacante antes de traer a un forastero.
-  - 💡 **Pendiente:** venganzas heredadas por la familia al morir un pariente, que el asesino deje pistas falsas para culpar a un rival, y que un vecino pueda planear asesinar al propio jugador (hoy en D4 conspiran contra ti, pero sin matarte).
+  - ✅ **Hecho en P1 y P2 (`VillageClans.gd`, `VillageForensics.gd`):** venganzas heredadas por la familia al morir un pariente, plantar pistas falsas para incriminar a un rival, coartadas falsas por lealtad familiar/secta, testigos intimidados, sicarios por encargo, veneno lento que simula muerte natural hasta la autopsia, mover el cadáver de noche, confesiones ebrio o con fiebre, chivo expiatorio del comisario corrupto y emboscadas nocturnas con la guardia.
 - ✅ **HECHO** — Personas religiosas y no creyentes (la Fe del Alba provisional, con el sacerdote Hermano Anselmo, sermones y Oficio en la capilla los domingos). *(Hecho en G1–G7.)*
-- 🟡 **EN PARTE** — Ideas tras G (2026-11-03):
+- ✅ **HECHO** — Ideas tras G y bloque P4 (`VillageConfession.gd`, 2026-11-04):
   - ✅ **Hecho en V5e:** día de mercado entre semana (miércoles por la mañana en la plaza).
-  - 💡 **Pendiente:** confesión con el sacerdote como fuente de secretos (y un sacerdote que los use), fiestas del Alba al año, bodas y entierros con ceremonia en la capilla, sacerdote corrupto o secta nacida de fanáticos, aspecto propio para el sacerdote, rivalidad entre bandos que crece con el tiempo.
+  - ✅ **Hecho en P4 (`VillageConfession.gd`):** confesión entre semana (martes y jueves) con el sacerdote como fuente de secretos, espiar el confesionario en sigilo, sacerdote corrupto que vende secretos o chantajea, penitencias visibles al día siguiente, excomunión, confesarte tú mismo, bulas de indulgencia compradas por ricos, sermón dominical con indirectas, crisis de fe del sacerdote y derecho de santuario en la capilla.
 - ✅ **HECHO** — Ladrones (robos nocturnos a vecinos, tiendas o al jugador, testigos, denuncias y devolución con multa o soborno). *(Hecho en E4.)*
 - 💡 **PENDIENTE** — Prostitución. *(Recomendación: solo implícita, fuera de cámara, como oficio y hecho social; nunca explícita. Se puede quitar sin perder nada importante.)*
 - ✅ **HECHO** — Clases sociales: nobles, ricos, acomodados, humildes, pobres y mendigos (con limosna en la plaza, Albergue del Alba y raciones de gachas). *(Hecho en E3, V5b, V6 y J4.)*
@@ -118,7 +119,7 @@ Estado: **✅ HECHO** = ya construido y funcionando en el juego. **🟡 EN PARTE
 ### Ocio, apuestas y peleas
 - ✅ **HECHO** — Casino y apuestas: póker, blackjack, ruleta y billar en la posada para el jugador, y vecinos que van a apostar por las tardes y pueden engancharse al juego. *(Base + hecho en E5.)*
 - 💡 **PENDIENTE** — Carreras de animales; peleas de perros y gallos.
-- 🧱 **BASE** — Club de la lucha, boxeo, peleas callejeras. *(Base: peleas entre vecinos en B4.1–B4.2 y misión de pelea anunciada en M17; falta un club de boxeo organizado con apuestas.)*
+- ✅ **HECHO** — Club de la lucha, boxeo, peleas callejeras. *(Peleas entre vecinos en B4.1–B4.2, misión de pelea anunciada en M17 y club de pelea clandestino a medianoche con apuestas y combate a puño limpio en P7 `VillageUnderworld.gd`.)*
 
 ### Mundo, ecosistema y exploración
 - 💡 **PENDIENTE** — Sembrar árboles y que influya en el ecosistema (fauna, suelo, recursos).
@@ -126,9 +127,9 @@ Estado: **✅ HECHO** = ya construido y funcionando en el juego. **🟡 EN PARTE
 - 💡 **PENDIENTE** — Investigación y exploración.
 - 💡 **PENDIENTE** — Alcantarillas con localizaciones nuevas.
 - 💡 **PENDIENTE** — Niveles verticales: sótanos, edificios de varios pisos (diseño aprobado en la sección 6).
-- 🟡 **EN PARTE** — Housing (casa propia, decorarla, comprar/alquilar):
+- ✅ **HECHO** — Housing (casa propia, mejorarla, comprar/alquilar y ser terrateniente):
   - ✅ **Hecho para los vecinos (V4, V3 y bloque H):** compra de casas en solares, hipotecas a plazos con interés, alquiler y desahucios.
-  - 💡 **Pendiente para el jugador:** comprar o construir tu propia casa en un solar libre y decorarla por dentro.
+  - ✅ **Hecho para el jugador en P6 (`VillageHousing.gd`):** comprar o encargar tu propia casa en un solar libre (al contado o con hipoteca), dormir/asearte gratis y usar tu cofre privado, mejoras de interior con el carpintero (estantería, banco de trabajo, cama de roble, cerradura reforzada), vivir con tu pareja, comprar más casas o embargos para cobrar alquiler como casero, huerto casero, cenas en casa, escondite secreto bajo las tablas y escrituras de locales comerciales.
 - 💡 **PENDIENTE** — Crear tu propio asentamiento.
 
 ### Jugador

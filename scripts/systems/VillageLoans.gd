@@ -100,6 +100,28 @@ static func daily(vm) -> Dictionary:
 		if not st.has("loan"):
 			continue
 		var loan: Dictionary = st["loan"]
+		if str(st.get("payer", "")) == "player":
+			var pl = VillageNeeds.player_of(vm)
+			var inv = pl.get("inventory") if pl != null else null
+			var pay_p: int = mini(INSTALLMENT, int(loan["owed"]))
+			if inv != null and int(inv.gold) >= pay_p:
+				inv.add_gold(-pay_p)
+				_credit(vm, str(loan["lender"]), pay_p)
+				loan["owed"] = int(loan["owed"]) - pay_p
+				loan["missed"] = 0
+				res["paid"] = int(res["paid"]) + pay_p
+				if int(loan["owed"]) <= 0:
+					st.erase("loan")
+					res["cleared"] = int(res["cleared"]) + 1
+					vm.VillageChronicle.add(vm, "loan_paid", "El Forastero termina de pagar la hipoteca de su casa", true)
+				continue
+			loan["missed"] = int(loan["missed"]) + 1
+			loan["owed"] = int(loan["owed"]) + LATE_FEE
+			res["missed"] = int(res["missed"]) + 1
+			if int(loan["missed"]) >= MAX_MISSED:
+				evict(vm, id, people)
+				res["evicted"] = int(res["evicted"]) + 1
+			continue
 		var owner = people.get(str(st.get("payer", "")), null)
 		if owner == null or not is_instance_valid(owner) or owner.is_dead:
 			st["payer"] = str(loan["lender"]) # sin deudor, la casa queda para quien prestó

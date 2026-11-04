@@ -168,6 +168,14 @@ static func nightly(vm, n) -> bool:
 	if owner_key == "town" and n.personal_gold >= TOWN_HOUSE_RENT:
 		n.personal_gold -= TOWN_HOUSE_RENT
 		vm.town_state["treasury"] = int(vm.town_state.get("treasury", 0)) + TOWN_HOUSE_RENT
+	elif owner_key == "player":
+		var rent_p: int = vm.VillageHousing.rent_for_lot(vm, id)
+		if n.personal_gold >= rent_p:
+			n.personal_gold -= rent_p
+			var pl = VillageNeeds.player_of(vm)
+			if pl != null and "inventory" in pl and pl.inventory != null:
+				pl.inventory.add_gold(rent_p)
+			vm.VillageHousing.state(vm)["rent_collected"] = int(vm.VillageHousing.state(vm).get("rent_collected", 0)) + rent_p
 	elif owner_key != "" and owner_key != n.get_person_key() and n.personal_gold >= TOWN_HOUSE_RENT:
 		# H: casa de otro (p. ej. un noble que la recuperó por deudas): el alquiler va a su dueño
 		var landlord = vm._get_npcs_by_person_key().get(owner_key, null)
@@ -313,6 +321,7 @@ static func on_left(vm, n) -> void:
 		vm.vagrant_camp_nodes[n.npc_name].visible = false
 	n.lodging = ""
 	prune_residents(vm)
+	vm.VillageClans.on_npc_departure(vm, n) # P1.6: herencia de casa al marcharse
 	vm._free_transient_npc(n)
 
 ## Cada hora: quien se iba y perdió el encargo (se le acabó el plazo) sigue su camino.

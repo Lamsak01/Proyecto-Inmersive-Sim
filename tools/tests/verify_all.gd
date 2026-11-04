@@ -3232,5 +3232,126 @@ func _initialize() -> void:
 	vm_y.queue_free()
 	print("Block M quest types OK")
 
+	# 82. Bloques P1–P7 (70 mecánicas: clanes, forense, linaje, confesión, alcaldía, vivienda y bajos fondos).
+	var p70_pl = get_first_node_in_group("player")
+	var p70_inv = p70_pl.inventory if p70_pl != null else load("res://scripts/systems/SimpleInventory.gd").new()
+	p70_inv.gold = 500
+	var p70_a = v5b_people[0]
+	var p70_b = v5b_people[1]
+	var p70_c = v5b_people[2]
+	var p70_fam_a_bak: String = p70_a.family_id
+	var p70_fam_b_bak: String = p70_b.family_id
+	p70_a.family_id = "family_clan_a"
+	p70_b.family_id = "family_clan_b"
+	# P1: Clanes, feudo de sangre, deuda de honor y huérfano vengador
+	var vcl = vm.VillageClans
+	vcl.declare_blood_feud(vm, "family_clan_a", "family_clan_b", "prueba P1")
+	var p1_fk: String = vcl.feud_key("family_clan_a", "family_clan_b")
+	assert(vcl.state(vm)["feuds"].has(p1_fk), "P1: Blood feud declared between clans")
+	assert(vcl.mediate_clan_peace(vm, p1_fk, "prueba P1") and not vcl.state(vm)["feuds"].has(p1_fk), "P1: Clan peace mediated")
+	vcl.grant_honor_debt(vm, p70_a, "salvó su vida")
+	assert(vcl.player_price_mult(vm, p70_a) < 1.0, "P1: Honor debt grants family discount")
+	var p1_kid = vfm.spawn_child(vm, p70_a, null, 15)
+	vcl.on_murder_resolved(vm, p70_a.npc_name, p70_b.npc_name)
+	assert(vcl.state(vm)["orphan_killers"].has(p1_kid.get_person_key()), "P1: Orphan remembers parent's killer")
+	vcl.on_child_grown_up(vm, p1_kid)
+	assert(not vde.active_of(vm, p1_kid.get_person_key()).is_empty(), "P1: Grown orphan starts revenge desire against parent's killer")
+	# P2: Forense, pistas falsas, coartadas y desmontar prueba
+	var vfo = vm.VillageForensics
+	vfo.state(vm)["planted"][p70_a.npc_name] = {"framed_name": p70_c.npc_name, "framed_key": p70_c.get_person_key(), "killer_name": p70_b.npc_name, "debunked": false}
+	vfo.state(vm)["alibis"][p70_a.npc_name] = {"ally_key": p70_c.get_person_key(), "ally_name": p70_c.npc_name, "killer_name": p70_b.npc_name, "broken": false}
+	vm.npc_murders[p70_a.npc_name] = p70_b.npc_name
+	var p2_case: Dictionary = {"active": true, "victim_name": p70_a.npc_name, "reporter_name": p70_c.npc_name, "suspects": {p70_b.npc_name: {"score": 30}, p70_c.npc_name: {"score": 10}}, "clues_log": []}
+	vfo.apply_to_case(vm, p70_a, p2_case)
+	assert(int(p2_case["suspects"][p70_c.npc_name]["score"]) == 30 and int(p2_case["suspects"][p70_b.npc_name]["score"]) == 15, "P2: Planted clue raises framed suspect and false alibi lowers killer")
+	var p2_inv_bak: Dictionary = vm.active_sheriff_investigation.duplicate(true)
+	vm.active_sheriff_investigation = p2_case
+	vfo.on_player_action(vm, p70_a, "forensic_debunk:" + p70_a.npc_name, p70_inv)
+	assert(bool(vfo.state(vm)["planted"][p70_a.npc_name]["debunked"]) and int(p2_case["suspects"][p70_c.npc_name]["score"]) < 30, "P2: Debunking planted clue clears framed suspect")
+	vm.active_sheriff_investigation = p2_inv_bak
+	# P3: Linaje, hijo secreto de amante, revelación y expósito en la capilla
+	var vli = vm.VillageLineage
+	vli.state(vm)["secret_preg"][p70_a.get_person_key()] = {"mother_key": p70_a.get_person_key(), "mother_name": p70_a.npc_name, "real_father": p70_b.get_person_key(), "real_father_name": p70_b.npc_name, "presumed_father": p70_c.get_person_key(), "presumed_name": p70_c.npc_name, "secret_id": 1, "player_knows": true}
+	var p3_kid = vfm.spawn_child(vm, p70_a, p70_c, 0)
+	vli.on_child_born(vm, p70_a, p70_c, p3_kid)
+	assert(vli.state(vm)["bastards"].has(p3_kid.get_person_key()), "P3: Secret affair child registered in bastards")
+	vli.reveal_paternity(vm, p3_kid.get_person_key(), "prueba P3")
+	assert(bool(vli.state(vm)["bastards"][p3_kid.get_person_key()]["revealed"]), "P3: Paternity revelation processed")
+	vli.leave_foundling_at_chapel(vm, p70_a, p3_kid)
+	assert(vli.state(vm)["foundlings"].has(p3_kid.get_person_key()) and p3_kid.family_id == "family_chapel", "P3: Foundling left at chapel")
+	# P4: Confesión, excomunión y sermón con indirectas
+	var vcf = vm.VillageConfession
+	vcf.excommunicate(vm, p70_b, "prueba P4")
+	assert(vcf.is_excommunicated(vm, p70_b) and not vm.VillageFaith.wants_attend(p70_b, 1), "P4: Excommunicated villager cannot attend Sunday rite")
+	vcf.lift_excommunication(vm, p70_b, "prueba P4")
+	assert(not vcf.is_excommunicated(vm, p70_b), "P4: Excommunication lifted")
+	vcf.state(vm)["priest_secrets"][p70_b.get_person_key()] = {"sinner_key": p70_b.get_person_key(), "sinner_name": p70_b.npc_name, "kind": "robo", "desc": "robo de prueba", "day": 1}
+	vcf.state(vm)["week_sin_counts"]["robo"] = 2
+	assert(vcf.apply_sunday_indirect_sermon(vm, [p70_b]) == "robo", "P4: Sunday indirect sermon targets top confessed sin")
+	# P5: Presentarse a alcalde, ganar elección, decretos e impuestos
+	var vma = vm.VillageMayor
+	var p5_ts_bak: Dictionary = vm.town_state.duplicate(true)
+	vma.on_player_action(vm, p70_a, "town_run_mayor", p70_inv)
+	vma.on_player_action(vm, p70_a, "town_promise:low_tax", p70_inv)
+	assert(bool(vm.town_state.get("player_candidate", false)), "P5: Player registered as mayoral candidate")
+	vm.town_state["pledges"][p70_a.get_person_key()] = "player"
+	vm.town_state["pledges"][p70_b.get_person_key()] = "player"
+	var p5_el: Dictionary = vm.VillageTown.hold_election(vm, "prueba P5", [p70_a, p70_b])
+	assert(str(p5_el.get("winner", "")) == "player" and vma.is_player_mayor(vm), "P5: Player wins mayoral election")
+	assert(vma.toggle_decree(vm, "curfew") and vma.has_decree(vm, "curfew"), "P5: Mayor decree toggled on")
+	vma.on_player_action(vm, p70_a, "town_tax:low", p70_inv)
+	assert(is_equal_approx(vma.tax_multiplier(vm), 0.5), "P5: Tax edict changes tax multiplier")
+	vm.town_state = p5_ts_bak
+	# P6: Casa propia con hipoteca, cofre privado, inquilinos y escondite bajo las tablas
+	var vho = vm.VillageHousing
+	var p6_lot_bak: Dictionary = vl.lot(vm, "n0").duplicate(true)
+	var p6_tr_bak: int = int(vm.town_state.get("treasury", 0))
+	vm.town_state["treasury"] = 300
+	vl.lot(vm, "n0")["status"] = "empty"
+	p70_inv.gold = 200
+	assert(vho.buy_house_loan(vm, "n0", p70_inv) and str(vl.lot(vm, "n0").get("payer", "")) == "player" and vl.lot(vm, "n0").has("loan"), "P6: Player buys house on mortgage")
+	vl.lot(vm, "n0")["status"] = "built"
+	assert(vho.is_player_family_chest(vm, "family_lot_n0"), "P6: Player house chest is recognized as player's own")
+	var p6_g0: int = p70_inv.gold
+	vln.daily(vm)
+	assert(p70_inv.gold == p6_g0 - vln.INSTALLMENT, "P6: Daily mortgage installment paid by player")
+	var p6_lodge_bak: String = p70_c.lodging
+	var p6_cgold: int = p70_c.personal_gold
+	p70_c.lodging = "house:n0"
+	p70_c.personal_gold = 20
+	var p6_g1: int = p70_inv.gold
+	assert(vmi.nightly(vm, p70_c) and p70_inv.gold == p6_g1 + vho.rent_for_lot(vm, "n0"), "P6: Tenant in player-owned house pays rent to player")
+	p70_c.lodging = p6_lodge_bak
+	p70_c.personal_gold = p6_cgold
+	vho.on_player_action(vm, p70_a, "housing_build_stash", p70_inv)
+	vho.on_player_action(vm, p70_a, "housing_stash_put", p70_inv)
+	assert(bool(vho.state(vm).get("has_stash", false)) and int(vho.state(vm).get("stash_gold", 0)) == 25, "P6: Secret floorboard stash stores 25 gold")
+	vl.lot(vm, "n0").clear()
+	for k6 in p6_lot_bak.keys():
+		vl.lot(vm, "n0")[k6] = p6_lot_bak[k6]
+	vl._draw_lot(vm, "n0", vl.lot(vm, "n0"))
+	vm.town_state["treasury"] = p6_tr_bak
+	# P7: Mercado negro, perista, robo por encargo, usura, extorsión y soborno nocturno al guardia
+	var vun = vm.VillageUnderworld
+	var p7_fence = vun.get_fence_npc(vm)
+	assert(p7_fence != null and vun.is_fence(vm, p7_fence), "P7: Night fence NPC selected")
+	p70_inv.gold = 300
+	vun.on_player_action(vm, p7_fence, "underworld_buy:lockpick", p70_inv)
+	assert(vun.get_item_count(vm, "lockpick") == 1, "P7: Bought lockpick from night fence")
+	vun.on_player_action(vm, p7_fence, "underworld_take_heist", p70_inv)
+	vun.on_player_action(vm, p7_fence, "underworld_steal_heist", p70_inv)
+	var p7_g_before: int = p70_inv.gold
+	vun.on_player_action(vm, p7_fence, "underworld_deliver_heist", p70_inv)
+	assert(int(vun.state(vm).get("heists_done", 0)) == 1 and p70_inv.gold > p7_g_before, "P7: Custom heist stolen and delivered to fence")
+	vun.on_player_action(vm, p70_a, "underworld_bribe_patrol", p70_inv)
+	assert(vun.is_guard_bribed_tonight(vm), "P7: Night guard bribed for immunity tonight")
+	p70_a.family_id = p70_fam_a_bak
+	p70_b.family_id = p70_fam_b_bak
+	for np_tmp in [p1_kid, p3_kid]:
+		vfm.state(vm)["born"].erase(np_tmp.get_person_key())
+		vm.unemployed_npcs.erase(np_tmp)
+		vm._free_transient_npc(np_tmp)
+	print("Blocks P1-P7 (70 mechanics) OK")
+
 	print("ALL RIMWORLD MEDICAL, FOOTPRINTS, 3-PHASE CORPSE REPORT, MULTI-CORPSE FIX, RPG INTERROGATION, PUBLIC TRIAL, DYNAMIC RELATIONSHIPS, MISSING FAMILY SEARCH, SOCIAL GLOSSARY & UNCONSCIOUS REACTION TESTS PASSED!")
 	quit(0)
