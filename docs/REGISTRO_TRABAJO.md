@@ -153,24 +153,24 @@ Leyenda: ✅ probado y subido · 🟡 escrito, sin probar · 🔴 falló (ver no
 | # | Paso | Estado | Archivos | Nota |
 |---|------|--------|----------|------|
 | K1 | El cantero trabajaba dentro del edificio y solo le compraba el herrero. Ahora trabaja en la roca y cada obra compra 3 piedras y 3 troncos | ✅ | VillageTrades.yard_pos / fix_quarry_post, VillageLots.buy_materials | Test #80 |
-| K2 | Misión sobre Varris: al hablar con el objetivo no salía cómo seguir. Ahora quien la pidió va primero en la lista de opiniones, hay atajo «📜 Encargo», aviso si ya intercediste hoy y pista si te tiene en negativo | 🟡 | NPCDialogue | Sin test propio: diálogo; probar en juego |
+| K2 | Misión sobre Varris: al hablar con el objetivo no salía cómo seguir. Ahora quien la pidió va primero en la lista de opiniones, hay atajo «📜 Encargo», aviso si ya intercediste hoy y pista si te tiene en negativo | ✅ | NPCDialogue | Probado en N2/N7 (test #81) |
 
 ## Bloque M — 20 misiones nuevas (tanda 1 de 2, aprobada: «hazlas por tandas de 10»)
 
 | # | Tipo | Estado | Mecánica que toca |
 |---|------|--------|-------------------|
-| M1 | affair_doubt | 🟡 | Secretos (aventuras, reacción de la pareja) |
-| M2 | loan_trouble | 🟡 | Préstamos de casas, nobles |
-| M3 | boar_hunt | 🟡 | Ecosistema (mínimo de jabalíes) |
-| M4 | vote_buying | 🟡 | Elecciones, promesas de voto |
-| M5 | embezzle_proof | 🟡 | Desfalco del alcalde, `expose` |
+| M1 | affair_doubt | ✅ | Secretos (aventuras, reacción de la pareja) — probado en N7 (#81) |
+| M2 | loan_trouble | ✅ | Préstamos de casas, nobles — probado en N7 (#81) |
+| M3 | boar_hunt | ✅ | Ecosistema (mínimo de jabalíes) — probado en N7 (#81) |
+| M4 | vote_buying | ✅ | Elecciones, promesas de voto — probado en N7 (#81) |
+| M5 | embezzle_proof | ✅ | Desfalco del alcalde, `expose` — probado en N7 (#81) |
 | M6 | poor_medicine | ✅ | Enfermedades, médico, parroquia |
 | M7 | faith_doubt | ✅ | Fe, asistencia al Oficio |
 | M8 | apprentice | ✅ | Ayudantes de taller, herencia |
-| M9 | sabotage_job | 🟡 | Sabotaje de puestos, ley |
-| M10 | scared_witness | 🟡 | Expediente del comisario, asesino real |
+| M9 | sabotage_job | ✅ | Sabotaje de puestos, ley — probado en N7 (#81) |
+| M10 | scared_witness | ✅ | Expediente del comisario, asesino real — probado en N7 (#81) |
 
-✅ = con test (#81); 🟡 = carga y tiene textos (test Q4), sin prueba funcional: hay que verlo en juego.
+✅ = con test funcional (#81).
 
 ### Pruebas de los bloques K y M (todas pasan) y sonda
 - Los cuatro tests pasan (con #80 y #81). Con 49 vecinos: plaza 6,0 ms, lejos 3,9 ms, peor 23 ms, ninguno > 33 ms.
@@ -181,20 +181,19 @@ Leyenda: ✅ probado y subido · 🟡 escrito, sin probar · 🔴 falló (ver no
 | # | Tipo | Estado | Mecánica que toca |
 |---|------|--------|-------------------|
 | M11 | empty_pots | ✅ | Gachas del Albergue, clases, generosidad |
-| M12 | love_letter | 🟡 | Chispa (SocialDirector), rasgos |
-| M13 | inheritance | 🟡 | Sucesión de talleres, ayudantes |
+| M12 | love_letter | ✅ | Chispa (SocialDirector), rasgos — probado en N7 (#81) |
+| M13 | inheritance | ✅ | Sucesión de talleres, ayudantes — probado en N7 (#81) |
 | M14 | last_drink | ✅ | Vicios; veto nuevo en `do_vice` |
 | M15 | market_stall | ✅ | Mercado del miércoles, stock |
-| M16 | night_reading | 🟡 | Secta, biblioteca |
-| M17 | announced_fight | 🟡 | Tensión y peleas en vivo |
+| M16 | night_reading | ✅ | Secta, biblioteca — probado en N7 (#81) |
+| M17 | announced_fight | ✅ | Tensión y peleas en vivo — probado en N7 (#81) |
 | M18 | homeless | ✅ | Desahucios, casas, posada |
-| M19 | strange_newcomer | 🟡 | Llegadas, descubrir rasgos, marcharse |
-| M20 | nameless_grave | 🟡 | Archivo de la morgue, asesino real |
+| M19 | strange_newcomer | ✅ | Llegadas, descubrir rasgos, marcharse — probado en N7 (#81) |
+| M20 | nameless_grave | ✅ | Archivo de la morgue, asesino real — probado en N7 (#81) |
 
 Cambios de diseño honestos: «¿Quién lo ha dicho?» repetía la misión `rumor` → sustituida por «La última copa»;
 «¿Me corresponde?» repetía `opinion` → hecha como carta que sí actúa sobre la chispa (sin forzar parejas).
-Las marcas de herencia, desahucio, lectura y llegada no se guardan con la partida: tras cargar, esas misiones
-no se ofrecen hasta que vuelva a pasar algo así.
+*(Nota: el guardado de marcas en partida se completó después en N1.)*
 
 ### Pruebas de la tanda 2 (todas pasan) y sonda
 - Los cuatro tests pasan (#81 ampliado: 25 tipos, veto de taberna, donativos, puesto de mercado, sin techo).

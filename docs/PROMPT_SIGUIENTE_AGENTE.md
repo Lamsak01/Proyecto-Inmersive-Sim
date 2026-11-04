@@ -139,14 +139,11 @@ estilo RimWorld, tiendas, justicia con detective y juicio):
 7. ESTADO ACTUAL Y PENDIENTE
 =====================================================================
 - Todo está subido a GitHub y las 4 pruebas pasan (ver la última entrada de REGISTRO_TRABAJO.md).
-- SIN PROBAR JUGANDO (solo pruebas automáticas o ni eso): la mayoría de las 20 misiones nuevas (las marcadas 🟡 en
-  REGISTRO_TRABAJO.md), el arreglo del diálogo de misiones sobre otro vecino (caso «Varris el sheriff»), los
-  canteros trabajando en la roca, la retirada de los cazadores ante jabalíes. Lo primero útil es que yo juegue y te
-  mande capturas; ayúdame a probar con una lista corta de qué mirar.
-- Limitación conocida: algunas marcas que usan las misiones (quién fue desahuciado, quién heredó, quién leyó en la
-  biblioteca, cuándo llegó alguien) NO se guardan con la partida. Tras cargar, esas misiones tardan en volver a
-  ofrecerse. Arreglo pendiente y pequeño: guardarlas en el estado del pueblo.
+- PROBADO EN AUTOMÁTICO (bloque N): las 25 misiones secundarias, el guardado de marcas de misión en cada vecino y el atajo de diálogo «📜 Encargo» ya tienen prueba funcional automática (#81).
+- SIN PROBAR JUGANDO AÚN: ver en partida real las misiones nuevas, los canteros trabajando en la roca y la retirada de los cazadores ante jabalíes.
+- Ya arreglado en sesión con el usuario: los 19 avisos amarillos del editor, el cuadro de diálogo con barra de desplazamiento para que no se corte, quitado el texto antiguo en inglés encima del minimapa y barras de vida/necesidades más compactas y dinámicas.
 - La historia principal no existe todavía (la pestaña está preparada en el panel L).
+- Antes de proponer cualquier idea de docs/VISION_Y_FUTURO.md, revisa sus etiquetas (✅ HECHO / 🟡 EN PARTE / 💡 PENDIENTE) y compruébalo en el código para no proponer nunca algo que ya esté hecho.
 
 =====================================================================
 8. PLANES FUTUROS (orden acordado; ver VISION_Y_FUTURO.md)
