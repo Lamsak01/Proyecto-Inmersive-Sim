@@ -5,6 +5,10 @@ El detalle técnico está en `docs/HANDOFF.md` (sección 7) y el historial compl
 
 ## 2026-11-04
 
+### Amputaciones y prótesis médicas y Sabotaje lógico de la red eléctrica
+- **Amputaciones de urgencia e implantes protésicos:** cuando una herida en un brazo o una pierna se gangrena por una infección grave, el médico la amputa de urgencia para salvar la vida del paciente. Tanto los vecinos con ahorros como tú en la consulta del médico podéis encargar una prótesis articulada de hierro y cuero (pagando al médico y al arreglador y usando un kit de reparación) para recuperar por completo el miembro perdido.
+- **Red eléctrica con circuitos independientes que se pueden sabotear:** en el cuadro eléctrico del taller puedes manipular por separado el circuito de las farolas (para dejar las calles a oscuras), la bomba eléctrica de riego (para cortar el aspersor) o el generador general (con riesgo de que salte un chispazo y te vea la guardia). Cuando la línea cae, el arreglador la repara a diario con cargo a las arcas municipales, o puedes repararla tú entregando una bobina de cobre para cobrar la recompensa del ayuntamiento.
+
 ### Cría de animales con etapas de crecimiento y Carreras y peleas de animales con apuestas
 - **Animales que crecen desde crías hasta adultos:** tanto en el Rancho del Sur como en tu propio corral las crías pasan por etapas de crecimiento (cría, joven y adulto). Puedes comprar crías de aves, sabuesos o corderos, alimentarlas con grano o pan de tu mochila para que crezcan más rápido y ganen vigor, y recoger carne cuando llegan a adultos.
 - **Carreras de animales y peleas clandestinas de gallos y perros:** una vez al día puedes apostar contra el bolsillo real de los vecinos en carreras de animales o en peleas clandestinas de gallos y perros (con riesgo de que la guardia oiga el alboroto); criar un ejemplar adulto vigoroso mejora tus opciones, aunque siempre puedes perder la apuesta.

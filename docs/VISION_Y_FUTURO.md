@@ -84,7 +84,7 @@ Estado: **✅ HECHO** = ya construido y funcionando en el juego. **🟡 EN PARTE
 - ✅ **HECHO** — Adicciones y drogas (alcohol, «polvo de ocaso», juego):
   - ✅ **Hecho en E5 y M14:** adicción de los vecinos a la bebida y al juego, borracheras que sueltan secretos, síndrome de abstinencia que empuja a robar y misión para ayudar a dejar la bebida.
   - ✅ **Hecho en P7 (`VillageUnderworld.gd`):** tráfico, destilación en banco de trabajo casero y venta clandestina de «polvo de ocaso» a ricos, nobles y adictos.
-- 🧱 **BASE** — Amputaciones e implantes / prótesis. *(Base: medicina anatómica estilo RimWorld con órganos, fracturas y sangrado; falta pérdida permanente de miembros y prótesis.)*
+- ✅ **HECHO** — Amputaciones e implantes / prótesis médicas (`VillageIllness.gd`, test #87): cuando una herida en un brazo o pierna alcanza infección grave (gangrena), el médico realiza una amputación de urgencia para salvar la vida; los vecinos con al menos 25 de oro (o costeados por el jugador en la consulta del médico) encargan una prótesis articulada de hierro y cuero junto al arreglador (repartiendo el oro entre el médico y el arreglador y consumiendo 1 kit de reparación), lo que devuelve la función completa del miembro. *(Base anatómica estilo RimWorld + hecho en bloque PJ.)*
 
 ### Sociedad, crimen y poder (P4, P6)
 - ✅ **HECHO** — Secta secreta en el pueblo («Hijos del Ocaso» provisional: nace sola con crisis o ricos aburridos si hay líder persuasivo, captación, reuniones de noche, bando oculto, profanaciones, rito de sangre muy raro; puedes espiarla, unirte, chantajear o denunciarla). *(Hecho en O1–O8.)*
@@ -148,7 +148,7 @@ Estado: **✅ HECHO** = ya construido y funcionando en el juego. **🟡 EN PARTE
 - 💡 **PENDIENTE** — Vehículos: caballos, bicicletas, motos, automóviles, carretas, barcos.
 - 💡 **PENDIENTE** — Armas de fuego.
 - 💡 **PENDIENTE** — Ordenadores y hackeo.
-- 🧱 **BASE** — Electricidad con sistemas lógicos que se puedan sabotear. *(Base: generador, farolas, aspersor, sabotaje de talleres y arreglador en V5e.)*
+- ✅ **HECHO** — Electricidad con sistemas lógicos que se puedan sabotear (`VillageCulture.gd`, `VillageManager.gd`, `FarmPlot.gd`, test #87): red eléctrica dividida en circuitos independientes (circuito de farolas, bomba eléctrica de riego/aspersor y generador general) que pueden sabotearse por separado (1 vez al día, con riesgo de chispazo y búsqueda policial) para dejar las calles a oscuras o secar el riego automático, y repararse entregando una bobina de cobre (cobrando 12 de oro de las arcas municipales) o en el ciclo diario del arreglador con cargo al ayuntamiento. *(Base en V5e + hecho en bloque PJ.)*
 
 ## 5. Valoración honesta (2026-11-02)
 

@@ -1263,7 +1263,7 @@ func _update_streetlights_glow() -> void:
 	if Engine.is_editor_hint():
 		return
 	var is_night: bool = WorldClock != null and (WorldClock.current_hour >= 19 or WorldClock.current_hour < 6)
-	var grid_on: bool = GameManager != null and bool(GameManager.get_flag("electric_grid_active", false))
+	var grid_on: bool = GameManager != null and bool(GameManager.get_flag("electric_grid_active", false)) and VillageCulture.is_lamps_powered(self)
 	for sl in streetlights:
 		var glow: Polygon2D = sl.get("glow")
 		var spr: Sprite2D = sl.get("sprite")

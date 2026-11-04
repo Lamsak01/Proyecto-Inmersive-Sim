@@ -308,6 +308,13 @@ Informe completo: `docs/AUDITORIA_P1_P7.md`.
 | PI1 | Ciclo de crecimiento de animales (`chick` → `juvenile` → `adult` en `ranch_herd` y `player_animals`), compra de crías (`buy_young_animal`, `housing_buy_chick`), alimentación con grano/pan (`feed_player_animals`, `housing_feed_animals`) y producción de lana/carne al madurar | ✅ | VillageHousing.gd, verify_all.gd | Test #86 |
 | PI2 | Carreras de animales (`run_animal_race`, `underworld_animal_race`, 12 de oro contra el bolsillo del vecino, 1/día) y peleas clandestinas de gallos/perros (`run_cockfight`, `underworld_cockfight`, 15 de oro contra el bolsillo del vecino, 1/día, con riesgo de alerta policial), bonificadas por el vigor del animal adulto criado (`best_adult_animal_power`) | ✅ | VillageUnderworld.gd, verify_all.gd | Test #86 |
 
+## Bloque PJ — Amputaciones e implantes / prótesis médicas y Sabotaje lógico de la red eléctrica (2026-11-04)
+
+| # | Paso | Estado | Archivos | Nota |
+|---|------|--------|----------|------|
+| PJ1 | Amputaciones de urgencia por gangrena (`amputate`, `infection >= 65.0`) e implantes de prótesis articuladas (`install_prosthetic`, `illness_prosthetic_self`, `illness_prosthetic_npc`, 25 de oro repartidos entre médico y arreglador + 1 kit de reparación) | ✅ | VillageIllness.gd, verify_all.gd | Test #87 |
+| PJ2 | Red eléctrica con circuitos lógicos independientes (`lamps`, `sprinkler`, `all` en `VillageCulture.grid_state`), sabotaje con riesgo de chispazo (`sabotage_grid`, `culture_sabotage_grid`) y reparación por el jugador (`culture_repair_grid`, 1 bobina de cobre, 12 de oro de las arcas) o por el arreglador en su ciclo diario | ✅ | VillageCulture.gd, VillageManager.gd, FarmPlot.gd, NPCDialogue.gd, verify_all.gd | Test #87 |
+
 
 
 

@@ -16,6 +16,7 @@ const VillageNeeds = preload("res://scripts/systems/VillageNeeds.gd")
 const VillageLots = preload("res://scripts/systems/VillageLots.gd")
 const VillageTrades = preload("res://scripts/systems/VillageTrades.gd")
 const VillageFame = preload("res://scripts/systems/VillageFame.gd")
+const VillageChronicle = preload("res://scripts/systems/VillageChronicle.gd")
 
 const LIBRARY_LOT: String = "n5"
 const SCHOOL_LOT: String = "e3"
@@ -31,16 +32,100 @@ const MARKET_SPOTS: Array = [Vector2(422, 26), Vector2(508, 26), Vector2(522, 52
 const MARKET_VISIT_CHANCE: float = 0.25
 const REPAIR_PRICE: int = 8
 const REPAIRS_PER_DAY: int = 2
+const GRID_REPAIR_REWARD: int = 12
 
 static func state(vm) -> Dictionary:
 	if not vm.culture_state is Dictionary:
 		vm.culture_state = {}
 	var defs: Dictionary = {"readings": 0, "player_read_day": -1, "market_day": -1, "market_sellers": {}, "market_sales": 0,
-		"markets_held": 0, "repairs": 0}
+		"markets_held": 0, "repairs": 0, "grid": {}}
 	for k in defs.keys():
 		if not vm.culture_state.has(k):
 			vm.culture_state[k] = defs[k]
 	return vm.culture_state
+
+static func grid_state(vm) -> Dictionary:
+	var st: Dictionary = state(vm)
+	if not (st.get("grid", null) is Dictionary):
+		st["grid"] = {}
+	var g: Dictionary = st["grid"]
+	var g_defs: Dictionary = {
+		"sabotaged_days": 0,
+		"overloaded_node": "",
+		"last_op_day": -99,
+		"lamps_disabled": false,
+		"sprinkler_disabled": false,
+	}
+	for k in g_defs.keys():
+		if not g.has(k):
+			g[k] = g_defs[k]
+	return g
+
+static func is_grid_sabotaged(vm) -> bool:
+	if vm == null:
+		return false
+	var g: Dictionary = grid_state(vm)
+	return int(g.get("sabotaged_days", 0)) > 0 or bool(g.get("lamps_disabled", false)) or bool(g.get("sprinkler_disabled", false))
+
+static func is_lamps_powered(vm) -> bool:
+	if vm == null:
+		return false
+	var g: Dictionary = grid_state(vm)
+	return not bool(g.get("lamps_disabled", false))
+
+static func is_sprinkler_powered(vm) -> bool:
+	if vm == null:
+		return false
+	var g: Dictionary = grid_state(vm)
+	return not bool(g.get("sprinkler_disabled", false))
+
+static func sabotage_grid(vm, node_target: String = "all", check_risk: bool = false) -> Dictionary:
+	if vm == null:
+		return {"ok": false, "caught": false}
+	var g: Dictionary = grid_state(vm)
+	var today: int = int(WorldClock.current_day) if WorldClock else 1
+	g["last_op_day"] = today
+	if check_risk and randf() < 0.30:
+		vm.wanted_level = clampi(int(vm.wanted_level) + 1, 1, 5)
+		return {"ok": false, "caught": true}
+	var target: String = node_target if node_target in ["all", "lamps", "sprinkler"] else "all"
+	g["overloaded_node"] = target
+	if target == "all":
+		g["sabotaged_days"] = 2
+		g["lamps_disabled"] = true
+		g["sprinkler_disabled"] = true
+	elif target == "lamps":
+		g["sabotaged_days"] = maxi(1, int(g.get("sabotaged_days", 0)))
+		g["lamps_disabled"] = true
+	elif target == "sprinkler":
+		g["sabotaged_days"] = maxi(1, int(g.get("sabotaged_days", 0)))
+		g["sprinkler_disabled"] = true
+	if GameManager != null and bool(g.get("lamps_disabled", false)):
+		GameManager.set_flag("electric_grid_active", false)
+	if GameManager != null:
+		GameManager.set_flag("sprinkler_grid_disabled", bool(g.get("sprinkler_disabled", false)))
+	vm._update_streetlights_glow()
+	var desc_map: Dictionary = {
+		"all": "el generador general",
+		"lamps": "el circuito de farolas",
+		"sprinkler": "la bomba eléctrica de riego",
+	}
+	VillageChronicle.add(vm, "grid_sabotage", "Alguien saboteó %s: saltaron chispas en el tendido eléctrico" % str(desc_map.get(target, "la red")), true)
+	return {"ok": true, "caught": false, "target": target}
+
+static func repair_grid(vm) -> bool:
+	if vm == null:
+		return false
+	var g: Dictionary = grid_state(vm)
+	g["sabotaged_days"] = 0
+	g["overloaded_node"] = ""
+	g["lamps_disabled"] = false
+	g["sprinkler_disabled"] = false
+	if GameManager != null:
+		GameManager.set_flag("electric_grid_active", true)
+		GameManager.set_flag("sprinkler_grid_disabled", false)
+	vm._update_streetlights_glow()
+	return true
 
 static func library_pos() -> Vector2:
 	return VillageLots.building_center(LIBRARY_LOT)
@@ -241,12 +326,22 @@ static func after_load(vm) -> void:
 		close_market(vm)
 
 # ---------------------------------------------------------------- arreglos
-## Cada día: el arreglador acude a los negocios saboteados cuyo dueño puede pagar.
+## Cada día: el arreglador acude a los negocios saboteados cuyo dueño puede pagar, y repara la red eléctrica si el ayuntamiento tiene fondos.
 static func daily(vm) -> int:
 	var tinker = vm.trade_npcs.get(VillageTrades.role_of("tinker"))
 	if tinker == null or not is_instance_valid(tinker) or tinker.is_dead or tinker.is_downed or vm.is_trade_sabotaged(VillageTrades.role_of("tinker")):
 		return 0
 	var done: int = 0
+	var g: Dictionary = grid_state(vm)
+	if int(g.get("sabotaged_days", 0)) > 0 and int(tinker.shop_stock.get("repair_kit", 0)) > 0 and int(vm.town_state.get("treasury", 0)) >= REPAIR_PRICE:
+		vm.town_state["treasury"] = int(vm.town_state.get("treasury", 0)) - REPAIR_PRICE
+		tinker.personal_gold = maxi(0, tinker.personal_gold) + REPAIR_PRICE
+		tinker.shop_stock["repair_kit"] = int(tinker.shop_stock["repair_kit"]) - 1
+		tinker._sync_shop_stock_to_vm()
+		g["sabotaged_days"] = maxi(0, int(g.get("sabotaged_days", 0)) - 1)
+		if int(g["sabotaged_days"]) <= 0:
+			repair_grid(vm)
+		done += 1
 	for r in vm.shop_businesses.keys():
 		if done >= REPAIRS_PER_DAY or int(tinker.shop_stock.get("repair_kit", 0)) <= 0:
 			break
@@ -267,3 +362,49 @@ static func daily(vm) -> int:
 		done += 1
 	state(vm)["repairs"] = int(state(vm)["repairs"]) + done
 	return done
+
+static func add_dialogue_choices(vm, npc, diag: Dictionary, ch_arr: Array) -> void:
+	if vm == null or int(npc.trade_role) != int(VillageNPC.TradeRole.TINKER):
+		return
+	var g: Dictionary = grid_state(vm)
+	var today: int = int(WorldClock.current_day) if WorldClock else 1
+	if int(g.get("last_op_day", -99)) != today:
+		ch_arr.append({"label": "⚡🔧 Manipular a escondidas el cuadro eléctrico (1/día, riesgo de chispazo)", "next": "culture_grid_menu"})
+		diag["culture_grid_menu"] = {
+			"text": "«Mientras el arreglador mira hacia otro lado, ves los tres interruptores de cobre del tendido del pueblo...»",
+			"choices": [
+				{"label": "🌑 Cortar el circuito de farolas (Calles a oscuras)", "next": "END", "action": "culture_sabotage_grid:lamps"},
+				{"label": "🥀 Cortar la bomba eléctrica de riego (Secar aspersor)", "next": "END", "action": "culture_sabotage_grid:sprinkler"},
+				{"label": "💥 Cortocircuitar el generador general (Apagón 2 días)", "next": "END", "action": "culture_sabotage_grid:all"},
+				{"label": "⬅️ Volver", "next": "start"},
+			]
+		}
+	if is_grid_sabotaged(vm) or bool(g.get("lamps_disabled", false)) or bool(g.get("sprinkler_disabled", false)):
+		ch_arr.append({"label": "🛠️⚡ Ayudar a reparar el tendido eléctrico (-1 Bobina de Cobre, +%d Oro del arca)" % GRID_REPAIR_REWARD, "next": "END", "action": "culture_repair_grid"})
+
+static func on_player_action(vm, npc, action_id: String, inv) -> void:
+	if action_id.begins_with("culture_sabotage_grid:"):
+		var g: Dictionary = grid_state(vm)
+		var today: int = int(WorldClock.current_day) if WorldClock else 1
+		if int(g.get("last_op_day", -99)) == today:
+			npc._spawn_floating_text("⚡ Hoy ya manipulaste el cuadro eléctrico", Color.LIGHT_GRAY, -44.0)
+			return
+		var target: String = action_id.substr("culture_sabotage_grid:".length())
+		var res: Dictionary = sabotage_grid(vm, target, true)
+		if bool(res.get("caught", false)):
+			npc.affinity = clampi(npc.affinity - 15, -100, 100)
+			npc._spawn_floating_text("🚨 «¡Eh! ¡Suelta esos cables! ¡Guardias!» (Búsqueda +1)", Color.ORANGE_RED, -46.0)
+		else:
+			npc._spawn_floating_text("⚡💥 ¡Chispazo! Saboteaste el nodo eléctrico (%s)" % target, Color.CYAN, -46.0)
+	elif action_id == "culture_repair_grid":
+		if inv == null or int(inv.items.get("copper_coil", 0)) <= 0:
+			npc._spawn_floating_text("«Necesitamos al menos 1 Bobina de Cobre para empalmar la línea.»", Color.ORANGE_RED, -46.0)
+			return
+		inv.remove_item("copper_coil", 1)
+		repair_grid(vm)
+		var pay: int = mini(GRID_REPAIR_REWARD, maxi(0, int(vm.town_state.get("treasury", 0))))
+		if pay > 0:
+			vm.town_state["treasury"] = int(vm.town_state.get("treasury", 0)) - pay
+			inv.add_gold(pay)
+		npc.affinity = clampi(npc.affinity + 10, -100, 100)
+		npc._spawn_floating_text("🛠️⚡ «¡Línea restablecida! Toma %d de oro del fondo municipal.»" % pay, Color.AQUAMARINE, -46.0)

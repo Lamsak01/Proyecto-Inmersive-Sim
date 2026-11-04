@@ -19,6 +19,7 @@ const VillageMayor = preload("res://scripts/systems/VillageMayor.gd")
 const VillageHousing = preload("res://scripts/systems/VillageHousing.gd")
 const VillageUnderworld = preload("res://scripts/systems/VillageUnderworld.gd")
 const VillageFame = preload("res://scripts/systems/VillageFame.gd")
+const VillageCulture = preload("res://scripts/systems/VillageCulture.gd")
 const TraitDiscovery = preload("res://scripts/systems/TraitDiscovery.gd")
 const TraitCatalog = preload("res://scripts/data/TraitCatalog.gd")
 
@@ -284,6 +285,7 @@ static func _add_neighbor_opinions(npc: VillageNPC, diag: Dictionary, ch_arr: Ar
 		VillageHousing.add_dialogue_choices(vm_p, npc, diag, ch_arr) # P6
 		VillageUnderworld.add_dialogue_choices(vm_p, npc, diag, ch_arr) # P7
 		VillageFame.add_dialogue_choices(vm_p, npc, diag, ch_arr) # Fama y Maestros Artesanos
+		VillageCulture.add_dialogue_choices(vm_p, npc, diag, ch_arr) # PJ.2: Red eléctrica lógica
 	if npc.affinity < 0:
 		var hint_q: String = ""
 		var qm_h = npc.get_node_or_null("/root/QuestManager")
@@ -848,6 +850,10 @@ static func on_dialogue_action(npc: VillageNPC, action_id: String) -> void:
 	if action_id.begins_with("fame_"):
 		if vm != null:
 			VillageFame.on_player_action(vm, npc, action_id, inv)
+		return
+	if action_id.begins_with("culture_"):
+		if vm != null:
+			VillageCulture.on_player_action(vm, npc, action_id, inv)
 		return
 	if action_id.begins_with("town_"):
 		if vm != null:

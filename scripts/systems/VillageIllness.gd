@@ -23,6 +23,82 @@ const IMMUNE_DAYS: int = 20
 const DOCTOR_PER_DAY: int = 3
 const PLAYER_CURE_COST: int = 8
 const PLAYER_FEVER_HP: float = 12.0
+const PROSTHETIC_COST: int = 25
+const LIMB_LABELS: Dictionary = {
+	"left_arm": "Brazo Izq.",
+	"right_arm": "Brazo Der.",
+	"left_leg": "Pierna Izq.",
+	"right_leg": "Pierna Der.",
+}
+
+static func amputations_of(vm) -> Dictionary:
+	var st: Dictionary = VillageNeeds.state(vm)
+	if not (st.get("amputations", null) is Dictionary):
+		st["amputations"] = {}
+	return st["amputations"]
+
+static func get_amputation(vm, key: String) -> Dictionary:
+	return amputations_of(vm).get(key, {})
+
+static func has_amputation(vm, key: String) -> bool:
+	return not get_amputation(vm, key).is_empty()
+
+static func has_prosthetic(vm, key: String) -> bool:
+	return str(get_amputation(vm, key).get("prosthetic", "")) != ""
+
+static func _health_comp_of(vm, key: String):
+	if key == "player":
+		var pl = VillageNeeds.player_of(vm)
+		return pl.get_node_or_null("HealthComponent") if pl != null else null
+	var n = vm._get_npcs_by_person_key().get(key, null)
+	return n.health_comp if n != null else null
+
+static func amputate(vm, key: String, limb_id: String = "left_arm", reason: String = "gangrena por infección") -> bool:
+	if vm == null:
+		return false
+	var limb_key: String = limb_id if LIMB_LABELS.has(limb_id) else "left_arm"
+	var limb_lbl: String = str(LIMB_LABELS[limb_key])
+	amputations_of(vm)[key] = {
+		"limb": limb_key,
+		"limb_label": limb_lbl,
+		"prosthetic": "",
+		"day": VillageNeeds.today(),
+		"reason": reason,
+	}
+	var hc = _health_comp_of(vm, key)
+	if hc != null:
+		for i in range(hc.wounds.size() - 1, -1, -1):
+			if str(hc.wounds[i].get("region", "")) == limb_key:
+				hc.wounds.remove_at(i)
+		hc.region_hp[limb_key] = 0.0
+		hc.anatomy_changed.emit()
+	if key != "player":
+		var n = vm._get_npcs_by_person_key().get(key, null)
+		if n != null:
+			n.add_thought("Perdí mi %s (%s) (-15)" % [limb_lbl, reason], 8.0)
+			n._spawn_floating_text("🪚 Amputación: %s" % limb_lbl, Color(0.95, 0.45, 0.35), -40.0)
+			VillageChronicle.add(vm, "amputation", "El médico amputó el %s de %s (%s)" % [limb_lbl, n.npc_name, reason], true)
+	return true
+
+static func install_prosthetic(vm, key: String, prosthetic_name: String = "Prótesis articulada de hierro y cuero") -> bool:
+	if vm == null or not has_amputation(vm, key):
+		return false
+	var amp: Dictionary = get_amputation(vm, key)
+	var limb_key: String = str(amp.get("limb", "left_arm"))
+	var limb_lbl: String = str(amp.get("limb_label", "Brazo Izq."))
+	amp["prosthetic"] = prosthetic_name
+	amputations_of(vm)[key] = amp
+	var hc = _health_comp_of(vm, key)
+	if hc != null:
+		hc.region_hp[limb_key] = 40.0 if limb_key.ends_with("arm") else 45.0
+		hc.anatomy_changed.emit()
+	if key != "player":
+		var n = vm._get_npcs_by_person_key().get(key, null)
+		if n != null:
+			n.add_thought("Tengo una prótesis (%s) que me devuelve a la vida (+12)" % prosthetic_name, 8.0)
+			n._spawn_floating_text("🦾 %s" % prosthetic_name, Color.AQUAMARINE, -40.0)
+			VillageChronicle.add(vm, "prosthetic", "%s recibió una %s para su %s" % [n.npc_name, prosthetic_name, limb_lbl], true)
+	return true
 
 static func ill_of(vm, key: String) -> Dictionary:
 	return VillageNeeds.state(vm)["ill"].get(key, {})
@@ -139,6 +215,24 @@ static func daily(vm) -> void:
 				continue
 			treat(vm, key)
 			done += 1
+		# PJ.1: Amputaciones de urgencia por gangrena e implantes protésicos con el Arreglador
+		var tinker = vm.trade_npcs.get(VillageNPC.TradeRole.TINKER)
+		for n in VillageNeeds.living(vm):
+			var n_key: String = n.get_person_key()
+			if not has_amputation(vm, n_key) and n.health_comp != null:
+				for w in n.health_comp.wounds:
+					var w_reg: String = str(w.get("region", ""))
+					if LIMB_LABELS.has(w_reg) and float(w.get("infection", 0.0)) >= 65.0:
+						amputate(vm, n_key, w_reg, "gangrena por infección")
+						break
+			if has_amputation(vm, n_key) and not has_prosthetic(vm, n_key) and n.personal_gold >= PROSTHETIC_COST:
+				if tinker != null and is_instance_valid(tinker) and not tinker.is_dead and int(tinker.shop_stock.get("repair_kit", 0)) > 0:
+					n.personal_gold -= PROSTHETIC_COST
+					doc.personal_gold += 15
+					tinker.personal_gold += PROSTHETIC_COST - 15
+					tinker.shop_stock["repair_kit"] = int(tinker.shop_stock["repair_kit"]) - 1
+					tinker._sync_shop_stock_to_vm()
+					install_prosthetic(vm, n_key, "Prótesis articulada de hierro y cuero")
 	# Casos nuevos
 	var raining: bool = WorldClock != null and int(WorldClock.current_weather) == 1
 	for n in VillageNeeds.living(vm):
@@ -181,17 +275,51 @@ static func _hurt_player(vm, disease_name: String) -> void:
 		pl.show_hint("🤒 La %s empeora. Ve al médico." % disease_name)
 
 static func add_dialogue_choices(vm, npc, _diag: Dictionary, ch_arr: Array) -> void:
-	if vm == null or int(npc.trade_role) != int(VillageNPC.TradeRole.DOCTOR) or not is_ill(vm, "player"):
+	if vm == null or int(npc.trade_role) != int(VillageNPC.TradeRole.DOCTOR):
 		return
-	ch_arr.insert(0, {"label": "🩺 Pedir que te cure (%d de oro)" % PLAYER_CURE_COST, "next": "END", "action": "illness_cure"})
+	if is_ill(vm, "player"):
+		ch_arr.insert(0, {"label": "🩺 Pedir que te cure (%d de oro)" % PLAYER_CURE_COST, "next": "END", "action": "illness_cure"})
+	if has_amputation(vm, "player") and not has_prosthetic(vm, "player"):
+		ch_arr.insert(0, {"label": "🦾🩺 Implantar prótesis articulada de hierro y cuero (-%d Oro)" % PROSTHETIC_COST, "next": "END", "action": "illness_prosthetic_self"})
+	var by_key: Dictionary = vm._get_npcs_by_person_key()
+	for k in amputations_of(vm).keys():
+		if str(k) == "player" or has_prosthetic(vm, str(k)):
+			continue
+		var amp_npc = by_key.get(str(k), null)
+		if amp_npc != null and is_instance_valid(amp_npc) and not amp_npc.is_dead:
+			ch_arr.insert(0, {"label": "🦾🤝 Costear prótesis médica para %s (-%d Oro)" % [amp_npc.npc_name, PROSTHETIC_COST], "next": "END", "action": "illness_prosthetic_npc:" + str(k)})
 
 static func on_player_action(vm, npc, action_id: String, inv) -> void:
-	if action_id != "illness_cure":
-		return
-	if inv == null or int(inv.gold) < PLAYER_CURE_COST:
-		npc._spawn_floating_text("«Sin oro no tengo con qué comprar las hierbas.»", Color.CORAL, -46.0)
-		return
-	inv.add_gold(-PLAYER_CURE_COST)
-	npc.personal_gold += PLAYER_CURE_COST
-	recover(vm, "player")
-	npc._spawn_floating_text("🩺 «Bebe esto y descansa. Mañana estarás mejor.»", Color(0.7, 1.0, 0.8), -46.0)
+	if action_id == "illness_cure":
+		if inv == null or int(inv.gold) < PLAYER_CURE_COST:
+			npc._spawn_floating_text("«Sin oro no tengo con qué comprar las hierbas.»", Color.CORAL, -46.0)
+			return
+		inv.add_gold(-PLAYER_CURE_COST)
+		npc.personal_gold += PLAYER_CURE_COST
+		recover(vm, "player")
+		npc._spawn_floating_text("🩺 «Bebe esto y descansa. Mañana estarás mejor.»", Color(0.7, 1.0, 0.8), -46.0)
+	elif action_id == "illness_prosthetic_self" or action_id.begins_with("illness_prosthetic_npc:"):
+		var target_key: String = "player" if action_id == "illness_prosthetic_self" else action_id.substr("illness_prosthetic_npc:".length())
+		if not has_amputation(vm, target_key) or has_prosthetic(vm, target_key):
+			npc._spawn_floating_text("«No hace falta ninguna prótesis ahora mismo.»", Color.LIGHT_GRAY, -46.0)
+			return
+		if inv == null or int(inv.gold) < PROSTHETIC_COST:
+			npc._spawn_floating_text("«Necesito %d de oro para encargar los engranajes y ajustar la prótesis.»" % PROSTHETIC_COST, Color.CORAL, -46.0)
+			return
+		inv.add_gold(-PROSTHETIC_COST)
+		var tinker = vm.trade_npcs.get(VillageNPC.TradeRole.TINKER)
+		if tinker != null and is_instance_valid(tinker) and not tinker.is_dead:
+			npc.personal_gold += 15
+			tinker.personal_gold += PROSTHETIC_COST - 15
+			if int(tinker.shop_stock.get("repair_kit", 0)) > 0:
+				tinker.shop_stock["repair_kit"] = int(tinker.shop_stock["repair_kit"]) - 1
+				tinker._sync_shop_stock_to_vm()
+		else:
+			npc.personal_gold += PROSTHETIC_COST
+		install_prosthetic(vm, target_key, "Prótesis articulada de hierro y cuero")
+		if target_key != "player":
+			var amp_npc = vm._get_npcs_by_person_key().get(target_key, null)
+			if amp_npc != null:
+				amp_npc.affinity = clampi(amp_npc.affinity + 18, -100, 100)
+				amp_npc.modify_npc_relationship(npc, 10, "Me implantó una prótesis gracias al forastero", true)
+		npc._spawn_floating_text("🦾 «Las correas y articulaciones encajan a la perfección.»", Color.AQUAMARINE, -46.0)

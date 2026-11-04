@@ -3868,5 +3868,68 @@ func _initialize() -> void:
 	p70_b.personal_gold = pi_bg_bak
 	print("Block PI (Animal Growth & Animal Bets) OK")
 
+	# 87. Bloque PJ: Amputaciones e implantes / prótesis médicas y Sabotaje lógico de la red eléctrica
+	var vil_pj = load("res://scripts/systems/VillageIllness.gd")
+	var vcu_pj = load("res://scripts/systems/VillageCulture.gd")
+	var pj_doc = vm.trade_npcs.get(int(load("res://scripts/enemies/VillageNPC.gd").TradeRole.DOCTOR))
+	var pj_tinker = vm.trade_npcs.get(int(load("res://scripts/enemies/VillageNPC.gd").TradeRole.TINKER))
+	assert(pj_doc != null and pj_tinker != null, "PJ: Doctor and Tinker exist")
+	var pj_doc_g0: int = pj_doc.personal_gold
+	var pj_tink_g0: int = pj_tinker.personal_gold
+	var pj_tink_kits0: int = int(pj_tinker.shop_stock.get("repair_kit", 0))
+	var pj_bg0: int = p70_b.personal_gold
+	var pj_cg0: int = p70_c.personal_gold
+	var pj_tr0: int = int(vm.town_state.get("treasury", 0))
+	vil_pj.amputations_of(vm).clear()
+	vil_pj.recover(vm, pj_doc.get_person_key())
+	p70_b.personal_gold = 5 # No puede pagarse prótesis aún
+	p70_b.health_comp.wounds.append({
+		"id": 9991, "region": "left_arm", "organ": "", "type": "deep_wound",
+		"name": "Corte Profundo", "severity": 25.0, "bleed_rate": 0.0, "pain": 12.0,
+		"bandaged": true, "bandage_dirty": 0.0, "stitched": false, "splinted": false, "clean": false,
+		"infection": 72.0, "immunity": 20.0, "tend_quality": 10.0, "tend_tier": "makeshift", "weapon_cause": "Cuchillo"
+	})
+	vil_pj.daily(vm)
+	assert(vil_pj.has_amputation(vm, p70_b.get_person_key()) and not vil_pj.has_prosthetic(vm, p70_b.get_person_key()) and float(p70_b.health_comp.region_hp["left_arm"]) == 0.0, "PJ.1a: Doctor performs emergency amputation on gangrenous limb")
+	pj_tinker.shop_stock["repair_kit"] = 3
+	p70_inv.gold = 100
+	pj_doc.personal_gold = 10
+	pj_tinker.personal_gold = 10
+	vil_pj.on_player_action(vm, pj_doc, "illness_prosthetic_npc:" + p70_b.get_person_key(), p70_inv)
+	assert(vil_pj.has_prosthetic(vm, p70_b.get_person_key()) and p70_inv.gold == 75 and pj_doc.personal_gold == 25 and pj_tinker.personal_gold == 20 and int(pj_tinker.shop_stock["repair_kit"]) == 2 and float(p70_b.health_comp.region_hp["left_arm"]) == 40.0, "PJ.1b: Sponsoring prosthetic pays Doctor (15) + Tinker (10), uses 1 repair_kit, and restores limb")
+	# PJ.1c: El propio vecino se costea su prótesis si tiene >= 25 de oro
+	vil_pj.amputate(vm, p70_c.get_person_key(), "right_leg", "fractura séptica")
+	p70_c.personal_gold = 40
+	vil_pj.daily(vm)
+	assert(vil_pj.has_prosthetic(vm, p70_c.get_person_key()) and p70_c.personal_gold == 15 and pj_doc.personal_gold == 40 and pj_tinker.personal_gold == 30 and int(pj_tinker.shop_stock["repair_kit"]) == 1 and float(p70_c.health_comp.region_hp["right_leg"]) == 45.0, "PJ.1c: Neighbor with 25+ gold buys their own prosthetic from Doctor & Tinker")
+	vil_pj.amputations_of(vm).clear()
+	# PJ.2: Red eléctrica lógica (sabotaje de farolas, aspersor o generador general, y reparación por jugador o arreglador)
+	vcu_pj.repair_grid(vm)
+	assert(vcu_pj.is_lamps_powered(vm) and vcu_pj.is_sprinkler_powered(vm) and not vcu_pj.is_grid_sabotaged(vm), "PJ.2a: Grid starts repaired and powered")
+	vcu_pj.sabotage_grid(vm, "lamps", false)
+	assert(not vcu_pj.is_lamps_powered(vm) and vcu_pj.is_sprinkler_powered(vm) and vcu_pj.is_grid_sabotaged(vm), "PJ.2b: Sabotaging lamps circuit cuts streetlights while leaving sprinkler circuit intact")
+	vcu_pj.sabotage_grid(vm, "sprinkler", false)
+	var gm_pj = root.get_node_or_null("/root/GameManager")
+	assert(not vcu_pj.is_sprinkler_powered(vm) and bool(gm_pj.get_flag("sprinkler_grid_disabled", false)), "PJ.2c: Sabotaging sprinkler circuit disables electric irrigation")
+	p70_inv.remove_item("copper_coil", p70_inv.get_count("copper_coil"))
+	p70_inv.add_item("copper_coil", 1)
+	p70_inv.gold = 50
+	vm.town_state["treasury"] = 100
+	vcu_pj.on_player_action(vm, pj_tinker, "culture_repair_grid", p70_inv)
+	assert(vcu_pj.is_lamps_powered(vm) and vcu_pj.is_sprinkler_powered(vm) and p70_inv.get_count("copper_coil") == 0 and p70_inv.gold == 62 and int(vm.town_state["treasury"]) == 88, "PJ.2d: Player repairing grid uses 1 copper_coil and receives 12 gold from town treasury")
+	vcu_pj.sabotage_grid(vm, "all", false)
+	vcu_pj.grid_state(vm)["sabotaged_days"] = 1
+	pj_tinker.shop_stock["repair_kit"] = 2
+	pj_tinker.personal_gold = 10
+	vcu_pj.daily(vm)
+	assert(not vcu_pj.is_grid_sabotaged(vm) and vcu_pj.is_lamps_powered(vm) and int(vm.town_state["treasury"]) == 80 and pj_tinker.personal_gold >= 18, "PJ.2e: Tinker repairs sabotaged grid in daily cycle paid by town treasury")
+	pj_doc.personal_gold = pj_doc_g0
+	pj_tinker.personal_gold = pj_tink_g0
+	pj_tinker.shop_stock["repair_kit"] = pj_tink_kits0
+	p70_b.personal_gold = pj_bg0
+	p70_c.personal_gold = pj_cg0
+	vm.town_state["treasury"] = pj_tr0
+	print("Block PJ (Amputations & Prosthetics & Logical Electrical Grid) OK")
+
 	print("ALL RIMWORLD MEDICAL, FOOTPRINTS, 3-PHASE CORPSE REPORT, MULTI-CORPSE FIX, RPG INTERROGATION, PUBLIC TRIAL, DYNAMIC RELATIONSHIPS, MISSING FAMILY SEARCH, SOCIAL GLOSSARY & UNCONSCIOUS REACTION TESTS PASSED!")
 	quit(0)
