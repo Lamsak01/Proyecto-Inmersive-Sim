@@ -145,6 +145,34 @@ static func buy_house_loan(vm, lot_id: String, inv) -> bool:
 # ==============================================================================
 # P6.2: Interactuar en el mundo con tu solar o tu cama (`VillageManager.interact`)
 # ==============================================================================
+## Muda a un vecino a tu casa principal (pareja o hijo adoptivo). Le saca de la lista de su casa anterior,
+## para que no viva en dos sitios. `bed_i` elige cama (0 o 1). Devuelve false si no tienes casa.
+static func move_into_player_home(vm, npc, bed_i: int) -> bool:
+	var p_lot: String = primary_player_lot(vm)
+	if p_lot == "" or npc == null:
+		return false
+	var key: String = npc.get_person_key()
+	var old: String = str(npc.lodging)
+	if old.begins_with("house:") and old != "house:" + p_lot:
+		(VillageLots.lot(vm, old.trim_prefix("house:")).get("residents", []) as Array).erase(key)
+	npc.lodging = "house:" + p_lot
+	var beds: Array = VillageLots._house_beds(p_lot)
+	if not beds.is_empty():
+		npc.bed_position = beds[clampi(bed_i, 0, beds.size() - 1)]
+	npc.home_table_pos = VillageLots.lot_def(p_lot)["center"] + Vector2(0, -2)
+	VillageLots.add_resident(vm, p_lot, key)
+	return true
+
+## Confirmación sencilla: la primera E avisa; una segunda E en 4 s sobre lo mismo confirma.
+static func press_twice(vm, tag: String) -> bool:
+	var now: int = Time.get_ticks_msec()
+	if str(vm.get_meta("e_confirm_tag", "")) == tag and now - int(vm.get_meta("e_confirm_ms", 0)) <= 4000:
+		vm.set_meta("e_confirm_tag", "")
+		return true
+	vm.set_meta("e_confirm_tag", tag)
+	vm.set_meta("e_confirm_ms", now)
+	return false
+
 static func try_interact(vm, player: Node2D, pos: Vector2) -> bool:
 	var inv = player.get("inventory") if player != null else null
 	for l in VillageLots.LOTS:
@@ -156,11 +184,18 @@ static func try_interact(vm, player: Node2D, pos: Vector2) -> bool:
 				if player.has_method("show_hint"):
 					player.show_hint("🚧 El carpintero ya está ocupado en otra obra. Espera a que termine.")
 				return true
-			if inv != null and int(inv.gold) >= HOUSE_CASH_COST and buy_house_cash(vm, id, inv):
+			var can_cash: bool = inv != null and int(inv.gold) >= HOUSE_CASH_COST
+			var can_loan: bool = inv != null and int(inv.gold) >= VillageLoans.DOWN_PAYMENT
+			if (can_cash or can_loan) and not press_twice(vm, "buy_lot:" + id):
+				if player.has_method("show_hint"):
+					var how: String = "al contado (-%d Oro)" % HOUSE_CASH_COST if can_cash else "con hipoteca (-%d Oro de entrada y 3 Oro/día)" % VillageLoans.DOWN_PAYMENT
+					player.show_hint("🏡❓ ¿Comprar el solar %s %s? Pulsa E otra vez para confirmar." % [id, how])
+				return true
+			if can_cash and buy_house_cash(vm, id, inv):
 				if player.has_method("show_hint"):
 					player.show_hint("🏡🔨 Compraste el solar %s al contado (-100 Oro). El carpintero vendrá a levantar tu casa." % id)
 				return true
-			elif inv != null and int(inv.gold) >= VillageLoans.DOWN_PAYMENT and buy_house_loan(vm, id, inv):
+			elif can_loan and buy_house_loan(vm, id, inv):
 				if player.has_method("show_hint"):
 					player.show_hint("🏦🏡 Encargaste tu casa en el solar %s con hipoteca (-15 Oro de entrada, 3 Oro/día)." % id)
 				return true
@@ -170,21 +205,30 @@ static func try_interact(vm, player: Node2D, pos: Vector2) -> bool:
 			if pos.distance_to(c) <= 46.0:
 				var hs: Dictionary = state(vm)
 				var up: Dictionary = st.get("upgrades", {})
+				# Dormir en tu cama es como la de la posada pero gratis: el tiempo pasa hasta la mañana
+				var h_now: int = int(WorldClock.current_hour) if WorldClock != null else 22
+				if h_now >= 6 and h_now < 20:
+					if player.has_method("show_hint"):
+						player.show_hint("🛏️ Aún es de día. Tu cama te espera a partir de las 20:00.")
+					return true
 				if bool(up.get("bookshelf", false)) and int(hs.get("last_study_day", -99)) != today():
 					hs["last_study_day"] = today()
 					if player.has_method("add_skill_xp"):
 						player.call("add_skill_xp", "crafting", 15)
 				var surv = player.get_node_or_null("SurvivalComponent")
 				if surv != null:
-					surv.current_sleep = 100.0
+					if surv.has_method("restore_sleep"):
+						surv.restore_sleep(100.0)
 					surv.current_hygiene = 100.0
-				if "current_stamina" in player and "max_stamina" in player:
-					player.current_stamina = player.max_stamina
-				if WorldClock != null and WorldClock.has_method("advance_to_morning"):
-					WorldClock.call("advance_to_morning", 6)
+				var stam = player.get_node_or_null("StaminaComponent")
+				if stam != null:
+					stam.current_stamina = stam.max_stamina
+					stam.stamina_changed.emit(stam.current_stamina, stam.max_stamina)
+				if WorldClock != null and WorldClock.has_method("sleep_until_morning"):
+					WorldClock.sleep_until_morning()
 				if player.has_method("show_hint"):
 					var bonus_txt: String = " (+estudio en tu estantería)" if bool(up.get("bookshelf", false)) else ""
-					player.show_hint("🛌🏡 Descansaste y te aseaste en tu propia casa gratis%s." % bonus_txt)
+					player.show_hint("🛌🏡 Dormiste en tu propia casa hasta la mañana%s." % bonus_txt)
 				return true
 	return false
 
@@ -373,16 +417,9 @@ static func on_player_action(vm, npc, action_id: String, inv) -> void:
 		npc._spawn_floating_text("🏘️🔑 «La escritura del solar %s es tuya. Cobrarás tú los alquileres.»" % arg, Color.SPRING_GREEN, -46.0)
 
 	elif action_id == "housing_move_in":
-		var p_lot: String = primary_player_lot(vm)
-		if p_lot == "":
+		if not move_into_player_home(vm, npc, 0):
 			return
 		hs["partner_key"] = npc.get_person_key()
-		npc.lodging = "house:" + p_lot
-		var beds: Array = VillageLots._house_beds(p_lot)
-		if not beds.is_empty():
-			npc.bed_position = beds[0]
-		npc.home_table_pos = VillageLots.lot_def(p_lot)["center"] + Vector2(0, -2)
-		VillageLots.add_resident(vm, p_lot, npc.get_person_key())
 		npc.modify_affinity(20)
 		VillageChronicle.add(vm, "partner_moved_in", "%s se mudó a vivir contigo a tu casa" % npc.npc_name, true)
 		npc._spawn_floating_text("🏡💑 «¡Me mudo contigo hoy mismo!»", Color.SPRING_GREEN, -46.0)

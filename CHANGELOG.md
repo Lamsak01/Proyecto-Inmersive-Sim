@@ -5,6 +5,14 @@ El detalle técnico está en `docs/HANDOFF.md` (sección 7) y el historial compl
 
 ## 2026-11-04
 
+### Auditoría: veneno, confirmaciones, cama y fallos menores
+- **El veneno ya no es un asesinato gratis:** alguien puede verte echarlo (y te buscarán); si nadie te ve, la víctima muere al día siguiente, y a veces lo vomita y sobrevive.
+- **Pulsar E ya no compra ni decide de golpe:** comprar un solar, cambiar los impuestos o inscribirte como candidato piden una segunda E para confirmar.
+- **Tu cama ya funciona como una cama:** solo de noche, y pasas la noche durmiendo hasta la mañana.
+- **Alcaldía:** la moción contra el alcalde necesita firmas de vecinos que te aprecien y solo se puede intentar una vez al mes; nombrar comisario ya no borra tu búsqueda; solo puedes chantajear al alcalde si sabes algo turbio suyo.
+- **Sin oro de la nada:** las recompensas de familias y herencias salen del bolsillo de quien te paga, y el testamento reparte el oro real del muerto.
+- **Casas y familia:** quien se muda contigo deja su casa anterior; el niño que adoptas se viene a tu casa y no se puede volver a adoptar; una familia solo te guarda rencor por matar a uno de los suyos si alguien te vio o la ley te culpa.
+
 ### Auditoría de las 70 mecánicas: arreglos del misterio y del oro infinito
 - **El misterio de los asesinatos ya no se destripa solo:** el menú del comisario ya no muestra el nombre del asesino antes de que lo averigües; la familia de la víctima solo odia al culpable cuando se cierra el caso (y nunca culpa por error al comisario); al asesino borracho o con fiebre hay que oírle tú antes de poder delatarle; el chivo expiatorio y el testigo asustado te piden ayuda en persona; solo se puede pedir la autopsia de un cuerpo ya encontrado.
 - **Tumbas profanadas:** limpiando la lápida puedes (o no) encontrar algo del culpable; solo si se sabe quién fue, el cura lo aparta de la capilla.

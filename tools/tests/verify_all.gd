@@ -3374,6 +3374,13 @@ func _initialize() -> void:
 	p7_fence.personal_gold = p7_fg
 	vun.on_player_action(vm, p70_a, "underworld_bribe_patrol", p70_inv)
 	assert(vun.is_guard_bribed_tonight(vm), "P7: Night guard bribed for immunity tonight")
+	# Auditoría: el veneno lento no mata en el acto (actúa al día siguiente, o te pillan echándolo)
+	vun.add_item(vm, "slow_poison", 1)
+	var p7_wl: int = int(vm.wanted_level)
+	vun.on_player_action(vm, p70_c, "underworld_use_poison", p70_inv)
+	assert(not p70_c.is_dead and ((vun.state(vm)["pending_poison"] as Dictionary).has(p70_c.get_person_key()) or int(vm.wanted_level) == p7_wl + 1), "P7 audit: slow poison is not an instant kill")
+	(vun.state(vm)["pending_poison"] as Dictionary).clear()
+	vm.wanted_level = p7_wl
 	p70_a.family_id = p70_fam_a_bak
 	p70_b.family_id = p70_fam_b_bak
 	for np_tmp in [p1_kid, p3_kid]:

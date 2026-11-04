@@ -213,6 +213,8 @@ static func is_orphan(vm, kid) -> bool:
 		return false
 	if (state(vm)["foundlings"] as Dictionary).has(kid.get_person_key()):
 		return true
+	if str(kid.family_id) == "family_player":
+		return false # ya es tu hijo adoptivo
 	for o in VillageNeeds.living(vm):
 		if o != kid and not vm.VillageFamily.is_child(o) and str(o.family_id) == str(kid.family_id) and str(kid.family_id) != "none":
 			return false
@@ -239,6 +241,8 @@ static func adopt_child_by_player(vm, kid) -> void:
 	st["player_adopted"] = kid.get_person_key()
 	kid.family_id = "family_player"
 	kid.family_name = "Casa del Forastero"
+	# Si tienes casa propia, el niño se muda a ella
+	vm.VillageHousing.move_into_player_home(vm, kid, 1)
 	kid.modify_affinity(85)
 	kid.add_thought("¡Tengo una familia! (+25)", 25.0)
 	VillageChronicle.add(vm, "player_adoption", "Adoptaste al pequeño %s como parte de tu hogar" % kid.npc_name, true)
@@ -344,19 +348,19 @@ static func add_dialogue_choices(vm, npc, diag: Dictionary, ch_arr: Array) -> vo
 	# P3.8: Mediar en disputa de hermanastros
 	if (st["sibling_rivalries"] as Dictionary).has(fam) and not bool(st["sibling_rivalries"][fam].get("resolved", false)):
 		var sr: Dictionary = st["sibling_rivalries"][fam]
-		opts.append({"label": "⚖️👨‍👦 Respaldar a %s como heredero del taller familiar (+15 Oro)" % str(sr["a_name"]), "next": "END", "action": "lineage_sibling_a:" + fam})
-		opts.append({"label": "⚖️👨‍👦 Respaldar a %s como heredero del taller familiar (+15 Oro)" % str(sr["b_name"]), "next": "END", "action": "lineage_sibling_b:" + fam})
+		opts.append({"label": "⚖️👨‍👦 Respaldar a %s como heredero del taller familiar (hasta 15 Oro)" % str(sr["a_name"]), "next": "END", "action": "lineage_sibling_a:" + fam})
+		opts.append({"label": "⚖️👨‍👦 Respaldar a %s como heredero del taller familiar (hasta 15 Oro)" % str(sr["b_name"]), "next": "END", "action": "lineage_sibling_b:" + fam})
 
 	# P3.9: Avisar a un rico de un pretendiente cazafortunas
 	for dk in (st["gold_diggers"] as Dictionary).keys():
 		var gd: Dictionary = st["gold_diggers"][dk]
 		if not bool(gd.get("exposed", false)) and key == str(gd["rich_key"]):
-			opts.append({"label": "💸⚠️ Avisarle de que %s solo le corteja por su fortuna (+20 Oro)" % str(gd["digger_name"]), "next": "END", "action": "lineage_digger:" + dk})
+			opts.append({"label": "💸⚠️ Avisarle de que %s solo le corteja por su fortuna (hasta 20 Oro)" % str(gd["digger_name"]), "next": "END", "action": "lineage_digger:" + dk})
 
 	# P3.10: Pasado familiar fuera del valle
 	if (st["estranged_past"] as Dictionary).has(key) and not bool(st["estranged_past"][key].get("resolved", false)):
 		opts.append({"label": "🤝💰 Ayudarle a saldar la deuda con su antigua familia (-%d Oro)" % PAST_DEBT_GOLD, "next": "END", "action": "lineage_past_help:" + key})
-		opts.append({"label": "📢 Presionarle con su pasado oculto fuera del valle (+15 Oro)", "next": "END", "action": "lineage_past_press:" + key})
+		opts.append({"label": "📢 Presionarle con su pasado oculto fuera del valle (hasta 15 Oro)", "next": "END", "action": "lineage_past_press:" + key})
 
 	if not opts.is_empty():
 		opts.append({"label": "⬅️ Volver", "next": "start"})
@@ -373,10 +377,7 @@ static func on_player_action(vm, npc, action_id: String, inv) -> void:
 			return
 		var b: Dictionary = st["bastards"][arg]
 		b["blackmailed"] = true
-		var pay: int = mini(BLACKMAIL_GOLD, maxi(8, int(npc.personal_gold)))
-		npc.personal_gold = maxi(0, int(npc.personal_gold) - pay)
-		if inv != null:
-			inv.add_gold(pay)
+		var pay: int = VillageClans.pay_from_pocket(npc, BLACKMAIL_GOLD, inv)
 		npc.modify_affinity(-18)
 		npc._spawn_floating_text("😰 «Toma %d de oro, pero ni una palabra a nadie sobre el niño...»" % pay, Color.GOLD, -46.0)
 
@@ -409,9 +410,8 @@ static func on_player_action(vm, npc, action_id: String, inv) -> void:
 			chosen.modify_affinity(18)
 			chosen.modify_npc_relationship(other, 15, "Zanjamos la disputa por el taller", true)
 			other.modify_npc_relationship(chosen, 15, "Zanjamos la disputa por el taller", true)
-		if inv != null:
-			inv.add_gold(15)
-		npc._spawn_floating_text("⚖️ «Queda decidido quién llevará el taller familiar. Toma 15 de oro.»", Color.GOLD, -46.0)
+		var s_tip: int = VillageClans.pay_from_pocket(chosen, 15, inv)
+		npc._spawn_floating_text("⚖️ «Queda decidido quién llevará el taller familiar.»%s" % (" (+%d Oro)" % s_tip if s_tip > 0 else ""), Color.GOLD, -46.0)
 
 	elif action_id.begins_with("lineage_digger:"):
 		if not (st["gold_diggers"] as Dictionary).has(arg):
@@ -424,10 +424,9 @@ static func on_player_action(vm, npc, action_id: String, inv) -> void:
 			if vm.social_director != null:
 				vm.social_director.add_spark_one_way(npc.get_person_key(), digger.get_person_key(), -30)
 		npc.modify_affinity(16)
-		if inv != null:
-			inv.add_gold(20)
+		var g_tip: int = VillageClans.pay_from_pocket(npc, 20, inv)
 		VillageChronicle.add(vm, "gold_digger_exposed", "Avisaste a %s de que %s solo buscaba su fortuna" % [npc.npc_name, str(gd["digger_name"])], true)
-		npc._spawn_floating_text("💸 «¡Conque iba detrás de mi oro! Gracias por abrirme los ojos (+20 Oro).»", Color.GOLD, -46.0)
+		npc._spawn_floating_text("💸 «¡Conque iba detrás de mi oro! Gracias por abrirme los ojos.»%s" % (" (+%d Oro)" % g_tip if g_tip > 0 else ""), Color.GOLD, -46.0)
 
 	elif action_id.begins_with("lineage_past_help:"):
 		if inv == null or int(inv.gold) < PAST_DEBT_GOLD:
@@ -441,9 +440,6 @@ static func on_player_action(vm, npc, action_id: String, inv) -> void:
 
 	elif action_id.begins_with("lineage_past_press:"):
 		st["estranged_past"][arg]["resolved"] = true
-		var pay: int = mini(15, maxi(5, int(npc.personal_gold)))
-		npc.personal_gold = maxi(0, int(npc.personal_gold) - pay)
-		if inv != null:
-			inv.add_gold(pay)
+		var pay: int = VillageClans.pay_from_pocket(npc, 15, inv)
 		npc.modify_affinity(-15)
 		npc._spawn_floating_text("😠 «Toma %d de oro y no te metas en mi vida pasada.»" % pay, Color.GOLD, -46.0)

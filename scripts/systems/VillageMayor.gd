@@ -25,6 +25,8 @@ const EMBEZZLE_AMOUNT: int = 40
 const COOK_BOOKS_COST: int = 15
 const SMEAR_COST: int = 15
 const RECALL_COST: int = 20
+const RECALL_COOLDOWN: int = 30 # días entre mociones
+const RECALL_SIGNERS: int = 6 # vecinos que te aprecian (afinidad >= 20) para que prospere
 const PUPPET_WEEKLY_CUT: int = 12
 
 static func ensure_state(vm) -> Dictionary:
@@ -168,7 +170,7 @@ static func appoint_new_sheriff(vm) -> String:
 	guard.npc_role = "Comisario Municipal"
 	guard.modify_affinity(35)
 	vm.trade_npcs[VillageNPC.TradeRole.SHERIFF] = guard
-	vm.wanted_level = 0
+	# Un comisario nuevo hereda los expedientes: tu búsqueda no se borra
 	VillageChronicle.add(vm, "sheriff_appointed", "La alcaldía nombró a %s nuevo Comisario del valle" % guard.npc_name, true)
 	return guard.npc_name
 
@@ -211,6 +213,16 @@ static func daily(vm) -> void:
 		ts["protest_days"] = 0
 
 ## Interacción directa con el escritorio o la urna del Ayuntamiento (`VillageManager.interact`).
+## La primera E avisa; una segunda E en 4 s sobre lo mismo confirma (mismo mecanismo que comprar casa).
+static func _press_twice(vm, tag: String) -> bool:
+	var now: int = Time.get_ticks_msec()
+	if str(vm.get_meta("e_confirm_tag", "")) == tag and now - int(vm.get_meta("e_confirm_ms", 0)) <= 4000:
+		vm.set_meta("e_confirm_tag", "")
+		return true
+	vm.set_meta("e_confirm_tag", tag)
+	vm.set_meta("e_confirm_ms", now)
+	return false
+
 static func try_interact(vm, player: Node2D, pos: Vector2) -> bool:
 	var desk: Vector2 = VillageCivic.hall_spots()["desk"]
 	if pos.distance_to(desk) > 36.0:
@@ -219,6 +231,11 @@ static func try_interact(vm, player: Node2D, pos: Vector2) -> bool:
 	if has_mayor_power(vm):
 		var cur: String = str(ts.get("tax_mode", "normal"))
 		var next_mode: String = "low" if cur == "normal" else ("high" if cur == "low" else "normal")
+		var names_m: Dictionary = {"low": "Bajos (50 %)", "normal": "Normales (100 %)", "high": "Altos (180 %)"}
+		if not _press_twice(vm, "tax:" + next_mode):
+			if player.has_method("show_hint"):
+				player.show_hint("🏛️❓ Impuestos ahora: %s. ¿Cambiarlos a %s? Pulsa E otra vez para confirmar." % [names_m[cur], names_m[next_mode]])
+			return true
 		ts["tax_mode"] = next_mode
 		if next_mode == "low" and str(ts.get("promise", "")) == "low_tax":
 			ts["promise_kept"] = true
@@ -227,6 +244,10 @@ static func try_interact(vm, player: Node2D, pos: Vector2) -> bool:
 			player.show_hint("🏛️⚖️ Desde el escritorio de la Alcaldía fijaste los impuestos en: %s. (Habla con cualquier vecino para abrir el menú completo de decretos y obras)." % label_m)
 		return true
 	elif not bool(ts.get("player_candidate", false)) and int(vm.wanted_level) == 0:
+		if not _press_twice(vm, "candidacy"):
+			if player.has_method("show_hint"):
+				player.show_hint("🗳️❓ ¿Inscribirte como candidato a Alcalde? Pulsa E otra vez para confirmar.")
+			return true
 		ts["player_candidate"] = true
 		if player.has_method("show_hint"):
 			player.show_hint("🗳️🏛️ Te has inscrito oficialmente en el Ayuntamiento como candidato a Alcalde para las próximas elecciones.")
@@ -263,12 +284,14 @@ static func add_dialogue_choices(vm, npc, diag: Dictionary, ch_arr: Array) -> vo
 
 		# P5.9: Convertir al alcalde actual en tu títere si sabes algo turbio suyo o es corrupto
 		if vm.VillageTown.is_mayor(vm, npc) and not is_puppet_master(vm):
-			var has_dirt: bool = vm.VillageTown.is_corrupt(npc) or not VillageSecrets.active_affair_of(vm, key).is_empty() or (vm.sect_state.get("members", {}) as Dictionary).has(key)
+			# Solo si TÚ ya conoces algo turbio suyo (desfalco oído, aventura descubierta o secta destapada)
+			var aff: Dictionary = VillageSecrets.active_affair_of(vm, key)
+			var has_dirt: bool = bool(vm.VillageTown.state(vm).get("player_knows_embezzle", false)) or (not aff.is_empty() and bool(aff.get("player_knows", false))) or vm.VillageSect.known_member(vm, npc)
 			if has_dirt:
 				opts.append({"label": "🎭🤫 Chantajear al alcalde para convertirlo en tu títere en la sombra", "next": "END", "action": "town_make_puppet"})
 
 		# P5.10: Impulsar moción de destitución contra el alcalde actual
-		if str(ts.get("mayor", "")) != "" and not vm.VillageTown.is_mayor(vm, npc):
+		if str(ts.get("mayor", "")) != "" and not vm.VillageTown.is_mayor(vm, npc) and today() - int(ts.get("last_recall_day", -999)) >= RECALL_COOLDOWN:
 			opts.append({"label": "📜🔥 Recoger firmas e impulsar moción de destitución del alcalde (-%d Oro)" % RECALL_COST, "next": "END", "action": "town_recall"})
 
 	# P5.4, P5.5, P5.6, P5.7 y P5.8: Poderes de Alcalde (o amo del alcalde títere)
@@ -357,7 +380,19 @@ static func on_player_action(vm, npc, action_id: String, inv) -> bool:
 		if inv == null or int(inv.gold) < RECALL_COST:
 			npc._spawn_floating_text("Necesitas %d de oro para impulsar la moción" % RECALL_COST, Color.ORANGE_RED, -44.0)
 			return true
+		if today() - int(ts.get("last_recall_day", -999)) < RECALL_COOLDOWN:
+			return true
 		inv.add_gold(-RECALL_COST)
+		ts["last_recall_day"] = today()
+		# Hacen falta firmas de verdad: vecinos adultos que te aprecien
+		var signers: int = 0
+		for n in VillageNeeds.living(vm):
+			if not VillageNeeds.is_outsider(n) and int(n.trade_role) != int(VillageNPC.TradeRole.CHILD) and int(n.affinity) >= 20:
+				signers += 1
+		if signers < RECALL_SIGNERS:
+			VillageChronicle.add(vm, "mayor_recall_failed", "Tu moción contra el alcalde no reunió firmas suficientes (%d de %d)" % [signers, RECALL_SIGNERS], true)
+			npc._spawn_floating_text("📜❌ «Solo %d firmas... la moción no prospera. Habrá que esperar.»" % signers, Color.ORANGE_RED, -46.0)
+			return true
 		ts["player_candidate"] = true
 		VillageChronicle.add(vm, "mayor_recall", "Impulsaste una moción vecinal que forzó elecciones anticipadas en el Ayuntamiento", true)
 		vm.VillageTown.hold_election(vm, "moción de destitución vecinal")

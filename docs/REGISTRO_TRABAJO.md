@@ -247,7 +247,17 @@ suplantar al cura, falso milagro, debates, indulto, caravana, timba de dados, fa
 | PA5 | Hampa sin oro infinito: perista compra objetos reales con su oro; golpe solo en el sitio con testigos; pelea con riesgo; apuesta al azar; polvo con comprador solvente y destilado 1/día; protección solo sábado y de la caja; tributo del perista; ratero y usura sin crear oro | ✅ | VillageUnderworld.gd | Test #82 |
 | PA6 | Cofre propio sin oro gratis; renta de locales solo de la caja | ✅ | VillageManager.gd, VillageHousing.gd | — |
 
-Pendiente de la auditoría (puntos 3–7 y fallos medios): veneno = asesinato gratis, pulsar E compra casa sin confirmar,
-la cama propia no pasa el tiempo (`advance_to_morning` no existe), moción de 20 de oro repetible, nombrar comisario
-borra la búsqueda, recompensas de la nada en P1/P3.
+## Bloque PB — Auditoría de P1–P7: puntos 3–7 y fallos medios (Claude Code, 2026-11-04)
+
+| # | Paso | Estado | Archivos | Nota |
+|---|------|--------|----------|------|
+| PB1 | Veneno lento: testigo puede verlo (búsqueda +1); si no, muere al día siguiente (`pending_poison`), 20 % sobrevive | ✅ | VillageUnderworld.gd | Test #82 |
+| PB2 | Doble E para confirmar compra de solar, cambio de impuestos y candidatura (`press_twice`) | ✅ | VillageHousing.gd, VillageMayor.gd | — |
+| PB3 | Cama propia: solo de 20:00 a 06:00 y pasa la noche (`sleep_until_morning`) | ✅ | VillageHousing.gd | — |
+| PB4 | Moción: espera de 30 días y 6 firmas (afinidad ≥ 20); nombrar comisario ya no borra la búsqueda; títere solo si el jugador conoce el trapo sucio | ✅ | VillageMayor.gd | — |
+| PB5 | Testamento con el oro real del muerto; recompensas de P1/P3 con `VillageClans.pay_from_pocket` | ✅ | VillageClans.gd, VillageLineage.gd | — |
+| PB6 | `move_into_player_home`: saca al vecino de su casa anterior; el adoptado se muda y no se readopta | ✅ | VillageHousing.gd, VillageLineage.gd | — |
+| PB7 | Rencor del clan por un golpe tuyo solo si hubo testigo (si no, al cerrarse el caso contra ti) | ✅ | VillageClans.gd | — |
+
+Pendiente (riesgo bajo): renombrar niños puede desincronizar registros que van por nombre.
 

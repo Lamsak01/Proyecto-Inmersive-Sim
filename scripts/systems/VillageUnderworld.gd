@@ -83,6 +83,8 @@ static func state(vm) -> Dictionary:
 		st["guard_bribed_day"] = -1
 	if not st.has("last_fight_day"):
 		st["last_fight_day"] = -1
+	if not st.has("pending_poison") or not (st["pending_poison"] is Dictionary):
+		st["pending_poison"] = {} # person_key -> {"name", "die_day"}
 	return st
 
 static func today() -> int:
@@ -215,6 +217,24 @@ static func daily(vm) -> void:
 			VillageChronicle.add(vm, "hired_theft", "El ratero contratado desvalijó a %s de noche y te entregó tu parte (+%d de oro)" % [str(j.get("target_name", "un vecino")), cut], false)
 	st["hired_jobs"] = pending
 
+	# P7.2b: El veneno lento del jugador hace efecto días después (a veces el cuerpo lo aguanta)
+	var pp: Dictionary = st.get("pending_poison", {})
+	for pk in pp.keys():
+		var pinfo: Dictionary = pp[pk]
+		if int(pinfo.get("die_day", 0)) > d_now:
+			continue
+		pp.erase(pk)
+		var pv = by_key.get(str(pk), null)
+		if pv == null or not is_instance_valid(pv) or pv.is_dead:
+			continue
+		if randf() < 0.2:
+			pv.add_thought("Anoche vomité algo que me sentó fatal; menos mal que lo eché (-5)", -5.0)
+			continue
+		VillageForensics.state(vm)["poisoned"][pv.npc_name] = {"killer_key": "player", "killer_name": "Jugador", "autopsied": false}
+		pv.last_hit_weapon_name = "Fallo súbito (¿veneno lento?)"
+		pv.last_hit_by_player = false
+		pv._confirm_true_death()
+
 	# P7.6 y P7.10: Los sábados (weekday == 5), cobras las extorsiones de protección y tu tributo de Jefe del Hampa
 	var is_sat: bool = WorldClock != null and WorldClock.has_method("get_weekday") and int(WorldClock.get_weekday()) == 5
 	if is_sat and inv != null:
@@ -292,7 +312,7 @@ static func add_dialogue_choices(vm, npc, diag: Dictionary, ch_arr: Array) -> vo
 			opts.append({"label": "🌙💰 Venderle en secreto una dosis de «polvo de ocaso» (+%d Oro)" % DUST_PRICE, "next": "END", "action": "underworld_sell_dust"})
 
 	# P7.2b: Usar veneno lento o somnífero del mercado negro sobre el vecino
-	if get_item_count(vm, "slow_poison") > 0 and not fence_here and not is_law:
+	if get_item_count(vm, "slow_poison") > 0 and not fence_here and not is_law and not (st.get("pending_poison", {}) as Dictionary).has(key):
 		opts.append({"label": "🧪💀 Deslizar veneno lento indetectable en su bebida", "next": "END", "action": "underworld_use_poison"})
 	if get_item_count(vm, "sleeping_draught") > 0 and not fence_here:
 		opts.append({"label": "💤🧪 Echar somnífero pesado para dormirlo profundamente", "next": "END", "action": "underworld_use_draught"})
@@ -389,12 +409,21 @@ static func on_player_action(vm, npc, action_id: String, inv) -> void:
 		if get_item_count(vm, "slow_poison") <= 0:
 			return
 		add_item(vm, "slow_poison", -1)
-		var fs: Dictionary = VillageForensics.state(vm)
-		fs["poisoned"][npc.npc_name] = {"killer_key": "player", "killer_name": "Jugador", "autopsied": false}
-		npc.last_hit_weapon_name = "Fallo súbito (¿veneno lento?)"
-		npc.last_hit_by_player = false
-		npc._confirm_true_death()
-		npc._spawn_floating_text("🧪💀 Se desploma sin que parezca un asesinato...", Color(0.75, 0.95, 0.65), -46.0)
+		# Alguien despierto puede verte echarlo (la víctima no cuenta: no lo nota)
+		var pl_node = VillageNeeds.player_of(vm)
+		var w_pos: Vector2 = pl_node.global_position if pl_node != null else npc.global_position
+		var pw = vm._find_conscious_witness_near(w_pos, 135.0, npc)
+		if pw != null:
+			vm.wanted_level = int(vm.wanted_level) + 1
+			pw.modify_affinity(-30)
+			npc.modify_affinity(-40)
+			pw._spawn_floating_text("😱 «¡Le ha echado algo en la bebida!»", Color.ORANGE_RED, -46.0)
+			npc._spawn_floating_text("«¿Qué me has echado?» (tira la bebida)", Color.ORANGE_RED, -30.0)
+			VillageChronicle.add(vm, "poison_seen", "%s te vio echar algo en la bebida de %s" % [pw.npc_name, npc.npc_name], true)
+			return
+		# Veneno lento: hace efecto la noche siguiente, lejos de ti
+		st["pending_poison"][key] = {"name": npc.npc_name, "die_day": d_now + 1}
+		npc._spawn_floating_text("🧪 Bebe sin darse cuenta de nada...", Color(0.75, 0.95, 0.65), -46.0)
 
 	elif action_id == "underworld_use_draught":
 		if get_item_count(vm, "sleeping_draught") <= 0:

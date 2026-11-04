@@ -105,7 +105,8 @@ static func on_npc_death(vm, dead_npc) -> void:
 	if inherited_any and not enemies.is_empty():
 		VillageChronicle.add(vm, "grudge_inherited", "La familia de %s no olvida su enemistad con %s" % [dead_npc.npc_name, str(enemies[0]["name"])], true)
 	# Si lo mató el jugador delante de alguien o por golpe directo, marcar ofensa al clan
-	if bool(dead_npc.last_hit_by_player) and valid_family(str(dead_npc.family_id)):
+	# Solo si alguien lo vio: un crimen sin testigos no se sabe (se sabrá si la ley cierra el caso contra ti)
+	if bool(dead_npc.last_hit_by_player) and str(dead_npc.murder_witness_name) != "" and valid_family(str(dead_npc.family_id)):
 		st["feud_player"][str(dead_npc.family_id)] = "severe"
 		for k_npc in kin:
 			k_npc.modify_affinity(-50)
@@ -117,7 +118,9 @@ static func on_npc_death(vm, dead_npc) -> void:
 				angry_kin = k_npc
 				break
 		if angry_kin != null:
-			var w_gold: int = maxi(40, int(dead_npc.personal_gold))
+			# La herencia es el oro real del muerto: sale de su bolsa para que no exista dos veces
+			var w_gold: int = int(dead_npc.personal_gold)
+			dead_npc.personal_gold = 0
 			st["wills"][d_key] = {
 				"dead_key": d_key, "dead_name": dead_npc.npc_name,
 				"beneficiary": best_friend.get_person_key(), "ben_name": best_friend.npc_name,
@@ -142,6 +145,16 @@ static func on_npc_departure(vm, leaving_npc) -> void:
 
 ## Saca el culpable del texto de cierre del caso. Devuelve "player", un nombre exacto, o "" si no hay culpable
 ## (archivado, fianza, muerte natural). Nunca busca nombres sueltos dentro del texto (el comisario sale en casi todos).
+## Las recompensas salen del bolsillo de quien paga: da lo que tenga, hasta `amount`. Devuelve lo pagado.
+static func pay_from_pocket(payer, amount: int, inv) -> int:
+	if payer == null or not is_instance_valid(payer) or inv == null:
+		return 0
+	var paid: int = clampi(int(payer.personal_gold), 0, amount)
+	payer.personal_gold -= paid
+	if paid > 0:
+		inv.add_gold(paid)
+	return paid
+
 static func culprit_from_note(note: String) -> String:
 	var n: String = note.strip_edges()
 	if n == "" or n.begins_with("Sin crimen") or n.begins_with("Caso Archivado") or n.begins_with("Cerrado por Fianza"):
@@ -457,10 +470,10 @@ static func add_dialogue_choices(vm, npc, diag: Dictionary, ch_arr: Array) -> vo
 		var rp: Dictionary = st["romeo_pairs"][pk]
 		if not bool(rp.get("helped", false)) and (str(rp["a"]) == key or str(rp["b"]) == key):
 			var other_lover: String = str(rp["b_name"]) if str(rp["a"]) == key else str(rp["a_name"])
-			sub.append({"label": "💘 Ayudarle en su romance prohibido con %s (+20 Oro)" % other_lover, "next": "END", "action": "clan_romeo:" + pk})
+			sub.append({"label": "💘 Ayudarle en su romance prohibido con %s (hasta 20 Oro)" % other_lover, "next": "END", "action": "clan_romeo:" + pk})
 	# P1.8: Reclamar favor de deuda de honor familiar
 	if (st["honor_debts"] as Dictionary).has(fam) and not bool(st["honor_debts"][fam].get("favor_used", false)):
-		sub.append({"label": "🤝💰 Pedir ayuda económica por la deuda de honor familiar (+25 Oro)", "next": "END", "action": "clan_favor_gold:" + fam})
+		sub.append({"label": "🤝💰 Pedir ayuda económica por la deuda de honor familiar (hasta 25 Oro)", "next": "END", "action": "clan_favor_gold:" + fam})
 		sub.append({"label": "🤝🗳️ Pedir que toda su familia apoye tu causa/voto", "next": "END", "action": "clan_favor_vote:" + fam})
 	# P1.9: Disputa de testamento
 	for wk in (st["wills"] as Dictionary).keys():
@@ -468,9 +481,9 @@ static func add_dialogue_choices(vm, npc, diag: Dictionary, ch_arr: Array) -> vo
 		if bool(w.get("resolved", false)):
 			continue
 		if str(w["beneficiary"]) == key:
-			sub.append({"label": "📜⚖️ Respaldar su derecho al testamento de %s (+25 Oro)" % str(w["dead_name"]), "next": "END", "action": "clan_will_back:" + wk})
+			sub.append({"label": "📜⚖️ Respaldar su derecho al testamento de %s (hasta 25 Oro)" % str(w["dead_name"]), "next": "END", "action": "clan_will_back:" + wk})
 		elif str(w["claimant"]) == key:
-			sub.append({"label": "📜⚖️ Apoyar a la familia para impugnar el testamento de %s (+25 Oro)" % str(w["dead_name"]), "next": "END", "action": "clan_will_contest:" + wk})
+			sub.append({"label": "📜⚖️ Apoyar a la familia para impugnar el testamento de %s (hasta 25 Oro)" % str(w["dead_name"]), "next": "END", "action": "clan_will_contest:" + wk})
 	# P1.10: Tumbas profanadas
 	for v_name in (st["desecrated_graves"] as Dictionary).keys():
 		var dg: Dictionary = st["desecrated_graves"][v_name]
@@ -521,15 +534,13 @@ static func on_player_action(vm, npc, action_id: String, inv) -> void:
 			a.modify_affinity(18)
 			b.modify_affinity(18)
 			mediate_clan_peace(vm, str(rp.get("feud_key", "")), "la unión de %s y %s" % [a.npc_name, b.npc_name])
-		if inv != null:
-			inv.add_gold(20)
-		npc._spawn_floating_text("💘 «¡Gracias! Nuestras familias por fin han cedido.» (+20 Oro)", Color.SPRING_GREEN, -46.0)
+		var r_tip: int = pay_from_pocket(npc, 20, inv)
+		npc._spawn_floating_text("💘 «¡Gracias! Nuestras familias por fin han cedido.»%s" % (" (+%d Oro)" % r_tip if r_tip > 0 else ""), Color.SPRING_GREEN, -46.0)
 	elif action_id.begins_with("clan_favor_gold:"):
 		if (st["honor_debts"] as Dictionary).has(arg):
 			st["honor_debts"][arg]["favor_used"] = true
-			if inv != null:
-				inv.add_gold(25)
-			npc._spawn_floating_text("🤝 «Nuestra familia no olvida lo que hiciste. Toma estos 25 de oro.»", Color.GOLD, -46.0)
+			var f_tip: int = pay_from_pocket(npc, 25, inv)
+			npc._spawn_floating_text("🤝 «Nuestra familia no olvida lo que hiciste. Toma %d de oro, es lo que tengo.»" % f_tip, Color.GOLD, -46.0)
 	elif action_id.begins_with("clan_favor_vote:"):
 		if (st["honor_debts"] as Dictionary).has(arg):
 			st["honor_debts"][arg]["favor_used"] = true
@@ -552,10 +563,9 @@ static func on_player_action(vm, npc, action_id: String, inv) -> void:
 			winner.modify_affinity(18)
 		if loser != null:
 			loser.modify_affinity(-12)
-		if inv != null:
-			inv.add_gold(25)
+		var w_tip: int = pay_from_pocket(winner, 25, inv)
 		VillageChronicle.add(vm, "will_resolved", "El testamento de %s se resolvió a favor de %s" % [str(w["dead_name"]), winner.npc_name if winner else "su heredero"], true)
-		npc._spawn_floating_text("📜⚖️ «Gracias por testificar a mi favor. Toma 25 de oro.»", Color.GOLD, -46.0)
+		npc._spawn_floating_text("📜⚖️ «Gracias por testificar a mi favor.»%s" % (" (+%d Oro)" % w_tip if w_tip > 0 else ""), Color.GOLD, -46.0)
 	elif action_id.begins_with("clan_grave_fix:"):
 		if not (st["desecrated_graves"] as Dictionary).has(arg):
 			return

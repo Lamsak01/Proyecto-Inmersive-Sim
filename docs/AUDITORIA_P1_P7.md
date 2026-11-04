@@ -25,7 +25,11 @@ Auditoría hecha por Claude Code el 2026-11-04 leyendo el código, no los docume
 
 - [x] Puntos 1.1 y 1.2 arreglados (bloque PA, ver `docs/REGISTRO_TRABAJO.md`). También 1.7 (tumbas), P2.5 (autopsia) y
   el contrato de sicario.
-- [ ] Pendientes: 1.3–1.6 y la sección 2.
+- [x] Bloque PB: 1.3 (veneno con retraso y testigos), 1.4 (doble E para confirmar), 1.5 (la cama pasa la noche),
+  1.6 (ya en PA) y la sección 2 (moción con firmas y espera de 30 días, nombrar comisario no borra la búsqueda,
+  títere solo si conoces el trapo sucio, testamento con el oro real del muerto, recompensas del bolsillo del vecino,
+  nadie vive en dos casas, el adoptado se muda y no se readopta, rencor del clan solo si alguien te vio matar).
+- [ ] Pendiente (riesgo bajo, sin arreglar): cambiar el nombre a niños puede desincronizar registros por nombre.
 - Aviso: el CHANGELOG y REGISTRO_TRABAJO describen varias mecánicas P que no existen en el código.
 
 ## 1. Fallos graves (arreglar primero)
