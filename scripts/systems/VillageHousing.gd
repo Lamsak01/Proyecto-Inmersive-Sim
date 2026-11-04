@@ -98,6 +98,25 @@ static func has_upgrade(vm, upg: String) -> bool:
 			return true
 	return false
 
+## Borrar la búsqueda (sótano, pasadizo del contrabandista, archivo policial) comparte una espera de 7 días.
+const WANTED_PURGE_DAYS: int = 7
+static func can_purge_wanted(vm) -> bool:
+	return today() - int(state(vm).get("last_hide_day", -99)) >= WANTED_PURGE_DAYS
+
+static func mark_wanted_purge(vm) -> void:
+	state(vm)["last_hide_day"] = today()
+
+## Cambiar de piso solo tiene sentido dentro de tu casa: el jugador debe estar cerca de un solar suyo construido.
+const HOME_LEVEL_RADIUS: float = 90.0
+static func player_near_home(vm) -> bool:
+	var pl = VillageNeeds.player_of(vm)
+	if pl == null:
+		return true
+	for id in player_lots(vm, true):
+		if pl.global_position.distance_to(VillageLots.lot_def(id)["center"]) <= HOME_LEVEL_RADIUS:
+			return true
+	return false
+
 static func is_player_family_chest(vm, fam_id: String) -> bool:
 	if not fam_id.begins_with("family_lot_"):
 		return false
@@ -572,12 +591,13 @@ static func add_dialogue_choices(vm, npc, diag: Dictionary, ch_arr: Array) -> vo
 			opts.append({"label": "🏘️📈 Vender tu casa del solar %s (+%d Oro según atractivo y mejoras)" % [lid3, house_sale_price(vm, lid3)], "next": "END", "action": "housing_sell_house:" + lid3})
 
 	# Tanda 5 (23): Esconderte en tu sótano secreto si te buscan por un delito menor
-	if has_upgrade(vm, "hidden_cellar") and int(vm.wanted_level) == 1 and int(vm.player_murder_warrants_count) == 0 and today() - int(hs.get("last_hide_day", -99)) >= 7:
+	if has_upgrade(vm, "hidden_cellar") and int(vm.wanted_level) == 1 and int(vm.player_murder_warrants_count) == 0 and can_purge_wanted(vm):
 		opts.append({"label": "🕳️🤫 Esconderte en tu sótano secreto hasta que pase la búsqueda", "next": "END", "action": "housing_hide_cellar"})
 	# Bloque PN: Subir al primer piso o bajar al sótano en tu casa (sistema de niveles verticales por capas)
-	if has_upgrade(vm, "upper_floor") and int(vm.player_elevation_level) != 1:
+	var near_home: bool = player_near_home(vm)
+	if near_home and has_upgrade(vm, "upper_floor") and int(vm.player_elevation_level) != 1:
 		opts.append({"label": "🪜⬆️ Subir al primer piso / altillo de tu casa (nivel +1)", "next": "END", "action": "housing_change_level:1"})
-	if has_upgrade(vm, "hidden_cellar") and int(vm.player_elevation_level) != -1:
+	if near_home and has_upgrade(vm, "hidden_cellar") and int(vm.player_elevation_level) != -1:
 		opts.append({"label": "🕳️⬇️ Bajar al sótano de tu casa (nivel -1)", "next": "END", "action": "housing_change_level:-1"})
 	if int(vm.player_elevation_level) != 0:
 		opts.append({"label": "🚪➡️ Volver a la planta baja / nivel de calle (nivel 0)", "next": "END", "action": "housing_change_level:0"})
@@ -872,11 +892,12 @@ static func on_player_action(vm, npc, action_id: String, inv) -> void:
 		npc._spawn_floating_text("🏘️💰 «¡Casa del solar %s vendida! Te quedan %d de oro.»" % [arg, paid], Color.GOLD, -46.0)
 
 	elif action_id == "housing_hide_cellar":
-		if not has_upgrade(vm, "hidden_cellar") or int(vm.wanted_level) != 1 or int(vm.player_murder_warrants_count) > 0 or today() - int(hs.get("last_hide_day", -99)) < 7:
+		if not has_upgrade(vm, "hidden_cellar") or int(vm.wanted_level) != 1 or int(vm.player_murder_warrants_count) > 0 or not can_purge_wanted(vm):
 			return
-		hs["last_hide_day"] = today()
+		mark_wanted_purge(vm)
 		vm.wanted_level = 0
-		vm.set_player_elevation_level(-1)
+		if player_near_home(vm):
+			vm.set_player_elevation_level(-1)
 		VillageChronicle.add(vm, "hid_in_cellar", "Te escondiste en el sótano secreto de tu casa hasta que la guardia dejó de buscarte", true)
 		npc._spawn_floating_text("🕳️🤫 «La patrulla pasó de largo sin encontrarte en tu sótano secreto (nivel -1).»", Color.SPRING_GREEN, -46.0)
 
@@ -885,6 +906,9 @@ static func on_player_action(vm, npc, action_id: String, inv) -> void:
 		if target_lvl == 1 and not has_upgrade(vm, "upper_floor"):
 			return
 		if target_lvl == -1 and not has_upgrade(vm, "hidden_cellar"):
+			return
+		if target_lvl != 0 and not player_near_home(vm):
+			npc._spawn_floating_text("Solo puedes cambiar de piso dentro de tu casa", Color.ORANGE_RED, -44.0)
 			return
 		vm.set_player_elevation_level(target_lvl)
 		var lvl_lbl: String = "el primer piso (nivel +1)" if target_lvl == 1 else ("el sótano (nivel -1)" if target_lvl == -1 else "la planta de calle (nivel 0)")

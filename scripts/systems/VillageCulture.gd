@@ -250,7 +250,7 @@ static func _is_main_chapter_ready(vm, idx: int) -> bool:
 			return unlocked_cnt >= 1 or hacks_cnt >= 1
 		3:
 			var op_ok: bool = bool(outpost_state(vm).get("founded", false))
-			var mayor_ok: bool = str(vm.town_state.get("mayor_key", "")) == "player"
+			var mayor_ok: bool = vm.VillageMayor.is_player_mayor(vm)
 			var raid_ok: bool = int(raids_state(vm).get("raids_repelled", 0)) >= 1
 			return op_ok or mayor_ok or raid_ok
 	return false
@@ -343,7 +343,7 @@ static func fire_flintlock_shot(vm, target_npc, inv) -> bool:
 	target_npc.last_hit_weapon_name = "Arcabuz de Chispa"
 	target_npc.last_hit_by_player = true
 	if target_npc.health_comp != null:
-		target_npc.health_comp.apply_minor_bruise(48.0, 2.5, "Disparo de Arcabuz de Chispa")
+		target_npc.health_comp.apply_minor_bruise(48.0, 0.10, "Disparo de Arcabuz de Chispa")
 	target_npc.modify_affinity(-35)
 	var witness = vm._find_conscious_witness_near(target_npc.global_position, 260.0, target_npc)
 	if witness != null:
@@ -369,6 +369,9 @@ static func hack_terminal(vm, subsystem: String, inv, force_outcome: int = 0) ->
 	var today: int = int(WorldClock.current_day) if WorldClock else 1
 	if int(tm.get("last_hack_day", -99)) == today:
 		return {"ok": false}
+	# Borrar la búsqueda comparte la espera semanal del sótano y del pasadizo
+	if subsystem == "warrant_archive" and not vm.VillageHousing.can_purge_wanted(vm):
+		return {"ok": false, "wait": true}
 	tm["last_hack_day"] = today
 	var chance: float = 0.45 + (0.20 if has_tech(vm, "voltaic_capacitors") else 0.0) + (0.15 if (inv != null and inv.has_item("copper_coil", 1)) else 0.0)
 	var won: bool = (randf() < chance) if force_outcome == 0 else (force_outcome > 0)
@@ -383,6 +386,7 @@ static func hack_terminal(vm, subsystem: String, inv, force_outcome: int = 0) ->
 		elif subsystem == "warrant_archive":
 			vm.wanted_level = maxi(0, int(vm.wanted_level) - 1)
 			vm.bounty_gold = maxi(0, int(vm.bounty_gold) - 25)
+			vm.VillageHousing.mark_wanted_purge(vm)
 		elif subsystem == "grid_controller":
 			repair_grid(vm)
 			state(vm)["readings"] = int(state(vm).get("readings", 0)) + 2
@@ -1233,8 +1237,7 @@ static func add_dialogue_choices(vm, npc, diag: Dictionary, ch_arr: Array) -> vo
 			ch_arr.append({"label": "🔫🛠️ Encargar Arcabuz de Chispa con 2 cargas de pólvora (-%d Oro)" % FIREARM_COST, "next": "END", "action": "culture_buy_firearm"})
 		if has_tech(vm, "reinforced_locks") or (inv_po != null and inv_po.has_item("flintlock_pistol", 1)):
 			ch_arr.append({"label": "🧨🪙 Comprar 2 Cargas de Pólvora Negra (-%d Oro)" % POWDER_PACK_COST, "next": "END", "action": "culture_buy_powder"})
-	if has_loaded_firearm(inv_po) and role_i != int(VillageNPC.TradeRole.CHILD):
-		ch_arr.append({"label": "🔫💥 Dispararle con el Arcabuz de Chispa (-1 Carga de Pólvora, ruidoso)", "next": "END", "action": "culture_fire_flintlock"})
+	# Disparar desde la conversación quedó retirado (como el robo desde el diálogo): el arma se usa en las incursiones.
 	if role_i in [int(VillageNPC.TradeRole.TINKER), int(VillageNPC.TradeRole.SHERIFF)]:
 		var tm: Dictionary = terminal_state(vm)
 		if int(tm.get("last_hack_day", -99)) != today:
@@ -1385,15 +1388,12 @@ static func on_player_action(vm, npc, action_id: String, inv) -> void:
 			npc._spawn_floating_text("🧨🪙 Compraste 2 Cargas de Pólvora Negra (-%d Oro)" % POWDER_PACK_COST, Color.GOLD, -46.0)
 		else:
 			npc._spawn_floating_text("«Necesitas %d de oro para las cargas de pólvora.»" % POWDER_PACK_COST, Color.ORANGE_RED, -46.0)
-	elif action_id == "culture_fire_flintlock":
-		if fire_flintlock_shot(vm, npc, inv):
-			npc._spawn_floating_text("🔫💥 ¡ESTALLIDO DE PÓLVORA! Heriste a %s con tu arcabuz" % npc.npc_name, Color.ORANGE_RED, -46.0)
-		else:
-			npc._spawn_floating_text("Necesitas el Arcabuz de Chispa y al menos 1 Carga de Pólvora", Color.ORANGE_RED, -44.0)
 	elif action_id.begins_with("culture_hack_terminal:"):
 		var sub_id: String = action_id.substr("culture_hack_terminal:".length())
 		var hres: Dictionary = hack_terminal(vm, sub_id, inv)
-		if not bool(hres.get("ok", false)):
+		if bool(hres.get("wait", false)):
+			npc._spawn_floating_text("🖥️ El archivo policial se revisa a fondo: espera unos días antes de volver a purgarlo", Color.LIGHT_GRAY, -44.0)
+		elif not bool(hres.get("ok", false)):
 			npc._spawn_floating_text("🖥️ Hoy ya intentaste manipular la terminal lógica", Color.LIGHT_GRAY, -44.0)
 		elif bool(hres.get("won", false)):
 			npc._spawn_floating_text("🖥️✨ ¡Hackeo limpio en la terminal lógica (%s)!" % sub_id, Color.AQUAMARINE, -46.0)

@@ -665,6 +665,12 @@ Cada fase se dividirá en bloques pequeños cuando se llegue a ella (detalle en 
 - [x] **Bloque PQ — Escalado de población a 100+ vecinos, solares de la ronda norte (`u0..u6`), casas ampliables a 4 camas con altillo y LOD multi-nivel** (`scripts/systems/VillageMigration.gd`, `scripts/systems/VillageLots.gd`, `scripts/systems/VillageHousing.gd`, `scripts/enemies/VillageNPC.gd`, test #94):
   1) Techo de población ampliado (`POP_CAP = 100` en `VillageMigration.gd`), nueva ronda norte de 7 solares residenciales (`u0..u6` en `VillageLots.LOTS`) y ampliación vertical de casas ya construidas con altillo (`expand_house_upper_floor`, `_house_beds(id, true)` con 4 camas por casa, activada automáticamente en `VillageMigration.maybe_order_house` cuando se agotan los solares libres o al instalar `"upper_floor"` en `VillageHousing.gd`).
   2) Simulación simplificada multi-nivel y de larga distancia (`_lod_far()` y `_lod_step_for_npc()` en `VillageNPC.gd`): los vecinos que se encuentran en otra capa vertical (`elevation_level != vm.player_elevation_level`) o muy alejados pasan a paso simplificado doble (`LOD_STEP * 2 = 8` fotogramas), manteniendo el desplazamiento exacto mediante `_lod_k`.
+- [x] **Revisión PF–PQ** (`docs/AUDITORIA_PF_PQ.md`, tests #91–#93 ampliados). Arreglados los 4 fallos graves:
+  1) Pisos: `VillageHousing.player_near_home` (90 px de un solar tuyo) para subir o bajar. `VillageManager.check_elevation_exit` devuelve a nivel 0 al alejarse 70 px del punto donde se cambió de piso. `explore_sewer_location` ya no deja al jugador en −1.
+  2) `fire_flintlock_shot` usaba un suelo de 2.5 en `apply_minor_bruise` (daño 0); ahora 0.10. Retirada la opción «Dispararle» del diálogo.
+  3) El capítulo IV leía `town_state["mayor_key"]`, que no existe; ahora `VillageMayor.is_player_mayor`.
+  4) `VillageHousing.can_purge_wanted` / `mark_wanted_purge`: 7 días compartidos entre el sótano, el pasadizo del contrabandista y `warrant_archive`.
+  Pendientes de economía y textos: puntos 5–16 del informe.
 - [x] **Bloque E** (probado, test #75; detalle en `docs/REGISTRO_TRABAJO.md`). Diagnóstico de comidas fallidas
   (`migration_state.meal_fails`, «motivo/oficio»); casas: la pareja junta ahorros y, si alguien duerme al raso, el
   pueblo paga sin reserva; camas de posada sin repetir (cuenta a quien tenga oficio y duerma allí); U5 «según X»

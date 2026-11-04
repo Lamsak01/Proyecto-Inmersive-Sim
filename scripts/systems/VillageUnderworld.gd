@@ -149,7 +149,8 @@ static func explore_sewer_location(vm, loc_id: String, inv, force_outcome: int =
 	if today() == int(sw.get("last_explore_day", -99)):
 		return {"ok": false}
 	var pl = VillageNeeds.player_of(vm)
-	enter_sewer_location(vm, loc_id, pl)
+	# La exploración es una salida de ida y vuelta: al terminar vuelves a la calle por la misma rejilla
+	# (así nunca te quedas "bajo tierra" en la plaza, donde nadie podría verte robar).
 	sw["last_explore_day"] = today()
 	var def: Dictionary = SEWER_LOCATIONS[loc_id]
 	var title: String = str(def.get("title", loc_id))
@@ -166,8 +167,9 @@ static func explore_sewer_location(vm, loc_id: String, inv, force_outcome: int =
 			sw["lost_coins_pool"] = int(sw.get("lost_coins_pool", 0)) - coins
 			inv.add_gold(coins)
 		sw["explored_count"] = int(sw.get("explored_count", 0)) + 1
-		if loc_id == "smuggler_tunnel" and int(vm.wanted_level) > 0:
+		if loc_id == "smuggler_tunnel" and int(vm.wanted_level) > 0 and VillageHousing.can_purge_wanted(vm):
 			vm.wanted_level = maxi(0, int(vm.wanted_level) - 1)
+			VillageHousing.mark_wanted_purge(vm)
 		VillageChronicle.add(vm, "sewer_explored", "Exploraste %s en las alcantarillas (nivel -1) y hallaste %s (+%d monedas caídas)" % [title, item_id, coins], false)
 		return {"ok": true, "success": true, "item": item_id, "coins": coins}
 	if pl != null:

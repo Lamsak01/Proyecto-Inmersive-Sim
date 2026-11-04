@@ -364,8 +364,11 @@ Informe completo: `docs/AUDITORIA_P1_P7.md`.
 | PQ1 | Techo de población `POP_CAP = 100`, 7 nuevos solares residenciales en la ronda norte (`u0..u6`) y ampliación de casas a 4 camas mediante altillo (`expand_house_upper_floor`, `_house_beds(id, true)`) | ✅ | VillageMigration.gd, VillageLots.gd, VillageHousing.gd, verify_all.gd | Test #94 |
 | PQ2 | Simulación simplificada multi-nivel (`_lod_far`, `_lod_step_for_npc`) para vecinos en otro piso/subsuelo o a gran distancia | ✅ | VillageNPC.gd, verify_all.gd | Test #94 |
 
+## Revisión PF–PQ — Cuatro fallos graves (2026-11-04)
 
-
-
-
-
+| # | Paso | Estado | Archivos | Nota |
+|---|------|--------|----------|------|
+| RV1 | Cambiar de piso solo en casa; volver a la calle al salir; alcantarillas de ida y vuelta | ✅ | VillageManager.gd, VillageHousing.gd, VillageUnderworld.gd | Test #91 |
+| RV2 | Arcabuz con daño real; sin disparo desde el diálogo | ✅ | VillageCulture.gd | Test #92 |
+| RV3 | Capítulo IV por alcaldía (`is_player_mayor`) | ✅ | VillageCulture.gd | Test #93 |
+| RV4 | Espera semanal compartida para borrar la búsqueda | ✅ | VillageHousing.gd, VillageUnderworld.gd, VillageCulture.gd | Tests #91 y #92 |

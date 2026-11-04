@@ -5,6 +5,13 @@ El detalle técnico está en `docs/HANDOFF.md` (sección 7) y el historial compl
 
 ## 2026-11-04
 
+### Revisión de PF–PQ: cuatro fallos graves arreglados
+- **Pisos y alcantarillas:** solo puedes subir al altillo o bajar al sótano estando en tu casa, y al salir vuelves solo a la calle, así que los vecinos vuelven a verte. Explorar las alcantarillas es una salida de ida y vuelta: ya no te quedas «bajo tierra» en la plaza, donde nadie podía verte robar.
+- **Arcabuz:** ahora hace daño de verdad. Ya no se dispara desde la conversación con un vecino; de momento sirve en la defensa contra incursiones.
+- **Historia principal:** llegar a alcalde ya cuenta para el capítulo IV.
+- **Borrar la búsqueda de la guardia:** el sótano, el Pasadizo del Contrabandista y el archivo policial de la terminal comparten una espera de una semana.
+- Informe completo y puntos pendientes en `docs/AUDITORIA_PF_PQ.md`.
+
 ### Escalado del pueblo a 100+ vecinos, ronda norte de solares y casas de dos plantas con 4 camas
 - **Crecimiento hasta 100 vecinos y nueva ronda del norte:** el límite del pueblo sube a 100 habitantes y se abre una tercera calle al norte con siete solares residenciales nuevos. Además, cuando una casa instala un altillo o cuando el pueblo necesita más camas y ya no quedan solares vacíos, las viviendas se amplían hacia arriba para alojar hasta a 4 vecinos por casa.
 - **Simulación ligera para otros pisos y vecinos lejanos:** los habitantes que están en otro nivel (en el altillo o en las alcantarillas) o muy lejos de tu vista se actualizan de forma simplificada para mantener el rendimiento fluido cuando la ciudad crece.
@@ -14,7 +21,7 @@ El detalle técnico está en `docs/HANDOFF.md` (sección 7) y el historial compl
 - **Historia Principal en el panel de misiones (`[L]`):** la pestaña «👑 Principal» del diario de misiones sigue ahora un arco de cuatro capítulos («Las Raíces del Valle», «El Pulso Bajo la Piedra», «La Máquina de Cobre» y «La Placa de Petri») que conecta tu llegada al valle, los hallazgos subterráneos y arqueológicos, la ingeniería del generador y el destino político de la comunidad.
 
 ### Armas de fuego de chispa y Terminales lógicas electromecánicas con hackeo
-- **Arcabuz de chispa y cargas de pólvora:** cuando el pueblo ha investigado las Cerraduras de Precisión, puedes encargar un arcabuz de chispa en la herrería o el taller y comprar cargas de pólvora negra. Llevar el arma cargada refuerza de forma decisiva la defensa contra incursiones y te permite disparar (consumiendo pólvora y alertando por el estruendo a los testigos cercanos del mismo nivel).
+- **Arcabuz de chispa y cargas de pólvora:** cuando el pueblo ha investigado las Cerraduras de Precisión, puedes encargar un arcabuz de chispa en la herrería o el taller y comprar cargas de pólvora negra. Llevar el arma cargada refuerza de forma decisiva la defensa contra incursiones (disparar desde la conversación se retiró en la revisión posterior; queda pendiente usarlo en combate).
 - **Terminales lógicas y hackeo electromecánico:** una vez al día puedes manipular en sigilo la consola electromecánica de tarjetas perforadas y relés (con mejores probabilidades si se han investigado los Condensadores Voltaicos o llevas una bobina de cobre) para desviar un reembolso desde las arcas municipales, borrar cargos en el archivo policial o reprogramar el controlador de la red eléctrica; si fallas, salta una descarga voltaica y se activa la alarma policial.
 
 ### Niveles verticales por capas y Alcantarillas bajo el pueblo

@@ -4094,10 +4094,25 @@ func _initialize() -> void:
 	p70_inv.gold = 90
 	vho.on_player_action(vm, p70_a, "housing_upgrade:upper_floor", p70_inv)
 	assert(vho.has_upgrade(vm, "upper_floor") and p70_inv.gold == 40, "PN.1e: Buying upper_floor upgrade costs 50 gold and unlocks upper floor")
+	var pn_pl = vm.VillageNeeds.player_of(vm)
+	var pn_pl_pos0: Vector2 = pn_pl.global_position if pn_pl != null else Vector2.ZERO
+	if pn_pl != null:
+		pn_pl.global_position = vm.VillageLots.lot_def(pn_lot)["center"] + Vector2(400.0, 0.0)
+		vho.on_player_action(vm, p70_a, "housing_change_level:1", p70_inv)
+		assert(vm.player_elevation_level == 0, "PN.1f0: Changing floor away from your house is refused")
+		pn_pl.global_position = vm.VillageLots.lot_def(pn_lot)["center"]
 	vho.on_player_action(vm, p70_a, "housing_change_level:1", p70_inv)
 	assert(vm.player_elevation_level == 1, "PN.1f: housing_change_level:1 moves player to vertical layer +1")
+	if pn_pl != null:
+		pn_pl.global_position = vm.VillageLots.lot_def(pn_lot)["center"] + Vector2(0.0, 150.0)
+		vm.check_elevation_exit(pn_pl)
+		assert(vm.player_elevation_level == 0, "PN.1f2: Walking out of the house returns the player to street level (neighbors can witness again)")
+		pn_pl.global_position = vm.VillageLots.lot_def(pn_lot)["center"]
+		vho.on_player_action(vm, p70_a, "housing_change_level:1", p70_inv)
 	vho.on_player_action(vm, p70_a, "housing_change_level:0", p70_inv)
 	assert(vm.player_elevation_level == 0, "PN.1g: housing_change_level:0 returns player to street level 0")
+	if pn_pl != null:
+		pn_pl.global_position = pn_pl_pos0
 	# PN.2: Red de alcantarillas bajo el pueblo (Cisterna, Pasadizo del Contrabandista y Bóveda Inundada)
 	vun.state(vm)["sewers"] = {"unlocked": false, "current_loc": "", "last_explore_day": -99, "lost_coins_pool": 14, "explored_count": 0}
 	var pn_ag0: int = int(p70_a.personal_gold)
@@ -4106,13 +4121,18 @@ func _initialize() -> void:
 	assert(bool(vun.sewers_state(vm).get("unlocked", false)) and p70_inv.gold == 40 and int(p70_a.personal_gold) == pn_ag0 + 20, "PN.2a: Unlocking the sewers pays 20 gold to the contact's pocket")
 	var pn_scrap0: int = p70_inv.get_count("bandit_scrap")
 	vm.wanted_level = 2
+	vho.state(vm)["last_hide_day"] = -99
 	var pn_res1: Dictionary = vun.explore_sewer_location(vm, "smuggler_tunnel", p70_inv, 1)
-	assert(bool(pn_res1.get("ok", false)) and bool(pn_res1.get("success", false)) and vm.player_elevation_level == -1 and p70_inv.get_count("bandit_scrap") == pn_scrap0 + 1 and p70_inv.gold == 46 and int(vun.sewers_state(vm).get("lost_coins_pool", 0)) == 8 and vm.wanted_level == 1, "PN.2b: Exploring smuggler_tunnel moves player to level -1, yields loot + 6 coins from lost_coins_pool, and reduces wanted_level by 1")
+	assert(bool(pn_res1.get("ok", false)) and bool(pn_res1.get("success", false)) and vm.player_elevation_level == 0 and p70_inv.get_count("bandit_scrap") == pn_scrap0 + 1 and p70_inv.gold == 46 and int(vun.sewers_state(vm).get("lost_coins_pool", 0)) == 8 and vm.wanted_level == 1, "PN.2b: Exploring smuggler_tunnel moves player to level -1, yields loot + 6 coins from lost_coins_pool, and reduces wanted_level by 1")
 	assert(not bool(vun.explore_sewer_location(vm, "cistern", p70_inv, 1).get("ok", false)), "PN.2c: Sewer exploration is limited to 1 per day")
+	vun.sewers_state(vm)["last_explore_day"] = -99
+	vun.explore_sewer_location(vm, "smuggler_tunnel", p70_inv, 1)
+	assert(vm.wanted_level == 1, "PN.2c2: The smuggler tunnel cannot lower wanted level again within the same week")
 	vun.sewers_state(vm)["last_explore_day"] = -99
 	var pn_hyg0: float = float(vm.VillageNeeds.state(vm).get("player_hygiene", 80.0))
 	var pn_res2: Dictionary = vun.explore_sewer_location(vm, "flooded_vault", p70_inv, -1)
 	assert(bool(pn_res2.get("ok", false)) and not bool(pn_res2.get("success", true)) and float(vm.VillageNeeds.state(vm).get("player_hygiene", 80.0)) < pn_hyg0, "PN.2d: Failed sewer exploration reduces player hygiene and health")
+	vm.set_player_elevation_level(-1)
 	vun.on_player_action(vm, p70_a, "underworld_sewer_surface", p70_inv)
 	assert(vm.player_elevation_level == 0 and str(vun.sewers_state(vm).get("current_loc", "")) == "", "PN.2e: underworld_sewer_surface returns player to street level 0")
 	vm.wanted_level = 0
@@ -4139,8 +4159,10 @@ func _initialize() -> void:
 	var po_def_no_gun: int = vcu_pj.defense_power(vm, true, null)
 	var po_def_with_gun: int = vcu_pj.defense_power(vm, true, p70_inv)
 	assert(po_def_with_gun == po_def_no_gun + 3, "PO.1d: Carrying a loaded flintlock firearm adds +3 defense power against raids")
-	vcu_pj.on_player_action(vm, p70_b, "culture_fire_flintlock", p70_inv)
-	assert(p70_inv.get_count("powder_charge") == 3 and str(p70_b.last_hit_weapon_name) == "Arcabuz de Chispa", "PO.1e: Firing flintlock consumes 1 powder_charge and wounds target")
+	p70_b.health_comp.current_health = p70_b.health_comp.get_effective_max_health()
+	var po_hp0: float = float(p70_b.health_comp.current_health)
+	assert(vcu_pj.fire_flintlock_shot(vm, p70_b, p70_inv), "PO.1e0: Loaded flintlock fires")
+	assert(p70_inv.get_count("powder_charge") == 3 and str(p70_b.last_hit_weapon_name) == "Arcabuz de Chispa" and float(p70_b.health_comp.current_health) < po_hp0, "PO.1e: Firing flintlock consumes 1 powder_charge and really wounds target")
 	# PO.2: Hackeo de la terminal lógica electromecánica (reembolso fiscal de las arcas, purga de búsqueda y alarma si falla)
 	vm.town_state["treasury"] = 80
 	p70_inv.gold = 30
@@ -4150,9 +4172,12 @@ func _initialize() -> void:
 	vcu_pj.terminal_state(vm)["last_hack_day"] = -99
 	vm.wanted_level = 2
 	vm.bounty_gold = 50
+	vho.state(vm)["last_hide_day"] = -99
 	var po_hack2: Dictionary = vcu_pj.hack_terminal(vm, "warrant_archive", p70_inv, 1)
 	assert(bool(po_hack2.get("ok", false)) and bool(po_hack2.get("won", false)) and vm.wanted_level == 1 and vm.bounty_gold == 25, "PO.2c: Hacking warrant_archive reduces wanted_level by 1 and bounty_gold by 25")
 	vcu_pj.terminal_state(vm)["last_hack_day"] = -99
+	var po_hack_wait: Dictionary = vcu_pj.hack_terminal(vm, "warrant_archive", p70_inv, 1)
+	assert(not bool(po_hack_wait.get("ok", true)) and bool(po_hack_wait.get("wait", false)) and vm.wanted_level == 1 and int(vcu_pj.terminal_state(vm)["last_hack_day"]) == -99, "PO.2c2: Purging the police archive again within a week is refused without spending the daily attempt")
 	var po_hack_fail: Dictionary = vcu_pj.hack_terminal(vm, "grid_controller", p70_inv, -1)
 	assert(bool(po_hack_fail.get("ok", false)) and not bool(po_hack_fail.get("won", true)) and vm.wanted_level == 2 and int(vcu_pj.terminal_state(vm)["alarms_triggered"]) == 1, "PO.2d: Failing a terminal hack triggers logical alarm and raises wanted_level")
 	p70_inv.remove_item("flintlock_pistol", p70_inv.get_count("flintlock_pistol"))
@@ -4212,6 +4237,14 @@ func _initialize() -> void:
 	vcu_pj.state(vm)["main_story"] = {}
 	vcu_pj.state(vm)["research"] = {}
 	vcu_pj.state(vm)["exploration"] = {}
+	var pp_mayor0: String = str(vm.VillageTown.state(vm).get("mayor", ""))
+	var pp_raids0: int = int(vcu_pj.raids_state(vm).get("raids_repelled", 0))
+	vcu_pj.raids_state(vm)["raids_repelled"] = 0
+	assert(not vcu_pj._is_main_chapter_ready(vm, 3), "PP.2b0: Chapter IV is not ready without outpost, mayoralty or repelled raid")
+	vm.VillageTown.state(vm)["mayor"] = "player"
+	assert(vcu_pj._is_main_chapter_ready(vm, 3), "PP.2b: Becoming mayor completes Chapter IV of the main story")
+	vm.VillageTown.state(vm)["mayor"] = pp_mayor0
+	vcu_pj.raids_state(vm)["raids_repelled"] = pp_raids0
 	p70_b.trade_role = pp_b_role0
 	p70_a.personal_gold = pp_ag0
 	p70_b.personal_gold = pp_bg0

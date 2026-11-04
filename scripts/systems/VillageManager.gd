@@ -300,6 +300,7 @@ func _process(delta: float) -> void:
 		_cached_player = get_tree().get_first_node_in_group("player") as Node2D
 	var player := _cached_player
 	var real_delta: float = delta / maxf(1.0, Engine.time_scale)
+	check_elevation_exit(player)
 
 	# Escolta física policial hacia la celda de la Comisaría (Estilo Kenshi / Red Dead Redemption 2)
 	if player_being_escorted_to_jail and player:
@@ -1361,11 +1362,22 @@ func distance_on_same_level(pos_a: Vector2, level_a: int, pos_b: Vector2, level_
 		return INF
 	return pos_a.distance_to(pos_b)
 
+## Punto donde el jugador cambió de piso: si se aleja de él (sale de casa), vuelve solo a la calle.
+var _elevation_anchor: Vector2 = Vector2.INF
+const ELEVATION_LEAVE_DIST: float = 70.0
+
 func set_player_elevation_level(new_level: int) -> void:
 	player_elevation_level = clampi(new_level, -1, 1)
+	var pl_e: Node2D = get_tree().get_first_node_in_group("player") as Node2D if is_inside_tree() else null
+	_elevation_anchor = pl_e.global_position if (pl_e != null and player_elevation_level != 0) else Vector2.INF
 	if GameManager:
 		GameManager.set_flag("player_elevation_level", player_elevation_level)
 	_refresh_elevation_layer_visuals()
+
+## Bloque PN: al alejarte del sitio donde cambiaste de piso (sales de casa), vuelves a la calle y los vecinos vuelven a verte.
+func check_elevation_exit(player: Node2D) -> void:
+	if player_elevation_level != 0 and player != null and _elevation_anchor != Vector2.INF and player.global_position.distance_to(_elevation_anchor) > ELEVATION_LEAVE_DIST:
+		set_player_elevation_level(0)
 
 func set_npc_elevation_level(npc: VillageNPC, new_level: int) -> void:
 	if npc == null or not is_instance_valid(npc):
