@@ -12,6 +12,7 @@ El detalle técnico está en `docs/HANDOFF.md` (sección 7) y el historial compl
 - **Panel de avisos limpio:** eliminados los 19 avisos amarillos que salían al abrir el juego en el editor.
 - **Cuadro de conversación ajustado a la pantalla:** cuando un vecino tiene muchas opciones, aparece una barra a la derecha para bajar con la rueda del ratón o con W/S, y la ventana ya nunca se corta por arriba ni por los lados.
 - **Esquina del minimapa limpia:** retirado el viejo letrero de prueba en inglés («Eliminate Frogs») que asomaba cortado encima del minimapa.
+- **Barras de estado finas y dinámicas:** las barras de arriba a la izquierda ahora son más pequeñas, muestran solo su icono sin palabras encima, y las de hambre, sueño e higiene se esconden mientras estás bien (75 % o más) para no tapar la pantalla.
 
 ### Otras diez misiones (ya hay 25)
 - Nuevos encargos (provisionales): donativos para las gachas, una carta de amor, una herencia disputada, apartar a alguien de la bebida o el juego, montar puesto en el mercado, las reuniones nocturnas (la secta), calmar una pelea anunciada, buscar techo a un desahuciado, un forastero del que nadie se fía y un asesinato archivado.

@@ -50,11 +50,11 @@ func _ready() -> void:
 	# Recuadro de estado (arriba a la izquierda). Sangre y aturdimiento siguen funcionando por dentro, pero no se muestran.
 	var stats_box: VBoxContainer = _create_stats_box()
 	if not health_bar:
-		health_bar = _create_fallback_bar(Color(0.86, 0.26, 0.26), Vector2.ZERO, "🛡️ Res")
+		health_bar = _create_fallback_bar(Color(0.86, 0.26, 0.26), Vector2.ZERO, "❤️")
 		stats_box.add_child(health_bar)
 
 	if not stamina_bar:
-		stamina_bar = _create_fallback_bar(Color(0.35, 0.80, 0.40), Vector2.ZERO, "⚡ Aguante")
+		stamina_bar = _create_fallback_bar(Color(0.35, 0.80, 0.40), Vector2.ZERO, "⚡")
 		stats_box.add_child(stamina_bar)
 
 	if not blood_bar:
@@ -64,24 +64,27 @@ func _ready() -> void:
 		stats_box.add_child(blood_bar)
 
 	if not stun_bar:
-		stun_bar = _create_fallback_bar(Color(0.95, 0.80, 0.25), Vector2.ZERO, "💫 Aturdido")
+		stun_bar = _create_fallback_bar(Color(0.95, 0.80, 0.25), Vector2.ZERO, "💫")
 		stun_bar.value = 0.0
 		stun_bar.visible = false
 		stats_box.add_child(stun_bar)
 
 	if not hunger_bar:
-		hunger_bar = _create_fallback_bar(Color(0.95, 0.58, 0.22), Vector2.ZERO, "🍖 Hambre")
+		hunger_bar = _create_fallback_bar(Color(0.95, 0.58, 0.22), Vector2.ZERO, "🍖")
 		hunger_bar.value = 100.0
+		hunger_bar.visible = false
 		stats_box.add_child(hunger_bar)
 
 	if not sleep_bar:
-		sleep_bar = _create_fallback_bar(Color(0.45, 0.72, 1.0), Vector2.ZERO, "💤 Sueño")
+		sleep_bar = _create_fallback_bar(Color(0.45, 0.72, 1.0), Vector2.ZERO, "💤")
 		sleep_bar.value = 100.0
+		sleep_bar.visible = false
 		stats_box.add_child(sleep_bar)
 
 	if not hygiene_bar:
-		hygiene_bar = _create_fallback_bar(Color(0.55, 0.85, 0.95), Vector2.ZERO, "🧼 Higiene")
+		hygiene_bar = _create_fallback_bar(Color(0.55, 0.85, 0.95), Vector2.ZERO, "🧼")
 		hygiene_bar.value = 100.0
+		hygiene_bar.visible = false
 		stats_box.add_child(hygiene_bar)
 
 	# 3. Connect Signals
@@ -702,6 +705,7 @@ func _setup_clock_ui() -> void:
 
 func _on_clock_time_updated(_day: int, _hour: int, _minute: int) -> void:
 	_init_default_objectives()
+	_ensure_compact_bars()
 	if not clock_label or not WorldClock:
 		return
 	var icon := WorldClock.get_phase_icon()
@@ -739,7 +743,7 @@ func _on_health_changed(current: float, max_val: float) -> void:
 	if health_bar.get_child_count() > 0 and health_bar.get_child(0) is Label:
 		var hc: HealthComponent = player.get_node_or_null("HealthComponent") if player else null
 		var eff_max: int = int(round(hc.get_effective_max_health())) if hc else int(round(max_val))
-		(health_bar.get_child(0) as Label).text = ("🛡️ Res: %d/%d (Enfermo)" % [int(round(current)), eff_max]) if eff_max < int(round(max_val)) else ("🛡️ Res: %d/%d" % [int(round(current)), int(round(max_val))])
+		(health_bar.get_child(0) as Label).text = ("❤️ %d/%d (Enf.)" % [int(round(current)), eff_max]) if eff_max < int(round(max_val)) else ("❤️ %d/%d" % [int(round(current)), int(round(max_val))])
 
 func _on_stamina_changed(current: float, max_val: float) -> void:
 	stamina_bar.value = current
@@ -751,7 +755,7 @@ func _on_blood_changed(current: float, max_val: float) -> void:
 	if blood_bar.get_child_count() > 0 and blood_bar.get_child(0) is Label:
 		var hc: HealthComponent = player.get_node_or_null("HealthComponent") if player else null
 		var stg: String = hc.get_blood_loss_stage_name() if hc else "Estable"
-		(blood_bar.get_child(0) as Label).text = "🩸 Sangre: -%d%% (%s)" % [int(round(current)), stg]
+		(blood_bar.get_child(0) as Label).text = "🩸 -%d%% (%s)" % [int(round(current)), stg]
 
 func _on_stun_changed(current: float, max_val: float) -> void:
 	stun_bar.value = current
@@ -761,16 +765,53 @@ func _on_hygiene_changed(current: float, max_val: float) -> void:
 	if hygiene_bar:
 		hygiene_bar.max_value = max_val
 		hygiene_bar.value = current
+		hygiene_bar.visible = (current < 75.0)
+		if hygiene_bar.get_child_count() > 0 and hygiene_bar.get_child(0) is Label:
+			(hygiene_bar.get_child(0) as Label).text = "🧼 %d%%" % int(round(current))
+		_shrink_stats_box()
 
 func _on_hunger_changed(current: float, max_val: float) -> void:
 	if hunger_bar:
 		hunger_bar.max_value = max_val
 		hunger_bar.value = current
+		hunger_bar.visible = (current < 75.0)
+		if hunger_bar.get_child_count() > 0 and hunger_bar.get_child(0) is Label:
+			(hunger_bar.get_child(0) as Label).text = "🍖 %d%%" % int(round(current))
+		_shrink_stats_box()
 
 func _on_sleep_changed(current: float, max_val: float) -> void:
 	if sleep_bar:
 		sleep_bar.max_value = max_val
 		sleep_bar.value = current
+		sleep_bar.visible = (current < 75.0)
+		if sleep_bar.get_child_count() > 0 and sleep_bar.get_child(0) is Label:
+			(sleep_bar.get_child(0) as Label).text = "💤 %d%%" % int(round(current))
+		_shrink_stats_box()
+
+func _shrink_stats_box() -> void:
+	var sb: PanelContainer = get_node_or_null("StatsBox") as PanelContainer
+	if sb:
+		sb.size = Vector2.ZERO
+
+func _ensure_compact_bars() -> void:
+	if not health_bar or health_bar.custom_minimum_size.x <= 120.0:
+		return
+	for b in [health_bar, stamina_bar, blood_bar, stun_bar, hunger_bar, sleep_bar, hygiene_bar]:
+		if b:
+			b.custom_minimum_size = Vector2(108, 12)
+			if b.get_child_count() > 0 and b.get_child(0) is Label:
+				var l: Label = b.get_child(0) as Label
+				l.offset_left = 4
+				l.add_theme_font_size_override("font_size", 9)
+	if stamina_bar and stamina_bar.get_child_count() > 0 and stamina_bar.get_child(0) is Label:
+		(stamina_bar.get_child(0) as Label).text = "⚡"
+	_on_health_changed(health_bar.value, health_bar.max_value)
+	if hunger_bar:
+		_on_hunger_changed(hunger_bar.value, hunger_bar.max_value)
+	if sleep_bar:
+		_on_sleep_changed(sleep_bar.value, sleep_bar.max_value)
+	if hygiene_bar:
+		_on_hygiene_changed(hygiene_bar.value, hygiene_bar.max_value)
 
 func _on_exhausted() -> void:
 	stamina_bar.modulate = Color.GRAY
@@ -780,49 +821,49 @@ func _on_exhausted() -> void:
 func _create_stats_box() -> VBoxContainer:
 	var panel := PanelContainer.new()
 	panel.name = "StatsBox"
-	panel.position = Vector2(14, 14)
+	panel.position = Vector2(12, 12)
 	panel.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	var st := StyleBoxFlat.new()
-	st.bg_color = Color(0.06, 0.07, 0.09, 0.78)
-	st.border_color = Color(0.70, 0.55, 0.32, 0.55)
+	st.bg_color = Color(0.06, 0.07, 0.09, 0.72)
+	st.border_color = Color(0.70, 0.55, 0.32, 0.48)
 	st.set_border_width_all(1)
-	st.set_corner_radius_all(6)
-	st.content_margin_left = 8
-	st.content_margin_right = 8
-	st.content_margin_top = 6
-	st.content_margin_bottom = 6
+	st.set_corner_radius_all(5)
+	st.content_margin_left = 6
+	st.content_margin_right = 6
+	st.content_margin_top = 5
+	st.content_margin_bottom = 5
 	panel.add_theme_stylebox_override("panel", st)
 	add_child(panel)
 	var col := VBoxContainer.new()
-	col.add_theme_constant_override("separation", 4)
+	col.add_theme_constant_override("separation", 3)
 	col.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	panel.add_child(col)
 	return col
 
-## Barra fina: fondo oscuro, relleno del color dado y el texto encima en blanco (el color ya no tiñe el texto).
+## Barra fina: fondo oscuro, relleno del color dado y el icono/dato encima en blanco.
 func _create_fallback_bar(color: Color, pos: Vector2, label_text: String = "") -> ProgressBar:
 	var bar = ProgressBar.new()
 	bar.position = pos
-	bar.custom_minimum_size = Vector2(170, 16)
+	bar.custom_minimum_size = Vector2(108, 12)
 	bar.show_percentage = false
 	bar.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	var bg := StyleBoxFlat.new()
-	bg.bg_color = Color(0.14, 0.15, 0.18, 0.95)
-	bg.set_corner_radius_all(4)
+	bg.bg_color = Color(0.14, 0.15, 0.18, 0.92)
+	bg.set_corner_radius_all(3)
 	var fill := StyleBoxFlat.new()
 	fill.bg_color = color.darkened(0.15)
-	fill.set_corner_radius_all(4)
+	fill.set_corner_radius_all(3)
 	bar.add_theme_stylebox_override("background", bg)
 	bar.add_theme_stylebox_override("fill", fill)
 	if label_text != "":
 		var lbl = Label.new()
 		lbl.text = label_text
 		lbl.set_anchors_preset(Control.PRESET_FULL_RECT)
-		lbl.offset_left = 6
+		lbl.offset_left = 4
 		lbl.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-		lbl.add_theme_font_size_override("font_size", 11)
+		lbl.add_theme_font_size_override("font_size", 9)
 		lbl.add_theme_color_override("font_color", Color(0.96, 0.96, 0.96))
 		lbl.add_theme_color_override("font_outline_color", Color(0, 0, 0, 0.85))
-		lbl.add_theme_constant_override("outline_size", 3)
+		lbl.add_theme_constant_override("outline_size", 2)
 		bar.add_child(lbl)
 	return bar
