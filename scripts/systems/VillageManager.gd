@@ -892,6 +892,7 @@ func _register_authority_npc(node_name: String, npc_name_str: String, title: Str
 	entities_root.add_child(npc)
 	npc.setup_npc(_load_tex(tex_path), work_pos, bed_pos, stock.duplicate(), table_pos, fam_id, fam_name)
 	authority_npcs.append(npc)
+	trade_npcs[int(role)] = npc
 	_authority_slots.append({
 		"role": role, "npc": npc, "rehire_timer": 0.0, "vacancy_announced": false,
 		"work_pos": work_pos, "bed_pos": bed_pos, "table_pos": table_pos,
@@ -935,6 +936,7 @@ func _spawn_authority_replacement(slot: Dictionary) -> VillageNPC:
 	slot["rehire_timer"] = 0.0
 	slot["vacancy_announced"] = false
 	authority_npcs.append(new_npc)
+	trade_npcs[int(slot["role"])] = new_npc
 	var dest_b: String = "Hospital" if slot["role"] == VillageNPC.TradeRole.DOCTOR else ("Capilla del Alba" if slot["role"] == VillageNPC.TradeRole.PRIEST else "Comisaría")
 	var icon_b: String = "🏥🚶" if slot["role"] == VillageNPC.TradeRole.DOCTOR else ("☀️🚶" if slot["role"] == VillageNPC.TradeRole.PRIEST else "🚓🚶")
 	_hint_player("%s %s (%s · Novato 35%%) está entrando al valle por el camino principal hacia el/la %s." % [icon_b, new_npc.npc_name, str(slot["title"]), dest_b])
@@ -4871,6 +4873,7 @@ func reconcile_npc_registries_after_load() -> void:
 				_innkeeper_npc = v
 			elif v.trade_role in [VillageNPC.TradeRole.DOCTOR, VillageNPC.TradeRole.SHERIFF, VillageNPC.TradeRole.GUARD, VillageNPC.TradeRole.PRIEST] and not v.is_dead:
 				authority_npcs.append(v)
+				trade_npcs[r_int] = v
 				for slot in _authority_slots:
 					if int(slot.get("role", -1)) == r_int:
 						slot["npc"] = v

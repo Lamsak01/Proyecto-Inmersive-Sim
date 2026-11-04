@@ -230,13 +230,13 @@ cada uno cambia el comportamiento del pueblo.
 **«La Placa de Petri»**: pueblo como experimento donde todo se cultiva solo. No consta si el nombre lo eligió el usuario
 o vino ya dado. Conviene confirmarlo.
 
-## 12. Textos y nombres provisionales de los Bloques P1–P7 (70 mecánicas)
+## 12. Textos y nombres provisionales de los Bloques P1–P7
 
 **Qué hay:**
-- **Decretos del alcalde (P5):** «Ley seca» (`dry_law`), «Toque de queda» (`curfew`), «Tributo de paz» (`peace_tax`) y «Subvención al mercado» (`market_subsidy`).
-- **Sustancia prohibida y recetas (P7):** «Polvo de ocaso» (`sunset_dust`), cocinado por el jugador con hierbas medicinales en alambique o comprado a la Red de las Sombras.
-- **Reliquias de encargo del perista (P7):** «Sello de Lacre Noble», «Cáliz de Plata de la Capilla» y «Libro Mayor de los Gremios».
-- **Términos de la Capilla (P4):** «Bula de indulgencia», «Voto de silencio», « Sermón con indirectas» y «Falso milagro».
+- **Decretos del alcalde (P5):** «Ley seca» (`dry_law`), «Toque de queda» (`curfew`) y «Subvención al mercado» (`market_subsidy`).
+- **Sustancia prohibida y herramientas ilegales (P7):** «Polvo de ocaso» (`dusk_dust`), «Veneno lento» (`slow_poison`), «Somnífero» (`sleeping_draught`) y «Papeles falsos» (`false_papers`).
+- **Objetivos de robo por encargo del perista (P7):** «el Cáliz de Plata del Señor» (`lord_goblet`), «el Libro Secreto del Ayuntamiento» (`ledger_gold`) y «el Relicario Dorado de la Capilla» (`chapel_relic`).
+- **Términos de la Capilla (P4):** «Bula de indulgencia», «Secreto de confesión», «Sermón con indirectas» y «Derecho de santuario».
 
 **Dónde:** `scripts/systems/VillageMayor.gd`, `scripts/systems/VillageUnderworld.gd`, `scripts/systems/VillageConfession.gd`, `scripts/systems/VillageClans.gd`, `scripts/systems/VillageForensics.gd`, `scripts/systems/VillageLineage.gd` y `scripts/systems/VillageHousing.gd`.
-**Depende:** solo textos de diálogo y crónicas; los identificadores internos (`dry_law`, `curfew`, `sunset_dust`, etc.) no deben renombrarse sin actualizar las referencias.
+**Depende:** solo textos de diálogo y crónicas; los identificadores internos (`dry_law`, `curfew`, `dusk_dust`, etc.) no deben renombrarse sin actualizar las referencias.

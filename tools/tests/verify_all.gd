@@ -3295,6 +3295,20 @@ func _initialize() -> void:
 	assert(bool(vli.state(vm)["bastards"][p3_kid.get_person_key()]["revealed"]), "P3: Paternity revelation processed")
 	vli.leave_foundling_at_chapel(vm, p70_a, p3_kid)
 	assert(vli.state(vm)["foundlings"].has(p3_kid.get_person_key()) and p3_kid.family_id == "family_chapel", "P3: Foundling left at chapel")
+	# Auditoría P3: cambiar el apellido de un niño sincroniza los registros por nombre (`vagrant_camp_nodes`, `npc_murders`, `foundlings`, etc.)
+	var p3_old_name: String = p3_kid.npc_name
+	var p3_dummy_camp := Node2D.new()
+	vm.vagrant_camp_nodes[p3_old_name] = p3_dummy_camp
+	vm.npc_murders["TestVictim_P3"] = p3_old_name
+	vli.rename_child(vm, p3_kid, "Valen")
+	var p3_new_name: String = p3_kid.npc_name
+	assert(p3_new_name.ends_with(" Valen") and p3_new_name != p3_old_name, "P3 audit: child surname updated")
+	assert(vm.vagrant_camp_nodes.has(p3_new_name) and not vm.vagrant_camp_nodes.has(p3_old_name), "P3 audit: vagrant_camp_nodes migrated on child rename")
+	assert(str(vm.npc_murders.get("TestVictim_P3", "")) == p3_new_name, "P3 audit: npc_murders migrated on child rename")
+	assert(str(vli.state(vm)["foundlings"][p3_kid.get_person_key()].get("kid_name", "")) == p3_new_name, "P3 audit: foundlings kid_name migrated on child rename")
+	vm.vagrant_camp_nodes.erase(p3_new_name)
+	p3_dummy_camp.free()
+	vm.npc_murders.erase("TestVictim_P3")
 	# P4: Confesión, excomunión y sermón con indirectas
 	var vcf = vm.VillageConfession
 	vcf.excommunicate(vm, p70_b, "prueba P4")

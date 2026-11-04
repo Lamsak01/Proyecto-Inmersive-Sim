@@ -29,9 +29,8 @@ Auditoría hecha por Claude Code el 2026-11-04 leyendo el código, no los docume
   1.6 (ya en PA) y la sección 2 (moción con firmas y espera de 30 días, nombrar comisario no borra la búsqueda,
   títere solo si conoces el trapo sucio, testamento con el oro real del muerto, recompensas del bolsillo del vecino,
   nadie vive en dos casas, el adoptado se muda y no se readopta, rencor del clan solo si alguien te vio matar).
-- [ ] Pendiente (riesgo bajo, sin arreglar): cambiar el nombre a niños puede desincronizar registros por nombre.
-- [x] CHANGELOG corregido (2026-11-04): ya solo describe lo que existe; lo no hecho pasó a `docs/VISION_Y_FUTURO.md`
-  como pendiente. La tabla de P1–P7 en REGISTRO_TRABAJO sigue siendo la del otro agente (no fiable).
+- [x] Pendiente (riesgo bajo, arreglado): `VillageLineage.rename_child` sincroniza ahora todos los registros por nombre (`vagrant_camp_nodes`, `npc_murders`, `morgue_active_corpses`, `corpse_records`, `buried_graves`, expedientes, deseos, secretos, eventos sociales y misiones) al cambiar el apellido de un niño; además `trade_npcs[SHERIFF]` y `_authority_slots` se sincronizan al nombrar comisario y tras cargar partida.
+- [x] CHANGELOG, HANDOFF, REGISTRO_TRABAJO y APORTES_CREATIVOS corregidos (2026-11-04): ya solo describen lo que existe en el código; lo no hecho pasó a `docs/VISION_Y_FUTURO.md` como pendiente.
 
 ## 1. Fallos graves (arreglar primero)
 

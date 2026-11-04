@@ -164,9 +164,8 @@ static func reveal_paternity(vm, kk: String, how: String) -> void:
 	if real_f != null and kid != null:
 		if TraitCatalog.npc_tendency(real_f, "honesty") + TraitCatalog.npc_tendency(real_f, "generosity") >= -0.2:
 			var sur: String = vm.VillageFamily._surname(real_f)
-			var first: String = str(kid.npc_name).split(" ", false)[0]
 			if sur != "":
-				kid.npc_name = first + " " + sur
+				rename_child(vm, kid, sur)
 			real_f.modify_npc_relationship(kid, 80, "Reconocí a mi hijo %s" % kid.npc_name, true)
 			kid.modify_npc_relationship(real_f, 75, "Me reconoció como su hijo", true)
 			VillageChronicle.add(vm, "paternity_claimed", "Se supo que %s es hijo de %s (%s); su padre biológico lo reconoció" % [kid.npc_name, real_f.npc_name, how], true)
@@ -174,6 +173,100 @@ static func reveal_paternity(vm, kk: String, how: String) -> void:
 			if mother != null:
 				mother.modify_npc_relationship(real_f, -30, "Se desentendió de nuestro hijo %s" % kid.npc_name, true)
 			VillageChronicle.add(vm, "paternity_denied", "Estalló el escándalo: %s es hijo de %s (%s), pero éste se negó a reconocerlo" % [str(b["kid_name"]), str(b["real_father_name"]), how], true)
+
+## Cambia el apellido de un niño y sincroniza todos los registros que guardan su nombre (`vagrant_camp_nodes`, `npc_murders`, expedientes, deseos, secretos, misiones, etc.).
+static func rename_child(vm, kid, new_surname: String) -> void:
+	if vm == null or kid == null or new_surname.strip_edges() == "":
+		return
+	var first: String = str(kid.npc_name).split(" ", false)[0]
+	var new_name: String = first + " " + new_surname.strip_edges()
+	var old_name: String = str(kid.npc_name)
+	if new_name == old_name or old_name == "":
+		return
+	kid.npc_name = new_name
+	var st: Dictionary = state(vm)
+	var kk: String = kid.get_person_key()
+	if (st["bastards"] as Dictionary).has(kk):
+		st["bastards"][kk]["kid_name"] = new_name
+	if (st["foundlings"] as Dictionary).has(kk):
+		st["foundlings"][kk]["kid_name"] = new_name
+	for fam_k in (st["sibling_rivalries"] as Dictionary).keys():
+		var sr: Dictionary = st["sibling_rivalries"][fam_k]
+		if str(sr.get("a_name", "")) == old_name:
+			sr["a_name"] = new_name
+		if str(sr.get("b_name", "")) == old_name:
+			sr["b_name"] = new_name
+	if vm.vagrant_camp_nodes.has(old_name):
+		vm.vagrant_camp_nodes[new_name] = vm.vagrant_camp_nodes[old_name]
+		vm.vagrant_camp_nodes.erase(old_name)
+	if vm.npc_murders.has(old_name):
+		vm.npc_murders[new_name] = vm.npc_murders[old_name]
+		vm.npc_murders.erase(old_name)
+	for v_k in vm.npc_murders.keys():
+		if str(vm.npc_murders[v_k]) == old_name:
+			vm.npc_murders[v_k] = new_name
+	for arr in [vm.morgue_active_corpses, vm.corpse_records, vm.buried_graves]:
+		for entry in arr:
+			if entry is Dictionary and str(entry.get("victim_name", "")) == old_name:
+				entry["victim_name"] = new_name
+	for case_d in [vm.active_sheriff_investigation, vm.active_royal_investigation]:
+		if case_d is Dictionary and not case_d.is_empty():
+			if str(case_d.get("victim_name", "")) == old_name:
+				case_d["victim_name"] = new_name
+			if str(case_d.get("reporter_name", "")) == old_name:
+				case_d["reporter_name"] = new_name
+			var sus: Dictionary = case_d.get("suspects", {})
+			if sus.has(old_name):
+				var s_entry: Dictionary = sus[old_name]
+				s_entry["name"] = new_name
+				sus[new_name] = s_entry
+				sus.erase(old_name)
+	for d in vm.desires:
+		if d is Dictionary:
+			if str(d.get("holder_name", "")) == old_name:
+				d["holder_name"] = new_name
+			if str(d.get("target_name", "")) == old_name:
+				d["target_name"] = new_name
+	for s in vm.secrets:
+		if s is Dictionary:
+			for nk in ["a_name", "b_name", "holder_name", "target_name"]:
+				if str(s.get(nk, "")) == old_name:
+					s[nk] = new_name
+	for ev in vm.social_event_log:
+		if ev is Dictionary:
+			if str(ev.get("actor_name", "")) == old_name:
+				ev["actor_name"] = new_name
+			if str(ev.get("target_name", "")) == old_name:
+				ev["target_name"] = new_name
+	if "quests_state" in vm and vm.quests_state is Dictionary:
+		for q_list_key in ["active", "offered"]:
+			var q_arr = vm.quests_state.get(q_list_key, [])
+			if q_arr is Array:
+				for q in q_arr:
+					if q is Dictionary:
+						for qnk in ["giver_name", "target_name", "other_name"]:
+							if str(q.get(qnk, "")) == old_name:
+								q[qnk] = new_name
+	if "VillageForensics" in vm and vm.VillageForensics != null:
+		var fst: Dictionary = vm.VillageForensics.state(vm)
+		for dict_k in ["planted", "alibis", "tampered", "hitmen", "poisoned", "moved", "slips", "scapegoats"]:
+			var sub: Dictionary = fst.get(dict_k, {})
+			if sub.has(old_name):
+				sub[new_name] = sub[old_name]
+				sub.erase(old_name)
+			for sk in sub.keys():
+				if sub[sk] is Dictionary:
+					var sd: Dictionary = sub[sk]
+					for fnk in ["framed_name", "killer_name", "ally_name", "witness_name", "mastermind_name", "hitman_name", "victim_name", "scapegoat_name"]:
+						if str(sd.get(fnk, "")) == old_name:
+							sd[fnk] = new_name
+	for n in VillageNeeds.living(vm):
+		if n.npc_relationships.has(old_name):
+			n.npc_relationships[kk] = n.npc_relationships[old_name]
+			n.npc_relationships.erase(old_name)
+		if n.npc_relationship_notes.has(old_name):
+			n.npc_relationship_notes[kk] = n.npc_relationship_notes[old_name]
+			n.npc_relationship_notes.erase(old_name)
 
 static func _daily_paternity_and_support(vm) -> void:
 	var st: Dictionary = state(vm)
@@ -228,9 +321,8 @@ static func adopt_child_by_couple(vm, adopter, kid) -> void:
 	kid.home_table_pos = adopter.home_table_pos
 	kid.bed_position = adopter.bed_position + Vector2(14, 8)
 	var sur: String = vm.VillageFamily._surname(adopter)
-	var first: String = str(kid.npc_name).split(" ", false)[0]
 	if sur != "":
-		kid.npc_name = first + " " + sur
+		rename_child(vm, kid, sur)
 	adopter.modify_npc_relationship(kid, 80, "Lo adoptamos como nuestro hijo", true)
 	kid.modify_npc_relationship(adopter, 85, "Me dio un hogar y una familia", true)
 	VillageChronicle.add(vm, "adoption", "%s adoptó al pequeño %s en su hogar" % [adopter.npc_name, kid.npc_name], true)

@@ -152,7 +152,18 @@ static func appoint_new_sheriff(vm) -> String:
 	if int(ts.get("treasury", 0)) < 30:
 		return ""
 	var old_sheriff = vm.trade_npcs.get(VillageNPC.TradeRole.SHERIFF, null)
+	if old_sheriff == null or old_sheriff.is_dead or int(old_sheriff.trade_role) != int(VillageNPC.TradeRole.SHERIFF):
+		for n in VillageNeeds.living(vm):
+			if int(n.trade_role) == int(VillageNPC.TradeRole.SHERIFF):
+				old_sheriff = n
+				break
 	var guard = vm.trade_npcs.get(VillageNPC.TradeRole.GUARD, null)
+	if guard == null or guard.is_dead or guard == old_sheriff or int(guard.trade_role) != int(VillageNPC.TradeRole.GUARD):
+		guard = null
+		for n in VillageNeeds.living(vm):
+			if n != old_sheriff and int(n.trade_role) == int(VillageNPC.TradeRole.GUARD):
+				guard = n
+				break
 	if guard == null or guard.is_dead:
 		for n in VillageNeeds.living(vm):
 			if n != old_sheriff and int(n.trade_role) == int(VillageNPC.TradeRole.UNEMPLOYED):
@@ -166,10 +177,24 @@ static func appoint_new_sheriff(vm) -> String:
 		old_sheriff.npc_role = "Guardia Relegado"
 		old_sheriff.modify_affinity(-25)
 		vm.trade_npcs[VillageNPC.TradeRole.GUARD] = old_sheriff
+		if not (old_sheriff in vm.authority_npcs):
+			vm.authority_npcs.append(old_sheriff)
+	vm.unemployed_npcs.erase(guard)
+	if not (guard in vm.authority_npcs):
+		vm.authority_npcs.append(guard)
 	guard.trade_role = VillageNPC.TradeRole.SHERIFF
 	guard.npc_role = "Comisario Municipal"
 	guard.modify_affinity(35)
 	vm.trade_npcs[VillageNPC.TradeRole.SHERIFF] = guard
+	for slot in vm._authority_slots:
+		if int(slot.get("role", -1)) == int(VillageNPC.TradeRole.SHERIFF):
+			slot["npc"] = guard
+			slot["rehire_timer"] = 0.0
+			slot["vacancy_announced"] = false
+		elif int(slot.get("role", -1)) == int(VillageNPC.TradeRole.GUARD) and old_sheriff != null and not old_sheriff.is_dead:
+			slot["npc"] = old_sheriff
+			slot["rehire_timer"] = 0.0
+			slot["vacancy_announced"] = false
 	# Un comisario nuevo hereda los expedientes: tu búsqueda no se borra
 	VillageChronicle.add(vm, "sheriff_appointed", "La alcaldía nombró a %s nuevo Comisario del valle" % guard.npc_name, true)
 	return guard.npc_name
