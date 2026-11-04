@@ -36,6 +36,14 @@ const GRID_REPAIR_REWARD: int = 12
 const SAPLING_COST: int = 6
 const ROUTE_CHARTER_COST: int = 25
 const MILITIA_COST: int = 15
+const EXPEDITION_COST: int = 12
+const HORSE_COST: int = 45
+const CART_COST: int = 55
+const EXPLORATION_SITES: Dictionary = {
+	"west_ruins": {"name": "Ruinas de Cobre del Oeste", "item": "copper_coil", "max_stages": 2},
+	"north_caves": {"name": "Grutas de Cristal del Norte", "item": "iron_ore", "max_stages": 2},
+	"sunken_watchtower": {"name": "Atalaya Hundida del Pantano", "item": "herbs", "max_stages": 2},
+}
 const TECH_TREE: Dictionary = {
 	"waterwheel_gears": {
 		"name": "Engranajes Hidráulicos", "cost_gold": 25, "req_points": 3, "prereq": "",
@@ -55,11 +63,98 @@ static func state(vm) -> Dictionary:
 	if not vm.culture_state is Dictionary:
 		vm.culture_state = {}
 	var defs: Dictionary = {"readings": 0, "player_read_day": -1, "market_day": -1, "market_sellers": {}, "market_sales": 0,
-		"markets_held": 0, "repairs": 0, "grid": {}, "forest": {}, "trade_routes": {}, "research": {}, "raids": {}}
+		"markets_held": 0, "repairs": 0, "grid": {}, "forest": {}, "trade_routes": {}, "research": {}, "raids": {}, "exploration": {}, "mounts": {}}
 	for k in defs.keys():
 		if not vm.culture_state.has(k):
 			vm.culture_state[k] = defs[k]
 	return vm.culture_state
+
+static func mounts_state(vm) -> Dictionary:
+	var st: Dictionary = state(vm)
+	if not (st.get("mounts", null) is Dictionary):
+		st["mounts"] = {}
+	var m: Dictionary = st["mounts"]
+	for k in ["has_horse", "has_cart"]:
+		if not m.has(k):
+			m[k] = false
+	return m
+
+static func has_horse(vm) -> bool:
+	return vm != null and bool(mounts_state(vm).get("has_horse", false))
+
+static func has_cart(vm) -> bool:
+	return vm != null and bool(mounts_state(vm).get("has_cart", false))
+
+static func buy_mount(vm, kind: String, seller, inv) -> bool:
+	if vm == null or seller == null or inv == null:
+		return false
+	var m: Dictionary = mounts_state(vm)
+	if kind == "horse":
+		if bool(m.get("has_horse", false)) or int(inv.gold) < HORSE_COST:
+			return false
+		inv.add_gold(-HORSE_COST)
+		seller.personal_gold += HORSE_COST
+		m["has_horse"] = true
+		var pl = VillageNeeds.player_of(vm)
+		if pl != null:
+			pl.set_meta("mount_speed_mult", 1.25)
+		VillageChronicle.add(vm, "mount", "Compraste un caballo de silla en el Rancho del Sur", true)
+		return true
+	elif kind == "cart":
+		if bool(m.get("has_cart", false)) or int(inv.gold) < CART_COST:
+			return false
+		inv.add_gold(-CART_COST)
+		seller.personal_gold += CART_COST
+		m["has_cart"] = true
+		VillageChronicle.add(vm, "mount", "Compraste una carreta de carga para tus rutas comerciales", true)
+		return true
+	return false
+
+static func exploration_state(vm) -> Dictionary:
+	var st: Dictionary = state(vm)
+	if not (st.get("exploration", null) is Dictionary):
+		st["exploration"] = {}
+	var ex: Dictionary = st["exploration"]
+	if not (ex.get("sites", null) is Dictionary):
+		ex["sites"] = {}
+	var s_dict: Dictionary = ex["sites"]
+	for s_id in EXPLORATION_SITES.keys():
+		if not s_dict.has(s_id):
+			s_dict[s_id] = 0
+	if not ex.has("last_exp_day"):
+		ex["last_exp_day"] = -99
+	if not ex.has("discoveries"):
+		ex["discoveries"] = 0
+	return ex
+
+static func run_expedition(vm, site_id: String, guide_npc, inv, force_outcome: int = 0) -> Dictionary:
+	if vm == null or inv == null or not EXPLORATION_SITES.has(site_id):
+		return {"ok": false}
+	var ex: Dictionary = exploration_state(vm)
+	var today: int = int(WorldClock.current_day) if WorldClock else 1
+	if int(ex.get("last_exp_day", -99)) == today or int(inv.gold) < EXPEDITION_COST:
+		return {"ok": false}
+	inv.add_gold(-EXPEDITION_COST)
+	if guide_npc != null:
+		guide_npc.personal_gold += EXPEDITION_COST
+	ex["last_exp_day"] = today
+	var s_def: Dictionary = EXPLORATION_SITES[site_id]
+	var chance: float = 0.60 + (0.15 if has_horse(vm) else 0.0)
+	var won: bool = randf() < chance
+	if force_outcome == 1:
+		won = true
+	elif force_outcome == -1:
+		won = false
+	if won:
+		var s_dict: Dictionary = ex["sites"]
+		s_dict[site_id] = mini(int(s_def["max_stages"]), int(s_dict.get(site_id, 0)) + 1)
+		ex["discoveries"] = int(ex.get("discoveries", 0)) + 1
+		var reward_item: String = str(s_def.get("item", "copper_coil"))
+		inv.add_item(reward_item, 1)
+		state(vm)["readings"] = int(state(vm).get("readings", 0)) + 2
+		VillageChronicle.add(vm, "expedition", "🗺️ Tu expedición a %s halló reliquias (%s) y notas para la biblioteca" % [str(s_def["name"]), reward_item], true)
+		return {"ok": true, "won": true, "item": reward_item}
+	return {"ok": true, "won": false, "item": ""}
 
 static func research_state(vm) -> Dictionary:
 	var st: Dictionary = state(vm)
@@ -313,7 +408,7 @@ static func send_player_shipment(vm, route_id: String, inv) -> bool:
 	var exp_qty: int = int(r.get("export_qty", 2))
 	var imp_item: String = str(r.get("imports", "fish"))
 	var imp_qty: int = int(r.get("import_qty", 2))
-	var pay: int = int(r.get("tariff_gold", 8))
+	var pay: int = int(r.get("tariff_gold", 8)) + (4 if has_cart(vm) else 0)
 	if int(inv.items.get(exp_item, 0)) < exp_qty or int(r.get("balance", 0)) < pay:
 		return false
 	inv.remove_item(exp_item, exp_qty)
@@ -755,6 +850,25 @@ static func add_dialogue_choices(vm, npc, diag: Dictionary, ch_arr: Array) -> vo
 		var act_r: Dictionary = rd.get("active_raid", {})
 		if not act_r.is_empty():
 			ch_arr.insert(0, {"label": "⚔️🔥 Encabezar la defensa contra %s (Recompensa de las arcas si ganáis)" % str(act_r.get("name", "Incursión")), "next": "END", "action": "culture_lead_defense"})
+	if role_i == int(VillageNPC.TradeRole.RANCHER):
+		if not has_horse(vm):
+			ch_arr.append({"label": "🐎🪙 Comprar Caballo de Silla (-%d Oro al ganadero, velocidad y +15%% en expediciones)" % HORSE_COST, "next": "END", "action": "culture_buy_horse"})
+		if not has_cart(vm):
+			ch_arr.append({"label": "🛒🐴 Comprar Carreta de Carga (-%d Oro al ganadero, +4 Oro por remesa comercial)" % CART_COST, "next": "END", "action": "culture_buy_cart"})
+	if role_i in [int(VillageNPC.TradeRole.RANCHER), int(VillageNPC.TradeRole.TINKER), int(VillageNPC.TradeRole.TRAVELING_MERCHANT)]:
+		var ex: Dictionary = exploration_state(vm)
+		if int(ex.get("last_exp_day", -99)) != today:
+			var ex_choices: Array = []
+			for s_id in EXPLORATION_SITES.keys():
+				var s_def: Dictionary = EXPLORATION_SITES[s_id]
+				var cur_st: int = int((ex["sites"] as Dictionary).get(s_id, 0))
+				ex_choices.append({"label": "🧭 Explorar %s [Etapa %d/%d] (-%d Oro en víveres)" % [str(s_def["name"]), cur_st, int(s_def["max_stages"]), EXPEDITION_COST], "next": "END", "action": "culture_expedition:" + str(s_id)})
+			ex_choices.append({"label": "⬅️ Volver", "next": "start"})
+			ch_arr.append({"label": "🗺️🧭 Organizar expedición de exploración (1/día)", "next": "culture_expedition_menu"})
+			diag["culture_expedition_menu"] = {
+				"text": "«Más allá de los lindes del valle quedan ruinas, grutas y atalayas con piezas antiguas y notas para la biblioteca.»",
+				"choices": ex_choices,
+			}
 	if role_i == int(VillageNPC.TradeRole.WOODCUTTER):
 		ch_arr.append({"label": "🌲🌱 Sembrar pino joven en el bosque (-1 Semilla de Cultivo, enriquece suelo y fauna)", "next": "END", "action": "culture_plant_tree"})
 		ch_arr.append({"label": "🌲🪙 Comprar y plantar plantón de pino (-%d Oro al leñador, enriquece suelo y fauna)" % SAPLING_COST, "next": "END", "action": "culture_buy_sapling"})
@@ -863,3 +977,24 @@ static func on_player_action(vm, npc, action_id: String, inv) -> void:
 			npc._spawn_floating_text("📦🪙 ¡Remesa enviada y mercancía importada recibida!", Color.AQUAMARINE, -46.0)
 		else:
 			npc._spawn_floating_text("«No tienes la mercancía requerida o hoy ya enviaste una remesa por esta ruta.»", Color.ORANGE_RED, -46.0)
+	elif action_id == "culture_buy_horse":
+		if buy_mount(vm, "horse", npc, inv):
+			npc.affinity = clampi(npc.affinity + 8, -100, 100)
+			npc._spawn_floating_text("🐎✨ «¡Buen corcel! Te llevará más rápido y seguro en tus expediciones.»", Color.GOLD, -46.0)
+		else:
+			npc._spawn_floating_text("«Necesitas %d de oro para llevarte el caballo de silla.»" % HORSE_COST, Color.ORANGE_RED, -46.0)
+	elif action_id == "culture_buy_cart":
+		if buy_mount(vm, "cart", npc, inv):
+			npc.affinity = clampi(npc.affinity + 8, -100, 100)
+			npc._spawn_floating_text("🛒🐴 «¡Carreta enganchada! Tus remesas comerciales rendirán más oro.»", Color.GOLD, -46.0)
+		else:
+			npc._spawn_floating_text("«Necesitas %d de oro para llevarte la carreta de carga.»" % CART_COST, Color.ORANGE_RED, -46.0)
+	elif action_id.begins_with("culture_expedition:"):
+		var s_id2: String = action_id.substr("culture_expedition:".length())
+		var exp_res: Dictionary = run_expedition(vm, s_id2, npc, inv)
+		if not bool(exp_res.get("ok", false)):
+			npc._spawn_floating_text("«Hoy ya saliste de expedición o te faltan %d de oro para los víveres.»" % EXPEDITION_COST, Color.ORANGE_RED, -46.0)
+		elif bool(exp_res.get("won", false)):
+			npc._spawn_floating_text("🧭✨ ¡Expedición exitosa! Hallaste 1 %s y apuntes para la biblioteca" % str(exp_res.get("item", "")), Color.AQUAMARINE, -46.0)
+		else:
+			npc._spawn_floating_text("🧭🌧️ La expedición tuvo que regresar por un derrumbe sin hallazgos", Color.LIGHT_GRAY, -46.0)

@@ -132,7 +132,7 @@ Estado: **✅ HECHO** = ya construido y funcionando en el juego. **🟡 EN PARTE
 ### Mundo, ecosistema y exploración
 - ✅ **HECHO** — Sembrar árboles y que influya en el ecosistema (`EcosystemManager.gd`, `VillageCulture.gd`, test #88): junto al leñador puedes sembrar pinos jóvenes en el bosque (con semillas de cultivo o comprando un plantón de vivero); cada pino plantado añade un árbol talable real al bosque, hace rebrotar flora silvestre agotada, atrae fauna herbívora (venados y conejos) y sube la fertilidad del suelo para aumentar las cosechas de madera y grano del valle. *(Hecho en bloque PK.)*
 - ✅ **HECHO** — Ataques e incursiones organizadas contra el pueblo (`VillageCulture.gd`, test #89): cuando sube la amenaza exterior, los vigías avisan la víspera de una incursión contra el pueblo; puedes financiar barricadas y milicia vecinal ante el comisario o los guardias (15 de oro a las arcas, +2 de defensa) y encabezar la defensa para cobrar recompensa de las arcas si rechazáis el asalto, o sufrir saqueo de las arcas, sabotajes y heridos si las defensas caen. *(Hecho en bloque PL.)*
-- 💡 **PENDIENTE** — Investigación y exploración.
+- ✅ **HECHO** — Investigación y exploración (`VillageCulture.gd`, test #90): una vez al día puedes organizar expediciones de exploración a las «Ruinas de Cobre del Oeste», las «Grutas de Cristal del Norte» y la «Atalaya Hundida del Pantano» pagando 12 de oro en víveres al guía; si la expedición triunfa, regresas con reliquias o materias primas (`copper_coil`, `iron_ore`, `herbs`) y sumas apuntes de campo a las lecturas de la biblioteca para impulsar el árbol de investigación. *(Hecho en bloque PM.)*
 - 💡 **PENDIENTE** — Alcantarillas con localizaciones nuevas.
 - 💡 **PENDIENTE** — Niveles verticales: sótanos, edificios de varios pisos (diseño aprobado en la sección 6).
 - ✅ **HECHO** — Housing (casa propia, mejorarla, comprar/alquilar y ser terrateniente):
@@ -145,7 +145,7 @@ Estado: **✅ HECHO** = ya construido y funcionando en el juego. **🟡 EN PARTE
 - 💡 **PENDIENTE** — Historia principal (pestaña «Principal» del panel de misiones `L` ya preparada).
 
 ### Tecnología anacrónica
-- 💡 **PENDIENTE** — Vehículos: caballos, bicicletas, motos, automóviles, carretas, barcos.
+- ✅ **HECHO** — Vehículos de época: caballos de silla y carretas de carga (`VillageCulture.gd`, test #90): en el Rancho del Sur puedes comprar al ganadero un Caballo de Silla (45 de oro, aumenta tu velocidad y mejora un +15 % el éxito de tus expediciones) y una Carreta de Carga (55 de oro, añade +4 de oro de rendimiento por cada remesa comercial enviada por ruta). *(Hecho en bloque PM; motos/coches quedan descartados para el tamaño actual del valle.)*
 - 💡 **PENDIENTE** — Armas de fuego.
 - 💡 **PENDIENTE** — Ordenadores y hackeo.
 - ✅ **HECHO** — Electricidad con sistemas lógicos que se puedan sabotear (`VillageCulture.gd`, `VillageManager.gd`, `FarmPlot.gd`, test #87): red eléctrica dividida en circuitos independientes (circuito de farolas, bomba eléctrica de riego/aspersor y generador general) que pueden sabotearse por separado (1 vez al día, con riesgo de chispazo y búsqueda policial) para dejar las calles a oscuras o secar el riego automático, y repararse entregando una bobina de cobre (cobrando 12 de oro de las arcas municipales) o en el ciclo diario del arreglador con cargo al ayuntamiento. *(Base en V5e + hecho en bloque PJ.)*

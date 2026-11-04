@@ -329,6 +329,13 @@ Informe completo: `docs/AUDITORIA_P1_P7.md`.
 | PL1 | Árbol de investigación con el ingeniero (`TECH_TREE`, `start_research`, `advance_research`, `culture_start_tech`, `culture_boost_tech`) con prerrequisitos, consumo de lecturas de la biblioteca o chatarra y bonificaciones permanentes al valle | ✅ | VillageCulture.gd, verify_all.gd | Test #89 |
 | PL2 | Incursiones organizadas contra el pueblo (`raids_state`, `start_raid_warning`, `defense_power`, `resolve_raid`, `culture_fund_militia`, `culture_lead_defense`) con financiación de milicia, defensa encabezada por el jugador con recompensa de las arcas y saqueo si cae la defensa | ✅ | VillageCulture.gd, verify_all.gd | Test #89 |
 
+## Bloque PM — Expediciones de exploración y Caballos / Carretas de carga en el rancho (2026-11-04)
+
+| # | Paso | Estado | Archivos | Nota |
+|---|------|--------|----------|------|
+| PM1 | Caballo de silla (`has_horse`, `culture_buy_horse`, 45 de oro al ganadero, +15 % en expediciones) y Carreta de carga (`has_cart`, `culture_buy_cart`, 55 de oro al ganadero, +4 de oro por remesa comercial) | ✅ | VillageCulture.gd, verify_all.gd | Test #90 |
+| PM2 | Expediciones de exploración (`EXPLORATION_SITES`, `run_expedition`, `culture_expedition`, 12 de oro en víveres, 1/día, con tirada de riesgo) que aportan reliquias y +2 lecturas a la biblioteca | ✅ | VillageCulture.gd, verify_all.gd | Test #90 |
+
 
 
 

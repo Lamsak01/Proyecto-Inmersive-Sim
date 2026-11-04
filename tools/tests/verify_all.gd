@@ -4028,5 +4028,38 @@ func _initialize() -> void:
 	vm.town_state["treasury"] = pl_tr0
 	print("Block PL (Tech Research Tree & Organized Village Raids) OK")
 
+	# 90. Bloque PM: Expediciones de exploración y hallazgos arqueológicos y Caballos / Carretas de carga en el rancho
+	var pm_ag0: int = p70_a.personal_gold
+	var pm_read0: int = int(vcu_pj.state(vm).get("readings", 0))
+	vcu_pj.state(vm)["mounts"] = {}
+	vcu_pj.state(vm)["exploration"] = {}
+	p70_inv.gold = 120
+	p70_a.personal_gold = 10
+	vcu_pj.on_player_action(vm, p70_a, "culture_buy_horse", p70_inv)
+	assert(vcu_pj.has_horse(vm) and p70_inv.gold == 75 and p70_a.personal_gold == 55, "PM.1a: Buying riding horse transfers 45 gold to rancher and activates mount")
+	vcu_pj.on_player_action(vm, p70_a, "culture_buy_cart", p70_inv)
+	assert(vcu_pj.has_cart(vm) and p70_inv.gold == 20 and p70_a.personal_gold == 110, "PM.1b: Buying cargo cart transfers 55 gold to rancher and activates cart")
+	p70_inv.remove_item("copper_coil", p70_inv.get_count("copper_coil"))
+	p70_inv.gold = 50
+	var pm_exp_win: Dictionary = vcu_pj.run_expedition(vm, "west_ruins", p70_a, p70_inv, 1)
+	assert(bool(pm_exp_win["ok"]) and bool(pm_exp_win["won"]) and p70_inv.gold == 38 and p70_a.personal_gold == 122 and p70_inv.get_count("copper_coil") == 1 and int(vcu_pj.state(vm)["readings"]) == pm_read0 + 2, "PM.2a: Successful expedition pays 12 gold to guide, yields relic item and adds +2 library readings")
+	assert(not bool(vcu_pj.run_expedition(vm, "west_ruins", p70_a, p70_inv, 1).get("ok", false)), "PM.2b: Daily cooldown prevents running two expeditions on the same day")
+	vcu_pj.exploration_state(vm)["last_exp_day"] = -99
+	var pm_exp_loss: Dictionary = vcu_pj.run_expedition(vm, "north_caves", p70_a, p70_inv, -1)
+	assert(bool(pm_exp_loss["ok"]) and not bool(pm_exp_loss["won"]) and p70_inv.gold == 26, "PM.2c: Failed expedition still consumes supplies and can be lost")
+	# PM.1c: La carreta de carga añade +4 de oro de bonificación por remesa comercial
+	vcu_pj.state(vm)["trade_routes"] = {}
+	vcu_pj.trade_routes_of(vm)["river_port"]["active"] = true
+	p70_inv.remove_item("wood", p70_inv.get_count("wood"))
+	p70_inv.add_item("wood", 2)
+	p70_inv.gold = 50
+	assert(vcu_pj.send_player_shipment(vm, "river_port", p70_inv) and p70_inv.gold == 62, "PM.1c: Cargo cart increases player shipment payout from 8 to 12 gold from route balance")
+	vcu_pj.state(vm)["mounts"] = {}
+	vcu_pj.state(vm)["exploration"] = {}
+	vcu_pj.state(vm)["trade_routes"] = {}
+	vcu_pj.state(vm)["readings"] = pm_read0
+	p70_a.personal_gold = pm_ag0
+	print("Block PM (Exploration Expeditions & Ranch Horses and Carts) OK")
+
 	print("ALL RIMWORLD MEDICAL, FOOTPRINTS, 3-PHASE CORPSE REPORT, MULTI-CORPSE FIX, RPG INTERROGATION, PUBLIC TRIAL, DYNAMIC RELATIONSHIPS, MISSING FAMILY SEARCH, SOCIAL GLOSSARY & UNCONSCIOUS REACTION TESTS PASSED!")
 	quit(0)

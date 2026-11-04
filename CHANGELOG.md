@@ -5,6 +5,10 @@ El detalle técnico está en `docs/HANDOFF.md` (sección 7) y el historial compl
 
 ## 2026-11-04
 
+### Expediciones de exploración y Caballos y carretas de carga en el rancho
+- **Caballos de silla y carretas de carga:** en el Rancho del Sur puedes comprar al ganadero un caballo de silla (mejora tu desplazamiento y aumenta las probabilidades de éxito en las expediciones) y una carreta de carga (incrementa el rendimiento de cada remesa que envíes por las rutas comerciales).
+- **Expediciones de exploración fuera del valle:** una vez al día puedes organizar expediciones a las Ruinas de Cobre del Oeste, las Grutas de Cristal del Norte o la Atalaya Hundida del Pantano pagando los víveres al guía; si superas los peligros del camino regresas con bobinas antiguas, mineral o hierbas y sumas apuntes de campo a la biblioteca para acelerar las investigaciones del taller.
+
 ### Árbol de investigación tecnológica e Incursiones organizadas contra el pueblo
 - **Ingeniería y árbol de investigación en el taller:** en el Taller de Reparaciones puedes financiar proyectos tecnológicos encadenados («Engranajes Hidráulicos», «Cerraduras y Empalizadas de Precisión» y «Condensadores Voltaicos»). El ingeniero avanza cada día aprovechando las lecturas acumuladas en la biblioteca o la chatarra que le lleves, y cada invento terminado mejora de forma permanente la producción y la defensa del valle.
 - **Incursiones organizadas contra el pueblo:** cuando crece la amenaza en las fronteras, los vigías dan la alarma la víspera de un asalto contra el pueblo. Puedes pagar barricadas y milicia vecinal ante el comisario o los guardias y encabezar la defensa para cobrar recompensa de las arcas si rechazáis a los asaltantes; si las defensas ceden, saquean las arcas municipales, sabotean puestos y dejan heridos.
