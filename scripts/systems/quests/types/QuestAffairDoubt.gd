@@ -98,7 +98,7 @@ func on_turn_in(vm: VillageManager, qm: Node, giver: VillageNPC, player: Node, q
 		pay_and_complete(qm, giver, player, q, gold, affinity, "Le contaste la verdad.")
 	elif mode == "lie":
 		giver.add_thought("Me quedo más tranquilo/a: eran tonterías mías (+4)", 4.0)
-		pay_and_complete(qm, giver, player, q, gold, affinity / 2, "Le mentiste para no hacerle daño.")
+		pay_and_complete(qm, giver, player, q, gold, int(float(affinity) / 2.0), "Le mentiste para no hacerle daño.")
 	else:
 		var took: int = 0
 		if cheater != null and not cheater.is_dead:

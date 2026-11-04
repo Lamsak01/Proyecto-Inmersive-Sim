@@ -76,6 +76,7 @@ var needs_state: Dictionary = {}
 ## Instituciones (I): alcalde, arcas, corrupción. Ver `VillageTown.gd`. Se guarda.
 var town_state: Dictionary = {}
 var lots_state: Dictionary = {} # V4: solares y obras (VillageLots)
+@warning_ignore("unused_private_class_variable")
 var _lot_visuals: Dictionary = {}
 var places_state: Dictionary = {} # V5c: terceros espacios (contadores)
 var culture_state: Dictionary = {} # V5e: biblioteca, mercado y arreglos
@@ -3236,7 +3237,7 @@ func _note_inheritance(heir: VillageNPC, dead: VillageNPC) -> void:
 		heir.set_meta("inherited_from", dead.npc_name)
 		heir.set_meta("inherited_family", dead.family_id)
 
-func _pick_ambitious_successor(role_key, title: String) -> VillageNPC:
+func _pick_ambitious_successor(_role_key, title: String) -> VillageNPC:
 	var best: VillageNPC = null
 	var best_s: float = -INF
 	var rivals: Array = []

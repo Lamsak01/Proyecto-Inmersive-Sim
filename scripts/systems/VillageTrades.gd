@@ -220,7 +220,7 @@ static func daily(vm) -> void:
 			continue
 		buy_clothes(vm, n, tailor)
 
-static func buy_clothes(vm, n, tailor) -> void:
+static func buy_clothes(_vm, n, tailor) -> void:
 	n.personal_gold -= CLOTHES_PRICE
 	tailor.personal_gold = maxi(0, tailor.personal_gold) + CLOTHES_PRICE
 	tailor.shop_stock["clothes"] = int(tailor.shop_stock.get("clothes", 0)) - 1

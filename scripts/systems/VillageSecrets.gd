@@ -313,7 +313,7 @@ static func daily_blackmail(vm: VillageManager) -> void:
 ## `roll` < probabilidad de pagar → paga. Si no, `w` se lo cuenta a la pareja.
 static func blackmail(vm: VillageManager, s: Dictionary, w: VillageNPC, a: VillageNPC, roll: float) -> void:
 	s["blackmailed_by"][w.get_person_key()] = true
-	var amount: int = clampi(maxi(0, a.personal_gold) / 2, 0, BLACKMAIL_MAX_GOLD)
+	var amount: int = clampi(int(float(maxi(0, a.personal_gold)) / 2.0), 0, BLACKMAIL_MAX_GOLD)
 	if amount >= 5 and roll < BLACKMAIL_PAY_CHANCE:
 		a.personal_gold -= amount
 		w.personal_gold = maxi(0, w.personal_gold) + amount
@@ -392,7 +392,7 @@ static func on_player_action(vm: VillageManager, npc: VillageNPC, action_id: Str
 			npc.modify_affinity(-15)
 			npc._spawn_floating_text("😤 «¿Con %s? ¡No sé de qué me hablas!»" % s["player_lover"], Color.ORANGE, -46.0)
 			return
-		var amount: int = clampi(maxi(0, npc.personal_gold) / 2, 0, BLACKMAIL_MAX_GOLD)
+		var amount: int = clampi(int(float(maxi(0, npc.personal_gold)) / 2.0), 0, BLACKMAIL_MAX_GOLD)
 		if amount >= 5 and r < PLAYER_BLACKMAIL_PAY_CHANCE:
 			npc.personal_gold -= amount
 			inv.add_gold(amount)

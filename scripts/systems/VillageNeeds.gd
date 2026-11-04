@@ -56,7 +56,10 @@ static func state(vm) -> Dictionary:
 		vm.needs_state = {}
 	for k in ["addict", "drunk", "ill", "immune", "thefts", "smell_day", "craving"]:
 		if not vm.needs_state.has(k):
-			vm.needs_state[k] = [] if k == "thefts" else {}
+			if k == "thefts":
+				vm.needs_state[k] = []
+			else:
+				vm.needs_state[k] = {}
 	return vm.needs_state
 
 static func total_hours() -> int:
@@ -285,7 +288,7 @@ static func _crave(vm, n, what: String) -> void:
 	n.add_thought("Necesito %s y no tengo con qué pagarlo (-6)" % what, -6.0)
 	n._spawn_floating_text("😣", Color.CORAL, -30.0)
 
-static func _beg_round(vm, beggar, people: Array) -> void:
+static func _beg_round(_vm, beggar, people: Array) -> void:
 	for p in people:
 		if p == beggar or not p.is_conscious() or class_of(p) in ["mendigo", "pobre"] or p.global_position.distance_to(beggar.global_position) > 90.0:
 			continue
@@ -326,7 +329,7 @@ static func daily(vm) -> void:
 
 # ---------------------------------------------------------------- E6 diálogo
 
-static func add_dialogue_choices(vm, npc, diag: Dictionary, ch_arr: Array) -> void:
+static func add_dialogue_choices(vm, npc, _diag: Dictionary, ch_arr: Array) -> void:
 	if vm == null:
 		return
 	var st: Dictionary = state(vm)

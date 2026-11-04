@@ -50,7 +50,7 @@ func is_done(vm: VillageManager, q: Dictionary) -> bool:
 	if wk < 0:
 		return false
 	var st: Dictionary = VillageFaith._state(vm)
-	if int((int(st.get("last_rite_day", -1)) - 1) / 7) == wk and (st.get("last_attendees", []) as Array).has(str(q.get("target_key", ""))):
+	if int(float(int(st.get("last_rite_day", -1)) - 1) / 7.0) == wk and (st.get("last_attendees", []) as Array).has(str(q.get("target_key", ""))):
 		q["data"]["came"] = true
 	return bool(q["data"].get("came", false))
 

@@ -39,7 +39,10 @@ static func state(vm) -> Dictionary:
 		vm.town_state = {}
 	for k in ["pledges", "history"]:
 		if not vm.town_state.has(k):
-			vm.town_state[k] = {} if k == "pledges" else []
+			if k == "pledges":
+				vm.town_state[k] = {}
+			else:
+				vm.town_state[k] = []
 	for k in ["treasury", "taxed_total", "embezzled_total", "bribes", "elections"]:
 		if not vm.town_state.has(k):
 			vm.town_state[k] = STARTING_TREASURY if k == "treasury" else 0 # J3: el pueblo empieza con dinero guardado

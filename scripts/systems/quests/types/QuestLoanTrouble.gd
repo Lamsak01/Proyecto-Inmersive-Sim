@@ -100,7 +100,7 @@ func on_extra_action(vm: VillageManager, qm: Node, npc: VillageNPC, action_id: S
 	var greed: float = preload("res://scripts/data/TraitCatalog.gd").npc_tendency(npc, "generosity")
 	var ok: bool = charisma(player) >= 2 or npc.affinity >= 35 or (npc.affinity >= 15 and greed > 0.3)
 	if ok:
-		loan["owed"] = maxi(int(loan.get("principal", 0)) / 2, int(loan["owed"]) - int(loan["missed"]) * VillageLoans.LATE_FEE)
+		loan["owed"] = maxi(int(float(loan.get("principal", 0)) / 2.0), int(loan["owed"]) - int(loan["missed"]) * VillageLoans.LATE_FEE)
 		loan["missed"] = 0
 		npc.modify_affinity(-3)
 		npc._spawn_floating_text("😮‍💨 «Está bien... que empiece de cero con las cuotas.»", Color(0.8, 0.95, 1.0), -46.0)

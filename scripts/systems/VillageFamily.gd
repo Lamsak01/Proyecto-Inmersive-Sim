@@ -221,7 +221,7 @@ static func update_ages(vm) -> int:
 		var k: String = n.get_person_key()
 		if not (st["born"] as Dictionary).has(k):
 			st["born"][k] = today() - int(n.person_profile.age) * CHILD_YEAR_DAYS
-		n.person_profile.age = mini(ADULT_AGE, int((today() - int(st["born"][k])) / CHILD_YEAR_DAYS))
+		n.person_profile.age = mini(ADULT_AGE, int(float(today() - int(st["born"][k])) / float(CHILD_YEAR_DAYS)))
 		if int(n.person_profile.age) >= ADULT_AGE:
 			grow_up(vm, n)
 			grown += 1
@@ -277,7 +277,7 @@ static func desk_pos(i: int) -> Vector2:
 	var m: float = -1.0 if bool(VillageLots.lot_def("e3")["door_south"]) else 1.0
 	var desks: Array = [Vector2(-30, 6), Vector2(0, 6), Vector2(30, 6), Vector2(-30, 26), Vector2(0, 26), Vector2(30, 26)]
 	var d: Vector2 = desks[i % desks.size()]
-	return c + Vector2(d.x + float(i / desks.size()) * 8.0, (d.y + 6.0) * m)
+	return c + Vector2(d.x + float(int(float(i) / float(desks.size()))) * 8.0, (d.y + 6.0) * m)
 
 static func teacher_pos() -> Vector2:
 	var m: float = -1.0 if bool(VillageLots.lot_def("e3")["door_south"]) else 1.0

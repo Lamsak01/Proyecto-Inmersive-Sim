@@ -134,7 +134,7 @@ static func is_rite_day() -> bool:
 	return WorldClock != null and WorldClock.has_method("is_rite_day") and bool(WorldClock.call("is_rite_day"))
 
 static func _week() -> int:
-	return int((int(WorldClock.current_day) - 1) / 7) if WorldClock else 0
+	return int(float(int(WorldClock.current_day) - 1) / 7.0) if WorldClock else 0
 
 ## Decide si va esta semana (fijo por semana para que no cambie de idea cada hora).
 static func wants_attend(npc, week: int) -> bool:
@@ -161,8 +161,8 @@ static func can_join(npc) -> bool:
 
 static func _pew_spot(vm, i: int) -> Vector2:
 	var side: float = -36.0 if i % 2 == 0 else 36.0
-	var row: int = int(i / 2) % 4
-	return vm._church_center + Vector2(side + float((int(i / 8) % 2) * 8 - 4), -18.0 + float(row) * 8.0)
+	var row: int = int(float(i) / 2.0) % 4
+	return vm._church_center + Vector2(side + float((int(float(i) / 8.0) % 2) * 8 - 4), -18.0 + float(row) * 8.0)
 
 static func on_hour(vm, hour: int) -> void:
 	if not is_rite_day():
@@ -398,7 +398,7 @@ static func rep_of(vm, group_id: String) -> int:
 static func on_affinity_change(vm, npc, delta: int) -> void:
 	if vm == null or not ("faith_bands" in vm) or absi(delta) < 3:
 		return
-	var step: int = signi(delta) * maxi(1, absi(delta) / BAND_REP_DIV)
+	var step: int = signi(delta) * maxi(1, int(float(absi(delta)) / float(BAND_REP_DIV)))
 	for band in bands_of(vm, npc.get_person_key()):
 		add_rep(vm, str(band["id"]), step)
 

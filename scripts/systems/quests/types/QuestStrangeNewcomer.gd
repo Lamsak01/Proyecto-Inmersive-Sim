@@ -85,7 +85,7 @@ func on_turn_in(vm: VillageManager, qm: Node, giver: VillageNPC, player: Node, q
 		if t != null:
 			giver.modify_npc_relationship(t, 15, "El forastero me habló bien de él/ella")
 			t.modify_affinity(5)
-		pay_and_complete(qm, giver, player, q, gold, affinity / 2, "Defendiste a %s." % str(q.get("target_name", "")))
+		pay_and_complete(qm, giver, player, q, gold, int(float(affinity) / 2.0), "Defendiste a %s." % str(q.get("target_name", "")))
 		return
 	# El vacío: quien aprecia al que desconfiaba le imita; si no tiene casa ni lazos, acabará marchándose
 	if t != null:

@@ -57,7 +57,7 @@ func on_turn_in(vm: VillageManager, qm: Node, giver: VillageNPC, player: Node, q
 		giver.add_thought("Solo eran jugadores de dados... qué alivio (+2)", 2.0)
 		if VillageSect.player_member(vm):
 			vm.VillageFaith.add_rep(vm, "sect", 3) # Protegiste a los tuyos
-		pay_and_complete(qm, giver, player, q, gold / 2, affinity / 2, "Le ocultaste lo de la secta.")
+		pay_and_complete(qm, giver, player, q, int(float(gold) / 2.0), int(float(affinity) / 2.0), "Le ocultaste lo de la secta.")
 		return
 	# La verdad corre: sube la sospecha y quien pregunta mira mal a los miembros que conoces
 	VillageSect._add_suspicion(vm, 15)

@@ -113,7 +113,7 @@ func on_turn_in(vm: VillageManager, qm: Node, giver: VillageNPC, player: Node, q
 			giver.add_thought("No le gusto... al menos lo sé (-6)", -6.0)
 			if sd != null:
 				sd.add_spark_one_way(giver.get_person_key(), str(q.get("target_key", "")), -6)
-			pay_and_complete(qm, giver, player, q, gold, affinity / 2, "Le dijiste la verdad.")
+			pay_and_complete(qm, giver, player, q, gold, int(float(affinity) / 2.0), "Le dijiste la verdad.")
 		"maybe":
 			giver.add_thought("Quizá... tengo que esperar (+3)", 3.0)
 			pay_and_complete(qm, giver, player, q, gold, affinity, "Le diste falsas esperanzas.")

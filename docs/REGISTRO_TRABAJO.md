@@ -216,3 +216,4 @@ El usuario pasa a Antigravity. Prompt completo para el siguiente agente: `docs/P
 | N5 | `homeless`: dar los 18 de oro para la posada devuelve cama en el acto (antes si cenaba a las 18h bajaba de 18 y no recuperaba cama a medianoche) | ✅ | QuestHomeless.gd | Test #81 |
 | N6 | `strange_newcomer`: descubrir rasgos por cualquier vía cuenta para el encargo | ✅ | QuestStrangeNewcomer.gd | Test #81 |
 | N7 | Pruebas funcionales de las 13 misiones que estaban en 🟡 (M1–M5, M9–M10, M12–M13, M16–M17, M19–M20) + 4 suites completas | ✅ | verify_all.gd | `names_check`, `social_sim`, `dialogue_coverage` (0 errores) y `verify_all` pasan |
+| N8 | Limpieza de los 19 avisos amarillos del editor + 7 divisiones enteras en encargos | ✅ | VillageFaith, VillageNeeds, VillageSecrets, VillageIllness, VillageTown, VillageTrades, VillageWork, VillageMigration, VillageFamily, VillageManager y 7 Quest*.gd | `names_check` pasa; sin cambio de comportamiento |

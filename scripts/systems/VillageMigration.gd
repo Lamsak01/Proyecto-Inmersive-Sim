@@ -15,7 +15,6 @@ extends RefCounted
 const VillageNeeds = preload("res://scripts/systems/VillageNeeds.gd")
 const VillageLots = preload("res://scripts/systems/VillageLots.gd")
 const VillageWork = preload("res://scripts/systems/VillageWork.gd")
-const SimpleInventory = preload("res://scripts/systems/SimpleInventory.gd")
 
 const POP_CAP: int = 50
 const TAVERN_GUEST_BEDS: Array = [Vector2(435, -252), Vector2(468, -252), Vector2(502, -252)]

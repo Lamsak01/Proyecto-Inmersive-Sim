@@ -158,7 +158,7 @@ static func treat(vm, key: String) -> void:
 		return
 	var t: int = VillageNeeds.today()
 	ill["treated"] = true
-	ill["end"] = maxi(t + 1, t + int((int(ill["end"]) - t) / 2))
+	ill["end"] = maxi(t + 1, t + int(float(int(ill["end"]) - t) / 2.0))
 
 static func die(vm, n, disease_name: String) -> void:
 	recover(vm, n.get_person_key())

@@ -50,7 +50,7 @@ func progress_hint(q: Dictionary) -> String:
 ## Lo donado va a las arcas y se cocina enseguida (2 de oro por ración).
 static func donate(vm: VillageManager, q: Dictionary, amount: int) -> void:
 	q["data"]["raised"] = int(q["data"].get("raised", 0)) + amount
-	vm.town_state["shelter_rations"] = int(vm.town_state.get("shelter_rations", 0)) + int(amount / VillageCivic.RATION_COST_TOWN)
+	vm.town_state["shelter_rations"] = int(vm.town_state.get("shelter_rations", 0)) + int(float(amount) / float(VillageCivic.RATION_COST_TOWN))
 
 func add_world_dialogue(vm: VillageManager, npc: VillageNPC, q: Dictionary, _diag: Dictionary, ch_arr: Array) -> void:
 	if is_done(vm, q):

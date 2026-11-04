@@ -38,7 +38,10 @@ static func state(vm) -> Dictionary:
 		vm.work_state = {}
 	for k in ["jobs", "acc", "hired_total", "unpaid_total", "paid_total", "lavadero_gossip"]:
 		if not vm.work_state.has(k):
-			vm.work_state[k] = {} if k in ["jobs", "acc"] else 0
+			if k in ["jobs", "acc"]:
+				vm.work_state[k] = {}
+			else:
+				vm.work_state[k] = 0
 	return vm.work_state
 
 static func master_of(vm, key: String):
