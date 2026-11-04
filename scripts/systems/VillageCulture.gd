@@ -35,16 +35,192 @@ const REPAIRS_PER_DAY: int = 2
 const GRID_REPAIR_REWARD: int = 12
 const SAPLING_COST: int = 6
 const ROUTE_CHARTER_COST: int = 25
+const MILITIA_COST: int = 15
+const TECH_TREE: Dictionary = {
+	"waterwheel_gears": {
+		"name": "Engranajes Hidráulicos", "cost_gold": 25, "req_points": 3, "prereq": "",
+		"desc": "+1 pan diario en panadería y mejor molienda",
+	},
+	"reinforced_locks": {
+		"name": "Cerraduras y Empalizadas de Precisión", "cost_gold": 30, "req_points": 4, "prereq": "waterwheel_gears",
+		"desc": "+2 de defensa permanente contra incursiones al pueblo",
+	},
+	"voltaic_capacitors": {
+		"name": "Condensadores Voltaicos", "cost_gold": 35, "req_points": 5, "prereq": "waterwheel_gears",
+		"desc": "+1 kit de reparación diario en el taller del ingeniero",
+	},
+}
 
 static func state(vm) -> Dictionary:
 	if not vm.culture_state is Dictionary:
 		vm.culture_state = {}
 	var defs: Dictionary = {"readings": 0, "player_read_day": -1, "market_day": -1, "market_sellers": {}, "market_sales": 0,
-		"markets_held": 0, "repairs": 0, "grid": {}, "forest": {}, "trade_routes": {}}
+		"markets_held": 0, "repairs": 0, "grid": {}, "forest": {}, "trade_routes": {}, "research": {}, "raids": {}}
 	for k in defs.keys():
 		if not vm.culture_state.has(k):
 			vm.culture_state[k] = defs[k]
 	return vm.culture_state
+
+static func research_state(vm) -> Dictionary:
+	var st: Dictionary = state(vm)
+	if not (st.get("research", null) is Dictionary):
+		st["research"] = {}
+	var rs: Dictionary = st["research"]
+	if not (rs.get("unlocked", null) is Dictionary):
+		rs["unlocked"] = {}
+	if not rs.has("active_tech"):
+		rs["active_tech"] = ""
+	if not rs.has("progress"):
+		rs["progress"] = 0
+	return rs
+
+static func has_tech(vm, tech_id: String) -> bool:
+	return vm != null and bool((research_state(vm)["unlocked"] as Dictionary).get(tech_id, false))
+
+static func start_research(vm, tech_id: String, engineer = null, inv = null) -> bool:
+	if vm == null or not TECH_TREE.has(tech_id) or has_tech(vm, tech_id):
+		return false
+	var rs: Dictionary = research_state(vm)
+	if str(rs.get("active_tech", "")) != "":
+		return false
+	var t_def: Dictionary = TECH_TREE[tech_id]
+	var pre: String = str(t_def.get("prereq", ""))
+	if pre != "" and not has_tech(vm, pre):
+		return false
+	var cost: int = int(t_def.get("cost_gold", 25))
+	if inv != null:
+		if int(inv.gold) < cost:
+			return false
+		inv.add_gold(-cost)
+		if engineer != null:
+			engineer.personal_gold += cost
+	rs["active_tech"] = tech_id
+	rs["progress"] = 0
+	return true
+
+static func advance_research(vm, extra_points: int = 1) -> bool:
+	if vm == null:
+		return false
+	var rs: Dictionary = research_state(vm)
+	var active: String = str(rs.get("active_tech", ""))
+	if active == "" or not TECH_TREE.has(active):
+		return false
+	var t_def: Dictionary = TECH_TREE[active]
+	var gain: int = maxi(1, extra_points)
+	if int(state(vm).get("readings", 0)) >= 3:
+		state(vm)["readings"] = int(state(vm)["readings"]) - 3
+		gain += 1
+	rs["progress"] = int(rs.get("progress", 0)) + gain
+	if int(rs["progress"]) >= int(t_def.get("req_points", 3)):
+		(rs["unlocked"] as Dictionary)[active] = true
+		rs["active_tech"] = ""
+		rs["progress"] = 0
+		var tinker = vm.trade_npcs.get(VillageTrades.role_of("tinker"))
+		if tinker != null and is_instance_valid(tinker) and not tinker.is_dead:
+			VillageFame.add_fame(vm, tinker, 10, "Desarrolló la tecnología: %s" % str(t_def["name"]))
+		VillageChronicle.add(vm, "tech_unlocked", "El taller de ingeniería completó el invento: %s" % str(t_def["name"]), true)
+		return true
+	return false
+
+static func raids_state(vm) -> Dictionary:
+	var st: Dictionary = state(vm)
+	if not (st.get("raids", null) is Dictionary):
+		st["raids"] = {}
+	var rd: Dictionary = st["raids"]
+	var r_defs: Dictionary = {
+		"threat": 0,
+		"active_raid": {},
+		"raids_repelled": 0,
+		"raids_suffered": 0,
+		"militia_bonus": 0,
+		"last_raid_day": -99,
+	}
+	for k in r_defs.keys():
+		if not rd.has(k):
+			rd[k] = r_defs[k]
+	return rd
+
+static func start_raid_warning(vm, kind: String = "bandits") -> Dictionary:
+	if vm == null:
+		return {}
+	var rd: Dictionary = raids_state(vm)
+	var today: int = int(WorldClock.current_day) if WorldClock else 1
+	var names: Dictionary = {
+		"bandits": "Banda del Paso Negro",
+		"boars": "Manada de Jabalíes Furiosos",
+		"outiders": "Saqueadores del Norte",
+	}
+	var raid: Dictionary = {
+		"kind": kind,
+		"name": str(names.get(kind, "Banda del Paso Negro")),
+		"strength": 4,
+		"day_due": today + 1,
+		"bounty": 20,
+	}
+	rd["active_raid"] = raid
+	VillageChronicle.add(vm, "raid_warning", "⚠️ Los vigías avistan a %s preparando una incursión contra el pueblo" % str(raid["name"]), true)
+	return raid
+
+static func defense_power(vm, player_joined: bool = false) -> int:
+	if vm == null:
+		return 0
+	var pwr: int = int(raids_state(vm).get("militia_bonus", 0))
+	if has_tech(vm, "reinforced_locks"):
+		pwr += 2
+	if player_joined:
+		pwr += 1
+	for n in _all_npcs(vm):
+		if n.is_dead or n.is_downed or not n.is_conscious():
+			continue
+		if int(n.trade_role) in [int(VillageNPC.TradeRole.SHERIFF), int(VillageNPC.TradeRole.GUARD)]:
+			pwr += 1
+	return pwr
+
+static func resolve_raid(vm, player_joined: bool = false, inv = null, force_outcome: int = 0) -> Dictionary:
+	if vm == null:
+		return {"repelled": false}
+	var rd: Dictionary = raids_state(vm)
+	var raid: Dictionary = rd.get("active_raid", {})
+	if raid.is_empty():
+		return {"repelled": false}
+	var str_req: int = int(raid.get("strength", 4))
+	var def_pwr: int = defense_power(vm, player_joined)
+	var won: bool = (def_pwr + randi_range(0, 2)) >= str_req
+	if force_outcome == 1:
+		won = true
+	elif force_outcome == -1:
+		won = false
+	var r_name: String = str(raid.get("name", "Incursión"))
+	rd["active_raid"] = {}
+	rd["threat"] = 0
+	rd["militia_bonus"] = 0
+	rd["last_raid_day"] = int(WorldClock.current_day) if WorldClock else 1
+	if won:
+		rd["raids_repelled"] = int(rd.get("raids_repelled", 0)) + 1
+		var reward: int = 0
+		if player_joined and inv != null:
+			reward = mini(int(raid.get("bounty", 20)), maxi(0, int(vm.town_state.get("treasury", 0))))
+			if reward > 0:
+				vm.town_state["treasury"] = int(vm.town_state.get("treasury", 0)) - reward
+				inv.add_gold(reward)
+		for n in _all_npcs(vm):
+			if not n.is_dead:
+				n.add_thought("Rechazamos el ataque de %s (+6)" % r_name, 6.0)
+		VillageChronicle.add(vm, "raid_repelled", "🛡️ El pueblo rechazó la incursión de %s" % r_name, true)
+		return {"repelled": true, "reward": reward}
+	else:
+		rd["raids_suffered"] = int(rd.get("raids_suffered", 0)) + 1
+		var looted: int = mini(30, maxi(0, int(vm.town_state.get("treasury", 0))))
+		vm.town_state["treasury"] = int(vm.town_state.get("treasury", 0)) - looted
+		for r_key in vm.shop_businesses.keys():
+			vm.shop_businesses[r_key]["sabotaged_days"] = maxi(1, int(vm.shop_businesses[r_key].get("sabotaged_days", 0)))
+			break
+		for n in _all_npcs(vm):
+			if not n.is_dead and n.health_comp != null:
+				n.health_comp.apply_minor_bruise(14.0, 0.35, "Incursión de %s" % r_name)
+				break
+		VillageChronicle.add(vm, "raid_suffered", "🔥 %s asaltaron el pueblo y saquearon %d de oro de las arcas" % [r_name, looted], true)
+		return {"repelled": false, "looted": looted}
 
 static func forest_state(vm) -> Dictionary:
 	var st: Dictionary = state(vm)
@@ -464,7 +640,7 @@ static func after_load(vm) -> void:
 		close_market(vm)
 
 # ---------------------------------------------------------------- arreglos
-## Cada día: rutas comerciales, fertilidad forestal y arreglos del Taller de Reparaciones.
+## Cada día: rutas comerciales, fertilidad forestal, árbol de investigación, incursiones y arreglos del Taller.
 static func daily(vm) -> int:
 	process_trade_routes(vm)
 	var f_st: Dictionary = forest_state(vm)
@@ -478,9 +654,29 @@ static func daily(vm) -> int:
 		if frm != null and is_instance_valid(frm) and not frm.is_dead:
 			frm.shop_stock["wheat"] = int(frm.shop_stock.get("wheat", 0)) + 1
 			frm._sync_shop_stock_to_vm()
+	# PL.1: Bonificaciones diarias de tecnologías desbloqueadas
+	if has_tech(vm, "waterwheel_gears"):
+		var bkr = vm.trade_npcs.get(VillageTrades.role_of("baker"))
+		if bkr != null and is_instance_valid(bkr) and not bkr.is_dead:
+			bkr.shop_stock["bread"] = int(bkr.shop_stock.get("bread", 0)) + 1
+			bkr._sync_shop_stock_to_vm()
+	# PL.2: Evolución de incursiones contra el pueblo
+	var rd: Dictionary = raids_state(vm)
+	var today: int = int(WorldClock.current_day) if WorldClock else 1
+	var act_raid: Dictionary = rd.get("active_raid", {})
+	if not act_raid.is_empty() and today >= int(act_raid.get("day_due", today + 1)):
+		resolve_raid(vm, false, null)
+	elif act_raid.is_empty():
+		rd["threat"] = int(rd.get("threat", 0)) + 5 + (5 if int(vm.town_state.get("treasury", 0)) >= 200 else 0)
+		if int(rd["threat"]) >= 60:
+			start_raid_warning(vm, "bandits")
 	var tinker = vm.trade_npcs.get(VillageTrades.role_of("tinker"))
 	if tinker == null or not is_instance_valid(tinker) or tinker.is_dead or tinker.is_downed or vm.is_trade_sabotaged(VillageTrades.role_of("tinker")):
 		return 0
+	advance_research(vm, 1)
+	if has_tech(vm, "voltaic_capacitors"):
+		tinker.shop_stock["repair_kit"] = int(tinker.shop_stock.get("repair_kit", 0)) + 1
+		tinker._sync_shop_stock_to_vm()
 	var done: int = 0
 	var g: Dictionary = grid_state(vm)
 	if int(g.get("sabotaged_days", 0)) > 0 and int(tinker.shop_stock.get("repair_kit", 0)) > 0 and int(vm.town_state.get("treasury", 0)) >= REPAIR_PRICE:
@@ -533,6 +729,32 @@ static func add_dialogue_choices(vm, npc, diag: Dictionary, ch_arr: Array) -> vo
 			}
 		if is_grid_sabotaged(vm):
 			ch_arr.append({"label": "🛠️⚡ Ayudar a reparar el tendido eléctrico (-1 Bobina de Cobre, +%d Oro del arca)" % GRID_REPAIR_REWARD, "next": "END", "action": "culture_repair_grid"})
+		# PL.1: Árbol de Investigación e Ingeniería
+		var rs: Dictionary = research_state(vm)
+		var t_choices: Array = []
+		var act_t: String = str(rs.get("active_tech", ""))
+		if act_t != "" and TECH_TREE.has(act_t):
+			t_choices.append({"label": "🔩 Aportar 1 Chatarra al prototipo de %s (+2 avance)" % str(TECH_TREE[act_t]["name"]), "next": "END", "action": "culture_boost_tech"})
+		for t_id in TECH_TREE.keys():
+			if has_tech(vm, str(t_id)) or act_t != "":
+				continue
+			var td: Dictionary = TECH_TREE[t_id]
+			var pre: String = str(td.get("prereq", ""))
+			if pre != "" and not has_tech(vm, pre):
+				continue
+			t_choices.append({"label": "🔬 Financiar %s (-%d Oro al ingeniero, %s)" % [str(td["name"]), int(td["cost_gold"]), str(td["desc"])], "next": "END", "action": "culture_start_tech:" + str(t_id)})
+		t_choices.append({"label": "⬅️ Volver", "next": "start"})
+		ch_arr.append({"label": "🔬⚙️ Árbol de Investigación e Ingeniería", "next": "culture_research_menu"})
+		diag["culture_research_menu"] = {
+			"text": "«Con libros de la biblioteca, piezas de cobre y financiación puedo diseñar mejoras permanentes para todo el valle.»",
+			"choices": t_choices,
+		}
+	if role_i in [int(VillageNPC.TradeRole.SHERIFF), int(VillageNPC.TradeRole.GUARD)]:
+		var rd: Dictionary = raids_state(vm)
+		ch_arr.append({"label": "🛡️📯 Financiar barricadas y milicia contra incursiones (-%d Oro a las arcas, +2 Defensa)" % MILITIA_COST, "next": "END", "action": "culture_fund_militia"})
+		var act_r: Dictionary = rd.get("active_raid", {})
+		if not act_r.is_empty():
+			ch_arr.insert(0, {"label": "⚔️🔥 Encabezar la defensa contra %s (Recompensa de las arcas si ganáis)" % str(act_r.get("name", "Incursión")), "next": "END", "action": "culture_lead_defense"})
 	if role_i == int(VillageNPC.TradeRole.WOODCUTTER):
 		ch_arr.append({"label": "🌲🌱 Sembrar pino joven en el bosque (-1 Semilla de Cultivo, enriquece suelo y fauna)", "next": "END", "action": "culture_plant_tree"})
 		ch_arr.append({"label": "🌲🪙 Comprar y plantar plantón de pino (-%d Oro al leñador, enriquece suelo y fauna)" % SAPLING_COST, "next": "END", "action": "culture_buy_sapling"})
@@ -579,6 +801,38 @@ static func on_player_action(vm, npc, action_id: String, inv) -> void:
 			inv.add_gold(pay)
 		npc.affinity = clampi(npc.affinity + 10, -100, 100)
 		npc._spawn_floating_text("🛠️⚡ «¡Línea restablecida! Toma %d de oro del fondo municipal.»" % pay, Color.AQUAMARINE, -46.0)
+	elif action_id.begins_with("culture_start_tech:"):
+		var t_id: String = action_id.substr("culture_start_tech:".length())
+		if start_research(vm, t_id, npc, inv):
+			npc.affinity = clampi(npc.affinity + 8, -100, 100)
+			npc._spawn_floating_text("🔬⚙️ «¡Manos a la obra! Empezaré los planos de %s hoy mismo.»" % str(TECH_TREE[t_id]["name"]), Color.CYAN, -46.0)
+		else:
+			npc._spawn_floating_text("«No cumples los requisitos o te falta el oro para financiar el proyecto.»", Color.ORANGE_RED, -46.0)
+	elif action_id == "culture_boost_tech":
+		if inv == null or int(inv.items.get("bandit_scrap", 0)) <= 0:
+			npc._spawn_floating_text("«Necesito al menos 1 Chatarra para acelerar el prototipo.»", Color.ORANGE_RED, -46.0)
+			return
+		inv.remove_item("bandit_scrap", 1)
+		var done_t: bool = advance_research(vm, 2)
+		npc.affinity = clampi(npc.affinity + 6, -100, 100)
+		npc._spawn_floating_text("🔬✨ ¡Invento completado!" if done_t else "🔩⚙️ Prototipo acelerado (+2 avance)", Color.AQUAMARINE, -46.0)
+	elif action_id == "culture_fund_militia":
+		if inv == null or int(inv.gold) < MILITIA_COST:
+			npc._spawn_floating_text("«Necesitamos %d de oro para levantar barricadas y armar turnos.»" % MILITIA_COST, Color.ORANGE_RED, -46.0)
+			return
+		inv.add_gold(-MILITIA_COST)
+		vm.town_state["treasury"] = int(vm.town_state.get("treasury", 0)) + MILITIA_COST
+		var rd2: Dictionary = raids_state(vm)
+		rd2["militia_bonus"] = int(rd2.get("militia_bonus", 0)) + 2
+		npc.affinity = clampi(npc.affinity + 8, -100, 100)
+		npc._spawn_floating_text("🛡️📯 «¡Barricadas listas! El pueblo resistirá mejor el próximo ataque (+2 Defensa).»", Color.GOLD, -46.0)
+	elif action_id == "culture_lead_defense":
+		var res_r: Dictionary = resolve_raid(vm, true, inv)
+		if bool(res_r.get("repelled", false)):
+			npc.affinity = clampi(npc.affinity + 12, -100, 100)
+			npc._spawn_floating_text("⚔️🛡️ «¡Victoria! Rechazamos a los asaltantes (+%d Oro de recompensa).»" % int(res_r.get("reward", 0)), Color.AQUAMARINE, -46.0)
+		else:
+			npc._spawn_floating_text("🔥 «Nos superaron en las barricadas y saquearon las arcas...»", Color.ORANGE_RED, -46.0)
 	elif action_id == "culture_plant_tree":
 		if inv == null or int(inv.items.get("crop_seeds", 0)) <= 0:
 			npc._spawn_floating_text("«Necesitas al menos 1 Semilla de Cultivo para plantar un pino joven.»", Color.ORANGE_RED, -46.0)

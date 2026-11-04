@@ -5,6 +5,10 @@ El detalle técnico está en `docs/HANDOFF.md` (sección 7) y el historial compl
 
 ## 2026-11-04
 
+### Árbol de investigación tecnológica e Incursiones organizadas contra el pueblo
+- **Ingeniería y árbol de investigación en el taller:** en el Taller de Reparaciones puedes financiar proyectos tecnológicos encadenados («Engranajes Hidráulicos», «Cerraduras y Empalizadas de Precisión» y «Condensadores Voltaicos»). El ingeniero avanza cada día aprovechando las lecturas acumuladas en la biblioteca o la chatarra que le lleves, y cada invento terminado mejora de forma permanente la producción y la defensa del valle.
+- **Incursiones organizadas contra el pueblo:** cuando crece la amenaza en las fronteras, los vigías dan la alarma la víspera de un asalto contra el pueblo. Puedes pagar barricadas y milicia vecinal ante el comisario o los guardias y encabezar la defensa para cobrar recompensa de las arcas si rechazáis a los asaltantes; si las defensas ceden, saquean las arcas municipales, sabotean puestos y dejan heridos.
+
 ### Reforestación del ecosistema y Rutas de comercio con otros asentamientos
 - **Sembrar árboles que enriquecen el bosque y la fauna:** hablando con el leñador puedes plantar pinos jóvenes usando semillas de cultivo o comprando un plantón de vivero. Cada árbol plantado crece como un pino real en el bosque, hace rebrotar hierbas y setas silvestres, atrae venados y conejos a los claros y mejora la fertilidad del suelo para dar más madera y grano al valle.
 - **Rutas comerciales con otros lugares:** puedes abrir rutas regulares con asentamientos vecinos («Paso Alto», «Puerto Fluvial del Este» y «Vega del Sol») pagando la carta de arancel a las arcas municipales. Las rutas activas cambian a diario excedentes de los talleres locales por hierro, pescado o trigo importado (repartiendo los derechos de paso entre el artesano y el ayuntamiento) y te permiten enviar una remesa propia al día.

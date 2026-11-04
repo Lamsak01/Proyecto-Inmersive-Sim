@@ -322,6 +322,13 @@ Informe completo: `docs/AUDITORIA_P1_P7.md`.
 | PK1 | Sembrar pinos jóvenes en el bosque (`plant_sapling`, `count_live_trees`, `plant_forest_tree`, `culture_plant_tree`, `culture_buy_sapling`) que añaden árboles reales, rebrotan hierbas/setas, atraen venados y conejos y enriquecen la fertilidad del suelo (`soil_fertility`) | ✅ | EcosystemManager.gd, VillageCulture.gd, verify_all.gd | Test #88 |
 | PK2 | Rutas de comercio con otros asentamientos (`trade_routes_of`, `open_trade_route`, `process_trade_routes`, `send_player_shipment`, `culture_open_route`, `culture_ship_route`) con pago de arancel a las arcas, intercambio diario de mercancías entre gremios y envío de remesas del jugador | ✅ | VillageCulture.gd, verify_all.gd | Test #88 |
 
+## Bloque PL — Árbol de investigación tecnológica e Incursiones organizadas contra el pueblo (2026-11-04)
+
+| # | Paso | Estado | Archivos | Nota |
+|---|------|--------|----------|------|
+| PL1 | Árbol de investigación con el ingeniero (`TECH_TREE`, `start_research`, `advance_research`, `culture_start_tech`, `culture_boost_tech`) con prerrequisitos, consumo de lecturas de la biblioteca o chatarra y bonificaciones permanentes al valle | ✅ | VillageCulture.gd, verify_all.gd | Test #89 |
+| PL2 | Incursiones organizadas contra el pueblo (`raids_state`, `start_raid_warning`, `defense_power`, `resolve_raid`, `culture_fund_militia`, `culture_lead_defense`) con financiación de milicia, defensa encabezada por el jugador con recompensa de las arcas y saqueo si cae la defensa | ✅ | VillageCulture.gd, verify_all.gd | Test #89 |
+
 
 
 

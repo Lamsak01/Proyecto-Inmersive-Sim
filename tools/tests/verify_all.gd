@@ -3985,5 +3985,48 @@ func _initialize() -> void:
 	vm.town_state["treasury"] = pk_tr0
 	print("Block PK (Tree Planting & Ecosystem & External Trade Routes) OK")
 
+	# 89. Bloque PL: Árbol de investigación tecnológica e Incursiones organizadas contra el pueblo
+	var pl_tink_g0: int = pj_tinker.personal_gold
+	var pl_tr0: int = int(vm.town_state.get("treasury", 0))
+	var pl_bkr_role: int = vt.role_of("baker")
+	var pl_bkr_prev = vm.trade_npcs.get(pl_bkr_role)
+	vm.trade_npcs[pl_bkr_role] = p70_a
+	vcu_pj.state(vm)["research"] = {}
+	vcu_pj.state(vm)["raids"] = {}
+	p70_inv.gold = 100
+	pj_tinker.personal_gold = 10
+	assert(not vcu_pj.start_research(vm, "reinforced_locks", pj_tinker, p70_inv), "PL.1a: Prerequisite prevents starting advanced tech before base tech")
+	vcu_pj.on_player_action(vm, pj_tinker, "culture_start_tech:waterwheel_gears", p70_inv)
+	assert(str(vcu_pj.research_state(vm)["active_tech"]) == "waterwheel_gears" and p70_inv.gold == 75 and pj_tinker.personal_gold == 35, "PL.1b: Funding research transfers 25 gold to engineer and starts project")
+	p70_inv.remove_item("bandit_scrap", p70_inv.get_count("bandit_scrap"))
+	p70_inv.add_item("bandit_scrap", 1)
+	vcu_pj.on_player_action(vm, pj_tinker, "culture_boost_tech", p70_inv)
+	p70_a.shop_stock["bread"] = 4
+	vcu_pj.daily(vm)
+	assert(vcu_pj.has_tech(vm, "waterwheel_gears") and p70_inv.get_count("bandit_scrap") == 0, "PL.1c: Scrap boost + daily engineering completes research and unlocks tech")
+	vcu_pj.daily(vm)
+	assert(int(p70_a.shop_stock["bread"]) == 5, "PL.1d: Unlocked waterwheel_gears tech grants +1 daily bread to bakery")
+	# PL.2: Incursiones organizadas contra el pueblo (milicia, rechazo con recompensa de las arcas y saqueo si se pierde)
+	p70_inv.gold = 100
+	vm.town_state["treasury"] = 100
+	vcu_pj.on_player_action(vm, p70_b, "culture_fund_militia", p70_inv)
+	assert(p70_inv.gold == 85 and int(vm.town_state["treasury"]) == 115 and int(vcu_pj.raids_state(vm)["militia_bonus"]) == 2, "PL.2a: Funding militia transfers 15 gold to town treasury and adds +2 defense")
+	vcu_pj.start_raid_warning(vm, "bandits")
+	assert(not (vcu_pj.raids_state(vm)["active_raid"] as Dictionary).is_empty(), "PL.2b: Raid warning registers an imminent attack")
+	var pl_win: Dictionary = vcu_pj.resolve_raid(vm, true, p70_inv, 1)
+	assert(bool(pl_win["repelled"]) and p70_inv.gold == 105 and int(vm.town_state["treasury"]) == 95 and int(vcu_pj.raids_state(vm)["raids_repelled"]) == 1, "PL.2c: Repelling raid with player pays 20 gold bounty from town treasury")
+	vcu_pj.start_raid_warning(vm, "bandits")
+	var pl_loss: Dictionary = vcu_pj.resolve_raid(vm, false, null, -1)
+	assert(not bool(pl_loss["repelled"]) and int(vm.town_state["treasury"]) == 65 and int(vcu_pj.raids_state(vm)["raids_suffered"]) == 1, "PL.2d: Losing a raid pillages 30 gold from town treasury")
+	vcu_pj.state(vm)["research"] = {}
+	vcu_pj.state(vm)["raids"] = {}
+	if pl_bkr_prev != null:
+		vm.trade_npcs[pl_bkr_role] = pl_bkr_prev
+	else:
+		vm.trade_npcs.erase(pl_bkr_role)
+	pj_tinker.personal_gold = pl_tink_g0
+	vm.town_state["treasury"] = pl_tr0
+	print("Block PL (Tech Research Tree & Organized Village Raids) OK")
+
 	print("ALL RIMWORLD MEDICAL, FOOTPRINTS, 3-PHASE CORPSE REPORT, MULTI-CORPSE FIX, RPG INTERROGATION, PUBLIC TRIAL, DYNAMIC RELATIONSHIPS, MISSING FAMILY SEARCH, SOCIAL GLOSSARY & UNCONSCIOUS REACTION TESTS PASSED!")
 	quit(0)
