@@ -3679,13 +3679,13 @@ func _initialize() -> void:
 	vf_collector.personal_gold = 180
 	var vf_col_fame0: int = vfa_fame.fame_of(vm, vf_collector)
 	vfa_fame.on_player_action(vm, vf_collector, "fame_sell_masterwork", p70_inv)
-	assert(not p70_inv.has_item("masterwork_piece", 1) and p70_inv.gold == 215 and vf_collector.personal_gold == 130 and vfa_fame.fame_of(vm, vf_collector) == vf_col_fame0 + 6, "Fame.4: Rich collector buys masterwork with 50 gold from his own pocket")
+	assert(not p70_inv.has_item("masterwork_piece", 1) and p70_inv.gold == 195 and vf_collector.personal_gold == 150 and vfa_fame.fame_of(vm, vf_collector) == vf_col_fame0 + 6, "Fame.4: Rich collector pays 30 gold from his own pocket (less than the 35 workshop price, so resale gives no profit)")
 	vf_collector.personal_gold = vf_col_g_bak
 	# Patrocinar taller de un artesano aún no maestro (`days_in_role = 3` -> `5` -> asciende a Maestro)
 	assert(not vfa_fame.is_master(vm, vf_artisan2), "Fame.5a: Second artisan is not yet a master")
 	vf_artisan2.personal_gold = 15
 	vfa_fame.on_player_action(vm, vf_artisan2, "fame_patronize", p70_inv)
-	assert(vfa_fame.is_master(vm, vf_artisan2) and vf_artisan2.personal_gold == 45 and p70_inv.gold == 185, "Fame.5b: Patronizing artisan workshop transfers 30 gold and promotes to Master Artisan")
+	assert(vfa_fame.is_master(vm, vf_artisan2) and vf_artisan2.personal_gold == 45 and p70_inv.gold == 165, "Fame.5b: Patronizing artisan workshop transfers 30 gold and promotes to Master Artisan")
 	# Hablar bien / pregonar faltas con tirada y espera de 3 días
 	var vf_praise_fame0: int = vfa_fame.fame_of(vm, p70_b)
 	var vf_praise_aff0: int = p70_b.affinity
@@ -3743,11 +3743,11 @@ func _initialize() -> void:
 	p70_inv.gold = 200
 	p70_a.personal_gold = 10
 	vho.on_player_action(vm, p70_a, "housing_found_shop:n0", p70_inv)
-	assert(vho.has_player_shop(vm) and p70_inv.gold == 135 and p70_a.personal_gold == 75 and int(vho.state(vm)["player_shop"]["stock"]) == 2, "PG.2a: Founding player shop on built lot transfers 65 gold to carpenter and initializes counter with 2 stock")
+	assert(vho.has_player_shop(vm) and p70_inv.gold == 135 and p70_a.personal_gold == 75 and int(vho.state(vm)["player_shop"]["stock"]) == 0, "PG.2a: Founding player shop on built lot transfers 65 gold to carpenter and starts with an empty counter")
 	p70_inv.remove_item("bread", p70_inv.get_count("bread"))
 	p70_inv.add_item("bread", 2)
 	vho.on_player_action(vm, p70_a, "housing_stock_shop", p70_inv)
-	assert(not p70_inv.has_item("bread", 1) and int(vho.state(vm)["player_shop"]["stock"]) == 4, "PG.2b: Stocking player shop removes real items from inventory and adds to counter stock")
+	assert(not p70_inv.has_item("bread", 1) and int(vho.state(vm)["player_shop"]["stock"]) == 2 and int(vho.state(vm)["player_shop"]["goods"].get("bread", 0)) == 2, "PG.2b: Stocking player shop removes real items from inventory and adds to counter stock")
 	vho.on_player_action(vm, p70_a, "housing_advertise_shop", p70_inv)
 	assert(p70_inv.gold == 123 and int(vho.state(vm)["player_shop"]["ad_days"]) == 3, "PG.2c: Advertising player shop costs 12 gold into treasury and boosts clientele for 3 days")
 	p70_c.trade_role = 0 # UNEMPLOYED
@@ -3759,9 +3759,12 @@ func _initialize() -> void:
 	vho.daily(vm)
 	var pg_sales: int = int(vho.state(vm)["player_shop"]["total_sales"])
 	var pg_till: int = int(vho.state(vm)["player_shop"]["till_gold"])
-	assert(pg_sales >= 2 and int(vho.state(vm)["player_shop"]["stock"]) == 4 - pg_sales and p70_c.personal_gold == 14 and pg_till == pg_sales * 10 - 4, "PG.2e: Daily shop cycle sells stock to real neighbors, deducts their gold, and pays clerk wage from till")
+	assert(pg_sales >= 2 and int(vho.state(vm)["player_shop"]["stock"]) == 2 - pg_sales and p70_c.personal_gold == 14 and pg_till == pg_sales * int(vho.SHOP_ITEM_PRICES["bread"]) - 4, "PG.2e: Daily shop cycle sells stock at the item's price to real neighbors, deducts their gold, and pays clerk wage from till")
 	vho.on_player_action(vm, p70_a, "housing_collect_shop", p70_inv)
 	assert(p70_inv.gold == 123 + pg_till and int(vho.state(vm)["player_shop"]["till_gold"]) == 0, "PG.2f: Collecting shop till transfers earnings to player")
+	vho.state(vm)["player_shop"]["till_gold"] = 20
+	var pg_stolen: int = vho.shop_night_theft(vm, vho.state(vm)["player_shop"], 1.0)
+	assert(pg_stolen == 10 and int(vho.state(vm)["player_shop"]["till_gold"]) == 10, "PG.2g: An uncollected till can be robbed at night (half goes to a neighbor's pocket)")
 	p70_c.trade_role = pg_c_role_bak
 	p70_a.personal_gold = pg_ag_bak
 	p70_b.personal_gold = pg_bg_bak
@@ -3851,6 +3854,9 @@ func _initialize() -> void:
 	vho.on_player_action(vm, p70_a, "housing_feed_animals", p70_inv)
 	vho.daily(vm)
 	assert(str(vho.state(vm)["player_animals"][0]["stage"]) == "adult" and vho.best_adult_animal_power(vm, "rooster") >= 3, "PI.1c: Animal reaches adult stage with increased vigor")
+	vho.state(vm)["player_animals"][0]["fed_day"] = vho.today() - vho.ANIMAL_STARVE_DAYS
+	vho.daily(vm)
+	assert((vho.state(vm)["player_animals"] as Array).is_empty(), "PI.1d: An animal left unfed for 5 days dies (no free meat without feeding)")
 	# PI.2: Carreras de animales y peleas de gallos/perros con apuestas contra el bolsillo del vecino
 	p70_b.personal_gold = 40
 	p70_inv.gold = 100
@@ -3917,6 +3923,15 @@ func _initialize() -> void:
 	vm.town_state["treasury"] = 100
 	vcu_pj.on_player_action(vm, pj_tinker, "culture_repair_grid", p70_inv)
 	assert(vcu_pj.is_lamps_powered(vm) and vcu_pj.is_sprinkler_powered(vm) and p70_inv.get_count("copper_coil") == 0 and p70_inv.gold == 62 and int(vm.town_state["treasury"]) == 88, "PJ.2d: Player repairing grid uses 1 copper_coil and receives 12 gold from town treasury")
+	vcu_pj.sabotage_grid(vm, "lamps", false, "player")
+	p70_inv.add_item("copper_coil", 1)
+	vcu_pj.on_player_action(vm, pj_tinker, "culture_repair_grid", p70_inv)
+	assert(vcu_pj.is_lamps_powered(vm) and p70_inv.gold == 62 and int(vm.town_state["treasury"]) == 88, "PJ.2d2: Repairing a blackout you caused yourself pays nothing (no sabotage-and-collect loop)")
+	var pj_camp_bak: Variant = gm_pj.get_flag("player_campsite_state", null)
+	gm_pj.set_flag("player_campsite_state", {"generator_active": false})
+	vcu_pj.repair_grid(vm)
+	assert(not bool(gm_pj.get_flag("electric_grid_active", true)), "PJ.2d3: Repairing the wiring does not power the town without a running generator")
+	gm_pj.set_flag("player_campsite_state", pj_camp_bak)
 	vcu_pj.sabotage_grid(vm, "all", false)
 	vcu_pj.grid_state(vm)["sabotaged_days"] = 1
 	pj_tinker.shop_stock["repair_kit"] = 2
@@ -3950,6 +3965,19 @@ func _initialize() -> void:
 	vcu_pj.forest_state(vm)["soil_fertility"] = 0
 	vcu_pj.on_player_action(vm, p70_a, "culture_plant_tree", p70_inv)
 	assert(pk_eco.count_live_trees() == pk_trees0 + 1 and p70_inv.get_count("crop_seeds") == 0 and int(vcu_pj.forest_state(vm)["planted_trees"]) == 1 and int(vcu_pj.forest_state(vm)["soil_fertility"]) == 2, "PK.1a: Planting a pine sapling spawns a new tree node in the ecosystem and enriches soil fertility")
+	p70_inv.add_item("crop_seeds", 1)
+	vcu_pj.on_player_action(vm, p70_a, "culture_plant_tree", p70_inv)
+	assert(pk_eco.count_live_trees() == pk_trees0 + 1 and p70_inv.get_count("crop_seeds") == 1, "PK.1b: Only one pine can be planted per day")
+	var pk_pines: int = pk_eco.count_planted_pines()
+	for pk_c in pk_eco.entities_root.get_children():
+		if str(pk_c.name).begins_with("PlantedPine_"):
+			pk_c.get_parent().remove_child(pk_c)
+			pk_c.free()
+			break
+	vcu_pj.restore_planted_trees(vm)
+	assert(pk_eco.count_planted_pines() == pk_pines, "PK.1c: Planted pines are restored after loading a game")
+	p70_inv.remove_item("crop_seeds", p70_inv.get_count("crop_seeds"))
+	vcu_pj.forest_state(vm)["last_plant_day"] = -99
 	p70_a.shop_stock["wood"] = 4
 	p70_b.shop_stock["wheat"] = 3
 	# PK.2: Abrir ruta comercial con Puerto Fluvial del Este (exporta 2 wood -> importa 2 fish + 8 Oro) y ciclo diario
@@ -4011,6 +4039,11 @@ func _initialize() -> void:
 	vm.town_state["treasury"] = 100
 	vcu_pj.on_player_action(vm, p70_b, "culture_fund_militia", p70_inv)
 	assert(p70_inv.gold == 85 and int(vm.town_state["treasury"]) == 115 and int(vcu_pj.raids_state(vm)["militia_bonus"]) == 2, "PL.2a: Funding militia transfers 15 gold to town treasury and adds +2 defense")
+	vcu_pj.on_player_action(vm, p70_b, "culture_fund_militia", p70_inv)
+	vcu_pj.on_player_action(vm, p70_b, "culture_fund_militia", p70_inv)
+	assert(int(vcu_pj.raids_state(vm)["militia_bonus"]) == vcu_pj.MILITIA_MAX_BONUS and p70_inv.gold == 70, "PL.2a2: Militia funding is capped (+4), so a raid cannot be bought as a sure win")
+	p70_inv.gold = 85
+	vm.town_state["treasury"] = 115
 	vcu_pj.start_raid_warning(vm, "bandits")
 	assert(not (vcu_pj.raids_state(vm)["active_raid"] as Dictionary).is_empty(), "PL.2b: Raid warning registers an imminent attack")
 	var pl_win: Dictionary = vcu_pj.resolve_raid(vm, true, p70_inv, 1)

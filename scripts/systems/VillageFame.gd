@@ -20,7 +20,7 @@ const VillageChronicle = preload("res://scripts/systems/VillageChronicle.gd")
 const VillageClans = preload("res://scripts/systems/VillageClans.gd")
 
 const MASTERWORK_BUY_COST: int = 35
-const MASTERWORK_COLLECTOR_PRICE: int = 50
+const MASTERWORK_COLLECTOR_PRICE: int = 30 # Menos que en el taller (35): revender no da ganancia
 const PATRON_COST: int = 30
 const PATRON_COOLDOWN_DAYS: int = 7
 const PRAISE_COOLDOWN_DAYS: int = 3
@@ -489,7 +489,7 @@ static func on_player_action(vm, npc, action_id: String, inv) -> void:
 	elif action_id == "fame_sell_masterwork":
 		if inv == null or not inv.has_method("has_item") or not bool(inv.call("has_item", "masterwork_piece", 1)):
 			return
-		if int(npc.personal_gold) < 35:
+		if int(npc.personal_gold) < MASTERWORK_COLLECTOR_PRICE:
 			npc._spawn_floating_text("🏺 «Es una pieza soberbia, pero hoy no llevo suficiente oro encima.»", Color.ORANGE_RED, -44.0)
 			return
 		inv.remove_item("masterwork_piece", 1)

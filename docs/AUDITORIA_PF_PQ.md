@@ -42,7 +42,7 @@ Por eso no detectaron los fallos graves.
    - Pasadizo del Contrabandista: −1 de búsqueda al tener éxito, una vez al día.
    - Terminal, «Archivo policial»: −1 de búsqueda y −25 de recompensa, una vez al día.
 
-## Economía (oro o cosas de la nada, ingresos sin riesgo)
+## Economía (oro o cosas de la nada, ingresos sin riesgo) — ✅ arreglados en la revisión posterior
 
 5. **Negocio propio (PG): ingreso pasivo sin riesgo.**
    - Empieza con 2 artículos de existencias gratis.

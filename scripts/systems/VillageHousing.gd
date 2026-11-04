@@ -32,6 +32,12 @@ const FOUND_SHOP_COST: int = 65
 const ADVERTISE_COST: int = 12
 const ADVERTISE_COOLDOWN_DAYS: int = 3
 const SHOP_SALE_PRICE: int = 10
+## Precio de venta en tu bazar según lo que pongas en el mostrador (una madera no vale lo mismo que una prenda)
+const SHOP_ITEM_PRICES: Dictionary = {"bread": 6, "cooked_meat": 7, "herbal_poultice": 9, "repair_kit": 12, "clothes": 14, "wood": 3, "iron_ore": 6, "fish": 5, "masterwork_piece": 40}
+const SHOP_THEFT_CHANCE: float = 0.18 # Sin dependiente, de noche pueden vaciarte parte de la caja
+const SHOP_THEFT_CHANCE_CLERK: float = 0.07
+const ANIMAL_FED_DAYS: int = 2 # Crecen y dan carne solo si comieron hace 2 días o menos
+const ANIMAL_STARVE_DAYS: int = 5 # Sin comer 5 días, el animal muere
 const CLERK_WAGE: int = 4
 const STOCKABLE_ITEMS: Array[String] = ["bread", "cooked_meat", "herbal_poultice", "repair_kit", "clothes", "wood", "iron_ore", "fish", "masterwork_piece"]
 const BUY_CHICK_COST: int = 15
@@ -184,7 +190,8 @@ static func found_player_shop(vm, lot_id: String, inv, carpenter = null) -> bool
 	state(vm)["player_shop"] = {
 		"lot": lot_id,
 		"name": "Bazar del Forastero",
-		"stock": 2,
+		"stock": 0,
+		"goods": {},
 		"till_gold": 0,
 		"ad_days": 0,
 		"last_ad_day": -99,
@@ -199,9 +206,12 @@ static func stock_player_shop(vm, inv) -> int:
 		return 0
 	var ps: Dictionary = state(vm)["player_shop"]
 	var added: int = 0
+	if not (ps.get("goods", null) is Dictionary):
+		ps["goods"] = {}
 	for item_id in STOCKABLE_ITEMS:
 		while added < 2 and inv.has_item(item_id, 1):
 			inv.remove_item(item_id, 1)
+			ps["goods"][item_id] = int((ps["goods"] as Dictionary).get(item_id, 0)) + 1
 			added += 1
 		if added >= 2:
 			break
@@ -241,7 +251,7 @@ static func buy_young_animal(vm, species: String, inv, seller = null) -> bool:
 		seller.personal_gold += BUY_CHICK_COST
 	else:
 		vm.town_state["treasury"] = int(vm.town_state.get("treasury", 0)) + BUY_CHICK_COST
-	arr.append({"species": species, "stage": "chick", "age_days": 0, "power": 1})
+	arr.append({"species": species, "stage": "chick", "age_days": 0, "power": 1, "fed_day": today()})
 	VillageChronicle.add(vm, "animal_bought", "Compraste una cría (%s) para criarla en tu corral" % species, true)
 	return true
 
@@ -259,6 +269,7 @@ static func feed_player_animals(vm, inv) -> int:
 		return 0
 	for a in arr:
 		if a is Dictionary:
+			a["fed_day"] = today()
 			a["age_days"] = int(a.get("age_days", 0)) + 2
 			a["stage"] = animal_stage_for_days(int(a["age_days"]))
 			a["power"] = clampi(int(a.get("power", 1)) + 1, 1, 5)
@@ -273,6 +284,24 @@ static func best_adult_animal_power(vm, species_filter: String = "") -> int:
 			continue
 		best = maxi(best, int(a.get("power", 1)))
 	return best
+
+## Bloque PG (revisión): de noche, un ladrón puede llevarse la mitad de la caja; el oro acaba en el bolsillo de un vecino pobre.
+static func shop_night_theft(vm, ps: Dictionary, chance: float) -> int:
+	var till: int = int(ps.get("till_gold", 0))
+	if till <= 1 or randf() >= chance:
+		return 0
+	var thief = null
+	for n in VillageNeeds.living(vm):
+		if int(n.trade_role) != int(VillageNPC.TradeRole.CHILD) and not VillageNeeds.is_outsider(n) and n.get_person_key() != str(ps.get("clerk_key", "")):
+			if thief == null or int(n.personal_gold) < int(thief.personal_gold):
+				thief = n
+	if thief == null:
+		return 0
+	var stolen: int = int(till / 2)
+	ps["till_gold"] = till - stolen
+	thief.personal_gold += stolen
+	VillageChronicle.add(vm, "player_shop_robbed", "Alguien forzó de noche la caja del Bazar del Forastero y se llevó %d de oro" % stolen, true)
+	return stolen
 
 # ==============================================================================
 # P6.1 y P6.5: Comprar casa al contado, con hipoteca o casa embargada
@@ -485,17 +514,34 @@ static func daily(vm) -> void:
 	if has_player_shop(vm):
 		var ps: Dictionary = hs["player_shop"]
 		var ck: String = str(ps.get("clerk_key", ""))
+		# Riesgo: de noche un ladrón puede llevarse parte de la caja que no hayas recaudado
+		shop_night_theft(vm, ps, SHOP_THEFT_CHANCE_CLERK if ck != "" else SHOP_THEFT_CHANCE)
 		var max_buyers: int = 1 + (1 if ck != "" else 0) + (2 if int(ps.get("ad_days", 0)) > 0 else 0)
 		if int(ps.get("ad_days", 0)) > 0:
 			ps["ad_days"] = maxi(0, int(ps["ad_days"]) - 1)
+		if not (ps.get("goods", null) is Dictionary):
+			ps["goods"] = {}
+		var goods: Dictionary = ps["goods"]
 		for n in VillageNeeds.living(vm):
 			if max_buyers <= 0 or int(ps.get("stock", 0)) <= 0:
 				break
 			if int(n.trade_role) == int(VillageNPC.TradeRole.CHILD) or VillageNeeds.is_outsider(n) or n.get_person_key() == ck:
 				continue
-			if int(n.personal_gold) >= 18:
-				n.personal_gold -= SHOP_SALE_PRICE
-				ps["till_gold"] = int(ps.get("till_gold", 0)) + SHOP_SALE_PRICE
+			var sold_item: String = ""
+			for g_id in goods.keys():
+				if int(goods[g_id]) > 0:
+					sold_item = str(g_id)
+					break
+			if sold_item == "":
+				ps["stock"] = 0
+				break
+			var price: int = int(SHOP_ITEM_PRICES.get(sold_item, 5))
+			if int(n.personal_gold) >= price + 12:
+				n.personal_gold -= price
+				goods[sold_item] = int(goods[sold_item]) - 1
+				if int(goods[sold_item]) <= 0:
+					goods.erase(sold_item)
+				ps["till_gold"] = int(ps.get("till_gold", 0)) + price
 				ps["stock"] = int(ps.get("stock", 0)) - 1
 				ps["total_sales"] = int(ps.get("total_sales", 0)) + 1
 				n.modify_affinity(2)
@@ -529,9 +575,18 @@ static func daily(vm) -> void:
 		r_herd.append(nc)
 	var p_animals: Array = hs["player_animals"]
 	var adult_p_cnt: int = 0
-	for pa in p_animals:
+	for pa in p_animals.duplicate():
 		if not (pa is Dictionary):
 			continue
+		if not pa.has("fed_day"):
+			pa["fed_day"] = today()
+		var unfed: int = today() - int(pa["fed_day"])
+		if unfed >= ANIMAL_STARVE_DAYS:
+			p_animals.erase(pa)
+			VillageChronicle.add(vm, "animal_starved", "Una de tus crías (%s) murió por no darle de comer" % str(pa.get("species", "")), true)
+			continue
+		if unfed > ANIMAL_FED_DAYS:
+			continue # Sin comer no crece ni da carne
 		pa["age_days"] = int(pa.get("age_days", 0)) + 1
 		pa["stage"] = animal_stage_for_days(int(pa["age_days"]))
 		if str(pa["stage"]) == "adult":
@@ -539,7 +594,7 @@ static func daily(vm) -> void:
 	if adult_p_cnt > 0 and inv != null and today() % 2 == 0:
 		inv.add_item("cooked_meat", 1)
 	if adult_p_cnt >= 2 and p_animals.size() < 4 and today() % 4 == 0:
-		p_animals.append({"species": "rooster", "stage": "chick", "age_days": 0, "power": 1})
+		p_animals.append({"species": "rooster", "stage": "chick", "age_days": 0, "power": 1, "fed_day": today()})
 		VillageChronicle.add(vm, "animal_bred", "Ha nacido una nueva cría en tu corral", true)
 
 # ==============================================================================

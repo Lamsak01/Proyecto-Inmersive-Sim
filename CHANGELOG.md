@@ -5,6 +5,15 @@ El detalle técnico está en `docs/HANDOFF.md` (sección 7) y el historial compl
 
 ## 2026-11-04
 
+### Revisión de PF–PQ: se cierran los atajos de dinero fácil
+- **Tu negocio:** el mostrador empieza vacío; cada artículo se vende a su precio (una madera vale 3 y una prenda 14) y de noche un ladrón puede llevarse la mitad de la caja que no hayas recaudado (menos si tienes dependiente).
+- **Corral:** los animales solo crecen y dan carne si les das de comer; tras 5 días sin comida mueren.
+- **Pinos:** uno al día como máximo y hasta 12; ya no devuelven la semilla y vuelven a aparecer al cargar la partida.
+- **Obras maestras:** el coleccionista paga 30, menos que en el taller (35), así que revenderlas no da ganancia.
+- **Red eléctrica:** si el apagón lo provocaste tú, arreglarlo no se cobra; reparar no da luz sin generador encendido; cualquier vecino cercano puede verte tocar los cables.
+- **Incursiones:** las barricadas pagadas llegan como mucho a +4 y cada incursión rechazada hace más fuerte a la siguiente; la atalaya del asentamiento ya no se pierde tras la primera.
+- **Terminal:** solo está en el taller del ingeniero, no en la comisaría.
+
 ### Revisión de PF–PQ: cuatro fallos graves arreglados
 - **Pisos y alcantarillas:** solo puedes subir al altillo o bajar al sótano estando en tu casa, y al salir vuelves solo a la calle, así que los vecinos vuelven a verte. Explorar las alcantarillas es una salida de ida y vuelta: ya no te quedas «bajo tierra» en la plaza, donde nadie podía verte robar.
 - **Arcabuz:** ahora hace daño de verdad. Ya no se dispara desde la conversación con un vecino; de momento sirve en la defensa contra incursiones.

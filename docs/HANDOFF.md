@@ -665,6 +665,15 @@ Cada fase se dividirá en bloques pequeños cuando se llegue a ella (detalle en 
 - [x] **Bloque PQ — Escalado de población a 100+ vecinos, solares de la ronda norte (`u0..u6`), casas ampliables a 4 camas con altillo y LOD multi-nivel** (`scripts/systems/VillageMigration.gd`, `scripts/systems/VillageLots.gd`, `scripts/systems/VillageHousing.gd`, `scripts/enemies/VillageNPC.gd`, test #94):
   1) Techo de población ampliado (`POP_CAP = 100` en `VillageMigration.gd`), nueva ronda norte de 7 solares residenciales (`u0..u6` en `VillageLots.LOTS`) y ampliación vertical de casas ya construidas con altillo (`expand_house_upper_floor`, `_house_beds(id, true)` con 4 camas por casa, activada automáticamente en `VillageMigration.maybe_order_house` cuando se agotan los solares libres o al instalar `"upper_floor"` en `VillageHousing.gd`).
   2) Simulación simplificada multi-nivel y de larga distancia (`_lod_far()` y `_lod_step_for_npc()` en `VillageNPC.gd`): los vecinos que se encuentran en otra capa vertical (`elevation_level != vm.player_elevation_level`) o muy alejados pasan a paso simplificado doble (`LOD_STEP * 2 = 8` fotogramas), manteniendo el desplazamiento exacto mediante `_lod_k`.
+- [x] **Revisión PF–PQ, economía** (puntos 5–11 del informe; tests #83, #84, #86, #87, #88, #89 ampliados):
+  1) Bazar: `player_shop.goods`, precios `SHOP_ITEM_PRICES`, sin stock inicial, `shop_night_theft` (18 %, o 7 % con dependiente; el oro pasa al vecino más pobre).
+  2) Corral: `fed_day`; solo crecen o dan carne con ≤ `ANIMAL_FED_DAYS`; mueren a `ANIMAL_STARVE_DAYS`.
+  3) Pinos: `can_plant_tree` (1/día, `MAX_PLANTED_TREES = 12`), sin semilla extra, `restore_planted_trees` en `after_load` y en el ciclo diario (`EcosystemManager.plant_sapling(pos, false)`).
+  4) `MASTERWORK_COLLECTOR_PRICE = 30`.
+  5) Red: `grid.saboteur`; `repair_grid` usa `_generator_on()`; testigos al sabotear.
+  6) Milicia: tope `MILITIA_MAX_BONUS = 4`; la atalaya cuenta en `defense_power`; fuerza de la incursión = 4 + rechazadas (máx. +6).
+  7) Terminal solo con el TINKER.
+  Siguen pendientes los puntos 12–16 (textos y veracidad).
 - [x] **Revisión PF–PQ** (`docs/AUDITORIA_PF_PQ.md`, tests #91–#93 ampliados). Arreglados los 4 fallos graves:
   1) Pisos: `VillageHousing.player_near_home` (90 px de un solar tuyo) para subir o bajar. `VillageManager.check_elevation_exit` devuelve a nivel 0 al alejarse 70 px del punto donde se cambió de piso. `explore_sewer_location` ya no deja al jugador en −1.
   2) `fire_flintlock_shot` usaba un suelo de 2.5 en `apply_minor_bruise` (daño 0); ahora 0.10. Retirada la opción «Dispararle» del diálogo.

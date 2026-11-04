@@ -34,6 +34,8 @@ const REPAIR_PRICE: int = 8
 const REPAIRS_PER_DAY: int = 2
 const GRID_REPAIR_REWARD: int = 12
 const SAPLING_COST: int = 6
+const MAX_PLANTED_TREES: int = 12 # Tope de pinos sembrados por el jugador
+const MILITIA_MAX_BONUS: int = 4 # Las barricadas pagadas no pasan de +4 por incursión
 const ROUTE_CHARTER_COST: int = 25
 const MILITIA_COST: int = 15
 const EXPEDITION_COST: int = 12
@@ -171,8 +173,6 @@ static func upgrade_outpost(vm, upg_id: String, artisan, inv) -> bool:
 	else:
 		vm.town_state["treasury"] = int(vm.town_state.get("treasury", 0)) + OUTPOST_UPGRADE_COST
 	upgs[upg_id] = true
-	if upg_id == "watchtower":
-		raids_state(vm)["militia_bonus"] = int(raids_state(vm).get("militia_bonus", 0)) + 2
 	VillageChronicle.add(vm, "outpost_upgraded", "Construiste %s en tu asentamiento «%s»" % [upg_id, str(op["name"])], true)
 	return true
 
@@ -581,7 +581,7 @@ static func start_raid_warning(vm, kind: String = "bandits") -> Dictionary:
 	var raid: Dictionary = {
 		"kind": kind,
 		"name": str(names.get(kind, "Banda del Paso Negro")),
-		"strength": 4,
+		"strength": 4 + mini(6, int(rd.get("raids_repelled", 0))), # Cada incursión rechazada, la siguiente viene más fuerte
 		"day_due": today + 1,
 		"bounty": 20,
 	}
@@ -594,6 +594,9 @@ static func defense_power(vm, player_joined: bool = false, inv = null) -> int:
 		return 0
 	var pwr: int = int(raids_state(vm).get("militia_bonus", 0))
 	if has_tech(vm, "reinforced_locks"):
+		pwr += 2
+	# La atalaya del asentamiento es permanente (no se gasta como las barricadas)
+	if bool(outpost_state(vm).get("founded", false)) and bool((outpost_state(vm)["upgrades"] as Dictionary).get("watchtower", false)):
 		pwr += 2
 	if player_joined:
 		pwr += 1
@@ -666,11 +669,28 @@ static func forest_state(vm) -> Dictionary:
 		f["last_plant_day"] = -99
 	return f
 
+static func can_plant_tree(vm) -> bool:
+	var f: Dictionary = forest_state(vm)
+	var today: int = int(WorldClock.current_day) if WorldClock else 1
+	return int(f.get("last_plant_day", -99)) != today and int(f.get("planted_trees", 0)) < MAX_PLANTED_TREES
+
+## Los pinos sembrados son nodos del mapa que no se guardan solos: se reponen al cargar y cada mañana.
+static func restore_planted_trees(vm) -> int:
+	if vm == null or not vm.is_inside_tree():
+		return 0
+	var eco = vm.get_tree().get_first_node_in_group("ecosystem_manager")
+	if eco == null:
+		return 0
+	var missing: int = int(forest_state(vm).get("planted_trees", 0)) - int(eco.count_planted_pines())
+	for i in range(maxi(0, missing)):
+		eco.plant_sapling(Vector2.ZERO, false)
+	return maxi(0, missing)
+
 static func plant_forest_tree(vm, planter_name: String = "Jugador") -> bool:
-	if vm == null:
+	if vm == null or not can_plant_tree(vm):
 		return false
 	var eco = vm.get_tree().get_first_node_in_group("ecosystem_manager") if vm.is_inside_tree() else null
-	if eco != null and eco.has_method("plant_sapling"):
+	if eco != null:
 		eco.plant_sapling()
 	var f: Dictionary = forest_state(vm)
 	f["planted_trees"] = int(f.get("planted_trees", 0)) + 1
@@ -825,7 +845,14 @@ static func is_sprinkler_powered(vm) -> bool:
 	var g: Dictionary = grid_state(vm)
 	return not bool(g.get("sprinkler_disabled", false))
 
-static func sabotage_grid(vm, node_target: String = "all", check_risk: bool = false) -> Dictionary:
+## La red solo tiene corriente si el generador del campamento está encendido.
+static func _generator_on() -> bool:
+	if GameManager == null:
+		return false
+	var camp_st: Variant = GameManager.get_flag("player_campsite_state", null)
+	return typeof(camp_st) == TYPE_DICTIONARY and bool((camp_st as Dictionary).get("generator_active", false))
+
+static func sabotage_grid(vm, node_target: String = "all", check_risk: bool = false, saboteur: String = "") -> Dictionary:
 	if vm == null:
 		return {"ok": false, "caught": false}
 	var g: Dictionary = grid_state(vm)
@@ -836,6 +863,7 @@ static func sabotage_grid(vm, node_target: String = "all", check_risk: bool = fa
 		return {"ok": false, "caught": true}
 	var target: String = node_target if node_target in ["all", "lamps", "sprinkler"] else "all"
 	g["overloaded_node"] = target
+	g["saboteur"] = saboteur
 	if target == "all":
 		g["sabotaged_days"] = 2
 		g["lamps_disabled"] = true
@@ -867,8 +895,9 @@ static func repair_grid(vm) -> bool:
 	g["overloaded_node"] = ""
 	g["lamps_disabled"] = false
 	g["sprinkler_disabled"] = false
+	g["saboteur"] = ""
 	if GameManager != null:
-		GameManager.set_flag("electric_grid_active", true)
+		GameManager.set_flag("electric_grid_active", _generator_on()) # Reparar no crea corriente si no hay generador
 		GameManager.set_flag("sprinkler_grid_disabled", false)
 	vm._update_streetlights_glow()
 	return true
@@ -1070,12 +1099,14 @@ static func _is_food(item: String) -> bool:
 static func after_load(vm) -> void:
 	if is_market_open(vm):
 		close_market(vm)
+	restore_planted_trees(vm)
 
 # ---------------------------------------------------------------- arreglos
 ## Cada día: rutas comerciales, fertilidad forestal, árbol de investigación, incursiones y arreglos del Taller.
 static func daily(vm) -> int:
 	process_trade_routes(vm)
 	process_outpost_daily(vm)
+	restore_planted_trees(vm)
 	var pl_d = VillageNeeds.player_of(vm)
 	var inv_d = pl_d.get("inventory") if pl_d != null else null
 	sync_main_story(vm, inv_d)
@@ -1187,7 +1218,8 @@ static func add_dialogue_choices(vm, npc, diag: Dictionary, ch_arr: Array) -> vo
 		}
 	if role_i in [int(VillageNPC.TradeRole.SHERIFF), int(VillageNPC.TradeRole.GUARD)]:
 		var rd: Dictionary = raids_state(vm)
-		ch_arr.append({"label": "🛡️📯 Financiar barricadas y milicia contra incursiones (-%d Oro a las arcas, +2 Defensa)" % MILITIA_COST, "next": "END", "action": "culture_fund_militia"})
+		if int(rd.get("militia_bonus", 0)) < MILITIA_MAX_BONUS:
+			ch_arr.append({"label": "🛡️📯 Financiar barricadas y milicia contra incursiones (-%d Oro a las arcas, +2 Defensa)" % MILITIA_COST, "next": "END", "action": "culture_fund_militia"})
 		var act_r: Dictionary = rd.get("active_raid", {})
 		if not act_r.is_empty():
 			ch_arr.insert(0, {"label": "⚔️🔥 Encabezar la defensa contra %s (Recompensa de las arcas si ganáis)" % str(act_r.get("name", "Incursión")), "next": "END", "action": "culture_lead_defense"})
@@ -1210,7 +1242,7 @@ static func add_dialogue_choices(vm, npc, diag: Dictionary, ch_arr: Array) -> vo
 				"text": "«Más allá de los lindes del valle quedan ruinas, grutas y atalayas con piezas antiguas y notas para la biblioteca.»",
 				"choices": ex_choices,
 			}
-	if role_i == int(VillageNPC.TradeRole.WOODCUTTER):
+	if role_i == int(VillageNPC.TradeRole.WOODCUTTER) and can_plant_tree(vm):
 		ch_arr.append({"label": "🌲🌱 Sembrar pino joven en el bosque (-1 Semilla de Cultivo, enriquece suelo y fauna)", "next": "END", "action": "culture_plant_tree"})
 		ch_arr.append({"label": "🌲🪙 Comprar y plantar plantón de pino (-%d Oro al leñador, enriquece suelo y fauna)" % SAPLING_COST, "next": "END", "action": "culture_buy_sapling"})
 	if role_i in [int(VillageNPC.TradeRole.TRAVELING_MERCHANT), int(VillageNPC.TradeRole.WOODCUTTER), int(VillageNPC.TradeRole.BAKER), int(VillageNPC.TradeRole.TAILOR)]:
@@ -1238,7 +1270,7 @@ static func add_dialogue_choices(vm, npc, diag: Dictionary, ch_arr: Array) -> vo
 		if has_tech(vm, "reinforced_locks") or (inv_po != null and inv_po.has_item("flintlock_pistol", 1)):
 			ch_arr.append({"label": "🧨🪙 Comprar 2 Cargas de Pólvora Negra (-%d Oro)" % POWDER_PACK_COST, "next": "END", "action": "culture_buy_powder"})
 	# Disparar desde la conversación quedó retirado (como el robo desde el diálogo): el arma se usa en las incursiones.
-	if role_i in [int(VillageNPC.TradeRole.TINKER), int(VillageNPC.TradeRole.SHERIFF)]:
+	if role_i == int(VillageNPC.TradeRole.TINKER): # La terminal está en el taller; no se hackea delante del comisario
 		var tm: Dictionary = terminal_state(vm)
 		if int(tm.get("last_hack_day", -99)) != today:
 			ch_arr.append({"label": "🖥️⚡ Hackear en sigilo la Terminal Lógica Electromecánica (1/día, con riesgo)", "next": "culture_terminal_menu"})
@@ -1276,7 +1308,15 @@ static func on_player_action(vm, npc, action_id: String, inv) -> void:
 			npc._spawn_floating_text("⚡ Hoy ya manipulaste el cuadro eléctrico", Color.LIGHT_GRAY, -44.0)
 			return
 		var target: String = action_id.substr("culture_sabotage_grid:".length())
-		var res: Dictionary = sabotage_grid(vm, target, true)
+		# Además del arreglador, cualquier otro vecino cerca puede verte tocar los cables
+		var pl_sab = VillageNeeds.player_of(vm)
+		if pl_sab != null and vm._find_conscious_witness_near(pl_sab.global_position, 120.0, npc) != null:
+			g["last_op_day"] = today
+			vm.wanted_level = clampi(int(vm.wanted_level) + 1, 1, 5)
+			npc.affinity = clampi(npc.affinity - 15, -100, 100)
+			npc._spawn_floating_text("🚨 Un vecino te vio manipular el cuadro eléctrico (Búsqueda +1)", Color.ORANGE_RED, -46.0)
+			return
+		var res: Dictionary = sabotage_grid(vm, target, true, "player")
 		if bool(res.get("caught", false)):
 			npc.affinity = clampi(npc.affinity - 15, -100, 100)
 			npc._spawn_floating_text("🚨 «¡Eh! ¡Suelta esos cables! ¡Guardias!» (Búsqueda +1)", Color.ORANGE_RED, -46.0)
@@ -1287,13 +1327,15 @@ static func on_player_action(vm, npc, action_id: String, inv) -> void:
 			npc._spawn_floating_text("«Necesitamos al menos 1 Bobina de Cobre para empalmar la línea.»", Color.ORANGE_RED, -46.0)
 			return
 		inv.remove_item("copper_coil", 1)
+		var own_mess: bool = str(grid_state(vm).get("saboteur", "")) == "player"
 		repair_grid(vm)
-		var pay: int = mini(GRID_REPAIR_REWARD, maxi(0, int(vm.town_state.get("treasury", 0))))
+		# Si el apagón lo provocaste tú, el ayuntamiento no paga por arreglarlo (sin bucle sabotear-cobrar)
+		var pay: int = 0 if own_mess else mini(GRID_REPAIR_REWARD, maxi(0, int(vm.town_state.get("treasury", 0))))
 		if pay > 0:
 			vm.town_state["treasury"] = int(vm.town_state.get("treasury", 0)) - pay
 			inv.add_gold(pay)
 		npc.affinity = clampi(npc.affinity + 10, -100, 100)
-		npc._spawn_floating_text("🛠️⚡ «¡Línea restablecida! Toma %d de oro del fondo municipal.»" % pay, Color.AQUAMARINE, -46.0)
+		npc._spawn_floating_text(("🛠️⚡ «¡Línea restablecida! Toma %d de oro del fondo municipal.»" % pay) if pay > 0 else "🛠️⚡ «¡Línea restablecida! Gracias por la ayuda.»", Color.AQUAMARINE, -46.0)
 	elif action_id.begins_with("culture_start_tech:"):
 		var t_id: String = action_id.substr("culture_start_tech:".length())
 		if start_research(vm, t_id, npc, inv):
@@ -1310,6 +1352,9 @@ static func on_player_action(vm, npc, action_id: String, inv) -> void:
 		npc.affinity = clampi(npc.affinity + 6, -100, 100)
 		npc._spawn_floating_text("🔬✨ ¡Invento completado!" if done_t else "🔩⚙️ Prototipo acelerado (+2 avance)", Color.AQUAMARINE, -46.0)
 	elif action_id == "culture_fund_militia":
+		if int(raids_state(vm).get("militia_bonus", 0)) >= MILITIA_MAX_BONUS:
+			npc._spawn_floating_text("«Las barricadas ya están levantadas; más no caben en las calles.»", Color.LIGHT_GRAY, -46.0)
+			return
 		if inv == null or int(inv.gold) < MILITIA_COST:
 			npc._spawn_floating_text("«Necesitamos %d de oro para levantar barricadas y armar turnos.»" % MILITIA_COST, Color.ORANGE_RED, -46.0)
 			return
@@ -1330,11 +1375,17 @@ static func on_player_action(vm, npc, action_id: String, inv) -> void:
 		if inv == null or int(inv.items.get("crop_seeds", 0)) <= 0:
 			npc._spawn_floating_text("«Necesitas al menos 1 Semilla de Cultivo para plantar un pino joven.»", Color.ORANGE_RED, -46.0)
 			return
+		if not can_plant_tree(vm):
+			npc._spawn_floating_text("«Por hoy basta de plantar: el claro necesita descanso.»", Color.LIGHT_GRAY, -46.0)
+			return
 		inv.remove_item("crop_seeds", 1)
 		plant_forest_tree(vm, "El forastero")
 		npc.affinity = clampi(npc.affinity + 6, -100, 100)
 		npc._spawn_floating_text("🌲🌱 «¡Buen ojo! Ese pino dará sombra, setas y cobijo a los venados.»", Color.SPRING_GREEN, -46.0)
 	elif action_id == "culture_buy_sapling":
+		if not can_plant_tree(vm):
+			npc._spawn_floating_text("«Por hoy basta de plantar: el claro necesita descanso.»", Color.LIGHT_GRAY, -46.0)
+			return
 		if inv == null or int(inv.gold) < SAPLING_COST:
 			npc._spawn_floating_text("«Necesito %d de oro por el plantón de vivero.»" % SAPLING_COST, Color.ORANGE_RED, -46.0)
 			return

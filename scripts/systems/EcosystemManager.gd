@@ -465,10 +465,23 @@ func count_live_trees() -> int:
 				cnt += 1
 	return cnt
 
-func plant_sapling(world_pos: Vector2 = Vector2.ZERO) -> HarvestableNode:
+func count_planted_pines() -> int:
+	var root_search: Node = entities_root if entities_root else get_tree().current_scene
+	if not root_search:
+		return 0
+	var cnt: int = 0
+	for child in root_search.get_children():
+		if str(child.name).begins_with("PlantedPine_"):
+			cnt += 1
+	return cnt
+
+## side_effects = false: solo vuelve a poner el pino (al cargar partida), sin traer fauna ni hierbas nuevas.
+func plant_sapling(world_pos: Vector2 = Vector2.ZERO, side_effects: bool = true) -> HarvestableNode:
 	var root_search: Node = entities_root if entities_root else get_tree().current_scene
 	if not root_search:
 		return null
+	if not side_effects:
+		return _place_planted_pine(root_search, world_pos)
 	# Rebrota primero una hierba o seta agotada por el enriquecimiento del suelo forestal
 	for child in root_search.get_children():
 		if child is HarvestableNode:
@@ -481,12 +494,14 @@ func plant_sapling(world_pos: Vector2 = Vector2.ZERO) -> HarvestableNode:
 		_spawn_from_pool(deer_pool, 1)
 	elif _get_live_animals(rabbit_pool).size() < rabbit_pool.size():
 		_spawn_from_pool(rabbit_pool, 1)
-	# Si había un tocón talado, también puede rebrotar; además planta un nuevo pino joven
+	return _place_planted_pine(root_search, world_pos)
+
+func _place_planted_pine(root_search: Node, world_pos: Vector2) -> HarvestableNode:
 	var tex_tree: Texture2D = _load_tex("res://assests/Comprados/Epic RPG World - The Village V2.1/tilesets and props/props-sprites/pine-tree_0.png")
 	if not tex_tree:
 		tex_tree = _load_tex("res://assests/world/tree.png")
 	var tex_stump: Texture2D = _load_tex("res://assests/Comprados/Epic RPG World - The Village V2.1/tilesets and props/props-sprites/logs_0.png")
-	var idx: int = count_live_trees()
+	var idx: int = count_planted_pines()
 	var pos: Vector2 = world_pos if world_pos != Vector2.ZERO else Vector2(-360.0 + float((idx % 6) * 65), 670.0 + float((idx / 6) * 55))
 	var node := HarvestableNode.new()
 	node.name = "PlantedPine_%d_%d" % [idx, randi() % 1000]
@@ -495,8 +510,8 @@ func plant_sapling(world_pos: Vector2 = Vector2.ZERO) -> HarvestableNode:
 	node.node_title = "Pino Joven Reforestado"
 	node.primary_item_id = "wood"
 	node.primary_amount = 3
-	node.bonus_item_id = "crop_seeds"
-	node.bonus_amount = 1
+	node.bonus_item_id = "" # Sin semilla de regalo: la semilla que gastas no vuelve sola
+	node.bonus_amount = 0
 	node.max_hp = 30.0
 	node.respawn_days = 2
 	root_search.add_child(node)

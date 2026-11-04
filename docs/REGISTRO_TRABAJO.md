@@ -372,3 +372,14 @@ Informe completo: `docs/AUDITORIA_P1_P7.md`.
 | RV2 | Arcabuz con daño real; sin disparo desde el diálogo | ✅ | VillageCulture.gd | Test #92 |
 | RV3 | Capítulo IV por alcaldía (`is_player_mayor`) | ✅ | VillageCulture.gd | Test #93 |
 | RV4 | Espera semanal compartida para borrar la búsqueda | ✅ | VillageHousing.gd, VillageUnderworld.gd, VillageCulture.gd | Tests #91 y #92 |
+
+## Revisión PF–PQ — Atajos de dinero (2026-11-04)
+
+| # | Paso | Estado | Archivos | Nota |
+|---|------|--------|----------|------|
+| RE1 | Bazar con precios por artículo, sin stock gratis y con robos nocturnos de la caja | ✅ | VillageHousing.gd | Test #84 |
+| RE2 | Corral que necesita comida (sin comer no crece, a los 5 días muere) | ✅ | VillageHousing.gd | Test #86 |
+| RE3 | Pinos 1/día, tope 12, sin semilla extra y repuestos al cargar | ✅ | VillageCulture.gd, EcosystemManager.gd | Test #88 |
+| RE4 | Obra maestra revendida por menos de su precio | ✅ | VillageFame.gd | Test #83 |
+| RE5 | Red: no se cobra el sabotaje propio, no hay luz sin generador, testigos | ✅ | VillageCulture.gd | Test #87 |
+| RE6 | Milicia con tope, incursiones crecientes y atalaya permanente; terminal solo en el taller | ✅ | VillageCulture.gd | Test #89 |
