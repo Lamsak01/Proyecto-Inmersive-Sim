@@ -4119,5 +4119,51 @@ func _initialize() -> void:
 	p70_a.personal_gold = pn_ag0
 	print("Block PN (Vertical Elevation Layers & Village Sewers) OK")
 
+	# ==========================================================================
+	# 92. Bloque PO — Armas de fuego de chispa y Terminales lógicas / Hackeo electromecánico
+	# ==========================================================================
+	var po_ag0: int = int(p70_a.personal_gold)
+	var po_tr0: int = int(vm.town_state.get("treasury", 0))
+	vcu_pj.state(vm)["research"] = {}
+	vcu_pj.state(vm)["terminal"] = {}
+	p70_inv.remove_item("flintlock_pistol", p70_inv.get_count("flintlock_pistol"))
+	p70_inv.remove_item("powder_charge", p70_inv.get_count("powder_charge"))
+	p70_inv.gold = 100
+	p70_a.personal_gold = 10
+	assert(not vcu_pj.buy_firearm(vm, p70_a, p70_inv), "PO.1a: Firearm requires reinforced_locks technology unlocked first")
+	(vcu_pj.research_state(vm)["unlocked"] as Dictionary)["reinforced_locks"] = true
+	vcu_pj.on_player_action(vm, p70_a, "culture_buy_firearm", p70_inv)
+	assert(p70_inv.has_item("flintlock_pistol", 1) and p70_inv.get_count("powder_charge") == 2 and p70_inv.gold == 40 and p70_a.personal_gold == 70, "PO.1b: Buying firearm transfers 60 gold to artisan and grants flintlock_pistol + 2 powder_charge")
+	vcu_pj.on_player_action(vm, p70_a, "culture_buy_powder", p70_inv)
+	assert(p70_inv.get_count("powder_charge") == 4 and p70_inv.gold == 26 and p70_a.personal_gold == 84, "PO.1c: Buying powder pack transfers 14 gold to artisan and adds 2 powder_charge")
+	var po_def_no_gun: int = vcu_pj.defense_power(vm, true, null)
+	var po_def_with_gun: int = vcu_pj.defense_power(vm, true, p70_inv)
+	assert(po_def_with_gun == po_def_no_gun + 3, "PO.1d: Carrying a loaded flintlock firearm adds +3 defense power against raids")
+	vcu_pj.on_player_action(vm, p70_b, "culture_fire_flintlock", p70_inv)
+	assert(p70_inv.get_count("powder_charge") == 3 and str(p70_b.last_hit_weapon_name) == "Arcabuz de Chispa", "PO.1e: Firing flintlock consumes 1 powder_charge and wounds target")
+	# PO.2: Hackeo de la terminal lógica electromecánica (reembolso fiscal de las arcas, purga de búsqueda y alarma si falla)
+	vm.town_state["treasury"] = 80
+	p70_inv.gold = 30
+	var po_hack1: Dictionary = vcu_pj.hack_terminal(vm, "census_ledger", p70_inv, 1)
+	assert(bool(po_hack1.get("ok", false)) and bool(po_hack1.get("won", false)) and p70_inv.gold == 48 and int(vm.town_state["treasury"]) == 62, "PO.2a: Hacking census_ledger siphons 18 gold from town treasury into player's purse")
+	assert(not bool(vcu_pj.hack_terminal(vm, "warrant_archive", p70_inv, 1).get("ok", false)), "PO.2b: Daily cooldown prevents hacking terminal twice on the same day")
+	vcu_pj.terminal_state(vm)["last_hack_day"] = -99
+	vm.wanted_level = 2
+	vm.bounty_gold = 50
+	var po_hack2: Dictionary = vcu_pj.hack_terminal(vm, "warrant_archive", p70_inv, 1)
+	assert(bool(po_hack2.get("ok", false)) and bool(po_hack2.get("won", false)) and vm.wanted_level == 1 and vm.bounty_gold == 25, "PO.2c: Hacking warrant_archive reduces wanted_level by 1 and bounty_gold by 25")
+	vcu_pj.terminal_state(vm)["last_hack_day"] = -99
+	var po_hack_fail: Dictionary = vcu_pj.hack_terminal(vm, "grid_controller", p70_inv, -1)
+	assert(bool(po_hack_fail.get("ok", false)) and not bool(po_hack_fail.get("won", true)) and vm.wanted_level == 2 and int(vcu_pj.terminal_state(vm)["alarms_triggered"]) == 1, "PO.2d: Failing a terminal hack triggers logical alarm and raises wanted_level")
+	p70_inv.remove_item("flintlock_pistol", p70_inv.get_count("flintlock_pistol"))
+	p70_inv.remove_item("powder_charge", p70_inv.get_count("powder_charge"))
+	vcu_pj.state(vm)["research"] = {}
+	vcu_pj.state(vm)["terminal"] = {}
+	vm.wanted_level = 0
+	vm.bounty_gold = 0
+	p70_a.personal_gold = po_ag0
+	vm.town_state["treasury"] = po_tr0
+	print("Block PO (Flintlock Firearms & Electromechanical Logic Terminals) OK")
+
 	print("ALL RIMWORLD MEDICAL, FOOTPRINTS, 3-PHASE CORPSE REPORT, MULTI-CORPSE FIX, RPG INTERROGATION, PUBLIC TRIAL, DYNAMIC RELATIONSHIPS, MISSING FAMILY SEARCH, SOCIAL GLOSSARY & UNCONSCIOUS REACTION TESTS PASSED!")
 	quit(0)

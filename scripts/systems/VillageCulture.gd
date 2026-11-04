@@ -39,6 +39,8 @@ const MILITIA_COST: int = 15
 const EXPEDITION_COST: int = 12
 const HORSE_COST: int = 45
 const CART_COST: int = 55
+const FIREARM_COST: int = 60
+const POWDER_PACK_COST: int = 14
 const EXPLORATION_SITES: Dictionary = {
 	"west_ruins": {"name": "Ruinas de Cobre del Oeste", "item": "copper_coil", "max_stages": 2},
 	"north_caves": {"name": "Grutas de Cristal del Norte", "item": "iron_ore", "max_stages": 2},
@@ -63,11 +65,97 @@ static func state(vm) -> Dictionary:
 	if not vm.culture_state is Dictionary:
 		vm.culture_state = {}
 	var defs: Dictionary = {"readings": 0, "player_read_day": -1, "market_day": -1, "market_sellers": {}, "market_sales": 0,
-		"markets_held": 0, "repairs": 0, "grid": {}, "forest": {}, "trade_routes": {}, "research": {}, "raids": {}, "exploration": {}, "mounts": {}}
+		"markets_held": 0, "repairs": 0, "grid": {}, "forest": {}, "trade_routes": {}, "research": {}, "raids": {}, "exploration": {}, "mounts": {}, "terminal": {}}
 	for k in defs.keys():
 		if not vm.culture_state.has(k):
 			vm.culture_state[k] = defs[k]
 	return vm.culture_state
+
+## Bloque PO: Armas de fuego de chispa (flintlock_pistol, powder_charge) y Terminales lógicas / Hackeo electromecánico
+static func has_loaded_firearm(inv) -> bool:
+	return inv != null and inv.has_item("flintlock_pistol", 1) and inv.has_item("powder_charge", 1)
+
+static func buy_firearm(vm, seller, inv) -> bool:
+	if vm == null or seller == null or inv == null:
+		return false
+	if not has_tech(vm, "reinforced_locks") or inv.has_item("flintlock_pistol", 1) or int(inv.gold) < FIREARM_COST:
+		return false
+	inv.add_gold(-FIREARM_COST)
+	seller.personal_gold += FIREARM_COST
+	inv.add_item("flintlock_pistol", 1)
+	inv.add_item("powder_charge", 2)
+	VillageChronicle.add(vm, "firearm_bought", "Adquiriste un Arcabuz de Chispa con cargas de pólvora en el taller (-%d de oro)" % FIREARM_COST, false)
+	return true
+
+static func buy_powder_pack(vm, seller, inv) -> bool:
+	if vm == null or seller == null or inv == null or int(inv.gold) < POWDER_PACK_COST:
+		return false
+	inv.add_gold(-POWDER_PACK_COST)
+	seller.personal_gold += POWDER_PACK_COST
+	inv.add_item("powder_charge", 2)
+	return true
+
+static func fire_flintlock_shot(vm, target_npc, inv) -> bool:
+	if vm == null or target_npc == null or not is_instance_valid(target_npc) or not has_loaded_firearm(inv):
+		return false
+	inv.remove_item("powder_charge", 1)
+	target_npc.last_hit_weapon_name = "Arcabuz de Chispa"
+	target_npc.last_hit_by_player = true
+	if target_npc.health_comp != null:
+		target_npc.health_comp.apply_minor_bruise(48.0, 2.5, "Disparo de Arcabuz de Chispa")
+	target_npc.modify_affinity(-35)
+	var witness = vm._find_conscious_witness_near(target_npc.global_position, 260.0, target_npc)
+	if witness != null:
+		vm.wanted_level = clampi(int(vm.wanted_level) + 1, 1, 5)
+		vm.bounty_gold += 25
+	VillageChronicle.add(vm, "firearm_shot", "Disparaste tu Arcabuz de Chispa contra %s" % target_npc.npc_name, witness != null)
+	return true
+
+static func terminal_state(vm) -> Dictionary:
+	var st: Dictionary = state(vm)
+	if not (st.get("terminal", null) is Dictionary):
+		st["terminal"] = {}
+	var tm: Dictionary = st["terminal"]
+	for k in [["last_hack_day", -99], ["hacks_succeeded", 0], ["alarms_triggered", 0]]:
+		if not tm.has(k[0]):
+			tm[k[0]] = k[1]
+	return tm
+
+static func hack_terminal(vm, subsystem: String, inv, force_outcome: int = 0) -> Dictionary:
+	if vm == null or not (subsystem in ["census_ledger", "warrant_archive", "grid_controller"]):
+		return {"ok": false}
+	var tm: Dictionary = terminal_state(vm)
+	var today: int = int(WorldClock.current_day) if WorldClock else 1
+	if int(tm.get("last_hack_day", -99)) == today:
+		return {"ok": false}
+	tm["last_hack_day"] = today
+	var chance: float = 0.45 + (0.20 if has_tech(vm, "voltaic_capacitors") else 0.0) + (0.15 if (inv != null and inv.has_item("copper_coil", 1)) else 0.0)
+	var won: bool = (randf() < chance) if force_outcome == 0 else (force_outcome > 0)
+	if won:
+		tm["hacks_succeeded"] = int(tm.get("hacks_succeeded", 0)) + 1
+		var gain_gold: int = 0
+		if subsystem == "census_ledger":
+			gain_gold = mini(18, maxi(0, int(vm.town_state.get("treasury", 0))))
+			if gain_gold > 0 and inv != null:
+				vm.town_state["treasury"] = int(vm.town_state.get("treasury", 0)) - gain_gold
+				inv.add_gold(gain_gold)
+		elif subsystem == "warrant_archive":
+			vm.wanted_level = maxi(0, int(vm.wanted_level) - 1)
+			vm.bounty_gold = maxi(0, int(vm.bounty_gold) - 25)
+		elif subsystem == "grid_controller":
+			repair_grid(vm)
+			state(vm)["readings"] = int(state(vm).get("readings", 0)) + 2
+		VillageChronicle.add(vm, "terminal_hacked", "Hackeaste en silencio la terminal lógica (%s)" % subsystem, false)
+		return {"ok": true, "won": true, "subsystem": subsystem, "gold": gain_gold}
+	tm["alarms_triggered"] = int(tm.get("alarms_triggered", 0)) + 1
+	vm.wanted_level = clampi(int(vm.wanted_level) + 1, 1, 5)
+	var pl = VillageNeeds.player_of(vm)
+	if pl != null:
+		var hc = pl.get("health_comp")
+		if hc != null and "current_health" in hc:
+			hc.current_health = maxf(1.0, float(hc.current_health) - 12.0)
+	VillageChronicle.add(vm, "terminal_alarm", "Saltó la alarma voltaica al intentar hackear la terminal lógica (%s)" % subsystem, true)
+	return {"ok": true, "won": false, "subsystem": subsystem, "gold": 0}
 
 static func mounts_state(vm) -> Dictionary:
 	var st: Dictionary = state(vm)
@@ -256,7 +344,7 @@ static func start_raid_warning(vm, kind: String = "bandits") -> Dictionary:
 	VillageChronicle.add(vm, "raid_warning", "⚠️ Los vigías avistan a %s preparando una incursión contra el pueblo" % str(raid["name"]), true)
 	return raid
 
-static func defense_power(vm, player_joined: bool = false) -> int:
+static func defense_power(vm, player_joined: bool = false, inv = null) -> int:
 	if vm == null:
 		return 0
 	var pwr: int = int(raids_state(vm).get("militia_bonus", 0))
@@ -264,6 +352,8 @@ static func defense_power(vm, player_joined: bool = false) -> int:
 		pwr += 2
 	if player_joined:
 		pwr += 1
+		if has_loaded_firearm(inv):
+			pwr += 3
 	for n in _all_npcs(vm):
 		if n.is_dead or n.is_downed or not n.is_conscious():
 			continue
@@ -279,7 +369,9 @@ static func resolve_raid(vm, player_joined: bool = false, inv = null, force_outc
 	if raid.is_empty():
 		return {"repelled": false}
 	var str_req: int = int(raid.get("strength", 4))
-	var def_pwr: int = defense_power(vm, player_joined)
+	var def_pwr: int = defense_power(vm, player_joined, inv)
+	if player_joined and has_loaded_firearm(inv):
+		inv.remove_item("powder_charge", 1)
 	var won: bool = (def_pwr + randi_range(0, 2)) >= str_req
 	if force_outcome == 1:
 		won = true
@@ -888,6 +980,29 @@ static func add_dialogue_choices(vm, npc, diag: Dictionary, ch_arr: Array) -> vo
 			"text": "«Las caravanas regulares conectan nuestro valle con los asentamientos vecinos y traen suministros a cambio de nuestros excedentes.»",
 			"choices": r_choices,
 		}
+	# Bloque PO: Armas de fuego de chispa (con Herrero o Arreglador) y Terminal Lógica / Hackeo
+	var pl_po = VillageNeeds.player_of(vm)
+	var inv_po = pl_po.get("inventory") if pl_po != null else null
+	if role_i in [int(VillageNPC.TradeRole.BLACKSMITH), int(VillageNPC.TradeRole.TINKER)]:
+		if has_tech(vm, "reinforced_locks") and (inv_po == null or not inv_po.has_item("flintlock_pistol", 1)):
+			ch_arr.append({"label": "🔫🛠️ Encargar Arcabuz de Chispa con 2 cargas de pólvora (-%d Oro)" % FIREARM_COST, "next": "END", "action": "culture_buy_firearm"})
+		if has_tech(vm, "reinforced_locks") or (inv_po != null and inv_po.has_item("flintlock_pistol", 1)):
+			ch_arr.append({"label": "🧨🪙 Comprar 2 Cargas de Pólvora Negra (-%d Oro)" % POWDER_PACK_COST, "next": "END", "action": "culture_buy_powder"})
+	if has_loaded_firearm(inv_po) and role_i != int(VillageNPC.TradeRole.CHILD):
+		ch_arr.append({"label": "🔫💥 Dispararle con el Arcabuz de Chispa (-1 Carga de Pólvora, ruidoso)", "next": "END", "action": "culture_fire_flintlock"})
+	if role_i in [int(VillageNPC.TradeRole.TINKER), int(VillageNPC.TradeRole.SHERIFF)]:
+		var tm: Dictionary = terminal_state(vm)
+		if int(tm.get("last_hack_day", -99)) != today:
+			ch_arr.append({"label": "🖥️⚡ Hackear en sigilo la Terminal Lógica Electromecánica (1/día, con riesgo)", "next": "culture_terminal_menu"})
+			diag["culture_terminal_menu"] = {
+				"text": "«La consola electromecánica de tarjetas perforadas y relés de cobre conecta las arcas del ayuntamiento, el archivo policial y el cuadro eléctrico...»",
+				"choices": [
+					{"label": "💰🖥️ Desviar reembolso del Registro Fiscal (hasta +18 Oro de las arcas)", "next": "END", "action": "culture_hack_terminal:census_ledger"},
+					{"label": "🚓🖥️ Purgar expediente del Archivo Policial (-1 Búsqueda y -25 Recompensa)", "next": "END", "action": "culture_hack_terminal:warrant_archive"},
+					{"label": "⚡🖥️ Reprogramar Controlador de Red (+2 lecturas técnicas y repara línea)", "next": "END", "action": "culture_hack_terminal:grid_controller"},
+					{"label": "⬅️ Volver", "next": "start"},
+				]
+			}
 
 static func on_player_action(vm, npc, action_id: String, inv) -> void:
 	if action_id.begins_with("culture_sabotage_grid:"):
@@ -998,3 +1113,28 @@ static func on_player_action(vm, npc, action_id: String, inv) -> void:
 			npc._spawn_floating_text("🧭✨ ¡Expedición exitosa! Hallaste 1 %s y apuntes para la biblioteca" % str(exp_res.get("item", "")), Color.AQUAMARINE, -46.0)
 		else:
 			npc._spawn_floating_text("🧭🌧️ La expedición tuvo que regresar por un derrumbe sin hallazgos", Color.LIGHT_GRAY, -46.0)
+	elif action_id == "culture_buy_firearm":
+		if buy_firearm(vm, npc, inv):
+			npc.affinity = clampi(npc.affinity + 8, -100, 100)
+			npc._spawn_floating_text("🔫🛠️ «¡Un arcabuz de chispa de cañón estriado! Incluye 2 cargas de pólvora.»", Color.GOLD, -46.0)
+		else:
+			npc._spawn_floating_text("«Necesitas %d de oro y haber investigado Cerraduras de Precisión.»" % FIREARM_COST, Color.ORANGE_RED, -46.0)
+	elif action_id == "culture_buy_powder":
+		if buy_powder_pack(vm, npc, inv):
+			npc._spawn_floating_text("🧨🪙 Compraste 2 Cargas de Pólvora Negra (-%d Oro)" % POWDER_PACK_COST, Color.GOLD, -46.0)
+		else:
+			npc._spawn_floating_text("«Necesitas %d de oro para las cargas de pólvora.»" % POWDER_PACK_COST, Color.ORANGE_RED, -46.0)
+	elif action_id == "culture_fire_flintlock":
+		if fire_flintlock_shot(vm, npc, inv):
+			npc._spawn_floating_text("🔫💥 ¡ESTALLIDO DE PÓLVORA! Heriste a %s con tu arcabuz" % npc.npc_name, Color.ORANGE_RED, -46.0)
+		else:
+			npc._spawn_floating_text("Necesitas el Arcabuz de Chispa y al menos 1 Carga de Pólvora", Color.ORANGE_RED, -44.0)
+	elif action_id.begins_with("culture_hack_terminal:"):
+		var sub_id: String = action_id.substr("culture_hack_terminal:".length())
+		var hres: Dictionary = hack_terminal(vm, sub_id, inv)
+		if not bool(hres.get("ok", false)):
+			npc._spawn_floating_text("🖥️ Hoy ya intentaste manipular la terminal lógica", Color.LIGHT_GRAY, -44.0)
+		elif bool(hres.get("won", false)):
+			npc._spawn_floating_text("🖥️✨ ¡Hackeo limpio en la terminal lógica (%s)!" % sub_id, Color.AQUAMARINE, -46.0)
+		else:
+			npc._spawn_floating_text("🖥️⚡ ¡Chispazo y alarma lógica! La guardia ha registrado el intento (Búsqueda +1)", Color.ORANGE_RED, -46.0)

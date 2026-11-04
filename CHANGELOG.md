@@ -5,6 +5,10 @@ El detalle técnico está en `docs/HANDOFF.md` (sección 7) y el historial compl
 
 ## 2026-11-04
 
+### Armas de fuego de chispa y Terminales lógicas electromecánicas con hackeo
+- **Arcabuz de chispa y cargas de pólvora:** cuando el pueblo ha investigado las Cerraduras de Precisión, puedes encargar un arcabuz de chispa en la herrería o el taller y comprar cargas de pólvora negra. Llevar el arma cargada refuerza de forma decisiva la defensa contra incursiones y te permite disparar (consumiendo pólvora y alertando por el estruendo a los testigos cercanos del mismo nivel).
+- **Terminales lógicas y hackeo electromecánico:** una vez al día puedes manipular en sigilo la consola electromecánica de tarjetas perforadas y relés (con mejores probabilidades si se han investigado los Condensadores Voltaicos o llevas una bobina de cobre) para desviar un reembolso desde las arcas municipales, borrar cargos en el archivo policial o reprogramar el controlador de la red eléctrica; si fallas, salta una descarga voltaica y se activa la alarma policial.
+
 ### Niveles verticales por capas y Alcantarillas bajo el pueblo
 - **Sistema de niveles verticales (sótano, calle y primer piso):** el mapa incorpora capas verticales en las mismas coordenadas (`-1` sótano y alcantarillas, `0` calle y planta baja, `+1` altillo o primer piso encargable al carpintero). Los vecinos que están en otro piso se ven atenuados y no pueden presenciar como testigos lo que ocurre en un nivel distinto al suyo.
 - **Alcantarillas con localizaciones subterráneas nuevas:** comprando la llave maestra y el plano al perista o al arreglador puedes bajar al nivel `-1` para explorar una vez al día la Cisterna Vieja bajo la Plaza, el Pasadizo del Contrabandista (que además te ayuda a despistar a la guardia) y la Bóveda Inundada del Antiguo Gremio, recuperando piezas y monedas extraviadas por las rejillas o arriesgándote a sufrir mordeduras de ratas e infección en las aguas negras.

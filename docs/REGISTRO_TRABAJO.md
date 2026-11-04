@@ -343,6 +343,13 @@ Informe completo: `docs/AUDITORIA_P1_P7.md`.
 | PN1 | Sistema de niveles verticales por capas (`elevation_level` `-1/0/+1`, `are_on_same_elevation`, `distance_on_same_level`, testigos filtrados por nivel en `_find_conscious_witness_near`, mejora `"upper_floor"` y `housing_change_level:*`) | ✅ | VillageNPC.gd, VillageManager.gd, VillageHousing.gd, verify_all.gd | Test #91 |
 | PN2 | Red de alcantarillas bajo el pueblo en el nivel `-1` (`SEWER_LOCATIONS`: Cisterna, Pasadizo del Contrabandista y Bóveda Inundada, `unlock_sewers`, `explore_sewer_location` 1/día con tirada de riesgo y `lost_coins_pool` nutrido de bolsillos reales) | ✅ | VillageUnderworld.gd, verify_all.gd | Test #91 |
 
+## Bloque PO — Armas de fuego de chispa y Terminales lógicas / Hackeo electromecánico (2026-11-04)
+
+| # | Paso | Estado | Archivos | Nota |
+|---|------|--------|----------|------|
+| PO1 | Armas de fuego (`flintlock_pistol`, `powder_charge`, `buy_firearm`, `buy_powder_pack`, `has_loaded_firearm`, `fire_flintlock_shot`, +3 defensa en incursiones y disparo con consumo de pólvora y alerta sonora) | ✅ | SimpleInventory.gd, VillageCulture.gd, verify_all.gd | Test #92 |
+| PO2 | Terminales lógicas electromecánicas y hackeo (`terminal_state`, `hack_terminal`, `culture_hack_terminal:*` en `census_ledger`, `warrant_archive` y `grid_controller`, 1/día con tirada de riesgo y alarma voltaica si falla) | ✅ | VillageCulture.gd, verify_all.gd | Test #92 |
+
 
 
 
