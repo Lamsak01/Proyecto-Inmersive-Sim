@@ -18,7 +18,8 @@ func find_daily_offer(vm: VillageManager, giver: VillageNPC, _npcs: Array, _ctx:
 		return {}
 	var pk: String = str(giver.person_profile.partner_id)
 	var s: Dictionary = VillageSecrets.active_affair_of(vm, pk)
-	if s.is_empty() or (s.get("known_by", {}) as Dictionary).has(giver.get_person_key()):
+	var kn: Dictionary = s.get("known_by", {}) as Dictionary if not s.is_empty() else {}
+	if s.is_empty() or kn.is_empty() or kn.has(giver.get_person_key()):
 		return {}
 	return {"target_key": pk, "target_name": str(s["a_name"]), "secret_id": int(s["id"])}
 

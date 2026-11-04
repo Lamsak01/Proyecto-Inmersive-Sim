@@ -3091,6 +3091,144 @@ func _initialize() -> void:
 	assert(not q_reg.get_type("homeless").is_done(vm, vm_hq), "M18: Sleeping rough is not done")
 	vm_y.is_vagrant_camper = false
 	assert(q_reg.get_type("homeless").is_done(vm, vm_hq), "M18: A roof completes it")
+	vm_y.set_meta("evicted_day", 12)
+	vm_y.set_meta("evicted_lot", "n0")
+	vm_y.set_meta("inherited_day", 9)
+	vm_y.set_meta("inherited_from", "Abuelo")
+	vm_y.set_meta("inherited_family", "family_baker")
+	vm_y.set_meta("read_day", 11)
+	vm_y.set_meta("arrived_day", 5)
+	vm_y.set_meta("rite_invited_week", 2)
+	var vm_saved_npc: Dictionary = vm_y.to_save_dict()
+	for mk_clr in ["evicted_day", "evicted_lot", "inherited_day", "inherited_from", "inherited_family", "read_day", "arrived_day", "rite_invited_week"]:
+		vm_y.remove_meta(mk_clr)
+	vm_y.from_save_dict(vm_saved_npc)
+	assert(int(vm_y.get_meta("evicted_day", -1)) == 12 and str(vm_y.get_meta("evicted_lot", "")) == "n0" and int(vm_y.get_meta("inherited_day", -1)) == 9 and str(vm_y.get_meta("inherited_from", "")) == "Abuelo" and str(vm_y.get_meta("inherited_family", "")) == "family_baker" and int(vm_y.get_meta("read_day", -1)) == 11 and int(vm_y.get_meta("arrived_day", -1)) == 5 and int(vm_y.get_meta("rite_invited_week", -1)) == 2, "M: Quest marks persist across save and load")
+	# Pruebas funcionales de las 13 misiones nuevas que estaban en 🟡
+	# M1 affair_doubt: requiere testigo en known_by y se completa al encontrarlo
+	var m1_sec_bak: Array = vm.secrets.duplicate(true)
+	vm.secrets.clear()
+	vm.secrets.append({"id": 777, "type": "affair", "a": vm_own.get_person_key(), "b": vm_y.get_person_key(), "partner": "partner_test", "a_name": vm_own.npc_name, "b_name": vm_y.npc_name, "p_name": "Pareja", "active": true, "known_by": {}, "player_knows": false})
+	var m1_partner_bak: String = str(vm_y.person_profile.partner_id)
+	vm_y.person_profile.partner_id = vm_own.get_person_key()
+	assert(q_reg.get_type("affair_doubt").find_daily_offer(vm, vm_y, [], {}).is_empty(), "M1: Affair without witnesses is not offered")
+	vm.secrets[0]["known_by"] = {"witness_x": 1}
+	assert(not q_reg.get_type("affair_doubt").find_daily_offer(vm, vm_y, [], {}).is_empty(), "M1: Affair with a witness is offered")
+	assert(not q_reg.get_type("affair_doubt").is_done(vm, {"data": {"secret_id": 777, "found": false}}) and q_reg.get_type("affair_doubt").is_done(vm, {"data": {"secret_id": 777, "found": true}}), "M1: Affair doubt completion check")
+	vm_y.person_profile.partner_id = m1_partner_bak
+	vm.secrets.clear()
+	for s_bak in m1_sec_bak:
+		vm.secrets.append(s_bak)
+	# M2 loan_trouble: con cuotas atrasadas no está hecha; con missed=0 sí, y no rompe diálogo tras desahucio
+	var m2_lot: Dictionary = vl.lot(vm, "n0")
+	var m2_lot_bak: Dictionary = m2_lot.duplicate(true)
+	m2_lot["payer"] = vm_y.get_person_key()
+	m2_lot["loan"] = {"lender": "town", "lender_name": "el pueblo", "owed": 60, "missed": 2, "principal": 50}
+	var m2_q: Dictionary = {"id": "q_m2", "giver_key": vm_y.get_person_key(), "giver_name": vm_y.npc_name, "target_key": "", "data": {"lot": "n0"}}
+	assert(not q_reg.get_type("loan_trouble").find_daily_offer(vm, vm_y, [], {}).is_empty() and not q_reg.get_type("loan_trouble").is_done(vm, m2_q), "M2: Offered and pending when missed >= 2")
+	m2_lot["loan"]["missed"] = 0
+	assert(q_reg.get_type("loan_trouble").is_done(vm, m2_q), "M2: Done when missed == 0")
+	m2_lot.erase("loan")
+	m2_lot["payer"] = "town"
+	var m2_ch: Array = []
+	q_reg.get_type("loan_trouble").add_world_dialogue(vm, vm_y, m2_q, {}, m2_ch)
+	assert(m2_ch.is_empty(), "M2: No crash in dialogue after eviction")
+	m2_lot.clear()
+	for k2 in m2_lot_bak.keys():
+		m2_lot[k2] = m2_lot_bak[k2]
+	# M3 boar_hunt: se cumple al bajar el número de jabalíes vivos
+	var m3_now: int = q_reg.get_type("boar_hunt").live_boars(vm)
+	assert(not q_reg.get_type("boar_hunt").is_done(vm, {"data": {"start_boars": m3_now}}) and q_reg.get_type("boar_hunt").is_done(vm, {"data": {"start_boars": m3_now + 1}}), "M3: Boar hunt checks live boars")
+	# M4 vote_buying: cuenta promesas de voto en town_state.pledges
+	var m4_pl_bak: Dictionary = (vm.town_state.get("pledges", {}) as Dictionary).duplicate()
+	vm.town_state["pledges"] = {"v1": vm_y.get_person_key(), "v2": vm_y.get_person_key()}
+	var m4_q: Dictionary = {"giver_key": vm_y.get_person_key(), "data": {"election_day": 99}}
+	assert(not q_reg.get_type("vote_buying").is_done(vm, m4_q), "M4: 2 pledges is not enough")
+	vm.town_state["pledges"]["v3"] = vm_y.get_person_key()
+	assert(q_reg.get_type("vote_buying").is_done(vm, m4_q), "M4: 3 pledges completes vote_buying")
+	vm.town_state["pledges"] = m4_pl_bak
+	# M5 embezzle_proof: 2 testigos completan la misión
+	assert(not q_reg.get_type("embezzle_proof").is_done(vm, {"data": {"proofs": ["a"]}}) and q_reg.get_type("embezzle_proof").is_done(vm, {"data": {"proofs": ["a", "b"]}}), "M5: Embezzle proof requires 2 witnesses")
+	# M9 sabotage_job: se cumple si se denuncia o si el puesto rival queda saboteado
+	var m9_role: int = int(vm_own.trade_role)
+	var m9_sab_bak: int = int(vm.shop_businesses[m9_role].get("sabotaged_days", 0))
+	vm.shop_businesses[m9_role]["sabotaged_days"] = 0
+	var m9_q: Dictionary = {"data": {"role": m9_role, "reported": false}}
+	assert(not q_reg.get_type("sabotage_job").is_done(vm, m9_q), "M9: Unsabotaged and unreported is not done")
+	vm.shop_businesses[m9_role]["sabotaged_days"] = 2
+	assert(q_reg.get_type("sabotage_job").is_done(vm, m9_q), "M9: Sabotaging the target shop completes it")
+	vm.shop_businesses[m9_role]["sabotaged_days"] = m9_sab_bak
+	# M10 scared_witness: pedir protección al comisario añade pista y sube sospecha del asesino real
+	var m10_inv_bak: Dictionary = vm.active_sheriff_investigation.duplicate(true)
+	var m10_mur_bak: Dictionary = vm.npc_murders.duplicate(true)
+	vm.npc_murders["Víctima M10"] = vm_own.npc_name
+	vm.active_sheriff_investigation = {"active": true, "victim_name": "Víctima M10", "reporter_name": vm_y.npc_name, "suspects": {vm_own.npc_name: {"score": 10}}, "clues_log": []}
+	var m10_qm = get_root().get_node_or_null("/root/QuestManager")
+	var m10_qid: String = m10_qm.add_quest({"category": "side", "type": "scared_witness", "title": "T", "description": "D", "giver_key": vm_y.get_person_key(), "giver_name": vm_y.npc_name, "target_key": "", "target_name": "Víctima M10", "data": {"victim": "Víctima M10", "protected": false}})
+	q_reg.get_type("scared_witness").on_extra_action(vm, m10_qm, vm_own, "quest_witness_protect:" + m10_qid)
+	assert(q_reg.get_type("scared_witness").is_done(vm, m10_qm.get_quest(m10_qid)) and int(vm.active_sheriff_investigation["suspects"][vm_own.npc_name]["score"]) == 25, "M10: Protecting witness boosts real killer suspect score")
+	m10_qm.quests.erase(m10_qid)
+	vm.active_sheriff_investigation = m10_inv_bak
+	vm.npc_murders = m10_mur_bak
+	# M12 love_letter: entregar la carta aviva la chispa si ya había interés
+	var m12_qid: String = m10_qm.add_quest({"category": "side", "type": "love_letter", "title": "T", "description": "D", "giver_key": vm_y.get_person_key(), "giver_name": vm_y.npc_name, "target_key": vm_own.get_person_key(), "target_name": vm_own.npc_name, "data": {"answer": "", "read": false}})
+	var m12_sp0: int = vm.social_director.get_spark(vm_own.get_person_key(), vm_y.get_person_key())
+	vm.social_director.add_spark_one_way(vm_own.get_person_key(), vm_y.get_person_key(), 10)
+	var m12_sp1: int = vm.social_director.get_spark(vm_own.get_person_key(), vm_y.get_person_key())
+	q_reg.get_type("love_letter").on_extra_action(vm, m10_qm, vm_own, "quest_letter_give:" + m12_qid)
+	assert(str(m10_qm.get_quest(m12_qid)["data"]["answer"]) == "yes" and vm.social_director.get_spark(vm_own.get_person_key(), vm_y.get_person_key()) > m12_sp1, "M12: Love letter fans existing spark")
+	vm.social_director.add_spark_one_way(vm_own.get_person_key(), vm_y.get_person_key(), m12_sp0 - vm.social_director.get_spark(vm_own.get_person_key(), vm_y.get_person_key()))
+	m10_qm.quests.erase(m12_qid)
+	# M13 inheritance: el heredero reparte 15 de oro con el pariente
+	var m13_qid: String = m10_qm.add_quest({"category": "side", "type": "inheritance", "title": "T", "description": "D", "giver_key": vm_y.get_person_key(), "giver_name": vm_y.npc_name, "target_key": vm_own.get_person_key(), "target_name": vm_own.npc_name, "data": {"dead_name": "Tío", "role": int(vm_own.trade_role), "result": ""}})
+	var m13_og: int = vm_own.personal_gold
+	var m13_yg: int = vm_y.personal_gold
+	var m13_af: int = vm_own.affinity
+	vm_own.personal_gold = 50
+	vm_own.affinity = 25
+	q_reg.get_type("inheritance").on_extra_action(vm, m10_qm, vm_own, "quest_inherit_share:" + m13_qid)
+	assert(q_reg.get_type("inheritance").is_done(vm, m10_qm.get_quest(m13_qid)) and vm_y.personal_gold == m13_yg + 15 and vm_own.personal_gold == 35, "M13: Heir shares 15 gold with relative")
+	vm_own.personal_gold = m13_og
+	vm_y.personal_gold = m13_yg
+	vm_own.affinity = m13_af
+	m10_qm.quests.erase(m13_qid)
+	# M16 night_reading: se cumple al conocer la secta
+	var m16_sect_bak: Dictionary = vm.sect_state.duplicate(true)
+	load("res://scripts/systems/VillageSect.gd").state(vm)["active"] = true
+	load("res://scripts/systems/VillageSect.gd").state(vm)["player_knows"] = false
+	assert(not q_reg.get_type("night_reading").is_done(vm, {}), "M16: Unknown sect is not done")
+	load("res://scripts/systems/VillageSect.gd").state(vm)["player_knows"] = true
+	assert(q_reg.get_type("night_reading").is_done(vm, {}), "M16: Knowing the sect completes night_reading")
+	vm.sect_state = m16_sect_bak
+	# M17 announced_fight: calmar a un rival baja la tensión del par
+	var m17_pk: String = vm.social_director.make_pair_key(vm_y.get_person_key(), vm_own.get_person_key())
+	var m17_pe: Dictionary = vm.social_director.get_pair_entry(vm_y.get_person_key(), vm_own.get_person_key())
+	var m17_t0: int = int(m17_pe.get("tension", 0))
+	m17_pe["tension"] = 22
+	var m17_qid: String = m10_qm.add_quest({"category": "side", "type": "announced_fight", "title": "T", "description": "D", "giver_key": "g", "giver_name": "G", "target_key": vm_y.get_person_key(), "target_name": vm_y.npc_name, "data": {"foe_key": vm_own.get_person_key(), "foe_name": vm_own.npc_name, "fights": int(m17_pe.get("fights_count", 0)), "calmed": []}})
+	assert(not q_reg.get_type("announced_fight").is_done(vm, m10_qm.get_quest(m17_qid)), "M17: Tension 22 is not done")
+	q_reg.get_type("announced_fight").on_extra_action(vm, m10_qm, vm_y, "quest_fight_calm:" + m17_qid)
+	assert(q_reg.get_type("announced_fight").is_done(vm, m10_qm.get_quest(m17_qid)), "M17: Calming drops tension <= 14 and completes quest")
+	m17_pe["tension"] = m17_t0
+	m10_qm.quests.erase(m17_qid)
+	# M19 strange_newcomer: charlar o descubrir 2 rasgos cumple la misión
+	vm_y.known_traits.clear()
+	var m19_q: Dictionary = {"target_key": vm_y.get_person_key(), "data": q_reg.get_type("strange_newcomer").init_data(vm, vm_own, {"target_key": vm_y.get_person_key()})}
+	assert(not q_reg.get_type("strange_newcomer").is_done(vm, m19_q), "M19: 0 traits known is not done")
+	load("res://scripts/systems/TraitDiscovery.gd").reveal_next(vm_y, "test")
+	load("res://scripts/systems/TraitDiscovery.gd").reveal_next(vm_y, "test")
+	assert(q_reg.get_type("strange_newcomer").is_done(vm, m19_q), "M19: Discovering 2 traits completes strange_newcomer")
+	# M20 nameless_grave: 2 testimonios completan la misión
+	assert(not q_reg.get_type("nameless_grave").is_done(vm, {"data": {"witnesses": ["w1"]}}) and q_reg.get_type("nameless_grave").is_done(vm, {"data": {"witnesses": ["w1", "w2"]}}), "M20: 2 witnesses complete nameless_grave")
+	# K2: el atajo «📜 Encargo» sale para peace/opinion/slander pero no contamina otras misiones
+	var k2_qid: String = m10_qm.add_quest({"category": "side", "type": "slander", "title": "T", "description": "D", "giver_key": vm_own.get_person_key(), "giver_name": vm_own.npc_name, "target_key": vm_y.get_person_key(), "target_name": vm_y.npc_name, "data": {"slandered_to": []}})
+	var k2_listener = v5b_people[0]
+	var k2_af_bak: int = k2_listener.affinity
+	k2_listener.affinity = 20
+	var k2_diag: Dictionary = k2_listener._inject_character_lore_into_dialogue({"start": {"text": "Hola", "choices": [{"label": "[Salir]", "next": "END"}]}})
+	assert((k2_diag["start"]["choices"] as Array).any(func(c): return str(c.get("label", "")).begins_with("📜 Encargo: hablarle de " + vm_y.npc_name)), "K2: Slander quest shows shortcut for target on third-party listener")
+	k2_listener.affinity = k2_af_bak
+	m10_qm.quests.erase(k2_qid)
 	vm_y.queue_free()
 	print("Block M quest types OK")
 

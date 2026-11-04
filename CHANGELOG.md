@@ -5,6 +5,11 @@ El detalle técnico está en `docs/HANDOFF.md` (sección 7) y el historial compl
 
 ## 2026-11-03
 
+### Revisión y arreglos de los 25 encargos
+- **Guardado completo:** al guardar y cargar la partida ya no se olvidan los desahucios recientes, las herencias de talleres, quién leyó en la biblioteca, quién acaba de llegar al pueblo ni a quién invitaste al Oficio del domingo.
+- **Atajo «📜 Encargo» corregido:** al hacer un encargo de ensuciar el nombre de alguien, el rival sale ahora primero y con atajo directo al hablar con cualquier vecino; además, el atajo ya no aparece por error en misiones que van por libre.
+- **Cinco encargos pulidos:** nadie te pide investigar una infidelidad si ningún vecino ha visto nada todavía; dar dinero para la posada a un vecino sin techo le devuelve cama al momento; descubrir rasgos de un forastero por tu cuenta también vale para su encargo; y hablar con un deudor recién desahuciado ya no da error.
+
 ### Otras diez misiones (ya hay 25)
 - Nuevos encargos (provisionales): donativos para las gachas, una carta de amor, una herencia disputada, apartar a alguien de la bebida o el juego, montar puesto en el mercado, las reuniones nocturnas (la secta), calmar una pelea anunciada, buscar techo a un desahuciado, un forastero del que nadie se fía y un asesinato archivado.
 - El tabernero puede negarse a servir unos días a quien bebe demasiado, si se lo pides.

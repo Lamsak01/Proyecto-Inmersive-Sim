@@ -204,3 +204,15 @@ no se ofrecen hasta que vuelva a pasar algo así.
 ## Traspaso (2026-11-03)
 El usuario pasa a Antigravity. Prompt completo para el siguiente agente: `docs/PROMPT_SIGUIENTE_AGENTE.md`
 (enlazado desde HANDOFF §0 y CLAUDE.md).
+
+## Bloque N — Guardado de marcas de misión y prueba funcional de las 13 misiones en 🟡
+
+| # | Paso | Estado | Archivos | Nota |
+|---|------|--------|----------|------|
+| N1 | Guardar marcas de misión en cada vecino (`evicted_day/lot`, `inherited_day/from/family`, `read_day`, `arrived_day`, `rite_invited_week`, `new_clothes_day`) | ✅ | VillageNPC.gd (`to_save_dict` / `from_save_dict`) | Test #81 |
+| N2 | Atajo «📜 Encargo» (K2): funciona también en `slander` hablando con terceros y no sale por error en misiones ajenas al menú de opiniones | ✅ | NPCDialogue.gd | Test #81 |
+| N3 | `affair_doubt`: no se ofrece si `known_by` está vacío (nadie en el pueblo vio nada) | ✅ | QuestAffairDoubt.gd | Test #81 |
+| N4 | `loan_trouble`: sin fallo al abrir diálogo el día del desahucio y corregido «a al alcalde» | ✅ | QuestLoanTrouble.gd | Test #81 |
+| N5 | `homeless`: dar los 18 de oro para la posada devuelve cama en el acto (antes si cenaba a las 18h bajaba de 18 y no recuperaba cama a medianoche) | ✅ | QuestHomeless.gd | Test #81 |
+| N6 | `strange_newcomer`: descubrir rasgos por cualquier vía cuenta para el encargo | ✅ | QuestStrangeNewcomer.gd | Test #81 |
+| N7 | Pruebas funcionales de las 13 misiones que estaban en 🟡 (M1–M5, M9–M10, M12–M13, M16–M17, M19–M20) + 4 suites completas | ✅ | verify_all.gd | `names_check`, `social_sim`, `dialogue_coverage` (0 errores) y `verify_all` pasan |

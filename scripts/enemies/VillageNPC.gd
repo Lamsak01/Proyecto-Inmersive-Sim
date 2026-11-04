@@ -4653,11 +4653,21 @@ func _spawn_floating_text(text: String, color: Color, offset_y: float = -36.0) -
 			ft.global_position = global_position + Vector2(0, offset_y)
 			parent_scene.add_child(ft)
 
+const SAVED_INT_METAS: Array = ["evicted_day", "inherited_day", "read_day", "arrived_day", "rite_invited_week", "new_clothes_day"]
+const SAVED_STR_METAS: Array = ["evicted_lot", "inherited_from", "inherited_family"]
+
 func to_save_dict() -> Dictionary:
 	var route_bought_flags: Dictionary = {}
 	for rk in ["route_Bought_smith", "route_Bought_carp", "route_Bought_butcher", "route_Bought_fish", "route_Bought_herb"]:
 		if has_meta(rk):
 			route_bought_flags[rk] = bool(get_meta(rk))
+	var quest_marks: Dictionary = {}
+	for mk in SAVED_INT_METAS:
+		if has_meta(mk):
+			quest_marks[mk] = int(get_meta(mk))
+	for mk in SAVED_STR_METAS:
+		if has_meta(mk):
+			quest_marks[mk] = str(get_meta(mk))
 	var save_pos: Vector2 = _pre_poker_pos if (is_at_poker_table and _pre_poker_pos != Vector2.ZERO and not is_dead) else global_position
 	return {
 		"npc_id": npc_id,
@@ -4681,7 +4691,7 @@ func to_save_dict() -> Dictionary:
 		"hp": health_comp.current_health if health_comp else 65.0,
 		"shop_stock": shop_stock.duplicate(), "workshop_materials": workshop_materials.duplicate(),
 		"craft_progress": _craft_progress, "crafting_recipe_idx": _crafting_recipe_idx,
-		"completed_expedition_day": _completed_expedition_day, "route_bought_flags": route_bought_flags,
+		"completed_expedition_day": _completed_expedition_day, "route_bought_flags": route_bought_flags, "quest_marks": quest_marks,
 		"bloodstained_timer": bloodstained_timer, "seen_entities_memory": seen_entities_memory.duplicate(true),
 		"witness_silenced_player": witness_silenced_player, "witness_alibi_for_player": witness_alibi_for_player,
 		"witness_framed_target_name": witness_framed_target_name,
@@ -4761,6 +4771,17 @@ func from_save_dict(data: Dictionary) -> void:
 		var rbf: Dictionary = data["route_bought_flags"]
 		for rk in rbf.keys():
 			set_meta(str(rk), bool(rbf[rk]))
+	for mk in SAVED_INT_METAS + SAVED_STR_METAS:
+		if has_meta(mk):
+			remove_meta(mk)
+	if data.has("quest_marks") and typeof(data["quest_marks"]) == TYPE_DICTIONARY:
+		var qm_d: Dictionary = data["quest_marks"]
+		for mk in SAVED_INT_METAS:
+			if qm_d.has(mk):
+				set_meta(str(mk), int(qm_d[mk]))
+		for mk in SAVED_STR_METAS:
+			if qm_d.has(mk):
+				set_meta(str(mk), str(qm_d[mk]))
 	is_at_poker_table = false
 	poker_seat_pos = Vector2.ZERO
 	_pre_poker_pos = Vector2.ZERO

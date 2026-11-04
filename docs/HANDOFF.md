@@ -593,9 +593,18 @@ Cada fase se dividirá en bloques pequeños cuando se llegue a ella (detalle en 
   `QuestType` (`charge_player`, `charisma`…). `VillageFaith.wants_attend` respeta `rite_invited_week`; `finish_rite` guarda
   `last_attendees`. Tanda 2 pendiente.
 - [x] **Bloque M, tanda 2** (test #81 ampliado). Otros 10 tipos (tabla en `docs/MISIONES.md`): 25 en total. Marcas nuevas
-  que leen las misiones (metas, **no se guardan con la partida**): `evicted_day/lot` (VillageLoans.evict),
-  `inherited_day/from/family` (`VillageManager._note_inheritance`), `read_day` (VillageCulture.on_read), `arrived_day`
-  (VillageMigration._spawn_one). Veto de taberna: `VillageNeeds.state.no_serve` (sí se guarda; `do_vice` no sirve).
+  que leen las misiones (`evicted_day/lot` en VillageLoans.evict, `inherited_day/from/family` en `VillageManager._note_inheritance`,
+  `read_day` en VillageCulture.on_read, `arrived_day` en `VillageMigration._spawn_one`, `rite_invited_week` y `new_clothes_day`)
+  guardadas en `VillageNPC.to_save_dict` / `from_save_dict` (`quest_marks`). Veto de taberna: `VillageNeeds.state.no_serve`
+  (sí se guarda; `do_vice` no sirve).
+- [x] **Bloque N — Guardado de marcas y revisión de las 13 misiones en 🟡** (test #81 ampliado con las 25 misiones y K2).
+  1) Guardadas en `VillageNPC` las marcas de desahucio, herencia, lectura, llegada, invitación al Oficio y ropa nueva.
+  2) `NPCDialogue` (K2): el atajo «📜 Encargo: hablarle de…» ahora funciona también al hablar con terceros en misiones de
+  calumnia (`slander`, poniendo al rival primero) y deja de salir por error en encargos que no usan el menú de opiniones.
+  3) `QuestAffairDoubt`: solo se ofrece si al menos un vecino vio la aventura (`known_by` no vacío).
+  4) `QuestLoanTrouble`: no rompe el diálogo si hablas con el deudor el mismo día del desahucio; corregido texto «a al alcalde».
+  5) `QuestHomeless`: darle los 18 de oro para la posada le devuelve cama bajo techo en el acto (antes seguía acampado hasta medianoche y si cenaba perdía el umbral).
+  6) `QuestStrangeNewcomer`: descubrir rasgos del recién llegado por cualquier vía también cuenta para cumplir el encargo.
 - [x] **Bloque E** (probado, test #75; detalle en `docs/REGISTRO_TRABAJO.md`). Diagnóstico de comidas fallidas
   (`migration_state.meal_fails`, «motivo/oficio»); casas: la pareja junta ahorros y, si alguien duerme al raso, el
   pueblo paga sin reserva; camas de posada sin repetir (cuenta a quien tenga oficio y duerma allí); U5 «según X»

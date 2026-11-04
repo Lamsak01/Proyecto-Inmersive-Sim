@@ -38,11 +38,14 @@ func texts(off: Dictionary) -> Dictionary:
 		"desc": "%s desconfía de %s, recién llegado/a al valle. Charla con %s (🔎) hasta conocer %d rasgos suyos. Luego decide: defenderle o darle la razón a %s." % [str(off.get("giver_name", "")), tn, tn, TRAITS_NEEDED, str(off.get("giver_name", ""))],
 	}
 
-func init_data(_vm: VillageManager, _giver: VillageNPC, _off: Dictionary) -> Dictionary:
-	return {"found": 0, "talk_day": -1}
+func init_data(vm: VillageManager, _giver: VillageNPC, off: Dictionary) -> Dictionary:
+	var t: VillageNPC = vm._get_npcs_by_person_key().get(str(off.get("target_key", "")), null)
+	return {"found": 0, "talk_day": -1, "start_known": t.known_traits.size() if t != null else 0}
 
-func is_done(_vm: VillageManager, q: Dictionary) -> bool:
-	return int(q["data"].get("found", 0)) >= TRAITS_NEEDED
+func is_done(vm: VillageManager, q: Dictionary) -> bool:
+	var t: VillageNPC = vm._get_npcs_by_person_key().get(str(q.get("target_key", "")), null)
+	var gained: int = (t.known_traits.size() - int(q["data"].get("start_known", t.known_traits.size()))) if t != null else 0
+	return int(q["data"].get("found", 0)) >= TRAITS_NEEDED or gained >= TRAITS_NEEDED or (t != null and TraitDiscovery.unknown_traits(t).is_empty())
 
 func progress_hint(q: Dictionary) -> String:
 	return "«¿Qué has sacado de %s? Yo sigo sin fiarme.»" % str(q.get("target_name", ""))

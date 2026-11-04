@@ -74,9 +74,17 @@ func on_extra_action(vm: VillageManager, qm: Node, npc: VillageNPC, action_id: S
 	var player: Node = player_of(npc)
 	if action_id.begins_with("quest_home_inn:"):
 		if charge_player(player, npc, INN_GIFT):
-			g.personal_gold += INN_GIFT # Esta noche, con 18 o más, vuelve a pagar cama en la posada (regla de siempre)
+			g.personal_gold += INN_GIFT
+			g.is_vagrant_camper = false
+			g.in_shelter = false
+			g.lodging = ""
+			var free_b = VillageMigration.free_tavern_bed(vm)
+			if free_b != null:
+				g.bed_position = free_b
+			if vm.vagrant_camp_nodes.has(g.npc_name) and is_instance_valid(vm.vagrant_camp_nodes[g.npc_name]):
+				vm.vagrant_camp_nodes[g.npc_name].visible = false
 			npc._spawn_floating_text("🥹 «Esta noche dormiré bajo techo. Gracias.»", Color.SPRING_GREEN, -46.0)
-			qm.add_note(str(q["id"]), "Le diste %d de oro: esta noche irá a la posada." % INN_GIFT)
+			qm.add_note(str(q["id"]), "Le diste %d de oro: vuelve a tener cama en la posada." % INN_GIFT)
 		return true
 	if action_id.begins_with("quest_home_friend:"):
 		var rel: int = npc.get_relationship_with_npc(g.get_person_key())

@@ -35,7 +35,7 @@ func texts(off: Dictionary) -> Dictionary:
 	return {
 		"title": "Que no me quiten la casa",
 		"ask": "«Llevo días sin poder pagar la cuota de la casa a %s. Si fallo unas pocas más, me echan a la calle... ¿Se te ocurre algo?»" % ln,
-		"desc": "%s debe su casa a %s y va atrasado/a con las cuotas. Puedes pagarle tú %d cuotas (habla con él/ella: 💰) o pedirle a %s que le perdone los recargos (🙏; ayuda el Carisma o que te aprecie)." % [str(off.get("giver_name", "")), ln, PAY_QUOTAS, "al alcalde" if str(off.get("target_key", "")) == "" else ln],
+		"desc": "%s debe su casa a %s y va atrasado/a con las cuotas. Puedes pagarle tú %d cuotas (habla con él/ella: 💰) o pedirle %s que le perdone los recargos (🙏; ayuda el Carisma o que te aprecie)." % [str(off.get("giver_name", "")), ln, PAY_QUOTAS, "al alcalde" if str(off.get("target_key", "")) == "" else "a " + ln],
 	}
 
 func is_done(vm: VillageManager, q: Dictionary) -> bool:
@@ -66,9 +66,9 @@ func _is_lender(vm: VillageManager, npc: VillageNPC, q: Dictionary) -> bool:
 	return vm.VillageTown.is_mayor(vm, npc)
 
 func add_world_dialogue(vm: VillageManager, npc: VillageNPC, q: Dictionary, _diag: Dictionary, ch_arr: Array) -> void:
-	if is_done(vm, q):
-		return
 	var li: Dictionary = loan_of(vm, str(q.get("giver_key", "")))
+	if is_done(vm, q) or li.is_empty():
+		return
 	if npc.get_person_key() == str(q.get("giver_key", "")):
 		var cost: int = mini(int(li["loan"]["owed"]), VillageLoans.INSTALLMENT * PAY_QUOTAS)
 		ch_arr.insert(0, {"label": "💰 Pagarle tú %d cuotas de la casa (%d de oro)" % [PAY_QUOTAS, cost], "next": "END", "action": "quest_loan_pay:" + str(q["id"])})
