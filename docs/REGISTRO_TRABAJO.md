@@ -301,6 +301,14 @@ Informe completo: `docs/AUDITORIA_P1_P7.md`.
 | PH1 | Idolatría u obsesión muy rara (`obsessions` en `VillageFame`, `try_spawn_obsession`): seguimiento (`obsession_follow`), regalos anónimos pagados del bolsillo del acosador (`OBSESSION_GIFT_COST`), celos extremos hacia cercanos del ídolo, tanteo diario sin destripes (`fame_probe_obsession`), calmar con Carisma (`fame_calm_obsessed`) o avisar al ídolo con recompensa de su bolsillo (`fame_warn_idol`) | ✅ | VillageFame.gd, verify_all.gd | Test #85 |
 | PH2 | Acompañantes del jugador (`companion` en `VillageFame`, `is_companion`, `VillageNPC._process_duties`): invitar por amistad (`>= 55`, `fame_companion_invite`) o contratar como escolta (`15` de oro/día de tu bolsa al suyo, `fame_companion_hire`), respaldo ante otros vecinos con tirada de riesgo (`fame_companion_backup`) y despido (`fame_companion_dismiss`) | ✅ | VillageFame.gd, VillageNPC.gd, verify_all.gd | Test #85 |
 
+## Bloque PI — Animales con etapas de crecimiento y crianza y Carreras / peleas de animales con apuestas (2026-11-04)
+
+| # | Paso | Estado | Archivos | Nota |
+|---|------|--------|----------|------|
+| PI1 | Ciclo de crecimiento de animales (`chick` → `juvenile` → `adult` en `ranch_herd` y `player_animals`), compra de crías (`buy_young_animal`, `housing_buy_chick`), alimentación con grano/pan (`feed_player_animals`, `housing_feed_animals`) y producción de lana/carne al madurar | ✅ | VillageHousing.gd, verify_all.gd | Test #86 |
+| PI2 | Carreras de animales (`run_animal_race`, `underworld_animal_race`, 12 de oro contra el bolsillo del vecino, 1/día) y peleas clandestinas de gallos/perros (`run_cockfight`, `underworld_cockfight`, 15 de oro contra el bolsillo del vecino, 1/día, con riesgo de alerta policial), bonificadas por el vigor del animal adulto criado (`best_adult_animal_power`) | ✅ | VillageUnderworld.gd, verify_all.gd | Test #86 |
+
+
 
 
 

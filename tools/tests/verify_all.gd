@@ -3835,5 +3835,38 @@ func _initialize() -> void:
 	p70_c.affinity = ph_c_aff_bak
 	print("Block PH (Obsession & Player Companions) OK")
 
+	# 86. Bloque PI: Animales con etapas de crecimiento y crianza y Carreras / peleas de animales con apuestas
+	var pi_ag_bak: int = p70_a.personal_gold
+	var pi_bg_bak: int = p70_b.personal_gold
+	(vho.state(vm)["player_animals"] as Array).clear()
+	p70_inv.gold = 100
+	p70_a.personal_gold = 10
+	vho.on_player_action(vm, p70_a, "housing_buy_chick:rooster", p70_inv)
+	assert((vho.state(vm)["player_animals"] as Array).size() == 1 and p70_inv.gold == 85 and p70_a.personal_gold == 25 and str(vho.state(vm)["player_animals"][0]["stage"]) == "chick", "PI.1a: Buying young animal transfers 15 gold to seller and starts at chick stage")
+	p70_inv.remove_item("bread", p70_inv.get_count("bread"))
+	p70_inv.add_item("bread", 2)
+	vho.on_player_action(vm, p70_a, "housing_feed_animals", p70_inv)
+	vho.daily(vm)
+	assert(p70_inv.get_count("bread") == 1 and str(vho.state(vm)["player_animals"][0]["stage"]) == "juvenile", "PI.1b: Feeding and daily growth advances animal from chick to juvenile stage")
+	vho.on_player_action(vm, p70_a, "housing_feed_animals", p70_inv)
+	vho.daily(vm)
+	assert(str(vho.state(vm)["player_animals"][0]["stage"]) == "adult" and vho.best_adult_animal_power(vm, "rooster") >= 3, "PI.1c: Animal reaches adult stage with increased vigor")
+	# PI.2: Carreras de animales y peleas de gallos/perros con apuestas contra el bolsillo del vecino
+	p70_b.personal_gold = 40
+	p70_inv.gold = 100
+	vun.state(vm)["last_animal_race_day"] = -99
+	assert(vun.run_animal_race(vm, p70_b, p70_inv, 1) == 12 and p70_b.personal_gold == 28 and p70_inv.gold == 112, "PI.2a: Winning animal race transfers 12 gold from opponent's pocket")
+	vun.state(vm)["last_animal_race_day"] = -99
+	assert(vun.run_animal_race(vm, p70_b, p70_inv, -1) == -12 and p70_b.personal_gold == 40 and p70_inv.gold == 100, "PI.2b: Losing animal race transfers 12 gold to opponent's pocket")
+	vun.state(vm)["last_cockfight_day"] = -99
+	assert(vun.run_cockfight(vm, p70_b, p70_inv, 1) == 15 and p70_b.personal_gold == 25 and p70_inv.gold == 115, "PI.2c: Winning cockfight transfers 15 gold from opponent's pocket")
+	vun.state(vm)["last_cockfight_day"] = -99
+	assert(vun.run_cockfight(vm, p70_b, p70_inv, -1) == -15 and p70_b.personal_gold == 40 and p70_inv.gold == 100, "PI.2d: Losing cockfight transfers 15 gold to opponent's pocket")
+	assert(vun.run_cockfight(vm, p70_b, p70_inv, 1) == 0, "PI.2e: Daily cooldown prevents repeating cockfight on the same day")
+	(vho.state(vm)["player_animals"] as Array).clear()
+	p70_a.personal_gold = pi_ag_bak
+	p70_b.personal_gold = pi_bg_bak
+	print("Block PI (Animal Growth & Animal Bets) OK")
+
 	print("ALL RIMWORLD MEDICAL, FOOTPRINTS, 3-PHASE CORPSE REPORT, MULTI-CORPSE FIX, RPG INTERROGATION, PUBLIC TRIAL, DYNAMIC RELATIONSHIPS, MISSING FAMILY SEARCH, SOCIAL GLOSSARY & UNCONSCIOUS REACTION TESTS PASSED!")
 	quit(0)

@@ -5,6 +5,10 @@ El detalle técnico está en `docs/HANDOFF.md` (sección 7) y el historial compl
 
 ## 2026-11-04
 
+### Cría de animales con etapas de crecimiento y Carreras y peleas de animales con apuestas
+- **Animales que crecen desde crías hasta adultos:** tanto en el Rancho del Sur como en tu propio corral las crías pasan por etapas de crecimiento (cría, joven y adulto). Puedes comprar crías de aves, sabuesos o corderos, alimentarlas con grano o pan de tu mochila para que crezcan más rápido y ganen vigor, y recoger carne cuando llegan a adultos.
+- **Carreras de animales y peleas clandestinas de gallos y perros:** una vez al día puedes apostar contra el bolsillo real de los vecinos en carreras de animales o en peleas clandestinas de gallos y perros (con riesgo de que la guardia oiga el alboroto); criar un ejemplar adulto vigoroso mejora tus opciones, aunque siempre puedes perder la apuesta.
+
 ### Idolatría obsesiva y Acompañantes del jugador
 - **Admiradores obsesivos (muy raros):** un vecino solitario puede obsesionarse en secreto con alguien célebre del valle, seguirle a todas partes, dejarle regalos anónimos pagados de su propio bolsillo y coger celos enfermizos de sus amistades o pareja. Puedes tantear a los vecinos para descubrir quién es (sin que el menú lo delate antes), hacerle entrar en razón o avisar al afectado a cambio de una recompensa de su bolsillo.
 - **Acompañantes y escoltas por el valle:** puedes pedirle a un buen amigo que te acompañe por el pueblo gratis o contratar a un vecino como escolta pagándole un jornal diario de tu bolsa al suyo. Tu acompañante camina a tu lado, te respalda para imponer respeto ante otros vecinos (una vez al día, con tirada de riesgo) y vuelve a sus quehaceres cuando lo despides o si dejas de pagarle.

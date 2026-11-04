@@ -34,6 +34,9 @@ const ADVERTISE_COOLDOWN_DAYS: int = 3
 const SHOP_SALE_PRICE: int = 10
 const CLERK_WAGE: int = 4
 const STOCKABLE_ITEMS: Array[String] = ["bread", "cooked_meat", "herbal_poultice", "repair_kit", "clothes", "wood", "iron_ore", "fish", "masterwork_piece"]
+const BUY_CHICK_COST: int = 15
+const JUVENILE_DAYS: int = 3
+const ADULT_ANIMAL_DAYS: int = 6
 
 static func state(vm) -> Dictionary:
 	var ts: Dictionary = vm.VillageTown.state(vm)
@@ -60,6 +63,13 @@ static func state(vm) -> Dictionary:
 		hs["intruder_attempt"] = {}
 	if not hs.has("player_shop") or not (hs["player_shop"] is Dictionary):
 		hs["player_shop"] = {}
+	if not hs.has("ranch_herd") or not (hs["ranch_herd"] is Array):
+		hs["ranch_herd"] = [
+			{"species": "sheep", "stage": "chick", "age_days": 0},
+			{"species": "rooster", "stage": "chick", "age_days": 1}
+		]
+	if not hs.has("player_animals") or not (hs["player_animals"] is Array):
+		hs["player_animals"] = []
 	return hs
 
 static func today() -> int:
@@ -192,6 +202,58 @@ static func advertise_player_shop(vm, inv) -> bool:
 	ps["last_ad_day"] = today()
 	VillageChronicle.add(vm, "player_shop_ad", "Repartiste carteles y pregonaste tu negocio por el valle para atraer clientela", true)
 	return true
+
+## Bloque PI.1: Animales con etapas de crecimiento (cría -> joven -> adulto) y crianza en el Rancho y en tu corral.
+static func animal_stage_for_days(days: int) -> String:
+	if days >= ADULT_ANIMAL_DAYS:
+		return "adult"
+	if days >= JUVENILE_DAYS:
+		return "juvenile"
+	return "chick"
+
+static func buy_young_animal(vm, species: String, inv, seller = null) -> bool:
+	if inv == null or int(inv.gold) < BUY_CHICK_COST:
+		return false
+	var arr: Array = state(vm)["player_animals"]
+	if arr.size() >= 4:
+		return false
+	inv.add_gold(-BUY_CHICK_COST)
+	if seller != null and "personal_gold" in seller:
+		seller.personal_gold += BUY_CHICK_COST
+	else:
+		vm.town_state["treasury"] = int(vm.town_state.get("treasury", 0)) + BUY_CHICK_COST
+	arr.append({"species": species, "stage": "chick", "age_days": 0, "power": 1})
+	VillageChronicle.add(vm, "animal_bought", "Compraste una cría (%s) para criarla en tu corral" % species, true)
+	return true
+
+static func feed_player_animals(vm, inv) -> int:
+	var arr: Array = state(vm)["player_animals"]
+	if arr.is_empty() or inv == null:
+		return 0
+	var used: String = ""
+	for food_id in ["wheat", "bread", "carrot"]:
+		if inv.has_item(food_id, 1):
+			inv.remove_item(food_id, 1)
+			used = food_id
+			break
+	if used == "":
+		return 0
+	for a in arr:
+		if a is Dictionary:
+			a["age_days"] = int(a.get("age_days", 0)) + 2
+			a["stage"] = animal_stage_for_days(int(a["age_days"]))
+			a["power"] = clampi(int(a.get("power", 1)) + 1, 1, 5)
+	return arr.size()
+
+static func best_adult_animal_power(vm, species_filter: String = "") -> int:
+	var best: int = 0
+	for a in (state(vm)["player_animals"] as Array):
+		if not (a is Dictionary) or str(a.get("stage", "")) != "adult":
+			continue
+		if species_filter != "" and str(a.get("species", "")) != species_filter:
+			continue
+		best = maxi(best, int(a.get("power", 1)))
+	return best
 
 # ==============================================================================
 # P6.1 y P6.5: Comprar casa al contado, con hipoteca o casa embargada
@@ -427,6 +489,39 @@ static func daily(vm) -> void:
 			elif int(ps.get("till_gold", 0)) >= CLERK_WAGE:
 				ps["till_gold"] = int(ps["till_gold"]) - CLERK_WAGE
 				clerk.personal_gold += CLERK_WAGE
+	# Bloque PI.1: Crecimiento diario del ganado del Rancho y de tus propios animales de corral
+	var r_herd: Array = hs["ranch_herd"]
+	var new_r_chicks: Array = []
+	var rancher = vm.trade_npcs.get(int(VillageNPC.TradeRole.RANCHER), null) if "trade_npcs" in vm else null
+	for ra in r_herd:
+		if not (ra is Dictionary):
+			continue
+		var old_st: String = str(ra.get("stage", "chick"))
+		ra["age_days"] = int(ra.get("age_days", 0)) + 1
+		ra["stage"] = animal_stage_for_days(int(ra["age_days"]))
+		if old_st != "adult" and str(ra["stage"]) == "adult":
+			if rancher != null and is_instance_valid(rancher) and not rancher.is_dead:
+				rancher.shop_stock["wool"] = int(rancher.shop_stock.get("wool", 0)) + 1
+				rancher.shop_stock["raw_meat"] = int(rancher.shop_stock.get("raw_meat", 0)) + 1
+				rancher._sync_shop_stock_to_vm()
+			if r_herd.size() + new_r_chicks.size() < 4:
+				new_r_chicks.append({"species": str(ra.get("species", "sheep")), "stage": "chick", "age_days": 0})
+	for nc in new_r_chicks:
+		r_herd.append(nc)
+	var p_animals: Array = hs["player_animals"]
+	var adult_p_cnt: int = 0
+	for pa in p_animals:
+		if not (pa is Dictionary):
+			continue
+		pa["age_days"] = int(pa.get("age_days", 0)) + 1
+		pa["stage"] = animal_stage_for_days(int(pa["age_days"]))
+		if str(pa["stage"]) == "adult":
+			adult_p_cnt += 1
+	if adult_p_cnt > 0 and inv != null and today() % 2 == 0:
+		inv.add_item("cooked_meat", 1)
+	if adult_p_cnt >= 2 and p_animals.size() < 4 and today() % 4 == 0:
+		p_animals.append({"species": "rooster", "stage": "chick", "age_days": 0, "power": 1})
+		VillageChronicle.add(vm, "animal_bred", "Ha nacido una nueva cría en tu corral", true)
 
 # ==============================================================================
 # Diálogos con el carpintero, pareja, inquilinos y vecinos
@@ -518,6 +613,14 @@ static func add_dialogue_choices(vm, npc, diag: Dictionary, ch_arr: Array) -> vo
 			opts.append({"label": "💰🏪 Recaudar la caja de tu negocio (+%d Oro)" % int(ps.get("till_gold", 0)), "next": "END", "action": "housing_collect_shop"})
 		if str(ps.get("clerk_key", "")) == "" and int(npc.trade_role) == int(VillageNPC.TradeRole.UNEMPLOYED) and not VillageNeeds.is_outsider(npc):
 			opts.append({"label": "🤝🏪 Contratarle como dependiente de tu negocio (%d Oro/día de la caja)" % CLERK_WAGE, "next": "END", "action": "housing_hire_clerk"})
+
+	# Bloque PI.1: Comprar crías y alimentar tus animales de corral (con el Ganadero o el Carpintero)
+	var is_rancher: bool = int(npc.trade_role) == int(VillageNPC.TradeRole.RANCHER)
+	if (is_rancher or is_carp) and (hs["player_animals"] as Array).size() < 4:
+		opts.append({"label": "🐣🐓 Comprar cría de gallo/sabueso para criarla (-%d Oro -> crece en 6 días)" % BUY_CHICK_COST, "next": "END", "action": "housing_buy_chick:rooster"})
+		opts.append({"label": "🐣🐑 Comprar cordero joven para criar en tu corral (-%d Oro -> crece en 6 días)" % BUY_CHICK_COST, "next": "END", "action": "housing_buy_chick:sheep"})
+	if not (hs["player_animals"] as Array).is_empty() and (is_rancher or is_carp):
+		opts.append({"label": "🌾🐣 Alimentar a tus crías con grano o pan (-1 Trigo/Pan -> +2 días de crecimiento y +1 vigor)", "next": "END", "action": "housing_feed_animals"})
 
 	if not opts.is_empty():
 		opts.append({"label": "⬅️ Volver", "next": "start"})
@@ -806,3 +909,16 @@ static func on_player_action(vm, npc, action_id: String, inv) -> void:
 		npc.add_thought("Tengo trabajo atendiendo el mostrador del Bazar del Forastero (+8)", 8.0)
 		VillageChronicle.add(vm, "player_shop_clerk", "Contrataste a %s como dependiente de tu negocio" % npc.npc_name, true)
 		npc._spawn_floating_text("🤝🏪 «¡Gracias por el empleo! Atenderé tu mostrador cada día.»", Color.SPRING_GREEN, -46.0)
+
+	elif action_id.begins_with("housing_buy_chick:"):
+		if buy_young_animal(vm, arg, inv, npc):
+			npc._spawn_floating_text("🐣🐑 «Cuida bien de esta cría; en 6 días será un ejemplar adulto.» (-%d Oro)" % BUY_CHICK_COST, Color.SPRING_GREEN, -46.0)
+		else:
+			npc._spawn_floating_text("Necesitas %d de oro y espacio en tu corral (máx. 4 animales)" % BUY_CHICK_COST, Color.ORANGE_RED, -44.0)
+
+	elif action_id == "housing_feed_animals":
+		var fed: int = feed_player_animals(vm, inv)
+		if fed > 0:
+			npc._spawn_floating_text("🌾🐣 Alimentaste a tus %d animales (+2 días de crecimiento y +1 vigor)" % fed, Color.SPRING_GREEN, -46.0)
+		else:
+			npc._spawn_floating_text("Necesitas llevar trigo, pan o zanahorias en la mochila para darles de comer", Color.ORANGE_RED, -44.0)

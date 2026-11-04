@@ -76,7 +76,7 @@ Estado: **✅ HECHO** = ya construido y funcionando en el juego. **🟡 EN PARTE
 
 ### Ciclo de vida
 - ✅ **HECHO** — Nacimientos de niños con etapas de crecimiento (embarazo de 9 días, nacen en casa, crecen 1 año cada 4 días, van a la escuela desde los 6 años, juegan por las tardes y a los 16 pasan a jóvenes adultos que buscan trabajo o heredan el taller familiar). *(Hecho en V9 y bloque B; pendiente solo dibujo propio de bebé/anciano.)*
-- 🧱 **BASE** — Animales con etapas de crecimiento y crianza. *(Base: mascotas, gallinero, corral del rancho en V5d y fauna salvaje; falta ciclo de crías que crezcan.)*
+- ✅ **HECHO** — Animales con etapas de crecimiento y crianza (`VillageHousing.gd`, test #86): tanto el ganado del Rancho del Sur (`ranch_herd`) como las crías que el jugador compra y alimenta en su corral (`player_animals`) pasan por etapas (`cría` → `joven` → `adulto`), producen lana, carne o comida al madurar, crían nuevas camadas y ganan vigor para competir. *(Hecho en bloque PI + mascotas, gallinero, corral del rancho en V5d y fauna salvaje.)*
 - ✅ **HECHO** — Escuelas y maestros: escuela en pie, maestro contratado cuando hay ≥ 2 niños en edad escolar, clases de 9 a 14 h entre semana, cartel con alumnos y graduación con bonificación de dominio de oficio según el número de clases asistidas al cumplir la mayoría de edad (`VillageFamily.gd`, `VillageNPC.gd`, test #84). *(Hecho en V5e, V9, bloque B y bloque PG.)*
 
 ### Salud y cuerpo (P5)
@@ -126,7 +126,7 @@ Estado: **✅ HECHO** = ya construido y funcionando en el juego. **🟡 EN PARTE
 
 ### Ocio, apuestas y peleas
 - ✅ **HECHO** — Casino y apuestas: póker, blackjack, ruleta y billar en la posada para el jugador, y vecinos que van a apostar por las tardes y pueden engancharse al juego. *(Base + hecho en E5.)*
-- 💡 **PENDIENTE** — Carreras de animales; peleas de perros y gallos.
+- ✅ **HECHO** — Carreras de animales y peleas de perros y gallos (`VillageUnderworld.gd`, `VillageHousing.gd`, test #86): carreras de animales (apuesta de 12 de oro contra el bolsillo del vecino, una vez al día) y peleas clandestinas de gallos/perros (apuesta de 15 de oro contra el bolsillo del vecino, con riesgo de que te oiga la guardia), donde el vigor de los animales adultos que hayas criado mejora tus probabilidades sin garantizar nunca la victoria. *(Hecho en bloque PI.)*
 - ✅ **HECHO** — Club de la lucha, boxeo, peleas callejeras. *(Peleas entre vecinos en B4.1–B4.2, misión de pelea anunciada en M17 y club de pelea clandestino a medianoche con apuestas y combate a puño limpio en P7 `VillageUnderworld.gd`.)*
 
 ### Mundo, ecosistema y exploración

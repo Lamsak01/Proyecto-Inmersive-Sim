@@ -95,7 +95,46 @@ static func state(vm) -> Dictionary:
 		st["pickpockets"] = {} # person_key -> {"name", "recruited_day"}
 	if not st.has("forged_deed"):
 		st["forged_deed"] = false
+	if not st.has("last_animal_race_day"):
+		st["last_animal_race_day"] = -99
+	if not st.has("last_cockfight_day"):
+		st["last_cockfight_day"] = -99
 	return st
+
+## Bloque PI.2: Carreras de animales (12 de oro) y peleas clandestinas de gallos/perros (15 de oro) contra el bolsillo real del vecino.
+static func run_animal_race(vm, npc, inv, force_outcome: int = 0) -> int:
+	if inv == null or int(inv.gold) < 12 or npc == null or int(npc.personal_gold) < 12:
+		return 0
+	var st: Dictionary = state(vm)
+	if today() == int(st.get("last_animal_race_day", -99)):
+		return 0
+	st["last_animal_race_day"] = today()
+	var bonus: float = 0.06 * float(VillageHousing.best_adult_animal_power(vm))
+	var win_chance: float = clampf(0.45 + bonus, 0.25, 0.78)
+	var won: bool = (randf() < win_chance) if force_outcome == 0 else (force_outcome > 0)
+	if won:
+		return VillageClans.pay_from_pocket(npc, 12, inv)
+	inv.add_gold(-12)
+	npc.personal_gold += 12
+	return -12
+
+static func run_cockfight(vm, npc, inv, force_outcome: int = 0) -> int:
+	if inv == null or int(inv.gold) < 15 or npc == null or int(npc.personal_gold) < 15:
+		return 0
+	var st: Dictionary = state(vm)
+	if today() == int(st.get("last_cockfight_day", -99)):
+		return 0
+	st["last_cockfight_day"] = today()
+	var bonus: float = 0.06 * float(VillageHousing.best_adult_animal_power(vm, "rooster"))
+	var win_chance: float = clampf(0.45 + bonus, 0.25, 0.78)
+	var won: bool = (randf() < win_chance) if force_outcome == 0 else (force_outcome > 0)
+	if not is_guard_bribed_tonight(vm) and force_outcome == 0 and randf() < 0.15:
+		vm.wanted_level = int(vm.wanted_level) + 1
+	if won:
+		return VillageClans.pay_from_pocket(npc, 15, inv)
+	inv.add_gold(-15)
+	npc.personal_gold += 15
+	return -15
 
 ## Tanda 6 (26): Timba clandestina de dados por 10 de oro contra el bolsillo real del vecino.
 static func play_dice_bet(vm, npc, inv, force_win: int = 0) -> int:
@@ -397,6 +436,13 @@ static func add_dialogue_choices(vm, npc, diag: Dictionary, ch_arr: Array) -> vo
 	# Tanda 6 (26): Timbas clandestinas de dados por 10 de oro
 	if not is_law and not is_priest and int(npc.personal_gold) >= 10 and (is_night_market_hours() or fence_here or "Tahúr" in (npc.person_profile.personality if npc.person_profile != null else [])):
 		opts.append({"label": "🎲🪙 Echar una timba clandestina de dados por 10 de oro", "next": "END", "action": "underworld_dice_bet"})
+
+	# Bloque PI.2: Carreras de animales y peleas de gallos/perros con apuestas (1/día, contra el bolsillo del vecino)
+	if not is_law and not is_priest:
+		if int(npc.personal_gold) >= 12 and int(st.get("last_animal_race_day", -99)) != today():
+			opts.append({"label": "🐕🏁 Apostar 12 de oro en carrera de animales contra %s (1/día)" % npc.npc_name, "next": "END", "action": "underworld_animal_race"})
+		if int(npc.personal_gold) >= 15 and int(st.get("last_cockfight_day", -99)) != today() and (is_night_market_hours() or fence_here or int(npc.trade_role) == int(VillageNPC.TradeRole.RANCHER)):
+			opts.append({"label": "🐓⚔️ Apostar 15 de oro en pelea clandestina de gallos/perros contra %s (1/día, riesgo de guardia)" % npc.npc_name, "next": "END", "action": "underworld_cockfight"})
 
 	# Tanda 6 (27): Reclutar vecinos sin oficio en tu red de carteristas
 	if not is_law and not is_priest and not fence_here and int(npc.trade_role) == int(VillageNPC.TradeRole.UNEMPLOYED) and int(npc.personal_gold) < 25 and not (st.get("pickpockets", {}) as Dictionary).has(key) and (st.get("pickpockets", {}) as Dictionary).size() < 3:
@@ -769,3 +815,21 @@ static func on_player_action(vm, npc, action_id: String, inv) -> void:
 		npc.modify_affinity(12)
 		VillageChronicle.add(vm, "shadow_boss_defeated", "Derrotaste al jefe de la «Red de las Sombras» y tomaste el mando del hampa (+%d Oro)" % spoils, false)
 		npc._spawn_floating_text("🗡️👑 «¡Basta, me rindo! La Red de las Sombras es tuya (+%d Oro y 12/semana).»" % spoils, Color.GOLD, -46.0)
+
+	elif action_id == "underworld_animal_race":
+		var race_net: int = run_animal_race(vm, npc, inv)
+		if race_net > 0:
+			npc._spawn_floating_text("🐕🏁 ¡Tu animal cruzó la meta primero! Le ganaste %d de oro a %s." % [race_net, npc.npc_name], Color.GOLD, -46.0)
+		elif race_net < 0:
+			npc._spawn_floating_text("🐕💨 El ejemplar de %s fue más veloz. Perdiste 12 de oro." % npc.npc_name, Color.ORANGE_RED, -46.0)
+		else:
+			npc._spawn_floating_text("Necesitáis al menos 12 de oro cada uno (máx. 1 carrera al día)", Color.ORANGE_RED, -44.0)
+
+	elif action_id == "underworld_cockfight":
+		var fight_net: int = run_cockfight(vm, npc, inv)
+		if fight_net > 0:
+			npc._spawn_floating_text("🐓⚔️ ¡Victoria en el ruedo clandestino! Le ganaste %d de oro a %s." % [fight_net, npc.npc_name], Color.GOLD, -46.0)
+		elif fight_net < 0:
+			npc._spawn_floating_text("🐓💥 Tu gallo cayó en el ruedo. %s se lleva tus 15 monedas." % npc.npc_name, Color.ORANGE_RED, -46.0)
+		else:
+			npc._spawn_floating_text("Necesitáis al menos 15 de oro cada uno (máx. 1 pelea al día)", Color.ORANGE_RED, -44.0)
