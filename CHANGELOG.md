@@ -10,6 +10,7 @@ El detalle técnico está en `docs/HANDOFF.md` (sección 7) y el historial compl
 - **Atajo «📜 Encargo» corregido:** al hacer un encargo de ensuciar el nombre de alguien, el rival sale ahora primero y con atajo directo al hablar con cualquier vecino; además, el atajo ya no aparece por error en misiones que van por libre.
 - **Cinco encargos pulidos:** nadie te pide investigar una infidelidad si ningún vecino ha visto nada todavía; dar dinero para la posada a un vecino sin techo le devuelve cama al momento; descubrir rasgos de un forastero por tu cuenta también vale para su encargo; y hablar con un deudor recién desahuciado ya no da error.
 - **Panel de avisos limpio:** eliminados los 19 avisos amarillos que salían al abrir el juego en el editor.
+- **Cuadro de conversación ajustado a la pantalla:** cuando un vecino tiene muchas opciones, aparece una barra a la derecha para bajar con la rueda del ratón o con W/S, y la ventana ya nunca se corta por arriba ni por los lados.
 
 ### Otras diez misiones (ya hay 25)
 - Nuevos encargos (provisionales): donativos para las gachas, una carta de amor, una herencia disputada, apartar a alguien de la bebida o el juego, montar puesto en el mercado, las reuniones nocturnas (la secta), calmar una pelea anunciada, buscar techo a un desahuciado, un forastero del que nadie se fía y un asesinato archivado.

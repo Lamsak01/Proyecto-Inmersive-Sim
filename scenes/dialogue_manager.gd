@@ -25,6 +25,7 @@ var _speaker_label: Label
 var _tagline_label: Label
 var _relation_label: Label
 var _body_label: Label
+var _choices_scroll: ScrollContainer
 var _choices_container: VBoxContainer
 var _hint_footer: Label
 var _input_cooldown: float = 0.0
@@ -36,6 +37,15 @@ func _ready() -> void:
 	_build_clean_ui()
 
 func _process(delta: float) -> void:
+	if _panel != null and (_panel.offset_top < -600.0 or not is_instance_valid(_choices_scroll)):
+		var was_active: bool = active
+		_panel.queue_free()
+		_panel = null
+		_build_clean_ui()
+		if was_active:
+			_update_header()
+			_panel.visible = true
+			_show_node(current_id)
 	if _input_cooldown > 0.0:
 		_input_cooldown -= delta
 	if active and current_speaker != null:
@@ -119,16 +129,26 @@ func _build_clean_ui() -> void:
 	title_row.add_child(_relation_label)
 
 	_tagline_label = _make_dlg_lbl("", 12, Color(0.84, 0.78, 0.62), true)
+	_tagline_label.custom_minimum_size = Vector2(580, 0)
+	_tagline_label.max_lines_visible = 2
 	header_info_vbox.add_child(_tagline_label)
 
 	main_vbox.add_child(HSeparator.new())
-	_body_label = _make_dlg_lbl("", 16, Color(0.95, 0.95, 0.95), true)
-	_body_label.custom_minimum_size = Vector2(680, 48)
+	_body_label = _make_dlg_lbl("", 15, Color(0.95, 0.95, 0.95), true)
+	_body_label.custom_minimum_size = Vector2(680, 44)
+	_body_label.max_lines_visible = 6
 	main_vbox.add_child(_body_label)
 
+	_choices_scroll = ScrollContainer.new()
+	_choices_scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	_choices_scroll.follow_focus = true
+	_choices_scroll.custom_minimum_size = Vector2(680, 120)
+	main_vbox.add_child(_choices_scroll)
+
 	_choices_container = VBoxContainer.new()
+	_choices_container.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	_choices_container.add_theme_constant_override("separation", 6)
-	main_vbox.add_child(_choices_container)
+	_choices_scroll.add_child(_choices_container)
 
 	_hint_footer = _make_dlg_lbl("[1-9] Elegir opción   |   [W/S + Espacio/Enter] Navegar   |   [ESC] Cerrar", 12, Color(0.55, 0.58, 0.65), false, HORIZONTAL_ALIGNMENT_CENTER)
 	main_vbox.add_child(_hint_footer)
@@ -193,6 +213,7 @@ func end_dialogue() -> void:
 		_panel.visible = false
 	if _choices_container:
 		for c in _choices_container.get_children():
+			_choices_container.remove_child(c)
 			c.queue_free()
 	dialogue_finished.emit(finished_id, speaker_ref)
 
@@ -208,6 +229,7 @@ func _show_node(id: String) -> void:
 		_body_label.text = str(node_data.get("text", ""))
 
 	for c in _choices_container.get_children():
+		_choices_container.remove_child(c)
 		c.queue_free()
 
 	current_choices = node_data.get("choices", [])
@@ -219,7 +241,9 @@ func _show_node(id: String) -> void:
 		var num_prefix := "[%d] " % (i + 1)
 		btn.text = num_prefix + str(ch.get("label", "Continuar"))
 		btn.alignment = HORIZONTAL_ALIGNMENT_LEFT
-		btn.custom_minimum_size = Vector2(680, 32)
+		btn.clip_text = true
+		btn.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
+		btn.custom_minimum_size = Vector2(664, 32)
 		btn.add_theme_font_size_override("font_size", 15)
 		btn.focus_mode = Control.FOCUS_ALL
 
@@ -230,6 +254,7 @@ func _show_node(id: String) -> void:
 		btn_normal.corner_radius_bottom_left = 4
 		btn_normal.corner_radius_bottom_right = 4
 		btn_normal.content_margin_left = 12
+		btn_normal.content_margin_right = 12
 		btn_normal.content_margin_top = 4
 		btn_normal.content_margin_bottom = 4
 
@@ -246,6 +271,26 @@ func _show_node(id: String) -> void:
 		_choices_container.add_child(btn)
 		if i == 0:
 			first_btn = btn
+
+	if _choices_scroll:
+		_choices_scroll.scroll_vertical = 0
+		var rows_h: float = float(current_choices.size()) * 32.0 + float(maxi(0, current_choices.size() - 1)) * 6.0
+		_choices_scroll.custom_minimum_size = Vector2(680, clampf(rows_h, 36.0, 222.0))
+
+	if _panel:
+		var body_txt: String = _body_label.text if _body_label else ""
+		var body_lines: int = clampi(int(ceil(float( maxi(1, body_txt.length()) ) / 75.0)) + body_txt.count("\n"), 2, 6)
+		var body_h: float = float(body_lines) * 21.0 + 6.0
+		if _body_label:
+			_body_label.custom_minimum_size = Vector2(680, body_h)
+		var ch_h: float = _choices_scroll.custom_minimum_size.y if _choices_scroll else 120.0
+		var panel_h: float = 158.0 + body_h + ch_h
+		_panel.custom_minimum_size = Vector2(720, panel_h)
+		_panel.offset_left = -360
+		_panel.offset_right = 360
+		_panel.offset_bottom = -16
+		_panel.offset_top = -16 - panel_h
+		_panel.size = Vector2(720, panel_h)
 
 	if first_btn:
 		first_btn.call_deferred("grab_focus")
