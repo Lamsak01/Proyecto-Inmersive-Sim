@@ -95,12 +95,20 @@ Estado: **✅ HECHO** = ya construido y funcionando en el juego. **🟡 EN PARTE
   - ✅ **Hecho en V6 y bloque H:** nobles y señor del valle (mansión, rentistas, cobro de rentas a granja y rancho, influencia en las elecciones y préstamos hipotecarios para casas con interés del 25 % y desahucio).
   - ✅ **Hecho en V4, V3 y J4:** obras públicas y gasto social pagados con las arcas (casas de oficio/vivienda y gachas del Albergue).
   - ✅ **Hecho en M4:** compra de votos y promesas electorales para un candidato (`vote_buying`).
-  - ✅ **Hecho en P5 (`VillageMayor.gd`):** presentarte a Alcalde en el Ayuntamiento, campañas de difamación, alcalde títere bajo chantaje, edictos de impuestos (0 %, bajos, normales, altos), decretos municipales (toque de queda, ley seca, subsidio del mercado, guardia reforzada), obras públicas, nombrar/destituir comisario, malversar fondos o maquillar libros y moción de censura.
+  - ✅ **Hecho en P5 (`VillageMayor.gd`):** presentarte a Alcalde en el Ayuntamiento, campañas de difamación, alcalde títere bajo chantaje, impuestos bajos, normales o altos, decretos municipales (toque de queda, ley seca, subsidio del mercado), obras públicas, nombrar/destituir comisario, malversar fondos o maquillar libros y moción de censura.
   - ✅ **Hecho en P7 (`VillageUnderworld.gd`):** mercado negro nocturno tras la taberna con perista, herramientas ilegales (ganzúas, veneno lento, somnífero, papeles falsos), encargos de robo a medida, usura del jugador, extorsión de «protección» a comercios, sicarios/saboteadores a sueldo, club de pelea clandestino a medianoche, soborno de ronda nocturna y convertirte en Jefe del Hampa.
 - ✅ **HECHO** — Planes de asesinato entre vecinos (muy raros, con señales previas, rumor de amenaza, opción de avisar a la víctima o denunciar al comisario, y pistas forenses). *(Hecho en D5.)*
 - ✅ **HECHO** — Ideas tras D y bloque P2 (`VillageForensics.gd`, 2026-11-04):
   - ✅ **Hecho en V8:** que el vecino ambicioso se quede con un negocio vacante antes de traer a un forastero.
   - ✅ **Hecho en P1 y P2 (`VillageClans.gd`, `VillageForensics.gd`):** venganzas heredadas por la familia al morir un pariente, plantar pistas falsas para incriminar a un rival, coartadas falsas por lealtad familiar/secta, testigos intimidados, sicarios por encargo, veneno lento que simula muerte natural hasta la autopsia, mover el cadáver de noche, confesiones ebrio o con fiebre, chivo expiatorio del comisario corrupto y emboscadas nocturnas con la guardia.
+- 💡 **PENDIENTE** — Ideas que se anunciaron en los bloques P1–P7 pero **no se llegaron a hacer** (auditoría del 2026-11-04):
+  - Crimen: fregar la escena con lejía, sobornar al médico para falsear la autopsia, pólizas de seguro de vida, trucar la hora de la muerte, limpiador nocturno de cadáveres, imitar el sello de otro asesino (copycat), obligar con chantaje a un vecino a confesar por ti.
+  - Clanes: patriarca o matriarca a quien obedece la familia, sabotajes de noche entre negocios de familias rivales.
+  - Linaje: interceptar cartas de amantes, bodas concertadas con dote, padrinos en el bautizo, enseñar un oficio a un niño, jóvenes que se escapan de noche al mirador.
+  - Capilla: disfrazarte con el hábito del cura para confesar tú a los vecinos, fingir un milagro en el altar.
+  - Alcaldía: debates públicos entre candidatos, indultar acusados, tributo de paz.
+  - Casa: fiestas en casa, defender tu puerta de intrusos, revender casas cuando suben de precio, sótano secreto, hogar de leña.
+  - Bajos fondos: caravana de contrabando de medianoche, timbas de dados, red de carteristas, falsificar escrituras o salvoconductos, retar al jefe de la «Red de las Sombras».
 - ✅ **HECHO** — Personas religiosas y no creyentes (la Fe del Alba provisional, con el sacerdote Hermano Anselmo, sermones y Oficio en la capilla los domingos). *(Hecho en G1–G7.)*
 - ✅ **HECHO** — Ideas tras G y bloque P4 (`VillageConfession.gd`, 2026-11-04):
   - ✅ **Hecho en V5e:** día de mercado entre semana (miércoles por la mañana en la plaza).

@@ -30,7 +30,8 @@ Auditoría hecha por Claude Code el 2026-11-04 leyendo el código, no los docume
   títere solo si conoces el trapo sucio, testamento con el oro real del muerto, recompensas del bolsillo del vecino,
   nadie vive en dos casas, el adoptado se muda y no se readopta, rencor del clan solo si alguien te vio matar).
 - [ ] Pendiente (riesgo bajo, sin arreglar): cambiar el nombre a niños puede desincronizar registros por nombre.
-- Aviso: el CHANGELOG y REGISTRO_TRABAJO describen varias mecánicas P que no existen en el código.
+- [x] CHANGELOG corregido (2026-11-04): ya solo describe lo que existe; lo no hecho pasó a `docs/VISION_Y_FUTURO.md`
+  como pendiente. La tabla de P1–P7 en REGISTRO_TRABAJO sigue siendo la del otro agente (no fiable).
 
 ## 1. Fallos graves (arreglar primero)
 
