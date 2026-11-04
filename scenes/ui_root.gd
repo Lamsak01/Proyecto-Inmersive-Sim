@@ -701,6 +701,7 @@ func _setup_clock_ui() -> void:
 		_on_clock_time_updated(WorldClock.current_day, WorldClock.current_hour, WorldClock.current_minute)
 
 func _on_clock_time_updated(_day: int, _hour: int, _minute: int) -> void:
+	_init_default_objectives()
 	if not clock_label or not WorldClock:
 		return
 	var icon := WorldClock.get_phase_icon()
@@ -717,14 +718,9 @@ func _on_clock_time_updated(_day: int, _hour: int, _minute: int) -> void:
 	clock_sub_label.text = "💰 %d Oro | Visión: %d%% | [TAB] Rueda | [I] Mochila | [J] Vecinos | [M] Mapa | [F5/F9] Guardar/Cargar" % [gold_val, vis_pct]
 
 func _init_default_objectives() -> void:
-	if not ObjectiveManager:
-		return
-	var find_sword = load("res://resources/objectives/obj_find_sword.tres")
-	if find_sword:
-		ObjectiveManager.add_objective(find_sword)
-	var kill_frogs = load("res://resources/objectives/obj_kill_frogs.tres")
-	if kill_frogs:
-		ObjectiveManager.add_objective(kill_frogs)
+	var old_hud: Control = get_node_or_null("ObjectiveHUD") as Control
+	if old_hud:
+		old_hud.visible = false
 
 func setup_hint_label() -> void:
 	var hint = get_node_or_null("HintLabel")

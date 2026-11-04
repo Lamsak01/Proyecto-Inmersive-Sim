@@ -612,6 +612,7 @@ Cada fase se dividirá en bloques pequeños cuando se llegue a ella (detalle en 
   6) `QuestStrangeNewcomer`: descubrir rasgos del recién llegado por cualquier vía también cuenta para cumplir el encargo.
   7) Limpiados los 19 avisos amarillos del editor (divisiones enteras, ternarios heterogéneos y parámetros sin usar) más 7 divisiones enteras en los encargos de vecinos.
   8) `scenes/dialogue_manager.gd`: el cuadro de conversación lleva ahora barra de desplazamiento para las opciones (`_choices_scroll`, hasta 6 visibles a la vez), recorte con puntos suspensivos en botones largos y tope de líneas en cabecera y cuerpo, de modo que nunca se sale por los bordes de la pantalla.
+  9) `scenes/ui_root.gd` y `scripts/ui/ObjectiveHUD.gd`: ocultado el viejo `ObjectiveHUD` en inglés («Eliminate Frogs» / «Find the Iron Sword») que asomaba cortado encima del minimapa.
 - [x] **Bloque E** (probado, test #75; detalle en `docs/REGISTRO_TRABAJO.md`). Diagnóstico de comidas fallidas
   (`migration_state.meal_fails`, «motivo/oficio»); casas: la pareja junta ahorros y, si alguien duerme al raso, el
   pueblo paga sin reserva; camas de posada sin repetir (cuenta a quien tenga oficio y duerma allí); U5 «según X»

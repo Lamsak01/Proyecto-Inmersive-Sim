@@ -6,6 +6,7 @@ extends Control
 var objective_label_settings: LabelSettings
 
 func _ready() -> void:
+    visible = false
     # Setup styling
     objective_label_settings = LabelSettings.new()
     objective_label_settings.font_size = 18
