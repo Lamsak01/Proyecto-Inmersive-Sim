@@ -4,6 +4,7 @@ class_name SocialGlossaryUI
 const VillageFaith = preload("res://scripts/systems/VillageFaith.gd")
 const VillageNeeds = preload("res://scripts/systems/VillageNeeds.gd")
 const VillageTown = preload("res://scripts/systems/VillageTown.gd")
+const VillageFame = preload("res://scripts/systems/VillageFame.gd")
 
 ## Panel de Glosario de Vecinos y Red Social Dinámica (Estilo RimWorld + Compendio Red Dead Redemption 2):
 ## Permite consultar la biografía, estado vital, rutina, familia cercana, mejores amigos, rivales principales
@@ -351,7 +352,9 @@ func refresh_ui(rebuild_lists: bool = true) -> void:
 	var sel: VillageNPC = selected_npc
 	_portrait_rect.texture = sel.get_portrait_texture()
 	var state_badge: String = "💀 DIFUNTO" if sel.is_dead else ("🩸 AGONIZANDO" if sel.is_downed else "🟢 VIVO")
-	_title_label.text = "%s %s — %s (%s) [%s]" % [_get_role_icon(int(sel.trade_role)), sel.npc_name, sel.npc_role, sel.family_name, state_badge]
+	var fame_badge: String = VillageFame.summary_badge(sel._get_vm(), sel)
+	var fame_suffix: String = (" | " + fame_badge) if fame_badge != "" else ""
+	_title_label.text = "%s %s — %s (%s) [%s]%s" % [_get_role_icon(int(sel.trade_role)), sel.npc_name, sel.npc_role, sel.family_name, state_badge, fame_suffix]
 	var traits_txt: String = sel.get_known_traits_text()
 	var rom_badge: String = "Soltero/a"
 	if sel.person_profile != null:

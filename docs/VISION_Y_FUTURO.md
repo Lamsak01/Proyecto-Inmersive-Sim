@@ -67,7 +67,7 @@ Estado: **✅ HECHO** = ya construido y funcionando en el juego. **🟡 EN PARTE
   - ✅ **Hecho en P3 (`VillageLineage.gd`):** hijos secretos fruto de una infidelidad (con rasgo heredado del amante que despierta rumores al crecer), chantaje de paternidad, reclamar o repudiar al niño, manutención secreta semanal, expósitos dejados en la Capilla del Alba, adopción de huérfanos, rivalidad entre hermanastros por el taller, matrimonios por interés y pasado familiar fuera del valle.
 - ✅ **HECHO** — Degradación de relaciones con la distancia (si llevan más de 7 días sin verse, el aprecio y la chispa se enfrían poco a poco hacia neutro). *(Hecho en U6.)*
 - 💡 **PENDIENTE** — Idolatría u obsesión por un personaje (muy rara). *(Hoy existen seguidores de un vecino con rasgo Líder en G4 y amor no correspondido en U3, pero no obsesión patológica.)*
-- 🟡 **EN PARTE** — Fama: alguien puede volverse famoso (por sus obras, peleas, oficio, escándalos). *(Hoy el jugador tiene fama de ley y de fe, y los vecinos tienen la tendencia `fame` en sus rasgos, pero aún no hay puntuación de fama individual para cada vecino.)*
+- ✅ **HECHO** — Fama: alguien puede volverse famoso o infame por sus obras, peleas, oficio, alcaldía o escándalos (`VillageFame.gd`, puntuación individual de −100 a +100 con rangos «🌟 Célebre» / «✨ Conocido» / «😠 Mal visto» / «🌑 Infame», visible en el glosario `[J]` y en opiniones de vecinos, más elogios o rumores públicos del jugador con tirada de riesgo). *(Hecho en `VillageFame.gd`, test #83.)*
 - ✅ **HECHO** — Enemigos que conspiran contra el jugador (si te odian ≤ −50 durante 7 días: hablan mal de ti, se niegan a venderte en su tienda, te denuncian al comisario —incluso con cargos falsos si son mentirosos— y difunden tus secretos). *(Hecho en D4.)*
 - ✅ **HECHO** — Rencores entre familias que pasan a los hijos y clanes (`VillageClans.gd`, P1):
   - ✅ **Hecho en G4 y G5:** reputación del jugador con cada grupo/familia en el glosario `[J]`, y defensa de bando en vivo (si peleas, calumnias o chantajeas a alguien, su familia te coge manía).
@@ -119,7 +119,7 @@ Estado: **✅ HECHO** = ya construido y funcionando en el juego. **🟡 EN PARTE
 
 ### Economía, oficios y negocios (P5)
 - ✅ **HECHO** — Más servicios y trabajos en el pueblo: panadería, sastrería, segunda posada («El Candil»), albergue, granja, rancho, cantera, cabaña del leñador, taller de reparaciones, biblioteca, escuela y jornaleros por horas. *(Hecho en V5a–V5e y V9.)*
-- 💡 **PENDIENTE** — Maestros artesanos con estilos propios (su obra se reconoce y tiene valor).
+- ✅ **HECHO** — Maestros artesanos con estilos propios (`VillageFame.gd`, test #83): los artesanos con experiencia e inclinación por el oficio (`craft`, `diligence`, `trade`) alcanzan el título de Maestro Artesano con un estilo de autor propio de su gremio, elaboran Obras Maestras firmadas (`masterwork_piece`) que compran los vecinos ricos y nobles con oro de su bolsillo, cobran suplemento de prestigio en el mercado y permiten al jugador patrocinar talleres o comerciar con sus piezas.
 - 🧱 **BASE** — Montar tu propio negocio y hacerle publicidad en el pueblo. *(Base: propiedad híbrida y compra de negocios existentes; falta fundar un negocio desde cero en un solar y hacerle publicidad.)*
 - 💡 **PENDIENTE** — Rutas de comercio con otros lugares.
 - 💡 **PENDIENTE** — Ingenieros que investigan nuevas tecnologías (árbol de investigación).

@@ -245,6 +245,7 @@ static func partner_reaction(vm: VillageManager, s: Dictionary, partner: Village
 	if cheater == null:
 		return
 	partner.modify_npc_relationship(cheater, PARTNER_REL_CHEATER, "💔 Le engañó con %s" % lover_name, true)
+	vm.VillageFame.add_fame(vm, cheater, -12, "Escándalo por engañar a %s" % partner.npc_name)
 	if lover != null and lover != partner:
 		partner.modify_npc_relationship(lover, PARTNER_REL_LOVER, "Se veía a escondidas con %s" % cheater_name, true)
 	partner.add_thought("Me enteré de que %s me engaña (-20)" % cheater_name, -20.0)

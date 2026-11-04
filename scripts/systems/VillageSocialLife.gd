@@ -175,6 +175,9 @@ static func _finish_live_fight(vm: VillageManager, fight: Dictionary, a: Village
 			knowers[w.get_person_key()] = true
 			witnesses += 1
 	(vm.record_social_event("fight", winner, loser, summary)["known_by"] as Dictionary).merge(knowers)
+	if not guard_stops:
+		vm.VillageFame.add_fame(vm, winner, 6, "Se impuso en una pelea contra %s" % loser.npc_name)
+		vm.VillageFame.add_fame(vm, loser, -4, "Salió mal parado en una pelea con %s" % winner.npc_name)
 	vm.VillageClans.register_clan_clash(vm, a, b, "pelea callejera") # P1.3: enemistad entre familias por peleas
 	vm.VillageMayor.apply_peace_tax(vm, a, b) # Tanda 4 (19): decreto de Tributo de paz (multa a las arcas por pelearse)
 

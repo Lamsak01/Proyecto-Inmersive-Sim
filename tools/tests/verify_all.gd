@@ -3640,5 +3640,70 @@ func _initialize() -> void:
 		vm._free_transient_npc(np_tmp)
 	print("Blocks P1-P7 (70 mechanics) OK")
 
+	# 83. Fama de los vecinos y Maestros Artesanos con estilo propio (`VillageFame.gd`)
+	var vfa_fame = load("res://scripts/systems/VillageFame.gd")
+	(vfa_fame.state(vm)["scores"] as Dictionary).clear()
+	(vfa_fame.state(vm)["reasons"] as Dictionary).clear()
+	(vfa_fame.state(vm)["masters"] as Dictionary).clear()
+	(vfa_fame.state(vm)["patron_day"] as Dictionary).clear()
+	vfa_fame.state(vm)["last_praise_day"] = -99
+	var vf_artisan = null
+	var vf_artisan2 = null
+	for r_art in vm.trade_npcs.keys():
+		var cand_art = vm.trade_npcs[r_art]
+		if is_instance_valid(cand_art) and not cand_art.is_dead and cand_art.trade_role in load("res://scripts/enemies/VillageNPC.gd").SHOP_ROLES:
+			if vf_artisan == null:
+				vf_artisan = cand_art
+			elif vf_artisan2 == null and cand_art != vf_artisan:
+				vf_artisan2 = cand_art
+				break
+	assert(vf_artisan != null and vf_artisan2 != null, "Fame: Found two living shop artisans")
+	var vf_days1_bak: int = vf_artisan.days_in_role
+	var vf_days2_bak: int = vf_artisan2.days_in_role
+	var vf_g1_bak: int = vf_artisan.personal_gold
+	var vf_g2_bak: int = vf_artisan2.personal_gold
+	vf_artisan.days_in_role = 10
+	vf_artisan2.days_in_role = 3
+	vfa_fame.daily(vm)
+	assert(vfa_fame.is_master(vm, vf_artisan) and vfa_fame.fame_of(vm, vf_artisan) >= 25 and vfa_fame.tier_label(vfa_fame.fame_of(vm, vf_artisan)) != "", "Fame.1: Experienced artisan reaches Master Artisan rank with signature style and fame")
+	var vf_minfo: Dictionary = vfa_fame.master_info(vm, vf_artisan)
+	assert(str(vf_minfo.get("style", "")) != "" and int(vf_minfo.get("stock", 0)) == 1, "Fame.2: Master Artisan has a signature style and 1 masterwork in stock")
+	# Comprar Obra Maestra en el taller
+	p70_inv.gold = 200
+	vf_artisan.personal_gold = 20
+	vfa_fame.on_player_action(vm, vf_artisan, "fame_buy_masterwork", p70_inv)
+	assert(p70_inv.has_item("masterwork_piece", 1) and p70_inv.gold == 165 and vf_artisan.personal_gold == 55 and int(vfa_fame.master_info(vm, vf_artisan).get("stock", -1)) == 0, "Fame.3: Buying a masterwork transfers 35 gold to artisan and gives masterwork_piece")
+	# Vender Obra Maestra a un vecino rico/coleccionista de su propio bolsillo
+	var vf_collector = p70_a
+	var vf_col_g_bak: int = vf_collector.personal_gold
+	vf_collector.personal_gold = 180
+	var vf_col_fame0: int = vfa_fame.fame_of(vm, vf_collector)
+	vfa_fame.on_player_action(vm, vf_collector, "fame_sell_masterwork", p70_inv)
+	assert(not p70_inv.has_item("masterwork_piece", 1) and p70_inv.gold == 215 and vf_collector.personal_gold == 130 and vfa_fame.fame_of(vm, vf_collector) == vf_col_fame0 + 6, "Fame.4: Rich collector buys masterwork with 50 gold from his own pocket")
+	vf_collector.personal_gold = vf_col_g_bak
+	# Patrocinar taller de un artesano aún no maestro (`days_in_role = 3` -> `5` -> asciende a Maestro)
+	assert(not vfa_fame.is_master(vm, vf_artisan2), "Fame.5a: Second artisan is not yet a master")
+	vf_artisan2.personal_gold = 15
+	vfa_fame.on_player_action(vm, vf_artisan2, "fame_patronize", p70_inv)
+	assert(vfa_fame.is_master(vm, vf_artisan2) and vf_artisan2.personal_gold == 45 and p70_inv.gold == 185, "Fame.5b: Patronizing artisan workshop transfers 30 gold and promotes to Master Artisan")
+	# Hablar bien / pregonar faltas con tirada y espera de 3 días
+	var vf_praise_fame0: int = vfa_fame.fame_of(vm, p70_b)
+	var vf_praise_aff0: int = p70_b.affinity
+	vfa_fame.on_player_action(vm, p70_b, "fame_praise", p70_inv)
+	var vf_praised_ok: bool = vfa_fame.fame_of(vm, p70_b) == vf_praise_fame0 + 10 and p70_b.affinity == vf_praise_aff0 + 8
+	var vf_praised_fail: bool = vfa_fame.fame_of(vm, p70_b) == vf_praise_fame0 and p70_b.affinity == vf_praise_aff0 - 4
+	assert((vf_praised_ok or vf_praised_fail) and int(vfa_fame.state(vm)["last_praise_day"]) == vfa_fame.today(), "Fame.6: Public praise has a risk roll and sets cooldown")
+	# Guardado y carga
+	var vf_save: Dictionary = vm.get_economy_save_dict()
+	var vf_saved_style: String = str(vfa_fame.master_info(vm, vf_artisan).get("style", ""))
+	(vfa_fame.state(vm)["masters"] as Dictionary).clear()
+	vm.load_economy_save_dict(vf_save)
+	assert(vfa_fame.is_master(vm, vf_artisan) and str(vfa_fame.master_info(vm, vf_artisan).get("style", "")) == vf_saved_style, "Fame.7: Fame and Master Artisan styles persist across save/load")
+	vf_artisan.days_in_role = vf_days1_bak
+	vf_artisan2.days_in_role = vf_days2_bak
+	vf_artisan.personal_gold = vf_g1_bak
+	vf_artisan2.personal_gold = vf_g2_bak
+	print("VillageFame & Master Artisans OK")
+
 	print("ALL RIMWORLD MEDICAL, FOOTPRINTS, 3-PHASE CORPSE REPORT, MULTI-CORPSE FIX, RPG INTERROGATION, PUBLIC TRIAL, DYNAMIC RELATIONSHIPS, MISSING FAMILY SEARCH, SOCIAL GLOSSARY & UNCONSCIOUS REACTION TESTS PASSED!")
 	quit(0)

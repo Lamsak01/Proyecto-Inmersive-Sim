@@ -35,6 +35,7 @@ const VillageConfession = preload("res://scripts/systems/VillageConfession.gd")
 const VillageMayor = preload("res://scripts/systems/VillageMayor.gd")
 const VillageHousing = preload("res://scripts/systems/VillageHousing.gd")
 const VillageUnderworld = preload("res://scripts/systems/VillageUnderworld.gd")
+const VillageFame = preload("res://scripts/systems/VillageFame.gd")
 
 ## Gestor Integral de Urbanismo Sólido, Hospital/Morgue Forense, Comisaría/Cárcel, Testigos,
 ## Sigilo Doméstico, Reputación Familiar, Tablón de Encargos y Red Eléctrica (10 Pasos de Expansión)
@@ -3084,6 +3085,7 @@ func _on_day_passed(_new_day: int) -> void:
 		VillageMayor.daily(self) # P5: promesas electorales, decretos y protestas
 		VillageHousing.daily(self) # P6: pareja en casa, huerto y rentas comerciales
 		VillageUnderworld.daily(self) # P7: mercado negro, usura, protección y jefe del hampa
+		VillageFame.daily(self) # Fama de los vecinos y Maestros Artesanos con estilo propio
 		VillageQuests.on_day_passed(self)
 	chronicle_daily = false
 

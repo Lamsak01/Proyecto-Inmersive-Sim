@@ -15,6 +15,7 @@ extends RefCounted
 const VillageNeeds = preload("res://scripts/systems/VillageNeeds.gd")
 const VillageLots = preload("res://scripts/systems/VillageLots.gd")
 const VillageTrades = preload("res://scripts/systems/VillageTrades.gd")
+const VillageFame = preload("res://scripts/systems/VillageFame.gd")
 
 const LIBRARY_LOT: String = "n5"
 const SCHOOL_LOT: String = "e3"
@@ -215,13 +216,15 @@ static func on_market_arrived(vm, n) -> void:
 	for k in seller.shop_stock.keys():
 		if int(seller.shop_stock[k]) > 0 and (item == "" or int(seller.shop_stock[k]) > int(seller.shop_stock[item])):
 			item = str(k)
-	var price: int = 5
+	var price: int = 7 if (VillageFame.is_master(vm, seller) and n.personal_gold >= 25) else 5
 	if item == "" or n.personal_gold < price:
 		return
 	n.personal_gold -= price
 	seller.personal_gold = maxi(0, seller.personal_gold) + price
 	seller.shop_stock[item] = int(seller.shop_stock[item]) - 1
 	seller._sync_shop_stock_to_vm()
+	if VillageFame.is_master(vm, seller):
+		VillageFame.add_fame(vm, seller, 1, "Su puesto de autor triunfa en el mercado")
 	var fam: String = str(n.family_id) if "family_id" in n else ""
 	if fam != "" and vm.house_pantry.has(fam) and _is_food(item):
 		vm.house_pantry[fam] = int(vm.house_pantry[fam]) + 1

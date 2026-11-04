@@ -205,6 +205,7 @@ static func on_murder_resolved(vm, victim_name: String, resolution_note: String)
 				break
 		if killer == null:
 			return
+		vm.VillageFame.add_fame(vm, killer, -35, "Descubierto como asesino de %s" % victim.npc_name)
 	var kin: Array = relatives_of(vm, victim)
 	if is_player_killer and valid_family(str(victim.family_id)):
 		st["feud_player"][str(victim.family_id)] = "severe"

@@ -5,6 +5,11 @@ El detalle técnico está en `docs/HANDOFF.md` (sección 7) y el historial compl
 
 ## 2026-11-04
 
+### Fama de los vecinos y Maestros Artesanos con estilo propio
+- **Reputación y fama individual en el pueblo:** cada vecino gana o pierde fama según lo que hace (alcanzar maestría en su oficio, ganar peleas o ser alcalde sube su prestigio; ser pillado robando, engañar a su pareja o cometer un crimen lo hunde en la infamia). Su rango («🌟 Célebre», «✨ Conocido», «😠 Mal visto» o «🌑 Infame») se ve en el glosario de vecinos y cuando preguntas por él en el pueblo.
+- **Maestros Artesanos y Obras Maestras de autor:** los artesanos con experiencia y buena mano alcanzan el título de Maestro con un estilo propio de su gremio y elaboran Obras Maestras firmadas con existencias limitadas. Los vecinos ricos y los nobles las compran pagando de su bolsillo, y en el mercado de los miércoles sus puestos tienen más prestigio.
+- **Mecenazgo, coleccionismo y rumores en la plaza:** puedes comprar Obras Maestras en los talleres, patrocinar con mejores materiales a un artesano prometedor para que alcance antes la maestría, vender piezas firmadas a coleccionistas adinerados (que te pagan de su bolsillo) o regalarlas, y hablar maravillas o pregonar las faltas de un vecino en la plaza (con tirada de riesgo y días de espera).
+
 ### Revisión de las 29 mecánicas nuevas: errores, destripes y dinero fácil
 - **Ya no fallan:** desmontar un crimen por imitación y los intrusos nocturnos funcionan sin errores.
 - **El misterio vuelve a estar a salvo:** las cartas de amantes se encuentran hurgando bolsillos (se ofrece con cualquiera, así que no delata nada, y te pueden pillar). Consultar pólizas de vida cuesta 10 de oro, se puede preguntar por cualquier víctima, y también hay pólizas inocentes entre parientes: tener una no prueba que sea el asesino.

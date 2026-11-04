@@ -279,3 +279,12 @@ Informe completo: `docs/AUDITORIA_P1_P7.md`.
 | PD4 | Debate y reto al jefe con tirada (reto 1/semana, debate por `elections`); patriarca 1/semana; mentor 10 de oro; indulto recupera `family_name` de su clan; intruso solo con él y roba del escondite si no lo enfrentas | ✅ | VillageMayor.gd, VillageUnderworld.gd, VillageClans.gd, VillageLineage.gd, VillageHousing.gd |
 | PD5 | Escritura falsa con 30 % de riesgo de ser descubierta (pierdes el papel falso y sube la búsqueda +1); caravana de contrabando acampa solo de noche cada 3 días con lotes limitados (`is_caravan_here`, `caravan_batches_left`) | ✅ | VillageHousing.gd, VillageUnderworld.gd, verify_all.gd |
 
+## Bloque PF — Fama de los vecinos y Maestros Artesanos con estilo propio (2026-11-04)
+
+| # | Paso | Estado | Archivos | Nota |
+|---|------|--------|----------|------|
+| PF1 | Puntuación individual de fama/infamia (`-100..100`, `🌟 Célebre`, `✨ Conocido`, `😠 Mal visto`, `🌑 Infame`) conectada a maestría, peleas, robos descubiertos, infidelidades, asesinatos resueltos, alcaldía y mercado | ✅ | VillageFame.gd, VillageSocialLife.gd, VillageSecrets.gd, VillageCrime.gd, VillageClans.gd, VillageCulture.gd | Test #83 |
+| PF2 | Maestros Artesanos con estilo propio por oficio (`STYLE_BY_ROLE`, `promote_to_master`) y tendencias `fame`, `craft` y `trade` activadas en `TraitCatalog.gd`; elaboran Obras Maestras firmadas (`masterwork_piece`) que ricos y nobles compran con oro de su bolsillo | ✅ | VillageFame.gd, TraitCatalog.gd, SimpleInventory.gd, VillageManager.gd | Test #83 |
+| PF3 | Opciones del jugador: comprar Obra Maestra en el taller (`fame_buy_masterwork`), patrocinar el taller de un artesano (`fame_patronize`), vender o regalar Obra Maestra a coleccionistas (`fame_sell_masterwork`, `fame_gift_masterwork`) y hablar bien o mal de un vecino con tirada de riesgo y espera de 3 días (`fame_praise`, `fame_tarnish`); visible en glosario `[J]` y opiniones | ✅ | VillageFame.gd, NPCDialogue.gd, SocialGlossaryUI.gd, verify_all.gd | Test #83 |
+
+

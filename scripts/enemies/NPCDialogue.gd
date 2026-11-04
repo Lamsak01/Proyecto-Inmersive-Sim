@@ -18,6 +18,7 @@ const VillageConfession = preload("res://scripts/systems/VillageConfession.gd")
 const VillageMayor = preload("res://scripts/systems/VillageMayor.gd")
 const VillageHousing = preload("res://scripts/systems/VillageHousing.gd")
 const VillageUnderworld = preload("res://scripts/systems/VillageUnderworld.gd")
+const VillageFame = preload("res://scripts/systems/VillageFame.gd")
 const TraitDiscovery = preload("res://scripts/systems/TraitDiscovery.gd")
 const TraitCatalog = preload("res://scripts/data/TraitCatalog.gd")
 
@@ -282,6 +283,7 @@ static func _add_neighbor_opinions(npc: VillageNPC, diag: Dictionary, ch_arr: Ar
 		VillageMayor.add_dialogue_choices(vm_p, npc, diag, ch_arr) # P5
 		VillageHousing.add_dialogue_choices(vm_p, npc, diag, ch_arr) # P6
 		VillageUnderworld.add_dialogue_choices(vm_p, npc, diag, ch_arr) # P7
+		VillageFame.add_dialogue_choices(vm_p, npc, diag, ch_arr) # Fama y Maestros Artesanos
 	if npc.affinity < 0:
 		var hint_q: String = ""
 		var qm_h = npc.get_node_or_null("/root/QuestManager")
@@ -347,6 +349,10 @@ static func _add_neighbor_opinions(npc: VillageNPC, diag: Dictionary, ch_arr: Ar
 		var heard_trait: String = TraitDiscovery.hearsay_trait(npc, other) if shares_reason else ""
 		if heard_trait != "":
 			text += "\n«Por lo que sé, es %s.»" % TraitCatalog.npc_display(other, heard_trait).to_lower()
+		if vm_op != null:
+			var f_badge: String = VillageFame.summary_badge(vm_op, other)
+			if f_badge != "":
+				text += "\n«En el pueblo tiene fama: %s.»" % f_badge
 		choices.append({"label": "👤 %s" % other.npc_name, "next": "opinion_%d" % i, "action": "quest_opinion_seen:" + other.get_person_key()})
 		var op_choices: Array = []
 		if can_influence:
@@ -838,6 +844,10 @@ static func on_dialogue_action(npc: VillageNPC, action_id: String) -> void:
 	if action_id.begins_with("underworld_"):
 		if vm != null:
 			VillageUnderworld.on_player_action(vm, npc, action_id, inv)
+		return
+	if action_id.begins_with("fame_"):
+		if vm != null:
+			VillageFame.on_player_action(vm, npc, action_id, inv)
 		return
 	if action_id.begins_with("town_"):
 		if vm != null:

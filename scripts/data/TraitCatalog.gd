@@ -36,16 +36,16 @@ const TENDENCIES: Dictionary = {
 	"hygiene": "Higiene (dormida)",
 	"health": "Aguante ante heridas y enfermedades (dormida)",
 	"leadership": "Mando: arrastrar o seguir opiniones (dormida)",
-	"fame": "Ganas de ser famoso (dormida)",
+	"fame": "Ganas de ser famoso",
 	"nerve": "Nervios en interrogatorios (dormida)",
 	"memory": "Memoria de testigo (dormida)",
 	"spending": "Gasto: derrochar o ahorrar (dormida)",
 	"innovation": "Gusto por lo nuevo y la tecnología (dormida)",
 	"wander": "Ganas de irse del pueblo (dormida)",
 	"rivalry": "Competitividad (dormida)",
-	"craft": "Habilidad manual (dormida)",
+	"craft": "Habilidad manual",
 	"animals": "Cariño por los animales (dormida)",
-	"trade": "Mano para el comercio (dormida)",
+	"trade": "Mano para el comercio",
 }
 
 ## id del rasgo -> datos. 140 rasgos: 118 en 51 ejes de opuestos y 22 sueltos; 17 raros.
