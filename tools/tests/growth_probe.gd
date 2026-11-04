@@ -56,6 +56,11 @@ func _initialize() -> void:
 		var lst: Dictionary = lots.lot(vm, str(l["id"]))
 		if lst.has("loan"):
 			loans_open.append("%s:%s debe %d (impagos %d)" % [str(l["id"]), str(lst["loan"]["lender_name"]), int(lst["loan"]["owed"]), int(lst["loan"]["missed"])])
+	var deaths: Array = []
+	for ce in vm.chronicle:
+		if str(ce.get("type", "")) in ["death_found", "illness_death"]:
+			deaths.append(str(ce.get("text", "")))
+	print("DEATHS %d %s rations_served=%d" % [deaths.size(), str(deaths), int(vm.town_state.get("rations_served", 0))])
 	print("TREASURY %d houses_ordered=%d loans_given=%d open=%s" % [int(vm.town_state.get("treasury", 0)), int(mig.state(vm)["houses_ordered"]), int(mig.state(vm).get("loans_given", 0)), str(loans_open)])
 	print("PHASE1 days=%d max_pop=%d real_seconds=%.0f" % [days, max_pop, float(Time.get_ticks_msec() - t_start) / 1000.0])
 	# ---------------------------------------------------------------- fase 2

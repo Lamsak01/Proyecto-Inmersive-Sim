@@ -282,10 +282,11 @@ func find_sustainable_hunt_prey(from_pos: Vector2) -> WildAnimal:
 	# Elegir de las especies que superen estrictamente su umbral de seguridad ecológica
 	if deer_surplus > 0:
 		candidates.append_array(live_deer)
-	if boar_surplus > 0:
-		candidates.append_array(live_boars)
 	if rabbit_surplus > 0:
 		candidates.append_array(live_rabbits)
+	# J1: el jabalí embiste si se le hiere; un cazador prudente solo va a por él si no queda otra presa
+	if boar_surplus > 0 and candidates.filter(func(a): return a.state != WildAnimal.AnimalState.IN_BURROW and a.visible).is_empty():
+		candidates.append_array(live_boars)
 
 	if candidates.is_empty():
 		return null

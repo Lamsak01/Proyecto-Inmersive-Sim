@@ -32,6 +32,8 @@ const CORRUPT_MIN: float = 0.5
 const BRIBE_MIN: int = 20
 const BRIBE_FAIL_FINE: int = 10
 
+const STARTING_TREASURY: int = 1000
+
 static func state(vm) -> Dictionary:
 	if not (vm.town_state is Dictionary):
 		vm.town_state = {}
@@ -40,7 +42,7 @@ static func state(vm) -> Dictionary:
 			vm.town_state[k] = {} if k == "pledges" else []
 	for k in ["treasury", "taxed_total", "embezzled_total", "bribes", "elections"]:
 		if not vm.town_state.has(k):
-			vm.town_state[k] = 0
+			vm.town_state[k] = STARTING_TREASURY if k == "treasury" else 0 # J3: el pueblo empieza con dinero guardado
 	return vm.town_state
 
 # ---------------------------------------------------------------- I3 corrupción

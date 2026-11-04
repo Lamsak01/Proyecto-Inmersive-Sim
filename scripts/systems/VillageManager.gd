@@ -247,6 +247,7 @@ func setup_village(target_entities_root: Node) -> void:
 	_spawn_unemployed_tavern_guests()
 	VillageWorldBuilder._spawn_farm_well_and_compost(self)
 	VillageTrades.setup_world(self) # V5: panadería y sastrería (puestos vacantes al empezar)
+	VillageTown.state(self) # J3: arcas iniciales (1000) en partida nueva
 	VillageCivic.setup_world(self) # V5b: ayuntamiento, albergue y El Candil
 	VillageCulture.ensure_lots(self) # V5e: biblioteca y escuela
 	VillageNobility.ensure_lots(self) # V6: mansión y casa grande
@@ -1510,6 +1511,9 @@ func register_npc_death_and_corpse(
 		start_sheriff_investigation(victim, death_pos, weapon_name, finder_str, death_mins)
 
 	var is_case_already_resolved: bool = suspect_str.begins_with("Jugador") and victim.trade_role != VillageNPC.TradeRole.TRAVELING_MERCHANT
+	if VillageNPC.is_natural_death_cause(weapon_name) and not victim.last_hit_by_player: # J2: no es un crimen
+		is_case_already_resolved = true
+		suspect_str = "Sin crimen: %s" % VillageNPC.natural_death_text(weapon_name)
 	var record: Dictionary = {
 		"victim_name": victim.npc_name, "victim_role": victim.npc_role, "family_name": victim.family_name,
 		"time_str": time_str, "crime_scene": crime_scene_name, "cause_of_death": weapon_name,
@@ -3549,6 +3553,10 @@ func consume_village_meal_for_npc(npc: VillageNPC) -> bool:
 	if int(house_pantry.get(p_key, 0)) > 0:
 		house_pantry[p_key] = int(house_pantry.get(p_key, 0)) - 1
 		npc.add_thought("Comió de su despensa casera (+5)", 5.0)
+		return true
+
+	# J4: último recurso, las gachas del albergue
+	if VillageCivic.take_shelter_ration(self, npc):
 		return true
 
 	# ¡Escasez o falta de dinero! El NPC no pudo comprar comida y recurrirá a cazar/recolectar torpemente en el bosque

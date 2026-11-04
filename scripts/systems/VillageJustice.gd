@@ -242,6 +242,19 @@ static func _build_investigation_case_dict(vm: VillageManager, victim: VillageNP
 	}
 
 static func start_sheriff_investigation(vm: VillageManager, victim: VillageNPC, death_pos: Vector2, weapon_name: String, discoverer_name: String, _death_mins: int = 0) -> void:
+	# J2: hambre, animales o enfermedad no son un crimen: se ve a simple vista y no se abre caso
+	if victim != null and VillageNPC.is_natural_death_cause(weapon_name) and not victim.last_hit_by_player:
+		var first_time: bool = not victim.has_meta("natural_death_noted")
+		if first_time:
+			victim.set_meta("natural_death_noted", true)
+			VillageChronicle.add(vm, "death_found", "Hallaron el cuerpo sin vida de %s: %s" % [victim.npc_name, VillageNPC.natural_death_text(weapon_name)], true)
+		# Siempre se marca resuelto (el registro de la morgue puede llegar después del hallazgo) para que se le entierre
+		if first_time:
+			vm._mark_morgue_case_resolved(victim.npc_name, "Sin crimen: %s" % VillageNPC.natural_death_text(weapon_name))
+			_check_and_start_next_morgue_sheriff_case(vm)
+		else:
+			_resolve_quietly(vm, victim.npc_name, weapon_name)
+		return
 	if bool(vm.active_sheriff_investigation.get("active", false)):
 		return
 	vm.active_sheriff_investigation = _build_investigation_case_dict(vm, victim, death_pos, weapon_name, discoverer_name, 5, false)
@@ -1364,6 +1377,18 @@ static func _conclude_sheriff_investigation_verdict(vm: VillageManager, sheriff:
 		vm._hint_player("🚓📋 El Comisario Vane archivó sin cargos la investigación local de %s (ningún testigo te situó como culpable)." % v_name, p)
 
 	_check_and_start_next_morgue_sheriff_case(vm)
+
+## J2: marca resuelto el registro de la morgue sin repetir la línea de la crónica.
+static func _resolve_quietly(vm: VillageManager, victim_name: String, cause: String) -> void:
+	for rec in vm.morgue_active_corpses:
+		if str(rec.get("victim_name", "")) == victim_name and not bool(rec.get("case_resolved", false)):
+			rec["added_total_hours"] = (WorldClock.current_day if WorldClock else 1) * 24 + (WorldClock.current_hour if WorldClock else 12)
+			rec["case_resolved"] = true
+			rec["suspect"] = "Sin crimen: %s" % VillageNPC.natural_death_text(cause)
+	for rec2 in vm.corpse_records:
+		if str(rec2.get("victim_name", "")) == victim_name:
+			rec2["case_resolved"] = true
+			rec2["suspect"] = "Sin crimen: %s" % VillageNPC.natural_death_text(cause)
 
 static func _check_and_start_next_morgue_sheriff_case(vm: VillageManager) -> void:
 	for next_rec in vm.morgue_active_corpses:

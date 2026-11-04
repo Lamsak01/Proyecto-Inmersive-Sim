@@ -5,6 +5,12 @@ El detalle técnico está en `docs/HANDOFF.md` (sección 7) y el historial compl
 
 ## 2026-11-03
 
+### Cazadores prudentes, muertes claras y gachas
+- El carnicero ya no muere siempre cazando: prefiere ciervos y conejos, se retira si un jabalí le deja malherido y el jabalí no remata a quien está en el suelo.
+- Morir de hambre, por un animal o de una enfermedad ya no se investiga como asesinato: la crónica dice qué pasó («lo mató un jabalí», «murió de hambre»).
+- Una partida nueva empieza con 1000 de oro en las arcas.
+- El Albergue del Alba prepara cada mañana gachas para los pobres: 1 de oro, o gratis si no tienes nada. En la partida de prueba nadie se quedó sin comer.
+
 ### Casas a plazos y mapa más claro
 - Las casas cuestan 100 de oro y se pueden comprar a plazos: con 15 de entrada, el pueblo o un noble presta el resto con un 25 % de interés. Quien deja de pagar 5 días seguidos pierde la casa. La deuda se ve en la ficha y en la crónica.
 - El mapa grande (M) ocupa casi toda la pantalla y los nombres de los edificios ya no se pisan; al pasar el cursor sale el nombre completo.

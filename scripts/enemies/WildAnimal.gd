@@ -864,7 +864,7 @@ func _start_boar_aggro(attacker: Node2D) -> void:
 
 func _process_boar_charge_attack(delta: float) -> void:
 	boar_aggro_timer -= delta
-	var target_dead: bool = (not is_instance_valid(boar_aggressor)) or ("is_dead" in boar_aggressor and bool(boar_aggressor.get("is_dead"))) or (boar_aggressor is WildAnimal and not (boar_aggressor as WildAnimal).is_alive_in_ecosystem())
+	var target_dead: bool = (not is_instance_valid(boar_aggressor)) or ("is_dead" in boar_aggressor and bool(boar_aggressor.get("is_dead"))) or ("is_downed" in boar_aggressor and bool(boar_aggressor.get("is_downed"))) or (boar_aggressor is WildAnimal and not (boar_aggressor as WildAnimal).is_alive_in_ecosystem())
 	if boar_aggro_timer <= 0.0 or target_dead or global_position.distance_to(boar_aggressor.global_position) > 275.0:
 		boar_aggressor = null
 		boar_charge_windup = 0.0

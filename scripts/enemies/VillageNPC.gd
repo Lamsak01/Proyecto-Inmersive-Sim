@@ -3356,6 +3356,11 @@ func _process_physical_morning_expedition(delta: float) -> void:
 				add_thought("Respetó el equilibrio de la fauna del bosque (+5)", 5.0)
 				return
 
+		# J1: si un jabalí le embiste y ya va por la mitad de la salud, deja la caza por hoy y se aleja
+		if should_flee_boar(prey):
+			flee_from_boar(prey)
+			return
+
 		# Si la presa ya ha caído abatida (`CARCASS`), acercarse físicamente a desollarla
 		if prey.state == WildAnimal.AnimalState.CARCASS:
 			if global_position.distance_to(prey.global_position) > 22.0:
@@ -3460,6 +3465,55 @@ func _process_physical_morning_expedition(delta: float) -> void:
 			_sync_shop_stock_to_vm()
 			add_thought("Extracción matutina en equilibrio con el bosque (+6)", 6.0)
 
+## J2: nombre de la herida según quién la hizo (cualquiera reconoce la de un animal).
+const NATURAL_DEATH_TAGS: Array[String] = ["Embestida de jabalí", "Mordedura de zorro", "Ataque de animal salvaje", "Inanición", "Enfermedad"]
+static func death_cause_for_source(src) -> String:
+	if src is WildAnimal:
+		match (src as WildAnimal).species:
+			WildAnimal.SpeciesType.BOAR: return "Embestida de jabalí"
+			WildAnimal.SpeciesType.FOX: return "Mordedura de zorro"
+		return "Ataque de animal salvaje"
+	return "Herida de asaltante"
+
+## J2: muertes que no son un crimen (hambre, animales, enfermedad): no hace falta investigar.
+static func is_natural_death_cause(cause: String) -> bool:
+	for t in NATURAL_DEATH_TAGS:
+		if t in cause:
+			return true
+	return false
+
+static func natural_death_text(cause: String) -> String:
+	if "jabalí" in cause:
+		return "lo mató un jabalí"
+	if "zorro" in cause:
+		return "lo mató un zorro"
+	if "animal" in cause:
+		return "lo mató un animal salvaje"
+	if "Inanición" in cause:
+		return "murió de hambre"
+	if "Enfermedad" in cause:
+		return "murió de una enfermedad"
+	return "murió"
+
+## J1: ¿le está embistiendo este jabalí y ya va herido (salud ≤ 50 %)?
+func should_flee_boar(prey) -> bool:
+	if not is_instance_valid(prey) or not (prey is WildAnimal) or prey.species != WildAnimal.SpeciesType.BOAR:
+		return false
+	if prey.state != WildAnimal.AnimalState.CHARGE_ATTACK or prey.boar_aggressor != self or health_comp == null:
+		return false
+	return health_comp.current_health <= health_comp.max_health * 0.5
+
+## J1: abandona la caza del día; el jabalí pierde el interés en quien huye (2 s más de furia como mucho).
+func flee_from_boar(prey) -> void:
+	var cur_day: int = WorldClock.current_day if WorldClock else 1
+	_completed_expedition_day = cur_day
+	_expedition_target_node = null
+	_amateur_prey_target = null
+	_is_amateur_foraging = false
+	prey.boar_aggro_timer = minf(prey.boar_aggro_timer, 2.0)
+	add_thought("Un jabalí casi me mata; hoy no cazo más (-8)", -8.0)
+	_spawn_floating_text("🐗🏃 ¡Retirada! El jabalí es demasiado peligroso", Color.ORANGE, -38.0)
+
 func _fire_hunter_arrow_at_prey(prey: WildAnimal) -> void:
 	if not is_instance_valid(prey):
 		return
@@ -3504,6 +3558,10 @@ func _process_amateur_survival_hunting(delta: float) -> void:
 			add_thought("Tuvo que comer raíces amargas del bosque por falta de comida (-6)", -6.0)
 			_spawn_floating_text("🌱😣 Raíces silvestres recolectadas (+18% Nutrición gradual)", Color(0.82, 0.92, 0.58), -36.0)
 			current_activity = ActivityState.SOCIALIZING
+		return
+
+	if should_flee_boar(prey): # J1
+		flee_from_boar(prey)
 		return
 
 	# Si la presa ya cayó (`CARCASS`), acercarse y hacer un despiece amateur torpe (desperdiciando piel y 70% de carne)
@@ -4040,7 +4098,7 @@ func take_damage(data: DamageData) -> void:
 			else: last_hit_weapon_name = "Corte de Espada"
 		else:
 			last_hit_by_player = false
-			last_hit_weapon_name = "Desgarro por Animal/Asaltante"
+			last_hit_weapon_name = death_cause_for_source(data.source)
 
 	# Si ya está agonizando en el suelo y vuelven a golpearlo -> Rematar (muerte definitiva)
 	if is_downed:

@@ -131,3 +131,19 @@ Leyenda: ✅ probado y subido · 🟡 escrito, sin probar · 🔴 falló (ver no
 | I1 | El mapa grande ocupa casi toda la pantalla (antes 900×550 fijos) | 🟡 | ValleyMapUI._fit_full_map | |
 | I2 | Nombres de edificios con fondo oscuro; si no caben se acortan; si chocan, van debajo o se omiten | 🟡 | ValleyMapUI._draw_building_labels | |
 | I3 | Al pasar el cursor por cualquier edificio sale su nombre completo (antes solo las 5 tiendas originales) | 🟡 | ValleyMapUI._update_census_and_hover | Sin test: es dibujo; el juego carga sin errores |
+
+## Bloque J — Jabalíes, causa de la muerte, arcas y gachas (aprobado por el usuario)
+
+| # | Paso | Estado | Archivos | Nota |
+|---|------|--------|----------|------|
+| J1 | Los jabalíes mataban siempre al carnicero: se quedaba quieto disparando mientras le embestían, y si caía al suelo el jabalí lo remataba. Ahora el cazador prefiere ciervos y conejos (jabalí solo si no hay otra presa); si un jabalí le embiste y va por la mitad de la salud, se retira y el jabalí pierde el interés; el jabalí deja en paz a quien ya está en el suelo | ✅ | EcosystemManager.find_sustainable_hunt_prey, VillageNPC.should_flee_boar / flee_from_boar, WildAnimal (embestida) | También vale para quien caza por hambre |
+| J2 | Herida con nombre («Embestida de jabalí», «Mordedura de zorro», «Herida de asaltante»). Hambre, animales o enfermedad no abren caso: la crónica dice «Hallaron el cuerpo sin vida de X: lo mató un jabalí / murió de hambre» y el registro de la morgue queda resuelto para el entierro | ✅ | VillageNPC (death_cause_for_source, is_natural_death_cause), VillageJustice.start_sheriff_investigation, VillageManager (registro) | Los asaltantes sí abren caso |
+| J3 | Partida nueva: arcas con 1000 de oro | ✅ | VillageTown.STARTING_TREASURY | Las guardadas no cambian |
+| J4 | Gachas del Albergue: a las 6 h el cura prepara pobres + 2 raciones (tope 8), 2 de oro cada una de las arcas; último recurso antes del hambre: 1 de oro o gratis | ✅ | VillageCivic.cook_shelter_rations / take_shelter_ration, VillageManager.consume_village_meal_for_npc | Las que sobran no se guardan |
+| J5 | Test #79; la sonda apunta muertes y raciones servidas | ✅ | verify_all.gd, growth_probe.gd | |
+
+### Pruebas del bloque J (todas pasan) y sonda
+- Los cuatro tests pasan (con #79). Con 50 vecinos: plaza 5,4 ms, lejos 4,5 ms, peor 21 ms, ninguno > 33 ms.
+- Sonda de 12 días: **0 comidas fallidas** (antes 16) y **0 muertes**; 5 raciones de gachas servidas. Población 18 → 34
+  (6 llegadas por V3), 3 casas encargadas (2 a plazos, prestadas por el pueblo). Las arcas acaban en 962.
+- Lo de los jabalíes no se puede ver en la sonda (no hubo caza peligrosa); queda para la prueba manual.

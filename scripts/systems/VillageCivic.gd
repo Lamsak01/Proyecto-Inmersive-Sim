@@ -106,6 +106,8 @@ static func is_voting_today(vm) -> bool:
 	return int(vm.town_state.get("voting_day", -1)) == VillageNeeds.today()
 
 static func on_hour(vm, hour: int) -> void:
+	if hour == RATION_HOUR:
+		cook_shelter_rations(vm)
 	if is_voting_today(vm):
 		if hour >= VOTE_HOURS.x and hour < VOTE_HOURS.y:
 			_send_voters(vm, hour)
@@ -184,6 +186,45 @@ static func daily(vm) -> void:
 				n.modify_npc_relationship(priest, 2, "Me da techo en el Albergue del Alba", true)
 
 # ---------------------------------------------------------------- albergue y El Candil
+## J4: cada mañana el cura del albergue prepara gachas para los pobres (pagadas por las arcas). Son el último recurso
+## antes de pasar hambre: 1 de oro, o gratis si no tienes nada.
+const RATION_HOUR: int = 6
+const RATION_COST_TOWN: int = 2
+const RATION_PRICE: int = 1
+const RATION_EXTRA: int = 2
+const RATION_MAX: int = 8
+
+static func cook_shelter_rations(vm) -> int:
+	var ts: Dictionary = vm.town_state
+	if vm.VillageFaith.priest_of(vm) == null or str(VillageLots.lot(vm, SHELTER_LOT).get("status", "")) != "built":
+		ts["shelter_rations"] = 0
+		return 0
+	var poor: int = 0
+	for n in VillageNeeds.living(vm):
+		if VillageNeeds.class_of(n) in ["pobre", "mendigo"]:
+			poor += 1
+	var want: int = mini(RATION_MAX, poor + RATION_EXTRA)
+	var afford: int = int(int(ts.get("treasury", 0)) / RATION_COST_TOWN)
+	var made: int = mini(want, afford)
+	ts["treasury"] = int(ts.get("treasury", 0)) - made * RATION_COST_TOWN
+	ts["shelter_rations"] = made # lo que sobra del día anterior no se guarda
+	return made
+
+static func take_shelter_ration(vm, npc) -> bool:
+	var ts: Dictionary = vm.town_state
+	if int(ts.get("shelter_rations", 0)) <= 0:
+		return false
+	ts["shelter_rations"] = int(ts["shelter_rations"]) - 1
+	ts["rations_served"] = int(ts.get("rations_served", 0)) + 1
+	var paid: String = "gratis"
+	if npc.personal_gold >= RATION_PRICE:
+		npc.personal_gold -= RATION_PRICE
+		ts["treasury"] = int(ts.get("treasury", 0)) + RATION_PRICE
+		paid = "-%d Oro" % RATION_PRICE
+	npc.add_thought("Comió gachas en el Albergue del Alba (+2)", 2.0)
+	npc._spawn_floating_text("🥣 Gachas del Albergue (%s)" % paid, Color(0.9, 0.85, 1.0), -32.0)
+	return true
+
 static func free_shelter_bed(vm) -> Vector2:
 	var used: Array = []
 	for n in VillageNeeds.living(vm):

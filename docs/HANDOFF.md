@@ -610,8 +610,15 @@ Cada fase se dividirá en bloques pequeños cuando se llegue a ella (detalle en 
   al día. Impago: +1 de recargo, −6 de humor, el noble −4; a los 5 seguidos, la casa pasa al prestamista y los moradores
   van a la posada o a la calle. El préstamo vive en `lots_state[id]["loan"]`. Casa de otro: el alquiler de 2 va a su
   dueño. Ficha («🏦 Debe…») y crónica (`loan`, `loan_paid`, `eviction`). Sonda: 2 casas a plazos en 12 días.
-- [ ] **Bloque I** Mapa grande: ocupa casi toda la pantalla, nombres sin pisarse (fondo, versión corta, debajo u
+- [x] **Bloque I** Mapa grande: ocupa casi toda la pantalla, nombres sin pisarse (fondo, versión corta, debajo u
   omitido) y el cursor da el nombre completo de cualquier edificio. Sin probar en juego.
+- [x] **Bloque J** (test #79). Caza: el cazador prefiere ciervos y conejos (`EcosystemManager.find_sustainable_hunt_prey`);
+  con un jabalí embistiendo y salud ≤ 50 % se retira (`VillageNPC.should_flee_boar` / `flee_from_boar`, el jabalí se calma
+  en 2 s); el jabalí no embiste a quien está en el suelo. Heridas con nombre (`death_cause_for_source`); hambre, animal y
+  enfermedad (`is_natural_death_cause`) no abren caso: crónica «Hallaron el cuerpo sin vida de X: lo mató un jabalí» y
+  registro de morgue resuelto. Arcas de partida nueva: 1000 (`VillageTown.STARTING_TREASURY`). Gachas del albergue
+  (`VillageCivic.cook_shelter_rations` a las 6 h, `take_shelter_ration` como último recurso de la comida). Sonda: 0 comidas
+  fallidas y 0 muertes en 12 días.
 - [x] **Bloque E** (probado, test #75; detalle en `docs/REGISTRO_TRABAJO.md`). Diagnóstico de comidas fallidas
   (`migration_state.meal_fails`, «motivo/oficio»); casas: la pareja junta ahorros y, si alguien duerme al raso, el
   pueblo paga sin reserva; camas de posada sin repetir (cuenta a quien tenga oficio y duerma allí); U5 «según X»

@@ -2981,5 +2981,48 @@ func _initialize() -> void:
 	vh_b.queue_free()
 	print("Block H house loans OK")
 
+	# 79. Bloque J: jabalíes, causa de muerte a la vista, arcas iniciales y gachas del albergue.
+	var vnpc = load("res://scripts/enemies/VillageNPC.gd")
+	var vj_boar = null
+	for vj_a in get_nodes_in_group("ecosystem_boars"):
+		if vj_boar == null and vj_a.is_alive_in_ecosystem():
+			vj_boar = vj_a
+	assert(vj_boar != null, "J: There is a live boar")
+	assert(vnpc.death_cause_for_source(vj_boar) == "Embestida de jabalí" and vnpc.is_natural_death_cause("Embestida de jabalí") and not vnpc.is_natural_death_cause("Puñalada (cuchillo)"), "J2: A boar wound is named and is not a crime")
+	var vj_h = vmi._spawn_one(vm, vmi.SETTLER_KINDS[0], 0)
+	var vj_bs = vj_boar.state
+	vj_boar.state = load("res://scripts/enemies/WildAnimal.gd").AnimalState.CHARGE_ATTACK
+	vj_boar.boar_aggressor = vj_h
+	vj_boar.boar_aggro_timer = 11.0
+	vj_h.health_comp.current_health = vj_h.health_comp.max_health * 0.9
+	assert(not vj_h.should_flee_boar(vj_boar), "J1: A healthy hunter keeps going")
+	vj_h.health_comp.current_health = vj_h.health_comp.max_health * 0.4
+	assert(vj_h.should_flee_boar(vj_boar), "J1: A badly hurt hunter retreats from a charging boar")
+	vj_h.flee_from_boar(vj_boar)
+	assert(vj_boar.boar_aggro_timer <= 2.0, "J1: The boar loses interest in someone running away")
+	vj_boar.state = vj_bs
+	vj_boar.boar_aggressor = null
+	vj_boar.boar_aggro_timer = 0.0
+	# Muerte por animal: no se abre caso y la crónica lo dice
+	var vj_was: bool = bool(vm.active_sheriff_investigation.get("active", false))
+	load("res://scripts/systems/VillageJustice.gd").start_sheriff_investigation(vm, vj_h, vj_h.global_position, "Embestida de jabalí", "Prueba")
+	assert(bool(vm.active_sheriff_investigation.get("active", false)) == vj_was, "J2: No murder case for a death by boar")
+	assert(str(vm.chronicle[vm.chronicle.size() - 1]["text"]).contains("lo mató un jabalí"), "J2: The chronicle says what killed them")
+	# Arcas de partida nueva y gachas
+	assert(load("res://scripts/systems/VillageTown.gd").STARTING_TREASURY == 1000, "J3: A new town starts with 1000 gold")
+	var vcv = load("res://scripts/systems/VillageCivic.gd")
+	var vj_tr: int = int(vm.town_state.get("treasury", 0))
+	vm.town_state["treasury"] = 100
+	var vj_made: int = vcv.cook_shelter_rations(vm)
+	assert(vj_made >= vcv.RATION_EXTRA and vj_made <= vcv.RATION_MAX and int(vm.town_state["treasury"]) == 100 - vj_made * vcv.RATION_COST_TOWN, "J4: The shelter cooks rations paid by the coffers (%d)" % vj_made)
+	vj_h.personal_gold = 0
+	assert(vcv.take_shelter_ration(vm, vj_h) and int(vm.town_state["shelter_rations"]) == vj_made - 1, "J4: A penniless villager eats porridge for free")
+	vm.town_state["shelter_rations"] = 0
+	assert(not vcv.take_shelter_ration(vm, vj_h), "J4: No porridge left, no meal")
+	vm.town_state["treasury"] = vj_tr
+	vm.unemployed_npcs.erase(vj_h)
+	vj_h.queue_free()
+	print("Block J boars, causes of death and porridge OK")
+
 	print("ALL RIMWORLD MEDICAL, FOOTPRINTS, 3-PHASE CORPSE REPORT, MULTI-CORPSE FIX, RPG INTERROGATION, PUBLIC TRIAL, DYNAMIC RELATIONSHIPS, MISSING FAMILY SEARCH, SOCIAL GLOSSARY & UNCONSCIOUS REACTION TESTS PASSED!")
 	quit(0)
