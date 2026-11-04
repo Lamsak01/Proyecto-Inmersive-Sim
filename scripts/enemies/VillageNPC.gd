@@ -1861,6 +1861,15 @@ func _process_duties(delta: float) -> bool:
 	if trade_role == TradeRole.TRAVELING_MERCHANT and not is_hostile:
 		_process_traveling_merchant_routine(delta)
 		return true
+
+	# Bloque PH: Si este vecino es el acompañante activo del jugador, camina a su lado durante el día
+	if not is_hostile and vm_escort != null and "VillageFame" in vm_escort and vm_escort.VillageFame != null and vm_escort.VillageFame.is_companion(vm_escort, self):
+		var h_comp: int = int(WorldClock.current_hour) if WorldClock != null else 12
+		if h_comp >= 6 and h_comp < 22 and need_hunger > 25.0 and need_energy > 15.0 and is_instance_valid(_cached_player):
+			_stop_crafting_bar()
+			_approach_or_stop(_cached_player.global_position + Vector2(-22, 14), 24.0, 56.0, delta)
+			_finish_frame_movement(delta)
+			return true
 	return false
 
 ## El médico atiende primero a los agonizantes y luego a sus pacientes del hospital.

@@ -294,5 +294,13 @@ Informe completo: `docs/AUDITORIA_P1_P7.md`.
 | PG1 | Seguimiento individual de clases recibidas (`pupil_lessons` a las 14:00) y graduación al cumplir 16 años (`grow_up`) con bonificación de dominio de oficio (`school_bonus_days` 1–4 días en `SAVED_INT_METAS`, aplicada en `promote_to_trade`) | ✅ | VillageFamily.gd, VillageNPC.gd | Test #84 |
 | PG2 | Fundar tu propio negocio desde cero en un solar construido (`found_player_shop`, `housing_found_shop`, 65 de oro al carpintero), abastecer mostrador con artículos reales de la mochila (`stock_player_shop`), contratar dependiente parado (`housing_hire_clerk`, 4 de oro/día de la caja), publicidad en el pueblo (`advertise_player_shop`, 12 de oro a las arcas) y venta diaria a vecinos con su propio oro | ✅ | VillageHousing.gd, verify_all.gd | Test #84 |
 
+## Bloque PH — Idolatría / obsesión por un personaje y Acompañantes del jugador (2026-11-04)
+
+| # | Paso | Estado | Archivos | Nota |
+|---|------|--------|----------|------|
+| PH1 | Idolatría u obsesión muy rara (`obsessions` en `VillageFame`, `try_spawn_obsession`): seguimiento (`obsession_follow`), regalos anónimos pagados del bolsillo del acosador (`OBSESSION_GIFT_COST`), celos extremos hacia cercanos del ídolo, tanteo diario sin destripes (`fame_probe_obsession`), calmar con Carisma (`fame_calm_obsessed`) o avisar al ídolo con recompensa de su bolsillo (`fame_warn_idol`) | ✅ | VillageFame.gd, verify_all.gd | Test #85 |
+| PH2 | Acompañantes del jugador (`companion` en `VillageFame`, `is_companion`, `VillageNPC._process_duties`): invitar por amistad (`>= 55`, `fame_companion_invite`) o contratar como escolta (`15` de oro/día de tu bolsa al suyo, `fame_companion_hire`), respaldo ante otros vecinos con tirada de riesgo (`fame_companion_backup`) y despido (`fame_companion_dismiss`) | ✅ | VillageFame.gd, VillageNPC.gd, verify_all.gd | Test #85 |
+
+
 
 

@@ -66,7 +66,7 @@ Estado: **✅ HECHO** = ya construido y funcionando en el juego. **🟡 EN PARTE
   - ✅ **Hecho en M1 / D5:** las rupturas por infidelidad y las amenazas cuentan como móvil en las investigaciones, y el asesino vecino deja rastro sin coartada.
   - ✅ **Hecho en P3 (`VillageLineage.gd`):** hijos secretos fruto de una infidelidad (con rasgo heredado del amante que despierta rumores al crecer), chantaje de paternidad, reclamar o repudiar al niño, manutención secreta semanal, expósitos dejados en la Capilla del Alba, adopción de huérfanos, rivalidad entre hermanastros por el taller, matrimonios por interés y pasado familiar fuera del valle.
 - ✅ **HECHO** — Degradación de relaciones con la distancia (si llevan más de 7 días sin verse, el aprecio y la chispa se enfrían poco a poco hacia neutro). *(Hecho en U6.)*
-- 💡 **PENDIENTE** — Idolatría u obsesión por un personaje (muy rara). *(Hoy existen seguidores de un vecino con rasgo Líder en G4 y amor no correspondido en U3, pero no obsesión patológica.)*
+- ✅ **HECHO** — Idolatría u obsesión por un personaje (muy rara, `VillageFame.gd`, test #85): un vecino solitario puede obsesionarse en secreto con alguien célebre o muy admirado, seguirle por el valle, dejarle regalos anónimos pagados de su propio bolsillo y sentir celos enfermizos de quienes se le acercan; puedes tantear a los vecinos para descubrir quién es (sin que el menú lo delate antes), hacerle entrar en razón o avisar al afectado a cambio de una recompensa de su bolsillo. *(Hecho en bloque PH + seguidores de Líder en G4 y amor no correspondido en U3.)*
 - ✅ **HECHO** — Fama: alguien puede volverse famoso o infame por sus obras, peleas, oficio, alcaldía o escándalos (`VillageFame.gd`, puntuación individual de −100 a +100 con rangos «🌟 Célebre» / «✨ Conocido» / «😠 Mal visto» / «🌑 Infame», visible en el glosario `[J]` y en opiniones de vecinos, más elogios o rumores públicos del jugador con tirada de riesgo). *(Hecho en `VillageFame.gd`, test #83.)*
 - ✅ **HECHO** — Enemigos que conspiran contra el jugador (si te odian ≤ −50 durante 7 días: hablan mal de ti, se niegan a venderte en su tienda, te denuncian al comisario —incluso con cargos falsos si son mentirosos— y difunden tus secretos). *(Hecho en D4.)*
 - ✅ **HECHO** — Rencores entre familias que pasan a los hijos y clanes (`VillageClans.gd`, P1):
@@ -141,7 +141,7 @@ Estado: **✅ HECHO** = ya construido y funcionando en el juego. **🟡 EN PARTE
 - 💡 **PENDIENTE** — Crear tu propio asentamiento.
 
 ### Jugador
-- 💡 **PENDIENTE** — Acompañantes del jugador (vecinos que te siguen y ayudan).
+- ✅ **HECHO** — Acompañantes del jugador (`VillageFame.gd`, `VillageNPC.gd`, test #85): un vecino con alta afinidad (≥ 55, gratis por amistad) o contratado como escolta (15 de oro al día pagados de tu bolsa a su bolsillo) te acompaña a pie por el valle, te respalda ante otros vecinos (una vez al día con tirada de riesgo) y vuelve a sus tareas cuando lo despides o si dejas de pagarle su jornal. *(Hecho en bloque PH.)*
 - 💡 **PENDIENTE** — Historia principal (pestaña «Principal» del panel de misiones `L` ya preparada).
 
 ### Tecnología anacrónica

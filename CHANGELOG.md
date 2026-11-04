@@ -5,6 +5,10 @@ El detalle técnico está en `docs/HANDOFF.md` (sección 7) y el historial compl
 
 ## 2026-11-04
 
+### Idolatría obsesiva y Acompañantes del jugador
+- **Admiradores obsesivos (muy raros):** un vecino solitario puede obsesionarse en secreto con alguien célebre del valle, seguirle a todas partes, dejarle regalos anónimos pagados de su propio bolsillo y coger celos enfermizos de sus amistades o pareja. Puedes tantear a los vecinos para descubrir quién es (sin que el menú lo delate antes), hacerle entrar en razón o avisar al afectado a cambio de una recompensa de su bolsillo.
+- **Acompañantes y escoltas por el valle:** puedes pedirle a un buen amigo que te acompañe por el pueblo gratis o contratar a un vecino como escolta pagándole un jornal diario de tu bolsa al suyo. Tu acompañante camina a tu lado, te respalda para imponer respeto ante otros vecinos (una vez al día, con tirada de riesgo) y vuelve a sus quehaceres cuando lo despides o si dejas de pagarle.
+
 ### Graduación escolar con ventaja de oficio y Negocio propio con publicidad
 - **Graduarse de la escuela da ventaja en los oficios:** ahora se cuenta a cuántas clases asiste cada niño entre semana; cuando cumple la mayoría de edad se gradúa con días de dominio adelantados según lo aprendido, de modo que al estrenarse en un oficio o heredar un taller empieza más cerca de ser Maestro.
 - **Montar tu propio negocio desde cero y hacerle publicidad:** en un solar construido tuyo puedes encargarle al carpintero un mostrador para abrir tu propio bazar, abastecerlo con mercancía real de tu mochila, contratar a un vecino parado como dependiente (que cobra su jornal diario de la caja), pregonar carteles y publicidad por el pueblo para duplicar la clientela durante tres días y recaudar las ventas que los vecinos pagan de su bolsillo.

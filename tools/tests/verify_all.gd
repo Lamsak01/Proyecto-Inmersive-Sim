@@ -3774,5 +3774,66 @@ func _initialize() -> void:
 	vm.town_state["treasury"] = pg_tr_bak
 	print("Block PG (School Graduation & Player Business) OK")
 
+	# 85. Bloque PH: Idolatría / obsesión por un personaje (muy rara) y Acompañantes del jugador
+	var ph_ag_bak: int = p70_a.personal_gold
+	var ph_bg_bak: int = p70_b.personal_gold
+	var ph_cg_bak: int = p70_c.personal_gold
+	var ph_a_aff_bak: int = p70_a.affinity
+	var ph_b_aff_bak: int = p70_b.affinity
+	var ph_c_aff_bak: int = p70_c.affinity
+	(vfa_fame.state(vm)["obsessions"] as Dictionary).clear()
+	(vfa_fame.state(vm)["companion"] as Dictionary).clear()
+	vfa_fame.add_fame(vm, p70_a, 45, "Ídolo de prueba PH")
+	assert(vfa_fame.try_spawn_obsession(vm, p70_c, p70_a) and (vfa_fame.state(vm)["obsessions"] as Dictionary).has(p70_c.get_person_key()), "PH.1a: Rare obsession spawns toward high-fame idol")
+	p70_c.personal_gold = 30
+	p70_a.personal_gold = 10
+	p70_a.npc_relationships[p70_b.get_person_key()] = 60
+	p70_c.npc_relationships[p70_b.get_person_key()] = 20
+	var ph_c_rel_b0: int = p70_c.get_relationship_with_npc(p70_b.get_person_key())
+	vfa_fame.daily(vm)
+	assert(p70_c.personal_gold == 24 and p70_a.personal_gold == 16 and int(vfa_fame.state(vm)["obsessions"][p70_c.get_person_key()]["gifts_sent"]) == 1, "PH.1b: Obsessed admirer sends anonymous gift paid from their own pocket to idol")
+	assert(p70_c.get_relationship_with_npc(p70_b.get_person_key()) == ph_c_rel_b0 - 8 and p70_c.errand_kind == "obsession_follow", "PH.1c: Obsessed admirer feels extreme jealousy toward idol's close friends and follows idol")
+	vfa_fame.state(vm)["last_probe_day"] = -99
+	vfa_fame.on_player_action(vm, p70_b, "fame_probe_obsession", p70_inv)
+	assert(not bool(vfa_fame.state(vm)["obsessions"][p70_c.get_person_key()]["known_by_player"]), "PH.1d: Probing an innocent neighbor does not reveal stalker")
+	vfa_fame.state(vm)["last_probe_day"] = -99
+	var ph_c_aff0: int = p70_c.affinity
+	vfa_fame.on_player_action(vm, p70_c, "fame_probe_obsession", p70_inv)
+	var ph_probe_ok: bool = bool(vfa_fame.state(vm)["obsessions"][p70_c.get_person_key()]["known_by_player"])
+	var ph_probe_fail: bool = not ph_probe_ok and p70_c.affinity == ph_c_aff0 - 4
+	assert(ph_probe_ok or ph_probe_fail, "PH.1e: Probing the actual stalker has a risk roll")
+	vfa_fame.state(vm)["obsessions"][p70_c.get_person_key()]["known_by_player"] = true
+	p70_a.personal_gold = 25
+	p70_inv.gold = 100
+	vfa_fame.on_player_action(vm, p70_a, "fame_warn_idol:" + p70_c.get_person_key(), p70_inv)
+	assert((vfa_fame.state(vm)["obsessions"] as Dictionary).is_empty() and p70_a.personal_gold == 10 and p70_inv.gold == 115, "PH.1f: Warning idol ends obsession and pays 15 gold reward from idol's pocket")
+	# PH.2: Acompañantes del jugador (por amistad >= 55 o contratado por 15 Oro/día, respaldo con tirada y despido)
+	p70_b.affinity = 60
+	vfa_fame.on_player_action(vm, p70_b, "fame_companion_invite", p70_inv)
+	assert(vfa_fame.is_companion(vm, p70_b) and str(vfa_fame.state(vm)["companion"]["mode"]) == "friend", "PH.2a: High-affinity friend joins player as companion")
+	p70_a.affinity = 20
+	var ph_a_aff0: int = p70_a.affinity
+	vfa_fame.on_player_action(vm, p70_a, "fame_companion_backup", p70_inv)
+	assert((p70_a.affinity == ph_a_aff0 + 8 or p70_a.affinity == ph_a_aff0 - 8) and int(vfa_fame.state(vm)["companion"]["last_backup_day"]) == vfa_fame.today(), "PH.2b: Companion backup has a risk roll and daily cooldown")
+	vfa_fame.on_player_action(vm, p70_b, "fame_companion_dismiss", p70_inv)
+	assert(not vfa_fame.is_companion(vm, p70_b), "PH.2c: Dismissing companion clears companion state")
+	p70_c.affinity = 20
+	p70_c.personal_gold = 10
+	p70_inv.gold = 50
+	vfa_fame.on_player_action(vm, p70_c, "fame_companion_hire", p70_inv)
+	assert(vfa_fame.is_companion(vm, p70_c) and p70_inv.gold == 35 and p70_c.personal_gold == 25, "PH.2d: Hiring companion transfers 15 gold upfront into companion's pocket")
+	vfa_fame.daily(vm)
+	assert(vfa_fame.is_companion(vm, p70_c) and p70_inv.gold == 20 and p70_c.personal_gold == 40, "PH.2e: Daily cycle pays hired companion 15 gold from player inventory")
+	p70_inv.gold = 5
+	vfa_fame.daily(vm)
+	assert(not vfa_fame.is_companion(vm, p70_c) and p70_inv.gold == 5, "PH.2f: Hired companion leaves if player cannot pay daily wage")
+	p70_a.personal_gold = ph_ag_bak
+	p70_b.personal_gold = ph_bg_bak
+	p70_c.personal_gold = ph_cg_bak
+	p70_a.affinity = ph_a_aff_bak
+	p70_b.affinity = ph_b_aff_bak
+	p70_c.affinity = ph_c_aff_bak
+	print("Block PH (Obsession & Player Companions) OK")
+
 	print("ALL RIMWORLD MEDICAL, FOOTPRINTS, 3-PHASE CORPSE REPORT, MULTI-CORPSE FIX, RPG INTERROGATION, PUBLIC TRIAL, DYNAMIC RELATIONSHIPS, MISSING FAMILY SEARCH, SOCIAL GLOSSARY & UNCONSCIOUS REACTION TESTS PASSED!")
 	quit(0)
