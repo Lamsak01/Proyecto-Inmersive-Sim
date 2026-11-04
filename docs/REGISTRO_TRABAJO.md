@@ -175,3 +175,32 @@ Leyenda: ✅ probado y subido · 🟡 escrito, sin probar · 🔴 falló (ver no
 ### Pruebas de los bloques K y M (todas pasan) y sonda
 - Los cuatro tests pasan (con #80 y #81). Con 49 vecinos: plaza 6,0 ms, lejos 3,9 ms, peor 23 ms, ninguno > 33 ms.
 - Sonda de 12 días: 0 comidas fallidas, 0 muertes, 14 raciones de gachas. Población 25 → 33, 3 casas encargadas (2 a plazos). Arcas 948.
+
+## Bloque M — tanda 2 de 2 («sigue con la segunda tanda»)
+
+| # | Tipo | Estado | Mecánica que toca |
+|---|------|--------|-------------------|
+| M11 | empty_pots | ✅ | Gachas del Albergue, clases, generosidad |
+| M12 | love_letter | 🟡 | Chispa (SocialDirector), rasgos |
+| M13 | inheritance | 🟡 | Sucesión de talleres, ayudantes |
+| M14 | last_drink | ✅ | Vicios; veto nuevo en `do_vice` |
+| M15 | market_stall | ✅ | Mercado del miércoles, stock |
+| M16 | night_reading | 🟡 | Secta, biblioteca |
+| M17 | announced_fight | 🟡 | Tensión y peleas en vivo |
+| M18 | homeless | ✅ | Desahucios, casas, posada |
+| M19 | strange_newcomer | 🟡 | Llegadas, descubrir rasgos, marcharse |
+| M20 | nameless_grave | 🟡 | Archivo de la morgue, asesino real |
+
+Cambios de diseño honestos: «¿Quién lo ha dicho?» repetía la misión `rumor` → sustituida por «La última copa»;
+«¿Me corresponde?» repetía `opinion` → hecha como carta que sí actúa sobre la chispa (sin forzar parejas).
+Las marcas de herencia, desahucio, lectura y llegada no se guardan con la partida: tras cargar, esas misiones
+no se ofrecen hasta que vuelva a pasar algo así.
+
+### Pruebas de la tanda 2 (todas pasan) y sonda
+- Los cuatro tests pasan (#81 ampliado: 25 tipos, veto de taberna, donativos, puesto de mercado, sin techo).
+  Con 49 vecinos: plaza 5,5 ms, lejos 4,4 ms, peor 24 ms, ninguno > 33 ms.
+- Sonda de 12 días: 0 comidas fallidas, 0 muertes, 4 raciones de gachas. Población 25 → 31, 2 casas (1 a plazos). Arcas 990.
+
+## Traspaso (2026-11-03)
+El usuario pasa a Antigravity. Prompt completo para el siguiente agente: `docs/PROMPT_SIGUIENTE_AGENTE.md`
+(enlazado desde HANDOFF §0 y CLAUDE.md).

@@ -1,50 +1,15 @@
 # HANDOFF — Traspaso del proyecto "La Placa de Petri" (Godot 4.7.2)
 
 > Documento para el siguiente agente de IA (o persona) que continúe el proyecto. **Léelo entero antes de tocar nada.**
-> Última actualización: 2026-11-02, tras cerrar B6.4 (vida social completa). Plan detallado en `docs/PLAN_VIDA_SOCIAL.md`.
+> Última actualización: 2026-11-03, tras cerrar el bloque M (25 tipos de misión). Traspaso a otro agente: `docs/PROMPT_SIGUIENTE_AGENTE.md`.
 
 ---
 
 ## 0. PROMPT LISTO PARA PEGAR AL SIGUIENTE AGENTE
 
-```
-Eres el asistente técnico principal del proyecto "La Placa de Petri": un Immersive Sim / sandbox 2D top-down en pixel art hecho en Godot 4.7.2 (GDScript). La carpeta es /home/lamsaktp/Proyecto-Inmersive-Sim. Yo NO sé programar. Háblame siempre en español.
-
-ANTES DE HACER NADA:
-1. Lee completo docs/HANDOFF.md y docs/PLAN_VIDA_SOCIAL.md. Antes de proponer sistemas nuevos, lee docs/VISION_Y_FUTURO.md (visión a largo plazo, orden acordado y banco de ideas).
-2. Ejecuta `git log --oneline | head` y `git status`. El repositorio debe estar limpio en `main`; si esto no coincide con git, manda git.
-3. Si el trabajo anterior no terminó limpio, ejecuta los tests de tools/tests/ con los comandos de la sección 3 antes de tocar nada. Si algo falla, avísame primero.
-
-TU PAPEL: NO eres un asistente complaciente. Eres mi guía técnico y debes protegerme de malas decisiones.
-- No me des la razón por defecto. Evalúa cada idea con honestidad y dime claramente si es poco realista, exagerada, arriesgada o prematura. Puedo pedir cosas desproporcionadas porque no sé programar.
-- Clasifica lo que te pida: AHORA (viable y útil), ANTES (requiere un requisito previo que debemos hacer primero), DESPUÉS (buena idea pero prematura) o NO (no lo recomiendo, con el motivo). Estima esfuerzo (pequeño / medio / grande) y riesgo.
-- Si insisto en algo que consideras mala idea, mantén tu criterio y explícame el porqué. Cambia de opinión solo ante argumentos nuevos, no porque yo insista.
-- Si lo que pido contradice decisiones ya tomadas (sección 8 de HANDOFF.md) o rompería algo, dímelo antes de hacerlo.
-- Propón siempre el alcance mínimo que funcione y deja lo demás para después. Nunca prometas lo que no puedes verificar. Distingue lo que probaste ejecutando tests de lo que solo supones.
-- Señala riesgos, deuda técnica y problemas de rendimiento aunque no te los pregunte.
-
-PLAN ANTES DE IMPLEMENTAR (obligatorio):
-- Antes de implementar cualquier mecánica o sistema nuevo, preséntame un plan corto: qué se hará, por qué, en qué bloques pequeños, riesgos, cómo se probará y qué veré yo en el juego. Espera mi aprobación antes de escribir código.
-- Excepción: arreglar errores pequeños o ejecutar el siguiente bloque ya aprobado en HANDOFF.md.
-- Si te digo "no escribas código", no lo escribas hasta que lo apruebe.
-
-AHORRO DE TOKENS (comunicación y código):
-- Conmigo: respuestas cortas y directas, con listas. Sin repetir lo que ya sé, sin resúmenes largos ni florituras. Si basta una frase, usa una frase.
-- Código: cambios mínimos y localizados (parches), nunca reescribir archivos enteros sin necesidad. No leas archivos grandes completos: busca con grep y lee solo los rangos necesarios. No repitas salidas largas de comandos: resume lo importante.
-- Mientras trabajes, pasa solo el test afectado. Pasa los cuatro una sola vez, al cerrar cada bloque, de uno en uno y con `timeout`.
-- Usa un solo test por comportamiento nuevo.
-- Nada de comprobaciones repetidas ni revisiones grandes sin avisarme antes.
-- Dame resúmenes de 3 líneas por bloque.
-- Reutiliza lo que ya existe (tablas de datos, tests, helpers) en lugar de crear cosas nuevas.
-
-FORMA DE TRABAJO:
-- Avanza en BLOQUES PEQUEÑOS (una idea verificable cada uno). Tras cada bloque: prueba, commit y un resumen de 3 líneas (hecho / verificado / pendiente).
-- Nada de refactors grandes sin pedírmelo. No cambies comportamiento visible sin avisarme.
-- Cuando necesites datos que solo veo yo (por ejemplo avisos del panel de errores de Godot), pídeme captura con archivo y línea.
-- Al cerrar cada bloque, márcalo en la sección 7 de docs/HANDOFF.md, añade una entrada a CHANGELOG.md, haz commit y push a `main`.
-
-TAREA ACTUAL: la vida social (Fases 0 a 6) y el refuerzo del código (R1 a R5) están terminados. No hay tarea aprobada: pregúntame qué quiero hacer antes de empezar.
-```
+El prompt completo y actualizado (2026-11-03) está en **`docs/PROMPT_SIGUIENTE_AGENTE.md`**: cómo comunicarse con el
+usuario (crítico, sin darle la razón por defecto), reglas de trabajo, pruebas, preferencias, lo hecho, lo pendiente y
+recomendaciones. Pégalo entero como primer mensaje al cambiar de agente.
 
 ---
 
@@ -70,8 +35,8 @@ TAREA ACTUAL: la vida social (Fases 0 a 6) y el refuerzo del código (R1 a R5) e
 - Desde la raíz del proyecto:
 
 ```bash
-# Test completo (debe imprimir "...TESTS PASSED!" y salir con código 0). Tarda ~15 s.
-timeout 80 flatpak run org.godotengine.Godot --headless --path . -s tools/tests/verify_all.gd > /tmp/t.log 2>&1; grep -c 'TESTS PASSED' /tmp/t.log
+# Test completo (debe imprimir "...TESTS PASSED!" y salir con código 0). Hoy tarda varios minutos: usa timeout 900.
+timeout 900 flatpak run org.godotengine.Godot --headless --path . -s tools/tests/verify_all.gd > /tmp/t.log 2>&1; grep -c 'TESTS PASSED' /tmp/t.log
 
 # Test de nombres (rápido, ~2 s; debe imprimir "NAMES CHECK PASSED"):
 timeout 60 flatpak run org.godotengine.Godot --headless --path . -s tools/tests/names_check.gd 2>&1 | tail -3
@@ -147,7 +112,7 @@ Otros documentos antiguos en la raíz: `ROADMAP_PROYECTO.md`, `AUDIT_LOG.md`, `S
 
 ## 7. Estado y siguiente bloque
 
-**Estado del código:** vida social completa (Fases 0 a 6) y subida a `main`; los cuatro tests pasan. Refuerzo del código (R1–R5) terminado. M1 (móvil social en investigaciones), Q1 (panel de misiones) Q1–Q4 hechos (5 tipos de misión, con estructura lista para muchos más). T1, T3 y T4 (rasgos: catálogo, descubrimiento y efectos) hechos. T2 hecho: 140 rasgos (`docs/RASGOS_BORRADOR.md`). Pendiente aparte: diseñar con el usuario los tipos de misión hasta 25 (`docs/MISIONES.md`). Historial en `CHANGELOG.md`.
+**Estado del código:** vida social completa (Fases 0 a 6) y subida a `main`; los cuatro tests pasan. Refuerzo del código (R1–R5) terminado. M1 (móvil social en investigaciones), Q1 (panel de misiones) Q1–Q4 hechos (5 tipos de misión, con estructura lista para muchos más). T1, T3 y T4 (rasgos: catálogo, descubrimiento y efectos) hechos. T2 hecho: 140 rasgos (`docs/RASGOS_BORRADOR.md`). Misiones: 25 tipos hechos (`docs/MISIONES.md`, bloque M). Historial en `CHANGELOG.md`.
 
 ### Bloques del sistema de Vida Social (marca [x] al terminar y commitea)
 
@@ -627,6 +592,10 @@ Cada fase se dividirá en bloques pequeños cuando se llegue a ella (detalle en 
   `docs/MISIONES.md`). La oferta diaria sortea entre todos los tipos que encajan (`VillageQuests`). Ayudas nuevas en
   `QuestType` (`charge_player`, `charisma`…). `VillageFaith.wants_attend` respeta `rite_invited_week`; `finish_rite` guarda
   `last_attendees`. Tanda 2 pendiente.
+- [x] **Bloque M, tanda 2** (test #81 ampliado). Otros 10 tipos (tabla en `docs/MISIONES.md`): 25 en total. Marcas nuevas
+  que leen las misiones (metas, **no se guardan con la partida**): `evicted_day/lot` (VillageLoans.evict),
+  `inherited_day/from/family` (`VillageManager._note_inheritance`), `read_day` (VillageCulture.on_read), `arrived_day`
+  (VillageMigration._spawn_one). Veto de taberna: `VillageNeeds.state.no_serve` (sí se guarda; `do_vice` no sirve).
 - [x] **Bloque E** (probado, test #75; detalle en `docs/REGISTRO_TRABAJO.md`). Diagnóstico de comidas fallidas
   (`migration_state.meal_fails`, «motivo/oficio»); casas: la pareja junta ahorros y, si alguien duerme al raso, el
   pueblo paga sin reserva; camas de posada sin repetir (cuenta a quien tenga oficio y duerma allí); U5 «según X»

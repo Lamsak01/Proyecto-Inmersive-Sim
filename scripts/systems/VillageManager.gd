@@ -3132,6 +3132,7 @@ func _on_day_passed(_new_day: int) -> void:
 			if is_instance_valid(kin_candidate) and not kin_candidate.is_dead and kin_candidate.trade_role == VillageNPC.TradeRole.FAMILY_MEMBER:
 				var inh_stock: Dictionary = (biz.get("stock_override", cfg["stock"]) as Dictionary).duplicate()
 				kin_candidate.promote_to_trade(role_key, str(cfg["title"]), cfg["work_pos"], inh_stock, cfg["tex"])
+				_note_inheritance(kin_candidate, current_holder)
 				trade_npcs[role_key] = kin_candidate
 				family_npcs.erase(role_key)
 				_hint_player("🏠 Herencia Familiar: %s (%s) asumió el puesto de %s como Aprendiz (54%% Eficiencia · 5 días para Maestro)." % [kin_candidate.npc_name, str(cfg["family_name"]), str(cfg["title"])])
@@ -3148,6 +3149,7 @@ func _on_day_passed(_new_day: int) -> void:
 			if outsider:
 				var inh_stock2: Dictionary = (biz.get("stock_override", cfg["stock"]) as Dictionary).duplicate()
 				outsider.promote_to_trade(role_key, str(cfg["title"]), cfg["work_pos"], inh_stock2, cfg["tex"], cfg["bed1_pos"], cfg["table_pos"], str(cfg["family_id"]), str(cfg["family_name"]))
+				_note_inheritance(outsider, current_holder)
 				trade_npcs[role_key] = outsider
 				_hint_player("🔄 Sucesión en la aldea: %s asumió el taller como nuevo %s Novato (35%% Eficiencia · 7 días para Maestro)." % [outsider.npc_name, str(cfg["title"])])
 		else:
@@ -3227,6 +3229,13 @@ func _process_daily_map_edge_arrivals() -> void:
 
 ## V8: quién se queda un negocio sin dueño. Puntúa ambición, diligencia y ahorros; un familiar de otra casa solo deja
 ## la suya si es ambicioso. Los otros ambiciosos que se quedan sin él le cogen algo de envidia.
+## M13 «La herencia»: quién heredó, de quién y cuándo (para que los parientes puedan reclamar).
+func _note_inheritance(heir: VillageNPC, dead: VillageNPC) -> void:
+	heir.set_meta("inherited_day", WorldClock.current_day if WorldClock else 1)
+	if is_instance_valid(dead):
+		heir.set_meta("inherited_from", dead.npc_name)
+		heir.set_meta("inherited_family", dead.family_id)
+
 func _pick_ambitious_successor(role_key, title: String) -> VillageNPC:
 	var best: VillageNPC = null
 	var best_s: float = -INF

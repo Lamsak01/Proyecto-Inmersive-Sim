@@ -83,6 +83,7 @@ static func on_read(vm, n) -> void:
 	var st: Dictionary = state(vm)
 	st["readings"] = int(st["readings"]) + 1
 	n.add_thought("Leí un rato en la biblioteca (+3)", 3.0)
+	n.set_meta("read_day", int(WorldClock.current_day) if WorldClock else 1) # M16 «Lo que se lee de noche»
 
 ## El jugador pulsa E cerca de la mesa de lectura. Devuelve true si la interacción era suya.
 static func try_interact(vm, player, pos: Vector2) -> bool:

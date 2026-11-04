@@ -150,6 +150,8 @@ static func evict(vm, id: String, people: Dictionary = {}) -> void:
 		else:
 			vm.evict_npc_to_vagrant_camp(n, "desahucio")
 		n.add_thought("Me han quitado la casa por deudas (−15)", -15.0)
+		n.set_meta("evicted_day", int(WorldClock.current_day) if WorldClock else 1) # M18 «Sin techo»
+		n.set_meta("evicted_lot", id)
 		var lender = _lender_node(vm, lender_key)
 		if lender != null:
 			n.modify_npc_relationship(lender, -20, "Me echó de mi casa", true)

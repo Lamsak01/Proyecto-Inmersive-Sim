@@ -3046,7 +3046,7 @@ func _initialize() -> void:
 	print("Block K quarry at work OK")
 
 	# 81. Bloque M: tipos de misión nuevos (aprendiz, medicina, fe).
-	assert(q_reg.all_types().size() == 15, "M: 15 quest types registered")
+	assert(q_reg.all_types().size() == 25, "M: 25 quest types registered")
 	var vm_y = vmi._spawn_one(vm, vmi.SETTLER_KINDS[0], 0)
 	var vm_own = vm.trade_npcs.get(int(load("res://scripts/enemies/VillageNPC.gd").TradeRole.BAKER))
 	var vm_fam_before = vm.family_npcs.get(int(vm_own.trade_role))
@@ -3069,6 +3069,28 @@ func _initialize() -> void:
 	vm.family_npcs[int(vm_own.trade_role)] = vm_fam_before
 	if vm_fam_before == null:
 		vm.family_npcs.erase(int(vm_own.trade_role))
+	# M2: la taberna no sirve a quien está vetado; las gachas donadas se cocinan; el puesto del mercado se llena
+	var vm_nd = load("res://scripts/systems/VillageNeeds.gd")
+	var vm_ns_save = vm_nd.state(vm).get("no_serve", {}).duplicate()
+	vm_nd.state(vm)["no_serve"] = {vm_y.get_person_key(): vm_nd.today() + 3}
+	vm_y.personal_gold = 50
+	assert(int(vm_nd.do_vice(vm, vm_y, "drink").get("gold", 0)) == 0 and vm_y.personal_gold == 50, "M14: A banned drinker is not served")
+	vm_nd.state(vm)["no_serve"] = vm_ns_save
+	var vm_rat: int = int(vm.town_state.get("shelter_rations", 0))
+	var vm_pq: Dictionary = {"data": {"raised": 0}}
+	q_reg.get_type("empty_pots").donate(vm, vm_pq, 10)
+	assert(int(vm.town_state["shelter_rations"]) == vm_rat + 5 and q_reg.get_type("empty_pots").is_done(vm, {"data": {"raised": 20}}), "M11: 10 gold of donations cooks 5 more rations")
+	vm.town_state["shelter_rations"] = vm_rat
+	var vm_mk_st: Dictionary = vm_own.shop_stock.duplicate()
+	q_reg.get_type("market_stall").restock(vm_own)
+	assert(load("res://scripts/systems/VillageCulture.gd")._surplus(vm_own) >= load("res://scripts/systems/VillageCulture.gd").MARKET_MIN_STOCK, "M15: Restocked shop has enough for a stall")
+	vm_own.shop_stock = vm_mk_st
+	vm_y.is_vagrant_camper = true
+	vm_y.in_shelter = false
+	var vm_hq: Dictionary = {"giver_key": vm_y.get_person_key()}
+	assert(not q_reg.get_type("homeless").is_done(vm, vm_hq), "M18: Sleeping rough is not done")
+	vm_y.is_vagrant_camper = false
+	assert(q_reg.get_type("homeless").is_done(vm, vm_hq), "M18: A roof completes it")
 	vm_y.queue_free()
 	print("Block M quest types OK")
 

@@ -167,7 +167,7 @@ del pueblo. Los **nobles** se dejaron para el paso 9.
 
 ## 8. Misiones
 
-Hay 15 tipos de misión secundaria, que nacen de lo que pasa en el pueblo. Sus títulos y textos son provisionales (los 10 últimos los inventó Claude a petición del usuario, 2026-11-03):
+Hay 25 tipos de misión secundaria, que nacen de lo que pasa en el pueblo. Sus títulos y textos son provisionales (los 20 últimos los inventó Claude a petición del usuario, 2026-11-03):
 
 | Misión | De qué va |
 |---|---|
@@ -186,6 +186,16 @@ Hay 15 tipos de misión secundaria, que nacen de lo que pasa en el pueblo. Sus t
 | El aprendiz | Colocar a un joven parado en un taller. |
 | Sabotaje por encargo | Romper el puesto de un rival (o denunciarlo). |
 | El testigo con miedo | Conseguir protección a quien halló un cadáver. |
+| Ollas vacías | Reunir donativos para las gachas del Albergue. |
+| ¿Me corresponde? | Llevar una carta de amor (o leerla, o romperla). |
+| La herencia de X | Mediar entre un heredero y un pariente sin nada. |
+| La última copa | Apartar a alguien de la bebida o los dados. |
+| El puesto del miércoles | Ayudar a un artesano a montar puesto en el mercado. |
+| Lo que se lee de noche | Descubrir las reuniones nocturnas (la secta). |
+| Pelea anunciada | Calmar a dos enemigos antes de que lleguen a las manos. |
+| Sin techo | Buscar sitio a un desahuciado. |
+| El forastero raro | Conocer a un recién llegado y defenderlo o echarlo. |
+| La tumba sin nombre | Reabrir por tu cuenta un asesinato archivado. |
 
 También hay un objetivo de prueba, «Eliminate Frogs» (ranas de la ciénaga).
 

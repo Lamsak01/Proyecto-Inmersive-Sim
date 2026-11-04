@@ -21,6 +21,17 @@ const TYPE_SCRIPTS: Array[String] = [
 	"res://scripts/systems/quests/types/QuestApprentice.gd",
 	"res://scripts/systems/quests/types/QuestSabotageJob.gd",
 	"res://scripts/systems/quests/types/QuestScaredWitness.gd",
+	# Tanda M2 (2026-11-03)
+	"res://scripts/systems/quests/types/QuestEmptyPots.gd",
+	"res://scripts/systems/quests/types/QuestLoveLetter.gd",
+	"res://scripts/systems/quests/types/QuestInheritance.gd",
+	"res://scripts/systems/quests/types/QuestLastDrink.gd",
+	"res://scripts/systems/quests/types/QuestMarketStall.gd",
+	"res://scripts/systems/quests/types/QuestNightReading.gd",
+	"res://scripts/systems/quests/types/QuestAnnouncedFight.gd",
+	"res://scripts/systems/quests/types/QuestHomeless.gd",
+	"res://scripts/systems/quests/types/QuestStrangeNewcomer.gd",
+	"res://scripts/systems/quests/types/QuestNamelessGrave.gd",
 ]
 
 static var _types: Dictionary = {}

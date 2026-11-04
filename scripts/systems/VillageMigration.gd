@@ -238,6 +238,7 @@ static func _spawn_one(vm, kind: Dictionary, idx: int):
 		str(kind["label"]), tex, TAVERN_DAY_SPOTS[idx % TAVERN_DAY_SPOTS.size()], TAVERN_GUEST_BEDS[idx % TAVERN_GUEST_BEDS.size()],
 		{}, vm._tavern_social_pos, "none", "Huésped de Posada")
 	n.personal_gold = randi_range(int(kind["gold"].x), int(kind["gold"].y))
+	n.set_meta("arrived_day", int(WorldClock.current_day) if WorldClock else 1) # M19 «El forastero raro»
 	vm.unemployed_npcs.append(n)
 	vm.arrivals_today_count += 1
 	state(vm)["arrivals"] = int(state(vm)["arrivals"]) + 1

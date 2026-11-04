@@ -173,6 +173,11 @@ static func do_vice(vm, npc, kind: String) -> Dictionary:
 	var res: Dictionary = {"kind": kind, "gold": 0}
 	var inn = vm._innkeeper_npc if is_instance_valid(vm._innkeeper_npc) else null
 	var mult: float = 1.0 + maxf(0.0, TraitCatalog.npc_tendency(npc, "vice"))
+	# M14 «La última copa»: el tabernero prometió no servirle (ni dejarle jugar) unos días
+	if int((state(vm).get("no_serve", {}) as Dictionary).get(key, -1)) >= today():
+		npc.add_thought("En la taberna no me han querido servir (-3)", -3.0)
+		npc._spawn_floating_text("🚫🍺 «Hoy no, %s. Vete a casa.»" % npc.npc_name, Color(0.85, 0.85, 0.85), -30.0)
+		return res
 	if kind == "drink":
 		if npc.personal_gold < DRINK_COST:
 			return res

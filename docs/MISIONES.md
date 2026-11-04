@@ -1,6 +1,6 @@
 # Misiones secundarias de vecinos
 
-Guía para añadir tipos nuevos. Meta del usuario: **al menos 25 tipos** (hoy hay 15). El usuario pidió (2026-11-03) que Claude inventara los otros 20, en tandas de 10: placeholders creativos que toquen mecánicas existentes, no recados.
+Guía para añadir tipos nuevos. Meta del usuario: **al menos 25 tipos** (hoy hay 25: meta cumplida). El usuario pidió (2026-11-03) que Claude inventara los otros 20, en tandas de 10: placeholders creativos que toquen mecánicas existentes, no recados.
 
 ## Reglas de diseño (decididas por el usuario)
 
@@ -48,7 +48,7 @@ Datos útiles para `find_daily_offer`:
 - `npc.person_profile`: rasgos, edad y estado sentimental.
 - `vm.social_event_log`: sucesos con `known_by` (quién lo sabe) y `heard_from` (quién se lo contó a quién).
 
-## Tipos hechos (15 de 25)
+## Tipos hechos (25 de 25)
 
 | id | Nombre | Cómo nace | Cómo se cumple | Cobro |
 |---|---|---|---|---|
@@ -67,7 +67,17 @@ Datos útiles para `find_daily_offer`:
 | `apprentice` | El aprendiz | Diaria: parado de ≤ 30 años y un taller sin ayudante | Recomendarle al dueño (🧑‍🔧); pasa a ayudante y heredará | 10 oro, +20 |
 | `sabotage_job` | Sabotaje por encargo | Diaria: dueño de taller que odia (≤ −25) a otro | Sabotear el puesto rival, o denunciar el encargo al comisario (🚨) | 40 oro, +10 |
 | `scared_witness` | El testigo con miedo | Diaria: quien halló el cuerpo del caso abierto | Pedir protección al comisario (🛡️): añade una pista al expediente que apunta al asesino real | 15 oro, +18 |
+| `empty_pots` | Ollas vacías | Diaria: el sacerdote, si hay ≥ 3 pobres y las arcas van justas (< 48) | Reunir 20 de oro: donativos de ricos (🥣, según generosidad) o tuyos; cada 2 de oro es una ración más | 0 oro, +15 |
+| `love_letter` | ¿Me corresponde? | Diaria: soltero Tímido o Romántico con chispa ≥ 14 | Entregar la carta (💌): si el otro ya sentía algo (chispa ≥ 7) se aviva; si no, rechazo amable. Se puede leer o romper | 15 oro, +12 |
+| `inheritance` | La herencia de X | Diaria: pariente del muerto, ≤ 5 días tras heredar otro el taller | Que el heredero le dé 15 de oro o le tome de ayudante (⚖️/🧑‍🔧); o convencerle de que lo deje | 20 oro, +15 |
+| `last_drink` | La última copa | Diaria: su pareja está enganchada a la bebida o al juego | Hablarle (🗣️) o vetarle en la taberna 6 días (🚫, 10 oro si el tabernero no te aprecia) hasta que el vicio baje de 40 | 20 oro, +15 |
+| `market_stall` | El puesto del miércoles | Diaria: artesano sin género de sobra, 1–3 días antes del mercado | Adelantarle 15 de oro o que un productor le fíe; se cumple si monta puesto | 20 oro (+ lo adelantado), +12 |
+| `night_reading` | Lo que se lee de noche | Diaria: lector reciente de la biblioteca, con secta activa que no conoces | Descubrir la secta por cualquier vía; al volver: verdad (+15 sospecha) o callar | 25 oro, +12 |
+| `announced_fight` | Pelea anunciada | Diaria: amigo de alguien con tensión casi de pelea con un enemigo | Calmar a los dos (🕊️, 1 vez al día cada uno) hasta tensión ≤ 14; falla si se pelean | 20 oro, +12 |
+| `homeless` | Sin techo | Diaria: desahuciado hace ≤ 4 días que duerme al raso | Que un amigo con cama libre le acoja, que el prestamista le deje volver de alquiler, o darle 18 de oro para la posada | 0 oro, +25 |
+| `strange_newcomer` | El forastero raro | Diaria: vecino desconfiado ante alguien llegado hace ≤ 6 días | Charlar con el forastero (🔎, 1 al día) hasta conocer 2 rasgos; al volver: defenderle o hacerle el vacío (puede irse) | 15 oro, +10 |
+| `nameless_grave` | La tumba sin nombre | Diaria: familia de una víctima cuyo caso se archivó, si el asesino sigue vivo | 2 testimonios (🕯️); al volver: el verdadero asesino o un chivo expiatorio (+15 oro) | 35 oro, +20 |
 
 ## Ideas pendientes (20 o más)
 
-Tanda 2 aprobada (2026-11-03): Ollas vacías, ¿Me corresponde?, La herencia, ¿Quién lo ha dicho?, El puesto del miércoles, Lo que se lee de noche, Pelea anunciada, Sin techo, El forastero raro, La tumba sin nombre.
+Las 20 propuestas están hechas. «¿Quién lo ha dicho?» se cambió por «La última copa» (repetía `rumor`); «¿Me corresponde?» se hizo como carta de amor para no repetir `opinion`.

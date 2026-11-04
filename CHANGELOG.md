@@ -5,6 +5,10 @@ El detalle técnico está en `docs/HANDOFF.md` (sección 7) y el historial compl
 
 ## 2026-11-03
 
+### Otras diez misiones (ya hay 25)
+- Nuevos encargos (provisionales): donativos para las gachas, una carta de amor, una herencia disputada, apartar a alguien de la bebida o el juego, montar puesto en el mercado, las reuniones nocturnas (la secta), calmar una pelea anunciada, buscar techo a un desahuciado, un forastero del que nadie se fía y un asesinato archivado.
+- El tabernero puede negarse a servir unos días a quien bebe demasiado, si se lo pides.
+
 ### Diez misiones nuevas y canteros trabajando
 - 10 encargos nuevos (provisionales): descubrir una infidelidad, salvar una casa del desahucio, cazar un jabalí, comprar votos, destapar al alcalde, pagar medicinas a un pobre, devolver a alguien al Oficio, colocar a un aprendiz, sabotear a un rival y proteger a un testigo. Casi todos tienen más de una salida, y no siempre la honrada es la que paga.
 - El cantero trabaja ahora en la roca, a la vista, y cada casa nueva le compra piedra a él y troncos al leñador.
