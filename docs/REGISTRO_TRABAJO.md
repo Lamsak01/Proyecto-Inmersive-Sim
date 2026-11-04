@@ -392,3 +392,19 @@ Informe completo: `docs/AUDITORIA_P1_P7.md`.
 | RT2 | Ánimo correcto al perder un miembro y al recibir una prótesis | ✅ | VillageIllness.gd | — |
 | RT3 | Cambiar de oficio empieza de cero; ventaja escolar solo en el primero | ✅ | VillageNPC.gd | Test #84 |
 | RT4 | Asentamiento documentado como solo de menús; lore apuntado como provisional | ✅ | CHANGELOG.md, VISION_Y_FUTURO.md, APORTES_CREATIVOS.md | — |
+
+## Medición PF–PQ — 30 días sin jugador (`tools/tests/feature_probe.gd -- 30 11`, 2026-11-04, 1770 s reales)
+
+Lo que ocurre solo:
+- 4 maestros artesanos, pero con las existencias llenas: nadie les compra. Además el título sale «Maestro Maestro».
+- 1 obsesión.
+- 4 incursiones en 30 días y las 4 perdidas (−30 de oro cada una). La amenaza solo crece con el paso del tiempo.
+- El rebaño del rancho llega a adulto el día 6 y después ya no cambia.
+- 9 vecinos con fama.
+
+Lo que no ocurre nunca sin el jugador:
+- investigación, rutas, pinos, bazar, alcantarillas, terminal y animales propios;
+- graduación (no hubo clases que contar);
+- amputaciones.
+
+Otros datos: tesoro final de 1086 y población de 18 a 35.
