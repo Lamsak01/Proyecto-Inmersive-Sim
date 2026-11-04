@@ -41,6 +41,40 @@ const HORSE_COST: int = 45
 const CART_COST: int = 55
 const FIREARM_COST: int = 60
 const POWDER_PACK_COST: int = 14
+const OUTPOST_CHARTER_COST: int = 90
+const OUTPOST_SETTLER_BONUS: int = 15
+const OUTPOST_UPGRADE_COST: int = 35
+const OUTPOST_UPGRADES: Dictionary = {
+	"sawmill": "Aserradero Fronterizo (+1 madera/día y peaje)",
+	"granary": "Granero del Paso (+1 trigo/día y raciones)",
+	"watchtower": "Atalaya de Guardia (+2 defensa del asentamiento)",
+}
+const MAIN_STORY_CHAPTERS: Array[Dictionary] = [
+	{
+		"id": "main_ch1",
+		"title": "I. Las Raíces del Valle",
+		"description": "Llegaste como forastero a un valle aislado donde conviven arados de madera y farolas de cobre. Gánate un lugar levantando tu propia casa en un solar o alcanzando buena fama entre los vecinos.",
+		"reward_gold": 20,
+	},
+	{
+		"id": "main_ch2",
+		"title": "II. El Pulso Bajo la Piedra",
+		"description": "Bajo el empedrado de la plaza y en las ruinas del exterior descansan bobinas y conductos que nadie recuerda haber tendido. Completa una expedición a las ruinas o explora las alcantarillas del nivel -1.",
+		"reward_gold": 25,
+	},
+	{
+		"id": "main_ch3",
+		"title": "III. La Máquina de Cobre",
+		"description": "Los tomos de la biblioteca y el taller del ingeniero esconden el diseño del generador que alimenta el valle. Desbloquea una tecnología en el árbol de investigación o accede a la terminal lógica electromecánica.",
+		"reward_gold": 30,
+	},
+	{
+		"id": "main_ch4",
+		"title": "IV. La Placa de Petri",
+		"description": "Ahora sabes que el valle fue concebido como un experimento cerrado («La Placa de Petri»). Decide su futuro: funda un asentamiento libre en el paso, alcanza la Alcaldía o encabeza la defensa del pueblo ante una incursión.",
+		"reward_gold": 40,
+	},
+]
 const EXPLORATION_SITES: Dictionary = {
 	"west_ruins": {"name": "Ruinas de Cobre del Oeste", "item": "copper_coil", "max_stages": 2},
 	"north_caves": {"name": "Grutas de Cristal del Norte", "item": "iron_ore", "max_stages": 2},
@@ -65,11 +99,218 @@ static func state(vm) -> Dictionary:
 	if not vm.culture_state is Dictionary:
 		vm.culture_state = {}
 	var defs: Dictionary = {"readings": 0, "player_read_day": -1, "market_day": -1, "market_sellers": {}, "market_sales": 0,
-		"markets_held": 0, "repairs": 0, "grid": {}, "forest": {}, "trade_routes": {}, "research": {}, "raids": {}, "exploration": {}, "mounts": {}, "terminal": {}}
+		"markets_held": 0, "repairs": 0, "grid": {}, "forest": {}, "trade_routes": {}, "research": {}, "raids": {}, "exploration": {}, "mounts": {}, "terminal": {}, "outpost": {}, "main_story": {}}
 	for k in defs.keys():
 		if not vm.culture_state.has(k):
 			vm.culture_state[k] = defs[k]
 	return vm.culture_state
+
+## Bloque PP: Crear tu propio asentamiento fronterizo («Puesto del Paso») e Historia Principal en 4 capítulos (panel [L])
+static func outpost_state(vm) -> Dictionary:
+	var st: Dictionary = state(vm)
+	if not (st.get("outpost", null) is Dictionary):
+		st["outpost"] = {}
+	var op: Dictionary = st["outpost"]
+	if not op.has("founded"):
+		op["founded"] = false
+	if not op.has("name"):
+		op["name"] = "Puesto del Paso"
+	if not (op.get("settlers", null) is Array):
+		op["settlers"] = []
+	if not (op.get("upgrades", null) is Dictionary):
+		op["upgrades"] = {"sawmill": false, "granary": false, "watchtower": false}
+	if not op.has("treasury"):
+		op["treasury"] = 0
+	return op
+
+static func found_outpost(vm, inv) -> bool:
+	if vm == null or inv == null:
+		return false
+	var op: Dictionary = outpost_state(vm)
+	if bool(op.get("founded", false)) or int(inv.gold) < OUTPOST_CHARTER_COST:
+		return false
+	if int(inv.items.get("wood", 0)) < 2 or int(inv.items.get("stone", 0)) < 2:
+		return false
+	inv.add_gold(-OUTPOST_CHARTER_COST)
+	inv.remove_item("wood", 2)
+	inv.remove_item("stone", 2)
+	vm.town_state["treasury"] = int(vm.town_state.get("treasury", 0)) + (OUTPOST_CHARTER_COST - 20)
+	op["founded"] = true
+	op["treasury"] = 20
+	VillageChronicle.add(vm, "outpost_founded", "Fundaste el asentamiento fronterizo «%s» con carta municipal (-%d Oro)" % [str(op["name"]), OUTPOST_CHARTER_COST], true)
+	return true
+
+static func recruit_outpost_settler(vm, npc, inv) -> bool:
+	if vm == null or npc == null or inv == null:
+		return false
+	var op: Dictionary = outpost_state(vm)
+	var settlers: Array = op["settlers"]
+	var pk: String = npc.get_person_key()
+	if not bool(op.get("founded", false)) or settlers.size() >= 3 or pk in settlers:
+		return false
+	if int(npc.trade_role) != int(VillageNPC.TradeRole.UNEMPLOYED) or int(inv.gold) < OUTPOST_SETTLER_BONUS:
+		return false
+	inv.add_gold(-OUTPOST_SETTLER_BONUS)
+	npc.personal_gold += OUTPOST_SETTLER_BONUS
+	settlers.append(pk)
+	npc.modify_affinity(12)
+	npc.add_thought("Me uní como colono fundador al Puesto del Paso (+8)", 8.0)
+	VillageChronicle.add(vm, "outpost_settler", "%s se unió como colono a tu asentamiento «%s»" % [npc.npc_name, str(op["name"])], true)
+	return true
+
+static func upgrade_outpost(vm, upg_id: String, artisan, inv) -> bool:
+	if vm == null or inv == null or not OUTPOST_UPGRADES.has(upg_id):
+		return false
+	var op: Dictionary = outpost_state(vm)
+	var upgs: Dictionary = op["upgrades"]
+	if not bool(op.get("founded", false)) or bool(upgs.get(upg_id, false)) or int(inv.gold) < OUTPOST_UPGRADE_COST:
+		return false
+	inv.add_gold(-OUTPOST_UPGRADE_COST)
+	if artisan != null and is_instance_valid(artisan):
+		artisan.personal_gold += OUTPOST_UPGRADE_COST
+	else:
+		vm.town_state["treasury"] = int(vm.town_state.get("treasury", 0)) + OUTPOST_UPGRADE_COST
+	upgs[upg_id] = true
+	if upg_id == "watchtower":
+		raids_state(vm)["militia_bonus"] = int(raids_state(vm).get("militia_bonus", 0)) + 2
+	VillageChronicle.add(vm, "outpost_upgraded", "Construiste %s en tu asentamiento «%s»" % [upg_id, str(op["name"])], true)
+	return true
+
+static func process_outpost_daily(vm) -> void:
+	if vm == null:
+		return
+	var op: Dictionary = outpost_state(vm)
+	if not bool(op.get("founded", false)):
+		return
+	var settlers: Array = op["settlers"]
+	var by_key: Dictionary = vm._get_npcs_by_person_key()
+	var active_settlers: int = 0
+	for pk in settlers.duplicate():
+		var sn = by_key.get(str(pk), null)
+		if sn == null or not is_instance_valid(sn) or sn.is_dead:
+			settlers.erase(pk)
+			continue
+		active_settlers += 1
+	if active_settlers <= 0:
+		return
+	var upgs: Dictionary = op["upgrades"]
+	var routes: Dictionary = trade_routes_of(vm)
+	for r_id in routes.keys():
+		var r: Dictionary = routes[r_id]
+		var toll: int = mini(3 * active_settlers + (3 if bool(upgs.get("sawmill", false)) else 0), maxi(0, int(r.get("balance", 0))))
+		if toll > 0:
+			r["balance"] = int(r["balance"]) - toll
+			op["treasury"] = int(op.get("treasury", 0)) + toll
+			break
+	for pk2 in settlers:
+		var sn2 = by_key.get(str(pk2), null)
+		if sn2 != null and is_instance_valid(sn2) and not sn2.is_dead and int(op.get("treasury", 0)) >= 3:
+			op["treasury"] = int(op["treasury"]) - 3
+			sn2.personal_gold += 3
+
+static func collect_outpost_treasury(vm, inv) -> int:
+	if vm == null or inv == null:
+		return 0
+	var op: Dictionary = outpost_state(vm)
+	if not bool(op.get("founded", false)):
+		return 0
+	var avail: int = maxi(0, int(op.get("treasury", 0)) - 6)
+	if avail <= 0:
+		return 0
+	op["treasury"] = int(op["treasury"]) - avail
+	inv.add_gold(avail)
+	return avail
+
+static func main_story_state(vm) -> Dictionary:
+	var st: Dictionary = state(vm)
+	if not (st.get("main_story", null) is Dictionary):
+		st["main_story"] = {}
+	var ms: Dictionary = st["main_story"]
+	if not ms.has("chapter_idx"):
+		ms["chapter_idx"] = 0
+	if not ms.has("completed"):
+		ms["completed"] = false
+	return ms
+
+static func _is_main_chapter_ready(vm, idx: int) -> bool:
+	if vm == null:
+		return false
+	match idx:
+		0:
+			var has_home: bool = "VillageHousing" in vm and vm.VillageHousing != null and vm.VillageHousing.primary_player_lot(vm) != ""
+			var has_rep: bool = "faith_state" in vm and vm.faith_state is Dictionary and int((vm.faith_state.get("rep", {}) as Dictionary).get("law", 0)) >= 10
+			return has_home or has_rep or bool(outpost_state(vm).get("founded", false))
+		1:
+			var disc: int = int(exploration_state(vm).get("discoveries", 0))
+			var sew: int = int(vm.VillageUnderworld.sewers_state(vm).get("explored_count", 0)) if "VillageUnderworld" in vm and vm.VillageUnderworld != null else 0
+			return disc >= 1 or sew >= 1
+		2:
+			var unlocked_cnt: int = (research_state(vm).get("unlocked", {}) as Dictionary).size()
+			var hacks_cnt: int = int(terminal_state(vm).get("hacks_succeeded", 0))
+			return unlocked_cnt >= 1 or hacks_cnt >= 1
+		3:
+			var op_ok: bool = bool(outpost_state(vm).get("founded", false))
+			var mayor_ok: bool = str(vm.town_state.get("mayor_key", "")) == "player"
+			var raid_ok: bool = int(raids_state(vm).get("raids_repelled", 0)) >= 1
+			return op_ok or mayor_ok or raid_ok
+	return false
+
+static func sync_main_story(vm, inv = null) -> int:
+	if vm == null:
+		return 0
+	var qm = vm.get_node_or_null("/root/QuestManager")
+	var ms: Dictionary = main_story_state(vm)
+	if bool(ms.get("completed", false)):
+		return MAIN_STORY_CHAPTERS.size()
+	var idx: int = clampi(int(ms.get("chapter_idx", 0)), 0, MAIN_STORY_CHAPTERS.size() - 1)
+	var ch: Dictionary = MAIN_STORY_CHAPTERS[idx]
+	var qid: String = str(ch["id"])
+	if qm != null and qm.get_quest(qid).is_empty():
+		qm.add_quest({
+			"id": qid,
+			"category": "main",
+			"type": "main_story",
+			"title": str(ch["title"]),
+			"description": str(ch["description"]),
+			"giver_name": "Crónica del Valle",
+		})
+	var advanced: int = 0
+	while idx < MAIN_STORY_CHAPTERS.size() and _is_main_chapter_ready(vm, idx):
+		var cur_ch: Dictionary = MAIN_STORY_CHAPTERS[idx]
+		var cur_qid: String = str(cur_ch["id"])
+		if qm != null:
+			if qm.get_quest(cur_qid).is_empty():
+				qm.add_quest({
+					"id": cur_qid,
+					"category": "main",
+					"type": "main_story",
+					"title": str(cur_ch["title"]),
+					"description": str(cur_ch["description"]),
+					"giver_name": "Crónica del Valle",
+				})
+			qm.complete_quest(cur_qid, "Capítulo completado.")
+		var rew: int = mini(int(cur_ch.get("reward_gold", 20)), maxi(0, int(vm.town_state.get("treasury", 0))))
+		if rew > 0 and inv != null:
+			vm.town_state["treasury"] = int(vm.town_state.get("treasury", 0)) - rew
+			inv.add_gold(rew)
+		VillageChronicle.add(vm, "main_story", "👑 Completaste el capítulo de la Historia Principal: %s" % str(cur_ch["title"]), true)
+		idx += 1
+		advanced += 1
+		if idx < MAIN_STORY_CHAPTERS.size() and qm != null:
+			var nxt_ch: Dictionary = MAIN_STORY_CHAPTERS[idx]
+			if qm.get_quest(str(nxt_ch["id"])).is_empty():
+				qm.add_quest({
+					"id": str(nxt_ch["id"]),
+					"category": "main",
+					"type": "main_story",
+					"title": str(nxt_ch["title"]),
+					"description": str(nxt_ch["description"]),
+					"giver_name": "Crónica del Valle",
+				})
+	ms["chapter_idx"] = idx
+	if idx >= MAIN_STORY_CHAPTERS.size():
+		ms["completed"] = true
+	return advanced
 
 ## Bloque PO: Armas de fuego de chispa (flintlock_pistol, powder_charge) y Terminales lógicas / Hackeo electromecánico
 static func has_loaded_firearm(inv) -> bool:
@@ -830,6 +1071,10 @@ static func after_load(vm) -> void:
 ## Cada día: rutas comerciales, fertilidad forestal, árbol de investigación, incursiones y arreglos del Taller.
 static func daily(vm) -> int:
 	process_trade_routes(vm)
+	process_outpost_daily(vm)
+	var pl_d = VillageNeeds.player_of(vm)
+	var inv_d = pl_d.get("inventory") if pl_d != null else null
+	sync_main_story(vm, inv_d)
 	var f_st: Dictionary = forest_state(vm)
 	if int(f_st.get("soil_fertility", 0)) >= 2:
 		f_st["soil_fertility"] = maxi(0, int(f_st.get("soil_fertility", 0)) - 1)
@@ -1003,6 +1248,22 @@ static func add_dialogue_choices(vm, npc, diag: Dictionary, ch_arr: Array) -> vo
 					{"label": "⬅️ Volver", "next": "start"},
 				]
 			}
+	# Bloque PP: Crear tu propio asentamiento fronterizo («Puesto del Paso») e Historia Principal (Panel L)
+	var op: Dictionary = outpost_state(vm)
+	if role_i in [int(VillageNPC.TradeRole.CARPENTER), int(VillageNPC.TradeRole.SHERIFF), int(VillageNPC.TradeRole.WOODCUTTER)]:
+		if not bool(op.get("founded", false)):
+			ch_arr.append({"label": "🏕️📜 Fundar tu propio asentamiento «Puesto del Paso» (-%d Oro, -2 Madera, -2 Piedra)" % OUTPOST_CHARTER_COST, "next": "END", "action": "culture_found_outpost"})
+		else:
+			var upgs: Dictionary = op["upgrades"]
+			for up_k in OUTPOST_UPGRADES.keys():
+				if not bool(upgs.get(up_k, false)):
+					ch_arr.append({"label": "🏗️🏕️ Levantar %s en tu asentamiento (-%d Oro)" % [str(OUTPOST_UPGRADES[up_k]), OUTPOST_UPGRADE_COST], "next": "END", "action": "culture_upgrade_outpost:" + str(up_k)})
+			if int(op.get("treasury", 0)) > 6:
+				ch_arr.append({"label": "💰🏕️ Recaudar excedente del arca de tu asentamiento (+%d Oro)" % (int(op.get("treasury", 0)) - 6), "next": "END", "action": "culture_collect_outpost"})
+	if bool(op.get("founded", false)) and role_i == int(VillageNPC.TradeRole.UNEMPLOYED) and (op["settlers"] as Array).size() < 3 and not (npc.get_person_key() in (op["settlers"] as Array)):
+		ch_arr.append({"label": "🤝🏕️ Reclutarle como colono para tu asentamiento «Puesto del Paso» (-%d Oro de adelanto)" % OUTPOST_SETTLER_BONUS, "next": "END", "action": "culture_recruit_settler"})
+	if not bool(main_story_state(vm).get("completed", false)) and role_i in [int(VillageNPC.TradeRole.TINKER), int(VillageNPC.TradeRole.SHERIFF), int(VillageNPC.TradeRole.PRIEST)]:
+		ch_arr.append({"label": "👑📜 Actualizar tu avance en la Historia Principal del Valle [Panel L]", "next": "END", "action": "culture_sync_main_story"})
 
 static func on_player_action(vm, npc, action_id: String, inv) -> void:
 	if action_id.begins_with("culture_sabotage_grid:"):
@@ -1138,3 +1399,31 @@ static func on_player_action(vm, npc, action_id: String, inv) -> void:
 			npc._spawn_floating_text("🖥️✨ ¡Hackeo limpio en la terminal lógica (%s)!" % sub_id, Color.AQUAMARINE, -46.0)
 		else:
 			npc._spawn_floating_text("🖥️⚡ ¡Chispazo y alarma lógica! La guardia ha registrado el intento (Búsqueda +1)", Color.ORANGE_RED, -46.0)
+	elif action_id == "culture_found_outpost":
+		if found_outpost(vm, inv):
+			npc._spawn_floating_text("🏕️📜 ¡Has fundado el asentamiento «Puesto del Paso» con 20 de oro en su arca inicial!", Color.GOLD, -46.0)
+		else:
+			npc._spawn_floating_text("Necesitas %d de oro, 2 de madera y 2 de piedra para fundar el asentamiento" % OUTPOST_CHARTER_COST, Color.ORANGE_RED, -46.0)
+	elif action_id == "culture_recruit_settler":
+		if recruit_outpost_settler(vm, npc, inv):
+			npc._spawn_floating_text("🤝🏕️ «¡Cuenta conmigo en el Puesto del Paso!»", Color.SPRING_GREEN, -46.0)
+		else:
+			npc._spawn_floating_text("Necesitas %d de oro y hueco en el asentamiento (máx. 3 colonos)" % OUTPOST_SETTLER_BONUS, Color.ORANGE_RED, -44.0)
+	elif action_id.begins_with("culture_upgrade_outpost:"):
+		var up_id: String = action_id.substr("culture_upgrade_outpost:".length())
+		if upgrade_outpost(vm, up_id, npc, inv):
+			npc._spawn_floating_text("🏗️🏕️ ¡Mejora construida en tu asentamiento (%s)!" % up_id, Color.GOLD, -46.0)
+		else:
+			npc._spawn_floating_text("Necesitas %d de oro para levantar esa estructura" % OUTPOST_UPGRADE_COST, Color.ORANGE_RED, -44.0)
+	elif action_id == "culture_collect_outpost":
+		var col: int = collect_outpost_treasury(vm, inv)
+		if col > 0:
+			npc._spawn_floating_text("💰🏕️ Recaudaste %d de oro del arca de tu asentamiento" % col, Color.GOLD, -46.0)
+		else:
+			npc._spawn_floating_text("El arca del asentamiento solo tiene la reserva para pagar a los colonos", Color.LIGHT_GRAY, -44.0)
+	elif action_id == "culture_sync_main_story":
+		var adv: int = sync_main_story(vm, inv)
+		if adv > 0:
+			npc._spawn_floating_text("👑📜 ¡Avanzaste %d capítulo(s) en la Historia Principal! Consulta el panel [L]." % adv, Color.GOLD, -46.0)
+		else:
+			npc._spawn_floating_text("👑📜 Consulta tu capítulo actual en la pestaña «Principal» del panel de misiones [L].", Color.LIGHT_SKY_BLUE, -46.0)

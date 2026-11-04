@@ -5,6 +5,10 @@ El detalle técnico está en `docs/HANDOFF.md` (sección 7) y el historial compl
 
 ## 2026-11-04
 
+### Crear tu propio asentamiento fronterizo e Historia Principal en 4 capítulos
+- **Fundar y gobernar el «Puesto del Paso»:** puedes fundar tu propio asentamiento en el paso fronterizo abonando la carta municipal y aportando madera y piedra. Allí puedes reclutar vecinos sin oficio como colonos (con jornal diario pagado del arca del asentamiento), levantar un aserradero, un granero y una atalaya de guardia, y recaudar el excedente de los peajes comerciales.
+- **Historia Principal en el panel de misiones (`[L]`):** la pestaña «👑 Principal» del diario de misiones sigue ahora un arco de cuatro capítulos («Las Raíces del Valle», «El Pulso Bajo la Piedra», «La Máquina de Cobre» y «La Placa de Petri») que conecta tu llegada al valle, los hallazgos subterráneos y arqueológicos, la ingeniería del generador y el destino político de la comunidad.
+
 ### Armas de fuego de chispa y Terminales lógicas electromecánicas con hackeo
 - **Arcabuz de chispa y cargas de pólvora:** cuando el pueblo ha investigado las Cerraduras de Precisión, puedes encargar un arcabuz de chispa en la herrería o el taller y comprar cargas de pólvora negra. Llevar el arma cargada refuerza de forma decisiva la defensa contra incursiones y te permite disparar (consumiendo pólvora y alertando por el estruendo a los testigos cercanos del mismo nivel).
 - **Terminales lógicas y hackeo electromecánico:** una vez al día puedes manipular en sigilo la consola electromecánica de tarjetas perforadas y relés (con mejores probabilidades si se han investigado los Condensadores Voltaicos o llevas una bobina de cobre) para desviar un reembolso desde las arcas municipales, borrar cargos en el archivo policial o reprogramar el controlador de la red eléctrica; si fallas, salta una descarga voltaica y se activa la alarma policial.

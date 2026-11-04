@@ -4165,5 +4165,58 @@ func _initialize() -> void:
 	vm.town_state["treasury"] = po_tr0
 	print("Block PO (Flintlock Firearms & Electromechanical Logic Terminals) OK")
 
+	# ==========================================================================
+	# 93. Bloque PP — Crear tu propio asentamiento fronterizo e Historia Principal en 4 capítulos (panel [L])
+	# ==========================================================================
+	var pp_ag0: int = int(p70_a.personal_gold)
+	var pp_bg0: int = int(p70_b.personal_gold)
+	var pp_b_role0: int = int(p70_b.trade_role)
+	var pp_tr0: int = int(vm.town_state.get("treasury", 0))
+	vcu_pj.state(vm)["outpost"] = {}
+	vcu_pj.state(vm)["main_story"] = {}
+	p70_inv.remove_item("wood", p70_inv.get_count("wood"))
+	p70_inv.remove_item("stone", p70_inv.get_count("stone"))
+	p70_inv.add_item("wood", 2)
+	p70_inv.add_item("stone", 2)
+	p70_inv.gold = 150
+	vm.town_state["treasury"] = 100
+	vcu_pj.on_player_action(vm, p70_a, "culture_found_outpost", p70_inv)
+	assert(bool(vcu_pj.outpost_state(vm).get("founded", false)) and p70_inv.gold == 60 and int(vm.town_state["treasury"]) == 170 and int(vcu_pj.outpost_state(vm)["treasury"]) == 20, "PP.1a: Founding outpost costs 90 gold + 2 wood + 2 stone, adds 70 to town treasury and seeds 20 in outpost treasury")
+	p70_b.trade_role = load("res://scripts/enemies/VillageNPC.gd").TradeRole.UNEMPLOYED
+	p70_b.personal_gold = 5
+	vcu_pj.on_player_action(vm, p70_b, "culture_recruit_settler", p70_inv)
+	assert((vcu_pj.outpost_state(vm)["settlers"] as Array).has(p70_b.get_person_key()) and p70_inv.gold == 45 and p70_b.personal_gold == 20, "PP.1b: Recruiting settler transfers 15 gold to unemployed villager and registers settler")
+	p70_a.personal_gold = 10
+	vcu_pj.on_player_action(vm, p70_a, "culture_upgrade_outpost:sawmill", p70_inv)
+	assert(bool(vcu_pj.outpost_state(vm)["upgrades"]["sawmill"]) and p70_inv.gold == 10 and p70_a.personal_gold == 45, "PP.1c: Upgrading outpost sawmill transfers 35 gold to artisan")
+	vcu_pj.trade_routes_of(vm)["river_port"]["balance"] = 30
+	vcu_pj.process_outpost_daily(vm)
+	# Con 1 colono y aserradero: cobra 6 de peaje de la ruta (+6 a arca -> 26) y paga 3 de jornal al colono (arca -> 23, p70_b -> 23)
+	assert(int(vcu_pj.outpost_state(vm)["treasury"]) == 23 and p70_b.personal_gold == 23, "PP.1d: Daily outpost cycle collects route toll into outpost treasury and pays 3 gold wage to settler")
+	vcu_pj.on_player_action(vm, p70_a, "culture_collect_outpost", p70_inv)
+	assert(p70_inv.gold == 27 and int(vcu_pj.outpost_state(vm)["treasury"]) == 6, "PP.1e: Collecting outpost surplus leaves 6 gold wage reserve and transfers 17 gold to player")
+	# PP.2: Historia Principal en 4 capítulos en QuestManager (categoría "main" del panel [L])
+	var qm_pp = root.get_node_or_null("/root/QuestManager")
+	assert(qm_pp != null, "PP.2: QuestManager exists")
+	qm_pp.quests.erase("main_ch1")
+	qm_pp.quests.erase("main_ch2")
+	qm_pp.quests.erase("main_ch3")
+	qm_pp.quests.erase("main_ch4")
+	vcu_pj.exploration_state(vm)["discoveries"] = 1
+	(vcu_pj.research_state(vm)["unlocked"] as Dictionary)["waterwheel_gears"] = true
+	p70_inv.gold = 10
+	vm.town_state["treasury"] = 200
+	var pp_adv: int = vcu_pj.sync_main_story(vm, p70_inv)
+	assert(pp_adv == 4 and bool(vcu_pj.main_story_state(vm).get("completed", false)) and str(qm_pp.get_quest("main_ch4").get("status", "")) == "completed" and p70_inv.gold == 125 and int(vm.town_state["treasury"]) == 85, "PP.2a: Completing all 4 main story chapters registers them in QuestManager ('main' tab) and pays 20+25+30+40=115 gold from town treasury")
+	vcu_pj.state(vm)["outpost"] = {}
+	vcu_pj.state(vm)["main_story"] = {}
+	vcu_pj.state(vm)["research"] = {}
+	vcu_pj.state(vm)["exploration"] = {}
+	p70_b.trade_role = pp_b_role0
+	p70_a.personal_gold = pp_ag0
+	p70_b.personal_gold = pp_bg0
+	vm.town_state["treasury"] = pp_tr0
+	print("Block PP (Player Outpost Settlement & 4-Chapter Main Story) OK")
+
 	print("ALL RIMWORLD MEDICAL, FOOTPRINTS, 3-PHASE CORPSE REPORT, MULTI-CORPSE FIX, RPG INTERROGATION, PUBLIC TRIAL, DYNAMIC RELATIONSHIPS, MISSING FAMILY SEARCH, SOCIAL GLOSSARY & UNCONSCIOUS REACTION TESTS PASSED!")
 	quit(0)

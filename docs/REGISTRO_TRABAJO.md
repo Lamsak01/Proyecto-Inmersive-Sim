@@ -350,6 +350,13 @@ Informe completo: `docs/AUDITORIA_P1_P7.md`.
 | PO1 | Armas de fuego (`flintlock_pistol`, `powder_charge`, `buy_firearm`, `buy_powder_pack`, `has_loaded_firearm`, `fire_flintlock_shot`, +3 defensa en incursiones y disparo con consumo de pólvora y alerta sonora) | ✅ | SimpleInventory.gd, VillageCulture.gd, verify_all.gd | Test #92 |
 | PO2 | Terminales lógicas electromecánicas y hackeo (`terminal_state`, `hack_terminal`, `culture_hack_terminal:*` en `census_ledger`, `warrant_archive` y `grid_controller`, 1/día con tirada de riesgo y alarma voltaica si falla) | ✅ | VillageCulture.gd, verify_all.gd | Test #92 |
 
+## Bloque PP — Crear tu propio asentamiento fronterizo e Historia Principal en 4 capítulos (2026-11-04)
+
+| # | Paso | Estado | Archivos | Nota |
+|---|------|--------|----------|------|
+| PP1 | Crear y gobernar el asentamiento fronterizo «Puesto del Paso» (`found_outpost`, `recruit_outpost_settler`, `upgrade_outpost`, `process_outpost_daily`, `collect_outpost_treasury`) con colonos, aserradero/granero/atalaya y arca propia | ✅ | VillageCulture.gd, verify_all.gd | Test #93 |
+| PP2 | Historia Principal en 4 capítulos («I. Las Raíces del Valle» → «IV. La Placa de Petri») conectada a la pestaña «👑 Principal» del panel de misiones `[L]` (`MAIN_STORY_CHAPTERS`, `sync_main_story`) | ✅ | VillageCulture.gd, QuestManager.gd, verify_all.gd | Test #93 |
+
 
 
 
