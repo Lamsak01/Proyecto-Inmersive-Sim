@@ -24,6 +24,11 @@ recomendaciones. Pégalo entero como primer mensaje al cambiar de agente.
 ## 2. Reglas de trabajo con el usuario (importante)
 
 - Idioma: **español**. Conciso. Explica el "qué" y el "por qué" sin jerga.
+- **Nunca nombres archivos, funciones, variables ni líneas de código** en tus mensajes al usuario, salvo que él lo pida. Habla siempre del juego (vecinos, tiendas, misiones, la cantera, el mapa...).
+- **Formato para cada problema o propuesta:** 1) Qué pasa (en palabras de jugador), 2) Qué notaría en el juego (o «no se nota, es para el futuro»), 3) Qué pasa si no lo hacemos, 4) Recomendación (hacerlo ya / más adelante / no hacerlo) y coste (poco / medio / mucho).
+- **Máximo 10–12 líneas por mensaje.** Si hay varias cosas, empieza por la más importante y pregunta si quiere oír el resto.
+- **Pregunta SIEMPRE antes de lanzar pruebas o partidas de prueba**, diciendo cuánto tardan.
+- **Termina cada mensaje con una sola pregunta clara** de lo que necesitas del usuario.
 - El usuario **no programa**; prefiere que decidas lo técnico y le preguntes lo de diseño con opciones claras.
 - Le preocupan los **tokens**: bloques pequeños, bien documentados, siempre dejando el repositorio en estado limpio y commiteado.
 - Le gusta: planificar antes, probar jugando y reportar lo que ve.

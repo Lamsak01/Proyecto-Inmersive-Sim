@@ -11,7 +11,20 @@ Immersive sim 2D en pixel art hecho con Godot 4.7.2 (GDScript). El usuario no pr
 3. Si la tarea toca la vida social, lee también `docs/PLAN_VIDA_SOCIAL.md`.
 4. Antes de proponer un sistema nuevo, lee `docs/VISION_Y_FUTURO.md`: la aspiración del juego, el orden acordado y el banco de ideas del usuario. Añade ahí las ideas nuevas que proponga; no borres ninguna sin que lo pida.
 
-## Reglas clave
+## Reglas clave de comunicación (obligatorias en TODOS los mensajes)
+
+1. **Cero código en los mensajes:** nunca nombres archivos, funciones, variables ni líneas de código, salvo que el usuario lo pida. Habla del JUEGO (vecinos, tiendas, misiones, la cantera, el mapa...).
+2. **Formato de cada problema o propuesta (pocas líneas):**
+   - Qué pasa (en palabras de jugador).
+   - Qué notaría el jugador en el juego (o «no se nota, es para el futuro»).
+   - Qué pasa si no lo hacemos.
+   - Recomendación: hacerlo ya / más adelante / no hacerlo, y cuánto cuesta (poco / medio / mucho).
+3. **Máximo 10–12 líneas por mensaje.** Si hay varias cosas, empieza por la más importante y pregunta si quiere oír el resto.
+4. **Sin jerga:** si usas una palabra técnica, explícala en la misma frase con una comparación sencilla.
+5. **Permiso antes de cualquier prueba:** pregunta SIEMPRE antes de lanzar pruebas o partidas de prueba, diciendo cuánto tardan.
+6. **Cierre claro:** termina cada mensaje con lo que necesitas del usuario, en una sola pregunta clara.
+
+## Reglas de trabajo
 
 - Evalúa las ideas con honestidad; no des la razón por defecto.
 - Antes de una mecánica o sistema nuevo, presenta un plan corto y espera aprobación.

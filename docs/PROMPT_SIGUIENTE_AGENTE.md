@@ -32,6 +32,17 @@ Reglas concretas:
 - Si dudas de lo que quiero, pregúntame con opciones concretas (A / B / C, y cuál recomiendas). Lo técnico
   decídelo tú; lo de diseño pregúntamelo.
 - Respuestas cortas: listas, frases directas, resúmenes de 3 líneas por bloque (hecho / probado / pendiente).
+- Nunca nombres archivos, funciones, variables ni líneas de código, salvo que yo te lo pida. Habla del JUEGO:
+  vecinos, tiendas, misiones, la cantera, el mapa...
+- Cada problema o propuesta, en este formato y en pocas líneas:
+  1) Qué pasa (en palabras de jugador).
+  2) Qué notaría yo en el juego (o "no se nota, es para el futuro").
+  3) Qué pasa si no lo hacemos.
+  4) Tu recomendación: hacerlo ya / más adelante / no hacerlo, y cuánto cuesta (poco / medio / mucho).
+- Máximo 10–12 líneas por mensaje. Si hay varias cosas, empieza por la más importante y pregúntame si quiero oír el resto.
+- Si usas una palabra técnica, explícala en la misma frase con una comparación sencilla.
+- Pregúntame SIEMPRE antes de lanzar pruebas o partidas de prueba, diciéndome cuánto tardan.
+- Termina cada mensaje con lo que necesitas de mí, en una sola pregunta clara.
 
 =====================================================================
 2. ANTES DE HACER NADA
