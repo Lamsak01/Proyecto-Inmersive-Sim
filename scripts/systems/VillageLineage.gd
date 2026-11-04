@@ -573,14 +573,17 @@ static func add_dialogue_choices(vm, npc, diag: Dictionary, ch_arr: Array) -> vo
 		var ll: Dictionary = st["love_letters"][sid]
 		if bool(ll.get("handled", false)):
 			continue
-		if not bool(ll.get("intercepted", false)):
-			if key == str(ll["sender_key"]):
-				opts.append({"label": "✉️🕵️ Interceptar la carta que lleva escondida en el bolsillo", "next": "END", "action": "lineage_intercept_letter:" + sid})
-		else:
+		if bool(ll.get("intercepted", false)):
 			if key == str(ll["receiver_key"]):
 				opts.append({"label": "✉️💘 Entregarle en secreto la carta de amor de %s (hasta 12 Oro)" % str(ll["sender_name"]), "next": "END", "action": "lineage_deliver_letter:" + sid})
 			elif p_id != "" and (p_id == str(ll["sender_key"]) or p_id == str(ll["receiver_key"])):
 				opts.append({"label": "✉️💔 Mostrarle la carta de amor entre %s y %s (hasta 15 Oro)" % [str(ll["sender_name"]), str(ll["receiver_name"])], "next": "END", "action": "lineage_expose_letter:" + sid})
+
+	# Registrar bolsillos: se ofrece a cualquier adulto (una vez al día), así la opción no delata ninguna aventura
+	if not vm.VillageFamily.is_child(npc) and not (int(npc.trade_role) in [int(VillageNPC.TradeRole.SHERIFF), int(VillageNPC.TradeRole.GUARD)]):
+		var srch: Dictionary = st.get("pocket_searched", {})
+		if int(srch.get(key, -1)) != today():
+			opts.append({"label": "🤏🕵️ Hurgar a escondidas en su bolsillo mientras está distraído", "next": "END", "action": "lineage_search_pocket:" + key})
 
 	# Tanda 3 (11): Bodas concertadas con dote
 	for apk in (st["arranged_marriages"] as Dictionary).keys():
@@ -601,7 +604,7 @@ static func add_dialogue_choices(vm, npc, diag: Dictionary, ch_arr: Array) -> vo
 
 	# Tanda 3 (13): Enseñar un oficio a un niño
 	if vm.VillageFamily.is_child(npc) and npc.person_profile != null and int(npc.person_profile.age) >= 7 and not (st["mentored_kids"] as Dictionary).has(key):
-		opts.append({"label": "🛠️📚 Enseñarle nociones de oficio y comercio a %s" % npc.npc_name, "next": "END", "action": "lineage_mentor_child:" + key})
+		opts.append({"label": "🛠️📚 Enseñarle nociones de oficio y comercio a %s (-10 Oro en herramientas)" % npc.npc_name, "next": "END", "action": "lineage_mentor_child:" + key})
 
 	# Tanda 3 (14): Jóvenes que se escapan de noche al mirador (sin revelar en el menú con quién se ve)
 	var cst_m: Dictionary = VillageClans.state(vm)
@@ -706,6 +709,22 @@ static func on_player_action(vm, npc, action_id: String, inv) -> void:
 		npc.modify_affinity(-15)
 		npc._spawn_floating_text("😠 «Toma %d de oro y no te metas en mi vida pasada.»" % pay, Color.GOLD, -46.0)
 
+	elif action_id.begins_with("lineage_search_pocket:"):
+		if not st.has("pocket_searched") or not (st["pocket_searched"] is Dictionary):
+			st["pocket_searched"] = {}
+		st["pocket_searched"][arg] = today()
+		var seen_by = vm._find_conscious_witness_near(npc.global_position, 120.0, npc)
+		if seen_by != null or randf() < 0.25:
+			npc.modify_affinity(-25)
+			npc._spawn_floating_text("😠 «¡Eh! ¡Saca la mano de mi bolsillo!»", Color.ORANGE_RED, -46.0)
+			return
+		for lsid in (st["love_letters"] as Dictionary).keys():
+			var lf: Dictionary = st["love_letters"][lsid]
+			if str(lf.get("sender_key", "")) == arg and not bool(lf.get("intercepted", false)) and not bool(lf.get("handled", false)):
+				on_player_action(vm, npc, "lineage_intercept_letter:" + str(lsid), inv)
+				return
+		npc._spawn_floating_text("🤏 Solo encuentras pelusa y un par de botones.", Color(0.85, 0.85, 0.85), -46.0)
+
 	elif action_id.begins_with("lineage_intercept_letter:"):
 		if not (st["love_letters"] as Dictionary).has(arg):
 			return
@@ -785,6 +804,11 @@ static func on_player_action(vm, npc, action_id: String, inv) -> void:
 		npc._spawn_floating_text("🕯️👶 «¡Será un honor que seas el padrino de %s!»" % g_kid.npc_name, Color.SPRING_GREEN, -46.0)
 
 	elif action_id.begins_with("lineage_mentor_child:"):
+		if inv == null or int(inv.gold) < 10 or (st["mentored_kids"] as Dictionary).has(arg):
+			npc._spawn_floating_text("Necesitas 10 de oro para sus primeras herramientas", Color.ORANGE_RED, -44.0)
+			return
+		inv.add_gold(-10)
+		npc.personal_gold += 10 # las herramientas son suyas
 		st["mentored_kids"][arg] = {"kid_key": arg, "kid_name": npc.npc_name, "day": today()}
 		npc.modify_affinity(18)
 		npc.add_thought("Aprendí nociones de oficio (+10)", 10.0)

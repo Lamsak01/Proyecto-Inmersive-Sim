@@ -33,3 +33,16 @@ Arreglos en los commits 43e6f46, 8ee8ed5 y 0f85298. Léelos antes de tocar esos 
 - Antes de escribir "hecho", comprueba que la acción existe y tiene un test.
 - Nunca uses `has_method()` para algo que crees que existe: búscalo primero.
 - Pendiente de riesgo bajo: renombrar niños puede desincronizar registros que van por nombre.
+
+## Segunda ronda (bloque PC, revisado en PD)
+
+Se repitieron errores de la primera ronda. Antes de entregar, comprueba estos cuatro puntos:
+
+- **Campos que no existen:** `n.personality` no existe en VillageNPC (usa `TraitCatalog.npc_tendency`). Leer una clave
+  que nunca se guarda (`imitated_victim`) rompe la acción. Un test que rellena el dato a mano no lo detecta.
+- **Una opción que solo aparece cuando hay secreto ya lo delata.** Ofrécela siempre (o a todos) y que el resultado
+  diga «no hay nada» cuando no lo haya. Mete pistas falsas para que una sola pista no señale al culpable.
+- **Toda venta o atajo debe respetar deudas y cajas:** vender con hipoteca la salda; un descuento no puede ingresar en
+  las arcas un dinero que nadie pagó.
+- **Un reto que no se puede perder no es un reto:** tirada con riesgo y espera entre intentos. Ningún ingreso pasivo
+  sin riesgo.

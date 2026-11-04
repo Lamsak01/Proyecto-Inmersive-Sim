@@ -5,6 +5,13 @@ El detalle técnico está en `docs/HANDOFF.md` (sección 7) y el historial compl
 
 ## 2026-11-04
 
+### Revisión de las 29 mecánicas nuevas: errores, destripes y dinero fácil
+- **Ya no fallan:** desmontar un crimen por imitación y los intrusos nocturnos funcionan sin errores.
+- **El misterio vuelve a estar a salvo:** las cartas de amantes se encuentran hurgando bolsillos (se ofrece con cualquiera, así que no delata nada, y te pueden pillar). Consultar pólizas de vida cuesta 10 de oro, se puede preguntar por cualquier víctima, y también hay pólizas inocentes entre parientes: tener una no prueba que sea el asesino.
+- **Sin dinero fácil:** vender una casa salda primero la hipoteca; la escritura falsa ya no inventa oro en las arcas; los carteristas pueden ser pillados (y la guardia te vigila), máximo 3; esconderte en el sótano solo una vez por semana; la lejía se usa en la escena, no desde un diálogo.
+- **Retos de verdad:** el debate electoral y el reto al jefe del hampa se pueden perder (el reto, una vez por semana); un debate por campaña; el patriarca solo te hace caso una vez por semana; enseñar un oficio cuesta 10 de oro en herramientas.
+- **Detalles:** el intruso solo se enfrenta hablando con él, y si no lo haces se lleva algo de tu escondite; el indultado recupera el apellido de su familia; quien compra tu casa se muda a ella.
+
 ### Las 29 mecánicas pendientes de los siete bloques: crímenes, clanes, linaje, capilla, alcaldía, casa y bajos fondos
 - **Crímenes y escena del crimen:** ahora puedes fregar la sangre de la escena con lejía antes de que la vean (con doble confirmación), sobornar al médico para falsear la autopsia, contratar a un limpiador nocturno para borrar rastros o chantajear a un vecino del que sepas un trapo sucio para que confiese en tu lugar. Además, hay pólizas de seguro de vida sospechosas, asesinos que trucan la hora de la muerte (descubrible revisando el cuerpo) y crímenes por imitación que culpan a un asesino anterior hasta que los desmontas.
 - **Clanes y linaje:** cada familia tiene un patriarca o matriarca a quien obedecen los suyos; los clanes enemistados se sabotean los talleres de noche; circulan cartas de amor secretas que puedes interceptar, entregar o destapar ante la pareja; hay bodas concertadas con dote, padrinos de bautizo (que dan propina los domingos y acogen al niño si queda huérfano), niños a los que puedes enseñar un oficio para que empiecen con ventaja al crecer, y jóvenes que se escapan de noche al mirador.

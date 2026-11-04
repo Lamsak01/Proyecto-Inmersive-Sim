@@ -19,6 +19,7 @@ const VillageNeeds = preload("res://scripts/systems/VillageNeeds.gd")
 const VillageLots = preload("res://scripts/systems/VillageLots.gd")
 const VillageLoans = preload("res://scripts/systems/VillageLoans.gd")
 const TraitDiscovery = preload("res://scripts/systems/TraitDiscovery.gd")
+const TraitCatalog = preload("res://scripts/data/TraitCatalog.gd")
 
 const HOUSE_CASH_COST: int = 100
 const FORECLOSED_COST: int = 80
@@ -142,11 +143,14 @@ static func buy_house_cash(vm, lot_id: String, inv) -> bool:
 	if has_forged:
 		vm.VillageUnderworld.state(vm)["forged_deed"] = false
 	# request_build con payer=null cobra de las arcas, así que ingresamos primero los 100 en las arcas y marcamos payer="player"
-	vm.town_state["treasury"] = int(vm.town_state.get("treasury", 0)) + HOUSE_CASH_COST
+	# Con escritura falsa solo entra en las arcas lo que pagas: el resto lo pierde el pueblo (es un fraude, no oro nuevo)
+	vm.town_state["treasury"] = int(vm.town_state.get("treasury", 0)) + cost
 	var built: String = VillageLots.request_build(vm, lot_id, "house", null, "🏡 Casa del Forastero")
 	if built == "":
-		vm.town_state["treasury"] = int(vm.town_state.get("treasury", 0)) - HOUSE_CASH_COST
+		vm.town_state["treasury"] = int(vm.town_state.get("treasury", 0)) - cost
 		inv.add_gold(cost)
+		if has_forged:
+			vm.VillageUnderworld.state(vm)["forged_deed"] = true
 		return false
 	var st: Dictionary = VillageLots.lot(vm, lot_id)
 	st["payer"] = "player"
@@ -300,10 +304,22 @@ static func daily(vm) -> void:
 				if bool(up.get("workbench", false)):
 					inv.add_item("herbal_poultice", 1)
 		# Tanda 5 (21): Intrusos nocturnos o enemigos intentando forzar tu puerta si no tienes cerradura reforzada
+		# Un intruso sin escarmentar en 2 días se lleva algo del escondite y deja sitio a otro
+		var ia_old: Dictionary = hs["intruder_attempt"]
+		if not ia_old.is_empty() and (bool(ia_old.get("repelled", false)) or today() - int(ia_old.get("day", today())) >= 2):
+			if not bool(ia_old.get("repelled", false)):
+				var stolen: int = mini(10, int(hs.get("stash_gold", 0)))
+				hs["stash_gold"] = int(hs.get("stash_gold", 0)) - stolen
+				var thief_n = vm._get_npcs_by_person_key().get(str(ia_old.get("intruder_key", "")), null)
+				if thief_n != null and not thief_n.is_dead:
+					thief_n.personal_gold += stolen
+				VillageChronicle.add(vm, "intruder_stole", "Alguien forzó tu puerta de noche%s" % (" y se llevó %d de oro de tu escondite" % stolen if stolen > 0 else ""), false)
+			hs["intruder_attempt"] = {}
 		if (hs["intruder_attempt"] as Dictionary).is_empty() and not has_upgrade(vm, "strong_lock") and randf() < 0.20:
 			for n in VillageNeeds.living(vm):
-				if int(n.trade_role) != int(VillageNPC.TradeRole.CHILD) and (int(n.affinity) <= -35 or float(n.personality.get("malice", 0.0)) >= 0.4):
+				if int(n.trade_role) != int(VillageNPC.TradeRole.CHILD) and (int(n.affinity) <= -35 or TraitCatalog.npc_tendency(n, "malice") >= 0.4):
 					hs["intruder_attempt"] = {"intruder_key": n.get_person_key(), "intruder_name": n.npc_name, "day": today(), "repelled": false}
+					VillageChronicle.add(vm, "intruder_try", "Anoche alguien intentó forzar la puerta de tu casa; quien fuera te guarda rencor", false)
 					break
 	# P6.10: Los sábados, los locales comerciales tuyos te pagan el 15 % de su caja
 	if inv != null and WorldClock != null and WorldClock.has_method("get_weekday") and int(WorldClock.get_weekday()) == 5:
@@ -354,8 +370,9 @@ static func add_dialogue_choices(vm, npc, diag: Dictionary, ch_arr: Array) -> vo
 				break
 
 	# Tanda 5 (21): Defender tu puerta y escarmentar a un intruso nocturno
-	if not (hs["intruder_attempt"] as Dictionary).is_empty() and not bool(hs["intruder_attempt"].get("repelled", false)):
-		opts.append({"label": "🚪🛡️ Defender tu puerta y escarmentar al intruso %s (hasta 15 Oro)" % str(hs["intruder_attempt"].get("intruder_name", "")), "next": "END", "action": "housing_repel_intruder"})
+	# Solo hablando con el propio intruso (lo descubres al ver tu puerta forzada y preguntar por ahí)
+	if not (hs["intruder_attempt"] as Dictionary).is_empty() and not bool(hs["intruder_attempt"].get("repelled", false)) and str(hs["intruder_attempt"].get("intruder_key", "")) == npc.get_person_key():
+		opts.append({"label": "🚪🛡️ Plantarle cara por intentar forzar tu puerta anoche (hasta 15 Oro)", "next": "END", "action": "housing_repel_intruder"})
 
 	# Tanda 5 (22): Vender una casa tuya reformada al precio del barrio y sus mejoras
 	if is_carp or vm.VillageTown.is_mayor(vm, npc):
@@ -363,7 +380,7 @@ static func add_dialogue_choices(vm, npc, diag: Dictionary, ch_arr: Array) -> vo
 			opts.append({"label": "🏘️📈 Vender tu casa del solar %s (+%d Oro según atractivo y mejoras)" % [lid3, house_sale_price(vm, lid3)], "next": "END", "action": "housing_sell_house:" + lid3})
 
 	# Tanda 5 (23): Esconderte en tu sótano secreto si te buscan por un delito menor
-	if has_upgrade(vm, "hidden_cellar") and int(vm.wanted_level) == 1 and int(vm.player_murder_warrants_count) == 0:
+	if has_upgrade(vm, "hidden_cellar") and int(vm.wanted_level) == 1 and int(vm.player_murder_warrants_count) == 0 and today() - int(hs.get("last_hide_day", -99)) >= 7:
 		opts.append({"label": "🕳️🤫 Esconderte en tu sótano secreto hasta que pase la búsqueda", "next": "END", "action": "housing_hide_cellar"})
 
 	# P6.9: Usar tu escondite secreto bajo las tablas (disponible cuando tienes escondite)
@@ -581,30 +598,57 @@ static func on_player_action(vm, npc, action_id: String, inv) -> void:
 		var st_sell: Dictionary = VillageLots.lot(vm, arg)
 		if str(st_sell.get("payer", "")) != "player":
 			return
+		var my_key_set: Array = (st_sell.get("residents", []) as Array).duplicate()
+		if not my_key_set.is_empty():
+			npc._spawn_floating_text("«Primero tiene que mudarse quien vive en esa casa.»", Color.ORANGE_RED, -44.0)
+			return
 		var price: int = house_sale_price(vm, arg)
+		# Si queda hipoteca, la venta primero salda la deuda con quien prestó
+		var owed: int = int((st_sell.get("loan", {}) as Dictionary).get("owed", 0))
 		var buyer = null
 		for n in VillageNeeds.living(vm):
-			if int(n.trade_role) != int(VillageNPC.TradeRole.CHILD) and not str(n.lodging).begins_with("house:") and int(n.personal_gold) >= price:
+			if int(n.trade_role) != int(VillageNPC.TradeRole.CHILD) and not VillageNeeds.is_outsider(n) and not str(n.lodging).begins_with("house:") and int(n.personal_gold) >= price:
 				buyer = n
 				break
-		var paid: int = 0
+		var got: int = 0
 		if buyer != null:
-			paid = vm.VillageClans.pay_from_pocket(buyer, price, inv)
-			st_sell["payer"] = buyer.get_person_key()
+			buyer.personal_gold -= price
+			got = price
 		else:
 			var t_gold: int = int(vm.town_state.get("treasury", 0))
-			paid = mini(price, maxi(0, t_gold))
-			vm.town_state["treasury"] = t_gold - paid
-			if inv != null and paid > 0:
-				inv.add_gold(paid)
-			st_sell["payer"] = "town"
+			got = mini(price, maxi(0, t_gold))
+			vm.town_state["treasury"] = t_gold - got
+		if got < owed:
+			# No llega para saldar la hipoteca: se deshace la venta
+			if buyer != null:
+				buyer.personal_gold += got
+			else:
+				vm.town_state["treasury"] = int(vm.town_state.get("treasury", 0)) + got
+			npc._spawn_floating_text("«Nadie paga lo bastante para cubrir tu hipoteca (%d de oro).»" % owed, Color.ORANGE_RED, -44.0)
+			return
+		if owed > 0:
+			VillageLoans._credit(vm, str(st_sell["loan"].get("lender", "")), owed)
 		st_sell.erase("loan")
-		VillageChronicle.add(vm, "house_sold", "Vendiste tu casa del solar %s por %d de oro" % [arg, paid], true)
-		npc._spawn_floating_text("🏘️💰 «¡Casa del solar %s vendida por %d de oro!»" % [arg, paid], Color.GOLD, -46.0)
+		var paid: int = got - owed
+		if inv != null and paid > 0:
+			inv.add_gold(paid)
+		if buyer != null:
+			st_sell["payer"] = buyer.get_person_key()
+			buyer.lodging = "house:" + arg
+			var beds_s: Array = VillageLots._house_beds(arg)
+			if not beds_s.is_empty():
+				buyer.bed_position = beds_s[0]
+			buyer.home_table_pos = VillageLots.lot_def(arg)["center"] + Vector2(0, -2)
+			VillageLots.add_resident(vm, arg, buyer.get_person_key())
+		else:
+			st_sell["payer"] = "town"
+		VillageChronicle.add(vm, "house_sold", "Vendiste tu casa del solar %s por %d de oro%s" % [arg, got, (" (%d para saldar la hipoteca)" % owed if owed > 0 else "")], true)
+		npc._spawn_floating_text("🏘️💰 «¡Casa del solar %s vendida! Te quedan %d de oro.»" % [arg, paid], Color.GOLD, -46.0)
 
 	elif action_id == "housing_hide_cellar":
-		if not has_upgrade(vm, "hidden_cellar") or int(vm.wanted_level) != 1 or int(vm.player_murder_warrants_count) > 0:
+		if not has_upgrade(vm, "hidden_cellar") or int(vm.wanted_level) != 1 or int(vm.player_murder_warrants_count) > 0 or today() - int(hs.get("last_hide_day", -99)) < 7:
 			return
+		hs["last_hide_day"] = today()
 		vm.wanted_level = 0
 		VillageChronicle.add(vm, "hid_in_cellar", "Te escondiste en el sótano secreto de tu casa hasta que la guardia dejó de buscarte", true)
 		npc._spawn_floating_text("🕳️🤫 «La patrulla pasó de largo sin encontrarte en tu sótano secreto.»", Color.SPRING_GREEN, -46.0)

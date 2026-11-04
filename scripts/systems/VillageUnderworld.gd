@@ -114,7 +114,7 @@ static func play_dice_bet(vm, npc, inv, force_win: int = 0) -> int:
 	return -10
 
 ## Tanda 6 (27): Tu red de carteristas sisa monedas del bolsillo del vecino más rico y reparte el botín a medias contigo.
-static func run_pickpocket_network(vm, inv) -> int:
+static func run_pickpocket_network(vm, inv, catch_chance: float = 0.15) -> int:
 	var st: Dictionary = state(vm)
 	var pps: Dictionary = st.get("pickpockets", {})
 	if pps.is_empty():
@@ -132,6 +132,13 @@ static func run_pickpocket_network(vm, inv) -> int:
 			if cand != pp_npc and not (int(cand.trade_role) in [int(VillageNPC.TradeRole.SHERIFF), int(VillageNPC.TradeRole.GUARD), int(VillageNPC.TradeRole.CHILD)]) and int(cand.personal_gold) > best_g:
 				best_g = int(cand.personal_gold)
 				target = cand
+		# A veces pillan al carterista: lo detienen, sale de tu red y la guardia sospecha de ti
+		if target != null and randf() < catch_chance:
+			pps.erase(pk)
+			target.modify_npc_relationship(pp_npc, -30, "Me pilló metiéndome la mano en el bolsillo", true)
+			vm.wanted_level = int(vm.wanted_level) + 1
+			VillageChronicle.add(vm, "pickpocket_caught", "%s pilló a %s robándole y le delató ante la guardia; ahora la guardia te vigila" % [target.npc_name, pp_npc.npc_name], true)
+			continue
 		if target != null and int(target.personal_gold) >= 6:
 			target.personal_gold -= 6
 			pp_npc.personal_gold += 3
@@ -139,6 +146,9 @@ static func run_pickpocket_network(vm, inv) -> int:
 				inv.add_gold(3)
 			total_player_cut += 3
 	return total_player_cut
+
+static func d_now_ok_challenge(st: Dictionary) -> bool:
+	return today() - int(st.get("last_boss_challenge", -99)) >= 7
 
 static func today() -> int:
 	return int(WorldClock.current_day) if WorldClock else 1
@@ -370,7 +380,7 @@ static func add_dialogue_choices(vm, npc, diag: Dictionary, ch_arr: Array) -> vo
 		# Tanda 6 (28 y 29): Falsificar escritura municipal y retar al jefe de la «Red de las Sombras»
 		if not bool(st.get("forged_deed", false)):
 			opts.append({"label": "📜🖋️ Encargar una escritura municipal falsificada (-25 Oro -> ahorra 40 al comprar casa o local)", "next": "END", "action": "underworld_forge_deed"})
-		if str(st.get("boss", "fence")) != "player":
+		if str(st.get("boss", "fence")) != "player" and d_now_ok_challenge(st):
 			opts.append({"label": "🗡️👑 Retar cara a cara al jefe de la «Red de las Sombras» por el control del hampa", "next": "END", "action": "underworld_challenge_boss"})
 
 	# Tanda 6 (26): Timbas clandestinas de dados por 10 de oro
@@ -378,7 +388,7 @@ static func add_dialogue_choices(vm, npc, diag: Dictionary, ch_arr: Array) -> vo
 		opts.append({"label": "🎲🪙 Echar una timba clandestina de dados por 10 de oro", "next": "END", "action": "underworld_dice_bet"})
 
 	# Tanda 6 (27): Reclutar vecinos sin oficio en tu red de carteristas
-	if not is_law and not is_priest and not fence_here and int(npc.trade_role) == int(VillageNPC.TradeRole.UNEMPLOYED) and int(npc.personal_gold) < 25 and not (st.get("pickpockets", {}) as Dictionary).has(key):
+	if not is_law and not is_priest and not fence_here and int(npc.trade_role) == int(VillageNPC.TradeRole.UNEMPLOYED) and int(npc.personal_gold) < 25 and not (st.get("pickpockets", {}) as Dictionary).has(key) and (st.get("pickpockets", {}) as Dictionary).size() < 3:
 		opts.append({"label": "🧤🪙 Reclutarle en tu red de carteristas (-10 Oro de adelanto -> te dará 3 Oro/día del botín)", "next": "END", "action": "underworld_recruit_pickpocket"})
 
 	# P7.3b: Vender polvo de ocaso a ricos, nobles o adictos
@@ -725,13 +735,22 @@ static func on_player_action(vm, npc, action_id: String, inv) -> void:
 		npc._spawn_floating_text("📜🖋️ «Ni el alcalde distinguirá este lacre. Te ahorrarás 40 monedas en tu próxima compra.»", Color.GOLD, -46.0)
 
 	elif action_id == "underworld_challenge_boss":
-		if str(st.get("boss", "fence")) == "player":
+		if str(st.get("boss", "fence")) == "player" or not d_now_ok_challenge(st):
 			return
 		var pl_c = VillageNeeds.player_of(vm)
 		var hc_c = pl_c.get("health_comp") if pl_c != null else null
 		var hp_ok: bool = hc_c == null or not ("max_health" in hc_c) or float(hc_c.current_health) >= 0.4 * float(hc_c.max_health)
 		if not hp_ok:
 			npc._spawn_floating_text("🗡️🩸 Estás demasiado malherido para retar al jefe de la Red de las Sombras", Color.ORANGE_RED, -46.0)
+			return
+		st["last_boss_challenge"] = d_now
+		var hp_f: float = clampf(float(hc_c.current_health) / maxf(1.0, float(hc_c.max_health)), 0.0, 1.0) if hc_c != null and "max_health" in hc_c else 0.6
+		if randf() >= 0.15 + 0.45 * hp_f:
+			if hc_c != null and "max_health" in hc_c:
+				hc_c.current_health = maxf(1.0, float(hc_c.current_health) - 40.0)
+			npc.modify_affinity(-15)
+			VillageChronicle.add(vm, "shadow_boss_lost", "Retaste al jefe de la «Red de las Sombras» y te dejaron tirado en el callejón", false)
+			npc._spawn_floating_text("🗡️🩸 Sus matones te dan una paliza. Tendrás que esperar una semana para volver a intentarlo.", Color.ORANGE_RED, -46.0)
 			return
 		st["boss"] = "player"
 		var spoils: int = VillageClans.pay_from_pocket(npc, 25, inv)

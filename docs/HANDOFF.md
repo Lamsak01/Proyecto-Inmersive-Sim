@@ -121,7 +121,8 @@ Otros documentos antiguos en la raíz: `ROADMAP_PROYECTO.md`, `AUDIT_LOG.md`, `S
 
 **Bloques P1–P7 auditados (2026-11-04):** ver `docs/AUDITORIA_P1_P7.md`. [x] PA: arreglados los puntos 1 (el misterio
 no se destripa) y 2 (oro infinito). [x] PB: arreglados los puntos 3–7 y los fallos medios (queda solo el riesgo bajo de
-cambiar nombres a niños). Regla nueva: **pulsar E nunca compra ni decide nada de golpe** (la primera E avisa, la segunda
+cambiar nombres a niños). [x] PD: revisadas las 29 mecánicas de PC (2 errores, 2 destripes y 6 fuentes de oro
+fácil arreglados; ver REGISTRO_TRABAJO). Regla nueva: **pulsar E nunca compra ni decide nada de golpe** (la primera E avisa, la segunda
 confirma). Regla nueva para cualquier
 mecánica: **ninguna opción de menú puede nombrar a un culpable que el jugador aún no ha averiguado, y ningún oro se crea
 de la nada** (sale del bolsillo de alguien o de una caja).

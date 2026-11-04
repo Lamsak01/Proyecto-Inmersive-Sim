@@ -269,3 +269,14 @@ Informe completo: `docs/AUDITORIA_P1_P7.md`.
 | PC5 | Tanda 5 (21–25) | Defender tu puerta de intrusos nocturnos (`intruder_attempt`, `housing_repel_intruder`), revender casas según atractivo y mejoras (`house_sale_price`, `housing_sell_house`), sótano secreto (`hidden_cellar`, `housing_hide_cellar`), hogar de leña (`hearth`, `rest_by_hearth`) y caravana de contrabando de medianoche (`caravan_gold`, `underworld_caravan_*`) | ✅ | VillageHousing.gd, VillageUnderworld.gd | Test #82 (Tanda 5.21–5.25) |
 | PC6 | Tanda 6 (26–29) | Timbas clandestinas de dados (`play_dice_bet`, `underworld_dice_bet`), red de carteristas (`pickpockets`, `run_pickpocket_network`), falsificar escrituras municipales (`forged_deed`, `underworld_forge_deed`) y retar cara a cara al jefe de la «Red de las Sombras» (`underworld_challenge_boss`) | ✅ | VillageUnderworld.gd, VillageHousing.gd | Test #82 (Tanda 6.26–6.29) |
 
+## Bloque PD — Revisión de PC (Claude Code, 2026-11-04)
+
+| # | Paso | Estado | Archivos |
+|---|------|--------|----------|
+| PD1 | `copycats` guarda `imitated_victim` (antes faltaba y el desmontaje fallaba); intruso usaba `n.personality`, que no existe (error diario) → `TraitCatalog.npc_tendency` | ✅ | VillageForensics.gd, VillageHousing.gd |
+| PD2 | Cartas: se encuentran con `lineage_search_pocket` (ofrecido a todo adulto, 1/día, con testigos). Pólizas: consulta siempre visible, 10 de oro, y pólizas inocentes (`innocent`) como pista falsa | ✅ | VillageLineage.gd, VillageForensics.gd |
+| PD3 | Venta de casa salda `loan.owed` con `VillageLoans._credit`, exige casa vacía y muda al comprador; escritura falsa ya no crea 40 en arcas; carteristas con `catch_chance` 15 % y tope 3; sótano 1/semana; quitada la lejía a distancia | ✅ | VillageHousing.gd, VillageUnderworld.gd, VillageForensics.gd |
+| PD4 | Debate y reto al jefe con tirada (reto 1/semana, debate por `elections`); patriarca 1/semana; mentor 10 de oro; indulto recupera `family_name` de su clan; intruso solo con él y roba del escondite si no lo enfrentas | ✅ | VillageMayor.gd, VillageUnderworld.gd, VillageClans.gd, VillageLineage.gd, VillageHousing.gd |
+
+Sin cambiar (riesgo bajo): la escritura falsa sigue dando un ahorro neto de 15 sin riesgo; la caravana siempre está
+disponible si conoces al perista.

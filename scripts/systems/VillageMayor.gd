@@ -327,7 +327,7 @@ static func add_dialogue_choices(vm, npc, diag: Dictionary, ch_arr: Array) -> vo
 				if cand != npc and not (ts["smeared"] as Dictionary).has(cand.get_person_key()):
 					opts.append({"label": "🗞️💥 Sacar trapos sucios del candidato %s (-%d Oro)" % [cand.npc_name, SMEAR_COST], "next": "END", "action": "town_smear:" + cand.get_person_key()})
 				# Tanda 4 (17): Debates públicos entre candidatos
-				if not bool(ts.get("debate_done", false)):
+				if int(ts.get("debate_round", -1)) != int(ts.get("elections", 0)): # un debate por campaña
 					opts.append({"label": "🎤🏛️ Retar a debate público en la plaza al candidato %s" % cand.npc_name, "next": "END", "action": "town_debate:" + cand.get_person_key()})
 
 		# P5.9: Convertir al alcalde actual en tu títere si sabes algo turbio suyo o es corrupto
@@ -529,10 +529,19 @@ static func on_player_action(vm, npc, action_id: String, inv) -> bool:
 
 	elif action_id.begins_with("town_debate:"):
 		ts["debate_done"] = true
+		ts["debate_round"] = int(ts.get("elections", 0))
 		var pl_d = npc._get_player()
 		var cha_d: int = int(pl_d.call("get_skill_level", "charisma")) if pl_d != null and pl_d.has_method("get_skill_level") else 1
-		ts["campaign_bonus"] = int(ts.get("campaign_bonus", 0)) + 10 + cha_d * 4
 		var rival = vm._get_npcs_by_person_key().get(arg, null)
+		# El debate se puede perder: cuenta tu carisma frente a la fama del rival
+		var rival_pull: float = clampf(float(rival.affinity if rival != null else 0) / 200.0, -0.2, 0.2)
+		if randf() >= clampf(0.35 + 0.15 * float(cha_d) - rival_pull, 0.1, 0.9):
+			ts["campaign_bonus"] = int(ts.get("campaign_bonus", 0)) - 5
+			var r_name_l: String = rival.npc_name if rival != null else "tu rival"
+			VillageChronicle.add(vm, "mayor_debate_lost", "Perdiste el debate público en la plaza frente a %s" % r_name_l, true)
+			npc._spawn_floating_text("🎤😬 «%s te ha dejado en ridículo en la plaza...»" % r_name_l, Color.ORANGE_RED, -46.0)
+			return true
+		ts["campaign_bonus"] = int(ts.get("campaign_bonus", 0)) + 10 + cha_d * 4
 		var swayed: int = 0
 		for v_n in VillageNeeds.living(vm):
 			if int(v_n.trade_role) == int(VillageNPC.TradeRole.CHILD) or v_n == rival:
@@ -560,7 +569,9 @@ static func on_player_action(vm, npc, action_id: String, inv) -> bool:
 		if (cst_p2["disowned"] as Dictionary).has(arg):
 			var d_info: Dictionary = cst_p2["disowned"][arg]
 			target_p.family_id = str(d_info.get("fam", target_p.family_id))
-			target_p.family_name = str(d_info.get("by", "Rehabilitado"))
+			for fm in vm.VillageClans.clan_members(vm, str(target_p.family_id), target_p):
+				target_p.family_name = str(fm.family_name)
+				break
 			cst_p2["disowned"].erase(arg)
 		var susp_p: Dictionary = vm.active_sheriff_investigation.get("suspects", {})
 		if susp_p.has(target_p.npc_name):

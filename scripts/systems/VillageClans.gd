@@ -530,7 +530,7 @@ static func add_dialogue_choices(vm, npc, diag: Dictionary, ch_arr: Array) -> vo
 		if not bool(dg.get("cleaned", false)):
 			sub.append({"label": "🪦 Ofrecerte a limpiar la lápida profanada de %s y buscar huellas" % v_name, "next": "END", "action": "clan_grave_fix:" + v_name})
 	# Tanda 2 (8): Patriarca/matriarca del clan (el mayor de la familia orienta alianzas y votos de todo el clan)
-	if valid_family(fam) and patriarch_of(vm, fam) == npc and int(npc.affinity) >= 45 and int(st["patriarch_swayed"].get(fam, -10)) != today():
+	if valid_family(fam) and patriarch_of(vm, fam) == npc and int(npc.affinity) >= 45 and today() - int(st["patriarch_swayed"].get(fam, -10)) >= 7:
 		sub.append({"label": "👑🤝 Pedirle como patriarca/matriarca que alinee el voto y la alianza de su clan contigo", "next": "END", "action": "clan_patriarch_sway:" + fam})
 	# Tanda 2 (9): Sabotajes nocturnos entre clanes enemistados (primero inspeccionar sin revelar al autor; luego denunciar)
 	var rk_self: String = str(int(npc.trade_role))

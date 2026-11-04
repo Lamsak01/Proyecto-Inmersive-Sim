@@ -32,6 +32,7 @@ const BLEACH_COST: int = 8
 const BRIBE_AUTOPSY_COST: int = 35
 const CLEANER_COST: int = 25
 const INSURANCE_PAYOUT: int = 40
+const INSURANCE_LOOKUP_COST: int = 10
 
 static func state(vm) -> Dictionary:
 	var ts: Dictionary = VillageTown.state(vm)
@@ -117,7 +118,7 @@ static func on_npc_murder_committed(vm, killer, victim, desire: Dictionary) -> v
 		for prev_v in vm.npc_murders.keys():
 			var prev_k: String = str(vm.npc_murders[prev_v])
 			if prev_v != v_name and prev_k != "" and prev_k != killer.npc_name:
-				st["copycats"][v_name] = {"killer_name": killer.npc_name, "imitated_killer": prev_k, "debunked": false}
+				st["copycats"][v_name] = {"killer_name": killer.npc_name, "imitated_killer": prev_k, "imitated_victim": str(prev_v), "debunked": false}
 				break
 
 # ==============================================================================
@@ -288,6 +289,22 @@ static func daily(vm) -> void:
 				"beneficiary_name": holder.npc_name, "payout": INSURANCE_PAYOUT,
 				"player_knows": false, "exposed": false, "paid": false, "victim_dead": false
 			}
+	# Pólizas inocentes entre parientes: así una póliza no señala al asesino por sí sola
+	if randf() < 0.08:
+		var adults: Array = []
+		for n in VillageNeeds.living(vm):
+			if int(n.trade_role) != int(VillageNPC.TradeRole.CHILD) and not VillageNeeds.is_outsider(n) and not (st["insurance"] as Dictionary).has(n.npc_name):
+				adults.append(n)
+		if not adults.is_empty():
+			var ins_t = adults[randi() % adults.size()]
+			for rel in VillageClans.relatives_of(vm, ins_t):
+				if int(rel.trade_role) != int(VillageNPC.TradeRole.CHILD) and not rel.is_dead:
+					st["insurance"][ins_t.npc_name] = {
+						"victim_name": ins_t.npc_name, "beneficiary_key": rel.get_person_key(),
+						"beneficiary_name": rel.npc_name, "payout": INSURANCE_PAYOUT,
+						"player_knows": false, "exposed": false, "paid": false, "victim_dead": false, "innocent": true
+					}
+					break
 	for iv_name in (st["insurance"] as Dictionary).keys():
 		var ins: Dictionary = st["insurance"][iv_name]
 		if bool(ins.get("victim_dead", false)) and not bool(ins.get("exposed", false)) and not bool(ins.get("paid", false)):
@@ -455,19 +472,18 @@ static func add_dialogue_choices(vm, npc, diag: Dictionary, ch_arr: Array) -> vo
 			var sg: Dictionary = st["scapegoats"][v_name]
 			if npc.npc_name == str(sg["scapegoat_name"]):
 				f_choices.append({"label": "⚖️🔓 Ayudarle a demostrar que el comisario le señala sin pruebas", "next": "END", "action": "forensic_scapegoat:" + v_name})
-		# Tanda 1 (1): Fregar la escena con lejía para borrar rastros de sangre (solo con el médico/boticario o el perista)
-		if (is_doc or vm.VillageUnderworld.is_fence(vm, npc)) and (not vm.blood_puddles.is_empty() or case_dict.get("suspects", {}).has("Jugador")):
-			f_choices.append({"label": "🧽🧪 Comprar lejía fuerte y fregar los rastros de sangre de la escena (-%d Oro)" % BLEACH_COST, "next": "END", "action": "forensic_bleach_scene:" + v_name})
+		# Tanda 1 (1): La lejía se usa EN la escena (E sobre el charco), no desde un diálogo a distancia
 		# Tanda 1 (2): Sobornar al médico para falsear la autopsia
 		if is_doc and not bool(case_dict.get("autopsy_bribed", false)):
 			f_choices.append({"label": "🩺💰 Sobornar al médico para certificar fallo natural o borrar pistas del arma (-%d Oro)" % BRIBE_AUTOPSY_COST, "next": "END", "action": "forensic_bribe_autopsy:" + v_name})
 		# Tanda 1 (3): Pólizas de seguro de vida sospechosas (primero consultar el libro sin revelar nombres; luego denunciar)
-		if (st["insurance"] as Dictionary).has(v_name):
-			var ins: Dictionary = st["insurance"][v_name]
-			if not bool(ins.get("exposed", false)):
-				if not bool(ins.get("player_knows", false)) and (is_doc or vm.VillageTown.is_mayor(vm, npc)):
-					f_choices.append({"label": "📜🔍 Consultar si existía alguna póliza de vida a nombre de %s" % v_name, "next": "END", "action": "forensic_check_insurance:" + v_name})
-				elif bool(ins.get("player_knows", false)) and is_law:
+		# La consulta se ofrece SIEMPRE (haya póliza o no), para que la opción en sí no delate nada.
+		var ins: Dictionary = (st["insurance"] as Dictionary).get(v_name, {})
+		var ins_asked: bool = (case_dict.get("insurance_asked", {}) as Dictionary).has(v_name)
+		if (is_doc or vm.VillageTown.is_mayor(vm, npc)) and not ins_asked:
+			f_choices.append({"label": "📜🔍 Consultar en el registro si existía alguna póliza de vida a nombre de %s (-%d Oro)" % [v_name, INSURANCE_LOOKUP_COST], "next": "END", "action": "forensic_check_insurance:" + v_name})
+		if not ins.is_empty() and not bool(ins.get("exposed", false)):
+			if bool(ins.get("player_knows", false)) and is_law:
 					f_choices.append({"label": "📜🚨 Denunciar que %s suscribió una póliza de vida sobre %s antes del crimen" % [str(ins["beneficiary_name"]), v_name], "next": "END", "action": "forensic_expose_insurance:" + v_name})
 		# Tanda 1 (4): Comprobar si trucaron la hora de la muerte (sin revelar al asesino en el menú)
 		if (is_doc or is_law) and (st["tampered_time"] as Dictionary).has(v_name) and not bool(st["tampered_time"][v_name].get("examined", false)):
@@ -753,11 +769,22 @@ static func on_player_action(vm, npc, action_id: String, inv) -> void:
 		npc._spawn_floating_text("🩺🤫 «Escribiré en el acta que fue un fallo natural. Nadie hará más preguntas.»", Color.GOLD, -46.0)
 
 	elif action_id.begins_with("forensic_check_insurance:"):
+		if inv == null or int(inv.gold) < INSURANCE_LOOKUP_COST:
+			npc._spawn_floating_text("Necesitas %d de oro para consultar el registro" % INSURANCE_LOOKUP_COST, Color.ORANGE_RED, -44.0)
+			return
+		inv.add_gold(-INSURANCE_LOOKUP_COST)
+		npc.personal_gold += INSURANCE_LOOKUP_COST
+		if not case_dict.is_empty():
+			if not case_dict.has("insurance_asked") or not (case_dict["insurance_asked"] is Dictionary):
+				case_dict["insurance_asked"] = {}
+			case_dict["insurance_asked"][arg] = true
 		if not (st["insurance"] as Dictionary).has(arg):
+			npc._spawn_floating_text("📜 «No consta ninguna póliza de vida a nombre de %s.»" % arg, Color(0.85, 0.85, 0.85), -46.0)
 			return
 		var ins: Dictionary = st["insurance"][arg]
 		ins["player_knows"] = true
-		npc._spawn_floating_text("📜 «Qué extraño... %s firmó hace poco una póliza para cobrar %d de oro si %s moría.»" % [str(ins["beneficiary_name"]), int(ins["payout"]), arg], Color.GOLD, -46.0)
+		# Ojo: también hay pólizas inocentes entre parientes; tener una no prueba nada por sí sola
+		npc._spawn_floating_text("📜 «Consta una póliza: %s cobraría %d de oro si %s moría. Muchas familias las tienen, ojo.»" % [str(ins["beneficiary_name"]), int(ins["payout"]), arg], Color.GOLD, -46.0)
 
 	elif action_id.begins_with("forensic_expose_insurance:"):
 		if not (st["insurance"] as Dictionary).has(arg):
@@ -809,8 +836,8 @@ static func on_player_action(vm, npc, action_id: String, inv) -> void:
 			suspects[im_k]["score"] = maxi(0, int(suspects[im_k].get("score", 20)) - 20)
 		if suspects.has(real_k):
 			suspects[real_k]["score"] = int(suspects[real_k].get("score", 15)) + 25
-		clues.append("Imitador descubierto: las heridas de %s solo fingen la firma del caso de %s (+25%% sospecha al autor real)." % [arg, str(cc["imitated_victim"])])
-		npc._spawn_floating_text("🔪🔬 «¡Fíjate en el corte! No es la misma mano que mató a %s: alguien ha imitado el crimen.»" % str(cc["imitated_victim"]), Color.SPRING_GREEN, -46.0)
+		clues.append("Imitador descubierto: las heridas de %s solo fingen la firma del caso de %s (+25%% sospecha al autor real)." % [arg, str(cc.get("imitated_victim", "un crimen anterior"))])
+		npc._spawn_floating_text("🔪🔬 «¡Fíjate en el corte! No es la misma mano que mató a %s: alguien ha imitado el crimen.»" % str(cc.get("imitated_victim", "un crimen anterior")), Color.SPRING_GREEN, -46.0)
 
 	elif action_id.begins_with("forensic_force_confession:"):
 		if not has_known_dirt_on(vm, npc):

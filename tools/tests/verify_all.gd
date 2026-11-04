@@ -3396,6 +3396,7 @@ func _initialize() -> void:
 	var t3_kg0: int = p3_kid.personal_gold
 	vli.on_player_action(vm, p70_a, "lineage_become_godparent:" + p3_kid.get_person_key(), p70_inv)
 	assert(str(vli.state(vm)["godparents"][p3_kid.get_person_key()]["godparent_key"]) == "player" and p3_kid.personal_gold == t3_kg0 + 10, "Tanda 3.12: Becoming godparent transfers 10 gold gift to child")
+	p70_inv.gold = maxi(int(p70_inv.gold), 60)
 	vli.on_player_action(vm, p3_kid, "lineage_mentor_child:" + p3_kid.get_person_key(), p70_inv)
 	vli.on_child_grown_up(vm, p3_kid)
 	assert(vli.state(vm)["mentored_kids"].has(p3_kid.get_person_key()) and int(p3_kid.days_in_role) >= 5, "Tanda 3.13: Mentoring child grants trade experience upon growing up")
@@ -3447,7 +3448,9 @@ func _initialize() -> void:
 	# Tanda 4 (17): Debate público entre candidatos
 	vm.town_state["pledges"].clear()
 	vma.on_player_action(vm, p70_a, "town_debate:" + p70_c.get_person_key(), p70_inv)
-	assert(bool(vm.town_state.get("debate_done", false)) and int(vm.town_state.get("campaign_bonus", 0)) >= 10 and not (vm.town_state["pledges"] as Dictionary).is_empty(), "Tanda 4.17: Public candidate debate boosts campaign bonus and sways voters")
+	var t4_won: bool = int(vm.town_state.get("campaign_bonus", 0)) >= 10 and not (vm.town_state["pledges"] as Dictionary).is_empty()
+	var t4_lost: bool = int(vm.town_state.get("campaign_bonus", 0)) < 10 and (vm.town_state["pledges"] as Dictionary).is_empty()
+	assert(bool(vm.town_state.get("debate_done", false)) and (t4_won or t4_lost), "Tanda 4.17 (audit): debate can be won (sways voters) or lost (no votes)")
 	vm.town_state["pledges"][p70_a.get_person_key()] = "player"
 	vm.town_state["pledges"][p70_b.get_person_key()] = "player"
 	var p5_el: Dictionary = vm.VillageTown.hold_election(vm, "prueba P5", [p70_a, p70_b])
@@ -3525,8 +3528,10 @@ func _initialize() -> void:
 	assert(t5_sale_price > 95, "Tanda 5.22a: Upgraded house sale price exceeds base value")
 	vm.town_state["treasury"] = 300
 	var t5_invg2: int = p70_inv.gold
+	(vl.lot(vm, "n0")["residents"] as Array).clear()
+	vl.lot(vm, "n0")["loan"] = {"lender": "town", "lender_name": "Arcas", "owed": 30, "missed": 0, "principal": 85}
 	vho.on_player_action(vm, p70_a, "housing_sell_house:n0", p70_inv)
-	assert(str(vl.lot(vm, "n0").get("payer", "")) != "player" and p70_inv.gold == t5_invg2 + t5_sale_price, "Tanda 5.22b: Selling upgraded house transfers ownership and pays sale price")
+	assert(str(vl.lot(vm, "n0").get("payer", "")) != "player" and not vl.lot(vm, "n0").has("loan") and p70_inv.gold == t5_invg2 + t5_sale_price - 30, "Tanda 5.22b (audit): selling a house pays off the mortgage first")
 	vl.lot(vm, "n0").clear()
 	for k6 in p6_lot_bak.keys():
 		vl.lot(vm, "n0")[k6] = p6_lot_bak[k6]
@@ -3584,7 +3589,7 @@ func _initialize() -> void:
 	var t6_ag0: int = p70_a.personal_gold
 	p70_a.personal_gold = 250
 	var t6_invg1: int = p70_inv.gold
-	assert(vun.run_pickpocket_network(vm, p70_inv) == 3 and p70_c.personal_gold == 23 and p70_inv.gold == t6_invg1 + 3, "Tanda 6.27b: Pickpocket network steals 6 from rich villager and splits 3/3")
+	assert(vun.run_pickpocket_network(vm, p70_inv, 0.0) == 3 and p70_c.personal_gold == 23 and p70_inv.gold == t6_invg1 + 3, "Tanda 6.27b: Pickpocket network steals 6 from rich villager and splits 3/3")
 	(vun.state(vm)["pickpockets"] as Dictionary).clear()
 	p70_a.personal_gold = t6_ag0
 	p70_c.personal_gold = t6_cg0
@@ -3602,7 +3607,9 @@ func _initialize() -> void:
 		p70_pl.get("health_comp").current_health = p70_pl.get("health_comp").max_health
 	var t6_invg3: int = p70_inv.gold
 	vun.on_player_action(vm, p7_fence, "underworld_challenge_boss", p70_inv)
-	assert(str(vun.state(vm).get("boss", "")) == "player" and p7_fence.personal_gold == 40 and p70_inv.gold == t6_invg3 + 25, "Tanda 6.29: Challenging and defeating Shadow Network boss takes boss title and 25 gold from his pocket")
+	var t6_won: bool = str(vun.state(vm).get("boss", "")) == "player" and p7_fence.personal_gold == 40 and p70_inv.gold == t6_invg3 + 25
+	var t6_lost: bool = str(vun.state(vm).get("boss", "")) == "fence" and p70_inv.gold == t6_invg3 and int(vun.state(vm).get("last_boss_challenge", -99)) == vun.today()
+	assert(t6_won or t6_lost, "Tanda 6.29 (audit): challenging the Shadow boss can be won or lost, once a week")
 	p7_fence.personal_gold = t6_fg0
 	# Auditoría: el veneno lento no mata en el acto (actúa al día siguiente, o te pillan echándolo)
 	vun.add_item(vm, "slow_poison", 1)
