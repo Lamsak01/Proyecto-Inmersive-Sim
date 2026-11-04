@@ -2771,6 +2771,12 @@ func _interact_house_chest(player: Node2D, ch: Dictionary) -> void:
 			player._spawn_floating_text("📦 Este cofre ya fue abierto hoy (Lleva el Salvoconducto o un Órgano y pulsa [E] para plantar pruebas)", Color.LIGHT_GRAY, -42.0)
 		return
 
+	# P6.2: el cofre de tu propia casa no regala oro (antes daba 18–32 al día). Tu oro a salvo va en el escondite.
+	if VillageHousing.is_player_family_chest(self, str(ch.get("family_id", ""))):
+		if player.has_method("_spawn_floating_text"):
+			player._spawn_floating_text("📦🏡 Es tu cofre: aquí no hay nada que no hayas puesto tú. (Para esconder oro, pide al carpintero un escondite)", Color.LIGHT_GRAY, -46.0)
+		return
+
 	ch["looted_day"] = cur_day
 	var spr: Sprite2D = ch.get("sprite")
 	if is_instance_valid(spr):
@@ -2784,11 +2790,6 @@ func _interact_house_chest(player: Node2D, ch: Dictionary) -> void:
 	if inv:
 		inv.add_gold(gold_loot)
 		inv.add_item(bonus_item, 1)
-
-	if VillageHousing.is_player_family_chest(self, str(ch.get("family_id", ""))):
-		if player.has_method("_spawn_floating_text"):
-			player._spawn_floating_text("📦🏡 Recogiste las provisiones de tu propio cofre doméstico (+%d Oro, +1 %s)" % [gold_loot, SimpleInventory.CATALOG.get(bonus_item, {}).get("name", bonus_item)], Color.SPRING_GREEN, -46.0)
-		return
 
 	var in_stealth: bool = player.has_method("is_stealthing") and bool(player.call("is_stealthing"))
 	var cloak_mult3: float = float(player.call("get_stealth_detection_multiplier")) if player.has_method("get_stealth_detection_multiplier") else 1.0

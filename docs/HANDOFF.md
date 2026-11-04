@@ -119,6 +119,11 @@ Otros documentos antiguos en la raíz: `ROADMAP_PROYECTO.md`, `AUDIT_LOG.md`, `S
 
 **Estado del código:** vida social completa (Fases 0 a 6) y subida a `main`; los cuatro tests pasan. Refuerzo del código (R1–R5) terminado. M1 (móvil social en investigaciones), Q1 (panel de misiones) Q1–Q4 hechos (5 tipos de misión, con estructura lista para muchos más). T1, T3 y T4 (rasgos: catálogo, descubrimiento y efectos) hechos. T2 hecho: 140 rasgos (`docs/RASGOS_BORRADOR.md`). Misiones: 25 tipos hechos (`docs/MISIONES.md`, bloque M). Historial en `CHANGELOG.md`.
 
+**Bloques P1–P7 auditados (2026-11-04):** ver `docs/AUDITORIA_P1_P7.md`. [x] PA: arreglados los puntos 1 (el misterio
+no se destripa) y 2 (oro infinito). [ ] Pendientes los puntos 3–7 y los fallos medios. Regla nueva para cualquier
+mecánica: **ninguna opción de menú puede nombrar a un culpable que el jugador aún no ha averiguado, y ningún oro se crea
+de la nada** (sale del bolsillo de alguien o de una caja).
+
 ### Bloques del sistema de Vida Social (marca [x] al terminar y commitea)
 
 **Fase 0 — Cimientos**

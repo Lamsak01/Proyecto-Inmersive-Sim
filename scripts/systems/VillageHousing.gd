@@ -220,10 +220,10 @@ static func daily(vm) -> void:
 			var role_i: int = int(r_key)
 			if vm.shop_businesses.has(role_i):
 				var vault: int = int(vm.shop_businesses[role_i].get("vault_gold", 0))
-				var cut: int = maxi(6, int(round(float(vault) * 0.15)))
-				if vault >= cut:
+				var cut: int = int(round(float(vault) * 0.15)) # solo lo que hay en la caja
+				if cut > 0:
 					vm.shop_businesses[role_i]["vault_gold"] = vault - cut
-				inv.add_gold(cut)
+					inv.add_gold(cut)
 
 # ==============================================================================
 # Diálogos con el carpintero, pareja, inquilinos y vecinos

@@ -140,8 +140,25 @@ static func on_npc_departure(vm, leaving_npc) -> void:
 			if rel <= INHERIT_HATE_THRESHOLD:
 				k_npc.modify_npc_relationship(other, int(round(float(rel) * INHERIT_RATIO)), "Heredó el rencor de %s antes de marcharse" % leaving_npc.npc_name, true)
 
-## Cuando se descubre al asesino de `victim_name` (al cerrarse el caso o por asesinato de vecino).
-static func on_murder_resolved(vm, victim_name: String, killer_name_or_key: String) -> void:
+## Saca el culpable del texto de cierre del caso. Devuelve "player", un nombre exacto, o "" si no hay culpable
+## (archivado, fianza, muerte natural). Nunca busca nombres sueltos dentro del texto (el comisario sale en casi todos).
+static func culprit_from_note(note: String) -> String:
+	var n: String = note.strip_edges()
+	if n == "" or n.begins_with("Sin crimen") or n.begins_with("Caso Archivado") or n.begins_with("Cerrado por Fianza"):
+		return ""
+	if n.begins_with("Jugador"):
+		return "player"
+	if n.begins_with("Veredicto Real: "):
+		n = n.trim_prefix("Veredicto Real: ")
+	elif n.begins_with("Confesión de "):
+		n = n.trim_prefix("Confesión de ")
+	var cut: int = n.find(" (")
+	var who: String = n.substr(0, cut) if cut >= 0 else n
+	return "player" if who == "Jugador" else who
+
+## Cuando se descubre al asesino de `victim_name` (al cerrarse el caso). `resolution_note` es el texto de cierre.
+static func on_murder_resolved(vm, victim_name: String, resolution_note: String) -> void:
+	var killer_name_or_key: String = culprit_from_note(resolution_note)
 	if vm == null or victim_name == "" or killer_name_or_key == "":
 		return
 	var st: Dictionary = state(vm)
@@ -154,11 +171,14 @@ static func on_murder_resolved(vm, victim_name: String, killer_name_or_key: Stri
 	if victim == null:
 		return
 	var killer = null
-	var is_player_killer: bool = ("Jugador" in killer_name_or_key or "Forastero" in killer_name_or_key or killer_name_or_key == "player")
-	for n in VillageNeeds.living(vm):
-		if n.npc_name == killer_name_or_key or n.get_person_key() == killer_name_or_key or n.npc_name in killer_name_or_key:
-			killer = n
-			break
+	var is_player_killer: bool = killer_name_or_key == "player"
+	if not is_player_killer:
+		for n in VillageNeeds.living(vm):
+			if n.npc_name == killer_name_or_key or n.get_person_key() == killer_name_or_key:
+				killer = n
+				break
+		if killer == null:
+			return
 	var kin: Array = relatives_of(vm, victim)
 	if is_player_killer and valid_family(str(victim.family_id)):
 		st["feud_player"][str(victim.family_id)] = "severe"
@@ -454,7 +474,8 @@ static func add_dialogue_choices(vm, npc, diag: Dictionary, ch_arr: Array) -> vo
 	# P1.10: Tumbas profanadas
 	for v_name in (st["desecrated_graves"] as Dictionary).keys():
 		var dg: Dictionary = st["desecrated_graves"][v_name]
-		sub.append({"label": "🪦 Limpiar la lápida profanada de %s y señalar a %s (+15 Oro)" % [v_name, str(dg["culprit_name"])], "next": "END", "action": "clan_grave_fix:" + v_name})
+		if not bool(dg.get("cleaned", false)):
+			sub.append({"label": "🪦 Ofrecerte a limpiar la lápida profanada de %s y buscar huellas" % v_name, "next": "END", "action": "clan_grave_fix:" + v_name})
 	if not sub.is_empty():
 		sub.append({"label": "⬅️ Volver", "next": "start"})
 		diag["clan_menu"] = {"text": "🩸 Asuntos de familia, honor y clanes:", "choices": sub}
@@ -539,11 +560,20 @@ static func on_player_action(vm, npc, action_id: String, inv) -> void:
 		if not (st["desecrated_graves"] as Dictionary).has(arg):
 			return
 		var dg: Dictionary = st["desecrated_graves"][arg]
-		var culprit = vm._get_npcs_by_person_key().get(str(dg.get("culprit", "")), null)
-		if culprit != null:
-			npc.modify_npc_relationship(culprit, -40, "Profanó la tumba de %s" % arg, true)
-		st["desecrated_graves"].erase(arg)
+		if bool(dg.get("cleaned", false)):
+			return
+		dg["cleaned"] = true
 		npc.modify_affinity(14)
+		var tip: int = mini(10, int(npc.personal_gold)) # la propina sale de su bolsillo, no de la nada
+		npc.personal_gold -= tip
 		if inv != null:
-			inv.add_gold(15)
-		npc._spawn_floating_text("🪦 «Gracias por limpiar la lápida y decirnos quién fue.» (+15 Oro)", Color.SPRING_GREEN, -46.0)
+			inv.add_gold(tip)
+		var culprit = vm._get_npcs_by_person_key().get(str(dg.get("culprit", "")), null)
+		# Limpiando puedes encontrar algo del culpable (no siempre): solo entonces se sabe quién fue
+		if culprit != null and not culprit.is_dead and randf() < 0.5:
+			dg["known"] = true
+			npc.modify_npc_relationship(culprit, -40, "Profanó la tumba de %s" % arg, true)
+			VillageChronicle.add(vm, "grave_culprit", "Junto a la lápida de %s apareció un objeto de %s: se sabe quién la profanó" % [arg, culprit.npc_name], true)
+			npc._spawn_floating_text("🪦 «¿Esto es de %s? ¡Así que fue él/ella!» (+%d Oro)" % [culprit.npc_name, tip], Color.ORANGE, -46.0)
+		else:
+			npc._spawn_floating_text("🪦 «Gracias por limpiarla. Ojalá supiéramos quién fue.» (+%d Oro)" % tip, Color.SPRING_GREEN, -46.0)

@@ -231,3 +231,23 @@ El usuario pasa a Antigravity. Prompt completo para el siguiente agente: `docs/P
 | P5 | Presentarte a Alcalde, leyes y política (10 mecánicas: candidatura del jugador, promesas de campaña, debates públicos, 4 decretos municipales, nivel de impuestos, nombrar comisario, indulto alcaldicio, obras públicas, desfalco/donación, moción de censura) | ✅ | `scripts/systems/VillageMayor.gd`, `VillageTown.gd`, `VillageNeeds.gd`, `VillageCrime.gd`, `VillageNPC.gd`, `NPCDialogue.gd` | Test #82 |
 | P6 | Casa propia, propiedades y ser terrateniente (10 mecánicas: comprar casa al contado o hipoteca, alquilar a inquilinos, desahucio, mudar pareja e hijos, 4 mejoras del hogar, cofre familiar sin robo, fiestas en casa, taller doméstico, defensa contra intrusos, reventa especulativa) | ✅ | `scripts/systems/VillageHousing.gd`, `VillageLoans.gd`, `VillageMigration.gd`, `VillageCrime.gd`, `VillageManager.gd`, `NPCDialogue.gd` | Test #82 |
 | P7 | Mercado negro, contrabando y bajos fondos (10 mecánicas: perista nocturno, caravana de contrabando, cocinar/vender polvo de ocaso, timba clandestina de dados, sicarios a sueldo, red de carteristas, soborno de patrulla, falsificar documentos, robo de reliquias por encargo, destronar al jefe de la Red) | ✅ | `scripts/systems/VillageUnderworld.gd`, `VillageCrime.gd`, `VillageManager.gd`, `NPCDialogue.gd` | Test #82 |
+
+## Bloque PA — Auditoría de P1–P7 y arreglos de los puntos 1 y 2 (Claude Code, 2026-11-04)
+
+Informe completo: `docs/AUDITORIA_P1_P7.md`. Ojo: el CHANGELOG y esta tabla de P1–P7 describen varias mecánicas que
+**no existen en el código** (lejía, sobornar autopsia, seguro de vida, alterar la hora de la muerte, copycat,
+suplantar al cura, falso milagro, debates, indulto, caravana, timba de dados, falsificar escrituras...). Manda el código.
+
+| # | Paso | Estado | Archivos | Nota |
+|---|------|--------|----------|------|
+| PA1 | El rencor de clan solo al cerrar el caso; culpable leído del texto de cierre (`culprit_from_note`), nunca por subcadena (el comisario Vane salía como asesino) | ✅ | VillageDesires.gd, VillageClans.gd | Test #82 |
+| PA2 | Menú forense sin nombre del asesino: rastro, chivo, testigo y coartada solo con la persona implicada; sicario solo si el jugador conocía el plan; borracho hay que oírle antes de delatar; autopsia solo de cuerpos hallados; quitado el doble aviso a clanes | ✅ | VillageForensics.gd | Test #82 |
+| PA3 | Tumbas: culpable solo se sabe con 50 % al limpiar; excomunión solo si se sabe; propina del bolsillo del vecino | ✅ | VillageClans.gd, VillageConfession.gd | — |
+| PA4 | Contrato de sicario: escuchar → aceptar → cobra al morir el objetivo, del oro del rico | ✅ | VillageForensics.gd | — |
+| PA5 | Hampa sin oro infinito: perista compra objetos reales con su oro; golpe solo en el sitio con testigos; pelea con riesgo; apuesta al azar; polvo con comprador solvente y destilado 1/día; protección solo sábado y de la caja; tributo del perista; ratero y usura sin crear oro | ✅ | VillageUnderworld.gd | Test #82 |
+| PA6 | Cofre propio sin oro gratis; renta de locales solo de la caja | ✅ | VillageManager.gd, VillageHousing.gd | — |
+
+Pendiente de la auditoría (puntos 3–7 y fallos medios): veneno = asesinato gratis, pulsar E compra casa sin confirmar,
+la cama propia no pasa el tiempo (`advance_to_morning` no existe), moción de 20 de oro repetible, nombrar comisario
+borra la búsqueda, recompensas de la nada en P1/P3.
+

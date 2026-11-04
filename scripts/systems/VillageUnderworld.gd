@@ -27,6 +27,33 @@ const HEIST_TARGETS: Array[Dictionary] = [
 	{"id": "libro_gremial", "label": "el Libro Mayor de los Gremios", "pos": Vector2(465.0, 24.0), "reward": 55},
 ]
 
+## Lo que el perista acepta como «mercancía caliente» y cuánto paga (de su bolsillo). Antes daba 25 sin pedir nada.
+const FENCE_PRICES: Dictionary = {"royal_safe_conduct": 25, "master_lockpick": 20, "surgical_kit": 18, "golden_egg": 15, "bandit_scrap": 12, "fox_pelt": 10, "steel_ingot": 10, "copper_coil": 9}
+const DUST_PRICE: int = 30
+const DUST_COOK_COST: int = 25
+const RACKET_WEEKLY: int = 10
+const BOSS_TRIBUTE: int = 12
+
+static func fenceable_item(inv) -> String:
+	if inv == null:
+		return ""
+	var best: String = ""
+	for it in FENCE_PRICES.keys():
+		if inv.has_item(it, 1) and (best == "" or int(FENCE_PRICES[it]) > int(FENCE_PRICES[best])):
+			best = it
+	return best
+
+## Cobra `amount` a un comercio: primero de la caja del taller y, si no llega, del bolsillo del dueño. Devuelve lo cobrado.
+static func _charge_shop(vm, role_i: int, amount: int) -> int:
+	if vm.shop_businesses.has(role_i) and int(vm.shop_businesses[role_i].get("vault_gold", 0)) >= amount:
+		vm.shop_businesses[role_i]["vault_gold"] = int(vm.shop_businesses[role_i]["vault_gold"]) - amount
+		return amount
+	var owner = vm.trade_npcs.get(role_i, null)
+	if owner != null and is_instance_valid(owner) and not owner.is_dead and int(owner.personal_gold) >= amount:
+		owner.personal_gold -= amount
+		return amount
+	return 0
+
 static func state(vm) -> Dictionary:
 	var ns: Dictionary = VillageNeeds.state(vm)
 	if not ns.has("underworld") or not (ns["underworld"] is Dictionary):
@@ -127,8 +154,21 @@ static func try_interact(vm, player: Node2D, pos: Vector2) -> bool:
 		if player.has_method("show_hint"):
 			player.show_hint("🕵️ Demasiada gente mirando. Vuelve de noche (21:00–04:00) o trae una ganzúa del perista.")
 		return true
-	if get_item_count(vm, "lockpick") > 0:
+	var had_pick: bool = get_item_count(vm, "lockpick") > 0
+	if had_pick:
 		add_item(vm, "lockpick", -1)
+	# Alguien despierto puede verte (con sigilo y ganzúa te ven desde menos lejos)
+	var in_stealth: bool = player.has_method("is_stealthing") and bool(player.call("is_stealthing"))
+	var rad: float = (52.0 if in_stealth else 135.0) * (0.6 if had_pick else 1.0)
+	var witness = vm._find_conscious_witness_near(player.global_position, rad, null)
+	if witness != null:
+		vm.wanted_level = int(vm.wanted_level) + 1
+		witness.modify_affinity(-20)
+		witness._spawn_floating_text("😠 «¡Eh! ¡Deja eso en su sitio!»", Color.ORANGE_RED, -46.0)
+		VillageChronicle.add(vm, "heist_seen", "%s te sorprendió intentando llevarte %s" % [witness.npc_name, str(ah.get("label", "algo"))], true)
+		if player.has_method("show_hint"):
+			player.show_hint("🚨 %s te ha visto. Tendrás que volver en otro momento." % witness.npc_name)
+		return true
 	ah["stolen"] = true
 	st["active_heist"] = ah
 	if player.has_method("show_hint"):
@@ -165,27 +205,37 @@ static func daily(vm) -> void:
 		elif jtype == "thief":
 			var tkey: String = str(j.get("target_key", ""))
 			var tnpc = by_key.get(tkey, null)
-			var cut: int = 20
+			var cut: int = 0
 			if tnpc != null and not tnpc.is_dead:
-				var take: int = mini(30, maxi(10, int(tnpc.personal_gold) / 3))
-				tnpc.personal_gold = maxi(0, int(tnpc.personal_gold) - take)
-				cut = maxi(12, int(round(float(take) * 0.75)))
+				var take: int = mini(30, int(tnpc.personal_gold) / 3)
+				tnpc.personal_gold -= take
+				cut = int(round(float(take) * 0.75)) # el resto se lo queda el ratero
 			if inv != null:
 				inv.add_gold(cut)
 			VillageChronicle.add(vm, "hired_theft", "El ratero contratado desvalijó a %s de noche y te entregó tu parte (+%d de oro)" % [str(j.get("target_name", "un vecino")), cut], false)
 	st["hired_jobs"] = pending
 
 	# P7.6 y P7.10: Los sábados (weekday == 5), cobras las extorsiones de protección y tu tributo de Jefe del Hampa
-	var is_sat: bool = (WorldClock != null and WorldClock.has_method("get_weekday") and int(WorldClock.get_weekday()) == 5) or (d_now % 7 == 5)
+	var is_sat: bool = WorldClock != null and WorldClock.has_method("get_weekday") and int(WorldClock.get_weekday()) == 5
 	if is_sat and inv != null:
 		var rackets: Dictionary = st.get("rackets", {})
-		var racket_total: int = rackets.size() * 10
+		var racket_total: int = 0
+		for rk in rackets.keys():
+			var got: int = _charge_shop(vm, int(rk), RACKET_WEEKLY)
+			racket_total += got
+			var owner = vm.trade_npcs.get(int(rk), null)
+			if got == 0 and owner != null and is_instance_valid(owner):
+				owner.add_thought("No tengo con qué pagar la «protección»; tengo miedo (-6)", -6.0)
 		if racket_total > 0:
 			inv.add_gold(racket_total)
 			VillageChronicle.add(vm, "racket_paid", "Cobraste %d de oro de «protección» semanal en los comercios" % racket_total, false)
 		if str(st.get("boss", "fence")) == "player":
-			inv.add_gold(12)
-			VillageChronicle.add(vm, "underworld_tribute", "Como Jefe del Hampa recibiste tu tributo semanal de los bajos fondos (+12 de oro)", false)
+			var fence = get_fence_npc(vm)
+			var trib: int = mini(BOSS_TRIBUTE, int(fence.personal_gold)) if fence != null else 0
+			if trib > 0:
+				fence.personal_gold -= trib
+				inv.add_gold(trib)
+				VillageChronicle.add(vm, "underworld_tribute", "Como Jefe del Hampa recibiste tu tributo semanal de los bajos fondos (+%d de oro)" % trib, false)
 
 # ==============================================================================
 # Diálogos del mercado negro, usura, extorsión y bajos fondos
@@ -209,18 +259,18 @@ static func add_dialogue_choices(vm, npc, diag: Dictionary, ch_arr: Array) -> vo
 		opts.append({"label": "💤 Comprar somnífero pesado (-20 Oro) [Tienes: %d]" % get_item_count(vm, "sleeping_draught"), "next": "END", "action": "underworld_buy:sleeping_draught"})
 		if int(vm.wanted_level) > 0:
 			opts.append({"label": "📜 Comprar papeles falsos para rebajar tu búsqueda (-30 Oro)", "next": "END", "action": "underworld_buy:false_papers"})
-		opts.append({"label": "💰 Colocar mercancía caliente y baratijas robadas al perista (+25 Oro)", "next": "END", "action": "underworld_fence_goods"})
+		var hot: String = fenceable_item(VillageNeeds.player_of(vm).get("inventory") if VillageNeeds.player_of(vm) != null else null)
+		if hot != "":
+			opts.append({"label": "💰 Venderle tu %s (+%d Oro)" % [SimpleInventory.CATALOG.get(hot, {}).get("name", hot), int(FENCE_PRICES[hot])], "next": "END", "action": "underworld_fence_goods"})
 		# P7.3: Comprar o cocinar polvo de ocaso
 		opts.append({"label": "🌙 Comprar dosis de «polvo de ocaso» (-18 Oro) [Tienes: %d]" % get_item_count(vm, "dusk_dust"), "next": "END", "action": "underworld_buy:dusk_dust"})
-		if VillageHousing.has_upgrade(vm, "workbench"):
-			opts.append({"label": "⚗️🌙 Destilar 2 dosis de «polvo de ocaso» con tu banco de trabajo (-10 Oro)", "next": "END", "action": "underworld_cook_dust"})
+		if VillageHousing.has_upgrade(vm, "workbench") and int(st.get("last_cook_day", -1)) != today():
+			opts.append({"label": "⚗️🌙 Destilar 2 dosis de «polvo de ocaso» con tu banco de trabajo (-%d Oro)" % DUST_COOK_COST, "next": "END", "action": "underworld_cook_dust"})
 		# P7.4: Encargos de robo a medida
 		var ah: Dictionary = st.get("active_heist", {})
 		if ah.is_empty():
 			opts.append({"label": "🕶️💎 Pedir un encargo de robo a medida para un coleccionista", "next": "END", "action": "underworld_take_heist"})
-		elif not bool(ah.get("stolen", false)):
-			opts.append({"label": "🕶️🔓 Ejecutar el golpe de %s" % str(ah.get("label", "la reliquia")), "next": "END", "action": "underworld_steal_heist"})
-		else:
+		elif bool(ah.get("stolen", false)):
 			opts.append({"label": "💎💰 Entregar %s al perista (+%d Oro)" % [str(ah.get("label", "el botín")), int(ah.get("reward", 55))], "next": "END", "action": "underworld_deliver_heist"})
 		# P7.7: Contratar saboteador o ladrón a sueldo
 		opts.append({"label": "💣 Contratar un saboteador nocturno contra un taller (-25 Oro)", "next": "END", "action": "underworld_hire_saboteur"})
@@ -237,8 +287,9 @@ static func add_dialogue_choices(vm, npc, diag: Dictionary, ch_arr: Array) -> vo
 	# P7.3b: Vender polvo de ocaso a ricos, nobles o adictos
 	if get_item_count(vm, "dusk_dust") > 0 and not is_law and not is_priest:
 		var add_map: Dictionary = VillageNeeds.state(vm).get("addict", {})
-		if VillageNeeds.class_of(npc) == "rico" or int(npc.trade_role) == int(VillageNPC.TradeRole.NOBLE) or float(add_map.get(key, 0.0)) >= 20.0:
-			opts.append({"label": "🌙💰 Venderle en secreto una dosis de «polvo de ocaso» (+38 Oro)", "next": "END", "action": "underworld_sell_dust"})
+		var wants: bool = VillageNeeds.class_of(npc) == "rico" or int(npc.trade_role) == int(VillageNPC.TradeRole.NOBLE) or float(add_map.get(key, 0.0)) >= 20.0
+		if wants and int(npc.personal_gold) >= DUST_PRICE and int((st.get("dust_sold_day", {}) as Dictionary).get(key, -1)) != today():
+			opts.append({"label": "🌙💰 Venderle en secreto una dosis de «polvo de ocaso» (+%d Oro)" % DUST_PRICE, "next": "END", "action": "underworld_sell_dust"})
 
 	# P7.2b: Usar veneno lento o somnífero del mercado negro sobre el vecino
 	if get_item_count(vm, "slow_poison") > 0 and not fence_here and not is_law:
@@ -298,28 +349,41 @@ static func on_player_action(vm, npc, action_id: String, inv) -> void:
 		npc._spawn_floating_text("🕶️ «Guárdalo bajo la capa. Tú y yo no nos hemos visto.» (+1 %s)" % item, Color.GOLD, -46.0)
 
 	elif action_id == "underworld_fence_goods":
-		if inv != null:
-			inv.add_gold(25)
-		npc._spawn_floating_text("💰 «Buena mercancía. No preguntaré de qué cofre salió (+25 Oro).»", Color.GOLD, -46.0)
+		var hot: String = fenceable_item(inv)
+		if hot == "":
+			return
+		var price: int = mini(int(FENCE_PRICES[hot]), int(npc.personal_gold))
+		if price < 5:
+			npc._spawn_floating_text("«Ahora mismo no tengo con qué pagarte. Vuelve otra noche.»", Color.ORANGE_RED, -44.0)
+			return
+		inv.remove_item(hot, 1)
+		npc.personal_gold -= price
+		inv.add_gold(price)
+		npc._spawn_floating_text("💰 «Buena mercancía. No preguntaré de dónde salió (+%d Oro).»" % price, Color.GOLD, -46.0)
 
 	elif action_id == "underworld_cook_dust":
-		if inv == null or int(inv.gold) < 10:
-			npc._spawn_floating_text("Necesitas 10 de oro en reactivos", Color.ORANGE_RED, -44.0)
+		if inv == null or int(inv.gold) < DUST_COOK_COST or int(st.get("last_cook_day", -1)) == d_now:
+			npc._spawn_floating_text("Necesitas %d de oro en reactivos (y solo puedes destilar una vez al día)" % DUST_COOK_COST, Color.ORANGE_RED, -44.0)
 			return
-		inv.add_gold(-10)
+		inv.add_gold(-DUST_COOK_COST)
+		npc.personal_gold += DUST_COOK_COST # los reactivos se los compras al perista
+		st["last_cook_day"] = d_now
 		add_item(vm, "dusk_dust", 2)
 		npc._spawn_floating_text("⚗️🌙 Destilaste 2 dosis puras de «polvo de ocaso» en tu banco de trabajo", Color(0.85, 0.72, 1.0), -46.0)
 
 	elif action_id == "underworld_sell_dust":
-		if get_item_count(vm, "dusk_dust") <= 0:
+		if get_item_count(vm, "dusk_dust") <= 0 or int(npc.personal_gold) < DUST_PRICE:
 			return
 		add_item(vm, "dusk_dust", -1)
 		if inv != null:
-			inv.add_gold(38)
-		npc.personal_gold = maxi(0, int(npc.personal_gold) - 38)
+			inv.add_gold(DUST_PRICE)
+		npc.personal_gold -= DUST_PRICE
+		if not st.has("dust_sold_day") or not (st["dust_sold_day"] is Dictionary):
+			st["dust_sold_day"] = {}
+		st["dust_sold_day"][key] = d_now
 		var add_map: Dictionary = VillageNeeds.state(vm)["addict"]
 		add_map[key] = clampf(float(add_map.get(key, 0.0)) + 25.0, 0.0, 100.0)
-		npc._spawn_floating_text("🌙💰 «Chst... dámelo rápido antes de que pase la ronda (+38 Oro).»", Color.GOLD, -46.0)
+		npc._spawn_floating_text("🌙💰 «Chst... dámelo rápido antes de que pase la ronda (+%d Oro).»" % DUST_PRICE, Color.GOLD, -46.0)
 
 	elif action_id == "underworld_use_poison":
 		if get_item_count(vm, "slow_poison") <= 0:
@@ -345,17 +409,7 @@ static func on_player_action(vm, npc, action_id: String, inv) -> void:
 		var t: Dictionary = HEIST_TARGETS[idx]
 		var p: Vector2 = t["pos"]
 		st["active_heist"] = {"id": str(t["id"]), "label": str(t["label"]), "pos_x": p.x, "pos_y": p.y, "reward": int(t["reward"]), "stolen": false}
-		npc._spawn_floating_text("🕶️💎 «Un coleccionista paga 55 de oro por %s.»" % str(t["label"]), Color.GOLD, -46.0)
-
-	elif action_id == "underworld_steal_heist":
-		var ah: Dictionary = st.get("active_heist", {})
-		if ah.is_empty():
-			return
-		if get_item_count(vm, "lockpick") > 0:
-			add_item(vm, "lockpick", -1)
-		ah["stolen"] = true
-		st["active_heist"] = ah
-		npc._spawn_floating_text("🕶️🔓 Te infiltraste entre las sombras y sustrajiste %s" % str(ah.get("label", "el botín")), Color.SPRING_GREEN, -46.0)
+		npc._spawn_floating_text("🕶️💎 «Un coleccionista paga 55 de oro por %s. Tráemelo tú: ve allí de noche y que nadie te vea.»" % str(t["label"]), Color.GOLD, -46.0)
 
 	elif action_id == "underworld_deliver_heist":
 		var ah2: Dictionary = st.get("active_heist", {})
@@ -383,12 +437,16 @@ static func on_player_action(vm, npc, action_id: String, inv) -> void:
 		if not (st["usury_loans"] as Dictionary).has(key):
 			return
 		var due: int = int(st["usury_loans"][key].get("amount_due", 35))
-		st["usury_loans"].erase(key)
-		npc.personal_gold = maxi(0, int(npc.personal_gold) - due)
+		var paid: int = mini(due, int(npc.personal_gold)) # solo puede darte lo que tiene
+		npc.personal_gold -= paid
 		if inv != null:
-			inv.add_gold(due)
+			inv.add_gold(paid)
+		if paid >= due:
+			st["usury_loans"].erase(key)
+		else:
+			st["usury_loans"][key]["amount_due"] = due - paid
 		npc.modify_affinity(-10)
-		npc._spawn_floating_text("💸😠 «Toma tus %d monedas con intereses, usurero...»" % due, Color.GOLD, -46.0)
+		npc._spawn_floating_text("💸😠 «Toma %d monedas, usurero...%s»" % [paid, "" if paid >= due else " No tengo más."], Color.GOLD, -46.0)
 
 	elif action_id == "underworld_collect_favor":
 		st["usury_loans"].erase(key)
@@ -401,10 +459,11 @@ static func on_player_action(vm, npc, action_id: String, inv) -> void:
 		var r_key: String = str(int(npc.trade_role))
 		st["rackets"][r_key] = {"npc_name": npc.npc_name, "since_day": d_now}
 		npc.modify_affinity(-15)
+		var first: int = _charge_shop(vm, int(npc.trade_role), RACKET_WEEKLY)
 		if inv != null:
-			inv.add_gold(10)
+			inv.add_gold(first)
 		VillageChronicle.add(vm, "protection_racket", "Intimidaste a %s para que te pague «protección» cada sábado" % npc.npc_name, false)
-		npc._spawn_floating_text("😰💰 «¡Está bien, no rompas nada! Toma 10 de oro hoy y cada sábado...»", Color.GOLD, -46.0)
+		npc._spawn_floating_text("😰💰 «¡Está bien, no rompas nada! Toma %d de oro hoy y cada sábado...»" % first, Color.GOLD, -46.0)
 
 	elif action_id == "underworld_hire_saboteur":
 		if inv == null or int(inv.gold) < 25:
@@ -442,7 +501,7 @@ static func on_player_action(vm, npc, action_id: String, inv) -> void:
 			return
 		st["last_fight_day"] = d_now
 		inv.add_gold(-15)
-		if ((d_now + int(npc.personal_gold)) % 3) != 0:
+		if randf() < 0.5:
 			inv.add_gold(30)
 			npc._spawn_floating_text("🥊💰 ¡Tu púgil ganó en el círculo clandestino! (+15 Oro netos)", Color.GOLD, -46.0)
 		else:
@@ -450,11 +509,20 @@ static func on_player_action(vm, npc, action_id: String, inv) -> void:
 
 	elif action_id == "underworld_join_brawl":
 		st["last_fight_day"] = d_now
-		if inv != null:
-			inv.add_gold(35)
-		npc.modify_affinity(10)
-		VillageChronicle.add(vm, "fight_club", "Ganaste la bolsa del club de pelea clandestino de medianoche (+35 de oro)", false)
-		npc._spawn_floating_text("🥊🏆 ¡Tumbaste a dos rivales a puño limpio y ganaste la bolsa (+35 Oro)!", Color.GOLD, -46.0)
+		# Ganas más fácil si estás sano; si pierdes, te llevas la paliza y ni una moneda
+		var pl_b = VillageNeeds.player_of(vm)
+		var hc = pl_b.get("health_comp") if pl_b != null else null
+		var hp_frac: float = clampf(float(hc.current_health) / maxf(1.0, float(hc.max_health)), 0.0, 1.0) if hc != null and "max_health" in hc else 0.6
+		if randf() < 0.25 + 0.45 * hp_frac:
+			if inv != null:
+				inv.add_gold(35)
+			npc.modify_affinity(10)
+			VillageChronicle.add(vm, "fight_club", "Ganaste la bolsa del club de pelea clandestino de medianoche (+35 de oro)", false)
+			npc._spawn_floating_text("🥊🏆 ¡Tumbaste a dos rivales a puño limpio y ganaste la bolsa (+35 Oro)!", Color.GOLD, -46.0)
+		else:
+			if hc != null:
+				hc.current_health = maxf(1.0, float(hc.current_health) - 30.0)
+			npc._spawn_floating_text("🥊🩸 Te molieron a golpes en el círculo. Ni una moneda.", Color.ORANGE_RED, -46.0)
 
 	elif action_id == "underworld_bribe_patrol":
 		if inv == null or int(inv.gold) < 15:

@@ -3256,6 +3256,8 @@ func _initialize() -> void:
 	assert(vcl.state(vm)["orphan_killers"].has(p1_kid.get_person_key()), "P1: Orphan remembers parent's killer")
 	vcl.on_child_grown_up(vm, p1_kid)
 	assert(not vde.active_of(vm, p1_kid.get_person_key()).is_empty(), "P1: Grown orphan starts revenge desire against parent's killer")
+	# Auditoría: el culpable sale del texto de cierre sin confundirlo con el comisario que firma
+	assert(vcl.culprit_from_note("Caso Archivado por el Comisario Vane (Sin pruebas)") == "" and vcl.culprit_from_note("Ana (Arrestado por el Comisario Vane: 60%)") == "Ana" and vcl.culprit_from_note("Jugador (Declarado culpable por el Comisario Vane: 50%)") == "player" and vcl.culprit_from_note("Confesión de Ana (delatado ante la guardia)") == "Ana", "P1 audit: culprit parsed from closing note, never the sheriff")
 	# P2: Forense, pistas falsas, coartadas y desmontar prueba
 	var vfo = vm.VillageForensics
 	vfo.state(vm)["planted"][p70_a.npc_name] = {"framed_name": p70_c.npc_name, "framed_key": p70_c.get_person_key(), "killer_name": p70_b.npc_name, "debunked": false}
@@ -3266,6 +3268,20 @@ func _initialize() -> void:
 	assert(int(p2_case["suspects"][p70_c.npc_name]["score"]) == 30 and int(p2_case["suspects"][p70_b.npc_name]["score"]) == 15, "P2: Planted clue raises framed suspect and false alibi lowers killer")
 	var p2_inv_bak: Dictionary = vm.active_sheriff_investigation.duplicate(true)
 	vm.active_sheriff_investigation = p2_case
+	# Auditoría: el menú del comisario no nombra al asesino real antes de que el jugador lo averigüe
+	vfo.state(vm)["moved"][p70_a.npc_name] = {"orig_x": 0.0, "orig_y": 0.0, "killer_name": p70_b.npc_name, "tracked": false}
+	vfo.state(vm)["slips"][p70_b.get_person_key()] = {"killer_key": p70_b.get_person_key(), "killer_name": p70_b.npc_name, "victim_name": p70_a.npc_name, "day": -5, "reported": false}
+	var p2_sh = vm.trade_npcs.get(9, null) # 9 = TradeRole.SHERIFF (sin nombrar VillageNPC en el test)
+	if p2_sh != null:
+		var p2_diag: Dictionary = {}
+		vfo.add_dialogue_choices(vm, p2_sh, p2_diag, [])
+		var p2_leak: bool = false
+		for c2 in (p2_diag.get("forensic_menu", {}).get("choices", []) as Array):
+			if p70_b.npc_name in str(c2.get("label", "")):
+				p2_leak = true
+		assert(not p2_leak, "P2 audit: sheriff's forensic menu does not reveal the real killer")
+	vfo.state(vm)["moved"].erase(p70_a.npc_name)
+	vfo.state(vm)["slips"].erase(p70_b.get_person_key())
 	vfo.on_player_action(vm, p70_a, "forensic_debunk:" + p70_a.npc_name, p70_inv)
 	assert(bool(vfo.state(vm)["planted"][p70_a.npc_name]["debunked"]) and int(p2_case["suspects"][p70_c.npc_name]["score"]) < 30, "P2: Debunking planted clue clears framed suspect")
 	vm.active_sheriff_investigation = p2_inv_bak
@@ -3339,10 +3355,23 @@ func _initialize() -> void:
 	vun.on_player_action(vm, p7_fence, "underworld_buy:lockpick", p70_inv)
 	assert(vun.get_item_count(vm, "lockpick") == 1, "P7: Bought lockpick from night fence")
 	vun.on_player_action(vm, p7_fence, "underworld_take_heist", p70_inv)
-	vun.on_player_action(vm, p7_fence, "underworld_steal_heist", p70_inv)
+	vun.on_player_action(vm, p7_fence, "underworld_steal_heist", p70_inv) # ya no existe: hay que ir al sitio
+	assert(not bool(vun.state(vm)["active_heist"].get("stolen", false)), "P7 audit: heist cannot be stolen from a dialogue menu")
+	vun.state(vm)["active_heist"]["stolen"] = true # como si el jugador hubiera ido de noche sin testigos
 	var p7_g_before: int = p70_inv.gold
 	vun.on_player_action(vm, p7_fence, "underworld_deliver_heist", p70_inv)
 	assert(int(vun.state(vm).get("heists_done", 0)) == 1 and p70_inv.gold > p7_g_before, "P7: Custom heist stolen and delivered to fence")
+	# Auditoría: el perista solo paga por mercancía que lleves, y de su bolsillo
+	var p7_fg: int = p7_fence.personal_gold
+	p7_fence.personal_gold = 50
+	p70_inv.remove_item("bandit_scrap", p70_inv.get_count("bandit_scrap"))
+	var p7_g2: int = p70_inv.gold
+	vun.on_player_action(vm, p7_fence, "underworld_fence_goods", p70_inv)
+	assert(p70_inv.gold == p7_g2, "P7 audit: fence pays nothing if you carry no stolen goods")
+	p70_inv.add_item("bandit_scrap", 1)
+	vun.on_player_action(vm, p7_fence, "underworld_fence_goods", p70_inv)
+	assert(p70_inv.gold == p7_g2 + 12 and p7_fence.personal_gold == 38 and p70_inv.get_count("bandit_scrap") == 0, "P7 audit: fence buys a real item with his own gold")
+	p7_fence.personal_gold = p7_fg
 	vun.on_player_action(vm, p70_a, "underworld_bribe_patrol", p70_inv)
 	assert(vun.is_guard_bribed_tonight(vm), "P7: Night guard bribed for immunity tonight")
 	p70_a.family_id = p70_fam_a_bak

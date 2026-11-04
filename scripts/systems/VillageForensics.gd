@@ -57,7 +57,8 @@ static func on_npc_murder_committed(vm, killer, victim, desire: Dictionary) -> v
 		var mm = by_key.get(mastermind_key, null)
 		st["hitmen"][v_name] = {
 			"mastermind_key": mastermind_key, "mastermind_name": mm.npc_name if mm else str(desire.get("mastermind_name", "Un rico")),
-			"hitman_key": killer.get_person_key(), "hitman_name": killer.npc_name, "exposed": false
+			"hitman_key": killer.get_person_key(), "hitman_name": killer.npc_name, "exposed": false,
+			"desire_id": int(desire.get("id", -1))
 		}
 	# P2.5: ¿Usó veneno lento para simular muerte natural? (si tiene malicia >= 0.6 y agresividad <= 0.2)
 	if TraitCatalog.npc_tendency(killer, "malice") >= 0.6 and TraitCatalog.npc_tendency(killer, "aggression") <= 0.2:
@@ -198,11 +199,11 @@ static func daily(vm) -> void:
 			d["holder"] = best_hitman.get_person_key()
 			d["holder_name"] = best_hitman.npc_name
 			VillageChronicle.add(vm, "hitman_hired", "%s pagó en secreto a %s para quitar de en medio a %s" % [holder.npc_name, best_hitman.npc_name, target.npc_name], false)
-		else:
+		elif not (st["player_contracts"] as Dictionary).has(holder.get_person_key()):
 			st["player_contracts"][holder.get_person_key()] = {
 				"mastermind_key": holder.get_person_key(), "mastermind_name": holder.npc_name,
 				"target_key": target.get_person_key(), "target_name": target.npc_name,
-				"desire_id": int(d["id"]), "pay": HITMAN_PAY
+				"desire_id": int(d["id"]), "pay": HITMAN_PAY, "heard": false, "accepted": false
 			}
 	# P2.8: Un asesino impune que está borracho o con fiebre gris delira y suelta su culpa
 	for v_name in vm.npc_murders.keys():
@@ -217,11 +218,41 @@ static func daily(vm) -> void:
 				st["slips"][key] = {"killer_key": key, "killer_name": n.npc_name, "victim_name": str(v_name), "day": today(), "reported": false}
 				var ev: Dictionary = vm.record_social_event("murder_slip", n, null, "%s murmuró entre delirios que él mató a %s" % [n.npc_name, str(v_name)])
 				ev["known_by"] = {key: true}
-				VillageChronicle.add(vm, "murder_slip", "%s, ebrio o febril, se fue de la lengua sobre la muerte de %s" % [n.npc_name, str(v_name)], true)
+				VillageChronicle.add(vm, "murder_slip", "Alguien, ebrio o febril, murmuró cosas extrañas sobre la muerte de %s" % str(v_name), false)
+	# P2.4b: Contrato aceptado por el jugador: el rico paga solo cuando el objetivo ya está muerto (y solo lo que tenga)
+	for mk in (st["player_contracts"] as Dictionary).keys():
+		var pc: Dictionary = st["player_contracts"][mk]
+		if not bool(pc.get("accepted", false)):
+			continue
+		var tgt = by_key.get(str(pc.get("target_key", "")), null)
+		var mm = by_key.get(mk, null)
+		if mm == null or mm.is_dead:
+			st["player_contracts"].erase(mk)
+			continue
+		if tgt != null and not tgt.is_dead:
+			continue
+		var pl = VillageNeeds.player_of(vm)
+		var inv_p = pl.get("inventory") if pl != null else null
+		var paid: int = mini(int(pc.get("pay", HITMAN_PAY)), int(mm.personal_gold))
+		mm.personal_gold -= paid
+		if inv_p != null:
+			inv_p.add_gold(paid)
+		for m in vm.desires:
+			if int(m.get("id", -1)) == int(pc.get("desire_id", -2)) and bool(m.get("active", false)):
+				VillageDesires.finish(vm, m, "done")
+		st["player_contracts"].erase(mk)
+		if pl != null and pl.has_method("show_hint"):
+			pl.show_hint("🗡️💰 %s te dejó %d de oro en secreto: el encargo contra %s está cumplido." % [str(pc["mastermind_name"]), paid, str(pc["target_name"])])
 
 # ==============================================================================
 # Diálogos de investigación, pistas falsas, emboscadas y sicarios
 # ==============================================================================
+static func _desire_known(vm, desire_id: int) -> bool:
+	for d in vm.desires:
+		if int(d.get("id", -2)) == desire_id:
+			return bool(d.get("player_knows", false))
+	return false
+
 static func add_dialogue_choices(vm, npc, diag: Dictionary, ch_arr: Array) -> void:
 	if vm == null or npc == null:
 		return
@@ -233,59 +264,69 @@ static func add_dialogue_choices(vm, npc, diag: Dictionary, ch_arr: Array) -> vo
 	var v_name: String = str(case_dict.get("victim_name", ""))
 	var f_choices: Array = []
 
-	# P2.5: Autopsia por veneno lento (con el médico o el comisario si hay víctima envenenada sin autopsia)
+	# P2.5: Autopsia por veneno lento: solo de cuerpos ya hallados (si no, el menú delataría que hubo veneno)
 	if is_doc or is_law:
 		for pv in (st["poisoned"] as Dictionary).keys():
 			var p_info: Dictionary = st["poisoned"][pv]
-			if not bool(p_info.get("autopsied", false)):
+			var body = vm._find_corpse_npc_by_name(pv)
+			if not bool(p_info.get("autopsied", false)) and body != null and (bool(body.corpse_discovered) or bool(body.corpse_in_morgue)):
 				f_choices.append({"label": "🧪🔬 Solicitar análisis toxicológico del cuerpo de %s" % pv, "next": "END", "action": "forensic_autopsy:" + pv})
 
-	# Opciones sobre el caso abierto
+	# Opciones sobre el caso abierto. Regla: ninguna etiqueta nombra al asesino real antes de que el jugador lo averigüe.
 	if not case_dict.is_empty() and v_name != "":
-		# P2.1: Desmontar prueba falsa ante el comisario
+		# P2.1: Desmontar prueba falsa ante el comisario (el objeto plantado ya figura en el expediente)
 		if is_law and (st["planted"] as Dictionary).has(v_name) and not bool(st["planted"][v_name].get("debunked", false)):
 			var fn: String = str(st["planted"][v_name]["framed_name"])
-			f_choices.append({"label": "🔍⚖️ Desmontar la pista falsa plantada contra %s" % ("ti" if fn == "Jugador" else fn), "next": "END", "action": "forensic_debunk:" + v_name})
-		# P2.2: Romper coartada falsa hablando con el encubridor o el comisario
+			f_choices.append({"label": "🔍⚖️ Demostrar que el objeto de %s fue colocado a propósito" % ("tu propiedad" if fn == "Jugador" else fn), "next": "END", "action": "forensic_debunk:" + v_name})
+		# P2.2: Romper la coartada hablando con quien la dio (la coartada ya figura en el expediente)
 		if (st["alibis"] as Dictionary).has(v_name) and not bool(st["alibis"][v_name].get("broken", false)):
 			var al: Dictionary = st["alibis"][v_name]
-			if npc.npc_name == str(al["ally_name"]) or is_law:
-				f_choices.append({"label": "🕵️💥 Desmontar la coartada falsa de %s a favor de %s" % [str(al["ally_name"]), str(al["killer_name"])], "next": "END", "action": "forensic_break_alibi:" + v_name})
-		# P2.3: Tranquilizar al testigo intimidado
+			if npc.npc_name == str(al["ally_name"]):
+				f_choices.append({"label": "🕵️💥 Apretarle sobre la coartada que dio a %s" % str(al["killer_name"]), "next": "END", "action": "forensic_break_alibi:" + v_name})
+		# P2.3: Tranquilizar al testigo intimidado (solo hablando con el propio testigo)
 		if (st["tampered"] as Dictionary).has(v_name) and not bool(st["tampered"][v_name].get("reassured", false)):
 			var tm: Dictionary = st["tampered"][v_name]
-			if npc.npc_name == str(tm["witness_name"]) or is_law:
-				f_choices.append({"label": "🛡️🗣️ Dar garantías al testigo %s para que declare sin miedo" % str(tm["witness_name"]), "next": "END", "action": "forensic_reassure:" + v_name})
-		# P2.4: Destapar al autor intelectual (sicario)
+			if npc.npc_name == str(tm["witness_name"]):
+				f_choices.append({"label": "🛡️🗣️ Darle garantías para que declare sin miedo", "next": "END", "action": "forensic_reassure:" + v_name})
+		# P2.4: Destapar el crimen por encargo, solo si el jugador ya conocía el plan de asesinato
 		if is_law and (st["hitmen"] as Dictionary).has(v_name) and not bool(st["hitmen"][v_name].get("exposed", false)):
 			var hm: Dictionary = st["hitmen"][v_name]
-			f_choices.append({"label": "💰🚨 Revelar que %s contrató a %s como sicario (+35 Oro)" % [str(hm["mastermind_name"]), str(hm["hitman_name"])], "next": "END", "action": "forensic_expose_hitman:" + v_name})
-		# P2.6: Incriminar a un vecino plantando una pista falsa (en menú turbio con el comisario o con el propio vecino)
+			if _desire_known(vm, int(hm.get("desire_id", -1))):
+				f_choices.append({"label": "💰🚨 Revelar que %s contrató a %s como sicario (+35 Oro)" % [str(hm["mastermind_name"]), str(hm["hitman_name"])], "next": "END", "action": "forensic_expose_hitman:" + v_name})
+		# P2.6: Incriminar a un vecino plantando una pista falsa
 		if not is_law and case_dict.get("suspects", {}).has(npc.npc_name):
 			ch_arr.insert(maxi(0, ch_arr.size() - 1), {"label": "🧤 Plantar pista falsa contra %s en el caso de %s (-%d Oro)" % [npc.npc_name, v_name, FRAME_COST], "next": "END", "action": "forensic_frame:" + npc.npc_name})
-		# P2.7: Seguir el rastro del cadáver arrastrado
+		# P2.7: Pedir que sigan el rastro de arrastre (la marca ya figura en el expediente; no se dice adónde lleva)
 		if is_law and (st["moved"] as Dictionary).has(v_name) and not bool(st["moved"][v_name].get("tracked", false)):
-			f_choices.append({"label": "👣 Señalar el rastro de arrastre del cadáver hasta la casa de %s" % str(st["moved"][v_name]["killer_name"]), "next": "END", "action": "forensic_track_drag:" + v_name})
-		# P2.9: Destapar el chivo expiatorio del comisario corrupto
+			f_choices.append({"label": "👣 Pedir que sigan el rastro de arrastre del cadáver", "next": "END", "action": "forensic_track_drag:" + v_name})
+		# P2.9: El chivo expiatorio te pide ayuda (solo hablando con él/ella)
 		if (st["scapegoats"] as Dictionary).has(v_name) and not bool(st["scapegoats"][v_name].get("exposed", false)):
 			var sg: Dictionary = st["scapegoats"][v_name]
-			if is_law or npc.npc_name == str(sg["scapegoat_name"]):
-				f_choices.append({"label": "⚖️🔓 Demostrar la inocencia del chivo expiatorio %s y señalar a %s" % [str(sg["scapegoat_name"]), str(sg["killer_name"])], "next": "END", "action": "forensic_scapegoat:" + v_name})
+			if npc.npc_name == str(sg["scapegoat_name"]):
+				f_choices.append({"label": "⚖️🔓 Ayudarle a demostrar que el comisario le señala sin pruebas", "next": "END", "action": "forensic_scapegoat:" + v_name})
 
-	# P2.4b: Contrato de sicario ofrecido al jugador por un rico
+	# P2.4b: Contrato de sicario ofrecido al jugador por un rico: primero lo escuchas, luego decides
 	if (st["player_contracts"] as Dictionary).has(key):
 		var pc: Dictionary = st["player_contracts"][key]
-		f_choices.append({"label": "🗡️💰 Escuchar su encargo secreto contra %s (+%d Oro)" % [str(pc["target_name"]), int(pc["pay"])], "next": "END", "action": "forensic_contract_accept:" + key})
-	if is_law and not (st["player_contracts"] as Dictionary).is_empty():
-		var first_mm: String = str((st["player_contracts"] as Dictionary).keys()[0])
-		var pc2: Dictionary = st["player_contracts"][first_mm]
-		f_choices.append({"label": "🚨 Denunciar que %s busca un sicario para matar a %s (+30 Oro)" % [str(pc2["mastermind_name"]), str(pc2["target_name"])], "next": "END", "action": "forensic_contract_report:" + first_mm})
+		if not bool(pc.get("heard", false)):
+			f_choices.append({"label": "🗡️ Escuchar lo que quiere proponerte en voz baja", "next": "END", "action": "forensic_contract_listen:" + key})
+		elif not bool(pc.get("accepted", false)):
+			f_choices.append({"label": "🗡️💰 Aceptar el encargo contra %s (cobras %d cuando esté hecho)" % [str(pc["target_name"]), int(pc["pay"])], "next": "END", "action": "forensic_contract_accept:" + key})
+	if is_law:
+		for mk in (st["player_contracts"] as Dictionary).keys():
+			var pc2: Dictionary = st["player_contracts"][mk]
+			if bool(pc2.get("heard", false)):
+				f_choices.append({"label": "🚨 Denunciar que %s busca un sicario para matar a %s (+30 Oro)" % [str(pc2["mastermind_name"]), str(pc2["target_name"])], "next": "END", "action": "forensic_contract_report:" + mk})
 
-	# P2.8: Delatar confesión de borracho o enfermo
+	# P2.8: Oír los desvaríos del asesino ebrio o febril (hablando con él mientras sigue así) y luego delatarlo
+	if (st["slips"] as Dictionary).has(key):
+		var sl0: Dictionary = st["slips"][key]
+		if not bool(sl0.get("heard", false)) and (int(sl0.get("day", -1)) == today() or VillageNeeds.is_drunk_key(key) or int(npc.sick_level) >= 2):
+			f_choices.append({"label": "🍷👂 Dejarle hablar: no para de murmurar cosas raras", "next": "END", "action": "forensic_listen_slip:" + key})
 	if is_law:
 		for sk in (st["slips"] as Dictionary).keys():
 			var sl: Dictionary = st["slips"][sk]
-			if not bool(sl.get("reported", false)):
+			if bool(sl.get("heard", false)) and not bool(sl.get("reported", false)):
 				f_choices.append({"label": "🍷🚨 Informar que %s confesó ebrio/febril haber matado a %s (+35 Oro)" % [str(sl["killer_name"]), str(sl["victim_name"])], "next": "END", "action": "forensic_slip:" + sk})
 
 	# P2.10: Tender emboscada nocturna a un asesino cuyo plan conoces
@@ -334,7 +375,7 @@ static func on_player_action(vm, npc, action_id: String, inv) -> void:
 			suspects[fn]["score"] = maxi(0, int(suspects[fn].get("score", 20)) - 25)
 		if suspects.has(kn):
 			suspects[kn]["score"] = int(suspects[kn].get("score", 20)) + 25
-		clues.append("Prueba falsa desmontada: la prenda de %s fue plantada por %s (+25%% sospecha al asesino real)." % [fn, kn])
+		clues.append("Prueba falsa desmontada: el objeto de %s lo colocó otra persona para despistar." % ("el Forastero" if fn == "Jugador" else fn))
 		for n in VillageNeeds.living(vm):
 			if n.npc_name == fn:
 				VillageClans.grant_honor_debt(vm, n, "le libró de una prueba falsa de asesinato")
@@ -401,8 +442,8 @@ static func on_player_action(vm, npc, action_id: String, inv) -> void:
 		var kn: String = str(mv["killer_name"])
 		if suspects.has(kn):
 			suspects[kn]["score"] = int(suspects[kn].get("score", 20)) + 20
-		clues.append("Rastro forense: el cadáver fue arrastrado de noche desde las inmediaciones de %s (+20%% sospecha)." % kn)
-		npc._spawn_floating_text("👣 «El rastro de arrastre lleva directo hacia %s.»" % kn, Color.SPRING_GREEN, -46.0)
+		clues.append("Rastro forense: el cuerpo no murió donde se encontró; lo arrastraron de noche. El comisario revisa a quién se vio por allí.")
+		npc._spawn_floating_text("👣 «Lo arrastraron hasta aquí. Ya sé por dónde seguir.»", Color.SPRING_GREEN, -46.0)
 
 	elif action_id.begins_with("forensic_scapegoat:"):
 		if not (st["scapegoats"] as Dictionary).has(arg):
@@ -419,21 +460,23 @@ static func on_player_action(vm, npc, action_id: String, inv) -> void:
 			if n.npc_name == sg_name:
 				VillageClans.grant_honor_debt(vm, n, "demostró que era un chivo expiatorio inocente")
 				break
-		VillageChronicle.add(vm, "scapegoat_cleared", "Se demostró que %s era un chivo expiatorio y la sospecha recayó en %s" % [sg_name, kn], true)
-		npc._spawn_floating_text("⚖️ «Queda claro que %s era inocente y todo apuntaba a %s.»" % [sg_name, kn], Color.SPRING_GREEN, -46.0)
+		clues.append("Acusación sin pruebas: el informe contra %s no se sostiene; alguien quería cerrar el caso deprisa." % sg_name)
+		VillageChronicle.add(vm, "scapegoat_cleared", "Se demostró que %s era un chivo expiatorio del comisario" % sg_name, true)
+		npc._spawn_floating_text("⚖️ «¡Gracias! Ahora todos saben que no fui yo.»", Color.SPRING_GREEN, -46.0)
+
+	elif action_id.begins_with("forensic_contract_listen:"):
+		if not (st["player_contracts"] as Dictionary).has(arg):
+			return
+		var pc0: Dictionary = st["player_contracts"][arg]
+		pc0["heard"] = true
+		npc._spawn_floating_text("🗡️ «Quiero a %s fuera de mi camino. Te pagaré %d cuando esté hecho.»" % [str(pc0["target_name"]), int(pc0["pay"])], Color.GOLD, -46.0)
 
 	elif action_id.begins_with("forensic_contract_accept:"):
 		if not (st["player_contracts"] as Dictionary).has(arg):
 			return
 		var pc: Dictionary = st["player_contracts"][arg]
-		var pay: int = int(pc["pay"])
-		var mm = vm._get_npcs_by_person_key().get(arg, null)
-		if mm != null and int(mm.personal_gold) >= pay:
-			mm.personal_gold -= pay
-		if inv != null:
-			inv.add_gold(pay)
-		st["player_contracts"].erase(arg)
-		npc._spawn_floating_text("🗡️💰 «Aquí tienes %d de oro por adelantado. Que parezca un accidente.»" % pay, Color.GOLD, -46.0)
+		pc["accepted"] = true
+		npc._spawn_floating_text("🗡️ «Trato hecho. Ni un céntimo hasta que %s no respire. Que parezca un accidente.»" % str(pc["target_name"]), Color.GOLD, -46.0)
 
 	elif action_id.begins_with("forensic_contract_report:"):
 		if not (st["player_contracts"] as Dictionary).has(arg):
@@ -453,6 +496,16 @@ static func on_player_action(vm, npc, action_id: String, inv) -> void:
 		VillageChronicle.add(vm, "hitman_foiled", "Denunciaste que %s intentaba contratar un sicario contra %s" % [str(pc["mastermind_name"]), str(pc["target_name"])], true)
 		npc._spawn_floating_text("🚨 «Lo multaremos ahora mismo. Toma 30 de oro por avisar.»", Color.SPRING_GREEN, -46.0)
 
+	elif action_id.begins_with("forensic_listen_slip:"):
+		if not (st["slips"] as Dictionary).has(arg):
+			return
+		var sl0: Dictionary = st["slips"][arg]
+		sl0["heard"] = true
+		npc._spawn_floating_text("🥴 «...no quería... %s no tenía que mirarme así... la sangre no se va...»" % str(sl0["victim_name"]), Color(0.9, 0.8, 1.0), -46.0)
+		var pl_s = VillageNeeds.player_of(vm)
+		if pl_s != null and pl_s.has_method("show_hint"):
+			pl_s.show_hint("👂 %s acaba de soltar entre delirios que mató a %s. Podrías contárselo a la guardia." % [npc.npc_name, str(sl0["victim_name"])])
+
 	elif action_id.begins_with("forensic_slip:"):
 		if not (st["slips"] as Dictionary).has(arg):
 			return
@@ -462,8 +515,7 @@ static func on_player_action(vm, npc, action_id: String, inv) -> void:
 		var vn: String = str(sl["victim_name"])
 		if suspects.has(kn):
 			suspects[kn]["score"] = int(suspects[kn].get("score", 20)) + 45
-		vm._mark_morgue_case_resolved(vn, "Confesión de %s (delatado ante la guardia)" % kn)
-		VillageClans.on_murder_resolved(vm, vn, kn)
+		vm._mark_morgue_case_resolved(vn, "Confesión de %s (delatado ante la guardia)" % kn) # ya avisa a los clanes
 		if inv != null:
 			inv.add_gold(35)
 		npc._spawn_floating_text("🍷🚨 «Con esa confesión cerramos el caso de %s contra %s. Toma 35 de oro.»" % [vn, kn], Color.GOLD, -46.0)

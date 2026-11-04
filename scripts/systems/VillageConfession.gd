@@ -269,10 +269,13 @@ static func daily(vm) -> void:
 				priest.personal_gold += cut
 				sinner2.modify_npc_relationship(priest, -15, "Usa mi confesión para sacarme oro", true)
 				break
-	# P4.5: Si alguien profanó una tumba y se sabe, el sacerdote lo excomulga
+	# P4.5: Si alguien profanó una tumba y SE SABE quién fue, el sacerdote lo excomulga (una sola vez por tumba)
 	var clans_st: Dictionary = vm.VillageClans.state(vm)
 	for v_name in (clans_st.get("desecrated_graves", {}) as Dictionary).keys():
 		var dg: Dictionary = clans_st["desecrated_graves"][v_name]
+		if not bool(dg.get("known", false)) or bool(dg.get("excomm_done", false)):
+			continue
+		dg["excomm_done"] = true
 		var culprit = by_key.get(str(dg.get("culprit", "")), null)
 		if culprit != null and not is_excommunicated(vm, culprit):
 			excommunicate(vm, culprit, "profanar una tumba del cementerio")

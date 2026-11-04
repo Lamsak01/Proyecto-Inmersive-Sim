@@ -5,6 +5,13 @@ El detalle técnico está en `docs/HANDOFF.md` (sección 7) y el historial compl
 
 ## 2026-11-04
 
+### Auditoría de las 70 mecánicas: arreglos del misterio y del oro infinito
+- **El misterio de los asesinatos ya no se destripa solo:** el menú del comisario ya no muestra el nombre del asesino antes de que lo averigües; la familia de la víctima solo odia al culpable cuando se cierra el caso (y nunca culpa por error al comisario); al asesino borracho o con fiebre hay que oírle tú antes de poder delatarle; el chivo expiatorio y el testigo asustado te piden ayuda en persona; solo se puede pedir la autopsia de un cuerpo ya encontrado.
+- **Tumbas profanadas:** limpiando la lápida puedes (o no) encontrar algo del culpable; solo si se sabe quién fue, el cura lo aparta de la capilla.
+- **Encargo de sicario:** primero escuchas la propuesta; si aceptas, el rico paga solo cuando el trabajo está hecho y solo lo que tiene.
+- **Se acabó el oro infinito del hampa:** el perista solo compra objetos de valor que lleves encima y paga de su bolsillo; el robo por encargo hay que hacerlo yendo al sitio y alguien puede verte; la pelea clandestina se puede perder (y duele); la apuesta es a cara o cruz; el polvo de ocaso solo lo compra quien tiene con qué pagar; la «protección» se cobra una vez por semana y sale de la caja de la tienda; el ratero a sueldo te da solo parte de lo que robó; el moroso del usurero solo paga lo que tiene.
+- **Tu casa:** el cofre de tu casa ya no regala oro cada día, y el local que posees solo te da parte de lo que hay en su caja.
+
 ### Las 70 mecánicas nuevas: clanes, crímenes perfectos, secretos de familia, capilla, alcaldía, casas propias y bajos fondos
 - **Clanes y rencores de sangre (10 novedades):** las familias ahora guardan rencores colectivos, reclaman deudas de sangre cuando matan a uno de los suyos, hacen boicot en sus tiendas a las familias rivales (y a ti si te enemistas con ellos), obedecen a su patriarca o matriarca, sabotean negocios rivales de noche, pueden desterrar a la oveja negra del clan, sellar la paz con una cena o una boda entre familias rivales, y jurarte deuda de honor de por vida si les salvas de la muerte.
 - **Asesinatos e investigaciones forenses (10 novedades):** puedes plantar armas en casa de un inocente, fregar la escena del crimen con lejía, comprar o intimidar coartadas falsas, sobornar al médico para falsear la autopsia, cobrar pólizas de seguro de vida sospechosas, usar veneno de efecto retardado, trucar la hora de la muerte, pagar a un limpiador nocturno, imitar el sello de otro asesino o forzar con chantaje a un vecino a confesar por ti.

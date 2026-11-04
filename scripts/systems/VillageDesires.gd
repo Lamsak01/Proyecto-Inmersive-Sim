@@ -407,7 +407,7 @@ static func try_commit_murder(vm: VillageManager, d: Dictionary, h: VillageNPC, 
 	vm.VillageForensics.on_npc_murder_committed(vm, h, t, d) # P2: método según oficio, pista falsa o veneno lento
 	t._confirm_true_death()
 	t.murder_witness_name = ""
-	vm.VillageClans.on_murder_resolved(vm, t.npc_name, h.npc_name) # P1.1: rencor de clan hacia el asesino
+	# P1.1: la familia NO sabe aún quién fue; el rencor de clan llega al cerrarse el caso (_mark_morgue_case_resolved)
 	return true
 
 ## Pista para el comisario al abrir el caso (VillageJustice).
