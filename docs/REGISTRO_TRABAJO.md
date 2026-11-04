@@ -383,3 +383,12 @@ Informe completo: `docs/AUDITORIA_P1_P7.md`.
 | RE4 | Obra maestra revendida por menos de su precio | ✅ | VillageFame.gd | Test #83 |
 | RE5 | Red: no se cobra el sabotaje propio, no hay luz sin generador, testigos | ✅ | VillageCulture.gd | Test #87 |
 | RE6 | Milicia con tope, incursiones crecientes y atalaya permanente; terminal solo en el taller | ✅ | VillageCulture.gd | Test #89 |
+
+## Revisión PF–PQ — Textos y veracidad (2026-11-04)
+
+| # | Paso | Estado | Archivos | Nota |
+|---|------|--------|----------|------|
+| RT1 | El caballo acelera de verdad al jugador (también al cargar) | ✅ | PlayerMovementController.gd, VillageCulture.gd | Test #90 |
+| RT2 | Ánimo correcto al perder un miembro y al recibir una prótesis | ✅ | VillageIllness.gd | — |
+| RT3 | Cambiar de oficio empieza de cero; ventaja escolar solo en el primero | ✅ | VillageNPC.gd | Test #84 |
+| RT4 | Asentamiento documentado como solo de menús; lore apuntado como provisional | ✅ | CHANGELOG.md, VISION_Y_FUTURO.md, APORTES_CREATIVOS.md | — |

@@ -240,3 +240,18 @@ o vino ya dado. Conviene confirmarlo.
 
 **Dónde:** `scripts/systems/VillageMayor.gd`, `scripts/systems/VillageUnderworld.gd`, `scripts/systems/VillageConfession.gd`, `scripts/systems/VillageClans.gd`, `scripts/systems/VillageForensics.gd`, `scripts/systems/VillageLineage.gd` y `scripts/systems/VillageHousing.gd`.
 **Depende:** solo textos de diálogo y crónicas; los identificadores internos (`dry_law`, `curfew`, `dusk_dust`, etc.) no deben renombrarse sin actualizar las referencias.
+
+## 13. Textos y nombres provisionales de los Bloques PF–PQ
+
+**Qué hay:**
+- **Historia principal (PP):** cuatro capítulos «I. Las Raíces del Valle», «II. El Pulso Bajo la Piedra», «III. La Máquina de Cobre» y «IV. La Placa de Petri». Introducen una idea de trasfondo **inventada por el agente, no por el usuario**: que el valle fue concebido como un experimento cerrado y que bajo la plaza hay restos de una red antigua de cobre. Conviene que el usuario la confirme o la cambie.
+- **Asentamiento (PP):** «Puesto del Paso», con «Aserradero Fronterizo», «Granero del Paso» y «Atalaya de Guardia».
+- **Incursiones (PL):** «Banda del Paso Negro», «Manada de Jabalíes Furiosos» y «Saqueadores del Norte».
+- **Alcantarillas (PN):** «Cisterna Vieja bajo la Plaza», «Pasadizo del Contrabandista» y «Bóveda Inundada del Antiguo Gremio».
+- **Expediciones (PM):** «Ruinas de Cobre del Oeste», «Grutas de Cristal del Norte» y «Atalaya Hundida del Pantano».
+- **Rutas comerciales (PK):** «Paso Alto (Minas del Norte)», «Puerto Fluvial del Este» y «Vega del Sol».
+- **Tecnologías (PL):** «Engranajes Hidráulicos», «Cerraduras y Empalizadas de Precisión» y «Condensadores Voltaicos».
+- **Maestros artesanos (PF):** tres estilos por oficio («Acero Templado al Alba», «Masa Madre Dorada»…), el bazar «Bazar del Forastero» y la «Obra Maestra con Sello de Autor».
+
+**Dónde:** `scripts/systems/VillageCulture.gd` (historia, asentamiento, incursiones, expediciones, rutas, tecnologías), `scripts/systems/VillageUnderworld.gd` (alcantarillas), `scripts/systems/VillageFame.gd` (estilos) y `scripts/systems/VillageHousing.gd` (bazar).
+**Depende:** solo textos; los identificadores internos (`main_ch1`, `high_pass`, `waterwheel_gears`…) no deben renombrarse sin actualizar las referencias.

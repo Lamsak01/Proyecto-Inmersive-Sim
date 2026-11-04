@@ -75,7 +75,7 @@ static func amputate(vm, key: String, limb_id: String = "left_arm", reason: Stri
 	if key != "player":
 		var n = vm._get_npcs_by_person_key().get(key, null)
 		if n != null:
-			n.add_thought("Perdí mi %s (%s) (-15)" % [limb_lbl, reason], 8.0)
+			n.add_thought("Perdí mi %s (%s) (-15)" % [limb_lbl, reason], -15.0)
 			n._spawn_floating_text("🪚 Amputación: %s" % limb_lbl, Color(0.95, 0.45, 0.35), -40.0)
 			VillageChronicle.add(vm, "amputation", "El médico amputó el %s de %s (%s)" % [limb_lbl, n.npc_name, reason], true)
 	return true
@@ -95,7 +95,7 @@ static func install_prosthetic(vm, key: String, prosthetic_name: String = "Prót
 	if key != "player":
 		var n = vm._get_npcs_by_person_key().get(key, null)
 		if n != null:
-			n.add_thought("Tengo una prótesis (%s) que me devuelve a la vida (+12)" % prosthetic_name, 8.0)
+			n.add_thought("Tengo una prótesis (%s) que me devuelve a la vida (+12)" % prosthetic_name, 12.0)
 			n._spawn_floating_text("🦾 %s" % prosthetic_name, Color.AQUAMARINE, -40.0)
 			VillageChronicle.add(vm, "prosthetic", "%s recibió una %s para su %s" % [n.npc_name, prosthetic_name, limb_lbl], true)
 	return true

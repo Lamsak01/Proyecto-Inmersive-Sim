@@ -1100,6 +1100,10 @@ static func after_load(vm) -> void:
 	if is_market_open(vm):
 		close_market(vm)
 	restore_planted_trees(vm)
+	# El caballo es estado guardado; la velocidad se vuelve a aplicar al jugador al cargar
+	var pl_l = VillageNeeds.player_of(vm)
+	if pl_l != null and has_horse(vm):
+		pl_l.set_meta("mount_speed_mult", 1.25)
 
 # ---------------------------------------------------------------- arreglos
 ## Cada día: rutas comerciales, fertilidad forestal, árbol de investigación, incursiones y arreglos del Taller.

@@ -4433,8 +4433,11 @@ func promote_to_trade(new_role: TradeRole, new_title: String, new_work_pos: Vect
 	var was_family := (trade_role == TradeRole.FAMILY_MEMBER)
 	trade_role = new_role
 	var base_days: int = 2 if was_family else 0
+	# La ventaja de la escuela vale solo para el primer oficio; cambiar de oficio empieza de cero como antes
 	var school_bonus: int = int(get_meta("school_bonus_days", 0)) if has_meta("school_bonus_days") else 0
-	days_in_role = clampi(maxi(days_in_role, base_days) + school_bonus, 0, 7)
+	if has_meta("school_bonus_days"):
+		remove_meta("school_bonus_days")
+	days_in_role = clampi(base_days + school_bonus, 0, 7)
 	npc_role = new_title + (" (Herencia Familiar)" if was_family else " (Sucesor)")
 	work_position = new_work_pos
 	if new_bed_pos != Vector2.ZERO: bed_position = new_bed_pos

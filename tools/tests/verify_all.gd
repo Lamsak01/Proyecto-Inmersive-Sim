@@ -3724,6 +3724,8 @@ func _initialize() -> void:
 	pg_kid.days_in_role = 0
 	pg_kid.promote_to_trade(p70_a.trade_role, "Graduado del Valle", p70_a.work_position, p70_a.shop_stock.duplicate())
 	assert(int(pg_kid.days_in_role) == 3, "PG.1d: School bonus days apply when taking a trade role as an adult")
+	pg_kid.promote_to_trade(p70_a.trade_role, "Graduado del Valle", p70_a.work_position, p70_a.shop_stock.duplicate())
+	assert(int(pg_kid.days_in_role) == 0, "PG.1e: Changing trade later starts from zero (school bonus is only for the first job)")
 	p70_c.trade_role = pg_c_role_bak
 	p70_c.linked_trade = pg_c_lrole_bak
 	p70_c.npc_role = pg_c_nrole_bak
@@ -4070,6 +4072,11 @@ func _initialize() -> void:
 	p70_a.personal_gold = 10
 	vcu_pj.on_player_action(vm, p70_a, "culture_buy_horse", p70_inv)
 	assert(vcu_pj.has_horse(vm) and p70_inv.gold == 75 and p70_a.personal_gold == 55, "PM.1a: Buying riding horse transfers 45 gold to rancher and activates mount")
+	var pm_pl = vm.VillageNeeds.player_of(vm)
+	if pm_pl != null:
+		pm_pl.remove_meta("mount_speed_mult")
+		vcu_pj.after_load(vm)
+		assert(float(pm_pl.get_meta("mount_speed_mult", 1.0)) == 1.25, "PM.1a2: The horse speeds up the player and the bonus comes back after loading a game")
 	vcu_pj.on_player_action(vm, p70_a, "culture_buy_cart", p70_inv)
 	assert(vcu_pj.has_cart(vm) and p70_inv.gold == 20 and p70_a.personal_gold == 110, "PM.1b: Buying cargo cart transfers 55 gold to rancher and activates cart")
 	p70_inv.remove_item("copper_coil", p70_inv.get_count("copper_coil"))
@@ -4088,6 +4095,8 @@ func _initialize() -> void:
 	p70_inv.gold = 50
 	assert(vcu_pj.send_player_shipment(vm, "river_port", p70_inv) and p70_inv.gold == 62, "PM.1c: Cargo cart increases player shipment payout from 8 to 12 gold from route balance")
 	vcu_pj.state(vm)["mounts"] = {}
+	if pm_pl != null and pm_pl.has_meta("mount_speed_mult"):
+		pm_pl.remove_meta("mount_speed_mult")
 	vcu_pj.state(vm)["exploration"] = {}
 	vcu_pj.state(vm)["trade_routes"] = {}
 	vcu_pj.state(vm)["readings"] = pm_read0

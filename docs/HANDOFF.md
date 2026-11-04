@@ -665,6 +665,12 @@ Cada fase se dividirá en bloques pequeños cuando se llegue a ella (detalle en 
 - [x] **Bloque PQ — Escalado de población a 100+ vecinos, solares de la ronda norte (`u0..u6`), casas ampliables a 4 camas con altillo y LOD multi-nivel** (`scripts/systems/VillageMigration.gd`, `scripts/systems/VillageLots.gd`, `scripts/systems/VillageHousing.gd`, `scripts/enemies/VillageNPC.gd`, test #94):
   1) Techo de población ampliado (`POP_CAP = 100` en `VillageMigration.gd`), nueva ronda norte de 7 solares residenciales (`u0..u6` en `VillageLots.LOTS`) y ampliación vertical de casas ya construidas con altillo (`expand_house_upper_floor`, `_house_beds(id, true)` con 4 camas por casa, activada automáticamente en `VillageMigration.maybe_order_house` cuando se agotan los solares libres o al instalar `"upper_floor"` en `VillageHousing.gd`).
   2) Simulación simplificada multi-nivel y de larga distancia (`_lod_far()` y `_lod_step_for_npc()` en `VillageNPC.gd`): los vecinos que se encuentran en otra capa vertical (`elevation_level != vm.player_elevation_level`) o muy alejados pasan a paso simplificado doble (`LOD_STEP * 2 = 8` fotogramas), manteniendo el desplazamiento exacto mediante `_lod_k`.
+- [x] **Revisión PF–PQ, textos** (puntos 12–16; tests #84 y #90 ampliados):
+  1) `PlayerMovementController` aplica la meta `mount_speed_mult`; `VillageCulture.after_load` la repone si `has_horse`.
+  2) Pensamientos de amputación −15 y de prótesis +12 en `VillageIllness`.
+  3) `promote_to_trade` vuelve a poner los días a la base y gasta `school_bonus_days`, que solo vale para el primer oficio.
+  4) Lore de PF–PQ en `docs/APORTES_CREATIVOS.md` §13.
+  5) Pendientes en VISION: un lugar en el mapa para el asentamiento y la amputación del jugador.
 - [x] **Revisión PF–PQ, economía** (puntos 5–11 del informe; tests #83, #84, #86, #87, #88, #89 ampliados):
   1) Bazar: `player_shop.goods`, precios `SHOP_ITEM_PRICES`, sin stock inicial, `shop_night_theft` (18 %, o 7 % con dependiente; el oro pasa al vecino más pobre).
   2) Corral: `fed_day`; solo crecen o dan carne con ≤ `ANIMAL_FED_DAYS`; mueren a `ANIMAL_STARVE_DAYS`.

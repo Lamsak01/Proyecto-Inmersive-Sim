@@ -5,6 +5,13 @@ El detalle técnico está en `docs/HANDOFF.md` (sección 7) y el historial compl
 
 ## 2026-11-04
 
+### Revisión de PF–PQ: textos y detalles corregidos
+- **Caballo:** ahora sí te hace ir un 25 % más rápido, también después de cargar la partida.
+- **Amputaciones:** perder un miembro entristece al vecino (antes le alegraba) y la prótesis le anima de verdad.
+- **Cambiar de oficio:** quien cambia de oficio vuelve a empezar de cero; la ventaja de la escuela solo vale para el primer trabajo.
+- **Asentamiento:** se aclara que por ahora solo se gestiona desde los menús; queda pendiente darle un lugar en el mapa.
+- Los nombres y el trasfondo nuevos (historia principal, alcantarillas, rutas…) quedan apuntados como provisionales.
+
 ### Revisión de PF–PQ: se cierran los atajos de dinero fácil
 - **Tu negocio:** el mostrador empieza vacío; cada artículo se vende a su precio (una madera vale 3 y una prenda 14) y de noche un ladrón puede llevarse la mitad de la caja que no hayas recaudado (menos si tienes dependiente).
 - **Corral:** los animales solo crecen y dan carne si les das de comer; tras 5 días sin comida mueren.
@@ -26,7 +33,7 @@ El detalle técnico está en `docs/HANDOFF.md` (sección 7) y el historial compl
 - **Simulación ligera para otros pisos y vecinos lejanos:** los habitantes que están en otro nivel (en el altillo o en las alcantarillas) o muy lejos de tu vista se actualizan de forma simplificada para mantener el rendimiento fluido cuando la ciudad crece.
 
 ### Crear tu propio asentamiento fronterizo e Historia Principal en 4 capítulos
-- **Fundar y gobernar el «Puesto del Paso»:** puedes fundar tu propio asentamiento en el paso fronterizo abonando la carta municipal y aportando madera y piedra. Allí puedes reclutar vecinos sin oficio como colonos (con jornal diario pagado del arca del asentamiento), levantar un aserradero, un granero y una atalaya de guardia, y recaudar el excedente de los peajes comerciales.
+- **Fundar y gobernar el «Puesto del Paso»** (por ahora solo desde los menús, sin lugar en el mapa): puedes fundar tu propio asentamiento en el paso fronterizo abonando la carta municipal y aportando madera y piedra. Allí puedes reclutar vecinos sin oficio como colonos (con jornal diario pagado del arca del asentamiento), levantar un aserradero, un granero y una atalaya de guardia, y recaudar el excedente de los peajes comerciales.
 - **Historia Principal en el panel de misiones (`[L]`):** la pestaña «👑 Principal» del diario de misiones sigue ahora un arco de cuatro capítulos («Las Raíces del Valle», «El Pulso Bajo la Piedra», «La Máquina de Cobre» y «La Placa de Petri») que conecta tu llegada al valle, los hallazgos subterráneos y arqueológicos, la ingeniería del generador y el destino político de la comunidad.
 
 ### Armas de fuego de chispa y Terminales lógicas electromecánicas con hackeo

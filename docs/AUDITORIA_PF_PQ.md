@@ -71,7 +71,7 @@ Por eso no detectaron los fallos graves.
     - `resolve_raid` pone `militia_bonus = 0`, así que la Atalaya del asentamiento (+2) se pierde para siempre tras la primera incursión.
 11. **Terminal en la comisaría (PO).** Se hackea hablando con el propio comisario.
 
-## Veracidad (documentado pero no funciona del todo)
+## Veracidad (documentado pero no funciona del todo) — ✅ corregido (el asentamiento en el mapa y la amputación del jugador quedan como pendientes en VISION)
 
 12. **Caballo:** se documenta que «mejora tu desplazamiento», pero nadie lee `mount_speed_mult`. Solo da +15 % de éxito en las expediciones.
 13. **Asentamiento «Puesto del Paso»:** solo existe en menús; no hay ningún lugar en el mapa. Gobernarlo consiste en 3 mejoras, 3 colonos y una caja.

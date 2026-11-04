@@ -134,6 +134,9 @@ func _handle_input(delta: float) -> void:
 
 	if "armor_speed_multiplier" in player:
 		current_speed *= float(player.get("armor_speed_multiplier"))
+	# Caballo de silla comprado en el rancho (VillageCulture.buy_mount): +25 % de velocidad
+	if player.has_meta("mount_speed_mult"):
+		current_speed *= float(player.get_meta("mount_speed_mult"))
 
 	anim.speed_scale = target_anim_scale
 
