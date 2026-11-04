@@ -118,6 +118,8 @@ var character_secret: String = ""
 # Control de Asiento en la Mesa de Juegos de la Taberna
 var is_at_poker_table: bool = false
 var poker_seat_pos: Vector2 = Vector2.ZERO
+# Bloque PN: Nivel vertical / capa del mapa (-1 = sótano/alcantarillas, 0 = calle/planta baja, 1 = primer piso)
+var elevation_level: int = 0
 
 # Tasas metabólicas individuales (cada NPC tiene su propio ritmo para evitar comportamiento robótico sincronizado)
 var _hunger_decay_rate: float = 1.15

@@ -33,6 +33,13 @@ const DUST_PRICE: int = 30
 const DUST_COOK_COST: int = 25
 const RACKET_WEEKLY: int = 10
 const BOSS_TRIBUTE: int = 12
+const SEWER_KEY_COST: int = 20
+
+const SEWER_LOCATIONS: Dictionary = {
+	"cistern": {"title": "Cisterna Vieja bajo la Plaza", "pos": Vector2(465.0, 48.0), "difficulty": 0.30, "loot_item": "copper_coil"},
+	"smuggler_tunnel": {"title": "Pasadizo del Contrabandista", "pos": Vector2(395.0, -135.0), "difficulty": 0.25, "loot_item": "bandit_scrap"},
+	"flooded_vault": {"title": "Bóveda Inundada del Antiguo Gremio", "pos": Vector2(215.0, -90.0), "difficulty": 0.40, "loot_item": "steel_ingot"}
+}
 
 static func fenceable_item(inv) -> String:
 	if inv == null:
@@ -99,7 +106,78 @@ static func state(vm) -> Dictionary:
 		st["last_animal_race_day"] = -99
 	if not st.has("last_cockfight_day"):
 		st["last_cockfight_day"] = -99
+	if not st.has("sewers") or not (st["sewers"] is Dictionary):
+		st["sewers"] = {"unlocked": false, "current_loc": "", "last_explore_day": -99, "lost_coins_pool": 12, "explored_count": 0}
 	return st
+
+## Bloque PN: Red de alcantarillas en el nivel vertical -1 con localizaciones subterráneas nuevas.
+static func sewers_state(vm) -> Dictionary:
+	return state(vm)["sewers"]
+
+static func unlock_sewers(vm, npc, inv) -> bool:
+	var sw: Dictionary = sewers_state(vm)
+	if bool(sw.get("unlocked", false)) or inv == null or int(inv.gold) < SEWER_KEY_COST:
+		return false
+	inv.add_gold(-SEWER_KEY_COST)
+	if npc != null and is_instance_valid(npc):
+		npc.personal_gold += SEWER_KEY_COST
+	else:
+		vm.town_state["treasury"] = int(vm.town_state.get("treasury", 0)) + SEWER_KEY_COST
+	sw["unlocked"] = true
+	VillageChronicle.add(vm, "sewers_unlocked", "Obtuviste la llave maestra y el plano de las alcantarillas bajo el pueblo (-%d de oro)" % SEWER_KEY_COST, false)
+	return true
+
+static func enter_sewer_location(vm, loc_id: String, player: Node2D = null) -> bool:
+	var sw: Dictionary = sewers_state(vm)
+	if not bool(sw.get("unlocked", false)) or not SEWER_LOCATIONS.has(loc_id):
+		return false
+	sw["current_loc"] = loc_id
+	vm.set_player_elevation_level(-1)
+	if player != null and is_instance_valid(player):
+		player.global_position = SEWER_LOCATIONS[loc_id]["pos"]
+	return true
+
+static func exit_sewers_to_surface(vm) -> void:
+	var sw: Dictionary = sewers_state(vm)
+	sw["current_loc"] = ""
+	vm.set_player_elevation_level(0)
+
+static func explore_sewer_location(vm, loc_id: String, inv, force_outcome: int = 0) -> Dictionary:
+	var sw: Dictionary = sewers_state(vm)
+	if not bool(sw.get("unlocked", false)) or not SEWER_LOCATIONS.has(loc_id):
+		return {"ok": false}
+	if today() == int(sw.get("last_explore_day", -99)):
+		return {"ok": false}
+	var pl = VillageNeeds.player_of(vm)
+	enter_sewer_location(vm, loc_id, pl)
+	sw["last_explore_day"] = today()
+	var def: Dictionary = SEWER_LOCATIONS[loc_id]
+	var title: String = str(def.get("title", loc_id))
+	var diff: float = float(def.get("difficulty", 0.30))
+	var bonus: float = (0.12 if get_item_count(vm, "lockpick") > 0 else 0.0) + (0.10 if "VillageCulture" in vm and vm.VillageCulture != null and vm.VillageCulture.has_tech(vm, "voltaic_capacitors") else 0.0)
+	var chance: float = clampf(0.65 - diff + bonus, 0.25, 0.85)
+	var success: bool = (randf() < chance) if force_outcome == 0 else (force_outcome > 0)
+	if success:
+		var item_id: String = str(def.get("loot_item", "bandit_scrap"))
+		if inv != null:
+			inv.add_item(item_id, 1)
+		var coins: int = mini(6, maxi(0, int(sw.get("lost_coins_pool", 0))))
+		if coins > 0 and inv != null:
+			sw["lost_coins_pool"] = int(sw.get("lost_coins_pool", 0)) - coins
+			inv.add_gold(coins)
+		sw["explored_count"] = int(sw.get("explored_count", 0)) + 1
+		if loc_id == "smuggler_tunnel" and int(vm.wanted_level) > 0:
+			vm.wanted_level = maxi(0, int(vm.wanted_level) - 1)
+		VillageChronicle.add(vm, "sewer_explored", "Exploraste %s en las alcantarillas (nivel -1) y hallaste %s (+%d monedas caídas)" % [title, item_id, coins], false)
+		return {"ok": true, "success": true, "item": item_id, "coins": coins}
+	if pl != null:
+		var hc = pl.get("health_comp")
+		if hc != null and "current_health" in hc:
+			hc.current_health = maxf(1.0, float(hc.current_health) - 14.0)
+	var ns: Dictionary = VillageNeeds.state(vm)
+	ns["player_hygiene"] = clampf(float(ns.get("player_hygiene", 80.0)) - 25.0, 0.0, 100.0)
+	VillageChronicle.add(vm, "sewer_mishap", "Sufriste un percance entre las aguas negras y las ratas al explorar %s" % title, false)
+	return {"ok": true, "success": false, "item": "", "coins": 0}
 
 ## Bloque PI.2: Carreras de animales (12 de oro) y peleas clandestinas de gallos/perros (15 de oro) contra el bolsillo real del vecino.
 static func run_animal_race(vm, npc, inv, force_outcome: int = 0) -> int:
@@ -347,6 +425,18 @@ static func daily(vm) -> void:
 		st["caravan_gold"] = maxi(70, int(st.get("caravan_gold", 0)))
 		st["caravan_batches_left"] = 2
 
+	# Bloque PN: Vecinos con el bolsillo lleno pueden extraviar 1 moneda por las rejillas de la plaza hacia la cisterna
+	var sw_d: Dictionary = sewers_state(vm)
+	if int(sw_d.get("lost_coins_pool", 0)) < 30:
+		var dropped: int = 0
+		for n_drop in VillageNeeds.living(vm):
+			if dropped >= 2:
+				break
+			if int(n_drop.trade_role) != int(VillageNPC.TradeRole.CHILD) and int(n_drop.personal_gold) >= 22:
+				n_drop.personal_gold -= 1
+				sw_d["lost_coins_pool"] = int(sw_d.get("lost_coins_pool", 0)) + 1
+				dropped += 1
+
 	# Tanda 6 (27): Tu red de carteristas reparte contigo el botín diario
 	if inv != null:
 		var pp_cut: int = run_pickpocket_network(vm, inv)
@@ -485,6 +575,19 @@ static func add_dialogue_choices(vm, npc, diag: Dictionary, ch_arr: Array) -> vo
 			opts.append({"label": "🚨🕵️ Delatar el mercado negro de %s ante la ley (+45 Oro)" % fence.npc_name, "next": "END", "action": "underworld_report_fence"})
 		if bool(st.get("known_fence", false)) and is_caravan_here(st) and int(st.get("caravan_gold", 0)) >= 20:
 			opts.append({"label": "🚨🐪 Avisar a la guardia de la ruta de la caravana de contrabando", "next": "END", "action": "underworld_caravan_report"})
+
+	# Bloque PN: Red de alcantarillas en el nivel -1 (Cisterna, Pasadizo del Contrabandista y Bóveda Inundada)
+	var sw: Dictionary = sewers_state(vm)
+	var is_tinker: bool = int(npc.trade_role) == int(VillageNPC.TradeRole.TINKER)
+	if (fence_here or is_tinker) and not bool(sw.get("unlocked", false)):
+		opts.append({"label": "🕳️🗝️ Comprar llave maestra y plano de las Alcantarillas del Pueblo (-%d Oro)" % SEWER_KEY_COST, "next": "END", "action": "underworld_unlock_sewers"})
+	elif bool(sw.get("unlocked", false)) and not is_law and not is_priest:
+		if int(sw.get("last_explore_day", -99)) != today():
+			for sloc_id in SEWER_LOCATIONS.keys():
+				var sdef: Dictionary = SEWER_LOCATIONS[sloc_id]
+				opts.append({"label": "🕳️🔦 Bajar al nivel -1 y explorar %s (1/día, con riesgo)" % str(sdef.get("title", sloc_id)), "next": "END", "action": "underworld_sewer_explore:" + sloc_id})
+		if int(vm.player_elevation_level) == -1:
+			opts.append({"label": "🪜☀️ Subir por la escalerilla de las alcantarillas a la calle (volver a nivel 0)", "next": "END", "action": "underworld_sewer_surface"})
 
 	if not opts.is_empty():
 		opts.append({"label": "⬅️ Volver", "next": "start"})
@@ -833,3 +936,23 @@ static func on_player_action(vm, npc, action_id: String, inv) -> void:
 			npc._spawn_floating_text("🐓💥 Tu gallo cayó en el ruedo. %s se lleva tus 15 monedas." % npc.npc_name, Color.ORANGE_RED, -46.0)
 		else:
 			npc._spawn_floating_text("Necesitáis al menos 15 de oro cada uno (máx. 1 pelea al día)", Color.ORANGE_RED, -44.0)
+
+	elif action_id == "underworld_unlock_sewers":
+		if unlock_sewers(vm, npc, inv):
+			npc._spawn_floating_text("🕳️🗝️ «Con esta llave abrirás las rejillas de la Cisterna, el Pasadizo y la Bóveda (nivel -1).»", Color.GOLD, -46.0)
+		else:
+			npc._spawn_floating_text("Necesitas %d de oro para comprar la llave y el plano de las alcantarillas" % SEWER_KEY_COST, Color.ORANGE_RED, -44.0)
+
+	elif action_id.begins_with("underworld_sewer_explore:"):
+		var sloc: String = action_id.trim_prefix("underworld_sewer_explore:")
+		var sres: Dictionary = explore_sewer_location(vm, sloc, inv)
+		if not bool(sres.get("ok", false)):
+			npc._spawn_floating_text("Ya exploraste las alcantarillas hoy o te falta la llave maestra", Color.ORANGE_RED, -44.0)
+		elif bool(sres.get("success", false)):
+			npc._spawn_floating_text("🕳️🔦 Exploraste el nivel -1 y hallaste 1 %s (+%d monedas caídas)" % [str(sres.get("item", "reliquia")), int(sres.get("coins", 0))], Color.GOLD, -46.0)
+		else:
+			npc._spawn_floating_text("🕳️🐀 Sufriste mordeduras de ratas y aguas negras en las alcantarillas", Color.ORANGE_RED, -46.0)
+
+	elif action_id == "underworld_sewer_surface":
+		exit_sewers_to_surface(vm)
+		npc._spawn_floating_text("🪜☀️ Subiste por la escalerilla de las alcantarillas a la calle (nivel 0)", Color.SPRING_GREEN, -46.0)

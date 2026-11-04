@@ -4061,5 +4061,63 @@ func _initialize() -> void:
 	p70_a.personal_gold = pm_ag0
 	print("Block PM (Exploration Expeditions & Ranch Horses and Carts) OK")
 
+	# ==========================================================================
+	# 91. Bloque PN — Niveles verticales por capas (elevation_level) y Alcantarillas con localizaciones nuevas
+	# ==========================================================================
+	assert(vm.are_on_same_elevation(0, 0) and not vm.are_on_same_elevation(-1, 0) and vm.distance_on_same_level(Vector2.ZERO, -1, Vector2.ONE, 0) == INF, "PN.1a: Elevation helper functions isolate distances across different vertical layers")
+	var pn_pos: Vector2 = Vector2(465.0, 48.0)
+	p70_a.is_dead = false
+	p70_a.is_downed = false
+	p70_a.is_sleeping = false
+	p70_a.is_stunned_flag = false
+	p70_a.sedated_timer = 0.0
+	p70_a.global_position = pn_pos + Vector2(12.0, 0.0)
+	vm.set_npc_elevation_level(p70_a, 0)
+	vm.set_player_elevation_level(0)
+	assert(vm._find_conscious_witness_near(pn_pos, 120.0, null) != null, "PN.1b: Street-level witness sees actions when player is also on street level 0")
+	vm.set_player_elevation_level(-1)
+	assert(vm._find_conscious_witness_near(pn_pos, 120.0, null) == null, "PN.1c: Street-level (0) NPCs do not witness actions performed in the sewers/cellar (-1)")
+	vm.set_npc_elevation_level(p70_a, -1)
+	assert(vm._find_conscious_witness_near(pn_pos, 120.0, null) != null, "PN.1d: An NPC on level -1 witnesses actions on level -1")
+	vm.set_npc_elevation_level(p70_a, 0)
+	vm.set_player_elevation_level(0)
+	# PN.1e: Comprar altillo / primer piso ("upper_floor") y subir a nivel +1
+	var pn_lot: String = vho.primary_player_lot(vm)
+	if pn_lot == "":
+		pn_lot = "n0"
+		vm.VillageLots.lot(vm, pn_lot)["payer"] = "player"
+		vm.VillageLots.lot(vm, pn_lot)["status"] = "built"
+	var pn_lot_st: Dictionary = vm.VillageLots.lot(vm, pn_lot)
+	if not pn_lot_st.has("upgrades") or not (pn_lot_st["upgrades"] is Dictionary):
+		pn_lot_st["upgrades"] = {}
+	pn_lot_st["upgrades"]["upper_floor"] = false
+	p70_inv.gold = 90
+	vho.on_player_action(vm, p70_a, "housing_upgrade:upper_floor", p70_inv)
+	assert(vho.has_upgrade(vm, "upper_floor") and p70_inv.gold == 40, "PN.1e: Buying upper_floor upgrade costs 50 gold and unlocks upper floor")
+	vho.on_player_action(vm, p70_a, "housing_change_level:1", p70_inv)
+	assert(vm.player_elevation_level == 1, "PN.1f: housing_change_level:1 moves player to vertical layer +1")
+	vho.on_player_action(vm, p70_a, "housing_change_level:0", p70_inv)
+	assert(vm.player_elevation_level == 0, "PN.1g: housing_change_level:0 returns player to street level 0")
+	# PN.2: Red de alcantarillas bajo el pueblo (Cisterna, Pasadizo del Contrabandista y Bóveda Inundada)
+	vun.state(vm)["sewers"] = {"unlocked": false, "current_loc": "", "last_explore_day": -99, "lost_coins_pool": 14, "explored_count": 0}
+	var pn_ag0: int = int(p70_a.personal_gold)
+	p70_inv.gold = 60
+	vun.on_player_action(vm, p70_a, "underworld_unlock_sewers", p70_inv)
+	assert(bool(vun.sewers_state(vm).get("unlocked", false)) and p70_inv.gold == 40 and int(p70_a.personal_gold) == pn_ag0 + 20, "PN.2a: Unlocking the sewers pays 20 gold to the contact's pocket")
+	var pn_scrap0: int = p70_inv.get_count("bandit_scrap")
+	vm.wanted_level = 2
+	var pn_res1: Dictionary = vun.explore_sewer_location(vm, "smuggler_tunnel", p70_inv, 1)
+	assert(bool(pn_res1.get("ok", false)) and bool(pn_res1.get("success", false)) and vm.player_elevation_level == -1 and p70_inv.get_count("bandit_scrap") == pn_scrap0 + 1 and p70_inv.gold == 46 and int(vun.sewers_state(vm).get("lost_coins_pool", 0)) == 8 and vm.wanted_level == 1, "PN.2b: Exploring smuggler_tunnel moves player to level -1, yields loot + 6 coins from lost_coins_pool, and reduces wanted_level by 1")
+	assert(not bool(vun.explore_sewer_location(vm, "cistern", p70_inv, 1).get("ok", false)), "PN.2c: Sewer exploration is limited to 1 per day")
+	vun.sewers_state(vm)["last_explore_day"] = -99
+	var pn_hyg0: float = float(vm.VillageNeeds.state(vm).get("player_hygiene", 80.0))
+	var pn_res2: Dictionary = vun.explore_sewer_location(vm, "flooded_vault", p70_inv, -1)
+	assert(bool(pn_res2.get("ok", false)) and not bool(pn_res2.get("success", true)) and float(vm.VillageNeeds.state(vm).get("player_hygiene", 80.0)) < pn_hyg0, "PN.2d: Failed sewer exploration reduces player hygiene and health")
+	vun.on_player_action(vm, p70_a, "underworld_sewer_surface", p70_inv)
+	assert(vm.player_elevation_level == 0 and str(vun.sewers_state(vm).get("current_loc", "")) == "", "PN.2e: underworld_sewer_surface returns player to street level 0")
+	vm.wanted_level = 0
+	p70_a.personal_gold = pn_ag0
+	print("Block PN (Vertical Elevation Layers & Village Sewers) OK")
+
 	print("ALL RIMWORLD MEDICAL, FOOTPRINTS, 3-PHASE CORPSE REPORT, MULTI-CORPSE FIX, RPG INTERROGATION, PUBLIC TRIAL, DYNAMIC RELATIONSHIPS, MISSING FAMILY SEARCH, SOCIAL GLOSSARY & UNCONSCIOUS REACTION TESTS PASSED!")
 	quit(0)

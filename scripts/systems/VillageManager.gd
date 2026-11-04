@@ -1350,16 +1350,50 @@ func _find_building_by_id(b_id: String) -> Dictionary:
 			return b
 	return {}
 
-func _find_conscious_witness_near(pos: Vector2, max_dist: float, exclude_npc: VillageNPC) -> VillageNPC:
+## Bloque PN: Sistema de niveles verticales por capas (-1 sótano/alcantarillas, 0 calle, 1 primer piso)
+var player_elevation_level: int = 0
+
+func are_on_same_elevation(level_a: int, level_b: int) -> bool:
+	return level_a == level_b
+
+func distance_on_same_level(pos_a: Vector2, level_a: int, pos_b: Vector2, level_b: int) -> float:
+	if not are_on_same_elevation(level_a, level_b):
+		return INF
+	return pos_a.distance_to(pos_b)
+
+func set_player_elevation_level(new_level: int) -> void:
+	player_elevation_level = clampi(new_level, -1, 1)
+	if GameManager:
+		GameManager.set_flag("player_elevation_level", player_elevation_level)
+	_refresh_elevation_layer_visuals()
+
+func set_npc_elevation_level(npc: VillageNPC, new_level: int) -> void:
+	if npc == null or not is_instance_valid(npc):
+		return
+	npc.elevation_level = clampi(new_level, -1, 1)
+	_refresh_elevation_layer_visuals()
+
+func _refresh_elevation_layer_visuals() -> void:
+	if not is_inside_tree():
+		return
+	for n in get_tree().get_nodes_in_group("village_npcs"):
+		if n is VillageNPC:
+			var v: VillageNPC = n as VillageNPC
+			v.modulate.a = 1.0 if are_on_same_elevation(v.elevation_level, player_elevation_level) else 0.35
+
+func _find_conscious_witness_near(pos: Vector2, max_dist: float, exclude_npc: VillageNPC, required_level: int = -999) -> VillageNPC:
 	var best: VillageNPC = null
 	var eff_dist: float = max_dist
 	if WorldClock and WorldClock.has_method("get_weather_vision_multiplier"):
 		eff_dist *= float(WorldClock.call("get_weather_vision_multiplier"))
 	var best_d2: float = eff_dist * eff_dist
+	var target_level: int = required_level if required_level != -999 else (exclude_npc.elevation_level if exclude_npc != null else player_elevation_level)
 	for n in get_tree().get_nodes_in_group("village_npcs"):
 		if n is VillageNPC and n != exclude_npc:
 			var v: VillageNPC = n as VillageNPC
 			if v.is_dead or v.is_downed or v.is_sleeping or v.is_stunned_flag or v.sedated_timer > 0.0:
+				continue
+			if not are_on_same_elevation(v.elevation_level, target_level):
 				continue
 			var d2: float = pos.distance_squared_to(v.global_position)
 			if d2 <= best_d2 and has_line_of_sight(v.global_position, pos):

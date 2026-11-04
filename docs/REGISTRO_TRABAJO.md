@@ -336,6 +336,13 @@ Informe completo: `docs/AUDITORIA_P1_P7.md`.
 | PM1 | Caballo de silla (`has_horse`, `culture_buy_horse`, 45 de oro al ganadero, +15 % en expediciones) y Carreta de carga (`has_cart`, `culture_buy_cart`, 55 de oro al ganadero, +4 de oro por remesa comercial) | ✅ | VillageCulture.gd, verify_all.gd | Test #90 |
 | PM2 | Expediciones de exploración (`EXPLORATION_SITES`, `run_expedition`, `culture_expedition`, 12 de oro en víveres, 1/día, con tirada de riesgo) que aportan reliquias y +2 lecturas a la biblioteca | ✅ | VillageCulture.gd, verify_all.gd | Test #90 |
 
+## Bloque PN — Niveles verticales por capas (`elevation_level`) y Alcantarillas con localizaciones subterráneas (2026-11-04)
+
+| # | Paso | Estado | Archivos | Nota |
+|---|------|--------|----------|------|
+| PN1 | Sistema de niveles verticales por capas (`elevation_level` `-1/0/+1`, `are_on_same_elevation`, `distance_on_same_level`, testigos filtrados por nivel en `_find_conscious_witness_near`, mejora `"upper_floor"` y `housing_change_level:*`) | ✅ | VillageNPC.gd, VillageManager.gd, VillageHousing.gd, verify_all.gd | Test #91 |
+| PN2 | Red de alcantarillas bajo el pueblo en el nivel `-1` (`SEWER_LOCATIONS`: Cisterna, Pasadizo del Contrabandista y Bóveda Inundada, `unlock_sewers`, `explore_sewer_location` 1/día con tirada de riesgo y `lost_coins_pool` nutrido de bolsillos reales) | ✅ | VillageUnderworld.gd, verify_all.gd | Test #91 |
+
 
 
 

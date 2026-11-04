@@ -5,6 +5,10 @@ El detalle técnico está en `docs/HANDOFF.md` (sección 7) y el historial compl
 
 ## 2026-11-04
 
+### Niveles verticales por capas y Alcantarillas bajo el pueblo
+- **Sistema de niveles verticales (sótano, calle y primer piso):** el mapa incorpora capas verticales en las mismas coordenadas (`-1` sótano y alcantarillas, `0` calle y planta baja, `+1` altillo o primer piso encargable al carpintero). Los vecinos que están en otro piso se ven atenuados y no pueden presenciar como testigos lo que ocurre en un nivel distinto al suyo.
+- **Alcantarillas con localizaciones subterráneas nuevas:** comprando la llave maestra y el plano al perista o al arreglador puedes bajar al nivel `-1` para explorar una vez al día la Cisterna Vieja bajo la Plaza, el Pasadizo del Contrabandista (que además te ayuda a despistar a la guardia) y la Bóveda Inundada del Antiguo Gremio, recuperando piezas y monedas extraviadas por las rejillas o arriesgándote a sufrir mordeduras de ratas e infección en las aguas negras.
+
 ### Expediciones de exploración y Caballos y carretas de carga en el rancho
 - **Caballos de silla y carretas de carga:** en el Rancho del Sur puedes comprar al ganadero un caballo de silla (mejora tu desplazamiento y aumenta las probabilidades de éxito en las expediciones) y una carreta de carga (incrementa el rendimiento de cada remesa que envíes por las rutas comerciales).
 - **Expediciones de exploración fuera del valle:** una vez al día puedes organizar expediciones a las Ruinas de Cobre del Oeste, las Grutas de Cristal del Norte o la Atalaya Hundida del Pantano pagando los víveres al guía; si superas los peligros del camino regresas con bobinas antiguas, mineral o hierbas y sumas apuntes de campo a la biblioteca para acelerar las investigaciones del taller.

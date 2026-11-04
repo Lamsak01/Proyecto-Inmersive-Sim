@@ -23,7 +23,7 @@ const TraitCatalog = preload("res://scripts/data/TraitCatalog.gd")
 
 const HOUSE_CASH_COST: int = 100
 const FORECLOSED_COST: int = 80
-const UPGRADE_COSTS: Dictionary = {"bookshelf": 35, "workbench": 40, "oak_bed": 30, "strong_lock": 25, "hidden_cellar": 45, "hearth": 25}
+const UPGRADE_COSTS: Dictionary = {"bookshelf": 35, "workbench": 40, "oak_bed": 30, "strong_lock": 25, "hidden_cellar": 45, "hearth": 25, "upper_floor": 50}
 const GARDEN_COST: int = 35
 const STASH_BUILD_COST: int = 30
 const DINNER_COST: int = 10
@@ -544,7 +544,7 @@ static func add_dialogue_choices(vm, npc, diag: Dictionary, ch_arr: Array) -> vo
 		if p_lot != "" and str(VillageLots.lot(vm, p_lot).get("status", "")) == "built":
 			var st: Dictionary = VillageLots.lot(vm, p_lot)
 			var up: Dictionary = st.get("upgrades", {})
-			for u in [["bookshelf", "📚 Estantería de estudio (+XP diaria)"], ["workbench", "⚗️ Banco de trabajo y alquimia"], ["oak_bed", "🛏️ Cama de roble macizo"], ["strong_lock", "🔒 Cerradura reforzada antirrobo"], ["hidden_cellar", "🕳️🕯️ Sótano secreto para esconderte o destilar"], ["hearth", "🔥🪵 Hogar de leña caldeado (+salud y humor)"]]:
+			for u in [["bookshelf", "📚 Estantería de estudio (+XP diaria)"], ["workbench", "⚗️ Banco de trabajo y alquimia"], ["oak_bed", "🛏️ Cama de roble macizo"], ["strong_lock", "🔒 Cerradura reforzada antirrobo"], ["hidden_cellar", "🕳️🕯️ Sótano secreto para esconderte o destilar"], ["hearth", "🔥🪵 Hogar de leña caldeado (+salud y humor)"], ["upper_floor", "🪜🏠 Altillo / Primer Piso con escalera (nivel +1)"]]:
 				if not bool(up.get(u[0], false)):
 					opts.append({"label": "%s (-%d Oro)" % [u[1], int(UPGRADE_COSTS[u[0]])], "next": "END", "action": "housing_upgrade:" + u[0]})
 			if not bool(st.get("has_garden", false)):
@@ -574,6 +574,13 @@ static func add_dialogue_choices(vm, npc, diag: Dictionary, ch_arr: Array) -> vo
 	# Tanda 5 (23): Esconderte en tu sótano secreto si te buscan por un delito menor
 	if has_upgrade(vm, "hidden_cellar") and int(vm.wanted_level) == 1 and int(vm.player_murder_warrants_count) == 0 and today() - int(hs.get("last_hide_day", -99)) >= 7:
 		opts.append({"label": "🕳️🤫 Esconderte en tu sótano secreto hasta que pase la búsqueda", "next": "END", "action": "housing_hide_cellar"})
+	# Bloque PN: Subir al primer piso o bajar al sótano en tu casa (sistema de niveles verticales por capas)
+	if has_upgrade(vm, "upper_floor") and int(vm.player_elevation_level) != 1:
+		opts.append({"label": "🪜⬆️ Subir al primer piso / altillo de tu casa (nivel +1)", "next": "END", "action": "housing_change_level:1"})
+	if has_upgrade(vm, "hidden_cellar") and int(vm.player_elevation_level) != -1:
+		opts.append({"label": "🕳️⬇️ Bajar al sótano de tu casa (nivel -1)", "next": "END", "action": "housing_change_level:-1"})
+	if int(vm.player_elevation_level) != 0:
+		opts.append({"label": "🚪➡️ Volver a la planta baja / nivel de calle (nivel 0)", "next": "END", "action": "housing_change_level:0"})
 
 	# P6.9: Usar tu escondite secreto bajo las tablas (disponible cuando tienes escondite)
 	if bool(hs.get("has_stash", false)) and is_carp:
@@ -867,8 +874,19 @@ static func on_player_action(vm, npc, action_id: String, inv) -> void:
 			return
 		hs["last_hide_day"] = today()
 		vm.wanted_level = 0
+		vm.set_player_elevation_level(-1)
 		VillageChronicle.add(vm, "hid_in_cellar", "Te escondiste en el sótano secreto de tu casa hasta que la guardia dejó de buscarte", true)
-		npc._spawn_floating_text("🕳️🤫 «La patrulla pasó de largo sin encontrarte en tu sótano secreto.»", Color.SPRING_GREEN, -46.0)
+		npc._spawn_floating_text("🕳️🤫 «La patrulla pasó de largo sin encontrarte en tu sótano secreto (nivel -1).»", Color.SPRING_GREEN, -46.0)
+
+	elif action_id.begins_with("housing_change_level:"):
+		var target_lvl: int = int(arg)
+		if target_lvl == 1 and not has_upgrade(vm, "upper_floor"):
+			return
+		if target_lvl == -1 and not has_upgrade(vm, "hidden_cellar"):
+			return
+		vm.set_player_elevation_level(target_lvl)
+		var lvl_lbl: String = "el primer piso (nivel +1)" if target_lvl == 1 else ("el sótano (nivel -1)" if target_lvl == -1 else "la planta de calle (nivel 0)")
+		npc._spawn_floating_text("🪜🏠 Te desplazaste a %s" % lvl_lbl, Color.SPRING_GREEN, -46.0)
 
 	elif action_id.begins_with("housing_found_shop:"):
 		if found_player_shop(vm, arg, inv, npc):
