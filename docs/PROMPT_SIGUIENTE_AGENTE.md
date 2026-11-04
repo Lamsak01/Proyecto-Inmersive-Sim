@@ -51,6 +51,7 @@ Reglas concretas:
    sección 7 y decisiones de diseño ya tomadas en la sección 8: no me las vuelvas a preguntar),
    docs/VISION_Y_FUTURO.md (la aspiración del juego, el orden acordado y mi banco de ideas) y
    docs/REGISTRO_TRABAJO.md (registro detallado de los últimos bloques, con lo probado y lo no probado).
+   Lee también docs/LECCIONES_P1_P7.md: errores ya cometidos en los bloques P1–P7 que no debes repetir.
 2. Si vas a tocar la vida social, lee docs/PLAN_VIDA_SOCIAL.md; si tocas misiones, docs/MISIONES.md.
 3. Ejecuta `git status` y `git log --oneline -10`. Si la documentación y git no coinciden, manda git.
 4. Dime en pocas líneas qué has entendido del estado del proyecto y qué propones hacer primero. No empieces a
