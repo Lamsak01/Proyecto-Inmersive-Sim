@@ -576,7 +576,7 @@ Cada fase se dividirá en bloques pequeños cuando se llegue a ella (detalle en 
   fuera, relación media ≥ 30, menos de 3 hijos, 40 días desde el último) puede esperar un hijo: 1,2 % × relación ×
   dinero × humor × edad × hijos (tope 5 %). Embarazo de 9 días; el bebé nace en casa con el apellido del padre y un
   rasgo de cada progenitor (`roll_balanced`), +80 con sus padres y +40 con sus hermanos; dibujo de adulto a escala
-  0,55–1. Crecen un año cada 4 días (`CHILD_YEAR_DAYS`, provisional) contando desde `born`; a los 16 pasan a
+  0,55–1. Crecen un año cada 4 días (`CHILD_YEAR_DAYS`, decidido por el usuario) contando desde `born`; a los 16 pasan a
   `UNEMPLOYED`, `lodging` = «family» (siguen en casa sin pagar posada; VillageMigration los puede mudar a una casa
   libre) y sus padres les dan 10 de oro. **Escuela**: con 2 niños de 6+ y sin maestro, se hace maestro el vecino sin
   oficio de 20+ más curioso/paciente/diligente o, si no hay, llega uno; cobra 5 al día de las arcas (si no hay, se

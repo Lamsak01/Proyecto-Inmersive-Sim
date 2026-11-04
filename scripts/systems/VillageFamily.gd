@@ -6,7 +6,7 @@ extends RefCounted
 ##   la casa, el humor y cuántos hijos tienen ya (como mucho 3). No hay fecha fija: cada día es una posibilidad pequeña.
 ## - El embarazo dura 9 días. El bebé nace en casa (oficio `CHILD`), con el apellido del padre y rasgos heredados (uno
 ##   de cada progenitor, si no chocan; el resto al azar).
-## - Los niños crecen un año cada 4 días (provisional, para que se vea en una partida). Desde los 6 van a la escuela
+## - Los niños crecen un año cada 4 días (decidido por el usuario el 2026-11-03). Desde los 6 van a la escuela
 ##   entre semana de 9 a 14 h si hay maestro; el resto del tiempo juegan y van con su familia. Dibujo de adulto más
 ##   pequeño mientras no haya uno propio.
 ## - A los 16 son jóvenes sin oficio (`UNEMPLOYED`): siguen en casa de sus padres y buscan su sitio como cualquiera
