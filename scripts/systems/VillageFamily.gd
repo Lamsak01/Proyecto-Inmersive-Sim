@@ -36,7 +36,7 @@ static func state(vm) -> Dictionary:
 	if not vm.family_state is Dictionary:
 		vm.family_state = {}
 	var defs: Dictionary = {"pregnancies": {}, "born": {}, "last_birth": {}, "births": 0, "grown_up": 0, "teacher": "",
-		"lessons": 0, "teacher_unpaid": 0}
+		"lessons": 0, "teacher_unpaid": 0, "pupil_lessons": {}}
 	for k in defs.keys():
 		if not vm.family_state.has(k):
 			vm.family_state[k] = defs[k]
@@ -242,6 +242,14 @@ static func grow_up(vm, n) -> void:
 		n.remove_meta("school_pos")
 	st["born"].erase(n.get_person_key())
 	st["grown_up"] = int(st["grown_up"]) + 1
+	var attended: int = int((st["pupil_lessons"] as Dictionary).get(n.get_person_key(), 0))
+	(st["pupil_lessons"] as Dictionary).erase(n.get_person_key())
+	if attended > 0:
+		var bonus_days: int = clampi(1 + int(attended / 3), 1, 4)
+		n.set_meta("school_bonus_days", bonus_days)
+		n.days_in_role = maxi(int(n.days_in_role), bonus_days)
+		n.add_thought("Lo que aprendí en la escuela (%d clases) me da ventaja en los oficios (+8)" % attended, 8.0)
+		vm.VillageChronicle.add(vm, "school_graduate", "%s se graduó de la escuela (%d clases) y empieza con ventaja de oficio (+%d días de dominio)" % [n.npc_name, attended, bonus_days], true)
 	# Sus padres le dan algo para empezar
 	for o in VillageNeeds.living(vm):
 		if o.family_id == n.family_id and o != n and not is_child(o) and o.personal_gold >= 30:
@@ -375,6 +383,8 @@ static func on_hour(vm, hour: int) -> void:
 	for n in pupils(vm):
 		if n.has_meta("school_pos") and n.global_position.distance_to(n.get_meta("school_pos")) < 60.0:
 			st["lessons"] = int(st["lessons"]) + 1
+			var pk_s: String = n.get_person_key()
+			st["pupil_lessons"][pk_s] = int((st["pupil_lessons"] as Dictionary).get(pk_s, 0)) + 1
 			n.add_thought("Hoy aprendí algo en la escuela (+3)", 3.0)
 
 # ---------------------------------------------------------------- paga

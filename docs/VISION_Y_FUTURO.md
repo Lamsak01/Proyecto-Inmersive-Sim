@@ -77,7 +77,7 @@ Estado: **✅ HECHO** = ya construido y funcionando en el juego. **🟡 EN PARTE
 ### Ciclo de vida
 - ✅ **HECHO** — Nacimientos de niños con etapas de crecimiento (embarazo de 9 días, nacen en casa, crecen 1 año cada 4 días, van a la escuela desde los 6 años, juegan por las tardes y a los 16 pasan a jóvenes adultos que buscan trabajo o heredan el taller familiar). *(Hecho en V9 y bloque B; pendiente solo dibujo propio de bebé/anciano.)*
 - 🧱 **BASE** — Animales con etapas de crecimiento y crianza. *(Base: mascotas, gallinero, corral del rancho en V5d y fauna salvaje; falta ciclo de crías que crezcan.)*
-- ✅ **HECHO (base completa)** — Escuelas y maestros: escuela en pie, maestro contratado cuando hay ≥ 2 niños en edad escolar, clases de 9 a 14 h entre semana y cartel con alumnos. *(Hecho en V5e, V9 y bloque B; pendiente que el número de clases recibidas dé bonificación al elegir oficio de mayor.)*
+- ✅ **HECHO** — Escuelas y maestros: escuela en pie, maestro contratado cuando hay ≥ 2 niños en edad escolar, clases de 9 a 14 h entre semana, cartel con alumnos y graduación con bonificación de dominio de oficio según el número de clases asistidas al cumplir la mayoría de edad (`VillageFamily.gd`, `VillageNPC.gd`, test #84). *(Hecho en V5e, V9, bloque B y bloque PG.)*
 
 ### Salud y cuerpo (P5)
 - ✅ **HECHO** — Estadística de higiene para vecinos y jugador; lavarse en pozos y en el lavadero; mal olor que molesta a los demás; si no se cuidan surgen enfermedades contagiosas (resfriado y fiebre gris, que encama y puede matar si el médico no la trata). *(Hecho en E1–E2.)*
@@ -120,7 +120,7 @@ Estado: **✅ HECHO** = ya construido y funcionando en el juego. **🟡 EN PARTE
 ### Economía, oficios y negocios (P5)
 - ✅ **HECHO** — Más servicios y trabajos en el pueblo: panadería, sastrería, segunda posada («El Candil»), albergue, granja, rancho, cantera, cabaña del leñador, taller de reparaciones, biblioteca, escuela y jornaleros por horas. *(Hecho en V5a–V5e y V9.)*
 - ✅ **HECHO** — Maestros artesanos con estilos propios (`VillageFame.gd`, test #83): los artesanos con experiencia e inclinación por el oficio (`craft`, `diligence`, `trade`) alcanzan el título de Maestro Artesano con un estilo de autor propio de su gremio, elaboran Obras Maestras firmadas (`masterwork_piece`) que compran los vecinos ricos y nobles con oro de su bolsillo, cobran suplemento de prestigio en el mercado y permiten al jugador patrocinar talleres o comerciar con sus piezas.
-- 🧱 **BASE** — Montar tu propio negocio y hacerle publicidad en el pueblo. *(Base: propiedad híbrida y compra de negocios existentes; falta fundar un negocio desde cero en un solar y hacerle publicidad.)*
+- ✅ **HECHO** — Montar tu propio negocio desde cero en un solar y hacerle publicidad en el pueblo (`VillageHousing.gd`, test #84): acondicionar mostrador en tu solar construido («Bazar del Forastero», 65 de oro al carpintero), abastecerlo con artículos reales de tu mochila, contratar a un vecino sin oficio como dependiente (cobra 4 de oro al día de la caja), pregonar y hacer publicidad por la plaza (12 de oro a las arcas, multiplica la clientela durante 3 días) y recaudar las compras que los vecinos pagan de su propio bolsillo. *(Hecho en bloque PG + propiedad híbrida y escrituras comerciales de P6.)*
 - 💡 **PENDIENTE** — Rutas de comercio con otros lugares.
 - 💡 **PENDIENTE** — Ingenieros que investigan nuevas tecnologías (árbol de investigación).
 

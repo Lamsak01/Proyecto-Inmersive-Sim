@@ -4410,7 +4410,9 @@ func _confirm_true_death() -> void:
 func promote_to_trade(new_role: TradeRole, new_title: String, new_work_pos: Vector2, inherited_stock: Dictionary, new_tex: Texture2D = null, new_bed_pos: Vector2 = Vector2.ZERO, new_table_pos: Vector2 = Vector2.ZERO, new_family_id: String = "", new_family_name: String = "") -> void:
 	var was_family := (trade_role == TradeRole.FAMILY_MEMBER)
 	trade_role = new_role
-	days_in_role = 2 if was_family else 0
+	var base_days: int = 2 if was_family else 0
+	var school_bonus: int = int(get_meta("school_bonus_days", 0)) if has_meta("school_bonus_days") else 0
+	days_in_role = clampi(maxi(days_in_role, base_days) + school_bonus, 0, 7)
 	npc_role = new_title + (" (Herencia Familiar)" if was_family else " (Sucesor)")
 	work_position = new_work_pos
 	if new_bed_pos != Vector2.ZERO: bed_position = new_bed_pos
@@ -4661,7 +4663,7 @@ func _spawn_floating_text(text: String, color: Color, offset_y: float = -36.0) -
 			ft.global_position = global_position + Vector2(0, offset_y)
 			parent_scene.add_child(ft)
 
-const SAVED_INT_METAS: Array = ["evicted_day", "inherited_day", "read_day", "arrived_day", "rite_invited_week", "new_clothes_day"]
+const SAVED_INT_METAS: Array = ["evicted_day", "inherited_day", "read_day", "arrived_day", "rite_invited_week", "new_clothes_day", "school_bonus_days"]
 const SAVED_STR_METAS: Array = ["evicted_lot", "inherited_from", "inherited_family"]
 
 func to_save_dict() -> Dictionary:

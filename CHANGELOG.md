@@ -5,6 +5,10 @@ El detalle técnico está en `docs/HANDOFF.md` (sección 7) y el historial compl
 
 ## 2026-11-04
 
+### Graduación escolar con ventaja de oficio y Negocio propio con publicidad
+- **Graduarse de la escuela da ventaja en los oficios:** ahora se cuenta a cuántas clases asiste cada niño entre semana; cuando cumple la mayoría de edad se gradúa con días de dominio adelantados según lo aprendido, de modo que al estrenarse en un oficio o heredar un taller empieza más cerca de ser Maestro.
+- **Montar tu propio negocio desde cero y hacerle publicidad:** en un solar construido tuyo puedes encargarle al carpintero un mostrador para abrir tu propio bazar, abastecerlo con mercancía real de tu mochila, contratar a un vecino parado como dependiente (que cobra su jornal diario de la caja), pregonar carteles y publicidad por el pueblo para duplicar la clientela durante tres días y recaudar las ventas que los vecinos pagan de su bolsillo.
+
 ### Fama de los vecinos y Maestros Artesanos con estilo propio
 - **Reputación y fama individual en el pueblo:** cada vecino gana o pierde fama según lo que hace (alcanzar maestría en su oficio, ganar peleas o ser alcalde sube su prestigio; ser pillado robando, engañar a su pareja o cometer un crimen lo hunde en la infamia). Su rango («🌟 Célebre», «✨ Conocido», «😠 Mal visto» o «🌑 Infame») se ve en el glosario de vecinos y cuando preguntas por él en el pueblo.
 - **Maestros Artesanos y Obras Maestras de autor:** los artesanos con experiencia y buena mano alcanzan el título de Maestro con un estilo propio de su gremio y elaboran Obras Maestras firmadas con existencias limitadas. Los vecinos ricos y los nobles las compran pagando de su bolsillo, y en el mercado de los miércoles sus puestos tienen más prestigio.

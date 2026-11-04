@@ -287,4 +287,12 @@ Informe completo: `docs/AUDITORIA_P1_P7.md`.
 | PF2 | Maestros Artesanos con estilo propio por oficio (`STYLE_BY_ROLE`, `promote_to_master`) y tendencias `fame`, `craft` y `trade` activadas en `TraitCatalog.gd`; elaboran Obras Maestras firmadas (`masterwork_piece`) que ricos y nobles compran con oro de su bolsillo | ✅ | VillageFame.gd, TraitCatalog.gd, SimpleInventory.gd, VillageManager.gd | Test #83 |
 | PF3 | Opciones del jugador: comprar Obra Maestra en el taller (`fame_buy_masterwork`), patrocinar el taller de un artesano (`fame_patronize`), vender o regalar Obra Maestra a coleccionistas (`fame_sell_masterwork`, `fame_gift_masterwork`) y hablar bien o mal de un vecino con tirada de riesgo y espera de 3 días (`fame_praise`, `fame_tarnish`); visible en glosario `[J]` y opiniones | ✅ | VillageFame.gd, NPCDialogue.gd, SocialGlossaryUI.gd, verify_all.gd | Test #83 |
 
+## Bloque PG — Graduación escolar con ventaja de oficio y Negocio propio del jugador con publicidad (2026-11-04)
+
+| # | Paso | Estado | Archivos | Nota |
+|---|------|--------|----------|------|
+| PG1 | Seguimiento individual de clases recibidas (`pupil_lessons` a las 14:00) y graduación al cumplir 16 años (`grow_up`) con bonificación de dominio de oficio (`school_bonus_days` 1–4 días en `SAVED_INT_METAS`, aplicada en `promote_to_trade`) | ✅ | VillageFamily.gd, VillageNPC.gd | Test #84 |
+| PG2 | Fundar tu propio negocio desde cero en un solar construido (`found_player_shop`, `housing_found_shop`, 65 de oro al carpintero), abastecer mostrador con artículos reales de la mochila (`stock_player_shop`), contratar dependiente parado (`housing_hire_clerk`, 4 de oro/día de la caja), publicidad en el pueblo (`advertise_player_shop`, 12 de oro a las arcas) y venta diaria a vecinos con su propio oro | ✅ | VillageHousing.gd, verify_all.gd | Test #84 |
+
+
 

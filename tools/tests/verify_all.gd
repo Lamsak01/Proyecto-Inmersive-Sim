@@ -3705,5 +3705,74 @@ func _initialize() -> void:
 	vf_artisan2.personal_gold = vf_g2_bak
 	print("VillageFame & Master Artisans OK")
 
+	# 84. Bloque PG: Escuelas con ventaja de oficio al graduarse y Negocio propio del jugador con publicidad
+	var pg_kid = vfm.spawn_child(vm, p70_a, p70_b, 8)
+	var pg_c_role_bak: int = int(p70_c.trade_role)
+	var pg_c_lrole_bak: int = int(p70_c.linked_trade)
+	var pg_c_nrole_bak: String = p70_c.npc_role
+	var pg_c_wpos_bak: Vector2 = p70_c.work_position
+	var pg_teacher_bak: String = str(vfm.state(vm).get("teacher", ""))
+	vfm.make_teacher(vm, p70_c)
+	vfm.update_school(vm, false)
+	assert(pg_kid.has_meta("school_pos"), "PG.1a: School-age pupil gets assigned a school desk")
+	pg_kid.global_position = pg_kid.get_meta("school_pos")
+	for _lesson_i in range(6):
+		vfm.on_hour(vm, 14)
+	assert(int((vfm.state(vm)["pupil_lessons"] as Dictionary).get(pg_kid.get_person_key(), 0)) == 6, "PG.1b: Pupil attendance at 14:00 accumulates individual lessons")
+	vfm.grow_up(vm, pg_kid)
+	assert(int(pg_kid.get_meta("school_bonus_days", 0)) == 3 and int(pg_kid.days_in_role) >= 3, "PG.1c: Graduating pupil receives trade mastery bonus days from school attendance")
+	pg_kid.days_in_role = 0
+	pg_kid.promote_to_trade(p70_a.trade_role, "Graduado del Valle", p70_a.work_position, p70_a.shop_stock.duplicate())
+	assert(int(pg_kid.days_in_role) == 3, "PG.1d: School bonus days apply when taking a trade role as an adult")
+	p70_c.trade_role = pg_c_role_bak
+	p70_c.linked_trade = pg_c_lrole_bak
+	p70_c.npc_role = pg_c_nrole_bak
+	p70_c.work_position = pg_c_wpos_bak
+	vfm.state(vm)["teacher"] = pg_teacher_bak
+	vm.unemployed_npcs.erase(pg_kid)
+	vm._free_transient_npc(pg_kid)
+	# PG.2: Fundar tu propio negocio en un solar construido, abastecerlo, hacer publicidad, contratar dependiente y cobrar caja
+	var pg_lot_bak: Dictionary = vl.lot(vm, "n0").duplicate(true)
+	var pg_tr_bak: int = int(vm.town_state.get("treasury", 0))
+	var pg_ag_bak: int = p70_a.personal_gold
+	var pg_bg_bak: int = p70_b.personal_gold
+	var pg_cg_bak: int = p70_c.personal_gold
+	vl.lot(vm, "n0")["status"] = "built"
+	vl.lot(vm, "n0")["payer"] = "player"
+	(vho.state(vm)["player_shop"] as Dictionary).clear()
+	p70_inv.gold = 200
+	p70_a.personal_gold = 10
+	vho.on_player_action(vm, p70_a, "housing_found_shop:n0", p70_inv)
+	assert(vho.has_player_shop(vm) and p70_inv.gold == 135 and p70_a.personal_gold == 75 and int(vho.state(vm)["player_shop"]["stock"]) == 2, "PG.2a: Founding player shop on built lot transfers 65 gold to carpenter and initializes counter with 2 stock")
+	p70_inv.remove_item("bread", p70_inv.get_count("bread"))
+	p70_inv.add_item("bread", 2)
+	vho.on_player_action(vm, p70_a, "housing_stock_shop", p70_inv)
+	assert(not p70_inv.has_item("bread", 1) and int(vho.state(vm)["player_shop"]["stock"]) == 4, "PG.2b: Stocking player shop removes real items from inventory and adds to counter stock")
+	vho.on_player_action(vm, p70_a, "housing_advertise_shop", p70_inv)
+	assert(p70_inv.gold == 123 and int(vho.state(vm)["player_shop"]["ad_days"]) == 3, "PG.2c: Advertising player shop costs 12 gold into treasury and boosts clientele for 3 days")
+	p70_c.trade_role = 0 # UNEMPLOYED
+	p70_c.personal_gold = 10
+	vho.on_player_action(vm, p70_c, "housing_hire_clerk", p70_inv)
+	assert(str(vho.state(vm)["player_shop"]["clerk_key"]) == p70_c.get_person_key(), "PG.2d: Hiring unemployed neighbor sets shop clerk")
+	p70_a.personal_gold = 45
+	p70_b.personal_gold = 45
+	vho.daily(vm)
+	var pg_sales: int = int(vho.state(vm)["player_shop"]["total_sales"])
+	var pg_till: int = int(vho.state(vm)["player_shop"]["till_gold"])
+	assert(pg_sales >= 2 and int(vho.state(vm)["player_shop"]["stock"]) == 4 - pg_sales and p70_c.personal_gold == 14 and pg_till == pg_sales * 10 - 4, "PG.2e: Daily shop cycle sells stock to real neighbors, deducts their gold, and pays clerk wage from till")
+	vho.on_player_action(vm, p70_a, "housing_collect_shop", p70_inv)
+	assert(p70_inv.gold == 123 + pg_till and int(vho.state(vm)["player_shop"]["till_gold"]) == 0, "PG.2f: Collecting shop till transfers earnings to player")
+	p70_c.trade_role = pg_c_role_bak
+	p70_a.personal_gold = pg_ag_bak
+	p70_b.personal_gold = pg_bg_bak
+	p70_c.personal_gold = pg_cg_bak
+	(vho.state(vm)["player_shop"] as Dictionary).clear()
+	vl.lot(vm, "n0").clear()
+	for k_pg in pg_lot_bak.keys():
+		vl.lot(vm, "n0")[k_pg] = pg_lot_bak[k_pg]
+	vl._draw_lot(vm, "n0", vl.lot(vm, "n0"))
+	vm.town_state["treasury"] = pg_tr_bak
+	print("Block PG (School Graduation & Player Business) OK")
+
 	print("ALL RIMWORLD MEDICAL, FOOTPRINTS, 3-PHASE CORPSE REPORT, MULTI-CORPSE FIX, RPG INTERROGATION, PUBLIC TRIAL, DYNAMIC RELATIONSHIPS, MISSING FAMILY SEARCH, SOCIAL GLOSSARY & UNCONSCIOUS REACTION TESTS PASSED!")
 	quit(0)

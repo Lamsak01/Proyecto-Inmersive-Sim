@@ -28,6 +28,12 @@ const GARDEN_COST: int = 35
 const STASH_BUILD_COST: int = 30
 const DINNER_COST: int = 10
 const COMMERCIAL_DEED_COST: int = 120
+const FOUND_SHOP_COST: int = 65
+const ADVERTISE_COST: int = 12
+const ADVERTISE_COOLDOWN_DAYS: int = 3
+const SHOP_SALE_PRICE: int = 10
+const CLERK_WAGE: int = 4
+const STOCKABLE_ITEMS: Array[String] = ["bread", "cooked_meat", "herbal_poultice", "repair_kit", "clothes", "wood", "iron_ore", "fish", "masterwork_piece"]
 
 static func state(vm) -> Dictionary:
 	var ts: Dictionary = vm.VillageTown.state(vm)
@@ -52,6 +58,8 @@ static func state(vm) -> Dictionary:
 		hs["rent_rates"] = {}
 	if not hs.has("intruder_attempt") or not (hs["intruder_attempt"] is Dictionary):
 		hs["intruder_attempt"] = {}
+	if not hs.has("player_shop") or not (hs["player_shop"] is Dictionary):
+		hs["player_shop"] = {}
 	return hs
 
 static func today() -> int:
@@ -127,6 +135,62 @@ static func rest_by_hearth(vm, player: Node2D = null) -> bool:
 		var r_npc = by_key.get(str(rk), null)
 		if r_npc != null and not r_npc.is_dead:
 			r_npc.add_thought("Calor de hogar junto a la chimenea de leña (+10)", 10.0)
+	return true
+
+## Bloque PG: Fundar tu propio negocio desde cero en un solar construido tuyo, abastecerlo, contratar dependiente y hacerle publicidad.
+static func has_player_shop(vm) -> bool:
+	return not (state(vm)["player_shop"] as Dictionary).is_empty()
+
+static func found_player_shop(vm, lot_id: String, inv, carpenter = null) -> bool:
+	if lot_id == "" or has_player_shop(vm) or inv == null or int(inv.gold) < FOUND_SHOP_COST:
+		return false
+	var st: Dictionary = VillageLots.lot(vm, lot_id)
+	if str(st.get("payer", "")) != "player" or str(st.get("status", "")) != "built":
+		return false
+	inv.add_gold(-FOUND_SHOP_COST)
+	if carpenter != null and "personal_gold" in carpenter:
+		carpenter.personal_gold += FOUND_SHOP_COST
+	else:
+		vm.town_state["treasury"] = int(vm.town_state.get("treasury", 0)) + FOUND_SHOP_COST
+	state(vm)["player_shop"] = {
+		"lot": lot_id,
+		"name": "Bazar del Forastero",
+		"stock": 2,
+		"till_gold": 0,
+		"ad_days": 0,
+		"last_ad_day": -99,
+		"clerk_key": "",
+		"total_sales": 0
+	}
+	VillageChronicle.add(vm, "player_shop_founded", "Acondicionaste un mostrador y fundaste tu propio negocio («Bazar del Forastero») en el solar %s" % lot_id, true)
+	return true
+
+static func stock_player_shop(vm, inv) -> int:
+	if not has_player_shop(vm) or inv == null:
+		return 0
+	var ps: Dictionary = state(vm)["player_shop"]
+	var added: int = 0
+	for item_id in STOCKABLE_ITEMS:
+		while added < 2 and inv.has_item(item_id, 1):
+			inv.remove_item(item_id, 1)
+			added += 1
+		if added >= 2:
+			break
+	if added > 0:
+		ps["stock"] = int(ps.get("stock", 0)) + added
+	return added
+
+static func advertise_player_shop(vm, inv) -> bool:
+	if not has_player_shop(vm) or inv == null or int(inv.gold) < ADVERTISE_COST:
+		return false
+	var ps: Dictionary = state(vm)["player_shop"]
+	if today() - int(ps.get("last_ad_day", -99)) < ADVERTISE_COOLDOWN_DAYS:
+		return false
+	inv.add_gold(-ADVERTISE_COST)
+	vm.town_state["treasury"] = int(vm.town_state.get("treasury", 0)) + ADVERTISE_COST
+	ps["ad_days"] = 3
+	ps["last_ad_day"] = today()
+	VillageChronicle.add(vm, "player_shop_ad", "Repartiste carteles y pregonaste tu negocio por el valle para atraer clientela", true)
 	return true
 
 # ==============================================================================
@@ -336,6 +400,33 @@ static func daily(vm) -> void:
 				if cut > 0:
 					vm.shop_businesses[role_i]["vault_gold"] = vault - cut
 					inv.add_gold(cut)
+	# Bloque PG: Tu propio negocio vende mercancía del mostrador a vecinos con oro y paga al dependiente
+	if has_player_shop(vm):
+		var ps: Dictionary = hs["player_shop"]
+		var ck: String = str(ps.get("clerk_key", ""))
+		var max_buyers: int = 1 + (1 if ck != "" else 0) + (2 if int(ps.get("ad_days", 0)) > 0 else 0)
+		if int(ps.get("ad_days", 0)) > 0:
+			ps["ad_days"] = maxi(0, int(ps["ad_days"]) - 1)
+		for n in VillageNeeds.living(vm):
+			if max_buyers <= 0 or int(ps.get("stock", 0)) <= 0:
+				break
+			if int(n.trade_role) == int(VillageNPC.TradeRole.CHILD) or VillageNeeds.is_outsider(n) or n.get_person_key() == ck:
+				continue
+			if int(n.personal_gold) >= 18:
+				n.personal_gold -= SHOP_SALE_PRICE
+				ps["till_gold"] = int(ps.get("till_gold", 0)) + SHOP_SALE_PRICE
+				ps["stock"] = int(ps.get("stock", 0)) - 1
+				ps["total_sales"] = int(ps.get("total_sales", 0)) + 1
+				n.modify_affinity(2)
+				n.add_thought("Compré buena mercancía en el Bazar del Forastero (+3)", 3.0)
+				max_buyers -= 1
+		if ck != "":
+			var clerk = vm._get_npcs_by_person_key().get(ck, null)
+			if clerk == null or clerk.is_dead:
+				ps["clerk_key"] = ""
+			elif int(ps.get("till_gold", 0)) >= CLERK_WAGE:
+				ps["till_gold"] = int(ps["till_gold"]) - CLERK_WAGE
+				clerk.personal_gold += CLERK_WAGE
 
 # ==============================================================================
 # Diálogos con el carpintero, pareja, inquilinos y vecinos
@@ -365,6 +456,8 @@ static func add_dialogue_choices(vm, npc, diag: Dictionary, ch_arr: Array) -> vo
 				opts.append({"label": "🌱🐔 Montar huerto y gallinero en tu solar (-%d Oro)" % GARDEN_COST, "next": "END", "action": "housing_garden:" + p_lot})
 			if not bool(hs.get("has_stash", false)):
 				opts.append({"label": "🪵🗝️ Construir escondite secreto bajo las tablas (-%d Oro)" % STASH_BUILD_COST, "next": "END", "action": "housing_build_stash"})
+			if not has_player_shop(vm):
+				opts.append({"label": "🏪🔨 Acondicionar mostrador y fundar tu propio negocio en el solar %s (-%d Oro)" % [p_lot, FOUND_SHOP_COST], "next": "END", "action": "housing_found_shop:" + p_lot})
 		# P6.5: Comprar una casa embargada al pueblo o al noble para alquilarla
 		for l in VillageLots.LOTS:
 			var id2: String = str(l["id"])
@@ -414,6 +507,17 @@ static func add_dialogue_choices(vm, npc, diag: Dictionary, ch_arr: Array) -> vo
 	# P6.10: Comprar la escritura del local comercial de un artesano
 	if npc.trade_role in VillageNPC.SHOP_ROLES and not (hs["commercial_deeds"] as Dictionary).has(str(int(npc.trade_role))):
 		opts.append({"label": "🏪📜 Comprar la propiedad de su local comercial para cobrar renta semanal (-%d Oro)" % COMMERCIAL_DEED_COST, "next": "END", "action": "housing_deed:%d" % int(npc.trade_role)})
+
+	# Bloque PG: Gestionar tu propio negocio (abastecer, hacer publicidad, contratar dependiente y recaudar caja)
+	if has_player_shop(vm):
+		var ps: Dictionary = hs["player_shop"]
+		opts.append({"label": "📦🏪 Abastecer el mostrador de tu negocio con hasta 2 artículos de tu mochila (Stock: %d)" % int(ps.get("stock", 0)), "next": "END", "action": "housing_stock_shop"})
+		if today() - int(ps.get("last_ad_day", -99)) >= ADVERTISE_COOLDOWN_DAYS:
+			opts.append({"label": "📣🪧 Hacer publicidad de tu negocio por el pueblo (-%d Oro, atrae más clientes 3 días)" % ADVERTISE_COST, "next": "END", "action": "housing_advertise_shop"})
+		if int(ps.get("till_gold", 0)) > 0:
+			opts.append({"label": "💰🏪 Recaudar la caja de tu negocio (+%d Oro)" % int(ps.get("till_gold", 0)), "next": "END", "action": "housing_collect_shop"})
+		if str(ps.get("clerk_key", "")) == "" and int(npc.trade_role) == int(VillageNPC.TradeRole.UNEMPLOYED) and not VillageNeeds.is_outsider(npc):
+			opts.append({"label": "🤝🏪 Contratarle como dependiente de tu negocio (%d Oro/día de la caja)" % CLERK_WAGE, "next": "END", "action": "housing_hire_clerk"})
 
 	if not opts.is_empty():
 		opts.append({"label": "⬅️ Volver", "next": "start"})
@@ -662,3 +766,43 @@ static func on_player_action(vm, npc, action_id: String, inv) -> void:
 		vm.wanted_level = 0
 		VillageChronicle.add(vm, "hid_in_cellar", "Te escondiste en el sótano secreto de tu casa hasta que la guardia dejó de buscarte", true)
 		npc._spawn_floating_text("🕳️🤫 «La patrulla pasó de largo sin encontrarte en tu sótano secreto.»", Color.SPRING_GREEN, -46.0)
+
+	elif action_id.begins_with("housing_found_shop:"):
+		if found_player_shop(vm, arg, inv, npc):
+			npc._spawn_floating_text("🏪🔨 «¡Ya tienes mostrador y letrero! Tu negocio está abierto en el solar %s.»" % arg, Color.SPRING_GREEN, -46.0)
+		else:
+			npc._spawn_floating_text("Necesitas %d de oro y una casa construida tuya" % FOUND_SHOP_COST, Color.ORANGE_RED, -44.0)
+
+	elif action_id == "housing_stock_shop":
+		var added: int = stock_player_shop(vm, inv)
+		if added > 0:
+			npc._spawn_floating_text("📦🏪 Colocaste %d artículo(s) en el mostrador (Stock: %d)" % [added, int(hs["player_shop"].get("stock", 0))], Color.SPRING_GREEN, -46.0)
+		else:
+			npc._spawn_floating_text("No llevas mercancía vendible en la mochila (pan, carne, ropa, madera, hierro...)", Color.ORANGE_RED, -44.0)
+
+	elif action_id == "housing_advertise_shop":
+		if advertise_player_shop(vm, inv):
+			npc._spawn_floating_text("📣🪧 «¡Hecho! Pregonaré tu negocio por la plaza durante 3 días.»", Color.SPRING_GREEN, -46.0)
+		else:
+			npc._spawn_floating_text("Necesitas %d de oro o esperar a que termine la campaña anterior" % ADVERTISE_COST, Color.ORANGE_RED, -44.0)
+
+	elif action_id == "housing_collect_shop":
+		if not has_player_shop(vm):
+			return
+		var ps: Dictionary = hs["player_shop"]
+		var gain: int = int(ps.get("till_gold", 0))
+		if gain <= 0:
+			return
+		ps["till_gold"] = 0
+		if inv != null:
+			inv.add_gold(gain)
+		npc._spawn_floating_text("💰🏪 Recaudaste %d de oro de la caja de tu negocio" % gain, Color.GOLD, -46.0)
+
+	elif action_id == "housing_hire_clerk":
+		if not has_player_shop(vm) or int(npc.trade_role) != int(VillageNPC.TradeRole.UNEMPLOYED):
+			return
+		hs["player_shop"]["clerk_key"] = npc.get_person_key()
+		npc.modify_affinity(12)
+		npc.add_thought("Tengo trabajo atendiendo el mostrador del Bazar del Forastero (+8)", 8.0)
+		VillageChronicle.add(vm, "player_shop_clerk", "Contrataste a %s como dependiente de tu negocio" % npc.npc_name, true)
+		npc._spawn_floating_text("🤝🏪 «¡Gracias por el empleo! Atenderé tu mostrador cada día.»", Color.SPRING_GREEN, -46.0)
