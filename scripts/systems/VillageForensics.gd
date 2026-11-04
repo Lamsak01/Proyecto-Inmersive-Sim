@@ -28,13 +28,17 @@ const SCAPEGOAT_PTS: int = 30
 const FRAME_COST: int = 15
 const AMBUSH_REWARD: int = 40
 const HITMAN_PAY: int = 45
+const BLEACH_COST: int = 8
+const BRIBE_AUTOPSY_COST: int = 35
+const CLEANER_COST: int = 25
+const INSURANCE_PAYOUT: int = 40
 
 static func state(vm) -> Dictionary:
 	var ts: Dictionary = VillageTown.state(vm)
 	if not ts.has("forensics") or not (ts["forensics"] is Dictionary):
 		ts["forensics"] = {}
 	var st: Dictionary = ts["forensics"]
-	for k in ["planted", "alibis", "tampered", "hitmen", "poisoned", "moved", "slips", "scapegoats", "player_contracts"]:
+	for k in ["planted", "alibis", "tampered", "hitmen", "poisoned", "moved", "slips", "scapegoats", "player_contracts", "insurance", "tampered_time", "copycats"]:
 		if not st.has(k) or not (st[k] is Dictionary):
 			st[k] = {}
 	return st
@@ -102,6 +106,19 @@ static func on_npc_murder_committed(vm, killer, victim, desire: Dictionary) -> v
 		if (is_partner or same_fam or same_sect) and ally.get_relationship_with_npc(killer.get_person_key()) >= 30:
 			st["alibis"][v_name] = {"ally_key": ally.get_person_key(), "ally_name": ally.npc_name, "killer_name": killer.npc_name, "broken": false}
 			break
+	# P2.11: Trucar la hora de la muerte enfriando o cubriendo el cuerpo (si tiene malicia >= 0.35)
+	if TraitCatalog.npc_tendency(killer, "malice") >= 0.35:
+		st["tampered_time"][v_name] = {"killer_name": killer.npc_name, "examined": false}
+	# P2.12: Si había una póliza de seguro de vida sobre la víctima y nadie la ha destapado, queda lista para cobrarse
+	if (st["insurance"] as Dictionary).has(v_name):
+		st["insurance"][v_name]["victim_dead"] = true
+	# Tanda 2 (6): Imitador / Copycat (si ya hubo otro asesinato antes y el asesino tiene malicia >= 0.4)
+	if TraitCatalog.npc_tendency(killer, "malice") >= 0.4 and not vm.npc_murders.is_empty():
+		for prev_v in vm.npc_murders.keys():
+			var prev_k: String = str(vm.npc_murders[prev_v])
+			if prev_v != v_name and prev_k != "" and prev_k != killer.npc_name:
+				st["copycats"][v_name] = {"killer_name": killer.npc_name, "imitated_killer": prev_k, "debunked": false}
+				break
 
 # ==============================================================================
 # Al abrirse el expediente en `VillageJustice._build_investigation_case_dict`
@@ -146,6 +163,20 @@ static func apply_to_case(vm, victim, case_dict: Dictionary) -> void:
 	# P2.7: Cadáver movido de sitio
 	if (st["moved"] as Dictionary).has(v_name) and not bool(st["moved"][v_name].get("tracked", false)):
 		clues.append("Escena alterada: hay marcas en la tierra como si hubieran arrastrado el cuerpo desde otro punto.")
+	# P2.11: Hora de la muerte trucada (rebaja la sospecha del asesino hasta que se revise la rigidez del cadáver)
+	if (st["tampered_time"] as Dictionary).has(v_name) and not bool(st["tampered_time"][v_name].get("examined", false)):
+		if killer_name != "" and suspects.has(killer_name):
+			suspects[killer_name]["score"] = maxi(5, int(suspects[killer_name].get("score", 25)) - 15)
+		clues.append("Hora de la muerte confusa: la temperatura del cuerpo no encaja del todo con el momento del hallazgo.")
+	# Tanda 2 (6): Sello de un imitador (copycat)
+	if (st["copycats"] as Dictionary).has(v_name) and not bool(st["copycats"][v_name].get("debunked", false)):
+		var cc: Dictionary = st["copycats"][v_name]
+		var im_k: String = str(cc.get("imitated_killer", ""))
+		if suspects.has(im_k):
+			suspects[im_k]["score"] = int(suspects[im_k].get("score", 15)) + 20
+		if killer_name != "" and suspects.has(killer_name):
+			suspects[killer_name]["score"] = maxi(5, int(suspects[killer_name].get("score", 25)) - 10)
+		clues.append("Modus operandi repetido: las heridas imitan el sello de un crimen anterior atribuido a %s (+20%% sospecha)." % im_k)
 	# P2.9: Chivo expiatorio del comisario corrupto
 	var sheriff = vm.trade_npcs.get(VillageNPC.TradeRole.SHERIFF, null)
 	if sheriff != null and VillageTown.is_corrupt(sheriff) and killer_name != "":
@@ -243,6 +274,112 @@ static func daily(vm) -> void:
 		st["player_contracts"].erase(mk)
 		if pl != null and pl.has_method("show_hint"):
 			pl.show_hint("🗡️💰 %s te dejó %d de oro en secreto: el encargo contra %s está cumplido." % [str(pc["mastermind_name"]), paid, str(pc["target_name"])])
+	# P2.12: Pólizas de seguro de vida sospechosas (suscritas antes de un asesinato o cobradas si nadie las destapa)
+	for d in vm.desires:
+		if not bool(d.get("active", false)) or str(d.get("type", "")) != "murder":
+			continue
+		var holder = by_key.get(str(d.get("holder", "")), null)
+		var target = by_key.get(str(d.get("target", "")), null)
+		if holder == null or target == null or (st["insurance"] as Dictionary).has(target.npc_name):
+			continue
+		if TraitCatalog.npc_tendency(holder, "greed") >= 0.2 or str(holder.family_id) == str(target.family_id):
+			st["insurance"][target.npc_name] = {
+				"victim_name": target.npc_name, "beneficiary_key": holder.get_person_key(),
+				"beneficiary_name": holder.npc_name, "payout": INSURANCE_PAYOUT,
+				"player_knows": false, "exposed": false, "paid": false, "victim_dead": false
+			}
+	for iv_name in (st["insurance"] as Dictionary).keys():
+		var ins: Dictionary = st["insurance"][iv_name]
+		if bool(ins.get("victim_dead", false)) and not bool(ins.get("exposed", false)) and not bool(ins.get("paid", false)):
+			var ben = by_key.get(str(ins.get("beneficiary_key", "")), null)
+			var ts: Dictionary = VillageTown.state(vm)
+			if ben != null and not ben.is_dead and int(ts.get("treasury", 0)) >= INSURANCE_PAYOUT:
+				ts["treasury"] = int(ts["treasury"]) - INSURANCE_PAYOUT
+				ben.personal_gold += INSURANCE_PAYOUT
+				ins["paid"] = true
+				VillageChronicle.add(vm, "insurance_paid", "%s cobró %d de oro de la póliza por el fallecimiento de %s" % [ben.npc_name, INSURANCE_PAYOUT, iv_name], true)
+
+## Elimina charcos de sangre y huellas físicas de `vm.blood_puddles` (todos si `victim_filter == ""`, o los cercanos a `near_pos`).
+static func clear_blood_puddles(vm, near_pos: Vector2 = Vector2.INF, max_dist: float = 95.0) -> int:
+	if vm == null or vm.blood_puddles.is_empty():
+		return 0
+	var removed: int = 0
+	for i in range(vm.blood_puddles.size() - 1, -1, -1):
+		var pud: Dictionary = vm.blood_puddles[i]
+		var p_pos: Vector2 = pud.get("pos", Vector2.ZERO)
+		if near_pos != Vector2.INF and p_pos.distance_to(near_pos) > max_dist:
+			continue
+		var node = pud.get("node", null)
+		if node != null and is_instance_valid(node):
+			node.queue_free()
+		for fp in (pud.get("footprint_nodes", []) as Array):
+			if fp != null and is_instance_valid(fp):
+				fp.queue_free()
+		vm.blood_puddles.remove_at(i)
+		removed += 1
+	return removed
+
+static func _press_twice(vm, tag: String) -> bool:
+	var now: int = Time.get_ticks_msec()
+	if str(vm.get_meta("e_confirm_tag", "")) == tag and now - int(vm.get_meta("e_confirm_ms", 0)) <= 4000:
+		vm.set_meta("e_confirm_tag", "")
+		return true
+	vm.set_meta("e_confirm_tag", tag)
+	vm.set_meta("e_confirm_ms", now)
+	return false
+
+## Interacción directa con un charco de sangre [E] para fregar la escena con lejía (con confirmación de doble E y riesgo de testigos).
+static func try_interact(vm, player: Node2D, pos: Vector2) -> bool:
+	if vm == null or player == null or vm.blood_puddles.is_empty():
+		return false
+	var has_near: bool = false
+	for pud in vm.blood_puddles:
+		if pos.distance_to(pud.get("pos", Vector2.ZERO)) <= 36.0:
+			has_near = true
+			break
+	if not has_near:
+		return false
+	if not _press_twice(vm, "bleach_puddle"):
+		if player.has_method("show_hint"):
+			player.show_hint("🧽 Hay sangre y huellas aquí. Pulsa E otra vez para fregar la escena con lejía (%d Oro)." % BLEACH_COST)
+		return true
+	var inv = player.get("inventory")
+	if inv == null or int(inv.gold) < BLEACH_COST:
+		if player.has_method("show_hint"):
+			player.show_hint("Necesitas %d de oro para comprar lejía y fregar la escena." % BLEACH_COST)
+		return true
+	bleach_crime_scene(vm, player, inv, pos)
+	return true
+
+static func bleach_crime_scene(vm, player: Node2D, inv, pos: Vector2 = Vector2.INF) -> bool:
+	if inv == null or int(inv.gold) < BLEACH_COST:
+		return false
+	inv.add_gold(-BLEACH_COST)
+	if vm.shop_businesses.has(int(VillageNPC.TradeRole.DOCTOR)):
+		vm.shop_businesses[int(VillageNPC.TradeRole.DOCTOR)]["vault_gold"] = int(vm.shop_businesses[int(VillageNPC.TradeRole.DOCTOR)].get("vault_gold", 0)) + BLEACH_COST
+	else:
+		vm.town_state["treasury"] = int(vm.town_state.get("treasury", 0)) + BLEACH_COST
+	# ¿Alguien ve al jugador fregando la sangre?
+	var check_pos: Vector2 = pos if pos != Vector2.INF else (player.global_position if player != null else Vector2.ZERO)
+	for w in VillageNeeds.living(vm):
+		if not w.is_conscious():
+			continue
+		if w.global_position.distance_to(check_pos) <= 160.0 and vm.has_line_of_sight(w.global_position, check_pos):
+			vm.wanted_level = int(vm.wanted_level) + 1
+			var susp_w: Dictionary = vm.active_sheriff_investigation.get("suspects", {})
+			if susp_w.has("Jugador"):
+				susp_w["Jugador"]["score"] = int(susp_w["Jugador"].get("score", 15)) + 25
+			w._spawn_floating_text("🚨 «¡Eh! ¡Está borrando la sangre del crimen con lejía!»", Color.ORANGE_RED, -46.0)
+			return false
+	clear_blood_puddles(vm, pos, 95.0)
+	if player != null and player.has_meta("bloody_steps_left"):
+		player.set_meta("bloody_steps_left", 0)
+	var susp: Dictionary = vm.active_sheriff_investigation.get("suspects", {})
+	if susp.has("Jugador"):
+		susp["Jugador"]["score"] = maxi(0, int(susp["Jugador"].get("score", 20)) - 20)
+	if player != null and player.has_method("show_hint"):
+		player.show_hint("🧽✨ Fregaste la sangre y las huellas con lejía sin que nadie te viera (-20%% sospecha).")
+	return true
 
 # ==============================================================================
 # Diálogos de investigación, pistas falsas, emboscadas y sicarios
@@ -251,6 +388,20 @@ static func _desire_known(vm, desire_id: int) -> bool:
 	for d in vm.desires:
 		if int(d.get("id", -2)) == desire_id:
 			return bool(d.get("player_knows", false))
+	return false
+
+static func has_known_dirt_on(vm, npc) -> bool:
+	if vm == null or npc == null:
+		return false
+	var key: String = npc.get_person_key()
+	for s in vm.secrets:
+		if bool(s.get("active", false)) and bool(s.get("player_knows", false)):
+			if str(s.get("a", "")) == key or str(s.get("b", "")) == key or str(s.get("holder", "")) == key:
+				return true
+	if (vm.sect_state.get("members", {}) as Dictionary).has(key) and bool(vm.sect_state.get("player_knows", false)):
+		return true
+	if vm.VillageTown.is_corrupt(npc) and bool(vm.town_state.get("corrupt_known", false)):
+		return true
 	return false
 
 static func add_dialogue_choices(vm, npc, diag: Dictionary, ch_arr: Array) -> void:
@@ -304,6 +455,33 @@ static func add_dialogue_choices(vm, npc, diag: Dictionary, ch_arr: Array) -> vo
 			var sg: Dictionary = st["scapegoats"][v_name]
 			if npc.npc_name == str(sg["scapegoat_name"]):
 				f_choices.append({"label": "⚖️🔓 Ayudarle a demostrar que el comisario le señala sin pruebas", "next": "END", "action": "forensic_scapegoat:" + v_name})
+		# Tanda 1 (1): Fregar la escena con lejía para borrar rastros de sangre (solo con el médico/boticario o el perista)
+		if (is_doc or vm.VillageUnderworld.is_fence(vm, npc)) and (not vm.blood_puddles.is_empty() or case_dict.get("suspects", {}).has("Jugador")):
+			f_choices.append({"label": "🧽🧪 Comprar lejía fuerte y fregar los rastros de sangre de la escena (-%d Oro)" % BLEACH_COST, "next": "END", "action": "forensic_bleach_scene:" + v_name})
+		# Tanda 1 (2): Sobornar al médico para falsear la autopsia
+		if is_doc and not bool(case_dict.get("autopsy_bribed", false)):
+			f_choices.append({"label": "🩺💰 Sobornar al médico para certificar fallo natural o borrar pistas del arma (-%d Oro)" % BRIBE_AUTOPSY_COST, "next": "END", "action": "forensic_bribe_autopsy:" + v_name})
+		# Tanda 1 (3): Pólizas de seguro de vida sospechosas (primero consultar el libro sin revelar nombres; luego denunciar)
+		if (st["insurance"] as Dictionary).has(v_name):
+			var ins: Dictionary = st["insurance"][v_name]
+			if not bool(ins.get("exposed", false)):
+				if not bool(ins.get("player_knows", false)) and (is_doc or vm.VillageTown.is_mayor(vm, npc)):
+					f_choices.append({"label": "📜🔍 Consultar si existía alguna póliza de vida a nombre de %s" % v_name, "next": "END", "action": "forensic_check_insurance:" + v_name})
+				elif bool(ins.get("player_knows", false)) and is_law:
+					f_choices.append({"label": "📜🚨 Denunciar que %s suscribió una póliza de vida sobre %s antes del crimen" % [str(ins["beneficiary_name"]), v_name], "next": "END", "action": "forensic_expose_insurance:" + v_name})
+		# Tanda 1 (4): Comprobar si trucaron la hora de la muerte (sin revelar al asesino en el menú)
+		if (is_doc or is_law) and (st["tampered_time"] as Dictionary).has(v_name) and not bool(st["tampered_time"][v_name].get("examined", false)):
+			f_choices.append({"label": "🕰️🔬 Examinar la rigidez del cadáver de %s para verificar la hora real de la muerte" % v_name, "next": "END", "action": "forensic_check_rigor:" + v_name})
+		# Tanda 2 (6): Desmontar un crimen por imitación comparando las heridas (sin nombrar al asesino real en el menú)
+		if (is_doc or is_law) and (st["copycats"] as Dictionary).has(v_name) and not bool(st["copycats"][v_name].get("debunked", false)):
+			f_choices.append({"label": "🔪🔍 Comparar las heridas de %s con crímenes anteriores para descartar un imitador" % v_name, "next": "END", "action": "forensic_debunk_copycat:" + v_name})
+		# Tanda 2 (7): Forzar una confesión falsa chantajeando a un vecino cuyo secreto conoces
+		if not is_law and (case_dict.get("suspects", {}).has("Jugador") or int(vm.wanted_level) > 0) and has_known_dirt_on(vm, npc):
+			f_choices.append({"label": "🤫⚖️ Chantajearle con su secreto para que se declare culpable del caso de %s" % v_name, "next": "END", "action": "forensic_force_confession:" + v_name})
+
+	# Tanda 1 (5): Limpiador nocturno de cadáveres y rastros de sangre (con el perista de noche)
+	if vm.VillageUnderworld.is_fence(vm, npc) and not vm.blood_puddles.is_empty():
+		f_choices.append({"label": "🧹🌙 Pagar al limpiador nocturno para borrar los charcos de sangre antes del alba (-%d Oro)" % CLEANER_COST, "next": "END", "action": "forensic_hire_cleaner"})
 
 	# P2.4b: Contrato de sicario ofrecido al jugador por un rico: primero lo escuchas, luego decides
 	if (st["player_contracts"] as Dictionary).has(key):
@@ -540,3 +718,110 @@ static func on_player_action(vm, npc, action_id: String, inv) -> void:
 				VillageChronicle.add(vm, "murder_ambushed", "Tendiste una emboscada nocturna con la guardia y atrapaste a %s cuando iba a matar a %s" % [str(m["holder_name"]), str(m["target_name"])], true)
 				npc._spawn_floating_text("🪤🌙 «¡Lo pillamos con el cuchillo en la mano! Toma %d de oro de recompensa.»" % AMBUSH_REWARD, Color.GOLD, -46.0)
 				return
+
+	elif action_id.begins_with("forensic_bleach_scene:"):
+		var pl_b = VillageNeeds.player_of(vm)
+		if inv == null or int(inv.gold) < BLEACH_COST:
+			npc._spawn_floating_text("Necesitas %d de oro para la lejía" % BLEACH_COST, Color.ORANGE_RED, -44.0)
+			return
+		var target_pos: Vector2 = Vector2.INF
+		if not vm.blood_puddles.is_empty():
+			target_pos = vm.blood_puddles[0].get("pos", Vector2.INF)
+		if bleach_crime_scene(vm, pl_b, inv, target_pos):
+			npc._spawn_floating_text("🧽 «Con esta lejía no quedará ni rastro de sangre en las piedras.»", Color.SPRING_GREEN, -46.0)
+
+	elif action_id.begins_with("forensic_bribe_autopsy:"):
+		if inv == null or int(inv.gold) < BRIBE_AUTOPSY_COST:
+			npc._spawn_floating_text("Necesitas %d de oro para sobornar al médico" % BRIBE_AUTOPSY_COST, Color.ORANGE_RED, -44.0)
+			return
+		if TraitCatalog.npc_tendency(npc, "honesty") >= 0.5 and int(npc.affinity) < 60:
+			npc.modify_affinity(-10)
+			npc._spawn_floating_text("😠🩺 «¡Mi juramento médico no está en venta!» (-10 Afinidad)", Color.ORANGE_RED, -46.0)
+			return
+		inv.add_gold(-BRIBE_AUTOPSY_COST)
+		npc.personal_gold += BRIBE_AUTOPSY_COST
+		case_dict["autopsy_bribed"] = true
+		if (st["poisoned"] as Dictionary).has(arg):
+			st["poisoned"][arg]["autopsied"] = true
+			st["poisoned"][arg]["falsified"] = true
+		for rec in vm.morgue_active_corpses:
+			if str(rec.get("victim_name", "")) == arg:
+				rec["cause"] = "Paro cardíaco certificado por el médico"
+		if suspects.has("Jugador"):
+			suspects["Jugador"]["score"] = maxi(0, int(suspects["Jugador"].get("score", 20)) - 25)
+		clues.append("Informe médico revisado: el doctor atribuye las lesiones a una caída o fallo súbito (-25%% sospecha al Forastero).")
+		npc._spawn_floating_text("🩺🤫 «Escribiré en el acta que fue un fallo natural. Nadie hará más preguntas.»", Color.GOLD, -46.0)
+
+	elif action_id.begins_with("forensic_check_insurance:"):
+		if not (st["insurance"] as Dictionary).has(arg):
+			return
+		var ins: Dictionary = st["insurance"][arg]
+		ins["player_knows"] = true
+		npc._spawn_floating_text("📜 «Qué extraño... %s firmó hace poco una póliza para cobrar %d de oro si %s moría.»" % [str(ins["beneficiary_name"]), int(ins["payout"]), arg], Color.GOLD, -46.0)
+
+	elif action_id.begins_with("forensic_expose_insurance:"):
+		if not (st["insurance"] as Dictionary).has(arg):
+			return
+		var ins2: Dictionary = st["insurance"][arg]
+		ins2["exposed"] = true
+		var b_name: String = str(ins2["beneficiary_name"])
+		if suspects.has(b_name):
+			suspects[b_name]["score"] = int(suspects[b_name].get("score", 15)) + 30
+		clues.append("Móvil económico: %s había contratado una póliza sobre la vida de %s (+30%% sospecha; cobro bloqueado)." % [b_name, arg])
+		var ts_i: Dictionary = VillageTown.state(vm)
+		var reward_i: int = mini(15, int(ts_i.get("treasury", 0)))
+		if reward_i > 0 and inv != null:
+			ts_i["treasury"] = int(ts_i["treasury"]) - reward_i
+			inv.add_gold(reward_i)
+		VillageChronicle.add(vm, "insurance_exposed", "Destapaste que %s pretendía cobrar un seguro por la muerte de %s" % [b_name, arg], true)
+		npc._spawn_floating_text("📜🚨 «¡Conque quería cobrar la póliza de %s! Queda congelada y %s pasa a encabezar la lista.»" % [arg, b_name], Color.SPRING_GREEN, -46.0)
+
+	elif action_id.begins_with("forensic_check_rigor:"):
+		if not (st["tampered_time"] as Dictionary).has(arg):
+			return
+		var tt: Dictionary = st["tampered_time"][arg]
+		tt["examined"] = true
+		var kn: String = str(tt["killer_name"])
+		if suspects.has(kn):
+			suspects[kn]["score"] = int(suspects[kn].get("score", 15)) + 25
+		clues.append("Hora real de la muerte: la rigidez del cadáver demuestra que enfriaron el cuerpo para fingir otra hora (+25%% sospecha a quien tenía coartada para más tarde).")
+		npc._spawn_floating_text("🕰️🔬 «¡El rigor mortis no engaña! Enfriaron el cuerpo para falsear la hora de la muerte.»", Color.SPRING_GREEN, -46.0)
+
+	elif action_id == "forensic_hire_cleaner":
+		if inv == null or int(inv.gold) < CLEANER_COST:
+			npc._spawn_floating_text("Necesitas %d de oro para el limpiador nocturno" % CLEANER_COST, Color.ORANGE_RED, -44.0)
+			return
+		inv.add_gold(-CLEANER_COST)
+		npc.personal_gold += CLEANER_COST
+		var cleaned: int = clear_blood_puddles(vm)
+		if suspects.has("Jugador"):
+			suspects["Jugador"]["score"] = maxi(0, int(suspects["Jugador"].get("score", 20)) - 20)
+		npc._spawn_floating_text("🧹🌙 «Mis hombres ya han limpiado %d rastro(s) de sangre. Al amanecer no habrá nada.»" % maxi(1, cleaned), Color.GOLD, -46.0)
+
+	elif action_id.begins_with("forensic_debunk_copycat:"):
+		if not (st["copycats"] as Dictionary).has(arg):
+			return
+		var cc: Dictionary = st["copycats"][arg]
+		cc["debunked"] = true
+		var im_k: String = str(cc["imitated_killer"])
+		var real_k: String = str(cc["killer_name"])
+		if suspects.has(im_k):
+			suspects[im_k]["score"] = maxi(0, int(suspects[im_k].get("score", 20)) - 20)
+		if suspects.has(real_k):
+			suspects[real_k]["score"] = int(suspects[real_k].get("score", 15)) + 25
+		clues.append("Imitador descubierto: las heridas de %s solo fingen la firma del caso de %s (+25%% sospecha al autor real)." % [arg, str(cc["imitated_victim"])])
+		npc._spawn_floating_text("🔪🔬 «¡Fíjate en el corte! No es la misma mano que mató a %s: alguien ha imitado el crimen.»" % str(cc["imitated_victim"]), Color.SPRING_GREEN, -46.0)
+
+	elif action_id.begins_with("forensic_force_confession:"):
+		if not has_known_dirt_on(vm, npc):
+			return
+		if suspects.has("Jugador"):
+			suspects["Jugador"]["score"] = 0
+		if suspects.has(npc.npc_name):
+			suspects[npc.npc_name]["score"] = 100
+		vm.wanted_level = 0
+		vm._mark_morgue_case_resolved(arg, "Confesión de %s (bajo coacción)" % npc.npc_name)
+		npc.modify_affinity(-80)
+		VillageClans.mark_player_offense(vm, npc, true)
+		VillageChronicle.add(vm, "forced_confession", "%s se declaró culpable de la muerte de %s para que no saliera a la luz su secreto" % [npc.npc_name, arg], true)
+		npc._spawn_floating_text("😰⚖️ «¡Calla, por favor! Diré al comisario que fui yo antes de que arruines mi nombre...»", Color.ORANGE_RED, -46.0)

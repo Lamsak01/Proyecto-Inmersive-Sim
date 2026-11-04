@@ -256,6 +256,16 @@ Informe completo: `docs/AUDITORIA_P1_P7.md`.
 | PB5 | Testamento con el oro real del muerto; recompensas de P1/P3 con `VillageClans.pay_from_pocket` | ✅ | VillageClans.gd, VillageLineage.gd | — |
 | PB6 | `move_into_player_home`: saca al vecino de su casa anterior; el adoptado se muda y no se readopta | ✅ | VillageHousing.gd, VillageLineage.gd | — |
 | PB7 | Rencor del clan por un golpe tuyo solo si hubo testigo (si no, al cerrarse el caso contra ti) | ✅ | VillageClans.gd | — |
+| PB8 | Sincronizar registros indexados por nombre al cambiar el apellido de un niño (`rename_child`) | ✅ | VillageLineage.gd | Test #82 (`682e1bd`) |
 
-Pendiente (riesgo bajo): renombrar niños puede desincronizar registros que van por nombre.
+## Bloque PC — Las 29 mecánicas pendientes de P1–P7 implementadas en 6 tandas (2026-11-04)
+
+| # | Tanda | Mecánicas (5 por tanda) | Estado | Archivos | Nota |
+|---|-------|-------------------------|--------|----------|------|
+| PC1 | Tanda 1 (1–5) | Fregar escena con lejía (`bleach_crime_scene`, doble E), sobornar autopsia (`forensic_bribe_autopsy`), pólizas de seguro (`insurance`), trucar hora de muerte (`tampered_time`) y limpiador nocturno (`forensic_hire_cleaner`) | ✅ | VillageForensics.gd, VillageManager.gd | Test #82 (Tanda 1.1–1.5) |
+| PC2 | Tanda 2 (6–10) | Crímenes por imitación (`copycats`), confesión falsa forzada con chantaje (`forensic_force_confession`), patriarca/matriarca del clan (`patriarch_of`), sabotajes nocturnos entre clanes (`_daily_clan_sabotage`) e interceptar cartas de amantes (`love_letters`) + disputa de hermanastros asignando `FAMILY_MEMBER` | ✅ | VillageForensics.gd, VillageClans.gd, VillageLineage.gd | Test #82 (Tanda 2.6–2.10) |
+| PC3 | Tanda 3 (11–15) | Bodas concertadas con dote (`arranged_marriages`), padrinos de bautizo (`godparents`), enseñar un oficio a un niño (`mentored_kids`), jóvenes que se escapan al mirador (`send_lovers_to_mirador`) y disfrazarse con el hábito del cura en el confesionario (`faith_impersonate_priest`) | ✅ | VillageLineage.gd, VillageConfession.gd | Test #82 (Tanda 3.11–3.15) |
+| PC4 | Tanda 4 (16–20) | Fingir un milagro en el altar (`faith_stage_miracle`), debates públicos entre candidatos (`town_debate`), indultar acusados y repudiados (`town_pardon`), decreto de «Tributo de paz» (`peace_tax`, `apply_peace_tax`) y fiestas en casa (`housing_party`) | ✅ | VillageConfession.gd, VillageMayor.gd, VillageSocialLife.gd, VillageHousing.gd | Test #82 (Tanda 4.16–4.20) |
+| PC5 | Tanda 5 (21–25) | Defender tu puerta de intrusos nocturnos (`intruder_attempt`, `housing_repel_intruder`), revender casas según atractivo y mejoras (`house_sale_price`, `housing_sell_house`), sótano secreto (`hidden_cellar`, `housing_hide_cellar`), hogar de leña (`hearth`, `rest_by_hearth`) y caravana de contrabando de medianoche (`caravan_gold`, `underworld_caravan_*`) | ✅ | VillageHousing.gd, VillageUnderworld.gd | Test #82 (Tanda 5.21–5.25) |
+| PC6 | Tanda 6 (26–29) | Timbas clandestinas de dados (`play_dice_bet`, `underworld_dice_bet`), red de carteristas (`pickpockets`, `run_pickpocket_network`), falsificar escrituras municipales (`forged_deed`, `underworld_forge_deed`) y retar cara a cara al jefe de la «Red de las Sombras» (`underworld_challenge_boss`) | ✅ | VillageUnderworld.gd, VillageHousing.gd | Test #82 (Tanda 6.26–6.29) |
 

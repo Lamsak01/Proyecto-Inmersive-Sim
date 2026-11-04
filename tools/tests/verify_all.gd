@@ -3284,9 +3284,79 @@ func _initialize() -> void:
 	vfo.state(vm)["slips"].erase(p70_b.get_person_key())
 	vfo.on_player_action(vm, p70_a, "forensic_debunk:" + p70_a.npc_name, p70_inv)
 	assert(bool(vfo.state(vm)["planted"][p70_a.npc_name]["debunked"]) and int(p2_case["suspects"][p70_c.npc_name]["score"]) < 30, "P2: Debunking planted clue clears framed suspect")
+	# Tanda 1 (1-5): lejía en escena, sobornar autopsia, póliza de seguro, trucar hora de muerte y limpiador nocturno
+	p2_case["suspects"]["Jugador"] = {"score": 40}
+	vm.spawn_blood_puddle(Vector2(-3500, -3500), p70_a.npc_name)
+	var t1_puddles_before: int = vm.blood_puddles.size()
+	assert(vfo.bleach_crime_scene(vm, p70_pl, p70_inv, Vector2(-3500, -3500)) and vm.blood_puddles.size() < t1_puddles_before and int(p2_case["suspects"]["Jugador"]["score"]) == 20, "Tanda 1.1: Bleaching crime scene removes blood puddle and lowers player suspicion")
+	var t1_doc = vm.trade_npcs.get(8, p70_a) # 8 = DOCTOR
+	var t1_doc_aff_bak: int = t1_doc.affinity
+	var t1_doc_gold_bak: int = t1_doc.personal_gold
+	t1_doc.affinity = 75
+	p2_case["suspects"]["Jugador"]["score"] = 35
+	vfo.on_player_action(vm, t1_doc, "forensic_bribe_autopsy:" + p70_a.npc_name, p70_inv)
+	assert(bool(p2_case.get("autopsy_bribed", false)) and t1_doc.personal_gold == t1_doc_gold_bak + 35 and int(p2_case["suspects"]["Jugador"]["score"]) == 10, "Tanda 1.2: Bribing doctor pays into doctor's pocket and lowers player suspicion")
+	t1_doc.affinity = t1_doc_aff_bak
+	t1_doc.personal_gold = t1_doc_gold_bak
+	vfo.state(vm)["insurance"][p70_a.npc_name] = {"victim_name": p70_a.npc_name, "beneficiary_key": p70_b.get_person_key(), "beneficiary_name": p70_b.npc_name, "payout": 40, "player_knows": false, "exposed": false, "paid": false, "victim_dead": true}
+	vfo.on_player_action(vm, t1_doc, "forensic_check_insurance:" + p70_a.npc_name, p70_inv)
+	assert(bool(vfo.state(vm)["insurance"][p70_a.npc_name]["player_knows"]), "Tanda 1.3a: Checking insurance records reveals policy")
+	var t1_b_score0: int = int(p2_case["suspects"][p70_b.npc_name]["score"])
+	vfo.on_player_action(vm, p70_a, "forensic_expose_insurance:" + p70_a.npc_name, p70_inv)
+	assert(bool(vfo.state(vm)["insurance"][p70_a.npc_name]["exposed"]) and int(p2_case["suspects"][p70_b.npc_name]["score"]) == t1_b_score0 + 30, "Tanda 1.3b: Exposing life insurance blocks payout and raises beneficiary suspicion")
+	vfo.state(vm)["tampered_time"][p70_a.npc_name] = {"killer_name": p70_b.npc_name, "examined": false}
+	var t1_b_score1: int = int(p2_case["suspects"][p70_b.npc_name]["score"])
+	vfo.on_player_action(vm, t1_doc, "forensic_check_rigor:" + p70_a.npc_name, p70_inv)
+	assert(bool(vfo.state(vm)["tampered_time"][p70_a.npc_name]["examined"]) and int(p2_case["suspects"][p70_b.npc_name]["score"]) == t1_b_score1 + 25, "Tanda 1.4: Checking rigor mortis uncovers tampered death time and raises killer suspicion")
+	vm.spawn_blood_puddle(Vector2(-3400, -3400), p70_a.npc_name)
+	p2_case["suspects"]["Jugador"]["score"] = 30
+	var t1_fence_g0: int = p70_c.personal_gold
+	vfo.on_player_action(vm, p70_c, "forensic_hire_cleaner", p70_inv)
+	assert(vm.blood_puddles.is_empty() and p70_c.personal_gold == t1_fence_g0 + 25 and int(p2_case["suspects"]["Jugador"]["score"]) == 10, "Tanda 1.5: Nocturnal cleaner clears blood puddles and gets paid")
+	p70_c.personal_gold = t1_fence_g0
+	# Tanda 2 (6-10): imitador forense, confesión forzada, patriarca del clan, sabotaje de clan y cartas de amantes
+	vfo.state(vm)["copycats"][p70_a.npc_name] = {"killer_name": p70_b.npc_name, "imitated_killer": p70_c.npc_name, "imitated_victim": "Víctima Previa", "debunked": false}
+	p2_case["suspects"][p70_c.npc_name]["score"] = 35
+	var t2_b_score0: int = int(p2_case["suspects"][p70_b.npc_name]["score"])
+	vfo.on_player_action(vm, t1_doc, "forensic_debunk_copycat:" + p70_a.npc_name, p70_inv)
+	assert(bool(vfo.state(vm)["copycats"][p70_a.npc_name]["debunked"]) and int(p2_case["suspects"][p70_c.npc_name]["score"]) == 15 and int(p2_case["suspects"][p70_b.npc_name]["score"]) == t2_b_score0 + 25, "Tanda 2.6: Debunking copycat lowers imitated suspect and raises real killer")
+	vm.secrets.append({"id": 9991, "type": "affair", "active": true, "player_knows": true, "a": p70_c.get_person_key(), "a_name": p70_c.npc_name, "b": p70_b.get_person_key(), "b_name": p70_b.npc_name})
+	p2_case["suspects"]["Jugador"]["score"] = 45
+	vm.wanted_level = 2
+	vfo.on_player_action(vm, p70_c, "forensic_force_confession:" + p70_a.npc_name, p70_inv)
+	assert(int(p2_case["suspects"]["Jugador"]["score"]) == 0 and int(vm.wanted_level) == 0, "Tanda 2.7: Forcing confession with known dirt clears player suspicion and wanted level")
+	var t2_pat = vcl.patriarch_of(vm, "family_clan_a")
+	var t2_pat_aff: int = t2_pat.affinity
+	t2_pat.affinity = 60
+	vm.town_state["player_candidate"] = true
+	vcl.on_player_action(vm, t2_pat, "clan_patriarch_sway:family_clan_a", p70_inv)
+	assert(str(vm.town_state["pledges"].get(t2_pat.get_person_key(), "")) == "player", "Tanda 2.8: Clan patriarch sways family pledges to player")
+	t2_pat.affinity = t2_pat_aff
+	vcl.state(vm)["clan_sabotages"]["1"] = {"role_id": 1, "victim_key": p70_a.get_person_key(), "victim_name": p70_a.npc_name, "victim_fam": "family_clan_a", "saboteur_key": p70_b.get_person_key(), "saboteur_name": p70_b.npc_name, "saboteur_fam": "family_clan_b", "discovered": false, "reported": false}
+	vcl.on_player_action(vm, p70_a, "clan_inspect_sabotage:1", p70_inv)
+	assert(bool(vcl.state(vm)["clan_sabotages"]["1"]["discovered"]), "Tanda 2.9a: Inspecting clan sabotage discovers culprit")
+	var t2_bg0: int = p70_b.personal_gold
+	var t2_ag0: int = p70_a.personal_gold
+	p70_b.personal_gold = 30
+	var t2_invg0: int = p70_inv.gold
+	vcl.on_player_action(vm, p70_c, "clan_report_sabotage:1", p70_inv)
+	assert(bool(vcl.state(vm)["clan_sabotages"]["1"]["reported"]) and p70_b.personal_gold == 10 and p70_a.personal_gold == t2_ag0 + 10 and p70_inv.gold == t2_invg0 + 10, "Tanda 2.9b: Reporting clan sabotage fines saboteur from pocket and splits between victim and player")
+	p70_b.personal_gold = t2_bg0
+	p70_a.personal_gold = t2_ag0
 	vm.active_sheriff_investigation = p2_inv_bak
 	# P3: Linaje, hijo secreto de amante, revelación y expósito en la capilla
 	var vli = vm.VillageLineage
+	vli._daily_love_letters(vm)
+	assert(vli.state(vm)["love_letters"].has("9991"), "Tanda 2.10a: Affair secret generates interceptable love letter")
+	vli.on_player_action(vm, p70_c, "lineage_intercept_letter:9991", p70_inv)
+	assert(bool(vli.state(vm)["love_letters"]["9991"]["intercepted"]), "Tanda 2.10b: Intercepting love letter marks it intercepted")
+	var t2_bg1: int = p70_b.personal_gold
+	p70_b.personal_gold = 25
+	var t2_invg1: int = p70_inv.gold
+	vli.on_player_action(vm, p70_b, "lineage_deliver_letter:9991", p70_inv)
+	assert(bool(vli.state(vm)["love_letters"]["9991"]["handled"]) and p70_b.personal_gold == 13 and p70_inv.gold == t2_invg1 + 12, "Tanda 2.10c: Delivering love letter pays tip from receiver's pocket")
+	p70_b.personal_gold = t2_bg1
+	vm.secrets.pop_back()
 	vli.state(vm)["secret_preg"][p70_a.get_person_key()] = {"mother_key": p70_a.get_person_key(), "mother_name": p70_a.npc_name, "real_father": p70_b.get_person_key(), "real_father_name": p70_b.npc_name, "presumed_father": p70_c.get_person_key(), "presumed_name": p70_c.npc_name, "secret_id": 1, "player_knows": true}
 	var p3_kid = vfm.spawn_child(vm, p70_a, p70_c, 0)
 	vli.on_child_born(vm, p70_a, p70_c, p3_kid)
@@ -3309,8 +3379,50 @@ func _initialize() -> void:
 	vm.vagrant_camp_nodes.erase(p3_new_name)
 	p3_dummy_camp.free()
 	vm.npc_murders.erase("TestVictim_P3")
+	# Tanda 3 (11-15): bodas concertadas con dote, padrinos en el bautizo, enseñar oficio a niño, escapada al mirador y hábito en confesionario
+	var t3_ag0: int = p70_a.personal_gold
+	var t3_bg0: int = p70_b.personal_gold
+	p70_a.personal_gold = 60
+	var t3_invg0: int = p70_inv.gold
+	vli.state(vm)["arranged_marriages"][p70_a.get_person_key()] = {"parent_key": p70_a.get_person_key(), "parent_name": p70_a.npc_name, "youth_key": p70_b.get_person_key(), "youth_name": p70_b.npc_name, "suitor_key": p70_c.get_person_key(), "suitor_name": p70_c.npc_name, "dowry": 30, "resolved": false}
+	var t3_b_pid_bak: String = str(p70_b.person_profile.partner_id)
+	var t3_c_pid_bak: String = str(p70_c.person_profile.partner_id)
+	vli.on_player_action(vm, p70_a, "lineage_arrange_wed:" + p70_a.get_person_key(), p70_inv)
+	assert(bool(vli.state(vm)["arranged_marriages"][p70_a.get_person_key()]["resolved"]) and p70_a.personal_gold == 30 and p70_b.personal_gold == t3_bg0 + 15 and p70_inv.gold == t3_invg0 + 15, "Tanda 3.11: Arranged marriage pays dowry from parent's pocket to couple and broker")
+	p70_b.person_profile.partner_id = t3_b_pid_bak
+	p70_c.person_profile.partner_id = t3_c_pid_bak
+	p70_a.personal_gold = t3_ag0
+	p70_b.personal_gold = t3_bg0
+	var t3_kg0: int = p3_kid.personal_gold
+	vli.on_player_action(vm, p70_a, "lineage_become_godparent:" + p3_kid.get_person_key(), p70_inv)
+	assert(str(vli.state(vm)["godparents"][p3_kid.get_person_key()]["godparent_key"]) == "player" and p3_kid.personal_gold == t3_kg0 + 10, "Tanda 3.12: Becoming godparent transfers 10 gold gift to child")
+	vli.on_player_action(vm, p3_kid, "lineage_mentor_child:" + p3_kid.get_person_key(), p70_inv)
+	vli.on_child_grown_up(vm, p3_kid)
+	assert(vli.state(vm)["mentored_kids"].has(p3_kid.get_person_key()) and int(p3_kid.days_in_role) >= 5, "Tanda 3.13: Mentoring child grants trade experience upon growing up")
+	vcl.state(vm)["romeo_pairs"]["t3_rp"] = {"pair_key": "t3_rp", "a": p70_a.get_person_key(), "b": p70_b.get_person_key(), "a_name": p70_a.npc_name, "b_name": p70_b.npc_name, "feud_key": p1_fk, "helped": false}
+	assert(vli.send_lovers_to_mirador(vm) >= 1 and bool(vcl.state(vm)["romeo_pairs"]["t3_rp"].get("at_mirador", false)), "Tanda 3.14a: Forbidden lovers escape to mirador at night")
+	p70_a.end_errand()
+	p70_b.end_errand()
+	vli.on_player_action(vm, p70_a, "lineage_catch_mirador:t3_rp", p70_inv)
+	assert(bool(vcl.state(vm)["romeo_pairs"]["t3_rp"].get("mirador_seen", false)), "Tanda 3.14b: Catching lovers at mirador reveals secret romance")
+	vcl.state(vm)["romeo_pairs"].erase("t3_rp")
 	# P4: Confesión, excomunión y sermón con indirectas
 	var vcf = vm.VillageConfession
+	vm.secrets.append({"id": 9992, "type": "affair", "active": true, "player_knows": false, "a": p70_c.get_person_key(), "a_name": p70_c.npc_name, "b": p70_b.get_person_key(), "b_name": p70_b.npc_name, "p_name": "Pareja"})
+	vcf.state(vm)["priest_secrets"].erase(p70_c.get_person_key())
+	var t3_cg0: int = p70_c.personal_gold
+	p70_c.personal_gold = 25
+	var t3_invg1: int = p70_inv.gold
+	var t3_priest = vm.VillageFaith.priest_of(vm)
+	var t3_ppos_bak: Vector2 = t3_priest.global_position if t3_priest != null else Vector2.ZERO
+	if t3_priest != null:
+		t3_priest.global_position = vm._church_altar_pos + Vector2(300, 0)
+	vcf.on_player_action(vm, p70_c, "faith_impersonate_priest:" + p70_c.get_person_key(), p70_inv)
+	if t3_priest != null:
+		t3_priest.global_position = t3_ppos_bak
+	assert(vcf.state(vm)["priest_secrets"].has(p70_c.get_person_key()) and bool(vm.secrets[vm.secrets.size() - 1]["player_knows"]) and p70_c.personal_gold == 15 and p70_inv.gold == t3_invg1 + 10, "Tanda 3.15: Impersonating priest in confessional learns sin and collects penance from sinner's pocket")
+	p70_c.personal_gold = t3_cg0
+	vm.secrets.pop_back()
 	vcf.excommunicate(vm, p70_b, "prueba P4")
 	assert(vcf.is_excommunicated(vm, p70_b) and not vm.VillageFaith.wants_attend(p70_b, 1), "P4: Excommunicated villager cannot attend Sunday rite")
 	vcf.lift_excommunication(vm, p70_b, "prueba P4")
@@ -3318,12 +3430,24 @@ func _initialize() -> void:
 	vcf.state(vm)["priest_secrets"][p70_b.get_person_key()] = {"sinner_key": p70_b.get_person_key(), "sinner_name": p70_b.npc_name, "kind": "robo", "desc": "robo de prueba", "day": 1}
 	vcf.state(vm)["week_sin_counts"]["robo"] = 2
 	assert(vcf.apply_sunday_indirect_sermon(vm, [p70_b]) == "robo", "P4: Sunday indirect sermon targets top confessed sin")
+	# Tanda 4 (16): Fingir un milagro en el altar
+	var t4_bel_rep0: int = vm.VillageFaith.rep_of(vm, "believers")
+	if t3_priest != null:
+		t3_priest.global_position = vm._church_altar_pos + Vector2(300, 0)
+	vcf.on_player_action(vm, p70_a, "faith_stage_miracle", p70_inv)
+	if t3_priest != null:
+		t3_priest.global_position = t3_ppos_bak
+	assert(vm.VillageFaith.rep_of(vm, "believers") == t4_bel_rep0 + 12, "Tanda 4.16: Staging miracle at altar boosts believers reputation and collects offerings")
 	# P5: Presentarse a alcalde, ganar elección, decretos e impuestos
 	var vma = vm.VillageMayor
 	var p5_ts_bak: Dictionary = vm.town_state.duplicate(true)
 	vma.on_player_action(vm, p70_a, "town_run_mayor", p70_inv)
 	vma.on_player_action(vm, p70_a, "town_promise:low_tax", p70_inv)
 	assert(bool(vm.town_state.get("player_candidate", false)), "P5: Player registered as mayoral candidate")
+	# Tanda 4 (17): Debate público entre candidatos
+	vm.town_state["pledges"].clear()
+	vma.on_player_action(vm, p70_a, "town_debate:" + p70_c.get_person_key(), p70_inv)
+	assert(bool(vm.town_state.get("debate_done", false)) and int(vm.town_state.get("campaign_bonus", 0)) >= 10 and not (vm.town_state["pledges"] as Dictionary).is_empty(), "Tanda 4.17: Public candidate debate boosts campaign bonus and sways voters")
 	vm.town_state["pledges"][p70_a.get_person_key()] = "player"
 	vm.town_state["pledges"][p70_b.get_person_key()] = "player"
 	var p5_el: Dictionary = vm.VillageTown.hold_election(vm, "prueba P5", [p70_a, p70_b])
@@ -3331,6 +3455,19 @@ func _initialize() -> void:
 	assert(vma.toggle_decree(vm, "curfew") and vma.has_decree(vm, "curfew"), "P5: Mayor decree toggled on")
 	vma.on_player_action(vm, p70_a, "town_tax:low", p70_inv)
 	assert(is_equal_approx(vma.tax_multiplier(vm), 0.5), "P5: Tax edict changes tax multiplier")
+	# Tanda 4 (18 y 19): Indultar acusados y decreto de «Tributo de paz»
+	vm.town_state["treasury"] = 100
+	vcl.state(vm)["disowned"][p70_c.get_person_key()] = {"fam": "family_clan_a", "by": p70_a.npc_name, "reason": "prueba"}
+	vma.on_player_action(vm, p70_c, "town_pardon:" + p70_c.get_person_key(), p70_inv)
+	assert(not vcl.state(vm)["disowned"].has(p70_c.get_person_key()) and int(vm.town_state["treasury"]) == 85, "Tanda 4.18: Mayoral pardon rehabilitates disowned neighbor and pays 15 treasury compensation")
+	assert(vma.toggle_decree(vm, "peace_tax") and vma.has_decree(vm, "peace_tax"), "Tanda 4.19a: Peace tax decree toggled on")
+	var t4_ag0: int = p70_a.personal_gold
+	var t4_bg0: int = p70_b.personal_gold
+	p70_a.personal_gold = 20
+	p70_b.personal_gold = 20
+	assert(vma.apply_peace_tax(vm, p70_a, p70_b) == 16 and p70_a.personal_gold == 12 and p70_b.personal_gold == 12 and int(vm.town_state["treasury"]) == 101, "Tanda 4.19b: Peace tax fines both fighters from their pockets into town treasury")
+	p70_a.personal_gold = t4_ag0
+	p70_b.personal_gold = t4_bg0
 	vm.town_state = p5_ts_bak
 	# P6: Casa propia con hipoteca, cofre privado, inquilinos y escondite bajo las tablas
 	var vho = vm.VillageHousing
@@ -3356,6 +3493,40 @@ func _initialize() -> void:
 	vho.on_player_action(vm, p70_a, "housing_build_stash", p70_inv)
 	vho.on_player_action(vm, p70_a, "housing_stash_put", p70_inv)
 	assert(bool(vho.state(vm).get("has_stash", false)) and int(vho.state(vm).get("stash_gold", 0)) == 25, "P6: Secret floorboard stash stores 25 gold")
+	# Tanda 4 (20): Fiestas en casa
+	var t4_aff_a0: int = p70_a.affinity
+	p70_a.affinity = 20
+	var t4_invg0: int = p70_inv.gold
+	vho.on_player_action(vm, p70_a, "housing_party", p70_inv)
+	assert(p70_inv.gold == t4_invg0 - 20 and p70_a.affinity == 30, "Tanda 4.20: Hosting house party costs 20 gold and boosts guests' affinity and relationships")
+	p70_a.affinity = t4_aff_a0
+	# Tanda 5 (21, 22, 23 y 24): Intrusos nocturnos, reventa de casa según barrio/mejoras, sótano secreto y hogar de leña
+	p70_inv.gold = 300
+	vho.on_player_action(vm, p70_a, "housing_upgrade:hidden_cellar", p70_inv)
+	vho.on_player_action(vm, p70_a, "housing_upgrade:hearth", p70_inv)
+	assert(vho.has_upgrade(vm, "hidden_cellar") and vho.has_upgrade(vm, "hearth"), "Tanda 5.23a & 5.24a: Hidden cellar and hearth upgrades installed")
+	var t5_wl_bak: int = int(vm.wanted_level)
+	var t5_mw_bak: int = int(vm.player_murder_warrants_count)
+	vm.wanted_level = 1
+	vm.player_murder_warrants_count = 0
+	vho.on_player_action(vm, p70_a, "housing_hide_cellar", p70_inv)
+	assert(int(vm.wanted_level) == 0, "Tanda 5.23b: Hiding in secret cellar clears minor wanted level")
+	vm.wanted_level = t5_wl_bak
+	vm.player_murder_warrants_count = t5_mw_bak
+	assert(vho.rest_by_hearth(vm, p70_pl), "Tanda 5.24b: Resting by hearth warms and heals player")
+	var t5_cg0: int = p70_c.personal_gold
+	p70_c.personal_gold = 30
+	vho.state(vm)["intruder_attempt"] = {"intruder_key": p70_c.get_person_key(), "intruder_name": p70_c.npc_name, "day": 1, "repelled": false}
+	var t5_invg1: int = p70_inv.gold
+	vho.on_player_action(vm, p70_a, "housing_repel_intruder", p70_inv)
+	assert(bool(vho.state(vm)["intruder_attempt"]["repelled"]) and p70_c.personal_gold == 15 and p70_inv.gold == t5_invg1 + 15, "Tanda 5.21: Repelling intruder takes 15 gold from intruder's pocket")
+	p70_c.personal_gold = t5_cg0
+	var t5_sale_price: int = vho.house_sale_price(vm, "n0")
+	assert(t5_sale_price > 95, "Tanda 5.22a: Upgraded house sale price exceeds base value")
+	vm.town_state["treasury"] = 300
+	var t5_invg2: int = p70_inv.gold
+	vho.on_player_action(vm, p70_a, "housing_sell_house:n0", p70_inv)
+	assert(str(vl.lot(vm, "n0").get("payer", "")) != "player" and p70_inv.gold == t5_invg2 + t5_sale_price, "Tanda 5.22b: Selling upgraded house transfers ownership and pays sale price")
 	vl.lot(vm, "n0").clear()
 	for k6 in p6_lot_bak.keys():
 		vl.lot(vm, "n0")[k6] = p6_lot_bak[k6]
@@ -3388,6 +3559,51 @@ func _initialize() -> void:
 	p7_fence.personal_gold = p7_fg
 	vun.on_player_action(vm, p70_a, "underworld_bribe_patrol", p70_inv)
 	assert(vun.is_guard_bribed_tonight(vm), "P7: Night guard bribed for immunity tonight")
+	# Tanda 5 (25): Caravana de contrabando de medianoche
+	vun.state(vm)["caravan_gold"] = 70
+	vun.state(vm)["caravan_busted_day"] = -99
+	var t5_dust0: int = vun.get_item_count(vm, "dusk_dust")
+	var t5_invg3: int = p70_inv.gold
+	vun.on_player_action(vm, p7_fence, "underworld_caravan_buy", p70_inv)
+	assert(vun.get_item_count(vm, "dusk_dust") == t5_dust0 + 2 and int(vun.state(vm)["caravan_gold"]) == 95 and p70_inv.gold == t5_invg3 - 25, "Tanda 5.25a: Bought contraband batch from midnight caravan")
+	vun.on_player_action(vm, p7_fence, "underworld_caravan_sell", p70_inv)
+	assert(vun.get_item_count(vm, "dusk_dust") == t5_dust0 + 1 and int(vun.state(vm)["caravan_gold"]) == 60 and p70_inv.gold == t5_invg3 + 10, "Tanda 5.25b: Sold dusk dust to midnight caravan")
+	var t5_tr0: int = int(vm.town_state.get("treasury", 0))
+	vun.on_player_action(vm, p70_a, "underworld_caravan_report", p70_inv)
+	assert(int(vun.state(vm)["caravan_gold"]) == 0 and p70_inv.gold == t5_invg3 + 35 and int(vm.town_state["treasury"]) == t5_tr0 + 35, "Tanda 5.25c: Reporting midnight caravan confiscates funds into reward and town treasury")
+	vm.town_state["treasury"] = t5_tr0
+	# Tanda 6 (26, 27, 28 y 29): Timbas de dados, red de carteristas, falsificar escrituras y retar al jefe de la Red de las Sombras
+	var t6_cg0: int = p70_c.personal_gold
+	p70_c.personal_gold = 30
+	p70_inv.gold = 200
+	assert(vun.play_dice_bet(vm, p70_c, p70_inv, 1) == 10 and p70_c.personal_gold == 20 and p70_inv.gold == 210, "Tanda 6.26a: Winning dice bet transfers 10 gold from NPC pocket to player")
+	assert(vun.play_dice_bet(vm, p70_c, p70_inv, -1) == -10 and p70_c.personal_gold == 30 and p70_inv.gold == 200, "Tanda 6.26b: Losing dice bet transfers 10 gold from player to NPC pocket")
+	p70_c.personal_gold = 10
+	vun.on_player_action(vm, p70_c, "underworld_recruit_pickpocket", p70_inv)
+	assert((vun.state(vm)["pickpockets"] as Dictionary).has(p70_c.get_person_key()) and p70_c.personal_gold == 20 and p70_inv.gold == 190, "Tanda 6.27a: Recruiting pickpocket pays 10 gold advance into recruit's pocket")
+	var t6_ag0: int = p70_a.personal_gold
+	p70_a.personal_gold = 250
+	var t6_invg1: int = p70_inv.gold
+	assert(vun.run_pickpocket_network(vm, p70_inv) == 3 and p70_c.personal_gold == 23 and p70_inv.gold == t6_invg1 + 3, "Tanda 6.27b: Pickpocket network steals 6 from rich villager and splits 3/3")
+	(vun.state(vm)["pickpockets"] as Dictionary).clear()
+	p70_a.personal_gold = t6_ag0
+	p70_c.personal_gold = t6_cg0
+	var t6_fg0: int = p7_fence.personal_gold
+	p7_fence.personal_gold = 40
+	vun.on_player_action(vm, p7_fence, "underworld_forge_deed", p70_inv)
+	assert(bool(vun.state(vm).get("forged_deed", false)) and p7_fence.personal_gold == 65, "Tanda 6.28a: Forged municipal deed purchased from fence")
+	var t6_invg2: int = p70_inv.gold
+	vho.on_player_action(vm, p70_a, "housing_deed:0", p70_inv)
+	assert(not bool(vun.state(vm).get("forged_deed", false)) and bool(vho.state(vm)["commercial_deeds"].get("0", false)) and p70_inv.gold == t6_invg2 - (vho.COMMERCIAL_DEED_COST - 40), "Tanda 6.28b: Forged municipal deed discounts 40 gold when buying commercial property")
+	(vho.state(vm)["commercial_deeds"] as Dictionary).erase("0")
+	vun.state(vm)["boss"] = "fence"
+	p7_fence.personal_gold = 65
+	if p70_pl != null and p70_pl.get("health_comp") != null:
+		p70_pl.get("health_comp").current_health = p70_pl.get("health_comp").max_health
+	var t6_invg3: int = p70_inv.gold
+	vun.on_player_action(vm, p7_fence, "underworld_challenge_boss", p70_inv)
+	assert(str(vun.state(vm).get("boss", "")) == "player" and p7_fence.personal_gold == 40 and p70_inv.gold == t6_invg3 + 25, "Tanda 6.29: Challenging and defeating Shadow Network boss takes boss title and 25 gold from his pocket")
+	p7_fence.personal_gold = t6_fg0
 	# Auditoría: el veneno lento no mata en el acto (actúa al día siguiente, o te pillan echándolo)
 	vun.add_item(vm, "slow_poison", 1)
 	var p7_wl: int = int(vm.wanted_level)

@@ -22,7 +22,7 @@ const TraitDiscovery = preload("res://scripts/systems/TraitDiscovery.gd")
 
 const HOUSE_CASH_COST: int = 100
 const FORECLOSED_COST: int = 80
-const UPGRADE_COSTS: Dictionary = {"bookshelf": 35, "workbench": 40, "oak_bed": 30, "strong_lock": 25}
+const UPGRADE_COSTS: Dictionary = {"bookshelf": 35, "workbench": 40, "oak_bed": 30, "strong_lock": 25, "hidden_cellar": 45, "hearth": 25}
 const GARDEN_COST: int = 35
 const STASH_BUILD_COST: int = 30
 const DINNER_COST: int = 10
@@ -41,12 +41,16 @@ static func state(vm) -> Dictionary:
 		hs["has_stash"] = false
 	if not hs.has("last_dinner_day"):
 		hs["last_dinner_day"] = -99
+	if not hs.has("last_party_day"):
+		hs["last_party_day"] = -99
 	if not hs.has("last_study_day"):
 		hs["last_study_day"] = -99
 	if not hs.has("commercial_deeds") or not (hs["commercial_deeds"] is Dictionary):
 		hs["commercial_deeds"] = {}
 	if not hs.has("rent_rates") or not (hs["rent_rates"] is Dictionary):
 		hs["rent_rates"] = {}
+	if not hs.has("intruder_attempt") or not (hs["intruder_attempt"] is Dictionary):
+		hs["intruder_attempt"] = {}
 	return hs
 
 static func today() -> int:
@@ -93,21 +97,56 @@ static func rent_for_lot(vm, lot_id: String) -> int:
 	var rates: Dictionary = state(vm)["rent_rates"]
 	return int(rates.get(lot_id, 3))
 
+## Tanda 5 (22): Precio de reventa de una casa según el atractivo del pueblo y las mejoras instaladas.
+static func house_sale_price(vm, lot_id: String) -> int:
+	var st: Dictionary = VillageLots.lot(vm, lot_id)
+	var attr: float = float(vm.VillageMigration.attractiveness(vm).get("score", 0.0)) if "VillageMigration" in vm and vm.VillageMigration != null else 0.0
+	var price: int = 90 + int(round(attr * 30.0))
+	var up: Dictionary = st.get("upgrades", {})
+	for uk in up.keys():
+		if bool(up[uk]):
+			price += 15
+	if bool(st.get("has_garden", false)):
+		price += 20
+	return clampi(price, 80, 200)
+
+## Tanda 5 (24): Descansar junto al hogar de leña calienta a quienes viven en tu casa (+10 de humor) y restaura fuerzas.
+static func rest_by_hearth(vm, player: Node2D = null) -> bool:
+	if not has_upgrade(vm, "hearth"):
+		return false
+	var p_lot: String = primary_player_lot(vm)
+	if p_lot == "":
+		return false
+	if player != null:
+		var hc = player.get("health_comp")
+		if hc != null and "max_health" in hc:
+			hc.current_health = hc.max_health
+	var by_key: Dictionary = vm._get_npcs_by_person_key()
+	for rk in (VillageLots.lot(vm, p_lot).get("residents", []) as Array):
+		var r_npc = by_key.get(str(rk), null)
+		if r_npc != null and not r_npc.is_dead:
+			r_npc.add_thought("Calor de hogar junto a la chimenea de leña (+10)", 10.0)
+	return true
+
 # ==============================================================================
 # P6.1 y P6.5: Comprar casa al contado, con hipoteca o casa embargada
 # ==============================================================================
 static func buy_house_cash(vm, lot_id: String, inv) -> bool:
-	if inv == null or int(inv.gold) < HOUSE_CASH_COST:
+	var has_forged: bool = "VillageUnderworld" in vm and vm.VillageUnderworld != null and bool(vm.VillageUnderworld.state(vm).get("forged_deed", false))
+	var cost: int = HOUSE_CASH_COST - (40 if has_forged else 0)
+	if inv == null or int(inv.gold) < cost:
 		return false
 	if str(VillageLots.lot(vm, lot_id).get("status", "")) != "empty" or VillageLots.active_site(vm) != "":
 		return false
-	inv.add_gold(-HOUSE_CASH_COST)
+	inv.add_gold(-cost)
+	if has_forged:
+		vm.VillageUnderworld.state(vm)["forged_deed"] = false
 	# request_build con payer=null cobra de las arcas, así que ingresamos primero los 100 en las arcas y marcamos payer="player"
 	vm.town_state["treasury"] = int(vm.town_state.get("treasury", 0)) + HOUSE_CASH_COST
 	var built: String = VillageLots.request_build(vm, lot_id, "house", null, "🏡 Casa del Forastero")
 	if built == "":
 		vm.town_state["treasury"] = int(vm.town_state.get("treasury", 0)) - HOUSE_CASH_COST
-		inv.add_gold(HOUSE_CASH_COST)
+		inv.add_gold(cost)
 		return false
 	var st: Dictionary = VillageLots.lot(vm, lot_id)
 	st["payer"] = "player"
@@ -215,6 +254,7 @@ static func try_interact(vm, player: Node2D, pos: Vector2) -> bool:
 					hs["last_study_day"] = today()
 					if player.has_method("add_skill_xp"):
 						player.call("add_skill_xp", "crafting", 15)
+				var hearth_ok: bool = rest_by_hearth(vm, player)
 				var surv = player.get_node_or_null("SurvivalComponent")
 				if surv != null:
 					if surv.has_method("restore_sleep"):
@@ -228,6 +268,8 @@ static func try_interact(vm, player: Node2D, pos: Vector2) -> bool:
 					WorldClock.sleep_until_morning()
 				if player.has_method("show_hint"):
 					var bonus_txt: String = " (+estudio en tu estantería)" if bool(up.get("bookshelf", false)) else ""
+					if hearth_ok:
+						bonus_txt += " (+calor del hogar)"
 					player.show_hint("🛌🏡 Dormiste en tu propia casa hasta la mañana%s." % bonus_txt)
 				return true
 	return false
@@ -257,6 +299,12 @@ static func daily(vm) -> void:
 				var up: Dictionary = st.get("upgrades", {})
 				if bool(up.get("workbench", false)):
 					inv.add_item("herbal_poultice", 1)
+		# Tanda 5 (21): Intrusos nocturnos o enemigos intentando forzar tu puerta si no tienes cerradura reforzada
+		if (hs["intruder_attempt"] as Dictionary).is_empty() and not has_upgrade(vm, "strong_lock") and randf() < 0.20:
+			for n in VillageNeeds.living(vm):
+				if int(n.trade_role) != int(VillageNPC.TradeRole.CHILD) and (int(n.affinity) <= -35 or float(n.personality.get("malice", 0.0)) >= 0.4):
+					hs["intruder_attempt"] = {"intruder_key": n.get_person_key(), "intruder_name": n.npc_name, "day": today(), "repelled": false}
+					break
 	# P6.10: Los sábados, los locales comerciales tuyos te pagan el 15 % de su caja
 	if inv != null and WorldClock != null and WorldClock.has_method("get_weekday") and int(WorldClock.get_weekday()) == 5:
 		var deeds: Dictionary = hs.get("commercial_deeds", {})
@@ -290,7 +338,7 @@ static func add_dialogue_choices(vm, npc, diag: Dictionary, ch_arr: Array) -> vo
 		if p_lot != "" and str(VillageLots.lot(vm, p_lot).get("status", "")) == "built":
 			var st: Dictionary = VillageLots.lot(vm, p_lot)
 			var up: Dictionary = st.get("upgrades", {})
-			for u in [["bookshelf", "📚 Estantería de estudio (+XP diaria)"], ["workbench", "⚗️ Banco de trabajo y alquimia"], ["oak_bed", "🛏️ Cama de roble macizo"], ["strong_lock", "🔒 Cerradura reforzada antirrobo"]]:
+			for u in [["bookshelf", "📚 Estantería de estudio (+XP diaria)"], ["workbench", "⚗️ Banco de trabajo y alquimia"], ["oak_bed", "🛏️ Cama de roble macizo"], ["strong_lock", "🔒 Cerradura reforzada antirrobo"], ["hidden_cellar", "🕳️🕯️ Sótano secreto para esconderte o destilar"], ["hearth", "🔥🪵 Hogar de leña caldeado (+salud y humor)"]]:
 				if not bool(up.get(u[0], false)):
 					opts.append({"label": "%s (-%d Oro)" % [u[1], int(UPGRADE_COSTS[u[0]])], "next": "END", "action": "housing_upgrade:" + u[0]})
 			if not bool(st.get("has_garden", false)):
@@ -304,6 +352,19 @@ static func add_dialogue_choices(vm, npc, diag: Dictionary, ch_arr: Array) -> vo
 			if str(st2.get("status", "")) == "built" and str(st2.get("kind", "")) == "house" and str(st2.get("payer", "")) in ["town", npc.get_person_key()]:
 				opts.append({"label": "🏘️🔑 Comprar la casa del solar %s para alquilarla (-%d Oro)" % [id2, FORECLOSED_COST], "next": "END", "action": "housing_buy_foreclosed:" + id2})
 				break
+
+	# Tanda 5 (21): Defender tu puerta y escarmentar a un intruso nocturno
+	if not (hs["intruder_attempt"] as Dictionary).is_empty() and not bool(hs["intruder_attempt"].get("repelled", false)):
+		opts.append({"label": "🚪🛡️ Defender tu puerta y escarmentar al intruso %s (hasta 15 Oro)" % str(hs["intruder_attempt"].get("intruder_name", "")), "next": "END", "action": "housing_repel_intruder"})
+
+	# Tanda 5 (22): Vender una casa tuya reformada al precio del barrio y sus mejoras
+	if is_carp or vm.VillageTown.is_mayor(vm, npc):
+		for lid3 in player_lots(vm, true):
+			opts.append({"label": "🏘️📈 Vender tu casa del solar %s (+%d Oro según atractivo y mejoras)" % [lid3, house_sale_price(vm, lid3)], "next": "END", "action": "housing_sell_house:" + lid3})
+
+	# Tanda 5 (23): Esconderte en tu sótano secreto si te buscan por un delito menor
+	if has_upgrade(vm, "hidden_cellar") and int(vm.wanted_level) == 1 and int(vm.player_murder_warrants_count) == 0:
+		opts.append({"label": "🕳️🤫 Esconderte en tu sótano secreto hasta que pase la búsqueda", "next": "END", "action": "housing_hide_cellar"})
 
 	# P6.9: Usar tu escondite secreto bajo las tablas (disponible cuando tienes escondite)
 	if bool(hs.get("has_stash", false)) and is_carp:
@@ -325,6 +386,9 @@ static func add_dialogue_choices(vm, npc, diag: Dictionary, ch_arr: Array) -> vo
 	# P6.8: Invitar a cenar a tu casa
 	if p_lot != "" and today() - int(hs.get("last_dinner_day", -99)) >= 3 and int(npc.affinity) >= 10:
 		opts.append({"label": "🍷🍽️ Invitarle a cenar a tu casa para estrechar lazos (-%d Oro)" % DINNER_COST, "next": "END", "action": "housing_dinner"})
+	# Tanda 4 (20): Fiestas en casa
+	if p_lot != "" and str(VillageLots.lot(vm, p_lot).get("status", "")) == "built" and int(hs.get("last_party_day", -99)) != today():
+		opts.append({"label": "🎉🍻 Organizar una fiesta en tu casa para los vecinos (-20 Oro en comida y bebida)", "next": "END", "action": "housing_party"})
 
 	# P6.10: Comprar la escritura del local comercial de un artesano
 	if npc.trade_role in VillageNPC.SHOP_ROLES and not (hs["commercial_deeds"] as Dictionary).has(str(int(npc.trade_role))):
@@ -461,13 +525,86 @@ static func on_player_action(vm, npc, action_id: String, inv) -> void:
 		VillageChronicle.add(vm, "dinner_party", "Invitaste a %s a cenar en tu casa" % npc.npc_name, true)
 		npc._spawn_floating_text("🍷🍽️ «¡Qué gran velada en tu casa!»", Color.SPRING_GREEN, -46.0)
 
-	elif action_id.begins_with("housing_deed:"):
-		if inv == null or int(inv.gold) < COMMERCIAL_DEED_COST:
-			npc._spawn_floating_text("Necesitas %d de oro para comprar el local" % COMMERCIAL_DEED_COST, Color.ORANGE_RED, -44.0)
+	elif action_id == "housing_party":
+		if inv == null or int(inv.gold) < 20:
+			npc._spawn_floating_text("Necesitas 20 de oro para la comida y bebida de la fiesta", Color.ORANGE_RED, -44.0)
 			return
-		inv.add_gold(-COMMERCIAL_DEED_COST)
-		npc.personal_gold += COMMERCIAL_DEED_COST
+		inv.add_gold(-20)
+		if vm.shop_businesses.has(int(VillageNPC.TradeRole.INNKEEPER)):
+			vm.shop_businesses[int(VillageNPC.TradeRole.INNKEEPER)]["vault_gold"] = int(vm.shop_businesses[int(VillageNPC.TradeRole.INNKEEPER)].get("vault_gold", 0)) + 20
+		else:
+			vm.town_state["treasury"] = int(vm.town_state.get("treasury", 0)) + 20
+		hs["last_party_day"] = today()
+		var guests: Array = [npc]
+		for o in VillageNeeds.living(vm):
+			if o != npc and int(o.trade_role) != int(VillageNPC.TradeRole.CHILD) and int(o.affinity) >= 10 and guests.size() < 4:
+				guests.append(o)
+		for g in guests:
+			g.modify_affinity(10)
+			g.add_thought("Fiesta memorable en casa del forastero (+10)", 10.0)
+		for i in range(guests.size()):
+			for j in range(i + 1, guests.size()):
+				guests[i].modify_npc_relationship(guests[j], 8, "Brindamos juntos en la fiesta del forastero", true)
+				guests[j].modify_npc_relationship(guests[i], 8, "Brindamos juntos en la fiesta del forastero", true)
+		VillageChronicle.add(vm, "house_party", "Celebraste una fiesta en tu casa con %d vecinos del valle" % guests.size(), true)
+		npc._spawn_floating_text("🎉🍻 «¡La mejor fiesta del valle! Todos se han reconciliado y brindan por ti.»", Color.SPRING_GREEN, -46.0)
+
+	elif action_id.begins_with("housing_deed:"):
+		var has_forged_deed: bool = "VillageUnderworld" in vm and vm.VillageUnderworld != null and bool(vm.VillageUnderworld.state(vm).get("forged_deed", false))
+		var d_cost: int = COMMERCIAL_DEED_COST - (40 if has_forged_deed else 0)
+		if inv == null or int(inv.gold) < d_cost:
+			npc._spawn_floating_text("Necesitas %d de oro para comprar el local" % d_cost, Color.ORANGE_RED, -44.0)
+			return
+		inv.add_gold(-d_cost)
+		npc.personal_gold += d_cost
+		if has_forged_deed:
+			vm.VillageUnderworld.state(vm)["forged_deed"] = false
 		hs["commercial_deeds"][arg] = true
 		npc.modify_affinity(12)
 		VillageChronicle.add(vm, "commercial_deed", "Compraste la propiedad del local de %s; cobrarás renta cada sábado" % npc.npc_name, true)
 		npc._spawn_floating_text("🏪📜 «El local ahora es tuyo. Te pagaré el 15 %% de la caja cada sábado.»", Color.GOLD, -46.0)
+
+	elif action_id == "housing_repel_intruder":
+		var ia: Dictionary = hs.get("intruder_attempt", {})
+		if ia.is_empty() or bool(ia.get("repelled", false)):
+			return
+		ia["repelled"] = true
+		var intruder = vm._get_npcs_by_person_key().get(str(ia.get("intruder_key", "")), null)
+		var paid: int = vm.VillageClans.pay_from_pocket(intruder, 15, inv) if intruder != null else 0
+		if intruder != null:
+			intruder.modify_affinity(-10)
+			intruder.add_thought("Me pillaron intentando forzar la puerta del forastero (-10)", -10.0)
+		VillageChronicle.add(vm, "intruder_repelled", "Escarmentaste a %s cuando intentaba forzar la puerta de tu casa (+%d Oro)" % [str(ia.get("intruder_name", "")), paid], true)
+		npc._spawn_floating_text("🚪🛡️ «¡Le diste una buena lección a %s en tu puerta! (+%d Oro)»" % [str(ia.get("intruder_name", "")), paid], Color.SPRING_GREEN, -46.0)
+
+	elif action_id.begins_with("housing_sell_house:"):
+		var st_sell: Dictionary = VillageLots.lot(vm, arg)
+		if str(st_sell.get("payer", "")) != "player":
+			return
+		var price: int = house_sale_price(vm, arg)
+		var buyer = null
+		for n in VillageNeeds.living(vm):
+			if int(n.trade_role) != int(VillageNPC.TradeRole.CHILD) and not str(n.lodging).begins_with("house:") and int(n.personal_gold) >= price:
+				buyer = n
+				break
+		var paid: int = 0
+		if buyer != null:
+			paid = vm.VillageClans.pay_from_pocket(buyer, price, inv)
+			st_sell["payer"] = buyer.get_person_key()
+		else:
+			var t_gold: int = int(vm.town_state.get("treasury", 0))
+			paid = mini(price, maxi(0, t_gold))
+			vm.town_state["treasury"] = t_gold - paid
+			if inv != null and paid > 0:
+				inv.add_gold(paid)
+			st_sell["payer"] = "town"
+		st_sell.erase("loan")
+		VillageChronicle.add(vm, "house_sold", "Vendiste tu casa del solar %s por %d de oro" % [arg, paid], true)
+		npc._spawn_floating_text("🏘️💰 «¡Casa del solar %s vendida por %d de oro!»" % [arg, paid], Color.GOLD, -46.0)
+
+	elif action_id == "housing_hide_cellar":
+		if not has_upgrade(vm, "hidden_cellar") or int(vm.wanted_level) != 1 or int(vm.player_murder_warrants_count) > 0:
+			return
+		vm.wanted_level = 0
+		VillageChronicle.add(vm, "hid_in_cellar", "Te escondiste en el sótano secreto de tu casa hasta que la guardia dejó de buscarte", true)
+		npc._spawn_floating_text("🕳️🤫 «La patrulla pasó de largo sin encontrarte en tu sótano secreto.»", Color.SPRING_GREEN, -46.0)

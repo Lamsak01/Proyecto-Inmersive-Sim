@@ -24,6 +24,8 @@ const AFFAIR_PREG_CHANCE: float = 0.03
 const BLACKMAIL_GOLD: int = 20
 const SUPPORT_GOLD: int = 5
 const PAST_DEBT_GOLD: int = 25
+const ARRANGED_DOWRY: int = 30
+const MIRADOR_POS: Vector2 = Vector2(-520.0, -290.0)
 
 static func state(vm) -> Dictionary:
 	if not (vm.family_state is Dictionary):
@@ -31,7 +33,7 @@ static func state(vm) -> Dictionary:
 	if not vm.family_state.has("lineage") or not (vm.family_state["lineage"] is Dictionary):
 		vm.family_state["lineage"] = {}
 	var st: Dictionary = vm.family_state["lineage"]
-	for k in ["secret_preg", "bastards", "foundlings", "sibling_rivalries", "gold_diggers", "estranged_past"]:
+	for k in ["secret_preg", "bastards", "foundlings", "sibling_rivalries", "gold_diggers", "estranged_past", "love_letters", "arranged_marriages", "godparents", "mentored_kids"]:
 		if not st.has(k) or not (st[k] is Dictionary):
 			st[k] = {}
 	return st
@@ -112,6 +114,21 @@ static func on_child_born(vm, mother, presumed_father, kid) -> void:
 	# P3.6: Si la madre no tiene pareja ni recursos (mendiga o en la calle), puede dejar al bebé en la Capilla del Alba
 	if (presumed_father == null or str(mother.person_profile.partner_id) == "") and (mother.is_vagrant_camper or int(mother.personal_gold) < 10):
 		leave_foundling_at_chapel(vm, mother, kid)
+	# Tanda 3 (12): Padrinos en el bautizo (amigo cercano de la familia o el jugador si hay gran aprecio)
+	var gp = null
+	var best_rel: int = 25
+	for o in VillageNeeds.living(vm):
+		if o != mother and o != presumed_father and o != kid and int(o.trade_role) != int(VillageNPC.TradeRole.CHILD) and str(o.family_id) != str(mother.family_id):
+			var r: int = mother.get_relationship_with_npc(o.get_person_key())
+			if r > best_rel:
+				best_rel = r
+				gp = o
+	if int(mother.affinity) >= 60:
+		st["godparents"][kk] = {"kid_key": kk, "kid_name": kid.npc_name, "godparent_key": "player", "godparent_name": "Jugador"}
+	elif gp != null:
+		st["godparents"][kk] = {"kid_key": kk, "kid_name": kid.npc_name, "godparent_key": gp.get_person_key(), "godparent_name": gp.npc_name}
+		gp.modify_npc_relationship(kid, 45, "Soy su padrino de bautizo", true)
+		kid.modify_npc_relationship(gp, 45, "Es mi padrino de bautizo", true)
 
 static func leave_foundling_at_chapel(vm, mother, kid) -> void:
 	var st: Dictionary = state(vm)
@@ -190,6 +207,10 @@ static func rename_child(vm, kid, new_surname: String) -> void:
 		st["bastards"][kk]["kid_name"] = new_name
 	if (st["foundlings"] as Dictionary).has(kk):
 		st["foundlings"][kk]["kid_name"] = new_name
+	if (st["godparents"] as Dictionary).has(kk):
+		st["godparents"][kk]["kid_name"] = new_name
+	if (st["mentored_kids"] as Dictionary).has(kk):
+		st["mentored_kids"][kk]["kid_name"] = new_name
 	for fam_k in (st["sibling_rivalries"] as Dictionary).keys():
 		var sr: Dictionary = st["sibling_rivalries"][fam_k]
 		if str(sr.get("a_name", "")) == old_name:
@@ -249,7 +270,7 @@ static func rename_child(vm, kid, new_surname: String) -> void:
 								q[qnk] = new_name
 	if "VillageForensics" in vm and vm.VillageForensics != null:
 		var fst: Dictionary = vm.VillageForensics.state(vm)
-		for dict_k in ["planted", "alibis", "tampered", "hitmen", "poisoned", "moved", "slips", "scapegoats"]:
+		for dict_k in ["planted", "alibis", "tampered", "hitmen", "poisoned", "moved", "slips", "scapegoats", "insurance", "tampered_time"]:
 			var sub: Dictionary = fst.get(dict_k, {})
 			if sub.has(old_name):
 				sub[new_name] = sub[old_name]
@@ -257,7 +278,7 @@ static func rename_child(vm, kid, new_surname: String) -> void:
 			for sk in sub.keys():
 				if sub[sk] is Dictionary:
 					var sd: Dictionary = sub[sk]
-					for fnk in ["framed_name", "killer_name", "ally_name", "witness_name", "mastermind_name", "hitman_name", "victim_name", "scapegoat_name"]:
+					for fnk in ["framed_name", "killer_name", "ally_name", "witness_name", "mastermind_name", "hitman_name", "victim_name", "scapegoat_name", "beneficiary_name"]:
 						if str(sd.get(fnk, "")) == old_name:
 							sd[fnk] = new_name
 	for n in VillageNeeds.living(vm):
@@ -272,7 +293,23 @@ static func _daily_paternity_and_support(vm) -> void:
 	var st: Dictionary = state(vm)
 	var by_key: Dictionary = vm._get_npcs_by_person_key()
 	var is_monday: bool = WorldClock != null and WorldClock.has_method("get_weekday") and int(WorldClock.get_weekday()) == 0
+	var is_sunday: bool = WorldClock != null and WorldClock.has_method("get_weekday") and int(WorldClock.get_weekday()) == 6
 	var pl = VillageNeeds.player_of(vm)
+	# Tanda 3 (12): Padrinos de bautizo (propina dominical de 2 de oro de su bolsillo y adopción si queda huérfano)
+	for gkk in (st["godparents"] as Dictionary).keys():
+		var gp_info: Dictionary = st["godparents"][gkk]
+		var g_kid = by_key.get(gkk, null)
+		if g_kid == null or g_kid.is_dead:
+			continue
+		var gp_key: String = str(gp_info.get("godparent_key", ""))
+		if gp_key != "player":
+			var gp_npc = by_key.get(gp_key, null)
+			if gp_npc != null and not gp_npc.is_dead:
+				if is_sunday and int(gp_npc.personal_gold) >= 6:
+					gp_npc.personal_gold -= 2
+					g_kid.personal_gold += 2
+				if is_orphan(vm, g_kid):
+					adopt_child_by_couple(vm, gp_npc, g_kid)
 	for kk in (st["bastards"] as Dictionary).keys():
 		var b: Dictionary = st["bastards"][kk]
 		if bool(b.get("revealed", false)):
@@ -339,9 +376,24 @@ static func adopt_child_by_player(vm, kid) -> void:
 	kid.add_thought("¡Tengo una familia! (+25)", 25.0)
 	VillageChronicle.add(vm, "player_adoption", "Adoptaste al pequeño %s como parte de tu hogar" % kid.npc_name, true)
 
-## P3.8: Llamado desde `VillageFamily.grow_up` cuando un joven cumple 16 años.
+## P3.8 y Tanda 3 (13): Llamado desde `VillageFamily.grow_up` cuando un joven cumple 16 años.
 static func on_child_grown_up(vm, youth) -> void:
 	var st: Dictionary = state(vm)
+	var yk: String = youth.get_person_key()
+	# Tanda 3 (13): Si le enseñaste un oficio de niño, empieza con experiencia y puesto de aprendiz
+	if (st["mentored_kids"] as Dictionary).has(yk):
+		youth.days_in_role = maxi(int(youth.days_in_role), 5)
+		youth.modify_affinity(15)
+		if int(youth.trade_role) == int(VillageNPC.TradeRole.UNEMPLOYED):
+			for tr_id in vm.trade_npcs.keys():
+				var master = vm.trade_npcs[tr_id]
+				if master != null and is_instance_valid(master) and not vm.family_npcs.has(int(tr_id)):
+					youth.trade_role = VillageNPC.TradeRole.FAMILY_MEMBER
+					youth.linked_trade = master.trade_role
+					vm.family_npcs[int(tr_id)] = youth
+					vm.unemployed_npcs.erase(youth)
+					break
+		VillageChronicle.add(vm, "mentored_grown", "%s cumplió 16 años con el oficio que le enseñaste de niño" % youth.npc_name, true)
 	var fam: String = str(youth.family_id)
 	if not VillageClans.valid_family(fam):
 		return
@@ -354,13 +406,60 @@ static func on_child_grown_up(vm, youth) -> void:
 			return
 
 # ==============================================================================
-# P3.9 y P3.10: Matrimonio por interés y Pasado familiar fuera del valle
+# P3.9, P3.10 y Tanda 3 (11, 14): Matrimonio por interés, Bodas concertadas y Mirador
 # ==============================================================================
+static func send_lovers_to_mirador(vm) -> int:
+	var cst: Dictionary = VillageClans.state(vm)
+	var by_key: Dictionary = vm._get_npcs_by_person_key()
+	var sent: int = 0
+	for pk in (cst["romeo_pairs"] as Dictionary).keys():
+		var rp: Dictionary = cst["romeo_pairs"][pk]
+		if bool(rp.get("helped", false)):
+			continue
+		var a = by_key.get(str(rp["a"]), null)
+		var b = by_key.get(str(rp["b"]), null)
+		if a != null and b != null and not a.is_dead and not b.is_dead:
+			a.start_errand("mirador_escape", MIRADOR_POS + Vector2(-8, 0))
+			b.start_errand("mirador_escape", MIRADOR_POS + Vector2(8, 0))
+			rp["at_mirador"] = true
+			sent += 1
+	return sent
+
 static func _daily_gold_diggers_and_past(vm) -> void:
 	var st: Dictionary = state(vm)
 	var sd = vm.social_director
 	if sd == null:
 		return
+	# Tanda 3 (11): Bodas concertadas con dote por padres pudientes o nobles
+	if (st["arranged_marriages"] as Dictionary).is_empty() and randf() < 0.25:
+		for parent in VillageNeeds.living(vm):
+			if int(parent.trade_role) == int(VillageNPC.TradeRole.CHILD) or not VillageClans.valid_family(str(parent.family_id)):
+				continue
+			if int(parent.personal_gold) < 60 and int(parent.trade_role) != int(VillageNPC.TradeRole.NOBLE):
+				continue
+			var youth = null
+			for m in VillageClans.clan_members(vm, str(parent.family_id), parent):
+				if m.person_profile != null and int(m.person_profile.age) >= 18 and str(m.person_profile.partner_id) == "":
+					youth = m
+					break
+			if youth == null:
+				continue
+			for suitor in VillageNeeds.living(vm):
+				if suitor == parent or suitor == youth or str(suitor.family_id) == str(parent.family_id):
+					continue
+				if suitor.person_profile != null and int(suitor.person_profile.age) >= 18 and str(suitor.person_profile.partner_id) == "" and str(suitor.person_profile.gender) != str(youth.person_profile.gender):
+					st["arranged_marriages"][parent.get_person_key()] = {
+						"parent_key": parent.get_person_key(), "parent_name": parent.npc_name,
+						"youth_key": youth.get_person_key(), "youth_name": youth.npc_name,
+						"suitor_key": suitor.get_person_key(), "suitor_name": suitor.npc_name,
+						"dowry": ARRANGED_DOWRY, "resolved": false
+					}
+					break
+			if not (st["arranged_marriages"] as Dictionary).is_empty():
+				break
+	# Tanda 3 (14): Si hay amantes prohibidos, se escapan al mirador
+	if not (VillageClans.state(vm)["romeo_pairs"] as Dictionary).is_empty():
+		send_lovers_to_mirador(vm)
 	# P3.9: Un soltero pobre y codicioso corteja a un rico o noble por interés
 	if (st["gold_diggers"] as Dictionary).size() < 2 and randf() < 0.12:
 		for n in VillageNeeds.living(vm):
@@ -402,13 +501,27 @@ static func _daily_gold_diggers_and_past(vm) -> void:
 				adopt_child_by_couple(vm, n, kid)
 				break
 
+static func _daily_love_letters(vm) -> void:
+	var st: Dictionary = state(vm)
+	for s in vm.secrets:
+		if not bool(s.get("active", false)) or str(s.get("type", "")) != "affair":
+			continue
+		var sid: String = str(int(s.get("id", -1)))
+		if not (st["love_letters"] as Dictionary).has(sid):
+			st["love_letters"][sid] = {
+				"secret_id": int(s["id"]), "sender_key": str(s["a"]), "sender_name": str(s["a_name"]),
+				"receiver_key": str(s["b"]), "receiver_name": str(s["b_name"]),
+				"intercepted": false, "handled": false
+			}
+
 static func daily(vm) -> void:
 	try_affair_conceptions(vm)
 	_daily_paternity_and_support(vm)
 	_daily_gold_diggers_and_past(vm)
+	_daily_love_letters(vm)
 
 # ==============================================================================
-# Diálogos con vecinos (P3.3, P3.4, P3.7, P3.8, P3.9, P3.10)
+# Diálogos con vecinos (P3.3, P3.4, P3.7, P3.8, P3.9, P3.10 + Tanda 2: 10)
 # ==============================================================================
 static func add_dialogue_choices(vm, npc, diag: Dictionary, ch_arr: Array) -> void:
 	if vm == null or npc == null:
@@ -453,6 +566,50 @@ static func add_dialogue_choices(vm, npc, diag: Dictionary, ch_arr: Array) -> vo
 	if (st["estranged_past"] as Dictionary).has(key) and not bool(st["estranged_past"][key].get("resolved", false)):
 		opts.append({"label": "🤝💰 Ayudarle a saldar la deuda con su antigua familia (-%d Oro)" % PAST_DEBT_GOLD, "next": "END", "action": "lineage_past_help:" + key})
 		opts.append({"label": "📢 Presionarle con su pasado oculto fuera del valle (hasta 15 Oro)", "next": "END", "action": "lineage_past_press:" + key})
+
+	# Tanda 2 (10): Interceptar cartas de amantes (sin revelar al destinatario antes de interceptarla)
+	var p_id: String = str(npc.person_profile.partner_id) if npc.person_profile != null else ""
+	for sid in (st["love_letters"] as Dictionary).keys():
+		var ll: Dictionary = st["love_letters"][sid]
+		if bool(ll.get("handled", false)):
+			continue
+		if not bool(ll.get("intercepted", false)):
+			if key == str(ll["sender_key"]):
+				opts.append({"label": "✉️🕵️ Interceptar la carta que lleva escondida en el bolsillo", "next": "END", "action": "lineage_intercept_letter:" + sid})
+		else:
+			if key == str(ll["receiver_key"]):
+				opts.append({"label": "✉️💘 Entregarle en secreto la carta de amor de %s (hasta 12 Oro)" % str(ll["sender_name"]), "next": "END", "action": "lineage_deliver_letter:" + sid})
+			elif p_id != "" and (p_id == str(ll["sender_key"]) or p_id == str(ll["receiver_key"])):
+				opts.append({"label": "✉️💔 Mostrarle la carta de amor entre %s y %s (hasta 15 Oro)" % [str(ll["sender_name"]), str(ll["receiver_name"])], "next": "END", "action": "lineage_expose_letter:" + sid})
+
+	# Tanda 3 (11): Bodas concertadas con dote
+	for apk in (st["arranged_marriages"] as Dictionary).keys():
+		var am: Dictionary = st["arranged_marriages"][apk]
+		if bool(am.get("resolved", false)):
+			continue
+		if key == str(am["parent_key"]):
+			opts.append({"label": "💍💰 Mediar para cerrar la boda concertada de %s con %s (dote de %d Oro)" % [str(am["youth_name"]), str(am["suitor_name"]), int(am["dowry"])], "next": "END", "action": "lineage_arrange_wed:" + apk})
+		elif key == str(am["youth_key"]):
+			opts.append({"label": "💔🕊️ Ayudarle a rechazar la boda concertada con %s (hasta 12 Oro)" % str(am["suitor_name"]), "next": "END", "action": "lineage_arrange_refuse:" + apk})
+
+	# Tanda 3 (12): Padrinos en el bautizo (ofrecerte como padrino si los padres te aprecian)
+	if int(npc.affinity) >= 40 and VillageClans.valid_family(fam):
+		for kid_c in vm.VillageFamily.children_of_family(vm, fam):
+			var gkk: String = kid_c.get_person_key()
+			if str((st["godparents"].get(gkk, {}) as Dictionary).get("godparent_key", "")) != "player":
+				opts.append({"label": "🕯️👶 Ofrecerte como padrino de bautizo de %s (-10 Oro de regalo)" % kid_c.npc_name, "next": "END", "action": "lineage_become_godparent:" + gkk})
+
+	# Tanda 3 (13): Enseñar un oficio a un niño
+	if vm.VillageFamily.is_child(npc) and npc.person_profile != null and int(npc.person_profile.age) >= 7 and not (st["mentored_kids"] as Dictionary).has(key):
+		opts.append({"label": "🛠️📚 Enseñarle nociones de oficio y comercio a %s" % npc.npc_name, "next": "END", "action": "lineage_mentor_child:" + key})
+
+	# Tanda 3 (14): Jóvenes que se escapan de noche al mirador (sin revelar en el menú con quién se ve)
+	var cst_m: Dictionary = VillageClans.state(vm)
+	for rpk in (cst_m["romeo_pairs"] as Dictionary).keys():
+		var rp_m: Dictionary = cst_m["romeo_pairs"][rpk]
+		if bool(rp_m.get("at_mirador", false)) and not bool(rp_m.get("mirador_seen", false)):
+			if key == str(rp_m["a"]) or key == str(rp_m["b"]):
+				opts.append({"label": "🌙👀 Preguntarle qué hace escapándose de noche al mirador del lago", "next": "END", "action": "lineage_catch_mirador:" + rpk})
 
 	if not opts.is_empty():
 		opts.append({"label": "⬅️ Volver", "next": "start"})
@@ -502,6 +659,19 @@ static func on_player_action(vm, npc, action_id: String, inv) -> void:
 			chosen.modify_affinity(18)
 			chosen.modify_npc_relationship(other, 15, "Zanjamos la disputa por el taller", true)
 			other.modify_npc_relationship(chosen, 15, "Zanjamos la disputa por el taller", true)
+			for m in VillageClans.clan_members(vm, arg):
+				if vm.trade_npcs.get(int(m.trade_role), null) == m:
+					var tr_id: int = int(m.trade_role)
+					if other != null and int(other.trade_role) == int(VillageNPC.TradeRole.FAMILY_MEMBER):
+						other.trade_role = VillageNPC.TradeRole.UNEMPLOYED
+						other.linked_trade = VillageNPC.TradeRole.UNEMPLOYED
+						if not vm.unemployed_npcs.has(other):
+							vm.unemployed_npcs.append(other)
+					chosen.trade_role = VillageNPC.TradeRole.FAMILY_MEMBER
+					chosen.linked_trade = m.trade_role
+					vm.family_npcs[tr_id] = chosen
+					vm.unemployed_npcs.erase(chosen)
+					break
 		var s_tip: int = VillageClans.pay_from_pocket(chosen, 15, inv)
 		npc._spawn_floating_text("⚖️ «Queda decidido quién llevará el taller familiar.»%s" % (" (+%d Oro)" % s_tip if s_tip > 0 else ""), Color.GOLD, -46.0)
 
@@ -535,3 +705,97 @@ static func on_player_action(vm, npc, action_id: String, inv) -> void:
 		var pay: int = VillageClans.pay_from_pocket(npc, 15, inv)
 		npc.modify_affinity(-15)
 		npc._spawn_floating_text("😠 «Toma %d de oro y no te metas en mi vida pasada.»" % pay, Color.GOLD, -46.0)
+
+	elif action_id.begins_with("lineage_intercept_letter:"):
+		if not (st["love_letters"] as Dictionary).has(arg):
+			return
+		var ll: Dictionary = st["love_letters"][arg]
+		ll["intercepted"] = true
+		for s in vm.secrets:
+			if int(s.get("id", -2)) == int(ll.get("secret_id", -1)):
+				s["player_knows"] = true
+		npc._spawn_floating_text("✉️🕵️ Interceptaste una carta de amor de %s para %s." % [str(ll["sender_name"]), str(ll["receiver_name"])], Color(0.9, 0.8, 1.0), -46.0)
+
+	elif action_id.begins_with("lineage_deliver_letter:"):
+		if not (st["love_letters"] as Dictionary).has(arg):
+			return
+		var ll2: Dictionary = st["love_letters"][arg]
+		ll2["handled"] = true
+		var l_tip: int = VillageClans.pay_from_pocket(npc, 12, inv)
+		npc.modify_affinity(12)
+		npc._spawn_floating_text("✉️💘 «¡Shh, gracias por traérmela sin que nadie la viera!»%s" % (" (+%d Oro)" % l_tip if l_tip > 0 else ""), Color.SPRING_GREEN, -46.0)
+
+	elif action_id.begins_with("lineage_expose_letter:"):
+		if not (st["love_letters"] as Dictionary).has(arg):
+			return
+		var ll3: Dictionary = st["love_letters"][arg]
+		ll3["handled"] = true
+		for s in vm.secrets:
+			if int(s.get("id", -2)) == int(ll3.get("secret_id", -1)) and bool(s.get("active", false)):
+				VillageSecrets.partner_reaction(vm, s, npc, str(ll3["sender_name"]), str(ll3["receiver_name"]), "una carta de amor interceptada")
+		var e_tip: int = VillageClans.pay_from_pocket(npc, 15, inv)
+		npc.modify_affinity(10)
+		npc._spawn_floating_text("✉️💔 «¡Con su propia letra! ¡Gracias por abrirme los ojos!»%s" % (" (+%d Oro)" % e_tip if e_tip > 0 else ""), Color.ORANGE_RED, -46.0)
+
+	elif action_id.begins_with("lineage_arrange_wed:"):
+		if not (st["arranged_marriages"] as Dictionary).has(arg):
+			return
+		var am: Dictionary = st["arranged_marriages"][arg]
+		am["resolved"] = true
+		var parent = by_key.get(str(am["parent_key"]), null)
+		var youth = by_key.get(str(am["youth_key"]), null)
+		var suitor = by_key.get(str(am["suitor_key"]), null)
+		var dowry_total: int = clampi(int(parent.personal_gold) if parent != null else 0, 0, int(am.get("dowry", ARRANGED_DOWRY)))
+		if parent != null:
+			parent.personal_gold -= dowry_total
+			parent.modify_affinity(15)
+		var broker_fee: int = dowry_total / 2
+		var couple_share: int = dowry_total - broker_fee
+		if youth != null and suitor != null:
+			youth.personal_gold += couple_share
+			vm.VillageFamily.marry(youth, suitor)
+		if inv != null and broker_fee > 0:
+			inv.add_gold(broker_fee)
+		VillageChronicle.add(vm, "arranged_marriage", "Se celebró la boda concertada entre %s y %s con %d de oro de dote" % [str(am["youth_name"]), str(am["suitor_name"]), dowry_total], true)
+		npc._spawn_floating_text("💍💰 «Queda sellada la unión de las familias. Toma %d de oro de la dote por mediar.»" % broker_fee, Color.GOLD, -46.0)
+
+	elif action_id.begins_with("lineage_arrange_refuse:"):
+		if not (st["arranged_marriages"] as Dictionary).has(arg):
+			return
+		var am2: Dictionary = st["arranged_marriages"][arg]
+		am2["resolved"] = true
+		var r_tip: int = VillageClans.pay_from_pocket(npc, 12, inv)
+		npc.modify_affinity(20)
+		VillageClans.grant_honor_debt(vm, npc, "le ayudó a librarse de una boda concertada")
+		npc._spawn_floating_text("💔🕊️ «¡Gracias! No quería casarme por obligación.»%s" % (" (+%d Oro)" % r_tip if r_tip > 0 else ""), Color.SPRING_GREEN, -46.0)
+
+	elif action_id.begins_with("lineage_become_godparent:"):
+		if inv == null or int(inv.gold) < 10:
+			npc._spawn_floating_text("Necesitas 10 de oro para el regalo de bautizo", Color.ORANGE_RED, -44.0)
+			return
+		var g_kid = by_key.get(arg, null)
+		if g_kid == null:
+			return
+		inv.add_gold(-10)
+		g_kid.personal_gold += 10
+		st["godparents"][arg] = {"kid_key": arg, "kid_name": g_kid.npc_name, "godparent_key": "player", "godparent_name": "Jugador"}
+		npc.modify_affinity(18)
+		g_kid.modify_affinity(35)
+		VillageChronicle.add(vm, "player_godparent", "Apadrinaste en el bautizo al pequeño %s" % g_kid.npc_name, true)
+		npc._spawn_floating_text("🕯️👶 «¡Será un honor que seas el padrino de %s!»" % g_kid.npc_name, Color.SPRING_GREEN, -46.0)
+
+	elif action_id.begins_with("lineage_mentor_child:"):
+		st["mentored_kids"][arg] = {"kid_key": arg, "kid_name": npc.npc_name, "day": today()}
+		npc.modify_affinity(18)
+		npc.add_thought("Aprendí nociones de oficio (+10)", 10.0)
+		npc._spawn_floating_text("🛠️📚 «¡Gracias! Cuando cumpla 16 años sabré trabajar en un taller de verdad.»", Color.SPRING_GREEN, -46.0)
+
+	elif action_id.begins_with("lineage_catch_mirador:"):
+		var cst_c: Dictionary = VillageClans.state(vm)
+		if not (cst_c["romeo_pairs"] as Dictionary).has(arg):
+			return
+		var rp_c: Dictionary = cst_c["romeo_pairs"][arg]
+		rp_c["mirador_seen"] = true
+		var m_tip: int = VillageClans.pay_from_pocket(npc, 10, inv)
+		var other_n: String = str(rp_c["b_name"]) if npc.get_person_key() == str(rp_c["a"]) else str(rp_c["a_name"])
+		npc._spawn_floating_text("🌙😳 «¡Chist, no grites! Me veo aquí en secreto con %s...»%s" % [other_n, (" (+%d Oro por callar)" % m_tip if m_tip > 0 else "")], Color(0.95, 0.80, 1.0), -46.0)

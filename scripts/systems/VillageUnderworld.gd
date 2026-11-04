@@ -85,7 +85,60 @@ static func state(vm) -> Dictionary:
 		st["last_fight_day"] = -1
 	if not st.has("pending_poison") or not (st["pending_poison"] is Dictionary):
 		st["pending_poison"] = {} # person_key -> {"name", "die_day"}
+	if not st.has("caravan_gold"):
+		st["caravan_gold"] = 70
+	if not st.has("caravan_busted_day"):
+		st["caravan_busted_day"] = -99
+	if not st.has("pickpockets") or not (st["pickpockets"] is Dictionary):
+		st["pickpockets"] = {} # person_key -> {"name", "recruited_day"}
+	if not st.has("forged_deed"):
+		st["forged_deed"] = false
 	return st
+
+## Tanda 6 (26): Timba clandestina de dados por 10 de oro contra el bolsillo real del vecino.
+static func play_dice_bet(vm, npc, inv, force_win: int = 0) -> int:
+	if inv == null or int(inv.gold) < 10 or npc == null or int(npc.personal_gold) < 10:
+		return 0
+	var p_roll: int = randi_range(2, 12)
+	var n_roll: int = randi_range(2, 12)
+	if force_win > 0:
+		p_roll = 12
+		n_roll = 2
+	elif force_win < 0:
+		p_roll = 2
+		n_roll = 12
+	if p_roll >= n_roll:
+		return VillageClans.pay_from_pocket(npc, 10, inv)
+	inv.add_gold(-10)
+	npc.personal_gold += 10
+	return -10
+
+## Tanda 6 (27): Tu red de carteristas sisa monedas del bolsillo del vecino más rico y reparte el botín a medias contigo.
+static func run_pickpocket_network(vm, inv) -> int:
+	var st: Dictionary = state(vm)
+	var pps: Dictionary = st.get("pickpockets", {})
+	if pps.is_empty():
+		return 0
+	var by_key: Dictionary = vm._get_npcs_by_person_key()
+	var total_player_cut: int = 0
+	for pk in pps.keys():
+		var pp_npc = by_key.get(str(pk), null)
+		if pp_npc == null or not is_instance_valid(pp_npc) or pp_npc.is_dead:
+			pps.erase(pk)
+			continue
+		var target = null
+		var best_g: int = 5
+		for cand in VillageNeeds.living(vm):
+			if cand != pp_npc and not (int(cand.trade_role) in [int(VillageNPC.TradeRole.SHERIFF), int(VillageNPC.TradeRole.GUARD), int(VillageNPC.TradeRole.CHILD)]) and int(cand.personal_gold) > best_g:
+				best_g = int(cand.personal_gold)
+				target = cand
+		if target != null and int(target.personal_gold) >= 6:
+			target.personal_gold -= 6
+			pp_npc.personal_gold += 3
+			if inv != null:
+				inv.add_gold(3)
+			total_player_cut += 3
+	return total_player_cut
 
 static func today() -> int:
 	return int(WorldClock.current_day) if WorldClock else 1
@@ -235,6 +288,12 @@ static func daily(vm) -> void:
 		pv.last_hit_by_player = false
 		pv._confirm_true_death()
 
+	# Tanda 6 (27): Tu red de carteristas reparte contigo el botín diario
+	if inv != null:
+		var pp_cut: int = run_pickpocket_network(vm, inv)
+		if pp_cut > 0:
+			VillageChronicle.add(vm, "pickpocket_cut", "Tu red de carteristas te entregó tu parte del botín diario (+%d de oro)" % pp_cut, false)
+
 	# P7.6 y P7.10: Los sábados (weekday == 5), cobras las extorsiones de protección y tu tributo de Jefe del Hampa
 	var is_sat: bool = WorldClock != null and WorldClock.has_method("get_weekday") and int(WorldClock.get_weekday()) == 5
 	if is_sat and inv != null:
@@ -303,6 +362,24 @@ static func add_dialogue_choices(vm, npc, diag: Dictionary, ch_arr: Array) -> vo
 		var rackets_cnt: int = (st.get("rackets", {}) as Dictionary).size()
 		if str(st.get("boss", "fence")) != "player" and (int(st.get("heists_done", 0)) + rackets_cnt) >= 2:
 			opts.append({"label": "👑🌑 Imponer tu ley y convertirte en el Jefe del Hampa (+12 Oro/semana)", "next": "END", "action": "underworld_takeover_boss"})
+		# Tanda 5 (25): Caravana de contrabando de medianoche
+		if int(st.get("caravan_busted_day", -99)) != today():
+			opts.append({"label": "🐪🌙 Comprar lote de contrabando a la caravana de medianoche (-25 Oro -> +2 polvo de ocaso)", "next": "END", "action": "underworld_caravan_buy"})
+			if get_item_count(vm, "dusk_dust") > 0 and int(st.get("caravan_gold", 0)) >= 35:
+				opts.append({"label": "🐪💰 Vender «polvo de ocaso» a la caravana de medianoche (+35 Oro)", "next": "END", "action": "underworld_caravan_sell"})
+		# Tanda 6 (28 y 29): Falsificar escritura municipal y retar al jefe de la «Red de las Sombras»
+		if not bool(st.get("forged_deed", false)):
+			opts.append({"label": "📜🖋️ Encargar una escritura municipal falsificada (-25 Oro -> ahorra 40 al comprar casa o local)", "next": "END", "action": "underworld_forge_deed"})
+		if str(st.get("boss", "fence")) != "player":
+			opts.append({"label": "🗡️👑 Retar cara a cara al jefe de la «Red de las Sombras» por el control del hampa", "next": "END", "action": "underworld_challenge_boss"})
+
+	# Tanda 6 (26): Timbas clandestinas de dados por 10 de oro
+	if not is_law and not is_priest and int(npc.personal_gold) >= 10 and (is_night_market_hours() or fence_here or "Tahúr" in (npc.person_profile.personality if npc.person_profile != null else [])):
+		opts.append({"label": "🎲🪙 Echar una timba clandestina de dados por 10 de oro", "next": "END", "action": "underworld_dice_bet"})
+
+	# Tanda 6 (27): Reclutar vecinos sin oficio en tu red de carteristas
+	if not is_law and not is_priest and not fence_here and int(npc.trade_role) == int(VillageNPC.TradeRole.UNEMPLOYED) and int(npc.personal_gold) < 25 and not (st.get("pickpockets", {}) as Dictionary).has(key):
+		opts.append({"label": "🧤🪙 Reclutarle en tu red de carteristas (-10 Oro de adelanto -> te dará 3 Oro/día del botín)", "next": "END", "action": "underworld_recruit_pickpocket"})
 
 	# P7.3b: Vender polvo de ocaso a ricos, nobles o adictos
 	if get_item_count(vm, "dusk_dust") > 0 and not is_law and not is_priest:
@@ -339,6 +416,8 @@ static func add_dialogue_choices(vm, npc, diag: Dictionary, ch_arr: Array) -> vo
 		var fence = get_fence_npc(vm)
 		if fence != null and bool(st.get("known_fence", false)):
 			opts.append({"label": "🚨🕵️ Delatar el mercado negro de %s ante la ley (+45 Oro)" % fence.npc_name, "next": "END", "action": "underworld_report_fence"})
+		if bool(st.get("known_fence", false)) and int(st.get("caravan_busted_day", -99)) != today() and int(st.get("caravan_gold", 0)) >= 20:
+			opts.append({"label": "🚨🐪 Avisar a la guardia de la ruta de la caravana de contrabando", "next": "END", "action": "underworld_caravan_report"})
 
 	if not opts.is_empty():
 		opts.append({"label": "⬅️ Volver", "next": "start"})
@@ -579,3 +658,83 @@ static func on_player_action(vm, npc, action_id: String, inv) -> void:
 		npc.modify_affinity(15)
 		VillageChronicle.add(vm, "underworld_boss", "Te hiciste con el mando de los bajos fondos como nuevo Jefe del Hampa", false)
 		npc._spawn_floating_text("👑🌑 «Tú mandas ahora en las sombras. Cada sábado recibirás tu tributo de 12 de oro.»", Color.GOLD, -46.0)
+
+	elif action_id == "underworld_caravan_buy":
+		if inv == null or int(inv.gold) < 25 or int(st.get("caravan_busted_day", -99)) == d_now:
+			npc._spawn_floating_text("Necesitas 25 de oro para el lote de la caravana", Color.ORANGE_RED, -44.0)
+			return
+		inv.add_gold(-25)
+		st["caravan_gold"] = int(st.get("caravan_gold", 0)) + 25
+		add_item(vm, "dusk_dust", 2)
+		VillageChronicle.add(vm, "caravan_bought", "Compraste en secreto un lote de «polvo de ocaso» a la caravana de medianoche (-25 Oro)", false)
+		npc._spawn_floating_text("🐪🌙 «La caravana te entrega 2 dosis puras sin pasar por aduana.»", Color.GOLD, -46.0)
+
+	elif action_id == "underworld_caravan_sell":
+		if get_item_count(vm, "dusk_dust") <= 0 or int(st.get("caravan_gold", 0)) < 35 or int(st.get("caravan_busted_day", -99)) == d_now:
+			return
+		add_item(vm, "dusk_dust", -1)
+		st["caravan_gold"] = int(st.get("caravan_gold", 0)) - 35
+		if inv != null:
+			inv.add_gold(35)
+		VillageChronicle.add(vm, "caravan_sold", "Vendiste mercancía prohibida a la caravana de contrabando de medianoche (+35 Oro)", false)
+		npc._spawn_floating_text("🐪💰 «Los mercaderes de la caravana te pagan 35 de oro al contado.»", Color.GOLD, -46.0)
+
+	elif action_id == "underworld_caravan_report":
+		var conf: int = maxi(0, int(st.get("caravan_gold", 0)))
+		if conf <= 0 or int(st.get("caravan_busted_day", -99)) == d_now:
+			return
+		st["caravan_gold"] = 0
+		st["caravan_busted_day"] = d_now
+		var rew: int = mini(25, conf)
+		if inv != null and rew > 0:
+			inv.add_gold(rew)
+		vm.town_state["treasury"] = int(vm.town_state.get("treasury", 0)) + (conf - rew)
+		npc.modify_affinity(12)
+		vm.VillageFaith.add_rep(vm, "law", 10)
+		VillageChronicle.add(vm, "caravan_busted", "Delataste la ruta de la caravana de contrabando; la guardia incautó %d de oro (recompensa +%d Oro)" % [conf, rew], true)
+		npc._spawn_floating_text("🚨🐪 «¡Emboscamos a la caravana en el paso! Toma %d de oro de lo incautado.»" % rew, Color.SPRING_GREEN, -46.0)
+
+	elif action_id == "underworld_dice_bet":
+		var net: int = play_dice_bet(vm, npc, inv)
+		if net > 0:
+			npc._spawn_floating_text("🎲💰 ¡Buenos dados! Le ganaste %d de oro a %s." % [net, npc.npc_name], Color.GOLD, -46.0)
+		elif net < 0:
+			npc._spawn_floating_text("🎲😠 Mala tirada. %s se embolsa tus 10 monedas." % npc.npc_name, Color.ORANGE_RED, -46.0)
+		else:
+			npc._spawn_floating_text("Ambos necesitáis al menos 10 de oro en el bolsillo para apostar", Color.ORANGE_RED, -44.0)
+
+	elif action_id == "underworld_recruit_pickpocket":
+		if inv == null or int(inv.gold) < 10 or (st.get("pickpockets", {}) as Dictionary).has(key):
+			npc._spawn_floating_text("Necesitas 10 de oro de adelanto para reclutarle", Color.ORANGE_RED, -44.0)
+			return
+		inv.add_gold(-10)
+		npc.personal_gold += 10
+		st["pickpockets"][key] = {"name": npc.npc_name, "recruited_day": d_now}
+		npc.modify_affinity(10)
+		VillageChronicle.add(vm, "pickpocket_recruited", "Reclutaste a %s en tu red de carteristas" % npc.npc_name, false)
+		npc._spawn_floating_text("🧤🤫 «Mis dedos son rápidos. Cada día te daré la mitad de lo que sise.»", Color.GOLD, -46.0)
+
+	elif action_id == "underworld_forge_deed":
+		if inv == null or int(inv.gold) < 25 or bool(st.get("forged_deed", false)):
+			npc._spawn_floating_text("Necesitas 25 de oro para falsificar el sello municipal", Color.ORANGE_RED, -44.0)
+			return
+		inv.add_gold(-25)
+		npc.personal_gold += 25
+		st["forged_deed"] = true
+		VillageChronicle.add(vm, "deed_forged", "Encargaste en el mercado negro una escritura con sello municipal falsificado (-25 Oro)", false)
+		npc._spawn_floating_text("📜🖋️ «Ni el alcalde distinguirá este lacre. Te ahorrarás 40 monedas en tu próxima compra.»", Color.GOLD, -46.0)
+
+	elif action_id == "underworld_challenge_boss":
+		if str(st.get("boss", "fence")) == "player":
+			return
+		var pl_c = VillageNeeds.player_of(vm)
+		var hc_c = pl_c.get("health_comp") if pl_c != null else null
+		var hp_ok: bool = hc_c == null or not ("max_health" in hc_c) or float(hc_c.current_health) >= 0.4 * float(hc_c.max_health)
+		if not hp_ok:
+			npc._spawn_floating_text("🗡️🩸 Estás demasiado malherido para retar al jefe de la Red de las Sombras", Color.ORANGE_RED, -46.0)
+			return
+		st["boss"] = "player"
+		var spoils: int = VillageClans.pay_from_pocket(npc, 25, inv)
+		npc.modify_affinity(12)
+		VillageChronicle.add(vm, "shadow_boss_defeated", "Derrotaste al jefe de la «Red de las Sombras» y tomaste el mando del hampa (+%d Oro)" % spoils, false)
+		npc._spawn_floating_text("🗡️👑 «¡Basta, me rindo! La Red de las Sombras es tuya (+%d Oro y 12/semana).»" % spoils, Color.GOLD, -46.0)

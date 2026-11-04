@@ -176,6 +176,7 @@ static func _finish_live_fight(vm: VillageManager, fight: Dictionary, a: Village
 			witnesses += 1
 	(vm.record_social_event("fight", winner, loser, summary)["known_by"] as Dictionary).merge(knowers)
 	vm.VillageClans.register_clan_clash(vm, a, b, "pelea callejera") # P1.3: enemistad entre familias por peleas
+	vm.VillageMayor.apply_peace_tax(vm, a, b) # Tanda 4 (19): decreto de Tributo de paz (multa a las arcas por pelearse)
 
 ## T4: quien propone quedar se elige al azar, pero los sociables proponen más a menudo (peso 0,3–2).
 static func pick_hangout_initiator(eligible: Array[VillageNPC]) -> VillageNPC:

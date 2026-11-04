@@ -35,7 +35,7 @@ static func state(vm) -> Dictionary:
 	if not vm.family_state.has("clans") or not (vm.family_state["clans"] is Dictionary):
 		vm.family_state["clans"] = {}
 	var st: Dictionary = vm.family_state["clans"]
-	for k in ["feuds", "clashes", "feud_player", "romeo_pairs", "orphan_killers", "disowned", "honor_debts", "wills", "desecrated_graves", "dead_enemies"]:
+	for k in ["feuds", "clashes", "feud_player", "romeo_pairs", "orphan_killers", "disowned", "honor_debts", "wills", "desecrated_graves", "dead_enemies", "clan_sabotages", "patriarch_swayed"]:
 		if not st.has(k) or not (st[k] is Dictionary):
 			st[k] = {}
 	return st
@@ -54,6 +54,19 @@ static func clan_members(vm, fam: String, exclude = null) -> Array:
 		if n != exclude and str(n.family_id) == fam:
 			out.append(n)
 	return out
+
+## Devuelve el patriarca o matriarca del clan (el adulto vivo de mayor edad).
+static func patriarch_of(vm, fam: String):
+	var best = null
+	var best_age: int = -1
+	for m in clan_members(vm, fam):
+		if int(m.trade_role) == int(VillageNPC.TradeRole.CHILD):
+			continue
+		var age: int = int(m.person_profile.age) if m.person_profile != null else 30
+		if age > best_age:
+			best_age = age
+			best = m
+	return best
 
 static func relatives_of(vm, npc) -> Array:
 	var out: Array = clan_members(vm, str(npc.family_id), npc)
@@ -441,13 +454,40 @@ static func _daily_grave_desecration(vm) -> void:
 				VillageChronicle.add(vm, "grave_profaned", "Alguien profanó de noche la lápida de %s en el cementerio" % v_name, true)
 				return
 
+static func _daily_clan_sabotage(vm) -> void:
+	var st: Dictionary = state(vm)
+	if (st["feuds"] as Dictionary).is_empty() or randf() >= 0.30:
+		return
+	for fk in (st["feuds"] as Dictionary).keys():
+		var f: Dictionary = st["feuds"][fk]
+		for pair in [[str(f["fam_a"]), str(f["fam_b"])], [str(f["fam_b"]), str(f["fam_a"])]]:
+			var saboteur = null
+			for m in clan_members(vm, pair[0]):
+				if int(m.trade_role) != int(VillageNPC.TradeRole.CHILD) and TraitCatalog.npc_tendency(m, "malice") + TraitCatalog.npc_tendency(m, "grudge") >= 0.1:
+					saboteur = m
+					break
+			if saboteur == null:
+				continue
+			for vic in clan_members(vm, pair[1]):
+				var r_id: int = int(vic.trade_role)
+				if vm.shop_businesses.has(r_id) and not (st["clan_sabotages"] as Dictionary).has(str(r_id)):
+					vm.shop_businesses[r_id]["sabotaged_days"] = int(vm.shop_businesses[r_id].get("sabotaged_days", 0)) + 1
+					st["clan_sabotages"][str(r_id)] = {
+						"role_id": r_id, "victim_key": vic.get_person_key(), "victim_name": vic.npc_name,
+						"victim_fam": pair[1], "saboteur_key": saboteur.get_person_key(), "saboteur_name": saboteur.npc_name,
+						"saboteur_fam": pair[0], "discovered": false, "reported": false, "day": today()
+					}
+					VillageChronicle.add(vm, "clan_sabotage", "Alguien saboteó de noche el negocio de %s por el feudo entre clanes" % vic.npc_name, true)
+					return
+
 static func daily(vm) -> void:
 	_daily_forbidden_romances(vm)
 	_daily_disown_check(vm)
 	_daily_grave_desecration(vm)
+	_daily_clan_sabotage(vm)
 
 # ==============================================================================
-# Diálogo con los vecinos (P1.3, P1.4, P1.6, P1.8, P1.9, P1.10)
+# Diálogo con los vecinos (P1.3, P1.4, P1.6, P1.8, P1.9, P1.10 + Tanda 2: 8 y 9)
 # ==============================================================================
 static func add_dialogue_choices(vm, npc, diag: Dictionary, ch_arr: Array) -> void:
 	if vm == null or npc == null:
@@ -489,6 +529,18 @@ static func add_dialogue_choices(vm, npc, diag: Dictionary, ch_arr: Array) -> vo
 		var dg: Dictionary = st["desecrated_graves"][v_name]
 		if not bool(dg.get("cleaned", false)):
 			sub.append({"label": "🪦 Ofrecerte a limpiar la lápida profanada de %s y buscar huellas" % v_name, "next": "END", "action": "clan_grave_fix:" + v_name})
+	# Tanda 2 (8): Patriarca/matriarca del clan (el mayor de la familia orienta alianzas y votos de todo el clan)
+	if valid_family(fam) and patriarch_of(vm, fam) == npc and int(npc.affinity) >= 45 and int(st["patriarch_swayed"].get(fam, -10)) != today():
+		sub.append({"label": "👑🤝 Pedirle como patriarca/matriarca que alinee el voto y la alianza de su clan contigo", "next": "END", "action": "clan_patriarch_sway:" + fam})
+	# Tanda 2 (9): Sabotajes nocturnos entre clanes enemistados (primero inspeccionar sin revelar al autor; luego denunciar)
+	var rk_self: String = str(int(npc.trade_role))
+	if (st["clan_sabotages"] as Dictionary).has(rk_self) and not bool(st["clan_sabotages"][rk_self].get("discovered", false)):
+		sub.append({"label": "🔧🔍 Inspeccionar las cerraduras y herramientas dañadas anoche en su taller", "next": "END", "action": "clan_inspect_sabotage:" + rk_self})
+	if int(npc.trade_role) in [int(VillageNPC.TradeRole.SHERIFF), int(VillageNPC.TradeRole.GUARD)]:
+		for rk in (st["clan_sabotages"] as Dictionary).keys():
+			var cs2: Dictionary = st["clan_sabotages"][rk]
+			if bool(cs2.get("discovered", false)) and not bool(cs2.get("reported", false)):
+				sub.append({"label": "🚨🛠️ Denunciar que %s saboteó de noche el taller de %s" % [str(cs2["saboteur_name"]), str(cs2["victim_name"])], "next": "END", "action": "clan_report_sabotage:" + rk})
 	if not sub.is_empty():
 		sub.append({"label": "⬅️ Volver", "next": "start"})
 		diag["clan_menu"] = {"text": "🩸 Asuntos de familia, honor y clanes:", "choices": sub}
@@ -587,3 +639,49 @@ static func on_player_action(vm, npc, action_id: String, inv) -> void:
 			npc._spawn_floating_text("🪦 «¿Esto es de %s? ¡Así que fue él/ella!» (+%d Oro)" % [culprit.npc_name, tip], Color.ORANGE, -46.0)
 		else:
 			npc._spawn_floating_text("🪦 «Gracias por limpiarla. Ojalá supiéramos quién fue.» (+%d Oro)" % tip, Color.SPRING_GREEN, -46.0)
+	elif action_id.begins_with("clan_patriarch_sway:"):
+		if not valid_family(arg):
+			return
+		st["patriarch_swayed"][arg] = today()
+		if str(st["feud_player"].get(arg, "")) == "boycott":
+			st["feud_player"].erase(arg)
+		var ts_p: Dictionary = vm.VillageTown.state(vm)
+		for m in clan_members(vm, arg):
+			m.modify_affinity(8)
+			if int(m.trade_role) != int(VillageNPC.TradeRole.CHILD):
+				ts_p["pledges"][m.get_person_key()] = "player" if bool(ts_p.get("player_candidate", false)) else npc.get_person_key()
+		npc._spawn_floating_text("👑🤝 «Como mayor de esta casa, mi familia seguirá mi palabra y contará contigo.»", Color.SPRING_GREEN, -46.0)
+	elif action_id.begins_with("clan_inspect_sabotage:"):
+		if not (st["clan_sabotages"] as Dictionary).has(arg):
+			return
+		var cs: Dictionary = st["clan_sabotages"][arg]
+		cs["discovered"] = true
+		npc.modify_affinity(8)
+		npc._spawn_floating_text("🔧🔍 «¡Mira esta marca en el cerrojo roto! ¡Fue %s quien saboteó mi taller!»" % str(cs["saboteur_name"]), Color.GOLD, -46.0)
+	elif action_id.begins_with("clan_report_sabotage:"):
+		if not (st["clan_sabotages"] as Dictionary).has(arg):
+			return
+		var cs2: Dictionary = st["clan_sabotages"][arg]
+		if bool(cs2.get("reported", false)):
+			return
+		cs2["reported"] = true
+		var by_key: Dictionary = vm._get_npcs_by_person_key()
+		var sab = by_key.get(str(cs2.get("saboteur_key", "")), null)
+		var vic = by_key.get(str(cs2.get("victim_key", "")), null)
+		var fine: int = 0
+		if sab != null:
+			fine = clampi(int(sab.personal_gold), 0, 20)
+			sab.personal_gold -= fine
+			sab.modify_affinity(-20)
+		var half_vic: int = fine / 2
+		var half_pl: int = fine - half_vic
+		if vic != null:
+			vic.personal_gold += half_vic
+			vic.modify_affinity(12)
+		if inv != null and half_pl > 0:
+			inv.add_gold(half_pl)
+		var r_id: int = int(arg)
+		if vm.shop_businesses.has(r_id):
+			vm.shop_businesses[r_id]["sabotaged_days"] = maxi(0, int(vm.shop_businesses[r_id].get("sabotaged_days", 1)) - 1)
+		VillageChronicle.add(vm, "clan_sabotage_punished", "%s fue multado por sabotear el negocio de %s" % [str(cs2["saboteur_name"]), str(cs2["victim_name"])], true)
+		npc._spawn_floating_text("🚨🛠️ «Multaremos a %s de inmediato. Toma %d de oro de la multa por avisar.»" % [str(cs2["saboteur_name"]), half_pl], Color.SPRING_GREEN, -46.0)

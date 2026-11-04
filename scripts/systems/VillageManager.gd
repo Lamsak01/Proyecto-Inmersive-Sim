@@ -2298,6 +2298,8 @@ func interact(player: Node2D) -> void:
 		return
 	if VillageUnderworld.try_interact(self, player, pos): # P7: encargo nocturno del perista
 		return
+	if VillageForensics.try_interact(self, player, pos): # P2: fregar escena de sangre con lejía (doble E)
+		return
 
 	# 2. Tablón de Encargos de la Plaza
 	if pos.distance_squared_to(_notice_board_pos) <= 28.0 * 28.0:

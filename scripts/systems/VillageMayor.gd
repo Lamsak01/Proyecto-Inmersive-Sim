@@ -46,7 +46,11 @@ static func ensure_state(vm) -> Dictionary:
 	if not ts.has("tax_mode"):
 		ts["tax_mode"] = "normal"
 	if not ts.has("decrees") or not (ts["decrees"] is Dictionary):
-		ts["decrees"] = {"dry_law": false, "curfew": false, "market_subsidy": false}
+		ts["decrees"] = {"dry_law": false, "curfew": false, "market_subsidy": false, "peace_tax": false}
+	elif not (ts["decrees"] as Dictionary).has("peace_tax"):
+		ts["decrees"]["peace_tax"] = false
+	if not ts.has("debate_done"):
+		ts["debate_done"] = false
 	if not ts.has("smeared") or not (ts["smeared"] is Dictionary):
 		ts["smeared"] = {}
 	if not ts.has("puppet_mayor"):
@@ -136,7 +140,8 @@ static func toggle_decree(vm, decree_id: String) -> bool:
 	var labels: Dictionary = {
 		"dry_law": "Ley Seca (prohibido beber y apostar en la posada)",
 		"curfew": "Toque de queda nocturno (desde las 23:00)",
-		"market_subsidy": "Subvención municipal al mercado de los miércoles"
+		"market_subsidy": "Subvención municipal al mercado de los miércoles",
+		"peace_tax": "Tributo de paz (multa de 8 Oro a las arcas por pelearse)"
 	}
 	var action_word: String = "aprobó" if new_val else "derogó"
 	VillageChronicle.add(vm, "decree", "La alcaldía %s el decreto de %s" % [action_word, str(labels.get(decree_id, decree_id))], true)
@@ -146,6 +151,21 @@ static func toggle_decree(vm, decree_id: String) -> bool:
 			if "Bebedor" in (n.person_profile.personality if n.person_profile != null else []) or "Tahúr" in (n.person_profile.personality if n.person_profile != null else []):
 				n.add_thought("La alcaldía cerró la bebida y el juego (-6)", -6.0)
 	return new_val
+
+## Tanda 4 (19): Si está activo el decreto «Tributo de paz», quienes se pelean pagan hasta 8 de oro de su bolsillo a las arcas.
+static func apply_peace_tax(vm, a, b) -> int:
+	if vm == null or not has_decree(vm, "peace_tax"):
+		return 0
+	var ts: Dictionary = ensure_state(vm)
+	var collected: int = 0
+	for fighter in [a, b]:
+		if fighter != null and is_instance_valid(fighter):
+			var fine: int = clampi(int(fighter.personal_gold), 0, 8)
+			fighter.personal_gold -= fine
+			collected += fine
+	if collected > 0:
+		ts["treasury"] = int(ts.get("treasury", 0)) + collected
+	return collected
 
 static func appoint_new_sheriff(vm) -> String:
 	var ts: Dictionary = ensure_state(vm)
@@ -306,6 +326,9 @@ static func add_dialogue_choices(vm, npc, diag: Dictionary, ch_arr: Array) -> vo
 			for cand in vm.VillageTown.candidates(vm):
 				if cand != npc and not (ts["smeared"] as Dictionary).has(cand.get_person_key()):
 					opts.append({"label": "🗞️💥 Sacar trapos sucios del candidato %s (-%d Oro)" % [cand.npc_name, SMEAR_COST], "next": "END", "action": "town_smear:" + cand.get_person_key()})
+				# Tanda 4 (17): Debates públicos entre candidatos
+				if not bool(ts.get("debate_done", false)):
+					opts.append({"label": "🎤🏛️ Retar a debate público en la plaza al candidato %s" % cand.npc_name, "next": "END", "action": "town_debate:" + cand.get_person_key()})
 
 		# P5.9: Convertir al alcalde actual en tu títere si sabes algo turbio suyo o es corrupto
 		if vm.VillageTown.is_mayor(vm, npc) and not is_puppet_master(vm):
@@ -325,9 +348,18 @@ static func add_dialogue_choices(vm, npc, diag: Dictionary, ch_arr: Array) -> vo
 		for tm in [["low", "Bajos (mitad, +aprecio)"], ["normal", "Normales"], ["high", "Altos (doble, -humor)"]]:
 			if tm[0] != cur_tax:
 				opts.append({"label": "⚖️💰 Fijar impuestos de los sábados en: %s" % tm[1], "next": "END", "action": "town_tax:" + tm[0]})
-		for dec in [["dry_law", "Ley Seca en la posada"], ["curfew", "Toque de queda nocturno (23:00)"], ["market_subsidy", "Subvención al mercado (miércoles)"]]:
+		for dec in [["dry_law", "Ley Seca en la posada"], ["curfew", "Toque de queda nocturno (23:00)"], ["market_subsidy", "Subvención al mercado (miércoles)"], ["peace_tax", "Tributo de paz (multa de 8 Oro a quienes se peleen)"]]:
 			var active_d: bool = has_decree(vm, dec[0])
 			opts.append({"label": "📜 %s decreto: %s" % ["Derogar" if active_d else "Firmar", dec[1]], "next": "END", "action": "town_decree:" + dec[0]})
+		# Tanda 4 (18): Indultar acusados o rehabilitar repudiados desde la alcaldía
+		if int(ts.get("treasury", 0)) >= 15:
+			var cst_p: Dictionary = vm.VillageClans.state(vm)
+			for dk in (cst_p["disowned"] as Dictionary).keys():
+				var d_npc = vm._get_npcs_by_person_key().get(dk, null)
+				if d_npc != null and not d_npc.is_dead:
+					opts.append({"label": "⚖️🕊️ Firmar indulto municipal y rehabilitar a %s (-15 Oro de arcas, -Ley)" % d_npc.npc_name, "next": "END", "action": "town_pardon:" + dk})
+			if vm.active_sheriff_investigation.get("suspects", {}).has(npc.npc_name):
+				opts.append({"label": "⚖️🕊️ Conceder indulto municipal a %s en el caso abierto (-15 Oro de arcas, -Ley)" % npc.npc_name, "next": "END", "action": "town_pardon:" + key})
 		if int(ts.get("treasury", 0)) >= 100 and not VillageLots.free_lots(vm, "house").is_empty() and VillageLots.active_site(vm) == "":
 			opts.append({"label": "🏗️🏠 Ordenar construir una casa social pagada con las arcas (100 Oro de arcas)", "next": "END", "action": "town_work_house"})
 		if int(ts.get("treasury", 0)) >= 20:
@@ -493,6 +525,50 @@ static func on_player_action(vm, npc, action_id: String, inv) -> bool:
 			inv.add_gold(-COOK_BOOKS_COST)
 		ts["player_embezzle_risk"] = 0
 		npc._spawn_floating_text("🧹📒 «Las cuentas del Ayuntamiento vuelven a cuadrar al céntimo.»", Color.SPRING_GREEN, -46.0)
+		return true
+
+	elif action_id.begins_with("town_debate:"):
+		ts["debate_done"] = true
+		var pl_d = npc._get_player()
+		var cha_d: int = int(pl_d.call("get_skill_level", "charisma")) if pl_d != null and pl_d.has_method("get_skill_level") else 1
+		ts["campaign_bonus"] = int(ts.get("campaign_bonus", 0)) + 10 + cha_d * 4
+		var rival = vm._get_npcs_by_person_key().get(arg, null)
+		var swayed: int = 0
+		for v_n in VillageNeeds.living(vm):
+			if int(v_n.trade_role) == int(VillageNPC.TradeRole.CHILD) or v_n == rival:
+				continue
+			var vk: String = v_n.get_person_key()
+			if str(ts["pledges"].get(vk, "")) != "player":
+				ts["pledges"][vk] = "player"
+				swayed += 1
+				if swayed >= 2 + cha_d:
+					break
+		var r_name: String = rival.npc_name if rival != null else "tu rival"
+		VillageChronicle.add(vm, "mayor_debate", "Ganaste el debate público en la plaza frente a %s (+%d votos)" % [r_name, swayed], true)
+		npc._spawn_floating_text("🎤👏 «¡Lo dejaste sin argumentos en el debate! +%d vecinos te votarán.»" % swayed, Color.SPRING_GREEN, -46.0)
+		return true
+
+	elif action_id.begins_with("town_pardon:"):
+		if int(ts.get("treasury", 0)) < 15:
+			return true
+		var target_p = vm._get_npcs_by_person_key().get(arg, null)
+		if target_p == null:
+			return true
+		ts["treasury"] = int(ts["treasury"]) - 15
+		vm.VillageFaith.add_rep(vm, "law", -6)
+		var cst_p2: Dictionary = vm.VillageClans.state(vm)
+		if (cst_p2["disowned"] as Dictionary).has(arg):
+			var d_info: Dictionary = cst_p2["disowned"][arg]
+			target_p.family_id = str(d_info.get("fam", target_p.family_id))
+			target_p.family_name = str(d_info.get("by", "Rehabilitado"))
+			cst_p2["disowned"].erase(arg)
+		var susp_p: Dictionary = vm.active_sheriff_investigation.get("suspects", {})
+		if susp_p.has(target_p.npc_name):
+			susp_p[target_p.npc_name]["score"] = 0
+		target_p.modify_affinity(25)
+		vm.VillageClans.grant_honor_debt(vm, target_p, "le concedió un indulto desde la alcaldía")
+		VillageChronicle.add(vm, "mayor_pardon", "La alcaldía concedió un indulto municipal a %s (-Ley)" % target_p.npc_name, true)
+		npc._spawn_floating_text("⚖️🕊️ «Queda firmado el indulto municipal para %s.»" % target_p.npc_name, Color.GOLD, -46.0)
 		return true
 
 	return false

@@ -309,6 +309,13 @@ static func add_dialogue_choices(vm, npc, diag: Dictionary, ch_arr: Array) -> vo
 			opts.append({"label": "🕊️⛪ Interceder para que perdone y readmita en la capilla a %s (-15 Oro)" % ex_name, "next": "END", "action": "faith_lift_excomm:" + ek})
 	elif is_excommunicated(vm, npc):
 		opts.append({"label": "⛪🙏 Aconsejarle que haga penitencia para volver a la capilla", "next": "END", "action": "faith_urge_penance:" + key})
+	if not vm.VillageFaith.is_priest(npc) and not (st["priest_secrets"] as Dictionary).has(key) and not find_sin_of(vm, npc).is_empty():
+		var priest_chk = vm.VillageFaith.priest_of(vm)
+		if priest_chk == null or priest_chk.is_sleeping or priest_chk.global_position.distance_to(vm._church_altar_pos) > 85.0:
+			opts.append({"label": "🎭⛪ Hacerte pasar por el confesor con el hábito para oír su pecado y cobrarle penitencia", "next": "END", "action": "faith_impersonate_priest:" + key})
+	# Tanda 4 (16): Fingir un milagro en el altar
+	if int(st.get("last_miracle_day", -99)) != today():
+		opts.append({"label": "✨🕯️ Preparar un falso milagro luminoso en el altar (-12 Oro en reactivos)", "next": "END", "action": "faith_stage_miracle"})
 
 	if not opts.is_empty():
 		opts.append({"label": "⬅️ Volver", "next": "start"})
@@ -398,3 +405,57 @@ static func on_player_action(vm, npc, action_id: String, inv) -> void:
 		lift_excommunication(vm, npc, "cumplió penitencia")
 		npc.modify_affinity(12)
 		npc._spawn_floating_text("🙏 «Tienes razón, haré penitencia hoy mismo.»", Color.SPRING_GREEN, -46.0)
+
+	elif action_id.begins_with("faith_impersonate_priest:"):
+		var sin: Dictionary = find_sin_of(vm, npc)
+		if sin.is_empty():
+			return
+		var priest_p = vm.VillageFaith.priest_of(vm)
+		var pl_f = npc._get_player()
+		var stl_f: int = int(pl_f.call("get_skill_level", "stealth")) if pl_f != null and pl_f.has_method("get_skill_level") else 0
+		if priest_p != null and not priest_p.is_sleeping and priest_p.global_position.distance_to(vm._church_altar_pos) <= 85.0 and stl_f < 2:
+			vm.VillageFaith.add_rep(vm, "believers", -8)
+			priest_p.modify_affinity(-15)
+			npc._spawn_floating_text("😠⛪ «¡No eres el sacerdote! ¡Un impostor en el confesionario!»", Color.ORANGE_RED, -46.0)
+			return
+		var sin_kind: String = str(sin["kind"])
+		st["priest_secrets"][arg] = {
+			"sinner_key": arg, "sinner_name": npc.npc_name, "kind": sin_kind,
+			"desc": str(sin["desc"]), "day": today(), "raw": str(sin.get("raw", "")),
+			"secret_id": int(sin.get("secret_id", -1)), "theft_id": int(sin.get("theft_id", -1)), "desire_id": int(sin.get("desire_id", -1))
+		}
+		_player_learns_confessed_sin(vm, st["priest_secrets"][arg], "disfrazado con el hábito en el confesionario")
+		var pen_paid: int = vm.VillageClans.pay_from_pocket(npc, 10, inv)
+		npc._spawn_floating_text("🎭🙏 «Gracias por su absolución, padre...» (%s%s)" % [str(sin["desc"]), " · +%d Oro de penitencia" % pen_paid if pen_paid > 0 else ""], Color.GOLD, -46.0)
+
+	elif action_id == "faith_stage_miracle":
+		if inv == null or int(inv.gold) < 12:
+			npc._spawn_floating_text("Necesitas 12 de oro para los reactivos del falso milagro", Color.ORANGE_RED, -44.0)
+			return
+		inv.add_gold(-12)
+		if vm.shop_businesses.has(int(VillageNPC.TradeRole.DOCTOR)):
+			vm.shop_businesses[int(VillageNPC.TradeRole.DOCTOR)]["vault_gold"] = int(vm.shop_businesses[int(VillageNPC.TradeRole.DOCTOR)].get("vault_gold", 0)) + 12
+		else:
+			vm.town_state["treasury"] = int(vm.town_state.get("treasury", 0)) + 12
+		st["last_miracle_day"] = today()
+		var priest_m = vm.VillageFaith.priest_of(vm)
+		var pl_m = npc._get_player()
+		var stl_m: int = int(pl_m.call("get_skill_level", "stealth")) if pl_m != null and pl_m.has_method("get_skill_level") else 0
+		if priest_m != null and not priest_m.is_sleeping and not bool(st.get("priest_corrupted", false)) and priest_m.global_position.distance_to(vm._church_altar_pos) <= 75.0 and stl_m < 2:
+			vm.VillageFaith.add_rep(vm, "believers", -10)
+			priest_m.modify_affinity(-15)
+			npc._spawn_floating_text("😠🕯️ «¡Sacrilegio! ¡Eso es fósforo de botica, no un milagro!»", Color.ORANGE_RED, -46.0)
+			return
+		vm.VillageFaith.add_rep(vm, "believers", 12)
+		var offerings: int = 0
+		for o in VillageNeeds.living(vm):
+			if vm.VillageFaith.is_believer(o) and int(o.personal_gold) >= 8:
+				o.personal_gold -= 3
+				offerings += 3
+				o.add_thought("¡Presencié un milagro en la Capilla del Alba! (+8)", 8.0)
+		var player_cut: int = offerings / 2
+		vm.town_state["treasury"] = int(vm.town_state.get("treasury", 0)) + (offerings - player_cut)
+		if inv != null and player_cut > 0:
+			inv.add_gold(player_cut)
+		VillageChronicle.add(vm, "staged_miracle", "Un resplandor en el altar de la Capilla del Alba conmovió a los fieles y multiplicó las ofrendas", true)
+		npc._spawn_floating_text("✨🕯️ «¡Un milagro del Alba!» (+12 Fe, +%d Oro de las ofrendas)" % player_cut, Color.GOLD, -46.0)
