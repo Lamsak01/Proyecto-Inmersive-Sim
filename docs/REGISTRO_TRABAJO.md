@@ -147,3 +147,31 @@ Leyenda: ✅ probado y subido · 🟡 escrito, sin probar · 🔴 falló (ver no
 - Sonda de 12 días: **0 comidas fallidas** (antes 16) y **0 muertes**; 5 raciones de gachas servidas. Población 18 → 34
   (6 llegadas por V3), 3 casas encargadas (2 a plazos, prestadas por el pueblo). Las arcas acaban en 962.
 - Lo de los jabalíes no se puede ver en la sonda (no hubo caza peligrosa); queda para la prueba manual.
+
+## Bloque K — Canteros a la vista y misión de Varris (avisos del usuario)
+
+| # | Paso | Estado | Archivos | Nota |
+|---|------|--------|----------|------|
+| K1 | El cantero trabajaba dentro del edificio y solo le compraba el herrero. Ahora trabaja en la roca y cada obra compra 3 piedras y 3 troncos | ✅ | VillageTrades.yard_pos / fix_quarry_post, VillageLots.buy_materials | Test #80 |
+| K2 | Misión sobre Varris: al hablar con el objetivo no salía cómo seguir. Ahora quien la pidió va primero en la lista de opiniones, hay atajo «📜 Encargo», aviso si ya intercediste hoy y pista si te tiene en negativo | 🟡 | NPCDialogue | Sin test propio: diálogo; probar en juego |
+
+## Bloque M — 20 misiones nuevas (tanda 1 de 2, aprobada: «hazlas por tandas de 10»)
+
+| # | Tipo | Estado | Mecánica que toca |
+|---|------|--------|-------------------|
+| M1 | affair_doubt | 🟡 | Secretos (aventuras, reacción de la pareja) |
+| M2 | loan_trouble | 🟡 | Préstamos de casas, nobles |
+| M3 | boar_hunt | 🟡 | Ecosistema (mínimo de jabalíes) |
+| M4 | vote_buying | 🟡 | Elecciones, promesas de voto |
+| M5 | embezzle_proof | 🟡 | Desfalco del alcalde, `expose` |
+| M6 | poor_medicine | ✅ | Enfermedades, médico, parroquia |
+| M7 | faith_doubt | ✅ | Fe, asistencia al Oficio |
+| M8 | apprentice | ✅ | Ayudantes de taller, herencia |
+| M9 | sabotage_job | 🟡 | Sabotaje de puestos, ley |
+| M10 | scared_witness | 🟡 | Expediente del comisario, asesino real |
+
+✅ = con test (#81); 🟡 = carga y tiene textos (test Q4), sin prueba funcional: hay que verlo en juego.
+
+### Pruebas de los bloques K y M (todas pasan) y sonda
+- Los cuatro tests pasan (con #80 y #81). Con 49 vecinos: plaza 6,0 ms, lejos 3,9 ms, peor 23 ms, ninguno > 33 ms.
+- Sonda de 12 días: 0 comidas fallidas, 0 muertes, 14 raciones de gachas. Población 25 → 33, 3 casas encargadas (2 a plazos). Arcas 948.

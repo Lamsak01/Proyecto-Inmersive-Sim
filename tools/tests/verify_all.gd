@@ -3024,5 +3024,53 @@ func _initialize() -> void:
 	vj_h.queue_free()
 	print("Block J boars, causes of death and porridge OK")
 
+	# 80. Bloque K: el cantero trabaja en la roca y las obras compran piedra y troncos.
+	var vk_q = vm.trade_npcs.get(vt.role_of("quarry"))
+	var vk_tmp: bool = vk_q == null or not is_instance_valid(vk_q)
+	if vk_tmp:
+		vk_q = vmi._spawn_one(vm, vmi.SETTLER_KINDS[0], 0)
+		vm.trade_npcs[vt.role_of("quarry")] = vk_q
+	vt.fix_quarry_post(vm)
+	assert(vk_q.work_position.distance_to(vt.yard_pos("w1")) < 1.0 and vt.yard_pos("w1").x > vl.building_center("w1").x, "K1: The quarryman works out on the rock")
+	var vk_stock: Dictionary = vk_q.shop_stock.duplicate()
+	var vk_g: int = vk_q.personal_gold
+	vk_q.shop_stock["stone"] = 5
+	var vk_spent: int = vl.buy_materials(vm, 100)
+	assert(vk_spent >= 20 and int(vk_q.shop_stock["stone"]) == 2 and vk_q.personal_gold == vk_g + 20, "K1: A build buys stone from the quarry")
+	vk_q.shop_stock = vk_stock
+	vk_q.personal_gold = vk_g
+	if vk_tmp:
+		vm.trade_npcs.erase(vt.role_of("quarry"))
+		vm.unemployed_npcs.erase(vk_q)
+		vk_q.queue_free()
+	print("Block K quarry at work OK")
+
+	# 81. Bloque M: tipos de misión nuevos (aprendiz, medicina, fe).
+	assert(q_reg.all_types().size() == 15, "M: 15 quest types registered")
+	var vm_y = vmi._spawn_one(vm, vmi.SETTLER_KINDS[0], 0)
+	var vm_own = vm.trade_npcs.get(int(load("res://scripts/enemies/VillageNPC.gd").TradeRole.BAKER))
+	var vm_fam_before = vm.family_npcs.get(int(vm_own.trade_role))
+	q_reg.get_type("apprentice").hire(vm, vm_own, vm_y)
+	assert(int(vm_y.trade_role) == int(load("res://scripts/enemies/VillageNPC.gd").TradeRole.FAMILY_MEMBER) and vm.family_npcs[int(vm_own.trade_role)] == vm_y and not vm.unemployed_npcs.has(vm_y), "M8: The apprentice joins the shop as helper")
+	var vm_q: Dictionary = {"giver_key": vm_y.get_person_key(), "target_key": vm_y.get_person_key(), "data": {"invited_week": 3}}
+	var vm_ill = load("res://scripts/systems/VillageIllness.gd")
+	vm_ill.infect(vm, vm_y.get_person_key(), "cold")
+	assert(not q_reg.get_type("poor_medicine").is_done(vm, vm_q), "M6: Ill and untreated is not done")
+	vm_ill.treat(vm, vm_y.get_person_key())
+	assert(q_reg.get_type("poor_medicine").is_done(vm, vm_q), "M6: Treated counts as done")
+	vm_ill.recover(vm, vm_y.get_person_key())
+	var vm_fst: Dictionary = load("res://scripts/systems/VillageFaith.gd")._state(vm)
+	var vm_fsave: Array = [vm_fst.get("last_rite_day", -1), vm_fst.get("last_attendees", [])]
+	vm_fst["last_rite_day"] = 3 * 7 + 1
+	vm_fst["last_attendees"] = [vm_y.get_person_key()]
+	assert(q_reg.get_type("faith_doubt").is_done(vm, vm_q), "M7: Coming to the invited rite completes it")
+	vm_fst["last_rite_day"] = vm_fsave[0]
+	vm_fst["last_attendees"] = vm_fsave[1]
+	vm.family_npcs[int(vm_own.trade_role)] = vm_fam_before
+	if vm_fam_before == null:
+		vm.family_npcs.erase(int(vm_own.trade_role))
+	vm_y.queue_free()
+	print("Block M quest types OK")
+
 	print("ALL RIMWORLD MEDICAL, FOOTPRINTS, 3-PHASE CORPSE REPORT, MULTI-CORPSE FIX, RPG INTERROGATION, PUBLIC TRIAL, DYNAMIC RELATIONSHIPS, MISSING FAMILY SEARCH, SOCIAL GLOSSARY & UNCONSCIOUS REACTION TESTS PASSED!")
 	quit(0)

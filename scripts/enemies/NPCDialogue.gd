@@ -267,7 +267,11 @@ static func _add_neighbor_opinions(npc: VillageNPC, diag: Dictionary, ch_arr: Ar
 	VillageTown.add_dialogue_choices(npc._get_vm(), npc, diag, ch_arr) # I5
 	VillageSect.add_dialogue_choices(npc._get_vm(), npc, diag, ch_arr) # O6
 	if npc.affinity < 0:
-		diag["neighbor_opinions"] = {"text": "«No hablo de mis vecinos con quien no conozco.»", "choices": [{"label": "Entendido. [Volver]", "next": "start"}]}
+		var hint_q: String = ""
+		var qm_h = npc.get_node_or_null("/root/QuestManager")
+		if qm_h != null and qm_h.get_active_quests("side").any(func(q): return str(q.get("target_key", "")) == npc.get_person_key()):
+			hint_q = "\n(Para tu encargo, antes tendrás que ganarte su confianza: charla con él/ella o hazle un regalo.)"
+		diag["neighbor_opinions"] = {"text": "«No hablo de mis vecinos con quien no conozco.»" + hint_q, "choices": [{"label": "Entendido. [Volver]", "next": "start"}]}
 		return
 	var news_lines: PackedStringArray = []
 	if npc._get_vm() != null:
@@ -281,15 +285,18 @@ static func _add_neighbor_opinions(npc: VillageNPC, diag: Dictionary, ch_arr: Ar
 			rows.append({"npc": n, "rel": npc.get_relationship_with_npc((n as VillageNPC).get_person_key())})
 	rows.sort_custom(func(x, y): return absi(int(x["rel"])) > absi(int(y["rel"])))
 	# Q3: si alguien te pidió averiguar qué piensa este vecino de él/ella, que salga en la lista
+	# K2: cualquier encargo sobre este vecino (opinión, paces, calumnia…): quien lo pidió sale el primero de la lista
 	var qm_op = npc.get_node_or_null("/root/QuestManager")
+	var quest_giver_name: String = ""
 	if qm_op != null:
 		for q in qm_op.get_active_quests("side"):
-			if str(q.get("type", "")) == "opinion" and str(q.get("target_key", "")) == npc.get_person_key():
+			if str(q.get("target_key", "")) == npc.get_person_key() and str(q.get("giver_key", "")) != "":
 				for ri in range(rows.size()):
-					if ri >= 5 and (rows[ri]["npc"] as VillageNPC).get_person_key() == str(q.get("giver_key", "")):
+					if (rows[ri]["npc"] as VillageNPC).get_person_key() == str(q.get("giver_key", "")):
 						var row_q = rows[ri]
 						rows.remove_at(ri)
 						rows.insert(0, row_q)
+						quest_giver_name = (row_q["npc"] as VillageNPC).npc_name
 						break
 	var player = npc._get_player()
 	var shares_reason: bool = npc.affinity >= 35 or (player != null and player.has_method("get_skill_level") and int(player.call("get_skill_level", "charisma")) >= 2)
@@ -324,10 +331,14 @@ static func _add_neighbor_opinions(npc: VillageNPC, diag: Dictionary, ch_arr: Ar
 			var same_fam: bool = npc.family_id != "none" and npc.family_id != "family_police" and npc.family_id == other.family_id
 			if int(rows[i]["rel"]) > -15 and vm_op.social_director.can_matchmake(npc.person_profile, other.person_profile, same_fam):
 				op_choices.append({"label": "💘 Animarle a acercarse a %s" % other.npc_name, "next": "start", "action": "social_gossip:match:" + other.get_person_key()})
+		if not can_influence and vm_op != null and vm_op.social_director != null:
+			op_choices.append({"label": "⏳ (Hoy ya has intercedido por alguien: vuelve mañana para hablarle de %s)" % other.npc_name, "next": "opinion_%d" % i})
 		op_choices.append({"label": "⬅️ Preguntar por otro vecino", "next": "neighbor_opinions"})
 		diag["opinion_%d" % i] = {"text": text, "choices": op_choices}
 	choices.append({"label": "⬅️ Volver a la conversación", "next": "start"})
 	diag["neighbor_opinions"] = {"text": "«¿Sobre quién quieres saber?»", "choices": choices}
+	if quest_giver_name != "" and not rows.is_empty(): # K2: acceso directo al encargo
+		ch_arr.insert(0, {"label": "📜 Encargo: hablarle de %s" % quest_giver_name, "next": "opinion_0", "action": "quest_opinion_seen:" + (rows[0]["npc"] as VillageNPC).get_person_key()})
 
 ## E4: si `npc` es íntimo de `other` (≥ 30), puede contarte lo que `other` siente con fuerza (≥ 40 o ≤ −40) por un
 ## tercero que aún no sabes. Siempre elige el sentimiento más fuerte, así el texto y lo que se apunta coinciden.

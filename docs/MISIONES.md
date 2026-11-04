@@ -1,6 +1,6 @@
 # Misiones secundarias de vecinos
 
-Guía para añadir tipos nuevos. Meta del usuario: **al menos 25 tipos** (hoy hay 5). Las ideas se pensarán a fondo con el usuario antes de implementarlas: **no inventes tipos sin su aprobación**.
+Guía para añadir tipos nuevos. Meta del usuario: **al menos 25 tipos** (hoy hay 15). El usuario pidió (2026-11-03) que Claude inventara los otros 20, en tandas de 10: placeholders creativos que toquen mecánicas existentes, no recados.
 
 ## Reglas de diseño (decididas por el usuario)
 
@@ -48,7 +48,7 @@ Datos útiles para `find_daily_offer`:
 - `npc.person_profile`: rasgos, edad y estado sentimental.
 - `vm.social_event_log`: sucesos con `known_by` (quién lo sabe) y `heard_from` (quién se lo contó a quién).
 
-## Tipos hechos (5 de 25)
+## Tipos hechos (15 de 25)
 
 | id | Nombre | Cómo nace | Cómo se cumple | Cobro |
 |---|---|---|---|---|
@@ -57,7 +57,17 @@ Datos útiles para `find_daily_offer`:
 | `opinion` | Averigua qué piensa de mí | Diaria: soltero con chispa ≥ 14 hacia otro soltero | Ver la opinión del otro en el menú de opiniones; al volver, verdad o mentira | 20 oro, +8 |
 | `justice` | Encuentra a quien lo mató | Suceso: se abre un caso de asesinato (60 %, vecino con relación ≥ 40 con la víctima) | Veredicto contra un vecino (falla si te culpan o se archiva) | 40 oro, +20 |
 | `rumor` | ¿Quién va contando eso de mí? | Suceso: una calumnia llega al afectado de segunda mano (50 %) | Preguntar «¿quién te lo contó?»; al volver, señalar a alguien o confesar | 25 oro, +10 |
+| `affair_doubt` | ¿Me engaña X? | Diaria: su pareja tiene una aventura que no conoce | Preguntar a vecinos (🕵️) hasta dar con quien lo vio; al volver: verdad, mentira o cobrar al infiel | 25 oro, +12 |
+| `loan_trouble` | Que no me quiten la casa | Diaria: debe su casa y lleva ≥ 2 cuotas sin pagar | Pagarle tú 3 cuotas (💰) o que el prestamista perdone recargos (🙏, Carisma 2 o aprecio 35) | 0 oro, +22 |
+| `boar_hunt` | El jabalí del claro | Diaria: el carnicero, si hay jabalíes de sobra | Que haya un jabalí vivo menos; avisa si el bosque se queda sin jabalíes | 30 oro, +12 |
+| `vote_buying` | Votos para X | Diaria: candidato corruptible, 2–8 días antes de elecciones | 3 promesas de voto para él; al volver: cobrar o destaparlo | 35 oro, +10 |
+| `embezzle_proof` | Las cuentas de X | Diaria: quien vio robar al alcalde, si hay otros 2 que lo saben | Preguntar (🧾) hasta 2 testigos; al volver: destaparlo o chantajear al alcalde (50 oro) | 30 oro, +15 |
+| `poor_medicine` | Medicina para X | Diaria: pobre enfermo sin tratar | Pagar al médico (🩺, 8 oro) o que pague la parroquia (🙏) | 0 oro, +25 |
+| `faith_doubt` | Fe que tambalea | Diaria: el sacerdote, sobre un vecino tibio | Invitarle (⛪) y que vaya de verdad al Oficio del domingo | 15 oro, +12 |
+| `apprentice` | El aprendiz | Diaria: parado de ≤ 30 años y un taller sin ayudante | Recomendarle al dueño (🧑‍🔧); pasa a ayudante y heredará | 10 oro, +20 |
+| `sabotage_job` | Sabotaje por encargo | Diaria: dueño de taller que odia (≤ −25) a otro | Sabotear el puesto rival, o denunciar el encargo al comisario (🚨) | 40 oro, +10 |
+| `scared_witness` | El testigo con miedo | Diaria: quien halló el cuerpo del caso abierto | Pedir protección al comisario (🛡️): añade una pista al expediente que apunta al asesino real | 15 oro, +18 |
 
 ## Ideas pendientes (20 o más)
 
-Están por decidir con el usuario. Antes de implementar cualquiera, presenta la lista y espera su aprobación.
+Tanda 2 aprobada (2026-11-03): Ollas vacías, ¿Me corresponde?, La herencia, ¿Quién lo ha dicho?, El puesto del miércoles, Lo que se lee de noche, Pelea anunciada, Sin techo, El forastero raro, La tumba sin nombre.

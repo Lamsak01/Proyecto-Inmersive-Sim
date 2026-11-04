@@ -619,6 +619,14 @@ Cada fase se dividirá en bloques pequeños cuando se llegue a ella (detalle en 
   registro de morgue resuelto. Arcas de partida nueva: 1000 (`VillageTown.STARTING_TREASURY`). Gachas del albergue
   (`VillageCivic.cook_shelter_rations` a las 6 h, `take_shelter_ration` como último recurso de la comida). Sonda: 0 comidas
   fallidas y 0 muertes en 12 días.
+- [x] **Bloque K** (test #80). Cantero: trabaja fuera, en la roca (`VillageTrades.yard_pos`, `fix_quarry_post` cada día);
+  cada obra compra 3 de piedra al cantero y 3 troncos al leñador (`VillageLots.buy_materials`, 20 % del coste cada uno).
+  Misiones sobre un vecino: hablar con el objetivo pone primero a quien la pidió y un atajo «📜 Encargo»
+  (`NPCDialogue`); aviso «⏳ Hoy ya has intercedido» y pista si te tiene en negativo.
+- [x] **Bloque M, tanda 1** (test #81). 10 tipos de misión nuevos en `scripts/systems/quests/types/` (tabla en
+  `docs/MISIONES.md`). La oferta diaria sortea entre todos los tipos que encajan (`VillageQuests`). Ayudas nuevas en
+  `QuestType` (`charge_player`, `charisma`…). `VillageFaith.wants_attend` respeta `rite_invited_week`; `finish_rite` guarda
+  `last_attendees`. Tanda 2 pendiente.
 - [x] **Bloque E** (probado, test #75; detalle en `docs/REGISTRO_TRABAJO.md`). Diagnóstico de comidas fallidas
   (`migration_state.meal_fails`, «motivo/oficio»); casas: la pareja junta ahorros y, si alguien duerme al raso, el
   pueblo paga sin reserva; camas de posada sin repetir (cuenta a quien tenga oficio y duerma allí); U5 «según X»

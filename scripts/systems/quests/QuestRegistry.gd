@@ -10,6 +10,17 @@ const TYPE_SCRIPTS: Array[String] = [
 	"res://scripts/systems/quests/types/QuestOpinion.gd",
 	"res://scripts/systems/quests/types/QuestJustice.gd",
 	"res://scripts/systems/quests/types/QuestRumor.gd",
+	# Tanda M (2026-11-03): tipos placeholder que tocan mecánicas existentes
+	"res://scripts/systems/quests/types/QuestAffairDoubt.gd",
+	"res://scripts/systems/quests/types/QuestLoanTrouble.gd",
+	"res://scripts/systems/quests/types/QuestBoarHunt.gd",
+	"res://scripts/systems/quests/types/QuestVoteBuying.gd",
+	"res://scripts/systems/quests/types/QuestEmbezzleProof.gd",
+	"res://scripts/systems/quests/types/QuestPoorMedicine.gd",
+	"res://scripts/systems/quests/types/QuestFaithDoubt.gd",
+	"res://scripts/systems/quests/types/QuestApprentice.gd",
+	"res://scripts/systems/quests/types/QuestSabotageJob.gd",
+	"res://scripts/systems/quests/types/QuestScaredWitness.gd",
 ]
 
 static var _types: Dictionary = {}

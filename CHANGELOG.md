@@ -5,6 +5,11 @@ El detalle técnico está en `docs/HANDOFF.md` (sección 7) y el historial compl
 
 ## 2026-11-03
 
+### Diez misiones nuevas y canteros trabajando
+- 10 encargos nuevos (provisionales): descubrir una infidelidad, salvar una casa del desahucio, cazar un jabalí, comprar votos, destapar al alcalde, pagar medicinas a un pobre, devolver a alguien al Oficio, colocar a un aprendiz, sabotear a un rival y proteger a un testigo. Casi todos tienen más de una salida, y no siempre la honrada es la que paga.
+- El cantero trabaja ahora en la roca, a la vista, y cada casa nueva le compra piedra a él y troncos al leñador.
+- Si te piden mejorar la relación con alguien, al hablar con esa persona sale la opción del encargo arriba del todo.
+
 ### Cazadores prudentes, muertes claras y gachas
 - El carnicero ya no muere siempre cazando: prefiere ciervos y conejos, se retira si un jabalí le deja malherido y el jabalí no remata a quien está en el suelo.
 - Morir de hambre, por un animal o de una enfermedad ya no se investiga como asesinato: la crónica dice qué pasó («lo mató un jabalí», «murió de hambre»).

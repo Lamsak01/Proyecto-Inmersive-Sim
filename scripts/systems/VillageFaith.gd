@@ -140,6 +140,8 @@ static func _week() -> int:
 static func wants_attend(npc, week: int) -> bool:
 	if is_priest(npc):
 		return true
+	if npc.has_meta("rite_invited_week") and int(npc.get_meta("rite_invited_week")) == week and grade_of(npc) != GRADE_SKEPTIC:
+		return true # M7: el jugador le invitó a venir este domingo
 	var ch: int = int(ATTEND_CHANCE.get(grade_of(npc), 0))
 	var vm_s = npc._get_vm() if npc.has_method("_get_vm") else null
 	if vm_s != null and "sect_state" in vm_s and vm_s.sect_state is Dictionary and (vm_s.sect_state.get("members", {}) as Dictionary).has(npc.get_person_key()):
@@ -202,6 +204,7 @@ static func finish_rite(vm) -> Dictionary:
 	if int(st.get("last_rite_day", -1)) == today:
 		return res
 	st["last_rite_day"] = today
+	st["last_attendees"] = att.map(func(x): return x.get_person_key()) # M7: quién vino
 	st["rites"] = int(st.get("rites", 0)) + 1
 	st["attend_total"] = int(st.get("attend_total", 0)) + att.size()
 	if att.is_empty():

@@ -70,11 +70,27 @@ static func setup_world(vm) -> void:
 			"title": c["title"], "tex": vm._load_tex(str(c["tex"])), "stock": (c["stock"] as Dictionary).duplicate(),
 			"work_pos": lay["work_pos"], "bed1_pos": lay["bed1_pos"], "bed2_pos": lay["bed2_pos"], "table_pos": lay["table_pos"],
 		}
+		if str(c.get("extras", "")) == "quarry": # K1: el cantero trabaja (y vende) en la roca, a la vista
+			vm.trade_configs[role_of(key)]["work_pos"] = yard_pos(str(c["lot"]))
 		vm.trade_configs[role_of(key)]["shop_center"] = VillageLots.building_center(str(c["lot"]))
 		vm.trade_configs[role_of(key)]["house_center"] = VillageLots.building_center(str(c["lot"]))
 		if not vm.house_pantry.has(str(c["family_id"])):
 			vm.house_pantry[str(c["family_id"])] = 2
 	ensure_lots(vm)
+
+## K1: centro de la explanada de roca de la cantera (la franja a la derecha del edificio).
+static func yard_pos(id: String) -> Vector2:
+	var d: Dictionary = VillageLots.lot_def(id)
+	var lc: Vector2 = d["center"]
+	var half: Vector2 = (d["size"] as Vector2) * 0.5
+	var x0: float = VillageLots.building_center(id).x + 70.0
+	return Vector2((x0 + lc.x + half.x - 8.0) * 0.5, lc.y)
+
+## K1: partidas de antes: el cantero se muda a la roca.
+static func fix_quarry_post(vm) -> void:
+	var q = vm.trade_npcs.get(role_of("quarry"))
+	if q != null and is_instance_valid(q) and not q.is_dead:
+		q.work_position = yard_pos(str(CONFIG["quarry"]["lot"]))
 
 ## Lo que puede abastecer cada negocio nuevo (lo usa VillageManager al registrar el puesto).
 static func supply_items_for(role_id: int) -> Array[String]:
@@ -185,6 +201,7 @@ static func ensure_lots(vm) -> void:
 
 ## Cada día: quien tiene dinero de sobra puede estrenar ropa si la sastrería tiene y está abierta hoy.
 static func daily(vm) -> void:
+	fix_quarry_post(vm)
 	var tailor = vm.trade_npcs.get(role_of("tailor"))
 	if tailor == null or not is_instance_valid(tailor) or tailor.is_dead or tailor.is_downed or vm.is_trade_sabotaged(role_of("tailor")):
 		return

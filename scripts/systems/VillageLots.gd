@@ -295,6 +295,7 @@ static func request_build(vm, id: String, kind: String, payer = null, title: Str
 	var carp = _carpenter(vm)
 	if carp != null:
 		carp.personal_gold += int(round(cost * CARPENTER_SHARE))
+	buy_materials(vm, cost)
 	var st: Dictionary = lot(vm, id)
 	st["status"] = "building"
 	st["kind"] = kind
@@ -304,6 +305,23 @@ static func request_build(vm, id: String, kind: String, payer = null, title: Str
 	_draw_lot(vm, id, st)
 	vm.VillageChronicle.add(vm, "construction", "Empieza la obra de %s en las afueras del pueblo" % str(st["title"]).to_lower(), true)
 	return id
+
+## K1: la obra compra piedra a la cantera y troncos al leñador (si tienen), con el dinero de materiales.
+const MATERIAL_UNITS: int = 3
+const MATERIAL_SHARE: float = 0.2 # de lo que cuesta la obra, para cada proveedor
+static func buy_materials(vm, cost: int) -> int:
+	var spent: int = 0
+	for pair in [[VillageNPC.TradeRole.QUARRYMAN, "stone"], [VillageNPC.TradeRole.WOODCUTTER, "wood"]]:
+		var seller = vm.trade_npcs.get(pair[0])
+		if seller == null or not is_instance_valid(seller) or seller.is_dead or int(seller.shop_stock.get(pair[1], 0)) < MATERIAL_UNITS:
+			continue
+		var pay: int = int(round(cost * MATERIAL_SHARE))
+		seller.shop_stock[pair[1]] = int(seller.shop_stock[pair[1]]) - MATERIAL_UNITS
+		seller.personal_gold += pay
+		seller._sync_shop_stock_to_vm()
+		seller.add_thought("Vendí material para una obra (+5)", 5.0)
+		spent += pay
+	return spent
 
 static func _carpenter(vm):
 	var c = vm.trade_npcs.get(VillageNPC.TradeRole.CARPENTER)

@@ -167,7 +167,7 @@ del pueblo. Los **nobles** se dejaron para el paso 9.
 
 ## 8. Misiones
 
-Hay 5 tipos de misión secundaria, que nacen de lo que pasa en el pueblo. Sus títulos y textos son provisionales:
+Hay 15 tipos de misión secundaria, que nacen de lo que pasa en el pueblo. Sus títulos y textos son provisionales (los 10 últimos los inventó Claude a petición del usuario, 2026-11-03):
 
 | Misión | De qué va |
 |---|---|
@@ -176,13 +176,23 @@ Hay 5 tipos de misión secundaria, que nacen de lo que pasa en el pueblo. Sus t�
 | Averigua qué piensa de mí | Saber si alguien gusta de quien te lo pide. |
 | Encuentra a quien lo mató | Resolver un asesinato. |
 | ¿Quién va contando eso de mí? | Seguir un rumor hasta su origen. |
+| ¿Me engaña X? | Averiguar si la pareja de alguien le es infiel. |
+| Que no me quiten la casa | Salvar de un desahucio a quien no paga su préstamo. |
+| El jabalí del claro | Cazar un jabalí que asusta al carnicero. |
+| Votos para X | Comprar votos para un candidato sin escrúpulos (o destaparlo). |
+| Las cuentas de X | Reunir testigos del robo del alcalde. |
+| Medicina para X | Pagar el médico a un pobre enfermo. |
+| Fe que tambalea | Traer al Oficio a un vecino que ya no va. |
+| El aprendiz | Colocar a un joven parado en un taller. |
+| Sabotaje por encargo | Romper el puesto de un rival (o denunciarlo). |
+| El testigo con miedo | Conseguir protección a quien halló un cadáver. |
 
 También hay un objetivo de prueba, «Eliminate Frogs» (ranas de la ciénaga).
 
 La **historia principal** no existe: el panel L tiene la pestaña preparada y vacía.
 
-**Dónde:** `scripts/systems/quests/types/` (un archivo por misión) y `docs/MISIONES.md` (la regla del usuario: no
-inventar tipos nuevos sin su aprobación).
+**Dónde:** `scripts/systems/quests/types/` (un archivo por misión) y `docs/MISIONES.md` (desde 2026-11-03 Claude puede
+inventar tipos placeholder, por tandas aprobadas).
 
 ## 9. Personalidad: los 140 rasgos
 

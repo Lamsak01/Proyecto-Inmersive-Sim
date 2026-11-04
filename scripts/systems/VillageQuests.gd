@@ -101,13 +101,17 @@ static func on_day_passed(vm: VillageManager, chance: float = OFFER_DAILY_CHANCE
 		if not _is_available_giver(vm, giver) or not _can_ask(qm, giver, today):
 			continue
 		var ctx: Dictionary = _build_ctx(vm, giver, npcs)
+		# M: entre todo lo que este vecino podría pedir hoy, se elige uno al azar (antes ganaba siempre el primero)
+		var found: Array = []
 		for qt in QuestRegistry.daily_types():
 			var off: Dictionary = qt.find_daily_offer(vm, giver, npcs, ctx)
-			if off.is_empty():
-				continue
-			if vm.social_director.rng.randf() < chance:
-				_set_offer(qm, qt.id, giver, off)
-			break
+			if not off.is_empty():
+				found.append([qt, off])
+		if found.is_empty():
+			continue
+		if vm.social_director.rng.randf() < chance:
+			var pick: Array = found[vm.social_director.rng.randi() % found.size()]
+			_set_offer(qm, pick[0].id, giver, pick[1])
 
 ## Falla las misiones que ya no pueden cumplirse (cada tipo decide por qué).
 static func check_failures(vm: VillageManager) -> void:

@@ -103,3 +103,26 @@ static func pay_and_complete(qm: Node, giver: VillageNPC, player: Node, q: Dicti
 		note = (extra_note + " " + note).strip_edges()
 	qm.complete_quest(str(q["id"]), note)
 	giver._spawn_floating_text("✅ Misión completada" + (" (+%d Oro)" % gold_v if gold_v > 0 else ""), Color.SPRING_GREEN, -36.0)
+
+# --- Ayudas para los tipos de la tanda M (2026-11-03) -----------------------------------------
+
+static func player_of(npc: VillageNPC) -> Node:
+	return npc._get_player() if npc != null else null
+
+static func charisma(player: Node) -> int:
+	return int(player.call("get_skill_level", "charisma")) if player != null and player.has_method("get_skill_level") else 0
+
+static func player_gold(player: Node) -> int:
+	return int(player.inventory.gold) if player != null and "inventory" in player and player.inventory else 0
+
+## Cobra `amount` al jugador; false (y aviso) si no le llega.
+static func charge_player(player: Node, npc: VillageNPC, amount: int) -> bool:
+	if player_gold(player) < amount:
+		npc._spawn_floating_text("«No llevas bastante oro (%d).»" % amount, Color.CORAL, -46.0)
+		return false
+	player.inventory.add_gold(-amount)
+	return true
+
+static func find_quests(qm: Node, type_id: String) -> Array:
+	return qm.get_active_quests("side").filter(func(q): return str(q.get("type", "")) == type_id)
+
