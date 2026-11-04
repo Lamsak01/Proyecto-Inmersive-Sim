@@ -3564,19 +3564,29 @@ func _initialize() -> void:
 	p7_fence.personal_gold = p7_fg
 	vun.on_player_action(vm, p70_a, "underworld_bribe_patrol", p70_inv)
 	assert(vun.is_guard_bribed_tonight(vm), "P7: Night guard bribed for immunity tonight")
-	# Tanda 5 (25): Caravana de contrabando de medianoche
-	vun.state(vm)["caravan_gold"] = 70
+	# Tanda 5 (25): Caravana de contrabando de medianoche (acampa de noche cada 3 días con lotes limitados)
+	var t5_wc = root.get_node_or_null("WorldClock")
+	var t5_day_bak: int = int(t5_wc.current_day)
+	var t5_hour_bak: int = int(t5_wc.current_hour)
+	t5_wc.current_day = 2
+	t5_wc.current_hour = 22
+	assert(not vun.is_caravan_here(vun.state(vm)), "Tanda 5.25 (audit): Caravan is not available on non-caravan days")
+	t5_wc.current_day = 4
+	t5_wc.current_hour = 22
 	vun.state(vm)["caravan_busted_day"] = -99
+	vun.daily(vm)
 	var t5_dust0: int = vun.get_item_count(vm, "dusk_dust")
 	var t5_invg3: int = p70_inv.gold
 	vun.on_player_action(vm, p7_fence, "underworld_caravan_buy", p70_inv)
-	assert(vun.get_item_count(vm, "dusk_dust") == t5_dust0 + 2 and int(vun.state(vm)["caravan_gold"]) == 95 and p70_inv.gold == t5_invg3 - 25, "Tanda 5.25a: Bought contraband batch from midnight caravan")
+	assert(vun.get_item_count(vm, "dusk_dust") == t5_dust0 + 2 and int(vun.state(vm)["caravan_gold"]) == 95 and int(vun.state(vm)["caravan_batches_left"]) == 1 and p70_inv.gold == t5_invg3 - 25, "Tanda 5.25a: Bought contraband batch from midnight caravan")
 	vun.on_player_action(vm, p7_fence, "underworld_caravan_sell", p70_inv)
 	assert(vun.get_item_count(vm, "dusk_dust") == t5_dust0 + 1 and int(vun.state(vm)["caravan_gold"]) == 60 and p70_inv.gold == t5_invg3 + 10, "Tanda 5.25b: Sold dusk dust to midnight caravan")
 	var t5_tr0: int = int(vm.town_state.get("treasury", 0))
 	vun.on_player_action(vm, p70_a, "underworld_caravan_report", p70_inv)
 	assert(int(vun.state(vm)["caravan_gold"]) == 0 and p70_inv.gold == t5_invg3 + 35 and int(vm.town_state["treasury"]) == t5_tr0 + 35, "Tanda 5.25c: Reporting midnight caravan confiscates funds into reward and town treasury")
 	vm.town_state["treasury"] = t5_tr0
+	t5_wc.current_day = t5_day_bak
+	t5_wc.current_hour = t5_hour_bak
 	# Tanda 6 (26, 27, 28 y 29): Timbas de dados, red de carteristas, falsificar escrituras y retar al jefe de la Red de las Sombras
 	var t6_cg0: int = p70_c.personal_gold
 	p70_c.personal_gold = 30
@@ -3598,8 +3608,12 @@ func _initialize() -> void:
 	vun.on_player_action(vm, p7_fence, "underworld_forge_deed", p70_inv)
 	assert(bool(vun.state(vm).get("forged_deed", false)) and p7_fence.personal_gold == 65, "Tanda 6.28a: Forged municipal deed purchased from fence")
 	var t6_invg2: int = p70_inv.gold
+	var t6_wl0: int = int(vm.wanted_level)
 	vho.on_player_action(vm, p70_a, "housing_deed:0", p70_inv)
-	assert(not bool(vun.state(vm).get("forged_deed", false)) and bool(vho.state(vm)["commercial_deeds"].get("0", false)) and p70_inv.gold == t6_invg2 - (vho.COMMERCIAL_DEED_COST - 40), "Tanda 6.28b: Forged municipal deed discounts 40 gold when buying commercial property")
+	var t6_deed_ok: bool = bool(vho.state(vm)["commercial_deeds"].get("0", false)) and p70_inv.gold == t6_invg2 - (vho.COMMERCIAL_DEED_COST - 40)
+	var t6_deed_caught: bool = not bool(vho.state(vm)["commercial_deeds"].get("0", false)) and p70_inv.gold == t6_invg2 and int(vm.wanted_level) == t6_wl0 + 1
+	assert(not bool(vun.state(vm).get("forged_deed", false)) and (t6_deed_ok or t6_deed_caught), "Tanda 6.28b (audit): Forged municipal deed either discounts 40 gold or gets caught and raises wanted level")
+	vm.wanted_level = t6_wl0
 	(vho.state(vm)["commercial_deeds"] as Dictionary).erase("0")
 	vun.state(vm)["boss"] = "fence"
 	p7_fence.personal_gold = 65

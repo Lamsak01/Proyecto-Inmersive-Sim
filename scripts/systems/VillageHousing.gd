@@ -139,9 +139,13 @@ static func buy_house_cash(vm, lot_id: String, inv) -> bool:
 		return false
 	if str(VillageLots.lot(vm, lot_id).get("status", "")) != "empty" or VillageLots.active_site(vm) != "":
 		return false
-	inv.add_gold(-cost)
 	if has_forged:
 		vm.VillageUnderworld.state(vm)["forged_deed"] = false
+		if randf() < 0.30:
+			vm.wanted_level = int(vm.wanted_level) + 1
+			VillageChronicle.add(vm, "forged_deed_caught", "El ayuntamiento descubrió tu escritura falsificada al comprar el solar %s" % lot_id, true)
+			return false
+	inv.add_gold(-cost)
 	# request_build con payer=null cobra de las arcas, así que ingresamos primero los 100 en las arcas y marcamos payer="player"
 	# Con escritura falsa solo entra en las arcas lo que pagas: el resto lo pierde el pueblo (es un fraude, no oro nuevo)
 	vm.town_state["treasury"] = int(vm.town_state.get("treasury", 0)) + cost
@@ -572,10 +576,16 @@ static func on_player_action(vm, npc, action_id: String, inv) -> void:
 		if inv == null or int(inv.gold) < d_cost:
 			npc._spawn_floating_text("Necesitas %d de oro para comprar el local" % d_cost, Color.ORANGE_RED, -44.0)
 			return
-		inv.add_gold(-d_cost)
-		npc.personal_gold += d_cost
 		if has_forged_deed:
 			vm.VillageUnderworld.state(vm)["forged_deed"] = false
+			if randf() < 0.30:
+				vm.wanted_level = int(vm.wanted_level) + 1
+				npc.modify_affinity(-15)
+				VillageChronicle.add(vm, "forged_deed_caught", "%s descubrió tu escritura municipal falsificada y avisó a la guardia" % npc.npc_name, true)
+				npc._spawn_floating_text("🚨📜 «¡Este sello municipal es falso! ¡Guardias!»", Color.ORANGE_RED, -46.0)
+				return
+		inv.add_gold(-d_cost)
+		npc.personal_gold += d_cost
 		hs["commercial_deeds"][arg] = true
 		npc.modify_affinity(12)
 		VillageChronicle.add(vm, "commercial_deed", "Compraste la propiedad del local de %s; cobrarás renta cada sábado" % npc.npc_name, true)

@@ -277,6 +277,5 @@ Informe completo: `docs/AUDITORIA_P1_P7.md`.
 | PD2 | Cartas: se encuentran con `lineage_search_pocket` (ofrecido a todo adulto, 1/día, con testigos). Pólizas: consulta siempre visible, 10 de oro, y pólizas inocentes (`innocent`) como pista falsa | ✅ | VillageLineage.gd, VillageForensics.gd |
 | PD3 | Venta de casa salda `loan.owed` con `VillageLoans._credit`, exige casa vacía y muda al comprador; escritura falsa ya no crea 40 en arcas; carteristas con `catch_chance` 15 % y tope 3; sótano 1/semana; quitada la lejía a distancia | ✅ | VillageHousing.gd, VillageUnderworld.gd, VillageForensics.gd |
 | PD4 | Debate y reto al jefe con tirada (reto 1/semana, debate por `elections`); patriarca 1/semana; mentor 10 de oro; indulto recupera `family_name` de su clan; intruso solo con él y roba del escondite si no lo enfrentas | ✅ | VillageMayor.gd, VillageUnderworld.gd, VillageClans.gd, VillageLineage.gd, VillageHousing.gd |
+| PD5 | Escritura falsa con 30 % de riesgo de ser descubierta (pierdes el papel falso y sube la búsqueda +1); caravana de contrabando acampa solo de noche cada 3 días con lotes limitados (`is_caravan_here`, `caravan_batches_left`) | ✅ | VillageHousing.gd, VillageUnderworld.gd, verify_all.gd |
 
-Sin cambiar (riesgo bajo): la escritura falsa sigue dando un ahorro neto de 15 sin riesgo; la caravana siempre está
-disponible si conoces al perista.

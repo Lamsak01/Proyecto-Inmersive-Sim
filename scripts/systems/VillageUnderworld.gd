@@ -89,6 +89,8 @@ static func state(vm) -> Dictionary:
 		st["caravan_gold"] = 70
 	if not st.has("caravan_busted_day"):
 		st["caravan_busted_day"] = -99
+	if not st.has("caravan_batches_left"):
+		st["caravan_batches_left"] = 2
 	if not st.has("pickpockets") or not (st["pickpockets"] is Dictionary):
 		st["pickpockets"] = {} # person_key -> {"name", "recruited_day"}
 	if not st.has("forged_deed"):
@@ -149,6 +151,9 @@ static func run_pickpocket_network(vm, inv, catch_chance: float = 0.15) -> int:
 
 static func d_now_ok_challenge(st: Dictionary) -> bool:
 	return today() - int(st.get("last_boss_challenge", -99)) >= 7
+
+static func is_caravan_here(st: Dictionary) -> bool:
+	return is_night_market_hours() and ((today() - 1) % 3 == 0) and int(st.get("caravan_busted_day", -99)) != today()
 
 static func today() -> int:
 	return int(WorldClock.current_day) if WorldClock else 1
@@ -298,6 +303,11 @@ static func daily(vm) -> void:
 		pv.last_hit_by_player = false
 		pv._confirm_true_death()
 
+	# Tanda 5 (25): Cada 3 días llega una nueva caravana de contrabando al paso del valle
+	if (d_now - 1) % 3 == 0 and int(st.get("caravan_busted_day", -99)) != d_now:
+		st["caravan_gold"] = maxi(70, int(st.get("caravan_gold", 0)))
+		st["caravan_batches_left"] = 2
+
 	# Tanda 6 (27): Tu red de carteristas reparte contigo el botín diario
 	if inv != null:
 		var pp_cut: int = run_pickpocket_network(vm, inv)
@@ -372,9 +382,10 @@ static func add_dialogue_choices(vm, npc, diag: Dictionary, ch_arr: Array) -> vo
 		var rackets_cnt: int = (st.get("rackets", {}) as Dictionary).size()
 		if str(st.get("boss", "fence")) != "player" and (int(st.get("heists_done", 0)) + rackets_cnt) >= 2:
 			opts.append({"label": "👑🌑 Imponer tu ley y convertirte en el Jefe del Hampa (+12 Oro/semana)", "next": "END", "action": "underworld_takeover_boss"})
-		# Tanda 5 (25): Caravana de contrabando de medianoche
-		if int(st.get("caravan_busted_day", -99)) != today():
-			opts.append({"label": "🐪🌙 Comprar lote de contrabando a la caravana de medianoche (-25 Oro -> +2 polvo de ocaso)", "next": "END", "action": "underworld_caravan_buy"})
+		# Tanda 5 (25): Caravana de contrabando de medianoche (acampa de noche cada 3 días, con lotes limitados)
+		if is_caravan_here(st):
+			if int(st.get("caravan_batches_left", 2)) > 0:
+				opts.append({"label": "🐪🌙 Comprar lote de contrabando a la caravana de medianoche (-25 Oro -> +2 polvo de ocaso)", "next": "END", "action": "underworld_caravan_buy"})
 			if get_item_count(vm, "dusk_dust") > 0 and int(st.get("caravan_gold", 0)) >= 35:
 				opts.append({"label": "🐪💰 Vender «polvo de ocaso» a la caravana de medianoche (+35 Oro)", "next": "END", "action": "underworld_caravan_sell"})
 		# Tanda 6 (28 y 29): Falsificar escritura municipal y retar al jefe de la «Red de las Sombras»
@@ -426,7 +437,7 @@ static func add_dialogue_choices(vm, npc, diag: Dictionary, ch_arr: Array) -> vo
 		var fence = get_fence_npc(vm)
 		if fence != null and bool(st.get("known_fence", false)):
 			opts.append({"label": "🚨🕵️ Delatar el mercado negro de %s ante la ley (+45 Oro)" % fence.npc_name, "next": "END", "action": "underworld_report_fence"})
-		if bool(st.get("known_fence", false)) and int(st.get("caravan_busted_day", -99)) != today() and int(st.get("caravan_gold", 0)) >= 20:
+		if bool(st.get("known_fence", false)) and is_caravan_here(st) and int(st.get("caravan_gold", 0)) >= 20:
 			opts.append({"label": "🚨🐪 Avisar a la guardia de la ruta de la caravana de contrabando", "next": "END", "action": "underworld_caravan_report"})
 
 	if not opts.is_empty():
@@ -670,17 +681,18 @@ static func on_player_action(vm, npc, action_id: String, inv) -> void:
 		npc._spawn_floating_text("👑🌑 «Tú mandas ahora en las sombras. Cada sábado recibirás tu tributo de 12 de oro.»", Color.GOLD, -46.0)
 
 	elif action_id == "underworld_caravan_buy":
-		if inv == null or int(inv.gold) < 25 or int(st.get("caravan_busted_day", -99)) == d_now:
-			npc._spawn_floating_text("Necesitas 25 de oro para el lote de la caravana", Color.ORANGE_RED, -44.0)
+		if inv == null or int(inv.gold) < 25 or not is_caravan_here(st) or int(st.get("caravan_batches_left", 2)) <= 0:
+			npc._spawn_floating_text("Necesitas 25 de oro y que la caravana esté acampada esta noche con lotes disponibles", Color.ORANGE_RED, -44.0)
 			return
 		inv.add_gold(-25)
 		st["caravan_gold"] = int(st.get("caravan_gold", 0)) + 25
+		st["caravan_batches_left"] = int(st.get("caravan_batches_left", 2)) - 1
 		add_item(vm, "dusk_dust", 2)
 		VillageChronicle.add(vm, "caravan_bought", "Compraste en secreto un lote de «polvo de ocaso» a la caravana de medianoche (-25 Oro)", false)
 		npc._spawn_floating_text("🐪🌙 «La caravana te entrega 2 dosis puras sin pasar por aduana.»", Color.GOLD, -46.0)
 
 	elif action_id == "underworld_caravan_sell":
-		if get_item_count(vm, "dusk_dust") <= 0 or int(st.get("caravan_gold", 0)) < 35 or int(st.get("caravan_busted_day", -99)) == d_now:
+		if get_item_count(vm, "dusk_dust") <= 0 or int(st.get("caravan_gold", 0)) < 35 or not is_caravan_here(st):
 			return
 		add_item(vm, "dusk_dust", -1)
 		st["caravan_gold"] = int(st.get("caravan_gold", 0)) - 35
@@ -691,7 +703,7 @@ static func on_player_action(vm, npc, action_id: String, inv) -> void:
 
 	elif action_id == "underworld_caravan_report":
 		var conf: int = maxi(0, int(st.get("caravan_gold", 0)))
-		if conf <= 0 or int(st.get("caravan_busted_day", -99)) == d_now:
+		if conf <= 0 or not is_caravan_here(st):
 			return
 		st["caravan_gold"] = 0
 		st["caravan_busted_day"] = d_now
