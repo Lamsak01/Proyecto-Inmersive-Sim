@@ -664,6 +664,8 @@ static func on_player_action(vm, npc, action_id: String, inv) -> void:
 		if not st.has("upgrades") or not (st["upgrades"] is Dictionary):
 			st["upgrades"] = {}
 		st["upgrades"][arg] = true
+		if arg == "upper_floor":
+			st["beds"] = VillageLots._house_beds(p_lot, true)
 		VillageChronicle.add(vm, "home_upgraded", "Mejoraste tu casa con: %s" % arg, true)
 		npc._spawn_floating_text("🔨🏡 «¡Mejora instalada en tu casa!»", Color.SPRING_GREEN, -46.0)
 

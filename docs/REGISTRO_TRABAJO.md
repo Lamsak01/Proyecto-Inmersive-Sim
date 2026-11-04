@@ -357,6 +357,14 @@ Informe completo: `docs/AUDITORIA_P1_P7.md`.
 | PP1 | Crear y gobernar el asentamiento fronterizo «Puesto del Paso» (`found_outpost`, `recruit_outpost_settler`, `upgrade_outpost`, `process_outpost_daily`, `collect_outpost_treasury`) con colonos, aserradero/granero/atalaya y arca propia | ✅ | VillageCulture.gd, verify_all.gd | Test #93 |
 | PP2 | Historia Principal en 4 capítulos («I. Las Raíces del Valle» → «IV. La Placa de Petri») conectada a la pestaña «👑 Principal» del panel de misiones `[L]` (`MAIN_STORY_CHAPTERS`, `sync_main_story`) | ✅ | VillageCulture.gd, QuestManager.gd, verify_all.gd | Test #93 |
 
+## Bloque PQ — Escalado de población a 100+ vecinos, solares norte (`u0..u6`), casas de 4 camas con altillo y LOD multi-nivel (2026-11-04)
+
+| # | Paso | Estado | Archivos | Nota |
+|---|------|--------|----------|------|
+| PQ1 | Techo de población `POP_CAP = 100`, 7 nuevos solares residenciales en la ronda norte (`u0..u6`) y ampliación de casas a 4 camas mediante altillo (`expand_house_upper_floor`, `_house_beds(id, true)`) | ✅ | VillageMigration.gd, VillageLots.gd, VillageHousing.gd, verify_all.gd | Test #94 |
+| PQ2 | Simulación simplificada multi-nivel (`_lod_far`, `_lod_step_for_npc`) para vecinos en otro piso/subsuelo o a gran distancia | ✅ | VillageNPC.gd, verify_all.gd | Test #94 |
+
+
 
 
 

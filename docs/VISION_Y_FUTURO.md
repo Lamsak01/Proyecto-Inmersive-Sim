@@ -51,8 +51,8 @@ Reglas que acompañan al principio:
 6. ✅ **HECHO** — Economía y necesidades ampliadas (E1–E7 y J4: higiene, resfriado y fiebre gris, ladrones nocturnos, adicciones a bebida y juego, clases sociales, mendigos y gachas en el Albergue).
 7. ✅ **HECHO** — Instituciones y corrupción (I1–I6, V5b, V6 y H1–H5: alcalde elegido con urna en el Ayuntamiento, impuestos, desfalco, comisario sobornable, nobles rentistas y préstamos hipotecarios con desahucio).
 8. ✅ **HECHO (base completa; el usuario la ampliará más adelante)** — La secta secreta (O1–O8: «Hijos del Ocaso», nace sola por crisis o aburrimiento de los ricos, reuniones nocturnas, captación, bando oculto, profanaciones y rito de sangre).
-9. 🟡 **HECHO HASTA 50 VECINOS (falta escalar a 100+)** — Crecer el pueblo (V1–V9 y bloques A–K: 20+ solares, panadería, sastrería, posada barata, albergue, ayuntamiento, biblioteca, escuela con maestro, mercado de los miércoles, granja, rancho, cantera, leñador, taller de reparaciones, jornaleros, llegadas y marchas, matrimonios con hijos que crecen y simulación simplificada para lejanos).
-10. 💡 **PENDIENTE** — Grandes ampliaciones técnicas (ver sección 5, grupo "Lejano", y sección 6, niveles verticales).
+9. ✅ **HECHO (escalado a 100+ vecinos)** — Crecer el pueblo (V1–V9, bloques A–K y bloque PQ: 27+ solares con tercera fila norte `u0..u6`, casas ampliables a 4 camas con altillo, panadería, sastrería, posada barata, albergue, ayuntamiento, biblioteca, escuela con maestro, mercado de los miércoles, granja, rancho, cantera, leñador, taller de reparaciones, jornaleros, llegadas y marchas hasta 100 vecinos, matrimonios con hijos que crecen y simulación simplificada para lejanos y otros pisos).
+10. ✅ **HECHO** — Grandes ampliaciones técnicas (ver sección 5, grupo "Lejano", y sección 6, niveles verticales: implementados y verificados en los bloques PJ, PK, PL, PM, PN, PO y PP).
 
 ## 4. Banco de ideas por pieza
 

@@ -139,11 +139,9 @@ estilo RimWorld, tiendas, justicia con detective y juicio):
 =====================================================================
 7. ESTADO ACTUAL Y PENDIENTE
 =====================================================================
-- Todo está subido a GitHub y las 4 pruebas pasan (ver la última entrada de REGISTRO_TRABAJO.md).
-- PROBADO EN AUTOMÁTICO (bloque N): las 25 misiones secundarias, el guardado de marcas de misión en cada vecino y el atajo de diálogo «📜 Encargo» ya tienen prueba funcional automática (#81).
-- SIN PROBAR JUGANDO AÚN: ver en partida real las misiones nuevas, los canteros trabajando en la roca y la retirada de los cazadores ante jabalíes.
-- Ya arreglado en sesión con el usuario: los 19 avisos amarillos del editor, el cuadro de diálogo con barra de desplazamiento para que no se corte, quitado el texto antiguo en inglés encima del minimapa y barras de vida/necesidades más compactas y dinámicas.
-- La historia principal no existe todavía (la pestaña está preparada en el panel L).
+- Todo está subido a GitHub y las 4 pruebas pasan (`names_check`, `social_sim`, `dialogue_coverage` y `verify_all` hasta el Test #94; ver `docs/REGISTRO_TRABAJO.md`).
+- PROBADO EN AUTOMÁTICO (bloques N y P1–PQ, tests #81 a #94): las 25 misiones secundarias, los 7 bloques P1–P7 con sus 29 mecánicas adicionales y sus dos rondas de auditoría (PC/PD), más los bloques PF (fama y maestros artesanos), PG (graduación escolar y negocio propio), PH (idolatría obsesiva y acompañantes), PI (crianza y carreras/peleas de animales), PJ (amputaciones/prótesis y sabotaje de la red eléctrica), PK (reforestación y rutas comerciales), PL (árbol tecnológico e incursiones), PM (expediciones y caballos/carretas), PN (niveles verticales y alcantarillas), PO (armas de fuego de chispa y terminales lógicas), PP (asentamiento fronterizo «Puesto del Paso» e Historia Principal en 4 capítulos en la pestaña «👑 Principal» del panel `[L]`) y PQ (escalado a 100+ vecinos con solares norte `u0..u6`, casas de 4 camas con altillo y simulación simplificada multi-nivel).
+- RESERVADO PARA EL USUARIO: ampliar la secta secreta (`VillageSect.gd`, ver `docs/VISION_Y_FUTURO.md` línea 91).
 - Antes de proponer cualquier idea de docs/VISION_Y_FUTURO.md, revisa sus etiquetas (✅ HECHO / 🟡 EN PARTE / 💡 PENDIENTE) y compruébalo en el código para no proponer nunca algo que ya esté hecho.
 
 =====================================================================

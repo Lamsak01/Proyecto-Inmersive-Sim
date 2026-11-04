@@ -4218,5 +4218,50 @@ func _initialize() -> void:
 	vm.town_state["treasury"] = pp_tr0
 	print("Block PP (Player Outpost Settlement & 4-Chapter Main Story) OK")
 
+	# ==========================================================================
+	# 94. Bloque PQ — Escalado de población a 100+ vecinos, solares norte (u0..u6), casas de 4 camas con altillo y LOD multi-nivel
+	# ==========================================================================
+	assert(vmi.POP_CAP == 100, "PQ.1a: Village population cap is scaled to 100 residents")
+	for id_u in ["u0", "u1", "u2", "u3", "u4", "u5", "u6"]:
+		var d_u: Dictionary = vl.lot_def(id_u)
+		assert(not d_u.is_empty(), "PQ.1b: Northern expansion lot %s exists" % id_u)
+		var r_u := Rect2((d_u["center"] as Vector2) - (d_u["size"] as Vector2) * 0.5, d_u["size"] as Vector2)
+		for f_u in vm.building_footprints:
+			assert(not r_u.intersects(f_u["rect"]), "PQ.1c: Lot %s is clear of %s" % [id_u, str(f_u["id"])])
+	var pq_st: Dictionary = vl.lot(vm, "u0")
+	var pq_saved: Dictionary = pq_st.duplicate(true)
+	var pq_ag0: int = int(p70_a.personal_gold)
+	pq_st["status"] = "built"
+	pq_st["kind"] = "house"
+	pq_st["title"] = "🏠 Casa Norte"
+	pq_st["payer"] = p70_a.get_person_key()
+	pq_st["upgrades"] = {}
+	pq_st["beds"] = vl._house_beds("u0", false)
+	pq_st["residents"] = []
+	var pq_beds_before: int = vmi.free_house_beds(vm)
+	assert((pq_st["beds"] as Array).size() == 2, "PQ.2a: Base house starts with 2 beds")
+	p70_a.personal_gold = 80
+	assert(vl.expand_house_upper_floor(vm, "u0", p70_a) and p70_a.personal_gold == 30, "PQ.2b: Expanding a built house with upper_floor costs 50 gold from payer")
+	assert((pq_st["beds"] as Array).size() == 4 and vmi.free_house_beds(vm) == pq_beds_before + 2, "PQ.2c: Upper floor expansion doubles house bed capacity to 4 (+2 free beds)")
+	for k_u in pq_saved.keys():
+		pq_st[k_u] = pq_saved[k_u]
+	pq_st.erase("upgrades")
+	pq_st["beds"] = []
+	pq_st["residents"] = []
+	p70_a.personal_gold = pq_ag0
+	if v2_pl != null and v2_n != null:
+		var pq_pos0: Vector2 = v2_n.global_position
+		var pq_ppos0: Vector2 = v2_pl.global_position
+		v2_pl.global_position = v2_n.global_position + Vector2(20.0, 0.0)
+		vm.set_player_elevation_level(0)
+		vm.set_npc_elevation_level(v2_n, 0)
+		assert(not v2_n._lod_far(), "PQ.3a: Nearby villager on same elevation level runs at full detail")
+		vm.set_npc_elevation_level(v2_n, 1)
+		assert(v2_n._lod_far() and v2_n._lod_step_for_npc() == v2_n.LOD_STEP * 2, "PQ.3b: Villager on a different vertical level runs in simplified LOD mode (step=%d)" % v2_n._lod_step_for_npc())
+		vm.set_npc_elevation_level(v2_n, 0)
+		v2_n.global_position = pq_pos0
+		v2_pl.global_position = pq_ppos0
+	print("Block PQ (100+ Population Scaling, 4-Bed Upper Floor Houses & Multi-Level LOD) OK")
+
 	print("ALL RIMWORLD MEDICAL, FOOTPRINTS, 3-PHASE CORPSE REPORT, MULTI-CORPSE FIX, RPG INTERROGATION, PUBLIC TRIAL, DYNAMIC RELATIONSHIPS, MISSING FAMILY SEARCH, SOCIAL GLOSSARY & UNCONSCIOUS REACTION TESTS PASSED!")
 	quit(0)

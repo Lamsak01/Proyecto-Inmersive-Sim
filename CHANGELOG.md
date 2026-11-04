@@ -5,6 +5,10 @@ El detalle técnico está en `docs/HANDOFF.md` (sección 7) y el historial compl
 
 ## 2026-11-04
 
+### Escalado del pueblo a 100+ vecinos, ronda norte de solares y casas de dos plantas con 4 camas
+- **Crecimiento hasta 100 vecinos y nueva ronda del norte:** el límite del pueblo sube a 100 habitantes y se abre una tercera calle al norte con siete solares residenciales nuevos. Además, cuando una casa instala un altillo o cuando el pueblo necesita más camas y ya no quedan solares vacíos, las viviendas se amplían hacia arriba para alojar hasta a 4 vecinos por casa.
+- **Simulación ligera para otros pisos y vecinos lejanos:** los habitantes que están en otro nivel (en el altillo o en las alcantarillas) o muy lejos de tu vista se actualizan de forma simplificada para mantener el rendimiento fluido cuando la ciudad crece.
+
 ### Crear tu propio asentamiento fronterizo e Historia Principal en 4 capítulos
 - **Fundar y gobernar el «Puesto del Paso»:** puedes fundar tu propio asentamiento en el paso fronterizo abonando la carta municipal y aportando madera y piedra. Allí puedes reclutar vecinos sin oficio como colonos (con jornal diario pagado del arca del asentamiento), levantar un aserradero, un granero y una atalaya de guardia, y recaudar el excedente de los peajes comerciales.
 - **Historia Principal en el panel de misiones (`[L]`):** la pestaña «👑 Principal» del diario de misiones sigue ahora un arco de cuatro capítulos («Las Raíces del Valle», «El Pulso Bajo la Piedra», «La Máquina de Cobre» y «La Placa de Petri») que conecta tu llegada al valle, los hallazgos subterráneos y arqueológicos, la ingeniería del generador y el destino político de la comunidad.

@@ -16,7 +16,7 @@ const VillageNeeds = preload("res://scripts/systems/VillageNeeds.gd")
 const VillageLots = preload("res://scripts/systems/VillageLots.gd")
 const VillageWork = preload("res://scripts/systems/VillageWork.gd")
 
-const POP_CAP: int = 50
+const POP_CAP: int = 100
 const TAVERN_GUEST_BEDS: Array = [Vector2(435, -252), Vector2(468, -252), Vector2(502, -252)]
 const TAVERN_DAY_SPOTS: Array = [Vector2(440, 44), Vector2(495, 44), Vector2(415, -105)]
 const ARRIVE_MIN_SCORE: float = 0.05
@@ -344,6 +344,17 @@ static func maybe_order_house(vm, score: float) -> String:
 		return ""
 	var lots: Array = VillageLots.free_lots(vm, "house")
 	if lots.is_empty():
+		# Bloque PQ: Si ya no quedan solares libres pero hace falta cama, se amplía una casa construida con altillo (+2 camas)
+		for l in VillageLots.LOTS:
+			var lid: String = str(l["id"])
+			var lst: Dictionary = VillageLots.lot(vm, lid)
+			if str(lst.get("status", "")) == "built" and str(lst.get("kind", "")) == "house" and not bool((lst.get("upgrades", {}) as Dictionary).get("upper_floor", false)):
+				homeless.sort_custom(func(a, b): return a.personal_gold > b.personal_gold)
+				var exp_payer = homeless[0] if int(homeless[0].personal_gold) >= VillageLots.UPPER_FLOOR_COST + 15 else null
+				var exp_reserve: int = 0 if street else TREASURY_RESERVE
+				if exp_payer != null or int(vm.town_state.get("treasury", 0)) >= VillageLots.UPPER_FLOOR_COST + exp_reserve:
+					if VillageLots.expand_house_upper_floor(vm, lid, exp_payer):
+						return lid
 		return ""
 	var cost: int = int(VillageLots.KINDS["house"]["cost"])
 	homeless.sort_custom(func(a, b): return a.personal_gold > b.personal_gold)

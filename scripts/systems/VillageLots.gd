@@ -33,6 +33,14 @@ const LOTS: Array = [
 	{"id": "m4", "zone": "borde", "center": Vector2(760, -580), "size": Vector2(130, 96), "door_south": true}, # Calleja de atrás
 	{"id": "m5", "zone": "borde", "center": Vector2(910, -580), "size": Vector2(130, 96), "door_south": true}, # Calleja de atrás
 	{"id": "m6", "zone": "borde", "center": Vector2(1070, -580), "size": Vector2(130, 96), "door_south": true}, # Para llegar a 50
+	# Tercera fila al norte (Bloque PQ: expansión urbana para escalar a 100+ vecinos)
+	{"id": "u0", "zone": "borde", "center": Vector2(190, -740), "size": Vector2(130, 96), "door_south": true},
+	{"id": "u1", "zone": "borde", "center": Vector2(330, -740), "size": Vector2(130, 96), "door_south": true},
+	{"id": "u2", "zone": "borde", "center": Vector2(470, -740), "size": Vector2(130, 96), "door_south": true},
+	{"id": "u3", "zone": "borde", "center": Vector2(610, -740), "size": Vector2(130, 96), "door_south": true},
+	{"id": "u4", "zone": "borde", "center": Vector2(760, -740), "size": Vector2(130, 96), "door_south": true},
+	{"id": "u5", "zone": "borde", "center": Vector2(910, -740), "size": Vector2(130, 96), "door_south": true},
+	{"id": "u6", "zone": "borde", "center": Vector2(1070, -740), "size": Vector2(130, 96), "door_south": true},
 	# Borde este, a los dos lados del camino principal alargado
 	{"id": "e1", "zone": "borde", "center": Vector2(1090, -36), "size": Vector2(130, 96), "door_south": true},
 	{"id": "e2", "zone": "borde", "center": Vector2(1230, -36), "size": Vector2(130, 96), "door_south": true},
@@ -56,7 +64,8 @@ const LOTS: Array = [
 const ROADS: Array = [
 	Rect2(Vector2(130, -362), Vector2(1010, 22)), # Calle norte (alargada hasta los solares n0 y n6)
 	Rect2(Vector2(270, -526), Vector2(870, 20)), # Calleja de atrás (fila m, hasta m6)
-	Rect2(Vector2(980, -526), Vector2(20, 186)), # Enlace de la calleja con la calle norte
+	Rect2(Vector2(130, -686), Vector2(1010, 20)), # Ronda alta del norte (fila u, hasta u6)
+	Rect2(Vector2(980, -686), Vector2(20, 346)), # Enlace de las callejas norte con la calle norte
 	Rect2(Vector2(660, -362), Vector2(24, 230)), # Enlace con la calle de las casas
 	Rect2(Vector2(1010, 36), Vector2(470, 28)), # Camino principal hacia el este
 	Rect2(Vector2(-290, -250), Vector2(20, 286)), # Senda a la ladera del noroeste (puerta de la cantera)
@@ -179,7 +188,8 @@ static func _build_kind(vm, id: String, st: Dictionary) -> void:
 		"house":
 			var tex_bed: Texture2D = vm._load_tex("res://assests/world/village/tavern_bed.png")
 			var fam: String = "family_lot_" + id
-			var beds: Array = _house_beds(id)
+			var has_up: bool = bool((st.get("upgrades", {}) as Dictionary).get("upper_floor", false))
+			var beds: Array = _house_beds(id, has_up)
 			var hc: Vector2 = c
 			vm._construct_solid_building("house_" + fam, str(st["title"]), hc, Vector2(112, 78), bool(d["door_south"]),
 				"res://assests/world/village/floor_wood_planks.png", "res://assests/world/village/wall_timber_h.png",
@@ -231,12 +241,16 @@ static func _build_shop_house(vm, id: String, st: Dictionary) -> void:
 	vm._spawn_house_chest(lay["chest_pos"], "Cofre de " + str(st["title"]), fam)
 	load("res://scripts/systems/VillageTrades.gd").build_extras(vm, id) # V5d: campos, corrales, cantera…
 
-## Camas dentro de la casa, lejos de la puerta.
-static func _house_beds(id: String) -> Array:
+## Camas dentro de la casa, lejos de la puerta. Con altillo (`upper_floor`), añade 2 camas adicionales (4 en total).
+static func _house_beds(id: String, has_upper: bool = false) -> Array:
 	var d: Dictionary = lot_def(id)
 	var c: Vector2 = d["center"]
 	var dy: float = -18.0 if bool(d["door_south"]) else 18.0
-	return [c + Vector2(-30, dy), c + Vector2(30, dy)]
+	var base: Array = [c + Vector2(-30, dy), c + Vector2(30, dy)]
+	if has_upper:
+		base.append(c + Vector2(-14, dy))
+		base.append(c + Vector2(14, dy))
+	return base
 
 # Lo que crean las funciones de dibujo de VillageManager va a entities_root, al propio vm y a varias listas.
 static func _capture_begin(vm) -> Dictionary:
@@ -353,7 +367,8 @@ static func _finish(vm, id: String, carp) -> void:
 	st["status"] = "built"
 	st["progress"] = 1.0
 	if str(st["kind"]) == "house":
-		st["beds"] = _house_beds(id)
+		var has_up: bool = bool((st.get("upgrades", {}) as Dictionary).get("upper_floor", false))
+		st["beds"] = _house_beds(id, has_up)
 		st["residents"] = []
 	_draw_lot(vm, id, st)
 	var cfg: Dictionary = vm.trade_configs.get(VillageNPC.TradeRole.CARPENTER, {})
@@ -361,6 +376,33 @@ static func _finish(vm, id: String, carp) -> void:
 		carp.work_position = cfg.get("work_pos", carp.work_position)
 		carp.add_thought("Terminé %s (+6)" % str(st["title"]).to_lower(), 6.0)
 		vm.VillageChronicle.add(vm, "construction", "%s terminó %s" % [carp.npc_name, str(st["title"]).to_lower()], true)
+
+## Bloque PQ: Ampliar una casa ya construida con altillo/primer piso (+2 camas, hasta 4 residentes por casa).
+const UPPER_FLOOR_COST: int = 50
+static func expand_house_upper_floor(vm, id: String, payer = null) -> bool:
+	var st: Dictionary = lot(vm, id)
+	if str(st.get("status", "")) != "built" or str(st.get("kind", "")) != "house":
+		return false
+	if not st.has("upgrades") or not (st["upgrades"] is Dictionary):
+		st["upgrades"] = {}
+	if bool(st["upgrades"].get("upper_floor", false)):
+		return false
+	if payer != null:
+		if int(payer.personal_gold) < UPPER_FLOOR_COST:
+			return false
+		payer.personal_gold -= UPPER_FLOOR_COST
+	else:
+		if int(vm.town_state.get("treasury", 0)) < UPPER_FLOOR_COST:
+			return false
+		vm.town_state["treasury"] = int(vm.town_state["treasury"]) - UPPER_FLOOR_COST
+	var carp = _carpenter(vm)
+	if carp != null:
+		carp.personal_gold += int(round(UPPER_FLOOR_COST * CARPENTER_SHARE))
+	buy_materials(vm, UPPER_FLOOR_COST)
+	st["upgrades"]["upper_floor"] = true
+	st["beds"] = _house_beds(id, true)
+	vm.VillageChronicle.add(vm, "house_expanded", "Se levantó un altillo con 2 camas nuevas en %s (solar %s)" % [str(st.get("title", "la casa")), id], true)
+	return true
 
 static func _update_site_label(vm, id: String) -> void:
 	var lbl = vm.entities_root.get_node_or_null("LotSiteLabel_" + id)
@@ -391,7 +433,8 @@ static func add_resident(vm, id: String, person_key: String) -> void:
 static func after_load(vm) -> void:
 	for id in state(vm).keys():
 		var st: Dictionary = state(vm)[id]
-		st["beds"] = _house_beds(str(id)) if str(st.get("kind", "")) == "house" and str(st.get("status", "")) == "built" else []
+		var has_up: bool = bool((st.get("upgrades", {}) as Dictionary).get("upper_floor", false))
+		st["beds"] = _house_beds(str(id), has_up) if str(st.get("kind", "")) == "house" and str(st.get("status", "")) == "built" else []
 		st["progress"] = float(st.get("progress", 0.0))
 		if not st.has("residents"):
 			st["residents"] = []

@@ -1676,19 +1676,30 @@ func _lod_far() -> bool:
 		return false
 	if trade_role in [TradeRole.SHERIFF, TradeRole.GUARD, TradeRole.DOCTOR, TradeRole.ROYAL_INVESTIGATOR]:
 		return false # Patrullas, urgencias e investigaciones: siempre al detalle
+	if is_instance_valid(_cached_vm) and "player_elevation_level" in _cached_vm and int(_cached_vm.player_elevation_level) != elevation_level:
+		return true # Bloque PQ: En otro piso o en el subsuelo respecto al jugador se simula en modo simplificado
 	var pl: Node2D = _get_player()
 	return pl != null and global_position.distance_squared_to(pl.global_position) > LOD_DIST * LOD_DIST
+
+func _lod_step_for_npc() -> int:
+	if is_instance_valid(_cached_vm) and "player_elevation_level" in _cached_vm and int(_cached_vm.player_elevation_level) != elevation_level:
+		return LOD_STEP * 2
+	var pl: Node2D = _get_player()
+	if pl != null and global_position.distance_squared_to(pl.global_position) > (LOD_DIST * 2.0) * (LOD_DIST * 2.0):
+		return LOD_STEP * 2
+	return LOD_STEP
 
 func _physics_process(delta: float) -> void:
 	if Engine.is_editor_hint():
 		return
 	_lod_k = 1.0
 	if _lod_far():
+		var cur_step: int = _lod_step_for_npc()
 		if _lod_phase < 0:
-			_lod_phase = randi() % LOD_STEP
+			_lod_phase = randi() % cur_step
 		_lod_acc += delta
 		_lod_tick += 1
-		if (_lod_tick + _lod_phase) % LOD_STEP != 0:
+		if (_lod_tick + _lod_phase) % cur_step != 0:
 			return
 		_lod_k = _lod_acc / delta if delta > 0.0 else 1.0
 		delta = _lod_acc
