@@ -5,6 +5,12 @@ El detalle técnico está en `docs/HANDOFF.md` (sección 7) y el historial compl
 
 ## 2026-11-04
 
+### Asaltos con motivo, que se ven venir y se pueden ganar
+- **Por qué vienen:** los bandidos ya no llegan por calendario. Se fijan en el pueblo cuando las arcas están muy llenas, cuando las rutas comerciales corren la voz o cuando el Puesto del Paso les queda de camino. Un pueblo pobre y bien defendido deja de interesarles.
+- **Se ven venir:** por la mañana te avisan de quién viene y por qué. A media tarde la guardia y los vecinos con más arrojo se reúnen en el camino del este, y el asalto llega al atardecer. Hasta entonces puedes encabezar la defensa hablando con el comisario o un guardia.
+- **Se pueden ganar:** además de la guardia, defienden hasta 3 vecinos valientes. Si se pierde, los defensores salen magullados y se saquean las arcas.
+- **Arreglado:** un error en la capilla al comprar una bula de perdón rompía la confesión.
+
 ### Revisión de PF–PQ: textos y detalles corregidos
 - **Caballo:** ahora sí te hace ir un 25 % más rápido, también después de cargar la partida.
 - **Amputaciones:** perder un miembro entristece al vecino (antes le alegraba) y la prótesis le anima de verdad.

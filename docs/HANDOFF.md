@@ -665,6 +665,12 @@ Cada fase se dividirá en bloques pequeños cuando se llegue a ella (detalle en 
 - [x] **Bloque PQ — Escalado de población a 100+ vecinos, solares de la ronda norte (`u0..u6`), casas ampliables a 4 camas con altillo y LOD multi-nivel** (`scripts/systems/VillageMigration.gd`, `scripts/systems/VillageLots.gd`, `scripts/systems/VillageHousing.gd`, `scripts/enemies/VillageNPC.gd`, test #94):
   1) Techo de población ampliado (`POP_CAP = 100` en `VillageMigration.gd`), nueva ronda norte de 7 solares residenciales (`u0..u6` en `VillageLots.LOTS`) y ampliación vertical de casas ya construidas con altillo (`expand_house_upper_floor`, `_house_beds(id, true)` con 4 camas por casa, activada automáticamente en `VillageMigration.maybe_order_house` cuando se agotan los solares libres o al instalar `"upper_floor"` en `VillageHousing.gd`).
   2) Simulación simplificada multi-nivel y de larga distancia (`_lod_far()` y `_lod_step_for_npc()` en `VillageNPC.gd`): los vecinos que se encuentran en otra capa vertical (`elevation_level != vm.player_elevation_level`) o muy alejados pasan a paso simplificado doble (`LOD_STEP * 2 = 8` fotogramas), manteniendo el desplazamiento exacto mediante `_lod_k`.
+- [x] **Asaltos con motivo** (`VillageCulture`, test #89 ampliado):
+  1) `raid_lure`: arcas por encima de `RAID_RICH_TREASURY`, rutas activas y asentamiento. Amenaza diaria = atracción − 1 − defensa/3. A partir de `RAID_THREAT_WARN` hay una probabilidad diaria de aviso.
+  2) `raid_on_hour`: a las 16 h `raid_defend` lleva a los defensores a `RAID_GATE_POS`; a las 18 h `resolve_raid`.
+  3) `raid_volunteers`: hasta 3 adultos con agresividad ≥ 0.35, que suman a `defense_power`.
+  4) La fuerza depende de la amenaza y de las incursiones ya rechazadas.
+  Además, `VillageConfession.buy_indulgence` trataba `sect_state.crisis_events` (un número) como una lista.
 - [x] **Sonda de mecánicas** (`tools/tests/feature_probe.gd -- <días> <semilla>`, con `--fixed-fps 60`; 30 días tardan unos 30 min). Cuenta lo que pasa solo en la crónica y en el estado. Resultados en `docs/REGISTRO_TRABAJO.md`.
 - [x] **Revisión PF–PQ, textos** (puntos 12–16; tests #84 y #90 ampliados):
   1) `PlayerMovementController` aplica la meta `mount_speed_mult`; `VillageCulture.after_load` la repone si `has_horse`.

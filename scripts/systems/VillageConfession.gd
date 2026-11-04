@@ -162,7 +162,8 @@ static func buy_indulgence(vm, rich_npc, priest) -> void:
 		if VillageNeeds.class_of(n) in ["pobre", "mendigo"]:
 			n.modify_npc_relationship(rich_npc, -3, "Compró el perdón en la capilla con su oro", true)
 	if "sect_state" in vm and vm.sect_state is Dictionary and vm.sect_state.has("crisis_events"):
-		(vm.sect_state["crisis_events"] as Array).append({"day": today(), "w": 0.06})
+		# El malestar de la secta es un número (0..0.4) que se olvida solo, no una lista
+		vm.sect_state["crisis_events"] = minf(0.4, float(vm.sect_state["crisis_events"]) + 0.06)
 	VillageChronicle.add(vm, "indulgence", "%s compró una bula de perdón en la capilla por %d de oro, indignando a los humildes" % [rich_npc.npc_name, pay], true)
 
 # ==============================================================================

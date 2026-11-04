@@ -17,6 +17,7 @@ const VillageLots = preload("res://scripts/systems/VillageLots.gd")
 const VillageTrades = preload("res://scripts/systems/VillageTrades.gd")
 const VillageFame = preload("res://scripts/systems/VillageFame.gd")
 const VillageChronicle = preload("res://scripts/systems/VillageChronicle.gd")
+const TraitCatalog = preload("res://scripts/data/TraitCatalog.gd")
 
 const LIBRARY_LOT: String = "n5"
 const SCHOOL_LOT: String = "e3"
@@ -35,7 +36,14 @@ const REPAIRS_PER_DAY: int = 2
 const GRID_REPAIR_REWARD: int = 12
 const SAPLING_COST: int = 6
 const MAX_PLANTED_TREES: int = 12 # Tope de pinos sembrados por el jugador
-const MILITIA_MAX_BONUS: int = 4 # Las barricadas pagadas no pasan de +4 por incursión
+const MILITIA_MAX_BONUS: int = 4
+## Incursiones con motivo (nada de calendario): los bandidos se fijan en un pueblo rico y con rutas que corren la voz.
+const RAID_RICH_TREASURY: int = 300 # Por encima de esto, las arcas llenas atraen a los bandidos
+const RAID_THREAT_WARN: int = 40 # A partir de aquí hay probabilidad diaria de que se decidan a atacar
+const RAID_GATHER_HOUR: int = 16 # Los defensores acuden a la entrada del pueblo
+const RAID_ATTACK_HOUR: int = 18 # El asalto llega al atardecer
+const RAID_GATE_POS: Vector2 = Vector2(1400, 50) # Camino del este, por donde llegan
+const RAID_MAX_VOLUNTEERS: int = 3 # Las barricadas pagadas no pasan de +4 por incursión
 const ROUTE_CHARTER_COST: int = 25
 const MILITIA_COST: int = 15
 const EXPEDITION_COST: int = 12
@@ -578,16 +586,85 @@ static func start_raid_warning(vm, kind: String = "bandits") -> Dictionary:
 		"boars": "Manada de Jabalíes Furiosos",
 		"outiders": "Saqueadores del Norte",
 	}
+	var lure_txt: String = raid_motive_text(vm)
 	var raid: Dictionary = {
 		"kind": kind,
 		"name": str(names.get(kind, "Banda del Paso Negro")),
-		"strength": 4 + mini(6, int(rd.get("raids_repelled", 0))), # Cada incursión rechazada, la siguiente viene más fuerte
-		"day_due": today + 1,
+		# Más amenaza = banda más grande; cada incursión rechazada, la siguiente viene más preparada
+		"strength": 3 + mini(4, int(rd.get("threat", 0)) / 15) + mini(3, int(rd.get("raids_repelled", 0))),
+		"day_due": today,
 		"bounty": 20,
+		"motive": lure_txt,
 	}
 	rd["active_raid"] = raid
-	VillageChronicle.add(vm, "raid_warning", "⚠️ Los vigías avistan a %s preparando una incursión contra el pueblo" % str(raid["name"]), true)
+	VillageChronicle.add(vm, "raid_warning", "⚠️ Los vigías avistan a %s en el camino del este (%s). Atacarán al atardecer" % [str(raid["name"]), lure_txt], true)
+	var pl_w = VillageNeeds.player_of(vm)
+	if pl_w != null and pl_w.has_method("show_hint"):
+		pl_w.show_hint("⚠️ %s viene hacia el pueblo (%s). Atacará al atardecer: habla con el comisario o un guardia para encabezar la defensa." % [str(raid["name"]), lure_txt])
 	return raid
+
+## Por qué vienen: lo que el pueblo deja ver hacia fuera. Devuelve 0 si no hay nada que atraiga a los bandidos.
+static func raid_lure(vm) -> int:
+	var lure: int = 0
+	var tr: int = int(vm.town_state.get("treasury", 0))
+	if tr > RAID_RICH_TREASURY:
+		lure += mini(5, 1 + (tr - RAID_RICH_TREASURY) / 150)
+	for r in trade_routes_of(vm).values():
+		if bool(r.get("active", false)):
+			lure += 1 # Las caravanas corren la voz de lo que hay en el valle
+	if bool(outpost_state(vm).get("founded", false)):
+		lure += 1
+	return lure
+
+static func raid_motive_text(vm) -> String:
+	var parts: Array[String] = []
+	var tr: int = int(vm.town_state.get("treasury", 0))
+	if tr > RAID_RICH_TREASURY:
+		parts.append("atraídos por las arcas llenas del pueblo")
+	for r in trade_routes_of(vm).values():
+		if bool(r.get("active", false)):
+			parts.append("las caravanas han corrido la voz")
+			break
+	if bool(outpost_state(vm).get("founded", false)):
+		parts.append("el Puesto del Paso les queda de camino")
+	return ", ".join(parts) if not parts.is_empty() else "buscan botín fácil"
+
+## Vecinos adultos con arrojo que salen a defender el pueblo (además de la guardia).
+static func raid_volunteers(vm) -> Array:
+	var out: Array = []
+	for n in VillageNeeds.living(vm):
+		if out.size() >= RAID_MAX_VOLUNTEERS:
+			break
+		if int(n.trade_role) in [int(VillageNPC.TradeRole.CHILD), int(VillageNPC.TradeRole.SHERIFF), int(VillageNPC.TradeRole.GUARD)] or VillageNeeds.is_outsider(n):
+			continue
+		if n.is_downed or n.sick_level >= 2 or not n.is_conscious():
+			continue
+		if TraitCatalog.npc_tendency(n, "aggression") >= 0.35:
+			out.append(n)
+	return out
+
+static func raid_defenders(vm) -> Array:
+	var out: Array = raid_volunteers(vm)
+	for n in _all_npcs(vm):
+		if not n.is_dead and not n.is_downed and n.is_conscious() and int(n.trade_role) in [int(VillageNPC.TradeRole.SHERIFF), int(VillageNPC.TradeRole.GUARD)]:
+			out.append(n)
+	return out
+
+## Cada hora: a media tarde los defensores se reúnen en el camino del este; al atardecer llega el asalto.
+static func raid_on_hour(vm, hour: int) -> void:
+	var rd: Dictionary = raids_state(vm)
+	var raid: Dictionary = rd.get("active_raid", {})
+	if raid.is_empty():
+		return
+	var today: int = int(WorldClock.current_day) if WorldClock else 1
+	if today < int(raid.get("day_due", today)):
+		return
+	if hour == RAID_GATHER_HOUR:
+		for n in raid_defenders(vm):
+			n.start_errand("raid_defend", RAID_GATE_POS + Vector2(randf_range(-40.0, 40.0), randf_range(-30.0, 30.0)))
+			n._spawn_floating_text("🛡️", Color(1.0, 0.85, 0.5), -30.0)
+	elif hour >= RAID_ATTACK_HOUR:
+		resolve_raid(vm, false, null)
 
 static func defense_power(vm, player_joined: bool = false, inv = null) -> int:
 	if vm == null:
@@ -607,6 +684,7 @@ static func defense_power(vm, player_joined: bool = false, inv = null) -> int:
 			continue
 		if int(n.trade_role) in [int(VillageNPC.TradeRole.SHERIFF), int(VillageNPC.TradeRole.GUARD)]:
 			pwr += 1
+	pwr += raid_volunteers(vm).size() # Vecinos con arrojo que salen con horcas y hachas
 	return pwr
 
 static func resolve_raid(vm, player_joined: bool = false, inv = null, force_outcome: int = 0) -> Dictionary:
@@ -626,6 +704,10 @@ static func resolve_raid(vm, player_joined: bool = false, inv = null, force_outc
 	elif force_outcome == -1:
 		won = false
 	var r_name: String = str(raid.get("name", "Incursión"))
+	var defenders: Array = raid_defenders(vm)
+	for d_n in defenders:
+		if d_n.errand_kind == "raid_defend":
+			d_n.end_errand()
 	rd["active_raid"] = {}
 	rd["threat"] = 0
 	rd["militia_bonus"] = 0
@@ -650,10 +732,10 @@ static func resolve_raid(vm, player_joined: bool = false, inv = null, force_outc
 		for r_key in vm.shop_businesses.keys():
 			vm.shop_businesses[r_key]["sabotaged_days"] = maxi(1, int(vm.shop_businesses[r_key].get("sabotaged_days", 0)))
 			break
-		for n in _all_npcs(vm):
+		for n in defenders:
 			if not n.is_dead and n.health_comp != null:
 				n.health_comp.apply_minor_bruise(14.0, 0.35, "Incursión de %s" % r_name)
-				break
+				n.add_thought("Nos arrollaron en el camino del este (-6)", -6.0)
 		VillageChronicle.add(vm, "raid_suffered", "🔥 %s asaltaron el pueblo y saquearon %d de oro de las arcas" % [r_name, looted], true)
 		return {"repelled": false, "looted": looted}
 
@@ -1046,6 +1128,7 @@ static func _all_npcs(vm) -> Array:
 	return vm.get_tree().get_nodes_in_group("village_npcs").filter(func(n): return n is VillageNPC and is_instance_valid(n))
 
 static func on_hour(vm, hour: int) -> void:
+	raid_on_hour(vm, hour)
 	if hour == MARKET_OPEN and is_market_day():
 		open_market(vm)
 	elif hour >= MARKET_CLOSE and is_market_open(vm):
@@ -1135,11 +1218,14 @@ static func daily(vm) -> int:
 	var rd: Dictionary = raids_state(vm)
 	var today: int = int(WorldClock.current_day) if WorldClock else 1
 	var act_raid: Dictionary = rd.get("active_raid", {})
-	if not act_raid.is_empty() and today >= int(act_raid.get("day_due", today + 1)):
-		resolve_raid(vm, false, null)
+	if not act_raid.is_empty() and today > int(act_raid.get("day_due", today)):
+		resolve_raid(vm, false, null) # Por si nadie estaba despierto a la hora del asalto
 	elif act_raid.is_empty():
-		rd["threat"] = int(rd.get("threat", 0)) + 5 + (5 if int(vm.town_state.get("treasury", 0)) >= 200 else 0)
-		if int(rd["threat"]) >= 60:
+		# La amenaza sube solo si algo atrae a los bandidos y baja si el pueblo se ve bien defendido o pobre
+		var lure: int = raid_lure(vm)
+		var deterrent: int = defense_power(vm) / 3
+		rd["threat"] = clampi(int(rd.get("threat", 0)) + lure - 1 - deterrent, 0, 100)
+		if int(rd["threat"]) >= RAID_THREAT_WARN and randf() < float(int(rd["threat"]) - RAID_THREAT_WARN + 10) / 100.0:
 			start_raid_warning(vm, "bandits")
 	var tinker = vm.trade_npcs.get(VillageTrades.role_of("tinker"))
 	if tinker == null or not is_instance_valid(tinker) or tinker.is_dead or tinker.is_downed or vm.is_trade_sabotaged(VillageTrades.role_of("tinker")):

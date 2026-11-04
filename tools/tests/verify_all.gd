@@ -3424,6 +3424,17 @@ func _initialize() -> void:
 	assert(vcf.state(vm)["priest_secrets"].has(p70_c.get_person_key()) and bool(vm.secrets[vm.secrets.size() - 1]["player_knows"]) and p70_c.personal_gold == 15 and p70_inv.gold == t3_invg1 + 10, "Tanda 3.15: Impersonating priest in confessional learns sin and collects penance from sinner's pocket")
 	p70_c.personal_gold = t3_cg0
 	vm.secrets.pop_back()
+	# Comprar una bula sube el malestar de la secta (un número, no una lista) sin romper el juego
+	vm.VillageSect.state(vm)
+	var ind_crisis0: float = float(vm.sect_state["crisis_events"])
+	var ind_g0: int = p70_c.personal_gold
+	var ind_tr0: int = int(vm.town_state.get("treasury", 0))
+	p70_c.personal_gold = 40
+	vcf.buy_indulgence(vm, p70_c, null)
+	assert(float(vm.sect_state["crisis_events"]) > ind_crisis0 or float(vm.sect_state["crisis_events"]) == 0.4, "P4.bula: Buying an indulgence raises the sect's crisis level (a number)")
+	vm.sect_state["crisis_events"] = ind_crisis0
+	p70_c.personal_gold = ind_g0
+	vm.town_state["treasury"] = ind_tr0
 	vcf.excommunicate(vm, p70_b, "prueba P4")
 	assert(vcf.is_excommunicated(vm, p70_b) and not vm.VillageFaith.wants_attend(p70_b, 1), "P4: Excommunicated villager cannot attend Sunday rite")
 	vcf.lift_excommunication(vm, p70_b, "prueba P4")
@@ -4053,6 +4064,23 @@ func _initialize() -> void:
 	vcu_pj.start_raid_warning(vm, "bandits")
 	var pl_loss: Dictionary = vcu_pj.resolve_raid(vm, false, null, -1)
 	assert(not bool(pl_loss["repelled"]) and int(vm.town_state["treasury"]) == 65 and int(vcu_pj.raids_state(vm)["raids_suffered"]) == 1, "PL.2d: Losing a raid pillages 30 gold from town treasury")
+	# PL.2e–g: las incursiones tienen motivo (arcas llenas, rutas) y se ven venir
+	var pl_tr_keep: int = int(vm.town_state.get("treasury", 0))
+	vcu_pj.state(vm)["trade_routes"] = {}
+	vm.town_state["treasury"] = 100
+	vcu_pj.raids_state(vm)["threat"] = 10
+	assert(vcu_pj.raid_lure(vm) == 0, "PL.2e: A poor town with no trade routes does not attract bandits")
+	vm.town_state["treasury"] = 900
+	assert(vcu_pj.raid_lure(vm) >= 2 and vcu_pj.raid_motive_text(vm).contains("arcas"), "PL.2e2: Full coffers attract bandits and the warning says why")
+	vcu_pj.raids_state(vm)["threat"] = 45
+	vcu_pj.start_raid_warning(vm, "bandits")
+	var pl_defs: Array = vcu_pj.raid_defenders(vm)
+	vcu_pj.raid_on_hour(vm, vcu_pj.RAID_GATHER_HOUR)
+	var pl_gathered: bool = pl_defs.is_empty() or pl_defs.all(func(d): return d.errand_kind == "raid_defend")
+	assert(pl_gathered and not (vcu_pj.raids_state(vm)["active_raid"] as Dictionary).is_empty(), "PL.2f: In the afternoon the guards and brave neighbors gather on the east road")
+	vcu_pj.raid_on_hour(vm, vcu_pj.RAID_ATTACK_HOUR)
+	assert((vcu_pj.raids_state(vm)["active_raid"] as Dictionary).is_empty() and pl_defs.all(func(d): return d.errand_kind != "raid_defend"), "PL.2g: At dusk the raid is fought and defenders go back to their lives")
+	vm.town_state["treasury"] = pl_tr_keep
 	vcu_pj.state(vm)["research"] = {}
 	vcu_pj.state(vm)["raids"] = {}
 	if pl_bkr_prev != null:

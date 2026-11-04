@@ -408,3 +408,12 @@ Lo que no ocurre nunca sin el jugador:
 - amputaciones.
 
 Otros datos: tesoro final de 1086 y población de 18 a 35.
+
+## Asaltos con motivo (2026-11-04)
+
+| # | Paso | Estado | Archivos | Nota |
+|---|------|--------|----------|------|
+| RA1 | La amenaza sube por motivos (arcas llenas, rutas, asentamiento) y baja si el pueblo es pobre o está bien defendido | ✅ | VillageCulture.gd | Test #89 |
+| RA2 | Aviso con el motivo; reunión de defensores a las 16 h en el camino del este; asalto a las 18 h | ✅ | VillageCulture.gd, VillageNeeds.gd | Test #89 |
+| RA3 | Vecinos valientes defienden junto a la guardia; heridas a los defensores si se pierde | ✅ | VillageCulture.gd | Test #89 |
+| RA4 | Error de la capilla al comprar una bula (malestar de la secta tratado como lista) | ✅ | VillageConfession.gd | Test P4.bula |
