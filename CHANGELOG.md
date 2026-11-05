@@ -3,6 +3,11 @@
 Cambios del juego, del más nuevo al más antiguo. Añade una entrada al cerrar cada bloque, en lenguaje sencillo.
 El detalle técnico está en `docs/HANDOFF.md` (sección 7) y el historial completo en `git log`. Lo anterior a B0.1 está en `AUDIT_LOG.md` y `SESSION_CONTEXT_LOG.md`.
 
+## 2026-11-05 — Ciervos, zorros y perros en 3D
+- En la vista 3D, ciervos, zorros y perros tienen modelo 3D: siguen al animal, miran hacia donde andan y se tumban de
+  lado al morir o quedar aturdidos. Aún no mueven las patas. Con F9 vuelve el dibujo plano.
+- Conejo, jabalí, gato y gallinas siguen planos (faltan modelos). Vacas y caballos no andan por el mapa.
+
 ## 2026-11-06 (noche) — Edificios con sus piezas quietas juntas
 - Cada edificio junta muros, suelos y muebles en una sola pieza por material (se ven igual). Puertas, ventanas,
   postigos, reja del calabozo, cuerpos de la morgue, tejado y altillo siguen sueltos.

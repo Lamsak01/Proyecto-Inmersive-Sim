@@ -2,6 +2,8 @@
 extends CharacterBody2D
 class_name DomesticPet
 
+const AnimalModel3DScript = preload("res://scripts/visuals/AnimalModel3D.gd")
+
 ## Mascotas Domésticas Vivas y Mortales de la Aldea y la Granja (Perros y Gatos)
 ## - Entidades 100% sistémicas: tienen Salud (`HealthComponent`), Sangrado, Aturdimiento (`StunComponent`),
 ##   Hambre real (`need_hunger`), Energía/Sueño (`need_energy`), combate defensivo (Perros) o huida (Gatos),
@@ -116,6 +118,9 @@ func _setup_components_and_visuals() -> void:
 	sprite.scale = Vector2(1.15, 1.15)
 	sprite.position = Vector2(0, -5)
 	add_child(sprite)
+	# Modelo 3D (solo visual) para el perro; el gato sigue en 2D hasta tener modelo.
+	if pet_type == PetType.DOG:
+		AnimalModel3DScript.attach(self, "animals/ShibaInu.obj", 11.0, 1.0)
 
 	interact_area = Area2D.new()
 	interact_area.name = "PetInteractArea"

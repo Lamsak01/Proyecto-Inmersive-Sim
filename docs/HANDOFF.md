@@ -123,6 +123,12 @@ Otros documentos antiguos en la raíz: `ROADMAP_PROYECTO.md`, `AUDIT_LOG.md`, `S
 
 ## 7. Estado y siguiente bloque
 
+- [x] **Animales 3D, paso 1 (Claude Code, 2026-11-05)** (`scripts/visuals/AnimalModel3D.gd`, se engancha en
+  `WildAnimal.setup_animal` y en el sprite de `DomesticPet`): modelo OBJ quieto en `Characters3D` del escenario para
+  ciervo (`Deer.obj`), zorro (`Fox.obj`) y perro (`ShibaInu.obj`); sigue la posición, gira hacia el movimiento, se
+  tumba si el sprite 2D está rotado >45°, esconde el sprite con `self_modulate.a` y se oculta fuera de cámara. No hace
+  nada en headless. Faltan modelos de conejo, jabalí, gato y gallina. Vacas y caballos no existen como entidades.
+  Capturas: `tools/screenshot_3d.gd` con sitios `ciervo,zorro,perro`.
 - [x] **Edificios: mallas quietas juntadas (Claude Code, 2026-11-06)** (`WorldStage3D._merge_building_meshes` al final
   de `rebuild_buildings_3d`, solo con ventana: `SurfaceTool.append_from` por material + formato + sombra en cada
   `B3D_*`, y aparte en `roof_cap` y `loft_root`; excluye puertas, ventanas, postigos, morgue y reja; deja los nodos con

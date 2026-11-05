@@ -18,6 +18,7 @@ enum AnimalState {
 }
 
 const MAX_MEALS: int = 2
+const AnimalModel3DScript = preload("res://scripts/visuals/AnimalModel3D.gd")
 
 @export var species: SpeciesType = SpeciesType.DEER
 @export var animal_name: String = "Venado del Valle"
@@ -152,6 +153,12 @@ func setup_animal(tex: Texture2D, spr_scale: Vector2 = Vector2.ONE, col_radius: 
 	sprite.texture = tex
 	sprite.scale = spr_scale
 	add_child(sprite)
+	# Modelo 3D (solo visual) para las especies que ya tienen modelo; conejo y jabalí siguen en 2D por ahora.
+	match species:
+		SpeciesType.DEER:
+			AnimalModel3DScript.attach(self, "animals/Deer.obj", 20.0, 9.0)
+		SpeciesType.FOX:
+			AnimalModel3DScript.attach(self, "animals/Fox.obj", 10.0, 5.0)
 
 	body_col = _add_circle_col(self, col_radius)
 

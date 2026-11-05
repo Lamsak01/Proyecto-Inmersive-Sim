@@ -39,7 +39,8 @@ kanban-plugin: board
 - [ ] Quitar la etiqueta «dormida» de las tendencias ya conectadas (`TraitCatalog.gd`)
 - [ ] Paseos nocturnos visibles de Noctámbulos e Insomnes
 - [ ] Rendimiento: abaratar el cálculo de los vecinos sin cambiar lo que hacen
-- [ ] Pasar a 3D los animales (gallinas, vacas, caballos y los del bosque); con buena conexión, buscar modelos con textura
+- [ ] Animales 3D, paso 2: buscar modelos de conejo, jabalí, gato y gallina (ciervo, zorro y perro ya hechos)
+- [ ] Más adelante: animar las patas de los animales 3D
 
 
 ## 🚧 En progreso
@@ -47,6 +48,8 @@ kanban-plugin: board
 
 
 ## ✅ Hecho
+
+- [x] Animales 3D, paso 1: ciervo, zorro y perro (2026-11-05)
 
 - [x] Edificios con sus piezas quietas juntas (2026-11-06)
 - [x] Casas iniciales repartidas por los barrios y árboles agrupados para dibujar menos (2026-11-06)
