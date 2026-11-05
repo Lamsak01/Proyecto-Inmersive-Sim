@@ -1284,7 +1284,7 @@ func _update_streetlights_glow() -> void:
 		var glow: Polygon2D = sl.get("glow")
 		var spr: Sprite2D = sl.get("sprite")
 		if is_instance_valid(glow):
-			glow.visible = is_night or grid_on
+			glow.visible = VillageCulture.is_lamps_powered(self) and (is_night or grid_on)
 			glow.color = Color(0.55, 0.96, 1.0, 0.28) if grid_on else Color(1.0, 0.85, 0.45, 0.16)
 		if is_instance_valid(spr):
 			spr.modulate = Color(0.90, 1.08, 1.18) if grid_on else Color.WHITE

@@ -459,3 +459,16 @@ Copia de seguridad 2D intacta guardada en la rama `backup-2d-original` y etiquet
 | 3D.7 | Altillos `+1` (`Loft3D_*` con escalera de mano y camas adicionales), cámaras subterráneas `-1` de las alcantarillas (`Sewers3D`: Cisterna, Pasadizo y Bóveda Inundada) y farolas 3D con luz real (`OmniLight3D`) sincronizadas con el reloj y la red eléctrica | ✅ | `scripts/visuals/WorldStage3D.gd` | Cierra el pendiente visual de capas `PN` |
 | 3D.8 | Presencia física en el mapa (2D y 3D) para el asentamiento fronterizo «Puesto del Paso» en el lindero este (`Vector2(1615, 50)`) con empalizada, puerta y carta de fundación interactiva (`[E]`), aserradero, granero, atalaya y turnos de trabajo reales (`08:00–17:00`) para los colonos reclutados | ✅ | `scripts/systems/VillageCulture.gd`, `scripts/systems/VillageNeeds.gd`, `scripts/visuals/WorldStage3D.gd` | Cierra el pendiente `PP.1` de presencia física en el mapa |
 | 3D.9 | Integración de modelos 3D reales y texturas PBR desde los paquetes descargados por el usuario (`assests/curated_3d/`, con `assests/Assets 3d/` ignorado en `.gdignore` y `.gitignore`): personajes humanos esculpidos y articulados (`Male_Peasant`, `Female_Peasant`, `Male_Ranger`, `Female_Ranger`, cabezas/ojos/cejas esculpidas, peinados y barbas 3D, armas medievales y de fuego 3D en mano) y decoración arquitectónica, mobiliario, árboles, animales, lápidas y farolas 3D reales en `WorldStage3D.gd` | ✅ | `scripts/visuals/AssetLibrary3D.gd`, `scripts/visuals/CharacterRig3D.gd`, `scripts/visuals/WorldStage3D.gd`, `assests/curated_3d/` | 104 modelos y texturas 3D verificados en arranque sin errores |
+
+## Bloque AUD — Auditoría del 2026-11-05 (informe de Antigravity, vía libre del usuario mientras duerme)
+
+| # | Paso | Estado | Archivos | Nota |
+|---|------|--------|----------|------|
+| AUD1 | F9 vuelve a cargar partida; 2D/3D pasa a F10 | ✅ | CharacterShowcase3DUI.gd | El informe señalaba ui_root.gd, pero quien se comía F9 era el Visor 3D |
+| AUD2 | Farolas saboteadas apagadas de noche (2D, 3D y niebla) | ✅ | WorldStage3D.gd, RetroPostFX.gd, VillageManager.gd | |
+| AUD3 | Farol del jugador de 20 a 6 (niebla y mano 3D) | ✅ | Player.gd (`is_carrying_lantern`), CharacterAvatar3D.gd | |
+| AUD4 | Arcabuz se guarda y se carga en la mano | ✅ | Player.gd | |
+| AUD5 | Sótano propio ≠ alcantarillas | ✅ | VillageUnderworld.gd (`is_player_in_sewers`), VillageHousing.gd, WorldStage3D.gd | Test PN.2f |
+| AUD6 | Escritura falsa: aviso de guardias; ya no compra con hipoteca tras pillarte | ✅ | VillageHousing.gd | Precio real en los avisos |
+| AUD7 | Puesto del Paso pide doble E | ✅ | VillageCulture.gd | |
+

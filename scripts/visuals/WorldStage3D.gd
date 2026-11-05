@@ -7,13 +7,14 @@ extends Node2D
 ##   puertas abatibles, postigos de ventanas, tejados con apertura automática (Cutaway),
 ##   altillos (+1), alcantarillas (-1) y el asentamiento fronterizo «Puesto del Paso».
 ## - Se sincroniza 1:1 con las coordenadas 2D de colisión y navegación, permitiendo alternar
-##   en vivo entre 2D y 3D con la tecla [F9] sin alterar ni una sola regla ni test del juego.
+##   en vivo entre 2D y 3D con la tecla [F10] sin alterar ni una sola regla ni test del juego.
 
 const CharacterAvatar3DScript = preload("res://scripts/visuals/CharacterAvatar3D.gd")
 const AssetLib = preload("res://scripts/visuals/AssetLibrary3D.gd")
 const VillageLots = preload("res://scripts/systems/VillageLots.gd")
 const VillageCulture = preload("res://scripts/systems/VillageCulture.gd")
 const VillageWorkScript = preload("res://scripts/systems/VillageWork.gd")
+const VillageUnderworldScript = preload("res://scripts/systems/VillageUnderworld.gd")
 const FishingSpotScript = preload("res://scripts/obstacles/FishingSpot.gd")
 
 const WORLD_SCALE: float = 0.02
@@ -1216,7 +1217,7 @@ func _build_streetlights_3d() -> void:
 		})
 
 # ==============================================================================
-# 6. SINCRONIZACIÓN EN VIVO (CÁMARA 3D, PUERTAS, TEJADOS CUTAWAY Y TECLA [F9])
+# 6. SINCRONIZACIÓN EN VIVO (CÁMARA 3D, PUERTAS, TEJADOS CUTAWAY Y TECLA [F10])
 # ==============================================================================
 func _process(delta: float) -> void:
 	if _is_headless or vm == null:
@@ -1321,7 +1322,7 @@ func _sync_dynamic_props_3d() -> void:
 
 	# 6. Visibilidad de las alcantarillas (-1)
 	if is_instance_valid(sewers_root_3d):
-		sewers_root_3d.visible = (vm.player_elevation_level == -1)
+		sewers_root_3d.visible = VillageUnderworldScript.is_player_in_sewers(vm)
 
 func _update_roof_cutaways_and_lighting() -> void:
 	var pl := get_tree().get_first_node_in_group("player") as Node2D
@@ -1367,7 +1368,8 @@ func _update_roof_cutaways_and_lighting() -> void:
 			sun_light.light_energy = 1.14
 			sun_light.light_color = Color(1.0, 0.96, 0.88)
 
-	var lamps_lit: bool = is_night or grid_on
+	# Con el circuito de farolas cortado (sabotaje), las calles quedan a oscuras también de noche.
+	var lamps_lit: bool = VillageCulture.is_lamps_powered(vm) and (is_night or grid_on)
 	for sl_node in _streetlight_nodes_3d:
 		var bulb: MeshInstance3D = sl_node["bulb"]
 		var lt: OmniLight3D = sl_node["light"]
@@ -1951,7 +1953,7 @@ func _sync_2d_flat_visuals(use_3d: bool) -> void:
 	if vm == null or not is_instance_valid(vm.entities_root):
 		return
 	var target_a: float = 0.0 if use_3d else 1.0
-	# Pinos, rocas y objetos quietos con versión 3D: se esconden en 3D y vuelven al pasar a 2D (F9).
+	# Pinos, rocas y objetos quietos con versión 3D: se esconden en 3D y vuelven al pasar a 2D (F10).
 	for src in _nature_sources + _prop_sources:
 		var spr_n = src.get("sprite")
 		if spr_n is CanvasItem and is_instance_valid(spr_n):

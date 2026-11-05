@@ -3,6 +3,15 @@
 Cambios del juego, del más nuevo al más antiguo. Añade una entrada al cerrar cada bloque, en lenguaje sencillo.
 El detalle técnico está en `docs/HANDOFF.md` (sección 7) y el historial completo en `git log`. Lo anterior a B0.1 está en `AUDIT_LOG.md` y `SESSION_CONTEXT_LOG.md`.
 
+## 2026-11-05 — Arreglos de la auditoría (1.ª parte)
+- F9 vuelve a cargar la partida; cambiar entre 2D y 3D es ahora F10.
+- Cortar el circuito de farolas deja de verdad las calles a oscuras de noche.
+- De 20:00 a 6:00 tu farol se ve en la mano al momento y te deja ver más lejos entre la niebla.
+- El arcabuz en la mano se conserva al guardar y cargar.
+- En tu sótano ya no aparece la salida de las alcantarillas.
+- Si te pillan la escritura falsa al comprar casa, salen los guardias (y ya no te la compra con hipoteca a la vez).
+- Fundar o mejorar el Puesto del Paso pide pulsar E dos veces.
+
 ## 2026-11-05 — Jabalíes con aspecto de lobo (provisional)
 - En 3D los jabalíes se ven como lobos grises animados, porque no hay un jabalí del mismo estilo. Se siguen
   comportando como jabalíes (nombre, sitio, huida y ataque).

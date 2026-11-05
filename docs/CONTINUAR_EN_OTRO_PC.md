@@ -5,7 +5,7 @@
    Si aún no lo tienes: `git clone <url del repositorio>`.
 2. Abre el proyecto con **Godot 4.7.2** (renderizador Compatibility). La primera vez tarda un poco porque Godot
    importa de nuevo texturas y modelos. Es normal.
-3. Pulsa **F9** en el juego para cambiar entre la vista 2D y la 3D.
+3. Pulsa **F10** en el juego para cambiar entre la vista 2D y la 3D (F9 es cargar partida).
 
 ## 2. Qué NO viaja con git (y no hace falta)
 - `assests/Assets 3d/` (≈114 MB): solo son los paquetes descargados en bruto. El juego no los usa: los modelos

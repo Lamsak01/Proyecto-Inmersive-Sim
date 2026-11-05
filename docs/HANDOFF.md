@@ -123,6 +123,9 @@ Otros documentos antiguos en la raíz: `ROADMAP_PROYECTO.md`, `AUDIT_LOG.md`, `S
 
 ## 7. Estado y siguiente bloque
 
+- [x] **Auditoría 2026-11-05, bugs (Claude Code)**: ver `docs/REGISTRO_TRABAJO.md` bloque AUD. Tecla 2D/3D = **F10**
+  (F9 = cargar). `VillageUnderworld.is_player_in_sewers(vm)` distingue alcantarillas (current_loc) del sótano propio.
+  `Player.is_carrying_lantern` (getter por hora 20–6). Farolas: `is_lamps_powered(vm) and (noche or red)`.
 - [x] **Jabalí = lobo animado provisional (Claude Code, 2026-11-05)**: `SpeciesType.BOAR` usa
   `animals/animated/Wolf.glb` (Quaternius, CC0). Solo visual. Los zips del usuario en `assests/Assets 3d/` (Bird, Deer,
   Fox, Roe, Squirrel, Wolf: FBX con textura, origen y licencia sin confirmar) NO traen animaciones (4 con esqueleto

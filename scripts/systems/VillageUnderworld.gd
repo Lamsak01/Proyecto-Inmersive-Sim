@@ -137,6 +137,12 @@ static func enter_sewer_location(vm, loc_id: String, player: Node2D = null) -> b
 		player.global_position = SEWER_LOCATIONS[loc_id]["pos"]
 	return true
 
+## El nivel -1 lo comparten el sótano de tu casa y las alcantarillas: solo estás en las alcantarillas si entraste por ellas.
+static func is_player_in_sewers(vm) -> bool:
+	if vm == null or int(vm.player_elevation_level) != -1:
+		return false
+	return str(sewers_state(vm).get("current_loc", "")) != ""
+
 static func exit_sewers_to_surface(vm) -> void:
 	var sw: Dictionary = sewers_state(vm)
 	sw["current_loc"] = ""
@@ -588,7 +594,7 @@ static func add_dialogue_choices(vm, npc, diag: Dictionary, ch_arr: Array) -> vo
 			for sloc_id in SEWER_LOCATIONS.keys():
 				var sdef: Dictionary = SEWER_LOCATIONS[sloc_id]
 				opts.append({"label": "🕳️🔦 Bajar al nivel -1 y explorar %s (1/día, con riesgo)" % str(sdef.get("title", sloc_id)), "next": "END", "action": "underworld_sewer_explore:" + sloc_id})
-		if int(vm.player_elevation_level) == -1:
+		if is_player_in_sewers(vm):
 			opts.append({"label": "🪜☀️ Subir por la escalerilla de las alcantarillas a la calle (volver a nivel 0)", "next": "END", "action": "underworld_sewer_surface"})
 
 	if not opts.is_empty():

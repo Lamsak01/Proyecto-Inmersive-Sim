@@ -1116,6 +1116,12 @@ static func _try_outpost_interact(vm, player, pos: Vector2) -> bool:
 	var inv = player.get("inventory")
 	var op: Dictionary = outpost_state(vm)
 	if not bool(op.get("founded", false)):
+		# Regla 3: gastar oro en el mundo pide una segunda E de confirmación.
+		var can_found: bool = inv != null and int(inv.gold) >= OUTPOST_CHARTER_COST and int(inv.items.get("wood", 0)) >= 2 and int(inv.items.get("stone", 0)) >= 2
+		if can_found and not vm.VillageHousing.press_twice(vm, "outpost_found"):
+			if player.has_method("show_hint"):
+				player.show_hint("🏕️❓ ¿Fundar el Puesto del Paso (-%d Oro, -2 Madera, -2 Piedra)? Pulsa E otra vez para confirmar." % OUTPOST_CHARTER_COST)
+			return true
 		if found_outpost(vm, inv):
 			if player.has_method("_spawn_floating_text"):
 				player._spawn_floating_text("🏕️📜 ¡Has fundado el «Puesto del Paso» aquí mismo en el lindero este!", Color.GOLD, -44.0)
@@ -1131,6 +1137,10 @@ static func _try_outpost_interact(vm, player, pos: Vector2) -> bool:
 	var upgs: Dictionary = op.get("upgrades", {})
 	for up_k in OUTPOST_UPGRADES.keys():
 		if not bool(upgs.get(up_k, false)):
+			if inv != null and int(inv.gold) >= OUTPOST_UPGRADE_COST and not vm.VillageHousing.press_twice(vm, "outpost_up:" + str(up_k)):
+				if player.has_method("show_hint"):
+					player.show_hint("🏗️❓ ¿Levantar %s en el Puesto del Paso (-%d Oro)? Pulsa E otra vez para confirmar." % [str(OUTPOST_UPGRADES[up_k]), OUTPOST_UPGRADE_COST])
+				return true
 			if upgrade_outpost(vm, str(up_k), null, inv):
 				if player.has_method("_spawn_floating_text"):
 					player._spawn_floating_text("🏗️🏕️ ¡Levantaste %s en el Puesto del Paso!" % str(OUTPOST_UPGRADES[up_k]), Color.GOLD, -44.0)

@@ -414,9 +414,15 @@ static func try_interact(vm, player: Node2D, pos: Vector2) -> bool:
 					var how: String = "al contado (-%d Oro)" % lot_cost if can_cash else "con hipoteca (-%d Oro de entrada y 3 Oro/día)" % VillageLoans.DOWN_PAYMENT
 					player.show_hint("🏡❓ ¿Comprar el solar %s %s? Pulsa E otra vez para confirmar." % [id, how])
 				return true
+			var wanted_before: int = int(vm.wanted_level)
 			if can_cash and buy_house_cash(vm, id, inv):
 				if player.has_method("show_hint"):
-					player.show_hint("🏡🔨 Compraste el solar %s al contado (-100 Oro). El carpintero vendrá a levantar tu casa." % id)
+					player.show_hint("🏡🔨 Compraste el solar %s al contado (-%d Oro). El carpintero vendrá a levantar tu casa." % [id, lot_cost])
+				return true
+			elif int(vm.wanted_level) > wanted_before:
+				# Descubrieron la escritura falsa: no se sigue con la hipoteca como si nada.
+				if player.has_method("show_hint"):
+					player.show_hint("🚨📜 ¡El sello municipal de tu escritura es falso! Avisan a la guardia.")
 				return true
 			elif can_loan and buy_house_loan(vm, id, inv):
 				if player.has_method("show_hint"):
@@ -733,10 +739,15 @@ static func on_player_action(vm, npc, action_id: String, inv) -> void:
 	var arg: String = action_id.get_slice(":", 1)
 
 	if action_id.begins_with("housing_buy_cash:"):
+		var wanted_before: int = int(vm.wanted_level)
 		if buy_house_cash(vm, arg, inv):
 			npc._spawn_floating_text("🏡🔨 «¡Trato hecho! Hoy mismo empiezo a levantar tu casa en %s.»" % arg, Color.SPRING_GREEN, -46.0)
+		elif int(vm.wanted_level) > wanted_before:
+			# Descubrieron la escritura falsa (no es falta de oro).
+			npc.modify_affinity(-15)
+			npc._spawn_floating_text("🚨📜 «¡Este sello municipal es falso! ¡Guardias!»", Color.ORANGE_RED, -46.0)
 		else:
-			npc._spawn_floating_text("Necesitas 100 de oro y que no haya otra obra en marcha", Color.ORANGE_RED, -44.0)
+			npc._spawn_floating_text("Necesitas %d de oro y que no haya otra obra en marcha" % VillageLots.house_cost(arg), Color.ORANGE_RED, -44.0)
 
 	elif action_id.begins_with("housing_buy_loan:"):
 		if buy_house_loan(vm, arg, inv):
@@ -985,6 +996,8 @@ static func on_player_action(vm, npc, action_id: String, inv) -> void:
 			npc._spawn_floating_text("Solo puedes cambiar de piso dentro de tu casa", Color.ORANGE_RED, -44.0)
 			return
 		vm.set_player_elevation_level(target_lvl)
+		if "VillageUnderworld" in vm and vm.VillageUnderworld != null:
+			vm.VillageUnderworld.sewers_state(vm)["current_loc"] = ""
 		var lvl_lbl: String = "el primer piso (nivel +1)" if target_lvl == 1 else ("el sótano (nivel -1)" if target_lvl == -1 else "la planta de calle (nivel 0)")
 		npc._spawn_floating_text("🪜🏠 Te desplazaste a %s" % lvl_lbl, Color.SPRING_GREEN, -46.0)
 

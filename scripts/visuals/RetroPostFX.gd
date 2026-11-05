@@ -6,6 +6,7 @@ extends CanvasLayer
 ## De noche añade la niebla que se cierra con la distancia al jugador (las luces la atraviesan).
 ## No se crea en modo headless (pruebas automáticas) ni en el editor.
 
+const VillageCulture = preload("res://scripts/systems/VillageCulture.gd")
 const SHADER := preload("res://shaders/retro_post_fx.gdshader")
 const MAX_LIGHTS := 24
 
@@ -104,7 +105,8 @@ func _collect_lights(out: Array, to_screen: Transform2D, px_per_world: float, ho
 			return
 	var gm = get_node_or_null("/root/GameManager")
 	var grid_on: bool = gm != null and bool(gm.get_flag("electric_grid_active", false))
-	var lamps_lit: bool = hour_f >= 19.0 or hour_f < 6.0 or grid_on
+	# Con el circuito de farolas cortado (sabotaje), sin halos de farola.
+	var lamps_lit: bool = VillageCulture.is_lamps_powered(vm) and (hour_f >= 19.0 or hour_f < 6.0 or grid_on)
 	if lamps_lit and "streetlights" in vm:
 		for sl in vm.streetlights:
 			var spr: Sprite2D = sl.get("sprite")

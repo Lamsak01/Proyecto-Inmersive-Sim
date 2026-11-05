@@ -5,7 +5,7 @@ extends Node2D
 ## Si el modelo trae animaciones (.glb de Quaternius) anda, galopa, está quieto o pace según su velocidad, y hace
 ## «Death» cuando el sprite 2D se tumba (cadáver o aturdido). Un modelo sin animaciones (.obj) se tumba de lado.
 ## En modo headless (pruebas) no hace nada.
-## Con F9 (vista 2D) se esconde y vuelve el sprite.
+## Con F10 (vista 2D) se esconde y vuelve el sprite.
 
 const CharacterAvatar3DScript = preload("res://scripts/visuals/CharacterAvatar3D.gd")
 const AssetLib = preload("res://scripts/visuals/AssetLibrary3D.gd")

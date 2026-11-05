@@ -4205,6 +4205,11 @@ func _initialize() -> void:
 	vm.set_player_elevation_level(-1)
 	vun.on_player_action(vm, p70_a, "underworld_sewer_surface", p70_inv)
 	assert(vm.player_elevation_level == 0 and str(vun.sewers_state(vm).get("current_loc", "")) == "", "PN.2e: underworld_sewer_surface returns player to street level 0")
+	vm.set_player_elevation_level(-1)
+	assert(not vun.is_player_in_sewers(vm), "PN.2f: Being at level -1 without entering a sewer (own basement) is not being in the sewers")
+	vun.enter_sewer_location(vm, "cistern")
+	assert(vun.is_player_in_sewers(vm), "PN.2f2: Entering a sewer location counts as being in the sewers")
+	vun.exit_sewers_to_surface(vm)
 	vm.wanted_level = 0
 	p70_a.personal_gold = pn_ag0
 	print("Block PN (Vertical Elevation Layers & Village Sewers) OK")

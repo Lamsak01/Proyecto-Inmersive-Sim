@@ -23,6 +23,13 @@ var equipped_weapon: WeaponData
 var inventory: SimpleInventory = null
 var survival_comp: SurvivalComponent = null
 var avatar_3d: Node2D = null
+## El jugador saca el farol de 20:00 a 6:00, igual que los vecinos (lo usan la niebla nocturna y el muñeco 3D).
+var is_carrying_lantern: bool:
+	get:
+		if WorldClock == null:
+			return false
+		var hr: int = int(WorldClock.current_hour)
+		return hr >= 20 or hr < 6
 
 var sword_weapon: WeaponData = load("res://resources/weapons/Sword.tres")
 var hammer_weapon: WeaponData = load("res://resources/weapons/Hammer.tres")
@@ -781,6 +788,8 @@ func to_save_dict() -> Dictionary:
 		weapon_id = "watering_can"
 	elif equipped_weapon == fishing_rod_weapon:
 		weapon_id = "fishing_rod"
+	elif equipped_weapon == flintlock_weapon:
+		weapon_id = "flintlock"
 	return {
 		"pos_x": global_position.x,
 		"pos_y": global_position.y,
@@ -888,6 +897,7 @@ func from_save_dict(data: Dictionary) -> void:
 		"sickle": equip_weapon(sickle_weapon)
 		"watering_can": equip_weapon(watering_can_weapon)
 		"fishing_rod": equip_weapon(fishing_rod_weapon)
+		"flintlock": equip_weapon(flintlock_weapon)
 		_: equip_weapon(sword_weapon)
 	if inventory and data.has("inventory"):
 		inventory.from_dict(data["inventory"])

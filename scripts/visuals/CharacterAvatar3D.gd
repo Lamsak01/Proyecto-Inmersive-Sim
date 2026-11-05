@@ -3,7 +3,7 @@ extends Node2D
 ## Puente de Renderizado 3D en Vivo para Jugador y Vecinos — Fase 1 (Transición 3D)
 ## Envuelve un `CharacterRig3D` dentro de un `SubViewport` transparente por personaje (desactivado automáticamente
 ## fuera de cámara o en modo headless para mantener 0 ms de sobrecarga en tests y 100 vecinos).
-## Permite alternar en caliente con [F9] entre las nuevas Maquetas 3D Articuladas y los Sprites 2D originales.
+## Permite alternar en caliente con [F10] entre las nuevas Maquetas 3D Articuladas y los Sprites 2D originales.
 
 const CharacterRig3DScript = preload("res://scripts/visuals/CharacterRig3D.gd")
 
@@ -200,7 +200,7 @@ func _process(delta: float) -> void:
 			sub_viewport.render_target_update_mode = SubViewport.UPDATE_DISABLED
 		return
 
-	# Al volver de 2D a 3D (F9), reactivar el SubViewport del jugador: antes se quedaba congelado y parecía que
+	# Al volver de 2D a 3D (F10), reactivar el SubViewport del jugador: antes se quedaba congelado y parecía que
 	# sus animaciones dejaban de funcionar.
 	if sub_viewport and is_player_avatar:
 		sub_viewport.render_target_update_mode = SubViewport.UPDATE_ALWAYS
@@ -316,7 +316,9 @@ func _compute_equipment_signature() -> String:
 			arm_str = str(inv.equipped_armor) + "|" + str(inv.has_item("ranger_camo_cloak", 1))
 		var t_tier_str: String = str(target_entity.get("tool_tiers"))
 		var amp_str: String = _get_limb_signature_for_entity(target_entity)
-		return "%s|%s|%s|%s" % [w_name, arm_str, t_tier_str, amp_str]
+		# Incluye la noche para que el farol aparezca en la mano a las 20:00 sin esperar a cambiar de herramienta.
+		var night_p: bool = bool(target_entity.get("is_carrying_lantern"))
+		return "%s|%s|%s|%s|%s" % [w_name, arm_str, t_tier_str, amp_str, str(night_p)]
 	else:
 		var role_i: int = int(target_entity.get("trade_role"))
 		var work_b: bool = bool(target_entity.get("_is_actively_crafting"))

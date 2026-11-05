@@ -2,7 +2,7 @@ extends Control
 
 ## Visor Interactivo de Maquetas 3D en Primer Plano (`[F8]`) — Fase 1 (Transición 3D)
 ## Permite inspeccionar de cerca todos los modelos 3D provisionales (jugador, oficios, armaduras,
-## armas, herramientas, arcabuz con disparo/humo, prótesis mecánicas y animaciones) y alternar [F9] 3D/2D.
+## armas, herramientas, arcabuz con disparo/humo, prótesis mecánicas y animaciones) y alternar [F10] 3D/2D.
 
 const CharacterRig3DScript = preload("res://scripts/visuals/CharacterRig3D.gd")
 const CharacterAvatar3DScript = preload("res://scripts/visuals/CharacterAvatar3D.gd")
@@ -221,12 +221,12 @@ func _unhandled_input(event: InputEvent) -> void:
 		if event.keycode == KEY_F8:
 			toggle_panel()
 			get_viewport().set_input_as_handled()
-		elif event.keycode == KEY_F9:
+		elif event.keycode == KEY_F10:
 			CharacterAvatar3DScript.use_3d_characters = not CharacterAvatar3DScript.use_3d_characters
 			var p = get_tree().get_first_node_in_group("player")
 			if p and p.has_method("show_hint"):
 				var mode_txt := "Mundo, Edificios y Personajes 3D ACTIVADOS" if CharacterAvatar3DScript.use_3d_characters else "Mapa y Sprites 2D Clásicos ACTIVADOS"
-				p.call("show_hint", "🎥 [F9] %s (Pulsa [F8] para abrir el Visor 3D en primer plano)" % mode_txt)
+				p.call("show_hint", "🎥 [F10] %s (Pulsa [F8] para abrir el Visor 3D en primer plano)" % mode_txt)
 			_update_status_text()
 			get_viewport().set_input_as_handled()
 		elif visible and event.keycode == KEY_ESCAPE:
@@ -278,7 +278,7 @@ func _build_ui() -> void:
 	header.add_child(title_lbl)
 
 	var toggle_live_btn := Button.new()
-	toggle_live_btn.text = "🎥 Alternar 3D/2D en Partida [F9]"
+	toggle_live_btn.text = "🎥 Alternar 3D/2D en Partida [F10]"
 	toggle_live_btn.pressed.connect(func():
 		CharacterAvatar3DScript.use_3d_characters = not CharacterAvatar3DScript.use_3d_characters
 		_update_status_text()
@@ -562,7 +562,7 @@ func _update_status_text() -> void:
 	if not status_lbl:
 		return
 	var preset_title: String = str(ARCHETYPE_PRESETS[_current_preset_idx]["title"])
-	var mode_str: String = "ACTIVO en el mapa (pulsa [F9] para volver a Sprites 2D)" if CharacterAvatar3DScript.use_3d_characters else "PAUSADO en el mapa (mostrando Sprites 2D originales; pulsa [F9] para activar 3D)"
+	var mode_str: String = "ACTIVO en el mapa (pulsa [F10] para volver a Sprites 2D)" if CharacterAvatar3DScript.use_3d_characters else "PAUSADO en el mapa (mostrando Sprites 2D originales; pulsa [F10] para activar 3D)"
 	status_lbl.text = "Arquetipo: %s | Arma: %s | Animación: %s | Estado en partida: %s" % [
 		preset_title,
 		str(_custom_cfg.get("weapon", "none")),
