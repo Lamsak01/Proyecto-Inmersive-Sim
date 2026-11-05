@@ -18,9 +18,13 @@ const CANDIDATES: int = 3
 const BAND_VOTE_BONUS: int = 15
 const PLEDGE_MIN_AFF: int = 30
 const VOTE_PRICE: int = 10
-const TAX_FREE_GOLD: int = 20
-const TAX_RATE: float = 0.05
-const TAX_RATE_RICH: float = 0.08
+## Impuesto sobre la renta semanal (2026-11-05), por tramos como en la vida real. Se mira lo que cada vecino GANÓ
+## en la semana (no sus ahorros): hasta INCOME_EXEMPT_DAY de oro al día no paga nada (mínimo para vivir), lo que gane
+## entre ese mínimo e INCOME_MID_DAY al día paga INCOME_RATE_LOW, y lo que pase de ahí paga INCOME_RATE_HIGH.
+const INCOME_EXEMPT_DAY: int = 4
+const INCOME_MID_DAY: int = 15
+const INCOME_RATE_LOW: float = 0.15
+const INCOME_RATE_HIGH: float = 0.30
 const SHOP_TAX: float = 0.05
 const MAYOR_PAY: int = 5
 const RELIEF_EACH: int = 10
@@ -186,16 +190,34 @@ static func hold_election(vm, reason: String = "", voters: Array = []) -> Dictio
 
 # ---------------------------------------------------------------- I1 arcas
 
+## Impuesto de una semana con esos ingresos (tramos de INCOME_*), multiplicado por el edicto fiscal del alcalde.
+static func income_tax_for(week_income: int, tax_mult: float = 1.0) -> int:
+	var exempt: int = INCOME_EXEMPT_DAY * 7
+	var mid: int = INCOME_MID_DAY * 7
+	if week_income <= exempt:
+		return 0
+	var low_part: int = mini(week_income, mid) - exempt
+	var high_part: int = maxi(0, week_income - mid)
+	return int(round((float(low_part) * INCOME_RATE_LOW + float(high_part) * INCOME_RATE_HIGH) * tax_mult))
+
+## Cada día: a quien acaba de llegar se le empieza a seguir lo que gana (sus ahorros de llegada no cuentan).
+static func start_income_tracking(vm) -> void:
+	for n in VillageNeeds.living(vm):
+		if not n._track_income:
+			n._track_income = true
+			n.income_week = 0
+
 static func collect_taxes(vm) -> Dictionary:
 	var st: Dictionary = state(vm)
 	var total: int = 0
 	var tax_mult: float = vm.VillageMayor.tax_multiplier(vm) # P5.4: edicto fiscal
 	if tax_mult > 0.0:
 		for n in VillageNeeds.living(vm):
-			if VillageNeeds.is_outsider(n) or n.personal_gold <= TAX_FREE_GOLD:
+			if VillageNeeds.is_outsider(n):
+				n.income_week = 0
 				continue
-			var rate: float = (TAX_RATE_RICH if VillageNeeds.class_of(n) == "rico" else TAX_RATE) * tax_mult
-			var tax: int = int(float(n.personal_gold - TAX_FREE_GOLD) * rate)
+			var tax: int = mini(income_tax_for(int(n.income_week), tax_mult), maxi(0, n.personal_gold))
+			n.income_week = 0
 			if tax > 0:
 				n.personal_gold -= tax
 				total += tax
@@ -287,6 +309,7 @@ static func expose(vm, how: String) -> void:
 
 static func daily(vm) -> void:
 	var st: Dictionary = state(vm)
+	start_income_tracking(vm)
 	if mayor_of(vm) == null and str(st.get("mayor", "")) != "player":
 		hold_election(vm)
 	elif VillageNeeds.today() >= int(st.get("next_election", 0)) and int(st.get("voting_day", -1)) != VillageNeeds.today():

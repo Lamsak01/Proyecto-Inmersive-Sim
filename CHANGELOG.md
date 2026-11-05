@@ -3,6 +3,13 @@
 Cambios del juego, del más nuevo al más antiguo. Añade una entrada al cerrar cada bloque, en lenguaje sencillo.
 El detalle técnico está en `docs/HANDOFF.md` (sección 7) y el historial completo en `git log`. Lo anterior a B0.1 está en `AUDIT_LOG.md` y `SESSION_CONTEXT_LOG.md`.
 
+## 2026-11-05 — Impuesto sobre lo que gana cada vecino (por tramos)
+- Los sábados cada vecino paga según lo que GANÓ esa semana, no según sus ahorros: hasta 4 de oro al día, nada; de lo
+  que gane entre 4 y 15 al día, un 15 %; de lo que pase de 15 al día, un 30 %. El edicto del alcalde (bajos, normales,
+  altos) sigue multiplicando. Los recién llegados empiezan a contar al día siguiente de llegar.
+- Medido en 22 días de partida sola: las arcas suben a ~900 cada sábado y bajan a ~385 antes del siguiente; ya no se
+  arruinan. Con 20 % y 35 % sobraban ~250 a la semana (atrae asaltos).
+
 ## 2026-11-05 — El pueblo gana dinero con el mercado y las rutas
 - Cada vendedor del mercado del miércoles paga 4 de oro por su puesto a las arcas.
 - Las rutas comerciales dejan un arancel de 4 de oro al pueblo en cada intercambio (también en tus remesas). Es oro que

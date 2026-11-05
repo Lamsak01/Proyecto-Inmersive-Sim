@@ -39,7 +39,6 @@ kanban-plugin: board
 - [ ] Quitar la etiqueta «dormida» de las tendencias ya conectadas (`TraitCatalog.gd`)
 - [ ] Paseos nocturnos visibles de Noctámbulos e Insomnes
 - [ ] Rendimiento: abaratar el cálculo de los vecinos sin cambiar lo que hacen
-- [ ] Equilibrio de las arcas: con mercado y rutas bajan de 1000 a 182 en 15 días (antes a 75). Siguen gastando ~55/día más de lo que entra. ¿Subir impuestos o bajar sueldos?
 - [ ] Animales 3D: conejo, gato y gallinas siguen planos (buscar modelos animados del mismo estilo)
 - [ ] Buscar un jabalí 3D animado que guste al usuario (ahora es un lobo provisional)
 
@@ -53,6 +52,7 @@ kanban-plugin: board
 - [x] Animales 3D, paso 1: ciervo, zorro y perro, animados (2026-11-05)
 - [x] Jabalíes con aspecto de lobo animado, provisional (2026-11-05)
 - [x] Auditoría de Antigravity: 7 fallos y 22 fugas de oro arreglados (2026-11-05)
+- [x] Arcas equilibradas: mercado, rutas e impuesto sobre la renta por tramos (2026-11-05)
 
 - [x] Edificios con sus piezas quietas juntas (2026-11-06)
 - [x] Casas iniciales repartidas por los barrios y árboles agrupados para dibujar menos (2026-11-06)

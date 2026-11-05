@@ -84,7 +84,16 @@ var tavern_social_pos: Vector2 = Vector2(395, -135)
 var shop_stock: Dictionary = {}
 
 # Economía Personal Real (`personal_gold`), Salvoconducto Real, Vagabundeo Rústico y Caza Amateur
-var personal_gold: int = -1
+var personal_gold: int = -1:
+	set(v):
+		# Impuesto sobre la renta: cada subida de su bolsillo cuenta como ingreso de la semana (cuando ya se le sigue).
+		if _track_income and personal_gold >= 0 and v > personal_gold:
+			income_week += v - personal_gold
+		personal_gold = v
+## Oro que ha ganado desde el último sábado de impuestos (sueldos, ventas, propinas, robos…).
+var income_week: int = 0
+## Se activa al día siguiente de llegar (así sus ahorros iniciales no cuentan como ingreso).
+var _track_income: bool = false
 var carries_royal_safe_conduct: bool = false
 var pocket_items: Dictionary = {}
 var corpse_pocket_looted: bool = false
@@ -4716,7 +4725,7 @@ func to_save_dict() -> Dictionary:
 		"npc_name": npc_name, "npc_role": npc_role, "family_id": family_id, "family_name": family_name,
 		"trade_role": int(trade_role), "linked_trade": int(linked_trade), "days_in_role": days_in_role,
 		"affinity": affinity, "known_traits": known_traits.duplicate(), "rumored_traits": rumored_traits.duplicate(), "known_feelings": known_feelings.duplicate(), "feelings_all_known": feelings_all_known, "heard_feelings": heard_feelings.duplicate(true), "trait_trust_tier": trait_trust_tier,
-		"trait_first_impression_done": trait_first_impression_done, "trait_lore_done": trait_lore_done, "personal_gold": personal_gold, "carries_royal_safe_conduct": carries_royal_safe_conduct,
+		"trait_first_impression_done": trait_first_impression_done, "trait_lore_done": trait_lore_done, "personal_gold": personal_gold, "income_week": income_week, "carries_royal_safe_conduct": carries_royal_safe_conduct,
 		"pocket_items": pocket_items.duplicate(), "corpse_pocket_looted": corpse_pocket_looted, "is_vagrant_camper": is_vagrant_camper, "in_shelter": in_shelter, "lodging": lodging,
 		"vagrant_camp_x": vagrant_camp_pos.x, "vagrant_camp_y": vagrant_camp_pos.y, "merchant_id": merchant_id,
 		"need_hunger": need_hunger, "digestion_buffer": digestion_buffer, "need_energy": need_energy, "need_social": need_social, "need_hygiene": need_hygiene,
@@ -4839,7 +4848,10 @@ func from_save_dict(data: Dictionary) -> void:
 	linked_trade = int(data.get("linked_trade", linked_trade)) as TradeRole
 	days_in_role = clampi(int(data.get("days_in_role", days_in_role)), 0, 7)
 	affinity = int(data.get("affinity", affinity))
+	_track_income = false
 	personal_gold = maxi(0, int(data.get("personal_gold", personal_gold)))
+	income_week = maxi(0, int(data.get("income_week", 0)))
+	_track_income = data.has("income_week")
 	carries_royal_safe_conduct = bool(data.get("carries_royal_safe_conduct", carries_royal_safe_conduct))
 	if data.has("pocket_items") and typeof(data["pocket_items"]) == TYPE_DICTIONARY:
 		pocket_items = (data["pocket_items"] as Dictionary).duplicate()

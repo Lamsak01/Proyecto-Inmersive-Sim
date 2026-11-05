@@ -123,6 +123,11 @@ Otros documentos antiguos en la raíz: `ROADMAP_PROYECTO.md`, `AUDIT_LOG.md`, `S
 
 ## 7. Estado y siguiente bloque
 
+- [x] **Impuesto sobre la renta (Claude Code, 2026-11-05)**: `personal_gold` de VillageNPC tiene un setter que suma
+  cada subida a `income_week` (solo si `_track_income`; se activa en `VillageTown.daily` al día siguiente de llegar; se
+  guarda en la partida). El sábado `collect_taxes` cobra `income_tax_for(income_week)` (tramos `INCOME_*`) y pone
+  `income_week = 0`. Ya no hay impuesto sobre los ahorros; la caja de los negocios sigue pagando `SHOP_TAX`.
+  OJO: cualquier `personal_gold = x` mayor que el actual cuenta como ingreso (también robos y préstamos).
 - [x] **Ingresos de las arcas (Claude Code, 2026-11-05)**: puestos del mercado pagan `MARKET_STALL_FEE`=4; cada
   intercambio de ruta (y remesa del jugador) paga `ROUTE_TOWN_TARIFF`=4 del fondo de la ruta a las arcas; el comprador
   paga 1/unidad importada al fondo; el fondo de cada ruta se repone +20 cada lunes hasta 90 (excepción consciente a la

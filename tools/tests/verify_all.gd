@@ -2113,9 +2113,11 @@ func _initialize() -> void:
 			break
 	var it_payer_gold: int = it_payer.personal_gold
 	it_payer.personal_gold = 120
+	assert(vto.income_tax_for(vto.INCOME_EXEMPT_DAY * 7) == 0 and vto.income_tax_for(vto.INCOME_MID_DAY * 7) == int(round(float((vto.INCOME_MID_DAY - vto.INCOME_EXEMPT_DAY) * 7) * vto.INCOME_RATE_LOW)), "I1 renta: Income up to the daily minimum is exempt; the next bracket pays the low rate")
+	it_payer.income_week = 140
 	var it_mgold: int = it_mayor.personal_gold
 	var it_tax: Dictionary = vto.collect_taxes(vm)
-	assert(int(it_tax["taxed"]) > 0 and it_payer.personal_gold < 120, "I1: Villagers pay taxes on Saturdays")
+	assert(int(it_tax["taxed"]) > 0 and it_payer.personal_gold == 120 - vto.income_tax_for(140, vm.VillageMayor.tax_multiplier(vm)) and it_payer.income_week == 0, "I1: Villagers pay income tax on Saturdays on what they earned this week")
 	assert(int(it_tax["embezzled"]) > 0 and it_mayor.personal_gold > it_mgold, "I3: A corrupt mayor keeps part of the taxes")
 	vm.town_state["embezzled_term"] = 30
 	it_mayor.personal_gold += 30
