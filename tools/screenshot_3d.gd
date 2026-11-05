@@ -2,7 +2,7 @@ extends SceneTree
 
 ## Captura fotos del juego en 3D (con ventana real, NO headless) para revisar la estética.
 ## Uso: flatpak run org.godotengine.Godot --path . -s tools/screenshot_3d.gd -- <carpeta_salida> [horas separadas por comas] [sitios]
-## Sitios: ciervo, zorro, perro (junto al primer animal de ese tipo), plaza, iglesia, lago, cementerio, cerca (jugador de cerca), campamento. Por defecto: todos.
+## Sitios: ciervo, zorro, jabali, perro (junto al primer animal de ese tipo), plaza, iglesia, lago, cementerio, cerca (jugador de cerca), campamento. Por defecto: todos.
 ## En barrio_lago, caserios y molino levanta casas de muestra en los solares de esos barrios (solo en memoria).
 ## En «norte» levanta casas en las filas m y u (solo en memoria) para ver las callejas curvas.
 ## En «casa_jugador» mejora tu casa a casa de piedra (solo en memoria) y enseña también el gallinero.
@@ -90,7 +90,7 @@ func _initialize() -> void:
 	# Sitios «ciervo», «zorro» y «perro»: junto al primer animal vivo y visible de ese tipo (cámara de cerca).
 	for a in get_nodes_in_group("wild_animals"):
 		if a.visible and a.is_alive_in_ecosystem():
-			var k: String = {1: "ciervo", 2: "zorro"}.get(int(a.species), "")
+			var k: String = {1: "ciervo", 2: "zorro", 3: "jabali"}.get(int(a.species), "")
 			if k != "" and not SPOTS.has(k):
 				SPOTS[k] = a.global_position + Vector2(0, -12)
 	for pet in root.find_children("*", "DomesticPet", true, false):
@@ -119,7 +119,7 @@ func _initialize() -> void:
 			if player != null:
 				player.global_position = SPOTS[s]
 				if cam != null:
-					cam.zoom = Vector2(8.0, 8.0) if s == "retrato" else (Vector2(5.0, 5.0) if s in ["ciervo", "zorro", "perro"] else (Vector2(4.0, 4.0) if s == "cerca" else Vector2(2.4, 2.4)))
+					cam.zoom = Vector2(8.0, 8.0) if s == "retrato" else (Vector2(5.0, 5.0) if s in ["ciervo", "zorro", "perro", "jabali"] else (Vector2(4.0, 4.0) if s == "cerca" else Vector2(2.4, 2.4)))
 					if String(s).begins_with("r_") or s == "lago" or s == "norte":
 						cam.zoom = Vector2(1.4, 1.4)
 					cam.reset_smoothing()

@@ -123,6 +123,10 @@ Otros documentos antiguos en la raíz: `ROADMAP_PROYECTO.md`, `AUDIT_LOG.md`, `S
 
 ## 7. Estado y siguiente bloque
 
+- [x] **Jabalí = lobo animado provisional (Claude Code, 2026-11-05)**: `SpeciesType.BOAR` usa
+  `animals/animated/Wolf.glb` (Quaternius, CC0). Solo visual. Los zips del usuario en `assests/Assets 3d/` (Bird, Deer,
+  Fox, Roe, Squirrel, Wolf: FBX con textura, origen y licencia sin confirmar) NO traen animaciones (4 con esqueleto
+  sin clips, ardilla y pájaro sin esqueleto): no se usan. Conejo y gato siguen en 2D.
 - [x] **Animales 3D animados (Claude Code, 2026-11-05)**: ciervo, zorro y perro usan `animals/animated/*.glb`
   (Quaternius Ultimate Animated Animals, CC0, bajados de poly.pizza porque Google Drive daba «cuota superada»).
   `AnimalModel3D` busca el `AnimationPlayer`: Walk/Gallop según la velocidad suavizada (umbrales `walk_px_s`,

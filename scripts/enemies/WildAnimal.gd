@@ -153,12 +153,15 @@ func setup_animal(tex: Texture2D, spr_scale: Vector2 = Vector2.ONE, col_radius: 
 	sprite.texture = tex
 	sprite.scale = spr_scale
 	add_child(sprite)
-	# Modelo 3D (solo visual) para las especies que ya tienen modelo; conejo y jabalí siguen en 2D por ahora.
+	# Modelo 3D (solo visual) para las especies que ya tienen modelo; el conejo sigue en 2D por ahora.
+	# El jabalí usa provisionalmente el lobo animado (no hay jabalí del mismo estilo); se sigue comportando como jabalí.
 	match species:
 		SpeciesType.DEER:
 			AnimalModel3DScript.attach(self, "animals/animated/Deer.glb", 20.0, 9.0)
 		SpeciesType.FOX:
 			AnimalModel3DScript.attach(self, "animals/animated/Fox.glb", 10.0, 5.0)
+		SpeciesType.BOAR:
+			AnimalModel3DScript.attach(self, "animals/animated/Wolf.glb", 14.0, 8.0)
 
 	body_col = _add_circle_col(self, col_radius)
 

@@ -3,6 +3,11 @@
 Cambios del juego, del más nuevo al más antiguo. Añade una entrada al cerrar cada bloque, en lenguaje sencillo.
 El detalle técnico está en `docs/HANDOFF.md` (sección 7) y el historial completo en `git log`. Lo anterior a B0.1 está en `AUDIT_LOG.md` y `SESSION_CONTEXT_LOG.md`.
 
+## 2026-11-05 — Jabalíes con aspecto de lobo (provisional)
+- En 3D los jabalíes se ven como lobos grises animados, porque no hay un jabalí del mismo estilo. Se siguen
+  comportando como jabalíes (nombre, sitio, huida y ataque).
+- Los animales que bajó el usuario (lobo, ciervo, corzo, zorro, ardilla, pájaro) no traen animaciones: guardados sin usar.
+
 ## 2026-11-05 — Ciervos, zorros y perros animados
 - Ya no se deslizan: andan, galopan al huir, se quedan quietos o pacen, y al morir hacen su caída. Son los mismos
   animales de Quaternius, en su versión animada (gratis, CC0).

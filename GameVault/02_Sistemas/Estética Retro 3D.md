@@ -36,6 +36,7 @@ tags:
 - [[Supervivencia y Clima]] (hora y tiempo), [[Red Eléctrica]] (farolas), [[Capas Verticales y Alcantarillas]] (tejados).
 
 ## Notas de diseño
+- 2026-11-05 (Claude Code): decisión del usuario: los jabalíes se ven como lobos animados hasta encontrar un jabalí que le guste; se siguen comportando como jabalíes. Los animales que bajó (lobo, ciervo, corzo, zorro, ardilla, pájaro) no traen animaciones.
 - 2026-11-05 (Claude Code): ciervo, zorro y perro ya están animados (andan, galopan, pacen y caen al morir). El usuario quiere animales animados, no figuras que se deslizan.
 - 2026-11-05 (Claude Code): ciervos, zorros y perros ya tienen modelo 3D (quietos, sin mover las patas; miran hacia donde andan y se tumban al morir). Faltan conejo, jabalí, gato y gallinas. Vacas y caballos no andan por el mapa: ponerlos sería otro cambio.
 - 2026-11-06 (Claude Code): los edificios juntan sus piezas quietas (de 2.317 a 1.409 piezas). Apenas sube la velocidad: lo que frena es el cálculo de los vecinos, no el dibujo.

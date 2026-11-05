@@ -42,7 +42,8 @@ del proyecto, no en /tmp).
    - En el PC de escritorio conviene medir primero cuántos fps salen: si va bien, puede que esto baje de prioridad.
    - **2026-11-05: el usuario confirma que en el PC de escritorio va bien con 40 vecinos.** Baja de prioridad;
      se pasa a los animales 3D. Retomar si vuelve a ir lento (portátil o más vecinos).
-2. **Animales en 3D** — paso 1 hecho (2026-11-05): ciervo, zorro y perro. Falta: conejo, jabalí, gato, gallina.
+2. **Animales en 3D** — hecho (2026-11-05): ciervo, zorro y perro animados; jabalí = lobo animado provisional.
+   Falta: conejo, gato, gallina (no hay modelos animados del mismo estilo; ver «Assets de pago» en la bóveda).
    Antes: (gallinas, vacas, caballos y los del bosque): estaba parado por falta de internet; ahora ya
    se pueden buscar modelos con textura (CC0, p. ej. Quaternius). Presentar el plan antes.
 3. Pendientes menores: paso 4 de la aldea (casas en L, «más adelante»); decidir si la niebla quita vista a los
