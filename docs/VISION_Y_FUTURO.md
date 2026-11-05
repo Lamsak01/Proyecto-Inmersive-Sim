@@ -125,6 +125,13 @@ Estado: **✅ HECHO** = ya construido y funcionando en el juego. **🟡 EN PARTE
 - ✅ **HECHO** — Rutas de comercio con otros lugares (`VillageCulture.gd`, test #88): puedes abrir rutas comerciales regulares con asentamientos vecinos («Paso Alto», «Puerto Fluvial del Este», «Vega del Sol») pagando la carta de arancel municipal (25 de oro a las arcas); cada día las rutas activas intercambian excedentes locales de los gremios por materias primas importadas y pagan derechos de paso al artesano y al ayuntamiento con cargo al fondo comercial de la ruta, y una vez al día puedes enviar tu propia remesa de mercancía. *(Hecho en bloque PK.)*
 - ✅ **HECHO** — Ingenieros que investigan nuevas tecnologías (`VillageCulture.gd`, test #89): en el Taller de Reparaciones puedes financiar un árbol de investigación con prerrequisitos («Engranajes Hidráulicos» → «Cerraduras y Empalizadas de Precisión» / «Condensadores Voltaicos»); el ingeniero avanza cada día apoyándose en las lecturas de la biblioteca o con chatarra aportada por el jugador, y cada tecnología desbloqueada da bonificaciones permanentes al valle (+1 pan diario, +2 defensa frente a incursiones, +1 kit de reparación diario). *(Hecho en bloque PL.)*
 
+- 💡 **IDEA (Claude Code, 2026-11-05)** — Que las arcas ganen dinero sin impuestos y sin oro mágico: (1) alquiler de
+  puestos el día de mercado; (2) tasas pequeñas por servicios municipales (lavadero, entierros, licencias de oficio);
+  (3) aranceles y peajes de las rutas comerciales y del Puesto del Paso para el pueblo (oro que entra de fuera);
+  (4) vender solares y alquilar casas municipales a los recién llegados (traen sus ahorros de fuera); (5) talleres del
+  ayuntamiento (cantera, granja) que venden su producto a los vecinos. Motivo: con la suma cero las arcas bajan de 1000
+  a 75 en 15 días.
+
 ### Ocio, apuestas y peleas
 - ✅ **HECHO** — Casino y apuestas: póker, blackjack, ruleta y billar en la posada para el jugador, y vecinos que van a apostar por las tardes y pueden engancharse al juego. *(Base + hecho en E5.)*
 - ✅ **HECHO** — Carreras de animales y peleas de perros y gallos (`VillageUnderworld.gd`, `VillageHousing.gd`, test #86): carreras de animales (apuesta de 12 de oro contra el bolsillo del vecino, una vez al día) y peleas clandestinas de gallos/perros (apuesta de 15 de oro contra el bolsillo del vecino, con riesgo de que te oiga la guardia), donde el vigor de los animales adultos que hayas criado mejora tus probabilidades sin garantizar nunca la victoria. *(Hecho en bloque PI.)*
