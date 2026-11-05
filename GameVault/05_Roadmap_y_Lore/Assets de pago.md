@@ -37,7 +37,7 @@ es para que decidas tú. Los precios y licencias se comprobaron en la web el **2
 
 | Pack | Precio | Qué trae | Encaje |
 |---|---|---|---|
-| [PSX Animals (heyheythere)](https://heyheythere.itch.io/psx-animals) | 4,99 $ (3,74 $ en oferta el 2026-11-05) | 22 animales estilo PSX animados (quieto, andar, correr, atacar, golpe, muerte): ciervo, lobo, zorro, oso, jabalí, conejo, rata, ardilla, tejón, caballo, burro, vaca, cerdo, oveja, cabra, gato, perro pastor, gallina, pato, ganso, cuervo, búho. Addon para Godot 4.3–4.7. Sin citar al autor; no se puede revender | ⭐⭐⭐ Mismo aire retro que el juego; tiene todo lo que falta (jabalí, gato, gallina, conejo) |
+| [PSX Animals (heyheythere)](https://heyheythere.itch.io/psx-animals) | 4,99 $ (3,74 $ en oferta el 2026-11-05) | 22 animales estilo PSX animados (quieto, andar, correr, atacar, golpe, muerte): ciervo, lobo, zorro, oso, jabalí, conejo, rata, ardilla, tejón, caballo, burro, vaca, cerdo, oveja, cabra, gato, perro pastor, gallina, pato, ganso, cuervo, búho. Addon para Godot 4.3–4.7. Sin citar al autor; no se puede revender | ❌ Descartado por el usuario (2026-11-05): «su estética se siente chapucera» |
 | [PSX Animals Free (heyheythere)](https://heyheythere.itch.io/psx-animals-free) | Gratis, CC BY 4.0 (hay que citar al autor) | Solo conejo y cuervo, mismas animaciones | ⭐⭐ Para probar el estilo antes de comprar |
 | Quaternius (granja y mascotas) | Gratis, CC0 | Gallina, gato y cerdo cuadrados; conejos de dibujo animado a dos patas | ❌ Desentonan con el ciervo y el zorro (2026-11-05) |
 
