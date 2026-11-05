@@ -33,3 +33,6 @@ SendTo/
 GameVault/.obsidian/workspace*.json
 GameVault/.obsidian/cache
 GameVault/.trash/
+
+# Archivos comprimidos brutos de packs 3D (los modelos filtrados y en uso viven en assests/curated_3d/)
+assests/Assets 3d/

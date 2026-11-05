@@ -5,6 +5,11 @@ El detalle técnico está en `docs/HANDOFF.md` (sección 7) y el historial compl
 
 ## 2026-11-04
 
+### Transición 3D (Fase 3): Modelos 3D esculpidos y texturas reales integrados en personajes, armas, edificios y naturaleza
+- **Personajes humanos esculpidos con ropa de fantasía:** los muñecos de cajas provisionales fueron reemplazados por cuerpos humanos 3D esculpidos y articulados (hombre y mujer, con trajes de aldeano y de explorador/guardia), cabezas con rostro, ojos, cejas, peinados 3D y barbas reales, teñidos según el oficio y la armadura de cada vecino.
+- **Armas medievales, herramientas y armas de fuego 3D reales en mano:** espadas, dagas, hachas, martillos, picos, arcos de madera, guadañas, lanzas, escudos, jarras, libros, faroles y pistolas/arcabuces usan ahora modelos 3D esculpidos sujetos directamente a las manos del esqueleto.
+- **Pueblo, interiores y naturaleza con modelos y texturas reales:** las paredes, suelos y tejados lucen texturas reales de piedra, ladrillo, estuco, madera y teja; los interiores cuentan con camas, mesas, sillas, estanterías con libros, cofres, barriles, calderos, yunques, bancos de trabajo, altares, candelabros y jaulas esculpidas; y el exterior incorpora árboles reales (robles, abedules, pinos y sauces), pozos, carros, cenador, vacas, caballos y burros en el rancho, cripta y lápidas talladas en el cementerio y farolas de hierro forjado.
+
 ### Transición 3D (Fase 2): Pueblo, edificios, interiores y tejados 3D con apertura automática + «Puesto del Paso» en el mapa
 - **El pueblo entero en 3D:** caminos, plaza adoquinada, pozos, bancos, Parque del Robledal, Lavadero, Mirador del Lago, Ciénaga del Oeste, Cementerio Parroquial (con tumbas 3D reales), solares en obras y todos los edificios cuentan ahora con maquetas arquitectónicas en 3D alineadas al milímetro con el mapa.
 - **Tejados que se abren solos e interiores 3D:** cada edificio tiene tejado a cuatro aguas con chimenea, puertas 3D que giran al abrirse y ventanas con contraventanas. Al entrar tú, entrar un vecino o pasar el ratón por encima, el tejado se retira suavemente y deja ver el interior 3D con sus camas, mesas, mostradores, cofres, fragua, morgue con camillas, celda de comisaría, bancos de la capilla, estanterías de la biblioteca y pupitres de la escuela.

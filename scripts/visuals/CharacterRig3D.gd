@@ -1,864 +1,993 @@
-@tool
+class_name CharacterRig3D
 extends Node3D
 
-## Maqueta 3D Articulada ("Greybox / Low-Poly Figurine") para Jugador y Vecinos — Fase 1 (Transición 3D)
-## Construye un muñeco 3D completo por piezas con articulaciones reales:
-## - Cabeza (ojos, cejas expresivas, peinado según género/edad, barba y conector de cascos/sombreros de oficio).
-## - Torso (túnica, delantal de oficio, cinturón, capa física y peto/hombreras de armadura por nivel).
-## - Brazos izquierdo y derecho articulados (hombro, codo, mano, conector de armas/herramientas/farol/escudo, y soporte de amputación o prótesis mecánica de hierro y cobre).
-## - Piernas izquierda y derecha articuladas (cadera, muslo, espinilla con grebas, botas y soporte de amputación con muleta o prótesis mecánica articulada).
+## Muñeco 3D articulado para el Jugador y los Vecinos del valle.
+## Si existen los modelos reales filtrados en `res://assests/curated_3d/` (Quaternius Universal Base
+## Characters + Modular Fantasy Outfits + Armas/Herramientas 3D), construye el personaje con mallas
+## humanas reales esculpidas, texturas PBR, peinados/barba 3D y armas reales ancladas al esqueleto.
 
-var root_pivot: Node3D = null
-var hips_pivot: Node3D = null
-var torso_pivot: Node3D = null
-var head_pivot: Node3D = null
-var left_shoulder_pivot: Node3D = null
-var left_forearm_pivot: Node3D = null
-var right_shoulder_pivot: Node3D = null
-var right_forearm_pivot: Node3D = null
-var left_hip_pivot: Node3D = null
-var right_hip_pivot: Node3D = null
+const AssetLib = preload("res://scripts/visuals/AssetLibrary3D.gd")
 
-var right_hand_socket: Node3D = null
-var left_hand_socket: Node3D = null
-var head_socket: Node3D = null
-var cape_pivot: Node3D = null
+enum AnimState {
+	IDLE,
+	WALK,
+	ATTACK,
+	WORK,
+	CARRY,
+	PRAY,
+	SLEEP,
+	KO,
+	AIM_GUN
+}
 
-# Nodos de anatomía / prótesis / amputación
-var left_arm_natural: Node3D = null
-var left_arm_prosthetic: Node3D = null
-var left_arm_stump: Node3D = null
-var right_arm_natural: Node3D = null
-var right_arm_prosthetic: Node3D = null
-var right_arm_stump: Node3D = null
+# Nodos de articulación (fallback procedural o pivotes auxiliares)
+var pelvis: Node3D
+var torso_pivot: Node3D
+var head_pivot: Node3D
+var arm_l_pivot: Node3D
+var forearm_l_pivot: Node3D
+var hand_l_socket: Node3D
+var arm_r_pivot: Node3D
+var forearm_r_pivot: Node3D
+var hand_r_socket: Node3D
+var leg_l_pivot: Node3D
+var shin_l_pivot: Node3D
+var leg_r_pivot: Node3D
+var shin_r_pivot: Node3D
 
-var left_leg_natural: Node3D = null
-var left_leg_prosthetic: Node3D = null
-var left_leg_stump: Node3D = null
-var right_leg_natural: Node3D = null
-var right_leg_prosthetic: Node3D = null
-var right_leg_stump: Node3D = null
+# Esqueleto real Quaternius (65 huesos)
+var _skeleton: Skeleton3D = null
+var _using_real_mesh: bool = false
+var _bone_idx: Dictionary = {} # bone_name -> int
+var _bone_rest_q: Dictionary = {} # bone_name -> Quaternion
 
-# Nodos de armadura y vestimenta
-var chest_mesh: MeshInstance3D = null
-var pelvis_mesh: MeshInstance3D = null
-var skirt_mesh: MeshInstance3D = null
-var apron_mesh: MeshInstance3D = null
-var cape_mesh: MeshInstance3D = null
-var chest_armor_root: Node3D = null
-var left_pauldron_mesh: MeshInstance3D = null
-var right_pauldron_mesh: MeshInstance3D = null
-var left_greave_mesh: MeshInstance3D = null
-var right_greave_mesh: MeshInstance3D = null
-var left_boot_mesh: MeshInstance3D = null
-var right_boot_mesh: MeshInstance3D = null
+# Contenedores de piezas intercambiables
+var hair_root: Node3D
+var hat_root: Node3D
+var beard_root: Node3D
+var armor_torso_root: Node3D
+var cape_root: Node3D
+var skirt_root: Node3D
+var tool_r_root: Node3D
+var tool_l_root: Node3D
+var muzzle_flash_node: Node3D
 
-# Nodos faciales y cabello
-var head_mesh: MeshInstance3D = null
-var left_brow_mesh: MeshInstance3D = null
-var right_brow_mesh: MeshInstance3D = null
-var hair_top_mesh: MeshInstance3D = null
-var hair_back_mesh: MeshInstance3D = null
-var hair_bun_mesh: MeshInstance3D = null
-var beard_mesh: MeshInstance3D = null
+# Estado visual cacheado
+var _is_female: bool = false
+var _is_child: bool = false
+var _skin_color: Color = Color(0.92, 0.76, 0.63)
+var _hair_color: Color = Color(0.24, 0.16, 0.10)
+var _tunic_color: Color = Color(0.32, 0.44, 0.62)
+var _pants_color: Color = Color(0.22, 0.20, 0.18)
+var _apron_color: Color = Color(0.85, 0.82, 0.75, 0.0)
+var _hat_style: String = "none"
+var _hair_style: String = "short"
+var _has_beard: bool = false
+var _has_skirt: bool = false
+var _has_cape: bool = false
+var _cape_color: Color = Color(0.55, 0.16, 0.16)
+var _outfit_kind: String = "peasant" # "peasant" | "ranger"
 
-# Diccionario de modelos 3D de armas/herramientas y sombreros
-var _weapon_models: Dictionary = {}
-var _offhand_models: Dictionary = {}
-var _headgear_models: Dictionary = {}
+# Equipo y prótesis
+var _weapon_id: String = "none"
+var _helmet_tier: int = 0
+var _chest_tier: int = 0
+var _legs_tier: int = 0
+var _boots_tier: int = 0
+var _missing_arm_r: bool = false
+var _missing_leg_r: bool = false
+var _prosthetic_arm_r: bool = false
+var _prosthetic_leg_r: bool = false
+var _carrying_lantern: bool = false
 
-# Efectos de disparo de arcabuz (fogonazo y humo 3D)
-var _muzzle_flash_node: Node3D = null
-var _smoke_puff_nodes: Array[MeshInstance3D] = []
-var _muzzle_flash_timer: float = 0.0
-
-# Materiales reutilizables por instancia
-var _mat_skin: StandardMaterial3D = null
-var _mat_hair: StandardMaterial3D = null
-var _mat_tunic: StandardMaterial3D = null
-var _mat_pants: StandardMaterial3D = null
-var _mat_apron: StandardMaterial3D = null
-var _mat_cape: StandardMaterial3D = null
-var _mat_boots: StandardMaterial3D = null
-var _mat_chest_armor: StandardMaterial3D = null
-var _mat_leg_armor: StandardMaterial3D = null
-var _mat_weapon_metal: StandardMaterial3D = null
-
-# Estado de animación
-var _anim_clock: float = 0.0
-var _walk_cycle: float = 0.0
-var _current_yaw: float = 0.0
+# Animación
+var _anim_state: int = AnimState.IDLE
+var _anim_time: float = 0.0
+var _attack_swing_t: float = 0.0
+var _muzzle_flash_t: float = 0.0
+var _facing_yaw: float = 0.0
 var _target_yaw: float = 0.0
-var _active_weapon_key: String = "none"
-var _active_offhand_key: String = "none"
-var _active_headgear_key: String = "none"
-var _bow_draw_ratio: float = 0.0
-var _attack_swing_timer: float = 0.0
-var _attack_swing_duration: float = 0.32
-var _is_built: bool = false
+
 
 func _ready() -> void:
-	_ensure_built()
+	_build_skeleton()
+	_rebuild_meshes()
 
-func _ensure_built() -> void:
-	if _is_built:
+
+func _build_skeleton() -> void:
+	for c in get_children():
+		c.queue_free()
+
+	pelvis = Node3D.new()
+	pelvis.name = "Pelvis"
+	pelvis.position = Vector3(0.0, 0.72, 0.0)
+	add_child(pelvis)
+
+	torso_pivot = Node3D.new()
+	torso_pivot.name = "TorsoPivot"
+	pelvis.add_child(torso_pivot)
+
+	head_pivot = Node3D.new()
+	head_pivot.name = "HeadPivot"
+	head_pivot.position = Vector3(0.0, 0.56, 0.0)
+	torso_pivot.add_child(head_pivot)
+
+	hair_root = Node3D.new()
+	hair_root.name = "HairRoot"
+	head_pivot.add_child(hair_root)
+
+	hat_root = Node3D.new()
+	hat_root.name = "HatRoot"
+	head_pivot.add_child(hat_root)
+
+	beard_root = Node3D.new()
+	beard_root.name = "BeardRoot"
+	head_pivot.add_child(beard_root)
+
+	armor_torso_root = Node3D.new()
+	armor_torso_root.name = "ArmorTorsoRoot"
+	torso_pivot.add_child(armor_torso_root)
+
+	cape_root = Node3D.new()
+	cape_root.name = "CapeRoot"
+	cape_root.position = Vector3(0.0, 0.50, -0.14)
+	torso_pivot.add_child(cape_root)
+
+	skirt_root = Node3D.new()
+	skirt_root.name = "SkirtRoot"
+	pelvis.add_child(skirt_root)
+
+	arm_l_pivot = Node3D.new()
+	arm_l_pivot.name = "ArmLPivot"
+	arm_l_pivot.position = Vector3(-0.27, 0.48, 0.0)
+	torso_pivot.add_child(arm_l_pivot)
+
+	forearm_l_pivot = Node3D.new()
+	forearm_l_pivot.name = "ForearmLPivot"
+	forearm_l_pivot.position = Vector3(0.0, -0.24, 0.0)
+	arm_l_pivot.add_child(forearm_l_pivot)
+
+	hand_l_socket = Node3D.new()
+	hand_l_socket.name = "HandLSocket"
+	hand_l_socket.position = Vector3(0.0, -0.22, 0.04)
+	forearm_l_pivot.add_child(hand_l_socket)
+
+	tool_l_root = Node3D.new()
+	tool_l_root.name = "ToolLRoot"
+	hand_l_socket.add_child(tool_l_root)
+
+	arm_r_pivot = Node3D.new()
+	arm_r_pivot.name = "ArmRPivot"
+	arm_r_pivot.position = Vector3(0.27, 0.48, 0.0)
+	torso_pivot.add_child(arm_r_pivot)
+
+	forearm_r_pivot = Node3D.new()
+	forearm_r_pivot.name = "ForearmRPivot"
+	forearm_r_pivot.position = Vector3(0.0, -0.24, 0.0)
+	arm_r_pivot.add_child(forearm_r_pivot)
+
+	hand_r_socket = Node3D.new()
+	hand_r_socket.name = "HandRSocket"
+	hand_r_socket.position = Vector3(0.0, -0.22, 0.04)
+	forearm_r_pivot.add_child(hand_r_socket)
+
+	tool_r_root = Node3D.new()
+	tool_r_root.name = "ToolRRoot"
+	hand_r_socket.add_child(tool_r_root)
+
+	leg_l_pivot = Node3D.new()
+	leg_l_pivot.name = "LegLPivot"
+	leg_l_pivot.position = Vector3(-0.12, 0.0, 0.0)
+	pelvis.add_child(leg_l_pivot)
+
+	shin_l_pivot = Node3D.new()
+	shin_l_pivot.name = "ShinLPivot"
+	shin_l_pivot.position = Vector3(0.0, -0.34, 0.0)
+	leg_l_pivot.add_child(shin_l_pivot)
+
+	leg_r_pivot = Node3D.new()
+	leg_r_pivot.name = "LegRPivot"
+	leg_r_pivot.position = Vector3(0.12, 0.0, 0.0)
+	pelvis.add_child(leg_r_pivot)
+
+	shin_r_pivot = Node3D.new()
+	shin_r_pivot.name = "ShinRPivot"
+	shin_r_pivot.position = Vector3(0.0, -0.34, 0.0)
+	leg_r_pivot.add_child(shin_r_pivot)
+
+
+func apply_appearance(config: Dictionary) -> void:
+	apply_character_appearance(config)
+
+
+func apply_character_appearance(config: Dictionary) -> void:
+	_is_female = bool(config.get("is_female", _is_female))
+	_is_child = bool(config.get("is_child", _is_child))
+	_skin_color = config.get("skin_color", _skin_color)
+	_hair_color = config.get("hair_color", _hair_color)
+	_tunic_color = config.get("tunic_color", _tunic_color)
+	_pants_color = config.get("pants_color", _pants_color)
+	_apron_color = config.get("apron_color", _apron_color)
+	_has_beard = bool(config.get("has_beard", _has_beard))
+	_has_skirt = bool(config.get("has_skirt", _has_skirt))
+	_has_cape = bool(config.get("has_cape", _has_cape))
+	_cape_color = config.get("cape_color", _cape_color)
+	_hair_style = str(config.get("hair_style", _hair_style))
+	_outfit_kind = str(config.get("outfit_kind", _outfit_kind))
+
+	# Soporte tanto para claves de CharacterAvatar3D/Showcase ("headgear", "weapon", "chest_armor_tier") como directas
+	if config.has("headgear"):
+		var hg := str(config.get("headgear", "none"))
+		match hg:
+			"helm_t1":
+				_hat_style = "helmet"
+				_helmet_tier = 1
+			"helm_t2":
+				_hat_style = "helmet"
+				_helmet_tier = 2
+			"helm_t3":
+				_hat_style = "helmet"
+				_helmet_tier = 3
+			"sheriff_hat":
+				_hat_style = "inquisitor"
+				_helmet_tier = 0
+			"priest_cap":
+				_hat_style = "hood"
+				_helmet_tier = 0
+			"baker_hat":
+				_hat_style = "chef"
+				_helmet_tier = 0
+			"straw_hat":
+				_hat_style = "straw"
+				_helmet_tier = 0
+			"noble_crown":
+				_hat_style = "crown"
+				_helmet_tier = 0
+			_:
+				_hat_style = "none"
+				_helmet_tier = 0
+	else:
+		_hat_style = str(config.get("hat_style", _hat_style))
+		_helmet_tier = int(config.get("helmet_tier", _helmet_tier))
+
+	_chest_tier = int(config.get("chest_armor_tier", config.get("chest_tier", _chest_tier)))
+	_legs_tier = int(config.get("legs_armor_tier", config.get("legs_tier", _legs_tier)))
+	_boots_tier = int(config.get("boots_armor_tier", config.get("boots_tier", _boots_tier)))
+
+	if config.has("weapon"):
+		_weapon_id = str(config.get("weapon", "none"))
+	else:
+		_weapon_id = str(config.get("weapon_id", _weapon_id))
+
+	var offhand_val := str(config.get("offhand", "none"))
+	_carrying_lantern = (offhand_val == "lantern") or bool(config.get("carrying_lantern", false))
+	set_meta("offhand_id", offhand_val)
+
+	if config.has("left_arm_state") or config.has("right_arm_state"):
+		var arm_st := str(config.get("right_arm_state", "normal"))
+		if arm_st == "normal":
+			arm_st = str(config.get("left_arm_state", "normal"))
+		_missing_arm_r = (arm_st == "amputated" or arm_st == "prosthetic")
+		_prosthetic_arm_r = (arm_st == "prosthetic")
+	else:
+		_missing_arm_r = bool(config.get("missing_arm_r", _missing_arm_r))
+		_prosthetic_arm_r = bool(config.get("prosthetic_arm_r", _prosthetic_arm_r))
+
+	if config.has("left_leg_state") or config.has("right_leg_state"):
+		var leg_st := str(config.get("right_leg_state", "normal"))
+		if leg_st == "normal":
+			leg_st = str(config.get("left_leg_state", "normal"))
+		_missing_leg_r = (leg_st == "amputated" or leg_st == "prosthetic")
+		_prosthetic_leg_r = (leg_st == "prosthetic")
+	else:
+		_missing_leg_r = bool(config.get("missing_leg_r", _missing_leg_r))
+		_prosthetic_leg_r = bool(config.get("prosthetic_leg_r", _prosthetic_leg_r))
+
+	if is_inside_tree():
+		_rebuild_meshes()
+
+
+func set_weapon(weapon_id: String) -> void:
+	if _weapon_id == weapon_id:
 		return
-	_is_built = true
-	_init_materials()
-	_build_skeleton_and_body()
-	_build_headgear_catalog()
-	_build_weapon_and_tool_catalog()
-	_build_offhand_catalog()
+	_weapon_id = weapon_id
+	if is_inside_tree():
+		_rebuild_tools()
 
-func _make_mat(col: Color, rough: float = 0.72, metal: float = 0.0, emission_col: Color = Color.BLACK, emission_energy: float = 0.0) -> StandardMaterial3D:
+
+func set_carrying_lantern(active: bool) -> void:
+	if _carrying_lantern == active:
+		return
+	_carrying_lantern = active
+	if is_inside_tree():
+		_rebuild_tools()
+
+
+func set_prosthetics(missing_arm: bool, prosth_arm: bool, missing_leg: bool, prosth_leg: bool) -> void:
+	if _missing_arm_r == missing_arm and _prosthetic_arm_r == prosth_arm and _missing_leg_r == missing_leg and _prosthetic_leg_r == prosth_leg:
+		return
+	_missing_arm_r = missing_arm
+	_prosthetic_arm_r = prosth_arm
+	_missing_leg_r = missing_leg
+	_prosthetic_leg_r = prosth_leg
+	if is_inside_tree():
+		_rebuild_meshes()
+
+
+func trigger_attack_swing() -> void:
+	_attack_swing_t = 0.34
+
+
+func trigger_muzzle_flash() -> void:
+	_muzzle_flash_t = 0.18
+	_attack_swing_t = 0.28
+	if muzzle_flash_node != null and is_instance_valid(muzzle_flash_node):
+		muzzle_flash_node.visible = true
+
+
+static func _make_mat(col: Color, rough: float = 0.82, metal: float = 0.0, emission_col: Color = Color(0, 0, 0, 0)) -> StandardMaterial3D:
 	var m := StandardMaterial3D.new()
 	m.albedo_color = col
 	m.roughness = rough
 	m.metallic = metal
-	if col.a < 0.99:
-		m.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
-	if emission_energy > 0.0:
+	if emission_col.a > 0.01:
 		m.emission_enabled = true
-		m.emission = emission_col
-		m.emission_energy_multiplier = emission_energy
+		m.emission = Color(emission_col.r, emission_col.g, emission_col.b)
+		m.emission_energy_multiplier = emission_col.a * 2.5
 	return m
 
-func _init_materials() -> void:
-	_mat_skin = _make_mat(Color(0.93, 0.76, 0.63), 0.78, 0.0)
-	_mat_hair = _make_mat(Color(0.26, 0.17, 0.11), 0.85, 0.0)
-	_mat_tunic = _make_mat(Color(0.28, 0.46, 0.68), 0.80, 0.0)
-	_mat_pants = _make_mat(Color(0.24, 0.22, 0.20), 0.85, 0.0)
-	_mat_apron = _make_mat(Color(0.55, 0.36, 0.20), 0.78, 0.05)
-	_mat_cape = _make_mat(Color(0.58, 0.16, 0.18), 0.82, 0.0)
-	_mat_boots = _make_mat(Color(0.22, 0.15, 0.10), 0.75, 0.08)
-	_mat_chest_armor = _make_mat(Color(0.72, 0.76, 0.82), 0.35, 0.72)
-	_mat_leg_armor = _make_mat(Color(0.68, 0.72, 0.78), 0.38, 0.68)
-	_mat_weapon_metal = _make_mat(Color(0.80, 0.84, 0.90), 0.28, 0.82)
 
-func _add_box(parent: Node3D, sz: Vector3, pos: Vector3, mat: Material, rot_deg: Vector3 = Vector3.ZERO) -> MeshInstance3D:
+func _clear_tagged(parent: Node) -> void:
+	for c in parent.get_children():
+		if c.has_meta("rig_mesh"):
+			c.queue_free()
+
+
+func _add_part(parent: Node3D, mesh: Mesh, mat: Material, pos: Vector3 = Vector3.ZERO, rot_deg: Vector3 = Vector3.ZERO, sc: Vector3 = Vector3.ONE) -> MeshInstance3D:
 	var mi := MeshInstance3D.new()
-	var bm := BoxMesh.new()
-	bm.size = sz
-	mi.mesh = bm
+	mi.mesh = mesh
+	mi.material_override = mat
 	mi.position = pos
 	mi.rotation_degrees = rot_deg
-	mi.material_override = mat
+	mi.scale = sc
+	mi.set_meta("rig_mesh", true)
 	parent.add_child(mi)
 	return mi
 
-func _add_cyl(parent: Node3D, top_r: float, bot_r: float, h: float, pos: Vector3, mat: Material, rot_deg: Vector3 = Vector3.ZERO) -> MeshInstance3D:
-	var mi := MeshInstance3D.new()
-	var cm := CylinderMesh.new()
-	cm.top_radius = top_r
-	cm.bottom_radius = bot_r
-	cm.height = h
-	cm.radial_segments = 14
-	cm.rings = 1
-	mi.mesh = cm
-	mi.position = pos
-	mi.rotation_degrees = rot_deg
-	mi.material_override = mat
-	parent.add_child(mi)
-	return mi
 
-func _add_sphere(parent: Node3D, r: float, h: float, pos: Vector3, mat: Material, rot_deg: Vector3 = Vector3.ZERO) -> MeshInstance3D:
-	var mi := MeshInstance3D.new()
-	var sm := SphereMesh.new()
-	sm.radius = r
-	sm.height = h
-	sm.radial_segments = 16
-	sm.rings = 8
-	mi.mesh = sm
-	mi.position = pos
-	mi.rotation_degrees = rot_deg
-	mi.material_override = mat
-	parent.add_child(mi)
-	return mi
+func _rebuild_meshes() -> void:
+	var s := 0.72 if _is_child else 1.0
+	scale = Vector3(s, s, s)
 
-func _build_skeleton_and_body() -> void:
-	# Sombra suave en el suelo
-	var mat_shadow := _make_mat(Color(0.04, 0.05, 0.07, 0.42), 1.0, 0.0)
-	_add_cyl(self, 0.36, 0.36, 0.015, Vector3(0.0, 0.008, 0.0), mat_shadow)
+	if AssetLib.has_curated_assets():
+		if _rebuild_real_quaternius_character():
+			_rebuild_tools()
+			return
 
-	root_pivot = Node3D.new()
-	root_pivot.name = "RootPivot"
-	add_child(root_pivot)
+	_using_real_mesh = false
+	_skeleton = null
+	_rebuild_procedural_fallback()
+	_rebuild_tools()
 
-	hips_pivot = Node3D.new()
-	hips_pivot.name = "HipsPivot"
-	hips_pivot.position = Vector3(0.0, 0.58, 0.0)
-	root_pivot.add_child(hips_pivot)
 
-	pelvis_mesh = _add_cyl(hips_pivot, 0.19, 0.18, 0.18, Vector3(0.0, 0.0, 0.0), _mat_pants)
-	skirt_mesh = _add_cyl(hips_pivot, 0.18, 0.29, 0.36, Vector3(0.0, -0.14, 0.0), _mat_tunic)
-	skirt_mesh.visible = false
+func _rebuild_real_quaternius_character() -> bool:
+	# Limpiar modelo previo
+	for c in get_children():
+		if c.has_meta("real_char_root"):
+			c.queue_free()
+	pelvis.visible = false
 
-	# Pierna Izquierda y Derecha
-	left_hip_pivot = Node3D.new()
-	left_hip_pivot.name = "LeftHipPivot"
-	left_hip_pivot.position = Vector3(-0.11, -0.02, 0.0)
-	hips_pivot.add_child(left_hip_pivot)
-	_build_leg_hierarchy(left_hip_pivot, true)
-
-	right_hip_pivot = Node3D.new()
-	right_hip_pivot.name = "RightHipPivot"
-	right_hip_pivot.position = Vector3(0.11, -0.02, 0.0)
-	hips_pivot.add_child(right_hip_pivot)
-	_build_leg_hierarchy(right_hip_pivot, false)
-
-	# Torso
-	torso_pivot = Node3D.new()
-	torso_pivot.name = "TorsoPivot"
-	torso_pivot.position = Vector3(0.0, 0.06, 0.0)
-	hips_pivot.add_child(torso_pivot)
-
-	chest_mesh = _add_cyl(torso_pivot, 0.22, 0.18, 0.44, Vector3(0.0, 0.22, 0.0), _mat_tunic)
-	# Cinturón con hebilla de latón
-	var mat_belt := _make_mat(Color(0.24, 0.15, 0.08), 0.70, 0.10)
-	var mat_gold := _make_mat(Color(0.92, 0.76, 0.28), 0.32, 0.82)
-	_add_cyl(torso_pivot, 0.195, 0.195, 0.07, Vector3(0.0, 0.04, 0.0), mat_belt)
-	_add_box(torso_pivot, Vector3(0.09, 0.08, 0.04), Vector3(0.0, 0.04, 0.19), mat_gold)
-
-	# Delantal de oficio (herrero, carnicero, carpintero, panadero, arreglador)
-	apron_mesh = _add_box(torso_pivot, Vector3(0.30, 0.44, 0.04), Vector3(0.0, 0.12, 0.19), _mat_apron)
-	apron_mesh.visible = false
-
-	# Capa en la espalda (noble, inquisidor, explorador)
-	cape_pivot = Node3D.new()
-	cape_pivot.name = "CapePivot"
-	cape_pivot.position = Vector3(0.0, 0.42, -0.18)
-	torso_pivot.add_child(cape_pivot)
-	cape_mesh = _add_box(cape_pivot, Vector3(0.42, 0.62, 0.035), Vector3(0.0, -0.30, -0.04), _mat_cape, Vector3(10.0, 0.0, 0.0))
-	cape_mesh.visible = false
-
-	# Armadura de pecho y hombreras
-	chest_armor_root = Node3D.new()
-	chest_armor_root.name = "ChestArmorRoot"
-	chest_armor_root.visible = false
-	torso_pivot.add_child(chest_armor_root)
-	_add_cyl(chest_armor_root, 0.24, 0.20, 0.38, Vector3(0.0, 0.24, 0.0), _mat_chest_armor)
-	_add_box(chest_armor_root, Vector3(0.26, 0.28, 0.10), Vector3(0.0, 0.25, 0.16), _mat_chest_armor)
-	left_pauldron_mesh = _add_sphere(chest_armor_root, 0.13, 0.22, Vector3(-0.27, 0.39, 0.0), _mat_chest_armor)
-	right_pauldron_mesh = _add_sphere(chest_armor_root, 0.13, 0.22, Vector3(0.27, 0.39, 0.0), _mat_chest_armor)
-
-	# Cabeza
-	head_pivot = Node3D.new()
-	head_pivot.name = "HeadPivot"
-	head_pivot.position = Vector3(0.0, 0.45, 0.0)
-	torso_pivot.add_child(head_pivot)
-
-	_add_cyl(head_pivot, 0.08, 0.09, 0.10, Vector3(0.0, 0.04, 0.0), _mat_skin)
-	head_mesh = _add_sphere(head_pivot, 0.23, 0.45, Vector3(0.0, 0.24, 0.0), _mat_skin)
-	# Nariz y orejas
-	_add_sphere(head_pivot, 0.036, 0.07, Vector3(0.0, 0.22, 0.23), _mat_skin)
-	_add_sphere(head_pivot, 0.045, 0.09, Vector3(-0.22, 0.23, 0.0), _mat_skin)
-	_add_sphere(head_pivot, 0.045, 0.09, Vector3(0.22, 0.23, 0.0), _mat_skin)
-
-	# Ojos con brillo y cejas
-	var mat_eye := _make_mat(Color(0.08, 0.09, 0.12), 0.15, 0.1)
-	var mat_shine := _make_mat(Color(1.0, 1.0, 1.0), 0.0, 0.0, Color.WHITE, 0.6)
-	_add_sphere(head_pivot, 0.034, 0.068, Vector3(-0.085, 0.25, 0.205), mat_eye)
-	_add_sphere(head_pivot, 0.034, 0.068, Vector3(0.085, 0.25, 0.205), mat_eye)
-	_add_sphere(head_pivot, 0.012, 0.024, Vector3(-0.075, 0.262, 0.232), mat_shine)
-	_add_sphere(head_pivot, 0.012, 0.024, Vector3(0.095, 0.262, 0.232), mat_shine)
-
-	left_brow_mesh = _add_box(head_pivot, Vector3(0.075, 0.022, 0.025), Vector3(-0.085, 0.305, 0.21), _mat_hair)
-	right_brow_mesh = _add_box(head_pivot, Vector3(0.075, 0.022, 0.025), Vector3(0.085, 0.305, 0.21), _mat_hair)
-
-	# Cabello y barba
-	hair_top_mesh = _add_sphere(head_pivot, 0.242, 0.32, Vector3(0.0, 0.31, -0.015), _mat_hair)
-	hair_back_mesh = _add_box(head_pivot, Vector3(0.42, 0.24, 0.16), Vector3(0.0, 0.22, -0.15), _mat_hair)
-	hair_bun_mesh = _add_sphere(head_pivot, 0.11, 0.20, Vector3(0.0, 0.26, -0.26), _mat_hair)
-	hair_bun_mesh.visible = false
-	beard_mesh = _add_Box_Beard(head_pivot)
-	beard_mesh.visible = false
-
-	# Conector de Sombreros y Cascos
-	head_socket = Node3D.new()
-	head_socket.name = "HeadSocket"
-	head_socket.position = Vector3(0.0, 0.38, 0.0)
-	head_pivot.add_child(head_socket)
-
-	# Brazos articulados
-	left_shoulder_pivot = Node3D.new()
-	left_shoulder_pivot.name = "LeftShoulderPivot"
-	left_shoulder_pivot.position = Vector3(-0.27, 0.38, 0.0)
-	torso_pivot.add_child(left_shoulder_pivot)
-	_build_arm_hierarchy(left_shoulder_pivot, true)
-
-	right_shoulder_pivot = Node3D.new()
-	right_shoulder_pivot.name = "RightShoulderPivot"
-	right_shoulder_pivot.position = Vector3(0.27, 0.38, 0.0)
-	torso_pivot.add_child(right_shoulder_pivot)
-	_build_arm_hierarchy(right_shoulder_pivot, false)
-
-func _add_Box_Beard(parent: Node3D) -> MeshInstance3D:
-	return _add_box(parent, Vector3(0.28, 0.16, 0.16), Vector3(0.0, 0.13, 0.15), _mat_hair)
-
-func _build_leg_hierarchy(hip_pivot: Node3D, is_left: bool) -> void:
-	var nat := Node3D.new()
-	nat.name = "NaturalLeg"
-	hip_pivot.add_child(nat)
-	_add_cyl(nat, 0.082, 0.072, 0.26, Vector3(0.0, -0.13, 0.0), _mat_pants)
-	_add_cyl(nat, 0.070, 0.062, 0.24, Vector3(0.0, -0.35, 0.0), _mat_pants)
-	var greave := _add_box(nat, Vector3(0.13, 0.24, 0.09), Vector3(0.0, -0.32, 0.04), _mat_leg_armor)
-	greave.visible = false
-	var boot := _add_box(nat, Vector3(0.14, 0.12, 0.23), Vector3(0.0, -0.50, 0.035), _mat_boots)
-
-	# Prótesis mecánica de pierna (hierro forjado, pistón de latón y resorte de cobre)
-	var prost := Node3D.new()
-	prost.name = "ProstheticLeg"
-	prost.visible = false
-	hip_pivot.add_child(prost)
-	var mat_iron := _make_mat(Color(0.32, 0.35, 0.40), 0.35, 0.85)
-	var mat_copper := _make_mat(Color(0.85, 0.48, 0.24), 0.30, 0.88, Color(0.85, 0.45, 0.20), 0.15)
-	var mat_leather := _make_mat(Color(0.42, 0.25, 0.14), 0.75, 0.1)
-	_add_cyl(prost, 0.085, 0.075, 0.16, Vector3(0.0, -0.09, 0.0), mat_leather)
-	_add_sphere(prost, 0.075, 0.15, Vector3(0.0, -0.22, 0.0), mat_copper)
-	_add_cyl(prost, 0.042, 0.038, 0.26, Vector3(0.0, -0.36, 0.0), mat_iron)
-	_add_box(prost, Vector3(0.13, 0.07, 0.24), Vector3(0.0, -0.52, 0.04), mat_iron)
-
-	# Muñón vendado (amputación sin prótesis)
-	var stump := Node3D.new()
-	stump.name = "StumpLeg"
-	stump.visible = false
-	hip_pivot.add_child(stump)
-	var mat_bandage := _make_mat(Color(0.92, 0.89, 0.82), 0.90, 0.0)
-	_add_cyl(stump, 0.082, 0.072, 0.20, Vector3(0.0, -0.10, 0.0), _mat_pants)
-	_add_sphere(stump, 0.078, 0.14, Vector3(0.0, -0.21, 0.0), mat_bandage)
-
-	if is_left:
-		left_leg_natural = nat
-		left_leg_prosthetic = prost
-		left_leg_stump = stump
-		left_greave_mesh = greave
-		left_boot_mesh = boot
+	var use_ranger := (_outfit_kind == "ranger" or _chest_tier >= 1 or _hat_style in ["helmet", "inquisitor", "hood", "crown"])
+	var outfit_file := ""
+	if _is_female:
+		outfit_file = "characters/Female_Ranger.gltf" if use_ranger else "characters/Female_Peasant.gltf"
 	else:
-		right_leg_natural = nat
-		right_leg_prosthetic = prost
-		right_leg_stump = stump
-		right_greave_mesh = greave
-		right_boot_mesh = boot
+		outfit_file = "characters/Male_Ranger.gltf" if use_ranger else "characters/Male_Peasant.gltf"
 
-func _build_arm_hierarchy(shoulder_pivot: Node3D, is_left: bool) -> void:
-	var nat := Node3D.new()
-	nat.name = "NaturalArm"
-	shoulder_pivot.add_child(nat)
-	_add_cyl(nat, 0.072, 0.064, 0.22, Vector3(0.0, -0.10, 0.0), _mat_tunic)
+	var tmpl := AssetLib.load_gltf_template(outfit_file)
+	if tmpl == null:
+		return false
 
-	var forearm_piv := Node3D.new()
-	forearm_piv.name = "ForearmPivot"
-	forearm_piv.position = Vector3(0.0, -0.21, 0.0)
-	shoulder_pivot.add_child(forearm_piv)
+	var char_root := tmpl.duplicate() as Node3D
+	char_root.name = "RealCharRoot"
+	char_root.set_meta("real_char_root", true)
+	# Ajustar escala para que el personaje mida ~1.55 unidades de alto en nuestro mundo
+	char_root.scale = Vector3(0.88, 0.88, 0.88)
+	add_child(char_root)
 
-	_add_cyl(forearm_piv, 0.060, 0.052, 0.20, Vector3(0.0, -0.09, 0.0), _mat_skin)
-	_add_sphere(forearm_piv, 0.065, 0.13, Vector3(0.0, -0.21, 0.0), _mat_skin)
+	_skeleton = char_root.find_child("Skeleton3D", true, false) as Skeleton3D
+	if _skeleton == null:
+		char_root.queue_free()
+		return false
 
-	# Prótesis mecánica de brazo (articulación de cobre y pinza de hierro)
-	var prost := Node3D.new()
-	prost.name = "ProstheticArm"
-	prost.visible = false
-	shoulder_pivot.add_child(prost)
-	var mat_iron := _make_mat(Color(0.34, 0.38, 0.44), 0.32, 0.86)
-	var mat_copper := _make_mat(Color(0.86, 0.50, 0.24), 0.28, 0.88, Color(0.86, 0.45, 0.18), 0.15)
-	_add_cyl(prost, 0.074, 0.065, 0.18, Vector3(0.0, -0.09, 0.0), _mat_apron)
-	_add_sphere(prost, 0.070, 0.14, Vector3(0.0, -0.21, 0.0), mat_copper)
-	_add_cyl(prost, 0.045, 0.040, 0.20, Vector3(0.0, -0.32, 0.0), mat_iron)
-	_add_box(prost, Vector3(0.09, 0.09, 0.12), Vector3(0.0, -0.43, 0.03), mat_copper)
+	_using_real_mesh = true
+	_bone_idx.clear()
+	_bone_rest_q.clear()
+	for i in range(_skeleton.get_bone_count()):
+		var bname := _skeleton.get_bone_name(i)
+		_bone_idx[bname] = i
+		_bone_rest_q[bname] = _skeleton.get_bone_rest(i).basis.get_rotation_quaternion()
 
-	# Muñón vendado de brazo
-	var stump := Node3D.new()
-	stump.name = "StumpArm"
-	stump.visible = false
-	shoulder_pivot.add_child(stump)
-	var mat_bandage := _make_mat(Color(0.92, 0.89, 0.82), 0.90, 0.0)
-	_add_cyl(stump, 0.072, 0.064, 0.16, Vector3(0.0, -0.08, 0.0), _mat_tunic)
-	_add_sphere(stump, 0.068, 0.13, Vector3(0.0, -0.17, 0.0), mat_bandage)
+	# 1. Añadir cabeza esculpida, ojos y cejas desde Universal Base Characters
+	var base_file := "characters/Superhero_Female_FullBody.gltf" if _is_female else "characters/Superhero_Male_FullBody.gltf"
+	var base_tmpl := AssetLib.load_gltf_template(base_file)
+	if base_tmpl != null:
+		var base_skel := base_tmpl.find_child("Skeleton3D", true, false) as Skeleton3D
+		if base_skel != null:
+			for bc in base_skel.get_children():
+				if not (bc is MeshInstance3D):
+					continue
+				var bmi := bc as MeshInstance3D
+				if bmi.mesh == null:
+					continue
+				var bname_low := bmi.name.to_lower()
+				if bname_low.find("superhero") != -1:
+					var head_key := "female_head" if _is_female else "male_head"
+					var head_mesh := AssetLib.extract_head_only_mesh(head_key, bmi.mesh, 1.43)
+					if head_mesh != null:
+						var h_mi := MeshInstance3D.new()
+						h_mi.name = "SculptedHead"
+						h_mi.mesh = head_mesh
+						h_mi.skin = bmi.skin
+						h_mi.skeleton = NodePath("..")
+						_apply_skin_material_override(h_mi)
+						_skeleton.add_child(h_mi)
+				elif bname_low.find("eye") != -1:
+					var eye_dup := bmi.duplicate() as MeshInstance3D
+					eye_dup.skeleton = NodePath("..")
+					if bname_low.find("brow") != -1:
+						eye_dup.material_override = _make_mat(_hair_color.darkened(0.15), 0.85, 0.0)
+					_skeleton.add_child(eye_dup)
 
-	var sock := Node3D.new()
-	sock.name = "LeftHandSocket" if is_left else "RightHandSocket"
-	sock.position = Vector3(0.0, -0.22, 0.04)
-	forearm_piv.add_child(sock)
+	# 2. Teñir ropa y piel sobre las texturas PBR reales del traje
+	for sc in _skeleton.get_children():
+		if not (sc is MeshInstance3D):
+			continue
+		var smi := sc as MeshInstance3D
+		var nm := smi.name.to_lower()
+		# Capucha incluida en el traje Ranger: mostrar solo si lleva capucha/casco o es arquero/explorador
+		if nm.find("head_hood") != -1:
+			smi.visible = (_hat_style in ["hood", "helmet", "inquisitor"] or _helmet_tier >= 1)
+			if smi.visible:
+				_tint_textured_mesh(smi, _tunic_color.darkened(0.15), 0.75, 0.15 if _helmet_tier == 0 else 0.65)
+			continue
+		if nm.find("pauldron") != -1:
+			smi.visible = (_chest_tier >= 1 or _hat_style in ["helmet", "inquisitor", "crown"])
+			if smi.visible:
+				var p_col := Color(0.72, 0.75, 0.80) if _chest_tier >= 2 else _tunic_color.lightened(0.12)
+				_tint_textured_mesh(smi, p_col, 0.45, 0.55 if _chest_tier >= 2 else 0.15)
+			continue
+		if nm.find("body") != -1 and nm.find("belt") == -1:
+			var body_col := _tunic_color.lerp(Color(1, 1, 1), 0.25)
+			if _chest_tier == 2:
+				body_col = Color(0.68, 0.71, 0.76)
+			elif _chest_tier >= 3:
+				body_col = Color(0.84, 0.86, 0.92)
+			_tint_textured_mesh(smi, body_col, 0.78 if _chest_tier < 2 else 0.35, 0.05 if _chest_tier < 2 else 0.70)
+		elif nm.find("legs") != -1:
+			var leg_col := _pants_color.lerp(Color(1, 1, 1), 0.28)
+			if _legs_tier >= 2:
+				leg_col = Color(0.65, 0.68, 0.74)
+			_tint_textured_mesh(smi, leg_col, 0.82, 0.05 if _legs_tier < 2 else 0.60)
+		elif nm.find("feet") != -1:
+			var boot_col := Color(0.32, 0.22, 0.15) if _boots_tier < 2 else Color(0.58, 0.60, 0.66)
+			_tint_textured_mesh(smi, boot_col, 0.75, 0.08 if _boots_tier < 2 else 0.62)
+		elif nm.find("arms") != -1 and nm.find("bracer") == -1:
+			_tint_arms_mesh(smi, _tunic_color.lerp(Color(1, 1, 1), 0.30))
 
-	if is_left:
-		left_forearm_pivot = forearm_piv
-		left_arm_natural = nat
-		left_arm_prosthetic = prost
-		left_arm_stump = stump
-		left_hand_socket = sock
+	# 3. Peinado y barba 3D reales anclados al esqueleto
+	if _helmet_tier == 0 and not (_hat_style in ["hood", "helmet"]):
+		var hair_gltf := _pick_real_hair_file()
+		if not hair_gltf.is_empty():
+			_attach_rigged_part_to_skeleton(hair_gltf, _hair_color.lerp(Color(1, 1, 1), 0.18))
+	if _has_beard and not _is_female and not _is_child:
+		_attach_rigged_part_to_skeleton("characters/Hair_Beard.gltf", _hair_color.lerp(Color(1, 1, 1), 0.15))
+
+	# 4. BoneAttachments para cabeza (sombreros/cascos), mano derecha (armas/herramientas), mano izquierda y prótesis
+	var head_att := BoneAttachment3D.new()
+	head_att.name = "HeadAttachment"
+	head_att.bone_name = "Head"
+	_skeleton.add_child(head_att)
+
+	hat_root = Node3D.new()
+	hat_root.name = "HatRoot"
+	hat_root.position = Vector3(0.0, 0.14, 0.0)
+	head_att.add_child(hat_root)
+	_build_real_hat_or_helmet(hat_root)
+
+	var hand_r_att := BoneAttachment3D.new()
+	hand_r_att.name = "HandRAttachment"
+	hand_r_att.bone_name = "hand_r"
+	_skeleton.add_child(hand_r_att)
+
+	tool_r_root = Node3D.new()
+	tool_r_root.name = "ToolRRoot"
+	hand_r_att.add_child(tool_r_root)
+
+	var hand_l_att := BoneAttachment3D.new()
+	hand_l_att.name = "HandLAttachment"
+	hand_l_att.bone_name = "hand_l"
+	_skeleton.add_child(hand_l_att)
+
+	tool_l_root = Node3D.new()
+	tool_l_root.name = "ToolLRoot"
+	hand_l_att.add_child(tool_l_root)
+
+	# 5. Prótesis mecánicas visibles sobre el hueso correspondiente
+	if (_missing_arm_r or _prosthetic_arm_r):
+		var arm_att := BoneAttachment3D.new()
+		arm_att.name = "ProsthArmAttachment"
+		arm_att.bone_name = "lowerarm_r"
+		_skeleton.add_child(arm_att)
+		if _prosthetic_arm_r:
+			var p_mat := _make_mat(Color(0.74, 0.50, 0.24), 0.30, 0.85)
+			var s_mat := _make_mat(Color(0.55, 0.58, 0.64), 0.28, 0.88)
+			var cyl := CylinderMesh.new()
+			cyl.top_radius = 0.055
+			cyl.bottom_radius = 0.048
+			cyl.height = 0.28
+			_add_part(arm_att, cyl, p_mat, Vector3(0.0, 0.12, 0.0))
+			var ring := CylinderMesh.new()
+			ring.top_radius = 0.065
+			ring.bottom_radius = 0.065
+			ring.height = 0.04
+			_add_part(arm_att, ring, s_mat, Vector3(0.0, 0.04, 0.0))
+
+	if (_missing_leg_r or _prosthetic_leg_r):
+		var leg_att := BoneAttachment3D.new()
+		leg_att.name = "ProsthLegAttachment"
+		leg_att.bone_name = "calf_r"
+		_skeleton.add_child(leg_att)
+		if _prosthetic_leg_r:
+			var p_mat := _make_mat(Color(0.74, 0.50, 0.24), 0.30, 0.85)
+			var s_mat := _make_mat(Color(0.55, 0.58, 0.64), 0.28, 0.88)
+			var rod := CylinderMesh.new()
+			rod.top_radius = 0.055
+			rod.bottom_radius = 0.042
+			rod.height = 0.38
+			_add_part(leg_att, rod, s_mat, Vector3(0.0, 0.18, 0.0))
+			var knee := SphereMesh.new()
+			knee.radius = 0.068
+			knee.height = 0.136
+			_add_part(leg_att, knee, p_mat, Vector3(0.0, 0.02, 0.0))
+
+	_apply_skeleton_pose(0.0)
+	return true
+
+
+func _pick_real_hair_file() -> String:
+	if _hair_style == "bald":
+		return ""
+	if _is_female:
+		match _hair_style:
+			"bun":
+				return "characters/Hair_Buns.gltf"
+			"short":
+				return "characters/Hair_BuzzedFemale.gltf"
+			_:
+				return "characters/Hair_Long.gltf"
 	else:
-		right_forearm_pivot = forearm_piv
-		right_arm_natural = nat
-		right_arm_prosthetic = prost
-		right_arm_stump = stump
-		right_hand_socket = sock
+		match _hair_style:
+			"long", "ponytail":
+				return "characters/Hair_Long.gltf"
+			"tonsure":
+				return "characters/Hair_Buzzed.gltf"
+			_:
+				return "characters/Hair_SimpleParted.gltf"
 
-func _build_headgear_catalog() -> void:
-	var mat_leather := _make_mat(Color(0.46, 0.29, 0.16), 0.76, 0.10)
-	var mat_iron := _make_mat(Color(0.70, 0.74, 0.80), 0.32, 0.80)
-	var mat_steel := _make_mat(Color(0.45, 0.78, 0.98), 0.22, 0.90, Color(0.25, 0.55, 0.85), 0.18)
-	var mat_gold := _make_mat(Color(0.95, 0.78, 0.25), 0.28, 0.85)
-	var mat_sheriff := _make_mat(Color(0.18, 0.16, 0.15), 0.80, 0.08)
-	var mat_velvet := _make_mat(Color(0.68, 0.12, 0.18), 0.75, 0.05)
-	var mat_white := _make_mat(Color(0.95, 0.95, 0.92), 0.85, 0.0)
-	var mat_straw := _make_mat(Color(0.88, 0.74, 0.36), 0.88, 0.0)
 
-	# 1. Casco Nivel 1 (Capucha de cuero)
-	var h1 := Node3D.new()
-	_add_sphere(h1, 0.255, 0.36, Vector3(0.0, -0.05, -0.01), mat_leather)
-	_add_box(h1, Vector3(0.36, 0.05, 0.14), Vector3(0.0, -0.02, 0.16), mat_leather)
-	_reg_headgear("helm_t1", h1)
-
-	# 2. Casco Nivel 2 / Guardia (Celada de hierro con nasal)
-	var h2 := Node3D.new()
-	_add_sphere(h2, 0.26, 0.38, Vector3(0.0, -0.04, 0.0), mat_iron)
-	_add_cyl(h2, 0.27, 0.27, 0.05, Vector3(0.0, -0.06, 0.0), mat_iron)
-	_add_box(h2, Vector3(0.04, 0.16, 0.04), Vector3(0.0, -0.10, 0.25), mat_iron)
-	_reg_headgear("helm_t2", h2)
-
-	# 3. Casco Nivel 3 (Yelmo de Acero Maestro con cresta dorada)
-	var h3 := Node3D.new()
-	_add_sphere(h3, 0.265, 0.40, Vector3(0.0, -0.04, 0.0), mat_steel)
-	_add_box(h3, Vector3(0.06, 0.18, 0.38), Vector3(0.0, 0.12, -0.02), mat_gold)
-	_add_box(h3, Vector3(0.08, 0.22, 0.05), Vector3(-0.25, -0.04, 0.04), mat_gold, Vector3(0, 0, 22))
-	_add_box(h3, Vector3(0.08, 0.22, 0.05), Vector3(0.25, -0.04, 0.04), mat_gold, Vector3(0, 0, -22))
-	_reg_headgear("helm_t3", h3)
-
-	# 4. Sombrero de Comisario / Inquisidor
-	var h_sh := Node3D.new()
-	_add_cyl(h_sh, 0.38, 0.38, 0.03, Vector3(0.0, -0.04, 0.0), mat_sheriff)
-	_add_cyl(h_sh, 0.18, 0.22, 0.18, Vector3(0.0, 0.06, 0.0), mat_sheriff)
-	_add_sphere(h_sh, 0.045, 0.09, Vector3(0.0, 0.03, 0.21), mat_gold)
-	_reg_headgear("sheriff_hat", h_sh)
-
-	# 5. Birrete / Corona Noble
-	var h_nb := Node3D.new()
-	_add_cyl(h_nb, 0.23, 0.21, 0.07, Vector3(0.0, -0.03, 0.0), mat_gold)
-	_add_sphere(h_nb, 0.24, 0.22, Vector3(0.0, 0.04, 0.0), mat_velvet)
-	_add_box(h_nb, Vector3(0.04, 0.22, 0.06), Vector3(0.16, 0.14, 0.10), mat_white, Vector3(-15, 0, -20))
-	_reg_headgear("noble_crown", h_nb)
-
-	# 6. Gorro de Panadero
-	var h_bk := Node3D.new()
-	_add_cyl(h_bk, 0.21, 0.20, 0.12, Vector3(0.0, 0.02, 0.0), mat_white)
-	_add_sphere(h_bk, 0.25, 0.24, Vector3(0.0, 0.12, 0.0), mat_white)
-	_reg_headgear("baker_hat", h_bk)
-
-	# 7. Sombrero de Paja (Granjero / Ganadero)
-	var h_st := Node3D.new()
-	_add_cyl(h_st, 0.40, 0.40, 0.025, Vector3(0.0, -0.04, 0.0), mat_straw)
-	_add_cyl(h_st, 0.19, 0.22, 0.13, Vector3(0.0, 0.03, 0.0), mat_straw)
-	_reg_headgear("straw_hat", h_st)
-
-	# 8. Mitra / Símbolo del Alba (Sacerdote)
-	var h_pr := Node3D.new()
-	_add_cyl(h_pr, 0.18, 0.22, 0.16, Vector3(0.0, 0.04, 0.0), mat_white)
-	_add_sphere(h_pr, 0.06, 0.12, Vector3(0.0, 0.14, 0.16), mat_gold)
-	_reg_headgear("priest_cap", h_pr)
-
-func _reg_headgear(key: String, node: Node3D) -> void:
-	node.visible = false
-	head_socket.add_child(node)
-	_headgear_models[key] = node
-
-func _build_weapon_and_tool_catalog() -> void:
-	var mat_wood := _make_mat(Color(0.48, 0.30, 0.15), 0.80, 0.05)
-	var mat_dark_wood := _make_mat(Color(0.32, 0.18, 0.09), 0.72, 0.08)
-	var mat_gold := _make_mat(Color(0.92, 0.75, 0.24), 0.30, 0.85)
-	var mat_iron := _make_mat(Color(0.52, 0.56, 0.62), 0.38, 0.80)
-	var mat_tin := _make_mat(Color(0.62, 0.68, 0.72), 0.42, 0.65)
-	var mat_string := _make_mat(Color(0.90, 0.88, 0.80), 0.90, 0.0)
-
-	# 1. Espada (Sword)
-	var sw := Node3D.new()
-	_add_cyl(sw, 0.026, 0.026, 0.22, Vector3(0.0, 0.0, 0.0), mat_dark_wood, Vector3(90, 0, 0))
-	_add_sphere(sw, 0.045, 0.09, Vector3(0.0, 0.0, -0.12), mat_gold)
-	_add_box(sw, Vector3(0.24, 0.04, 0.05), Vector3(0.0, 0.0, 0.11), mat_gold)
-	_add_box(sw, Vector3(0.065, 0.022, 0.68), Vector3(0.0, 0.0, 0.46), _mat_weapon_metal)
-	_reg_weapon("sword", sw)
-
-	# 2. Martillo (Hammer)
-	var hm := Node3D.new()
-	_add_cyl(hm, 0.028, 0.028, 0.64, Vector3(0.0, 0.0, 0.22), mat_wood, Vector3(90, 0, 0))
-	_add_box(hm, Vector3(0.28, 0.15, 0.16), Vector3(0.0, 0.0, 0.52), _mat_weapon_metal)
-	_reg_weapon("hammer", hm)
-
-	# 3. Hacha (Axe)
-	var ax := Node3D.new()
-	_add_cyl(ax, 0.026, 0.028, 0.62, Vector3(0.0, 0.0, 0.20), mat_wood, Vector3(90, 0, 0))
-	_add_box(ax, Vector3(0.04, 0.24, 0.18), Vector3(0.0, -0.08, 0.46), _mat_weapon_metal)
-	_reg_weapon("axe", ax)
-
-	# 4. Pico (Pickaxe)
-	var pk := Node3D.new()
-	_add_cyl(pk, 0.026, 0.028, 0.62, Vector3(0.0, 0.0, 0.20), mat_wood, Vector3(90, 0, 0))
-	_add_box(pk, Vector3(0.05, 0.42, 0.07), Vector3(0.0, 0.0, 0.48), _mat_weapon_metal)
-	_reg_weapon("pickaxe", pk)
-
-	# 5. Arco de Caza (Bow)
-	var bw := Node3D.new()
-	_add_box(bw, Vector3(0.04, 0.68, 0.06), Vector3(0.0, 0.0, 0.16), mat_wood)
-	_add_cyl(bw, 0.008, 0.008, 0.66, Vector3(0.0, 0.0, 0.04), mat_string)
-	var arrow_node := _add_cyl(bw, 0.012, 0.012, 0.56, Vector3(0.0, 0.0, 0.22), mat_wood, Vector3(90, 0, 0))
-	arrow_node.name = "BowArrowMesh"
-	_reg_weapon("bow", bw)
-
-	# 6. Hoz (Sickle)
-	var sk := Node3D.new()
-	_add_cyl(sk, 0.025, 0.025, 0.24, Vector3(0.0, 0.0, 0.04), mat_wood, Vector3(90, 0, 0))
-	_add_box(sk, Vector3(0.22, 0.025, 0.24), Vector3(0.08, 0.0, 0.24), _mat_weapon_metal, Vector3(0, -28, 0))
-	_reg_weapon("sickle", sk)
-
-	# 7. Regadera (Watering Can)
-	var wc := Node3D.new()
-	_add_cyl(wc, 0.13, 0.14, 0.24, Vector3(0.0, -0.04, 0.18), mat_tin)
-	_add_cyl(wc, 0.025, 0.04, 0.24, Vector3(0.0, 0.02, 0.34), mat_tin, Vector3(55, 0, 0))
-	_add_sphere(wc, 0.055, 0.08, Vector3(0.0, 0.09, 0.44), mat_gold)
-	_reg_weapon("watering_can", wc)
-
-	# 8. Caña de Pescar (Fishing Rod)
-	var fr := Node3D.new()
-	_add_cyl(fr, 0.010, 0.024, 1.05, Vector3(0.0, 0.0, 0.46), mat_wood, Vector3(90, 0, 0))
-	_reg_weapon("fishing_rod", fr)
-
-	# 9. Arcabuz / Pistola de Chispa (Flintlock Arquebus) + Fogonazo y Humo 3D
-	var fl := Node3D.new()
-	_add_box(fl, Vector3(0.06, 0.11, 0.38), Vector3(0.0, -0.02, 0.12), mat_dark_wood)
-	_add_cyl(fl, 0.032, 0.028, 0.62, Vector3(0.0, 0.03, 0.42), mat_iron, Vector3(90, 0, 0))
-	_add_cyl(fl, 0.048, 0.032, 0.08, Vector3(0.0, 0.03, 0.74), mat_gold, Vector3(90, 0, 0))
-	_add_box(fl, Vector3(0.08, 0.07, 0.12), Vector3(0.0, 0.02, 0.22), mat_gold)
-
-	_muzzle_flash_node = Node3D.new()
-	_muzzle_flash_node.position = Vector3(0.0, 0.03, 0.84)
-	_muzzle_flash_node.visible = false
-	fl.add_child(_muzzle_flash_node)
-	var mat_flash := _make_mat(Color(1.0, 0.82, 0.28, 0.92), 0.1, 0.0, Color(1.0, 0.65, 0.15), 3.8)
-	_add_sphere(_muzzle_flash_node, 0.18, 0.36, Vector3.ZERO, mat_flash)
-	var mat_smoke := _make_mat(Color(0.82, 0.84, 0.88, 0.68), 0.95, 0.0)
-	for i in range(3):
-		var sp := _add_sphere(_muzzle_flash_node, 0.12 + float(i) * 0.05, 0.24 + float(i) * 0.08, Vector3(0.0, 0.05 * float(i), 0.14 * float(i + 1)), mat_smoke)
-		_smoke_puff_nodes.append(sp)
-	_reg_weapon("flintlock", fl)
-
-	# 10. Alabarda / Lanza de Guardia (Guard Spear)
-	var sp_g := Node3D.new()
-	_add_cyl(sp_g, 0.024, 0.024, 1.15, Vector3(0.0, 0.0, 0.35), mat_wood, Vector3(90, 0, 0))
-	_add_box(sp_g, Vector3(0.05, 0.14, 0.26), Vector3(0.0, 0.0, 0.98), mat_iron)
-	_reg_weapon("guard_spear", sp_g)
-
-func _reg_weapon(key: String, node: Node3D) -> void:
-	node.visible = false
-	right_hand_socket.add_child(node)
-	_weapon_models[key] = node
-
-func _build_offhand_catalog() -> void:
-	var mat_iron := _make_mat(Color(0.66, 0.70, 0.78), 0.35, 0.78)
-	var mat_wood := _make_mat(Color(0.45, 0.28, 0.14), 0.82, 0.05)
-	var mat_gold := _make_mat(Color(0.95, 0.78, 0.25), 0.28, 0.85)
-	var mat_glow := _make_mat(Color(1.0, 0.85, 0.38, 0.92), 0.15, 0.0, Color(1.0, 0.72, 0.22), 2.6)
-
-	# 1. Escudo de Guardia
-	var sh := Node3D.new()
-	_add_box(sh, Vector3(0.06, 0.44, 0.34), Vector3(-0.06, 0.0, 0.08), mat_iron)
-	_add_sphere(sh, 0.07, 0.12, Vector3(-0.09, 0.0, 0.08), mat_gold)
-	_reg_offhand("shield", sh)
-
-	# 2. Farol Nocturno
-	var ln := Node3D.new()
-	_add_cyl(ln, 0.08, 0.07, 0.18, Vector3(0.0, -0.10, 0.06), mat_glow)
-	_add_cyl(ln, 0.10, 0.09, 0.04, Vector3(0.0, -0.01, 0.06), mat_iron)
-	_reg_offhand("lantern", ln)
-
-	# 3. Libro del Alba / Tomo
-	var bk := Node3D.new()
-	_add_box(bk, Vector3(0.18, 0.06, 0.24), Vector3(0.04, 0.0, 0.10), mat_gold)
-	_reg_offhand("book", bk)
-
-	# 4. Muleta de madera (para amputados sin prótesis)
-	var cr := Node3D.new()
-	_add_cyl(cr, 0.022, 0.018, 0.78, Vector3(-0.06, -0.18, 0.06), mat_wood)
-	_add_box(cr, Vector3(0.06, 0.05, 0.22), Vector3(-0.06, 0.20, 0.06), mat_wood)
-	_reg_offhand("crutch", cr)
-
-func _reg_offhand(key: String, node: Node3D) -> void:
-	node.visible = false
-	left_hand_socket.add_child(node)
-	_offhand_models[key] = node
-
-func trigger_muzzle_flash() -> void:
-	_ensure_built()
-	_muzzle_flash_timer = 0.22
-	if _muzzle_flash_node:
-		_muzzle_flash_node.visible = true
-		_muzzle_flash_node.scale = Vector3.ONE
-
-func set_active_weapon(key: String, tier: int = 1) -> void:
-	_ensure_built()
-	var norm_key := key.to_lower()
-	if _active_weapon_key != norm_key:
-		for k in _weapon_models.keys():
-			var n: Node3D = _weapon_models[k]
-			n.visible = (k == norm_key)
-		_active_weapon_key = norm_key
-	match clampi(tier, 1, 3):
-		1:
-			_mat_weapon_metal.albedo_color = Color(0.68, 0.70, 0.74)
-			_mat_weapon_metal.emission_enabled = false
-		2:
-			_mat_weapon_metal.albedo_color = Color(0.84, 0.88, 0.95)
-			_mat_weapon_metal.emission_enabled = false
-		3:
-			_mat_weapon_metal.albedo_color = Color(0.48, 0.84, 1.0)
-			_mat_weapon_metal.emission_enabled = true
-			_mat_weapon_metal.emission = Color(0.20, 0.55, 0.85)
-			_mat_weapon_metal.emission_energy_multiplier = 0.25
-
-func set_active_offhand(key: String) -> void:
-	_ensure_built()
-	var norm_key := key.to_lower()
-	if _active_offhand_key != norm_key:
-		for k in _offhand_models.keys():
-			var n: Node3D = _offhand_models[k]
-			n.visible = (k == norm_key)
-		_active_offhand_key = norm_key
-
-func set_active_headgear(key: String) -> void:
-	_ensure_built()
-	var norm_key := key.to_lower()
-	if _active_headgear_key != norm_key:
-		for k in _headgear_models.keys():
-			var n: Node3D = _headgear_models[k]
-			n.visible = (k == norm_key)
-		_active_headgear_key = norm_key
-		if hair_top_mesh:
-			hair_top_mesh.visible = (norm_key == "" or norm_key == "none" or norm_key == "noble_crown")
-
-## Configura colores, peinado, vestimenta, armadura y prótesis de un perfil de personaje.
-func apply_character_appearance(cfg: Dictionary) -> void:
-	_ensure_built()
-	var skin_col: Color = cfg.get("skin_color", Color(0.93, 0.76, 0.63))
-	var hair_col: Color = cfg.get("hair_color", Color(0.26, 0.17, 0.11))
-	var tunic_col: Color = cfg.get("tunic_color", Color(0.28, 0.46, 0.68))
-	var pants_col: Color = cfg.get("pants_color", Color(0.24, 0.22, 0.20))
-	var is_female: bool = bool(cfg.get("is_female", false))
-	var is_child: bool = bool(cfg.get("is_child", false))
-	var has_beard: bool = bool(cfg.get("has_beard", false)) and not is_female and not is_child
-	var has_apron: bool = bool(cfg.get("has_apron", false))
-	var has_skirt: bool = bool(cfg.get("has_skirt", is_female))
-	var has_cape: bool = bool(cfg.get("has_cape", false))
-	var cape_col: Color = cfg.get("cape_color", Color(0.58, 0.16, 0.18))
-
-	_mat_skin.albedo_color = skin_col
-	_mat_hair.albedo_color = hair_col
-	_mat_tunic.albedo_color = tunic_col
-	_mat_pants.albedo_color = pants_col
-	_mat_cape.albedo_color = cape_col
-
-	root_pivot.scale = Vector3.ONE * (0.68 if is_child else 1.0)
-	if hair_bun_mesh:
-		hair_bun_mesh.visible = is_female
-	if beard_mesh:
-		beard_mesh.visible = has_beard
-	if apron_mesh:
-		apron_mesh.visible = has_apron
-		if cfg.has("apron_color"):
-			_mat_apron.albedo_color = cfg["apron_color"]
-	if skirt_mesh:
-		skirt_mesh.visible = has_skirt
-	if cape_mesh:
-		cape_mesh.visible = has_cape
-
-	# Armaduras por pieza (HEAD, CHEST, LEGS, BOOTS)
-	var chest_tier: int = int(cfg.get("chest_armor_tier", 0))
-	var legs_tier: int = int(cfg.get("legs_armor_tier", 0))
-	var boots_tier: int = int(cfg.get("boots_armor_tier", 0))
-	var head_key: String = str(cfg.get("headgear", "none"))
-
-	if chest_armor_root:
-		chest_armor_root.visible = (chest_tier > 0)
-		if chest_tier > 0:
-			_mat_chest_armor.albedo_color = _armor_tier_color(chest_tier)
-			_mat_chest_armor.metallic = 0.15 if chest_tier == 1 else 0.80
-	if left_greave_mesh and right_greave_mesh:
-		left_greave_mesh.visible = (legs_tier > 0)
-		right_greave_mesh.visible = (legs_tier > 0)
-		if legs_tier > 0:
-			_mat_leg_armor.albedo_color = _armor_tier_color(legs_tier)
-	if left_boot_mesh and right_boot_mesh:
-		_mat_boots.albedo_color = _armor_tier_color(boots_tier) if boots_tier > 0 else Color(0.22, 0.15, 0.10)
-
-	set_active_headgear(head_key)
-
-	# Estado de extremidades: "normal", "prosthetic", "amputated"
-	var l_arm_state: String = str(cfg.get("left_arm_state", "normal"))
-	var r_arm_state: String = str(cfg.get("right_arm_state", "normal"))
-	var l_leg_state: String = str(cfg.get("left_leg_state", "normal"))
-	var r_leg_state: String = str(cfg.get("right_leg_state", "normal"))
-	_apply_limb_state(left_arm_natural, left_arm_prosthetic, left_arm_stump, l_arm_state, left_forearm_pivot)
-	_apply_limb_state(right_arm_natural, right_arm_prosthetic, right_arm_stump, r_arm_state, right_forearm_pivot)
-	_apply_limb_state(left_leg_natural, left_leg_prosthetic, left_leg_stump, l_leg_state, null)
-	_apply_limb_state(right_leg_natural, right_leg_prosthetic, right_leg_stump, r_leg_state, null)
-
-	var weapon_k: String = str(cfg.get("weapon", "none"))
-	var weapon_t: int = int(cfg.get("weapon_tier", 1))
-	set_active_weapon(weapon_k, weapon_t)
-
-	var offhand_k: String = str(cfg.get("offhand", "none"))
-	if offhand_k == "none" and (l_leg_state == "amputated" or r_leg_state == "amputated"):
-		offhand_k = "crutch"
-	set_active_offhand(offhand_k)
-
-func _apply_limb_state(nat: Node3D, prost: Node3D, stump: Node3D, state: String, forearm_piv: Node3D) -> void:
-	if not nat or not prost or not stump:
+func _attach_rigged_part_to_skeleton(rel_path: String, tint_col: Color) -> void:
+	var tmpl := AssetLib.load_gltf_template(rel_path)
+	if tmpl == null or _skeleton == null:
 		return
-	match state:
-		"prosthetic":
-			nat.visible = false
-			prost.visible = true
-			stump.visible = false
-			if forearm_piv:
-				for ch in forearm_piv.get_children():
-					if ch is MeshInstance3D:
-						ch.visible = false
-		"amputated":
-			nat.visible = false
-			prost.visible = false
-			stump.visible = true
-			if forearm_piv:
-				for ch in forearm_piv.get_children():
-					if ch is MeshInstance3D:
-						ch.visible = false
-		_:
-			nat.visible = true
-			prost.visible = false
-			stump.visible = false
-			if forearm_piv:
-				for ch in forearm_piv.get_children():
-					if ch is MeshInstance3D:
-						ch.visible = true
+	var src_skel := tmpl.find_child("Skeleton3D", true, false) as Skeleton3D
+	if src_skel != null:
+		for c in src_skel.get_children():
+			if c is MeshInstance3D:
+				var dup := c.duplicate() as MeshInstance3D
+				dup.skeleton = NodePath("..")
+				_tint_textured_mesh(dup, tint_col, 0.85, 0.0)
+				_skeleton.add_child(dup)
 
-func _armor_tier_color(tier: int) -> Color:
-	match tier:
-		1: return Color(0.62, 0.39, 0.21) # Cuero tachonado
-		2: return Color(0.74, 0.78, 0.86) # Hierro forjado
-		3: return Color(0.42, 0.80, 0.98) # Acero maestro
-	return Color(0.22, 0.15, 0.10)
 
-## Avanza las articulaciones 3D del personaje según su estado y dirección en 360 grados.
+func _apply_skin_material_override(mi: MeshInstance3D) -> void:
+	if mi.mesh == null or mi.mesh.get_surface_count() == 0:
+		return
+	var orig := mi.mesh.surface_get_material(0)
+	var sm := StandardMaterial3D.new()
+	if orig is StandardMaterial3D:
+		sm = (orig as StandardMaterial3D).duplicate() as StandardMaterial3D
+	var light_skin := (_skin_color.r + _skin_color.g + _skin_color.b) > 2.1
+	var tex_file := ""
+	if _is_female:
+		tex_file = "characters/T_Superhero_Female_Light_BaseColor.png" if light_skin else "characters/T_Regular_Female_Dark_BaseColor.png"
+	else:
+		tex_file = "characters/T_Superhero_Male_Ligh.png" if light_skin else "characters/T_Regular_Male_Dark_BaseColor.png"
+	var stex := AssetLib.load_texture(tex_file)
+	if stex != null:
+		sm.albedo_texture = stex
+	sm.albedo_color = _skin_color.lerp(Color.WHITE, 0.55)
+	sm.roughness = 0.82
+	mi.set_surface_override_material(0, sm)
+
+
+func _tint_textured_mesh(mi: MeshInstance3D, tint: Color, rough: float = 0.80, metal: float = 0.05) -> void:
+	if mi.mesh == null:
+		return
+	for s in range(mi.mesh.get_surface_count()):
+		var orig := mi.mesh.surface_get_material(s)
+		var sm := StandardMaterial3D.new()
+		if orig is StandardMaterial3D:
+			sm = (orig as StandardMaterial3D).duplicate() as StandardMaterial3D
+		sm.albedo_color = tint
+		sm.roughness = rough
+		sm.metallic = metal
+		mi.set_surface_override_material(s, sm)
+
+
+func _tint_arms_mesh(mi: MeshInstance3D, sleeve_tint: Color) -> void:
+	if mi.mesh == null:
+		return
+	for s in range(mi.mesh.get_surface_count()):
+		var orig := mi.mesh.surface_get_material(s)
+		var sm := StandardMaterial3D.new()
+		if orig is StandardMaterial3D:
+			sm = (orig as StandardMaterial3D).duplicate() as StandardMaterial3D
+		var mname := sm.resource_name.to_lower()
+		if mname.find("regular") != -1 or mname.find("superhero") != -1:
+			var light_skin := (_skin_color.r + _skin_color.g + _skin_color.b) > 2.1
+			var tex_file := ("characters/T_Superhero_Female_Light_BaseColor.png" if light_skin else "characters/T_Regular_Female_Dark_BaseColor.png") if _is_female else ("characters/T_Superhero_Male_Ligh.png" if light_skin else "characters/T_Regular_Male_Dark_BaseColor.png")
+			var stex := AssetLib.load_texture(tex_file)
+			if stex != null:
+				sm.albedo_texture = stex
+			sm.albedo_color = _skin_color.lerp(Color.WHITE, 0.55)
+		else:
+			sm.albedo_color = sleeve_tint
+		mi.set_surface_override_material(s, sm)
+
+
+func _build_real_hat_or_helmet(parent: Node3D) -> void:
+	var cloth_dark := _make_mat(_tunic_color.darkened(0.25), 0.85, 0.0)
+	var gold_mat := _make_mat(Color(0.92, 0.76, 0.22), 0.28, 0.85)
+	if _hat_style == "crown":
+		var crown := CylinderMesh.new()
+		crown.top_radius = 0.11
+		crown.bottom_radius = 0.095
+		crown.height = 0.075
+		_add_part(parent, crown, gold_mat, Vector3(0.0, 0.04, 0.0))
+	elif _hat_style == "straw":
+		var straw_mat := _make_mat(Color(0.86, 0.74, 0.42), 0.90, 0.0)
+		var brim := CylinderMesh.new()
+		brim.top_radius = 0.22
+		brim.bottom_radius = 0.23
+		brim.height = 0.02
+		_add_part(parent, brim, straw_mat, Vector3(0.0, 0.02, 0.0))
+		var top := CylinderMesh.new()
+		top.top_radius = 0.10
+		top.bottom_radius = 0.12
+		top.height = 0.08
+		_add_part(parent, top, straw_mat, Vector3(0.0, 0.06, 0.0))
+	elif _hat_style == "chef":
+		var white_mat := _make_mat(Color(0.96, 0.95, 0.92), 0.85, 0.0)
+		var puff := SphereMesh.new()
+		puff.radius = 0.13
+		puff.height = 0.22
+		_add_part(parent, puff, white_mat, Vector3(0.0, 0.08, 0.0))
+	elif _hat_style == "inquisitor":
+		var black_mat := _make_mat(Color(0.14, 0.12, 0.15), 0.80, 0.1)
+		var brim := CylinderMesh.new()
+		brim.top_radius = 0.22
+		brim.bottom_radius = 0.22
+		brim.height = 0.02
+		_add_part(parent, brim, black_mat, Vector3(0.0, 0.02, 0.0))
+		var cone := CylinderMesh.new()
+		cone.top_radius = 0.06
+		cone.bottom_radius = 0.11
+		cone.height = 0.16
+		_add_part(parent, cone, black_mat, Vector3(0.0, 0.10, 0.0))
+	elif _hat_style == "goggles":
+		var brass_mat := _make_mat(Color(0.76, 0.56, 0.22), 0.30, 0.80)
+		var strap := BoxMesh.new()
+		strap.size = Vector3(0.19, 0.035, 0.19)
+		_add_part(parent, strap, cloth_dark, Vector3(0.0, 0.0, 0.0))
+		var lens := CylinderMesh.new()
+		lens.top_radius = 0.032
+		lens.bottom_radius = 0.032
+		lens.height = 0.03
+		_add_part(parent, lens, brass_mat, Vector3(-0.045, 0.0, 0.095), Vector3(90, 0, 0))
+		_add_part(parent, lens, brass_mat, Vector3(0.045, 0.0, 0.095), Vector3(90, 0, 0))
+
+
+func _rebuild_procedural_fallback() -> void:
+	pelvis.visible = true
+	for node in [pelvis, torso_pivot, head_pivot, hair_root, hat_root, beard_root, armor_torso_root, cape_root, skirt_root, arm_l_pivot, forearm_l_pivot, arm_r_pivot, forearm_r_pivot, leg_l_pivot, shin_l_pivot, leg_r_pivot, shin_r_pivot]:
+		if node != null:
+			_clear_tagged(node)
+	var skin_mat := _make_mat(_skin_color, 0.78, 0.0)
+	var tunic_mat := _make_mat(_tunic_color, 0.85, 0.0)
+	var chest_mesh := BoxMesh.new()
+	chest_mesh.size = Vector3(0.38, 0.44, 0.22)
+	_add_part(torso_pivot, chest_mesh, tunic_mat, Vector3(0.0, 0.28, 0.0))
+	var head_mesh := SphereMesh.new()
+	head_mesh.radius = 0.17
+	head_mesh.height = 0.34
+	_add_part(head_pivot, head_mesh, skin_mat, Vector3(0.0, 0.16, 0.0))
+
+
+func _rebuild_tools() -> void:
+	if tool_r_root == null or tool_l_root == null:
+		return
+	for c in tool_r_root.get_children():
+		c.queue_free()
+	for c in tool_l_root.get_children():
+		c.queue_free()
+	muzzle_flash_node = null
+
+	if _missing_arm_r and not _prosthetic_arm_r:
+		return
+
+	# Si tenemos los modelos 3D reales en curated_3d, usar las armas/herramientas reales
+	if AssetLib.has_curated_assets() and _using_real_mesh:
+		_build_real_curated_tools()
+		return
+
+
+func _build_real_curated_tools() -> void:
+	# En el esqueleto Quaternius, hand_r tiene su eje +Y a lo largo de los dedos y +Z hacia delante
+	var weapon_Holder := Node3D.new()
+	weapon_Holder.name = "WeaponHolder"
+	# Orientación natural para empuñar en la mano derecha
+	weapon_Holder.position = Vector3(0.0, 0.08, 0.02)
+	weapon_Holder.rotation_degrees = Vector3(0.0, 90.0, -90.0)
+	tool_r_root.add_child(weapon_Holder)
+
+	var model_node: Node3D = null
+	match _weapon_id:
+		"sword", "blade":
+			model_node = AssetLib.instantiate_model("weapons/Sword.obj", Vector3.ZERO, 0.92, true, true)
+		"dagger", "knife":
+			model_node = AssetLib.instantiate_model("weapons/Dagger.obj", Vector3.ZERO, 0.52, true, true)
+		"hammer", "sledgehammer", "smith_hammer":
+			model_node = AssetLib.instantiate_model("weapons/Hammer_Small.obj", Vector3.ZERO, 0.68, true, true)
+		"axe", "wood_axe":
+			model_node = AssetLib.instantiate_model("weapons/Axe.obj", Vector3.ZERO, 0.78, true, true)
+		"pickaxe":
+			model_node = AssetLib.instantiate_model("props/Pickaxe_Bronze.gltf", Vector3.ZERO, 0.78, true, true)
+		"bow":
+			model_node = AssetLib.instantiate_model("weapons/Bow_Wooden.obj", Vector3.ZERO, 0.95, true, false)
+		"scythe", "sickle", "hoe":
+			model_node = AssetLib.instantiate_model("weapons/Scythe.obj", Vector3.ZERO, 1.05, true, true)
+		"flintlock", "pistol", "arquebus":
+			model_node = AssetLib.instantiate_model("weapons/Pistol_1.obj", Vector3.ZERO, 0.46, true, false)
+			if model_node != null:
+				model_node.rotation_degrees = Vector3(0.0, 90.0, 0.0)
+			var flash_mat := _make_mat(Color(1.0, 0.82, 0.25), 0.1, 0.0, Color(1.0, 0.65, 0.15, 1.0))
+			var flash_sphere := SphereMesh.new()
+			flash_sphere.radius = 0.14
+			flash_sphere.height = 0.28
+			muzzle_flash_node = _add_part(weapon_Holder, flash_sphere, flash_mat, Vector3(0.0, 0.42, 0.0))
+			muzzle_flash_node.visible = false
+		"book", "ledger":
+			model_node = AssetLib.instantiate_model("props/Book_5.gltf", Vector3.ZERO, 0.30, true, false)
+		"mug", "chalice":
+			model_node = AssetLib.instantiate_model("props/Mug.gltf", Vector3.ZERO, 0.26, true, true)
+		"crate", "sack":
+			model_node = AssetLib.instantiate_model("props/Bag.gltf", Vector3.ZERO, 0.42, true, true)
+		"lantern":
+			model_node = AssetLib.instantiate_model("props/Lantern_Wall.gltf", Vector3.ZERO, 0.38, true, true)
+		"watering_can":
+			model_node = AssetLib.instantiate_model("props/Bucket_Metal.gltf", Vector3.ZERO, 0.34, true, true)
+		"fishing_rod", "staff", "guard_spear", "spear":
+			model_node = AssetLib.instantiate_model("weapons/Spear.obj", Vector3.ZERO, 1.25, true, true)
+
+	if model_node != null:
+		weapon_Holder.add_child(model_node)
+
+	var offhand_id := str(get_meta("offhand_id", "none")) if has_meta("offhand_id") else "none"
+	if _carrying_lantern and offhand_id == "none":
+		offhand_id = "lantern"
+	if offhand_id != "none" and offhand_id != "":
+		var l_holder := Node3D.new()
+		l_holder.position = Vector3(0.0, 0.08, 0.02)
+		l_holder.rotation_degrees = Vector3(0.0, 90.0, 90.0)
+		tool_l_root.add_child(l_holder)
+		var l_node: Node3D = null
+		match offhand_id:
+			"lantern":
+				l_node = AssetLib.instantiate_model("props/Lantern_Wall.gltf", Vector3.ZERO, 0.35, true, true)
+			"shield":
+				l_node = AssetLib.instantiate_model("weapons/Shield_Heater.obj", Vector3.ZERO, 0.58, true, false)
+			"book":
+				l_node = AssetLib.instantiate_model("props/Book_5.gltf", Vector3.ZERO, 0.30, true, false)
+			"crutch":
+				l_node = AssetLib.instantiate_model("weapons/Spear.obj", Vector3.ZERO, 1.05, true, true)
+			"torch":
+				l_node = AssetLib.instantiate_model("props/Torch_Metal.gltf", Vector3.ZERO, 0.45, true, true)
+		if l_node != null:
+			l_holder.add_child(l_node)
+
+
+func set_facing_direction(dir_2d: Vector2) -> void:
+	if dir_2d.length_squared() < 0.001:
+		return
+	_target_yaw = atan2(dir_2d.x, dir_2d.y)
+
+
 func update_pose(delta: float, state: Dictionary) -> void:
-	_ensure_built()
-	_anim_clock += delta
+	var facing_v: Vector2 = state.get("facing", Vector2.DOWN)
+	if facing_v.length_squared() > 0.001:
+		set_facing_direction(facing_v)
+	var spd: float = float(state.get("speed_ratio", 0.0))
+	var atk_prog: float = float(state.get("attack_progress", 0.0))
+	var bow_dr: float = float(state.get("bow_draw", 0.0))
+	if atk_prog > 0.01:
+		_attack_swing_t = maxf(_attack_swing_t, (1.0 - atk_prog) * 0.34)
+	elif bow_dr > 0.05:
+		_attack_swing_t = maxf(_attack_swing_t, 0.18)
 
-	if _muzzle_flash_timer > 0.0:
-		_muzzle_flash_timer = maxf(0.0, _muzzle_flash_timer - delta)
-		if _muzzle_flash_node:
-			var prog: float = 1.0 - (_muzzle_flash_timer / 0.22)
-			_muzzle_flash_node.scale = Vector3.ONE * lerpf(0.75, 1.85, prog)
-			if _muzzle_flash_timer <= 0.0:
-				_muzzle_flash_node.visible = false
+	var st_enum: int = AnimState.IDLE
+	if bool(state.get("is_dead", false)) or bool(state.get("is_downed", false)):
+		st_enum = AnimState.KO
+	elif bool(state.get("is_sleeping", false)):
+		st_enum = AnimState.SLEEP
+	elif _weapon_id in ["flintlock", "pistol", "arquebus"] and (atk_prog > 0.01 or _muzzle_flash_t > 0.0):
+		st_enum = AnimState.AIM_GUN
+	elif atk_prog > 0.01 or bow_dr > 0.05 or bool(state.get("is_fighting", false)):
+		st_enum = AnimState.ATTACK
+	elif bool(state.get("is_working", false)):
+		st_enum = AnimState.WORK
+	elif spd > 0.08:
+		st_enum = AnimState.WALK
 
-	var facing_2d: Vector2 = state.get("facing", Vector2.DOWN)
-	if facing_2d.length_squared() > 0.001:
-		_target_yaw = atan2(facing_2d.x, facing_2d.y)
-	_current_yaw = lerp_angle(_current_yaw, _target_yaw, clampf(delta * 14.0, 0.0, 1.0))
+	update_animation(delta, st_enum, maxf(0.5, spd))
 
-	var is_sleeping: bool = bool(state.get("is_sleeping", false))
-	var is_downed: bool = bool(state.get("is_downed", false))
-	var is_dead: bool = bool(state.get("is_dead", false))
-	var is_stealth: bool = bool(state.get("is_stealth", false))
-	var is_sprinting: bool = bool(state.get("is_sprinting", false))
-	var is_working: bool = bool(state.get("is_working", false))
-	var is_fighting: bool = bool(state.get("is_fighting", false))
-	var is_hostile: bool = bool(state.get("is_hostile", false))
-	var speed_ratio: float = clampf(float(state.get("speed_ratio", 0.0)), 0.0, 1.8)
-	_bow_draw_ratio = clampf(float(state.get("bow_draw", 0.0)), 0.0, 1.0)
-	var atk_prog: float = clampf(float(state.get("attack_progress", 0.0)), 0.0, 1.0)
 
-	# Expresión de cejas
-	if left_brow_mesh and right_brow_mesh:
-		var angry: bool = is_hostile or is_fighting or atk_prog > 0.0
-		left_brow_mesh.rotation_degrees.z = -16.0 if angry else 0.0
-		right_brow_mesh.rotation_degrees.z = 16.0 if angry else 0.0
+func update_animation(delta: float, state: int, speed_ratio: float = 1.0) -> void:
+	_anim_state = state
+	_anim_time += delta * maxf(0.4, speed_ratio)
 
-	# Estado tumbado (durmiendo, agonizando o cadáver)
-	if is_dead or is_downed or is_sleeping:
-		root_pivot.rotation = Vector3(-PI * 0.46, _current_yaw, 0.0)
-		root_pivot.position = Vector3(0.0, 0.16, 0.0)
-		left_hip_pivot.rotation = Vector3.ZERO
-		right_hip_pivot.rotation = Vector3.ZERO
-		left_shoulder_pivot.rotation = Vector3(0.15, 0.0, 0.12)
-		right_shoulder_pivot.rotation = Vector3(0.15, 0.0, -0.12)
+	var diff := wrapf(_target_yaw - _facing_yaw, -PI, PI)
+	_facing_yaw = wrapf(_facing_yaw + diff * minf(1.0, delta * 14.0), -PI, PI)
+	rotation.y = _facing_yaw
+
+	if _muzzle_flash_t > 0.0:
+		_muzzle_flash_t = maxf(0.0, _muzzle_flash_t - delta)
+		if _muzzle_flash_t <= 0.0 and muzzle_flash_node != null and is_instance_valid(muzzle_flash_node):
+			muzzle_flash_node.visible = false
+
+	if _attack_swing_t > 0.0:
+		_attack_swing_t = maxf(0.0, _attack_swing_t - delta)
+
+	if _using_real_mesh and _skeleton != null and is_instance_valid(_skeleton):
+		_apply_skeleton_pose(delta)
+
+
+func _set_bone_delta_euler(bname: String, rx_deg: float, ry_deg: float, rz_deg: float) -> void:
+	if not _bone_idx.has(bname):
 		return
+	var idx: int = _bone_idx[bname]
+	var rest_q: Quaternion = _bone_rest_q[bname]
+	var dq := Quaternion.from_euler(Vector3(deg_to_rad(rx_deg), deg_to_rad(ry_deg), deg_to_rad(rz_deg)))
+	_skeleton.set_bone_pose_rotation(idx, rest_q * dq)
 
-	root_pivot.rotation = Vector3(0.0, _current_yaw, 0.0)
-	root_pivot.position = Vector3.ZERO
 
-	# Ciclo de paso al caminar o correr
-	if speed_ratio > 0.05:
-		var freq: float = 13.5 if is_sprinting else (7.0 if is_stealth else 10.0)
-		_walk_cycle += delta * freq * clampf(speed_ratio, 0.5, 1.5)
-	else:
-		_walk_cycle = move_toward(_walk_cycle, round(_walk_cycle / PI) * PI, delta * 8.0)
+func _apply_skeleton_pose(_delta: float) -> void:
+	if _skeleton == null:
+		return
+	var char_root := get_node_or_null("RealCharRoot") as Node3D
+	if char_root != null:
+		char_root.rotation_degrees = Vector3.ZERO
+		char_root.position = Vector3.ZERO
 
-	var stride: float = sin(_walk_cycle) * clampf(speed_ratio, 0.0, 1.25)
-	var bounce: float = absf(sin(_walk_cycle)) * 0.055 * clampf(speed_ratio, 0.0, 1.2)
-	var crouch_offset: float = -0.12 if is_stealth else 0.0
-	hips_pivot.position.y = 0.58 + bounce + crouch_offset
+	# Postura base relajada bajando los brazos desde la T-pose:
+	# En el esqueleto Quaternius:
+	# - upperarm_l baja hacia el costado con rz = -72° y balancea adelante/atrás con ry
+	# - upperarm_r baja hacia el costado con rz = +72° y balancea adelante/atrás con ry
+	# - thigh_l / thigh_r y calf_l / calf_r rotan adelante/atrás con rx
+	var ul_rz := -72.0
+	var ur_rz := 72.0
+	var ul_ry := 0.0
+	var ur_ry := 0.0
+	var ll_rz := -12.0
+	var lr_rz := 12.0
+	var tl_rx := 0.0
+	var tr_rx := 0.0
+	var cl_rx := 0.0
+	var cr_rx := 0.0
+	var spine_rx := 0.0
+	var spine_ry := 0.0
+	var head_rx := 0.0
 
-	# Inclinación del torso al esprintar o ir en sigilo
-	var torso_pitch: float = -0.24 if is_stealth else (-0.18 if is_sprinting and speed_ratio > 0.2 else 0.0)
-	var breath: float = sin(_anim_clock * 2.6) * 0.025
-	torso_pivot.rotation = Vector3(torso_pitch + breath, 0.0, 0.0)
-	head_pivot.rotation = Vector3(-torso_pitch * 0.6, sin(_anim_clock * 1.1) * 0.06, 0.0)
+	match _anim_state:
+		AnimState.IDLE:
+			var breath := sin(_anim_time * 2.4)
+			spine_rx = breath * 1.8
+			ul_rz = -71.0 - breath * 1.5
+			ur_rz = 71.0 + breath * 1.5
+			if _carrying_lantern:
+				ul_ry = -35.0
+				ll_rz = -40.0
 
-	# Piernas en contrafase
-	left_hip_pivot.rotation.x = stride * 0.68
-	right_hip_pivot.rotation.x = -stride * 0.68
+		AnimState.WALK:
+			var w := _anim_time * 8.5
+			var swing := sin(w)
+			tl_rx = swing * 32.0
+			tr_rx = -swing * 32.0
+			cl_rx = maxf(0.0, -swing) * 28.0
+			cr_rx = maxf(0.0, swing) * 28.0
+			ul_ry = swing * 24.0
+			ur_ry = -swing * 24.0
+			spine_rx = 4.0
+			spine_ry = swing * 4.0
+			if _carrying_lantern:
+				ul_ry = -40.0
+				ll_rz = -35.0
 
-	# Ondulación de la capa
-	if cape_pivot and cape_mesh and cape_mesh.visible:
-		cape_pivot.rotation.x = 0.14 + clampf(speed_ratio * 0.38, 0.0, 0.55) + absf(sin(_walk_cycle)) * 0.10
+		AnimState.WORK:
+			var wk := sin(_anim_time * 7.5)
+			spine_rx = 12.0 + wk * 6.0
+			ur_rz = 42.0
+			ur_ry = -48.0 + wk * 38.0
+			lr_rz = 28.0
+			ul_ry = -18.0
 
-	# Pose de brazos según acción (disparo, arco, ataque cuerpo a cuerpo, taller, pelea callejera o marcha)
-	if _muzzle_flash_timer > 0.0 or (_active_weapon_key == "flintlock" and atk_prog > 0.0):
-		var recoil: float = sin(atk_prog * PI) * 0.35
-		right_shoulder_pivot.rotation = Vector3(PI * 0.48 + recoil, 0.0, -0.05)
-		right_forearm_pivot.rotation = Vector3(0.10, 0.0, 0.0)
-		left_shoulder_pivot.rotation = Vector3(PI * 0.42, 0.35, 0.15)
-		left_forearm_pivot.rotation = Vector3(0.25, 0.0, 0.0)
-	elif _bow_draw_ratio > 0.01 or (_active_weapon_key == "bow" and atk_prog > 0.0):
-		right_shoulder_pivot.rotation = Vector3(PI * 0.48, 0.0, -0.06)
-		right_forearm_pivot.rotation = Vector3(0.05, 0.0, 0.0)
-		left_shoulder_pivot.rotation = Vector3(PI * 0.45, -0.25 * _bow_draw_ratio, 0.12)
-		left_forearm_pivot.rotation = Vector3(0.35 * _bow_draw_ratio, 0.0, 0.0)
-	elif atk_prog > 0.01:
-		# Golpe / Tajo con giro de torso
-		var swing_angle: float = lerpf(2.1, -0.85, sin(atk_prog * PI * 0.85))
-		torso_pivot.rotation.y = sin(atk_prog * PI) * 0.42
-		right_shoulder_pivot.rotation = Vector3(swing_angle, 0.0, -0.18)
-		right_forearm_pivot.rotation = Vector3(0.35, 0.0, 0.0)
-		left_shoulder_pivot.rotation = Vector3(-0.35, 0.0, 0.22)
-		left_forearm_pivot.rotation = Vector3(0.25, 0.0, 0.0)
-	elif is_fighting:
-		# Guardia de boxeo / pelea callejera
-		var jab_l: float = maxf(0.0, sin(_anim_clock * 11.0)) * 0.75
-		var jab_r: float = maxf(0.0, -sin(_anim_clock * 11.0)) * 0.75
-		left_shoulder_pivot.rotation = Vector3(1.1 + jab_l, 0.18, 0.12)
-		left_forearm_pivot.rotation = Vector3(0.75 - jab_l * 0.5, 0.0, 0.0)
-		right_shoulder_pivot.rotation = Vector3(1.1 + jab_r, -0.18, -0.12)
-		right_forearm_pivot.rotation = Vector3(0.75 - jab_r * 0.5, 0.0, 0.0)
-	elif is_working:
-		# Martilleo / trabajo rítmico en el taller
-		var work_swing: float = sin(_anim_clock * 8.5)
-		right_shoulder_pivot.rotation = Vector3(1.05 + work_swing * 0.65, 0.0, -0.10)
-		right_forearm_pivot.rotation = Vector3(0.45, 0.0, 0.0)
-		left_shoulder_pivot.rotation = Vector3(0.55 - work_swing * 0.18, 0.20, 0.12)
-		left_forearm_pivot.rotation = Vector3(0.35, 0.0, 0.0)
-	else:
-		# Marcha natural o reposo
-		var arm_swing: float = -stride * 0.58
-		left_shoulder_pivot.rotation = Vector3(arm_swing, 0.0, 0.08)
-		left_forearm_pivot.rotation = Vector3(0.18 + maxf(0.0, arm_swing * 0.25), 0.0, 0.0)
-		var carry_bias: float = 0.32 if _active_weapon_key != "none" else 0.0
-		right_shoulder_pivot.rotation = Vector3(-arm_swing * 0.75 + carry_bias, 0.0, -0.08)
-		right_forearm_pivot.rotation = Vector3(0.28 + carry_bias * 0.5, 0.0, 0.0)
+		AnimState.CARRY:
+			ul_rz = -48.0
+			ur_rz = 48.0
+			ul_ry = -45.0
+			ur_ry = 45.0
+			ll_rz = -35.0
+			lr_rz = 35.0
+			var cw := sin(_anim_time * 7.0)
+			tl_rx = cw * 22.0
+			tr_rx = -cw * 22.0
+
+		AnimState.PRAY:
+			tl_rx = -55.0
+			tr_rx = -55.0
+			cl_rx = 95.0
+			cr_rx = 95.0
+			head_rx = 18.0
+			ul_rz = -52.0
+			ur_rz = 52.0
+			ul_ry = -42.0
+			ur_ry = 42.0
+			ll_rz = -45.0
+			lr_rz = 45.0
+			if char_root != null:
+				char_root.position.y = -0.26
+
+		AnimState.SLEEP, AnimState.KO:
+			if char_root != null:
+				char_root.rotation_degrees.x = -88.0
+				char_root.position = Vector3(0.0, 0.14, 0.55)
+
+		AnimState.AIM_GUN:
+			ur_rz = 15.0
+			ur_ry = 72.0
+			lr_rz = 5.0
+			ul_rz = -55.0
+			ul_ry = -30.0
+
+	if _attack_swing_t > 0.0:
+		var p := 1.0 - (_attack_swing_t / 0.34)
+		var arc := sin(p * PI)
+		if _weapon_id in ["flintlock", "pistol", "arquebus"]:
+			ur_rz = 18.0
+			ur_ry = 75.0 - arc * 22.0
+		else:
+			ur_rz = 35.0
+			ur_ry = 65.0 - arc * 125.0
+			lr_rz = 25.0
+			spine_ry = -arc * 18.0
+
+	_set_bone_delta_euler("spine_01", spine_rx, spine_ry, 0.0)
+	_set_bone_delta_euler("Head", head_rx, 0.0, 0.0)
+	_set_bone_delta_euler("upperarm_l", 0.0, ul_ry, ul_rz)
+	_set_bone_delta_euler("lowerarm_l", 0.0, 0.0, ll_rz)
+	_set_bone_delta_euler("upperarm_r", 0.0, ur_ry, ur_rz)
+	_set_bone_delta_euler("lowerarm_r", 0.0, 0.0, lr_rz)
+	_set_bone_delta_euler("thigh_l", tl_rx, 0.0, 0.0)
+	_set_bone_delta_euler("calf_l", cl_rx, 0.0, 0.0)
+	_set_bone_delta_euler("thigh_r", tr_rx, 0.0, 0.0)
+	_set_bone_delta_euler("calf_r", cr_rx, 0.0, 0.0)
