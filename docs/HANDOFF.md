@@ -123,6 +123,11 @@ Otros documentos antiguos en la raíz: `ROADMAP_PROYECTO.md`, `AUDIT_LOG.md`, `S
 
 ## 7. Estado y siguiente bloque
 
+- [x] **Niebla nocturna (Claude Code, 2026-11-06)** (`shaders/retro_post_fx.gdshader`: `vnoise`, uniformes `player_px`,
+  `world_origin_px`, `px_per_world`, `fog_clear`/`fog_full`/`fog_max`/`fog_color`; `RetroPostFX.gd` los rellena cada
+  fotograma). Distancia al jugador en px del mundo; ruido anclado al mundo; `lit` la aclara y la tiñe. Entra con
+  `smoothstep(0.35, 1.0, night)`. Solo visual (no toca la percepción de los NPC). No existe en headless.
+
 - [x] **Objetos quietos 2D → 3D (Claude Code, 2026-11-06)** (`WorldStage3D.gd`: `PROP_KIND_BY_TEXTURE`, `_scan_props_sources`,
   `_sync_props_3d`, `_build_prop_3d`, `_build_crop_3d`; `tools/screenshot_3d.gd` sitio «campamento»). Reconoce el dibujo
   por el nombre de su imagen (hijos de `entities_root`, `CampSite` salvo `PlayerHouseRoot`, `FarmPlot`); "hide" = ya tiene

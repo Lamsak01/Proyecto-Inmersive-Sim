@@ -35,7 +35,7 @@ kanban-plugin: board
 ## 🧹 Pulido
 
 - [ ] Personajes 3D con más estilo, tipo Signalis ([[Assets de pago]])
-- [ ] Niebla nocturna que se cierra sobre el valle y limita la vista lejana, estilo Gloomwood (idea de `ideas sueltas.md`; después de los objetos 3D)
+- [ ] Decidir si la niebla nocturna también quita vista a los vecinos (ahora solo es visual)
 - [ ] Ampliar la aldea: solares de 3 tamaños + barrios del Lago, del Bosque y del Molino (plan en `docs/PLAN_AMPLIAR_ALDEA.md`)
 - [ ] Quitar la etiqueta «dormida» de las tendencias ya conectadas (`TraitCatalog.gd`)
 - [ ] Paseos nocturnos visibles de Noctámbulos e Insomnes
@@ -47,6 +47,8 @@ kanban-plugin: board
 
 
 ## ✅ Hecho
+
+- [x] Niebla nocturna estilo Gloomwood: claro alrededor del jugador, siluetas a lo lejos, las luces la atraviesan (2026-11-06)
 
 - [x] Objetos quietos en 3D: pozos, farolas, tablón, tienda de campaña, hoguera con caldero, tronco, cartel, generador, aspersor, huertos y compostador (2026-11-06)
 

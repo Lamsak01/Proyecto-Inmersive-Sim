@@ -14,6 +14,26 @@ uniform float color_levels = 32.0;   // niveles por canal (32 = color de 15 bits
 uniform int light_count = 0;
 uniform vec4 lights[24];             // xy = posición en pantalla (px), z = radio (px), w = intensidad
 uniform vec3 light_tint = vec3(1.0, 0.78, 0.48);
+// Niebla nocturna (estilo Gloomwood): se cierra con la distancia al jugador y deja ver solo siluetas a lo lejos.
+// Las luces (farolas, ventanas, farol de mano) la atraviesan y la tiñen de ámbar.
+uniform vec2 player_px = vec2(0.0);       // jugador en pantalla (px)
+uniform vec2 world_origin_px = vec2(0.0); // dónde cae el (0,0) del mundo en pantalla, para que la niebla no siga a la cámara
+uniform float px_per_world = 2.4;
+uniform float fog_clear = 70.0;           // radio despejado alrededor del jugador (px del mundo)
+uniform float fog_full = 240.0;           // a partir de aquí, niebla máxima
+uniform float fog_max = 0.82;
+uniform vec3 fog_color = vec3(0.26, 0.30, 0.35);
+
+float vnoise(vec2 p) {
+	vec2 i = floor(p);
+	vec2 f = fract(p);
+	f = f * f * (3.0 - 2.0 * f);
+	float a = fract(sin(dot(i, vec2(127.1, 311.7))) * 43758.5453);
+	float b = fract(sin(dot(i + vec2(1.0, 0.0), vec2(127.1, 311.7))) * 43758.5453);
+	float c = fract(sin(dot(i + vec2(0.0, 1.0), vec2(127.1, 311.7))) * 43758.5453);
+	float d = fract(sin(dot(i + vec2(1.0, 1.0), vec2(127.1, 311.7))) * 43758.5453);
+	return mix(mix(a, b, f.x), mix(c, d, f.x), f.y);
+}
 
 float bayer4(vec2 p) {
 	int x = int(mod(p.x, 4.0));
@@ -52,6 +72,23 @@ void fragment() {
 	cold = pow(max(cold, vec3(0.0)), vec3(1.18)) * vec3(0.66, 0.80, 0.95) * 0.78;
 	vec3 warm = c * light_tint * 1.35;
 	vec3 nite = mix(cold, warm, lit);
+
+	// --- Niebla nocturna ---
+	float fog_on = smoothstep(0.35, 1.0, night);
+	if (fog_on > 0.001) {
+		float pw = max(0.001, px_per_world);
+		float dist_w = distance(frag, player_px) / pw;
+		float fog = smoothstep(fog_clear, fog_full, dist_w);
+		// Bancos de niebla que se desplazan despacio, anclados al mundo (pixelados a tamaño de píxel del juego)
+		vec2 wp = (floor(frag / pixel_size) * pixel_size - world_origin_px) / pw;
+		float drift = vnoise(wp * 0.012 + vec2(time_s * 0.05, time_s * 0.02)) * 0.65
+			+ vnoise(wp * 0.031 - vec2(time_s * 0.03, 0.0)) * 0.35;
+		fog *= mix(0.62, 1.0, drift);
+		fog = clamp(fog * fog_max * fog_on, 0.0, 1.0);
+		// Donde hay luz, la niebla se aclara y brilla en ámbar en vez de tapar
+		vec3 fog_c = mix(fog_color, light_tint * 0.62, lit);
+		nite = mix(nite, fog_c, fog * (1.0 - lit * 0.55));
+	}
 	vec3 col = mix(day, nite, night);
 
 	// --- Viñeta (más cerrada de noche) ---

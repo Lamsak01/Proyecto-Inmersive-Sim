@@ -3,6 +3,11 @@
 Cambios del juego, del más nuevo al más antiguo. Añade una entrada al cerrar cada bloque, en lenguaje sencillo.
 El detalle técnico está en `docs/HANDOFF.md` (sección 7) y el historial completo en `git log`. Lo anterior a B0.1 está en `AUDIT_LOG.md` y `SESSION_CONTEXT_LOG.md`.
 
+## 2026-11-06 (noche) — Niebla nocturna
+- De noche la niebla se cierra sobre el valle: claro alrededor de ti y, a lo lejos, solo siluetas.
+- Los bancos de niebla se mueven despacio; farolas y ventanas encendidas la atraviesan con brillo ámbar.
+- Con el farol en la mano ves más lejos. De momento es solo visual: los vecinos ven igual que antes.
+
 ## 2026-11-06 (noche) — Objetos quietos en 3D
 - Pozos, farolas y tablón de misiones ya no salen dos veces (el dibujo plano se esconde bajo el 3D).
 - En 3D: tienda de campaña de lona, hoguera con caldero y su luz, tronco para sentarse, cartel, generador y aspersor.

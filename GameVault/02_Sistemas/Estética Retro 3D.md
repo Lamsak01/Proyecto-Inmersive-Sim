@@ -48,6 +48,9 @@ tags:
   pone su modelo encima y esconde el plano mientras se juega en 3D; con F9 vuelve el 2D (también pinos y rocas, que
   antes no volvían). Huertos con surcos que se oscurecen al regar y cultivos que crecen por fases. La casa mejorada
   del jugador y el gallinero siguen planos.
+- 2026-11-06 (Claude Code): niebla nocturna. Se espesa al anochecer y es máxima de madrugada; deja un claro
+  alrededor del jugador (más grande con farol) y a lo lejos solo se ven siluetas. Bancos de niebla que se mueven
+  despacio, anclados al mundo. Farolas y ventanas la atraviesan en ámbar. Solo visual: los vecinos ven igual.
 
 ## Tareas
 - [x] Animaciones reales en vez de balanceos
@@ -58,4 +61,5 @@ tags:
 - [x] Hierba y árboles 3D a juego
 - [x] Personajes dentro del escenario 3D, con sombras
 - [x] Objetos quietos en 3D (pozos, farolas, tablón, campamento, huertos, compostador)
+- [x] Niebla nocturna sobre el valle
 - [ ] Ampliar la aldea con casas de tamaños distintos y barrios separados (plan pendiente de aprobación)

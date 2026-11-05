@@ -3,6 +3,7 @@ extends CanvasLayer
 ## Etalonaje retro de pantalla completa (ver `shaders/retro_post_fx.gdshader`).
 ## Va en la misma capa que la interfaz, pero justo antes que ella en el árbol: afecta al mundo y no a los menús.
 ## Calcula cada fotograma cuánto es de noche y dónde hay luz (farolas encendidas, ventanas sin postigo y el jugador).
+## De noche añade la niebla que se cierra con la distancia al jugador (las luces la atraviesan).
 ## No se crea en modo headless (pruebas automáticas) ni en el editor.
 
 const SHADER := preload("res://shaders/retro_post_fx.gdshader")
@@ -66,6 +67,15 @@ func _process(delta: float) -> void:
 	var to_screen: Transform2D = final_t * vp.get_canvas_transform()
 	var px_per_world: float = final_t.get_scale().x * zoom
 	_mat.set_shader_parameter("pixel_size", maxf(1.0, px_per_world))
+	_mat.set_shader_parameter("px_per_world", maxf(0.001, px_per_world))
+	_mat.set_shader_parameter("world_origin_px", to_screen.origin)
+	var player := get_tree().get_first_node_in_group("player") as Node2D
+	if is_instance_valid(player):
+		_mat.set_shader_parameter("player_px", to_screen * player.global_position)
+		# Con el farol encendido se ve algo más lejos entre la niebla
+		var lantern := bool(player.get("is_carrying_lantern")) if player.get("is_carrying_lantern") != null else false
+		_mat.set_shader_parameter("fog_clear", 120.0 if lantern else 70.0)
+		_mat.set_shader_parameter("fog_full", 300.0 if lantern else 240.0)
 
 	var lights: Array = []
 	if nf > 0.01:
