@@ -123,6 +123,12 @@ Otros documentos antiguos en la raíz: `ROADMAP_PROYECTO.md`, `AUDIT_LOG.md`, `S
 
 ## 7. Estado y siguiente bloque
 
+- [x] **Precio por tamaño de casa (Claude Code, 2026-11-06)**: `HOUSE_PLOTS[*].cost` (80/100/140) y
+  `VillageLots.house_cost(id)`; `request_build` cobra eso para "house". `maybe_order_house` decide la riqueza por
+  ahorros (≥ coste casona + 20 → rich; ≥ casa + 20 → mid) antes de elegir solar. `VillageHousing`: contado, hipoteca,
+  cartel, opción del carpintero y `house_sale_price` usan `house_cost`; `HOUSE_CASH_COST` queda como precio de la casa
+  mediana. Test 5.22a ajustado (n0 es casita: compara con la base de su tamaño).
+
 - [x] **Ampliar la aldea, pasos 1 y 3 (Claude Code, 2026-11-06)** (`VillageLots.gd`: `plot` en LOTS, `HOUSE_PLOTS`,
   `plot_of`, `pick_house_lot(vm, wealth, remote)`, zona `"barrio"` con lotes l1–l4, c1–c3, o1–o2, ROADS nuevas,
   `EAST_MILL_POS`; `VillageMigration.maybe_order_house` elige por riqueza y sociabilidad ≤ -0.3; Mayor y Housing usan

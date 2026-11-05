@@ -3,6 +3,10 @@
 Cambios del juego, del más nuevo al más antiguo. Añade una entrada al cerrar cada bloque, en lenguaje sencillo.
 El detalle técnico está en `docs/HANDOFF.md` (sección 7) y el historial completo en `git log`. Lo anterior a B0.1 está en `AUDIT_LOG.md` y `SESSION_CONTEXT_LOG.md`.
 
+## 2026-11-06 (noche) — Cada casa con su precio
+- Casita 80 de oro, casa 100, casona 140. Los vecinos buscan la que pueden pagar con sus ahorros.
+- Al comprar un solar ves si es casita, casa o casona y su precio; la hipoteca y la reventa van con el tamaño.
+
 ## 2026-11-06 (noche) — La aldea crece: tres tamaños de casa y barrios nuevos
 - Casitas, casas y casonas mezcladas en cada calle. El tamaño va con el bolsillo de quien la encarga; la casona tiene
   una cama más.

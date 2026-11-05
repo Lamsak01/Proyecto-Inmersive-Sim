@@ -21,7 +21,7 @@ const VillageLoans = preload("res://scripts/systems/VillageLoans.gd")
 const TraitDiscovery = preload("res://scripts/systems/TraitDiscovery.gd")
 const TraitCatalog = preload("res://scripts/data/TraitCatalog.gd")
 
-const HOUSE_CASH_COST: int = 100
+const HOUSE_CASH_COST: int = 100 # Precio de una casa mediana; cada solar cobra lo suyo con VillageLots.house_cost
 const FORECLOSED_COST: int = 80
 const UPGRADE_COSTS: Dictionary = {"bookshelf": 35, "workbench": 40, "oak_bed": 30, "strong_lock": 25, "hidden_cellar": 45, "hearth": 25, "upper_floor": 50}
 const GARDEN_COST: int = 35
@@ -145,7 +145,7 @@ static func rent_for_lot(vm, lot_id: String) -> int:
 static func house_sale_price(vm, lot_id: String) -> int:
 	var st: Dictionary = VillageLots.lot(vm, lot_id)
 	var attr: float = float(vm.VillageMigration.attractiveness(vm).get("score", 0.0)) if "VillageMigration" in vm and vm.VillageMigration != null else 0.0
-	var price: int = 90 + int(round(attr * 30.0))
+	var price: int = int(round(90.0 * float(VillageLots.house_cost(lot_id)) / 100.0)) + int(round(attr * 30.0)) # Casona vale más que casita
 	var up: Dictionary = st.get("upgrades", {})
 	for uk in up.keys():
 		if bool(up[uk]):
@@ -308,7 +308,7 @@ static func shop_night_theft(vm, ps: Dictionary, chance: float) -> int:
 # ==============================================================================
 static func buy_house_cash(vm, lot_id: String, inv) -> bool:
 	var has_forged: bool = "VillageUnderworld" in vm and vm.VillageUnderworld != null and bool(vm.VillageUnderworld.state(vm).get("forged_deed", false))
-	var cost: int = HOUSE_CASH_COST - (40 if has_forged else 0)
+	var cost: int = VillageLots.house_cost(lot_id) - (40 if has_forged else 0)
 	if inv == null or int(inv.gold) < cost:
 		return false
 	if str(VillageLots.lot(vm, lot_id).get("status", "")) != "empty" or VillageLots.active_site(vm) != "":
@@ -341,14 +341,15 @@ static func buy_house_loan(vm, lot_id: String, inv) -> bool:
 		return false
 	if str(VillageLots.lot(vm, lot_id).get("status", "")) != "empty" or VillageLots.active_site(vm) != "":
 		return false
-	var principal: int = HOUSE_CASH_COST - VillageLoans.DOWN_PAYMENT
+	var full_cost: int = VillageLots.house_cost(lot_id)
+	var principal: int = full_cost - VillageLoans.DOWN_PAYMENT
 	var lender: Dictionary = VillageLoans.find_lender(vm, principal)
 	if lender.is_empty():
 		return false
 	inv.add_gold(-VillageLoans.DOWN_PAYMENT)
 	if str(lender["key"]) != "town" and lender.has("npc"):
 		lender["npc"].personal_gold -= principal
-		vm.town_state["treasury"] = int(vm.town_state.get("treasury", 0)) + HOUSE_CASH_COST
+		vm.town_state["treasury"] = int(vm.town_state.get("treasury", 0)) + full_cost
 	else:
 		vm.town_state["treasury"] = int(vm.town_state.get("treasury", 0)) + VillageLoans.DOWN_PAYMENT
 	var built: String = VillageLots.request_build(vm, lot_id, "house", null, "🏡 Casa del Forastero")
@@ -405,11 +406,12 @@ static func try_interact(vm, player: Node2D, pos: Vector2) -> bool:
 				if player.has_method("show_hint"):
 					player.show_hint("🚧 El carpintero ya está ocupado en otra obra. Espera a que termine.")
 				return true
-			var can_cash: bool = inv != null and int(inv.gold) >= HOUSE_CASH_COST
+			var lot_cost: int = VillageLots.house_cost(id)
+			var can_cash: bool = inv != null and int(inv.gold) >= lot_cost
 			var can_loan: bool = inv != null and int(inv.gold) >= VillageLoans.DOWN_PAYMENT
 			if (can_cash or can_loan) and not press_twice(vm, "buy_lot:" + id):
 				if player.has_method("show_hint"):
-					var how: String = "al contado (-%d Oro)" % HOUSE_CASH_COST if can_cash else "con hipoteca (-%d Oro de entrada y 3 Oro/día)" % VillageLoans.DOWN_PAYMENT
+					var how: String = "al contado (-%d Oro)" % lot_cost if can_cash else "con hipoteca (-%d Oro de entrada y 3 Oro/día)" % VillageLoans.DOWN_PAYMENT
 					player.show_hint("🏡❓ ¿Comprar el solar %s %s? Pulsa E otra vez para confirmar." % [id, how])
 				return true
 			if can_cash and buy_house_cash(vm, id, inv):
@@ -630,7 +632,7 @@ static func add_dialogue_choices(vm, npc, diag: Dictionary, ch_arr: Array) -> vo
 	if is_carp:
 		if not free.is_empty() and VillageLots.active_site(vm) == "":
 			var lid: String = VillageLots.pick_house_lot(vm, "mid")
-			opts.append({"label": "🏡💰 Encargar casa propia en el solar %s al contado (-%d Oro)" % [lid, HOUSE_CASH_COST], "next": "END", "action": "housing_buy_cash:" + lid})
+			opts.append({"label": "🏡💰 Encargar %s propia en el solar %s al contado (-%d Oro)" % [str(VillageLots.HOUSE_PLOTS[VillageLots.plot_of(lid)]["word"]).to_lower(), lid, VillageLots.house_cost(lid)], "next": "END", "action": "housing_buy_cash:" + lid})
 			opts.append({"label": "🏦🏡 Encargar casa en el solar %s con hipoteca (-15 Oro entrada, 3/día)" % lid, "next": "END", "action": "housing_buy_loan:" + lid})
 		if p_lot != "" and str(VillageLots.lot(vm, p_lot).get("status", "")) == "built":
 			var st: Dictionary = VillageLots.lot(vm, p_lot)

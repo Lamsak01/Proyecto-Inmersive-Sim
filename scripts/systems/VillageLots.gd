@@ -76,10 +76,14 @@ const LOTS: Array = [
 ## Tamaño de la casa que se levanta en cada solar (`plot` en LOTS; sin él, "medium"). El terreno del solar no cambia:
 ## la casita deja más patio alrededor. Quien tiene poco dinero busca casita; quien tiene mucho, casona.
 const HOUSE_PLOTS: Dictionary = {
-	"small": {"word": "Casita", "size": Vector2(84, 62), "beds": 2},
-	"medium": {"word": "Casa", "size": Vector2(112, 78), "beds": 2},
-	"large": {"word": "Casona", "size": Vector2(124, 90), "beds": 3},
+	"small": {"word": "Casita", "size": Vector2(84, 62), "beds": 2, "cost": 80},
+	"medium": {"word": "Casa", "size": Vector2(112, 78), "beds": 2, "cost": 100},
+	"large": {"word": "Casona", "size": Vector2(124, 90), "beds": 3, "cost": 140},
 }
+
+## Lo que cuesta levantar la casa de ese solar (casita más barata, casona más cara).
+static func house_cost(id: String) -> int:
+	return int(HOUSE_PLOTS[plot_of(id)]["cost"])
 
 static func plot_of(id: String) -> String:
 	var p: String = str(lot_def(id).get("plot", "medium"))
@@ -363,7 +367,7 @@ static func _clear_lot_visuals(vm, id: String) -> void:
 static func request_build(vm, id: String, kind: String, payer = null, title: String = "") -> String:
 	if not KINDS.has(kind) or lot_def(id).is_empty() or str(lot(vm, id)["status"]) != "empty" or active_site(vm) != "":
 		return ""
-	var cost: int = int(KINDS[kind]["cost"])
+	var cost: int = house_cost(id) if kind == "house" else int(KINDS[kind]["cost"])
 	if payer != null:
 		if int(payer.personal_gold) < cost:
 			return ""

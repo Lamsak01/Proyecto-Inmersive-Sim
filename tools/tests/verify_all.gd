@@ -3536,7 +3536,7 @@ func _initialize() -> void:
 	assert(bool(vho.state(vm)["intruder_attempt"]["repelled"]) and p70_c.personal_gold == 15 and p70_inv.gold == t5_invg1 + 15, "Tanda 5.21: Repelling intruder takes 15 gold from intruder's pocket")
 	p70_c.personal_gold = t5_cg0
 	var t5_sale_price: int = vho.house_sale_price(vm, "n0")
-	assert(t5_sale_price > 95, "Tanda 5.22a: Upgraded house sale price exceeds base value")
+	assert(t5_sale_price > int(round(90.0 * float(vl.house_cost("n0")) / 100.0)) + 5, "Tanda 5.22a: Upgraded house sale price exceeds base value (base depends on the lot size)")
 	vm.town_state["treasury"] = 300
 	var t5_invg2: int = p70_inv.gold
 	(vl.lot(vm, "n0")["residents"] as Array).clear()

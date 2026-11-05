@@ -386,12 +386,20 @@ static func maybe_order_house(vm, score: float) -> String:
 					if VillageLots.expand_house_upper_floor(vm, lid, exp_payer):
 						return lid
 		return ""
-	var cost: int = int(VillageLots.KINDS["house"]["cost"])
 	homeless.sort_custom(func(a, b): return a.personal_gold > b.personal_gold)
 	# E2: una pareja junta sus ahorros para la casa
 	var buyer = homeless[0]
 	var mate = _partner_of(vm, buyer)
 	var pooled: int = int(buyer.personal_gold) + (int(mate.personal_gold) if mate != null else 0)
+	# Bloque AA: el tamaño de la casa va con el bolsillo: con ahorros para una casona, casona; para una casa, casa;
+	# si no llega (préstamo o a cargo del pueblo), casita. Los huraños (poco sociables) prefieren un barrio apartado.
+	var wealth: String = "poor"
+	if pooled >= int(VillageLots.HOUSE_PLOTS["large"]["cost"]) + 20:
+		wealth = "rich"
+	elif pooled >= int(VillageLots.HOUSE_PLOTS["medium"]["cost"]) + 20:
+		wealth = "mid"
+	var lot_id: String = VillageLots.pick_house_lot(vm, wealth, TraitCatalog.npc_tendency(buyer, "sociability") <= -0.3)
+	var cost: int = VillageLots.house_cost(lot_id)
 	var payer = buyer if pooled >= cost + 20 else null
 	if payer != null and int(buyer.personal_gold) < cost and mate != null:
 		var need: int = cost - int(buyer.personal_gold)
@@ -404,10 +412,6 @@ static func maybe_order_house(vm, score: float) -> String:
 		if not loan.is_empty():
 			vm.VillageLoans.disburse(vm, loan, buyer, mate)
 			payer = buyer
-	# Bloque AA: el tamaño de la casa va con el bolsillo (con préstamo o a cargo del pueblo, casita; con ahorros de sobra, casona)
-	var wealth: String = "poor" if (payer == null or not loan.is_empty()) else ("rich" if pooled >= cost + 120 else "mid")
-	# Los huraños (poco sociables) prefieren un barrio apartado
-	var lot_id: String = VillageLots.pick_house_lot(vm, wealth, TraitCatalog.npc_tendency(buyer, "sociability") <= -0.3)
 	var word: String = str(VillageLots.HOUSE_PLOTS[VillageLots.plot_of(lot_id)]["word"])
 	var title: String = ("🏠 %s de %s" % [word, str(payer.npc_name).split(" ")[0]]) if payer != null else "🏠 %s del pueblo" % word
 	# E2: si alguien duerme al raso, el pueblo no se guarda la reserva
