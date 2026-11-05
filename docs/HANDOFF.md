@@ -123,6 +123,12 @@ Otros documentos antiguos en la raíz: `ROADMAP_PROYECTO.md`, `AUDIT_LOG.md`, `S
 
 ## 7. Estado y siguiente bloque
 
+- [x] **Selector de E (Claude Code, 2026-11-05)**: `scripts/ui/InteractionSelector.gd` (hijo del jugador). Junta las
+  Area2D «interactable» que solapan con el `InteractArea` del jugador, las ordena por distancia, elige la que está bajo
+  el ratón (≤16 px, si el ratón está a ≤55 px del jugador) o la elegida con Mayús+rueda / G, y pinta «[E] …».
+  `Player._handle_interactions` llama primero a `use_selected()`; si no hay nada, sigue el camino antiguo.
+  Estaciones de VillageManager (meta `village_station`): puerta, ventana, cofre y mostrador se usan directamente; el
+  resto pasa por `vm.interact`. Para un letrero propio, añade `get_interact_label(player)` al nodo.
 - [x] **Caballo físico (Claude Code, 2026-11-05)**: `scripts/obstacles/PlayerHorse.gd` (grupo `player_horse`, Area2D
   «interactable» → `interact` monta/desmonta). `VillageCulture.sync_player_horse(vm)` lo crea/recoloca desde
   `mounts_state` (`pos_x`, `pos_y`, `is_mounted`) al comprar y en `after_load`; sin caballo lo borra. `Player.is_mounted`;

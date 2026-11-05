@@ -25,6 +25,7 @@ var survival_comp: SurvivalComponent = null
 var avatar_3d: Node2D = null
 ## Montado en su caballo (PlayerHorse): solo así va más rápido y no puede ir en sigilo.
 var is_mounted: bool = false
+var interaction_selector: Node2D = null
 ## El jugador saca el farol de 20:00 a 6:00, igual que los vecinos (lo usan la niebla nocturna y el muñeco 3D).
 var is_carrying_lantern: bool:
 	get:
@@ -291,6 +292,10 @@ func _ready() -> void:
 		add_child(survival_comp)
 
 	_setup_armor_visual_placeholder()
+	# Selector de [E]: letrero de lo que vas a usar, el ratón manda y Mayús+rueda o G cambia de opción.
+	interaction_selector = load("res://scripts/ui/InteractionSelector.gd").new()
+	add_child(interaction_selector)
+	interaction_selector.setup(self)
 	avatar_3d = CharacterAvatar3DScript.new()
 	add_child(avatar_3d)
 	avatar_3d.call("setup_for_entity", self, true)
@@ -573,6 +578,10 @@ func _handle_interactions() -> void:
 	if dialogue_manager and dialogue_manager.call("is_active"):
 		return
 
+	# Selector de [E]: usa justo lo que dice el letrero (lo apuntado con el ratón o lo elegido con Mayús+rueda / G).
+	if interaction_selector != null and interaction_selector.call("use_selected"):
+		get_viewport().set_input_as_handled()
+		return
 	var vm = get_tree().get_first_node_in_group("village_manager")
 	var mouse_pos := get_global_mouse_position()
 	# Prioridad de salida/puerta cerrada (referencia Stardew Valley / Baldur's Gate 3):

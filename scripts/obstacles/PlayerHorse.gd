@@ -56,6 +56,11 @@ func is_ridden() -> bool:
 	return is_instance_valid(_player) and bool(_player.get("is_mounted"))
 
 
+## Texto del letrero de [E] (InteractionSelector).
+func get_interact_label(player: Node2D) -> String:
+	return "Bajar del caballo" if bool(player.get("is_mounted")) else "Montar a caballo"
+
+
 ## [E] junto al caballo: montar; [E] montado: desmontar.
 func interact(player: Node2D) -> void:
 	if player == null:

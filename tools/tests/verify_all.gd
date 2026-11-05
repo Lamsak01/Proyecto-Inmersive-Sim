@@ -4127,6 +4127,22 @@ func _initialize() -> void:
 		assert(bool(pm_pl.is_mounted) and bool(vcu_pj.mounts_state(vm).get("is_mounted", false)), "PM.1a3: Pressing E next to the horse mounts it")
 		pm_horse.interact(pm_pl)
 		assert(not bool(pm_pl.is_mounted) and float(vcu_pj.mounts_state(vm).get("pos_x", 0.0)) == pm_horse.global_position.x, "PM.1a4: Pressing E again dismounts and the horse waits where it was left")
+		# Selector de [E]: el caballo sale en la lista con su letrero y elegirlo lo usa (no otra cosa cercana).
+		var pm_sel = pm_pl.get("interaction_selector")
+		if pm_sel != null:
+			pm_pl.global_position = pm_horse.global_position + Vector2(4, 0)
+			await physics_frame
+			await physics_frame
+			pm_sel.refresh()
+			var pm_hi: int = -1
+			for pm_i in range(pm_sel.candidates.size()):
+				if str(pm_sel.candidates[pm_i]["label"]) == "Montar a caballo":
+					pm_hi = pm_i
+			assert(pm_hi >= 0, "UX E: The horse appears in the E selector with the label «Montar a caballo»")
+			pm_sel._index = pm_hi
+			pm_sel._last_keys = ",".join(pm_sel.candidates.map(func(c): return c["key"]))
+			assert(pm_sel.use_selected() and bool(pm_pl.is_mounted), "UX E: Using the selected option does exactly what its label says (mounts the horse)")
+			pm_horse.dismount(pm_pl)
 		vcu_pj.mounts_state(vm)["is_mounted"] = true
 		vcu_pj.after_load(vm)
 		assert(bool(pm_pl.is_mounted) and get_nodes_in_group("player_horse").size() == 1, "PM.1a5: Loading a game saved while riding puts the player back on the same single horse")

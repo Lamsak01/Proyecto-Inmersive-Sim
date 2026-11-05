@@ -3,6 +3,13 @@
 Cambios del juego, del más nuevo al más antiguo. Añade una entrada al cerrar cada bloque, en lenguaje sencillo.
 El detalle técnico está en `docs/HANDOFF.md` (sección 7) y el historial completo en `git log`. Lo anterior a B0.1 está en `AUDIT_LOG.md` y `SESSION_CONTEXT_LOG.md`.
 
+## 2026-11-05 — La tecla E ya no se lía
+- Encima de lo que vas a usar sale un letrero «[E] …» (hablar con alguien, abrir la puerta, montar, gestionar el
+  negocio, abrir el cofre…), así sabes qué pasará antes de pulsar.
+- Manda el ratón: si apuntas a una de las cosas cercanas, esa es la que se usa.
+- Si hay varias, Mayús + rueda del ratón o la tecla G pasan a la siguiente (el letrero dice «1/3»).
+- A caballo, «bajar del caballo» va la última para que puedas hablar o abrir puertas sin bajarte.
+
 ## 2026-11-05 — El caballo existe de verdad
 - Al comprarlo aparece junto al ganadero del Rancho del Sur, animado (anda, pace, galopa). En 2D (F10) se ve un dibujo
   provisional.

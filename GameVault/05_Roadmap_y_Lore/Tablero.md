@@ -55,6 +55,7 @@ kanban-plugin: board
 - [x] Auditoría de Antigravity: 7 fallos y 22 fugas de oro arreglados (2026-11-05)
 - [x] Arcas equilibradas: mercado, rutas e impuesto sobre la renta por tramos (2026-11-05)
 - [x] Caballo físico: se ve, se monta y se desmonta (2026-11-05)
+- [x] Tecla E con letrero, el ratón manda y Mayús+rueda o G cambian de opción (2026-11-05)
 
 - [x] Edificios con sus piezas quietas juntas (2026-11-06)
 - [x] Casas iniciales repartidas por los barrios y árboles agrupados para dibujar menos (2026-11-06)
