@@ -123,6 +123,10 @@ Otros documentos antiguos en la raíz: `ROADMAP_PROYECTO.md`, `AUDIT_LOG.md`, `S
 
 ## 7. Estado y siguiente bloque
 
+- [x] **Ingresos de las arcas (Claude Code, 2026-11-05)**: puestos del mercado pagan `MARKET_STALL_FEE`=4; cada
+  intercambio de ruta (y remesa del jugador) paga `ROUTE_TOWN_TARIFF`=4 del fondo de la ruta a las arcas; el comprador
+  paga 1/unidad importada al fondo; el fondo de cada ruta se repone +20 cada lunes hasta 90 (excepción consciente a la
+  suma cero: es oro del exterior, aprobado por el usuario como «dinero que viene de fuera»).
 - [x] **Auditoría 2026-11-05, Regla 1 (Claude Code)**: los 22 puntos de oro mágico cerrados. Ayudas nuevas en
   VillageManager: `pay_into(npc, oro)` (al vecino vivo o a las arcas), `take_from_treasury(oro)` (nunca deja negativo),
   `role_npc(oficio)`, `_find_paying_customer(precio, excluir)`, `_take_family_savings(familia, oro)`. Úsalas en código

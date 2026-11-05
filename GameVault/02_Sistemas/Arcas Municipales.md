@@ -29,5 +29,6 @@ Tesoro del pueblo (`treasury`), gestionado desde el Ayuntamiento → [[Alcaldía
 - Pertenecen a la economía de **suma cero**: ver [[Las 7 Reglas de las Auditorías]], regla 1.
 
 ## Notas de diseño
+- 2026-11-05 (Claude Code): nuevas entradas aprobadas por el usuario: alquiler de puestos del mercado (4 por vendedor cada miércoles) y arancel de 4 por intercambio de las rutas comerciales (oro de fuera del valle).
 - 2026-11-05 (Claude Code): auditoría Regla 1. Ahora pagan de verdad los encargos del tablón y el sueldo entero de médico y guardias (si están vacías, se cobra lo que haya); reciben multas, fianzas, la tasa de la moción de destitución y la multa de los ladrones atrapados.
 - 

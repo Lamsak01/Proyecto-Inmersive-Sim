@@ -39,7 +39,7 @@ kanban-plugin: board
 - [ ] Quitar la etiqueta «dormida» de las tendencias ya conectadas (`TraitCatalog.gd`)
 - [ ] Paseos nocturnos visibles de Noctámbulos e Insomnes
 - [ ] Rendimiento: abaratar el cálculo de los vecinos sin cambiar lo que hacen
-- [ ] Decidir el equilibrio de las arcas: con la suma cero, en 15 días bajan de 1000 a 75 (gastan ~60/día y los impuestos del sábado traen ~190/semana). ¿Subir impuestos o bajar sueldos?
+- [ ] Equilibrio de las arcas: con mercado y rutas bajan de 1000 a 182 en 15 días (antes a 75). Siguen gastando ~55/día más de lo que entra. ¿Subir impuestos o bajar sueldos?
 - [ ] Animales 3D: conejo, gato y gallinas siguen planos (buscar modelos animados del mismo estilo)
 - [ ] Buscar un jabalí 3D animado que guste al usuario (ahora es un lobo provisional)
 

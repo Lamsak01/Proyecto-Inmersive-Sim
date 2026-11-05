@@ -24,4 +24,5 @@ fuente: "Biblia §9.3"
   3. **Condensadores Voltaicos** (estabiliza la red eléctrica y reduce fallos del generador).
 
 ## Notas de diseño
+- 2026-11-05 (Claude Code): cada intercambio deja 4 de arancel a las arcas; el comprador paga 1 por unidad importada; el fondo de cada pueblo de fuera se repone +20 cada lunes (hasta 90). Es la vía de entrada de oro desde fuera del valle.
 -

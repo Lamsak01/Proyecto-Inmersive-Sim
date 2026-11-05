@@ -2590,7 +2590,10 @@ func _initialize() -> void:
 	var v5e_wp: Vector2 = v5e_s.work_position
 	v5e_s.shop_stock["wheat"] = 12
 	vm.shop_businesses[v5e_role]["sabotaged_days"] = 0
+	v5e_s.personal_gold = 30
+	var v5e_tr0: int = int(vm.town_state.get("treasury", 0))
 	assert(vcu.open_market(vm) >= 1 and v5e_s.work_position in vcu.MARKET_SPOTS, "V5e: A seller with surplus sets up in the plaza")
+	assert(v5e_s.personal_gold == 30 - vcu.MARKET_STALL_FEE and int(vm.town_state.get("treasury", 0)) >= v5e_tr0 + vcu.MARKET_STALL_FEE, "V5e arcas: Each market seller pays the stall fee from their pocket into the treasury")
 	var v5e_b = v5b_people[0]
 	var v5e_bg: int = v5e_b.personal_gold
 	var v5e_bp: Vector2 = v5e_b.global_position
@@ -4007,7 +4010,7 @@ func _initialize() -> void:
 	p70_b.shop_stock["fish"] = 0
 	vcu_pj.daily(vm)
 	# En daily: fertilidad (+1 wood a p70_a, +1 wheat a p70_b) y ruta river_port (-2 wood de p70_a, +2 fish a p70_b, +6 oro a p70_a y +2 a arcas)
-	assert(int(p70_a.shop_stock["wood"]) == 3 and int(p70_b.shop_stock["wheat"]) == 4 and int(p70_b.shop_stock["fish"]) == 2 and p70_a.personal_gold == 16 and int(vm.town_state["treasury"]) == 77, "PK.2b: Daily cycle applies forest soil fertility bonus and executes active external trade route")
+	assert(int(p70_a.shop_stock["wood"]) == 3 and int(p70_b.shop_stock["wheat"]) == 4 and int(p70_b.shop_stock["fish"]) == 2 and p70_a.personal_gold == 16 and int(vm.town_state["treasury"]) == 77 + vcu_pj.ROUTE_TOWN_TARIFF, "PK.2b: Daily cycle applies forest soil fertility bonus and executes active external trade route (plus the outside town's tariff to the treasury)")
 	p70_inv.remove_item("wood", p70_inv.get_count("wood"))
 	p70_inv.remove_item("fish", p70_inv.get_count("fish"))
 	p70_inv.add_item("wood", 2)

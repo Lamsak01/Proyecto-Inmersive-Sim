@@ -45,6 +45,13 @@ const RAID_ATTACK_HOUR: int = 18 # El asalto llega al atardecer
 const RAID_GATE_POS: Vector2 = Vector2(1400, 50) # Camino del este, por donde llegan
 const RAID_MAX_VOLUNTEERS: int = 3 # Las barricadas pagadas no pasan de +4 por incursión
 const ROUTE_CHARTER_COST: int = 25
+## Arancel que cada pueblo de fuera paga a las arcas por cada intercambio de su ruta (oro que entra al valle).
+const ROUTE_TOWN_TARIFF: int = 4
+## Los pueblos de fuera reponen su fondo de comercio cada lunes (ganan dinero vendiendo en otros sitios), hasta este tope.
+const ROUTE_WEEKLY_REFILL: int = 20
+const ROUTE_BALANCE_CAP: int = 90
+## Lo que paga cada vendedor a las arcas por montar puesto en el mercado del miércoles.
+const MARKET_STALL_FEE: int = 4
 const MILITIA_COST: int = 15
 const EXPEDITION_COST: int = 12
 const HORSE_COST: int = 45
@@ -860,6 +867,10 @@ static func send_player_shipment(vm, route_id: String, inv) -> bool:
 	r["balance"] = int(r.get("balance", 0)) - pay
 	r["last_ship_day"] = today
 	inv.add_gold(pay)
+	# Arancel del pueblo de fuera para las arcas también en tus remesas.
+	var tariff_p: int = clampi(int(r.get("balance", 0)), 0, ROUTE_TOWN_TARIFF)
+	r["balance"] = int(r["balance"]) - tariff_p
+	vm.town_state["treasury"] = int(vm.town_state.get("treasury", 0)) + tariff_p
 	routes[route_id] = r
 	return true
 
@@ -868,10 +879,15 @@ static func process_trade_routes(vm) -> int:
 		return 0
 	var routes: Dictionary = trade_routes_of(vm)
 	var exchanged: int = 0
+	var monday: bool = WorldClock != null and WorldClock.has_method("get_weekday") and int(WorldClock.get_weekday()) == 0
 	for r_id in routes.keys():
 		var r: Dictionary = routes[r_id]
 		if not bool(r.get("active", false)):
 			continue
+		var day_now: int = int(WorldClock.current_day) if WorldClock else 1
+		if monday and int(r.get("last_refill_day", -1)) != day_now:
+			r["last_refill_day"] = day_now
+			r["balance"] = mini(ROUTE_BALANCE_CAP, int(r.get("balance", 0)) + ROUTE_WEEKLY_REFILL)
 		var pay: int = int(r.get("tariff_gold", 8))
 		if int(r.get("balance", 0)) < pay:
 			continue
@@ -893,6 +909,14 @@ static func process_trade_routes(vm) -> int:
 		r["balance"] = int(r.get("balance", 0)) - pay
 		seller.personal_gold = maxi(0, seller.personal_gold) + (pay - 2)
 		vm.town_state["treasury"] = int(vm.town_state.get("treasury", 0)) + 2
+		# Arancel del pueblo de fuera para las arcas (si su fondo lo permite).
+		var tariff: int = clampi(int(r.get("balance", 0)), 0, ROUTE_TOWN_TARIFF)
+		r["balance"] = int(r["balance"]) - tariff
+		vm.town_state["treasury"] = int(vm.town_state.get("treasury", 0)) + tariff
+		# El comprador del valle paga 1 de oro por unidad importada al pueblo de fuera.
+		var imp_pay: int = clampi(int(dst.personal_gold), 0, imp_qty)
+		dst.personal_gold -= imp_pay
+		r["balance"] = int(r["balance"]) + imp_pay
 		routes[r_id] = r
 		exchanged += 1
 	return exchanged
@@ -1188,6 +1212,12 @@ static func open_market(vm) -> int:
 		sellers[n.get_person_key()] = {"x": n.work_position.x, "y": n.work_position.y, "spot": i}
 		n.work_position = spot
 		n.add_thought("Hoy monto puesto en el mercado (+3)", 3.0)
+		# Alquiler del puesto: sale de su bolsillo y va a las arcas (si no tiene, paga lo que tenga).
+		var fee: int = clampi(int(n.personal_gold), 0, MARKET_STALL_FEE)
+		if fee > 0:
+			n.personal_gold -= fee
+			vm.town_state["treasury"] = int(vm.town_state.get("treasury", 0)) + fee
+			st["market_fees"] = int(st.get("market_fees", 0)) + fee
 	st["market_sellers"] = sellers
 	st["market_day"] = int(WorldClock.current_day) if WorldClock else 0
 	st["markets_held"] = int(st["markets_held"]) + 1

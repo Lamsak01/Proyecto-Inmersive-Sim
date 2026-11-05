@@ -472,4 +472,4 @@ Copia de seguridad 2D intacta guardada en la rama `backup-2d-original` y etiquet
 | AUD6 | Escritura falsa: aviso de guardias; ya no compra con hipoteca tras pillarte | ✅ | VillageHousing.gd | Precio real en los avisos |
 | AUD7 | Puesto del Paso pide doble E | ✅ | VillageCulture.gd | |
 | AUD8 | Regla 1 (suma cero): los 22 puntos del informe | ✅ | VillageManager.gd (`pay_into`, `take_from_treasury`, `role_npc`, `_find_paying_customer`, `_take_family_savings`), VillageUnderworld, VillageNeeds, VillageDesires, Player, NPCDialogue, VillageJustice, VillageMayor, VillageClans, VillageHousing, VillageCrime | Test P7 del golpe: el perista sin oro no paga |
-
+| AUD9 | Ingresos de las arcas: alquiler de puestos del mercado y arancel de rutas | ✅ | VillageCulture.gd (`MARKET_STALL_FEE`, `ROUTE_TOWN_TARIFF`, `ROUTE_WEEKLY_REFILL`, `ROUTE_BALANCE_CAP`) | Aprobado por el usuario (ideas 1 y 3). Tests V5e arcas y PK.2b |

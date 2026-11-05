@@ -3,6 +3,12 @@
 Cambios del juego, del más nuevo al más antiguo. Añade una entrada al cerrar cada bloque, en lenguaje sencillo.
 El detalle técnico está en `docs/HANDOFF.md` (sección 7) y el historial completo en `git log`. Lo anterior a B0.1 está en `AUDIT_LOG.md` y `SESSION_CONTEXT_LOG.md`.
 
+## 2026-11-05 — El pueblo gana dinero con el mercado y las rutas
+- Cada vendedor del mercado del miércoles paga 4 de oro por su puesto a las arcas.
+- Las rutas comerciales dejan un arancel de 4 de oro al pueblo en cada intercambio (también en tus remesas). Es oro que
+  entra de fuera del valle: los pueblos de fuera reponen su fondo de comercio cada lunes (+20, hasta 90).
+- Quien recibe lo importado paga 1 de oro por unidad al pueblo de fuera.
+
 ## 2026-11-05 — Arreglos de la auditoría (2.ª parte): ningún oro nace ni desaparece
 - Lo que cobras lo paga alguien de verdad: el tablón y los sueldos salen de las arcas; el golpe lo paga el perista;
   abastecer una tienda ajena lo paga su dueño; el cofre de una familia tiene lo que tengan sus miembros.
