@@ -1160,7 +1160,7 @@ static func on_dialogue_action(npc: VillageNPC, action_id: String) -> void:
 			npc._spawn_floating_text("⚒️⏳ Aún soy %s: necesito al menos 5 días de experiencia (75%%) para forjar Acero Maestro Nv.3" % npc.get_job_efficiency_label(), Color.GOLD, -44.0)
 			return
 		if player.has_method("upgrade_tool"):
-			if bool(player.call("upgrade_tool", t_id)):
+			if bool(player.call("upgrade_tool", t_id, true, npc)):
 				if player.has_method("add_skill_xp"):
 					player.call("add_skill_xp", "crafting", 20)
 				npc.modify_affinity(10)

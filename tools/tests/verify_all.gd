@@ -3560,8 +3560,12 @@ func _initialize() -> void:
 	assert(not bool(vun.state(vm)["active_heist"].get("stolen", false)), "P7 audit: heist cannot be stolen from a dialogue menu")
 	vun.state(vm)["active_heist"]["stolen"] = true # como si el jugador hubiera ido de noche sin testigos
 	var p7_g_before: int = p70_inv.gold
+	p7_fence.personal_gold = 0
 	vun.on_player_action(vm, p7_fence, "underworld_deliver_heist", p70_inv)
-	assert(int(vun.state(vm).get("heists_done", 0)) == 1 and p70_inv.gold > p7_g_before, "P7: Custom heist stolen and delivered to fence")
+	assert(int(vun.state(vm).get("heists_done", 0)) == 0 and p70_inv.gold == p7_g_before, "P7 regla1: A fence without gold cannot pay the heist reward")
+	p7_fence.personal_gold = 80
+	vun.on_player_action(vm, p7_fence, "underworld_deliver_heist", p70_inv)
+	assert(int(vun.state(vm).get("heists_done", 0)) == 1 and p70_inv.gold > p7_g_before and p7_fence.personal_gold == 80 - (p70_inv.gold - p7_g_before), "P7: Custom heist stolen and delivered to fence, paid from the fence's pocket")
 	# Auditoría: el perista solo paga por mercancía que lleves, y de su bolsillo
 	var p7_fg: int = p7_fence.personal_gold
 	p7_fence.personal_gold = 50

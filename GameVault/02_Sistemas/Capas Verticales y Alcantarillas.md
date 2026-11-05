@@ -20,4 +20,5 @@ fuente: "Biblia §9.6"
 - Ver [[Terminales Lógicas Electromecánicas]].
 
 ## Notas de diseño
+- 2026-11-05 (Claude Code): el sótano de tu casa y las alcantarillas comparten el nivel -1, pero ya se distinguen: solo estás en las alcantarillas si entraste por ellas (así no sale la escalerilla en tu sótano ni se ven las alcantarillas en 3D).
 -

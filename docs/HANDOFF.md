@@ -123,6 +123,10 @@ Otros documentos antiguos en la raíz: `ROADMAP_PROYECTO.md`, `AUDIT_LOG.md`, `S
 
 ## 7. Estado y siguiente bloque
 
+- [x] **Auditoría 2026-11-05, Regla 1 (Claude Code)**: los 22 puntos de oro mágico cerrados. Ayudas nuevas en
+  VillageManager: `pay_into(npc, oro)` (al vecino vivo o a las arcas), `take_from_treasury(oro)` (nunca deja negativo),
+  `role_npc(oficio)`, `_find_paying_customer(precio, excluir)`, `_take_family_savings(familia, oro)`. Úsalas en código
+  nuevo. Ventas diarias de negocios del jugador: sin «ganancia base»; cada unidad la paga un vecino.
 - [x] **Auditoría 2026-11-05, bugs (Claude Code)**: ver `docs/REGISTRO_TRABAJO.md` bloque AUD. Tecla 2D/3D = **F10**
   (F9 = cargar). `VillageUnderworld.is_player_in_sewers(vm)` distingue alcantarillas (current_loc) del sótano propio.
   `Player.is_carrying_lantern` (getter por hora 20–6). Farolas: `is_lamps_powered(vm) and (noche or red)`.

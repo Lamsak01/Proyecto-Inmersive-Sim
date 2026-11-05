@@ -571,6 +571,7 @@ static func on_player_action(vm, npc, action_id: String, inv) -> void:
 			return
 		if cha < 2 and inv != null:
 			inv.add_gold(-PEACE_DINNER_COST)
+			vm.pay_into(vm._innkeeper_npc, PEACE_DINNER_COST) # Regla 1: la cena la cobra la posadera
 		if mediate_clan_peace(vm, arg, "gracias a tu mediación"):
 			npc.modify_affinity(18)
 			npc._spawn_floating_text("🍷🕊️ «Habrá paz entre nuestras familias.»", Color.SPRING_GREEN, -46.0)

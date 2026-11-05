@@ -21,4 +21,5 @@ fuente: "Biblia §4.1"
 - **Propiedad Híbrida de Negocios:** Con suficiente reputación y oro, el jugador puede convertirse en **Socio al 50%** (reparto diario de dividendos) o **Dueño Único al 100%** (control total de la caja, reposición de materias primas y contratación de ayudantes).
 
 ## Notas de diseño
+- 2026-11-05 (Claude Code): auditoría Regla 1. Tus negocios ya no ganan una «base» diaria del aire: cada venta la paga un vecino con oro. Abastecer una tienda ajena lo paga su dueño. Apuestas contra el posadero; jornales pagados por un taller con oro.
 -

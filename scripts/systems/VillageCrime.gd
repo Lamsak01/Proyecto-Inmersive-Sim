@@ -156,7 +156,9 @@ static func catch(vm, t: Dictionary, how: String) -> void:
 		return
 	var back: int = mini(int(t["amount"]), maxi(0, thief.personal_gold))
 	thief.personal_gold -= back
-	thief.personal_gold = maxi(0, thief.personal_gold - FINE_GOLD)
+	var fine_paid: int = mini(FINE_GOLD, maxi(0, thief.personal_gold))
+	thief.personal_gold -= fine_paid
+	vm.town_state["treasury"] = int(vm.town_state.get("treasury", 0)) + fine_paid # Regla 1: la multa va a las arcas
 	var victim = by_key.get(str(t["victim"]), null)
 	if str(t["victim"]) == "player":
 		var pl = VillageNeeds.player_of(vm)

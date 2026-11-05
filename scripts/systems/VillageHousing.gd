@@ -855,6 +855,11 @@ static func on_player_action(vm, npc, action_id: String, inv) -> void:
 			npc._spawn_floating_text("Necesitas %d de oro para las viandas de la cena" % DINNER_COST, Color.ORANGE_RED, -44.0)
 			return
 		inv.add_gold(-DINNER_COST)
+		# Regla 1: las viandas se compran en la posada (igual que la fiesta).
+		if vm.shop_businesses.has(int(VillageNPC.TradeRole.INNKEEPER)):
+			vm.shop_businesses[int(VillageNPC.TradeRole.INNKEEPER)]["vault_gold"] = int(vm.shop_businesses[int(VillageNPC.TradeRole.INNKEEPER)].get("vault_gold", 0)) + DINNER_COST
+		else:
+			vm.town_state["treasury"] = int(vm.town_state.get("treasury", 0)) + DINNER_COST
 		hs["last_dinner_day"] = today()
 		npc.modify_affinity(14)
 		npc.add_thought("Cena estupenda en casa del forastero (+8)", 8.0)

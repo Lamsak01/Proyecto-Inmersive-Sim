@@ -194,16 +194,20 @@ static func do_vice(vm, npc, kind: String) -> Dictionary:
 		_add_addiction(vm, key, "drink", ADDICT_STEP * mult)
 	else:
 		var stake: int = mini(GAMBLE_STAKE, npc.personal_gold)
+		# Regla 1: juega contra la banca (el posadero); sin banca no hay partida, y no se apuesta más de lo que puede pagar.
+		if inn == null or inn == npc:
+			return res
+		stake = mini(stake, inn.personal_gold)
 		if stake <= 0:
 			return res
 		if randf() < GAMBLE_WIN:
+			inn.personal_gold -= stake
 			npc.personal_gold += stake
 			res["gold"] = stake
 			npc._spawn_floating_text("🎲 ¡+%d!" % stake, Color.GOLD, -30.0)
 		else:
 			npc.personal_gold -= stake
-			if inn != null and inn != npc:
-				inn.personal_gold += stake
+			inn.personal_gold += stake
 			res["gold"] = -stake
 			npc._spawn_floating_text("🎲 -%d" % stake, Color.CORAL, -30.0)
 		_add_addiction(vm, key, "gamble", ADDICT_STEP * mult)

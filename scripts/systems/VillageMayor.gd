@@ -192,6 +192,7 @@ static func appoint_new_sheriff(vm) -> String:
 	if guard == null:
 		return ""
 	ts["treasury"] = int(ts["treasury"]) - 30
+	guard.personal_gold += 30 # Regla 1: la prima del nombramiento la cobra el nuevo comisario
 	if old_sheriff != null and not old_sheriff.is_dead:
 		old_sheriff.trade_role = VillageNPC.TradeRole.GUARD
 		old_sheriff.npc_role = "Guardia Relegado"
@@ -233,6 +234,16 @@ static func daily(vm) -> void:
 	if has_decree(vm, "market_subsidy") and WorldClock != null and WorldClock.has_method("get_weekday") and int(WorldClock.get_weekday()) == 2:
 		if int(ts.get("treasury", 0)) >= 12:
 			ts["treasury"] = int(ts["treasury"]) - 12
+			# Regla 1: la subvención la cobran los comerciantes (compensa la rebaja); si no hay, vuelve a las arcas.
+			var sellers: Array = []
+			for sn in VillageNeeds.living(vm):
+				if int(sn.trade_role) in [int(VillageNPC.TradeRole.BAKER), int(VillageNPC.TradeRole.BUTCHER), int(VillageNPC.TradeRole.FISHMONGER), int(VillageNPC.TradeRole.HERBALIST)]:
+					sellers.append(sn)
+			if sellers.is_empty():
+				ts["treasury"] = int(ts["treasury"]) + 12
+			else:
+				for i in range(12):
+					sellers[i % sellers.size()].personal_gold += 1
 			for n in VillageNeeds.living(vm):
 				n.add_thought("Precios rebajados hoy en el mercado gracias al Ayuntamiento (+4)", 4.0)
 	# P5.8: Si el jugador desfalcó las arcas y dejó el riesgo alto sin maquillar las cuentas, estalla el escándalo
@@ -446,6 +457,7 @@ static func on_player_action(vm, npc, action_id: String, inv) -> bool:
 		if today() - int(ts.get("last_recall_day", -999)) < RECALL_COOLDOWN:
 			return true
 		inv.add_gold(-RECALL_COST)
+		ts["treasury"] = int(ts.get("treasury", 0)) + RECALL_COST # Regla 1: tasa de la moción, a las arcas
 		ts["last_recall_day"] = today()
 		# Hacen falta firmas de verdad: vecinos adultos que te aprecien
 		var signers: int = 0
@@ -492,6 +504,14 @@ static func on_player_action(vm, npc, action_id: String, inv) -> bool:
 		if int(ts.get("treasury", 0)) < 20:
 			return true
 		ts["treasury"] = int(ts["treasury"]) - 20
+		# Regla 1: las 8 raciones se le compran al panadero (o a la posadera); si no hay ninguno, el oro vuelve a las arcas.
+		var cook = vm.role_npc(int(VillageNPC.TradeRole.BAKER)) if vm.has_method("role_npc") else null
+		if cook == null and is_instance_valid(vm._innkeeper_npc) and not vm._innkeeper_npc.is_dead:
+			cook = vm._innkeeper_npc
+		if cook != null:
+			cook.personal_gold += 20
+		else:
+			ts["treasury"] = int(ts["treasury"]) + 20
 		ts["shelter_rations"] = int(ts.get("shelter_rations", 0)) + 8
 		if str(ts.get("promise", "")) == "shelter_aid":
 			ts["promise_kept"] = true

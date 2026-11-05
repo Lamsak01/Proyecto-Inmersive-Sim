@@ -471,4 +471,5 @@ Copia de seguridad 2D intacta guardada en la rama `backup-2d-original` y etiquet
 | AUD5 | Sótano propio ≠ alcantarillas | ✅ | VillageUnderworld.gd (`is_player_in_sewers`), VillageHousing.gd, WorldStage3D.gd | Test PN.2f |
 | AUD6 | Escritura falsa: aviso de guardias; ya no compra con hipoteca tras pillarte | ✅ | VillageHousing.gd | Precio real en los avisos |
 | AUD7 | Puesto del Paso pide doble E | ✅ | VillageCulture.gd | |
+| AUD8 | Regla 1 (suma cero): los 22 puntos del informe | ✅ | VillageManager.gd (`pay_into`, `take_from_treasury`, `role_npc`, `_find_paying_customer`, `_take_family_savings`), VillageUnderworld, VillageNeeds, VillageDesires, Player, NPCDialogue, VillageJustice, VillageMayor, VillageClans, VillageHousing, VillageCrime | Test P7 del golpe: el perista sin oro no paga |
 

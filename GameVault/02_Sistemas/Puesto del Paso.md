@@ -16,4 +16,5 @@ fuente: "Biblia §9.7"
 - Fundación de una avanzada en la boca del valle con **3 mejoras construibles**: **Empalizada** (`+1` defensa), **Atalaya de vigilancia** (`+2` fijos al poder de defensa del pueblo, que no se pierden tras cada incursión) y **Posta de caravanas** (bonifica el rendimiento de las rutas comerciales). *(Su representación física como zona caminable en el mapa está listada en [[Pendientes e ideas]]).*
 
 ## Notas de diseño
+- 2026-11-05 (Claude Code): fundarlo o levantar una mejora pide pulsar E dos veces (Regla 3).
 -

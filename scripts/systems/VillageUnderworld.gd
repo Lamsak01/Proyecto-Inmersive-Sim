@@ -401,12 +401,22 @@ static func daily(vm) -> void:
 			var tkey: String = str(j.get("target_key", ""))
 			var tnpc = by_key.get(tkey, null)
 			var cut: int = 0
+			var take: int = 0
 			if tnpc != null and not tnpc.is_dead:
-				var take: int = mini(30, int(float(tnpc.personal_gold) / 3.0))
+				take = mini(30, int(float(tnpc.personal_gold) / 3.0))
 				tnpc.personal_gold -= take
 				cut = int(round(float(take) * 0.75)) # el resto se lo queda el ratero
 			if inv != null:
 				inv.add_gold(cut)
+			# Regla 1: la parte del ratero (25 %) no se esfuma: se la lleva el perista que lo contrató.
+			var rest: int = maxi(0, take - cut)
+			var fence_n = by_key.get(str(j.get("fence_key", "")), null)
+			if rest > 0:
+				if fence_n != null and not fence_n.is_dead:
+					fence_n.personal_gold += rest
+				else:
+					var swp: Dictionary = sewers_state(vm)
+					swp["lost_coins_pool"] = int(swp.get("lost_coins_pool", 0)) + rest
 			VillageChronicle.add(vm, "hired_theft", "El ratero contratado desvalijó a %s de noche y te entregó tu parte (+%d de oro)" % [str(j.get("target_name", "un vecino")), cut], false)
 	st["hired_jobs"] = pending
 
@@ -703,6 +713,11 @@ static func on_player_action(vm, npc, action_id: String, inv) -> void:
 			return
 		var rew: int = int(ah2.get("reward", 55))
 		var lbl: String = str(ah2.get("label", "el botín"))
+		# Regla 1: el perista paga de su bolsillo; si no le llega, que vuelvas cuando haya vendido algo.
+		if int(npc.personal_gold) < rew:
+			npc._spawn_floating_text("🕶️💰 «Ahora no tengo %d monedas. Vuelve cuando haya colocado algo de género.»" % rew, Color.ORANGE_RED, -46.0)
+			return
+		npc.personal_gold -= rew
 		st["active_heist"] = {}
 		st["heists_done"] = int(st.get("heists_done", 0)) + 1
 		if inv != null:
@@ -778,7 +793,7 @@ static func on_player_action(vm, npc, action_id: String, inv) -> void:
 			if cand != npc and int(cand.personal_gold) > best_g:
 				best_g = int(cand.personal_gold)
 				target = cand
-		(st["hired_jobs"] as Array).append({"type": "thief", "target_key": target.get_person_key(), "target_name": target.npc_name, "execute_day": d_now + 1})
+		(st["hired_jobs"] as Array).append({"type": "thief", "target_key": target.get_person_key(), "target_name": target.npc_name, "execute_day": d_now + 1, "fence_key": npc.get_person_key()})
 		npc._spawn_floating_text("🧤 «Conozco las cerraduras de %s. Mañana tendrás tu parte del botín.»" % target.npc_name, Color.GOLD, -46.0)
 
 	elif action_id == "underworld_bet_fight":

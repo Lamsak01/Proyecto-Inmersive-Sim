@@ -272,13 +272,13 @@ static func _seek_fight(vm: VillageManager, h: VillageNPC, t: VillageNPC) -> voi
 static func _ambition_step(vm: VillageManager, d: Dictionary, h: VillageNPC, t: VillageNPC) -> void:
 	var step: int = int(d["step"])
 	if step == 1:
-		h.personal_gold = maxi(0, h.personal_gold) + AMBITION_SAVE_GOLD
+		# Regla 1: ahorrar es apartar, no crear oro: no cambia su bolsillo.
 		h.add_thought("Estoy ahorrando para llegar a más (+3)", 3.0)
 	elif step == 2:
 		_badmouth(vm, h, t)
 	elif step == 3:
 		if not _sabotage(vm, h, t):
-			h.personal_gold = maxi(0, h.personal_gold) + AMBITION_SAVE_GOLD
+			h.add_thought("No me atreví; seguiré ahorrando", 1.0)
 	else:
 		finish(vm, d, "satisfied")
 

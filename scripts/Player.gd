@@ -182,7 +182,7 @@ func get_fishing_bar_multiplier() -> float:
 		return 1.55
 	return 1.0
 
-func upgrade_tool(tool_key: String, consume_resources: bool = true) -> bool:
+func upgrade_tool(tool_key: String, consume_resources: bool = true, smith = null) -> bool:
 	var nk := _normalize_tool_key(tool_key)
 	var cur := get_tool_tier(nk)
 	if cur >= 3:
@@ -206,6 +206,10 @@ func upgrade_tool(tool_key: String, consume_resources: bool = true) -> bool:
 				_spawn_floating_text("Falta %d %s" % [req_cnt, inventory.get_item_name(str(m_id))], Color.ORANGE_RED, -42.0)
 				return false
 		inventory.add_gold(-req_gold)
+		# Regla 1: el oro de la mejora lo cobra el herrero que la hace (o las arcas si no hay).
+		var vm_up = get_tree().get_first_node_in_group("village_manager")
+		if vm_up != null and vm_up.has_method("pay_into"):
+			vm_up.pay_into(smith, req_gold)
 		for m_id in req_mats.keys():
 			inventory.remove_item(str(m_id), int(req_mats[m_id]))
 

@@ -20,4 +20,5 @@ El valle conserva una instalación electromecánica alimentada por el **Generado
 - **Sabotaje y Reparación (`cd18e1c`):** Cualquier circuito puede sufrir averías o ser saboteado (si un testigo cercano te ve sabotearlo, te denuncia; y si lo saboteaste tú mismo, arreglarlo después no te paga recompensa). Reparar la red requiere que el generador principal esté encendido (`_generator_on()`).
 
 ## Notas de diseño
+- 2026-11-05 (Claude Code): cortar el circuito de farolas deja de verdad las calles a oscuras de noche (2D, 3D y niebla).
 -

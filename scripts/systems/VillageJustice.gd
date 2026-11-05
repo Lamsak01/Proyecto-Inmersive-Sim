@@ -1464,6 +1464,7 @@ static func resolve_public_trial_intervention(vm: VillageManager, inv_npc: Villa
 			inv_npc._spawn_floating_text("⚖️💰 «Se requieren 60 monedas de Oro de Fianza Real para conmutar la pena capital.»", Color.ORANGE_RED, -44.0)
 			return
 		inv.add_gold(-60)
+		vm.town_state["treasury"] = int(vm.town_state.get("treasury", 0)) + 60 # Regla 1: la fianza va a las arcas
 		if is_instance_valid(scapegoat):
 			scapegoat.modify_affinity(55)
 			scapegoat.add_thought("Pagó 60 Oro de Fianza Real para salvarme del patíbulo (+55)", 55.0)

@@ -2046,6 +2046,7 @@ func pay_bounty_fine(player: Node2D) -> void:
 		_msg_player(player, "❌ Necesitas %d Oro para pagar la fianza" % cost, Color.ORANGE_RED, -42.0)
 		return
 	inv.add_gold(-cost)
+	town_state["treasury"] = int(town_state.get("treasury", 0)) + cost # Regla 1: la fianza va a las arcas
 	if not player_in_jail:
 		player_arrests_count += 1
 		_notify_inquisitor_of_police_crime("El Forastero pagó %d Oro de fianza policial tras ser detenido por la Guardia." % cost, 30)
@@ -2136,13 +2137,18 @@ func _complete_board_contract(player: Node2D, contract_idx: int) -> void:
 		_msg_player(player, "✅ Ya completaste este encargo hoy", Color.GOLD, -42.0)
 		return
 	var inv: SimpleInventory = player.inventory
+	# Regla 1: los encargos del tablón los pagan las arcas municipales; si no llegan, hoy no se paga.
+	var board_pay: int = {1: 28, 2: 26, 3: 34}.get(contract_idx, 0)
+	if board_pay > 0 and int(town_state.get("treasury", 0)) < board_pay:
+		_msg_player(player, "🏛️❌ Las arcas no pueden pagar este encargo hoy (%d Oro)" % board_pay, Color.ORANGE_RED, -42.0)
+		return
 	if contract_idx == 1:
 		if inv.has_item("wood", 2): inv.remove_item("wood", 2)
 		elif inv.has_item("iron_ore", 1): inv.remove_item("iron_ore", 1)
 		else:
 			_msg_player(player, "❌ Requiere 2 Maderas o 1 Mineral de Hierro", Color.ORANGE_RED, -42.0)
 			return
-		inv.add_gold(28)
+		inv.add_gold(take_from_treasury(28))
 		modify_family_reputation("family_carpenter", 15, "Encargo del tablón completado")
 		modify_family_reputation("family_smith", 15, "Encargo del tablón completado")
 		completed_contracts_today[1] = d
@@ -2153,7 +2159,7 @@ func _complete_board_contract(player: Node2D, contract_idx: int) -> void:
 		else:
 			_msg_player(player, "❌ Requiere 2 Hierbas Medicinales o 1 Cataplasma", Color.ORANGE_RED, -42.0)
 			return
-		inv.add_gold(26)
+		inv.add_gold(take_from_treasury(26))
 		modify_family_reputation("family_herbalist", 15, "Suministro médico entregado")
 		completed_contracts_today[2] = d
 		_msg_player(player, "📋🏥 ¡Urgencia Médica completada! (+26 Oro, +15 Afinidad)", Color.SPRING_GREEN, -44.0)
@@ -2163,7 +2169,7 @@ func _complete_board_contract(player: Node2D, contract_idx: int) -> void:
 		else:
 			_msg_player(player, "❌ Requiere 1 Chatarra de Bandido o 1 Ancas de Rana", Color.ORANGE_RED, -42.0)
 			return
-		inv.add_gold(34)
+		inv.add_gold(take_from_treasury(34))
 		if wanted_level > 0:
 			wanted_level = maxi(0, wanted_level - 1)
 			bounty_gold = maxi(0, bounty_gold - 25)
@@ -2851,6 +2857,9 @@ func _interact_house_chest(player: Node2D, ch: Dictionary) -> void:
 	var gold_loot: int = randi_range(18, 32)
 	if str(ch.get("family_id", "")) == "town_hall":
 		gold_loot = VillageCivic.rob_coffers(self) # V5b: sale de las arcas de verdad (puede estar casi vacía)
+	else:
+		# Regla 1: los ahorros del cofre son de la familia; se los quitas a sus miembros (si no tienen, no hay nada).
+		gold_loot = _take_family_savings(str(ch.get("family_id", "")), gold_loot)
 	var bonus_pool: Array[String] = ["bread", "iron_ore", "copper_coil", "herbal_poultice", "sleeping_draught"]
 	var bonus_item: String = bonus_pool[randi() % bonus_pool.size()]
 	if inv:
@@ -2898,6 +2907,7 @@ func _use_hospital_emergency_bed(player: Node2D) -> void:
 			return
 		if inv:
 			inv.add_gold(-10)
+			pay_into(role_npc(int(VillageNPC.TradeRole.DOCTOR)), 10) # Regla 1: cobra el médico (o las arcas)
 	player.global_position = _hospital_bed_pos
 	if "velocity" in player:
 		player.velocity = Vector2.ZERO
@@ -2932,6 +2942,7 @@ func _use_tavern_bed(player: Node2D) -> void:
 		_hint_player("🛌 Necesitas 8 Oro para alquilar la cama de la Taberna.", player)
 		return
 	inv.add_gold(-8)
+	pay_into(_innkeeper_npc, 8) # Regla 1: cobra la posadera (o las arcas)
 	var surv: SurvivalComponent = player.get_node_or_null("SurvivalComponent")
 	var stam: StaminaComponent = player.get_node_or_null("StaminaComponent")
 	var health: HealthComponent = player.get_node_or_null("HealthComponent")
@@ -3626,6 +3637,9 @@ func consume_village_meal_for_npc(npc: VillageNPC) -> bool:
 						var eff_m: float = holder.get_job_efficiency()
 						var base_val: int = 10 if om == "SOLE_OWNER" else 6
 						var sale_gold: int = maxi(3, int(round(float(base_val) * mkt_m * eff_m)))
+						# Regla 1: tu parte sale de lo que el vecino acaba de pagar al artesano, no del aire.
+						sale_gold = mini(sale_gold, maxi(0, holder.personal_gold))
+						holder.personal_gold -= sale_gold
 						biz["vault_gold"] = int(biz.get("vault_gold", 0)) + sale_gold
 				_refresh_shop_stall_visual(r_id)
 				return true
@@ -3686,7 +3700,8 @@ func _process_daily_business_sales_and_dividends(role_id: int, holder: VillageNP
 		return 0
 
 	var eff: float = holder.get_job_efficiency()
-	var earned_today: int = int(round(float(18 if owner_mode == "SOLE_OWNER" else 14) * eff))
+	# Regla 1: ya no hay «ganancia base» del aire; la caja solo crece con ventas que paga un vecino de su bolsillo.
+	var earned_today: int = 0
 
 	# 2. Ventas automáticas a los vecinos de los productos en el mostrador (limitadas por la eficiencia del trabajador)
 	var st: Dictionary = get_trade_stock_dict(role_id)
@@ -3699,10 +3714,20 @@ func _process_daily_business_sales_and_dividends(role_id: int, holder: VillageNP
 		var avail: int = int(st.get(item_k, 0))
 		if avail > 0:
 			var sell_cnt: int = mini(avail, 2 if (items_sold == 0 and eff >= 0.85) else 1)
-			st[item_k] = avail - sell_cnt
-			items_sold += sell_cnt
 			var unit_val: int = 12 if owner_mode == "SOLE_OWNER" else 8
-			earned_today += int(round(float(unit_val * sell_cnt) * mkt_mult * eff))
+			var unit_price: int = maxi(1, int(round(float(unit_val) * mkt_mult * eff)))
+			var sold_now: int = 0
+			for _u in range(sell_cnt):
+				var buyer: VillageNPC = _find_paying_customer(unit_price, holder)
+				if buyer == null:
+					break
+				buyer.personal_gold -= unit_price
+				earned_today += unit_price
+				sold_now += 1
+			if sold_now <= 0:
+				break
+			st[item_k] = avail - sold_now
+			items_sold += sold_now
 
 	if earned_today > 0:
 		biz["vault_gold"] = int(biz.get("vault_gold", 0)) + earned_today
@@ -3853,6 +3878,7 @@ func _on_business_action_1(player: Node2D) -> void:
 				player._spawn_floating_text("❌ Necesitas %d Oro para comprar la escritura en liquidación" % buyout_cost, Color.ORANGE_RED, -42.0)
 				return
 			inv.add_gold(-buyout_cost)
+			pay_into(holder if holder_alive else null, buyout_cost) # Regla 1: al titular, o a las arcas si no hay
 			biz["owner_mode"] = "SOLE_OWNER"
 			_refresh_shop_stall_visual(_active_business_role)
 			player._spawn_floating_text("👑📜 ¡Adquiriste el 100%% de %s en liquidación! (-%d Oro)" % [b_title, buyout_cost], Color.GOLD, -46.0)
@@ -3862,6 +3888,7 @@ func _on_business_action_1(player: Node2D) -> void:
 				player._spawn_floating_text("❌ Necesitas %d Oro para comprar acciones de Socio" % partner_cost, Color.ORANGE_RED, -42.0)
 				return
 			inv.add_gold(-partner_cost)
+			pay_into(holder if holder_alive else null, partner_cost) # Regla 1: compras su parte al titular
 			biz["owner_mode"] = "PARTNER"
 			modify_family_reputation(fam_id, 20, "Socio capitalista del negocio familiar")
 			_refresh_shop_stall_visual(_active_business_role)
@@ -3872,6 +3899,8 @@ func _on_business_action_1(player: Node2D) -> void:
 			player._spawn_floating_text("❌ Necesitas %d Oro para adquirir el 100%% de la propiedad" % up_cost, Color.ORANGE_RED, -42.0)
 			return
 		inv.add_gold(-up_cost)
+		var holder_up: VillageNPC = trade_npcs.get(_active_business_role)
+		pay_into(holder_up if is_instance_valid(holder_up) and not holder_up.is_dead else null, up_cost) # Regla 1
 		biz["owner_mode"] = "SOLE_OWNER"
 		_refresh_shop_stall_visual(_active_business_role)
 		player._spawn_floating_text("👑📜 ¡Ahora eres Dueño Único de %s! (-%d Oro)" % [b_title, up_cost], Color.GOLD, -46.0)
@@ -3898,6 +3927,13 @@ func _on_business_action_2(player: Node2D) -> void:
 	for raw_id in sup_items:
 		var item_id: String = str(raw_id)
 		if inv.has_item(item_id, 1):
+			# Regla 1: en un negocio ajeno te paga el titular de su bolsillo; si no tiene, no te compra.
+			if not (owner_mode in ["PARTNER", "SOLE_OWNER"]):
+				var holder_pay: VillageNPC = trade_npcs.get(_active_business_role)
+				var want_pay: int = maxi(6, int(round(9.0 * mkt_mult)))
+				if not is_instance_valid(holder_pay) or holder_pay.is_dead or holder_pay.personal_gold < want_pay:
+					player._spawn_floating_text("📦❌ El dueño no tiene %d Oro para pagarte la mercancía ahora" % want_pay, Color.ORANGE_RED, -44.0)
+					return
 			inv.remove_item(item_id, 1)
 			st[item_id] = int(st.get(item_id, 0)) + 1
 			var holder_sup: VillageNPC = trade_npcs.get(_active_business_role)
@@ -3911,6 +3947,8 @@ func _on_business_action_2(player: Node2D) -> void:
 			else:
 				# Si abasteces un negocio ajeno en escasez, te pagan al contado al precio dinámico de mercado
 				var instant_pay: int = maxi(6, int(round(9.0 * mkt_mult)))
+				var holder_paying: VillageNPC = trade_npcs.get(_active_business_role)
+				holder_paying.personal_gold -= instant_pay
 				inv.add_gold(instant_pay)
 				_refresh_shop_stall_visual(_active_business_role)
 				var fam_id: String = str(biz.get("family_id", "none"))
@@ -3953,6 +3991,7 @@ func _on_business_action_3(player: Node2D) -> void:
 		return
 
 	inv.add_gold(-30)
+	pay_into(candidate, 30) # Regla 1: la prima de contratación es para el encargado (o las arcas si llega uno nuevo)
 
 	if candidate != null:
 		candidate.promote_to_trade(_active_business_role as VillageNPC.TradeRole, str(cfg.get("title", "Artesano")), cfg.get("work_pos", biz.get("stall_pos", Vector2.ZERO)), get_trade_stock_dict(_active_business_role), cfg.get("tex", null), cfg.get("bed1_pos", Vector2.ZERO), cfg.get("table_pos", Vector2.ZERO), str(cfg.get("family_id", "none")), str(cfg.get("family_name", "Gremio")))
@@ -3992,6 +4031,7 @@ func _on_business_action_4(player: Node2D) -> void:
 			inv.remove_item("wood", 1)
 		elif inv.gold >= 12:
 			inv.add_gold(-12)
+			pay_into(role_npc(int(VillageNPC.TradeRole.CARPENTER)), 12) # Regla 1: cobra el carpintero
 		else:
 			player._spawn_floating_text("❌ Requiere 1 Madera o 12 Oro para reparar la maquinaria del taller", Color.ORANGE_RED, -42.0)
 			return
@@ -4016,8 +4056,10 @@ func _process_morning_salaries_and_inter_guild_circulation() -> void:
 	for auth in authority_npcs:
 		if is_instance_valid(auth) and not auth.is_dead and not auth.is_downed:
 			var salary: int = 18 if auth.trade_role == VillageNPC.TradeRole.SHERIFF else (16 if auth.trade_role == VillageNPC.TradeRole.DOCTOR else 14)
-			if int(town_state.get("treasury", 0)) >= 250:
-				town_state["treasury"] = int(town_state["treasury"]) - 8
+			# Regla 1: el sueldo entero sale de las arcas; si están vacías, cobran lo que haya.
+			salary = take_from_treasury(salary)
+			if salary <= 0:
+				continue
 			auth.personal_gold += salary
 			auth._spawn_floating_text("💰+%d Oro (Salario)" % salary, Color.GOLD, -30.0)
 
@@ -4055,6 +4097,18 @@ func _process_morning_salaries_and_inter_guild_circulation() -> void:
 		if is_instance_valid(guest) and not guest.is_dead and not guest.is_downed:
 			if active_shops_count > 0:
 				var wage: int = clampi(4 + active_shops_count * 2, 6, 12)
+				# Regla 1: el jornal lo paga un taller que tenga oro (el que más tenga); si nadie puede, no hay jornal.
+				var employer: VillageNPC = null
+				var employers: Array = []
+				employers.append_array(food_sellers)
+				employers.append(smith_npc)
+				employers.append(carp_npc)
+				for emp in employers:
+					if is_instance_valid(emp) and not emp.is_dead and emp.personal_gold >= wage and (employer == null or emp.personal_gold > employer.personal_gold):
+						employer = emp
+				if employer == null:
+					continue
+				employer.personal_gold -= wage
 				guest.personal_gold += wage
 				guest._spawn_floating_text("🪓+%d Oro (Jornal)" % wage, Color(0.85, 0.95, 0.65), -30.0)
 
@@ -4993,6 +5047,56 @@ func _add_title_label(pos: Vector2, min_sz: Vector2, txt: String, col: Color, f_
 	lbl.add_theme_constant_override("outline_size", 3)
 	(parent_node if parent_node else entities_root).add_child(lbl)
 	return lbl
+
+# ==============================================================================
+# Regla 1 (suma cero): ayudas para que todo oro salga de un bolsillo, una caja o las arcas, y vaya a otro.
+# ==============================================================================
+## Un vecino adulto vivo (que no sea `exclude`) con al menos `price` de oro, al azar. Null si nadie puede pagar.
+func _find_paying_customer(price: int, exclude = null) -> VillageNPC:
+	var cands: Array = []
+	for n in get_tree().get_nodes_in_group("village_npcs"):
+		if n is VillageNPC and n != exclude and not n.is_dead and not n.is_downed and n.personal_gold >= price and int(n.trade_role) != int(VillageNPC.TradeRole.CHILD):
+			cands.append(n)
+	return null if cands.is_empty() else cands.pick_random()
+
+## Quita hasta `amount` de oro repartido entre los miembros vivos de una familia. Devuelve lo quitado.
+func _take_family_savings(fam_id: String, amount: int) -> int:
+	var taken: int = 0
+	if fam_id == "" or fam_id == "none":
+		return 0
+	for n in get_tree().get_nodes_in_group("village_npcs"):
+		if taken >= amount:
+			break
+		if n is VillageNPC and not n.is_dead and n.family_id == fam_id and n.personal_gold > 0:
+			var t: int = mini(amount - taken, n.personal_gold)
+			n.personal_gold -= t
+			taken += t
+	return taken
+
+## Ingresa oro a un vecino vivo; si no hay nadie que lo reciba, va a las arcas municipales.
+func pay_into(npc, amount: int) -> void:
+	if amount <= 0:
+		return
+	if npc != null and is_instance_valid(npc) and not bool(npc.get("is_dead")):
+		npc.personal_gold += amount
+	else:
+		town_state["treasury"] = int(town_state.get("treasury", 0)) + amount
+
+## Saca hasta `amount` de las arcas (nunca las deja en negativo). Devuelve lo que se pudo sacar.
+func take_from_treasury(amount: int) -> int:
+	var paid: int = clampi(int(town_state.get("treasury", 0)), 0, maxi(0, amount))
+	town_state["treasury"] = int(town_state.get("treasury", 0)) - paid
+	return paid
+
+## Primer vecino vivo con ese oficio (titular de taller o autoridad).
+func role_npc(role: int) -> VillageNPC:
+	var t: VillageNPC = trade_npcs.get(role)
+	if is_instance_valid(t) and not t.is_dead:
+		return t
+	for a in authority_npcs:
+		if is_instance_valid(a) and not a.is_dead and int(a.trade_role) == role:
+			return a
+	return null
 
 func _msg_player(player: Node, txt: String, col: Color, offset_y: float = -42.0) -> void:
 	if is_instance_valid(player) and player.has_method("_spawn_floating_text"):

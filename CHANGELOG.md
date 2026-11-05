@@ -3,6 +3,15 @@
 Cambios del juego, del más nuevo al más antiguo. Añade una entrada al cerrar cada bloque, en lenguaje sencillo.
 El detalle técnico está en `docs/HANDOFF.md` (sección 7) y el historial completo en `git log`. Lo anterior a B0.1 está en `AUDIT_LOG.md` y `SESSION_CONTEXT_LOG.md`.
 
+## 2026-11-05 — Arreglos de la auditoría (2.ª parte): ningún oro nace ni desaparece
+- Lo que cobras lo paga alguien de verdad: el tablón y los sueldos salen de las arcas; el golpe lo paga el perista;
+  abastecer una tienda ajena lo paga su dueño; el cofre de una familia tiene lo que tengan sus miembros.
+- Lo que pagas lo recibe alguien: el herrero por las mejoras, el médico por la cama de urgencias, la posadera por la
+  cama, las cenas y la cena de paz, las arcas por multas y fianzas, el titular cuando le compras su negocio.
+- Los vecinos ya no ganan oro del aire: las apuestas se juegan contra el posadero, ahorrar no crea monedas, los
+  jornales los paga un taller con oro, y tus negocios solo ganan con ventas que paga un vecino.
+- Puede notarse: si las arcas o los vecinos están sin dinero, algunos pagos no llegan ese día.
+
 ## 2026-11-05 — Arreglos de la auditoría (1.ª parte)
 - F9 vuelve a cargar la partida; cambiar entre 2D y 3D es ahora F10.
 - Cortar el circuito de farolas deja de verdad las calles a oscuras de noche.
