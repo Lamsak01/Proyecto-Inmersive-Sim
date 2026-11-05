@@ -156,9 +156,9 @@ func setup_animal(tex: Texture2D, spr_scale: Vector2 = Vector2.ONE, col_radius: 
 	# Modelo 3D (solo visual) para las especies que ya tienen modelo; conejo y jabalí siguen en 2D por ahora.
 	match species:
 		SpeciesType.DEER:
-			AnimalModel3DScript.attach(self, "animals/Deer.obj", 20.0, 9.0)
+			AnimalModel3DScript.attach(self, "animals/animated/Deer.glb", 20.0, 9.0)
 		SpeciesType.FOX:
-			AnimalModel3DScript.attach(self, "animals/Fox.obj", 10.0, 5.0)
+			AnimalModel3DScript.attach(self, "animals/animated/Fox.glb", 10.0, 5.0)
 
 	body_col = _add_circle_col(self, col_radius)
 

@@ -3,6 +3,10 @@
 Cambios del juego, del más nuevo al más antiguo. Añade una entrada al cerrar cada bloque, en lenguaje sencillo.
 El detalle técnico está en `docs/HANDOFF.md` (sección 7) y el historial completo en `git log`. Lo anterior a B0.1 está en `AUDIT_LOG.md` y `SESSION_CONTEXT_LOG.md`.
 
+## 2026-11-05 — Ciervos, zorros y perros animados
+- Ya no se deslizan: andan, galopan al huir, se quedan quietos o pacen, y al morir hacen su caída. Son los mismos
+  animales de Quaternius, en su versión animada (gratis, CC0).
+
 ## 2026-11-05 — Ciervos, zorros y perros en 3D
 - En la vista 3D, ciervos, zorros y perros tienen modelo 3D: siguen al animal, miran hacia donde andan y se tumban de
   lado al morir o quedar aturdidos. Aún no mueven las patas. Con F9 vuelve el dibujo plano.

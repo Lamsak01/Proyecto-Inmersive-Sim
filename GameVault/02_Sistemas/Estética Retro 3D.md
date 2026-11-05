@@ -36,6 +36,7 @@ tags:
 - [[Supervivencia y Clima]] (hora y tiempo), [[Red Eléctrica]] (farolas), [[Capas Verticales y Alcantarillas]] (tejados).
 
 ## Notas de diseño
+- 2026-11-05 (Claude Code): ciervo, zorro y perro ya están animados (andan, galopan, pacen y caen al morir). El usuario quiere animales animados, no figuras que se deslizan.
 - 2026-11-05 (Claude Code): ciervos, zorros y perros ya tienen modelo 3D (quietos, sin mover las patas; miran hacia donde andan y se tumban al morir). Faltan conejo, jabalí, gato y gallinas. Vacas y caballos no andan por el mapa: ponerlos sería otro cambio.
 - 2026-11-06 (Claude Code): los edificios juntan sus piezas quietas (de 2.317 a 1.409 piezas). Apenas sube la velocidad: lo que frena es el cálculo de los vecinos, no el dibujo.
 - 2026-11-06 (Claude Code): rendimiento. Árboles y rocas iguales se dibujan juntos por zonas (sin cambio visible). Lo que más pesa son los edificios (~1.500 piezas) y los vecinos (~360). El usuario no quiere que los vecinos lejanos se muevan «a ratos».

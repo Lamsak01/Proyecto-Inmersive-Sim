@@ -123,6 +123,11 @@ Otros documentos antiguos en la raíz: `ROADMAP_PROYECTO.md`, `AUDIT_LOG.md`, `S
 
 ## 7. Estado y siguiente bloque
 
+- [x] **Animales 3D animados (Claude Code, 2026-11-05)**: ciervo, zorro y perro usan `animals/animated/*.glb`
+  (Quaternius Ultimate Animated Animals, CC0, bajados de poly.pizza porque Google Drive daba «cuota superada»).
+  `AnimalModel3D` busca el `AnimationPlayer`: Walk/Gallop según la velocidad suavizada (umbrales `walk_px_s`,
+  `run_px_s`), Idle/Eating parado, Death al tumbarse el sprite (si ya estaba tumbado al entrar en cámara, salta al final).
+  El AnimationPlayer se apaga fuera de cámara. Los .obj quietos quedan como alternativa (se tumban de lado).
 - [x] **Animales 3D, paso 1 (Claude Code, 2026-11-05)** (`scripts/visuals/AnimalModel3D.gd`, se engancha en
   `WildAnimal.setup_animal` y en el sprite de `DomesticPet`): modelo OBJ quieto en `Characters3D` del escenario para
   ciervo (`Deer.obj`), zorro (`Fox.obj`) y perro (`ShibaInu.obj`); sigue la posición, gira hacia el movimiento, se

@@ -1,8 +1,10 @@
 extends Node2D
 
-## Modelo 3D de un animal (2026-11-05): pone un modelo quieto (sin animar) dentro del escenario 3D, encima del animal 2D.
-## Solo es visual: no toca su comportamiento. El modelo sigue la posición del animal, mira hacia donde camina y se
-## tumba de lado cuando el sprite 2D se tumba (cadáver o aturdido). En modo headless (pruebas) no hace nada.
+## Modelo 3D de un animal (2026-11-05): pone un modelo dentro del escenario 3D, encima del animal 2D.
+## Solo es visual: no toca su comportamiento. El modelo sigue la posición del animal y mira hacia donde camina.
+## Si el modelo trae animaciones (.glb de Quaternius) anda, galopa, está quieto o pace según su velocidad, y hace
+## «Death» cuando el sprite 2D se tumba (cadáver o aturdido). Un modelo sin animaciones (.obj) se tumba de lado.
+## En modo headless (pruebas) no hace nada.
 ## Con F9 (vista 2D) se esconde y vuelve el sprite.
 
 const CharacterAvatar3DScript = preload("res://scripts/visuals/CharacterAvatar3D.gd")
@@ -25,6 +27,13 @@ var _cur_yaw: float = 0.0
 var _last_pos: Vector2 = Vector2.INF
 var _sprite_hidden: bool = false
 var _disabled: bool = false
+var _anim: AnimationPlayer = null
+var _speed: float = 0.0
+var _still_time: float = 0.0
+var _cur_anim: String = ""
+## Velocidad (px/s) a la que el paso «Walk» encaja con el suelo; por encima de run_px_s galopa.
+var walk_px_s: float = 28.0
+var run_px_s: float = 70.0
 
 
 static func attach(entity: Node2D, rel_path: String, h_px: float, foot_px: float) -> void:
@@ -79,6 +88,15 @@ func _attach_to_stage() -> bool:
 	_model = model
 	_yaw.add_child(_model)
 	chars.add_child(_holder)
+	_anim = null
+	_cur_anim = ""
+	var players := _model.find_children("*", "AnimationPlayer", true, false)
+	if not players.is_empty():
+		_anim = players[0] as AnimationPlayer
+		for an in ["Walk", "Gallop", "Idle", "Idle_2", "Eating"]:
+			if _anim.has_animation(an):
+				_anim.get_animation(an).loop_mode = Animation.LOOP_LINEAR
+		_anim.playback_default_blend_time = 0.2
 	return true
 
 
@@ -93,14 +111,18 @@ func _process(delta: float) -> void:
 	_set_sprite_hidden(use_3d)
 	var show: bool = use_3d and _entity.is_visible_in_tree() and _near_camera()
 	_holder.visible = show
+	if _anim != null:
+		_anim.active = show
 	if not show:
 		_last_pos = Vector2.INF
 		return
 	var pos: Vector2 = _entity.global_position
 	_holder.position = _stage.call("to_3d", pos + Vector2(0.0, foot_offset_px), 0.0)
 	# Mira hacia donde camina (los modelos miran hacia +Z, que en el mapa es «hacia abajo»).
-	if _last_pos != Vector2.INF:
+	var just_shown: bool = _last_pos == Vector2.INF
+	if not just_shown and delta > 0.0:
 		var mv: Vector2 = pos - _last_pos
+		_speed = lerpf(_speed, mv.length() / delta, clampf(delta * 6.0, 0.0, 1.0))
 		if mv.length_squared() > 0.0004:
 			var target: float = atan2(mv.x, mv.y)
 			_cur_yaw = lerp_angle(_cur_yaw, target, clampf(delta * 8.0, 0.0, 1.0))
@@ -109,8 +131,41 @@ func _process(delta: float) -> void:
 	# Tumbado de lado si el sprite 2D está tumbado (muerto o aturdido).
 	var spr = _entity.get("sprite")
 	var lying: bool = spr is Node2D and absf((spr as Node2D).rotation_degrees) > 45.0
-	_model.rotation_degrees.z = 90.0 if lying else 0.0
-	_model.position.y = height_px * WORLD_SCALE * 0.3 if lying else 0.0
+	if _anim == null:
+		_model.rotation_degrees.z = 90.0 if lying else 0.0
+		_model.position.y = height_px * WORLD_SCALE * 0.3 if lying else 0.0
+		return
+	_update_animation(delta, lying, just_shown)
+
+
+func _update_animation(delta: float, lying: bool, just_shown: bool) -> void:
+	if lying:
+		if _cur_anim != "Death":
+			_play("Death", 1.0)
+			# Si ya estaba tumbado antes de verlo, sale ya caído (sin repetir la caída).
+			if just_shown:
+				_anim.seek(_anim.current_animation_length, true)
+		return
+	if _speed > run_px_s:
+		_still_time = 0.0
+		_play("Gallop", clampf(_speed / (run_px_s * 1.6), 0.7, 1.6))
+	elif _speed > 4.0:
+		_still_time = 0.0
+		_play("Walk", clampf(_speed / walk_px_s, 0.5, 1.8))
+	else:
+		_still_time += delta
+		# Quieto un rato: alterna entre mirar alrededor y pacer (cada ~6 s, distinto en cada animal).
+		var phase: int = int((_still_time + float(get_instance_id() % 7)) / 6.0) % 3
+		_play("Eating" if phase == 2 and _anim.has_animation("Eating") else "Idle", 1.0)
+
+
+func _play(an: String, spd: float) -> void:
+	if not _anim.has_animation(an):
+		return
+	_anim.speed_scale = spd
+	if _cur_anim != an:
+		_cur_anim = an
+		_anim.play(an)
 
 
 func _set_sprite_hidden(want_hidden: bool) -> void:
