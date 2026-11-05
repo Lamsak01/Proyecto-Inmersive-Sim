@@ -1,4 +1,4 @@
-# Cómo seguir el proyecto en otro ordenador (2026-11-05)
+# Cómo seguir el proyecto en otro ordenador (actualizado 2026-11-06, paso al PC de escritorio)
 
 ## 1. Bajar el proyecto
 1. Abre una terminal en la carpeta del juego del otro ordenador y ejecuta `git pull` (rama `main`).
@@ -22,19 +22,37 @@ SCRIPT ERROR, SOCIAL SIM CHECK PASSED y TESTS PASSED.
 Para capturas del pueblo: `tools/screenshot_3d.gd` (instrucciones dentro del archivo; con Flatpak, guardar dentro
 del proyecto, no en /tmp).
 
-## 4. Lo siguiente que hay que hacer (en este orden)
-1. ~~**Pasar a 3D los objetos quietos que siguen planos**~~ (HECHO 2026-11-06; falta la casa mejorada del jugador y el gallinero) (coste bajo): pozos, farolas, tienda de campaña, cocina del
-   campamento, tablón de misiones, huertos, compostador y detalles menores. Mismo método que los pinos y rocas:
-   el escenario 3D busca el objeto 2D, pone un modelo 3D en su sitio y oculta el dibujo plano mientras el 3D está
-   activo (ver `_scan_nature_sources` / `_sync_nature_3d` en `scripts/visuals/WorldStage3D.gd`).
-1b. ~~**Niebla nocturna**~~ (HECHO 2026-11-06, solo visual) (coste bajo-medio): de noche la niebla se cierra sobre el valle y limita la vista lejana,
-   al estilo Gloomwood; las luces (farolas, ventanas, farol de mano) la atraviesan. Idea de `ideas sueltas.md`.
-2. ~~**Ampliar la aldea**~~ (pasos 1 y 3 HECHOS 2026-11-06), pasos 1 y 3 de `docs/PLAN_AMPLIAR_ALDEA.md`: solares de tres tamaños y barrios nuevos
-   separados (Lago, linde del Bosque, Molino del este). **Presentar el plan al usuario y esperar su visto bueno**
-   antes de tocar casas y caminos.
-3. **Animales en 3D** (coste medio): necesitan modelo y animaciones propias, como los personajes.
-4. Más adelante: sauces del lago (textura rara), carteles flotantes, pinos 2D que quedan arriba a la izquierda,
-   cuerpos de personajes con más estilo (enlaces en la bóveda, nota «Assets de pago»).
+## 4. Dónde nos quedamos (2026-11-06) y lo siguiente
+
+### Hecho en la última sesión (portátil)
+- Objetos quietos, casa mejorada del jugador y gallinero en 3D; niebla nocturna (solo visual).
+- Aldea ampliada, pasos 1–3 de `docs/PLAN_AMPLIAR_ALDEA.md`: tres tamaños de casa con precio 80/100/140, callejas
+  curvas, Pozo de la Ronda, huerto vecinal y barrios del Lago, Caseríos del Bosque y Molino del Este.
+- **PROVISIONAL: la partida nueva empieza con ~40 vecinos** (`START_POPULATION` en `VillageMigration.gd`; 0 = arranque
+  normal). La mitad de sus casas salen en los barrios apartados. Las pruebas (headless) no lo usan.
+- Rendimiento, sin cambiar nada visible: árboles y rocas dibujados por lotes y piezas quietas de los edificios
+  juntadas. Las cuatro pruebas pasan (último commit `d214d20`).
+
+### Lo siguiente, en este orden
+1. **Rendimiento de los vecinos (lo pendiente más importante).** En el portátil (Intel UHD 620) el usuario veía
+   ~10 fps con 40 vecinos. Medido: la tarjeta no es el freno; lo es la CPU, que calcula ~25–30 ms de lógica y
+   ~16 ms de física por fotograma; con los vecinos quietos la física baja a 4 ms. Paso siguiente acordado: **medir
+   qué parte del vecino cuesta más (solo medir, ~5 min, pidiendo permiso) y luego abaratarla sin cambiar lo que
+   hace**. El usuario **NO quiere** que los vecinos lejanos se simulen «a ratos».
+   - En el PC de escritorio conviene medir primero cuántos fps salen: si va bien, puede que esto baje de prioridad.
+2. **Animales en 3D** (gallinas, vacas, caballos y los del bosque): estaba parado por falta de internet; ahora ya
+   se pueden buscar modelos con textura (CC0, p. ej. Quaternius). Presentar el plan antes.
+3. Pendientes menores: paso 4 de la aldea (casas en L, «más adelante»); decidir si la niebla quita vista a los
+   vecinos; sauces del lago, carteles flotantes, personajes con más estilo («Assets de pago» en la bóveda).
+4. Cuando el usuario termine de probar con 40 vecinos: poner `START_POPULATION = 0`.
+
+### Herramientas útiles que dejé
+- Capturas: `tools/screenshot_3d.gd` (sitios: plaza, iglesia, lago, cementerio, cerca, campamento, barrio_lago,
+  caserios, molino, casa_jugador, norte).
+- Las sondas de medición se escriben en `.godot/` (lo ignora git), se lanzan con
+  `flatpak run org.godotengine.Godot --path . -s res://.godot/sonda.gd` y se borran al terminar. Con ventana (sin
+  `--headless`) para que arranquen los 40 vecinos y el 3D. Medir con `Performance.get_monitor` (TIME_PROCESS,
+  TIME_PHYSICS_PROCESS, RENDER_TOTAL_DRAW_CALLS_IN_FRAME) y la vsync apagada.
 
 ## 5. Dónde está todo lo escrito
 - Registro de la estética 3D, paso a paso: `docs/REGISTRO_ESTETICA_3D.md`.
@@ -44,6 +62,6 @@ del proyecto, no en /tmp).
 - Reglas para el agente: `CLAUDE.md` (español, breve, sin código en los mensajes, una pregunta al final).
 
 ## 6. Mensaje para pegar al agente en el otro ordenador
-> Lee `CLAUDE.md`, `docs/HANDOFF.md` y `docs/CONTINUAR_EN_OTRO_PC.md`. Seguimos con el punto 4.1: pasar a 3D los
-> objetos quietos que siguen planos (pozos, farolas, tienda, cocina del campamento, tablón de misiones, huertos,
-> compostador). Antes de empezar, dime el plan en pocas líneas.
+> Lee `CLAUDE.md`, `docs/HANDOFF.md` y `docs/CONTINUAR_EN_OTRO_PC.md`. Seguimos con el punto 4: el rendimiento de
+> los vecinos. Primero dime cuántos fps da este ordenador con los 40 vecinos y luego propón qué medir, en pocas
+> líneas. Pide permiso antes de lanzar nada.
