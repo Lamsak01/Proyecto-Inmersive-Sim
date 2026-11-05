@@ -554,9 +554,10 @@ static func daily(vm) -> void:
 			elif int(ps.get("till_gold", 0)) >= CLERK_WAGE:
 				ps["till_gold"] = int(ps["till_gold"]) - CLERK_WAGE
 				clerk.personal_gold += CLERK_WAGE
-	# Bloque PI.1: Crecimiento diario del ganado del Rancho y de tus propios animales de corral
+	# Bloque PI.1: Crecimiento diario del ganado del Rancho (con renovación cuando madura) y de tus propios animales de corral
 	var r_herd: Array = hs["ranch_herd"]
 	var new_r_chicks: Array = []
+	var culled_r: Array = []
 	var rancher = vm.trade_npcs.get(int(VillageNPC.TradeRole.RANCHER), null) if "trade_npcs" in vm else null
 	for ra in r_herd:
 		if not (ra is Dictionary):
@@ -571,8 +572,24 @@ static func daily(vm) -> void:
 				rancher._sync_shop_stock_to_vm()
 			if r_herd.size() + new_r_chicks.size() < 4:
 				new_r_chicks.append({"species": str(ra.get("species", "sheep")), "stage": "chick", "age_days": 0})
+		elif int(ra["age_days"]) >= ADULT_ANIMAL_DAYS + 3 and r_herd.size() - culled_r.size() >= 2:
+			culled_r.append(ra)
+			if rancher != null and is_instance_valid(rancher) and not rancher.is_dead:
+				rancher.shop_stock["raw_meat"] = int(rancher.shop_stock.get("raw_meat", 0)) + 1
+				rancher.shop_stock["wool"] = int(rancher.shop_stock.get("wool", 0)) + 1
+				rancher._sync_shop_stock_to_vm()
+				var butcher = vm.trade_npcs.get(int(VillageNPC.TradeRole.BUTCHER), null) if "trade_npcs" in vm else null
+				if butcher != null and is_instance_valid(butcher) and not butcher.is_dead and int(butcher.personal_gold) >= 12:
+					butcher.personal_gold -= 8
+					rancher.personal_gold += 8
+			var next_sp: String = "rooster" if str(ra.get("species", "sheep")) == "sheep" else "sheep"
+			new_r_chicks.append({"species": next_sp, "stage": "chick", "age_days": 0})
+			VillageChronicle.add(vm, "animal_bred", "El rancho vendió una res madura y crió una nueva camada (%s)" % next_sp, false)
+	for c_ra in culled_r:
+		r_herd.erase(c_ra)
 	for nc in new_r_chicks:
-		r_herd.append(nc)
+		if r_herd.size() < 4:
+			r_herd.append(nc)
 	var p_animals: Array = hs["player_animals"]
 	var adult_p_cnt: int = 0
 	for pa in p_animals.duplicate():

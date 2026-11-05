@@ -30,7 +30,7 @@ const BIRTH_GAP_DAYS: int = 40
 const BASE_CHANCE: float = 0.012
 const MIN_COUPLE_REL: int = 30
 const TEACHER_PAY: int = 5
-const MIN_PUPILS_FOR_TEACHER: int = 2
+const MIN_PUPILS_FOR_TEACHER: int = 1
 
 static func state(vm) -> Dictionary:
 	if not vm.family_state is Dictionary:
@@ -375,16 +375,34 @@ static func update_school(vm, pay: bool = true) -> void:
 			state(vm)["teacher_unpaid"] = int(state(vm)["teacher_unpaid"]) + TEACHER_PAY
 			t.add_thought("Las arcas no me pagan la escuela (-6)", -6.0)
 
-## 14 h: los niños que estaban en clase aprenden algo.
+## Durante el horario escolar (10–14 h): los niños en edad escolar acuden al pupitre y aprenden su lección diaria.
 static func on_hour(vm, hour: int) -> void:
-	if hour != 14 or teacher_of(vm) == null:
+	if teacher_of(vm) == null or not (hour in [10, 11, 12, 14]):
+		return
+	var is_wknd: bool = WorldClock != null and WorldClock.has_method("is_weekend") and WorldClock.is_weekend()
+	if is_wknd and hour != 14:
 		return
 	var st: Dictionary = state(vm)
+	var cur_d: int = today()
 	for n in pupils(vm):
-		if n.has_meta("school_pos") and n.global_position.distance_to(n.get_meta("school_pos")) < 60.0:
+		if not n.has_meta("school_pos") or n.is_dead or n.is_downed:
+			continue
+		var s_pos: Vector2 = n.get_meta("school_pos")
+		if hour in [10, 11, 12]:
+			n.work_position = s_pos
+		var max_dist: float = 95.0 if hour == 12 else 60.0
+		var at_desk: bool = n.global_position.distance_to(s_pos) < max_dist or (hour == 12 and int(n.current_activity) == 0 and n.work_position.distance_to(s_pos) < 5.0)
+		if (hour == 12 or hour == 14) and at_desk:
+			if hour == 12 and int(n.get_meta("lesson_12_day", -1)) == cur_d:
+				continue
+			if hour == 14 and int(n.get_meta("lesson_12_day", -1)) == cur_d:
+				n.remove_meta("lesson_12_day")
+				continue
 			st["lessons"] = int(st["lessons"]) + 1
 			var pk_s: String = n.get_person_key()
 			st["pupil_lessons"][pk_s] = int((st["pupil_lessons"] as Dictionary).get(pk_s, 0)) + 1
+			if hour == 12:
+				n.set_meta("lesson_12_day", cur_d)
 			n.add_thought("Hoy aprendí algo en la escuela (+3)", 3.0)
 
 # ---------------------------------------------------------------- paga

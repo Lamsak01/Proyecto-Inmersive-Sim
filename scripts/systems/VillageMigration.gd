@@ -95,6 +95,17 @@ static func free_tavern_bed(vm):
 			return b
 	return null
 
+static func free_tavern_beds_count(vm) -> int:
+	var used: Array = []
+	for n in residents(vm):
+		if house_of(n) == "" and n.bed_position in TAVERN_GUEST_BEDS:
+			used.append(n.bed_position)
+	var c: int = 0
+	for b in TAVERN_GUEST_BEDS:
+		if not b in used:
+			c += 1
+	return c
+
 ## Quita de las casas a quien ya no vive en ellas (muerto, marchado o con oficio y cama nueva).
 static func prune_residents(vm) -> void:
 	var by_key: Dictionary = {}
@@ -118,6 +129,7 @@ static func move_into_house(vm, n, id: String = "") -> bool:
 		b = VillageLots.free_house_bed(vm)
 	if b.is_empty():
 		return false
+	var old_fam: String = str(n.family_id)
 	var lid: String = str(b["lot"])
 	VillageLots.add_resident(vm, lid, n.get_person_key())
 	n.bed_position = b["bed"]
@@ -125,6 +137,13 @@ static func move_into_house(vm, n, id: String = "") -> bool:
 	n.family_id = str(b["family_id"])
 	n.family_name = str(VillageLots.lot(vm, lid)["title"]).replace("🏠 ", "")
 	n.lodging = "house:" + lid
+	if old_fam != "" and old_fam != "none" and old_fam != n.family_id and "VillageFamily" in vm and vm.VillageFamily != null:
+		for kid_m in vm.VillageFamily.children_of_family(vm, old_fam):
+			kid_m.family_id = n.family_id
+			kid_m.family_name = n.family_name
+			kid_m.home_table_pos = n.home_table_pos
+			kid_m.bed_position = n.bed_position + Vector2(16, 6)
+			kid_m.lodging = "family"
 	if n.is_vagrant_camper and vm.vagrant_camp_nodes.has(n.npc_name) and is_instance_valid(vm.vagrant_camp_nodes[n.npc_name]):
 		vm.vagrant_camp_nodes[n.npc_name].visible = false
 	n.is_vagrant_camper = false
@@ -223,10 +242,10 @@ static func attractiveness(vm) -> Dictionary:
 
 # ---------------------------------------------------------------- llegadas
 const SETTLER_KINDS: Array = [
-	{"id": "jornalero", "weight": 0.5, "gold": Vector2i(8, 25), "label": "Jornalero Recién Llegado"},
+	{"id": "jornalero", "weight": 0.42, "gold": Vector2i(8, 25), "label": "Jornalero Recién Llegado"},
 	{"id": "artesano", "weight": 0.28, "gold": Vector2i(70, 130), "label": "Artesano Recién Llegado"},
 	{"id": "pareja", "weight": 0.12, "gold": Vector2i(40, 70), "label": "Recién Llegado"},
-	{"id": "familia", "weight": 0.1, "gold": Vector2i(50, 90), "label": "Recién Llegado"}, # V9: con 1 o 2 hijos
+	{"id": "familia", "weight": 0.18, "gold": Vector2i(50, 90), "label": "Recién Llegado"}, # V9: con 1 o 2 hijos
 ]
 
 static func _pick_kind(couple_ok: bool) -> Dictionary:
@@ -259,25 +278,35 @@ static func try_arrival(vm) -> int:
 	var tav = free_tavern_bed(vm)
 	if house_beds <= 0 and tav == null:
 		return 0 # Sin cama no viene nadie a quedarse
-	var couple_ok: bool = house_beds >= 2 and population(vm) + 2 <= POP_CAP and vm.arrivals_today_count + 2 <= vm.MAX_DAILY_ARRIVALS
+	var couple_ok: bool = (house_beds + free_tavern_beds_count(vm) >= 2) and population(vm) + 2 <= POP_CAP and vm.arrivals_today_count + 2 <= vm.MAX_DAILY_ARRIVALS
 	var kind: Dictionary = _pick_kind(couple_ok)
+	if couple_ok and "VillageFamily" in vm and vm.VillageFamily != null and vm.VillageFamily.pupils(vm).is_empty():
+		kind = SETTLER_KINDS[3]
 	var who: Array = [_spawn_one(vm, kind, int(state(vm)["arrivals"]))]
 	if str(kind["id"]) in ["pareja", "familia"]:
 		who.append(_spawn_one(vm, kind, int(state(vm)["arrivals"])))
 		who[0].modify_npc_relationship(who[1], 60, "Llegamos juntos al valle", true)
 		who[1].modify_npc_relationship(who[0], 60, "Llegamos juntos al valle", true)
 		vm.VillageFamily.marry(who[0], who[1])
+		var shared_fam: String = "family_settler_%d" % int(state(vm)["arrivals"])
+		for p_s in who:
+			p_s.family_id = shared_fam
 	for n in who:
 		if not move_into_house(vm, n):
-			n.bed_position = tav if tav != null else n.bed_position
-	if str(kind["id"]) == "familia" and house_of(who[0]) != "":
+			var t_bed = free_tavern_bed(vm)
+			n.bed_position = t_bed if t_bed != null else n.bed_position
+	if str(kind["id"]) == "familia":
 		var mother = who[0] if who[0].person_profile != null and str(who[0].person_profile.gender) == "F" else who[1]
 		var father = who[1] if mother == who[0] else who[0]
-		for _k in range(randi_range(1, 2)):
+		for k_idx in range(randi_range(1, 2)):
 			if population(vm) < POP_CAP:
-				var kid = vm.VillageFamily.spawn_child(vm, mother, father, randi_range(2, 12))
+				var kid_age: int = randi_range(12, 14) if k_idx == 0 else randi_range(8, 11)
+				var kid = vm.VillageFamily.spawn_child(vm, mother, father, kid_age)
+				kid.lodging = "family"
 				kid.global_position = mother.global_position + Vector2(-10, 6)
 				who.append(kid)
+		if "VillageFamily" in vm and vm.VillageFamily != null:
+			vm.VillageFamily.update_school(vm, false)
 	var names: String = " y ".join(who.map(func(n): return n.npc_name))
 	vm._hint_player("🎒🚶 %s %s al valle para quedarse." % [names, "llegan" if who.size() > 1 else "llega"])
 	return who.size()

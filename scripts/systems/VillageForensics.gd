@@ -611,15 +611,24 @@ static func on_player_action(vm, npc, action_id: String, inv) -> void:
 			if suspects.has(n_name):
 				suspects[n_name]["score"] = int(suspects[n_name].get("score", 20)) + 35
 		clues.append("Crimen por encargo: %s pagó %d de oro a %s para ejecutar el asesinato (+35%% sospecha)." % [str(hm["mastermind_name"]), HITMAN_PAY, str(hm["hitman_name"])])
-		if inv != null:
-			inv.add_gold(35)
-		npc._spawn_floating_text("🚨 «¡Así que pagó a un sicario! Ambos responderán ante la ley.» (+35 Oro)", Color.GOLD, -46.0)
+		var mm_hm = vm._get_npcs_by_person_key().get(str(hm.get("mastermind_key", "")), null)
+		var hm_paid: int = 0
+		if mm_hm != null:
+			hm_paid = mini(35, maxi(0, int(mm_hm.personal_gold)))
+			mm_hm.personal_gold -= hm_paid
+		var tr_hm: int = mini(35 - hm_paid, maxi(0, int(vm.town_state.get("treasury", 0))))
+		vm.town_state["treasury"] = int(vm.town_state.get("treasury", 0)) - tr_hm
+		var total_hm: int = hm_paid + tr_hm
+		if inv != null and total_hm > 0:
+			inv.add_gold(total_hm)
+		npc._spawn_floating_text("🚨 «¡Así que pagó a un sicario! Ambos responderán ante la ley.» (+%d Oro)" % total_hm, Color.GOLD, -46.0)
 
 	elif action_id.begins_with("forensic_frame:"):
 		if inv == null or int(inv.gold) < FRAME_COST:
 			npc._spawn_floating_text("Necesitas %d de oro para preparar la pista falsa" % FRAME_COST, Color.ORANGE_RED, -44.0)
 			return
 		inv.add_gold(-FRAME_COST)
+		npc.personal_gold += FRAME_COST
 		if suspects.has(arg):
 			suspects[arg]["score"] = int(suspects[arg].get("score", 10)) + 25
 			suspects[arg]["mem_alibi_partner"] = ""
@@ -677,18 +686,27 @@ static func on_player_action(vm, npc, action_id: String, inv) -> void:
 			return
 		var pc: Dictionary = st["player_contracts"][arg]
 		var mm = vm._get_npcs_by_person_key().get(arg, null)
+		var fine_taken: int = 0
 		if mm != null:
-			mm.personal_gold = maxi(0, int(mm.personal_gold) - 40)
+			fine_taken = mini(40, maxi(0, int(mm.personal_gold)))
+			mm.personal_gold -= fine_taken
 			mm.modify_affinity(-40)
 		for m in vm.desires:
 			if int(m.get("id", -1)) == int(pc.get("desire_id", -2)):
 				VillageDesires.finish(vm, m, "foiled")
 		st["player_contracts"].erase(arg)
-		if inv != null:
-			inv.add_gold(30)
+		var rew_cr: int = mini(30, fine_taken)
+		if rew_cr < 30:
+			var tr_cr: int = mini(30 - rew_cr, maxi(0, int(vm.town_state.get("treasury", 0))))
+			vm.town_state["treasury"] = int(vm.town_state.get("treasury", 0)) - tr_cr
+			rew_cr += tr_cr
+		elif fine_taken > 30:
+			vm.town_state["treasury"] = int(vm.town_state.get("treasury", 0)) + (fine_taken - 30)
+		if inv != null and rew_cr > 0:
+			inv.add_gold(rew_cr)
 		VillageFaith.add_rep(vm, "law", 8)
 		VillageChronicle.add(vm, "hitman_foiled", "Denunciaste que %s intentaba contratar un sicario contra %s" % [str(pc["mastermind_name"]), str(pc["target_name"])], true)
-		npc._spawn_floating_text("🚨 «Lo multaremos ahora mismo. Toma 30 de oro por avisar.»", Color.SPRING_GREEN, -46.0)
+		npc._spawn_floating_text("🚨 «Lo multaremos ahora mismo. Toma %d de oro por avisar.»" % rew_cr, Color.SPRING_GREEN, -46.0)
 
 	elif action_id.begins_with("forensic_listen_slip:"):
 		if not (st["slips"] as Dictionary).has(arg):
@@ -710,9 +728,17 @@ static func on_player_action(vm, npc, action_id: String, inv) -> void:
 		if suspects.has(kn):
 			suspects[kn]["score"] = int(suspects[kn].get("score", 20)) + 45
 		vm._mark_morgue_case_resolved(vn, "Confesión de %s (delatado ante la guardia)" % kn) # ya avisa a los clanes
-		if inv != null:
-			inv.add_gold(35)
-		npc._spawn_floating_text("🍷🚨 «Con esa confesión cerramos el caso de %s contra %s. Toma 35 de oro.»" % [vn, kn], Color.GOLD, -46.0)
+		var killer_sl = vm._get_npcs_by_person_key().get(arg, null)
+		var sl_paid: int = 0
+		if killer_sl != null:
+			sl_paid = mini(35, maxi(0, int(killer_sl.personal_gold)))
+			killer_sl.personal_gold -= sl_paid
+		var tr_sl: int = mini(35 - sl_paid, maxi(0, int(vm.town_state.get("treasury", 0))))
+		vm.town_state["treasury"] = int(vm.town_state.get("treasury", 0)) - tr_sl
+		var total_sl: int = sl_paid + tr_sl
+		if inv != null and total_sl > 0:
+			inv.add_gold(total_sl)
+		npc._spawn_floating_text("🍷🚨 «Con esa confesión cerramos el caso de %s contra %s. Toma %d de oro.»" % [vn, kn, total_sl], Color.GOLD, -46.0)
 
 	elif action_id.begins_with("forensic_ambush:"):
 		var did: int = int(arg)
@@ -721,18 +747,23 @@ static func on_player_action(vm, npc, action_id: String, inv) -> void:
 				var by_key: Dictionary = vm._get_npcs_by_person_key()
 				var killer = by_key.get(str(m["holder"]), null)
 				var target = by_key.get(str(m["target"]), null)
+				var amb_paid: int = 0
 				if killer != null:
-					killer.personal_gold = maxi(0, int(killer.personal_gold) - 40)
+					amb_paid = mini(AMBUSH_REWARD, maxi(0, int(killer.personal_gold)))
+					killer.personal_gold -= amb_paid
 					killer.modify_affinity(-45)
 				if target != null:
 					target.modify_affinity(20)
 					VillageClans.grant_honor_debt(vm, target, "atrapó en una emboscada nocturna a quien iba a matarle")
 				VillageDesires.finish(vm, m, "foiled")
-				if inv != null:
-					inv.add_gold(AMBUSH_REWARD)
+				var tr_amb: int = mini(AMBUSH_REWARD - amb_paid, maxi(0, int(vm.town_state.get("treasury", 0))))
+				vm.town_state["treasury"] = int(vm.town_state.get("treasury", 0)) - tr_amb
+				var total_amb: int = amb_paid + tr_amb
+				if inv != null and total_amb > 0:
+					inv.add_gold(total_amb)
 				VillageFaith.add_rep(vm, "law", 10)
 				VillageChronicle.add(vm, "murder_ambushed", "Tendiste una emboscada nocturna con la guardia y atrapaste a %s cuando iba a matar a %s" % [str(m["holder_name"]), str(m["target_name"])], true)
-				npc._spawn_floating_text("🪤🌙 «¡Lo pillamos con el cuchillo en la mano! Toma %d de oro de recompensa.»" % AMBUSH_REWARD, Color.GOLD, -46.0)
+				npc._spawn_floating_text("🪤🌙 «¡Lo pillamos con el cuchillo en la mano! Toma %d de oro de recompensa.»" % total_amb, Color.GOLD, -46.0)
 				return
 
 	elif action_id.begins_with("forensic_bleach_scene:"):

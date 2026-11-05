@@ -781,9 +781,12 @@ static func on_player_action(vm, npc, action_id: String, inv) -> void:
 			return
 		st["last_fight_day"] = d_now
 		inv.add_gold(-15)
+		npc.personal_gold += 15
 		if randf() < 0.5:
-			inv.add_gold(30)
-			npc._spawn_floating_text("🥊💰 ¡Tu púgil ganó en el círculo clandestino! (+15 Oro netos)", Color.GOLD, -46.0)
+			var win_pay: int = mini(30, maxi(15, int(npc.personal_gold)))
+			npc.personal_gold = maxi(0, int(npc.personal_gold) - win_pay)
+			inv.add_gold(win_pay)
+			npc._spawn_floating_text("🥊💰 ¡Tu púgil ganó en el círculo clandestino! (+%d Oro netos)" % (win_pay - 15), Color.GOLD, -46.0)
 		else:
 			npc._spawn_floating_text("🥊💥 Tu luchador cayó a la lona. Perdiste las 15 monedas.", Color.ORANGE_RED, -46.0)
 
@@ -794,11 +797,13 @@ static func on_player_action(vm, npc, action_id: String, inv) -> void:
 		var hc = pl_b.get("health_comp") if pl_b != null else null
 		var hp_frac: float = clampf(float(hc.current_health) / maxf(1.0, float(hc.max_health)), 0.0, 1.0) if hc != null and "max_health" in hc else 0.6
 		if randf() < 0.25 + 0.45 * hp_frac:
-			if inv != null:
-				inv.add_gold(35)
+			var prize_br: int = mini(35, maxi(0, int(npc.personal_gold)))
+			npc.personal_gold = maxi(0, int(npc.personal_gold) - prize_br)
+			if inv != null and prize_br > 0:
+				inv.add_gold(prize_br)
 			npc.modify_affinity(10)
-			VillageChronicle.add(vm, "fight_club", "Ganaste la bolsa del club de pelea clandestino de medianoche (+35 de oro)", false)
-			npc._spawn_floating_text("🥊🏆 ¡Tumbaste a dos rivales a puño limpio y ganaste la bolsa (+35 Oro)!", Color.GOLD, -46.0)
+			VillageChronicle.add(vm, "fight_club", "Ganaste la bolsa del club de pelea clandestino de medianoche (+%d de oro)" % prize_br, false)
+			npc._spawn_floating_text("🥊🏆 ¡Tumbaste a dos rivales a puño limpio y ganaste la bolsa (+%d Oro)!" % prize_br, Color.GOLD, -46.0)
 		else:
 			if hc != null:
 				hc.current_health = maxf(1.0, float(hc.current_health) - 30.0)
@@ -816,14 +821,21 @@ static func on_player_action(vm, npc, action_id: String, inv) -> void:
 	elif action_id == "underworld_report_fence":
 		var fence = get_fence_npc(vm)
 		var fname: String = fence.npc_name if fence != null else "el perista"
+		var seized_f: int = 0
+		if fence != null:
+			seized_f = mini(45, maxi(0, int(fence.personal_gold)))
+			fence.personal_gold -= seized_f
+		var tr_rep: int = mini(45 - seized_f, maxi(0, int(vm.town_state.get("treasury", 0))))
+		vm.town_state["treasury"] = int(vm.town_state.get("treasury", 0)) - tr_rep
+		var total_rep: int = seized_f + tr_rep
 		st["fence_busted_until"] = d_now + 7
 		st["fence_key"] = ""
-		if inv != null:
-			inv.add_gold(45)
+		if inv != null and total_rep > 0:
+			inv.add_gold(total_rep)
 		npc.modify_affinity(18)
 		vm.VillageFaith.add_rep(vm, "law", 12)
-		VillageChronicle.add(vm, "fence_busted", "Delataste el mercado negro de %s ante el Comisario (+45 de oro)" % fname, true)
-		npc._spawn_floating_text("🚨⚖️ «¡Conque %s dirigía el contrabando! Toma 45 de oro de recompensa.»" % fname, Color.SPRING_GREEN, -46.0)
+		VillageChronicle.add(vm, "fence_busted", "Delataste el mercado negro de %s ante el Comisario (+%d de oro)" % [fname, total_rep], true)
+		npc._spawn_floating_text("🚨⚖️ «¡Conque %s dirigía el contrabando! Toma %d de oro de recompensa.»" % [fname, total_rep], Color.SPRING_GREEN, -46.0)
 
 	elif action_id == "underworld_takeover_boss":
 		st["boss"] = "player"

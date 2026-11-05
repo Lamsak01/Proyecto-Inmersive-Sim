@@ -408,9 +408,14 @@ static func on_player_action(vm, npc, action_id: String, inv) -> bool:
 		ts["speech_done"] = true
 		var pl = npc._get_player()
 		var cha: int = int(pl.call("get_skill_level", "charisma")) if pl != null and pl.has_method("get_skill_level") else 1
-		ts["campaign_bonus"] = int(ts.get("campaign_bonus", 0)) + 8 + cha * 4
-		VillageChronicle.add(vm, "campaign_speech", "Diste un discurso electoral en la plaza que convenció a varios indecisos", true)
-		npc._spawn_floating_text("🎙️👏 «¡Bien hablado! Has ganado apoyos para las urnas.»", Color.SPRING_GREEN, -46.0)
+		if randf() < clampf(0.45 + 0.15 * float(cha), 0.25, 0.90):
+			ts["campaign_bonus"] = int(ts.get("campaign_bonus", 0)) + 8 + cha * 4
+			VillageChronicle.add(vm, "campaign_speech", "Diste un discurso electoral en la plaza que convenció a varios indecisos", true)
+			npc._spawn_floating_text("🎙️👏 «¡Bien hablado! Has ganado apoyos para las urnas.»", Color.SPRING_GREEN, -46.0)
+		else:
+			ts["campaign_bonus"] = int(ts.get("campaign_bonus", 0)) - 4
+			VillageChronicle.add(vm, "campaign_speech_flop", "Tu discurso electoral en la plaza tropezó entre dudas y murmullos", true)
+			npc._spawn_floating_text("🎙️😓 «Te has trabado frente a la plaza... algunos indecisos se alejan.»", Color.ORANGE_RED, -46.0)
 		return true
 
 	elif action_id.begins_with("town_smear:"):
@@ -418,6 +423,7 @@ static func on_player_action(vm, npc, action_id: String, inv) -> bool:
 			npc._spawn_floating_text("Necesitas %d de oro para difundir el escándalo" % SMEAR_COST, Color.ORANGE_RED, -44.0)
 			return true
 		inv.add_gold(-SMEAR_COST)
+		npc.personal_gold += SMEAR_COST
 		ts["smeared"][arg] = true
 		var target = vm._get_npcs_by_person_key().get(arg, null)
 		if target != null:
@@ -523,6 +529,7 @@ static func on_player_action(vm, npc, action_id: String, inv) -> bool:
 				npc._spawn_floating_text("Necesitas %d de oro o Carisma Nv.2 para maquillar las cuentas" % COOK_BOOKS_COST, Color.ORANGE_RED, -44.0)
 				return true
 			inv.add_gold(-COOK_BOOKS_COST)
+			npc.personal_gold += COOK_BOOKS_COST
 		ts["player_embezzle_risk"] = 0
 		npc._spawn_floating_text("🧹📒 «Las cuentas del Ayuntamiento vuelven a cuadrar al céntimo.»", Color.SPRING_GREEN, -46.0)
 		return true

@@ -417,3 +417,24 @@ Otros datos: tesoro final de 1086 y población de 18 a 35.
 | RA2 | Aviso con el motivo; reunión de defensores a las 16 h en el camino del este; asalto a las 18 h | ✅ | VillageCulture.gd, VillageNeeds.gd | Test #89 |
 | RA3 | Vecinos valientes defienden junto a la guardia; heridas a los defensores si se pierde | ✅ | VillageCulture.gd | Test #89 |
 | RA4 | Error de la capilla al comprar una bula (malestar de la secta tratado como lista) | ✅ | VillageConfession.gd | Test P4.bula |
+
+## Bloque PR — Vida autónoma del pueblo, gasto municipal de arcas y Auditoría Completa del Proyecto (2026-11-04)
+
+Informe completo de la auditoría: `docs/AUDITORIA_PROYECTO_COMPLETA.md`.
+
+| # | Paso | Estado | Archivos | Nota |
+|---|------|--------|----------|------|
+| PR1 | Título de Maestro sin duplicar (`«Maestro Maestro»` → `«Maestro Herrero»`) y ventas reales de Obras Maestras a vecinos solventes (antes de fabricar, sin reponer el mismo día) y en el mercado de los miércoles | ✅ | VillageFame.gd, VillageCulture.gd, verify_all.gd | Test #95 y sonda (`stock=[0, 1, 1, 0]`) |
+| PR2 | Renovación del rebaño del rancho (`ranch_herd`): al cumplir 9 días (`ADULT_ANIMAL_DAYS + 3`), el ganadero vende el animal maduro al carnicero (`8` de oro reales de su bolsillo + carne y lana) y repone una cría (`"chick"`, crónica `animal_bred`) | ✅ | VillageHousing.gd, verify_all.gd | Test #95 y sonda (`animal_bred=4`, `["adult", "adult", "chick", "chick"]`) |
+| PR3 | Escuela activa sin intervención del jugador: `MIN_PUPILS_FOR_TEACHER = 1`, familias recién llegadas pueden alojarse en camas libres de la posada (`free_tavern_beds_count`), prioridad a `"familia"` cuando no hay alumnos, primer hijo con 12–14 años y asistencia guiada entre semana (`10:00–12:00`) sin duplicar a las `14:00` | ✅ | VillageFamily.gd, VillageMigration.gd, verify_all.gd | Tests #84, #95 y sonda (`teacher=1`, `clases_por_alumno={"npc_13_eulalia": 10, "npc_14_beatriz": 11}`) |
+| PR4 | Gasto municipal del superávit de las arcas (`process_municipal_spending` cuando `treasury > 350` y subvención parcial de sueldos de autoridades con `treasury >= 250`): invierte en defensa comunal (`militia_trained`), becas tecnológicas del taller (`tech_grant` / `tech_unlocked`) y apertura de rutas comerciales (`trade_route`) | ✅ | VillageCulture.gd, VillageTown.gd, VillageManager.gd, verify_all.gd | Test #95 y sonda (`tesoro=245`, `tech_unlocked=3`, `trade_route=2`, `militia_trained=2`) |
+| PR5 | Auditoría completa del proyecto (`docs/AUDITORIA_PROYECTO_COMPLETA.md`): recompensas forenses y del hampa respaldadas por multas/incautaciones del bolsillo del culpable y las arcas municipales, pagos de difamación/cuentas/adopción/deuda transferidos al destinatario, y tirada con posibilidad de fallo en `town_speech` | ✅ | VillageForensics.gd, VillageUnderworld.gd, VillageMayor.gd, VillageLineage.gd, docs/AUDITORIA_PROYECTO_COMPLETA.md | `names_check`, `social_sim`, `dialogue_coverage` y `verify_all` (#95) pasan |
+
+### Medición tras Bloque PR — 16 días sin jugador (`tools/tests/feature_probe.gd -- 16 11`, 2026-11-04, 871 s reales)
+- **Maestros Artesanos:** 4 (`«Thoran alcanzó el rango de Maestro Herrero con su propio estilo»`, sin repetir «Maestro»), existencias en movimiento `stock=[0, 1, 1, 0]` (antes `[2, 2, 2, 2]`).
+- **Rancho del Sur:** `animal_bred=4`, rebaño en rotación `["adult", "adult", "chick", "chick"]` (antes estancado en 4 adultos desde el día 6).
+- **Escuela:** `teacher=1`, `clases_por_alumno={ "npc_13_eulalia": 10, "npc_14_beatriz": 11 }` (antes `{}`).
+- **Gasto municipal, tecnología, rutas y defensa:** `tesoro=245` (antes `> 1000`), `tech_grant=3`, `tech_unlocked=3` (`["waterwheel_gears", "reinforced_locks", "voltaic_capacitors"]`), `trade_route=2` (`RUTAS activas=2`), `militia_trained=2` y `0` incursiones sufridas (`amenaza=37`).
+- **Población y vida social:** población `18 → 36`, `5` obras construidas, `1` obsesión activa, `30` monedas caídas en alcantarillas, `0` errores.
+
+Para el otro agente: Implementé los 5 puntos de vida autónoma y visibilidad de `docs/NOTA_PARA_OTRO_AGENTE.md` (Bloque PR, test #95 en `verify_all.gd`), verifiqué la mejora con `tools/tests/feature_probe.gd -- 16 11` y completé la auditoría integral del proyecto en `docs/AUDITORIA_PROYECTO_COMPLETA.md` (cerrando además los últimos flecos de oro sin contrapartida en `VillageForensics`, `VillageUnderworld`, `VillageMayor` y `VillageLineage`, y añadiendo tirada con fallo posible a `town_speech`, sin tocar `VillageSect.gd`).

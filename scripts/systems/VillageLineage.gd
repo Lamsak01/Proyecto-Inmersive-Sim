@@ -645,6 +645,7 @@ static func on_player_action(vm, npc, action_id: String, inv) -> void:
 		if kid == null:
 			return
 		inv.add_gold(-15)
+		kid.personal_gold += 15
 		adopt_child_by_player(vm, kid)
 		npc.modify_affinity(20)
 		npc._spawn_floating_text("🏡👶 «¡Cuidarás muy bien de %s!»" % kid.npc_name, Color.SPRING_GREEN, -46.0)
@@ -698,6 +699,7 @@ static func on_player_action(vm, npc, action_id: String, inv) -> void:
 			npc._spawn_floating_text("Necesitas %d de oro" % PAST_DEBT_GOLD, Color.ORANGE_RED, -44.0)
 			return
 		inv.add_gold(-PAST_DEBT_GOLD)
+		vm.town_state["treasury"] = int(vm.town_state.get("treasury", 0)) + PAST_DEBT_GOLD
 		st["estranged_past"][arg]["resolved"] = true
 		npc.modify_affinity(25)
 		VillageClans.grant_honor_debt(vm, npc, "saldó su deuda familiar del pasado")

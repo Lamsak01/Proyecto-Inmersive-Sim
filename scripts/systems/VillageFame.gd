@@ -220,7 +220,12 @@ static func promote_to_master(vm, npc) -> bool:
 	var key: String = npc.get_person_key()
 	var style: String = _pick_style_for(npc)
 	var fem: bool = npc.person_profile != null and str(npc.person_profile.gender) == "F"
-	var role_word: String = str(npc.npc_role).split(" ")[0] if str(npc.npc_role) != "" else "Artesano"
+	var clean_role: String = str(npc.npc_role).strip_edges()
+	if clean_role.begins_with("Maestro "):
+		clean_role = clean_role.substr(8).strip_edges()
+	elif clean_role.begins_with("Maestra "):
+		clean_role = clean_role.substr(8).strip_edges()
+	var role_word: String = clean_role.split(" ")[0] if clean_role != "" else "Artesano"
 	var title: String = ("Maestra " if fem else "Maestro ") + role_word
 	st["masters"][key] = {
 		"style": style,
@@ -251,24 +256,33 @@ static func daily(vm) -> void:
 					promote_to_master(vm, n)
 			else:
 				var m: Dictionary = st["masters"][n.get_person_key()]
+				var t_str: String = str(m.get("title", ""))
+				if t_str.begins_with("Maestro Maestro"):
+					m["title"] = t_str.replace("Maestro Maestro", "Maestro")
+				elif t_str.begins_with("Maestra Maestra"):
+					m["title"] = t_str.replace("Maestra Maestra", "Maestra")
 				if not vm.is_trade_sabotaged(int(n.trade_role)) and int(n.sick_level) < 2:
-					if cur_day - int(m.get("last_craft_day", 0)) >= CRAFT_INTERVAL_DAYS and int(m.get("stock", 0)) < MAX_MASTER_STOCK:
-						m["stock"] = int(m.get("stock", 0)) + 1
-						m["last_craft_day"] = cur_day
-					# Clientes ricos o nobles compran una pieza firmada con oro real de su bolsillo
-					if int(m.get("stock", 0)) > 0 and cur_day % 4 == 0:
-						for buyer in living_npcs:
+					# Primero las ventas: vecinos solventes o nobles compran una pieza firmada con oro real de su bolsillo
+					if int(m.get("stock", 0)) > 0 and cur_day > int(m.get("since_day", 0)):
+						var buyers: Array = living_npcs.duplicate()
+						buyers.shuffle()
+						for buyer in buyers:
 							if buyer == n or int(buyer.trade_role) == int(VillageNPC.TradeRole.CHILD):
 								continue
-							if (int(buyer.trade_role) == int(VillageNPC.TradeRole.NOBLE) or VillageNeeds.class_of(buyer) == "rico") and int(buyer.personal_gold) >= 45:
-								var price: int = 30
+							var b_cls: String = VillageNeeds.class_of(buyer)
+							if (int(buyer.trade_role) == int(VillageNPC.TradeRole.NOBLE) or b_cls in ["rico", "acomodado"] or int(buyer.personal_gold) >= 48) and int(buyer.personal_gold) >= 38:
+								var price: int = 25
 								buyer.personal_gold -= price
 								n.personal_gold = maxi(0, int(n.personal_gold)) + price
 								m["stock"] = maxi(0, int(m.get("stock", 1)) - 1)
+								m["last_sale_day"] = cur_day
 								buyer.modify_npc_relationship(n, 4, "Adquirió una pieza de su estilo «%s»" % str(m.get("style", "")), true)
 								add_fame(vm, n, 3, "Sus piezas de estilo «%s» se rifan entre los pudientes" % str(m.get("style", "")))
 								add_fame(vm, buyer, 2, "Colecciona obras de artesanos maestros")
 								break
+					if int(m.get("last_sale_day", -1)) != cur_day and cur_day - int(m.get("last_craft_day", 0)) >= CRAFT_INTERVAL_DAYS and int(m.get("stock", 0)) < MAX_MASTER_STOCK:
+						m["stock"] = int(m.get("stock", 0)) + 1
+						m["last_craft_day"] = cur_day
 		if TraitCatalog.npc_tendency(n, "fame") >= 0.5 and randf() < 0.25:
 			add_fame(vm, n, 2, "Le gusta hacerse notar en las tertulias del pueblo")
 		if vm.VillageTown.is_mayor(vm, n) and fame_of(vm, n) < 25:

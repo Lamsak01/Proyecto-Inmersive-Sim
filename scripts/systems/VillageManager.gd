@@ -3997,10 +3997,12 @@ func _on_business_action_4(player: Node2D) -> void:
 
 ## 08:00 AM -> Salarios de Autoridades, Compras Recíprocas entre Gremios y Jornales de Viajeros
 func _process_morning_salaries_and_inter_guild_circulation() -> void:
-	# 1. Sueldo institucional diario para el Médico Forense y la Policía (14–18 Oro/día)
+	# 1. Sueldo institucional diario para el Médico Forense y la Policía (14–18 Oro/día; si las arcas superan 250, aportan 8 de oro por agente)
 	for auth in authority_npcs:
 		if is_instance_valid(auth) and not auth.is_dead and not auth.is_downed:
 			var salary: int = 18 if auth.trade_role == VillageNPC.TradeRole.SHERIFF else (16 if auth.trade_role == VillageNPC.TradeRole.DOCTOR else 14)
+			if int(town_state.get("treasury", 0)) >= 250:
+				town_state["treasury"] = int(town_state["treasury"]) - 8
 			auth.personal_gold += salary
 			auth._spawn_floating_text("💰+%d Oro (Salario)" % salary, Color.GOLD, -30.0)
 

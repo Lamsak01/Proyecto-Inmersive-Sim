@@ -296,6 +296,8 @@ static func daily(vm) -> void:
 		collect_taxes(vm)
 	if int(st.get("embezzle_ev", -1)) >= 0 and embezzle_knowers(vm).size() >= EXPOSE_KNOWERS:
 		expose(vm, "lo sabía medio pueblo")
+	if "VillageCulture" in vm and vm.VillageCulture != null:
+		vm.VillageCulture.process_municipal_spending(vm)
 
 # ---------------------------------------------------------------- I3 policía corrupta (la llama VillageCrime)
 

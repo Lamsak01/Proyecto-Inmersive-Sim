@@ -5,6 +5,13 @@ El detalle técnico está en `docs/HANDOFF.md` (sección 7) y el historial compl
 
 ## 2026-11-04
 
+### Vida propia del pueblo, gasto de las arcas y auditoría completa del proyecto
+- **Maestros Artesanos que venden de verdad:** se corrigió el título repetido («Maestro Maestro») y ahora los vecinos adinerados y los compradores del mercado de los miércoles adquieren sus Obras Maestras pagando de su bolsillo, de modo que sus existencias se mueven en vez de quedarse paradas.
+- **El rebaño del rancho se renueva:** cuando los animales adultos del Rancho del Sur cumplen su ciclo de engorde, el ganadero los vende al carnicero (cobrando de su bolsillo y sumando carne y lana) y trae crías nuevas, manteniendo vivo el ciclo del corral.
+- **Niños en la escuela y graduaciones:** las familias recién llegadas traen hijos en edad escolar que pueden alojarse también en camas libres de la posada; el maestro da clase desde que hay al menos un alumno, los niños acuden al aula por las mañanas entre semana y al cumplir los dieciséis años se gradúan con ventaja en su primer oficio.
+- **El ayuntamiento invierte el dinero que sobra en las arcas:** cuando las arcas municipales acumulan mucho oro, el pueblo invierte parte del superávit en reforzar la defensa vecinal, financiar investigaciones en el taller del ingeniero, abrir rutas comerciales y cubrir parte del sueldo de la guardia y las autoridades.
+- **Auditoría completa del proyecto (`docs/AUDITORIA_PROYECTO_COMPLETA.md`):** se revisaron todos los sistemas del juego para asegurar que ninguna recompensa forense o del hampa salga de la nada ni se pierda ningún pago (todo sale o entra del bolsillo de los implicados y de las arcas municipales) y que los discursos electorales también puedan salir mal si te trabas ante la plaza.
+
 ### Asaltos con motivo, que se ven venir y se pueden ganar
 - **Por qué vienen:** los bandidos ya no llegan por calendario. Se fijan en el pueblo cuando las arcas están muy llenas, cuando las rutas comerciales corren la voz o cuando el Puesto del Paso les queda de camino. Un pueblo pobre y bien defendido deja de interesarles.
 - **Se ven venir:** por la mañana te avisan de quién viene y por qué. A media tarde la guardia y los vecinos con más arrojo se reúnen en el camino del este, y el asalto llega al atardecer. Hasta entonces puedes encabezar la defensa hablando con el comisario o un guardia.

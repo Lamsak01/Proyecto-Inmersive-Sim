@@ -1167,6 +1167,10 @@ static func on_market_arrived(vm, n) -> void:
 	seller.shop_stock[item] = int(seller.shop_stock[item]) - 1
 	seller._sync_shop_stock_to_vm()
 	if VillageFame.is_master(vm, seller):
+		var m_info: Dictionary = VillageFame.master_info(vm, seller)
+		if int(m_info.get("stock", 0)) > 0:
+			m_info["stock"] = maxi(0, int(m_info.get("stock", 1)) - 1)
+			m_info["last_sale_day"] = int(WorldClock.current_day) if WorldClock else 1
 		VillageFame.add_fame(vm, seller, 1, "Su puesto de autor triunfa en el mercado")
 	var fam: String = str(n.family_id) if "family_id" in n else ""
 	if fam != "" and vm.house_pantry.has(fam) and _is_food(item):
@@ -1265,6 +1269,66 @@ static func daily(vm) -> int:
 		done += 1
 	state(vm)["repairs"] = int(state(vm)["repairs"]) + done
 	return done
+
+## Bloque PR: Inversión municipal autónoma cuando las arcas tienen superávit (> 350 de oro):
+## financia defensa comunal ante amenazas, becas de investigación en el taller del ingeniero y patentes de rutas comerciales.
+static func process_municipal_spending(vm) -> int:
+	if vm == null:
+		return 0
+	var spent: int = 0
+	var today: int = int(WorldClock.current_day) if WorldClock else 1
+	var st: Dictionary = state(vm)
+	# 1. Defensa comunal si hay aviso de incursión o amenaza alta
+	var rd: Dictionary = raids_state(vm)
+	var tr: int = int(vm.town_state.get("treasury", 0))
+	if tr >= 350 and int(rd.get("militia_bonus", 0)) < MILITIA_MAX_BONUS and (not (rd.get("active_raid", {}) as Dictionary).is_empty() or int(rd.get("threat", 0)) >= 30):
+		vm.town_state["treasury"] = tr - MILITIA_COST
+		tr -= MILITIA_COST
+		spent += MILITIA_COST
+		rd["militia_bonus"] = mini(MILITIA_MAX_BONUS, int(rd.get("militia_bonus", 0)) + 2)
+		for g_n in _all_npcs(vm):
+			if not g_n.is_dead and int(g_n.trade_role) in [int(VillageNPC.TradeRole.SHERIFF), int(VillageNPC.TradeRole.GUARD)]:
+				g_n.personal_gold += MILITIA_COST
+				break
+		VillageChronicle.add(vm, "militia_trained", "El ayuntamiento costeó barricadas y patrullas extra (%d de oro de las arcas)" % MILITIA_COST, true)
+	# 2. Beca municipal de investigación al taller del ingeniero
+	var rs: Dictionary = research_state(vm)
+	var tinker = vm.trade_npcs.get(VillageTrades.role_of("tinker"))
+	if tr >= 480 and str(rs.get("active_tech", "")) == "" and tinker != null and is_instance_valid(tinker) and not tinker.is_dead and today - int(st.get("last_town_tech_day", -99)) >= 4:
+		for t_id in TECH_TREE.keys():
+			if has_tech(vm, str(t_id)):
+				continue
+			var td: Dictionary = TECH_TREE[t_id]
+			var pre: String = str(td.get("prereq", ""))
+			if pre != "" and not has_tech(vm, pre):
+				continue
+			var t_cost: int = int(td.get("cost_gold", 25))
+			if tr >= t_cost + 300:
+				vm.town_state["treasury"] = tr - t_cost
+				tr -= t_cost
+				spent += t_cost
+				tinker.personal_gold = maxi(0, int(tinker.personal_gold)) + t_cost
+				rs["active_tech"] = str(t_id)
+				rs["progress"] = 1
+				st["last_town_tech_day"] = today
+				VillageChronicle.add(vm, "tech_grant", "El ayuntamiento encargó al taller desarrollar «%s» (%d de oro de las arcas)" % [str(td["name"]), t_cost], true)
+				break
+	# 3. Apertura municipal de ruta comercial con capital de las arcas
+	if tr >= 540 and today - int(st.get("last_town_route_day", -99)) >= 5:
+		var routes: Dictionary = trade_routes_of(vm)
+		for r_id in routes.keys():
+			var r: Dictionary = routes[r_id]
+			if not bool(r.get("active", false)):
+				vm.town_state["treasury"] = tr - ROUTE_CHARTER_COST
+				tr -= ROUTE_CHARTER_COST
+				spent += ROUTE_CHARTER_COST
+				r["active"] = true
+				r["balance"] = int(r.get("balance", 90)) + ROUTE_CHARTER_COST
+				routes[r_id] = r
+				st["last_town_route_day"] = today
+				VillageChronicle.add(vm, "trade_route", "El ayuntamiento financió la patente comercial con %s (%d de oro de las arcas)" % [str(r.get("name", r_id)), ROUTE_CHARTER_COST], true)
+				break
+	return spent
 
 static func add_dialogue_choices(vm, npc, diag: Dictionary, ch_arr: Array) -> void:
 	if vm == null:

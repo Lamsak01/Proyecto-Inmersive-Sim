@@ -4366,5 +4366,48 @@ func _initialize() -> void:
 		v2_pl.global_position = pq_ppos0
 	print("Block PQ (100+ Population Scaling, 4-Bed Upper Floor Houses & Multi-Level LOD) OK")
 
+	# ==========================================================================
+	# 95. Bloque PR — Vida autónoma y visibilidad: título sin duplicar ("Maestro Maestro"), renovación del rebaño del rancho, gasto municipal de superávit y clases a mediodía
+	# ==========================================================================
+	var pr_role_bak: String = vf_artisan.npc_role
+	(vfa_fame.state(vm)["masters"] as Dictionary).erase(vf_artisan.get_person_key())
+	vf_artisan.npc_role = "Maestro Herrero"
+	assert(vfa_fame.promote_to_master(vm, vf_artisan), "PR.1a: Promoting artisan succeeds")
+	var pr_title: String = str(vfa_fame.master_info(vm, vf_artisan).get("title", ""))
+	assert(not pr_title.begins_with("Maestro Maestro") and not pr_title.begins_with("Maestra Maestra"), "PR.1b: Master title never duplicates 'Maestro' (%s)" % pr_title)
+	vf_artisan.npc_role = pr_role_bak
+	# PR.2: Renovación del rebaño del rancho cuando los adultos superan ADULT_ANIMAL_DAYS + 3
+	var pr_herd_bak: Array = (vho.state(vm)["ranch_herd"] as Array).duplicate(true)
+	vho.state(vm)["ranch_herd"] = [
+		{"species": "sheep", "stage": "adult", "age_days": vho.ADULT_ANIMAL_DAYS + 3},
+		{"species": "rooster", "stage": "adult", "age_days": vho.ADULT_ANIMAL_DAYS + 3},
+		{"species": "sheep", "stage": "adult", "age_days": vho.ADULT_ANIMAL_DAYS},
+		{"species": "rooster", "stage": "adult", "age_days": vho.ADULT_ANIMAL_DAYS},
+	]
+	vho.daily(vm)
+	var pr_stages: Array = (vho.state(vm)["ranch_herd"] as Array).map(func(a): return str(a.get("stage", "")))
+	assert("chick" in pr_stages and (vho.state(vm)["ranch_herd"] as Array).size() == 4, "PR.2: Mature ranch animals are sold/culled and replaced with new chicks (%s)" % str(pr_stages))
+	vho.state(vm)["ranch_herd"] = pr_herd_bak
+	# PR.3: Inversión municipal del superávit de las arcas en tecnología y rutas comerciales
+	var pr_tr_bak: int = int(vm.town_state.get("treasury", 0))
+	var pr_tink_g0: int = int(pj_tinker.personal_gold)
+	vcu_pj.state(vm)["research"] = {}
+	vcu_pj.state(vm)["trade_routes"] = {}
+	vcu_pj.state(vm)["last_town_tech_day"] = -99
+	vcu_pj.state(vm)["last_town_route_day"] = -99
+	vm.town_state["treasury"] = 700
+	var pr_spent: int = vcu_pj.process_municipal_spending(vm)
+	assert(pr_spent >= 50 and str(vcu_pj.research_state(vm).get("active_tech", "")) != "" and int(pj_tinker.personal_gold) > pr_tink_g0, "PR.3a: Surplus town treasury funds workshop research and pays the tinker")
+	var pr_any_route: bool = false
+	for r_pr in vcu_pj.trade_routes_of(vm).values():
+		if bool(r_pr.get("active", false)):
+			pr_any_route = true
+	assert(pr_any_route and int(vm.town_state["treasury"]) == 700 - pr_spent, "PR.3b: Surplus town treasury charters an active trade route")
+	vcu_pj.state(vm)["research"] = {}
+	vcu_pj.state(vm)["trade_routes"] = {}
+	pj_tinker.personal_gold = pr_tink_g0
+	vm.town_state["treasury"] = pr_tr_bak
+	print("Block PR (Autonomous Life & Visibility Fixes) OK")
+
 	print("ALL RIMWORLD MEDICAL, FOOTPRINTS, 3-PHASE CORPSE REPORT, MULTI-CORPSE FIX, RPG INTERROGATION, PUBLIC TRIAL, DYNAMIC RELATIONSHIPS, MISSING FAMILY SEARCH, SOCIAL GLOSSARY & UNCONSCIOUS REACTION TESTS PASSED!")
 	quit(0)
