@@ -688,7 +688,9 @@ Cada fase se dividirá en bloques pequeños cuando se llegue a ella (detalle en 
      `night_factor` y `dusk_factor` y hasta 24 luces en pantalla: jugador, farolas encendidas y ventanas sin postigo.
      El shader hace el etalonaje, la viñeta, el grano y la paleta de 15 bits con tramado Bayer a tamaño de píxel del
      juego. `WorldClock.get_ambient_color` es más suave con ventana; en headless se mantienen los colores antiguos.
-  6) **Trampa:** Flatpak no ve `/tmp`. Las capturas de `tools/screenshot_3d.gd` deben ir dentro del proyecto (p. ej.
+  6) **Contorno de personajes:** `shaders/pixel_outline.gdshader` sobre `Avatar3DSprite`. Pasa `COLOR` del vértice
+     (modulate) a un varying, para no perder los destellos de daño ni la transparencia.
+  7) **Trampa:** Flatpak no ve `/tmp`. Las capturas de `tools/screenshot_3d.gd` deben ir dentro del proyecto (p. ej.
      `.godot/capturas/`).
 - [x] **Transición 3D — Fase 1: Maquetas 3D articuladas de personajes, equipo, prótesis, arcabuz en mano `[9]`, Visor 3D `[F8]` y alternancia 3D/2D `[F9]`** (`scripts/visuals/CharacterRig3D.gd`, `scripts/visuals/CharacterAvatar3D.gd`, `scripts/ui/CharacterShowcase3DUI.gd`, `scripts/Player.gd`, `scripts/PlayerCombatController.gd`, `scripts/enemies/VillageNPC.gd`, `scenes/ui_root.gd`, probado en juego por el usuario; copia de seguridad 2D intacta en rama `backup-2d-original` y tag `v2d-backup-original`):
   1) Muñeco 3D articulado por piezas (`CharacterRig3D.gd`) con cabeza, ojos/cejas, peinado/barba, torso, delantal, capa, falda, armaduras por nivel (1–3), brazos/piernas articulados, prótesis mecánicas de hierro y cobre o muñón con muleta, y modelos 3D de armas/herramientas/sombreros.

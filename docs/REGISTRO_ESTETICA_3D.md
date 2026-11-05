@@ -67,3 +67,20 @@
 
    La interfaz no se ve afectada. El tinte antiguo de `WorldClock.get_ambient_color` se suavizó con ventana para no
    oscurecer dos veces; en modo headless sigue igual.
+10. **Bloque 1 cerrado y subido** (`f53f52a`). Pasan las cuatro pruebas: nombres, cobertura de diálogos (0 errores),
+    simulador social y la batería completa. Notas de la bóveda: «Estética Retro 3D», «Assets de pago», diario del día y
+    tablero. Sin tocar: `ideas sueltas.md` en la raíz, que no es mío.
+11. **Bloque 2, personajes:**
+    - contorno oscuro de 1 píxel alrededor de cada personaje 3D (`shaders/pixel_outline.gdshader`, respeta los
+      destellos de daño y la transparencia), para separar la figura del suelo, como en Signalis;
+    - luz de los personajes un poco más fuerte.
+
+    Capturas de antes y después en `docs/capturas/`. Pasan las cuatro pruebas.
+
+## Para el usuario, al despertar
+- Mira `docs/capturas/estetica_antes_despues.jpg` (arriba día, abajo noche; izquierda antes, derecha ahora) y
+  `docs/capturas/estetica_dia_atardecer_noche.jpg`.
+- Lo más mejorable sigue siendo **la cara y el cuerpo de los personajes**. Son los de Quaternius, algo «de superhéroe».
+  En la bóveda, «Assets de pago», hay una recomendación concreta (Villager NPC Pack, 4,99 $).
+- Si la noche te parece demasiado oscura o el tramado demasiado visible, son dos números del shader; se ajustan en
+  minutos.

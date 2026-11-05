@@ -9,6 +9,7 @@ const CharacterRig3DScript = preload("res://scripts/visuals/CharacterRig3D.gd")
 
 static var use_3d_characters: bool = true
 const AVATAR_RES: int = 64
+const OUTLINE_SHADER := preload("res://shaders/pixel_outline.gdshader")
 
 var is_player_avatar: bool = false
 var target_entity: Node2D = null
@@ -53,13 +54,13 @@ func setup_for_entity(entity: Node2D, is_player: bool = false) -> void:
 	env.background_mode = Environment.BG_CLEAR_COLOR
 	env.ambient_light_source = Environment.AMBIENT_SOURCE_COLOR
 	env.ambient_light_color = Color(0.88, 0.90, 0.96)
-	env.ambient_light_energy = 0.78
+	env.ambient_light_energy = 0.92
 	env_node.environment = env
 	sub_viewport.add_child(env_node)
 
 	dir_light = DirectionalLight3D.new()
 	dir_light.rotation_degrees = Vector3(-48.0, 32.0, 0.0)
-	dir_light.light_energy = 1.15
+	dir_light.light_energy = 1.30
 	dir_light.light_color = Color(1.0, 0.97, 0.90)
 	sub_viewport.add_child(dir_light)
 
@@ -78,6 +79,9 @@ func setup_for_entity(entity: Node2D, is_player: bool = false) -> void:
 	display_sprite.position = Vector2(0.0, -13.0)
 	display_sprite.scale = Vector2(0.46 * 96.0 / AVATAR_RES, 0.46 * 96.0 / AVATAR_RES)
 	display_sprite.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+	var outline_mat := ShaderMaterial.new()
+	outline_mat.shader = OUTLINE_SHADER
+	display_sprite.material = outline_mat
 	add_child(display_sprite)
 
 	_sync_appearance_now()
