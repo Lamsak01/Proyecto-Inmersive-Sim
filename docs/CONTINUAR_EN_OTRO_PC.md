@@ -34,6 +34,9 @@ del proyecto, no en /tmp).
   juntadas. Las cuatro pruebas pasan (último commit `d214d20`).
 
 ### Lo siguiente, en este orden
+0. **(2026-11-05) Arcas en números rojos:** tras cerrar las fugas de oro, una partida sola de 15 días deja las arcas
+   en 75 (antes 472). Gastan ~60/día (sueldos enteros, inversiones) y los impuestos del sábado traen ~190/semana. El oro
+   se acumula en los bolsillos de los vecinos (~3.800). Decisión pendiente del usuario: subir impuestos o bajar sueldos.
 1. **Rendimiento de los vecinos (lo pendiente más importante).** En el portátil (Intel UHD 620) el usuario veía
    ~10 fps con 40 vecinos. Medido: la tarjeta no es el freno; lo es la CPU, que calcula ~25–30 ms de lógica y
    ~16 ms de física por fotograma; con los vecinos quietos la física baja a 4 ms. Paso siguiente acordado: **medir
