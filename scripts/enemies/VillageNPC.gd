@@ -524,6 +524,12 @@ func setup_npc(tex: Texture2D, p_work_pos: Vector2, p_bed_pos: Vector2, initial_
 	sprite.scale = Vector2(0.54, 0.54)
 	add_child(sprite)
 
+	var av3d_script = load("res://scripts/visuals/CharacterAvatar3D.gd")
+	if av3d_script != null:
+		var av3d = av3d_script.new()
+		add_child(av3d)
+		av3d.call("setup_for_entity", self, false)
+
 	body_col = _add_circle_col(self, 6.5, true)
 
 	health_comp = HealthComponent.new()

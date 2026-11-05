@@ -5,6 +5,12 @@ El detalle técnico está en `docs/HANDOFF.md` (sección 7) y el historial compl
 
 ## 2026-11-04
 
+### Transición 3D (Fase 1): Maquetas 3D articuladas para jugador y vecinos, equipo visible, prótesis y Visor 3D
+- **Muñecos 3D articulados en partida:** el jugador y todos los vecinos cuentan ahora con un modelo 3D provisional por piezas (cabeza con ojos, cejas, peinado y barba, torso con delantal de oficio o capa, brazos y piernas articulados que giran en 360 grados).
+- **Armas, herramientas, armaduras y prótesis visibles:** todo lo que equipas (espada, martillo, hacha, pico, arco, hoz, regadera, caña, farol nocturno, cascos, petos, grebas, botas y sombreros de oficio) y las amputaciones o prótesis mecánicas de hierro y cobre se ven directamente en el cuerpo del personaje.
+- **Arcabuz de chispa en mano (`[9]`):** si tienes el arcabuz y cargas de pólvora, puedes empuñarlo con la tecla `9` y disparar en tiempo real con fogonazo, humo 3D y estampido que alerta a los vecinos cercanos.
+- **Visor 3D en primer plano (`[F8]`) y cambio en caliente (`[F9]`):** pulsa `F8` en cualquier momento para abrir un estudio de inspección 3D y probar de cerca todos los arquetipos, armaduras, armas, prótesis y animaciones, o pulsa `F9` para alternar al instante entre las nuevas maquetas 3D y los dibujos 2D originales (conservados íntegramente junto con una copia de seguridad del proyecto).
+
 ### Vida propia del pueblo, gasto de las arcas y auditoría completa del proyecto
 - **Maestros Artesanos que venden de verdad:** se corrigió el título repetido («Maestro Maestro») y ahora los vecinos adinerados y los compradores del mercado de los miércoles adquieren sus Obras Maestras pagando de su bolsillo, de modo que sus existencias se mueven en vez de quedarse paradas.
 - **El rebaño del rancho se renueva:** cuando los animales adultos del Rancho del Sur cumplen su ciclo de engorde, el ganadero los vende al carnicero (cobrando de su bolsillo y sumando carne y lana) y trae crías nuevas, manteniendo vivo el ciclo del corral.

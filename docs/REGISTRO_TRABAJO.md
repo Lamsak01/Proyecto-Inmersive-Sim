@@ -438,3 +438,14 @@ Informe completo de la auditoría: `docs/AUDITORIA_PROYECTO_COMPLETA.md`.
 - **Población y vida social:** población `18 → 36`, `5` obras construidas, `1` obsesión activa, `30` monedas caídas en alcantarillas, `0` errores.
 
 Para el otro agente: Implementé los 5 puntos de vida autónoma y visibilidad de `docs/NOTA_PARA_OTRO_AGENTE.md` (Bloque PR, test #95 en `verify_all.gd`), verifiqué la mejora con `tools/tests/feature_probe.gd -- 16 11` y completé la auditoría integral del proyecto en `docs/AUDITORIA_PROYECTO_COMPLETA.md` (cerrando además los últimos flecos de oro sin contrapartida en `VillageForensics`, `VillageUnderworld`, `VillageMayor` y `VillageLineage`, y añadiendo tirada con fallo posible a `town_speech`, sin tocar `VillageSect.gd`).
+
+## Transición 3D — Fase 1: Maquetas 3D articuladas de personajes, equipo, prótesis, arcabuz en mano y Visor 3D (2026-11-04)
+
+Copia de seguridad 2D intacta guardada en la rama `backup-2d-original` y etiqueta `v2d-backup-original` (subidas a GitHub).
+
+| # | Paso | Estado | Archivos | Nota |
+|---|------|--------|----------|------|
+| 3D.1 | Muñeco 3D articulado (`CharacterRig3D.gd`) con cabeza, ojos/cejas, cabello/barba, torso, delantal, capa, falda, armaduras por nivel (1–3), extremidades articuladas, prótesis mecánicas de brazo/pierna y catálogo 3D de armas/herramientas/sombreros | 🟡 | `scripts/visuals/CharacterRig3D.gd` | Escrito; esperando permiso del usuario para lanzar pruebas |
+| 3D.2 | Puente de renderizado en vivo (`CharacterAvatar3D.gd`) para `Player` y `VillageNPC` con desactivación fuera de cámara / headless y tecla `[F9]` para alternar en vivo entre 3D y sprites 2D originales sin borrar nada | 🟡 | `scripts/visuals/CharacterAvatar3D.gd`, `scripts/Player.gd`, `scripts/enemies/VillageNPC.gd` | Escrito; esperando permiso para probar |
+| 3D.3 | Arcabuz de chispa empuñable en combate directo (`[9]`) con consumo de pólvora, proyectil real, fogonazo/humo 3D y alerta sonora a testigos en 260 px | 🟡 | `scripts/Player.gd`, `scripts/PlayerCombatController.gd` | Escrito; cierra pendiente PO.1 |
+| 3D.4 | Visor interactivo de Maquetas 3D en primer plano (`[F8]`, `CharacterShowcase3DUI.gd`) con 8 arquetipos del valle, selector de armas/armaduras/prótesis/animaciones y rotación de cámara | 🟡 | `scripts/ui/CharacterShowcase3DUI.gd`, `scenes/ui_root.gd` | Escrito; listo para ver en juego |

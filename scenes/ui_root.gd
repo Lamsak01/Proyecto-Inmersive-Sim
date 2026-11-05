@@ -25,6 +25,7 @@ const SocialGlossaryUIScript = preload("res://scripts/ui/SocialGlossaryUI.gd")
 const SkillsPanelUIScript = preload("res://scripts/ui/SkillsPanelUI.gd")
 const QuestLogUIScript = preload("res://scripts/ui/QuestLogUI.gd")
 const ChronicleUIScript = preload("res://scripts/ui/ChronicleUI.gd")
+const CharacterShowcase3DUIScript = preload("res://scripts/ui/CharacterShowcase3DUI.gd")
 
 var tool_wheel: ToolWheelUI = null
 var tavern_games: TavernGamesUI = null
@@ -34,6 +35,7 @@ var social_glossary: Control = null
 var skills_panel: Control = null
 var quest_log: Control = null
 var chronicle_panel: Control = null
+var showcase_3d_panel: Control = null
 
 func _ready() -> void:
 	# 1. Find Player if not assigned
@@ -124,6 +126,8 @@ func _ready() -> void:
 	_setup_quest_log_ui()
 	chronicle_panel = ChronicleUIScript.new()
 	add_child(chronicle_panel)
+	showcase_3d_panel = CharacterShowcase3DUIScript.new()
+	add_child(showcase_3d_panel)
 	_init_default_objectives()
 	if "inventory" in player and player.inventory:
 		_bind_player_inventory()

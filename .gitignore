@@ -28,3 +28,8 @@ Datos de programa/
 Menú Inicio/
 Reciente/
 SendTo/
+
+# Obsidian (vault de diseño): solo se guardan las notas y la configuración común
+GameVault/.obsidian/workspace*.json
+GameVault/.obsidian/cache
+GameVault/.trash/

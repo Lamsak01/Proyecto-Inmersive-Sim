@@ -12,6 +12,20 @@ Immersive sim 2D en pixel art hecho con Godot 4.7.2 (GDScript). El usuario no pr
 3. Si la tarea toca la vida social, lee también `docs/PLAN_VIDA_SOCIAL.md`.
 4. Antes de proponer un sistema nuevo, lee `docs/VISION_Y_FUTURO.md`: la aspiración del juego, el orden acordado y el banco de ideas del usuario. Añade ahí las ideas nuevas que proponga; no borres ninguna sin que lo pida.
 
+## Vault de diseño (Obsidian) — `GameVault/`
+
+El usuario organiza el diseño en Obsidian. Reparto: el vault es su espacio de diseño; `docs/` sigue siendo la guía técnica de los agentes. Si se contradicen, pregunta al usuario.
+
+- **Antes de diseñar o tocar un sistema:** lee su nota en `GameVault/02_Sistemas/` (o `03_La_Secta/`, `04_Censo_y_Misiones/`) y `GameVault/01_Vision_y_Reglas/Las 7 Reglas de las Auditorías.md`.
+- **Al cerrar cada bloque**, además de lo de siempre:
+  1. Actualiza la nota del sistema afectado (`estado`: idea / parcial / implementado; añade lo nuevo en «Notas de diseño»).
+  2. Mueve o marca la tarjeta en `GameVault/05_Roadmap_y_Lore/Tablero.md` (formato del plugin Kanban: no cambies su cabecera ni el bloque final de ajustes).
+  3. Añade una línea al diario del día en `GameVault/06_Diario/AAAA-MM-DD.md` (créalo con la estructura de `GameVault/Plantillas/Diario.md` si no existe).
+- **Sistemas o vecinos nuevos:** crea su nota a partir de `GameVault/Plantillas/`.
+- Respeta el frontmatter (`tipo`, `area`, `estado`, `codigo`): lo usan las tablas del panel.
+- **No modifiques** `GameVault/03_La_Secta/` ni el `Lore provisional` sin orden expresa, ni `GameVault/99_Archivo/` (copia histórica).
+- No toques `GameVault/.obsidian/`.
+
 ## Reglas clave de comunicación (obligatorias en TODOS los mensajes)
 
 1. **Cero código en los mensajes:** nunca nombres archivos, funciones, variables ni líneas de código, salvo que el usuario lo pida. Habla del JUEGO (vecinos, tiendas, misiones, la cantera, el mapa...).

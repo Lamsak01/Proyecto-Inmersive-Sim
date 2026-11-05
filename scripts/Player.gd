@@ -16,11 +16,13 @@ extends CharacterBody2D
 @onready var move_ctrl: PlayerMovementController = get_node_or_null("PlayerMovementController")
 
 const FloatingTextScene = preload("res://scenes/ui/FloatingText.tscn")
+const CharacterAvatar3DScript = preload("res://scripts/visuals/CharacterAvatar3D.gd")
 
 var last_dir := "down"
 var equipped_weapon: WeaponData
 var inventory: SimpleInventory = null
 var survival_comp: SurvivalComponent = null
+var avatar_3d: Node2D = null
 
 var sword_weapon: WeaponData = load("res://resources/weapons/Sword.tres")
 var hammer_weapon: WeaponData = load("res://resources/weapons/Hammer.tres")
@@ -30,6 +32,7 @@ var bow_weapon: WeaponData = null
 var sickle_weapon: WeaponData = null
 var watering_can_weapon: WeaponData = null
 var fishing_rod_weapon: WeaponData = null
+var flintlock_weapon: WeaponData = null
 
 ## Niveles de Mejora de Herramientas y Armas estilo Stardew Valley (1 = Básico, 2 = Hierro Forjado, 3 = Acero Maestro)
 var tool_tiers: Dictionary = {"sword": 1, "hammer": 1, "axe": 1, "pickaxe": 1, "bow": 1, "sickle": 1, "watering_can": 1, "fishing_rod": 1}
@@ -138,6 +141,11 @@ func _setup_tools() -> void:
 	sickle_weapon = _make_tool_weapon("Sickle", "res://assests/items/tools/sickle_tool.png", CombatConstants.DamageType.CUT)
 	watering_can_weapon = _make_tool_weapon("WateringCan", "res://assests/items/tools/watering_can.png", CombatConstants.DamageType.BLUNT)
 	fishing_rod_weapon = _make_tool_weapon("FishingRod", "res://assests/items/tools/fishing_rod.png", CombatConstants.DamageType.BLUNT)
+	flintlock_weapon = _make_tool_weapon("Flintlock", "res://assests/items/tools/bow_weapon.png", CombatConstants.DamageType.CUT, true)
+	if flintlock_weapon and flintlock_weapon.damage_data:
+		flintlock_weapon.damage_data.amount = 48.0
+		flintlock_weapon.damage_data.bleed_buildup = 65.0
+		flintlock_weapon.damage_data.stun_buildup = 45.0
 	_apply_tool_tiers()
 
 func _normalize_tool_key(tool_key: String) -> String:
@@ -270,6 +278,9 @@ func _ready() -> void:
 		add_child(survival_comp)
 
 	_setup_armor_visual_placeholder()
+	avatar_3d = CharacterAvatar3DScript.new()
+	add_child(avatar_3d)
+	avatar_3d.call("setup_for_entity", self, true)
 	apply_armor_stats()
 	
 	if hint_label:
@@ -474,6 +485,8 @@ func apply_armor_stats() -> void:
 				var t: int = int(info.get("armor_tier", 1))
 				poly.color = _tier_to_armor_color(t)
 				poly.visible = true
+	if avatar_3d and avatar_3d.has_method("mark_appearance_dirty"):
+		avatar_3d.call("mark_appearance_dirty")
 
 func equip_weapon(weapon_data: WeaponData) -> void:
 	if not weapon_data:
@@ -483,6 +496,8 @@ func equip_weapon(weapon_data: WeaponData) -> void:
 		combat_ctrl = get_node_or_null("PlayerCombatController")
 	if combat_ctrl and combat_ctrl.has_method("equip_weapon"):
 		combat_ctrl.equip_weapon(weapon_data)
+	if avatar_3d and avatar_3d.has_method("mark_appearance_dirty"):
+		avatar_3d.call("mark_appearance_dirty")
 
 func equip_tool_by_index(idx: int) -> void:
 	match idx:
@@ -510,6 +525,13 @@ func equip_tool_by_index(idx: int) -> void:
 		7:
 			equip_weapon(fishing_rod_weapon)
 			show_hint("[8] Caña de Pescar (%s) — Barra de Pesca: %d%%" % [get_tool_tier_label("fishing_rod"), int(round(get_fishing_bar_multiplier() * 100.0))])
+		8:
+			if inventory and inventory.has_item("flintlock_pistol", 1):
+				equip_weapon(flintlock_weapon)
+				var p_cnt: int = inventory.get_count("powder_charge")
+				show_hint("[9] Arcabuz de Chispa — Daño: 48 | Pólvora: %d carga(s) (Clic Izq. para disparar)" % p_cnt)
+			else:
+				show_hint("[9] Arcabuz de Chispa (Aún no tienes uno; encárgalo en la Herrería o el Taller)")
 
 func refill_watering_can() -> void:
 	watering_can_charges = max_water_charges
@@ -578,7 +600,7 @@ func is_any_ui_modal_open() -> bool:
 		return true
 	var ui_root = get_tree().current_scene.get_node_or_null("UI/UIRoot") if get_tree().current_scene else null
 	if ui_root:
-		for ui_key in ["inv_panel", "tool_wheel", "tavern_games", "medical_panel", "social_glossary", "skills_panel", "quest_log", "chronicle_panel"]:
+		for ui_key in ["inv_panel", "tool_wheel", "tavern_games", "medical_panel", "social_glossary", "skills_panel", "quest_log", "chronicle_panel", "showcase_3d_panel"]:
 			var ctrl = ui_root.get(ui_key)
 			if ctrl is Control and ctrl.visible:
 				return true
@@ -631,7 +653,7 @@ func _unhandled_input(event: InputEvent) -> void:
 		return
 
 	if event is InputEventKey and event.pressed and not event.echo:
-		if event.keycode >= KEY_1 and event.keycode <= KEY_8:
+		if event.keycode >= KEY_1 and event.keycode <= KEY_9:
 			equip_tool_by_index(int(event.keycode - KEY_1))
 		elif event.keycode == KEY_R and inventory:
 			var next_seed := inventory.cycle_selected_seed()

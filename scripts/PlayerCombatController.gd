@@ -95,7 +95,8 @@ func _unhandled_input(event: InputEvent) -> void:
 			return
 
 	var equipped: WeaponData = player.equipped_weapon
-	var is_bow: bool = equipped != null and equipped.is_ranged
+	var is_flintlock: bool = equipped != null and str(equipped.name).to_lower() == "flintlock"
+	var is_bow: bool = equipped != null and equipped.is_ranged and not is_flintlock
 
 	if is_bow:
 		if (event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT) or event.is_action("ui_accept"):
@@ -269,7 +270,10 @@ func attack(_aim_with_mouse: bool = true) -> void:
 		crosshair.add_recoil(4.5)
 	_update_weapon_visuals()
 	if equipped.is_ranged:
-		_fire_bow(equipped, 0.5)
+		if str(equipped.name).to_lower() == "flintlock":
+			_fire_flintlock_realtime(equipped)
+		else:
+			_fire_bow(equipped, 0.5)
 		return
 
 	if weapon_sprite:
@@ -322,6 +326,46 @@ func _fire_bow(equipped: WeaponData, tension: float = 1.0) -> void:
 		arrow.damage_data.stun_buildup += 50.0
 	arrow.damage_data.source = player
 	player.get_tree().current_scene.add_child(arrow)
+
+func _fire_flintlock_realtime(equipped: WeaponData) -> void:
+	var inv = player.get("inventory")
+	if inv == null or not inv.has_item("flintlock_pistol", 1) or not inv.has_item("powder_charge", 1):
+		if player.has_method("show_hint"):
+			player.call("show_hint", "⚠️ Necesitas 1 Carga de Pólvora Negra en la mochila para disparar el Arcabuz de Chispa.")
+		return
+	inv.remove_item("powder_charge", 1)
+	attack_timer = 0.85
+	var av3d = player.get("avatar_3d")
+	if av3d and av3d.has_method("trigger_muzzle_flash"):
+		av3d.call("trigger_muzzle_flash")
+	_apply_camera_shake()
+
+	var shoot_dir := current_aim_dir
+	var pivot_global := player.global_position + Vector2(0, -10)
+	var bullet := ArrowProjectile.new()
+	bullet.global_position = pivot_global + shoot_dir * 14.0
+	bullet.direction = shoot_dir
+	bullet.max_range = 360.0
+	bullet.speed = 620.0
+	bullet.shooter = player
+	bullet.damage_data = equipped.damage_data.copy()
+	bullet.damage_data.weapon_tag = "Arcabuz de Chispa"
+	bullet.damage_data.amount = 48.0
+	bullet.damage_data.source = player
+	player.get_tree().current_scene.add_child(bullet)
+
+	if player.has_method("_spawn_floating_text"):
+		player.call("_spawn_floating_text", "💥🔫 ¡Estampido de Arcabuz! (-1 Pólvora)", Color(1.0, 0.82, 0.35), -48.0)
+
+	# Alerta sonora a testigos conscientes en 260 px (en el mismo nivel vertical)
+	var vm = get_tree().get_first_node_in_group("village_manager")
+	for n in get_tree().get_nodes_in_group("village_npcs"):
+		if n is VillageNPC and not n.is_dead and not n.is_downed and not n.is_sleeping and not n.is_stunned_flag:
+			if vm and vm.has_method("are_on_same_elevation") and not bool(vm.call("are_on_same_elevation", player, n)):
+				continue
+			if (n as Node2D).global_position.distance_to(player.global_position) <= 260.0:
+				if n.has_method("_spawn_floating_text"):
+					n.call("_spawn_floating_text", "⚠️ ¡Un disparo de arcabuz!", Color.ORANGE_RED, -42.0)
 
 func _on_hitbox_entered(area: Area2D) -> void:
 	if area is Hurtbox:

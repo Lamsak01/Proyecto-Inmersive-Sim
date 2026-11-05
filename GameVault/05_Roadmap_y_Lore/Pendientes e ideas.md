@@ -13,7 +13,7 @@ Ver también el [[Tablero]].
 #pendiente
 
 #### A. Presencia Física y Combate en el Mundo (Prioridad Alta)
-- [ ] **Uso del Arcabuz de Chispa en combate directo (`PO.1`):** Actualmente suma `+2` a la defensa del pueblo en incursiones; falta permitir equiparlo en la rueda/manos para disparar proyectiles reales con recarga lenta, humo y estampido de ruido alto en el mapa.
+- [x] **Uso del Arcabuz de Chispa en combate directo (`PO.1`):** Actualmente suma `+2` a la defensa del pueblo en incursiones; falta permitir equiparlo en la rueda/manos para disparar proyectiles reales con recarga lenta, humo y estampido de ruido alto en el mapa.
 - [ ] **Lugar físico en el mapa para el «Puesto del Paso» (`PP.1`):** Actualmente el asentamiento fronterizo (empalizada, atalaya, posta) se gestiona por menú; falta construir su recinto caminable en el extremo este/norte del mapa.
 - [ ] **Amputaciones y prótesis aplicadas al propio jugador (`PI`):** Hoy operan sobre los vecinos heridos en el hospital; falta que el jugador también pueda perder un miembro por gangrena sin tratar y equiparse prótesis mecánicas visibles en su sprite/ficha.
 - [ ] **Escaleras y sótanos caminables con geometría visual (`PN`):** Hoy las capas `-1 / 0 / +1` y las alcantarillas tienen lógica de altura, anclaje y visibilidad; falta dibujar los interiores de sótanos y altillos con sus propios muebles y escaleras en el *tilemap*.
