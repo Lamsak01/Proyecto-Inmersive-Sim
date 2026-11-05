@@ -62,6 +62,15 @@ var _nature_sources: Array = [] # [{"node": Node2D, "kind": "pine"|"rock"|"deco_
 var _nature_nodes: Dictionary = {} # instance_id -> {"tree": Node3D, "stump": Node3D}
 var _prop_sources: Array = [] # [{"sprite": Sprite2D, "kind": String}] objetos quietos 2D con su versión 3D
 var _prop_nodes: Dictionary = {} # instance_id del sprite -> {"root": Node3D, "variant": String}
+var _extra_hidden_2d: Array = [] # Piezas 2D (suelos, muros, cercas) que se esconden en 3D: casa del jugador y gallinero
+var _camp_node: Node2D = null
+var _player_house_3d: Node3D = null
+var _player_house_roof: Node3D = null
+var _player_house_rect: Rect2 = Rect2()
+var _player_house_tier: int = -1
+var _coop_node: Node2D = null
+var _coop_3d: Node3D = null
+var _coop_gap_3d: Node3D = null
 
 func setup_stage(village_manager: Node2D) -> void:
 	vm = village_manager
@@ -1235,6 +1244,10 @@ func _update_roof_cutaways_and_lighting() -> void:
 		if is_instance_valid(loft_root):
 			loft_root.visible = (elev == 1 and r_near.has_point(pl_pos))
 
+	# Casa mejorada del jugador: el tejado se abre igual que en los demás edificios
+	if is_instance_valid(_player_house_roof):
+		_player_house_roof.visible = not (_player_house_rect.grow(38.0).has_point(pl_pos) or _player_house_rect.grow(8.0).has_point(mouse_pos))
+
 	# Luz diurna/nocturna y farolas eléctricas 3D
 	var wc2 = get_node_or_null("/root/WorldClock")
 	var gm2 = get_node_or_null("/root/GameManager")
@@ -1453,6 +1466,11 @@ const PROP_KIND_BY_TEXTURE := {
 	"auto_sprinkler.png": "sprinkler",
 	"soil_dry.png": "soil",
 	"soil_wet.png": "soil",
+	"coop_feeder_empty.png": "feeder",
+	"coop_feeder_half.png": "feeder",
+	"coop_feeder_full.png": "feeder",
+	"coop_nest_empty.png": "nest",
+	"coop_nest_eggs.png": "nest",
 }
 
 static func _tex_file(t: Texture2D) -> String:
@@ -1471,9 +1489,18 @@ func _prop_kind_for(spr: Sprite2D) -> String:
 ## Busca los dibujos 2D de objetos quietos: hijos directos del pueblo y piezas del campamento y los huertos.
 func _scan_props_sources() -> void:
 	_prop_sources.clear()
+	_extra_hidden_2d.clear()
 	if vm == null or not is_instance_valid(vm.entities_root):
 		return
 	for c in vm.entities_root.get_children():
+		if c is ChickenCoop:
+			_coop_node = c
+			for sub in c.get_children():
+				if sub is Sprite2D and (sub.name == "FeederSprite" or sub.name == "NestSprite"):
+					_add_prop_source(sub as Sprite2D)
+				elif sub is Line2D or sub is Polygon2D:
+					_extra_hidden_2d.append(sub)
+			continue
 		if c is Sprite2D:
 			_add_prop_source(c as Sprite2D)
 		elif c is FarmPlot:
@@ -1481,8 +1508,20 @@ func _scan_props_sources() -> void:
 				if sub is Sprite2D:
 					_add_prop_source(sub as Sprite2D, true)
 		elif c is CampSite:
+			_camp_node = c
 			_collect_camp_sprites(c)
+			var hr: Node = c.get_node_or_null("PlayerHouseRoot")
+			if hr != null:
+				_collect_canvas_items(hr, _extra_hidden_2d)
 	_sync_props_3d(false)
+
+
+func _collect_canvas_items(n: Node, out: Array) -> void:
+	for c in n.get_children():
+		if c is CanvasItem and not (c is Area2D):
+			out.append(c)
+		if c.get_child_count() > 0:
+			_collect_canvas_items(c, out)
 
 
 func _add_prop_source(spr: Sprite2D, in_plot: bool = false) -> void:
@@ -1517,7 +1556,7 @@ func _sync_props_3d(only_update: bool) -> void:
 		var id := spr.get_instance_id()
 		alive[id] = true
 		var kind: String = src["kind"]
-		var variant := _tex_file(spr.texture) if (kind == "soil" or kind == "crop") else kind
+		var variant := _tex_file(spr.texture) if kind in ["soil", "crop", "feeder", "nest"] else kind
 		var rec: Dictionary = _prop_nodes.get(id, {})
 		var stale: bool = not rec.is_empty() and String(rec.get("variant", "")) != variant
 		if stale:
@@ -1536,6 +1575,11 @@ func _sync_props_3d(only_update: bool) -> void:
 		if r3 is Node3D and is_instance_valid(r3):
 			(r3 as Node3D).visible = spr.is_visible_in_tree() and spr.texture != null
 		spr.self_modulate.a = 0.0 if use_3d else 1.0
+	for ci in _extra_hidden_2d:
+		if is_instance_valid(ci):
+			(ci as CanvasItem).self_modulate.a = 0.0 if use_3d else 1.0
+	_sync_player_house_3d()
+	_sync_coop_3d()
 	if only_update:
 		return
 	for id in _prop_nodes.keys():
@@ -1595,6 +1639,114 @@ func _build_prop_3d(root: Node3D, kind: String, spr: Sprite2D) -> void:
 				_add_box_2d(root, pos + Vector2(0, fy), Vector2(19, 2.6), 1.6, 1.0, m_soil)
 		"crop":
 			_build_crop_3d(root, pos, _tex_file(spr.texture))
+		"feeder":
+			# Comedero: artesa de tablas con más o menos grano según lo lleno que esté
+			var tf := _tex_file(spr.texture)
+			_add_box_2d(root, pos, Vector2(18, 8), 0.0, 4.0, m_wood)
+			if tf != "coop_feeder_empty.png":
+				var grain_h: float = 1.0 if tf == "coop_feeder_half.png" else 2.2
+				_add_box_2d(root, pos, Vector2(15, 5.5), 4.0, grain_h, _mat("coop_grain", Color(0.86, 0.72, 0.36), 0.95, 0.0))
+		"nest":
+			# Nido: caja baja con paja y, si hay, huevos
+			_add_box_2d(root, pos, Vector2(16, 13), 0.0, 4.0, m_dark)
+			_add_box_2d(root, pos, Vector2(13, 10), 4.0, 1.2, _mat("coop_straw", Color(0.84, 0.74, 0.42), 0.97, 0.0))
+			if _tex_file(spr.texture) == "coop_nest_eggs.png":
+				var m_egg := _mat("coop_egg", Color(0.96, 0.92, 0.82), 0.7, 0.0)
+				for off in [Vector2(-2.5, -1), Vector2(2.5, 0.5), Vector2(0, 2.5)]:
+					_add_cyl_2d(root, pos + off, 1.6, 5.0, 2.4, m_egg, 1.0, 6)
+
+
+## Casa mejorada del jugador (nivel 2 = cabaña de madera, 3 = casa de piedra con cofre). Copia la planta de la 2D
+## (CampSite._rebuild_house_visuals): mismo centro, tamaño y puerta de 28 px al sur. En nivel 1 es la tienda de campaña.
+func _sync_player_house_3d() -> void:
+	if not is_instance_valid(_camp_node) or nature_root_3d == null:
+		return
+	var tier: int = int(_camp_node.get("house_tier"))
+	if tier == _player_house_tier and is_instance_valid(_player_house_3d):
+		return
+	_player_house_tier = tier
+	if is_instance_valid(_player_house_3d):
+		_player_house_3d.queue_free()
+	_player_house_3d = null
+	_player_house_roof = null
+	if tier <= 1:
+		return
+	var root := Node3D.new()
+	root.name = "PlayerHouse3D"
+	nature_root_3d.add_child(root)
+	_player_house_3d = root
+	var stone: bool = tier >= 3
+	var c: Vector2 = _camp_node.global_position + CampSite.TENT_OFFSET + Vector2(-8, -8)
+	var size: Vector2 = Vector2(82, 60) if stone else Vector2(68, 52)
+	var half: Vector2 = size * 0.5
+	_player_house_rect = Rect2(c - half, size)
+	var m_floor := _mat("ph_floor_stone" if stone else "ph_floor_wood", Color(0.62, 0.60, 0.56) if stone else Color(0.62, 0.46, 0.30), 0.9, 0.02, Color.BLACK, 0.0, "town_textures/floor_stone.png" if stone else "town_textures/floor_wood_planks.png", "", 0.55)
+	var m_wall := _mat("ph_wall_stone" if stone else "ph_wall_timber", Color(0.70, 0.68, 0.64) if stone else Color(0.80, 0.70, 0.56), 0.9, 0.02, Color.BLACK, 0.0, "town_textures/wall_stone.png" if stone else "town_textures/wall_timber.png", "", 0.55)
+	var m_roof := _mat("ph_roof_tile" if stone else "ph_roof_thatch", Color(0.72, 0.42, 0.32) if stone else Color(0.80, 0.68, 0.42), 0.92, 0.0, Color.BLACK, 0.0, "town_textures/roof_clay_red_center.png" if stone else "town_textures/roof_thatch_center.png", "", 0.5)
+	var wall_h: float = 30.0 if stone else 26.0
+	var t: float = 6.0
+	var door_w: float = 28.0
+	var side_w: float = (size.x - door_w) * 0.5
+	_add_box_2d(root, c, size, 0.0, 1.4, m_floor)
+	_add_box_2d(root, c + Vector2(0, -half.y), Vector2(size.x, t), 0.0, wall_h, m_wall)
+	_add_box_2d(root, c + Vector2(-half.x, 0), Vector2(t, size.y), 0.0, wall_h, m_wall)
+	_add_box_2d(root, c + Vector2(half.x, 0), Vector2(t, size.y), 0.0, wall_h, m_wall)
+	_add_box_2d(root, c + Vector2(-half.x + side_w * 0.5, half.y), Vector2(side_w, t), 0.0, wall_h, m_wall)
+	_add_box_2d(root, c + Vector2(half.x - side_w * 0.5, half.y), Vector2(side_w, t), 0.0, wall_h, m_wall)
+	_add_box_2d(root, c + Vector2(0, half.y), Vector2(door_w + 4.0, t), wall_h - 6.0, 6.0, m_wall) # dintel
+	var roof := Node3D.new()
+	roof.name = "PlayerHouseRoof"
+	root.add_child(roof)
+	_add_prism_2d(roof, c, size + Vector2(10, 10), wall_h, 22.0 if stone else 20.0, m_roof, true)
+	_player_house_roof = roof
+	var bed_p: Vector2 = _camp_node.global_position + CampSite.TENT_OFFSET + Vector2(0, -4)
+	if _add_model_2d(root, "props/Bed_Twin1.gltf", bed_p, 1.4, Vector2(18, 28), 9.0) == null:
+		_add_box_2d(root, bed_p, Vector2(18, 28), 1.4, 6.0, m_wall)
+	if stone:
+		_add_model_2d(root, "props/Chest_Wood.gltf", _camp_node.global_position + CampSite.CHEST_OFFSET, 1.4, Vector2(14, 10), 9.0)
+	if not _is_headless:
+		var lt := OmniLight3D.new()
+		lt.position = to_3d(c, wall_h * 0.7)
+		lt.light_color = Color(1.0, 0.80, 0.55)
+		lt.light_energy = 0.6
+		lt.omni_range = 2.0
+		roof.add_child(lt)
+
+
+## Gallinero: cerca de postes y travesaños 3D en el mismo cuadrado que la 2D (76 x 60 px). El tramo de en medio del
+## lado sur desaparece cuando un zorro abre un agujero (`is_breached`) y vuelve al repararlo.
+func _sync_coop_3d() -> void:
+	if not is_instance_valid(_coop_node) or nature_root_3d == null:
+		return
+	if not is_instance_valid(_coop_3d):
+		_coop_3d = Node3D.new()
+		_coop_3d.name = "ChickenCoop3D"
+		nature_root_3d.add_child(_coop_3d)
+		var c: Vector2 = _coop_node.global_position
+		var m_post := _mat("coop_post", Color(0.50, 0.34, 0.20), 0.9, 0.02, Color.BLACK, 0.0, "town_textures/rf_planks.png", "", 0.78)
+		var m_floor := _mat("coop_floor", Color(0.46, 0.36, 0.22), 0.97, 0.0, Color.BLACK, 0.0, "town_textures/floor_ground_dirt.png", "", 0.5)
+		_add_box_2d(_coop_3d, c, Vector2(76, 60), 0.0, 0.8, m_floor)
+		var sides: Array = [[Vector2(-38, -30), Vector2(38, -30)], [Vector2(-38, -30), Vector2(-38, 30)], [Vector2(38, -30), Vector2(38, 30)],
+			[Vector2(-38, 30), Vector2(-12, 30)], [Vector2(12, 30), Vector2(38, 30)]]
+		for sd in sides:
+			_build_fence_run_3d(_coop_3d, c + (sd[0] as Vector2), c + (sd[1] as Vector2), m_post)
+		_coop_gap_3d = Node3D.new()
+		_coop_3d.add_child(_coop_gap_3d)
+		_build_fence_run_3d(_coop_gap_3d, c + Vector2(-12, 30), c + Vector2(12, 30), m_post)
+	if is_instance_valid(_coop_gap_3d):
+		_coop_gap_3d.visible = not bool(_coop_node.get("is_breached"))
+
+
+func _build_fence_run_3d(parent: Node3D, a: Vector2, b: Vector2, m: Material) -> void:
+	var length: float = a.distance_to(b)
+	var n_posts: int = maxi(2, int(ceil(length / 12.0)) + 1)
+	for i in range(n_posts):
+		_add_box_2d(parent, a.lerp(b, float(i) / float(n_posts - 1)), Vector2(2.4, 2.4), 0.0, 11.0, m)
+	var mid: Vector2 = (a + b) * 0.5
+	var horiz: bool = absf(b.x - a.x) > absf(b.y - a.y)
+	var rail_sz: Vector2 = Vector2(length, 1.4) if horiz else Vector2(1.4, length)
+	_add_box_2d(parent, mid, rail_sz, 4.0, 1.4, m)
+	_add_box_2d(parent, mid, rail_sz, 8.5, 1.4, m)
 
 
 ## Brote, planta a medias o planta madura según la imagen del cultivo 2D.
@@ -1635,6 +1787,9 @@ func _sync_2d_flat_visuals(use_3d: bool) -> void:
 		var spr_n = src.get("sprite")
 		if spr_n is CanvasItem and is_instance_valid(spr_n):
 			(spr_n as CanvasItem).self_modulate.a = target_a
+	for ci in _extra_hidden_2d:
+		if is_instance_valid(ci):
+			(ci as CanvasItem).self_modulate.a = target_a
 	var inner_rects: Array[Rect2] = []
 	for b in vm.building_footprints:
 		inner_rects.append((b["rect"] as Rect2).grow(-3.0))

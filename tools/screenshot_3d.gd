@@ -4,6 +4,7 @@ extends SceneTree
 ## Uso: flatpak run org.godotengine.Godot --path . -s tools/screenshot_3d.gd -- <carpeta_salida> [horas separadas por comas] [sitios]
 ## Sitios: plaza, iglesia, lago, cementerio, cerca (jugador de cerca), campamento. Por defecto: todos.
 ## En barrio_lago, caserios y molino levanta casas de muestra en los solares de esos barrios (solo en memoria).
+## En «casa_jugador» mejora tu casa a casa de piedra (solo en memoria) y enseña también el gallinero.
 ## En «campamento» siembra cultivos de muestra en el huerto (solo en memoria) para ver cada fase.
 ## Guarda <carpeta>/<sitio>_<hora>h.png. No toca la partida guardada.
 
@@ -18,6 +19,7 @@ var SPOTS := {
 	"barrio_lago": Vector2(-230, 290),
 	"caserios": Vector2(-600, 800),
 	"molino": Vector2(1580, 200),
+	"casa_jugador": Vector2(100, 40),
 }
 
 func _initialize() -> void:
@@ -64,6 +66,10 @@ func _initialize() -> void:
 			st["title"] = "🏠 %s" % str(VL.HOUSE_PLOTS[VL.plot_of(lid)]["word"])
 			st["beds"] = VL._house_beds(lid)
 			VL._draw_lot(vm_b, lid, st)
+	if spots.has("casa_jugador"):
+		var camp_n = root.find_child("PlayerCampSite", true, false)
+		if camp_n != null:
+			camp_n.upgrade_player_house(3)
 	var player := get_first_node_in_group("player") as Node2D
 	var cam := player.get_node_or_null("Camera2D") as Camera2D if player != null else null
 	SPOTS["inicio"] = player.global_position

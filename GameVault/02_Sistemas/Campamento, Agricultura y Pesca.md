@@ -21,4 +21,5 @@ fuente: "Biblia §3.4"
 - **Pesca en el Lago del Oeste:** Tres especies según la hora del día: **Trucha de arroyo** (diurna), **Carpa dorada** (tarde) y **Siluro del fondo** (nocturno, más difícil en la barra de tensión).
 
 ## Notas de diseño
+- 2026-11-06 (Claude Code): en 3D, la cabaña (madera y paja) y la casa de piedra (piedra y teja, con cofre) tienen muros, cama, luz y tejado que se abre al acercarte. Gallinero con cerca 3D (el tramo roto desaparece si entra el zorro), comedero según grano y nido con huevos. Las gallinas siguen planas.
 -

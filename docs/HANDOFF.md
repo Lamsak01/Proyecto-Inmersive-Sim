@@ -123,6 +123,12 @@ Otros documentos antiguos en la raíz: `ROADMAP_PROYECTO.md`, `AUDIT_LOG.md`, `S
 
 ## 7. Estado y siguiente bloque
 
+- [x] **Casa mejorada del jugador y gallinero en 3D (Claude Code, 2026-11-06)** (`WorldStage3D.gd`:
+  `_sync_player_house_3d` copia la planta de `CampSite._rebuild_house_visuals`, se rehace al cambiar `house_tier` y su
+  tejado se abre en `_update_roof_cutaways_and_lighting`; `_sync_coop_3d` + `_build_fence_run_3d`, tramo sur central
+  ligado a `is_breached`; tipos "feeder"/"nest" por imagen; `_extra_hidden_2d` esconde suelos, muros y cercas 2D y
+  `_sync_2d_flat_visuals` los devuelve con F9). `tools/screenshot_3d.gd`: sitio «casa_jugador». Gallinas aún 2D.
+
 - [x] **Precio por tamaño de casa (Claude Code, 2026-11-06)**: `HOUSE_PLOTS[*].cost` (80/100/140) y
   `VillageLots.house_cost(id)`; `request_build` cobra eso para "house". `maybe_order_house` decide la riqueza por
   ahorros (≥ coste casona + 20 → rich; ≥ casa + 20 → mid) antes de elegir solar. `VillageHousing`: contado, hipoteca,

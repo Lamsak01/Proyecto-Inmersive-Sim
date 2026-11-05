@@ -39,7 +39,7 @@ kanban-plugin: board
 - [ ] Ampliar la aldea, paso 2: romper las filas de solares y curvar las callejas (plan en `docs/PLAN_AMPLIAR_ALDEA.md`)
 - [ ] Quitar la etiqueta «dormida» de las tendencias ya conectadas (`TraitCatalog.gd`)
 - [ ] Paseos nocturnos visibles de Noctámbulos e Insomnes
-- [ ] Pasar a 3D lo que sigue plano: animales, gallinero (comedero y nido) y la casa mejorada del jugador (cabaña y casa de piedra)
+- [ ] Pasar a 3D los animales (gallinas, vacas, caballos y los del bosque); con buena conexión, buscar modelos con textura
 
 
 ## 🚧 En progreso
@@ -47,6 +47,8 @@ kanban-plugin: board
 
 
 ## ✅ Hecho
+
+- [x] Casa mejorada del jugador (cabaña y casa de piedra) y gallinero en 3D (2026-11-06)
 
 - [x] Precio según el tamaño: casita 80, casa 100, casona 140 (2026-11-06)
 

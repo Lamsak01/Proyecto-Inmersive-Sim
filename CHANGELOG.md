@@ -3,6 +3,12 @@
 Cambios del juego, del más nuevo al más antiguo. Añade una entrada al cerrar cada bloque, en lenguaje sencillo.
 El detalle técnico está en `docs/HANDOFF.md` (sección 7) y el historial completo en `git log`. Lo anterior a B0.1 está en `AUDIT_LOG.md` y `SESSION_CONTEXT_LOG.md`.
 
+## 2026-11-06 (noche) — Tu casa mejorada y el gallinero en 3D
+- La cabaña (madera y paja) y la casa de piedra (piedra y teja, con cofre) se ven en 3D, con cama, luz y tejado que
+  se abre al acercarte.
+- Gallinero con cerca de postes; si el zorro abre un agujero, falta ese tramo hasta que lo arreglas. Comedero con
+  más o menos grano y nido con huevos cuando los hay. Las gallinas siguen planas.
+
 ## 2026-11-06 (noche) — Cada casa con su precio
 - Casita 80 de oro, casa 100, casona 140. Los vecinos buscan la que pueden pagar con sus ahorros.
 - Al comprar un solar ves si es casita, casa o casona y su precio; la hipoteca y la reventa van con el tamaño.
