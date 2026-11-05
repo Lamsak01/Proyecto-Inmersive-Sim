@@ -54,6 +54,9 @@ const POWDER_PACK_COST: int = 14
 const OUTPOST_CHARTER_COST: int = 90
 const OUTPOST_SETTLER_BONUS: int = 15
 const OUTPOST_UPGRADE_COST: int = 35
+const OUTPOST_CENTER: Vector2 = Vector2(1615, 50)
+const OUTPOST_GATE_POS: Vector2 = Vector2(1542, 50)
+const OUTPOST_WORK_SPOTS: Array = [Vector2(1585, -8), Vector2(1585, 106), Vector2(1642, 48)]
 const OUTPOST_UPGRADES: Dictionary = {
 	"sawmill": "Aserradero Fronterizo (+1 madera/día y peaje)",
 	"granary": "Granero del Paso (+1 trigo/día y raciones)",
@@ -147,6 +150,7 @@ static func found_outpost(vm, inv) -> bool:
 	vm.town_state["treasury"] = int(vm.town_state.get("treasury", 0)) + (OUTPOST_CHARTER_COST - 20)
 	op["founded"] = true
 	op["treasury"] = 20
+	sync_outpost_visuals(vm)
 	VillageChronicle.add(vm, "outpost_founded", "Fundaste el asentamiento fronterizo «%s» con carta municipal (-%d Oro)" % [str(op["name"]), OUTPOST_CHARTER_COST], true)
 	return true
 
@@ -181,6 +185,7 @@ static func upgrade_outpost(vm, upg_id: String, artisan, inv) -> bool:
 	else:
 		vm.town_state["treasury"] = int(vm.town_state.get("treasury", 0)) + OUTPOST_UPGRADE_COST
 	upgs[upg_id] = true
+	sync_outpost_visuals(vm)
 	VillageChronicle.add(vm, "outpost_upgraded", "Construiste %s en tu asentamiento «%s»" % [upg_id, str(op["name"])], true)
 	return true
 
@@ -998,6 +1003,60 @@ static func ensure_lots(vm) -> void:
 		st["kind"] = e[1]
 		st["progress"] = 1.0
 		st["title"] = e[2]
+	sync_outpost_visuals(vm)
+
+static func _clear_outpost_visuals(vm) -> void:
+	if vm == null:
+		return
+	for nd in vm.get_meta("outpost_nodes", []):
+		if is_instance_valid(nd):
+			nd.queue_free()
+	vm.set_meta("outpost_nodes", [])
+
+static func sync_outpost_visuals(vm) -> void:
+	if vm == null or not is_instance_valid(vm.entities_root):
+		return
+	_clear_outpost_visuals(vm)
+	var cap: Dictionary = VillageLots._capture_begin(vm)
+	var op: Dictionary = outpost_state(vm)
+	var founded: bool = bool(op.get("founded", false))
+	var upgs: Dictionary = op.get("upgrades", {})
+	var c: Vector2 = OUTPOST_CENTER
+	# Extensión del camino del este hacia el Paso Fronterizo
+	vm._add_rect_poly(Vector2(1512, 50), Vector2(36, 14), Color(0.46, 0.36, 0.24, 0.92), -3)
+	if not founded:
+		vm._add_rect_poly(c, Vector2(68, 72), Color(0.28, 0.34, 0.20, 0.45), -3)
+		for p in [Vector2(-64, -68), Vector2(64, -68), Vector2(64, 68), Vector2(-64, 68)]:
+			vm._add_rect_poly(c + p, Vector2(3, 5), Color(0.48, 0.32, 0.16, 1.0), -1)
+		vm._add_rect_poly(OUTPOST_GATE_POS, Vector2(5, 8), Color(0.55, 0.36, 0.18, 1.0), -1)
+		vm._add_title_label(c + Vector2(-95, -88), Vector2(190, 14), "🏕️ Solar Fronterizo «Puesto del Paso» [E: Fundar]", Color(0.95, 0.88, 0.62), 7)
+	else:
+		# Explanada empedrada y empalizada de troncos del Puesto del Paso
+		vm._add_rect_poly(c, Vector2(76, 82), Color(0.36, 0.30, 0.22, 0.92), -2)
+		vm._add_rect_poly(c + Vector2(0, -80), Vector2(76, 4), Color(0.42, 0.27, 0.14, 1.0), 1)
+		vm._add_rect_poly(c + Vector2(0, 80), Vector2(76, 4), Color(0.42, 0.27, 0.14, 1.0), 1)
+		vm._add_rect_poly(c + Vector2(74, 0), Vector2(4, 82), Color(0.42, 0.27, 0.14, 1.0), 1)
+		vm._add_rect_poly(c + Vector2(-74, -50), Vector2(4, 30), Color(0.42, 0.27, 0.14, 1.0), 1)
+		vm._add_rect_poly(c + Vector2(-74, 50), Vector2(4, 30), Color(0.42, 0.27, 0.14, 1.0), 1)
+		# Cabaña de mando y arca de recaudación
+		vm._add_rect_poly(c + Vector2(32, 0), Vector2(24, 20), Color(0.48, 0.32, 0.18, 1.0), -1)
+		vm._add_rect_poly(c + Vector2(8, 0), Vector2(6, 4), Color(0.82, 0.68, 0.24, 1.0), 0)
+		# Hoguera central del campamento
+		vm._add_rect_poly(c + Vector2(-18, 0), Vector2(6, 6), Color(0.35, 0.35, 0.38, 1.0), -1)
+		vm._add_rect_poly(c + Vector2(-18, 0), Vector2(4, 4), Color(1.0, 0.58, 0.18, 0.95), 0)
+		if bool(upgs.get("sawmill", false)):
+			vm._add_rect_poly(c + Vector2(-28, -52), Vector2(22, 14), Color(0.54, 0.36, 0.20, 1.0), -1)
+			vm._add_title_label(c + Vector2(-78, -72), Vector2(100, 12), "🪚 Aserradero", Color(0.95, 0.88, 0.68), 7)
+		if bool(upgs.get("granary", false)):
+			vm._add_rect_poly(c + Vector2(-28, 52), Vector2(20, 14), Color(0.76, 0.62, 0.32, 1.0), -1)
+			vm._add_title_label(c + Vector2(-78, 64), Vector2(100, 12), "🌾 Granero", Color(0.98, 0.90, 0.62), 7)
+		if bool(upgs.get("watchtower", false)):
+			vm._add_rect_poly(c + Vector2(-58, -58), Vector2(12, 12), Color(0.45, 0.34, 0.22, 1.0), 1)
+			vm._add_title_label(c + Vector2(-108, -76), Vector2(100, 12), "🏹 Atalaya", Color(0.88, 0.94, 1.0), 7)
+		vm._add_title_label(c + Vector2(-105, -96), Vector2(210, 14), "🏕️ «%s» [E: Arca / Mejoras]" % str(op.get("name", "Puesto del Paso")), Color(1.0, 0.92, 0.58), 8)
+	vm.set_meta("outpost_nodes", VillageLots._capture_end(vm, cap)[0])
+	if vm.has_method("refresh_world_stage_3d"):
+		vm.refresh_world_stage_3d()
 
 static func build(vm, id: String, st: Dictionary) -> void:
 	var d: Dictionary = VillageLots.lot_def(id)
@@ -1028,8 +1087,10 @@ static func on_read(vm, n) -> void:
 	n.add_thought("Leí un rato en la biblioteca (+3)", 3.0)
 	n.set_meta("read_day", int(WorldClock.current_day) if WorldClock else 1) # M16 «Lo que se lee de noche»
 
-## El jugador pulsa E cerca de la mesa de lectura. Devuelve true si la interacción era suya.
+## El jugador pulsa E cerca de la mesa de lectura o en el asentamiento «Puesto del Paso». Devuelve true si la interacción era suya.
 static func try_interact(vm, player, pos: Vector2) -> bool:
+	if _try_outpost_interact(vm, player, pos):
+		return true
 	if VillageLots.lot(vm, LIBRARY_LOT).get("kind", "") != "library" or pos.distance_to(reading_spot()) > 26.0:
 		return false
 	var st: Dictionary = state(vm)
@@ -1045,6 +1106,40 @@ static func try_interact(vm, player, pos: Vector2) -> bool:
 		player.add_skill_xp(skill, READ_XP)
 	if player.has_method("_spawn_floating_text"):
 		player._spawn_floating_text("📖 Lees un buen rato y aprendes algo (+%d %s)" % [READ_XP, skill], Color.LIGHT_SKY_BLUE, -40.0)
+	return true
+
+static func _try_outpost_interact(vm, player, pos: Vector2) -> bool:
+	if vm == null or player == null:
+		return false
+	if pos.distance_to(OUTPOST_GATE_POS) > 46.0 and pos.distance_to(OUTPOST_CENTER) > 58.0:
+		return false
+	var inv = player.get("inventory")
+	var op: Dictionary = outpost_state(vm)
+	if not bool(op.get("founded", false)):
+		if found_outpost(vm, inv):
+			if player.has_method("_spawn_floating_text"):
+				player._spawn_floating_text("🏕️📜 ¡Has fundado el «Puesto del Paso» aquí mismo en el lindero este!", Color.GOLD, -44.0)
+		else:
+			if player.has_method("_spawn_floating_text"):
+				player._spawn_floating_text("🏕️ Necesitas %d de oro, 2 Maderas y 2 Piedras para fundar el Puesto del Paso" % OUTPOST_CHARTER_COST, Color.ORANGE_RED, -44.0)
+		return true
+	var col: int = collect_outpost_treasury(vm, inv)
+	if col > 0:
+		if player.has_method("_spawn_floating_text"):
+			player._spawn_floating_text("💰🏕️ Recaudaste %d de oro del arca del Puesto del Paso" % col, Color.GOLD, -44.0)
+		return true
+	var upgs: Dictionary = op.get("upgrades", {})
+	for up_k in OUTPOST_UPGRADES.keys():
+		if not bool(upgs.get(up_k, false)):
+			if upgrade_outpost(vm, str(up_k), null, inv):
+				if player.has_method("_spawn_floating_text"):
+					player._spawn_floating_text("🏗️🏕️ ¡Levantaste %s en el Puesto del Paso!" % str(OUTPOST_UPGRADES[up_k]), Color.GOLD, -44.0)
+			else:
+				if player.has_method("_spawn_floating_text"):
+					player._spawn_floating_text("🏕️ Puesto del Paso (Colonos: %d/3 | Arca: %d oro) — %d de oro para levantar %s" % [(op.get("settlers", []) as Array).size(), int(op.get("treasury", 0)), OUTPOST_UPGRADE_COST, str(OUTPOST_UPGRADES[up_k])], Color.LIGHT_SKY_BLUE, -44.0)
+			return true
+	if player.has_method("_spawn_floating_text"):
+		player._spawn_floating_text("🏕️✨ Puesto del Paso al completo (Colonos: %d/3 | Arca: %d oro)" % [(op.get("settlers", []) as Array).size(), int(op.get("treasury", 0))], Color.AQUAMARINE, -44.0)
 	return true
 
 # ---------------------------------------------------------------- mercado
@@ -1127,8 +1222,31 @@ static func _sellers(vm) -> Array:
 static func _all_npcs(vm) -> Array:
 	return vm.get_tree().get_nodes_in_group("village_npcs").filter(func(n): return n is VillageNPC and is_instance_valid(n))
 
+static func _outpost_on_hour(vm, hour: int) -> void:
+	if vm == null:
+		return
+	var op: Dictionary = outpost_state(vm)
+	if not bool(op.get("founded", false)):
+		return
+	var settlers: Array = op.get("settlers", [])
+	if settlers.is_empty():
+		return
+	var by_key: Dictionary = vm._get_npcs_by_person_key()
+	for i in range(settlers.size()):
+		var pk: String = str(settlers[i])
+		var sn = by_key.get(pk, null)
+		if sn == null or not is_instance_valid(sn) or sn.is_dead:
+			continue
+		if hour >= 8 and hour < 17:
+			if sn.errand_kind == "" and VillageNeeds.is_free(sn):
+				var spot: Vector2 = OUTPOST_WORK_SPOTS[i % OUTPOST_WORK_SPOTS.size()]
+				sn.start_errand("outpost_work", spot)
+		elif sn.errand_kind == "outpost_work":
+			sn.end_errand()
+
 static func on_hour(vm, hour: int) -> void:
 	raid_on_hour(vm, hour)
+	_outpost_on_hour(vm, hour)
 	if hour == MARKET_OPEN and is_market_day():
 		open_market(vm)
 	elif hour >= MARKET_CLOSE and is_market_open(vm):
@@ -1187,6 +1305,7 @@ static func after_load(vm) -> void:
 	if is_market_open(vm):
 		close_market(vm)
 	restore_planted_trees(vm)
+	sync_outpost_visuals(vm)
 	# El caballo es estado guardado; la velocidad se vuelve a aplicar al jugador al cargar
 	var pl_l = VillageNeeds.player_of(vm)
 	if pl_l != null and has_horse(vm):

@@ -176,6 +176,8 @@ static func _draw_lot(vm, id: String, st: Dictionary) -> void:
 		for k in old_biz.keys():
 			if not k in ["stall_pos", "stall_sprite", "stall_label"]:
 				nb[k] = old_biz[k] # Conserva dueño, caja, sabotaje y existencias al redibujar
+	if vm.has_method("refresh_world_stage_3d"):
+		vm.refresh_world_stage_3d()
 
 static func _rect_pts(c: Vector2, sz: Vector2) -> PackedVector2Array:
 	var h := sz * 0.5

@@ -36,11 +36,13 @@ const VillageMayor = preload("res://scripts/systems/VillageMayor.gd")
 const VillageHousing = preload("res://scripts/systems/VillageHousing.gd")
 const VillageUnderworld = preload("res://scripts/systems/VillageUnderworld.gd")
 const VillageFame = preload("res://scripts/systems/VillageFame.gd")
+const WorldStage3DScript = preload("res://scripts/visuals/WorldStage3D.gd")
 
 ## Gestor Integral de Urbanismo Sólido, Hospital/Morgue Forense, Comisaría/Cárcel, Testigos,
 ## Sigilo Doméstico, Reputación Familiar, Tablón de Encargos y Red Eléctrica (10 Pasos de Expansión)
 
 var entities_root: Node = null
+var world_stage_3d: Node2D = null
 
 var trade_npcs: Dictionary = {}    # TradeRole -> VillageNPC (Titular actual del oficio)
 var family_npcs: Dictionary = {}   # TradeRole -> VillageNPC (Familiar directo de esa casa)
@@ -264,6 +266,11 @@ func setup_village(target_entities_root: Node) -> void:
 	VillagePlaces.build_world(self) # V5c: parque, bancos de la plaza y mirador del lago
 	VillageWork.build_world(self) # V5d: lavadero
 	_spawn_domestic_pets()
+	if is_instance_valid(world_stage_3d):
+		world_stage_3d.queue_free()
+	world_stage_3d = WorldStage3DScript.new()
+	add_child(world_stage_3d)
+	world_stage_3d.setup_stage(self)
 
 	if not in_editor:
 		_setup_Interactive_modals_ui()
@@ -519,6 +526,7 @@ func _construct_solid_building(
 		f_rect.position = rect.position
 		f_rect.size = size
 		f_rect.z_index = -2
+		f_rect.set_meta("flat_2d_building_visual", true)
 		entities_root.add_child(f_rect)
 
 	var tex_h := _load_tex(wall_h_path)
@@ -4843,6 +4851,7 @@ func load_economy_save_dict(data: Dictionary) -> void:
 
 	var b_dict: Variant = data.get("businesses", {})
 	if typeof(b_dict) != TYPE_DICTIONARY:
+		refresh_world_stage_3d()
 		return
 	var saved_b: Dictionary = b_dict as Dictionary
 	for k_str in saved_b.keys():
@@ -4860,6 +4869,11 @@ func load_economy_save_dict(data: Dictionary) -> void:
 				if is_instance_valid(holder) and not holder.is_dead:
 					holder.shop_stock = (entry["stock_override"] as Dictionary).duplicate()
 			_refresh_shop_stall_visual(role_int)
+	refresh_world_stage_3d()
+
+func refresh_world_stage_3d() -> void:
+	if is_instance_valid(world_stage_3d) and world_stage_3d.has_method("rebuild_all_3d"):
+		world_stage_3d.rebuild_all_3d()
 
 func spawn_dynamic_npc_from_save(node_name: String, npc_data: Dictionary) -> VillageNPC:
 	if not is_instance_valid(entities_root):

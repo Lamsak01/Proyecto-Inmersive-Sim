@@ -225,7 +225,7 @@ func _unhandled_input(event: InputEvent) -> void:
 			CharacterAvatar3DScript.use_3d_characters = not CharacterAvatar3DScript.use_3d_characters
 			var p = get_tree().get_first_node_in_group("player")
 			if p and p.has_method("show_hint"):
-				var mode_txt := "Maquetas 3D Articuladas ACTIVADAS" if CharacterAvatar3DScript.use_3d_characters else "Sprites 2D Clásicos ACTIVADOS"
+				var mode_txt := "Mundo, Edificios y Personajes 3D ACTIVADOS" if CharacterAvatar3DScript.use_3d_characters else "Mapa y Sprites 2D Clásicos ACTIVADOS"
 				p.call("show_hint", "🎥 [F9] %s (Pulsa [F8] para abrir el Visor 3D en primer plano)" % mode_txt)
 			_update_status_text()
 			get_viewport().set_input_as_handled()

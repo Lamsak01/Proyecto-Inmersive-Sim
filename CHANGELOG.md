@@ -5,6 +5,13 @@ El detalle técnico está en `docs/HANDOFF.md` (sección 7) y el historial compl
 
 ## 2026-11-04
 
+### Transición 3D (Fase 2): Pueblo, edificios, interiores y tejados 3D con apertura automática + «Puesto del Paso» en el mapa
+- **El pueblo entero en 3D:** caminos, plaza adoquinada, pozos, bancos, Parque del Robledal, Lavadero, Mirador del Lago, Ciénaga del Oeste, Cementerio Parroquial (con tumbas 3D reales), solares en obras y todos los edificios cuentan ahora con maquetas arquitectónicas en 3D alineadas al milímetro con el mapa.
+- **Tejados que se abren solos e interiores 3D:** cada edificio tiene tejado a cuatro aguas con chimenea, puertas 3D que giran al abrirse y ventanas con contraventanas. Al entrar tú, entrar un vecino o pasar el ratón por encima, el tejado se retira suavemente y deja ver el interior 3D con sus camas, mesas, mostradores, cofres, fragua, morgue con camillas, celda de comisaría, bancos de la capilla, estanterías de la biblioteca y pupitres de la escuela.
+- **Altillos (`+1`), alcantarillas (`-1`) y farolas con luz real:** cuando subes al piso de arriba ves la planta del altillo 3D con su escalera y camas; cuando bajas al subsuelo ves las bóvedas subterráneas de las alcantarillas; y de noche las farolas proyectan luz cálida 3D sobre las calles y fachadas si la red eléctrica funciona.
+- **El «Puesto del Paso» ya existe físicamente en el mapa:** al final del camino del este se levanta ahora el recinto del asentamiento fronterizo (tanto en 3D como en 2D), donde puedes acercarte a pulsar `E` para fundarlo, recaudar su arca o levantar el aserradero, el granero y la atalaya, mientras los colonos reclutados caminan hasta allí a trabajar cada mañana.
+- **Cambio instantáneo 3D / 2D con `F9`:** la tecla `F9` activa o desactiva a la vez todo el escenario 3D y los personajes 3D, volviendo al instante al mapa 2D original sin perder nada.
+
 ### Transición 3D (Fase 1): Maquetas 3D articuladas para jugador y vecinos, equipo visible, prótesis y Visor 3D
 - **Muñecos 3D articulados en partida:** el jugador y todos los vecinos cuentan ahora con un modelo 3D provisional por piezas (cabeza con ojos, cejas, peinado y barba, torso con delantal de oficio o capa, brazos y piernas articulados que giran en 360 grados).
 - **Armas, herramientas, armaduras y prótesis visibles:** todo lo que equipas (espada, martillo, hacha, pico, arco, hoz, regadera, caña, farol nocturno, cascos, petos, grebas, botas y sombreros de oficio) y las amputaciones o prótesis mecánicas de hierro y cobre se ven directamente en el cuerpo del personaje.
