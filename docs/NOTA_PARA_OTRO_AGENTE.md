@@ -12,6 +12,7 @@
    - `docs/HANDOFF.md` §7: las entradas «Revisión PF–PQ», «Sonda de mecánicas» y «Asaltos con motivo»;
    - las últimas tablas de `docs/REGISTRO_TRABAJO.md`.
 3. No toques `scripts/systems/VillageSect.gd`: el usuario se lo reserva. Se puede leer, pero no modificar.
+4. **Bóveda de Obsidian (`GameVault/`):** Ya está integrada dentro del repositorio y versionada en GitHub. Al cerrar cualquier bloque, actualiza también las notas correspondientes en `GameVault/` para que todos los agentes trabajemos sobre la misma fuente de verdad.
 
 ## Lo que hice (commits en orden)
 

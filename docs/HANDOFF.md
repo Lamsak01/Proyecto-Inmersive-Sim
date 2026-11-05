@@ -11,6 +11,8 @@ El prompt completo y actualizado (2026-11-03) está en **`docs/PROMPT_SIGUIENTE_
 usuario (crítico, sin darle la razón por defecto), reglas de trabajo, pruebas, preferencias, lo hecho, lo pendiente y
 recomendaciones. Pégalo entero como primer mensaje al cambiar de agente.
 
+- **Bóveda de Obsidian compartida (`GameVault/`):** Toda la base de conocimiento del proyecto está integrada en la carpeta `GameVault/` de la raíz del repositorio (con `.gdignore` para que Godot no la importe). Tanto Claude Code como Antigravity o cualquier agente futuro deben leerla y actualizar las notas correspondientes (`02_Sistemas/`, `04_Censo_y_Misiones/`, `05_Roadmap_y_Lore/`, `06_Diario/`) al cerrar cada bloque, subiéndola a `main` junto con el código.
+
 ---
 
 ## 1. Qué es el proyecto

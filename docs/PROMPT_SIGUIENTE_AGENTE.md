@@ -72,7 +72,8 @@ Reglas concretas:
   1) márcalo en docs/HANDOFF.md (sección 7);
   2) añade una entrada sencilla a CHANGELOG.md (lenguaje de jugador, no técnico);
   3) añade su tabla a docs/REGISTRO_TRABAJO.md (paso, estado ✅ probado / 🟡 sin probar, archivos, nota);
-  4) commit y push a main; comprueba que tu commit está en origin/main.
+  4) actualiza las notas afectadas en la bóveda de Obsidian del repositorio (`GameVault/02_Sistemas/`, `05_Roadmap_y_Lore/`, `06_Diario/`);
+  5) commit y push a main; comprueba que tu commit está en origin/main.
 - Si te doy autonomía para un bloque grande («hazlo todo sin parar»), trabaja seguido, lleva el registro y pasa
   las pruebas solo al final.
 - Lo creativo (lore, nombres, textos de misiones, sectas, religión) es PROVISIONAL: yo lo reharé. Apunta todo lo
