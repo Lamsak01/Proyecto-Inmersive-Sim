@@ -3,6 +3,11 @@
 Cambios del juego, del más nuevo al más antiguo. Añade una entrada al cerrar cada bloque, en lenguaje sencillo.
 El detalle técnico está en `docs/HANDOFF.md` (sección 7) y el historial completo en `git log`. Lo anterior a B0.1 está en `AUDIT_LOG.md` y `SESSION_CONTEXT_LOG.md`.
 
+## 2026-11-05 — Menos letreros encima de los vecinos
+- Al pasar el ratón solo enseña ficha el vecino más cercano al puntero, y corta: nombre, oficio y qué está haciendo.
+- La ficha completa (bolsillo, rasgos, humor, hambre, sueño…) sale manteniendo Alt.
+- Ya no salen fichas solo por estar cerca del jugador. El letrero de la E va debajo de los pies para no pisarla.
+
 ## 2026-11-05 — La tecla E ya no se lía
 - Encima de lo que vas a usar sale un letrero «[E] …» (hablar con alguien, abrir la puerta, montar, gestionar el
   negocio, abrir el cofre…), así sabes qué pasará antes de pulsar.

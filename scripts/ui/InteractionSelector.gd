@@ -224,4 +224,5 @@ func _update_label() -> void:
 		txt += "   (%d/%d · Mayús+rueda o G)" % [candidates.find(c) + 1, candidates.size()]
 	_label.text = txt
 	_label.visible = true
-	_label.position = (c["pos"] as Vector2) + Vector2(-110.0, -34.0)
+	# Debajo de los pies: así no pisa la ficha del vecino, que va encima de la cabeza.
+	_label.position = (c["pos"] as Vector2) + Vector2(-110.0, 8.0)

@@ -123,6 +123,9 @@ Otros documentos antiguos en la raíz: `ROADMAP_PROYECTO.md`, `AUDIT_LOG.md`, `S
 
 ## 7. Estado y siguiente bloque
 
+- [x] **Ficha de vecino al pasar el ratón (Claude Code, 2026-11-05)**: `VillageNPC._update_hover_label` solo la
+  enseña el dueño de `static var _hover_owner` (el más cercano al ratón, ≤22 px), corta; con Alt la completa. Ya no
+  sale por cercanía al jugador. Los letreros de sigilo y aturdido siguen igual.
 - [x] **Selector de E (Claude Code, 2026-11-05)**: `scripts/ui/InteractionSelector.gd` (hijo del jugador). Junta las
   Area2D «interactable» que solapan con el `InteractArea` del jugador, las ordena por distancia, elige la que está bajo
   el ratón (≤16 px, si el ratón está a ≤55 px del jugador) o la elegida con Mayús+rueda / G, y pinta «[E] …».

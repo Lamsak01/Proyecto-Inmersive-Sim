@@ -237,6 +237,9 @@ var _door_nudge_timer: float = 0.0
 var _corpse_scan_timer: float = 0.0
 var _doctor_scan_timer: float = 0.0
 var _hover_label_timer: float = 0.0
+## Vecino que enseña su ficha (el más cercano al ratón): así solo hay una a la vez.
+static var _hover_owner: Node = null
+static var _hover_owner_d: float = 0.0
 
 # Estado Policial y Sigilo (Negociación -> Persecución + Derribo No Letal / Asesinato Letal por la Espalda)
 var _police_alerted_timer: float = 0.0
@@ -4049,20 +4052,33 @@ func _update_hover_label(delta: float = 0.016) -> void:
 
 	var player := _get_player()
 	var near_player: bool = player != null and global_position.distance_squared_to(player.global_position) <= 30.0 * 30.0
-	var near_mouse: bool = global_position.distance_squared_to(get_global_mouse_position()) <= 22.0 * 22.0
+	# Ficha al pasar el ratón (2026-11-05): solo la del vecino más cercano al puntero, y corta.
+	# La ficha completa (bolsillo, rasgos, hambre, sueño…) solo manteniendo Alt.
+	var mouse_d: float = global_position.distance_to(get_global_mouse_position())
+	var near_mouse: bool = mouse_d <= 22.0
+	if near_mouse:
+		if _hover_owner == null or not is_instance_valid(_hover_owner) or _hover_owner == self or mouse_d < _hover_owner_d:
+			_hover_owner = self
+			_hover_owner_d = mouse_d
+	elif _hover_owner == self:
+		_hover_owner = null
+	near_mouse = near_mouse and _hover_owner == self
 
 	if is_sleeping and not near_mouse and not near_player:
 		if status_label.text != "Zzz" or not status_label.visible:
 			_show_status_label("Zzz", Color(0.72, 0.85, 1.0))
 		return
 
-	if near_player or near_mouse:
+	if near_mouse and not Input.is_key_pressed(KEY_ALT):
+		var act_short: String = "🃏 En la Mesa de Póker" if is_at_poker_table else get_activity_description()
+		_show_status_label("%s — %s\n%s  (Alt: ficha)" % [npc_name, npc_role, act_short], Color(1.0, 0.92, 0.68))
+	elif near_mouse:
 		var act_txt: String = "🃏 En la Mesa de Póker" if is_at_poker_table else get_activity_description()
 		var traits_str: String = ", ".join(traits) if not traits.is_empty() else "Equilibrado"
 		var eff_badge: String = (" · ⚒️" + get_job_efficiency_label()) if not (trade_role in [TradeRole.UNEMPLOYED, TradeRole.FAMILY_MEMBER]) else ""
 		var sleep_badge: String = (" (" + get_sleep_status_label() + ")") if (need_energy < 50.0 or is_vagrant_camper) else ""
 		var seal_badge: String = " · 📜Salvoconducto Real" if carries_royal_safe_conduct else ""
-		_show_status_label("%s (%s) — %s%s · 💰%d Oro%s [%s]\n[%s | 😊Humor:%d%% 🍖%d%% (%s) 💤%d%%%s 💬%d%% | E: Hablar]" % [
+		_show_status_label("%s (%s) — %s%s · 💰%d Oro%s [%s]\n[%s | 😊Humor:%d%% 🍖%d%% (%s) 💤%d%%%s 💬%d%%]" % [
 			npc_name, family_name, npc_role, eff_badge, maxi(0, personal_gold), seal_badge, traits_str,
 			act_txt, int(round(mood)), int(round(need_hunger)), get_nutrition_status_label(), int(round(need_energy)), sleep_badge, int(round(need_social))
 		], Color(1.0, 0.92, 0.68))

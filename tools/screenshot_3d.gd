@@ -140,6 +140,15 @@ func _initialize() -> void:
 					if String(s).begins_with("r_") or s == "lago" or s == "norte":
 						cam.zoom = Vector2(1.4, 1.4)
 					cam.reset_smoothing()
+			# En «cerca», el ratón se pone sobre el vecino más cercano para ver su ficha.
+			if s == "cerca" and player != null:
+				var near_n = null
+				for nn in get_nodes_in_group("village_npcs"):
+					if not nn.is_dead and (near_n == null or nn.global_position.distance_to(player.global_position) < near_n.global_position.distance_to(player.global_position)):
+						near_n = nn
+				if near_n != null:
+					await process_frame
+					root.warp_mouse(root.get_canvas_transform() * near_n.global_position)
 			for i in range(90):
 				await process_frame
 			var img: Image = root.get_texture().get_image()
