@@ -3,6 +3,12 @@
 Cambios del juego, del más nuevo al más antiguo. Añade una entrada al cerrar cada bloque, en lenguaje sencillo.
 El detalle técnico está en `docs/HANDOFF.md` (sección 7) y el historial completo en `git log`. Lo anterior a B0.1 está en `AUDIT_LOG.md` y `SESSION_CONTEXT_LOG.md`.
 
+## 2026-11-06 (noche) — Edificios con sus piezas quietas juntas
+- Cada edificio junta muros, suelos y muebles en una sola pieza por material (se ven igual). Puertas, ventanas,
+  postigos, reja del calabozo, cuerpos de la morgue, tejado y altillo siguen sueltos.
+- Piezas 3D dibujadas: de 2.317 a 1.409. La velocidad apenas cambia: lo que más frena es lo que «piensan» y cómo
+  caminan los vecinos, no el dibujo.
+
 ## 2026-11-06 (noche) — Casas iniciales repartidas y árboles agrupados
 - La mitad de las casas con que empieza la partida salen en los barrios apartados (Lago, Caseríos, Molino), así el
   pueblo nuevo se ve desde el primer día.

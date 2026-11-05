@@ -813,6 +813,8 @@ func rebuild_buildings_3d() -> void:
 			"loft_root": loft_root,
 		})
 
+	_merge_building_meshes()
+
 	# Cofres domésticos 3D sincronizados con `vm.house_chests`
 	for ch in vm.house_chests:
 		var c_pos: Vector2 = ch.get("pos", Vector2.ZERO)
@@ -821,6 +823,92 @@ func rebuild_buildings_3d() -> void:
 		_add_model_2d(ch_root, "props/Chest_Wood.gltf", c_pos, 2.0, Vector2(12.0, 8.5), 7.5)
 		var lid := _add_box_2d(ch_root, c_pos, Vector2(11.4, 7.8), 7.5, 1.8, m_gold)
 		_chest_nodes_3d.append({"entry": ch, "lid": lid})
+
+## Rendimiento: junta en una sola malla por material las piezas quietas de cada edificio (muros, suelos, muebles).
+## Quedan aparte y se siguen moviendo: puertas, ventanas y postigos, cuerpos de la morgue, reja del calabozo, el tejado
+## (que se abre) y el altillo (que aparece), estos dos juntados cada uno por su lado.
+func _merge_building_meshes() -> void:
+	if _is_headless:
+		return
+	var excl: Dictionary = {}
+	for d in _door_nodes_3d:
+		for k in ["pivot", "lock_badge"]:
+			if d.get(k) is Node:
+				excl[d[k]] = true
+	for w in _window_nodes_3d:
+		for k in ["pane", "shutter"]:
+			if w.get(k) is Node:
+				excl[w[k]] = true
+	for mb in _morgue_body_nodes_3d:
+		excl[mb] = true
+	if _jail_gate_pivot_3d != null:
+		excl[_jail_gate_pivot_3d] = true
+	for rec in _building_records_3d:
+		var sub: Array = [rec["roof_cap"], rec["loft_root"]]
+		var ex_b: Dictionary = excl.duplicate()
+		for sn in sub:
+			ex_b[sn] = true
+		_merge_meshes_under(rec["root"], ex_b)
+		for sn in sub:
+			_merge_meshes_under(sn, excl)
+
+func _merge_meshes_under(root: Node3D, excl: Dictionary) -> void:
+	var found: Array = []
+	_collect_merge_meshes(root, root, excl, found)
+	if found.size() < 2:
+		return
+	var inv: Transform3D = root.global_transform.affine_inverse()
+	var tools: Dictionary = {} # clave -> {"st": SurfaceTool, "mat": Material, "shadow": int}
+	for mi in found:
+		var xf: Transform3D = inv * mi.global_transform
+		for si in range(mi.mesh.get_surface_count()):
+			var mat: Material = mi.material_override
+			if mat == null:
+				mat = mi.get_surface_override_material(si)
+			if mat == null:
+				mat = mi.mesh.surface_get_material(si)
+			var fmt: int = 0
+			var arrs: Array = mi.mesh.surface_get_arrays(si)
+			for ai in range(arrs.size()):
+				if arrs[ai] != null:
+					fmt |= 1 << ai
+			var key := "%d_%d_%d" % [mat.get_instance_id() if mat != null else 0, fmt, int(mi.cast_shadow)]
+			if not tools.has(key):
+				tools[key] = {"st": SurfaceTool.new(), "mat": mat, "shadow": int(mi.cast_shadow)}
+			(tools[key]["st"] as SurfaceTool).append_from(mi.mesh, si, xf)
+		mi.mesh = null # el nodo se queda (por si tiene hijos), pero ya no se dibuja
+	var by_shadow: Dictionary = {}
+	for key in tools:
+		var t: Dictionary = tools[key]
+		var am: ArrayMesh = by_shadow.get(t["shadow"], null)
+		if am == null:
+			am = ArrayMesh.new()
+			by_shadow[t["shadow"]] = am
+		(t["st"] as SurfaceTool).commit(am)
+		am.surface_set_material(am.get_surface_count() - 1, t["mat"])
+	for sh in by_shadow:
+		var out := MeshInstance3D.new()
+		out.name = "Juntado"
+		out.mesh = by_shadow[sh]
+		out.cast_shadow = sh
+		root.add_child(out)
+
+func _collect_merge_meshes(n: Node, root: Node, excl: Dictionary, out: Array) -> void:
+	for c in n.get_children():
+		if excl.has(c):
+			continue
+		if c is Node3D and not (c as Node3D).visible:
+			continue
+		if c is MeshInstance3D:
+			var mi := c as MeshInstance3D
+			var ok: bool = mi.mesh != null and mi.skin == null and not (mi.mesh is ArrayMesh and (mi.mesh as ArrayMesh).get_blend_shape_count() > 0)
+			if ok:
+				for si in range(mi.mesh.get_surface_count()):
+					if mi.mesh is ArrayMesh and (mi.mesh as ArrayMesh).surface_get_primitive_type(si) != Mesh.PRIMITIVE_TRIANGLES:
+						ok = false
+			if ok:
+				out.append(mi)
+		_collect_merge_meshes(c, root, excl, out)
 
 func _populate_building_interior_3d(b_root: Node3D, b_id: String, rect: Rect2, door_south: bool, wall_h: float, m_wall: Material, m_trim: Material, m_wood: Material, m_dark_wood: Material, m_iron: Material, m_gold: Material) -> void:
 	var c: Vector2 = rect.get_center()

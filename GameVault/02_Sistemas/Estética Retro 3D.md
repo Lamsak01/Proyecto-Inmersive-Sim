@@ -36,6 +36,7 @@ tags:
 - [[Supervivencia y Clima]] (hora y tiempo), [[Red Eléctrica]] (farolas), [[Capas Verticales y Alcantarillas]] (tejados).
 
 ## Notas de diseño
+- 2026-11-06 (Claude Code): los edificios juntan sus piezas quietas (de 2.317 a 1.409 piezas). Apenas sube la velocidad: lo que frena es el cálculo de los vecinos, no el dibujo.
 - 2026-11-06 (Claude Code): rendimiento. Árboles y rocas iguales se dibujan juntos por zonas (sin cambio visible). Lo que más pesa son los edificios (~1.500 piezas) y los vecinos (~360). El usuario no quiere que los vecinos lejanos se muevan «a ratos».
 - 2026-11-05 (Claude Code): primera versión completa. El registro paso a paso está en `docs/REGISTRO_ESTETICA_3D.md`.
 - Los personajes siguen siendo los de Quaternius (cuerpo algo «de superhéroe»). Es lo más mejorable; ver [[Assets de pago]].

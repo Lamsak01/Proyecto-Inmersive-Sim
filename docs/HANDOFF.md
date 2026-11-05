@@ -123,6 +123,14 @@ Otros documentos antiguos en la raíz: `ROADMAP_PROYECTO.md`, `AUDIT_LOG.md`, `S
 
 ## 7. Estado y siguiente bloque
 
+- [x] **Edificios: mallas quietas juntadas (Claude Code, 2026-11-06)** (`WorldStage3D._merge_building_meshes` al final
+  de `rebuild_buildings_3d`, solo con ventana: `SurfaceTool.append_from` por material + formato + sombra en cada
+  `B3D_*`, y aparte en `roof_cap` y `loft_root`; excluye puertas, ventanas, postigos, morgue y reja; deja los nodos con
+  `mesh = null`). Mallas dibujadas 2.317 → 1.409, llamadas de dibujo ~1.230 → ~1.100, fps casi igual. Medido antes:
+  proceso ~25–30 ms y física ~16 ms por fotograma (vecinos quietos → física 4 ms). El cuello de botella es la CPU
+  (lógica y movimiento de los vecinos), no la tarjeta. Siguiente: medir qué parte del vecino cuesta y abaratarla SIN
+  cambiar su comportamiento (el usuario no quiere simulación «a ratos»).
+
 - [x] **Rendimiento: lotes de árboles y rocas + casas iniciales en barrios (Claude Code, 2026-11-06)**
   (`WorldStage3D.gd`: `_absorb_into_batches` pasa las mallas sin material propio de `_make_nature_3d` a un
   MultiMeshInstance3D por malla y zona de `BATCH_CHUNK_PX`; `_set_vis3d` + `_flush_batches` sustituyen a `.visible`
