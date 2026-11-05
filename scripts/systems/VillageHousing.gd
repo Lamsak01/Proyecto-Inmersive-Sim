@@ -424,7 +424,7 @@ static func try_interact(vm, player: Node2D, pos: Vector2) -> bool:
 				return true
 		# 2. Dentro de una casa construida tuya: dormir en tu cama o estudiar en tu estantería
 		if str(st.get("status", "")) == "built" and str(st.get("payer", "")) == "player":
-			var c: Vector2 = l["center"]
+			var c: Vector2 = VillageLots.lot_def(id)["center"]
 			if pos.distance_to(c) <= 46.0:
 				var hs: Dictionary = state(vm)
 				var up: Dictionary = st.get("upgrades", {})

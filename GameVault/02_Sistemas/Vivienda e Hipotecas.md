@@ -23,6 +23,7 @@ fuente: "Biblia §4.4"
   - **Riesgo de robo nocturno (`shop_night_theft`):** `18%` de probabilidad cada noche (`7%` si tienes dependiente) de que un ladrón robe la mitad de la caja, pasando ese oro al vecino más pobre del pueblo.
 
 ## Notas de diseño
+- 2026-11-06 (Claude Code): paso 2 de la aldea. Las callejas del norte curvan y las casas de cada fila se escalonan; dos solares (u3, e1) pasan a ser el Pozo de la Ronda (sirve de verdad) y un huerto vecinal de adorno. Sin partidas guardadas, se movió todo (dicho por el usuario).
 - 2026-11-06 (Claude Code): precio según el tamaño (casita 80, casa 100, casona 140). Cada vecino busca la que puede pagar; la reventa también depende del tamaño. Decidido por el usuario.
 - 2026-11-06 (Claude Code): tres tamaños de casa. Cada solar tiene el suyo (casita 2 camas, casa 2, casona 3). Quien
   se hipoteca o a quien paga el pueblo busca casita; quien va justo, casa; quien tiene ahorros de sobra, casona.

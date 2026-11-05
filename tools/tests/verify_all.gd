@@ -4325,7 +4325,7 @@ func _initialize() -> void:
 	# 94. Bloque PQ — Escalado de población a 100+ vecinos, solares norte (u0..u6), casas de 4 camas con altillo y LOD multi-nivel
 	# ==========================================================================
 	assert(vmi.POP_CAP == 100, "PQ.1a: Village population cap is scaled to 100 residents")
-	for id_u in ["u0", "u1", "u2", "u3", "u4", "u5", "u6"]:
+	for id_u in ["u0", "u1", "u2", "u4", "u5", "u6"]: # Bloque AB: u3 es ahora el Pozo de la Ronda
 		var d_u: Dictionary = vl.lot_def(id_u)
 		assert(not d_u.is_empty(), "PQ.1b: Northern expansion lot %s exists" % id_u)
 		var r_u := Rect2((d_u["center"] as Vector2) - (d_u["size"] as Vector2) * 0.5, d_u["size"] as Vector2)

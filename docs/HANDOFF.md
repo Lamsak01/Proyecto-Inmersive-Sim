@@ -123,6 +123,14 @@ Otros documentos antiguos en la raíz: `ROADMAP_PROYECTO.md`, `AUDIT_LOG.md`, `S
 
 ## 7. Estado y siguiente bloque
 
+- [x] **Ampliar la aldea, paso 2 (Claude Code, 2026-11-06)** (`VillageLots.gd`: `CURVED_ROADS`, `street_wave`,
+  `curved_road_points`, `lot_shift` (fijo por id; n: hacia atrás, m/u: siguen la curva), `lot_def` devuelve el centro
+  desplazado con caché `_def_cache` (`reset_layout` al montar el pueblo); ROADS sin las rectas de m y u; lotes u3 y e1
+  quitados → `GAP_POCKETS` (pozo funcional en `_well_positions` + cartel en `vm._extra_station_labels`; huerto de
+  adorno con sprites soil_dry). Usos directos de `l["center"]` cambiados a `lot_def(id)` (free_house_bed, Housing,
+  ValleyMapUI, WorldStage3D). 3D: tramos girados por segmento. Test PQ.1b sin u3. El usuario confirmó que no hay
+  partidas guardadas: no hay compatibilidad con partidas antiguas de este cambio.
+
 - [x] **Casa mejorada del jugador y gallinero en 3D (Claude Code, 2026-11-06)** (`WorldStage3D.gd`:
   `_sync_player_house_3d` copia la planta de `CampSite._rebuild_house_visuals`, se rehace al cambiar `house_tier` y su
   tejado se abre en `_update_roof_cutaways_and_lighting`; `_sync_coop_3d` + `_build_fence_run_3d`, tramo sur central

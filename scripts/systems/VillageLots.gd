@@ -37,12 +37,10 @@ const LOTS: Array = [
 	{"id": "u0", "zone": "borde", "plot": "medium", "center": Vector2(190, -740), "size": Vector2(130, 96), "door_south": true},
 	{"id": "u1", "zone": "borde", "plot": "small", "center": Vector2(330, -740), "size": Vector2(130, 96), "door_south": true},
 	{"id": "u2", "zone": "borde", "plot": "large", "center": Vector2(470, -740), "size": Vector2(130, 96), "door_south": true},
-	{"id": "u3", "zone": "borde", "plot": "small", "center": Vector2(610, -740), "size": Vector2(130, 96), "door_south": true},
 	{"id": "u4", "zone": "borde", "plot": "medium", "center": Vector2(760, -740), "size": Vector2(130, 96), "door_south": true},
 	{"id": "u5", "zone": "borde", "plot": "large", "center": Vector2(910, -740), "size": Vector2(130, 96), "door_south": true},
 	{"id": "u6", "zone": "borde", "plot": "small", "center": Vector2(1070, -740), "size": Vector2(130, 96), "door_south": true},
 	# Borde este, a los dos lados del camino principal alargado
-	{"id": "e1", "zone": "borde", "plot": "large", "center": Vector2(1090, -36), "size": Vector2(130, 96), "door_south": true},
 	{"id": "e2", "zone": "borde", "plot": "small", "center": Vector2(1230, -36), "size": Vector2(130, 96), "door_south": true},
 	{"id": "e3", "zone": "borde", "plot": "medium", "center": Vector2(1400, -36), "size": Vector2(130, 96), "door_south": true},
 	{"id": "e4", "zone": "borde", "plot": "medium", "center": Vector2(1090, 140), "size": Vector2(130, 96), "door_south": false},
@@ -112,8 +110,6 @@ static func pick_house_lot(vm, wealth: String = "mid", remote: bool = false) -> 
 ## Calles y sendas nuevas hacia los solares (también las dibuja el mapa).
 const ROADS: Array = [
 	Rect2(Vector2(130, -362), Vector2(1010, 22)), # Calle norte (alargada hasta los solares n0 y n6)
-	Rect2(Vector2(270, -526), Vector2(870, 20)), # Calleja de atrás (fila m, hasta m6)
-	Rect2(Vector2(130, -686), Vector2(1010, 20)), # Ronda alta del norte (fila u, hasta u6)
 	Rect2(Vector2(980, -686), Vector2(20, 346)), # Enlace de las callejas norte con la calle norte
 	Rect2(Vector2(660, -362), Vector2(24, 230)), # Enlace con la calle de las casas
 	Rect2(Vector2(1010, 36), Vector2(470, 28)), # Camino principal hacia el este
@@ -131,6 +127,66 @@ const ROADS: Array = [
 	Rect2(Vector2(1480, 172), Vector2(280, 20)), # Calle del Molino del Este
 ]
 
+## Bloque AB: las dos callejas del norte (filas m y u) ya no son rectas: siguen una curva suave y las casas de su fila
+## la acompañan (ver `lot_shift`). Cada una es una línea de puntos por el centro de la calle y su anchura.
+const STREET_WAVE_AMP: float = 11.0
+const CURVED_ROADS: Array = [
+	{"name": "Calleja de atrás", "from_x": 270.0, "to_x": 1140.0, "y": -516.0, "w": 20.0, "phase": 0.0},
+	{"name": "Ronda alta del norte", "from_x": 130.0, "to_x": 1140.0, "y": -676.0, "w": 20.0, "phase": 2.1},
+]
+
+## Cuánto se desvía la calle (y las casas de su fila) en la x dada.
+static func street_wave(road: Dictionary, x: float) -> float:
+	var t: float = (x - float(road["from_x"])) / maxf(1.0, float(road["to_x"]) - float(road["from_x"]))
+	return STREET_WAVE_AMP * sin(t * TAU * 0.85 + float(road["phase"]))
+
+## Puntos del centro de una calleja curva (cada ~45 px).
+static func curved_road_points(road: Dictionary) -> PackedVector2Array:
+	var pts := PackedVector2Array()
+	var x: float = float(road["from_x"])
+	while x < float(road["to_x"]):
+		pts.append(Vector2(x, float(road["y"]) + street_wave(road, x)))
+		x += 45.0
+	pts.append(Vector2(float(road["to_x"]), float(road["y"]) + street_wave(road, float(road["to_x"]))))
+	return pts
+
+## Bloque AB: las filas del borde dejan de ser una cuadrícula. Cada solar se desplaza un poco (siempre fijo, sale del
+## nombre del solar): en la calle norte, unos pasos hacia atrás; en las callejas m y u, siguiendo la curva de su calle.
+static func lot_shift(id: String) -> Vector2:
+	var base: Dictionary = _raw_def(id)
+	if base.is_empty() or str(base.get("zone", "")) != "borde":
+		return Vector2.ZERO
+	var h: int = absi(id.hash())
+	var h2: int = int(h / 3.0)
+	var dx: float = float((h % 3) - 1) * 4.0
+	var row: String = id.substr(0, 1)
+	var c: Vector2 = base["center"]
+	if row == "n":
+		return Vector2(dx, -float(h2 % 4) * 5.0)
+	if row == "m":
+		return Vector2(dx, street_wave(CURVED_ROADS[0], c.x) - float(h2 % 3) * 3.0)
+	if row == "u":
+		return Vector2(dx, street_wave(CURVED_ROADS[1], c.x) - float(h2 % 3) * 3.0)
+	return Vector2.ZERO
+
+## Bloque AB: dos huecos en las filas, donde antes había solar: un pozo vecinal en la ronda alta (sirve de verdad para
+## coger agua y lavarse) y un huerto vecinal de adorno en la calle del este.
+const GAP_POCKETS: Array = [
+	{"kind": "well", "pos": Vector2(610, -735), "title": "🪣 Pozo de la Ronda [E: Llenar Recipiente / Lavar Heridas y Sangre]"},
+	{"kind": "garden", "pos": Vector2(1090, -40), "title": "🥬 Huerto vecinal"},
+]
+
+## Al montar el pueblo: borra lo calculado (los desplazamientos son fijos, pero así no queda nada de otra partida).
+static func reset_layout() -> void:
+	_def_cache.clear()
+static var _def_cache: Dictionary = {}
+
+static func _raw_def(id: String) -> Dictionary:
+	for l in LOTS:
+		if str(l["id"]) == id:
+			return l
+	return {}
+
 ## Bloque AA: molino de viento del Molino del Este (base sólida en 2D; en 3D, el modelo de molino).
 const EAST_MILL_POS: Vector2 = Vector2(1458, 250)
 
@@ -145,11 +201,20 @@ static func state(vm) -> Dictionary:
 		vm.lots_state = {}
 	return vm.lots_state
 
+## Definición del solar con su sitio real (ya desplazado).
 static func lot_def(id: String) -> Dictionary:
-	for l in LOTS:
-		if str(l["id"]) == id:
-			return l
-	return {}
+	if _def_cache.has(id):
+		return _def_cache[id]
+	var l: Dictionary = _raw_def(id)
+	if l.is_empty():
+		return {}
+	var sh: Vector2 = lot_shift(id)
+	var d: Dictionary = l
+	if sh != Vector2.ZERO:
+		d = l.duplicate()
+		d["center"] = (l["center"] as Vector2) + sh
+	_def_cache[id] = d
+	return d
 
 static func lot(vm, id: String) -> Dictionary:
 	var st: Dictionary = state(vm)
@@ -185,8 +250,18 @@ static func site_work_pos(id: String) -> Vector2:
 ## Al montar el pueblo: calles nuevas hacia los solares del borde y un cartel en cada solar libre.
 static func build_world(vm) -> void:
 	var dirt := Color(0.46, 0.36, 0.24, 0.65)
+	_build_gap_pockets(vm)
 	for r in ROADS:
 		_road(vm, r, dirt)
+	for cr in CURVED_ROADS:
+		var pts: PackedVector2Array = curved_road_points(cr)
+		var hw: float = float(cr["w"]) * 0.5
+		for i in range(pts.size() - 1):
+			var a: Vector2 = pts[i]
+			var b: Vector2 = pts[i + 1]
+			var nrm: Vector2 = (b - a).normalized().orthogonal() * hw
+			var ext: Vector2 = (b - a).normalized() * 2.0 # solapa un poco los tramos para que no queden rendijas
+			vm._add_poly(PackedVector2Array([a - ext + nrm, b + ext + nrm, b + ext - nrm, a - ext - nrm]), dirt, -3)
 	# Molino del Este: base de piedra sólida (los vecinos lo rodean) y su cartel
 	vm._add_solid_wall_segment(EAST_MILL_POS, Vector2(34, 34), vm._load_tex("res://assests/world/village/wall_stone_h.png"))
 	vm._add_title_label(EAST_MILL_POS + Vector2(-60, -40), Vector2(120, 14), "🌾 Molino del Este", Color(0.86, 0.80, 0.62), 7)
@@ -194,6 +269,26 @@ static func build_world(vm) -> void:
 		var id: String = str(l["id"])
 		var st: Dictionary = lot(vm, id)
 		_draw_lot(vm, id, st)
+
+static func _build_gap_pockets(vm) -> void:
+	for g in GAP_POCKETS:
+		var p: Vector2 = g["pos"]
+		match str(g["kind"]):
+			"well":
+				vm._add_sprite_prop(vm._load_tex("res://assests/world/village/water_well.png"), p, Vector2(1.25, 1.25), 0)
+				vm._add_station_area("RondaWaterWellArea", p, 24.0, "well")
+				if not p in vm._well_positions:
+					vm._well_positions.append(p)
+				var wl: Label = vm._make_station_label(p + Vector2(-135, -28), str(g["title"]))
+				vm.entities_root.add_child(wl)
+				vm._extra_station_labels.append([wl, p])
+			"garden":
+				vm._add_poly(_rect_pts(p, Vector2(96, 70)), Color(0.40, 0.30, 0.18, 0.35), -4)
+				var soil: Texture2D = vm._load_tex("res://assests/world/farming/soil_dry.png")
+				for gy in [-14.0, 14.0]:
+					for gx in [-28.0, 0.0, 28.0]:
+						vm._add_sprite_prop(soil, p + Vector2(gx, gy), Vector2(1.35, 1.35), -1)
+				vm._add_title_label(p + Vector2(-60, -48), Vector2(120, 14), str(g["title"]), Color(0.70, 0.86, 0.55), 7)
 
 static func _road(vm, rect: Rect2, col: Color) -> void:
 	vm._add_poly(PackedVector2Array([rect.position, Vector2(rect.end.x, rect.position.y), rect.end, Vector2(rect.position.x, rect.end.y)]), col, -3)
@@ -492,7 +587,7 @@ static func free_house_bed(vm) -> Dictionary:
 		var res: Array = st["residents"]
 		var beds: Array = st["beds"]
 		if res.size() < beds.size():
-			return {"lot": id, "bed": beds[res.size()], "family_id": "family_lot_" + id, "table": (l["center"] as Vector2) + Vector2(0, -2)}
+			return {"lot": id, "bed": beds[res.size()], "family_id": "family_lot_" + id, "table": (lot_def(id)["center"] as Vector2) + Vector2(0, -2)}
 	return {}
 
 static func add_resident(vm, id: String, person_key: String) -> void:

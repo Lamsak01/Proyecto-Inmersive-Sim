@@ -36,7 +36,6 @@ kanban-plugin: board
 
 - [ ] Personajes 3D con más estilo, tipo Signalis ([[Assets de pago]])
 - [ ] Decidir si la niebla nocturna también quita vista a los vecinos (ahora solo es visual)
-- [ ] Ampliar la aldea, paso 2: romper las filas de solares y curvar las callejas (plan en `docs/PLAN_AMPLIAR_ALDEA.md`)
 - [ ] Quitar la etiqueta «dormida» de las tendencias ya conectadas (`TraitCatalog.gd`)
 - [ ] Paseos nocturnos visibles de Noctámbulos e Insomnes
 - [ ] Pasar a 3D los animales (gallinas, vacas, caballos y los del bosque); con buena conexión, buscar modelos con textura
@@ -47,6 +46,8 @@ kanban-plugin: board
 
 
 ## ✅ Hecho
+
+- [x] Ampliar la aldea, paso 2: callejas curvas, casas escalonadas, Pozo de la Ronda y huerto vecinal (2026-11-06)
 
 - [x] Casa mejorada del jugador (cabaña y casa de piedra) y gallinero en 3D (2026-11-06)
 

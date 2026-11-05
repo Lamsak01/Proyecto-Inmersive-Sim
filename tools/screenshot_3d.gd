@@ -4,6 +4,7 @@ extends SceneTree
 ## Uso: flatpak run org.godotengine.Godot --path . -s tools/screenshot_3d.gd -- <carpeta_salida> [horas separadas por comas] [sitios]
 ## Sitios: plaza, iglesia, lago, cementerio, cerca (jugador de cerca), campamento. Por defecto: todos.
 ## En barrio_lago, caserios y molino levanta casas de muestra en los solares de esos barrios (solo en memoria).
+## En «norte» levanta casas en las filas m y u (solo en memoria) para ver las callejas curvas.
 ## En «casa_jugador» mejora tu casa a casa de piedra (solo en memoria) y enseña también el gallinero.
 ## En «campamento» siembra cultivos de muestra en el huerto (solo en memoria) para ver cada fase.
 ## Guarda <carpeta>/<sitio>_<hora>h.png. No toca la partida guardada.
@@ -20,6 +21,7 @@ var SPOTS := {
 	"caserios": Vector2(-600, 800),
 	"molino": Vector2(1580, 200),
 	"casa_jugador": Vector2(100, 40),
+	"norte": Vector2(640, -600),
 }
 
 func _initialize() -> void:
@@ -56,16 +58,28 @@ func _initialize() -> void:
 			fp.days_grown = int(i / 3.0)
 			fp.is_watered = i % 2 == 0
 			fp._refresh_visuals()
-	if spots.has("barrio_lago") or spots.has("caserios") or spots.has("molino"):
+	if spots.has("barrio_lago") or spots.has("caserios") or spots.has("molino") or spots.has("norte"):
 		var vm_b = root.find_child("VillageManager", true, false)
 		var VL = load("res://scripts/systems/VillageLots.gd")
 		for lid in ["l1", "l2", "l3", "c1", "c2", "o1", "o2"]:
+			if not spots.has("barrio_lago") and not spots.has("caserios") and not spots.has("molino"):
+				break
 			var st: Dictionary = VL.lot(vm_b, lid)
 			st["status"] = "built"
 			st["kind"] = "house"
 			st["title"] = "🏠 %s" % str(VL.HOUSE_PLOTS[VL.plot_of(lid)]["word"])
 			st["beds"] = VL._house_beds(lid)
 			VL._draw_lot(vm_b, lid, st)
+		if spots.has("norte"):
+			for lid2 in ["m1", "m2", "m3", "m4", "m5", "m6", "u0", "u1", "u2", "u4", "u5", "u6", "n0", "n1", "n6"]:
+				var st2: Dictionary = VL.lot(vm_b, lid2)
+				if str(st2.get("status", "empty")) != "empty":
+					continue
+				st2["status"] = "built"
+				st2["kind"] = "house"
+				st2["title"] = "🏠 %s" % str(VL.HOUSE_PLOTS[VL.plot_of(lid2)]["word"])
+				st2["beds"] = VL._house_beds(lid2)
+				VL._draw_lot(vm_b, lid2, st2)
 	if spots.has("casa_jugador"):
 		var camp_n = root.find_child("PlayerCampSite", true, false)
 		if camp_n != null:
@@ -94,7 +108,7 @@ func _initialize() -> void:
 				player.global_position = SPOTS[s]
 				if cam != null:
 					cam.zoom = Vector2(8.0, 8.0) if s == "retrato" else (Vector2(4.0, 4.0) if s == "cerca" else Vector2(2.4, 2.4))
-					if String(s).begins_with("r_") or s == "lago":
+					if String(s).begins_with("r_") or s == "lago" or s == "norte":
 						cam.zoom = Vector2(1.4, 1.4)
 					cam.reset_smoothing()
 			for i in range(90):

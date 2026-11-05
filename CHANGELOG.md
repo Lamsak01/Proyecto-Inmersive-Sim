@@ -3,6 +3,12 @@
 Cambios del juego, del más nuevo al más antiguo. Añade una entrada al cerrar cada bloque, en lenguaje sencillo.
 El detalle técnico está en `docs/HANDOFF.md` (sección 7) y el historial completo en `git log`. Lo anterior a B0.1 está en `AUDIT_LOG.md` y `SESSION_CONTEXT_LOG.md`.
 
+## 2026-11-06 (noche) — Calles de pueblo, no de cuadrícula
+- Las dos callejas del norte hacen una curva suave y las casas de su fila la siguen; en la calle norte algunas casas
+  se retiran unos pasos.
+- Dos huecos en las filas: el Pozo de la Ronda (sirve para coger agua y lavarse) y un huerto vecinal.
+- El mapa del valle dibuja las calles curvas.
+
 ## 2026-11-06 (noche) — Tu casa mejorada y el gallinero en 3D
 - La cabaña (madera y paja) y la casa de piedra (piedra y teja, con cofre) se ven en 3D, con cama, luz y tejado que
   se abre al acercarte.

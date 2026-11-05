@@ -178,6 +178,7 @@ var streetlights: Array[Dictionary] = []
 
 var _well_label: Label = null
 var _tavern_well_label: Label = null
+var _extra_station_labels: Array = [] # Bloque AB: [[Label, Vector2]] carteles de puestos añadidos luego (Pozo de la Ronda)
 var _plaza_well_label: Label = null
 var _compost_label: Label = null
 var _tavern_bed_label: Label = null
@@ -257,6 +258,7 @@ func setup_village(target_entities_root: Node) -> void:
 	VillageWorldBuilder._spawn_electric_streetlights(self)
 	_spawn_unemployed_tavern_guests()
 	VillageWorldBuilder._spawn_farm_well_and_compost(self)
+	VillageLots.reset_layout() # Bloque AB: solares en su sitio desplazado antes de que nadie los use
 	VillageTrades.setup_world(self) # V5: panadería y sastrería (puestos vacantes al empezar)
 	VillageTown.state(self) # J3: arcas iniciales (1000) en partida nueva
 	VillageCivic.setup_world(self) # V5b: ayuntamiento, albergue y El Candil
@@ -386,6 +388,9 @@ func _process(delta: float) -> void:
 		_plaza_well_label.visible = _is_near(player, mouse_pos, _plaza_well_pos, 24.0, 16.0)
 	if _compost_label:
 		_compost_label.visible = _is_near(player, mouse_pos, _compost_pos, 22.0, 16.0)
+	for esl in _extra_station_labels:
+		if is_instance_valid(esl[0]):
+			(esl[0] as Label).visible = _is_near(player, mouse_pos, esl[1], 24.0, 16.0)
 	if _hospital_bed_label:
 		_hospital_bed_label.visible = _is_near(player, mouse_pos, _hospital_bed_pos, 26.0, 18.0)
 	if _morgue_label:

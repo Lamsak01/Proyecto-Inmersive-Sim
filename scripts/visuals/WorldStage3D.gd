@@ -411,6 +411,14 @@ func _build_static_terrain_3d() -> void:
 			var r_lot: Rect2 = lr
 			_add_box_2d(terrain_root_3d, r_lot.get_center(), r_lot.size, 0.0, 1.2, m_road)
 	_build_barrios_3d(m_wood)
+	# Callejas curvas del norte: un tramo de camino por segmento, girado, con una losa en cada codo
+	for cr in VillageLots.CURVED_ROADS:
+		var cpts: PackedVector2Array = VillageLots.curved_road_points(cr)
+		var cw: float = float(cr["w"])
+		for i in range(cpts.size() - 1):
+			var a: Vector2 = cpts[i]
+			var b: Vector2 = cpts[i + 1]
+			_add_box_2d(terrain_root_3d, (a + b) * 0.5, Vector2(a.distance_to(b) + 2.0, cw), 0.0, 1.2, m_road, -rad_to_deg((b - a).angle()))
 
 	# Plaza Central Empedrada con bordillos 3D
 	var plaza_r := Rect2(Vector2(388, 12), Vector2(154, 72))
@@ -956,7 +964,7 @@ func rebuild_lots_3d() -> void:
 		var status: String = str(st.get("status", "empty"))
 		if status == "built":
 			continue
-		var c: Vector2 = l_dict["center"]
+		var c: Vector2 = VillageLots.lot_def(id)["center"]
 		var sz_l: Vector2 = l_dict["size"]
 		var h: Vector2 = sz_l * 0.5 - Vector2(6, 6)
 		if status == "empty":
