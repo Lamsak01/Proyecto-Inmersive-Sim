@@ -38,6 +38,7 @@ kanban-plugin: board
 - [ ] Decidir si la niebla nocturna también quita vista a los vecinos (ahora solo es visual)
 - [ ] Quitar la etiqueta «dormida» de las tendencias ya conectadas (`TraitCatalog.gd`)
 - [ ] Paseos nocturnos visibles de Noctámbulos e Insomnes
+- [ ] Rendimiento: juntar piezas quietas de los edificios (muebles, muros, suelos) para dibujar menos
 - [ ] Pasar a 3D los animales (gallinas, vacas, caballos y los del bosque); con buena conexión, buscar modelos con textura
 
 
@@ -47,6 +48,7 @@ kanban-plugin: board
 
 ## ✅ Hecho
 
+- [x] Casas iniciales repartidas por los barrios y árboles agrupados para dibujar menos (2026-11-06)
 - [x] La aldea empieza con 40 vecinos, provisional para probar (2026-11-06)
 - [x] Ampliar la aldea, paso 2: callejas curvas, casas escalonadas, Pozo de la Ronda y huerto vecinal (2026-11-06)
 

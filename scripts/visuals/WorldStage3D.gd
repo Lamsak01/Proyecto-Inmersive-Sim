@@ -60,6 +60,10 @@ var _nature_accum: float = 10.0
 var _nature_scan_accum: float = 10.0
 var _nature_sources: Array = [] # [{"node": Node2D, "kind": "pine"|"rock"|"deco_pine", "sprite": CanvasItem}]
 var _nature_nodes: Dictionary = {} # instance_id -> {"tree": Node3D, "stump": Node3D}
+## Rendimiento: árboles y rocas iguales se dibujan juntos por zonas (una sola orden a la tarjeta por modelo y zona).
+const BATCH_CHUNK_PX: float = 512.0
+var _batches: Dictionary = {} # clave -> {"mmi": MultiMeshInstance3D, "entries": [{"xf": Transform3D, "vis": bool}]}
+var _batch_dirty: Dictionary = {}
 var _prop_sources: Array = [] # [{"sprite": Sprite2D, "kind": String}] objetos quietos 2D con su versión 3D
 var _prop_nodes: Dictionary = {} # instance_id del sprite -> {"root": Node3D, "variant": String}
 var _extra_hidden_2d: Array = [] # Piezas 2D (suelos, muros, cercas) que se esconden en 3D: casa del jugador y gallinero
@@ -1402,20 +1406,21 @@ func _sync_nature_3d(only_update: bool) -> void:
 		var rec: Dictionary = _nature_nodes.get(id, {})
 		if rec.is_empty() and not only_update:
 			rec = _make_nature_3d(n, String(src["kind"]))
+			for k in ["tree", "stump"]:
+				var nd = rec.get(k)
+				if nd is Node3D:
+					_absorb_into_batches(nd as Node3D, n.global_position)
 			_nature_nodes[id] = rec
 		if rec.is_empty():
 			continue
 		var depleted: bool = bool(n.get("is_depleted")) if n.get("is_depleted") != null else false
-		var tree3d = rec.get("tree")
-		var stump3d = rec.get("stump")
-		if tree3d is Node3D and is_instance_valid(tree3d):
-			(tree3d as Node3D).visible = n.is_visible_in_tree() and not depleted
-		if stump3d is Node3D and is_instance_valid(stump3d):
-			(stump3d as Node3D).visible = n.is_visible_in_tree() and depleted
+		_set_vis3d(rec.get("tree"), n.is_visible_in_tree() and not depleted)
+		_set_vis3d(rec.get("stump"), n.is_visible_in_tree() and depleted)
 		var spr = src.get("sprite")
 		if spr is CanvasItem and is_instance_valid(spr):
 			(spr as CanvasItem).self_modulate.a = 0.0 if use_3d else 1.0
 	if only_update:
+		_flush_batches()
 		return
 	for id in _nature_nodes.keys():
 		if not alive_ids.has(id):
@@ -1423,8 +1428,76 @@ func _sync_nature_3d(only_update: bool) -> void:
 			for k in ["tree", "stump"]:
 				var nd = r.get(k)
 				if nd is Node3D and is_instance_valid(nd):
+					_set_vis3d(nd, false)
 					(nd as Node3D).queue_free()
 			_nature_nodes.erase(id)
+	_flush_batches()
+
+
+## Pasa las mallas de un árbol o roca a su grupo por zona; el nodo queda vacío y guarda dónde están sus copias.
+func _absorb_into_batches(node: Node3D, pos_2d: Vector2) -> void:
+	var refs: Array = []
+	var inv: Transform3D = nature_root_3d.global_transform.affine_inverse()
+	var cell := Vector2i(floori(pos_2d.x / BATCH_CHUNK_PX), floori(pos_2d.y / BATCH_CHUNK_PX))
+	for c in node.find_children("*", "MeshInstance3D", true, false):
+		var mi := c as MeshInstance3D
+		if mi.mesh == null or mi.material_override != null:
+			continue
+		var plain := true
+		for si in range(mi.mesh.get_surface_count()):
+			if mi.get_surface_override_material(si) != null:
+				plain = false
+		if not plain:
+			continue
+		var key := "%d_%d_%d_%d" % [mi.mesh.get_instance_id(), int(mi.cast_shadow), cell.x, cell.y]
+		var b: Dictionary = _batches.get(key, {})
+		if b.is_empty():
+			var mmi := MultiMeshInstance3D.new()
+			mmi.name = "Lote_" + key
+			mmi.cast_shadow = mi.cast_shadow
+			var mm := MultiMesh.new()
+			mm.transform_format = MultiMesh.TRANSFORM_3D
+			mm.mesh = mi.mesh
+			mmi.multimesh = mm
+			nature_root_3d.add_child(mmi)
+			b = {"mmi": mmi, "entries": []}
+			_batches[key] = b
+		var entries: Array = b["entries"]
+		entries.append({"xf": inv * mi.global_transform, "vis": node.visible})
+		refs.append([key, entries.size() - 1])
+		_batch_dirty[key] = true
+		mi.get_parent().remove_child(mi)
+		mi.queue_free()
+	if not refs.is_empty():
+		node.set_meta("batch_refs", refs)
+
+func _set_vis3d(nd, vis: bool) -> void:
+	if not (nd is Node3D) or not is_instance_valid(nd):
+		return
+	var n3 := nd as Node3D
+	if n3.visible == vis:
+		return
+	n3.visible = vis
+	if n3.has_meta("batch_refs"):
+		for r in n3.get_meta("batch_refs"):
+			var b: Dictionary = _batches.get(str(r[0]), {})
+			if not b.is_empty():
+				b["entries"][int(r[1])]["vis"] = vis
+				_batch_dirty[str(r[0])] = true
+
+func _flush_batches() -> void:
+	for key in _batch_dirty.keys():
+		var b: Dictionary = _batches.get(key, {})
+		if b.is_empty() or not is_instance_valid(b["mmi"]):
+			continue
+		var mm: MultiMesh = (b["mmi"] as MultiMeshInstance3D).multimesh
+		var entries: Array = b["entries"]
+		mm.instance_count = 0
+		mm.instance_count = entries.size()
+		var gone := Transform3D(Basis.from_scale(Vector3.ZERO), Vector3(0, -1000, 0))
+		for i in range(entries.size()):
+			mm.set_instance_transform(i, entries[i]["xf"] if bool(entries[i]["vis"]) else gone)
+	_batch_dirty.clear()
 
 
 static func _is_pine_texture(t: Texture2D) -> bool:

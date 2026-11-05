@@ -123,6 +123,14 @@ Otros documentos antiguos en la raíz: `ROADMAP_PROYECTO.md`, `AUDIT_LOG.md`, `S
 
 ## 7. Estado y siguiente bloque
 
+- [x] **Rendimiento: lotes de árboles y rocas + casas iniciales en barrios (Claude Code, 2026-11-06)**
+  (`WorldStage3D.gd`: `_absorb_into_batches` pasa las mallas sin material propio de `_make_nature_3d` a un
+  MultiMeshInstance3D por malla y zona de `BATCH_CHUNK_PX`; `_set_vis3d` + `_flush_batches` sustituyen a `.visible`
+  (talar/roca agotada escala la copia a cero). `seed_start_population`: una de cada dos casas con `remote = true`.)
+  Medido en Intel UHD 620 a 3072×1728: 2.317 mallas 3D, de ellas Buildings3D 1.481, Characters3D 362, Nature3D 199,
+  Terrain3D 157 → el siguiente candidato es juntar piezas quietas de los edificios (muebles, muros, suelos). El usuario
+  NO quiere que los vecinos lejanos se simulen a ratos.
+
 - [x] **Arranque con 40 vecinos, PROVISIONAL (Claude Code, 2026-11-06)** (`VillageMigration.gd`: `START_POPULATION = 40`
   (0 = arranque normal), `seed_start_population` levanta casas al instante con `VillageLots.build_instant_house` cuando
   quedan menos de 2 camas libres y llama a `try_arrival(vm, true)` (sin avisos) poniendo `arrivals_today_count = 0` en

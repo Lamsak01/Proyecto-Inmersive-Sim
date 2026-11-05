@@ -3,6 +3,12 @@
 Cambios del juego, del más nuevo al más antiguo. Añade una entrada al cerrar cada bloque, en lenguaje sencillo.
 El detalle técnico está en `docs/HANDOFF.md` (sección 7) y el historial completo en `git log`. Lo anterior a B0.1 está en `AUDIT_LOG.md` y `SESSION_CONTEXT_LOG.md`.
 
+## 2026-11-06 (noche) — Casas iniciales repartidas y árboles agrupados
+- La mitad de las casas con que empieza la partida salen en los barrios apartados (Lago, Caseríos, Molino), así el
+  pueblo nuevo se ve desde el primer día.
+- Árboles y rocas iguales se dibujan juntos por zonas (se ven igual y se siguen talando). Gana poco: la mayor parte
+  de lo que dibuja el juego son los edificios (unas 1.500 piezas) y los vecinos (unas 360).
+
 ## 2026-11-06 (noche) — La aldea empieza con 40 vecinos (provisional)
 - Al empezar una partida nueva ya hay unas 40 personas (pueden ser algunas más si llegan familias con hijos):
   recién llegados sin oficio, solos, en pareja o en familia, con casas ya levantadas en solares libres.

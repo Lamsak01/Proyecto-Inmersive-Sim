@@ -323,12 +323,13 @@ const START_WEALTH: Array = ["poor", "mid", "mid", "rich"]
 static func seed_start_population(vm, target: int = START_POPULATION) -> int:
 	var added: int = 0
 	var guard: int = 0
+	var built: int = 0
 	while target > 0 and population(vm) < target and guard < 80:
 		guard += 1
 		if free_house_beds(vm) < 2:
-			var id: String = VillageLots.pick_house_lot(vm, str(START_WEALTH[guard % START_WEALTH.size()]))
-			if id != "":
-				VillageLots.build_instant_house(vm, id)
+			var id: String = VillageLots.pick_house_lot(vm, str(START_WEALTH[built % START_WEALTH.size()]), built % 2 == 1) # una de cada dos, a los barrios apartados
+			if id != "" and VillageLots.build_instant_house(vm, id):
+				built += 1
 			elif free_tavern_bed(vm) == null:
 				break # Ni solares ni camas: no cabe nadie más
 		vm.arrivals_today_count = 0
