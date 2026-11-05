@@ -9,6 +9,7 @@ El detalle técnico está en `docs/HANDOFF.md` (sección 7) y el historial compl
 - E a su lado: montas; E otra vez: bajas y se queda esperando ahí. Solo montado vas un 45 % más rápido y no puedes ir en
   sigilo. Bajas solo al entrar en un edificio, acostarte o si te lleva la guardia.
 - Se guarda dónde está y si ibas montado. Se mantiene el +15 % en las expediciones.
+- Arreglo: ya no aparece dentro de la tienda del ganadero; si quedaría dentro de un edificio, sale a la calle por delante de la puerta.
 
 ## 2026-11-05 — Impuesto sobre lo que gana cada vecino (por tramos)
 - Los sábados cada vecino paga según lo que GANÓ esa semana, no según sus ahorros: hasta 4 de oro al día, nada; de lo

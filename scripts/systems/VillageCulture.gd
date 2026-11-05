@@ -425,6 +425,18 @@ static func hack_terminal(vm, subsystem: String, inv, force_outcome: int = 0) ->
 const HORSE_DEFAULT_POS: Vector2 = Vector2(360, 470) # junto al Rancho del Sur
 const PlayerHorseScript = preload("res://scripts/obstacles/PlayerHorse.gd")
 
+## Si un punto cae dentro de un edificio, lo saca a la calle por delante de su puerta (el caballo no cabe en una tienda).
+static func outside_of_buildings(vm, p: Vector2) -> Vector2:
+	if vm == null or not ("building_footprints" in vm):
+		return p
+	for b in vm.building_footprints:
+		var r: Rect2 = b["rect"]
+		if r.grow(4.0).has_point(p):
+			var door: Vector2 = b.get("door_pos", r.get_center())
+			var out: Vector2 = Vector2(door.x + 16.0, (r.end.y + 16.0) if bool(b.get("door_south", true)) else (r.position.y - 16.0))
+			return outside_of_buildings(vm, out) if out != p else out
+	return p
+
 ## Crea (o recoloca) el caballo físico del jugador según mounts_state. Si ibas montado, te vuelve a subir.
 static func sync_player_horse(vm) -> Node:
 	if vm == null:
@@ -440,6 +452,10 @@ static func sync_player_horse(vm) -> Node:
 		return null
 	var m: Dictionary = mounts_state(vm)
 	var pos := Vector2(float(m.get("pos_x", HORSE_DEFAULT_POS.x)), float(m.get("pos_y", HORSE_DEFAULT_POS.y)))
+	if not bool(m.get("is_mounted", false)):
+		pos = outside_of_buildings(vm, pos)
+		m["pos_x"] = pos.x
+		m["pos_y"] = pos.y
 	var horse = vm.get_tree().get_first_node_in_group("player_horse") if vm.is_inside_tree() else null
 	if horse == null or not is_instance_valid(horse) or horse.is_queued_for_deletion():
 		horse = PlayerHorseScript.new()

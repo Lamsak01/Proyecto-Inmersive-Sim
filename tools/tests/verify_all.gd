@@ -4113,7 +4113,14 @@ func _initialize() -> void:
 	if pm_pl != null:
 		# Regla 2: el caballo existe en el mapa junto al ganadero; solo montado vas más rápido.
 		var pm_horse = get_first_node_in_group("player_horse")
-		assert(pm_horse != null and pm_horse.global_position.distance_to(p70_a.global_position) < 40.0 and not bool(pm_pl.is_mounted), "PM.1a2: The bought horse stands in the world next to the rancher and the player is still on foot")
+		var pm_inside: bool = false
+		for pm_b in vm.building_footprints:
+			if (pm_b["rect"] as Rect2).has_point(pm_horse.global_position):
+				pm_inside = true
+		assert(pm_horse != null and not pm_inside and not bool(pm_pl.is_mounted), "PM.1a2: The bought horse stands in the world outside any building and the player is still on foot")
+		var pm_in_b: Dictionary = vm.building_footprints[0]
+		var pm_out: Vector2 = vcu_pj.outside_of_buildings(vm, (pm_in_b["rect"] as Rect2).get_center())
+		assert(not (pm_in_b["rect"] as Rect2).has_point(pm_out), "PM.1a2b: A horse placed inside a shop is moved out to the street in front of the door")
 		var pm_ppos: Vector2 = pm_pl.global_position
 		pm_pl.global_position = pm_horse.global_position
 		pm_horse.interact(pm_pl)
