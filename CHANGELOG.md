@@ -3,6 +3,10 @@
 Cambios del juego, del más nuevo al más antiguo. Añade una entrada al cerrar cada bloque, en lenguaje sencillo.
 El detalle técnico está en `docs/HANDOFF.md` (sección 7) y el historial completo en `git log`. Lo anterior a B0.1 está en `AUDIT_LOG.md` y `SESSION_CONTEXT_LOG.md`.
 
+## 2026-11-06 (tarde) — Notas para seguir en otro ordenador
+- Guía nueva de cómo bajar el proyecto en otro ordenador y qué toca hacer ahora.
+- Apuntado en el tablero lo que sigue en plano (animales, pozos, farolas, huertos, campamento, tablón…).
+
 ## 2026-11-06
 
 ### El pueblo se ve en 3D de verdad

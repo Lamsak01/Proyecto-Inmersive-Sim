@@ -38,6 +38,7 @@ kanban-plugin: board
 - [ ] Ampliar la aldea: solares de 3 tamaños + barrios del Lago, del Bosque y del Molino (plan en `docs/PLAN_AMPLIAR_ALDEA.md`)
 - [ ] Quitar la etiqueta «dormida» de las tendencias ya conectadas (`TraitCatalog.gd`)
 - [ ] Paseos nocturnos visibles de Noctámbulos e Insomnes
+- [ ] Pasar a 3D lo que sigue plano: animales, pozos, tienda de campaña, cocina del campamento, tablón de misiones, huertos, compostador, farolas y detalles menores
 
 
 ## 🚧 En progreso

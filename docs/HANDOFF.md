@@ -7,6 +7,9 @@
 
 ## 0. PROMPT LISTO PARA PEGAR AL SIGUIENTE AGENTE
 
+**Cambio de ordenador (2026-11-05):** cómo bajar el proyecto, qué no viaja con git y qué toca hacer ahora, en
+**`docs/CONTINUAR_EN_OTRO_PC.md`**.
+
 El prompt completo y actualizado (2026-11-03) está en **`docs/PROMPT_SIGUIENTE_AGENTE.md`**: cómo comunicarse con el
 usuario (crítico, sin darle la razón por defecto), reglas de trabajo, pruebas, preferencias, lo hecho, lo pendiente y
 recomendaciones. Pégalo entero como primer mensaje al cambiar de agente.
