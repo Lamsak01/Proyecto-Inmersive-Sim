@@ -268,6 +268,8 @@ func setup_village(target_entities_root: Node) -> void:
 	VillagePlaces.build_world(self) # V5c: parque, bancos de la plaza y mirador del lago
 	VillageWork.build_world(self) # V5d: lavadero
 	_spawn_domestic_pets()
+	if not in_editor and DisplayServer.get_name() != "headless":
+		VillageMigration.seed_start_population(self) # Provisional: arranque con 40 vecinos para probar (no en las pruebas)
 	if is_instance_valid(world_stage_3d):
 		world_stage_3d.queue_free()
 	world_stage_3d = WorldStage3DScript.new()

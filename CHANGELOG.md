@@ -3,6 +3,12 @@
 Cambios del juego, del más nuevo al más antiguo. Añade una entrada al cerrar cada bloque, en lenguaje sencillo.
 El detalle técnico está en `docs/HANDOFF.md` (sección 7) y el historial completo en `git log`. Lo anterior a B0.1 está en `AUDIT_LOG.md` y `SESSION_CONTEXT_LOG.md`.
 
+## 2026-11-06 (noche) — La aldea empieza con 40 vecinos (provisional)
+- Al empezar una partida nueva ya hay unas 40 personas (pueden ser algunas más si llegan familias con hijos):
+  recién llegados sin oficio, solos, en pareja o en familia, con casas ya levantadas en solares libres.
+- Es provisional, para probar todos los sistemas a la vez. Las partidas cargadas y las pruebas no cambian.
+- Medido: de 18 a 43 vecinos, el juego pasa de unos 31 a unos 27 fotogramas por segundo.
+
 ## 2026-11-06 (noche) — Calles de pueblo, no de cuadrícula
 - Las dos callejas del norte hacen una curva suave y las casas de su fila la siguen; en la calle norte algunas casas
   se retiran unos pasos.

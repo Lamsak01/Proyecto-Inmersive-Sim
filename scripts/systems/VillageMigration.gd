@@ -272,7 +272,7 @@ static func _spawn_one(vm, kind: Dictionary, idx: int):
 	return n
 
 ## Llega alguien (o una pareja) si hay donde dormir. Devuelve cuántos llegaron.
-static func try_arrival(vm) -> int:
+static func try_arrival(vm, quiet: bool = false) -> int:
 	if population(vm) >= POP_CAP or vm.arrivals_today_count >= vm.MAX_DAILY_ARRIVALS:
 		return 0
 	var house_beds: int = free_house_beds(vm)
@@ -308,9 +308,36 @@ static func try_arrival(vm) -> int:
 				who.append(kid)
 		if "VillageFamily" in vm and vm.VillageFamily != null:
 			vm.VillageFamily.update_school(vm, false)
+	if quiet:
+		return who.size()
 	var names: String = " y ".join(who.map(func(n): return n.npc_name))
 	vm._hint_player("🎒🚶 %s %s al valle para quedarse." % [names, "llegan" if who.size() > 1 else "llega"])
 	return who.size()
+
+## PROVISIONAL (2026-11-05): la partida nueva empieza con este número de vecinos para poder probar todos los
+## sistemas a la vez. Se levantan casas en solares libres y llegan recién llegados (solos, parejas, familias) sin
+## oficio, como los que vienen andando. Poner a 0 para volver al arranque normal. Las pruebas no lo usan.
+const START_POPULATION: int = 40
+const START_WEALTH: Array = ["poor", "mid", "mid", "rich"]
+
+static func seed_start_population(vm, target: int = START_POPULATION) -> int:
+	var added: int = 0
+	var guard: int = 0
+	while target > 0 and population(vm) < target and guard < 80:
+		guard += 1
+		if free_house_beds(vm) < 2:
+			var id: String = VillageLots.pick_house_lot(vm, str(START_WEALTH[guard % START_WEALTH.size()]))
+			if id != "":
+				VillageLots.build_instant_house(vm, id)
+			elif free_tavern_bed(vm) == null:
+				break # Ni solares ni camas: no cabe nadie más
+		vm.arrivals_today_count = 0
+		var got: int = try_arrival(vm, true)
+		if got <= 0:
+			break
+		added += got
+	vm.arrivals_today_count = 0
+	return added
 
 # ---------------------------------------------------------------- marchas
 static func ties(vm, n) -> int:

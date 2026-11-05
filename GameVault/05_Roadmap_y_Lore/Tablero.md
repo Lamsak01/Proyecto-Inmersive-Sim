@@ -47,6 +47,7 @@ kanban-plugin: board
 
 ## ✅ Hecho
 
+- [x] La aldea empieza con 40 vecinos, provisional para probar (2026-11-06)
 - [x] Ampliar la aldea, paso 2: callejas curvas, casas escalonadas, Pozo de la Ronda y huerto vecinal (2026-11-06)
 
 - [x] Casa mejorada del jugador (cabaña y casa de piedra) y gallinero en 3D (2026-11-06)

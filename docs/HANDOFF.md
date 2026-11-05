@@ -123,6 +123,13 @@ Otros documentos antiguos en la raíz: `ROADMAP_PROYECTO.md`, `AUDIT_LOG.md`, `S
 
 ## 7. Estado y siguiente bloque
 
+- [x] **Arranque con 40 vecinos, PROVISIONAL (Claude Code, 2026-11-06)** (`VillageMigration.gd`: `START_POPULATION = 40`
+  (0 = arranque normal), `seed_start_population` levanta casas al instante con `VillageLots.build_instant_house` cuando
+  quedan menos de 2 camas libres y llama a `try_arrival(vm, true)` (sin avisos) poniendo `arrivals_today_count = 0` en
+  cada vuelta. Se llama en `setup_village` solo si no es editor ni headless: las pruebas siguen con los 18 de siempre.
+  Al cargar partida, GameManager borra los NPC_Traveler_ y los restaura del guardado (sin duplicados). Sonda: 43
+  vecinos (las familias traen hijos), 8 casas nuevas, ~27 fps frente a ~31 fps con 18.
+
 - [x] **Ampliar la aldea, paso 2 (Claude Code, 2026-11-06)** (`VillageLots.gd`: `CURVED_ROADS`, `street_wave`,
   `curved_road_points`, `lot_shift` (fijo por id; n: hacia atrás, m/u: siguen la curva), `lot_def` devuelve el centro
   desplazado con caché `_def_cache` (`reset_layout` al montar el pueblo); ROADS sin las rectas de m y u; lotes u3 y e1

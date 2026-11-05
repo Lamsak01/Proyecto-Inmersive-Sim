@@ -543,6 +543,17 @@ static func _finish(vm, id: String, carp) -> void:
 		carp.add_thought("Terminé %s (+6)" % str(st["title"]).to_lower(), 6.0)
 		vm.VillageChronicle.add(vm, "construction", "%s terminó %s" % [carp.npc_name, str(st["title"]).to_lower()], true)
 
+## Partida nueva con más vecinos: una casa que ya está en pie al empezar (sin obra ni pago).
+static func build_instant_house(vm, id: String) -> bool:
+	if lot_def(id).is_empty() or str(lot(vm, id)["status"]) != "empty":
+		return false
+	var st: Dictionary = lot(vm, id)
+	st["kind"] = "house"
+	st["title"] = "🏠 %s" % str(HOUSE_PLOTS[plot_of(id)]["word"])
+	st["payer"] = "town"
+	_finish(vm, id, null)
+	return true
+
 ## Bloque PQ: Ampliar una casa ya construida con altillo/primer piso (+2 camas, hasta 4 residentes por casa).
 const UPPER_FLOOR_COST: int = 50
 static func expand_house_upper_floor(vm, id: String, payer = null) -> bool:
