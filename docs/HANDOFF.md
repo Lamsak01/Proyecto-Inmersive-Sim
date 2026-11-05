@@ -667,6 +667,29 @@ Cada fase se dividirá en bloques pequeños cuando se llegue a ella (detalle en 
 - [x] **Bloque PQ — Escalado de población a 100+ vecinos, solares de la ronda norte (`u0..u6`), casas ampliables a 4 camas con altillo y LOD multi-nivel** (`scripts/systems/VillageMigration.gd`, `scripts/systems/VillageLots.gd`, `scripts/systems/VillageHousing.gd`, `scripts/enemies/VillageNPC.gd`, test #94):
   1) Techo de población ampliado (`POP_CAP = 100` en `VillageMigration.gd`), nueva ronda norte de 7 solares residenciales (`u0..u6` en `VillageLots.LOTS`) y ampliación vertical de casas ya construidas con altillo (`expand_house_upper_floor`, `_house_beds(id, true)` con 4 camas por casa, activada automáticamente en `VillageMigration.maybe_order_house` cuando se agotan los solares libres o al instalar `"upper_floor"` en `VillageHousing.gd`).
   2) Simulación simplificada multi-nivel y de larga distancia (`_lod_far()` y `_lod_step_for_npc()` en `VillageNPC.gd`): los vecinos que se encuentran en otra capa vertical (`elevation_level != vm.player_elevation_level`) o muy alejados pasan a paso simplificado doble (`LOD_STEP * 2 = 8` fotogramas), manteniendo el desplazamiento exacto mediante `_lod_k`.
+- [x] **Estética retro 3D (Claude Code, 2026-11-05): animaciones reales, texturas pixeladas, pixelado global y día/noche** (`scripts/visuals/CharacterRig3D.gd`, `CharacterAvatar3D.gd`, `WorldStage3D.gd`, `AssetLibrary3D.gd`, `RetroPostFX.gd`, `shaders/retro_post_fx.gdshader`, `scripts/World.gd`, `scripts/systems/WorldClock.gd`, `tools/bake_character_animations.gd`, `tools/screenshot_3d.gd`). Registro paso a paso en `docs/REGISTRO_ESTETICA_3D.md`.
+  1) **Animaciones:** Quaternius UAL 1+2 (CC0). `tools/bake_character_animations.gd` las adapta al esqueleto con
+     reposo_personaje · inverso(reposo_animación) · rotación. Solo la pelvis conserva su posición, escalada. Salen
+     `assests/curated_3d/animations/ual_{male,female}.res` (28 clips). `CharacterRig3D._setup_anim_player` /
+     `_pick_clip` / `_apply_real_animation` los usan; si falta la librería, vuelve a `_apply_skeleton_pose`.
+  2) **Texturas:** se cambiaron las `village/T_*` que borró Gemini por `town_textures/` (Kenney Retro Textures Fantasy,
+     64 px) con `RETRO_TRIPLANAR_SCALE = 0.78`. `_style_for_building` elige muro, tejado y suelo por tipo.
+     - Puertas y ventanas: `_make_texture_panel` + `_panel_mat`.
+     - Chimeneas: `fantasy_town/chimney.glb`.
+     - Valla del cementerio: `graveyard/iron-fence.glb`.
+     - Carro: `props/Stall_Cart_Empty.gltf`.
+  3) **Pixelado:**
+     - el escenario se renderiza a 640×360 y los avatares a `AVATAR_RES = 64`, sin MSAA y con filtro NEAREST;
+     - `AssetLibrary3D.make_retro` pone los materiales en NEAREST, sin normal map, mates y con poco metal;
+     - `load_texture` reduce a `RETRO_MAX_TEX = 256` salvo `characters/`, `colormap` y `_Normal`.
+  4) **Tejados:** un vecino dentro solo abre el tejado si el jugador está a menos de 150 px del edificio. Antes
+     cualquiera lo abría y casi no se veían tejados.
+  5) **Día y noche:** `RetroPostFX` (CanvasLayer 1, colocado justo antes de `UI`; no se crea en headless) calcula
+     `night_factor` y `dusk_factor` y hasta 24 luces en pantalla: jugador, farolas encendidas y ventanas sin postigo.
+     El shader hace el etalonaje, la viñeta, el grano y la paleta de 15 bits con tramado Bayer a tamaño de píxel del
+     juego. `WorldClock.get_ambient_color` es más suave con ventana; en headless se mantienen los colores antiguos.
+  6) **Trampa:** Flatpak no ve `/tmp`. Las capturas de `tools/screenshot_3d.gd` deben ir dentro del proyecto (p. ej.
+     `.godot/capturas/`).
 - [x] **Transición 3D — Fase 1: Maquetas 3D articuladas de personajes, equipo, prótesis, arcabuz en mano `[9]`, Visor 3D `[F8]` y alternancia 3D/2D `[F9]`** (`scripts/visuals/CharacterRig3D.gd`, `scripts/visuals/CharacterAvatar3D.gd`, `scripts/ui/CharacterShowcase3DUI.gd`, `scripts/Player.gd`, `scripts/PlayerCombatController.gd`, `scripts/enemies/VillageNPC.gd`, `scenes/ui_root.gd`, probado en juego por el usuario; copia de seguridad 2D intacta en rama `backup-2d-original` y tag `v2d-backup-original`):
   1) Muñeco 3D articulado por piezas (`CharacterRig3D.gd`) con cabeza, ojos/cejas, peinado/barba, torso, delantal, capa, falda, armaduras por nivel (1–3), brazos/piernas articulados, prótesis mecánicas de hierro y cobre o muñón con muleta, y modelos 3D de armas/herramientas/sombreros.
   2) Puente en vivo (`CharacterAvatar3D.gd`) sincronizado con `Player` y `VillageNPC`, con suspensión fuera de cámara y en modo headless, alternable en caliente con `[F9]` sin borrar ningún nodo 2D original.

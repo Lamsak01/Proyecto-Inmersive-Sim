@@ -36,3 +36,6 @@ GameVault/.trash/
 
 # Archivos comprimidos brutos de packs 3D (los modelos filtrados y en uso viven en assests/curated_3d/)
 assests/Assets 3d/
+
+# Godot genera estos .import al abrir el editor; los modelos de curated_3d se cargan en tiempo de ejecución
+assests/curated_3d/**/*.import

@@ -8,6 +8,7 @@ extends Node2D
 const CharacterRig3DScript = preload("res://scripts/visuals/CharacterRig3D.gd")
 
 static var use_3d_characters: bool = true
+const AVATAR_RES: int = 64
 
 var is_player_avatar: bool = false
 var target_entity: Node2D = null
@@ -39,10 +40,11 @@ func setup_for_entity(entity: Node2D, is_player: bool = false) -> void:
 
 	sub_viewport = SubViewport.new()
 	sub_viewport.name = "AvatarSubViewport"
-	sub_viewport.size = Vector2i(96, 96)
+	# Resolución baja + filtrado pixelado (estética retro): 64 px en vez de 96, escalado para ocupar lo mismo.
+	sub_viewport.size = Vector2i(AVATAR_RES, AVATAR_RES)
 	sub_viewport.transparent_bg = true
 	sub_viewport.own_world_3d = true
-	sub_viewport.msaa_3d = Viewport.MSAA_2X
+	sub_viewport.msaa_3d = Viewport.MSAA_DISABLED
 	sub_viewport.render_target_update_mode = SubViewport.UPDATE_ALWAYS
 	add_child(sub_viewport)
 
@@ -74,8 +76,8 @@ func setup_for_entity(entity: Node2D, is_player: bool = false) -> void:
 	display_sprite.name = "Avatar3DSprite"
 	display_sprite.texture = sub_viewport.get_texture()
 	display_sprite.position = Vector2(0.0, -13.0)
-	display_sprite.scale = Vector2(0.46, 0.46)
-	display_sprite.texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR
+	display_sprite.scale = Vector2(0.46 * 96.0 / AVATAR_RES, 0.46 * 96.0 / AVATAR_RES)
+	display_sprite.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
 	add_child(display_sprite)
 
 	_sync_appearance_now()

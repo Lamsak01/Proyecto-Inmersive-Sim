@@ -34,6 +34,7 @@ kanban-plugin: board
 
 ## 🧹 Pulido
 
+- [ ] Personajes 3D con más estilo, tipo Signalis ([[Assets de pago]])
 - [ ] Quitar la etiqueta «dormida» de las tendencias ya conectadas (`TraitCatalog.gd`)
 - [ ] Paseos nocturnos visibles de Noctámbulos e Insomnes
 
@@ -46,6 +47,7 @@ kanban-plugin: board
 
 **Complete**
 - [x] Biblia del proyecto exportada a Obsidian
+- [x] Estética retro 3D: animaciones reales, texturas pixeladas, día y noche ([[Estética Retro 3D]])
 
 
 %% kanban:settings

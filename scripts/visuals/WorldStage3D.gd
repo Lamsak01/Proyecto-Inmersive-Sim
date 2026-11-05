@@ -16,8 +16,10 @@ const VillageCulture = preload("res://scripts/systems/VillageCulture.gd")
 
 const WORLD_SCALE: float = 0.02
 const PITCH_DEG: float = 58.0
-const VIEWPORT_W: int = 960
-const VIEWPORT_H: int = 540
+## Resolución interna baja + filtrado pixelado: el 3D se ve con píxeles gruesos, como el pixel art 2D.
+const VIEWPORT_W: int = 640
+const VIEWPORT_H: int = 360
+const RETRO_TRIPLANAR_SCALE: float = 0.78
 
 var vm: Node2D = null
 var _is_headless: bool = false
@@ -96,7 +98,7 @@ func setup_stage(village_manager: Node2D) -> void:
 		sub_viewport.transparent_bg = true
 		sub_viewport.own_world_3d = true
 		sub_viewport.render_target_update_mode = SubViewport.UPDATE_ALWAYS
-		sub_viewport.msaa_3d = Viewport.MSAA_2X
+		sub_viewport.msaa_3d = Viewport.MSAA_DISABLED
 		add_child(sub_viewport)
 
 		sub_viewport.add_child(stage_root_3d)
@@ -104,8 +106,8 @@ func setup_stage(village_manager: Node2D) -> void:
 		var env := Environment.new()
 		env.background_mode = Environment.BG_CLEAR_COLOR
 		env.ambient_light_source = Environment.AMBIENT_SOURCE_COLOR
-		env.ambient_light_color = Color(0.84, 0.86, 0.92)
-		env.ambient_light_energy = 0.72
+		env.ambient_light_color = Color(0.84, 0.86, 0.90)
+		env.ambient_light_energy = 0.58
 		world_env = WorldEnvironment.new()
 		world_env.environment = env
 		stage_root_3d.add_child(world_env)
@@ -113,16 +115,16 @@ func setup_stage(village_manager: Node2D) -> void:
 		sun_light = DirectionalLight3D.new()
 		sun_light.name = "SunLight3D"
 		sun_light.rotation_degrees = Vector3(-52.0, -28.0, 0.0)
-		sun_light.light_energy = 1.12
-		sun_light.light_color = Color(1.0, 0.96, 0.88)
+		sun_light.light_energy = 0.96
+		sun_light.light_color = Color(1.0, 0.95, 0.86)
 		sun_light.shadow_enabled = false
 		stage_root_3d.add_child(sun_light)
 
 		fill_light = DirectionalLight3D.new()
 		fill_light.name = "FillLight3D"
 		fill_light.rotation_degrees = Vector3(-35.0, 145.0, 0.0)
-		fill_light.light_energy = 0.42
-		fill_light.light_color = Color(0.74, 0.84, 0.98)
+		fill_light.light_energy = 0.30
+		fill_light.light_color = Color(0.72, 0.80, 0.94)
 		fill_light.shadow_enabled = false
 		stage_root_3d.add_child(fill_light)
 
@@ -143,6 +145,7 @@ func setup_stage(village_manager: Node2D) -> void:
 		stage_sprite.z_index = -1
 		stage_sprite.centered = true
 		stage_sprite.texture = sub_viewport.get_texture()
+		stage_sprite.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
 		add_child(stage_sprite)
 	else:
 		add_child(stage_root_3d)
@@ -174,13 +177,17 @@ func _mat(key: String, col: Color, rough: float = 0.82, metal: float = 0.05, emi
 	m.albedo_color = col
 	m.roughness = rough
 	m.metallic = metal
+	m.texture_filter = BaseMaterial3D.TEXTURE_FILTER_NEAREST_WITH_MIPMAPS
 	if not _is_headless and not tex_rel.is_empty():
 		var tex := AssetLib.load_texture(tex_rel)
 		if tex != null:
 			m.albedo_texture = tex
-			m.albedo_color = col.lerp(Color.WHITE, 0.42)
+			# Estética retro: la textura pixelada manda; el color del edificio solo la tiñe un poco.
+			m.albedo_color = col.lerp(Color.WHITE, 0.55)
 			m.uv1_triplanar = true
-			m.uv1_scale = Vector3(triplanar_scale, triplanar_scale, triplanar_scale)
+			# Texturas de 64 px: una repetición cada ~64 px del mapa 2D (densidad parecida al pixel art).
+			var ts := RETRO_TRIPLANAR_SCALE if tex_rel.begins_with("town_textures/") else triplanar_scale
+			m.uv1_scale = Vector3(ts, ts, ts)
 		if not norm_rel.is_empty():
 			var ntex := AssetLib.load_texture(norm_rel)
 			if ntex != null:
@@ -239,6 +246,52 @@ func _add_cyl_2d(parent: Node3D, center_2d: Vector2, radius_px: float, bottom_h_
 	parent.add_child(mi)
 	return mi
 
+## Panel con una textura pixelada entera en su cara frontal y trasera (puertas, ventanas).
+## Las caras laterales quedan del color medio de la textura.
+func _make_texture_panel(w_px: float, h_px: float, depth_px: float, mat: Material) -> Node3D:
+	var root := Node3D.new()
+	var sz := size_3d(Vector2(w_px, depth_px), h_px)
+	var core := MeshInstance3D.new()
+	var bm := BoxMesh.new()
+	bm.size = Vector3(sz.x * 0.98, sz.y * 0.98, sz.z * 0.9)
+	core.mesh = bm
+	core.material_override = _mat("panel_core", Color(0.30, 0.20, 0.12), 0.9, 0.0)
+	root.add_child(core)
+	for side in [1.0, -1.0]:
+		var q := MeshInstance3D.new()
+		var qm := QuadMesh.new()
+		qm.size = Vector2(sz.x, sz.y)
+		q.mesh = qm
+		q.material_override = mat
+		q.position = Vector3(0.0, 0.0, sz.z * 0.5 * side + 0.002 * side)
+		if side < 0.0:
+			q.rotation_degrees.y = 180.0
+		q.name = "Face" if side > 0.0 else "FaceBack"
+		root.add_child(q)
+	return root
+
+## Material para paneles: textura completa (sin repetir), filtrado pixelado y opcionalmente brillante (ventanas de noche).
+func _panel_mat(key: String, tex_rel: String, lit: bool) -> StandardMaterial3D:
+	var k := "panel_" + key
+	if _mat_cache.has(k):
+		return _mat_cache[k]
+	var m := StandardMaterial3D.new()
+	m.roughness = 0.9
+	m.texture_filter = BaseMaterial3D.TEXTURE_FILTER_NEAREST_WITH_MIPMAPS
+	var tex := AssetLib.load_texture(tex_rel)
+	if tex != null:
+		m.albedo_texture = tex
+		if lit:
+			m.emission_enabled = true
+			m.emission_texture = tex
+			m.emission = Color(1.0, 0.78, 0.45)
+			m.emission_energy_multiplier = 1.6
+	if tex_rel.find("window") != -1 or tex_rel.find("door") != -1:
+		m.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA_SCISSOR
+		m.alpha_scissor_threshold = 0.5
+	_mat_cache[k] = m
+	return m
+
 func _clear_children(n: Node3D) -> void:
 	if n == null:
 		return
@@ -260,20 +313,20 @@ func rebuild_all_3d() -> void:
 # ==============================================================================
 func _build_static_terrain_3d() -> void:
 	_clear_children(terrain_root_3d)
-	var m_road := _mat("road_dirt", Color(0.56, 0.46, 0.34), 0.92, 0.0, Color.BLACK, 0.0, "village/T_RockTrim_BaseColor.png", "village/T_RockTrim_Normal.png", 0.55)
-	var m_curb := _mat("road_curb", Color(0.62, 0.58, 0.52), 0.88, 0.04, Color.BLACK, 0.0, "village/T_RockTrim_BaseColor.png", "village/T_RockTrim_Normal.png", 0.70)
-	var m_plaza := _mat("plaza_stone", Color(0.66, 0.62, 0.56), 0.85, 0.05, Color.BLACK, 0.0, "village/T_UnevenBrick_BaseColor.png", "village/T_UnevenBrick_Normal.png", 0.65)
-	var m_plaza_trim := _mat("plaza_trim", Color(0.72, 0.68, 0.60), 0.80, 0.08, Color.BLACK, 0.0, "village/T_RockTrim_BaseColor.png", "village/T_RockTrim_Normal.png", 0.75)
-	var m_wood := _mat("prop_wood", Color(0.54, 0.36, 0.20), 0.85, 0.02, Color.BLACK, 0.0, "village/T_WoodTrim_BaseColor.png", "village/T_WoodTrim_Normal.png", 0.80)
-	var m_dark_wood := _mat("prop_dark_wood", Color(0.38, 0.24, 0.13), 0.88, 0.02, Color.BLACK, 0.0, "village/T_WoodTrim_BaseColor.png", "village/T_WoodTrim_Normal.png", 0.80)
-	var m_stone := _mat("prop_stone", Color(0.66, 0.68, 0.72), 0.85, 0.05, Color.BLACK, 0.0, "village/T_Brick_BaseColor.png", "village/T_Brick_Normal.png", 0.70)
+	var m_road := _mat("road_dirt", Color(0.56, 0.46, 0.34), 0.92, 0.0, Color.BLACK, 0.0, "town_textures/floor_ground_dirt.png", "", 0.55)
+	var m_curb := _mat("road_curb", Color(0.62, 0.58, 0.52), 0.88, 0.04, Color.BLACK, 0.0, "town_textures/wall_stone.png", "", 0.70)
+	var m_plaza := _mat("plaza_stone", Color(0.66, 0.62, 0.56), 0.85, 0.05, Color.BLACK, 0.0, "town_textures/rf_cobblestone.png", "", 0.65)
+	var m_plaza_trim := _mat("plaza_trim", Color(0.72, 0.68, 0.60), 0.80, 0.08, Color.BLACK, 0.0, "town_textures/floor_stone_trimsheet.png", "", 0.75)
+	var m_wood := _mat("prop_wood", Color(0.54, 0.36, 0.20), 0.85, 0.02, Color.BLACK, 0.0, "town_textures/rf_planks.png", "", 0.80)
+	var m_dark_wood := _mat("prop_dark_wood", Color(0.38, 0.24, 0.13), 0.88, 0.02, Color.BLACK, 0.0, "town_textures/rf_planks.png", "", 0.80)
+	var m_stone := _mat("prop_stone", Color(0.66, 0.68, 0.72), 0.85, 0.05, Color.BLACK, 0.0, "town_textures/wall_brick_stone_center.png", "", 0.70)
 	var m_water := _mat("water_blue", Color(0.18, 0.52, 0.74, 0.90), 0.20, 0.15)
 	var m_marsh := _mat("water_marsh", Color(0.20, 0.42, 0.30, 0.92), 0.28, 0.10)
 	var m_grass_park := _mat("grass_park", Color(0.24, 0.48, 0.22), 0.92, 0.0)
 	var m_pine := _mat("pine_leaf", Color(0.16, 0.38, 0.18), 0.88, 0.0)
 	var m_pine_top := _mat("pine_leaf_top", Color(0.22, 0.46, 0.22), 0.86, 0.0)
 	var m_iron := _mat("wrought_iron", Color(0.22, 0.24, 0.28), 0.45, 0.75)
-	var m_shingle := _mat("roof_shingle_brown", Color(0.56, 0.30, 0.18), 0.82, 0.04, Color.BLACK, 0.0, "village/T_RoundTiles_BaseColor.png", "village/T_RoundTiles_Normal.png", 0.75)
+	var m_shingle := _mat("roof_shingle_brown", Color(0.56, 0.30, 0.18), 0.82, 0.04, Color.BLACK, 0.0, "town_textures/roof_clay_red_center.png", "", 0.75)
 
 	# Caminos principales y calles con relieve 3D
 	var road_rects: Array[Rect2] = [
@@ -324,7 +377,7 @@ func _build_static_terrain_3d() -> void:
 	var cp: Vector2 = vm._compost_pos if vm != null else Vector2(184, 114)
 	_add_box_2d(terrain_root_3d, cp, Vector2(14.0, 12.0), 0.0, 9.0, m_dark_wood)
 	_add_box_2d(terrain_root_3d, cp, Vector2(11.0, 9.0), 1.0, 7.5, _mat("compost_soil", Color(0.28, 0.20, 0.12), 0.95, 0.0))
-	_add_model_2d(terrain_root_3d, "village/Prop_Wagon.gltf", Vector2(204, 108), 0.0, Vector2.ZERO, 18.0, 25.0)
+	_add_model_2d(terrain_root_3d, "props/Stall_Cart_Empty.gltf", Vector2(204, 108), 0.0, Vector2.ZERO, 16.0, 25.0)
 	_add_model_2d(terrain_root_3d, "props/FarmCrate_Apple.gltf", Vector2(168, 92), 0.0, Vector2.ZERO, 8.0)
 	_add_model_2d(terrain_root_3d, "props/FarmCrate_Carrot.gltf", Vector2(168, 104), 0.0, Vector2.ZERO, 8.0)
 
@@ -418,48 +471,58 @@ func _style_for_building(b_id: String) -> Dictionary:
 	var roof_col := Color(0.68, 0.32, 0.22)
 	var floor_col := Color(0.56, 0.40, 0.25)
 	var trim_col := Color(0.42, 0.28, 0.16)
-	var wall_tex := "village/T_Plaster_BaseColor.png"
-	var wall_norm := "village/T_Plaster_Normal.png"
-	var roof_tex := "village/T_RoundTiles_BaseColor.png"
-	var roof_norm := "village/T_RoundTiles_Normal.png"
+	var wall_tex := "town_textures/timber_square_clay.png"
+	var wall_norm := ""
+	var roof_tex := "town_textures/roof_clay_red_center.png"
+	var floor_tex := "town_textures/floor_wood_planks.png"
+	if b_id in ["building_church", "building_police", "shop_family_smith", "building_tinker", "building_town_hall"]:
+		floor_tex = "town_textures/floor_stone_pattern.png"
+	elif b_id == "building_hospital":
+		floor_tex = "town_textures/floor_tiles_sand_large.png"
+	var roof_norm := ""
 	var wall_h: float = 28.0
 	var roof_h: float = 14.0
 
 	if b_id == "building_tavern":
+		wall_tex = "town_textures/wall_timber_structure_cross.png"
 		wall_col = Color(0.86, 0.74, 0.56)
 		roof_col = Color(0.66, 0.24, 0.20)
 		floor_col = Color(0.52, 0.34, 0.20)
 		wall_h = 32.0
 		roof_h = 16.0
 	elif b_id == "building_hospital":
+		wall_tex = "town_textures/wall_brick_small_sand.png"
+		roof_tex = "town_textures/roof_clay_grey_center.png"
 		wall_col = Color(0.90, 0.94, 0.96)
 		roof_col = Color(0.28, 0.54, 0.58)
 		floor_col = Color(0.80, 0.86, 0.88)
 		trim_col = Color(0.48, 0.58, 0.62)
 		wall_h = 30.0
 	elif b_id == "building_police":
+		roof_tex = "town_textures/roof_clay_grey_center.png"
 		wall_col = Color(0.64, 0.68, 0.74)
 		roof_col = Color(0.26, 0.34, 0.48)
 		floor_col = Color(0.50, 0.52, 0.56)
 		trim_col = Color(0.34, 0.38, 0.46)
-		wall_tex = "village/T_UnevenBrick_BaseColor.png"
-		wall_norm = "village/T_UnevenBrick_Normal.png"
+		wall_tex = "town_textures/wall_brick_stone_center.png"
+		wall_norm = ""
 		wall_h = 30.0
 	elif b_id == "building_church":
+		roof_tex = "town_textures/roof_clay_grey_center.png"
 		wall_col = Color(0.88, 0.84, 0.78)
 		roof_col = Color(0.44, 0.34, 0.58)
 		floor_col = Color(0.66, 0.62, 0.58)
 		trim_col = Color(0.52, 0.46, 0.42)
-		wall_tex = "village/T_Brick_BaseColor.png"
-		wall_norm = "village/T_Brick_Normal.png"
+		wall_tex = "town_textures/wall_brick_sand_center.png"
+		wall_norm = ""
 		wall_h = 34.0
 		roof_h = 18.0
 	elif b_id == "building_town_hall":
 		wall_col = Color(0.88, 0.82, 0.72)
 		roof_col = Color(0.28, 0.42, 0.62)
 		floor_col = Color(0.58, 0.42, 0.26)
-		wall_tex = "village/T_Brick_BaseColor.png"
-		wall_norm = "village/T_Brick_Normal.png"
+		wall_tex = "town_textures/wall_brick_sand_center.png"
+		wall_norm = ""
 		wall_h = 32.0
 		roof_h = 16.0
 	elif b_id == "building_candil":
@@ -467,36 +530,46 @@ func _style_for_building(b_id: String) -> Dictionary:
 		roof_col = Color(0.58, 0.22, 0.38)
 		floor_col = Color(0.44, 0.24, 0.32)
 	elif b_id == "building_manor" or b_id == "building_townhouse":
+		roof_tex = "town_textures/roof_clay_grey_center.png"
 		wall_col = Color(0.84, 0.82, 0.78)
 		roof_col = Color(0.26, 0.46, 0.38)
 		floor_col = Color(0.56, 0.40, 0.24)
-		wall_tex = "village/T_Brick_BaseColor.png"
-		wall_norm = "village/T_Brick_Normal.png"
+		wall_tex = "town_textures/wall_brick_sand_center.png"
+		wall_norm = ""
 		wall_h = 32.0
 	elif b_id == "building_library":
+		wall_tex = "town_textures/timber_square_frame.png"
+		roof_tex = "town_textures/roof_clay_grey_center.png"
 		wall_col = Color(0.80, 0.70, 0.56)
 		roof_col = Color(0.30, 0.44, 0.64)
 	elif b_id == "building_school":
 		wall_col = Color(0.86, 0.78, 0.62)
 		roof_col = Color(0.68, 0.36, 0.24)
 	elif b_id == "shop_family_smith" or b_id == "building_tinker":
+		roof_tex = "town_textures/roof_clay_grey_center.png"
 		wall_col = Color(0.60, 0.58, 0.56)
 		roof_col = Color(0.36, 0.34, 0.34)
 		floor_col = Color(0.46, 0.44, 0.42)
-		wall_tex = "village/T_UnevenBrick_BaseColor.png"
-		wall_norm = "village/T_UnevenBrick_Normal.png"
+		wall_tex = "town_textures/wall_stone.png"
+		wall_norm = ""
 	elif b_id.begins_with("shop_") or b_id.begins_with("mixed_"):
+		if (b_id.hash() % 2) == 0:
+			wall_tex = "town_textures/wall_timber_structure_cross.png"
+		if (b_id.hash() % 3) == 0:
+			roof_tex = "town_textures/roof_thatch_center.png"
 		wall_col = Color(0.84, 0.74, 0.56)
 		roof_col = Color(0.68, 0.34, 0.22)
 	elif b_id.begins_with("player_house_"):
+		wall_tex = "town_textures/timber_square_planks.png"
+		roof_tex = "town_textures/roof_thatch_center.png"
 		wall_col = Color(0.86, 0.76, 0.58)
 		roof_col = Color(0.28, 0.52, 0.36)
 
 	return {
 		"wall_mat": _mat("wall_" + b_id, wall_col, 0.86, 0.04, Color.BLACK, 0.0, wall_tex, wall_norm, 0.70),
 		"roof_mat": _mat("roof_" + b_id, roof_col, 0.80, 0.06, Color.BLACK, 0.0, roof_tex, roof_norm, 0.75),
-		"floor_mat": _mat("floor_" + b_id, floor_col, 0.88, 0.02, Color.BLACK, 0.0, "village/T_WoodTrim_BaseColor.png", "village/T_WoodTrim_Normal.png", 0.85),
-		"trim_mat": _mat("trim_" + b_id, trim_col, 0.84, 0.05, Color.BLACK, 0.0, "village/T_WoodTrim_BaseColor.png", "village/T_WoodTrim_Normal.png", 0.85),
+		"floor_mat": _mat("floor_" + b_id, floor_col, 0.88, 0.02, Color.BLACK, 0.0, floor_tex, "", 0.85),
+		"trim_mat": _mat("trim_" + b_id, trim_col, 0.84, 0.05, Color.BLACK, 0.0, "town_textures/rf_planks.png", "", 0.85),
 		"wall_h": wall_h,
 		"roof_h": roof_h,
 	}
@@ -576,7 +649,6 @@ func rebuild_buildings_3d() -> void:
 		# 3. Puerta abatible 3D sincronizada con `vm.building_doors`
 		for d_entry in vm.building_doors:
 			if str(d_entry.get("building_id", "")) == b_id:
-				_add_model_2d(b_root, "village/DoorFrame_Flat_WoodDark.gltf", Vector2(door_pos.x, door_y), 2.0, Vector2(door_w + 4.0, wall_t + 3.0), wall_h * 0.78)
 				var hinge_pos := Vector2(door_left_x + 2.0, door_y)
 				var pivot := Node3D.new()
 				pivot.name = "DoorPivot_" + b_id
@@ -585,10 +657,9 @@ func rebuild_buildings_3d() -> void:
 				var leaf_w: float = maxf(18.0, door_w - 4.0)
 				var leaf_h: float = wall_h * 0.70
 				if not _is_headless:
-					var door_mdl := AssetLib.instantiate_model("village/Door_1_Flat.gltf", size_3d(Vector2(leaf_w, 3.6), leaf_h), -1.0, true, true)
-					if door_mdl != null:
-						door_mdl.position = Vector3((leaf_w * 0.5) * WORLD_SCALE, 0.0, 0.0)
-						pivot.add_child(door_mdl)
+					var door_leaf := _make_texture_panel(leaf_w, leaf_h, 3.0, _panel_mat("door_wood", "town_textures/door_wood.png", false))
+					door_leaf.position = Vector3((leaf_w * 0.5) * WORLD_SCALE, (leaf_h * 0.5 * WORLD_SCALE) / _cos_p, 0.0)
+					pivot.add_child(door_leaf)
 				var lock_badge := MeshInstance3D.new()
 				var lb_bm := BoxMesh.new()
 				lb_bm.size = size_3d(Vector2(3.5, 4.2), 3.5)
@@ -603,8 +674,13 @@ func rebuild_buildings_3d() -> void:
 		for w_entry in vm.building_windows:
 			if str(w_entry.get("building_id", "")) == b_id:
 				var w_pos: Vector2 = w_entry.get("pos", Vector2.ZERO)
-				_add_model_2d(b_root, "village/Window_Wide_Flat1.gltf", w_pos, 10.0, Vector2(14.0, wall_t + 3.0), 11.0)
-				var pane := _add_box_2d(b_root, w_pos, Vector2(11.0, wall_t + 2.4), 12.0, 8.0, m_glass)
+				var pane: Node3D = null
+				if not _is_headless:
+					pane = _make_texture_panel(13.0, 12.0, wall_t + 2.4, _panel_mat("win_day", "town_textures/window_square_divided.png", false))
+					pane.position = to_3d(w_pos, 10.0 + 6.0)
+					b_root.add_child(pane)
+				else:
+					pane = _add_box_2d(b_root, w_pos, Vector2(11.0, wall_t + 2.4), 12.0, 8.0, m_glass)
 				var shutter := _add_box_2d(b_root, w_pos, Vector2(12.0, wall_t + 2.8), 12.0, 8.2, m_dark_wood)
 				_window_nodes_3d.append({"entry": w_entry, "pane": pane, "shutter": shutter})
 				break
@@ -642,12 +718,12 @@ func rebuild_buildings_3d() -> void:
 			_add_model_2d(roof_cap, "buildings/Bell_Tower.obj", center + Vector2(0, -half.y + 18.0), wall_h + 4.0, Vector2(28.0, 28.0), 38.0)
 		elif b_id == "building_tavern":
 			_add_model_2d(roof_cap, "buildings/Inn.obj", center, wall_h + 4.0, sz * 0.65, roof_h + 14.0)
-			_add_model_2d(roof_cap, "village/Prop_Chimney.gltf", center + Vector2(half.x * 0.45, -half.y * 0.35), wall_h + 4.0, Vector2(10.0, 10.0), roof_h + 12.0)
+			_add_model_2d(roof_cap, "fantasy_town/chimney.glb", center + Vector2(half.x * 0.45, -half.y * 0.35), wall_h + 4.0, Vector2(10.0, 10.0), roof_h + 12.0)
 		elif b_id == "shop_family_smith":
 			_add_model_2d(roof_cap, "buildings/Blacksmith.obj", center, wall_h + 4.0, sz * 0.68, roof_h + 12.0)
-			_add_model_2d(roof_cap, "village/Prop_Chimney2.gltf", center + Vector2(-half.x * 0.35, -half.y * 0.30), wall_h + 4.0, Vector2(12.0, 12.0), roof_h + 16.0)
+			_add_model_2d(roof_cap, "fantasy_town/chimney.glb", center + Vector2(-half.x * 0.35, -half.y * 0.30), wall_h + 4.0, Vector2(12.0, 12.0), roof_h + 16.0)
 		else:
-			_add_model_2d(roof_cap, "village/Prop_Chimney.gltf", center + Vector2(half.x * 0.45, -half.y * 0.35), wall_h + 4.0, Vector2(9.0, 9.0), roof_h + 10.0)
+			_add_model_2d(roof_cap, "fantasy_town/chimney.glb", center + Vector2(half.x * 0.45, -half.y * 0.35), wall_h + 4.0, Vector2(9.0, 9.0), roof_h + 10.0)
 
 		_building_records_3d.append({
 			"id": b_id,
@@ -713,8 +789,8 @@ func _populate_building_interior_3d(b_root: Node3D, b_id: String, rect: Rect2, d
 				_morgue_body_nodes_3d.append(body_n)
 		"building_police":
 			# Tabique de barrotes de acero del calabozo y puerta de reja en Vector2(902, 152)
-			_add_model_2d(b_root, "village/Prop_MetalFence_Simple.gltf", Vector2(874, 152), 2.0, Vector2(36, 4.5), wall_h * 0.85)
-			_add_model_2d(b_root, "village/Prop_MetalFence_Simple.gltf", Vector2(940, 152), 2.0, Vector2(52, 4.5), wall_h * 0.85)
+			_add_model_2d(b_root, "graveyard/iron-fence.glb", Vector2(874, 152), 2.0, Vector2(36, 4.5), wall_h * 0.85)
+			_add_model_2d(b_root, "graveyard/iron-fence.glb", Vector2(940, 152), 2.0, Vector2(52, 4.5), wall_h * 0.85)
 			_jail_gate_pivot_3d = Node3D.new()
 			_jail_gate_pivot_3d.position = to_3d(Vector2(892, 152), 2.0)
 			b_root.add_child(_jail_gate_pivot_3d)
@@ -842,10 +918,10 @@ func rebuild_outpost_3d() -> void:
 	var c: Vector2 = VillageCulture.OUTPOST_CENTER
 	var gate_p: Vector2 = VillageCulture.OUTPOST_GATE_POS
 
-	var m_road := _mat("road_dirt", Color(0.46, 0.37, 0.25), 0.92, 0.0, Color.BLACK, 0.0, "village/T_RockTrim_BaseColor.png", "village/T_RockTrim_Normal.png", 0.35)
-	var m_log := _mat("outpost_log", Color(0.55, 0.40, 0.26), 0.88, 0.02, Color.BLACK, 0.0, "village/T_WoodTrim_BaseColor.png", "village/T_WoodTrim_Normal.png", 0.45)
-	var m_plank := _mat("outpost_plank", Color(0.68, 0.50, 0.32), 0.85, 0.02, Color.BLACK, 0.0, "village/T_WoodTrim_BaseColor.png", "village/T_WoodTrim_Normal.png", 0.45)
-	var m_stone := _mat("outpost_stone", Color(0.65, 0.64, 0.60), 0.88, 0.04, Color.BLACK, 0.0, "village/T_UnevenBrick_BaseColor.png", "village/T_UnevenBrick_Normal.png", 0.35)
+	var m_road := _mat("road_dirt", Color(0.46, 0.37, 0.25), 0.92, 0.0, Color.BLACK, 0.0, "town_textures/floor_ground_dirt.png", "", 0.35)
+	var m_log := _mat("outpost_log", Color(0.55, 0.40, 0.26), 0.88, 0.02, Color.BLACK, 0.0, "town_textures/floor_wood_planks.png", "", 0.45)
+	var m_plank := _mat("outpost_plank", Color(0.68, 0.50, 0.32), 0.85, 0.02, Color.BLACK, 0.0, "town_textures/floor_wood_planks.png", "", 0.45)
+	var m_stone := _mat("outpost_stone", Color(0.65, 0.64, 0.60), 0.88, 0.04, Color.BLACK, 0.0, "town_textures/wall_brick_stone_center.png", "", 0.35)
 
 	# Extensión del camino del este hasta el Puesto del Paso
 	_add_box_2d(outpost_root_3d, Vector2(1512, 50), Vector2(72, 26), 0.0, 1.2, m_road)
@@ -928,7 +1004,7 @@ func rebuild_graves_3d() -> void:
 
 func _build_sewers_3d() -> void:
 	_clear_children(sewers_root_3d)
-	var m_brick := _mat("sewer_brick", Color(0.28, 0.34, 0.30), 0.90, 0.05, Color.BLACK, 0.0, "village/T_UnevenBrick_BaseColor.png", "village/T_UnevenBrick_Normal.png", 0.35)
+	var m_brick := _mat("sewer_brick", Color(0.28, 0.34, 0.30), 0.90, 0.05, Color.BLACK, 0.0, "town_textures/wall_brick_stone_center.png", "", 0.35)
 	var m_water := _mat("sewer_water", Color(0.14, 0.46, 0.36, 0.92), 0.25, 0.15, Color(0.10, 0.42, 0.30), 0.35)
 
 	# Cámaras subterráneas bajo Posada, Comisaría y Ciénaga + galería de conexión
@@ -1083,7 +1159,9 @@ func _update_roof_cutaways_and_lighting() -> void:
 		var r_near: Rect2 = rect.grow(38.0)
 		var r_inside: Rect2 = rect.grow(8.0)
 		var open_roof: bool = r_near.has_point(pl_pos) or r_inside.has_point(mouse_pos)
-		if not open_roof:
+		# Un vecino dentro solo abre el tejado si el jugador anda cerca (≈ media pantalla); así el resto del pueblo
+		# conserva sus tejados y se ve como un pueblo, no como una maqueta destapada.
+		if not open_roof and rect.grow(150.0).has_point(pl_pos):
 			for n in get_tree().get_nodes_in_group("village_npcs"):
 				if n is Node2D and is_instance_valid(n) and not bool(n.get("is_dead")):
 					if r_inside.has_point((n as Node2D).global_position):

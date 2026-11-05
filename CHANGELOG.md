@@ -3,6 +3,22 @@
 Cambios del juego, del más nuevo al más antiguo. Añade una entrada al cerrar cada bloque, en lenguaje sencillo.
 El detalle técnico está en `docs/HANDOFF.md` (sección 7) y el historial completo en `git log`. Lo anterior a B0.1 está en `AUDIT_LOG.md` y `SESSION_CONTEXT_LOG.md`.
 
+## 2026-11-05
+
+### Estética retro 3D: «parece retro pero no lo es»
+- **Vecinos que se mueven como personas:** andan, corren, talan, siegan, riegan, cargan, rezan, duermen tumbados, caen al
+  morir, apuntan y golpean con animaciones reales en vez de balanceos de muñeco.
+- **Un pueblo con un solo estilo:** casas con muros de entramado de madera, piedra o ladrillo y tejados de teja, pizarra
+  o paja, todo con texturas pixeladas pintadas a mano. Volvieron las puertas, las ventanas y las chimeneas, que se
+  habían perdido.
+- **El 3D casa con el pixel art:** el mundo y los personajes se dibujan con píxeles gruesos y cuadrados.
+- **Tejados a la vista:** el pueblo ya enseña sus tejados; solo se abren los de los edificios que tienes cerca.
+- **Día nostálgico y noche inquietante:**
+  - de día, luz cálida y colores algo desvaídos, como una foto vieja;
+  - el atardecer es largo y dorado;
+  - de noche todo queda frío y oscuro, salvo los charcos de luz de las farolas, las ventanas encendidas y un halo
+    alrededor de ti (más grande con farol).
+
 ## 2026-11-04
 
 ### Transición 3D (Fase 3): Modelos 3D esculpidos y texturas reales integrados en personajes, armas, edificios y naturaleza

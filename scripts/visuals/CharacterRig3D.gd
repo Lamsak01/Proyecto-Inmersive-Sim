@@ -88,6 +88,14 @@ var _muzzle_flash_t: float = 0.0
 var _facing_yaw: float = 0.0
 var _target_yaw: float = 0.0
 
+# Animaciones reales (Quaternius Universal Animation Library, CC0), adaptadas por tools/bake_character_animations.gd
+const ANIM_LIB_MALE := "res://assests/curated_3d/animations/ual_male.res"
+const ANIM_LIB_FEMALE := "res://assests/curated_3d/animations/ual_female.res"
+static var _anim_lib_cache: Dictionary = {} # ruta -> AnimationLibrary
+var _anim_player: AnimationPlayer = null
+var _current_clip: String = ""
+var _speed_ratio: float = 1.0
+
 
 func _ready() -> void:
 	_build_skeleton()
@@ -362,6 +370,7 @@ func _rebuild_meshes() -> void:
 	if AssetLib.has_curated_assets():
 		if _rebuild_real_quaternius_character():
 			_rebuild_tools()
+			AssetLib.make_retro(self)
 			return
 
 	_using_real_mesh = false
@@ -407,6 +416,7 @@ func _rebuild_real_quaternius_character() -> bool:
 		var bname := _skeleton.get_bone_name(i)
 		_bone_idx[bname] = i
 		_bone_rest_q[bname] = _skeleton.get_bone_rest(i).basis.get_rotation_quaternion()
+	_setup_anim_player(char_root)
 
 	# 1. Añadir cabeza esculpida, ojos y cejas desde Universal Base Characters
 	var base_file := "characters/Superhero_Female_FullBody.gltf" if _is_female else "characters/Superhero_Male_FullBody.gltf"
@@ -553,7 +563,10 @@ func _rebuild_real_quaternius_character() -> bool:
 			knee.height = 0.136
 			_add_part(leg_att, knee, p_mat, Vector3(0.0, 0.02, 0.0))
 
-	_apply_skeleton_pose(0.0)
+	if _anim_player != null:
+		_apply_real_animation()
+	else:
+		_apply_skeleton_pose(0.0)
 	return true
 
 
@@ -846,6 +859,7 @@ func update_pose(delta: float, state: Dictionary) -> void:
 
 func update_animation(delta: float, state: int, speed_ratio: float = 1.0) -> void:
 	_anim_state = state
+	_speed_ratio = speed_ratio
 	_anim_time += delta * maxf(0.4, speed_ratio)
 
 	var diff := wrapf(_target_yaw - _facing_yaw, -PI, PI)
@@ -861,7 +875,92 @@ func update_animation(delta: float, state: int, speed_ratio: float = 1.0) -> voi
 		_attack_swing_t = maxf(0.0, _attack_swing_t - delta)
 
 	if _using_real_mesh and _skeleton != null and is_instance_valid(_skeleton):
-		_apply_skeleton_pose(delta)
+		if _anim_player != null and is_instance_valid(_anim_player):
+			_apply_real_animation()
+		else:
+			_apply_skeleton_pose(delta)
+
+
+static func _get_anim_lib(path: String) -> AnimationLibrary:
+	if _anim_lib_cache.has(path):
+		return _anim_lib_cache[path]
+	var lib: AnimationLibrary = null
+	if ResourceLoader.exists(path):
+		lib = load(path) as AnimationLibrary
+	_anim_lib_cache[path] = lib
+	return lib
+
+
+func _setup_anim_player(char_root: Node3D) -> void:
+	_anim_player = null
+	_current_clip = ""
+	var lib := _get_anim_lib(ANIM_LIB_FEMALE if _is_female else ANIM_LIB_MALE)
+	if lib == null:
+		return
+	var ap := AnimationPlayer.new()
+	ap.name = "CharAnimPlayer"
+	char_root.add_child(ap)
+	ap.root_node = NodePath("..")
+	ap.add_animation_library("", lib)
+	_anim_player = ap
+
+
+## Elige la animación real según el estado. Devuelve [clip, velocidad].
+func _pick_clip() -> Array:
+	var gun := _weapon_id in ["flintlock", "pistol", "arquebus"]
+	if _attack_swing_t > 0.0:
+		if gun:
+			return ["shoot", 1.0]
+		if _weapon_id == "none" or _weapon_id.is_empty():
+			return ["punch", 1.4]
+		return ["sword", 1.6]
+	match _anim_state:
+		AnimState.WALK:
+			if _speed_ratio > 1.35:
+				return ["run", clampf(_speed_ratio / 1.6, 0.8, 1.4)]
+			return ["walk", clampf(_speed_ratio, 0.7, 1.3)]
+		AnimState.WORK:
+			match _weapon_id:
+				"scythe", "sickle", "hoe":
+					return ["harvest", 1.0]
+				"bucket", "watering_can":
+					return ["water", 1.0]
+				"book", "mug", "bag":
+					return ["kneel_fix", 1.0]
+			return ["chop", 1.0]
+		AnimState.CARRY:
+			return ["carry", clampf(_speed_ratio, 0.7, 1.3)]
+		AnimState.PRAY:
+			return ["crouch", 0.6]
+		AnimState.SLEEP:
+			return ["lay", 0.0]
+		AnimState.KO:
+			return ["death", 1.0]
+		AnimState.AIM_GUN:
+			return ["aim", 1.0]
+	if _carrying_lantern:
+		return ["lantern", 1.0]
+	if gun:
+		return ["aim", 0.0]
+	return ["idle", 1.0]
+
+
+func _apply_real_animation() -> void:
+	var char_root := get_node_or_null("RealCharRoot") as Node3D
+	if char_root != null:
+		char_root.rotation_degrees = Vector3.ZERO
+		char_root.position = Vector3.ZERO
+	var pick := _pick_clip()
+	var clip: String = pick[0]
+	var spd: float = pick[1]
+	if not _anim_player.has_animation(clip):
+		clip = "idle"
+	if clip != _current_clip:
+		_current_clip = clip
+		_anim_player.play(clip, 0.18)
+		if clip == "lay":
+			_anim_player.seek(0.0, true)
+	_anim_player.speed_scale = spd
 
 
 func _set_bone_delta_euler(bname: String, rx_deg: float, ry_deg: float, rz_deg: float) -> void:

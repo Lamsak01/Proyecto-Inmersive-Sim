@@ -22,7 +22,7 @@ max_population: 100
 | **Mundo** | [[Los 21 Vecinos Originales]] · [[Edificios y Espacios]] · [[Clases Sociales]] · [[Rasgos, Tendencias y Manías]] |
 | **Historia** | [[Historia Principal - 4 Capítulos]] · [[Misiones secundarias]] |
 | **La Secta** 🔒 | [[La Secta]] (reservada al autor) |
-| **Roadmap** | [[Tablero]] · [[Pendientes e ideas]] · [[Lore provisional]] · [[Diagnóstico y recomendaciones]] |
+| **Roadmap** | [[Tablero]] · [[Pendientes e ideas]] · [[Lore provisional]] · [[Diagnóstico y recomendaciones]] · [[Assets de pago]] |
 | **Historial** | [[Cronología del desarrollo]] · [[Cementerio de código]] |
 
 > [!warning] Mayor riesgo actual: la «invisibilidad por menú»

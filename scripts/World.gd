@@ -91,6 +91,18 @@ func _ready() -> void:
 
 		set_process(true)
 		_setup_weather_overlay()
+		_setup_retro_post_fx()
+
+## Etalonaje retro (día nostálgico / noche inquietante con charcos de luz). Solo con ventana real.
+func _setup_retro_post_fx() -> void:
+	if DisplayServer.get_name() == "headless":
+		return
+	var fx: CanvasLayer = load("res://scripts/visuals/RetroPostFX.gd").new()
+	fx.setup(village_manager)
+	add_child(fx)
+	var ui := get_node_or_null("UI")
+	if ui != null:
+		move_child(fx, ui.get_index())
 
 func _setup_weather_overlay() -> void:
 	_weather_layer = CanvasLayer.new()

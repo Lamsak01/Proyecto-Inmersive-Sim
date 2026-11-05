@@ -323,10 +323,17 @@ func get_vision_multiplier() -> float:
 func get_ambient_color() -> Color:
 	var exact_hour: float = float(current_hour) + float(current_minute) / 60.0
 	
-	var color_night := Color(0.32, 0.36, 0.56, 1.0)
-	var color_dawn := Color(0.85, 0.72, 0.68, 1.0)
+	# Con ventana real, la oscuridad de la noche y el tono dorado los pone el etalonaje retro
+	# (scripts/visuals/RetroPostFX.gd), que además deja charcos de luz en farolas y ventanas.
+	# Aquí solo queda un tinte suave para no oscurecer dos veces.
+	var color_night := Color(0.66, 0.70, 0.84, 1.0)
+	var color_dawn := Color(0.92, 0.84, 0.82, 1.0)
 	var color_day := Color(1.0, 1.0, 1.0, 1.0)
-	var color_dusk := Color(0.92, 0.68, 0.55, 1.0)
+	var color_dusk := Color(1.0, 0.88, 0.78, 1.0)
+	if DisplayServer.get_name() == "headless":
+		color_night = Color(0.32, 0.36, 0.56, 1.0)
+		color_dawn = Color(0.85, 0.72, 0.68, 1.0)
+		color_dusk = Color(0.92, 0.68, 0.55, 1.0)
 
 	var base_col := color_day
 	if exact_hour >= 0.0 and exact_hour < 5.0:

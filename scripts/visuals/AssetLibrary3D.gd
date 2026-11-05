@@ -5,6 +5,7 @@ extends RefCounted
 ## Soporta `.gltf`, `.glb` (vía GLTFDocument en tiempo de ejecución) y `.obj`+`.mtl` con caché estática.
 
 const CURATED_ROOT := "res://assests/curated_3d/"
+const RETRO_MAX_TEX := 256
 
 static var _gltf_cache: Dictionary = {} # rel_path -> Node3D template
 static var _obj_cache: Dictionary = {}  # rel_path -> ArrayMesh
@@ -28,6 +29,17 @@ static func load_texture(rel_path: String) -> Texture2D:
 	var img := Image.load_from_file(abs_p)
 	if img == null or img.is_empty():
 		return null
+	# Estética retro (tipo PS1): las texturas grandes de los packs se reducen a 256 px como máximo,
+	# y se dibujan con filtrado pixelado (ver `make_retro`). Así todo el valle comparte densidad de píxel.
+	var max_dim := maxi(img.get_width(), img.get_height())
+	# No se reducen: los personajes (sus atlas de UV sangrarían colores entre piezas) ni las paletas «colormap» de Kenney.
+	var keep_full := rel_path.begins_with("characters/") or rel_path.find("colormap") != -1 or rel_path.find("_Normal") != -1
+	if max_dim > RETRO_MAX_TEX and not keep_full:
+		var f := float(RETRO_MAX_TEX) / float(max_dim)
+		if img.is_compressed():
+			img.decompress()
+		img.resize(maxi(8, int(img.get_width() * f)), maxi(8, int(img.get_height() * f)), Image.INTERPOLATE_LANCZOS)
+	img.generate_mipmaps()
 	var tex := ImageTexture.create_from_image(img)
 	_tex_cache[rel_path] = tex
 	return tex
@@ -51,29 +63,163 @@ static func load_gltf_template(rel_path: String) -> Node3D:
 	if not (scene is Node3D):
 		return null
 	var node3d := scene as Node3D
-	# Para modelos Kenney GLB cuyo colormap está en Textures/colormap.png
-	if rel_path.begins_with("graveyard/"):
-		var cmap := load_texture("graveyard/Textures/colormap.png")
-		if cmap != null:
-			_apply_fallback_albedo_tex(node3d, cmap)
+	_bind_known_pack_textures(rel_path, node3d)
 	_gltf_cache[rel_path] = node3d
 	_aabb_cache[rel_path] = compute_node_aabb(node3d)
 	return node3d
 
 
-static func _apply_fallback_albedo_tex(node: Node, tex: Texture2D) -> void:
+static func _bind_known_pack_textures(rel_path: String, root: Node) -> void:
+	if rel_path.begins_with("graveyard/"):
+		var cmap := load_texture("graveyard/Textures/colormap.png")
+		if cmap != null:
+			_apply_pack_colormap(root, cmap, Color(0.60, 0.58, 0.55), 0.88)
+	elif rel_path.begins_with("fantasy_town/"):
+		var cmap2 := load_texture("fantasy_town/Textures/colormap.png")
+		if cmap2 != null:
+			_apply_pack_colormap(root, cmap2, Color(0.92, 0.90, 0.86), 0.84)
+	elif rel_path.begins_with("props/"):
+		_apply_props_megakit_textures(root)
+	elif rel_path.begins_with("characters/"):
+		_apply_character_megakit_textures(root)
+
+
+static func _apply_pack_colormap(node: Node, tex: Texture2D, tint: Color, rough: float) -> void:
 	if node is MeshInstance3D:
 		var mi := node as MeshInstance3D
 		if mi.mesh != null:
 			for s in range(mi.mesh.get_surface_count()):
-				var mat := mi.mesh.surface_get_material(s)
-				if mat is StandardMaterial3D:
-					var sm := (mat as StandardMaterial3D).duplicate() as StandardMaterial3D
-					if sm.albedo_texture == null:
-						sm.albedo_texture = tex
+				var sm := StandardMaterial3D.new()
+				sm.albedo_texture = tex
+				sm.albedo_color = tint
+				sm.roughness = rough
+				sm.metallic = 0.04
+				sm.cull_mode = BaseMaterial3D.CULL_DISABLED
+				mi.mesh.surface_set_material(s, sm)
+				mi.set_surface_override_material(s, sm)
+	for c in node.get_children():
+		_apply_pack_colormap(c, tex, tint, rough)
+
+
+static func _apply_props_megakit_textures(node: Node) -> void:
+	if node is MeshInstance3D:
+		var mi := node as MeshInstance3D
+		if mi.mesh != null:
+			for s in range(mi.mesh.get_surface_count()):
+				var orig := mi.mesh.surface_get_material(s)
+				var mname := orig.resource_name.to_lower() if orig != null else ""
+				var base_rel := "props/T_Trim_Props_BaseColor.png"
+				var norm_rel := "props/T_Trim_Props_Normal.png"
+				var rough := 0.80
+				var metal := 0.06
+				if mname.find("furniture") != -1:
+					base_rel = "props/T_Trim_Furniture_BaseColor.png"
+					norm_rel = "props/T_Trim_Furniture_Normal.png"
+					rough = 0.82
+				elif mname.find("metal") != -1:
+					base_rel = "props/T_Trim_Metal_BaseColor.png"
+					norm_rel = "props/T_Trim_Metal_Normal.png"
+					rough = 0.42
+					metal = 0.58
+				elif mname.find("cloth") != -1:
+					base_rel = "props/T_Trim_Cloth_BaseColor.png"
+					norm_rel = "props/T_Trim_Cloth_Normal.png"
+					rough = 0.88
+				elif mname.find("page") != -1:
+					base_rel = "props/T_Page_Noise.png"
+					norm_rel = ""
+					rough = 0.90
+				var btex := load_texture(base_rel)
+				if btex != null:
+					var sm := StandardMaterial3D.new()
+					sm.resource_name = orig.resource_name if orig != null else "PropMat"
+					sm.albedo_texture = btex
+					sm.roughness = rough
+					sm.metallic = metal
+					sm.cull_mode = BaseMaterial3D.CULL_DISABLED
+					if not norm_rel.is_empty():
+						var ntex := load_texture(norm_rel)
+						if ntex != null:
+							sm.normal_enabled = true
+							sm.normal_texture = ntex
+							sm.normal_scale = 0.65
+					mi.mesh.surface_set_material(s, sm)
 					mi.set_surface_override_material(s, sm)
 	for c in node.get_children():
-		_apply_fallback_albedo_tex(c, tex)
+		_apply_props_megakit_textures(c)
+
+
+static func _apply_character_megakit_textures(node: Node) -> void:
+	if node is MeshInstance3D:
+		var mi := node as MeshInstance3D
+		if mi.mesh != null:
+			for s in range(mi.mesh.get_surface_count()):
+				var orig := mi.mesh.surface_get_material(s)
+				var mname := orig.resource_name.to_lower() if orig != null else ""
+				var base_rel := ""
+				var norm_rel := ""
+				if mname.find("peasant") != -1:
+					base_rel = "characters/T_Peasant_BaseColor.png"
+					norm_rel = "characters/T_Peasant_Normal.png"
+				elif mname.find("ranger") != -1:
+					base_rel = "characters/T_Ranger_BaseColor.png"
+					norm_rel = "characters/T_Ranger_Normal.png"
+				elif mname.find("hair_1") != -1:
+					base_rel = "characters/T_Hair_1_BaseColor.png"
+					norm_rel = "characters/T_Hair_1_Normal.png"
+				elif mname.find("hair_2") != -1:
+					base_rel = "characters/T_Hair_2_BaseColor.png"
+					norm_rel = "characters/T_Hair_2_Normal.png"
+				if not base_rel.is_empty():
+					var btex := load_texture(base_rel)
+					if btex != null:
+						var sm := StandardMaterial3D.new()
+						sm.resource_name = orig.resource_name if orig != null else "CharMat"
+						sm.albedo_texture = btex
+						sm.roughness = 0.82
+						sm.cull_mode = BaseMaterial3D.CULL_DISABLED
+						if not norm_rel.is_empty():
+							var ntex := load_texture(norm_rel)
+							if ntex != null:
+								sm.normal_enabled = true
+								sm.normal_texture = ntex
+								sm.normal_scale = 0.60
+						mi.mesh.surface_set_material(s, sm)
+	for c in node.get_children():
+		_apply_character_megakit_textures(c)
+
+
+## Pasa todos los materiales de un modelo a la estética retro del juego:
+## filtrado pixelado, sin mapas de relieve (normal maps), mates y con poco brillo metálico.
+## Es idempotente: se puede llamar varias veces sobre el mismo árbol.
+static func make_retro(node: Node) -> void:
+	if node is GeometryInstance3D:
+		var gi := node as GeometryInstance3D
+		if gi.material_override is BaseMaterial3D:
+			_retro_mat(gi.material_override as BaseMaterial3D)
+	if node is MeshInstance3D:
+		var mi := node as MeshInstance3D
+		if mi.mesh != null:
+			for s in range(mi.mesh.get_surface_count()):
+				var ov := mi.get_surface_override_material(s)
+				if ov is BaseMaterial3D:
+					_retro_mat(ov as BaseMaterial3D)
+				var mm := mi.mesh.surface_get_material(s)
+				if mm is BaseMaterial3D:
+					_retro_mat(mm as BaseMaterial3D)
+	for c in node.get_children():
+		make_retro(c)
+
+
+static func _retro_mat(m: BaseMaterial3D) -> void:
+	if m.has_meta("retro_done"):
+		return
+	m.set_meta("retro_done", true)
+	m.texture_filter = BaseMaterial3D.TEXTURE_FILTER_NEAREST_WITH_MIPMAPS
+	m.normal_enabled = false
+	m.roughness = maxf(m.roughness, 0.78)
+	m.metallic = minf(m.metallic, 0.35)
+	m.metallic_specular = 0.25
 
 
 static func load_obj_mesh(rel_path: String) -> ArrayMesh:
@@ -258,7 +404,8 @@ static func instantiate_model(
 	target_size: Vector3 = Vector3.ZERO,
 	fit_height_only: float = -1.0,
 	center_xz: bool = true,
-	ground_y: bool = true
+	ground_y: bool = true,
+	preserve_aspect: bool = true
 ) -> Node3D:
 	var wrapper := Node3D.new()
 	wrapper.name = rel_path.get_file().get_basename()
@@ -288,7 +435,11 @@ static func instantiate_model(
 		var sx := target_size.x / maxf(0.01, sz.x)
 		var sy := target_size.y / maxf(0.01, sz.y)
 		var sz_f := target_size.z / maxf(0.01, sz.z)
-		scale_vec = Vector3(sx, sy, sz_f)
+		if preserve_aspect:
+			var u := minf(sy, maxf(sx, sz_f) * 1.15)
+			scale_vec = Vector3(u, u, u)
+		else:
+			scale_vec = Vector3(sx, sy, sz_f)
 	elif fit_height_only > 0.0:
 		var max_dim := maxf(0.01, sz.y)
 		var s := fit_height_only / max_dim
@@ -302,6 +453,7 @@ static func instantiate_model(
 	if ground_y:
 		offset.y = -aabb.position.y * scale_vec.y
 	model_node.position = offset
+	make_retro(wrapper)
 	return wrapper
 
 
