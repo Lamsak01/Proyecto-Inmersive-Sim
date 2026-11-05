@@ -123,6 +123,9 @@ Otros documentos antiguos en la raíz: `ROADMAP_PROYECTO.md`, `AUDIT_LOG.md`, `S
 
 ## 7. Estado y siguiente bloque
 
+- [x] **Letreros del mapa (Claude Code, 2026-11-05)**: todo `_add_title_label` entra en el grupo `world_title_label`;
+  `VillageManager._declutter_title_labels` (cada 0,25 s) deja ver solo los que están a ≤`TITLE_SHOW_RADIUS` (150 px)
+  del jugador o bajo el ratón y, si se pisan (por el ancho real del texto), el más cercano. Usa `modulate.a`, no `visible`.
 - [x] **Ficha de vecino al pasar el ratón (Claude Code, 2026-11-05)**: `VillageNPC._update_hover_label` solo la
   enseña el dueño de `static var _hover_owner` (el más cercano al ratón, ≤22 px), corta; con Alt la completa. Ya no
   sale por cercanía al jugador. Los letreros de sigilo y aturdido siguen igual.

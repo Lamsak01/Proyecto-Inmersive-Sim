@@ -42,7 +42,6 @@ kanban-plugin: board
 - [ ] Animales 3D: conejo, gato y gallinas siguen planos (buscar modelos animados del mismo estilo)
 - [ ] Buscar un jabalí 3D animado que guste al usuario (ahora es un lobo provisional)
 - [ ] Dibujo 2D propio del caballo (ahora es el ciervo teñido) y postura de jinete a horcajadas
-- [ ] Letreros de los edificios se pisan entre sí en la plaza (p. ej. Pescadería y Carpintería)
 
 
 ## 🚧 En progreso
@@ -58,6 +57,7 @@ kanban-plugin: board
 - [x] Caballo físico: se ve, se monta y se desmonta (2026-11-05)
 - [x] Tecla E con letrero, el ratón manda y Mayús+rueda o G cambian de opción (2026-11-05)
 - [x] Una sola ficha corta del vecino bajo el ratón; completa con Alt (2026-11-05)
+- [x] Letreros de edificios sin pisarse: solo cercanos o bajo el ratón (2026-11-05)
 
 - [x] Edificios con sus piezas quietas juntas (2026-11-06)
 - [x] Casas iniciales repartidas por los barrios y árboles agrupados para dibujar menos (2026-11-06)

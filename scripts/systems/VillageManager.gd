@@ -296,6 +296,10 @@ var _deployed_bear_traps: Array[Dictionary] = []
 func _process(delta: float) -> void:
 	if Engine.is_editor_hint():
 		return
+	_titles_declutter_t -= delta
+	if _titles_declutter_t <= 0.0:
+		_titles_declutter_t = 0.25
+		_declutter_title_labels()
 	if _police_confront_cooldown > 0.0:
 		_police_confront_cooldown -= delta
 	_needs_tick_acc += delta
@@ -5046,7 +5050,58 @@ func _add_title_label(pos: Vector2, min_sz: Vector2, txt: String, col: Color, f_
 	lbl.add_theme_color_override("font_outline_color", Color.BLACK)
 	lbl.add_theme_constant_override("outline_size", 3)
 	(parent_node if parent_node else entities_root).add_child(lbl)
+	lbl.add_to_group("world_title_label")
 	return lbl
+
+## Letreros del mapa sin amontonarse (2026-11-05): solo se ven los que están cerca del jugador (o bajo el ratón), y si
+## dos se pisan, se queda el más cercano. Usa la transparencia (modulate.a), así no toca su `visible`.
+const TITLE_SHOW_RADIUS: float = 150.0
+var _titles_declutter_t: float = 0.0
+
+## El trozo del letrero que ocupa el texto de verdad (los letreros son más anchos que su texto y van centrados).
+func _title_text_rect(lbl: Label) -> Rect2:
+	var full: Rect2 = lbl.get_global_rect()
+	var font: Font = lbl.get_theme_font("font")
+	if font == null or lbl.text == "":
+		return full
+	var fsz: int = lbl.get_theme_font_size("font_size")
+	var w: float = 0.0
+	var lines: PackedStringArray = lbl.text.split("\n")
+	for ln in lines:
+		w = maxf(w, font.get_string_size(ln, HORIZONTAL_ALIGNMENT_LEFT, -1, fsz).x)
+	var sc: float = lbl.get_global_transform().get_scale().x
+	w = minf(w * sc, full.size.x)
+	return Rect2(Vector2(full.get_center().x - w * 0.5, full.position.y), Vector2(w, full.size.y))
+
+func _declutter_title_labels() -> void:
+	var pl := get_tree().get_first_node_in_group("player") as Node2D
+	if pl == null:
+		return
+	var pp: Vector2 = pl.global_position
+	var mp: Vector2 = get_global_mouse_position()
+	var cands: Array = []
+	for l in get_tree().get_nodes_in_group("world_title_label"):
+		var lbl := l as Label
+		if lbl == null or not lbl.is_visible_in_tree():
+			continue
+		var r: Rect2 = _title_text_rect(lbl)
+		var d: float = r.get_center().distance_to(pp)
+		if d <= TITLE_SHOW_RADIUS or r.grow(6.0).has_point(mp):
+			cands.append([d if not r.grow(6.0).has_point(mp) else -1.0, lbl, r])
+		else:
+			lbl.modulate.a = 0.0
+	cands.sort_custom(func(a, b): return float(a[0]) < float(b[0]))
+	var kept: Array = []
+	for c in cands:
+		var r2: Rect2 = c[2]
+		var clash: bool = false
+		for k in kept:
+			if r2.grow(-1.0).intersects(k):
+				clash = true
+				break
+		(c[1] as Label).modulate.a = 0.0 if clash else 1.0
+		if not clash:
+			kept.append(r2)
 
 # ==============================================================================
 # Regla 1 (suma cero): ayudas para que todo oro salga de un bolsillo, una caja o las arcas, y vaya a otro.

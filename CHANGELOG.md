@@ -3,6 +3,10 @@
 Cambios del juego, del más nuevo al más antiguo. Añade una entrada al cerrar cada bloque, en lenguaje sencillo.
 El detalle técnico está en `docs/HANDOFF.md` (sección 7) y el historial completo en `git log`. Lo anterior a B0.1 está en `AUDIT_LOG.md` y `SESSION_CONTEXT_LOG.md`.
 
+## 2026-11-05 — Los letreros de los edificios ya no se pisan
+- Solo se ven los letreros de los sitios cercanos a ti (unos 150 pasos) o el que tengas bajo el ratón.
+- Si dos se pisan, se queda el más cercano (o el que apuntas con el ratón).
+
 ## 2026-11-05 — Menos letreros encima de los vecinos
 - Al pasar el ratón solo enseña ficha el vecino más cercano al puntero, y corta: nombre, oficio y qué está haciendo.
 - La ficha completa (bolsillo, rasgos, humor, hambre, sueño…) sale manteniendo Alt.
