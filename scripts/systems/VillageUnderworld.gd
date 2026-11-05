@@ -217,7 +217,7 @@ static func run_cockfight(vm, npc, inv, force_outcome: int = 0) -> int:
 	return -15
 
 ## Tanda 6 (26): Timba clandestina de dados por 10 de oro contra el bolsillo real del vecino.
-static func play_dice_bet(vm, npc, inv, force_win: int = 0) -> int:
+static func play_dice_bet(_vm, npc, inv, force_win: int = 0) -> int:
 	if inv == null or int(inv.gold) < 10 or npc == null or int(npc.personal_gold) < 10:
 		return 0
 	var p_roll: int = randi_range(2, 12)
@@ -396,7 +396,7 @@ static func daily(vm) -> void:
 			var tnpc = by_key.get(tkey, null)
 			var cut: int = 0
 			if tnpc != null and not tnpc.is_dead:
-				var take: int = mini(30, int(tnpc.personal_gold) / 3)
+				var take: int = mini(30, int(float(tnpc.personal_gold) / 3.0))
 				tnpc.personal_gold -= take
 				cut = int(round(float(take) * 0.75)) # el resto se lo queda el ratero
 			if inv != null:

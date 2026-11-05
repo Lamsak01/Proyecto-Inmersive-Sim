@@ -770,7 +770,7 @@ static func on_player_action(vm, npc, action_id: String, inv) -> void:
 		if parent != null:
 			parent.personal_gold -= dowry_total
 			parent.modify_affinity(15)
-		var broker_fee: int = dowry_total / 2
+		var broker_fee: int = int(float(dowry_total) / 2.0)
 		var couple_share: int = dowry_total - broker_fee
 		if youth != null and suitor != null:
 			youth.personal_gold += couple_share

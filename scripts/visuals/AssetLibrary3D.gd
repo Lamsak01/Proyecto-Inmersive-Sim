@@ -318,7 +318,7 @@ static func extract_head_only_mesh(key: String, full_mesh: Mesh, min_y: float = 
 	if verts.is_empty() or indices.is_empty():
 		return null
 	var new_indices := PackedInt32Array()
-	var tri_count := indices.size() / 3
+	var tri_count: int = int(float(indices.size()) / 3.0)
 	for t in range(tri_count):
 		var i0 := indices[t * 3]
 		var i1 := indices[t * 3 + 1]

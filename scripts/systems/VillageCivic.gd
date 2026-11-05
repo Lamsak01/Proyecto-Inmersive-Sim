@@ -204,7 +204,7 @@ static func cook_shelter_rations(vm) -> int:
 		if VillageNeeds.class_of(n) in ["pobre", "mendigo"]:
 			poor += 1
 	var want: int = mini(RATION_MAX, poor + RATION_EXTRA)
-	var afford: int = int(int(ts.get("treasury", 0)) / RATION_COST_TOWN)
+	var afford: int = int(float(ts.get("treasury", 0)) / float(RATION_COST_TOWN))
 	var made: int = mini(want, afford)
 	ts["treasury"] = int(ts.get("treasury", 0)) - made * RATION_COST_TOWN
 	ts["shelter_rations"] = made # lo que sobra del día anterior no se guarda

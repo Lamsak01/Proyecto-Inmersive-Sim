@@ -212,7 +212,7 @@ static func after_load(vm) -> void:
 	state(vm)["jobs"] = {}
 
 # ---------------------------------------------------------------- lavadero
-static func wash_spot(vm, npc, default_spot: Vector2) -> Vector2:
+static func wash_spot(_vm, npc, default_spot: Vector2) -> Vector2:
 	if npc.global_position.distance_to(LAVADERO_POS) < 700.0 and randf() < LAVADERO_CHANCE:
 		return LAVADERO_POS + Vector2(randf_range(-10, 10), 12)
 	return default_spot

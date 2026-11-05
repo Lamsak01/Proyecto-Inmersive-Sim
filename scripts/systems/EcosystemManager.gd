@@ -502,7 +502,7 @@ func _place_planted_pine(root_search: Node, world_pos: Vector2) -> HarvestableNo
 		tex_tree = _load_tex("res://assests/world/tree.png")
 	var tex_stump: Texture2D = _load_tex("res://assests/Comprados/Epic RPG World - The Village V2.1/tilesets and props/props-sprites/logs_0.png")
 	var idx: int = count_planted_pines()
-	var pos: Vector2 = world_pos if world_pos != Vector2.ZERO else Vector2(-360.0 + float((idx % 6) * 65), 670.0 + float((idx / 6) * 55))
+	var pos: Vector2 = world_pos if world_pos != Vector2.ZERO else Vector2(-360.0 + float((idx % 6) * 65), 670.0 + float(int(float(idx) / 6.0) * 55))
 	var node := HarvestableNode.new()
 	node.name = "PlantedPine_%d_%d" % [idx, randi() % 1000]
 	node.global_position = pos

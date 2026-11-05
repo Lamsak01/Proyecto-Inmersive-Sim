@@ -63,7 +63,7 @@ func add_world_dialogue(vm: VillageManager, npc: VillageNPC, q: Dictionary, _dia
 		return
 	ch_arr.insert(0, {"label": "🕯️ Preguntar qué recuerda de la noche en que murió %s" % str(q.get("target_name", "")), "next": "END", "action": "quest_grave_ask:" + str(q["id"])})
 
-func on_extra_action(vm: VillageManager, qm: Node, npc: VillageNPC, action_id: String) -> bool:
+func on_extra_action(_vm: VillageManager, qm: Node, npc: VillageNPC, action_id: String) -> bool:
 	if not action_id.begins_with("quest_grave_ask:"):
 		return false
 	var q: Dictionary = qm.get_quest(action_id.get_slice(":", 1))

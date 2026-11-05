@@ -85,8 +85,8 @@ static func on_hour(vm, hour: int) -> void:
 			continue
 		if vm.VillageFaith.grade_of(n) == vm.VillageFaith.GRADE_SKEPTIC:
 			continue
-		var sin: Dictionary = find_sin_of(vm, n)
-		if sin.is_empty() or (st["priest_secrets"] as Dictionary).has(n.get_person_key()):
+		var sin_entry: Dictionary = find_sin_of(vm, n)
+		if sin_entry.is_empty() or (st["priest_secrets"] as Dictionary).has(n.get_person_key()):
 			continue
 		if randf() < 0.45:
 			n.start_errand("confess", vm._church_altar_pos + Vector2(0, 10))
@@ -99,16 +99,16 @@ static func on_errand_arrived(vm, npc) -> void:
 
 static func perform_confession(vm, npc) -> Dictionary:
 	var priest = vm.VillageFaith.priest_of(vm)
-	var sin: Dictionary = find_sin_of(vm, npc)
-	if priest == null or sin.is_empty():
+	var sin_entry: Dictionary = find_sin_of(vm, npc)
+	if priest == null or sin_entry.is_empty():
 		return {}
 	var st: Dictionary = state(vm)
 	var key: String = npc.get_person_key()
-	var sin_kind: String = str(sin["kind"])
+	var sin_kind: String = str(sin_entry["kind"])
 	st["priest_secrets"][key] = {
 		"sinner_key": key, "sinner_name": npc.npc_name, "kind": sin_kind,
-		"desc": str(sin["desc"]), "day": today(), "raw": str(sin.get("raw", "")),
-		"secret_id": int(sin.get("secret_id", -1)), "theft_id": int(sin.get("theft_id", -1)), "desire_id": int(sin.get("desire_id", -1))
+		"desc": str(sin_entry["desc"]), "day": today(), "raw": str(sin_entry.get("raw", "")),
+		"secret_id": int(sin_entry.get("secret_id", -1)), "theft_id": int(sin_entry.get("theft_id", -1)), "desire_id": int(sin_entry.get("desire_id", -1))
 	}
 	st["week_sin_counts"][sin_kind] = int(st["week_sin_counts"].get(sin_kind, 0)) + 1
 	st["priest_doubt"] = mini(100, int(st.get("priest_doubt", 0)) + (8 if sin_kind == "adulterio" else 6))
@@ -129,7 +129,7 @@ static func perform_confession(vm, npc) -> Dictionary:
 			if pl.has_method("add_skill_xp"):
 				pl.call("add_skill_xp", "stealth", 4)
 			if pl.has_method("show_hint"):
-				pl.show_hint("👂⛪ Escuchaste en secreto la confesión de %s: %s." % [npc.npc_name, str(sin["desc"])])
+				pl.show_hint("👂⛪ Escuchaste en secreto la confesión de %s: %s." % [npc.npc_name, str(sin_entry["desc"])])
 	VillageChronicle.add(vm, "confession", "%s acudió a confesarse en privado con el sacerdote" % npc.npc_name, false)
 	return st["priest_secrets"][key]
 
@@ -408,8 +408,8 @@ static func on_player_action(vm, npc, action_id: String, inv) -> void:
 		npc._spawn_floating_text("🙏 «Tienes razón, haré penitencia hoy mismo.»", Color.SPRING_GREEN, -46.0)
 
 	elif action_id.begins_with("faith_impersonate_priest:"):
-		var sin: Dictionary = find_sin_of(vm, npc)
-		if sin.is_empty():
+		var sin_entry: Dictionary = find_sin_of(vm, npc)
+		if sin_entry.is_empty():
 			return
 		var priest_p = vm.VillageFaith.priest_of(vm)
 		var pl_f = npc._get_player()
@@ -419,15 +419,15 @@ static func on_player_action(vm, npc, action_id: String, inv) -> void:
 			priest_p.modify_affinity(-15)
 			npc._spawn_floating_text("😠⛪ «¡No eres el sacerdote! ¡Un impostor en el confesionario!»", Color.ORANGE_RED, -46.0)
 			return
-		var sin_kind: String = str(sin["kind"])
+		var sin_kind: String = str(sin_entry["kind"])
 		st["priest_secrets"][arg] = {
 			"sinner_key": arg, "sinner_name": npc.npc_name, "kind": sin_kind,
-			"desc": str(sin["desc"]), "day": today(), "raw": str(sin.get("raw", "")),
-			"secret_id": int(sin.get("secret_id", -1)), "theft_id": int(sin.get("theft_id", -1)), "desire_id": int(sin.get("desire_id", -1))
+			"desc": str(sin_entry["desc"]), "day": today(), "raw": str(sin_entry.get("raw", "")),
+			"secret_id": int(sin_entry.get("secret_id", -1)), "theft_id": int(sin_entry.get("theft_id", -1)), "desire_id": int(sin_entry.get("desire_id", -1))
 		}
 		_player_learns_confessed_sin(vm, st["priest_secrets"][arg], "disfrazado con el hábito en el confesionario")
 		var pen_paid: int = vm.VillageClans.pay_from_pocket(npc, 10, inv)
-		npc._spawn_floating_text("🎭🙏 «Gracias por su absolución, padre...» (%s%s)" % [str(sin["desc"]), " · +%d Oro de penitencia" % pen_paid if pen_paid > 0 else ""], Color.GOLD, -46.0)
+		npc._spawn_floating_text("🎭🙏 «Gracias por su absolución, padre...» (%s%s)" % [str(sin_entry["desc"]), " · +%d Oro de penitencia" % pen_paid if pen_paid > 0 else ""], Color.GOLD, -46.0)
 
 	elif action_id == "faith_stage_miracle":
 		if inv == null or int(inv.gold) < 12:
@@ -454,7 +454,7 @@ static func on_player_action(vm, npc, action_id: String, inv) -> void:
 				o.personal_gold -= 3
 				offerings += 3
 				o.add_thought("¡Presencié un milagro en la Capilla del Alba! (+8)", 8.0)
-		var player_cut: int = offerings / 2
+		var player_cut: int = int(float(offerings) / 2.0)
 		vm.town_state["treasury"] = int(vm.town_state.get("treasury", 0)) + (offerings - player_cut)
 		if inv != null and player_cut > 0:
 			inv.add_gold(player_cut)

@@ -17,7 +17,7 @@ func _init() -> void:
 	gold = 15
 	affinity = 10
 
-func find_daily_offer(vm: VillageManager, giver: VillageNPC, npcs: Array, _ctx: Dictionary) -> Dictionary:
+func find_daily_offer(_vm: VillageManager, giver: VillageNPC, npcs: Array, _ctx: Dictionary) -> Dictionary:
 	if giver.has_meta("arrived_day") or VillageNeeds.is_outsider(giver):
 		return {}
 	var wary: bool = has_trait(giver, ["Desconfiado"])

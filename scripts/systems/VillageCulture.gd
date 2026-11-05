@@ -596,7 +596,7 @@ static func start_raid_warning(vm, kind: String = "bandits") -> Dictionary:
 		"kind": kind,
 		"name": str(names.get(kind, "Banda del Paso Negro")),
 		# Más amenaza = banda más grande; cada incursión rechazada, la siguiente viene más preparada
-		"strength": 3 + mini(4, int(rd.get("threat", 0)) / 15) + mini(3, int(rd.get("raids_repelled", 0))),
+		"strength": 3 + mini(4, int(float(rd.get("threat", 0)) / 15.0)) + mini(3, int(rd.get("raids_repelled", 0))),
 		"day_due": today,
 		"bounty": 20,
 		"motive": lure_txt,
@@ -611,9 +611,9 @@ static func start_raid_warning(vm, kind: String = "bandits") -> Dictionary:
 ## Por qué vienen: lo que el pueblo deja ver hacia fuera. Devuelve 0 si no hay nada que atraiga a los bandidos.
 static func raid_lure(vm) -> int:
 	var lure: int = 0
-	var tr: int = int(vm.town_state.get("treasury", 0))
-	if tr > RAID_RICH_TREASURY:
-		lure += mini(5, 1 + (tr - RAID_RICH_TREASURY) / 150)
+	var treasury_val: int = int(vm.town_state.get("treasury", 0))
+	if treasury_val > RAID_RICH_TREASURY:
+		lure += mini(5, 1 + int(float(treasury_val - RAID_RICH_TREASURY) / 150.0))
 	for r in trade_routes_of(vm).values():
 		if bool(r.get("active", false)):
 			lure += 1 # Las caravanas corren la voz de lo que hay en el valle
@@ -623,8 +623,8 @@ static func raid_lure(vm) -> int:
 
 static func raid_motive_text(vm) -> String:
 	var parts: Array[String] = []
-	var tr: int = int(vm.town_state.get("treasury", 0))
-	if tr > RAID_RICH_TREASURY:
+	var treasury_val: int = int(vm.town_state.get("treasury", 0))
+	if treasury_val > RAID_RICH_TREASURY:
 		parts.append("atraídos por las arcas llenas del pueblo")
 	for r in trade_routes_of(vm).values():
 		if bool(r.get("active", false)):
@@ -790,7 +790,7 @@ static func trade_routes_of(vm) -> Dictionary:
 	var st: Dictionary = state(vm)
 	if not (st.get("trade_routes", null) is Dictionary):
 		st["trade_routes"] = {}
-	var tr: Dictionary = st["trade_routes"]
+	var t_routes: Dictionary = st["trade_routes"]
 	var route_defs: Dictionary = {
 		"high_pass": {
 			"name": "Paso Alto (Minas del Norte)",
@@ -815,9 +815,9 @@ static func trade_routes_of(vm) -> Dictionary:
 		},
 	}
 	for r_id in route_defs.keys():
-		if not (tr.get(r_id, null) is Dictionary):
-			tr[r_id] = (route_defs[r_id] as Dictionary).duplicate()
-	return tr
+		if not (t_routes.get(r_id, null) is Dictionary):
+			t_routes[r_id] = (route_defs[r_id] as Dictionary).duplicate()
+	return t_routes
 
 static func open_trade_route(vm, route_id: String, inv = null) -> bool:
 	if vm == null:
@@ -1346,7 +1346,7 @@ static func daily(vm) -> int:
 	elif act_raid.is_empty():
 		# La amenaza sube solo si algo atrae a los bandidos y baja si el pueblo se ve bien defendido o pobre
 		var lure: int = raid_lure(vm)
-		var deterrent: int = defense_power(vm) / 3
+		var deterrent: int = int(float(defense_power(vm)) / 3.0)
 		rd["threat"] = clampi(int(rd.get("threat", 0)) + lure - 1 - deterrent, 0, 100)
 		if int(rd["threat"]) >= RAID_THREAT_WARN and randf() < float(int(rd["threat"]) - RAID_THREAT_WARN + 10) / 100.0:
 			start_raid_warning(vm, "bandits")
@@ -1399,10 +1399,10 @@ static func process_municipal_spending(vm) -> int:
 	var st: Dictionary = state(vm)
 	# 1. Defensa comunal si hay aviso de incursión o amenaza alta
 	var rd: Dictionary = raids_state(vm)
-	var tr: int = int(vm.town_state.get("treasury", 0))
-	if tr >= 350 and int(rd.get("militia_bonus", 0)) < MILITIA_MAX_BONUS and (not (rd.get("active_raid", {}) as Dictionary).is_empty() or int(rd.get("threat", 0)) >= 30):
-		vm.town_state["treasury"] = tr - MILITIA_COST
-		tr -= MILITIA_COST
+	var treasury_val: int = int(vm.town_state.get("treasury", 0))
+	if treasury_val >= 350 and int(rd.get("militia_bonus", 0)) < MILITIA_MAX_BONUS and (not (rd.get("active_raid", {}) as Dictionary).is_empty() or int(rd.get("threat", 0)) >= 30):
+		vm.town_state["treasury"] = treasury_val - MILITIA_COST
+		treasury_val -= MILITIA_COST
 		spent += MILITIA_COST
 		rd["militia_bonus"] = mini(MILITIA_MAX_BONUS, int(rd.get("militia_bonus", 0)) + 2)
 		for g_n in _all_npcs(vm):
@@ -1413,7 +1413,7 @@ static func process_municipal_spending(vm) -> int:
 	# 2. Beca municipal de investigación al taller del ingeniero
 	var rs: Dictionary = research_state(vm)
 	var tinker = vm.trade_npcs.get(VillageTrades.role_of("tinker"))
-	if tr >= 480 and str(rs.get("active_tech", "")) == "" and tinker != null and is_instance_valid(tinker) and not tinker.is_dead and today - int(st.get("last_town_tech_day", -99)) >= 4:
+	if treasury_val >= 480 and str(rs.get("active_tech", "")) == "" and tinker != null and is_instance_valid(tinker) and not tinker.is_dead and today - int(st.get("last_town_tech_day", -99)) >= 4:
 		for t_id in TECH_TREE.keys():
 			if has_tech(vm, str(t_id)):
 				continue
@@ -1422,9 +1422,9 @@ static func process_municipal_spending(vm) -> int:
 			if pre != "" and not has_tech(vm, pre):
 				continue
 			var t_cost: int = int(td.get("cost_gold", 25))
-			if tr >= t_cost + 300:
-				vm.town_state["treasury"] = tr - t_cost
-				tr -= t_cost
+			if treasury_val >= t_cost + 300:
+				vm.town_state["treasury"] = treasury_val - t_cost
+				treasury_val -= t_cost
 				spent += t_cost
 				tinker.personal_gold = maxi(0, int(tinker.personal_gold)) + t_cost
 				rs["active_tech"] = str(t_id)
@@ -1433,13 +1433,13 @@ static func process_municipal_spending(vm) -> int:
 				VillageChronicle.add(vm, "tech_grant", "El ayuntamiento encargó al taller desarrollar «%s» (%d de oro de las arcas)" % [str(td["name"]), t_cost], true)
 				break
 	# 3. Apertura municipal de ruta comercial con capital de las arcas
-	if tr >= 540 and today - int(st.get("last_town_route_day", -99)) >= 5:
+	if treasury_val >= 540 and today - int(st.get("last_town_route_day", -99)) >= 5:
 		var routes: Dictionary = trade_routes_of(vm)
 		for r_id in routes.keys():
 			var r: Dictionary = routes[r_id]
 			if not bool(r.get("active", false)):
-				vm.town_state["treasury"] = tr - ROUTE_CHARTER_COST
-				tr -= ROUTE_CHARTER_COST
+				vm.town_state["treasury"] = treasury_val - ROUTE_CHARTER_COST
+				treasury_val -= ROUTE_CHARTER_COST
 				spent += ROUTE_CHARTER_COST
 				r["active"] = true
 				r["balance"] = int(r.get("balance", 90)) + ROUTE_CHARTER_COST

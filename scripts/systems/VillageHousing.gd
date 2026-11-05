@@ -297,7 +297,7 @@ static func shop_night_theft(vm, ps: Dictionary, chance: float) -> int:
 				thief = n
 	if thief == null:
 		return 0
-	var stolen: int = int(till / 2)
+	var stolen: int = int(float(till) / 2.0)
 	ps["till_gold"] = till - stolen
 	thief.personal_gold += stolen
 	VillageChronicle.add(vm, "player_shop_robbed", "Alguien forzó de noche la caja del Bazar del Forastero y se llevó %d de oro" % stolen, true)

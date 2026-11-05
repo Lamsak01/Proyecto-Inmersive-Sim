@@ -674,7 +674,7 @@ static func on_player_action(vm, npc, action_id: String, inv) -> void:
 			fine = clampi(int(sab.personal_gold), 0, 20)
 			sab.personal_gold -= fine
 			sab.modify_affinity(-20)
-		var half_vic: int = fine / 2
+		var half_vic: int = int(float(fine) / 2.0)
 		var half_pl: int = fine - half_vic
 		if vic != null:
 			vic.personal_gold += half_vic

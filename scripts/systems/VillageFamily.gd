@@ -245,7 +245,7 @@ static func grow_up(vm, n) -> void:
 	var attended: int = int((st["pupil_lessons"] as Dictionary).get(n.get_person_key(), 0))
 	(st["pupil_lessons"] as Dictionary).erase(n.get_person_key())
 	if attended > 0:
-		var bonus_days: int = clampi(1 + int(attended / 3), 1, 4)
+		var bonus_days: int = clampi(1 + int(float(attended) / 3.0), 1, 4)
 		n.set_meta("school_bonus_days", bonus_days)
 		n.days_in_role = maxi(int(n.days_in_role), bonus_days)
 		n.add_thought("Lo que aprendí en la escuela (%d clases) me da ventaja en los oficios (+8)" % attended, 8.0)

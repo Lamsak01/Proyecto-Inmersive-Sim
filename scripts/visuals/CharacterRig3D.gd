@@ -459,13 +459,15 @@ func _rebuild_real_quaternius_character() -> bool:
 			continue
 		if nm.find("body") != -1 and nm.find("belt") == -1:
 			var body_col := _tunic_color.lerp(Color(1, 1, 1), 0.25)
+			if _apron_color.a > 0.1:
+				body_col = body_col.lerp(_apron_color, 0.22)
 			if _chest_tier == 2:
 				body_col = Color(0.68, 0.71, 0.76)
 			elif _chest_tier >= 3:
 				body_col = Color(0.84, 0.86, 0.92)
 			_tint_textured_mesh(smi, body_col, 0.78 if _chest_tier < 2 else 0.35, 0.05 if _chest_tier < 2 else 0.70)
 		elif nm.find("legs") != -1:
-			var leg_col := _pants_color.lerp(Color(1, 1, 1), 0.28)
+			var leg_col := (_tunic_color.darkened(0.18) if _has_skirt else _pants_color).lerp(Color(1, 1, 1), 0.28)
 			if _legs_tier >= 2:
 				leg_col = Color(0.65, 0.68, 0.74)
 			_tint_textured_mesh(smi, leg_col, 0.82, 0.05 if _legs_tier < 2 else 0.60)
@@ -473,7 +475,7 @@ func _rebuild_real_quaternius_character() -> bool:
 			var boot_col := Color(0.32, 0.22, 0.15) if _boots_tier < 2 else Color(0.58, 0.60, 0.66)
 			_tint_textured_mesh(smi, boot_col, 0.75, 0.08 if _boots_tier < 2 else 0.62)
 		elif nm.find("arms") != -1 and nm.find("bracer") == -1:
-			_tint_arms_mesh(smi, _tunic_color.lerp(Color(1, 1, 1), 0.30))
+			_tint_arms_mesh(smi, (_cape_color if _has_cape else _tunic_color).lerp(Color(1, 1, 1), 0.30))
 
 	# 3. Peinado y barba 3D reales anclados al esqueleto
 	if _helmet_tier == 0 and not (_hat_style in ["hood", "helmet"]):

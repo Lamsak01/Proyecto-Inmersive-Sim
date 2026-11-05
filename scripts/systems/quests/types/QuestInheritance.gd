@@ -102,7 +102,7 @@ func on_extra_action(vm: VillageManager, qm: Node, npc: VillageNPC, action_id: S
 	g.modify_npc_relationship(npc, 12, "Me dio mi parte de la herencia")
 	return true
 
-func done_dialogue(_vm: VillageManager, q: Dictionary) -> Dictionary:
+func done_dialogue(_vm: VillageManager, _q: Dictionary) -> Dictionary:
 	var txt: String = "«Bueno... no es todo lo que quería, pero es justo. Gracias.»"
 	return {"text": txt, "choices": [{"label": "💰 Cobrar", "next": "END", "action": "quest_turn_in"}]}
 

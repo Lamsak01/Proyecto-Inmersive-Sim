@@ -333,7 +333,7 @@ func _build_npc_appearance_cfg() -> Dictionary:
 		Color(0.14, 0.14, 0.16)
 	]
 	var hair_col: Color = Color(0.76, 0.76, 0.80) if age_val >= 54 else hair_palette[h_val % hair_palette.size()]
-	var skin_col: Color = skin_palette[(h_val / 3) % skin_palette.size()]
+	var skin_col: Color = skin_palette[int(float(h_val) / 3.0) % skin_palette.size()]
 
 	var tunic_col := Color(0.36, 0.48, 0.38)
 	var pants_col := Color(0.24, 0.22, 0.20)

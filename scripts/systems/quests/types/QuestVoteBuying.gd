@@ -57,7 +57,7 @@ func failure_reason(vm: VillageManager, q: Dictionary, by_key: Dictionary) -> St
 		return "Las elecciones ya pasaron."
 	return ""
 
-func done_dialogue(_vm: VillageManager, q: Dictionary) -> Dictionary:
+func done_dialogue(_vm: VillageManager, _q: Dictionary) -> Dictionary:
 	return {"text": "«¡%d votos! Con eso gano seguro. Aquí tienes lo tuyo... y ni una palabra a nadie.»" % PLEDGES_NEEDED, "choices": [
 		{"label": "💰 Cobrar y callar", "next": "END", "action": "quest_turn_in:take"},
 		{"label": "📢 «No. Voy a contar a todos que compras votos.»", "next": "END", "action": "quest_turn_in:expose"},
