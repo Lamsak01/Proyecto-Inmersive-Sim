@@ -123,6 +123,11 @@ Otros documentos antiguos en la raíz: `ROADMAP_PROYECTO.md`, `AUDIT_LOG.md`, `S
 
 ## 7. Estado y siguiente bloque
 
+- [x] **Asaltos físicos (Claude Code, 2026-11-05)**: a `RAID_ATTACK_HOUR` `VillageCulture.spawn_raid_attackers` crea un
+  `RaidController` (grupo `raid_controller`) que crea `Raider` (grupo `raiders`, Hurtbox capa 4) en `SPAWN_POS`
+  (1760, 50). Los defensores (`raid_defenders`) persiguen al más cercano (`errand_pos`) y le pegan a ≤24 px. Resultado:
+  todos caídos/huidos → `resolve_raid(..., 1)`; uno en la plaza → `-1`; 23:00 → se retiran. Bandido 3D = `BanditModel3D`
+  (CharacterRig3D con capucha y espada); jabalí = lobo. `culture_lead_defense` ya no resuelve.
 - [x] **Letreros del mapa (Claude Code, 2026-11-05)**: todo `_add_title_label` entra en el grupo `world_title_label`;
   `VillageManager._declutter_title_labels` (cada 0,25 s) deja ver solo los que están a ≤`TITLE_SHOW_RADIUS` (150 px)
   del jugador o bajo el ratón y, si se pisan (por el ancho real del texto), el más cercano. Usa `modulate.a`, no `visible`.

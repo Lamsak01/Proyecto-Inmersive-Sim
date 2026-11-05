@@ -104,6 +104,15 @@ func _initialize() -> void:
 		vcu.sync_player_horse(vm_h)
 		SPOTS["caballo"] = Vector2(340, 470)
 		SPOTS["montado"] = Vector2(360, 470)
+	# Sitio «asalto»: monta una incursión solo en memoria y enseña a los atacantes llegando por el este.
+	if spots.has("asalto"):
+		var vm_r = root.find_child("VillageManager", true, false)
+		var vcr = vm_r.VillageCulture
+		vcr.raids_state(vm_r)["threat"] = 50
+		vcr.start_raid_warning(vm_r, "bandits")
+		vcr.raid_on_hour(vm_r, vcr.RAID_GATHER_HOUR)
+		vcr.spawn_raid_attackers(vm_r)
+		SPOTS["asalto"] = Vector2(1640, 50)
 	for pet in root.find_children("*", "DomesticPet", true, false):
 		if int(pet.pet_type) == 0 and pet.visible and not SPOTS.has("perro"):
 			SPOTS["perro"] = pet.global_position + Vector2(0, -12)
@@ -136,7 +145,7 @@ func _initialize() -> void:
 					elif s != "montado" and bool(player.get("is_mounted")):
 						horse_n.dismount(player)
 				if cam != null:
-					cam.zoom = Vector2(8.0, 8.0) if s == "retrato" else (Vector2(5.0, 5.0) if s in ["ciervo", "zorro", "perro", "jabali", "caballo", "montado"] else (Vector2(4.0, 4.0) if s == "cerca" else Vector2(2.4, 2.4)))
+					cam.zoom = Vector2(8.0, 8.0) if s == "retrato" else (Vector2(5.0, 5.0) if s in ["ciervo", "zorro", "perro", "jabali", "caballo", "montado", "asalto"] else (Vector2(4.0, 4.0) if s == "cerca" else Vector2(2.4, 2.4)))
 					if String(s).begins_with("r_") or s == "lago" or s == "norte":
 						cam.zoom = Vector2(1.4, 1.4)
 					cam.reset_smoothing()

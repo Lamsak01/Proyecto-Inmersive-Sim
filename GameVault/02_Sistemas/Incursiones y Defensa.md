@@ -26,4 +26,5 @@ flowchart LR
 - **Defensa Física a las 16:00 y Choque a las 18:00:** A las `16:00`, los guardias y hasta **3 vecinos voluntarios** con coraje/agresividad caminan físicamente hacia el **Camino del Este (`RAID_GATE_POS`)** con el encargo `raid_defend`. A las `18:00` se resuelve el combate: si el pueblo gana, la amenaza cae y sube el orgullo cívico; si pierde, los asaltantes saquean parte de las arcas y los defensores quedan heridos de verdad.
 
 ## Notas de diseño
+- 2026-11-05 (Claude Code): asaltos físicos (Regla «todo es físico»). Al atardecer entran de verdad 3–6 bandidos encapuchados con espada (o 3–5 jabalíes, con aspecto de lobo) por el camino del este y van hacia la plaza. Guardias y vecinos con arrojo van a por ellos y les pegan; el jugador pelea con sus armas. Se gana si todos caen o huyen; se pierde si uno llega a la plaza; a las 23:00 se retiran (botín si queda la mitad). Las barricadas les quitan vida. Hablar con el guardia ya no decide el asalto: solo te apuntas.
 -

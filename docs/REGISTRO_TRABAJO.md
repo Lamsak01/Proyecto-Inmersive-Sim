@@ -478,3 +478,13 @@ Copia de seguridad 2D intacta guardada en la rama `backup-2d-original` y etiquet
 | AUD12 | Selector de E: letrero, el ratón manda, Mayús+rueda o G cambia de opción | ✅ | scripts/ui/InteractionSelector.gd (nuevo), Player.gd (`interaction_selector`), PlayerHorse.gd (`get_interact_label`) | Pedido del usuario. Test «UX E» |
 | AUD13 | Ficha de vecino: una sola (la más cercana al ratón), corta; completa con Alt | ✅ | VillageNPC.gd (`_hover_owner`), InteractionSelector.gd (letrero bajo los pies) | Pedido del usuario |
 | AUD14 | Letreros del mapa sin amontonarse (cercanos o bajo el ratón; si se pisan, el más cercano) | ✅ | VillageManager.gd (`_declutter_title_labels`, `_title_text_rect`, grupo `world_title_label`) | Pedido del usuario |
+
+## Bloque FIS — Los 10 sistemas «en papel» hechos físicos (pedido del usuario, 2026-11-05)
+
+Orden acordado: 1 asaltos · 2 terminal, cuadro eléctrico y objetos de los robos · 3 alcantarillas · 4 ganado · 5 el resto.
+Ya hechos antes: caballo físico (AUD11). Los 3 robos ya se hacían en persona (falta que se vea el objeto).
+
+| # | Paso | Estado | Archivos | Nota |
+|---|------|--------|----------|------|
+| FIS1 | Asaltos físicos: bandidos o jabalíes reales, pelea con defensores y jugador, resultado por lo que pasa en el mapa | ✅ | Raider.gd, RaidController.gd, BanditModel3D.gd (nuevos), VillageCulture.gd (`spawn_raid_attackers`, `culture_lead_defense` ya no resuelve) | Tests PL.2g/PL.2g2. Captura asalto_bandidos |
+

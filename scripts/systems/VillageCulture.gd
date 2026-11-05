@@ -729,8 +729,31 @@ static func raid_on_hour(vm, hour: int) -> void:
 		for n in raid_defenders(vm):
 			n.start_errand("raid_defend", RAID_GATE_POS + Vector2(randf_range(-40.0, 40.0), randf_range(-30.0, 30.0)))
 			n._spawn_floating_text("🛡️", Color(1.0, 0.85, 0.5), -30.0)
-	elif hour >= RAID_ATTACK_HOUR:
-		resolve_raid(vm, false, null)
+	elif hour >= RAID_ATTACK_HOUR and not bool(raid.get("attack_started", false)):
+		# Regla «todo es físico»: el asalto lo deciden los atacantes que aparecen de verdad (RaidController).
+		spawn_raid_attackers(vm)
+
+const RaidControllerScript = preload("res://scripts/systems/RaidController.gd")
+
+## Hace aparecer a los atacantes en el camino del este. Devuelve el controlador del asalto (o null si no hay asalto).
+static func spawn_raid_attackers(vm) -> Node:
+	var rd: Dictionary = raids_state(vm)
+	var raid: Dictionary = rd.get("active_raid", {})
+	if raid.is_empty() or not vm.is_inside_tree():
+		return null
+	var old = vm.get_tree().get_first_node_in_group("raid_controller")
+	if old != null and is_instance_valid(old) and not old.is_queued_for_deletion():
+		return old
+	raid["attack_started"] = true
+	var ctl = RaidControllerScript.new()
+	vm.add_child(ctl)
+	var n: int = ctl.start(vm, str(raid.get("kind", "bandits")), int(raid.get("strength", 4)), int(rd.get("militia_bonus", 0)))
+	var what: String = "jabalíes" if str(raid.get("kind", "")) == "boars" else "asaltantes"
+	VillageChronicle.add(vm, "raid_attack", "⚔️ %s entra por el camino del este: %d %s avanzan hacia la plaza" % [str(raid.get("name", "La banda")), n, what], true)
+	var pl = VillageNeeds.player_of(vm)
+	if pl != null and pl.has_method("show_hint"):
+		pl.show_hint("⚔️ ¡%s ataca por el camino del este! %d %s van hacia la plaza: ayuda a la guardia a pararlos." % [str(raid.get("name", "La banda")), n, what])
+	return ctl
 
 static func defense_power(vm, player_joined: bool = false, inv = null) -> int:
 	if vm == null:
@@ -770,6 +793,14 @@ static func resolve_raid(vm, player_joined: bool = false, inv = null, force_outc
 	elif force_outcome == -1:
 		won = false
 	var r_name: String = str(raid.get("name", "Incursión"))
+	if vm.is_inside_tree():
+		for rr in vm.get_tree().get_nodes_in_group("raiders"):
+			if is_instance_valid(rr) and not rr.is_dead:
+				rr.fleeing = true
+		var ctl_old = vm.get_tree().get_first_node_in_group("raid_controller")
+		if ctl_old != null and is_instance_valid(ctl_old) and not bool(ctl_old.get("_resolved")):
+			ctl_old.set("_resolved", true)
+			ctl_old.queue_free()
 	var defenders: Array = raid_defenders(vm)
 	for d_n in defenders:
 		if d_n.errand_kind == "raid_defend":
@@ -1441,7 +1472,7 @@ static func daily(vm) -> int:
 		var deterrent: int = int(float(defense_power(vm)) / 3.0)
 		rd["threat"] = clampi(int(rd.get("threat", 0)) + lure - 1 - deterrent, 0, 100)
 		if int(rd["threat"]) >= RAID_THREAT_WARN and randf() < float(int(rd["threat"]) - RAID_THREAT_WARN + 10) / 100.0:
-			start_raid_warning(vm, "bandits")
+			start_raid_warning(vm, "boars" if randf() < 0.3 else "bandits")
 	var tinker = vm.trade_npcs.get(VillageTrades.role_of("tinker"))
 	if tinker == null or not is_instance_valid(tinker) or tinker.is_dead or tinker.is_downed or vm.is_trade_sabotaged(VillageTrades.role_of("tinker")):
 		return 0
@@ -1587,7 +1618,7 @@ static func add_dialogue_choices(vm, npc, diag: Dictionary, ch_arr: Array) -> vo
 			ch_arr.append({"label": "🛡️📯 Financiar barricadas y milicia contra incursiones (-%d Oro a las arcas, +2 Defensa)" % MILITIA_COST, "next": "END", "action": "culture_fund_militia"})
 		var act_r: Dictionary = rd.get("active_raid", {})
 		if not act_r.is_empty():
-			ch_arr.insert(0, {"label": "⚔️🔥 Encabezar la defensa contra %s (Recompensa de las arcas si ganáis)" % str(act_r.get("name", "Incursión")), "next": "END", "action": "culture_lead_defense"})
+			ch_arr.insert(0, {"label": "⚔️🔥 Unirte a la defensa contra %s (llegan al atardecer por el este; recompensa si peleas)" % str(act_r.get("name", "Incursión")), "next": "END", "action": "culture_lead_defense"})
 	if role_i == int(VillageNPC.TradeRole.RANCHER):
 		if not has_horse(vm):
 			ch_arr.append({"label": "🐎🪙 Comprar Caballo de Silla (-%d Oro al ganadero, velocidad y +15%% en expediciones)" % HORSE_COST, "next": "END", "action": "culture_buy_horse"})
@@ -1730,12 +1761,9 @@ static func on_player_action(vm, npc, action_id: String, inv) -> void:
 		npc.affinity = clampi(npc.affinity + 8, -100, 100)
 		npc._spawn_floating_text("🛡️📯 «¡Barricadas listas! El pueblo resistirá mejor el próximo ataque (+2 Defensa).»", Color.GOLD, -46.0)
 	elif action_id == "culture_lead_defense":
-		var res_r: Dictionary = resolve_raid(vm, true, inv)
-		if bool(res_r.get("repelled", false)):
-			npc.affinity = clampi(npc.affinity + 12, -100, 100)
-			npc._spawn_floating_text("⚔️🛡️ «¡Victoria! Rechazamos a los asaltantes (+%d Oro de recompensa).»" % int(res_r.get("reward", 0)), Color.AQUAMARINE, -46.0)
-		else:
-			npc._spawn_floating_text("🔥 «Nos superaron en las barricadas y saquearon las arcas...»", Color.ORANGE_RED, -46.0)
+		# Ya no se resuelve hablando: te unes a la defensa y peleas en el camino del este cuando lleguen.
+		npc.affinity = clampi(npc.affinity + 4, -100, 100)
+		npc._spawn_floating_text("⚔️🛡️ «¡Contamos contigo! Llegan al atardecer por el camino del este. La recompensa es para quien pelee.»", Color.AQUAMARINE, -46.0)
 	elif action_id == "culture_plant_tree":
 		if inv == null or int(inv.items.get("crop_seeds", 0)) <= 0:
 			npc._spawn_floating_text("«Necesitas al menos 1 Semilla de Cultivo para plantar un pino joven.»", Color.ORANGE_RED, -46.0)

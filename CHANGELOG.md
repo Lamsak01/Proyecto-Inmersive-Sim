@@ -3,6 +3,14 @@
 Cambios del juego, del más nuevo al más antiguo. Añade una entrada al cerrar cada bloque, en lenguaje sencillo.
 El detalle técnico está en `docs/HANDOFF.md` (sección 7) y el historial completo en `git log`. Lo anterior a B0.1 está en `AUDIT_LOG.md` y `SESSION_CONTEXT_LOG.md`.
 
+## 2026-11-05 — Los asaltos ocurren de verdad
+- Al atardecer entran por el camino del este 3–6 bandidos encapuchados con espada (o 3–5 jabalíes, que de momento se
+  ven como lobos). Avanzan hacia la plaza peleando con guardias, vecinos valientes y contigo.
+- Les puedes herir con cualquier arma; malheridos huyen. Se rechaza el asalto si todos caen o huyen; si uno llega a la
+  plaza, saquea las arcas. A las 23:00 se retiran (si queda la mitad, se llevan botín).
+- La recompensa es para ti solo si has peleado. Hablar con el guardia ya no gana el asalto: solo te apuntas.
+- Las barricadas pagadas hacen que lleguen con menos vida.
+
 ## 2026-11-05 — Los letreros de los edificios ya no se pisan
 - Solo se ven los letreros de los sitios cercanos a ti (unos 150 pasos) o el que tengas bajo el ratón.
 - Si dos se pisan, se queda el más cercano (o el que apuntas con el ratón).

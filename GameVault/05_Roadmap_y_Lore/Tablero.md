@@ -41,6 +41,7 @@ kanban-plugin: board
 - [ ] Rendimiento: abaratar el cálculo de los vecinos sin cambiar lo que hacen
 - [ ] Animales 3D: conejo, gato y gallinas siguen planos (buscar modelos animados del mismo estilo)
 - [ ] Buscar un jabalí 3D animado que guste al usuario (ahora es un lobo provisional)
+- [ ] Hacer físicos: terminal y cuadro eléctrico, objetos de los robos, alcantarillas, ganado, tienda propia, caravanas, expediciones, cenas y fiestas, carreta
 - [ ] Dibujo 2D propio del caballo (ahora es el ciervo teñido) y postura de jinete a horcajadas
 
 
@@ -58,6 +59,7 @@ kanban-plugin: board
 - [x] Tecla E con letrero, el ratón manda y Mayús+rueda o G cambian de opción (2026-11-05)
 - [x] Una sola ficha corta del vecino bajo el ratón; completa con Alt (2026-11-05)
 - [x] Letreros de edificios sin pisarse: solo cercanos o bajo el ratón (2026-11-05)
+- [x] Asaltos físicos: atacantes reales y pelea en el mapa (2026-11-05)
 
 - [x] Edificios con sus piezas quietas juntas (2026-11-06)
 - [x] Casas iniciales repartidas por los barrios y árboles agrupados para dibujar menos (2026-11-06)

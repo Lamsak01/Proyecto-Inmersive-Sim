@@ -4088,7 +4088,14 @@ func _initialize() -> void:
 	var pl_gathered: bool = pl_defs.is_empty() or pl_defs.all(func(d): return d.errand_kind == "raid_defend")
 	assert(pl_gathered and not (vcu_pj.raids_state(vm)["active_raid"] as Dictionary).is_empty(), "PL.2f: In the afternoon the guards and brave neighbors gather on the east road")
 	vcu_pj.raid_on_hour(vm, vcu_pj.RAID_ATTACK_HOUR)
-	assert((vcu_pj.raids_state(vm)["active_raid"] as Dictionary).is_empty() and pl_defs.all(func(d): return d.errand_kind != "raid_defend"), "PL.2g: At dusk the raid is fought and defenders go back to their lives")
+	# Regla «todo es físico»: al atardecer aparecen atacantes de verdad y el asalto sigue abierto hasta que se decide en el mapa.
+	var pl_raiders: Array = get_nodes_in_group("raiders")
+	assert(pl_raiders.size() >= 3 and not (vcu_pj.raids_state(vm)["active_raid"] as Dictionary).is_empty(), "PL.2g: At dusk real attackers appear on the east road and the raid is still undecided")
+	var pl_kill := DamageData.new()
+	pl_kill.amount = 999.0
+	for pl_r in pl_raiders:
+		pl_r.take_damage(pl_kill)
+	assert((vcu_pj.raids_state(vm)["active_raid"] as Dictionary).is_empty() and int(vcu_pj.raids_state(vm).get("raids_repelled", 0)) >= 1 and pl_defs.all(func(d): return d.errand_kind != "raid_defend"), "PL.2g2: When every attacker is struck down the raid is repelled and defenders go back to their lives")
 	vm.town_state["treasury"] = pl_tr_keep
 	vcu_pj.state(vm)["research"] = {}
 	vcu_pj.state(vm)["raids"] = {}
