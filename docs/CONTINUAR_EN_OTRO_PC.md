@@ -27,6 +27,8 @@ del proyecto, no en /tmp).
    campamento, tablón de misiones, huertos, compostador y detalles menores. Mismo método que los pinos y rocas:
    el escenario 3D busca el objeto 2D, pone un modelo 3D en su sitio y oculta el dibujo plano mientras el 3D está
    activo (ver `_scan_nature_sources` / `_sync_nature_3d` en `scripts/visuals/WorldStage3D.gd`).
+1b. **Niebla nocturna** (coste bajo-medio): de noche la niebla se cierra sobre el valle y limita la vista lejana,
+   al estilo Gloomwood; las luces (farolas, ventanas, farol de mano) la atraviesan. Idea de `ideas sueltas.md`.
 2. **Ampliar la aldea**, pasos 1 y 3 de `docs/PLAN_AMPLIAR_ALDEA.md`: solares de tres tamaños y barrios nuevos
    separados (Lago, linde del Bosque, Molino del este). **Presentar el plan al usuario y esperar su visto bueno**
    antes de tocar casas y caminos.
