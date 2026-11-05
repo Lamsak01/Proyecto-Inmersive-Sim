@@ -44,6 +44,11 @@ tags:
   dentro del escenario 3D y hay sombras del sol, tejados a dos aguas, suelo y pinos 3D y un lago grande. Plan para
   ampliar la aldea en `docs/PLAN_AMPLIAR_ALDEA.md`, pendiente de aprobación.
 
+- 2026-11-06 (Claude Code): objetos quietos en 3D. El escenario 3D busca cada dibujo 2D por el nombre de su imagen,
+  pone su modelo encima y esconde el plano mientras se juega en 3D; con F9 vuelve el 2D (también pinos y rocas, que
+  antes no volvían). Huertos con surcos que se oscurecen al regar y cultivos que crecen por fases. La casa mejorada
+  del jugador y el gallinero siguen planos.
+
 ## Tareas
 - [x] Animaciones reales en vez de balanceos
 - [x] Texturas retro coherentes en edificios, caminos y plaza
@@ -52,4 +57,5 @@ tags:
 - [ ] Personajes con más estilo (tipo Signalis)
 - [x] Hierba y árboles 3D a juego
 - [x] Personajes dentro del escenario 3D, con sombras
+- [x] Objetos quietos en 3D (pozos, farolas, tablón, campamento, huertos, compostador)
 - [ ] Ampliar la aldea con casas de tamaños distintos y barrios separados (plan pendiente de aprobación)

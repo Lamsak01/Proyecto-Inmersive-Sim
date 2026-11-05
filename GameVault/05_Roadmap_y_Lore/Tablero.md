@@ -39,7 +39,7 @@ kanban-plugin: board
 - [ ] Ampliar la aldea: solares de 3 tamaños + barrios del Lago, del Bosque y del Molino (plan en `docs/PLAN_AMPLIAR_ALDEA.md`)
 - [ ] Quitar la etiqueta «dormida» de las tendencias ya conectadas (`TraitCatalog.gd`)
 - [ ] Paseos nocturnos visibles de Noctámbulos e Insomnes
-- [ ] Pasar a 3D lo que sigue plano: animales, pozos, tienda de campaña, cocina del campamento, tablón de misiones, huertos, compostador, farolas y detalles menores
+- [ ] Pasar a 3D lo que sigue plano: animales, gallinero (comedero y nido) y la casa mejorada del jugador (cabaña y casa de piedra)
 
 
 ## 🚧 En progreso
@@ -47,6 +47,8 @@ kanban-plugin: board
 
 
 ## ✅ Hecho
+
+- [x] Objetos quietos en 3D: pozos, farolas, tablón, tienda de campaña, hoguera con caldero, tronco, cartel, generador, aspersor, huertos y compostador (2026-11-06)
 
 **Complete**
 - [x] Biblia del proyecto exportada a Obsidian

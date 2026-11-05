@@ -3,6 +3,14 @@
 Cambios del juego, del más nuevo al más antiguo. Añade una entrada al cerrar cada bloque, en lenguaje sencillo.
 El detalle técnico está en `docs/HANDOFF.md` (sección 7) y el historial completo en `git log`. Lo anterior a B0.1 está en `AUDIT_LOG.md` y `SESSION_CONTEXT_LOG.md`.
 
+## 2026-11-06 (noche) — Objetos quietos en 3D
+- Pozos, farolas y tablón de misiones ya no salen dos veces (el dibujo plano se esconde bajo el 3D).
+- En 3D: tienda de campaña de lona, hoguera con caldero y su luz, tronco para sentarse, cartel, generador y aspersor.
+- Huertos con tierra en surcos que se oscurece al regar; los cultivos crecen de brote a planta (zanahoria, col, trigo).
+- Compostador como cajón de tablas. Los pozos aparecen también en los solares nuevos.
+- Arreglo: al volver a 2D con F9, los pinos y rocas no reaparecían.
+- Sigue plano: la casa mejorada del jugador (cabaña o piedra), el gallinero y los animales.
+
 ## 2026-11-06 (noche) — Fuera las 446 advertencias del editor
 - Las fichas de color de 121 modelos 3D traían un dato de «luz ambiente» que Godot no usa y por el que avisaba una vez
   por color al importar. Quitado. Los modelos se ven igual.

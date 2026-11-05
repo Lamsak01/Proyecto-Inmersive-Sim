@@ -23,7 +23,7 @@ Para capturas del pueblo: `tools/screenshot_3d.gd` (instrucciones dentro del arc
 del proyecto, no en /tmp).
 
 ## 4. Lo siguiente que hay que hacer (en este orden)
-1. **Pasar a 3D los objetos quietos que siguen planos** (coste bajo): pozos, farolas, tienda de campaña, cocina del
+1. ~~**Pasar a 3D los objetos quietos que siguen planos**~~ (HECHO 2026-11-06; falta la casa mejorada del jugador y el gallinero) (coste bajo): pozos, farolas, tienda de campaña, cocina del
    campamento, tablón de misiones, huertos, compostador y detalles menores. Mismo método que los pinos y rocas:
    el escenario 3D busca el objeto 2D, pone un modelo 3D en su sitio y oculta el dibujo plano mientras el 3D está
    activo (ver `_scan_nature_sources` / `_sync_nature_3d` en `scripts/visuals/WorldStage3D.gd`).

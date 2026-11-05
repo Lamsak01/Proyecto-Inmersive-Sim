@@ -2,7 +2,8 @@ extends SceneTree
 
 ## Captura fotos del juego en 3D (con ventana real, NO headless) para revisar la estética.
 ## Uso: flatpak run org.godotengine.Godot --path . -s tools/screenshot_3d.gd -- <carpeta_salida> [horas separadas por comas] [sitios]
-## Sitios: plaza, iglesia, lago, cementerio, cerca (jugador de cerca). Por defecto: todos.
+## Sitios: plaza, iglesia, lago, cementerio, cerca (jugador de cerca), campamento. Por defecto: todos.
+## En «campamento» siembra cultivos de muestra en el huerto (solo en memoria) para ver cada fase.
 ## Guarda <carpeta>/<sitio>_<hora>h.png. No toca la partida guardada.
 
 var SPOTS := {
@@ -12,6 +13,7 @@ var SPOTS := {
 	"cementerio": Vector2(930, 300),
 	"cerca": Vector2(470, 70),
 	"retrato": Vector2(470, 60),
+	"campamento": Vector2(150, 62),
 }
 
 func _initialize() -> void:
@@ -38,6 +40,16 @@ func _initialize() -> void:
 	var ui := root.find_child("UI", true, false)
 	if ui is CanvasLayer:
 		(ui as CanvasLayer).visible = false
+	if spots.has("campamento"):
+		var plots := get_nodes_in_group("farm_plots")
+		for i in range(plots.size()):
+			var fp = plots[i]
+			if i % 4 == 3:
+				continue
+			fp.crop_type = 1 + (i % 3)
+			fp.days_grown = int(i / 3.0)
+			fp.is_watered = i % 2 == 0
+			fp._refresh_visuals()
 	var player := get_first_node_in_group("player") as Node2D
 	var cam := player.get_node_or_null("Camera2D") as Camera2D if player != null else null
 	SPOTS["inicio"] = player.global_position

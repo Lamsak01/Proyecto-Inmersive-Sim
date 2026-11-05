@@ -60,6 +60,8 @@ var _nature_accum: float = 10.0
 var _nature_scan_accum: float = 10.0
 var _nature_sources: Array = [] # [{"node": Node2D, "kind": "pine"|"rock"|"deco_pine", "sprite": CanvasItem}]
 var _nature_nodes: Dictionary = {} # instance_id -> {"tree": Node3D, "stump": Node3D}
+var _prop_sources: Array = [] # [{"sprite": Sprite2D, "kind": String}] objetos quietos 2D con su versión 3D
+var _prop_nodes: Dictionary = {} # instance_id del sprite -> {"root": Node3D, "variant": String}
 
 func setup_stage(village_manager: Node2D) -> void:
 	vm = village_manager
@@ -420,12 +422,7 @@ func _build_static_terrain_3d() -> void:
 	for px in [-6.0, 0.0, 6.0]:
 		_add_box_2d(terrain_root_3d, nb + Vector2(px, 1.5), Vector2(4.0, 0.8), 9.5, 5.0, m_paper)
 
-	# Los 3 Pozos de Agua 3D reales (Granja, Taberna, Plaza)
-	var wells: Array[Vector2] = [Vector2(184, 82), Vector2(440, -306), Vector2(412, 54)]
-	for wp in wells:
-		if _add_model_2d(terrain_root_3d, "exterior/Well.obj", wp, 0.0, Vector2.ZERO, 24.0) == null:
-			_add_cyl_2d(terrain_root_3d, wp, 8.5, 0.0, 7.5, m_stone, 8.5, 14)
-			_add_cyl_2d(terrain_root_3d, wp, 6.5, 0.5, 6.2, m_water, 6.5, 12)
+	# (2026-11-06) Los pozos ya no van fijos aquí: los pone _sync_props_3d donde esté cada pozo 2D (también los de solares nuevos).
 
 	# Compostador, carretas y barriles de la Granja y Rancho Sur
 	# (2026-11-05) Quitados el carro, las cajas, el compostador 3D duplicado y los animales de adorno del «rancho»:
@@ -1140,6 +1137,7 @@ func _process(delta: float) -> void:
 	if _nature_accum >= 0.5:
 		_nature_accum = 0.0
 		_sync_nature_3d(true)
+		_sync_props_3d(true)
 
 	_cutaway_accum += delta
 	if _cutaway_accum >= 0.08:
@@ -1346,6 +1344,7 @@ func _scan_nature_sources() -> void:
 			if c is Sprite2D and _is_pine_texture((c as Sprite2D).texture):
 				_nature_sources.append({"node": c, "kind": "deco_pine", "sprite": c})
 	_sync_nature_3d(false)
+	_scan_props_sources()
 
 
 ## Crea o actualiza el modelo 3D de cada elemento natural y oculta su dibujo 2D mientras el 3D esté activo.
@@ -1418,12 +1417,204 @@ func _make_nature_3d(n: Node2D, kind: String) -> Dictionary:
 	return {}
 
 
+# ==============================================================================
+# OBJETOS QUIETOS 2D -> 3D (pozos, farolas, tablón, campamento, huertos, compostador)
+# ==============================================================================
+## Qué versión 3D lleva cada dibujo 2D, según el nombre de su imagen. "hide" = ya tiene 3D propio, solo se esconde.
+const PROP_KIND_BY_TEXTURE := {
+	"water_well.png": "well",
+	"compost_bin.png": "compost",
+	"questboard_1.png": "hide",
+	"lamp-post1.png": "hide",
+	"camp_tent.png": "tent",
+	"campfire_pot.png": "campfire",
+	"camp_log_seat.png": "log_seat",
+	"sign_1.png": "sign",
+	"ancient_generator.png": "generator",
+	"auto_sprinkler.png": "sprinkler",
+	"soil_dry.png": "soil",
+	"soil_wet.png": "soil",
+}
+
+static func _tex_file(t: Texture2D) -> String:
+	if t == null:
+		return ""
+	var src: String = t.resource_path if not t.resource_path.is_empty() else String(t.get_meta("src_path", ""))
+	return src.get_file()
+
+
+func _prop_kind_for(spr: Sprite2D) -> String:
+	if spr.name == "CropSprite":
+		return "crop"
+	return String(PROP_KIND_BY_TEXTURE.get(_tex_file(spr.texture), ""))
+
+
+## Busca los dibujos 2D de objetos quietos: hijos directos del pueblo y piezas del campamento y los huertos.
+func _scan_props_sources() -> void:
+	_prop_sources.clear()
+	if vm == null or not is_instance_valid(vm.entities_root):
+		return
+	for c in vm.entities_root.get_children():
+		if c is Sprite2D:
+			_add_prop_source(c as Sprite2D)
+		elif c is FarmPlot:
+			for sub in c.get_children():
+				if sub is Sprite2D:
+					_add_prop_source(sub as Sprite2D, true)
+		elif c is CampSite:
+			_collect_camp_sprites(c)
+	_sync_props_3d(false)
+
+
+func _add_prop_source(spr: Sprite2D, in_plot: bool = false) -> void:
+	var kind := "crop" if in_plot and spr.name == "CropSprite" else _prop_kind_for(spr)
+	if kind == "crop" and not in_plot:
+		return
+	if not kind.is_empty():
+		_prop_sources.append({"sprite": spr, "kind": kind})
+
+
+## La casa mejorada del jugador (cabaña o casa de piedra) aún no tiene 3D: sus piezas se quedan en 2D.
+func _collect_camp_sprites(n: Node) -> void:
+	for c in n.get_children():
+		if c.name == "PlayerHouseRoot":
+			continue
+		if c is Sprite2D:
+			_add_prop_source(c as Sprite2D)
+		if c.get_child_count() > 0:
+			_collect_camp_sprites(c)
+
+
+func _sync_props_3d(only_update: bool) -> void:
+	if nature_root_3d == null:
+		return
+	var use_3d: bool = CharacterAvatar3DScript.use_3d_characters
+	var alive: Dictionary = {}
+	for src in _prop_sources:
+		var spr: Sprite2D = src["sprite"]
+		if not is_instance_valid(spr):
+			continue
+		var id := spr.get_instance_id()
+		alive[id] = true
+		var kind: String = src["kind"]
+		var variant := _tex_file(spr.texture) if (kind == "soil" or kind == "crop") else kind
+		var rec: Dictionary = _prop_nodes.get(id, {})
+		var stale: bool = not rec.is_empty() and String(rec.get("variant", "")) != variant
+		if stale:
+			var old_root = rec.get("root")
+			if old_root is Node3D and is_instance_valid(old_root):
+				(old_root as Node3D).queue_free()
+			rec = {}
+		if rec.is_empty() and (not only_update or stale) and kind != "hide":
+			var root := Node3D.new()
+			root.name = "Prop3D_" + kind
+			nature_root_3d.add_child(root)
+			_build_prop_3d(root, kind, spr)
+			rec = {"root": root, "variant": variant}
+			_prop_nodes[id] = rec
+		var r3 = rec.get("root")
+		if r3 is Node3D and is_instance_valid(r3):
+			(r3 as Node3D).visible = spr.is_visible_in_tree() and spr.texture != null
+		spr.self_modulate.a = 0.0 if use_3d else 1.0
+	if only_update:
+		return
+	for id in _prop_nodes.keys():
+		if not alive.has(id):
+			var r = _prop_nodes[id].get("root")
+			if r is Node3D and is_instance_valid(r):
+				(r as Node3D).queue_free()
+			_prop_nodes.erase(id)
+
+
+func _build_prop_3d(root: Node3D, kind: String, spr: Sprite2D) -> void:
+	var pos: Vector2 = spr.global_position
+	var m_wood := _mat("prop_wood", Color(0.62, 0.46, 0.30), 0.88, 0.02, Color.BLACK, 0.0, "town_textures/rf_planks.png", "", 0.78)
+	var m_dark := _mat("prop_dark_wood", Color(0.40, 0.28, 0.18), 0.9, 0.02, Color.BLACK, 0.0, "town_textures/rf_planks.png", "", 0.78)
+	var m_iron := _mat("prop_iron", Color(0.30, 0.31, 0.33), 0.6, 0.5)
+	match kind:
+		"well":
+			if _add_model_2d(root, "exterior/Well.obj", pos, 0.0, Vector2.ZERO, 24.0) == null:
+				_add_cyl_2d(root, pos, 8.5, 0.0, 7.5, _mat("well_stone", Color(0.58, 0.57, 0.54), 0.9, 0.02), 8.5, 14)
+		"compost":
+			_add_box_2d(root, pos, Vector2(18, 13), 0.0, 9.0, m_wood)
+			_add_box_2d(root, pos, Vector2(15, 10), 8.6, 1.2, _mat("compost_soil", Color(0.25, 0.18, 0.11), 0.98, 0.0))
+		"tent":
+			var m_canvas := _mat("tent_canvas", Color(0.80, 0.71, 0.52), 0.95, 0.0)
+			_add_prism_2d(root, pos + Vector2(0, 2), Vector2(32, 22), 0.0, 17.0, m_canvas, false)
+			_add_box_2d(root, pos + Vector2(0, 13.2), Vector2(7, 0.6), 0.0, 10.0, _mat("tent_door", Color(0.22, 0.17, 0.12), 0.95, 0.0))
+		"campfire":
+			_add_model_2d(root, "exterior/Bonfire_Lit.obj", pos, 0.0, Vector2(16, 16), 9.0)
+			_add_model_2d(root, "exterior/Cauldron.obj", pos, 2.5, Vector2(10, 10), 7.0)
+			if not _is_headless:
+				var lt := OmniLight3D.new()
+				lt.position = to_3d(pos, 10.0)
+				lt.light_color = Color(1.0, 0.62, 0.28)
+				lt.light_energy = 1.2
+				lt.omni_range = 2.6
+				root.add_child(lt)
+		"log_seat":
+			# Tronco tumbado: el modelo de leña sale de pie al encajarlo, así que va hecho a mano.
+			var log_mi := _add_cyl_2d(root, pos, 3.2, 0.0, 22.0, m_dark, 3.2, 8)
+			log_mi.rotation_degrees.z = 90.0
+			log_mi.position = to_3d(pos, 3.2)
+		"sign":
+			_add_box_2d(root, pos + Vector2(0, 4), Vector2(2.2, 2.2), 0.0, 13.0, m_dark)
+			_add_box_2d(root, pos + Vector2(0, 4.5), Vector2(15, 1.6), 7.0, 8.0, m_wood)
+		"generator":
+			if _add_model_2d(root, "props/Crate_Metal.gltf", pos, 0.0, Vector2(16, 14), 12.0) == null:
+				_add_box_2d(root, pos, Vector2(16, 14), 0.0, 12.0, m_iron)
+			_add_cyl_2d(root, pos + Vector2(4, -2), 1.6, 12.0, 6.0, m_iron, 1.6, 8)
+		"sprinkler":
+			_add_cyl_2d(root, pos, 1.4, 0.0, 7.0, m_iron, 1.4, 8)
+			_add_cyl_2d(root, pos, 3.0, 7.0, 1.4, m_iron, 1.6, 8)
+		"soil":
+			var wet: bool = _tex_file(spr.texture) == "soil_wet.png"
+			var m_soil := _mat("plot_soil_wet" if wet else "plot_soil_dry", Color(0.30, 0.21, 0.13) if wet else Color(0.50, 0.37, 0.24), 0.97, 0.0, Color.BLACK, 0.0, "town_textures/floor_ground_dirt.png", "", 0.5)
+			_add_box_2d(root, pos, Vector2(21, 21), 0.0, 1.6, m_soil)
+			for fy in [-6.0, 0.0, 6.0]:
+				_add_box_2d(root, pos + Vector2(0, fy), Vector2(19, 2.6), 1.6, 1.0, m_soil)
+		"crop":
+			_build_crop_3d(root, pos, _tex_file(spr.texture))
+
+
+## Brote, planta a medias o planta madura según la imagen del cultivo 2D.
+func _build_crop_3d(root: Node3D, pos: Vector2, tex_name: String) -> void:
+	var m_leaf := _mat("crop_leaf", Color(0.36, 0.62, 0.24), 0.9, 0.0)
+	if tex_name.begins_with("sprout"):
+		for off in [Vector2(-5, -5), Vector2(5, 0), Vector2(-2, 6)]:
+			_add_cyl_2d(root, pos + off, 2.0, 1.6, 5.5, m_leaf, 0.3, 5)
+		return
+	var mature := tex_name.contains("mature")
+	var file := "nature/Plant_2.obj"
+	var h := 7.0
+	if tex_name.begins_with("wheat"):
+		file = "nature/Wheat.obj"
+		h = 19.0 if mature else 11.0
+	elif tex_name.begins_with("cabbage"):
+		file = "nature/Bush_1.obj"
+		h = 11.0 if mature else 8.0
+	elif tex_name.begins_with("carrot"):
+		file = "nature/Plant_1.obj"
+		h = 12.0 if mature else 8.0
+	if _add_model_2d(root, file, pos, 1.6, Vector2(20, 20), h) == null:
+		_add_cyl_2d(root, pos, 5.0, 1.6, h, m_leaf, 2.0, 6)
+	if mature and tex_name.begins_with("carrot"):
+		var m_carrot := _mat("crop_carrot", Color(0.92, 0.48, 0.14), 0.85, 0.0)
+		for off in [Vector2(-4, 3), Vector2(3, 4), Vector2(0, -4)]:
+			_add_cyl_2d(root, pos + off, 1.4, 1.6, 1.5, m_carrot, 1.0, 6)
+
+
 ## Oculta las tiras planas 2D de muros/puertas/suelos cuando el 3D está activo (usando `self_modulate.a`
 ## en lugar de `.visible`, de modo que ningún test de estado de puertas o ventanas se vea afectado).
 func _sync_2d_flat_visuals(use_3d: bool) -> void:
 	if vm == null or not is_instance_valid(vm.entities_root):
 		return
 	var target_a: float = 0.0 if use_3d else 1.0
+	# Pinos, rocas y objetos quietos con versión 3D: se esconden en 3D y vuelven al pasar a 2D (F9).
+	for src in _nature_sources + _prop_sources:
+		var spr_n = src.get("sprite")
+		if spr_n is CanvasItem and is_instance_valid(spr_n):
+			(spr_n as CanvasItem).self_modulate.a = target_a
 	var inner_rects: Array[Rect2] = []
 	for b in vm.building_footprints:
 		inner_rects.append((b["rect"] as Rect2).grow(-3.0))

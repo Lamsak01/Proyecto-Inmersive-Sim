@@ -123,6 +123,14 @@ Otros documentos antiguos en la raíz: `ROADMAP_PROYECTO.md`, `AUDIT_LOG.md`, `S
 
 ## 7. Estado y siguiente bloque
 
+- [x] **Objetos quietos 2D → 3D (Claude Code, 2026-11-06)** (`WorldStage3D.gd`: `PROP_KIND_BY_TEXTURE`, `_scan_props_sources`,
+  `_sync_props_3d`, `_build_prop_3d`, `_build_crop_3d`; `tools/screenshot_3d.gd` sitio «campamento»). Reconoce el dibujo
+  por el nombre de su imagen (hijos de `entities_root`, `CampSite` salvo `PlayerHouseRoot`, `FarmPlot`); "hide" = ya tiene
+  3D propio (tablón, farolas). Se reconstruye si cambia la imagen (tierra seca/mojada, fase del cultivo). Los pozos
+  fijos de `_build_static_terrain_3d` se quitaron. `_sync_2d_flat_visuals(false)` devuelve el alfa a pinos, rocas y
+  objetos al pasar a 2D. Solo corre con ventana (en headless `_process` sale antes). Pendiente: casa mejorada del
+  jugador y gallinero.
+
 **Estado del código:** vida social completa (Fases 0 a 6) y subida a `main`; los cuatro tests pasan. Refuerzo del código (R1–R5) terminado. M1 (móvil social en investigaciones), Q1 (panel de misiones) Q1–Q4 hechos (5 tipos de misión, con estructura lista para muchos más). T1, T3 y T4 (rasgos: catálogo, descubrimiento y efectos) hechos. T2 hecho: 140 rasgos (`docs/RASGOS_BORRADOR.md`). Misiones: 25 tipos hechos (`docs/MISIONES.md`, bloque M). Historial en `CHANGELOG.md`.
 
 **Bloques P1–P7 auditados (2026-11-04):** ver `docs/AUDITORIA_P1_P7.md`. [x] PA: arreglados los puntos 1 (el misterio
