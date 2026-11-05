@@ -33,6 +33,14 @@ es para que decidas tú. Los precios y licencias se comprobaron en la web el **2
 | [Medieval Assets: Foxtex GrassLands (foxh3ad)](https://foxh3ad.itch.io/grasslands) | Sin comprobar | Texturas y modelos medievales retro. CC BY 4.0 | ⭐⭐ Para el suelo y la naturaleza |
 | [3D Retro Medieval/Fantasy Building Kit (chilly_durango)](https://chilly-durango.itch.io/medieval-building-parts) | **Gratis, CC0** | Piezas de casas estilo PSX y algunos muebles | ⭐⭐ Gratis, pero obligaría a rehacer cómo se construyen los edificios (ahora son cajas con textura) |
 
+## Animales
+
+| Pack | Precio | Qué trae | Encaje |
+|---|---|---|---|
+| [PSX Animals (heyheythere)](https://heyheythere.itch.io/psx-animals) | 4,99 $ (3,74 $ en oferta el 2026-11-05) | 22 animales estilo PSX animados (quieto, andar, correr, atacar, golpe, muerte): ciervo, lobo, zorro, oso, jabalí, conejo, rata, ardilla, tejón, caballo, burro, vaca, cerdo, oveja, cabra, gato, perro pastor, gallina, pato, ganso, cuervo, búho. Addon para Godot 4.3–4.7. Sin citar al autor; no se puede revender | ⭐⭐⭐ Mismo aire retro que el juego; tiene todo lo que falta (jabalí, gato, gallina, conejo) |
+| [PSX Animals Free (heyheythere)](https://heyheythere.itch.io/psx-animals-free) | Gratis, CC BY 4.0 (hay que citar al autor) | Solo conejo y cuervo, mismas animaciones | ⭐⭐ Para probar el estilo antes de comprar |
+| Quaternius (granja y mascotas) | Gratis, CC0 | Gallina, gato y cerdo cuadrados; conejos de dibujo animado a dos patas | ❌ Desentonan con el ciervo y el zorro (2026-11-05) |
+
 ## Mi recomendación
 - **Si compras algo, que sea el Villager NPC Pack (4,99 $).** Es lo único que acercaría los vecinos a Signalis o
   Mouthwashing. Antes conviene descargar gratis el «PSX Villager Man» del mismo autor y probar si su esqueleto acepta
