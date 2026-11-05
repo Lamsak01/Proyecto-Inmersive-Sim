@@ -40,10 +40,16 @@ tags:
 - Los personajes siguen siendo los de Quaternius (cuerpo algo «de superhéroe»). Es lo más mejorable; ver [[Assets de pago]].
 - Idea pendiente del usuario: cosas raras o paranormales en la oscuridad (sin decidir).
 
+- 2026-11-06 (Claude Code, 2ª noche): el usuario dijo que «parecía pixel art, no 3D». Ahora los personajes están
+  dentro del escenario 3D y hay sombras del sol, tejados a dos aguas, suelo y pinos 3D y un lago grande. Plan para
+  ampliar la aldea en `docs/PLAN_AMPLIAR_ALDEA.md`, pendiente de aprobación.
+
 ## Tareas
 - [x] Animaciones reales en vez de balanceos
 - [x] Texturas retro coherentes en edificios, caminos y plaza
 - [x] Pixelado global del 3D y de los personajes
 - [x] Día nostálgico y noche inquietante con charcos de luz
 - [ ] Personajes con más estilo (tipo Signalis)
-- [ ] Hierba y árboles 3D a juego (ahora la hierba es el pixel art 2D)
+- [x] Hierba y árboles 3D a juego
+- [x] Personajes dentro del escenario 3D, con sombras
+- [ ] Ampliar la aldea con casas de tamaños distintos y barrios separados (plan pendiente de aprobación)

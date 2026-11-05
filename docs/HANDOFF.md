@@ -667,6 +667,27 @@ Cada fase se dividirá en bloques pequeños cuando se llegue a ella (detalle en 
 - [x] **Bloque PQ — Escalado de población a 100+ vecinos, solares de la ronda norte (`u0..u6`), casas ampliables a 4 camas con altillo y LOD multi-nivel** (`scripts/systems/VillageMigration.gd`, `scripts/systems/VillageLots.gd`, `scripts/systems/VillageHousing.gd`, `scripts/enemies/VillageNPC.gd`, test #94):
   1) Techo de población ampliado (`POP_CAP = 100` en `VillageMigration.gd`), nueva ronda norte de 7 solares residenciales (`u0..u6` en `VillageLots.LOTS`) y ampliación vertical de casas ya construidas con altillo (`expand_house_upper_floor`, `_house_beds(id, true)` con 4 camas por casa, activada automáticamente en `VillageMigration.maybe_order_house` cuando se agotan los solares libres o al instalar `"upper_floor"` en `VillageHousing.gd`).
   2) Simulación simplificada multi-nivel y de larga distancia (`_lod_far()` y `_lod_step_for_npc()` en `VillageNPC.gd`): los vecinos que se encuentran en otra capa vertical (`elevation_level != vm.player_elevation_level`) o muy alejados pasan a paso simplificado doble (`LOD_STEP * 2 = 8` fotogramas), manteniendo el desplazamiento exacto mediante `_lod_k`.
+- [x] **3D de verdad (Claude Code, 2ª noche, 2026-11-06)** (`CharacterAvatar3D.gd`, `WorldStage3D.gd`, `FishingSpot.gd`, `VillageWork.gd`, `EcosystemManager.gd`/`VillageManager._load_tex`). Registro en `docs/REGISTRO_ESTETICA_3D.md`, «Segunda noche».
+  1) **Muñecos en el escenario.** Con ventana, `CharacterAvatar3D` mete el rig en `WorldStage3D.stage_root_3d/Characters3D`
+     dentro de un `_holder` con escala `(K, K/cos_p, K)`, `STAGE_K = 0.40`, y pies a `FOOT_OFFSET_PX`. Si el escenario se
+     libera, `_process_in_stage` reconstruye el rig. El modo antiguo de SubViewport queda en `_setup_own_viewport`, que
+     no se usa. Corregido allí que el SubViewport del jugador no se reactivaba tras F9.
+  2) **Escenario:**
+     - `VIEWPORT 1280×720`, sombras del sol (`SHADOW_ORTHOGONAL`, máx. 140) y `stage_sprite.z_index = -2`. Los objetos
+       2D con z = -1 (huertos, pozos, camas) quedan por encima; los decorados con z ≤ -3 quedan tapados por el suelo 3D
+       (`_build_ground_3d`);
+     - `_sync_2d_flat_visuals` oculta también los sprites, TextureRect y Polygon2D con z ≤ 0 dentro de las huellas de
+       edificios, y se repite cada 4 s;
+     - **naturaleza:** `_scan_nature_sources` (grupo `destructible` con `harvest_type` 1 o 2, y sprites con textura de
+       pino, que se reconoce por `resource_path` o la meta `src_path`, puesta ahora por `_load_tex`) y
+       `_sync_nature_3d`;
+     - **tejados:** `_add_prism_2d` y `_add_pyramid_2d`, con la variación por `b_id.hash()`.
+  3) **Lago:** `FishingSpot.LAKE_WATER_WORLD` y `lake_scaled()`, usados por el 2D y por `WorldStage3D._build_lake_3d`.
+     `VillageWork.LAVADERO_POS` pasa a `(-140, 84)`.
+  4) **Quitados** los adornos de `_build_static_terrain_3d`: animales, carro, cajas, compostador 3D y el lago falso en
+     (-250, -140).
+  5) **Trampa:** `stage_sprite` en z = -2 deja por encima todo lo 2D con z ≥ -1. Si un objeto 2D nuevo «flota» sobre
+     el 3D, súbelo o bájalo de z, o añádelo a `_sync_2d_flat_visuals`.
 - [x] **Estética retro 3D (Claude Code, 2026-11-05): animaciones reales, texturas pixeladas, pixelado global y día/noche** (`scripts/visuals/CharacterRig3D.gd`, `CharacterAvatar3D.gd`, `WorldStage3D.gd`, `AssetLibrary3D.gd`, `RetroPostFX.gd`, `shaders/retro_post_fx.gdshader`, `scripts/World.gd`, `scripts/systems/WorldClock.gd`, `tools/bake_character_animations.gd`, `tools/screenshot_3d.gd`). Registro paso a paso en `docs/REGISTRO_ESTETICA_3D.md`.
   1) **Animaciones:** Quaternius UAL 1+2 (CC0). `tools/bake_character_animations.gd` las adapta al esqueleto con
      reposo_personaje · inverso(reposo_animación) · rotación. Solo la pelvis conserva su posición, escalada. Salen

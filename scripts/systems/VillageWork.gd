@@ -21,7 +21,8 @@ const WAGE_PER_HOUR: int = 1
 const SPOT_RADIUS: float = 50.0
 const STOCK_CAP: int = 14
 const OWNER_FOOD_RESERVE: int = 20 # F1: el dueño no se gasta en jornales lo que necesita para comer
-const LAVADERO_POS: Vector2 = Vector2(-140, 105)
+## (2026-11-05) Subido a la orilla norte del lago ampliado.
+const LAVADERO_POS: Vector2 = Vector2(-140, 84)
 const LAVADERO_CHANCE: float = 0.3
 const LAVADERO_GOSSIP_RADIUS: float = 50.0
 

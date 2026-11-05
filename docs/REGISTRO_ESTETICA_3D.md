@@ -84,3 +84,74 @@
   En la bóveda, «Assets de pago», hay una recomendación concreta (Villager NPC Pack, 4,99 $).
 - Si la noche te parece demasiado oscura o el tramado demasiado visible, son dos números del shader; se ajustan en
   minutos.
+
+---
+
+# Segunda noche (2026-11-05 → 06): «que parezca 3D de verdad»
+
+Lo que pidió el usuario tras probarlo:
+- los animales no tienen texturas, y hay animales en una esquina del camino donde nunca hubo nada;
+- los edificios parecen pixel art, no 3D; quiere algo que se vea en 3D;
+- hay demasiadas cosas amontonadas donde aparece el jugador;
+- al pasar de 2D a 3D (F9) se paran las animaciones del jugador;
+- pensar cómo ampliar la aldea: más casas, algunas más separadas y con formas y tamaños distintos, no cuadrados
+  clónicos;
+- un lago más grande;
+- muchas capturas de todo el pueblo.
+
+## Progreso (más reciente abajo)
+1. **Capturas de todo el valle** (`docs/capturas/noche2_valle_antes.jpg`; la herramienta tiene ahora el modo «rejilla»).
+   Diagnóstico:
+   - **No parece 3D por cuatro razones:**
+     - el suelo (hierba) y los pinos del bosque son dibujos 2D;
+     - los personajes se dibujan en una capa aparte, por encima del pueblo: no los tapan los edificios ni
+       proyectan sombra;
+     - no hay sombras;
+     - los tejados son cajas planas apiladas.
+   - **Los animales** del «rancho» eran adornos 3D que puso Gemini (vaca, caballo, burro) sin textura y en un cruce de
+     caminos. No eran animales del juego.
+   - **Amontonamiento en el inicio:** encima de la granja del jugador, Gemini puso un carro, dos cajas de fruta y un
+     compostador 3D duplicando el de 2D. Además, el pozo y el compostador se ven dos veces (2D + 3D).
+   - **Dos lagos:** el lago de verdad (donde se pesca) está en (-65, 105). El 3D que hizo Gemini está en (-250, -140),
+     en otro sitio.
+   - **Todos los edificios** son del mismo tamaño y van en fila a lo largo de calles rectas.
+
+   Plan:
+   - **Bloque A, limpieza:** quitar los adornos falsos, quitar los duplicados 2D/3D y arreglar la animación tras F9.
+   - **Bloque B, 3D de verdad:** personajes dentro del escenario 3D, sombras del sol, suelo y árboles 3D, tejados a dos
+     aguas y edificios distintos entre sí, y menos pixelado.
+   - **Bloque C:** lago más grande, en su sitio.
+   - **Bloque D:** plan escrito para ampliar la aldea. Mueve casas y caminos, así que espera la aprobación del
+     usuario.
+2. **Bloque A, limpieza:**
+   - quitados los adornos falsos (vaca, caballo, burro y heno en el cruce; carro, cajas de fruta y compostador 3D
+     encima de la granja del jugador);
+   - los muebles 2D de dentro de los edificios se ocultan en 3D, porque el interior 3D ya los tiene;
+   - el pozo 2D queda debajo del 3D.
+3. **Fallo de F9 encontrado:** al volver de 2D a 3D, la imagen del jugador se quedaba congelada. Su «ventanita» de
+   render quedaba desactivada y nada la volvía a activar; los vecinos sí se reactivaban. Arreglado en el modo antiguo,
+   y además ya no hace falta (punto 4).
+4. **Personajes dentro del escenario 3D** (`CharacterAvatar3D._attach_to_stage`): cada muñeco vive en el mismo mundo
+   que los edificios. Las paredes los tapan, proyectan sombra, el sol y las farolas los iluminan, y desaparecen las 100
+   ventanitas de render.
+   - La escala vertical se estira igual que la del escenario, para que se vean con sus proporciones.
+   - Al recibir daño parpadean (antes se teñían de rojo); en sigilo se vuelven semitransparentes.
+   - Si el escenario se reconstruye al cargar partida, el muñeco se vuelve a crear solo.
+   - Medido: 90–136 fps (imágenes por segundo) en la plaza.
+5. **3D de verdad:**
+   - sombras del sol, que cae desde arriba a la izquierda;
+   - suelo 3D de hierba bajo todo el valle, más oscuro en el bosque, seco en la llanura oeste y con barro y agua en la
+     ciénaga;
+   - pinos talables, pinos decorativos y vetas de mineral con modelo 3D (tocón o roca pequeña al agotarse);
+   - resolución interna 1280×720;
+   - tejados a dos aguas, con ala más baja en los edificios anchos, porche, chimenea y campanario en la iglesia;
+   - muros de altura distinta en cada edificio;
+   - los vecinos ya no abren el tejado: solo el jugador al acercarse y el ratón.
+6. **Lago:** unas tres veces más grande, hacia el oeste y el sur. Sigue en su sitio de verdad, con el muelle en la
+   orilla este, el Lavadero en la norte y el Mirador en la sur. Tiene orilla de arena, agua pixelada y sauces. Se quitó
+   el lago 3D falso que Gemini había puesto en otro sitio, y el lavadero 3D se movió a su posición real.
+   El polígono está en `FishingSpot.LAKE_WATER_WORLD` y lo comparten el 2D y el 3D.
+7. **Noche** un poco más clara: luz de luna y etalonaje.
+8. **Plan para ampliar la aldea** en `docs/PLAN_AMPLIAR_ALDEA.md`, pendiente de aprobación.
+9. Pasan las cuatro pruebas. Capturas: `docs/capturas/noche2_valle_antes.jpg`, `noche2_valle_despues.jpg` y
+   `noche2_plaza_dia_noche.jpg`.

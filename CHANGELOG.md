@@ -3,6 +3,19 @@
 Cambios del juego, del más nuevo al más antiguo. Añade una entrada al cerrar cada bloque, en lenguaje sencillo.
 El detalle técnico está en `docs/HANDOFF.md` (sección 7) y el historial completo en `git log`. Lo anterior a B0.1 está en `AUDIT_LOG.md` y `SESSION_CONTEXT_LOG.md`.
 
+## 2026-11-06
+
+### El pueblo se ve en 3D de verdad
+- **Personajes dentro del mundo:** los vecinos y tú estáis dentro del pueblo 3D. Las casas os tapan, proyectáis
+  sombra y os ilumina el sol o la farola de turno.
+- **Sombras y tejados de verdad:** el sol proyecta sombras de casas, árboles y personas. Los tejados son a dos aguas y
+  cada casa es algo distinta: altura, tejado, ala, porche y chimenea. La iglesia tiene campanario.
+- **Suelo y bosque 3D:** hierba 3D en todo el valle; el bosque, más oscuro, tiene pinos 3D que al talarlos dejan tocón,
+  y la cantera, rocas 3D.
+- **Lago del Oeste tres veces más grande,** con orilla de arena, sauces, el muelle y el lavadero en la orilla.
+- **Menos amontonamiento al empezar:** se quitaron el carro, las cajas y los animales de adorno que no pintaban nada.
+- **Arreglado:** al pasar de 2D a 3D con F9, tu personaje se quedaba quieto como una foto.
+
 ## 2026-11-05
 
 ### Estética retro 3D: «parece retro pero no lo es»

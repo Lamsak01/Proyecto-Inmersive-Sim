@@ -23,6 +23,18 @@ var _appearance_sync_timer: float = 0.0
 var _last_equipped_sig: String = ""
 var _last_was_3d: bool = true
 
+# --- Modo «dentro del escenario» (2026-11-05): el muñeco 3D vive en el mismo mundo 3D que los edificios ---
+# Así le tapan las paredes, proyecta sombra y le ilumina el sol y las farolas, en vez de pegarse encima como una pegatina.
+## Escala del muñeco en el escenario (1 unidad del muñeco ≈ 20 px del mapa).
+const STAGE_K: float = 0.40
+## Los pies del muñeco quedan unos píxeles por debajo del origen de la entidad (donde estaba la sombra 2D).
+const FOOT_OFFSET_PX: float = 4.0
+static var _stage_ref: Node = null
+var _holder: Node3D = null
+var _stage: Node = null
+var _in_stage_mode: bool = false
+var _applied_alpha: float = 1.0
+
 func setup_for_entity(entity: Node2D, is_player: bool = false) -> void:
 	target_entity = entity
 	is_player_avatar = is_player
@@ -39,6 +51,16 @@ func setup_for_entity(entity: Node2D, is_player: bool = false) -> void:
 		_sync_appearance_now()
 		return
 
+	# Con ventana: el muñeco se mete en el escenario 3D compartido (ver `_attach_to_stage`).
+	_in_stage_mode = true
+	if _attach_to_stage():
+		_sync_appearance_now()
+	_apply_2d_vs_3d_visibility()
+
+
+## Antiguo modo (un SubViewport por personaje, pegado encima del mapa). Solo se usa si no hay escenario 3D.
+func _setup_own_viewport() -> void:
+	_in_stage_mode = false
 	sub_viewport = SubViewport.new()
 	sub_viewport.name = "AvatarSubViewport"
 	# Resolución baja + filtrado pixelado (estética retro): 64 px en vez de 96, escalado para ocupar lo mismo.
@@ -87,6 +109,73 @@ func setup_for_entity(entity: Node2D, is_player: bool = false) -> void:
 	_sync_appearance_now()
 	_apply_2d_vs_3d_visibility()
 
+static func _find_stage(tree: SceneTree) -> Node:
+	if _stage_ref != null and is_instance_valid(_stage_ref) and _stage_ref.is_inside_tree() and not _stage_ref.is_queued_for_deletion():
+		return _stage_ref
+	_stage_ref = null
+	var st := tree.root.find_child("WorldStage3D", true, false)
+	if st != null and st.get("stage_root_3d") != null and not st.is_queued_for_deletion():
+		_stage_ref = st
+	return _stage_ref
+
+
+## Coloca el muñeco dentro del escenario 3D. Devuelve false si el escenario aún no existe (se reintenta luego).
+## Si el escenario se reconstruye (al cargar partida), el muñeco antiguo muere con él y aquí se crea otro.
+func _attach_to_stage() -> bool:
+	if not is_inside_tree():
+		return false
+	var st := _find_stage(get_tree())
+	if st == null:
+		return false
+	var root3d: Node3D = st.get("stage_root_3d")
+	if root3d == null or not is_instance_valid(root3d):
+		return false
+	var chars := root3d.get_node_or_null("Characters3D") as Node3D
+	if chars == null:
+		chars = Node3D.new()
+		chars.name = "Characters3D"
+		root3d.add_child(chars)
+	_stage = st
+	_holder = Node3D.new()
+	_holder.name = "Avatar_" + str(target_entity.name) if is_instance_valid(target_entity) else "Avatar"
+	# El escenario estira la altura (1/cos del ángulo de cámara) para que el 3D cuadre con el mapa 2D;
+	# el muñeco se estira igual para verse con sus proporciones. Girar sobre el eje vertical no lo deforma.
+	var cos_p: float = float(st.get("_cos_p"))
+	_holder.scale = Vector3(STAGE_K, STAGE_K / maxf(0.1, cos_p), STAGE_K)
+	chars.add_child(_holder)
+	if rig_3d == null or not is_instance_valid(rig_3d) or rig_3d.is_queued_for_deletion():
+		rig_3d = CharacterRig3DScript.new()
+		rig_3d.name = "CharacterRig3D"
+		_appearance_dirty = true
+	if rig_3d.get_parent() != null:
+		rig_3d.get_parent().remove_child(rig_3d)
+	_holder.add_child(rig_3d)
+	_applied_alpha = 1.0
+	_sync_holder_position()
+	return true
+
+
+func _sync_holder_position() -> void:
+	if _holder == null or not is_instance_valid(target_entity) or _stage == null:
+		return
+	_holder.position = _stage.call("to_3d", target_entity.global_position + Vector2(0.0, FOOT_OFFSET_PX), 0.0)
+
+
+func _exit_tree() -> void:
+	if _holder != null and is_instance_valid(_holder):
+		_holder.queue_free()
+	_holder = null
+
+
+## Transparencia de todo el muñeco (sigilo, fantasmas…). Solo recorre las mallas cuando cambia.
+func _set_rig_alpha(alpha: float) -> void:
+	if absf(alpha - _applied_alpha) < 0.01 or rig_3d == null:
+		return
+	_applied_alpha = alpha
+	for gi in rig_3d.find_children("*", "GeometryInstance3D", true, false):
+		(gi as GeometryInstance3D).transparency = 1.0 - alpha
+
+
 func trigger_muzzle_flash() -> void:
 	if rig_3d and rig_3d.has_method("trigger_muzzle_flash"):
 		rig_3d.call("trigger_muzzle_flash")
@@ -98,6 +187,10 @@ func _process(delta: float) -> void:
 	if not is_instance_valid(target_entity) or rig_3d == null:
 		return
 
+	if _in_stage_mode:
+		_process_in_stage(delta)
+		return
+
 	if _last_was_3d != use_3d_characters:
 		_last_was_3d = use_3d_characters
 		_apply_2d_vs_3d_visibility()
@@ -107,6 +200,10 @@ func _process(delta: float) -> void:
 			sub_viewport.render_target_update_mode = SubViewport.UPDATE_DISABLED
 		return
 
+	# Al volver de 2D a 3D (F9), reactivar el SubViewport del jugador: antes se quedaba congelado y parecía que
+	# sus animaciones dejaban de funcionar.
+	if sub_viewport and is_player_avatar:
+		sub_viewport.render_target_update_mode = SubViewport.UPDATE_ALWAYS
 	# Optimización para 100 vecinos: si un NPC está fuera de la cámara actual, pausar su SubViewport 3D
 	if sub_viewport and not is_player_avatar:
 		var on_screen: bool = _is_entity_near_camera()
@@ -121,6 +218,50 @@ func _process(delta: float) -> void:
 
 	_sync_pose_and_tint(delta)
 	_apply_2d_vs_3d_visibility()
+
+func _process_in_stage(delta: float) -> void:
+	if _holder == null or not is_instance_valid(_holder) or _holder.is_queued_for_deletion() or rig_3d == null or not is_instance_valid(rig_3d):
+		_holder = null
+		if not _attach_to_stage():
+			return
+		_sync_appearance_now()
+	if _last_was_3d != use_3d_characters:
+		_last_was_3d = use_3d_characters
+		_apply_2d_vs_3d_visibility()
+	var show := use_3d_characters and target_entity.is_visible_in_tree()
+	if show and not is_player_avatar:
+		show = _is_entity_near_camera()
+	if not show:
+		_holder.visible = false
+		rig_3d.process_mode = Node.PROCESS_MODE_DISABLED
+		return
+	rig_3d.process_mode = Node.PROCESS_MODE_INHERIT
+	_holder.visible = true
+	_sync_holder_position()
+	_appearance_sync_timer -= delta
+	if _appearance_dirty or _appearance_sync_timer <= 0.0:
+		_appearance_sync_timer = 0.25 if is_player_avatar else 0.65
+		_check_and_sync_appearance()
+	_sync_pose_and_tint(delta)
+	# Al recibir daño el muñeco parpadea (destello retro), en vez del tinte rojo del sprite antiguo.
+	var alpha := 1.0
+	if is_player_avatar:
+		if bool(_read_stealth()):
+			alpha = 0.55
+		if float(target_entity.get("_hit_flash_timer")) > 0.0:
+			_holder.visible = int(Time.get_ticks_msec() / 70) % 2 == 0
+	else:
+		var spr_orig = target_entity.get("sprite")
+		if spr_orig is CanvasItem:
+			alpha = clampf((spr_orig as CanvasItem).modulate.a, 0.0, 1.0)
+	_set_rig_alpha(alpha)
+	_apply_2d_vs_3d_visibility()
+
+
+func _read_stealth() -> bool:
+	var m_ctrl = target_entity.get_node_or_null("PlayerMovementController")
+	return m_ctrl != null and bool(m_ctrl.get("is_stealthing"))
+
 
 func _is_entity_near_camera() -> bool:
 	var vp := get_viewport()
@@ -237,6 +378,8 @@ func _resolve_entity_limb_states(ent: Node2D) -> Dictionary:
 	return res
 
 func _sync_appearance_now() -> void:
+	if rig_3d == null or not is_instance_valid(rig_3d) or not rig_3d.is_inside_tree():
+		return
 	if not is_instance_valid(target_entity) or rig_3d == null:
 		return
 	var cfg: Dictionary = _build_player_appearance_cfg() if is_player_avatar else _build_npc_appearance_cfg()

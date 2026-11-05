@@ -13,12 +13,14 @@ const CharacterAvatar3DScript = preload("res://scripts/visuals/CharacterAvatar3D
 const AssetLib = preload("res://scripts/visuals/AssetLibrary3D.gd")
 const VillageLots = preload("res://scripts/systems/VillageLots.gd")
 const VillageCulture = preload("res://scripts/systems/VillageCulture.gd")
+const VillageWorkScript = preload("res://scripts/systems/VillageWork.gd")
+const FishingSpotScript = preload("res://scripts/obstacles/FishingSpot.gd")
 
 const WORLD_SCALE: float = 0.02
 const PITCH_DEG: float = 58.0
-## Resolución interna baja + filtrado pixelado: el 3D se ve con píxeles gruesos, como el pixel art 2D.
-const VIEWPORT_W: int = 640
-const VIEWPORT_H: int = 360
+## Resolución interna: suficiente para que el 3D se lea como 3D (aristas, sombras); las texturas siguen pixeladas.
+const VIEWPORT_W: int = 1280
+const VIEWPORT_H: int = 720
 const RETRO_TRIPLANAR_SCALE: float = 0.78
 
 var vm: Node2D = null
@@ -53,6 +55,11 @@ var _streetlight_nodes_3d: Array[Dictionary] = []
 var _last_buried_count: int = -1
 var _last_use_3d: bool = true
 var _cutaway_accum: float = 0.0
+var nature_root_3d: Node3D = null
+var _nature_accum: float = 10.0
+var _nature_scan_accum: float = 10.0
+var _nature_sources: Array = [] # [{"node": Node2D, "kind": "pine"|"rock"|"deco_pine", "sprite": CanvasItem}]
+var _nature_nodes: Dictionary = {} # instance_id -> {"tree": Node3D, "stump": Node3D}
 
 func setup_stage(village_manager: Node2D) -> void:
 	vm = village_manager
@@ -91,6 +98,10 @@ func setup_stage(village_manager: Node2D) -> void:
 	graves_root_3d.name = "Graves3D"
 	stage_root_3d.add_child(graves_root_3d)
 
+	nature_root_3d = Node3D.new()
+	nature_root_3d.name = "Nature3D"
+	stage_root_3d.add_child(nature_root_3d)
+
 	if not _is_headless:
 		sub_viewport = SubViewport.new()
 		sub_viewport.name = "WorldSubViewport3D"
@@ -114,10 +125,16 @@ func setup_stage(village_manager: Node2D) -> void:
 
 		sun_light = DirectionalLight3D.new()
 		sun_light.name = "SunLight3D"
-		sun_light.rotation_degrees = Vector3(-52.0, -28.0, 0.0)
+		# Sol desde arriba a la izquierda: las sombras caen hacia abajo a la derecha, delante de las fachadas, donde se ven.
+		sun_light.rotation_degrees = Vector3(-50.0, -135.0, 0.0)
 		sun_light.light_energy = 0.96
 		sun_light.light_color = Color(1.0, 0.95, 0.86)
-		sun_light.shadow_enabled = false
+		sun_light.shadow_enabled = true
+		sun_light.directional_shadow_mode = DirectionalLight3D.SHADOW_ORTHOGONAL
+		sun_light.directional_shadow_max_distance = 140.0
+		sun_light.shadow_bias = 0.03
+		sun_light.shadow_normal_bias = 1.0
+		sun_light.shadow_opacity = 0.78
 		stage_root_3d.add_child(sun_light)
 
 		fill_light = DirectionalLight3D.new()
@@ -142,7 +159,9 @@ func setup_stage(village_manager: Node2D) -> void:
 		stage_sprite.name = "WorldStageSprite2D"
 		stage_sprite.top_level = true
 		stage_sprite.z_as_relative = false
-		stage_sprite.z_index = -1
+		# Por debajo de los objetos 2D del suelo con z = -1 (huertos, camas, pozos…), por encima de los decorados planos
+		# (bordes, césped del bosque), que el suelo 3D sustituye.
+		stage_sprite.z_index = -2
 		stage_sprite.centered = true
 		stage_sprite.texture = sub_viewport.get_texture()
 		stage_sprite.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
@@ -246,6 +265,40 @@ func _add_cyl_2d(parent: Node3D, center_2d: Vector2, radius_px: float, bottom_h_
 	parent.add_child(mi)
 	return mi
 
+## Tejado a dos aguas: prisma triangular cuya cumbrera va a lo largo de X (ridge_x) o de Y del mapa 2D.
+func _add_prism_2d(parent: Node3D, center_2d: Vector2, sz_2d: Vector2, bottom_h_px: float, height_px: float, mat: Material, ridge_x: bool) -> MeshInstance3D:
+	var mi := MeshInstance3D.new()
+	var pm := PrismMesh.new()
+	var s3 := size_3d(sz_2d, height_px)
+	if ridge_x:
+		pm.size = Vector3(s3.z, s3.y, s3.x)
+		mi.rotation_degrees.y = 90.0
+	else:
+		pm.size = s3
+	mi.mesh = pm
+	mi.material_override = mat
+	mi.position = to_3d(center_2d, bottom_h_px + height_px * 0.5)
+	parent.add_child(mi)
+	return mi
+
+## Chapitel de cuatro caras (pirámide) para torres.
+func _add_pyramid_2d(parent: Node3D, center_2d: Vector2, sz_2d: Vector2, bottom_h_px: float, height_px: float, mat: Material) -> MeshInstance3D:
+	var mi := MeshInstance3D.new()
+	var cm := CylinderMesh.new()
+	var s3 := size_3d(sz_2d, height_px)
+	cm.top_radius = 0.0
+	cm.bottom_radius = 0.5
+	cm.height = 1.0
+	cm.radial_segments = 4
+	cm.rings = 1
+	mi.mesh = cm
+	mi.scale = Vector3(s3.x * 1.41, s3.y, s3.z * 1.41)
+	mi.rotation_degrees.y = 45.0
+	mi.material_override = mat
+	mi.position = to_3d(center_2d, bottom_h_px + height_px * 0.5)
+	parent.add_child(mi)
+	return mi
+
 ## Panel con una textura pixelada entera en su cara frontal y trasera (puertas, ventanas).
 ## Las caras laterales quedan del color medio de la textura.
 func _make_texture_panel(w_px: float, h_px: float, depth_px: float, mat: Material) -> Node3D:
@@ -313,6 +366,7 @@ func rebuild_all_3d() -> void:
 # ==============================================================================
 func _build_static_terrain_3d() -> void:
 	_clear_children(terrain_root_3d)
+	_build_ground_3d()
 	var m_road := _mat("road_dirt", Color(0.56, 0.46, 0.34), 0.92, 0.0, Color.BLACK, 0.0, "town_textures/floor_ground_dirt.png", "", 0.55)
 	var m_curb := _mat("road_curb", Color(0.62, 0.58, 0.52), 0.88, 0.04, Color.BLACK, 0.0, "town_textures/wall_stone.png", "", 0.70)
 	var m_plaza := _mat("plaza_stone", Color(0.66, 0.62, 0.56), 0.85, 0.05, Color.BLACK, 0.0, "town_textures/rf_cobblestone.png", "", 0.65)
@@ -374,18 +428,10 @@ func _build_static_terrain_3d() -> void:
 			_add_cyl_2d(terrain_root_3d, wp, 6.5, 0.5, 6.2, m_water, 6.5, 12)
 
 	# Compostador, carretas y barriles de la Granja y Rancho Sur
-	var cp: Vector2 = vm._compost_pos if vm != null else Vector2(184, 114)
-	_add_box_2d(terrain_root_3d, cp, Vector2(14.0, 12.0), 0.0, 9.0, m_dark_wood)
-	_add_box_2d(terrain_root_3d, cp, Vector2(11.0, 9.0), 1.0, 7.5, _mat("compost_soil", Color(0.28, 0.20, 0.12), 0.95, 0.0))
-	_add_model_2d(terrain_root_3d, "props/Stall_Cart_Empty.gltf", Vector2(204, 108), 0.0, Vector2.ZERO, 16.0, 25.0)
-	_add_model_2d(terrain_root_3d, "props/FarmCrate_Apple.gltf", Vector2(168, 92), 0.0, Vector2.ZERO, 8.0)
-	_add_model_2d(terrain_root_3d, "props/FarmCrate_Carrot.gltf", Vector2(168, 104), 0.0, Vector2.ZERO, 8.0)
+	# (2026-11-05) Quitados el carro, las cajas, el compostador 3D duplicado y los animales de adorno del «rancho»:
+	# estaban encima de la granja del jugador o en un cruce de caminos y no eran objetos del juego.
 
 	# Animales 3D reales en el Rancho del Sur
-	_add_model_2d(terrain_root_3d, "animals/Cow.obj", Vector2(145, 290), 0.0, Vector2.ZERO, 16.0, 35.0)
-	_add_model_2d(terrain_root_3d, "animals/Horse.obj", Vector2(185, 298), 0.0, Vector2.ZERO, 19.0, -40.0)
-	_add_model_2d(terrain_root_3d, "animals/Donkey.obj", Vector2(118, 305), 0.0, Vector2.ZERO, 15.0, 110.0)
-	_add_model_2d(terrain_root_3d, "exterior/Hay.obj", Vector2(162, 276), 0.0, Vector2.ZERO, 11.0)
 
 	# Parque del Roble (Vector2(105, -55)) con árboles 3D reales
 	var park_c := Vector2(105, -55)
@@ -399,8 +445,8 @@ func _build_static_terrain_3d() -> void:
 	_build_bench_3d(terrain_root_3d, park_c + Vector2(-16, 12), m_wood, m_iron)
 	_build_bench_3d(terrain_root_3d, park_c + Vector2(16, 12), m_wood, m_iron)
 
-	# Lavadero Municipal (Vector2(98, 72))
-	var wash_c := Vector2(98, 72)
+	# Lavadero Municipal, en su sitio real (orilla norte del lago)
+	var wash_c: Vector2 = VillageWorkScript.LAVADERO_POS
 	_add_box_2d(terrain_root_3d, wash_c, Vector2(46, 32), 0.0, 2.0, m_stone)
 	_add_box_2d(terrain_root_3d, wash_c, Vector2(32, 14), 2.0, 5.5, m_curb)
 	_add_box_2d(terrain_root_3d, wash_c, Vector2(28, 10), 2.5, 4.8, m_water)
@@ -410,13 +456,11 @@ func _build_static_terrain_3d() -> void:
 	_add_model_2d(terrain_root_3d, "props/Bucket_Wooden_1.gltf", wash_c + Vector2(-14, 10), 2.0, Vector2.ZERO, 6.5)
 	_add_model_2d(terrain_root_3d, "props/Barrel.gltf", wash_c + Vector2(16, -10), 2.0, Vector2.ZERO, 10.0)
 
-	# Mirador del Lago (Vector2(-250, -140)) con Glorieta 3D real
-	var lake_c := Vector2(-250, -140)
-	_add_cyl_2d(terrain_root_3d, lake_c + Vector2(-42, 0), 44.0, 0.0, 1.5, m_water, 44.0, 20)
-	_add_box_2d(terrain_root_3d, lake_c + Vector2(8, 0), Vector2(36, 26), 0.0, 3.0, m_stone)
-	_add_model_2d(terrain_root_3d, "exterior/Gazebo.obj", lake_c + Vector2(10, 0), 3.0, Vector2.ZERO, 26.0)
-	_build_bench_3d(terrain_root_3d, lake_c + Vector2(12, 0), m_wood, m_iron)
-	_add_model_2d(terrain_root_3d, "nature/Willow_1.obj", lake_c + Vector2(-14, -26), 0.0, Vector2.ZERO, 32.0)
+	# Lago del Oeste (el de verdad, donde se pesca), ampliado; sauces en la orilla
+	_build_lake_3d()
+	_add_model_2d(terrain_root_3d, "nature/Willow_1.obj", Vector2(-300, 82), 0.0, Vector2.ZERO, 40.0)
+	_add_model_2d(terrain_root_3d, "nature/Willow_2.obj", Vector2(-440, 190), 0.0, Vector2.ZERO, 38.0, 70.0)
+	_add_model_2d(terrain_root_3d, "nature/Willow_1.obj", Vector2(-190, 210), 0.0, Vector2.ZERO, 34.0, 140.0)
 
 	# Ciénaga de las Ranas del Oeste (Rect2(Vector2(-692, 52), Vector2(170, 66)))
 	var marsh_r := Rect2(Vector2(-692, 52), Vector2(170, 66))
@@ -600,7 +644,8 @@ func rebuild_buildings_3d() -> void:
 		var door_pos: Vector2 = b["door_pos"]
 		var door_south: bool = bool(b["door_south"])
 		var style: Dictionary = _style_for_building(b_id)
-		var wall_h: float = float(style["wall_h"])
+		# Altura de muro algo mayor y distinta en cada edificio (+0..10 px), para que no parezcan clones.
+		var wall_h: float = float(style["wall_h"]) + 4.0 + float(absi(b_id.hash()) % 6) * 2.0
 		var roof_h: float = float(style["roof_h"])
 		var m_wall: Material = style["wall_mat"]
 		var m_roof: Material = style["roof_mat"]
@@ -698,32 +743,48 @@ func rebuild_buildings_3d() -> void:
 		_add_box_2d(loft_root, Vector2(center.x, loft_y + (sz.y * 0.20 if door_south else -sz.y * 0.20)), Vector2(sz.x - 12.0, 2.5), wall_h - 1.0, 6.0, m_dark_wood)
 		_add_model_2d(loft_root, "props/Chest_Wood.gltf", Vector2(center.x - sz.x * 0.22, loft_y), wall_h - 1.0, Vector2(12.0, 8.0), 6.5)
 
-		# 7. Cornisa perimetral 3D (siempre visible) + Tejado central con apertura automática (Cutaway)
-		var eave_h: float = 3.2
-		_add_box_2d(b_root, Vector2(center.x, rect.position.y), Vector2(sz.x + 8.0, 7.0), wall_h + 2.0, eave_h, m_roof)
-		_add_box_2d(b_root, Vector2(center.x, rect.end.y), Vector2(sz.x + 8.0, 7.0), wall_h + 2.0, eave_h, m_roof)
-		_add_box_2d(b_root, Vector2(rect.position.x, center.y), Vector2(7.0, sz.y + 8.0), wall_h + 2.0, eave_h, m_roof)
-		_add_box_2d(b_root, Vector2(rect.end.x, center.y), Vector2(7.0, sz.y + 8.0), wall_h + 2.0, eave_h, m_roof)
-		# Frontón sobre la puerta
-		_add_box_2d(b_root, Vector2(door_pos.x, door_y), Vector2(door_w + 8.0, 8.0), wall_h + 5.0, 4.5, m_roof)
-
+		# 7. Tejado a dos aguas con alero (se retira en modo Cutaway). Cada edificio varía según su id:
+		#    orientación de la cumbrera, altura, ala más baja en los edificios anchos, porche sobre la puerta y chimenea.
 		var roof_cap := Node3D.new()
 		roof_cap.name = "RoofCap_" + b_id
 		b_root.add_child(roof_cap)
-		_add_box_2d(roof_cap, center, sz + Vector2(4.0, 4.0), wall_h + 4.5, roof_h * 0.45, m_roof)
-		_add_box_2d(roof_cap, center, sz * 0.72, wall_h + 4.5 + roof_h * 0.45, roof_h * 0.35, m_roof)
-		_add_box_2d(roof_cap, center, Vector2(sz.x * 0.48, sz.y * 0.38), wall_h + 4.5 + roof_h * 0.80, roof_h * 0.22, m_trim)
-		# Superestructura 3D esculpida sobre el tejado (se oculta limpiamente en modo Cutaway)
-		if b_id == "building_church":
-			_add_model_2d(roof_cap, "buildings/Bell_Tower.obj", center + Vector2(0, -half.y + 18.0), wall_h + 4.0, Vector2(28.0, 28.0), 38.0)
-		elif b_id == "building_tavern":
-			_add_model_2d(roof_cap, "buildings/Inn.obj", center, wall_h + 4.0, sz * 0.65, roof_h + 14.0)
-			_add_model_2d(roof_cap, "fantasy_town/chimney.glb", center + Vector2(half.x * 0.45, -half.y * 0.35), wall_h + 4.0, Vector2(10.0, 10.0), roof_h + 12.0)
-		elif b_id == "shop_family_smith":
-			_add_model_2d(roof_cap, "buildings/Blacksmith.obj", center, wall_h + 4.0, sz * 0.68, roof_h + 12.0)
-			_add_model_2d(roof_cap, "fantasy_town/chimney.glb", center + Vector2(-half.x * 0.35, -half.y * 0.30), wall_h + 4.0, Vector2(12.0, 12.0), roof_h + 16.0)
+		var hv: int = absi(b_id.hash())
+		var ov: float = 6.0
+		var short_side: float = minf(sz.x, sz.y)
+		var rh: float = clampf(short_side * (0.40 + float(hv % 5) * 0.04), 16.0, 46.0)
+		var ridge_x: bool = sz.x >= sz.y
+		if absf(sz.x - sz.y) < 12.0:
+			ridge_x = (hv % 2) == 0
+		var roof_base_h: float = wall_h + 2.0
+		if sz.x > 118.0 and not (b_id in ["building_church"]):
+			# Cuerpo principal + ala más baja (rompe la caja: silueta en L vista desde arriba)
+			var main_w: float = sz.x * 0.60
+			var wing_w: float = sz.x - main_w
+			var main_left: bool = (hv % 2) == 0
+			var main_cx: float = rect.position.x + (main_w * 0.5 if main_left else wing_w + main_w * 0.5)
+			var wing_cx: float = rect.position.x + (main_w + wing_w * 0.5 if main_left else wing_w * 0.5)
+			_add_prism_2d(roof_cap, Vector2(main_cx, center.y), Vector2(main_w + ov * 2.0, sz.y + ov * 2.0), roof_base_h, rh, m_roof, false)
+			_add_prism_2d(roof_cap, Vector2(wing_cx, center.y), Vector2(wing_w + ov, sz.y * 0.86 + ov), roof_base_h - 2.0, rh * 0.62, m_roof, true)
 		else:
-			_add_model_2d(roof_cap, "fantasy_town/chimney.glb", center + Vector2(half.x * 0.45, -half.y * 0.35), wall_h + 4.0, Vector2(9.0, 9.0), roof_h + 10.0)
+			_add_prism_2d(roof_cap, center, sz + Vector2(ov * 2.0, ov * 2.0), roof_base_h, rh, m_roof, ridge_x)
+		# Remate de madera bajo el alero (se ve con el tejado puesto y quitado)
+		_add_box_2d(b_root, Vector2(center.x, rect.end.y), Vector2(sz.x + 2.0, 3.0), wall_h, 2.5, m_trim)
+		_add_box_2d(b_root, Vector2(center.x, rect.position.y), Vector2(sz.x + 2.0, 3.0), wall_h, 2.5, m_trim)
+		# Porche sobre la puerta en tiendas y casas (tejadillo inclinado sobre dos postes)
+		if (hv % 3) != 0 and not (b_id in ["building_church", "building_police", "building_hospital"]):
+			var porch_dir: float = 1.0 if door_south else -1.0
+			var porch_c := Vector2(door_pos.x, door_y + porch_dir * 9.0)
+			_add_box_2d(b_root, porch_c, Vector2(door_w + 16.0, 18.0), wall_h * 0.70, 2.5, m_roof)
+			for px in [-1.0, 1.0]:
+				_add_box_2d(b_root, Vector2(door_pos.x + px * (door_w * 0.5 + 6.0), door_y + porch_dir * 16.0), Vector2(2.5, 2.5), 2.0, wall_h * 0.70 - 2.0, m_trim)
+		# Chimenea sobre la cumbrera
+		var ch_off := Vector2(half.x * (0.30 if (hv % 2) == 0 else -0.30), -half.y * 0.15)
+		_add_model_2d(roof_cap, "fantasy_town/chimney.glb", center + ch_off, roof_base_h + rh * 0.35, Vector2(9.0, 9.0), rh * 0.9)
+		# Campanario de la iglesia: torre de piedra con chapitel junto a la fachada
+		if b_id == "building_church":
+			var tower_c := Vector2(center.x, (rect.end.y - 16.0) if door_south else (rect.position.y + 16.0))
+			_add_box_2d(roof_cap, tower_c, Vector2(26.0, 22.0), roof_base_h, rh + 22.0, m_wall)
+			_add_pyramid_2d(roof_cap, tower_c, Vector2(32.0, 28.0), roof_base_h + rh + 22.0, 34.0, m_roof)
 
 		_building_records_3d.append({
 			"id": b_id,
@@ -1070,6 +1131,16 @@ func _process(delta: float) -> void:
 	_sync_camera_with_2d()
 	_sync_dynamic_props_3d()
 
+	_nature_scan_accum += delta
+	if _nature_scan_accum >= 4.0:
+		_nature_scan_accum = 0.0
+		_scan_nature_sources()
+		_sync_2d_flat_visuals(use_3d)
+	_nature_accum += delta
+	if _nature_accum >= 0.5:
+		_nature_accum = 0.0
+		_sync_nature_3d(true)
+
 	_cutaway_accum += delta
 	if _cutaway_accum >= 0.08:
 		_cutaway_accum = 0.0
@@ -1159,14 +1230,8 @@ func _update_roof_cutaways_and_lighting() -> void:
 		var r_near: Rect2 = rect.grow(38.0)
 		var r_inside: Rect2 = rect.grow(8.0)
 		var open_roof: bool = r_near.has_point(pl_pos) or r_inside.has_point(mouse_pos)
-		# Un vecino dentro solo abre el tejado si el jugador anda cerca (≈ media pantalla); así el resto del pueblo
-		# conserva sus tejados y se ve como un pueblo, no como una maqueta destapada.
-		if not open_roof and rect.grow(150.0).has_point(pl_pos):
-			for n in get_tree().get_nodes_in_group("village_npcs"):
-				if n is Node2D and is_instance_valid(n) and not bool(n.get("is_dead")):
-					if r_inside.has_point((n as Node2D).global_position):
-						open_roof = true
-						break
+		# (2026-11-05, 2ª noche) Ya no se abre porque haya un vecino dentro: los muñecos 3D están dentro del escenario
+		# y el pueblo debe verse con sus tejados. Solo lo abren el jugador (dentro o pegado) y el ratón encima.
 		roof_cap.visible = not open_roof
 		if is_instance_valid(loft_root):
 			loft_root.visible = (elev == 1 and r_near.has_point(pl_pos))
@@ -1181,7 +1246,7 @@ func _update_roof_cutaways_and_lighting() -> void:
 
 	if is_instance_valid(sun_light):
 		if is_night:
-			sun_light.light_energy = 0.38
+			sun_light.light_energy = 0.55 # luz de luna: fría, pero deja ver las siluetas
 			sun_light.light_color = Color(0.58, 0.68, 0.95)
 		elif is_dusk:
 			sun_light.light_energy = 0.82
@@ -1202,13 +1267,174 @@ func _update_roof_cutaways_and_lighting() -> void:
 			lt.light_color = Color(0.55, 0.96, 1.0) if grid_on else Color(1.0, 0.85, 0.45)
 			lt.light_energy = 1.65 if grid_on else 1.10
 
+# ==============================================================================
+# SUELO 3D Y NATURALEZA (2026-11-05): sustituyen a la hierba y a los pinos dibujados en 2D
+# ==============================================================================
+## Suelo opaco de hierba bajo todo el valle, con zonas: bosque profundo más oscuro, llanura oeste seca y ciénaga.
+## Recibe las sombras del sol; tapa los decorados planos 2D con z <= -3 (bordes, césped del bosque).
+func _build_ground_3d() -> void:
+	var m_grass := _mat("ground_grass", Color(0.50, 0.74, 0.40), 0.95, 0.0, Color.BLACK, 0.0, "town_textures/floor_ground_grass.png", "", 0.78)
+	var m_forest := _mat("ground_forest", Color(0.30, 0.50, 0.30), 0.95, 0.0, Color.BLACK, 0.0, "town_textures/floor_ground_grass.png", "", 0.78)
+	var m_plains := _mat("ground_plains", Color(0.86, 0.80, 0.48), 0.95, 0.0, Color.BLACK, 0.0, "town_textures/floor_ground_grass.png", "", 0.78)
+	var m_mud := _mat("ground_mud", Color(0.55, 0.46, 0.34), 0.95, 0.0, Color.BLACK, 0.0, "town_textures/floor_ground_dirt.png", "", 0.78)
+	var m_marsh := _mat("ground_marsh_water", Color(0.30, 0.42, 0.30), 0.35, 0.05, Color.BLACK, 0.0, "town_textures/floor_ground_water_green.png", "", 0.78)
+	_add_box_2d(terrain_root_3d, Vector2(40, 480), Vector2(3600, 3000), -1.0, 1.0, m_grass)
+	_add_box_2d(terrain_root_3d, Vector2(170, 907), Vector2(1380, 665), -0.6, 0.6, m_forest)
+	_add_box_2d(terrain_root_3d, Vector2(-625, -30), Vector2(470, 360), -0.6, 0.6, m_plains)
+	_add_box_2d(terrain_root_3d, Vector2(-612, -71), Vector2(235, 107), -0.4, 0.5, m_mud)
+	_add_box_2d(terrain_root_3d, Vector2(-606, 85), Vector2(223, 98), -0.4, 0.5, m_marsh)
+
+
+## Lago 3D a partir del mismo polígono que el lago 2D: orilla de arena, agua y zona honda más oscura.
+func _build_lake_3d() -> void:
+	var m_sand := _mat("lake_sand", Color(0.86, 0.78, 0.58), 0.95, 0.0, Color.BLACK, 0.0, "town_textures/floor_ground_sand.png", "", 0.78)
+	var m_lake := _mat("lake_water", Color(0.36, 0.62, 0.86), 0.12, 0.10, Color.BLACK, 0.0, "town_textures/floor_ground_water.png", "", 0.55)
+	var m_deep := _mat("lake_deep", Color(0.20, 0.38, 0.62), 0.10, 0.10, Color.BLACK, 0.0, "town_textures/floor_ground_water.png", "", 0.55)
+	for lm in [m_sand, m_lake, m_deep]:
+		(lm as StandardMaterial3D).cull_mode = BaseMaterial3D.CULL_DISABLED
+	_add_flat_poly_2d(terrain_root_3d, FishingSpotScript.lake_scaled(1.0, 9.0), 0.25, m_sand)
+	_add_flat_poly_2d(terrain_root_3d, FishingSpotScript.lake_scaled(1.0, 0.0), 0.55, m_lake)
+	_add_flat_poly_2d(terrain_root_3d, FishingSpotScript.lake_scaled(0.62, 0.0), 0.7, m_deep)
+	# Muelle de madera (mismo sitio que el 2D: 14..50 px al este del centro del lago)
+	var m_dock := _mat("dock_wood", Color(0.62, 0.44, 0.28), 0.9, 0.0, Color.BLACK, 0.0, "town_textures/rf_planks.png", "", 0.78)
+	_add_box_2d(terrain_root_3d, Vector2(-65 + 32, 105), Vector2(38, 16), 1.0, 2.5, m_dock)
+	for px in [-14.0, 0.0, 14.0]:
+		for py in [-7.0, 7.0]:
+			_add_box_2d(terrain_root_3d, Vector2(-65 + 32 + px, 105 + py), Vector2(2.5, 2.5), -0.5, 3.5, m_dock)
+
+
+## Superficie plana con la forma de un polígono del mapa 2D, a una altura dada (agua, arena…).
+func _add_flat_poly_2d(parent: Node3D, pts: PackedVector2Array, h_px: float, mat: Material) -> MeshInstance3D:
+	var idx := Geometry2D.triangulate_polygon(pts)
+	if idx.is_empty():
+		return null
+	var st := SurfaceTool.new()
+	st.begin(Mesh.PRIMITIVE_TRIANGLES)
+	st.set_normal(Vector3.UP)
+	for i in idx:
+		st.add_vertex(to_3d(pts[i], h_px))
+	var mi := MeshInstance3D.new()
+	mi.mesh = st.commit()
+	mi.material_override = mat
+	mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	parent.add_child(mi)
+	return mi
+
+
+## Busca árboles talables, vetas de mineral y pinos decorativos 2D (cada pocos segundos, por si se plantan nuevos).
+func _scan_nature_sources() -> void:
+	if vm == null or not is_instance_valid(vm.entities_root):
+		return
+	_nature_sources.clear()
+	for n in get_tree().get_nodes_in_group("destructible"):
+		if not (n is Node2D) or n.get("harvest_type") == null:
+			continue
+		var ht: int = int(n.get("harvest_type"))
+		var kind := ""
+		if ht == 1:
+			kind = "pine"
+		elif ht == 2:
+			kind = "rock"
+		if kind.is_empty():
+			continue
+		_nature_sources.append({"node": n, "kind": kind, "sprite": n.get("sprite")})
+	var parents: Array = [vm.entities_root]
+	for eco in get_tree().get_nodes_in_group("ecosystem_manager"):
+		parents.append(eco)
+	for par in parents:
+		for c in (par as Node).get_children():
+			if c is Sprite2D and _is_pine_texture((c as Sprite2D).texture):
+				_nature_sources.append({"node": c, "kind": "deco_pine", "sprite": c})
+	_sync_nature_3d(false)
+
+
+## Crea o actualiza el modelo 3D de cada elemento natural y oculta su dibujo 2D mientras el 3D esté activo.
+func _sync_nature_3d(only_update: bool) -> void:
+	if nature_root_3d == null:
+		return
+	var use_3d: bool = CharacterAvatar3DScript.use_3d_characters
+	var alive_ids: Dictionary = {}
+	for src in _nature_sources:
+		var n: Node2D = src["node"]
+		if not is_instance_valid(n):
+			continue
+		var id := n.get_instance_id()
+		alive_ids[id] = true
+		var rec: Dictionary = _nature_nodes.get(id, {})
+		if rec.is_empty() and not only_update:
+			rec = _make_nature_3d(n, String(src["kind"]))
+			_nature_nodes[id] = rec
+		if rec.is_empty():
+			continue
+		var depleted: bool = bool(n.get("is_depleted")) if n.get("is_depleted") != null else false
+		var tree3d = rec.get("tree")
+		var stump3d = rec.get("stump")
+		if tree3d is Node3D and is_instance_valid(tree3d):
+			(tree3d as Node3D).visible = n.is_visible_in_tree() and not depleted
+		if stump3d is Node3D and is_instance_valid(stump3d):
+			(stump3d as Node3D).visible = n.is_visible_in_tree() and depleted
+		var spr = src.get("sprite")
+		if spr is CanvasItem and is_instance_valid(spr):
+			(spr as CanvasItem).self_modulate.a = 0.0 if use_3d else 1.0
+	if only_update:
+		return
+	for id in _nature_nodes.keys():
+		if not alive_ids.has(id):
+			var r: Dictionary = _nature_nodes[id]
+			for k in ["tree", "stump"]:
+				var nd = r.get(k)
+				if nd is Node3D and is_instance_valid(nd):
+					(nd as Node3D).queue_free()
+			_nature_nodes.erase(id)
+
+
+static func _is_pine_texture(t: Texture2D) -> bool:
+	if t == null:
+		return false
+	var src: String = t.resource_path if not t.resource_path.is_empty() else String(t.get_meta("src_path", ""))
+	return src.find("pine-tree") != -1 or src.ends_with("world/tree.png")
+
+
+func _make_nature_3d(n: Node2D, kind: String) -> Dictionary:
+	var hv: int = absi(int(n.global_position.x * 13.0 + n.global_position.y * 7.0))
+	var pos := n.global_position
+	var rot: float = float(hv % 360)
+	if kind == "pine" or kind == "deco_pine":
+		var files := ["nature/PineTree_1.obj", "nature/PineTree_2.obj", "nature/PineTree_3.obj", "nature/PineTree_4.obj"]
+		var h: float = 58.0 + float(hv % 5) * 6.0
+		var t := _add_model_2d(nature_root_3d, files[hv % files.size()], pos, 0.0, Vector2.ZERO, h, rot)
+		var stump: Node3D = null
+		if kind == "pine":
+			stump = _add_cyl_2d(nature_root_3d, pos, 5.0, 0.0, 5.0, _mat("tree_stump", Color(0.45, 0.32, 0.20), 0.9, 0.0, Color.BLACK, 0.0, "town_textures/rf_planks.png", "", 0.78), 4.5, 8)
+			stump.visible = false
+		return {"tree": t, "stump": stump}
+	if kind == "rock":
+		var rfiles := ["nature/Rock_1.obj", "nature/Rock_2.obj", "nature/Rock_3.obj", "nature/Rock_4.obj", "nature/Rock_5.obj"]
+		var r := _add_model_2d(nature_root_3d, rfiles[hv % rfiles.size()], pos, 0.0, Vector2.ZERO, 16.0, rot)
+		var low := _add_model_2d(nature_root_3d, rfiles[(hv + 2) % rfiles.size()], pos, 0.0, Vector2.ZERO, 6.0, rot + 40.0)
+		if low != null:
+			low.visible = false
+		return {"tree": r, "stump": low}
+	return {}
+
+
 ## Oculta las tiras planas 2D de muros/puertas/suelos cuando el 3D está activo (usando `self_modulate.a`
 ## en lugar de `.visible`, de modo que ningún test de estado de puertas o ventanas se vea afectado).
 func _sync_2d_flat_visuals(use_3d: bool) -> void:
 	if vm == null or not is_instance_valid(vm.entities_root):
 		return
 	var target_a: float = 0.0 if use_3d else 1.0
+	var inner_rects: Array[Rect2] = []
+	for b in vm.building_footprints:
+		inner_rects.append((b["rect"] as Rect2).grow(-3.0))
 	for child in vm.entities_root.get_children():
+		# Muebles y suelos 2D dentro de los edificios (camas, mesas, alfombras…): el interior 3D ya los tiene.
+		if (child is Sprite2D or child is TextureRect or child is Polygon2D) and (child as CanvasItem).z_index <= 0 and not child.has_meta("flat_2d_building_visual"):
+			var cpos: Vector2 = (child as Node2D).global_position if child is Node2D else (child as Control).global_position + (child as Control).size * 0.5
+			for ir in inner_rects:
+				if ir.has_point(cpos):
+					(child as CanvasItem).self_modulate.a = target_a
+					break
 		if child.has_meta("flat_2d_building_visual"):
 			if child is CanvasItem:
 				(child as CanvasItem).self_modulate.a = target_a

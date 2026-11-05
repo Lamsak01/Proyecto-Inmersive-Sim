@@ -30,6 +30,31 @@ var _catch_progress: float = 0.35
 var _is_fish_inside: bool = false
 
 var dock_pos: Vector2 = Vector2(36, 0)
+
+## Orilla del agua del Lago del Oeste en coordenadas del MAPA (2026-11-05: unas tres veces más grande, hacia el oeste y el sur).
+## El muelle sigue en la orilla este, el Lavadero queda en la orilla norte y el Mirador en la sur.
+## La usa también el escenario 3D (`WorldStage3D._build_lake_3d`).
+## Posición del nodo del lago en el mapa (la pone World.gd después de _ready).
+const LAKE_NODE_POS := Vector2(-65, 105)
+const LAKE_WATER_WORLD: Array[Vector2] = [
+	Vector2(-60, 78), Vector2(-25, 82), Vector2(-17, 105), Vector2(-27, 138), Vector2(-70, 152),
+	Vector2(-130, 160), Vector2(-200, 188), Vector2(-270, 232), Vector2(-350, 240), Vector2(-412, 205),
+	Vector2(-428, 150), Vector2(-405, 110), Vector2(-340, 96), Vector2(-260, 104), Vector2(-185, 108),
+	Vector2(-110, 104),
+]
+
+
+## Polígono escalado respecto a su centro (para la orilla de arena y la zona honda).
+static func lake_scaled(factor: float, grow_px: float = 0.0) -> PackedVector2Array:
+	var c := Vector2.ZERO
+	for v in LAKE_WATER_WORLD:
+		c += v
+	c /= float(LAKE_WATER_WORLD.size())
+	var out := PackedVector2Array()
+	for v in LAKE_WATER_WORLD:
+		var d: Vector2 = v - c
+		out.append(c + d * factor + d.normalized() * grow_px)
+	return out
 var interact_area: Area2D = null
 var status_label: Label = null
 var bobber_poly: Polygon2D = null
@@ -68,9 +93,14 @@ func _make_lbl(txt: String, pos: Vector2, min_sz: Vector2, col: Color, z: int = 
 	return l
 
 func _build_lake_visuals() -> void:
-	_add_poly([Vector2(-52, -36), Vector2(-18, -46), Vector2(24, -40), Vector2(46, -18), Vector2(48, 18), Vector2(26, 42), Vector2(-20, 46), Vector2(-54, 32), Vector2(-64, 0)], Color(0.56, 0.48, 0.34, 0.88), -3)
-	_add_poly([Vector2(-46, -30), Vector2(-16, -40), Vector2(18, -34), Vector2(38, -14), Vector2(40, 14), Vector2(20, 35), Vector2(-18, 39), Vector2(-48, 26), Vector2(-56, 0)], Color(0.14, 0.42, 0.68, 0.94), -2)
-	_add_poly([Vector2(-32, -20), Vector2(-10, -27), Vector2(10, -22), Vector2(24, -8), Vector2(24, 9), Vector2(10, 23), Vector2(-12, 26), Vector2(-34, 16), Vector2(-40, 0)], Color(0.09, 0.30, 0.54, 0.92), -2)
+	var to_local_pts := func(pts: PackedVector2Array) -> Array[Vector2]:
+		var arr: Array[Vector2] = []
+		for v in pts:
+			arr.append(v - LAKE_NODE_POS)
+		return arr
+	_add_poly(to_local_pts.call(lake_scaled(1.0, 9.0)), Color(0.56, 0.48, 0.34, 0.88), -3)
+	_add_poly(to_local_pts.call(lake_scaled(1.0, 0.0)), Color(0.14, 0.42, 0.68, 0.94), -2)
+	_add_poly(to_local_pts.call(lake_scaled(0.62, 0.0)), Color(0.09, 0.30, 0.54, 0.92), -2)
 	_add_poly([Vector2(14, -9), Vector2(50, -9), Vector2(50, 9), Vector2(14, 9)], Color(0.46, 0.30, 0.16, 1.0), -1)
 
 	var dock_border := Line2D.new()
@@ -80,7 +110,7 @@ func _build_lake_visuals() -> void:
 	dock_border.z_index = -1
 	add_child(dock_border)
 
-	_make_lbl("🎣 Lago del Oeste", Vector2(-80, -60), Vector2(160, 18), Color(0.65, 0.92, 1.0))
+	_make_lbl("🎣 Lago del Oeste", Vector2(-265, 57), Vector2(160, 18), Color(0.65, 0.92, 1.0))
 
 	# 6. Ondas y sombras de peces animadas
 	var tex_ripples := _load_tex("res://assests/world/fishing/fish_spot_ripples.png")

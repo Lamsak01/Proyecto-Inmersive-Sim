@@ -49,7 +49,7 @@ void fragment() {
 	}
 	lit = clamp(lit, 0.0, 1.0);
 	vec3 cold = mix(vec3(l), c, 0.45);
-	cold = pow(max(cold, vec3(0.0)), vec3(1.18)) * vec3(0.66, 0.80, 0.95) * 0.60;
+	cold = pow(max(cold, vec3(0.0)), vec3(1.18)) * vec3(0.66, 0.80, 0.95) * 0.78;
 	vec3 warm = c * light_tint * 1.35;
 	vec3 nite = mix(cold, warm, lit);
 	vec3 col = mix(day, nite, night);

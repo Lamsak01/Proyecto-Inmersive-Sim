@@ -66,7 +66,9 @@ func _load_tex(res_path: String) -> Texture2D:
 	if FileAccess.file_exists(abs_path):
 		var img := Image.load_from_file(abs_path)
 		if img and not img.is_empty():
-			return ImageTexture.create_from_image(img)
+			var itex := ImageTexture.create_from_image(img)
+			itex.set_meta("src_path", res_path) # la usa el escenario 3D para reconocer, p. ej., los pinos
+			return itex
 	return null
 
 func _spawn_distant_forest() -> void:
