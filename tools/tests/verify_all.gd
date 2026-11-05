@@ -4111,9 +4111,20 @@ func _initialize() -> void:
 	assert(vcu_pj.has_horse(vm) and p70_inv.gold == 75 and p70_a.personal_gold == 55, "PM.1a: Buying riding horse transfers 45 gold to rancher and activates mount")
 	var pm_pl = vm.VillageNeeds.player_of(vm)
 	if pm_pl != null:
-		pm_pl.remove_meta("mount_speed_mult")
+		# Regla 2: el caballo existe en el mapa junto al ganadero; solo montado vas más rápido.
+		var pm_horse = get_first_node_in_group("player_horse")
+		assert(pm_horse != null and pm_horse.global_position.distance_to(p70_a.global_position) < 40.0 and not bool(pm_pl.is_mounted), "PM.1a2: The bought horse stands in the world next to the rancher and the player is still on foot")
+		var pm_ppos: Vector2 = pm_pl.global_position
+		pm_pl.global_position = pm_horse.global_position
+		pm_horse.interact(pm_pl)
+		assert(bool(pm_pl.is_mounted) and bool(vcu_pj.mounts_state(vm).get("is_mounted", false)), "PM.1a3: Pressing E next to the horse mounts it")
+		pm_horse.interact(pm_pl)
+		assert(not bool(pm_pl.is_mounted) and float(vcu_pj.mounts_state(vm).get("pos_x", 0.0)) == pm_horse.global_position.x, "PM.1a4: Pressing E again dismounts and the horse waits where it was left")
+		vcu_pj.mounts_state(vm)["is_mounted"] = true
 		vcu_pj.after_load(vm)
-		assert(float(pm_pl.get_meta("mount_speed_mult", 1.0)) == 1.25, "PM.1a2: The horse speeds up the player and the bonus comes back after loading a game")
+		assert(bool(pm_pl.is_mounted) and get_nodes_in_group("player_horse").size() == 1, "PM.1a5: Loading a game saved while riding puts the player back on the same single horse")
+		pm_horse.dismount(pm_pl)
+		pm_pl.global_position = pm_ppos
 	vcu_pj.on_player_action(vm, p70_a, "culture_buy_cart", p70_inv)
 	assert(vcu_pj.has_cart(vm) and p70_inv.gold == 20 and p70_a.personal_gold == 110, "PM.1b: Buying cargo cart transfers 55 gold to rancher and activates cart")
 	p70_inv.remove_item("copper_coil", p70_inv.get_count("copper_coil"))
@@ -4132,8 +4143,7 @@ func _initialize() -> void:
 	p70_inv.gold = 50
 	assert(vcu_pj.send_player_shipment(vm, "river_port", p70_inv) and p70_inv.gold == 62, "PM.1c: Cargo cart increases player shipment payout from 8 to 12 gold from route balance")
 	vcu_pj.state(vm)["mounts"] = {}
-	if pm_pl != null and pm_pl.has_meta("mount_speed_mult"):
-		pm_pl.remove_meta("mount_speed_mult")
+	vcu_pj.sync_player_horse(vm) # sin caballo: lo quita del mapa y baja al jugador
 	vcu_pj.state(vm)["exploration"] = {}
 	vcu_pj.state(vm)["trade_routes"] = {}
 	vcu_pj.state(vm)["readings"] = pm_read0

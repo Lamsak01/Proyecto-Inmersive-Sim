@@ -41,6 +41,7 @@ kanban-plugin: board
 - [ ] Rendimiento: abaratar el cálculo de los vecinos sin cambiar lo que hacen
 - [ ] Animales 3D: conejo, gato y gallinas siguen planos (buscar modelos animados del mismo estilo)
 - [ ] Buscar un jabalí 3D animado que guste al usuario (ahora es un lobo provisional)
+- [ ] Dibujo 2D propio del caballo (ahora es el ciervo teñido) y postura de jinete a horcajadas
 
 
 ## 🚧 En progreso
@@ -53,6 +54,7 @@ kanban-plugin: board
 - [x] Jabalíes con aspecto de lobo animado, provisional (2026-11-05)
 - [x] Auditoría de Antigravity: 7 fallos y 22 fugas de oro arreglados (2026-11-05)
 - [x] Arcas equilibradas: mercado, rutas e impuesto sobre la renta por tramos (2026-11-05)
+- [x] Caballo físico: se ve, se monta y se desmonta (2026-11-05)
 
 - [x] Edificios con sus piezas quietas juntas (2026-11-06)
 - [x] Casas iniciales repartidas por los barrios y árboles agrupados para dibujar menos (2026-11-06)

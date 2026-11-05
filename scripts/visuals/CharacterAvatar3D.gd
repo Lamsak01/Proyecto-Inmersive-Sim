@@ -29,6 +29,8 @@ var _last_was_3d: bool = true
 const STAGE_K: float = 0.40
 ## Los pies del muñeco quedan unos píxeles por debajo del origen de la entidad (donde estaba la sombra 2D).
 const FOOT_OFFSET_PX: float = 4.0
+## Altura del asiento sobre el lomo del caballo (px del mapa).
+const MOUNT_SEAT_PX: float = 11.5
 static var _stage_ref: Node = null
 var _holder: Node3D = null
 var _stage: Node = null
@@ -158,7 +160,9 @@ func _attach_to_stage() -> bool:
 func _sync_holder_position() -> void:
 	if _holder == null or not is_instance_valid(target_entity) or _stage == null:
 		return
-	_holder.position = _stage.call("to_3d", target_entity.global_position + Vector2(0.0, FOOT_OFFSET_PX), 0.0)
+	# A caballo, el muñeco va sentado sobre el lomo (más alto).
+	var seat_h: float = MOUNT_SEAT_PX if (is_player_avatar and bool(target_entity.get("is_mounted"))) else 0.0
+	_holder.position = _stage.call("to_3d", target_entity.global_position + Vector2(0.0, FOOT_OFFSET_PX), seat_h)
 
 
 func _exit_tree() -> void:
@@ -640,6 +644,7 @@ func _sync_pose_and_tint(delta: float) -> void:
 	var is_dead := false
 	var bow_draw := 0.0
 	var atk_prog := 0.0
+	var is_mounted_now := false
 
 	if is_player_avatar:
 		var m_ctrl = target_entity.get_node_or_null("PlayerMovementController")
@@ -660,6 +665,12 @@ func _sync_pose_and_tint(delta: float) -> void:
 			facing = vel.normalized()
 		if target_entity.has_method("is_stunned") and bool(target_entity.call("is_stunned")):
 			is_downed = true
+		# Montado: mira hacia donde mira el caballo y va sentado.
+		if bool(target_entity.get("is_mounted")):
+			is_mounted_now = true
+			var horse = target_entity.get_tree().get_first_node_in_group("player_horse")
+			if horse != null and horse.has_method("get_facing_2d") and atk_prog <= 0.0 and bow_draw <= 0.0:
+				facing = horse.get_facing_2d()
 	else:
 		facing = target_entity.get("facing_direction") if "facing_direction" in target_entity else Vector2.DOWN
 		if vel.length_squared() > 4.0:
@@ -683,7 +694,8 @@ func _sync_pose_and_tint(delta: float) -> void:
 		"is_downed": is_downed,
 		"is_dead": is_dead,
 		"bow_draw": bow_draw,
-		"attack_progress": atk_prog
+		"attack_progress": atk_prog,
+		"is_mounted": is_mounted_now
 	}
 	rig_3d.call("update_pose", delta, state_dict)
 

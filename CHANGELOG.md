@@ -3,6 +3,13 @@
 Cambios del juego, del más nuevo al más antiguo. Añade una entrada al cerrar cada bloque, en lenguaje sencillo.
 El detalle técnico está en `docs/HANDOFF.md` (sección 7) y el historial completo en `git log`. Lo anterior a B0.1 está en `AUDIT_LOG.md` y `SESSION_CONTEXT_LOG.md`.
 
+## 2026-11-05 — El caballo existe de verdad
+- Al comprarlo aparece junto al ganadero del Rancho del Sur, animado (anda, pace, galopa). En 2D (F10) se ve un dibujo
+  provisional.
+- E a su lado: montas; E otra vez: bajas y se queda esperando ahí. Solo montado vas un 45 % más rápido y no puedes ir en
+  sigilo. Bajas solo al entrar en un edificio, acostarte o si te lleva la guardia.
+- Se guarda dónde está y si ibas montado. Se mantiene el +15 % en las expediciones.
+
 ## 2026-11-05 — Impuesto sobre lo que gana cada vecino (por tramos)
 - Los sábados cada vecino paga según lo que GANÓ esa semana, no según sus ahorros: hasta 4 de oro al día, nada; de lo
   que gane entre 4 y 15 al día, un 15 %; de lo que pase de 15 al día, un 30 %. El edicto del alcalde (bajos, normales,

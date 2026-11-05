@@ -17,7 +17,8 @@ enum AnimState {
 	PRAY,
 	SLEEP,
 	KO,
-	AIM_GUN
+	AIM_GUN,
+	MOUNTED
 }
 
 # Nodos de articulación (fallback procedural o pivotes auxiliares)
@@ -845,6 +846,8 @@ func update_pose(delta: float, state: Dictionary) -> void:
 		st_enum = AnimState.KO
 	elif bool(state.get("is_sleeping", false)):
 		st_enum = AnimState.SLEEP
+	elif bool(state.get("is_mounted", false)) and atk_prog <= 0.01 and bow_dr <= 0.05:
+		st_enum = AnimState.MOUNTED
 	elif _weapon_id in ["flintlock", "pistol", "arquebus"] and (atk_prog > 0.01 or _muzzle_flash_t > 0.0):
 		st_enum = AnimState.AIM_GUN
 	elif atk_prog > 0.01 or bow_dr > 0.05 or bool(state.get("is_fighting", false)):
@@ -934,6 +937,8 @@ func _pick_clip() -> Array:
 			return ["crouch", 0.6]
 		AnimState.SLEEP:
 			return ["lay", 0.0]
+		AnimState.MOUNTED:
+			return ["sit", 1.0]
 		AnimState.KO:
 			return ["death", 1.0]
 		AnimState.AIM_GUN:

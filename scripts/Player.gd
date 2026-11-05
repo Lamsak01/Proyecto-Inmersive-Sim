@@ -23,6 +23,8 @@ var equipped_weapon: WeaponData
 var inventory: SimpleInventory = null
 var survival_comp: SurvivalComponent = null
 var avatar_3d: Node2D = null
+## Montado en su caballo (PlayerHorse): solo así va más rápido y no puede ir en sigilo.
+var is_mounted: bool = false
 ## El jugador saca el farol de 20:00 a 6:00, igual que los vecinos (lo usan la niebla nocturna y el muñeco 3D).
 var is_carrying_lantern: bool:
 	get:

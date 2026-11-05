@@ -2,6 +2,8 @@ extends Node
 class_name PlayerMovementController
 
 @export var max_walk_speed: float = 120.0
+## Velocidad extra yendo a caballo.
+const MOUNT_SPEED_MULT: float = 1.45
 @export var sprint_speed: float = 200.0
 @export var stealth_speed: float = 60.0
 @export var acceleration: float = 1400.0
@@ -89,6 +91,10 @@ func _unhandled_input(event: InputEvent) -> void:
 		return
 	if event is InputEventKey and event.pressed and not event.echo:
 		if event.keycode == KEY_C:
+			if bool(player.get("is_mounted")):
+				if player.has_method("show_hint"):
+					player.show_hint("🐎 A caballo no puedes ir en sigilo: baja con [E]")
+				return
 			is_stealthing = not is_stealthing
 
 func apply_impulse(force: Vector2) -> void:
@@ -134,9 +140,9 @@ func _handle_input(delta: float) -> void:
 
 	if "armor_speed_multiplier" in player:
 		current_speed *= float(player.get("armor_speed_multiplier"))
-	# Caballo de silla comprado en el rancho (VillageCulture.buy_mount): +25 % de velocidad
-	if player.has_meta("mount_speed_mult"):
-		current_speed *= float(player.get_meta("mount_speed_mult"))
+	# Caballo de silla (PlayerHorse): solo montado, +45 % de velocidad
+	if bool(player.get("is_mounted")):
+		current_speed *= MOUNT_SPEED_MULT
 
 	anim.speed_scale = target_anim_scale
 

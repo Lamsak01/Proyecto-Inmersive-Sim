@@ -36,17 +36,23 @@ var walk_px_s: float = 28.0
 var run_px_s: float = 70.0
 
 
-static func attach(entity: Node2D, rel_path: String, h_px: float, foot_px: float) -> void:
+static func attach(entity: Node2D, rel_path: String, h_px: float, foot_px: float) -> Node:
 	if DisplayServer.get_name() == "headless" or Engine.is_editor_hint() or entity == null:
-		return
+		return null
 	if not AssetLib.has_curated_assets():
-		return
+		return null
 	var n = load("res://scripts/visuals/AnimalModel3D.gd").new()
 	n.name = "AnimalModel3D"
 	n.model_rel = rel_path
 	n.height_px = h_px
 	n.foot_offset_px = foot_px
 	entity.add_child(n)
+	return n
+
+
+## Hacia dónde mira el modelo, en coordenadas del mapa (el modelo mira hacia +Z = «abajo» con giro 0).
+func get_facing_2d() -> Vector2:
+	return Vector2(sin(_cur_yaw), cos(_cur_yaw))
 
 
 func _ready() -> void:

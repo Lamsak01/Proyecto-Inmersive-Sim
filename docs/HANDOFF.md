@@ -123,6 +123,12 @@ Otros documentos antiguos en la raíz: `ROADMAP_PROYECTO.md`, `AUDIT_LOG.md`, `S
 
 ## 7. Estado y siguiente bloque
 
+- [x] **Caballo físico (Claude Code, 2026-11-05)**: `scripts/obstacles/PlayerHorse.gd` (grupo `player_horse`, Area2D
+  «interactable» → `interact` monta/desmonta). `VillageCulture.sync_player_horse(vm)` lo crea/recoloca desde
+  `mounts_state` (`pos_x`, `pos_y`, `is_mounted`) al comprar y en `after_load`; sin caballo lo borra. `Player.is_mounted`;
+  `PlayerMovementController.MOUNT_SPEED_MULT`=1.45 solo montado y bloquea C. Ya no existe `mount_speed_mult`.
+  Jinete: `CharacterAvatar3D.MOUNT_SEAT_PX` y `AnimState.MOUNTED` («sit»), mirando con `horse.get_facing_2d()`.
+  2D provisional: sprite del ciervo teñido. Capturas: `tools/screenshot_3d.gd` sitios `caballo,montado`.
 - [x] **Impuesto sobre la renta (Claude Code, 2026-11-05)**: `personal_gold` de VillageNPC tiene un setter que suma
   cada subida a `income_week` (solo si `_track_income`; se activa en `VillageTown.daily` al día siguiente de llegar; se
   guarda en la partida). El sábado `collect_taxes` cobra `income_tax_for(income_week)` (tramos `INCOME_*`) y pone

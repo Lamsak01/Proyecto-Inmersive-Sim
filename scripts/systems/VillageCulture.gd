@@ -422,6 +422,41 @@ static func hack_terminal(vm, subsystem: String, inv, force_outcome: int = 0) ->
 	VillageChronicle.add(vm, "terminal_alarm", "Saltó la alarma voltaica al intentar hackear la terminal lógica (%s)" % subsystem, true)
 	return {"ok": true, "won": false, "subsystem": subsystem, "gold": 0}
 
+const HORSE_DEFAULT_POS: Vector2 = Vector2(360, 470) # junto al Rancho del Sur
+const PlayerHorseScript = preload("res://scripts/obstacles/PlayerHorse.gd")
+
+## Crea (o recoloca) el caballo físico del jugador según mounts_state. Si ibas montado, te vuelve a subir.
+static func sync_player_horse(vm) -> Node:
+	if vm == null:
+		return null
+	if not has_horse(vm):
+		# Partida cargada sin caballo: quita el que hubiera de antes y baja al jugador.
+		if vm.is_inside_tree():
+			for h_old in vm.get_tree().get_nodes_in_group("player_horse"):
+				h_old.queue_free()
+		var pl_n = VillageNeeds.player_of(vm)
+		if pl_n != null and bool(pl_n.get("is_mounted")):
+			pl_n.set("is_mounted", false)
+		return null
+	var m: Dictionary = mounts_state(vm)
+	var pos := Vector2(float(m.get("pos_x", HORSE_DEFAULT_POS.x)), float(m.get("pos_y", HORSE_DEFAULT_POS.y)))
+	var horse = vm.get_tree().get_first_node_in_group("player_horse") if vm.is_inside_tree() else null
+	if horse == null or not is_instance_valid(horse) or horse.is_queued_for_deletion():
+		horse = PlayerHorseScript.new()
+		var parent: Node = vm.entities_root if ("entities_root" in vm and is_instance_valid(vm.entities_root)) else vm
+		parent.add_child(horse)
+		horse.setup(vm, pos)
+	else:
+		horse.global_position = pos
+	var pl = VillageNeeds.player_of(vm)
+	if pl != null:
+		if bool(m.get("is_mounted", false)):
+			pl.global_position = pos
+			horse.mount(pl)
+		elif bool(pl.get("is_mounted")):
+			pl.set("is_mounted", false)
+	return horse
+
 static func mounts_state(vm) -> Dictionary:
 	var st: Dictionary = state(vm)
 	if not (st.get("mounts", null) is Dictionary):
@@ -448,9 +483,12 @@ static func buy_mount(vm, kind: String, seller, inv) -> bool:
 		inv.add_gold(-HORSE_COST)
 		seller.personal_gold += HORSE_COST
 		m["has_horse"] = true
-		var pl = VillageNeeds.player_of(vm)
-		if pl != null:
-			pl.set_meta("mount_speed_mult", 1.25)
+		# Regla 2: el caballo existe en el mapa, junto al ganadero que te lo vende.
+		var spawn: Vector2 = (seller.global_position + Vector2(26, 6)) if seller is Node2D else HORSE_DEFAULT_POS
+		m["pos_x"] = spawn.x
+		m["pos_y"] = spawn.y
+		m["is_mounted"] = false
+		sync_player_horse(vm)
 		VillageChronicle.add(vm, "mount", "Compraste un caballo de silla en el Rancho del Sur", true)
 		return true
 	elif kind == "cart":
@@ -1346,10 +1384,8 @@ static func after_load(vm) -> void:
 		close_market(vm)
 	restore_planted_trees(vm)
 	sync_outpost_visuals(vm)
-	# El caballo es estado guardado; la velocidad se vuelve a aplicar al jugador al cargar
-	var pl_l = VillageNeeds.player_of(vm)
-	if pl_l != null and has_horse(vm):
-		pl_l.set_meta("mount_speed_mult", 1.25)
+	# El caballo vuelve a su sitio (o bajo el jugador si ibas montado al guardar)
+	sync_player_horse(vm)
 
 # ---------------------------------------------------------------- arreglos
 ## Cada día: rutas comerciales, fertilidad forestal, árbol de investigación, incursiones y arreglos del Taller.

@@ -2,7 +2,7 @@ extends SceneTree
 
 ## Captura fotos del juego en 3D (con ventana real, NO headless) para revisar la estética.
 ## Uso: flatpak run org.godotengine.Godot --path . -s tools/screenshot_3d.gd -- <carpeta_salida> [horas separadas por comas] [sitios]
-## Sitios: ciervo, zorro, jabali, perro (junto al primer animal de ese tipo), plaza, iglesia, lago, cementerio, cerca (jugador de cerca), campamento. Por defecto: todos.
+## Sitios: caballo, montado (compra el caballo solo en memoria), ciervo, zorro, jabali, perro (junto al primer animal de ese tipo), plaza, iglesia, lago, cementerio, cerca (jugador de cerca), campamento. Por defecto: todos.
 ## En barrio_lago, caserios y molino levanta casas de muestra en los solares de esos barrios (solo en memoria).
 ## En «norte» levanta casas en las filas m y u (solo en memoria) para ver las callejas curvas.
 ## En «casa_jugador» mejora tu casa a casa de piedra (solo en memoria) y enseña también el gallinero.
@@ -93,6 +93,17 @@ func _initialize() -> void:
 			var k: String = {1: "ciervo", 2: "zorro", 3: "jabali"}.get(int(a.species), "")
 			if k != "" and not SPOTS.has(k):
 				SPOTS[k] = a.global_position + Vector2(0, -12)
+	# Sitios «caballo» (esperando, con el jugador al lado) y «montado»: compra el caballo solo en memoria.
+	if spots.has("caballo") or spots.has("montado"):
+		var vm_h = root.find_child("VillageManager", true, false)
+		var vcu = vm_h.VillageCulture
+		var mh: Dictionary = vcu.mounts_state(vm_h)
+		mh["has_horse"] = true
+		mh["pos_x"] = 360.0
+		mh["pos_y"] = 470.0
+		vcu.sync_player_horse(vm_h)
+		SPOTS["caballo"] = Vector2(340, 470)
+		SPOTS["montado"] = Vector2(360, 470)
 	for pet in root.find_children("*", "DomesticPet", true, false):
 		if int(pet.pet_type) == 0 and pet.visible and not SPOTS.has("perro"):
 			SPOTS["perro"] = pet.global_position + Vector2(0, -12)
@@ -118,8 +129,14 @@ func _initialize() -> void:
 				continue
 			if player != null:
 				player.global_position = SPOTS[s]
+				var horse_n = get_first_node_in_group("player_horse")
+				if horse_n != null:
+					if s == "montado" and not bool(player.get("is_mounted")):
+						horse_n.mount(player)
+					elif s != "montado" and bool(player.get("is_mounted")):
+						horse_n.dismount(player)
 				if cam != null:
-					cam.zoom = Vector2(8.0, 8.0) if s == "retrato" else (Vector2(5.0, 5.0) if s in ["ciervo", "zorro", "perro", "jabali"] else (Vector2(4.0, 4.0) if s == "cerca" else Vector2(2.4, 2.4)))
+					cam.zoom = Vector2(8.0, 8.0) if s == "retrato" else (Vector2(5.0, 5.0) if s in ["ciervo", "zorro", "perro", "jabali", "caballo", "montado"] else (Vector2(4.0, 4.0) if s == "cerca" else Vector2(2.4, 2.4)))
 					if String(s).begins_with("r_") or s == "lago" or s == "norte":
 						cam.zoom = Vector2(1.4, 1.4)
 					cam.reset_smoothing()
