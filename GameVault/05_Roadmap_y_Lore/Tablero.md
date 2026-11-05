@@ -36,7 +36,8 @@ kanban-plugin: board
 
 - [ ] Personajes 3D con más estilo, tipo Signalis ([[Assets de pago]])
 - [ ] Decidir si la niebla nocturna también quita vista a los vecinos (ahora solo es visual)
-- [ ] Ampliar la aldea: solares de 3 tamaños + barrios del Lago, del Bosque y del Molino (plan en `docs/PLAN_AMPLIAR_ALDEA.md`)
+- [ ] Ampliar la aldea, paso 2: romper las filas de solares y curvar las callejas (plan en `docs/PLAN_AMPLIAR_ALDEA.md`)
+- [ ] Decidir si la casona cuesta más que la casita (ahora cuestan lo mismo)
 - [ ] Quitar la etiqueta «dormida» de las tendencias ya conectadas (`TraitCatalog.gd`)
 - [ ] Paseos nocturnos visibles de Noctámbulos e Insomnes
 - [ ] Pasar a 3D lo que sigue plano: animales, gallinero (comedero y nido) y la casa mejorada del jugador (cabaña y casa de piedra)
@@ -47,6 +48,8 @@ kanban-plugin: board
 
 
 ## ✅ Hecho
+
+- [x] Ampliar la aldea, pasos 1 y 3: casitas, casas y casonas; Barrio del Lago, Caseríos del Bosque y Molino del Este (2026-11-06)
 
 - [x] Niebla nocturna estilo Gloomwood: claro alrededor del jugador, siluetas a lo lejos, las luces la atraviesan (2026-11-06)
 

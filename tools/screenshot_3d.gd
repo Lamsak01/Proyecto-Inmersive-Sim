@@ -3,6 +3,7 @@ extends SceneTree
 ## Captura fotos del juego en 3D (con ventana real, NO headless) para revisar la estética.
 ## Uso: flatpak run org.godotengine.Godot --path . -s tools/screenshot_3d.gd -- <carpeta_salida> [horas separadas por comas] [sitios]
 ## Sitios: plaza, iglesia, lago, cementerio, cerca (jugador de cerca), campamento. Por defecto: todos.
+## En barrio_lago, caserios y molino levanta casas de muestra en los solares de esos barrios (solo en memoria).
 ## En «campamento» siembra cultivos de muestra en el huerto (solo en memoria) para ver cada fase.
 ## Guarda <carpeta>/<sitio>_<hora>h.png. No toca la partida guardada.
 
@@ -14,6 +15,9 @@ var SPOTS := {
 	"cerca": Vector2(470, 70),
 	"retrato": Vector2(470, 60),
 	"campamento": Vector2(150, 62),
+	"barrio_lago": Vector2(-230, 290),
+	"caserios": Vector2(-600, 800),
+	"molino": Vector2(1580, 200),
 }
 
 func _initialize() -> void:
@@ -50,6 +54,16 @@ func _initialize() -> void:
 			fp.days_grown = int(i / 3.0)
 			fp.is_watered = i % 2 == 0
 			fp._refresh_visuals()
+	if spots.has("barrio_lago") or spots.has("caserios") or spots.has("molino"):
+		var vm_b = root.find_child("VillageManager", true, false)
+		var VL = load("res://scripts/systems/VillageLots.gd")
+		for lid in ["l1", "l2", "l3", "c1", "c2", "o1", "o2"]:
+			var st: Dictionary = VL.lot(vm_b, lid)
+			st["status"] = "built"
+			st["kind"] = "house"
+			st["title"] = "🏠 %s" % str(VL.HOUSE_PLOTS[VL.plot_of(lid)]["word"])
+			st["beds"] = VL._house_beds(lid)
+			VL._draw_lot(vm_b, lid, st)
 	var player := get_first_node_in_group("player") as Node2D
 	var cam := player.get_node_or_null("Camera2D") as Camera2D if player != null else null
 	SPOTS["inicio"] = player.global_position

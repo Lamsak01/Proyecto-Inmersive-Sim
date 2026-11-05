@@ -23,4 +23,8 @@ fuente: "Biblia §4.4"
   - **Riesgo de robo nocturno (`shop_night_theft`):** `18%` de probabilidad cada noche (`7%` si tienes dependiente) de que un ladrón robe la mitad de la caja, pasando ese oro al vecino más pobre del pueblo.
 
 ## Notas de diseño
+- 2026-11-06 (Claude Code): tres tamaños de casa. Cada solar tiene el suyo (casita 2 camas, casa 2, casona 3). Quien
+  se hipoteca o a quien paga el pueblo busca casita; quien va justo, casa; quien tiene ahorros de sobra, casona.
+  Barrios apartados nuevos: Barrio del Lago (4 solares), Caseríos del Bosque (3) y Molino del Este (2). Los vecinos
+  huraños los prefieren; el resto los ocupa cuando el centro se llena. Comprobado que los vecinos llegan andando.
 -

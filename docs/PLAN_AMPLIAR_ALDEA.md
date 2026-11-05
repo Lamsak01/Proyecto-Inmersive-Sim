@@ -1,5 +1,9 @@
 # Plan para ampliar la aldea (propuesta, 2026-11-06)
 
+> **Estado (2026-11-06):** pasos 1 y 3 HECHOS (ver `docs/HANDOFF.md` §7). Pendientes: paso 2 y paso 4.
+> Cambios respecto a la propuesta: el terreno de los solares no cambia (solo la casa de dentro); Molino del Este con
+> 2 casas y molino de adorno (no es un oficio nuevo).
+
 > Propuesta de Claude Code. **No está hecho:** cambia dónde están las casas y los caminos. Eso toca la navegación de los
 > vecinos, los solares en construcción y varias pruebas, así que espera el visto bueno del usuario.
 > Capturas de cómo está hoy: `docs/capturas/noche2_valle_despues.jpg`.

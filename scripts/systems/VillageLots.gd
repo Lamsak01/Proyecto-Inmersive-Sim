@@ -19,35 +19,48 @@ const CARPENTER_SHARE: float = 0.4 # Lo que cobra el carpintero; el resto son ma
 ## Solares. `door_south`: la puerta mira al sur (si no, al norte). Tamaños de terreno, no del edificio.
 const LOTS: Array = [
 	# Borde norte, en fila sobre una calle nueva detrás de la posada y las casas
-	{"id": "n0", "zone": "borde", "center": Vector2(190, -420), "size": Vector2(130, 96), "door_south": true}, # V3
-	{"id": "n1", "zone": "borde", "center": Vector2(330, -420), "size": Vector2(130, 96), "door_south": true},
-	{"id": "n2", "zone": "borde", "center": Vector2(470, -420), "size": Vector2(130, 96), "door_south": true},
-	{"id": "n3", "zone": "borde", "center": Vector2(610, -420), "size": Vector2(130, 96), "door_south": true},
-	{"id": "n4", "zone": "borde", "center": Vector2(760, -420), "size": Vector2(130, 96), "door_south": true},
-	{"id": "n5", "zone": "borde", "center": Vector2(910, -420), "size": Vector2(130, 96), "door_south": true},
-	{"id": "n6", "zone": "borde", "center": Vector2(1070, -420), "size": Vector2(130, 96), "door_south": true}, # Para llegar a 50
+	{"id": "n0", "zone": "borde", "plot": "small", "center": Vector2(190, -420), "size": Vector2(130, 96), "door_south": true}, # V3
+	{"id": "n1", "zone": "borde", "plot": "medium", "center": Vector2(330, -420), "size": Vector2(130, 96), "door_south": true},
+	{"id": "n2", "zone": "borde", "plot": "medium", "center": Vector2(470, -420), "size": Vector2(130, 96), "door_south": true},
+	{"id": "n3", "zone": "borde", "plot": "large", "center": Vector2(610, -420), "size": Vector2(130, 96), "door_south": true},
+	{"id": "n4", "zone": "borde", "plot": "small", "center": Vector2(760, -420), "size": Vector2(130, 96), "door_south": true},
+	{"id": "n5", "zone": "borde", "plot": "medium", "center": Vector2(910, -420), "size": Vector2(130, 96), "door_south": true},
+	{"id": "n6", "zone": "borde", "plot": "large", "center": Vector2(1070, -420), "size": Vector2(130, 96), "door_south": true}, # Para llegar a 50
 	# Segunda fila al norte (para crecer): dan a una calleja nueva detrás de la calle norte
-	{"id": "m1", "zone": "borde", "center": Vector2(330, -580), "size": Vector2(130, 96), "door_south": true}, # Calleja de atrás
-	{"id": "m2", "zone": "borde", "center": Vector2(470, -580), "size": Vector2(130, 96), "door_south": true}, # Calleja de atrás
-	{"id": "m3", "zone": "borde", "center": Vector2(610, -580), "size": Vector2(130, 96), "door_south": true}, # Calleja de atrás
-	{"id": "m4", "zone": "borde", "center": Vector2(760, -580), "size": Vector2(130, 96), "door_south": true}, # Calleja de atrás
-	{"id": "m5", "zone": "borde", "center": Vector2(910, -580), "size": Vector2(130, 96), "door_south": true}, # Calleja de atrás
-	{"id": "m6", "zone": "borde", "center": Vector2(1070, -580), "size": Vector2(130, 96), "door_south": true}, # Para llegar a 50
+	{"id": "m1", "zone": "borde", "plot": "small", "center": Vector2(330, -580), "size": Vector2(130, 96), "door_south": true}, # Calleja de atrás
+	{"id": "m2", "zone": "borde", "plot": "large", "center": Vector2(470, -580), "size": Vector2(130, 96), "door_south": true}, # Calleja de atrás
+	{"id": "m3", "zone": "borde", "plot": "medium", "center": Vector2(610, -580), "size": Vector2(130, 96), "door_south": true}, # Calleja de atrás
+	{"id": "m4", "zone": "borde", "plot": "small", "center": Vector2(760, -580), "size": Vector2(130, 96), "door_south": true}, # Calleja de atrás
+	{"id": "m5", "zone": "borde", "plot": "large", "center": Vector2(910, -580), "size": Vector2(130, 96), "door_south": true}, # Calleja de atrás
+	{"id": "m6", "zone": "borde", "plot": "medium", "center": Vector2(1070, -580), "size": Vector2(130, 96), "door_south": true}, # Para llegar a 50
 	# Tercera fila al norte (Bloque PQ: expansión urbana para escalar a 100+ vecinos)
-	{"id": "u0", "zone": "borde", "center": Vector2(190, -740), "size": Vector2(130, 96), "door_south": true},
-	{"id": "u1", "zone": "borde", "center": Vector2(330, -740), "size": Vector2(130, 96), "door_south": true},
-	{"id": "u2", "zone": "borde", "center": Vector2(470, -740), "size": Vector2(130, 96), "door_south": true},
-	{"id": "u3", "zone": "borde", "center": Vector2(610, -740), "size": Vector2(130, 96), "door_south": true},
-	{"id": "u4", "zone": "borde", "center": Vector2(760, -740), "size": Vector2(130, 96), "door_south": true},
-	{"id": "u5", "zone": "borde", "center": Vector2(910, -740), "size": Vector2(130, 96), "door_south": true},
-	{"id": "u6", "zone": "borde", "center": Vector2(1070, -740), "size": Vector2(130, 96), "door_south": true},
+	{"id": "u0", "zone": "borde", "plot": "medium", "center": Vector2(190, -740), "size": Vector2(130, 96), "door_south": true},
+	{"id": "u1", "zone": "borde", "plot": "small", "center": Vector2(330, -740), "size": Vector2(130, 96), "door_south": true},
+	{"id": "u2", "zone": "borde", "plot": "large", "center": Vector2(470, -740), "size": Vector2(130, 96), "door_south": true},
+	{"id": "u3", "zone": "borde", "plot": "small", "center": Vector2(610, -740), "size": Vector2(130, 96), "door_south": true},
+	{"id": "u4", "zone": "borde", "plot": "medium", "center": Vector2(760, -740), "size": Vector2(130, 96), "door_south": true},
+	{"id": "u5", "zone": "borde", "plot": "large", "center": Vector2(910, -740), "size": Vector2(130, 96), "door_south": true},
+	{"id": "u6", "zone": "borde", "plot": "small", "center": Vector2(1070, -740), "size": Vector2(130, 96), "door_south": true},
 	# Borde este, a los dos lados del camino principal alargado
-	{"id": "e1", "zone": "borde", "center": Vector2(1090, -36), "size": Vector2(130, 96), "door_south": true},
-	{"id": "e2", "zone": "borde", "center": Vector2(1230, -36), "size": Vector2(130, 96), "door_south": true},
-	{"id": "e3", "zone": "borde", "center": Vector2(1400, -36), "size": Vector2(130, 96), "door_south": true},
-	{"id": "e4", "zone": "borde", "center": Vector2(1090, 140), "size": Vector2(130, 96), "door_south": false},
-	{"id": "e5", "zone": "borde", "center": Vector2(1230, 140), "size": Vector2(130, 96), "door_south": false},
-	{"id": "e6", "zone": "borde", "center": Vector2(1400, 140), "size": Vector2(130, 96), "door_south": false}, # V3
+	{"id": "e1", "zone": "borde", "plot": "large", "center": Vector2(1090, -36), "size": Vector2(130, 96), "door_south": true},
+	{"id": "e2", "zone": "borde", "plot": "small", "center": Vector2(1230, -36), "size": Vector2(130, 96), "door_south": true},
+	{"id": "e3", "zone": "borde", "plot": "medium", "center": Vector2(1400, -36), "size": Vector2(130, 96), "door_south": true},
+	{"id": "e4", "zone": "borde", "plot": "medium", "center": Vector2(1090, 140), "size": Vector2(130, 96), "door_south": false},
+	{"id": "e5", "zone": "borde", "plot": "large", "center": Vector2(1230, 140), "size": Vector2(130, 96), "door_south": false},
+	{"id": "e6", "zone": "borde", "plot": "small", "center": Vector2(1400, 140), "size": Vector2(130, 96), "door_south": false}, # V3
+	# Bloque AA: barrios apartados (zona "barrio"). Los llenan antes los vecinos huraños; los demás, cuando el centro se llena.
+	# Barrio del Lago: casitas sueltas en la orilla sur, mirando a la senda de los campos
+	{"id": "l1", "zone": "barrio", "barrio": "Barrio del Lago", "plot": "small", "center": Vector2(-390, 300), "size": Vector2(110, 80), "door_south": true},
+	{"id": "l2", "zone": "barrio", "barrio": "Barrio del Lago", "plot": "medium", "center": Vector2(-280, 308), "size": Vector2(130, 90), "door_south": true},
+	{"id": "l3", "zone": "barrio", "barrio": "Barrio del Lago", "plot": "small", "center": Vector2(-165, 298), "size": Vector2(110, 80), "door_south": true},
+	{"id": "l4", "zone": "barrio", "barrio": "Barrio del Lago", "plot": "small", "center": Vector2(-55, 306), "size": Vector2(110, 80), "door_south": true},
+	# Caseríos del Bosque: casas aisladas al oeste del bosque, a lo largo de una senda propia
+	{"id": "c1", "zone": "barrio", "barrio": "Caseríos del Bosque", "plot": "small", "center": Vector2(-610, 668), "size": Vector2(110, 80), "door_south": false},
+	{"id": "c2", "zone": "barrio", "barrio": "Caseríos del Bosque", "plot": "medium", "center": Vector2(-600, 800), "size": Vector2(130, 90), "door_south": false},
+	{"id": "c3", "zone": "barrio", "barrio": "Caseríos del Bosque", "plot": "small", "center": Vector2(-605, 930), "size": Vector2(110, 80), "door_south": false},
+	# Molino del Este: dos casas de molineros al sur del Puesto del Paso, junto al molino de viento
+	{"id": "o1", "zone": "barrio", "barrio": "Molino del Este", "plot": "small", "center": Vector2(1570, 240), "size": Vector2(110, 80), "door_south": false},
+	{"id": "o2", "zone": "barrio", "barrio": "Molino del Este", "plot": "medium", "center": Vector2(1690, 240), "size": Vector2(130, 90), "door_south": false},
 	# Afueras: campos al sur, entre el pueblo y el bosque, y la ladera del noroeste
 	# `offset`: en los solares grandes el edificio va a un lado y deja sitio a campos, corrales o la cantera
 	{"id": "s1", "zone": "afueras", "center": Vector2(-220, 470), "size": Vector2(230, 160), "door_south": false, "offset": Vector2(-50, 0)},
@@ -59,6 +72,38 @@ const LOTS: Array = [
 	{"id": "f1", "zone": "apartado", "center": Vector2(1315, -440), "size": Vector2(250, 180), "door_south": true},
 	{"id": "f2", "zone": "apartado", "center": Vector2(40, -560), "size": Vector2(250, 180), "door_south": true},
 ]
+
+## Tamaño de la casa que se levanta en cada solar (`plot` en LOTS; sin él, "medium"). El terreno del solar no cambia:
+## la casita deja más patio alrededor. Quien tiene poco dinero busca casita; quien tiene mucho, casona.
+const HOUSE_PLOTS: Dictionary = {
+	"small": {"word": "Casita", "size": Vector2(84, 62), "beds": 2},
+	"medium": {"word": "Casa", "size": Vector2(112, 78), "beds": 2},
+	"large": {"word": "Casona", "size": Vector2(124, 90), "beds": 3},
+}
+
+static func plot_of(id: String) -> String:
+	var p: String = str(lot_def(id).get("plot", "medium"))
+	return p if HOUSE_PLOTS.has(p) else "medium"
+
+## Solar libre para una casa según el bolsillo: "poor" -> casita, "mid" -> casa, "rich" -> casona.
+## Si no queda del tamaño buscado, el más parecido (el pobre antes una casa que nada; el rico antes casa que casita).
+## `remote`: el comprador prefiere un barrio apartado (vecinos huraños). Si no, primero el centro y luego los barrios.
+static func pick_house_lot(vm, wealth: String = "mid", remote: bool = false) -> String:
+	var free: Array = free_lots(vm, "house")
+	if free.is_empty():
+		return ""
+	var order: Array = ["medium", "small", "large"]
+	if wealth == "poor":
+		order = ["small", "medium", "large"]
+	elif wealth == "rich":
+		order = ["large", "medium", "small"]
+	var zone_order: Array = ["barrio", "borde"] if remote else ["borde", "barrio"]
+	for z in zone_order:
+		for want in order:
+			for id in free:
+				if plot_of(str(id)) == want and str(lot_def(str(id)).get("zone", "")) == z:
+					return str(id)
+	return str(free[0])
 
 ## Calles y sendas nuevas hacia los solares (también las dibuja el mapa).
 const ROADS: Array = [
@@ -73,11 +118,21 @@ const ROADS: Array = [
 	Rect2(Vector2(-330, 362), Vector2(780, 20)), # Senda de los campos del sur
 	Rect2(Vector2(1305, -350), Vector2(20, 386)), # Senda a la loma del este
 	Rect2(Vector2(30, -470), Vector2(20, 506)), # Senda a la loma del norte
+	Rect2(Vector2(-450, 362), Vector2(120, 20)), # Bloque AA: senda de los campos alargada hasta el Barrio del Lago
+	Rect2(Vector2(-690, 606), Vector2(240, 22)), # Senda de los Caseríos del Bosque (sigue al camino del bosque)
+	Rect2(Vector2(-690, 606), Vector2(20, 290)), # Senda de los Caseríos, hacia el sur
+	Rect2(Vector2(-690, 733), Vector2(145, 20)), # Ramal del caserío c2
+	Rect2(Vector2(-690, 868), Vector2(140, 20)), # Ramal del caserío c3
+	Rect2(Vector2(1480, 64), Vector2(20, 128)), # Bajada del camino del este al Molino
+	Rect2(Vector2(1480, 172), Vector2(280, 20)), # Calle del Molino del Este
 ]
+
+## Bloque AA: molino de viento del Molino del Este (base sólida en 2D; en 3D, el modelo de molino).
+const EAST_MILL_POS: Vector2 = Vector2(1458, 250)
 
 ## Clases de edificio. `hours`: horas de trabajo del carpintero (a diligencia media). `beds`: camas para vecinos.
 const KINDS: Dictionary = {
-	"house": {"title": "Casa", "cost": 100, "hours": 24.0, "beds": 2, "zones": ["borde"]},
+	"house": {"title": "Casa", "cost": 100, "hours": 24.0, "beds": 2, "zones": ["borde", "barrio"]},
 	"shop_house": {"title": "Tienda con vivienda", "cost": 90, "hours": 34.0, "beds": 2, "zones": ["borde"]}, # V5: `st.role` = oficio
 }
 
@@ -128,6 +183,9 @@ static func build_world(vm) -> void:
 	var dirt := Color(0.46, 0.36, 0.24, 0.65)
 	for r in ROADS:
 		_road(vm, r, dirt)
+	# Molino del Este: base de piedra sólida (los vecinos lo rodean) y su cartel
+	vm._add_solid_wall_segment(EAST_MILL_POS, Vector2(34, 34), vm._load_tex("res://assests/world/village/wall_stone_h.png"))
+	vm._add_title_label(EAST_MILL_POS + Vector2(-60, -40), Vector2(120, 14), "🌾 Molino del Este", Color(0.86, 0.80, 0.62), 7)
 	for l in LOTS:
 		var id: String = str(l["id"])
 		var st: Dictionary = lot(vm, id)
@@ -193,13 +251,15 @@ static func _build_kind(vm, id: String, st: Dictionary) -> void:
 			var has_up: bool = bool((st.get("upgrades", {}) as Dictionary).get("upper_floor", false))
 			var beds: Array = _house_beds(id, has_up)
 			var hc: Vector2 = c
-			vm._construct_solid_building("house_" + fam, str(st["title"]), hc, Vector2(112, 78), bool(d["door_south"]),
+			var hsz: Vector2 = HOUSE_PLOTS[plot_of(id)]["size"]
+			vm._construct_solid_building("house_" + fam, str(st["title"]), hc, hsz, bool(d["door_south"]),
 				"res://assests/world/village/floor_wood_planks.png", "res://assests/world/village/wall_timber_h.png",
 				"res://assests/world/village/wall_timber_v.png", 38.0, 0.0, Color(0.92, 0.88, 0.72))
 			for b in beds:
 				vm._add_sprite_prop(tex_bed, b, Vector2(1.12, 1.12), -1)
 			vm._spawn_decor_prop("res://assests/Comprados/Epic RPG World - Village(interiors) V1.3/assets/furniture_and_props_sprites/table_chairs_1.png", hc + Vector2(0, -2), Vector2(0.45, 0.45))
-			vm._spawn_house_chest(hc + Vector2(0, -24 if bool(d["door_south"]) else 24), "Cofre Familiar (" + str(st["title"]) + ")", fam)
+			var chest_dy: float = hsz.y * 0.5 - 15.0
+			vm._spawn_house_chest(hc + Vector2(0, -chest_dy if bool(d["door_south"]) else chest_dy), "Cofre Familiar (" + str(st["title"]) + ")", fam)
 		"shop_house":
 			_build_shop_house(vm, id, st)
 		"fields":
@@ -247,8 +307,13 @@ static func _build_shop_house(vm, id: String, st: Dictionary) -> void:
 static func _house_beds(id: String, has_upper: bool = false) -> Array:
 	var d: Dictionary = lot_def(id)
 	var c: Vector2 = d["center"]
-	var dy: float = -18.0 if bool(d["door_south"]) else 18.0
-	var base: Array = [c + Vector2(-30, dy), c + Vector2(30, dy)]
+	var plot: String = plot_of(id)
+	var ady: float = 12.0 if plot == "small" else 18.0
+	var dx: float = 26.0 if plot == "small" else 30.0
+	var dy: float = -ady if bool(d["door_south"]) else ady
+	var base: Array = [c + Vector2(-dx, dy), c + Vector2(dx, dy)]
+	if plot == "large":
+		base.append(c + Vector2(48, -dy * 0.3)) # La casona tiene un cuarto más
 	if has_upper:
 		base.append(c + Vector2(-14, dy))
 		base.append(c + Vector2(14, dy))

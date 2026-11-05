@@ -400,7 +400,7 @@ static func try_interact(vm, player: Node2D, pos: Vector2) -> bool:
 		var id: String = str(l["id"])
 		var st: Dictionary = VillageLots.lot(vm, id)
 		# 1. Cartel de solar libre de vivienda: encargar casa si tienes oro
-		if str(st.get("status", "")) == "empty" and str(l.get("zone", "")) == "borde" and pos.distance_to(VillageLots.site_work_pos(id)) <= 32.0:
+		if str(st.get("status", "")) == "empty" and str(l.get("zone", "")) in ["borde", "barrio"] and pos.distance_to(VillageLots.site_work_pos(id)) <= 32.0:
 			if VillageLots.active_site(vm) != "":
 				if player.has_method("show_hint"):
 					player.show_hint("🚧 El carpintero ya está ocupado en otra obra. Espera a que termine.")
@@ -629,7 +629,7 @@ static func add_dialogue_choices(vm, npc, diag: Dictionary, ch_arr: Array) -> vo
 	# Con el carpintero: comprar solar, mejoras, huerto, escondite o casas embargadas
 	if is_carp:
 		if not free.is_empty() and VillageLots.active_site(vm) == "":
-			var lid: String = str(free[0])
+			var lid: String = VillageLots.pick_house_lot(vm, "mid")
 			opts.append({"label": "🏡💰 Encargar casa propia en el solar %s al contado (-%d Oro)" % [lid, HOUSE_CASH_COST], "next": "END", "action": "housing_buy_cash:" + lid})
 			opts.append({"label": "🏦🏡 Encargar casa en el solar %s con hipoteca (-15 Oro entrada, 3/día)" % lid, "next": "END", "action": "housing_buy_loan:" + lid})
 		if p_lot != "" and str(VillageLots.lot(vm, p_lot).get("status", "")) == "built":

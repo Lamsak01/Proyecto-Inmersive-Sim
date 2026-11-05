@@ -401,6 +401,7 @@ func _build_static_terrain_3d() -> void:
 		if lr is Rect2:
 			var r_lot: Rect2 = lr
 			_add_box_2d(terrain_root_3d, r_lot.get_center(), r_lot.size, 0.0, 1.2, m_road)
+	_build_barrios_3d(m_wood)
 
 	# Plaza Central Empedrada con bordillos 3D
 	var plaza_r := Rect2(Vector2(388, 12), Vector2(154, 72))
@@ -1319,6 +1320,23 @@ func _add_flat_poly_2d(parent: Node3D, pts: PackedVector2Array, h_px: float, mat
 	return mi
 
 
+## Bloque AA: detalles fijos de los barrios apartados (molino de viento, leñeros de los caseríos, embarcadero del lago).
+func _build_barrios_3d(m_wood: Material) -> void:
+	var mp: Vector2 = VillageLots.EAST_MILL_POS
+	# (El molino de Kenney es casi solo aspas y desde arriba parece un palo: va el de Quaternius, con su casa de piedra.)
+	_add_model_2d(terrain_root_3d, "buildings/Mill.obj", mp, 0.0, Vector2(40, 40), 52.0)
+	for wp in [Vector2(-532, 690), Vector2(-522, 820), Vector2(-528, 950)]:
+		for k in range(3):
+			var lg := _add_cyl_2d(terrain_root_3d, wp + Vector2(0, k * 5.0 - 5.0), 2.4, 0.0, 16.0, m_wood, 2.4, 7)
+			lg.rotation_degrees.z = 90.0
+			lg.position = to_3d(wp + Vector2(0, k * 5.0 - 5.0), 2.4 + (3.6 if k == 1 else 0.0))
+	# Embarcadero del Barrio del Lago: tablas que entran en el agua desde la orilla sur
+	_add_box_2d(terrain_root_3d, Vector2(-100, 150), Vector2(14, 44), 1.4, 1.6, m_wood)
+	for py in [132.0, 150.0, 168.0]:
+		for px in [-106.0, -94.0]:
+			_add_cyl_2d(terrain_root_3d, Vector2(px, py), 1.2, -2.0, 4.6, m_wood, 1.2, 6)
+
+
 ## Busca árboles talables, vetas de mineral y pinos decorativos 2D (cada pocos segundos, por si se plantan nuevos).
 func _scan_nature_sources() -> void:
 	if vm == null or not is_instance_valid(vm.entities_root):
@@ -1354,9 +1372,10 @@ func _sync_nature_3d(only_update: bool) -> void:
 	var use_3d: bool = CharacterAvatar3DScript.use_3d_characters
 	var alive_ids: Dictionary = {}
 	for src in _nature_sources:
-		var n: Node2D = src["node"]
-		if not is_instance_valid(n):
+		var n_v = src["node"]
+		if not is_instance_valid(n_v):
 			continue
+		var n: Node2D = n_v
 		var id := n.get_instance_id()
 		alive_ids[id] = true
 		var rec: Dictionary = _nature_nodes.get(id, {})
@@ -1491,9 +1510,10 @@ func _sync_props_3d(only_update: bool) -> void:
 	var use_3d: bool = CharacterAvatar3DScript.use_3d_characters
 	var alive: Dictionary = {}
 	for src in _prop_sources:
-		var spr: Sprite2D = src["sprite"]
-		if not is_instance_valid(spr):
-			continue
+		var spr_v = src["sprite"]
+		if not is_instance_valid(spr_v):
+			continue # p. ej. el cartel de un solar que ya se construyó
+		var spr: Sprite2D = spr_v
 		var id := spr.get_instance_id()
 		alive[id] = true
 		var kind: String = src["kind"]

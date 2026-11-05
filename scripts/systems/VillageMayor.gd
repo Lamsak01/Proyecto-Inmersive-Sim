@@ -479,7 +479,7 @@ static func on_player_action(vm, npc, action_id: String, inv) -> bool:
 		var free: Array = VillageLots.free_lots(vm, "house")
 		if free.is_empty():
 			return true
-		var built_id: String = VillageLots.request_build(vm, str(free[0]), "house", null, "🏠 Casa Municipal")
+		var built_id: String = VillageLots.request_build(vm, VillageLots.pick_house_lot(vm, "poor"), "house", null, "🏠 Casa Municipal")
 		if built_id != "":
 			if str(ts.get("promise", "")) == "build_house":
 				ts["promise_kept"] = true

@@ -15,6 +15,7 @@ extends RefCounted
 const VillageNeeds = preload("res://scripts/systems/VillageNeeds.gd")
 const VillageLots = preload("res://scripts/systems/VillageLots.gd")
 const VillageWork = preload("res://scripts/systems/VillageWork.gd")
+const TraitCatalog = preload("res://scripts/data/TraitCatalog.gd")
 
 const POP_CAP: int = 100
 const TAVERN_GUEST_BEDS: Array = [Vector2(435, -252), Vector2(468, -252), Vector2(502, -252)]
@@ -403,12 +404,17 @@ static func maybe_order_house(vm, score: float) -> String:
 		if not loan.is_empty():
 			vm.VillageLoans.disburse(vm, loan, buyer, mate)
 			payer = buyer
-	var title: String = ("🏠 Casa de %s" % str(payer.npc_name).split(" ")[0]) if payer != null else "🏠 Casa del pueblo"
+	# Bloque AA: el tamaño de la casa va con el bolsillo (con préstamo o a cargo del pueblo, casita; con ahorros de sobra, casona)
+	var wealth: String = "poor" if (payer == null or not loan.is_empty()) else ("rich" if pooled >= cost + 120 else "mid")
+	# Los huraños (poco sociables) prefieren un barrio apartado
+	var lot_id: String = VillageLots.pick_house_lot(vm, wealth, TraitCatalog.npc_tendency(buyer, "sociability") <= -0.3)
+	var word: String = str(VillageLots.HOUSE_PLOTS[VillageLots.plot_of(lot_id)]["word"])
+	var title: String = ("🏠 %s de %s" % [word, str(payer.npc_name).split(" ")[0]]) if payer != null else "🏠 %s del pueblo" % word
 	# E2: si alguien duerme al raso, el pueblo no se guarda la reserva
 	var reserve: int = 0 if street else TREASURY_RESERVE
 	if payer == null and int(vm.town_state.get("treasury", 0)) < cost + reserve:
 		return ""
-	var id: String = VillageLots.request_build(vm, str(lots[0]), "house", payer, title)
+	var id: String = VillageLots.request_build(vm, lot_id, "house", payer, title)
 	if id != "":
 		state(vm)["houses_ordered"] = int(state(vm)["houses_ordered"]) + 1
 		if not loan.is_empty():

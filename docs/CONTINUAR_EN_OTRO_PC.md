@@ -29,7 +29,7 @@ del proyecto, no en /tmp).
    activo (ver `_scan_nature_sources` / `_sync_nature_3d` en `scripts/visuals/WorldStage3D.gd`).
 1b. ~~**Niebla nocturna**~~ (HECHO 2026-11-06, solo visual) (coste bajo-medio): de noche la niebla se cierra sobre el valle y limita la vista lejana,
    al estilo Gloomwood; las luces (farolas, ventanas, farol de mano) la atraviesan. Idea de `ideas sueltas.md`.
-2. **Ampliar la aldea**, pasos 1 y 3 de `docs/PLAN_AMPLIAR_ALDEA.md`: solares de tres tamaños y barrios nuevos
+2. ~~**Ampliar la aldea**~~ (pasos 1 y 3 HECHOS 2026-11-06), pasos 1 y 3 de `docs/PLAN_AMPLIAR_ALDEA.md`: solares de tres tamaños y barrios nuevos
    separados (Lago, linde del Bosque, Molino del este). **Presentar el plan al usuario y esperar su visto bueno**
    antes de tocar casas y caminos.
 3. **Animales en 3D** (coste medio): necesitan modelo y animaciones propias, como los personajes.

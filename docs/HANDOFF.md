@@ -123,6 +123,15 @@ Otros documentos antiguos en la raíz: `ROADMAP_PROYECTO.md`, `AUDIT_LOG.md`, `S
 
 ## 7. Estado y siguiente bloque
 
+- [x] **Ampliar la aldea, pasos 1 y 3 (Claude Code, 2026-11-06)** (`VillageLots.gd`: `plot` en LOTS, `HOUSE_PLOTS`,
+  `plot_of`, `pick_house_lot(vm, wealth, remote)`, zona `"barrio"` con lotes l1–l4, c1–c3, o1–o2, ROADS nuevas,
+  `EAST_MILL_POS`; `VillageMigration.maybe_order_house` elige por riqueza y sociabilidad ≤ -0.3; Mayor y Housing usan
+  `pick_house_lot`; `VillageHousing.try_interact` acepta zona barrio; `WorldStage3D._build_barrios_3d`: molino,
+  leñeros, embarcadero). Casona = 3 camas, mismo coste. El terreno de los solares del borde no cambia. Sonda de
+  andar: 6 vecinos llegaron a su cama en l1, l4, c2, c3, o1 y o2. Arreglado `_sync_props_3d`/`_sync_nature_3d`:
+  asignar a variable tipada un nodo ya liberado daba SCRIPT ERROR (cartel de solar al construirse).
+  `tools/screenshot_3d.gd`: sitios barrio_lago, caserios, molino. Pendiente: paso 2 (romper filas) y paso 4.
+
 - [x] **Niebla nocturna (Claude Code, 2026-11-06)** (`shaders/retro_post_fx.gdshader`: `vnoise`, uniformes `player_px`,
   `world_origin_px`, `px_per_world`, `fog_clear`/`fog_full`/`fog_max`/`fog_color`; `RetroPostFX.gd` los rellena cada
   fotograma). Distancia al jugador en px del mundo; ruido anclado al mundo; `lit` la aclara y la tiñe. Entra con

@@ -3,6 +3,14 @@
 Cambios del juego, del más nuevo al más antiguo. Añade una entrada al cerrar cada bloque, en lenguaje sencillo.
 El detalle técnico está en `docs/HANDOFF.md` (sección 7) y el historial completo en `git log`. Lo anterior a B0.1 está en `AUDIT_LOG.md` y `SESSION_CONTEXT_LOG.md`.
 
+## 2026-11-06 (noche) — La aldea crece: tres tamaños de casa y barrios nuevos
+- Casitas, casas y casonas mezcladas en cada calle. El tamaño va con el bolsillo de quien la encarga; la casona tiene
+  una cama más.
+- Barrios nuevos con sus sendas: Barrio del Lago (orilla sur, con embarcadero), Caseríos del Bosque (al oeste del
+  bosque, con leñeros) y Molino del Este (junto al Puesto del Paso, con molino).
+- Los vecinos huraños prefieren los barrios apartados; los demás van cuando el centro se llena.
+- Arreglo: el pueblo 3D daba un error cuando desaparecía el cartel de un solar al construirse.
+
 ## 2026-11-06 (noche) — Niebla nocturna
 - De noche la niebla se cierra sobre el valle: claro alrededor de ti y, a lo lejos, solo siluetas.
 - Los bancos de niebla se mueven despacio; farolas y ventanas encendidas la atraviesan con brillo ámbar.
