@@ -16,6 +16,7 @@ Un pueblo **realista, con lo bueno y lo malo**, con la profundidad de mecánicas
 Cuando muere alguien llegan personas nuevas generadas al azar, así que todo sistema debe funcionar con gente procedural.
 
 ### Decisiones firmes del usuario (2026-11-02)
+- **(2026-11-06) El juego pasa de 2D a 3D.** La vista 2D queda solo de respaldo (F9 y pruebas automáticas).
 - **Tamaño**: se empieza pequeño (máxima profundidad en pocas casas), pero el **objetivo final es una ciudad de al menos 100 vecinos**. Orden: profundidad primero, tamaño después. Hará falta simulación simplificada para los vecinos lejanos o en otro nivel (rendimiento).
 - **Habrá sótanos y varios pisos.**
   - Sótanos: como en otros juegos del estilo, un mapa aparte que se desarrolla debajo del mapa principal (bodegas, túneles, alcantarillas; puede extenderse más allá de los edificios).

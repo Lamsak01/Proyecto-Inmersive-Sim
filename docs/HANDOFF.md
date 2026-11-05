@@ -81,6 +81,7 @@ timeout 80 flatpak run org.godotengine.Godot --headless --path . -s tools/tests/
 - En `tools/tests/names_check.gd`: la línea 111 comprueba el tamaño exacto de `SocialDialogueData.ALL_ACTIONS.size()` (actualmente `11`); actualízalo si añades nuevas acciones sociales.
 - En `VillageManager.gd` y `CampSite.gd`: cualquier `TextureRect` de muro o suelo debe llevar `expand_mode = TextureRect.EXPAND_IGNORE_SIZE` para que las texturas de 128 px no sobresalgan de los tramos cortos.
 - Los Nodos NPC se identifican por `get_person_key()` (`person_profile.person_id`).
+- Modelos `.obj` nuevos: borra las líneas `Ka` de su `.mtl` (`sed -i '/^Ka /d'`) o el editor saca un aviso «Ambient light … ignored in PBR» por material.
 - `VillageNPC.gd` (~4.150 líneas) sigue siendo grande. Intentos de partirlo más: ver nota en sección 6.
 
 ## 5. Mapa del código (lo imprescindible)

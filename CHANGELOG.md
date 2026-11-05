@@ -3,6 +3,11 @@
 Cambios del juego, del más nuevo al más antiguo. Añade una entrada al cerrar cada bloque, en lenguaje sencillo.
 El detalle técnico está en `docs/HANDOFF.md` (sección 7) y el historial completo en `git log`. Lo anterior a B0.1 está en `AUDIT_LOG.md` y `SESSION_CONTEXT_LOG.md`.
 
+## 2026-11-06 (noche) — Fuera las 446 advertencias del editor
+- Las fichas de color de 121 modelos 3D traían un dato de «luz ambiente» que Godot no usa y por el que avisaba una vez
+  por color al importar. Quitado. Los modelos se ven igual.
+- Decisión del usuario: el proyecto pasa de 2D a 3D. La vista 2D (F9) se mantiene de respaldo porque las pruebas la usan.
+
 ## 2026-11-06 (tarde) — Notas para seguir en otro ordenador
 - Guía nueva de cómo bajar el proyecto en otro ordenador y qué toca hacer ahora.
 - Apuntado en el tablero lo que sigue en plano (animales, pozos, farolas, huertos, campamento, tablón…).
