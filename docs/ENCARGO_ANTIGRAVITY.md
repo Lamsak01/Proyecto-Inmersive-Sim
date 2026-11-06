@@ -49,41 +49,19 @@ Reglas que el supervisor va a comprobar sí o sí:
 
 ---
 
-## 2. El encargo actual: bloque COMBATE-1 — rodar y parar
+## 2. El encargo actual: bloque ANIM-1 — pasos que patinan y armas al revés
 
-> Decisiones del usuario (2026-11-06): **Espacio = rodar**, **Q = parar**. Las peleas clandestinas irán en un **sótano de
-> la taberna** (bloque aparte, después). Las coberturas para armas de fuego se dejan para cuando haya enemigos que
-> disparen. **No hagas nada de eso ahora**, solo esto.
+> COMBATE-1 aprobado. Aviso del usuario. **Tiempo límite: termina y sube antes de las 08:40.** Esta mañana NO pases las
+> cuatro pruebas (las pasa el supervisor al final): solo el arranque sin errores (`timeout 120 … --quit-after 3`).
 
-Ahora mismo: no hay esquiva ni parada. Los enemigos pegan al instante, sin aviso (p. ej. `VillageNPC._process_hostile_combat`
-pega cada 1 s en cuanto está a ≤30 px; `Raider._hit`; perros hostiles en `DomesticPet`; jabalíes en `WildAnimal`).
-
-Hay que:
-1. **Rodar (Espacio):** el jugador rueda en la dirección en que se mueve (si está quieto, hacia donde mira) unos 45–55 px
-   en ~0,35 s. Durante ~0,25 s **no recibe daño** (que `Player.take_damage` lo ignore). Gasta aguante
-   (`StaminaComponent.use_stamina`; sin aguante no rueda) y tiene una espera corta (~0,6 s). Choca con las paredes como al
-   andar. **No** se puede rodar montado a caballo ni dentro de un menú; rodar rompe el sigilo.
-2. **Parar (Q):** al pulsar Q se abre una ventana corta (~0,2 s). Si un golpe **cuerpo a cuerpo** llega dentro de esa
-   ventana: no hace daño, el atacante queda **tambaleándose** (~0,8 s sin poder pegar; usa el aturdimiento que ya exista si
-   encaja) y sale un aviso/destello. Si no llega nada, espera ~0,5 s antes de poder volver a parar. Flechas y balas no se
-   paran. **Ojo:** Q ya sirve para el derribo no letal por la espalda cuando hay objetivo de sigilo
-   (`PlayerCombatController`, `current_prompt_target`); eso tiene prioridad, la parada solo cuando no hay ese objetivo.
-3. **Golpes con aviso (para que parar sea justo):** antes de cada golpe cuerpo a cuerpo, los atacantes hacen un gesto
-   visible de ~0,4 s (destello o «!» en 2D y el inicio de la animación de ataque en 3D) y el daño llega al final, solo si
-   el jugador sigue a su alcance. Aplícalo a vecinos hostiles y guardias (`VillageNPC._process_hostile_combat`), asaltantes
-   (`Raider`), perros hostiles y jabalíes. No cambies cuánto daño hacen.
-4. **Animaciones del muñeco 3D:** la biblioteca de animaciones del jugador (`assests/curated_3d/animations/ual_male.res`)
-   **no** tiene rodar ni bloquear. Si puedes conseguir esas animaciones de la *Universal Animation Library* de Quaternius
-   (CC0) y añadirlas como se hizo con las demás (`tools/bake_character_animations.gd`), mejor; si no, hazlo con movimiento
-   del propio muñeco (agacharse y girar al rodar, brazos arriba al parar). Explica en el informe qué elegiste.
-5. **Ayuda en pantalla:** añade «[Espacio] Rodar · [Q] Parar» donde se listan los controles.
-
-### 2.1 Pruebas del bloque
-
-- Un test por comportamiento: durante el rodar no se recibe daño; sin aguante no se rueda; una parada a tiempo anula el
-  golpe y deja al atacante sin pegar un rato; parar a destiempo no protege; el golpe del enemigo llega tras su aviso, no
-  al instante; con objetivo de sigilo, Q sigue haciendo el derribo.
-- Arranque sin errores (`--headless --quit-after 3`) y las cuatro pruebas de HANDOFF §3. El usuario ya ha dado permiso.
+1. **Pasos que patinan:** al andar, los personajes 3D (jugador y vecinos) parecen deslizarse: la velocidad de la
+   animación no cuadra con lo que avanzan. Mide cuánto avanza un ciclo de «walk» y de «run» a la escala del escenario
+   (`CharacterAvatar3D.STAGE_K`) y calcula la velocidad de reproducción a partir de la velocidad real en
+   `CharacterRig3D._pick_clip` (ahora `clampf(_speed_ratio, 0.7, 1.3)` con `speed_ratio = velocidad / 110`).
+2. **Armas al revés:** las armas y herramientas en la mano se ven giradas 180°. Gíralas para que se sujeten bien
+   (espada, hacha, pico, martillo, hoz, arco, arcabuz, caña, regadera, farol; las de los vecinos también).
+3. Una foto de antes y otra de después con `tools/screenshot_3d.gd` (sitio «cerca»), guardadas en `docs/capturas_anim1/`.
+4. Documentación breve (§3), commit y push, informe nombrando solo funciones que existan.
 
 ## 3. Al cerrar el bloque
 

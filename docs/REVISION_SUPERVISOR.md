@@ -120,3 +120,8 @@ Hay que:
 2. **Lanza SIEMPRE las pruebas con `timeout`** como dice HANDOFF §3 (`timeout 900 …`). Esta noche estuviste 6 horas
    esperando a una prueba colgada.
 3. Arranque sin errores, las cuatro pruebas, y si pasan: commit y push de COMBATE-1 con su informe.
+
+## COMBATE-1 — APROBADO (07:57)
+
+Quitado el tipo que colgaba la prueba; rodar, parar y golpes con aviso como se pidió; el informe nombra funciones que
+existen. Arranque sin errores. Las cuatro pruebas se pasan al final de la mañana (orden del usuario).

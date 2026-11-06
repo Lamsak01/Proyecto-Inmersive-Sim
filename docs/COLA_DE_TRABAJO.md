@@ -5,8 +5,8 @@
 
 | # | Bloque | Estado |
 |---|--------|--------|
-| 1 | COMBATE-1: rodar (Espacio) y parar (Q), golpes enemigos con aviso | en marcha |
-| 2 | ANIM-1: arreglar animaciones (pasos que patinan al andar; armas sujetas al revés, girar 180°) — aviso del usuario | pendiente |
+| 1 | COMBATE-1: rodar (Espacio) y parar (Q), golpes enemigos con aviso | ✅ hecho (07:54) |
+| 2 | ANIM-1: arreglar animaciones (pasos que patinan al andar; armas sujetas al revés, girar 180°) — aviso del usuario | en marcha (08:00) |
 | 3 | P1: tu tienda propia y su dependiente | pendiente |
 | 4 | P2: la carreta física | pendiente |
 | 5 | P3: caravanas comerciales y de contrabando | pendiente |
