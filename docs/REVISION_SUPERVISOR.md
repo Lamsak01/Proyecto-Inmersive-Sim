@@ -57,3 +57,9 @@ Después: arranque sin errores, las cuatro pruebas, commit y push, y añade al i
 Comprobado por el supervisor: vuelven las 3 gallinas del gallinero y su letrero; tus animales y las gallinas conviven
 sin pisarse; arranque sin errores y las cuatro pruebas pasan (bloque FIS4 incluido). Detalle menor del informe: la
 función del selector se llama `refresh`, no `_refresh`.
+
+## FIS3b — APROBADO
+
+Comprobado: las piezas que usa existen; se mira la guardia en la misma planta y con línea de visión; visto por un
+guardia sube la búsqueda (y salir por el pasadizo a su vista ya no te limpia la búsqueda); visto por un vecino queda
+un secreto conocido solo por él. Arranque sin errores y las cuatro pruebas pasan.
