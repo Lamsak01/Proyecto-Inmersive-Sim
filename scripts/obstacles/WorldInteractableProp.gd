@@ -13,6 +13,7 @@ extends Node2D
 
 const VillageCulture = preload("res://scripts/systems/VillageCulture.gd")
 const VillageUnderworld = preload("res://scripts/systems/VillageUnderworld.gd")
+const VillageHousing = preload("res://scripts/systems/VillageHousing.gd")
 const CharacterAvatar3DScript = preload("res://scripts/visuals/CharacterAvatar3D.gd")
 
 var vm: Node2D = null
@@ -62,6 +63,26 @@ func setup_prop(village_manager: Node2D, kind: String, h_id: String = "", h_labe
 			npc_role = heist_label if not heist_label.is_empty() else "Alijo Subterráneo"
 			add_to_group("sewer_chest")
 			add_to_group("sewer_station")
+		"home_workbench":
+			npc_name = "Banco de Trabajo y Alquimia"
+			npc_role = heist_label if not heist_label.is_empty() else "Interior de tu Casa"
+			add_to_group("home_workbench")
+			add_to_group("home_prop")
+		"home_stash":
+			npc_name = "Escondite bajo las Tablas"
+			npc_role = heist_label if not heist_label.is_empty() else "Suelo de tu Casa"
+			add_to_group("home_stash")
+			add_to_group("home_prop")
+		"home_stairs":
+			npc_name = "Escalera y Trampilla de Casa"
+			npc_role = heist_label if not heist_label.is_empty() else "Cambio de Planta"
+			add_to_group("home_stairs")
+			add_to_group("home_prop")
+		"home_garden":
+			npc_name = "Huerto Doméstico"
+			npc_role = heist_label if not heist_label.is_empty() else "Solar de tu Casa"
+			add_to_group("home_garden")
+			add_to_group("home_prop")
 	_rebuild_visual_and_area()
 
 
@@ -98,6 +119,14 @@ func _rebuild_visual_and_area() -> void:
 			_draw_sewer_ladder_2d()
 		"sewer_chest":
 			_draw_sewer_chest_2d()
+		"home_workbench":
+			_draw_home_workbench_2d()
+		"home_stash":
+			_draw_home_stash_2d()
+		"home_stairs":
+			_draw_home_stairs_2d()
+		"home_garden":
+			_draw_home_garden_2d()
 
 	if interact_area == null or not is_instance_valid(interact_area):
 		interact_area = Area2D.new()
@@ -214,6 +243,48 @@ func _draw_sewer_chest_2d() -> void:
 	_rect(Vector2(0, 0.6), Vector2(1.6, 1.6), Color(0.92, 0.76, 0.26)) # Candado de latón
 
 
+func _draw_home_workbench_2d() -> void:
+	# Banco de trabajo y alquimia de roble con mortero de hierbas y alambique de vidrio
+	_rect(Vector2(0, 1.5), Vector2(10.0, 6.5), Color(0.14, 0.10, 0.06, 0.55)) # Sombra
+	_rect(Vector2(0, 0), Vector2(9.2, 5.5), Color(0.48, 0.32, 0.18)) # Tablero del banco
+	_rect(Vector2(0, 0), Vector2(8.0, 4.4), Color(0.56, 0.38, 0.22)) # Superficie
+	_rect(Vector2(-3.8, -0.6), Vector2(2.2, 2.2), Color(0.36, 0.42, 0.34)) # Mortero de piedra
+	_rect(Vector2(-3.8, -0.8), Vector2(1.4, 1.4), Color(0.32, 0.78, 0.38)) # Cataplasma verde
+	_rect(Vector2(3.2, -0.8), Vector2(2.0, 2.6), Color(0.68, 0.42, 0.88)) # Matraz de alambique violeta
+	_rect(Vector2(3.2, -2.6), Vector2(0.8, 1.2), Color(0.84, 0.68, 0.28)) # Cuello de latón
+
+
+func _draw_home_stash_2d() -> void:
+	# Tablas sueltas del suelo con argolla de hierro y destello de monedas ocultas
+	_rect(Vector2(0, 0), Vector2(7.5, 5.5), Color(0.26, 0.16, 0.08)) # Hueco oscuro entre vigas
+	_rect(Vector2(-2.2, 0), Vector2(2.2, 4.8), Color(0.46, 0.30, 0.16)) # Tabla entreabierta izq
+	_rect(Vector2(2.4, -0.5), Vector2(2.2, 4.8), Color(0.52, 0.34, 0.18)) # Tabla levantada der
+	_rect(Vector2(-0.2, 1.2), Vector2(1.6, 1.6), Color(0.95, 0.78, 0.24)) # Brillo de oro oculto
+	_rect(Vector2(3.2, 0.5), Vector2(1.1, 1.1), Color(0.72, 0.58, 0.26)) # Argolla secreta
+
+
+func _draw_home_stairs_2d() -> void:
+	# Escalera de madera al altillo (+1) y trampilla con bisagras hacia el sótano (-1)
+	_rect(Vector2(0, 0.5), Vector2(7.5, 8.5), Color(0.20, 0.14, 0.08, 0.70)) # Hueco de escalera
+	_rect(Vector2(0, 0), Vector2(6.8, 7.8), Color(0.44, 0.28, 0.15)) # Marco de madera
+	for sy in [-4.8, -1.6, 1.6, 4.8]:
+		_rect(Vector2(0, sy), Vector2(5.4, 1.1), Color(0.62, 0.42, 0.24)) # Peldaños de roble
+	_rect(Vector2(3.8, 0), Vector2(1.2, 1.2), Color(0.82, 0.68, 0.28)) # Argolla de trampilla
+
+
+func _draw_home_garden_2d() -> void:
+	# Huerto doméstico cercado con surcos de tierra húmeda y brotes verdes
+	_rect(Vector2(0, 1.0), Vector2(12.5, 9.0), Color(0.22, 0.15, 0.08, 0.50)) # Sombra
+	_rect(Vector2(0, 0), Vector2(11.8, 8.2), Color(0.50, 0.34, 0.18)) # Bordillo de madera
+	_rect(Vector2(0, 0), Vector2(10.4, 6.8), Color(0.32, 0.22, 0.12)) # Tierra labrada
+	var ready_crop: bool = vm == null or VillageHousing.can_harvest_home_garden(vm, heist_id)
+	var leaf_col: Color = Color(0.32, 0.78, 0.34) if ready_crop else Color(0.42, 0.54, 0.30)
+	for gy in [-2.8, 2.8]:
+		_rect(Vector2(0, gy), Vector2(9.2, 1.4), Color(0.24, 0.16, 0.09)) # Surco
+		for gx in [-6.0, -2.0, 2.0, 6.0]:
+			_rect(Vector2(gx, gy - 0.5), Vector2(1.6, 1.6), leaf_col) # Matas del huerto
+
+
 func get_interact_label(_player: Node2D = null) -> String:
 	match prop_kind:
 		"terminal":
@@ -236,6 +307,15 @@ func get_interact_label(_player: Node2D = null) -> String:
 			if vm != null and VillageUnderworld.is_sewer_chest_looted_today(vm, sewer_loc_id):
 				return "Cofre de contrabando (vacío hoy)"
 			return "Abrir cofre de contrabando (%s)" % (heist_label if not heist_label.is_empty() else "alijo")
+		"home_workbench":
+			return "Usar banco de trabajo y alquimia"
+		"home_stash":
+			var hidden_g: int = int(VillageHousing.state(vm).get("stash_gold", 0)) if vm != null else 0
+			return "Escondite bajo las tablas (%d Oro oculto)" % hidden_g
+		"home_stairs":
+			return VillageHousing.get_home_stairs_label(vm, heist_id) if vm != null else "Usar escalera / trampilla"
+		"home_garden":
+			return VillageHousing.get_home_garden_label(vm, heist_id) if vm != null else "Cosechar el huerto de casa"
 	return "Usar"
 
 
@@ -256,6 +336,14 @@ func interact(player: Node2D) -> void:
 		"sewer_chest":
 			var inv = player.get("inventory")
 			VillageUnderworld.interact_sewer_chest(vm, sewer_loc_id, player, inv)
+		"home_workbench":
+			VillageHousing.open_home_workbench_menu(vm, self, player)
+		"home_stash":
+			VillageHousing.open_home_stash_menu(vm, self, player)
+		"home_stairs":
+			VillageHousing.interact_home_stairs(vm, heist_id, self, player)
+		"home_garden":
+			VillageHousing.interact_home_garden(vm, heist_id, player)
 
 
 func on_dialogue_action(action_id: String) -> void:
@@ -267,4 +355,9 @@ func on_dialogue_action(action_id: String) -> void:
 	if player == null:
 		player = vm.VillageNeeds.player_of(vm)
 	var inv = player.get("inventory") if player != null else null
-	VillageCulture.on_player_action(vm, null, action_id, inv)
+	if action_id.begins_with("housing_"):
+		VillageHousing.on_player_action(vm, null, action_id, inv)
+	elif action_id.begins_with("underworld_"):
+		VillageUnderworld.on_player_action(vm, null, action_id, inv)
+	else:
+		VillageCulture.on_player_action(vm, null, action_id, inv)

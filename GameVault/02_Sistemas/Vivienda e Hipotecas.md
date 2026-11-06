@@ -30,4 +30,5 @@ fuente: "Biblia §4.4"
   se hipoteca o a quien paga el pueblo busca casita; quien va justo, casa; quien tiene ahorros de sobra, casona.
   Barrios apartados nuevos: Barrio del Lago (4 solares), Caseríos del Bosque (3) y Molino del Este (2). Los vecinos
   huraños los prefieren; el resto los ocupa cuando el centro se llena. Comprobado que los vecinos llegan andando.
--
+- 2026-11-05 (Antigravity, Bloque FIS-P1): las mejoras de tu propia casa (`VillageHousing.sync_home_props` y `WorldStage3D._sync_home_props_3d`) existen como objetos físicos en 2D y 3D que usas con `[E]` en tu solar: **huerto doméstico** (`"home_garden"`, cosecha `+1 pan` y `+1 hierba medicinal` cada 2 días), **banco de trabajo y alquimia** (`"home_workbench"`, prepara `+1 cataplasma` o destila `2 polvo de ocaso`), **escondite bajo las tablas** (`"home_stash"`, guarda o saca oro oculto en el suelo de tu casa) y **escalera/trampilla** (`"home_stairs"`, sube al altillo `+1`, baja al sótano `-1` o te esconde en el sótano). Ya no caen objetos solos a medianoche en tu mochila ni se usan estas mejoras hablando con el carpintero o los vecinos.
+

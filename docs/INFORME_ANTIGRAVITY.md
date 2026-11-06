@@ -1,31 +1,27 @@
-# Informe de Antigravity para el Supervisor (Claude Code) — Bloque FIS3b
+# Informe de Antigravity para el Supervisor (Claude Code) — Auditoría de Realismo + Prioridad 1 (FIS-P1)
 
 **Fecha:** 2026-11-05  
-**Encargo:** `docs/ENCARGO_ANTIGRAVITY.md` §2 — Bloque FIS3b (Bajar o salir de las alcantarillas a la vista es sospechoso)
+**Encargo:** `docs/ENCARGO_ANTIGRAVITY.md` §2 — Auditoría de realismo (`docs/AUDITORIA_REALISMO.md`) y primer arreglo (Prioridad 1: Interior físico de tu propia casa)
 
 ---
 
 ## 1. Qué se hizo
 
-1. **Comprobación de testigos al bajar por una rejilla (`VillageUnderworld.interact_sewer_grate`):**
-   - Antes de trasladar al jugador a la cámara subterránea (`enter_sewer_location`), `interact_sewer_grate(vm, loc_id, player)` llama a `VillageUnderworld._check_sewer_witness(vm, check_pos)` usando la posición del jugador en la calle (`pl.global_position`, nivel `0`).
-   - `_check_sewer_witness(vm, check_pos)` consulta `vm._find_conscious_witness_near(check_pos, 120.0, null)` (misma planta y con línea de visión, igual que en el sabotaje del cuadro eléctrico en `VillageCulture.on_player_action`). Si hay tanto un vecino civil como un guardia/comisario conscientes dentro de los `120.0` px con línea de visión en la misma planta, prima la autoridad (`VillageNPC.TradeRole.SHERIFF` / `VillageNPC.TradeRole.GUARD`).
-   - El descenso **no se bloquea**: `enter_sewer_location(vm, loc_id, pl)` se ejecuta igualmente y después `_apply_sewer_witness(vm, wit_info, pl)` aplica las consecuencias.
+1. **Paso A — Auditoría de Realismo (`docs/AUDITORIA_REALISMO.md`):**
+   - Revisados los sistemas de `scripts/systems/` buscando mecánicas que todavía se resuelven por diálogo, tiradas instantáneas o entregas automáticas a medianoche sin presencia física en el mapa.
+   - Redactada la tabla ordenada de mayor a menor prioridad en `docs/AUDITORIA_REALISMO.md` con las 11 mecánicas pendientes (interior de tu casa, tu tienda propia y dependiente, carreta de carga `has_cart`, cenas/fiestas/cenas de paz, caravanas de rutas comerciales, caravana nocturna de contrabando, expediciones fuera del valle, club de la pelea y carreras/peleas de animales, cobro de rentas/tributos/alcaldía, saboteadores/rateros nocturnos y recogida de obras maestras), citando únicamente archivos y funciones existentes.
 
-2. **Reacción según quién te vea (`VillageUnderworld._apply_sewer_witness`):**
-   - **Si te ve un guardia o el comisario (`VillageNPC.TradeRole.GUARD` o `VillageNPC.TradeRole.SHERIFF`):**
-     - Sube en `1` la búsqueda: `vm.wanted_level = clampi(int(vm.wanted_level) + 1, 1, 5)`.
-     - Muestra el aviso flotante `🚨 ¡X te vio colarte en las alcantarillas! (Búsqueda +1)` tanto sobre el testigo (`wit._spawn_floating_text`) como sobre el jugador (`player._spawn_floating_text`) y en `pl.show_hint(...)`.
-     - Añade una entrada en la crónica con `VillageChronicle.add(vm, "sewer_seen", "¡%s te vio colarte en las alcantarillas! (Búsqueda +1)" % w_name, true)`.
-   - **Si te ve un vecino cualquiera:**
-     - No hay delito (`wanted_level` no sube).
-     - Muestra el aviso flotante `👀 ¡X te vio colarte en las alcantarillas!` (`_spawn_floating_text` y `show_hint`).
-     - Añade el recuerdo al vecino con `wit.add_thought("Vi al forastero colarse en las alcantarillas (-2)", -2.0)`.
-     - Registra el chisme en el sistema existente mediante `vm.record_social_event("player_secret", wit, null, "%s vio al forastero colarse en las alcantarillas" % w_name)` con `ev["known_by"] = {wit.get_person_key(): true}` y `ev["heard_from"] = {}`.
-
-3. **Salir por una escalerilla a la vista (`VillageUnderworld.exit_sewer_ladder`):**
-   - Tras subir a la superficie (`exit_sewers_to_surface(vm)`, que devuelve a `vm.set_player_elevation_level(0)`) y colocar al jugador en la rejilla de salida (`SEWER_LOCATIONS[loc_id]["pos"]`), `exit_sewer_ladder(vm, loc_id, player)` ejecuta la misma comprobación `_check_sewer_witness(vm, check_pos)` y `_apply_sewer_witness(vm, wit_info, pl)`.
-   - Si sales por `"smuggler_tunnel"` delante de un guardia o del comisario (`seen_by_law == true`), no se aplica la rebaja semanal de búsqueda de `"smuggler_tunnel"` y en su lugar sube `wanted_level` en `1`.
+2. **Paso B — Arreglo de la Prioridad 1 (`FIS-P1`: Interior físico de tu propia casa):**
+   - **Fin de los objetos mágicos a medianoche (`VillageHousing.daily`):** Eliminada de `VillageHousing.daily(vm)` la inyección automática cada dos días de `bread` y `herbal_poultice` en la mochila del jugador.
+   - **Sincronización de los 4 objetos físicos de tu casa (`VillageHousing.sync_home_props`, `VillageHousing.home_prop_pos`):**
+     - `VillageHousing.sync_home_props(vm)` crea en las casas construidas del jugador (`VillageHousing.player_lots(vm, true)`) instancias de `WorldInteractableProp` (con dibujo 2D en `WorldInteractableProp._draw_home_workbench_2d`, `_draw_home_stash_2d`, `_draw_home_stairs_2d`, `_draw_home_garden_2d` y modelos 3D sincronizados en `WorldStage3D._sync_home_props_3d()`):
+       1. **Huerto doméstico (`"home_garden"`):** `VillageHousing.interact_home_garden(vm, lot_id, player)` y `can_harvest_home_garden(vm, lot_id)` permiten cosechar en persona con `[E]` cada 2 días (`+1 bread` y `+1 medicinal_herb`).
+       2. **Banco de trabajo y alquimia (`"home_workbench"`):** `VillageHousing.open_home_workbench_menu(vm, speaker, _player)` y `craft_home_poultice(vm, lot_id, inv, player, npc)` permiten preparar cataplasmas (`housing_craft_poultice`, gastando `medicinal_herb` o las hierbas secas del banco cada 2 días) o destilar 2 dosis de «polvo de ocaso» (`underworld_cook_dust` en `VillageUnderworld.on_player_action`, pagando 25 de oro al perista con `vm.pay_into(get_fence_npc(vm), DUST_COOK_COST)` y comprobando testigos conscientes en la misma planta con `vm._find_conscious_witness_near`).
+       3. **Escondite bajo las tablas (`"home_stash"`):** `VillageHousing.open_home_stash_menu(vm, speaker, _player)` permite guardar 25 de oro (`housing_stash_put`) o recuperar todo el oro oculto (`housing_stash_take`) directamente en las tablas del suelo de tu casa.
+       4. **Escalera al altillo y trampilla al sótano (`"home_stairs"`):** `VillageHousing.interact_home_stairs(vm, _lot_id, speaker, player)` y `get_home_stairs_label(vm, _lot_id)` permiten subir al altillo (`housing_change_level:1`), bajar al sótano (`housing_change_level:-1`), volver a la planta baja (`housing_change_level:0`) o esconderse de una búsqueda menor (`housing_hide_cellar`) pulsando `[E]` en la escalera/trampilla física de tu casa.
+   - **Limpieza de menús de diálogo (`VillageHousing.add_dialogue_choices`, `VillageUnderworld.add_dialogue_choices`):**
+     - Eliminadas de la charla con el carpintero y vecinos las opciones `housing_stash_put`, `housing_stash_take`, `housing_change_level:*` y `housing_hide_cellar`.
+     - Eliminada de la charla con el perista la opción `underworld_cook_dust`.
 
 ---
 
@@ -33,16 +29,21 @@
 
 | Archivo | Cambios |
 |---|---|
-| `scripts/systems/VillageUnderworld.gd` | Añadidas `_check_sewer_witness(vm, check_pos)` y `_apply_sewer_witness(vm, wit_info, player)`; conectadas en `interact_sewer_grate(vm, loc_id, player)` y `exit_sewer_ladder(vm, loc_id, player)` |
-| `tools/tests/verify_all.gd` | Añadido subbloque `FIS3.8a–FIS3.8f` dentro del `Block 97 (FIS3 / FIS3b)`: sin nadie cerca bajar y subir mantienen `wanted_level == 0`; con un guardia al lado bajar sube `wanted_level` a `1` (sin bloquear el paso) y subir por la escalerilla sube `wanted_level` a `2`; con un vecino cualquiera al lado no sube `wanted_level` y registra el chisme en `vm.social_event_log` |
-| `docs/HANDOFF.md` | Entrada de `Bloque FIS3b` arriba en §7 y en la lista de bloques FIS |
+| `docs/AUDITORIA_REALISMO.md` | Nuevo: tabla priorizada de las 11 mecánicas que aún no ocurrían físicamente en el mundo |
+| `scripts/obstacles/WorldInteractableProp.gd` | Añadidos los tipos `"home_workbench"`, `"home_stash"`, `"home_stairs"` y `"home_garden"` en `setup_prop`, `_rebuild_visual_and_area`, `_draw_home_workbench_2d`, `_draw_home_stash_2d`, `_draw_home_stairs_2d`, `_draw_home_garden_2d`, `get_interact_label`, `interact` y `on_dialogue_action` |
+| `scripts/systems/VillageHousing.gd` | Eliminada entrega automática en `daily`; quitados atajos de diálogo en `add_dialogue_choices`; añadidas `_notify_player`, `home_prop_pos`, `sync_home_props`, `can_harvest_home_garden`, `get_home_garden_label`, `interact_home_garden`, `can_craft_home_poultice`, `craft_home_poultice`, `open_home_workbench_menu`, `open_home_stash_menu`, `get_home_stairs_label` e `interact_home_stairs` |
+| `scripts/systems/VillageLots.gd` | Llamada a `vm.VillageHousing.sync_home_props(vm)` en `_finish` y `after_load` |
+| `scripts/systems/VillageUnderworld.gd` | Quitada `underworld_cook_dust` de `add_dialogue_choices`; soporte en `on_player_action` cuando se invoca desde `"home_workbench"` (`npc == null`), pago a `get_fence_npc(vm)` y comprobación de testigos en la misma planta |
+| `scripts/visuals/WorldStage3D.gd` | Añadida `_sync_home_props_3d()` para renderizar en 3D el banco de trabajo y alquimia, las tablas del escondite, la escalera/trampilla y el huerto doméstico |
+| `tools/tests/verify_all.gd` | Añadido `Block FIS-P1` verificando los 4 objetos físicos de la casa, el fin de los objetos mágicos a medianoche, la cosecha del huerto, el banco de trabajo, el escondite, la escalera y la ausencia de esas acciones en diálogos con NPCs |
+| `docs/HANDOFF.md` | Entrada de `Auditoría de Realismo y Prioridad 1 (Bloque FIS-P1)` en §7 |
 | `CHANGELOG.md` | Entrada en lenguaje de jugador para el bloque |
-| `docs/REGISTRO_TRABAJO.md` | Fila `FIS3b` en la tabla del «Bloque FIS» |
-| `GameVault/02_Sistemas/Capas Verticales y Alcantarillas.md` | Nota de diseño de `FIS3b` |
-| `GameVault/02_Sistemas/Red de las Sombras.md` | Nota de diseño de `FIS3b` |
+| `docs/REGISTRO_TRABAJO.md` | Fila `FIS-P1` en la tabla del «Bloque FIS» |
+| `GameVault/02_Sistemas/Vivienda e Hipotecas.md` | Nota de diseño de `FIS-P1` |
+| `GameVault/02_Sistemas/Red de las Sombras.md` | Nota de diseño de `FIS-P1` |
 | `GameVault/05_Roadmap_y_Lore/Tablero.md` | Tarjeta marcada en `✅ Hecho` |
-| `GameVault/06_Diario/2026-11-05.md` | Línea en el diario del día |
-| `docs/INFORME_ANTIGRAVITY.md` | Reescrito entero para el Bloque FIS3b |
+| `GameVault/06_Diario/2026-11-05.md` | Entrada en el diario del día |
+| `docs/INFORME_ANTIGRAVITY.md` | Reescrito entero para este encargo |
 
 ---
 
@@ -53,17 +54,18 @@
 2. **`names_check.gd`:**
    - `NAMES CHECK PASSED (200 F / 200 M / 200 apellidos + 17 PersonProfile + B0.3 generator + B1.1/B1.2 social + B2.1 hangouts + B3.1-B3.4 romance + B4.1 fights)`.
 3. **`dialogue_coverage.gd`:**
-   - `COVERAGE DONE npcs=18 actions=577` y **`0` `SCRIPT ERROR`**.
+   - `COVERAGE DONE npcs=18 actions=629` y **`0` `SCRIPT ERROR`**.
 4. **`social_sim.gd`:**
    - `SOCIAL SIM CHECK PASSED (60d metas verificadas en 5 semillas + reemplazos procedurales)`.
 5. **`verify_all.gd`:**
    - `Block FIS2 (Physical Terminal, Electric Panel & Heist Targets) OK`
-   - `Block FIS3 (Walkable Sewers, Street Grates, Ladders & Contraband Chests) OK` (incluyendo `FIS3.8a–FIS3.8f`)
+   - `Block FIS3 (Walkable Sewers, Street Grates, Ladders & Contraband Chests) OK`
    - `Block FIS4 (Live Ranch Herd & Player Livestock) OK`
+   - `Block FIS-P1 (Physical Home Interior: Garden, Workbench, Stash & Stairs) OK`
    - `ALL RIMWORLD MEDICAL, FOOTPRINTS, 3-PHASE CORPSE REPORT, MULTI-CORPSE FIX, RPG INTERROGATION, PUBLIC TRIAL, DYNAMIC RELATIONSHIPS, MISSING FAMILY SEARCH, SOCIAL GLOSSARY & UNCONSCIOUS REACTION TESTS PASSED!` (código de salida `0`).
 
 ---
 
 ## 4. Qué quedó pendiente o dudas de diseño
 
-- Ninguna duda pendiente: existía ya el mecanismo de chismes sobre secretos del jugador (`vm.record_social_event("player_secret", wit, null, ...)` con `known_by` y `add_thought`), por lo que cuando te ve un vecino cualquiera queda registrado tanto en su memoria como en el sistema de chismes del pueblo.
+- Ninguna duda de diseño en la Prioridad 1. Quedan en `docs/AUDITORIA_REALISMO.md` las prioridades 2 a 11 (empezando por la Prioridad 2: tu tienda propia «Bazar del Forastero» con su mostrador físico y su dependiente acudiendo a trabajar).

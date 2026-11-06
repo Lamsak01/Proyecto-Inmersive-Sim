@@ -3,6 +3,17 @@
 Cambios del juego, del más nuevo al más antiguo. Añade una entrada al cerrar cada bloque, en lenguaje sencillo.
 El detalle técnico está en `docs/HANDOFF.md` (sección 7) y el historial completo en `git log`. Lo anterior a B0.1 está en `AUDIT_LOG.md` y `SESSION_CONTEXT_LOG.md`.
 
+## 2026-11-05 — El huerto, el banco de trabajo, el escondite y las escaleras de tu casa se usan de verdad allí
+- Cuando mejoras tu casa, ahora aparecen dentro y junto a ella sus objetos reales en 2D y 3D para usarlos con **E**:
+  - **Huerto doméstico:** te acercas a los surcos junto a tu casa y pulsas **E** cada dos días para cosechar pan y hierba
+    medicinal (ya no aparecen solos en tu mochila a medianoche).
+  - **Banco de trabajo y alquimia:** sobre el banco dentro de tu casa pulsas **E** para preparar cataplasmas curativas o
+    destilar «polvo de ocaso» (ya no se destila hablando con el perista ni caen cataplasmas solas a medianoche).
+  - **Escondite bajo las tablas:** usas con **E** las tablas sueltas del suelo de tu casa para meter o sacar tus ahorros
+    ocultos (ya no tienes que pedírselo al carpintero en la calle).
+  - **Escalera y trampilla de casa:** usas con **E** la escalera o trampilla dentro de tu casa para subir al altillo (+1),
+    bajar al sótano (-1) o esconderte de una búsqueda menor (ya no se cambia de piso charlando con los vecinos).
+
 ## 2026-11-05 — Colarse o salir de las alcantarillas delante de la gente levanta sospechas
 - Si bajas por una rejilla de la calle o sales por una escalerilla **delante de un guardia o del comisario**, bajas o
   sales igual, pero te ven colarte y **sube en 1 tu nivel de búsqueda** con un aviso en pantalla («¡X te vio colarte en

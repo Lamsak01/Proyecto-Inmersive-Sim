@@ -15,6 +15,7 @@ const VillageLots = preload("res://scripts/systems/VillageLots.gd")
 const VillageCulture = preload("res://scripts/systems/VillageCulture.gd")
 const VillageWorkScript = preload("res://scripts/systems/VillageWork.gd")
 const VillageUnderworldScript = preload("res://scripts/systems/VillageUnderworld.gd")
+const VillageHousingScript = preload("res://scripts/systems/VillageHousing.gd")
 const FishingSpotScript = preload("res://scripts/obstacles/FishingSpot.gd")
 
 const WORLD_SCALE: float = 0.02
@@ -79,6 +80,8 @@ var _coop_gap_3d: Node3D = null
 var _grid_panel_bulb_3d: MeshInstance3D = null
 var _heist_prop_3d: Node3D = null
 var _last_heist_sig: String = ""
+var _home_props_3d: Node3D = null
+var _last_home_props_sig: String = ""
 
 func setup_stage(village_manager: Node2D) -> void:
 	vm = village_manager
@@ -1468,6 +1471,80 @@ func _sync_dynamic_props_3d() -> void:
 		var sab_on: bool = VillageCulture.is_grid_sabotaged(vm)
 		_grid_panel_bulb_3d.material_override = _mat("grid_bulb_err", Color(1.0, 0.25, 0.18), 0.2, 0.0, Color(1.0, 0.20, 0.12), 2.8) if sab_on else _mat("tinker_screen", Color(0.32, 0.96, 0.82), 0.2, 0.0, Color(0.24, 0.92, 0.76), 2.4)
 	_sync_heist_target_3d()
+	_sync_home_props_3d()
+
+func _sync_home_props_3d() -> void:
+	if vm == null or stage_root_3d == null:
+		return
+	var p_lots: Array[String] = VillageHousingScript.player_lots(vm, true)
+	var hs: Dictionary = VillageHousingScript.state(vm)
+	var prim_lot: String = VillageHousingScript.primary_player_lot(vm)
+	var parts: PackedStringArray = PackedStringArray()
+	for lid in p_lots:
+		var st: Dictionary = VillageLots.lot(vm, lid)
+		var up: Dictionary = st.get("upgrades", {})
+		var wb: int = 1 if bool(up.get("workbench", false)) else 0
+		var st_fl: int = 1 if (lid == prim_lot and bool(hs.get("has_stash", false))) else 0
+		var up_fl: int = 1 if bool(up.get("upper_floor", false)) else 0
+		var cel_fl: int = 1 if bool(up.get("hidden_cellar", false)) else 0
+		var gd_fl: int = 1 if bool(st.get("has_garden", false)) else 0
+		var gd_rdy: int = 1 if (gd_fl == 1 and VillageHousingScript.can_harvest_home_garden(vm, lid)) else 0
+		parts.append("%s:%d:%d:%d:%d:%d:%d" % [lid, wb, st_fl, up_fl, cel_fl, gd_fl, gd_rdy])
+	var sig: String = "|".join(parts)
+	if sig == _last_home_props_sig and (sig.is_empty() or is_instance_valid(_home_props_3d)):
+		return
+	_last_home_props_sig = sig
+	if is_instance_valid(_home_props_3d):
+		_home_props_3d.queue_free()
+		_home_props_3d = null
+	if sig.is_empty():
+		return
+	var root: Node3D = Node3D.new()
+	root.name = "HomeProps3D"
+	stage_root_3d.add_child(root)
+	_home_props_3d = root
+
+	var m_oak: StandardMaterial3D = _mat("hp_oak", Color(0.46, 0.30, 0.16), 0.85, 0.05)
+	var m_dark: StandardMaterial3D = _mat("hp_dark", Color(0.14, 0.10, 0.06), 0.95, 0.0)
+	var m_iron: StandardMaterial3D = _mat("hp_iron", Color(0.28, 0.32, 0.36), 0.45, 0.75)
+	var m_gold: StandardMaterial3D = _mat("hp_gold", Color(0.95, 0.78, 0.24), 0.25, 0.85, Color(0.92, 0.74, 0.20), 0.55)
+	var m_herb: StandardMaterial3D = _mat("hp_herb", Color(0.30, 0.82, 0.38), 0.45, 0.10, Color(0.20, 0.65, 0.28), 0.35)
+	var m_dust: StandardMaterial3D = _mat("hp_dust", Color(0.74, 0.44, 0.96), 0.30, 0.15, Color(0.66, 0.36, 0.90), 0.55)
+	var m_soil: StandardMaterial3D = _mat("hp_soil", Color(0.30, 0.20, 0.12), 0.95, 0.0)
+
+	for lid in p_lots:
+		var st: Dictionary = VillageLots.lot(vm, lid)
+		var up: Dictionary = st.get("upgrades", {})
+		if bool(up.get("workbench", false)):
+			var wb_pos: Vector2 = VillageHousingScript.home_prop_pos(vm, lid, "home_workbench")
+			if _add_model_2d(root, "props/Workbench_Drawers.gltf", wb_pos, 2.0, Vector2(18.0, 10.0), 8.2) == null:
+				_add_box_2d(root, wb_pos, Vector2(18.0, 10.0), 2.0, 7.5, m_oak)
+			_add_cyl_2d(root, wb_pos + Vector2(-4.0, -0.5), 2.2, 9.5, 2.6, m_herb, 1.8, 8) # Mortero con cataplasma
+			_add_cyl_2d(root, wb_pos + Vector2(3.5, -0.5), 2.0, 9.5, 3.8, m_dust, 1.0, 10) # Alambique de polvo de ocaso
+		if lid == prim_lot and bool(hs.get("has_stash", false)):
+			var st_pos: Vector2 = VillageHousingScript.home_prop_pos(vm, lid, "home_stash")
+			_add_box_2d(root, st_pos, Vector2(13.0, 9.5), 1.8, 0.8, m_dark) # Hueco bajo el suelo
+			_add_box_2d(root, st_pos + Vector2(-3.2, 0), Vector2(4.2, 8.8), 2.2, 1.2, m_oak) # Tabla izq
+			_add_box_2d(root, st_pos + Vector2(3.4, -0.6), Vector2(4.2, 8.8), 2.6, 1.4, m_oak) # Tabla entreabierta der
+			_add_cyl_2d(root, st_pos + Vector2(0, 0.8), 2.2, 2.2, 1.2, m_gold, 2.2, 8) # Monedas ocultas
+		if bool(up.get("upper_floor", false)) or bool(up.get("hidden_cellar", false)):
+			var sr_pos: Vector2 = VillageHousingScript.home_prop_pos(vm, lid, "home_stairs")
+			_add_box_2d(root, sr_pos, Vector2(13.0, 14.0), 1.8, 1.2, m_dark) # Trampilla / base
+			_add_box_2d(root, sr_pos, Vector2(11.6, 12.6), 2.4, 1.4, m_oak)
+			_add_box_2d(root, sr_pos + Vector2(4.0, 0), Vector2(1.8, 1.8), 3.6, 1.2, m_iron) # Argolla de hierro
+			if bool(up.get("upper_floor", false)):
+				for step_i in range(4):
+					var sy: float = -4.5 + float(step_i) * 3.0
+					var sh: float = 4.0 + float(step_i) * 4.2
+					_add_box_2d(root, sr_pos + Vector2(0, sy), Vector2(10.0, 2.2), sh, 1.6, m_oak)
+		if bool(st.get("has_garden", false)):
+			var gd_pos: Vector2 = VillageHousingScript.home_prop_pos(vm, lid, "home_garden")
+			_add_box_2d(root, gd_pos, Vector2(22.0, 15.0), 0.2, 2.2, m_oak) # Cerco de madera
+			_add_box_2d(root, gd_pos, Vector2(19.6, 12.6), 0.4, 2.4, m_soil) # Tierra labrada
+			var crop_mat: StandardMaterial3D = m_herb if VillageHousingScript.can_harvest_home_garden(vm, lid) else m_oak
+			for gy in [-3.2, 3.2]:
+				for gx in [-6.5, -2.2, 2.2, 6.5]:
+					_add_cyl_2d(root, gd_pos + Vector2(gx, gy), 2.0, 2.6, 2.6, crop_mat, 1.4, 7)
 
 func _sync_heist_target_3d() -> void:
 	if vm == null or stage_root_3d == null:

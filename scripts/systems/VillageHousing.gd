@@ -257,6 +257,7 @@ static func buy_young_animal(vm, species: String, inv, seller = null) -> bool:
 	arr.append({"species": species, "stage": "chick", "age_days": 0, "power": 1, "fed_day": today()})
 	VillageChronicle.add(vm, "animal_bought", "Compraste una cría (%s) para criarla en tu corral" % species, true)
 	sync_livestock(vm)
+	sync_home_props(vm)
 	return true
 
 static func feed_player_animals(vm, inv) -> int:
@@ -278,6 +279,7 @@ static func feed_player_animals(vm, inv) -> int:
 			a["stage"] = animal_stage_for_days(int(a["age_days"]))
 			a["power"] = clampi(int(a.get("power", 1)) + 1, 1, 5)
 	sync_livestock(vm)
+	sync_home_props(vm)
 	return arr.size()
 
 static func _player_pen_rect(vm) -> Rect2:
@@ -389,6 +391,7 @@ static func feed_single_player_animal(vm, idx: int, inv, player: Node2D = null) 
 	a["stage"] = animal_stage_for_days(int(a["age_days"]))
 	a["power"] = clampi(int(a.get("power", 1)) + 1, 1, 5)
 	sync_livestock(vm)
+	sync_home_props(vm)
 	if player != null and player.has_method("show_hint"):
 		var sp_txt: String = "la oveja" if str(a.get("species", "sheep")) == "sheep" else "la gallina"
 		player.show_hint("🌾🐾 Diste de comer a %s (+2 días de crecimiento, etapa: %s)." % [sp_txt, str(a["stage"])])
@@ -412,6 +415,7 @@ static func harvest_player_animal(vm, idx: int, inv, player: Node2D = null) -> b
 		if player != null and player.has_method("show_hint"):
 			player.show_hint("🐓🥚 Recogiste huevos frescos (+1 Huevo).")
 	sync_livestock(vm)
+	sync_home_props(vm)
 	return true
 
 static func interact_player_animal(vm, idx: int, player: Node2D) -> bool:
@@ -638,15 +642,8 @@ static func daily(vm) -> void:
 			if partner != null and not partner.is_dead and int(partner.personal_gold) >= 12:
 				partner.personal_gold -= 5
 				inv.add_gold(5)
-		# P6.3 y P6.7:Cada 2 días, tu huerto da comida y tu banco de trabajo da un kit o cataplasma
-		if today() % 2 == 0:
-			for lid in p_lots:
-				var st: Dictionary = VillageLots.lot(vm, lid)
-				if bool(st.get("has_garden", false)):
-					inv.add_item("bread", 1)
-				var up: Dictionary = st.get("upgrades", {})
-				if bool(up.get("workbench", false)):
-					inv.add_item("herbal_poultice", 1)
+		# P6.3 y P6.7 (FIS-P1): El huerto y el banco de trabajo ya no meten objetos solos a medianoche en la mochila;
+		# se cosechan y preparan físicamente con [E] en los objetos del solar de tu casa (`home_garden` y `home_workbench`).
 		# Tanda 5 (21): Intrusos nocturnos o enemigos intentando forzar tu puerta si no tienes cerradura reforzada
 		# Un intruso sin escarmentar en 2 días se lleva algo del escondite y deja sitio a otro
 		var ia_old: Dictionary = hs["intruder_attempt"]
@@ -778,6 +775,7 @@ static func daily(vm) -> void:
 		p_animals.append({"species": "rooster", "stage": "chick", "age_days": 0, "power": 1, "fed_day": today()})
 		VillageChronicle.add(vm, "animal_bred", "Ha nacido una nueva cría en tu corral", true)
 	sync_livestock(vm)
+	sync_home_props(vm)
 
 # ==============================================================================
 # Diálogos con el carpintero, pareja, inquilinos y vecinos
@@ -827,23 +825,8 @@ static func add_dialogue_choices(vm, npc, diag: Dictionary, ch_arr: Array) -> vo
 		for lid3 in player_lots(vm, true):
 			opts.append({"label": "🏘️📈 Vender tu casa del solar %s (+%d Oro según atractivo y mejoras)" % [lid3, house_sale_price(vm, lid3)], "next": "END", "action": "housing_sell_house:" + lid3})
 
-	# Tanda 5 (23): Esconderte en tu sótano secreto si te buscan por un delito menor
-	if has_upgrade(vm, "hidden_cellar") and int(vm.wanted_level) == 1 and int(vm.player_murder_warrants_count) == 0 and can_purge_wanted(vm):
-		opts.append({"label": "🕳️🤫 Esconderte en tu sótano secreto hasta que pase la búsqueda", "next": "END", "action": "housing_hide_cellar"})
-	# Bloque PN: Subir al primer piso o bajar al sótano en tu casa (sistema de niveles verticales por capas)
-	var near_home: bool = player_near_home(vm)
-	if near_home and has_upgrade(vm, "upper_floor") and int(vm.player_elevation_level) != 1:
-		opts.append({"label": "🪜⬆️ Subir al primer piso / altillo de tu casa (nivel +1)", "next": "END", "action": "housing_change_level:1"})
-	if near_home and has_upgrade(vm, "hidden_cellar") and int(vm.player_elevation_level) != -1:
-		opts.append({"label": "🕳️⬇️ Bajar al sótano de tu casa (nivel -1)", "next": "END", "action": "housing_change_level:-1"})
-	if int(vm.player_elevation_level) != 0:
-		opts.append({"label": "🚪➡️ Volver a la planta baja / nivel de calle (nivel 0)", "next": "END", "action": "housing_change_level:0"})
-
-	# P6.9: Usar tu escondite secreto bajo las tablas (disponible cuando tienes escondite)
-	if bool(hs.get("has_stash", false)) and is_carp:
-		opts.append({"label": "🗝️💰 Guardar 25 de oro en tu escondite bajo el suelo (Oculto: %d Oro)" % int(hs.get("stash_gold", 0)), "next": "END", "action": "housing_stash_put"})
-		if int(hs.get("stash_gold", 0)) > 0:
-			opts.append({"label": "🗝️📤 Sacar todo tu oro del escondite (%d Oro)" % int(hs.get("stash_gold", 0)), "next": "END", "action": "housing_stash_take"})
+	# (FIS-P1: subir al altillo +1, bajar al sótano -1, esconderse en el sótano y meter/sacar oro del escondite bajo las tablas
+	# se hacen físicamente pulsando [E] en la escalera/trampilla y en las tablas sueltas dentro de tu casa, no hablando con vecinos).
 
 	# P6.4: Invitar a tu pareja o gran amistad soltera a mudarse contigo
 	if p_lot != "" and str(hs.get("partner_key", "")) == "" and int(npc.affinity) >= 65 and npc.person_profile != null and str(npc.person_profile.partner_id) == "":
@@ -926,54 +909,63 @@ static func on_player_action(vm, npc, action_id: String, inv) -> void:
 		st["upgrades"][arg] = true
 		if arg == "upper_floor":
 			st["beds"] = VillageLots._house_beds(p_lot, true)
+		sync_home_props(vm)
 		VillageChronicle.add(vm, "home_upgraded", "Mejoraste tu casa con: %s" % arg, true)
-		npc._spawn_floating_text("🔨🏡 «¡Mejora instalada en tu casa!»", Color.SPRING_GREEN, -46.0)
+		_notify_player(vm, npc, "🔨🏡 «¡Mejora instalada en tu casa!»", Color.SPRING_GREEN)
 
 	elif action_id.begins_with("housing_garden:"):
 		if inv == null or int(inv.gold) < GARDEN_COST:
-			npc._spawn_floating_text("Necesitas %d de oro" % GARDEN_COST, Color.ORANGE_RED, -44.0)
+			_notify_player(vm, npc, "Necesitas %d de oro" % GARDEN_COST, Color.ORANGE_RED)
 			return
 		inv.add_gold(-GARDEN_COST)
-		npc.personal_gold += GARDEN_COST
+		if npc != null and "personal_gold" in npc:
+			npc.personal_gold += GARDEN_COST
 		var st: Dictionary = VillageLots.lot(vm, arg)
 		st["has_garden"] = true
 		var c: Vector2 = VillageLots.lot_def(arg)["center"]
 		vm._spawn_decor_prop("res://assests/world/village/chicken_1.png", c + Vector2(-46, 22), Vector2(0.9, 0.9))
+		sync_home_props(vm)
 		VillageChronicle.add(vm, "home_garden", "Montaste un huerto y gallinero doméstico junto a tu casa", true)
-		npc._spawn_floating_text("🌱🐔 «¡Ya tienes tu huerto y gallinero produciendo en casa!»", Color.SPRING_GREEN, -46.0)
+		_notify_player(vm, npc, "🌱🐔 «¡Ya tienes tu huerto y gallinero en casa! Coséchalo con [E].»", Color.SPRING_GREEN)
 
 	elif action_id == "housing_build_stash":
 		if inv == null or int(inv.gold) < STASH_BUILD_COST:
-			npc._spawn_floating_text("Necesitas %d de oro" % STASH_BUILD_COST, Color.ORANGE_RED, -44.0)
+			_notify_player(vm, npc, "Necesitas %d de oro" % STASH_BUILD_COST, Color.ORANGE_RED)
 			return
 		inv.add_gold(-STASH_BUILD_COST)
-		npc.personal_gold += STASH_BUILD_COST
+		if npc != null and "personal_gold" in npc:
+			npc.personal_gold += STASH_BUILD_COST
 		hs["has_stash"] = true
-		npc._spawn_floating_text("🪵🗝️ «Nadie encontrará jamás ese hueco bajo las tablas de tu casa.»", Color.SPRING_GREEN, -46.0)
+		sync_home_props(vm)
+		_notify_player(vm, npc, "🪵🗝️ «Nadie encontrará jamás ese hueco bajo las tablas de tu casa.»", Color.SPRING_GREEN)
 
 	elif action_id == "housing_stash_put":
 		if inv == null or int(inv.gold) < 25:
-			npc._spawn_floating_text("Necesitas 25 de oro en la bolsa", Color.ORANGE_RED, -44.0)
+			_notify_player(vm, npc, "Necesitas 25 de oro en la bolsa", Color.ORANGE_RED)
 			return
 		inv.add_gold(-25)
 		hs["stash_gold"] = int(hs.get("stash_gold", 0)) + 25
-		npc._spawn_floating_text("🗝️ Guardaste 25 de oro bajo las tablas (Total oculto: %d)" % int(hs["stash_gold"]), Color.GOLD, -46.0)
+		_notify_player(vm, npc, "🗝️ Guardaste 25 de oro bajo las tablas (Total oculto: %d)" % int(hs["stash_gold"]), Color.GOLD)
 
 	elif action_id == "housing_stash_take":
 		var g: int = int(hs.get("stash_gold", 0))
 		hs["stash_gold"] = 0
 		if inv != null and g > 0:
 			inv.add_gold(g)
-		npc._spawn_floating_text("🗝️ Recuperaste %d de oro de tu escondite secreto" % g, Color.GOLD, -46.0)
+		_notify_player(vm, npc, "🗝️ Recuperaste %d de oro de tu escondite secreto" % g, Color.GOLD)
+
+	elif action_id == "housing_craft_poultice":
+		craft_home_poultice(vm, primary_player_lot(vm), inv, VillageNeeds.player_of(vm), npc)
 
 	elif action_id.begins_with("housing_buy_foreclosed:"):
 		if inv == null or int(inv.gold) < FORECLOSED_COST:
-			npc._spawn_floating_text("Necesitas %d de oro" % FORECLOSED_COST, Color.ORANGE_RED, -44.0)
+			_notify_player(vm, npc, "Necesitas %d de oro" % FORECLOSED_COST, Color.ORANGE_RED)
 			return
 		inv.add_gold(-FORECLOSED_COST)
 		vm.town_state["treasury"] = int(vm.town_state.get("treasury", 0)) + FORECLOSED_COST
 		var st: Dictionary = VillageLots.lot(vm, arg)
 		st["payer"] = "player"
+		sync_home_props(vm)
 		VillageChronicle.add(vm, "landlord_buy", "Compraste la casa del solar %s para alquilarla a vecinos" % arg, true)
 		npc._spawn_floating_text("🏘️🔑 «La escritura del solar %s es tuya. Cobrarás tú los alquileres.»" % arg, Color.SPRING_GREEN, -46.0)
 
@@ -1133,8 +1125,9 @@ static func on_player_action(vm, npc, action_id: String, inv) -> void:
 			VillageLots.add_resident(vm, arg, buyer.get_person_key())
 		else:
 			st_sell["payer"] = "town"
+		sync_home_props(vm)
 		VillageChronicle.add(vm, "house_sold", "Vendiste tu casa del solar %s por %d de oro%s" % [arg, got, (" (%d para saldar la hipoteca)" % owed if owed > 0 else "")], true)
-		npc._spawn_floating_text("🏘️💰 «¡Casa del solar %s vendida! Te quedan %d de oro.»" % [arg, paid], Color.GOLD, -46.0)
+		_notify_player(vm, npc, "🏘️💰 «¡Casa del solar %s vendida! Te quedan %d de oro.»" % [arg, paid], Color.GOLD)
 
 	elif action_id == "housing_hide_cellar":
 		if not has_upgrade(vm, "hidden_cellar") or int(vm.wanted_level) != 1 or int(vm.player_murder_warrants_count) > 0 or not can_purge_wanted(vm):
@@ -1144,7 +1137,7 @@ static func on_player_action(vm, npc, action_id: String, inv) -> void:
 		if player_near_home(vm):
 			vm.set_player_elevation_level(-1)
 		VillageChronicle.add(vm, "hid_in_cellar", "Te escondiste en el sótano secreto de tu casa hasta que la guardia dejó de buscarte", true)
-		npc._spawn_floating_text("🕳️🤫 «La patrulla pasó de largo sin encontrarte en tu sótano secreto (nivel -1).»", Color.SPRING_GREEN, -46.0)
+		_notify_player(vm, npc, "🕳️🤫 «La patrulla pasó de largo sin encontrarte en tu sótano secreto (nivel -1).»", Color.SPRING_GREEN)
 
 	elif action_id.begins_with("housing_change_level:"):
 		var target_lvl: int = int(arg)
@@ -1153,13 +1146,13 @@ static func on_player_action(vm, npc, action_id: String, inv) -> void:
 		if target_lvl == -1 and not has_upgrade(vm, "hidden_cellar"):
 			return
 		if target_lvl != 0 and not player_near_home(vm):
-			npc._spawn_floating_text("Solo puedes cambiar de piso dentro de tu casa", Color.ORANGE_RED, -44.0)
+			_notify_player(vm, npc, "Solo puedes cambiar de piso dentro de tu casa", Color.ORANGE_RED)
 			return
 		vm.set_player_elevation_level(target_lvl)
 		if "VillageUnderworld" in vm and vm.VillageUnderworld != null:
 			vm.VillageUnderworld.sewers_state(vm)["current_loc"] = ""
 		var lvl_lbl: String = "el primer piso (nivel +1)" if target_lvl == 1 else ("el sótano (nivel -1)" if target_lvl == -1 else "la planta de calle (nivel 0)")
-		npc._spawn_floating_text("🪜🏠 Te desplazaste a %s" % lvl_lbl, Color.SPRING_GREEN, -46.0)
+		_notify_player(vm, npc, "🪜🏠 Te desplazaste a %s" % lvl_lbl, Color.SPRING_GREEN)
 
 	elif action_id.begins_with("housing_found_shop:"):
 		if found_player_shop(vm, arg, inv, npc):
@@ -1210,6 +1203,276 @@ static func on_player_action(vm, npc, action_id: String, inv) -> void:
 	elif action_id == "housing_feed_animals":
 		var fed: int = feed_player_animals(vm, inv)
 		if fed > 0:
-			npc._spawn_floating_text("🌾🐣 Alimentaste a tus %d animales (+2 días de crecimiento y +1 vigor)" % fed, Color.SPRING_GREEN, -46.0)
+			_notify_player(vm, npc, "🌾🐣 Alimentaste a tus %d animales (+2 días de crecimiento y +1 vigor)" % fed, Color.SPRING_GREEN)
 		else:
-			npc._spawn_floating_text("Necesitas llevar trigo, pan o zanahorias en la mochila para darles de comer", Color.ORANGE_RED, -44.0)
+			_notify_player(vm, npc, "Necesitas llevar trigo, pan o zanahorias en la mochila para darles de comer", Color.ORANGE_RED)
+
+
+static func _notify_player(vm, npc, text: String, col: Color = Color.SPRING_GREEN) -> void:
+	if npc != null and is_instance_valid(npc) and npc.has_method("_spawn_floating_text"):
+		npc._spawn_floating_text(text, col, -46.0)
+		return
+	var pl: Node2D = VillageNeeds.player_of(vm) as Node2D
+	if pl != null and is_instance_valid(pl) and pl.has_method("show_hint"):
+		pl.show_hint(text)
+
+
+# ==============================================================================
+# FIS-P1: Interior físico de tu propia casa (huerto, banco de trabajo, escondite bajo tablas y escaleras +1/-1)
+# ==============================================================================
+static func home_prop_pos(_vm, lot_id: String, kind: String) -> Vector2:
+	var d: Dictionary = VillageLots.lot_def(lot_id)
+	if d.is_empty():
+		return Vector2.ZERO
+	var c: Vector2 = d.get("center", Vector2.ZERO)
+	var m: float = -1.0 if bool(d.get("door_south", true)) else 1.0
+	match kind:
+		"home_workbench":
+			return c + Vector2(-26.0, -14.0 * m)
+		"home_stash":
+			return c + Vector2(26.0, -14.0 * m)
+		"home_stairs":
+			return c + Vector2(32.0, 2.0 * m)
+		"home_garden":
+			return c + Vector2(-48.0, 18.0)
+	return c
+
+
+static func sync_home_props(vm) -> void:
+	if vm == null or not ("entities_root" in vm) or vm.entities_root == null or not is_instance_valid(vm.entities_root):
+		return
+	var PropScript: Script = load("res://scripts/obstacles/WorldInteractableProp.gd") as Script
+	if PropScript == null:
+		return
+	var existing: Array[Node] = []
+	for child in vm.entities_root.get_children():
+		if is_instance_valid(child) and child.is_in_group("home_prop"):
+			existing.append(child)
+	for old_n in existing:
+		old_n.remove_from_group("home_prop")
+		if old_n.get_parent() != null:
+			old_n.get_parent().remove_child(old_n)
+		old_n.queue_free()
+
+	var hs: Dictionary = state(vm)
+	var prim_lot: String = primary_player_lot(vm)
+	for lid in player_lots(vm, true):
+		var st: Dictionary = VillageLots.lot(vm, lid)
+		var up: Dictionary = st.get("upgrades", {})
+		var h_title: String = str(st.get("title", "Casa del Forastero"))
+		if bool(up.get("workbench", false)):
+			var wb: Node2D = PropScript.new() as Node2D
+			wb.name = "HomeWorkbench_" + lid
+			wb.global_position = home_prop_pos(vm, lid, "home_workbench")
+			vm.entities_root.add_child(wb)
+			wb.call("setup_prop", vm, "home_workbench", lid, h_title)
+		if lid == prim_lot and bool(hs.get("has_stash", false)):
+			var st_prop: Node2D = PropScript.new() as Node2D
+			st_prop.name = "HomeStash_" + lid
+			st_prop.global_position = home_prop_pos(vm, lid, "home_stash")
+			vm.entities_root.add_child(st_prop)
+			st_prop.call("setup_prop", vm, "home_stash", lid, h_title)
+		if bool(up.get("upper_floor", false)) or bool(up.get("hidden_cellar", false)):
+			var stairs: Node2D = PropScript.new() as Node2D
+			stairs.name = "HomeStairs_" + lid
+			stairs.global_position = home_prop_pos(vm, lid, "home_stairs")
+			vm.entities_root.add_child(stairs)
+			stairs.call("setup_prop", vm, "home_stairs", lid, h_title)
+		if bool(st.get("has_garden", false)):
+			var g_prop: Node2D = PropScript.new() as Node2D
+			g_prop.name = "HomeGarden_" + lid
+			g_prop.global_position = home_prop_pos(vm, lid, "home_garden")
+			vm.entities_root.add_child(g_prop)
+			g_prop.call("setup_prop", vm, "home_garden", lid, h_title)
+
+
+static func can_harvest_home_garden(vm, lot_id: String) -> bool:
+	var lid: String = lot_id if not lot_id.is_empty() else primary_player_lot(vm)
+	if lid.is_empty():
+		return false
+	var st: Dictionary = VillageLots.lot(vm, lid)
+	if str(st.get("payer", "")) != "player" or str(st.get("status", "")) != "built" or not bool(st.get("has_garden", false)):
+		return false
+	return today() - int(st.get("last_garden_day", -99)) >= PRODUCT_COOLDOWN_DAYS
+
+
+static func get_home_garden_label(vm, lot_id: String) -> String:
+	if can_harvest_home_garden(vm, lot_id):
+		return "Cosechar el huerto de casa (+1 Pan, +1 Hierba)"
+	return "Huerto doméstico (en crecimiento)"
+
+
+static func interact_home_garden(vm, lot_id: String, player: Node2D = null) -> bool:
+	var lid: String = lot_id if not lot_id.is_empty() else primary_player_lot(vm)
+	if not can_harvest_home_garden(vm, lid):
+		_notify_player(vm, null, "🌱⏳ El huerto doméstico aún está creciendo. Vuelve en un par de días.", Color.ORANGE)
+		return false
+	var pl: Node2D = player if player != null else (VillageNeeds.player_of(vm) as Node2D)
+	var inv = pl.get("inventory") if pl != null else null
+	if inv == null:
+		return false
+	var st: Dictionary = VillageLots.lot(vm, lid)
+	st["last_garden_day"] = today()
+	inv.add_item("bread", 1)
+	inv.add_item("medicinal_herb", 1)
+	sync_home_props(vm)
+	VillageChronicle.add(vm, "home_garden_harvested", "Cosechaste verduras y hierbas medicinales en el huerto de tu casa", true)
+	_notify_player(vm, null, "🌱🥬 Cosechaste tu huerto doméstico (+1 Pan, +1 Hierba medicinal).", Color.SPRING_GREEN)
+	return true
+
+
+static func can_craft_home_poultice(vm, lot_id: String = "") -> bool:
+	var lid: String = lot_id if not lot_id.is_empty() else primary_player_lot(vm)
+	if lid.is_empty() or not has_upgrade(vm, "workbench"):
+		return false
+	var st: Dictionary = VillageLots.lot(vm, lid)
+	return today() - int(st.get("last_workbench_day", -99)) >= PRODUCT_COOLDOWN_DAYS
+
+
+static func craft_home_poultice(vm, lot_id: String, inv, player: Node2D = null, npc = null) -> bool:
+	if inv == null or not has_upgrade(vm, "workbench"):
+		return false
+	var lid: String = lot_id if not lot_id.is_empty() else primary_player_lot(vm)
+	if lid.is_empty():
+		return false
+	var st: Dictionary = VillageLots.lot(vm, lid)
+	var has_herb: bool = inv.has_item("medicinal_herb", 1)
+	var ready_shelf: bool = can_craft_home_poultice(vm, lid)
+	if not has_herb and not ready_shelf:
+		_notify_player(vm, npc, "⚗️⏳ Necesitas llevar hierbas medicinales o esperar 2 días a que sequen las del banco.", Color.ORANGE_RED)
+		return false
+	if has_herb:
+		inv.remove_item("medicinal_herb", 1)
+	else:
+		st["last_workbench_day"] = today()
+	inv.add_item("herbal_poultice", 1)
+	var pl: Node2D = player if player != null else (VillageNeeds.player_of(vm) as Node2D)
+	if pl != null and pl.has_method("add_skill_xp"):
+		pl.call("add_skill_xp", "crafting", 8)
+	VillageChronicle.add(vm, "workbench_poultice", "Preparaste una cataplasma curativa en el banco de trabajo de tu casa", true)
+	_notify_player(vm, npc, "🧪🌿 Preparaste 1 cataplasma de hierbas en tu banco de trabajo.", Color.SPRING_GREEN)
+	return true
+
+
+static func open_home_workbench_menu(vm, speaker: Node, _player: Node2D = null) -> void:
+	if vm == null:
+		return
+	var dm = vm.get_node_or_null("/root/DialogueManager")
+	if dm == null or not dm.has_method("start_dialogue"):
+		return
+	var lid: String = primary_player_lot(vm)
+	var herb_ready: bool = can_craft_home_poultice(vm, lid)
+	var st_uw: Dictionary = vm.VillageUnderworld.state(vm) if "VillageUnderworld" in vm and vm.VillageUnderworld != null else {}
+	var dust_ready: bool = int(st_uw.get("last_cook_day", -1)) != today()
+	var choices: Array = [
+		{
+			"label": "🧪🌿 Preparar cataplasma de hierbas (+1 Cataplasma%s)" % (" · hierbas secas listas" if herb_ready else " · requiere hierba medicinal"),
+			"next": "END",
+			"action": "housing_craft_poultice"
+		},
+	]
+	if dust_ready:
+		choices.append({
+			"label": "⚗️🌙 Destilar 2 dosis de «polvo de ocaso» (-25 Oro en reactivos, 1/día)",
+			"next": "END",
+			"action": "underworld_cook_dust"
+		})
+	choices.append({"label": "Apartarse del banco [Salir]", "next": "END"})
+	var graph: Dictionary = {
+		"start": {
+			"text": "⚗️🌿 BANCO DE TRABAJO Y ALQUIMIA\nEl banco de roble de tu casa tiene mortero, redomas, hierbas secas y un alambique de cobre.",
+			"choices": choices
+		}
+	}
+	dm.start_dialogue(graph, "start", speaker)
+
+
+static func open_home_stash_menu(vm, speaker: Node, _player: Node2D = null) -> void:
+	if vm == null:
+		return
+	var dm = vm.get_node_or_null("/root/DialogueManager")
+	if dm == null or not dm.has_method("start_dialogue"):
+		return
+	var hs: Dictionary = state(vm)
+	var hidden_g: int = int(hs.get("stash_gold", 0))
+	var choices: Array = [
+		{
+			"label": "🗝️💰 Guardar 25 de oro bajo las tablas (Oculto: %d Oro)" % hidden_g,
+			"next": "END",
+			"action": "housing_stash_put"
+		}
+	]
+	if hidden_g > 0:
+		choices.append({
+			"label": "🗝️📤 Sacar todo tu oro del escondite (+%d Oro)" % hidden_g,
+			"next": "END",
+			"action": "housing_stash_take"
+		})
+	choices.append({"label": "Cerrar las tablas [Salir]", "next": "END"})
+	var graph: Dictionary = {
+		"start": {
+			"text": "🪵🗝️ ESCONDITE BAJO LAS TABLAS\nUn hueco forrado en brea bajo el entarimado de tu casa mantiene tus ahorros a salvo de embargos y multas.\nOro oculto ahora mismo: %d." % hidden_g,
+			"choices": choices
+		}
+	}
+	dm.start_dialogue(graph, "start", speaker)
+
+
+static func get_home_stairs_label(vm, _lot_id: String = "") -> String:
+	var elev: int = int(vm.player_elevation_level)
+	var can_hide: bool = has_upgrade(vm, "hidden_cellar") and int(vm.wanted_level) == 1 and int(vm.player_murder_warrants_count) == 0 and can_purge_wanted(vm)
+	if elev == 1:
+		return "Bajar a la planta baja (nivel 0)"
+	if elev == -1:
+		if can_hide:
+			return "Trampilla del sótano (subir o esconderte)"
+		return "Subir a la planta baja (nivel 0)"
+	var has_up: bool = has_upgrade(vm, "upper_floor")
+	var has_cel: bool = has_upgrade(vm, "hidden_cellar")
+	if has_up and not has_cel:
+		return "Subir al primer piso / altillo (nivel +1)"
+	if has_cel and not has_up:
+		if can_hide:
+			return "Esconderte o bajar al sótano (nivel -1)"
+		return "Bajar al sótano (nivel -1)"
+	return "Usar escalera (+1) o trampilla (-1)"
+
+
+static func interact_home_stairs(vm, _lot_id: String, speaker: Node = null, player: Node2D = null) -> bool:
+	if vm == null:
+		return false
+	var pl: Node2D = player if player != null else (VillageNeeds.player_of(vm) as Node2D)
+	var inv = pl.get("inventory") if pl != null else null
+	var elev: int = int(vm.player_elevation_level)
+	var has_up: bool = has_upgrade(vm, "upper_floor")
+	var has_cel: bool = has_upgrade(vm, "hidden_cellar")
+	var can_hide: bool = has_cel and int(vm.wanted_level) == 1 and int(vm.player_murder_warrants_count) == 0 and can_purge_wanted(vm)
+
+	var choices: Array = []
+	if can_hide:
+		choices.append({"label": "🕳️🤫 Esconderte en tu sótano secreto hasta que pase la búsqueda", "next": "END", "action": "housing_hide_cellar"})
+	if has_up and elev != 1:
+		choices.append({"label": "🪜⬆️ Subir al primer piso / altillo de tu casa (nivel +1)", "next": "END", "action": "housing_change_level:1"})
+	if has_cel and elev != -1:
+		choices.append({"label": "🕳️⬇️ Bajar al sótano de tu casa (nivel -1)", "next": "END", "action": "housing_change_level:-1"})
+	if elev != 0:
+		choices.append({"label": "🚪➡️ Volver a la planta baja / nivel de calle (nivel 0)", "next": "END", "action": "housing_change_level:0"})
+
+	if choices.is_empty():
+		return false
+	if choices.size() == 1:
+		on_player_action(vm, null, str(choices[0]["action"]), inv)
+		return true
+	var dm = vm.get_node_or_null("/root/DialogueManager")
+	if dm != null and dm.has_method("start_dialogue") and speaker != null:
+		choices.append({"label": "Quedarse en esta planta [Salir]", "next": "END"})
+		var graph: Dictionary = {
+			"start": {
+				"text": "🪜🕳️ ESCALERA Y TRAMPILLA DE CASA\nEstás en la planta %d de tu casa. ¿A qué nivel quieres ir?" % elev,
+				"choices": choices
+			}
+		}
+		dm.start_dialogue(graph, "start", speaker)
+		return true
+	on_player_action(vm, null, str(choices[0]["action"]), inv)
+	return true

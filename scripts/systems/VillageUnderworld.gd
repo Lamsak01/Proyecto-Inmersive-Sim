@@ -853,10 +853,8 @@ static func add_dialogue_choices(vm, npc, diag: Dictionary, ch_arr: Array) -> vo
 		var hot: String = fenceable_item(VillageNeeds.player_of(vm).get("inventory") if VillageNeeds.player_of(vm) != null else null)
 		if hot != "":
 			opts.append({"label": "💰 Venderle tu %s (+%d Oro)" % [SimpleInventory.CATALOG.get(hot, {}).get("name", hot), int(FENCE_PRICES[hot])], "next": "END", "action": "underworld_fence_goods"})
-		# P7.3: Comprar o cocinar polvo de ocaso
+		# P7.3: Comprar polvo de ocaso (destilarlo se hace físicamente con [E] en el banco de trabajo de tu casa)
 		opts.append({"label": "🌙 Comprar dosis de «polvo de ocaso» (-18 Oro) [Tienes: %d]" % get_item_count(vm, "dusk_dust"), "next": "END", "action": "underworld_buy:dusk_dust"})
-		if VillageHousing.has_upgrade(vm, "workbench") and int(st.get("last_cook_day", -1)) != today():
-			opts.append({"label": "⚗️🌙 Destilar 2 dosis de «polvo de ocaso» con tu banco de trabajo (-%d Oro)" % DUST_COOK_COST, "next": "END", "action": "underworld_cook_dust"})
 		# P7.4: Encargos de robo a medida
 		var ah: Dictionary = st.get("active_heist", {})
 		if ah.is_empty():
@@ -952,7 +950,7 @@ static func add_dialogue_choices(vm, npc, diag: Dictionary, ch_arr: Array) -> vo
 
 static func on_player_action(vm, npc, action_id: String, inv) -> void:
 	var st: Dictionary = state(vm)
-	var key: String = npc.get_person_key()
+	var key: String = npc.get_person_key() if npc != null and is_instance_valid(npc) and npc.has_method("get_person_key") else ""
 	var d_now: int = today()
 
 	if action_id.begins_with("underworld_buy:"):
@@ -987,14 +985,34 @@ static func on_player_action(vm, npc, action_id: String, inv) -> void:
 		npc._spawn_floating_text("💰 «Buena mercancía. No preguntaré de dónde salió (+%d Oro).»" % price, Color.GOLD, -46.0)
 
 	elif action_id == "underworld_cook_dust":
+		var pl_cook: Node2D = VillageNeeds.player_of(vm) as Node2D
 		if inv == null or int(inv.gold) < DUST_COOK_COST or int(st.get("last_cook_day", -1)) == d_now:
-			npc._spawn_floating_text("Necesitas %d de oro en reactivos (y solo puedes destilar una vez al día)" % DUST_COOK_COST, Color.ORANGE_RED, -44.0)
+			var err_txt: String = "Necesitas %d de oro en reactivos (y solo puedes destilar una vez al día)" % DUST_COOK_COST
+			if npc != null and is_instance_valid(npc) and npc.has_method("_spawn_floating_text"):
+				npc._spawn_floating_text(err_txt, Color.ORANGE_RED, -44.0)
+			elif pl_cook != null and pl_cook.has_method("show_hint"):
+				pl_cook.show_hint(err_txt)
 			return
 		inv.add_gold(-DUST_COOK_COST)
-		npc.personal_gold += DUST_COOK_COST # los reactivos se los compras al perista
+		if npc != null and is_instance_valid(npc) and "personal_gold" in npc:
+			npc.personal_gold += DUST_COOK_COST
+		else:
+			vm.pay_into(get_fence_npc(vm), DUST_COOK_COST) # los reactivos se los compras al perista
 		st["last_cook_day"] = d_now
 		add_item(vm, "dusk_dust", 2)
-		npc._spawn_floating_text("⚗️🌙 Destilaste 2 dosis puras de «polvo de ocaso» en tu banco de trabajo", Color(0.85, 0.72, 1.0), -46.0)
+		var cook_pos: Vector2 = pl_cook.global_position if pl_cook != null else Vector2.ZERO
+		var wit_cook: Node = vm._find_conscious_witness_near(cook_pos, 85.0, null) if pl_cook != null else null
+		var partner_k: String = str(VillageHousing.state(vm).get("partner_key", ""))
+		if wit_cook != null and wit_cook != get_fence_npc(vm) and (not wit_cook.has_method("get_person_key") or str(wit_cook.call("get_person_key")) != partner_k):
+			vm.wanted_level = maxi(int(vm.wanted_level), 1)
+			if wit_cook.has_method("modify_affinity"):
+				wit_cook.call("modify_affinity", -10)
+			VillageChronicle.add(vm, "dust_cook_witnessed", "%s vio cómo destilabas polvo de ocaso y avisó a la guardia" % str(wit_cook.get("npc_name")), true)
+		var ok_txt: String = "⚗️🌙 Destilaste 2 dosis puras de «polvo de ocaso» en tu banco de trabajo"
+		if npc != null and is_instance_valid(npc) and npc.has_method("_spawn_floating_text"):
+			npc._spawn_floating_text(ok_txt, Color(0.85, 0.72, 1.0), -46.0)
+		elif pl_cook != null and pl_cook.has_method("show_hint"):
+			pl_cook.show_hint(ok_txt)
 
 	elif action_id == "underworld_sell_dust":
 		if get_item_count(vm, "dusk_dust") <= 0 or int(npc.personal_gold) < DUST_PRICE:

@@ -4831,5 +4831,101 @@ func _initialize() -> void:
 	p70_inv.gold = fis4_gold_bak
 	print("Block FIS4 (Live Ranch Herd & Player Livestock) OK")
 
+	# ==========================================================================
+	# AUDITORÍA DE REALISMO — PRIORIDAD 1 (FIS-P1): Interior físico de tu propia casa
+	# ==========================================================================
+	var fisp1_lot: String = "n0"
+	var fisp1_st: Dictionary = vl.lot(vm, fisp1_lot)
+	var fisp1_payer_bak: String = str(fisp1_st.get("payer", ""))
+	var fisp1_status_bak: String = str(fisp1_st.get("status", ""))
+	var fisp1_upg_bak: Dictionary = (fisp1_st.get("upgrades", {}) as Dictionary).duplicate(true) if fisp1_st.get("upgrades", null) is Dictionary else {}
+	var fisp1_gard_bak: bool = bool(fisp1_st.get("has_garden", false))
+	var fisp1_stash_bak: bool = bool(vho.state(vm).get("has_stash", false))
+	var fisp1_stashg_bak: int = int(vho.state(vm).get("stash_gold", 0))
+	var fisp1_day_bak: int = t5_wc.current_day
+	var fisp1_pos_bak: Vector2 = p70_pl.global_position
+
+	fisp1_st["payer"] = "player"
+	fisp1_st["status"] = "built"
+	fisp1_st["kind"] = "house"
+	fisp1_st["has_garden"] = true
+	fisp1_st["last_garden_day"] = -99
+	fisp1_st["last_workbench_day"] = -99
+	fisp1_st["upgrades"] = {"workbench": true, "upper_floor": true, "hidden_cellar": false}
+	vho.state(vm)["has_stash"] = true
+	vho.state(vm)["stash_gold"] = 0
+	vho.sync_home_props(vm)
+
+	# 1. Los 4 objetos físicos existen en la escena (home_workbench, home_stash, home_stairs, home_garden)
+	assert(root.get_tree().get_nodes_in_group("home_workbench").size() >= 1, "FIS-P1.1a: Physical home_workbench prop spawned in player house")
+	assert(root.get_tree().get_nodes_in_group("home_stash").size() >= 1, "FIS-P1.1b: Physical home_stash prop spawned in player house")
+	assert(root.get_tree().get_nodes_in_group("home_stairs").size() >= 1, "FIS-P1.1c: Physical home_stairs prop spawned in player house")
+	assert(root.get_tree().get_nodes_in_group("home_garden").size() >= 1, "FIS-P1.1d: Physical home_garden prop spawned in player house")
+
+	# 2. A medianoche (`VillageHousing.daily`) ya NO aparecen solos panes ni cataplasmas en la mochila
+	t5_wc.current_day = 20
+	var fisp1_bread0: int = p70_inv.get_count("bread")
+	var fisp1_poult0: int = p70_inv.get_count("herbal_poultice")
+	vho.daily(vm)
+	assert(p70_inv.get_count("bread") == fisp1_bread0 and p70_inv.get_count("herbal_poultice") == fisp1_poult0, "FIS-P1.2: VillageHousing.daily no longer injects free bread or herbal_poultice into backpack at midnight")
+
+	# 3. Cosechar físicamente el huerto con [E] en `home_garden` da +1 pan y +1 hierba medicinal (con espera de 2 días)
+	var fisp1_garden_node: Node2D = root.get_tree().get_first_node_in_group("home_garden") as Node2D
+	var fisp1_herb0: int = p70_inv.get_count("medicinal_herb")
+	fisp1_garden_node.call("interact", p70_pl)
+	assert(p70_inv.get_count("bread") == fisp1_bread0 + 1 and p70_inv.get_count("medicinal_herb") == fisp1_herb0 + 1, "FIS-P1.3a: Interacting with home_garden harvests +1 bread and +1 medicinal_herb")
+	assert(not vho.interact_home_garden(vm, fisp1_lot, p70_pl), "FIS-P1.3b: Cannot harvest home_garden again on the same day")
+
+	# 4. Preparar cataplasma y destilar polvo de ocaso desde el `home_workbench` físico
+	var fisp1_wb_node: Node2D = root.get_tree().get_first_node_in_group("home_workbench") as Node2D
+	fisp1_wb_node.call("on_dialogue_action", "housing_craft_poultice")
+	assert(p70_inv.get_count("herbal_poultice") == fisp1_poult0 + 1, "FIS-P1.4a: Crafting poultice at home_workbench yields +1 herbal_poultice")
+	p70_inv.gold = 60
+	vun.state(vm)["last_cook_day"] = -1
+	var fisp1_dust0: int = vun.get_item_count(vm, "dusk_dust")
+	fisp1_wb_node.call("on_dialogue_action", "underworld_cook_dust")
+	assert(vun.get_item_count(vm, "dusk_dust") == fisp1_dust0 + 2 and p70_inv.gold == 35, "FIS-P1.4b: Distilling dusk_dust at home_workbench costs 25 gold and yields +2 dusk_dust")
+
+	# 5. Guardar y sacar oro usando las tablas sueltas físicas (`home_stash`)
+	var fisp1_stash_node: Node2D = root.get_tree().get_first_node_in_group("home_stash") as Node2D
+	fisp1_stash_node.call("on_dialogue_action", "housing_stash_put")
+	assert(int(vho.state(vm).get("stash_gold", 0)) == 25 and p70_inv.gold == 10, "FIS-P1.5a: Storing 25 gold via physical home_stash prop")
+	fisp1_stash_node.call("on_dialogue_action", "housing_stash_take")
+	assert(int(vho.state(vm).get("stash_gold", 0)) == 0 and p70_inv.gold == 35, "FIS-P1.5b: Taking hidden gold via physical home_stash prop")
+
+	# 6. Subir al altillo (+1) y volver a la planta baja (0) usando la escalera física (`home_stairs`)
+	var fisp1_stairs_node: Node2D = root.get_tree().get_first_node_in_group("home_stairs") as Node2D
+	p70_pl.global_position = vl.lot_def(fisp1_lot)["center"]
+	vm.set_player_elevation_level(0)
+	fisp1_stairs_node.call("interact", p70_pl)
+	assert(vm.player_elevation_level == 1, "FIS-P1.6a: Interacting with home_stairs climbs to upper floor (+1)")
+	fisp1_stairs_node.call("interact", p70_pl)
+	assert(vm.player_elevation_level == 0, "FIS-P1.6b: Interacting with home_stairs again descends to ground floor (0)")
+
+	# 7. Los diálogos con el carpintero y el perista ya NO ofrecen esconder oro, cambiar de piso ni destilar polvo
+	if fis4_carp != null:
+		var dlg_p1: Dictionary = {}
+		vho.add_dialogue_choices(vm, fis4_carp, dlg_p1, [{"label": "[Salir]", "next": "END"}])
+		for ch_p1 in (dlg_p1.get("housing_menu", {}) as Dictionary).get("choices", []):
+			var act_p1: String = str((ch_p1 as Dictionary).get("action", ""))
+			assert(not act_p1.begins_with("housing_stash_") and not act_p1.begins_with("housing_change_level") and act_p1 != "housing_hide_cellar", "FIS-P1.7a: NPC dialogue no longer offers stash or floor-change actions")
+	var fisp1_fence = vun.get_fence_npc(vm)
+	if fisp1_fence != null:
+		var dlg_uw1: Dictionary = {}
+		vun.add_dialogue_choices(vm, fisp1_fence, dlg_uw1, [{"label": "[Salir]", "next": "END"}])
+		for ch_uw1 in (dlg_uw1.get("underworld_menu", {}) as Dictionary).get("choices", []):
+			assert(str((ch_uw1 as Dictionary).get("action", "")) != "underworld_cook_dust", "FIS-P1.7b: Fence dialogue no longer offers underworld_cook_dust")
+
+	p70_pl.global_position = fisp1_pos_bak
+	t5_wc.current_day = fisp1_day_bak
+	fisp1_st["payer"] = fisp1_payer_bak
+	fisp1_st["status"] = fisp1_status_bak
+	fisp1_st["upgrades"] = fisp1_upg_bak
+	fisp1_st["has_garden"] = fisp1_gard_bak
+	vho.state(vm)["has_stash"] = fisp1_stash_bak
+	vho.state(vm)["stash_gold"] = fisp1_stashg_bak
+	vho.sync_home_props(vm)
+	print("Block FIS-P1 (Physical Home Interior: Garden, Workbench, Stash & Stairs) OK")
+
 	print("ALL RIMWORLD MEDICAL, FOOTPRINTS, 3-PHASE CORPSE REPORT, MULTI-CORPSE FIX, RPG INTERROGATION, PUBLIC TRIAL, DYNAMIC RELATIONSHIPS, MISSING FAMILY SEARCH, SOCIAL GLOSSARY & UNCONSCIOUS REACTION TESTS PASSED!")
 	quit(0)

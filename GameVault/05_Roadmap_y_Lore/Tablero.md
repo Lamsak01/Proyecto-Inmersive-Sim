@@ -63,6 +63,8 @@ kanban-plugin: board
 - [x] Terminal lógica, cuadro eléctrico y objetos de los 3 grandes robos hechos físicos en 2D y 3D (2026-11-05)
 - [x] Alcantarillas caminables de verdad: 3 rejillas en la calle, túneles subterráneos conectados, escalerillas y cofres de contrabando (2026-11-05)
 - [x] Rejillas y escalerillas de alcantarilla vigiladas: bajar o salir delante de un guardia sube la búsqueda y delante de un vecino deja chisme (2026-11-05)
+- [x] Ganado vivo del rancho y animales propios en tu corral con alimentación y esquila/recogida en persona (2026-11-05)
+- [x] Interior físico de tu propia casa: huerto cosechable, banco de trabajo y alquimia, escondite bajo las tablas y escalera/trampilla `+1`/`-1` con `[E]` (2026-11-05)
 
 - [x] Edificios con sus piezas quietas juntas (2026-11-06)
 - [x] Casas iniciales repartidas por los barrios y árboles agrupados para dibujar menos (2026-11-06)

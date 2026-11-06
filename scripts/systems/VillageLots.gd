@@ -537,6 +537,8 @@ static func _finish(vm, id: String, carp) -> void:
 		st["beds"] = _house_beds(id, has_up)
 		st["residents"] = []
 	_draw_lot(vm, id, st)
+	if "VillageHousing" in vm and vm.VillageHousing != null:
+		vm.VillageHousing.sync_home_props(vm)
 	var cfg: Dictionary = vm.trade_configs.get(VillageNPC.TradeRole.CARPENTER, {})
 	if carp != null:
 		carp.work_position = cfg.get("work_pos", carp.work_position)
@@ -621,3 +623,5 @@ static func after_load(vm) -> void:
 	load("res://scripts/systems/VillageNobility.gd").ensure_lots(vm)
 	for l in LOTS:
 		_draw_lot(vm, str(l["id"]), lot(vm, str(l["id"])))
+	if "VillageHousing" in vm and vm.VillageHousing != null:
+		vm.VillageHousing.sync_home_props(vm)
