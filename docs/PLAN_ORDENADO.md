@@ -19,7 +19,7 @@
 
 | # | Qué | En palabras de jugador | De dónde sale |
 |---|---|---|---|
-| B1 | **Interior de tu casa** | Huerto, banco de trabajo, escondite bajo las tablas y escaleras de tu casa se usan con [E] dentro de ella, no hablando con vecinos; ya no aparece comida sola cada dos días | Auditoría fila 1 (la más prioritaria de esa lista) |
+| B1 | ✅ **Interior de tu casa** (ya hecho en el bloque FIS-P1 del 2026-11-05; comprobado por el supervisor el 2026-11-06) | Huerto, banco de trabajo, escondite bajo las tablas y escaleras de tu casa se usan con [E] dentro de ella, no hablando con vecinos; ya no aparece comida sola cada dos días | Auditoría fila 1 (la más prioritaria de esa lista) |
 | B2 | **Peleas de gallos y carreras de animales** | Un corro de verdad y una carrera en el rancho con animales reales, en vez de una tirada en la charla | Auditoría fila 8 (aplazado por el usuario) |
 | B3 | **Rendimiento** | Que el juego vaya fluido en un ordenador modesto (hoy ~10 imágenes por segundo con 40 vecinos en el portátil) | Beta §3.7 |
 | B4 | **Guardar y cargar sin sustos** | Una partida larga guardando y cargando a mitad sin que se rompa nada | Beta §3.7 |
