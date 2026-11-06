@@ -1,6 +1,13 @@
 # Propuesta de bucle jugable para la primera beta (borrador para hablar)
 
-> Escrito por Claude Code la noche del 2026-11-06 para pensarlo con el usuario. **Nada de esto está decidido.**
+> Escrito por Claude Code la noche del 2026-11-06 para pensarlo con el usuario.
+
+## 0. Decisiones del usuario (2026-11-06, mañana)
+
+- **Hilo: un misterio** (aparece un muerto y hay que descubrir quién fue). Sustituye a «la primera semana del forastero».
+- **Con final y resumen** de lo que hiciste.
+- **Duración: 1 a 2 horas** por partida.
+- **Tus amigos juegan en Windows** (hay que exportar el juego para Windows).
 
 ## 1. La idea en una frase
 
