@@ -7,8 +7,8 @@
 |---|--------|--------|
 | 1 | COMBATE-1: rodar (Espacio) y parar (Q), golpes enemigos con aviso | ✅ hecho (07:54) |
 | 2 | ANIM-1: arreglar animaciones (pasos que patinan al andar; armas sujetas al revés, girar 180°) — aviso del usuario | ✅ hecho (08:10); falta que el usuario lo vea en movimiento |
-| 3 | P1: tu tienda propia y su dependiente | siguiente — encargo ya escrito en `docs/ENCARGO_ANTIGRAVITY.md` |
-| 4 | P2: la carreta física | pendiente |
+| 3 | P1: tu tienda propia y su dependiente | ✅ hecho (11:06) |
+| 4 | P2: la carreta física | siguiente — encargo en `docs/ENCARGO_P2_CARRETA.md` |
 | 5 | P3: caravanas comerciales y de contrabando | pendiente |
 | 6 | P4: cenas, fiestas y banquete de paz | pendiente |
 | 7 | P5: rentas, encargos y desfalcos en su sitio | pendiente |

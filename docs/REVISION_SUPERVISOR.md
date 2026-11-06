@@ -131,3 +131,11 @@ existen. Arranque sin errores. Las cuatro pruebas se pasan al final de la mañan
 Zancadas medidas en el esqueleto real (walk 21,65 px/s, run 56,15 px/s, carry 14,37 px/s) y velocidad de animación según
 la velocidad real; armas giradas en la mano. Arranque sin errores y las cuatro pruebas pasan. Pendiente: que el usuario
 lo vea en movimiento.
+
+## P1 — APROBADO (11:15)
+
+Mostrador y caja con [E] en tu solar (2D y 3D), dependiente que camina a su puesto de 8 a 18 h y clientes que van
+andando y pagan de su bolsillo a la caja (suma cero). El código usa funciones que existen. **Fallos del informe** (no del
+código): nombra `receive_good` y `finish_errand`, que no existen (el código usa `add_pocket_item` y `end_errand`), y
+dice «hasta 6 objetos» al reponer cuando el código pone 2 por pulsación. Prueba: según Antigravity, `verify_all` pasa;
+el supervisor no la ha repetido (regla nueva: una sola prueba por bloque; se comprobará en la ronda de auditoría).
