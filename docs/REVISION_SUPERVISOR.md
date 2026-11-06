@@ -146,3 +146,11 @@ Carreta física en 2D (dibujo provisional) y 3D, agarrar a mano (×0,55) o engan
 rastro, caja de carga de 40, robo nocturno al vecino más pobre con testigo, y reponer 6 en el mostrador. Antigravity se
 quedó sin sesión de Google justo al pasar la prueba: el supervisor pasó `verify_all` (pasa, «Block P2 … OK») e hizo el
 commit. Lo robado va al bolsillo del ladrón (`add_pocket_item`), no a un cofre familiar.
+
+## P3 — Caravanas (revisado por Claude Code, 2026-11-06)
+
+- **Aprobado.** Las funciones que cita el informe existen todas. Su prueba pasa (bloque `P3`).
+- **Unión con P5b y P5 (hechos por Claude Code en paralelo):** había dos `VillageUnderworld.on_hour`; la del perista
+  pasa a llamarse `fence_on_hour`. La excepción nocturna de la redada (`smuggler_bust`) se añade a la nueva lista
+  `VillageNPC.NIGHT_ERRANDS` (úsala para todo recado nocturno nuevo, p. ej. el club de P6 y los sabotajes).
+

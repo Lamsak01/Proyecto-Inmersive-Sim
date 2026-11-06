@@ -11,6 +11,12 @@
   `timeout 900`). Nada de tipos de clase del juego en las variables del test.
 - No toques nada fuera de este encargo. Si ves otra cosa rota, apúntala en el informe.
 
+## Aviso del supervisor (trampa conocida)
+- Los vecinos **cancelan sus recados al caer la noche** salvo que el recado esté en `VillageNPC.NIGHT_ERRANDS`
+  (hoy: `fence_alley`, `smuggler_bust`). Las veladas empiezan a las 20:00–21:00: **añade `"gathering"`** (y el recado de
+  la posadera que cocina, si le pones otro nombre) a esa lista, o los invitados se irán a dormir a mitad de camino.
+- `VillageNeeds.tick` pone tiempo máximo a los recados; mira cómo se excluye `fence_alley` y haz lo mismo si hace falta.
+
 ## Cómo está ahora
 - `VillageHousing.on_player_action`: `housing_dinner` (cena con un vecino, −10 de oro a la posada) y `housing_party`
   (fiesta, −20 de oro a la posada, vienen solos 4 vecinos con afinidad ≥ 10). Todo se resuelve al instante en la charla.

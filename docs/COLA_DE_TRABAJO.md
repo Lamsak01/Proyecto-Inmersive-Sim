@@ -9,10 +9,10 @@
 | 2 | ANIM-1: arreglar animaciones (pasos que patinan al andar; armas sujetas al revés, girar 180°) — aviso del usuario | ✅ hecho (08:10); falta que el usuario lo vea en movimiento |
 | 3 | P1: tu tienda propia y su dependiente | ✅ hecho (11:06) |
 | 4 | P2: la carreta física | ✅ hecho (12:30) |
-| 5 | P3: caravanas comerciales y de contrabando | siguiente — `docs/ENCARGO_P3_CARAVANAS.md` |
-| 6 | P4: cenas, fiestas y banquete de paz | encargo listo — `docs/ENCARGO_P4_CENAS.md` |
-| 7 | P5: rentas, encargos y desfalcos en su sitio | encargo listo — `docs/ENCARGO_P5_RENTAS.md` |
-| 7b | P5b: el perista trasnocha en el callejón de la taberna y hay rumores para encontrarlo (fallo visto por el usuario) | encargo listo — `docs/ENCARGO_P5B_PERISTA.md` |
+| 5 | P3: caravanas comerciales y de contrabando | ✅ hecho (14:24, Antigravity) |
+| 6 | P4: cenas, fiestas y banquete de paz | siguiente (Antigravity) — `docs/ENCARGO_P4_CENAS.md` |
+| 7 | P5: rentas, encargos y desfalcos en su sitio | ✅ hecho (Claude Code, en paralelo) |
+| 7b | P5b: el perista trasnocha en el callejón de la taberna y hay rumores para encontrarlo (fallo visto por el usuario) | ✅ hecho (Claude Code, en paralelo) |
 | 8 | P6: peleas clandestinas en un sótano de la taberna y sabotajes nocturnos (expediciones y animales, más adelante) | encargo listo — `docs/ENCARGO_P6_PELEAS_SABOTAJES.md` |
 | 9 | Inventario de todo lo demás planeado, ordenado de fácil a difícil (`docs/PLAN_ORDENADO.md`) y empezar por lo fácil | ✅ lista hecha (12:55); falta empezar por lo fácil |
 
