@@ -513,7 +513,8 @@ static func _spawn_farm_well_and_compost(vm: VillageManager) -> void:
 	vm._plaza_well_label = vm._make_station_label(vm._plaza_well_pos + Vector2(-135, -28), "🪣 Pozo de la Plaza Central [E: Llenar Recipiente / Lavar Heridas y Sangre]")
 	vm.entities_root.add_child(vm._plaza_well_label)
 
-	vm._add_sprite_prop(vm._load_tex("res://assests/world/village/compost_bin.png"), vm._compost_pos, Vector2(1.25, 1.25), 0)
-	vm._add_station_area("CompostBinArea", vm._compost_pos, 10.0, "compost")
+	vm._compost_sprite = vm._add_sprite_prop(vm._load_tex("res://assests/world/village/compost_bin.png"), vm._compost_pos, Vector2(1.25, 1.25), 0)
+	vm._compost_area = vm._add_station_area("CompostBinArea", vm._compost_pos, 10.0, "compost")
 	vm._compost_label = vm._make_station_label(vm._compost_pos + Vector2(-115, -28), "♻️ Compostador [E: Crear Abono con Hierba/Hongo]")
 	vm.entities_root.add_child(vm._compost_label)
+	vm.set_camp_farm_enabled(false)

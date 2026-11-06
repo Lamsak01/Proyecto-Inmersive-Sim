@@ -658,8 +658,6 @@ static func _build_dialogue(npc: VillageNPC) -> Dictionary:
 					"text": "Soy %s de la %s (%s). %s%s%s\n[Stock Tablones: %d | Madera: %d]" % [npc.npc_name, npc.family_name, npc.npc_role, needs_line, discount_tag, npc._get_market_header_line(), int(npc.shop_stock.get("repair_kit", 0)), int(npc.shop_stock.get("wood", 0))],
 					"choices": [
 						{"label": "📜 Negocio, Escritura de Propiedad y Caja Registradora", "next": "END", "action": "open_business_panel"},
-						{"label": "🛖 Construir Cabaña de Madera en tu Campamento (Nv.2: -30 Oro)", "next": "start", "action": "upgrade_camp_house:2:30"},
-						{"label": "🏡 Construir Casa de Piedra con Cofre Propio (Nv.3: -55 Oro)", "next": "start", "action": "upgrade_camp_house:3:55"},
 						{"label": "⚡ Comprar 1 Bobina de Cobre para Generador/Aspersor (-%d Oro) [Stock: %d]" % [npc._get_dynamic_buy_price(16), int(npc.shop_stock.get("copper_coil", 0))], "next": "start", "action": "buy:copper_coil:16"},
 						{"label": "🪵 Vender 1 Madera (+%d Oro)" % npc._get_dynamic_sell_price(8), "next": "start", "action": "sell:wood:8"},
 						{"label": "🔨 Comprar 1 Tablones Reforzados (-%d Oro) [Stock: %d]" % [npc._get_dynamic_buy_price(15), int(npc.shop_stock.get("repair_kit", 0))], "next": "start", "action": "buy:repair_kit:15"},
@@ -668,7 +666,7 @@ static func _build_dialogue(npc: VillageNPC) -> Dictionary:
 						{"label": "Hasta pronto. [Salir]", "next": "END"}
 					]
 				},
-				"family_chat": {"text": "Construimos todas las casas de esta aldea con muros sólidos y puertas de madera. Si quieres ampliar tu tienda de campaña a una Cabaña o Casa de Piedra con Cofre, yo mismo te la levanto.", "choices": [{"label": "Así se hace. [Volver]", "next": "start"}]}
+				"family_chat": {"text": "Construimos todas las casas de esta aldea con muros sólidos y puertas de madera. Si quieres dejar la tienda de campaña y tener una casa propia en un solar del pueblo, encárgamela y yo mismo iré a levantarla.", "choices": [{"label": "Así se hace. [Volver]", "next": "start"}]}
 			}
 		VillageNPC.TradeRole.HERBALIST:
 			return {"start": {

@@ -19,7 +19,10 @@ const GENERATOR_OFFSET := Vector2(36, -20)
 const SPRINKLER_OFFSET := Vector2(-29, 75) # Global Vector2(-101, -21) -> centro del Huerto 3x3 relativo a (-72, -96)
 const CHEST_OFFSET := Vector2(-64, -30)
 
-var house_tier: int = 1 # 1 = Tienda, 2 = Cabaña de Madera, 3 = Casa de Piedra con Cofre
+var house_tier: int = 1 # 1 = Tienda de Campaña (las casas de verdad se levantan en los solares del pueblo)
+var camp_farm_built: bool = false
+var camp_coop_built: bool = false
+var generator_installed: bool = false
 var generator_active: bool = false
 var sprinkler_installed: bool = false
 var chest_gold_stored: int = 0
@@ -79,6 +82,7 @@ func _ready() -> void:
 		if GameManager:
 			GameManager.game_loaded.connect(_on_game_loaded)
 		_load_saved_state()
+		call_deferred("_sync_camp_facilities")
 
 func _process(delta: float) -> void:
 	if Engine.is_editor_hint():
@@ -117,14 +121,14 @@ func _process(delta: float) -> void:
 	_near_pot = player != null and player.global_position.distance_squared_to(pot_world) <= 20.0 * 20.0
 	_near_seat = player != null and player.global_position.distance_squared_to(seat_world) <= 15.0 * 15.0
 	_near_sign = player != null and player.global_position.distance_squared_to(sign_world) <= 20.0 * 20.0
-	_near_generator = player != null and player.global_position.distance_squared_to(gen_world) <= 22.0 * 22.0
+	_near_generator = generator_installed and player != null and player.global_position.distance_squared_to(gen_world) <= 22.0 * 22.0
 	_near_chest = house_tier >= 3 and player != null and player.global_position.distance_squared_to(chest_world) <= 22.0 * 22.0
 
 	_upd_lbl(tent_label, _near_tent or tent_world.distance_squared_to(mouse_pos) <= 256.0, _get_tent_prompt())
 	_upd_lbl(pot_label, _near_pot or pot_world.distance_squared_to(mouse_pos) <= 144.0, _get_pot_prompt())
 	_upd_lbl(seat_label, _near_seat or seat_world.distance_squared_to(mouse_pos) <= 100.0 or is_player_sitting, _get_seat_prompt())
 	_upd_lbl(sign_label, _near_sign or sign_world.distance_squared_to(mouse_pos) <= 196.0, _get_sign_prompt())
-	_upd_lbl(generator_label, _near_generator or gen_world.distance_squared_to(mouse_pos) <= 196.0, _get_generator_prompt())
+	_upd_lbl(generator_label, generator_installed and (_near_generator or gen_world.distance_squared_to(mouse_pos) <= 196.0), _get_generator_prompt())
 	_upd_lbl(chest_label, _near_chest or (house_tier >= 3 and chest_world.distance_squared_to(mouse_pos) <= 196.0), "📦 Cofre Propio (%d Oro guardado) [E: Abrir]" % chest_gold_stored)
 
 func _upd_lbl(lbl: Label, vis: bool, txt: String) -> void:
@@ -147,15 +151,18 @@ func _unhandled_input(event: InputEvent) -> void:
 	if upgrade_panel and upgrade_panel.visible:
 		if event is InputEventKey and event.pressed and not event.echo:
 			if event.keycode == KEY_1:
-				_on_upgrade_house_pressed()
+				_on_build_camp_farm_pressed()
 				get_viewport().set_input_as_handled()
 			elif event.keycode == KEY_2:
-				_on_build_generator_pressed()
+				_on_build_camp_coop_pressed()
 				get_viewport().set_input_as_handled()
 			elif event.keycode == KEY_3:
+				_on_build_generator_pressed()
+				get_viewport().set_input_as_handled()
+			elif event.keycode == KEY_4:
 				_on_build_sprinkler_pressed()
 				get_viewport().set_input_as_handled()
-			elif event.keycode in [KEY_4, KEY_ESCAPE]:
+			elif event.keycode in [KEY_5, KEY_ESCAPE]:
 				upgrade_panel.visible = false
 				get_viewport().set_input_as_handled()
 		return
@@ -344,11 +351,35 @@ func _setup_upgrade_sign() -> void:
 # --- 5. GENERADOR ANTIGUO Y ASPERSOR AUTOMÁTICO (Paso 10) ---
 func _setup_generator_and_sprinkler() -> void:
 	generator_sprite = _add_prop_sprite(self, "AncientGeneratorSprite", "res://assests/world/village/ancient_generator.png", GENERATOR_OFFSET, 1.1)
-	_add_interact_area(self, "GeneratorInteractArea", GENERATOR_OFFSET, 7.0)
+	generator_sprite.visible = generator_installed
+	var gen_area := _add_interact_area(self, "GeneratorInteractArea", GENERATOR_OFFSET, 7.0)
+	gen_area.monitoring = generator_installed
+	gen_area.monitorable = generator_installed
 	generator_label = _create_label(GENERATOR_OFFSET + Vector2(-115, -28), Color(0.55, 0.92, 1.0))
 	add_child(generator_label)
 	sprinkler_sprite = _add_prop_sprite(self, "AutoSprinklerSprite", "res://assests/world/village/auto_sprinkler.png", SPRINKLER_OFFSET, 1.1, 4)
-	sprinkler_sprite.visible = sprinkler_installed
+	sprinkler_sprite.visible = sprinkler_installed and camp_farm_built
+
+func _sync_camp_facilities() -> void:
+	if generator_sprite:
+		generator_sprite.visible = generator_installed
+	var gen_area: Area2D = get_node_or_null("GeneratorInteractArea") as Area2D
+	if gen_area:
+		gen_area.monitoring = generator_installed
+		gen_area.monitorable = generator_installed
+	if sprinkler_sprite:
+		sprinkler_sprite.visible = sprinkler_installed and camp_farm_built
+	if not is_inside_tree() or get_tree() == null:
+		return
+	for plot in get_tree().get_nodes_in_group("farm_plots"):
+		if plot != null and is_instance_valid(plot) and plot.has_method("set_plot_enabled"):
+			plot.call("set_plot_enabled", camp_farm_built)
+	var coop: Node2D = get_tree().get_first_node_in_group("chicken_coop") as Node2D
+	if coop != null and is_instance_valid(coop) and coop.has_method("set_coop_built"):
+		coop.call("set_coop_built", camp_coop_built)
+	var vm: Node = get_tree().get_first_node_in_group("village_manager")
+	if vm != null and is_instance_valid(vm) and vm.has_method("set_camp_farm_enabled"):
+		vm.call("set_camp_farm_enabled", camp_farm_built)
 
 func _make_modal_panel(half_sz: Vector2, bg: Color, border: Color, mx: int, my: int, sep: int) -> Array:
 	var p := PanelContainer.new()
@@ -409,14 +440,15 @@ func _setup_sleep_confirm_ui() -> void:
 	_make_ui_btn(btn_row, "  [2] No  ", _on_sleep_cancelled)
 
 func _setup_upgrade_ui() -> void:
-	var res := _make_modal_panel(Vector2(235, 115), Color(0.08, 0.10, 0.14, 0.97), Color(0.88, 0.72, 0.36, 1.0), 16, 12, 8)
+	var res := _make_modal_panel(Vector2(245, 130), Color(0.08, 0.10, 0.14, 0.97), Color(0.88, 0.72, 0.36, 1.0), 16, 12, 8)
 	upgrade_panel = res[0]
 	var vbox: VBoxContainer = res[1]
 	upgrade_desc_lbl = _make_ui_lbl(vbox, "", 12, Color(0.98, 0.94, 0.80))
-	_make_ui_btn(vbox, "[1] 🏡 Mejorar Vivienda (Nv.2 Cabaña: 30 Oro | Nv.3 Casa Piedra+Cofre: 55 Oro)", _on_upgrade_house_pressed)
-	_make_ui_btn(vbox, "[2] ⚡ Activar/Alternar Generador Eléctrico Antiguo (1 Bobina Cobre o 18 Oro)", _on_build_generator_pressed)
-	_make_ui_btn(vbox, "[3] 💦 Instalar Aspersor Automático en Huerto 3x3 (1 Bobina Cobre o 15 Oro)", _on_build_sprinkler_pressed)
-	_make_ui_btn(vbox, "[4 / ESC] Cerrar", func(): upgrade_panel.visible = false)
+	_make_ui_btn(vbox, "[1] 🌱 Preparar Huerto 3×3 y Compostador (3 Madera o 20 Oro)", _on_build_camp_farm_pressed)
+	_make_ui_btn(vbox, "[2] 🐔 Construir Gallinero con 3 Gallinas (4 Madera o 30 Oro)", _on_build_camp_coop_pressed)
+	_make_ui_btn(vbox, "[3] ⚡ Instalar / Alternar Generador Eléctrico (1 Bobina Cobre o 18 Oro)", _on_build_generator_pressed)
+	_make_ui_btn(vbox, "[4] 💦 Instalar Aspersor Automático en Huerto 3×3 (1 Bobina Cobre o 15 Oro)", _on_build_sprinkler_pressed)
+	_make_ui_btn(vbox, "[5 / ESC] Cerrar", func(): upgrade_panel.visible = false)
 
 func _setup_chest_ui() -> void:
 	var res := _make_modal_panel(Vector2(195, 85), Color(0.09, 0.08, 0.12, 0.96), Color(0.92, 0.76, 0.34, 1.0), 16, 12, 8)
@@ -441,7 +473,7 @@ func interact(player: Node2D) -> void:
 	var d_pot: float = player.global_position.distance_squared_to(pot_world)
 	var d_seat: float = player.global_position.distance_squared_to(seat_world)
 	var d_sign: float = player.global_position.distance_squared_to(sign_world)
-	var d_gen: float = player.global_position.distance_squared_to(gen_world)
+	var d_gen: float = player.global_position.distance_squared_to(gen_world) if generator_installed else 999999.0
 	var d_chest: float = player.global_position.distance_squared_to(chest_world) if house_tier >= 3 else 999999.0
 
 	if is_player_sitting:
@@ -465,11 +497,11 @@ func interact(player: Node2D) -> void:
 func _open_upgrade_ui() -> void:
 	if not upgrade_panel:
 		return
-	var tier_names: Array[String] = ["⛺ Nv.1 Tienda de Campaña", "🛖 Nv.2 Cabaña de Madera", "🏡 Nv.3 Casa de Piedra con Cofre"]
-	var t_name: String = tier_names[clampi(house_tier - 1, 0, 2)]
-	var gen_str: String = "⚡ ACTIVO" if generator_active else "⚪ Apagado"
+	var farm_str: String = "🌱 Listo" if camp_farm_built else "⚪ Sin cavar"
+	var coop_str: String = "🐔 Listo" if camp_coop_built else "⚪ Sin construir"
+	var gen_str: String = ("⚡ ACTIVO" if generator_active else "⚪ Apagado") if generator_installed else "⚪ No instalado"
 	var spr_str: String = "💦 INSTALADO" if sprinkler_installed else "⚪ No instalado"
-	upgrade_desc_lbl.text = "🔨 Mesa de Obras y Electrificación del Hogar\nVivienda actual: %s | Generador: %s | Aspersor: %s" % [t_name, gen_str, spr_str]
+	upgrade_desc_lbl.text = "🔨 Mesa de Obras del Campamento (Para una casa de verdad, habla con el carpintero en el pueblo)\nHuerto: %s | Gallinero: %s | Generador: %s | Aspersor: %s" % [farm_str, coop_str, gen_str, spr_str]
 	upgrade_panel.visible = true
 
 func _open_chest_ui() -> void:
@@ -541,12 +573,64 @@ func _on_upgrade_house_pressed() -> void:
 		var label_str: String = "🛖 ¡Cabaña de Madera Propia construida!" if house_tier == 2 else "🏡 ¡Casa de Piedra con Cofre Propio construida!"
 		player._spawn_floating_text(label_str, Color.SPRING_GREEN, -46.0)
 
+func _on_build_camp_farm_pressed() -> void:
+	var player = get_tree().get_first_node_in_group("player")
+	var inv: SimpleInventory = player.get("inventory") if player else null
+	if camp_farm_built:
+		if player and player.has_method("_spawn_floating_text"):
+			player._spawn_floating_text("🌱 Ya has preparado el Huerto 3×3 y el Compostador del campamento", Color.SPRING_GREEN, -42.0)
+		return
+	var paid: bool = false
+	if inv and inv.has_item("wood", 3):
+		inv.remove_item("wood", 3)
+		paid = true
+	elif inv and inv.gold >= 20:
+		inv.add_gold(-20)
+		paid = true
+	if not paid:
+		if player and player.has_method("_spawn_floating_text"):
+			player._spawn_floating_text("🌱 Necesitas 3 de Madera o 20 de Oro para preparar el Huerto y Compostador", Color.ORANGE_RED, -42.0)
+		return
+	camp_farm_built = true
+	_sync_camp_facilities()
+	_save_state()
+	if upgrade_panel and upgrade_panel.visible:
+		_open_upgrade_ui()
+	if player and player.has_method("_spawn_floating_text"):
+		player._spawn_floating_text("🌱 ¡Huerto 3×3 y Compostador listos en tu campamento!", Color.SPRING_GREEN, -44.0)
+
+func _on_build_camp_coop_pressed() -> void:
+	var player = get_tree().get_first_node_in_group("player")
+	var inv: SimpleInventory = player.get("inventory") if player else null
+	if camp_coop_built:
+		if player and player.has_method("_spawn_floating_text"):
+			player._spawn_floating_text("🐔 Ya has construido el Gallinero del campamento", Color.GOLD, -42.0)
+		return
+	var paid: bool = false
+	if inv and inv.has_item("wood", 4):
+		inv.remove_item("wood", 4)
+		paid = true
+	elif inv and inv.gold >= 30:
+		inv.add_gold(-30)
+		paid = true
+	if not paid:
+		if player and player.has_method("_spawn_floating_text"):
+			player._spawn_floating_text("🐔 Necesitas 4 de Madera o 30 de Oro para construir el Gallinero", Color.ORANGE_RED, -42.0)
+		return
+	camp_coop_built = true
+	_sync_camp_facilities()
+	_save_state()
+	if upgrade_panel and upgrade_panel.visible:
+		_open_upgrade_ui()
+	if player and player.has_method("_spawn_floating_text"):
+		player._spawn_floating_text("🐔 ¡Gallinero con 3 Gallinas construido en tu campamento!", Color.GOLD, -44.0)
+
 func _on_build_generator_pressed() -> void:
 	var player = get_tree().get_first_node_in_group("player")
 	var inv: SimpleInventory = player.get("inventory") if player else null
 	if not generator_active:
 		var can_power: bool = false
-		if GameManager and bool(GameManager.get_flag("generator_unlocked", false)):
+		if generator_installed or (GameManager and bool(GameManager.get_flag("generator_unlocked", false))):
 			can_power = true
 		elif inv and inv.has_item("copper_coil", 1):
 			inv.remove_item("copper_coil", 1)
@@ -556,19 +640,21 @@ func _on_build_generator_pressed() -> void:
 			can_power = true
 		if not can_power:
 			if player and player.has_method("_spawn_floating_text"):
-				player._spawn_floating_text("⚡ Necesitas 1 Bobina de Cobre o 18 Oro para activar el Generador", Color.ORANGE_RED, -42.0)
+				player._spawn_floating_text("⚡ Necesitas 1 Bobina de Cobre o 18 Oro para instalar el Generador", Color.ORANGE_RED, -42.0)
 			return
+		generator_installed = true
 		if GameManager:
 			GameManager.set_flag("generator_unlocked", true)
 		generator_active = true
-		if sprinkler_installed:
+		_sync_camp_facilities()
+		if sprinkler_installed and camp_farm_built:
 			_run_auto_sprinkler()
 		if player and player.has_method("_spawn_floating_text"):
-			player._spawn_floating_text("⚡ ¡Generador Antiguo ENCENDIDO! Red eléctrica y Aspersor activos", Color.CYAN, -44.0)
+			player._spawn_floating_text("⚡ ¡Generador Eléctrico instalado y ENCENDIDO!", Color.CYAN, -44.0)
 	else:
 		generator_active = false
 		if player and player.has_method("_spawn_floating_text"):
-			player._spawn_floating_text("⚪ Generador Antiguo apagado", Color.LIGHT_GRAY, -42.0)
+			player._spawn_floating_text("⚪ Generador Eléctrico apagado", Color.LIGHT_GRAY, -42.0)
 	_save_state()
 	if upgrade_panel and upgrade_panel.visible:
 		_open_upgrade_ui()
@@ -576,6 +662,10 @@ func _on_build_generator_pressed() -> void:
 func _on_build_sprinkler_pressed() -> void:
 	var player = get_tree().get_first_node_in_group("player")
 	var inv: SimpleInventory = player.get("inventory") if player else null
+	if not camp_farm_built:
+		if player and player.has_method("_spawn_floating_text"):
+			player._spawn_floating_text("🌱 Primero debes preparar el Huerto 3×3 [Opción 1]", Color.ORANGE_RED, -42.0)
+		return
 	if sprinkler_installed:
 		_run_auto_sprinkler()
 		if player and player.has_method("_spawn_floating_text"):
@@ -593,8 +683,7 @@ func _on_build_sprinkler_pressed() -> void:
 			player._spawn_floating_text("💦 Necesitas 1 Bobina de Cobre o 15 Oro para instalar el Aspersor", Color.ORANGE_RED, -42.0)
 		return
 	sprinkler_installed = true
-	if sprinkler_sprite:
-		sprinkler_sprite.visible = true
+	_sync_camp_facilities()
 	if generator_active:
 		_run_auto_sprinkler()
 	_save_state()
@@ -740,10 +829,10 @@ func _get_tent_prompt() -> String:
 	return "%s [Dormir disponible de noche: 20:00]" % h_title
 
 func _get_sign_prompt() -> String:
-	return "🔨 Mesa de Obras (Casa Nv.%d/3 | Electricidad) [E: Abrir]" % house_tier
+	return "🔨 Mesa de Obras del Campamento [E: Construir Huerto / Gallinero / Mejoras]"
 
 func _get_generator_prompt() -> String:
-	return "⚡ Generador Antiguo: ACTIVO [E: Apagar]" if generator_active else "⚡ Generador Antiguo: APAGADO [E: Encender]"
+	return "⚡ Generador Eléctrico: ACTIVO [E: Apagar]" if generator_active else "⚡ Generador Eléctrico: APAGADO [E: Encender]"
 
 func _get_pot_prompt() -> String:
 	var player = get_tree().get_first_node_in_group("player")
@@ -764,11 +853,12 @@ func _get_seat_prompt() -> String:
 func _save_state() -> void:
 	if Engine.is_editor_hint() or not GameManager:
 		return
-	var gen_unlocked: bool = generator_active or bool(GameManager.get_flag("generator_unlocked", false))
+	var gen_unlocked: bool = generator_installed or generator_active or bool(GameManager.get_flag("generator_unlocked", false))
 	GameManager.set_flag("generator_unlocked", gen_unlocked)
 	GameManager.set_flag("electric_grid_active", generator_active)
 	GameManager.set_flag("player_campsite_state", {
-		"house_tier": house_tier, "generator_active": generator_active, "generator_unlocked": gen_unlocked,
+		"house_tier": house_tier, "camp_farm_built": camp_farm_built, "camp_coop_built": camp_coop_built,
+		"generator_installed": generator_installed, "generator_active": generator_active, "generator_unlocked": gen_unlocked,
 		"sprinkler_installed": sprinkler_installed, "chest_gold": chest_gold_stored
 	})
 
@@ -779,13 +869,15 @@ func _load_saved_state() -> void:
 	if typeof(saved) == TYPE_DICTIONARY:
 		house_tier = clampi(int(saved.get("house_tier", 1)), 1, 3)
 		generator_active = bool(saved.get("generator_active", false))
+		generator_installed = bool(saved.get("generator_installed", generator_active or bool(saved.get("generator_unlocked", false))))
 		sprinkler_installed = bool(saved.get("sprinkler_installed", false))
+		camp_farm_built = bool(saved.get("camp_farm_built", sprinkler_installed))
+		camp_coop_built = bool(saved.get("camp_coop_built", false))
 		chest_gold_stored = int(saved.get("chest_gold", 0))
-		GameManager.set_flag("generator_unlocked", generator_active or bool(saved.get("generator_unlocked", false)))
+		GameManager.set_flag("generator_unlocked", generator_installed or generator_active or bool(saved.get("generator_unlocked", false)))
 		GameManager.set_flag("electric_grid_active", generator_active)
-		if sprinkler_sprite:
-			sprinkler_sprite.visible = sprinkler_installed
 		_rebuild_house_visuals()
+		_sync_camp_facilities()
 
 func _on_game_loaded(_filepath: String) -> void:
 	if is_player_sitting:

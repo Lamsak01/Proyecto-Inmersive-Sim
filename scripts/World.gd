@@ -163,6 +163,7 @@ func _spawn_player_garden(entities_root: Node) -> void:
 			plot.name = "FarmPlot_%d" % idx
 			entities_root.add_child(plot)
 			plot.global_position = start_pos + Vector2(col * spacing, row * spacing)
+			plot.set_plot_enabled(false)
 			idx += 1
 
 	# B. Campamento (Hoguera con Cacerola para cocinar + Tronco para sentarse + Tienda de Campaña)
@@ -176,6 +177,7 @@ func _spawn_player_garden(entities_root: Node) -> void:
 	coop.name = "PlayerChickenCoop"
 	entities_root.add_child(coop)
 	coop.global_position = Vector2(-198, -21)
+	coop.set_coop_built(false)
 
 	# D. Lago y Muelle de Pesca al Sur del Campamento
 	var lake := FishingSpot.new()

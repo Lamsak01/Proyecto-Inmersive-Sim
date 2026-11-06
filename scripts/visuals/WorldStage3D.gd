@@ -2178,6 +2178,7 @@ func _sync_coop_3d() -> void:
 		_coop_gap_3d = Node3D.new()
 		_coop_3d.add_child(_coop_gap_3d)
 		_build_fence_run_3d(_coop_gap_3d, c + Vector2(-12, 30), c + Vector2(12, 30), m_post)
+	_coop_3d.visible = _coop_node.is_visible_in_tree()
 	if is_instance_valid(_coop_gap_3d):
 		_coop_gap_3d.visible = not bool(_coop_node.get("is_breached"))
 

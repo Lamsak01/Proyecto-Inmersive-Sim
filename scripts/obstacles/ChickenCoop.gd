@@ -14,6 +14,7 @@ var feeder_level: int = 1 # 0 = Vacío, 1 = Mitad (1/2), 2 = Lleno (2/2)
 var eggs_in_nest: int = 2
 var golden_eggs_in_nest: int = 0
 var is_breached: bool = false
+var coop_built: bool = false
 var fence_hp: float = 3.0
 const MAX_FENCE_HP: float = 3.0
 
@@ -287,7 +288,28 @@ func _on_chicken_pet_confirmed() -> void:
 		player._spawn_floating_text("🐔❤️ ¡Clo-clo! (Gallina feliz)", Color.PINK, -40.0)
 	_selected_chicken = {}
 
+func set_coop_built(built: bool) -> void:
+	coop_built = built
+	visible = built
+	var area: Area2D = get_node_or_null("CoopInteractArea") as Area2D
+	if area:
+		area.monitoring = built
+		area.monitorable = built
+	for chk in chickens:
+		var spr: Sprite2D = chk.get("sprite")
+		if is_instance_valid(spr):
+			for ch in spr.get_children():
+				if ch is Area2D:
+					(ch as Area2D).monitoring = built
+					(ch as Area2D).monitorable = built
+	if not built:
+		_player_near = false
+		if status_label:
+			status_label.visible = false
+
 func has_live_chickens() -> bool:
+	if not visible:
+		return false
 	if not chickens.is_empty():
 		return true
 	return is_inside_tree() and not get_tree().get_nodes_in_group("player_livestock").is_empty()
@@ -338,12 +360,16 @@ func steal_chicken_by_fox() -> bool:
 	return true
 
 func _process(delta: float) -> void:
+	if not visible and not _player_near:
+		if status_label:
+			status_label.visible = false
+		return
 	if _warn_cooldown > 0.0:
 		_warn_cooldown -= delta
 
 	_update_chickens_motion(delta)
 
-	var mouse_near := global_position.distance_squared_to(get_global_mouse_position()) <= 42.0 * 42.0
+	var mouse_near := visible and global_position.distance_squared_to(get_global_mouse_position()) <= 42.0 * 42.0
 	if status_label:
 		if _player_near or mouse_near:
 			status_label.text = _get_coop_prompt()

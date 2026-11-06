@@ -92,10 +92,23 @@ func _ready() -> void:
 	set_process(not Engine.is_editor_hint())
 	_refresh_visuals()
 
+func set_plot_enabled(en: bool) -> void:
+	visible = en
+	if interact_area:
+		interact_area.monitoring = en
+		interact_area.monitorable = en
+	if not en:
+		_player_inside = false
+		if status_label:
+			status_label.visible = false
+
 func _process(_delta: float) -> void:
 	if Engine.is_editor_hint():
 		return
 	if not status_label:
+		return
+	if not visible:
+		status_label.visible = false
 		return
 	var mouse_near := global_position.distance_squared_to(get_global_mouse_position()) <= 16.0 * 16.0
 	if mouse_near or _player_inside:
@@ -126,7 +139,7 @@ func _seed_id_to_crop_type(seed_id: String) -> CropType:
 
 ## Interacción contextual con [E]: Sembrar -> Regar -> Abonar -> Cosechar
 func interact(player: Node) -> void:
-	if not player or not ("inventory" in player) or not player.inventory:
+	if not visible or not player or not ("inventory" in player) or not player.inventory:
 		return
 	var inv: SimpleInventory = player.inventory
 

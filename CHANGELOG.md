@@ -4,9 +4,15 @@ Cambios del juego, del más nuevo al más antiguo. Añade una entrada al cerrar 
 El detalle técnico está en `docs/HANDOFF.md` (sección 7) y el historial completo en `git log`. Lo anterior a B0.1 está en `AUDIT_LOG.md` y `SESSION_CONTEXT_LOG.md`.
 
 ## 2026-11-05 — Tu campamento inicial está en las afueras del oeste, junto al lago y el camino de llegada
-- Ya no empiezas acampado en mitad del pueblo: tu **tienda de campaña, hoguera con cacerola, tronco de descanso, huerto de
-  3×3 parcelas, gallinero, pozo y compostador** están ahora juntos en un claro apartado al oeste, junto al camino por el que
-  llegas al valle y frente al lago de pesca, unidos al camino y al muelle por una senda de tierra.
+- Ya no empiezas acampado en mitad del pueblo ni con una granja ya montada: empiezas en un claro apartado al oeste, frente
+  al lago de pesca, solo con lo básico de un forastero recién llegado (**tienda de campaña, hoguera con cacerola, tronco de
+  descanso y tu mesa de obras del campamento**).
+- Desde la mesa de obras del campamento puedes ir montando poco a poco el **huerto de 3×3 parcelas con compostador**, el
+  **gallinero con 3 gallinas**, el **generador eléctrico** (que ya no aparece plantado junto a tu tienda desde el primer día)
+  y el **aspersor automático**.
+- El pozo de piedra queda en la entrada oeste del pueblo (en el campamento tienes el lago cruzando el camino), y ya no se
+  convierte la tienda en cabaña o casa de piedra ahí mismo: las casas de verdad se encargan al carpintero en los solares del
+  pueblo.
 
 ## 2026-11-05 — El huerto, el banco de trabajo, el escondite y las escaleras de tu casa se usan de verdad allí
 - Cuando mejoras tu casa, ahora aparecen dentro y junto a ella sus objetos reales en 2D y 3D para usarlos con **E**:

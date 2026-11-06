@@ -339,8 +339,11 @@ static func sync_livestock(vm) -> void:
 			ex_p.queue_free()
 	if vm.is_inside_tree() and vm.get_tree() != null:
 		var coop_node: Node2D = vm.get_tree().get_first_node_in_group("chicken_coop") as Node2D
-		if coop_node != null and is_instance_valid(coop_node) and coop_node.has_method("_update_visuals"):
-			coop_node.call("_update_visuals")
+		if coop_node != null and is_instance_valid(coop_node):
+			if not p_animals.is_empty() and coop_node.has_method("set_coop_built"):
+				coop_node.call("set_coop_built", true)
+			if coop_node.has_method("_update_visuals"):
+				coop_node.call("_update_visuals")
 
 static func can_harvest_animal_product(vm, idx: int) -> bool:
 	var arr: Array = state(vm)["player_animals"]

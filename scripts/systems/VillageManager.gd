@@ -181,6 +181,8 @@ var _tavern_well_label: Label = null
 var _extra_station_labels: Array = [] # Bloque AB: [[Label, Vector2]] carteles de puestos añadidos luego (Pozo de la Ronda)
 var _plaza_well_label: Label = null
 var _compost_label: Label = null
+var _compost_sprite: Sprite2D = null
+var _compost_area: Area2D = null
 var _tavern_bed_label: Label = null
 var _tavern_games_label: Label = null
 var _tavern_pool_label: Label = null
@@ -189,10 +191,10 @@ var _tavern_bed_pos := Vector2(538, -252)
 var _tavern_social_pos := Vector2(375, -182)
 var _tavern_games_pos := Vector2(465, -172)
 var _tavern_pool_pos := Vector2(526, -172)
-var _well_pos := Vector2(-56, -38)
+var _well_pos := Vector2(184, 82)
 var _tavern_well_pos := Vector2(440, -306)
 var _plaza_well_pos := Vector2(412, 54)
-var _well_positions: Array[Vector2] = [Vector2(-56, -38), Vector2(440, -306), Vector2(412, 54)]
+var _well_positions: Array[Vector2] = [Vector2(184, 82), Vector2(440, -306), Vector2(412, 54)]
 var _compost_pos := Vector2(-56, -6)
 
 # Capas de Interfaz para Morgue Forense, Arresto/Cárcel, Tablón de Encargos y Gestión de Negocios/Escrituras
@@ -225,6 +227,15 @@ var _active_business_role: int = -1
 
 func get_poker_chair_positions() -> Array[Vector2]:
 	return [_tavern_games_pos + Vector2(-24, 0), _tavern_games_pos + Vector2(24, 0), _tavern_games_pos + Vector2(0, -18)]
+
+func set_camp_farm_enabled(en: bool) -> void:
+	if is_instance_valid(_compost_sprite):
+		_compost_sprite.visible = en
+	if is_instance_valid(_compost_area):
+		_compost_area.monitoring = en
+		_compost_area.monitorable = en
+	if not en and is_instance_valid(_compost_label):
+		_compost_label.visible = false
 
 func setup_village(target_entities_root: Node) -> void:
 	entities_root = target_entities_root if target_entities_root else self
@@ -395,7 +406,8 @@ func _process(delta: float) -> void:
 	if _plaza_well_label:
 		_plaza_well_label.visible = _is_near(player, mouse_pos, _plaza_well_pos, 24.0, 16.0)
 	if _compost_label:
-		_compost_label.visible = _is_near(player, mouse_pos, _compost_pos, 22.0, 16.0)
+		var comp_vis: bool = _compost_sprite == null or _compost_sprite.visible
+		_compost_label.visible = comp_vis and _is_near(player, mouse_pos, _compost_pos, 22.0, 16.0)
 	for esl in _extra_station_labels:
 		if is_instance_valid(esl[0]):
 			(esl[0] as Label).visible = _is_near(player, mouse_pos, esl[1], 24.0, 16.0)
@@ -1306,7 +1318,7 @@ func _spawn_decor_prop(tex_path: String, pos: Vector2, sc: Vector2 = Vector2.ONE
 	spr.z_index = -1
 	entities_root.add_child(spr)
 
-func _add_station_area(area_name: String, pos: Vector2, radius: float, meta_tag: String) -> void:
+func _add_station_area(area_name: String, pos: Vector2, radius: float, meta_tag: String) -> Area2D:
 	var area := Area2D.new()
 	if area_name != "":
 		area.name = area_name
@@ -1321,6 +1333,7 @@ func _add_station_area(area_name: String, pos: Vector2, radius: float, meta_tag:
 	col.shape = c
 	area.add_child(col)
 	add_child(area)
+	return area
 
 # ==============================================================================
 # TESTIGOS REALISTAS, FORENSE DE MORGUE Y SISTEMA POLICIAL (PASOS 1, 2, 3 y 4)
@@ -2408,7 +2421,8 @@ func interact(player: Node2D) -> void:
 	var d_games: float = pos.distance_squared_to(_tavern_games_pos)
 	var d_pool: float = pos.distance_squared_to(_tavern_pool_pos)
 	var d_well: float = _get_nearest_well_dist_sq(pos)
-	var d_comp: float = pos.distance_squared_to(_compost_pos)
+	var comp_on: bool = _compost_sprite == null or _compost_sprite.visible
+	var d_comp: float = pos.distance_squared_to(_compost_pos) if comp_on else INF
 
 	if d_pool <= d_games and d_pool <= d_bed and d_pool <= 32.0 * 32.0:
 		_use_tavern_games_table(3)

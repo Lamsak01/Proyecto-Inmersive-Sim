@@ -240,15 +240,22 @@ func _draw_valley_cartography(canvas: Control, detailed: bool) -> void:
 	var plaza_r := _world_rect_to_map(Rect2(Vector2(395, 10), Vector2(140, 78)), csize)
 	canvas.draw_rect(plaza_r, Color(0.56, 0.58, 0.62, 0.95), true)
 
-	# 5. Lago de Pesca, Gallinero, Huerto y Campamento del Jugador
+	# 5. Lago de Pesca, Campamento del Jugador y (si ya se han construido) Gallinero y Huerto
 	var lake_r := _world_rect_to_map(Rect2(Vector2(-120, 65), Vector2(95, 80)), csize)
 	canvas.draw_rect(lake_r, Color(0.18, 0.52, 0.78, 0.92), true)
 
-	var coop_r := _world_rect_to_map(Rect2(Vector2(-236, -51), Vector2(76, 60)), csize)
-	canvas.draw_rect(coop_r, Color(0.68, 0.48, 0.26, 0.90), true)
+	var camp_r := _world_rect_to_map(Rect2(Vector2(-132, -124), Vector2(88, 46)), csize)
+	canvas.draw_rect(camp_r, Color(0.76, 0.62, 0.36, 0.85), true)
 
-	var farm_r := _world_rect_to_map(Rect2(Vector2(-142, -62), Vector2(82, 82)), csize)
-	canvas.draw_rect(farm_r, Color(0.36, 0.62, 0.24, 0.90), true)
+	var coop_node := get_tree().get_first_node_in_group("chicken_coop") as Node2D
+	if coop_node != null and coop_node.visible:
+		var coop_r := _world_rect_to_map(Rect2(Vector2(-236, -51), Vector2(76, 60)), csize)
+		canvas.draw_rect(coop_r, Color(0.68, 0.48, 0.26, 0.90), true)
+
+	var plots := get_tree().get_nodes_in_group("farm_plots")
+	if not plots.is_empty() and (plots[0] as Node2D).visible:
+		var farm_r := _world_rect_to_map(Rect2(Vector2(-142, -62), Vector2(82, 82)), csize)
+		canvas.draw_rect(farm_r, Color(0.36, 0.62, 0.24, 0.90), true)
 
 	# 6. Los 12 Edificios de la Aldea (incluyendo Hospital/Morgue y Comisaría/Cárcel)
 	var buildings: Array[Dictionary] = [
