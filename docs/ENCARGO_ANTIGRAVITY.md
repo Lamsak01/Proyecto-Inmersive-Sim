@@ -49,20 +49,39 @@ Reglas que el supervisor va a comprobar sí o sí:
 
 ---
 
-## 2. El encargo actual: bloque FIS3b — bajar a las alcantarillas a la vista es sospechoso
+## 2. El encargo actual: AUDITORÍA DE REALISMO + primer arreglo
 
-> FIS4 (ganado vivo) **aprobado** tras la corrección. Decisión del usuario (ver `docs/PREGUNTAS_PENDIENTES.md`).
+> FIS3b aprobado. Ya hechos físicos: caballo, asaltos, terminal y cuadro eléctrico, objetos de los robos,
+> alcantarillas, ganado, rejilla vigilada. Pedido del usuario: revisar si quedan mecánicas que no funcionan de forma
+> realista y empezar a corregirlas.
 
-Encargo pequeño:
-1. Al usar **[E] en una rejilla para bajar**, comprueba testigos igual que en el sabotaje del cuadro eléctrico
-   (`vm._find_conscious_witness_near` con la posición del jugador, misma planta). Si te ve un **guardia o el comisario**:
-   sube 1 la búsqueda y aviso flotante («¡X te vio colarte en las alcantarillas!»). Si te ve un **vecino cualquiera**:
-   no hay delito, pero queda un chisme/recuerdo de que te vio bajar (usa lo que ya exista para chismes; si no hay nada
-   sencillo, solo el aviso flotante y apúntalo en el informe).
-2. Bajas igualmente (no se bloquea): el riesgo es la búsqueda.
-3. Salir por una escalerilla a la vista de un guardia también cuenta igual.
-4. Un test: con un guardia al lado, bajar sube la búsqueda; sin nadie cerca, no.
-5. Arranque sin errores, las cuatro pruebas, documentación (§3), commit y push, informe.
+### 2.1 Paso A — auditoría (sin tocar código)
+
+Revisa todo el juego (`scripts/`) buscando mecánicas que **no ocurren de verdad en el mundo**. Señales típicas:
+- se resuelven desde una opción de charla o un menú, sin ir al sitio ni usar el objeto;
+- tiradas de dados instantáneas que sustituyen algo que debería verse (un viaje, una pelea, una obra, una reunión);
+- objetos, dinero o comida que aparecen en la mochila o en una caja a medianoche sin que nadie los produzca o los traiga;
+- personas que «trabajan», «van» o «se reúnen» solo en los datos, sin moverse en el mapa;
+- cosas que solo existen como un número o un sí/no y nunca se ven en 2D ni en 3D;
+- oro que nace o desaparece (Regla 1), gastos sin doble E (Regla 3), acciones de riesgo sin testigos (Regla 4).
+
+Ya sabemos que faltan (inclúyelas en la lista, no hace falta volver a demostrarlo): tu tienda propia y las mejoras de
+casa (dependiente que no va, huerto y banco de trabajo que dan cosas solos), caravanas de las rutas comerciales,
+expediciones fuera del valle, cenas/fiestas/banquete de paz, la carreta.
+
+Escribe `docs/AUDITORIA_REALISMO.md` con una tabla: **mecánica · qué pasa ahora (en palabras de jugador) · dónde está
+en el código (archivo y función que EXISTAN) · cómo debería ser · coste (poco/medio/mucho) · prioridad (1 = se nota
+mucho al jugar)**. Ordena por prioridad. Sé honesto: si algo ya es físico, no lo metas.
+
+### 2.2 Paso B — arreglar SOLO la primera de la lista
+
+- Arregla únicamente la mecánica de prioridad 1 (si es de coste «mucho», trocéala y haz solo la primera parte).
+- Mismas reglas de siempre (§0, §1): todo físico, suma cero, doble E, testigos, letrero de [E], 2D y 3D.
+- Si para decidir cómo debe ser hace falta una decisión de **diseño**, no la inventes: apúntala en
+  `docs/PREGUNTAS_PENDIENTES.md` (sección «Abiertas») y pasa a la siguiente de la lista que no la necesite.
+- Pruebas: un test por comportamiento nuevo, arranque sin errores (`--headless --quit-after 3`) y las cuatro pruebas.
+- Después: documentación (§3), commit y push, y **para** (no sigas con la segunda). El supervisor revisará y te mandará
+  la siguiente.
 
 ## 3. Al cerrar el bloque
 
