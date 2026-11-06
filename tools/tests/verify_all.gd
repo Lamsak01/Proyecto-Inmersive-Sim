@@ -5278,5 +5278,53 @@ func _initialize() -> void:
 	p70_a.personal_gold = bp2_a_gold_bak
 	print("Block P2 (Physical Cargo Cart, Cargo Box, Night Theft & Hand-Pull Speed) OK")
 
+	# ==========================================================================
+	# Bloque P5b: el perista se deja ver de noche («P5b perista»)
+	# ==========================================================================
+	var b5b_vun = vm.VillageUnderworld
+	var b5b_f = b5b_vun.get_fence_npc(vm)
+	assert(b5b_f != null, "P5b.0: There is a fence")
+	for b5b_b in vm.building_footprints:
+		var b5b_r = b5b_b.get("rect", null)
+		if b5b_r is Rect2:
+			assert(not (b5b_r as Rect2).has_point(b5b_vun.FENCE_ALLEY_POS), "P5b.0b: Alley spot is outside every building")
+	var b5b_pos_bak: Vector2 = b5b_f.global_position
+	var b5b_known_bak = b5b_vun.state(vm).get("known_fence", false)
+	b5b_f.end_errand()
+	b5b_f.is_sleeping = true
+	# 1. A las 22:00 tiene el recado y no duerme; a las 3:00 ya no
+	b5b_vun.on_hour(vm, 22)
+	assert(b5b_f.errand_kind == "fence_alley" and not b5b_f.is_sleeping, "P5b.1a: At 22:00 the fence goes to the alley and is not sleeping")
+	b5b_vun.on_hour(vm, 1)
+	assert(b5b_f.errand_kind == "fence_alley", "P5b.1b: Still in the alley at 1:00")
+	b5b_vun.on_hour(vm, 3)
+	assert(b5b_f.errand_kind == "", "P5b.1c: At 3:00 the fence leaves the alley")
+	# 2. En el callejón y sin conocerlo: «figura encapuchada»
+	b5b_vun.on_hour(vm, 22)
+	b5b_f.global_position = b5b_vun.FENCE_ALLEY_POS
+	b5b_vun.state(vm)["known_fence"] = false
+	assert(b5b_vun.alley_interact_label(vm, b5b_f) == "Hablar con la figura encapuchada", "P5b.2: Hooded figure label while the fence is unknown")
+	# 3. Un vecino honrado nunca suelta un rumor, aunque se fuerce
+	var b5b_pl = vm.VillageNeeds.player_of(vm)
+	var b5b_pl_bak: Vector2 = b5b_pl.global_position
+	b5b_pl.global_position = vm._tavern_social_pos
+	var b5b_tc = load("res://scripts/data/TraitCatalog.gd")
+	var b5b_honest = null
+	for b5b_n in vm.VillageNeeds.living(vm):
+		if b5b_n != b5b_f and b5b_tc.npc_tendency(b5b_n, "malice") < 0.2:
+			b5b_honest = b5b_n
+			break
+	assert(b5b_honest != null, "P5b.3a: Found an honest villager")
+	b5b_vun.state(vm)["fence_rumor_day"] = -1
+	b5b_vun.state(vm)["fence_rumor_heard"] = {}
+	assert(b5b_vun.tavern_rumor(vm, b5b_honest, true) == "", "P5b.3b: An honest villager never gives a rumor, even forced")
+	# Restaurar
+	b5b_f.end_errand()
+	b5b_f.global_position = b5b_pos_bak
+	b5b_pl.global_position = b5b_pl_bak
+	b5b_vun.state(vm)["known_fence"] = b5b_known_bak
+	b5b_vun.state(vm)["fence_rumor_day"] = -1
+	print("Block P5b (Fence in the Alley at Night, Hooded Label & Subtle Rumors) OK")
+
 	print("ALL RIMWORLD MEDICAL, FOOTPRINTS, 3-PHASE CORPSE REPORT, MULTI-CORPSE FIX, RPG INTERROGATION, PUBLIC TRIAL, DYNAMIC RELATIONSHIPS, MISSING FAMILY SEARCH, SOCIAL GLOSSARY & UNCONSCIOUS REACTION TESTS PASSED!")
 	quit(0)

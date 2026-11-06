@@ -51,6 +51,7 @@ kanban-plugin: board
 
 ## ✅ Hecho
 
+- [x] El perista espera de noche en el callejón, con capucha, y rumores sutiles (2026-11-06)
 - [x] Animales 3D, paso 1: ciervo, zorro y perro, animados (2026-11-05)
 - [x] Jabalíes con aspecto de lobo animado, provisional (2026-11-05)
 - [x] Auditoría de Antigravity: 7 fallos y 22 fugas de oro arreglados (2026-11-05)

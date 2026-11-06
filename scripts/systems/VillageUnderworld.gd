@@ -38,6 +38,20 @@ const DUST_COOK_COST: int = 25
 const RACKET_WEEKLY: int = 10
 const BOSS_TRIBUTE: int = 12
 const SEWER_KEY_COST: int = 20
+## P5b: el perista trasnocha en el callejón de detrás de la taberna (esquina noroeste, lejos del pozo trasero).
+const FENCE_ALLEY_POS: Vector2 = Vector2(328.0, -298.0)
+const FENCE_ALLEY_FROM: int = 22
+const FENCE_ALLEY_UNTIL: int = 3
+## P5b: rumores sutiles en la taberna (raros; solo de vecinos con algo turbio).
+const FENCE_RUMOR_CHANCE: float = 0.10
+const FENCE_RUMOR_MALICE: float = 0.2
+const FENCE_RUMORS: Array[String] = [
+	"Anoche volvía tarde y olía a pipa detrás de la taberna. ¿Quién fuma ahí a esas horas?",
+	"Yo, de noche, no paso por el callejón. Manías mías.",
+	"Hay quien paga por lo que no tiene dueño. No me preguntes quién, que no lo sé.",
+	"Lo que se pierde en este pueblo no se pierde: cambia de manos antes del alba.",
+	"Si oyes una puerta trasera pasada la medianoche, mejor no mires.",
+]
 
 ## Bloque FIS3: Cada entrada de `SEWER_LOCATIONS` define:
 ## - `pos`: Trampilla/rejilla en la calle (fuera de edificios y fuera de las calzadas de paso de los vecinos).
@@ -651,6 +665,70 @@ static func is_fence(vm, npc) -> bool:
 		return false
 	var f = get_fence_npc(vm)
 	return f != null and f == npc
+
+# ==============================================================================
+# P5b: el perista se deja ver de noche en el callejón y hay rumores para encontrarlo
+# ==============================================================================
+static func is_fence_alley_hour(h: int) -> bool:
+	return h >= FENCE_ALLEY_FROM or h < FENCE_ALLEY_UNTIL
+
+## Cada hora: a las 22:00 el perista va al callejón y se queda hasta las 3:00 (no duerme mientras).
+static func on_hour(vm, h: int) -> void:
+	if vm == null:
+		return
+	var f = get_fence_npc(vm)
+	if f == null or not is_instance_valid(f) or f.is_dead:
+		return
+	if is_fence_alley_hour(h):
+		if f.errand_kind == "fence_alley" or f.is_incapacitated() or f.is_in_live_fight() or f.is_busy_with_player():
+			return
+		if f.errand_kind != "" or f.rite_pos != Vector2.ZERO:
+			return # otro recado o rito en marcha: esta noche no sale
+		f.start_errand("fence_alley", FENCE_ALLEY_POS)
+	elif f.errand_kind == "fence_alley":
+		f.end_errand()
+
+static func is_in_alley(npc) -> bool:
+	return npc != null and is_instance_valid(npc) and npc.errand_kind == "fence_alley" and npc.global_position.distance_to(FENCE_ALLEY_POS) <= 30.0
+
+## Letrero de [E]: en el callejón, quien no lo conoce solo ve una figura encapuchada.
+static func alley_interact_label(vm, npc) -> String:
+	if vm == null or not is_in_alley(npc) or not is_fence(vm, npc):
+		return ""
+	if bool(state(vm).get("known_fence", false)):
+		return ""
+	return "Hablar con la figura encapuchada"
+
+## Rumor sutil al final del saludo (o "" si no toca). Raro: 10 %, 1 por vecino y día, 1 al día en todo el pueblo.
+static func tavern_rumor(vm, npc, force: bool = false) -> String:
+	if vm == null or npc == null or not is_instance_valid(npc):
+		return ""
+	var st: Dictionary = state(vm)
+	if bool(st.get("known_fence", false)):
+		return ""
+	var h: int = hour()
+	if not force and not (h >= 19 or h < 1):
+		return ""
+	var pl = VillageNeeds.player_of(vm)
+	if pl == null or pl.global_position.distance_to(vm._tavern_social_pos) > 140.0:
+		return ""
+	if is_fence(vm, npc) or int(npc.trade_role) in [int(VillageNPC.TradeRole.SHERIFF), int(VillageNPC.TradeRole.GUARD), int(VillageNPC.TradeRole.PRIEST), int(VillageNPC.TradeRole.CHILD)]:
+		return ""
+	if VillageNeeds.is_outsider(npc) or TraitCatalog.npc_tendency(npc, "malice") < FENCE_RUMOR_MALICE:
+		return ""
+	var d: int = today()
+	if int(st.get("fence_rumor_day", -1)) == d:
+		return ""
+	if not (st.get("fence_rumor_heard", null) is Dictionary):
+		st["fence_rumor_heard"] = {}
+	var key: String = npc.get_person_key()
+	if int((st["fence_rumor_heard"] as Dictionary).get(key, -1)) == d:
+		return ""
+	st["fence_rumor_heard"][key] = d
+	if not force and randf() >= FENCE_RUMOR_CHANCE:
+		return ""
+	st["fence_rumor_day"] = d
+	return FENCE_RUMORS[randi() % FENCE_RUMORS.size()]
 
 # ==============================================================================
 # P7.4: Objeto físico visible del robo por encargo y su interacción [E]

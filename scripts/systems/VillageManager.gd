@@ -2476,6 +2476,7 @@ func _on_hour_passed(_day: int, new_hour: int = 8) -> void:
 	_apply_hourly_door_security_schedule(actual_hour)
 	VillageFaith.on_hour(self, actual_hour) # G2: Oficio del Alba (domingo por la mañana)
 	VillageHousing.on_hour(self, actual_hour) # P1: dependiente y clientes reales en tu tienda
+	VillageUnderworld.on_hour(self, actual_hour) # P5b: el perista trasnocha en el callejón de la taberna
 	VillageNeeds.on_hour(self, actual_hour) # E: higiene, taberna, limosna
 	VillageIllness.on_hour(self, actual_hour) # E2: contagios
 	VillageSect.on_hour(self, actual_hour) # O3: reunión de la secta (viernes de madrugada)

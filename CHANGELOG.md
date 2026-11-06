@@ -3,6 +3,13 @@
 Cambios del juego, del más nuevo al más antiguo. Añade una entrada al cerrar cada bloque, en lenguaje sencillo.
 El detalle técnico está en `docs/HANDOFF.md` (sección 7) y el historial completo en `git log`. Lo anterior a B0.1 está en `AUDIT_LOG.md` y `SESSION_CONTEXT_LOG.md`.
 
+## 2026-11-06 — El perista se deja ver de noche en el callejón de la taberna
+- **Trasnocha en el callejón:** de 22:00 a 3:00 el perista no duerme: espera en el callejón de detrás de la taberna, con
+  capa oscura y capucha. Si está herido, preso o la guardia lo vigila, esa noche no sale.
+- **Figura encapuchada:** mientras no sepas quién es, su letrero de [E] dice «Hablar con la figura encapuchada».
+- **Rumores sutiles en la taberna:** de 19:00 a 1:00, algún vecino de dudosa reputación puede dejar caer un comentario de
+  pasada al final del saludo (muy raro: como mucho uno al día en todo el pueblo). Los vecinos honrados no saben nada.
+
 ## 2026-11-06 — Carreta de carga física en el rancho: tirar a mano o engancharla al caballo, caja de 40 objetos y riesgo nocturno
 - **La carreta existe en el mapa:** al comprar la carreta de carga al ganadero, aparece aparcada junto al corral del Rancho
   del Sur (con su modelo 3D y dibujo 2D en vista plana). Ya no es un bono invisible: para cobrar los 4 de oro extra al

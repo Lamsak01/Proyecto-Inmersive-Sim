@@ -150,6 +150,8 @@ var rite_pos: Vector2 = Vector2.ZERO
 var rite_kind: String = "" # "rite" (Oficio del Alba), "sect" (reunión de la secta), "sect_lure" (víctima engañada)
 ## E1/E3/E5: encargos cortos a pie (lavarse «wash», beber «drink», jugar «gamble», pedir limosna «beg»); ver VillageNeeds
 var errand_kind: String = ""
+## Recados que se hacen de noche: no se cancelan al caer la noche (P5b: el perista en el callejón).
+const NIGHT_ERRANDS: Array[String] = ["fence_alley"]
 var errand_pos: Vector2 = Vector2.ZERO
 var errand_since: int = 0
 ## E1: higiene (100 limpio → 0 sucio). E2: 0 sano, 1 enfermo leve, 2 guarda cama (lo pone VillageIllness)
@@ -3090,7 +3092,7 @@ func _update_needs_and_decisions(delta: float) -> void:
 			return # G2: en el Oficio se quedan hasta que termina, salvo hambre o cansancio fuertes
 		if rite_pos != Vector2.ZERO:
 			leave_rite()
-		if errand_kind != "" and need_energy > 12.0 and need_hunger >= 30.0 and not is_night_env:
+		if errand_kind != "" and need_energy > 12.0 and need_hunger >= 30.0 and (not is_night_env or errand_kind in NIGHT_ERRANDS):
 			return # E: termina su encargo (lavarse, taberna, limosna) antes de cambiar de idea
 		if errand_kind != "":
 			end_errand()
@@ -3926,6 +3928,7 @@ func get_activity_description() -> String:
 					"mayor_office": return "🏛️ Cuadrando las cuentas del pueblo" if at_e else "🚶🏛️ Yendo al ayuntamiento"
 					"player_shop_clerk": return "🏪 Atendiendo el Bazar del Forastero" if at_e else "🚶🏪 Yendo a atender el Bazar del Forastero"
 					"player_shop_buy": return "🛍️ Comprando en el Bazar del Forastero" if at_e else "🚶🛍️ Yendo a comprar al Bazar del Forastero"
+					"fence_alley": return "🌙 Rondando de madrugada" if at_e else "🚶🌙 Paseando de madrugada"
 			if rite_kind in ["sect", "sect_lure"]:
 				var vm_sc = _get_vm()
 				var known_sc: bool = vm_sc != null and "sect_state" in vm_sc and (bool(vm_sc.sect_state.get("player_member", false)) or (vm_sc.sect_state.get("known", {}) as Dictionary).has(get_person_key()))

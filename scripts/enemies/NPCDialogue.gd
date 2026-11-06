@@ -44,6 +44,11 @@ static func _inject_character_lore_into_dialogue(npc: VillageNPC, diag: Dictiona
 	TraitDiscovery.on_dialogue_opened(npc)
 	var insert_idx: int = maxi(0, ch_arr.size() - 1)
 	var vm_diag = npc._get_vm()
+	# P5b: de vez en cuando, en la taberna, un vecino turbio deja caer un comentario sobre el callejón (sin aviso ni icono)
+	if vm_diag != null and start_node.has("text"):
+		var rumor: String = VillageUnderworld.tavern_rumor(vm_diag, npc)
+		if rumor != "":
+			start_node["text"] = str(start_node["text"]) + "\n\n«" + rumor + "»"
 	if npc.trade_role in [VillageNPC.TradeRole.SHERIFF, VillageNPC.TradeRole.GUARD, VillageNPC.TradeRole.ROYAL_INVESTIGATOR]:
 		var has_active_case: bool = false
 		if vm_diag:

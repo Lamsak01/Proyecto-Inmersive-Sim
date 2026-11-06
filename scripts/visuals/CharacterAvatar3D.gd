@@ -329,7 +329,8 @@ func _compute_equipment_signature() -> String:
 		var hr: int = int(WorldClock.current_hour) if WorldClock != null else 12
 		var night_b: bool = (hr >= 20 or hr < 6)
 		var amp_npc: String = _get_limb_signature_for_entity(target_entity)
-		return "%d|%s|%s|%s" % [role_i, str(work_b), str(night_b), amp_npc]
+		var hooded_b: bool = str(target_entity.get("errand_kind")) == "fence_alley"
+		return "%d|%s|%s|%s|%s" % [role_i, str(work_b), str(night_b), amp_npc, str(hooded_b)]
 
 func _get_limb_signature_for_entity(ent: Node2D) -> String:
 	var states: Dictionary = _resolve_entity_limb_states(ent)
@@ -603,6 +604,16 @@ func _build_npc_appearance_cfg() -> Dictionary:
 	var hr_now: int = int(WorldClock.current_hour) if WorldClock != null else 12
 	if (hr_now >= 20 or hr_now < 6) and offhand_k == "none" and not bool(target_entity.get("is_sleeping")):
 		offhand_k = "lantern"
+	# P5b: el perista, de noche en el callejón, va con capa oscura y capucha y sin farol
+	if str(target_entity.get("errand_kind")) == "fence_alley":
+		tunic_col = Color(0.13, 0.13, 0.15)
+		pants_col = Color(0.10, 0.10, 0.11)
+		has_cape = true
+		cape_col = Color(0.08, 0.08, 0.09)
+		headgear = "priest_cap" # en el muñeco 3D es la capucha
+		has_apron = false
+		weapon_k = "none"
+		offhand_k = "none"
 
 	var cfg := {
 		"skin_color": skin_col,

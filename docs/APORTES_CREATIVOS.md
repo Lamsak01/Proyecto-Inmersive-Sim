@@ -255,3 +255,12 @@ o vino ya dado. Conviene confirmarlo.
 
 **Dónde:** `scripts/systems/VillageCulture.gd` (historia, asentamiento, incursiones, expediciones, rutas, tecnologías), `scripts/systems/VillageUnderworld.gd` (alcantarillas), `scripts/systems/VillageFame.gd` (estilos) y `scripts/systems/VillageHousing.gd` (bazar).
 **Depende:** solo textos; los identificadores internos (`main_ch1`, `high_pass`, `waterwheel_gears`…) no deben renombrarse sin actualizar las referencias.
+
+## Rumores del perista en la taberna (P5b, provisionales)
+- «Anoche volvía tarde y olía a pipa detrás de la taberna. ¿Quién fuma ahí a esas horas?»
+- «Yo, de noche, no paso por el callejón. Manías mías.»
+- «Hay quien paga por lo que no tiene dueño. No me preguntes quién, que no lo sé.»
+- «Lo que se pierde en este pueblo no se pierde: cambia de manos antes del alba.»
+- «Si oyes una puerta trasera pasada la medianoche, mejor no mires.»
+
+**Dónde:** `scripts/systems/VillageUnderworld.gd` (`FENCE_RUMORS`). Texto «Hablar con la figura encapuchada» en `alley_interact_label`.

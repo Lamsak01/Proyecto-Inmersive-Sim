@@ -209,6 +209,11 @@ func _label_for(a: Node, tgt: Node) -> String:
 			return "Examinar el cuerpo de %s" % n.npc_name
 		if n.is_downed or n.is_stunned_flag or n.sedated_timer > 0.0:
 			return "Registrar a %s" % n.npc_name
+		var vm_a = n._get_vm()
+		if vm_a != null and "VillageUnderworld" in vm_a and vm_a.VillageUnderworld != null:
+			var hooded: String = str(vm_a.VillageUnderworld.alley_interact_label(vm_a, n))
+			if hooded != "":
+				return hooded # P5b: de noche en el callejón, el perista es solo una figura encapuchada
 		return "Hablar con %s" % n.npc_name
 	if "animal_name" in tgt:
 		return "Despiezar: %s" % str(tgt.get("animal_name"))
