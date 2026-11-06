@@ -51,3 +51,9 @@ carne que entraba sola, quitada la opción de alimentar desde la charla, alpaca 
    se queda pequeño, usa el resto del vallado del gallinero o una franja junto a él, y explícalo en el informe).
 
 Después: arranque sin errores, las cuatro pruebas, commit y push, y añade al informe una sección «Corrección FIS4».
+
+### FIS4 tras la corrección — APROBADO
+
+Comprobado por el supervisor: vuelven las 3 gallinas del gallinero y su letrero; tus animales y las gallinas conviven
+sin pisarse; arranque sin errores y las cuatro pruebas pasan (bloque FIS4 incluido). Detalle menor del informe: la
+función del selector se llama `refresh`, no `_refresh`.
