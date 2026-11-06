@@ -49,9 +49,9 @@
   persona); su primer cobro en el acto también se queda como está.
 
 ## 2. Tributo del hampa: lo recoges del perista
-- Si eres el jefe del hampa, el tributo apartado lo recoges **hablando con el perista en su sitio** (detrás de la
-  taberna, donde ya está su diálogo): opción «Recoger tu tributo (X de oro)». Es un trato con una persona, por eso va en
-  la charla, **pero solo aparece si el perista está a menos de 60 px de su puesto** (no si te lo cruzas por la calle).
+- Si eres el jefe del hampa, el tributo apartado lo recoges **hablando con el perista** (`get_fence_npc(vm)`; no tiene
+  un sitio fijo: es un vecino normal). Opción «Recoger tu tributo (X de oro)». Es un trato con una persona, por eso va en
+  la charla, **pero solo aparece de noche (21:00–4:00, `is_night_market_hours()`)**, que es cuando hace sus tratos.
 
 ## 3. Desfalco y libro de cuentas en el ayuntamiento (decisión del usuario)
 - Las arcas ya son un cofre físico: `vm._spawn_house_chest(sp["coffers"], "Arcas del Pueblo", "town_hall")` en
