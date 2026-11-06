@@ -1213,9 +1213,7 @@ static func add_dialogue_choices(vm, npc, diag: Dictionary, ch_arr: Array) -> vo
 		opts.append({"label": "💣 Contratar un saboteador nocturno contra un taller (-25 Oro)", "next": "END", "action": "underworld_hire_saboteur"})
 		opts.append({"label": "🧤 Enviar un ratero a sueldo a desvalijar al vecino más rico (-25 Oro)", "next": "END", "action": "underworld_hire_thief"})
 		# P7.8: Club de pelea clandestino
-		if int(st.get("last_fight_day", -1)) != today():
-			opts.append({"label": "🥊🎲 Apostar 15 de oro en el club de pelea clandestino de medianoche", "next": "END", "action": "underworld_bet_fight"})
-			opts.append({"label": "🥊🩸 Entrar tú mismo a pelear a puño limpio por la bolsa (+35 Oro)", "next": "END", "action": "underworld_join_brawl"})
+		# P6: ya no va en la charla: el club está en el sótano de la taberna (VillageClub)
 		# P7.10b: Destronar al perista y ser Jefe del Hampa
 		var rackets_cnt: int = (st.get("rackets", {}) as Dictionary).size()
 		if str(st.get("boss", "fence")) != "player" and (int(st.get("heists_done", 0)) + rackets_cnt) >= 2:

@@ -151,7 +151,7 @@ var rite_kind: String = "" # "rite" (Oficio del Alba), "sect" (reunión de la se
 ## E1/E3/E5: encargos cortos a pie (lavarse «wash», beber «drink», jugar «gamble», pedir limosna «beg»); ver VillageNeeds
 var errand_kind: String = ""
 ## Recados que se hacen de noche: no se cancelan al caer la noche (P5b: el perista en el callejón).
-const NIGHT_ERRANDS: Array[String] = ["fence_alley", "smuggler_bust"]
+const NIGHT_ERRANDS: Array[String] = ["fence_alley", "smuggler_bust", "club_go", "club_watch"]
 var errand_pos: Vector2 = Vector2.ZERO
 var errand_since: int = 0
 ## E1: higiene (100 limpio → 0 sucio). E2: 0 sano, 1 enfermo leve, 2 guarda cama (lo pone VillageIllness)
@@ -4227,6 +4227,15 @@ func take_damage(data: DamageData) -> void:
 				vm_exec.call("modify_family_reputation", family_id, -35, "Ejecución de " + npc_name, self)
 			if vm_exec.has_method("report_assault_crime"):
 				vm_exec.call("report_assault_crime", self)
+		return
+
+	# P6: pelea a puño limpio en el club del sótano: sin delito ni muerte; nunca baja del 20 % (se rinde)
+	if bool(get_meta("club_bout", false)) and data != null and health_comp != null:
+		var club_floor: float = health_comp.get_effective_max_health() * 0.20
+		data.amount = minf(data.amount, maxf(0.0, health_comp.current_health - club_floor))
+		data.bleed_buildup = 0.0
+		if data.amount > 0.0:
+			health_comp.take_damage(data)
 		return
 
 	var vm = get_tree().get_first_node_in_group("village_manager")

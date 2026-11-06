@@ -34,6 +34,7 @@ const VillageLineage = preload("res://scripts/systems/VillageLineage.gd")
 const VillageConfession = preload("res://scripts/systems/VillageConfession.gd")
 const VillageMayor = preload("res://scripts/systems/VillageMayor.gd")
 const VillageCollections = preload("res://scripts/systems/VillageCollections.gd")
+const VillageClub = preload("res://scripts/systems/VillageClub.gd")
 const VillageHousing = preload("res://scripts/systems/VillageHousing.gd")
 const VillageUnderworld = preload("res://scripts/systems/VillageUnderworld.gd")
 const VillageFame = preload("res://scripts/systems/VillageFame.gd")
@@ -280,6 +281,7 @@ func setup_village(target_entities_root: Node) -> void:
 	VillagePlaces.build_world(self) # V5c: parque, bancos de la plaza y mirador del lago
 	VillageWork.build_world(self) # V5d: lavadero
 	VillageUnderworld.build_sewers_world(self) # FIS3: trampillas en la calle y red de túneles conectada al sur
+	VillageClub.build_world(self) # P6: trampilla tras la taberna y club de pelea en el sótano
 	VillageHousing.sync_livestock(self) # FIS4: ganado vivo del rancho y animales propios del corral
 	VillageHousing.sync_home_props(self) # FIS-P1 y P1: objetos físicos en tu casa y mostrador de tu tienda
 	_spawn_domestic_pets()
@@ -321,6 +323,7 @@ func _process(delta: float) -> void:
 	if _needs_tick_acc >= 1.0:
 		_needs_tick_acc = 0.0
 		VillageNeeds.tick(self) # E: terminar encargos al llegar
+	VillageClub.tick(self, delta) # P6: la pelea en curso en el club del sótano
 	if social_director != null:
 		social_director.tick(delta, self)
 		_update_social_hangouts(delta)
@@ -2478,6 +2481,7 @@ func _on_hour_passed(_day: int, new_hour: int = 8) -> void:
 	VillageFaith.on_hour(self, actual_hour) # G2: Oficio del Alba (domingo por la mañana)
 	VillageHousing.on_hour(self, actual_hour) # P1: dependiente y clientes reales en tu tienda
 	VillageUnderworld.fence_on_hour(self, actual_hour) # P5b: el perista trasnocha en el callejón de la taberna
+	VillageClub.on_hour(self, actual_hour) # P6: el club del sótano abre a las 23:00 las noches pares
 	VillageCollections.sync_points(self) # P5: puntos de cobro en los locales y objetos del ayuntamiento
 	VillageNeeds.on_hour(self, actual_hour) # E: higiene, taberna, limosna
 	VillageIllness.on_hour(self, actual_hour) # E2: contagios

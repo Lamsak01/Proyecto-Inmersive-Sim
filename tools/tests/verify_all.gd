@@ -5551,5 +5551,77 @@ func _initialize() -> void:
 	t5_wc.current_hour = bp3_hour_bak
 	print("Block P3 (Physical Trade Route Caravans, Pack Mule & Midnight Smuggler Camp) OK")
 
+	# ==========================================================================
+	# Bloque P6 parte A: club de pelea en el sótano de la taberna («P6 peleas»)
+	# ==========================================================================
+	var b6_club = load("res://scripts/systems/VillageClub.gd")
+	var b6_c: Dictionary = b6_club.state(vm)
+	var b6_day_bak: int = int(t5_wc.current_day)
+	var b6_hour_bak: int = int(t5_wc.current_hour)
+	var b6_pl_pos: Vector2 = p70_pl.global_position
+	var b6_inv = p70_pl.get("inventory")
+	var b6_gold_bak: int = int(b6_inv.gold)
+	t5_wc.current_day = 40 if b6_day_bak % 2 != 0 else b6_day_bak + 2
+	t5_wc.current_hour = 23
+	b6_c["closed_night"] = -99
+	var b6_fence = vm.VillageUnderworld.get_fence_npc(vm)
+	assert(b6_fence != null, "P6.0: There is a fence")
+	b6_fence.end_errand()
+	var b6_fgold_bak: int = int(b6_fence.personal_gold)
+	# 1. Noche de club a las 23:00: al menos 3 vecinos con recado a la trampilla; abajo, nivel -1
+	var b6_n: int = b6_club.open_night(vm)
+	var b6_going: int = 0
+	var b6_by_key: Dictionary = vm._get_npcs_by_person_key()
+	for b6_k in b6_c["attendees"]:
+		var b6_v = b6_by_key.get(str(b6_k), null)
+		if b6_v != null and b6_v != b6_fence and b6_v.errand_kind == "club_go":
+			b6_going += 1
+	assert(b6_n >= 3 and b6_going >= 3, "P6.1a: On a club night at 23:00 at least 3 villagers walk to the trapdoor")
+	for b6_k in b6_c["attendees"]:
+		var b6_v2 = b6_by_key.get(str(b6_k), null)
+		if b6_v2 != null:
+			b6_v2.global_position = b6_club.TRAPDOOR_POS
+			b6_club.on_arrived(vm, b6_v2)
+	var b6_below: Array = b6_club.attendees_below(vm)
+	assert(b6_below.size() >= 3, "P6.1b: Once below, the audience is at elevation -1 around the ring")
+	for b6_v3 in b6_below:
+		assert(int(b6_v3.elevation_level) == -1, "P6.1c: Audience member at elevation -1")
+	# 2. Tu pelea: al 20 % el rival se rinde, nadie muere y la bolsa sale del perista (suma cero)
+	p70_pl.global_position = b6_club.LADDER_POS
+	b6_c["player_inside"] = true
+	vm.set_player_elevation_level(-1)
+	b6_inv.gold = 100
+	b6_fence.personal_gold = 50
+	var b6_total0: int = int(b6_inv.gold) + int(b6_fence.personal_gold)
+	var b6_hc = p70_pl.get_node_or_null("HealthComponent")
+	var b6_php_bak: float = float(b6_hc.current_health) if b6_hc != null else 0.0
+	if b6_hc != null:
+		b6_hc.current_health = b6_hc.max_health
+	assert(b6_club.start_player_bout(vm, p70_pl, true), "P6.2a: Player fight starts (entry paid)")
+	var b6_rival = b6_by_key.get(str(b6_c["bout"]["rival"]), null)
+	var b6_rhp_bak: float = float(b6_rival.health_comp.current_health)
+	b6_rival.health_comp.current_health = b6_rival.health_comp.get_effective_max_health() * 0.25
+	var b6_dmg = load("res://scripts/systems/combat/DamageData.gd").new()
+	b6_dmg.amount = 80.0
+	b6_dmg.source = p70_pl
+	b6_rival.take_damage(b6_dmg)
+	assert(not b6_rival.is_dead and b6_rival.health_comp.current_health >= b6_rival.health_comp.get_effective_max_health() * 0.199, "P6.2b: A big punch never takes the rival below 20 % (nobody dies)")
+	b6_club.tick(vm, 0.016)
+	assert((b6_c["bout"] as Dictionary).is_empty() and not b6_rival.is_hostile, "P6.2c: At 20 % the rival surrenders and the fight ends")
+	assert(int(b6_inv.gold) + int(b6_fence.personal_gold) == b6_total0 and int(b6_inv.gold) == 100, "P6.2d: The purse (entry 10) comes back from the fence: zero-sum")
+	# Restaurar
+	b6_rival.health_comp.current_health = b6_rhp_bak
+	if b6_hc != null:
+		b6_hc.current_health = b6_php_bak
+	b6_club.close_night(vm)
+	b6_c["player_inside"] = false
+	vm.set_player_elevation_level(0)
+	p70_pl.global_position = b6_pl_pos
+	b6_inv.gold = b6_gold_bak
+	b6_fence.personal_gold = b6_fgold_bak
+	t5_wc.current_day = b6_day_bak
+	t5_wc.current_hour = b6_hour_bak
+	print("Block P6a (Cellar Fight Club: Audience Below, Bare-Fist Surrender at 20% & Zero-Sum Purse) OK")
+
 	print("ALL RIMWORLD MEDICAL, FOOTPRINTS, 3-PHASE CORPSE REPORT, MULTI-CORPSE FIX, RPG INTERROGATION, PUBLIC TRIAL, DYNAMIC RELATIONSHIPS, MISSING FAMILY SEARCH, SOCIAL GLOSSARY & UNCONSCIOUS REACTION TESTS PASSED!")
 	quit(0)

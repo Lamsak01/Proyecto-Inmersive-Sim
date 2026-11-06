@@ -264,3 +264,9 @@ o vino ya dado. Conviene confirmarlo.
 - «Si oyes una puerta trasera pasada la medianoche, mejor no mires.»
 
 **Dónde:** `scripts/systems/VillageUnderworld.gd` (`FENCE_RUMORS`). Texto «Hablar con la figura encapuchada» en `alley_interact_label`.
+
+## Club de pelea del sótano (P6a, provisionales)
+- Ánimos del público: «¡Dale!», «¡Arriba esa guardia!», «¡Al suelo con él!», «¡Eso es, eso es!», «¡No te quedes quieto!», «¡Uuuh!».
+- Rendición: «¡Basta, basta! Me rindo.» / «¡Ya vale! Me rindo.»; reto: «¡Vamos allá, forastero!».
+
+**Dónde:** `scripts/systems/VillageClub.gd` (`CHEERS` y textos de `_end_bout` / `start_player_bout`).

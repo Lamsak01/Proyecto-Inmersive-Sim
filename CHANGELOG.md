@@ -3,6 +3,18 @@
 Cambios del juego, del más nuevo al más antiguo. Añade una entrada al cerrar cada bloque, en lenguaje sencillo.
 El detalle técnico está en `docs/HANDOFF.md` (sección 7) y el historial completo en `git log`. Lo anterior a B0.1 está en `AUDIT_LOG.md` y `SESSION_CONTEXT_LOG.md`.
 
+## 2026-11-06 — Club de pelea en un sótano de verdad bajo la taberna
+- **La trampilla:** en el patio trasero de la taberna hay una trampilla. Las noches pares, de 23:00 a 3:00, se abre y
+  baja a un sótano de tierra con faroles y un corro de cuerda. El perista y unos cuantos vecinos pendencieros bajan
+  andando a mirar y animan desde fuera del corro.
+- **Pelear tú:** pagas 10 de entrada (pulsando E dos veces) y peleas a puño limpio con el más bravo; puedes rodar y
+  parar como en cualquier pelea. Nadie muere: al quedarse al 20 % de vida, el que va perdiendo se rinde. Si sales del
+  corro, pierdes. Si ganas, el perista te paga la bolsa de la noche (hasta 35).
+- **Apostar:** si no peleas tú, a medianoche pelean dos vecinos; antes puedes apostar 15 por uno junto al corro y, si
+  aciertas, cobras 30. Los que pelean acaban magullados de verdad.
+- **La guardia:** si un guardia ve a alguien bajar o subir por la trampilla, la noche siguiente el club no abre; si eras
+  tú, sube tu búsqueda. Apostar y pelear ya no se hacen en la charla con el perista.
+
 ## 2026-11-06 — Rentas, «protección» y tributo se recogen en persona; desfalco en el cofre del ayuntamiento
 - **El sábado ya no te llega oro solo:** la renta de tus locales, la «protección» y el tributo del hampa se apartan y
   tienes que ir a recogerlos. Rentas y tributo esperan hasta 3 semanas; si faltas dos sábados seguidos a cobrar la

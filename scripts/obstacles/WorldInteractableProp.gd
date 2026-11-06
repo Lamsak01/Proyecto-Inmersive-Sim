@@ -15,6 +15,7 @@ const VillageCulture = preload("res://scripts/systems/VillageCulture.gd")
 const VillageUnderworld = preload("res://scripts/systems/VillageUnderworld.gd")
 const VillageHousing = preload("res://scripts/systems/VillageHousing.gd")
 const VillageCollections = preload("res://scripts/systems/VillageCollections.gd")
+const VillageClub = preload("res://scripts/systems/VillageClub.gd")
 const CharacterAvatar3DScript = preload("res://scripts/visuals/CharacterAvatar3D.gd")
 
 var vm: Node2D = null
@@ -101,6 +102,10 @@ func setup_prop(village_manager: Node2D, kind: String, h_id: String = "", h_labe
 			npc_name = "Libro de Cuentas"
 			npc_role = "Mesa del Ayuntamiento"
 			add_to_group("town_ledger_prop")
+		"club_trapdoor", "club_ladder", "club_ring", "club_bet": # P6: club de pelea en el sótano de la taberna
+			npc_name = {"club_trapdoor": "Trampilla", "club_ladder": "Escalerilla a la Taberna", "club_ring": "Corro de Cuerda", "club_bet": "Apuestas"}[prop_kind]
+			npc_role = "Sótano de la Taberna"
+			add_to_group("club_prop")
 	_rebuild_visual_and_area()
 
 
@@ -149,6 +154,10 @@ func _rebuild_visual_and_area() -> void:
 			_draw_player_shop_counter_2d()
 		"town_ledger":
 			_draw_town_ledger_2d()
+		"club_trapdoor":
+			_draw_sewer_grate_2d()
+		"club_ladder":
+			_draw_sewer_ladder_2d()
 
 	if interact_area == null or not is_instance_valid(interact_area):
 		interact_area = Area2D.new()
@@ -373,6 +382,14 @@ func get_interact_label(_player: Node2D = null) -> String:
 			return VillageCollections.embezzle_label(vm) if vm != null else ""
 		"town_ledger":
 			return VillageCollections.ledger_label(vm) if vm != null else ""
+		"club_trapdoor":
+			return VillageClub.trapdoor_label(vm) if vm != null else ""
+		"club_ladder":
+			return "Subir a la taberna" if vm != null and VillageClub.is_player_in_club(vm) else ""
+		"club_ring":
+			return VillageClub.ring_label(vm, _player) if vm != null else ""
+		"club_bet":
+			return VillageClub.bet_label(vm, VillageClub.fighter_key_at(vm, heist_id)) if vm != null else ""
 	return "Usar"
 
 
@@ -411,6 +428,14 @@ func interact(player: Node2D) -> void:
 			VillageCollections.embezzle(vm, player)
 		"town_ledger":
 			VillageCollections.cook_books(vm, player)
+		"club_trapdoor":
+			VillageClub.go_down(vm, player)
+		"club_ladder":
+			VillageClub.go_up(vm, player)
+		"club_ring":
+			VillageClub.start_player_bout(vm, player)
+		"club_bet":
+			VillageClub.place_bet(vm, player, VillageClub.fighter_key_at(vm, heist_id))
 
 
 func on_dialogue_action(action_id: String) -> void:

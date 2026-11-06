@@ -80,6 +80,7 @@ var _coop_gap_3d: Node3D = null
 var _grid_panel_bulb_3d: MeshInstance3D = null
 var _heist_prop_3d: Node3D = null
 var _last_heist_sig: String = ""
+var _club_root_3d: Node3D = null # P6: club de pelea del sótano de la taberna
 var _town_ledger_3d: Node3D = null # P5: libro de cuentas en la mesa del ayuntamiento
 var _home_props_3d: Node3D = null
 var _last_home_props_sig: String = ""
@@ -1468,6 +1469,7 @@ func _sync_dynamic_props_3d() -> void:
 	# 6. Visibilidad de las alcantarillas (-1)
 	if is_instance_valid(sewers_root_3d):
 		sewers_root_3d.visible = VillageUnderworldScript.is_player_in_sewers(vm)
+	_sync_club_3d()
 
 	# 7. Piloto luminoso del Cuadro Eléctrico del Taller y objeto físico del robo activo (Bloque FIS2)
 	if is_instance_valid(_grid_panel_bulb_3d):
@@ -1566,6 +1568,66 @@ func _sync_home_props_3d() -> void:
 				_add_box_2d(root, sc_pos + Vector2(-4.8, -0.4), Vector2(3.8, 3.6), 9.8, 2.4, m_herb) # Mercancía expuesta 1
 				if int(ps.get("stock", 0)) >= 2:
 					_add_box_2d(root, sc_pos + Vector2(-1.2, 0.4), Vector2(3.6, 3.4), 9.8, 2.2, m_gold) # Mercancía expuesta 2
+
+## P6: sala del club de pelea (se construye una vez; solo se ve estando dentro).
+func _sync_club_3d() -> void:
+	if vm == null or stage_root_3d == null:
+		return
+	var Club = load("res://scripts/systems/VillageClub.gd")
+	if not is_instance_valid(_club_root_3d):
+		_club_root_3d = Node3D.new()
+		_club_root_3d.name = "FightClub3D"
+		stage_root_3d.add_child(_club_root_3d)
+		var m_rock := _mat("sewer_bedrock", Color(0.08, 0.10, 0.09), 0.96, 0.0)
+		var m_dirt := _mat("club_dirt", Color(0.36, 0.27, 0.18), 0.95, 0.0)
+		var m_stone := _mat("sewer_brick", Color(0.28, 0.34, 0.30), 0.90, 0.05, Color.BLACK, 0.0, "town_textures/wall_brick_stone_center.png", "", 0.35)
+		var m_rope := _mat("club_rope", Color(0.78, 0.66, 0.42), 0.9, 0.0)
+		var m_wood := _mat("sewer_wood", Color(0.46, 0.30, 0.16), 0.85, 0.04)
+		var m_iron := _mat("sewer_iron", Color(0.24, 0.27, 0.32), 0.42, 0.78)
+		var m_torch := _mat("sewer_torch", Color(1.0, 0.76, 0.32), 0.20, 0.0, Color(1.0, 0.68, 0.22), 2.8)
+		var c: Vector2 = Club.CLUB_CENTER
+		var sz: Vector2 = Club.CLUB_SIZE
+		_add_box_2d(_club_root_3d, c, sz + Vector2(80, 80), 0.0, 1.0, m_rock)
+		_add_box_2d(_club_root_3d, c, sz, 1.0, 1.2, m_dirt)
+		_add_box_2d(_club_root_3d, c + Vector2(0, -sz.y * 0.5 - 3), Vector2(sz.x + 12, 6), 2.0, 22.0, m_stone) # muro norte alto
+		_add_box_2d(_club_root_3d, c + Vector2(0, sz.y * 0.5 + 3), Vector2(sz.x + 12, 6), 2.0, 5.0, m_stone) # zócalo sur bajo
+		_add_box_2d(_club_root_3d, c + Vector2(-sz.x * 0.5 - 3, 0), Vector2(6, sz.y), 2.0, 22.0, m_stone)
+		_add_box_2d(_club_root_3d, c + Vector2(sz.x * 0.5 + 3, 0), Vector2(6, sz.y), 2.0, 22.0, m_stone)
+		# Corro: 12 postes y cuerda entre ellos
+		var r: float = Club.RING_RADIUS
+		for i in range(12):
+			var a0: float = TAU * float(i) / 12.0
+			var a1: float = TAU * float(i + 1) / 12.0
+			var p0: Vector2 = c + Vector2(cos(a0), sin(a0)) * r
+			var p1: Vector2 = c + Vector2(cos(a1), sin(a1)) * r
+			_add_cyl_2d(_club_root_3d, p0, 1.2, 2.2, 9.0, m_wood, 1.2, 6)
+			var mid: Vector2 = (p0 + p1) * 0.5
+			_add_box_2d(_club_root_3d, mid, Vector2(maxf(absf(p1.x - p0.x), 1.2), maxf(absf(p1.y - p0.y), 1.2)), 8.0, 0.8, m_rope)
+		# Escalerilla de subida a la trampilla
+		var lad: Vector2 = Club.LADDER_POS
+		_add_box_2d(_club_root_3d, lad + Vector2(-4, -6), Vector2(1.4, 2.0), 2.4, 22.0, m_iron)
+		_add_box_2d(_club_root_3d, lad + Vector2(4, -6), Vector2(1.4, 2.0), 2.4, 22.0, m_iron)
+		for k in range(6):
+			_add_box_2d(_club_root_3d, lad + Vector2(0, -6), Vector2(8.0, 1.2), 4.0 + float(k) * 3.2, 0.9, m_wood)
+		# Faroles en las esquinas
+		for off in [Vector2(-1, -1), Vector2(1, -1), Vector2(1, 1), Vector2(-1, 1)]:
+			var tp: Vector2 = c + Vector2(off.x * (sz.x * 0.5 - 8), off.y * (sz.y * 0.5 - 8))
+			_add_cyl_2d(_club_root_3d, tp, 1.4, 2.0, 10.0, m_wood, 1.0, 6)
+			_add_cyl_2d(_club_root_3d, tp, 2.2, 12.0, 3.0, m_torch, 1.4, 8)
+			if not _is_headless:
+				var lt := OmniLight3D.new()
+				lt.position = to_3d(tp, 16.0)
+				lt.light_color = Color(1.0, 0.78, 0.42)
+				lt.light_energy = 1.2
+				lt.omni_range = 3.4
+				_club_root_3d.add_child(lt)
+		# Trampilla en el patio de la taberna (siempre visible en la calle)
+		var trap := Node3D.new()
+		trap.name = "ClubTrapdoor3D"
+		stage_root_3d.add_child(trap)
+		_add_box_2d(trap, Club.TRAPDOOR_POS, Vector2(14.0, 12.0), 0.3, 1.0, m_wood)
+		_add_box_2d(trap, Club.TRAPDOOR_POS + Vector2(0, 4), Vector2(10.0, 1.2), 1.3, 0.6, m_iron)
+	_club_root_3d.visible = Club.is_player_in_club(vm)
 
 ## P5: libro de cuentas abierto sobre la mesa del ayuntamiento (se construye una vez).
 func _sync_town_ledger_3d() -> void:
