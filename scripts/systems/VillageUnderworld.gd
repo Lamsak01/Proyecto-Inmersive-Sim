@@ -20,6 +20,7 @@ const VillageNeeds = preload("res://scripts/systems/VillageNeeds.gd")
 const VillageClans = preload("res://scripts/systems/VillageClans.gd")
 const VillageForensics = preload("res://scripts/systems/VillageForensics.gd")
 const VillageHousing = preload("res://scripts/systems/VillageHousing.gd")
+const VillageCollections = preload("res://scripts/systems/VillageCollections.gd")
 
 ## Bloque FIS2: cada objetivo de robo está físicamente dentro de su edificio:
 ## - `sello_noble`: Mansión señorial (`solar f1`, estudio en `Vector2(1275, -444)`).
@@ -884,27 +885,8 @@ static func daily(vm) -> void:
 		if pp_cut > 0:
 			VillageChronicle.add(vm, "pickpocket_cut", "Tu red de carteristas te entregó tu parte del botín diario (+%d de oro)" % pp_cut, false)
 
-	# P7.6 y P7.10: Los sábados (weekday == 5), cobras las extorsiones de protección y tu tributo de Jefe del Hampa
-	var is_sat: bool = WorldClock != null and WorldClock.has_method("get_weekday") and int(WorldClock.get_weekday()) == 5
-	if is_sat and inv != null:
-		var rackets: Dictionary = st.get("rackets", {})
-		var racket_total: int = 0
-		for rk in rackets.keys():
-			var got: int = _charge_shop(vm, int(rk), RACKET_WEEKLY)
-			racket_total += got
-			var owner = vm.trade_npcs.get(int(rk), null)
-			if got == 0 and owner != null and is_instance_valid(owner):
-				owner.add_thought("No tengo con qué pagar la «protección»; tengo miedo (-6)", -6.0)
-		if racket_total > 0:
-			inv.add_gold(racket_total)
-			VillageChronicle.add(vm, "racket_paid", "Cobraste %d de oro de «protección» semanal en los comercios" % racket_total, false)
-		if str(st.get("boss", "fence")) == "player":
-			var fence = get_fence_npc(vm)
-			var trib: int = mini(BOSS_TRIBUTE, int(fence.personal_gold)) if fence != null else 0
-			if trib > 0:
-				fence.personal_gold -= trib
-				inv.add_gold(trib)
-				VillageChronicle.add(vm, "underworld_tribute", "Como Jefe del Hampa recibiste tu tributo semanal de los bajos fondos (+%d de oro)" % trib, false)
+	# P7.6 y P7.10 / P5: la «protección» y el tributo del sábado ya no saltan solos a tu mochila:
+	# los aparta `VillageCollections.on_saturday` y los recoges en el local o hablando con el perista de noche.
 
 # ==============================================================================
 # Diálogos del mercado negro, usura, extorsión y bajos fondos
@@ -922,6 +904,10 @@ static func add_dialogue_choices(vm, npc, diag: Dictionary, ch_arr: Array) -> vo
 	# P7.1: Perista nocturno (se activa de noche o siempre que ya lo conozcas)
 	if fence_here and (is_night_market_hours() or bool(st.get("known_fence", false))):
 		st["known_fence"] = true
+		# P5: tributo apartado del Jefe del Hampa; se recoge del perista solo de noche
+		var trib_due: int = VillageCollections.pending_total(vm, "tribute")
+		if trib_due > 0 and is_night_market_hours():
+			opts.append({"label": "💰 Recoger tu tributo (%d de oro)" % trib_due, "next": "END", "action": "underworld_collect_tribute"})
 		# P7.2: Catálogo ilegal y venta de mercancía robada
 		opts.append({"label": "🗝️ Comprar ganzúa silenciosa (-15 Oro) [Tienes: %d]" % get_item_count(vm, "lockpick"), "next": "END", "action": "underworld_buy:lockpick"})
 		opts.append({"label": "🧪 Comprar vial de veneno lento indetectable (-35 Oro) [Tienes: %d]" % get_item_count(vm, "slow_poison"), "next": "END", "action": "underworld_buy:slow_poison"})
@@ -1191,6 +1177,10 @@ static func on_player_action(vm, npc, action_id: String, inv) -> void:
 		vm.VillageTown.state(vm)["pledges"][key] = "player"
 		npc.modify_affinity(14)
 		npc._spawn_floating_text("🤝🗳️ «Trato hecho: tienes mi voto, descuentos en mi casa y mi lealtad.»", Color.SPRING_GREEN, -46.0)
+
+	elif action_id == "underworld_collect_tribute":
+		var got_t: int = VillageCollections.collect_tribute(vm, npc, inv)
+		npc._spawn_floating_text("💰 «Tu parte, jefe: %d monedas.»" % got_t, Color.GOLD, -46.0)
 
 	elif action_id == "underworld_demand_protection":
 		var r_key: String = str(int(npc.trade_role))

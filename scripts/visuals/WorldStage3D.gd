@@ -80,6 +80,7 @@ var _coop_gap_3d: Node3D = null
 var _grid_panel_bulb_3d: MeshInstance3D = null
 var _heist_prop_3d: Node3D = null
 var _last_heist_sig: String = ""
+var _town_ledger_3d: Node3D = null # P5: libro de cuentas en la mesa del ayuntamiento
 var _home_props_3d: Node3D = null
 var _last_home_props_sig: String = ""
 
@@ -1473,6 +1474,7 @@ func _sync_dynamic_props_3d() -> void:
 		var sab_on: bool = VillageCulture.is_grid_sabotaged(vm)
 		_grid_panel_bulb_3d.material_override = _mat("grid_bulb_err", Color(1.0, 0.25, 0.18), 0.2, 0.0, Color(1.0, 0.20, 0.12), 2.8) if sab_on else _mat("tinker_screen", Color(0.32, 0.96, 0.82), 0.2, 0.0, Color(0.24, 0.92, 0.76), 2.4)
 	_sync_heist_target_3d()
+	_sync_town_ledger_3d()
 	_sync_home_props_3d()
 
 func _sync_home_props_3d() -> void:
@@ -1564,6 +1566,21 @@ func _sync_home_props_3d() -> void:
 				_add_box_2d(root, sc_pos + Vector2(-4.8, -0.4), Vector2(3.8, 3.6), 9.8, 2.4, m_herb) # Mercancía expuesta 1
 				if int(ps.get("stock", 0)) >= 2:
 					_add_box_2d(root, sc_pos + Vector2(-1.2, 0.4), Vector2(3.6, 3.4), 9.8, 2.2, m_gold) # Mercancía expuesta 2
+
+## P5: libro de cuentas abierto sobre la mesa del ayuntamiento (se construye una vez).
+func _sync_town_ledger_3d() -> void:
+	if vm == null or stage_root_3d == null or is_instance_valid(_town_ledger_3d):
+		return
+	var pos: Vector2 = load("res://scripts/systems/VillageCollections.gd").ledger_pos()
+	var root := Node3D.new()
+	root.name = "TownLedger3D"
+	stage_root_3d.add_child(root)
+	_town_ledger_3d = root
+	var m_leather := _mat("ledger_leather", Color(0.40, 0.20, 0.10), 0.82, 0.05)
+	var m_page := _mat("heist_page", Color(0.95, 0.90, 0.76), 0.85, 0.0)
+	_add_box_2d(root, pos, Vector2(12.0, 8.0), 10.2, 1.0, m_leather) # Tapas abiertas
+	_add_box_2d(root, pos + Vector2(-2.9, 0), Vector2(5.4, 6.8), 11.2, 0.8, m_page) # Página izquierda
+	_add_box_2d(root, pos + Vector2(2.9, 0), Vector2(5.4, 6.8), 11.2, 0.8, m_page) # Página derecha
 
 func _sync_heist_target_3d() -> void:
 	if vm == null or stage_root_3d == null:

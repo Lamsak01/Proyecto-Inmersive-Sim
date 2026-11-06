@@ -3,6 +3,16 @@
 Cambios del juego, del más nuevo al más antiguo. Añade una entrada al cerrar cada bloque, en lenguaje sencillo.
 El detalle técnico está en `docs/HANDOFF.md` (sección 7) y el historial completo en `git log`. Lo anterior a B0.1 está en `AUDIT_LOG.md` y `SESSION_CONTEXT_LOG.md`.
 
+## 2026-11-06 — Rentas, «protección» y tributo se recogen en persona; desfalco en el cofre del ayuntamiento
+- **El sábado ya no te llega oro solo:** la renta de tus locales, la «protección» y el tributo del hampa se apartan y
+  tienes que ir a recogerlos. Rentas y tributo esperan hasta 3 semanas; si faltas dos sábados seguidos a cobrar la
+  «protección», ese local deja de pagarte.
+- **Cobrar en el local:** junto al puesto del artesano aparece «Cobrar la renta del local» o «Cobrar la "protección"».
+  El dueño tiene que estar allí. Cobrar «protección» delante de un guardia sube tu búsqueda.
+- **Tributo:** como Jefe del Hampa lo recoges hablando con el perista, solo de noche.
+- **Ayuntamiento:** siendo alcalde, desvías oro en el propio cofre de las arcas (si alguien te ve, escándalo y chisme) y
+  maquillas las cuentas en un libro sobre la mesa (con doble E si pagas). Ya no se hace en la charla.
+
 ## 2026-11-06 — El perista se deja ver de noche en el callejón de la taberna
 - **Trasnocha en el callejón:** de 22:00 a 3:00 el perista no duerme: espera en el callejón de detrás de la taberna, con
   capa oscura y capucha. Si está herido, preso o la guardia lo vigila, esa noche no sale.

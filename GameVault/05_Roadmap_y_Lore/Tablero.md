@@ -51,6 +51,7 @@ kanban-plugin: board
 
 ## ✅ Hecho
 
+- [x] Rentas y cobros en persona; desfalco en el cofre del ayuntamiento (2026-11-06)
 - [x] El perista espera de noche en el callejón, con capucha, y rumores sutiles (2026-11-06)
 - [x] Animales 3D, paso 1: ciervo, zorro y perro, animados (2026-11-05)
 - [x] Jabalíes con aspecto de lobo animado, provisional (2026-11-05)

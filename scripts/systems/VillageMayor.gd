@@ -377,10 +377,7 @@ static func add_dialogue_choices(vm, npc, diag: Dictionary, ch_arr: Array) -> vo
 			opts.append({"label": "🥣🏛️ Financiar 8 raciones extra en el Albergue con las arcas (20 Oro de arcas)", "next": "END", "action": "town_work_shelter"})
 		if int(ts.get("treasury", 0)) >= 30:
 			opts.append({"label": "👮🔄 Relevar al Comisario y nombrar a un nuevo jefe policial leal (30 Oro de arcas)", "next": "END", "action": "town_appoint_sheriff"})
-		if int(ts.get("treasury", 0)) >= EMBEZZLE_AMOUNT:
-			opts.append({"label": "💼🪙 Desviar %d de oro de las arcas municipales a tu bolsillo" % EMBEZZLE_AMOUNT, "next": "END", "action": "town_player_embezzle"})
-		if int(ts.get("player_embezzle_risk", 0)) > 0:
-			opts.append({"label": "帳🧹 Maquillar el libro de cuentas del Ayuntamiento (-%d Oro o Carisma 2)" % COOK_BOOKS_COST, "next": "END", "action": "town_cook_books"})
+		# P5: desviar oro y maquillar el libro ya no van en la charla: se hacen en el cofre de las arcas y en la mesa del ayuntamiento (VillageCollections).
 
 	if not opts.is_empty():
 		opts.append({"label": "⬅️ Volver", "next": "start"})

@@ -33,6 +33,7 @@ const VillageForensics = preload("res://scripts/systems/VillageForensics.gd")
 const VillageLineage = preload("res://scripts/systems/VillageLineage.gd")
 const VillageConfession = preload("res://scripts/systems/VillageConfession.gd")
 const VillageMayor = preload("res://scripts/systems/VillageMayor.gd")
+const VillageCollections = preload("res://scripts/systems/VillageCollections.gd")
 const VillageHousing = preload("res://scripts/systems/VillageHousing.gd")
 const VillageUnderworld = preload("res://scripts/systems/VillageUnderworld.gd")
 const VillageFame = preload("res://scripts/systems/VillageFame.gd")
@@ -2477,6 +2478,7 @@ func _on_hour_passed(_day: int, new_hour: int = 8) -> void:
 	VillageFaith.on_hour(self, actual_hour) # G2: Oficio del Alba (domingo por la mañana)
 	VillageHousing.on_hour(self, actual_hour) # P1: dependiente y clientes reales en tu tienda
 	VillageUnderworld.on_hour(self, actual_hour) # P5b: el perista trasnocha en el callejón de la taberna
+	VillageCollections.sync_points(self) # P5: puntos de cobro en los locales y objetos del ayuntamiento
 	VillageNeeds.on_hour(self, actual_hour) # E: higiene, taberna, limosna
 	VillageIllness.on_hour(self, actual_hour) # E2: contagios
 	VillageSect.on_hour(self, actual_hour) # O3: reunión de la secta (viernes de madrugada)
@@ -3183,6 +3185,7 @@ func _on_day_passed(_new_day: int) -> void:
 		VillageMayor.daily(self) # P5: promesas electorales, decretos y protestas
 		VillageHousing.daily(self) # P6: pareja en casa, huerto y rentas comerciales
 		VillageUnderworld.daily(self) # P7: mercado negro, usura, protección y jefe del hampa
+		VillageCollections.daily(self) # P5: el sábado se aparta lo que te deben; lo recoges en persona
 		VillageFame.daily(self) # Fama de los vecinos y Maestros Artesanos con estilo propio
 		VillageQuests.on_day_passed(self)
 	chronicle_daily = false

@@ -14,6 +14,7 @@ extends Node2D
 const VillageCulture = preload("res://scripts/systems/VillageCulture.gd")
 const VillageUnderworld = preload("res://scripts/systems/VillageUnderworld.gd")
 const VillageHousing = preload("res://scripts/systems/VillageHousing.gd")
+const VillageCollections = preload("res://scripts/systems/VillageCollections.gd")
 const CharacterAvatar3DScript = preload("res://scripts/visuals/CharacterAvatar3D.gd")
 
 var vm: Node2D = null
@@ -88,6 +89,18 @@ func setup_prop(village_manager: Node2D, kind: String, h_id: String = "", h_labe
 			npc_role = "Mostrador y Caja de tu Tienda"
 			add_to_group("player_shop_counter")
 			add_to_group("home_prop")
+		"collect_point": # P5: cobro de renta o «protección» en el local (invisible: basta el letrero)
+			npc_name = "Cobro en el local"
+			npc_role = "Lo que te deben"
+			add_to_group("collect_point")
+		"town_coffers": # P5: desviar oro del cofre de las arcas (siendo alcalde)
+			npc_name = "Arcas del Pueblo"
+			npc_role = "Ayuntamiento"
+			add_to_group("town_coffers_prop")
+		"town_ledger": # P5: libro de cuentas sobre la mesa del ayuntamiento
+			npc_name = "Libro de Cuentas"
+			npc_role = "Mesa del Ayuntamiento"
+			add_to_group("town_ledger_prop")
 	_rebuild_visual_and_area()
 
 
@@ -134,6 +147,8 @@ func _rebuild_visual_and_area() -> void:
 			_draw_home_garden_2d()
 		"player_shop_counter":
 			_draw_player_shop_counter_2d()
+		"town_ledger":
+			_draw_town_ledger_2d()
 
 	if interact_area == null or not is_instance_valid(interact_area):
 		interact_area = Area2D.new()
@@ -309,6 +324,15 @@ func _draw_player_shop_counter_2d() -> void:
 	_rect(Vector2(4.6, -0.2), Vector2(2.0, 1.8), Color(0.95, 0.78, 0.24) if till_g > 0 else Color(0.52, 0.44, 0.26)) # Monedas / cerradura
 
 
+func _draw_town_ledger_2d() -> void:
+	# Libro de cuentas abierto sobre la mesa
+	_rect(Vector2(0, 0.8), Vector2(6.4, 4.4), Color(0.14, 0.10, 0.06, 0.5)) # Sombra
+	_rect(Vector2(0, 0), Vector2(6.0, 4.0), Color(0.40, 0.20, 0.10)) # Tapas de cuero
+	_rect(Vector2(-2.9, 0), Vector2(2.7, 3.4), Color(0.94, 0.89, 0.74)) # Página izquierda
+	_rect(Vector2(2.9, 0), Vector2(2.7, 3.4), Color(0.94, 0.89, 0.74)) # Página derecha
+	_rect(Vector2(0, 0), Vector2(0.4, 3.6), Color(0.30, 0.16, 0.08)) # Lomo
+
+
 func get_interact_label(_player: Node2D = null) -> String:
 	match prop_kind:
 		"terminal":
@@ -342,6 +366,13 @@ func get_interact_label(_player: Node2D = null) -> String:
 			return VillageHousing.get_home_garden_label(vm, heist_id) if vm != null else "Cosechar el huerto de casa"
 		"player_shop_counter":
 			return VillageHousing.get_player_shop_counter_label(vm) if vm != null else "Mostrador y caja de tu tienda"
+		"collect_point":
+			var cp: PackedStringArray = heist_id.split(":")
+			return VillageCollections.collect_label(vm, cp[0], int(cp[1])) if vm != null and cp.size() == 2 else ""
+		"town_coffers":
+			return VillageCollections.embezzle_label(vm) if vm != null else ""
+		"town_ledger":
+			return VillageCollections.ledger_label(vm) if vm != null else ""
 	return "Usar"
 
 
@@ -372,6 +403,14 @@ func interact(player: Node2D) -> void:
 			VillageHousing.interact_home_garden(vm, heist_id, player)
 		"player_shop_counter":
 			VillageHousing.open_player_shop_counter_menu(vm, self, player)
+		"collect_point":
+			var cp: PackedStringArray = heist_id.split(":")
+			if cp.size() == 2:
+				VillageCollections.collect(vm, cp[0], int(cp[1]), player)
+		"town_coffers":
+			VillageCollections.embezzle(vm, player)
+		"town_ledger":
+			VillageCollections.cook_books(vm, player)
 
 
 func on_dialogue_action(action_id: String) -> void:

@@ -5326,5 +5326,87 @@ func _initialize() -> void:
 	b5b_vun.state(vm)["fence_rumor_day"] = -1
 	print("Block P5b (Fence in the Alley at Night, Hooded Label & Subtle Rumors) OK")
 
+	# ==========================================================================
+	# Bloque P5: rentas y cobros en persona («P5 rentas»)
+	# ==========================================================================
+	var b5_col = load("res://scripts/systems/VillageCollections.gd")
+	var b5_vun = vm.VillageUnderworld
+	var b5_hs: Dictionary = vm.VillageHousing.state(vm)
+	var b5_inv = p70_pl.get("inventory")
+	var b5_role: int = -1
+	for b5_r in vm.shop_businesses.keys():
+		var b5_o = vm.trade_npcs.get(int(b5_r), null)
+		if b5_o != null and is_instance_valid(b5_o) and not b5_o.is_dead:
+			b5_role = int(b5_r)
+			break
+	assert(b5_role >= 0, "P5.0: Found a shop with an owner")
+	var b5_owner = vm.trade_npcs[b5_role]
+	var b5_list: Array = b5_col.pending(vm)
+	var b5_list_bak: Array = b5_list.duplicate(true)
+	b5_list.clear()
+	var b5_deeds_bak: Dictionary = (b5_hs["commercial_deeds"] as Dictionary).duplicate(true)
+	var b5_rackets_bak: Dictionary = (b5_vun.state(vm)["rackets"] as Dictionary).duplicate(true)
+	b5_vun.state(vm)["rackets"] = {}
+	b5_hs["commercial_deeds"][str(b5_role)] = true
+	var b5_vault_bak: int = int(vm.shop_businesses[b5_role].get("vault_gold", 0))
+	vm.shop_businesses[b5_role]["vault_gold"] = 100
+	var b5_g0: int = int(b5_inv.gold)
+	# 1. El sábado no sube tu oro: queda una renta apartada
+	b5_col.on_saturday(vm)
+	assert(int(b5_inv.gold) == b5_g0 and b5_col.pending_total(vm, "rent", b5_role) == 15, "P5.1: On Saturday the rent is set aside, your gold does not change")
+	# 2. Cobrar con el dueño presente: suma cero
+	var b5_own_pos: Vector2 = b5_owner.global_position
+	var b5_own_slp: bool = b5_owner.is_sleeping
+	b5_owner.global_position = b5_owner.work_position
+	b5_owner.is_sleeping = false
+	var b5_got: int = b5_col.collect(vm, "rent", b5_role, p70_pl)
+	assert(b5_got == 15 and int(b5_inv.gold) == b5_g0 + 15 and int(vm.shop_businesses[b5_role]["vault_gold"]) == 85 and b5_col.pending_total(vm, "rent", b5_role) == 0, "P5.2: Collecting at the shop with the owner present moves the gold from the shop till to you (zero-sum)")
+	# 3. Una renta de más de 21 días se borra
+	b5_list.append({"kind": "rent", "role": b5_role, "amount": 5, "since": b5_vun.today() - 22})
+	b5_col.expire_old(vm, b5_vun.today())
+	assert(b5_col.pending_total(vm, "rent", b5_role) == 0, "P5.3: A rent older than 21 days is dropped")
+	# 4. Siendo alcalde, desviar oro del cofre con un testigo al lado sube el riesgo en 2 o más
+	var b5_ts: Dictionary = vm.VillageMayor.ensure_state(vm)
+	var b5_mayor_bak = b5_ts.get("mayor", "")
+	var b5_tr_bak: int = int(b5_ts.get("treasury", 0))
+	var b5_risk_bak: int = int(b5_ts.get("player_embezzle_risk", 0))
+	var b5_pl_pos: Vector2 = p70_pl.global_position
+	b5_ts["mayor"] = "player"
+	b5_ts["treasury"] = 100
+	b5_ts["player_embezzle_risk"] = 0
+	var b5_cof: Vector2 = vm.VillageCivic.hall_spots()["coffers"]
+	p70_pl.global_position = b5_cof
+	var b5_wit = null
+	for b5_n in vm.VillageNeeds.living(vm):
+		if b5_n != b5_owner and not b5_n.is_incapacitated():
+			b5_wit = b5_n
+			break
+	var b5_wit_pos: Vector2 = b5_wit.global_position
+	var b5_wit_slp: bool = b5_wit.is_sleeping
+	var b5_wit_lvl: int = int(b5_wit.elevation_level)
+	b5_wit.global_position = vm.VillageCivic.hall_spots()["mayor"] # dentro del ayuntamiento, con vista al cofre
+	b5_wit.is_sleeping = false
+	b5_wit.elevation_level = int(vm.player_elevation_level)
+	var b5_take: int = b5_col.embezzle(vm, p70_pl)
+	assert(b5_take == vm.VillageMayor.EMBEZZLE_AMOUNT, "P5.4a: Embezzling takes the amount from the coffers")
+	assert(int(b5_ts["player_embezzle_risk"]) >= 2, "P5.4: Embezzling at the town hall coffers with a witness nearby raises the risk by 2 or more")
+	# Restaurar
+	b5_inv.gold = b5_g0
+	b5_ts["mayor"] = b5_mayor_bak
+	b5_ts["treasury"] = b5_tr_bak
+	b5_ts["player_embezzle_risk"] = b5_risk_bak
+	p70_pl.global_position = b5_pl_pos
+	b5_wit.global_position = b5_wit_pos
+	b5_wit.is_sleeping = b5_wit_slp
+	b5_wit.elevation_level = b5_wit_lvl
+	b5_owner.global_position = b5_own_pos
+	b5_owner.is_sleeping = b5_own_slp
+	vm.shop_businesses[b5_role]["vault_gold"] = b5_vault_bak
+	b5_hs["commercial_deeds"] = b5_deeds_bak
+	b5_vun.state(vm)["rackets"] = b5_rackets_bak
+	b5_list.clear()
+	b5_list.append_array(b5_list_bak)
+	print("Block P5 (Rents Set Aside on Saturday, Collected in Person, Expiry & Embezzling at the Coffers) OK")
+
 	print("ALL RIMWORLD MEDICAL, FOOTPRINTS, 3-PHASE CORPSE REPORT, MULTI-CORPSE FIX, RPG INTERROGATION, PUBLIC TRIAL, DYNAMIC RELATIONSHIPS, MISSING FAMILY SEARCH, SOCIAL GLOSSARY & UNCONSCIOUS REACTION TESTS PASSED!")
 	quit(0)

@@ -28,5 +28,6 @@ fuente: "Biblia §8.1"
   - **Lado Oscuro del Poder:** Indultar a un repudiado (`P5.7`), destituir y nombrar a un nuevo comisario (`P5.9`), **desfalcar las arcas** y maquillar los libros contables (`P5.10–P5.11`, con riesgo de que el secretario o un lector lo descubra), gobernar en la sombra mediante un **alcalde títere** (`P5.12`) o derribar al alcalde con una **moción de censura** reuniendo firmas reales de vecinos descontentos (`P5.13`).
 
 ## Notas de diseño
+- 2026-11-06 (Claude Code, Bloque P5): desviar oro se hace en el **cofre de las arcas** del ayuntamiento y maquillar las cuentas en el **libro** de la mesa (2D y 3D), ya no en la charla. Si un vecino te ve sacar el oro, hay escándalo y corre el chisme. No hay escribano: el pago por maquillar va a las arcas.
 - 2026-11-05 (Claude Code): el edicto fiscal (bajos ×0,5, normales ×1, altos ×1,8) multiplica ahora el impuesto sobre la renta semanal por tramos.
 -

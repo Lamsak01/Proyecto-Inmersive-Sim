@@ -872,17 +872,8 @@ static func daily(vm) -> void:
 					hs["intruder_attempt"] = {"intruder_key": n.get_person_key(), "intruder_name": n.npc_name, "day": today(), "repelled": false}
 					VillageChronicle.add(vm, "intruder_try", "Anoche alguien intentó forzar la puerta de tu casa; quien fuera te guarda rencor", false)
 					break
-	# P6.10: Los sábados, los locales comerciales tuyos te pagan el 15 % de su caja
-	if inv != null and WorldClock != null and WorldClock.has_method("get_weekday") and int(WorldClock.get_weekday()) == 5:
-		var deeds: Dictionary = hs.get("commercial_deeds", {})
-		for r_key in deeds.keys():
-			var role_i: int = int(r_key)
-			if vm.shop_businesses.has(role_i):
-				var vault: int = int(vm.shop_businesses[role_i].get("vault_gold", 0))
-				var cut: int = int(round(float(vault) * 0.15)) # solo lo que hay en la caja
-				if cut > 0:
-					vm.shop_businesses[role_i]["vault_gold"] = vault - cut
-					inv.add_gold(cut)
+	# P6.10 / P5: la renta del sábado (15 % de la caja) ya no salta sola a tu mochila: la aparta
+	# `VillageCollections.on_saturday` y la recoges en el propio local.
 	# Bloque PG / Bloque P1: Las ventas de tu tienda ocurren durante el día cuando el dependiente atiende el mostrador
 	# y los clientes se acercan andando a comprar; a medianoche se paga el jornal al dependiente y la caja sin recoger corre riesgo de robo nocturno.
 	if has_player_shop(vm):
