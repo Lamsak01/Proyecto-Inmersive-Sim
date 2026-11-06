@@ -49,39 +49,41 @@ Reglas que el supervisor va a comprobar sí o sí:
 
 ---
 
-## 2. El encargo actual: AUDITORÍA DE REALISMO + primer arreglo
+## 2. El encargo actual: bloque COMBATE-1 — rodar y parar
 
-> FIS3b aprobado. Ya hechos físicos: caballo, asaltos, terminal y cuadro eléctrico, objetos de los robos,
-> alcantarillas, ganado, rejilla vigilada. Pedido del usuario: revisar si quedan mecánicas que no funcionan de forma
-> realista y empezar a corregirlas.
+> Decisiones del usuario (2026-11-06): **Espacio = rodar**, **Q = parar**. Las peleas clandestinas irán en un **sótano de
+> la taberna** (bloque aparte, después). Las coberturas para armas de fuego se dejan para cuando haya enemigos que
+> disparen. **No hagas nada de eso ahora**, solo esto.
 
-### 2.1 Paso A — auditoría (sin tocar código)
+Ahora mismo: no hay esquiva ni parada. Los enemigos pegan al instante, sin aviso (p. ej. `VillageNPC._process_hostile_combat`
+pega cada 1 s en cuanto está a ≤30 px; `Raider._hit`; perros hostiles en `DomesticPet`; jabalíes en `WildAnimal`).
 
-Revisa todo el juego (`scripts/`) buscando mecánicas que **no ocurren de verdad en el mundo**. Señales típicas:
-- se resuelven desde una opción de charla o un menú, sin ir al sitio ni usar el objeto;
-- tiradas de dados instantáneas que sustituyen algo que debería verse (un viaje, una pelea, una obra, una reunión);
-- objetos, dinero o comida que aparecen en la mochila o en una caja a medianoche sin que nadie los produzca o los traiga;
-- personas que «trabajan», «van» o «se reúnen» solo en los datos, sin moverse en el mapa;
-- cosas que solo existen como un número o un sí/no y nunca se ven en 2D ni en 3D;
-- oro que nace o desaparece (Regla 1), gastos sin doble E (Regla 3), acciones de riesgo sin testigos (Regla 4).
+Hay que:
+1. **Rodar (Espacio):** el jugador rueda en la dirección en que se mueve (si está quieto, hacia donde mira) unos 45–55 px
+   en ~0,35 s. Durante ~0,25 s **no recibe daño** (que `Player.take_damage` lo ignore). Gasta aguante
+   (`StaminaComponent.use_stamina`; sin aguante no rueda) y tiene una espera corta (~0,6 s). Choca con las paredes como al
+   andar. **No** se puede rodar montado a caballo ni dentro de un menú; rodar rompe el sigilo.
+2. **Parar (Q):** al pulsar Q se abre una ventana corta (~0,2 s). Si un golpe **cuerpo a cuerpo** llega dentro de esa
+   ventana: no hace daño, el atacante queda **tambaleándose** (~0,8 s sin poder pegar; usa el aturdimiento que ya exista si
+   encaja) y sale un aviso/destello. Si no llega nada, espera ~0,5 s antes de poder volver a parar. Flechas y balas no se
+   paran. **Ojo:** Q ya sirve para el derribo no letal por la espalda cuando hay objetivo de sigilo
+   (`PlayerCombatController`, `current_prompt_target`); eso tiene prioridad, la parada solo cuando no hay ese objetivo.
+3. **Golpes con aviso (para que parar sea justo):** antes de cada golpe cuerpo a cuerpo, los atacantes hacen un gesto
+   visible de ~0,4 s (destello o «!» en 2D y el inicio de la animación de ataque en 3D) y el daño llega al final, solo si
+   el jugador sigue a su alcance. Aplícalo a vecinos hostiles y guardias (`VillageNPC._process_hostile_combat`), asaltantes
+   (`Raider`), perros hostiles y jabalíes. No cambies cuánto daño hacen.
+4. **Animaciones del muñeco 3D:** la biblioteca de animaciones del jugador (`assests/curated_3d/animations/ual_male.res`)
+   **no** tiene rodar ni bloquear. Si puedes conseguir esas animaciones de la *Universal Animation Library* de Quaternius
+   (CC0) y añadirlas como se hizo con las demás (`tools/bake_character_animations.gd`), mejor; si no, hazlo con movimiento
+   del propio muñeco (agacharse y girar al rodar, brazos arriba al parar). Explica en el informe qué elegiste.
+5. **Ayuda en pantalla:** añade «[Espacio] Rodar · [Q] Parar» donde se listan los controles.
 
-Ya sabemos que faltan (inclúyelas en la lista, no hace falta volver a demostrarlo): tu tienda propia y las mejoras de
-casa (dependiente que no va, huerto y banco de trabajo que dan cosas solos), caravanas de las rutas comerciales,
-expediciones fuera del valle, cenas/fiestas/banquete de paz, la carreta.
+### 2.1 Pruebas del bloque
 
-Escribe `docs/AUDITORIA_REALISMO.md` con una tabla: **mecánica · qué pasa ahora (en palabras de jugador) · dónde está
-en el código (archivo y función que EXISTAN) · cómo debería ser · coste (poco/medio/mucho) · prioridad (1 = se nota
-mucho al jugar)**. Ordena por prioridad. Sé honesto: si algo ya es físico, no lo metas.
-
-### 2.2 Paso B — arreglar SOLO la primera de la lista
-
-- Arregla únicamente la mecánica de prioridad 1 (si es de coste «mucho», trocéala y haz solo la primera parte).
-- Mismas reglas de siempre (§0, §1): todo físico, suma cero, doble E, testigos, letrero de [E], 2D y 3D.
-- Si para decidir cómo debe ser hace falta una decisión de **diseño**, no la inventes: apúntala en
-  `docs/PREGUNTAS_PENDIENTES.md` (sección «Abiertas») y pasa a la siguiente de la lista que no la necesite.
-- Pruebas: un test por comportamiento nuevo, arranque sin errores (`--headless --quit-after 3`) y las cuatro pruebas.
-- Después: documentación (§3), commit y push, y **para** (no sigas con la segunda). El supervisor revisará y te mandará
-  la siguiente.
+- Un test por comportamiento: durante el rodar no se recibe daño; sin aguante no se rueda; una parada a tiempo anula el
+  golpe y deja al atacante sin pegar un rato; parar a destiempo no protege; el golpe del enemigo llega tras su aviso, no
+  al instante; con objetivo de sigilo, Q sigue haciendo el derribo.
+- Arranque sin errores (`--headless --quit-after 3`) y las cuatro pruebas de HANDOFF §3. El usuario ya ha dado permiso.
 
 ## 3. Al cerrar el bloque
 

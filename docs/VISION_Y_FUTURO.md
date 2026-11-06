@@ -133,6 +133,14 @@ Estado: **✅ HECHO** = ya construido y funcionando en el juego. **🟡 EN PARTE
   a 75 en 15 días.
 
 ### Ocio, apuestas y peleas
+- 💡 **IDEA DEL USUARIO (2026-11-06)** — Combate con **rodar (Espacio)** y **parar (Q)**, con golpes enemigos que avisan.
+  *(En marcha: bloque COMBATE-1.)*
+- 💡 **IDEA DEL USUARIO (2026-11-06)** — **Peleas clandestinas en un sótano de la taberna**: corro de vecinos, combate
+  real a puñetazos y apuestas que pagan los que apuestan.
+- 💡 **IDEA DEL USUARIO (2026-11-06)** — **Sistema de coberturas** para las armas de fuego. Valoración: DESPUÉS, cuando haya
+  enemigos que disparen (ahora solo dispara el jugador).
+- 💡 **IDEA DEL USUARIO (2026-11-06)** — **Edificios por dentro con cuartos de verdad** (cocina, dormitorio, baño, sala…),
+  empezando solo por los negocios. Necesita plan propio antes de empezar.
 - ✅ **HECHO** — Casino y apuestas: póker, blackjack, ruleta y billar en la posada para el jugador, y vecinos que van a apostar por las tardes y pueden engancharse al juego. *(Base + hecho en E5.)*
 - ✅ **HECHO** — Carreras de animales y peleas de perros y gallos (`VillageUnderworld.gd`, `VillageHousing.gd`, test #86): carreras de animales (apuesta de 12 de oro contra el bolsillo del vecino, una vez al día) y peleas clandestinas de gallos/perros (apuesta de 15 de oro contra el bolsillo del vecino, con riesgo de que te oiga la guardia), donde el vigor de los animales adultos que hayas criado mejora tus probabilidades sin garantizar nunca la victoria. *(Hecho en bloque PI.)*
 - ✅ **HECHO** — Club de la lucha, boxeo, peleas callejeras. *(Peleas entre vecinos en B4.1–B4.2, misión de pelea anunciada en M17 y club de pelea clandestino a medianoche con apuestas y combate a puño limpio en P7 `VillageUnderworld.gd`.)*
