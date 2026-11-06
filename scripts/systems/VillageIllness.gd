@@ -46,6 +46,42 @@ static func has_amputation(vm, key: String) -> bool:
 static func has_prosthetic(vm, key: String) -> bool:
 	return str(get_amputation(vm, key).get("prosthetic", "")) != ""
 
+static func player_gangrene(vm) -> Dictionary:
+	if vm == null:
+		return {}
+	var st: Dictionary = VillageNeeds.state(vm)
+	var pg = st.get("player_gangrene", null)
+	return pg if pg is Dictionary else {}
+
+static func _check_player_gangrene(vm, notify_hint: bool = true) -> void:
+	if vm == null:
+		return
+	var st: Dictionary = VillageNeeds.state(vm)
+	var hc = _health_comp_of(vm, "player")
+	var found_limb: String = ""
+	var amp_limb: String = str(get_amputation(vm, "player").get("limb", ""))
+	if hc != null:
+		for w in hc.wounds:
+			var w_reg: String = str(w.get("region", ""))
+			if LIMB_LABELS.has(w_reg) and w_reg != amp_limb and float(w.get("infection", 0.0)) >= 65.0:
+				found_limb = w_reg
+				break
+	if found_limb == "":
+		st.erase("player_gangrene")
+		return
+	var prev: Dictionary = player_gangrene(vm)
+	if str(prev.get("limb", "")) != found_limb:
+		var limb_lbl: String = str(LIMB_LABELS[found_limb])
+		st["player_gangrene"] = {
+			"limb": found_limb,
+			"limb_label": limb_lbl,
+			"day": VillageNeeds.today(),
+		}
+		if notify_hint:
+			var pl = VillageNeeds.player_of(vm)
+			if pl != null and pl.has_method("show_hint"):
+				pl.show_hint("El médico ha oído que tu herida del %s se ha gangrenado. Ve al hospital antes de que sea tarde." % limb_lbl)
+
 static func _health_comp_of(vm, key: String):
 	if key == "player":
 		var pl = VillageNeeds.player_of(vm)
@@ -78,6 +114,10 @@ static func amputate(vm, key: String, limb_id: String = "left_arm", reason: Stri
 			n.add_thought("Perdí mi %s (%s) (-15)" % [limb_lbl, reason], -15.0)
 			n._spawn_floating_text("🪚 Amputación: %s" % limb_lbl, Color(0.95, 0.45, 0.35), -40.0)
 			VillageChronicle.add(vm, "amputation", "El médico amputó el %s de %s (%s)" % [limb_lbl, n.npc_name, reason], true)
+	else:
+		var pl = VillageNeeds.player_of(vm)
+		if pl != null and pl.get("avatar_3d") != null and pl.avatar_3d.has_method("mark_appearance_dirty"):
+			pl.avatar_3d.call("mark_appearance_dirty")
 	return true
 
 static func install_prosthetic(vm, key: String, prosthetic_name: String = "Prótesis articulada de hierro y cuero") -> bool:
@@ -98,6 +138,10 @@ static func install_prosthetic(vm, key: String, prosthetic_name: String = "Prót
 			n.add_thought("Tengo una prótesis (%s) que me devuelve a la vida (+12)" % prosthetic_name, 12.0)
 			n._spawn_floating_text("🦾 %s" % prosthetic_name, Color.AQUAMARINE, -40.0)
 			VillageChronicle.add(vm, "prosthetic", "%s recibió una %s para su %s" % [n.npc_name, prosthetic_name, limb_lbl], true)
+	else:
+		var pl = VillageNeeds.player_of(vm)
+		if pl != null and pl.get("avatar_3d") != null and pl.avatar_3d.has_method("mark_appearance_dirty"):
+			pl.avatar_3d.call("mark_appearance_dirty")
 	return true
 
 static func ill_of(vm, key: String) -> Dictionary:
@@ -233,6 +277,7 @@ static func daily(vm) -> void:
 					tinker.shop_stock["repair_kit"] = int(tinker.shop_stock["repair_kit"]) - 1
 					tinker._sync_shop_stock_to_vm()
 					install_prosthetic(vm, n_key, "Prótesis articulada de hierro y cuero")
+	_check_player_gangrene(vm, true)
 	# Casos nuevos
 	var raining: bool = WorldClock != null and int(WorldClock.current_weather) == 1
 	for n in VillageNeeds.living(vm):
@@ -288,9 +333,29 @@ static func add_dialogue_choices(vm, npc, _diag: Dictionary, ch_arr: Array) -> v
 		var amp_npc = by_key.get(str(k), null)
 		if amp_npc != null and is_instance_valid(amp_npc) and not amp_npc.is_dead:
 			ch_arr.insert(0, {"label": "🦾🤝 Costear prótesis médica para %s (-%d Oro)" % [amp_npc.npc_name, PROSTHETIC_COST], "next": "END", "action": "illness_prosthetic_npc:" + str(k)})
+	_check_player_gangrene(vm, false)
+	var pg: Dictionary = player_gangrene(vm)
+	if not pg.is_empty():
+		var g_lbl: String = str(pg.get("limb_label", "Pierna Izq."))
+		ch_arr.insert(0, {"label": "No, me la quedo", "next": "END", "action": "illness_refuse_amputate"})
+		ch_arr.insert(0, {"label": "🪚 Amputar el %s gangrenado (te salva la vida)" % g_lbl, "next": "END", "action": "illness_amputate_self"})
 
 static func on_player_action(vm, npc, action_id: String, inv) -> void:
-	if action_id == "illness_cure":
+	if action_id == "illness_amputate_self":
+		var pg: Dictionary = player_gangrene(vm)
+		if pg.is_empty():
+			return
+		var limb_key: String = str(pg.get("limb", "left_leg"))
+		var limb_lbl: String = str(pg.get("limb_label", LIMB_LABELS.get(limb_key, "Pierna Izq.")))
+		amputate(vm, "player", limb_key, "gangrena por infección")
+		VillageNeeds.state(vm).erase("player_gangrene")
+		VillageChronicle.add(vm, "amputation", "El médico amputó el %s del forastero" % limb_lbl, true)
+		if npc != null and npc.has_method("_spawn_floating_text"):
+			npc._spawn_floating_text("🪚 «He cortado a tiempo. Perdiste el %s, pero seguirás con vida.»" % limb_lbl, Color(0.95, 0.45, 0.35), -46.0)
+	elif action_id == "illness_refuse_amputate":
+		if npc != null and npc.has_method("_spawn_floating_text"):
+			npc._spawn_floating_text("«Tú sabrás. Si la fiebre sube, ya no habrá nada que cortar.»", Color.CORAL, -46.0)
+	elif action_id == "illness_cure":
 		if inv == null or int(inv.gold) < PLAYER_CURE_COST:
 			npc._spawn_floating_text("«Sin oro no tengo con qué comprar las hierbas.»", Color.CORAL, -46.0)
 			return

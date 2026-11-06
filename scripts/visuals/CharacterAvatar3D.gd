@@ -365,8 +365,8 @@ func _resolve_entity_limb_states(ent: Node2D) -> Dictionary:
 		for k in keys_to_try:
 			if k != "" and amps.has(k) and amps[k] is Dictionary:
 				var rec: Dictionary = amps[k]
-				var reg: String = str(rec.get("region", "left_leg")).to_lower()
-				var has_prost: bool = bool(rec.get("has_prosthetic", false))
+				var reg: String = str(rec.get("limb", rec.get("region", "left_leg"))).to_lower()
+				var has_prost: bool = str(rec.get("prosthetic", "")) != "" or bool(rec.get("has_prosthetic", false))
 				var st_val: String = "prosthetic" if has_prost else "amputated"
 				if reg.find("arm") != -1 or reg.find("brazo") != -1:
 					if reg.find("right") != -1 or reg.find("der") != -1:

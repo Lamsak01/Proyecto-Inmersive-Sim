@@ -281,3 +281,9 @@ o vino ya dado. Conviene confirmarlo.
 
 **Dónde:** `scripts/systems/VillageHousing.gd` (`GATHERING_CHAT_PHRASES`).
 **Depende:** solo textos flotantes cada 20 minutos de juego durante la reunión.
+
+## Frase del médico al amputar al jugador (A4, provisional)
+- «He cortado a tiempo. Perdiste el %s, pero seguirás con vida.»
+
+**Dónde:** `scripts/systems/VillageIllness.gd` (`on_player_action`, rama `"illness_amputate_self"`).
+**Depende:** solo texto flotante tras amputar el miembro gangrenado del jugador.

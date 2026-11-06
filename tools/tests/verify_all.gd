@@ -5905,5 +5905,59 @@ func _initialize() -> void:
 	assert(not a2_ui.controls_panel.visible and not t5_wc.is_time_frozen(), "A2.2: Closing the controls panel hides it and unfreezes WorldClock")
 	print("Block A2 (New Game Controls Help Panel & Clock Pause) OK")
 
+	# ==========================================================================
+	# Bloque A4: Amputación también para el jugador («A4 amputación»)
+	# ==========================================================================
+	var a4_vil = vm.VillageIllness
+	var a4_phc = p70_pl.get_node_or_null("HealthComponent")
+	assert(a4_phc != null, "A4.0a: Player HealthComponent exists")
+	var a4_doc = vm.trade_npcs.get(load("res://scripts/enemies/VillageNPC.gd").TradeRole.DOCTOR)
+	assert(a4_doc != null, "A4.0b: Doctor NPC exists")
+	var a4_wounds_bak: Array = a4_phc.wounds.duplicate(true)
+	var a4_reg_bak: Dictionary = a4_phc.region_hp.duplicate(true)
+	var a4_amps: Dictionary = a4_vil.amputations_of(vm)
+	var a4_had_amp: bool = a4_amps.has("player")
+	var a4_amp_bak: Dictionary = (a4_amps.get("player", {}) as Dictionary).duplicate(true)
+	a4_amps.erase("player")
+	vm.VillageNeeds.state(vm).erase("player_gangrene")
+	a4_phc.wounds.clear()
+	a4_phc.region_hp["left_leg"] = 45.0
+	a4_phc.region_hp["right_leg"] = 45.0
+	var a4_mov_healthy: float = float(a4_phc.get_moving_capacity())
+	a4_phc.wounds.append({
+		"id": 999, "region": "left_leg", "organ": "", "type": "laceration",
+		"name": "Laceración", "severity": 24.0, "bleed_rate": 0.0, "pain": 4.0,
+		"bandaged": true, "bandage_dirty": 0.0, "stitched": false, "splinted": false, "clean": false,
+		"infection": 70.0, "immunity": 20.0, "tend_quality": 20.0, "tend_tier": "none", "weapon_cause": "Prueba A4",
+	})
+	# 1. Con herida de pierna al 70 % de infección, la ronda diaria no te amputa y deja el aviso
+	a4_vil.daily(vm)
+	var a4_pg: Dictionary = a4_vil.player_gangrene(vm)
+	assert(not a4_vil.has_amputation(vm, "player") and not a4_pg.is_empty() and str(a4_pg.get("limb", "")) == "left_leg", "A4.1: With a player leg wound at 70% infection, daily round does NOT auto-amputate and leaves the gangrene warning")
+	var a4_choices: Array = []
+	a4_vil.add_dialogue_choices(vm, a4_doc, {}, a4_choices)
+	assert(a4_choices.size() >= 2 and str(a4_choices[0].get("action", "")) == "illness_amputate_self" and str(a4_choices[1].get("action", "")) == "illness_refuse_amputate", "A4.1b: Doctor dialogue offers amputate and refuse choices at the top")
+	# 2. Elegir «Amputar» en la charla con el médico: queda la amputación de esa pierna y get_moving_capacity() baja
+	a4_vil.on_player_action(vm, a4_doc, "illness_amputate_self", p70_inv)
+	var a4_mov_amputated: float = float(a4_phc.get_moving_capacity())
+	assert(a4_vil.has_amputation(vm, "player") and str(a4_vil.get_amputation(vm, "player").get("limb", "")) == "left_leg" and a4_vil.player_gangrene(vm).is_empty() and a4_mov_amputated < a4_mov_healthy, "A4.2: Choosing Amputate records the leg amputation, clears the warning, and lowers get_moving_capacity()")
+	# 3. Con la prótesis instalada, get_moving_capacity() sube respecto a sin prótesis
+	assert(a4_vil.install_prosthetic(vm, "player"), "A4.3a: Prosthetic installed on player")
+	var a4_mov_prosthetic: float = float(a4_phc.get_moving_capacity())
+	assert(a4_mov_prosthetic > a4_mov_amputated, "A4.3b: With the prosthetic installed, get_moving_capacity() increases compared to without prosthetic")
+	# Restaurar estado tras prueba A4
+	a4_phc.wounds.clear()
+	for w_rest in a4_wounds_bak:
+		a4_phc.wounds.append(w_rest)
+	a4_phc.region_hp = a4_reg_bak
+	if a4_had_amp:
+		a4_amps["player"] = a4_amp_bak
+	else:
+		a4_amps.erase("player")
+	vm.VillageNeeds.state(vm).erase("player_gangrene")
+	if p70_pl.get("avatar_3d") != null and p70_pl.avatar_3d.has_method("mark_appearance_dirty"):
+		p70_pl.avatar_3d.call("mark_appearance_dirty")
+	print("Block A4 (Player Gangrene Warning, Doctor Amputation Choice & Prosthetic Capacity Recovery) OK")
+
 	print("ALL RIMWORLD MEDICAL, FOOTPRINTS, 3-PHASE CORPSE REPORT, MULTI-CORPSE FIX, RPG INTERROGATION, PUBLIC TRIAL, DYNAMIC RELATIONSHIPS, MISSING FAMILY SEARCH, SOCIAL GLOSSARY & UNCONSCIOUS REACTION TESTS PASSED!")
 	quit(0)
