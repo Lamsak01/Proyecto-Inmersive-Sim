@@ -3,6 +3,18 @@
 Cambios del juego, del más nuevo al más antiguo. Añade una entrada al cerrar cada bloque, en lenguaje sencillo.
 El detalle técnico está en `docs/HANDOFF.md` (sección 7) y el historial completo en `git log`. Lo anterior a B0.1 está en `AUDIT_LOG.md` y `SESSION_CONTEXT_LOG.md`.
 
+## 2026-11-05 — Las alcantarillas se recorren a pie de verdad
+- En la calle hay **tres rejillas de hierro** (junto a la Plaza, detrás de la Taberna y al oeste de la Herrería). Si aún
+  no tienes la llave, el letrero avisa: «Cerrada: el perista vende la llave».
+- Al comprarle la llave al perista, pulsas **E** sobre cualquiera de las tres rejillas para bajar a una **red de túneles
+  y cámaras subterráneas conectadas entre sí**, por las que caminas libremente a cubierto de los guardias y testigos de la
+  superficie.
+- Puedes entrar por una rejilla, cruzar las galerías bajo tierra y subir a la calle por la **escalerilla** de otra salida
+  distinta; salir por el Pasadizo del Contrabandista despista a la guardia y rebaja tu nivel de búsqueda una vez por semana.
+- En cada cámara subterránea hay un **cofre de contrabando** que puedes registrar una vez al día para hallar piezas y
+  monedas perdidas del pozo (con riesgo de trampa o aguas sucias). Ya no se exploran las alcantarillas por texto hablando
+  con el perista.
+
 ## 2026-11-05 — La terminal lógica, el cuadro eléctrico y los 3 objetos de los robos son objetos de verdad
 - La **Terminal Lógica** ya no se usa charlando con el arreglador: ahora es una máquina real sobre una mesa dentro de su
   taller (`[E] Usar la Terminal Lógica`). Si el arreglador u otro vecino despierto te ve trastear con ella, dará la voz

@@ -41,7 +41,7 @@ kanban-plugin: board
 - [ ] Rendimiento: abaratar el cálculo de los vecinos sin cambiar lo que hacen
 - [ ] Animales 3D: conejo, gato y gallinas siguen planos (buscar modelos animados del mismo estilo)
 - [ ] Buscar un jabalí 3D animado que guste al usuario (ahora es un lobo provisional)
-- [ ] Hacer físicos: alcantarillas, ganado, tienda propia, caravanas, expediciones, cenas y fiestas, carreta
+- [ ] Hacer físicos: ganado, tienda propia, caravanas, expediciones, cenas y fiestas, carreta
 - [ ] Dibujo 2D propio del caballo (ahora es el ciervo teñido) y postura de jinete a horcajadas
 
 
@@ -61,6 +61,7 @@ kanban-plugin: board
 - [x] Letreros de edificios sin pisarse: solo cercanos o bajo el ratón (2026-11-05)
 - [x] Asaltos físicos: atacantes reales y pelea en el mapa (2026-11-05)
 - [x] Terminal lógica, cuadro eléctrico y objetos de los 3 grandes robos hechos físicos en 2D y 3D (2026-11-05)
+- [x] Alcantarillas caminables de verdad: 3 rejillas en la calle, túneles subterráneos conectados, escalerillas y cofres de contrabando (2026-11-05)
 
 - [x] Edificios con sus piezas quietas juntas (2026-11-06)
 - [x] Casas iniciales repartidas por los barrios y árboles agrupados para dibujar menos (2026-11-06)

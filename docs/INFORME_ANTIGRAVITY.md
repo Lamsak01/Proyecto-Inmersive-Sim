@@ -1,97 +1,86 @@
-# Informe de Ejecución — Bloque FIS2 (Antigravity → Claude Code)
+# Informe de Antigravity — Bloque FIS3 (Alcantarillas que se recorren de verdad)
 
-**Fecha:** 2026-11-05
-**Encargo atendido:** `docs/ENCARGO_ANTIGRAVITY.md` (Bloque FIS2: Hacer reales la terminal lógica, el cuadro eléctrico y los tres grandes robos)
-**Agente ejecutor:** Antigravity
-
----
-
-## 1. Qué hice (archivos y líneas aproximadas)
-
-1. **`scripts/obstacles/WorldInteractableProp.gd` (creado, líneas 1–194):**
-   - Prop interactuable físico reutilizable para `"terminal"`, `"grid_panel"` y `"heist_target"`.
-   - Crea automáticamente `Area2D` con `CollisionShape2D` (`CircleShape2D` de radio `28.0 px`), se registra en el grupo `"interactable"`, expone `get_interaction_prompt(player)` e `interact(player)`, y dibuja la representación vectorial 2D en un hijo `Visual2D` que se oculta automáticamente cuando `CharacterAvatar3DScript.use_3d_characters` está activo y se muestra al pulsar `[F10]` (modo 2D).
-   - Para `"grid_panel"`, actualiza en vivo el color de la bombilla indicadora 2D según `grid_sabotaged_today`, `lamps_disabled` y `sprinkler_disabled`.
-
-2. **`scripts/systems/VillageCulture.gd` (modificado, líneas 27–30 y 434–618):**
-   - Añadidas constantes `TINKER_TERMINAL_POS := Vector2(1188.0, 122.0)` (mesa interior del taller `solar e5`) y `TINKER_GRID_PANEL_POS := Vector2(1270.0, 90.0)` (pared exterior norte del taller `solar e5`).
-   - Añadido `build_tinker_stations(vm)` para instanciar ambos objetos físicos en el taller del Chapuzas.
-   - Añadidos `open_terminal_menu(vm, player)` y `open_grid_panel_menu(vm, player)` usando `WorldText.show_choice_menu` al pulsar `[E]` frente a cada aparato.
-   - Añadida comprobación de testigos conscientes en `hack_terminal` (`_find_conscious_witness_near(vm, pos, 140.0)`): si hay testigo consciente en `< 140 px`, suma `wanted_level + 1`, aplica `-15` de afinidad y muestra aviso flotante, idéntico a `sabotage_electric_grid`.
-   - Eliminadas de `inject_dialogue` del Chapuzas (`tinker`) las opciones de charla que abrían el submenú de la Terminal Lógica (`tinker_open_terminal`) y del Cuadro Eléctrico (`tinker_open_grid`); el Chapuzas ahora solo menciona dónde están físicamente en su taller.
-   - En `after_load(vm)`, añadida llamada a `VillageUnderworld.sync_heist_visuals(vm)` para restaurar la visibilidad del objeto de robo activo tras cargar partida.
-
-3. **`scripts/systems/VillageTrades.gd` (modificado, líneas 677–679):**
-   - En `build_extras`, al construir el solar `"e5"`, invoca `VillageCulture.build_tinker_stations(vm)`.
-
-4. **`scripts/systems/VillageUnderworld.gd` (modificado, líneas 67–98, 535–605 y 619–676):**
-   - Actualizadas las coordenadas de `HEIST_TARGETS` para que cada objetivo esté dentro de su edificio real:
-     - `"sello_noble"`: `Vector2(1275.0, -444.0)` (estudio interior de la Mansión Solariega `solar f1`).
-     - `"caliz_capilla"`: `Vector2(745.0, 336.0)` (altar interior de la Capilla).
-     - `"libro_gremial"`: `Vector2(764.0, -444.0)` (escritorio interior del Ayuntamiento `solar n4`).
-   - Añadido `sync_heist_visuals(vm)` que instancia el `WorldInteractableProp` (`"heist_target"`) en `vm.heist_target_prop` mientras exista un encargo activo con `stolen == false`, y lo retira en cuanto pasa a `stolen == true` o se entrega al contacto (`heist_active = {}`).
-
-5. **`scripts/visuals/WorldStage3D.gd` (modificado, líneas 138–140, 224–225, 369–395, 1692–1736, 1785–1797 y 2862–2978):**
-   - En `_build_tinker_workshop_props`: añadida la **Terminal Lógica 3D** sobre mesa de roble en `(1188, 122)` (carcasa de latón/acero, visor CRT verde con emisión, rodillos de archivo y palancas) y el **Cuadro Eléctrico 3D** adosado a la fachada norte exterior en `(1270, 90)` (caja de hierro fundido, 3 cuchillas de cobre sobre porcelana, conducto vertical y bombilla indicadora `_grid_panel_bulb_3d` que cambia en vivo entre verde, ámbar y rojo según el estado de la red).
-   - En `_build_mansion_study_props`: añadidos escritorio señorial y vitrina/pedestal de terciopelo en `(1275, -444)` (Mansión) y escritorio de registro gremial en `(764, -444)` (Ayuntamiento).
-   - Añadido `_sync_heist_target_3d()` (invocado al crear el escenario y cada frame) que muestra el modelo 3D del objeto del robo activo (`sello_noble`, `caliz_capilla` o `libro_gremial`) solo mientras el encargo está activo y `stolen == false`, y lo oculta al robarlo.
-   - En los edificios con entrada norte (`door_south == false`, como la Capilla y el Taller del Chapuzas), la parte alta del muro sur cerrado (`11.0..wall_h`) se asocia a `roof_cap` dejando un zócalo de `9.0 px` en `b_root`, de modo que al entrar el jugador y activarse el cutaway del tejado, el altar sur de la Capilla y el interior del taller se ven limpios sin quedar tapados por el muro sur exterior.
-
-6. **`scripts/ui/InteractionSelector.gd` (modificado, líneas 96–101):**
-   - Añadida prioridad de desempate (`-120.0` a `distance_squared`) para el objeto de robo (`heist_target_prop`) y las estaciones físicas del taller (`tinker_station`), evitando que los muebles/bancos decorativos adyacentes oculten el letrero `[E]` por defecto.
-
-7. **`tools/screenshot_3d.gd` y `tools/tests/verify_all.gd` (modificados):**
-   - En `tools/screenshot_3d.gd` (líneas 29–34 y 111–134): añadidos los sitios `"taller"` y `"robo"`.
-   - En `tools/tests/verify_all.gd` (líneas 3539–3612): añadido `Block 96: Block FIS2` con todas las aserciones de existencia física, ausencia de opciones de diálogo en el Chapuzas, detección de testigos al usar la terminal y el cuadro eléctrico, coordenadas interiores de los 3 robos y ciclo de aparición/desaparición del prop de robo.
+**Fecha:** 2026-11-05  
+**Encargo:** `docs/ENCARGO_ANTIGRAVITY.md` §2 (Bloque FIS3) y notas de `docs/REVISION_SUPERVISOR.md`.
 
 ---
 
-## 2. Reglas comprobadas
+## 1. Qué hice
 
-- **Regla 0 (Todo es físico):** Cumplida. Ni la Terminal Lógica ni el Cuadro Eléctrico se usan ya hablando con el Chapuzas; ambos son máquinas físicas en el taller (`solar e5`) y los 3 objetos de robo aparecen físicamente en sus edificios.
-- **Regla 1 (Oro cerrado):** Cumplida. No se ha alterado ninguna fuente ni sumidero de oro (`gold_conservation_ok()` sigue pasando).
-- **Regla 2 (Doble `[E]` para gastar):** Cumplida. Ninguna de estas tres interacciones cobra oro ni se ha quitado ninguna confirmación existente.
-- **Regla 3 (Todo objeto nuevo lleva su `[E]`):** Cumplida. Los tres tipos de prop están en el grupo `"interactable"` con `CollisionShape2D` de radio `28 px` y devuelven su texto claro con `get_interaction_prompt(player)`.
-- **Regla 4 (Todo objeto nuevo se ve en 2D y en 3D):** Cumplida. Cada objeto tiene dibujo 2D (`Visual2D` con `_draw()`) visible al alternar `[F10]` y modelo 3D (`MeshInstance3D` con materiales PBR) en `WorldStage3D.gd`.
-- **No tocar lo que ya está bien:** Cumplido. No se tocaron el caballo/establo (`FIS1`), el sistema fiscal, `[F10]`, ni las fórmulas de consecuencias de `hack_terminal` / `sabotage_electric_grid` / `attempt_heist_steal`.
+### 1.1. Tres trampillas/rejillas en la calle (`sewer_grate`, 2D y 3D)
+- Actualicé `VillageUnderworld.SEWER_LOCATIONS` con posiciones de calle fuera de todas las huellas de edificios (`vm.building_footprints`) y fuera de las calzadas principales por donde caminan los vecinos:
+  - `"cistern"` («Cisterna Vieja bajo la Plaza»): `Vector2(518.0, 26.0)` (esquina noreste del adoquinado de la Plaza Central).
+  - `"smuggler_tunnel"` («Pasadizo del Contrabandista»): `Vector2(398.0, -118.0)` (callejón al sur de la Taberna y al oeste de la calle norte-sur).
+  - `"flooded_vault"` («Bóveda Inundada del Antiguo Gremio»): `Vector2(248.0, -90.0)` (entre la calle occidental y la fachada oeste de la Herrería).
+- En `VillageUnderworld.build_sewers_world(vm)` se instancian las tres rejillas (`SewerGrate_cistern`, `SewerGrate_smuggler_tunnel`, `SewerGrate_flooded_vault`) usando `scripts/obstacles/WorldInteractableProp.gd` con `prop_kind = "sewer_grate"` (en los grupos `"interactable"`, `"sewer_grate"` y `"sewer_station"`).
+- **Sin llave (`sewers_state(vm)["unlocked"] == false`):** `get_interact_label` devuelve `"Cerrada: el perista vende la llave"` y al pulsar `[E]` (`VillageUnderworld.interact_sewer_grate`) muestra el aviso y no baja al jugador.
+- **Con llave (`sewers_state(vm)["unlocked"] == true`):** `get_interact_label` devuelve `"Bajar a las alcantarillas (<título>)"` y al pulsar `[E]` llama a `VillageUnderworld.enter_sewer_location(vm, loc_id, player)`, que pone `sewers_state(vm)["current_loc"] = loc_id`, `vm.set_player_elevation_level(-1)`, `vm._elevation_anchor = Vector2.INF` y traslada `pl.global_position` a `SEWER_LOCATIONS[loc_id]["tunnel_pos"]`.
+- En `WorldStage3D._build_static_terrain_3d()` las tres rejillas 3D de hierro se colocan exactamente en `VillageUnderworldScript.SEWER_LOCATIONS[loc_id]["pos"]`.
+
+### 1.2. Red de túneles subterráneos caminables con muros físicos (`StaticBody2D`)
+- En `VillageUnderworld.build_sewers_world(vm)` construí el nodo `SewersNetwork2D` al sur del mapa (`x = 205..635`, `y = 1480..1560`, centrado en `y = 1520.0`, al sur del Bosque Profundo que termina en `y = 1240` y fuera del alcance de los vecinos de la superficie):
+  - Tres cámaras subterráneas conectadas en fila: `"flooded_vault"` en `Vector2(260.0, 1520.0)`, `"smuggler_tunnel"` en `Vector2(420.0, 1520.0)` y `"cistern"` en `Vector2(580.0, 1520.0)`, unidas por dos galerías de paso en `Vector2(340.0, 1520.0)` y `Vector2(500.0, 1520.0)`.
+  - Muros físicos reales en `SewerTunnelWallsBody` (`StaticBody2D` con `collision_layer = 1` y 20 `CollisionShape2D` rectangulares) que cierran el perímetro de las tres cámaras y los dos pasillos para que el jugador camine entre ellas sin salirse al vacío.
+  - Dibujo 2D en `SewersVisual2D` (grupo `"sewer_visual_2d"`, que `WorldStage3D._sync_2d_flat_visuals` oculta automáticamente en modo 3D).
+- En `WorldStage3D._build_sewers_3d()` reconstruí `sewers_root_3d` en las mismas coordenadas `y = 1520.0` con roca subterránea alrededor, suelos de losa y canales de agua turbia para las 3 cámaras y los 2 pasillos conectados, muros de piedra, antorchas de pared con `OmniLight3D`, escalerillas 3D y cofres `props/Prop_Chest_Closed.gltf`.
+- En `VillageManager.check_elevation_exit(player)` añadí la guarda `if VillageUnderworld.is_player_in_sewers(self): return` al principio para que caminar por los túneles nunca devuelva automáticamente al jugador al nivel `0`.
+
+### 1.3. Escalerillas de salida (`sewer_ladder`) y purga semanal por el Pasadizo del Contrabandista
+- En cada cámara subterránea (`SEWER_LOCATIONS[loc_id]["ladder_pos"]`, en `y = 1490.0`) se instancia una escalerilla (`SewerLadder_cistern`, `SewerLadder_smuggler_tunnel`, `SewerLadder_flooded_vault`) con `prop_kind = "sewer_ladder"`.
+- Al pulsar `[E]` (`Subir a la calle (<título>)`), `VillageUnderworld.exit_sewer_ladder(vm, loc_id, player)` llama a `exit_sewers_to_surface(vm)` (`current_loc = ""`, `vm.set_player_elevation_level(0)`) y coloca al jugador en `SEWER_LOCATIONS[loc_id]["pos"]`. Así se puede entrar por una rejilla (p. ej. la Cisterna), caminar bajo tierra hasta otra cámara y salir a la calle por otra rejilla distinta.
+- Si se sale por la escalerilla de `"smuggler_tunnel"` y `vm.wanted_level > 0` y `VillageHousing.can_purge_wanted(vm)` es cierto, rebaja `vm.wanted_level` en 1 y llama a `VillageHousing.mark_wanted_purge(vm)` (máximo 1 vez cada 7 días, compartido con el sótano y el archivo policial).
+
+### 1.4. Cofres de contrabando bajo tierra (`sewer_chest`, suma cero) y limpieza del diálogo del perista
+- En cada cámara subterránea (`SEWER_LOCATIONS[loc_id]["chest_pos"]`, en `y = 1502.0`) se instancia un cofre (`SewerChest_cistern`, `SewerChest_smuggler_tunnel`, `SewerChest_flooded_vault`) con `prop_kind = "sewer_chest"`.
+- Al pulsar `[E]` (`Abrir cofre de contrabando (<título>)`), `VillageUnderworld.interact_sewer_chest` llama a `open_sewer_chest(vm, loc_id, inv)`:
+  - Limita la apertura a **1 vez al día por cámara** mediante `sewers_state(vm)["chest_days"][loc_id]`.
+  - Si tiene éxito (misma fórmula con bonificación por `"lockpick"` y `"voltaic_capacitors"`), entrega 1 unidad de `loot_item` (`"copper_coil"`, `"bandit_scrap"` o `"ancient_book"`) y hasta 6 monedas descontadas de `sewers_state(vm)["lost_coins_pool"]` (cumpliendo la Regla 1 de suma cero).
+  - Si falla, aplica el percance de trampa/aguas negras (`-14.0` a `health_comp.current_health` sin bajar de `1.0` y `-25.0` a `player_hygiene`).
+- En `VillageUnderworld.add_dialogue_choices` retiré del diálogo del perista las opciones `"Bajar al nivel -1 y explorar..."` (`underworld_sewer_explore:`) y `"Subir por la escalerilla..."` (`underworld_sewer_surface`), manteniendo únicamente `"Comprar llave de las alcantarillas (20 oro)"` (`underworld_unlock_sewers`) cuando aún no está desbloqueada. Se conserva la función `explore_sewer_location` para compatibilidad con la prueba `PN.2`.
+
+### 1.5. Guardado y carga estando en las alcantarillas + nota de FIS2
+- En `VillageManager.get_economy_save_dict()` se guarda `"player_elevation_level": player_elevation_level`, y en `load_economy_save_dict(d)` se restaura `set_player_elevation_level(int(d.get("player_elevation_level", 0)))` y se invoca `VillageUnderworld.after_load(self)` (que mantiene `player_elevation_level = -1` y `_elevation_anchor = Vector2.INF` si `sewers_state(vm)["current_loc"] != ""`).
+- Atendiendo la nota de `docs/REVISION_SUPERVISOR.md` sobre FIS2, en `WorldStage3D._build_building_interior_3d` (rama `"mixed_family_tinker"`) sustituí la mesa con objetos pequeños de la Terminal Lógica por una `Table_Large.gltf` con un chasis más grande, bobina de cobre y tubo voltaico luminoso bien reconocibles en 3D, y actualicé `docs/capturas_fis2/taller_12h.png` y `taller_22h.png`.
 
 ---
 
-## 3. Pruebas ejecutadas y resultados
+## 2. Qué archivos toqué
 
-1. **Arranque limpio del juego:**
+- `scripts/obstacles/WorldInteractableProp.gd`: añadidos `sewer_loc_id`, los tipos `"sewer_grate"`, `"sewer_ladder"` y `"sewer_chest"`, sus dibujos 2D (`_draw_sewer_grate_2d`, `_draw_sewer_ladder_2d`, `_draw_sewer_chest_2d`), sus etiquetas en `get_interact_label` y sus acciones en `interact`.
+- `scripts/ui/InteractionSelector.gd`: añadido `cand.is_in_group("sewer_station")` al desempate de prioridad en `refresh()`.
+- `scripts/systems/VillageUnderworld.gd`: actualizadas las coordenadas de `SEWER_LOCATIONS`; añadidas `interact_sewer_grate`, `exit_sewer_ladder`, `is_sewer_chest_looted_today`, `open_sewer_chest`, `interact_sewer_chest`, `build_sewers_world` y `after_load`; actualizadas `enter_sewer_location` y `exit_sewers_to_surface`; retiradas las opciones de diálogo `underworld_sewer_explore:` y `underworld_sewer_surface` en `add_dialogue_choices`.
+- `scripts/systems/VillageManager.gd`: llamada a `VillageUnderworld.build_sewers_world(self)` en `setup_village`; guarda en `check_elevation_exit(player)` cuando `VillageUnderworld.is_player_in_sewers(self)` es verdadero; persistencia de `player_elevation_level` y llamada a `VillageUnderworld.after_load(self)` en `get_economy_save_dict` / `load_economy_save_dict`.
+- `scripts/visuals/WorldStage3D.gd`: rejillas 3D de calle en `SEWER_LOCATIONS[loc_id]["pos"]`; reconstrucción de `_build_sewers_3d()` con las 3 cámaras y 2 galerías conectadas en `y = 1520.0`, escalerillas, antorchas y cofres; ocultación del grupo `"sewer_visual_2d"` en `_sync_2d_flat_visuals`; mejora visual de la Terminal Lógica 3D en `"mixed_family_tinker"`.
+- `tools/screenshot_3d.gd`: añadidos los sitios `"trampilla"` y `"tunel"` (entrando y saliendo de las alcantarillas en memoria sin tocar la partida guardada).
+- `tools/tests/verify_all.gd`: añadido el bloque `Block 97: Walkable Sewers, Street Grates, Ladders & Contraband Chests (FIS3)` y restaurada `pn_pl.global_position` al final del bloque `PN`.
+- `docs/capturas_fis3/`: capturas 3D `trampilla_12h.png`, `trampilla_22h.png`, `tunel_12h.png` y `tunel_22h.png` (más actualización de `docs/capturas_fis2/taller_12h.png` y `taller_22h.png`).
+- Documentación: `docs/HANDOFF.md`, `CHANGELOG.md`, `docs/REGISTRO_TRABAJO.md`, `GameVault/02_Sistemas/Capas Verticales y Alcantarillas.md`, `GameVault/02_Sistemas/Red de las Sombras.md`, `GameVault/05_Roadmap_y_Lore/Tablero.md`, `GameVault/06_Diario/2026-11-05.md` y este `docs/INFORME_ANTIGRAVITY.md`.
+
+---
+
+## 3. Qué probé y con qué resultado
+
+1. **Comprobación de arranque y compilación GDScript:**
    - Comando: `flatpak run org.godotengine.Godot --headless --path . --quit-after 3`
-   - Resultado: **OK** (`exit code 0`, `0` errores de parseo o `SCRIPT ERROR`).
-2. **Suite principal (`verify_all.gd`):**
-   - Comando: `flatpak run org.godotengine.Godot --headless --path . -s tools/tests/verify_all.gd`
-   - Resultado: **OK** (`Block FIS2 (Physical Terminal, Electric Panel & Heist Targets) OK` y `...TESTS PASSED!`, `exit code 0`).
-3. **Suite de nombres (`names_check.gd`):**
-   - Comando: `flatpak run org.godotengine.Godot --headless --path . -s tools/tests/names_check.gd`
-   - Resultado: **OK** (`NAMES CHECK PASSED`, `exit code 0`).
-4. **Simulación social de 7 días (`social_sim.gd`):**
-   - Comando: `flatpak run org.godotengine.Godot --headless --path . -s tools/tests/social_sim.gd`
-   - Resultado: **OK** (`SOCIAL SIM CHECK PASSED`, `exit code 0`).
+   - Resultado: **0 `SCRIPT ERROR` y 0 `Parse Error`** (código de salida `0`).
+2. **Suite principal (`verify_all.gd`, incluyendo `Block PN`, `Block FIS2` y el nuevo `Block FIS3`):**
+   - Comando: `timeout 900 flatpak run org.godotengine.Godot --headless --path . -s tools/tests/verify_all.gd > /tmp/t.log 2>&1; grep -c 'TESTS PASSED' /tmp/t.log`
+   - Resultado: **`1`** (`ALL ... TESTS PASSED!`, `0` `SCRIPT ERROR`).
+3. **Prueba de nombres y perfiles (`names_check.gd`):**
+   - Comando: `timeout 60 flatpak run org.godotengine.Godot --headless --path . -s tools/tests/names_check.gd 2>&1 | tail -3`
+   - Resultado: **`NAMES CHECK PASSED (200 F / 200 M / 200 apellidos + 17 PersonProfile + B0.3 generator + B1.1/B1.2 social + B2.1 hangouts + B3.1-B3.4 romance + B4.1 fights)`**.
+4. **Simulación social de 60 días (`social_sim.gd`):**
+   - Comando: `timeout 150 flatpak run org.godotengine.Godot --headless --path . -s tools/tests/social_sim.gd 2>&1 | tail -3`
+   - Resultado: **`SOCIAL SIM CHECK PASSED (60d metas verificadas en 5 semillas + reemplazos procedurales)`**.
 5. **Cobertura de diálogos (`dialogue_coverage.gd`):**
-   - Comando: `flatpak run org.godotengine.Godot --headless --path . -s tools/tests/dialogue_coverage.gd`
-   - Resultado: **OK** (`COVERAGE DONE npcs=18 actions=639`, `0` líneas con `SCRIPT ERROR`).
+   - Comando: `timeout 80 flatpak run org.godotengine.Godot --headless --path . -s tools/tests/dialogue_coverage.gd > /tmp/c.log 2>&1; grep 'COVERAGE DONE' /tmp/c.log; grep -c 'SCRIPT ERROR' /tmp/c.log`
+   - Resultado: **`COVERAGE DONE npcs=18 actions=669`** y **`0`** `SCRIPT ERROR`.
+6. **Capturas 3D (`tools/screenshot_3d.gd`):**
+   - Comando: `flatpak run org.godotengine.Godot --path . -s tools/screenshot_3d.gd -- docs/capturas_fis3 12,22 trampilla,tunel`
+   - Resultado: generadas y revisadas visualmente `trampilla_12h.png`, `trampilla_22h.png`, `tunel_12h.png` y `tunel_22h.png` en `docs/capturas_fis3/`.
 
 ---
 
-## 4. Capturas generadas (`docs/capturas_fis2/`)
+## 4. Qué no pude hacer o dudas pendientes
 
-Generadas con ventana 3D real mediante:
-`flatpak run org.godotengine.Godot --path . -s tools/screenshot_3d.gd -- docs/capturas_fis2 12,22 taller,robo`
-
-- **`docs/capturas_fis2/taller_12h.png` y `docs/capturas_fis2/taller_22h.png`:**
-  - Muestran el interior del taller del Chapuzas (`solar e5`) con el tejado recortado al estar el jugador dentro.
-  - Se aprecia la **Terminal Lógica 3D** sobre su mesa en `(1188, 122)` con el visor verde encendido, el letrero **`[E] Usar la Terminal Lógica`** en pantalla, y en la pared norte exterior `(1270, 90)` el **Cuadro Eléctrico 3D** con sus tres cuchillas y su bombilla indicadora verde.
-- **`docs/capturas_fis2/robo_12h.png` y `docs/capturas_fis2/robo_22h.png`:**
-  - Muestran el interior de la Capilla con encargo activo de `"caliz_capilla"` (`stolen = false`).
-  - Se aprecia sobre el altar en `(745, 336)` el **Cáliz de Plata 3D** y en pantalla el letrero **`[E] Robar el Cáliz de Plata de la Capilla`**.
-
----
-
-## 5. Observaciones para el supervisor (cosas vistas pero no tocadas)
-
-- En el altar de la Capilla e interiores con muchos bancos (`ChurchPew` / muebles decorativos), los muebles también pertenecen al grupo `"interactable"`. Para garantizar que el objeto del robo y la terminal/cuadro eléctrico tengan prioridad al acercarse sin alterar el radio ni el comportamiento de los bancos existentes, se ajustó únicamente el desempate en `InteractionSelector.gd` (`-120.0` en `distance_squared` para `heist_target_prop` y `tinker_station`), permitiendo seguir alternando con `G` o `Mayús+rueda` si el jugador desea sentarse en el banco.
-- No se modificó ningún otro sistema fuera del alcance del Bloque FIS2.
+- Todo el bloque FIS3 quedó completado y verificado. No surgió ninguna duda de diseño que requiriera añadir entradas a `docs/PREGUNTAS_PENDIENTES.md`.

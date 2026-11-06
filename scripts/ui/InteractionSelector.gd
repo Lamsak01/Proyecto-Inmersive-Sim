@@ -102,7 +102,7 @@ func refresh() -> void:
 		var t_node: Node = c["target"] as Node
 		if t_node.is_in_group("player_horse") and bool(player.get("is_mounted")):
 			d += 1000000.0
-		elif t_node.is_in_group("heist_target_prop") or t_node.is_in_group("tinker_station"):
+		elif t_node.is_in_group("heist_target_prop") or t_node.is_in_group("tinker_station") or t_node.is_in_group("sewer_station"):
 			d -= 120.0
 		return d
 	out.sort_custom(func(x, y): return rank.call(x) < rank.call(y))

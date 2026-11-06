@@ -4259,6 +4259,8 @@ func _initialize() -> void:
 	vun.enter_sewer_location(vm, "cistern")
 	assert(vun.is_player_in_sewers(vm), "PN.2f2: Entering a sewer location counts as being in the sewers")
 	vun.exit_sewers_to_surface(vm)
+	if pn_pl != null:
+		pn_pl.global_position = pn_pl_pos0
 	vm.wanted_level = 0
 	p70_a.personal_gold = pn_ag0
 	print("Block PN (Vertical Elevation Layers & Village Sewers) OK")
@@ -4537,6 +4539,104 @@ func _initialize() -> void:
 	vun.state(vm)["heists_done"] = int(fis2_uw_bak.get("heists_done", 0))
 	vun.sync_heist_visuals(vm)
 	print("Block FIS2 (Physical Terminal, Electric Panel & Heist Targets) OK")
+
+	# ---------------------------------------------------------
+	# Block 97: Walkable Sewers, Street Grates, Ladders & Contraband Chests (FIS3)
+	# ---------------------------------------------------------
+	var fis3_sw_bak: Dictionary = vun.sewers_state(vm).duplicate(true)
+	var fis3_pl_pos_bak: Vector2 = p70_pl.global_position
+	var fis3_wl_bak: int = vm.wanted_level
+	var fis3_hide_bak: int = int(vho.state(vm).get("last_hide_day", -99))
+	var fis3_gold_bak: int = p70_inv.gold
+
+	# FIS3.1: Existen las 3 trampillas en la calle, las 3 escalerillas abajo, los 3 cofres abajo y el cuerpo de muros físicos
+	var fis3_grates: Array = root.get_tree().get_nodes_in_group("sewer_grate")
+	var fis3_ladders: Array = root.get_tree().get_nodes_in_group("sewer_ladder")
+	var fis3_chests: Array = root.get_tree().get_nodes_in_group("sewer_chest")
+	assert(fis3_grates.size() == 3 and fis3_ladders.size() == 3 and fis3_chests.size() == 3, "FIS3.1a: 3 street grates, 3 underground ladders, and 3 contraband chests exist in the world")
+	for gr_node in fis3_grates:
+		var gr_pos: Vector2 = (gr_node as Node2D).global_position
+		for bf_fis3 in vm.building_footprints:
+			assert(not (bf_fis3.get("rect", Rect2()) as Rect2).has_point(gr_pos), "FIS3.1b: Street grate at %s is outside all building footprints" % str(gr_pos))
+	var fis3_walls := vm.entities_root.find_child("SewerTunnelWallsBody", true, false) as StaticBody2D
+	assert(fis3_walls != null and fis3_walls.get_child_count() >= 10, "FIS3.1c: SewerTunnelWallsBody StaticBody2D exists with collision shapes bounding the tunnels")
+
+	# FIS3.2: Sin comprar la llave al perista, pulsar [E] sobre una trampilla no baja al jugador y muestra "Cerrada: el perista vende la llave"
+	vun.state(vm)["sewers"] = {"unlocked": false, "current_loc": "", "last_explore_day": -99, "lost_coins_pool": 15, "explored_count": 0, "chest_days": {}}
+	vm.set_player_elevation_level(0)
+	var fis3_cistern_grate: Node2D = vm.entities_root.get_node_or_null("SewerGrate_cistern") as Node2D
+	assert(fis3_cistern_grate != null, "FIS3.2a: SewerGrate_cistern exists")
+	assert(str(fis3_cistern_grate.call("get_interact_label", p70_pl)) == "Cerrada: el perista vende la llave", "FIS3.2b: Locked grate label says 'Cerrada: el perista vende la llave'")
+	p70_pl.global_position = (vun.SEWER_LOCATIONS["cistern"]["pos"] as Vector2)
+	fis3_cistern_grate.call("interact", p70_pl)
+	assert(vm.player_elevation_level == 0 and not vun.is_player_in_sewers(vm), "FIS3.2c: Interacting with locked grate does not lower player into sewers")
+
+	# FIS3.3: Tras comprar la llave, pulsar [E] sobre la trampilla de la Cisterna baja a nivel -1 en el túnel y caminar dentro no devuelve a nivel 0
+	p70_inv.gold = 50
+	vun.on_player_action(vm, p7_fence, "underworld_unlock_sewers", p70_inv)
+	assert(bool(vun.sewers_state(vm).get("unlocked", false)), "FIS3.3a: Sewer key unlocked via fence")
+	assert(str(fis3_cistern_grate.call("get_interact_label", p70_pl)).begins_with("Bajar a las alcantarillas"), "FIS3.3b: Unlocked grate shows 'Bajar a las alcantarillas' label")
+	fis3_cistern_grate.call("interact", p70_pl)
+	assert(vm.player_elevation_level == -1 and vun.is_player_in_sewers(vm), "FIS3.3c: Interacting with unlocked grate puts player at elevation -1 in sewers")
+	var fis3_cistern_tpos: Vector2 = vun.SEWER_LOCATIONS["cistern"]["tunnel_pos"]
+	assert(p70_pl.global_position.distance_to(fis3_cistern_tpos) < 1.0, "FIS3.3d: Entering cistern grate places player in cistern underground chamber")
+	# Caminar por las galerías hacia otra cámara sin que check_elevation_exit devuelva al nivel 0
+	p70_pl.global_position = Vector2(500.0, 1520.0)
+	vm.check_elevation_exit(p70_pl)
+	assert(vm.player_elevation_level == -1 and vun.is_player_in_sewers(vm), "FIS3.3e: Moving far inside the sewer tunnels keeps player at elevation -1")
+	p70_pl.global_position = vun.SEWER_LOCATIONS["smuggler_tunnel"]["tunnel_pos"]
+	vm.check_elevation_exit(p70_pl)
+	assert(vm.player_elevation_level == -1 and vun.is_player_in_sewers(vm), "FIS3.3f: Reaching smuggler_tunnel chamber keeps player at elevation -1")
+
+	# FIS3.4: Abrir cofres de contrabando bajo tierra (1/día por cámara, suma cero de lost_coins_pool, y fallo de agua sucia/trampa)
+	var fis3_scrap0: int = p70_inv.get_count("bandit_scrap")
+	var fis3_g_before_chest: int = p70_inv.gold
+	var fis3_chest_smug: Node2D = vm.entities_root.get_node_or_null("SewerChest_smuggler_tunnel") as Node2D
+	assert(fis3_chest_smug != null and str(fis3_chest_smug.call("get_interact_label", p70_pl)).begins_with("Abrir cofre de contrabando"), "FIS3.4a: Contraband chest has open label")
+	var fis3_c1: Dictionary = vun.open_sewer_chest(vm, "smuggler_tunnel", p70_inv, 1)
+	assert(bool(fis3_c1.get("ok", false)) and bool(fis3_c1.get("success", false)) and p70_inv.get_count("bandit_scrap") == fis3_scrap0 + 1 and p70_inv.gold == fis3_g_before_chest + 6 and int(vun.sewers_state(vm).get("lost_coins_pool", 0)) == 9, "FIS3.4b: Opening smuggler_tunnel chest grants bandit_scrap and transfers 6 coins from lost_coins_pool")
+	var fis3_c1_repeat: Dictionary = vun.open_sewer_chest(vm, "smuggler_tunnel", p70_inv, 1)
+	assert(not bool(fis3_c1_repeat.get("ok", true)) and bool(fis3_c1_repeat.get("wait", false)), "FIS3.4c: Same contraband chest cannot be opened twice on the same day")
+	var fis3_hp0: float = float(p70_pl.health_comp.current_health)
+	var fis3_hyg0: float = float(vm.VillageNeeds.state(vm).get("player_hygiene", 80.0))
+	var fis3_c2_fail: Dictionary = vun.open_sewer_chest(vm, "flooded_vault", p70_inv, -1)
+	assert(bool(fis3_c2_fail.get("ok", false)) and not bool(fis3_c2_fail.get("success", true)) and float(p70_pl.health_comp.current_health) < fis3_hp0 and float(vm.VillageNeeds.state(vm).get("player_hygiene", 80.0)) < fis3_hyg0, "FIS3.4d: Failing to open a contraband chest reduces health and hygiene")
+
+	# FIS3.5: Guardar y cargar estando en las alcantarillas restaura al jugador en las alcantarillas (nivel -1)
+	var fis3_save_dict: Dictionary = vm.get_economy_save_dict()
+	vun.exit_sewers_to_surface(vm)
+	assert(vm.player_elevation_level == 0 and not vun.is_player_in_sewers(vm), "FIS3.5a: Exited to surface before load test")
+	vm.load_economy_save_dict(fis3_save_dict)
+	assert(vm.player_elevation_level == -1 and vun.is_player_in_sewers(vm), "FIS3.5b: Loading a save taken inside the sewers restores player_elevation_level == -1 and is_player_in_sewers == true")
+
+	# FIS3.6: Subir por la escalerilla del Pasadizo del Contrabandista saca a SU rejilla en la calle (distinta de la de entrada) y baja wanted_level en 1 (1/semana)
+	vm.wanted_level = 2
+	vho.state(vm)["last_hide_day"] = -99
+	var fis3_ladder_smug: Node2D = vm.entities_root.get_node_or_null("SewerLadder_smuggler_tunnel") as Node2D
+	assert(fis3_ladder_smug != null and str(fis3_ladder_smug.call("get_interact_label", p70_pl)).begins_with("Subir a la calle"), "FIS3.6a: Underground ladder has 'Subir a la calle' label")
+	fis3_ladder_smug.call("interact", p70_pl)
+	var fis3_smug_street_pos: Vector2 = vun.SEWER_LOCATIONS["smuggler_tunnel"]["pos"]
+	assert(vm.player_elevation_level == 0 and not vun.is_player_in_sewers(vm) and p70_pl.global_position.distance_to(fis3_smug_street_pos) < 1.0, "FIS3.6b: Climbing smuggler_tunnel ladder returns player to street level 0 at smuggler_tunnel grate position (entered via cistern, exited via smuggler_tunnel)")
+	assert(vm.wanted_level == 1, "FIS3.6c: Exiting via smuggler_tunnel lowers wanted_level by 1")
+	# Si vuelve a bajar y salir la misma semana, no vuelve a bajar wanted_level
+	fis3_cistern_grate.call("interact", p70_pl)
+	fis3_ladder_smug.call("interact", p70_pl)
+	assert(vm.wanted_level == 1, "FIS3.6d: Exiting via smuggler_tunnel again in the same week does not lower wanted_level a second time")
+
+	# FIS3.7: El diálogo del perista ya no tiene las opciones de texto de explorar ni subir de las alcantarillas
+	var fis3_fence_dlg: Dictionary = {"start": {"text": "Shh", "choices": [{"label": "[Salir]", "next": "END"}]}}
+	vun.add_dialogue_choices(vm, p7_fence, fis3_fence_dlg, [{"label": "[Salir]", "next": "END"}])
+	for ch_f3 in (fis3_fence_dlg["start"] as Dictionary).get("choices", []):
+		var act_f3: String = str((ch_f3 as Dictionary).get("action", ""))
+		assert(not act_f3.begins_with("underworld_sewer_explore:") and act_f3 != "underworld_sewer_surface", "FIS3.7: Fence dialogue choices no longer include underworld_sewer_explore or underworld_sewer_surface")
+
+	vun.state(vm)["sewers"] = fis3_sw_bak
+	vm.set_player_elevation_level(0)
+	p70_pl.global_position = fis3_pl_pos_bak
+	vm.wanted_level = fis3_wl_bak
+	vho.state(vm)["last_hide_day"] = fis3_hide_bak
+	p70_inv.gold = fis3_gold_bak
+	print("Block FIS3 (Walkable Sewers, Street Grates, Ladders & Contraband Chests) OK")
 
 	print("ALL RIMWORLD MEDICAL, FOOTPRINTS, 3-PHASE CORPSE REPORT, MULTI-CORPSE FIX, RPG INTERROGATION, PUBLIC TRIAL, DYNAMIC RELATIONSHIPS, MISSING FAMILY SEARCH, SOCIAL GLOSSARY & UNCONSCIOUS REACTION TESTS PASSED!")
 	quit(0)

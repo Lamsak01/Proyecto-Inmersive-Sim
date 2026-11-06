@@ -267,6 +267,7 @@ func setup_village(target_entities_root: Node) -> void:
 	VillageLots.build_world(self) # V4: calles y solares del borde, afueras y lomas
 	VillagePlaces.build_world(self) # V5c: parque, bancos de la plaza y mirador del lago
 	VillageWork.build_world(self) # V5d: lavadero
+	VillageUnderworld.build_sewers_world(self) # FIS3: trampillas en la calle y red de túneles conectada al sur
 	_spawn_domestic_pets()
 	if not in_editor and DisplayServer.get_name() != "headless":
 		VillageMigration.seed_start_population(self) # Provisional: arranque con 40 vecinos para probar (no en las pruebas)
@@ -1394,7 +1395,10 @@ func set_player_elevation_level(new_level: int) -> void:
 	_refresh_elevation_layer_visuals()
 
 ## Bloque PN: al alejarte del sitio donde cambiaste de piso (sales de casa), vuelves a la calle y los vecinos vuelven a verte.
+## Bloque FIS3: dentro de la red de alcantarillas no salta la vuelta automática a la calle (solo se sube por las escalerillas).
 func check_elevation_exit(player: Node2D) -> void:
+	if VillageUnderworld.is_player_in_sewers(self):
+		return
 	if player_elevation_level != 0 and player != null and _elevation_anchor != Vector2.INF and player.global_position.distance_to(_elevation_anchor) > ELEVATION_LEAVE_DIST:
 		set_player_elevation_level(0)
 
@@ -4697,6 +4701,7 @@ func get_economy_save_dict() -> Dictionary:
 		"family_state": family_state.duplicate(true),
 		"work_state": work_state.duplicate(true),
 		"sect_state": sect_state.duplicate(true),
+		"player_elevation_level": player_elevation_level,
 		"social_event_uid": _social_event_uid,
 		"social_director": social_director.to_save_dict() if social_director != null else {}
 	}
@@ -4767,6 +4772,9 @@ func load_economy_save_dict(data: Dictionary) -> void:
 	VillageWork.after_load(self)
 	culture_state = (data["culture_state"] as Dictionary).duplicate(true) if typeof(data.get("culture_state")) == TYPE_DICTIONARY else {}
 	VillageCulture.after_load(self)
+	if data.has("player_elevation_level"):
+		set_player_elevation_level(int(data.get("player_elevation_level", 0)))
+	VillageUnderworld.after_load(self)
 	migration_state = (data["migration_state"] as Dictionary).duplicate(true) if typeof(data.get("migration_state")) == TYPE_DICTIONARY else {}
 	VillageMigration.after_load(self)
 	nobility_state = (data["nobility_state"] as Dictionary).duplicate(true) if typeof(data.get("nobility_state")) == TYPE_DICTIONARY else {}

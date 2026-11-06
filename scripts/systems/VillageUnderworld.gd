@@ -39,10 +39,43 @@ const RACKET_WEEKLY: int = 10
 const BOSS_TRIBUTE: int = 12
 const SEWER_KEY_COST: int = 20
 
+## Bloque FIS3: Cada entrada de `SEWER_LOCATIONS` define:
+## - `pos`: Trampilla/rejilla en la calle (fuera de edificios y fuera de las calzadas de paso de los vecinos).
+## - `chamber_center`: Centro de su cámara en la red de túneles conectada al sur del mapa (`y = 1520`).
+## - `tunnel_pos`: Punto donde aparece el jugador al bajar por esa trampilla.
+## - `ladder_pos`: Escalerilla física para subir de vuelta a esa trampilla de la calle.
+## - `chest_pos`: Cofre de contrabando físico (1 vez al día por cámara).
 const SEWER_LOCATIONS: Dictionary = {
-	"cistern": {"title": "Cisterna Vieja bajo la Plaza", "pos": Vector2(465.0, 48.0), "difficulty": 0.30, "loot_item": "copper_coil"},
-	"smuggler_tunnel": {"title": "Pasadizo del Contrabandista", "pos": Vector2(395.0, -135.0), "difficulty": 0.25, "loot_item": "bandit_scrap"},
-	"flooded_vault": {"title": "Bóveda Inundada del Antiguo Gremio", "pos": Vector2(215.0, -90.0), "difficulty": 0.40, "loot_item": "steel_ingot"}
+	"cistern": {
+		"title": "Cisterna Vieja bajo la Plaza",
+		"pos": Vector2(518.0, 26.0),
+		"chamber_center": Vector2(580.0, 1520.0),
+		"tunnel_pos": Vector2(556.0, 1514.0),
+		"ladder_pos": Vector2(556.0, 1496.0),
+		"chest_pos": Vector2(604.0, 1496.0),
+		"difficulty": 0.30,
+		"loot_item": "copper_coil"
+	},
+	"smuggler_tunnel": {
+		"title": "Pasadizo del Contrabandista",
+		"pos": Vector2(398.0, -118.0),
+		"chamber_center": Vector2(420.0, 1520.0),
+		"tunnel_pos": Vector2(396.0, 1514.0),
+		"ladder_pos": Vector2(396.0, 1496.0),
+		"chest_pos": Vector2(444.0, 1496.0),
+		"difficulty": 0.25,
+		"loot_item": "bandit_scrap"
+	},
+	"flooded_vault": {
+		"title": "Bóveda Inundada del Antiguo Gremio",
+		"pos": Vector2(248.0, -90.0),
+		"chamber_center": Vector2(260.0, 1520.0),
+		"tunnel_pos": Vector2(236.0, 1514.0),
+		"ladder_pos": Vector2(236.0, 1496.0),
+		"chest_pos": Vector2(284.0, 1496.0),
+		"difficulty": 0.40,
+		"loot_item": "steel_ingot"
+	}
 }
 
 static func fenceable_item(inv) -> String:
@@ -111,10 +144,13 @@ static func state(vm) -> Dictionary:
 	if not st.has("last_cockfight_day"):
 		st["last_cockfight_day"] = -99
 	if not st.has("sewers") or not (st["sewers"] is Dictionary):
-		st["sewers"] = {"unlocked": false, "current_loc": "", "last_explore_day": -99, "lost_coins_pool": 12, "explored_count": 0}
+		st["sewers"] = {"unlocked": false, "current_loc": "", "last_explore_day": -99, "lost_coins_pool": 12, "explored_count": 0, "chest_days": {}}
+	var sw_dict: Dictionary = st["sewers"]
+	if not sw_dict.has("chest_days") or not (sw_dict["chest_days"] is Dictionary):
+		sw_dict["chest_days"] = {}
 	return st
 
-## Bloque PN: Red de alcantarillas en el nivel vertical -1 con localizaciones subterráneas nuevas.
+## Bloque PN / FIS3: Red de alcantarillas en el nivel vertical -1 con túneles físicos conectados al sur del mapa.
 static func sewers_state(vm) -> Dictionary:
 	return state(vm)["sewers"]
 
@@ -135,10 +171,12 @@ static func enter_sewer_location(vm, loc_id: String, player: Node2D = null) -> b
 	var sw: Dictionary = sewers_state(vm)
 	if not bool(sw.get("unlocked", false)) or not SEWER_LOCATIONS.has(loc_id):
 		return false
+	var pl: Node2D = player if (player != null and is_instance_valid(player)) else VillageNeeds.player_of(vm)
 	sw["current_loc"] = loc_id
+	if pl != null and is_instance_valid(pl):
+		pl.global_position = SEWER_LOCATIONS[loc_id].get("tunnel_pos", SEWER_LOCATIONS[loc_id]["pos"])
 	vm.set_player_elevation_level(-1)
-	if player != null and is_instance_valid(player):
-		player.global_position = SEWER_LOCATIONS[loc_id]["pos"]
+	vm._elevation_anchor = Vector2.INF
 	return true
 
 ## El nivel -1 lo comparten el sótano de tu casa y las alcantarillas: solo estás en las alcantarillas si entraste por ellas.
@@ -149,8 +187,219 @@ static func is_player_in_sewers(vm) -> bool:
 
 static func exit_sewers_to_surface(vm) -> void:
 	var sw: Dictionary = sewers_state(vm)
+	var cur: String = str(sw.get("current_loc", ""))
 	sw["current_loc"] = ""
 	vm.set_player_elevation_level(0)
+	if SEWER_LOCATIONS.has(cur):
+		var pl = VillageNeeds.player_of(vm)
+		if pl != null and is_instance_valid(pl):
+			pl.global_position = SEWER_LOCATIONS[cur]["pos"]
+
+static func interact_sewer_grate(vm, loc_id: String, player: Node2D = null) -> bool:
+	if vm == null or not SEWER_LOCATIONS.has(loc_id):
+		return false
+	var sw: Dictionary = sewers_state(vm)
+	if not bool(sw.get("unlocked", false)):
+		if player != null and player.has_method("show_hint"):
+			player.show_hint("🔒 Cerrada: el perista vende la llave.")
+		return false
+	if not enter_sewer_location(vm, loc_id, player):
+		return false
+	var title: String = str(SEWER_LOCATIONS[loc_id].get("title", loc_id))
+	if player != null and player.has_method("show_hint"):
+		player.show_hint("🕳️🔦 Bajaste por la rejilla a %s (nivel -1)." % title)
+	return true
+
+static func exit_sewer_ladder(vm, loc_id: String, player: Node2D = null) -> bool:
+	if vm == null or not SEWER_LOCATIONS.has(loc_id):
+		return false
+	var pl: Node2D = player if (player != null and is_instance_valid(player)) else VillageNeeds.player_of(vm)
+	exit_sewers_to_surface(vm)
+	if pl != null and is_instance_valid(pl):
+		pl.global_position = SEWER_LOCATIONS[loc_id]["pos"]
+	if loc_id == "smuggler_tunnel" and int(vm.wanted_level) > 0 and VillageHousing.can_purge_wanted(vm):
+		vm.wanted_level = maxi(0, int(vm.wanted_level) - 1)
+		VillageHousing.mark_wanted_purge(vm)
+		VillageChronicle.add(vm, "smuggler_escape", "Despistaste a la guardia saliendo por el Pasadizo del Contrabandista (-1 de búsqueda)", false)
+	var title: String = str(SEWER_LOCATIONS[loc_id].get("title", loc_id))
+	if pl != null and pl.has_method("show_hint"):
+		pl.show_hint("🪜☀️ Subiste por la escalerilla a la calle (%s)." % title)
+	return true
+
+static func is_sewer_chest_looted_today(vm, loc_id: String) -> bool:
+	if vm == null:
+		return false
+	var cdays: Dictionary = sewers_state(vm).get("chest_days", {})
+	return int(cdays.get(loc_id, -99)) == today()
+
+static func open_sewer_chest(vm, loc_id: String, inv, force_outcome: int = 0) -> Dictionary:
+	if vm == null or not SEWER_LOCATIONS.has(loc_id):
+		return {"ok": false}
+	var sw: Dictionary = sewers_state(vm)
+	if not bool(sw.get("unlocked", false)):
+		return {"ok": false}
+	var cdays: Dictionary = sw["chest_days"]
+	if int(cdays.get(loc_id, -99)) == today():
+		return {"ok": false, "wait": true}
+	cdays[loc_id] = today()
+	sw["current_loc"] = loc_id
+	var def: Dictionary = SEWER_LOCATIONS[loc_id]
+	var title: String = str(def.get("title", loc_id))
+	var diff: float = float(def.get("difficulty", 0.30))
+	var bonus: float = (0.12 if get_item_count(vm, "lockpick") > 0 else 0.0) + (0.10 if "VillageCulture" in vm and vm.VillageCulture != null and vm.VillageCulture.has_tech(vm, "voltaic_capacitors") else 0.0)
+	var chance: float = clampf(0.65 - diff + bonus, 0.25, 0.85)
+	var success: bool = (randf() < chance) if force_outcome == 0 else (force_outcome > 0)
+	if success:
+		var item_id: String = str(def.get("loot_item", "bandit_scrap"))
+		if inv != null:
+			inv.add_item(item_id, 1)
+		var coins: int = mini(6, maxi(0, int(sw.get("lost_coins_pool", 0))))
+		if coins > 0 and inv != null:
+			sw["lost_coins_pool"] = int(sw.get("lost_coins_pool", 0)) - coins
+			inv.add_gold(coins)
+		sw["explored_count"] = int(sw.get("explored_count", 0)) + 1
+		VillageChronicle.add(vm, "sewer_chest_looted", "Registraste el cofre de contrabando de %s en las alcantarillas y hallaste %s (+%d monedas del pozo)" % [title, item_id, coins], false)
+		return {"ok": true, "success": true, "item": item_id, "coins": coins}
+	var pl = VillageNeeds.player_of(vm)
+	if pl != null:
+		var hc = pl.get("health_comp")
+		if hc != null and "current_health" in hc:
+			hc.current_health = maxf(1.0, float(hc.current_health) - 14.0)
+	var ns: Dictionary = VillageNeeds.state(vm)
+	ns["player_hygiene"] = clampf(float(ns.get("player_hygiene", 80.0)) - 25.0, 0.0, 100.0)
+	VillageChronicle.add(vm, "sewer_mishap", "Sufriste una trampa y aguas negras al abrir el cofre de contrabando en %s" % title, false)
+	return {"ok": true, "success": false, "item": "", "coins": 0}
+
+static func interact_sewer_chest(vm, loc_id: String, player: Node2D, inv) -> Dictionary:
+	var res: Dictionary = open_sewer_chest(vm, loc_id, inv)
+	if player != null and player.has_method("show_hint"):
+		if not bool(res.get("ok", false)):
+			player.show_hint("🔒 Este cofre de contrabando ya está vacío hoy; vuelve mañana.")
+		elif bool(res.get("success", false)):
+			player.show_hint("📦🔦 Hallaste 1 %s y +%d monedas en el cofre de contrabando." % [str(res.get("item", "botín")), int(res.get("coins", 0))])
+		else:
+			player.show_hint("🪤🐀 ¡Agua sucia y trampa en el cofre! Bajó tu salud e higiene.")
+	return res
+
+static func build_sewers_world(vm) -> void:
+	if vm == null or not ("entities_root" in vm) or not is_instance_valid(vm.entities_root):
+		return
+	var PropScript = load("res://scripts/obstacles/WorldInteractableProp.gd")
+	if PropScript == null:
+		return
+	if vm.is_inside_tree():
+		for grp in ["sewer_station", "sewer_network_2d"]:
+			for old_n in vm.get_tree().get_nodes_in_group(grp):
+				if is_instance_valid(old_n):
+					old_n.queue_free()
+
+	# 1. Red subterránea de 3 cámaras conectadas por galerías al sur del mapa (x = 205..635, y = 1480..1560)
+	var net_root := Node2D.new()
+	net_root.name = "SewersNetwork2D"
+	net_root.add_to_group("sewer_network_2d")
+	vm.entities_root.add_child(net_root)
+
+	var vis_2d := Node2D.new()
+	vis_2d.name = "SewersVisual2D"
+	vis_2d.z_index = -2
+	vis_2d.add_to_group("sewer_visual_2d")
+	net_root.add_child(vis_2d)
+
+	var add_rect_2d := func(center: Vector2, sz: Vector2, col: Color) -> void:
+		var p := Polygon2D.new()
+		var h: Vector2 = sz * 0.5
+		p.polygon = PackedVector2Array([
+			center + Vector2(-h.x, -h.y),
+			center + Vector2(h.x, -h.y),
+			center + Vector2(h.x, h.y),
+			center + Vector2(-h.x, h.y),
+		])
+		p.color = col
+		vis_2d.add_child(p)
+
+	# Losa oscura subterránea alrededor de las galerías
+	add_rect_2d.call(Vector2(420.0, 1520.0), Vector2(480.0, 120.0), Color(0.08, 0.10, 0.09, 0.96))
+	# Suelos de piedra y canal de aguas turbias de las 3 cámaras
+	for loc_id in ["flooded_vault", "smuggler_tunnel", "cistern"]:
+		var c: Vector2 = SEWER_LOCATIONS[loc_id]["chamber_center"]
+		add_rect_2d.call(c, Vector2(110.0, 80.0), Color(0.24, 0.28, 0.26))
+		add_rect_2d.call(c + Vector2(0.0, -8.0), Vector2(104.0, 52.0), Color(0.32, 0.36, 0.34))
+		add_rect_2d.call(c + Vector2(0.0, 26.0), Vector2(106.0, 18.0), Color(0.12, 0.40, 0.32, 0.92))
+	# Dos galerías de paso entre las cámaras (x = 315..365 y x = 475..525)
+	for corr_x in [340.0, 500.0]:
+		add_rect_2d.call(Vector2(corr_x, 1520.0), Vector2(54.0, 40.0), Color(0.28, 0.32, 0.30))
+		add_rect_2d.call(Vector2(corr_x, 1534.0), Vector2(54.0, 10.0), Color(0.12, 0.40, 0.32, 0.90))
+
+	# Paredes físicas StaticBody2D que encierran las 3 cámaras y los 2 pasillos conectados
+	var walls_body := StaticBody2D.new()
+	walls_body.name = "SewerTunnelWallsBody"
+	walls_body.collision_layer = 1
+	walls_body.collision_mask = 0
+	net_root.add_child(walls_body)
+
+	var wall_segments: Array = [
+		[Vector2(202.0, 1520.0), Vector2(6.0, 86.0)],
+		[Vector2(638.0, 1520.0), Vector2(6.0, 86.0)],
+		[Vector2(260.0, 1477.0), Vector2(116.0, 6.0)],
+		[Vector2(420.0, 1477.0), Vector2(116.0, 6.0)],
+		[Vector2(580.0, 1477.0), Vector2(116.0, 6.0)],
+		[Vector2(260.0, 1563.0), Vector2(116.0, 6.0)],
+		[Vector2(420.0, 1563.0), Vector2(116.0, 6.0)],
+		[Vector2(580.0, 1563.0), Vector2(116.0, 6.0)],
+		[Vector2(340.0, 1497.0), Vector2(56.0, 6.0)],
+		[Vector2(340.0, 1543.0), Vector2(56.0, 6.0)],
+		[Vector2(315.0, 1488.0), Vector2(6.0, 22.0)],
+		[Vector2(315.0, 1552.0), Vector2(6.0, 22.0)],
+		[Vector2(365.0, 1488.0), Vector2(6.0, 22.0)],
+		[Vector2(365.0, 1552.0), Vector2(6.0, 22.0)],
+		[Vector2(500.0, 1497.0), Vector2(56.0, 6.0)],
+		[Vector2(500.0, 1543.0), Vector2(56.0, 6.0)],
+		[Vector2(475.0, 1488.0), Vector2(6.0, 22.0)],
+		[Vector2(475.0, 1552.0), Vector2(6.0, 22.0)],
+		[Vector2(525.0, 1488.0), Vector2(6.0, 22.0)],
+		[Vector2(525.0, 1552.0), Vector2(6.0, 22.0)],
+	]
+	for seg in wall_segments:
+		var w_pos: Vector2 = seg[0]
+		var w_sz: Vector2 = seg[1]
+		add_rect_2d.call(w_pos, w_sz, Color(0.16, 0.20, 0.18))
+		var col := CollisionShape2D.new()
+		var rshape := RectangleShape2D.new()
+		rshape.size = w_sz
+		col.shape = rshape
+		col.position = w_pos
+		walls_body.add_child(col)
+
+	# 2. Tres trampillas en la calle + tres escalerillas de salida + tres cofres de contrabando abajo
+	for loc_id in SEWER_LOCATIONS.keys():
+		var def: Dictionary = SEWER_LOCATIONS[loc_id]
+		var title: String = str(def.get("title", loc_id))
+
+		var grate: Node2D = PropScript.new()
+		grate.name = "SewerGrate_" + loc_id
+		grate.global_position = def["pos"]
+		vm.entities_root.add_child(grate)
+		grate.setup_prop(vm, "sewer_grate", loc_id, title)
+
+		var ladder: Node2D = PropScript.new()
+		ladder.name = "SewerLadder_" + loc_id
+		ladder.global_position = def["ladder_pos"]
+		vm.entities_root.add_child(ladder)
+		ladder.setup_prop(vm, "sewer_ladder", loc_id, title)
+
+		var chest: Node2D = PropScript.new()
+		chest.name = "SewerChest_" + loc_id
+		chest.global_position = def["chest_pos"]
+		vm.entities_root.add_child(chest)
+		chest.setup_prop(vm, "sewer_chest", loc_id, title)
+
+static func after_load(vm) -> void:
+	if vm == null:
+		return
+	var sw: Dictionary = sewers_state(vm)
+	if str(sw.get("current_loc", "")) != "":
+		vm.set_player_elevation_level(-1)
+		vm._elevation_anchor = Vector2.INF
 
 static func explore_sewer_location(vm, loc_id: String, inv, force_outcome: int = 0) -> Dictionary:
 	var sw: Dictionary = sewers_state(vm)
@@ -625,18 +874,11 @@ static func add_dialogue_choices(vm, npc, diag: Dictionary, ch_arr: Array) -> vo
 		if bool(st.get("known_fence", false)) and is_caravan_here(st) and int(st.get("caravan_gold", 0)) >= 20:
 			opts.append({"label": "🚨🐪 Avisar a la guardia de la ruta de la caravana de contrabando", "next": "END", "action": "underworld_caravan_report"})
 
-	# Bloque PN: Red de alcantarillas en el nivel -1 (Cisterna, Pasadizo del Contrabandista y Bóveda Inundada)
+	# Bloque PN / FIS3: La llave de las alcantarillas se compra al perista; para bajar o subir se usan las rejillas y escalerillas del mundo.
 	var sw: Dictionary = sewers_state(vm)
 	var is_tinker: bool = int(npc.trade_role) == int(VillageNPC.TradeRole.TINKER)
 	if (fence_here or is_tinker) and not bool(sw.get("unlocked", false)):
 		opts.append({"label": "🕳️🗝️ Comprar llave maestra y plano de las Alcantarillas del Pueblo (-%d Oro)" % SEWER_KEY_COST, "next": "END", "action": "underworld_unlock_sewers"})
-	elif bool(sw.get("unlocked", false)) and not is_law and not is_priest:
-		if int(sw.get("last_explore_day", -99)) != today():
-			for sloc_id in SEWER_LOCATIONS.keys():
-				var sdef: Dictionary = SEWER_LOCATIONS[sloc_id]
-				opts.append({"label": "🕳️🔦 Bajar al nivel -1 y explorar %s (1/día, con riesgo)" % str(sdef.get("title", sloc_id)), "next": "END", "action": "underworld_sewer_explore:" + sloc_id})
-		if is_player_in_sewers(vm):
-			opts.append({"label": "🪜☀️ Subir por la escalerilla de las alcantarillas a la calle (volver a nivel 0)", "next": "END", "action": "underworld_sewer_surface"})
 
 	if not opts.is_empty():
 		opts.append({"label": "⬅️ Volver", "next": "start"})

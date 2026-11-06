@@ -125,6 +125,13 @@ func _initialize() -> void:
 		vun.state(vm_u)["active_heist"] = {"id": str(t_heist["id"]), "label": str(t_heist["label"]), "pos_x": hp.x, "pos_y": hp.y, "reward": int(t_heist["reward"]), "stolen": false}
 		vun.sync_heist_visuals(vm_u)
 		SPOTS["robo"] = hp + Vector2(0, -10)
+	# Sitios «trampilla» y «tunel» (Bloque FIS3): desbloquea las alcantarillas en memoria para ver la rejilla en la calle y los túneles subterráneos.
+	if spots.has("trampilla") or spots.has("tunel"):
+		var vm_sw = root.find_child("VillageManager", true, false)
+		var vun_sw = vm_sw.VillageUnderworld
+		vun_sw.sewers_state(vm_sw)["unlocked"] = true
+		SPOTS["trampilla"] = (vun_sw.SEWER_LOCATIONS["cistern"]["pos"] as Vector2) + Vector2(-18, 6)
+		SPOTS["tunel"] = vun_sw.SEWER_LOCATIONS["smuggler_tunnel"]["tunnel_pos"] as Vector2
 	for pet in root.find_children("*", "DomesticPet", true, false):
 		if int(pet.pet_type) == 0 and pet.visible and not SPOTS.has("perro"):
 			SPOTS["perro"] = pet.global_position + Vector2(0, -12)
@@ -149,6 +156,13 @@ func _initialize() -> void:
 				print("SIN SITIO ", s)
 				continue
 			if player != null:
+				var vm_loop = root.find_child("VillageManager", true, false)
+				if vm_loop != null:
+					var vun_loop = vm_loop.VillageUnderworld
+					if s == "tunel":
+						vun_loop.enter_sewer_location(vm_loop, "smuggler_tunnel", player)
+					elif vun_loop.is_player_in_sewers(vm_loop):
+						vun_loop.exit_sewers_to_surface(vm_loop)
 				player.global_position = SPOTS[s]
 				var horse_n = get_first_node_in_group("player_horse")
 				if horse_n != null:
@@ -157,7 +171,7 @@ func _initialize() -> void:
 					elif s != "montado" and bool(player.get("is_mounted")):
 						horse_n.dismount(player)
 				if cam != null:
-					cam.zoom = Vector2(8.0, 8.0) if s == "retrato" else (Vector2(5.0, 5.0) if s in ["ciervo", "zorro", "perro", "jabali", "caballo", "montado", "asalto", "robo"] else (Vector2(4.2, 4.2) if s in ["cerca", "taller"] else Vector2(2.4, 2.4)))
+					cam.zoom = Vector2(8.0, 8.0) if s == "retrato" else (Vector2(5.0, 5.0) if s in ["ciervo", "zorro", "perro", "jabali", "caballo", "montado", "asalto", "robo", "trampilla"] else (Vector2(4.2, 4.2) if s in ["cerca", "taller", "tunel"] else Vector2(2.4, 2.4)))
 					if String(s).begins_with("r_") or s == "lago" or s == "norte":
 						cam.zoom = Vector2(1.4, 1.4)
 					cam.reset_smoothing()

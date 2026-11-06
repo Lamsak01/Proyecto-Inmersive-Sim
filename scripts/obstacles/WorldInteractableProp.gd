@@ -1,10 +1,13 @@
 class_name WorldInteractableProp
 extends Node2D
 
-## Objeto físico interactivo del mundo («La Placa de Petri» - Bloque FIS2):
+## Objeto físico interactivo del mundo («La Placa de Petri» - Bloques FIS2 y FIS3):
 ## - `"terminal"`: Terminal Lógica Electromecánica sobre mesa dentro del Taller de Reparaciones (`solar e5`).
 ## - `"grid_panel"`: Cuadro Eléctrico en la pared exterior del Taller de Reparaciones (`solar e5`).
 ## - `"heist_target"`: Objeto físico de los 3 grandes robos (`sello_noble`, `caliz_capilla`, `libro_gremial`).
+## - `"sewer_grate"`: Trampilla/rejilla de calle para bajar a las alcantarillas (`cistern`, `smuggler_tunnel`, `flooded_vault`).
+## - `"sewer_ladder"`: Escalerilla subterránea para subir a la trampilla correspondiente de la calle.
+## - `"sewer_chest"`: Cofre de contrabando subterráneo (1 por cámara, 1 vez al día).
 ## Tiene dibujo 2D propio (oculto automáticamente en vista 3D y visible al pulsar [F10]),
 ## `Area2D` en el grupo `"interactable"` con su letrero contextual `[E] ...`, y acción directa al pulsar [E].
 
@@ -16,6 +19,7 @@ var vm: Node2D = null
 var prop_kind: String = "terminal"
 var heist_id: String = ""
 var heist_label: String = ""
+var sewer_loc_id: String = ""
 var npc_name: String = "Objeto"
 var npc_role: String = "Mecanismo del Taller"
 var interact_area: Area2D = null
@@ -27,6 +31,7 @@ func setup_prop(village_manager: Node2D, kind: String, h_id: String = "", h_labe
 	prop_kind = kind
 	heist_id = h_id
 	heist_label = h_label
+	sewer_loc_id = h_id
 	match prop_kind:
 		"terminal":
 			npc_name = "Terminal Lógica Electromecánica"
@@ -42,6 +47,21 @@ func setup_prop(village_manager: Node2D, kind: String, h_id: String = "", h_labe
 			npc_name = heist_label if not heist_label.is_empty() else "Objetivo del Encargo"
 			npc_role = "Encargo del Perista"
 			add_to_group("heist_target_prop")
+		"sewer_grate":
+			npc_name = heist_label if not heist_label.is_empty() else "Rejilla de Alcantarilla"
+			npc_role = "Acceso a las Alcantarillas"
+			add_to_group("sewer_grate")
+			add_to_group("sewer_station")
+		"sewer_ladder":
+			npc_name = "Escalerilla a la Calle"
+			npc_role = heist_label if not heist_label.is_empty() else "Salida de Alcantarilla"
+			add_to_group("sewer_ladder")
+			add_to_group("sewer_station")
+		"sewer_chest":
+			npc_name = "Cofre de Contrabando"
+			npc_role = heist_label if not heist_label.is_empty() else "Alijo Subterráneo"
+			add_to_group("sewer_chest")
+			add_to_group("sewer_station")
 	_rebuild_visual_and_area()
 
 
@@ -72,6 +92,12 @@ func _rebuild_visual_and_area() -> void:
 			_draw_grid_panel_2d()
 		"heist_target":
 			_draw_heist_target_2d()
+		"sewer_grate":
+			_draw_sewer_grate_2d()
+		"sewer_ladder":
+			_draw_sewer_ladder_2d()
+		"sewer_chest":
+			_draw_sewer_chest_2d()
 
 	if interact_area == null or not is_instance_valid(interact_area):
 		interact_area = Area2D.new()
@@ -157,6 +183,37 @@ func _draw_heist_target_2d() -> void:
 			_rect(Vector2(6.6, -3.8), Vector2(1.0, 1.0), Color(0.95, 0.78, 0.26))
 
 
+func _draw_sewer_grate_2d() -> void:
+	# Trampilla / rejilla de hierro forjado sobre brocal de piedra en la calle
+	_rect(Vector2(0, 1), Vector2(9.5, 9.5), Color(0.10, 0.12, 0.10, 0.65)) # Sombra
+	_rect(Vector2(0, 0), Vector2(9.0, 9.0), Color(0.52, 0.50, 0.46)) # Brocal de piedra
+	_rect(Vector2(0, 0), Vector2(7.4, 7.4), Color(0.22, 0.25, 0.28)) # Marco de hierro
+	_rect(Vector2(0, 0), Vector2(6.0, 6.0), Color(0.06, 0.10, 0.08)) # Pozo oscuro
+	for gx in [-3.8, -1.3, 1.3, 3.8]:
+		_rect(Vector2(gx, 0), Vector2(0.6, 6.0), Color(0.32, 0.36, 0.40)) # Barrotes
+	_rect(Vector2(0, 0), Vector2(6.0, 0.6), Color(0.32, 0.36, 0.40)) # Travesaño
+	_rect(Vector2(4.2, 0), Vector2(1.3, 1.3), Color(0.84, 0.68, 0.26)) # Cerradura / argolla de latón
+
+
+func _draw_sewer_ladder_2d() -> void:
+	# Escalerilla de hierro adosada al muro de ladrillo del túnel
+	_rect(Vector2(0, 0), Vector2(6.5, 8.5), Color(0.14, 0.18, 0.16, 0.75)) # Hueco vertical
+	_rect(Vector2(-4.2, 0), Vector2(1.0, 8.0), Color(0.56, 0.42, 0.24)) # Larguero izq
+	_rect(Vector2(4.2, 0), Vector2(1.0, 8.0), Color(0.56, 0.42, 0.24)) # Larguero der
+	for ry in [-5.5, -2.0, 1.5, 5.0]:
+		_rect(Vector2(0, ry), Vector2(4.2, 0.8), Color(0.76, 0.64, 0.38)) # Peldaños
+
+
+func _draw_sewer_chest_2d() -> void:
+	# Cofre de contrabando reforzado con cinchas de hierro sobre losa seca
+	_rect(Vector2(0, 1.5), Vector2(8.0, 6.0), Color(0.08, 0.10, 0.08, 0.65)) # Sombra
+	_rect(Vector2(0, 0), Vector2(7.0, 5.0), Color(0.42, 0.26, 0.14)) # Caja de madera
+	_rect(Vector2(0, -1.2), Vector2(7.0, 2.2), Color(0.50, 0.32, 0.18)) # Tapa
+	_rect(Vector2(-4.2, 0), Vector2(1.0, 5.0), Color(0.26, 0.30, 0.34)) # Herraje izq
+	_rect(Vector2(4.2, 0), Vector2(1.0, 5.0), Color(0.26, 0.30, 0.34)) # Herraje der
+	_rect(Vector2(0, 0.6), Vector2(1.6, 1.6), Color(0.92, 0.76, 0.26)) # Candado de latón
+
+
 func get_interact_label(_player: Node2D = null) -> String:
 	match prop_kind:
 		"terminal":
@@ -168,6 +225,17 @@ func get_interact_label(_player: Node2D = null) -> String:
 			if lbl.is_empty() and vm != null:
 				lbl = str(VillageUnderworld.state(vm).get("active_heist", {}).get("label", "el objetivo"))
 			return "Robar %s" % (lbl if not lbl.is_empty() else "el objetivo")
+		"sewer_grate":
+			var unlocked: bool = vm != null and bool(VillageUnderworld.sewers_state(vm).get("unlocked", false))
+			if not unlocked:
+				return "Cerrada: el perista vende la llave"
+			return "Bajar a las alcantarillas (%s)" % (heist_label if not heist_label.is_empty() else "acceso")
+		"sewer_ladder":
+			return "Subir a la calle (%s)" % (heist_label if not heist_label.is_empty() else "superficie")
+		"sewer_chest":
+			if vm != null and VillageUnderworld.is_sewer_chest_looted_today(vm, sewer_loc_id):
+				return "Cofre de contrabando (vacío hoy)"
+			return "Abrir cofre de contrabando (%s)" % (heist_label if not heist_label.is_empty() else "alijo")
 	return "Usar"
 
 
@@ -181,6 +249,13 @@ func interact(player: Node2D) -> void:
 			VillageCulture.open_grid_panel_menu(vm, self, player)
 		"heist_target":
 			VillageUnderworld.try_interact(vm, player, global_position)
+		"sewer_grate":
+			VillageUnderworld.interact_sewer_grate(vm, sewer_loc_id, player)
+		"sewer_ladder":
+			VillageUnderworld.exit_sewer_ladder(vm, sewer_loc_id, player)
+		"sewer_chest":
+			var inv = player.get("inventory")
+			VillageUnderworld.interact_sewer_chest(vm, sewer_loc_id, player, inv)
 
 
 func on_dialogue_action(action_id: String) -> void:
