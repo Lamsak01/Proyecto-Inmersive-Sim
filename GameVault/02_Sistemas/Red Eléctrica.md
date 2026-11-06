@@ -21,4 +21,4 @@ El valle conserva una instalación electromecánica alimentada por el **Generado
 
 ## Notas de diseño
 - 2026-11-05 (Claude Code): cortar el circuito de farolas deja de verdad las calles a oscuras de noche (2D, 3D y niebla).
--
+- 2026-11-05 (Antigravity, Bloque FIS2): el **cuadro eléctrico** pasa a ser un objeto físico real en la pared exterior norte del Taller de Reparaciones (`solar e5`, `Vector2(1270, 90)`), visible en 2D y 3D con 3 palancas y piloto luminoso. Se manipula con `[E] Manipular el cuadro eléctrico` junto a la pared (ya no desde el diálogo de charla del chapuzas), manteniendo el límite de 1 operación diaria y la comprobación de testigos.

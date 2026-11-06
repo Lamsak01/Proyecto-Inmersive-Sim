@@ -21,10 +21,14 @@ const VillageClans = preload("res://scripts/systems/VillageClans.gd")
 const VillageForensics = preload("res://scripts/systems/VillageForensics.gd")
 const VillageHousing = preload("res://scripts/systems/VillageHousing.gd")
 
+## Bloque FIS2: cada objetivo de robo está físicamente dentro de su edificio:
+## - `sello_noble`: Mansión señorial (`solar f1`, estudio en `Vector2(1275, -444)`).
+## - `caliz_capilla`: Capilla (`building_church`, altar en `Vector2(745, 336)`).
+## - `libro_gremial`: Ayuntamiento (`solar n4`, mesa municipal en `Vector2(764, -444)`).
 const HEIST_TARGETS: Array[Dictionary] = [
-	{"id": "sello_noble", "label": "el Sello de Lacre Noble", "pos": Vector2(280.0, -520.0), "reward": 55},
+	{"id": "sello_noble", "label": "el Sello de Lacre Noble", "pos": Vector2(1275.0, -444.0), "reward": 55},
 	{"id": "caliz_capilla", "label": "el Cáliz de Plata de la Capilla", "pos": Vector2(745.0, 336.0), "reward": 55},
-	{"id": "libro_gremial", "label": "el Libro Mayor de los Gremios", "pos": Vector2(465.0, 24.0), "reward": 55},
+	{"id": "libro_gremial", "label": "el Libro Mayor de los Gremios", "pos": Vector2(764.0, -444.0), "reward": 55},
 ]
 
 ## Lo que el perista acepta como «mercancía caliente» y cuánto paga (de su bolsillo). Antes daba 25 sin pedir nada.
@@ -335,8 +339,34 @@ static func is_fence(vm, npc) -> bool:
 	return f != null and f == npc
 
 # ==============================================================================
-# P7.4: Interacción física opcional para robar el objetivo del encargo nocturno
+# P7.4: Objeto físico visible del robo por encargo y su interacción [E]
 # ==============================================================================
+static func sync_heist_visuals(vm) -> Node:
+	if vm == null:
+		return null
+	if vm.is_inside_tree():
+		for old_h in vm.get_tree().get_nodes_in_group("heist_target_prop"):
+			if is_instance_valid(old_h):
+				if old_h.get_parent() != null:
+					old_h.get_parent().remove_child(old_h)
+				old_h.queue_free()
+	var ah: Dictionary = state(vm).get("active_heist", {})
+	if ah.is_empty() or bool(ah.get("stolen", false)):
+		return null
+	var PropScript = load("res://scripts/obstacles/WorldInteractableProp.gd")
+	if PropScript == null:
+		return null
+	var h_id: String = str(ah.get("id", "sello_noble"))
+	var h_lbl: String = str(ah.get("label", "el objetivo"))
+	var tpos := Vector2(float(ah.get("pos_x", 0.0)), float(ah.get("pos_y", 0.0)))
+	var prop: Node2D = PropScript.new()
+	prop.name = "HeistTargetProp_" + h_id
+	prop.global_position = tpos
+	var parent: Node = vm.entities_root if ("entities_root" in vm and is_instance_valid(vm.entities_root)) else vm
+	parent.add_child(prop)
+	prop.setup_prop(vm, "heist_target", h_id, h_lbl)
+	return prop
+
 static func try_interact(vm, player: Node2D, pos: Vector2) -> bool:
 	var st: Dictionary = state(vm)
 	var ah: Dictionary = st.get("active_heist", {})
@@ -366,6 +396,7 @@ static func try_interact(vm, player: Node2D, pos: Vector2) -> bool:
 		return true
 	ah["stolen"] = true
 	st["active_heist"] = ah
+	sync_heist_visuals(vm)
 	if player.has_method("show_hint"):
 		player.show_hint("🕶️💎 Sustrajiste %s en silencio. Llévaselo al perista para cobrar." % str(ah.get("label", "el botín")))
 	return true
@@ -705,6 +736,7 @@ static func on_player_action(vm, npc, action_id: String, inv) -> void:
 		var t: Dictionary = HEIST_TARGETS[idx]
 		var p: Vector2 = t["pos"]
 		st["active_heist"] = {"id": str(t["id"]), "label": str(t["label"]), "pos_x": p.x, "pos_y": p.y, "reward": int(t["reward"]), "stolen": false}
+		sync_heist_visuals(vm)
 		npc._spawn_floating_text("🕶️💎 «Un coleccionista paga 55 de oro por %s. Tráemelo tú: ve allí de noche y que nadie te vea.»" % str(t["label"]), Color.GOLD, -46.0)
 
 	elif action_id == "underworld_deliver_heist":
@@ -720,6 +752,7 @@ static func on_player_action(vm, npc, action_id: String, inv) -> void:
 		npc.personal_gold -= rew
 		st["active_heist"] = {}
 		st["heists_done"] = int(st.get("heists_done", 0)) + 1
+		sync_heist_visuals(vm)
 		if inv != null:
 			inv.add_gold(rew)
 		VillageChronicle.add(vm, "heist_completed", "Completaste en secreto el robo de %s para el mercado negro (+%d de oro)" % [lbl, rew], false)

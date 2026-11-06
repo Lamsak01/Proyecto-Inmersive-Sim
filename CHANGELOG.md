@@ -3,6 +3,16 @@
 Cambios del juego, del más nuevo al más antiguo. Añade una entrada al cerrar cada bloque, en lenguaje sencillo.
 El detalle técnico está en `docs/HANDOFF.md` (sección 7) y el historial completo en `git log`. Lo anterior a B0.1 está en `AUDIT_LOG.md` y `SESSION_CONTEXT_LOG.md`.
 
+## 2026-11-05 — La terminal lógica, el cuadro eléctrico y los 3 objetos de los robos son objetos de verdad
+- La **Terminal Lógica** ya no se usa charlando con el arreglador: ahora es una máquina real sobre una mesa dentro de su
+  taller (`[E] Usar la Terminal Lógica`). Si el arreglador u otro vecino despierto te ve trastear con ella, dará la voz
+  de alarma y subirá tu búsqueda.
+- El **cuadro eléctrico** ya no se sabotea hablando con el arreglador: ahora cuelga de la pared exterior norte del taller
+  (`[E] Manipular el cuadro eléctrico`) con sus tres palancas y su piloto luminoso.
+- Los **tres objetos de los grandes robos** del perista ya se ven sobre sus muebles dentro de cada edificio mientras
+  tienes el golpe activo (`[E] Robar …`): el Sello de Lacre Noble en el escritorio de la mansión, el Cáliz de Plata en el
+  altar de la capilla y el Libro Mayor de los Gremios en la mesa del ayuntamiento. Al robarlos desaparecen del sitio.
+
 ## 2026-11-05 — Los asaltos ocurren de verdad
 - Al atardecer entran por el camino del este 3–6 bandidos encapuchados con espada (o 3–5 jabalíes, que de momento se
   ven como lobos). Avanzan hacia la plaza peleando con guardias, vecinos valientes y contigo.

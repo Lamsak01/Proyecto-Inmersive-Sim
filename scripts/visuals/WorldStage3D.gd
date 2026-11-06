@@ -76,6 +76,9 @@ var _player_house_tier: int = -1
 var _coop_node: Node2D = null
 var _coop_3d: Node3D = null
 var _coop_gap_3d: Node3D = null
+var _grid_panel_bulb_3d: MeshInstance3D = null
+var _heist_prop_3d: Node3D = null
+var _last_heist_sig: String = ""
 
 func setup_stage(village_manager: Node2D) -> void:
 	vm = village_manager
@@ -694,9 +697,12 @@ func rebuild_buildings_3d() -> void:
 		for c_pt in [rect.position, Vector2(rect.end.x, rect.position.y), rect.end, Vector2(rect.position.x, rect.end.y)]:
 			_add_box_2d(b_root, c_pt, Vector2(wall_t + 2.0, wall_t + 2.0), 2.0, wall_h + 1.0, m_trim)
 
-		# Muro cerrado (opuesto a la puerta)
+		# Muro cerrado (opuesto a la puerta): si es el muro sur (más cercano a la cámara), se rebaja al abrir el tejado (Cutaway)
 		var closed_y: float = (center.y - half.y) if door_south else (center.y + half.y)
-		_add_box_2d(b_root, Vector2(center.x, closed_y), Vector2(sz.x, wall_t), 2.0, wall_h, m_wall)
+		if door_south:
+			_add_box_2d(b_root, Vector2(center.x, closed_y), Vector2(sz.x, wall_t), 2.0, wall_h, m_wall)
+		else:
+			_add_box_2d(b_root, Vector2(center.x, closed_y), Vector2(sz.x, wall_t), 2.0, 9.0, m_wall)
 
 		# Muro de la fachada con hueco de puerta + dintel sobre la puerta
 		var door_y: float = door_pos.y
@@ -788,7 +794,11 @@ func rebuild_buildings_3d() -> void:
 		else:
 			_add_prism_2d(roof_cap, center, sz + Vector2(ov * 2.0, ov * 2.0), roof_base_h, rh, m_roof, ridge_x)
 		# Remate de madera bajo el alero (se ve con el tejado puesto y quitado)
-		_add_box_2d(b_root, Vector2(center.x, rect.end.y), Vector2(sz.x + 2.0, 3.0), wall_h, 2.5, m_trim)
+		if not door_south:
+			_add_box_2d(roof_cap, Vector2(center.x, closed_y), Vector2(sz.x, wall_t), 11.0, wall_h - 9.0, m_wall)
+			_add_box_2d(roof_cap, Vector2(center.x, rect.end.y), Vector2(sz.x + 2.0, 3.0), wall_h, 2.5, m_trim)
+		else:
+			_add_box_2d(b_root, Vector2(center.x, rect.end.y), Vector2(sz.x + 2.0, 3.0), wall_h, 2.5, m_trim)
 		_add_box_2d(b_root, Vector2(center.x, rect.position.y), Vector2(sz.x + 2.0, 3.0), wall_h, 2.5, m_trim)
 		# Porche sobre la puerta en tiendas y casas (tejadillo inclinado sobre dos postes)
 		if (hv % 3) != 0 and not (b_id in ["building_church", "building_police", "building_hospital"]):
@@ -1011,6 +1021,63 @@ func _populate_building_interior_3d(b_root: Node3D, b_id: String, rect: Rect2, d
 			_build_bed_3d(b_root, c + Vector2(-36, 26), m_wood, m_bed, m_pillow)
 			_build_bed_3d(b_root, c + Vector2(36, 26), m_wood, m_bed, m_pillow)
 			_add_model_2d(b_root, "props/Table_Large.gltf", c + Vector2(0, 24), 2.0, Vector2(18.0, 12.0), 7.0)
+		"mixed_family_tinker":
+			# Tabiques internos, banco de trabajo, camas traseras y mesa
+			_add_box_2d(b_root, c + Vector2(-42, 4), Vector2(40, 5.5), 2.0, wall_h * 0.85, m_wall)
+			_add_box_2d(b_root, c + Vector2(42, 4), Vector2(40, 5.5), 2.0, wall_h * 0.85, m_wall)
+			_add_model_2d(b_root, "props/Workbench_Drawers.gltf", c + Vector2(0, -10), 2.0, Vector2(26.0, 11.0), 8.5)
+			_add_model_2d(b_root, "props/Anvil.gltf", c + Vector2(22, -16), 2.0, Vector2(9.0, 7.0), 7.5)
+			_build_bed_3d(b_root, c + Vector2(-36, 26), m_wood, m_bed, m_pillow)
+			_build_bed_3d(b_root, c + Vector2(36, 26), m_wood, m_bed, m_pillow)
+			_add_model_2d(b_root, "props/Table_Large.gltf", c + Vector2(0, 24), 2.0, Vector2(18.0, 12.0), 7.0)
+			# Bloque FIS2 (§2.1): Terminal Lógica Electromecánica física sobre una mesa dentro del taller (TINKER_TERMINAL_POS)
+			var t_pos: Vector2 = VillageCulture.TINKER_TERMINAL_POS
+			var m_copper := _mat("tinker_copper", Color(0.84, 0.48, 0.22), 0.35, 0.78)
+			var m_screen := _mat("tinker_screen", Color(0.32, 0.96, 0.82), 0.2, 0.0, Color(0.24, 0.92, 0.76), 2.4)
+			var m_card := _mat("tinker_card", Color(0.92, 0.86, 0.70), 0.85, 0.0)
+			if _add_model_2d(b_root, "props/Workbench_Drawers.gltf", t_pos, 2.0, Vector2(24.0, 15.0), 10.0) == null:
+				_add_box_2d(b_root, t_pos, Vector2(24.0, 15.0), 2.0, 10.0, m_dark_wood)
+			_add_box_2d(b_root, t_pos + Vector2(0, -1.0), Vector2(16.0, 10.0), 12.0, 9.5, m_iron) # Chasis de acero
+			_add_box_2d(b_root, t_pos + Vector2(0, -1.0), Vector2(14.0, 8.4), 13.0, 8.8, m_gold) # Bastidor de latón
+			_add_box_2d(b_root, t_pos + Vector2(-1.8, 3.2), Vector2(8.4, 2.2), 14.0, 6.2, m_screen) # Visor fosforescente
+			_add_cyl_2d(b_root, t_pos + Vector2(4.6, -1.2), 2.6, 21.5, 5.5, m_card, 2.6, 10) # Tambor de tarjetas perforadas
+			_add_cyl_2d(b_root, t_pos + Vector2(-4.8, -2.0), 2.0, 21.5, 5.0, m_copper, 2.0, 8) # Bobina de relés
+			if not _is_headless:
+				var term_lt := OmniLight3D.new()
+				term_lt.position = to_3d(t_pos + Vector2(0, 2.0), 18.0)
+				term_lt.light_color = Color(0.35, 0.96, 0.82)
+				term_lt.light_energy = 0.95
+				term_lt.omni_range = 1.8
+				b_root.add_child(term_lt)
+			# Bloque FIS2 (§2.2): Cuadro Eléctrico físico en la pared exterior norte del taller (TINKER_GRID_PANEL_POS)
+			var gp_pos: Vector2 = VillageCulture.TINKER_GRID_PANEL_POS
+			_add_cyl_2d(b_root, gp_pos + Vector2(5.5, 0.0), 1.2, 2.0, 34.0, m_iron, 1.2, 8) # Tubo de acometida vertical
+			_add_box_2d(b_root, gp_pos + Vector2(0, 1.5), Vector2(16.0, 7.0), 22.0, 16.0, m_iron) # Armario metálico en el muro norte
+			_add_box_2d(b_root, gp_pos + Vector2(0, 3.0), Vector2(13.6, 5.5), 23.5, 13.0, m_dark_wood) # Placa aislante
+			_add_cyl_2d(b_root, gp_pos + Vector2(-4.4, 5.2), 2.2, 25.0, 11.5, m_copper, 2.2, 8) # Bobina izq
+			_add_cyl_2d(b_root, gp_pos + Vector2(4.4, 5.2), 2.2, 25.0, 11.5, m_copper, 2.2, 8) # Bobina der
+			for sx in [-2.6, 0.0, 2.6]:
+				_add_box_2d(b_root, gp_pos + Vector2(sx, 6.2), Vector2(1.5, 3.5), 27.0, 6.5, m_gold) # 3 palancas seccionadoras
+			if is_instance_valid(_grid_panel_bulb_3d):
+				_grid_panel_bulb_3d.queue_free()
+			_grid_panel_bulb_3d = _add_cyl_2d(buildings_root_3d, gp_pos + Vector2(0, 4.5), 2.6, 38.0, 4.5, m_screen, 2.0, 8)
+		"building_mansion":
+			# Mansión señorial (f1): estudio con escritorio en (1275, -444), salón y alcoba
+			var study_p := Vector2(1275.0, -444.0)
+			if _add_model_2d(b_root, "props/Workbench_Drawers.gltf", study_p, 2.0, Vector2(24.0, 14.0), 8.2) == null:
+				_add_box_2d(b_root, study_p, Vector2(24.0, 14.0), 2.0, 8.2, m_dark_wood)
+			_add_model_2d(b_root, "props/Chair_1.gltf", study_p + Vector2(0, -12), 2.0, Vector2(6.5, 6.5), 8.5)
+			_add_model_2d(b_root, "props/Table_Large.gltf", c + Vector2(0, -8), 2.0, Vector2(30.0, 14.0), 7.5)
+			_add_model_2d(b_root, "props/Bookcase_2.gltf", c + Vector2(-36, -38), 2.0, Vector2(20.0, 9.0), 16.0)
+			_build_bed_3d(b_root, c + Vector2(56, -24), m_wood, m_bed, m_pillow)
+			_build_bed_3d(b_root, c + Vector2(56, 18), m_wood, m_bed, m_pillow)
+		"building_town_hall":
+			# Ayuntamiento (n4): mesa municipal en (764, -444), urna y estanterías
+			var desk_p: Vector2 = c + Vector2(0, -24)
+			if _add_model_2d(b_root, "props/Table_Large.gltf", desk_p, 2.0, Vector2(28.0, 14.0), 8.2) == null:
+				_add_box_2d(b_root, desk_p, Vector2(28.0, 14.0), 2.0, 8.2, m_dark_wood)
+			_add_model_2d(b_root, "props/Cabinet.gltf", c + Vector2(-42, 6), 2.0, Vector2(16.0, 10.0), 12.0)
+			_add_model_2d(b_root, "props/Bookcase_2.gltf", c + Vector2(36, -18), 2.0, Vector2(18.0, 10.0), 15.0)
 		_:
 			if b_id.begins_with("shop_"):
 				var stall_y: float = -14.0 if door_south else 14.0
@@ -1323,6 +1390,62 @@ func _sync_dynamic_props_3d() -> void:
 	# 6. Visibilidad de las alcantarillas (-1)
 	if is_instance_valid(sewers_root_3d):
 		sewers_root_3d.visible = VillageUnderworldScript.is_player_in_sewers(vm)
+
+	# 7. Piloto luminoso del Cuadro Eléctrico del Taller y objeto físico del robo activo (Bloque FIS2)
+	if is_instance_valid(_grid_panel_bulb_3d):
+		var sab_on: bool = VillageCulture.is_grid_sabotaged(vm)
+		_grid_panel_bulb_3d.material_override = _mat("grid_bulb_err", Color(1.0, 0.25, 0.18), 0.2, 0.0, Color(1.0, 0.20, 0.12), 2.8) if sab_on else _mat("tinker_screen", Color(0.32, 0.96, 0.82), 0.2, 0.0, Color(0.24, 0.92, 0.76), 2.4)
+	_sync_heist_target_3d()
+
+func _sync_heist_target_3d() -> void:
+	if vm == null or stage_root_3d == null:
+		return
+	var ah: Dictionary = VillageUnderworldScript.state(vm).get("active_heist", {})
+	var active: bool = (not ah.is_empty()) and (not bool(ah.get("stolen", false)))
+	var sig: String = "%s|%d|%d" % [str(ah.get("id", "")), int(ah.get("pos_x", 0)), int(ah.get("pos_y", 0))] if active else ""
+	if sig == _last_heist_sig and (not active or is_instance_valid(_heist_prop_3d)):
+		return
+	_last_heist_sig = sig
+	if is_instance_valid(_heist_prop_3d):
+		_heist_prop_3d.queue_free()
+		_heist_prop_3d = null
+	if not active:
+		return
+	var h_id: String = str(ah.get("id", "sello_noble"))
+	var h_pos := Vector2(float(ah.get("pos_x", 0.0)), float(ah.get("pos_y", 0.0)))
+	var root := Node3D.new()
+	root.name = "HeistTarget3D_" + h_id
+	stage_root_3d.add_child(root)
+	_heist_prop_3d = root
+
+	var m_gold := _mat("heist_gold", Color(0.96, 0.80, 0.28), 0.25, 0.85, Color(0.95, 0.76, 0.22), 0.65)
+	var m_silver := _mat("heist_silver", Color(0.88, 0.92, 0.98), 0.20, 0.90, Color(0.75, 0.85, 1.0), 0.55)
+	var m_crimson := _mat("heist_crimson", Color(0.76, 0.14, 0.20), 0.75, 0.05)
+	var m_leather := _mat("heist_leather", Color(0.42, 0.22, 0.12), 0.82, 0.05)
+	var m_page := _mat("heist_page", Color(0.95, 0.90, 0.76), 0.85, 0.0)
+
+	match h_id:
+		"sello_noble":
+			# Sobre el escritorio del estudio de la Mansión (altura base ~10.2 px)
+			_add_box_2d(root, h_pos, Vector2(11.0, 9.0), 10.2, 2.2, m_crimson) # Cojín de terciopelo
+			_add_cyl_2d(root, h_pos + Vector2(-2.0, 0.5), 2.6, 12.4, 1.4, m_crimson, 2.6, 10) # Lacre real
+			_add_cyl_2d(root, h_pos + Vector2(1.8, -0.5), 2.2, 12.4, 5.2, m_gold, 1.5, 10) # Matriz de oro del sello
+			_add_model_2d(root, "props/Scroll_1.gltf", h_pos + Vector2(-5.0, -2.0), 10.2, Vector2(7.0, 5.0), 3.5)
+		"caliz_capilla":
+			# Sobre el altar de piedra de la Capilla (altura base ~13.0 px)
+			if _add_model_2d(root, "props/Chalice.gltf", h_pos, 13.0, Vector2(8.0, 8.0), 8.5) == null:
+				_add_cyl_2d(root, h_pos, 3.2, 13.0, 1.8, m_silver, 2.4, 10)
+				_add_cyl_2d(root, h_pos, 1.4, 14.8, 3.2, m_silver, 1.4, 10)
+				_add_cyl_2d(root, h_pos, 2.6, 18.0, 3.6, m_gold, 3.8, 12)
+			else:
+				_add_cyl_2d(root, h_pos, 4.4, 12.4, 0.8, m_gold, 4.4, 12) # Patena dorada bajo el cáliz
+		_:
+			# Libro Mayor de los Gremios sobre la mesa del Ayuntamiento (altura base ~10.2 px)
+			if _add_model_2d(root, "props/Book_5.gltf", h_pos, 10.2, Vector2(13.0, 10.0), 4.5) == null:
+				_add_box_2d(root, h_pos, Vector2(13.0, 10.0), 10.2, 1.6, m_leather)
+				_add_box_2d(root, h_pos, Vector2(11.4, 8.6), 11.8, 1.8, m_page)
+			_add_box_2d(root, h_pos + Vector2(-5.8, 0), Vector2(1.4, 8.8), 10.2, 3.6, m_gold)
+			_add_box_2d(root, h_pos + Vector2(5.8, 0), Vector2(1.4, 8.8), 10.2, 3.6, m_gold)
 
 func _update_roof_cutaways_and_lighting() -> void:
 	var pl := get_tree().get_first_node_in_group("player") as Node2D

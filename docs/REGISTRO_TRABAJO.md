@@ -487,4 +487,5 @@ Ya hechos antes: caballo físico (AUD11). Los 3 robos ya se hacían en persona (
 | # | Paso | Estado | Archivos | Nota |
 |---|------|--------|----------|------|
 | FIS1 | Asaltos físicos: bandidos o jabalíes reales, pelea con defensores y jugador, resultado por lo que pasa en el mapa | ✅ | Raider.gd, RaidController.gd, BanditModel3D.gd (nuevos), VillageCulture.gd (`spawn_raid_attackers`, `culture_lead_defense` ya no resuelve) | Tests PL.2g/PL.2g2. Captura asalto_bandidos |
+| FIS2 | Terminal Lógica física dentro del taller (`(1188, 122)`), cuadro eléctrico en la fachada norte del taller (`(1270, 90)`) y objetos físicos visibles en 2D y 3D para los 3 grandes robos dentro de sus edificios (`sello_noble` en `(1275, -444)`, `caliz_capilla` en `(745, 336)`, `libro_gremial` en `(764, -444)`) | ✅ | WorldInteractableProp.gd (nuevo), VillageCulture.gd, VillageUnderworld.gd, VillageTrades.gd, WorldStage3D.gd, InteractionSelector.gd, screenshot_3d.gd, verify_all.gd | Antigravity. Test #96 (`Block FIS2`). Capturas en `docs/capturas_fis2/` |
 

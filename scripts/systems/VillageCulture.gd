@@ -382,6 +382,80 @@ static func terminal_state(vm) -> Dictionary:
 			tm[k[0]] = k[1]
 	return tm
 
+const TINKER_LOT: String = "e5"
+const TINKER_TERMINAL_POS: Vector2 = Vector2(1188.0, 122.0) # Dentro del Taller de Reparaciones (e5), sobre una mesa en el rincón noroeste
+const TINKER_GRID_PANEL_POS: Vector2 = Vector2(1270.0, 90.0) # En la pared exterior norte del Taller de Reparaciones (e5), a la derecha de la puerta
+
+static func build_tinker_stations(vm) -> void:
+	if vm == null or not ("entities_root" in vm) or not is_instance_valid(vm.entities_root):
+		return
+	var PropScript = load("res://scripts/obstacles/WorldInteractableProp.gd")
+	if PropScript == null:
+		return
+	if vm.is_inside_tree():
+		for old_n in vm.get_tree().get_nodes_in_group("tinker_station"):
+			if is_instance_valid(old_n):
+				old_n.queue_free()
+	var term: Node2D = PropScript.new()
+	term.name = "TinkerLogicTerminal"
+	term.global_position = TINKER_TERMINAL_POS
+	vm.entities_root.add_child(term)
+	term.setup_prop(vm, "terminal")
+
+	var panel: Node2D = PropScript.new()
+	panel.name = "TinkerElectricPanel"
+	panel.global_position = TINKER_GRID_PANEL_POS
+	vm.entities_root.add_child(panel)
+	panel.setup_prop(vm, "grid_panel")
+
+static func open_terminal_menu(vm, speaker: Node, _player: Node2D = null) -> void:
+	if vm == null:
+		return
+	var dm = vm.get_node_or_null("/root/DialogueManager")
+	if dm == null or not dm.has_method("start_dialogue"):
+		return
+	var tm: Dictionary = terminal_state(vm)
+	var today: int = int(WorldClock.current_day) if WorldClock else 1
+	var used_today: bool = (int(tm.get("last_hack_day", -99)) == today)
+	var note: String = "\n\n(🔒 Ya manipulaste la terminal hoy; espera a mañana para otra incursión lógica)." if used_today else "\n\n(1 incursión lógica al día; ten cuidado de que nadie te vea manipularla)."
+	var graph := {
+		"start": {
+			"text": "🖥️⚡ TERMINAL LÓGICA ELECTROMECÁNICA\nLa consola de tarjetas perforadas y relés de cobre conecta las arcas del ayuntamiento, el archivo policial y el controlador de red." + note,
+			"choices": [
+				{"label": "💰🖥️ Desviar reembolso del Registro Fiscal (hasta +18 Oro de las arcas)", "next": "END", "action": "culture_hack_terminal:census_ledger"},
+				{"label": "🚓🖥️ Purgar expediente del Archivo Policial (-1 Búsqueda y -25 Recompensa)", "next": "END", "action": "culture_hack_terminal:warrant_archive"},
+				{"label": "⚡🖥️ Reprogramar Controlador de Red (+2 lecturas técnicas y repara línea)", "next": "END", "action": "culture_hack_terminal:grid_controller"},
+				{"label": "Apartarse de la terminal [Salir]", "next": "END"},
+			]
+		}
+	}
+	dm.start_dialogue(graph, "start", speaker)
+
+static func open_grid_panel_menu(vm, speaker: Node, _player: Node2D = null) -> void:
+	if vm == null:
+		return
+	var dm = vm.get_node_or_null("/root/DialogueManager")
+	if dm == null or not dm.has_method("start_dialogue"):
+		return
+	var g: Dictionary = grid_state(vm)
+	var is_sab: bool = is_grid_sabotaged(vm)
+	var status_line: String = "\n\n⚠️ El cuadro echa chispas (circuito averiado: %s)." % str(g.get("sabotaged_target", "all")) if is_sab else "\n\nLos tres seccionadores de cobre alimentan las farolas, la bomba de riego y el generador general."
+	var choices: Array = [
+		{"label": "🌑 Cortar el circuito de farolas (Calles a oscuras)", "next": "END", "action": "culture_sabotage_grid:lamps"},
+		{"label": "🥀 Cortar la bomba eléctrica de riego (Secar aspersor)", "next": "END", "action": "culture_sabotage_grid:sprinkler"},
+		{"label": "💥 Cortocircuitar el generador general (Apagón 2 días)", "next": "END", "action": "culture_sabotage_grid:all"},
+	]
+	if is_sab:
+		choices.append({"label": "🛠️⚡ Empalmar el tendido eléctrico (-1 Bobina de Cobre, +%d Oro del arca)" % GRID_REPAIR_REWARD, "next": "END", "action": "culture_repair_grid"})
+	choices.append({"label": "Cerrar la tapa del cuadro [Salir]", "next": "END"})
+	var graph := {
+		"start": {
+			"text": "⚡🔧 CUADRO ELÉCTRICO DEL TALLER" + status_line,
+			"choices": choices,
+		}
+	}
+	dm.start_dialogue(graph, "start", speaker)
+
 static func hack_terminal(vm, subsystem: String, inv, force_outcome: int = 0) -> Dictionary:
 	if vm == null or not (subsystem in ["census_ledger", "warrant_archive", "grid_controller"]):
 		return {"ok": false}
@@ -392,6 +466,20 @@ static func hack_terminal(vm, subsystem: String, inv, force_outcome: int = 0) ->
 	# Borrar la búsqueda comparte la espera semanal del sótano y del pasadizo
 	if subsystem == "warrant_archive" and not vm.VillageHousing.can_purge_wanted(vm):
 		return {"ok": false, "wait": true}
+	var pl = VillageNeeds.player_of(vm)
+	# Si el arreglador u otro vecino despierto te está viendo en ese momento (misma planta y cerca), cuenta como delito
+	if force_outcome == 0 and vm.has_method("_find_conscious_witness_near"):
+		var check_pos: Vector2 = pl.global_position if pl != null else TINKER_TERMINAL_POS
+		var wit = vm._find_conscious_witness_near(check_pos, 120.0, null)
+		if wit != null:
+			tm["last_hack_day"] = today
+			tm["alarms_triggered"] = int(tm.get("alarms_triggered", 0)) + 1
+			vm.wanted_level = clampi(int(vm.wanted_level) + 1, 1, 5)
+			vm.bounty_gold = int(vm.bounty_gold) + 25
+			if "affinity" in wit:
+				wit.affinity = clampi(int(wit.affinity) - 15, -100, 100)
+			VillageChronicle.add(vm, "terminal_alarm", "¡%s te sorprendió manipulando la terminal lógica (%s)!" % [str(wit.npc_name), subsystem], true)
+			return {"ok": true, "won": false, "witnessed": true, "witness": wit, "subsystem": subsystem, "gold": 0}
 	tm["last_hack_day"] = today
 	var chance: float = 0.45 + (0.20 if has_tech(vm, "voltaic_capacitors") else 0.0) + (0.15 if (inv != null and inv.has_item("copper_coil", 1)) else 0.0)
 	var won: bool = (randf() < chance) if force_outcome == 0 else (force_outcome > 0)
@@ -414,7 +502,6 @@ static func hack_terminal(vm, subsystem: String, inv, force_outcome: int = 0) ->
 		return {"ok": true, "won": true, "subsystem": subsystem, "gold": gain_gold}
 	tm["alarms_triggered"] = int(tm.get("alarms_triggered", 0)) + 1
 	vm.wanted_level = clampi(int(vm.wanted_level) + 1, 1, 5)
-	var pl = VillageNeeds.player_of(vm)
 	if pl != null:
 		var hc = pl.get("health_comp")
 		if hc != null and "current_health" in hc:
@@ -1196,9 +1283,17 @@ static func on_read(vm, n) -> void:
 	n.add_thought("Leí un rato en la biblioteca (+3)", 3.0)
 	n.set_meta("read_day", int(WorldClock.current_day) if WorldClock else 1) # M16 «Lo que se lee de noche»
 
-## El jugador pulsa E cerca de la mesa de lectura o en el asentamiento «Puesto del Paso». Devuelve true si la interacción era suya.
+## El jugador pulsa E cerca de la mesa de lectura, las máquinas del Taller de Reparaciones o el asentamiento «Puesto del Paso». Devuelve true si la interacción era suya.
 static func try_interact(vm, player, pos: Vector2) -> bool:
 	if _try_outpost_interact(vm, player, pos):
+		return true
+	if pos.distance_to(TINKER_TERMINAL_POS) <= 26.0:
+		var term_node: Node = vm.get_tree().get_first_node_in_group("tinker_terminal") if vm.is_inside_tree() else null
+		open_terminal_menu(vm, term_node, player)
+		return true
+	if pos.distance_to(TINKER_GRID_PANEL_POS) <= 26.0:
+		var panel_node: Node = vm.get_tree().get_first_node_in_group("tinker_grid_panel") if vm.is_inside_tree() else null
+		open_grid_panel_menu(vm, panel_node, player)
 		return true
 	if VillageLots.lot(vm, LIBRARY_LOT).get("kind", "") != "library" or pos.distance_to(reading_spot()) > 26.0:
 		return false
@@ -1433,6 +1528,8 @@ static func after_load(vm) -> void:
 	sync_outpost_visuals(vm)
 	# El caballo vuelve a su sitio (o bajo el jugador si ibas montado al guardar)
 	sync_player_horse(vm)
+	if "VillageUnderworld" in vm and vm.VillageUnderworld != null:
+		vm.VillageUnderworld.sync_heist_visuals(vm)
 
 # ---------------------------------------------------------------- arreglos
 ## Cada día: rutas comerciales, fertilidad forestal, árbol de investigación, incursiones y arreglos del Taller.
@@ -1578,18 +1675,7 @@ static func add_dialogue_choices(vm, npc, diag: Dictionary, ch_arr: Array) -> vo
 	var role_i: int = int(npc.trade_role)
 	var today: int = int(WorldClock.current_day) if WorldClock else 1
 	if role_i == int(VillageNPC.TradeRole.TINKER):
-		var g: Dictionary = grid_state(vm)
-		if int(g.get("last_op_day", -99)) != today:
-			ch_arr.append({"label": "⚡🔧 Manipular a escondidas el cuadro eléctrico (1/día, riesgo de chispazo)", "next": "culture_grid_menu"})
-			diag["culture_grid_menu"] = {
-				"text": "«Mientras el arreglador mira hacia otro lado, ves los tres interruptores de cobre del tendido del pueblo...»",
-				"choices": [
-					{"label": "🌑 Cortar el circuito de farolas (Calles a oscuras)", "next": "END", "action": "culture_sabotage_grid:lamps"},
-					{"label": "🥀 Cortar la bomba eléctrica de riego (Secar aspersor)", "next": "END", "action": "culture_sabotage_grid:sprinkler"},
-					{"label": "💥 Cortocircuitar el generador general (Apagón 2 días)", "next": "END", "action": "culture_sabotage_grid:all"},
-					{"label": "⬅️ Volver", "next": "start"},
-				]
-			}
+		# Bloque FIS2: manipular el cuadro eléctrico se hace en el cuadro físico de la pared exterior del taller, no hablando con el arreglador.
 		if is_grid_sabotaged(vm):
 			ch_arr.append({"label": "🛠️⚡ Ayudar a reparar el tendido eléctrico (-1 Bobina de Cobre, +%d Oro del arca)" % GRID_REPAIR_REWARD, "next": "END", "action": "culture_repair_grid"})
 		# PL.1: Árbol de Investigación e Ingeniería
@@ -1666,19 +1752,7 @@ static func add_dialogue_choices(vm, npc, diag: Dictionary, ch_arr: Array) -> vo
 		if has_tech(vm, "reinforced_locks") or (inv_po != null and inv_po.has_item("flintlock_pistol", 1)):
 			ch_arr.append({"label": "🧨🪙 Comprar 2 Cargas de Pólvora Negra (-%d Oro)" % POWDER_PACK_COST, "next": "END", "action": "culture_buy_powder"})
 	# Disparar desde la conversación quedó retirado (como el robo desde el diálogo): el arma se usa en las incursiones.
-	if role_i == int(VillageNPC.TradeRole.TINKER): # La terminal está en el taller; no se hackea delante del comisario
-		var tm: Dictionary = terminal_state(vm)
-		if int(tm.get("last_hack_day", -99)) != today:
-			ch_arr.append({"label": "🖥️⚡ Hackear en sigilo la Terminal Lógica Electromecánica (1/día, con riesgo)", "next": "culture_terminal_menu"})
-			diag["culture_terminal_menu"] = {
-				"text": "«La consola electromecánica de tarjetas perforadas y relés de cobre conecta las arcas del ayuntamiento, el archivo policial y el cuadro eléctrico...»",
-				"choices": [
-					{"label": "💰🖥️ Desviar reembolso del Registro Fiscal (hasta +18 Oro de las arcas)", "next": "END", "action": "culture_hack_terminal:census_ledger"},
-					{"label": "🚓🖥️ Purgar expediente del Archivo Policial (-1 Búsqueda y -25 Recompensa)", "next": "END", "action": "culture_hack_terminal:warrant_archive"},
-					{"label": "⚡🖥️ Reprogramar Controlador de Red (+2 lecturas técnicas y repara línea)", "next": "END", "action": "culture_hack_terminal:grid_controller"},
-					{"label": "⬅️ Volver", "next": "start"},
-				]
-			}
+	# Bloque FIS2: la Terminal Lógica ya no se hackea hablando con el arreglador; es una máquina física dentro del taller (TINKER_TERMINAL_POS).
 	# Bloque PP: Crear tu propio asentamiento fronterizo («Puesto del Paso») e Historia Principal (Panel L)
 	var op: Dictionary = outpost_state(vm)
 	if role_i in [int(VillageNPC.TradeRole.CARPENTER), int(VillageNPC.TradeRole.SHERIFF), int(VillageNPC.TradeRole.WOODCUTTER)]:
@@ -1696,31 +1770,46 @@ static func add_dialogue_choices(vm, npc, diag: Dictionary, ch_arr: Array) -> vo
 	if not bool(main_story_state(vm).get("completed", false)) and role_i in [int(VillageNPC.TradeRole.TINKER), int(VillageNPC.TradeRole.SHERIFF), int(VillageNPC.TradeRole.PRIEST)]:
 		ch_arr.append({"label": "👑📜 Actualizar tu avance en la Historia Principal del Valle [Panel L]", "next": "END", "action": "culture_sync_main_story"})
 
+static func _msg_actor(vm, npc, txt: String, col: Color, dy: float = -46.0) -> void:
+	if npc != null and is_instance_valid(npc) and npc.has_method("_spawn_floating_text"):
+		npc._spawn_floating_text(txt, col, dy)
+		return
+	var pl = VillageNeeds.player_of(vm)
+	if pl != null and pl.has_method("_spawn_floating_text"):
+		pl._spawn_floating_text(txt, col, dy)
+
 static func on_player_action(vm, npc, action_id: String, inv) -> void:
 	if action_id.begins_with("culture_sabotage_grid:"):
 		var g: Dictionary = grid_state(vm)
 		var today: int = int(WorldClock.current_day) if WorldClock else 1
 		if int(g.get("last_op_day", -99)) == today:
-			npc._spawn_floating_text("⚡ Hoy ya manipulaste el cuadro eléctrico", Color.LIGHT_GRAY, -44.0)
+			_msg_actor(vm, npc, "⚡ Hoy ya manipulaste el cuadro eléctrico", Color.LIGHT_GRAY, -44.0)
 			return
 		var target: String = action_id.substr("culture_sabotage_grid:".length())
-		# Además del arreglador, cualquier otro vecino cerca puede verte tocar los cables
+		# El arreglador o cualquier otro vecino despierto cerca (misma planta) puede verte tocar el cuadro eléctrico
 		var pl_sab = VillageNeeds.player_of(vm)
-		if pl_sab != null and vm._find_conscious_witness_near(pl_sab.global_position, 120.0, npc) != null:
+		var sab_pos: Vector2 = pl_sab.global_position if pl_sab != null else TINKER_GRID_PANEL_POS
+		var wit_sab = vm._find_conscious_witness_near(sab_pos, 120.0, npc) if vm.has_method("_find_conscious_witness_near") else null
+		if wit_sab != null:
 			g["last_op_day"] = today
 			vm.wanted_level = clampi(int(vm.wanted_level) + 1, 1, 5)
-			npc.affinity = clampi(npc.affinity - 15, -100, 100)
-			npc._spawn_floating_text("🚨 Un vecino te vio manipular el cuadro eléctrico (Búsqueda +1)", Color.ORANGE_RED, -46.0)
+			if "affinity" in wit_sab:
+				wit_sab.affinity = clampi(int(wit_sab.affinity) - 15, -100, 100)
+			if npc != null and is_instance_valid(npc) and "affinity" in npc and npc != wit_sab:
+				npc.affinity = clampi(int(npc.affinity) - 15, -100, 100)
+			_msg_actor(vm, npc, "🚨 ¡%s te vio manipular el cuadro eléctrico! (Búsqueda +1)" % str(wit_sab.npc_name), Color.ORANGE_RED, -46.0)
 			return
 		var res: Dictionary = sabotage_grid(vm, target, true, "player")
 		if bool(res.get("caught", false)):
-			npc.affinity = clampi(npc.affinity - 15, -100, 100)
-			npc._spawn_floating_text("🚨 «¡Eh! ¡Suelta esos cables! ¡Guardias!» (Búsqueda +1)", Color.ORANGE_RED, -46.0)
+			var tink = npc if (npc != null and is_instance_valid(npc) and "affinity" in npc) else vm.trade_npcs.get(VillageTrades.role_of("tinker"))
+			if tink != null and is_instance_valid(tink) and "affinity" in tink:
+				tink.affinity = clampi(int(tink.affinity) - 15, -100, 100)
+			_msg_actor(vm, npc, "🚨 «¡Eh! ¡Suelta esos cables! ¡Guardias!» (Búsqueda +1)", Color.ORANGE_RED, -46.0)
 		else:
-			npc._spawn_floating_text("⚡💥 ¡Chispazo! Saboteaste el nodo eléctrico (%s)" % target, Color.CYAN, -46.0)
+			_msg_actor(vm, npc, "⚡💥 ¡Chispazo! Saboteaste el nodo eléctrico (%s)" % target, Color.CYAN, -46.0)
 	elif action_id == "culture_repair_grid":
 		if inv == null or int(inv.items.get("copper_coil", 0)) <= 0:
-			npc._spawn_floating_text("«Necesitamos al menos 1 Bobina de Cobre para empalmar la línea.»", Color.ORANGE_RED, -46.0)
+			_msg_actor(vm, npc, "«Necesitamos al menos 1 Bobina de Cobre para empalmar la línea.»", Color.ORANGE_RED, -46.0)
 			return
 		inv.remove_item("copper_coil", 1)
 		var own_mess: bool = str(grid_state(vm).get("saboteur", "")) == "player"
@@ -1730,8 +1819,9 @@ static func on_player_action(vm, npc, action_id: String, inv) -> void:
 		if pay > 0:
 			vm.town_state["treasury"] = int(vm.town_state.get("treasury", 0)) - pay
 			inv.add_gold(pay)
-		npc.affinity = clampi(npc.affinity + 10, -100, 100)
-		npc._spawn_floating_text(("🛠️⚡ «¡Línea restablecida! Toma %d de oro del fondo municipal.»" % pay) if pay > 0 else "🛠️⚡ «¡Línea restablecida! Gracias por la ayuda.»", Color.AQUAMARINE, -46.0)
+		if npc != null and is_instance_valid(npc) and "affinity" in npc:
+			npc.affinity = clampi(int(npc.affinity) + 10, -100, 100)
+		_msg_actor(vm, npc, ("🛠️⚡ «¡Línea restablecida! Toma %d de oro del fondo municipal.»" % pay) if pay > 0 else "🛠️⚡ «¡Línea restablecida! Gracias por la ayuda.»", Color.AQUAMARINE, -46.0)
 	elif action_id.begins_with("culture_start_tech:"):
 		var t_id: String = action_id.substr("culture_start_tech:".length())
 		if start_research(vm, t_id, npc, inv):
@@ -1836,13 +1926,19 @@ static func on_player_action(vm, npc, action_id: String, inv) -> void:
 		var sub_id: String = action_id.substr("culture_hack_terminal:".length())
 		var hres: Dictionary = hack_terminal(vm, sub_id, inv)
 		if bool(hres.get("wait", false)):
-			npc._spawn_floating_text("🖥️ El archivo policial se revisa a fondo: espera unos días antes de volver a purgarlo", Color.LIGHT_GRAY, -44.0)
+			_msg_actor(vm, npc, "🖥️ El archivo policial se revisa a fondo: espera unos días antes de volver a purgarlo", Color.LIGHT_GRAY, -44.0)
 		elif not bool(hres.get("ok", false)):
-			npc._spawn_floating_text("🖥️ Hoy ya intentaste manipular la terminal lógica", Color.LIGHT_GRAY, -44.0)
+			_msg_actor(vm, npc, "🖥️ Hoy ya intentaste manipular la terminal lógica", Color.LIGHT_GRAY, -44.0)
+		elif bool(hres.get("witnessed", false)):
+			var w_node = hres.get("witness", null)
+			var w_name: String = str(w_node.npc_name) if (w_node != null and is_instance_valid(w_node) and "npc_name" in w_node) else "Un vecino"
+			if npc != null and is_instance_valid(npc) and "affinity" in npc and npc != w_node:
+				npc.affinity = clampi(int(npc.affinity) - 15, -100, 100)
+			_msg_actor(vm, npc, "🚨 ¡%s te vio manipulando la Terminal Lógica! (Búsqueda +1)" % w_name, Color.ORANGE_RED, -46.0)
 		elif bool(hres.get("won", false)):
-			npc._spawn_floating_text("🖥️✨ ¡Hackeo limpio en la terminal lógica (%s)!" % sub_id, Color.AQUAMARINE, -46.0)
+			_msg_actor(vm, npc, "🖥️✨ ¡Hackeo limpio en la terminal lógica (%s)!" % sub_id, Color.AQUAMARINE, -46.0)
 		else:
-			npc._spawn_floating_text("🖥️⚡ ¡Chispazo y alarma lógica! La guardia ha registrado el intento (Búsqueda +1)", Color.ORANGE_RED, -46.0)
+			_msg_actor(vm, npc, "🖥️⚡ ¡Chispazo y alarma lógica! La guardia ha registrado el intento (Búsqueda +1)", Color.ORANGE_RED, -46.0)
 	elif action_id == "culture_found_outpost":
 		if found_outpost(vm, inv):
 			npc._spawn_floating_text("🏕️📜 ¡Has fundado el asentamiento «Puesto del Paso» con 20 de oro en su arca inicial!", Color.GOLD, -46.0)

@@ -4463,5 +4463,80 @@ func _initialize() -> void:
 	vm.town_state["treasury"] = pr_tr_bak
 	print("Block PR (Autonomous Life & Visibility Fixes) OK")
 
+	# ---------------------------------------------------------
+	# Block 96: Physical Terminal, Electric Panel & Heist Targets (FIS2)
+	# ---------------------------------------------------------
+	# FIS2.1: Terminal Lógica y Cuadro Eléctrico son objetos físicos en el mundo y ya no están en el diálogo del Chapuzas
+	var fis2_tinker_dlg: Dictionary = pj_tinker._inject_character_lore_into_dialogue({"start": {"text": "Hola", "choices": [{"label": "[Salir]", "next": "END"}]}})
+	assert(not fis2_tinker_dlg.has("culture_terminal_menu") and not fis2_tinker_dlg.has("culture_grid_menu"), "FIS2.1a: Tinker dialogue no longer contains terminal or electric grid menus")
+	var fis2_start_choices: Array = (fis2_tinker_dlg.get("start", {}) as Dictionary).get("choices", [])
+	for ch_fis2 in fis2_start_choices:
+		var act_fis2: String = str((ch_fis2 as Dictionary).get("action", ""))
+		var nxt_fis2: String = str((ch_fis2 as Dictionary).get("next", ""))
+		assert(not act_fis2.begins_with("culture_hack_terminal") and not act_fis2.begins_with("culture_sabotage_grid") and nxt_fis2 != "culture_terminal_menu" and nxt_fis2 != "culture_grid_menu", "FIS2.1b: Tinker dialogue start choices have no terminal/grid actions")
+	var fis2_term_nodes: Array = root.get_tree().get_nodes_in_group("tinker_terminal")
+	var fis2_grid_nodes: Array = root.get_tree().get_nodes_in_group("tinker_grid_panel")
+	assert(fis2_term_nodes.size() == 1 and fis2_grid_nodes.size() == 1, "FIS2.1c: Physical Terminal Lógica and Cuadro Eléctrico exist in the world")
+	var fis2_term_prop: Node2D = fis2_term_nodes[0] as Node2D
+	var fis2_grid_prop: Node2D = fis2_grid_nodes[0] as Node2D
+	assert(str(fis2_term_prop.call("get_interact_label", p70_pl)) == "Usar la Terminal Lógica", "FIS2.1d: Physical Terminal Lógica has [E] Usar la Terminal Lógica label")
+	assert(str(fis2_grid_prop.call("get_interact_label", p70_pl)) == "Manipular el cuadro eléctrico", "FIS2.1e: Physical Cuadro Eléctrico has [E] Manipular el cuadro eléctrico label")
+
+	# FIS2.2: Usar la Terminal Lógica delante de un testigo consciente sube el nivel de búsqueda (wanted_level)
+	var fis2_wl_bak: int = vm.wanted_level
+	var fis2_bg_bak: int = vm.bounty_gold
+	var fis2_aff_bak: int = p70_a.affinity
+	var fis2_pos_bak: Vector2 = p70_a.global_position
+	var fis2_pl_pos_bak: Vector2 = p70_pl.global_position
+	var fis2_tm_bak: Dictionary = vcu_pj.terminal_state(vm).duplicate(true)
+	vm.wanted_level = 0
+	vm.bounty_gold = 0
+	p70_a.is_dead = false
+	p70_a.is_downed = false
+	p70_a.is_sleeping = false
+	p70_a.global_position = vcu_pj.TINKER_TERMINAL_POS + Vector2(24.0, 0.0)
+	p70_pl.global_position = vcu_pj.TINKER_TERMINAL_POS + Vector2(0.0, 12.0)
+	vm.set_player_elevation_level(0)
+	vcu_pj.terminal_state(vm)["last_hack_day"] = -99
+	var fis2_hack_res: Dictionary = vcu_pj.hack_terminal(vm, "census_ledger", 0)
+	assert(bool(fis2_hack_res.get("ok", false)) and vm.wanted_level == 1 and p70_a.affinity < fis2_aff_bak, "FIS2.2: Using Terminal Lógica with a conscious witness nearby raises wanted_level and lowers witness affinity")
+	vm.wanted_level = fis2_wl_bak
+	vm.bounty_gold = fis2_bg_bak
+	p70_a.affinity = fis2_aff_bak
+	p70_a.global_position = fis2_pos_bak
+	p70_pl.global_position = fis2_pl_pos_bak
+	vcu_pj.state(vm)["terminal"] = fis2_tm_bak
+
+	# FIS2.3: Los 3 objetos de los grandes robos están dentro de sus edificios, aparecen al aceptar el golpe y desaparecen al robarlos
+	var fis2_rects: Dictionary = {}
+	for bf_fis2 in vm.building_footprints:
+		fis2_rects[str(bf_fis2.get("id", ""))] = bf_fis2.get("rect", Rect2())
+	assert((fis2_rects.get("building_mansion", Rect2()) as Rect2).has_point((vun.HEIST_TARGETS[0] as Dictionary)["pos"]), "FIS2.3a: Sello de Lacre Noble is inside the Mansion")
+	assert((fis2_rects.get("building_church", Rect2()) as Rect2).has_point((vun.HEIST_TARGETS[1] as Dictionary)["pos"]), "FIS2.3b: Cáliz de Plata de la Capilla is inside the Chapel")
+	assert((fis2_rects.get("building_town_hall", Rect2()) as Rect2).has_point((vun.HEIST_TARGETS[2] as Dictionary)["pos"]), "FIS2.3c: Libro Mayor de los Gremios is inside the Town Hall")
+	var fis2_uw_bak: Dictionary = vun.state(vm).duplicate(true)
+	var fis2_hr_bak: int = int(t5_wc.current_hour)
+	vun.state(vm)["active_heist"] = {}
+	vun.state(vm)["heists_done"] = 1 # índice 1 -> caliz_capilla
+	vun.sync_heist_visuals(vm)
+	assert(root.get_tree().get_nodes_in_group("heist_target_prop").size() == 0, "FIS2.3d: No heist target prop exists when no heist is active")
+	vun.on_player_action(vm, p7_fence, "underworld_take_heist", p70_inv)
+	var fis2_heist_props: Array = root.get_tree().get_nodes_in_group("heist_target_prop")
+	assert(fis2_heist_props.size() == 1, "FIS2.3e: Active heist spawns physical heist target prop in the world")
+	var fis2_heist_node: Node2D = fis2_heist_props[0] as Node2D
+	assert(str(fis2_heist_node.call("get_interact_label", p70_pl)).begins_with("Robar "), "FIS2.3f: Heist target prop has [E] Robar ... label")
+	t5_wc.current_hour = 23
+	p70_pl.global_position = Vector2(-5000.0, -5000.0)
+	var fis2_caliz_pos: Vector2 = (vun.HEIST_TARGETS[1] as Dictionary)["pos"]
+	var fis2_stole: bool = vun.try_interact(vm, p70_pl, fis2_caliz_pos)
+	assert(fis2_stole and bool(vun.state(vm)["active_heist"].get("stolen", false)), "FIS2.3g: Interacting with heist target at night steals the object")
+	assert(root.get_tree().get_nodes_in_group("heist_target_prop").size() == 0, "FIS2.3h: Stolen heist target prop disappears from the world")
+	p70_pl.global_position = fis2_pl_pos_bak
+	t5_wc.current_hour = fis2_hr_bak
+	vun.state(vm)["active_heist"] = fis2_uw_bak.get("active_heist", {})
+	vun.state(vm)["heists_done"] = int(fis2_uw_bak.get("heists_done", 0))
+	vun.sync_heist_visuals(vm)
+	print("Block FIS2 (Physical Terminal, Electric Panel & Heist Targets) OK")
+
 	print("ALL RIMWORLD MEDICAL, FOOTPRINTS, 3-PHASE CORPSE REPORT, MULTI-CORPSE FIX, RPG INTERROGATION, PUBLIC TRIAL, DYNAMIC RELATIONSHIPS, MISSING FAMILY SEARCH, SOCIAL GLOSSARY & UNCONSCIOUS REACTION TESTS PASSED!")
 	quit(0)

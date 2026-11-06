@@ -27,4 +27,4 @@ fuente: "Biblia §5.4"
   - **Dos caminos finales (`P7.15–P7.16`):** Delatar a toda la red ante el Comisario Vane (recompensa de las arcas y enemistad mortal del hampa) o **retar al jefe de la «Red de las Sombras»** para quedarte con el mando de los bajos fondos.
 
 ## Notas de diseño
--
+- 2026-11-05 (Antigravity, Bloque FIS2): los **3 objetos de los grandes robos** (`HEIST_TARGETS`) están dentro de sus edificios reales (`sello_noble` en `Vector2(1275, -444)` en el escritorio de la Mansión `solar f1`; `caliz_capilla` en `Vector2(745, 336)` en el altar de la Capilla; `libro_gremial` en `Vector2(764, -444)` en la mesa del Ayuntamiento `solar n4`). Mientras hay un golpe activo sin robar, el objeto aparece en 2D y 3D con `[E] Robar …` y desaparece al robarlo o entregarlo.

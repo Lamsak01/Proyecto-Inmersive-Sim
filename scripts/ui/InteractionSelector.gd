@@ -99,8 +99,11 @@ func refresh() -> void:
 	# Montado, «bajar del caballo» va la última: así puedes hablar o abrir puertas sin bajarte.
 	var rank := func(c: Dictionary) -> float:
 		var d: float = pp.distance_squared_to(c["pos"])
-		if (c["target"] as Node).is_in_group("player_horse") and bool(player.get("is_mounted")):
+		var t_node: Node = c["target"] as Node
+		if t_node.is_in_group("player_horse") and bool(player.get("is_mounted")):
 			d += 1000000.0
+		elif t_node.is_in_group("heist_target_prop") or t_node.is_in_group("tinker_station"):
+			d -= 120.0
 		return d
 	out.sort_custom(func(x, y): return rank.call(x) < rank.call(y))
 	var keys: String = ",".join(out.map(func(c): return c["key"]))

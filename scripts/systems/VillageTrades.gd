@@ -128,6 +128,8 @@ static func shop_dialogue(npc, needs_line: String, discount_tag: String) -> Dict
 
 ## Campos, corrales, cantera y troncos alrededor de los edificios de las afueras (forman parte del dibujo del solar).
 static func build_extras(vm, id: String) -> void:
+	if id == "e5":
+		load("res://scripts/systems/VillageCulture.gd").build_tinker_stations(vm)
 	var c: Dictionary = {}
 	for key in CONFIG.keys():
 		if str(CONFIG[key]["lot"]) == id or str(CONFIG[key].get("fields_lot", "")) == id:

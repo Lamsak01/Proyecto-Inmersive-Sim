@@ -113,6 +113,18 @@ func _initialize() -> void:
 		vcr.raid_on_hour(vm_r, vcr.RAID_GATHER_HOUR)
 		vcr.spawn_raid_attackers(vm_r)
 		SPOTS["asalto"] = Vector2(1640, 50)
+	# Sitio «taller» (Bloque FIS2): dentro del Taller de Reparaciones (e5) para ver la Terminal Lógica dentro y el Cuadro Eléctrico en la fachada norte.
+	if spots.has("taller"):
+		SPOTS["taller"] = Vector2(1188, 128)
+	# Sitio «robo» (Bloque FIS2): activa un robo en memoria y coloca al jugador junto al objeto físico del robo (Cáliz de Plata en el altar de la Capilla).
+	if spots.has("robo"):
+		var vm_u = root.find_child("VillageManager", true, false)
+		var vun = vm_u.VillageUnderworld
+		var t_heist: Dictionary = vun.HEIST_TARGETS[1] # Cáliz de Plata de la Capilla en el altar
+		var hp: Vector2 = t_heist["pos"]
+		vun.state(vm_u)["active_heist"] = {"id": str(t_heist["id"]), "label": str(t_heist["label"]), "pos_x": hp.x, "pos_y": hp.y, "reward": int(t_heist["reward"]), "stolen": false}
+		vun.sync_heist_visuals(vm_u)
+		SPOTS["robo"] = hp + Vector2(0, -10)
 	for pet in root.find_children("*", "DomesticPet", true, false):
 		if int(pet.pet_type) == 0 and pet.visible and not SPOTS.has("perro"):
 			SPOTS["perro"] = pet.global_position + Vector2(0, -12)
@@ -145,7 +157,7 @@ func _initialize() -> void:
 					elif s != "montado" and bool(player.get("is_mounted")):
 						horse_n.dismount(player)
 				if cam != null:
-					cam.zoom = Vector2(8.0, 8.0) if s == "retrato" else (Vector2(5.0, 5.0) if s in ["ciervo", "zorro", "perro", "jabali", "caballo", "montado", "asalto"] else (Vector2(4.0, 4.0) if s == "cerca" else Vector2(2.4, 2.4)))
+					cam.zoom = Vector2(8.0, 8.0) if s == "retrato" else (Vector2(5.0, 5.0) if s in ["ciervo", "zorro", "perro", "jabali", "caballo", "montado", "asalto", "robo"] else (Vector2(4.2, 4.2) if s in ["cerca", "taller"] else Vector2(2.4, 2.4)))
 					if String(s).begins_with("r_") or s == "lago" or s == "norte":
 						cam.zoom = Vector2(1.4, 1.4)
 					cam.reset_smoothing()
