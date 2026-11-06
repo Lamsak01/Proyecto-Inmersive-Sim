@@ -49,67 +49,60 @@ Reglas que el supervisor va a comprobar sí o sí:
 
 ---
 
-## 2. El encargo: bloque FIS2
+## 2. El encargo actual: bloque FIS3 — alcantarillas que se recorren de verdad
 
-Contexto: el usuario quiere que todos los sistemas «en papel» pasen a ocurrir en el mundo. El bloque FIS1 (asaltos con
-atacantes reales) ya está hecho por Claude Code. Este es el siguiente.
+> FIS2 (terminal, cuadro eléctrico y objetos de los robos) está revisado y aprobado por el supervisor. Ojo: en tu
+> informe de FIS2 citabas funciones que no existen (`WorldText.show_choice_menu`, `inject_dialogue`,
+> `gold_conservation_ok`, `sabotage_electric_grid`, `attempt_heist_steal`, «social_sim de 7 días»). El código estaba
+> bien, pero **el informe debe describir lo que hay de verdad**: nombra solo funciones que existan y resultados que
+> hayas visto en pantalla.
 
-### 2.1 Terminal Lógica como máquina de verdad
-
-Ahora mismo: se hackea hablando con el arreglador (opción «Hackear en sigilo la Terminal Lógica…» en
-`VillageCulture.add_dialogue_choices`, rol TINKER).
-
-Hay que:
-1. Poner la **Terminal Lógica** como objeto dentro del Taller del Arreglador (solar `e5`), sobre una mesa: dibujo 2D y
-   modelo 3D (puedes usar un mueble/caja de `assests/curated_3d/props/` o piezas sencillas en `WorldStage3D.gd`).
-2. Con **[E]** junto a ella se abre un menú con las 3 opciones actuales (registro fiscal, archivo policial,
-   controlador de red), que usan la función que ya existe (`hack_terminal`). Mantén la espera de 1 vez al día.
-3. **Testigos en el momento de hackear:** si el arreglador u otro vecino despierto te ve (cerca, misma planta), es
-   delito (igual que ya hace el sabotaje con `_find_conscious_witness_near`). De noche, con el taller vacío, es más
-   fácil.
-4. **Quita** esas opciones de la conversación con el arreglador.
-
-### 2.2 Cuadro eléctrico como objeto de verdad
-
-Ahora mismo: se sabotea hablando con el arreglador («Manipular a escondidas el cuadro eléctrico…»).
+Ahora mismo: las alcantarillas se «exploran» desde una opción de charla con el perista
+(`underworld_sewer_explore:` → `VillageUnderworld.explore_sewer_location`, una tirada de dados que te devuelve a la calle).
+`WorldStage3D._build_sewers_3d` dibuja 3 cámaras en 3D, pero no se puede bajar ni andar por ellas. Además, el nivel −1
+vuelve solo a la calle al alejarte 70 px (`VillageManager.check_elevation_exit`, regla de las capas verticales).
 
 Hay que:
-1. Poner el **cuadro eléctrico** en la pared exterior del Taller del Arreglador: dibujo 2D y modelo 3D.
-2. Con **[E]** se abre el menú de los 3 interruptores actuales (farolas, riego, apagón), usando `sabotage_grid`. Misma
-   espera de 1 al día y misma comprobación de testigos que ya existe.
-3. **Quita** esas opciones de la conversación con el arreglador.
+1. **Tres trampillas/rejillas en la calle** (dibujo 2D + modelo 3D, `Area2D` «interactable», letrero «[E] …»), una por
+   cada sitio de `SEWER_LOCATIONS` (cisterna bajo la plaza, pasadizo del contrabandista, bóveda inundada). Colócalas en
+   la calle junto a esos puntos, no dentro de un edificio ni encima de un camino de paso de los vecinos.
+2. **Bajar con [E]** si tienes la llave del perista (`sewers_state.unlocked`; la llave se sigue comprando al perista
+   como ahora). Sin llave: letrero «Cerrada: el perista vende la llave».
+3. **Una red de túneles que se camina de verdad.** Recomendación técnica (decídelo tú, pero justifícalo en el informe):
+   construir los túneles en una zona del mapa **fuera del pueblo** (por ejemplo, muy al sur, donde no hay nada), con
+   paredes que bloqueen, porque bajo el pueblo real chocarías con las paredes de los edificios de la superficie. Cada
+   trampilla de arriba lleva a su boca de túnel abajo; los tres túneles están conectados.
+4. **Escalerillas de salida** abajo, junto a cada boca: [E] sube a la trampilla correspondiente de la calle. Así puedes
+   entrar por una y salir por otra.
+5. Mientras estás abajo: nivel −1, **no** debe saltar la vuelta automática a la calle de `check_elevation_exit`, la
+   guardia de la superficie no te ve (los testigos ya miran la planta), y la vista 3D enseña los túneles
+   (`sewers_root_3d`; usa `VillageUnderworld.is_player_in_sewers`).
+6. **Cofres de contrabando** abajo (uno por cámara, [E], 1 vez al día cada uno) con el botín que ya define cada sitio
+   (`loot_item`) y monedas del pozo `lost_coins_pool` (suma cero: salen de ese pozo, no del aire). Puede salir mal: agua
+   sucia o una trampa → baja la higiene y algo de salud, como hace ahora el fallo. Mantén la ventaja actual del
+   pasadizo del contrabandista: salir por él baja 1 nivel de búsqueda, como mucho una vez por semana
+   (`VillageHousing.can_purge_wanted` / `mark_wanted_purge`).
+7. **Quita** del perista la opción «Bajar al nivel −1 y explorar…» y la opción «Subir por la escalerilla…». La
+   exploración por tirada (`explore_sewer_location`) deja de usarse en el juego (puedes dejar la función si los tests la
+   necesitan, pero que ningún menú la llame).
+8. Guardar y cargar: si guardas estando abajo, al cargar sigues abajo en el mismo sitio.
 
-### 2.3 Que se vean los objetos de los 3 grandes robos
+### 2.1 Pruebas del bloque
 
-Ahora mismo: el robo ya se hace en persona (`VillageUnderworld.try_interact`: hay que ir al sitio, de noche o con
-ganzúa, con testigos), pero **no se ve ningún objeto**. Los sitios están en `HEIST_TARGETS`.
-
-Hay que:
-1. Mientras haya un encargo de robo activo, dibujar el objeto en su sitio (sello de lacre, cáliz de plata, libro
-   mayor) en 2D y 3D, con su `Area2D` interactiva y letrero «[E] Robar …». Al robarlo, desaparece.
-2. **Comprueba los sitios:** el sello tiene que estar dentro de la mansión, el cáliz en el altar de la capilla y el
-   libro dentro del ayuntamiento. Sospecho que el libro (465, 24) cae en mitad de la plaza: si es así, muévelo dentro
-   del edificio correcto y dilo en el informe.
-
-### 2.4 Pruebas del bloque
-
-- Un test por comportamiento nuevo en `tools/tests/verify_all.gd` (por ejemplo: la terminal ya no sale en la charla
-  del arreglador; usar la terminal con un testigo delante sube la búsqueda; el objeto del robo existe mientras hay
-  encargo y desaparece al robarlo).
-- Fotos con `tools/screenshot_3d.gd` (añade sitios «taller» y «robo»), con ventana, guardadas dentro del proyecto.
-- Las cuatro pruebas de HANDOFF §3, de una en una, con `timeout`, y además
-  `flatpak run org.godotengine.Godot --headless --path . --quit-after 3` sin ningún «SCRIPT ERROR».
-- **Pide permiso al usuario antes de lanzar las pruebas** y dile cuánto tardan (unos 12 minutos las cuatro).
-
----
+- Un test por comportamiento: sin llave no se baja; con llave [E] en la trampilla te pone abajo (nivel −1 y dentro de los
+  túneles); andar abajo no te devuelve solo a la calle; salir por otra escalerilla te deja en otra trampilla de la calle;
+  el cofre da su botín una vez al día y saca las monedas del pozo; el perista ya no ofrece explorar.
+- Fotos con `tools/screenshot_3d.gd` (sitios «trampilla» y «tunel»).
+- Arranque sin errores (`--headless --quit-after 3`), y las cuatro pruebas de HANDOFF §3, de una en una con `timeout`.
+  El usuario ya ha dado permiso para pasarlas sin preguntar.
 
 ## 3. Al cerrar el bloque
 
 1. `docs/HANDOFF.md` §7: una entrada arriba con lo técnico.
 2. `CHANGELOG.md`: entrada en lenguaje de jugador.
-3. `docs/REGISTRO_TRABAJO.md`: fila FIS2 en el «Bloque FIS».
+3. `docs/REGISTRO_TRABAJO.md`: fila del bloque en el «Bloque FIS».
 4. Bóveda: notas de los sistemas tocados («Notas de diseño»), tarjeta en `GameVault/05_Roadmap_y_Lore/Tablero.md` y
    línea en el diario del día (`GameVault/06_Diario/`).
 5. Commit con mensaje en español y push a `main`.
-6. `docs/INFORME_ANTIGRAVITY.md` para el supervisor (ver §0).
+6. `docs/INFORME_ANTIGRAVITY.md` para el supervisor (ver §0). **Reescríbelo entero** para este bloque.
 7. Al usuario: resumen corto en lenguaje de jugador, sin código, y una sola pregunta al final.
