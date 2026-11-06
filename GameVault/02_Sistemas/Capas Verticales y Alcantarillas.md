@@ -20,5 +20,6 @@ fuente: "Biblia §9.6"
 - Ver [[Terminales Lógicas Electromecánicas]].
 
 ## Notas de diseño
+- 2026-11-05 (decisión del usuario): bajar o subir por una rejilla a la vista de un guardia es sospechoso (sube la búsqueda). Oveja = alpaca y gallina de piezas, provisional hasta una pasada de arte.
 - 2026-11-05 (Claude Code): el sótano de tu casa y las alcantarillas comparten el nivel -1, pero ya se distinguen: solo estás en las alcantarillas si entraste por ellas (así no sale la escalerilla en tu sótano ni se ven las alcantarillas en 3D).
 - 2026-11-05 (Antigravity, Bloque FIS3): las alcantarillas se recorren a pie de verdad: hay **3 rejillas en la calle** (`SewerGrate_cistern` en `(518, 26)`, `SewerGrate_smuggler_tunnel` en `(398, -118)` y `SewerGrate_flooded_vault` en `(248, -90)`), una red subterránea de **3 cámaras conectadas por galerías** con muros físicos (`SewerTunnelWallsBody` en `y = 1520`, `x = 205..635`), **3 escalerillas de salida** (`SewerLadder_*`, permitiendo entrar por una rejilla y salir por otra; salir por el Pasadizo del Contrabandista rebaja `wanted_level` en 1 una vez por semana) y **3 cofres de contrabando** (`SewerChest_*`, 1/día por cámara, suma cero de `lost_coins_pool`). Retiradas del diálogo del perista las opciones de texto de explorar/subir.

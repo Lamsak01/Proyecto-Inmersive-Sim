@@ -49,44 +49,20 @@ Reglas que el supervisor va a comprobar sí o sí:
 
 ---
 
-## 2. El encargo actual: bloque FIS4 — ganado vivo en el rancho y tus animales de verdad
+## 2. El encargo actual: bloque FIS3b — bajar a las alcantarillas a la vista es sospechoso
 
-> FIS3 (alcantarillas) revisado y **aprobado** por el supervisor. Esta vez el informe era fiel: bien.
+> FIS4 (ganado vivo) **aprobado** tras la corrección. Decisión del usuario (ver `docs/PREGUNTAS_PENDIENTES.md`).
 
-Ahora mismo:
-- El corral del Rancho del Sur (`VillageTrades.build_extras`, caso `"ranch"`) pinta **4 dibujos quietos** (gallina y
-  jabalí) que no tienen nada que ver con el rebaño real (`VillageHousing.state(vm)["ranch_herd"]`: ovejas y gallos que
-  crecen, se venden y se renuevan cada día).
-- Tus animales (`player_animals`, se compran al ganadero o al carpintero) son **solo datos**: no existen en el mapa, se
-  alimentan desde una charla (`housing_feed_animals`) y, cuando son adultos, **te meten carne cocinada en la mochila cada
-  dos días sin hacer nada** (en el ciclo diario de `VillageHousing`). Eso incumple «todo es físico».
-
-Hay que:
-1. **Rebaño del rancho vivo:** un animal en el mapa por cada entrada de `ranch_herd`, paseando despacio dentro de la
-   valla del corral (no salen), con su tamaño según la etapa (cría / joven / adulto). Cuando el rebaño cambia (nace,
-   se vende), el mapa cambia igual. Quita los 4 dibujos quietos.
-2. **Tus animales vivos:** cada entrada de `player_animals` existe en el mapa dentro del corral de tu gallinero
-   (`ChickenCoop`, el vallado junto a tu campamento), paseando dentro de la valla. Si muere de hambre, desaparece.
-3. **Con [E] junto a uno de tus animales** (letrero «[E] Dar de comer a …», `get_interact_label`):
-   - darle de comer gasta 1 trigo o pan de tu mochila (lo mismo que hace ahora `feed_player_animals`, pero a ese animal);
-   - si es adulto: **recoger su producto en persona** («[E] Esquilar la oveja» → lana; «[E] Recoger huevos» → huevo),
-     como mucho una vez cada 2 días por animal. **Quita** la carne que entraba sola en la mochila.
-   - Quita la opción de alimentarlos desde la charla con el ganadero/carpintero (comprar crías sí se queda en la charla:
-     es una compra a una persona).
-4. **Aspecto (provisional):** no hay modelos de oveja ni de gallina de nuestro estilo. Usa por ahora
-   `animals/animated/Alpaca.glb` para la oveja (bájalo de poly.pizza, Quaternius, CC0, igual que los otros; apúntalo en
-   `assests/curated_3d/animals/animated/LICENCIA.txt`) y una gallina sencilla hecha con piezas en 3D (como hiciste con la
-   terminal). En 2D, los dibujos que ya hay. Con `AnimalModel3D.attach` para lo que tenga `.glb`.
-5. Guardar y cargar: al cargar, los animales vuelven a aparecer según los datos guardados.
-
-### 2.1 Pruebas del bloque
-
-- Un test por comportamiento: hay tantos animales en el corral del rancho como en `ranch_herd`; tus animales aparecen
-  en tu corral; [E] da de comer y gasta 1 trigo/pan; un adulto da su producto una vez cada 2 días; ya no entra carne
-  sola en la mochila; la charla ya no ofrece alimentar.
-- Fotos con `tools/screenshot_3d.gd` (sitios «rancho» y «corral»).
-- Arranque sin errores (`--headless --quit-after 3`) y las cuatro pruebas de HANDOFF §3, de una en una con `timeout`.
-  El usuario ya ha dado permiso para pasarlas sin preguntar.
+Encargo pequeño:
+1. Al usar **[E] en una rejilla para bajar**, comprueba testigos igual que en el sabotaje del cuadro eléctrico
+   (`vm._find_conscious_witness_near` con la posición del jugador, misma planta). Si te ve un **guardia o el comisario**:
+   sube 1 la búsqueda y aviso flotante («¡X te vio colarte en las alcantarillas!»). Si te ve un **vecino cualquiera**:
+   no hay delito, pero queda un chisme/recuerdo de que te vio bajar (usa lo que ya exista para chismes; si no hay nada
+   sencillo, solo el aviso flotante y apúntalo en el informe).
+2. Bajas igualmente (no se bloquea): el riesgo es la búsqueda.
+3. Salir por una escalerilla a la vista de un guardia también cuenta igual.
+4. Un test: con un guardia al lado, bajar sube la búsqueda; sin nadie cerca, no.
+5. Arranque sin errores, las cuatro pruebas, documentación (§3), commit y push, informe.
 
 ## 3. Al cerrar el bloque
 
