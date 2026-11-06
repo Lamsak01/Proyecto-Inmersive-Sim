@@ -5284,7 +5284,8 @@ func _initialize() -> void:
 
 	# ==========================================================================
 	# Bloque P5b: el perista se deja ver de noche («P5b perista»)
-	# ===================================================================	var b5b_vun = vm.VillageUnderworld
+	# ==========================================================================
+	var b5b_vun = vm.VillageUnderworld
 	var b5b_f = b5b_vun.get_fence_npc(vm)
 	assert(b5b_f != null, "P5b.0: There is a fence")
 	for b5b_b in vm.building_footprints:
@@ -5410,7 +5411,6 @@ func _initialize() -> void:
 	b5_list.clear()
 	b5_list.append_array(b5_list_bak)
 	print("Block P5 (Rents Set Aside on Saturday, Collected in Person, Expiry & Embezzling at the Coffers) OK")
-=======
 	# Bloque P3: Caravanas comerciales y de contrabando hechas físicas
 	# ==========================================================================
 	var bp3_day_bak: int = int(t5_wc.current_day)

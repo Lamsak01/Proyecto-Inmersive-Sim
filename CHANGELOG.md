@@ -19,6 +19,7 @@ El detalle técnico está en `docs/HANDOFF.md` (sección 7) y el historial compl
 - **Figura encapuchada:** mientras no sepas quién es, su letrero de [E] dice «Hablar con la figura encapuchada».
 - **Rumores sutiles en la taberna:** de 19:00 a 1:00, algún vecino de dudosa reputación puede dejar caer un comentario de
   pasada al final del saludo (muy raro: como mucho uno al día en todo el pueblo). Los vecinos honrados no saben nada.
+
 ## 2026-11-06 — Caravanas comerciales con mula en la plaza y campamento nocturno de contrabando en el claro noreste
 - **Caravanas de las rutas comerciales:** cuando abres una ruta comercial, su caravana (el caravanero y su mula de carga)
   entra andando por el camino del este una vez por semana (a veces se retrasa un día por el barro), acampa en la plaza
