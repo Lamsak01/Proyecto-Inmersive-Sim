@@ -407,6 +407,8 @@ func _build_static_terrain_3d() -> void:
 	# Caminos principales y calles con relieve 3D
 	var road_rects: Array[Rect2] = [
 		Rect2(Vector2(-940, 36), Vector2(2485, 28)),
+		Rect2(Vector2(-38, -88), Vector2(18, 124)),
+		Rect2(Vector2(-38, 64), Vector2(18, 32)),
 		Rect2(Vector2(452, -310), Vector2(26, 350)),
 		Rect2(Vector2(452, 62), Vector2(26, 280)),
 		Rect2(Vector2(822, -230), Vector2(24, 520)),

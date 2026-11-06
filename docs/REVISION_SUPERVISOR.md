@@ -63,3 +63,22 @@ función del selector se llama `refresh`, no `_refresh`.
 Comprobado: las piezas que usa existen; se mira la guardia en la misma planta y con línea de visión; visto por un
 guardia sube la búsqueda (y salir por el pasadizo a su vista ya no te limpia la búsqueda); visto por un vecino queda
 un secreto conocido solo por él. Arranque sin errores y las cuatro pruebas pasan.
+
+## FIS-P1 (interior de tu casa) — CORRECCIÓN NECESARIA
+
+Bien: auditoría útil y ordenada (`docs/AUDITORIA_REALISMO.md`); huerto, banco, escondite y escaleras como objetos con
+[E]; quitadas las opciones de charla y el pan/cataplasma que entraban solos a medianoche.
+
+**Mal:**
+1. **Objeto que no existe:** el huerto da `"medicinal_herb"` y el banco la pide, pero en `SimpleInventory.CATALOG` la
+   hierba se llama **`"herbs"`**. Usa `"herbs"` en `interact_home_garden`, `craft_home_poultice` y en sus letreros, y
+   busca cualquier otro `"medicinal_herb"` que hayas añadido.
+2. **Producción de la nada:** `craft_home_poultice` da una cataplasma cada 2 días **sin gastar nada** («esperar a que
+   sequen las del banco»). Quítalo: el banco solo prepara si llevas los ingredientes (1 `herbs` está bien; es un banco
+   casero más barato que la receta normal de 2 hierbas + 1 seta). Quita también `can_craft_home_poultice` si deja de
+   usarse y ajusta el letrero.
+3. En la auditoría, la fila 11 (obras maestras) nombra `start_masterwork_order` / `claim_masterwork_order`, que **no
+   existen**. Corrige el nombre real (busca en `VillageFame.gd`) o quita la fila si ya es física.
+
+Después: un test que compruebe que el huerto da `"herbs"` y que el banco sin hierbas no da nada; arranque sin errores,
+las cuatro pruebas, commit y push, y sección «Corrección FIS-P1» en el informe.

@@ -55,7 +55,7 @@ var mated_today: bool = false
 var pending_offspring: bool = false
 var days_hungry: int = 0
 var is_raiding_farm: bool = false
-var farm_target_pos: Vector2 = Vector2(139, 99)
+var farm_target_pos: Vector2 = Vector2(-101, -21)
 
 # Mecánica de Emboscada (Zorro), 50% Escape Inicial (Conejo) y Embestida Agresiva (Jabalí)
 var escaped_first_pounce: bool = false

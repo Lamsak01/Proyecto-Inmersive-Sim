@@ -10,9 +10,10 @@ extends RefCounted
 static func _spawn_village_roads_and_plaza(vm: VillageManager) -> void:
 	var dirt_col := Color(0.46, 0.36, 0.24, 0.65)
 
-	# 1. Camino Largo Oeste-Este desde el Borde Oeste del Mapa (-940, 36) hasta el Borde Este (1010, 48)
+	# 1. Camino Largo Oeste-Este desde el Borde Oeste del Mapa (-940, 36) hasta el Borde Este (1010, 48) y senda al Campamento del Oeste
 	_add_road_rect(vm, Rect2(Vector2(-940, 36), Vector2(1950, 28)), dirt_col)
-	_add_road_rect(vm, Rect2(Vector2(20, 48), Vector2(22, 80)), dirt_col)
+	_add_road_rect(vm, Rect2(Vector2(-38, -88), Vector2(18, 124)), dirt_col)
+	_add_road_rect(vm, Rect2(Vector2(-38, 64), Vector2(18, 32)), dirt_col)
 
 	# 2. Plaza Central Empedrada (x = 395..535, y = 10..88) y Patio Trasero del Pozo de la Taberna
 	_add_cobble_rect(vm, Rect2(Vector2(395, 10), Vector2(140, 78)))
@@ -40,7 +41,7 @@ static func _spawn_village_roads_and_plaza(vm: VillageManager) -> void:
 	_add_cobble_rect(vm, Rect2(Vector2(819, 76), Vector2(20, 186)))
 	_add_cobble_rect(vm, Rect2(Vector2(720, 244), Vector2(240, 18)))
 
-	_spawn_world_signpost(vm, Vector2(-245, 12), "⬅️ Camino a la Llanura Salvaje y Ciénaga de Ranas", Color(1.0, 0.86, 0.48))
+	_spawn_world_signpost(vm, Vector2(-310, 12), "⬅️ Camino a la Llanura Salvaje y Ciénaga de Ranas", Color(1.0, 0.86, 0.48))
 	_spawn_world_signpost(vm, Vector2(465, 345), "⬇️ Sendero al Bosque Profundo (A 250m al Sur)", Color(0.76, 0.96, 0.68))
 	_spawn_world_signpost(vm, Vector2(668, 72), "➡️ Este: 🏥 Hospital y Morgue Forense | 🚓 Comisaría y Cárcel", Color(0.68, 0.92, 1.0))
 

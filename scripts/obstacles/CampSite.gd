@@ -9,14 +9,14 @@ class_name CampSite
 ## 2. 🍲 Hoguera con Cacerola: Cocina Carne, Pollo, Ancas de Rana, Pescado, Verduras y Huevos.
 ## 3. 🪵 Tronco para Sentarse: Modo descanso AFK (Hambre y Sueño bajan un 85% más lento).
 ## 4. ⚡ Generador Antiguo y Aspersor Automático (Paso 10):
-##    - Alimenta la red eléctrica del campamento y del pueblo, y activa el Aspersor Automático en el huerto 3x3 (`Vector2(139, 99)`).
+##    - Alimenta la red eléctrica del campamento y del pueblo, y activa el Aspersor Automático en el huerto 3x3 (`Vector2(-101, -21)`).
 
 const TENT_OFFSET := Vector2(-46, -18)
 const POT_OFFSET := Vector2(4, 6)
 const SEAT_OFFSET := Vector2(28, 6)
 const UPGRADE_SIGN_OFFSET := Vector2(-6, -24)
 const GENERATOR_OFFSET := Vector2(36, -20)
-const SPRINKLER_OFFSET := Vector2(-29, 75) # Global Vector2(139, 99) -> centro del Huerto 3x3 relativo a (168, 24)
+const SPRINKLER_OFFSET := Vector2(-29, 75) # Global Vector2(-101, -21) -> centro del Huerto 3x3 relativo a (-72, -96)
 const CHEST_OFFSET := Vector2(-64, -30)
 
 var house_tier: int = 1 # 1 = Tienda, 2 = Cabaña de Madera, 3 = Casa de Piedra con Cofre

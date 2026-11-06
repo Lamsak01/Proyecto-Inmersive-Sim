@@ -29797,7 +29797,7 @@ position = Vector2(-445, 18)
 y_sort_enabled = true
 
 [node name="PlayerGood" type="CharacterBody2D" parent="Entities" unique_id=2143824581 node_paths=PackedStringArray("dialogue_manager", "hint_label")]
-position = Vector2(211, 59)
+position = Vector2(-29, -56)
 collision_layer = 2
 collision_mask = 5
 script = ExtResource("2_d1c63")

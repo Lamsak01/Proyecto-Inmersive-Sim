@@ -244,10 +244,10 @@ func _draw_valley_cartography(canvas: Control, detailed: bool) -> void:
 	var lake_r := _world_rect_to_map(Rect2(Vector2(-120, 65), Vector2(95, 80)), csize)
 	canvas.draw_rect(lake_r, Color(0.18, 0.52, 0.78, 0.92), true)
 
-	var coop_r := _world_rect_to_map(Rect2(Vector2(4, 69), Vector2(76, 60)), csize)
+	var coop_r := _world_rect_to_map(Rect2(Vector2(-236, -51), Vector2(76, 60)), csize)
 	canvas.draw_rect(coop_r, Color(0.68, 0.48, 0.26, 0.90), true)
 
-	var farm_r := _world_rect_to_map(Rect2(Vector2(100, 60), Vector2(82, 82)), csize)
+	var farm_r := _world_rect_to_map(Rect2(Vector2(-142, -62), Vector2(82, 82)), csize)
 	canvas.draw_rect(farm_r, Color(0.36, 0.62, 0.24, 0.90), true)
 
 	# 6. Los 12 Edificios de la Aldea (incluyendo Hospital/Morgue y Comisaría/Cárcel)
@@ -297,7 +297,7 @@ func _draw_valley_cartography(canvas: Control, detailed: bool) -> void:
 		canvas.draw_string(font, _world_to_map(Vector2(-830, -225), csize), "🌾 LLANURA SALVAJE Y CIÉNAGA (OESTE)", HORIZONTAL_ALIGNMENT_LEFT, -1, 11, Color(1.0, 0.84, 0.45))
 		canvas.draw_string(font, _world_to_map(Vector2(-690, -135), csize), "⚔️ Ruinas Bandidos", HORIZONTAL_ALIGNMENT_LEFT, -1, 10, Color(1.0, 0.65, 0.55))
 		canvas.draw_string(font, _world_to_map(Vector2(-685, 34), csize), "🐸 Ciénaga de Ranas", HORIZONTAL_ALIGNMENT_LEFT, -1, 10, Color(0.58, 0.98, 0.68))
-		canvas.draw_string(font, _world_to_map(Vector2(-115, 50), csize), "🎣 Lago | 🐔 Corral | 🌱 Huerto", HORIZONTAL_ALIGNMENT_LEFT, -1, 10, Color(0.75, 0.94, 1.0))
+		canvas.draw_string(font, _world_to_map(Vector2(-235, -66), csize), "🏕️ Campamento | 🐔 Corral | 🌱 Huerto", HORIZONTAL_ALIGNMENT_LEFT, -1, 10, Color(0.75, 0.94, 1.0))
 		canvas.draw_string(font, _world_to_map(Vector2(-455, 592), csize), "🐇 Pradera de Conejos y Hierbas", HORIZONTAL_ALIGNMENT_LEFT, -1, 11, Color(0.72, 0.98, 0.75))
 		canvas.draw_string(font, _world_to_map(Vector2(-35, 792), csize), "🦌 Claros de Venados y Hongos", HORIZONTAL_ALIGNMENT_LEFT, -1, 11, Color(0.85, 0.96, 0.72))
 		canvas.draw_string(font, _world_to_map(Vector2(475, 592), csize), "🦊 Cantera de Hierro y Zorros", HORIZONTAL_ALIGNMENT_LEFT, -1, 11, Color(1.0, 0.78, 0.58))

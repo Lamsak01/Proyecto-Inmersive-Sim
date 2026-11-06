@@ -189,11 +189,11 @@ var _tavern_bed_pos := Vector2(538, -252)
 var _tavern_social_pos := Vector2(375, -182)
 var _tavern_games_pos := Vector2(465, -172)
 var _tavern_pool_pos := Vector2(526, -172)
-var _well_pos := Vector2(184, 82)
+var _well_pos := Vector2(-56, -38)
 var _tavern_well_pos := Vector2(440, -306)
 var _plaza_well_pos := Vector2(412, 54)
-var _well_positions: Array[Vector2] = [Vector2(184, 82), Vector2(440, -306), Vector2(412, 54)]
-var _compost_pos := Vector2(184, 114)
+var _well_positions: Array[Vector2] = [Vector2(-56, -38), Vector2(440, -306), Vector2(412, 54)]
+var _compost_pos := Vector2(-56, -6)
 
 # Capas de Interfaz para Morgue Forense, Arresto/Cárcel, Tablón de Encargos y Gestión de Negocios/Escrituras
 var ui_layer: CanvasLayer = null

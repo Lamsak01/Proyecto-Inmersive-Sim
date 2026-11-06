@@ -283,7 +283,7 @@ static func feed_player_animals(vm, inv) -> int:
 	return arr.size()
 
 static func _player_pen_rect(vm) -> Rect2:
-	var coop_pos: Vector2 = Vector2(42.0, 99.0)
+	var coop_pos: Vector2 = Vector2(-198.0, -21.0)
 	if vm != null and vm.is_inside_tree() and vm.get_tree() != null:
 		var coop: Node2D = vm.get_tree().get_first_node_in_group("chicken_coop") as Node2D
 		if coop != null and is_instance_valid(coop):
