@@ -3,6 +3,13 @@
 Cambios del juego, del más nuevo al más antiguo. Añade una entrada al cerrar cada bloque, en lenguaje sencillo.
 El detalle técnico está en `docs/HANDOFF.md` (sección 7) y el historial completo en `git log`. Lo anterior a B0.1 está en `AUDIT_LOG.md` y `SESSION_CONTEXT_LOG.md`.
 
+## 2026-11-06 — Pasos en 3D acompasados al suelo y armas bien sujetas en la mano
+- **Pasos sin patinar:** el ritmo al que mueven las piernas tu personaje, los vecinos y los asaltantes ahora coincide con
+  lo que avanzan de verdad sobre el suelo, tanto al caminar despacio como al trotar o correr.
+- **Armas y herramientas al derecho:** la espada, el hacha, el pico, el martillo, la hoz, el arco, el arcabuz, la caña o
+  lanza, la regadera, el escudo y el farol ya no aparecen dados la vuelta 180° hacia atrás en la mano, sino bien sujetos
+  apuntando hacia delante (tanto en tu personaje como en los vecinos y guardias).
+
 ## 2026-11-06 — Combate cuerpo a cuerpo más vivo: rodar con Espacio, parar con Q y golpes enemigos que avisan
 - **Rodar con Espacio:** pulsas **Espacio** para rodar en la dirección en la que te mueves (o hacia donde miras si estás
   quieto). Durante el inicio de la voltereta no recibes daño, cuesta aguante, choca contra las paredes, rompe el sigilo

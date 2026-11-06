@@ -97,6 +97,15 @@ var _target_yaw: float = 0.0
 # Animaciones reales (Quaternius Universal Animation Library, CC0), adaptadas por tools/bake_character_animations.gd
 const ANIM_LIB_MALE := "res://assests/curated_3d/animations/ual_male.res"
 const ANIM_LIB_FEMALE := "res://assests/curated_3d/animations/ual_female.res"
+# Calibración de zancada medida en el esqueleto real a escala de escenario (STAGE_K = 0.40 -> 20 px/unidad, char_root = 0.88):
+# - "walk" (Walk_Loop, 1.333 s): zancada de ciclo completo = 1.443 u_rig = 28.86 px -> velocidad nativa = 21.65 px/s
+# - "run"  (Jog_Fwd_Loop, 0.933 s): zancada de ciclo completo = 2.620 u_rig = 52.40 px -> velocidad nativa = 56.15 px/s
+# - "carry" (Carry_Walk_Loop, 2.000 s): zancada de ciclo completo = 1.437 u_rig = 28.74 px -> velocidad nativa = 14.37 px/s
+const WALK_CYCLE_PX: float = 28.86
+const WALK_BASE_PX_S: float = 21.65
+const RUN_CYCLE_PX: float = 52.40
+const RUN_BASE_PX_S: float = 56.15
+const CARRY_BASE_PX_S: float = 14.37
 static var _anim_lib_cache: Dictionary = {} # ruta -> AnimationLibrary
 var _anim_player: AnimationPlayer = null
 var _current_clip: String = ""
@@ -754,12 +763,13 @@ func _rebuild_tools() -> void:
 
 
 func _build_real_curated_tools() -> void:
-	# En el esqueleto Quaternius, hand_r tiene su eje +Y a lo largo de los dedos y +Z hacia delante
+	# En el esqueleto Quaternius, hand_r tiene su eje +Y a lo largo de los dedos y +Z hacia delante.
+	# Con (0, 90, 90), el eje +Y del modelo (asta/hoja desde la empuñadura) apunta hacia +Z de hand_r (delante/arriba)
+	# y el eje +X del modelo (filo de hacha/hoz/pico o cañón de arcabuz) apunta hacia +Y de hand_r (frente de golpeo).
 	var weapon_Holder := Node3D.new()
 	weapon_Holder.name = "WeaponHolder"
-	# Orientación natural para empuñar en la mano derecha
 	weapon_Holder.position = Vector3(0.0, 0.08, 0.02)
-	weapon_Holder.rotation_degrees = Vector3(0.0, 90.0, -90.0)
+	weapon_Holder.rotation_degrees = Vector3(0.0, 90.0, 90.0)
 	tool_r_root.add_child(weapon_Holder)
 
 	var model_node: Node3D = null
@@ -776,17 +786,17 @@ func _build_real_curated_tools() -> void:
 			model_node = AssetLib.instantiate_model("props/Pickaxe_Bronze.gltf", Vector3.ZERO, 0.78, true, true)
 		"bow":
 			model_node = AssetLib.instantiate_model("weapons/Bow_Wooden.obj", Vector3.ZERO, 0.95, true, false)
+			if model_node != null:
+				model_node.rotation_degrees = Vector3(0.0, 180.0, 0.0)
 		"scythe", "sickle", "hoe":
 			model_node = AssetLib.instantiate_model("weapons/Scythe.obj", Vector3.ZERO, 1.05, true, true)
 		"flintlock", "pistol", "arquebus":
 			model_node = AssetLib.instantiate_model("weapons/Pistol_1.obj", Vector3.ZERO, 0.46, true, false)
-			if model_node != null:
-				model_node.rotation_degrees = Vector3(0.0, 90.0, 0.0)
 			var flash_mat := _make_mat(Color(1.0, 0.82, 0.25), 0.1, 0.0, Color(1.0, 0.65, 0.15, 1.0))
 			var flash_sphere := SphereMesh.new()
 			flash_sphere.radius = 0.14
 			flash_sphere.height = 0.28
-			muzzle_flash_node = _add_part(weapon_Holder, flash_sphere, flash_mat, Vector3(0.0, 0.42, 0.0))
+			muzzle_flash_node = _add_part(weapon_Holder, flash_sphere, flash_mat, Vector3(0.42, 0.14, 0.0))
 			muzzle_flash_node.visible = false
 		"book", "ledger":
 			model_node = AssetLib.instantiate_model("props/Book_5.gltf", Vector3.ZERO, 0.30, true, false)
@@ -796,8 +806,14 @@ func _build_real_curated_tools() -> void:
 			model_node = AssetLib.instantiate_model("props/Bag.gltf", Vector3.ZERO, 0.42, true, true)
 		"lantern":
 			model_node = AssetLib.instantiate_model("props/Lantern_Wall.gltf", Vector3.ZERO, 0.38, true, true)
+			if model_node != null:
+				model_node.rotation_degrees = Vector3(0.0, 0.0, 90.0)
+				model_node.position = Vector3(0.28, 0.0, 0.0)
 		"watering_can":
 			model_node = AssetLib.instantiate_model("props/Bucket_Metal.gltf", Vector3.ZERO, 0.34, true, true)
+			if model_node != null:
+				model_node.rotation_degrees = Vector3(0.0, 0.0, 90.0)
+				model_node.position = Vector3(0.26, 0.0, 0.0)
 		"fishing_rod", "staff", "guard_spear", "spear":
 			model_node = AssetLib.instantiate_model("weapons/Spear.obj", Vector3.ZERO, 1.25, true, true)
 
@@ -810,12 +826,15 @@ func _build_real_curated_tools() -> void:
 	if offhand_id != "none" and offhand_id != "":
 		var l_holder := Node3D.new()
 		l_holder.position = Vector3(0.0, 0.08, 0.02)
-		l_holder.rotation_degrees = Vector3(0.0, 90.0, 90.0)
+		l_holder.rotation_degrees = Vector3(0.0, -90.0, -90.0)
 		tool_l_root.add_child(l_holder)
 		var l_node: Node3D = null
 		match offhand_id:
 			"lantern":
 				l_node = AssetLib.instantiate_model("props/Lantern_Wall.gltf", Vector3.ZERO, 0.35, true, true)
+				if l_node != null:
+					l_node.rotation_degrees = Vector3(0.0, 0.0, -90.0)
+					l_node.position = Vector3(-0.28, 0.0, 0.0)
 			"shield":
 				l_node = AssetLib.instantiate_model("weapons/Shield_Heater.obj", Vector3.ZERO, 0.58, true, false)
 			"book":
@@ -869,7 +888,7 @@ func update_pose(delta: float, state: Dictionary) -> void:
 	elif spd > 0.08:
 		st_enum = AnimState.WALK
 
-	update_animation(delta, st_enum, maxf(0.5, spd))
+	update_animation(delta, st_enum, maxf(0.15, spd))
 
 
 func update_animation(delta: float, state: int, speed_ratio: float = 1.0) -> void:
@@ -935,9 +954,11 @@ func _pick_clip() -> Array:
 		return ["sword", 1.6]
 	match _anim_state:
 		AnimState.WALK:
+			var real_px_s: float = _speed_ratio * 110.0
+			var scale_k: float = 0.72 if _is_child else 1.0
 			if _speed_ratio > 1.35:
-				return ["run", clampf(_speed_ratio / 1.6, 0.8, 1.4)]
-			return ["walk", clampf(_speed_ratio, 0.7, 1.3)]
+				return ["run", clampf(real_px_s / (RUN_BASE_PX_S * scale_k), 0.6, 4.0)]
+			return ["walk", clampf(real_px_s / (WALK_BASE_PX_S * scale_k), 0.5, 5.5)]
 		AnimState.WORK:
 			match _weapon_id:
 				"scythe", "sickle", "hoe":
@@ -948,7 +969,9 @@ func _pick_clip() -> Array:
 					return ["kneel_fix", 1.0]
 			return ["chop", 1.0]
 		AnimState.CARRY:
-			return ["carry", clampf(_speed_ratio, 0.7, 1.3)]
+			var carry_px_s: float = _speed_ratio * 110.0
+			var carry_k: float = 0.72 if _is_child else 1.0
+			return ["carry", clampf(carry_px_s / (CARRY_BASE_PX_S * carry_k), 0.5, 5.5)]
 		AnimState.PRAY:
 			return ["crouch", 0.6]
 		AnimState.SLEEP:

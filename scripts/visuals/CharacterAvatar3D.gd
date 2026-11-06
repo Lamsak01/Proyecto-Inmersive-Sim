@@ -699,7 +699,7 @@ func _sync_pose_and_tint(delta: float) -> void:
 
 	var state_dict := {
 		"facing": facing,
-		"speed_ratio": clampf(spd / 110.0, 0.0, 1.6),
+		"speed_ratio": clampf(spd / 110.0, 0.0, 2.5),
 		"is_stealth": is_stealth,
 		"is_sprinting": is_sprinting,
 		"is_working": is_working,

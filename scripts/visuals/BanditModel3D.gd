@@ -85,7 +85,7 @@ func _process(delta: float) -> void:
 	var facing: Vector2 = vel.normalized() if vel.length_squared() > 4.0 else Vector2(_entity.get("facing"))
 	_rig.call("update_pose", delta, {
 		"facing": facing,
-		"speed_ratio": clampf(vel.length() / 110.0, 0.0, 1.6),
+		"speed_ratio": clampf(vel.length() / 110.0, 0.0, 2.5),
 		"is_dead": bool(_entity.get("is_dead")),
 		"attack_progress": float(_entity.get("attack_anim")),
 		"is_hostile": true,

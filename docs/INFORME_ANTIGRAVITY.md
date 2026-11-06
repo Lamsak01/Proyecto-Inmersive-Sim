@@ -1,54 +1,74 @@
-# Informe de entrega — Antigravity (`COMBATE-1`: Rodar con Espacio, parar con Q y golpes enemigos con aviso)
+# Informe de Antigravity para el Supervisor (Claude Code) — Bloque ANIM-1
 
-## 1. Archivos tocados y qué se hizo en cada uno
+> Fecha: 2026-11-06
+> Alcance ejecutado: **Bloque ANIM-1** (`docs/ENCARGO_ANTIGRAVITY.md` §2: calibración de zancada de «walk» y «run» para eliminar el patinado de los pasos en 3D y giro de 180° de armas y herramientas en la mano de jugador y vecinos).
 
-- **`scripts/PlayerMovementController.gd`**:
-  - Añadidas las constantes `ROLL_DURATION` (`0.35` s), `ROLL_INVULN_DURATION` (`0.25` s), `ROLL_DISTANCE` (`50.0` px), `ROLL_COOLDOWN` (`0.60` s) y `ROLL_STAMINA_COST` (`18.0`), junto con las variables de estado `roll_timer`, `roll_invuln_timer`, `roll_cooldown_timer` y `roll_direction`.
-  - Añadidas las funciones `is_rolling()`, `is_roll_invulnerable()`, `get_roll_progress()` y `start_roll(dir_override: Vector2 = Vector2.ZERO) -> bool`.
-  - En `_unhandled_input(event)`, pulsar `KEY_SPACE` invoca `start_roll()`. No permite rodar si el jugador va montado a caballo (`is_mounted`), está aturdido, en diálogo/menú/pesca/tronco o sin energía suficiente en `StaminaComponent.use_stamina(ROLL_STAMINA_COST)`. Al iniciar la rodada rompe el sigilo (`is_stealthing = false`).
-  - En `_physics_process(delta)`, mientras `roll_timer > 0.0`, desplaza al jugador en `roll_direction` a `ROLL_DISTANCE / ROLL_DURATION` colisionando con muros mediante `player.move_and_slide()`.
+---
 
-- **`scripts/PlayerCombatController.gd`**:
-  - Añadidas las constantes `PARRY_WINDOW` (`0.20` s), `PARRY_COOLDOWN` (`0.50` s) y `PARRY_STAGGER_DURATION` (`0.80` s), junto con `parry_window_timer` y `parry_cooldown_timer`.
-  - Añadidas las funciones `_physics_process(delta)`, `is_parrying()`, `start_parry() -> bool` y `resolve_parry_hit(attacker: Node) -> void`.
-  - En `_unhandled_input(event)`, se conserva la prioridad del derribo no letal en sigilo con `KEY_Q` cuando `is_instance_valid(current_prompt_target)` es cierto; solo cuando no hay objetivo de sigilo válido, pulsar `KEY_Q` llama a `start_parry()`.
-  - Si expira `parry_window_timer` sin haber parado un golpe, entra en `parry_cooldown_timer = PARRY_COOLDOWN` (`0.50` s). Si entra un golpe cuerpo a cuerpo durante la ventana, `resolve_parry_hit(attacker)` limpia la ventana y el enfriamiento e invoca `attacker.call("apply_parry_stagger", PARRY_STAGGER_DURATION)`.
+## 1. Qué se hizo exactamente
 
-- **`scripts/Player.gd`**:
-  - Añadidos los envoltorios `start_roll(dir_override: Vector2 = Vector2.ZERO) -> bool`, `is_rolling() -> bool`, `is_roll_invulnerable() -> bool`, `start_parry() -> bool` y `is_parrying() -> bool`.
-  - En `take_damage(data: DamageData)`:
-    - Si `is_roll_invulnerable()` es cierto, ignora todo el daño y muestra `"💨 ¡ESQUIVADO!"`.
-    - Si `is_parrying()` es cierto y el impacto no es un proyectil a distancia (`not is_ranged_hit`), anula el daño, llama a `combat_ctrl.call("resolve_parry_hit", data.source)` y muestra `"🛡️ ¡PARADA!"`.
+### 1.1. Pasos que patinan — Medición de zancada a escala de escenario y cálculo en `_pick_clip`
+- **Medición sobre el esqueleto real (`ual_male.res`, Quaternius UAL1):**
+  - Escala del muñeco en el escenario: `CharacterAvatar3D.STAGE_K = 0.40` y `WorldStage3D.WORLD_SCALE = 0.02` (`1` unidad del muñeco = `0.40` unidades 3D = `20.0 px` del mapa 2D), con `RealCharRoot.scale = Vector3(0.88, 0.88, 0.88)` en `CharacterRig3D._rebuild_real_quaternius_character()`.
+  - **`"walk"` (`Walk_Loop`, duración `1.333 s`):** excursión anteroposterior del pie (`ball_l`) $\Delta Z = 0.7215\text{ u\_rig}$ $\rightarrow$ zancada de ciclo completo ($2 \times \Delta Z$) = `1.443 u_rig` = **`28.86 px`** (`WALK_CYCLE_PX = 28.86`). A `speed_scale = 1.0`, la velocidad nativa del ciclo es **`WALK_BASE_PX_S = 21.65 px/s`** (`28.86 px / 1.3333 s`).
+  - **`"run"` (`Jog_Fwd_Loop`, duración `0.933 s`):** excursión anteroposterior del pie (`ball_l`) $\Delta Z = 1.310\text{ u\_rig}$ $\rightarrow$ zancada de ciclo completo ($2 \times \Delta Z$) = `2.620 u_rig` = **`52.40 px`** (`RUN_CYCLE_PX = 52.40`). A `speed_scale = 1.0`, la velocidad nativa del ciclo es **`RUN_BASE_PX_S = 56.15 px/s`** (`52.40 px / 0.9333 s`).
+  - **`"carry"` (`Carry_Walk_Loop`, duración `2.000 s`):** zancada de ciclo completo = `1.437 u_rig` = **`28.74 px`** $\rightarrow$ velocidad nativa **`CARRY_BASE_PX_S = 14.37 px/s`**.
+- **Cálculo de la velocidad de reproducción en `CharacterRig3D._pick_clip()`:**
+  - A partir de `real_px_s = _speed_ratio * 110.0` y del factor de escala infantil `scale_k = 0.72 if _is_child else 1.0`:
+    - Si `_speed_ratio > 1.35`, devuelve `["run", clampf(real_px_s / (RUN_BASE_PX_S * scale_k), 0.6, 4.0)]`.
+    - En caso contrario, devuelve `["walk", clampf(real_px_s / (WALK_BASE_PX_S * scale_k), 0.5, 5.5)]`.
+    - En `AnimState.CARRY`, devuelve `["carry", clampf(carry_px_s / (CARRY_BASE_PX_S * carry_k), 0.5, 5.5)]`.
+  - En `CharacterRig3D.update_pose()`, se rebajó el suelo de `maxf(0.5, spd)` a `maxf(0.15, spd)` al llamar a `update_animation(...)` para no acelerar artificialmente el paso lento/sigilo; y en `CharacterAvatar3D._sync_pose_and_tint()` y `BanditModel3D._process()` se amplió el tope de `speed_ratio` de `1.6` a `2.5` para cubrir el sprint completo (`200 px/s`).
 
-- **`scripts/systems/combat/DamageData.gd` y `scripts/systems/combat/ArrowProjectile.gd`**:
-  - Añadido `is_ranged_projectile: bool = false` en `DamageData` (copiado en `DamageData.copy()`) y marcado a `true` en `ArrowProjectile._ready()`, `ArrowProjectile._on_area_entered(area)` y `ArrowProjectile._on_body_entered(body)` (así como en `VillageNPC._fire_police_pistol(player)`), de modo que flechas y balas no se pueden parar con `Q`.
+### 1.2. Armas y herramientas al revés — Giro de 180° en `CharacterRig3D._build_real_curated_tools()`
+- **Causa raíz:** en el esqueleto Quaternius, el hueso `hand_r` tiene su eje `+Z` apuntando hacia delante y arriba (fuera del puño por el lado del pulgar) y su eje `+Y` a lo largo de los dedos hacia delante/abajo. Sin embargo, `WeaponHolder` tenía `rotation_degrees = Vector3(0.0, 90.0, -90.0)`, cuya matriz (`Ry(90°) * Rz(-90°)`) enviaba el eje `+Y` de los modelos de arma/herramienta (el asta o la hoja desde la empuñadura) hacia **`-Z` de `hand_r`** (180° hacia atrás) y el eje `+X` (el filo o cañón) hacia **`-Y` de `hand_r`**.
+- **Corrección aplicada en `CharacterRig3D._build_real_curated_tools()`:**
+  - `WeaponHolder.rotation_degrees` pasa de `Vector3(0.0, 90.0, -90.0)` a **`Vector3(0.0, 90.0, 90.0)`**, invirtiendo 180° tanto el eje `+Y` del modelo (que ahora apunta hacia `+Z` de `hand_r`, delante y arriba) como el eje `+X` del modelo (que ahora apunta hacia `+Y` de `hand_r`, en la dirección del golpe o disparo):
+    - **Espada y daga (`"sword"`, `"blade"`, `"dagger"`, `"knife"`):** hoja hacia delante y arriba.
+    - **Hacha, pico, martillo y hoz (`"axe"`, `"wood_axe"`, `"pickaxe"`, `"hammer"`, `"sledgehammer"`, `"smith_hammer"`, `"scythe"`, `"sickle"`, `"hoe"`):** asta hacia delante/arriba y filo/cabeza hacia el frente de golpeo.
+    - **Caña y lanza (`"fishing_rod"`, `"staff"`, `"guard_spear"`, `"spear"`):** asta y punta hacia delante y arriba (incluidos los guardias como Rodric).
+    - **Arco (`"bow"`):** añadido `model_node.rotation_degrees = Vector3(0.0, 180.0, 0.0)` para que la madera curva apunte hacia delante y la cuerda hacia el arquero.
+    - **Arcabuz / pistola (`"flintlock"`, `"pistol"`, `"arquebus"`):** eliminado el giro extra `Vector3(0.0, 90.0, 0.0)` que desviaba el cañón lateralmente; con `WeaponHolder` en `(0, 90, 90)`, el cañón (`+X` de `Pistol_1.obj`) apunta directo hacia delante al apuntar (`"aim"`/`"shoot"`) y el fogonazo `muzzle_flash_node` queda en la boca del cañón (`Vector3(0.42, 0.14, 0.0)`).
+    - **Regadera y farol en mano derecha (`"watering_can"`, `"lantern"`):** girados con `Vector3(0.0, 0.0, 90.0)` y desplazados (`Vector3(0.26..0.28, 0.0, 0.0)`) para que cuelguen derechos desde el asa superior.
+  - En la mano izquierda (`hand_l`), `l_holder.rotation_degrees` pasa de `Vector3(0.0, 90.0, 90.0)` a **`Vector3(0.0, -90.0, -90.0)`** (con el escudo `"shield"` mirando hacia fuera del brazo izquierdo, y el `"lantern"` girado `Vector3(0.0, 0.0, -90.0)` con `position = Vector3(-0.28, 0.0, 0.0)` para colgar vertical de la mano).
 
-- **`scripts/enemies/VillageNPC.gd`**:
-  - Añadidas `_melee_windup_timer`, `_police_baton_windup_timer`, `_stagger_timer` y la función `apply_parry_stagger(duration: float = 0.8) -> void`.
-  - En `_process_hostile_combat(delta)` y `_process_police_law_enforcement(delta, vm)`, antes de dar cada golpe cuerpo a cuerpo se inicia un aviso de `0.40` s (`_melee_windup_timer = 0.40` / `_police_baton_windup_timer = 0.40`) con destello en `sprite`, texto flotante `"❗"` y `trigger_action_animation(0.45)`. Al terminar los `0.40` s, el daño solo se aplica si el jugador sigue dentro del alcance cuerpo a cuerpo (`<= 34.0` px / `<= 38.0` px).
+### 1.3. Capturas comparativas (`docs/capturas_anim1/`)
+- Generadas con `tools/screenshot_3d.gd` en el punto `"cerca"` a las `10` h:
+  - Antes: `docs/capturas_anim1/cerca_antes_10h.png`
+  - Después: `docs/capturas_anim1/cerca_despues_10h.png`
 
-- **`scripts/enemies/Raider.gd`**:
-  - Añadidas `_windup_t`, `stagger_timer` y la función `apply_parry_stagger(duration: float = 0.8) -> void`.
-  - En `_physics_process(delta)`, cuando el asaltante está en rango cuerpo a cuerpo (`d <= MELEE_RANGE`) y `_attack_t <= 0.0`, inicia un aviso de `0.40` s (`_windup_t = 0.40`, `attack_anim = 1.0` y destello en `sprite`) y solo ejecuta `_hit(target)` al agotarse `_windup_t` si `target` sigue a `<= MELEE_RANGE + 6.0` px.
+---
 
-- **`scripts/enemies/DomesticPet.gd`**:
-  - Añadidas `_bite_windup_timer`, `stagger_timer` y la función `apply_parry_stagger(duration: float = 0.8) -> void`.
-  - En `_physics_process(delta)` (bloque `is_hostile and pet_type == PetType.DOG`), antes de morder inicia `_bite_windup_timer = 0.40` con destello y `"❗"`, y al terminar los `0.40` s solo aplica el mordisco si el jugador sigue a `<= 22.0` px.
+## 2. Archivos modificados
 
-- **`scripts/enemies/WildAnimal.gd`**:
-  - Añadidas `boar_melee_windup`, `stagger_timer` y la función `apply_parry_stagger(duration: float = 0.8) -> void`.
-  - En `_start_boar_aggro(attacker)` y `_process_boar_charge_attack(delta)`, tanto la preparación de embestida (`boar_charge_windup = 0.40`) como el golpe cuerpo a cuerpo a corta distancia (`boar_melee_windup = 0.40`) avisan durante `0.40` s con `"🐗❗"` y destello antes de llamar a `_deliver_boar_ram_hit(boar_aggressor)`.
+| Archivo | Funciones / métodos tocados |
+|---|---|
+| `scripts/visuals/CharacterRig3D.gd` | `_build_real_curated_tools`, `update_pose`, `_pick_clip` (y constantes `WALK_CYCLE_PX`, `WALK_BASE_PX_S`, `RUN_CYCLE_PX`, `RUN_BASE_PX_S`, `CARRY_BASE_PX_S`) |
+| `scripts/visuals/CharacterAvatar3D.gd` | `_sync_pose_and_tint` |
+| `scripts/visuals/BanditModel3D.gd` | `_process` |
+| `docs/capturas_anim1/cerca_antes_10h.png` | Captura en `"cerca"` antes del cambio |
+| `docs/capturas_anim1/cerca_despues_10h.png` | Captura en `"cerca"` después del cambio |
+| `docs/HANDOFF.md` | Entrada superior en §7 para el bloque `ANIM-1` |
+| `CHANGELOG.md` | Entrada en lenguaje de jugador para `ANIM-1` |
+| `docs/REGISTRO_TRABAJO.md` | Fila `ANIM-1` en la tabla del Bloque FIS |
+| `GameVault/02_Sistemas/Estética Retro 3D.md` | Nota de diseño `ANIM-1` |
+| `GameVault/05_Roadmap_y_Lore/Tablero.md` | Tarjeta completada en `✅ Hecho` |
+| `GameVault/06_Diario/2026-11-06.md` | Línea en `✅ Qué hice hoy` |
 
-- **`tools/bake_character_animations.gd`, `assests/curated_3d/animations/ual_male.res`, `assests/curated_3d/animations/ual_female.res`, `scripts/visuals/CharacterRig3D.gd`, `scripts/visuals/CharacterAvatar3D.gd` y `scripts/visuals/AnimalModel3D.gd`**:
-  - **Animaciones 3D elegidas:** se comprobó que `AL_Standard.fbx` (Quaternius UAL1) incluye la animación `"Roll"` y `UAL2_Standard.glb` (Quaternius UAL2) incluye `"Sword_Block"`. Se añadieron `"roll": [1, "Roll", false]` y `"block": [2, "Sword_Block", false]` al diccionario `PICK` de `tools/bake_character_animations.gd` y se regeneraron `ual_male.res` y `ual_female.res` (30 animaciones por biblioteca). Además, en `CharacterRig3D._apply_skeleton_pose(_delta)` se añadió el respaldo procedural para `AnimState.ROLL` (agachado y giro frontal de 360° en `RealCharRoot`) y `AnimState.BLOCK` (brazos en guardia).
-  - En `CharacterAvatar3D._sync_pose_and_tint(delta)` se pasan `is_rolling`, `roll_progress`, `is_parrying` y el progreso del aviso de ataque de los NPC (`_melee_windup_timer` / `_police_baton_windup_timer`) a `CharacterRig3D.update_pose(delta, state_dict)`.
-  - En `AnimalModel3D._update_animation(delta, lying, just_shown)`, los animales con modelo `.glb` reproducen su clip `"Attack"` mientras están en su aviso de `0.40` s (`_bite_windup_timer`, `boar_charge_windup`, `boar_melee_windup`, `_windup_t`).
+---
 
-- **`scenes/ui_root.gd`**:
-  - En `_on_clock_time_updated(_day, _hour, _minute)`, añadido `[Espacio] Rodar · [Q] Parar` a `clock_sub_label.text`.
+## 3. Pruebas ejecutadas y resultados
 
-- **`tools/tests/verify_all.gd`**:
-  - Añadido el bloque `Block COMBATE-1` (`COMBATE-1.1` a `COMBATE-1.6`) que verifica: invulnerabilidad durante la rodada, imposibilidad de rodar sin energía, parada a tiempo con desequilibrio de `~0.8` s al atacante, parada fuera de tiempo (y que las flechas no se pueden parar), golpe enemigo que entra tras los `~0.4` s de aviso y no al instante, y prioridad del derribo no letal en sigilo con `Q` cuando `current_prompt_target` es válido.
+Siguiendo la instrucción expresa del encargo (§2: *«Esta mañana NO pases las cuatro pruebas (las pasa el supervisor al final): solo el arranque sin errores (`timeout 120 … --quit-after 3`)»*), se ejecutó únicamente el arranque sin errores con `timeout`:
 
-- **Documentación**:
-  - Actualizados `CHANGELOG.md`, `docs/HANDOFF.md` (§7), `docs/REGISTRO_TRABAJO.md`, `GameVault/02_Sistemas/Armaduras, Sigilo y Arcabuz.md`, `GameVault/05_Roadmap_y_Lore/Tablero.md` y `GameVault/06_Diario/2026-11-06.md`.
+1. **Arranque sin errores (`timeout 120 flatpak run org.godotengine.Godot --headless --path /home/lamsak/Videojuego --quit-after 3`):**
+   - **Resultado:** `exit code 0` en ~6 s, sin errores de script ni de compilación.
+2. **Verificación visual (`tools/screenshot_3d.gd` en `"cerca"`):**
+   - **Resultado:** `docs/capturas_anim1/cerca_antes_10h.png` y `docs/capturas_anim1/cerca_despues_10h.png` comprobadas visualmente; tanto la espada del jugador como la lanza y el escudo de Guardia Rodric pasan de estar invertidos 180° hacia atrás a sujetarse hacia delante.
+
+---
+
+## 4. Qué no se tocó
+
+- No se ejecutaron las cuatro baterías de pruebas (reservadas al supervisor al cierre según instrucciones).
+- No se modificó ningún otro sistema fuera de `ANIM-1`.

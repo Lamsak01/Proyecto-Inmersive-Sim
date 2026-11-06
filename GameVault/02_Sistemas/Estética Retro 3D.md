@@ -56,6 +56,10 @@ tags:
 - 2026-11-06 (Claude Code): niebla nocturna. Se espesa al anochecer y es máxima de madrugada; deja un claro
   alrededor del jugador (más grande con farol) y a lo lejos solo se ven siluetas. Bancos de niebla que se mueven
   despacio, anclados al mundo. Farolas y ventanas la atraviesan en ámbar. Solo visual: los vecinos ven igual.
+- 2026-11-06 (Antigravity, `ANIM-1`): ajustada la velocidad de los pasos de andar, correr y cargar a lo que avanza de
+  verdad cada zancada en el escenario para que los personajes no parezcan patinar sobre el suelo, y giradas 180° las
+  armas y herramientas en la mano (espada, hacha, pico, martillo, hoz, arco, arcabuz, caña/lanza, regadera, escudo y
+  farol) para que apunten hacia delante tanto en el jugador como en los vecinos.
 
 ## Tareas
 - [x] Animaciones reales en vez de balanceos
