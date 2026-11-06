@@ -28,6 +28,8 @@ const PICK := {
 	"hit": [1, "Hit_Chest", false],
 	"sword": [1, "Sword_Attack", false],
 	"punch": [1, "Punch_Jab", false],
+	"roll": [1, "Roll", false],
+	"block": [2, "Sword_Block", false],
 	"aim": [1, "Pistol_Aim_Neutral", true],
 	"shoot": [1, "Pistol_Shoot", false],
 	"pickup": [1, "PickUp_Table", false],

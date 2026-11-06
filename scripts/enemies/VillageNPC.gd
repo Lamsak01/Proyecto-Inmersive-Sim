@@ -244,6 +244,9 @@ static var _hover_owner_d: float = 0.0
 # Estado Policial y Sigilo (Negociación -> Persecución + Derribo No Letal / Asesinato Letal por la Espalda)
 var _police_alerted_timer: float = 0.0
 var _civilian_hostile_timer: float = 0.0
+var _melee_windup_timer: float = 0.0
+var _police_baton_windup_timer: float = 0.0
+var _stagger_timer: float = 0.0
 var _last_seen_player_pos: Vector2 = Vector2.ZERO
 var _stuck_timer: float = 0.0
 var _last_frame_pos: Vector2 = Vector2.ZERO
@@ -2366,6 +2369,27 @@ func _process_police_law_enforcement(delta: float, vm: Node) -> bool:
 		_update_hover_label(delta)
 		return true
 
+	if _stagger_timer > 0.0:
+		_stagger_timer = maxf(0.0, _stagger_timer - delta)
+		_police_baton_windup_timer = 0.0
+		velocity = Vector2.ZERO
+		if _stagger_timer <= 0.0 and sprite:
+			sprite.modulate = Color.WHITE
+		_finish_frame_movement(delta)
+		return true
+
+	if _police_baton_windup_timer > 0.0:
+		_police_baton_windup_timer = maxf(0.0, _police_baton_windup_timer - delta)
+		velocity = Vector2.ZERO
+		if _police_baton_windup_timer <= 0.0:
+			_attack_timer = 0.85 / maxf(0.55, eff_pol)
+			if sprite:
+				sprite.modulate = Color.WHITE
+			if is_instance_valid(player) and global_position.distance_to(player.global_position) <= 38.0:
+				_strike_police_baton(player)
+		_finish_frame_movement(delta)
+		return true
+
 	_attack_timer = maxf(0.0, _attack_timer - delta)
 	if can_see_player and dist_p <= 36.0:
 		if dist_p > 22.0:
@@ -2373,8 +2397,11 @@ func _process_police_law_enforcement(delta: float, vm: Node) -> bool:
 		else:
 			velocity = Vector2.ZERO
 		if _attack_timer <= 0.0:
-			_attack_timer = 0.85 / maxf(0.55, eff_pol)
-			_strike_police_baton(player)
+			_police_baton_windup_timer = 0.40
+			trigger_action_animation(0.45)
+			if sprite:
+				sprite.modulate = Color(1.35, 0.9, 0.45)
+			_spawn_floating_text("❗", Color.ORANGE_RED, -36.0)
 	elif can_see_player and dist_p <= 195.0:
 		_move_towards_point(player.global_position, 82.0 * spd_mult, delta)
 		if _attack_timer <= 0.0:
@@ -2409,6 +2436,7 @@ func _fire_police_pistol(player: Node2D) -> void:
 	d.type = CombatConstants.DamageType.CUT
 	d.bleed_buildup = 20.0 * eff
 	d.weapon_tag = "Pistola Policial"
+	d.is_ranged_projectile = true
 	d.source = self
 	player.call("take_damage", d)
 	_spawn_floating_text("🔫 ¡Disparo Policial!", Color(1.0, 0.82, 0.28), -42.0)
@@ -3940,6 +3968,16 @@ func get_activity_description() -> String:
 				return "🏠 Turno del Hogar (08-18h)" if _is_mandatory_work_hours() else "🏠 Cuidando el Hogar"
 			return "⚒️ En Turno Laboral (08-18h)" if _is_mandatory_work_hours() else "⚒️ Atendiendo su Oficio"
 
+func apply_parry_stagger(duration: float = 0.8) -> void:
+	_stagger_timer = maxf(_stagger_timer, duration)
+	_melee_windup_timer = 0.0
+	_police_baton_windup_timer = 0.0
+	_attack_timer = maxf(_attack_timer, duration)
+	velocity = Vector2.ZERO
+	if sprite:
+		sprite.modulate = Color(0.75, 0.92, 1.35)
+	_spawn_floating_text("💫 ¡Desequilibrado!", Color.AQUA, -36.0)
+
 func _process_hostile_combat(delta: float) -> void:
 	var vm = _get_vm()
 	# Si la policía ya capturó al jugador, lo lleva esposado a la comisaría, está en la celda o está negociando su entrega,
@@ -3947,6 +3985,14 @@ func _process_hostile_combat(delta: float) -> void:
 	if vm and (bool(vm.get("player_being_escorted_to_jail")) or bool(vm.get("player_in_jail")) or (vm.get("police_panel") != null and vm.police_panel.visible)):
 		_clear_combat_hostility(false)
 		velocity = Vector2.ZERO
+		return
+
+	if _stagger_timer > 0.0:
+		_stagger_timer = maxf(0.0, _stagger_timer - delta)
+		_melee_windup_timer = 0.0
+		velocity = Vector2.ZERO
+		if _stagger_timer <= 0.0 and sprite:
+			sprite.modulate = Color.WHITE
 		return
 
 	var player = _get_player()
@@ -3970,6 +4016,21 @@ func _process_hostile_combat(delta: float) -> void:
 			velocity = Vector2.ZERO
 			return
 
+	if _melee_windup_timer > 0.0:
+		_melee_windup_timer = maxf(0.0, _melee_windup_timer - delta)
+		velocity = Vector2.ZERO
+		if _melee_windup_timer <= 0.0:
+			_attack_timer = 1.0
+			if sprite:
+				sprite.modulate = Color.WHITE
+			if is_instance_valid(player) and global_position.distance_to(player.global_position) <= 34.0 and player.has_method("take_damage"):
+				var d := DamageData.new()
+				d.amount = 14.0 if is_police_unit else 9.0
+				d.weapon_tag = "Porra Policial" if is_police_unit else ("Golpe de " + npc_name)
+				d.source = self
+				player.call("take_damage", d)
+		return
+
 	var dist: float = global_position.distance_to(player.global_position)
 	if dist > 30.0:
 		_move_towards_point(player.global_position, 88.0, delta)
@@ -3977,13 +4038,11 @@ func _process_hostile_combat(delta: float) -> void:
 		velocity = Vector2.ZERO
 		_attack_timer -= delta
 		if _attack_timer <= 0.0:
-			_attack_timer = 1.0
-			if player.has_method("take_damage"):
-				var d := DamageData.new()
-				d.amount = 14.0 if is_police_unit else 9.0
-				d.weapon_tag = "Porra Policial" if is_police_unit else ("Golpe de " + npc_name)
-				d.source = self
-				player.call("take_damage", d)
+			_melee_windup_timer = 0.40
+			trigger_action_animation(0.45)
+			if sprite:
+				sprite.modulate = Color(1.35, 0.9, 0.45)
+			_spawn_floating_text("❗", Color.ORANGE_RED, -36.0)
 
 func trigger_action_animation(duration: float = 2.8) -> void:
 	_anim_action_timer = maxf(_anim_action_timer, duration)

@@ -17,6 +17,14 @@ var attack_timer: float = 0.0
 var _takedown_check_timer: float = 0.0
 var current_aim_dir: Vector2 = Vector2.RIGHT
 
+## Parada con Q (COMBATE-1): ventana corta de ~0.2 s, enfriamiento ~0.5 s si no entra golpe, deja al atacante ~0.8 s sin pegar.
+const PARRY_WINDOW: float = 0.20
+const PARRY_COOLDOWN: float = 0.50
+const PARRY_STAGGER_DURATION: float = 0.80
+
+var parry_window_timer: float = 0.0
+var parry_cooldown_timer: float = 0.0
+
 # Sistema de Tensión del Arco (Hold-to-Draw)
 var is_drawing_bow: bool = false
 var bow_tension: float = 0.0
@@ -61,6 +69,55 @@ func _process(delta: float) -> void:
 	if attack_timer > 0.0:
 		attack_timer -= delta
 
+func _physics_process(delta: float) -> void:
+	if parry_window_timer > 0.0:
+		parry_window_timer = maxf(0.0, parry_window_timer - delta)
+		if parry_window_timer <= 0.0:
+			parry_cooldown_timer = PARRY_COOLDOWN
+			if weapon_sprite and attack_timer <= 0.0 and not is_drawing_bow:
+				weapon_sprite.visible = false
+				weapon_sprite.modulate = Color.WHITE
+	elif parry_cooldown_timer > 0.0:
+		parry_cooldown_timer = maxf(0.0, parry_cooldown_timer - delta)
+
+func is_parrying() -> bool:
+	return parry_window_timer > 0.0
+
+func start_parry() -> bool:
+	if not is_instance_valid(player):
+		return false
+	var dm = player.get("dialogue_manager")
+	if (dm and dm.has_method("is_active") and dm.call("is_active")) or (player.has_method("is_stunned") and player.is_stunned()) or (player.has_method("is_any_ui_modal_open") and bool(player.call("is_any_ui_modal_open"))) or (player.has_method("is_fishing_or_sitting") and bool(player.call("is_fishing_or_sitting"))):
+		return false
+	var vm = get_tree().get_first_node_in_group("village_manager")
+	if vm and (bool(vm.get("player_in_jail")) or bool(vm.get("player_being_escorted_to_jail"))):
+		return false
+	if is_instance_valid(current_prompt_target):
+		return false
+	if player.has_method("is_rolling") and bool(player.call("is_rolling")):
+		return false
+	if parry_window_timer > 0.0 or parry_cooldown_timer > 0.0:
+		return false
+	if is_drawing_bow:
+		_cancel_bow_draw()
+	parry_window_timer = PARRY_WINDOW
+	if weapon_sprite:
+		weapon_sprite.visible = true
+		weapon_sprite.rotation_degrees = 35.0
+		weapon_sprite.modulate = Color(0.75, 0.95, 1.35)
+	return true
+
+func resolve_parry_hit(attacker: Node) -> void:
+	parry_window_timer = 0.0
+	parry_cooldown_timer = 0.0
+	if weapon_sprite:
+		weapon_sprite.visible = false
+		weapon_sprite.modulate = Color.WHITE
+	if is_instance_valid(attacker) and attacker.has_method("apply_parry_stagger"):
+		attacker.call("apply_parry_stagger", PARRY_STAGGER_DURATION)
+	if is_instance_valid(player) and player.has_method("_spawn_combat_popup"):
+		player.call("_spawn_combat_popup", "🛡️ ¡PARADA!", Color(0.45, 0.95, 1.0))
+
 func _unhandled_input(event: InputEvent) -> void:
 	if not is_instance_valid(player):
 		return
@@ -83,8 +140,8 @@ func _unhandled_input(event: InputEvent) -> void:
 			if bool(vm.call("try_priority_door_or_corpse_interaction", player, player.get_global_mouse_position())):
 				get_viewport().set_input_as_handled()
 				return
-		var is_non_lethal_key: bool = event.is_action_pressed("Interact") or (event is InputEventKey and event.pressed and not event.echo and event.physical_keycode == KEY_Q)
-		var is_lethal_key: bool = event.is_action_pressed("ui_accept") or (event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT) or (event is InputEventKey and event.pressed and not event.echo and event.physical_keycode == KEY_V)
+		var is_non_lethal_key: bool = event.is_action_pressed("Interact") or (event is InputEventKey and event.pressed and not event.echo and (event.physical_keycode == KEY_Q or event.keycode == KEY_Q))
+		var is_lethal_key: bool = event.is_action_pressed("ui_accept") or (event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT) or (event is InputEventKey and event.pressed and not event.echo and (event.physical_keycode == KEY_V or event.keycode == KEY_V))
 		if is_non_lethal_key:
 			_execute_stealth_takedown(current_prompt_target, false)
 			get_viewport().set_input_as_handled()
@@ -93,6 +150,11 @@ func _unhandled_input(event: InputEvent) -> void:
 			_execute_stealth_takedown(current_prompt_target, true)
 			get_viewport().set_input_as_handled()
 			return
+
+	if event is InputEventKey and event.pressed and not event.echo and (event.keycode == KEY_Q or event.physical_keycode == KEY_Q):
+		if start_parry():
+			get_viewport().set_input_as_handled()
+		return
 
 	var equipped: WeaponData = player.equipped_weapon
 	var is_flintlock: bool = equipped != null and str(equipped.name).to_lower() == "flintlock"

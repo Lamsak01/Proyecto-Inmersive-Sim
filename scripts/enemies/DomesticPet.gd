@@ -34,6 +34,8 @@ var _hostile_timer: float = 0.0
 var _flee_timer: float = 0.0
 var _flee_from_pos: Vector2 = Vector2.ZERO
 var _attack_cooldown: float = 0.0
+var _bite_windup_timer: float = 0.0
+var stagger_timer: float = 0.0
 var _starve_tick_timer: float = 0.0
 
 var _wander_target: Vector2 = Vector2.ZERO
@@ -225,18 +227,26 @@ func _physics_process(delta: float) -> void:
 		var player_jailed: bool = vm_p != null and (bool(vm_p.get("player_being_escorted_to_jail")) or bool(vm_p.get("player_in_jail")))
 		if _hostile_timer <= 0.0 or not is_instance_valid(player) or player_jailed or global_position.distance_to(player.global_position) > 190.0:
 			is_hostile = false
+			_bite_windup_timer = 0.0
 			remove_from_group("enemies")
 		else:
 			is_sleeping = false
-			var dist_p: float = global_position.distance_to(player.global_position)
-			if dist_p > 18.0:
-				velocity = (player.global_position - global_position).normalized() * (68.0 * pet_spd_mult)
-				move_and_slide()
-			else:
+			if stagger_timer > 0.0:
+				stagger_timer = maxf(0.0, stagger_timer - delta)
+				_bite_windup_timer = 0.0
 				velocity = Vector2.ZERO
-				if _attack_cooldown <= 0.0:
+				if stagger_timer <= 0.0 and sprite:
+					sprite.modulate = tint_color
+				_update_label(delta)
+				return
+			if _bite_windup_timer > 0.0:
+				_bite_windup_timer = maxf(0.0, _bite_windup_timer - delta)
+				velocity = Vector2.ZERO
+				if _bite_windup_timer <= 0.0:
 					_attack_cooldown = 1.05
-					if player.has_method("take_damage"):
+					if sprite:
+						sprite.modulate = tint_color
+					if is_instance_valid(player) and global_position.distance_to(player.global_position) <= 22.0 and player.has_method("take_damage"):
 						var bite := DamageData.new()
 						bite.amount = 9.0 * pet_spd_mult
 						bite.type = CombatConstants.DamageType.CUT
@@ -244,6 +254,19 @@ func _physics_process(delta: float) -> void:
 						bite.source = self
 						player.call("take_damage", bite)
 						_spawn_floating_text("🐕🦷 ¡Mordisco de %s!" % pet_name, Color.ORANGE_RED)
+				_update_label(delta)
+				return
+			var dist_p: float = global_position.distance_to(player.global_position)
+			if dist_p > 18.0:
+				velocity = (player.global_position - global_position).normalized() * (68.0 * pet_spd_mult)
+				move_and_slide()
+			else:
+				velocity = Vector2.ZERO
+				if _attack_cooldown <= 0.0:
+					_bite_windup_timer = 0.40
+					if sprite:
+						sprite.modulate = Color(1.35, 0.88, 0.42)
+					_spawn_floating_text("❗", Color.ORANGE_RED)
 			_update_label(delta)
 			return
 
@@ -332,6 +355,15 @@ func _try_eat_from_home_bowl(_delta: float) -> void:
 			digestion_buffer = clampf(digestion_buffer + 38.0, 0.0, maxf(18.0, 100.0 - need_hunger))
 			is_fed_today = true
 			_spawn_floating_text("🥣↗ %s comió en casa (Digeriendo...)" % pet_name, Color.SPRING_GREEN)
+
+func apply_parry_stagger(duration: float = 0.8) -> void:
+	stagger_timer = maxf(stagger_timer, duration)
+	_bite_windup_timer = 0.0
+	_attack_cooldown = maxf(_attack_cooldown, duration)
+	velocity = Vector2.ZERO
+	if sprite:
+		sprite.modulate = Color(0.65, 0.88, 1.35)
+	_spawn_floating_text("💫 ¡Desequilibrado!", Color.AQUA)
 
 func take_damage(data: DamageData) -> void:
 	if is_dead or corpse_looted:

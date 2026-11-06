@@ -18,6 +18,8 @@ var _shadow_line: Line2D = null
 var _col_shape: CollisionShape2D = null
 
 func _ready() -> void:
+	if damage_data:
+		damage_data.is_ranged_projectile = true
 	collision_layer = 0
 	collision_mask = 5 # Capas 1 (entorno/obstáculos) y 3 (hurtboxes de enemigos/animales)
 	rotation = direction.angle()
@@ -97,6 +99,7 @@ func _on_area_entered(area: Area2D) -> void:
 	if _is_grounded or area.get_parent() == shooter:
 		return
 	if area is Hurtbox and damage_data:
+		damage_data.is_ranged_projectile = true
 		_is_grounded = true
 		if _col_shape:
 			_col_shape.set_deferred("disabled", true)
@@ -107,6 +110,7 @@ func _on_body_entered(body: Node2D) -> void:
 	if _is_grounded or body == shooter:
 		return
 	if (body.is_in_group("wild_animals") or body.is_in_group("destructible")) and body.has_method("take_damage") and damage_data:
+		damage_data.is_ranged_projectile = true
 		_is_grounded = true
 		if _col_shape:
 			_col_shape.set_deferred("disabled", true)

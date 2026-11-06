@@ -65,6 +65,7 @@ kanban-plugin: board
 - [x] Rejillas y escalerillas de alcantarilla vigiladas: bajar o salir delante de un guardia sube la búsqueda y delante de un vecino deja chisme (2026-11-05)
 - [x] Ganado vivo del rancho y animales propios en tu corral con alimentación y esquila/recogida en persona (2026-11-05)
 - [x] Interior físico de tu propia casa: huerto cosechable, banco de trabajo y alquimia, escondite bajo las tablas y escalera/trampilla `+1`/`-1` con `[E]` (2026-11-05)
+- [x] Combate cuerpo a cuerpo con esquiva rodando (`[Espacio]`), parada a tiempo (`[Q]`) y golpes enemigos que avisan (`COMBATE-1`, 2026-11-06)
 
 - [x] Edificios con sus piezas quietas juntas (2026-11-06)
 - [x] Casas iniciales repartidas por los barrios y árboles agrupados para dibujar menos (2026-11-06)

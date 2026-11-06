@@ -723,7 +723,7 @@ func _on_clock_time_updated(_day: int, _hour: int, _minute: int) -> void:
 	var gold_val := 25
 	if player and "inventory" in player and player.inventory:
 		gold_val = player.inventory.gold
-	clock_sub_label.text = "💰 %d Oro | Visión: %d%% | [TAB] Rueda | [I] Mochila | [J] Vecinos | [M] Mapa | [F5/F9] Guardar/Cargar" % [gold_val, vis_pct]
+	clock_sub_label.text = "💰 %d Oro | Visión: %d%% | [Espacio] Rodar · [Q] Parar | [TAB] Rueda | [I] Mochila | [J] Vecinos | [M] Mapa | [F5/F9] Guardar/Cargar" % [gold_val, vis_pct]
 
 func _init_default_objectives() -> void:
 	var old_hud: Control = get_node_or_null("ObjectiveHUD") as Control

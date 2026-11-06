@@ -4961,5 +4961,130 @@ func _initialize() -> void:
 	p70_inv.gold = camp_gold_bak
 	print("Camp initial rules (zero-sum & double-E) OK")
 
+	# ==========================================================================
+	# Bloque COMBATE-1: rodar con Espacio, parar con Q y golpes enemigos que avisan (~0,4 s)
+	# ==========================================================================
+	var c1_mctrl = p70_pl.get_node("PlayerMovementController")
+	var c1_cctrl = p70_pl.get_node("PlayerCombatController")
+	var c1_stam = p70_pl.get_node("StaminaComponent")
+	var c1_hc = p70_pl.get_node("HealthComponent")
+	var c1_stam_bak: float = c1_stam.current_stamina
+	var c1_hp_bak: float = c1_hc.current_health
+	var c1_pos_bak: Vector2 = p70_pl.global_position
+	var c1_mounted_bak: bool = bool(p70_pl.get("is_mounted"))
+	p70_pl.set("is_mounted", false)
+	c1_mctrl.roll_timer = 0.0
+	c1_mctrl.roll_invuln_timer = 0.0
+	c1_mctrl.roll_cooldown_timer = 0.0
+	c1_cctrl.parry_window_timer = 0.0
+	c1_cctrl.parry_cooldown_timer = 0.0
+	c1_cctrl.current_prompt_target = null
+	c1_stam.current_stamina = 100.0
+	c1_hc.current_health = 100.0
+
+	# 1. Durante la rodada no se recibe daño
+	assert(p70_pl.start_roll(Vector2.RIGHT), "COMBATE-1.1a: Player starts roll with enough stamina")
+	assert(p70_pl.is_rolling() and p70_pl.is_roll_invulnerable(), "COMBATE-1.1b: Roll activates invulnerability window")
+	var c1_dmg := DamageData.new()
+	c1_dmg.amount = 20.0
+	c1_dmg.weapon_tag = "Tajo de prueba"
+	p70_pl.take_damage(c1_dmg)
+	assert(is_equal_approx(c1_hc.current_health, 100.0), "COMBATE-1.1c: During roll invulnerability, player takes no damage")
+	c1_mctrl.roll_timer = 0.0
+	c1_mctrl.roll_invuln_timer = 0.0
+	c1_mctrl.roll_cooldown_timer = 0.0
+
+	# 2. Sin energía no se puede rodar
+	c1_stam.current_stamina = 0.0
+	assert(not p70_pl.start_roll(Vector2.RIGHT) and not p70_pl.is_rolling(), "COMBATE-1.2: Without stamina, player cannot roll")
+	c1_stam.current_stamina = 100.0
+
+	# Elegir un vecino vivo para probar parada, aviso de ~0,4 s y prioridad de sigilo
+	var c1_npc = null
+	var c1_roles = load("res://scripts/enemies/VillageNPC.gd").TradeRole
+	for n_c1 in get_nodes_in_group("village_npcs"):
+		if not n_c1.is_dead and not n_c1.is_downed and not (int(n_c1.trade_role) in [int(c1_roles.SHERIFF), int(c1_roles.GUARD), int(c1_roles.ROYAL_INVESTIGATOR)]):
+			c1_npc = n_c1
+			break
+	assert(c1_npc != null, "COMBATE-1.0: Found test NPC")
+	var c1_npc_pos_bak: Vector2 = c1_npc.global_position
+	var c1_npc_hostile_bak: bool = c1_npc.is_hostile
+	c1_npc._stagger_timer = 0.0
+	c1_npc._melee_windup_timer = 0.0
+	c1_npc._attack_timer = 0.0
+
+	# 3. Una parada a tiempo anula un golpe cuerpo a cuerpo y deja al enemigo sin pegar ~0,8 s
+	assert(p70_pl.start_parry() and p70_pl.is_parrying(), "COMBATE-1.3a: Pressing Q opens parry window")
+	var c1_melee := DamageData.new()
+	c1_melee.amount = 15.0
+	c1_melee.weapon_tag = "Golpe de " + c1_npc.npc_name
+	c1_melee.source = c1_npc
+	p70_pl.take_damage(c1_melee)
+	assert(is_equal_approx(c1_hc.current_health, 100.0), "COMBATE-1.3b: Timely parry nullifies melee hit")
+	assert(c1_npc._stagger_timer >= 0.75 and c1_npc._attack_timer >= 0.75, "COMBATE-1.3c: Timely parry staggers attacker for ~0.8 s")
+	c1_npc._stagger_timer = 0.0
+	c1_npc._attack_timer = 0.0
+
+	# 4. Una parada fuera de tiempo no protege (y las flechas no se pueden parar)
+	c1_cctrl.parry_window_timer = 0.0
+	c1_cctrl.parry_cooldown_timer = 0.0
+	assert(p70_pl.start_parry(), "COMBATE-1.4a: Parry starts")
+	var c1_arrow := DamageData.new()
+	c1_arrow.amount = 10.0
+	c1_arrow.weapon_tag = "Flecha de caza"
+	c1_arrow.is_ranged_projectile = true
+	p70_pl.take_damage(c1_arrow)
+	assert(c1_hc.current_health < 100.0, "COMBATE-1.4b: Arrows cannot be parried with Q")
+	c1_hc.current_health = 100.0
+	c1_cctrl._physics_process(0.25) # Expiró la ventana de 0.20 s
+	assert(not p70_pl.is_parrying() and c1_cctrl.parry_cooldown_timer > 0.0, "COMBATE-1.4c: Parry window expired after 0.25 s and entered cooldown")
+	p70_pl.take_damage(c1_melee)
+	assert(c1_hc.current_health < 100.0, "COMBATE-1.4d: Late/expired parry does not protect")
+	c1_hc.current_health = 100.0
+	c1_cctrl.parry_cooldown_timer = 0.0
+
+	# 5. El golpe enemigo entra tras su aviso (~0,4 s), no al instante
+	p70_pl.global_position = Vector2(300, 300)
+	c1_npc.global_position = Vector2(312, 300) # dentro del rango cuerpo a cuerpo (<= 30 px)
+	c1_npc.is_hostile = true
+	c1_npc._civilian_hostile_timer = 10.0
+	c1_npc._attack_timer = 0.0
+	c1_npc._melee_windup_timer = 0.0
+	c1_npc._stagger_timer = 0.0
+	c1_npc._process_hostile_combat(0.05) # Dispara el inicio del aviso (~0,40 s), no el golpe
+	assert(c1_npc._melee_windup_timer > 0.30 and is_equal_approx(c1_hc.current_health, 100.0), "COMBATE-1.5a: Enemy starts ~0.4 s windup without dealing instant damage")
+	c1_npc._process_hostile_combat(0.15)
+	assert(c1_npc._melee_windup_timer > 0.15 and is_equal_approx(c1_hc.current_health, 100.0), "COMBATE-1.5b: Mid-windup (0.15 s), hit has not landed yet")
+	c1_npc._process_hostile_combat(0.30) # Completa los 0.40 s de aviso con el jugador aún al alcance
+	assert(c1_hc.current_health < 100.0, "COMBATE-1.5c: After ~0.4 s windup, melee hit lands if player is still in range")
+	c1_hc.current_health = 100.0
+	c1_npc.is_hostile = c1_npc_hostile_bak
+	c1_npc._melee_windup_timer = 0.0
+	c1_npc._stagger_timer = 0.0
+
+	# 6. Con objetivo de sigilo válido, Q sigue derribando en sigilo
+	c1_cctrl.current_prompt_target = c1_npc
+	c1_cctrl.parry_window_timer = 0.0
+	c1_cctrl.parry_cooldown_timer = 0.0
+	var q_ev := InputEventKey.new()
+	q_ev.pressed = true
+	q_ev.keycode = KEY_Q
+	q_ev.physical_keycode = KEY_Q
+	c1_cctrl._unhandled_input(q_ev)
+	assert(c1_npc.is_stunned_flag and not p70_pl.is_parrying(), "COMBATE-1.6: With valid stealth prompt target, Q performs non-lethal stealth takedown instead of parry")
+
+	# Restaurar estado tras prueba COMBATE-1
+	c1_npc.is_stunned_flag = false
+	c1_npc.sedated_timer = 0.0
+	c1_npc.is_sleeping = false
+	c1_npc.global_position = c1_npc_pos_bak
+	c1_npc.is_hostile = c1_npc_hostile_bak
+	p70_pl.global_position = c1_pos_bak
+	p70_pl.set("is_mounted", c1_mounted_bak)
+	c1_stam.current_stamina = c1_stam_bak
+	c1_hc.current_health = c1_hp_bak
+	c1_cctrl.current_prompt_target = null
+	print("Block COMBATE-1 (Roll, Parry & Telegraphed Enemy Attacks) OK")
+
 	print("ALL RIMWORLD MEDICAL, FOOTPRINTS, 3-PHASE CORPSE REPORT, MULTI-CORPSE FIX, RPG INTERROGATION, PUBLIC TRIAL, DYNAMIC RELATIONSHIPS, MISSING FAMILY SEARCH, SOCIAL GLOSSARY & UNCONSCIOUS REACTION TESTS PASSED!")
 	quit(0)

@@ -239,6 +239,16 @@ func _update_animation(delta: float, lying: bool, just_shown: bool) -> void:
 			if just_shown:
 				_anim.seek(_anim.current_animation_length, true)
 		return
+	var in_windup: bool = false
+	if is_instance_valid(_entity):
+		for w_prop in ["_bite_windup_timer", "boar_charge_windup", "boar_melee_windup", "_windup_t"]:
+			if w_prop in _entity and float(_entity.get(w_prop)) > 0.0:
+				in_windup = true
+				break
+	if in_windup and _anim.has_animation("Attack"):
+		_still_time = 0.0
+		_play("Attack", 1.35)
+		return
 	if _speed > run_px_s:
 		_still_time = 0.0
 		_play("Gallop", clampf(_speed / (run_px_s * 1.6), 0.7, 1.6))

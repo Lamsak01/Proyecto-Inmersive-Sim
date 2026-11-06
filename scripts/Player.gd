@@ -753,6 +753,35 @@ func is_stealthing() -> bool:
 		return move_ctrl.is_stealthing
 	return false
 
+func start_roll(dir_override: Vector2 = Vector2.ZERO) -> bool:
+	if not move_ctrl:
+		move_ctrl = get_node_or_null("PlayerMovementController")
+	if move_ctrl and move_ctrl.has_method("start_roll"):
+		return bool(move_ctrl.call("start_roll", dir_override))
+	return false
+
+func is_rolling() -> bool:
+	if not move_ctrl:
+		move_ctrl = get_node_or_null("PlayerMovementController")
+	return move_ctrl != null and move_ctrl.has_method("is_rolling") and bool(move_ctrl.call("is_rolling"))
+
+func is_roll_invulnerable() -> bool:
+	if not move_ctrl:
+		move_ctrl = get_node_or_null("PlayerMovementController")
+	return move_ctrl != null and move_ctrl.has_method("is_roll_invulnerable") and bool(move_ctrl.call("is_roll_invulnerable"))
+
+func start_parry() -> bool:
+	if not combat_ctrl:
+		combat_ctrl = get_node_or_null("PlayerCombatController")
+	if combat_ctrl and combat_ctrl.has_method("start_parry"):
+		return bool(combat_ctrl.call("start_parry"))
+	return false
+
+func is_parrying() -> bool:
+	if not combat_ctrl:
+		combat_ctrl = get_node_or_null("PlayerCombatController")
+	return combat_ctrl != null and combat_ctrl.has_method("is_parrying") and bool(combat_ctrl.call("is_parrying"))
+
 func get_noise_multiplier() -> float:
 	if velocity.length_squared() < 4.0:
 		return 0.0
@@ -771,6 +800,17 @@ func get_noise_multiplier() -> float:
 func take_damage(data: DamageData) -> void:
 	var vm: Node = get_tree().get_first_node_in_group("village_manager")
 	if vm and ((("player_being_escorted_to_jail" in vm) and vm.player_being_escorted_to_jail) or (("player_in_jail" in vm) and vm.player_in_jail)):
+		return
+	if is_roll_invulnerable():
+		_spawn_floating_text("💨 ¡ESQUIVADO!", Color(0.75, 0.98, 0.85), -38.0)
+		return
+	var is_ranged_hit: bool = data != null and (data.is_ranged_projectile or str(data.weapon_tag).find("Flecha") != -1 or str(data.weapon_tag).find("Arcabuz") != -1 or str(data.weapon_tag).find("Pistola") != -1)
+	if is_parrying() and not is_ranged_hit:
+		if not combat_ctrl:
+			combat_ctrl = get_node_or_null("PlayerCombatController")
+		if combat_ctrl and combat_ctrl.has_method("resolve_parry_hit"):
+			combat_ctrl.call("resolve_parry_hit", data.source if data else null)
+		_spawn_floating_text("🛡️ ¡PARADA!", Color(0.45, 0.95, 1.0), -40.0)
 		return
 	if data and is_instance_valid(data.source):
 		last_damage_source = data.source

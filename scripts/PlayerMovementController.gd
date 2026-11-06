@@ -13,6 +13,18 @@ var is_sprinting: bool = false
 var is_stealthing: bool = false
 var current_speed: float = 120.0
 
+## Rodar con Espacio (COMBATE-1): distancia ~50 px en 0.35 s, invulnerable los primeros 0.25 s.
+const ROLL_DURATION: float = 0.35
+const ROLL_INVULN_DURATION: float = 0.25
+const ROLL_DISTANCE: float = 50.0
+const ROLL_COOLDOWN: float = 0.60
+const ROLL_STAMINA_COST: float = 18.0
+
+var roll_timer: float = 0.0
+var roll_invuln_timer: float = 0.0
+var roll_cooldown_timer: float = 0.0
+var roll_direction: Vector2 = Vector2.DOWN
+
 @onready var player: CharacterBody2D = get_parent()
 @onready var anim: AnimatedSprite2D = $"../Animations"
 @onready var cam: Camera2D = get_node_or_null("../Camera2D")
@@ -24,9 +36,80 @@ var current_speed: float = 120.0
 @export var max_aim_camera_offset: float = 95.0   ## Desplazamiento al mantener Clic Derecho (Apuntar lejos)
 @export var camera_smooth_speed: float = 8.0      ## Velocidad de suavizado de la cámara
 
+func is_rolling() -> bool:
+	return roll_timer > 0.0
+
+func is_roll_invulnerable() -> bool:
+	return roll_invuln_timer > 0.0
+
+func get_roll_progress() -> float:
+	if roll_timer <= 0.0:
+		return 0.0
+	return clampf(1.0 - (roll_timer / ROLL_DURATION), 0.0, 1.0)
+
+func start_roll(dir_override: Vector2 = Vector2.ZERO) -> bool:
+	if not is_instance_valid(player):
+		return false
+	var lake = get_tree().current_scene.find_child("WestFishingLake", true, false) if get_tree().current_scene else null
+	var in_fishing_minigame: bool = lake != null and int(lake.get("state")) == 3
+	var camp = get_tree().current_scene.find_child("PlayerCampSite", true, false) if get_tree().current_scene else null
+	var sitting_on_log: bool = camp != null and bool(camp.get("is_player_sitting"))
+	var vm = get_tree().get_first_node_in_group("village_manager")
+	var being_escorted: bool = vm != null and bool(vm.get("player_being_escorted_to_jail"))
+	if (dialogue_manager and dialogue_manager.has_method("is_active") and dialogue_manager.call("is_active")) or (WorldClock and WorldClock.has_method("is_time_frozen") and WorldClock.is_time_frozen()) or (player.has_method("is_any_ui_modal_open") and bool(player.call("is_any_ui_modal_open"))) or in_fishing_minigame or sitting_on_log or being_escorted:
+		return false
+	if player.has_method("is_stunned") and player.is_stunned():
+		return false
+	if bool(player.get("is_mounted")):
+		if player.has_method("show_hint"):
+			player.show_hint("🐎 A caballo no puedes rodar: baja con [E]")
+		return false
+	if roll_timer > 0.0 or roll_cooldown_timer > 0.0:
+		return false
+	if not is_instance_valid(stamina_comp) or stamina_comp.current_stamina < ROLL_STAMINA_COST or not stamina_comp.use_stamina(ROLL_STAMINA_COST):
+		return false
+
+	var dir: Vector2 = Vector2.ZERO
+	if dir_override.length_squared() > 0.001:
+		dir = dir_override.normalized()
+	else:
+		var inp := Input.get_vector("move_left", "move_right", "move_up", "move_down")
+		if inp.length_squared() > 0.001:
+			dir = inp.normalized()
+		elif player.velocity.length_squared() > 9.0:
+			dir = player.velocity.normalized()
+		else:
+			var c_ctrl = player.get_node_or_null("PlayerCombatController")
+			if c_ctrl != null and c_ctrl.get("current_aim_dir") is Vector2 and (c_ctrl.get("current_aim_dir") as Vector2).length_squared() > 0.01:
+				dir = (c_ctrl.get("current_aim_dir") as Vector2).normalized()
+			else:
+				match str(player.get("last_dir")):
+					"right":
+						dir = Vector2.RIGHT
+					"left":
+						dir = Vector2.LEFT
+					"up":
+						dir = Vector2.UP
+					_:
+						dir = Vector2.DOWN
+
+	is_stealthing = false
+	is_sprinting = false
+	roll_direction = dir
+	roll_timer = ROLL_DURATION
+	roll_invuln_timer = ROLL_INVULN_DURATION
+	roll_cooldown_timer = ROLL_COOLDOWN
+	player.velocity = roll_direction * (ROLL_DISTANCE / ROLL_DURATION)
+	return true
+
 func _physics_process(delta: float) -> void:
 	if not is_instance_valid(player) or not is_instance_valid(anim):
 		return
+
+	if roll_cooldown_timer > 0.0:
+		roll_cooldown_timer = maxf(0.0, roll_cooldown_timer - delta)
+	if roll_invuln_timer > 0.0:
+		roll_invuln_timer = maxf(0.0, roll_invuln_timer - delta)
 
 	# Block movement if dialogue active, modal open, tavern minigame time freeze, sitting on camp log, in fishing minigame, or handcuffed in police escort
 	var lake = get_tree().current_scene.find_child("WestFishingLake", true, false) if get_tree().current_scene else null
@@ -41,6 +124,9 @@ func _physics_process(delta: float) -> void:
 		if being_escorted:
 			is_stealthing = false
 			is_sprinting = false
+		roll_timer = 0.0
+		roll_invuln_timer = 0.0
+		anim.rotation = 0.0
 		player.velocity = Vector2.ZERO
 		_play_idle()
 		if not being_escorted:
@@ -51,10 +137,30 @@ func _physics_process(delta: float) -> void:
 	if player.has_method("is_stunned") and player.is_stunned():
 		if is_instance_valid(stamina_comp):
 			stamina_comp.is_input_blocking = false
+		roll_timer = 0.0
+		roll_invuln_timer = 0.0
+		anim.rotation = 0.0
 		player.velocity = Vector2.ZERO
 		player.move_and_slide()
 		_update_visual_state()
 		return
+
+	if roll_timer > 0.0:
+		roll_timer = maxf(0.0, roll_timer - delta)
+		if is_instance_valid(stamina_comp):
+			stamina_comp.is_input_blocking = true
+		player.velocity = roll_direction * (ROLL_DISTANCE / ROLL_DURATION)
+		player.move_and_slide()
+		_update_aim_and_camera(delta)
+		_update_visual_state()
+		if roll_timer > 0.0:
+			var prog: float = get_roll_progress()
+			anim.rotation = prog * TAU * (1.0 if roll_direction.x >= 0.0 else -1.0)
+		else:
+			anim.rotation = 0.0
+		return
+	elif anim.rotation != 0.0:
+		anim.rotation = 0.0
 
 	_update_aim_and_camera(delta)
 	_handle_input(delta)
@@ -90,6 +196,10 @@ func _unhandled_input(event: InputEvent) -> void:
 	if (player.has_method("is_stunned") and player.is_stunned()) or (player.has_method("is_any_ui_modal_open") and bool(player.call("is_any_ui_modal_open"))) or (vm != null and bool(vm.get("player_being_escorted_to_jail"))):
 		return
 	if event is InputEventKey and event.pressed and not event.echo:
+		if event.keycode == KEY_SPACE or event.physical_keycode == KEY_SPACE:
+			if start_roll():
+				get_viewport().set_input_as_handled()
+			return
 		if event.keycode == KEY_C:
 			if bool(player.get("is_mounted")):
 				if player.has_method("show_hint"):

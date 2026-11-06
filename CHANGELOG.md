@@ -3,6 +3,18 @@
 Cambios del juego, del más nuevo al más antiguo. Añade una entrada al cerrar cada bloque, en lenguaje sencillo.
 El detalle técnico está en `docs/HANDOFF.md` (sección 7) y el historial completo en `git log`. Lo anterior a B0.1 está en `AUDIT_LOG.md` y `SESSION_CONTEXT_LOG.md`.
 
+## 2026-11-06 — Combate cuerpo a cuerpo más vivo: rodar con Espacio, parar con Q y golpes enemigos que avisan
+- **Rodar con Espacio:** pulsas **Espacio** para rodar en la dirección en la que te mueves (o hacia donde miras si estás
+  quieto). Durante el inicio de la voltereta no recibes daño, cuesta aguante, choca contra las paredes, rompe el sigilo
+  y no se puede usar montado a caballo.
+- **Parar con Q:** pulsas **Q** un instante antes de que te alcance un golpe cuerpo a cuerpo para **pararlo sin recibir
+  daño** («🛡️ ¡PARADA!») y dejar al atacante desequilibrado casi un segundo sin poder pegar. Si fallas el momento, hay un
+  breve enfriamiento antes de volver a intentarlo; las flechas y disparos no se pueden parar con **Q**, y si estás en
+  sigilo detrás de alguien, **Q** sigue sirviendo para aturdirlo sin ruido.
+- **Golpes enemigos con aviso:** los vecinos hostiles, guardias, asaltantes, perros enfadados y jabalíes **avisan un
+  instante antes de soltar el golpe** (con señal visual y el arranque de la animación de ataque), dándote margen para
+  apartarte, rodar con **Espacio** o parar con **Q**.
+
 ## 2026-11-05 — Tu campamento inicial está en las afueras del oeste, junto al lago y el camino de llegada
 - Ya no empiezas acampado en mitad del pueblo ni con una granja ya montada: empiezas en un claro apartado al oeste, frente
   al lago de pesca, solo con lo básico de un forastero recién llegado (**tienda de campaña, hoguera con cacerola, tronco de

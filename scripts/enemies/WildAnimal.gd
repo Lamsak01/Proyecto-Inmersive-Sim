@@ -70,6 +70,8 @@ var boar_aggressor: Node2D = null
 var boar_aggro_timer: float = 0.0
 var boar_charge_windup: float = 0.0
 var boar_charge_timer: float = 0.0
+var boar_melee_windup: float = 0.0
+var stagger_timer: float = 0.0
 var boar_charge_dir: Vector2 = Vector2.RIGHT
 
 var home_position: Vector2 = Vector2.ZERO
@@ -855,14 +857,29 @@ func _process_flee(delta: float) -> void:
 		state = AnimalState.GRAZE
 		velocity = Vector2.ZERO
 
+func apply_parry_stagger(duration: float = 0.8) -> void:
+	stagger_timer = maxf(stagger_timer, duration)
+	boar_charge_windup = 0.0
+	boar_charge_timer = 0.0
+	boar_melee_windup = 0.0
+	attack_cooldown = maxf(attack_cooldown, duration)
+	velocity = Vector2.ZERO
+	if sprite:
+		sprite.modulate = Color(0.65, 0.88, 1.35)
+	if status_label:
+		status_label.text = "💫 ¡Desequilibrado!"
+		status_label.add_theme_color_override("font_color", Color.AQUA)
+		status_label.visible = true
+
 ## Provocación y Embestida Agresiva del Jabalí (`SpeciesType.BOAR`) al ser atacado
 func _start_boar_aggro(attacker: Node2D) -> void:
 	if state in [AnimalState.CARCASS, AnimalState.BUTCHERED, AnimalState.IN_BURROW]:
 		return
 	boar_aggressor = attacker
 	boar_aggro_timer = 11.5
-	boar_charge_windup = 0.25
+	boar_charge_windup = 0.40
 	boar_charge_timer = 0.0
+	boar_melee_windup = 0.0
 	if is_instance_valid(attacker):
 		var dir := (attacker.global_position - global_position).normalized()
 		boar_charge_dir = dir if dir.length_squared() > 0.01 else Vector2.RIGHT
@@ -873,18 +890,41 @@ func _start_boar_aggro(attacker: Node2D) -> void:
 		status_label.visible = true
 
 func _process_boar_charge_attack(delta: float) -> void:
+	if stagger_timer > 0.0:
+		stagger_timer = maxf(0.0, stagger_timer - delta)
+		boar_charge_windup = 0.0
+		boar_charge_timer = 0.0
+		boar_melee_windup = 0.0
+		velocity = Vector2.ZERO
+		if stagger_timer <= 0.0 and sprite:
+			sprite.modulate = Color.WHITE
+		return
+
 	boar_aggro_timer -= delta
 	var target_dead: bool = (not is_instance_valid(boar_aggressor)) or ("is_dead" in boar_aggressor and bool(boar_aggressor.get("is_dead"))) or ("is_downed" in boar_aggressor and bool(boar_aggressor.get("is_downed"))) or (boar_aggressor is WildAnimal and not (boar_aggressor as WildAnimal).is_alive_in_ecosystem())
 	if boar_aggro_timer <= 0.0 or target_dead or global_position.distance_to(boar_aggressor.global_position) > 275.0:
 		boar_aggressor = null
 		boar_charge_windup = 0.0
 		boar_charge_timer = 0.0
+		boar_melee_windup = 0.0
 		velocity = Vector2.ZERO
 		state = AnimalState.GRAZE
 		return
 
 	var to_target: Vector2 = boar_aggressor.global_position - global_position
 	var dist: float = to_target.length()
+
+	if boar_melee_windup > 0.0:
+		boar_melee_windup = maxf(0.0, boar_melee_windup - delta)
+		velocity = Vector2.ZERO
+		if boar_melee_windup <= 0.0:
+			if sprite:
+				sprite.modulate = Color.WHITE
+			if is_instance_valid(boar_aggressor) and global_position.distance_to(boar_aggressor.global_position) <= 26.0:
+				_deliver_boar_ram_hit(boar_aggressor)
+			else:
+				attack_cooldown = 1.0
+		return
 
 	# 1. Fase de Embestida a toda velocidad
 	if boar_charge_timer > 0.0:
@@ -896,7 +936,7 @@ func _process_boar_charge_attack(delta: float) -> void:
 			velocity = Vector2.ZERO
 		return
 
-	# 2. Fase de Preparación (escarbando el suelo antes de embestir)
+	# 2. Fase de Preparación (escarbando el suelo antes de embestir, ~0.4 s)
 	if boar_charge_windup > 0.0:
 		boar_charge_windup -= delta
 		velocity = Vector2.ZERO
@@ -904,6 +944,8 @@ func _process_boar_charge_attack(delta: float) -> void:
 			boar_charge_dir = to_target.normalized()
 		if boar_charge_windup <= 0.0:
 			boar_charge_timer = 0.50
+			if sprite:
+				sprite.modulate = Color.WHITE
 			if status_label:
 				status_label.text = "🐗💥 ¡EMBESTIDA!"
 				status_label.add_theme_color_override("font_color", Color(1.0, 0.30, 0.20))
@@ -912,12 +954,26 @@ func _process_boar_charge_attack(delta: float) -> void:
 
 	# 3. Persecución agresiva hasta entrar en rango de embestida
 	if dist <= 20.0 and attack_cooldown <= 0.0:
-		_deliver_boar_ram_hit(boar_aggressor)
-		return
-	elif dist <= 115.0 and attack_cooldown <= 0.0:
-		boar_charge_windup = 0.26
+		boar_melee_windup = 0.40
 		boar_charge_dir = to_target.normalized() if dist > 1.0 else Vector2.RIGHT
 		velocity = Vector2.ZERO
+		if sprite:
+			sprite.modulate = Color(1.35, 0.88, 0.42)
+		if status_label:
+			status_label.text = "🐗❗"
+			status_label.add_theme_color_override("font_color", Color.ORANGE_RED)
+			status_label.visible = true
+		return
+	elif dist <= 115.0 and attack_cooldown <= 0.0:
+		boar_charge_windup = 0.40
+		boar_charge_dir = to_target.normalized() if dist > 1.0 else Vector2.RIGHT
+		velocity = Vector2.ZERO
+		if sprite:
+			sprite.modulate = Color(1.35, 0.88, 0.42)
+		if status_label:
+			status_label.text = "🐗❗"
+			status_label.add_theme_color_override("font_color", Color.ORANGE_RED)
+			status_label.visible = true
 		return
 
 	velocity = (to_target.normalized() if dist > 1.0 else Vector2.ZERO) * 86.0

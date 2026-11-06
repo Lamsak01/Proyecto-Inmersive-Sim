@@ -29,6 +29,8 @@ var sprite: Sprite2D = null
 var target: Node2D = null
 var _retarget_t: float = 0.0
 var _attack_t: float = 0.6
+var _windup_t: float = 0.0
+var stagger_timer: float = 0.0
 var _done: bool = false
 
 
@@ -120,15 +122,42 @@ func _finish(outcome: String) -> void:
 	gone.emit(self, outcome)
 
 
+func apply_parry_stagger(duration: float = 0.8) -> void:
+	stagger_timer = maxf(stagger_timer, duration)
+	_windup_t = 0.0
+	_attack_t = maxf(_attack_t, duration)
+	velocity = Vector2.ZERO
+	if sprite:
+		sprite.modulate = Color(0.65, 0.85, 1.35)
+
+
 func _physics_process(delta: float) -> void:
 	if is_dead or _done:
 		return
+	if stagger_timer > 0.0:
+		stagger_timer = maxf(0.0, stagger_timer - delta)
+		_windup_t = 0.0
+		velocity = Vector2.ZERO
+		if stagger_timer <= 0.0 and sprite:
+			sprite.modulate = Color.WHITE if kind == "boar" else Color(0.55, 0.32, 0.30)
+		return
 	attack_anim = maxf(0.0, attack_anim - delta * 2.5)
 	if fleeing:
+		_windup_t = 0.0
 		_move_to(Vector2(flee_x, global_position.y), speed * 1.2, delta)
 		if global_position.x >= flee_x - 4.0:
 			_finish("fled")
 			queue_free()
+		return
+	if _windup_t > 0.0:
+		_windup_t = maxf(0.0, _windup_t - delta)
+		velocity = Vector2.ZERO
+		if _windup_t <= 0.0:
+			_attack_t = 1.1
+			if sprite:
+				sprite.modulate = Color.WHITE if kind == "boar" else Color(0.55, 0.32, 0.30)
+			if target != null and is_instance_valid(target) and global_position.distance_to(target.global_position) <= MELEE_RANGE + 6.0:
+				_hit(target)
 		return
 	_retarget_t -= delta
 	if _retarget_t <= 0.0:
@@ -142,8 +171,10 @@ func _physics_process(delta: float) -> void:
 			velocity = Vector2.ZERO
 			_attack_t -= delta
 			if _attack_t <= 0.0:
-				_attack_t = 1.1
-				_hit(target)
+				_windup_t = 0.40
+				attack_anim = 1.0
+				if sprite:
+					sprite.modulate = Color(1.35, 0.88, 0.42)
 		return
 	_move_to(LOOT_POS, speed, delta)
 	if global_position.distance_to(LOOT_POS) <= 30.0:

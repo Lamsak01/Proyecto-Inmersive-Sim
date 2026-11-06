@@ -10,6 +10,7 @@ class_name DamageData
 @export var bleed_chance: float = 0.0 ## Legado / opcional
 @export var knockback_force: float = 0.0
 var weapon_tag: String = ""
+var is_ranged_projectile: bool = false
 var source: Node
 
 func copy() -> DamageData:
@@ -23,5 +24,6 @@ func copy() -> DamageData:
 	new_data.bleed_chance = bleed_chance
 	new_data.knockback_force = knockback_force
 	new_data.weapon_tag = weapon_tag
+	new_data.is_ranged_projectile = is_ranged_projectile
 	new_data.source = source
 	return new_data

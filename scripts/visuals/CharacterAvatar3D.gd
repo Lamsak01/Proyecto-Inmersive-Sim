@@ -645,23 +645,34 @@ func _sync_pose_and_tint(delta: float) -> void:
 	var bow_draw := 0.0
 	var atk_prog := 0.0
 	var is_mounted_now := false
+	var is_rolling_now := false
+	var roll_prog_now := 0.0
+	var is_parrying_now := false
 
 	if is_player_avatar:
 		var m_ctrl = target_entity.get_node_or_null("PlayerMovementController")
 		if m_ctrl != null:
 			is_stealth = bool(m_ctrl.get("is_stealthing"))
 			is_sprinting = bool(m_ctrl.get("is_sprinting"))
+			if m_ctrl.has_method("is_rolling") and bool(m_ctrl.call("is_rolling")):
+				is_rolling_now = true
+				roll_prog_now = float(m_ctrl.call("get_roll_progress"))
+				var r_dir: Vector2 = m_ctrl.get("roll_direction")
+				if r_dir.length_squared() > 0.01:
+					facing = r_dir.normalized()
 		var c_ctrl = target_entity.get_node_or_null("PlayerCombatController")
 		if c_ctrl != null:
+			if c_ctrl.has_method("is_parrying") and bool(c_ctrl.call("is_parrying")):
+				is_parrying_now = true
 			var aim_d: Vector2 = c_ctrl.get("current_aim_dir")
-			if aim_d.length_squared() > 0.01:
+			if not is_rolling_now and aim_d.length_squared() > 0.01:
 				facing = aim_d.normalized()
 			if bool(c_ctrl.get("is_drawing_bow")):
 				bow_draw = float(c_ctrl.get("bow_tension"))
 			var atk_t: float = float(c_ctrl.get("attack_timer"))
 			if atk_t > 0.0:
 				atk_prog = clampf(1.0 - (atk_t / 0.36), 0.0, 1.0)
-		if vel.length_squared() > 9.0 and atk_prog <= 0.0 and bow_draw <= 0.0:
+		if not is_rolling_now and vel.length_squared() > 9.0 and atk_prog <= 0.0 and bow_draw <= 0.0 and not is_parrying_now:
 			facing = vel.normalized()
 		if target_entity.has_method("is_stunned") and bool(target_entity.call("is_stunned")):
 			is_downed = true
@@ -681,6 +692,10 @@ func _sync_pose_and_tint(delta: float) -> void:
 		is_sleeping = bool(target_entity.get("is_sleeping"))
 		is_downed = bool(target_entity.get("is_downed")) or bool(target_entity.get("is_stunned_flag"))
 		is_dead = bool(target_entity.get("is_dead"))
+		var w_t: float = maxf(float(target_entity.get("_melee_windup_timer")), float(target_entity.get("_police_baton_windup_timer")))
+		if w_t > 0.0:
+			atk_prog = clampf(1.0 - (w_t / 0.40), 0.05, 0.95)
+			is_working = false
 
 	var state_dict := {
 		"facing": facing,
@@ -695,7 +710,10 @@ func _sync_pose_and_tint(delta: float) -> void:
 		"is_dead": is_dead,
 		"bow_draw": bow_draw,
 		"attack_progress": atk_prog,
-		"is_mounted": is_mounted_now
+		"is_mounted": is_mounted_now,
+		"is_rolling": is_rolling_now,
+		"roll_progress": roll_prog_now,
+		"is_parrying": is_parrying_now
 	}
 	rig_3d.call("update_pose", delta, state_dict)
 

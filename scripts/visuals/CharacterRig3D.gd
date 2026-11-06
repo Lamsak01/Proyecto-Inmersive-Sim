@@ -18,7 +18,9 @@ enum AnimState {
 	SLEEP,
 	KO,
 	AIM_GUN,
-	MOUNTED
+	MOUNTED,
+	ROLL,
+	BLOCK
 }
 
 # Nodos de articulación (fallback procedural o pivotes auxiliares)
@@ -86,6 +88,9 @@ var _anim_state: int = AnimState.IDLE
 var _anim_time: float = 0.0
 var _attack_swing_t: float = 0.0
 var _muzzle_flash_t: float = 0.0
+var _is_rolling: bool = false
+var _roll_progress: float = 0.0
+var _is_parrying: bool = false
 var _facing_yaw: float = 0.0
 var _target_yaw: float = 0.0
 
@@ -836,6 +841,9 @@ func update_pose(delta: float, state: Dictionary) -> void:
 	var spd: float = float(state.get("speed_ratio", 0.0))
 	var atk_prog: float = float(state.get("attack_progress", 0.0))
 	var bow_dr: float = float(state.get("bow_draw", 0.0))
+	_is_rolling = bool(state.get("is_rolling", false))
+	_roll_progress = float(state.get("roll_progress", 0.0))
+	_is_parrying = bool(state.get("is_parrying", false))
 	if atk_prog > 0.01:
 		_attack_swing_t = maxf(_attack_swing_t, (1.0 - atk_prog) * 0.34)
 	elif bow_dr > 0.05:
@@ -846,6 +854,10 @@ func update_pose(delta: float, state: Dictionary) -> void:
 		st_enum = AnimState.KO
 	elif bool(state.get("is_sleeping", false)):
 		st_enum = AnimState.SLEEP
+	elif _is_rolling:
+		st_enum = AnimState.ROLL
+	elif _is_parrying:
+		st_enum = AnimState.BLOCK
 	elif bool(state.get("is_mounted", false)) and atk_prog <= 0.01 and bow_dr <= 0.05:
 		st_enum = AnimState.MOUNTED
 	elif _weapon_id in ["flintlock", "pistol", "arquebus"] and (atk_prog > 0.01 or _muzzle_flash_t > 0.0):
@@ -910,6 +922,10 @@ func _setup_anim_player(char_root: Node3D) -> void:
 
 ## Elige la animación real según el estado. Devuelve [clip, velocidad].
 func _pick_clip() -> Array:
+	if _is_rolling or _anim_state == AnimState.ROLL:
+		return ["roll", 1.85]
+	if _is_parrying or _anim_state == AnimState.BLOCK:
+		return ["block", 1.25]
 	var gun := _weapon_id in ["flintlock", "pistol", "arquebus"]
 	if _attack_swing_t > 0.0:
 		if gun:
@@ -1074,6 +1090,25 @@ func _apply_skeleton_pose(_delta: float) -> void:
 			lr_rz = 5.0
 			ul_rz = -55.0
 			ul_ry = -30.0
+
+		AnimState.ROLL:
+			tl_rx = -65.0
+			tr_rx = -65.0
+			cl_rx = 110.0
+			cr_rx = 110.0
+			spine_rx = 45.0
+			if char_root != null:
+				char_root.position.y = -0.22
+				char_root.rotation_degrees.x = _roll_progress * 360.0
+
+		AnimState.BLOCK:
+			ur_rz = 25.0
+			ur_ry = 55.0
+			lr_rz = 65.0
+			ul_rz = -35.0
+			ul_ry = -45.0
+			ll_rz = -55.0
+			spine_rx = 8.0
 
 	if _attack_swing_t > 0.0:
 		var p := 1.0 - (_attack_swing_t / 0.34)
