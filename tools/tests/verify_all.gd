@@ -4850,7 +4850,6 @@ func _initialize() -> void:
 	fisp1_st["kind"] = "house"
 	fisp1_st["has_garden"] = true
 	fisp1_st["last_garden_day"] = -99
-	fisp1_st["last_workbench_day"] = -99
 	fisp1_st["upgrades"] = {"workbench": true, "upper_floor": true, "hidden_cellar": false}
 	vho.state(vm)["has_stash"] = true
 	vho.state(vm)["stash_gold"] = 0
@@ -4869,22 +4868,28 @@ func _initialize() -> void:
 	vho.daily(vm)
 	assert(p70_inv.get_count("bread") == fisp1_bread0 and p70_inv.get_count("herbal_poultice") == fisp1_poult0, "FIS-P1.2: VillageHousing.daily no longer injects free bread or herbal_poultice into backpack at midnight")
 
-	# 3. Cosechar físicamente el huerto con [E] en `home_garden` da +1 pan y +1 hierba medicinal (con espera de 2 días)
+	# 3. Cosechar físicamente el huerto con [E] en `home_garden` da +1 pan ("bread") y +1 hierba medicinal ("herbs", con espera de 2 días)
 	var fisp1_garden_node: Node2D = root.get_tree().get_first_node_in_group("home_garden") as Node2D
-	var fisp1_herb0: int = p70_inv.get_count("medicinal_herb")
+	var fisp1_herb0: int = p70_inv.get_count("herbs")
+	if fisp1_herb0 > 0:
+		p70_inv.remove_item("herbs", fisp1_herb0)
 	fisp1_garden_node.call("interact", p70_pl)
-	assert(p70_inv.get_count("bread") == fisp1_bread0 + 1 and p70_inv.get_count("medicinal_herb") == fisp1_herb0 + 1, "FIS-P1.3a: Interacting with home_garden harvests +1 bread and +1 medicinal_herb")
+	assert(p70_inv.get_count("bread") == fisp1_bread0 + 1 and p70_inv.get_count("herbs") == 1, "FIS-P1.3a: Interacting with home_garden harvests +1 bread and +1 herbs")
 	assert(not vho.interact_home_garden(vm, fisp1_lot, p70_pl), "FIS-P1.3b: Cannot harvest home_garden again on the same day")
 
-	# 4. Preparar cataplasma y destilar polvo de ocaso desde el `home_workbench` físico
+	# 4. Preparar cataplasma gasta 1 "herbs" -> +1 "herbal_poultice", y sin "herbs" en la mochila no da nada; destilar polvo de ocaso cuesta 25 oro
 	var fisp1_wb_node: Node2D = root.get_tree().get_first_node_in_group("home_workbench") as Node2D
 	fisp1_wb_node.call("on_dialogue_action", "housing_craft_poultice")
-	assert(p70_inv.get_count("herbal_poultice") == fisp1_poult0 + 1, "FIS-P1.4a: Crafting poultice at home_workbench yields +1 herbal_poultice")
+	assert(p70_inv.get_count("herbal_poultice") == fisp1_poult0 + 1 and p70_inv.get_count("herbs") == 0, "FIS-P1.4a: Crafting poultice at home_workbench consumes 1 herbs and yields +1 herbal_poultice")
+	fisp1_wb_node.call("on_dialogue_action", "housing_craft_poultice")
+	assert(p70_inv.get_count("herbal_poultice") == fisp1_poult0 + 1, "FIS-P1.4b: Without herbs in inventory, home_workbench produces no poultice")
+	if fisp1_herb0 > 0:
+		p70_inv.add_item("herbs", fisp1_herb0)
 	p70_inv.gold = 60
 	vun.state(vm)["last_cook_day"] = -1
 	var fisp1_dust0: int = vun.get_item_count(vm, "dusk_dust")
 	fisp1_wb_node.call("on_dialogue_action", "underworld_cook_dust")
-	assert(vun.get_item_count(vm, "dusk_dust") == fisp1_dust0 + 2 and p70_inv.gold == 35, "FIS-P1.4b: Distilling dusk_dust at home_workbench costs 25 gold and yields +2 dusk_dust")
+	assert(vun.get_item_count(vm, "dusk_dust") == fisp1_dust0 + 2 and p70_inv.gold == 35, "FIS-P1.4c: Distilling dusk_dust at home_workbench costs 25 gold and yields +2 dusk_dust")
 
 	# 5. Guardar y sacar oro usando las tablas sueltas físicas (`home_stash`)
 	var fisp1_stash_node: Node2D = root.get_tree().get_first_node_in_group("home_stash") as Node2D

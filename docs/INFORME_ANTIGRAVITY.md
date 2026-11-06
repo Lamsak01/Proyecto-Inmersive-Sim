@@ -15,8 +15,8 @@
    - **Fin de los objetos mágicos a medianoche (`VillageHousing.daily`):** Eliminada de `VillageHousing.daily(vm)` la inyección automática cada dos días de `bread` y `herbal_poultice` en la mochila del jugador.
    - **Sincronización de los 4 objetos físicos de tu casa (`VillageHousing.sync_home_props`, `VillageHousing.home_prop_pos`):**
      - `VillageHousing.sync_home_props(vm)` crea en las casas construidas del jugador (`VillageHousing.player_lots(vm, true)`) instancias de `WorldInteractableProp` (con dibujo 2D en `WorldInteractableProp._draw_home_workbench_2d`, `_draw_home_stash_2d`, `_draw_home_stairs_2d`, `_draw_home_garden_2d` y modelos 3D sincronizados en `WorldStage3D._sync_home_props_3d()`):
-       1. **Huerto doméstico (`"home_garden"`):** `VillageHousing.interact_home_garden(vm, lot_id, player)` y `can_harvest_home_garden(vm, lot_id)` permiten cosechar en persona con `[E]` cada 2 días (`+1 bread` y `+1 medicinal_herb`).
-       2. **Banco de trabajo y alquimia (`"home_workbench"`):** `VillageHousing.open_home_workbench_menu(vm, speaker, _player)` y `craft_home_poultice(vm, lot_id, inv, player, npc)` permiten preparar cataplasmas (`housing_craft_poultice`, gastando `medicinal_herb` o las hierbas secas del banco cada 2 días) o destilar 2 dosis de «polvo de ocaso» (`underworld_cook_dust` en `VillageUnderworld.on_player_action`, pagando 25 de oro al perista con `vm.pay_into(get_fence_npc(vm), DUST_COOK_COST)` y comprobando testigos conscientes en la misma planta con `vm._find_conscious_witness_near`).
+       1. **Huerto doméstico (`"home_garden"`):** `VillageHousing.interact_home_garden(vm, lot_id, player)` y `can_harvest_home_garden(vm, lot_id)` permiten cosechar en persona con `[E]` cada 2 días (`+1 bread` y `+1 herbs`).
+       2. **Banco de trabajo y alquimia (`"home_workbench"`):** `VillageHousing.open_home_workbench_menu(vm, speaker, _player)` y `craft_home_poultice(vm, lot_id, inv, player, npc)` permiten preparar cataplasmas (`housing_craft_poultice`, consumiendo `1 herbs` de la mochila) o destilar 2 dosis de «polvo de ocaso» (`underworld_cook_dust` en `VillageUnderworld.on_player_action`, pagando 25 de oro al perista con `vm.pay_into(get_fence_npc(vm), DUST_COOK_COST)` y comprobando testigos conscientes en la misma planta con `vm._find_conscious_witness_near`).
        3. **Escondite bajo las tablas (`"home_stash"`):** `VillageHousing.open_home_stash_menu(vm, speaker, _player)` permite guardar 25 de oro (`housing_stash_put`) o recuperar todo el oro oculto (`housing_stash_take`) directamente en las tablas del suelo de tu casa.
        4. **Escalera al altillo y trampilla al sótano (`"home_stairs"`):** `VillageHousing.interact_home_stairs(vm, _lot_id, speaker, player)` y `get_home_stairs_label(vm, _lot_id)` permiten subir al altillo (`housing_change_level:1`), bajar al sótano (`housing_change_level:-1`), volver a la planta baja (`housing_change_level:0`) o esconderse de una búsqueda menor (`housing_hide_cellar`) pulsando `[E]` en la escalera/trampilla física de tu casa.
    - **Limpieza de menús de diálogo (`VillageHousing.add_dialogue_choices`, `VillageUnderworld.add_dialogue_choices`):**
@@ -31,7 +31,7 @@
 |---|---|
 | `docs/AUDITORIA_REALISMO.md` | Nuevo: tabla priorizada de las 11 mecánicas que aún no ocurrían físicamente en el mundo |
 | `scripts/obstacles/WorldInteractableProp.gd` | Añadidos los tipos `"home_workbench"`, `"home_stash"`, `"home_stairs"` y `"home_garden"` en `setup_prop`, `_rebuild_visual_and_area`, `_draw_home_workbench_2d`, `_draw_home_stash_2d`, `_draw_home_stairs_2d`, `_draw_home_garden_2d`, `get_interact_label`, `interact` y `on_dialogue_action` |
-| `scripts/systems/VillageHousing.gd` | Eliminada entrega automática en `daily`; quitados atajos de diálogo en `add_dialogue_choices`; añadidas `_notify_player`, `home_prop_pos`, `sync_home_props`, `can_harvest_home_garden`, `get_home_garden_label`, `interact_home_garden`, `can_craft_home_poultice`, `craft_home_poultice`, `open_home_workbench_menu`, `open_home_stash_menu`, `get_home_stairs_label` e `interact_home_stairs` |
+| `scripts/systems/VillageHousing.gd` | Eliminada entrega automática en `daily`; quitados atajos de diálogo en `add_dialogue_choices`; añadidas `_notify_player`, `home_prop_pos`, `sync_home_props`, `can_harvest_home_garden`, `get_home_garden_label`, `interact_home_garden`, `craft_home_poultice`, `open_home_workbench_menu`, `open_home_stash_menu`, `get_home_stairs_label` e `interact_home_stairs` |
 | `scripts/systems/VillageLots.gd` | Llamada a `vm.VillageHousing.sync_home_props(vm)` en `_finish` y `after_load` |
 | `scripts/systems/VillageUnderworld.gd` | Quitada `underworld_cook_dust` de `add_dialogue_choices`; soporte en `on_player_action` cuando se invoca desde `"home_workbench"` (`npc == null`), pago a `get_fence_npc(vm)` y comprobación de testigos en la misma planta |
 | `scripts/visuals/WorldStage3D.gd` | Añadida `_sync_home_props_3d()` para renderizar en 3D el banco de trabajo y alquimia, las tablas del escondite, la escalera/trampilla y el huerto doméstico |
@@ -69,3 +69,18 @@
 ## 4. Qué quedó pendiente o dudas de diseño
 
 - Ninguna duda de diseño en la Prioridad 1. Quedan en `docs/AUDITORIA_REALISMO.md` las prioridades 2 a 11 (empezando por la Prioridad 2: tu tienda propia «Bazar del Forastero» con su mostrador físico y su dependiente acudiendo a trabajar).
+
+---
+
+## Corrección FIS-P1
+
+Aplicados los 3 puntos de «FIS-P1 (interior de tu casa) — CORRECCIÓN NECESARIA» de `docs/REVISION_SUPERVISOR.md`:
+
+1. **ID de catálogo real (`"herbs"` en `SimpleInventory.CATALOG`):**
+   - Sustituido `"medicinal_herb"` por `"herbs"` en `VillageHousing.interact_home_garden(vm, lot_id, player)` y en `VillageHousing.craft_home_poultice(vm, lot_id, inv, player, npc)`, así como en los letreros de `VillageHousing.get_home_garden_label(vm, lot_id)` y `VillageHousing.open_home_workbench_menu(vm, speaker, _player)`. Comprobado con `grep` que no queda ninguna aparición de `"medicinal_herb"` en `scripts/`.
+2. **Sin producción de la nada en el banco de trabajo (`VillageHousing.craft_home_poultice`):**
+   - Eliminada la producción gratuita cada 2 días sin ingredientes y eliminada la función auxiliar `can_craft_home_poultice`. Ahora `VillageHousing.craft_home_poultice(vm, lot_id, inv, player, npc)` exige siempre `inv.has_item("herbs", 1)`, consume `inv.remove_item("herbs", 1)` y añade `inv.add_item("herbal_poultice", 1)` (si no llevas `"herbs"`, devuelve `false` sin dar nada).
+3. **Nombres reales en la fila 11 de `docs/AUDITORIA_REALISMO.md`:**
+   - Corregida la fila 11 para referenciar el archivo y funciones reales: `scripts/systems/VillageFame.gd`: `is_master`, `master_info`, `add_dialogue_choices`, `on_player_action` (`fame_buy_masterwork`, `fame_patronize`).
+4. **Prueba en `tools/tests/verify_all.gd`:**
+   - Actualizado `Block FIS-P1` (`FIS-P1.3a`, `FIS-P1.4a`, `FIS-P1.4b`) para verificar que `home_garden` entrega `"herbs"`, que `home_workbench` consume `1 "herbs"` para dar `+1 "herbal_poultice"` y que sin `"herbs"` en el inventario el banco no produce ninguna cataplasma.

@@ -1301,7 +1301,7 @@ static func can_harvest_home_garden(vm, lot_id: String) -> bool:
 
 static func get_home_garden_label(vm, lot_id: String) -> String:
 	if can_harvest_home_garden(vm, lot_id):
-		return "Cosechar el huerto de casa (+1 Pan, +1 Hierba)"
+		return "Cosechar el huerto de casa (+1 Pan, +1 Hierbas Medicinales)"
 	return "Huerto doméstico (en crecimiento)"
 
 
@@ -1317,19 +1317,11 @@ static func interact_home_garden(vm, lot_id: String, player: Node2D = null) -> b
 	var st: Dictionary = VillageLots.lot(vm, lid)
 	st["last_garden_day"] = today()
 	inv.add_item("bread", 1)
-	inv.add_item("medicinal_herb", 1)
+	inv.add_item("herbs", 1)
 	sync_home_props(vm)
 	VillageChronicle.add(vm, "home_garden_harvested", "Cosechaste verduras y hierbas medicinales en el huerto de tu casa", true)
-	_notify_player(vm, null, "🌱🥬 Cosechaste tu huerto doméstico (+1 Pan, +1 Hierba medicinal).", Color.SPRING_GREEN)
+	_notify_player(vm, null, "🌱🥬 Cosechaste tu huerto doméstico (+1 Pan, +1 Hierbas Medicinales).", Color.SPRING_GREEN)
 	return true
-
-
-static func can_craft_home_poultice(vm, lot_id: String = "") -> bool:
-	var lid: String = lot_id if not lot_id.is_empty() else primary_player_lot(vm)
-	if lid.is_empty() or not has_upgrade(vm, "workbench"):
-		return false
-	var st: Dictionary = VillageLots.lot(vm, lid)
-	return today() - int(st.get("last_workbench_day", -99)) >= PRODUCT_COOLDOWN_DAYS
 
 
 static func craft_home_poultice(vm, lot_id: String, inv, player: Node2D = null, npc = null) -> bool:
@@ -1338,22 +1330,16 @@ static func craft_home_poultice(vm, lot_id: String, inv, player: Node2D = null, 
 	var lid: String = lot_id if not lot_id.is_empty() else primary_player_lot(vm)
 	if lid.is_empty():
 		return false
-	var st: Dictionary = VillageLots.lot(vm, lid)
-	var has_herb: bool = inv.has_item("medicinal_herb", 1)
-	var ready_shelf: bool = can_craft_home_poultice(vm, lid)
-	if not has_herb and not ready_shelf:
-		_notify_player(vm, npc, "⚗️⏳ Necesitas llevar hierbas medicinales o esperar 2 días a que sequen las del banco.", Color.ORANGE_RED)
+	if not inv.has_item("herbs", 1):
+		_notify_player(vm, npc, "⚗️🌿 Necesitas llevar 1 Hierba Medicinal en la mochila para preparar una cataplasma.", Color.ORANGE_RED)
 		return false
-	if has_herb:
-		inv.remove_item("medicinal_herb", 1)
-	else:
-		st["last_workbench_day"] = today()
+	inv.remove_item("herbs", 1)
 	inv.add_item("herbal_poultice", 1)
 	var pl: Node2D = player if player != null else (VillageNeeds.player_of(vm) as Node2D)
 	if pl != null and pl.has_method("add_skill_xp"):
 		pl.call("add_skill_xp", "crafting", 8)
 	VillageChronicle.add(vm, "workbench_poultice", "Preparaste una cataplasma curativa en el banco de trabajo de tu casa", true)
-	_notify_player(vm, npc, "🧪🌿 Preparaste 1 cataplasma de hierbas en tu banco de trabajo.", Color.SPRING_GREEN)
+	_notify_player(vm, npc, "🧪🌿 Preparaste 1 cataplasma curativa en tu banco de trabajo (-1 Hierbas Medicinales).", Color.SPRING_GREEN)
 	return true
 
 
@@ -1363,13 +1349,11 @@ static func open_home_workbench_menu(vm, speaker: Node, _player: Node2D = null) 
 	var dm = vm.get_node_or_null("/root/DialogueManager")
 	if dm == null or not dm.has_method("start_dialogue"):
 		return
-	var lid: String = primary_player_lot(vm)
-	var herb_ready: bool = can_craft_home_poultice(vm, lid)
 	var st_uw: Dictionary = vm.VillageUnderworld.state(vm) if "VillageUnderworld" in vm and vm.VillageUnderworld != null else {}
 	var dust_ready: bool = int(st_uw.get("last_cook_day", -1)) != today()
 	var choices: Array = [
 		{
-			"label": "🧪🌿 Preparar cataplasma de hierbas (+1 Cataplasma%s)" % (" · hierbas secas listas" if herb_ready else " · requiere hierba medicinal"),
+			"label": "🧪🌿 Preparar cataplasma curativa (-1 Hierbas Medicinales -> +1 Cataplasma)",
 			"next": "END",
 			"action": "housing_craft_poultice"
 		},
