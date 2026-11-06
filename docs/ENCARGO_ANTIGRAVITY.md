@@ -49,51 +49,43 @@ Reglas que el supervisor va a comprobar sí o sí:
 
 ---
 
-## 2. El encargo actual: bloque FIS3 — alcantarillas que se recorren de verdad
+## 2. El encargo actual: bloque FIS4 — ganado vivo en el rancho y tus animales de verdad
 
-> FIS2 (terminal, cuadro eléctrico y objetos de los robos) está revisado y aprobado por el supervisor. Ojo: en tu
-> informe de FIS2 citabas funciones que no existen (`WorldText.show_choice_menu`, `inject_dialogue`,
-> `gold_conservation_ok`, `sabotage_electric_grid`, `attempt_heist_steal`, «social_sim de 7 días»). El código estaba
-> bien, pero **el informe debe describir lo que hay de verdad**: nombra solo funciones que existan y resultados que
-> hayas visto en pantalla.
+> FIS3 (alcantarillas) revisado y **aprobado** por el supervisor. Esta vez el informe era fiel: bien.
 
-Ahora mismo: las alcantarillas se «exploran» desde una opción de charla con el perista
-(`underworld_sewer_explore:` → `VillageUnderworld.explore_sewer_location`, una tirada de dados que te devuelve a la calle).
-`WorldStage3D._build_sewers_3d` dibuja 3 cámaras en 3D, pero no se puede bajar ni andar por ellas. Además, el nivel −1
-vuelve solo a la calle al alejarte 70 px (`VillageManager.check_elevation_exit`, regla de las capas verticales).
+Ahora mismo:
+- El corral del Rancho del Sur (`VillageTrades.build_extras`, caso `"ranch"`) pinta **4 dibujos quietos** (gallina y
+  jabalí) que no tienen nada que ver con el rebaño real (`VillageHousing.state(vm)["ranch_herd"]`: ovejas y gallos que
+  crecen, se venden y se renuevan cada día).
+- Tus animales (`player_animals`, se compran al ganadero o al carpintero) son **solo datos**: no existen en el mapa, se
+  alimentan desde una charla (`housing_feed_animals`) y, cuando son adultos, **te meten carne cocinada en la mochila cada
+  dos días sin hacer nada** (en el ciclo diario de `VillageHousing`). Eso incumple «todo es físico».
 
 Hay que:
-1. **Tres trampillas/rejillas en la calle** (dibujo 2D + modelo 3D, `Area2D` «interactable», letrero «[E] …»), una por
-   cada sitio de `SEWER_LOCATIONS` (cisterna bajo la plaza, pasadizo del contrabandista, bóveda inundada). Colócalas en
-   la calle junto a esos puntos, no dentro de un edificio ni encima de un camino de paso de los vecinos.
-2. **Bajar con [E]** si tienes la llave del perista (`sewers_state.unlocked`; la llave se sigue comprando al perista
-   como ahora). Sin llave: letrero «Cerrada: el perista vende la llave».
-3. **Una red de túneles que se camina de verdad.** Recomendación técnica (decídelo tú, pero justifícalo en el informe):
-   construir los túneles en una zona del mapa **fuera del pueblo** (por ejemplo, muy al sur, donde no hay nada), con
-   paredes que bloqueen, porque bajo el pueblo real chocarías con las paredes de los edificios de la superficie. Cada
-   trampilla de arriba lleva a su boca de túnel abajo; los tres túneles están conectados.
-4. **Escalerillas de salida** abajo, junto a cada boca: [E] sube a la trampilla correspondiente de la calle. Así puedes
-   entrar por una y salir por otra.
-5. Mientras estás abajo: nivel −1, **no** debe saltar la vuelta automática a la calle de `check_elevation_exit`, la
-   guardia de la superficie no te ve (los testigos ya miran la planta), y la vista 3D enseña los túneles
-   (`sewers_root_3d`; usa `VillageUnderworld.is_player_in_sewers`).
-6. **Cofres de contrabando** abajo (uno por cámara, [E], 1 vez al día cada uno) con el botín que ya define cada sitio
-   (`loot_item`) y monedas del pozo `lost_coins_pool` (suma cero: salen de ese pozo, no del aire). Puede salir mal: agua
-   sucia o una trampa → baja la higiene y algo de salud, como hace ahora el fallo. Mantén la ventaja actual del
-   pasadizo del contrabandista: salir por él baja 1 nivel de búsqueda, como mucho una vez por semana
-   (`VillageHousing.can_purge_wanted` / `mark_wanted_purge`).
-7. **Quita** del perista la opción «Bajar al nivel −1 y explorar…» y la opción «Subir por la escalerilla…». La
-   exploración por tirada (`explore_sewer_location`) deja de usarse en el juego (puedes dejar la función si los tests la
-   necesitan, pero que ningún menú la llame).
-8. Guardar y cargar: si guardas estando abajo, al cargar sigues abajo en el mismo sitio.
+1. **Rebaño del rancho vivo:** un animal en el mapa por cada entrada de `ranch_herd`, paseando despacio dentro de la
+   valla del corral (no salen), con su tamaño según la etapa (cría / joven / adulto). Cuando el rebaño cambia (nace,
+   se vende), el mapa cambia igual. Quita los 4 dibujos quietos.
+2. **Tus animales vivos:** cada entrada de `player_animals` existe en el mapa dentro del corral de tu gallinero
+   (`ChickenCoop`, el vallado junto a tu campamento), paseando dentro de la valla. Si muere de hambre, desaparece.
+3. **Con [E] junto a uno de tus animales** (letrero «[E] Dar de comer a …», `get_interact_label`):
+   - darle de comer gasta 1 trigo o pan de tu mochila (lo mismo que hace ahora `feed_player_animals`, pero a ese animal);
+   - si es adulto: **recoger su producto en persona** («[E] Esquilar la oveja» → lana; «[E] Recoger huevos» → huevo),
+     como mucho una vez cada 2 días por animal. **Quita** la carne que entraba sola en la mochila.
+   - Quita la opción de alimentarlos desde la charla con el ganadero/carpintero (comprar crías sí se queda en la charla:
+     es una compra a una persona).
+4. **Aspecto (provisional):** no hay modelos de oveja ni de gallina de nuestro estilo. Usa por ahora
+   `animals/animated/Alpaca.glb` para la oveja (bájalo de poly.pizza, Quaternius, CC0, igual que los otros; apúntalo en
+   `assests/curated_3d/animals/animated/LICENCIA.txt`) y una gallina sencilla hecha con piezas en 3D (como hiciste con la
+   terminal). En 2D, los dibujos que ya hay. Con `AnimalModel3D.attach` para lo que tenga `.glb`.
+5. Guardar y cargar: al cargar, los animales vuelven a aparecer según los datos guardados.
 
 ### 2.1 Pruebas del bloque
 
-- Un test por comportamiento: sin llave no se baja; con llave [E] en la trampilla te pone abajo (nivel −1 y dentro de los
-  túneles); andar abajo no te devuelve solo a la calle; salir por otra escalerilla te deja en otra trampilla de la calle;
-  el cofre da su botín una vez al día y saca las monedas del pozo; el perista ya no ofrece explorar.
-- Fotos con `tools/screenshot_3d.gd` (sitios «trampilla» y «tunel»).
-- Arranque sin errores (`--headless --quit-after 3`), y las cuatro pruebas de HANDOFF §3, de una en una con `timeout`.
+- Un test por comportamiento: hay tantos animales en el corral del rancho como en `ranch_herd`; tus animales aparecen
+  en tu corral; [E] da de comer y gasta 1 trigo/pan; un adulto da su producto una vez cada 2 días; ya no entra carne
+  sola en la mochila; la charla ya no ofrece alimentar.
+- Fotos con `tools/screenshot_3d.gd` (sitios «rancho» y «corral»).
+- Arranque sin errores (`--headless --quit-after 3`) y las cuatro pruebas de HANDOFF §3, de una en una con `timeout`.
   El usuario ya ha dado permiso para pasarlas sin preguntar.
 
 ## 3. Al cerrar el bloque
