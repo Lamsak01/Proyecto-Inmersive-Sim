@@ -12,6 +12,11 @@
   `timeout 900`).
 - No toques nada fuera de este encargo. Si ves otra cosa rota, apúntala en el informe.
 
+## 0. Arreglo pequeño de P1 (antes de empezar)
+
+`VillageHousing.stock_player_shop` pasa solo 2 objetos por pulsación (`added < 2`). Cámbialo a **6** por pulsación
+(constante `SHOP_STOCK_PER_PRESS = 6`). Ajusta el test P1 que lo compruebe si lo hay.
+
 ## Cómo está ahora
 
 `VillageCulture.buy_mount(vm, "cart", …)` cobra `CART_COST` (55) al ganadero y pone `mounts_state["has_cart"] = true`.
