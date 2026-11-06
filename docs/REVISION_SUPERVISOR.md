@@ -101,3 +101,8 @@ El cambio es del usuario y se queda. Pero `scripts/obstacles/CampSite.gd` incump
 3. Un test: la obra del gallinero pagada con oro suma ese oro al ganadero (o a las arcas) y no se hace con una sola E.
 4. **Ojo, excepción:** el `inv.add_gold(-20)` de `_on_chest_deposit_gold` (~línea 517) **no** es un gasto: es guardar oro
    en tu cofre (`chest_gold_stored += 20`). Ese se queda como está, sin doble E.
+
+### Corrección del campamento — APROBADA
+
+Cada obra pagada con oro pasa por `_pay_camp_work` (carpintero, ganadero o arreglador; si no hay, las arcas) y pide doble
+E (`_confirm_camp_gold_spend`). El cofre sigue igual. Arranque sin errores y las cuatro pruebas pasan.
