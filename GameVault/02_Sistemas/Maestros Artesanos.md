@@ -21,4 +21,5 @@ fuente: "Biblia §4.2"
   - El jugador puede encargar una obra maestra por **35 de oro** (mejora el ánimo en casa o suma prestigio) o revenderla a un coleccionista por **30 de oro** (nunca da ganancia mágica por revender).
 
 ## Notas de diseño
+- 2026-11-06 (Claude Code, Bloque A1): la Obra Maestra ya no se compra hablando con el maestro en la calle: se compra en el **mostrador de su taller**, con el maestro allí y despierto (pulsando E dos veces, porque es un gasto). Si no está: «El maestro no está; vuelve cuando abra».
 -

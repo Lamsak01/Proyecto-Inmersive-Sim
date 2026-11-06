@@ -16,6 +16,7 @@ const VillageUnderworld = preload("res://scripts/systems/VillageUnderworld.gd")
 const VillageHousing = preload("res://scripts/systems/VillageHousing.gd")
 const VillageCollections = preload("res://scripts/systems/VillageCollections.gd")
 const VillageClub = preload("res://scripts/systems/VillageClub.gd")
+const VillageFame = preload("res://scripts/systems/VillageFame.gd")
 const CharacterAvatar3DScript = preload("res://scripts/visuals/CharacterAvatar3D.gd")
 
 var vm: Node2D = null
@@ -107,6 +108,10 @@ func setup_prop(village_manager: Node2D, kind: String, h_id: String = "", h_labe
 			npc_name = "Libro de Cuentas"
 			npc_role = "Mesa del Ayuntamiento"
 			add_to_group("town_ledger_prop")
+		"masterwork_counter": # A1: mostrador del taller del maestro artesano (invisible: basta el letrero)
+			npc_name = "Mostrador del Maestro"
+			npc_role = "Obras Maestras"
+			add_to_group("masterwork_counter")
 		"club_trapdoor", "club_ladder", "club_ring", "club_bet": # P6: club de pelea en el sótano de la taberna
 			npc_name = {"club_trapdoor": "Trampilla", "club_ladder": "Escalerilla a la Taberna", "club_ring": "Corro de Cuerda", "club_bet": "Apuestas"}[prop_kind]
 			npc_role = "Sótano de la Taberna"
@@ -403,6 +408,8 @@ func get_interact_label(_player: Node2D = null) -> String:
 			return VillageCollections.embezzle_label(vm) if vm != null else ""
 		"town_ledger":
 			return VillageCollections.ledger_label(vm) if vm != null else ""
+		"masterwork_counter":
+			return VillageFame.masterwork_counter_label(vm, vm._get_npcs_by_person_key().get(heist_id, null)) if vm != null else ""
 		"club_trapdoor":
 			return VillageClub.trapdoor_label(vm) if vm != null else ""
 		"club_ladder":
@@ -451,6 +458,8 @@ func interact(player: Node2D) -> void:
 			VillageCollections.embezzle(vm, player)
 		"town_ledger":
 			VillageCollections.cook_books(vm, player)
+		"masterwork_counter":
+			VillageFame.buy_at_counter(vm, vm._get_npcs_by_person_key().get(heist_id, null), player)
 		"club_trapdoor":
 			VillageClub.go_down(vm, player)
 		"club_ladder":

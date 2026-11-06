@@ -2484,6 +2484,7 @@ func _on_hour_passed(_day: int, new_hour: int = 8) -> void:
 	VillageUnderworld.fence_on_hour(self, actual_hour) # P5b: el perista trasnocha en el callejón de la taberna
 	VillageNightJobs.on_hour(self, actual_hour) # P6b: a la 1:00 salen los saboteadores, rateros y profanadores
 	VillageClub.on_hour(self, actual_hour) # P6: el club del sótano abre a las 23:00 las noches pares
+	VillageFame.sync_masterwork_counters(self) # A1: mostrador de las Obras Maestras en el taller de cada maestro
 	VillageCollections.sync_points(self) # P5: puntos de cobro en los locales y objetos del ayuntamiento
 	VillageNeeds.on_hour(self, actual_hour) # E: higiene, taberna, limosna
 	VillageIllness.on_hour(self, actual_hour) # E2: contagios

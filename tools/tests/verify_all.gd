@@ -5849,5 +5849,50 @@ func _initialize() -> void:
 	t5_wc.current_minute = bp4_min_bak
 	print("Block P4 (Physical Dinners, House Parties, Innkeeper Catering & Peace Dinners) OK")
 
+	# ==========================================================================
+	# Bloque A1: Obras Maestras en el mostrador del taller («A1 obras maestras»)
+	# ==========================================================================
+	var a1_fame = vm.VillageFame
+	var a1_master = null
+	for a1_n in vm.VillageNeeds.living(vm):
+		if int(a1_n.trade_role) in load("res://scripts/enemies/VillageNPC.gd").SHOP_ROLES and a1_n.work_position != Vector2.ZERO:
+			a1_master = a1_n
+			break
+	assert(a1_master != null, "A1.0: Found an artisan with a workshop")
+	var a1_key: String = a1_master.get_person_key()
+	var a1_masters: Dictionary = a1_fame.state(vm)["masters"]
+	var a1_had: bool = a1_masters.has(a1_key)
+	var a1_bak: Dictionary = (a1_masters.get(a1_key, {}) as Dictionary).duplicate(true)
+	a1_masters[a1_key] = {"style": "Prueba", "stock": 2, "last_craft_day": 0}
+	var a1_inv = p70_pl.get("inventory")
+	var a1_gold_bak: int = int(a1_inv.gold)
+	var a1_mgold_bak: int = int(a1_master.personal_gold)
+	var a1_pos_bak: Vector2 = a1_master.global_position
+	var a1_slp: bool = a1_master.is_sleeping
+	a1_inv.gold = 100
+	# 1. Sin el maestro en su taller: no se puede comprar
+	a1_master.global_position = a1_master.work_position + Vector2(300, 0)
+	assert(a1_fame.masterwork_counter_label(vm, a1_master) == "El maestro no está; vuelve cuando abra" and not a1_fame.buy_at_counter(vm, a1_master, p70_pl, true), "A1.1: With the master away the counter does not sell")
+	# 2. Con el maestro allí: una sola E no cobra; la segunda sí (suma cero) y la obra pasa a tu mochila
+	a1_master.global_position = a1_master.work_position
+	a1_master.is_sleeping = false
+	var a1_pieces0: int = int(a1_inv.get_count("masterwork_piece"))
+	vm.set_meta("e_confirm_tag", "")
+	assert(not a1_fame.buy_at_counter(vm, a1_master, p70_pl) and int(a1_inv.gold) == 100, "A1.2a: One E press does not charge")
+	assert(a1_fame.buy_at_counter(vm, a1_master, p70_pl), "A1.2b: Second E press buys")
+	assert(int(a1_inv.gold) == 100 - a1_fame.MASTERWORK_BUY_COST and int(a1_master.personal_gold) == a1_mgold_bak + a1_fame.MASTERWORK_BUY_COST and int(a1_inv.get_count("masterwork_piece")) == a1_pieces0 + 1, "A1.2c: Gold goes to the master (zero-sum) and the masterwork goes to your backpack")
+	# Restaurar
+	if int(a1_inv.get_count("masterwork_piece")) > a1_pieces0:
+		a1_inv.remove_item("masterwork_piece", int(a1_inv.get_count("masterwork_piece")) - a1_pieces0)
+	if a1_had:
+		a1_masters[a1_key] = a1_bak
+	else:
+		a1_masters.erase(a1_key)
+	a1_inv.gold = a1_gold_bak
+	a1_master.personal_gold = a1_mgold_bak
+	a1_master.global_position = a1_pos_bak
+	a1_master.is_sleeping = a1_slp
+	print("Block A1 (Masterworks Bought at the Workshop Counter with the Master Present) OK")
+
 	print("ALL RIMWORLD MEDICAL, FOOTPRINTS, 3-PHASE CORPSE REPORT, MULTI-CORPSE FIX, RPG INTERROGATION, PUBLIC TRIAL, DYNAMIC RELATIONSHIPS, MISSING FAMILY SEARCH, SOCIAL GLOSSARY & UNCONSCIOUS REACTION TESTS PASSED!")
 	quit(0)

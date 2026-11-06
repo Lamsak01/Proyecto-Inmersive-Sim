@@ -343,13 +343,7 @@ static func add_dialogue_choices(vm, npc, diag: Dictionary, ch_arr: Array) -> vo
 
 	# 1. Si es Maestro Artesano: comprar Obra Maestra firmada
 	if is_master(vm, npc):
-		var m: Dictionary = master_info(vm, npc)
-		var stock: int = int(m.get("stock", 0))
-		sub.append({
-			"label": "🏆🎨 Comprar Obra Maestra de estilo «%s» (-%d Oro) [Disponibles: %d]" % [str(m.get("style", "Autor")), MASTERWORK_BUY_COST, stock],
-			"next": "END",
-			"action": "fame_buy_masterwork"
-		})
+		pass # A1: la Obra Maestra ya no se compra en la charla, sino en el mostrador de su taller (masterwork_counter)
 	# 2. Si es artesano con taller pero aún no es Maestro: patrocinar su taller con mejores materiales
 	elif npc.trade_role in VillageNPC.SHOP_ROLES:
 		var last_pat: int = int((st["patron_day"] as Dictionary).get(key, -99))
@@ -451,6 +445,61 @@ static func add_dialogue_choices(vm, npc, diag: Dictionary, ch_arr: Array) -> vo
 		sub.append({"label": "⬅️ Volver", "next": "start"})
 		diag["fame_menu"] = {"text": header, "choices": sub}
 		ch_arr.insert(maxi(0, ch_arr.size() - 1), {"label": "🌟🏆 Fama, prestigio y obras de autor…", "next": "fame_menu"})
+
+# ==============================================================================
+# A1 (Claude Code): la Obra Maestra se compra en el mostrador del taller, con el maestro allí
+# ==============================================================================
+const MASTER_NEAR_PX: float = 60.0
+
+static func _master_present(npc) -> bool:
+	return npc != null and is_instance_valid(npc) and not npc.is_dead and not npc.is_sleeping and not npc.is_incapacitated() \
+		and npc.global_position.distance_to(npc.work_position) <= MASTER_NEAR_PX
+
+static func masterwork_counter_label(vm, npc) -> String:
+	if vm == null or npc == null or not is_master(vm, npc):
+		return ""
+	if not _master_present(npc):
+		return "El maestro no está; vuelve cuando abra"
+	var m: Dictionary = master_info(vm, npc)
+	if int(m.get("stock", 0)) <= 0:
+		return "Obra Maestra de estilo «%s» (agotada: vuelve en unos días)" % str(m.get("style", "Autor"))
+	return "Comprar Obra Maestra de estilo «%s» (−%d oro) [Disponibles: %d]" % [str(m.get("style", "Autor")), MASTERWORK_BUY_COST, int(m.get("stock", 0))]
+
+## Comprar en el mostrador: el maestro tiene que estar en su taller y es un gasto, así que pide doble E.
+static func buy_at_counter(vm, npc, player, skip_confirm: bool = false) -> bool:
+	if not is_master(vm, npc) or not _master_present(npc):
+		return false
+	var m: Dictionary = master_info(vm, npc)
+	if int(m.get("stock", 0)) <= 0:
+		return false
+	var inv = player.get("inventory") if player != null else null
+	if inv == null or int(inv.gold) < MASTERWORK_BUY_COST:
+		npc._spawn_floating_text("Necesitas %d de oro para adquirir esta Obra Maestra" % MASTERWORK_BUY_COST, Color.ORANGE_RED, -44.0)
+		return false
+	if not skip_confirm and not vm.VillageHousing.press_twice(vm, "masterwork:" + npc.get_person_key()):
+		if player.has_method("_spawn_floating_text"):
+			player._spawn_floating_text("Pulsa [E] otra vez para pagar %d de oro" % MASTERWORK_BUY_COST, Color.LIGHT_GRAY, -46.0)
+		return false
+	on_player_action(vm, npc, "fame_buy_masterwork", inv)
+	return true
+
+## Cada hora: un mostrador con [E] junto al puesto de cada maestro (sigue al maestro si cambia de taller).
+static func sync_masterwork_counters(vm) -> void:
+	if vm == null or not vm.is_inside_tree():
+		return
+	for old in vm.get_tree().get_nodes_in_group("masterwork_counter"):
+		if is_instance_valid(old):
+			if old.get_parent() != null:
+				old.get_parent().remove_child(old)
+			old.queue_free()
+	var parent: Node = vm.entities_root if ("entities_root" in vm and is_instance_valid(vm.entities_root)) else vm
+	var PropScript = load("res://scripts/obstacles/WorldInteractableProp.gd")
+	for n in VillageNeeds.living(vm):
+		if is_master(vm, n) and n.work_position != Vector2.ZERO:
+			var p: Node2D = PropScript.new()
+			p.global_position = n.work_position + Vector2(0, -10)
+			parent.add_child(p)
+			p.setup_prop(vm, "masterwork_counter", n.get_person_key(), "")
 
 static func on_player_action(vm, npc, action_id: String, inv) -> void:
 	if vm == null or npc == null:

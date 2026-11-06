@@ -9,7 +9,7 @@
 
 | # | Qué | En palabras de jugador | De dónde sale |
 |---|---|---|---|
-| A1 | **Obras maestras en el taller** | La obra maestra se compra en el mostrador del taller, con el maestro allí, no hablando con él en la calle | Auditoría fila 11 |
+| A1 | ✅ **Obras maestras en el taller** | La obra maestra se compra en el mostrador del taller, con el maestro allí, no hablando con él en la calle | Auditoría fila 11 |
 | A2 | **Ayuda de controles** | Al empezar, una pantalla con las 8 teclas básicas | Beta §3.6 |
 | A3 | **Arcabuz en el combate** | Apuntar y disparar con el ratón, no desde una charla (el disparo ya existe y hace daño) | VISION, PENDIENTE |
 | A4 | **Amputación también para ti** | Si se te gangrena una herida te pueden amputar, y el médico te ofrece la prótesis (ya existe para vecinos) | VISION, PENDIENTE |
