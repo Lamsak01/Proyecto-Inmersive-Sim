@@ -5982,5 +5982,108 @@ func _initialize() -> void:
 		p70_pl.avatar_3d.call("mark_appearance_dirty")
 	print("Block A4 (Player Gangrene Warning, Doctor Amputation Choice & Prosthetic Capacity Recovery) OK")
 
+	# ==========================================================================
+	# Bloque B4: guardar y cargar con cosas a medias («B4 guardado»)
+	# ==========================================================================
+	var b4_nj = load("res://scripts/systems/VillageNightJobs.gd")
+	var b4_club = load("res://scripts/systems/VillageClub.gd")
+	var b4_vil = load("res://scripts/systems/VillageIllness.gd")
+	var b4_vcol = load("res://scripts/systems/VillageCollections.gd")
+	var b4_inv = p70_pl.get("inventory")
+	var b4_phc = p70_pl.get_node_or_null("HealthComponent")
+	var b4_path: String = "user://b4_test_save.json"
+	var b4_day_bak: int = int(t5_wc.current_day)
+	var b4_hour_bak: int = int(t5_wc.current_hour)
+	var b4_gold_bak: int = int(b4_inv.gold)
+	var b4_reg_bak: Dictionary = b4_phc.region_hp.duplicate(true)
+	var b4_hs: Dictionary = vho.state(vm)
+	var b4_stash_bak: int = int(b4_hs.get("stash_gold", 0))
+	var b4_has_stash_bak: bool = bool(b4_hs.get("has_stash", false))
+	# Noche de club abierta (noche par, 1:00)
+	t5_wc.current_day = 21
+	t5_wc.current_hour = 1
+	t5_wc.current_minute = 0
+	var b4_busted_bak: int = int(vm.VillageUnderworld.state(vm).get("fence_busted_until", -1))
+	vm.VillageUnderworld.state(vm)["fence_busted_until"] = -1
+	var b4_fence = vm.VillageUnderworld.get_fence_npc(vm)
+	assert(b4_fence != null, "B4.0: There is a fence to run the club and hire the saboteur")
+	b4_fence.personal_gold = 50
+	b4_inv.gold = 100
+	# 1. Recado nocturno con el agente caminando
+	b4_nj.jobs(vm).clear()
+	vm.VillageUnderworld.on_player_action(vm, b4_fence, "underworld_hire_saboteur", b4_inv)
+	var b4_job: Dictionary = b4_nj.jobs(vm)[0]
+	b4_job["start_at"] = 0
+	assert(b4_nj.start_job(vm, b4_job) and str(b4_job["status"]) == "walking", "B4.0a: Night job started with the agent walking")
+	b4_job["b4_mark"] = true
+	var b4_ag_key: String = str(b4_job["agent_key"])
+	b4_inv.gold = 100
+	# 2. Pelea del club entre dos vecinos con una apuesta tuya de 15
+	var b4_adults: Array = []
+	for n_b4 in vm.VillageNeeds.living(vm):
+		if n_b4 != b4_fence and str(n_b4.get_person_key()) != b4_ag_key and b4_club._free_adult(n_b4):
+			b4_adults.append(n_b4)
+	var b4_c: Dictionary = b4_club.state(vm)
+	b4_c["night"] = 20
+	b4_c["closed_night"] = -99
+	b4_c["attendees"] = []
+	b4_c["fighters"] = [b4_adults[0].get_person_key(), b4_adults[1].get_person_key()]
+	b4_c["bout"] = {"type": "npc", "a": b4_adults[0].get_person_key(), "b": b4_adults[1].get_person_key(), "beat": 1.3}
+	b4_c["bet"] = {"on": b4_adults[0].get_person_key(), "amount": b4_club.BET_AMOUNT}
+	b4_c["pot"] = b4_club.BET_AMOUNT
+	b4_c["bout_done_night"] = -99
+	b4_adults[0].set_meta("club_bout", true)
+	# 3. Cobro pendiente y cena convocada (con la mesa en una posición con decimales)
+	b4_vcol.pending(vm).append({"kind": "rent", "role": -1, "amount": 7, "since": 21, "b4_mark": true})
+	b4_hs["gathering"] = {"kind": "dinner", "place": "home", "start_day": 21, "start_hour": 20, "guests": [b4_adults[2].get_person_key()], "table_pos": Vector2(321.5, -45.25), "dispatched": false, "arrived": []}
+	# 4. Prótesis sencilla en el brazo y 30 de oro en el escondite
+	b4_vil.amputations_of(vm).erase("player")
+	b4_vil.amputate(vm, "player", "left_arm", "prueba B4")
+	b4_vil.install_prosthetic(vm, "player", "basic")
+	b4_hs["has_stash"] = true
+	b4_hs["stash_gold"] = 30
+	assert(gm.save_game(b4_path), "B4.0b: Save must succeed")
+	assert(gm.load_game(b4_path), "B4.0c: Load must succeed")
+	await process_frame
+	# Comprobaciones
+	var b4_job_back: Dictionary = {}
+	for j_b4 in b4_nj.jobs(vm):
+		if bool(j_b4.get("b4_mark", false)):
+			b4_job_back = j_b4
+	var b4_ag_back = vm._get_npcs_by_person_key().get(b4_ag_key, null)
+	assert(not b4_job_back.is_empty() and str(b4_job_back.get("status", "")) == "walking" and b4_ag_back != null and b4_ag_back.errand_kind == "night_job", "B4.1: The night job survives and its agent walks again after loading")
+	var b4_c2: Dictionary = b4_club.state(vm)
+	var b4_any_bout: bool = false
+	for n_b4b in vm.VillageNeeds.living(vm):
+		if n_b4b.has_meta("club_bout") and bool(n_b4b.get_meta("club_bout")):
+			b4_any_bout = true
+	assert((b4_c2.get("bout", {}) as Dictionary).is_empty() and (b4_c2.get("bet", {}) as Dictionary).is_empty() and not b4_any_bout and int(b4_inv.gold) == 100 + b4_club.BET_AMOUNT, "B4.2: The club bout is cancelled without winner, nobody keeps club_bout and the bet comes back (gold %d)" % int(b4_inv.gold))
+	var b4_col_ok: bool = false
+	for e_b4 in vm.VillageNeeds.state(vm).get("pending_collections", []):
+		if bool(e_b4.get("b4_mark", false)):
+			b4_col_ok = true
+	var b4_hs2: Dictionary = vho.state(vm)
+	assert(b4_col_ok and vho.has_active_gathering(vm) and b4_hs2["gathering"].get("table_pos", null) is Vector2 and (b4_hs2["gathering"]["table_pos"] as Vector2).is_equal_approx(Vector2(321.5, -45.25)), "B4.3: The pending collection and the dinner (with its table position as a real position) survive loading")
+	assert(is_equal_approx(b4_phc.get_region_ratio("left_arm"), 0.5) and b4_vil.prosthetic_quality(vm, "player") == "basic" and int(b4_hs2.get("stash_gold", 0)) == 30, "B4.4: The basic prosthetic stays at 50% and the stash keeps 30 gold")
+	# Restaurar
+	b4_nj.jobs(vm).clear()
+	if b4_ag_back != null and b4_ag_back.errand_kind == "night_job":
+		b4_ag_back.end_errand()
+	b4_hs2["gathering"] = {}
+	var b4_pc: Array = vm.VillageNeeds.state(vm).get("pending_collections", [])
+	for i_b4 in range(b4_pc.size() - 1, -1, -1):
+		if bool(b4_pc[i_b4].get("b4_mark", false)):
+			b4_pc.remove_at(i_b4)
+	b4_vil.amputations_of(vm).erase("player")
+	b4_phc.region_max_override.clear()
+	b4_phc.region_hp = b4_reg_bak
+	b4_hs2["stash_gold"] = b4_stash_bak
+	b4_hs2["has_stash"] = b4_has_stash_bak
+	b4_inv.gold = b4_gold_bak
+	t5_wc.current_day = b4_day_bak
+	t5_wc.current_hour = b4_hour_bak
+	vm.VillageUnderworld.state(vm)["fence_busted_until"] = b4_busted_bak
+	DirAccess.remove_absolute(ProjectSettings.globalize_path(b4_path))
+	print("Block B4 (Save and Load with Half-Done Night Jobs, Club Bout, Collections, Dinner, Prosthetic & Stash) OK")
 	print("ALL RIMWORLD MEDICAL, FOOTPRINTS, 3-PHASE CORPSE REPORT, MULTI-CORPSE FIX, RPG INTERROGATION, PUBLIC TRIAL, DYNAMIC RELATIONSHIPS, MISSING FAMILY SEARCH, SOCIAL GLOSSARY & UNCONSCIOUS REACTION TESTS PASSED!")
 	quit(0)

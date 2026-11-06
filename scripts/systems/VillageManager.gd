@@ -4751,7 +4751,31 @@ func _free_transient_npc(npc: VillageNPC) -> void:
 		npc.get_parent().remove_child(npc)
 	npc.queue_free()
 
+## B4: el JSON del guardado convierte cada `Vector2` en el texto «(x, y)»; aquí se devuelven a `Vector2` dentro de los
+## estados del pueblo (solo valores, nunca claves; un texto normal no tiene esa forma).
+static var _vec_re: RegEx = null
+static func revive_vectors(v):
+	if v is Dictionary:
+		for k in (v as Dictionary).keys():
+			v[k] = revive_vectors(v[k])
+		return v
+	if v is Array:
+		for i in range((v as Array).size()):
+			v[i] = revive_vectors(v[i])
+		return v
+	if v is String and (v as String).begins_with("(") and (v as String).ends_with(")"):
+		if _vec_re == null:
+			_vec_re = RegEx.new()
+			_vec_re.compile("^\\((-?(?:[0-9.]+(?:e[-+]?[0-9]+)?|inf)), (-?(?:[0-9.]+(?:e[-+]?[0-9]+)?|inf))\\)$")
+		var m: RegExMatch = _vec_re.search(v)
+		if m != null:
+			return Vector2(float(m.get_string(1)), float(m.get_string(2)))
+	return v
+
 func load_economy_save_dict(data: Dictionary) -> void:
+	for st_key in ["needs_state", "town_state", "lots_state", "places_state", "work_state", "culture_state", "migration_state", "nobility_state", "family_state", "faith_state"]:
+		if typeof(data.get(st_key)) == TYPE_DICTIONARY:
+			revive_vectors(data[st_key])
 	village_food_shortage_days = int(data.get("village_food_shortage_days", 0))
 	player_arrests_count = int(data.get("player_arrests_count", 0))
 	player_murder_warrants_count = int(data.get("player_murder_warrants_count", 0))
@@ -4817,6 +4841,10 @@ func load_economy_save_dict(data: Dictionary) -> void:
 	nobility_state = (data["nobility_state"] as Dictionary).duplicate(true) if typeof(data.get("nobility_state")) == TYPE_DICTIONARY else {}
 	family_state = (data["family_state"] as Dictionary).duplicate(true) if typeof(data.get("family_state")) == TYPE_DICTIONARY else {}
 	VillageFamily.after_load(self)
+	# B4: retomar o cancelar limpio lo que estaba a medias al guardar (recados, club, cenas)
+	VillageNightJobs.after_load(self)
+	VillageClub.after_load(self)
+	VillageHousing.after_load_gathering(self)
 	VillageSect._update_band(self)
 	if data.has("chronicle") and typeof(data["chronicle"]) == TYPE_ARRAY:
 		chronicle.clear()

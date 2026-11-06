@@ -109,6 +109,25 @@ static func start_job(vm, job: Dictionary) -> bool:
 	job["status"] = "walking"
 	return true
 
+## B4: al cargar partida los recados de los vecinos no se guardan; el agente vuelve a echar a andar hacia el objetivo
+## (si estaba «actuando», vuelve a caminar desde donde estaba, que es al lado, y empieza de nuevo los 20 minutos).
+static func after_load(vm) -> void:
+	if vm == null:
+		return
+	var by_key: Dictionary = vm._get_npcs_by_person_key()
+	for job in jobs(vm):
+		if not (str(job.get("status", "")) in ["walking", "acting"]):
+			continue
+		var ag = by_key.get(str(job.get("agent_key", "")), null)
+		var pos: Vector2 = target_pos(vm, job)
+		if ag == null or not is_instance_valid(ag) or ag.is_dead or pos == Vector2.ZERO:
+			job["status"] = "failed"
+			continue
+		ag.start_errand("night_job", pos)
+		job["status"] = "walking"
+		job.erase("act_since")
+	_prune(vm)
+
 ## Al llegar (desde `VillageNeeds.tick`): empieza los 20 minutos.
 static func on_arrived(vm, n) -> void:
 	var job: Dictionary = active_job_of(vm, n)

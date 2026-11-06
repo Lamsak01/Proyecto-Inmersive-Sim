@@ -3,6 +3,13 @@
 Cambios del juego, del más nuevo al más antiguo. Añade una entrada al cerrar cada bloque, en lenguaje sencillo.
 El detalle técnico está en `docs/HANDOFF.md` (sección 7) y el historial completo en `git log`. Lo anterior a B0.1 está en `AUDIT_LOG.md` y `SESSION_CONTEXT_LOG.md`.
 
+## 2026-11-06 — Guardar y cargar sin sustos
+- **Lo que estaba a medias sigue:** un sabotaje nocturno en marcha, una cena o fiesta convocada y los invitados ya
+  sentados siguen igual al cargar la partida.
+- **Lo que no puede seguir se anula sin perder nada:** una pelea del club a medias se anula y te devuelven la entrada o
+  la apuesta; los vecinos del sótano vuelven a su sitio y tú sigues abajo con la escalerilla funcionando.
+- **Arreglado:** las cenas en casa se rompían al cargar, porque la posición de la mesa se guardaba mal.
+
 ## 2026-11-06 — Dos prótesis: sencilla (50 %) y buena (75 %)
 - **Dos calidades en el hospital:** la sencilla de madera y correas (25 de oro) deja el brazo o la pierna al 50 %; la
   articulada de hierro y cuero (50 de oro) al 75 %. Con la sencilla puesta, el médico te ofrece mejorarla por 25.

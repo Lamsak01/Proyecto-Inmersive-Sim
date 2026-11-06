@@ -2121,6 +2121,37 @@ static func _dispatch_caterer_if_ready(vm, g: Dictionary) -> void:
 		cat_npc.start_errand("catering", t_pos + Vector2(0.0, -14.0))
 
 
+## B4: al cargar partida. Los recados y los asientos de los vecinos no se guardan: los invitados sentados vuelven a su
+## silla, los que iban andando vuelven a echar a andar y la posadera, si iba de camino, vuelve a salir.
+static func after_load_gathering(vm) -> void:
+	if vm == null or not has_active_gathering(vm):
+		return
+	var g: Dictionary = state(vm)["gathering"]
+	var t_pos: Vector2 = g.get("table_pos", Vector2.ZERO) if g.get("table_pos", null) is Vector2 else Vector2.ZERO
+	if t_pos == Vector2.ZERO:
+		_cleanup_gathering_All(vm)
+		return
+	var by_key: Dictionary = vm._get_npcs_by_person_key()
+	if bool(g.get("catering_dispatched", false)) and not bool(g.get("catering_arrived", false)):
+		g["catering_dispatched"] = false
+		_dispatch_caterer_if_ready(vm, g)
+	if not bool(g.get("dispatched", false)):
+		return
+	var seats: Array[Vector2] = table_seats(t_pos)
+	var guests: Array = g.get("guests", [])
+	var arrived: Array = g.get("arrived", [])
+	var left_nf: Array = g.get("left_no_food", [])
+	for i in range(mini(guests.size(), seats.size())):
+		var gk: String = str(guests[i])
+		var gn = by_key.get(gk, null)
+		if gn == null or not is_instance_valid(gn) or gn.is_dead:
+			continue
+		if gk in arrived:
+			gn.global_position = seats[i]
+			gn.set_poker_seating(true, seats[i])
+		elif not (gk in left_nf) and can_walk_to_gathering(gn):
+			gn.start_errand("gathering", seats[i])
+
 static func on_caterer_arrived(vm, npc) -> void:
 	if vm == null or npc == null or not has_active_gathering(vm):
 		if npc != null and is_instance_valid(npc) and npc.errand_kind == "catering":

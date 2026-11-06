@@ -196,6 +196,76 @@ static func go_up(vm, player: Node2D) -> void:
 	state(vm)["player_inside"] = false
 	_check_trapdoor_witness(vm, player, TRAPDOOR_POS)
 
+## B4: al cargar partida. Un combate en marcha se anula sin ganador (se devuelven la entrada y la apuesta); los vecinos
+## del club recuperan su piso y su sitio (los recados y el piso de los vecinos no se guardan); el jugador sigue abajo.
+static func after_load(vm) -> void:
+	if vm == null:
+		return
+	var c: Dictionary = state(vm)
+	var by_key: Dictionary = vm._get_npcs_by_person_key()
+	var pl = VillageNeeds.player_of(vm)
+	var inv = pl.get("inventory") if pl != null else null
+	var fence = VillageUnderworld.get_fence_npc(vm)
+	var b: Dictionary = c.get("bout", {}) if c.get("bout", {}) is Dictionary else {}
+	var refund: int = 0
+	if not b.is_empty():
+		if str(b.get("type", "")) == "player":
+			refund = ENTRY_FEE
+			var rival = by_key.get(str(b.get("rival", "")), null)
+			if rival != null and is_instance_valid(rival):
+				rival.set_meta("club_bout", false)
+				rival._clear_combat_hostility(false)
+				rival.remove_from_group("enemies")
+		else:
+			for fk in [str(b.get("a", "")), str(b.get("b", ""))]:
+				var f = by_key.get(fk, null)
+				if f != null and is_instance_valid(f) and f.is_in_live_fight():
+					f.end_live_fight()
+		c["bout"] = {}
+		c["bout_done_night"] = int(c.get("night", -1))
+	var bet: Dictionary = c.get("bet", {}) if c.get("bet", {}) is Dictionary else {}
+	if not bet.is_empty() and int(c.get("bout_done_night", -99)) == int(c.get("night", -1)):
+		refund += int(bet.get("amount", BET_AMOUNT))
+		c["bet"] = {}
+	if refund > 0:
+		if fence != null and is_instance_valid(fence):
+			fence.personal_gold = maxi(0, int(fence.personal_gold) - refund)
+		if inv != null:
+			inv.add_gold(refund)
+		c["pot"] = maxi(0, int(c.get("pot", 0)) - refund)
+		_msg(pl, "🥊 La pelea del club se anuló; te devuelven %d de oro" % refund, Color.LIGHT_GRAY)
+	# Al cargar con el juego abierto, los vecinos conservan sus marcas de la partida de antes: nadie sigue «peleando»
+	for n_any in VillageNeeds.living(vm):
+		if n_any.has_meta("club_bout") and bool(n_any.get_meta("club_bout")):
+			n_any.set_meta("club_bout", false)
+			n_any._clear_combat_hostility(false)
+			n_any.remove_from_group("enemies")
+	var keys: Array = c.get("attendees", [])
+	var open: bool = is_open_now(vm)
+	for i in range(keys.size()):
+		var n = by_key.get(str(keys[i]), null)
+		if n == null or not is_instance_valid(n) or n.is_dead:
+			continue
+		var below: bool = n.global_position.distance_to(CLUB_CENTER) <= CLUB_SIZE.length()
+		if open and below:
+			var seat: Vector2 = seat_pos(i, keys.size())
+			n.global_position = seat
+			vm.set_npc_elevation_level(n, -1)
+			n.start_errand("club_watch", seat)
+		elif open:
+			n.start_errand("club_go", TRAPDOOR_POS)
+		elif below:
+			n.global_position = TRAPDOOR_POS + Vector2(randf_range(-10, 10), randf_range(4, 12))
+			vm.set_npc_elevation_level(n, 0)
+	if not open:
+		c["attendees"] = []
+		c["fighters"] = []
+	if bool(c.get("player_inside", false)):
+		if int(vm.player_elevation_level) == -1 and pl != null and pl.global_position.distance_to(CLUB_CENTER) <= CLUB_SIZE.length():
+			vm._elevation_anchor = Vector2.INF # abajo no salta la vuelta automática a la calle; se sube por la escalerilla
+		else:
+			c["player_inside"] = false
+
 static func is_player_in_club(vm) -> bool:
 	return vm != null and bool(state(vm).get("player_inside", false)) and int(vm.player_elevation_level) == -1
 
