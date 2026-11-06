@@ -3,6 +3,12 @@
 Cambios del juego, del más nuevo al más antiguo. Añade una entrada al cerrar cada bloque, en lenguaje sencillo.
 El detalle técnico está en `docs/HANDOFF.md` (sección 7) y el historial completo en `git log`. Lo anterior a B0.1 está en `AUDIT_LOG.md` y `SESSION_CONTEXT_LOG.md`.
 
+## 2026-11-06 — Los vecinos lejanos viven siempre del todo
+- **Sin «a ratos»:** los vecinos que están lejos de ti ya no piensan ni se mueven solo de vez en cuando para ahorrar;
+  viven igual de completos en todo el valle. Cuesta muy poco (medido).
+- **Rendimiento aparcado:** medido qué frena el juego en el portátil (sobre todo la tarjeta gráfica); en el PC de
+  escritorio va bien, así que se deja para más adelante.
+
 ## 2026-11-06 — Guardar y cargar sin sustos
 - **Lo que estaba a medias sigue:** un sabotaje nocturno en marcha, una cena o fiesta convocada y los invitados ya
   sentados siguen igual al cargar la partida.

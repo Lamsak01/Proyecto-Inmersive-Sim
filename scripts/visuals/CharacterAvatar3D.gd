@@ -223,7 +223,17 @@ func _process(delta: float) -> void:
 	_sync_pose_and_tint(delta)
 	_apply_2d_vs_3d_visibility()
 
+## B3 (medición): cronómetro por partes; solo lo enciende `tools/tests/perf_3d.gd`. No cambia el comportamiento.
+static var perf_on: bool = false
+static var perf_usec: Dictionary = {}
+
+static func _perf_add(part: String, since: int) -> int:
+	var now: int = Time.get_ticks_usec()
+	perf_usec[part] = int(perf_usec.get(part, 0)) + (now - since)
+	return now
+
 func _process_in_stage(delta: float) -> void:
+	var _pt: int = Time.get_ticks_usec() if perf_on else 0
 	if _holder == null or not is_instance_valid(_holder) or _holder.is_queued_for_deletion() or rig_3d == null or not is_instance_valid(rig_3d):
 		_holder = null
 		if not _attach_to_stage():
@@ -235,6 +245,7 @@ func _process_in_stage(delta: float) -> void:
 	var show := use_3d_characters and target_entity.is_visible_in_tree()
 	if show and not is_player_avatar:
 		show = _is_entity_near_camera()
+	if perf_on: _pt = _perf_add("visibility_check", _pt)
 	if not show:
 		_holder.visible = false
 		rig_3d.process_mode = Node.PROCESS_MODE_DISABLED
@@ -242,11 +253,14 @@ func _process_in_stage(delta: float) -> void:
 	rig_3d.process_mode = Node.PROCESS_MODE_INHERIT
 	_holder.visible = true
 	_sync_holder_position()
+	if perf_on: _pt = _perf_add("holder_position", _pt)
 	_appearance_sync_timer -= delta
 	if _appearance_dirty or _appearance_sync_timer <= 0.0:
 		_appearance_sync_timer = 0.25 if is_player_avatar else 0.65
 		_check_and_sync_appearance()
+	if perf_on: _pt = _perf_add("appearance_check", _pt)
 	_sync_pose_and_tint(delta)
+	if perf_on: _pt = _perf_add("pose_and_tint", _pt)
 	# Al recibir daño el muñeco parpadea (destello retro), en vez del tinte rojo del sprite antiguo.
 	var alpha := 1.0
 	if is_player_avatar:
@@ -259,7 +273,9 @@ func _process_in_stage(delta: float) -> void:
 		if spr_orig is CanvasItem:
 			alpha = clampf((spr_orig as CanvasItem).modulate.a, 0.0, 1.0)
 	_set_rig_alpha(alpha)
+	if perf_on: _pt = _perf_add("rig_alpha", _pt)
 	_apply_2d_vs_3d_visibility()
+	if perf_on: _perf_add("vis_2d_vs_3d", _pt)
 
 
 func _read_stealth() -> bool:

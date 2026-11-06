@@ -2252,6 +2252,7 @@ func _initialize() -> void:
 	if v2_pl != null and v2_n != null:
 		var v2_pos: Vector2 = v2_n.global_position
 		var v2_ppos: Vector2 = v2_pl.global_position
+		v2_n.lod_enabled = true # B3: la opción está apagada en el juego; aquí se prueba que sigue funcionando
 		v2_pl.global_position = v2_n.global_position + Vector2(v2_n.LOD_DIST + 200.0, 0.0)
 		assert(v2_n._lod_far(), "V2: A villager off screen is simulated in less detail")
 		v2_pl.global_position = v2_n.global_position + Vector2(40.0, 0.0)
@@ -2266,6 +2267,8 @@ func _initialize() -> void:
 		v2_n.velocity = Vector2.ZERO
 		v2_n.global_position = v2_pos
 		v2_pl.global_position = v2_ppos
+	if v2_n != null:
+		v2_n.lod_enabled = false
 	print("V2 far simulation OK")
 
 	# Test #62 (V8): un ambicioso se queda un negocio vacante; la venganza por celos llega antes a la idea de matar
@@ -4437,6 +4440,7 @@ func _initialize() -> void:
 	if v2_pl != null and v2_n != null:
 		var pq_pos0: Vector2 = v2_n.global_position
 		var pq_ppos0: Vector2 = v2_pl.global_position
+		v2_n.lod_enabled = true
 		v2_pl.global_position = v2_n.global_position + Vector2(20.0, 0.0)
 		vm.set_player_elevation_level(0)
 		vm.set_npc_elevation_level(v2_n, 0)
@@ -4444,6 +4448,7 @@ func _initialize() -> void:
 		vm.set_npc_elevation_level(v2_n, 1)
 		assert(v2_n._lod_far() and v2_n._lod_step_for_npc() == v2_n.LOD_STEP * 2, "PQ.3b: Villager on a different vertical level runs in simplified LOD mode (step=%d)" % v2_n._lod_step_for_npc())
 		vm.set_npc_elevation_level(v2_n, 0)
+		v2_n.lod_enabled = false
 		v2_n.global_position = pq_pos0
 		v2_pl.global_position = pq_ppos0
 	print("Block PQ (100+ Population Scaling, 4-Bed Upper Floor Houses & Multi-Level LOD) OK")

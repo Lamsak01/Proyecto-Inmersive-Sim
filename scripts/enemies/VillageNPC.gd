@@ -422,12 +422,15 @@ func _set_sprite_pose(rot_deg: float, mod_col: Color = Color.WHITE) -> void:
 		sprite.modulate = mod_col
 
 func _finish_frame_movement(delta: float, apply_yield: bool = false) -> void:
+	var _pt: int = Time.get_ticks_usec() if perf_on else 0
 	if apply_yield:
 		_apply_player_and_doorway_yield(delta)
+	if perf_on: _pt = _perf_add("m_yield", _pt)
 	var lod_k: float = _lod_k # V2: solo en los pasos simplificados de quien está lejos
 	if lod_k > 1.0:
 		velocity *= lod_k # V2: un paso de varios fotogramas recorre la distancia de todos ellos
 	move_and_slide()
+	if perf_on: _pt = _perf_add("m_move_and_slide", _pt)
 	if lod_k > 1.0:
 		velocity /= lod_k
 		_lod_k = 1.0
@@ -437,8 +440,11 @@ func _finish_frame_movement(delta: float, apply_yield: bool = false) -> void:
 			_footprint_supported = _cached_vm.has_method("update_entity_blood_footprints")
 		if _footprint_supported:
 			_cached_vm.call("update_entity_blood_footprints", self, delta)
+	if perf_on: _pt = _perf_add("m_footprints", _pt)
 	_update_visual_animation(delta)
+	if perf_on: _pt = _perf_add("m_visual_anim", _pt)
 	_update_hover_label(delta)
+	if perf_on: _perf_add("m_hover_label", _pt)
 
 func is_bloodstained() -> bool:
 	return bloodstained_timer > 0.0
@@ -1693,7 +1699,9 @@ var _lod_acc: float = 0.0
 var _lod_phase: int = -1
 var _lod_tick: int = 0
 var _lod_k: float = 1.0
-static var lod_enabled: bool = true
+## B3 (orden del usuario, 2026-11-06): apagado. Los vecinos lejanos viven siempre al detalle; medido: cuesta ~1 fps.
+## Queda como opción por si algún día hace falta.
+static var lod_enabled: bool = false
 
 func _lod_far() -> bool:
 	if not lod_enabled or is_hostile or is_in_live_fight() or is_busy_with_player():
@@ -1731,6 +1739,9 @@ func _physics_process(delta: float) -> void:
 	elif _lod_acc > 0.0:
 		delta += _lod_acc # Vuelve al detalle: recupera el tiempo pendiente
 		_lod_acc = 0.0
+	if perf_on:
+		_physics_process_timed(delta)
+		return
 	if _process_inactive_states(delta):
 		return
 	_tick_frame_upkeep(delta)
@@ -1751,6 +1762,54 @@ func _physics_process(delta: float) -> void:
 		return
 	_execute_dynamic_activity(delta)
 	_finish_frame_movement(delta, true)
+
+## B3 (medición): cronómetro por partes, solo lo enciende `tools/tests/perf_breakdown.gd`. Mismo orden y mismas
+## llamadas que arriba; no cambia nada del comportamiento.
+static var perf_on: bool = false
+static var perf_usec: Dictionary = {}
+
+static func _perf_add(part: String, since: int) -> int:
+	var now: int = Time.get_ticks_usec()
+	perf_usec[part] = int(perf_usec.get(part, 0)) + (now - since)
+	return now
+
+func _physics_process_timed(delta: float) -> void:
+	var t: int = Time.get_ticks_usec()
+	var stop: bool = _process_inactive_states(delta)
+	t = _perf_add("inactive_states", t)
+	if stop:
+		return
+	_tick_frame_upkeep(delta)
+	t = _perf_add("frame_upkeep", t)
+	_tick_self_tending(delta)
+	t = _perf_add("self_tending", t)
+	stop = _process_player_attention(delta)
+	t = _perf_add("player_attention", t)
+	if stop:
+		return
+	if is_in_live_fight() and not is_hostile:
+		_process_live_fight(delta)
+		_perf_add("live_fight", t)
+		return
+	stop = _process_duties(delta)
+	t = _perf_add("duties", t)
+	if stop:
+		return
+	if is_hostile:
+		_process_hostile_combat(delta)
+		_finish_frame_movement(delta)
+		_perf_add("hostile", t)
+		return
+	_update_needs_and_decisions(delta)
+	t = _perf_add("needs_decisions", t)
+	stop = _process_hospital_care(delta)
+	t = _perf_add("hospital_care", t)
+	if stop:
+		return
+	_execute_dynamic_activity(delta)
+	t = _perf_add("dynamic_activity", t)
+	_finish_frame_movement(delta, true)
+	_perf_add("movement", t)
 
 ## Estados en los que el vecino no actúa: muerto, agonizando, inconsciente, aturdido, sentado al póker o tiempo congelado.
 func _process_inactive_states(delta: float) -> bool:
@@ -2691,6 +2750,7 @@ func _move_towards_point(target_pos: Vector2, speed: float, delta: float = 0.016
 	var leg_mult: float = health_comp.get_moving_capacity() if health_comp else 1.0
 	var eff_speed: float = maxf(62.0, speed) if is_escorting_player else (speed * get_nutrition_speed_multiplier() * get_sleep_speed_multiplier() * leg_mult)
 
+	var _pt: int = Time.get_ticks_usec() if perf_on else 0
 	_nav_waypoint_timer -= delta
 	if (_nav_waypoint_timer <= 0.0) or (_cached_nav_waypoint == Vector2.INF) or (target_pos.distance_squared_to(_last_nav_dest) > 16.0) or (global_position.distance_squared_to(_cached_nav_waypoint) <= 20.0):
 		_nav_waypoint_timer = 0.12
@@ -2713,7 +2773,10 @@ func _move_towards_point(target_pos: Vector2, speed: float, delta: float = 0.016
 			_last_frame_pos = global_position
 			return
 
-	if vm and vm.has_method("npc_interact_with_door") and not bool(vm.call("npc_interact_with_door", self, delta, target_pos, nav_target)):
+	if perf_on: _pt = _perf_add("a_nav_waypoint", _pt)
+	var _door_ok: bool = not (vm and vm.has_method("npc_interact_with_door")) or bool(vm.call("npc_interact_with_door", self, delta, target_pos, nav_target))
+	if perf_on: _pt = _perf_add("a_doors", _pt)
+	if not _door_ok:
 		velocity = Vector2.ZERO
 		_stuck_timer += delta
 		if _stuck_timer >= 2.2:
@@ -2733,6 +2796,7 @@ func _move_towards_point(target_pos: Vector2, speed: float, delta: float = 0.016
 	else:
 		_stuck_timer = 0.0
 
+	if perf_on: _pt = _perf_add("a_stuck", _pt)
 	_sep_timer -= delta
 	if _sep_timer <= 0.0:
 		_sep_timer = 0.10
@@ -2746,6 +2810,7 @@ func _move_towards_point(target_pos: Vector2, speed: float, delta: float = 0.016
 						var d_other: float = sqrt(d_sq)
 						sep_vec += (global_position - other.global_position).normalized() * ((14.0 - d_other) / 14.0) * 22.0
 		_cached_sep_vec = sep_vec
+	if perf_on: _perf_add("a_separation", _pt)
 
 	_last_frame_pos = global_position
 	velocity = desired_vel if is_escorting_player else (desired_vel + _cached_sep_vec).limit_length(eff_speed * 1.15)
@@ -3173,7 +3238,9 @@ func _execute_dynamic_activity(delta: float) -> void:
 				_process_physical_morning_expedition(delta)
 				return
 			if trade_role in SHOP_ROLES or trade_role in [TradeRole.INNKEEPER, TradeRole.DOCTOR]:
+				var _pa: int = Time.get_ticks_usec() if perf_on else 0
 				_process_artisan_workshop_crafting_and_supply_runs(delta)
+				if perf_on: _perf_add("d_artisan_total", _pa)
 				return
 			_stop_crafting_bar()
 			_wander_timer -= delta

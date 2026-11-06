@@ -1382,24 +1382,40 @@ func _process(delta: float) -> void:
 	if vm.buried_graves.size() != _last_buried_count:
 		rebuild_graves_3d()
 
+	var _pt: int = Time.get_ticks_usec() if perf_on else 0
 	_sync_camera_with_2d()
+	if perf_on: _pt = _perf_add("camera", _pt)
 	_sync_dynamic_props_3d()
+	if perf_on: _pt = _perf_add("dynamic_props", _pt)
 
 	_nature_scan_accum += delta
 	if _nature_scan_accum >= 4.0:
 		_nature_scan_accum = 0.0
 		_scan_nature_sources()
 		_sync_2d_flat_visuals(use_3d)
+	if perf_on: _pt = _perf_add("nature_scan_4s", _pt)
 	_nature_accum += delta
 	if _nature_accum >= 0.5:
 		_nature_accum = 0.0
 		_sync_nature_3d(true)
+		if perf_on: _pt = _perf_add("nature_sync_05s", _pt)
 		_sync_props_3d(true)
+		if perf_on: _pt = _perf_add("props_sync_05s", _pt)
 
 	_cutaway_accum += delta
 	if _cutaway_accum >= 0.08:
 		_cutaway_accum = 0.0
 		_update_roof_cutaways_and_lighting()
+	if perf_on: _perf_add("roofs_lighting_008s", _pt)
+
+## B3 (medición): cronómetro por partes; solo lo enciende `tools/tests/perf_3d.gd`. No cambia el comportamiento.
+static var perf_on: bool = false
+static var perf_usec: Dictionary = {}
+
+static func _perf_add(part: String, since: int) -> int:
+	var now: int = Time.get_ticks_usec()
+	perf_usec[part] = int(perf_usec.get(part, 0)) + (now - since)
+	return now
 
 func _sync_camera_with_2d() -> void:
 	if cam_3d == null or stage_sprite == null:
