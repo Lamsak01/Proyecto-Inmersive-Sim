@@ -99,3 +99,5 @@ El cambio es del usuario y se queda. Pero `scripts/obstacles/CampSite.gd` incump
    letrero «¿…? Pulsa E otra vez para confirmar»). Aplícalo a cada obra que cobre oro (si se paga solo con madera, no hace
    falta).
 3. Un test: la obra del gallinero pagada con oro suma ese oro al ganadero (o a las arcas) y no se hace con una sola E.
+4. **Ojo, excepción:** el `inv.add_gold(-20)` de `_on_chest_deposit_gold` (~línea 517) **no** es un gasto: es guardar oro
+   en tu cofre (`chest_gold_stored += 20`). Ese se queda como está, sin doble E.
