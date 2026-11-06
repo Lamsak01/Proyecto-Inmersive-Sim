@@ -5678,6 +5678,176 @@ func _initialize() -> void:
 	t5_wc.current_day = b6b_day_bak
 	t5_wc.current_hour = b6b_hour_bak
 	print("Block P6b (Night Sabotage Walked for Real, Caught by a Guard & Forced Confession) OK")
+	# Bloque P4: Cenas, fiestas en tu casa y cenas de paz hechas físicas («P4 cenas»)
+	# ==========================================================================
+	var bp4_vn = vm.VillageNeeds
+	var bp4_vcl = vm.VillageClans
+	var bp4_day_bak: int = int(t5_wc.current_day)
+	var bp4_hour_bak: int = int(t5_wc.current_hour)
+	var bp4_min_bak: int = int(t5_wc.current_minute)
+	var bp4_gold_bak: int = int(p70_inv.gold)
+	var bp4_pl_pos_bak: Vector2 = p70_pl.global_position
+	var bp4_hs: Dictionary = vho.state(vm)
+	var bp4_dinner_day_bak: int = int(bp4_hs.get("last_dinner_day", -99))
+	var bp4_party_day_bak: int = int(bp4_hs.get("last_party_day", -99))
+	var bp4_rations_bak: int = int(bp4_hs.get("table_rations", 0))
+	var bp4_bread_bak: int = p70_inv.get_count("bread")
+
+	# Asegurar casa construida en el solar primario del jugador y sincronizar muebles (`home_table`)
+	var bp4_lot: String = vho.primary_player_lot(vm)
+	assert(bp4_lot != "", "P4.0a: Player has a primary lot")
+	vl.lot(vm, bp4_lot)["status"] = "built"
+	vho.sync_home_props(vm)
+	var bp4_table_pos: Vector2 = vho.home_prop_pos(vm, bp4_lot, "home_table")
+	var bp4_table_prop = vm.entities_root.get_node_or_null("HomeTable_" + bp4_lot)
+	assert(bp4_table_prop != null and is_instance_valid(bp4_table_prop), "P4.0b: HomeTable prop spawned in player house")
+
+	# Elegir un vecino adulto libre para las pruebas de cena
+	var bp4_guest = null
+	for n_cand in bp4_vn.living(vm):
+		if vho.is_free_for_night_gathering(vm, n_cand):
+			bp4_guest = n_cand
+			break
+	assert(bp4_guest != null, "P4.0c: Found a free adult neighbor for dinner tests")
+	var bp4_guest_pos_bak: Vector2 = bp4_guest.global_position
+	var bp4_guest_aff_bak: int = int(bp4_guest.affinity)
+	var bp4_guest_slp_bak: bool = bp4_guest.is_sleeping
+
+	# 1. Invitar a cenar y poner 2 raciones de la mochila en `home_table`: a las 20:00 encargo `"gathering"`, se sienta y al terminar sube afinidad
+	t5_wc.current_day = 20
+	t5_wc.current_hour = 14
+	t5_wc.current_minute = 0
+	bp4_hs["last_dinner_day"] = -99
+	bp4_hs["table_rations"] = 0
+	bp4_hs["gathering"] = {}
+	bp4_guest.affinity = 20
+	bp4_guest.is_sleeping = false
+	bp4_guest.is_downed = false
+	bp4_guest.end_errand()
+	bp4_guest.set_poker_seating(false)
+	vho.on_player_action(vm, bp4_guest, "housing_dinner", p70_inv)
+	assert(vho.has_active_gathering(vm) and str(bp4_hs["gathering"].get("kind", "")) == "dinner", "P4.1a: Dinner scheduled at 20:00 without charging gold in dialogue")
+	if p70_inv.get_count("bread") < 2:
+		p70_inv.add_item("bread", 2)
+	var bp4_bread_before: int = p70_inv.get_count("bread")
+	vho.on_player_action(vm, null, "housing_table_put_food", p70_inv)
+	assert(int(bp4_hs.get("table_rations", 0)) == 2 and p70_inv.get_count("bread") == bp4_bread_before - 2, "P4.1b: Putting 2 rations from backpack onto home_table transfers 2 bread")
+	t5_wc.current_hour = 20
+	vho.on_hour(vm, 20)
+	assert(bp4_guest.errand_kind == "gathering", "P4.1c: At 20:00 invited neighbor gets errand 'gathering'")
+	bp4_guest.global_position = bp4_guest.errand_pos
+	bp4_vn.tick(vm)
+	assert(bp4_guest.is_at_poker_table and (bp4_guest.get_person_key() in (bp4_hs["gathering"].get("arrived", []) as Array)), "P4.1d: Neighbor arrives and sits at home_table")
+	p70_pl.global_position = bp4_table_pos + Vector2(18.0, 0.0) # Jugador a < 90 px de la mesa
+	var bp4_aff_before_end: int = int(bp4_guest.affinity)
+	t5_wc.current_hour = 22
+	vho.on_hour(vm, 22)
+	assert(not vho.has_active_gathering(vm) and not bp4_guest.is_at_poker_table and int(bp4_guest.affinity) == bp4_aff_before_end + 14 and int(bp4_hs.get("table_rations", 0)) == 0, "P4.1e: After 2h with player nearby, dinner finishes, consumes rations and raises affinity (+14)")
+
+	# 2. Con cáterin: el oro pasa a la posadera (suma cero) y no se cobra con una sola E
+	t5_wc.current_day = 25
+	t5_wc.current_hour = 12
+	bp4_hs["last_dinner_day"] = -99
+	bp4_hs["table_rations"] = 0
+	bp4_hs["gathering"] = {}
+	bp4_guest.affinity = 20
+	vho.on_player_action(vm, bp4_guest, "housing_dinner", p70_inv)
+	var bp4_inn = vho.caterer_npc_of(vm)
+	assert(bp4_inn != null, "P4.2a: Found innkeeper/caterer NPC")
+	var bp4_inn_gold0: int = int(bp4_inn.personal_gold)
+	p70_inv.gold = 50
+	vm.set_meta("_confirm_tag", "")
+	vho.on_player_action(vm, bp4_inn, "housing_catering", p70_inv) # Primera E: confirmación, no cobra
+	assert(int(p70_inv.gold) == 50 and int(bp4_inn.personal_gold) == bp4_inn_gold0 and not bool(bp4_hs["gathering"].get("catering_hired", false)), "P4.2b: Catering is not charged on a single E press")
+	vho.on_player_action(vm, bp4_inn, "housing_catering", p70_inv) # Segunda E: cobra 4 de oro (suma cero a la posadera)
+	assert(int(p70_inv.gold) == 50 - vho.CATERING_COST_PER_GUEST and int(bp4_inn.personal_gold) == bp4_inn_gold0 + vho.CATERING_COST_PER_GUEST and bool(bp4_hs["gathering"].get("catering_hired", false)), "P4.2c: Second E transfers catering gold to innkeeper (zero-sum)")
+	bp4_inn.personal_gold = bp4_inn_gold0
+	vho._cleanup_gathering_All(vm)
+
+	# 3. Sin comida: el invitado llega, ve la mesa vacía, se marcha y baja su afinidad (-5)
+	t5_wc.current_day = 30
+	t5_wc.current_hour = 14
+	bp4_hs["last_dinner_day"] = -99
+	bp4_hs["table_rations"] = 0
+	bp4_hs["gathering"] = {}
+	bp4_guest.affinity = 20
+	vho.on_player_action(vm, bp4_guest, "housing_dinner", p70_inv)
+	t5_wc.current_hour = 20
+	vho.on_hour(vm, 20)
+	assert(bp4_guest.errand_kind == "gathering", "P4.3a: Guest walks to dinner at 20:00")
+	var bp4_aff_no_food0: int = int(bp4_guest.affinity)
+	bp4_guest.global_position = bp4_guest.errand_pos
+	bp4_vn.tick(vm)
+	assert(not bp4_guest.is_at_poker_table and bp4_guest.errand_kind == "" and int(bp4_guest.affinity) == bp4_aff_no_food0 - 5 and not vho.has_active_gathering(vm), "P4.3b: Without food on table, guest leaves annoyed and affinity drops by -5")
+
+	# 4. Cena de paz forzando la bronca (`prob = 1.0`): el feudo sigue existiendo
+	t5_wc.current_day = 35
+	t5_wc.current_hour = 12
+	var bp4_fams: Array[String] = []
+	for n_f in bp4_vn.living(vm):
+		var f_id: String = str(n_f.family_id)
+		if bp4_vcl.valid_family(f_id) and not (f_id in bp4_fams) and bp4_vcl.patriarch_of(vm, f_id) != null and vho.is_free_for_night_gathering(vm, bp4_vcl.patriarch_of(vm, f_id)):
+			bp4_fams.append(f_id)
+			if bp4_fams.size() >= 2:
+				break
+	assert(bp4_fams.size() >= 2, "P4.4a: Found 2 valid families with free patriarchs for peace dinner test")
+	var bp4_fk: String = bp4_vcl.feud_key(bp4_fams[0], bp4_fams[1])
+	var bp4_had_feud: bool = (bp4_vcl.state(vm)["feuds"] as Dictionary).has(bp4_fk)
+	if not bp4_had_feud:
+		bp4_vcl.declare_blood_feud(vm, bp4_fams[0], bp4_fams[1], "prueba P4")
+	assert(vho.schedule_peace_dinner(vm, bp4_fk, true), "P4.4b: Scheduled peace dinner at the inn with force_brawl = true (prob = 1.0)")
+	var bp4_peace_guests: Array = (bp4_hs["gathering"].get("guests", []) as Array).duplicate()
+	assert(bp4_peace_guests.size() >= 2, "P4.4c: Peace dinner invited representatives from both families")
+	var bp4_saved_pos: Dictionary = {}
+	var bp4_by_key: Dictionary = vm._get_npcs_by_person_key()
+	for gk_p in bp4_peace_guests:
+		var gn_p = bp4_by_key.get(str(gk_p), null)
+		if gn_p != null and is_instance_valid(gn_p):
+			bp4_saved_pos[gn_p] = gn_p.global_position
+			gn_p.is_sleeping = false
+			gn_p.is_downed = false
+	# Mañana a las 20:00 van a la posada y se sientan
+	t5_wc.current_day = 36
+	t5_wc.current_hour = 20
+	vho.on_hour(vm, 20)
+	for gk_p2 in bp4_peace_guests:
+		var gn_p2 = bp4_by_key.get(str(gk_p2), null)
+		if gn_p2 != null and is_instance_valid(gn_p2) and gn_p2.errand_kind == "gathering":
+			gn_p2.global_position = gn_p2.errand_pos
+	bp4_vn.tick(vm)
+	p70_pl.global_position = vm._tavern_social_pos + Vector2(16.0, 0.0)
+	t5_wc.current_hour = 22
+	vho.on_hour(vm, 22)
+	assert((bp4_vcl.state(vm)["feuds"] as Dictionary).has(bp4_fk), "P4.4d: When peace dinner ends in a brawl (prob = 1.0), the blood feud still exists")
+
+	# Restaurar estado tras prueba P4
+	if not bp4_had_feud:
+		bp4_vcl.state(vm)["feuds"].erase(bp4_fk)
+		bp4_vcl.state(vm)["clashes"].erase(bp4_fk)
+	for gn_rest in bp4_saved_pos.keys():
+		if is_instance_valid(gn_rest):
+			gn_rest.set_poker_seating(false)
+			gn_rest.end_errand()
+			gn_rest.global_position = bp4_saved_pos[gn_rest]
+	bp4_guest.set_poker_seating(false)
+	bp4_guest.end_errand()
+	bp4_guest.global_position = bp4_guest_pos_bak
+	bp4_guest.affinity = bp4_guest_aff_bak
+	bp4_guest.is_sleeping = bp4_guest_slp_bak
+	bp4_hs["last_dinner_day"] = bp4_dinner_day_bak
+	bp4_hs["last_party_day"] = bp4_party_day_bak
+	bp4_hs["table_rations"] = bp4_rations_bak
+	bp4_hs["gathering"] = {}
+	if p70_inv.get_count("bread") > 0:
+		p70_inv.remove_item("bread", p70_inv.get_count("bread"))
+	if bp4_bread_bak > 0:
+		p70_inv.add_item("bread", bp4_bread_bak)
+	p70_inv.gold = bp4_gold_bak
+	p70_pl.global_position = bp4_pl_pos_bak
+	t5_wc.current_day = bp4_day_bak
+	t5_wc.current_hour = bp4_hour_bak
+	t5_wc.current_minute = bp4_min_bak
+	print("Block P4 (Physical Dinners, House Parties, Innkeeper Catering & Peace Dinners) OK")
 
 	print("ALL RIMWORLD MEDICAL, FOOTPRINTS, 3-PHASE CORPSE REPORT, MULTI-CORPSE FIX, RPG INTERROGATION, PUBLIC TRIAL, DYNAMIC RELATIONSHIPS, MISSING FAMILY SEARCH, SOCIAL GLOSSARY & UNCONSCIOUS REACTION TESTS PASSED!")
 	quit(0)

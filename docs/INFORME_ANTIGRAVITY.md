@@ -1,70 +1,86 @@
-# Informe de Trabajo — Antigravity (Bloque P3: Caravanas Comerciales y de Contrabando Hechas Físicas)
+# Informe de Cierre — Bloque P4: Cenas, fiestas en tu casa y cenas de paz hechas físicas
 
 **Fecha:** 2026-11-06  
-**Encargo:** `docs/ENCARGO_P3_CARAVANAS.md`
+**Encargo:** `docs/ENCARGO_P4_CENAS.md`
 
 ---
 
-## 1. Parte A — Caravanas de las 3 rutas comerciales
+## 1. Archivos tocados y funciones modificadas o creadas
 
-- **Archivos modificados:**
-  - `scripts/systems/VillageCulture.gd`
-  - `scripts/systems/VillageManager.gd`
-  - `scripts/systems/VillageJustice.gd`
-  - `scripts/enemies/VillageNPC.gd`
-  - `scripts/enemies/NPCDialogue.gd`
-  - `scripts/visuals/AnimalModel3D.gd`
-- **Calendario y llegada semanal (`VillageCulture.gd`):**
-  - Añadidos `CARAVAN_PLAZA_POS = Vector2(465.0, 48.0)`, `ROUTE_WEEKDAYS = {"high_pass": 0, "river_port": 1, "sun_plain": 3}` y `ROUTE_CARAVAN_NAMES`.
-  - Cada ruta en `trade_routes_of(vm)` incluye `"next_caravan_day": -1`. Al abrir una ruta (`open_trade_route` o gasto municipal en `process_municipal_spending`), o al revisar el calendario en `ensure_route_caravan_schedule(vm, force_delay)`, `roll_next_caravan_day(route_id, from_day, force_delay)` calcula el próximo día de llegada con un **70 %** en su día base y un **30 %** de retraso de **+1 día**.
-  - **Nota sobre el calendario de mercaderes semanales:** `VillageManager._check_weekly_merchant_arrival` usa `current_day % 7 == 3` (miércoles, `WorldClock.get_weekday() == 2`, Maese Casimir) y `current_day % 7 == 6` (sábado, `get_weekday() == 5`, Valeria la Tratante). Los días base de las 3 rutas (`0` lunes, `1` martes, `3` jueves) no pisan miércoles ni sábado; solo cuando `river_port` (martes `1`) sufre el retraso del 30 % (+1 día) coincide en miércoles con Casimir. Como las caravanas de ruta se buscan por su `merchant_id == route_id` (`get_route_caravan_npc(vm, route_id)`) sin sobrescribir `_active_traveling_merchant`, ambos conviven sin conflicto.
-- **Caravanero y mula de carga (`CaravanMule`, `CaravanMuleArea`, `spawn_trade_caravan`, `despawn_trade_caravan`, `update_caravan_merchant_ai`, `caravans_on_hour`):**
-  - A las **9:00** del `next_caravan_day` (si `vm.merchant_suspension_days[route_id] <= 0`), `caravans_on_hour(vm, hour)` llama a `spawn_trade_caravan(vm, route_id, false, false)`, que crea al caravanero (`VillageNPC` con `trade_role = TradeRole.TRAVELING_MERCHANT` y `merchant_id = route_id`) y su mula de carga (`CaravanMule` en el grupo `"caravan_mule"`, con `CaravanMuleArea` en el grupo `"interactable"`) en `RAID_GATE_POS = Vector2(1400, 50)`.
-  - Si a las **10:00–15:00** del día de llegada aún no estaba en el mapa (o acaba de llegar a `CARAVAN_PLAZA_POS`), queda acampada en `CARAVAN_PLAZA_POS = Vector2(465, 48)`. A las **16:00** emprende el regreso hacia `RAID_GATE_POS` y al llegar al borde se retira con `despawn_trade_caravan(vm, route_id)`.
-  - **Modelo 3D y 2D de la mula:** no existe un `.glb` animado de mula/burro en `assests/curated_3d/animals/animated/` (solo `Donkey.obj` estático), por lo que `CaravanMule.setup` usa `AnimalModel3D.attach(self, "animals/animated/Horse.glb", 20.0, 4.0, Color(0.62, 0.52, 0.44))` (más pequeña que el caballo de silla de `25.0` px y teñida de pardo grisáceo mediante `_apply_tint_recursive` en `AnimalModel3D.gd`) junto a un `Sprite2D` 2D provisional.
-- **Intercambio entre talleres y remesas del jugador (`process_caravan_route_exchange`, `send_player_shipment`, `interact_caravan_mule`, `get_mule_shipment_label`):**
-  - `process_trade_routes(vm)` ya **no** ejecuta a medianoche el intercambio de las rutas con caravana (`ROUTE_WEEKDAYS.has(str(r_id))`).
-  - Cuando la caravana llega a la plaza (`spawn_trade_caravan` con `at_plaza = true` o `update_caravan_merchant_ai` al alcanzar `CARAVAN_PLAZA_POS`), `process_caravan_route_exchange(vm, route_id)` ejecuta una sola vez por visita (`last_exchange_day`) el relleno semanal (`ROUTE_WEEKLY_REFILL`, `last_refill_day`), el intercambio entre los talleres del vendedor y comprador locales y el cobro de aranceles a las arcas municipales.
-  - Pulsar `[E]` sobre la mula en la plaza (`CaravanMule.interact` → `interact_caravan_mule`) muestra el letrero `get_mule_shipment_label(vm, route_id)` («Cargar tu remesa para %s (−%d %s → +%d %s y +%d oro)») y llama a `send_player_shipment(vm, route_id, inv)` (máx. 1/día/ruta, con +4 de oro si tu carreta está a `< 60 px`). Sin la caravana en la plaza (`not is_route_caravan_at_plaza(vm, route_id)`), `send_player_shipment` devuelve `false`.
-  - Eliminado el submenú «📦 Enviar remesa…» del diálogo de los artesanos en `VillageCulture.add_dialogue_choices` (se mantiene «📜 Abrir ruta comercial…»).
-- **Muerte del caravanero y suspensión de 7 días:**
-  - En `VillageNPC._confirm_true_death`, si muere un `TRAVELING_MERCHANT` con `merchant_id in ["high_pass", "river_port", "sun_plain"]`, fija `vm.merchant_suspension_days[merchant_id] = 7` (también contemplado en `VillageJustice.on_traveling_merchant_murdered` y en la cuenta atrás diaria de `VillageManager._on_day_passed`), dejando el cadáver en el mapa.
+### `scripts/enemies/VillageNPC.gd`
+- `NIGHT_ERRANDS`: añadidos `"gathering"` y `"catering"` a la constante `["fence_alley", "smuggler_bust", "gathering", "catering"]` para que ni los invitados ni la posadera cancelen su recado nocturno a las 21:00.
+- `_is_mandatory_work_hours()`: devuelve `false` si `errand_kind in NIGHT_ERRANDS`, evitando que la rutina laboral o de descanso corte el trayecto hacia una cena, fiesta, reparto de comida o cena de paz.
+
+### `scripts/systems/VillageNeeds.gd`
+- `tick(vm)`:
+  - Eximidos `"gathering"` y `"catering"` del corte por tiempo máximo de recado (`20.0` s) junto con `"player_shop_clerk"`, `"fence_alley"` y `"smuggler_bust"`.
+  - Al llegar al destino (`arrived`), `"catering"` invoca `vm.VillageHousing.on_caterer_arrived(vm, n)` y `"gathering"` invoca `vm.VillageHousing.on_gathering_guest_arrived(vm, n)`.
+  - Al final de `tick(vm)`, se invoca `vm.VillageHousing.tick_gathering(vm)` para procesar el temporizador de 2 horas de juego, las frases de sobremesa cada 20 minutos, la hora tope de llegada (`+2 h`) y la detección de plantón si el jugador se aleja a `>= 90 px`.
+
+### `scripts/systems/VillageUnderworld.gd`
+- `fence_on_hour(vm, hour)`: añadido `or f.is_at_poker_table` a la guarda de estado ocupado del perista para que, si ya está sentado en una cena o fiesta a las 22:00, no se levante a mitad de velada para ir al callejón.
+
+### `scripts/obstacles/WorldInteractableProp.gd`
+- `setup(cfg)`: añadida rama `"home_table"` con colisión circular (`8.0` px).
+- `_draw()`: añadida llamada a `_draw_home_table_2d()`.
+- `_draw_home_table_2d()`: dibuja el tablero de madera de la mesa de comedor, sus 6 taburetes alrededor y, cuando `VillageHousing.state(vm)["table_rations"] > 0`, los platos servidos encima.
+- `get_interact_label()`: delega `"home_table"` en `VillageHousing.get_home_table_label(vm)`.
+- `interact(interactor)`: delega `"home_table"` en `VillageHousing.open_home_table_menu(vm, self)`.
+
+### `scripts/visuals/WorldStage3D.gd`
+- `_sync_home_props_3d()`: añadida rama `"home_table"` que construye la mesa de comedor 3D (tablero y cuatro patas de madera con `_make_box`) y muestra hasta 6 platos con comida sobre el tablero cuando `table_rations > 0`.
+
+### `scripts/systems/VillageClans.gd`
+- `add_dialogue_choices(vm, npc, player_inv)`: actualizada la etiqueta de `"clan_peace:"` para reflejar que convoca la cena para mañana a las 20:00 en la posada y que el pago (25 de oro si Carisma < 2) va a la posadera.
+- `on_player_action(vm, npc, action_id, player_inv)`: en `"clan_peace:"`, si el jugador no tiene Carisma >= 2, exige doble pulsación con `vm.VillageHousing.press_twice(vm, "clan_peace:" + arg, ...)` y transfiere 25 de oro del jugador a `innk.personal_gold` (`vm.VillageHousing.caterer_npc_of(vm)`). En lugar de aplicar la paz al instante, llama a `vm.VillageHousing.schedule_peace_dinner(vm, arg)`.
+
+### `scripts/systems/VillageHousing.gd`
+- Constantes y estado:
+  - `HOME_PROP_FURNITURE`: añadido `"home_table": true`.
+  - `FOOD_ITEMS`, `RATIONS_PER_GUEST = 2`, `CATERING_COST_PER_GUEST = 4`, `DINNER_START_HOUR = 20`, `PARTY_START_HOUR = 21`, `PEACE_START_HOUR = 20`, `GATHERING_DURATION_MINUTES = 120`, `GATHERING_CHAT_INTERVAL_MINUTES = 20`, `GATHERING_HOST_MAX_DIST = 90.0`, `TABLE_SEAT_OFFSETS` (6 asientos a `14 px`), `GATHERING_CHAT_PHRASES` (6 frases de sobremesa).
+  - `state(vm)`: añadidos `"table_rations"` (`0`) y `"gathering"` (`{}`).
+- Mueble y asientos:
+  - `home_prop_pos(vm, kind)`: posición de `"home_table"` en `center + Vector2(-4, 2)`.
+  - `sync_home_props(vm)`: instancia `"home_table"` automáticamente al tener casa construida (`s["built"]`).
+  - `table_seats(center_pos)`: devuelve las 6 posiciones alrededor de `center_pos` a `14 px`.
+  - `get_home_table_label(vm)` y `open_home_table_menu(vm, prop_node)`: letrero e interfaz con `[E]` en la mesa de casa para poner comida (`housing_put_food`), convocar fiesta a las 21:00 (`housing_party_call`, 1/día) o ver el estado de la cita.
+  - `put_food_on_home_table(vm, player_inv)`: pasa hasta `RATIONS_PER_GUEST` unidades de comida desde la mochila del jugador a `s["table_rations"]`.
+- Convocatorias, comida por encargo y ciclo de vida de la reunión:
+  - `total_minutes(vm)`, `has_active_gathering(vm)`, `caterer_npc_of(vm)`, `can_walk_to_gathering(npc)`, `is_free_for_night_gathering(vm, npc)`.
+  - `schedule_dinner(vm, npc)`: cita a las 20:00 (hoy si `< 20`, mañana si `>= 20`) en tu casa con 1 vecino adulto (`affinity >= 10`, cada 3 días, sin cobrar oro en el diálogo).
+  - `convoke_house_party(vm)` e `invite_to_house_party(vm, npc)`: convoca la fiesta en la mesa para las 21:00 e invita vecinos uno a uno en diálogo (`"housing_party_invite"`, hasta 6). Se retiró `"housing_party"` de `add_dialogue_choices` (dejando su rama en `on_player_action` únicamente por compatibilidad con la prueba antigua de Tanda 4.20).
+  - `hire_catering(vm, player_inv)`: en conversación con `caterer_npc_of(vm)` (`"housing_catering"`), cobra `4 * invitados` con doble pulsación (`press_twice`) y transfiere el oro del jugador a `caterer.personal_gold` (suma cero).
+  - `_dispatch_caterer_if_ready(vm, g)` y `on_caterer_arrived(vm, npc)`: envía a la posadera 1 hora antes con `start_errand("catering", table_pos)` y al llegar rellena `s["table_rations"]`.
+  - `_refund_catering_and_cancel(vm, g)`: si a `start_hour` la posadera no llegó a dejar la comida, devuelve `catering_paid` desde `caterer.personal_gold` al jugador y cancela la reunión.
+  - `schedule_peace_dinner(vm, fk)`: convoca para mañana a las 20:00 en `vm._tavern_social_pos` al cabeza de familia y hasta 2 adultos libres de cada familia enfrentada (máx. 6).
+  - `on_hour(vm)`: despacha el recado `"catering"` una hora antes, verifica su entrega a `start_hour` y envía a los invitados libres con `start_errand("gathering", seat_pos)`.
+  - `_min_guests_to_start(g)` y `on_gathering_guest_arrived(vm, npc)`: al llegar a su asiento, si es en casa y `table_rations < 2`, aplica `npc.modify_affinity(-5)`, pensamiento `"Me invitaron a cenar y la mesa estaba vacía"` y el invitado se marcha; si hay comida, resta `2` raciones, sienta al invitado con `npc.set_poker_seating(true, seat_pos)` y arranca el contador de `120` minutos al sentarse el único invitado (`"dinner"`) o el segundo (`"party"` / `"peace"`).
+  - `tick_gathering(vm)`, `_abandon_gathering(vm, g)`, `_complete_gathering(vm, g)` y `_cleanup_gathering_all(vm, g)`: gestionan la charla cada `20` minutos, el plantón si el jugador se aleja de `90 px` una vez presente o si no está a `< 90 px` al cumplirse las 2 horas (`modify_affinity(-5)` y pensamiento `"El forastero nos dejó plantados"`), el cierre por inasistencia a `start_hour + 2 h` (con devolución del oro de la posadera si pagó encargo) y el desenlace social solo para quienes llegaron a sentarse (cena: `+10` afinidad, `+6` ánimo y nota en diario; fiesta: `+6` afinidad a cada asistente, `+1` reputación si `>= 2` y pensamiento positivo; cena de paz: crónica si falta una familia, o tirada `prob = 0.10 + 0.25 * avg_agg + minf(0.20, 0.02 * feud_days)` entre `VillageClans.mediate_clan_peace(vm, fk, "en una cena de paz en la posada")` y discusión a gritos con `-5` de relación entre clanes y crónica).
+
+### `tools/tests/verify_all.gd`
+- Añadido el bloque `"Block P4 (Physical Dinners, House Parties, Innkeeper Catering & Peace Dinners)"` al final de `_initialize()` con las 4 verificaciones pedidas:
+  - `P4.1`: cena con comida en la mesa (`put_food_on_home_table`, `schedule_dinner`, `on_gathering_guest_arrived`, `tick_gathering` tras 120 min con el jugador a `< 90 px` → `+10` de afinidad y `table_rations == 0`).
+  - `P4.2`: cena sin comida (`table_rations == 0` → al llegar el invitado recibe `-5` de afinidad y no se sienta).
+  - `P4.3`: encargo a la posadera (`hire_catering` con doble pulsación, transferencia de `8` de oro a `innkeeper.personal_gold`, recado `"catering"` a las 19:00 y `on_caterer_arrived` dejando `table_rations >= 2`).
+  - `P4.4`: cena de paz (`VillageClans.on_player_action` con doble pulsación, `-25` de oro del jugador a la posadera, llamada a las 20:00 del día siguiente en `vm._tavern_social_pos`, llegada y asiento de ambas familias y desenlace tras 120 min con reconciliación o bronca a gritos en la crónica).
 
 ---
 
-## 2. Parte B — Caravana nocturna de contrabando
+## 2. Comprobaciones y notas de diseño solicitadas en el encargo
 
-- **Archivos modificados:**
-  - `scripts/systems/VillageUnderworld.gd`
-  - `scripts/systems/VillageNeeds.gd`
-  - `scripts/systems/VillageManager.gd`
-  - `scripts/enemies/VillageNPC.gd`
-  - `scripts/enemies/NPCDialogue.gd`
-  - `scripts/visuals/AnimalModel3D.gd`
-- **Coordenada y horario del campamento (`SMUGGLER_CAMP_POS = Vector2(1350.0, -560.0)`, `SMUGGLER_BORDER_POS = Vector2(1386.0, -584.0)`):**
-  - Verificado que `Vector2(1350, -560)` cae en claro caminable al norte de la mansión señorial (`solar f1`, cuyo rectángulo termina en `y = -500`), sin pisar edificios ni salirse del mapa.
-  - En `VillageUnderworld.on_hour(vm, h)` (invocado desde `VillageManager._on_hour_passed`), las noches con `(today() - 1) % 3 == 0` y `caravan_busted_day != today()`, de **22:00 a 4:00**, `spawn_smuggler_caravan(vm, true)` instala el campamento con el contrabandista forastero «El Encapuchado» (`merchant_id = "smuggler"`), su carro (`SmugglerCampCart`, modelo 3D `fantasy_town/cart.glb`) y su farol tenue (`fantasy_town/lantern.glb` con `dim_omni_light = true` en `AnimalModel3D.gd`). A las **4:00** (o al ser descubierta/desmantelada) se retira con `despawn_smuggler_caravan(vm)`.
-- **Trato en el carro (`SmugglerTradeArea`, `caravan_buy`, `caravan_sell`):**
-  - El carro expone dos `Area2D` del grupo `"interactable"` (`SmugglerTradeArea`):
-    - `"buy"`: «Comprar lote de contrabando (−25 oro → +2 polvo de ocaso)», que llama a `caravan_buy(vm, inv, true, interactor)` exigiendo **doble E** (`VillageHousing.press_twice(vm, "caravana_contrabando")`).
-    - `"sell"`: «Vender polvo de ocaso (+35 oro)», que llama a `caravan_sell(vm, inv, interactor)`.
-  - Eliminadas del diálogo del perista (`VillageUnderworld.add_dialogue_choices`) las opciones `underworld_caravan_buy` y `underworld_caravan_sell`.
-- **Riesgo de guardia testigo (`_find_guard_witness_near`, `_check_and_apply_smuggler_guard_witness`):**
-  - Al comprar o vender en el carro, si hay un guardia o comisario despierto y consciente a `< 160 px` con línea de visión (`vm.has_line_of_sight`) y la patrulla no está sobornada esa noche, sube `vm.wanted_level + 1`, se anota en la crónica (`smuggler_caught_live`), se marca `caravan_busted_day = today()` y la caravana huye (`despawn_smuggler_caravan(vm)`).
-- **Delatar la caravana a la guardia (`send_guards_to_bust_caravan`, `on_guard_bust_arrived`):**
-  - Se mantiene en el diálogo de los guardias «🚨🐪 Avisar a la guardia de la ruta de la caravana de contrabando» (`underworld_caravan_report`), que ahora envía a **dos guardias** andando hacia `SMUGGLER_CAMP_POS` mediante `start_errand("smuggler_bust", SMUGGLER_CAMP_POS)` (con soporte nocturno y en turno en `VillageNPC._is_mandatory_work_hours` y `_update_needs_and_decisions`). Cuando llegan al campamento (`VillageNeeds.tick` → `VillageUnderworld.on_guard_bust_arrived`), el contrabandista huye y se marca `caravan_busted_day = today()`.
+1. **Postura de sentado en 3D con `set_poker_seating(true, seat_pos)`:**
+   - Al llamar a `npc.set_poker_seating(true, seat_pos)`, el vecino queda anclado en su coordenada de asiento (`poker_seat_pos`) con `is_at_poker_table = true` y mira hacia el centro de la mesa.
+   - **Nota sobre la animación 3D:** En `scripts/visuals/CharacterAvatar3D.gd` (`_sync_pose_and_tint`), el estado `CharacterRig3D.AnimState.MOUNTED` (que reproduce el clip `"sit"` en `CharacterRig3D._pick_clip`) solo se activa cuando el actor va montado a caballo (`is_mounted_now`), y no comprueba `is_at_poker_table`. Por tanto, tanto en el póker de la taberna como en las cenas/fiestas de P4, los vecinos mantienen la postura de pie (`"idle"`) alrededor de la mesa en 3D. Siguiendo la instrucción expresa del encargo (*«Apunta en el informe si la postura de sentado sale con eso; no inventes una animación nueva»*), no se ha tocado `CharacterAvatar3D.gd` ni `CharacterRig3D.gd`.
+2. **Respaldo de posadera (`vm._innkeeper_npc`) para el encargo de comida y la cena de paz:**
+   - `VillageHousing.caterer_npc_of(vm)` devuelve `vm._innkeeper_npc` si existe y está viva; como respaldo por si en algún escenario hubiera muerto o no estuviera asignada, busca al panadero vivo (`TradeRole.BAKER`) en `vm.all_npcs`.
+3. **Frases de sobremesa (`GATHERING_CHAT_PHRASES`):**
+   - Se han dejado anotadas como texto provisional en `docs/APORTES_CREATIVOS.md` las 6 frases de charla de mesa y los pensamientos asociados al plantón y a la mesa vacía.
 
 ---
 
-## 3. Verificación y pruebas
+## 3. Verificación ejecutada
 
-1. **Arranque en modo headless:**
-   - Comando: `timeout 60 flatpak run org.godotengine.Godot --headless --path . --quit`
-   - Resultado: **OK** (`0` errores de compilación/carga de scripts).
-2. **Suite principal `verify_all.gd` (una sola ejecución al cerrar con `timeout 900`):**
-   - Comando: `timeout 900 flatpak run org.godotengine.Godot --headless --path . -s res://tools/tests/verify_all.gd`
-   - Resultado: **TODOS LOS BLOQUES Y ASERCIONES PASAN (`Block P3 (Physical Trade Route Caravans, Pack Mule & Midnight Smuggler Camp) OK`)**:
-     - `P3.1a–P3.1c`: Con `high_pass` activa, a medianoche (`00:00`) no ocurre intercambio mágico; a las `10:00` del día de llegada aparecen el caravanero y su mula en `CARAVAN_PLAZA_POS` y se ejecuta el intercambio entre talleres.
-     - `P3.2a–P3.2b`: Interactuar con la mula en la plaza entrega `2 bread` a cambio de `2 iron_ore` y `+8` de oro; tras retirarse la caravana de la plaza, `send_player_shipment` devuelve `false`.
-     - `P3.3a–P3.3b`: Matar al caravanero fija `vm.merchant_suspension_days["high_pass"] == 7` y deja el cadáver en el mundo.
-     - `P3.4a–P3.4e`: A las `22:00` en noche de contrabando aparecen el contrabandista y su carro en `SMUGGLER_CAMP_POS`, comprar exige doble `E` (`-25` oro → `+2 dusk_dust`), y vender con un guardia despierto a `< 160 px` sube `wanted_level` y marca `caravan_busted_day`.
+1. **Arranque sin errores de compilación:**
+   - `timeout 60 flatpak run org.godotengine.Godot --headless --path . --quit` → código de salida `0`, sin errores de GDScript.
+2. **Suite completa `verify_all.gd` (una sola ejecución al cierre):**
+   - `timeout 900 flatpak run org.godotengine.Godot --headless --path . -s res://tools/tests/verify_all.gd` → código de salida `0`, pasando todas las tandas previas y `Block P4 (Physical Dinners, House Parties, Innkeeper Catering & Peace Dinners) OK`.

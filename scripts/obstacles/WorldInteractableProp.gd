@@ -70,6 +70,11 @@ func setup_prop(village_manager: Node2D, kind: String, h_id: String = "", h_labe
 			npc_role = heist_label if not heist_label.is_empty() else "Interior de tu Casa"
 			add_to_group("home_workbench")
 			add_to_group("home_prop")
+		"home_table":
+			npc_name = "Mesa del Comedor"
+			npc_role = heist_label if not heist_label.is_empty() else "Interior de tu Casa"
+			add_to_group("home_table")
+			add_to_group("home_prop")
 		"home_stash":
 			npc_name = "Escondite bajo las Tablas"
 			npc_role = heist_label if not heist_label.is_empty() else "Suelo de tu Casa"
@@ -144,6 +149,8 @@ func _rebuild_visual_and_area() -> void:
 			_draw_sewer_chest_2d()
 		"home_workbench":
 			_draw_home_workbench_2d()
+		"home_table":
+			_draw_home_table_2d()
 		"home_stash":
 			_draw_home_stash_2d()
 		"home_stairs":
@@ -342,6 +349,18 @@ func _draw_town_ledger_2d() -> void:
 	_rect(Vector2(0, 0), Vector2(0.4, 3.6), Color(0.30, 0.16, 0.08)) # Lomo
 
 
+func _draw_home_table_2d() -> void:
+	# Mesa de comedor de madera con mantel y 6 taburetes alrededor
+	_rect(Vector2(0, 1.5), Vector2(10.5, 6.8), Color(0.14, 0.10, 0.06, 0.55)) # Sombra
+	_rect(Vector2(0, 0), Vector2(9.6, 5.8), Color(0.48, 0.32, 0.18)) # Tablero de roble
+	_rect(Vector2(0, 0), Vector2(8.4, 4.6), Color(0.58, 0.40, 0.24)) # Superficie pulida
+	_rect(Vector2(0, 0), Vector2(4.2, 3.4), Color(0.86, 0.80, 0.68)) # Camino de mesa de lino
+	var rations: int = int(VillageHousing.state(vm).get("table_rations", 0)) if vm != null else 0
+	if rations > 0:
+		_rect(Vector2(-2.2, -0.4), Vector2(1.6, 1.6), Color(0.88, 0.66, 0.28)) # Hogaza / plato
+		_rect(Vector2(2.2, 0.4), Vector2(1.6, 1.6), Color(0.76, 0.28, 0.22)) # Estofado / jarra
+
+
 func get_interact_label(_player: Node2D = null) -> String:
 	match prop_kind:
 		"terminal":
@@ -366,6 +385,8 @@ func get_interact_label(_player: Node2D = null) -> String:
 			return "Abrir cofre de contrabando (%s)" % (heist_label if not heist_label.is_empty() else "alijo")
 		"home_workbench":
 			return "Usar banco de trabajo y alquimia"
+		"home_table":
+			return VillageHousing.get_home_table_label(vm) if vm != null else "Mesa del comedor"
 		"home_stash":
 			var hidden_g: int = int(VillageHousing.state(vm).get("stash_gold", 0)) if vm != null else 0
 			return "Escondite bajo las tablas (%d Oro oculto)" % hidden_g
@@ -412,6 +433,8 @@ func interact(player: Node2D) -> void:
 			VillageUnderworld.interact_sewer_chest(vm, sewer_loc_id, player, inv)
 		"home_workbench":
 			VillageHousing.open_home_workbench_menu(vm, self, player)
+		"home_table":
+			VillageHousing.open_home_table_menu(vm, self, player)
 		"home_stash":
 			VillageHousing.open_home_stash_menu(vm, self, player)
 		"home_stairs":

@@ -270,3 +270,14 @@ o vino ya dado. Conviene confirmarlo.
 - Rendición: «¡Basta, basta! Me rindo.» / «¡Ya vale! Me rindo.»; reto: «¡Vamos allá, forastero!».
 
 **Dónde:** `scripts/systems/VillageClub.gd` (`CHEERS` y textos de `_end_bout` / `start_player_bout`).
+
+## Frases de charla en la mesa durante cenas, fiestas y cenas de paz (P4, provisionales)
+- «¡A vuestra salud!»
+- «Esta comida huele de maravilla.»
+- «Se está bien aquí al calor de la mesa.»
+- «Pásame el pan, por favor.»
+- «Hacía falta sentarse a charlar un rato.»
+- «Brindemos por una noche tranquila en el valle.»
+
+**Dónde:** `scripts/systems/VillageHousing.gd` (`GATHERING_CHAT_PHRASES`).
+**Depende:** solo textos flotantes cada 20 minutos de juego durante la reunión.

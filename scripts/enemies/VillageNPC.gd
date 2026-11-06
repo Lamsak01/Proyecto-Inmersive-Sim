@@ -151,7 +151,7 @@ var rite_kind: String = "" # "rite" (Oficio del Alba), "sect" (reunión de la se
 ## E1/E3/E5: encargos cortos a pie (lavarse «wash», beber «drink», jugar «gamble», pedir limosna «beg»); ver VillageNeeds
 var errand_kind: String = ""
 ## Recados que se hacen de noche: no se cancelan al caer la noche (P5b: el perista en el callejón).
-const NIGHT_ERRANDS: Array[String] = ["fence_alley", "smuggler_bust", "club_go", "club_watch", "night_job"]
+const NIGHT_ERRANDS: Array[String] = ["fence_alley", "smuggler_bust", "gathering", "catering", "club_go", "club_watch", "night_job"]
 var errand_pos: Vector2 = Vector2.ZERO
 var errand_since: int = 0
 ## E1: higiene (100 limpio → 0 sucio). E2: 0 sano, 1 enfermo leve, 2 guarda cama (lo pone VillageIllness)
@@ -2777,7 +2777,7 @@ func _get_expedition_description() -> String:
 	return str(EXPEDITION_DESCS.get(trade_role, "🚶 En Expedición"))
 
 func _is_mandatory_work_hours() -> bool:
-	if (trade_role == TradeRole.UNEMPLOYED and not has_meta("day_job")) or rite_pos != Vector2.ZERO or sick_level >= 2 or errand_kind == "smuggler_bust":
+	if (trade_role == TradeRole.UNEMPLOYED and not has_meta("day_job")) or rite_pos != Vector2.ZERO or sick_level >= 2 or errand_kind in NIGHT_ERRANDS:
 		return false # V5d: el jornalero con jornal sí tiene horario de trabajo (8–18)
 	if not WorldClock or _is_morning_expedition_hours():
 		return true

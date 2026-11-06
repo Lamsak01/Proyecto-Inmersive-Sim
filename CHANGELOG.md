@@ -23,6 +23,21 @@ El detalle técnico está en `docs/HANDOFF.md` (sección 7) y el historial compl
   aciertas, cobras 30. Los que pelean acaban magullados de verdad.
 - **La guardia:** si un guardia ve a alguien bajar o subir por la trampilla, la noche siguiente el club no abre; si eras
   tú, sube tu búsqueda. Apostar y pelear ya no se hacen en la charla con el perista.
+## 2026-11-06 — Cenas con vecinos, fiestas en tu casa y cenas de paz entre familias hechas físicas
+- **Mesa de comedor en tu casa:** en tu casa construida aparece una mesa de comedor (en 2D y 3D) con seis sitios alrededor.
+  Pulsando **E** en la mesa puedes poner comida de tu mochila (hacen falta dos raciones por invitado) o convocar una fiesta
+  para esa noche a las nueve.
+- **Contratar cáterin en la posada:** si prefieres no cocinar, puedes hablar con la posadera (con doble **E**) y pagarle
+  cuatro de oro por invitado. Una hora antes de la reunión la posadera va caminando hasta tu casa y deja las raciones
+  servidas en tu mesa; si por estar herida, dormida o presa no llega a tiempo, la cena no empieza y recuperas tu oro.
+- **Cenas y fiestas con invitados reales:** cuando invitas a un vecino a cenar (a las ocho) o invitas uno a uno hasta seis
+  vecinos a tu fiesta (a las nueve), a la hora señalada caminan hasta tu mesa y se sientan durante dos horas charlando cada
+  poco. Si al llegar ven la mesa sin comida o si tú te marchas antes de que termine la velada, se van enfadados; si te quedas
+  con ellos hasta el final, sube vuestra amistad y los asistentes hacen buenas migas entre sí.
+- **Cenas de paz en la posada:** para reconciliar a dos familias enfrentadas ya no basta con pagar en el diálogo; organizas
+  la cena en la posada (con doble **E** si pagas) para el día siguiente a las ocho de la tarde. Acuden el cabeza de cada
+  familia y hasta dos adultos más por bando; si falta toda una familia no hay acuerdo, y según el mal genio de los presentes
+  y lo viejo que sea el rencor, la velada puede sellar la paz o acabar a gritos.
 
 ## 2026-11-06 — Rentas, «protección» y tributo se recogen en persona; desfalco en el cofre del ayuntamiento
 - **El sábado ya no te llega oro solo:** la renta de tus locales, la «protección» y el tributo del hampa se apartan y

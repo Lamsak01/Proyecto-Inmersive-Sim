@@ -50,6 +50,20 @@ const JUVENILE_DAYS: int = 3
 const ADULT_ANIMAL_DAYS: int = 6
 const PRODUCT_COOLDOWN_DAYS: int = 2
 const RANCH_PEN_RECT: Rect2 = Rect2(Vector2(318.0, 408.0), Vector2(71.0, 124.0))
+const CATERING_COST_PER_GUEST: int = 4
+const TABLE_SEAT_DIST: float = 14.0
+const GATHERING_PLAYER_RADIUS: float = 90.0
+const GATHERING_DURATION_MIN: int = 120
+const GATHERING_CHAT_INTERVAL_MIN: int = 20
+const TABLE_FOOD_ITEMS: Array[String] = ["bread", "cooked_meat", "country_stew", "roasted_chicken", "cooked_fish", "fried_frog_legs", "royal_ration", "fish", "carrot", "cabbage", "raw_meat", "raw_chicken", "wheat"]
+const GATHERING_CHAT_PHRASES: Array[String] = [
+	"🍷 «¡A vuestra salud!»",
+	"🍲 «Esta comida huele de maravilla.»",
+	"🕯️ «Se está bien aquí al calor de la mesa.»",
+	"🍞 «Pásame el pan, por favor.»",
+	"💬 «Hacía falta sentarse a charlar un rato.»",
+	"🍺 «Brindemos por una noche tranquila en el valle.»",
+]
 
 static func state(vm) -> Dictionary:
 	var ts: Dictionary = vm.VillageTown.state(vm)
@@ -68,6 +82,10 @@ static func state(vm) -> Dictionary:
 		hs["last_party_day"] = -99
 	if not hs.has("last_study_day"):
 		hs["last_study_day"] = -99
+	if not hs.has("table_rations"):
+		hs["table_rations"] = 0
+	if not hs.has("gathering") or not (hs["gathering"] is Dictionary):
+		hs["gathering"] = {}
 	if not hs.has("commercial_deeds") or not (hs["commercial_deeds"] is Dictionary):
 		hs["commercial_deeds"] = {}
 	if not hs.has("rent_rates") or not (hs["rent_rates"] is Dictionary):
@@ -322,7 +340,10 @@ static func _next_shop_item_id(ps: Dictionary) -> String:
 	return ""
 
 static func on_hour(vm, hour: int) -> void:
-	if vm == null or not has_player_shop(vm):
+	if vm == null:
+		return
+	tick_gathering(vm, hour)
+	if not has_player_shop(vm):
 		return
 	var ps: Dictionary = state(vm)["player_shop"]
 	var clerk = get_player_shop_clerk(vm)
@@ -1009,12 +1030,20 @@ static func add_dialogue_choices(vm, npc, diag: Dictionary, ch_arr: Array) -> vo
 		opts.append({"label": "🤝🏠 Perdonarle la cuota a cambio de lealtad y su voto", "next": "END", "action": "housing_rent_forgive:" + t_lot})
 		opts.append({"label": "📦🚪 Desahuciar al inquilino para dejar libre tu casa", "next": "END", "action": "housing_evict:" + t_lot})
 
-	# P6.8: Invitar a cenar a tu casa
-	if p_lot != "" and today() - int(hs.get("last_dinner_day", -99)) >= 3 and int(npc.affinity) >= 10:
-		opts.append({"label": "🍷🍽️ Invitarle a cenar a tu casa para estrechar lazos (-%d Oro)" % DINNER_COST, "next": "END", "action": "housing_dinner"})
-	# Tanda 4 (20): Fiestas en casa
-	if p_lot != "" and str(VillageLots.lot(vm, p_lot).get("status", "")) == "built" and int(hs.get("last_party_day", -99)) != today():
-		opts.append({"label": "🎉🍻 Organizar una fiesta en tu casa para los vecinos (-20 Oro en comida y bebida)", "next": "END", "action": "housing_party"})
+	# P6.8 / P4.1: Invitar a cenar a tu casa esta noche (a las 20:00, sin cobro en diálogo; la comida sale de la mesa o del cáterin)
+	if p_lot != "" and str(VillageLots.lot(vm, p_lot).get("status", "")) == "built" and today() - int(hs.get("last_dinner_day", -99)) >= 3 and int(npc.affinity) >= 10 and not has_active_gathering(vm):
+		opts.append({"label": "🍷🍽️ Invitarle a cenar a tu casa esta noche (a las 20:00)", "next": "END", "action": "housing_dinner"})
+	# Tanda 4 (20) / P4.2: Invitar uno a uno a los vecinos a la fiesta convocada hoy en la mesa de tu casa (hasta 6)
+	var g_cur: Dictionary = hs.get("gathering", {})
+	if str(g_cur.get("kind", "")) == "party" and not bool(g_cur.get("dispatched", false)) and (g_cur.get("guests", []) as Array).size() < 6:
+		var pk_inv: String = npc.get_person_key()
+		if not (pk_inv in (g_cur.get("guests", []) as Array)) and not (pk_inv in (g_cur.get("declined", []) as Array)):
+			opts.append({"label": "🎉🍷 Invitarle a tu fiesta de esta noche", "next": "END", "action": "housing_party_invite"})
+	# P4 Opción B: Contratar cáterin con la posadera (o panadera si no hay posadera) para la cena o fiesta de hoy
+	if npc == caterer_npc_of(vm) and has_active_gathering(vm) and str(g_cur.get("place", "")) == "home" and not bool(g_cur.get("dispatched", false)) and not bool(g_cur.get("catering_hired", false)):
+		var g_cnt: int = (g_cur.get("guests", []) as Array).size()
+		if g_cnt > 0:
+			opts.append({"label": "🍲🏠 Contratar a la posada para cocinar en tu casa (−%d oro)" % (CATERING_COST_PER_GUEST * g_cnt), "next": "END", "action": "housing_catering"})
 
 	# P6.10: Comprar la escritura del local comercial de un artesano
 	if npc.trade_role in VillageNPC.SHOP_ROLES and not (hs["commercial_deeds"] as Dictionary).has(str(int(npc.trade_role))):
@@ -1166,26 +1195,56 @@ static func on_player_action(vm, npc, action_id: String, inv) -> void:
 		npc._spawn_floating_text("📦😠 «¡Me dejas en la calle!»", Color.ORANGE_RED, -46.0)
 
 	elif action_id == "housing_dinner":
-		if inv == null or int(inv.gold) < DINNER_COST:
-			npc._spawn_floating_text("Necesitas %d de oro para las viandas de la cena" % DINNER_COST, Color.ORANGE_RED, -44.0)
+		if npc == null:
 			return
-		inv.add_gold(-DINNER_COST)
-		# Regla 1: las viandas se compran en la posada (igual que la fiesta).
-		if vm.shop_businesses.has(int(VillageNPC.TradeRole.INNKEEPER)):
-			vm.shop_businesses[int(VillageNPC.TradeRole.INNKEEPER)]["vault_gold"] = int(vm.shop_businesses[int(VillageNPC.TradeRole.INNKEEPER)].get("vault_gold", 0)) + DINNER_COST
+		if has_active_gathering(vm):
+			npc._spawn_floating_text("«Ya tienes otra cena o reunión prevista.»", Color.ORANGE_RED, -44.0)
+			return
+		if schedule_dinner(vm, npc):
+			npc._spawn_floating_text("🍷🍽️ «¡Con mucho gusto! A las 20:00 estaré en tu casa para cenar.»", Color.SPRING_GREEN, -46.0)
 		else:
-			vm.town_state["treasury"] = int(vm.town_state.get("treasury", 0)) + DINNER_COST
-		hs["last_dinner_day"] = today()
-		npc.modify_affinity(14)
-		npc.add_thought("Cena estupenda en casa del forastero (+8)", 8.0)
-		TraitDiscovery.reveal_next(npc, "en una cena en tu casa")
-		# Si tiene un rival, la velada suaviza la enemistad
-		for o in VillageNeeds.living(vm):
-			if o != npc and npc.get_relationship_with_npc(o.get_person_key()) <= -20:
-				npc.modify_npc_relationship(o, 15, "Hicimos las paces cenando en casa del forastero", false)
-				break
-		VillageChronicle.add(vm, "dinner_party", "Invitaste a %s a cenar en tu casa" % npc.npc_name, true)
-		npc._spawn_floating_text("🍷🍽️ «¡Qué gran velada en tu casa!»", Color.SPRING_GREEN, -46.0)
+			npc._spawn_floating_text("«Hoy no puedo, tengo quehaceres esta noche.»", Color.ORANGE_RED, -44.0)
+
+	elif action_id == "housing_party_call":
+		if convoke_house_party(vm):
+			_notify_player(vm, npc, "🎉🍷 Fiesta convocada para esta noche a las 21:00. Invita a los vecinos hablando con ellos (máx. 6) y prepara comida.", Color.SPRING_GREEN)
+		else:
+			_notify_player(vm, npc, "Ya tienes otra reunión activa o ya convocaste una fiesta hoy", Color.ORANGE_RED)
+
+	elif action_id == "housing_party_invite":
+		if npc == null:
+			return
+		if invite_to_house_party(vm, npc):
+			npc._spawn_floating_text("🎉🍻 «¡Cuenta conmigo! A las 21:00 me pasaré por tu casa.»", Color.SPRING_GREEN, -46.0)
+		else:
+			npc._spawn_floating_text("«Esta noche no me viene bien ir a la fiesta.»", Color.ORANGE_RED, -44.0)
+
+	elif action_id == "housing_table_put_food":
+		var put_cnt: int = put_food_on_home_table(vm, inv)
+		var g_f: Dictionary = hs.get("gathering", {})
+		var need_f: int = maxi(2, (g_f.get("guests", []) as Array).size() * 2)
+		var cur_f: int = int(hs.get("table_rations", 0))
+		if put_cnt > 0:
+			_notify_player(vm, npc, "🍞🍲 Pusiste %d ración(es) en la mesa (%d/%d raciones)" % [put_cnt, cur_f, need_f], Color.SPRING_GREEN)
+		elif cur_f >= need_f:
+			_notify_player(vm, npc, "La mesa ya tiene comida suficiente (%d/%d raciones)" % [cur_f, need_f], Color.GOLD)
+		else:
+			_notify_player(vm, npc, "No llevas comida en la mochila para poner en la mesa", Color.ORANGE_RED)
+
+	elif action_id == "housing_catering":
+		var g_cat: Dictionary = hs.get("gathering", {})
+		var g_cnt_c: int = (g_cat.get("guests", []) as Array).size()
+		if not has_active_gathering(vm) or str(g_cat.get("place", "")) != "home" or g_cnt_c <= 0 or bool(g_cat.get("catering_hired", false)):
+			return
+		var cat_cost: int = CATERING_COST_PER_GUEST * g_cnt_c
+		if inv == null or int(inv.gold) < cat_cost:
+			_notify_player(vm, npc, "Necesitas %d de oro para contratar el cáterin de la posada" % cat_cost, Color.ORANGE_RED)
+			return
+		if not press_twice(vm, "housing_catering"):
+			_notify_player(vm, npc, "Pulsa [E] otra vez para confirmar el cáterin en tu casa (−%d oro)" % cat_cost, Color.GOLD)
+			return
+		if hire_catering(vm, inv):
+			_notify_player(vm, npc, "🍲🏠 «¡Trato hecho! Iré a tu casa 1 h antes para dejar las raciones listas en tu mesa.»", Color.SPRING_GREEN)
 
 	elif action_id == "housing_party":
 		if inv == null or int(inv.gold) < 20:
@@ -1405,7 +1464,17 @@ static func home_prop_pos(_vm, lot_id: String, kind: String) -> Vector2:
 			return c + Vector2(-48.0, 18.0)
 		"player_shop_counter":
 			return c + Vector2(-16.0, -4.0 * m)
+		"home_table":
+			return c + Vector2(0.0, -2.0 * m)
 	return c
+
+
+static func _refresh_home_table_visual(vm) -> void:
+	if vm == null or not ("entities_root" in vm) or vm.entities_root == null or not is_instance_valid(vm.entities_root):
+		return
+	for child in vm.entities_root.get_children():
+		if is_instance_valid(child) and child.is_in_group("home_table") and child.has_method("_rebuild_visual_and_area"):
+			child.call("_rebuild_visual_and_area")
 
 
 static func _refresh_shop_counter_visual(vm) -> void:
@@ -1429,6 +1498,7 @@ static func sync_home_props(vm) -> void:
 	for old_n in existing:
 		old_n.remove_from_group("home_prop")
 		old_n.remove_from_group("player_shop_counter")
+		old_n.remove_from_group("home_table")
 		if old_n.get_parent() != null:
 			old_n.get_parent().remove_child(old_n)
 		old_n.queue_free()
@@ -1440,6 +1510,11 @@ static func sync_home_props(vm) -> void:
 		var st: Dictionary = VillageLots.lot(vm, lid)
 		var up: Dictionary = st.get("upgrades", {})
 		var h_title: String = str(st.get("title", "Casa del Forastero"))
+		var tb_prop: Node2D = PropScript.new() as Node2D
+		tb_prop.name = "HomeTable_" + lid
+		tb_prop.global_position = home_prop_pos(vm, lid, "home_table")
+		vm.entities_root.add_child(tb_prop)
+		tb_prop.call("setup_prop", vm, "home_table", lid, h_title)
 		if bool(up.get("workbench", false)):
 			var wb: Node2D = PropScript.new() as Node2D
 			wb.name = "HomeWorkbench_" + lid
@@ -1692,3 +1767,677 @@ static func interact_home_stairs(vm, _lot_id: String, speaker: Node = null, play
 		return true
 	on_player_action(vm, null, str(choices[0]["action"]), inv)
 	return true
+
+
+# ==============================================================================
+# Bloque P4: Cenas con vecinos, fiestas en tu casa y cenas de paz hechas físicas
+# ==============================================================================
+static func total_minutes(override_hour: int = -1) -> int:
+	var d: int = int(WorldClock.current_day) if WorldClock else 1
+	var h: int = override_hour if override_hour >= 0 else (int(WorldClock.current_hour) if WorldClock else 12)
+	var m: int = int(WorldClock.current_minute) if (WorldClock and override_hour < 0) else 0
+	return (d * 24 + h) * 60 + m
+
+
+static func table_seats(table_pos: Vector2) -> Array[Vector2]:
+	var out: Array[Vector2] = []
+	for i in range(6):
+		var ang: float = float(i) * TAU / 6.0
+		out.append(table_pos + Vector2(TABLE_SEAT_DIST, 0.0).rotated(ang))
+	return out
+
+
+static func has_active_gathering(vm) -> bool:
+	if vm == null:
+		return false
+	var g: Dictionary = state(vm).get("gathering", {})
+	return not g.is_empty() and str(g.get("kind", "")) != ""
+
+
+## Devuelve a la posadera (`vm._innkeeper_npc`); si no hay o está muerta, usa la panadera como respaldo.
+static func caterer_npc_of(vm):
+	if vm == null:
+		return null
+	if is_instance_valid(vm._innkeeper_npc) and not vm._innkeeper_npc.is_dead:
+		return vm._innkeeper_npc
+	var baker = vm.trade_npcs.get(int(VillageNPC.TradeRole.BAKER), null)
+	if baker != null and is_instance_valid(baker) and not baker.is_dead:
+		return baker
+	return null
+
+
+static func can_walk_to_gathering(npc) -> bool:
+	if npc == null or not is_instance_valid(npc):
+		return false
+	if npc.is_dead or npc.is_downed or not npc.is_conscious() or npc.is_sleeping or npc.is_hostile or npc.sick_level >= 2:
+		return false
+	if npc.bed_position.distance_to(Vector2(872.0, 176.0)) <= 24.0:
+		return false
+	return true
+
+
+static func is_free_for_night_gathering(vm, npc) -> bool:
+	if npc == null or not is_instance_valid(npc):
+		return false
+	if npc.is_dead or npc.is_downed or not npc.is_conscious() or npc.is_hostile or npc.sick_level >= 2:
+		return false
+	if int(npc.trade_role) == int(VillageNPC.TradeRole.CHILD) or VillageNeeds.is_outsider(npc):
+		return false
+	if npc.bed_position.distance_to(Vector2(872.0, 176.0)) <= 24.0:
+		return false
+	# Trabajo nocturno: la posadera atiende la taberna hasta las 23:00 y quien ya está en un recado nocturno no está libre
+	if int(npc.trade_role) == int(VillageNPC.TradeRole.INNKEEPER):
+		return false
+	if npc.errand_kind in ["fence_alley", "catering", "smuggler_bust", "gathering"]:
+		return false
+	var g: Dictionary = state(vm).get("gathering", {}) if vm != null else {}
+	var pk: String = npc.get_person_key()
+	if pk in (g.get("guests", []) as Array) or pk == str(g.get("caterer_key", "")):
+		return false
+	return true
+
+
+static func get_home_table_label(vm) -> String:
+	if vm == null:
+		return "Mesa del comedor"
+	var hs: Dictionary = state(vm)
+	var g: Dictionary = hs.get("gathering", {})
+	var cur_r: int = int(hs.get("table_rations", 0))
+	var need_r: int = maxi(2, (g.get("guests", []) as Array).size() * 2)
+	if has_active_gathering(vm) and str(g.get("place", "")) == "home":
+		return "Mesa del comedor (%d/%d raciones · %s a las %02d:00)" % [cur_r, need_r, ("Cena" if str(g.get("kind", "")) == "dinner" else "Fiesta"), int(g.get("start_hour", 20))]
+	return "Mesa del comedor (Raciones: %d · Organizar fiesta)" % cur_r
+
+
+static func open_home_table_menu(vm, speaker: Node, _player: Node2D = null) -> void:
+	if vm == null:
+		return
+	var dm = vm.get_node_or_null("/root/DialogueManager")
+	if dm == null or not dm.has_method("start_dialogue"):
+		return
+	var hs: Dictionary = state(vm)
+	var g: Dictionary = hs.get("gathering", {})
+	var cur_r: int = int(hs.get("table_rations", 0))
+	var need_r: int = maxi(2, (g.get("guests", []) as Array).size() * 2)
+	var choices: Array = [
+		{
+			"label": "🍞🍲 Poner comida en la mesa (%d/%d raciones)" % [cur_r, need_r],
+			"next": "END",
+			"action": "housing_table_put_food"
+		}
+	]
+	if not has_active_gathering(vm) and int(hs.get("last_party_day", -99)) != today():
+		choices.append({
+			"label": "🎉🍷 Convocar una fiesta esta noche (a las 21:00)",
+			"next": "END",
+			"action": "housing_party_call"
+		})
+	choices.append({"label": "Apartarse de la mesa [Salir]", "next": "END"})
+	var status_txt: String = "Sin reunión prevista hoy."
+	if has_active_gathering(vm) and str(g.get("place", "")) == "home":
+		status_txt = "Reunión prevista: %s a las %02d:00 (%d invitado(s))." % [("Cena" if str(g.get("kind", "")) == "dinner" else "Fiesta"), int(g.get("start_hour", 20)), (g.get("guests", []) as Array).size()]
+	var graph: Dictionary = {
+		"start": {
+			"text": "🍽️🕯️ MESA DEL COMEDOR\nRaciones preparadas sobre la mesa: %d/%d (hacen falta 2 raciones por invitado).\n%s" % [cur_r, need_r, status_txt],
+			"choices": choices
+		}
+	}
+	dm.start_dialogue(graph, "start", speaker)
+
+
+## Pasa comida de la mochila del jugador (`inv`) a la mesa de casa (`table_rations`). 1 objeto de comida = 1 ración.
+static func put_food_on_home_table(vm, inv, max_to_put: int = -1) -> int:
+	if vm == null or inv == null or not inv.has_method("has_item") or not inv.has_method("remove_item"):
+		return 0
+	var hs: Dictionary = state(vm)
+	var g: Dictionary = hs.get("gathering", {})
+	var cur_r: int = int(hs.get("table_rations", 0))
+	var need_r: int = maxi(2, (g.get("guests", []) as Array).size() * 2)
+	var target_add: int = max_to_put if max_to_put > 0 else maxi(0, need_r - cur_r)
+	if target_add <= 0:
+		return 0
+	var added: int = 0
+	for fid in TABLE_FOOD_ITEMS:
+		while added < target_add and bool(inv.has_item(fid, 1)):
+			inv.remove_item(fid, 1)
+			added += 1
+		if added >= target_add:
+			break
+	if added > 0:
+		hs["table_rations"] = cur_r + added
+		if not g.is_empty():
+			g["food_rations"] = int(hs["table_rations"])
+		_refresh_home_table_visual(vm)
+	return added
+
+
+## 1) Cena con un vecino en tu casa esta noche a las 20:00 (sin cobro en diálogo).
+static func schedule_dinner(vm, npc) -> bool:
+	if vm == null or npc == null or has_active_gathering(vm):
+		return false
+	var p_lot: String = primary_player_lot(vm)
+	if p_lot == "" or str(VillageLots.lot(vm, p_lot).get("status", "")) != "built":
+		return false
+	var hs: Dictionary = state(vm)
+	if today() - int(hs.get("last_dinner_day", -99)) < 3 or int(npc.affinity) < 10:
+		return false
+	if not is_free_for_night_gathering(vm, npc):
+		return false
+	var cur_h: int = int(WorldClock.current_hour) if WorldClock else 12
+	var s_day: int = today() if cur_h <= 20 else today() + 1
+	hs["last_dinner_day"] = today()
+	var t_pos: Vector2 = home_prop_pos(vm, p_lot, "home_table")
+	hs["gathering"] = {
+		"kind": "dinner",
+		"place": "home",
+		"lot_id": p_lot,
+		"table_pos": t_pos,
+		"start_day": s_day,
+		"start_hour": 20,
+		"guests": [npc.get_person_key()],
+		"declined": [],
+		"arrived": [],
+		"food_rations": int(hs.get("table_rations", 0)),
+		"catering_hired": false,
+		"catering_cost": 0,
+		"caterer_key": "",
+		"catering_dispatched": false,
+		"catering_arrived": false,
+		"dispatched": false,
+		"started": false,
+		"started_at_minutes": 0,
+		"dispatched_at_minutes": 0,
+		"last_chat_minutes": 0,
+		"player_was_present": false
+	}
+	if s_day == today() and cur_h == 20:
+		tick_gathering(vm, 20)
+	return true
+
+
+## 2) Convoca una fiesta en tu casa para esta noche a las 21:00 (luego invitas uno a uno hasta 6 vecinos).
+static func convoke_house_party(vm) -> bool:
+	if vm == null or has_active_gathering(vm):
+		return false
+	var p_lot: String = primary_player_lot(vm)
+	if p_lot == "" or str(VillageLots.lot(vm, p_lot).get("status", "")) != "built":
+		return false
+	var hs: Dictionary = state(vm)
+	if int(hs.get("last_party_day", -99)) == today():
+		return false
+	var cur_h: int = int(WorldClock.current_hour) if WorldClock else 12
+	var s_day: int = today() if cur_h <= 21 else today() + 1
+	hs["last_party_day"] = today()
+	var t_pos: Vector2 = home_prop_pos(vm, p_lot, "home_table")
+	hs["gathering"] = {
+		"kind": "party",
+		"place": "home",
+		"lot_id": p_lot,
+		"table_pos": t_pos,
+		"start_day": s_day,
+		"start_hour": 21,
+		"guests": [],
+		"declined": [],
+		"arrived": [],
+		"food_rations": int(hs.get("table_rations", 0)),
+		"catering_hired": false,
+		"catering_cost": 0,
+		"caterer_key": "",
+		"catering_dispatched": false,
+		"catering_arrived": false,
+		"dispatched": false,
+		"started": false,
+		"started_at_minutes": 0,
+		"dispatched_at_minutes": 0,
+		"last_chat_minutes": 0,
+		"player_was_present": false
+	}
+	return true
+
+
+## Invita a un vecino adulto a la fiesta de esta noche (máx. 6). Acepta si afinidad >= 10 y libre; 0..9 con 40 %; < 0 rechaza.
+static func invite_to_house_party(vm, npc, force_roll: float = -1.0) -> bool:
+	if vm == null or npc == null or not has_active_gathering(vm):
+		return false
+	var g: Dictionary = state(vm)["gathering"]
+	if str(g.get("kind", "")) != "party" or bool(g.get("dispatched", false)):
+		return false
+	var guests: Array = g.get("guests", [])
+	var declined: Array = g.get("declined", [])
+	var pk: String = npc.get_person_key()
+	if guests.size() >= 6 or pk in guests or pk in declined:
+		return false
+	if not is_free_for_night_gathering(vm, npc) or int(npc.affinity) < 0:
+		declined.append(pk)
+		g["declined"] = declined
+		return false
+	var accepts: bool = false
+	if int(npc.affinity) >= 10:
+		accepts = true
+	else:
+		var roll: float = force_roll if force_roll >= 0.0 else randf()
+		accepts = roll < 0.40
+	if accepts:
+		guests.append(pk)
+		g["guests"] = guests
+		return true
+	declined.append(pk)
+	g["declined"] = declined
+	return false
+
+
+## Opción B: Contrata a la posadera (`CATERING_COST_PER_GUEST = 4` × invitados) para cocinar en tu mesa 1 h antes.
+static func hire_catering(vm, inv) -> bool:
+	if vm == null or inv == null or not has_active_gathering(vm):
+		return false
+	var g: Dictionary = state(vm)["gathering"]
+	if str(g.get("place", "")) != "home" or bool(g.get("dispatched", false)) or bool(g.get("catering_hired", false)):
+		return false
+	var g_cnt: int = (g.get("guests", []) as Array).size()
+	if g_cnt <= 0:
+		return false
+	var cat_npc = caterer_npc_of(vm)
+	if cat_npc == null:
+		return false
+	var cost: int = CATERING_COST_PER_GUEST * g_cnt
+	if int(inv.gold) < cost:
+		return false
+	inv.add_gold(-cost)
+	vm.pay_into(cat_npc, cost)
+	g["catering_hired"] = true
+	g["catering_cost"] = cost
+	g["caterer_key"] = cat_npc.get_person_key()
+	g["catering_dispatched"] = false
+	g["catering_arrived"] = false
+	var cur_h: int = int(WorldClock.current_hour) if WorldClock else 12
+	if int(g.get("start_day", today())) == today() and cur_h == int(g.get("start_hour", 20)) - 1:
+		_dispatch_caterer_if_ready(vm, g)
+	return true
+
+
+## 3) Cena de paz en la posada mañana a las 20:00 entre dos familias en feudo (cabeza + hasta 2 adultos libres por familia).
+static func schedule_peace_dinner(vm, fk: String, force_brawl: bool = false) -> bool:
+	if vm == null or fk == "" or has_active_gathering(vm):
+		return false
+	var feuds: Dictionary = vm.VillageClans.state(vm).get("feuds", {})
+	if not feuds.has(fk):
+		return false
+	var f: Dictionary = feuds[fk]
+	var fam_a: String = str(f.get("fam_a", ""))
+	var fam_b: String = str(f.get("fam_b", ""))
+	var guests: Array = []
+	for fam in [fam_a, fam_b]:
+		var added_fam: int = 0
+		var head = vm.VillageClans.patriarch_of(vm, fam)
+		if head != null and is_free_for_night_gathering(vm, head):
+			guests.append(head.get_person_key())
+			added_fam += 1
+		for m in vm.VillageClans.clan_members(vm, fam):
+			if added_fam >= 3:
+				break
+			if m == head or (m.get_person_key() in guests):
+				continue
+			if is_free_for_night_gathering(vm, m):
+				guests.append(m.get_person_key())
+				added_fam += 1
+	state(vm)["gathering"] = {
+		"kind": "peace",
+		"place": "inn",
+		"lot_id": "",
+		"table_pos": vm._tavern_social_pos,
+		"start_day": today() + 1,
+		"start_hour": 20,
+		"guests": guests,
+		"declined": [],
+		"arrived": [],
+		"food_rations": 99,
+		"catering_hired": false,
+		"catering_cost": 0,
+		"caterer_key": "",
+		"catering_dispatched": false,
+		"catering_arrived": false,
+		"dispatched": false,
+		"started": false,
+		"started_at_minutes": 0,
+		"dispatched_at_minutes": 0,
+		"last_chat_minutes": 0,
+		"player_was_present": false,
+		"feud_key": fk,
+		"force_brawl": force_brawl
+	}
+	return true
+
+
+static func _dispatch_caterer_if_ready(vm, g: Dictionary) -> void:
+	if bool(g.get("catering_dispatched", false)) or not bool(g.get("catering_hired", false)):
+		return
+	g["catering_dispatched"] = true
+	var by_key: Dictionary = vm._get_npcs_by_person_key()
+	var cat_npc = by_key.get(str(g.get("caterer_key", "")), null)
+	if cat_npc == null:
+		cat_npc = caterer_npc_of(vm)
+	if can_walk_to_gathering(cat_npc):
+		var t_pos: Vector2 = g.get("table_pos", Vector2.ZERO)
+		cat_npc.start_errand("catering", t_pos + Vector2(0.0, -14.0))
+
+
+static func on_caterer_arrived(vm, npc) -> void:
+	if vm == null or npc == null or not has_active_gathering(vm):
+		if npc != null and is_instance_valid(npc) and npc.errand_kind == "catering":
+			npc.end_errand()
+		return
+	var hs: Dictionary = state(vm)
+	var g: Dictionary = hs["gathering"]
+	if not bool(g.get("catering_hired", false)):
+		npc.end_errand()
+		return
+	if not bool(g.get("catering_arrived", false)):
+		g["catering_arrived"] = true
+		var needed: int = maxi(2, (g.get("guests", []) as Array).size() * 2)
+		hs["table_rations"] = maxi(int(hs.get("table_rations", 0)), needed)
+		g["food_rations"] = int(hs["table_rations"])
+		_refresh_home_table_visual(vm)
+		npc._spawn_floating_text("🍲 «¡La cena está lista y servida en tu mesa!»", Color.GOLD, -36.0)
+
+
+static func _refund_catering_and_cancel(vm, g: Dictionary) -> void:
+	var hs: Dictionary = state(vm)
+	var refund: int = int(g.get("catering_cost", 0))
+	var by_key: Dictionary = vm._get_npcs_by_person_key()
+	var cat_npc = by_key.get(str(g.get("caterer_key", "")), null)
+	if cat_npc == null:
+		cat_npc = caterer_npc_of(vm)
+	if refund > 0:
+		if cat_npc != null and is_instance_valid(cat_npc):
+			var from_cat: int = mini(refund, maxi(0, int(cat_npc.personal_gold)))
+			cat_npc.personal_gold -= from_cat
+			var rem: int = refund - from_cat
+			if rem > 0 and vm.town_state is Dictionary:
+				vm.town_state["treasury"] = maxi(0, int(vm.town_state.get("treasury", 0)) - rem)
+		elif vm.town_state is Dictionary:
+			vm.town_state["treasury"] = maxi(0, int(vm.town_state.get("treasury", 0)) - refund)
+		var pl = VillageNeeds.player_of(vm)
+		var inv = pl.get("inventory") if pl != null else null
+		if inv != null and inv.has_method("add_gold"):
+			inv.add_gold(refund)
+	if cat_npc != null and is_instance_valid(cat_npc) and cat_npc.errand_kind == "catering":
+		cat_npc.end_errand()
+	hs["gathering"] = {}
+
+
+static func _min_guests_to_start(g: Dictionary) -> int:
+	if str(g.get("kind", "")) == "dinner":
+		return 1
+	var total_inv: int = (g.get("guests", []) as Array).size()
+	return mini(2, maxi(1, total_inv))
+
+
+static func on_gathering_guest_arrived(vm, npc) -> void:
+	if vm == null or npc == null or not has_active_gathering(vm):
+		if npc != null and is_instance_valid(npc) and npc.errand_kind == "gathering":
+			npc.end_errand()
+		return
+	var hs: Dictionary = state(vm)
+	var g: Dictionary = hs["gathering"]
+	var guests: Array = g.get("guests", [])
+	var pk: String = npc.get_person_key()
+	if not (pk in guests):
+		npc.end_errand()
+		return
+	var needed_food: int = 0 if str(g.get("place", "")) == "inn" else (guests.size() * 2)
+	var avail_food: int = 99 if str(g.get("place", "")) == "inn" else maxi(int(hs.get("table_rations", 0)), int(g.get("food_rations", 0)))
+	if avail_food < needed_food:
+		# Sin comida suficiente en la mesa: el invitado ve la mesa vacía, se marcha molesto (-5 afinidad) y no se sienta
+		npc.end_errand()
+		npc.modify_affinity(-5)
+		npc.add_thought("Me invitaron a cenar y la mesa estaba vacía (-5)", -5.0)
+		npc._spawn_floating_text("😠 «¿Nos invitas y la mesa está vacía? ¡Qué desfachatez!»", Color.ORANGE_RED, -42.0)
+		var left_arr: Array = g.get("left_no_food", [])
+		if not (pk in left_arr):
+			left_arr.append(pk)
+		g["left_no_food"] = left_arr
+		var any_walking: bool = false
+		var by_key: Dictionary = vm._get_npcs_by_person_key()
+		for gk in guests:
+			var gn = by_key.get(str(gk), null)
+			if gn != null and is_instance_valid(gn) and gn.errand_kind == "gathering":
+				any_walking = true
+				break
+		if not any_walking:
+			_cleanup_gathering_All(vm)
+		return
+
+	var seat_pos: Vector2 = npc.errand_pos
+	npc.end_errand()
+	npc.set_poker_seating(true, seat_pos)
+	var arrived: Array = g.get("arrived", [])
+	if not (pk in arrived):
+		arrived.append(pk)
+	g["arrived"] = arrived
+	if not bool(g.get("started", false)) and arrived.size() >= _min_guests_to_start(g):
+		g["started"] = true
+		var now_m: int = total_minutes()
+		g["started_at_minutes"] = now_m
+		g["last_chat_minutes"] = now_m
+		var by_key2: Dictionary = vm._get_npcs_by_person_key()
+		var cat_npc = by_key2.get(str(g.get("caterer_key", "")), null)
+		if cat_npc != null and is_instance_valid(cat_npc) and cat_npc.errand_kind == "catering":
+			cat_npc.end_errand()
+
+
+static func tick_gathering(vm, override_hour: int = -1) -> void:
+	if vm == null or not has_active_gathering(vm):
+		return
+	var hs: Dictionary = state(vm)
+	var g: Dictionary = hs["gathering"]
+	var cur_d: int = today()
+	var s_day: int = int(g.get("start_day", cur_d))
+	var s_hour: int = int(g.get("start_hour", 20))
+	var now_min: int = total_minutes(override_hour)
+	var start_min: int = (s_day * 24 + s_hour) * 60
+
+	# 1 h antes de `start_hour`: la posadera camina a tu mesa si contrataste cáterin
+	if bool(g.get("catering_hired", false)) and not bool(g.get("catering_dispatched", false)):
+		if now_min >= start_min - 60 and now_min < start_min:
+			_dispatch_caterer_if_ready(vm, g)
+
+	# A `start_hour`: comprobar cáterin y enviar a los invitados andando hacia su asiento (`start_errand("gathering", seat_pos)`)
+	if not bool(g.get("dispatched", false)) and now_min >= start_min:
+		if bool(g.get("catering_hired", false)) and not bool(g.get("catering_arrived", false)):
+			var by_key_c: Dictionary = vm._get_npcs_by_person_key()
+			var cat_n = by_key_c.get(str(g.get("caterer_key", "")), null)
+			if cat_n != null and is_instance_valid(cat_n) and cat_n.global_position.distance_to(g.get("table_pos", Vector2.ZERO)) <= VillageNeeds.ARRIVE_RADIUS * 1.5:
+				on_caterer_arrived(vm, cat_n)
+			else:
+				_refund_catering_and_cancel(vm, g)
+				return
+		g["dispatched"] = true
+		g["dispatched_at_minutes"] = now_min
+		var guests: Array = g.get("guests", [])
+		if guests.is_empty():
+			_cleanup_gathering_All(vm)
+			return
+		var seats: Array[Vector2] = table_seats(g.get("table_pos", Vector2.ZERO))
+		var by_key: Dictionary = vm._get_npcs_by_person_key()
+		for i in range(mini(guests.size(), seats.size())):
+			var gn = by_key.get(str(guests[i]), null)
+			if can_walk_to_gathering(gn):
+				gn.start_errand("gathering", seats[i])
+
+	if not bool(g.get("dispatched", false)):
+		return
+
+	# Si en 2 h desde `start_hour` algún rezagado no ha llegado, ya no cuenta
+	var disp_min: int = int(g.get("dispatched_at_minutes", start_min))
+	if now_min >= disp_min + GATHERING_DURATION_MIN:
+		var by_key_l: Dictionary = vm._get_npcs_by_person_key()
+		for gk in (g.get("guests", []) as Array):
+			var gn_l = by_key_l.get(str(gk), null)
+			if gn_l != null and is_instance_valid(gn_l) and gn_l.errand_kind == "gathering":
+				gn_l.end_errand()
+		if not bool(g.get("started", false)):
+			if str(g.get("kind", "")) == "peace":
+				_complete_gathering(vm)
+			elif (g.get("arrived", []) as Array).size() >= 1:
+				g["started"] = true
+				g["started_at_minutes"] = disp_min
+				g["last_chat_minutes"] = now_min
+			else:
+				_cleanup_gathering_All(vm)
+				return
+
+	if not bool(g.get("started", false)):
+		return
+
+	var pl: Node2D = VillageNeeds.player_of(vm) as Node2D
+	var t_pos: Vector2 = g.get("table_pos", Vector2.ZERO)
+	var pl_near: bool = pl != null and is_instance_valid(pl) and pl.global_position.distance_to(t_pos) < GATHERING_PLAYER_RADIUS
+	if pl_near:
+		g["player_was_present"] = true
+	elif bool(g.get("player_was_present", false)):
+		# El jugador estaba en la reunión y se marchó antes de terminar: se disuelve y se enfadan (-5)
+		_abandon_gathering(vm)
+		return
+
+	# Charla en la mesa cada 20 min de juego
+	var last_chat: int = int(g.get("last_chat_minutes", now_min))
+	if now_min - last_chat >= GATHERING_CHAT_INTERVAL_MIN:
+		g["last_chat_minutes"] = now_min
+		var arr_keys: Array = g.get("arrived", [])
+		if not arr_keys.is_empty():
+			var by_key_ch: Dictionary = vm._get_npcs_by_person_key()
+			var spk_key: String = str(arr_keys[randi() % arr_keys.size()])
+			var spk = by_key_ch.get(spk_key, null)
+			if spk != null and is_instance_valid(spk):
+				var phrase: String = GATHERING_CHAT_PHRASES[randi() % GATHERING_CHAT_PHRASES.size()]
+				spk._spawn_floating_text(phrase, Color(1.0, 0.92, 0.68), -34.0)
+
+	# Al cumplirse las 2 h de duración desde que empezó
+	var started_min: int = int(g.get("started_at_minutes", disp_min))
+	if now_min >= started_min + GATHERING_DURATION_MIN:
+		if not pl_near:
+			_abandon_gathering(vm)
+		else:
+			_complete_gathering(vm)
+
+
+static func _abandon_gathering(vm) -> void:
+	var hs: Dictionary = state(vm)
+	var g: Dictionary = hs.get("gathering", {})
+	var by_key: Dictionary = vm._get_npcs_by_person_key()
+	for ak in (g.get("arrived", []) as Array):
+		var gn = by_key.get(str(ak), null)
+		if gn != null and is_instance_valid(gn):
+			gn.set_poker_seating(false)
+			gn.modify_affinity(-5)
+			gn.add_thought("El forastero nos dejó plantados", -5.0)
+			gn._spawn_floating_text("😠 «¡El forastero nos dejó plantados!»", Color.ORANGE_RED, -42.0)
+	_cleanup_gathering_All(vm)
+
+
+static func _complete_gathering(vm) -> void:
+	var hs: Dictionary = state(vm)
+	var g: Dictionary = hs.get("gathering", {})
+	var kind: String = str(g.get("kind", ""))
+	var by_key: Dictionary = vm._get_npcs_by_person_key()
+	var arrived_npcs: Array = []
+	for ak in (g.get("arrived", []) as Array):
+		var gn = by_key.get(str(ak), null)
+		if gn != null and is_instance_valid(gn) and not gn.is_dead:
+			gn.set_poker_seating(false)
+			arrived_npcs.append(gn)
+
+	if str(g.get("place", "")) == "home":
+		var used_r: int = (g.get("guests", []) as Array).size() * 2
+		hs["table_rations"] = maxi(0, int(hs.get("table_rations", 0)) - used_r)
+		_refresh_home_table_visual(vm)
+
+	if kind == "dinner":
+		if not arrived_npcs.is_empty():
+			var guest = arrived_npcs[0]
+			guest.modify_affinity(14)
+			guest.add_thought("Cena estupenda en casa del forastero (+8)", 8.0)
+			TraitDiscovery.reveal_next(guest, "en una cena en tu casa")
+			for o in VillageNeeds.living(vm):
+				if o != guest and guest.get_relationship_with_npc(o.get_person_key()) <= -20:
+					guest.modify_npc_relationship(o, 15, "Hicimos las paces cenando en casa del forastero", false)
+					break
+			VillageChronicle.add(vm, "dinner_party", "Invitaste a %s a cenar en tu casa" % guest.npc_name, true)
+			guest._spawn_floating_text("🍷🍽️ «¡Qué gran velada en tu casa!»", Color.SPRING_GREEN, -46.0)
+
+	elif kind == "party":
+		for guest_p in arrived_npcs:
+			guest_p.modify_affinity(10)
+			guest_p.add_thought("Fiesta memorable en casa del forastero (+10)", 10.0)
+		for i in range(arrived_npcs.size()):
+			for j in range(i + 1, arrived_npcs.size()):
+				arrived_npcs[i].modify_npc_relationship(arrived_npcs[j], 8, "Brindamos juntos en la fiesta del forastero", true)
+				arrived_npcs[j].modify_npc_relationship(arrived_npcs[i], 8, "Brindamos juntos en la fiesta del forastero", true)
+		if not arrived_npcs.is_empty():
+			VillageChronicle.add(vm, "house_party", "Celebraste una fiesta en tu casa con %d vecinos del valle" % arrived_npcs.size(), true)
+			arrived_npcs[0]._spawn_floating_text("🎉🍻 «¡La mejor fiesta del valle! Todos brindan por ti.»", Color.SPRING_GREEN, -46.0)
+
+	elif kind == "peace":
+		var fk: String = str(g.get("feud_key", ""))
+		var feuds: Dictionary = vm.VillageClans.state(vm).get("feuds", {})
+		if feuds.has(fk):
+			var f: Dictionary = feuds[fk]
+			var fam_a: String = str(f.get("fam_a", ""))
+			var fam_b: String = str(f.get("fam_b", ""))
+			var name_a: String = str(f.get("name_a", fam_a))
+			var name_b: String = str(f.get("name_b", fam_b))
+			var present_a: Array = []
+			var present_b: Array = []
+			for an in arrived_npcs:
+				if str(an.family_id) == fam_a:
+					present_a.append(an)
+				elif str(an.family_id) == fam_b:
+					present_b.append(an)
+			if present_a.is_empty() or present_b.is_empty():
+				var missing_fam: String = name_a if present_a.is_empty() else name_b
+				VillageChronicle.add(vm, "clan_peace_absent", "La familia %s no se presentó" % missing_fam, true)
+			else:
+				var sum_agg: float = 0.0
+				for an2 in arrived_npcs:
+					sum_agg += TraitCatalog.npc_tendency(an2, "aggression")
+				var avg_agg: float = sum_agg / float(maxi(1, arrived_npcs.size()))
+				var feud_days: int = maxi(0, today() - int(f.get("day", today())))
+				var prob: float = 0.10 + 0.25 * avg_agg + minf(0.20, 0.02 * float(feud_days))
+				if bool(g.get("force_brawl", false)):
+					prob = 1.0
+				elif g.has("brawl_prob_override"):
+					prob = float(g["brawl_prob_override"])
+				if randf() < prob:
+					for an3 in arrived_npcs:
+						an3._spawn_floating_text("🤬🍷 «¡No olvidaremos vuestras ofensas! ¡Nos marchamos!»", Color.ORANGE_RED, -42.0)
+					for ma in vm.VillageClans.clan_members(vm, fam_a):
+						for mb in vm.VillageClans.clan_members(vm, fam_b):
+							ma.modify_npc_relationship(mb, -5, "La cena de paz en la posada acabó a gritos", true)
+							mb.modify_npc_relationship(ma, -5, "La cena de paz en la posada acabó a gritos", true)
+					VillageChronicle.add(vm, "clan_peace_brawl", "La cena de paz entre %s y %s acabó a gritos" % [name_a, name_b], true)
+				else:
+					vm.VillageClans.mediate_clan_peace(vm, fk, "en una cena de paz en la posada")
+					for an4 in arrived_npcs:
+						an4.modify_affinity(12)
+						an4._spawn_floating_text("🍷🕊️ «Habrá paz entre nuestras familias.»", Color.SPRING_GREEN, -42.0)
+
+	_cleanup_gathering_All(vm)
+
+
+static func _cleanup_gathering_All(vm) -> void:
+	var hs: Dictionary = state(vm)
+	var g: Dictionary = hs.get("gathering", {})
+	var by_key: Dictionary = vm._get_npcs_by_person_key()
+	for gk in (g.get("guests", []) as Array):
+		var gn = by_key.get(str(gk), null)
+		if gn != null and is_instance_valid(gn):
+			if gn.errand_kind == "gathering":
+				gn.end_errand()
+			if gn.is_at_poker_table:
+				gn.set_poker_seating(false)
+	var ck: String = str(g.get("caterer_key", ""))
+	if ck != "":
+		var cn = by_key.get(ck, null)
+		if cn != null and is_instance_valid(cn) and cn.errand_kind == "catering":
+			cn.end_errand()
+	hs["gathering"] = {}
