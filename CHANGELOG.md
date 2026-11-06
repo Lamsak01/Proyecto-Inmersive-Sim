@@ -3,6 +3,13 @@
 Cambios del juego, del más nuevo al más antiguo. Añade una entrada al cerrar cada bloque, en lenguaje sencillo.
 El detalle técnico está en `docs/HANDOFF.md` (sección 7) y el historial completo en `git log`. Lo anterior a B0.1 está en `AUDIT_LOG.md` y `SESSION_CONTEXT_LOG.md`.
 
+## 2026-11-05 — Colarse o salir de las alcantarillas delante de la gente levanta sospechas
+- Si bajas por una rejilla de la calle o sales por una escalerilla **delante de un guardia o del comisario**, bajas o
+  sales igual, pero te ven colarte y **sube en 1 tu nivel de búsqueda** con un aviso en pantalla («¡X te vio colarte en
+  las alcantarillas!»).
+- Si quien te ve bajar o salir es **un vecino cualquiera**, no te busca la guardia, pero se queda con la copla y corre el
+  chisme por el pueblo de que te vieron meterte en las alcantarillas.
+
 ## 2026-11-05 — El ganado del rancho y tus animales de corral existen de verdad
 - En el corral del **Rancho del Sur** ahora pasean de verdad las ovejas y gallinas del ganadero, cambiando de tamaño según
   su etapa (cría, joven o adulto) y actualizándose cuando nace una camada o se vende una res.

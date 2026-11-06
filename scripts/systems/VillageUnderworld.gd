@@ -195,6 +195,63 @@ static func exit_sewers_to_surface(vm) -> void:
 		if pl != null and is_instance_valid(pl):
 			pl.global_position = SEWER_LOCATIONS[cur]["pos"]
 
+static func _check_sewer_witness(vm, check_pos: Vector2) -> Dictionary:
+	if vm == null or not vm.has_method("_find_conscious_witness_near"):
+		return {"witness": null, "is_law": false}
+	var wit = vm._find_conscious_witness_near(check_pos, 120.0, null)
+	if wit == null:
+		return {"witness": null, "is_law": false}
+	var is_law: bool = int(wit.trade_role) in [int(VillageNPC.TradeRole.SHERIFF), int(VillageNPC.TradeRole.GUARD)]
+	if not is_law and vm.is_inside_tree():
+		var eff_dist: float = 120.0
+		if WorldClock and WorldClock.has_method("get_weather_vision_multiplier"):
+			eff_dist *= float(WorldClock.call("get_weather_vision_multiplier"))
+		var best_d2: float = eff_dist * eff_dist
+		var best_law = null
+		for n in vm.get_tree().get_nodes_in_group("village_npcs"):
+			if n is VillageNPC and int(n.trade_role) in [int(VillageNPC.TradeRole.SHERIFF), int(VillageNPC.TradeRole.GUARD)]:
+				var v: VillageNPC = n as VillageNPC
+				if v.is_dead or v.is_downed or v.is_sleeping or v.is_stunned_flag or v.sedated_timer > 0.0:
+					continue
+				if not vm.are_on_same_elevation(v.elevation_level, vm.player_elevation_level):
+					continue
+				var d2: float = check_pos.distance_squared_to(v.global_position)
+				if d2 <= best_d2 and vm.has_line_of_sight(v.global_position, check_pos):
+					best_d2 = d2
+					best_law = v
+		if best_law != null:
+			wit = best_law
+			is_law = true
+	return {"witness": wit, "is_law": is_law}
+
+static func _apply_sewer_witness(vm, wit_info: Dictionary, player: Node2D = null) -> String:
+	var wit = wit_info.get("witness", null)
+	if wit == null or not is_instance_valid(wit):
+		return ""
+	var is_law: bool = bool(wit_info.get("is_law", false))
+	var w_name: String = str(wit.npc_name)
+	if is_law:
+		vm.wanted_level = clampi(int(vm.wanted_level) + 1, 1, 5)
+		var msg_law: String = "🚨 ¡%s te vio colarte en las alcantarillas! (Búsqueda +1)" % w_name
+		if wit.has_method("_spawn_floating_text"):
+			wit._spawn_floating_text(msg_law, Color.ORANGE_RED, -46.0)
+		if player != null and is_instance_valid(player) and player.has_method("_spawn_floating_text"):
+			player._spawn_floating_text(msg_law, Color.ORANGE_RED, -46.0)
+		VillageChronicle.add(vm, "sewer_seen", "¡%s te vio colarte en las alcantarillas! (Búsqueda +1)" % w_name, true)
+		return " " + msg_law
+	var msg_civ: String = "👀 ¡%s te vio colarte en las alcantarillas!" % w_name
+	if wit.has_method("_spawn_floating_text"):
+		wit._spawn_floating_text(msg_civ, Color(1.0, 0.82, 0.45), -46.0)
+	if player != null and is_instance_valid(player) and player.has_method("_spawn_floating_text"):
+		player._spawn_floating_text(msg_civ, Color(1.0, 0.82, 0.45), -46.0)
+	if wit.has_method("add_thought"):
+		wit.add_thought("Vi al forastero colarse en las alcantarillas (-2)", -2.0)
+	if vm.has_method("record_social_event") and wit.has_method("get_person_key"):
+		var ev: Dictionary = vm.record_social_event("player_secret", wit, null, "%s vio al forastero colarse en las alcantarillas" % w_name)
+		ev["known_by"] = {wit.get_person_key(): true}
+		ev["heard_from"] = {}
+	return " " + msg_civ
+
 static func interact_sewer_grate(vm, loc_id: String, player: Node2D = null) -> bool:
 	if vm == null or not SEWER_LOCATIONS.has(loc_id):
 		return false
@@ -203,11 +260,15 @@ static func interact_sewer_grate(vm, loc_id: String, player: Node2D = null) -> b
 		if player != null and player.has_method("show_hint"):
 			player.show_hint("🔒 Cerrada: el perista vende la llave.")
 		return false
-	if not enter_sewer_location(vm, loc_id, player):
+	var pl: Node2D = player if (player != null and is_instance_valid(player)) else VillageNeeds.player_of(vm)
+	var check_pos: Vector2 = pl.global_position if pl != null else (SEWER_LOCATIONS[loc_id]["pos"] as Vector2)
+	var wit_info: Dictionary = _check_sewer_witness(vm, check_pos)
+	if not enter_sewer_location(vm, loc_id, pl):
 		return false
+	var wit_suffix: String = _apply_sewer_witness(vm, wit_info, pl)
 	var title: String = str(SEWER_LOCATIONS[loc_id].get("title", loc_id))
-	if player != null and player.has_method("show_hint"):
-		player.show_hint("🕳️🔦 Bajaste por la rejilla a %s (nivel -1)." % title)
+	if pl != null and pl.has_method("show_hint"):
+		pl.show_hint("🕳️🔦 Bajaste por la rejilla a %s (nivel -1).%s" % [title, wit_suffix])
 	return true
 
 static func exit_sewer_ladder(vm, loc_id: String, player: Node2D = null) -> bool:
@@ -217,13 +278,17 @@ static func exit_sewer_ladder(vm, loc_id: String, player: Node2D = null) -> bool
 	exit_sewers_to_surface(vm)
 	if pl != null and is_instance_valid(pl):
 		pl.global_position = SEWER_LOCATIONS[loc_id]["pos"]
-	if loc_id == "smuggler_tunnel" and int(vm.wanted_level) > 0 and VillageHousing.can_purge_wanted(vm):
+	var check_pos: Vector2 = pl.global_position if pl != null else (SEWER_LOCATIONS[loc_id]["pos"] as Vector2)
+	var wit_info: Dictionary = _check_sewer_witness(vm, check_pos)
+	var seen_by_law: bool = bool(wit_info.get("is_law", false))
+	if not seen_by_law and loc_id == "smuggler_tunnel" and int(vm.wanted_level) > 0 and VillageHousing.can_purge_wanted(vm):
 		vm.wanted_level = maxi(0, int(vm.wanted_level) - 1)
 		VillageHousing.mark_wanted_purge(vm)
 		VillageChronicle.add(vm, "smuggler_escape", "Despistaste a la guardia saliendo por el Pasadizo del Contrabandista (-1 de búsqueda)", false)
+	var wit_suffix: String = _apply_sewer_witness(vm, wit_info, pl)
 	var title: String = str(SEWER_LOCATIONS[loc_id].get("title", loc_id))
 	if pl != null and pl.has_method("show_hint"):
-		pl.show_hint("🪜☀️ Subiste por la escalerilla a la calle (%s)." % title)
+		pl.show_hint("🪜☀️ Subiste por la escalerilla a la calle (%s).%s" % [title, wit_suffix])
 	return true
 
 static func is_sewer_chest_looted_today(vm, loc_id: String) -> bool:

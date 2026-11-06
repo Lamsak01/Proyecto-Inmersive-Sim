@@ -4541,13 +4541,18 @@ func _initialize() -> void:
 	print("Block FIS2 (Physical Terminal, Electric Panel & Heist Targets) OK")
 
 	# ---------------------------------------------------------
-	# Block 97: Walkable Sewers, Street Grates, Ladders & Contraband Chests (FIS3)
+	# Block 97: Walkable Sewers, Street Grates, Ladders & Contraband Chests (FIS3 / FIS3b)
 	# ---------------------------------------------------------
 	var fis3_sw_bak: Dictionary = vun.sewers_state(vm).duplicate(true)
 	var fis3_pl_pos_bak: Vector2 = p70_pl.global_position
 	var fis3_wl_bak: int = vm.wanted_level
 	var fis3_hide_bak: int = int(vho.state(vm).get("last_hide_day", -99))
 	var fis3_gold_bak: int = p70_inv.gold
+	var fis3_npc_pos_bak: Dictionary = {}
+	for n_f3 in root.get_tree().get_nodes_in_group("village_npcs"):
+		if n_f3 is Node2D:
+			fis3_npc_pos_bak[n_f3] = (n_f3 as Node2D).global_position
+			(n_f3 as Node2D).global_position = Vector2(-6000.0, -6000.0)
 
 	# FIS3.1: Existen las 3 trampillas en la calle, las 3 escalerillas abajo, los 3 cofres abajo y el cuerpo de muros físicos
 	var fis3_grates: Array = root.get_tree().get_nodes_in_group("sewer_grate")
@@ -4630,6 +4635,66 @@ func _initialize() -> void:
 		var act_f3: String = str((ch_f3 as Dictionary).get("action", ""))
 		assert(not act_f3.begins_with("underworld_sewer_explore:") and act_f3 != "underworld_sewer_surface", "FIS3.7: Fence dialogue choices no longer include underworld_sewer_explore or underworld_sewer_surface")
 
+	# FIS3.8 (FIS3b): Bajar por una rejilla o salir por una escalerilla a la vista de un guardia sube wanted_level en 1 (sin bloquear el paso); sin nadie cerca no sube; si te ve un vecino cualquiera queda un chisme sin subir wanted_level
+	var fis3_cist_pos: Vector2 = vun.SEWER_LOCATIONS["cistern"]["pos"]
+	var fis3_ladder_cist: Node2D = vm.entities_root.get_node_or_null("SewerLadder_cistern") as Node2D
+	vm.set_player_elevation_level(0)
+	vun.sewers_state(vm)["current_loc"] = ""
+	p70_pl.global_position = fis3_cist_pos
+	vm.wanted_level = 0
+	# Sin nadie cerca: bajar y subir no suben la búsqueda
+	fis3_cistern_grate.call("interact", p70_pl)
+	assert(vm.player_elevation_level == -1 and vun.is_player_in_sewers(vm) and vm.wanted_level == 0, "FIS3.8a: Entering sewer grate with nobody nearby keeps wanted_level at 0")
+	fis3_ladder_cist.call("interact", p70_pl)
+	assert(vm.player_elevation_level == 0 and not vun.is_player_in_sewers(vm) and vm.wanted_level == 0, "FIS3.8b: Exiting sewer ladder with nobody nearby keeps wanted_level at 0")
+	# Con un guardia (o comisario) consciente al lado en la misma planta: bajar sigue bajando pero sube +1 la búsqueda; salir también sube +1
+	var fis3_guard = vm.role_npc(int(it_roles.GUARD))
+	if fis3_guard == null:
+		fis3_guard = vm.role_npc(int(it_roles.SHERIFF))
+	assert(fis3_guard != null, "FIS3.8c: Guard or Sheriff exists for sewer witness test")
+	var fis3_g_dead_bak: bool = fis3_guard.is_dead
+	var fis3_g_down_bak: bool = fis3_guard.is_downed
+	var fis3_g_sleep_bak: bool = fis3_guard.is_sleeping
+	var fis3_g_elev_bak: int = fis3_guard.elevation_level
+	fis3_guard.is_dead = false
+	fis3_guard.is_downed = false
+	fis3_guard.is_sleeping = false
+	fis3_guard.elevation_level = 0
+	fis3_guard.global_position = fis3_cist_pos + Vector2(20.0, 0.0)
+	p70_pl.global_position = fis3_cist_pos
+	fis3_cistern_grate.call("interact", p70_pl)
+	assert(vm.player_elevation_level == -1 and vun.is_player_in_sewers(vm) and vm.wanted_level == 1, "FIS3.8d: Entering sewer grate in view of a guard still lowers player into sewers and raises wanted_level by 1")
+	fis3_ladder_cist.call("interact", p70_pl)
+	assert(vm.player_elevation_level == 0 and not vun.is_player_in_sewers(vm) and vm.wanted_level == 2, "FIS3.8e: Exiting sewer ladder in view of a guard raises wanted_level by 1")
+	fis3_guard.global_position = Vector2(-6000.0, -6000.0)
+	fis3_guard.is_dead = fis3_g_dead_bak
+	fis3_guard.is_downed = fis3_g_down_bak
+	fis3_guard.is_sleeping = fis3_g_sleep_bak
+	fis3_guard.elevation_level = fis3_g_elev_bak
+	# Con un vecino cualquiera consciente al lado: no sube wanted_level, pero queda el chisme en social_event_log
+	var fis3_a_dead_bak: bool = p70_a.is_dead
+	var fis3_a_down_bak: bool = p70_a.is_downed
+	var fis3_a_sleep_bak: bool = p70_a.is_sleeping
+	var fis3_a_elev_bak: int = p70_a.elevation_level
+	var fis3_log_len0: int = vm.social_event_log.size()
+	p70_a.is_dead = false
+	p70_a.is_downed = false
+	p70_a.is_sleeping = false
+	p70_a.elevation_level = 0
+	p70_a.global_position = fis3_cist_pos + Vector2(18.0, 0.0)
+	p70_pl.global_position = fis3_cist_pos
+	fis3_cistern_grate.call("interact", p70_pl)
+	assert(vm.player_elevation_level == -1 and vm.wanted_level == 2 and vm.social_event_log.size() > fis3_log_len0, "FIS3.8f: Entering sewer grate in view of a regular neighbor does not raise wanted_level and records a gossip event")
+	while vm.social_event_log.size() > fis3_log_len0:
+		vm.social_event_log.pop_back()
+	p70_a.is_dead = fis3_a_dead_bak
+	p70_a.is_downed = fis3_a_down_bak
+	p70_a.is_sleeping = fis3_a_sleep_bak
+	p70_a.elevation_level = fis3_a_elev_bak
+
+	for n_f3_k in fis3_npc_pos_bak.keys():
+		if is_instance_valid(n_f3_k):
+			(n_f3_k as Node2D).global_position = fis3_npc_pos_bak[n_f3_k]
 	vun.state(vm)["sewers"] = fis3_sw_bak
 	vm.set_player_elevation_level(0)
 	p70_pl.global_position = fis3_pl_pos_bak
