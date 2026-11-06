@@ -21,6 +21,19 @@
   (2) un test con tipos de clase del juego (`var x: HealthComponent`) rompe la carga del script de pruebas y Godot se
   queda colgado: pruebas **siempre con `timeout`**; (3) vigila que siga avanzando, no solo que suba el resultado.
 
-## Estado al cerrar
+## Estado al cerrar (mañana del 2026-11-06)
 
-(se completa a las 09:00)
+**Hecho, revisado y probado** (arranque sin errores y las cuatro pruebas pasan al final de la mañana):
+- COMBATE-1: rodar (Espacio) con invulnerabilidad breve y gasto de aguante; parar (Q) con ventana corta que anula el
+  golpe y deja al atacante tambaleándose; golpes enemigos con aviso de 0,4 s (vecinos hostiles, guardias, asaltantes,
+  perros, jabalíes). Q sigue siendo derribo en sigilo si hay objetivo.
+- ANIM-1: pasos calibrados con la zancada real de las animaciones (andar/correr/cargar) y armas giradas en la mano.
+  **Falta que el usuario lo vea en movimiento** (en una foto quieta no se puede juzgar si aún patina).
+
+**Siguiente:** bloque P1 (tu tienda propia hecha física). El encargo ya está escrito en `docs/ENCARGO_ANTIGRAVITY.md`
+§2: solo hay que mandárselo a Antigravity. Después, P2 a P6 y el inventario ordenado (ver `docs/COLA_DE_TRABAJO.md`).
+
+**Beta:** el usuario decidió misterio, con final y resumen, 1–2 h, Windows. Plan borrador en
+`docs/PLAN_BETA_MISTERIO.md` (el usuario lo retocará). Aún no hay encargos de la beta.
+
+**Pendiente de medir:** equilibrio de los asaltos; rendimiento en ordenadores modestos.

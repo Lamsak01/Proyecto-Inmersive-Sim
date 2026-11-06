@@ -49,19 +49,30 @@ Reglas que el supervisor va a comprobar sí o sí:
 
 ---
 
-## 2. El encargo actual: bloque ANIM-1 — pasos que patinan y armas al revés
+## 2. El encargo actual: bloque P1 — tu tienda propia («Bazar del Forastero») hecha física
 
-> COMBATE-1 aprobado. Aviso del usuario. **Tiempo límite: termina y sube antes de las 08:40.** Esta mañana NO pases las
-> cuatro pruebas (las pasa el supervisor al final): solo el arranque sin errores (`timeout 120 … --quit-after 3`).
+> ANIM-1 entregado (pendiente de que el usuario lo vea en movimiento). Fila 2 de `docs/AUDITORIA_REALISMO.md`.
 
-1. **Pasos que patinan:** al andar, los personajes 3D (jugador y vecinos) parecen deslizarse: la velocidad de la
-   animación no cuadra con lo que avanzan. Mide cuánto avanza un ciclo de «walk» y de «run» a la escala del escenario
-   (`CharacterAvatar3D.STAGE_K`) y calcula la velocidad de reproducción a partir de la velocidad real en
-   `CharacterRig3D._pick_clip` (ahora `clampf(_speed_ratio, 0.7, 1.3)` con `speed_ratio = velocidad / 110`).
-2. **Armas al revés:** las armas y herramientas en la mano se ven giradas 180°. Gíralas para que se sujeten bien
-   (espada, hacha, pico, martillo, hoz, arco, arcabuz, caña, regadera, farol; las de los vecinos también).
-3. Una foto de antes y otra de después con `tools/screenshot_3d.gd` (sitio «cerca»), guardadas en `docs/capturas_anim1/`.
-4. Documentación breve (§3), commit y push, informe nombrando solo funciones que existan.
+Ahora mismo (`VillageHousing`): abastecer el mostrador (`stock_player_shop`), vaciar la caja (`housing_collect_shop`),
+pregonar (`advertise_player_shop`) y contratar dependiente (`housing_hire_clerk`) se hacen **hablando con cualquier
+vecino**; el dependiente (`player_shop["clerk_key"]`) nunca va a tu solar y las ventas ocurren en el ciclo diario sin que
+nadie entre a comprar.
+
+Hay que:
+1. **Mostrador y caja físicos** en el solar de tu tienda (`player_shop["lot"]`), 2D + 3D, con [E]: «Reponer mercancía»
+   (lo mismo que `stock_player_shop`, desde tu mochila) y «Recoger la caja» (`till_gold`). Quita esas dos opciones de la
+   charla con vecinos.
+2. **El dependiente va de verdad:** en horario comercial (el mismo que los demás negocios) el vecino contratado camina
+   hasta detrás de tu mostrador (`start_errand` o lo que usen los otros dependientes) y se queda allí; si no está, la
+   tienda no vende. Su sueldo (`CLERK_WAGE`) sigue saliendo de la caja.
+3. **Clientes de verdad:** durante el día, vecinos con oro se acercan andando a tu mostrador y compran una unidad cada uno
+   (pagan de su bolsillo a la caja, suma cero), en vez de ventas hechas solas en el ciclo diario. Pregonar sigue
+   atrayendo más clientes durante 3 días.
+4. Pregonar y contratar pueden seguir en la charla (son tratos con personas), pero gastar oro pide doble E si se hace en
+   el mundo.
+5. Pruebas: un test por comportamiento (mostrador repone desde la mochila; la caja se recoge en el mostrador; sin
+   dependiente presente no hay ventas; un cliente que compra paga de su bolsillo). Arranque sin errores y las cuatro
+   pruebas (con `timeout`).
 
 ## 3. Al cerrar el bloque
 

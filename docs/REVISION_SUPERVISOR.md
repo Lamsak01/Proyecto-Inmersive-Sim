@@ -125,3 +125,9 @@ Hay que:
 
 Quitado el tipo que colgaba la prueba; rodar, parar y golpes con aviso como se pidió; el informe nombra funciones que
 existen. Arranque sin errores. Las cuatro pruebas se pasan al final de la mañana (orden del usuario).
+
+## ANIM-1 — APROBADO (08:15)
+
+Zancadas medidas en el esqueleto real (walk 21,65 px/s, run 56,15 px/s, carry 14,37 px/s) y velocidad de animación según
+la velocidad real; armas giradas en la mano. Arranque sin errores y las cuatro pruebas pasan. Pendiente: que el usuario
+lo vea en movimiento.
