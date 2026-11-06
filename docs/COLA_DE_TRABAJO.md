@@ -12,8 +12,8 @@
 | 5 | P3: caravanas comerciales y de contrabando | siguiente — `docs/ENCARGO_P3_CARAVANAS.md` |
 | 6 | P4: cenas, fiestas y banquete de paz | encargo listo — `docs/ENCARGO_P4_CENAS.md` |
 | 7 | P5: rentas, encargos y desfalcos en su sitio | encargo listo — `docs/ENCARGO_P5_RENTAS.md` |
-| 8 | P6: peleas clandestinas en un sótano de la taberna, sabotajes nocturnos y expediciones | pendiente |
-| 9 | Inventario de todo lo demás planeado, ordenado de fácil a difícil (`docs/PLAN_ORDENADO.md`) y empezar por lo fácil | pendiente |
+| 8 | P6: peleas clandestinas en un sótano de la taberna y sabotajes nocturnos (expediciones y animales, más adelante) | encargo listo — `docs/ENCARGO_P6_PELEAS_SABOTAJES.md` |
+| 9 | Inventario de todo lo demás planeado, ordenado de fácil a difícil (`docs/PLAN_ORDENADO.md`) y empezar por lo fácil | ✅ lista hecha (12:55); falta empezar por lo fácil |
 
 Para mañana con el usuario: bucle jugable de la primera beta (borrador en `docs/PROPUESTA_BETA.md`).
 
