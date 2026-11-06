@@ -4932,5 +4932,34 @@ func _initialize() -> void:
 	vho.sync_home_props(vm)
 	print("Block FIS-P1 (Physical Home Interior: Garden, Workbench, Stash & Stairs) OK")
 
+	# ==========================================================================
+	# Campamento inicial: suma cero (pago a RANCHER/arcas) y confirmación con doble E
+	# ==========================================================================
+	var camp_node: Node2D = root.get_tree().get_first_node_in_group("campsite") as Node2D
+	assert(camp_node != null, "CampRule.0: PlayerCampSite exists in group campsite")
+	var camp_coop_bak: bool = bool(camp_node.get("camp_coop_built"))
+	var camp_wood_bak: int = p70_inv.get_count("wood")
+	var camp_gold_bak: int = p70_inv.gold
+	if camp_wood_bak > 0:
+		p70_inv.remove_item("wood", camp_wood_bak)
+	p70_inv.gold = 50
+	camp_node.set("camp_coop_built", false)
+	vm.set_meta("e_confirm_tag", "")
+	var camp_rancher = vm.role_npc(int(load("res://scripts/enemies/VillageNPC.gd").TradeRole.RANCHER))
+	var rancher_gold0: int = int(camp_rancher.personal_gold) if camp_rancher != null and is_instance_valid(camp_rancher) and not camp_rancher.is_dead else int(vm.town_state.get("treasury", 0))
+	# Primera pulsación: pide confirmación con doble E, no construye ni cobra todavía
+	camp_node.call("_on_build_camp_coop_pressed")
+	assert(not bool(camp_node.get("camp_coop_built")) and p70_inv.gold == 50, "CampRule.1: First E on gold-paid camp coop requires confirmation and does not charge yet")
+	# Segunda pulsación: confirma, cobra 30 de oro al jugador y se los ingresa al ganadero (o a las arcas)
+	camp_node.call("_on_build_camp_coop_pressed")
+	var rancher_gold1: int = int(camp_rancher.personal_gold) if camp_rancher != null and is_instance_valid(camp_rancher) and not camp_rancher.is_dead else int(vm.town_state.get("treasury", 0))
+	assert(bool(camp_node.get("camp_coop_built")) and p70_inv.gold == 20 and rancher_gold1 == rancher_gold0 + 30, "CampRule.2: Second E builds camp coop and transfers 30 gold to RANCHER (or treasury)")
+	camp_node.set("camp_coop_built", camp_coop_bak)
+	camp_node.call("_sync_camp_facilities")
+	if camp_wood_bak > 0:
+		p70_inv.add_item("wood", camp_wood_bak)
+	p70_inv.gold = camp_gold_bak
+	print("Camp initial rules (zero-sum & double-E) OK")
+
 	print("ALL RIMWORLD MEDICAL, FOOTPRINTS, 3-PHASE CORPSE REPORT, MULTI-CORPSE FIX, RPG INTERROGATION, PUBLIC TRIAL, DYNAMIC RELATIONSHIPS, MISSING FAMILY SEARCH, SOCIAL GLOSSARY & UNCONSCIOUS REACTION TESTS PASSED!")
 	quit(0)

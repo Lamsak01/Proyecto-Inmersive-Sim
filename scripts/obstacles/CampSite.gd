@@ -162,6 +162,25 @@ func _unhandled_input(event: InputEvent) -> void:
 			elif event.keycode == KEY_4:
 				_on_build_sprinkler_pressed()
 				get_viewport().set_input_as_handled()
+			elif event.keycode == KEY_E:
+				var vm_in: Node = _get_vm()
+				var pend_tag: String = str(vm_in.get_meta("e_confirm_tag", "")) if vm_in != null and is_instance_valid(vm_in) else ""
+				match pend_tag:
+					"camp_farm":
+						_on_build_camp_farm_pressed()
+						get_viewport().set_input_as_handled()
+					"camp_coop":
+						_on_build_camp_coop_pressed()
+						get_viewport().set_input_as_handled()
+					"camp_generator":
+						_on_build_generator_pressed()
+						get_viewport().set_input_as_handled()
+					"camp_sprinkler":
+						_on_build_sprinkler_pressed()
+						get_viewport().set_input_as_handled()
+					"camp_house_up":
+						_on_upgrade_house_pressed()
+						get_viewport().set_input_as_handled()
 			elif event.keycode in [KEY_5, KEY_ESCAPE]:
 				upgrade_panel.visible = false
 				get_viewport().set_input_as_handled()
@@ -544,6 +563,35 @@ func upgrade_player_house(target_tier: int = -1) -> bool:
 	_save_state()
 	return true
 
+const ROLE_CARPENTER: int = 5 # VillageNPC.TradeRole.CARPENTER
+const ROLE_RANCHER: int = 18  # VillageNPC.TradeRole.RANCHER
+const ROLE_TINKER: int = 21   # VillageNPC.TradeRole.TINKER
+
+func _get_vm() -> Node:
+	if not is_inside_tree() or get_tree() == null:
+		return null
+	return get_tree().get_first_node_in_group("village_manager")
+
+func _pay_camp_work(role: int, gold_amount: int) -> void:
+	if gold_amount <= 0:
+		return
+	var vm: Node = _get_vm()
+	if vm != null and is_instance_valid(vm) and vm.has_method("pay_into"):
+		var target_npc = vm.call("role_npc", role) if vm.has_method("role_npc") else null
+		vm.call("pay_into", target_npc, gold_amount)
+
+func _confirm_camp_gold_spend(player: Node, tag: String, prompt_msg: String) -> bool:
+	var vm: Node = _get_vm()
+	if vm != null and is_instance_valid(vm) and "VillageHousing" in vm and vm.VillageHousing != null and not bool(vm.VillageHousing.press_twice(vm, tag)):
+		if player != null and player.has_method("show_hint"):
+			player.call("show_hint", prompt_msg)
+		if player != null and player.has_method("_spawn_floating_text"):
+			player.call("_spawn_floating_text", prompt_msg, Color.GOLD, -44.0)
+		if upgrade_panel and upgrade_panel.visible and upgrade_desc_lbl:
+			upgrade_desc_lbl.text = prompt_msg
+		return false
+	return true
+
 func _on_upgrade_house_pressed() -> void:
 	var player = get_tree().get_first_node_in_group("player")
 	var inv: SimpleInventory = player.get("inventory") if player else null
@@ -556,11 +604,18 @@ func _on_upgrade_house_pressed() -> void:
 	var paid: bool = false
 	if inv:
 		if inv.has_item("wood", wood_need) and inv.gold >= (cost_gold - 15):
+			var gold_part: int = cost_gold - 15
+			if not _confirm_camp_gold_spend(player, "camp_house_up", "🛖❓ ¿Mejorar con %dx Madera y %d Oro? Pulsa E otra vez para confirmar." % [wood_need, gold_part]):
+				return
 			inv.remove_item("wood", wood_need)
-			inv.add_gold(-(cost_gold - 15))
+			inv.add_gold(-gold_part)
+			_pay_camp_work(ROLE_CARPENTER, gold_part)
 			paid = true
 		elif inv.gold >= cost_gold:
+			if not _confirm_camp_gold_spend(player, "camp_house_up", "🛖❓ ¿Mejorar por %d Oro? Pulsa E otra vez para confirmar." % cost_gold):
+				return
 			inv.add_gold(-cost_gold)
+			_pay_camp_work(ROLE_CARPENTER, cost_gold)
 			paid = true
 	if not paid:
 		if player and player.has_method("_spawn_floating_text"):
@@ -585,7 +640,10 @@ func _on_build_camp_farm_pressed() -> void:
 		inv.remove_item("wood", 3)
 		paid = true
 	elif inv and inv.gold >= 20:
+		if not _confirm_camp_gold_spend(player, "camp_farm", "🌱❓ ¿Preparar Huerto 3×3 y Compostador por 20 Oro? Pulsa E otra vez para confirmar."):
+			return
 		inv.add_gold(-20)
+		_pay_camp_work(ROLE_CARPENTER, 20)
 		paid = true
 	if not paid:
 		if player and player.has_method("_spawn_floating_text"):
@@ -611,7 +669,10 @@ func _on_build_camp_coop_pressed() -> void:
 		inv.remove_item("wood", 4)
 		paid = true
 	elif inv and inv.gold >= 30:
+		if not _confirm_camp_gold_spend(player, "camp_coop", "🐔❓ ¿Construir Gallinero con 3 Gallinas por 30 Oro? Pulsa E otra vez para confirmar."):
+			return
 		inv.add_gold(-30)
+		_pay_camp_work(ROLE_RANCHER, 30)
 		paid = true
 	if not paid:
 		if player and player.has_method("_spawn_floating_text"):
@@ -636,7 +697,10 @@ func _on_build_generator_pressed() -> void:
 			inv.remove_item("copper_coil", 1)
 			can_power = true
 		elif inv and inv.gold >= 18:
+			if not _confirm_camp_gold_spend(player, "camp_generator", "⚡❓ ¿Instalar Generador Eléctrico por 18 Oro? Pulsa E otra vez para confirmar."):
+				return
 			inv.add_gold(-18)
+			_pay_camp_work(ROLE_TINKER, 18)
 			can_power = true
 		if not can_power:
 			if player and player.has_method("_spawn_floating_text"):
@@ -676,7 +740,10 @@ func _on_build_sprinkler_pressed() -> void:
 		inv.remove_item("copper_coil", 1)
 		paid = true
 	elif inv and inv.gold >= 15:
+		if not _confirm_camp_gold_spend(player, "camp_sprinkler", "💦❓ ¿Instalar Aspersor Automático por 15 Oro? Pulsa E otra vez para confirmar."):
+			return
 		inv.add_gold(-15)
+		_pay_camp_work(ROLE_TINKER, 15)
 		paid = true
 	if not paid:
 		if player and player.has_method("_spawn_floating_text"):

@@ -84,3 +84,20 @@ Aplicados los 3 puntos de «FIS-P1 (interior de tu casa) — CORRECCIÓN NECESAR
    - Corregida la fila 11 para referenciar el archivo y funciones reales: `scripts/systems/VillageFame.gd`: `is_master`, `master_info`, `add_dialogue_choices`, `on_player_action` (`fame_buy_masterwork`, `fame_patronize`).
 4. **Prueba en `tools/tests/verify_all.gd`:**
    - Actualizado `Block FIS-P1` (`FIS-P1.3a`, `FIS-P1.4a`, `FIS-P1.4b`) para verificar que `home_garden` entrega `"herbs"`, que `home_workbench` consume `1 "herbs"` para dar `+1 "herbal_poultice"` y que sin `"herbs"` en el inventario el banco no produce ninguna cataplasma.
+
+---
+
+## Corrección del campamento
+
+Aplicados los 3 puntos de «Campamento inicial (pedido directo del usuario, commits 6bcac38 y cbbc7fc) — CORRECCIÓN DE REGLAS» de `docs/REVISION_SUPERVISOR.md`:
+
+1. **Suma cero en pagos de oro del campamento (`CampSite._pay_camp_work`, `VillageManager.pay_into`, `VillageManager.role_npc`):**
+   - Añadida `CampSite._pay_camp_work(role, gold_amount)` (que obtiene `vm` con `CampSite._get_vm()` y llama a `vm.pay_into(vm.role_npc(role), gold_amount)`):
+     - En `CampSite._on_upgrade_house_pressed()` y `CampSite._on_build_camp_farm_pressed()`, el oro pagado va al carpintero (`VillageNPC.TradeRole.CARPENTER`).
+     - En `CampSite._on_build_camp_coop_pressed()`, los 30 de oro pagados por el gallinero con 3 gallinas van al ganadero (`VillageNPC.TradeRole.RANCHER`).
+     - En `CampSite._on_build_generator_pressed()` y `CampSite._on_build_sprinkler_pressed()`, los 18 y 15 de oro pagados van al arreglador (`VillageNPC.TradeRole.TINKER`).
+     - Si no hay vecino vivo con ese oficio, `VillageManager.pay_into` ingresa automáticamente el importe en `town_state["treasury"]`.
+2. **Confirmación con doble E al gastar oro (`CampSite._confirm_camp_gold_spend`, `VillageHousing.press_twice`):**
+   - Añadida `CampSite._confirm_camp_gold_spend(player, tag, prompt_msg)` que invoca `VillageHousing.press_twice(vm, tag)` antes de cobrar oro en `_on_upgrade_house_pressed` (`"camp_house_up"`), `_on_build_camp_farm_pressed` (`"camp_farm"`), `_on_build_camp_coop_pressed` (`"camp_coop"`), `_on_build_generator_pressed` (`"camp_generator"`) y `_on_build_sprinkler_pressed` (`"camp_sprinkler"`), mostrando el aviso «¿…? Pulsa E otra vez para confirmar.» (`show_hint`, `_spawn_floating_text` y `upgrade_desc_lbl`). Además, `CampSite._unhandled_input(event)` acepta `KEY_E` con el panel abierto para confirmar la acción pendiente. Si la obra se paga únicamente con madera o bobina de cobre, se ejecuta directamente sin pedir segunda pulsación.
+3. **Prueba en `tools/tests/verify_all.gd`:**
+   - Añadido el bloque `CampRule.0–CampRule.2` al final de `tools/tests/verify_all.gd`, comprobando que pagar el gallinero con oro (`_on_build_camp_coop_pressed`) no construye ni cobra en la primera pulsación y, en la segunda pulsación, construye el gallinero (`camp_coop_built == true`), descuenta 30 de oro al jugador y suma 30 de oro a `vm.role_npc(int(VillageNPC.TradeRole.RANCHER)).personal_gold` (o a `vm.town_state["treasury"]`).
