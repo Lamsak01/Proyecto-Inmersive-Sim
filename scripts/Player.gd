@@ -25,6 +25,9 @@ var survival_comp: SurvivalComponent = null
 var avatar_3d: Node2D = null
 ## Montado en su caballo (PlayerHorse): solo así va más rápido y no puede ir en sigilo.
 var is_mounted: bool = false
+## Tirando de su carreta a mano (PlayerCart) o llevándola enganchada al caballo.
+var is_pulling_cart: bool = false
+var is_cart_hitched: bool = false
 var interaction_selector: Node2D = null
 ## El jugador saca el farol de 20:00 a 6:00, igual que los vecinos (lo usan la niebla nocturna y el muñeco 3D).
 var is_carrying_lantern: bool:
@@ -645,6 +648,11 @@ func is_any_ui_modal_open() -> bool:
 	if coop:
 		var coop_p = coop.get("chicken_action_panel")
 		if coop_p is Control and coop_p.visible:
+			return true
+	var cart = get_tree().get_first_node_in_group("player_cart")
+	if cart:
+		var cart_p = cart.get("cargo_panel")
+		if cart_p is Control and cart_p.visible:
 			return true
 	return false
 

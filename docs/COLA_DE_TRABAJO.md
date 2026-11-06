@@ -8,10 +8,10 @@
 | 1 | COMBATE-1: rodar (Espacio) y parar (Q), golpes enemigos con aviso | ✅ hecho (07:54) |
 | 2 | ANIM-1: arreglar animaciones (pasos que patinan al andar; armas sujetas al revés, girar 180°) — aviso del usuario | ✅ hecho (08:10); falta que el usuario lo vea en movimiento |
 | 3 | P1: tu tienda propia y su dependiente | ✅ hecho (11:06) |
-| 4 | P2: la carreta física | siguiente — encargo en `docs/ENCARGO_P2_CARRETA.md` |
-| 5 | P3: caravanas comerciales y de contrabando | pendiente |
-| 6 | P4: cenas, fiestas y banquete de paz | pendiente |
-| 7 | P5: rentas, encargos y desfalcos en su sitio | pendiente |
+| 4 | P2: la carreta física | ✅ hecho (12:30) |
+| 5 | P3: caravanas comerciales y de contrabando | siguiente — `docs/ENCARGO_P3_CARAVANAS.md` |
+| 6 | P4: cenas, fiestas y banquete de paz | encargo listo — `docs/ENCARGO_P4_CENAS.md` |
+| 7 | P5: rentas, encargos y desfalcos en su sitio | encargo listo — `docs/ENCARGO_P5_RENTAS.md` |
 | 8 | P6: peleas clandestinas en un sótano de la taberna, sabotajes nocturnos y expediciones | pendiente |
 | 9 | Inventario de todo lo demás planeado, ordenado de fácil a difícil (`docs/PLAN_ORDENADO.md`) y empezar por lo fácil | pendiente |
 

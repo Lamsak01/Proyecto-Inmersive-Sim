@@ -102,6 +102,8 @@ func refresh() -> void:
 		var t_node: Node = c["target"] as Node
 		if t_node.is_in_group("player_horse") and bool(player.get("is_mounted")):
 			d += 1000000.0
+		elif t_node.is_in_group("player_cart") and (bool(player.get("is_pulling_cart")) or (bool(player.get("is_mounted")) and bool(player.get("is_cart_hitched")))):
+			d += 900000.0
 		elif t_node.is_in_group("player_livestock"):
 			d -= 5000.0
 		elif t_node.is_in_group("heist_target_prop") or t_node.is_in_group("tinker_station") or t_node.is_in_group("sewer_station"):

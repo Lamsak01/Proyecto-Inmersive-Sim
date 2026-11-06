@@ -2,8 +2,10 @@ extends Node
 class_name PlayerMovementController
 
 @export var max_walk_speed: float = 120.0
-## Velocidad extra yendo a caballo.
+## Velocidad extra yendo a caballo y freno al tirar de la carreta (a mano o con caballo).
 const MOUNT_SPEED_MULT: float = 1.45
+const CART_HAND_SPEED_MULT: float = 0.55
+const CART_HORSE_SPEED_MULT: float = 0.80
 @export var sprint_speed: float = 200.0
 @export var stealth_speed: float = 60.0
 @export var acceleration: float = 1400.0
@@ -63,6 +65,10 @@ func start_roll(dir_override: Vector2 = Vector2.ZERO) -> bool:
 	if bool(player.get("is_mounted")):
 		if player.has_method("show_hint"):
 			player.show_hint("🐎 A caballo no puedes rodar: baja con [E]")
+		return false
+	if bool(player.get("is_pulling_cart")):
+		if player.has_method("show_hint"):
+			player.show_hint("🛒 Tirando de la carreta no puedes rodar: suéltala con [E]")
 		return false
 	if roll_timer > 0.0 or roll_cooldown_timer > 0.0:
 		return false
@@ -205,6 +211,10 @@ func _unhandled_input(event: InputEvent) -> void:
 				if player.has_method("show_hint"):
 					player.show_hint("🐎 A caballo no puedes ir en sigilo: baja con [E]")
 				return
+			if bool(player.get("is_pulling_cart")):
+				if player.has_method("show_hint"):
+					player.show_hint("🛒 Tirando de la carreta no puedes ir en sigilo: suéltala con [E]")
+				return
 			is_stealthing = not is_stealthing
 
 func apply_impulse(force: Vector2) -> void:
@@ -214,12 +224,15 @@ func apply_impulse(force: Vector2) -> void:
 func _handle_input(delta: float) -> void:
 	var is_sprint_pressed = Input.is_action_pressed("sprint")
 	var input := Input.get_vector("move_left", "move_right", "move_up", "move_down")
+	var pulling_hand: bool = bool(player.get("is_pulling_cart")) and not bool(player.get("is_mounted"))
+	if pulling_hand or bool(player.get("is_mounted")):
+		is_stealthing = false
 
 	# Pressing sprint while moving breaks stealth automatically for fluid responsiveness
 	if is_stealthing and is_sprint_pressed and input != Vector2.ZERO:
 		is_stealthing = false
 
-	var wants_sprint = is_sprint_pressed and not is_stealthing and input != Vector2.ZERO
+	var wants_sprint = is_sprint_pressed and not is_stealthing and not pulling_hand and input != Vector2.ZERO
 	if is_instance_valid(stamina_comp):
 		stamina_comp.is_input_blocking = wants_sprint
 
@@ -250,9 +263,13 @@ func _handle_input(delta: float) -> void:
 
 	if "armor_speed_multiplier" in player:
 		current_speed *= float(player.get("armor_speed_multiplier"))
-	# Caballo de silla (PlayerHorse): solo montado, +45 % de velocidad
+	# Caballo de silla (PlayerHorse) y carreta de carga (PlayerCart)
 	if bool(player.get("is_mounted")):
 		current_speed *= MOUNT_SPEED_MULT
+		if bool(player.get("is_cart_hitched")):
+			current_speed *= CART_HORSE_SPEED_MULT
+	elif bool(player.get("is_pulling_cart")):
+		current_speed *= CART_HAND_SPEED_MULT
 
 	anim.speed_scale = target_anim_scale
 

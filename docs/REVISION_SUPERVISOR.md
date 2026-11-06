@@ -139,3 +139,10 @@ andando y pagan de su bolsillo a la caja (suma cero). El código usa funciones q
 código): nombra `receive_good` y `finish_errand`, que no existen (el código usa `add_pocket_item` y `end_errand`), y
 dice «hasta 6 objetos» al reponer cuando el código pone 2 por pulsación. Prueba: según Antigravity, `verify_all` pasa;
 el supervisor no la ha repetido (regla nueva: una sola prueba por bloque; se comprobará en la ronda de auditoría).
+
+## P2 — APROBADO (12:30)
+
+Carreta física en 2D (dibujo provisional) y 3D, agarrar a mano (×0,55) o enganchar al caballo (×0,80) siguiendo el
+rastro, caja de carga de 40, robo nocturno al vecino más pobre con testigo, y reponer 6 en el mostrador. Antigravity se
+quedó sin sesión de Google justo al pasar la prueba: el supervisor pasó `verify_all` (pasa, «Block P2 … OK») e hizo el
+commit. Lo robado va al bolsillo del ladrón (`add_pocket_item`), no a un cofre familiar.

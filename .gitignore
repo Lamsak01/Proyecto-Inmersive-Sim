@@ -42,3 +42,4 @@ assests/curated_3d/**/*.import
 
 # Capturas de la documentación: Godot genera estos .import al abrir el editor
 docs/capturas/*.import
+.claude/

@@ -33,6 +33,7 @@ const FOUND_SHOP_COST: int = 65
 const ADVERTISE_COST: int = 12
 const ADVERTISE_COOLDOWN_DAYS: int = 3
 const SHOP_SALE_PRICE: int = 10
+const SHOP_STOCK_PER_PRESS: int = 6
 ## Precio de venta en tu bazar según lo que pongas en el mostrador (una madera no vale lo mismo que una prenda)
 const SHOP_ITEM_PRICES: Dictionary = {"bread": 6, "cooked_meat": 7, "herbal_poultice": 9, "repair_kit": 12, "clothes": 14, "wood": 3, "iron_ore": 6, "fish": 5, "masterwork_piece": 40}
 const SHOP_THEFT_CHANCE: float = 0.18 # Sin dependiente, de noche pueden vaciarte parte de la caja
@@ -219,11 +220,11 @@ static func stock_player_shop(vm, inv) -> int:
 	if not (ps.get("goods", null) is Dictionary):
 		ps["goods"] = {}
 	for item_id in STOCKABLE_ITEMS:
-		while added < 2 and inv.has_item(item_id, 1):
+		while added < SHOP_STOCK_PER_PRESS and inv.has_item(item_id, 1):
 			inv.remove_item(item_id, 1)
 			ps["goods"][item_id] = int((ps["goods"] as Dictionary).get(item_id, 0)) + 1
 			added += 1
-		if added >= 2:
+		if added >= SHOP_STOCK_PER_PRESS:
 			break
 	if added > 0:
 		ps["stock"] = int(ps.get("stock", 0)) + added
@@ -893,6 +894,8 @@ static func daily(vm) -> void:
 		if int(ps.get("ad_days", 0)) > 0:
 			ps["ad_days"] = maxi(0, int(ps["ad_days"]) - 1)
 		ps["buyers_today"] = 0
+	if "VillageCulture" in vm and vm.VillageCulture != null:
+		vm.VillageCulture.cart_night_theft(vm, vm.VillageCulture.CART_THEFT_CHANCE)
 	# Bloque PI.1: Crecimiento diario del ganado del Rancho (con renovación cuando madura) y de tus propios animales de corral
 	var r_herd: Array = hs["ranch_herd"]
 	var new_r_chicks: Array = []

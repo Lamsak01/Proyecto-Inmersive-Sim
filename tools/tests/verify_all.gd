@@ -4179,15 +4179,21 @@ func _initialize() -> void:
 	vcu_pj.exploration_state(vm)["last_exp_day"] = -99
 	var pm_exp_loss: Dictionary = vcu_pj.run_expedition(vm, "north_caves", p70_a, p70_inv, -1)
 	assert(bool(pm_exp_loss["ok"]) and not bool(pm_exp_loss["won"]) and p70_inv.gold == 26, "PM.2c: Failed expedition still consumes supplies and can be lost")
-	# PM.1c: La carreta de carga añade +4 de oro de bonificación por remesa comercial
+	# PM.1c: La carreta de carga añade +4 de oro de bonificación por remesa comercial si está a menos de 60 px
 	vcu_pj.state(vm)["trade_routes"] = {}
 	vcu_pj.trade_routes_of(vm)["river_port"]["active"] = true
 	p70_inv.remove_item("wood", p70_inv.get_count("wood"))
 	p70_inv.add_item("wood", 2)
 	p70_inv.gold = 50
-	assert(vcu_pj.send_player_shipment(vm, "river_port", p70_inv) and p70_inv.gold == 62, "PM.1c: Cargo cart increases player shipment payout from 8 to 12 gold from route balance")
+	var pm_pl_pos_ship: Vector2 = pm_pl.global_position if pm_pl != null else Vector2.ZERO
+	if pm_pl != null:
+		pm_pl.global_position = vcu_pj.CART_DEFAULT_POS + Vector2(12, 0)
+	assert(vcu_pj.send_player_shipment(vm, "river_port", p70_inv) and p70_inv.gold == 62, "PM.1c: Cargo cart within 60 px increases player shipment payout from 8 to 12 gold from route balance")
+	if pm_pl != null:
+		pm_pl.global_position = pm_pl_pos_ship
 	vcu_pj.state(vm)["mounts"] = {}
 	vcu_pj.sync_player_horse(vm) # sin caballo: lo quita del mapa y baja al jugador
+	vcu_pj.sync_player_cart(vm) # sin carreta: la quita del mapa
 	vcu_pj.state(vm)["exploration"] = {}
 	vcu_pj.state(vm)["trade_routes"] = {}
 	vcu_pj.state(vm)["readings"] = pm_read0
@@ -4984,6 +4990,9 @@ func _initialize() -> void:
 	var c1_hc = p70_pl.get_node("HealthComponent")
 	var c1_stam_bak: float = c1_stam.current_stamina
 	var c1_hp_bak: float = c1_hc.current_health
+	var c1_reg_bak: Dictionary = c1_hc.region_hp.duplicate()
+	var c1_wounds_bak: Array = c1_hc.wounds.duplicate(true)
+	var c1_weak_bak: bool = p70_pl.is_weak
 	var c1_pos_bak: Vector2 = p70_pl.global_position
 	var c1_mounted_bak: bool = bool(p70_pl.get("is_mounted"))
 	p70_pl.set("is_mounted", false)
@@ -5097,6 +5106,9 @@ func _initialize() -> void:
 	p70_pl.set("is_mounted", c1_mounted_bak)
 	c1_stam.current_stamina = c1_stam_bak
 	c1_hc.current_health = c1_hp_bak
+	c1_hc.region_hp = c1_reg_bak.duplicate()
+	c1_hc.wounds = c1_wounds_bak.duplicate(true)
+	p70_pl.is_weak = c1_weak_bak
 	c1_cctrl.current_prompt_target = null
 	print("Block COMBATE-1 (Roll, Parry & Telegraphed Enemy Attacks) OK")
 
@@ -5127,12 +5139,13 @@ func _initialize() -> void:
 	p70_a.personal_gold = 20
 	assert(vho.found_player_shop(vm, bp1_lot, p70_inv, p70_a), "P1.0: Player shop founded on built lot n0")
 
-	# 1. Mostrador físico en el solar de tu tienda repone desde tu mochila y quita opciones de la charla con vecinos
+	# 1. Mostrador físico en el solar de tu tienda repone desde tu mochila (6 por pulsación) y quita opciones de la charla con vecinos
 	var bp1_counter: Node2D = root.get_tree().get_first_node_in_group("player_shop_counter") as Node2D
 	assert(bp1_counter != null, "P1.1a: Physical player_shop_counter prop spawned in player_shop lot")
-	p70_inv.add_item("bread", 2)
+	p70_inv.add_item("bread", 7)
 	bp1_counter.call("on_dialogue_action", "housing_stock_shop")
-	assert(p70_inv.get_count("bread") == 0 and int(vho.state(vm)["player_shop"]["stock"]) == 2 and int(vho.state(vm)["player_shop"]["goods"].get("bread", 0)) == 2, "P1.1b: Physical counter replenishes up to 2 items from player backpack")
+	assert(p70_inv.get_count("bread") == 1 and int(vho.state(vm)["player_shop"]["stock"]) == 6 and int(vho.state(vm)["player_shop"]["goods"].get("bread", 0)) == 6, "P1.1b: Physical counter replenishes up to 6 items (SHOP_STOCK_PER_PRESS) from player backpack")
+	p70_inv.remove_item("bread", 1)
 	var bp1_dlg: Dictionary = {}
 	vho.add_dialogue_choices(vm, p70_a, bp1_dlg, [{"label": "[Salir]", "next": "END"}])
 	for ch_bp1 in (bp1_dlg.get("housing_menu", {}) as Dictionary).get("choices", []):
@@ -5143,7 +5156,7 @@ func _initialize() -> void:
 	p70_b.personal_gold = 50
 	p70_b.global_position = vho.player_shop_customer_pos(vm)
 	vho.daily(vm)
-	assert(not vho.on_customer_arrived(vm, p70_b) and int(vho.state(vm)["player_shop"]["stock"]) == 2 and int(vho.state(vm)["player_shop"]["till_gold"]) == 0 and p70_b.personal_gold == 50, "P1.2a: Without a clerk present behind the counter, the shop makes no sales")
+	assert(not vho.on_customer_arrived(vm, p70_b) and int(vho.state(vm)["player_shop"]["stock"]) == 6 and int(vho.state(vm)["player_shop"]["till_gold"]) == 0 and p70_b.personal_gold == 50, "P1.2a: Without a clerk present behind the counter, the shop makes no sales")
 	p70_c.trade_role = 0 # UNEMPLOYED
 	p70_c.personal_gold = 10
 	p70_c.global_position = Vector2(500, 100) # Lejos del mostrador
@@ -5151,7 +5164,7 @@ func _initialize() -> void:
 	vho.on_player_action(vm, p70_c, "housing_hire_clerk", p70_inv)
 	vho.on_hour(vm, 10)
 	assert(p70_c.errand_kind == "player_shop_clerk" and p70_c.errand_pos.distance_to(vho.player_shop_clerk_pos(vm)) <= 1.0, "P1.2b: During business hours, hired clerk walks to behind the player shop counter")
-	assert(not vho.on_customer_arrived(vm, p70_b) and int(vho.state(vm)["player_shop"]["stock"]) == 2, "P1.2c: While clerk is still far from the counter, no sales occur")
+	assert(not vho.on_customer_arrived(vm, p70_b) and int(vho.state(vm)["player_shop"]["stock"]) == 6, "P1.2c: While clerk is still far from the counter, no sales occur")
 
 	# 3. Clientes de verdad: con el dependiente detrás del mostrador, un vecino con oro se acerca y paga de su bolsillo a la caja
 	p70_c.global_position = vho.player_shop_clerk_pos(vm)
@@ -5160,7 +5173,7 @@ func _initialize() -> void:
 	p70_b.start_errand("player_shop_buy", vho.player_shop_customer_pos(vm))
 	p70_b.global_position = vho.player_shop_customer_pos(vm)
 	vm.VillageNeeds.tick(vm)
-	assert(p70_b.personal_gold == 50 - bp1_price and int(vho.state(vm)["player_shop"]["till_gold"]) == bp1_price and int(vho.state(vm)["player_shop"]["stock"]) == 1, "P1.3b: Customer arriving at counter buys 1 unit and pays from their own pocket into the till (zero-sum)")
+	assert(p70_b.personal_gold == 50 - bp1_price and int(vho.state(vm)["player_shop"]["till_gold"]) == bp1_price and int(vho.state(vm)["player_shop"]["stock"]) == 5, "P1.3b: Customer arriving at counter buys 1 unit and pays from their own pocket into the till (zero-sum)")
 
 	# 4. La caja se recoge físicamente en el mostrador
 	var bp1_gold_before_collect: int = p70_inv.gold
@@ -5192,6 +5205,78 @@ func _initialize() -> void:
 		p70_inv.add_item("bread", bp1_bread_bak)
 	p70_inv.gold = bp1_gold_bak
 	print("Block P1 (Physical Player Shop Counter, Clerk & Customers) OK")
+
+	# ==========================================================================
+	# Bloque P2: Carreta de carga física («P2 carreta»)
+	# ==========================================================================
+	var bp2_gold_bak: int = p70_inv.gold
+	var bp2_wood_bak: int = p70_inv.get_count("wood")
+	var bp2_a_gold_bak: int = p70_a.personal_gold
+	var bp2_pl_pos_bak: Vector2 = p70_pl.global_position
+	var bp2_mounted_bak: bool = bool(p70_pl.get("is_mounted"))
+	vcu_pj.state(vm)["mounts"] = {}
+	vcu_pj.sync_player_cart(vm)
+	if bp2_wood_bak > 0:
+		p70_inv.remove_item("wood", bp2_wood_bak)
+	p70_inv.gold = 100
+	p70_a.personal_gold = 10
+
+	# 1. Comprar la carreta crea un nodo del grupo player_cart en CART_DEFAULT_POS
+	vcu_pj.on_player_action(vm, p70_a, "culture_buy_cart", p70_inv)
+	var bp2_cart = get_first_node_in_group("player_cart")
+	assert(bp2_cart != null and bp2_cart.global_position.distance_to(vcu_pj.CART_DEFAULT_POS) < 0.5, "P2.1: Buying the cart creates a node in group player_cart at CART_DEFAULT_POS")
+
+	# 2. Meter 41 troncos en la caja: entran 40, queda 1 en la mochila
+	p70_inv.add_item("wood", 41)
+	var bp2_added: int = int(bp2_cart.call("put_item", p70_inv, "wood", 41))
+	assert(bp2_added == 40 and int(bp2_cart.call("get_cargo_total")) == 40 and p70_inv.get_count("wood") == 1, "P2.2: Putting 41 logs into the cart cargo box stores 40 and leaves 1 in the backpack")
+
+	# 3. Aparcada lejos de casa con carga y forzando el robo (probabilidad 1): el ladrón es el vecino más pobre y el total de objetos (carreta + ladrón) no cambia
+	bp2_cart.global_position = Vector2(520, -120) # En la calle, lejos del rancho y de solares del jugador
+	var bp2_poorest = null
+	for n_bp2 in vm.VillageNeeds.living(vm):
+		if int(n_bp2.trade_role) != int(load("res://scripts/enemies/VillageNPC.gd").TradeRole.CHILD) and not vm.VillageNeeds.is_outsider(n_bp2):
+			if bp2_poorest == null or int(n_bp2.personal_gold) < int(bp2_poorest.personal_gold):
+				bp2_poorest = n_bp2
+	assert(bp2_poorest != null, "P2.3a: Found poorest adult non-outsider villager")
+	var bp2_thief_wood0: int = int(bp2_poorest.pocket_items.get("wood", 0))
+	var bp2_total0: int = int(bp2_cart.call("get_cargo_total")) + bp2_thief_wood0
+	var bp2_stolen: int = vcu_pj.cart_night_theft(vm, 1.0)
+	var bp2_thief_wood1: int = int(bp2_poorest.pocket_items.get("wood", 0))
+	var bp2_total1: int = int(bp2_cart.call("get_cargo_total")) + bp2_thief_wood1
+	assert(bp2_stolen == 10 and int(bp2_cart.call("get_cargo_total")) == 30 and bp2_thief_wood1 == bp2_thief_wood0 + 10 and bp2_total1 == bp2_total0, "P2.3b: Night theft from unsafe parked cart goes to the poorest villager and total items (cart + thief) do not change")
+	bp2_poorest.remove_pocket_item("wood", 10)
+
+	# 4. Tirando de ella a pie, la velocidad es ×0,55
+	bp2_cart.global_position = vcu_pj.CART_DEFAULT_POS
+	p70_pl.set("is_mounted", false)
+	p70_pl.set("is_pulling_cart", false)
+	p70_pl.set("is_cart_hitched", false)
+	p70_pl.is_weak = false
+	c1_mctrl.is_stealthing = false
+	c1_mctrl.is_sprinting = false
+	p70_pl.global_position = vcu_pj.CART_DEFAULT_POS + Vector2(0, -12)
+	c1_mctrl._handle_input(0.016)
+	var bp2_spd0: float = float(c1_mctrl.current_speed)
+	bp2_cart.call("interact", p70_pl)
+	c1_mctrl._handle_input(0.016)
+	assert(bool(p70_pl.get("is_pulling_cart")) and is_equal_approx(c1_mctrl.current_speed, bp2_spd0 * 0.55), "P2.4: Pulling the cart on foot sets player movement speed to x0.55")
+	bp2_cart.call("interact", p70_pl)
+	assert(not bool(p70_pl.get("is_pulling_cart")), "P2.4b: Interacting again releases the cart")
+
+	# Restaurar estado tras prueba P2
+	vcu_pj.state(vm)["mounts"] = {}
+	vcu_pj.sync_player_cart(vm)
+	p70_pl.global_position = bp2_pl_pos_bak
+	p70_pl.set("is_mounted", bp2_mounted_bak)
+	c1_mctrl._handle_input(0.016)
+	if p70_inv.get_count("wood") > 0:
+		p70_inv.remove_item("wood", p70_inv.get_count("wood"))
+	if bp2_wood_bak > 0:
+		p70_inv.add_item("wood", bp2_wood_bak)
+	p70_inv.gold = bp2_gold_bak
+	p70_a.personal_gold = bp2_a_gold_bak
+	print("Block P2 (Physical Cargo Cart, Cargo Box, Night Theft & Hand-Pull Speed) OK")
 
 	print("ALL RIMWORLD MEDICAL, FOOTPRINTS, 3-PHASE CORPSE REPORT, MULTI-CORPSE FIX, RPG INTERROGATION, PUBLIC TRIAL, DYNAMIC RELATIONSHIPS, MISSING FAMILY SEARCH, SOCIAL GLOSSARY & UNCONSCIOUS REACTION TESTS PASSED!")
 	quit(0)

@@ -510,7 +510,11 @@ static func hack_terminal(vm, subsystem: String, inv, force_outcome: int = 0) ->
 	return {"ok": true, "won": false, "subsystem": subsystem, "gold": 0}
 
 const HORSE_DEFAULT_POS: Vector2 = Vector2(360, 470) # junto al Rancho del Sur
+const CART_DEFAULT_POS: Vector2 = Vector2(385, 470) # junto al Rancho del Sur, al lado del caballo
+const CART_THEFT_CHANCE: float = 0.12
+const RANCH_CORRAL_RECT: Rect2 = Rect2(310, 400, 87, 140)
 const PlayerHorseScript = preload("res://scripts/obstacles/PlayerHorse.gd")
+const PlayerCartScript = preload("res://scripts/obstacles/PlayerCart.gd")
 
 ## Si un punto cae dentro de un edificio, lo saca a la calle por delante de su puerta (el caballo no cabe en una tienda).
 static func outside_of_buildings(vm, p: Vector2) -> Vector2:
@@ -560,6 +564,45 @@ static func sync_player_horse(vm) -> Node:
 			pl.set("is_mounted", false)
 	return horse
 
+## Crea (o recoloca) la carreta física del jugador según mounts_state.
+static func sync_player_cart(vm) -> Node:
+	if vm == null:
+		return null
+	if not has_cart(vm):
+		if vm.is_inside_tree():
+			for c_old in vm.get_tree().get_nodes_in_group("player_cart"):
+				c_old.queue_free()
+		var pl_n = VillageNeeds.player_of(vm)
+		if pl_n != null:
+			pl_n.set("is_pulling_cart", false)
+			pl_n.set("is_cart_hitched", false)
+		return null
+	var m: Dictionary = mounts_state(vm)
+	var mode: String = str(m.get("cart_mode", "parked"))
+	var pos := Vector2(float(m.get("cart_x", CART_DEFAULT_POS.x)), float(m.get("cart_y", CART_DEFAULT_POS.y)))
+	if mode == "parked":
+		pos = outside_of_buildings(vm, pos)
+		m["cart_x"] = pos.x
+		m["cart_y"] = pos.y
+	var cart = vm.get_tree().get_first_node_in_group("player_cart") if vm.is_inside_tree() else null
+	if cart == null or not is_instance_valid(cart) or cart.is_queued_for_deletion():
+		cart = PlayerCartScript.new()
+		var parent: Node = vm.entities_root if ("entities_root" in vm and is_instance_valid(vm.entities_root)) else vm
+		parent.add_child(cart)
+		cart.setup(vm, pos)
+	else:
+		cart.global_position = pos
+	var pl = VillageNeeds.player_of(vm)
+	if pl != null:
+		if mode == "hand":
+			cart.grab_by_hand(pl, true)
+		elif mode == "horse":
+			cart.hitch_to_horse(pl, true)
+		else:
+			pl.set("is_pulling_cart", false)
+			pl.set("is_cart_hitched", false)
+	return cart
+
 static func mounts_state(vm) -> Dictionary:
 	var st: Dictionary = state(vm)
 	if not (st.get("mounts", null) is Dictionary):
@@ -568,6 +611,14 @@ static func mounts_state(vm) -> Dictionary:
 	for k in ["has_horse", "has_cart"]:
 		if not m.has(k):
 			m[k] = false
+	if not m.has("cart_x"):
+		m["cart_x"] = CART_DEFAULT_POS.x
+	if not m.has("cart_y"):
+		m["cart_y"] = CART_DEFAULT_POS.y
+	if not m.has("cart_mode"):
+		m["cart_mode"] = "parked"
+	if not (m.get("cart_cargo", null) is Dictionary):
+		m["cart_cargo"] = {}
 	return m
 
 static func has_horse(vm) -> bool:
@@ -575,6 +626,88 @@ static func has_horse(vm) -> bool:
 
 static func has_cart(vm) -> bool:
 	return vm != null and bool(mounts_state(vm).get("has_cart", false))
+
+static func is_cart_near_player(vm, max_dist: float = 60.0) -> bool:
+	if not has_cart(vm):
+		return false
+	var pl = VillageNeeds.player_of(vm)
+	if pl == null:
+		return false
+	var cart = vm.get_tree().get_first_node_in_group("player_cart") if vm.is_inside_tree() else null
+	var m: Dictionary = mounts_state(vm)
+	var c_pos: Vector2 = cart.global_position if (cart != null and is_instance_valid(cart)) else Vector2(float(m.get("cart_x", CART_DEFAULT_POS.x)), float(m.get("cart_y", CART_DEFAULT_POS.y)))
+	return (pl.global_position as Vector2).distance_to(c_pos) < max_dist
+
+static func is_cart_in_safe_place(vm, pos: Vector2) -> bool:
+	if RANCH_CORRAL_RECT.has_point(pos):
+		return true
+	if vm != null and "VillageHousing" in vm and vm.VillageHousing != null:
+		for lid in vm.VillageHousing.player_lots(vm, true):
+			var ldef: Dictionary = VillageLots.lot_def(str(lid))
+			if not ldef.is_empty() and pos.distance_to(ldef["center"] as Vector2) < 90.0:
+				return true
+	return false
+
+## Bloque P2: si la carreta duerme aparcada lejos de un lugar seguro con carga dentro, hay un 12 % de robo nocturno.
+## Roba el vecino adulto (no forastero) con menos oro: se lleva la mitad hacia abajo (máx. 10) al azar a su bolsillo (suma cero).
+static func cart_night_theft(vm, chance: float = CART_THEFT_CHANCE) -> int:
+	if vm == null or not has_cart(vm):
+		return 0
+	var m: Dictionary = mounts_state(vm)
+	var cart = vm.get_tree().get_first_node_in_group("player_cart") if vm.is_inside_tree() else null
+	if cart != null and is_instance_valid(cart):
+		m["cart_x"] = cart.global_position.x
+		m["cart_y"] = cart.global_position.y
+	if str(m.get("cart_mode", "parked")) != "parked":
+		return 0
+	var cart_pos := Vector2(float(m.get("cart_x", CART_DEFAULT_POS.x)), float(m.get("cart_y", CART_DEFAULT_POS.y)))
+	if is_cart_in_safe_place(vm, cart_pos):
+		return 0
+	var cargo: Dictionary = m.get("cart_cargo", {})
+	var units: Array[String] = []
+	for k in cargo.keys():
+		var cnt: int = int(cargo[k])
+		for _i in range(cnt):
+			units.append(str(k))
+	var steal_count: int = mini(10, int(floor(float(units.size()) / 2.0)))
+	if steal_count <= 0 or randf() >= chance:
+		return 0
+	var thief = null
+	for n in VillageNeeds.living(vm):
+		if int(n.trade_role) != int(VillageNPC.TradeRole.CHILD) and not VillageNeeds.is_outsider(n):
+			if thief == null or int(n.personal_gold) < int(thief.personal_gold):
+				thief = n
+	if thief == null:
+		return 0
+	units.shuffle()
+	var stolen_by_item: Dictionary = {}
+	for i in range(steal_count):
+		var it_id: String = units[i]
+		var left: int = int(cargo.get(it_id, 0)) - 1
+		if left <= 0:
+			cargo.erase(it_id)
+		else:
+			cargo[it_id] = left
+		if thief.has_method("add_pocket_item"):
+			thief.add_pocket_item(it_id, 1)
+		else:
+			thief.pocket_items[it_id] = int(thief.pocket_items.get(it_id, 0)) + 1
+		stolen_by_item[it_id] = int(stolen_by_item.get(it_id, 0)) + 1
+	if cart != null and is_instance_valid(cart) and cart.has_method("_refresh_cargo_ui"):
+		cart._refresh_cargo_ui()
+	var witness = vm._find_conscious_witness_near(cart_pos, 160.0, thief) if vm.has_method("_find_conscious_witness_near") else null
+	if witness != null:
+		VillageChronicle.add(vm, "cart_cargo_robbed", "%s vio a %s llevarse carga de tu carreta" % [str(witness.npc_name), str(thief.npc_name)], true)
+	else:
+		VillageChronicle.add(vm, "cart_cargo_robbed", "Alguien se llevó carga de tu carreta por la noche", true)
+	var pl = VillageNeeds.player_of(vm)
+	if pl != null and pl.has_method("show_hint"):
+		var parts: Array[String] = []
+		for it_id2 in stolen_by_item.keys():
+			var it_name: String = str(SimpleInventory.CATALOG.get(it_id2, {}).get("name", it_id2))
+			parts.append("%d %s" % [int(stolen_by_item[it_id2]), it_name])
+		pl.show_hint("🛒⚠️ Anoche robaron de tu carreta: %s." % ", ".join(parts))
+	return steal_count
 
 static func buy_mount(vm, kind: String, seller, inv) -> bool:
 	if vm == null or seller == null or inv == null:
@@ -600,7 +733,13 @@ static func buy_mount(vm, kind: String, seller, inv) -> bool:
 		inv.add_gold(-CART_COST)
 		seller.personal_gold += CART_COST
 		m["has_cart"] = true
-		VillageChronicle.add(vm, "mount", "Compraste una carreta de carga para tus rutas comerciales", true)
+		m["cart_x"] = CART_DEFAULT_POS.x
+		m["cart_y"] = CART_DEFAULT_POS.y
+		m["cart_mode"] = "parked"
+		if not (m.get("cart_cargo", null) is Dictionary):
+			m["cart_cargo"] = {}
+		sync_player_cart(vm)
+		VillageChronicle.add(vm, "mount", "Compraste una carreta de carga en el Rancho del Sur", true)
 		return true
 	return false
 
@@ -1031,7 +1170,7 @@ static func send_player_shipment(vm, route_id: String, inv) -> bool:
 	var exp_qty: int = int(r.get("export_qty", 2))
 	var imp_item: String = str(r.get("imports", "fish"))
 	var imp_qty: int = int(r.get("import_qty", 2))
-	var pay: int = int(r.get("tariff_gold", 8)) + (4 if has_cart(vm) else 0)
+	var pay: int = int(r.get("tariff_gold", 8)) + (4 if is_cart_near_player(vm, 60.0) else 0)
 	if int(inv.items.get(exp_item, 0)) < exp_qty or int(r.get("balance", 0)) < pay:
 		return false
 	inv.remove_item(exp_item, exp_qty)
@@ -1526,8 +1665,9 @@ static func after_load(vm) -> void:
 		close_market(vm)
 	restore_planted_trees(vm)
 	sync_outpost_visuals(vm)
-	# El caballo vuelve a su sitio (o bajo el jugador si ibas montado al guardar)
+	# El caballo y la carreta vuelven a su sitio (o bajo/detrás del jugador si los llevabas al guardar)
 	sync_player_horse(vm)
+	sync_player_cart(vm)
 	if "VillageUnderworld" in vm and vm.VillageUnderworld != null:
 		vm.VillageUnderworld.sync_heist_visuals(vm)
 
@@ -1709,7 +1849,7 @@ static func add_dialogue_choices(vm, npc, diag: Dictionary, ch_arr: Array) -> vo
 		if not has_horse(vm):
 			ch_arr.append({"label": "🐎🪙 Comprar Caballo de Silla (-%d Oro al ganadero, velocidad y +15%% en expediciones)" % HORSE_COST, "next": "END", "action": "culture_buy_horse"})
 		if not has_cart(vm):
-			ch_arr.append({"label": "🛒🐴 Comprar Carreta de Carga (-%d Oro al ganadero, +4 Oro por remesa comercial)" % CART_COST, "next": "END", "action": "culture_buy_cart"})
+			ch_arr.append({"label": "🛒 Comprar Carreta de Carga (-%d Oro al ganadero): la recoges en el rancho; caben 40 cosas" % CART_COST, "next": "END", "action": "culture_buy_cart"})
 	if role_i in [int(VillageNPC.TradeRole.RANCHER), int(VillageNPC.TradeRole.TINKER), int(VillageNPC.TradeRole.TRAVELING_MERCHANT)]:
 		var ex: Dictionary = exploration_state(vm)
 		if int(ex.get("last_exp_day", -99)) != today:
@@ -1899,7 +2039,7 @@ static func on_player_action(vm, npc, action_id: String, inv) -> void:
 	elif action_id == "culture_buy_cart":
 		if buy_mount(vm, "cart", npc, inv):
 			npc.affinity = clampi(npc.affinity + 8, -100, 100)
-			npc._spawn_floating_text("🛒🐴 «¡Carreta enganchada! Tus remesas comerciales rendirán más oro.»", Color.GOLD, -46.0)
+			npc._spawn_floating_text("🛒✨ «¡Trato hecho! Tu carreta de carga te espera junto al corral del rancho.»", Color.GOLD, -46.0)
 		else:
 			npc._spawn_floating_text("«Necesitas %d de oro para llevarte la carreta de carga.»" % CART_COST, Color.ORANGE_RED, -46.0)
 	elif action_id.begins_with("culture_expedition:"):

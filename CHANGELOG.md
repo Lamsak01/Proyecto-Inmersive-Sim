@@ -3,6 +3,20 @@
 Cambios del juego, del más nuevo al más antiguo. Añade una entrada al cerrar cada bloque, en lenguaje sencillo.
 El detalle técnico está en `docs/HANDOFF.md` (sección 7) y el historial completo en `git log`. Lo anterior a B0.1 está en `AUDIT_LOG.md` y `SESSION_CONTEXT_LOG.md`.
 
+## 2026-11-06 — Carreta de carga física en el rancho: tirar a mano o engancharla al caballo, caja de 40 objetos y riesgo nocturno
+- **La carreta existe en el mapa:** al comprar la carreta de carga al ganadero, aparece aparcada junto al corral del Rancho
+  del Sur (con su modelo 3D y dibujo 2D en vista plana). Ya no es un bono invisible: para cobrar los 4 de oro extra al
+  enviar una remesa comercial tienes que llevar la carreta contigo (a menos de unos pasos).
+- **Llevarla a mano o enganchada a tu caballo:** junto a la carreta puedes pulsar **E** para agarrarla y tirar de ella a pie
+  (caminas más despacio y no puedes correr, ir en sigilo ni rodar) o, si vas subido en tu caballo, engancharla detrás (frena
+  un poco el trote). Te sigue por el camino por donde pasas sin atravesar esquinas y se queda esperando fuera si entras en un
+  edificio, te acuestas o te lleva la guardia; si bajas del caballo, se queda enganchada a él donde esté.
+- **Caja de carga de 40 cosas y riesgo de noche:** con la carreta parada puedes abrir su caja de carga para pasar hasta 40
+  objetos entre tu mochila y la carreta (el oro no cabe). Si dejas la carreta con carga aparcada de noche lejos de tu casa o
+  del corral del rancho, algún vecino necesitado puede llevarse parte de la mercancía (y si alguien lo ve, sale en la crónica).
+- **Mostrador de tu tienda:** reponer mercancía en el mostrador de tu negocio ahora pasa hasta 6 artículos de golpe por cada
+  pulsación.
+
 ## 2026-11-06 — Tu tienda («Bazar del Forastero») funciona de verdad en tu solar con mostrador, dependiente y clientes a pie
 - **Mostrador y caja en tu solar:** cuando abres tu propio negocio, aparece un mostrador con caja de caudales en 2D y 3D
   dentro de tu solar. Te acercas y pulsas **E** allí mismo para **reponer mercancía** desde tu mochila y **recoger el oro
