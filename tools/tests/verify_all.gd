@@ -4742,6 +4742,23 @@ func _initialize() -> void:
 	vho.daily(vm)
 	assert((vho.state(vm)["player_animals"] as Array).size() == 1 and root.get_tree().get_nodes_in_group("player_livestock").size() == 1, "FIS4.5c: Starved player animal is removed from player_animals and its physical node disappears from the map")
 
+	# FIS4.6: Corrección FIS4 — el gallinero conserva sus 3 gallinas iniciales, su status_label sigue saliendo aunque haya player_livestock, y conviven sin pisarse
+	var fis4_coop := root.get_tree().get_first_node_in_group("chicken_coop") as Node2D
+	assert(fis4_coop != null and (fis4_coop.get("chickens") as Array).size() >= 3, "FIS4.6a: ChickenCoop retains its 3 initial chickens alongside player_livestock")
+	fis4_coop.set("_player_near", true)
+	fis4_coop.call("_process", 0.1)
+	var fis4_coop_lbl: Label = fis4_coop.get("status_label") as Label
+	assert(fis4_coop_lbl != null and fis4_coop_lbl.visible, "FIS4.6b: ChickenCoop status_label remains visible when player is near even with player_livestock present")
+	fis4_coop.set("_player_near", false)
+	var fis4_rem_pa: Node2D = root.get_tree().get_nodes_in_group("player_livestock")[0] as Node2D
+	for _sep_i in range(8):
+		fis4_rem_pa.call("_process", 0.1)
+		fis4_coop.call("_process", 0.1)
+	for chk_f4 in (fis4_coop.get("chickens") as Array):
+		var cspr_f4: Sprite2D = (chk_f4 as Dictionary).get("sprite")
+		if cspr_f4 != null and is_instance_valid(cspr_f4):
+			assert(fis4_rem_pa.global_position.distance_to(cspr_f4.global_position) >= 4.0, "FIS4.6c: player_livestock and ChickenCoop chickens do not stack on top of each other")
+
 	t5_wc.current_day = fis4_day_bak
 	vho.state(vm)["ranch_herd"] = fis4_ranch_bak
 	vho.state(vm)["player_animals"] = fis4_panim_bak

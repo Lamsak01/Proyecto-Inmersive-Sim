@@ -133,17 +133,45 @@ func _process(delta: float) -> void:
 
 	var diff: Vector2 = _target_pos - global_position
 	var spd: float = 11.0 if species == "sheep" else 14.0
-	if diff.length() > 1.8:
-		var step: Vector2 = diff.normalized() * spd * delta
-		global_position.x = clampf(global_position.x + step.x, pen_rect.position.x, pen_rect.end.x)
-		global_position.y = clampf(global_position.y + step.y, pen_rect.position.y, pen_rect.end.y)
+	var sep_step: Vector2 = _compute_separation_step(delta)
+	if diff.length() > 1.8 or sep_step.length_squared() > 0.001:
+		var move_v: Vector2 = (diff.normalized() * spd * delta if diff.length() > 1.8 else Vector2.ZERO) + sep_step
+		global_position.x = clampf(global_position.x + move_v.x, pen_rect.position.x, pen_rect.end.x)
+		global_position.y = clampf(global_position.y + move_v.y, pen_rect.position.y, pen_rect.end.y)
 		if sprite != null:
-			sprite.flip_h = step.x > 0.0
+			if absf(move_v.x) > 0.02:
+				sprite.flip_h = move_v.x > 0.0
 			_hop_phase += delta * 12.0
 			sprite.offset.y = -absf(sin(_hop_phase)) * 1.6
 	else:
 		if sprite != null:
 			sprite.offset.y = 0.0
+
+
+func _compute_separation_step(delta: float) -> Vector2:
+	if not is_inside_tree() or get_tree() == null:
+		return Vector2.ZERO
+	var push := Vector2.ZERO
+	for other in get_tree().get_nodes_in_group("livestock_animal"):
+		if other == self or not (other is Node2D) or not is_instance_valid(other):
+			continue
+		var opos: Vector2 = (other as Node2D).global_position
+		var d: float = global_position.distance_to(opos)
+		if d < 14.0:
+			var dir: Vector2 = (global_position - opos).normalized() if d > 0.01 else Vector2(cos(float(animal_index)), sin(float(animal_index)))
+			push += dir * ((14.0 - d) / 14.0) * 26.0 * delta
+	if is_player_animal:
+		var coop := get_tree().get_first_node_in_group("chicken_coop") as Node2D
+		if coop != null and is_instance_valid(coop) and "chickens" in coop:
+			for chk in (coop.get("chickens") as Array):
+				if chk is Dictionary:
+					var cspr: Sprite2D = (chk as Dictionary).get("sprite")
+					if cspr != null and is_instance_valid(cspr):
+						var d_c: float = global_position.distance_to(cspr.global_position)
+						if d_c < 12.0:
+							var dir_c: Vector2 = (global_position - cspr.global_position).normalized() if d_c > 0.01 else Vector2.DOWN
+							push += dir_c * ((12.0 - d_c) / 12.0) * 24.0 * delta
+	return push
 
 
 func get_interact_label(_player: Node2D = null) -> String:

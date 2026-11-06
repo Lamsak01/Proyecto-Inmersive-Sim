@@ -286,7 +286,7 @@ static func _player_pen_rect(vm) -> Rect2:
 		var coop: Node2D = vm.get_tree().get_first_node_in_group("chicken_coop") as Node2D
 		if coop != null and is_instance_valid(coop):
 			coop_pos = coop.global_position
-	return Rect2(coop_pos + Vector2(-28.0, -8.0), Vector2(56.0, 30.0))
+	return Rect2(coop_pos + Vector2(-33.0, -6.0), Vector2(66.0, 31.0))
 
 static func sync_livestock(vm) -> void:
 	if vm == null or not ("entities_root" in vm) or vm.entities_root == null or not is_instance_valid(vm.entities_root):

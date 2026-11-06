@@ -15,8 +15,8 @@
    - En `scripts/visuals/WorldStage3D.gd` (`_build_static_terrain_3d`), añadí el suelo de tierra y la valla 3D de postes y travesaños del corral del Rancho del Sur (`x = 310..397`, `y = 400..540`) con `_build_fence_run_3d`, y oculté el borde plano `"ranch_fence_2d"` en `_sync_2d_flat_visuals(use_3d)`.
 
 2. **Tus propios animales vivos en el corral (`player_animals` → grupo `"player_livestock"`):**
-   - En `VillageHousing.sync_livestock(vm)`, cada entrada de `VillageHousing.state(vm)["player_animals"]` se sincroniza con un nodo `LivestockAnimal` en el grupo `"player_livestock"` dentro del recinto interior del `ChickenCoop` (`_player_pen_rect(vm)` = `Rect2(coop_pos + Vector2(-28.0, -8.0), Vector2(56.0, 30.0))`).
-   - En `scripts/obstacles/ChickenCoop.gd`, ajusté `_ready` para iniciar con `_spawn_initial_chickens(0)` (evitando gallinas 2D decorativas que no están en `player_animals`), actualicé `has_live_chickens()` para contar también `"player_livestock"` y oculté `status_label` cuando hay animales en `"player_livestock"`.
+   - En `VillageHousing.sync_livestock(vm)`, cada entrada de `VillageHousing.state(vm)["player_animals"]` se sincroniza con un nodo `LivestockAnimal` en el grupo `"player_livestock"` dentro del recinto interior del `ChickenCoop` (`_player_pen_rect(vm)` = `Rect2(coop_pos + Vector2(-33.0, -6.0), Vector2(66.0, 31.0))`).
+   - En `scripts/obstacles/ChickenCoop.gd`, `has_live_chickens()` comprueba tanto `chickens` como `"player_livestock"`, y las 3 gallinas iniciales (`_spawn_initial_chickens(3)` en `_ready` y `saved.get("chickens", 3)` en `_load_saved_state`) y `status_label` se mantienen intactos.
    - En `scripts/ui/InteractionSelector.gd` (`_refresh`), di prioridad a los nodos en `"player_livestock"` sobre el `CoopInteractArea` general del gallinero.
    - Si un animal del jugador muere por hambre (`unfed >= ANIMAL_STARVE_DAYS`) en `VillageHousing.daily(vm)`, `sync_livestock(vm)` elimina inmediatamente su nodo físico del mapa.
 
@@ -49,7 +49,7 @@
 - `scripts/systems/VillageHousing.gd` *(`RANCH_PEN_RECT`, `PRODUCT_COOLDOWN_DAYS`, `_player_pen_rect`, `sync_livestock`, `can_harvest_animal_product`, `get_player_animal_interact_label`, `feed_single_player_animal`, `harvest_player_animal`, `interact_player_animal`, retirada de `"cooked_meat"` automático en `daily` y retirada de `"housing_feed_animals"` en `add_dialogue_choices`)*
 - `scripts/systems/VillageTrades.gd` *(eliminados los 4 dibujos fijos de `"ranch"` en `build_extras`, añadido grupo `"ranch_fence_2d"` y llamada a `VillageHousing.sync_livestock`)*
 - `scripts/systems/VillageManager.gd` *(`VillageHousing.sync_livestock(self)` en `setup_village` y `load_economy_save_dict`)*
-- `scripts/obstacles/ChickenCoop.gd` *(`_spawn_initial_chickens(0)`, `has_live_chickens` con `"player_livestock"` y ocultación de `status_label`)*
+- `scripts/obstacles/ChickenCoop.gd` *(`has_live_chickens` con `"player_livestock"` y separación mutua en `_update_chickens_motion`, conservando `_spawn_initial_chickens(3)`, `saved.get("chickens", 3)` y `status_label`)*
 - `scripts/visuals/WorldStage3D.gd` *(valla y suelo 3D del corral del Rancho del Sur en `_build_static_terrain_3d` y ocultación de `"ranch_fence_2d"` en `_sync_2d_flat_visuals`)*
 - `scripts/ui/InteractionSelector.gd` *(prioridad en `_refresh` para `"player_livestock"`)*
 - `tools/screenshot_3d.gd` *(sitios `"rancho"` y `"corral"`)*
@@ -79,3 +79,19 @@
 ## 4. Qué no pude hacer o dudas pendientes
 
 - Todo lo pedido en el **Bloque FIS4** quedó implementado, verificado con tests y capturas 3D, documentado y subido a `main`. No quedaron puntos pendientes ni dudas de diseño para `docs/PREGUNTAS_PENDIENTES.md`.
+
+---
+
+## 5. Corrección FIS4
+
+Aplicados los 3 puntos indicados en `docs/REVISION_SUPERVISOR.md`:
+
+1. **Restauradas las 3 gallinas iniciales de `ChickenCoop` (`scripts/obstacles/ChickenCoop.gd`):**
+   - En `ChickenCoop._ready`, devolví la llamada a `_spawn_initial_chickens(3)`.
+   - En `ChickenCoop._load_saved_state`, devolví el valor por defecto a `clampi(int(saved.get("chickens", 3)), 0, 6)`.
+2. **Restaurado el letrero `status_label` del gallinero (`scripts/obstacles/ChickenCoop.gd`):**
+   - En `ChickenCoop._process(delta)`, eliminé la condición `and not has_livestock`, de modo que `status_label` sigue mostrándose siempre que `_player_near or mouse_near` sea cierto (el selector de `[E]` en `InteractionSelector._refresh` ya resuelve qué objeto se activa).
+3. **Convivencia sin pisarse en el corral (`VillageHousing._player_pen_rect`, `LivestockAnimal._compute_separation_step`, `ChickenCoop._update_chickens_motion`):**
+   - Amplié `VillageHousing._player_pen_rect(vm)` a `Rect2(coop_pos + Vector2(-33.0, -6.0), Vector2(66.0, 31.0))` para aprovechar todo el ancho útil del vallado del gallinero (`76 x 60` px) sin invadir la franja norte del comedero y el nido (`y = -16`).
+   - Añadí `_compute_separation_step(delta)` en `LivestockAnimal.gd` (llamado desde `LivestockAnimal._process(delta)`) y empuje recíproco en `ChickenCoop._update_chickens_motion(delta)` para que los nodos de `"player_livestock"` y las gallinas de `ChickenCoop.chickens` mantengan distancia entre sí dentro del corral sin superponerse.
+   - Verificado en `tools/tests/verify_all.gd` (`FIS4.6a`, `FIS4.6b`, `FIS4.6c`).

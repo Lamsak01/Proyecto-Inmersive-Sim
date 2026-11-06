@@ -52,7 +52,7 @@ func _ready() -> void:
 
 	_build_fence_enclosure()
 	_build_feeder_and_nest()
-	_spawn_initial_chickens(0)
+	_spawn_initial_chickens(3)
 	_refresh_coop_visuals()
 
 	if not Engine.is_editor_hint():
@@ -344,9 +344,8 @@ func _process(delta: float) -> void:
 	_update_chickens_motion(delta)
 
 	var mouse_near := global_position.distance_squared_to(get_global_mouse_position()) <= 42.0 * 42.0
-	var has_livestock: bool = is_inside_tree() and not get_tree().get_nodes_in_group("player_livestock").is_empty()
 	if status_label:
-		if (_player_near or mouse_near) and not has_livestock:
+		if _player_near or mouse_near:
 			status_label.text = _get_coop_prompt()
 			status_label.visible = true
 		else:
@@ -397,6 +396,13 @@ func _update_chickens_motion(delta: float) -> void:
 			if d_p < 13.0:
 				var away_c: Vector2 = (spr.global_position - p_node.global_position).normalized() if d_p > 0.01 else Vector2.RIGHT
 				push_step = away_c * ((13.0 - d_p) / 13.0) * 34.0 * delta
+		for pl_anim in get_tree().get_nodes_in_group("player_livestock"):
+			if pl_anim is Node2D and is_instance_valid(pl_anim):
+				var pa_pos: Vector2 = (pl_anim as Node2D).global_position
+				var d_pa: float = spr.global_position.distance_to(pa_pos)
+				if d_pa < 12.0:
+					var away_pa: Vector2 = (spr.global_position - pa_pos).normalized() if d_pa > 0.01 else Vector2.LEFT
+					push_step += away_pa * ((12.0 - d_pa) / 12.0) * 28.0 * delta
 		if diff.length() > 2.0 or push_step.length_squared() > 0.001:
 			var step := (diff.normalized() * 18.0 * delta if diff.length() > 2.0 else Vector2.ZERO) + push_step
 			spr.position.x = clampf(spr.position.x + step.x, -28.0, 28.0)
@@ -566,7 +572,7 @@ func _load_saved_state() -> void:
 		is_breached = bool(saved.get("breached", false))
 		fence_hp = float(saved.get("fence_hp", MAX_FENCE_HP))
 		var saved_gen: int = clampi(int(saved.get("max_genetics", 1)), 1, 3)
-		var target_c: int = clampi(int(saved.get("chickens", 0)), 0, 6)
+		var target_c: int = clampi(int(saved.get("chickens", 3)), 0, 6)
 		while chickens.size() > target_c:
 			var removed: Dictionary = chickens.pop_back()
 			var spr: Sprite2D = removed.get("sprite")
