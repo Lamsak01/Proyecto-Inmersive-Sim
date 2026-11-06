@@ -282,6 +282,12 @@ o vino ya dado. Conviene confirmarlo.
 **Dónde:** `scripts/systems/VillageHousing.gd` (`GATHERING_CHAT_PHRASES`).
 **Depende:** solo textos flotantes cada 20 minutos de juego durante la reunión.
 
+## Nombres de las dos prótesis (provisional)
+- «Prótesis sencilla de madera y correas» (50 %) · «Prótesis articulada de hierro y cuero» (75 %).
+
+**Dónde:** `scripts/systems/VillageIllness.gd` (`PROSTHETIC_QUALITIES`).
+**Depende:** solo el nombre que sale en el hospital, la crónica y el pensamiento del vecino.
+
 ## Frase del médico al amputar al jugador (A4, provisional)
 - «He cortado a tiempo. Perdiste el %s, pero seguirás con vida.»
 

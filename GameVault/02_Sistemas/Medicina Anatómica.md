@@ -22,4 +22,8 @@ fuente: "Biblia §5.1"
 - **Muerte, Putrefacción y Morgue:** Si un vecino muere, su cuerpo queda en el suelo, se pudre con las horas (`corpse_rot_hours`), deja charcos de sangre que manchan las botas de quien los pisa y, cuando un vecino con línea de visión lo descubre, corre a avisar al comisario o al médico para trasladarlo en brazos a la **Morgue**.
 
 ## Notas de diseño
+- 2026-11-06 (orden del usuario): dos calidades de prótesis. **Sencilla** de madera y correas: el miembro queda al
+  **50 %** (25 de oro). **Buena** articulada de hierro y cuero: al **75 %** (50 de oro). Con la sencilla se puede
+  mejorar a la buena pagando la diferencia. El jugador también puede amputarse (el médico avisa y decide él).
+- El miembro amputado o con prótesis tiene un tope: curarse no lo hace crecer más allá.
 -

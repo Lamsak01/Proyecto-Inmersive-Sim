@@ -3938,13 +3938,15 @@ func _initialize() -> void:
 	pj_doc.personal_gold = 10
 	pj_tinker.personal_gold = 10
 	vil_pj.on_player_action(vm, pj_doc, "illness_prosthetic_npc:" + p70_b.get_person_key(), p70_inv)
-	assert(vil_pj.has_prosthetic(vm, p70_b.get_person_key()) and p70_inv.gold == 75 and pj_doc.personal_gold == 25 and pj_tinker.personal_gold == 20 and int(pj_tinker.shop_stock["repair_kit"]) == 2 and float(p70_b.health_comp.region_hp["left_arm"]) == 40.0, "PJ.1b: Sponsoring prosthetic pays Doctor (15) + Tinker (10), uses 1 repair_kit, and restores limb")
+	assert(vil_pj.has_prosthetic(vm, p70_b.get_person_key()) and p70_inv.gold == 75 and pj_doc.personal_gold == 25 and pj_tinker.personal_gold == 20 and int(pj_tinker.shop_stock["repair_kit"]) == 2 and float(p70_b.health_comp.region_hp["left_arm"]) == 20.0, "PJ.1b: Sponsoring prosthetic pays Doctor (15) + Tinker (10), uses 1 repair_kit, and restores limb to 50%")
 	# PJ.1c: El propio vecino se costea su prótesis si tiene >= 25 de oro
 	vil_pj.amputate(vm, p70_c.get_person_key(), "right_leg", "fractura séptica")
 	p70_c.personal_gold = 40
 	vil_pj.daily(vm)
-	assert(vil_pj.has_prosthetic(vm, p70_c.get_person_key()) and p70_c.personal_gold == 15 and pj_doc.personal_gold == 40 and pj_tinker.personal_gold == 30 and int(pj_tinker.shop_stock["repair_kit"]) == 1 and float(p70_c.health_comp.region_hp["right_leg"]) == 45.0, "PJ.1c: Neighbor with 25+ gold buys their own prosthetic from Doctor & Tinker")
+	assert(vil_pj.has_prosthetic(vm, p70_c.get_person_key()) and p70_c.personal_gold == 15 and pj_doc.personal_gold == 40 and pj_tinker.personal_gold == 30 and int(pj_tinker.shop_stock["repair_kit"]) == 1 and float(p70_c.health_comp.region_hp["right_leg"]) == 22.5, "PJ.1c: Neighbor with 25+ gold buys their own prosthetic from Doctor & Tinker")
 	vil_pj.amputations_of(vm).clear()
+	p70_b.health_comp.region_max_override.clear()
+	p70_c.health_comp.region_max_override.clear()
 	# PJ.2: Red eléctrica lógica (sabotaje de farolas, aspersor o generador general, y reparación por jugador o arreglador)
 	vcu_pj.repair_grid(vm)
 	assert(vcu_pj.is_lamps_powered(vm) and vcu_pj.is_sprinkler_powered(vm) and not vcu_pj.is_grid_sabotaged(vm), "PJ.2a: Grid starts repaired and powered")
@@ -5945,11 +5947,32 @@ func _initialize() -> void:
 	assert(a4_vil.install_prosthetic(vm, "player"), "A4.3a: Prosthetic installed on player")
 	var a4_mov_prosthetic: float = float(a4_phc.get_moving_capacity())
 	assert(a4_mov_prosthetic > a4_mov_amputated, "A4.3b: With the prosthetic installed, get_moving_capacity() increases compared to without prosthetic")
+	# A4b: dos calidades de prótesis (sencilla 50 %, buena 75 %) y el miembro no vuelve a crecer al curarse
+	assert(is_equal_approx(a4_phc.get_region_ratio("left_leg"), 0.5), "A4b.1: Basic prosthetic leaves the limb at 50%")
+	a4_phc.heal(500.0)
+	assert(is_equal_approx(a4_phc.get_region_ratio("left_leg"), 0.5), "A4b.2: Healing does not push a basic prosthetic limb above 50%")
+	var a4b_choices: Array = []
+	a4_vil.add_dialogue_choices(vm, a4_doc, {}, a4b_choices)
+	var a4b_up: Dictionary = {}
+	for c_b in a4b_choices:
+		if str(c_b.get("action", "")) == "illness_prosthetic_self:good":
+			a4b_up = c_b
+	assert(not a4b_up.is_empty() and str(a4b_up.get("label", "")).contains("-25 Oro"), "A4b.3: With a basic prosthetic the doctor offers the upgrade for the difference (25)")
+	p70_inv.gold = 100
+	a4_vil.on_player_action(vm, a4_doc, "illness_prosthetic_self:good", p70_inv)
+	assert(p70_inv.gold == 75 and a4_vil.prosthetic_quality(vm, "player") == "good" and is_equal_approx(a4_phc.get_region_ratio("left_leg"), 0.75), "A4b.4: Upgrade costs 25 and leaves the limb at 75%")
+	a4_phc.heal(0.0, true)
+	assert(is_equal_approx(a4_phc.get_region_ratio("left_leg"), 0.75), "A4b.5: A full anatomy reset keeps the 75% cap")
+	var a4b_dict: Dictionary = a4_phc.to_medical_dict()
+	a4_phc.region_max_override.clear()
+	a4_phc.from_medical_dict(a4b_dict)
+	assert(is_equal_approx(a4_phc.get_region_ratio("left_leg"), 0.75), "A4b.6: The cap survives save and load")
 	# Restaurar estado tras prueba A4
 	a4_phc.wounds.clear()
 	for w_rest in a4_wounds_bak:
 		a4_phc.wounds.append(w_rest)
 	a4_phc.region_hp = a4_reg_bak
+	a4_phc.region_max_override.clear()
 	if a4_had_amp:
 		a4_amps["player"] = a4_amp_bak
 	else:

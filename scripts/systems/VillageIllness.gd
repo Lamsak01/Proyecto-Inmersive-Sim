@@ -24,6 +24,11 @@ const DOCTOR_PER_DAY: int = 3
 const PLAYER_CURE_COST: int = 8
 const PLAYER_FEVER_HP: float = 12.0
 const PROSTHETIC_COST: int = 25
+## Calidades de prótesis (orden del usuario 2026-11-06): la sencilla deja el miembro al 50 %, la buena al 75 %
+const PROSTHETIC_QUALITIES: Dictionary = {
+	"basic": {"name": "Prótesis sencilla de madera y correas", "ratio": 0.5, "cost": 25},
+	"good": {"name": "Prótesis articulada de hierro y cuero", "ratio": 0.75, "cost": 50},
+}
 const LIMB_LABELS: Dictionary = {
 	"left_arm": "Brazo Izq.",
 	"right_arm": "Brazo Der.",
@@ -45,6 +50,38 @@ static func has_amputation(vm, key: String) -> bool:
 
 static func has_prosthetic(vm, key: String) -> bool:
 	return str(get_amputation(vm, key).get("prosthetic", "")) != ""
+
+static func prosthetic_quality(vm, key: String) -> String:
+	if not has_prosthetic(vm, key):
+		return ""
+	return str(get_amputation(vm, key).get("quality", "good"))
+
+static func prosthetic_cost(vm, key: String, quality: String) -> int:
+	var full: int = int(PROSTHETIC_QUALITIES[quality]["cost"])
+	if prosthetic_quality(vm, key) == "basic" and quality == "good":
+		return full - int(PROSTHETIC_QUALITIES["basic"]["cost"])
+	return full
+
+## Pone el tope de vida del miembro amputado (0) o con prótesis (parte del máximo) para que no vuelva a crecer
+static func apply_limb_cap(vm, key: String) -> void:
+	var hc = _health_comp_of(vm, key)
+	if hc == null or not has_amputation(vm, key):
+		return
+	var amp: Dictionary = get_amputation(vm, key)
+	var limb_key: String = str(amp.get("limb", "left_arm"))
+	var natural: float = float(HealthComponent.REGION_DEFS[limb_key]["max_hp"])
+	var cap: float = 0.0
+	if has_prosthetic(vm, key):
+		var q: String = prosthetic_quality(vm, key)
+		cap = natural * float(PROSTHETIC_QUALITIES.get(q, PROSTHETIC_QUALITIES["good"])["ratio"])
+	hc.region_max_override[limb_key] = cap
+	hc.region_hp[limb_key] = minf(float(hc.region_hp.get(limb_key, cap)), cap)
+
+static func apply_limb_caps(vm) -> void:
+	if vm == null:
+		return
+	for k in amputations_of(vm).keys():
+		apply_limb_cap(vm, str(k))
 
 static func player_gangrene(vm) -> Dictionary:
 	if vm == null:
@@ -107,6 +144,7 @@ static func amputate(vm, key: String, limb_id: String = "left_arm", reason: Stri
 			if str(hc.wounds[i].get("region", "")) == limb_key:
 				hc.wounds.remove_at(i)
 		hc.region_hp[limb_key] = 0.0
+		hc.region_max_override[limb_key] = 0.0
 		hc.anatomy_changed.emit()
 	if key != "player":
 		var n = vm._get_npcs_by_person_key().get(key, null)
@@ -120,17 +158,23 @@ static func amputate(vm, key: String, limb_id: String = "left_arm", reason: Stri
 			pl.avatar_3d.call("mark_appearance_dirty")
 	return true
 
-static func install_prosthetic(vm, key: String, prosthetic_name: String = "Prótesis articulada de hierro y cuero") -> bool:
+static func install_prosthetic(vm, key: String, quality: String = "basic") -> bool:
 	if vm == null or not has_amputation(vm, key):
 		return false
+	if not PROSTHETIC_QUALITIES.has(quality):
+		quality = "basic"
 	var amp: Dictionary = get_amputation(vm, key)
 	var limb_key: String = str(amp.get("limb", "left_arm"))
 	var limb_lbl: String = str(amp.get("limb_label", "Brazo Izq."))
-	amp["prosthetic"] = prosthetic_name
+	amp["prosthetic"] = str(PROSTHETIC_QUALITIES[quality]["name"])
+	amp["quality"] = quality
 	amputations_of(vm)[key] = amp
+	var prosthetic_name: String = str(amp["prosthetic"])
 	var hc = _health_comp_of(vm, key)
 	if hc != null:
-		hc.region_hp[limb_key] = 40.0 if limb_key.ends_with("arm") else 45.0
+		var cap: float = float(HealthComponent.REGION_DEFS[limb_key]["max_hp"]) * float(PROSTHETIC_QUALITIES[quality]["ratio"])
+		hc.region_max_override[limb_key] = cap
+		hc.region_hp[limb_key] = cap
 		hc.anatomy_changed.emit()
 	if key != "player":
 		var n = vm._get_npcs_by_person_key().get(key, null)
@@ -226,6 +270,7 @@ static func daily(vm) -> void:
 	var st: Dictionary = VillageNeeds.state(vm)
 	var t: int = VillageNeeds.today()
 	var by_key: Dictionary = vm._get_npcs_by_person_key()
+	apply_limb_caps(vm)  # partidas guardadas antes de los topes: el miembro amputado no vuelve a crecer
 	for k in st["immune"].keys():
 		if int(st["immune"][k]) < t:
 			st["immune"].erase(k)
@@ -269,14 +314,22 @@ static func daily(vm) -> void:
 					if LIMB_LABELS.has(w_reg) and float(w.get("infection", 0.0)) >= 65.0:
 						amputate(vm, n_key, w_reg, "gangrena por infección")
 						break
-			if has_amputation(vm, n_key) and not has_prosthetic(vm, n_key) and n.personal_gold >= PROSTHETIC_COST:
+			# El vecino compra la buena si le llega (50); si no, la sencilla (25); con la sencilla, ahorra para mejorarla
+			var n_q: String = ""
+			if has_amputation(vm, n_key) and prosthetic_quality(vm, n_key) != "good":
+				if n.personal_gold >= prosthetic_cost(vm, n_key, "good"):
+					n_q = "good"
+				elif not has_prosthetic(vm, n_key) and n.personal_gold >= prosthetic_cost(vm, n_key, "basic"):
+					n_q = "basic"
+			if n_q != "":
 				if tinker != null and is_instance_valid(tinker) and not tinker.is_dead and int(tinker.shop_stock.get("repair_kit", 0)) > 0:
-					n.personal_gold -= PROSTHETIC_COST
+					var n_cost: int = prosthetic_cost(vm, n_key, n_q)
+					n.personal_gold -= n_cost
 					doc.personal_gold += 15
-					tinker.personal_gold += PROSTHETIC_COST - 15
+					tinker.personal_gold += n_cost - 15
 					tinker.shop_stock["repair_kit"] = int(tinker.shop_stock["repair_kit"]) - 1
 					tinker._sync_shop_stock_to_vm()
-					install_prosthetic(vm, n_key, "Prótesis articulada de hierro y cuero")
+					install_prosthetic(vm, n_key, n_q)
 	_check_player_gangrene(vm, true)
 	# Casos nuevos
 	var raining: bool = WorldClock != null and int(WorldClock.current_weather) == 1
@@ -319,20 +372,35 @@ static func _hurt_player(vm, disease_name: String) -> void:
 	if pl.has_method("show_hint"):
 		pl.show_hint("🤒 La %s empeora. Ve al médico." % disease_name)
 
+## Calidades que el médico ofrece: sin prótesis, las dos; con la sencilla, solo mejorar a la buena
+static func _offered_qualities(vm, key: String) -> Array:
+	if not has_amputation(vm, key):
+		return []
+	match prosthetic_quality(vm, key):
+		"":
+			return ["good", "basic"]
+		"basic":
+			return ["good"]
+	return []
+
 static func add_dialogue_choices(vm, npc, _diag: Dictionary, ch_arr: Array) -> void:
 	if vm == null or int(npc.trade_role) != int(VillageNPC.TradeRole.DOCTOR):
 		return
 	if is_ill(vm, "player"):
 		ch_arr.insert(0, {"label": "🩺 Pedir que te cure (%d de oro)" % PLAYER_CURE_COST, "next": "END", "action": "illness_cure"})
-	if has_amputation(vm, "player") and not has_prosthetic(vm, "player"):
-		ch_arr.insert(0, {"label": "🦾🩺 Implantar prótesis articulada de hierro y cuero (-%d Oro)" % PROSTHETIC_COST, "next": "END", "action": "illness_prosthetic_self"})
+	if has_amputation(vm, "player"):
+		for q in _offered_qualities(vm, "player"):
+			var q_lbl: String = "Mejorar a prótesis articulada de hierro y cuero (75 %%)" if has_prosthetic(vm, "player") else "Implantar %s (%d %%)" % [str(PROSTHETIC_QUALITIES[q]["name"]).to_lower(), int(float(PROSTHETIC_QUALITIES[q]["ratio"]) * 100.0)]
+			ch_arr.insert(0, {"label": "🦾🩺 %s (-%d Oro)" % [q_lbl, prosthetic_cost(vm, "player", q)], "next": "END", "action": "illness_prosthetic_self:" + q})
 	var by_key: Dictionary = vm._get_npcs_by_person_key()
 	for k in amputations_of(vm).keys():
-		if str(k) == "player" or has_prosthetic(vm, str(k)):
+		if str(k) == "player":
 			continue
 		var amp_npc = by_key.get(str(k), null)
 		if amp_npc != null and is_instance_valid(amp_npc) and not amp_npc.is_dead:
-			ch_arr.insert(0, {"label": "🦾🤝 Costear prótesis médica para %s (-%d Oro)" % [amp_npc.npc_name, PROSTHETIC_COST], "next": "END", "action": "illness_prosthetic_npc:" + str(k)})
+			for q in _offered_qualities(vm, str(k)):
+				var verb: String = "Pagar la mejora de la prótesis de %s" % amp_npc.npc_name if has_prosthetic(vm, str(k)) else "Costear %s para %s" % [str(PROSTHETIC_QUALITIES[q]["name"]).to_lower(), amp_npc.npc_name]
+				ch_arr.insert(0, {"label": "🦾🤝 %s (-%d Oro)" % [verb, prosthetic_cost(vm, str(k), q)], "next": "END", "action": "illness_prosthetic_npc:%s:%s" % [q, str(k)]})
 	_check_player_gangrene(vm, false)
 	var pg: Dictionary = player_gangrene(vm)
 	if not pg.is_empty():
@@ -363,25 +431,37 @@ static func on_player_action(vm, npc, action_id: String, inv) -> void:
 		npc.personal_gold += PLAYER_CURE_COST
 		recover(vm, "player")
 		npc._spawn_floating_text("🩺 «Bebe esto y descansa. Mañana estarás mejor.»", Color(0.7, 1.0, 0.8), -46.0)
-	elif action_id == "illness_prosthetic_self" or action_id.begins_with("illness_prosthetic_npc:"):
-		var target_key: String = "player" if action_id == "illness_prosthetic_self" else action_id.substr("illness_prosthetic_npc:".length())
-		if not has_amputation(vm, target_key) or has_prosthetic(vm, target_key):
+	elif action_id.begins_with("illness_prosthetic_self") or action_id.begins_with("illness_prosthetic_npc:"):
+		# illness_prosthetic_self[:calidad] · illness_prosthetic_npc:calidad:clave (o la forma antigua illness_prosthetic_npc:clave)
+		var parts: PackedStringArray = action_id.split(":", true, 2)
+		var target_key: String = "player"
+		var quality: String = "basic"
+		if parts[0] == "illness_prosthetic_self":
+			if parts.size() > 1:
+				quality = parts[1]
+		elif parts.size() >= 3 and PROSTHETIC_QUALITIES.has(parts[1]):
+			quality = parts[1]
+			target_key = parts[2]
+		else:
+			target_key = action_id.substr("illness_prosthetic_npc:".length())
+		if not PROSTHETIC_QUALITIES.has(quality) or not _offered_qualities(vm, target_key).has(quality):
 			npc._spawn_floating_text("«No hace falta ninguna prótesis ahora mismo.»", Color.LIGHT_GRAY, -46.0)
 			return
-		if inv == null or int(inv.gold) < PROSTHETIC_COST:
-			npc._spawn_floating_text("«Necesito %d de oro para encargar los engranajes y ajustar la prótesis.»" % PROSTHETIC_COST, Color.CORAL, -46.0)
+		var p_cost: int = prosthetic_cost(vm, target_key, quality)
+		if inv == null or int(inv.gold) < p_cost:
+			npc._spawn_floating_text("«Necesito %d de oro para encargar los engranajes y ajustar la prótesis.»" % p_cost, Color.CORAL, -46.0)
 			return
-		inv.add_gold(-PROSTHETIC_COST)
+		inv.add_gold(-p_cost)
 		var tinker = vm.trade_npcs.get(VillageNPC.TradeRole.TINKER)
 		if tinker != null and is_instance_valid(tinker) and not tinker.is_dead:
 			npc.personal_gold += 15
-			tinker.personal_gold += PROSTHETIC_COST - 15
+			tinker.personal_gold += p_cost - 15
 			if int(tinker.shop_stock.get("repair_kit", 0)) > 0:
 				tinker.shop_stock["repair_kit"] = int(tinker.shop_stock["repair_kit"]) - 1
 				tinker._sync_shop_stock_to_vm()
 		else:
-			npc.personal_gold += PROSTHETIC_COST
-		install_prosthetic(vm, target_key, "Prótesis articulada de hierro y cuero")
+			npc.personal_gold += p_cost
+		install_prosthetic(vm, target_key, quality)
 		if target_key != "player":
 			var amp_npc = vm._get_npcs_by_person_key().get(target_key, null)
 			if amp_npc != null:

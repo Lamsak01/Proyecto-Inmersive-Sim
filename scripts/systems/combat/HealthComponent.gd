@@ -71,9 +71,17 @@ func _ready() -> void:
 	if Engine.is_editor_hint():
 		set_process(false)
 
+## Tope de vida de un miembro amputado (0) o con prótesis (parte del máximo); si no está, manda REGION_DEFS
+var region_max_override: Dictionary = {}
+
+func region_max(r_id: String) -> float:
+	if region_max_override.has(r_id):
+		return float(region_max_override[r_id])
+	return float(REGION_DEFS.get(r_id, {"max_hp": 45.0})["max_hp"])
+
 func _init_anatomy() -> void:
 	for r_id in REGION_ORDER:
-		region_hp[r_id] = float(REGION_DEFS[r_id]["max_hp"])
+		region_hp[r_id] = region_max(r_id)
 	for o_id in ORGAN_DEFS.keys():
 		organ_hp[o_id] = 100.0
 	wounds.clear()
@@ -286,7 +294,7 @@ func _tick_anatomical_recovery(dt: float) -> void:
 			continue
 		var new_sev: float = float(w.get("severity", 10.0)) - rate * dt
 		var r_key: String = str(w.get("region", "torso"))
-		var m_hp2: float = float(REGION_DEFS.get(r_key, {"max_hp": 50.0})["max_hp"])
+		var m_hp2: float = region_max(r_key) if REGION_DEFS.has(r_key) else 50.0
 		region_hp[r_key] = minf(m_hp2, float(region_hp.get(r_key, m_hp2)) + rate * dt * 0.35)
 		if new_sev <= 0.0 and float(w.get("infection", 0.0)) < 15.0:
 			wounds.remove_at(i)
@@ -507,13 +515,13 @@ func heal(amount: float, clear_all_wounds: bool = false) -> void:
 		return
 	var missing_regions: Array[String] = []
 	for r_id in REGION_ORDER:
-		var m_r: float = float(REGION_DEFS[r_id]["max_hp"])
+		var m_r: float = region_max(r_id)
 		if float(region_hp.get(r_id, m_r)) < m_r - 0.1:
 			missing_regions.append(r_id)
 	if not missing_regions.is_empty():
 		var share: float = (amount * 1.1) / float(missing_regions.size())
 		for r_id in missing_regions:
-			var m_r2: float = float(REGION_DEFS[r_id]["max_hp"])
+			var m_r2: float = region_max(r_id)
 			region_hp[r_id] = minf(m_r2, float(region_hp.get(r_id, m_r2)) + share)
 	for i in range(wounds.size() - 1, -1, -1):
 		var w: Dictionary = wounds[i]
@@ -544,8 +552,8 @@ func stabilize_after_knockout(target_ratio: float = 0.45) -> void:
 		weakness_changed.emit(false)
 	current_health = maxf(current_health, max_health * target_ratio)
 	for r_id in REGION_ORDER:
-		var m_r: float = float(REGION_DEFS[r_id]["max_hp"])
-		region_hp[r_id] = maxf(float(region_hp.get(r_id, m_r)), m_r * 0.30)
+		var m_r: float = region_max(r_id)
+		region_hp[r_id] = minf(m_r, maxf(float(region_hp.get(r_id, m_r)), m_r * 0.30))
 	health_changed.emit(current_health, max_health)
 	anatomy_changed.emit()
 
@@ -961,6 +969,7 @@ func to_medical_dict() -> Dictionary:
 		w_copy.append(w.duplicate())
 	return {
 		"region_hp": region_hp.duplicate(),
+		"region_max_override": region_max_override.duplicate(),
 		"organ_hp": organ_hp.duplicate(),
 		"wounds": w_copy,
 		"fever": fever,
@@ -974,6 +983,11 @@ func to_medical_dict() -> Dictionary:
 	}
 
 func from_medical_dict(data: Dictionary) -> void:
+	region_max_override.clear()
+	if data.get("region_max_override", null) is Dictionary:
+		for ok_r in (data["region_max_override"] as Dictionary).keys():
+			if REGION_DEFS.has(str(ok_r)):
+				region_max_override[str(ok_r)] = float(data["region_max_override"][ok_r])
 	_init_anatomy()
 	if data.is_empty():
 		return
@@ -981,7 +995,7 @@ func from_medical_dict(data: Dictionary) -> void:
 		var r_in: Dictionary = data["region_hp"]
 		for k in REGION_ORDER:
 			if r_in.has(k):
-				region_hp[k] = clampf(float(r_in[k]), 0.0, float(REGION_DEFS[k]["max_hp"]))
+				region_hp[k] = clampf(float(r_in[k]), 0.0, region_max(k))
 	if data.has("organ_hp") and typeof(data["organ_hp"]) == TYPE_DICTIONARY:
 		var o_in: Dictionary = data["organ_hp"]
 		for ok in ORGAN_DEFS.keys():

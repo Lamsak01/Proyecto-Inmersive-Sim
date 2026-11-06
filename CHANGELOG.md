@@ -3,6 +3,13 @@
 Cambios del juego, del más nuevo al más antiguo. Añade una entrada al cerrar cada bloque, en lenguaje sencillo.
 El detalle técnico está en `docs/HANDOFF.md` (sección 7) y el historial completo en `git log`. Lo anterior a B0.1 está en `AUDIT_LOG.md` y `SESSION_CONTEXT_LOG.md`.
 
+## 2026-11-06 — Dos prótesis: sencilla (50 %) y buena (75 %)
+- **Dos calidades en el hospital:** la sencilla de madera y correas (25 de oro) deja el brazo o la pierna al 50 %; la
+  articulada de hierro y cuero (50 de oro) al 75 %. Con la sencilla puesta, el médico te ofrece mejorarla por 25.
+- **Los vecinos también eligen:** compran la buena si les llega el dinero; si no, la sencilla, y la mejoran al ahorrar.
+- **El miembro perdido no vuelve a crecer:** curarse, comer o dormir ya no devuelve la pierna cortada ni sube la
+  prótesis por encima de su tope, tampoco al guardar y cargar.
+
 ## 2026-11-06 — Las Obras Maestras se compran en el taller del maestro
 - **En el mostrador, no en la calle:** junto al puesto de cada maestro artesano aparece «Comprar Obra Maestra de estilo
   …». Tiene que estar él en su taller y despierto; si no, «El maestro no está; vuelve cuando abra». Como es un gasto,

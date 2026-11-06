@@ -9,7 +9,6 @@ kanban-plugin: board
 - [ ] Rehacer el combate: hoy se siente flojo, sin peso ni respuesta (aplazado, con plan propio) ([[Armaduras, Sigilo y Arcabuz]])
 - [ ] Arcabuz de chispa usable en combate directo ([[Armaduras, Sigilo y Arcabuz]])
 - [ ] Recinto caminable del [[Puesto del Paso]]
-- [ ] Amputaciones y prótesis para el jugador ([[Medicina Anatómica]])
 - [ ] Sótanos y altillos dibujados en el tilemap ([[Capas Verticales y Alcantarillas]])
 - [ ] Señales visuales en el mapa de lo que pasa sin abrir menús
 
@@ -52,6 +51,7 @@ kanban-plugin: board
 
 ## ✅ Hecho
 
+- [x] Amputaciones y prótesis para el jugador, con prótesis sencilla (50 %) y buena (75 %) ([[Medicina Anatómica]]) (2026-11-06)
 - [x] Club de pelea en el sótano de la taberna y sabotajes nocturnos de verdad (2026-11-06)
 - [x] Rentas y cobros en persona; desfalco en el cofre del ayuntamiento (2026-11-06)
 - [x] El perista espera de noche en el callejón, con capucha, y rumores sutiles (2026-11-06)
