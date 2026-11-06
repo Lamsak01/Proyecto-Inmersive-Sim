@@ -35,3 +35,19 @@ bien. **Antes de dar el bloque por cerrado** comprueba:
 - **Aprobado.** Comprobado: arranque sin errores, cuatro pruebas (bloque FIS3 incluido), las funciones que nombra el
   informe existen, el perista ya no ofrece explorar ni subir, fotos de rejilla y túnel correctas.
 - Dejado como pregunta de diseño para el usuario: si bajar por la rejilla delante de guardias debe ser sospechoso.
+
+## FIS4 — revisión del supervisor: CORRECCIÓN NECESARIA
+
+Bien: rebaño del rancho vivo, tus animales en el corral, [E] para dar de comer y esquilar/recoger huevos, quitada la
+carne que entraba sola, quitada la opción de alimentar desde la charla, alpaca CC0 apuntada en la licencia.
+
+**Mal (cambio de comportamiento no pedido que rompe algo que ya funcionaba):**
+1. `ChickenCoop._ready` ahora llama a `_spawn_initial_chickens(0)` (antes 3) y `_load_saved_state` usa 0 por defecto
+   (antes 3). Las gallinas del gallinero eran ya físicas (andan en el corral, ponen huevos en el nido, se crían, el zorro
+   se las lleva). En una partida nueva el gallinero queda vacío: sin puesta, sin cría. **Devuélvelo a 3 en ambos sitios.**
+2. El letrero del gallinero (comedero, nido) se esconde en cuanto hay algún animal en `player_livestock`. **Quita esa
+   condición**: el selector de [E] ya resuelve qué se usa; el letrero del gallinero debe seguir saliendo.
+3. Comprueba que tus animales nuevos y las gallinas del gallinero conviven en el mismo corral sin pisarse (si el corral
+   se queda pequeño, usa el resto del vallado del gallinero o una franja junto a él, y explícalo en el informe).
+
+Después: arranque sin errores, las cuatro pruebas, commit y push, y añade al informe una sección «Corrección FIS4».
