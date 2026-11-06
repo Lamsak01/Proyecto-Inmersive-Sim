@@ -26,16 +26,24 @@
 - Su letrero de [E] por la noche en el callejón: «Hablar con la figura encapuchada» (no su nombre, hasta que lo
   conozcas: `known_fence`).
 
-## 2. Rumores en la taberna (para encontrarlo investigando)
-- Cuando el jugador habla en la taberna (a menos de 140 px de `vm._tavern_social_pos`) con un vecino adulto que
-  **no sea** el perista, guardia ni cura, y aún no conoce al perista (`known_fence == false`), con un **25 %** el
-  vecino añade una frase de rumor al final de su saludo (una vez al día por vecino):
-  - «Si buscas algo que no se vende en las tiendas, ronda el callejón de la taberna pasada la medianoche.»
-  - «Dicen que de noche hay alguien con capucha detrás de la taberna. Yo no me acercaría.»
-  - «Las cosas que desaparecen en este pueblo siempre acaban en el mismo callejón.»
-  Apunta estas frases en `docs/APORTES_CREATIVOS.md` como provisionales.
-- Usa el sitio donde ya se añaden frases al saludo en `NPCDialogue` (búscalo; si no hay ninguno claro, añádelo como una
-  opción de charla «¿Algún rumor?» y dilo en el informe).
+## 2. Rumores en la taberna: **sutiles y difíciles de oír** (decisión del usuario: que no rompan la inmersión)
+- **Cuándo puede salir:** solo **de tarde-noche (19:00–1:00)**, con el jugador **dentro de la taberna** (a menos de 140 px
+  de `vm._tavern_social_pos`), hablando con un vecino adulto que **no sea** el perista, guardia ni cura, y solo mientras
+  el jugador no conozca al perista (`known_fence == false`).
+- **Quién lo dice:** solo vecinos con algo que ver con el hampa: `TraitCatalog.npc_tendency(n, "malice") >= 0.2`, o a
+  los que les hayan robado (si existe un registro de robos a vecinos; si no, solo el primer criterio, y dilo en el
+  informe). Los vecinos honrados y sin relación no saben nada.
+- **Probabilidad:** **10 %** por charla, una vez al día por vecino y **como mucho un rumor al día en todo el pueblo**.
+- **Cómo se dice:** **nunca** como un aviso al jugador ni con el sitio y la hora juntos. Son comentarios de pasada que
+  hay que juntar. Se añaden al final del saludo normal, sin emoji ni color especial. Frases (provisionales; apúntalas
+  en `docs/APORTES_CREATIVOS.md`):
+  - «Anoche volvía tarde y olía a pipa detrás de la taberna. ¿Quién fuma ahí a esas horas?»
+  - «Yo, de noche, no paso por el callejón. Manías mías.»
+  - «Hay quien paga por lo que no tiene dueño. No me preguntes quién, que no lo sé.»
+  - «Lo que se pierde en este pueblo no se pierde: cambia de manos antes del alba.»
+  - «Si oyes una puerta trasera pasada la medianoche, mejor no mires.»
+- Usa el sitio donde ya se añaden frases al saludo en `NPCDialogue` (búscalo; si no hay ninguno claro, dilo en el
+  informe y **no** lo conviertas en una opción de menú: tiene que sonar a conversación, no a botón).
 
 ## 3. Lo que no cambia
 - Quién es el perista (`get_fence_npc`) y sus tratos siguen igual. Sus opciones de charla siguen saliendo de noche o
@@ -46,6 +54,7 @@
 ## Prueba (una sola, en `verify_all`): bloque «P5b perista»
 1. A las 22:00 el perista tiene el recado `fence_alley` y no está dormido; a las 3:00 ya no lo tiene.
 2. Con `known_fence == false`, su letrero de [E] en el callejón es «Hablar con la figura encapuchada».
+3. Un vecino honrado (malice < 0.2) nunca dice un rumor, aunque se fuerce la probabilidad a 1.
 
 ## Al cerrar el bloque
 Lo mismo que en `ENCARGO_ANTIGRAVITY.md` §3 (HANDOFF, CHANGELOG, registro, bóveda y diario), y además:
