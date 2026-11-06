@@ -82,3 +82,20 @@ Bien: auditoría útil y ordenada (`docs/AUDITORIA_REALISMO.md`); huerto, banco,
 
 Después: un test que compruebe que el huerto da `"herbs"` y que el banco sin hierbas no da nada; arranque sin errores,
 las cuatro pruebas, commit y push, y sección «Corrección FIS-P1» en el informe.
+
+## FIS-P1 tras la corrección — APROBADO (pendiente de pasar pruebas junto con lo siguiente)
+
+Usa `"herbs"` y el banco exige ingrediente. Bien.
+
+## Campamento inicial (pedido directo del usuario, commits 6bcac38 y cbbc7fc) — CORRECCIÓN DE REGLAS
+
+El cambio es del usuario y se queda. Pero `scripts/obstacles/CampSite.gd` incumple dos reglas:
+1. **Suma cero:** las obras del campamento cobran oro que **desaparece** (`inv.add_gold(-20)`, `-30`, `-18`, `-15`,
+   `-(cost_gold…)`, líneas ~517, 560, 563, 588, 614, 639, 679). Cada pago debe ir a quien hace el trabajo o vende el
+   material: `vm.pay_into(vm.role_npc(VillageNPC.TradeRole.CARPENTER), oro)` para obras de madera; las 3 gallinas del
+   gallinero, al ganadero (`RANCHER`); el generador y el aspersor, al arreglador (`TINKER`). Si no hay nadie con ese
+   oficio, `pay_into` lo manda a las arcas.
+2. **Doble E:** gastar oro en el mundo pide confirmar con una segunda E (`VillageHousing.press_twice(vm, "etiqueta")` y un
+   letrero «¿…? Pulsa E otra vez para confirmar»). Aplícalo a cada obra que cobre oro (si se paga solo con madera, no hace
+   falta).
+3. Un test: la obra del gallinero pagada con oro suma ese oro al ganadero (o a las arcas) y no se hace con una sola E.
