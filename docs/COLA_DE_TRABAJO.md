@@ -10,7 +10,7 @@
 | 3 | P1: tu tienda propia y su dependiente | ✅ hecho (11:06) |
 | 4 | P2: la carreta física | ✅ hecho (12:30) |
 | 5 | P3: caravanas comerciales y de contrabando | ✅ hecho (14:24, Antigravity) |
-| 6 | P4: cenas, fiestas y banquete de paz | siguiente (Antigravity) — `docs/ENCARGO_P4_CENAS.md` |
+| 6 | P4: cenas, fiestas y banquete de paz | ✅ hecho (Antigravity) |
 | 7 | P5: rentas, encargos y desfalcos en su sitio | ✅ hecho (Claude Code, en paralelo) |
 | 7b | P5b: el perista trasnocha en el callejón de la taberna y hay rumores para encontrarlo (fallo visto por el usuario) | ✅ hecho (Claude Code, en paralelo) |
 | 8 | P6: peleas clandestinas en un sótano de la taberna y sabotajes nocturnos (expediciones y animales, más adelante) | ✅ hecho (Claude Code, en paralelo; rama pendiente de unir tras P4) |

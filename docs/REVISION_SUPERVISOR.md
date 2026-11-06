@@ -154,3 +154,9 @@ commit. Lo robado va al bolsillo del ladrón (`add_pocket_item`), no a un cofre 
   pasa a llamarse `fence_on_hour`. La excepción nocturna de la redada (`smuggler_bust`) se añade a la nueva lista
   `VillageNPC.NIGHT_ERRANDS` (úsala para todo recado nocturno nuevo, p. ej. el club de P6 y los sabotajes).
 
+## P4 — Cenas (revisado por Claude Code, 2026-11-06)
+
+- **Aprobado** a falta de la prueba conjunta tras unirlo con P6a y P6b. Usó bien `NIGHT_ERRANDS` (`gathering`, `catering`).
+- Apuntado por Antigravity: en 3D los invitados se quedan **de pie** alrededor de la mesa (igual que en el póquer):
+  no hay postura de sentado. Queda como pendiente de arte, no de este bloque.
+
