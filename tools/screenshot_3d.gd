@@ -132,6 +132,25 @@ func _initialize() -> void:
 		vun_sw.sewers_state(vm_sw)["unlocked"] = true
 		SPOTS["trampilla"] = (vun_sw.SEWER_LOCATIONS["cistern"]["pos"] as Vector2) + Vector2(-18, 6)
 		SPOTS["tunel"] = vun_sw.SEWER_LOCATIONS["smuggler_tunnel"]["tunnel_pos"] as Vector2
+	# Sitios «rancho» y «corral» (Bloque FIS4): prepara ganado vivo en el Rancho del Sur y animales propios en el corral del jugador (solo en memoria).
+	if spots.has("rancho") or spots.has("corral"):
+		var vm_lv = root.find_child("VillageManager", true, false)
+		var vho = vm_lv.VillageHousing
+		var hs_lv: Dictionary = vho.state(vm_lv)
+		hs_lv["ranch_herd"] = [
+			{"species": "sheep", "stage": "adult", "age_days": 6},
+			{"species": "rooster", "stage": "adult", "age_days": 6},
+			{"species": "sheep", "stage": "juvenile", "age_days": 4},
+			{"species": "rooster", "stage": "chick", "age_days": 1},
+		]
+		hs_lv["player_animals"] = [
+			{"species": "sheep", "stage": "adult", "age_days": 6, "power": 3, "fed_day": vho.today()},
+			{"species": "rooster", "stage": "adult", "age_days": 6, "power": 2, "fed_day": vho.today()},
+			{"species": "rooster", "stage": "chick", "age_days": 1, "power": 1, "fed_day": vho.today()},
+		]
+		vho.sync_livestock(vm_lv)
+		SPOTS["rancho"] = Vector2(354, 468)
+		SPOTS["corral"] = Vector2(42, 108)
 	for pet in root.find_children("*", "DomesticPet", true, false):
 		if int(pet.pet_type) == 0 and pet.visible and not SPOTS.has("perro"):
 			SPOTS["perro"] = pet.global_position + Vector2(0, -12)
@@ -171,7 +190,7 @@ func _initialize() -> void:
 					elif s != "montado" and bool(player.get("is_mounted")):
 						horse_n.dismount(player)
 				if cam != null:
-					cam.zoom = Vector2(8.0, 8.0) if s == "retrato" else (Vector2(5.0, 5.0) if s in ["ciervo", "zorro", "perro", "jabali", "caballo", "montado", "asalto", "robo", "trampilla"] else (Vector2(4.2, 4.2) if s in ["cerca", "taller", "tunel"] else Vector2(2.4, 2.4)))
+					cam.zoom = Vector2(8.0, 8.0) if s == "retrato" else (Vector2(5.0, 5.0) if s in ["ciervo", "zorro", "perro", "jabali", "caballo", "montado", "asalto", "robo", "trampilla", "corral"] else (Vector2(4.2, 4.2) if s in ["cerca", "taller", "tunel", "rancho"] else Vector2(2.4, 2.4)))
 					if String(s).begins_with("r_") or s == "lago" or s == "norte":
 						cam.zoom = Vector2(1.4, 1.4)
 					cam.reset_smoothing()

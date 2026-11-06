@@ -268,6 +268,7 @@ func setup_village(target_entities_root: Node) -> void:
 	VillagePlaces.build_world(self) # V5c: parque, bancos de la plaza y mirador del lago
 	VillageWork.build_world(self) # V5d: lavadero
 	VillageUnderworld.build_sewers_world(self) # FIS3: trampillas en la calle y red de túneles conectada al sur
+	VillageHousing.sync_livestock(self) # FIS4: ganado vivo del rancho y animales propios del corral
 	_spawn_domestic_pets()
 	if not in_editor and DisplayServer.get_name() != "headless":
 		VillageMigration.seed_start_population(self) # Provisional: arranque con 40 vecinos para probar (no en las pruebas)
@@ -4767,6 +4768,7 @@ func load_economy_save_dict(data: Dictionary) -> void:
 	sect_state = (data["sect_state"] as Dictionary).duplicate(true) if typeof(data.get("sect_state")) == TYPE_DICTIONARY else {}
 	lots_state = (data["lots_state"] as Dictionary).duplicate(true) if typeof(data.get("lots_state")) == TYPE_DICTIONARY else {}
 	VillageLots.after_load(self)
+	VillageHousing.sync_livestock(self)
 	places_state = (data["places_state"] as Dictionary).duplicate(true) if typeof(data.get("places_state")) == TYPE_DICTIONARY else {}
 	work_state = (data["work_state"] as Dictionary).duplicate(true) if typeof(data.get("work_state")) == TYPE_DICTIONARY else {}
 	VillageWork.after_load(self)

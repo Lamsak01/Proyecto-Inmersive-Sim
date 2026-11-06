@@ -55,6 +55,17 @@ func get_facing_2d() -> Vector2:
 	return Vector2(sin(_cur_yaw), cos(_cur_yaw))
 
 
+func set_model_config(rel_path: String, h_px: float) -> void:
+	if model_rel == rel_path and is_equal_approx(height_px, h_px):
+		return
+	model_rel = rel_path
+	height_px = h_px
+	_disabled = false
+	if _holder != null and is_instance_valid(_holder):
+		_holder.queue_free()
+	_holder = null
+
+
 func _ready() -> void:
 	_entity = get_parent() as Node2D
 	_cur_yaw = randf_range(0.0, TAU)
@@ -80,7 +91,12 @@ func _attach_to_stage() -> bool:
 		root3d.add_child(chars)
 	var ws: float = WORLD_SCALE
 	var cos_p: float = float(st.get("_cos_p"))
-	var model := AssetLib.instantiate_model(model_rel, Vector3.ZERO, maxf(0.05, height_px * ws), true, true)
+	var fit_h: float = maxf(0.05, height_px * ws)
+	var model: Node3D = null
+	if model_rel == "procedural:chicken":
+		model = _build_procedural_chicken(fit_h)
+	else:
+		model = AssetLib.instantiate_model(model_rel, Vector3.ZERO, fit_h, true, true)
 	if model == null:
 		_disabled = true
 		return false
@@ -138,10 +154,81 @@ func _process(delta: float) -> void:
 	var spr = _entity.get("sprite")
 	var lying: bool = spr is Node2D and absf((spr as Node2D).rotation_degrees) > 45.0
 	if _anim == null:
+		if model_rel == "procedural:chicken" and not lying:
+			var hp := _model.get_node_or_null("HeadPivot") as Node3D
+			if _speed > 2.0:
+				_still_time = 0.0
+				var t_w: float = float(Time.get_ticks_msec()) * 0.015 + float(get_instance_id() % 11)
+				_model.position.y = absf(sin(t_w)) * height_px * WORLD_SCALE * 0.10
+				_model.rotation_degrees.z = sin(t_w) * 5.0
+				if hp != null:
+					hp.rotation_degrees.x = 10.0
+			else:
+				_still_time += delta
+				_model.position.y = 0.0
+				_model.rotation_degrees.z = 0.0
+				if hp != null:
+					var peck: bool = (int((_still_time + float(get_instance_id() % 7)) * 1.8) % 4) == 2
+					hp.rotation_degrees.x = (36.0 + sin(_still_time * 18.0) * 8.0) if peck else 0.0
+			return
 		_model.rotation_degrees.z = 90.0 if lying else 0.0
 		_model.position.y = height_px * WORLD_SCALE * 0.3 if lying else 0.0
 		return
 	_update_animation(delta, lying, just_shown)
+
+
+func _build_procedural_chicken(fit_h: float) -> Node3D:
+	var root := Node3D.new()
+	root.name = "ProceduralChicken3D"
+	root.scale = Vector3.ONE * fit_h
+	var is_chick: bool = height_px < 7.2
+	var mk_mat := func(col: Color) -> StandardMaterial3D:
+		var m := StandardMaterial3D.new()
+		m.albedo_color = col
+		m.roughness = 0.88
+		m.metallic = 0.02
+		return m
+	var m_feather: StandardMaterial3D = mk_mat.call(Color(0.96, 0.86, 0.42) if is_chick else Color(0.95, 0.92, 0.84))
+	var m_wing: StandardMaterial3D = mk_mat.call(Color(0.90, 0.76, 0.32) if is_chick else Color(0.84, 0.76, 0.64))
+	var m_tail: StandardMaterial3D = mk_mat.call(Color(0.66, 0.30, 0.16))
+	var m_comb: StandardMaterial3D = mk_mat.call(Color(0.86, 0.16, 0.16))
+	var m_beak: StandardMaterial3D = mk_mat.call(Color(0.94, 0.60, 0.14))
+	var m_eye: StandardMaterial3D = mk_mat.call(Color(0.10, 0.10, 0.10))
+	var add_box := func(parent: Node3D, pos: Vector3, sz: Vector3, mat: StandardMaterial3D, rot_deg: Vector3 = Vector3.ZERO) -> MeshInstance3D:
+		var mi := MeshInstance3D.new()
+		var bm := BoxMesh.new()
+		bm.size = sz
+		mi.mesh = bm
+		mi.material_override = mat
+		mi.position = pos
+		mi.rotation_degrees = rot_deg
+		parent.add_child(mi)
+		return mi
+	# Patas y dedos
+	add_box.call(root, Vector3(-0.12, 0.15, 0.0), Vector3(0.06, 0.30, 0.06), m_beak)
+	add_box.call(root, Vector3(0.12, 0.15, 0.0), Vector3(0.06, 0.30, 0.06), m_beak)
+	add_box.call(root, Vector3(-0.12, 0.02, 0.04), Vector3(0.10, 0.04, 0.16), m_beak)
+	add_box.call(root, Vector3(0.12, 0.02, 0.04), Vector3(0.10, 0.04, 0.16), m_beak)
+	# Cuerpo, pecho, alas y cola
+	add_box.call(root, Vector3(0.0, 0.46, -0.02), Vector3(0.46, 0.38, 0.56), m_feather)
+	add_box.call(root, Vector3(0.0, 0.48, 0.22), Vector3(0.38, 0.30, 0.16), m_feather)
+	add_box.call(root, Vector3(-0.26, 0.47, -0.02), Vector3(0.08, 0.24, 0.36), m_wing)
+	add_box.call(root, Vector3(0.26, 0.47, -0.02), Vector3(0.08, 0.24, 0.36), m_wing)
+	if not is_chick:
+		add_box.call(root, Vector3(0.0, 0.62, -0.32), Vector3(0.18, 0.28, 0.20), m_tail, Vector3(-25.0, 0.0, 0.0))
+	# Cabeza articulada (picoteo), pico, cresta, barbilla y ojos
+	var head_piv := Node3D.new()
+	head_piv.name = "HeadPivot"
+	head_piv.position = Vector3(0.0, 0.62, 0.18)
+	root.add_child(head_piv)
+	add_box.call(head_piv, Vector3(0.0, 0.13, 0.0), Vector3(0.28, 0.26, 0.28), m_feather)
+	add_box.call(head_piv, Vector3(0.0, 0.11, 0.19), Vector3(0.12, 0.09, 0.14), m_beak)
+	if not is_chick:
+		add_box.call(head_piv, Vector3(0.0, 0.30, 0.02), Vector3(0.08, 0.12, 0.22), m_comb)
+		add_box.call(head_piv, Vector3(0.0, 0.02, 0.15), Vector3(0.07, 0.10, 0.08), m_comb)
+	add_box.call(head_piv, Vector3(-0.145, 0.16, 0.06), Vector3(0.02, 0.05, 0.05), m_eye)
+	add_box.call(head_piv, Vector3(0.145, 0.16, 0.06), Vector3(0.02, 0.05, 0.05), m_eye)
+	return root
 
 
 func _update_animation(delta: float, lying: bool, just_shown: bool) -> void:

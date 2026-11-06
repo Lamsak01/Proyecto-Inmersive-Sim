@@ -52,7 +52,7 @@ func _ready() -> void:
 
 	_build_fence_enclosure()
 	_build_feeder_and_nest()
-	_spawn_initial_chickens(3)
+	_spawn_initial_chickens(0)
 	_refresh_coop_visuals()
 
 	if not Engine.is_editor_hint():
@@ -288,7 +288,9 @@ func _on_chicken_pet_confirmed() -> void:
 	_selected_chicken = {}
 
 func has_live_chickens() -> bool:
-	return not chickens.is_empty()
+	if not chickens.is_empty():
+		return true
+	return is_inside_tree() and not get_tree().get_nodes_in_group("player_livestock").is_empty()
 
 func get_breach_world_position() -> Vector2:
 	return global_position + Vector2(0, 32)
@@ -342,8 +344,9 @@ func _process(delta: float) -> void:
 	_update_chickens_motion(delta)
 
 	var mouse_near := global_position.distance_squared_to(get_global_mouse_position()) <= 42.0 * 42.0
+	var has_livestock: bool = is_inside_tree() and not get_tree().get_nodes_in_group("player_livestock").is_empty()
 	if status_label:
-		if _player_near or mouse_near:
+		if (_player_near or mouse_near) and not has_livestock:
 			status_label.text = _get_coop_prompt()
 			status_label.visible = true
 		else:
@@ -563,7 +566,7 @@ func _load_saved_state() -> void:
 		is_breached = bool(saved.get("breached", false))
 		fence_hp = float(saved.get("fence_hp", MAX_FENCE_HP))
 		var saved_gen: int = clampi(int(saved.get("max_genetics", 1)), 1, 3)
-		var target_c: int = clampi(int(saved.get("chickens", 3)), 0, 6)
+		var target_c: int = clampi(int(saved.get("chickens", 0)), 0, 6)
 		while chickens.size() > target_c:
 			var removed: Dictionary = chickens.pop_back()
 			var spr: Sprite2D = removed.get("sprite")

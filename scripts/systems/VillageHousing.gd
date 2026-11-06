@@ -20,6 +20,7 @@ const VillageLots = preload("res://scripts/systems/VillageLots.gd")
 const VillageLoans = preload("res://scripts/systems/VillageLoans.gd")
 const TraitDiscovery = preload("res://scripts/systems/TraitDiscovery.gd")
 const TraitCatalog = preload("res://scripts/data/TraitCatalog.gd")
+const LivestockAnimalScript = preload("res://scripts/obstacles/LivestockAnimal.gd")
 
 const HOUSE_CASH_COST: int = 100 # Precio de una casa mediana; cada solar cobra lo suyo con VillageLots.house_cost
 const FORECLOSED_COST: int = 80
@@ -43,6 +44,8 @@ const STOCKABLE_ITEMS: Array[String] = ["bread", "cooked_meat", "herbal_poultice
 const BUY_CHICK_COST: int = 15
 const JUVENILE_DAYS: int = 3
 const ADULT_ANIMAL_DAYS: int = 6
+const PRODUCT_COOLDOWN_DAYS: int = 2
+const RANCH_PEN_RECT: Rect2 = Rect2(Vector2(318.0, 408.0), Vector2(71.0, 124.0))
 
 static func state(vm) -> Dictionary:
 	var ts: Dictionary = vm.VillageTown.state(vm)
@@ -253,6 +256,7 @@ static func buy_young_animal(vm, species: String, inv, seller = null) -> bool:
 		vm.town_state["treasury"] = int(vm.town_state.get("treasury", 0)) + BUY_CHICK_COST
 	arr.append({"species": species, "stage": "chick", "age_days": 0, "power": 1, "fed_day": today()})
 	VillageChronicle.add(vm, "animal_bought", "Compraste una cría (%s) para criarla en tu corral" % species, true)
+	sync_livestock(vm)
 	return true
 
 static func feed_player_animals(vm, inv) -> int:
@@ -273,7 +277,161 @@ static func feed_player_animals(vm, inv) -> int:
 			a["age_days"] = int(a.get("age_days", 0)) + 2
 			a["stage"] = animal_stage_for_days(int(a["age_days"]))
 			a["power"] = clampi(int(a.get("power", 1)) + 1, 1, 5)
+	sync_livestock(vm)
 	return arr.size()
+
+static func _player_pen_rect(vm) -> Rect2:
+	var coop_pos: Vector2 = Vector2(42.0, 99.0)
+	if vm != null and vm.is_inside_tree() and vm.get_tree() != null:
+		var coop: Node2D = vm.get_tree().get_first_node_in_group("chicken_coop") as Node2D
+		if coop != null and is_instance_valid(coop):
+			coop_pos = coop.global_position
+	return Rect2(coop_pos + Vector2(-28.0, -8.0), Vector2(56.0, 30.0))
+
+static func sync_livestock(vm) -> void:
+	if vm == null or not ("entities_root" in vm) or vm.entities_root == null or not is_instance_valid(vm.entities_root):
+		return
+	var hs: Dictionary = state(vm)
+	var r_herd: Array = hs["ranch_herd"]
+	var p_animals: Array = hs["player_animals"]
+	var ranch_nodes: Array[Node2D] = []
+	var player_nodes: Array[Node2D] = []
+	for c in vm.entities_root.get_children():
+		if c is Node2D and is_instance_valid(c):
+			if c.is_in_group("ranch_livestock"):
+				ranch_nodes.append(c as Node2D)
+			elif c.is_in_group("player_livestock"):
+				player_nodes.append(c as Node2D)
+	for i in range(r_herd.size()):
+		if not (r_herd[i] is Dictionary):
+			continue
+		if i >= ranch_nodes.size():
+			var node_r: Node2D = LivestockAnimalScript.new()
+			vm.entities_root.add_child(node_r)
+			ranch_nodes.append(node_r)
+		ranch_nodes[i].call("configure_from_entry", vm, "ranch", i, r_herd[i], RANCH_PEN_RECT)
+	while ranch_nodes.size() > r_herd.size():
+		var ex_r: Node2D = ranch_nodes.pop_back()
+		if ex_r != null and is_instance_valid(ex_r):
+			ex_r.remove_from_group("ranch_livestock")
+			ex_r.remove_from_group("livestock_animals")
+			if ex_r.get_parent() != null:
+				ex_r.get_parent().remove_child(ex_r)
+			ex_r.queue_free()
+	var p_rect: Rect2 = _player_pen_rect(vm)
+	for j in range(p_animals.size()):
+		if not (p_animals[j] is Dictionary):
+			continue
+		if j >= player_nodes.size():
+			var node_p: Node2D = LivestockAnimalScript.new()
+			vm.entities_root.add_child(node_p)
+			player_nodes.append(node_p)
+		player_nodes[j].call("configure_from_entry", vm, "player", j, p_animals[j], p_rect)
+	while player_nodes.size() > p_animals.size():
+		var ex_p: Node2D = player_nodes.pop_back()
+		if ex_p != null and is_instance_valid(ex_p):
+			ex_p.remove_from_group("player_livestock")
+			ex_p.remove_from_group("livestock_animals")
+			if ex_p.get_parent() != null:
+				ex_p.get_parent().remove_child(ex_p)
+			ex_p.queue_free()
+	if vm.is_inside_tree() and vm.get_tree() != null:
+		var coop_node: Node2D = vm.get_tree().get_first_node_in_group("chicken_coop") as Node2D
+		if coop_node != null and is_instance_valid(coop_node) and coop_node.has_method("_update_visuals"):
+			coop_node.call("_update_visuals")
+
+static func can_harvest_animal_product(vm, idx: int) -> bool:
+	var arr: Array = state(vm)["player_animals"]
+	if idx < 0 or idx >= arr.size() or not (arr[idx] is Dictionary):
+		return false
+	var a: Dictionary = arr[idx]
+	if str(a.get("stage", "chick")) != "adult":
+		return false
+	return today() - int(a.get("last_product_day", -99)) >= PRODUCT_COOLDOWN_DAYS
+
+static func get_player_animal_interact_label(vm, idx: int) -> String:
+	var arr: Array = state(vm)["player_animals"]
+	if idx < 0 or idx >= arr.size() or not (arr[idx] is Dictionary):
+		return "Dar de comer al animal"
+	var a: Dictionary = arr[idx]
+	var sp: String = str(a.get("species", "sheep"))
+	var st: String = str(a.get("stage", "chick"))
+	var feed_lbl: String = "Dar de comer a la oveja" if sp == "sheep" else "Dar de comer a la gallina"
+	var harv_lbl: String = "Esquilar la oveja" if sp == "sheep" else "Recoger huevos"
+	if st != "adult":
+		return feed_lbl
+	var unfed: int = today() - int(a.get("fed_day", today()))
+	if unfed > ANIMAL_FED_DAYS:
+		return feed_lbl
+	if can_harvest_animal_product(vm, idx):
+		return harv_lbl
+	if unfed >= 1:
+		return feed_lbl
+	return harv_lbl + " (en espera)"
+
+static func feed_single_player_animal(vm, idx: int, inv, player: Node2D = null) -> bool:
+	var arr: Array = state(vm)["player_animals"]
+	if idx < 0 or idx >= arr.size() or not (arr[idx] is Dictionary) or inv == null:
+		return false
+	var used: String = ""
+	for food_id in ["wheat", "bread", "carrot"]:
+		if inv.has_item(food_id, 1):
+			inv.remove_item(food_id, 1)
+			used = food_id
+			break
+	if used == "":
+		if player != null and player.has_method("show_hint"):
+			player.show_hint("🌾 Necesitas llevar trigo, pan o zanahoria para darle de comer.")
+		return false
+	var a: Dictionary = arr[idx]
+	a["fed_day"] = today()
+	a["age_days"] = int(a.get("age_days", 0)) + 2
+	a["stage"] = animal_stage_for_days(int(a["age_days"]))
+	a["power"] = clampi(int(a.get("power", 1)) + 1, 1, 5)
+	sync_livestock(vm)
+	if player != null and player.has_method("show_hint"):
+		var sp_txt: String = "la oveja" if str(a.get("species", "sheep")) == "sheep" else "la gallina"
+		player.show_hint("🌾🐾 Diste de comer a %s (+2 días de crecimiento, etapa: %s)." % [sp_txt, str(a["stage"])])
+	return true
+
+static func harvest_player_animal(vm, idx: int, inv, player: Node2D = null) -> bool:
+	if inv == null or not can_harvest_animal_product(vm, idx):
+		return false
+	var arr: Array = state(vm)["player_animals"]
+	var a: Dictionary = arr[idx]
+	var sp: String = str(a.get("species", "sheep"))
+	var prod_id: String = "wool" if sp == "sheep" else "egg"
+	a["last_product_day"] = today()
+	inv.add_item(prod_id, 1)
+	if sp == "sheep":
+		VillageChronicle.add(vm, "sheep_sheared", "Esquilaste tu oveja adulta en el corral (+1 lana)", true)
+		if player != null and player.has_method("show_hint"):
+			player.show_hint("🐑✂️ Esquilaste la oveja (+1 Lana).")
+	else:
+		VillageChronicle.add(vm, "eggs_collected", "Recogiste huevos frescos de tu gallina en el corral (+1 huevo)", true)
+		if player != null and player.has_method("show_hint"):
+			player.show_hint("🐓🥚 Recogiste huevos frescos (+1 Huevo).")
+	sync_livestock(vm)
+	return true
+
+static func interact_player_animal(vm, idx: int, player: Node2D) -> bool:
+	var arr: Array = state(vm)["player_animals"]
+	if idx < 0 or idx >= arr.size() or not (arr[idx] is Dictionary):
+		return false
+	var inv = player.get("inventory") if player != null else null
+	var a: Dictionary = arr[idx]
+	var st: String = str(a.get("stage", "chick"))
+	var unfed: int = today() - int(a.get("fed_day", today()))
+	if st != "adult" or unfed > ANIMAL_FED_DAYS:
+		return feed_single_player_animal(vm, idx, inv, player)
+	if can_harvest_animal_product(vm, idx):
+		return harvest_player_animal(vm, idx, inv, player)
+	if unfed >= 1:
+		return feed_single_player_animal(vm, idx, inv, player)
+	if player != null and player.has_method("show_hint"):
+		var wait_txt: String = "Esta oveja ya fue esquilada hace poco." if str(a.get("species", "sheep")) == "sheep" else "Esta gallina ya puso huevo hace poco."
+		player.show_hint("⏳🐾 %s Espera un par de días." % wait_txt)
+	return false
 
 static func best_adult_animal_power(vm, species_filter: String = "") -> int:
 	var best: int = 0
@@ -616,11 +774,10 @@ static func daily(vm) -> void:
 		pa["stage"] = animal_stage_for_days(int(pa["age_days"]))
 		if str(pa["stage"]) == "adult":
 			adult_p_cnt += 1
-	if adult_p_cnt > 0 and inv != null and today() % 2 == 0:
-		inv.add_item("cooked_meat", 1)
 	if adult_p_cnt >= 2 and p_animals.size() < 4 and today() % 4 == 0:
 		p_animals.append({"species": "rooster", "stage": "chick", "age_days": 0, "power": 1, "fed_day": today()})
 		VillageChronicle.add(vm, "animal_bred", "Ha nacido una nueva cría en tu corral", true)
+	sync_livestock(vm)
 
 # ==============================================================================
 # Diálogos con el carpintero, pareja, inquilinos y vecinos
@@ -721,13 +878,11 @@ static func add_dialogue_choices(vm, npc, diag: Dictionary, ch_arr: Array) -> vo
 		if str(ps.get("clerk_key", "")) == "" and int(npc.trade_role) == int(VillageNPC.TradeRole.UNEMPLOYED) and not VillageNeeds.is_outsider(npc):
 			opts.append({"label": "🤝🏪 Contratarle como dependiente de tu negocio (%d Oro/día de la caja)" % CLERK_WAGE, "next": "END", "action": "housing_hire_clerk"})
 
-	# Bloque PI.1: Comprar crías y alimentar tus animales de corral (con el Ganadero o el Carpintero)
+	# Bloque PI.1 / FIS4: Comprar crías (con el Ganadero o el Carpintero); la alimentación y esquila/recogida se hacen en persona con [E] en el corral
 	var is_rancher: bool = int(npc.trade_role) == int(VillageNPC.TradeRole.RANCHER)
 	if (is_rancher or is_carp) and (hs["player_animals"] as Array).size() < 4:
 		opts.append({"label": "🐣🐓 Comprar cría de gallo/sabueso para criarla (-%d Oro -> crece en 6 días)" % BUY_CHICK_COST, "next": "END", "action": "housing_buy_chick:rooster"})
 		opts.append({"label": "🐣🐑 Comprar cordero joven para criar en tu corral (-%d Oro -> crece en 6 días)" % BUY_CHICK_COST, "next": "END", "action": "housing_buy_chick:sheep"})
-	if not (hs["player_animals"] as Array).is_empty() and (is_rancher or is_carp):
-		opts.append({"label": "🌾🐣 Alimentar a tus crías con grano o pan (-1 Trigo/Pan -> +2 días de crecimiento y +1 vigor)", "next": "END", "action": "housing_feed_animals"})
 
 	if not opts.is_empty():
 		opts.append({"label": "⬅️ Volver", "next": "start"})

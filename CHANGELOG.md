@@ -3,6 +3,16 @@
 Cambios del juego, del más nuevo al más antiguo. Añade una entrada al cerrar cada bloque, en lenguaje sencillo.
 El detalle técnico está en `docs/HANDOFF.md` (sección 7) y el historial completo en `git log`. Lo anterior a B0.1 está en `AUDIT_LOG.md` y `SESSION_CONTEXT_LOG.md`.
 
+## 2026-11-05 — El ganado del rancho y tus animales de corral existen de verdad
+- En el corral del **Rancho del Sur** ahora pasean de verdad las ovejas y gallinas del ganadero, cambiando de tamaño según
+  su etapa (cría, joven o adulto) y actualizándose cuando nace una camada o se vende una res.
+- Cuando compras crías al ganadero o al carpintero, **aparecen de verdad dentro de tu corral** junto a tu granja y caminan
+  por el cercado. Si dejas morir de hambre a una, desaparece del corral.
+- Te acercas a cada animal tuyo y pulsas **E** para **darle de comer en mano** (gasta trigo, pan o zanahoria de tu mochila
+  y lo hace crecer) o, cuando ya es adulto, para **esquilar la oveja** (+1 lana) o **recoger huevos** (+1 huevo), una vez
+  cada dos días por animal.
+- Ya no se da de comer a los animales charlando con el ganadero ni entra carne cocinada sola en tu mochila cada dos días.
+
 ## 2026-11-05 — Las alcantarillas se recorren a pie de verdad
 - En la calle hay **tres rejillas de hierro** (junto a la Plaza, detrás de la Taberna y al oeste de la Herrería). Si aún
   no tienes la llave, el letrero avisa: «Cerrada: el perista vende la llave».

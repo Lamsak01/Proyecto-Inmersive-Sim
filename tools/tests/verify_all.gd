@@ -4638,5 +4638,116 @@ func _initialize() -> void:
 	p70_inv.gold = fis3_gold_bak
 	print("Block FIS3 (Walkable Sewers, Street Grates, Ladders & Contraband Chests) OK")
 
+	# ---------------------------------------------------------
+	# Block 98: Live Ranch Herd & Player Livestock (FIS4)
+	# ---------------------------------------------------------
+	var fis4_ranch_bak: Array = (vho.state(vm)["ranch_herd"] as Array).duplicate(true)
+	var fis4_panim_bak: Array = (vho.state(vm)["player_animals"] as Array).duplicate(true)
+	var fis4_gold_bak: int = p70_inv.gold
+	var fis4_day_bak: int = int(t5_wc.current_day)
+
+	# FIS4.1: El número de animales vivos en el rancho ("ranch_livestock") coincide con ranch_herd y cambia cuando cambia la lista
+	vho.state(vm)["ranch_herd"] = [
+		{"species": "sheep", "stage": "chick", "age_days": 0},
+		{"species": "rooster", "stage": "juvenile", "age_days": 3},
+	]
+	vho.sync_livestock(vm)
+	var fis4_r_nodes: Array = root.get_tree().get_nodes_in_group("ranch_livestock")
+	assert(fis4_r_nodes.size() == 2, "FIS4.1a: ranch_livestock node count (2) matches ranch_herd.size()")
+	for rn_f4 in fis4_r_nodes:
+		var rn_pos: Vector2 = (rn_f4 as Node2D).global_position
+		assert(vho.RANCH_PEN_RECT.grow(2.0).has_point(rn_pos), "FIS4.1b: Ranch animal at %s is inside RANCH_PEN_RECT" % str(rn_pos))
+	(vho.state(vm)["ranch_herd"] as Array).append({"species": "sheep", "stage": "adult", "age_days": 6})
+	vho.sync_livestock(vm)
+	assert(root.get_tree().get_nodes_in_group("ranch_livestock").size() == 3, "FIS4.1c: Adding to ranch_herd spawns a 3rd live ranch_livestock node")
+
+	# FIS4.2: Comprar una cría la hace aparecer en tu corral ("player_livestock") y pulsar [E] con trigo/pan le da de comer y la hace crecer
+	(vho.state(vm)["player_animals"] as Array).clear()
+	vho.sync_livestock(vm)
+	assert(root.get_tree().get_nodes_in_group("player_livestock").size() == 0, "FIS4.2a: Empty player_animals has 0 player_livestock nodes")
+	p70_inv.gold = 100
+	assert(vho.buy_young_animal(vm, "sheep", p70_inv, p70_a), "FIS4.2b: Bought young sheep")
+	assert(vho.buy_young_animal(vm, "rooster", p70_inv, p70_a), "FIS4.2c: Bought young rooster")
+	var fis4_p_nodes: Array = root.get_tree().get_nodes_in_group("player_livestock")
+	assert(fis4_p_nodes.size() == 2, "FIS4.2d: Buying 2 young animals spawns 2 live player_livestock nodes in the coop")
+	var fis4_sheep_node: Node2D = fis4_p_nodes[0] as Node2D
+	var fis4_rooster_node: Node2D = fis4_p_nodes[1] as Node2D
+	var fis4_p_rect: Rect2 = vho._player_pen_rect(vm).grow(2.0)
+	assert(fis4_p_rect.has_point(fis4_sheep_node.global_position) and fis4_p_rect.has_point(fis4_rooster_node.global_position), "FIS4.2e: Both player_livestock nodes are inside the player's coop fence")
+	assert(str(fis4_sheep_node.call("get_interact_label", p70_pl)) == "Dar de comer a la oveja", "FIS4.2f: Young sheep interact label is 'Dar de comer a la oveja'")
+	assert(str(fis4_rooster_node.call("get_interact_label", p70_pl)) == "Dar de comer a la gallina", "FIS4.2g: Young rooster interact label is 'Dar de comer a la gallina'")
+	p70_inv.remove_item("wheat", p70_inv.get_count("wheat"))
+	p70_inv.add_item("wheat", 6)
+	# Alimentar 3 veces a la oveja con [E] (0 -> 2 -> 4 -> 6 días -> adult)
+	for _f_i in range(3):
+		fis4_sheep_node.call("interact", p70_pl)
+	assert(p70_inv.get_count("wheat") == 3 and str(vho.state(vm)["player_animals"][0]["stage"]) == "adult", "FIS4.2h: Feeding sheep 3 times via [E] spends 3 wheat and advances it to adult")
+	# Alimentar 3 veces a la gallina con [E] (0 -> 2 -> 4 -> 6 días -> adult)
+	for _f_j in range(3):
+		fis4_rooster_node.call("interact", p70_pl)
+	assert(p70_inv.get_count("wheat") == 0 and str(vho.state(vm)["player_animals"][1]["stage"]) == "adult", "FIS4.2i: Feeding rooster 3 times via [E] spends 3 wheat and advances it to adult")
+
+	# FIS4.3: Siendo adultos, pulsar [E] da "wool" o "egg" en mano como máximo una vez cada 2 días por animal, y ya no entra "cooked_meat" sola en daily()
+	p70_inv.remove_item("wool", p70_inv.get_count("wool"))
+	p70_inv.remove_item("egg", p70_inv.get_count("egg"))
+	p70_inv.remove_item("cooked_meat", p70_inv.get_count("cooked_meat"))
+	assert(str(fis4_sheep_node.call("get_interact_label", p70_pl)) == "Esquilar la oveja", "FIS4.3a: Adult sheep ready for shearing shows 'Esquilar la oveja'")
+	assert(str(fis4_rooster_node.call("get_interact_label", p70_pl)) == "Recoger huevos", "FIS4.3b: Adult rooster ready for egg collection shows 'Recoger huevos'")
+	fis4_sheep_node.call("interact", p70_pl)
+	fis4_rooster_node.call("interact", p70_pl)
+	assert(p70_inv.get_count("wool") == 1 and p70_inv.get_count("egg") == 1, "FIS4.3c: Interacting with adult sheep and rooster grants +1 wool and +1 egg")
+	# Intentar esquilar / recoger de nuevo el mismo día no da más lana ni huevos
+	fis4_sheep_node.call("interact", p70_pl)
+	fis4_rooster_node.call("interact", p70_pl)
+	assert(p70_inv.get_count("wool") == 1 and p70_inv.get_count("egg") == 1, "FIS4.3d: Cooldown prevents collecting wool or eggs a second time within 2 days")
+	# En día par, daily(vm) ya NO regala cooked_meat sola
+	t5_wc.current_day = 10
+	vho.state(vm)["player_animals"][0]["fed_day"] = 10
+	vho.state(vm)["player_animals"][1]["fed_day"] = 10
+	vho.state(vm)["player_animals"][0]["last_product_day"] = 10
+	vho.state(vm)["player_animals"][1]["last_product_day"] = 10
+	vho.daily(vm)
+	assert(p70_inv.get_count("cooked_meat") == 0, "FIS4.3e: VillageHousing.daily(vm) no longer adds automatic cooked_meat to inventory")
+	# Dos días después (día 12), vuelve a permitir esquilar y recoger huevos
+	t5_wc.current_day = 12
+	vho.state(vm)["player_animals"][0]["fed_day"] = 12
+	vho.state(vm)["player_animals"][1]["fed_day"] = 12
+	fis4_sheep_node.call("interact", p70_pl)
+	fis4_rooster_node.call("interact", p70_pl)
+	assert(p70_inv.get_count("wool") == 2 and p70_inv.get_count("egg") == 2, "FIS4.3f: After 2 days, adult sheep and rooster can be harvested again (+1 wool, +1 egg)")
+
+	# FIS4.4: El diálogo con el ganadero / carpintero ya no ofrece "housing_feed_animals"
+	var fis4_carp = vm.trade_npcs.get(int(load("res://scripts/enemies/VillageNPC.gd").TradeRole.CARPENTER))
+	var fis4_rancher = vm.trade_npcs.get(int(load("res://scripts/enemies/VillageNPC.gd").TradeRole.RANCHER))
+	for npc_f4 in [fis4_carp, fis4_rancher]:
+		if npc_f4 == null:
+			continue
+		var dlg_f4: Dictionary = {}
+		vho.add_dialogue_choices(vm, npc_f4, dlg_f4, [{"label": "[Salir]", "next": "END"}])
+		var h_choices: Array = (dlg_f4.get("housing_menu", {}) as Dictionary).get("choices", [])
+		for ch_f4 in h_choices:
+			assert(str((ch_f4 as Dictionary).get("action", "")) != "housing_feed_animals", "FIS4.4: Dialogue no longer offers housing_feed_animals")
+
+	# FIS4.5: Guardar y cargar conserva los animales vivos del rancho y del corral; y si uno muere de hambre, desaparece del mapa
+	var fis4_save: Dictionary = vm.get_economy_save_dict()
+	(vho.state(vm)["ranch_herd"] as Array).clear()
+	(vho.state(vm)["player_animals"] as Array).clear()
+	vho.sync_livestock(vm)
+	assert(root.get_tree().get_nodes_in_group("ranch_livestock").size() == 0 and root.get_tree().get_nodes_in_group("player_livestock").size() == 0, "FIS4.5a: Cleared livestock before load")
+	vm.load_economy_save_dict(fis4_save)
+	assert(root.get_tree().get_nodes_in_group("ranch_livestock").size() == (vho.state(vm)["ranch_herd"] as Array).size() and root.get_tree().get_nodes_in_group("player_livestock").size() == 2, "FIS4.5b: Loading save restores live ranch_livestock and player_livestock nodes")
+	# Si el primer animal lleva 5 días sin comer, muere en daily() y su nodo desaparece del mapa
+	vho.state(vm)["player_animals"][0]["fed_day"] = vho.today() - vho.ANIMAL_STARVE_DAYS
+	vho.state(vm)["player_animals"][1]["fed_day"] = vho.today()
+	vho.daily(vm)
+	assert((vho.state(vm)["player_animals"] as Array).size() == 1 and root.get_tree().get_nodes_in_group("player_livestock").size() == 1, "FIS4.5c: Starved player animal is removed from player_animals and its physical node disappears from the map")
+
+	t5_wc.current_day = fis4_day_bak
+	vho.state(vm)["ranch_herd"] = fis4_ranch_bak
+	vho.state(vm)["player_animals"] = fis4_panim_bak
+	vho.sync_livestock(vm)
+	p70_inv.gold = fis4_gold_bak
+	print("Block FIS4 (Live Ranch Herd & Player Livestock) OK")
+
 	print("ALL RIMWORLD MEDICAL, FOOTPRINTS, 3-PHASE CORPSE REPORT, MULTI-CORPSE FIX, RPG INTERROGATION, PUBLIC TRIAL, DYNAMIC RELATIONSHIPS, MISSING FAMILY SEARCH, SOCIAL GLOSSARY & UNCONSCIOUS REACTION TESTS PASSED!")
 	quit(0)

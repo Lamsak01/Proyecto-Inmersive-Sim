@@ -163,13 +163,11 @@ static func build_extras(vm, id: String) -> void:
 			border.default_color = Color(0.52, 0.36, 0.20, 0.95)
 			border.points = PackedVector2Array([Vector2(x0, y0), Vector2(x1, y0), Vector2(x1, y1), Vector2(x0, y1), Vector2(x0, y0)])
 			border.z_index = -2
+			border.add_to_group("ranch_fence_2d")
 			vm.entities_root.add_child(border)
 			vm._add_poly(_rect(x0, y0, x1, y1), Color(0.44, 0.56, 0.26, 0.55), -4)
-			var hen: Texture2D = vm._load_tex("res://assests/world/camp/chicken.png")
-			var pig: Texture2D = vm._load_tex("res://assests/world/harvest/wild_boar.png")
-			for k in range(4):
-				vm._add_sprite_prop(pig if k % 2 == 0 else hen, Vector2(lerpf(x0 + 14, x1 - 14, float(k) / 3.0), lerpf(y0 + 20, y1 - 20, float(k % 2))), Vector2(0.6, 0.6) if k % 2 == 0 else Vector2(0.9, 0.9), 0)
 			vm._spawn_decor_prop(props + "hay_2.png", Vector2(x0 + 12.0, y1 - 12.0), Vector2(0.7, 0.7))
+			load("res://scripts/systems/VillageHousing.gd").sync_livestock(vm)
 		"quarry":
 			vm._add_poly(_rect(x0, y0, x1, y1), Color(0.46, 0.44, 0.40, 0.8), -4) # Roca a cielo abierto
 			var rock: Texture2D = vm._load_tex("res://assests/world/harvest/rock_iron_vein.png")

@@ -1,86 +1,81 @@
-# Informe de Antigravity — Bloque FIS3 (Alcantarillas que se recorren de verdad)
+# Informe de Antigravity — Bloque FIS4 (Ganado vivo en el rancho y tus animales de verdad)
 
-**Fecha:** 2026-11-05  
-**Encargo:** `docs/ENCARGO_ANTIGRAVITY.md` §2 (Bloque FIS3) y notas de `docs/REVISION_SUPERVISOR.md`.
+**Fecha:** 2026-11-05
+**Encargo completado:** Bloque **FIS4** de `docs/ENCARGO_ANTIGRAVITY.md` (§2).
 
 ---
 
 ## 1. Qué hice
 
-### 1.1. Tres trampillas/rejillas en la calle (`sewer_grate`, 2D y 3D)
-- Actualicé `VillageUnderworld.SEWER_LOCATIONS` con posiciones de calle fuera de todas las huellas de edificios (`vm.building_footprints`) y fuera de las calzadas principales por donde caminan los vecinos:
-  - `"cistern"` («Cisterna Vieja bajo la Plaza»): `Vector2(518.0, 26.0)` (esquina noreste del adoquinado de la Plaza Central).
-  - `"smuggler_tunnel"` («Pasadizo del Contrabandista»): `Vector2(398.0, -118.0)` (callejón al sur de la Taberna y al oeste de la calle norte-sur).
-  - `"flooded_vault"` («Bóveda Inundada del Antiguo Gremio»): `Vector2(248.0, -90.0)` (entre la calle occidental y la fachada oeste de la Herrería).
-- En `VillageUnderworld.build_sewers_world(vm)` se instancian las tres rejillas (`SewerGrate_cistern`, `SewerGrate_smuggler_tunnel`, `SewerGrate_flooded_vault`) usando `scripts/obstacles/WorldInteractableProp.gd` con `prop_kind = "sewer_grate"` (en los grupos `"interactable"`, `"sewer_grate"` y `"sewer_station"`).
-- **Sin llave (`sewers_state(vm)["unlocked"] == false`):** `get_interact_label` devuelve `"Cerrada: el perista vende la llave"` y al pulsar `[E]` (`VillageUnderworld.interact_sewer_grate`) muestra el aviso y no baja al jugador.
-- **Con llave (`sewers_state(vm)["unlocked"] == true`):** `get_interact_label` devuelve `"Bajar a las alcantarillas (<título>)"` y al pulsar `[E]` llama a `VillageUnderworld.enter_sewer_location(vm, loc_id, player)`, que pone `sewers_state(vm)["current_loc"] = loc_id`, `vm.set_player_elevation_level(-1)`, `vm._elevation_anchor = Vector2.INF` y traslada `pl.global_position` a `SEWER_LOCATIONS[loc_id]["tunnel_pos"]`.
-- En `WorldStage3D._build_static_terrain_3d()` las tres rejillas 3D de hierro se colocan exactamente en `VillageUnderworldScript.SEWER_LOCATIONS[loc_id]["pos"]`.
+1. **Ganado vivo en el corral del Rancho del Sur (`ranch_herd` → grupo `"ranch_livestock"`):**
+   - Creé `scripts/obstacles/LivestockAnimal.gd` (`extends Node2D`) con las funciones `configure_from_entry`, `setup_animal`, `update_from_dict`, `_process`, `get_interact_label` e `interact`.
+   - En `scripts/systems/VillageHousing.gd`, añadí `RANCH_PEN_RECT = Rect2(Vector2(318.0, 408.0), Vector2(71.0, 124.0))` (interior de la valla `x = 310..397`, `y = 400..540` del solar `"s3"`) y la función `sync_livestock(vm)` que sincroniza un nodo `LivestockAnimal` en el grupo `"ranch_livestock"` por cada entrada de `VillageHousing.state(vm)["ranch_herd"]`.
+   - Cada animal camina despacio dentro de su `pen_rect` (sin atravesar la valla) y ajusta el tamaño de su sprite 2D y su modelo 3D según `stage` (`"chick"`, `"juvenile"`, `"adult"`). Cuando `ranch_herd` cambia en `VillageHousing.daily(vm)` (nace una cría, crece de etapa o se vende una res madura), `sync_livestock(vm)` actualiza los nodos del mapa al instante.
+   - En `scripts/systems/VillageTrades.gd` (`build_extras`, caso `"ranch"`), eliminé los 4 dibujos estáticos (`hen`, `pig`), marqué la `Line2D` de la valla en el grupo `"ranch_fence_2d"` y llamé a `VillageHousing.sync_livestock(vm)`.
+   - En `scripts/visuals/WorldStage3D.gd` (`_build_static_terrain_3d`), añadí el suelo de tierra y la valla 3D de postes y travesaños del corral del Rancho del Sur (`x = 310..397`, `y = 400..540`) con `_build_fence_run_3d`, y oculté el borde plano `"ranch_fence_2d"` en `_sync_2d_flat_visuals(use_3d)`.
 
-### 1.2. Red de túneles subterráneos caminables con muros físicos (`StaticBody2D`)
-- En `VillageUnderworld.build_sewers_world(vm)` construí el nodo `SewersNetwork2D` al sur del mapa (`x = 205..635`, `y = 1480..1560`, centrado en `y = 1520.0`, al sur del Bosque Profundo que termina en `y = 1240` y fuera del alcance de los vecinos de la superficie):
-  - Tres cámaras subterráneas conectadas en fila: `"flooded_vault"` en `Vector2(260.0, 1520.0)`, `"smuggler_tunnel"` en `Vector2(420.0, 1520.0)` y `"cistern"` en `Vector2(580.0, 1520.0)`, unidas por dos galerías de paso en `Vector2(340.0, 1520.0)` y `Vector2(500.0, 1520.0)`.
-  - Muros físicos reales en `SewerTunnelWallsBody` (`StaticBody2D` con `collision_layer = 1` y 20 `CollisionShape2D` rectangulares) que cierran el perímetro de las tres cámaras y los dos pasillos para que el jugador camine entre ellas sin salirse al vacío.
-  - Dibujo 2D en `SewersVisual2D` (grupo `"sewer_visual_2d"`, que `WorldStage3D._sync_2d_flat_visuals` oculta automáticamente en modo 3D).
-- En `WorldStage3D._build_sewers_3d()` reconstruí `sewers_root_3d` en las mismas coordenadas `y = 1520.0` con roca subterránea alrededor, suelos de losa y canales de agua turbia para las 3 cámaras y los 2 pasillos conectados, muros de piedra, antorchas de pared con `OmniLight3D`, escalerillas 3D y cofres `props/Prop_Chest_Closed.gltf`.
-- En `VillageManager.check_elevation_exit(player)` añadí la guarda `if VillageUnderworld.is_player_in_sewers(self): return` al principio para que caminar por los túneles nunca devuelva automáticamente al jugador al nivel `0`.
+2. **Tus propios animales vivos en el corral (`player_animals` → grupo `"player_livestock"`):**
+   - En `VillageHousing.sync_livestock(vm)`, cada entrada de `VillageHousing.state(vm)["player_animals"]` se sincroniza con un nodo `LivestockAnimal` en el grupo `"player_livestock"` dentro del recinto interior del `ChickenCoop` (`_player_pen_rect(vm)` = `Rect2(coop_pos + Vector2(-28.0, -8.0), Vector2(56.0, 30.0))`).
+   - En `scripts/obstacles/ChickenCoop.gd`, ajusté `_ready` para iniciar con `_spawn_initial_chickens(0)` (evitando gallinas 2D decorativas que no están en `player_animals`), actualicé `has_live_chickens()` para contar también `"player_livestock"` y oculté `status_label` cuando hay animales en `"player_livestock"`.
+   - En `scripts/ui/InteractionSelector.gd` (`_refresh`), di prioridad a los nodos en `"player_livestock"` sobre el `CoopInteractArea` general del gallinero.
+   - Si un animal del jugador muere por hambre (`unfed >= ANIMAL_STARVE_DAYS`) en `VillageHousing.daily(vm)`, `sync_livestock(vm)` elimina inmediatamente su nodo físico del mapa.
 
-### 1.3. Escalerillas de salida (`sewer_ladder`) y purga semanal por el Pasadizo del Contrabandista
-- En cada cámara subterránea (`SEWER_LOCATIONS[loc_id]["ladder_pos"]`, en `y = 1490.0`) se instancia una escalerilla (`SewerLadder_cistern`, `SewerLadder_smuggler_tunnel`, `SewerLadder_flooded_vault`) con `prop_kind = "sewer_ladder"`.
-- Al pulsar `[E]` (`Subir a la calle (<título>)`), `VillageUnderworld.exit_sewer_ladder(vm, loc_id, player)` llama a `exit_sewers_to_surface(vm)` (`current_loc = ""`, `vm.set_player_elevation_level(0)`) y coloca al jugador en `SEWER_LOCATIONS[loc_id]["pos"]`. Así se puede entrar por una rejilla (p. ej. la Cisterna), caminar bajo tierra hasta otra cámara y salir a la calle por otra rejilla distinta.
-- Si se sale por la escalerilla de `"smuggler_tunnel"` y `vm.wanted_level > 0` y `VillageHousing.can_purge_wanted(vm)` es cierto, rebaja `vm.wanted_level` en 1 y llama a `VillageHousing.mark_wanted_purge(vm)` (máximo 1 vez cada 7 días, compartido con el sótano y el archivo policial).
+3. **Interacción en persona con `[E]` para alimentar y recoger lana o huevos:**
+   - Implementé en `scripts/systems/VillageHousing.gd`:
+     - `can_harvest_animal_product(vm, idx: int) -> bool`: comprueba que el animal sea `"adult"` y que hayan pasado al menos `PRODUCT_COOLDOWN_DAYS = 2` días desde `last_product_day`.
+     - `get_player_animal_interact_label(vm, idx: int) -> String`: devuelve `"Dar de comer a la oveja"` / `"Dar de comer a la gallina"` para crías, jóvenes o adultos hambrientos, y `"Esquilar la oveja"` / `"Recoger huevos"` (o `" (en espera)"` si está en enfriamiento y ya comió hoy) para adultos listos.
+     - `feed_single_player_animal(vm, idx: int, inv, player: Node2D = null) -> bool`: gasta `1` de `"wheat"`, `"bread"` o `"carrot"` de la mochila del jugador y hace avanzar a ese animal (`fed_day = today()`, `age_days += 2`, actualiza `stage` y `power`, y llama a `sync_livestock(vm)`).
+     - `harvest_player_animal(vm, idx: int, inv, player: Node2D = null) -> bool`: entrega `+1 "wool"` (si `species == "sheep"`) o `+1 "egg"` (si `species == "rooster"`), registra `last_product_day = today()` (máximo 1 vez cada 2 días por animal) y añade entrada en `VillageChronicle`.
+     - `interact_player_animal(vm, idx: int, player: Node2D) -> bool`: punto de entrada llamado por `LivestockAnimal.interact(player)`.
+   - **Retirado el `"cooked_meat"` automático:** eliminé de `VillageHousing.daily(vm)` la entrega automática de `"cooked_meat"` cada 2 días.
+   - **Retirado `"housing_feed_animals"` del diálogo:** eliminé la opción `"housing_feed_animals"` de `VillageHousing.add_dialogue_choices(vm, npc, diag, ch_arr)` (conservando las opciones `"housing_buy_chick:rooster"` y `"housing_buy_chick:sheep"` para comprar crías al ganadero o al carpintero, y manteniendo la función `feed_player_animals` por compatibilidad con el test antiguo `Block PI`).
 
-### 1.4. Cofres de contrabando bajo tierra (`sewer_chest`, suma cero) y limpieza del diálogo del perista
-- En cada cámara subterránea (`SEWER_LOCATIONS[loc_id]["chest_pos"]`, en `y = 1502.0`) se instancia un cofre (`SewerChest_cistern`, `SewerChest_smuggler_tunnel`, `SewerChest_flooded_vault`) con `prop_kind = "sewer_chest"`.
-- Al pulsar `[E]` (`Abrir cofre de contrabando (<título>)`), `VillageUnderworld.interact_sewer_chest` llama a `open_sewer_chest(vm, loc_id, inv)`:
-  - Limita la apertura a **1 vez al día por cámara** mediante `sewers_state(vm)["chest_days"][loc_id]`.
-  - Si tiene éxito (misma fórmula con bonificación por `"lockpick"` y `"voltaic_capacitors"`), entrega 1 unidad de `loot_item` (`"copper_coil"`, `"bandit_scrap"` o `"ancient_book"`) y hasta 6 monedas descontadas de `sewers_state(vm)["lost_coins_pool"]` (cumpliendo la Regla 1 de suma cero).
-  - Si falla, aplica el percance de trampa/aguas negras (`-14.0` a `health_comp.current_health` sin bajar de `1.0` y `-25.0` a `player_hygiene`).
-- En `VillageUnderworld.add_dialogue_choices` retiré del diálogo del perista las opciones `"Bajar al nivel -1 y explorar..."` (`underworld_sewer_explore:`) y `"Subir por la escalerilla..."` (`underworld_sewer_surface`), manteniendo únicamente `"Comprar llave de las alcantarillas (20 oro)"` (`underworld_unlock_sewers`) cuando aún no está desbloqueada. Se conserva la función `explore_sewer_location` para compatibilidad con la prueba `PN.2`.
+4. **Aspecto 3D (`Alpaca.glb` CC0 + gallina procedural) y 2D:**
+   - Descargué `assests/curated_3d/animals/animated/Alpaca.glb` del paquete CC0 de Quaternius (vía Poly Pizza, con animaciones `Walk`, `Gallop`, `Idle`, `Idle_2`, `Eating`, `Death`) para `"sheep"` y lo documenté en `assests/curated_3d/animals/animated/LICENCIA.txt`.
+   - En `scripts/visuals/AnimalModel3D.gd`, añadí `set_model_config(rel_path: String, h_px: float)` y `_build_procedural_chicken(fit_h: float)` para construir una gallina 3D con primitivas (`model_rel == "procedural:chicken"`: cuerpo, alas, cola, cabeza, pico, cresta y barbilla rojas, patas e inclinación/picoteo animado en `_process`).
+   - En 2D (`LivestockAnimal.update_from_dict`), `"sheep"` usa `res://assests/world/harvest/wild_deer.png` teñido de blanco lana y `"rooster"` usa `res://assests/world/camp/chicken.png`, escalados por etapa.
 
-### 1.5. Guardado y carga estando en las alcantarillas + nota de FIS2
-- En `VillageManager.get_economy_save_dict()` se guarda `"player_elevation_level": player_elevation_level`, y en `load_economy_save_dict(d)` se restaura `set_player_elevation_level(int(d.get("player_elevation_level", 0)))` y se invoca `VillageUnderworld.after_load(self)` (que mantiene `player_elevation_level = -1` y `_elevation_anchor = Vector2.INF` si `sewers_state(vm)["current_loc"] != ""`).
-- Atendiendo la nota de `docs/REVISION_SUPERVISOR.md` sobre FIS2, en `WorldStage3D._build_building_interior_3d` (rama `"mixed_family_tinker"`) sustituí la mesa con objetos pequeños de la Terminal Lógica por una `Table_Large.gltf` con un chasis más grande, bobina de cobre y tubo voltaico luminoso bien reconocibles en 3D, y actualicé `docs/capturas_fis2/taller_12h.png` y `taller_22h.png`.
+5. **Guardado y carga:**
+   - En `scripts/systems/VillageManager.gd`, llamé a `VillageHousing.sync_livestock(self)` tanto en `setup_village` como en `load_economy_save_dict`, restaurando los animales físicos del rancho y del corral al cargar partida.
 
 ---
 
-## 2. Qué archivos toqué
+## 2. Archivos tocados
 
-- `scripts/obstacles/WorldInteractableProp.gd`: añadidos `sewer_loc_id`, los tipos `"sewer_grate"`, `"sewer_ladder"` y `"sewer_chest"`, sus dibujos 2D (`_draw_sewer_grate_2d`, `_draw_sewer_ladder_2d`, `_draw_sewer_chest_2d`), sus etiquetas en `get_interact_label` y sus acciones en `interact`.
-- `scripts/ui/InteractionSelector.gd`: añadido `cand.is_in_group("sewer_station")` al desempate de prioridad en `refresh()`.
-- `scripts/systems/VillageUnderworld.gd`: actualizadas las coordenadas de `SEWER_LOCATIONS`; añadidas `interact_sewer_grate`, `exit_sewer_ladder`, `is_sewer_chest_looted_today`, `open_sewer_chest`, `interact_sewer_chest`, `build_sewers_world` y `after_load`; actualizadas `enter_sewer_location` y `exit_sewers_to_surface`; retiradas las opciones de diálogo `underworld_sewer_explore:` y `underworld_sewer_surface` en `add_dialogue_choices`.
-- `scripts/systems/VillageManager.gd`: llamada a `VillageUnderworld.build_sewers_world(self)` en `setup_village`; guarda en `check_elevation_exit(player)` cuando `VillageUnderworld.is_player_in_sewers(self)` es verdadero; persistencia de `player_elevation_level` y llamada a `VillageUnderworld.after_load(self)` en `get_economy_save_dict` / `load_economy_save_dict`.
-- `scripts/visuals/WorldStage3D.gd`: rejillas 3D de calle en `SEWER_LOCATIONS[loc_id]["pos"]`; reconstrucción de `_build_sewers_3d()` con las 3 cámaras y 2 galerías conectadas en `y = 1520.0`, escalerillas, antorchas y cofres; ocultación del grupo `"sewer_visual_2d"` en `_sync_2d_flat_visuals`; mejora visual de la Terminal Lógica 3D en `"mixed_family_tinker"`.
-- `tools/screenshot_3d.gd`: añadidos los sitios `"trampilla"` y `"tunel"` (entrando y saliendo de las alcantarillas en memoria sin tocar la partida guardada).
-- `tools/tests/verify_all.gd`: añadido el bloque `Block 97: Walkable Sewers, Street Grates, Ladders & Contraband Chests (FIS3)` y restaurada `pn_pl.global_position` al final del bloque `PN`.
-- `docs/capturas_fis3/`: capturas 3D `trampilla_12h.png`, `trampilla_22h.png`, `tunel_12h.png` y `tunel_22h.png` (más actualización de `docs/capturas_fis2/taller_12h.png` y `taller_22h.png`).
-- Documentación: `docs/HANDOFF.md`, `CHANGELOG.md`, `docs/REGISTRO_TRABAJO.md`, `GameVault/02_Sistemas/Capas Verticales y Alcantarillas.md`, `GameVault/02_Sistemas/Red de las Sombras.md`, `GameVault/05_Roadmap_y_Lore/Tablero.md`, `GameVault/06_Diario/2026-11-05.md` y este `docs/INFORME_ANTIGRAVITY.md`.
+- `assests/curated_3d/animals/animated/Alpaca.glb` y `assests/curated_3d/animals/animated/Alpaca.glb.import` *(nuevos — modelo 3D animado CC0 de Quaternius para la oveja)*
+- `assests/curated_3d/animals/animated/LICENCIA.txt` *(documentado `Alpaca.glb` CC0 de Quaternius)*
+- `scripts/obstacles/LivestockAnimal.gd` y `scripts/obstacles/LivestockAnimal.gd.uid` *(nuevos — nodo físico de cada animal vivo de `ranch_herd` y `player_animals`)*
+- `scripts/visuals/AnimalModel3D.gd` *(`set_model_config`, `_build_procedural_chicken` y animación procedural en `_process`)*
+- `scripts/systems/VillageHousing.gd` *(`RANCH_PEN_RECT`, `PRODUCT_COOLDOWN_DAYS`, `_player_pen_rect`, `sync_livestock`, `can_harvest_animal_product`, `get_player_animal_interact_label`, `feed_single_player_animal`, `harvest_player_animal`, `interact_player_animal`, retirada de `"cooked_meat"` automático en `daily` y retirada de `"housing_feed_animals"` en `add_dialogue_choices`)*
+- `scripts/systems/VillageTrades.gd` *(eliminados los 4 dibujos fijos de `"ranch"` en `build_extras`, añadido grupo `"ranch_fence_2d"` y llamada a `VillageHousing.sync_livestock`)*
+- `scripts/systems/VillageManager.gd` *(`VillageHousing.sync_livestock(self)` en `setup_village` y `load_economy_save_dict`)*
+- `scripts/obstacles/ChickenCoop.gd` *(`_spawn_initial_chickens(0)`, `has_live_chickens` con `"player_livestock"` y ocultación de `status_label`)*
+- `scripts/visuals/WorldStage3D.gd` *(valla y suelo 3D del corral del Rancho del Sur en `_build_static_terrain_3d` y ocultación de `"ranch_fence_2d"` en `_sync_2d_flat_visuals`)*
+- `scripts/ui/InteractionSelector.gd` *(prioridad en `_refresh` para `"player_livestock"`)*
+- `tools/screenshot_3d.gd` *(sitios `"rancho"` y `"corral"`)*
+- `tools/tests/verify_all.gd` *(añadido `Block 98: Live Ranch Herd & Player Livestock (FIS4)`)*
+- `docs/capturas_fis4/` *(`rancho_12h.png`, `rancho_22h.png`, `corral_12h.png`, `corral_22h.png`)*
+- `CHANGELOG.md`, `docs/HANDOFF.md`, `docs/REGISTRO_TRABAJO.md`, `GameVault/02_Sistemas/Cría de Animales y Apuestas.md`, `GameVault/06_Diario/2026-11-05.md`, `docs/INFORME_ANTIGRAVITY.md`
 
 ---
 
 ## 3. Qué probé y con qué resultado
 
-1. **Comprobación de arranque y compilación GDScript:**
-   - Comando: `flatpak run org.godotengine.Godot --headless --path . --quit-after 3`
-   - Resultado: **0 `SCRIPT ERROR` y 0 `Parse Error`** (código de salida `0`).
-2. **Suite principal (`verify_all.gd`, incluyendo `Block PN`, `Block FIS2` y el nuevo `Block FIS3`):**
-   - Comando: `timeout 900 flatpak run org.godotengine.Godot --headless --path . -s tools/tests/verify_all.gd > /tmp/t.log 2>&1; grep -c 'TESTS PASSED' /tmp/t.log`
-   - Resultado: **`1`** (`ALL ... TESTS PASSED!`, `0` `SCRIPT ERROR`).
-3. **Prueba de nombres y perfiles (`names_check.gd`):**
-   - Comando: `timeout 60 flatpak run org.godotengine.Godot --headless --path . -s tools/tests/names_check.gd 2>&1 | tail -3`
-   - Resultado: **`NAMES CHECK PASSED (200 F / 200 M / 200 apellidos + 17 PersonProfile + B0.3 generator + B1.1/B1.2 social + B2.1 hangouts + B3.1-B3.4 romance + B4.1 fights)`**.
-4. **Simulación social de 60 días (`social_sim.gd`):**
-   - Comando: `timeout 150 flatpak run org.godotengine.Godot --headless --path . -s tools/tests/social_sim.gd 2>&1 | tail -3`
-   - Resultado: **`SOCIAL SIM CHECK PASSED (60d metas verificadas en 5 semillas + reemplazos procedurales)`**.
-5. **Cobertura de diálogos (`dialogue_coverage.gd`):**
-   - Comando: `timeout 80 flatpak run org.godotengine.Godot --headless --path . -s tools/tests/dialogue_coverage.gd > /tmp/c.log 2>&1; grep 'COVERAGE DONE' /tmp/c.log; grep -c 'SCRIPT ERROR' /tmp/c.log`
-   - Resultado: **`COVERAGE DONE npcs=18 actions=669`** y **`0`** `SCRIPT ERROR`.
-6. **Capturas 3D (`tools/screenshot_3d.gd`):**
-   - Comando: `flatpak run org.godotengine.Godot --path . -s tools/screenshot_3d.gd -- docs/capturas_fis3 12,22 trampilla,tunel`
-   - Resultado: generadas y revisadas visualmente `trampilla_12h.png`, `trampilla_22h.png`, `tunel_12h.png` y `tunel_22h.png` en `docs/capturas_fis3/`.
+1. **Arranque headless limpio:**
+   - `timeout 45 flatpak run org.godotengine.Godot --headless --path . --quit-after 3` → **OK** (`0` `SCRIPT ERROR`, `0` `Parse Error`).
+2. **Suite principal (`verify_all.gd`, incluido `Block FIS4`):**
+   - `timeout 120 flatpak run org.godotengine.Godot --headless --path . -s tools/tests/verify_all.gd` → **OK** (`Block FIS4 (Live Ranch Herd & Player Livestock) OK` y todos los bloques previos en verde).
+3. **Nombres y generación procedural (`names_check.gd`):**
+   - `timeout 60 flatpak run org.godotengine.Godot --headless --path . -s tools/tests/names_check.gd` → **OK** (`NAMES CHECK PASSED`).
+4. **Cobertura de diálogos (`dialogue_coverage.gd`):**
+   - `timeout 90 flatpak run org.godotengine.Godot --headless --path . -s tools/tests/dialogue_coverage.gd` → **OK** (`COVERAGE DONE npcs=18 actions=603`).
+5. **Simulación social de 60 días (`social_sim.gd`):**
+   - `timeout 60 flatpak run org.godotengine.Godot --headless --path . -s tools/tests/social_sim.gd` → **OK** (`SOCIAL SIM CHECK PASSED`).
+6. **Capturas 3D en ventana real (`screenshot_3d.gd`):**
+   - `timeout 90 flatpak run org.godotengine.Godot --path . -s tools/screenshot_3d.gd -- /home/lamsak/Videojuego/docs/capturas_fis4 12,22 rancho,corral` → **OK** (4 capturas verificadas visualmente en `docs/capturas_fis4/`).
 
 ---
 
 ## 4. Qué no pude hacer o dudas pendientes
 
-- Todo el bloque FIS3 quedó completado y verificado. No surgió ninguna duda de diseño que requiriera añadir entradas a `docs/PREGUNTAS_PENDIENTES.md`.
+- Todo lo pedido en el **Bloque FIS4** quedó implementado, verificado con tests y capturas 3D, documentado y subido a `main`. No quedaron puntos pendientes ni dudas de diseño para `docs/PREGUNTAS_PENDIENTES.md`.

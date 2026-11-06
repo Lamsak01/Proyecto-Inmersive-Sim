@@ -454,7 +454,16 @@ func _build_static_terrain_3d() -> void:
 	# (2026-11-05) Quitados el carro, las cajas, el compostador 3D duplicado y los animales de adorno del «rancho»:
 	# estaban encima de la granja del jugador o en un cruce de caminos y no eran objetos del juego.
 
-	# Animales 3D reales en el Rancho del Sur
+	# Corral 3D de madera y tierra del Rancho del Sur (x = 310..397, y = 400..540; el ganado vivo lo sincroniza VillageHousing.sync_livestock)
+	var ranch_floor_r := Rect2(Vector2(310.0, 400.0), Vector2(87.0, 140.0))
+	_add_box_2d(terrain_root_3d, ranch_floor_r.get_center(), ranch_floor_r.size, 0.0, 0.8, m_road)
+	for r_side in [
+		[Vector2(310.0, 400.0), Vector2(397.0, 400.0)],
+		[Vector2(397.0, 400.0), Vector2(397.0, 540.0)],
+		[Vector2(397.0, 540.0), Vector2(310.0, 540.0)],
+		[Vector2(310.0, 540.0), Vector2(310.0, 400.0)],
+	]:
+		_build_fence_run_3d(terrain_root_3d, r_side[0] as Vector2, r_side[1] as Vector2, m_wood)
 
 	# Parque del Roble (Vector2(105, -55)) con árboles 3D reales
 	var park_c := Vector2(105, -55)
@@ -2179,3 +2188,6 @@ func _sync_2d_flat_visuals(use_3d: bool) -> void:
 	for sv in get_tree().get_nodes_in_group("sewer_visual_2d"):
 		if sv is CanvasItem and is_instance_valid(sv):
 			(sv as CanvasItem).visible = not use_3d
+	for rf in get_tree().get_nodes_in_group("ranch_fence_2d"):
+		if rf is CanvasItem and is_instance_valid(rf):
+			(rf as CanvasItem).self_modulate.a = target_a
