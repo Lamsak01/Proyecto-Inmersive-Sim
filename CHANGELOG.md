@@ -3,6 +3,15 @@
 Cambios del juego, del más nuevo al más antiguo. Añade una entrada al cerrar cada bloque, en lenguaje sencillo.
 El detalle técnico está en `docs/HANDOFF.md` (sección 7) y el historial completo en `git log`. Lo anterior a B0.1 está en `AUDIT_LOG.md` y `SESSION_CONTEXT_LOG.md`.
 
+## 2026-11-06 — Sabotajes, robos y profanaciones de noche que hace alguien de verdad
+- **Ya no pasan solos:** si contratas un saboteador o un ratero, o si una familia enfrentada sabotea o profana una
+  tumba, a la 1:00 de la noche un vecino de verdad camina hasta el taller, la casa o la lápida y se queda un rato
+  agachado. Solo si aguanta allí 20 minutos sin que lo pillen ocurre lo de siempre.
+- **Se le puede pillar:** si un guardia lo ve, o si llegas tú y pulsas E («¡Te he visto! ¿Qué haces aquí?»), no hay
+  sabotaje ni robo y sale en la crónica.
+- **Puede delatarte:** si el trabajo lo pagaste tú y lo pillan, puede confesar quién le pagó (más fácil si no te aprecia);
+  entonces sube tu búsqueda. El dinero no se devuelve.
+
 ## 2026-11-06 — Club de pelea en un sótano de verdad bajo la taberna
 - **La trampilla:** en el patio trasero de la taberna hay una trampilla. Las noches pares, de 23:00 a 3:00, se abre y
   baja a un sótano de tierra con faroles y un corro de cuerda. El perista y unos cuantos vecinos pendencieros bajan

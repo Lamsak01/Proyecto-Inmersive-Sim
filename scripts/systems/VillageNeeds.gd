@@ -222,7 +222,7 @@ static func tick(vm) -> void:
 	for n in living(vm):
 		if n.errand_kind == "":
 			continue
-		if now - int(n.errand_since) > ERRAND_TIMEOUT_HOURS and not (n.errand_kind in ["beg", "outpost_work", "player_shop_clerk", "fence_alley", "club_go", "club_watch"]):
+		if now - int(n.errand_since) > ERRAND_TIMEOUT_HOURS and not (n.errand_kind in ["beg", "outpost_work", "player_shop_clerk", "fence_alley", "club_go", "club_watch", "night_job"]):
 			if n.errand_kind == "leisure":
 				vm.VillagePlaces._leave(n)
 				continue
@@ -239,6 +239,8 @@ static func tick(vm) -> void:
 			"drink", "gamble":
 				do_vice(vm, n, n.errand_kind)
 				n.end_errand()
+			"night_job":
+				vm.VillageNightJobs.on_arrived(vm, n) # P6b: llega al taller, la casa o la lápida
 			"club_go":
 				vm.VillageClub.on_arrived(vm, n) # P6: baja por la trampilla al club del sótano
 			"beg", "outpost_work", "player_shop_clerk", "fence_alley", "club_watch":
@@ -260,6 +262,8 @@ static func tick(vm) -> void:
 				n.end_errand()
 			_:
 				vm.VillageCivic.on_errand_arrived(vm, n) # V5b: votar, el alcalde en el ayuntamiento
+
+	vm.VillageNightJobs.tick(vm) # P6b: guardias que pillan a quien sabotea, roba o profana; fin de la faena
 
 static func on_hour(vm, hour: int) -> void:
 	var st: Dictionary = state(vm)

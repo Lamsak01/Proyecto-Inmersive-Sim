@@ -14,6 +14,7 @@ extends RefCounted
 ## 10) Profanar la tumba del rival (un enemigo mancha la lápida de noche; puedes limpiarla o delatarlo).
 ## Estado en `vm.family_state["clans"]` (se guarda automáticamente con `family_state`).
 
+const VillageNightJobs = preload("res://scripts/systems/VillageNightJobs.gd")
 const TraitCatalog = preload("res://scripts/data/TraitCatalog.gd")
 const VillageChronicle = preload("res://scripts/systems/VillageChronicle.gd")
 const VillageNeeds = preload("res://scripts/systems/VillageNeeds.gd")
@@ -451,8 +452,10 @@ static func _daily_grave_desecration(vm) -> void:
 		for e in enemies:
 			var culprit = by_key.get(str(e.get("key", "")), null)
 			if culprit != null and not culprit.is_dead and TraitCatalog.npc_tendency(culprit, "grudge") >= 0.3:
-				st["desecrated_graves"][v_name] = {"culprit": culprit.get_person_key(), "culprit_name": culprit.npc_name, "day": today(), "known": false}
-				VillageChronicle.add(vm, "grave_profaned", "Alguien profanó de noche la lápida de %s en el cementerio" % v_name, true)
+				if _night_job_pending(vm, "grave", "victim_name", v_name):
+					return
+				# P6b: el culpable va de verdad a la lápida a la 1:00 (el efecto solo ocurre si no lo pillan)
+				VillageNightJobs.queue(vm, {"type": "grave", "victim_name": v_name, "grave_index": int(rec.get("grave_index", -1)), "agent_key": culprit.get_person_key(), "paid_by_player": false})
 				return
 
 static func _daily_clan_sabotage(vm) -> void:
@@ -471,15 +474,21 @@ static func _daily_clan_sabotage(vm) -> void:
 				continue
 			for vic in clan_members(vm, pair[1]):
 				var r_id: int = int(vic.trade_role)
-				if vm.shop_businesses.has(r_id) and not (st["clan_sabotages"] as Dictionary).has(str(r_id)):
-					vm.shop_businesses[r_id]["sabotaged_days"] = int(vm.shop_businesses[r_id].get("sabotaged_days", 0)) + 1
-					st["clan_sabotages"][str(r_id)] = {
+				if vm.shop_businesses.has(r_id) and not (st["clan_sabotages"] as Dictionary).has(str(r_id)) and not _night_job_pending(vm, "clan_sabotage", "role_id", r_id):
+					# P6b: el saboteador va de verdad al taller a la 1:00 (el efecto solo ocurre si no lo pillan)
+					var rec: Dictionary = {
 						"role_id": r_id, "victim_key": vic.get_person_key(), "victim_name": vic.npc_name,
 						"victim_fam": pair[1], "saboteur_key": saboteur.get_person_key(), "saboteur_name": saboteur.npc_name,
 						"saboteur_fam": pair[0], "discovered": false, "reported": false, "day": today()
 					}
-					VillageChronicle.add(vm, "clan_sabotage", "Alguien saboteó de noche el negocio de %s por el feudo entre clanes" % vic.npc_name, true)
+					VillageNightJobs.queue(vm, {"type": "clan_sabotage", "role_id": r_id, "agent_key": saboteur.get_person_key(), "record": rec, "paid_by_player": false})
 					return
+
+static func _night_job_pending(vm, kind: String, field: String, value) -> bool:
+	for j in VillageNightJobs.jobs(vm):
+		if str(j.get("type", "")) == kind and str(j.get(field, "")) == str(value):
+			return true
+	return false
 
 static func daily(vm) -> void:
 	_daily_forbidden_romances(vm)

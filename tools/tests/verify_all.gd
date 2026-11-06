@@ -5623,5 +5623,61 @@ func _initialize() -> void:
 	t5_wc.current_hour = b6_hour_bak
 	print("Block P6a (Cellar Fight Club: Audience Below, Bare-Fist Surrender at 20% & Zero-Sum Purse) OK")
 
+	# ==========================================================================
+	# Bloque P6 parte B: sabotajes nocturnos que se pueden pillar («P6 sabotajes»)
+	# ==========================================================================
+	var b6b_nj = load("res://scripts/systems/VillageNightJobs.gd")
+	var b6b_vun = vm.VillageUnderworld
+	var b6b_inv = p70_pl.get("inventory")
+	var b6b_gold_bak: int = int(b6b_inv.gold)
+	var b6b_day_bak: int = int(t5_wc.current_day)
+	var b6b_hour_bak: int = int(t5_wc.current_hour)
+	var b6b_wl_bak: int = int(vm.wanted_level)
+	var b6b_fence = b6b_vun.get_fence_npc(vm)
+	b6b_inv.gold = 100
+	t5_wc.current_hour = 14
+	b6b_nj.jobs(vm).clear()
+	b6b_vun.on_player_action(vm, b6b_fence, "underworld_hire_saboteur", b6b_inv)
+	assert(b6b_nj.jobs(vm).size() == 1, "P6b.0: Hiring a saboteur queues a night job (nothing happens yet)")
+	var b6b_job: Dictionary = b6b_nj.jobs(vm)[0]
+	var b6b_role: int = int(b6b_job["role_id"])
+	var b6b_sab0: int = int(vm.shop_businesses[b6b_role].get("sabotaged_days", 0)) if vm.shop_businesses.has(b6b_role) else 0
+	# 3. A la 1:00 el agente va al taller; con un guardia al lado lo pillan y el taller no queda saboteado
+	t5_wc.current_day = b6b_day_bak + 1
+	t5_wc.current_hour = 1
+	b6b_nj.on_hour(vm, 1)
+	var b6b_ag = vm._get_npcs_by_person_key().get(str(b6b_job.get("agent_key", "")), null)
+	assert(b6b_ag != null and b6b_ag.errand_kind == "night_job" and b6b_ag.errand_pos.distance_to(b6b_nj.target_pos(vm, b6b_job)) < 1.0, "P6b.3a: At 1:00 the agent walks to the workshop")
+	var b6b_guard = null
+	for b6b_n in vm.VillageNeeds.living(vm):
+		if int(b6b_n.trade_role) in [int(load("res://scripts/enemies/VillageNPC.gd").TradeRole.GUARD), int(load("res://scripts/enemies/VillageNPC.gd").TradeRole.SHERIFF)] and not b6b_n.is_incapacitated():
+			b6b_guard = b6b_n
+			break
+	assert(b6b_guard != null, "P6b.3b: Found a guard")
+	var b6b_g_pos: Vector2 = b6b_guard.global_position
+	var b6b_g_slp: bool = b6b_guard.is_sleeping
+	var b6b_g_lvl: int = int(b6b_guard.elevation_level)
+	b6b_guard.global_position = b6b_ag.global_position + Vector2(8, 0)
+	b6b_guard.is_sleeping = false
+	b6b_guard.elevation_level = int(b6b_ag.elevation_level)
+	b6b_nj.tick(vm)
+	var b6b_sab1: int = int(vm.shop_businesses[b6b_role].get("sabotaged_days", 0)) if vm.shop_businesses.has(b6b_role) else 0
+	assert(str(b6b_job["status"]) == "caught" and b6b_ag.errand_kind != "night_job" and b6b_sab1 == b6b_sab0, "P6b.3c: With a guard next to him the agent is caught and the workshop is NOT sabotaged")
+	# 4. Forzando la confesión (probabilidad 1) sube la búsqueda en 1
+	vm.wanted_level = 0
+	var b6b_job2: Dictionary = {"type": "sabotage", "paid_by_player": true, "agent_key": b6b_ag.get_person_key(), "status": "walking"}
+	b6b_nj.caught(vm, b6b_job2, null, 1.0)
+	assert(int(vm.wanted_level) == 1, "P6b.4: A forced confession raises the wanted level by 1")
+	# Restaurar
+	b6b_guard.global_position = b6b_g_pos
+	b6b_guard.is_sleeping = b6b_g_slp
+	b6b_guard.elevation_level = b6b_g_lvl
+	b6b_nj.jobs(vm).clear()
+	vm.wanted_level = b6b_wl_bak
+	b6b_inv.gold = b6b_gold_bak
+	t5_wc.current_day = b6b_day_bak
+	t5_wc.current_hour = b6b_hour_bak
+	print("Block P6b (Night Sabotage Walked for Real, Caught by a Guard & Forced Confession) OK")
+
 	print("ALL RIMWORLD MEDICAL, FOOTPRINTS, 3-PHASE CORPSE REPORT, MULTI-CORPSE FIX, RPG INTERROGATION, PUBLIC TRIAL, DYNAMIC RELATIONSHIPS, MISSING FAMILY SEARCH, SOCIAL GLOSSARY & UNCONSCIOUS REACTION TESTS PASSED!")
 	quit(0)

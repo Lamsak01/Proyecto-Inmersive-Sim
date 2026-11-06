@@ -151,7 +151,7 @@ var rite_kind: String = "" # "rite" (Oficio del Alba), "sect" (reunión de la se
 ## E1/E3/E5: encargos cortos a pie (lavarse «wash», beber «drink», jugar «gamble», pedir limosna «beg»); ver VillageNeeds
 var errand_kind: String = ""
 ## Recados que se hacen de noche: no se cancelan al caer la noche (P5b: el perista en el callejón).
-const NIGHT_ERRANDS: Array[String] = ["fence_alley", "smuggler_bust", "club_go", "club_watch"]
+const NIGHT_ERRANDS: Array[String] = ["fence_alley", "smuggler_bust", "club_go", "club_watch", "night_job"]
 var errand_pos: Vector2 = Vector2.ZERO
 var errand_since: int = 0
 ## E1: higiene (100 limpio → 0 sucio). E2: 0 sano, 1 enfermo leve, 2 guarda cama (lo pone VillageIllness)
@@ -4663,6 +4663,9 @@ func loot_npc_pockets(player: Node) -> bool:
 	return true
 
 func interact(player: Node) -> void:
+	var vm_nj = _get_vm()
+	if vm_nj != null and not is_dead and vm_nj.VillageNightJobs.try_player_catch(vm_nj, self, player):
+		return # P6b: lo pillas en plena faena nocturna
 	if is_dead:
 		if corpse_buried:
 			return

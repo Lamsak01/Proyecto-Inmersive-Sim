@@ -21,6 +21,7 @@ const VillageClans = preload("res://scripts/systems/VillageClans.gd")
 const VillageForensics = preload("res://scripts/systems/VillageForensics.gd")
 const VillageHousing = preload("res://scripts/systems/VillageHousing.gd")
 const VillageCollections = preload("res://scripts/systems/VillageCollections.gd")
+const VillageNightJobs = preload("res://scripts/systems/VillageNightJobs.gd")
 const AnimalModel3DScript = preload("res://scripts/visuals/AnimalModel3D.gd")
 
 ## Bloque P3 Parte B: Campamento físico nocturno de la caravana de contrabando (claro noreste al norte de mansión f1).
@@ -1481,7 +1482,7 @@ static func on_player_action(vm, npc, action_id: String, inv) -> void:
 			role_id = int(rk)
 			role_title = str(vm.shop_businesses[rk].get("title", "el taller"))
 			break
-		(st["hired_jobs"] as Array).append({"type": "sabotage", "role_id": role_id, "role_title": role_title, "execute_day": d_now + 1})
+		VillageNightJobs.queue(vm, {"type": "sabotage", "role_id": role_id, "role_title": role_title, "paid_by_player": true}) # P6b: alguien va de verdad a la 1:00
 		npc._spawn_floating_text("💣 «Esta noche averiaremos %s. Tú tendrás coartada limpia.»" % role_title, Color.GOLD, -46.0)
 
 	elif action_id == "underworld_hire_thief":
@@ -1496,7 +1497,7 @@ static func on_player_action(vm, npc, action_id: String, inv) -> void:
 			if cand != npc and int(cand.personal_gold) > best_g:
 				best_g = int(cand.personal_gold)
 				target = cand
-		(st["hired_jobs"] as Array).append({"type": "thief", "target_key": target.get_person_key(), "target_name": target.npc_name, "execute_day": d_now + 1, "fence_key": npc.get_person_key()})
+		VillageNightJobs.queue(vm, {"type": "thief", "target_key": target.get_person_key(), "target_name": target.npc_name, "fence_key": npc.get_person_key(), "paid_by_player": true}) # P6b
 		npc._spawn_floating_text("🧤 «Conozco las cerraduras de %s. Mañana tendrás tu parte del botín.»" % target.npc_name, Color.GOLD, -46.0)
 
 	elif action_id == "underworld_bet_fight":

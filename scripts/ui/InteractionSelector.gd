@@ -211,6 +211,9 @@ func _label_for(a: Node, tgt: Node) -> String:
 			return "Registrar a %s" % n.npc_name
 		var vm_a = n._get_vm()
 		if vm_a != null and "VillageUnderworld" in vm_a and vm_a.VillageUnderworld != null:
+			var caught_lbl: String = str(vm_a.VillageNightJobs.catch_label(vm_a, n, player))
+			if caught_lbl != "":
+				return caught_lbl # P6b: lo sorprendes de noche junto a un taller, una casa o una lápida
 			var hooded: String = str(vm_a.VillageUnderworld.alley_interact_label(vm_a, n))
 			if hooded != "":
 				return hooded # P5b: de noche en el callejón, el perista es solo una figura encapuchada

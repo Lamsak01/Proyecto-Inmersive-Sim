@@ -13,7 +13,7 @@
 | 6 | P4: cenas, fiestas y banquete de paz | siguiente (Antigravity) — `docs/ENCARGO_P4_CENAS.md` |
 | 7 | P5: rentas, encargos y desfalcos en su sitio | ✅ hecho (Claude Code, en paralelo) |
 | 7b | P5b: el perista trasnocha en el callejón de la taberna y hay rumores para encontrarlo (fallo visto por el usuario) | ✅ hecho (Claude Code, en paralelo) |
-| 8 | P6: peleas clandestinas en un sótano de la taberna y sabotajes nocturnos (expediciones y animales, más adelante) | encargo listo — `docs/ENCARGO_P6_PELEAS_SABOTAJES.md` |
+| 8 | P6: peleas clandestinas en un sótano de la taberna y sabotajes nocturnos (expediciones y animales, más adelante) | ✅ hecho (Claude Code, en paralelo; rama pendiente de unir tras P4) |
 | 9 | Inventario de todo lo demás planeado, ordenado de fácil a difícil (`docs/PLAN_ORDENADO.md`) y empezar por lo fácil | ✅ lista hecha (12:55); falta empezar por lo fácil |
 
 Para mañana con el usuario: bucle jugable de la primera beta (borrador en `docs/PROPUESTA_BETA.md`).
