@@ -5893,6 +5893,17 @@ func _initialize() -> void:
 	a1_master.global_position = a1_pos_bak
 	a1_master.is_sleeping = a1_slp
 	print("Block A1 (Masterworks Bought at the Workshop Counter with the Master Present) OK")
+	# Bloque A2: Pantalla de ayuda de controles al empezar («A2 controles»)
+	# ==========================================================================
+	var a2_ui = root.find_child("UIRoot", true, false)
+	assert(a2_ui != null, "A2.0: UIRoot must exist")
+	t5_wc.is_paused = false
+	t5_wc.set_activity_pause(false)
+	a2_ui.open_controls_panel()
+	assert(a2_ui.controls_panel != null and a2_ui.controls_panel.visible and t5_wc.is_time_frozen(), "A2.1: Opening the new-game controls panel makes it visible and freezes WorldClock")
+	a2_ui.close_controls_panel()
+	assert(not a2_ui.controls_panel.visible and not t5_wc.is_time_frozen(), "A2.2: Closing the controls panel hides it and unfreezes WorldClock")
+	print("Block A2 (New Game Controls Help Panel & Clock Pause) OK")
 
 	print("ALL RIMWORLD MEDICAL, FOOTPRINTS, 3-PHASE CORPSE REPORT, MULTI-CORPSE FIX, RPG INTERROGATION, PUBLIC TRIAL, DYNAMIC RELATIONSHIPS, MISSING FAMILY SEARCH, SOCIAL GLOSSARY & UNCONSCIOUS REACTION TESTS PASSED!")
 	quit(0)

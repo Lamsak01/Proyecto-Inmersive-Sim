@@ -14,6 +14,7 @@ var clock_label: Label = null
 var clock_sub_label: Label = null
 
 var inv_panel: PanelContainer = null
+var controls_panel: PanelContainer = null
 var inv_gold_label: Label = null
 var inv_armor_stats_label: Label = null
 var inv_armor_slots_box: HBoxContainer = null
@@ -128,6 +129,11 @@ func _ready() -> void:
 	add_child(chronicle_panel)
 	showcase_3d_panel = CharacterShowcase3DUIScript.new()
 	add_child(showcase_3d_panel)
+	_setup_controls_panel_ui()
+	if GameManager and not GameManager.game_loaded.is_connected(_on_game_loaded):
+		GameManager.game_loaded.connect(_on_game_loaded)
+	if DisplayServer.get_name() != "headless" and (GameManager == null or GameManager.game_data.is_empty()):
+		open_controls_panel()
 	_init_default_objectives()
 	if "inventory" in player and player.inventory:
 		_bind_player_inventory()
@@ -184,7 +190,19 @@ func _is_external_world_modal_open() -> bool:
 			return true
 	return false
 
+func _input(event: InputEvent) -> void:
+	if controls_panel and controls_panel.visible:
+		if event is InputEventKey and event.pressed and not event.echo:
+			if event.keycode in [KEY_ESCAPE, KEY_ENTER, KEY_KP_ENTER] or event.physical_keycode in [KEY_ESCAPE, KEY_ENTER, KEY_KP_ENTER]:
+				close_controls_panel()
+				get_viewport().set_input_as_handled()
+		elif event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
+			close_controls_panel()
+			get_viewport().set_input_as_handled()
+
 func _unhandled_input(event: InputEvent) -> void:
+	if controls_panel and controls_panel.visible:
+		return
 	var dm = player.get("dialogue_manager") if player else null
 	if (dm and dm.has_method("is_active") and bool(dm.call("is_active"))) or (tavern_games and tavern_games.visible) or _is_external_world_modal_open():
 		return
@@ -540,8 +558,93 @@ func _setup_inventory_ui() -> void:
 	)
 	_make_btn(footer, "💾 [F5] Guardar", func(): if GameManager: GameManager.save_game())
 	_make_btn(footer, "📂 [F9] Cargar", func(): if GameManager: GameManager.load_game())
+	_make_btn(footer, "Controles", func():
+		inv_panel.visible = false
+		open_controls_panel()
+	)
 	_make_btn(footer, "✖ [I / ESC] Cerrar", func(): inv_panel.visible = false)
 	add_child(inv_panel)
+
+func _setup_controls_panel_ui() -> void:
+	controls_panel = PanelContainer.new()
+	controls_panel.name = "ControlsPanel"
+	controls_panel.visible = false
+	controls_panel.set_anchors_and_offsets_preset(Control.PRESET_CENTER)
+	controls_panel.offset_left = -360.0
+	controls_panel.offset_top = -175.0
+	controls_panel.offset_right = 360.0
+	controls_panel.offset_bottom = 175.0
+	controls_panel.add_theme_stylebox_override("panel", _make_style(Color(0.07, 0.08, 0.11, 0.96), Color(0.75, 0.63, 0.35, 1.0), 2, 8, 18, 14))
+
+	var main_vbox := VBoxContainer.new()
+	main_vbox.add_theme_constant_override("separation", 8)
+	controls_panel.add_child(main_vbox)
+
+	_make_lbl(main_vbox, "Controles", 18, Color(0.96, 0.88, 0.65), true, HORIZONTAL_ALIGNMENT_CENTER)
+	main_vbox.add_child(HSeparator.new())
+
+	var columns := HBoxContainer.new()
+	columns.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	columns.add_theme_constant_override("separation", 18)
+	main_vbox.add_child(columns)
+
+	var left_col := VBoxContainer.new()
+	left_col.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	left_col.add_theme_constant_override("separation", 4)
+	columns.add_child(left_col)
+	_make_lbl(left_col, "Lo básico", 14, Color(0.80, 0.88, 0.98))
+	var basic_lines: Array[String] = [
+		"Mover: W A S D",
+		"Atacar: clic izquierdo, apuntando con el ratón",
+		"Usar o hablar: E",
+		"Cambiar de objetivo cuando hay varios: G o Mayús + rueda",
+		"Rodar: Espacio",
+		"Parar un golpe: Q",
+		"Sigilo: C",
+		"Mochila: I",
+	]
+	for line in basic_lines:
+		_make_lbl(left_col, line, 12, Color(0.93, 0.94, 0.97))
+
+	columns.add_child(VSeparator.new())
+
+	var right_col := VBoxContainer.new()
+	right_col.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	right_col.add_theme_constant_override("separation", 4)
+	columns.add_child(right_col)
+	_make_lbl(right_col, "Más", 14, Color(0.95, 0.82, 0.55))
+	var more_lines: Array[String] = [
+		"Rueda de acciones: Tab",
+		"Vecinos: J",
+		"Mapa: M",
+		"Misiones: L",
+		"Herramientas: 1–9",
+		"Guardar / cargar: F5 / F9",
+		"Velocidad del tiempo: F1–F4",
+	]
+	for line in more_lines:
+		_make_lbl(right_col, line, 12, Color(0.93, 0.94, 0.97))
+
+	main_vbox.add_child(HSeparator.new())
+	_make_lbl(main_vbox, "Pulsa Esc, Intro o haz clic para empezar", 12, Color(0.75, 0.82, 0.92), true, HORIZONTAL_ALIGNMENT_CENTER)
+	add_child(controls_panel)
+
+func open_controls_panel() -> void:
+	if not controls_panel:
+		return
+	controls_panel.visible = true
+	if WorldClock and WorldClock.has_method("set_activity_pause"):
+		WorldClock.set_activity_pause(true)
+
+func close_controls_panel() -> void:
+	if not controls_panel or not controls_panel.visible:
+		return
+	controls_panel.visible = false
+	if WorldClock and WorldClock.has_method("set_activity_pause"):
+		WorldClock.set_activity_pause(false)
+
+func _on_game_loaded(_filepath: String) -> void:
+	close_controls_panel()
 
 func _refresh_inventory_list() -> void:
 	if not inv_items_box or not player or not ("inventory" in player) or not player.inventory:

@@ -7,6 +7,9 @@ El detalle técnico está en `docs/HANDOFF.md` (sección 7) y el historial compl
 - **En el mostrador, no en la calle:** junto al puesto de cada maestro artesano aparece «Comprar Obra Maestra de estilo
   …». Tiene que estar él en su taller y despierto; si no, «El maestro no está; vuelve cuando abra». Como es un gasto,
   se pulsa E dos veces. Ya no sale en la charla.
+## 2026-11-06 — Pantalla de ayuda de controles al empezar partida nueva
+- **Resumen de controles al empezar:** al iniciar una partida nueva (no al cargar), se muestra en el centro de la pantalla un recuadro con los controles divididos en dos columnas («Lo básico» y «Más») mientras el reloj del mundo permanece en pausa hasta que pulsas Esc, Intro o haces clic para empezar.
+- **Volver a consultarla:** como la tecla **H** ya abre el panel clínico, se ha añadido un botón «Controles» en la barra inferior de la mochila (junto a Guardar y Cargar) para consultarla en cualquier momento.
 
 ## 2026-11-06 — Sabotajes, robos y profanaciones de noche que hace alguien de verdad
 - **Ya no pasan solos:** si contratas un saboteador o un ratero, o si una familia enfrentada sabotea o profana una
