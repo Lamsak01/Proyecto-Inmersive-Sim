@@ -52,3 +52,26 @@
 - ¿Puede haber un segundo asesinato si tardas mucho?
 - ¿Se puede ganar también mintiendo y culpando a otro a propósito (final «turbio»)?
 - ¿Cuántos vecinos en la beta? (más vecinos = más sospechosos, pero más lento en ordenadores modestos)
+
+## 5. Idea del usuario (2026-11-06): «crimen ya hecho, con estructura fija y reparto procedural»
+
+> Texto creativo del usuario, provisional (nombres por decidir). Lo fijo es **la cadena de pistas**; lo procedural es
+> **quién hace cada papel y dónde**, elegido entre vecinos reales que encajen.
+
+**La cadena (fija):**
+1. Aparece una mujer muerta en el bosque: estrangulada; el cuerpo huele a una hierba rara.
+2. El **alquimista** identifica la hierba: se usaba para embalsamar, pero el cura del pueblo no la usa.
+3. Hay que buscar quién sabe prepararla y tiene acceso a la planta. No crece por aquí: huerto privado o caravana.
+   La poción se degrada muy rápido → fue **premeditado y caro** → apunta a gente pudiente.
+4. Investigas a los **nobles**: esconden algo, pero no fueron ellos (presagio de la secta: la poción era suya y se la
+   robaron; no pueden decirlo sin meterse en líos). Una **criada** identifica la sustancia (reconoce el frasco).
+   *Hueco por pensar:* cómo descubres que fue robada (¿lo vio la criada?).
+5. El «culpable» aparente es un **familiar o pareja** de la víctima que quería salvarla de un **culto que la tenía
+   secuestrada** en una casa abandonada: mezcló la poción con otras de un libro antiguo de la biblioteca para fingir su
+   muerte. La dosis salió mal (libro antiguo): la paralizó y duró poco.
+6. Los secuestradores, al creerla muerta e invendible, profanaron el cuerpo (no se describe). Al ver que se movía, el
+   **más joven** la estranguló por miedo a que los delatara.
+7. Lo del familiar lo sabes hablando con él; lo de los secuestradores, **interrogando a uno si lo capturas vivo**.
+8. Deja abierta la investigación de la secta y la corrupción del pueblo.
+
+**Nombres por decidir:** la hierba y la poción (propuestas del supervisor en el chat; ninguna elegida).
