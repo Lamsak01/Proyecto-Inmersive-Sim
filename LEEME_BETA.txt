@@ -1,0 +1,45 @@
+LA PLACA DE PETRI — versión de prueba (beta)
+============================================
+
+Gracias por probarlo. Es un juego en desarrollo: habrá fallos, textos provisionales y cosas a medio hacer.
+
+CÓMO EMPEZAR
+- Abre «LaPlacaDePetri.exe». No hace falta instalar nada.
+- Windows puede avisar de que el programa «no es de un editor conocido». Es normal en un juego casero:
+  pulsa «Más información» y luego «Ejecutar de todas formas».
+- Si se queda en negro o no abre, tu tarjeta gráfica necesita OpenGL 3.3 (casi cualquiera de los últimos 10 años).
+
+QUÉ ES
+Llegas como forastero a un pueblo de un valle. Cada vecino tiene su oficio, su casa, sus amistades, sus
+enemistades y sus secretos, y el pueblo vive solo aunque no hagas nada. Puedes trabajar, comerciar, hacer
+amigos o enemigos, investigar lo que pasa… o meterte en líos. No hay un único camino.
+
+CONTROLES
+Lo básico
+  Mover ................................ W A S D
+  Atacar ............................... clic izquierdo (apunta con el ratón)
+  Usar o hablar ........................ E
+  Cambiar de objetivo (si hay varios) ... G, o Mayús + rueda del ratón
+  Rodar ................................ Espacio
+  Parar un golpe ....................... Q
+  Sigilo ............................... C
+  Mochila .............................. I
+Más
+  Rueda de acciones .................... Tab
+  Vecinos .............................. J
+  Mapa ................................. M
+  Misiones ............................. L
+  Herramientas ......................... 1 a 9
+  Guardar / cargar ..................... F5 / F9
+  Velocidad del tiempo ................. F1 a F4
+Los gastos de dinero piden pulsar E dos veces, para que no compres nada sin querer.
+La pantalla de controles sale al empezar una partida nueva; también hay un botón «Controles» en la mochila.
+
+QUÉ ESPERAR
+- El pueblo arranca con unos 40 vecinos. En ordenadores modestos puede ir algo lento.
+- La partida se guarda solo cuando pulsas F5 (hay una sola ranura). F9 carga la última.
+- La historia principal todavía está en construcción.
+
+SI ALGO FALLA
+Cuéntame qué hacías justo antes, a qué hora del juego y, si puedes, manda una captura.
+Tu partida guardada está en: %APPDATA%\Godot\app_userdata\Inmersive_Sim_Proto (4.5)\village_save.json

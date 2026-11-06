@@ -508,6 +508,7 @@ Ya hechos antes: caballo físico (AUD11). Los 3 robos ya se hacían en persona (
 | A4b-PROTESIS | Dos calidades de prótesis (`PROSTHETIC_QUALITIES`: sencilla 50 % / 25 oro, buena 75 % / 50 oro, mejora por la diferencia) y tope del miembro (`HealthComponent.region_max_override` / `region_max`, `apply_limb_caps`) | ✅ | VillageIllness.gd, HealthComponent.gd, verify_all.gd | Claude Code. Test `A4b` dentro del bloque A4 |
 | B4-GUARDADO | Guardar y cargar con cosas a medias: `revive_vectors` (Vector2 en texto tras JSON), `after_load` de recados nocturnos, club y cenas | ✅ | VillageManager.gd, VillageNightJobs.gd, VillageClub.gd, VillageHousing.gd, verify_all.gd | Claude Code. Test `Block B4` |
 | B3-RENDIMIENTO | Simulación «a ratos» apagada (`lod_enabled = false`), cronómetros de medición y 3 sondas; resultados en HANDOFF; aparcado por el usuario | ✅ | VillageNPC.gd, WorldStage3D.gd, CharacterAvatar3D.gd, tools/tests/perf_*.gd, verify_all.gd | Claude Code |
+| B6-WINDOWS | Preset de exportación a Windows, plantillas oficiales 4.7.2 instaladas, .exe + `LEEME_BETA.txt` en `~/LaPlacaDePetri_Windows.zip` | 🟡 | export_presets.cfg, LEEME_BETA.txt | Claude Code. Sin probar en Windows |
 
 
 

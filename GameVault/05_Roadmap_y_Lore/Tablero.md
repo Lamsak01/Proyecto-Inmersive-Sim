@@ -51,6 +51,7 @@ kanban-plugin: board
 
 ## ✅ Hecho
 
+- [x] Versión para Windows con «Léeme» para los amigos (2026-11-06)
 - [x] Los vecinos lejanos viven siempre del todo (sin simulación «a ratos»); rendimiento medido y aparcado (2026-11-06)
 - [x] Guardar y cargar sin sustos: lo que estaba a medias se retoma o se anula sin perder nada (2026-11-06)
 - [x] Amputaciones y prótesis para el jugador, con prótesis sencilla (50 %) y buena (75 %) ([[Medicina Anatómica]]) (2026-11-06)

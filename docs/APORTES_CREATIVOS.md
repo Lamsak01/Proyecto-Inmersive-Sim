@@ -293,3 +293,9 @@ o vino ya dado. Conviene confirmarlo.
 
 **Dónde:** `scripts/systems/VillageIllness.gd` (`on_player_action`, rama `"illness_amputate_self"`).
 **Depende:** solo texto flotante tras amputar el miembro gangrenado del jugador.
+
+## Texto del «Léeme» de la beta (B6, provisional)
+- Presentación del juego («Llegas como forastero a un pueblo de un valle…»), controles y qué esperar.
+
+**Dónde:** `LEEME_BETA.txt` (se copia como `LEEME.txt` junto al .exe).
+**Depende:** solo el texto que leen los amigos antes de jugar; nada del juego.
