@@ -29,3 +29,9 @@ bien. **Antes de dar el bloque por cerrado** comprueba:
   `inject_dialogue`, `gold_conservation_ok`, `sabotage_electric_grid`, `attempt_heist_steal`) y un «social_sim de 7
   días» (son 60). Nombra solo lo que exista.
 - Detalle menor: en la foto del taller la terminal se distingue poco del mueble; si hay tiempo, hazla más reconocible.
+
+## FIS3 — revisión del supervisor
+
+- **Aprobado.** Comprobado: arranque sin errores, cuatro pruebas (bloque FIS3 incluido), las funciones que nombra el
+  informe existen, el perista ya no ofrece explorar ni subir, fotos de rejilla y túnel correctas.
+- Dejado como pregunta de diseño para el usuario: si bajar por la rejilla delante de guardias debe ser sospechoso.
