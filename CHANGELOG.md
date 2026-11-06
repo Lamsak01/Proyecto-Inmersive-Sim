@@ -3,6 +3,17 @@
 Cambios del juego, del más nuevo al más antiguo. Añade una entrada al cerrar cada bloque, en lenguaje sencillo.
 El detalle técnico está en `docs/HANDOFF.md` (sección 7) y el historial completo en `git log`. Lo anterior a B0.1 está en `AUDIT_LOG.md` y `SESSION_CONTEXT_LOG.md`.
 
+## 2026-11-06 — Tu tienda («Bazar del Forastero») funciona de verdad en tu solar con mostrador, dependiente y clientes a pie
+- **Mostrador y caja en tu solar:** cuando abres tu propio negocio, aparece un mostrador con caja de caudales en 2D y 3D
+  dentro de tu solar. Te acercas y pulsas **E** allí mismo para **reponer mercancía** desde tu mochila y **recoger el oro
+  de la caja** (ya no se hace charlando con cualquier vecino por la calle).
+- **Dependiente detrás del mostrador:** en horario comercial, el vecino que contrates como dependiente va caminando hasta
+  detrás de tu mostrador y se queda atendiendo la tienda; si no está en su puesto, no se vende nada. Su sueldo diario sigue
+  saliendo de la caja.
+- **Clientes que entran a comprar:** durante el día, los vecinos con dinero se acercan andando a tu mostrador y compran un
+  artículo pagándolo de su bolsillo a la caja (en lugar de venderse solo a medianoche). Pregonar tu negocio o contratar a
+  un vecino sigue haciéndose hablando con la gente, y la publicidad atrae más compradores durante 3 días.
+
 ## 2026-11-06 — Pasos en 3D acompasados al suelo y armas bien sujetas en la mano
 - **Pasos sin patinar:** el ritmo al que mueven las piernas tu personaje, los vecinos y los asaltantes ahora coincide con
   lo que avanzan de verdad sobre el suelo, tanto al caminar despacio como al trotar o correr.

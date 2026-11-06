@@ -222,7 +222,7 @@ static func tick(vm) -> void:
 	for n in living(vm):
 		if n.errand_kind == "":
 			continue
-		if now - int(n.errand_since) > ERRAND_TIMEOUT_HOURS and not (n.errand_kind in ["beg", "outpost_work"]):
+		if now - int(n.errand_since) > ERRAND_TIMEOUT_HOURS and not (n.errand_kind in ["beg", "outpost_work", "player_shop_clerk"]):
 			if n.errand_kind == "leisure":
 				vm.VillagePlaces._leave(n)
 				continue
@@ -239,8 +239,10 @@ static func tick(vm) -> void:
 			"drink", "gamble":
 				do_vice(vm, n, n.errand_kind)
 				n.end_errand()
-			"beg", "outpost_work":
+			"beg", "outpost_work", "player_shop_clerk":
 				pass # Se queda hasta la tarde (on_hour)
+			"player_shop_buy":
+				vm.VillageHousing.on_customer_arrived(vm, n) # Bloque P1: cliente compra en el mostrador de tu tienda
 			"leisure":
 				vm.VillagePlaces.on_arrived(vm, n) # V5c: se queda un rato (lo cierra VillagePlaces)
 			"market":

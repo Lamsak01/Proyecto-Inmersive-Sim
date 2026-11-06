@@ -1481,6 +1481,9 @@ func _sync_home_props_3d() -> void:
 	var p_lots: Array[String] = VillageHousingScript.player_lots(vm, true)
 	var hs: Dictionary = VillageHousingScript.state(vm)
 	var prim_lot: String = VillageHousingScript.primary_player_lot(vm)
+	var has_shop: bool = VillageHousingScript.has_player_shop(vm)
+	var ps: Dictionary = hs.get("player_shop", {}) if has_shop else {}
+	var shop_lot: String = VillageHousingScript.player_shop_lot(vm) if has_shop else ""
 	var parts: PackedStringArray = PackedStringArray()
 	for lid in p_lots:
 		var st: Dictionary = VillageLots.lot(vm, lid)
@@ -1491,7 +1494,10 @@ func _sync_home_props_3d() -> void:
 		var cel_fl: int = 1 if bool(up.get("hidden_cellar", false)) else 0
 		var gd_fl: int = 1 if bool(st.get("has_garden", false)) else 0
 		var gd_rdy: int = 1 if (gd_fl == 1 and VillageHousingScript.can_harvest_home_garden(vm, lid)) else 0
-		parts.append("%s:%d:%d:%d:%d:%d:%d" % [lid, wb, st_fl, up_fl, cel_fl, gd_fl, gd_rdy])
+		var sh_fl: int = 1 if (has_shop and lid == shop_lot) else 0
+		var sh_stk: int = clampi(int(ps.get("stock", 0)), 0, 4) if sh_fl == 1 else 0
+		var sh_till: int = (1 if int(ps.get("till_gold", 0)) > 0 else 0) if sh_fl == 1 else 0
+		parts.append("%s:%d:%d:%d:%d:%d:%d:%d:%d:%d" % [lid, wb, st_fl, up_fl, cel_fl, gd_fl, gd_rdy, sh_fl, sh_stk, sh_till])
 	var sig: String = "|".join(parts)
 	if sig == _last_home_props_sig and (sig.is_empty() or is_instance_valid(_home_props_3d)):
 		return
@@ -1547,6 +1553,17 @@ func _sync_home_props_3d() -> void:
 			for gy in [-3.2, 3.2]:
 				for gx in [-6.5, -2.2, 2.2, 6.5]:
 					_add_cyl_2d(root, gd_pos + Vector2(gx, gy), 2.0, 2.6, 2.6, crop_mat, 1.4, 7)
+		if has_shop and lid == shop_lot:
+			var sc_pos: Vector2 = VillageHousingScript.home_prop_pos(vm, lid, "player_shop_counter")
+			_add_box_2d(root, sc_pos, Vector2(18.0, 9.2), 2.0, 6.8, m_oak) # Cuerpo del mostrador
+			_add_box_2d(root, sc_pos, Vector2(19.6, 10.4), 8.6, 1.2, m_oak) # Tablero del mostrador
+			_add_box_2d(root, sc_pos + Vector2(4.6, -0.2), Vector2(5.2, 4.4), 9.8, 2.6, m_iron) # Caja de recaudación
+			if int(ps.get("till_gold", 0)) > 0:
+				_add_cyl_2d(root, sc_pos + Vector2(4.6, -0.2), 1.8, 12.2, 1.2, m_gold, 1.8, 8) # Monedas en la caja
+			if int(ps.get("stock", 0)) > 0:
+				_add_box_2d(root, sc_pos + Vector2(-4.8, -0.4), Vector2(3.8, 3.6), 9.8, 2.4, m_herb) # Mercancía expuesta 1
+				if int(ps.get("stock", 0)) >= 2:
+					_add_box_2d(root, sc_pos + Vector2(-1.2, 0.4), Vector2(3.6, 3.4), 9.8, 2.2, m_gold) # Mercancía expuesta 2
 
 func _sync_heist_target_3d() -> void:
 	if vm == null or stage_root_3d == null:

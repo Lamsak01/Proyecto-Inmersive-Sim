@@ -428,6 +428,7 @@ func _finish_frame_movement(delta: float, apply_yield: bool = false) -> void:
 	move_and_slide()
 	if lod_k > 1.0:
 		velocity /= lod_k
+		_lod_k = 1.0
 	if _cached_vm:
 		if not _footprint_check_done:
 			_footprint_check_done = true
@@ -3923,6 +3924,8 @@ func get_activity_description() -> String:
 					"leisure": return load("res://scripts/systems/VillagePlaces.gd").activity_text(self, at_e)
 					"market": return "🧺 Comprando en el mercado" if at_e else "🚶🧺 Yendo al mercado"
 					"mayor_office": return "🏛️ Cuadrando las cuentas del pueblo" if at_e else "🚶🏛️ Yendo al ayuntamiento"
+					"player_shop_clerk": return "🏪 Atendiendo el Bazar del Forastero" if at_e else "🚶🏪 Yendo a atender el Bazar del Forastero"
+					"player_shop_buy": return "🛍️ Comprando en el Bazar del Forastero" if at_e else "🚶🛍️ Yendo a comprar al Bazar del Forastero"
 			if rite_kind in ["sect", "sect_lure"]:
 				var vm_sc = _get_vm()
 				var known_sc: bool = vm_sc != null and "sect_state" in vm_sc and (bool(vm_sc.sect_state.get("player_member", false)) or (vm_sc.sect_state.get("known", {}) as Dictionary).has(get_person_key()))

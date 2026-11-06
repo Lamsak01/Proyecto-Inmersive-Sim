@@ -83,6 +83,11 @@ func setup_prop(village_manager: Node2D, kind: String, h_id: String = "", h_labe
 			npc_role = heist_label if not heist_label.is_empty() else "Solar de tu Casa"
 			add_to_group("home_garden")
 			add_to_group("home_prop")
+		"player_shop_counter":
+			npc_name = heist_label if not heist_label.is_empty() else "Bazar del Forastero"
+			npc_role = "Mostrador y Caja de tu Tienda"
+			add_to_group("player_shop_counter")
+			add_to_group("home_prop")
 	_rebuild_visual_and_area()
 
 
@@ -127,6 +132,8 @@ func _rebuild_visual_and_area() -> void:
 			_draw_home_stairs_2d()
 		"home_garden":
 			_draw_home_garden_2d()
+		"player_shop_counter":
+			_draw_player_shop_counter_2d()
 
 	if interact_area == null or not is_instance_valid(interact_area):
 		interact_area = Area2D.new()
@@ -285,6 +292,23 @@ func _draw_home_garden_2d() -> void:
 			_rect(Vector2(gx, gy - 0.5), Vector2(1.6, 1.6), leaf_col) # Matas del huerto
 
 
+func _draw_player_shop_counter_2d() -> void:
+	# Mostrador comercial de madera con paño de exposición de mercancía y caja de recaudación con herrajes
+	_rect(Vector2(0, 1.5), Vector2(11.0, 6.2), Color(0.14, 0.10, 0.06, 0.55)) # Sombra
+	_rect(Vector2(0, 0), Vector2(10.2, 5.2), Color(0.46, 0.30, 0.16)) # Mueble del mostrador
+	_rect(Vector2(0, 0), Vector2(9.0, 4.1), Color(0.58, 0.40, 0.22)) # Tablero superior
+	_rect(Vector2(-3.4, 0), Vector2(4.4, 3.0), Color(0.72, 0.18, 0.20)) # Paño de exposición
+	var ps: Dictionary = VillageHousing.state(vm).get("player_shop", {}) if vm != null else {}
+	var stk: int = int(ps.get("stock", 0))
+	var till_g: int = int(ps.get("till_gold", 0))
+	if stk > 0:
+		_rect(Vector2(-5.0, -0.4), Vector2(1.8, 1.8), Color(0.86, 0.68, 0.34)) # Fardo / mercancía 1
+		if stk >= 2:
+			_rect(Vector2(-1.8, 0.4), Vector2(1.8, 1.8), Color(0.38, 0.76, 0.42)) # Fardo / mercancía 2
+	_rect(Vector2(4.6, -0.2), Vector2(2.8, 2.6), Color(0.26, 0.30, 0.34)) # Caja de caudales de hierro
+	_rect(Vector2(4.6, -0.2), Vector2(2.0, 1.8), Color(0.95, 0.78, 0.24) if till_g > 0 else Color(0.52, 0.44, 0.26)) # Monedas / cerradura
+
+
 func get_interact_label(_player: Node2D = null) -> String:
 	match prop_kind:
 		"terminal":
@@ -316,6 +340,8 @@ func get_interact_label(_player: Node2D = null) -> String:
 			return VillageHousing.get_home_stairs_label(vm, heist_id) if vm != null else "Usar escalera / trampilla"
 		"home_garden":
 			return VillageHousing.get_home_garden_label(vm, heist_id) if vm != null else "Cosechar el huerto de casa"
+		"player_shop_counter":
+			return VillageHousing.get_player_shop_counter_label(vm) if vm != null else "Mostrador y caja de tu tienda"
 	return "Usar"
 
 
@@ -344,6 +370,8 @@ func interact(player: Node2D) -> void:
 			VillageHousing.interact_home_stairs(vm, heist_id, self, player)
 		"home_garden":
 			VillageHousing.interact_home_garden(vm, heist_id, player)
+		"player_shop_counter":
+			VillageHousing.open_player_shop_counter_menu(vm, self, player)
 
 
 func on_dialogue_action(action_id: String) -> void:

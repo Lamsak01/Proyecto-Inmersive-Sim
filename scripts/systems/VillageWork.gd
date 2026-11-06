@@ -77,9 +77,10 @@ static func accepts(n) -> float:
 
 static func hire(vm) -> int:
 	var st: Dictionary = state(vm)
+	var shop_clerk_key: String = str(vm.VillageHousing.state(vm).get("player_shop", {}).get("clerk_key", "")) if "VillageHousing" in vm and vm.VillageHousing != null else ""
 	var pool: Array = []
 	for n in VillageNeeds.living(vm):
-		if can_be_hired(n):
+		if n.get_person_key() != shop_clerk_key and can_be_hired(n):
 			pool.append(n)
 	pool.sort_custom(func(a, b): return a.personal_gold < b.personal_gold) # Primero los más necesitados
 	var hired: int = 0

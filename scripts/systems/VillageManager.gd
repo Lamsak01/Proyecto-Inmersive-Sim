@@ -280,6 +280,7 @@ func setup_village(target_entities_root: Node) -> void:
 	VillageWork.build_world(self) # V5d: lavadero
 	VillageUnderworld.build_sewers_world(self) # FIS3: trampillas en la calle y red de túneles conectada al sur
 	VillageHousing.sync_livestock(self) # FIS4: ganado vivo del rancho y animales propios del corral
+	VillageHousing.sync_home_props(self) # FIS-P1 y P1: objetos físicos en tu casa y mostrador de tu tienda
 	_spawn_domestic_pets()
 	if not in_editor and DisplayServer.get_name() != "headless":
 		VillageMigration.seed_start_population(self) # Provisional: arranque con 40 vecinos para probar (no en las pruebas)
@@ -2474,6 +2475,7 @@ func _on_hour_passed(_day: int, new_hour: int = 8) -> void:
 	var actual_day: int = WorldClock.current_day if WorldClock else 1
 	_apply_hourly_door_security_schedule(actual_hour)
 	VillageFaith.on_hour(self, actual_hour) # G2: Oficio del Alba (domingo por la mañana)
+	VillageHousing.on_hour(self, actual_hour) # P1: dependiente y clientes reales en tu tienda
 	VillageNeeds.on_hour(self, actual_hour) # E: higiene, taberna, limosna
 	VillageIllness.on_hour(self, actual_hour) # E2: contagios
 	VillageSect.on_hour(self, actual_hour) # O3: reunión de la secta (viernes de madrugada)
@@ -4783,6 +4785,7 @@ func load_economy_save_dict(data: Dictionary) -> void:
 	lots_state = (data["lots_state"] as Dictionary).duplicate(true) if typeof(data.get("lots_state")) == TYPE_DICTIONARY else {}
 	VillageLots.after_load(self)
 	VillageHousing.sync_livestock(self)
+	VillageHousing.sync_home_props(self)
 	places_state = (data["places_state"] as Dictionary).duplicate(true) if typeof(data.get("places_state")) == TYPE_DICTIONARY else {}
 	work_state = (data["work_state"] as Dictionary).duplicate(true) if typeof(data.get("work_state")) == TYPE_DICTIONARY else {}
 	VillageWork.after_load(self)

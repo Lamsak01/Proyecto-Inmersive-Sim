@@ -41,7 +41,7 @@ kanban-plugin: board
 - [ ] Rendimiento: abaratar el cálculo de los vecinos sin cambiar lo que hacen
 - [ ] Animales 3D: conejo, gato y gallinas siguen planos (buscar modelos animados del mismo estilo)
 - [ ] Buscar un jabalí 3D animado que guste al usuario (ahora es un lobo provisional)
-- [ ] Hacer físicos: ganado, tienda propia, caravanas, expediciones, cenas y fiestas, carreta
+- [ ] Hacer físicos: caravanas, expediciones, cenas y fiestas, carreta
 - [ ] Dibujo 2D propio del caballo (ahora es el ciervo teñido) y postura de jinete a horcajadas
 
 
@@ -67,6 +67,7 @@ kanban-plugin: board
 - [x] Interior físico de tu propia casa: huerto cosechable, banco de trabajo y alquimia, escondite bajo las tablas y escalera/trampilla `+1`/`-1` con `[E]` (2026-11-05)
 - [x] Combate cuerpo a cuerpo con esquiva rodando (`[Espacio]`), parada a tiempo (`[Q]`) y golpes enemigos que avisan (`COMBATE-1`, 2026-11-06)
 - [x] Pasos 3D sin patinar y armas y herramientas orientadas al derecho en la mano (`ANIM-1`, 2026-11-06)
+- [x] Tienda propia («Bazar del Forastero») hecha física: mostrador con caja 2D/3D, dependiente en puesto y clientes a pie (`P1`, 2026-11-06)
 
 - [x] Edificios con sus piezas quietas juntas (2026-11-06)
 - [x] Casas iniciales repartidas por los barrios y árboles agrupados para dibujar menos (2026-11-06)

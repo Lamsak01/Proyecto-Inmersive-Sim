@@ -40,6 +40,9 @@ const SHOP_THEFT_CHANCE_CLERK: float = 0.07
 const ANIMAL_FED_DAYS: int = 2 # Crecen y dan carne solo si comieron hace 2 días o menos
 const ANIMAL_STARVE_DAYS: int = 5 # Sin comer 5 días, el animal muere
 const CLERK_WAGE: int = 4
+const SHOP_OPEN_HOUR: int = 8
+const SHOP_CLOSE_HOUR: int = 18
+const SHOP_CLERK_RADIUS: float = 42.0
 const STOCKABLE_ITEMS: Array[String] = ["bread", "cooked_meat", "herbal_poultice", "repair_kit", "clothes", "wood", "iron_ore", "fish", "masterwork_piece"]
 const BUY_CHICK_COST: int = 15
 const JUVENILE_DAYS: int = 3
@@ -199,8 +202,12 @@ static func found_player_shop(vm, lot_id: String, inv, carpenter = null) -> bool
 		"ad_days": 0,
 		"last_ad_day": -99,
 		"clerk_key": "",
-		"total_sales": 0
+		"total_sales": 0,
+		"buyers_today": 0,
+		"last_wage_day": -99,
+		"till_since_day": -99
 	}
+	sync_home_props(vm)
 	VillageChronicle.add(vm, "player_shop_founded", "Acondicionaste un mostrador y fundaste tu propio negocio («Bazar del Forastero») en el solar %s" % lot_id, true)
 	return true
 
@@ -220,7 +227,206 @@ static func stock_player_shop(vm, inv) -> int:
 			break
 	if added > 0:
 		ps["stock"] = int(ps.get("stock", 0)) + added
+		_refresh_shop_counter_visual(vm)
 	return added
+
+static func collect_player_shop_till(vm, inv) -> int:
+	if not has_player_shop(vm):
+		return 0
+	var ps: Dictionary = state(vm)["player_shop"]
+	var gain: int = int(ps.get("till_gold", 0))
+	if gain <= 0:
+		return 0
+	ps["till_gold"] = 0
+	ps["till_since_day"] = -99
+	if inv != null:
+		inv.add_gold(gain)
+	_refresh_shop_counter_visual(vm)
+	return gain
+
+static func player_shop_lot(vm) -> String:
+	if not has_player_shop(vm):
+		return ""
+	var lid: String = str(state(vm)["player_shop"].get("lot", ""))
+	return lid if not lid.is_empty() else primary_player_lot(vm)
+
+static func player_shop_counter_pos(vm) -> Vector2:
+	var lid: String = player_shop_lot(vm)
+	return home_prop_pos(vm, lid, "player_shop_counter") if not lid.is_empty() else Vector2.ZERO
+
+static func player_shop_clerk_pos(vm) -> Vector2:
+	var lid: String = player_shop_lot(vm)
+	if lid.is_empty():
+		return Vector2.ZERO
+	var d: Dictionary = VillageLots.lot_def(lid)
+	var m: float = -1.0 if bool(d.get("door_south", true)) else 1.0
+	return home_prop_pos(vm, lid, "player_shop_counter") + Vector2(0.0, 6.0 * m)
+
+static func player_shop_customer_pos(vm) -> Vector2:
+	var lid: String = player_shop_lot(vm)
+	if lid.is_empty():
+		return Vector2.ZERO
+	var d: Dictionary = VillageLots.lot_def(lid)
+	var m: float = -1.0 if bool(d.get("door_south", true)) else 1.0
+	return home_prop_pos(vm, lid, "player_shop_counter") + Vector2(0.0, -8.0 * m)
+
+static func is_player_shop_open_hour(hour: int) -> bool:
+	return hour >= SHOP_OPEN_HOUR and hour < SHOP_CLOSE_HOUR
+
+static func get_player_shop_clerk(vm):
+	if not has_player_shop(vm) or vm == null:
+		return null
+	var ck: String = str(state(vm)["player_shop"].get("clerk_key", ""))
+	if ck.is_empty():
+		return null
+	var clerk = vm._get_npcs_by_person_key().get(ck, null)
+	if clerk == null or not is_instance_valid(clerk) or clerk.is_dead:
+		return null
+	return clerk
+
+static func is_player_shop_clerk_present(vm) -> bool:
+	var clerk = get_player_shop_clerk(vm)
+	if clerk == null or clerk.is_downed or clerk.is_sleeping or not clerk.is_conscious():
+		return false
+	return clerk.global_position.distance_to(player_shop_counter_pos(vm)) <= SHOP_CLERK_RADIUS
+
+static func pay_player_shop_clerk(vm) -> bool:
+	if not has_player_shop(vm):
+		return false
+	var ps: Dictionary = state(vm)["player_shop"]
+	var ck: String = str(ps.get("clerk_key", ""))
+	if ck.is_empty():
+		return false
+	var clerk = vm._get_npcs_by_person_key().get(ck, null)
+	if clerk == null or not is_instance_valid(clerk) or clerk.is_dead:
+		ps["clerk_key"] = ""
+		return false
+	if int(ps.get("last_wage_day", -99)) == today():
+		return false
+	if int(ps.get("till_gold", 0)) >= CLERK_WAGE:
+		ps["till_gold"] = int(ps["till_gold"]) - CLERK_WAGE
+		clerk.personal_gold += CLERK_WAGE
+		ps["last_wage_day"] = today()
+		_refresh_shop_counter_visual(vm)
+		return true
+	return false
+
+static func _next_shop_item_id(ps: Dictionary) -> String:
+	var goods = ps.get("goods", null)
+	if not (goods is Dictionary):
+		return ""
+	for g_id in (goods as Dictionary).keys():
+		if int(goods[g_id]) > 0:
+			return str(g_id)
+	return ""
+
+static func on_hour(vm, hour: int) -> void:
+	if vm == null or not has_player_shop(vm):
+		return
+	var ps: Dictionary = state(vm)["player_shop"]
+	var clerk = get_player_shop_clerk(vm)
+	if clerk == null and not str(ps.get("clerk_key", "")).is_empty():
+		ps["clerk_key"] = ""
+	if not is_player_shop_open_hour(hour):
+		if hour == SHOP_CLOSE_HOUR:
+			pay_player_shop_clerk(vm)
+		if clerk != null and clerk.errand_kind == "player_shop_clerk":
+			clerk.end_errand()
+		for n in VillageNeeds.living(vm):
+			if n.errand_kind == "player_shop_buy":
+				n.end_errand()
+		return
+	# En horario comercial (8:00 a 18:00), el dependiente contratado camina hasta detrás de tu mostrador y se queda allí
+	if clerk != null and not clerk.is_downed and not clerk.is_sleeping and clerk.is_conscious() and clerk.rite_pos == Vector2.ZERO and not clerk.is_in_live_fight() and not clerk.is_busy_with_player():
+		if "VillageWork" in vm and vm.VillageWork != null:
+			vm.VillageWork._release(clerk)
+		var c_spot: Vector2 = player_shop_clerk_pos(vm)
+		if clerk.errand_kind != "player_shop_clerk":
+			clerk.start_errand("player_shop_clerk", c_spot)
+		else:
+			clerk.errand_pos = c_spot
+			clerk.errand_since = VillageNeeds.total_hours()
+	# Clientes reales: durante el día, vecinos con oro se acercan andando al mostrador para comprar 1 unidad
+	if int(ps.get("stock", 0)) <= 0 or clerk == null:
+		return
+	var next_item: String = _next_shop_item_id(ps)
+	if next_item.is_empty():
+		ps["stock"] = 0
+		return
+	var price: int = int(SHOP_ITEM_PRICES.get(next_item, 5))
+	var max_daily_buyers: int = 2 + (2 if int(ps.get("ad_days", 0)) > 0 else 0)
+	var active_walkers: int = 0
+	var living_npcs: Array = VillageNeeds.living(vm)
+	for n in living_npcs:
+		if n.errand_kind == "player_shop_buy":
+			active_walkers += 1
+	var slots_left: int = mini(int(ps.get("stock", 0)), max_daily_buyers - int(ps.get("buyers_today", 0))) - active_walkers
+	if slots_left <= 0:
+		return
+	var max_this_hour: int = mini(slots_left, 2 if int(ps.get("ad_days", 0)) > 0 else 1)
+	var sent: int = 0
+	var ck: String = clerk.get_person_key()
+	var cust_spot: Vector2 = player_shop_customer_pos(vm)
+	for pass_idx in range(2):
+		if sent >= max_this_hour:
+			break
+		for n in living_npcs:
+			if sent >= max_this_hour:
+				break
+			if int(n.trade_role) == int(VillageNPC.TradeRole.CHILD) or VillageNeeds.is_outsider(n) or n.get_person_key() == ck:
+				continue
+			if n.errand_kind != "" or n.rite_pos != Vector2.ZERO or n.is_in_live_fight() or n.is_busy_with_player() or n.sick_level >= 2:
+				continue
+			if pass_idx == 0 and not VillageNeeds.is_free(n):
+				continue
+			if int(n.personal_gold) >= price + 12:
+				n.start_errand("player_shop_buy", cust_spot)
+				sent += 1
+
+static func on_customer_arrived(vm, customer) -> bool:
+	if customer != null and is_instance_valid(customer) and customer.errand_kind == "player_shop_buy":
+		customer.end_errand()
+	if vm == null or not has_player_shop(vm) or customer == null or not is_instance_valid(customer) or customer.is_dead or customer.is_downed:
+		return false
+	# Sin el dependiente físicamente detrás del mostrador, la tienda no vende
+	if not is_player_shop_clerk_present(vm):
+		return false
+	if customer.global_position.distance_to(player_shop_counter_pos(vm)) > SHOP_CLERK_RADIUS:
+		return false
+	var ps: Dictionary = state(vm)["player_shop"]
+	if int(ps.get("stock", 0)) <= 0:
+		return false
+	if not (ps.get("goods", null) is Dictionary):
+		ps["goods"] = {}
+	var goods: Dictionary = ps["goods"]
+	var sold_item: String = _next_shop_item_id(ps)
+	if sold_item.is_empty():
+		ps["stock"] = 0
+		return false
+	var price: int = int(SHOP_ITEM_PRICES.get(sold_item, 5))
+	if int(customer.personal_gold) < price:
+		return false
+	var was_empty_till: bool = int(ps.get("till_gold", 0)) <= 0
+	customer.personal_gold -= price
+	goods[sold_item] = int(goods[sold_item]) - 1
+	if int(goods[sold_item]) <= 0:
+		goods.erase(sold_item)
+	ps["till_gold"] = int(ps.get("till_gold", 0)) + price
+	if was_empty_till:
+		ps["till_since_day"] = today()
+	ps["stock"] = maxi(0, int(ps.get("stock", 0)) - 1)
+	ps["total_sales"] = int(ps.get("total_sales", 0)) + 1
+	ps["buyers_today"] = int(ps.get("buyers_today", 0)) + 1
+	if customer.has_method("add_pocket_item"):
+		customer.add_pocket_item(sold_item, 1)
+	customer.modify_affinity(2)
+	customer.add_thought("Compré buena mercancía en el Bazar del Forastero (+3)", 3.0)
+	customer._spawn_floating_text("🛍️ -%d Oro" % price, Color.GOLD, -30.0)
+	var clerk = get_player_shop_clerk(vm)
+	if clerk != null:
+		clerk._spawn_floating_text("💰 +%d Oro (Caja)" % price, Color.SPRING_GREEN, -30.0)
+	_refresh_shop_counter_visual(vm)
+	return true
 
 static func advertise_player_shop(vm, inv) -> bool:
 	if not has_player_shop(vm) or inv == null or int(inv.gold) < ADVERTISE_COST:
@@ -676,50 +882,17 @@ static func daily(vm) -> void:
 				if cut > 0:
 					vm.shop_businesses[role_i]["vault_gold"] = vault - cut
 					inv.add_gold(cut)
-	# Bloque PG: Tu propio negocio vende mercancía del mostrador a vecinos con oro y paga al dependiente
+	# Bloque PG / Bloque P1: Las ventas de tu tienda ocurren durante el día cuando el dependiente atiende el mostrador
+	# y los clientes se acercan andando a comprar; a medianoche se paga el jornal al dependiente y la caja sin recoger corre riesgo de robo nocturno.
 	if has_player_shop(vm):
 		var ps: Dictionary = hs["player_shop"]
 		var ck: String = str(ps.get("clerk_key", ""))
-		# Riesgo: de noche un ladrón puede llevarse parte de la caja que no hayas recaudado
-		shop_night_theft(vm, ps, SHOP_THEFT_CHANCE_CLERK if ck != "" else SHOP_THEFT_CHANCE)
-		var max_buyers: int = 1 + (1 if ck != "" else 0) + (2 if int(ps.get("ad_days", 0)) > 0 else 0)
+		pay_player_shop_clerk(vm)
+		if int(ps.get("till_gold", 0)) > 1 and int(ps.get("till_since_day", -99)) < today():
+			shop_night_theft(vm, ps, SHOP_THEFT_CHANCE_CLERK if ck != "" else SHOP_THEFT_CHANCE)
 		if int(ps.get("ad_days", 0)) > 0:
 			ps["ad_days"] = maxi(0, int(ps["ad_days"]) - 1)
-		if not (ps.get("goods", null) is Dictionary):
-			ps["goods"] = {}
-		var goods: Dictionary = ps["goods"]
-		for n in VillageNeeds.living(vm):
-			if max_buyers <= 0 or int(ps.get("stock", 0)) <= 0:
-				break
-			if int(n.trade_role) == int(VillageNPC.TradeRole.CHILD) or VillageNeeds.is_outsider(n) or n.get_person_key() == ck:
-				continue
-			var sold_item: String = ""
-			for g_id in goods.keys():
-				if int(goods[g_id]) > 0:
-					sold_item = str(g_id)
-					break
-			if sold_item == "":
-				ps["stock"] = 0
-				break
-			var price: int = int(SHOP_ITEM_PRICES.get(sold_item, 5))
-			if int(n.personal_gold) >= price + 12:
-				n.personal_gold -= price
-				goods[sold_item] = int(goods[sold_item]) - 1
-				if int(goods[sold_item]) <= 0:
-					goods.erase(sold_item)
-				ps["till_gold"] = int(ps.get("till_gold", 0)) + price
-				ps["stock"] = int(ps.get("stock", 0)) - 1
-				ps["total_sales"] = int(ps.get("total_sales", 0)) + 1
-				n.modify_affinity(2)
-				n.add_thought("Compré buena mercancía en el Bazar del Forastero (+3)", 3.0)
-				max_buyers -= 1
-		if ck != "":
-			var clerk = vm._get_npcs_by_person_key().get(ck, null)
-			if clerk == null or clerk.is_dead:
-				ps["clerk_key"] = ""
-			elif int(ps.get("till_gold", 0)) >= CLERK_WAGE:
-				ps["till_gold"] = int(ps["till_gold"]) - CLERK_WAGE
-				clerk.personal_gold += CLERK_WAGE
+		ps["buyers_today"] = 0
 	# Bloque PI.1: Crecimiento diario del ganado del Rancho (con renovación cuando madura) y de tus propios animales de corral
 	var r_herd: Array = hs["ranch_herd"]
 	var new_r_chicks: Array = []
@@ -853,14 +1026,12 @@ static func add_dialogue_choices(vm, npc, diag: Dictionary, ch_arr: Array) -> vo
 	if npc.trade_role in VillageNPC.SHOP_ROLES and not (hs["commercial_deeds"] as Dictionary).has(str(int(npc.trade_role))):
 		opts.append({"label": "🏪📜 Comprar la propiedad de su local comercial para cobrar renta semanal (-%d Oro)" % COMMERCIAL_DEED_COST, "next": "END", "action": "housing_deed:%d" % int(npc.trade_role)})
 
-	# Bloque PG: Gestionar tu propio negocio (abastecer, hacer publicidad, contratar dependiente y recaudar caja)
+	# Bloque PG / Bloque P1: Pregonar y contratar dependiente siguen en charla (tratos con personas);
+	# reponer mercancía y recoger la caja se hacen físicamente con [E] en el mostrador de tu solar (`player_shop_counter`).
 	if has_player_shop(vm):
 		var ps: Dictionary = hs["player_shop"]
-		opts.append({"label": "📦🏪 Abastecer el mostrador de tu negocio con hasta 2 artículos de tu mochila (Stock: %d)" % int(ps.get("stock", 0)), "next": "END", "action": "housing_stock_shop"})
 		if today() - int(ps.get("last_ad_day", -99)) >= ADVERTISE_COOLDOWN_DAYS:
 			opts.append({"label": "📣🪧 Hacer publicidad de tu negocio por el pueblo (-%d Oro, atrae más clientes 3 días)" % ADVERTISE_COST, "next": "END", "action": "housing_advertise_shop"})
-		if int(ps.get("till_gold", 0)) > 0:
-			opts.append({"label": "💰🏪 Recaudar la caja de tu negocio (+%d Oro)" % int(ps.get("till_gold", 0)), "next": "END", "action": "housing_collect_shop"})
 		if str(ps.get("clerk_key", "")) == "" and int(npc.trade_role) == int(VillageNPC.TradeRole.UNEMPLOYED) and not VillageNeeds.is_outsider(npc):
 			opts.append({"label": "🤝🏪 Contratarle como dependiente de tu negocio (%d Oro/día de la caja)" % CLERK_WAGE, "next": "END", "action": "housing_hire_clerk"})
 
@@ -1166,32 +1337,32 @@ static func on_player_action(vm, npc, action_id: String, inv) -> void:
 	elif action_id == "housing_stock_shop":
 		var added: int = stock_player_shop(vm, inv)
 		if added > 0:
-			npc._spawn_floating_text("📦🏪 Colocaste %d artículo(s) en el mostrador (Stock: %d)" % [added, int(hs["player_shop"].get("stock", 0))], Color.SPRING_GREEN, -46.0)
+			_notify_player(vm, npc, "📦🏪 Colocaste %d artículo(s) en el mostrador (Stock: %d)" % [added, int(hs["player_shop"].get("stock", 0))], Color.SPRING_GREEN)
 		else:
-			npc._spawn_floating_text("No llevas mercancía vendible en la mochila (pan, carne, ropa, madera, hierro...)", Color.ORANGE_RED, -44.0)
+			_notify_player(vm, npc, "No llevas mercancía vendible en la mochila (pan, carne, ropa, madera, hierro...)", Color.ORANGE_RED)
 
 	elif action_id == "housing_advertise_shop":
 		if advertise_player_shop(vm, inv):
-			npc._spawn_floating_text("📣🪧 «¡Hecho! Pregonaré tu negocio por la plaza durante 3 días.»", Color.SPRING_GREEN, -46.0)
+			_notify_player(vm, npc, "📣🪧 «¡Hecho! Pregonaré tu negocio por la plaza durante 3 días.»", Color.SPRING_GREEN)
 		else:
-			npc._spawn_floating_text("Necesitas %d de oro o esperar a que termine la campaña anterior" % ADVERTISE_COST, Color.ORANGE_RED, -44.0)
+			_notify_player(vm, npc, "Necesitas %d de oro o esperar a que termine la campaña anterior" % ADVERTISE_COST, Color.ORANGE_RED)
 
 	elif action_id == "housing_collect_shop":
-		if not has_player_shop(vm):
-			return
-		var ps: Dictionary = hs["player_shop"]
-		var gain: int = int(ps.get("till_gold", 0))
-		if gain <= 0:
-			return
-		ps["till_gold"] = 0
-		if inv != null:
-			inv.add_gold(gain)
-		npc._spawn_floating_text("💰🏪 Recaudaste %d de oro de la caja de tu negocio" % gain, Color.GOLD, -46.0)
+		var gain: int = collect_player_shop_till(vm, inv)
+		if gain > 0:
+			_notify_player(vm, npc, "💰🏪 Recogiste %d de oro de la caja de tu tienda" % gain, Color.GOLD)
+		else:
+			_notify_player(vm, npc, "La caja del mostrador está vacía ahora mismo", Color.ORANGE)
 
 	elif action_id == "housing_hire_clerk":
-		if not has_player_shop(vm) or int(npc.trade_role) != int(VillageNPC.TradeRole.UNEMPLOYED):
+		if not has_player_shop(vm) or npc == null or int(npc.trade_role) != int(VillageNPC.TradeRole.UNEMPLOYED):
 			return
 		hs["player_shop"]["clerk_key"] = npc.get_person_key()
+		if "VillageWork" in vm and vm.VillageWork != null:
+			vm.VillageWork._release(npc)
+		var cur_h: int = int(WorldClock.current_hour) if WorldClock != null else 10
+		if is_player_shop_open_hour(cur_h) and not npc.is_dead and not npc.is_downed and not npc.is_sleeping:
+			npc.start_errand("player_shop_clerk", player_shop_clerk_pos(vm))
 		npc.modify_affinity(12)
 		npc.add_thought("Tengo trabajo atendiendo el mostrador del Bazar del Forastero (+8)", 8.0)
 		VillageChronicle.add(vm, "player_shop_clerk", "Contrataste a %s como dependiente de tu negocio" % npc.npc_name, true)
@@ -1238,7 +1409,17 @@ static func home_prop_pos(_vm, lot_id: String, kind: String) -> Vector2:
 			return c + Vector2(32.0, 2.0 * m)
 		"home_garden":
 			return c + Vector2(-48.0, 18.0)
+		"player_shop_counter":
+			return c + Vector2(-16.0, -4.0 * m)
 	return c
+
+
+static func _refresh_shop_counter_visual(vm) -> void:
+	if vm == null or not ("entities_root" in vm) or vm.entities_root == null or not is_instance_valid(vm.entities_root):
+		return
+	for child in vm.entities_root.get_children():
+		if is_instance_valid(child) and child.is_in_group("player_shop_counter") and child.has_method("_rebuild_visual_and_area"):
+			child.call("_rebuild_visual_and_area")
 
 
 static func sync_home_props(vm) -> void:
@@ -1253,12 +1434,14 @@ static func sync_home_props(vm) -> void:
 			existing.append(child)
 	for old_n in existing:
 		old_n.remove_from_group("home_prop")
+		old_n.remove_from_group("player_shop_counter")
 		if old_n.get_parent() != null:
 			old_n.get_parent().remove_child(old_n)
 		old_n.queue_free()
 
 	var hs: Dictionary = state(vm)
 	var prim_lot: String = primary_player_lot(vm)
+	var shop_lot: String = player_shop_lot(vm) if has_player_shop(vm) else ""
 	for lid in player_lots(vm, true):
 		var st: Dictionary = VillageLots.lot(vm, lid)
 		var up: Dictionary = st.get("upgrades", {})
@@ -1287,6 +1470,58 @@ static func sync_home_props(vm) -> void:
 			g_prop.global_position = home_prop_pos(vm, lid, "home_garden")
 			vm.entities_root.add_child(g_prop)
 			g_prop.call("setup_prop", vm, "home_garden", lid, h_title)
+		if has_player_shop(vm) and lid == shop_lot:
+			var sc_prop: Node2D = PropScript.new() as Node2D
+			sc_prop.name = "PlayerShopCounter_" + lid
+			sc_prop.global_position = home_prop_pos(vm, lid, "player_shop_counter")
+			vm.entities_root.add_child(sc_prop)
+			sc_prop.call("setup_prop", vm, "player_shop_counter", lid, str(hs["player_shop"].get("name", "Bazar del Forastero")))
+
+
+static func get_player_shop_counter_label(vm) -> String:
+	if vm == null or not has_player_shop(vm):
+		return "Mostrador y caja de tu tienda"
+	var ps: Dictionary = state(vm)["player_shop"]
+	var stk: int = int(ps.get("stock", 0))
+	var till: int = int(ps.get("till_gold", 0))
+	if till > 0:
+		return "Mostrador del Bazar (Stock: %d · Recoger la caja: +%d Oro)" % [stk, till]
+	return "Mostrador del Bazar (Reponer mercancía · Stock: %d)" % stk
+
+
+static func open_player_shop_counter_menu(vm, speaker: Node, _player: Node2D = null) -> void:
+	if vm == null or not has_player_shop(vm):
+		return
+	var dm = vm.get_node_or_null("/root/DialogueManager")
+	if dm == null or not dm.has_method("start_dialogue"):
+		return
+	var ps: Dictionary = state(vm)["player_shop"]
+	var stk: int = int(ps.get("stock", 0))
+	var till: int = int(ps.get("till_gold", 0))
+	var clerk = get_player_shop_clerk(vm)
+	var clerk_txt: String = "Sin dependiente contratado"
+	if clerk != null:
+		clerk_txt = "%s (%s)" % [clerk.npc_name, "atendiendo el mostrador" if is_player_shop_clerk_present(vm) else "fuera del mostrador"]
+	var choices: Array = [
+		{
+			"label": "📦🏪 Reponer mercancía desde tu mochila (Stock: %d)" % stk,
+			"next": "END",
+			"action": "housing_stock_shop"
+		},
+		{
+			"label": "💰🏪 Recoger la caja (+%d Oro)" % till,
+			"next": "END",
+			"action": "housing_collect_shop"
+		},
+		{"label": "Apartarse del mostrador [Salir]", "next": "END"}
+	]
+	var graph: Dictionary = {
+		"start": {
+			"text": "🏪💰 MOSTRADOR Y CAJA — %s\nExistencias en el mostrador: %d artículo(s) · Caja: %d de oro · Dependiente: %s." % [str(ps.get("name", "Bazar del Forastero")), stk, till, clerk_txt],
+			"choices": choices
+		}
+	}
+	dm.start_dialogue(graph, "start", speaker)
 
 
 static func can_harvest_home_garden(vm, lot_id: String) -> bool:

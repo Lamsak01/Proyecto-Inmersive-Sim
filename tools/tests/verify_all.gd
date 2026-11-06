@@ -8,6 +8,7 @@ func _initialize() -> void:
 	root.add_child(main_inst)
 	await process_frame
 	await process_frame
+	await physics_frame
 
 	var vm = root.find_child("VillageManager", true, false)
 	var player: Node2D = get_first_node_in_group("player") as Node2D
@@ -3772,21 +3773,33 @@ func _initialize() -> void:
 	assert(not p70_inv.has_item("bread", 1) and int(vho.state(vm)["player_shop"]["stock"]) == 2 and int(vho.state(vm)["player_shop"]["goods"].get("bread", 0)) == 2, "PG.2b: Stocking player shop removes real items from inventory and adds to counter stock")
 	vho.on_player_action(vm, p70_a, "housing_advertise_shop", p70_inv)
 	assert(p70_inv.gold == 123 and int(vho.state(vm)["player_shop"]["ad_days"]) == 3, "PG.2c: Advertising player shop costs 12 gold into treasury and boosts clientele for 3 days")
+	var pg_a_pos_bak: Vector2 = p70_a.global_position
+	var pg_b_pos_bak: Vector2 = p70_b.global_position
+	var pg_c_pos_bak: Vector2 = p70_c.global_position
 	p70_c.trade_role = 0 # UNEMPLOYED
 	p70_c.personal_gold = 10
 	vho.on_player_action(vm, p70_c, "housing_hire_clerk", p70_inv)
 	assert(str(vho.state(vm)["player_shop"]["clerk_key"]) == p70_c.get_person_key(), "PG.2d: Hiring unemployed neighbor sets shop clerk")
+	p70_c.global_position = vho.player_shop_clerk_pos(vm)
 	p70_a.personal_gold = 45
 	p70_b.personal_gold = 45
+	p70_a.global_position = vho.player_shop_customer_pos(vm)
+	p70_b.global_position = vho.player_shop_customer_pos(vm)
+	vho.on_customer_arrived(vm, p70_a)
+	vho.on_customer_arrived(vm, p70_b)
 	vho.daily(vm)
 	var pg_sales: int = int(vho.state(vm)["player_shop"]["total_sales"])
 	var pg_till: int = int(vho.state(vm)["player_shop"]["till_gold"])
-	assert(pg_sales >= 2 and int(vho.state(vm)["player_shop"]["stock"]) == 2 - pg_sales and p70_c.personal_gold == 14 and pg_till == pg_sales * int(vho.SHOP_ITEM_PRICES["bread"]) - 4, "PG.2e: Daily shop cycle sells stock at the item's price to real neighbors, deducts their gold, and pays clerk wage from till")
+	assert(pg_sales >= 2 and int(vho.state(vm)["player_shop"]["stock"]) == 2 - pg_sales and p70_c.personal_gold == 14 and pg_till == pg_sales * int(vho.SHOP_ITEM_PRICES["bread"]) - 4, "PG.2e: Physical customer purchases with clerk at counter deduct buyer gold into till and daily cycle pays clerk wage")
 	vho.on_player_action(vm, p70_a, "housing_collect_shop", p70_inv)
 	assert(p70_inv.gold == 123 + pg_till and int(vho.state(vm)["player_shop"]["till_gold"]) == 0, "PG.2f: Collecting shop till transfers earnings to player")
 	vho.state(vm)["player_shop"]["till_gold"] = 20
 	var pg_stolen: int = vho.shop_night_theft(vm, vho.state(vm)["player_shop"], 1.0)
 	assert(pg_stolen == 10 and int(vho.state(vm)["player_shop"]["till_gold"]) == 10, "PG.2g: An uncollected till can be robbed at night (half goes to a neighbor's pocket)")
+	p70_c.end_errand()
+	p70_a.global_position = pg_a_pos_bak
+	p70_b.global_position = pg_b_pos_bak
+	p70_c.global_position = pg_c_pos_bak
 	p70_c.trade_role = pg_c_role_bak
 	p70_a.personal_gold = pg_ag_bak
 	p70_b.personal_gold = pg_bg_bak
@@ -3796,6 +3809,7 @@ func _initialize() -> void:
 	for k_pg in pg_lot_bak.keys():
 		vl.lot(vm, "n0")[k_pg] = pg_lot_bak[k_pg]
 	vl._draw_lot(vm, "n0", vl.lot(vm, "n0"))
+	vho.sync_home_props(vm)
 	vm.town_state["treasury"] = pg_tr_bak
 	print("Block PG (School Graduation & Player Business) OK")
 
@@ -5085,6 +5099,99 @@ func _initialize() -> void:
 	c1_hc.current_health = c1_hp_bak
 	c1_cctrl.current_prompt_target = null
 	print("Block COMBATE-1 (Roll, Parry & Telegraphed Enemy Attacks) OK")
+
+	# ==========================================================================
+	# Bloque P1: Tienda propia («Bazar del Forastero») hecha física
+	# ==========================================================================
+	var bp1_lot: String = "n0"
+	var bp1_lot_bak: Dictionary = vl.lot(vm, bp1_lot).duplicate(true)
+	var bp1_tr_bak: int = int(vm.town_state.get("treasury", 0))
+	var bp1_gold_bak: int = p70_inv.gold
+	var bp1_bread_bak: int = p70_inv.get_count("bread")
+	var bp1_a_gold_bak: int = p70_a.personal_gold
+	var bp1_b_gold_bak: int = p70_b.personal_gold
+	var bp1_c_gold_bak: int = p70_c.personal_gold
+	var bp1_c_role_bak: int = int(p70_c.trade_role)
+	var bp1_a_pos_bak: Vector2 = p70_a.global_position
+	var bp1_b_pos_bak: Vector2 = p70_b.global_position
+	var bp1_c_pos_bak: Vector2 = p70_c.global_position
+	var bp1_hour_bak: int = t5_wc.current_hour
+
+	vl.lot(vm, bp1_lot)["status"] = "built"
+	vl.lot(vm, bp1_lot)["payer"] = "player"
+	vl.lot(vm, bp1_lot)["kind"] = "house"
+	(vho.state(vm)["player_shop"] as Dictionary).clear()
+	if bp1_bread_bak > 0:
+		p70_inv.remove_item("bread", bp1_bread_bak)
+	p70_inv.gold = 200
+	p70_a.personal_gold = 20
+	assert(vho.found_player_shop(vm, bp1_lot, p70_inv, p70_a), "P1.0: Player shop founded on built lot n0")
+
+	# 1. Mostrador físico en el solar de tu tienda repone desde tu mochila y quita opciones de la charla con vecinos
+	var bp1_counter: Node2D = root.get_tree().get_first_node_in_group("player_shop_counter") as Node2D
+	assert(bp1_counter != null, "P1.1a: Physical player_shop_counter prop spawned in player_shop lot")
+	p70_inv.add_item("bread", 2)
+	bp1_counter.call("on_dialogue_action", "housing_stock_shop")
+	assert(p70_inv.get_count("bread") == 0 and int(vho.state(vm)["player_shop"]["stock"]) == 2 and int(vho.state(vm)["player_shop"]["goods"].get("bread", 0)) == 2, "P1.1b: Physical counter replenishes up to 2 items from player backpack")
+	var bp1_dlg: Dictionary = {}
+	vho.add_dialogue_choices(vm, p70_a, bp1_dlg, [{"label": "[Salir]", "next": "END"}])
+	for ch_bp1 in (bp1_dlg.get("housing_menu", {}) as Dictionary).get("choices", []):
+		var act_bp1: String = str((ch_bp1 as Dictionary).get("action", ""))
+		assert(act_bp1 != "housing_stock_shop" and act_bp1 != "housing_collect_shop", "P1.1c: Neighbor dialogue no longer offers stocking counter or collecting shop till")
+
+	# 2. Sin dependiente presente tras el mostrador no hay ventas; en horario comercial el dependiente camina al mostrador
+	p70_b.personal_gold = 50
+	p70_b.global_position = vho.player_shop_customer_pos(vm)
+	vho.daily(vm)
+	assert(not vho.on_customer_arrived(vm, p70_b) and int(vho.state(vm)["player_shop"]["stock"]) == 2 and int(vho.state(vm)["player_shop"]["till_gold"]) == 0 and p70_b.personal_gold == 50, "P1.2a: Without a clerk present behind the counter, the shop makes no sales")
+	p70_c.trade_role = 0 # UNEMPLOYED
+	p70_c.personal_gold = 10
+	p70_c.global_position = Vector2(500, 100) # Lejos del mostrador
+	t5_wc.current_hour = 10
+	vho.on_player_action(vm, p70_c, "housing_hire_clerk", p70_inv)
+	vho.on_hour(vm, 10)
+	assert(p70_c.errand_kind == "player_shop_clerk" and p70_c.errand_pos.distance_to(vho.player_shop_clerk_pos(vm)) <= 1.0, "P1.2b: During business hours, hired clerk walks to behind the player shop counter")
+	assert(not vho.on_customer_arrived(vm, p70_b) and int(vho.state(vm)["player_shop"]["stock"]) == 2, "P1.2c: While clerk is still far from the counter, no sales occur")
+
+	# 3. Clientes de verdad: con el dependiente detrás del mostrador, un vecino con oro se acerca y paga de su bolsillo a la caja
+	p70_c.global_position = vho.player_shop_clerk_pos(vm)
+	assert(vho.is_player_shop_clerk_present(vm), "P1.3a: Clerk is now physically behind the shop counter")
+	var bp1_price: int = int(vho.SHOP_ITEM_PRICES["bread"])
+	p70_b.start_errand("player_shop_buy", vho.player_shop_customer_pos(vm))
+	p70_b.global_position = vho.player_shop_customer_pos(vm)
+	vm.VillageNeeds.tick(vm)
+	assert(p70_b.personal_gold == 50 - bp1_price and int(vho.state(vm)["player_shop"]["till_gold"]) == bp1_price and int(vho.state(vm)["player_shop"]["stock"]) == 1, "P1.3b: Customer arriving at counter buys 1 unit and pays from their own pocket into the till (zero-sum)")
+
+	# 4. La caja se recoge físicamente en el mostrador
+	var bp1_gold_before_collect: int = p70_inv.gold
+	bp1_counter.call("on_dialogue_action", "housing_collect_shop")
+	assert(p70_inv.gold == bp1_gold_before_collect + bp1_price and int(vho.state(vm)["player_shop"]["till_gold"]) == 0, "P1.4: Collecting the till at the physical counter transfers till_gold to player inventory")
+
+	# Restaurar estado tras prueba P1
+	for n_bp1 in get_nodes_in_group("village_npcs"):
+		if n_bp1.errand_kind in ["player_shop_clerk", "player_shop_buy"]:
+			n_bp1.end_errand()
+	t5_wc.current_hour = bp1_hour_bak
+	p70_a.global_position = bp1_a_pos_bak
+	p70_b.global_position = bp1_b_pos_bak
+	p70_c.global_position = bp1_c_pos_bak
+	p70_a.personal_gold = bp1_a_gold_bak
+	p70_b.personal_gold = bp1_b_gold_bak
+	p70_c.personal_gold = bp1_c_gold_bak
+	p70_c.trade_role = bp1_c_role_bak
+	(vho.state(vm)["player_shop"] as Dictionary).clear()
+	vl.lot(vm, bp1_lot).clear()
+	for k_bp1 in bp1_lot_bak.keys():
+		vl.lot(vm, bp1_lot)[k_bp1] = bp1_lot_bak[k_bp1]
+	vl._draw_lot(vm, bp1_lot, vl.lot(vm, bp1_lot))
+	vho.sync_home_props(vm)
+	vm.town_state["treasury"] = bp1_tr_bak
+	if p70_inv.get_count("bread") > 0:
+		p70_inv.remove_item("bread", p70_inv.get_count("bread"))
+	if bp1_bread_bak > 0:
+		p70_inv.add_item("bread", bp1_bread_bak)
+	p70_inv.gold = bp1_gold_bak
+	print("Block P1 (Physical Player Shop Counter, Clerk & Customers) OK")
 
 	print("ALL RIMWORLD MEDICAL, FOOTPRINTS, 3-PHASE CORPSE REPORT, MULTI-CORPSE FIX, RPG INTERROGATION, PUBLIC TRIAL, DYNAMIC RELATIONSHIPS, MISSING FAMILY SEARCH, SOCIAL GLOSSARY & UNCONSCIOUS REACTION TESTS PASSED!")
 	quit(0)
