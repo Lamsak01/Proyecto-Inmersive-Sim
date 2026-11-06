@@ -106,3 +106,17 @@ El cambio es del usuario y se queda. Pero `scripts/obstacles/CampSite.gd` incump
 
 Cada obra pagada con oro pasa por `_pay_camp_work` (carpintero, ganadero o arreglador; si no hay, las arcas) y pide doble
 E (`_confirm_camp_gold_spend`). El cofre sigue igual. Arranque sin errores y las cuatro pruebas pasan.
+
+## COMBATE-1 — la prueba grande se quedó colgada 6 horas (CORRECCIÓN NECESARIA)
+
+**Causa encontrada por el supervisor:** en tu test nuevo de `tools/tests/verify_all.gd` escribiste
+`var c1_hc: HealthComponent = p70_pl.get_node("HealthComponent")`. Al poner el **tipo** `HealthComponent` en el script
+de pruebas, Godot compila `HealthComponent.gd` antes de que existan los autoloads, falla en su línea 146
+(«Identifier not found: WorldClock»), el script de pruebas no carga y Godot se queda ejecutando el juego sin fin.
+
+Hay que:
+1. Quitar ese tipo (`var c1_hc = p70_pl.get_node("HealthComponent")`) y cualquier otro tipo de clase del juego que hayas
+   añadido en los tests nuevos (deja `DamageData.new()`, que ya se usaba antes).
+2. **Lanza SIEMPRE las pruebas con `timeout`** como dice HANDOFF §3 (`timeout 900 …`). Esta noche estuviste 6 horas
+   esperando a una prueba colgada.
+3. Arranque sin errores, las cuatro pruebas, y si pasan: commit y push de COMBATE-1 con su informe.
