@@ -42,4 +42,4 @@ QUÉ ESPERAR
 
 SI ALGO FALLA
 Cuéntame qué hacías justo antes, a qué hora del juego y, si puedes, manda una captura.
-Tu partida guardada está en: %APPDATA%\Godot\app_userdata\Inmersive_Sim_Proto (4.5)\village_save.json
+Tu partida guardada está en: %APPDATA%\Godot\app_userdata\La Placa de Petri\village_save.json

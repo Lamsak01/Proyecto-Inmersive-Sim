@@ -10,7 +10,7 @@ config_version=5
 
 [application]
 
-config/name="Inmersive_Sim_Proto (4.5)"
+config/name="La Placa de Petri"
 run/main_scene="uid://dsoiuct8kdsk3"
 config/features=PackedStringArray("4.7", "GL Compatibility")
 config/icon="res://icon.svg"

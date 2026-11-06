@@ -4,6 +4,7 @@ Cambios del juego, del más nuevo al más antiguo. Añade una entrada al cerrar 
 El detalle técnico está en `docs/HANDOFF.md` (sección 7) y el historial completo en `git log`. Lo anterior a B0.1 está en `AUDIT_LOG.md` y `SESSION_CONTEXT_LOG.md`.
 
 ## 2026-11-06 — El juego ya se puede pasar a amigos con Windows
+- **La ventana ya se llama «La Placa de Petri»** (antes salía el nombre interno del proyecto).
 - **Un solo archivo:** «LaPlacaDePetri.exe», sin instalar nada, dentro de un zip con un «Léeme» que explica qué es el
   juego, los controles, qué esperar y qué hacer si algo falla.
 
