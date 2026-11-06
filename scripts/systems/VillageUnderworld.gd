@@ -20,6 +20,81 @@ const VillageNeeds = preload("res://scripts/systems/VillageNeeds.gd")
 const VillageClans = preload("res://scripts/systems/VillageClans.gd")
 const VillageForensics = preload("res://scripts/systems/VillageForensics.gd")
 const VillageHousing = preload("res://scripts/systems/VillageHousing.gd")
+const AnimalModel3DScript = preload("res://scripts/visuals/AnimalModel3D.gd")
+
+## Bloque P3 Parte B: Campamento físico nocturno de la caravana de contrabando (claro noreste al norte de mansión f1).
+const SMUGGLER_CAMP_POS: Vector2 = Vector2(1350.0, -560.0)
+const SMUGGLER_BORDER_POS: Vector2 = Vector2(1386.0, -584.0)
+
+class SmugglerTradeArea extends Area2D:
+	var vm_ref = null
+	var mode: String = "buy"
+
+	func _init(p_vm = null, p_mode: String = "buy") -> void:
+		vm_ref = p_vm
+		mode = p_mode
+		name = "SmugglerTradeArea_" + p_mode
+		collision_layer = 1
+		collision_mask = 0
+		monitoring = false
+		monitorable = true
+		add_to_group("interactable")
+		var cs := CollisionShape2D.new()
+		var cir := CircleShape2D.new()
+		cir.radius = 24.0
+		cs.shape = cir
+		add_child(cs)
+
+	func get_interact_label(_player: Node2D = null) -> String:
+		return get_interaction_label()
+
+	func get_interaction_label() -> String:
+		if mode == "buy":
+			return "Comprar lote de contrabando (−25 oro → +2 polvo de ocaso)"
+		return "Vender polvo de ocaso (+35 oro)"
+
+	func interact(interactor: Node = null) -> void:
+		if vm_ref == null or not is_instance_valid(vm_ref):
+			return
+		var inv = interactor.get("inventory") if interactor != null else null
+		if inv == null:
+			var pl = VillageNeeds.player_of(vm_ref)
+			if pl != null:
+				inv = pl.get("inventory")
+		if mode == "buy":
+			vm_ref.VillageUnderworld.caravan_buy(vm_ref, inv, true, interactor)
+		else:
+			vm_ref.VillageUnderworld.caravan_sell(vm_ref, inv, interactor)
+
+class SmugglerCampCart extends Node2D:
+	var vm_ref = null
+	var buy_area: SmugglerTradeArea = null
+	var sell_area: SmugglerTradeArea = null
+
+	func _init(p_vm = null) -> void:
+		vm_ref = p_vm
+		name = "SmugglerCampCart"
+		y_sort_enabled = true
+		add_to_group("smuggler_caravan_cart")
+		_build_visuals()
+		buy_area = SmugglerTradeArea.new(p_vm, "buy")
+		buy_area.position = Vector2(-14.0, 8.0)
+		add_child(buy_area)
+		sell_area = SmugglerTradeArea.new(p_vm, "sell")
+		sell_area.position = Vector2(14.0, 8.0)
+		add_child(sell_area)
+
+	func _build_visuals() -> void:
+		var poly := Polygon2D.new()
+		poly.polygon = PackedVector2Array([Vector2(-16, -8), Vector2(16, -8), Vector2(16, 8), Vector2(-16, 8)])
+		poly.color = Color(0.28, 0.20, 0.14, 0.95)
+		add_child(poly)
+		AnimalModel3DScript.attach(self, "fantasy_town/cart.glb", 24.0, 4.0, Color(0.55, 0.48, 0.42), false)
+		var lantern_holder := Node2D.new()
+		lantern_holder.name = "SmugglerLanternHolder"
+		lantern_holder.position = Vector2(18.0, -6.0)
+		add_child(lantern_holder)
+		AnimalModel3DScript.attach(lantern_holder, "fantasy_town/lantern.glb", 10.0, 2.0, Color.WHITE, true)
 
 ## Bloque FIS2: cada objetivo de robo está físicamente dentro de su edificio:
 ## - `sello_noble`: Mansión señorial (`solar f1`, estudio en `Vector2(1275, -444)`).
@@ -598,6 +673,215 @@ static func d_now_ok_challenge(st: Dictionary) -> bool:
 static func is_caravan_here(st: Dictionary) -> bool:
 	return is_night_market_hours() and ((today() - 1) % 3 == 0) and int(st.get("caravan_busted_day", -99)) != today()
 
+static func get_active_smuggler_npc(vm):
+	if vm == null or not is_instance_valid(vm) or vm.get_tree() == null:
+		return null
+	for n in vm.get_tree().get_nodes_in_group("smuggler_caravan_npc"):
+		if is_instance_valid(n) and not n.get("is_dead"):
+			return n
+	return null
+
+static func get_active_smuggler_cart(vm):
+	if vm == null or not is_instance_valid(vm) or vm.get_tree() == null:
+		return null
+	for c in vm.get_tree().get_nodes_in_group("smuggler_caravan_cart"):
+		if is_instance_valid(c):
+			return c
+	return null
+
+static func spawn_smuggler_caravan(vm, at_camp: bool = true):
+	if vm == null or not is_instance_valid(vm):
+		return null
+	var st: Dictionary = state(vm)
+	var d_now: int = today()
+	if int(st.get("caravan_busted_day", -99)) == d_now:
+		return null
+	if int(st.get("caravan_refilled_day", -99)) != d_now:
+		st["caravan_refilled_day"] = d_now
+		st["caravan_gold"] = maxi(70, int(st.get("caravan_gold", 0)))
+		st["caravan_batches_left"] = 2
+	var existing = get_active_smuggler_npc(vm)
+	if existing != null:
+		if at_camp:
+			existing.global_position = SMUGGLER_CAMP_POS + Vector2(-24.0, 4.0)
+			existing.set_meta("smuggler_state", "camped")
+		return existing
+	var parent_node: Node = vm.entities_root if ("entities_root" in vm and is_instance_valid(vm.entities_root)) else (vm.get_parent() if vm.get_parent() != null else vm)
+	var start_pos: Vector2 = (SMUGGLER_CAMP_POS + Vector2(-24.0, 4.0)) if at_camp else SMUGGLER_BORDER_POS
+	var smuggler := VillageNPC.new()
+	smuggler.name = "SmugglerCaravanMerchant"
+	smuggler.npc_name = "El Encapuchado"
+	smuggler.npc_role = "Contrabandista del Paso"
+	smuggler.trade_role = VillageNPC.TradeRole.TRAVELING_MERCHANT
+	smuggler.merchant_id = "smuggler"
+	smuggler.personal_gold = maxi(70, int(st.get("caravan_gold", 70)))
+	smuggler.days_in_role = 7
+	smuggler.tavern_social_pos = vm._tavern_social_pos
+	parent_node.add_child(smuggler)
+	smuggler.setup_npc(vm._load_tex("res://assests/world/village/npcs_64/sprite_casimir.png"), SMUGGLER_CAMP_POS + Vector2(-24.0, 4.0), SMUGGLER_BORDER_POS, {}, vm._tavern_social_pos, "none", "Caravana de Contrabando")
+	smuggler.global_position = start_pos
+	smuggler.modulate = Color(0.55, 0.52, 0.62)
+	smuggler.set_meta("smuggler_state", "camped" if at_camp else "arriving")
+	smuggler.add_to_group("smuggler_caravan_npc")
+	if get_active_smuggler_cart(vm) == null:
+		var cart := SmugglerCampCart.new(vm)
+		cart.global_position = SMUGGLER_CAMP_POS
+		parent_node.add_child(cart)
+	return smuggler
+
+static func despawn_smuggler_caravan(vm) -> void:
+	if vm == null or not is_instance_valid(vm) or vm.get_tree() == null:
+		return
+	for c in vm.get_tree().get_nodes_in_group("smuggler_caravan_cart"):
+		if is_instance_valid(c):
+			if c.get_parent() != null:
+				c.get_parent().remove_child(c)
+			c.queue_free()
+	for n in vm.get_tree().get_nodes_in_group("smuggler_caravan_npc"):
+		if is_instance_valid(n) and not n.get("is_dead"):
+			if n.get_parent() != null:
+				n.get_parent().remove_child(n)
+			n.queue_free()
+
+static func on_hour(vm, h: int) -> void:
+	if vm == null or not is_instance_valid(vm):
+		return
+	var st: Dictionary = state(vm)
+	if h == 4 or int(st.get("caravan_busted_day", -99)) == today():
+		var sm = get_active_smuggler_npc(vm)
+		if sm != null:
+			sm.set_meta("smuggler_state", "leaving")
+		despawn_smuggler_caravan(vm)
+		return
+	if (h >= 22 or h < 4) and ((today() - 1) % 3 == 0) and int(st.get("caravan_busted_day", -99)) != today():
+		if get_active_smuggler_npc(vm) == null:
+			spawn_smuggler_caravan(vm, true)
+
+static func update_smuggler_merchant_ai(vm, merchant, delta: float) -> void:
+	if merchant == null or not is_instance_valid(merchant) or merchant.is_dead or merchant.is_downed:
+		return
+	var st_mode: String = str(merchant.get_meta("smuggler_state", "camped"))
+	var h: int = hour()
+	if (h >= 4 and h < 22) or int(state(vm).get("caravan_busted_day", -99)) == today():
+		st_mode = "leaving"
+		merchant.set_meta("smuggler_state", "leaving")
+	if st_mode == "leaving":
+		merchant._merchant_leaving = true
+		merchant.current_activity = VillageNPC.ActivityState.WORKING
+		merchant._move_towards_point(SMUGGLER_BORDER_POS, 68.0, delta)
+		if merchant.global_position.distance_to(SMUGGLER_BORDER_POS) < 28.0:
+			despawn_smuggler_caravan(vm)
+		return
+	var camp_spot: Vector2 = SMUGGLER_CAMP_POS + Vector2(-24.0, 4.0)
+	merchant._merchant_leaving = false
+	merchant.current_activity = VillageNPC.ActivityState.WORKING
+	merchant._move_towards_point(camp_spot, 68.0, delta)
+	if merchant.global_position.distance_to(camp_spot) <= 24.0:
+		merchant.set_meta("smuggler_state", "camped")
+		merchant.velocity = Vector2.ZERO
+
+static func _find_guard_witness_near(vm, pos: Vector2, max_dist: float = 160.0):
+	if vm == null or not is_instance_valid(vm) or is_guard_bribed_tonight(vm):
+		return null
+	for n in VillageNeeds.living(vm):
+		if not (int(n.trade_role) in [int(VillageNPC.TradeRole.GUARD), int(VillageNPC.TradeRole.SHERIFF)]):
+			continue
+		if n.is_dead or n.is_downed or n.is_sleeping or n.is_stunned_flag or n.sedated_timer > 0.0:
+			continue
+		if n.global_position.distance_to(pos) >= max_dist:
+			continue
+		if vm.has_method("has_line_of_sight") and not vm.has_line_of_sight(n.global_position, pos):
+			continue
+		return n
+	return null
+
+static func _check_and_apply_smuggler_guard_witness(vm, pos: Vector2) -> bool:
+	var guard_w = _find_guard_witness_near(vm, pos, 160.0)
+	if guard_w == null:
+		return false
+	var st: Dictionary = state(vm)
+	vm.wanted_level = int(vm.wanted_level) + 1
+	st["caravan_busted_day"] = today()
+	VillageChronicle.add(vm, "smuggler_caught_live", "%s te sorprendió in fraganti traficando en el carro de contrabando y la caravana huyó" % guard_w.npc_name, true)
+	if guard_w.has_method("_spawn_floating_text"):
+		guard_w._spawn_floating_text("🚨 «¡Alto ahí! ¡Contrabando en el claro!»", Color.ORANGE_RED, -46.0)
+	despawn_smuggler_caravan(vm)
+	return true
+
+static func caravan_buy(vm, inv, require_double_e: bool = true, actor = null) -> bool:
+	if vm == null:
+		return false
+	var st: Dictionary = state(vm)
+	var sm = get_active_smuggler_npc(vm)
+	var trade_pos: Vector2 = SMUGGLER_CAMP_POS
+	if actor != null and is_instance_valid(actor) and actor is Node2D:
+		trade_pos = (actor as Node2D).global_position
+	if inv == null or int(inv.gold) < 25 or not is_caravan_here(st) or int(st.get("caravan_batches_left", 2)) <= 0:
+		if sm != null and sm.has_method("_spawn_floating_text"):
+			sm._spawn_floating_text("Necesitas 25 de oro y lotes disponibles en el carro", Color.ORANGE_RED, -44.0)
+		return false
+	if require_double_e and not VillageHousing.press_twice(vm, "caravana_contrabando"):
+		return false
+	inv.add_gold(-25)
+	st["caravan_gold"] = int(st.get("caravan_gold", 0)) + 25
+	st["caravan_batches_left"] = int(st.get("caravan_batches_left", 2)) - 1
+	add_item(vm, "dusk_dust", 2)
+	VillageChronicle.add(vm, "caravan_bought", "Compraste en secreto un lote de «polvo de ocaso» a la caravana de medianoche (-25 Oro)", false)
+	if sm != null and sm.has_method("_spawn_floating_text"):
+		sm._spawn_floating_text("🐪🌙 «Toma 2 dosis puras sin pasar por aduana.»", Color.GOLD, -46.0)
+	_check_and_apply_smuggler_guard_witness(vm, trade_pos)
+	return true
+
+static func caravan_sell(vm, inv, actor = null) -> bool:
+	if vm == null:
+		return false
+	var st: Dictionary = state(vm)
+	var sm = get_active_smuggler_npc(vm)
+	var trade_pos: Vector2 = SMUGGLER_CAMP_POS
+	if actor != null and is_instance_valid(actor) and actor is Node2D:
+		trade_pos = (actor as Node2D).global_position
+	if get_item_count(vm, "dusk_dust") <= 0 or int(st.get("caravan_gold", 0)) < 35 or not is_caravan_here(st):
+		if sm != null and sm.has_method("_spawn_floating_text"):
+			sm._spawn_floating_text("No tienes polvo de ocaso o al carro no le queda oro", Color.ORANGE_RED, -44.0)
+		return false
+	add_item(vm, "dusk_dust", -1)
+	st["caravan_gold"] = int(st.get("caravan_gold", 0)) - 35
+	if inv != null:
+		inv.add_gold(35)
+	VillageChronicle.add(vm, "caravan_sold", "Vendiste mercancía prohibida a la caravana de contrabando de medianoche (+35 Oro)", false)
+	if sm != null and sm.has_method("_spawn_floating_text"):
+		sm._spawn_floating_text("🐪💰 «35 de oro al contado, sin preguntas.»", Color.GOLD, -46.0)
+	_check_and_apply_smuggler_guard_witness(vm, trade_pos)
+	return true
+
+static func send_guards_to_bust_caravan(vm, reporting_guard = null) -> int:
+	if vm == null or not is_instance_valid(vm):
+		return 0
+	var chosen: Array = []
+	if reporting_guard != null and is_instance_valid(reporting_guard) and not reporting_guard.get("is_dead"):
+		if int(reporting_guard.trade_role) in [int(VillageNPC.TradeRole.GUARD), int(VillageNPC.TradeRole.SHERIFF)]:
+			chosen.append(reporting_guard)
+	for n in VillageNeeds.living(vm):
+		if chosen.size() >= 2:
+			break
+		if n in chosen:
+			continue
+		if int(n.trade_role) in [int(VillageNPC.TradeRole.GUARD), int(VillageNPC.TradeRole.SHERIFF)] and not n.is_downed:
+			chosen.append(n)
+	for g in chosen:
+		g.start_errand("smuggler_bust", SMUGGLER_CAMP_POS)
+	return chosen.size()
+
+static func on_guard_bust_arrived(vm, guard_npc = null) -> void:
+	if vm == null:
+		return
+	var st: Dictionary = state(vm)
+	st["caravan_busted_day"] = today()
+	st["caravan_gold"] = 0
+	if guard_npc != null and is_instance_valid(guard_npc) and guard_npc.has_method("_spawn_floating_text"):
+		guard_npc._spawn_floating_text("🚨🐪 «¡Por orden de la guardia, queda desmantelado este campamento!»", Color.SPRING_GREEN, -46.0)
+	despawn_smuggler_caravan(vm)
+
 static func today() -> int:
 	return int(WorldClock.current_day) if WorldClock else 1
 
@@ -872,12 +1156,7 @@ static func add_dialogue_choices(vm, npc, diag: Dictionary, ch_arr: Array) -> vo
 		var rackets_cnt: int = (st.get("rackets", {}) as Dictionary).size()
 		if str(st.get("boss", "fence")) != "player" and (int(st.get("heists_done", 0)) + rackets_cnt) >= 2:
 			opts.append({"label": "👑🌑 Imponer tu ley y convertirte en el Jefe del Hampa (+12 Oro/semana)", "next": "END", "action": "underworld_takeover_boss"})
-		# Tanda 5 (25): Caravana de contrabando de medianoche (acampa de noche cada 3 días, con lotes limitados)
-		if is_caravan_here(st):
-			if int(st.get("caravan_batches_left", 2)) > 0:
-				opts.append({"label": "🐪🌙 Comprar lote de contrabando a la caravana de medianoche (-25 Oro -> +2 polvo de ocaso)", "next": "END", "action": "underworld_caravan_buy"})
-			if get_item_count(vm, "dusk_dust") > 0 and int(st.get("caravan_gold", 0)) >= 35:
-				opts.append({"label": "🐪💰 Vender «polvo de ocaso» a la caravana de medianoche (+35 Oro)", "next": "END", "action": "underworld_caravan_sell"})
+		# Bloque P3 Parte B: Comprar y vender con la caravana nocturna se hace físicamente en su carro del claro noreste (SMUGGLER_CAMP_POS).
 		# Tanda 6 (28 y 29): Falsificar escritura municipal y retar al jefe de la «Red de las Sombras»
 		if not bool(st.get("forged_deed", false)):
 			opts.append({"label": "📜🖋️ Encargar una escritura municipal falsificada (-25 Oro -> ahorra 40 al comprar casa o local)", "next": "END", "action": "underworld_forge_deed"})
@@ -1223,24 +1502,14 @@ static func on_player_action(vm, npc, action_id: String, inv) -> void:
 		npc._spawn_floating_text("👑🌑 «Tú mandas ahora en las sombras. Cada sábado recibirás tu tributo de 12 de oro.»", Color.GOLD, -46.0)
 
 	elif action_id == "underworld_caravan_buy":
-		if inv == null or int(inv.gold) < 25 or not is_caravan_here(st) or int(st.get("caravan_batches_left", 2)) <= 0:
+		if not caravan_buy(vm, inv, false, npc):
 			npc._spawn_floating_text("Necesitas 25 de oro y que la caravana esté acampada esta noche con lotes disponibles", Color.ORANGE_RED, -44.0)
 			return
-		inv.add_gold(-25)
-		st["caravan_gold"] = int(st.get("caravan_gold", 0)) + 25
-		st["caravan_batches_left"] = int(st.get("caravan_batches_left", 2)) - 1
-		add_item(vm, "dusk_dust", 2)
-		VillageChronicle.add(vm, "caravan_bought", "Compraste en secreto un lote de «polvo de ocaso» a la caravana de medianoche (-25 Oro)", false)
 		npc._spawn_floating_text("🐪🌙 «La caravana te entrega 2 dosis puras sin pasar por aduana.»", Color.GOLD, -46.0)
 
 	elif action_id == "underworld_caravan_sell":
-		if get_item_count(vm, "dusk_dust") <= 0 or int(st.get("caravan_gold", 0)) < 35 or not is_caravan_here(st):
+		if not caravan_sell(vm, inv, npc):
 			return
-		add_item(vm, "dusk_dust", -1)
-		st["caravan_gold"] = int(st.get("caravan_gold", 0)) - 35
-		if inv != null:
-			inv.add_gold(35)
-		VillageChronicle.add(vm, "caravan_sold", "Vendiste mercancía prohibida a la caravana de contrabando de medianoche (+35 Oro)", false)
 		npc._spawn_floating_text("🐪💰 «Los mercaderes de la caravana te pagan 35 de oro al contado.»", Color.GOLD, -46.0)
 
 	elif action_id == "underworld_caravan_report":
@@ -1248,15 +1517,17 @@ static func on_player_action(vm, npc, action_id: String, inv) -> void:
 		if conf <= 0 or not is_caravan_here(st):
 			return
 		st["caravan_gold"] = 0
-		st["caravan_busted_day"] = d_now
 		var rew: int = mini(25, conf)
 		if inv != null and rew > 0:
 			inv.add_gold(rew)
 		vm.town_state["treasury"] = int(vm.town_state.get("treasury", 0)) + (conf - rew)
 		npc.modify_affinity(12)
 		vm.VillageFaith.add_rep(vm, "law", 10)
+		var sent_guards: int = send_guards_to_bust_caravan(vm, npc)
+		if sent_guards <= 0 or get_active_smuggler_npc(vm) == null:
+			st["caravan_busted_day"] = d_now
 		VillageChronicle.add(vm, "caravan_busted", "Delataste la ruta de la caravana de contrabando; la guardia incautó %d de oro (recompensa +%d Oro)" % [conf, rew], true)
-		npc._spawn_floating_text("🚨🐪 «¡Emboscamos a la caravana en el paso! Toma %d de oro de lo incautado.»" % rew, Color.SPRING_GREEN, -46.0)
+		npc._spawn_floating_text("🚨🐪 «¡Marchamos al claro noreste a emboscar la caravana! Toma %d de oro de adelanto.»" % rew, Color.SPRING_GREEN, -46.0)
 
 	elif action_id == "underworld_dice_bet":
 		var net: int = play_dice_bet(vm, npc, inv)

@@ -2775,7 +2775,7 @@ func _get_expedition_description() -> String:
 	return str(EXPEDITION_DESCS.get(trade_role, "🚶 En Expedición"))
 
 func _is_mandatory_work_hours() -> bool:
-	if (trade_role == TradeRole.UNEMPLOYED and not has_meta("day_job")) or rite_pos != Vector2.ZERO or sick_level >= 2:
+	if (trade_role == TradeRole.UNEMPLOYED and not has_meta("day_job")) or rite_pos != Vector2.ZERO or sick_level >= 2 or errand_kind == "smuggler_bust":
 		return false # V5d: el jornalero con jornal sí tiene horario de trabajo (8–18)
 	if not WorldClock or _is_morning_expedition_hours():
 		return true
@@ -3090,8 +3090,8 @@ func _update_needs_and_decisions(delta: float) -> void:
 			return # G2: en el Oficio se quedan hasta que termina, salvo hambre o cansancio fuertes
 		if rite_pos != Vector2.ZERO:
 			leave_rite()
-		if errand_kind != "" and need_energy > 12.0 and need_hunger >= 30.0 and not is_night_env:
-			return # E: termina su encargo (lavarse, taberna, limosna) antes de cambiar de idea
+		if errand_kind != "" and need_energy > 12.0 and need_hunger >= 30.0 and (not is_night_env or errand_kind == "smuggler_bust"):
+			return # E: termina su encargo (lavarse, taberna, limosna, redada) antes de cambiar de idea
 		if errand_kind != "":
 			end_errand()
 		if is_night_env or need_energy <= 12.0 or (need_hunger < 65.0 and digestion_buffer < 10.0) or (need_social >= 92.0 and hangout_id < 0):
@@ -4519,6 +4519,10 @@ func _confirm_true_death() -> void:
 		var p_killer := _get_player()
 		if p_killer and p_killer.has_method("add_bloodstain") and p_killer.global_position.distance_to(global_position) <= 180.0:
 			p_killer.call("add_bloodstain", 180.0)
+	if trade_role == TradeRole.TRAVELING_MERCHANT and merchant_id in ["high_pass", "river_port", "sun_plain"]:
+		var vm_c = _get_vm()
+		if vm_c != null and "merchant_suspension_days" in vm_c:
+			vm_c.merchant_suspension_days[merchant_id] = 7
 	# El Inquisidor Real Alistair NO viene apenas muere el comerciante: solo es convocado cuando alguien descubre y reporta el cadáver (`_notify_corpse_reported_to_authorities`)
 
 ## Sucesión: este familiar o viajero sin oficio asume un puesto vacante en la aldea

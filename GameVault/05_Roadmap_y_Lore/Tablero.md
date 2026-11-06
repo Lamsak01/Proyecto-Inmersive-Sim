@@ -69,6 +69,7 @@ kanban-plugin: board
 - [x] Pasos 3D sin patinar y armas y herramientas orientadas al derecho en la mano (`ANIM-1`, 2026-11-06)
 - [x] Tienda propia («Bazar del Forastero») hecha física: mostrador con caja 2D/3D, dependiente en puesto y clientes a pie (`P1`, 2026-11-06)
 - [x] Carreta de carga física en el rancho: tirar a mano o enganchar al caballo siguiendo el rastro, caja de 40 unidades y robo nocturno fuera de lugar seguro (`P2`, 2026-11-06)
+- [x] Caravanas comerciales con mula en la plaza y campamento nocturno de contrabando con carro y farol en el claro noreste (`P3`, 2026-11-06)
 
 - [x] Edificios con sus piezas quietas juntas (2026-11-06)
 - [x] Casas iniciales repartidas por los barrios y árboles agrupados para dibujar menos (2026-11-06)

@@ -3,6 +3,20 @@
 Cambios del juego, del más nuevo al más antiguo. Añade una entrada al cerrar cada bloque, en lenguaje sencillo.
 El detalle técnico está en `docs/HANDOFF.md` (sección 7) y el historial completo en `git log`. Lo anterior a B0.1 está en `AUDIT_LOG.md` y `SESSION_CONTEXT_LOG.md`.
 
+## 2026-11-06 — Caravanas comerciales con mula en la plaza y campamento nocturno de contrabando en el claro noreste
+- **Caravanas de las rutas comerciales:** cuando abres una ruta comercial, su caravana (el caravanero y su mula de carga)
+  entra andando por el camino del este una vez por semana (a veces se retrasa un día por el barro), acampa en la plaza
+  desde media mañana hasta media tarde y vuelve a salir por el camino. El intercambio de mercancías entre talleres ocurre
+  cuando la caravana llega a la plaza, no a medianoche.
+- **Cargar tu remesa en la mula:** para enviar tu propia remesa ya no hablas con cualquier artesano, sino que te acercas a
+  la mula de la caravana en la plaza y pulsas **E** (si llevas tu carreta cerca, cobras los 4 de oro extra). Si alguien
+  mata al caravanero, esa ruta queda suspendida toda una semana.
+- **Campamento nocturno de contrabando:** las noches de caravana de contrabando (de diez de la noche a cuatro de la
+  madrugada), el contrabandista acampa con su carro y un farol tenue en el claro al norte de la mansión. Para comprar lotes
+  (con doble **E**) o vender polvo de ocaso tienes que ir hasta su carro en persona; si te ve un guardia despierto de cerca,
+  te pilla in fraganti y la caravana huye, y si la delatas a la guardia, dos guardias van andando hasta el claro para
+  desmantelar el campamento.
+
 ## 2026-11-06 — Carreta de carga física en el rancho: tirar a mano o engancharla al caballo, caja de 40 objetos y riesgo nocturno
 - **La carreta existe en el mapa:** al comprar la carreta de carga al ganadero, aparece aparcada junto al corral del Rancho
   del Sur (con su modelo 3D y dibujo 2D en vista plana). Ya no es un bono invisible: para cobrar los 4 de oro extra al

@@ -272,7 +272,7 @@ static func on_traveling_merchant_murdered(vm: VillageManager, merchant: Village
 	var m_id: String = merchant.merchant_id if merchant.merchant_id != "" else "casimir"
 	var embargo_days: int = int(vm.merchant_suspension_days.get(m_id, 0))
 	if embargo_days <= 0:
-		embargo_days = randi_range(20, 30)
+		embargo_days = 7 if (m_id in ["high_pass", "river_port", "sun_plain"]) else randi_range(20, 30)
 		vm.merchant_suspension_days[m_id] = embargo_days
 
 	var crime_pos: Vector2 = merchant.death_world_pos if ("death_world_pos" in merchant and merchant.death_world_pos != Vector2.ZERO) else merchant.global_position

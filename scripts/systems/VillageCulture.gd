@@ -50,6 +50,18 @@ const ROUTE_TOWN_TARIFF: int = 4
 ## Los pueblos de fuera reponen su fondo de comercio cada lunes (ganan dinero vendiendo en otros sitios), hasta este tope.
 const ROUTE_WEEKLY_REFILL: int = 20
 const ROUTE_BALANCE_CAP: int = 90
+const CARAVAN_PLAZA_POS: Vector2 = Vector2(465, 48)
+const ROUTE_WEEKDAYS: Dictionary = {
+	"high_pass": 0, # Lunes
+	"river_port": 1, # Martes
+	"sun_plain": 3, # Jueves
+}
+const ROUTE_CARAVAN_NAMES: Dictionary = {
+	"high_pass": "Caravanero de Paso Alto",
+	"river_port": "Caravanero de Puerto Fluvial",
+	"sun_plain": "Caravanero de Vega del Sol",
+}
+const AnimalModel3DScript = preload("res://scripts/visuals/AnimalModel3D.gd")
 ## Lo que paga cada vendedor a las arcas por montar puesto en el mercado del miércoles.
 const MARKET_STALL_FEE: int = 4
 const MILITIA_COST: int = 15
@@ -1115,27 +1127,349 @@ static func trade_routes_of(vm) -> Dictionary:
 			"exports": "bread", "export_qty": 2,
 			"imports": "iron_ore", "import_qty": 2,
 			"seller_role": "baker", "buyer_role": "tinker",
-			"balance": 90, "tariff_gold": 8, "active": false, "last_ship_day": -99,
+			"balance": 90, "tariff_gold": 8, "active": false, "last_ship_day": -99, "next_caravan_day": -1,
 		},
 		"river_port": {
 			"name": "Puerto Fluvial del Este",
 			"exports": "wood", "export_qty": 2,
 			"imports": "fish", "import_qty": 2,
 			"seller_role": "woodcutter", "buyer_role": "farmer",
-			"balance": 90, "tariff_gold": 8, "active": false, "last_ship_day": -99,
+			"balance": 90, "tariff_gold": 8, "active": false, "last_ship_day": -99, "next_caravan_day": -1,
 		},
 		"sun_plain": {
 			"name": "Vega del Sol",
 			"exports": "clothes", "export_qty": 1,
 			"imports": "wheat", "import_qty": 3,
 			"seller_role": "tailor", "buyer_role": "baker",
-			"balance": 90, "tariff_gold": 10, "active": false, "last_ship_day": -99,
+			"balance": 90, "tariff_gold": 10, "active": false, "last_ship_day": -99, "next_caravan_day": -1,
 		},
 	}
 	for r_id in route_defs.keys():
 		if not (t_routes.get(r_id, null) is Dictionary):
 			t_routes[r_id] = (route_defs[r_id] as Dictionary).duplicate()
+		elif not (t_routes[r_id] as Dictionary).has("next_caravan_day"):
+			t_routes[r_id]["next_caravan_day"] = -1
 	return t_routes
+
+class CaravanMuleArea extends Area2D:
+	var mule: Node2D = null
+
+	func get_interact_label(player: Node2D = null) -> String:
+		if mule != null and is_instance_valid(mule) and mule.has_method("get_interact_label"):
+			return str(mule.call("get_interact_label", player))
+		return ""
+
+	func interact(player: Node2D) -> void:
+		if mule != null and is_instance_valid(mule) and mule.has_method("interact"):
+			mule.call("interact", player)
+
+
+class CaravanMule extends Node2D:
+	var vm: Node = null
+	var route_id: String = ""
+	var merchant: Node2D = null
+	var sprite: Sprite2D = null
+	var interact_area: Area2D = null
+	var model_3d: Node = null
+
+	func setup(p_vm: Node, p_route_id: String, p_merchant: Node2D, pos: Vector2) -> void:
+		vm = p_vm
+		route_id = p_route_id
+		merchant = p_merchant
+		name = "CaravanMule_" + p_route_id
+		global_position = pos
+		add_to_group("caravan_mule")
+
+		sprite = Sprite2D.new()
+		sprite.name = "Sprite2D"
+		sprite.texture = load("res://assests/world/harvest/wild_deer.png")
+		sprite.modulate = Color(0.55, 0.45, 0.36)
+		sprite.scale = Vector2(1.05, 1.05)
+		sprite.position = Vector2(0, -5)
+		add_child(sprite)
+
+		var area := CaravanMuleArea.new()
+		area.name = "InteractArea"
+		area.mule = self
+		area.collision_layer = 1
+		area.collision_mask = 2
+		area.add_to_group("interactable")
+		var col := CollisionShape2D.new()
+		var c := CircleShape2D.new()
+		c.radius = 22.0
+		col.shape = c
+		area.add_child(col)
+		add_child(area)
+		interact_area = area
+
+		model_3d = AnimalModel3DScript.attach(self, "animals/animated/Horse.glb", 20.0, 4.0, Color(0.62, 0.52, 0.44))
+
+	func get_interact_label(_player: Node2D = null) -> String:
+		if vm != null and "VillageCulture" in vm and vm.VillageCulture != null:
+			return vm.VillageCulture.get_mule_shipment_label(vm, route_id)
+		return ""
+
+	func interact(player: Node2D) -> void:
+		if vm != null and "VillageCulture" in vm and vm.VillageCulture != null:
+			vm.VillageCulture.interact_caravan_mule(vm, route_id, player)
+
+	func _physics_process(delta: float) -> void:
+		if merchant != null and is_instance_valid(merchant) and not bool(merchant.get("is_dead")):
+			var target_p: Vector2 = merchant.global_position + Vector2(22.0, 4.0)
+			if global_position.distance_to(target_p) > 3.0:
+				global_position = global_position.move_toward(target_p, 78.0 * delta)
+
+
+static func roll_next_caravan_day(route_id: String, from_day: int, force_delay: int = -1) -> int:
+	var base_wd: int = int(ROUTE_WEEKDAYS.get(route_id, 0))
+	var start_d: int = maxi(1, from_day)
+	var cur_wd: int = (start_d - 1) % 7
+	var days_until: int = (base_wd - cur_wd + 7) % 7
+	var base_day: int = start_d + days_until
+	var delayed: bool = (randf() < 0.30) if force_delay < 0 else (force_delay > 0)
+	return base_day + (1 if delayed else 0)
+
+static func ensure_route_caravan_schedule(vm, force_delay: int = -1) -> void:
+	if vm == null:
+		return
+	var routes: Dictionary = trade_routes_of(vm)
+	var today: int = int(WorldClock.current_day) if WorldClock else 1
+	for r_id in routes.keys():
+		if not ROUTE_WEEKDAYS.has(str(r_id)):
+			continue
+		var r: Dictionary = routes[r_id]
+		if not bool(r.get("active", false)):
+			continue
+		if int(r.get("next_caravan_day", -1)) < today:
+			var from_d: int = (today + 1) if int(r.get("last_exchange_day", -99)) == today else today
+			r["next_caravan_day"] = roll_next_caravan_day(str(r_id), from_d, force_delay)
+			routes[r_id] = r
+
+static func get_route_caravan_npc(vm, route_id: String):
+	if vm == null or not vm.is_inside_tree():
+		return null
+	for n in vm.get_tree().get_nodes_in_group("village_npcs"):
+		if n is VillageNPC and (n as VillageNPC).merchant_id == route_id and not (n as VillageNPC).is_dead:
+			return n
+	return null
+
+static func get_route_caravan_mule(vm, route_id: String):
+	if vm == null or not vm.is_inside_tree():
+		return null
+	for m in vm.get_tree().get_nodes_in_group("caravan_mule"):
+		if is_instance_valid(m) and str(m.get("route_id")) == route_id:
+			return m
+	return null
+
+static func is_route_caravan_at_plaza(vm, route_id: String) -> bool:
+	var m = get_route_caravan_npc(vm, route_id)
+	if m == null or not is_instance_valid(m) or m.is_dead or m.is_downed or m._merchant_leaving:
+		return false
+	return bool(m.get_meta("at_plaza", false)) or m.global_position.distance_to(CARAVAN_PLAZA_POS) <= 45.0
+
+static func get_mule_shipment_label(vm, route_id: String) -> String:
+	var routes: Dictionary = trade_routes_of(vm)
+	if not routes.has(route_id):
+		return ""
+	var r: Dictionary = routes[route_id]
+	var pay: int = int(r.get("tariff_gold", 8)) + (4 if is_cart_near_player(vm, 60.0) else 0)
+	return "Cargar tu remesa para %s (−%d %s → +%d %s y +%d oro)" % [
+		str(r.get("name", route_id)),
+		int(r.get("export_qty", 2)),
+		str(r.get("exports", "wood")),
+		int(r.get("import_qty", 2)),
+		str(r.get("imports", "fish")),
+		pay,
+	]
+
+static func interact_caravan_mule(vm, route_id: String, player: Node2D) -> bool:
+	if vm == null or player == null:
+		return false
+	var inv = player.get("inventory")
+	if not is_route_caravan_at_plaza(vm, route_id):
+		if player.has_method("_spawn_floating_text"):
+			player._spawn_floating_text("🐪 Espera a que la caravana acampe en la plaza", Color.LIGHT_GRAY, -42.0)
+		return false
+	if send_player_shipment(vm, route_id, inv):
+		if player.has_method("_spawn_floating_text"):
+			player._spawn_floating_text("📦🐪 ¡Cargaste tu remesa en la mula y recibiste la mercancía importada!", Color.AQUAMARINE, -44.0)
+		return true
+	if player.has_method("_spawn_floating_text"):
+		player._spawn_floating_text("📦 No tienes la mercancía requerida o hoy ya cargaste una remesa en esta mula", Color.ORANGE_RED, -44.0)
+	return false
+
+static func process_caravan_route_exchange(vm, route_id: String) -> int:
+	if vm == null:
+		return 0
+	var routes: Dictionary = trade_routes_of(vm)
+	if not routes.has(route_id):
+		return 0
+	var r: Dictionary = routes[route_id]
+	if not bool(r.get("active", false)):
+		return 0
+	var day_now: int = int(WorldClock.current_day) if WorldClock else 1
+	if int(r.get("last_refill_day", -1)) != day_now:
+		r["last_refill_day"] = day_now
+		r["balance"] = mini(ROUTE_BALANCE_CAP, int(r.get("balance", 0)) + ROUTE_WEEKLY_REFILL)
+	if int(r.get("last_exchange_day", -99)) == day_now:
+		routes[route_id] = r
+		return 0
+	r["last_exchange_day"] = day_now
+	var pay: int = int(r.get("tariff_gold", 8))
+	if int(r.get("balance", 0)) < pay:
+		routes[route_id] = r
+		return 0
+	var seller = vm.trade_npcs.get(VillageTrades.role_of(str(r.get("seller_role", "woodcutter"))))
+	var buyer = vm.trade_npcs.get(VillageTrades.role_of(str(r.get("buyer_role", "farmer"))))
+	if seller == null or not is_instance_valid(seller) or seller.is_dead:
+		routes[route_id] = r
+		return 0
+	var exp_item: String = str(r.get("exports", "wood"))
+	var exp_qty: int = int(r.get("export_qty", 2))
+	if int(seller.shop_stock.get(exp_item, 0)) < exp_qty:
+		routes[route_id] = r
+		return 0
+	seller.shop_stock[exp_item] = int(seller.shop_stock.get(exp_item, 0)) - exp_qty
+	seller._sync_shop_stock_to_vm()
+	var imp_item: String = str(r.get("imports", "fish"))
+	var imp_qty: int = int(r.get("import_qty", 2))
+	var dst = buyer if (buyer != null and is_instance_valid(buyer) and not buyer.is_dead) else seller
+	dst.shop_stock[imp_item] = int(dst.shop_stock.get(imp_item, 0)) + imp_qty
+	dst._sync_shop_stock_to_vm()
+	r["balance"] = int(r.get("balance", 0)) - pay
+	seller.personal_gold = maxi(0, seller.personal_gold) + (pay - 2)
+	vm.town_state["treasury"] = int(vm.town_state.get("treasury", 0)) + 2
+	var tariff: int = clampi(int(r.get("balance", 0)), 0, ROUTE_TOWN_TARIFF)
+	r["balance"] = int(r["balance"]) - tariff
+	vm.town_state["treasury"] = int(vm.town_state.get("treasury", 0)) + tariff
+	var imp_pay: int = clampi(int(dst.personal_gold), 0, imp_qty)
+	dst.personal_gold -= imp_pay
+	r["balance"] = int(r["balance"]) + imp_pay
+	routes[route_id] = r
+	return 1
+
+static func spawn_trade_caravan(vm, route_id: String, at_plaza: bool = false, silent: bool = false):
+	if vm == null or not ROUTE_WEEKDAYS.has(route_id):
+		return null
+	var routes: Dictionary = trade_routes_of(vm)
+	if not routes.has(route_id) or not bool((routes[route_id] as Dictionary).get("active", false)):
+		return null
+	if int(vm.merchant_suspension_days.get(route_id, 0)) > 0:
+		return null
+	var existing = get_route_caravan_npc(vm, route_id)
+	var start_pos: Vector2 = CARAVAN_PLAZA_POS if at_plaza else RAID_GATE_POS
+	if existing != null and is_instance_valid(existing):
+		if at_plaza:
+			existing.global_position = CARAVAN_PLAZA_POS
+			existing.set_meta("at_plaza", true)
+			existing._merchant_leaving = false
+			var ex_mule = get_route_caravan_mule(vm, route_id)
+			if ex_mule != null and is_instance_valid(ex_mule):
+				ex_mule.global_position = CARAVAN_PLAZA_POS + Vector2(22.0, 4.0)
+			process_caravan_route_exchange(vm, route_id)
+		return existing
+	var r: Dictionary = routes[route_id]
+	var parent: Node = vm.entities_root if ("entities_root" in vm and is_instance_valid(vm.entities_root)) else vm
+	var m_npc := VillageNPC.new()
+	m_npc.name = "NPC_Caravan_" + route_id
+	m_npc.trade_role = VillageNPC.TradeRole.TRAVELING_MERCHANT
+	m_npc.merchant_id = route_id
+	m_npc.npc_name = str(ROUTE_CARAVAN_NAMES.get(route_id, "Caravanero de " + str(r.get("name", route_id))))
+	m_npc.npc_role = "Caravana de " + str(r.get("name", route_id))
+	m_npc.personal_gold = 40
+	m_npc.days_in_role = 7
+	m_npc.tavern_social_pos = vm._tavern_social_pos
+	parent.add_child(m_npc)
+	var tex_path: String = "res://assests/world/village/npcs_64/sprite_casimir.png" if route_id != "sun_plain" else "res://assests/world/village/npcs_64/sprite_valeria.png"
+	m_npc.setup_npc(vm._load_tex(tex_path), CARAVAN_PLAZA_POS, RAID_GATE_POS, {}, vm._tavern_social_pos, "none", "Ruta de " + str(r.get("name", route_id)))
+	m_npc.global_position = start_pos
+	m_npc.set_meta("at_plaza", at_plaza)
+	m_npc._merchant_leaving = false
+
+	var old_mule = get_route_caravan_mule(vm, route_id)
+	if old_mule != null and is_instance_valid(old_mule):
+		old_mule.queue_free()
+	var mule := CaravanMule.new()
+	parent.add_child(mule)
+	mule.setup(vm, route_id, m_npc, start_pos + Vector2(22.0, 4.0))
+
+	if at_plaza:
+		process_caravan_route_exchange(vm, route_id)
+	if not silent and vm.has_method("_hint_player"):
+		vm._hint_player("🐪📦 Ha llegado la caravana de %s por el camino del este (en la plaza de 10:00 a 16:00)." % str(r.get("name", route_id)))
+	return m_npc
+
+static func despawn_trade_caravan(vm, route_id: String) -> void:
+	if vm == null:
+		return
+	var mule = get_route_caravan_mule(vm, route_id)
+	if mule != null and is_instance_valid(mule):
+		if mule.get_parent():
+			mule.get_parent().remove_child(mule)
+		mule.queue_free()
+	var m = get_route_caravan_npc(vm, route_id)
+	if m != null and is_instance_valid(m) and not m.is_dead:
+		if m.get_parent():
+			m.get_parent().remove_child(m)
+		m.queue_free()
+
+static func update_caravan_merchant_ai(vm, merchant, delta: float) -> void:
+	if vm == null or merchant == null or not is_instance_valid(merchant) or merchant.is_dead or merchant.is_downed:
+		return
+	var route_id: String = str(merchant.merchant_id)
+	var h: int = int(WorldClock.current_hour) if WorldClock else 12
+	if h >= 16 or h < 8:
+		merchant._merchant_leaving = true
+		merchant.set_meta("at_plaza", false)
+		merchant.current_activity = VillageNPC.ActivityState.WORKING
+		merchant._move_towards_point(RAID_GATE_POS, 78.0, delta)
+		if merchant.global_position.distance_to(RAID_GATE_POS) <= 18.0:
+			despawn_trade_caravan(vm, route_id)
+		return
+	merchant._merchant_leaving = false
+	merchant.current_activity = VillageNPC.ActivityState.WORKING
+	merchant._move_towards_point(CARAVAN_PLAZA_POS, 78.0, delta)
+	if merchant.global_position.distance_to(CARAVAN_PLAZA_POS) <= 22.0 and not bool(merchant.get_meta("at_plaza", false)):
+		merchant.set_meta("at_plaza", true)
+		process_caravan_route_exchange(vm, route_id)
+
+static func caravans_on_hour(vm, hour: int) -> void:
+	if vm == null:
+		return
+	ensure_route_caravan_schedule(vm)
+	var routes: Dictionary = trade_routes_of(vm)
+	var today: int = int(WorldClock.current_day) if WorldClock else 1
+	var wd: int = int(WorldClock.get_weekday()) if (WorldClock != null and WorldClock.has_method("get_weekday")) else ((maxi(1, today) - 1) % 7)
+	for r_id in routes.keys():
+		var rid: String = str(r_id)
+		if not ROUTE_WEEKDAYS.has(rid):
+			continue
+		var r: Dictionary = routes[r_id]
+		if not bool(r.get("active", false)):
+			continue
+		var next_d: int = int(r.get("next_caravan_day", -1))
+		if hour == 9:
+			if next_d == today:
+				spawn_trade_caravan(vm, rid, false, false)
+			elif wd == int(ROUTE_WEEKDAYS[rid]) and next_d == today + 1:
+				VillageChronicle.add(vm, "caravan_delayed", "La caravana de %s se retrasa a mañana: el camino estaba embarrado" % str(r.get("name", rid)), true)
+				if vm.has_method("_hint_player"):
+					vm._hint_player("🌧️🐪 La caravana de %s se retrasa a mañana: el camino estaba embarrado." % str(r.get("name", rid)))
+		elif hour >= 10 and hour < 16 and next_d == today:
+			var m = get_route_caravan_npc(vm, rid)
+			if m == null:
+				spawn_trade_caravan(vm, rid, true, true)
+			elif not bool(m.get_meta("at_plaza", false)) and m.global_position.distance_to(CARAVAN_PLAZA_POS) <= 45.0:
+				m.set_meta("at_plaza", true)
+				process_caravan_route_exchange(vm, rid)
+		elif hour == 16:
+			var m_leave = get_route_caravan_npc(vm, rid)
+			if m_leave != null:
+				m_leave._merchant_leaving = true
+				m_leave.set_meta("at_plaza", false)
+			if next_d <= today:
+				r["next_caravan_day"] = roll_next_caravan_day(rid, today + 1)
+				routes[r_id] = r
 
 static func open_trade_route(vm, route_id: String, inv = null) -> bool:
 	if vm == null:
@@ -1153,6 +1487,7 @@ static func open_trade_route(vm, route_id: String, inv = null) -> bool:
 		vm.town_state["treasury"] = int(vm.town_state.get("treasury", 0)) + ROUTE_CHARTER_COST
 	r["active"] = true
 	routes[route_id] = r
+	ensure_route_caravan_schedule(vm)
 	VillageChronicle.add(vm, "trade_route", "Se abrió la ruta comercial con %s" % str(r.get("name", route_id)), true)
 	return true
 
@@ -1165,6 +1500,8 @@ static func send_player_shipment(vm, route_id: String, inv) -> bool:
 	var r: Dictionary = routes[route_id]
 	var today: int = int(WorldClock.current_day) if WorldClock else 1
 	if not bool(r.get("active", false)) or int(r.get("last_ship_day", -99)) == today:
+		return false
+	if ROUTE_WEEKDAYS.has(route_id) and not is_route_caravan_at_plaza(vm, route_id):
 		return false
 	var exp_item: String = str(r.get("exports", "wood"))
 	var exp_qty: int = int(r.get("export_qty", 2))
@@ -1188,10 +1525,13 @@ static func send_player_shipment(vm, route_id: String, inv) -> bool:
 static func process_trade_routes(vm) -> int:
 	if vm == null:
 		return 0
+	ensure_route_caravan_schedule(vm)
 	var routes: Dictionary = trade_routes_of(vm)
 	var exchanged: int = 0
 	var monday: bool = WorldClock != null and WorldClock.has_method("get_weekday") and int(WorldClock.get_weekday()) == 0
 	for r_id in routes.keys():
+		if ROUTE_WEEKDAYS.has(str(r_id)):
+			continue
 		var r: Dictionary = routes[r_id]
 		if not bool(r.get("active", false)):
 			continue
@@ -1606,6 +1946,7 @@ static func _outpost_on_hour(vm, hour: int) -> void:
 static func on_hour(vm, hour: int) -> void:
 	raid_on_hour(vm, hour)
 	_outpost_on_hour(vm, hour)
+	caravans_on_hour(vm, hour)
 	if hour == MARKET_OPEN and is_market_day():
 		open_market(vm)
 	elif hour >= MARKET_CLOSE and is_market_open(vm):
@@ -1804,6 +2145,7 @@ static func process_municipal_spending(vm) -> int:
 				r["active"] = true
 				r["balance"] = int(r.get("balance", 90)) + ROUTE_CHARTER_COST
 				routes[r_id] = r
+				ensure_route_caravan_schedule(vm)
 				st["last_town_route_day"] = today
 				VillageChronicle.add(vm, "trade_route", "El ayuntamiento financió la patente comercial con %s (%d de oro de las arcas)" % [str(r.get("name", r_id)), ROUTE_CHARTER_COST], true)
 				break
@@ -1875,14 +2217,13 @@ static func add_dialogue_choices(vm, npc, diag: Dictionary, ch_arr: Array) -> vo
 			var r_name: String = str(r.get("name", r_id))
 			if not bool(r.get("active", false)):
 				r_choices.append({"label": "📜 Abrir ruta comercial con %s (-%d Oro de arancel municipal)" % [r_name, ROUTE_CHARTER_COST], "next": "END", "action": "culture_open_route:" + str(r_id)})
-			elif int(r.get("last_ship_day", -99)) != today:
-				r_choices.append({"label": "📦 Enviar remesa a %s (-%d %s → +%d %s y +%d Oro)" % [r_name, int(r["export_qty"]), str(r["exports"]), int(r["import_qty"]), str(r["imports"]), int(r["tariff_gold"])], "next": "END", "action": "culture_ship_route:" + str(r_id)})
-		r_choices.append({"label": "⬅️ Volver", "next": "start"})
-		ch_arr.append({"label": "🗺️📦 Rutas comerciales con otros asentamientos", "next": "culture_routes_menu"})
-		diag["culture_routes_menu"] = {
-			"text": "«Las caravanas regulares conectan nuestro valle con los asentamientos vecinos y traen suministros a cambio de nuestros excedentes.»",
-			"choices": r_choices,
-		}
+		if not r_choices.is_empty():
+			r_choices.append({"label": "⬅️ Volver", "next": "start"})
+			ch_arr.append({"label": "🗺️📦 Rutas comerciales con otros asentamientos", "next": "culture_routes_menu"})
+			diag["culture_routes_menu"] = {
+				"text": "«Las caravanas regulares conectan nuestro valle con los asentamientos vecinos y traen suministros a cambio de nuestros excedentes.»",
+				"choices": r_choices,
+			}
 	# Bloque PO: Armas de fuego de chispa (con Herrero o Arreglador) y Terminal Lógica / Hackeo
 	var pl_po = VillageNeeds.player_of(vm)
 	var inv_po = pl_po.get("inventory") if pl_po != null else null

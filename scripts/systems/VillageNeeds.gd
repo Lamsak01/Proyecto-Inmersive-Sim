@@ -253,6 +253,9 @@ static func tick(vm) -> void:
 				vm.VillageConfession.on_errand_arrived(vm, n) # P4.1: confesión en la capilla
 			"raid_defend":
 				pass # PL.2: se quedan en el camino del este hasta que llega el asalto
+			"smuggler_bust":
+				vm.VillageUnderworld.on_guard_bust_arrived(vm, n) # P3 Parte B: guardia llega al campamento de contrabando
+				n.end_errand()
 			_:
 				vm.VillageCivic.on_errand_arrived(vm, n) # V5b: votar, el alcalde en el ayuntamiento
 
