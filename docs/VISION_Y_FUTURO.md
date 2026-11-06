@@ -163,6 +163,13 @@ Estado: **✅ HECHO** = ya construido y funcionando en el juego. **🟡 EN PARTE
 - ✅ **HECHO** — Acompañantes del jugador (`VillageFame.gd`, `VillageNPC.gd`, test #85): un vecino con alta afinidad (≥ 55, gratis por amistad) o contratado como escolta (15 de oro al día pagados de tu bolsa a su bolsillo) te acompaña a pie por el valle, te respalda ante otros vecinos (una vez al día con tirada de riesgo) y vuelve a sus tareas cuando lo despides o si dejas de pagarle su jornal. *(Hecho en bloque PH.)*
 - ✅ **HECHO** — Historia principal en la pestaña «Principal» del panel de misiones `L` (`VillageCulture.gd`, `QuestManager.gd`, test #93): arco de 4 capítulos («I. Las Raíces del Valle», «II. El Pulso Bajo la Piedra», «III. La Máquina de Cobre» y «IV. La Placa de Petri») que conecta la integración del forastero, los hallazgos en las ruinas y alcantarillas, la investigación tecnológica del generador y el destino político del valle, con recompensas pagadas de las arcas municipales al completar cada capítulo. *(Hecho en bloque PP.)*
 
+- 💡 **IDEA DEL USUARIO (2026-11-06)** — **Rehacer el sistema de combate**: al usuario no le gusta nada el actual (COMBATE-1).
+  Palabras del usuario: «se siente flojo, sin peso y incompleto. No hay feedback». **Aplazado a propósito**: se hará más
+  adelante, con un plan propio aprobado por el usuario antes de tocar nada. Al planearlo, mirar al menos: peso de los
+  golpes (frenada al impactar, retroceso, sonido, sacudida de cámara), respuesta visible del que recibe (tambaleo, sangre,
+  animación de dolor), aguante por golpe, golpes distintos (rápido, fuerte, cargado) y lo que cubre cada arma. Ojo: el club
+  de pelea (P6a), los asaltos, la guardia y la caza usan este combate; hay que revisarlos después.
+
 ### Tecnología anacrónica
 - ✅ **HECHO** — Vehículos de época: caballos de silla y carretas de carga (`VillageCulture.gd`, test #90): en el Rancho del Sur puedes comprar al ganadero un Caballo de Silla (45 de oro, aumenta tu velocidad y mejora un +15 % el éxito de tus expediciones) y una Carreta de Carga (55 de oro, añade +4 de oro de rendimiento por cada remesa comercial enviada por ruta). *(Hecho en bloque PM; motos/coches quedan descartados para el tamaño actual del valle.)*
 - ✅ **HECHO** — Armas de fuego de chispa (`SimpleInventory.gd`, `VillageCulture.gd`, test #92): tras investigar «Cerraduras y Empalizadas de Precisión», puedes encargar en la herrería o el taller un Arcabuz de Chispa con 2 cargas de pólvora (60 de oro al artesano) y comprar paquetes de Cargas de Pólvora Negra (14 de oro); llevar el arcabuz cargado añade +3 de defensa al encabezar el rechazo de incursiones *(Hecho en bloque PO.)*

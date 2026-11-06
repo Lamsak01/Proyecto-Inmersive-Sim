@@ -6,6 +6,7 @@ kanban-plugin: board
 
 ## 🔥 Prioridad alta (presencia física)
 
+- [ ] Rehacer el combate: hoy se siente flojo, sin peso ni respuesta (aplazado, con plan propio) ([[Armaduras, Sigilo y Arcabuz]])
 - [ ] Arcabuz de chispa usable en combate directo ([[Armaduras, Sigilo y Arcabuz]])
 - [ ] Recinto caminable del [[Puesto del Paso]]
 - [ ] Amputaciones y prótesis para el jugador ([[Medicina Anatómica]])
