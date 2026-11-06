@@ -1499,7 +1499,8 @@ func _sync_home_props_3d() -> void:
 		var sh_fl: int = 1 if (has_shop and lid == shop_lot) else 0
 		var sh_stk: int = clampi(int(ps.get("stock", 0)), 0, 4) if sh_fl == 1 else 0
 		var sh_till: int = (1 if int(ps.get("till_gold", 0)) > 0 else 0) if sh_fl == 1 else 0
-		parts.append("%s:%d:%d:%d:%d:%d:%d:%d:%d:%d" % [lid, wb, st_fl, up_fl, cel_fl, gd_fl, gd_rdy, sh_fl, sh_stk, sh_till])
+		var tb_rat: int = clampi(int(hs.get("table_rations", 0)), 0, 12) if lid == prim_lot else 0
+		parts.append("%s:%d:%d:%d:%d:%d:%d:%d:%d:%d:%d" % [lid, wb, st_fl, up_fl, cel_fl, gd_fl, gd_rdy, sh_fl, sh_stk, sh_till, tb_rat])
 	var sig: String = "|".join(parts)
 	if sig == _last_home_props_sig and (sig.is_empty() or is_instance_valid(_home_props_3d)):
 		return
@@ -1525,6 +1526,12 @@ func _sync_home_props_3d() -> void:
 	for lid in p_lots:
 		var st: Dictionary = VillageLots.lot(vm, lid)
 		var up: Dictionary = st.get("upgrades", {})
+		var tb_pos: Vector2 = VillageHousingScript.home_prop_pos(vm, lid, "home_table")
+		_add_box_2d(root, tb_pos, Vector2(18.0, 10.6), 2.0, 6.2, m_oak) # Mesa de comedor
+		_add_box_2d(root, tb_pos, Vector2(19.4, 11.6), 7.8, 1.0, m_oak) # Tablero de la mesa
+		if lid == prim_lot and int(hs.get("table_rations", 0)) > 0:
+			_add_cyl_2d(root, tb_pos + Vector2(-3.2, -0.5), 2.2, 8.8, 1.4, m_gold, 2.0, 8) # Hogaza / plato en la mesa
+			_add_cyl_2d(root, tb_pos + Vector2(3.2, 0.5), 2.0, 8.8, 2.0, m_herb, 1.6, 8) # Guiso / viandas
 		if bool(up.get("workbench", false)):
 			var wb_pos: Vector2 = VillageHousingScript.home_prop_pos(vm, lid, "home_workbench")
 			if _add_model_2d(root, "props/Workbench_Drawers.gltf", wb_pos, 2.0, Vector2(18.0, 10.0), 8.2) == null:

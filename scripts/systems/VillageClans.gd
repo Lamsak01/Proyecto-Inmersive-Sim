@@ -500,12 +500,12 @@ static func add_dialogue_choices(vm, npc, diag: Dictionary, ch_arr: Array) -> vo
 	# P1.3: Si la familia te boicotea, opción de pagar compensación familiar (20 oro) para levantar el boicot
 	if (st["feud_player"] as Dictionary).has(fam) or is_boycotting_player(vm, npc):
 		sub.append({"label": "🕊️💰 Disculparte con su familia y compensar la ofensa (-20 Oro)", "next": "END", "action": "clan_apologize:" + fam})
-	# P1.6: Mediar cena de paz si su familia está en feudo de sangre
+	# P1.6 / P4: Mediar cena de paz si su familia está en feudo de sangre
 	for fk in (st["feuds"] as Dictionary).keys():
 		var f: Dictionary = st["feuds"][fk]
 		if str(f["fam_a"]) == fam or str(f["fam_b"]) == fam:
 			var other_name: String = str(f["name_b"]) if str(f["fam_a"]) == fam else str(f["name_a"])
-			sub.append({"label": "🍷🕊️ Organizar cena de paz con %s (-%d Oro o Carisma 2)" % [other_name, PEACE_DINNER_COST], "next": "END", "action": "clan_peace:" + fk})
+			sub.append({"label": "🍷🕊️ Organizar una cena de paz en la posada mañana a las 20:00 (%s, -%d Oro o Carisma 2)" % [other_name, PEACE_DINNER_COST], "next": "END", "action": "clan_peace:" + fk})
 	# P1.4: Amor prohibido (Romeo y Julieta)
 	for pk in (st["romeo_pairs"] as Dictionary).keys():
 		var rp: Dictionary = st["romeo_pairs"][pk]
@@ -564,17 +564,24 @@ static func on_player_action(vm, npc, action_id: String, inv) -> void:
 				m.modify_affinity(12)
 		npc._spawn_floating_text("🕊️ «Nuestra familia acepta tu compensación. Borrón y cuenta nueva.»", Color.SPRING_GREEN, -46.0)
 	elif action_id.begins_with("clan_peace:"):
+		if not (st["feuds"] as Dictionary).has(arg):
+			return
+		if vm.VillageHousing.has_active_gathering(vm):
+			npc._spawn_floating_text("Ya tienes otra cena o reunión organizada ahora mismo", Color.ORANGE_RED, -44.0)
+			return
 		var pl = npc._get_player()
 		var cha: int = int(pl.call("get_skill_level", "charisma")) if pl != null and pl.has_method("get_skill_level") else 0
 		if cha < 2 and (inv == null or int(inv.gold) < PEACE_DINNER_COST):
 			npc._spawn_floating_text("Necesitas %d de oro para la cena de paz (o Carisma Nv.2)" % PEACE_DINNER_COST, Color.ORANGE_RED, -44.0)
 			return
+		if not vm.VillageHousing.press_twice(vm, "clan_peace:" + arg):
+			npc._spawn_floating_text("Pulsa [E] otra vez para confirmar la cena de paz en la posada", Color.GOLD, -44.0)
+			return
 		if cha < 2 and inv != null:
 			inv.add_gold(-PEACE_DINNER_COST)
 			vm.pay_into(vm._innkeeper_npc, PEACE_DINNER_COST) # Regla 1: la cena la cobra la posadera
-		if mediate_clan_peace(vm, arg, "gracias a tu mediación"):
-			npc.modify_affinity(18)
-			npc._spawn_floating_text("🍷🕊️ «Habrá paz entre nuestras familias.»", Color.SPRING_GREEN, -46.0)
+		if vm.VillageHousing.schedule_peace_dinner(vm, arg):
+			npc._spawn_floating_text("🍷🕊️ «Está bien. Mañana a las 20:00 acudiremos a la posada para intentar hablar.»", Color.SPRING_GREEN, -46.0)
 	elif action_id.begins_with("clan_romeo:"):
 		if not (st["romeo_pairs"] as Dictionary).has(arg):
 			return

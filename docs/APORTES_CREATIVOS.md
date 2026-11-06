@@ -264,3 +264,14 @@ o vino ya dado. Conviene confirmarlo.
 - «Si oyes una puerta trasera pasada la medianoche, mejor no mires.»
 
 **Dónde:** `scripts/systems/VillageUnderworld.gd` (`FENCE_RUMORS`). Texto «Hablar con la figura encapuchada» en `alley_interact_label`.
+
+## Frases de charla en la mesa durante cenas, fiestas y cenas de paz (P4, provisionales)
+- «¡A vuestra salud!»
+- «Esta comida huele de maravilla.»
+- «Se está bien aquí al calor de la mesa.»
+- «Pásame el pan, por favor.»
+- «Hacía falta sentarse a charlar un rato.»
+- «Brindemos por una noche tranquila en el valle.»
+
+**Dónde:** `scripts/systems/VillageHousing.gd` (`GATHERING_CHAT_PHRASES`).
+**Depende:** solo textos flotantes cada 20 minutos de juego durante la reunión.

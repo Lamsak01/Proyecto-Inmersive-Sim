@@ -965,7 +965,7 @@ static func fence_on_hour(vm, h: int) -> void:
 	if f == null or not is_instance_valid(f) or f.is_dead:
 		return
 	if is_fence_alley_hour(h):
-		if f.errand_kind == "fence_alley" or f.is_incapacitated() or f.is_in_live_fight() or f.is_busy_with_player():
+		if f.errand_kind == "fence_alley" or f.is_incapacitated() or f.is_in_live_fight() or f.is_busy_with_player() or f.is_at_poker_table:
 			return
 		if f.errand_kind != "" or f.rite_pos != Vector2.ZERO:
 			return # otro recado o rito en marcha: esta noche no sale
