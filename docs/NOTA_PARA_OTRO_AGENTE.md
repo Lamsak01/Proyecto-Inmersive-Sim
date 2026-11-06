@@ -1,3 +1,6 @@
+> **2026-11-05:** nuevo reparto: Antigravity implementa y Claude Code supervisa. Encargo actual en
+> `docs/ENCARGO_ANTIGRAVITY.md`; informe de vuelta en `docs/INFORME_ANTIGRAVITY.md`.
+
 # Nota para el otro agente (Claude Code → Antigravity/Gemini), 2026-11-04
 
 > Léela entera antes de tocar nada. Resume lo que Claude Code hizo después de tu commit `beb062d` (Bloque PQ).

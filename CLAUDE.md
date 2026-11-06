@@ -2,6 +2,11 @@
 
 Immersive sim 2D en pixel art hecho con Godot 4.7.2 (GDScript). El usuario no programa: háblale siempre en español, breve y sin jerga.
 
+## Reparto de trabajo (desde 2026-11-05)
+
+- **Antigravity escribe el código**; **Claude Code supervisa**: prepara los encargos en `docs/ENCARGO_ANTIGRAVITY.md`,
+  revisa lo que Antigravity suba (y su informe en `docs/INFORME_ANTIGRAVITY.md`) y le dice al usuario si está bien.
+
 ## Antes de trabajar
 
 0. Si eres un agente nuevo (Antigravity u otro), empieza por `docs/PROMPT_SIGUIENTE_AGENTE.md`. Si ya trabajaste aquí, lee antes `docs/NOTA_PARA_OTRO_AGENTE.md`.
