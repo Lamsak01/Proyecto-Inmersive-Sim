@@ -165,3 +165,10 @@ commit. Lo robado va al bolsillo del ladrón (`add_pocket_item`), no a un cofre 
 - **Aprobado.** H ya abre el panel clínico y no hay menú de pausa: puso el botón «Controles» en la barra de la mochila
   (el usuario lo da por bueno). Prueba conjunta con A1: pasa.
 
+## A4 — Amputación del jugador (revisado por Claude Code, 2026-11-06)
+
+- **Aprobado.** Aviso único, elección en el hospital (gratis), 3D corregido. Su prueba pasa.
+- **A decidir por el usuario:** la prótesis devuelve el miembro al 100 % (el brazo y la pierna tienen 40 y 45 de vida y
+  `install_prosthetic` ya ponía esos valores antes de este bloque). Sin pierna: velocidad al 50 %; sin brazo: golpe el doble
+  de lento.
+
