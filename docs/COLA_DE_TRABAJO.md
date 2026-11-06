@@ -14,8 +14,9 @@
 | 7 | P5: rentas, encargos y desfalcos en su sitio | ✅ hecho (Claude Code, en paralelo) |
 | 7b | P5b: el perista trasnocha en el callejón de la taberna y hay rumores para encontrarlo (fallo visto por el usuario) | ✅ hecho (Claude Code, en paralelo) |
 | 8 | P6: peleas clandestinas en un sótano de la taberna y sabotajes nocturnos (expediciones y animales, más adelante) | ✅ hecho (Claude Code, en paralelo; rama pendiente de unir tras P4) |
-| 8b | A2: ayuda de controles al empezar | Antigravity — `docs/ENCARGO_A2_CONTROLES.md` |
-| 8c | A1: obras maestras en el mostrador del taller | Claude Code (en paralelo) |
+| 8b | A2: ayuda de controles al empezar | ✅ hecho (Antigravity) |
+| 8c | A1: obras maestras en el mostrador del taller | ✅ hecho (Claude Code) |
+| 8d | A4: amputación para el jugador (el médico avisa y eliges tú) | encargo para Antigravity — `docs/ENCARGO_A4_AMPUTACION.md` |
 | 9 | Inventario de todo lo demás planeado, ordenado de fácil a difícil (`docs/PLAN_ORDENADO.md`) y empezar por lo fácil | ✅ lista hecha (12:55); falta empezar por lo fácil |
 
 Para mañana con el usuario: bucle jugable de la primera beta (borrador en `docs/PROPUESTA_BETA.md`).

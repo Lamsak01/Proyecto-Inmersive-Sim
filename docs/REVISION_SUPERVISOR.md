@@ -160,3 +160,8 @@ commit. Lo robado va al bolsillo del ladrón (`add_pocket_item`), no a un cofre 
 - Apuntado por Antigravity: en 3D los invitados se quedan **de pie** alrededor de la mesa (igual que en el póquer):
   no hay postura de sentado. Queda como pendiente de arte, no de este bloque.
 
+## A2 — Ayuda de controles (revisado por Claude Code, 2026-11-06)
+
+- **Aprobado.** H ya abre el panel clínico y no hay menú de pausa: puso el botón «Controles» en la barra de la mochila
+  (el usuario lo da por bueno). Prueba conjunta con A1: pasa.
+
