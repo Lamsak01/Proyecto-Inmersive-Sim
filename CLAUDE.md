@@ -55,7 +55,8 @@ El usuario organiza el diseño en Obsidian. Reparto: el vault es su espacio de d
 ## Ahorro de tokens
 
 - Mientras trabajas, pasa solo el test afectado.
-- Pasa los cuatro tests una sola vez, al cerrar cada bloque, de uno en uno y con `timeout`.
+- **Una sola prueba por bloque** (orden del usuario, 2026-11-06): al cerrar el bloque, arranque sin errores y **solo la prueba
+  que toca lo cambiado**, con `timeout`. Las cuatro pruebas se pasan solo en las **rondas de auditoría** que pide el usuario.
 - Un solo test por comportamiento nuevo.
 - Nada de comprobaciones repetidas ni revisiones grandes sin avisar antes.
 - Resúmenes de 3 líneas por bloque.

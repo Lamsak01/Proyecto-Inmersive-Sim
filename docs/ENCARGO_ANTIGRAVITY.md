@@ -71,8 +71,8 @@ Hay que:
 4. Pregonar y contratar pueden seguir en la charla (son tratos con personas), pero gastar oro pide doble E si se hace en
    el mundo.
 5. Pruebas: un test por comportamiento (mostrador repone desde la mochila; la caja se recoge en el mostrador; sin
-   dependiente presente no hay ventas; un cliente que compra paga de su bolsillo). Arranque sin errores y las cuatro
-   pruebas (con `timeout`).
+   dependiente presente no hay ventas; un cliente que compra paga de su bolsillo). Arranque sin errores y **una sola**
+   prueba: `verify_all` con `timeout 900`. Nada de las cuatro: se pasan en las rondas de auditoría.
 
 ## 3. Al cerrar el bloque
 

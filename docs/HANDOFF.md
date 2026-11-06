@@ -42,6 +42,8 @@ recomendaciones. Pégalo entero como primer mensaje al cambiar de agente.
 ## 3. Entorno y cómo probar
 
 - Motor: **Godot 4.7.2** vía Flatpak. No hay editor abierto para ti; todo se verifica en modo headless.
+- **Regla desde 2026-11-06 (usuario):** en cada bloque, arranque sin errores y **una sola prueba** (la que toca lo
+  cambiado; por defecto `verify_all`). Las cuatro pruebas, solo en las rondas de auditoría.
 - Desde la raíz del proyecto:
 
 ```bash
