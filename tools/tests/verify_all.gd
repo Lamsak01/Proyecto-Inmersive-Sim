@@ -4025,8 +4025,9 @@ func _initialize() -> void:
 	p70_a.personal_gold = 10
 	p70_b.shop_stock["fish"] = 0
 	vcu_pj.daily(vm)
-	# En daily: fertilidad (+1 wood a p70_a, +1 wheat a p70_b) y ruta river_port (-2 wood de p70_a, +2 fish a p70_b, +6 oro a p70_a y +2 a arcas)
-	assert(int(p70_a.shop_stock["wood"]) == 3 and int(p70_b.shop_stock["wheat"]) == 4 and int(p70_b.shop_stock["fish"]) == 2 and p70_a.personal_gold == 16 and int(vm.town_state["treasury"]) == 77 + vcu_pj.ROUTE_TOWN_TARIFF, "PK.2b: Daily cycle applies forest soil fertility bonus and executes active external trade route (plus the outside town's tariff to the treasury)")
+	vcu_pj.spawn_trade_caravan(vm, "river_port", true, true)
+	# En daily: fertilidad (+1 wood a p70_a, +1 wheat a p70_b) y al llegar la caravana de river_port a la plaza (-2 wood de p70_a, +2 fish a p70_b, +6 oro a p70_a y +2 a arcas)
+	assert(int(p70_a.shop_stock["wood"]) == 3 and int(p70_b.shop_stock["wheat"]) == 4 and int(p70_b.shop_stock["fish"]) == 2 and p70_a.personal_gold == 16 and int(vm.town_state["treasury"]) == 77 + vcu_pj.ROUTE_TOWN_TARIFF, "PK.2b: Daily cycle applies forest soil fertility bonus and physical caravan at plaza executes active external trade route (plus the outside town's tariff to the treasury)")
 	p70_inv.remove_item("wood", p70_inv.get_count("wood"))
 	p70_inv.remove_item("fish", p70_inv.get_count("fish"))
 	p70_inv.add_item("wood", 2)
@@ -4035,6 +4036,7 @@ func _initialize() -> void:
 	vcu_pj.on_player_action(vm, p70_a, "culture_ship_route:river_port", p70_inv)
 	assert(p70_inv.get_count("wood") == 0 and p70_inv.get_count("fish") == 2 and p70_inv.gold == 58, "PK.2c: Player shipment exchanges 2 wood for 2 fish and 8 gold from the route's balance")
 	assert(not vcu_pj.send_player_shipment(vm, "river_port", p70_inv), "PK.2d: Daily cooldown prevents sending two player shipments on the same route in one day")
+	vcu_pj.despawn_trade_caravan(vm, "river_port")
 	vcu_pj.state(vm)["trade_routes"] = {}
 	if pk_wc_prev != null:
 		vm.trade_npcs[pk_wc_role] = pk_wc_prev
@@ -4182,6 +4184,7 @@ func _initialize() -> void:
 	# PM.1c: La carreta de carga añade +4 de oro de bonificación por remesa comercial si está a menos de 60 px
 	vcu_pj.state(vm)["trade_routes"] = {}
 	vcu_pj.trade_routes_of(vm)["river_port"]["active"] = true
+	vcu_pj.spawn_trade_caravan(vm, "river_port", true, true)
 	p70_inv.remove_item("wood", p70_inv.get_count("wood"))
 	p70_inv.add_item("wood", 2)
 	p70_inv.gold = 50
@@ -4189,6 +4192,7 @@ func _initialize() -> void:
 	if pm_pl != null:
 		pm_pl.global_position = vcu_pj.CART_DEFAULT_POS + Vector2(12, 0)
 	assert(vcu_pj.send_player_shipment(vm, "river_port", p70_inv) and p70_inv.gold == 62, "PM.1c: Cargo cart within 60 px increases player shipment payout from 8 to 12 gold from route balance")
+	vcu_pj.despawn_trade_caravan(vm, "river_port")
 	if pm_pl != null:
 		pm_pl.global_position = pm_pl_pos_ship
 	vcu_pj.state(vm)["mounts"] = {}
@@ -5280,8 +5284,7 @@ func _initialize() -> void:
 
 	# ==========================================================================
 	# Bloque P5b: el perista se deja ver de noche («P5b perista»)
-	# ==========================================================================
-	var b5b_vun = vm.VillageUnderworld
+	# ===================================================================	var b5b_vun = vm.VillageUnderworld
 	var b5b_f = b5b_vun.get_fence_npc(vm)
 	assert(b5b_f != null, "P5b.0: There is a fence")
 	for b5b_b in vm.building_footprints:
@@ -5293,14 +5296,14 @@ func _initialize() -> void:
 	b5b_f.end_errand()
 	b5b_f.is_sleeping = true
 	# 1. A las 22:00 tiene el recado y no duerme; a las 3:00 ya no
-	b5b_vun.on_hour(vm, 22)
+	b5b_vun.fence_on_hour(vm, 22)
 	assert(b5b_f.errand_kind == "fence_alley" and not b5b_f.is_sleeping, "P5b.1a: At 22:00 the fence goes to the alley and is not sleeping")
-	b5b_vun.on_hour(vm, 1)
+	b5b_vun.fence_on_hour(vm, 1)
 	assert(b5b_f.errand_kind == "fence_alley", "P5b.1b: Still in the alley at 1:00")
-	b5b_vun.on_hour(vm, 3)
+	b5b_vun.fence_on_hour(vm, 3)
 	assert(b5b_f.errand_kind == "", "P5b.1c: At 3:00 the fence leaves the alley")
 	# 2. En el callejón y sin conocerlo: «figura encapuchada»
-	b5b_vun.on_hour(vm, 22)
+	b5b_vun.fence_on_hour(vm, 22)
 	b5b_f.global_position = b5b_vun.FENCE_ALLEY_POS
 	b5b_vun.state(vm)["known_fence"] = false
 	assert(b5b_vun.alley_interact_label(vm, b5b_f) == "Hablar con la figura encapuchada", "P5b.2: Hooded figure label while the fence is unknown")
@@ -5407,6 +5410,146 @@ func _initialize() -> void:
 	b5_list.clear()
 	b5_list.append_array(b5_list_bak)
 	print("Block P5 (Rents Set Aside on Saturday, Collected in Person, Expiry & Embezzling at the Coffers) OK")
+=======
+	# Bloque P3: Caravanas comerciales y de contrabando hechas físicas
+	# ==========================================================================
+	var bp3_day_bak: int = int(t5_wc.current_day)
+	var bp3_hour_bak: int = int(t5_wc.current_hour)
+	var bp3_gold_bak: int = int(p70_inv.gold)
+	var bp3_wanted_bak: int = int(vm.wanted_level)
+	var bp3_bread_bak: int = int(p70_inv.get_count("bread"))
+	var bp3_iron_bak: int = int(p70_inv.get_count("iron_ore"))
+	var bp3_dust_bak: int = int(vun.get_item_count(vm, "dusk_dust"))
+	var bp3_baker_role: int = int(vm.VillageTrades.role_of("baker"))
+	var bp3_tinker_role: int = int(vm.VillageTrades.role_of("tinker"))
+	var bp3_sheriff_role: int = 9
+	var bp3_guard_role: int = 10
+	var bp3_baker = vm.trade_npcs.get(bp3_baker_role, p70_a)
+	var bp3_tinker = vm.trade_npcs.get(bp3_tinker_role, p70_b)
+	var bp3_baker_prev = vm.trade_npcs.get(bp3_baker_role, null)
+	var bp3_tinker_prev = vm.trade_npcs.get(bp3_tinker_role, null)
+	vm.trade_npcs[bp3_baker_role] = bp3_baker
+	vm.trade_npcs[bp3_tinker_role] = bp3_tinker
+	var bp3_baker_bread_bak: int = int(bp3_baker.shop_stock.get("bread", 0))
+	var bp3_tinker_iron_bak: int = int(bp3_tinker.shop_stock.get("iron_ore", 0))
+
+	# (1) Ruta high_pass abierta: a las 00:00 NO hay intercambio mágico; a las 10:00 del día de llegada aparecen caravanero y mula en la plaza y ocurre el intercambio
+	vcu_pj.state(vm)["trade_routes"] = {}
+	t5_wc.current_day = 1 # Lunes (weekday 0, día base de high_pass)
+	t5_wc.current_hour = 8
+	vm.merchant_suspension_days["high_pass"] = 0
+	var bp3_hp: Dictionary = vcu_pj.trade_routes_of(vm)["high_pass"]
+	bp3_hp["active"] = true
+	bp3_hp["next_caravan_day"] = 1
+	bp3_hp["last_exchange_day"] = -99
+	bp3_baker.shop_stock["bread"] = 4
+	bp3_tinker.shop_stock["iron_ore"] = 0
+	vcu_pj.daily(vm)
+	assert(int(bp3_baker.shop_stock.get("bread", 0)) == 4 and vcu_pj.get_route_caravan_npc(vm, "high_pass") == null, "P3.1a: Active trade route does NOT exchange goods magically at midnight")
+	t5_wc.current_hour = 10
+	vcu_pj.caravans_on_hour(vm, 10)
+	var bp3_caravan_npc = vcu_pj.get_route_caravan_npc(vm, "high_pass")
+	var bp3_caravan_mule = vcu_pj.get_route_caravan_mule(vm, "high_pass")
+	assert(bp3_caravan_npc != null and bp3_caravan_mule != null and vcu_pj.is_route_caravan_at_plaza(vm, "high_pass"), "P3.1b: At 10:00 on arrival day, high_pass caravanero and pack mule are physically at the plaza")
+	assert(int(bp3_baker.shop_stock.get("bread", 0)) == 2 and int(bp3_tinker.shop_stock.get("iron_ore", 0)) >= 2, "P3.1c: Route trade exchange happens when the caravan arrives at the plaza")
+
+	# (2) Interactuar con la mula entrega 2 bread y da 2 iron_ore + oro; sin caravana en la plaza send_player_shipment devuelve false
+	if p70_inv.get_count("bread") > 0:
+		p70_inv.remove_item("bread", p70_inv.get_count("bread"))
+	if p70_inv.get_count("iron_ore") > 0:
+		p70_inv.remove_item("iron_ore", p70_inv.get_count("iron_ore"))
+	p70_inv.add_item("bread", 2)
+	p70_inv.gold = 50
+	bp3_hp["last_ship_day"] = -99
+	bp3_caravan_mule.call("interact", p70_pl)
+	assert(p70_inv.get_count("bread") == 0 and p70_inv.get_count("iron_ore") == 2 and p70_inv.gold == 58, "P3.2a: Interacting with the pack mule loads player shipment (-2 bread -> +2 iron_ore and +8 gold)")
+	vcu_pj.despawn_trade_caravan(vm, "high_pass")
+	p70_inv.add_item("bread", 2)
+	bp3_hp["last_ship_day"] = -99
+	assert(not vcu_pj.send_player_shipment(vm, "high_pass", p70_inv), "P3.2b: Without the caravan at the plaza, send_player_shipment returns false")
+
+	# (3) Matar al caravanero deja la ruta suspendida 7 días y el cadáver en el suelo
+	bp3_caravan_npc = vcu_pj.spawn_trade_caravan(vm, "high_pass", true, true)
+	assert(bp3_caravan_npc != null, "P3.3a: Re-spawned high_pass caravanero at plaza")
+	bp3_caravan_npc._confirm_true_death()
+	assert(int(vm.merchant_suspension_days.get("high_pass", 0)) == 7 and bp3_caravan_npc.is_dead and bp3_caravan_npc.is_inside_tree(), "P3.3b: Killing the route caravanero suspends high_pass for 7 days and leaves the corpse in the world")
+	if is_instance_valid(bp3_caravan_npc):
+		if bp3_caravan_npc.get_parent():
+			bp3_caravan_npc.get_parent().remove_child(bp3_caravan_npc)
+		bp3_caravan_npc.queue_free()
+	vcu_pj.despawn_trade_caravan(vm, "high_pass")
+	vm.merchant_suspension_days["high_pass"] = 0
+
+	# (4) A las 22:00 en noche de contrabando ((today() - 1) % 3 == 0), el contrabandista y su carro aparecen en SMUGGLER_CAMP_POS, permiten comprar/vender dusk_dust, y si hay un guardia despierto a < 160 px sube wanted_level y se marca caravan_busted_day
+	t5_wc.current_day = 4
+	t5_wc.current_hour = 22
+	var bp3_ust: Dictionary = vun.state(vm)
+	bp3_ust["caravan_busted_day"] = -99
+	bp3_ust["caravan_refilled_day"] = -99
+	bp3_ust["guard_bribed_day"] = -99
+	vun.on_hour(vm, 22)
+	var bp3_smug_npc = vun.get_active_smuggler_npc(vm)
+	var bp3_smug_cart = vun.get_active_smuggler_cart(vm)
+	assert(bp3_smug_npc != null and bp3_smug_cart != null and bp3_smug_cart.global_position.distance_to(vun.SMUGGLER_CAMP_POS) < 5.0, "P3.4a: At 22:00 on contraband night, smuggler and cart appear at SMUGGLER_CAMP_POS")
+	# Alejar guardias temporalmente para probar compra/venta limpia en el carro (con doble E)
+	p70_pl.global_position = vun.SMUGGLER_CAMP_POS
+	var bp3_guard = null
+	var bp3_guard_positions: Dictionary = {}
+	for n_g in vm.get_tree().get_nodes_in_group("village_npcs"):
+		if int(n_g.trade_role) in [bp3_guard_role, bp3_sheriff_role] and not n_g.is_dead:
+			bp3_guard_positions[n_g] = n_g.global_position
+			if bp3_guard == null:
+				bp3_guard = n_g
+			n_g.global_position = Vector2(-500.0, 500.0)
+	p70_inv.gold = 100
+	var bp3_d0: int = vun.get_item_count(vm, "dusk_dust")
+	bp3_smug_cart.buy_area.interact(p70_pl) # Primera pulsación E (confirmación)
+	assert(p70_inv.gold == 100 and vun.get_item_count(vm, "dusk_dust") == bp3_d0, "P3.4b: Buying contraband at cart requires double E confirmation")
+	bp3_smug_cart.buy_area.interact(p70_pl) # Segunda pulsación E (compra)
+	assert(p70_inv.gold == 75 and vun.get_item_count(vm, "dusk_dust") == bp3_d0 + 2 and int(bp3_ust.get("caravan_busted_day", -99)) != 4, "P3.4c: Second E buys contraband batch (-25 gold -> +2 dusk_dust)")
+	# Ahora ponemos un guardia despierto a < 160 px con línea de visión y vendemos en el carro
+	assert(bp3_guard != null, "P3.4d: Found a guard for contraband witness test")
+	bp3_guard.is_sleeping = false
+	bp3_guard.is_downed = false
+	bp3_guard.is_stunned_flag = false
+	bp3_guard.sedated_timer = 0.0
+	bp3_guard.global_position = vun.SMUGGLER_CAMP_POS + Vector2(40.0, 0.0)
+	var bp3_w0: int = int(vm.wanted_level)
+	bp3_smug_cart.sell_area.interact(p70_pl)
+	assert(p70_inv.gold == 110 and int(vm.wanted_level) > bp3_w0 and int(bp3_ust.get("caravan_busted_day", -99)) == 4, "P3.4e: Selling with an awake guard within 160 px raises wanted_level and sets caravan_busted_day")
+	for g_node in bp3_guard_positions.keys():
+		if is_instance_valid(g_node):
+			g_node.global_position = bp3_guard_positions[g_node]
+	vun.despawn_smuggler_caravan(vm)
+
+	# Restaurar estado tras prueba P3
+	bp3_ust["caravan_busted_day"] = -99
+	bp3_ust["inventory"]["dusk_dust"] = bp3_dust_bak
+	vcu_pj.state(vm)["trade_routes"] = {}
+	bp3_baker.shop_stock["bread"] = bp3_baker_bread_bak
+	bp3_tinker.shop_stock["iron_ore"] = bp3_tinker_iron_bak
+	if bp3_baker_prev != null:
+		vm.trade_npcs[bp3_baker_role] = bp3_baker_prev
+	else:
+		vm.trade_npcs.erase(bp3_baker_role)
+	if bp3_tinker_prev != null:
+		vm.trade_npcs[bp3_tinker_role] = bp3_tinker_prev
+	else:
+		vm.trade_npcs.erase(bp3_tinker_role)
+	if p70_inv.get_count("bread") > 0:
+		p70_inv.remove_item("bread", p70_inv.get_count("bread"))
+	if bp3_bread_bak > 0:
+		p70_inv.add_item("bread", bp3_bread_bak)
+	if p70_inv.get_count("iron_ore") > 0:
+		p70_inv.remove_item("iron_ore", p70_inv.get_count("iron_ore"))
+	if bp3_iron_bak > 0:
+		p70_inv.add_item("iron_ore", bp3_iron_bak)
+	p70_inv.gold = bp3_gold_bak
+	vm.wanted_level = bp3_wanted_bak
+	p70_pl.global_position = bp2_pl_pos_bak
+	t5_wc.current_day = bp3_day_bak
+	t5_wc.current_hour = bp3_hour_bak
+	print("Block P3 (Physical Trade Route Caravans, Pack Mule & Midnight Smuggler Camp) OK")
 
 	print("ALL RIMWORLD MEDICAL, FOOTPRINTS, 3-PHASE CORPSE REPORT, MULTI-CORPSE FIX, RPG INTERROGATION, PUBLIC TRIAL, DYNAMIC RELATIONSHIPS, MISSING FAMILY SEARCH, SOCIAL GLOSSARY & UNCONSCIOUS REACTION TESTS PASSED!")
 	quit(0)

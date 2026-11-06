@@ -725,6 +725,24 @@ static func _build_dialogue(npc: VillageNPC) -> Dictionary:
 				]
 			}}
 		VillageNPC.TradeRole.TRAVELING_MERCHANT:
+			if npc.merchant_id in ["high_pass", "river_port", "sun_plain"]:
+				return {
+					"start": {
+						"text": "Soy %s (%s). %s\nHe traído la mula de carga de nuestra ruta comercial hasta la plaza (de 10:00 a 16:00). Si tienes una remesa lista, acércate a la mula que va conmigo y cárgala directamente allí." % [npc.npc_name, npc.npc_role, needs_line],
+						"choices": [
+							{"label": "Entendido, cargaré la remesa en la mula. [Salir]", "next": "END"}
+						]
+					}
+				}
+			if npc.merchant_id == "smuggler":
+				return {
+					"start": {
+						"text": "«Baja la voz... Somos la caravana de medianoche. Si vienes a comprar lotes o a colocar polvo de ocaso, acércate directamente al carro antes de que den las cuatro o aparezca la guardia.»",
+						"choices": [
+							{"label": "Ir al carro de contrabando. [Salir]", "next": "END"}
+						]
+					}
+				}
 			if npc.merchant_id == "casimir":
 				return {
 					"start": {

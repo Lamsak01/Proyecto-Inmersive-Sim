@@ -19,6 +19,19 @@ El detalle técnico está en `docs/HANDOFF.md` (sección 7) y el historial compl
 - **Figura encapuchada:** mientras no sepas quién es, su letrero de [E] dice «Hablar con la figura encapuchada».
 - **Rumores sutiles en la taberna:** de 19:00 a 1:00, algún vecino de dudosa reputación puede dejar caer un comentario de
   pasada al final del saludo (muy raro: como mucho uno al día en todo el pueblo). Los vecinos honrados no saben nada.
+## 2026-11-06 — Caravanas comerciales con mula en la plaza y campamento nocturno de contrabando en el claro noreste
+- **Caravanas de las rutas comerciales:** cuando abres una ruta comercial, su caravana (el caravanero y su mula de carga)
+  entra andando por el camino del este una vez por semana (a veces se retrasa un día por el barro), acampa en la plaza
+  desde media mañana hasta media tarde y vuelve a salir por el camino. El intercambio de mercancías entre talleres ocurre
+  cuando la caravana llega a la plaza, no a medianoche.
+- **Cargar tu remesa en la mula:** para enviar tu propia remesa ya no hablas con cualquier artesano, sino que te acercas a
+  la mula de la caravana en la plaza y pulsas **E** (si llevas tu carreta cerca, cobras los 4 de oro extra). Si alguien
+  mata al caravanero, esa ruta queda suspendida toda una semana.
+- **Campamento nocturno de contrabando:** las noches de caravana de contrabando (de diez de la noche a cuatro de la
+  madrugada), el contrabandista acampa con su carro y un farol tenue en el claro al norte de la mansión. Para comprar lotes
+  (con doble **E**) o vender polvo de ocaso tienes que ir hasta su carro en persona; si te ve un guardia despierto de cerca,
+  te pilla in fraganti y la caravana huye, y si la delatas a la guardia, dos guardias van andando hasta el claro para
+  desmantelar el campamento.
 
 ## 2026-11-06 — Carreta de carga física en el rancho: tirar a mano o engancharla al caballo, caja de 40 objetos y riesgo nocturno
 - **La carreta existe en el mapa:** al comprar la carreta de carga al ganadero, aparece aparcada junto al corral del Rancho

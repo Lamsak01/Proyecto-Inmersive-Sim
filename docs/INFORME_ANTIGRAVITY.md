@@ -1,90 +1,70 @@
-# Informe de Antigravity — Bloque P2: La carreta física (+ arreglo de P1)
+# Informe de Trabajo — Antigravity (Bloque P3: Caravanas Comerciales y de Contrabando Hechas Físicas)
 
 **Fecha:** 2026-11-06  
-**Encargo:** `docs/ENCARGO_P2_CARRETA.md` (Fila 3 de `docs/AUDITORIA_REALISMO.md`, más el ajuste de la sección 0).
+**Encargo:** `docs/ENCARGO_P3_CARAVANAS.md`
 
 ---
 
-## 0. Arreglo pequeño de P1 (`SHOP_STOCK_PER_PRESS = 6`)
-- En `scripts/systems/VillageHousing.gd`:
-  - Añadida la constante `SHOP_STOCK_PER_PRESS: int = 6`.
-  - En `VillageHousing.stock_player_shop(vm, inv)`: cambiado el tope de artículos transferidos por pulsación de `2` a `SHOP_STOCK_PER_PRESS` (`6`).
-- En `tools/tests/verify_all.gd`:
-  - Ajustada la comprobación `P1.1b` (y el stock restante en `P1.2a`, `P1.2c` y `P1.3b`) para verificar que con 7 panes en la mochila una pulsación en el mostrador pasa exactamente 6 y deja 1 en la mochila.
+## 1. Parte A — Caravanas de las 3 rutas comerciales
+
+- **Archivos modificados:**
+  - `scripts/systems/VillageCulture.gd`
+  - `scripts/systems/VillageManager.gd`
+  - `scripts/systems/VillageJustice.gd`
+  - `scripts/enemies/VillageNPC.gd`
+  - `scripts/enemies/NPCDialogue.gd`
+  - `scripts/visuals/AnimalModel3D.gd`
+- **Calendario y llegada semanal (`VillageCulture.gd`):**
+  - Añadidos `CARAVAN_PLAZA_POS = Vector2(465.0, 48.0)`, `ROUTE_WEEKDAYS = {"high_pass": 0, "river_port": 1, "sun_plain": 3}` y `ROUTE_CARAVAN_NAMES`.
+  - Cada ruta en `trade_routes_of(vm)` incluye `"next_caravan_day": -1`. Al abrir una ruta (`open_trade_route` o gasto municipal en `process_municipal_spending`), o al revisar el calendario en `ensure_route_caravan_schedule(vm, force_delay)`, `roll_next_caravan_day(route_id, from_day, force_delay)` calcula el próximo día de llegada con un **70 %** en su día base y un **30 %** de retraso de **+1 día**.
+  - **Nota sobre el calendario de mercaderes semanales:** `VillageManager._check_weekly_merchant_arrival` usa `current_day % 7 == 3` (miércoles, `WorldClock.get_weekday() == 2`, Maese Casimir) y `current_day % 7 == 6` (sábado, `get_weekday() == 5`, Valeria la Tratante). Los días base de las 3 rutas (`0` lunes, `1` martes, `3` jueves) no pisan miércoles ni sábado; solo cuando `river_port` (martes `1`) sufre el retraso del 30 % (+1 día) coincide en miércoles con Casimir. Como las caravanas de ruta se buscan por su `merchant_id == route_id` (`get_route_caravan_npc(vm, route_id)`) sin sobrescribir `_active_traveling_merchant`, ambos conviven sin conflicto.
+- **Caravanero y mula de carga (`CaravanMule`, `CaravanMuleArea`, `spawn_trade_caravan`, `despawn_trade_caravan`, `update_caravan_merchant_ai`, `caravans_on_hour`):**
+  - A las **9:00** del `next_caravan_day` (si `vm.merchant_suspension_days[route_id] <= 0`), `caravans_on_hour(vm, hour)` llama a `spawn_trade_caravan(vm, route_id, false, false)`, que crea al caravanero (`VillageNPC` con `trade_role = TradeRole.TRAVELING_MERCHANT` y `merchant_id = route_id`) y su mula de carga (`CaravanMule` en el grupo `"caravan_mule"`, con `CaravanMuleArea` en el grupo `"interactable"`) en `RAID_GATE_POS = Vector2(1400, 50)`.
+  - Si a las **10:00–15:00** del día de llegada aún no estaba en el mapa (o acaba de llegar a `CARAVAN_PLAZA_POS`), queda acampada en `CARAVAN_PLAZA_POS = Vector2(465, 48)`. A las **16:00** emprende el regreso hacia `RAID_GATE_POS` y al llegar al borde se retira con `despawn_trade_caravan(vm, route_id)`.
+  - **Modelo 3D y 2D de la mula:** no existe un `.glb` animado de mula/burro en `assests/curated_3d/animals/animated/` (solo `Donkey.obj` estático), por lo que `CaravanMule.setup` usa `AnimalModel3D.attach(self, "animals/animated/Horse.glb", 20.0, 4.0, Color(0.62, 0.52, 0.44))` (más pequeña que el caballo de silla de `25.0` px y teñida de pardo grisáceo mediante `_apply_tint_recursive` en `AnimalModel3D.gd`) junto a un `Sprite2D` 2D provisional.
+- **Intercambio entre talleres y remesas del jugador (`process_caravan_route_exchange`, `send_player_shipment`, `interact_caravan_mule`, `get_mule_shipment_label`):**
+  - `process_trade_routes(vm)` ya **no** ejecuta a medianoche el intercambio de las rutas con caravana (`ROUTE_WEEKDAYS.has(str(r_id))`).
+  - Cuando la caravana llega a la plaza (`spawn_trade_caravan` con `at_plaza = true` o `update_caravan_merchant_ai` al alcanzar `CARAVAN_PLAZA_POS`), `process_caravan_route_exchange(vm, route_id)` ejecuta una sola vez por visita (`last_exchange_day`) el relleno semanal (`ROUTE_WEEKLY_REFILL`, `last_refill_day`), el intercambio entre los talleres del vendedor y comprador locales y el cobro de aranceles a las arcas municipales.
+  - Pulsar `[E]` sobre la mula en la plaza (`CaravanMule.interact` → `interact_caravan_mule`) muestra el letrero `get_mule_shipment_label(vm, route_id)` («Cargar tu remesa para %s (−%d %s → +%d %s y +%d oro)») y llama a `send_player_shipment(vm, route_id, inv)` (máx. 1/día/ruta, con +4 de oro si tu carreta está a `< 60 px`). Sin la caravana en la plaza (`not is_route_caravan_at_plaza(vm, route_id)`), `send_player_shipment` devuelve `false`.
+  - Eliminado el submenú «📦 Enviar remesa…» del diálogo de los artesanos en `VillageCulture.add_dialogue_choices` (se mantiene «📜 Abrir ruta comercial…»).
+- **Muerte del caravanero y suspensión de 7 días:**
+  - En `VillageNPC._confirm_true_death`, si muere un `TRAVELING_MERCHANT` con `merchant_id in ["high_pass", "river_port", "sun_plain"]`, fija `vm.merchant_suspension_days[merchant_id] = 7` (también contemplado en `VillageJustice.on_traveling_merchant_murdered` y en la cuenta atrás diaria de `VillageManager._on_day_passed`), dejando el cadáver en el mapa.
 
 ---
 
-## 1. La carreta existe en el mapa
-- **Script nuevo `scripts/obstacles/PlayerCart.gd`:**
-  - Extiende `Node2D`, se añade al grupo `"player_cart"` y sigue la estructura de `scripts/obstacles/PlayerHorse.gd`.
-  - Tiene `interact_area: Area2D` en el grupo `"interactable"` (radio `22.0` px y comprobación de alcance `CART_RANGE = 26.0` px) con `get_interact_label(player)` e `interact(player)`.
-  - **Modelo 3D:** adjunta `assests/curated_3d/fantasy_town/cart.glb` mediante `AnimalModel3D.attach(self, "fantasy_town/cart.glb", 10.5, 4.0)`, escalado para medir ~26 px de largo (equivalente al caballo) y girando automáticamente en la dirección del movimiento.
-  - **Dibujo 2D (provisional):** clase interna `CartSprite2D` (`Node2D`) que dibuja con `draw_rect` un carro marrón de madera con varales y dos ruedas oscuras, visible al alternar a vista 2D con `[F10]` y oculto en vista 3D (`_process`). Se deja apuntado como provisional.
-- **Sincronización y estado en `scripts/systems/VillageCulture.gd`:**
-  - `CART_DEFAULT_POS: Vector2 = Vector2(385, 470)` (junto al Rancho del Sur, al lado de `HORSE_DEFAULT_POS`).
-  - `VillageCulture.mounts_state(vm)` inicializa y persiste `"cart_x"`, `"cart_y"`, `"cart_mode"` (`"parked"`, `"hand"`, `"horse"`) y `"cart_cargo"` (`Dictionary`).
-  - `VillageCulture.sync_player_cart(vm)` crea, recoloca o elimina el nodo del grupo `"player_cart"` según `has_cart(vm)` y restaura el modo al cargar. Se llama en `buy_mount(vm, "cart", seller, inv)` y en `after_load(vm)` (igual que `sync_player_horse`).
+## 2. Parte B — Caravana nocturna de contrabando
+
+- **Archivos modificados:**
+  - `scripts/systems/VillageUnderworld.gd`
+  - `scripts/systems/VillageNeeds.gd`
+  - `scripts/systems/VillageManager.gd`
+  - `scripts/enemies/VillageNPC.gd`
+  - `scripts/enemies/NPCDialogue.gd`
+  - `scripts/visuals/AnimalModel3D.gd`
+- **Coordenada y horario del campamento (`SMUGGLER_CAMP_POS = Vector2(1350.0, -560.0)`, `SMUGGLER_BORDER_POS = Vector2(1386.0, -584.0)`):**
+  - Verificado que `Vector2(1350, -560)` cae en claro caminable al norte de la mansión señorial (`solar f1`, cuyo rectángulo termina en `y = -500`), sin pisar edificios ni salirse del mapa.
+  - En `VillageUnderworld.on_hour(vm, h)` (invocado desde `VillageManager._on_hour_passed`), las noches con `(today() - 1) % 3 == 0` y `caravan_busted_day != today()`, de **22:00 a 4:00**, `spawn_smuggler_caravan(vm, true)` instala el campamento con el contrabandista forastero «El Encapuchado» (`merchant_id = "smuggler"`), su carro (`SmugglerCampCart`, modelo 3D `fantasy_town/cart.glb`) y su farol tenue (`fantasy_town/lantern.glb` con `dim_omni_light = true` en `AnimalModel3D.gd`). A las **4:00** (o al ser descubierta/desmantelada) se retira con `despawn_smuggler_caravan(vm)`.
+- **Trato en el carro (`SmugglerTradeArea`, `caravan_buy`, `caravan_sell`):**
+  - El carro expone dos `Area2D` del grupo `"interactable"` (`SmugglerTradeArea`):
+    - `"buy"`: «Comprar lote de contrabando (−25 oro → +2 polvo de ocaso)», que llama a `caravan_buy(vm, inv, true, interactor)` exigiendo **doble E** (`VillageHousing.press_twice(vm, "caravana_contrabando")`).
+    - `"sell"`: «Vender polvo de ocaso (+35 oro)», que llama a `caravan_sell(vm, inv, interactor)`.
+  - Eliminadas del diálogo del perista (`VillageUnderworld.add_dialogue_choices`) las opciones `underworld_caravan_buy` y `underworld_caravan_sell`.
+- **Riesgo de guardia testigo (`_find_guard_witness_near`, `_check_and_apply_smuggler_guard_witness`):**
+  - Al comprar o vender en el carro, si hay un guardia o comisario despierto y consciente a `< 160 px` con línea de visión (`vm.has_line_of_sight`) y la patrulla no está sobornada esa noche, sube `vm.wanted_level + 1`, se anota en la crónica (`smuggler_caught_live`), se marca `caravan_busted_day = today()` y la caravana huye (`despawn_smuggler_caravan(vm)`).
+- **Delatar la caravana a la guardia (`send_guards_to_bust_caravan`, `on_guard_bust_arrived`):**
+  - Se mantiene en el diálogo de los guardias «🚨🐪 Avisar a la guardia de la ruta de la caravana de contrabando» (`underworld_caravan_report`), que ahora envía a **dos guardias** andando hacia `SMUGGLER_CAMP_POS` mediante `start_errand("smuggler_bust", SMUGGLER_CAMP_POS)` (con soporte nocturno y en turno en `VillageNPC._is_mandatory_work_hours` y `_update_needs_and_decisions`). Cuando llegan al campamento (`VillageNeeds.tick` → `VillageUnderworld.on_guard_bust_arrived`), el contrabandista huye y se marca `caravan_busted_day = today()`.
 
 ---
 
-## 2. Moverla: a mano o con caballo
-- **Letreros e interacción en `PlayerCart.gd`:**
-  - `get_interact_label(player)`:
-    - Con `cart_mode == "parked"` y a pie: `«Agarrar la carreta»`.
-    - Con `cart_mode == "hand"`: `«Soltar la carreta»`.
-    - Con `cart_mode == "parked"` y montado (`player.is_mounted`): `«Enganchar la carreta al caballo»`.
-    - Con `cart_mode == "horse"`: `«Desenganchar»`.
-  - `grab_by_hand(player)`, `release_cart(player, stay_at, custom_msg)`, `hitch_to_horse(player)` y `unhitch_from_horse(player, stay_at, custom_msg)` actualizan `player.is_pulling_cart`, `player.is_cart_hitched` y `mounts_state(vm)["cart_mode"]`.
-  - En `scripts/ui/InteractionSelector.gd` (`refresh`): cuando la carreta ya va agarrada o enganchada en marcha, su prioridad de `[E]` se sitúa detrás de puertas y vecinos cercanos (igual que `"player_horse"` montado) para no estorbar al abrir puertas o hablar.
-- **Velocidades y restricciones en `scripts/PlayerMovementController.gd` y `scripts/Player.gd`:**
-  - Constantes `CART_HAND_SPEED_MULT: float = 0.55` y `CART_HORSE_SPEED_MULT: float = 0.80` junto a `MOUNT_SPEED_MULT`.
-  - A pie tirando de la carreta (`is_pulling_cart`): velocidad `×0,55`, sin correr (`wants_sprint = false`), sin sigilo (`is_stealthing = false`, bloqueada tecla `C` en `_unhandled_input`) y sin rodar (`start_roll` devuelve `false` con aviso).
-  - Enganchada al caballo (`is_mounted` + `is_cart_hitched`): velocidad del caballo `×0,80` (`MOUNT_SPEED_MULT * CART_HORSE_SPEED_MULT`) y sin sigilo.
-- **Seguimiento por rastro y suelta automática (`PlayerCart._place_behind_leader`, `PlayerCart._physics_process`):**
-  - Guarda los puntos por donde pasa el jugador en `_trail` (cada `TRAIL_STEP = 2.0` px) y coloca la carreta sobre la polilínea del rastro a `TRAIL_DIST = 22.0` px detrás del jugador, sin `CollisionShape2D` de choque físico para no atascarse ni cortar esquinas atravesando edificios.
-  - No se puede agarrar ni enganchar dentro de un edificio (`_is_inside_building`).
-  - Al entrar en un edificio, acostarse (`is_resting_in_bed`) o ir escoltado/preso (`player_being_escorted_to_jail` / `player_in_jail`), si ibas tirando a mano se suelta sola en `_last_outside_pos` (junto a la puerta). Si bajas del caballo con la carreta enganchada (`cart_mode == "horse"` y `not player.is_mounted`), la carreta permanece enganchada al caballo y quieta donde esté.
+## 3. Verificación y pruebas
 
----
-
-## 3. La caja de carga (40 unidades)
-- **Nota sobre la ventana existente:** en el código no existía ninguna ventana reutilizable de dos columnas para cofres (el cofre del campamento en `CampSite._setup_chest_ui` y el escondite en `VillageHousing.open_home_stash_menu` solo guardan/sacan oro mediante botones simples, y `VillageManager._interact_house_chest` en cofres propios solo muestra un texto flotante). Tal como indica el encargo, se ha construido una ventana sencilla de dos listas en `PlayerCart._setup_cargo_ui()`.
-- **Implementación en `PlayerCart.gd` y `Player.gd`:**
-  - Segundo `Area2D` (`cargo_area`, clase interna `CartCargoArea` en el grupo `"interactable"`) que, cuando la carreta está parada (`is_stopped`), ofrece el segundo letrero `[E] Abrir la caja de carga (X/40)` (`get_cargo_interact_label`). En marcha o agarrada devuelve `""` para no mostrarse.
-  - Capacidad máxima `CARGO_CAPACITY = 40` unidades sumando todos los objetos (`get_cargo_total()`); el oro no cabe (`put_item` rechaza `"gold"`).
-  - Funciones `put_item(inv, item_id, qty)`, `put_all_from_inventory(inv, item_id)` y `take_item(inv, item_id, qty)` conectadas a los botones `«Meter 1»`, `«Meter todo»` y `«Sacar 1»` de la ventana `cargo_panel`.
-  - `Player.is_any_ui_modal_open()` comprueba `cart.cargo_panel.visible` para bloquear el movimiento mientras la ventana de carga está abierta.
-
----
-
-## 4. Riesgo: robo de carga por la noche
-- **Implementación en `VillageCulture.cart_night_theft(vm, chance)` y `VillageCulture.is_cart_in_safe_place(vm, pos)` (llamado en `VillageHousing.daily(vm)` junto a `shop_night_theft`):**
-  - Comprueba que la carreta esté aparcada (`cart_mode == "parked"`), tenga carga y esté fuera de un lugar seguro: a `>= 90.0` px del centro de todos los solares construidos del jugador (`VillageHousing.player_lots(vm, true)` + `VillageLots.lot_def(lid)["center"]`) y fuera del corral del Rancho del Sur (`RANCH_CORRAL_RECT = Rect2(310, 400, 87, 140)`).
-  - Probabilidad `CART_THEFT_CHANCE = 0.12` (12 %).
-  - **Ladrón y cantidad:** elige al vecino vivo adulto (`trade_role != CHILD`) y no forastero (`not VillageNeeds.is_outsider(n)`) con menos `personal_gold`. Se lleva la mitad de las unidades redondeando hacia abajo, máximo 10 (`mini(10, int(floor(float(units.size()) / 2.0)))`), elegidas al azar.
-  - **Suma cero (dónde guarda cosas un vecino):** `house_chests` solo guarda metadatos (`looted_day`, `planted_evidence`) y `house_pantry` solo guarda un entero de raciones de comida por familia, pero cada `VillageNPC` ya tiene su diccionario persistente de objetos `pocket_items` y el método `add_pocket_item(item_id, count)` (usado también en P1 cuando un cliente compra en el mostrador). Los objetos robados de `cart_cargo` pasan directamente a `thief.add_pocket_item(it_id, 1)`, conservando exactamente el total de objetos (carreta + ladrón).
-  - **Testigo y aviso:** consulta `vm._find_conscious_witness_near(cart_pos, 160.0, thief)`. Si hay testigo, añade a la crónica `«%s vio a %s llevarse carga de tu carreta»`; si no, `«Alguien se llevó carga de tu carreta por la noche»`. Muestra aviso matinal al jugador con `pl.show_hint(...)` detallando qué objetos faltan.
-
----
-
-## 5. Quitar lo viejo
-- En `VillageCulture.send_player_shipment(vm, route_id, inv)`: el bono de `+4` de oro solo se suma si `VillageCulture.is_cart_near_player(vm, 60.0)` es cierto (la carreta está a menos de 60 px del jugador).
-- En `VillageCulture.add_dialogue_choices`: el texto de compra al ganadero es ahora `«🛒 Comprar Carreta de Carga (-55 Oro al ganadero): la recoges en el rancho; caben 40 cosas»`.
-
----
-
-## 6. Archivos tocados
-1. `scripts/obstacles/PlayerCart.gd` (nuevo)
-2. `scripts/systems/VillageCulture.gd`
-3. `scripts/systems/VillageHousing.gd`
-4. `scripts/PlayerMovementController.gd`
-5. `scripts/Player.gd`
-6. `scripts/ui/InteractionSelector.gd`
-7. `tools/tests/verify_all.gd`
-8. `CHANGELOG.md`, `docs/HANDOFF.md`, `docs/REGISTRO_TRABAJO.md`, `docs/INFORME_ANTIGRAVITY.md`, `GameVault/02_Sistemas/Caballos y Expediciones.md`, `GameVault/02_Sistemas/Vivienda e Hipotecas.md`, `GameVault/05_Roadmap_y_Lore/Tablero.md`, `GameVault/06_Diario/2026-11-06.md`
-
----
-
-## 7. Prueba ejecutada (`verify_all`)
-- Comando: `timeout 900 flatpak run org.godotengine.Godot --headless --path . --script tools/tests/verify_all.gd`
-- Estado: en ejecución (se actualizará al terminar la tarea en segundo plano).
+1. **Arranque en modo headless:**
+   - Comando: `timeout 60 flatpak run org.godotengine.Godot --headless --path . --quit`
+   - Resultado: **OK** (`0` errores de compilación/carga de scripts).
+2. **Suite principal `verify_all.gd` (una sola ejecución al cerrar con `timeout 900`):**
+   - Comando: `timeout 900 flatpak run org.godotengine.Godot --headless --path . -s res://tools/tests/verify_all.gd`
+   - Resultado: **TODOS LOS BLOQUES Y ASERCIONES PASAN (`Block P3 (Physical Trade Route Caravans, Pack Mule & Midnight Smuggler Camp) OK`)**:
+     - `P3.1a–P3.1c`: Con `high_pass` activa, a medianoche (`00:00`) no ocurre intercambio mágico; a las `10:00` del día de llegada aparecen el caravanero y su mula en `CARAVAN_PLAZA_POS` y se ejecuta el intercambio entre talleres.
+     - `P3.2a–P3.2b`: Interactuar con la mula en la plaza entrega `2 bread` a cambio de `2 iron_ore` y `+8` de oro; tras retirarse la caravana de la plaza, `send_player_shipment` devuelve `false`.
+     - `P3.3a–P3.3b`: Matar al caravanero fija `vm.merchant_suspension_days["high_pass"] == 7` y deja el cadáver en el mundo.
+     - `P3.4a–P3.4e`: A las `22:00` en noche de contrabando aparecen el contrabandista y su carro en `SMUGGLER_CAMP_POS`, comprar exige doble `E` (`-25` oro → `+2 dusk_dust`), y vender con un guardia despierto a `< 160 px` sube `wanted_level` y marca `caravan_busted_day`.

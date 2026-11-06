@@ -34,9 +34,11 @@ var _cur_anim: String = ""
 ## Velocidad (px/s) a la que el paso «Walk» encaja con el suelo; por encima de run_px_s galopa.
 var walk_px_s: float = 28.0
 var run_px_s: float = 70.0
+var tint_color: Color = Color.WHITE
+var dim_omni_light: bool = false
 
 
-static func attach(entity: Node2D, rel_path: String, h_px: float, foot_px: float) -> Node:
+static func attach(entity: Node2D, rel_path: String, h_px: float, foot_px: float, p_tint: Color = Color.WHITE, p_dim_light: bool = false) -> Node:
 	if DisplayServer.get_name() == "headless" or Engine.is_editor_hint() or entity == null:
 		return null
 	if not AssetLib.has_curated_assets():
@@ -46,6 +48,8 @@ static func attach(entity: Node2D, rel_path: String, h_px: float, foot_px: float
 	n.model_rel = rel_path
 	n.height_px = h_px
 	n.foot_offset_px = foot_px
+	n.tint_color = p_tint
+	n.dim_omni_light = p_dim_light
 	entity.add_child(n)
 	return n
 
@@ -109,6 +113,16 @@ func _attach_to_stage() -> bool:
 	_holder.add_child(_yaw)
 	_model = model
 	_yaw.add_child(_model)
+	if tint_color != Color.WHITE:
+		_apply_tint_recursive(_model, tint_color)
+	if dim_omni_light:
+		var omni := OmniLight3D.new()
+		omni.name = "DimLanternLight3D"
+		omni.light_color = Color(1.0, 0.68, 0.32)
+		omni.light_energy = 0.16
+		omni.omni_range = 1.2
+		omni.position = Vector3(0.0, fit_h * 0.65, 0.0)
+		_holder.add_child(omni)
 	chars.add_child(_holder)
 	_anim = null
 	_cur_anim = ""
@@ -120,6 +134,22 @@ func _attach_to_stage() -> bool:
 				_anim.get_animation(an).loop_mode = Animation.LOOP_LINEAR
 		_anim.playback_default_blend_time = 0.2
 	return true
+
+
+func _apply_tint_recursive(node: Node, col: Color) -> void:
+	if node is MeshInstance3D:
+		var mi := node as MeshInstance3D
+		if mi.mesh != null:
+			for s in range(mi.mesh.get_surface_count()):
+				var base_mat: Material = mi.get_surface_override_material(s)
+				if base_mat == null:
+					base_mat = mi.mesh.surface_get_material(s)
+				if base_mat is StandardMaterial3D:
+					var dup := (base_mat as StandardMaterial3D).duplicate() as StandardMaterial3D
+					dup.albedo_color = dup.albedo_color * col
+					mi.set_surface_override_material(s, dup)
+	for ch in node.get_children():
+		_apply_tint_recursive(ch, col)
 
 
 func _process(delta: float) -> void:

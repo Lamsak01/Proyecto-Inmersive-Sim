@@ -212,7 +212,7 @@ var shop_businesses: Dictionary = {} # int(TradeRole) -> {role, family_id, title
 var village_food_shortage_days: int = 0
 var house_pantry: Dictionary = {} # family_id / npc_name -> int (Raciones de comida guardadas en la despensa de casa)
 var vagrant_camp_nodes: Dictionary = {} # npc_name -> Node2D (Campamento rústico físico en las afueras)
-var merchant_suspension_days: Dictionary = {"casimir": 0, "valeria": 0} # Días de embargo comercial (20..30) si asesinan a un mercader
+var merchant_suspension_days: Dictionary = {"casimir": 0, "valeria": 0, "high_pass": 0, "river_port": 0, "sun_plain": 0} # Días de embargo comercial (20..30 mercaderes semanales / 7 caravanas P3) si asesinan a un mercader
 var _active_traveling_merchant: VillageNPC = null
 var _royal_investigator_npc: VillageNPC = null
 var active_royal_investigation: Dictionary = {} # Expediente deductivo del Inquisidor Real Alistair
@@ -2477,7 +2477,7 @@ func _on_hour_passed(_day: int, new_hour: int = 8) -> void:
 	_apply_hourly_door_security_schedule(actual_hour)
 	VillageFaith.on_hour(self, actual_hour) # G2: Oficio del Alba (domingo por la mañana)
 	VillageHousing.on_hour(self, actual_hour) # P1: dependiente y clientes reales en tu tienda
-	VillageUnderworld.on_hour(self, actual_hour) # P5b: el perista trasnocha en el callejón de la taberna
+	VillageUnderworld.fence_on_hour(self, actual_hour) # P5b: el perista trasnocha en el callejón de la taberna
 	VillageCollections.sync_points(self) # P5: puntos de cobro en los locales y objetos del ayuntamiento
 	VillageNeeds.on_hour(self, actual_hour) # E: higiene, taberna, limosna
 	VillageIllness.on_hour(self, actual_hour) # E2: contagios
@@ -2491,6 +2491,7 @@ func _on_hour_passed(_day: int, new_hour: int = 8) -> void:
 	VillageNobility.on_hour(self, actual_hour) # V6: los nobles aparecen en la primera hora
 	VillageFamily.on_hour(self, actual_hour) # V9: lo que se aprende en la escuela
 	VillageConfession.on_hour(self, actual_hour) # P4: confesiones entre semana en la capilla
+	VillageUnderworld.on_hour(self, actual_hour) # P3 Parte B: caravana nocturna de contrabando
 
 	# 07:00 AM -> Comprobar llegada semanal de los 2 Mercaderes Ambulantes (Día 3: Maese Casimir | Día 6: Valeria la Tratante)
 	if actual_hour == 7:
@@ -3190,8 +3191,8 @@ func _on_day_passed(_new_day: int) -> void:
 		VillageQuests.on_day_passed(self)
 	chronicle_daily = false
 
-	# Descontar 1 día del embargo comercial (20..30 días) si alguno de los 2 mercaderes semanales fue asesinado
-	for m_key in ["casimir", "valeria"]:
+	# Descontar 1 día del embargo comercial (20..30 días mercaderes semanales / 7 días caravanas P3) si fue asesinado
+	for m_key in ["casimir", "valeria", "high_pass", "river_port", "sun_plain"]:
 		var susp_d: int = int(merchant_suspension_days.get(m_key, 0))
 		if susp_d > 0:
 			susp_d = maxi(0, susp_d - 1)
@@ -3199,7 +3200,7 @@ func _on_day_passed(_new_day: int) -> void:
 			if susp_d == 0:
 				var p_m = get_tree().get_first_node_in_group("player")
 				if p_m and p_m.has_method("show_hint"):
-					var m_label: String = "Maese Casimir (Liga Minera)" if m_key == "casimir" else "Valeria la Tratante (Gremio de Caza)"
+					var m_label: String = "Maese Casimir (Liga Minera)" if m_key == "casimir" else ("Valeria la Tratante (Gremio de Caza)" if m_key == "valeria" else str(VillageCulture.ROUTE_CARAVAN_NAMES.get(m_key, m_key)))
 					p_m.show_hint("📜⚖️ El embargo comercial sobre la ruta de %s ha concluido tras semanas de bloqueo. Volverá a pasar en su día semanal." % m_label)
 
 	# Avanzar jornada de investigación del Inquisidor Real Alistair (garantizando resolución antes del día 19)
@@ -4291,6 +4292,12 @@ func update_traveling_merchant_ai(merchant: VillageNPC, delta: float) -> void:
 		return
 	var h: int = WorldClock.current_hour if WorldClock else 12
 	var m_id: String = merchant.merchant_id
+	if m_id in ["high_pass", "river_port", "sun_plain"]:
+		VillageCulture.update_caravan_merchant_ai(self, merchant, delta)
+		return
+	if m_id == "smuggler":
+		VillageUnderworld.update_smuggler_merchant_ai(self, merchant, delta)
+		return
 
 	# A partir de las 19:00 regresan caminando hacia el borde del mapa para salir de la región con su Salvoconducto Real
 	if h >= 19 or h < 6:
