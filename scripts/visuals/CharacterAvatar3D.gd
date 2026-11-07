@@ -666,7 +666,7 @@ func _build_npc_appearance_cfg() -> Dictionary:
 		tunic_col = Color.from_hsv(fposmod(tunic_col.h + shift_h, 1.0), clampf(tunic_col.s, 0.15, 0.88), clampf(tunic_col.v + shift_v, 0.22, 0.92))
 
 	var hr_now: int = int(WorldClock.current_hour) if WorldClock != null else 12
-	var is_working_now: bool = bool(target_entity.get("_is_actively_crafting")) or (int(target_entity.get("current_activity")) == 0 and hr_now >= 6 and hr_now < 20 and not bool(target_entity.get("is_strolling_outside")))
+	var is_working_now: bool = bool(target_entity.get("_is_actively_crafting")) or (int(target_entity.get("current_activity")) == 0 and hr_now >= 6 and hr_now < 20 and target_entity.get("is_strolling_outside") != true)
 	var is_guard_role: bool = role_id in [9, 10, 12]
 	if not is_working_now and not is_guard_role and not bool(target_entity.get("is_hostile")):
 		weapon_k = "none"

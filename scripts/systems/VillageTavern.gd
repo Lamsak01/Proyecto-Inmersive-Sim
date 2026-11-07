@@ -36,6 +36,9 @@ const FLOOR_1_H: float = 22.0
 const TOTAL_WALL_H: float = 44.0
 
 ## Planta 0: 4 salas comunicadas por arcos anchos
+const MID_WALL_Y: float = -232.0
+const EAST_WING_X: float = 482.0
+const GAP: float = 42.0
 const ROOMS_FLOOR_0: Dictionary = {
 	"barra_cocina": Rect2(Vector2(260.0, -316.0), Vector2(222.0, 84.0)),
 	"salon": Rect2(Vector2(260.0, -232.0), Vector2(222.0, 100.0)),
@@ -55,6 +58,7 @@ const BAR_COUNTER_POS: Vector2 = Vector2(338.0, -234.0)
 const BAR_COUNTER_SIZE: Vector2 = Vector2(108.0, 10.0)
 const INNKEEPER_WORK_POS: Vector2 = Vector2(338.0, -248.0) # Marta detrás del mostrador
 const PASS_COUNTER_POS: Vector2 = Vector2(396.0, -246.0)   # Pasa-platos donde el camarero recoge comandas
+const BARREL_RACK_POS: Vector2 = Vector2(426.0, -304.0)    # Hilera de toneles de roble tras la barra
 const STOVE_POS: Vector2 = Vector2(292.0, -296.0)          # Fogón y horno de la cocina
 const PREP_POS: Vector2 = Vector2(346.0, -296.0)           # Mesa de corte de cocina
 const FIREPLACE_POS: Vector2 = Vector2(270.0, -182.0)      # Chimenea de piedra del gran salón
@@ -80,12 +84,18 @@ const DINING_TABLES: Array = [
 ]
 const CHAIR_OFFSETS: Array = [Vector2(-13.0, 0.0), Vector2(13.0, 0.0)]
 
-## 4 Sillas alrededor de la Mesa de Póker (Planta 0)
+## 4 Sillas alrededor de la Mesa de Póker (Planta 0: Oeste, Este, Norte, Sur)
 const POKER_CHAIR_OFFSETS: Array = [
 	Vector2(-16.0, 0.0),
 	Vector2(16.0, 0.0),
 	Vector2(0.0, -13.0),
 	Vector2(0.0, 13.0),
+]
+const POKER_CHAIRS: Array[Vector2] = [
+	Vector2(502.0, -178.0),
+	Vector2(534.0, -178.0),
+	Vector2(518.0, -191.0),
+	Vector2(518.0, -165.0),
 ]
 
 ## Planta +1: 5 Cuartos de Huéspedes en el ala norte (`y = -316..-216`) + Galería alta (`y = -216..-168`)
@@ -612,7 +622,7 @@ static func tick(vm, _delta: float) -> void:
 	#    y orientar a Marta (detrás de la barra) y a los jugadores de póker/comensales hacia su mesa.
 	if is_instance_valid(vm._innkeeper_npc) and not vm._innkeeper_npc.is_dead:
 		if vm._innkeeper_npc.global_position.distance_to(INNKEEPER_WORK_POS) <= 14.0 and vm._innkeeper_npc.velocity.length_squared() < 4.0:
-			vm._innkeeper_npc._last_move_dir = Vector2.DOWN
+			vm._innkeeper_npc.facing_direction = Vector2.DOWN
 
 	var poker_seated: Array = []
 	for n in vm.VillageNeeds.living(vm):
@@ -624,12 +634,12 @@ static func tick(vm, _delta: float) -> void:
 				vm.set_npc_elevation_level(n, 0)
 		if int(n.elevation_level) == 0 and n.velocity.length_squared() < 4.0:
 			if n.global_position.distance_to(GAMES_POS) <= 22.0:
-				n._last_move_dir = (GAMES_POS - n.global_position).normalized()
+				n.facing_direction = (GAMES_POS - n.global_position).normalized()
 				poker_seated.append(n)
 			else:
 				for tp in DINING_TABLES:
 					if n.global_position.distance_to(tp as Vector2) <= 18.0:
-						n._last_move_dir = ((tp as Vector2) - n.global_position).normalized()
+						n.facing_direction = ((tp as Vector2) - n.global_position).normalized()
 						break
 
 	# 2. Reacciones periódicas de la partida de póker en vivo en la mesa del casino
