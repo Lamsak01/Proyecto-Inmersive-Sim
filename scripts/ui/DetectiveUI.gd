@@ -132,6 +132,17 @@ var morgue_status_banner: PanelContainer = null
 var lbl_morgue_banner: Label = null
 var btn_morgue_transfer: Button = null
 
+# Vista D3: Escena del crimen (farol + pistas físicas + testigos cercanos)
+var scene_sketch_tex_rect: TextureRect = null
+var scene_sketch_mat: ShaderMaterial = null
+var crime_scene_canvas: CrimeSceneCanvas = null
+var lbl_scene_ground: Label = null
+var scene_clues: Array[Dictionary] = []
+var scene_clues_found: Dictionary = {} # idx (int) -> true
+var scene_witnesses: Array[Dictionary] = [] # [{name, npc_ref, ask_text, press_ok_text, press_bad_text, can_press_succeed, log: Array}]
+var scene_finds_vbox: VBoxContainer = null
+var scene_witnesses_vbox: VBoxContainer = null
+
 # Tira inferior: Cuaderno del caso
 var strip_notes_hbox: HBoxContainer = null
 var lbl_strip_empty: Label = null
@@ -403,6 +414,143 @@ class SilhouetteCanvas extends Control:
 
 
 # ==============================================================================
+# Subclase de dibujo para la escena del crimen (Bloque D3): farol + silueta de tiza + pistas
+# ==============================================================================
+class CrimeSceneCanvas extends Control:
+	var ui: DetectiveUI = null
+	# Coordenadas base en espacio 520x560 (idéntico al viewBox="0 0 520 560" de #csvg en el boceto HTML)
+	const BASE_W := 520.0
+	const BASE_H := 560.0
+	const LANTERN_RADIUS := 72.0
+	var lantern_base_pos := Vector2(260.0, 280.0)
+	var hovered_clue_idx: int = -1
+
+	func _gui_input(event: InputEvent) -> void:
+		if ui == null:
+			return
+		if event is InputEventMouseMotion:
+			var bpos := _from_canvas(event.position)
+			ui.set_lantern_canvas_pos(bpos, event.position, size)
+			var hit_idx := _clue_at(bpos)
+			if hit_idx != hovered_clue_idx:
+				hovered_clue_idx = hit_idx
+				mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND if hit_idx >= 0 else Control.CURSOR_CROSS
+			queue_redraw()
+		elif event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
+			var bpos := _from_canvas(event.position)
+			ui.set_lantern_canvas_pos(bpos, event.position, size)
+			var hit_idx := _clue_at(bpos)
+			if hit_idx >= 0:
+				ui.crime_find_clue(hit_idx)
+				accept_event()
+			queue_redraw()
+
+	func _to_canvas(pt: Vector2) -> Vector2:
+		var scale_f: float = minf(size.x / BASE_W, size.y / BASE_H)
+		var off := (size - Vector2(BASE_W, BASE_H) * scale_f) * 0.5
+		return off + pt * scale_f
+
+	func _from_canvas(pos: Vector2) -> Vector2:
+		var scale_f: float = maxf(0.01, minf(size.x / BASE_W, size.y / BASE_H))
+		var off := (size - Vector2(BASE_W, BASE_H) * scale_f) * 0.5
+		return (pos - off) / scale_f
+
+	func _clue_at(bpos: Vector2) -> int:
+		if ui == null:
+			return -1
+		for i in range(ui.scene_clues.size()):
+			var c: Dictionary = ui.scene_clues[i]
+			var cpos := Vector2(float(c.get("x", 260.0)), float(c.get("y", 280.0)))
+			var r: float = float(c.get("r", 16.0)) + 12.0
+			if bpos.distance_to(cpos) <= r and lantern_base_pos.distance_to(cpos) <= 82.0:
+				return i
+		return -1
+
+	func _draw() -> void:
+		if ui == null:
+			return
+		var scale_f: float = minf(size.x / BASE_W, size.y / BASE_H)
+		var chalk_col := Color("#d9d2c2")
+		chalk_col.a = 0.78
+
+		# 1. Silueta discontinua donde yacía el cuerpo (exacta a #csvg en el boceto HTML)
+		var chalk_head := _to_canvas(Vector2(250, 232))
+		var head_r: float = 14.0 * scale_f
+		for s in range(10):
+			var a0: float = (TAU * float(s)) / 10.0
+			var a1: float = a0 + (TAU / 10.0) * 0.55
+			draw_arc(chalk_head, head_r, a0, a1, 3, chalk_col, 2.0, true)
+
+		var chalk_pts := [
+			Vector2(232, 300), Vector2(230, 268), Vector2(238, 250), Vector2(250, 246),
+			Vector2(262, 250), Vector2(270, 268), Vector2(268, 300), Vector2(276, 370),
+			Vector2(262, 372), Vector2(256, 330), Vector2(244, 330), Vector2(238, 372),
+			Vector2(224, 370), Vector2(232, 300)
+		]
+		for pi in range(chalk_pts.size() - 1):
+			var p0 := _to_canvas(chalk_pts[pi])
+			var p1 := _to_canvas(chalk_pts[pi + 1])
+			var mid := p0.lerp(p1, 0.65)
+			draw_line(p0, mid, chalk_col, 2.0, true)
+
+		# 2. Pistas físicas en el suelo: solo se ven bajo la luz del farol (o quedan tenues si ya se hallaron)
+		for i in range(ui.scene_clues.size()):
+			var c: Dictionary = ui.scene_clues[i]
+			var cpos := Vector2(float(c.get("x", 260.0)), float(c.get("y", 280.0)))
+			var dist_lamp: float = lantern_base_pos.distance_to(cpos)
+			var is_found: bool = (ui.scene_clues_found.get(i) == true)
+			if dist_lamp > 80.0 and not is_found:
+				continue
+			var vis_alpha: float = clampf(1.0 - (dist_lamp / 82.0), 0.25 if is_found else 0.0, 1.0)
+			var center_px := _to_canvas(cpos)
+			var kind: String = str(c.get("draw_kind", "circle"))
+
+			if kind == "drag":
+				var col_d := Color("#9a8666")
+				col_d.a = vis_alpha
+				draw_line(_to_canvas(cpos + Vector2(-18, -28)), _to_canvas(cpos + Vector2(-4, 22)), col_d, 3.0, true)
+				draw_line(_to_canvas(cpos + Vector2(0, -30)), _to_canvas(cpos + Vector2(12, 22)), col_d, 3.0, true)
+			elif kind == "prints":
+				var col_p := Color("#8b7356")
+				col_p.a = vis_alpha
+				draw_circle(_to_canvas(cpos + Vector2(-6, -6)), 6.5 * scale_f, col_p)
+				draw_circle(_to_canvas(cpos + Vector2(8, 10)), 6.5 * scale_f, col_p)
+			elif kind == "wheels":
+				var col_w := Color("#7a654a")
+				col_w.a = vis_alpha
+				draw_line(_to_canvas(cpos + Vector2(-22, -20)), _to_canvas(cpos + Vector2(-22, 28)), col_w, 3.5, true)
+				draw_line(_to_canvas(cpos + Vector2(4, -20)), _to_canvas(cpos + Vector2(4, 28)), col_w, 3.5, true)
+			elif kind == "herb":
+				var col_h := Color("#a9b86a")
+				col_h.a = vis_alpha
+				draw_circle(center_px, 5.0 * scale_f, col_h)
+				draw_line(_to_canvas(cpos + Vector2(-6, -6)), _to_canvas(cpos + Vector2(8, 8)), col_h, 2.2, true)
+			elif kind == "mud":
+				var col_m := Color("#c9c2b0")
+				col_m.a = vis_alpha * 0.85
+				draw_circle(center_px, 9.0 * scale_f, col_m)
+			elif kind == "blood":
+				var col_b := COL_BLOOD
+				col_b.a = vis_alpha * 0.90
+				draw_circle(center_px, 10.0 * scale_f, col_b)
+			else:
+				var col_c := Color("#8a8a74")
+				col_c.a = vis_alpha
+				draw_arc(center_px, 11.0 * scale_f, 0.0, TAU, 18, col_c, 1.6, true)
+
+			# Anillo indicador bajo el farol
+			var ring_col := COL_GREEN_OK if is_found else COL_LAMP
+			ring_col.a = vis_alpha * (0.90 if hovered_clue_idx == i else 0.55)
+			draw_arc(center_px, (float(c.get("r", 15.0)) + 4.0) * scale_f, 0.0, TAU, 24, ring_col, 1.5, true)
+
+		# 3. Halo y anillo del farol del jugador (#lampring)
+		var l_px := _to_canvas(lantern_base_pos)
+		var l_rad := LANTERN_RADIUS * scale_f
+		draw_circle(l_px, l_rad, Color(0.906, 0.706, 0.353, 0.07))
+		draw_arc(l_px, l_rad, 0.0, TAU, 40, Color(0.906, 0.706, 0.353, 0.58), 1.4, true)
+
+
+# ==============================================================================
 # Construcción de la interfaz
 # ==============================================================================
 func _ready() -> void:
@@ -529,7 +677,7 @@ func _build_ui() -> void:
 	view_morgue = _build_morgue_view()
 	views_holder.add_child(view_morgue)
 
-	view_scene = _build_placeholder_view("Escena del crimen (Bloque D3)")
+	view_scene = _build_scene_view()
 	views_holder.add_child(view_scene)
 
 	view_board = _build_placeholder_view("Tablero del caso (Bloque D4)")
@@ -902,6 +1050,128 @@ func _build_morgue_view() -> Control:
 	return split
 
 
+# ==============================================================================
+# Vista 3 (Bloque D3): Escena del crimen (farol + pistas físicas + testigos cercanos)
+# ==============================================================================
+func _build_scene_view() -> Control:
+	var split := HBoxContainer.new()
+	split.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	split.add_theme_constant_override("separation", 14)
+	split.visible = false
+
+	# Izquierda (#cstage): Fondo 3D cenital en esquema a oscuras + farol que sigue al ratón + pistas en el suelo
+	var stage_panel := PanelContainer.new()
+	stage_panel.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	stage_panel.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	stage_panel.size_flags_stretch_ratio = 1.25
+	stage_panel.add_theme_stylebox_override("panel", _style_box(COL_PANEL, COL_EDGE, 1, 0, 0, 0))
+	split.add_child(stage_panel)
+
+	var stage_overlay := Control.new()
+	stage_overlay.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	stage_overlay.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	stage_overlay.clip_contents = true
+	stage_panel.add_child(stage_overlay)
+
+	scene_sketch_tex_rect = TextureRect.new()
+	scene_sketch_tex_rect.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	scene_sketch_tex_rect.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	scene_sketch_tex_rect.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_COVERED
+	var sh_sc := Shader.new()
+	sh_sc.code = SKETCH_SHADER_CODE
+	scene_sketch_mat = ShaderMaterial.new()
+	scene_sketch_mat.shader = sh_sc
+	scene_sketch_mat.set_shader_parameter("lantern_mode", 1.0)
+	scene_sketch_mat.set_shader_parameter("lantern_uv", Vector2(0.5, 0.5))
+	scene_sketch_mat.set_shader_parameter("lantern_radius_uv", 0.16)
+	scene_sketch_tex_rect.material = scene_sketch_mat
+	stage_overlay.add_child(scene_sketch_tex_rect)
+
+	crime_scene_canvas = CrimeSceneCanvas.new()
+	crime_scene_canvas.ui = self
+	crime_scene_canvas.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	stage_overlay.add_child(crime_scene_canvas)
+
+	var lbl_scene_hint := Label.new()
+	lbl_scene_hint.text = "Mueve el farol para buscar\nPulsa sobre lo que veas"
+	lbl_scene_hint.set_anchors_and_offsets_preset(Control.PRESET_TOP_RIGHT)
+	lbl_scene_hint.offset_left = -220
+	lbl_scene_hint.offset_right = -12
+	lbl_scene_hint.offset_top = 10
+	lbl_scene_hint.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+	lbl_scene_hint.add_theme_font_size_override("font_size", 11)
+	lbl_scene_hint.add_theme_color_override("font_color", COL_DIM)
+	stage_overlay.add_child(lbl_scene_hint)
+
+	lbl_scene_ground = Label.new()
+	lbl_scene_ground.text = "CLARO JUNTO AL ARROYO · CAMINO DEL NORTE ARRIBA"
+	lbl_scene_ground.set_anchors_and_offsets_preset(Control.PRESET_BOTTOM_LEFT)
+	lbl_scene_ground.offset_left = 12
+	lbl_scene_ground.offset_right = 460
+	lbl_scene_ground.offset_top = -26
+	lbl_scene_ground.offset_bottom = -8
+	lbl_scene_ground.add_theme_font_size_override("font_size", 11)
+	lbl_scene_ground.add_theme_color_override("font_color", COL_DIM)
+	stage_overlay.add_child(lbl_scene_ground)
+
+	# Derecha (.book): Pistas encontradas en el suelo + Testigos cercanos (Preguntar / Presionar)
+	var book_panel := PanelContainer.new()
+	book_panel.custom_minimum_size = Vector2(390, 0)
+	book_panel.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	book_panel.add_theme_stylebox_override("panel", _style_box(COL_PAPER, COL_PAPER_EDGE, 1, 0, 18, 14))
+	split.add_child(book_panel)
+
+	var book_vbox := VBoxContainer.new()
+	book_vbox.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	book_vbox.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	book_vbox.add_theme_constant_override("separation", 10)
+	book_panel.add_child(book_vbox)
+
+	var lbl_sc_title := Label.new()
+	lbl_sc_title.text = "Busca en la escena"
+	lbl_sc_title.add_theme_font_size_override("font_size", 18)
+	lbl_sc_title.add_theme_color_override("font_color", COL_PAPER_INK)
+	book_vbox.add_child(lbl_sc_title)
+
+	var lbl_sc_sub := Label.new()
+	lbl_sc_sub.text = "Las pistas solo se ven bajo la luz del farol. Buscar gasta tiempo."
+	lbl_sc_sub.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	lbl_sc_sub.add_theme_font_size_override("font_size", 12)
+	lbl_sc_sub.add_theme_color_override("font_color", Color("#6b6253"))
+	book_vbox.add_child(lbl_sc_sub)
+
+	var sc_scroll := ScrollContainer.new()
+	sc_scroll.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	sc_scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	book_vbox.add_child(sc_scroll)
+
+	var sc_content := VBoxContainer.new()
+	sc_content.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	sc_content.add_theme_constant_override("separation", 12)
+	sc_scroll.add_child(sc_content)
+
+	scene_finds_vbox = VBoxContainer.new()
+	scene_finds_vbox.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	scene_finds_vbox.add_theme_constant_override("separation", 8)
+	sc_content.add_child(scene_finds_vbox)
+
+	var wit_sep := HSeparator.new()
+	sc_content.add_child(wit_sep)
+
+	var lbl_wit_hdr := Label.new()
+	lbl_wit_hdr.text = "Testigos"
+	lbl_wit_hdr.add_theme_font_size_override("font_size", 16)
+	lbl_wit_hdr.add_theme_color_override("font_color", COL_PAPER_INK)
+	sc_content.add_child(lbl_wit_hdr)
+
+	scene_witnesses_vbox = VBoxContainer.new()
+	scene_witnesses_vbox.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	scene_witnesses_vbox.add_theme_constant_override("separation", 10)
+	sc_content.add_child(scene_witnesses_vbox)
+
+	return split
+
+
 func _add_legend_dot(parent: Node, col: Color, txt: String) -> void:
 	var hb := HBoxContainer.new()
 	hb.add_theme_constant_override("separation", 5)
@@ -937,6 +1207,7 @@ func open_for_corpse(corpse_node: Node2D, initial_mode: String = "body") -> void
 	else:
 		_render_notebook_zone()
 	_render_morgue_view()
+	_render_scene_view()
 	_render_strip_notes()
 	_update_header_meta()
 
@@ -981,6 +1252,8 @@ func switch_mode(mode_id: String) -> void:
 	view_board.visible = (mode_id == "board")
 	if mode_id == "morgue":
 		_render_morgue_view()
+	elif mode_id == "scene":
+		_render_scene_view()
 	_refresh_tab_styles()
 	_refresh_3d_topdown_sketch()
 	_update_header_meta()
@@ -1036,6 +1309,10 @@ func _refresh_3d_topdown_sketch() -> void:
 		body_sketch_tex_rect.texture = tex
 	if body_sketch_mat != null:
 		body_sketch_mat.set_shader_parameter("lantern_mode", 0.0)
+	if scene_sketch_tex_rect != null and tex != null:
+		scene_sketch_tex_rect.texture = tex
+	if scene_sketch_mat != null:
+		scene_sketch_mat.set_shader_parameter("lantern_mode", 1.0)
 
 
 func _player_has_magnifying_glass() -> bool:
@@ -1094,6 +1371,7 @@ func _build_case_from_corpse(corpse_node: Node2D) -> void:
 			lbl_corner_right.text = "TEMPERATURA AMBIENTE · FRÍO DE MADRUGADA"
 		zone_data = _get_default_forest_woman_zones(has_lupa)
 		_build_morgue_tests_for_corpse(corpse_node)
+		_build_scene_data_for_corpse(corpse_node)
 		return
 
 	var v_name: String = str(corpse_node.get("npc_name"))
@@ -1217,6 +1495,7 @@ func _build_case_from_corpse(corpse_node: Node2D) -> void:
 		}
 	}
 	_build_morgue_tests_for_corpse(corpse_node)
+	_build_scene_data_for_corpse(corpse_node)
 
 
 func _describe_zone_wounds(w_arr: Array, weapon_cause: String, fallback_txt: String) -> String:
@@ -2094,4 +2373,394 @@ func _render_morgue_view() -> void:
 			_render_morgue_view()
 		)
 		bench_body_vbox.add_child(note_btn)
+
+
+# ==============================================================================
+# Bloque D3 — Escena del crimen (farol + pistas reales de VillageForensics + testigos cercanos)
+# ==============================================================================
+func set_lantern_canvas_pos(bpos: Vector2, raw_px: Vector2 = Vector2.ZERO, canvas_sz: Vector2 = Vector2.ZERO) -> void:
+	var clamped := Vector2(clampf(bpos.x, 12.0, 508.0), clampf(bpos.y, 12.0, 548.0))
+	if crime_scene_canvas != null:
+		crime_scene_canvas.lantern_base_pos = clamped
+		crime_scene_canvas.queue_redraw()
+	if scene_sketch_mat != null:
+		var uv: Vector2
+		if canvas_sz.x > 1.0 and canvas_sz.y > 1.0:
+			uv = Vector2(clampf(raw_px.x / canvas_sz.x, 0.0, 1.0), clampf(raw_px.y / canvas_sz.y, 0.0, 1.0))
+		else:
+			uv = Vector2(clamped.x / 520.0, clamped.y / 560.0)
+		scene_sketch_mat.set_shader_parameter("lantern_uv", uv)
+
+
+func _build_scene_data_for_corpse(corpse_node: Node2D) -> void:
+	var is_scripted: bool = (corpse_node == null or not is_instance_valid(corpse_node) or corpse_node.has_meta("scripted_case_zones"))
+	if is_scripted:
+		if lbl_scene_ground != null:
+			lbl_scene_ground.text = "CLARO JUNTO AL ARROYO · CAMINO DEL NORTE ARRIBA"
+		scene_clues = [
+			{"x": 300.0, "y": 150.0, "r": 16.0, "draw_kind": "drag", "k": "Hojarasca", "t": "Dos surcos paralelos desde el camino hasta el cuerpo: la trajeron a rastras.", "m": 10},
+			{"x": 214.0, "y": 196.0, "r": 14.0, "draw_kind": "prints", "k": "Huellas", "t": "Huellas de botas pequeñas, de una sola persona. Pisada nerviosa, de alguien joven.", "m": 10},
+			{"x": 258.0, "y": 60.0, "r": 16.0, "draw_kind": "wheels", "k": "Camino", "t": "Marcas de rueda de carro que paró aquí de madrugada y se dio la vuelta.", "m": 10},
+			{"x": 330.0, "y": 300.0, "r": 12.0, "draw_kind": "herb", "k": "Junto al cuerpo", "t": "Una ramita seca de una hierba que no crece aquí. Huele igual que el pelo de la víctima.", "m": 5},
+			{"x": 250.0, "y": 400.0, "r": 18.0, "draw_kind": "circle", "k": "Bajo el cuerpo", "t": "Ni una gota de sangre en el suelo. No la mataron de un golpe, y quizá no aquí.", "m": 5},
+			{"x": 200.0, "y": 480.0, "r": 14.0, "draw_kind": "mud", "k": "Orilla del arroyo", "t": "Barro removido en la orilla, como si alguien se hubiera lavado las manos con prisa.", "m": 10}
+		]
+		if scene_witnesses.is_empty():
+			scene_witnesses = [
+				{
+					"name": "El leñador",
+					"npc_ref": null,
+					"ask_text": "«Oí un carro de madrugada, sin farol. Raro a esas horas.»",
+					"press_ok_text": "«Bajaba hacia los almacenes del sur antes de que cantara el gallo.»",
+					"press_bad_text": "«¡Ya te he dicho lo que sé! No me líes.»",
+					"can_press_succeed": false,
+					"log": []
+				},
+				{
+					"name": "La pastora",
+					"npc_ref": null,
+					"ask_text": "«Yo no vi nada… bueno, a un muchacho en el arroyo. Se fue corriendo.»",
+					"press_ok_text": "«Era joven, con una capa parda. Nunca lo había visto por el pueblo.»",
+					"press_bad_text": "«No me pregunte más, señor, tengo miedo.»",
+					"can_press_succeed": true,
+					"log": []
+				}
+			]
+		return
+
+	var v_name: String = str(corpse_node.get("npc_name"))
+	var d_pos: Vector2 = corpse_node.global_position
+	var raw_dpos = corpse_node.get("death_world_pos")
+	if raw_dpos is Vector2 and (raw_dpos as Vector2) != Vector2.ZERO:
+		d_pos = raw_dpos
+
+	var vm = get_tree().get_first_node_in_group("village_manager") if is_inside_tree() else null
+	var f_state: Dictionary = vm.VillageForensics.state(vm) if (vm != null and "VillageForensics" in vm) else {}
+	var is_moved: bool = (f_state.get("moved", {}) as Dictionary).has(v_name)
+	var is_poisoned: bool = (f_state.get("poisoned", {}) as Dictionary).has(v_name)
+	var planted_info: Dictionary = (f_state.get("planted", {}) as Dictionary).get(v_name, {})
+	var tampered_wit: Dictionary = (f_state.get("tampered", {}) as Dictionary).get(v_name, {})
+	var weapon_cause: String = str(corpse_node.get("last_hit_weapon_name"))
+
+	var has_blood_puddle := false
+	if vm != null and "blood_puddles" in vm:
+		for pud in vm.blood_puddles:
+			var ppos: Vector2 = pud.get("pos", Vector2.INF)
+			if ppos.distance_to(d_pos) <= 110.0:
+				has_blood_puddle = true
+				break
+
+	if lbl_scene_ground != null:
+		lbl_scene_ground.text = ("ESCENA DEL CRIMEN · %s (POSICIÓN (%.0f, %.0f))" % [v_name.to_upper(), d_pos.x, d_pos.y])
+
+	var drag_txt: String = "Dos surcos paralelos en la tierra hasta el cuerpo: mataron a %s en otro sitio y lo trajeron a rastras." % v_name if is_moved else "Tierra pisoteada en torno a donde cayó %s, sin surcos de arrastre largo." % v_name
+	var item_txt: String = "Una ramita seca y restos del forcejeo (%s) junto al costado." % (weapon_cause if weapon_cause != "" else "golpe")
+	if not planted_info.is_empty():
+		item_txt = "Un objeto personal de %s dejado muy a la vista sobre la tierra limpia: parece plantado a propósito." % str(planted_info.get("framed_name", "un vecino"))
+	elif is_poisoned:
+		item_txt = "Gotas secas de un brebaje verdoso y amargo derramadas junto a la mano."
+
+	var blood_txt: String = "Ni una gota de sangre en el suelo. No murió de una herida abierta aquí."
+	var blood_draw: String = "circle"
+	if has_blood_puddle:
+		blood_txt = "Un charco de sangre oscura empapa la tierra bajo el cuerpo: la herida mortal se produjo aquí mismo."
+		blood_draw = "blood"
+	elif not is_poisoned and not is_moved:
+		blood_txt = "Las piedras bajo el cuerpo huelen a lejía y tierra barrida: alguien fregó la sangre antes de que llegaran."
+
+	scene_clues = [
+		{"x": 300.0, "y": 150.0, "r": 16.0, "draw_kind": "drag", "k": "Rastro en el suelo", "t": drag_txt, "m": 10, "forensic_action": "track_drag" if is_moved else ""},
+		{"x": 214.0, "y": 196.0, "r": 14.0, "draw_kind": "prints", "k": "Huellas", "t": "Huellas profundas junto al cuerpo que se alejan con prisa hacia la calleja.", "m": 10},
+		{"x": 258.0, "y": 60.0, "r": 16.0, "draw_kind": "wheels", "k": "Camino de acceso", "t": "Marcas de espera tras el muro cercano antes de cometerse el crimen.", "m": 10},
+		{"x": 330.0, "y": 300.0, "r": 12.0, "draw_kind": "herb", "k": "Junto al cuerpo", "t": item_txt, "m": 5, "forensic_action": "debunk_planted" if not planted_info.is_empty() else ""},
+		{"x": 250.0, "y": 400.0, "r": 18.0, "draw_kind": blood_draw, "k": "Bajo el cuerpo", "t": blood_txt, "m": 5},
+		{"x": 200.0, "y": 480.0, "r": 14.0, "draw_kind": "mud", "k": "Alrededores", "t": "Barro removido junto al desagüe, como si alguien se hubiera limpiado las manos con prisa.", "m": 10}
+	]
+
+	# Construir lista de testigos reales cercanos
+	scene_witnesses.clear()
+	if vm != null and "village_npcs" in vm:
+		var candidates: Array = []
+		for n in vm.village_npcs:
+			if not is_instance_valid(n) or n == corpse_node or n.get("is_dead") == true:
+				continue
+			if int(n.get("trade_role")) == 22: # CHILD
+				continue
+			candidates.append(n)
+		candidates.sort_custom(func(a, b):
+			return a.global_position.distance_squared_to(d_pos) < b.global_position.distance_squared_to(d_pos)
+		)
+		var count_w: int = mini(2, candidates.size())
+		for wi in range(count_w):
+			var w_npc = candidates[wi]
+			var w_name: String = str(w_npc.get("npc_name"))
+			var w_role: String = str(w_npc.get("npc_role"))
+			var aff: int = int(w_npc.get("affinity"))
+			var pride_val: float = 0.0
+			var aggr_val: float = 0.0
+			if "TraitCatalog" in vm:
+				pride_val = float(vm.TraitCatalog.npc_tendency(w_npc, "pride"))
+				aggr_val = float(vm.TraitCatalog.npc_tendency(w_npc, "aggression"))
+			var can_press: bool = (aff >= 15) or ((pride_val + aggr_val) < 0.42 and aff >= -5)
+			var is_tampered_w: bool = (str(tampered_wit.get("witness_name", "")) == w_name)
+
+			var ask_str: String = "«Pasé cerca hace un rato y vi movimiento extraño junto a %s, pero estaba oscuro.»" % v_name
+			var press_ok: String = "«Está bien, lo diré: vi a alguien merodeando a %s poco antes y escapando hacia los callejones.»" % v_name
+			if is_tampered_w:
+				ask_str = "«Yo… no vi nada, déjeme tranquilo, no quiero problemas con nadie.»"
+				press_ok = "«¡Me amenazaron para que callara! Vi cómo discutían con %s antes del crimen.»" % v_name
+
+			scene_witnesses.append({
+				"name": "%s (%s)" % [w_name, w_role if w_role != "" else "Vecino"],
+				"npc_ref": w_npc,
+				"raw_name": w_name,
+				"ask_text": ask_str,
+				"press_ok_text": press_ok,
+				"press_bad_text": "«¡Ya te he dicho lo que sé! No me presiones más.»",
+				"can_press_succeed": can_press,
+				"log": []
+			})
+
+
+func crime_find_clue(idx: int) -> bool:
+	if idx < 0 or idx >= scene_clues.size():
+		return false
+	var c: Dictionary = scene_clues[idx]
+	var cpos := Vector2(float(c.get("x", 260.0)), float(c.get("y", 280.0)))
+	var lpos := crime_scene_canvas.lantern_base_pos if crime_scene_canvas != null else Vector2(260.0, 280.0)
+	if lpos.distance_to(cpos) > 82.0:
+		return false
+	if scene_clues_found.get(idx) != true:
+		scene_clues_found[idx] = true
+		_advance_investigation_minutes(int(c.get("m", 5)))
+		findings_count += 1
+		_apply_real_forensics_on_scene_clue(c)
+	if crime_scene_canvas != null:
+		crime_scene_canvas.queue_redraw()
+	_update_header_meta()
+	_render_scene_view()
+	return true
+
+
+func _apply_real_forensics_on_scene_clue(c: Dictionary) -> void:
+	if current_corpse == null or not is_instance_valid(current_corpse) or current_corpse.has_meta("scripted_case_zones"):
+		return
+	var f_act: String = str(c.get("forensic_action", ""))
+	if f_act == "":
+		return
+	var vm = get_tree().get_first_node_in_group("village_manager") if is_inside_tree() else null
+	if vm == null or not ("VillageForensics" in vm):
+		return
+	var v_name: String = str(current_corpse.get("npc_name"))
+	var st: Dictionary = vm.VillageForensics.state(vm)
+	if f_act == "track_drag" and (st.get("moved", {}) as Dictionary).has(v_name):
+		st["moved"][v_name]["tracked"] = true
+	elif f_act == "debunk_planted" and (st.get("planted", {}) as Dictionary).has(v_name):
+		st["planted"][v_name]["debunked"] = true
+
+
+func ask_scene_witness(w_idx: int) -> void:
+	if w_idx < 0 or w_idx >= scene_witnesses.size():
+		return
+	var w: Dictionary = scene_witnesses[w_idx]
+	var log_arr: Array = w.get("log", [])
+	if not log_arr.is_empty():
+		return
+	log_arr.append([str(w.get("ask_text", "")), ""])
+	w["log"] = log_arr
+	_advance_investigation_minutes(10)
+	_render_scene_view()
+
+
+func press_scene_witness(w_idx: int) -> void:
+	if w_idx < 0 or w_idx >= scene_witnesses.size():
+		return
+	var w: Dictionary = scene_witnesses[w_idx]
+	var log_arr: Array = w.get("log", [])
+	if log_arr.size() != 1:
+		return
+	var npc_ref = w.get("npc_ref", null)
+	var ok: bool = (w.get("can_press_succeed") == true)
+	if npc_ref != null and is_instance_valid(npc_ref):
+		var aff: int = int(npc_ref.get("affinity"))
+		var vm = get_tree().get_first_node_in_group("village_manager") if is_inside_tree() else null
+		var pride_v: float = float(vm.TraitCatalog.npc_tendency(npc_ref, "pride")) if (vm != null and "TraitCatalog" in vm) else 0.0
+		var aggr_v: float = float(vm.TraitCatalog.npc_tendency(npc_ref, "aggression")) if (vm != null and "TraitCatalog" in vm) else 0.0
+		ok = (aff >= 15) or ((pride_v + aggr_v) < 0.42 and aff >= -5)
+		if not ok and npc_ref.has_method("modify_affinity"):
+			npc_ref.call("modify_affinity", -4)
+		elif ok and is_instance_valid(current_corpse) and vm != null and "VillageForensics" in vm:
+			var st: Dictionary = vm.VillageForensics.state(vm)
+			var vn: String = str(current_corpse.get("npc_name"))
+			if (st.get("tampered", {}) as Dictionary).has(vn):
+				var tm: Dictionary = st["tampered"][vn]
+				if str(tm.get("witness_name", "")) == str(w.get("raw_name", "")):
+					tm["reassured"] = true
+
+	if ok:
+		log_arr.append([str(w.get("press_ok_text", "")), "ok"])
+		findings_count += 1
+	else:
+		log_arr.append([str(w.get("press_bad_text", "")), "bad"])
+	w["log"] = log_arr
+	_advance_investigation_minutes(10)
+	_update_header_meta()
+	_render_scene_view()
+
+
+func _render_scene_view() -> void:
+	if scene_finds_vbox == null or scene_witnesses_vbox == null:
+		return
+	if scene_clues.is_empty():
+		_build_scene_data_for_corpse(current_corpse)
+
+	for c in scene_finds_vbox.get_children():
+		c.queue_free()
+	for c in scene_witnesses_vbox.get_children():
+		c.queue_free()
+
+	# 1. Pistas encontradas bajo el farol
+	if scene_clues_found.is_empty():
+		var empty_l := Label.new()
+		empty_l.text = "Aún no has encontrado nada."
+		empty_l.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		empty_l.add_theme_font_size_override("font_size", 13)
+		empty_l.add_theme_color_override("font_color", Color("#7b6f5a"))
+		scene_finds_vbox.add_child(empty_l)
+	else:
+		for idx in range(scene_clues.size()):
+			if scene_clues_found.get(idx) != true:
+				continue
+			var cl: Dictionary = scene_clues[idx]
+			var key_c: String = "c_%d" % idx
+			var card := PanelContainer.new()
+			var st_c := _style_box(Color("#f3ecdc"), COL_PAPER_EDGE, 1, 0, 10, 8)
+			st_c.border_width_left = 3
+			st_c.border_color = COL_LAMP
+			card.add_theme_stylebox_override("panel", st_c)
+			scene_finds_vbox.add_child(card)
+
+			var vb := VBoxContainer.new()
+			vb.add_theme_constant_override("separation", 4)
+			card.add_child(vb)
+
+			var kl := Label.new()
+			kl.text = str(cl.get("k", "Pista")).to_upper()
+			kl.add_theme_font_size_override("font_size", 11)
+			kl.add_theme_color_override("font_color", Color("#7b6f5a"))
+			vb.add_child(kl)
+
+			var tl := Label.new()
+			tl.text = str(cl.get("t", ""))
+			tl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+			tl.add_theme_font_size_override("font_size", 13)
+			tl.add_theme_color_override("font_color", COL_PAPER_INK)
+			vb.add_child(tl)
+
+			var already_n: bool = _has_note_with_key(key_c)
+			var nbtn := Button.new()
+			nbtn.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
+			nbtn.focus_mode = Control.FOCUS_NONE
+			nbtn.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
+			nbtn.text = "✓ En el cuaderno" if already_n else "📌 Anotar en el cuaderno"
+			nbtn.disabled = already_n
+			nbtn.add_theme_font_size_override("font_size", 11)
+			nbtn.add_theme_color_override("font_color", COL_GREEN_OK if already_n else Color("#f3ecdc"))
+			var bg_n := Color("#dfd4bc") if already_n else COL_PAPER_INK
+			nbtn.add_theme_stylebox_override("normal", _style_box(bg_n, COL_PAPER_INK, 1, 0, 9, 4))
+			nbtn.add_theme_stylebox_override("disabled", _style_box(Color("#dfd4bc"), COL_GREEN_OK, 1, 0, 9, 4))
+			var cap_k: String = str(cl.get("k", "Escena"))
+			var cap_t: String = str(cl.get("t", ""))
+			var cap_key: String = key_c
+			nbtn.pressed.connect(func():
+				add_notebook_note("Escena · " + cap_k, cap_t, "Escena: " + cap_k, cap_key)
+				_render_scene_view()
+			)
+			vb.add_child(nbtn)
+
+	# 2. Testigos cercanos (Preguntar / Presionar)
+	for wi in range(scene_witnesses.size()):
+		var w: Dictionary = scene_witnesses[wi]
+		var w_box := VBoxContainer.new()
+		w_box.add_theme_constant_override("separation", 5)
+		scene_witnesses_vbox.add_child(w_box)
+
+		var w_lbl := Label.new()
+		w_lbl.text = str(w.get("name", "Testigo"))
+		w_lbl.add_theme_font_size_override("font_size", 13)
+		w_lbl.add_theme_color_override("font_color", COL_PAPER_INK)
+		w_box.add_child(w_lbl)
+
+		var log_arr: Array = w.get("log", [])
+		for l_entry in log_arr:
+			var ql := Label.new()
+			ql.text = str(l_entry[0])
+			ql.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+			ql.add_theme_font_size_override("font_size", 13)
+			var is_bad: bool = (str(l_entry[1]) == "bad")
+			ql.add_theme_color_override("font_color", Color("#8a2f2a") if is_bad else COL_PAPER_INK)
+			w_box.add_child(ql)
+
+		var acts_hb := HFlowContainer.new()
+		acts_hb.add_theme_constant_override("h_separation", 6)
+		acts_hb.add_theme_constant_override("v_separation", 6)
+		w_box.add_child(acts_hb)
+
+		var st_len: int = log_arr.size()
+		var cap_wi: int = wi
+		if st_len == 0:
+			var ask_b := Button.new()
+			ask_b.text = "Preguntar  [10 min]"
+			ask_b.focus_mode = Control.FOCUS_NONE
+			ask_b.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
+			ask_b.add_theme_font_size_override("font_size", 12)
+			ask_b.add_theme_color_override("font_color", COL_PAPER)
+			ask_b.add_theme_stylebox_override("normal", _style_box(COL_PAPER_INK, COL_PAPER_INK, 1, 0, 10, 5))
+			ask_b.pressed.connect(func(): ask_scene_witness(cap_wi))
+			acts_hb.add_child(ask_b)
+		elif st_len == 1:
+			var press_b := Button.new()
+			press_b.text = "Presionar  [puede cerrarse]"
+			press_b.focus_mode = Control.FOCUS_NONE
+			press_b.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
+			press_b.add_theme_font_size_override("font_size", 12)
+			press_b.add_theme_color_override("font_color", COL_PAPER)
+			press_b.add_theme_stylebox_override("normal", _style_box(COL_PAPER_INK, COL_PAPER_INK, 1, 0, 10, 5))
+			press_b.pressed.connect(func(): press_scene_witness(cap_wi))
+			acts_hb.add_child(press_b)
+
+			var key_w1: String = "w_%d" % wi
+			var pinned_w1: bool = _has_note_with_key(key_w1)
+			var nb1 := Button.new()
+			nb1.text = "✓ En el cuaderno" if pinned_w1 else "📌 Anotar"
+			nb1.disabled = pinned_w1
+			nb1.focus_mode = Control.FOCUS_NONE
+			nb1.add_theme_font_size_override("font_size", 11)
+			nb1.add_theme_color_override("font_color", COL_GREEN_OK if pinned_w1 else COL_PAPER_INK)
+			nb1.add_theme_stylebox_override("normal", _style_box(Color(0, 0, 0, 0), COL_PAPER_INK, 1, 0, 9, 4))
+			var cap_wn1: String = str(w.get("name", "Testigo"))
+			var cap_wt1: String = str(w.get("ask_text", ""))
+			nb1.pressed.connect(func():
+				add_notebook_note("Testigo · " + cap_wn1, cap_wt1, "Testigo: " + cap_wn1, key_w1)
+				_render_scene_view()
+			)
+			acts_hb.add_child(nb1)
+		elif st_len >= 2 and str(log_arr[1][1]) != "bad":
+			var key_w2: String = "w2_%d" % wi
+			var pinned_w2: bool = _has_note_with_key(key_w2)
+			var nb2 := Button.new()
+			nb2.text = "✓ En el cuaderno" if pinned_w2 else "📌 Anotar confesión"
+			nb2.disabled = pinned_w2
+			nb2.focus_mode = Control.FOCUS_NONE
+			nb2.add_theme_font_size_override("font_size", 11)
+			nb2.add_theme_color_override("font_color", COL_GREEN_OK if pinned_w2 else COL_PAPER_INK)
+			nb2.add_theme_stylebox_override("normal", _style_box(Color(0, 0, 0, 0), COL_PAPER_INK, 1, 0, 9, 4))
+			var cap_wn2: String = str(w.get("name", "Testigo"))
+			var cap_wt2: String = str(log_arr[1][0])
+			nb2.pressed.connect(func():
+				add_notebook_note("Testigo · " + cap_wn2, cap_wt2, "Testigo: " + cap_wn2, key_w2)
+				_render_scene_view()
+			)
+			acts_hb.add_child(nb2)
+
 

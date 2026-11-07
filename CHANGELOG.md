@@ -3,6 +3,11 @@
 Cambios del juego, del más nuevo al más antiguo. Añade una entrada al cerrar cada bloque, en lenguaje sencillo.
 El detalle técnico está en `docs/HANDOFF.md` (sección 7) y el historial completo en `git log`. Lo anterior a B0.1 está en `AUDIT_LOG.md` y `SESSION_CONTEXT_LOG.md`.
 
+## 2026-11-07 — Escena del crimen bajo el farol (herramientas del detective, paso 3)
+- **Buscar a oscuras con tu farol:** en la pestaña «Escena del crimen» el lugar del hallazgo queda a oscuras y solo ves lo que alumbra el círculo de tu farol al mover el ratón, junto a la silueta de donde yacía el cuerpo.
+- **Pistas reales en el suelo:** bajo la luz del farol aparecen las señales reales de lo ocurrido (surcos si arrastraron el cadáver desde otro sitio, charcos de sangre o piedra fregada con lejía, huellas de huida, barro removido u objetos plantados para incriminar a otro vecino).
+- **Testigos cercanos (preguntar o presionar):** en la libreta derecha puedes interrogar a quienes andaban cerca; si los presionas para que suelten más, pueden confiar en ti y contarte lo que callaban o cerrarse en banda y enfadarse según su carácter y cómo te lleves con ellos.
+
 ## 2026-11-07 — Autopsia en la morgue (herramientas del detective, paso 2)
 - **Mesa de autopsias con el Dr. Valen:** cuando el cuerpo ya está en la morgue y el médico forense está disponible (o entrando desde la camilla del hospital), puedes hacer las 4 pruebas internas paso a paso: sangre, cuello, estómago y piel y rigidez.
 - **Muestras que se pueden estropear o quedar dudosas:** la sangre solo da para 2 tubos de muestra (equivocarse de reactivo gasta un tubo y al segundo fallo se pierde; sacarla del brazo en vez del corazón deja un resultado dudoso), cortar el cuello deprisa rompe el hueso que buscabas y tirar el contenido del estómago impide que el alquimista lo analice.
