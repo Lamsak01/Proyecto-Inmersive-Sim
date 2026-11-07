@@ -6,7 +6,8 @@
 
 ## ORDEN ACORDADO CON EL USUARIO (2026-11-07) — manda sobre el orden de abajo
 
-1. **Arreglos rápidos:** **(revisión de Claude a D1–D5)** el fondo del examen y de la escena es un «ruido» de bordes
+1. **Arreglos rápidos:** **LO PRIMERO: el examen de muertos que no son de un caso** debe salir de sus heridas reales
+   (ver `FALLOS_VISIBLES.md`, el carnicero matado con sigilo salió con muñecas atadas y cáñamo). **(revisión de Claude a D1–D5)** el fondo del examen y de la escena es un «ruido» de bordes
    ilegible y muestra suelo de interior/edificio, no el claro del arroyo: hacer un esquema limpio y sencillo del sitio
    real (pocas líneas, como el boceto); en el tablero, que los hilos no tapen el texto (pasar por las chinchetas y
    colocar las fichas sin cruzar); el informe decía 5 pestañas y retrato/barra de deterioro que no se ven: corregir el

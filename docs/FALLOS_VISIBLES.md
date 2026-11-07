@@ -56,5 +56,12 @@
   no funcionan o es imposible encontrarlas. Comprobar en partida que abren y que hay gente; hacer la trampilla visible
   para quien sepa buscar (rumores, un vecino que te lo cuente) y, con la taberna nueva, poner el club en su sótano.
 
+- [ ] **El examen de un cuerpo que no es de un caso inventa pistas** (2026-11-07): el usuario mató con sigilo al
+  carnicero Garrick en el bosque y el examen dijo «dos marcas rojas en las muñecas, como si lo hubieran atado»,
+  «fibra de cáñamo encerado», «barro del vestido» (es hombre), «huele a ceniza, no al lodo del arroyo» y una marca en el
+  cuello: textos copiados del caso de la mujer del bosque. **Los muertos que no son de un caso deben describir lo que
+  pasó de verdad** (heridas reales que guarda el juego: zona, arma, por la espalda, caída, hora, sitio, clima). Sin
+  marcas que no existieron; textos según sea hombre o mujer.
+
 ## Arreglados
 - [x] ✅ (2026-11-07) Fachada de la trattoria «Il Corvo» en 3D: parece de tablas oscuras en vez de estuco/ladrillo claro (`WorldStage3D.gd`: cambiada la textura de muros de `building_restaurant` a `town_textures/wall_brick_sand_center.png` con `uv1_scale = Vector3(2.4, 0.72, 2.4)`, tono claro de estuco/ladrillo cálido `Color(1.0, 0.95, 0.84)`, iluminación cálida de rebote `0.58` en la fachada sur y dintel con el mismo estuco en vez de `rf_planks.png`).
