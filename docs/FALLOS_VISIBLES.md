@@ -51,5 +51,10 @@
 - [ ] **Tablón de encargos feo y no se lee** (2026-11-07): 3 papeles lisos en una tabla. El usuario quiere leer los encargos desde fuera (texto pequeño en cada papel, uno por encargo real) aunque para aceptarlos haya que abrir el menú.
 - [ ] **Rancho casi vacío** (2026-11-07): solo 1 alpaca y 1 pollo. Hay modelos de vaca, toro, caballo, burro, alpaca… Llenarlo con un rebaño creíble (que se crie y venda, no de adorno).
 
+- [ ] **Las peleas clandestinas no aparecen en la partida** (2026-11-07): el usuario no las ha visto nunca. En teoría
+  existen (club en un sótano, trampilla en el patio trasero de la taberna, noches de día par de 23:00 a 3:00), pero o
+  no funcionan o es imposible encontrarlas. Comprobar en partida que abren y que hay gente; hacer la trampilla visible
+  para quien sepa buscar (rumores, un vecino que te lo cuente) y, con la taberna nueva, poner el club en su sótano.
+
 ## Arreglados
 - [x] ✅ (2026-11-07) Fachada de la trattoria «Il Corvo» en 3D: parece de tablas oscuras en vez de estuco/ladrillo claro (`WorldStage3D.gd`: cambiada la textura de muros de `building_restaurant` a `town_textures/wall_brick_sand_center.png` con `uv1_scale = Vector3(2.4, 0.72, 2.4)`, tono claro de estuco/ladrillo cálido `Color(1.0, 0.95, 0.84)`, iluminación cálida de rebote `0.58` en la fachada sur y dintel con el mismo estuco en vez de `rf_planks.png`).

@@ -48,6 +48,8 @@ sin sentido. **Orden (los que pisa el detective primero):**
    - **El tabernero detrás del mostrador** atendiendo.
    - **Al menos un camarero** trabajando: recoge los pedidos en las mesas y lleva los platos de la cocina a la mesa
      (oficio nuevo al final de `TradeRole`, se ocupa como cualquier vacante; recorridos físicos, nada de teletransporte).
+   - **Sótano con el club de peleas clandestinas** (hoy el usuario no lo encuentra nunca: ver `FALLOS_VISIBLES.md`):
+     comprobar en partida que abre y tiene gente, y que se pueda descubrir por rumores.
    - Arreglar lo que se ve mal: la «mesa de billar» es un tablero con un rectángulo verde encima y patas de cama.
    **Después de la taberna, antes de la comisaría — cosas que el usuario vio (2026-11-07):**
    - **Ropa y caras variadas para los vecinos:** usar todos los modelos y texturas de `assests/curated_3d/characters/`
