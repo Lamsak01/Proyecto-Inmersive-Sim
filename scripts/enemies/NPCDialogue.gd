@@ -22,6 +22,7 @@ const VillageUnderworld = preload("res://scripts/systems/VillageUnderworld.gd")
 const VillageFame = preload("res://scripts/systems/VillageFame.gd")
 const VillageCulture = preload("res://scripts/systems/VillageCulture.gd")
 const VillageFamilia = preload("res://scripts/systems/VillageFamilia.gd")
+const VillageJustice = preload("res://scripts/systems/VillageJustice.gd")
 const TraitDiscovery = preload("res://scripts/systems/TraitDiscovery.gd")
 const TraitCatalog = preload("res://scripts/data/TraitCatalog.gd")
 
@@ -295,6 +296,7 @@ static func _add_neighbor_opinions(npc: VillageNPC, diag: Dictionary, ch_arr: Ar
 		VillageFame.add_dialogue_choices(vm_p, npc, diag, ch_arr) # Fama y Maestros Artesanos
 		VillageCulture.add_dialogue_choices(vm_p, npc, diag, ch_arr) # PJ.2: Red eléctrica lógica
 		VillageFamilia.add_dialogue_choices(vm_p, npc, diag, ch_arr) # R2: pista del cocinero sobre el reservado
+		VillageJustice.add_dialogue_choices(vm_p, npc, diag, ch_arr) # B2: calabozo, fianza y fuga entre rejas
 	if npc.affinity < 0:
 		var hint_q: String = ""
 		var qm_h = npc.get_node_or_null("/root/QuestManager")
@@ -894,6 +896,10 @@ static func on_dialogue_action(npc: VillageNPC, action_id: String) -> void:
 	if action_id.begins_with("familia_"):
 		if vm != null:
 			VillageFamilia.on_player_action(vm, npc, action_id, inv)
+		return
+	if action_id == "jail_escape_npc" or action_id.begins_with("jail_pay_bail:"):
+		if vm != null:
+			VillageJustice.on_player_action(vm, npc, action_id, inv)
 		return
 	if action_id.begins_with("fame_"):
 		if vm != null:

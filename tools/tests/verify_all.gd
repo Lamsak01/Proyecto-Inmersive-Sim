@@ -6668,7 +6668,10 @@ func _initialize() -> void:
 	var r4_boss_aff_pre_rep: int = r2_boss.affinity
 	assert(r2_fam.on_player_action(vm, r2_sheriff, "familia_report_sheriff", p70_inv), "R4.11: Player reports La Familia to the Sheriff with evidence")
 	assert(int(p70_inv.gold) == r4_inv_before_rep + r2_fam.REPORT_REWARD and int(vm.VillageTown.state(vm)["treasury"]) == 200 - r2_fam.REPORT_REWARD, "R4.12: Sheriff reward is strictly zero-sum from municipal treasury")
-	assert((r2_fam.state(vm)["bribed_guards"] as Dictionary).is_empty() and (r2_fam.state(vm)["protected_shops"] as Dictionary).is_empty() and bool(r2_fam.state(vm)["reported_by_player"]) and r2_boss.affinity < r4_boss_aff_pre_rep, "R4.13: Reporting dismantles bribes and protection and angers the boss")
+	assert((r2_fam.state(vm)["bribed_guards"] as Dictionary).is_empty() and (r2_fam.state(vm)["protected_shops"] as Dictionary).is_empty() and bool(r2_fam.state(vm)["reported_by_player"]) and r2_boss.affinity < r4_boss_aff_pre_rep and vm.VillageJustice.is_npc_jailed(vm, r2_boss), "R4.13: Reporting dismantles bribes and protection, angers the boss and sends the boss to jail")
+	vm.VillageJustice.inmates(vm).clear()
+	if vm.has_method("set_jail_cell_gate_locked"):
+		vm.set_jail_cell_gate_locked(false)
 	p70_pl.global_position = r4_pl_pos0
 	p70_inv.gold = r4_inv_g0
 	vm.VillageTown.state(vm)["treasury"] = r4_tr0
@@ -6699,5 +6702,68 @@ func _initialize() -> void:
 	else:
 		vm.trade_npcs[r1_rt] = r2_prev_cook
 	print("Block R2 (La Familia: Organic Founding, Recruitment & Refusal Rumours, Night Back-Room Meetings, Guard Abort, Save/Load) OK")
+
+	# ---------------------------------------------------------
+	# Block B2: Calabozo de verdad (vecinos detenidos en la celda, horas de condena, fianza a las arcas y fuga con ganzúas)
+	# ---------------------------------------------------------
+	var b2_vj = vm.VillageJustice
+	var b2_nj = vm.VillageNightJobs
+	var b2_culprit: VillageNPC = r2_rec1
+	var b2_guard: VillageNPC = r2_guard
+	var b2_sheriff: VillageNPC = r2_sheriff
+	var b2_pos0: Vector2 = b2_culprit.global_position
+	var b2_aff0: int = b2_culprit.affinity
+	var b2_tr0: int = int(vm.VillageTown.state(vm).get("treasury", 0))
+	var b2_inv_g0: int = int(p70_inv.gold)
+	var b2_wl0: int = int(vm.wanted_level)
+	var b2_bounty0: int = int(vm.bounty_gold)
+	b2_vj.inmates(vm).clear()
+	# 1. Pillar a un vecino en un encargo nocturno con un guardia lo arresta y lo encamina a la celda
+	b2_culprit.global_position = Vector2(760, 220)
+	var b2_fake_job: Dictionary = {"id": 999, "type": "sabotage", "agent_key": b2_culprit.get_person_key(), "agent_name": b2_culprit.npc_name, "target_pos": Vector2(760, 220), "status": "going", "paid_by_player": false}
+	b2_nj.caught(vm, b2_fake_job, b2_guard, 0.0)
+	assert(b2_vj.is_npc_jailed(vm, b2_culprit), "B2.1: Guard catching an NPC on a night job arrests them")
+	assert("calabozo" in b2_culprit.get_activity_description(), "B2.2: Arrested NPC activity description shows jail status")
+	# 2. Al llegar a la celda queda encerrado tras la reja y el diálogo muestra opciones de visita/fuga
+	b2_culprit.global_position = b2_vj.CELL_POS
+	assert(b2_vj.process_npc_jail_step(vm, b2_culprit, 0.1), "B2.3: Jail step takes control of the inmate's routine")
+	assert(str(b2_vj.get_inmate_record(vm, b2_culprit).get("status", "")) == "jailed", "B2.4: Reaching the cell transitions inmate to jailed status")
+	var b2_diag_inmate: Dictionary = b2_culprit._build_dialogue()
+	assert(b2_diag_inmate.has("jail_talk"), "B2.5: Talking to an inmate through the bars injects jail_talk dialogue node")
+	# 3. Las horas descuentan condena y al llegar a 0 sale libre
+	b2_vj.get_inmate_record(vm, b2_culprit)["hours_left"] = 1
+	b2_vj.on_hour(vm)
+	assert(not b2_vj.is_npc_jailed(vm, b2_culprit), "B2.6: Inmate is released automatically when hours_left reaches 0")
+	# 4. Pagar su fianza al comisario o guardia suma el oro a las arcas municipales (suma cero) y lo libera
+	b2_vj.arrest_npc(vm, b2_culprit, b2_sheriff, "robo nocturno", 24, 30)
+	b2_culprit.global_position = b2_vj.CELL_POS
+	b2_vj.process_npc_jail_step(vm, b2_culprit, 0.1)
+	var b2_diag_sheriff: Dictionary = b2_sheriff._build_dialogue()
+	assert(b2_diag_sheriff.has("jail_bail_menu"), "B2.7: Sheriff dialogue offers jail_bail_menu while there are inmates")
+	p70_inv.gold = 100
+	vm.VillageTown.state(vm)["treasury"] = 50
+	assert(b2_vj.on_player_action(vm, b2_sheriff, "jail_pay_bail:" + b2_culprit.get_person_key(), p70_inv), "B2.8: Player can pay an inmate's bail to the sheriff")
+	assert(not b2_vj.is_npc_jailed(vm, b2_culprit) and int(p70_inv.gold) == 70 and int(vm.VillageTown.state(vm)["treasury"]) == 80 and b2_culprit.affinity > b2_aff0, "B2.9: Bail payment is strictly zero-sum into municipal treasury, frees the inmate and raises affinity")
+	# 5. Forzar la cerradura para sacarlo: si un guardia está cerca y mira, te buscan por complicidad; sin testigos sale agradecido
+	b2_vj.arrest_npc(vm, b2_culprit, b2_guard, "sabotaje nocturno", 24, 30)
+	b2_culprit.global_position = b2_vj.CELL_POS
+	b2_vj.process_npc_jail_step(vm, b2_culprit, 0.1)
+	p70_inv.add_item("lockpick", 2)
+	b2_guard.global_position = Vector2(200, 900)
+	b2_sheriff.global_position = Vector2(200, 900)
+	assert(b2_vj.help_npc_escape(vm, b2_culprit, p70_inv, 0.05), "B2.10: Player with lockpick can break an inmate out of the cell")
+	assert(not b2_vj.is_npc_jailed(vm, b2_culprit), "B2.11: Broken-out inmate is no longer jailed")
+	# Restaurar estado tras B2
+	p70_inv.remove_item("lockpick", int(p70_inv.items.get("lockpick", 0)))
+	b2_culprit.global_position = b2_pos0
+	b2_culprit.affinity = b2_aff0
+	vm.VillageTown.state(vm)["treasury"] = b2_tr0
+	p70_inv.gold = b2_inv_g0
+	vm.wanted_level = b2_wl0
+	vm.bounty_gold = b2_bounty0
+	b2_vj.inmates(vm).clear()
+	if vm.has_method("set_jail_cell_gate_locked"):
+		vm.set_jail_cell_gate_locked(false)
+	print("Block B2 (Real Jail Cell: Arrest on Caught Night Job, Walk/Lock in Cell, Bail to Treasury, Lockpick Escape, Hourly Release) OK")
 	print("ALL RIMWORLD MEDICAL, FOOTPRINTS, 3-PHASE CORPSE REPORT, MULTI-CORPSE FIX, RPG INTERROGATION, PUBLIC TRIAL, DYNAMIC RELATIONSHIPS, MISSING FAMILY SEARCH, SOCIAL GLOSSARY & UNCONSCIOUS REACTION TESTS PASSED!")
 	quit(0)

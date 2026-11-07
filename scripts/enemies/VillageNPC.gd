@@ -1944,6 +1944,8 @@ func _process_player_attention(delta: float) -> bool:
 ## Obligaciones por orden de prioridad: escolta, urgencias, emergencias vecinales, policía, investigación y ruta comercial.
 func _process_duties(delta: float) -> bool:
 	var vm_escort = _cached_vm
+	if vm_escort and vm_escort.VillageJustice.process_npc_jail_step(vm_escort, self, delta):
+		return true
 	if vm_escort and bool(vm_escort.get("player_being_escorted_to_jail")) and vm_escort.get("escorting_officer") == self:
 		var jail_target: Vector2 = vm_escort.get("_jail_cell_pos") if "_jail_cell_pos" in vm_escort else Vector2(886, 172)
 		_move_towards_point(jail_target, 64.0, delta)
@@ -4108,6 +4110,12 @@ func _get_social_target_pos() -> Vector2:
 func get_activity_description() -> String:
 	if is_downed: return "🩸 Agonizando (%ds)" % maxi(1, int(ceil(bleedout_timer)))
 	if sedated_timer > 0.0: return "💤 Sedado (%ds)" % maxi(1, int(ceil(sedated_timer)))
+	var vm_j = _get_vm()
+	if vm_j != null and vm_j.VillageJustice.is_npc_jailed(vm_j, self):
+		var rec_j: Dictionary = vm_j.VillageJustice.get_inmate_record(vm_j, self)
+		if str(rec_j.get("status", "")) == "escorting":
+			return "🚔⛓️ Llevado detenido al calabozo por %s" % str(rec_j.get("reason", "un delito"))
+		return "🔒⛓️ En el calabozo por %s (%dh)" % [str(rec_j.get("reason", "un delito")), maxi(1, int(rec_j.get("hours_left", 1)))]
 	if is_in_live_fight(): return "💢 Peleando con %s" % live_fight_partner.npc_name
 	if is_instance_valid(_reporting_corpse_target):
 		if _corpse_report_phase == 1:

@@ -2507,6 +2507,7 @@ func _on_hour_passed(_day: int, new_hour: int = 8) -> void:
 	VillageFamily.on_hour(self, actual_hour) # V9: lo que se aprende en la escuela
 	VillageConfession.on_hour(self, actual_hour) # P4: confesiones entre semana en la capilla
 	VillageUnderworld.on_hour(self, actual_hour) # P3 Parte B: caravana nocturna de contrabando
+	VillageJustice.on_hour(self) # B2: condenas por horas de los vecinos encerrados en el calabozo
 
 	# 07:00 AM -> Comprobar llegada semanal de los 2 Mercaderes Ambulantes (Día 3: Maese Casimir | Día 6: Valeria la Tratante)
 	if actual_hour == 7:
@@ -4999,6 +5000,7 @@ func load_economy_save_dict(data: Dictionary) -> void:
 						break
 	# Reconciliar primero los registros de NPCs vivos para que `trade_npcs` apunte a los titulares actuales antes de aplicar `stock_override`
 	reconcile_npc_registries_after_load()
+	VillageJustice.after_load(self)
 
 	var b_dict: Variant = data.get("businesses", {})
 	if typeof(b_dict) != TYPE_DICTIONARY:

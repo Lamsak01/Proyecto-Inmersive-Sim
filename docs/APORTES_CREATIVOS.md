@@ -335,3 +335,13 @@ o vino ya dado. Conviene confirmarlo.
 **Dónde:** `scripts/enemies/VillageNPC.gd` (`on_noise_heard`, `get_activity_description`).
 **Depende:** solo los textos flotantes; la lógica usa `_noise_react_mode` (`"guard_investigate"`, `"civilian_peek"`, `"civilian_flee"`).
 
+## Frases del calabozo, fianza y fuga entre barrotes (B2, provisionales)
+- Aviso de detención: «🚔⛓️ ¡Detenido! Al calabozo por …».
+- Charla entre rejas (`jail_talk`): ««Aquí me tienes, contando los barrotes por … (me quedan X h de encierro). Si tienes mano con la guardia o unas ganzúas a mano, no me vendría mal salir de esta humedad.»».
+- Fianza en comisaría (`jail_bail_menu` / `pay_npc_bail`): «⚖️ «Fianza pagada (+X Oro a las arcas). Queda en libertad.»» y agradecimiento del preso («🤝 «¡Te debo una! Pensaba que iba a dormir en ese jergón húmedo.»»).
+- Fuga forzando la reja (`help_npc_escape`): «🗝️⛓️ ¡Cerradura forzada! Te debo la vida, me largo antes de que miren.» y alerta si mira un guardia («🚨👮 «¡Alto! ¡Está abriendo la celda!»»).
+
+**Dónde:** `scripts/systems/VillageJustice.gd` (`arrest_npc`, `release_npc`, `pay_npc_bail`, `help_npc_escape`, `add_dialogue_choices`).
+**Depende:** solo los textos; la lógica usa `town_state["jail_inmates"]` y las acciones `"jail_pay_bail:"` y `"jail_escape_npc"`.
+
+

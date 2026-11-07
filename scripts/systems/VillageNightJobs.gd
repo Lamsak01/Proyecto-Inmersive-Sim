@@ -220,6 +220,8 @@ static func caught(vm, job: Dictionary, guard, force_confess_prob: float = -1.0)
 			vm.VillageFame.add_fame(vm, ag, -6, "La guardia lo pilló de noche junto a %s" % what)
 			if VillageUnderworld.is_fence(vm, ag):
 				VillageUnderworld.state(vm)["fence_busted_until"] = VillageUnderworld.today() + 3
+			var crime_label: String = {"sabotage": "sabotaje nocturno", "clan_sabotage": "sabotaje nocturno", "thief": "robo nocturno", "grave": "profanación de tumba"}.get(str(job.get("type", "")), "merodeo nocturno")
+			vm.VillageJustice.arrest_npc(vm, ag, guard, crime_label, 24, 30)
 	else:
 		if ag != null:
 			ag._spawn_floating_text("😳 «¡Nada, nada! Ya me iba...»", Color(1.0, 0.8, 0.6), -38.0)

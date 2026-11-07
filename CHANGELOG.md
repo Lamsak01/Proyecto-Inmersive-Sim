@@ -3,6 +3,10 @@
 Cambios del juego, del más nuevo al más antiguo. Añade una entrada al cerrar cada bloque, en lenguaje sencillo.
 El detalle técnico está en `docs/HANDOFF.md` (sección 7) y el historial completo en `git log`. Lo anterior a B0.1 está en `AUDIT_LOG.md` y `SESSION_CONTEXT_LOG.md`.
 
+## 2026-11-07 — Calabozo de verdad (vecinos entre rejas, fianza y fuga)
+- **Los vecinos detenidos van de verdad al calabozo:** cuando un guardia pilla a alguien en un trabajo nocturno (sabotaje, robo o profanación), separa una pelea grave, ejecuta una sentencia o detiene al jefe de «La Familia» tras tu denuncia, el detenido camina hasta la celda de la comisaría y queda encerrado tras los barrotes (sin acudir a su puesto ni a reuniones) hasta cumplir su condena de 1 o 2 días.
+- **Visitar al preso, pagar su fianza o abrirle la reja:** puedes hablar con él a través de los barrotes, pagar su fianza al comisario o a un guardia (el oro entra en las arcas municipales y el preso sale agradecido) o forzar la cerradura con ganzúas o llave para sacarlo a escondidas, arriesgándote a que la guardia te busque por complicidad si te ven.
+
 ## 2026-11-07 — Ruido y testigos en combate (cierra C7)
 - **Los golpes fuertes, gritos de dolor y disparos se oyen alrededor:** el ruido viaja por la misma planta (amortiguado por los muros) y hace reaccionar a quienes están despiertos cerca.
 - **Guardias que acuden y vecinos que huyen o se asoman:** los guardias y el comisario van a mirar qué pasa e intervienen si pillan la pelea; los vecinos pacíficos se alejan asustados o se asoman a una distancia prudente si son curiosos o valientes.

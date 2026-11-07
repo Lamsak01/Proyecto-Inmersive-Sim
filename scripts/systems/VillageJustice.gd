@@ -641,12 +641,10 @@ static func update_royal_investigator_ai(vm: VillageManager, inv_npc: VillageNPC
 					inv_npc.trigger_action_animation(3.5)
 					var chosen_name: String = scapegoat_pl.npc_name
 					var best_sc: int = int(suspects.get(sc_key_pl, {}).get("score", 50))
-					scapegoat_pl._spawn_floating_text("⛓️💔 ¡Era inocente...!", Color.ORANGE_RED, -42.0)
-					scapegoat_pl.last_hit_by_player = false
-					scapegoat_pl.last_hit_weapon_name = "Ejecutado en Juicio Público por el Inquisidor Real Alistair (Chivo Expiatorio)"
-					scapegoat_pl._confirm_true_death()
-					inv_npc._spawn_floating_text("⚖️🗡️ ¡Sentencia real ejecutada en la Plaza contra %s! Caso cerrado." % chosen_name, Color.GOLD, -44.0)
-					vm._hint_player("⚖️👑 ¡EJECUCIÓN EN LA PLAZA CENTRAL! El Inquisidor Real Alistair ejecutó públicamente a %s (%d%% sospecha) y dio por cerrado el expediente real." % [chosen_name, clampi(best_sc, 35, 95)])
+					scapegoat_pl._spawn_floating_text("⛓️💔 «¡Juro que soy inocente...!»", Color.ORANGE_RED, -42.0)
+					arrest_npc(vm, scapegoat_pl, inv_npc, "condena en el Juicio Público", 48, 60)
+					inv_npc._spawn_floating_text("⚖️⛓️ «¡Sentencia real dictada en la Plaza: %s cumplirá condena en el calabozo!»" % chosen_name, Color.GOLD, -44.0)
+					vm._hint_player("⚖️👑 ¡SENTENCIA EN LA PLAZA CENTRAL! El Inquisidor Real Alistair condenó a %s (%d%% sospecha) a cumplir pena en el calabozo de la comisaría." % [chosen_name, clampi(best_sc, 35, 95)])
 					vm.active_royal_investigation["stage"] = "DEPARTING"
 					vm.active_royal_investigation["stage_timer"] = 0.0
 		"DEPARTING":
@@ -743,9 +741,7 @@ static func update_sheriff_investigator_ai(vm: VillageManager, sheriff: VillageN
 				return true
 			sheriff.velocity = Vector2.ZERO
 			arr_npc.velocity = Vector2.ZERO
-			arr_npc.global_position = cell_dest
-			arr_npc.bed_position = cell_dest
-			arr_npc.sedated_timer = maxf(arr_npc.sedated_timer, 90.0)
+			arrest_npc(vm, arr_npc, sheriff, "condena del Comisario Vane", 48, 50)
 			sheriff._spawn_floating_text("🚓🔒 %s encerrado en la Celda Policial. Caso cerrado." % arr_npc.npc_name, Color.AQUA, -42.0)
 			vm._hint_player("🚓🔒 El Comisario Vane encerró físicamente a %s en la Celda Policial tras concluir su investigación." % arr_npc.npc_name)
 			vm.active_sheriff_investigation["active"] = false
@@ -1644,3 +1640,313 @@ static func get_royal_investigation_detailed_suspects_text(vm: VillageManager) -
 			note += " · Móvil: " + str(s.get("motive_note", ""))
 		lines.append("• #%d %s — %d%% sospecha | %s | [%s] %s" % [i + 1, s_name, sc, dist_tag, iv_tag, note])
 	return "\n".join(lines)
+
+# ==============================================================================
+# BLOQUE B2: CALABOZO DE VERDAD (Vecinos detenidos en la celda de la comisaría)
+# ==============================================================================
+const CELL_POS: Vector2 = Vector2(886.0, 172.0)
+const CELL_RECT: Rect2 = Rect2(864.0, 156.0, 44.0, 32.0)
+const CELL_GATE_POS: Vector2 = Vector2(902.0, 152.0)
+const CELL_OUTSIDE_POS: Vector2 = Vector2(910.0, 148.0)
+
+static func _now_total_hours() -> int:
+	if WorldClock == null:
+		return 12
+	return int(WorldClock.current_day) * 24 + int(WorldClock.current_hour)
+
+static func inmates(vm: VillageManager) -> Dictionary:
+	if vm == null:
+		return {}
+	if not (vm.town_state.get("jail_inmates", null) is Dictionary):
+		vm.town_state["jail_inmates"] = {}
+	return vm.town_state["jail_inmates"]
+
+static func is_npc_jailed(vm: VillageManager, npc: VillageNPC) -> bool:
+	if vm == null or npc == null or not is_instance_valid(npc):
+		return false
+	return inmates(vm).has(npc.get_person_key())
+
+static func get_inmate_record(vm: VillageManager, npc: VillageNPC) -> Dictionary:
+	if not is_npc_jailed(vm, npc):
+		return {}
+	return inmates(vm).get(npc.get_person_key(), {})
+
+static func _pick_arresting_officer(vm: VillageManager, near_pos: Vector2) -> VillageNPC:
+	var best: VillageNPC = null
+	var best_d: float = 999999.0
+	if vm == null or not vm.is_inside_tree():
+		return null
+	for n in vm.get_tree().get_nodes_in_group("village_npcs"):
+		if n is VillageNPC:
+			var v: VillageNPC = n as VillageNPC
+			if v.trade_role in [VillageNPC.TradeRole.SHERIFF, VillageNPC.TradeRole.GUARD] and v.is_conscious():
+				var d: float = near_pos.distance_to(v.global_position)
+				if d < best_d:
+					best_d = d
+					best = v
+	return best
+
+static func arrest_npc(vm: VillageManager, npc: VillageNPC, officer: VillageNPC = null, reason: String = "delito", hours: int = 36, bail: int = 35) -> bool:
+	if vm == null or npc == null or not is_instance_valid(npc) or npc.is_dead:
+		return false
+	if officer == null or not is_instance_valid(officer):
+		officer = _pick_arresting_officer(vm, npc.global_position)
+	var key: String = npc.get_person_key()
+	npc.end_errand()
+	npc.end_live_fight()
+	npc._clear_combat_hostility()
+	npc.is_sleeping = false
+	npc.sedated_timer = 0.0
+	npc.elevation_level = 0
+	var already_at_cell: bool = npc.global_position.distance_to(CELL_POS) <= 28.0
+	inmates(vm)[key] = {
+		"key": key,
+		"name": npc.npc_name,
+		"reason": reason,
+		"officer_key": officer.get_person_key() if officer != null and is_instance_valid(officer) else "",
+		"status": "jailed" if already_at_cell else "escorting",
+		"hours_left": clampi(hours, 24, 48),
+		"bail_gold": maxi(15, bail),
+		"last_escape_fail_hour": -99,
+	}
+	if already_at_cell:
+		npc.global_position = CELL_POS
+		npc.velocity = Vector2.ZERO
+	vm.set_jail_cell_gate_locked(true)
+	if officer != null and is_instance_valid(officer):
+		officer._spawn_floating_text("🚓⛓️ «¡%s, quedas detenido por %s! Al calabozo.»" % [npc.npc_name, reason], Color(0.65, 0.85, 1.0), -42.0)
+	npc._spawn_floating_text("⛓️😤 «¡Malditos barrotes...!»", Color.ORANGE_RED, -38.0)
+	vm.VillageChronicle.add(vm, "npc_arrested", "%s fue llevado al calabozo por %s (%dh de condena)" % [npc.npc_name, reason, clampi(hours, 24, 48)], true)
+	return true
+
+static func process_npc_jail_step(vm: VillageManager, npc: VillageNPC, delta: float) -> bool:
+	if vm == null or npc == null or not is_instance_valid(npc) or npc.is_dead:
+		return false
+	var map: Dictionary = inmates(vm)
+	if map.is_empty():
+		return false
+	var k: String = npc.get_person_key()
+	if map.has(k):
+		var rec: Dictionary = map[k]
+		npc.is_sleeping = false
+		npc.elevation_level = 0
+		npc._stop_crafting_bar()
+		if str(rec.get("status", "escorting")) == "escorting":
+			if npc.global_position.distance_to(CELL_POS) > 22.0:
+				npc._move_towards_point(CELL_POS, 66.0, delta)
+			else:
+				rec["status"] = "jailed"
+				npc.global_position = CELL_POS
+				npc.velocity = Vector2.ZERO
+				vm.set_jail_cell_gate_locked(true)
+				npc._spawn_floating_text("🔒⛓️ Encerrado en el calabozo (%dh)" % int(rec.get("hours_left", 24)), Color(0.75, 0.85, 1.0), -40.0)
+		else:
+			if not CELL_RECT.has_point(npc.global_position):
+				npc.global_position = CELL_POS
+			npc.velocity = Vector2.ZERO
+			vm.set_jail_cell_gate_locked(true)
+		npc._finish_frame_movement(delta)
+		return true
+	if npc.trade_role in [VillageNPC.TradeRole.SHERIFF, VillageNPC.TradeRole.GUARD, VillageNPC.TradeRole.ROYAL_INVESTIGATOR]:
+		for inm_k in map.keys():
+			var rec_o: Dictionary = map[inm_k]
+			if str(rec_o.get("status", "")) == "escorting" and str(rec_o.get("officer_key", "")) == k:
+				if npc.global_position.distance_to(CELL_POS) > 26.0:
+					npc._move_towards_point(CELL_POS, 68.0, delta)
+					npc._finish_frame_movement(delta)
+					return true
+				else:
+					var pris = vm._get_npcs_by_person_key().get(str(inm_k), null)
+					if pris != null and is_instance_valid(pris) and pris.global_position.distance_to(CELL_POS) <= 42.0:
+						rec_o["status"] = "jailed"
+						pris.global_position = CELL_POS
+						pris.velocity = Vector2.ZERO
+						vm.set_jail_cell_gate_locked(true)
+	return false
+
+static func release_npc(vm: VillageManager, key: String, mode: String = "served") -> bool:
+	if vm == null:
+		return false
+	var map: Dictionary = inmates(vm)
+	if not map.has(key):
+		return false
+	var rec: Dictionary = map[key]
+	map.erase(key)
+	if map.is_empty() and not vm.player_in_jail:
+		vm.set_jail_cell_gate_locked(false)
+	var npc: VillageNPC = vm._get_npcs_by_person_key().get(key, null)
+	if npc != null and is_instance_valid(npc) and not npc.is_dead:
+		if CELL_RECT.has_point(npc.global_position) or npc.global_position.distance_to(CELL_POS) <= 32.0:
+			npc.global_position = CELL_OUTSIDE_POS
+		npc.velocity = Vector2.ZERO
+		match mode:
+			"bailed":
+				npc._spawn_floating_text("⚖️🔓 «¡Gracias por pagar mi fianza! No lo olvidaré.»", Color.GOLD, -42.0)
+			"escaped":
+				npc._spawn_floating_text("🗝️🏃 «¡Rápido, antes de que nos vean!»", Color.SPRING_GREEN, -42.0)
+			_:
+				npc._spawn_floating_text("🔓 «Cumplida la condena... vuelvo a mi vida.»", Color.AQUA, -40.0)
+				vm.VillageChronicle.add(vm, "npc_released", "%s salió del calabozo tras cumplir su condena" % str(rec.get("name", npc.npc_name)), false)
+	return true
+
+static func on_hour(vm: VillageManager) -> void:
+	if vm == null:
+		return
+	var map: Dictionary = inmates(vm)
+	if map.is_empty():
+		return
+	var to_release: Array[String] = []
+	for k in map.keys():
+		var rec: Dictionary = map[k]
+		var left: int = int(rec.get("hours_left", 24)) - 1
+		rec["hours_left"] = left
+		if left <= 0:
+			to_release.append(str(k))
+	for k_rel in to_release:
+		release_npc(vm, k_rel, "served")
+
+static func after_load(vm: VillageManager) -> void:
+	if vm == null:
+		return
+	var map: Dictionary = inmates(vm)
+	if not map.is_empty():
+		vm.set_jail_cell_gate_locked(true)
+		var by_key: Dictionary = vm._get_npcs_by_person_key()
+		for k in map.keys():
+			var rec: Dictionary = map[k]
+			var n: VillageNPC = by_key.get(str(k), null)
+			if n != null and is_instance_valid(n) and not n.is_dead and str(rec.get("status", "")) == "jailed":
+				n.global_position = CELL_POS
+
+static func pay_npc_bail(vm: VillageManager, officer: VillageNPC, key: String, inv) -> bool:
+	if vm == null or inv == null:
+		return false
+	var map: Dictionary = inmates(vm)
+	if not map.has(key):
+		return false
+	var rec: Dictionary = map[key]
+	var cost: int = maxi(15, int(rec.get("bail_gold", 35)))
+	if int(inv.gold) < cost:
+		if officer != null and is_instance_valid(officer):
+			officer._spawn_floating_text("❌ «La fianza de %s son %d monedas de oro.»" % [str(rec.get("name", key)), cost], Color.ORANGE_RED, -42.0)
+		return false
+	inv.add_gold(-cost)
+	vm.town_state["treasury"] = int(vm.town_state.get("treasury", 0)) + cost # Regla 1: el dinero va a las arcas
+	var pris: VillageNPC = vm._get_npcs_by_person_key().get(key, null)
+	release_npc(vm, key, "bailed")
+	if pris != null and is_instance_valid(pris) and not pris.is_dead:
+		pris.modify_affinity(22)
+		pris.add_thought("El forastero pagó mi fianza en la comisaría (+18)", 18.0)
+	if officer != null and is_instance_valid(officer):
+		officer._spawn_floating_text("⚖️🔓 «Fianza abonada a las arcas (+%d Oro). %s queda en libertad.»" % [cost, str(rec.get("name", key))], Color.GOLD, -44.0)
+	vm.VillageChronicle.add(vm, "npc_bail_paid", "Pagaste la fianza de %s (%d de oro a las arcas municipales)" % [str(rec.get("name", key)), cost], true)
+	return true
+
+static func has_lockpick_or_key(player: Node, inv) -> bool:
+	if player != null and player.has_method("has_master_lockpick") and bool(player.call("has_master_lockpick")):
+		return true
+	if inv != null and inv.has_method("has_item"):
+		for it_id in ["master_lockpick", "lockpick", "iron_key", "skeleton_key", "jail_key"]:
+			if bool(inv.call("has_item", it_id, 1)):
+				return true
+	return false
+
+static func help_npc_escape(vm: VillageManager, npc: VillageNPC, inv = null, force_roll: float = -1.0) -> String:
+	if vm == null or npc == null or not is_npc_jailed(vm, npc):
+		return ""
+	var pl: Node2D = vm.get_tree().get_first_node_in_group("player") as Node2D if vm.is_inside_tree() else null
+	if pl != null and pl.global_position.distance_to(npc.global_position) > 95.0:
+		npc._spawn_floating_text("⛓️ «Acércate a los barrotes si vas a abrir la cerradura.»", Color.ORANGE, -38.0)
+		return ""
+	if not has_lockpick_or_key(pl, inv):
+		npc._spawn_floating_text("🗝️ «Necesitas una ganzúa o una llave para abrir esta reja.»", Color.ORANGE_RED, -40.0)
+		return "no_tool"
+	var rec: Dictionary = inmates(vm)[npc.get_person_key()]
+	var cur_h: int = _now_total_hours()
+	if int(rec.get("last_escape_fail_hour", -99)) == cur_h and force_roll < 0.0:
+		npc._spawn_floating_text("⏳ «La cerradura sigue caliente; espera un poco antes de volver a intentarlo.»", Color.GOLD, -40.0)
+		return "cooldown"
+	# Comprobar riesgo de testigos en la misma planta con línea de visión
+	var in_stealth: bool = pl != null and pl.has_method("is_stealthing") and bool(pl.call("is_stealthing"))
+	var detect_rad: float = 60.0 if in_stealth else 125.0
+	var witness: VillageNPC = null
+	if vm.is_inside_tree():
+		for n_w in vm.get_tree().get_nodes_in_group("village_npcs"):
+			if n_w is VillageNPC and n_w != npc:
+				var vw: VillageNPC = n_w as VillageNPC
+				if not vw.is_conscious() or vw.elevation_level != 0 or vw.witness_silenced_player:
+					continue
+				if is_npc_jailed(vm, vw):
+					continue
+				if vw.global_position.distance_to(CELL_GATE_POS) <= detect_rad and (not vm.has_method("has_line_of_sight") or bool(vm.call("has_line_of_sight", vw.global_position, CELL_GATE_POS))):
+					witness = vw
+					break
+	if witness != null:
+		vm.wanted_level = clampi(int(vm.wanted_level) + 1, 1, 5)
+		vm.bounty_gold += 30
+		witness._spawn_floating_text("🚨⛓️ «¡Alto! ¡Está forzando el calabozo para sacar a %s!»" % npc.npc_name, Color.ORANGE_RED, -44.0)
+	var roll: float = force_roll if force_roll >= 0.0 else randf()
+	if roll > 0.78:
+		rec["last_escape_fail_hour"] = cur_h
+		if AudioManager:
+			AudioManager.emit_noise(CELL_GATE_POS, 145.0, 0, "heavy_hit")
+		npc._spawn_floating_text("🔒❌ «¡Chist, se ha atascado el pestillo! Espera un poco.»", Color.ORANGE, -40.0)
+		return "failed"
+	release_npc(vm, npc.get_person_key(), "escaped")
+	npc.modify_affinity(28)
+	npc.add_thought("El forastero me ayudó a escapar del calabozo (+22)", 22.0)
+	vm.VillageChronicle.add(vm, "npc_jailbreak", "Ayudaste a %s a escapar del calabozo con ganzúa/llave" % npc.npc_name, witness != null)
+	return "escaped_seen" if witness != null else "escaped"
+
+static func add_dialogue_choices(vm: VillageManager, npc: VillageNPC, diag: Dictionary, ch_arr: Array) -> void:
+	if vm == null or npc == null:
+		return
+	if is_npc_jailed(vm, npc):
+		var rec: Dictionary = get_inmate_record(vm, npc)
+		var r_txt: String = str(rec.get("reason", "delito"))
+		var h_left: int = maxi(1, int(rec.get("hours_left", 24)))
+		var b_gold: int = maxi(15, int(rec.get("bail_gold", 35)))
+		if diag.has("start") and diag["start"] is Dictionary:
+			diag["start"]["text"] = "⛓️ «Me tienen encerrado en el calabozo por %s (%dh restantes de condena)... Puedes pagar mi fianza de %d de oro en la comisaría o abrir la reja cuando nadie mire.»" % [r_txt, h_left, b_gold]
+		var pos_j: int = maxi(0, ch_arr.size() - 1)
+		ch_arr.insert(pos_j, {
+			"label": "🗝️ Ayudarle a escapar del calabozo (Ganzúa / Llave)",
+			"next": "jail_escape_confirm",
+		})
+		diag["jail_escape_confirm"] = {
+			"text": "«Si tienes una ganzúa o una llave maestra y vigilas que no mire ningún guardia, puedes abrir el cerrojo de los barrotes ahora mismo.»",
+			"choices": [
+				{"label": "🗝️ [Confirmar] Forzar el cerrojo y liberar a %s" % npc.npc_name, "action": "jail_escape_npc", "next": "END"},
+				{"label": "Ahora no es seguro. [Volver]", "next": "start"},
+			],
+		}
+	if npc.trade_role in [VillageNPC.TradeRole.SHERIFF, VillageNPC.TradeRole.GUARD]:
+		var map: Dictionary = inmates(vm)
+		for k in map.keys():
+			var rec_b: Dictionary = map[k]
+			var nm: String = str(rec_b.get("name", k))
+			var cost: int = maxi(15, int(rec_b.get("bail_gold", 35)))
+			var r_b: String = str(rec_b.get("reason", "delito"))
+			var node_id: String = "jail_bail_confirm_" + str(k)
+			var pos_b: int = maxi(0, ch_arr.size() - 1)
+			ch_arr.insert(pos_b, {
+				"label": "⚖️ Pagar la fianza de %s (%d Oro)" % [nm, cost],
+				"next": node_id,
+			})
+			diag[node_id] = {
+				"text": "«%s cumple condena en el calabozo por %s (%dh restantes). Si abonas %d monedas de oro de fianza para las arcas municipales, le abriré la celda ahora mismo.»" % [nm, r_b, maxi(1, int(rec_b.get("hours_left", 24))), cost],
+				"choices": [
+					{"label": "🪙 [Confirmar] Pagar %d Oro de fianza por %s" % [cost, nm], "action": "jail_pay_bail:" + str(k), "next": "END"},
+					{"label": "Lo pensaré. [Volver]", "next": "start"},
+				],
+			}
+
+static func on_player_action(vm: VillageManager, npc: VillageNPC, action_str: String, inv = null) -> bool:
+	if vm == null or npc == null:
+		return false
+	if action_str == "jail_escape_npc":
+		return help_npc_escape(vm, npc, inv) in ["escaped", "escaped_seen"]
+	if action_str.begins_with("jail_pay_bail:"):
+		var k: String = action_str.trim_prefix("jail_pay_bail:")
+		return pay_npc_bail(vm, npc, k, inv)
+	return false

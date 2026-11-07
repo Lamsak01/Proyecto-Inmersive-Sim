@@ -152,6 +152,8 @@ static func _finish_live_fight(vm: VillageManager, fight: Dictionary, a: Village
 		var stopper: String = guard.npc_name if guard != null else "El forastero"
 		if guard != null:
 			guard._spawn_floating_text("👮 «¡Basta ya, separaos!»", Color(0.65, 0.82, 1.0), -38.0)
+			if a.get_relationship_with_npc(b.get_person_key()) <= -50 or b.get_relationship_with_npc(a.get_person_key()) <= -50:
+				vm.VillageJustice.arrest_npc(vm, a, guard, "pelea grave en la calle", 24, 25)
 		a.add_thought("%s me separó de %s (-4)" % [stopper, b.npc_name], -4.0)
 		b.add_thought("%s me separó de %s (-4)" % [stopper, a.npc_name], -4.0)
 		summary = "%s separó a %s y %s antes de que llegaran a más" % [stopper, a.npc_name, b.npc_name]

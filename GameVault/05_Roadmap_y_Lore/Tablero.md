@@ -33,7 +33,6 @@ kanban-plugin: board
 
 ## 🧹 Pulido
 
-- [ ] Delatar a la Familia con consecuencias: detener al jefe, juicio y que los miembros reaccionen (ahora solo te pagan y se acaban los negocios)
 - [ ] Personajes 3D con más estilo, tipo Signalis ([[Assets de pago]])
 - [ ] Decidir si la niebla nocturna también quita vista a los vecinos (ahora solo es visual)
 - [ ] Quitar la etiqueta «dormida» de las tendencias ya conectadas (`TraitCatalog.gd`)
@@ -51,6 +50,7 @@ kanban-plugin: board
 
 ## ✅ Hecho
 
+- [x] Calabozo de verdad (`B2`): los vecinos pillados en delitos nocturnos, peleas graves, veredictos o al delatar al jefe de «La Familia» van encerrados a la celda de la comisaría; se puede hablar con ellos entre rejas, pagar su fianza a las arcas o ayudarlos a escapar con ganzúas ([[Justicia y Comisaría]]) (2026-11-07)
 - [x] El jugador descubre «La Familia» e interviene (`R4`, espiando reuniones nocturnas en el reservado, avisando a la víctima, delatando al Comisario o trabajando para el jefe) y **Don Vittorio Corvo** lidera «La Familia» desde el Día 0 ([[Trattoria Il Corvo]]) (2026-11-06)
 - [x] Negocios discretos de «La Familia» (`R3`): cobro en persona de comisión de «tranquilidad» a comercios prósperos, préstamos del reservado y soborno a guardias poco honrados para que hagan la vista gorda de noche ([[Trattoria Il Corvo]]) (2026-11-06)
 - [x] «La Familia» (`R2`): nace sola de un vecino ambicioso, sin escrúpulos y persuasivo; recluta de 2 a 4 vecinos de uno en uno (con rechazos y rumores) y se reúne de noche en el reservado de la [[Trattoria Il Corvo]] si no hay guardias cerca (2026-11-06)

@@ -539,6 +539,9 @@ static func _can_attend(npc) -> bool:
 		return false
 	if npc.sick_level >= 2 or npc.is_in_live_fight() or npc.is_busy_with_player() or npc.rite_pos != Vector2.ZERO:
 		return false
+	var vm_a = npc._get_vm()
+	if vm_a != null and vm_a.VillageJustice.is_npc_jailed(vm_a, npc):
+		return false
 	return true
 
 ## Comprueba si hay un guardia cerca del restaurante/reservado o un desconocido pegado al reservado.
@@ -1334,6 +1337,14 @@ static func on_player_action(vm, npc, action_str: String, inv = null, force_roll
 			if boss != null and is_instance_valid(boss):
 				boss.modify_affinity(-25)
 				boss.add_thought("El forastero nos delató ante la comisaría (-15)", -15.0)
+				vm.VillageJustice.arrest_npc(vm, boss, npc, "liderar «La Familia»", 48, 60)
+			for mem in member_nodes(vm):
+				if mem == boss:
+					continue
+				mem.modify_affinity(-12)
+				mem.add_thought("Detuvieron a %s por el soplo a la comisaría (-10)" % b_name, -10.0)
+				if mem.errand_kind in ["familia_meet", "familia_errand"]:
+					mem.end_errand()
 			npc._spawn_floating_text("⚖️ «Buen trabajo. Se acabaron sus cobros por ahora (+%d Oro de recompensa).»" % reward, Color.GOLD, -44.0)
 			VillageChronicle.add(vm, "familia_reported", "Delataste ante %s los tratos del reservado de %s (+%d Oro)" % [npc.npc_name, b_name, reward], true)
 			return true
