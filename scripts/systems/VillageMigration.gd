@@ -19,7 +19,14 @@ const TraitCatalog = preload("res://scripts/data/TraitCatalog.gd")
 
 const POP_CAP: int = 100
 const TAVERN_GUEST_BEDS: Array = [Vector2(435, -252), Vector2(468, -252), Vector2(502, -252)]
-const TAVERN_DAY_SPOTS: Array = [Vector2(440, 44), Vector2(495, 44), Vector2(415, -105)]
+const TAVERN_DAY_SPOTS: Array = [
+	Vector2(440, 44), Vector2(495, 44), Vector2(415, -105),
+	Vector2(304, 262), Vector2(232, 236), Vector2(360, 250),
+	Vector2(-65, 166), Vector2(215, 44), Vector2(640, 44),
+	Vector2(780, 44), Vector2(672, -210), Vector2(330, -352),
+	Vector2(610, -352), Vector2(890, -352), Vector2(1015, 48),
+	Vector2(575, 225), Vector2(820, 225), Vector2(160, 175),
+]
 const ARRIVE_MIN_SCORE: float = 0.05
 const LEAVE_BELOW_SCORE: float = 0.2
 const TOWN_HOUSE_RENT: int = 2
@@ -132,9 +139,13 @@ static func move_into_house(vm, n, id: String = "") -> bool:
 		return false
 	var old_fam: String = str(n.family_id)
 	var lid: String = str(b["lot"])
+	var res_idx: int = (VillageLots.lot(vm, lid).get("residents", []) as Array).size()
 	VillageLots.add_resident(vm, lid, n.get_person_key())
 	n.bed_position = b["bed"]
 	n.home_table_pos = b["table"]
+	if is_unemployed(n):
+		var door_street: Vector2 = VillageLots.site_work_pos(lid)
+		n.work_position = door_street + Vector2(float((res_idx % 3) - 1) * 18.0 + float((absi(n.npc_name.hash()) % 9) - 4) * 2.0, float(res_idx % 2) * 8.0)
 	n.family_id = str(b["family_id"])
 	n.family_name = str(VillageLots.lot(vm, lid)["title"]).replace("🏠 ", "")
 	n.lodging = "house:" + lid
@@ -144,6 +155,7 @@ static func move_into_house(vm, n, id: String = "") -> bool:
 			kid_m.family_name = n.family_name
 			kid_m.home_table_pos = n.home_table_pos
 			kid_m.bed_position = n.bed_position + Vector2(16, 6)
+			kid_m.work_position = n.work_position + Vector2(12, 4)
 			kid_m.lodging = "family"
 	if n.is_vagrant_camper and vm.vagrant_camp_nodes.has(n.npc_name) and is_instance_valid(vm.vagrant_camp_nodes[n.npc_name]):
 		vm.vagrant_camp_nodes[n.npc_name].visible = false
@@ -261,8 +273,10 @@ static func _pick_kind(couple_ok: bool) -> Dictionary:
 
 static func _spawn_one(vm, kind: Dictionary, idx: int):
 	var tex: Texture2D = vm._load_tex("res://assests/world/village/villager_traveler.png")
+	var base_spot: Vector2 = TAVERN_DAY_SPOTS[idx % TAVERN_DAY_SPOTS.size()]
+	var jitter := Vector2(float(((idx * 7) % 11) - 5) * 4.5, float(((idx * 5) % 7) - 3) * 3.5)
 	var n = vm._spawn_generated_newcomer("NPC_Traveler_", VillageNPC.TradeRole.UNEMPLOYED, VillageNPC.TradeRole.UNEMPLOYED,
-		str(kind["label"]), tex, TAVERN_DAY_SPOTS[idx % TAVERN_DAY_SPOTS.size()], TAVERN_GUEST_BEDS[idx % TAVERN_GUEST_BEDS.size()],
+		str(kind["label"]), tex, base_spot + jitter, TAVERN_GUEST_BEDS[idx % TAVERN_GUEST_BEDS.size()],
 		{}, vm._tavern_social_pos, "none", "Huésped de Posada")
 	n.personal_gold = randi_range(int(kind["gold"].x), int(kind["gold"].y))
 	n.set_meta("arrived_day", int(WorldClock.current_day) if WorldClock else 1) # M19 «El forastero raro»
@@ -338,6 +352,42 @@ static func seed_start_population(vm, target: int = START_POPULATION) -> int:
 			break
 		added += got
 	vm.arrivals_today_count = 0
+	# Cubrir desde el Día 1 los oficios vacantes del pueblo (panadero, sastre, granjero, ganadero, cantero, leñador, arreglador, posadero, cocinero)
+	for role_key in vm.trade_configs.keys():
+		var holder = vm.trade_npcs.get(role_key)
+		if is_instance_valid(holder) and not holder.is_dead:
+			continue
+		var cfg: Dictionary = vm.trade_configs[role_key]
+		var biz: Dictionary = vm.shop_businesses.get(int(role_key), {})
+		if str(biz.get("owner_mode", "NPC")) == "SOLE_OWNER":
+			continue
+		var outsider = vm._pick_ambitious_successor(role_key, str(cfg.get("title", "Artesano")))
+		if outsider == null:
+			outsider = vm._pop_living_unemployed()
+		if outsider != null:
+			var inh_stock: Dictionary = (biz.get("stock_override", cfg.get("stock", {})) as Dictionary).duplicate()
+			outsider.promote_to_trade(role_key, str(cfg.get("title", "Artesano")), cfg.get("work_pos", Vector2(440, 44)), inh_stock, cfg.get("tex", null), cfg.get("bed1_pos", vm._tavern_bed_pos), cfg.get("table_pos", vm._tavern_social_pos), str(cfg.get("family_id", "none")), str(cfg.get("family_name", "Gremio")))
+			outsider.global_position = outsider.work_position
+			vm.trade_npcs[role_key] = outsider
+	prune_residents(vm)
+	assign_houses(vm)
+	# Contratar jornaleros desde la mañana del Día 1 (el reloj arranca a las 08:00, tras la hora 07:00 de contratación)
+	VillageWork.hire(vm)
+	# Colocar a cada recién llegado en su barrio, taller o puesto de jornalero en vez de apilarlos en la plaza
+	var spread_i: int = 0
+	for n in residents(vm):
+		if not n.has_meta("arrived_day"):
+			continue
+		if n.has_meta("day_job_pos"):
+			n.global_position = (n.get_meta("day_job_pos") as Vector2) + Vector2(float((spread_i % 3) - 1) * 10.0, float(spread_i % 2) * 8.0)
+		elif house_of(n) != "":
+			var angle: float = float(spread_i) * 1.37
+			n.global_position = n.work_position + Vector2.RIGHT.rotated(angle) * float(6 + (spread_i % 4) * 5)
+		else:
+			var spot_p: Vector2 = TAVERN_DAY_SPOTS[spread_i % TAVERN_DAY_SPOTS.size()]
+			n.work_position = spot_p + Vector2(float((spread_i % 5) - 2) * 9.0, float((spread_i % 3) - 1) * 7.0)
+			n.global_position = n.work_position
+		spread_i += 1
 	return added
 
 # ---------------------------------------------------------------- marchas

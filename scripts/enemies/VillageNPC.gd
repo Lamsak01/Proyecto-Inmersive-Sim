@@ -3446,10 +3446,16 @@ func _execute_dynamic_activity(delta: float) -> void:
 			_stop_crafting_bar()
 			_wander_timer -= delta
 			if _wander_timer <= 0.0:
-				_wander_timer = randf_range(2.2, 4.6)
-				var radius: float = 26.0 if (trade_role == TradeRole.UNEMPLOYED or trade_role == TradeRole.GUARD) else 8.0
-				_wander_offset = Vector2.ZERO if randf() < 0.55 else Vector2.RIGHT.rotated(randf() * TAU) * randf_range(3.0, radius)
-			var anchor: Vector2 = get_meta("day_job_pos") if has_meta("day_job_pos") else work_position # V5d: jornalero en el campo
+				var is_idle_stroller: bool = (trade_role == TradeRole.UNEMPLOYED and not has_meta("day_job_pos"))
+				_wander_timer = randf_range(7.0, 14.0) if is_idle_stroller else randf_range(2.2, 4.6)
+				var radius: float = 34.0 if (trade_role == TradeRole.UNEMPLOYED or trade_role == TradeRole.GUARD) else 8.0
+				var base_ang: float = float(absi(npc_name.hash()) % 360) * (TAU / 360.0) + randf_range(-1.2, 1.2)
+				_wander_offset = Vector2.RIGHT.rotated(base_ang) * randf_range(10.0, radius) if is_idle_stroller else (Vector2.ZERO if randf() < 0.55 else Vector2.RIGHT.rotated(randf() * TAU) * randf_range(3.0, radius))
+				if is_idle_stroller and randf() < 0.45:
+					set_meta("stroll_anchor", IDLE_STROLL_SPOTS[randi() % IDLE_STROLL_SPOTS.size()])
+				elif is_idle_stroller and has_meta("stroll_anchor") and randf() < 0.30:
+					remove_meta("stroll_anchor")
+			var anchor: Vector2 = get_meta("day_job_pos") if has_meta("day_job_pos") else (get_meta("stroll_anchor") if (trade_role == TradeRole.UNEMPLOYED and has_meta("stroll_anchor")) else work_position) # V5d: jornalero en el campo o paseo por el pueblo
 			var target_pos: Vector2 = anchor + _wander_offset
 			var vm = _get_vm()
 			if vm and vm.has_method("clamp_point_to_building_interior"):
@@ -3457,6 +3463,14 @@ func _execute_dynamic_activity(delta: float) -> void:
 			if vm and vm.has_method("clamp_point_outside_buildings"):
 				target_pos = vm.call("clamp_point_outside_buildings", anchor, target_pos)
 			_approach_or_stop(target_pos, 5.0, 44.0, delta)
+
+const IDLE_STROLL_SPOTS: Array[Vector2] = [
+	Vector2(304, 262), Vector2(232, 236), Vector2(360, 252), # Parque del Roble
+	Vector2(-65, 166), Vector2(-115, 92), # Mirador del Lago y Lavadero
+	Vector2(215, 44), Vector2(340, 44), Vector2(540, 44), Vector2(680, 44), Vector2(820, 44), Vector2(990, 44), # Calle Principal
+	Vector2(330, -352), Vector2(520, -352), Vector2(740, -352), Vector2(940, -352), # Calle Norte
+	Vector2(672, -210), Vector2(575, 225), Vector2(825, 225), # Barrio Residencial, Albergue y Capilla
+]
 
 const ARTISAN_RECIPES: Dictionary = {
 	TradeRole.BLACKSMITH: [{"output": "steel_ingot", "label": "Lingote Acero", "verb": "⚒️ Forjando", "input": "wood", "supplier": int(TradeRole.CARPENTER), "input_name": "Madera"}, {"output": "repair_kit", "label": "Kit Herrero", "verb": "⚒️ Templando", "input": "leather", "supplier": int(TradeRole.BUTCHER), "input_name": "Cuero"}, {"output": "steel_ingot", "label": "Lingote Acero", "verb": "⚒️ Fundiendo", "input": "stone", "supplier": int(TradeRole.QUARRYMAN), "input_name": "Piedra de horno"}],
