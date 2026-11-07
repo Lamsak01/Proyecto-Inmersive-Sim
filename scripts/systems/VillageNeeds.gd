@@ -264,6 +264,8 @@ static func tick(vm) -> void:
 				vm.VillageHousing.on_gathering_guest_arrived(vm, n) # P4: invitado llega a la mesa de la cena/fiesta/paz
 			"catering":
 				vm.VillageHousing.on_caterer_arrived(vm, n) # P4: posadera llega a cocinar a tu mesa
+			"familia_errand":
+				vm.VillageFamilia.on_errand_arrived(vm, n) # R3: recado discreto de La Familia (cobro, préstamo o soborno)
 			_:
 				vm.VillageCivic.on_errand_arrived(vm, n) # V5b: votar, el alcalde en el ayuntamiento
 	vm.VillageHousing.tick_gathering(vm) # P4: duración, charla y cierre de cenas, fiestas y cenas de paz

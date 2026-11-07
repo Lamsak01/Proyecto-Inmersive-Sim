@@ -3,6 +3,11 @@
 Cambios del juego, del más nuevo al más antiguo. Añade una entrada al cerrar cada bloque, en lenguaje sencillo.
 El detalle técnico está en `docs/HANDOFF.md` (sección 7) y el historial completo en `git log`. Lo anterior a B0.1 está en `AUDIT_LOG.md` y `SESSION_CONTEXT_LOG.md`.
 
+## 2026-11-06 — Los negocios discretos de «La Familia»
+- **Comisión de «tranquilidad» a los comercios que van bien:** tras sus reuniones nocturnas, un miembro va en persona durante el día a pedir una aportación a los comerciantes con dinero (si hay un guardia cerca, disimula y se marcha). Si el comerciante acepta, el oro sale de su bolsillo y se reparte entre el cobrador y el jefe; si se niega, no paga nada, se enfada y puede correr el rumor.
+- **Préstamos del reservado:** el jefe presta de su propio bolsillo a vecinos sin blanca; si al vencer el plazo no pueden devolverlo con intereses, quedan atrapados debiéndole un favor personal.
+- **Guardias untados:** si hay un guardia poco honrado y sin testigos cerca, «La Familia» puede comprarle el silencio unos días con dinero del jefe; mientras dura el soborno, ese guardia hace la vista gorda de noche y no les estropea las cenas en el reservado.
+
 ## 2026-11-06 — «La Familia» se reúne en el reservado
 - **Nace sola cuando se dan las condiciones:** un vecino ambicioso, sin escrúpulos y con don de gentes que haya ahorrado o arrastre deudas, envidias o agravios decide fundar «La Familia» por su cuenta (no existe al empezar la partida).
 - **Recluta de 2 a 4 vecinos de uno en uno** entre quienes le deben favores, le tienen afecto o miedo, o están desesperados sin blanca. Quien es honrado puede negarse: se queda con mal recuerdo y puede contarlo por el pueblo.

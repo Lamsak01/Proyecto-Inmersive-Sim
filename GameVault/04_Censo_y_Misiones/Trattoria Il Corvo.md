@@ -35,6 +35,7 @@ Ver [[Las 7 Reglas de las Auditorías]]
 - [[Economía de Oferta y Demanda]] (compra de trigo y carne).
 
 ## Notas de diseño
+- 2026-11-06 (Antigravity, R3): **Negocios discretos de «La Familia»** (`VillageFamilia.gd`): de las reuniones del reservado salen recados diurnos a pie (`familia_errand` a las 11:00 y 16:00): (1) cobrar comisión de «tranquilidad» (`12` de oro en suma cero repartidos entre cobrador y jefe) a comerciantes con dinero si no hay un guardia cerca, con enfriamiento y rumor si se niegan; (2) prestar `20` de oro del bolsillo del jefe a vecinos sin blanca (a devolver `26` a los 4 días, dejándolos en deuda `owes_to`); y (3) comprar por `15` de oro el silencio de algún guardia poco honrado durante 5 días para que haga la vista gorda de noche y no aborte las cenas en el reservado.
 - 2026-11-06 (Antigravity, R2): **«La Familia»** (`VillageFamilia.gd`) nace sola sin estar al empezar la partida cuando un vecino adulto ambicioso, sin escrúpulos y persuasivo acumula ahorros o frustración (deudas, envidia o rencor). Recluta de uno en uno entre 2 y 4 vecinos por deuda, afecto, miedo o desesperación; quien se niega guarda mal recuerdo y corre el rumor (`familia_rumor`). El jefe elige qué noche reunirse (22:00, 23:00 o 0:00) sin calendario fijo en torno a `BACKROOM_TABLE` dentro del reservado; si hay un guardia o un extraño cerca, abortan y lo dejan para otra noche. El cocinero deja caer una pista si le preguntan por el reservado. Todo persiste al guardar y cargar.
 - 2026-11-06 (R1b): los vecinos con dinero comen o cenan (13–22 h) en el comedor o la terraza y pagan al cocinero; el cocinero abre de 12 a 23 h y baja a la cámara fría antes de cada estofado. El puesto empieza vacante: en la sonda, el cocinero llegó el día 4.
 - 2026-11-06 (R1): edificio y oficio hechos. Fachada 3D aún parece de tablas oscuras.
@@ -43,5 +44,5 @@ Ver [[Las 7 Reglas de las Auditorías]]
 - [x] R1 Restaurante
 - [x] R1b Vida en el restaurante (cenas, cámara fría)
 - [x] R2 La Familia
-- [ ] R3 Negocios discretos
+- [x] R3 Negocios discretos
 - [ ] R4 El jugador se entera e interviene

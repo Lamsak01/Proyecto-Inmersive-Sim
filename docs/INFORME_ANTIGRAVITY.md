@@ -37,9 +37,17 @@ Se ha creado el módulo `scripts/systems/VillageFamilia.gd` (cargado con `const 
   - `/home/lamsaktp/Enciclopedia_LaPlacaDePetri.html` (sin `03_La_Secta/` ni `06_Diario/`, con `--sin-secta-ni-diario`).
   - `/home/lamsaktp/Enciclopedia_LaPlacaDePetri_Completa.html` (con todas las carpetas de `GameVault/`).
 
----
-
-## 2. Archivos tocados
+### C. Bloque R3 — Negocios discretos de «La Familia» (`scripts/systems/VillageFamilia.gd`)
+Se han añadido los tres negocios discretos de «La Familia», todos de suma cero, ejecutados a pie durante el día (`BUSINESS_HOURS = [11, 16]`, recado `"familia_errand"`), con posibilidad de fallo, enfriamiento y comprobación de testigos:
+1. **Cobro de «tranquilidad» a comerciantes prósperos (`can_target_merchant`, `protection_chance`, `resolve_protection`, `has_guard_witness_at`):**
+   - Si hay un guardia no sobornado a `<= 110 px`, el cobrador disimula y aborta (`"aborted_guard"`).
+   - Si el comerciante acepta (`"paid"`), `PROTECTION_FEE = 12` pasa en suma cero de `merchant.personal_gold` al cobrador (`6`) y al jefe (`6`).
+   - Si se niega (`"refused"`), entra en enfriamiento (`protection_cooldown`, 4 días), baja su relación y corre el chisme (`"familia_rumor"`).
+2. **Préstamos del reservado y cobro al vencer (`can_loan_to`, `give_loan`, `collect_loan`):**
+   - El jefe presta `LOAN_AMOUNT = 20` de su propio bolsillo a vecinos apurados (`personal_gold <= 10`, suma cero), fija `LOAN_REPAY = 26` a 4 días y marca `owes_to` hacia el jefe (conectando con el motivo `"deuda"` de reclutamiento).
+   - Al vencer, `collect_loan` transfiere los `26` en suma cero al jefe o deja el saldo pendiente si el vecino no llega.
+3. **Comprar el silencio de guardias poco honrados (`can_bribe_guard`, `bribe_guard_chance`, `try_bribe_guard`, `is_guard_bribed`):**
+   - Si el guardia acepta (`"bribed"`), `BRIBE_AMOUNT = 15` pasa en suma cero del bolsillo del jefe al guardia y durante 5 días (`bribed_guards`) ese guardia hace la vista gorda en `has_unwanted_witness_near(vm)` sin abortar las reuniones nocturnas del reservado; si rechaza (`"refused"`), entra en `bribe_cooldown` y suelta rumor.
 
 - `scripts/systems/VillageFamilia.gd` (nuevo)
 - `scripts/systems/VillageManager.gd` (`preload`, `GOSSIP_EVENT_TYPES`, `on_hour`, `daily`, `after_load`)

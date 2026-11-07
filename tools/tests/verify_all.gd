@@ -6425,7 +6425,7 @@ func _initialize() -> void:
 		if n_r2.is_hostile or n_r2.is_downed or n_r2.is_incapacitated():
 			continue
 		if int(n_r2.trade_role) in [int(n_r2.TradeRole.SHERIFF), int(n_r2.TradeRole.GUARD)]:
-			if r2_guard == null:
+			if r2_guard == null and int(n_r2.trade_role) == int(n_r2.TradeRole.GUARD):
 				r2_guard = n_r2
 			continue
 		if r2_fam._can_be_member(n_r2) and r2_cands.size() < 5:
@@ -6526,6 +6526,45 @@ func _initialize() -> void:
 			r2_band_found = true
 			break
 	assert(r2_band_found, "R2.17: Hidden band is restored after load")
+	# ==========================================================================
+	# Bloque R3: los negocios discretos de «La Familia» (comisión, préstamos y sobornos)
+	# ==========================================================================
+	# 1. Cobro de «tranquilidad»: aborta si hay un guardia cerca, puede fallar con espera/rumor, y si acepta es suma cero
+	r2_cook.personal_gold = 60
+	r2_cook.global_position = Vector2(600, 400)
+	r2_guard.global_position = Vector2(620, 400)
+	assert(r2_fam.resolve_protection(vm, r2_rec1, r2_cook, 0.01) == "aborted_guard" and r2_cook.personal_gold == 60, "R3.1: Collector does not demand protection with an unbribed guard watching")
+	r2_guard.global_position = Vector2(200, 900)
+	assert(r2_fam.resolve_protection(vm, r2_rec1, r2_cook, 0.99) == "refused" and r2_cook.personal_gold == 60 and not r2_fam.can_target_merchant(vm, r2_cook), "R3.2: Refusing protection leaves gold untouched and puts merchant on cooldown")
+	r2_fam.state(vm)["protection_cooldown"].clear()
+	var r3_boss_g0: int = r2_boss.personal_gold
+	var r3_rec1_g0: int = r2_rec1.personal_gold
+	r2_fam.state(vm)["pending_business"] = {"kind": "protection", "agent": r2_rec1.get_person_key(), "target": r2_cook.get_person_key(), "status": "planned"}
+	assert(r2_fam.dispatch_business(vm) and r2_rec1.errand_kind == "familia_errand", "R3.3: Member walks in person during the day to collect protection")
+	r2_rec1.end_errand()
+	r2_fam.state(vm)["pending_business"] = {}
+	assert(r2_fam.resolve_protection(vm, r2_rec1, r2_cook, 0.01) == "paid", "R3.4: Prosperous merchant pays protection fee")
+	assert(r2_cook.personal_gold == 60 - r2_fam.PROTECTION_FEE and (r2_boss.personal_gold - r3_boss_g0) + (r2_rec1.personal_gold - r3_rec1_g0) == r2_fam.PROTECTION_FEE, "R3.5: Protection payment is strictly zero-sum between merchant, collector and boss")
+	# 2. Préstamos del reservado y cobro al vencer (suma cero y vínculo de deuda)
+	r2_boss.personal_gold = 80
+	r2_honest.personal_gold = 3
+	assert(r2_fam.give_loan(vm, r2_rec1, r2_honest) and r2_boss.personal_gold == 80 - r2_fam.LOAN_AMOUNT and r2_honest.personal_gold == 3 + r2_fam.LOAN_AMOUNT, "R3.6: Back-room loan transfers gold zero-sum from boss to neighbour")
+	assert(r2_honest.has_meta("owes_to") and str(r2_honest.get_meta("owes_to")) == r2_boss.get_person_key(), "R3.7: Loan creates a personal debt to the boss")
+	r2_honest.personal_gold = 35
+	var r3_boss_g1: int = r2_boss.personal_gold
+	assert(r2_fam.collect_loan(vm, r2_rec1, r2_honest) == "repaid" and r2_honest.personal_gold == 35 - r2_fam.LOAN_REPAY and r2_boss.personal_gold == r3_boss_g1 + r2_fam.LOAN_REPAY and not r2_honest.has_meta("owes_to"), "R3.8: Collecting a due loan is zero-sum and clears the debt")
+	# 3. Comprar el silencio de un guardia poco honrado: suma cero y hace la vista gorda de noche en el reservado
+	r2_guard.person_profile.personality.clear()
+	r2_guard.person_profile.personality.append_array(["Codicioso", "Pragmático"])
+	r2_guard.global_position = Vector2(700, 400)
+	var r3_boss_g2: int = r2_boss.personal_gold
+	var r3_guard_g0: int = r2_guard.personal_gold
+	assert(r2_fam.can_bribe_guard(vm, r2_guard), "R3.9: Unscrupulous guard is eligible for a bribe")
+	assert(r2_fam.try_bribe_guard(vm, r2_rec1, r2_guard, 0.01) == "bribed" and r2_fam.is_guard_bribed(vm, r2_guard), "R3.10: Guard accepts the bribe")
+	assert(r2_boss.personal_gold == r3_boss_g2 - r2_fam.BRIBE_AMOUNT and r2_guard.personal_gold == r3_guard_g0 + r2_fam.BRIBE_AMOUNT, "R3.11: Guard bribe is strictly zero-sum")
+	r2_guard.global_position = r1_rs.BACKROOM_TABLE + Vector2(18, 0)
+	assert(r2_fam.has_unwanted_witness_near(vm) == null, "R3.12: Bribed guard looks the other way and does not abort the back-room meeting")
+	print("Block R3 (La Familia Discrete Businesses: Zero-Sum Protection, Back-Room Loans & Guard Bribes) OK")
 	# Restaurar estado previo al test
 	for sv_r2 in r2_saved_npcs:
 		var n_sv = sv_r2["npc"]

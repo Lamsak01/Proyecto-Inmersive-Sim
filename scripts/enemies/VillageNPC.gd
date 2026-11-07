@@ -4043,6 +4043,7 @@ func get_activity_description() -> String:
 					"player_shop_buy": return "🛍️ Comprando en el Bazar del Forastero" if at_e else "🚶🛍️ Yendo a comprar al Bazar del Forastero"
 					"fence_alley": return "🌙 Rondando de madrugada" if at_e else "🚶🌙 Paseando de madrugada"
 					"familia_meet": return "🍷 Cenando tarde en el reservado" if at_e else "🚶🌙 Paseando de noche"
+					"familia_errand": return "🗣️ Hablando en voz baja" if at_e else "🚶 Haciendo un recado por el pueblo"
 			if rite_kind in ["sect", "sect_lure"]:
 				var vm_sc = _get_vm()
 				var known_sc: bool = vm_sc != null and "sect_state" in vm_sc and (bool(vm_sc.sect_state.get("player_member", false)) or (vm_sc.sect_state.get("known", {}) as Dictionary).has(get_person_key()))

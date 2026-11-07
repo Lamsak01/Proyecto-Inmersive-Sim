@@ -38,6 +38,22 @@ const STRANGER_NEAR_PX: float = 75.0
 const SEAT_RADIUS_X: float = 14.0
 const SEAT_RADIUS_Y: float = 10.0
 
+## Bloque R3: constantes de los negocios discretos (comisión de tranquilidad, préstamos del reservado y soborno a guardias)
+const BUSINESS_HOURS: Array[int] = [11, 16]
+const PROTECTION_MIN_GOLD: int = 30
+const PROTECTION_FEE: int = 12
+const PROTECTION_COOLDOWN_DAYS: int = 4
+const LOAN_MIN_BOSS_GOLD: int = 55
+const LOAN_MAX_TARGET_GOLD: int = 10
+const LOAN_AMOUNT: int = 20
+const LOAN_REPAY: int = 26
+const LOAN_DURATION_DAYS: int = 4
+const BRIBE_MIN_BOSS_GOLD: int = 45
+const BRIBE_AMOUNT: int = 15
+const BRIBE_DURATION_DAYS: int = 5
+const BRIBE_COOLDOWN_DAYS: int = 5
+const WITNESS_GUARD_RADIUS: float = 110.0
+
 ## Frases provisionales del cocinero cuando le preguntas por el reservado (anotadas en docs/APORTES_CREATIVOS.md).
 const COOK_LINE_MEETING: String = "«Chist... baje la voz. Esta noche hay gente cenando a puerta cerrada en el reservado del fondo. Yo llevo las fuentes, dejo el vino y miro al suelo. En esta cocina el que no pregunta llega a viejo.»"
 const COOK_LINE_ACTIVE: String = "«¿La mesa del reservado? Hay clientes que prefieren cenar tarde con la puerta cerrada y sin que nadie apunte sus nombres. Pagan al contado, no arman ruido y yo no pregunto de qué hablan.»"
@@ -63,6 +79,13 @@ static func state(vm) -> Dictionary:
 		["postponed", false],
 		["meetings_held", 0],
 		["aborted_nights", 0],
+		["protected_shops", {}],
+		["protection_cooldown", {}],
+		["loans", {}],
+		["bribed_guards", {}],
+		["bribe_cooldown", {}],
+		["pending_business", {}],
+		["business_done", 0],
 	]:
 		if not st.has(pair[0]):
 			st[pair[0]] = pair[1]
@@ -444,6 +467,8 @@ static func has_unwanted_witness_near(vm):
 		if n.is_sleeping or n.is_incapacitated() or not n.is_conscious() or int(n.elevation_level) != 0:
 			continue
 		if int(n.trade_role) in [int(VillageNPC.TradeRole.GUARD), int(VillageNPC.TradeRole.SHERIFF), int(VillageNPC.TradeRole.ROYAL_INVESTIGATOR)]:
+			if is_guard_bribed(vm, n):
+				continue # R3: el guardia untado mira para otro lado
 			if n.global_position.distance_to(table) <= GUARD_NEAR_PX or rest_rect.has_point(n.global_position):
 				return n
 			continue
@@ -534,7 +559,333 @@ static func finish_meeting(vm) -> void:
 				in_room[j].modify_npc_relationship(in_room[i], 3, "Tratos discretos en el reservado")
 		var gap: int = 2 + (abs((str(st["boss"]) + "#" + str(st["meetings_held"])).hash()) % 3)
 		st["next_plan_night"] = today + gap
+		if (st.get("pending_business", {}) as Dictionary).is_empty():
+			plan_next_business(vm)
 		VillageChronicle.add(vm, "familia_meet", "La Familia de %s se reunió a puerta cerrada en el reservado de la trattoria" % str(st.get("boss_name", "")), false)
+
+# ------------------------------------------------------------------ 3b. Negocios discretos (Bloque R3)
+static func is_guard_bribed(vm, guard) -> bool:
+	if vm == null or guard == null:
+		return false
+	var bg: Dictionary = state(vm).get("bribed_guards", {})
+	return int(bg.get(guard.get_person_key(), -99)) >= VillageNeeds.today()
+
+static func has_guard_witness_at(vm, pos: Vector2, exclude_guard = null) -> bool:
+	if vm == null:
+		return false
+	for n in VillageNeeds.living(vm):
+		if n == exclude_guard or n.is_sleeping or n.is_incapacitated() or not n.is_conscious() or int(n.elevation_level) != 0:
+			continue
+		if int(n.trade_role) in [int(VillageNPC.TradeRole.GUARD), int(VillageNPC.TradeRole.SHERIFF), int(VillageNPC.TradeRole.ROYAL_INVESTIGATOR)]:
+			if is_guard_bribed(vm, n):
+				continue
+			if n.global_position.distance_to(pos) <= WITNESS_GUARD_RADIUS:
+				return true
+	return false
+
+static func can_target_merchant(vm, merchant) -> bool:
+	if vm == null or merchant == null or not _can_be_member(merchant) or is_member(vm, merchant):
+		return false
+	if int(merchant.personal_gold) < PROTECTION_MIN_GOLD:
+		return false
+	var today: int = VillageNeeds.today()
+	var m_key: String = merchant.get_person_key()
+	var cd: Dictionary = state(vm).get("protection_cooldown", {})
+	if int(cd.get(m_key, -99)) > today:
+		return false
+	var ps: Dictionary = state(vm).get("protected_shops", {})
+	if ps.has(m_key) and int((ps[m_key] as Dictionary).get("last_day", -99)) + 3 > today:
+		return false
+	return true
+
+static func protection_chance(vm, agent, merchant) -> float:
+	if vm == null or agent == null or merchant == null:
+		return 0.0
+	var boss = boss_of(vm)
+	var clout: float = 0.45 + 0.25 * maxf(0.0, persuasion(vm, agent))
+	if boss != null and boss != agent:
+		clout += 0.15 * maxf(0.0, persuasion(vm, boss))
+	clout += 0.20 * maxf(0.0, TraitCatalog.npc_tendency(agent, "aggression"))
+	var res: float = 0.30 * maxf(0.0, TraitCatalog.npc_tendency(merchant, "courage"))
+	res += 0.25 * maxf(0.0, TraitCatalog.npc_tendency(merchant, "honesty"))
+	res += 0.20 * maxf(0.0, TraitCatalog.npc_tendency(merchant, "law"))
+	if _has(merchant, "Valiente") or _has(merchant, "Íntegro") or _has(merchant, "Honrado"):
+		res += 0.35
+	if _has(merchant, "Cobarde") or _has(merchant, "Sumiso") or _has(merchant, "Pragmático"):
+		res -= 0.25
+	return clampf(clout - res, 0.08, 0.90)
+
+## Cobro en persona de la comisión de «tranquilidad» (suma cero: sale de merchant.personal_gold y se reparte entre cobrador y jefe).
+static func resolve_protection(vm, agent, merchant, force_roll: float = -1.0) -> String:
+	if vm == null or agent == null or merchant == null or not active(vm):
+		return ""
+	if int(merchant.personal_gold) < 6:
+		return ""
+	if has_guard_witness_at(vm, merchant.global_position):
+		return "aborted_guard"
+	var st: Dictionary = state(vm)
+	var today: int = VillageNeeds.today()
+	var m_key: String = merchant.get_person_key()
+	var boss = boss_of(vm)
+	var chance: float = protection_chance(vm, agent, merchant)
+	var roll: float = force_roll if force_roll >= 0.0 else randf()
+	if roll < chance:
+		var fee: int = mini(PROTECTION_FEE, int(merchant.personal_gold))
+		merchant.personal_gold -= fee
+		if boss != null and boss != agent:
+			var agent_cut: int = fee / 2
+			var boss_cut: int = fee - agent_cut
+			agent.personal_gold += agent_cut
+			boss.personal_gold += boss_cut
+		else:
+			agent.personal_gold += fee
+		(st["protected_shops"] as Dictionary)[m_key] = {
+			"fee": fee,
+			"last_day": today,
+			"collector": agent.get_person_key(),
+		}
+		st["business_done"] = int(st.get("business_done", 0)) + 1
+		merchant.add_thought("Pagué %d de oro a %s por tener tranquilidad en el negocio (-5)" % [fee, agent.npc_name], -5.0)
+		merchant.modify_npc_relationship(agent, -6, "Me cobró por la «tranquilidad» del negocio", true)
+		agent._spawn_floating_text("🤝 «Así todos trabajamos tranquilos.»", Color(0.92, 0.82, 0.62), -36.0)
+		return "paid"
+	(st["protection_cooldown"] as Dictionary)[m_key] = today + PROTECTION_COOLDOWN_DAYS
+	merchant.add_thought("Me negué a pagar «tranquilidad» a %s (-4)" % agent.npc_name, -4.0)
+	merchant.modify_npc_relationship(agent, -10, "Intentó cobrarme por la «tranquilidad» del local", true)
+	if boss != null and boss != agent:
+		merchant.modify_npc_relationship(boss, -8, "Mandó a su gente a pedirme dinero", true)
+	if not _has(merchant, "Discreto") and not _has(merchant, "Cobarde"):
+		var ev: Dictionary = vm.record_social_event(
+			"familia_rumor",
+			agent,
+			merchant,
+			"%s cuenta que %s pasó por su negocio pidiendo una comisión por «evitar disgustos»" % [merchant.npc_name, agent.npc_name]
+		)
+		ev["quiet"] = [agent.get_person_key()]
+	return "refused"
+
+static func can_loan_to(vm, target) -> bool:
+	if vm == null or target == null or not _can_be_member(target) or is_member(vm, target):
+		return false
+	var boss = boss_of(vm)
+	if boss == null or int(boss.personal_gold) < LOAN_MIN_BOSS_GOLD:
+		return false
+	if int(target.personal_gold) > LOAN_MAX_TARGET_GOLD:
+		return false
+	return not (state(vm).get("loans", {}) as Dictionary).has(target.get_person_key())
+
+## Préstamo discreto del reservado: sale del bolsillo del jefe y deja al vecino en deuda con él.
+static func give_loan(vm, _agent, target) -> bool:
+	if not can_loan_to(vm, target):
+		return false
+	var boss = boss_of(vm)
+	var st: Dictionary = state(vm)
+	var today: int = VillageNeeds.today()
+	var t_key: String = target.get_person_key()
+	boss.personal_gold -= LOAN_AMOUNT
+	target.personal_gold += LOAN_AMOUNT
+	(st["loans"] as Dictionary)[t_key] = {
+		"amount": LOAN_AMOUNT,
+		"repay": LOAN_REPAY,
+		"due_day": today + LOAN_DURATION_DAYS,
+		"lender": boss.get_person_key(),
+	}
+	st["business_done"] = int(st.get("business_done", 0)) + 1
+	target.set_meta("owes_to", boss.get_person_key())
+	target.add_thought("%s me prestó %d de oro cuando no tenía nada; ahora estoy en deuda (+3)" % [boss.npc_name, LOAN_AMOUNT], 3.0)
+	target.modify_npc_relationship(boss, 6, "Me prestó dinero cuando estaba apurado")
+	return true
+
+## Cobro en persona de un préstamo vencido (suma cero: de target.personal_gold a boss.personal_gold).
+static func collect_loan(vm, _agent, target) -> String:
+	if vm == null or target == null or not active(vm):
+		return ""
+	var st: Dictionary = state(vm)
+	var loans: Dictionary = st.get("loans", {})
+	var t_key: String = target.get_person_key()
+	if not loans.has(t_key):
+		return ""
+	var boss = boss_of(vm)
+	if boss == null:
+		return ""
+	var entry: Dictionary = loans[t_key]
+	var repay: int = int(entry.get("repay", LOAN_REPAY))
+	var today: int = VillageNeeds.today()
+	if int(target.personal_gold) >= repay:
+		target.personal_gold -= repay
+		boss.personal_gold += repay
+		loans.erase(t_key)
+		if target.has_meta("owes_to"):
+			target.remove_meta("owes_to")
+		st["business_done"] = int(st.get("business_done", 0)) + 1
+		target.add_thought("Saldé mi deuda con %s (+2)" % boss.npc_name, 2.0)
+		return "repaid"
+	var partial: int = maxi(0, int(target.personal_gold) - 2)
+	if partial > 0:
+		target.personal_gold -= partial
+		boss.personal_gold += partial
+	entry["repay"] = maxi(4, repay - partial)
+	entry["due_day"] = today + 2
+	target.set_meta("owes_to", boss.get_person_key())
+	target.add_thought("No pude pagar toda mi deuda con %s y me lo recordó en persona (-6)" % boss.npc_name, -6.0)
+	target.modify_npc_relationship(boss, -6, "Le debo dinero vencido del reservado", true)
+	return "defaulted"
+
+static func can_bribe_guard(vm, guard) -> bool:
+	if vm == null or guard == null or not is_instance_valid(guard) or guard.is_dead:
+		return false
+	if int(guard.trade_role) != int(VillageNPC.TradeRole.GUARD):
+		return false
+	if _has(guard, "Honrado") or _has(guard, "Íntegro") or TraitCatalog.npc_tendency(guard, "honesty") > 0.25:
+		return false
+	if is_guard_bribed(vm, guard):
+		return false
+	var cd: Dictionary = state(vm).get("bribe_cooldown", {})
+	return int(cd.get(guard.get_person_key(), -99)) <= VillageNeeds.today()
+
+static func bribe_guard_chance(vm, agent, guard) -> float:
+	if vm == null or agent == null or guard == null:
+		return 0.0
+	var c: float = 0.52 + 0.25 * maxf(0.0, persuasion(vm, agent))
+	c -= 0.40 * TraitCatalog.npc_tendency(guard, "honesty")
+	c -= 0.30 * TraitCatalog.npc_tendency(guard, "law")
+	if _has(guard, "Sobornable") or _has(guard, "Codicioso") or _has(guard, "Pragmático"):
+		c += 0.30
+	if _has(guard, "Cumplidor") or _has(guard, "Justiciero"):
+		c -= 0.35
+	return clampf(c, 0.08, 0.92)
+
+## Intenta comprar el silencio de un guardia (suma cero: sale de boss.personal_gold y entra en guard.personal_gold).
+static func try_bribe_guard(vm, agent, guard, force_roll: float = -1.0) -> String:
+	if vm == null or agent == null or guard == null or not active(vm):
+		return ""
+	var boss = boss_of(vm)
+	if boss == null or int(boss.personal_gold) < BRIBE_AMOUNT:
+		return ""
+	if has_guard_witness_at(vm, guard.global_position, guard):
+		return "aborted_witness"
+	var st: Dictionary = state(vm)
+	var today: int = VillageNeeds.today()
+	var g_key: String = guard.get_person_key()
+	var chance: float = bribe_guard_chance(vm, agent, guard)
+	var roll: float = force_roll if force_roll >= 0.0 else randf()
+	if roll < chance:
+		boss.personal_gold -= BRIBE_AMOUNT
+		guard.personal_gold += BRIBE_AMOUNT
+		(st["bribed_guards"] as Dictionary)[g_key] = today + BRIBE_DURATION_DAYS
+		st["business_done"] = int(st.get("business_done", 0)) + 1
+		guard.add_thought("Un sobre discreto de %s bien vale mirar hacia otro barrio (+2)" % boss.npc_name, 2.0)
+		guard._spawn_floating_text("🪙 «Esta noche haré la ronda por el otro lado.»", Color(0.85, 0.85, 0.65), -36.0)
+		return "bribed"
+	(st["bribe_cooldown"] as Dictionary)[g_key] = today + BRIBE_COOLDOWN_DAYS
+	guard.add_thought("%s intentó comprar mi silencio con unas monedas (-5)" % agent.npc_name, -5.0)
+	guard.modify_npc_relationship(agent, -12, "Intentó sobornarme", true)
+	var ev: Dictionary = vm.record_social_event(
+		"familia_rumor",
+		agent,
+		guard,
+		"%s cuenta que %s intentó untarle con unas monedas para que mirase a otro lado" % [guard.npc_name, agent.npc_name]
+	)
+	ev["quiet"] = [agent.get_person_key()]
+	return "refused"
+
+static func _pick_business_agent(vm):
+	var boss = boss_of(vm)
+	for m in member_nodes(vm):
+		if m != boss and _can_attend(m) and m.errand_kind == "":
+			return m
+	return boss if boss != null and _can_attend(boss) and boss.errand_kind == "" else null
+
+static func plan_next_business(vm) -> Dictionary:
+	if vm == null or not active(vm) or member_nodes(vm).size() < 2:
+		return {}
+	var st: Dictionary = state(vm)
+	var today: int = VillageNeeds.today()
+	var agent = _pick_business_agent(vm)
+	if agent == null:
+		return {}
+	var by_key: Dictionary = vm._get_npcs_by_person_key()
+	# 1. Cobrar un préstamo ya vencido
+	var loans: Dictionary = st.get("loans", {})
+	for t_key in loans.keys():
+		var entry: Dictionary = loans[t_key]
+		if today >= int(entry.get("due_day", 999999)):
+			var deb = by_key.get(str(t_key), null)
+			if deb != null and is_instance_valid(deb) and not deb.is_dead:
+				var pb1: Dictionary = {"kind": "loan_collect", "agent": agent.get_person_key(), "target": str(t_key), "status": "planned"}
+				st["pending_business"] = pb1
+				return pb1
+	# 2. Untar a un guardia si hubo reuniones abortadas o hay oro de sobra
+	var boss = boss_of(vm)
+	if boss != null and int(boss.personal_gold) >= BRIBE_MIN_BOSS_GOLD:
+		for n in VillageNeeds.living(vm):
+			if can_bribe_guard(vm, n):
+				var pb2: Dictionary = {"kind": "bribe_guard", "agent": agent.get_person_key(), "target": n.get_person_key(), "status": "planned"}
+				st["pending_business"] = pb2
+				return pb2
+	# 3. Cobrar comisión de «tranquilidad» a un comerciante con dinero
+	var best_m = null
+	var best_gold: int = PROTECTION_MIN_GOLD - 1
+	for n in VillageNeeds.living(vm):
+		if can_target_merchant(vm, n) and int(n.personal_gold) > best_gold:
+			best_gold = int(n.personal_gold)
+			best_m = n
+	if best_m != null:
+		var pb3: Dictionary = {"kind": "protection", "agent": agent.get_person_key(), "target": best_m.get_person_key(), "status": "planned"}
+		st["pending_business"] = pb3
+		return pb3
+	# 4. Prestar dinero a un vecino apurado
+	for n in VillageNeeds.living(vm):
+		if can_loan_to(vm, n):
+			var pb4: Dictionary = {"kind": "loan", "agent": agent.get_person_key(), "target": n.get_person_key(), "status": "planned"}
+			st["pending_business"] = pb4
+			return pb4
+	return {}
+
+static func dispatch_business(vm) -> bool:
+	if vm == null or not active(vm):
+		return false
+	var st: Dictionary = state(vm)
+	var pb: Dictionary = st.get("pending_business", {})
+	if pb.is_empty():
+		pb = plan_next_business(vm)
+	if pb.is_empty() or str(pb.get("status", "")) != "planned":
+		return false
+	var by_key: Dictionary = vm._get_npcs_by_person_key()
+	var agent = by_key.get(str(pb.get("agent", "")), null)
+	var target = by_key.get(str(pb.get("target", "")), null)
+	if agent == null or not is_instance_valid(agent) or agent.is_dead or not _can_attend(agent):
+		agent = _pick_business_agent(vm)
+		if agent != null:
+			pb["agent"] = agent.get_person_key()
+	if agent == null or target == null or not is_instance_valid(target) or target.is_dead or target.is_sleeping:
+		return false
+	pb["status"] = "walking"
+	agent.start_errand("familia_errand", target.global_position)
+	return true
+
+static func on_errand_arrived(vm, npc) -> void:
+	if npc != null:
+		npc.end_errand()
+	if vm == null or npc == null or not active(vm):
+		return
+	var st: Dictionary = state(vm)
+	var pb: Dictionary = st.get("pending_business", {})
+	if pb.is_empty() or str(pb.get("agent", "")) != npc.get_person_key():
+		return
+	var target = vm._get_npcs_by_person_key().get(str(pb.get("target", "")), null)
+	st["pending_business"] = {}
+	if target == null or not is_instance_valid(target) or target.is_dead:
+		return
+	match str(pb.get("kind", "")):
+		"protection":
+			resolve_protection(vm, npc, target)
+		"loan":
+			give_loan(vm, npc, target)
+		"loan_collect":
+			collect_loan(vm, npc, target)
+		"bribe_guard":
+			try_bribe_guard(vm, npc, target)
 
 # ------------------------------------------------------------------ 4. Relojes y guardado
 static func daily(vm) -> void:
@@ -578,6 +929,8 @@ static func daily(vm) -> void:
 			st["next_plan_night"] = today
 		else:
 			st["next_plan_night"] = today + 2
+	if member_nodes(vm).size() >= 2 and (st.get("pending_business", {}) as Dictionary).is_empty():
+		plan_next_business(vm)
 	_update_band(vm)
 
 static func on_hour(vm, hour: int) -> void:
@@ -585,6 +938,8 @@ static func on_hour(vm, hour: int) -> void:
 		return
 	var st: Dictionary = state(vm)
 	var today: int = VillageNeeds.today()
+	if hour in BUSINESS_HOURS:
+		dispatch_business(vm)
 	if hour in MEET_CALL_HOURS:
 		var planned: int = int(st.get("next_plan_night", -99))
 		if is_meeting_now(vm):
@@ -600,14 +955,24 @@ static func on_hour(vm, hour: int) -> void:
 			st["meeting_status"] = ""
 
 static func tick(vm) -> void:
-	if vm == null or not active(vm) or not is_meeting_now(vm):
+	if vm == null or not active(vm):
+		return
+	var st: Dictionary = state(vm)
+	var by_key: Dictionary = vm._get_npcs_by_person_key()
+	var pb: Dictionary = st.get("pending_business", {})
+	if not pb.is_empty() and str(pb.get("status", "")) == "walking":
+		var ag = by_key.get(str(pb.get("agent", "")), null)
+		var tg = by_key.get(str(pb.get("target", "")), null)
+		if ag == null or tg == null or not is_instance_valid(ag) or not is_instance_valid(tg) or ag.is_dead or tg.is_dead:
+			st["pending_business"] = {}
+		elif ag.errand_kind == "familia_errand":
+			ag.errand_pos = tg.global_position
+	if not is_meeting_now(vm):
 		return
 	var w = has_unwanted_witness_near(vm)
 	if w != null:
 		abort_meeting(vm, w)
 		return
-	var st: Dictionary = state(vm)
-	var by_key: Dictionary = vm._get_npcs_by_person_key()
 	var in_backroom: int = 0
 	var keys: Array = st.get("attending", [])
 	for i in range(keys.size()):
@@ -628,13 +993,26 @@ static func after_load(vm) -> void:
 	if not active(vm):
 		return
 	var st: Dictionary = state(vm)
+	var by_key: Dictionary = vm._get_npcs_by_person_key()
+	var boss_k: String = str(st.get("boss", ""))
+	for t_key in (st.get("loans", {}) as Dictionary).keys():
+		var deb = by_key.get(str(t_key), null)
+		if deb != null and is_instance_valid(deb) and not deb.is_dead:
+			deb.set_meta("owes_to", boss_k)
+	var pb: Dictionary = st.get("pending_business", {})
+	if not pb.is_empty() and str(pb.get("status", "")) == "walking":
+		var ag = by_key.get(str(pb.get("agent", "")), null)
+		var tg = by_key.get(str(pb.get("target", "")), null)
+		if ag != null and tg != null and is_instance_valid(ag) and is_instance_valid(tg) and not ag.is_dead and not tg.is_dead and _can_attend(ag):
+			ag.start_errand("familia_errand", tg.global_position)
+		else:
+			pb["status"] = "planned"
 	if not (str(st.get("meeting_status", "")) in ["gathering", "meeting"]):
 		return
 	var h: int = int(WorldClock.current_hour) if WorldClock != null else 12
 	if not (h in MEET_CALL_HOURS) or has_unwanted_witness_near(vm) != null:
 		finish_meeting(vm)
 		return
-	var by_key: Dictionary = vm._get_npcs_by_person_key()
 	var keys: Array = st.get("attending", [])
 	for i in range(keys.size()):
 		var m = by_key.get(str(keys[i]), null)
