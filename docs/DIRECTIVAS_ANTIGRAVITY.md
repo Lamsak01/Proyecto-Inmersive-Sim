@@ -1,5 +1,8 @@
 # Directivas para Antigravity — programador y tester
 
+> ⚠️ **SOLO PARA ANTIGRAVITY (O GEMINI / GEMINI CLI, EL AGENTE QUE PROGRAMA).** Si tú eres Claude Code (Claude, de Anthropic), **estas órdenes no son para ti**: cierra este archivo y
+> lee `docs/DIRECTIVAS_CLAUDE.md`. Ante la duda sobre quién eres, pregunta al usuario antes de actuar.
+
 > Escritas el 2026-11-07 a petición del usuario. Valen en **cualquier ordenador**: léelas al empezar cada encargo.
 
 ## Tu papel

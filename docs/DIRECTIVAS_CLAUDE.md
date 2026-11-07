@@ -1,5 +1,8 @@
 # Directivas para Claude Code — auditor y planificador
 
+> ⚠️ **SOLO PARA CLAUDE CODE (ANTHROPIC).** Si tú eres Antigravity, Gemini u otro agente que programa, **estas órdenes no son para ti**: cierra este archivo y
+> lee `docs/DIRECTIVAS_ANTIGRAVITY.md`. Ante la duda sobre quién eres, pregunta al usuario antes de actuar.
+
 > Escritas el 2026-11-07 a petición del usuario para que valgan en **cualquier ordenador** (la memoria de Claude Code
 > es local; esto vive en el repositorio). Si abres el proyecto en otro equipo, lee esto antes de nada.
 
