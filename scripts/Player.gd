@@ -368,7 +368,7 @@ func has_master_lockpick() -> bool:
 
 var _env_sickness_timer: float = 0.0
 var bloodstained_timer: float = 0.0
-const FROG_MARSH_RECT := Rect2(-725.0, 28.0, 240.0, 120.0)
+const FROG_MARSH_RECT := Rect2(-2020.0, 110.0, 920.0, 450.0)
 
 func add_bloodstain(duration: float = 180.0) -> void:
 	var was_stained: bool = bloodstained_timer > 0.0

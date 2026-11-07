@@ -18,22 +18,23 @@ const TITLE: String = "🍝 Trattoria 'Il Corvo'"
 const FAMILY_ID: String = "family_corvo"
 const FAMILY_NAME: String = "Casa del Corvo"
 
-## Edificio: 275 × 190, puerta al sur (mira a la cámara y a la terraza). Detrás del albergue y del taller.
-const RECT: Rect2 = Rect2(Vector2(1020, 214), Vector2(275, 190))
-const DOOR_X: float = 1120.0
+## Edificio: 275 × 190, puerta al sur (mira a la Calle Mayor y a la terraza, lejos del cementerio).
+const BASE: Vector2 = Vector2(-255, -206)
+const RECT: Rect2 = Rect2(BASE, Vector2(275, 190))
+const DOOR_X: float = BASE.x + 100.0
 const DOOR_W: float = 36.0
-const ROW_Y: float = 294.0 ## tabique entre la fila del fondo (salas pequeñas) y la de delante (comedor y cocina)
-const KITCHEN_X: float = 1215.0 ## tabique entre comedor y cocina (y entre el cuarto del dueño y la cámara)
+const ROW_Y: float = BASE.y + 80.0 ## tabique entre la fila del fondo (salas pequeñas) y la de delante (comedor y cocina)
+const KITCHEN_X: float = BASE.x + 195.0 ## tabique entre comedor y cocina (y entre el cuarto del dueño y la cámara)
 const GAP: float = 30.0 ## anchura de los pasos entre salas
 
 ## Salas (para que los vecinos crucen los tabiques por los pasos). Fila de delante: comedor y cocina.
 const ROOMS: Dictionary = {
-	"comedor": Rect2(Vector2(1020, 294), Vector2(195, 110)),
-	"cocina": Rect2(Vector2(1215, 294), Vector2(80, 110)),
-	"reservado": Rect2(Vector2(1020, 214), Vector2(85, 80)),
-	"bodega": Rect2(Vector2(1105, 214), Vector2(55, 80)),
-	"dueno": Rect2(Vector2(1160, 214), Vector2(55, 80)),
-	"camara": Rect2(Vector2(1215, 214), Vector2(80, 80)),
+	"comedor": Rect2(BASE + Vector2(0, 80), Vector2(195, 110)),
+	"cocina": Rect2(BASE + Vector2(195, 80), Vector2(80, 110)),
+	"reservado": Rect2(BASE + Vector2(0, 0), Vector2(85, 80)),
+	"bodega": Rect2(BASE + Vector2(85, 0), Vector2(55, 80)),
+	"dueno": Rect2(BASE + Vector2(140, 0), Vector2(55, 80)),
+	"camara": Rect2(BASE + Vector2(195, 0), Vector2(80, 80)),
 }
 const ROOM_NAMES: Dictionary = {
 	"comedor": "Comedor", "cocina": "Cocina", "reservado": "Reservado", "bodega": "Bodega",
@@ -41,30 +42,42 @@ const ROOM_NAMES: Dictionary = {
 }
 ## Pasos entre salas: «h» = hueco en un tabique horizontal (se cruza en vertical), «v» = en uno vertical.
 const OPENINGS: Array = [
-	{"a": "comedor", "b": "reservado", "pos": Vector2(1062, 294), "axis": "h"},
-	{"a": "comedor", "b": "bodega", "pos": Vector2(1132, 294), "axis": "h"},
-	{"a": "comedor", "b": "dueno", "pos": Vector2(1187, 294), "axis": "h"},
-	{"a": "comedor", "b": "cocina", "pos": Vector2(1215, 349), "axis": "v"},
-	{"a": "cocina", "b": "camara", "pos": Vector2(1255, 294), "axis": "h"},
+	{"a": "comedor", "b": "reservado", "pos": BASE + Vector2(42, 80), "axis": "h"},
+	{"a": "comedor", "b": "bodega", "pos": BASE + Vector2(112, 80), "axis": "h"},
+	{"a": "comedor", "b": "dueno", "pos": BASE + Vector2(167, 80), "axis": "h"},
+	{"a": "comedor", "b": "cocina", "pos": BASE + Vector2(195, 135), "axis": "v"},
+	{"a": "cocina", "b": "camara", "pos": BASE + Vector2(235, 80), "axis": "h"},
 ]
 
-## Terraza exterior y sendero desde el camino del este (sigue la senda de la loma del este hacia el sur).
-const TERRACE: Rect2 = Rect2(Vector2(1020, 410), Vector2(305, 40))
-const PATH_RECT: Rect2 = Rect2(Vector2(1305, 64), Vector2(20, 346))
-const TERRACE_TABLES: Array[Vector2] = [Vector2(1042, 430), Vector2(1080, 430), Vector2(1165, 430), Vector2(1205, 430), Vector2(1250, 430)]
+## Terraza exterior y acceso directo desde la Calle Mayor (camino principal hacia la Plaza).
+const TERRACE: Rect2 = Rect2(BASE + Vector2(0, 196), Vector2(275, 40))
+const PATH_RECT: Rect2 = Rect2(BASE + Vector2(82, 232), Vector2(36, 14))
+const TERRACE_TABLES: Array[Vector2] = [
+	BASE + Vector2(22, 216),
+	BASE + Vector2(60, 216),
+	BASE + Vector2(145, 216),
+	BASE + Vector2(185, 216),
+	BASE + Vector2(230, 216)
+]
 
 ## Sitios con uso (calculados, sin guardar nada).
-const STOVE_POS: Vector2 = Vector2(1278, 318) ## fogones (donde trabaja el cocinero)
-const KITCHEN_COUNTER: Vector2 = Vector2(1255, 392)
-const COLD_SHELF: Vector2 = Vector2(1262, 236) ## colgadero de carne en la cámara
-const COUNTER_POS: Vector2 = Vector2(1192, 388) ## barra y caja del comedor (gestionar el negocio)
-const PIANO_POS: Vector2 = Vector2(1036, 392)
-const DINING_TABLES: Array[Vector2] = [Vector2(1044, 320), Vector2(1092, 320), Vector2(1150, 320), Vector2(1044, 366), Vector2(1160, 368)]
-const BACKROOM_TABLE: Vector2 = Vector2(1062, 248)
-const OWNER_BED: Vector2 = Vector2(1176, 236)
-const OWNER_BED2: Vector2 = Vector2(1200, 262)
-const OWNER_CHEST: Vector2 = Vector2(1204, 228)
-const WINE_RACK: Vector2 = Vector2(1132, 224)
+const STOVE_POS: Vector2 = BASE + Vector2(258, 104) ## fogones (donde trabaja el cocinero)
+const KITCHEN_COUNTER: Vector2 = BASE + Vector2(235, 178)
+const COLD_SHELF: Vector2 = BASE + Vector2(242, 22) ## colgadero de carne en la cámara
+const COUNTER_POS: Vector2 = BASE + Vector2(172, 174) ## barra y caja del comedor (gestionar el negocio)
+const PIANO_POS: Vector2 = BASE + Vector2(16, 178)
+const DINING_TABLES: Array[Vector2] = [
+	BASE + Vector2(24, 106),
+	BASE + Vector2(72, 106),
+	BASE + Vector2(130, 106),
+	BASE + Vector2(24, 152),
+	BASE + Vector2(140, 154)
+]
+const BACKROOM_TABLE: Vector2 = BASE + Vector2(42, 34)
+const OWNER_BED: Vector2 = BASE + Vector2(156, 22)
+const OWNER_BED2: Vector2 = BASE + Vector2(180, 48)
+const OWNER_CHEST: Vector2 = BASE + Vector2(184, 14)
+const WINE_RACK: Vector2 = BASE + Vector2(112, 10)
 
 const PROPS: String = "res://assests/Comprados/Epic RPG World - Village(interiors) V1.3/assets/furniture_and_props_sprites/"
 
@@ -116,12 +129,12 @@ static func _build_partitions(vm) -> void:
 	if x1 - cur > 2.0:
 		vm._add_solid_wall_segment(Vector2((cur + x1) * 0.5, ROW_Y), Vector2(x1 - cur, 6.0), th)
 	# Tabiques verticales de la fila del fondo
-	for vx in [1105.0, 1160.0]:
+	for vx in [BASE.x + 85.0, BASE.x + 140.0]:
 		vm._add_solid_wall_segment(Vector2(vx, (RECT.position.y + ROW_Y) * 0.5), Vector2(6.0, ROW_Y - RECT.position.y), tv)
 	# Tabique comedor | cocina (y cuarto | cámara), con el paso de la cocina en la fila de delante
 	var top: float = RECT.position.y
 	var bottom: float = RECT.end.y
-	var gy: float = 349.0
+	var gy: float = BASE.y + 135.0
 	vm._add_solid_wall_segment(Vector2(KITCHEN_X, (top + gy - GAP * 0.5) * 0.5), Vector2(6.0, gy - GAP * 0.5 - top), tv)
 	vm._add_solid_wall_segment(Vector2(KITCHEN_X, (gy + GAP * 0.5 + bottom) * 0.5), Vector2(6.0, bottom - gy - GAP * 0.5), tv)
 
@@ -142,35 +155,35 @@ static func _build_furniture(vm) -> void:
 		vm._spawn_decor_prop(PROPS + "table_chairs_0.png", t, Vector2(0.42, 0.42))
 	vm._spawn_decor_prop(PROPS + "piano.png", PIANO_POS, Vector2(0.5, 0.5))
 	vm._spawn_decor_prop(PROPS + "drinks_shelf_0.png", COUNTER_POS + Vector2(0, 12), Vector2(0.5, 0.5))
-	vm._spawn_decor_prop(PROPS + "plants_3.png", Vector2(1028, 302), Vector2(0.5, 0.5))
-	vm._spawn_decor_prop(PROPS + "plants_5.png", Vector2(1207, 302), Vector2(0.5, 0.5))
+	vm._spawn_decor_prop(PROPS + "plants_3.png", BASE + Vector2(8, 88), Vector2(0.5, 0.5))
+	vm._spawn_decor_prop(PROPS + "plants_5.png", BASE + Vector2(187, 88), Vector2(0.5, 0.5))
 	# Cocina
 	vm._spawn_decor_prop(PROPS + "stove.png", STOVE_POS, Vector2(0.55, 0.55))
 	vm._spawn_decor_prop(PROPS + "storage_countertop2_0.png", KITCHEN_COUNTER, Vector2(0.55, 0.55))
-	vm._spawn_decor_prop(PROPS + "kitchen_props_3.png", Vector2(1230, 330), Vector2(0.5, 0.5))
-	vm._spawn_decor_prop(PROPS + "pots_pack_0.png", Vector2(1286, 360), Vector2(0.5, 0.5))
+	vm._spawn_decor_prop(PROPS + "kitchen_props_3.png", BASE + Vector2(210, 116), Vector2(0.5, 0.5))
+	vm._spawn_decor_prop(PROPS + "pots_pack_0.png", BASE + Vector2(266, 146), Vector2(0.5, 0.5))
 	# Cámara frigorífica: bloques de hielo y piezas de carne colgadas
-	for ip in [Vector2(1226, 222), Vector2(1226, 240), Vector2(1288, 222)]:
+	for ip in [BASE + Vector2(206, 8), BASE + Vector2(206, 26), BASE + Vector2(268, 8)]:
 		vm._add_rect_poly(ip, Vector2(6, 6), Color(0.82, 0.94, 1.0, 1.0), -1)
-	for mp in [Vector2(1248, 230), Vector2(1262, 230), Vector2(1276, 230)]:
+	for mp in [BASE + Vector2(228, 16), BASE + Vector2(242, 16), BASE + Vector2(256, 16)]:
 		vm._add_rect_poly(mp, Vector2(3.5, 7), Color(0.70, 0.16, 0.14, 1.0), -1)
-	vm._spawn_decor_prop(PROPS + "crates_3.png", Vector2(1284, 270), Vector2(0.5, 0.5))
+	vm._spawn_decor_prop(PROPS + "crates_3.png", BASE + Vector2(264, 56), Vector2(0.5, 0.5))
 	# Bodega
 	vm._spawn_decor_prop(PROPS + "drinks_shelf_1.png", WINE_RACK, Vector2(0.5, 0.5))
-	vm._spawn_decor_prop(PROPS + "barrels3_0.png", Vector2(1116, 262), Vector2(0.5, 0.5))
-	vm._spawn_decor_prop(PROPS + "barrels_2.png", Vector2(1150, 262), Vector2(0.5, 0.5))
+	vm._spawn_decor_prop(PROPS + "barrels3_0.png", BASE + Vector2(96, 48), Vector2(0.5, 0.5))
+	vm._spawn_decor_prop(PROPS + "barrels_2.png", BASE + Vector2(130, 48), Vector2(0.5, 0.5))
 	# Reservado y despacho del dueño
 	vm._spawn_decor_prop(PROPS + "big_round_table_chairs_0.png", BACKROOM_TABLE, Vector2(0.5, 0.5))
-	vm._spawn_decor_prop(PROPS + "fireplace_0.png", Vector2(1030, 226), Vector2(0.45, 0.45))
+	vm._spawn_decor_prop(PROPS + "fireplace_0.png", BASE + Vector2(10, 12), Vector2(0.45, 0.45))
 	vm._spawn_decor_prop(PROPS + "table_chairs_0.png", OWNER_BED, Vector2(0.44, 0.44))
-	vm._spawn_decor_prop(PROPS + "storage_countertop_0.png", Vector2(1174, 222), Vector2(0.42, 0.42))
+	vm._spawn_decor_prop(PROPS + "storage_countertop_0.png", BASE + Vector2(154, 8), Vector2(0.42, 0.42))
 
 static func _build_terrace(vm) -> void:
 	vm._add_rect_poly(TERRACE.get_center(), TERRACE.size * 0.5, Color(0.62, 0.50, 0.40, 1.0), -2) # Losas de barro
 	vm._add_rect_poly(PATH_RECT.get_center(), PATH_RECT.size * 0.5, Color(0.55, 0.47, 0.36, 1.0), -3) # Sendero
 	for t in TERRACE_TABLES:
 		vm._spawn_decor_prop(PROPS + "round_table_0.png", t, Vector2(0.4, 0.4))
-	for pp in [Vector2(1024, 446), Vector2(1300, 446)]:
+	for pp in [BASE + Vector2(4, 232), BASE + Vector2(270, 232)]:
 		vm._spawn_decor_prop(PROPS + "plants_8.png", pp, Vector2(0.5, 0.5))
 
 # ---------------------------------------------------------------- recorrido por dentro

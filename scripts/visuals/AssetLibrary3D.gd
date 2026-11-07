@@ -283,11 +283,11 @@ static func load_obj_mesh(rel_path: String) -> ArrayMesh:
 					ni = sub[2].to_int()
 					ni = (ni - 1) if ni > 0 else (norms.size() + ni)
 				parsed_corners.append(Vector3i(vi, ti, ni))
-			# Fan triangulation (convención horaria para Godot)
+			# Fan triangulation (OBJ usa orden antihorario CCW; Godot SurfaceTool espera horario CW)
 			for i in range(1, parsed_corners.size() - 1):
 				face_list.append(parsed_corners[0])
-				face_list.append(parsed_corners[i])
 				face_list.append(parsed_corners[i + 1])
+				face_list.append(parsed_corners[i])
 
 	var mesh := ArrayMesh.new()
 	for mat_name in groups.keys():
@@ -339,8 +339,9 @@ static func _parse_mtl_file(abs_mtl: String) -> Dictionary:
 			cur_name = line.substr(7).strip_edges()
 			cur_mat = StandardMaterial3D.new()
 			cur_mat.resource_name = cur_name
-			cur_mat.roughness = 0.82
-			cur_mat.metallic = 0.05
+			cur_mat.cull_mode = BaseMaterial3D.CULL_DISABLED
+			cur_mat.roughness = 0.85
+			cur_mat.metallic = 0.03
 			var low := cur_name.to_lower()
 			if low.find("steel") != -1 or low.find("metal") != -1 or low.find("iron") != -1 or low.find("gold") != -1 or low.find("bronze") != -1 or low.find("blade") != -1 or low.find("silver") != -1:
 				cur_mat.metallic = 0.62
@@ -352,7 +353,17 @@ static func _parse_mtl_file(abs_mtl: String) -> Dictionary:
 			var p := line.substr(3).strip_edges().split(" ", false)
 			if p.size() >= 3:
 				var lin := Color(p[0].to_float(), p[1].to_float(), p[2].to_float(), 1.0)
-				cur_mat.albedo_color = lin.linear_to_srgb()
+				var srgb := lin.linear_to_srgb()
+				var low_m := cur_name.to_lower()
+				if low_m == "wood":
+					srgb = Color(0.40, 0.27, 0.16, 1.0)
+				elif low_m == "darkwood":
+					srgb = Color(0.28, 0.19, 0.11, 1.0)
+				elif low_m == "green":
+					srgb = Color(0.22, 0.48, 0.20, 1.0)
+				elif low_m == "darkgreen":
+					srgb = Color(0.15, 0.36, 0.15, 1.0)
+				cur_mat.albedo_color = srgb
 		elif line.begins_with("Ke ") and cur_mat != null:
 			var p := line.substr(3).strip_edges().split(" ", false)
 			if p.size() >= 3:

@@ -11,7 +11,7 @@ tags:
 # Trattoria Il Corvo
 
 ## Qué hace
-- Restaurante italiano al este del pueblo, junto al cementerio. Lo regenta un cocinero recién llegado (oficio vacante que se ocupa solo).
+- Restaurante italiano en la Calle Mayor de entrada al pueblo (`Rect2(-255, -206, 275, 190)`, trasladado en el Paso 2 lejos del cementerio). Lo regenta un cocinero recién llegado (oficio vacante que se ocupa solo).
 - Vende tallarines y carne estofada al vino; compra trigo a la granja y carne al rancho.
 - Es el escenario del crimen dentro del pueblo: desde el Día 0 vive aquí **Don Vittorio Corvo** (`npc_familia_boss`), padrino fundador de **«La Familia»** (`R2–R4`), que recluta de uno en uno a entre 2 y 4 vecinos (quien se niega lo recuerda y suelta el chisme), se reúne de noche en el reservado si no asoma un guardia o un extraño, y mueve sus negocios discretos por el pueblo mientras el jugador puede espiarlos e intervenir.
 

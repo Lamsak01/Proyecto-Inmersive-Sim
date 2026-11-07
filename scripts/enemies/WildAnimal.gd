@@ -56,7 +56,7 @@ var mated_today: bool = false
 var pending_offspring: bool = false
 var days_hungry: int = 0
 var is_raiding_farm: bool = false
-var farm_target_pos: Vector2 = Vector2(-101, -21)
+var farm_target_pos: Vector2 = Vector2(-561, -21)
 
 # Mecánica de Emboscada (Zorro), 50% Escape Inicial (Conejo) y Embestida Agresiva (Jabalí)
 var escaped_first_pounce: bool = false
@@ -427,7 +427,7 @@ func _evaluate_life_schedule() -> void:
 		if state in [AnimalState.SEEK_FOOD, AnimalState.STALK_PREY, AnimalState.CHASE_PREY]:
 			food_target = null
 			state = AnimalState.GRAZE
-		if state == AnimalState.GRAZE and global_position.distance_to(home_position) > 115.0:
+		if state == AnimalState.GRAZE and global_position.distance_to(home_position) > 420.0:
 			state = AnimalState.RETURN_HOME
 		return
 
@@ -443,7 +443,7 @@ func _evaluate_life_schedule() -> void:
 		elif species != SpeciesType.FOX and not fed_today and days_hungry >= 1:
 			is_raiding_farm = true
 			state = AnimalState.SEEK_FOOD
-		elif global_position.distance_to(home_position) > 135.0:
+		elif global_position.distance_to(home_position) > 450.0:
 			is_raiding_farm = false
 			state = AnimalState.RETURN_HOME
 
@@ -465,9 +465,9 @@ func _find_best_food_target() -> Node2D:
 	is_raiding_farm = false
 
 	if species in [SpeciesType.RABBIT, SpeciesType.DEER, SpeciesType.BOAR]:
-		# Primero priorizar la flora dentro de su propio hábitat (<= 270 px de su madriguera/claro) para que las especies no se mezclen
-		var local_habitat_sq: float = 270.0 * 270.0
-		var best_local_sq: float = 1250.0 * 1250.0
+		# Primero priorizar la flora dentro de su propio hábitat amplio (<= 520 px de su madriguera/claro)
+		var local_habitat_sq: float = 520.0 * 520.0
+		var best_local_sq: float = 1650.0 * 1650.0
 		for node in get_tree().get_nodes_in_group("wild_flora"):
 			if node is HarvestableNode and not node.is_depleted:
 				if home_position.distance_squared_to(node.global_position) <= local_habitat_sq:
@@ -556,18 +556,30 @@ func _start_flee_from(danger_pos: Vector2) -> void:
 func _process_graze(delta: float) -> void:
 	wander_timer -= delta
 	if wander_timer <= 0.0:
-		wander_timer = randf_range(1.8, 3.8)
-		if randf() < 0.45:
+		if randf() < 0.20:
+			wander_timer = randf_range(1.2, 2.4)
 			wander_dir = Vector2.ZERO
 		else:
-			var anchor := home_position
-			if species == SpeciesType.DEER:
-				anchor = _get_herd_anchor()
-			var to_anchor := anchor - global_position
-			if to_anchor.length() > 90.0:
-				wander_dir = to_anchor.normalized()
-			else:
-				wander_dir = Vector2.RIGHT.rotated(randf() * TAU)
+			wander_timer = randf_range(2.8, 5.8)
+			var to_home := home_position - global_position
+			var dir := Vector2.RIGHT.rotated(randf() * TAU)
+			if to_home.length() > 380.0:
+				dir = to_home.normalized().rotated(randf_range(-0.55, 0.55))
+			elif to_home.length() < 55.0:
+				# Si está muy pegado al nido/madriguera, sale a explorar hacia fuera
+				var away_home := (global_position - home_position)
+				dir = (away_home.normalized() if away_home.length_squared() > 4.0 else dir).rotated(randf_range(-0.7, 0.7))
+			# Dispersión suave respecto a otros animales cercanos para que no vayan siempre juntos
+			var sep := Vector2.ZERO
+			for other in get_tree().get_nodes_in_group("wild_animals"):
+				if other != self and other is WildAnimal and other.is_alive_in_ecosystem():
+					var diff: Vector2 = global_position - (other as Node2D).global_position
+					var d2: float = diff.length_squared()
+					if d2 > 1.0 and d2 < 120.0 * 120.0:
+						sep += diff.normalized() * (1.0 - sqrt(d2) / 120.0)
+			if sep.length_squared() > 0.04:
+				dir = (dir + sep * 0.85).normalized()
+			wander_dir = dir
 	velocity = wander_dir * graze_speed
 
 func _get_herd_anchor() -> Vector2:
@@ -599,7 +611,7 @@ func _process_seek_food(_delta: float) -> void:
 			return
 		food_target = _find_best_food_target()
 		if not is_instance_valid(food_target):
-			state = AnimalState.RETURN_HOME if global_position.distance_to(home_position) > 95.0 else AnimalState.GRAZE
+			state = AnimalState.RETURN_HOME if global_position.distance_to(home_position) > 380.0 else AnimalState.GRAZE
 			velocity = Vector2.ZERO
 			return
 

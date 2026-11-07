@@ -21,8 +21,8 @@ const WAGE_PER_HOUR: int = 1
 const SPOT_RADIUS: float = 50.0
 const STOCK_CAP: int = 14
 const OWNER_FOOD_RESERVE: int = 20 # F1: el dueño no se gasta en jornales lo que necesita para comer
-## (2026-11-05) Subido a la orilla norte del lago ampliado.
-const LAVADERO_POS: Vector2 = Vector2(-140, 84)
+## Paso 2 (2026-11-07): el Lavadero se traslada al arroyo/fuente del pueblo (al oeste de la Botica y al norte del Parque del Roble), lejos del lago.
+const LAVADERO_POS: Vector2 = Vector2(215, 145)
 const LAVADERO_CHANCE: float = 0.3
 const LAVADERO_GOSSIP_RADIUS: float = 50.0
 
@@ -31,7 +31,7 @@ const PLACES: Dictionary = {
 	"farmer": {"label": "la Granja del Sur", "icon": "🌾", "spots": [Vector2(-40, 445), Vector2(40, 445), Vector2(-40, 500), Vector2(40, 500)], "yield": {"wheat": 0.25, "carrot": 0.08}},
 	"rancher": {"label": "el Rancho", "icon": "🐑", "spots": [Vector2(335, 440), Vector2(370, 500)], "yield": {"wool": 0.15, "raw_meat": 0.1}},
 	"quarry": {"label": "la Cantera", "icon": "⛏️", "spots": [Vector2(-185, -350), Vector2(-150, -300)], "yield": {"stone": 0.3}},
-	"woodcutter": {"label": "el bosque", "icon": "🪓", "spots": [Vector2(-470, 650), Vector2(-400, 665)], "yield": {"wood": 0.35}},
+	"woodcutter": {"label": "el bosque", "icon": "🪓", "spots": [Vector2(-470, 820), Vector2(-380, 845)], "yield": {"wood": 0.35}},
 }
 
 static func state(vm) -> Dictionary:

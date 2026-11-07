@@ -22,8 +22,9 @@ var _label_hits: Array[Dictionary] = [] # rectángulos del mapa grande con su no
 var _minimap_redraw_timer: float = 0.0
 var _fullmap_redraw_timer: float = 0.0
 
-const WORLD_RECT := Rect2(Vector2(-920.0, -680.0), Vector2(2420.0, 1980.0)) # V4: incluye los solares del norte y del este
+const WORLD_RECT := Rect2(Vector2(-2150.0, -900.0), Vector2(3900.0, 3350.0)) # Paso 2: abarca Llanura/Ciénaga separadas al oeste y Bosque Profundo ampliado al sur
 const VillageLots = preload("res://scripts/systems/VillageLots.gd")
+const VillageRestaurant = preload("res://scripts/systems/VillageRestaurant.gd")
 
 func _ready() -> void:
 	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
@@ -191,41 +192,52 @@ func _draw_valley_cartography(canvas: Control, detailed: bool) -> void:
 	# 1. Fondo general de pradera del valle
 	canvas.draw_rect(Rect2(Vector2.ZERO, csize), Color(0.14, 0.24, 0.15, 0.96), true)
 
-	# 2. Bioma Oeste: Llanura Salvaje y Ciénaga de Ranas
-	var plains_r := _world_rect_to_map(Rect2(Vector2(-860, -210), Vector2(470, 360)), csize)
+	# 2. Bioma Oeste: Llanura Salvaje (Noroeste) y Ciénaga de Ranas (Suroeste), separadas y ampliadas
+	var plains_r := _world_rect_to_map(Rect2(Vector2(-2060, -560), Vector2(980, 540)), csize)
 	canvas.draw_rect(plains_r, Color(0.46, 0.40, 0.22, 0.75), true)
 	canvas.draw_rect(plains_r, Color(0.75, 0.64, 0.34, 0.85), false, 1.5)
 
-	var marsh_r := _world_rect_to_map(Rect2(Vector2(-700, 42), Vector2(185, 88)), csize)
-	canvas.draw_rect(marsh_r, Color(0.16, 0.44, 0.42, 0.88), true)
-
-	var bandit_r := _world_rect_to_map(Rect2(Vector2(-730, -125), Vector2(235, 105)), csize)
+	var bandit_r := _world_rect_to_map(Rect2(Vector2(-1760, -390), Vector2(470, 230)), csize)
 	canvas.draw_rect(bandit_r, Color(0.42, 0.26, 0.20, 0.80), true)
 
-	# 3. Bioma Sur: Bosque Profundo y sus 3 Hábitats Separados
-	var forest_r := _world_rect_to_map(Rect2(Vector2(-520, 575), Vector2(1380, 665)), csize)
-	canvas.draw_rect(forest_r, Color(0.09, 0.19, 0.11, 0.92), true)
-	canvas.draw_rect(forest_r, Color(0.28, 0.55, 0.32, 0.85), false, 1.5)
+	var marsh_r := _world_rect_to_map(Rect2(Vector2(-2020, 110), Vector2(920, 450)), csize)
+	canvas.draw_rect(marsh_r, Color(0.16, 0.44, 0.42, 0.88), true)
+	canvas.draw_rect(marsh_r, Color(0.32, 0.68, 0.56, 0.85), false, 1.2)
 
-	# Sub-hábitat 1: Pradera de Conejos (Oeste)
-	var rab_r := _world_rect_to_map(Rect2(Vector2(-470, 600), Vector2(340, 300)), csize)
-	canvas.draw_rect(rab_r, Color(0.18, 0.38, 0.22, 0.55), true)
-	# Sub-hábitat 2: Claros de Venados (Centro-Sur)
-	var deer_r := _world_rect_to_map(Rect2(Vector2(-50, 800), Vector2(370, 380)), csize)
-	canvas.draw_rect(deer_r, Color(0.16, 0.33, 0.20, 0.55), true)
-	# Sub-hábitat 3: Cantera y Zorros (Este)
-	var fox_r := _world_rect_to_map(Rect2(Vector2(460, 610), Vector2(370, 350)), csize)
-	canvas.draw_rect(fox_r, Color(0.32, 0.28, 0.24, 0.60), true)
+	# 3. Bioma Sur: Bosque Profundo ampliado (~3.5x) con borde orgánico y sus Hábitats
+	var forest_pts := PackedVector2Array()
+	for fp in EcosystemManager.FOREST_POLY:
+		forest_pts.append(_world_to_map(fp, csize))
+	if forest_pts.size() >= 3:
+		canvas.draw_colored_polygon(forest_pts, Color(0.09, 0.19, 0.11, 0.92))
+		var border_pts := PackedVector2Array(forest_pts)
+		border_pts.append(forest_pts[0])
+		canvas.draw_polyline(border_pts, Color(0.28, 0.55, 0.32, 0.85), 1.5)
+
+	# Sub-hábitat 1: Soto de Conejos (Noroeste del Bosque)
+	var rab_r := _world_rect_to_map(Rect2(Vector2(-1050, 800), Vector2(720, 520)), csize)
+	canvas.draw_rect(rab_r, Color(0.18, 0.38, 0.22, 0.48), true)
+	# Sub-hábitat 2: Claros de Venados (Centro-Sur del Bosque)
+	var deer_r := _world_rect_to_map(Rect2(Vector2(-220, 960), Vector2(820, 1180)), csize)
+	canvas.draw_rect(deer_r, Color(0.16, 0.33, 0.20, 0.48), true)
+	# Sub-hábitat 3: Riscos y Zorros (Este del Bosque)
+	var fox_r := _world_rect_to_map(Rect2(Vector2(700, 820), Vector2(760, 920)), csize)
+	canvas.draw_rect(fox_r, Color(0.32, 0.28, 0.24, 0.52), true)
+	# Sub-hábitat 4: Robledal de Jabalíes (Suroeste del Bosque)
+	var boar_r := _world_rect_to_map(Rect2(Vector2(-1060, 1380), Vector2(760, 740)), csize)
+	canvas.draw_rect(boar_r, Color(0.26, 0.22, 0.18, 0.48), true)
 
 	# 4. Red de Caminos y Plaza Central
 	var road_col := Color(0.54, 0.42, 0.28, 0.90)
 	for r_rect in [
-		Rect2(Vector2(-465, 36), Vector2(1400, 26)),
-		Rect2(Vector2(448, -135), Vector2(34, 765)),
-		Rect2(Vector2(140, 130), Vector2(24, 194)),
-		Rect2(Vector2(140, 310), Vector2(312, 24)),
-		Rect2(Vector2(-380, 606), Vector2(1040, 24)),
-		Rect2(Vector2(130, 626), Vector2(26, 260)),
+		Rect2(Vector2(-1950, 36), Vector2(2960, 28)),
+		Rect2(Vector2(-498, -88), Vector2(18, 124)),
+		Rect2(Vector2(-498, 64), Vector2(18, 36)),
+		Rect2(Vector2(448, -135), Vector2(34, 920)),
+		Rect2(Vector2(140, 130), Vector2(24, 248)),
+		Rect2(Vector2(140, 356), Vector2(312, 22)),
+		Rect2(Vector2(-380, 760), Vector2(1040, 24)),
+		Rect2(Vector2(130, 780), Vector2(26, 260)),
 		Rect2(Vector2(660, -135), Vector2(280, 24)),
 		Rect2(Vector2(660, -135), Vector2(24, 185))
 	] + VillageLots.ROADS:
@@ -241,24 +253,25 @@ func _draw_valley_cartography(canvas: Control, detailed: bool) -> void:
 	canvas.draw_rect(plaza_r, Color(0.56, 0.58, 0.62, 0.95), true)
 
 	# 5. Lago de Pesca, Campamento del Jugador y (si ya se han construido) Gallinero y Huerto
-	var lake_r := _world_rect_to_map(Rect2(Vector2(-120, 65), Vector2(95, 80)), csize)
+	var lake_r := _world_rect_to_map(Rect2(Vector2(-888, 78), Vector2(412, 162)), csize)
 	canvas.draw_rect(lake_r, Color(0.18, 0.52, 0.78, 0.92), true)
 
-	var camp_r := _world_rect_to_map(Rect2(Vector2(-132, -124), Vector2(88, 46)), csize)
+	var camp_r := _world_rect_to_map(Rect2(Vector2(-592, -124), Vector2(88, 46)), csize)
 	canvas.draw_rect(camp_r, Color(0.76, 0.62, 0.36, 0.85), true)
 
 	var coop_node := get_tree().get_first_node_in_group("chicken_coop") as Node2D
 	if coop_node != null and coop_node.visible:
-		var coop_r := _world_rect_to_map(Rect2(Vector2(-236, -51), Vector2(76, 60)), csize)
+		var coop_r := _world_rect_to_map(Rect2(Vector2(-696, -51), Vector2(76, 60)), csize)
 		canvas.draw_rect(coop_r, Color(0.68, 0.48, 0.26, 0.90), true)
 
 	var plots := get_tree().get_nodes_in_group("farm_plots")
 	if not plots.is_empty() and (plots[0] as Node2D).visible:
-		var farm_r := _world_rect_to_map(Rect2(Vector2(-142, -62), Vector2(82, 82)), csize)
+		var farm_r := _world_rect_to_map(Rect2(Vector2(-602, -62), Vector2(82, 82)), csize)
 		canvas.draw_rect(farm_r, Color(0.36, 0.62, 0.24, 0.90), true)
 
-	# 6. Los 12 Edificios de la Aldea (incluyendo Hospital/Morgue y Comisaría/Cárcel)
+	# 6. Edificios de la Aldea (incluyendo Trattoria en la Calle Mayor, Hospital/Morgue y Comisaría/Cárcel)
 	var buildings: Array[Dictionary] = [
+		{"rect": VillageRestaurant.RECT, "col": Color(0.76, 0.36, 0.22), "label": "🍝 Trattoria Il Corvo"},
 		{"rect": Rect2(Vector2(310, -280), Vector2(260, 145)), "col": Color(0.68, 0.34, 0.20), "label": "🍺 Posada y Casino"},
 		{"rect": Rect2(Vector2(277, -74), Vector2(116, 76)), "col": Color(0.48, 0.52, 0.60), "label": "⚒️ Herrería"},
 		{"rect": Rect2(Vector2(527, -74), Vector2(116, 76)), "col": Color(0.65, 0.28, 0.26), "label": "🥩 Carnicería"},
@@ -301,13 +314,14 @@ func _draw_valley_cartography(canvas: Control, detailed: bool) -> void:
 
 	# Etiquetas de Regiones en el Mapa Completo
 	if detailed and font:
-		canvas.draw_string(font, _world_to_map(Vector2(-830, -225), csize), "🌾 LLANURA SALVAJE Y CIÉNAGA (OESTE)", HORIZONTAL_ALIGNMENT_LEFT, -1, 11, Color(1.0, 0.84, 0.45))
-		canvas.draw_string(font, _world_to_map(Vector2(-690, -135), csize), "⚔️ Ruinas Bandidos", HORIZONTAL_ALIGNMENT_LEFT, -1, 10, Color(1.0, 0.65, 0.55))
-		canvas.draw_string(font, _world_to_map(Vector2(-685, 34), csize), "🐸 Ciénaga de Ranas", HORIZONTAL_ALIGNMENT_LEFT, -1, 10, Color(0.58, 0.98, 0.68))
-		canvas.draw_string(font, _world_to_map(Vector2(-235, -66), csize), "🏕️ Campamento | 🐔 Corral | 🌱 Huerto", HORIZONTAL_ALIGNMENT_LEFT, -1, 10, Color(0.75, 0.94, 1.0))
-		canvas.draw_string(font, _world_to_map(Vector2(-455, 592), csize), "🐇 Pradera de Conejos y Hierbas", HORIZONTAL_ALIGNMENT_LEFT, -1, 11, Color(0.72, 0.98, 0.75))
-		canvas.draw_string(font, _world_to_map(Vector2(-35, 792), csize), "🦌 Claros de Venados y Hongos", HORIZONTAL_ALIGNMENT_LEFT, -1, 11, Color(0.85, 0.96, 0.72))
-		canvas.draw_string(font, _world_to_map(Vector2(475, 592), csize), "🦊 Cantera de Hierro y Zorros", HORIZONTAL_ALIGNMENT_LEFT, -1, 11, Color(1.0, 0.78, 0.58))
+		canvas.draw_string(font, _world_to_map(Vector2(-2020, -580), csize), "🌾 LLANURA SALVAJE (NOROESTE)", HORIZONTAL_ALIGNMENT_LEFT, -1, 11, Color(1.0, 0.84, 0.45))
+		canvas.draw_string(font, _world_to_map(Vector2(-1740, -405), csize), "⚔️ Ruinas Bandidos", HORIZONTAL_ALIGNMENT_LEFT, -1, 10, Color(1.0, 0.65, 0.55))
+		canvas.draw_string(font, _world_to_map(Vector2(-1980, 95), csize), "🐸 CIÉNAGA DE LAS RANAS (SUROESTE)", HORIZONTAL_ALIGNMENT_LEFT, -1, 11, Color(0.58, 0.98, 0.68))
+		canvas.draw_string(font, _world_to_map(Vector2(-760, -140), csize), "🏕️ Campamento | 🐔 Corral | 🌱 Huerto | 🎣 Lago", HORIZONTAL_ALIGNMENT_LEFT, -1, 10, Color(0.75, 0.94, 1.0))
+		canvas.draw_string(font, _world_to_map(Vector2(-980, 785), csize), "🐇 Soto de Conejos y Hierbas", HORIZONTAL_ALIGNMENT_LEFT, -1, 11, Color(0.72, 0.98, 0.75))
+		canvas.draw_string(font, _world_to_map(Vector2(-980, 1365), csize), "🐗 Robledal de Jabalíes", HORIZONTAL_ALIGNMENT_LEFT, -1, 11, Color(0.92, 0.76, 0.68))
+		canvas.draw_string(font, _world_to_map(Vector2(-120, 945), csize), "🦌 Claros de Venados y Hongos", HORIZONTAL_ALIGNMENT_LEFT, -1, 11, Color(0.85, 0.96, 0.72))
+		canvas.draw_string(font, _world_to_map(Vector2(720, 800), csize), "🦊 Riscos de Hierro y Zorros", HORIZONTAL_ALIGNMENT_LEFT, -1, 11, Color(1.0, 0.78, 0.58))
 
 	# 7. Puntos en Vivo de Fauna del Bosque
 	for animal in get_tree().get_nodes_in_group("wild_animals"):

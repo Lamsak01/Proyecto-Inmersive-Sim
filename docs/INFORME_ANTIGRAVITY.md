@@ -1,6 +1,35 @@
 # Informe de Trabajo — Antigravity (2026-11-07)
 
-## Encargo: Paso 1 — Arreglos rápidos (`1a`, `1b`, `1c`)
+## Encargo: Paso 2 — Agrandar y separar el entorno
+
+### Qué se hizo en este bloque
+- **Campamento inicial y Lago del Oeste alejados del pueblo (`scripts/World.gd`, `scenes/World.tscn`, `scripts/obstacles/FishingSpot.gd`, `scripts/systems/VillageManager.gd`, `scripts/systems/VillageWorldBuilder.gd`, `scripts/visuals/WorldStage3D.gd`):**
+  - El campamento inicial del jugador (`PlayerCampSite` en `Vector2(-532, -96)`), el huerto de 3×3 parcelas (`Vector2(-585, -45)`), el gallinero (`Vector2(-658, -21)`), la aparición inicial del jugador (`Vector2(-489, -56)`) y el perro guardián **Toby** (`Vector2(-495, -52)`, antes suelto en mitad del pueblo) quedan ahora fuera de la aldea, junto al **Lago del Oeste** (`LAKE_NODE_POS = Vector2(-525, 105)`), unidos al pueblo por un camino largo.
+  - Se eliminó el segundo embarcadero 3D del sur del lago en `WorldStage3D._build_barrios_3d()`, dejando un único muelle de pesca en la orilla este.
+- **Lavadero trasladado al pueblo, Parque del Roble ampliado y retirada del «Huerto vecinal» del camino (`scripts/systems/VillageWork.gd`, `scripts/systems/VillagePlaces.gd`, `scripts/systems/VillageLots.gd`, `scripts/visuals/WorldStage3D.gd`):**
+  - El **Lavadero Municipal** (`VillageWork.LAVADERO_POS`) se movió de la orilla del lago a `Vector2(215, 145)` en el pueblo (al oeste de la Botica y al norte del Parque del Roble), registrándose también como fuente de agua en `VillageManager.is_position_near_water_source`.
+  - El **Parque del Roble** (`VillagePlaces.PARK_RECT`) se amplió a `Rect2(Vector2(168, 208), Vector2(272, 146))` (casi el doble de superficie), sin el murete bajo que lo encerraba, con paseos en cruz y con los árboles en las esquinas lejos de los bancos.
+  - Se retiró de `VillageLots.GAP_POCKETS` el `"garden"` («🥬 Huerto vecinal» en `Vector2(1090, -40)`) que estaba plantado en mitad del camino del este junto a la Residencia Aguas Claras.
+- **Trattoria «Il Corvo» trasladada de junto al cementerio a la Calle Mayor (`scripts/systems/VillageRestaurant.gd`, `scripts/visuals/WorldStage3D.gd`, `scripts/ui/ValleyMapUI.gd`, `tools/tests/verify_all.gd`):**
+  - Se reubicó `VillageRestaurant.BASE` a `Vector2(-255, -206)` (`RECT = Rect2(-255, -206, 275, 190)`), con su puerta sur y su terraza abiertas directamente a la Calle Mayor que entra a la Plaza Central, a más de `1.100 px` del Cementerio Parroquial y sin solapar ningún solar ni camino.
+- **Llanura Salvaje y Ciénaga de las Ranas separadas y más amplias (`scripts/systems/VillageWorldBuilder.gd`, `scripts/visuals/WorldStage3D.gd`, `scenes/World.tscn`, `scripts/Player.gd`, `scripts/enemies/VillageNPC.gd`, `scripts/systems/VillageManager.gd`):**
+  - La **Llanura Salvaje** ocupa ahora una meseta amplia e irregular al **noroeste** (`x = -2060..-1080, y = -560..-20`, con ruinas de bandidos, cajas y enemigos), separada al otro lado del camino respecto a la **Ciénaga de las Ranas** al **suroeste** (`x = -2020..-1100, y = 110..560`, con laguna pantanosa amplia, sauces, juncos, troncos caídos y sapos).
+- **Bosque Profundo ~3,5 veces más grande, más al sur, con borde orgánico, árboles 3D corregidos y fauna que deambula (`scripts/systems/EcosystemManager.gd`, `scripts/enemies/WildAnimal.gd`, `scripts/visuals/AssetLibrary3D.gd`, `scripts/visuals/WorldStage3D.gd`, `scripts/ui/ValleyMapUI.gd`):**
+  - **Árboles 3D corregidos (`AssetLibrary3D.gd`, `WorldStage3D.gd`):** el cargador `load_obj_mesh` triangulaba las caras `.obj` en orden antihorario (haciendo que Godot descartara las caras frontales y mostrara las copas huecas por dentro como «bloques arrugados») y `_parse_mtl_file` convertía el material `Wood` de los árboles en un tono rosado. Se corrigió la triangulación a orden horario CW, se activó `CULL_DISABLED` y se normalizaron `Wood`, `DarkWood`, `Green` y `DarkGreen` a marrón corteza y verdes naturales; además, `_scan_nature_sources()` descarta cualquier árbol decorativo que solape edificios o quede a `< 18 px` de otro árbol.
+  - **Bosque ~3,5× mayor y con borde irregular (`EcosystemManager.FOREST_POLY`):** alejado al sur (`x ≈ -1360..1640, y ≈ 730..2390`), sin línea perimetral recta, con 60 árboles talables formando claros naturales, 14 vetas de mineral, 42 plantas silvestres, 32 arbustos (`Bush_1/2.obj`, `BushBerries_1/2.obj`) y 12 troncos caídos (`WoodLog.obj`).
+  - **Fauna que deambula y se dispersa (`WildAnimal.gd`):** ampliado el radio de pastoreo/exploración de `90..135 px` a `380..450 px`, eliminado el imán constante hacia el centro de la manada/madriguera y añadida una fuerza de separación suave entre animales cercanos para que se repartan por todo el bosque.
+
+### Qué queda sin comprobar (por orden expresa del usuario hoy)
+- **Pendiente de comprobar al regreso del usuario** (siguiendo la instrucción *«HOY NO PASES NINGUNA PRUEBA, NI ARRANQUES GODOT, NI HAGAS CAPTURAS: el usuario las hará al volver»*):
+  1. Ejecución de `tools/tests/verify_all.gd` (incluyendo las aserciones de navegación de `VillageRestaurant` actualizadas a `r1_rs.BASE`).
+  2. Arranque de Godot y revisión visual en partida de:
+     - El campamento inicial, huerto 3×3, gallinero, Toby y Lago del Oeste con un único muelle y camino largo hasta la aldea.
+     - El Lavadero en el pueblo (`Vector2(215, 145)`), el Parque del Roble ampliado sin murete bajo, la ausencia del «Huerto vecinal» en el camino del este y la Trattoria «Il Corvo» en la Calle Mayor.
+     - La Llanura Salvaje (noroeste) separada de la Ciénaga de las Ranas (suroeste), el Bosque Profundo ~3,5× más grande con borde orgánico, los árboles 3D con copas y ramas de color natural y los animales deambulando repartidos por el bosque.
+
+---
+
+## Encargo anterior: Paso 1 — Arreglos rápidos (`1a`, `1b`, `1c`)
 
 ### Qué se hizo en este bloque
 - **1a. Examen de muertos que no son de un caso (`scripts/enemies/VillageNPC.gd`, `scripts/ui/DetectiveUI.gd`, `tools/tests/verify_all.gd`):**

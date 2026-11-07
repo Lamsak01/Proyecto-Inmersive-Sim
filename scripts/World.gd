@@ -153,8 +153,8 @@ func _draw_weather_overlay() -> void:
 			_weather_canvas.draw_rect(Rect2(Vector2(0.0, band_y), Vector2(sz.x, 38.0)), Color(0.84, 0.88, 0.92, 0.08), true)
 
 func _spawn_player_garden(entities_root: Node) -> void:
-	# A. Huerto de 3x3 parcelas (en el claro oeste, al norte del camino de llegada y frente al lago)
-	var start_pos := Vector2(-125, -45)
+	# A. Huerto de 3x3 parcelas (en el claro oeste alejado del pueblo, al norte del camino de llegada y frente al lago)
+	var start_pos := Vector2(-585, -45)
 	var spacing := 24.0
 	var idx := 0
 	for row in range(3):
@@ -170,20 +170,20 @@ func _spawn_player_garden(entities_root: Node) -> void:
 	var camp := CampSite.new()
 	camp.name = "PlayerCampSite"
 	entities_root.add_child(camp)
-	camp.global_position = Vector2(-72, -96)
+	camp.global_position = Vector2(-532, -96)
 
 	# C. Gallinero Cuadrado (Comedero de 2 toques, Nido de Huevos y defensa contra Zorros nocturnos)
 	var coop := ChickenCoop.new()
 	coop.name = "PlayerChickenCoop"
 	entities_root.add_child(coop)
-	coop.global_position = Vector2(-198, -21)
+	coop.global_position = Vector2(-658, -21)
 	coop.set_coop_built(false)
 
 	# D. Lago y Muelle de Pesca al Sur del Campamento
 	var lake := FishingSpot.new()
 	lake.name = "WestFishingLake"
 	entities_root.add_child(lake)
-	lake.global_position = Vector2(-65, 105)
+	lake.global_position = FishingSpot.LAKE_NODE_POS
 
 func _unhandled_input(event: InputEvent) -> void:
 	var player := get_node_or_null("Entities/PlayerGood")

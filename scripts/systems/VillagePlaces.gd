@@ -12,12 +12,12 @@ extends RefCounted
 const VillageNeeds = preload("res://scripts/systems/VillageNeeds.gd")
 const TraitCatalog = preload("res://scripts/data/TraitCatalog.gd")
 
-const PARK_RECT: Rect2 = Rect2(Vector2(184, 216), Vector2(240, 84))
+const PARK_RECT: Rect2 = Rect2(Vector2(168, 208), Vector2(272, 146))
 const PLACES: Array = [
-	{"id": "park_lawn", "kind": "park", "pos": Vector2(304, 262), "label": "el Parque del Roble", "text": "🌳 Paseando por el parque"},
-	{"id": "park_bench", "kind": "bench", "pos": Vector2(232, 236), "label": "un banco del parque", "text": "🪑 Sentado en el parque"},
+	{"id": "park_lawn", "kind": "park", "pos": Vector2(304, 280), "label": "el Parque del Roble", "text": "🌳 Paseando por el parque"},
+	{"id": "park_bench", "kind": "bench", "pos": Vector2(236, 268), "label": "un banco del parque", "text": "🪑 Sentado en el parque"},
 	{"id": "plaza_benches", "kind": "bench", "pos": Vector2(500, 74), "label": "los bancos de la plaza", "text": "🪑 Sentado en la plaza"},
-	{"id": "lake_view", "kind": "overlook", "pos": Vector2(-65, 166), "label": "el Mirador del Lago", "text": "🌅 Mirando el lago"},
+	{"id": "lake_view", "kind": "overlook", "pos": Vector2(-525, 166), "label": "el Mirador del Lago", "text": "🌅 Mirando el lago"},
 	{"id": "library", "kind": "library", "pos": Vector2(910, -436), "label": "la Biblioteca", "text": "📖 Leyendo en la biblioteca", "indoor": true}, # V5e
 ]
 const LEISURE_FREE_HOURS: Vector2i = Vector2i(17, 21) # Entre semana, al salir del trabajo
@@ -59,12 +59,12 @@ static func build_world(vm) -> void:
 	border.add_to_group("ranch_fence_2d")
 	vm.entities_root.add_child(border)
 	var tree: Texture2D = vm._load_tex(dec + "tilesets and props/props-sprites/pine-tree_0.png")
-	for tp in [Vector2(200, 232), Vector2(410, 236), Vector2(270, 290), Vector2(380, 288)]:
+	for tp in [Vector2(188, 224), Vector2(420, 224), Vector2(188, 338), Vector2(420, 338), Vector2(304, 228)]:
 		vm._add_sprite_prop(tree, tp, Vector2(0.7, 0.7), 0)
-	for fp in [Vector2(304, 228), Vector2(250, 280), Vector2(350, 262)]:
+	for fp in [Vector2(248, 226), Vector2(360, 226), Vector2(248, 334), Vector2(360, 334), Vector2(304, 316)]:
 		vm._spawn_decor_prop(dec + "buildings/Decorations_sprites/flowers_plants_0.png", fp, Vector2(0.5, 0.5))
 	vm._spawn_decor_prop(bench, place("park_bench")["pos"] + Vector2(0, -8), Vector2(0.4, 0.4))
-	vm._spawn_decor_prop(bench, Vector2(330, 236), Vector2(0.4, 0.4))
+	vm._spawn_decor_prop(bench, Vector2(372, 260), Vector2(0.4, 0.4))
 	vm._add_title_label(Vector2(224, 194), Vector2(160, 14), "🌳 Parque del Roble", Color(0.78, 0.96, 0.66), 8)
 	# Bancos de la plaza
 	vm._spawn_decor_prop(bench, place("plaza_benches")["pos"] + Vector2(0, -8), Vector2(0.4, 0.4))

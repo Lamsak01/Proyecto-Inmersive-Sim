@@ -29779,25 +29779,25 @@ stretch_mode = 1
 metadata/_edit_lock_ = true
 
 [node name="Crate" parent="Environment" unique_id=1855212024 instance=ExtResource("27_crate")]
-position = Vector2(-520, -45)
+position = Vector2(-1480, -185)
 
 [node name="Barrel" parent="Environment" unique_id=303902927 instance=ExtResource("28_barrel")]
-position = Vector2(-548, -45)
+position = Vector2(-1510, -185)
 
 [node name="WeakWall" parent="Environment" unique_id=1351388070 instance=ExtResource("29_wall")]
-position = Vector2(-575, -80)
+position = Vector2(-1545, -220)
 persistence_id = "weak_wall_tutorial_01"
 
 [node name="Items" type="Node2D" parent="." unique_id=643454969]
 
 [node name="WeaponPickup" parent="Items" unique_id=2027530117 instance=ExtResource("24_yncth")]
-position = Vector2(-445, 18)
+position = Vector2(-1085, 18)
 
 [node name="Entities" type="Node2D" parent="." unique_id=1825073484]
 y_sort_enabled = true
 
 [node name="PlayerGood" type="CharacterBody2D" parent="Entities" unique_id=2143824581 node_paths=PackedStringArray("dialogue_manager", "hint_label")]
-position = Vector2(-29, -56)
+position = Vector2(-489, -56)
 collision_layer = 2
 collision_mask = 5
 script = ExtResource("2_d1c63")
@@ -29851,7 +29851,7 @@ position = Vector2(1, -13)
 shape = SubResource("CapsuleShape2D_rvslj")
 
 [node name="Guia" type="CharacterBody2D" parent="Entities" unique_id=909967902 node_paths=PackedStringArray("dialogue_manager", "enemy_ai") groups=["interactable"]]
-position = Vector2(-415, 18)
+position = Vector2(-1055, 18)
 script = ExtResource("13_i4b1j")
 dialogue_manager = NodePath("../../Systems/dialogue_manager")
 enemy_ai = NodePath("EnemyAI")
@@ -29907,16 +29907,16 @@ script = ExtResource("26_health")
 max_health = 50.0
 
 [node name="DummyEnemy" parent="Entities" unique_id=1713658462 instance=ExtResource("25_jgbtq")]
-position = Vector2(-615, -75)
+position = Vector2(-1490, -260)
 
 [node name="FastEnemy" parent="Entities" unique_id=138097458 instance=ExtResource("30_fast")]
-position = Vector2(-685, -50)
+position = Vector2(-1620, -230)
 
 [node name="FrogEnemy" parent="Entities" unique_id=1572768814 instance=ExtResource("30_fast")]
-position = Vector2(-565, 78)
+position = Vector2(-1460, 260)
 
 [node name="FrogEnemy2" parent="Entities" unique_id=1135446713 instance=ExtResource("30_fast")]
-position = Vector2(-645, 92)
+position = Vector2(-1640, 320)
 
 [node name="UI" type="CanvasLayer" parent="." unique_id=1423720545]
 metadata/_edit_lock_ = true

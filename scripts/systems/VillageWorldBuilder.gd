@@ -10,10 +10,12 @@ extends RefCounted
 static func _spawn_village_roads_and_plaza(vm: VillageManager) -> void:
 	var dirt_col := Color(0.46, 0.36, 0.24, 0.65)
 
-	# 1. Camino Largo Oeste-Este desde el Borde Oeste del Mapa (-940, 36) hasta el Borde Este (1010, 48) y senda al Campamento del Oeste
-	_add_road_rect(vm, Rect2(Vector2(-940, 36), Vector2(1950, 28)), dirt_col)
-	_add_road_rect(vm, Rect2(Vector2(-38, -88), Vector2(18, 124)), dirt_col)
-	_add_road_rect(vm, Rect2(Vector2(-38, 64), Vector2(18, 32)), dirt_col)
+	# 1. Camino Largo Oeste-Este desde las tierras salvajes (-1950, 36) pasando por el Campamento/Lago (-525) hasta el Borde Este (1010)
+	_add_road_rect(vm, Rect2(Vector2(-1950, 36), Vector2(2960, 28)), dirt_col)
+	_add_road_rect(vm, Rect2(Vector2(-498, -88), Vector2(18, 124)), dirt_col)
+	_add_road_rect(vm, Rect2(Vector2(-498, 64), Vector2(18, 36)), dirt_col)
+	_add_road_rect(vm, Rect2(Vector2(-1520, -140), Vector2(22, 176)), dirt_col)
+	_add_road_rect(vm, Rect2(Vector2(-1520, 64), Vector2(22, 120)), dirt_col)
 
 	# 2. Plaza Central Empedrada (x = 395..535, y = 10..88) y Patio Trasero del Pozo de la Taberna
 	_add_cobble_rect(vm, Rect2(Vector2(395, 10), Vector2(140, 78)))
@@ -27,12 +29,12 @@ static func _spawn_village_roads_and_plaza(vm: VillageManager) -> void:
 	plaza_border.z_index = -2
 	vm.entities_root.add_child(plaza_border)
 
-	# 3. Avenida Norte-Sur desde la Gran Posada (-135) hasta el Bosque Profundo (+630)
-	_add_road_rect(vm, Rect2(Vector2(448, -135), Vector2(34, 765)), dirt_col)
-	_add_road_rect(vm, Rect2(Vector2(140, 130), Vector2(24, 194)), dirt_col)
-	_add_road_rect(vm, Rect2(Vector2(140, 310), Vector2(312, 24)), dirt_col)
-	_add_road_rect(vm, Rect2(Vector2(-380, 606), Vector2(1040, 24)), dirt_col)
-	_add_road_rect(vm, Rect2(Vector2(130, 626), Vector2(26, 260)), dirt_col)
+	# 3. Avenida Norte-Sur desde la Gran Posada (-135) hasta el Bosque Profundo alejado al sur (+760)
+	_add_road_rect(vm, Rect2(Vector2(448, -135), Vector2(34, 920)), dirt_col)
+	_add_road_rect(vm, Rect2(Vector2(140, 130), Vector2(24, 248)), dirt_col)
+	_add_road_rect(vm, Rect2(Vector2(140, 356), Vector2(312, 22)), dirt_col)
+	_add_road_rect(vm, Rect2(Vector2(-380, 760), Vector2(1040, 24)), dirt_col)
+	_add_road_rect(vm, Rect2(Vector2(130, 780), Vector2(26, 260)), dirt_col)
 
 	# 4. Calles del Barrio Residencial, Distrito Hospital/Comisaría Este y Callejón hacia la Iglesia y Cementerio Parroquial
 	_add_road_rect(vm, Rect2(Vector2(660, -135), Vector2(310, 24)), dirt_col)
@@ -41,8 +43,9 @@ static func _spawn_village_roads_and_plaza(vm: VillageManager) -> void:
 	_add_cobble_rect(vm, Rect2(Vector2(819, 76), Vector2(20, 186)))
 	_add_cobble_rect(vm, Rect2(Vector2(720, 244), Vector2(240, 18)))
 
-	_spawn_world_signpost(vm, Vector2(-310, 12), "⬅️ Camino a la Llanura Salvaje y Ciénaga de Ranas", Color(1.0, 0.86, 0.48))
-	_spawn_world_signpost(vm, Vector2(465, 345), "⬇️ Sendero al Bosque Profundo (A 250m al Sur)", Color(0.76, 0.96, 0.68))
+	_spawn_world_signpost(vm, Vector2(-465, 12), "🏕️ Campamento y Lago del Oeste | ➡️ Camino Largo a la Aldea", Color(0.75, 0.94, 1.0))
+	_spawn_world_signpost(vm, Vector2(-1010, 12), "⬅️ Oeste Lejano: Llanura Salvaje (N) y Ciénaga de Ranas (S)", Color(1.0, 0.86, 0.48))
+	_spawn_world_signpost(vm, Vector2(465, 580), "⬇️ Sendero al Bosque Profundo del Sur", Color(0.76, 0.96, 0.68))
 	_spawn_world_signpost(vm, Vector2(668, 72), "➡️ Este: 🏥 Hospital y Morgue Forense | 🚓 Comisaría y Cárcel", Color(0.68, 0.92, 1.0))
 
 static func _spawn_world_signpost(vm: VillageManager, pos: Vector2, text_str: String, text_col: Color) -> void:
@@ -50,21 +53,34 @@ static func _spawn_world_signpost(vm: VillageManager, pos: Vector2, text_str: St
 	vm._add_title_label(pos + Vector2(-155, -28), Vector2(310, 16), text_str, text_col, 8)
 
 static func _spawn_western_plains_and_frog_marsh(vm: VillageManager) -> void:
-	vm._add_poly(PackedVector2Array([Vector2(-860, -210), Vector2(-390, -210), Vector2(-390, 150), Vector2(-860, 150)]), Color(0.58, 0.50, 0.26, 0.44), -4)
+	# 1. Llanura Salvaje del Noroeste (separada y mucho más amplia: x = -2050..-1080, y = -560..-20)
+	var plains_poly := PackedVector2Array([
+		Vector2(-2020, -490), Vector2(-1780, -560), Vector2(-1420, -540), Vector2(-1120, -470),
+		Vector2(-1080, -260), Vector2(-1110, -45), Vector2(-1380, -20), Vector2(-1760, -28),
+		Vector2(-2040, -110), Vector2(-2060, -310)
+	])
+	vm._add_poly(plains_poly, Color(0.58, 0.50, 0.26, 0.44), -4)
+	# Ruinas de bandidos en la llanura norte
+	vm._add_poly(PackedVector2Array([
+		Vector2(-1740, -380), Vector2(-1320, -390), Vector2(-1290, -160), Vector2(-1760, -150)
+	]), Color(0.42, 0.33, 0.22, 0.62), -3)
 
-	var plains_border := Line2D.new()
-	plains_border.width = 2.5
-	plains_border.default_color = Color(0.66, 0.56, 0.30, 0.65)
-	plains_border.points = PackedVector2Array([Vector2(-860, -210), Vector2(-390, -210), Vector2(-390, 150), Vector2(-860, 150), Vector2(-860, -210)])
-	plains_border.z_index = -3
-	vm.entities_root.add_child(plains_border)
+	# 2. Ciénaga de las Ranas del Suroeste (separada al sur del camino y mucho más amplia: x = -2020..-1100, y = 110..560)
+	var marsh_outer := PackedVector2Array([
+		Vector2(-1960, 150), Vector2(-1680, 110), Vector2(-1320, 120), Vector2(-1100, 190),
+		Vector2(-1120, 420), Vector2(-1280, 540), Vector2(-1640, 560), Vector2(-1940, 490),
+		Vector2(-2020, 320)
+	])
+	var marsh_water := PackedVector2Array([
+		Vector2(-1860, 210), Vector2(-1620, 165), Vector2(-1340, 180), Vector2(-1200, 250),
+		Vector2(-1220, 390), Vector2(-1360, 470), Vector2(-1650, 485), Vector2(-1850, 420),
+		Vector2(-1910, 310)
+	])
+	vm._add_poly(marsh_outer, Color(0.26, 0.36, 0.24, 0.75), -3)
+	vm._add_poly(marsh_water, Color(0.16, 0.44, 0.42, 0.82), -2)
 
-	vm._add_poly(PackedVector2Array([Vector2(-730, -125), Vector2(-495, -125), Vector2(-495, -18), Vector2(-730, -18)]), Color(0.42, 0.33, 0.22, 0.62), -3)
-	vm._add_poly(PackedVector2Array([Vector2(-705, 36), Vector2(-510, 36), Vector2(-495, 85), Vector2(-515, 134), Vector2(-695, 134), Vector2(-718, 85)]), Color(0.26, 0.36, 0.24, 0.75), -3)
-	vm._add_poly(PackedVector2Array([Vector2(-680, 52), Vector2(-535, 52), Vector2(-522, 85), Vector2(-540, 118), Vector2(-675, 118), Vector2(-692, 85)]), Color(0.16, 0.44, 0.42, 0.82), -2)
-
-	_spawn_world_signpost(vm, Vector2(-415, -14), "🌾 Llanura Salvaje del Oeste — ⚠️ N: Ruinas Hostiles | S: Ciénaga de Ranas", Color(1.0, 0.78, 0.36))
-	_spawn_world_signpost(vm, Vector2(-605, 34), "🐸 Ciénaga de las Ranas de la Llanura", Color(0.62, 0.96, 0.68))
+	_spawn_world_signpost(vm, Vector2(-1140, -22), "🌾 Llanura Salvaje del Noroeste — ⚠️ Ruinas y Bandidos", Color(1.0, 0.78, 0.36))
+	_spawn_world_signpost(vm, Vector2(-1480, 108), "🐸 Ciénaga de las Ranas del Suroeste", Color(0.62, 0.96, 0.68))
 
 static func _add_road_rect(vm: VillageManager, rect: Rect2, col: Color) -> void:
 	vm._add_poly(PackedVector2Array([rect.position, Vector2(rect.end.x, rect.position.y), rect.end, Vector2(rect.position.x, rect.end.y)]), col, -3)

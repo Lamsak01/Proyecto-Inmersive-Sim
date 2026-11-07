@@ -27,22 +27,43 @@ const MIN_SAFE_RABBITS: int = 10
 const MIN_SAFE_DEER: int = 5
 const MIN_SAFE_BOARS: int = 4
 
+## Polígono orgánico e irregular del Bosque Profundo (Paso 2: ~3.5 veces más grande y más al sur, sin bordes rectos).
+const FOREST_POLY: Array[Vector2] = [
+	Vector2(-1180, 790), Vector2(-920, 745), Vector2(-640, 775), Vector2(-360, 735),
+	Vector2(-80, 765), Vector2(180, 740), Vector2(465, 730), Vector2(740, 760),
+	Vector2(1040, 735), Vector2(1340, 795), Vector2(1580, 940), Vector2(1640, 1240),
+	Vector2(1560, 1580), Vector2(1620, 1920), Vector2(1440, 2240), Vector2(1120, 2360),
+	Vector2(720, 2310), Vector2(340, 2390), Vector2(-80, 2330), Vector2(-480, 2380),
+	Vector2(-880, 2290), Vector2(-1220, 2140), Vector2(-1340, 1820), Vector2(-1280, 1440),
+	Vector2(-1360, 1080)
+]
+
 var burrow_positions: Array[Vector2] = [
-	Vector2(-390, 665),
-	Vector2(-220, 680),
-	Vector2(-310, 825)
+	Vector2(-920, 880),
+	Vector2(-640, 850),
+	Vector2(-420, 960),
+	Vector2(-780, 1120),
+	Vector2(-520, 1180)
 ]
 var deer_clearing_positions: Array[Vector2] = [
-	Vector2(55, 895),
-	Vector2(215, 1045)
+	Vector2(40, 1060),
+	Vector2(360, 1180),
+	Vector2(120, 1520),
+	Vector2(480, 1680),
+	Vector2(-120, 1840),
+	Vector2(280, 2020)
 ]
 var fox_den_positions: Array[Vector2] = [
-	Vector2(575, 685),
-	Vector2(715, 845)
+	Vector2(780, 900),
+	Vector2(1140, 980),
+	Vector2(960, 1340),
+	Vector2(1280, 1520)
 ]
 var boar_rooting_positions: Array[Vector2] = [
-	Vector2(-345, 995),
-	Vector2(-195, 1075)
+	Vector2(-880, 1460),
+	Vector2(-520, 1580),
+	Vector2(-740, 1860),
+	Vector2(-380, 1980)
 ]
 
 var rabbit_extinct_days: int = 0
@@ -87,32 +108,19 @@ func _spawn_distant_forest() -> void:
 	var tex_burrow: Texture2D = _load_tex("res://assests/world/harvest/rabbit_burrow.png")
 	var tex_den: Texture2D = _load_tex("res://assests/world/harvest/fox_den.png")
 
-	# 0. Suelo del Bioma de Bosque Profundo (y = 575..1240, claramente separado de la aldea y la granja)
+	# 0. Suelo orgánico del Bioma de Bosque Profundo (y = 730..2390, ~3.5x más grande y sin línea recta perimetral)
 	var forest_turf := Polygon2D.new()
-	forest_turf.polygon = PackedVector2Array([
-		Vector2(-520, 575), Vector2(860, 575),
-		Vector2(860, 1240), Vector2(-520, 1240)
-	])
+	forest_turf.polygon = PackedVector2Array(FOREST_POLY)
 	forest_turf.color = Color(0.11, 0.25, 0.14, 0.42)
 	forest_turf.z_index = -4
 	entities_root.add_child(forest_turf)
 
-	var forest_border := Line2D.new()
-	forest_border.width = 2.5
-	forest_border.default_color = Color(0.22, 0.42, 0.25, 0.65)
-	forest_border.points = PackedVector2Array([
-		Vector2(-520, 575), Vector2(860, 575),
-		Vector2(860, 1240), Vector2(-520, 1240), Vector2(-520, 575)
-	])
-	forest_border.z_index = -3
-	entities_root.add_child(forest_border)
-
 	# Carteles de Entrada al Bosque y de los 4 Hábitats Separados
-	_spawn_forest_sign(Vector2(465, 590), "🌲 Entrada al Bosque Profundo — ⬅️ Conejos y Jabalíes | ⬇️ Venados | ➡️ Cantera y Zorros")
-	_spawn_forest_sign(Vector2(-290, 595), "🐇 Pradera de Madrigueras y Hierbas (Hábitat de Conejos)")
-	_spawn_forest_sign(Vector2(-270, 945), "🐗 Robledal de Raíces y Trufas (Hábitat de Jabalíes — ⚠️ Embisten si los atacas)")
-	_spawn_forest_sign(Vector2(142, 785), "🦌 Claros de Pinos y Hongos (Hábitat de Venados)")
-	_spawn_forest_sign(Vector2(615, 595), "🦊 Cantera de Hierro y Guaridas (Hábitat de Zorros)")
+	_spawn_forest_sign(Vector2(465, 745), "🌲 Entrada al Bosque Profundo — ⬅️ Conejos y Jabalíes | ⬇️ Venados | ➡️ Cantera y Zorros")
+	_spawn_forest_sign(Vector2(-620, 810), "🐇 Soto de Madrigueras y Hierbas (Hábitat de Conejos)")
+	_spawn_forest_sign(Vector2(-640, 1410), "🐗 Robledal Profundo de Raíces y Trufas (Hábitat de Jabalíes)")
+	_spawn_forest_sign(Vector2(160, 990), "🦌 Claros del Bosque y Hongos (Hábitat de Venados)")
+	_spawn_forest_sign(Vector2(780, 815), "🦊 Riscos de Hierro y Guaridas (Hábitat de Zorros)")
 
 	# 1. Madrigueras de Conejos y Guaridas de Zorro (Props visuales en el suelo del bosque)
 	for i in range(burrow_positions.size()):
@@ -133,46 +141,65 @@ func _spawn_distant_forest() -> void:
 		d_spr.z_index = -1
 		entities_root.add_child(d_spr)
 
-	# 2. Pinos del Bosque Profundo (22 árboles distribuidos en el Bosque Sur, y = 610..1180)
+	# 2. Árboles del Bosque Profundo (60 árboles repartidos de forma irregular con claros naturales)
 	var tree_positions: Array[Vector2] = [
-		# Borde de entrada y Pradera Oeste
-		Vector2(-465, 635), Vector2(-150, 640), Vector2(-475, 760), Vector2(-145, 790),
-		Vector2(-435, 880), Vector2(-185, 895),
-		# Claros Centrales y Profundos de Venados (Centro-Sur)
-		Vector2(-45, 720), Vector2(65, 740), Vector2(245, 735), Vector2(355, 745),
-		Vector2(-55, 855), Vector2(145, 850), Vector2(315, 865),
-		Vector2(-35, 985), Vector2(130, 995), Vector2(310, 1005),
-		Vector2(20, 1135), Vector2(165, 1150), Vector2(295, 1140),
-		# Borde de la Cantera Este
-		Vector2(475, 725), Vector2(815, 715), Vector2(645, 935)
+		# Linde norte irregular y Soto Noroeste
+		Vector2(-1080, 840), Vector2(-840, 810), Vector2(-540, 820), Vector2(-310, 795),
+		Vector2(-1020, 980), Vector2(-740, 970), Vector2(-340, 910), Vector2(-210, 860),
+		Vector2(-1140, 1150), Vector2(-890, 1180), Vector2(-640, 1080), Vector2(-380, 1120),
+		Vector2(-1060, 1320), Vector2(-780, 1310), Vector2(-460, 1290), Vector2(-240, 1240),
+		# Robledal Suroeste y Sur Profundo (Jabalíes)
+		Vector2(-1180, 1520), Vector2(-980, 1560), Vector2(-680, 1510), Vector2(-390, 1480),
+		Vector2(-1120, 1740), Vector2(-860, 1720), Vector2(-590, 1740), Vector2(-310, 1690),
+		Vector2(-1040, 1960), Vector2(-780, 2020), Vector2(-510, 1920), Vector2(-260, 1950),
+		Vector2(-860, 2180), Vector2(-560, 2190), Vector2(-240, 2210),
+		# Claros Centrales y Bosquete Sur (Venados)
+		Vector2(-95, 850), Vector2(85, 835), Vector2(290, 825), Vector2(540, 830),
+		Vector2(-140, 1020), Vector2(210, 980), Vector2(460, 1010), Vector2(620, 990),
+		Vector2(-80, 1240), Vector2(190, 1260), Vector2(490, 1280), Vector2(680, 1220),
+		Vector2(-160, 1460), Vector2(280, 1440), Vector2(580, 1480),
+		Vector2(-40, 1680), Vector2(240, 1710), Vector2(620, 1720),
+		Vector2(60, 1940), Vector2(420, 1960), Vector2(680, 1950),
+		Vector2(-60, 2180), Vector2(190, 2220), Vector2(520, 2190), Vector2(820, 2160),
+		# Linde Este y Riscos (Zorros y Cantera)
+		Vector2(920, 840), Vector2(1220, 870), Vector2(1420, 990),
+		Vector2(880, 1140), Vector2(1360, 1180), Vector2(1460, 1420),
+		Vector2(860, 1580), Vector2(1140, 1680), Vector2(1420, 1760),
+		Vector2(980, 1980), Vector2(1280, 2060)
 	]
 	_spawn_harvest_batch("ForestTree", tree_positions, HarvestableNode.HarvestType.LOGGING, "Pino del Valle", "wood", 3, "crop_seeds", 1, 30.0, 2, 0, tex_tree, tex_stump, Vector2(0.85, 0.85), 12.0)
 
 	var rock_positions: Array[Vector2] = [
-		Vector2(515, 648), Vector2(635, 645), Vector2(755, 660), Vector2(530, 755),
-		Vector2(655, 765), Vector2(785, 780), Vector2(585, 885), Vector2(755, 905)
+		Vector2(740, 860), Vector2(880, 880), Vector2(1040, 860), Vector2(1180, 910),
+		Vector2(790, 1040), Vector2(980, 1060), Vector2(1160, 1090), Vector2(1310, 1060),
+		Vector2(840, 1260), Vector2(1060, 1250), Vector2(1240, 1290),
+		Vector2(920, 1460), Vector2(1140, 1480), Vector2(1340, 1560)
 	]
 	_spawn_harvest_batch("OreVein", rock_positions, HarvestableNode.HarvestType.MINING, "Veta de Hierro y Piedra", "stone", 2, "iron_ore", 2, 35.0, 2, 0, tex_rock, tex_rock_depleted, Vector2(1.15, 1.15), 12.0)
 
 	var herb_positions: Array[Vector2] = [
-		Vector2(-435, 650), Vector2(-345, 645), Vector2(-265, 655), Vector2(-180, 665),
-		Vector2(-420, 725), Vector2(-325, 730), Vector2(-235, 735), Vector2(-175, 745),
-		Vector2(-405, 810), Vector2(-345, 855), Vector2(-260, 835), Vector2(-195, 825)
+		Vector2(-980, 860), Vector2(-780, 840), Vector2(-580, 870), Vector2(-410, 850),
+		Vector2(-910, 1020), Vector2(-690, 1010), Vector2(-490, 1030), Vector2(-310, 1010),
+		Vector2(-840, 1180), Vector2(-610, 1210), Vector2(-430, 1190), Vector2(-260, 1150),
+		Vector2(-720, 1360), Vector2(-520, 1380), Vector2(-180, 920), Vector2(140, 910),
+		Vector2(380, 920), Vector2(-60, 1360), Vector2(340, 1360), Vector2(740, 1380)
 	]
 	_spawn_harvest_batch("WildHerb", herb_positions, HarvestableNode.HarvestType.FORAGE, "Hierbas Medicinales", "herbs", 2, "", 0, 15.0, 1, 2, tex_herb, null, Vector2(1.1, 1.1), 8.0)
 
 	var mush_positions: Array[Vector2] = [
-		Vector2(-10, 835), Vector2(85, 830), Vector2(195, 840), Vector2(275, 855),
-		Vector2(15, 935), Vector2(115, 945), Vector2(235, 955),
-		Vector2(45, 1065), Vector2(165, 1085), Vector2(265, 1075),
-		Vector2(-385, 975), Vector2(-285, 1015), Vector2(-225, 1055), Vector2(-145, 1095)
+		Vector2(-40, 1020), Vector2(120, 1040), Vector2(290, 1080), Vector2(440, 1120),
+		Vector2(-20, 1180), Vector2(160, 1190), Vector2(350, 1220),
+		Vector2(60, 1460), Vector2(210, 1510), Vector2(420, 1560),
+		Vector2(-80, 1760), Vector2(140, 1810), Vector2(360, 1840), Vector2(220, 2060),
+		Vector2(-940, 1440), Vector2(-760, 1490), Vector2(-580, 1540), Vector2(-440, 1620),
+		Vector2(-820, 1790), Vector2(-640, 1840), Vector2(-460, 1890), Vector2(-320, 2020)
 	]
 	_spawn_harvest_batch("WildMushroom", mush_positions, HarvestableNode.HarvestType.FORAGE, "Hongos Silvestres", "mushroom", 2, "", 0, 15.0, 1, 2, tex_mushroom, null, Vector2(1.1, 1.1), 8.0)
 
-	_spawn_animal_pool(rabbit_pool, "WildRabbit", WildAnimal.SpeciesType.RABBIT, "Conejo Silvestre", 16, 10, burrow_positions, 18.0, 65.0, 12.0, 999.0, 28.0, 134.0, 85.0, [1, 1, "leather", 1, 0, 0, 1], tex_rabbit, Vector2(1.1, 1.1), 6.0)
-	_spawn_animal_pool(deer_pool, "WildDeer", WildAnimal.SpeciesType.DEER, "Venado del Valle", 9, 6, deer_clearing_positions, 22.0, 60.0, 26.0, 999.0, 22.0, 118.0, 95.0, [2, 1, "leather", 2, 1, 1, 1], tex_deer, Vector2(1.15, 1.15), 9.0)
-	_spawn_animal_pool(fox_pool, "WildFox", WildAnimal.SpeciesType.FOX, "Zorro del Bosque", 6, 3, fox_den_positions, 20.0, 50.0, 20.0, 999.0, 32.0, 122.0, 78.0, [1, 1, "fox_pelt", 1, 0, 1, 0], tex_fox, Vector2(1.15, 1.15), 7.5)
-	_spawn_animal_pool(boar_pool, "WildBoar", WildAnimal.SpeciesType.BOAR, "Jabalí del Bosque", 7, 5, boar_rooting_positions, 22.0, 55.0, 66.0, 22.0, 24.0, 138.0, 85.0, [3, 2, "leather", 2, 0, 1, 2], tex_boar, Vector2(1.22, 1.22), 9.5)
+	_spawn_animal_pool(rabbit_pool, "WildRabbit", WildAnimal.SpeciesType.RABBIT, "Conejo Silvestre", 16, 10, burrow_positions, 45.0, 175.0, 12.0, 999.0, 28.0, 134.0, 85.0, [1, 1, "leather", 1, 0, 0, 1], tex_rabbit, Vector2(1.1, 1.1), 6.0)
+	_spawn_animal_pool(deer_pool, "WildDeer", WildAnimal.SpeciesType.DEER, "Venado del Valle", 9, 6, deer_clearing_positions, 55.0, 210.0, 26.0, 999.0, 22.0, 118.0, 95.0, [2, 1, "leather", 2, 1, 1, 1], tex_deer, Vector2(1.15, 1.15), 9.0)
+	_spawn_animal_pool(fox_pool, "WildFox", WildAnimal.SpeciesType.FOX, "Zorro del Bosque", 6, 3, fox_den_positions, 50.0, 190.0, 20.0, 999.0, 32.0, 122.0, 78.0, [1, 1, "fox_pelt", 1, 0, 1, 0], tex_fox, Vector2(1.15, 1.15), 7.5)
+	_spawn_animal_pool(boar_pool, "WildBoar", WildAnimal.SpeciesType.BOAR, "Jabalí del Bosque", 7, 5, boar_rooting_positions, 55.0, 195.0, 66.0, 22.0, 24.0, 138.0, 85.0, [3, 2, "leather", 2, 0, 1, 2], tex_boar, Vector2(1.22, 1.22), 9.5)
 
 func _spawn_harvest_batch(prefix: String, positions: Array[Vector2], h_type: HarvestableNode.HarvestType, title: String, p_id: String, p_amt: int, b_id: String, b_amt: int, hp: float, r_days: int, bites: int, tex_main: Texture2D, tex_dep: Texture2D, sc: Vector2, rad: float) -> void:
 	for i in range(positions.size()):

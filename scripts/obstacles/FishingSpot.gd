@@ -32,15 +32,15 @@ var _is_fish_inside: bool = false
 var dock_pos: Vector2 = Vector2(36, 0)
 
 ## Orilla del agua del Lago del Oeste en coordenadas del MAPA (2026-11-05: unas tres veces más grande, hacia el oeste y el sur).
-## El muelle sigue en la orilla este, el Lavadero queda en la orilla norte y el Mirador en la sur.
+## Orilla del agua del Lago del Oeste en coordenadas del MAPA (Paso 2: alejado al oeste junto al campamento inicial, un solo muelle al este).
 ## La usa también el escenario 3D (`WorldStage3D._build_lake_3d`).
 ## Posición del nodo del lago en el mapa (la pone World.gd después de _ready).
-const LAKE_NODE_POS := Vector2(-65, 105)
+const LAKE_NODE_POS := Vector2(-525, 105)
 const LAKE_WATER_WORLD: Array[Vector2] = [
-	Vector2(-60, 78), Vector2(-25, 82), Vector2(-17, 105), Vector2(-27, 138), Vector2(-70, 152),
-	Vector2(-130, 160), Vector2(-200, 188), Vector2(-270, 232), Vector2(-350, 240), Vector2(-412, 205),
-	Vector2(-428, 150), Vector2(-405, 110), Vector2(-340, 96), Vector2(-260, 104), Vector2(-185, 108),
-	Vector2(-110, 104),
+	Vector2(-520, 78), Vector2(-485, 82), Vector2(-477, 105), Vector2(-487, 138), Vector2(-530, 152),
+	Vector2(-590, 160), Vector2(-660, 188), Vector2(-730, 232), Vector2(-810, 240), Vector2(-872, 205),
+	Vector2(-888, 150), Vector2(-865, 110), Vector2(-800, 96), Vector2(-720, 104), Vector2(-645, 108),
+	Vector2(-570, 104),
 ]
 
 

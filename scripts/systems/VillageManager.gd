@@ -2292,7 +2292,7 @@ func _spawn_unemployed_tavern_guests() -> void:
 
 func _spawn_domestic_pets() -> void:
 	var pet_defs: Array[Dictionary] = [
-		{"type": DomesticPet.PetType.DOG, "name": "Toby", "owner": "Granja del Jugador", "fam": "player_farm", "pos": Vector2(128, 126), "guard": true, "tint": Color(1.0, 0.96, 0.90)},
+		{"type": DomesticPet.PetType.DOG, "name": "Toby", "owner": "Granja del Jugador", "fam": "player_farm", "pos": Vector2(-495, -52), "guard": true, "tint": Color(1.0, 0.96, 0.90)},
 		{"type": DomesticPet.PetType.DOG, "name": "Sultán", "owner": "Herrería Yunque Gris", "fam": "family_smith", "pos": Vector2(365, 16), "guard": false, "tint": Color(0.88, 0.82, 0.78)},
 		{"type": DomesticPet.PetType.DOG, "name": "Canela", "owner": "Barrio Residencial", "fam": "family_carpenter", "pos": Vector2(745, -135), "guard": false, "tint": Color(1.0, 0.85, 0.72)},
 		{"type": DomesticPet.PetType.CAT, "name": "Michi", "owner": "Posada El Jabalí Dorado", "fam": "family_tavern", "pos": Vector2(405, -168), "guard": false, "tint": Color(1.0, 0.92, 0.82)},
@@ -2364,8 +2364,11 @@ func is_position_near_water_source(world_pos: Vector2, max_meters: float = 2.0) 
 				return true
 			if world_pos.distance_squared_to(s_pos + Vector2(36, 0)) <= max_well_dist * max_well_dist:
 				return true
-	# Charca de agua de la Ciénaga del Oeste
-	if Rect2(Vector2(-692, 52), Vector2(170, 66)).grow(max_meters * 16.0).has_point(world_pos):
+	# Charca de agua de la Ciénaga del Suroeste
+	if Rect2(Vector2(-1910, 165), Vector2(710, 320)).grow(max_meters * 16.0).has_point(world_pos):
+		return true
+	# Arroyo / Fuente del Lavadero del pueblo
+	if world_pos.distance_squared_to(VillageWork.LAVADERO_POS) <= max_well_dist * max_well_dist:
 		return true
 	# Lavabo quirúrgico junto a la Cama de Urgencias del Hospital
 	if world_pos.distance_squared_to(_hospital_bed_pos) <= max_well_dist * max_well_dist:

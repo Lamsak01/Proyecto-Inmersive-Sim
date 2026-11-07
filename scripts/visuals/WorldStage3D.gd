@@ -496,16 +496,22 @@ func _build_static_terrain_3d() -> void:
 
 	# Caminos principales y calles con relieve 3D
 	var road_rects: Array[Rect2] = [
-		Rect2(Vector2(-940, 36), Vector2(2485, 28)),
-		Rect2(Vector2(-38, -88), Vector2(18, 124)),
-		Rect2(Vector2(-38, 64), Vector2(18, 32)),
+		Rect2(Vector2(-1950, 36), Vector2(3288, 28)),
+		Rect2(Vector2(-498, -88), Vector2(18, 124)),
+		Rect2(Vector2(-498, 64), Vector2(18, 36)),
+		Rect2(Vector2(-1520, -140), Vector2(22, 176)),
+		Rect2(Vector2(-1520, 64), Vector2(22, 120)),
 		Rect2(Vector2(452, -310), Vector2(26, 350)),
-		Rect2(Vector2(452, 62), Vector2(26, 280)),
+		Rect2(Vector2(452, 62), Vector2(26, 700)),
+		Rect2(Vector2(-380, 760), Vector2(1040, 24)),
+		Rect2(Vector2(130, 780), Vector2(26, 260)),
+		Rect2(Vector2(140, 130), Vector2(24, 248)),
+		Rect2(Vector2(140, 356), Vector2(312, 22)),
 		Rect2(Vector2(822, -230), Vector2(24, 520)),
-		Rect2(Vector2(215, -310), Vector2(20, 620)),
+		Rect2(Vector2(215, -310), Vector2(20, 515)),
 		Rect2(Vector2(1078, -230), Vector2(20, 480)),
 		Rect2(Vector2(1318, -230), Vector2(20, 480)),
-		Rect2(Vector2(215, 232), Vector2(1120, 20)),
+		Rect2(Vector2(452, 232), Vector2(885, 20)),
 	]
 	for rr in road_rects:
 		_add_box_2d(terrain_root_3d, rr.get_center(), rr.size, 0.0, 1.2, m_road)
@@ -545,10 +551,6 @@ func _build_static_terrain_3d() -> void:
 
 	# (2026-11-06) Los pozos ya no van fijos aquí: los pone _sync_props_3d donde esté cada pozo 2D (también los de solares nuevos).
 
-	# Compostador, carretas y barriles de la Granja y Rancho Sur
-	# (2026-11-05) Quitados el carro, las cajas, el compostador 3D duplicado y los animales de adorno del «rancho»:
-	# estaban encima de la granja del jugador o en un cruce de caminos y no eran objetos del juego.
-
 	# Corral 3D de madera y tierra del Rancho del Sur (x = 310..397, y = 400..540; el ganado vivo lo sincroniza VillageHousing.sync_livestock)
 	var ranch_floor_r := Rect2(Vector2(310.0, 400.0), Vector2(87.0, 140.0))
 	_add_box_2d(terrain_root_3d, ranch_floor_r.get_center(), ranch_floor_r.size, 0.0, 0.8, m_road)
@@ -560,29 +562,29 @@ func _build_static_terrain_3d() -> void:
 	]:
 		_build_fence_run_3d(terrain_root_3d, r_side[0] as Vector2, r_side[1] as Vector2, m_wood)
 
-	# Parque del Roble (Rect2(184, 216, 240, 84)) con árboles, bancos y macetas 3D reales
-	var park_r := Rect2(Vector2(184.0, 216.0), Vector2(240.0, 84.0))
+	# Parque del Roble ampliado (Rect2(168, 208, 272, 146)) sin murete cerrado y con bancos despejados de árboles
+	var park_r := Rect2(Vector2(168.0, 208.0), Vector2(272.0, 146.0))
 	var park_c: Vector2 = park_r.get_center()
-	_add_box_2d(terrain_root_3d, park_c, park_r.size, 0.0, 1.4, m_grass_park)
-	_add_box_2d(terrain_root_3d, park_c + Vector2(0.0, -park_r.size.y * 0.5), Vector2(park_r.size.x + 2.0, 3.0), 0.0, 4.5, m_curb)
-	_add_box_2d(terrain_root_3d, park_c + Vector2(0.0, park_r.size.y * 0.5), Vector2(park_r.size.x + 2.0, 3.0), 0.0, 4.5, m_curb)
+	_add_box_2d(terrain_root_3d, park_c, park_r.size, 0.0, 1.2, m_grass_park)
+	_add_box_2d(terrain_root_3d, Vector2(park_c.x, 280.0), Vector2(park_r.size.x - 16.0, 18.0), 0.0, 1.5, m_road)
+	_add_box_2d(terrain_root_3d, park_c, Vector2(18.0, park_r.size.y - 16.0), 0.0, 1.5, m_road)
 	var tree_idx := 0
-	for tp in [Vector2(200.0, 232.0), Vector2(410.0, 236.0), Vector2(270.0, 290.0), Vector2(380.0, 288.0), Vector2(304.0, 256.0)]:
-		_build_tree_3d(terrain_root_3d, tp, m_dark_wood, m_pine, m_pine_top, 1.22 if tp == Vector2(304.0, 256.0) else 0.95, tree_idx)
+	for tp in [Vector2(188.0, 224.0), Vector2(420.0, 224.0), Vector2(188.0, 338.0), Vector2(420.0, 338.0), Vector2(304.0, 228.0)]:
+		_build_tree_3d(terrain_root_3d, tp, m_dark_wood, m_pine, m_pine_top, 1.22 if tp == Vector2(304.0, 228.0) else 0.95, tree_idx)
 		tree_idx += 1
-	_build_bench_3d(terrain_root_3d, Vector2(232.0, 228.0), m_wood, m_iron)
-	_build_bench_3d(terrain_root_3d, Vector2(330.0, 236.0), m_wood, m_iron)
-	for fp in [Vector2(304.0, 228.0), Vector2(250.0, 280.0), Vector2(350.0, 262.0)]:
+	_build_bench_3d(terrain_root_3d, Vector2(236.0, 260.0), m_wood, m_iron)
+	_build_bench_3d(terrain_root_3d, Vector2(372.0, 260.0), m_wood, m_iron)
+	for fp in [Vector2(248.0, 226.0), Vector2(360.0, 226.0), Vector2(248.0, 334.0), Vector2(360.0, 334.0), Vector2(304.0, 316.0)]:
 		_add_cyl_2d(terrain_root_3d, fp, 4.5, 0.0, 4.5, _mat("terracotta_pot", Color(0.68, 0.34, 0.20), 0.85, 0.0), 3.2, 8)
 		_add_cyl_2d(terrain_root_3d, fp, 5.2, 4.0, 4.5, m_pine_top, 3.5, 8)
 	# Bancos de la plaza y Mirador del Lago en 3D
 	_build_bench_3d(terrain_root_3d, Vector2(500.0, 66.0), m_wood, m_iron)
 	_build_bench_3d(terrain_root_3d, Vector2(440.0, 80.0), m_wood, m_iron)
-	var lv_pos := Vector2(-65.0, 166.0)
+	var lv_pos := Vector2(-525.0, 166.0)
 	_build_fence_run_3d(terrain_root_3d, lv_pos + Vector2(-34.0, -12.0), lv_pos + Vector2(34.0, -12.0), m_wood)
 	_build_bench_3d(terrain_root_3d, lv_pos + Vector2(0.0, -2.0), m_wood, m_iron)
 
-	# Lavadero Municipal, en su sitio real (orilla norte del lago)
+	# Lavadero Municipal, recolocado junto a una fuente/acequia del pueblo (al oeste de la Botica y al norte del Parque)
 	var wash_c: Vector2 = VillageWorkScript.LAVADERO_POS
 	_add_box_2d(terrain_root_3d, wash_c, Vector2(46, 32), 0.0, 2.0, m_stone)
 	_add_box_2d(terrain_root_3d, wash_c, Vector2(32, 14), 2.0, 5.5, m_curb)
@@ -593,21 +595,53 @@ func _build_static_terrain_3d() -> void:
 	_add_model_2d(terrain_root_3d, "props/Bucket_Wooden_1.gltf", wash_c + Vector2(-14, 10), 2.0, Vector2.ZERO, 6.5)
 	_add_model_2d(terrain_root_3d, "props/Barrel.gltf", wash_c + Vector2(16, -10), 2.0, Vector2.ZERO, 10.0)
 
-	# Lago del Oeste (el de verdad, donde se pesca), ampliado; sauces en la orilla
+	# Lago del Oeste (junto al campamento inicial, un solo muelle, sin lavadero); sauces en la orilla
 	_build_lake_3d()
-	_add_model_2d(terrain_root_3d, "nature/Willow_1.obj", Vector2(-300, 82), 0.0, Vector2.ZERO, 40.0)
-	_add_model_2d(terrain_root_3d, "nature/Willow_2.obj", Vector2(-440, 190), 0.0, Vector2.ZERO, 38.0, 70.0)
-	_add_model_2d(terrain_root_3d, "nature/Willow_1.obj", Vector2(-190, 210), 0.0, Vector2.ZERO, 34.0, 140.0)
+	_add_model_2d(terrain_root_3d, "nature/Willow_1.obj", Vector2(-760, 82), 0.0, Vector2.ZERO, 40.0)
+	_add_model_2d(terrain_root_3d, "nature/Willow_2.obj", Vector2(-900, 190), 0.0, Vector2.ZERO, 38.0, 70.0)
+	_add_model_2d(terrain_root_3d, "nature/Willow_1.obj", Vector2(-650, 225), 0.0, Vector2.ZERO, 34.0, 140.0)
 
-	# Ciénaga de las Ranas del Oeste (Rect2(Vector2(-692, 52), Vector2(170, 66)))
-	var marsh_r := Rect2(Vector2(-692, 52), Vector2(170, 66))
-	_add_box_2d(terrain_root_3d, marsh_r.get_center(), marsh_r.size, 0.0, 1.2, m_marsh)
-	_add_box_2d(terrain_root_3d, marsh_r.get_center() + Vector2(0, -18), Vector2(68, 8), 1.2, 2.0, m_wood)
-	for rp in [Vector2(-665, 66), Vector2(-630, 102), Vector2(-585, 74), Vector2(-545, 98)]:
-		if _add_model_2d(terrain_root_3d, "nature/Bush_1.obj", rp, 1.0, Vector2.ZERO, 10.0) == null:
+	# Ciénaga de las Ranas del Suroeste (separada de la Llanura Salvaje y ampliada)
+	var marsh_water_pts := PackedVector2Array([
+		Vector2(-1860, 210), Vector2(-1620, 165), Vector2(-1340, 180), Vector2(-1200, 250),
+		Vector2(-1220, 390), Vector2(-1360, 470), Vector2(-1650, 485), Vector2(-1850, 420),
+		Vector2(-1910, 310)
+	])
+	_add_flat_poly_2d(terrain_root_3d, marsh_water_pts, 0.65, m_marsh)
+	_add_box_2d(terrain_root_3d, Vector2(-1520, 188), Vector2(76, 12), 1.2, 2.0, m_wood)
+	for rp in [
+		Vector2(-1820, 220), Vector2(-1710, 185), Vector2(-1580, 240), Vector2(-1410, 210),
+		Vector2(-1290, 280), Vector2(-1350, 420), Vector2(-1560, 440), Vector2(-1760, 380)
+	]:
+		if _add_model_2d(terrain_root_3d, "nature/Bush_1.obj", rp, 1.0, Vector2.ZERO, 12.0) == null:
 			_add_cyl_2d(terrain_root_3d, rp, 4.0, 1.0, 8.0, m_pine, 1.5, 6)
-	_add_model_2d(terrain_root_3d, "nature/Willow_2.obj", Vector2(-678, 56), 0.0, Vector2.ZERO, 30.0)
-	_add_model_2d(terrain_root_3d, "nature/Rock_2.obj", Vector2(-540, 62), 0.0, Vector2.ZERO, 11.0)
+	_add_model_2d(terrain_root_3d, "nature/Willow_2.obj", Vector2(-1840, 195), 0.0, Vector2.ZERO, 36.0)
+	_add_model_2d(terrain_root_3d, "nature/Willow_1.obj", Vector2(-1260, 395), 0.0, Vector2.ZERO, 34.0, 110.0)
+	_add_model_2d(terrain_root_3d, "nature/Rock_2.obj", Vector2(-1390, 190), 0.0, Vector2.ZERO, 13.0)
+	_add_model_2d(terrain_root_3d, "nature/WoodLog.obj", Vector2(-1640, 340), 0.5, Vector2.ZERO, 16.0, 35.0)
+
+	# Matorral, arbustos de bayas y troncos caídos repartidos por el Bosque Profundo ampliado (y = 780..2300)
+	var forest_bushes: Array[Vector2] = [
+		Vector2(-960, 910), Vector2(-680, 920), Vector2(-460, 870), Vector2(-820, 1080),
+		Vector2(-520, 1140), Vector2(-940, 1380), Vector2(-640, 1420), Vector2(-380, 1380),
+		Vector2(-820, 1640), Vector2(-480, 1660), Vector2(-720, 1920), Vector2(-380, 2060),
+		Vector2(-120, 920), Vector2(180, 910), Vector2(420, 930), Vector2(40, 1140),
+		Vector2(340, 1140), Vector2(-40, 1380), Vector2(260, 1360), Vector2(540, 1390),
+		Vector2(140, 1620), Vector2(440, 1640), Vector2(-80, 1860), Vector2(280, 1880),
+		Vector2(120, 2120), Vector2(460, 2110), Vector2(820, 960), Vector2(1120, 1040),
+		Vector2(940, 1220), Vector2(1220, 1360), Vector2(980, 1640), Vector2(1180, 1840)
+	]
+	var bush_models := ["nature/Bush_1.obj", "nature/Bush_2.obj", "nature/BushBerries_1.obj", "nature/BushBerries_2.obj"]
+	for bi in range(forest_bushes.size()):
+		var bm: String = bush_models[bi % bush_models.size()]
+		_add_model_2d(terrain_root_3d, bm, forest_bushes[bi], 0.0, Vector2.ZERO, 12.5, float((bi * 47) % 360))
+	var fallen_logs: Array[Vector2] = [
+		Vector2(-860, 1040), Vector2(-490, 1240), Vector2(-740, 1560), Vector2(-560, 1820),
+		Vector2(-20, 1090), Vector2(290, 1310), Vector2(80, 1580), Vector2(380, 1810),
+		Vector2(180, 2040), Vector2(890, 1180), Vector2(1080, 1490), Vector2(1120, 1920)
+	]
+	for li in range(fallen_logs.size()):
+		_add_model_2d(terrain_root_3d, "nature/WoodLog.obj", fallen_logs[li], 0.0, Vector2.ZERO, 16.0, float((li * 63) % 360))
 
 	# Cercado del Cementerio Parroquial (Rect2(Vector2(822, 258), Vector2(174, 108))) con Cripta, sendero de piedra y lápidas proporcionadas
 	var cem_r := Rect2(Vector2(822, 258), Vector2(174, 108))
@@ -1352,11 +1386,11 @@ func _build_restaurant_3d(b_root: Node3D, wall_h: float, m_wall: Material, m_tri
 		cur = gx + R.GAP * 0.5
 	if x1 - cur > 2.0:
 		_add_box_2d(b_root, Vector2((cur + x1) * 0.5, R.ROW_Y), Vector2(x1 - cur, 5.5), 2.0, ih, m_wall)
-	for vx in [1105.0, 1160.0]:
+	for vx in [R.BASE.x + 85.0, R.BASE.x + 140.0]:
 		_add_box_2d(b_root, Vector2(vx, (R.RECT.position.y + R.ROW_Y) * 0.5), Vector2(5.5, R.ROW_Y - R.RECT.position.y), 2.0, ih, m_wall)
 	var top: float = R.RECT.position.y
 	var bottom: float = R.RECT.end.y
-	var gy: float = 349.0
+	var gy: float = R.BASE.y + 135.0
 	_add_box_2d(b_root, Vector2(R.KITCHEN_X, (top + gy - R.GAP * 0.5) * 0.5), Vector2(5.5, gy - R.GAP * 0.5 - top), 2.0, ih, m_wall)
 	_add_box_2d(b_root, Vector2(R.KITCHEN_X, (gy + R.GAP * 0.5 + bottom) * 0.5), Vector2(5.5, bottom - gy - R.GAP * 0.5), 2.0, ih, m_wall)
 	_add_box_2d(b_root, Vector2(R.KITCHEN_X, gy), Vector2(5.5, R.GAP + 4.0), 2.0 + ih * 0.78, ih * 0.22, m_trim)
@@ -1380,13 +1414,13 @@ func _build_restaurant_3d(b_root: Node3D, wall_h: float, m_wall: Material, m_tri
 	_add_box_2d(b_root, R.PIANO_POS, Vector2(22, 9), 2.0, 16.0, m_black)
 	_add_box_2d(b_root, R.PIANO_POS + Vector2(0, -5.0), Vector2(20, 3), 9.0, 1.2, m_felt)
 	_add_box_2d(b_root, R.PIANO_POS + Vector2(0, -8.0), Vector2(10, 5), 2.0, 6.0, m_dark_wood) # banqueta
-	for pp in [Vector2(1060, 297), Vector2(1170, 297)]: # cuadros en el tabique del fondo
+	for pp in [R.BASE + Vector2(40, 83), R.BASE + Vector2(150, 83)]: # cuadros en el tabique del fondo
 		_add_box_2d(b_root, pp, Vector2(16, 1.5), 13.0, 11.0, m_frame)
 		_add_box_2d(b_root, pp + Vector2(0, 0.6), Vector2(13, 1.0), 14.5, 8.0, m_canvas_p)
-	for pl_p in [Vector2(1028, 302), Vector2(1207, 302), Vector2(1207, 398)]:
+	for pl_p in [R.BASE + Vector2(8, 88), R.BASE + Vector2(187, 88), R.BASE + Vector2(187, 184)]:
 		_add_cyl_2d(b_root, pl_p, 3.5, 2.0, 5.0, m_pot, 2.8, 10)
 		_add_cyl_2d(b_root, pl_p, 4.5, 7.0, 7.0, m_plant, 1.5, 8)
-	for ch in [Vector2(1066, 346), Vector2(1158, 346)]:
+	for ch in [R.BASE + Vector2(46, 132), R.BASE + Vector2(138, 132)]:
 		_add_model_2d(b_root, "props/Chandelier.gltf", ch, ih - 8.0, Vector2(12.0, 12.0), 7.0)
 		_restaurant_light(b_root, ch, ih - 6.0, Color(1.0, 0.80, 0.52), 1.15, 2.6, false)
 
@@ -1397,51 +1431,51 @@ func _build_restaurant_3d(b_root: Node3D, wall_h: float, m_wall: Material, m_tri
 	_add_model_2d(b_root, "props/Pot_1.gltf", R.STOVE_POS + Vector2(6, 0), 12.0, Vector2(6.0, 6.0), 4.5)
 	_add_box_2d(b_root, R.STOVE_POS + Vector2(0, -8), Vector2(26, 3), 22.0, 10.0, m_steel) # campana
 	_add_model_2d(b_root, "props/Workbench.gltf", R.KITCHEN_COUNTER, 2.0, Vector2(30.0, 10.0), 10.0)
-	_add_box_2d(b_root, Vector2(1230, 330), Vector2(10, 18), 2.0, 9.0, m_steel) # fregadero
-	_add_model_2d(b_root, "props/Bucket_Metal.gltf", Vector2(1230, 344), 2.0, Vector2(5.0, 5.0), 5.0)
-	_add_model_2d(b_root, "props/FarmCrate_Carrot.gltf", Vector2(1286, 362), 2.0, Vector2(9.0, 7.0), 6.0)
-	_add_model_2d(b_root, "props/FarmCrate_Apple.gltf", Vector2(1286, 376), 2.0, Vector2(9.0, 7.0), 6.0)
-	_add_model_2d(b_root, "props/Barrel_Apples.gltf", Vector2(1232, 392), 2.0, Vector2(8.0, 8.0), 9.0)
-	_restaurant_light(b_root, Vector2(1255, 340), ih - 4.0, Color(1.0, 0.92, 0.80), 0.9, 2.2, false)
+	_add_box_2d(b_root, R.BASE + Vector2(210, 116), Vector2(10, 18), 2.0, 9.0, m_steel) # fregadero
+	_add_model_2d(b_root, "props/Bucket_Metal.gltf", R.BASE + Vector2(210, 130), 2.0, Vector2(5.0, 5.0), 5.0)
+	_add_model_2d(b_root, "props/FarmCrate_Carrot.gltf", R.BASE + Vector2(266, 148), 2.0, Vector2(9.0, 7.0), 6.0)
+	_add_model_2d(b_root, "props/FarmCrate_Apple.gltf", R.BASE + Vector2(266, 162), 2.0, Vector2(9.0, 7.0), 6.0)
+	_add_model_2d(b_root, "props/Barrel_Apples.gltf", R.BASE + Vector2(212, 178), 2.0, Vector2(8.0, 8.0), 9.0)
+	_restaurant_light(b_root, R.BASE + Vector2(235, 126), ih - 4.0, Color(1.0, 0.92, 0.80), 0.9, 2.2, false)
 
 	# --- Cámara frigorífica: paredes forradas de escarcha, bloques de hielo, carne colgada de un riel y marco de acero
 	var cam: Rect2 = R.ROOMS["camara"]
 	_add_box_2d(b_root, Vector2(cam.get_center().x, cam.position.y + 4.0), Vector2(cam.size.x - 8.0, 2.0), 2.0, ih - 2.0, m_frost)
 	_add_box_2d(b_root, Vector2(cam.end.x - 4.0, cam.get_center().y), Vector2(2.0, cam.size.y - 8.0), 2.0, ih - 2.0, m_frost)
 	_add_box_2d(b_root, Vector2(cam.position.x + 4.0, cam.get_center().y), Vector2(2.0, cam.size.y - 8.0), 2.0, ih - 2.0, m_frost)
-	for ip in [Vector2(1226, 222), Vector2(1226, 236), Vector2(1288, 224), Vector2(1288, 238)]:
+	for ip in [R.BASE + Vector2(206, 8), R.BASE + Vector2(206, 22), R.BASE + Vector2(268, 10), R.BASE + Vector2(268, 24)]:
 		_add_box_2d(b_root, ip, Vector2(10, 10), 2.0, 8.0, m_ice)
-	_add_box_2d(b_root, Vector2(1262, 232), Vector2(46, 1.5), ih - 5.0, 1.5, m_steel) # riel de ganchos
-	for mp in [Vector2(1246, 232), Vector2(1258, 232), Vector2(1270, 232), Vector2(1280, 232)]:
+	_add_box_2d(b_root, R.BASE + Vector2(242, 18), Vector2(46, 1.5), ih - 5.0, 1.5, m_steel) # riel de ganchos
+	for mp in [R.BASE + Vector2(226, 18), R.BASE + Vector2(238, 18), R.BASE + Vector2(250, 18), R.BASE + Vector2(260, 18)]:
 		_add_box_2d(b_root, mp, Vector2(0.6, 0.6), ih - 9.0, 4.0, m_steel) # gancho
 		_add_box_2d(b_root, mp, Vector2(5.5, 4.0), ih - 23.0, 14.0, m_meat) # pieza de carne
 		_add_box_2d(b_root, mp + Vector2(0, -1.0), Vector2(5.8, 2.0), ih - 13.0, 3.0, m_fat)
-	_add_model_2d(b_root, "props/Crate_Metal.gltf", Vector2(1284, 270), 2.0, Vector2(10.0, 10.0), 8.0)
-	_add_model_2d(b_root, "props/Crate_Wooden.gltf", Vector2(1284, 258), 10.0, Vector2(8.0, 8.0), 6.0)
-	var cam_gap: Vector2 = Vector2(1255, R.ROW_Y)
+	_add_model_2d(b_root, "props/Crate_Metal.gltf", R.BASE + Vector2(264, 56), 2.0, Vector2(10.0, 10.0), 8.0)
+	_add_model_2d(b_root, "props/Crate_Wooden.gltf", R.BASE + Vector2(264, 44), 10.0, Vector2(8.0, 8.0), 6.0)
+	var cam_gap: Vector2 = Vector2(R.BASE.x + 235.0, R.ROW_Y)
 	for side in [-1.0, 1.0]:
 		_add_box_2d(b_root, cam_gap + Vector2(side * (R.GAP * 0.5 + 1.0), 0), Vector2(3.0, 7.0), 2.0, ih, m_steel)
 	_add_box_2d(b_root, cam_gap, Vector2(R.GAP + 6.0, 7.0), 2.0 + ih * 0.78, ih * 0.22, m_steel)
 	_restaurant_light(b_root, cam.get_center(), ih - 4.0, Color(0.62, 0.82, 1.0), 0.75, 1.8, false)
 
 	# --- Bodega: barriles y botellero
-	for bp in [Vector2(1116, 262), Vector2(1116, 276), Vector2(1150, 262)]:
+	for bp in [R.BASE + Vector2(96, 48), R.BASE + Vector2(96, 62), R.BASE + Vector2(130, 48)]:
 		_add_model_2d(b_root, "props/Barrel.gltf", bp, 2.0, Vector2(10.0, 10.0), 11.0)
-	_add_model_2d(b_root, "props/Barrel.gltf", Vector2(1116, 269), 13.0, Vector2(9.0, 9.0), 10.0, 90.0)
+	_add_model_2d(b_root, "props/Barrel.gltf", R.BASE + Vector2(96, 55), 13.0, Vector2(9.0, 9.0), 10.0, 90.0)
 	_add_model_2d(b_root, "props/Shelf_Simple.gltf", R.WINE_RACK, 2.0, Vector2(30.0, 6.0), 20.0)
 	for wy in [6.0, 12.0, 18.0]:
 		for wx in [-10.0, -4.0, 2.0, 8.0]:
 			_add_cyl_2d(b_root, R.WINE_RACK + Vector2(wx, 0), 1.0, wy, 3.5, _mat("chianti_bottle", Color(0.16, 0.42, 0.22, 0.92), 0.2, 0.1), 0.5, 6)
 
 	# --- Despacho del dueño: escritorio de madera noble, silla de dirección, estantería, libro de cuentas y alfombra
-	_add_box_2d(b_root, Vector2(1184, 250), Vector2(28, 22), 2.0, 0.5, _mat("office_rug", Color(0.46, 0.14, 0.14), 0.92, 0.0))
+	_add_box_2d(b_root, R.BASE + Vector2(164, 36), Vector2(28, 22), 2.0, 0.5, _mat("office_rug", Color(0.46, 0.14, 0.14), 0.92, 0.0))
 	_add_model_2d(b_root, "props/Workbench.gltf", R.OWNER_BED + Vector2(4, 6), 2.0, Vector2(18.0, 10.0), 9.0)
 	_add_model_2d(b_root, "props/Chair_1.gltf", R.OWNER_BED + Vector2(4, -5), 2.0, Vector2(6.5, 6.5), 8.5, 0.0)
 	_add_model_2d(b_root, "props/Chair_1.gltf", R.OWNER_BED + Vector2(4, 16), 2.0, Vector2(6.5, 6.5), 8.5, 180.0)
 	_add_model_2d(b_root, "props/Book_5.gltf", R.OWNER_BED + Vector2(1, 5), 11.0, Vector2(5.0, 4.0), 2.2)
 	_add_model_2d(b_root, "props/CandleStick_Triple.gltf", R.OWNER_BED + Vector2(9, 4), 11.0, Vector2(4.0, 4.0), 5.5)
-	_add_model_2d(b_root, "props/Shelf_Simple.gltf", Vector2(1168, 222), 2.0, Vector2(12.0, 5.0), 18.0)
-	_add_model_2d(b_root, "props/Nightstand_Shelf.gltf", Vector2(1200, 228), 2.0, Vector2(7.0, 6.0), 8.0)
+	_add_model_2d(b_root, "props/Shelf_Simple.gltf", R.BASE + Vector2(148, 8), 2.0, Vector2(12.0, 5.0), 18.0)
+	_add_model_2d(b_root, "props/Nightstand_Shelf.gltf", R.BASE + Vector2(180, 14), 2.0, Vector2(7.0, 6.0), 8.0)
 
 	# --- Reservado: mesa redonda grande, cinco sillas, candelabro, chimenea y luz roja tenue
 	_add_cyl_2d(b_root, R.BACKROOM_TABLE, 2.0, 2.0, 7.0, m_dark_wood, 2.0, 8)
@@ -1451,8 +1485,8 @@ func _build_restaurant_3d(b_root: Node3D, wall_h: float, m_wall: Material, m_tri
 		var ang: float = TAU * float(i) / 5.0 + PI * 0.5
 		var cp: Vector2 = R.BACKROOM_TABLE + Vector2(cos(ang), sin(ang)) * 21.0
 		_add_model_2d(b_root, "props/Chair_1.gltf", cp, 2.0, Vector2(6.5, 6.5), 8.5, rad_to_deg(-ang) - 90.0)
-	_add_box_2d(b_root, Vector2(1028, 226), Vector2(9, 18), 2.0, 16.0, _mat("fireplace_stone", Color(0.50, 0.46, 0.42), 0.9, 0.0))
-	_add_box_2d(b_root, Vector2(1031, 226), Vector2(3, 12), 3.0, 6.0, m_ember)
+	_add_box_2d(b_root, R.BASE + Vector2(8, 12), Vector2(9, 18), 2.0, 16.0, _mat("fireplace_stone", Color(0.50, 0.46, 0.42), 0.9, 0.0))
+	_add_box_2d(b_root, R.BASE + Vector2(11, 12), Vector2(3, 12), 3.0, 6.0, m_ember)
 	_restaurant_light(b_root, R.BACKROOM_TABLE, ih - 8.0, Color(1.0, 0.46, 0.30), 0.85, 1.8, false)
 
 	# --- Terraza: losas, mesas con sombrilla, macetas, guirnalda de bombillas, toldo verde y letrero
@@ -1461,12 +1495,12 @@ func _build_restaurant_3d(b_root: Node3D, wall_h: float, m_wall: Material, m_tri
 		_restaurant_table_3d(b_root, t, m_wood, true)
 		_add_cyl_2d(b_root, t, 0.6, 9.0, 18.0, m_wood, 0.6, 6) # palo de la sombrilla
 		_add_cyl_2d(b_root, t, 13.0, 27.0, 4.0, m_canvas_g if (int(t.x) % 2 == 0) else m_canvas_w, 0.8, 12)
-	for pp in [Vector2(1024, 446), Vector2(1300, 446), Vector2(1100, 446), Vector2(1140, 446)]:
+	for pp in [R.BASE + Vector2(4, 232), R.BASE + Vector2(270, 232), R.BASE + Vector2(80, 232), R.BASE + Vector2(120, 232)]:
 		_add_cyl_2d(b_root, pp, 3.8, 1.2, 5.5, m_pot, 3.0, 10) # maceta de barro
 		_add_cyl_2d(b_root, pp, 3.2, 6.5, 3.0, m_plant, 5.0, 10) # mata redonda
 		_add_cyl_2d(b_root, pp, 5.0, 9.5, 3.5, m_plant, 2.0, 10)
 	# Postes y guirnalda de bombillas a lo largo de la terraza (se encienden al caer la tarde)
-	var posts: Array[Vector2] = [Vector2(1022, 448), Vector2(1100, 448), Vector2(1140, 448), Vector2(1228, 448), Vector2(1322, 448)]
+	var posts: Array[Vector2] = [R.BASE + Vector2(2, 234), R.BASE + Vector2(80, 234), R.BASE + Vector2(120, 234), R.BASE + Vector2(208, 234), R.BASE + Vector2(273, 234)]
 	for pi in range(posts.size()):
 		_add_cyl_2d(b_root, posts[pi], 0.8, 1.2, 30.0, m_iron, 0.8, 6)
 		if pi + 1 < posts.size():
@@ -1477,8 +1511,8 @@ func _build_restaurant_3d(b_root: Node3D, wall_h: float, m_wall: Material, m_tri
 				var sag: float = 4.0 * sin(tk * PI)
 				var bulb := _add_cyl_2d(b_root, a2.lerp(b2, tk), 0.9, 29.0 - sag, 1.6, m_bulb, 0.9, 6)
 				_restaurant_night_nodes.append(bulb)
-	_restaurant_light(b_root, Vector2(1080, 430), 26.0, Color(1.0, 0.80, 0.46), 0.9, 2.4, true)
-	_restaurant_light(b_root, Vector2(1230, 430), 26.0, Color(1.0, 0.80, 0.46), 0.9, 2.4, true)
+	_restaurant_light(b_root, R.BASE + Vector2(60, 216), 26.0, Color(1.0, 0.80, 0.46), 0.9, 2.4, true)
+	_restaurant_light(b_root, R.BASE + Vector2(210, 216), 26.0, Color(1.0, 0.80, 0.46), 0.9, 2.4, true)
 	# Toldo verde sobre la puerta y letrero
 	var door_c: Vector2 = Vector2(R.DOOR_X, R.RECT.end.y + 6.0)
 	_add_box_2d(b_root, door_c, Vector2(R.DOOR_W + 26.0, 12.0), wall_h * 0.72, 2.0, m_canvas_g)
@@ -2461,11 +2495,28 @@ func _build_ground_3d() -> void:
 	var m_plains := _mat("ground_plains", Color(0.86, 0.80, 0.48), 0.95, 0.0, Color.BLACK, 0.0, "town_textures/floor_ground_grass.png", "", 0.78)
 	var m_mud := _mat("ground_mud", Color(0.55, 0.46, 0.34), 0.95, 0.0, Color.BLACK, 0.0, "town_textures/floor_ground_dirt.png", "", 0.78)
 	var m_marsh := _mat("ground_marsh_water", Color(0.30, 0.42, 0.30), 0.35, 0.05, Color.BLACK, 0.0, "town_textures/floor_ground_water_green.png", "", 0.78)
-	_add_box_2d(terrain_root_3d, Vector2(40, 480), Vector2(3600, 3000), -1.0, 1.0, m_grass)
-	_add_box_2d(terrain_root_3d, Vector2(170, 907), Vector2(1380, 665), -0.6, 0.6, m_forest)
-	_add_box_2d(terrain_root_3d, Vector2(-625, -30), Vector2(470, 360), -0.6, 0.6, m_plains)
-	_add_box_2d(terrain_root_3d, Vector2(-612, -71), Vector2(235, 107), -0.4, 0.5, m_mud)
-	_add_box_2d(terrain_root_3d, Vector2(-606, 85), Vector2(223, 98), -0.4, 0.5, m_marsh)
+	for gm in [m_forest, m_plains, m_mud, m_marsh]:
+		(gm as StandardMaterial3D).cull_mode = BaseMaterial3D.CULL_DISABLED
+	_add_box_2d(terrain_root_3d, Vector2(-150, 620), Vector2(5200, 4400), -1.0, 1.0, m_grass)
+	# Bosque profundo con borde irregular y orgánico (mismo polígono que EcosystemManager.FOREST_POLY)
+	_add_flat_poly_2d(terrain_root_3d, PackedVector2Array(EcosystemManager.FOREST_POLY), 0.15, m_forest)
+	# Llanura Salvaje del Noroeste (separada y amplia)
+	var plains_pts := PackedVector2Array([
+		Vector2(-2020, -490), Vector2(-1780, -560), Vector2(-1420, -540), Vector2(-1120, -470),
+		Vector2(-1080, -260), Vector2(-1110, -45), Vector2(-1380, -20), Vector2(-1760, -28),
+		Vector2(-2040, -110), Vector2(-2060, -310)
+	])
+	_add_flat_poly_2d(terrain_root_3d, plains_pts, 0.15, m_plains)
+	_add_flat_poly_2d(terrain_root_3d, PackedVector2Array([
+		Vector2(-1740, -380), Vector2(-1320, -390), Vector2(-1290, -160), Vector2(-1760, -150)
+	]), 0.28, m_mud)
+	# Ciénaga de las Ranas del Suroeste (separada y amplia)
+	var marsh_outer_pts := PackedVector2Array([
+		Vector2(-1960, 150), Vector2(-1680, 110), Vector2(-1320, 120), Vector2(-1100, 190),
+		Vector2(-1120, 420), Vector2(-1280, 540), Vector2(-1640, 560), Vector2(-1940, 490),
+		Vector2(-2020, 320)
+	])
+	_add_flat_poly_2d(terrain_root_3d, marsh_outer_pts, 0.18, m_mud)
 
 
 ## Lago 3D a partir del mismo polígono que el lago 2D: orilla de arena, agua y zona honda más oscura.
@@ -2478,12 +2529,13 @@ func _build_lake_3d() -> void:
 	_add_flat_poly_2d(terrain_root_3d, FishingSpotScript.lake_scaled(1.0, 9.0), 0.25, m_sand)
 	_add_flat_poly_2d(terrain_root_3d, FishingSpotScript.lake_scaled(1.0, 0.0), 0.55, m_lake)
 	_add_flat_poly_2d(terrain_root_3d, FishingSpotScript.lake_scaled(0.62, 0.0), 0.7, m_deep)
-	# Muelle de madera (mismo sitio que el 2D: 14..50 px al este del centro del lago)
+	# Un único muelle de madera en la orilla este del lago (mismo sitio que el 2D)
 	var m_dock := _mat("dock_wood", Color(0.62, 0.44, 0.28), 0.9, 0.0, Color.BLACK, 0.0, "town_textures/rf_planks.png", "", 0.78)
-	_add_box_2d(terrain_root_3d, Vector2(-65 + 32, 105), Vector2(38, 16), 1.0, 2.5, m_dock)
+	var dock_c: Vector2 = FishingSpotScript.LAKE_NODE_POS + Vector2(32.0, 0.0)
+	_add_box_2d(terrain_root_3d, dock_c, Vector2(38, 16), 1.0, 2.5, m_dock)
 	for px in [-14.0, 0.0, 14.0]:
 		for py in [-7.0, 7.0]:
-			_add_box_2d(terrain_root_3d, Vector2(-65 + 32 + px, 105 + py), Vector2(2.5, 2.5), -0.5, 3.5, m_dock)
+			_add_box_2d(terrain_root_3d, dock_c + Vector2(px, py), Vector2(2.5, 2.5), -0.5, 3.5, m_dock)
 
 
 ## Superficie plana con la forma de un polígono del mapa 2D, a una altura dada (agua, arena…).
@@ -2504,21 +2556,16 @@ func _add_flat_poly_2d(parent: Node3D, pts: PackedVector2Array, h_px: float, mat
 	return mi
 
 
-## Bloque AA: detalles fijos de los barrios apartados (molino de viento, leñeros de los caseríos, embarcadero del lago).
+## Bloque AA: detalles fijos de los barrios apartados (molino de viento y leñeros de los caseríos; el lago solo tiene un muelle).
 func _build_barrios_3d(m_wood: Material) -> void:
 	var mp: Vector2 = VillageLots.EAST_MILL_POS
 	# (El molino de Kenney es casi solo aspas y desde arriba parece un palo: va el de Quaternius, con su casa de piedra.)
 	_add_model_2d(terrain_root_3d, "buildings/Mill.obj", mp, 0.0, Vector2(40, 40), 52.0)
-	for wp in [Vector2(-532, 690), Vector2(-522, 820), Vector2(-528, 950)]:
+	for wp in [Vector2(-532, 820), Vector2(-522, 920), Vector2(-528, 1020)]:
 		for k in range(3):
 			var lg := _add_cyl_2d(terrain_root_3d, wp + Vector2(0, k * 5.0 - 5.0), 2.4, 0.0, 16.0, m_wood, 2.4, 7)
 			lg.rotation_degrees.z = 90.0
 			lg.position = to_3d(wp + Vector2(0, k * 5.0 - 5.0), 2.4 + (3.6 if k == 1 else 0.0))
-	# Embarcadero del Barrio del Lago: tablas que entran en el agua desde la orilla sur
-	_add_box_2d(terrain_root_3d, Vector2(-100, 150), Vector2(14, 44), 1.4, 1.6, m_wood)
-	for py in [132.0, 150.0, 168.0]:
-		for px in [-106.0, -94.0]:
-			_add_cyl_2d(terrain_root_3d, Vector2(px, py), 1.2, -2.0, 4.6, m_wood, 1.2, 6)
 
 
 ## Busca árboles talables, vetas de mineral y pinos decorativos 2D (cada pocos segundos, por si se plantan nuevos).
@@ -2526,6 +2573,7 @@ func _scan_nature_sources() -> void:
 	if vm == null or not is_instance_valid(vm.entities_root):
 		return
 	_nature_sources.clear()
+	var tree_positions_seen: Array[Vector2] = []
 	for n in get_tree().get_nodes_in_group("destructible"):
 		if not (n is Node2D) or n.get("harvest_type") == null:
 			continue
@@ -2533,6 +2581,7 @@ func _scan_nature_sources() -> void:
 		var kind := ""
 		if ht == 1:
 			kind = "pine"
+			tree_positions_seen.append((n as Node2D).global_position)
 		elif ht == 2:
 			kind = "rock"
 		if kind.is_empty():
@@ -2544,6 +2593,23 @@ func _scan_nature_sources() -> void:
 	for par in parents:
 		for c in (par as Node).get_children():
 			if c is Sprite2D and _is_pine_texture((c as Sprite2D).texture):
+				var tp: Vector2 = (c as Sprite2D).global_position
+				# Evitar que árboles decorativos se solapen con muros de edificios, bancos del parque u otros árboles
+				var overlaps := false
+				if "building_footprints" in vm:
+					for b_fp in vm.building_footprints:
+						if (b_fp["rect"] as Rect2).grow(12.0).has_point(tp):
+							overlaps = true
+							break
+				if not overlaps:
+					for existing_tp in tree_positions_seen:
+						if existing_tp.distance_squared_to(tp) < 18.0 * 18.0:
+							overlaps = true
+							break
+				if overlaps:
+					(c as Sprite2D).visible = false
+					continue
+				tree_positions_seen.append(tp)
 				_nature_sources.append({"node": c, "kind": "deco_pine", "sprite": c})
 	_sync_nature_3d(false)
 	_scan_props_sources()

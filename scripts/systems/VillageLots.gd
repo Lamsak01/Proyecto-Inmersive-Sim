@@ -169,11 +169,10 @@ static func lot_shift(id: String) -> Vector2:
 		return Vector2(dx, street_wave(CURVED_ROADS[1], c.x) - float(h2 % 3) * 3.0)
 	return Vector2.ZERO
 
-## Bloque AB: dos huecos en las filas, donde antes había solar: un pozo vecinal en la ronda alta (sirve de verdad para
-## coger agua y lavarse) y un huerto vecinal de adorno en la calle del este.
+## Bloque AB: pozo vecinal en la ronda alta (sirve de verdad para coger agua y lavarse).
+## Paso 2: se retira el "Huerto vecinal" que estaba plantado en mitad del camino del este.
 const GAP_POCKETS: Array = [
 	{"kind": "well", "pos": Vector2(610, -735), "title": "🪣 Pozo de la Ronda [E: Llenar Recipiente / Lavar Heridas y Sangre]"},
-	{"kind": "garden", "pos": Vector2(1090, -40), "title": "🥬 Huerto vecinal"},
 ]
 
 ## Al montar el pueblo: borra lo calculado (los desplazamientos son fijos, pero así no queda nada de otra partida).
