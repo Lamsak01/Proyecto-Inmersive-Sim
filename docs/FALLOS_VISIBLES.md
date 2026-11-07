@@ -79,5 +79,13 @@
 - [ ] **Letreros encimados en la herrería** (2026-11-07): «Herrería y Armería Yunque [E]», «Cerrada: el perista vende la
   llave» y «Picando piedra» se montan · 2D.
 
+- [ ] **Más oficios fuera de sitio, en el parque** (2026-11-07 18:11, captura del usuario, 2D, 09:10): «Remendando kit de
+  reparación», «Talando madera» y «Guisando estofado» dentro del parque junto a la Botica. Va con el fallo de arriba.
+- [ ] **Césped nuevo feo** (2026-11-07, paso 4): la hierba del parque es verde chillón liso («helado de menta») y el
+  césped general está dividido en cuadrados visibles (cuadrícula repetida). Al usuario no le gusta ninguno de los dos:
+  hierba natural, sin cuadrícula ni tono plano.
+- [ ] **El terreno es perfectamente plano** (2026-11-07): no hay alturas en ningún sitio; el juego se ve plano. El usuario
+  quiere relieve (lomas, desniveles). Petición grande: ver decisión en ENCARGO antes de hacerla.
+
 ## Arreglados
 - [x] ✅ (2026-11-07) Fachada de la trattoria «Il Corvo» en 3D: parece de tablas oscuras en vez de estuco/ladrillo claro (`WorldStage3D.gd`: cambiada la textura de muros de `building_restaurant` a `town_textures/wall_brick_sand_center.png` con `uv1_scale = Vector3(2.4, 0.72, 2.4)`, tono claro de estuco/ladrillo cálido `Color(1.0, 0.95, 0.84)`, iluminación cálida de rebote `0.58` en la fachada sur y dintel con el mismo estuco en vez de `rf_planks.png`).
