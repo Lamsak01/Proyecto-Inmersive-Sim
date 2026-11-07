@@ -24,7 +24,7 @@ sin sentido. **Orden (los que pisa el detective primero):**
    armero). Quitar las rejas verdes gigantes, el cajón suelto y el cepo sin sentido.
 2. **Morgue / hospital** (sala de autopsias con mesa, estantes de frascos y reactivos, cámara de cuerpos, consulta).
 3. **Capilla del Alba** (nave con bancos, altar, confesionario, sacristía) — sin tocar nada de la secta.
-5. **Biblioteca** (salas de lectura, estanterías, archivo) y que **«Leer un rato» haga algo real** (p. ej. consultar
+4. **Biblioteca** (salas de lectura, estanterías, archivo) y que **«Leer un rato» haga algo real** (p. ej. consultar
    libros que sirvan como pistas o conocimientos para los casos).
 Un bloque por edificio, con capturas antes y después. Si un edificio crece, muévelo o recoloca lo de alrededor sin
 romper caminos (usa `tools/tests/free_space_probe.gd`).
