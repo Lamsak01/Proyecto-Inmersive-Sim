@@ -33,14 +33,16 @@ Más
   Mapa ................................. M
   Misiones ............................. L
   Herramientas ......................... 1 a 9
-  Guardar / cargar ..................... F5 / F9
+  Guardar / cargar ..................... F5 / F12
+  Vista 3D / 2D ........................ F9
+  Primera persona (prueba) ............. P o F6
   Velocidad del tiempo ................. F1 a F4
 Los gastos de dinero piden pulsar E dos veces, para que no compres nada sin querer.
 La pantalla de controles sale al empezar una partida nueva; también hay un botón «Controles» en la mochila.
 
 QUÉ ESPERAR
 - El pueblo arranca con unos 40 vecinos. En ordenadores modestos puede ir algo lento.
-- La partida se guarda solo cuando pulsas F5 (hay una sola ranura). F9 carga la última.
+- La partida se guarda solo cuando pulsas F5 (hay una sola ranura). F12 carga la última.
 - La historia principal todavía está en construcción.
 
 SI ALGO FALLA
