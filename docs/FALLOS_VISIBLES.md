@@ -68,5 +68,16 @@
   2D sí, y tienen colisión (chocas con algo invisible en 3D). Ponerlas en su sitio (bajo el pueblo, con su entrada) y que
   en 3D se vean igual que en 2D (`VillageUnderworld.gd`, `VillageClub.gd`, `WorldInteractableProp.gd`, `VillageManager.gd`, `WorldStage3D.gd`: trasladadas las 3 cámaras y galerías de alcantarillas de `y = 1520` en mitad del bosque a `SEWER_Y = 63.0` bajo el centro del pueblo y el sótano del Club de la Lucha a `Vector2(165, -224)` bajo el ala oeste de la taberna; `sync_sewer_visibility` y `sync_club_visibility` desactivan la colisión `StaticBody2D` e iconos en superficie y aíslan la vista subterránea tanto en 2D como en 3D).
 
+- [ ] **Siguen vecinos trabajando fuera de sitio** (2026-11-07 18:08, tras el arreglo 556eaff; captura del usuario,
+  2D, día 1, 12:03): alguien «Picando piedra» delante de la herrería (en el pueblo, no en la cantera); «Recogiendo
+  zanahorias» y «Cuidando el ganado» en la plaza, no en el huerto/rancho. El arreglo anterior no cubrió todos los oficios:
+  revisar TODOS los puestos (cantera, granja, rancho, huerto, pesca, tala…) contra la posición real de cada sitio.
+- [ ] **Alguien en la mesa de póker/billar apuesta cada 0,2 segundos** (2026-11-07): los bocadillos de apuestas se
+  repiten sin parar y se montan unos sobre otros («Veo tus 5 monedas», «tengo racha»…) · 2D, taberna.
+- [ ] **Rectángulo rojo semitransparente sobre la taberna** (2026-11-07, misma captura): tapa la mesa de póker y la pared;
+  parece una zona de depuración o una alfombra mal escalada · 2D.
+- [ ] **Letreros encimados en la herrería** (2026-11-07): «Herrería y Armería Yunque [E]», «Cerrada: el perista vende la
+  llave» y «Picando piedra» se montan · 2D.
+
 ## Arreglados
 - [x] ✅ (2026-11-07) Fachada de la trattoria «Il Corvo» en 3D: parece de tablas oscuras en vez de estuco/ladrillo claro (`WorldStage3D.gd`: cambiada la textura de muros de `building_restaurant` a `town_textures/wall_brick_sand_center.png` con `uv1_scale = Vector3(2.4, 0.72, 2.4)`, tono claro de estuco/ladrillo cálido `Color(1.0, 0.95, 0.84)`, iluminación cálida de rebote `0.58` en la fachada sur y dintel con el mismo estuco en vez de `rf_planks.png`).
