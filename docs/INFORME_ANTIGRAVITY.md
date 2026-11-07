@@ -1,6 +1,25 @@
 # Informe de Trabajo — Antigravity (2026-11-07)
 
-## Encargo: Paso 4 — Ambiente: cielo con nubes y hora, suelo con textura, árboles nuevos, niebla
+## Encargo: ⛔ Paso 5 (bocetos previos) — Bocetos de todos los edificios y espacios pendientes (`docs/BOCETOS_EDIFICIOS.md`)
+
+### Qué se hizo en este bloque
+- **Redacción completa de `docs/BOCETOS_EDIFICIOS.md` antes de construir ningún edificio del Paso 5 (siguiendo la parada obligatoria ⛔ de `docs/ENCARGO_ANTIGRAVITY.md`):**
+  - **1. Comisaría y Cárcel Municipal:** 5 estancias (recepción con mostrador de denuncias, despacho del Comisario con caja fuerte y expedientes, sala de interrogatorios, calabozos con 2 celdas de barrotes reales de suelo a techo con camastro y cubo —eliminando las rejas verdes gigantes sueltas y el cajón sin sentido—, y armero de guardia; el cepo pasa al exterior junto a la fachada).
+  - **2. Hospital de Caridad y Morgue Forense:** 4 estancias (recepción y consulta del Dr. Valen, sala de hospitalización con 4 camas y biombos, sala de autopsias con mesa forense de drenaje, instrumental y estantes de reactivos conectada al bloque `D2`, y cámara refrigerada de cuerpos con 3 bandejas y bloques de hielo).
+  - **3. Capilla de la Fe del Alba:** 4 zonas (nave central con dos filas de bancos y vitrales, altar mayor elevado con el Cáliz, confesionario lateral de madera con celosía y sacristía con el Libro de Defunciones y subida al campanario, sin tocar nada de la secta).
+  - **4. Biblioteca y Archivo Municipal (con «Leer un rato `[E]`» funcional):** 4 estancias (vestíbulo de préstamo, gran sala de lectura con mesas y lámparas, sección de ciencias/medicina/herbario y archivo histórico/catastro) y diseño de la mecánica real para **`[E] Leer un rato (30 min)`** con 4 materias útiles para los casos y el personaje (*Tratado de Toxicología y Forense*, *Crónicas y Linajes de las Familias*, *Herbario y Fauna* y *Planos Catastrales y Alcantarillado*).
+  - **5. Alcantarillas Ampliadas y Sótano del Club de la Lucha:** diseño diferenciado del sótano clandestino bajo la bodega de la taberna (foso con 4 postes y cuerdas, bancos de público, mesa del corredor de apuestas, abierto de `21:00` a `03:00`) y de la red de alcantarillas ampliada bajo las calles (bóvedas de ladrillo, canal de agua con pasarelas y puentes, 3 escalerillas y escondites de contrabando/pruebas).
+  - **6. Rancho del Sur y Gran Corral de Ganado:** casa-establo dividida en 3 salas (venta/aperos, lechería/esquila y vivienda del ganadero) + gran corral vallado exterior poblado con modelos 3D reales de vacas (`Cow.glb`), toro (`Bull.glb`), caballos (`Horse.glb` / `Horse_White.glb`), burro (`Donkey.glb`), alpacas/ovejas (`Alpaca.glb`) y gallinas, integrados con la economía del pueblo.
+  - **7. Tablón de Encargos Legible en la Plaza Central:** estructura techada con farol donde cada encargo activo muestra su hoja de pergamino física con título y firmante legibles al acercarse, abriendo el menú con `[E]`.
+  - **8. Resto de edificios del pueblo y Tabla de Puertas según fachada:** bocetos de salas, muebles, ocupantes e interacciones para el **Ayuntamiento**, **Escuela**, **Salón «El Candil»**, **Mansiones Nobles**, **Casas de vecinos** y **Talleres/Tiendas con trastienda**, más la tabla de **11 estilos de puertas exteriores distintas** según la fachada de cada edificio.
+
+### Qué queda sin comprobar / pendiente
+- **En espera de revisión del usuario (`ESPERANDO_USUARIO`):** tal como ordena el Paso 5 (⛔), no se ha construido aún ninguno de estos edificios en el código para que el usuario revise primero `docs/BOCETOS_EDIFICIOS.md` y dé el visto bueno o indique correcciones antes de construirlos todos seguidos.
+- Siguen pendientes de comprobar en Godot (al regreso del usuario) los bloques visuales de los Pasos 1 a 4 realizados hoy sin abrir Godot ni lanzar pruebas por indicación expresa.
+
+---
+
+## Encargo anterior: Paso 4 — Ambiente: cielo con nubes y hora, suelo con textura, árboles nuevos, niebla
 
 ### Qué se hizo en este bloque
 - **Cielo dinámico con nubes en movimiento, sol/luna y estrellas según la hora (`scripts/visuals/WorldStage3D.gd::SKY_CLOUD_SHADER_CODE`, `setup_stage`, `_update_roof_cutaways_and_lighting`):**

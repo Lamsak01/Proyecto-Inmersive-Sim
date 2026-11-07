@@ -3,6 +3,9 @@
 Cambios del juego, del más nuevo al más antiguo. Añade una entrada al cerrar cada bloque, en lenguaje sencillo.
 El detalle técnico está en `docs/HANDOFF.md` (sección 7) y el historial completo en `git log`. Lo anterior a B0.1 está en `AUDIT_LOG.md` y `SESSION_CONTEXT_LOG.md`.
 
+## 2026-11-07 — Bocetos de todos los edificios y espacios pendientes antes de construirlos (Paso 5 ⛔)
+- **Documento de bocetos (`docs/BOCETOS_EDIFICIOS.md`) listo para revisión:** incluye la distribución de salas, muebles principales, quién trabaja o vive dentro, qué puede hacer el jugador y el estilo de fachada y puerta exterior para la **Comisaría y Cárcel**, el **Hospital y Morgue Forense**, la **Capilla del Alba**, la **Biblioteca Municipal** (con lectura útil de 4 materias reales al pulsar `[E]`), las **Alcantarillas ampliadas y el Club de la Lucha**, el **Rancho del Sur con su gran corral de ganado**, el **Tablón de Encargos legible de la Plaza** y el **resto de edificios del pueblo** (Ayuntamiento, Escuela, Salón «El Candil», Mansiones, Casas y Talleres/Tiendas).
+
 ## 2026-11-07 — Ambiente del valle: cielo con nubes y hora del día, suelo con textura y hierba 3D, árboles variados y niebla (Paso 4)
 - **Cielo vivo con nubes, sol, luna y estrellas en primera persona:** el cielo plano se sustituye por una bóveda celeste con dos capas de nubes que se mueven despacio, sol diurno, atardeceres dorados y noche estrellada según la hora del reloj.
 - **Suelo con textura de hierba y tierra más matas de hierba y flores 3D:** el césped ya no se ve como una lámina lisa; combina textura de briznas, trébol y calvas de tierra a varias escalas junto con cientos de matas de hierba, helechos y flores silvestres 3D repartidas por praderas, cunetas y linderos.
