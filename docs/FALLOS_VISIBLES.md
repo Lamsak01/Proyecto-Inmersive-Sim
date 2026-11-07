@@ -38,7 +38,7 @@
 - [x] ✅ (2026-11-07) **Textos encima de otros:** «Esquilando lana 90 %» se monta sobre el letrero «Rancho del Sur» · 3D (`VillageManager.gd::_construct_solid_building`: subidos los carteles de título de edificio a `-half.y - 36.0`).
 - [x] ✅ (2026-11-07) **El Hermano Anselmo y la maestra llevan un libro gigante** en la mano, sin sentido (¿objeto de mano mal
   escalado?) · 3D, de noche junto al Mirador del Lago (`CharacterRig3D.gd` y `CharacterAvatar3D.gd`: ajustada la caja de escala de `Book_5.gltf` a `Vector3(0.18, 0.04, 0.22)` y equipado solo mientras están trabajando de día en su puesto).
-- [x] ✅ (2026-11-07) **Cementerio Parroquial del Alba:** lápidas gigantes (del tamaño de camas), el recinto parece una caja vacía de
+- [ ] ❌ REABIERTO (2026-11-07 18:12, captura del usuario en 2D: «sigue igual»; el arreglo solo tocó el 3D. En 2D: caja de tierra diminuta, dos bloques de piedra enormes que ocupan media parcela, 5 lápidas sueltas. Debe verse como un cementerio de verdad en 2D y en 3D: más grande, filas de tumbas, caminos, cruces, verja, árboles.) **Cementerio Parroquial del Alba:** lápidas gigantes (del tamaño de camas), el recinto parece una caja vacía de
   tierra · 3D, de día (`VillageWorldBuilder.gd` y `WorldStage3D.gd`: ocultados los rectángulos 2D en modo 3D, reducido el tamaño de túmulos y lápidas 3D a `Vector2(6.8, 3.2)` × `8.8` de alto, y añadidos sendero central y lápidas parroquiales antiguas).
 - [x] ✅ (2026-11-07) **La trattoria «Il Corvo» está justo al lado del cementerio:** movida a la Calle Mayor (`Rect2(-255, -206, 275, 190)`), con su puerta y terraza abiertas al camino principal hacia la Plaza Central y a más de 1.100 px del cementerio (`VillageRestaurant.gd`, `WorldStage3D.gd`, `ValleyMapUI.gd`, `verify_all.gd`).
 - [x] ✅ (2026-11-07) **Taberna «El Jabalí Dorado» da pena** (2026-11-07): interior vacío, la «mesa de billar» es un tablero con un rectángulo verde y patas de cama, nadie sentado. Rehacerla la primera: mucho más grande, 2 pisos (cuartos de huéspedes arriba), mesas con gente comiendo, póker, tabernero en el mostrador y al menos un camarero (`VillageTavern.gd`, `WorldStage3D.gd`, `VillageNPC.gd`, `VillageNeeds.gd`, `VillagePlaces.gd`, `VillageManager.gd`: edificio ampliado a `Rect2(260, -316, 348, 184)` con 2 plantas reales unidas por escalera física, 6 mesas de comedor con 12 sillas y clientes sentados, mesa de póker con 4 sillas y jugadores en vivo, mesa de billar 3D auténtica con 4 patas torneadas de caoba, 6 troneras, paño verde esmeralda, bolas y tacos, Marta atendiendo detrás del mostrador y nuevo oficio `WAITER` = Camarero sirviendo mesas).
@@ -86,6 +86,9 @@
   hierba natural, sin cuadrícula ni tono plano.
 - [ ] **El terreno es perfectamente plano** (2026-11-07): no hay alturas en ningún sitio; el juego se ve plano. El usuario
   quiere relieve (lomas, desniveles). Petición grande: ver decisión en ENCARGO antes de hacerla.
+
+- [ ] **Franja rosa/morada sobre el tejado de la capilla** (2026-11-07 18:12, junto al cementerio, 2D): parece una
+  alfombra o un letrero dibujado encima del tejado.
 
 ## Arreglados
 - [x] ✅ (2026-11-07) Fachada de la trattoria «Il Corvo» en 3D: parece de tablas oscuras en vez de estuco/ladrillo claro (`WorldStage3D.gd`: cambiada la textura de muros de `building_restaurant` a `town_textures/wall_brick_sand_center.png` con `uv1_scale = Vector3(2.4, 0.72, 2.4)`, tono claro de estuco/ladrillo cálido `Color(1.0, 0.95, 0.84)`, iluminación cálida de rebote `0.58` en la fachada sur y dintel con el mismo estuco en vez de `rf_planks.png`).
