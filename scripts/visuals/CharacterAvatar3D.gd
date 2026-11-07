@@ -162,6 +162,14 @@ func _sync_holder_position() -> void:
 		return
 	# A caballo, el muñeco va sentado sobre el lomo (más alto).
 	var seat_h: float = MOUNT_SEAT_PX if (is_player_avatar and bool(target_entity.get("is_mounted"))) else 0.0
+	var elev_lvl: int = 0
+	if is_player_avatar:
+		var vm_node = target_entity.get_tree().get_first_node_in_group("village_manager") if target_entity.is_inside_tree() else null
+		if vm_node != null:
+			elev_lvl = int(vm_node.player_elevation_level)
+	elif "elevation_level" in target_entity:
+		elev_lvl = int(target_entity.get("elevation_level"))
+	seat_h += preload("res://scripts/systems/VillageTavern.gd").elevation_height_for(target_entity.global_position, elev_lvl)
 	_holder.position = _stage.call("to_3d", target_entity.global_position + Vector2(0.0, FOOT_OFFSET_PX), seat_h)
 
 

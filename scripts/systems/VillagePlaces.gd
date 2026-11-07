@@ -29,6 +29,10 @@ const FRICTION_REL: int = -40 # Por debajo de esto, coincidir es incómodo
 const GOSSIP_CHANCE: float = 0.5
 
 static func place(id: String) -> Dictionary:
+	if id == "tavern_poker":
+		return {"id": "tavern_poker", "kind": "tavern", "pos": Vector2(518.0, -178.0), "label": "la mesa de póker de El Jabalí Dorado", "text": "🃏 Jugando al póker en la taberna", "indoor": true}
+	if id == "tavern_hall":
+		return {"id": "tavern_hall", "kind": "tavern", "pos": Vector2(420.0, -198.0), "label": "el salón de El Jabalí Dorado", "text": "🍺 Sentado en una mesa de la taberna", "indoor": true}
 	for p in PLACES:
 		if str(p["id"]) == id:
 			return p
@@ -90,6 +94,8 @@ static func hangout_spots() -> Array:
 
 # ---------------------------------------------------------------- ocio
 static func is_leisure_hour(hour: int, n = null) -> bool:
+	if n != null and str(n.get_meta("leisure_place", "")) in ["tavern_poker", "tavern_hall"]:
+		return hour >= 11 and hour < 23
 	var weekend: bool = WorldClock != null and WorldClock.has_method("is_weekend") and WorldClock.is_weekend()
 	var span: Vector2i = LEISURE_WEEKEND_HOURS if weekend else LEISURE_FREE_HOURS
 	if n != null and int(n.trade_role) == int(VillageNPC.TradeRole.CHILD) and not weekend:

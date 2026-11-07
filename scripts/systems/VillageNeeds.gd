@@ -277,7 +277,16 @@ static func tick(vm) -> void:
 				vm.VillageWork.on_washed(vm, n) # V5d: chismes en el lavadero
 			"drink", "gamble":
 				do_vice(vm, n, n.errand_kind)
-				n.end_errand()
+				var vice_k: String = n.errand_kind
+				var cur_h_v: int = int(WorldClock.current_hour) if WorldClock else 12
+				if vm.VillagePlaces.is_leisure_hour(cur_h_v, n):
+					n.errand_kind = "leisure"
+					n.errand_pos = vm.VillageTavern.pick_poker_seat_for(vm, n) if vice_k == "gamble" else vm.VillageTavern.pick_seat_for(vm, n)
+					n.set_meta("leisure_id", "tavern_poker" if vice_k == "gamble" else "tavern_hall")
+					n.set_meta("leisure_until_hour", -1)
+					vm.VillagePlaces.on_arrived(vm, n)
+				else:
+					n.end_errand()
 			"night_job":
 				vm.VillageNightJobs.on_arrived(vm, n) # P6b: llega al taller, la casa o la lápida
 			"club_go":
@@ -370,12 +379,14 @@ static func on_hour(vm, hour: int) -> void:
 			var key: String = n.get_person_key()
 			if randf() < vice_chance(vm, n, "drink"):
 				if n.personal_gold >= DRINK_COST:
-					n.start_errand("drink", vm._tavern_social_pos + Vector2(randf_range(-14, 14), randf_range(-8, 8)))
+					var seat_d: Vector2 = vm.VillageTavern.pick_seat_for(vm, n) if "VillageTavern" in vm else (vm._tavern_social_pos + Vector2(randf_range(-14, 14), randf_range(-8, 8)))
+					n.start_errand("drink", seat_d)
 				elif is_addicted(vm, key, "drink"):
 					_crave(vm, n, "bebida")
 			elif randf() < vice_chance(vm, n, "gamble"):
 				if n.personal_gold >= 2:
-					n.start_errand("gamble", vm._tavern_games_pos + Vector2(randf_range(-10, 10), 10))
+					var seat_g: Vector2 = vm.VillageTavern.pick_poker_seat_for(vm, n) if "VillageTavern" in vm else (vm._tavern_games_pos + Vector2(randf_range(-10, 10), 10))
+					n.start_errand("gamble", seat_g)
 				elif is_addicted(vm, key, "gamble"):
 					_crave(vm, n, "juego")
 		elif hour >= BEG_HOURS_FROM and hour < BEG_HOURS_TO and class_of(n) == "mendigo":

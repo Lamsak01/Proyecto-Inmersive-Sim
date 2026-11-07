@@ -21,6 +21,7 @@ const VillageWorldBuilder = preload("res://scripts/systems/VillageWorldBuilder.g
 const VillageLots = preload("res://scripts/systems/VillageLots.gd")
 const VillageTrades = preload("res://scripts/systems/VillageTrades.gd")
 const VillageCivic = preload("res://scripts/systems/VillageCivic.gd")
+const VillageTavern = preload("res://scripts/systems/VillageTavern.gd") # Paso 3: Taberna El Jabalí Dorado (2 pisos)
 const VillageRestaurant = preload("res://scripts/systems/VillageRestaurant.gd") # R1: Trattoria «Il Corvo»
 const VillageFamilia = preload("res://scripts/systems/VillageFamilia.gd") # R2: La Familia (crimen organizado discreto)
 const VillagePlaces = preload("res://scripts/systems/VillagePlaces.gd")
@@ -193,13 +194,13 @@ var _tavern_games_label: Label = null
 var _tavern_pool_label: Label = null
 
 var _tavern_bed_pos := Vector2(538, -252)
-var _tavern_social_pos := Vector2(375, -182)
-var _tavern_games_pos := Vector2(465, -172)
-var _tavern_pool_pos := Vector2(526, -172)
+var _tavern_social_pos := Vector2(376, -184)
+var _tavern_games_pos := Vector2(518, -178)
+var _tavern_pool_pos := Vector2(574, -178)
 var _well_pos := Vector2(184, 82)
-var _tavern_well_pos := Vector2(440, -306)
+var _tavern_well_pos := Vector2(440, -332)
 var _plaza_well_pos := Vector2(412, 54)
-var _well_positions: Array[Vector2] = [Vector2(184, 82), Vector2(440, -306), Vector2(412, 54)]
+var _well_positions: Array[Vector2] = [Vector2(184, 82), Vector2(440, -332), Vector2(412, 54)]
 var _compost_pos := Vector2(-56, -6)
 
 # Capas de Interfaz para Morgue Forense, Arresto/Cárcel, Tablón de Encargos y Gestión de Negocios/Escrituras
@@ -231,7 +232,7 @@ var _biz_btn_4: Button = null
 var _active_business_role: int = -1
 
 func get_poker_chair_positions() -> Array[Vector2]:
-	return [_tavern_games_pos + Vector2(-24, 0), _tavern_games_pos + Vector2(24, 0), _tavern_games_pos + Vector2(0, -18)]
+	return VillageTavern.POKER_CHAIRS.duplicate()
 
 func set_camp_farm_enabled(en: bool) -> void:
 	if is_instance_valid(_compost_sprite):
@@ -294,6 +295,9 @@ func setup_village(target_entities_root: Node) -> void:
 	VillageSecrets.seed_founder_history(self) # B6: rasgos con variante, red de amistades/rencores y 2–3 secretos por fundador
 	if not in_editor and DisplayServer.get_name() != "headless":
 		VillageMigration.seed_start_population(self) # Provisional: arranque con 40 vecinos para probar (no en las pruebas)
+		VillageTavern.seed_initial_patrons(self) # Paso 3: clientes sentados en el salón y partida de póker en curso al abrir la taberna
+	else:
+		VillageTavern.seed_initial_patrons(self)
 	if is_instance_valid(world_stage_3d):
 		world_stage_3d.queue_free()
 	world_stage_3d = WorldStage3DScript.new()
@@ -330,6 +334,7 @@ func _process(delta: float) -> void:
 	if _needs_tick_acc >= 1.0:
 		_needs_tick_acc = 0.0
 		VillageNeeds.tick(self) # E: terminar encargos al llegar
+	VillageTavern.tick(self, delta) # Paso 3: escalera al 2.º piso, mesa de póker viva y ambiente de taberna
 	VillageClub.tick(self, delta) # P6: la pelea en curso en el club del sótano
 	if social_director != null:
 		social_director.tick(delta, self)
@@ -731,7 +736,7 @@ func get_navigation_waypoint(from_pos: Vector2, to_pos: Vector2, agent: Node2D =
 			var outside_pt := Vector2(lane_x, d_pos.y + (18.0 if door_south else -18.0))
 
 			# Primero salvar cualquier tabique interno hacia la antesala de la puerta principal
-			var part_wp: Vector2 = _route_internal_building_partitions(b_id, from_pos, inside_pt)
+			var part_wp: Vector2 = _route_internal_building_partitions(b_id, from_pos, inside_pt, agent)
 			if part_wp != inside_pt:
 				return part_wp
 
@@ -772,18 +777,15 @@ func get_navigation_waypoint(from_pos: Vector2, to_pos: Vector2, agent: Node2D =
 				return _avoid_outdoor_buildings(from_pos, outside_pt2, "")
 			else:
 				# Ya está dentro del edificio destino; comprobar tabiques internos (Posada, Botica Mixta, Hospital, Comisaría)
-				return _route_internal_building_partitions(b_id, from_pos, safe_to_pos)
+				return _route_internal_building_partitions(b_id, from_pos, safe_to_pos, agent)
 
 	# PASADA 3: Navegación exterior esquivando edificios intermedios
 	return _avoid_outdoor_buildings(from_pos, to_pos, "")
 
-func _route_internal_building_partitions(b_id: String, from_pos: Vector2, target_pos: Vector2) -> Vector2:
+func _route_internal_building_partitions(b_id: String, from_pos: Vector2, target_pos: Vector2, agent: Node2D = null) -> Vector2:
 	match b_id:
 		"building_tavern":
-			if from_pos.y < -219.0 and target_pos.y > -225.0:
-				return Vector2(425.0, -234.0 if absf(from_pos.x - 425.0) > 10.0 else -206.0)
-			elif from_pos.y > -225.0 and target_pos.y < -219.0:
-				return Vector2(425.0, -206.0 if absf(from_pos.x - 425.0) > 10.0 else -234.0)
+			return VillageTavern.route(from_pos, target_pos, agent, self)
 		"mixed_family_herbalist":
 			if from_pos.y > 156.0 and target_pos.y < 162.0:
 				return Vector2(325.0, 171.0 if absf(from_pos.x - 325.0) > 9.0 else 145.0)
@@ -1426,7 +1428,9 @@ func set_player_elevation_level(new_level: int) -> void:
 ## Bloque PN: al alejarte del sitio donde cambiaste de piso (sales de casa), vuelves a la calle y los vecinos vuelven a verte.
 ## Bloque FIS3: dentro de la red de alcantarillas no salta la vuelta automática a la calle (solo se sube por las escalerillas).
 func check_elevation_exit(player: Node2D) -> void:
-	if VillageUnderworld.is_player_in_sewers(self):
+	if VillageUnderworld.is_player_in_sewers(self) or VillageClub.is_player_in_club(self):
+		return
+	if player != null and player_elevation_level == 1 and VillageTavern.RECT.grow(14.0).has_point(player.global_position):
 		return
 	if player_elevation_level != 0 and player != null and _elevation_anchor != Vector2.INF and player.global_position.distance_to(_elevation_anchor) > ELEVATION_LEAVE_DIST:
 		set_player_elevation_level(0)
@@ -2550,7 +2554,8 @@ func _on_hour_passed(_day: int, new_hour: int = 8) -> void:
 	VillageHousing.on_hour(self, actual_hour) # P1: dependiente y clientes reales en tu tienda
 	VillageUnderworld.fence_on_hour(self, actual_hour) # P5b: el perista trasnocha en el callejón de la taberna
 	VillageNightJobs.on_hour(self, actual_hour) # P6b: a la 1:00 salen los saboteadores, rateros y profanadores
-	VillageClub.on_hour(self, actual_hour) # P6: el club del sótano abre a las 23:00 las noches pares
+	VillageClub.on_hour(self, actual_hour) # P6: el club del sótano abre cada noche de 21:00 a 03:00
+	VillageTavern.on_hour(self, actual_hour) # Paso 3: clientes en mesas y partida de póker en El Jabalí Dorado
 	VillageFame.sync_masterwork_counters(self) # A1: mostrador de las Obras Maestras en el taller de cada maestro
 	VillageCollections.sync_points(self) # P5: puntos de cobro en los locales y objetos del ayuntamiento
 	VillageNeeds.on_hour(self, actual_hour) # E: higiene, taberna, limosna

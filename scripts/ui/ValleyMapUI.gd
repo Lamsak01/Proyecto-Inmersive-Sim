@@ -272,7 +272,7 @@ func _draw_valley_cartography(canvas: Control, detailed: bool) -> void:
 	# 6. Edificios de la Aldea (incluyendo Trattoria en la Calle Mayor, Hospital/Morgue y Comisaría/Cárcel)
 	var buildings: Array[Dictionary] = [
 		{"rect": VillageRestaurant.RECT, "col": Color(0.76, 0.36, 0.22), "label": "🍝 Trattoria Il Corvo"},
-		{"rect": Rect2(Vector2(310, -280), Vector2(260, 145)), "col": Color(0.68, 0.34, 0.20), "label": "🍺 Posada y Casino"},
+		{"rect": Rect2(Vector2(260, -316), Vector2(348, 184)), "col": Color(0.68, 0.34, 0.20), "label": "🍺 Posada y Casino (2 pisos)"},
 		{"rect": Rect2(Vector2(277, -74), Vector2(116, 76)), "col": Color(0.48, 0.52, 0.60), "label": "⚒️ Herrería"},
 		{"rect": Rect2(Vector2(527, -74), Vector2(116, 76)), "col": Color(0.65, 0.28, 0.26), "label": "🥩 Carnicería"},
 		{"rect": Rect2(Vector2(527, 110), Vector2(116, 76)), "col": Color(0.62, 0.44, 0.24), "label": "🪚 Carpintería"},

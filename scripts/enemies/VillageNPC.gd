@@ -2,6 +2,7 @@
 extends CharacterBody2D
 class_name VillageNPC
 const _VillageRestaurant = preload("res://scripts/systems/VillageRestaurant.gd") # R1b: comer en la trattoria
+const _VillageTavern = preload("res://scripts/systems/VillageTavern.gd") # Paso 3: taberna de 2 pisos y camarero
 const _CombatFeel = preload("res://scripts/systems/combat/CombatFeel.gd") # C7 fase 2: rivales con las mismas reglas
 
 ## Habitante Sistémico de la Aldea con Casa, Familia, Sub-stats y Rutinas Dinámicas (IA de Utilidad) — Fase 2.3 y 2.4
@@ -41,7 +42,8 @@ enum TradeRole {
 	NOBLE,              # 22. Señor del valle, su familia y los rentistas (V6): viven de rentas, no del oficio
 	CHILD,              # 23. Niño o niña (V9): nace en el pueblo, va a la escuela y a los 16 busca su sitio
 	TEACHER,            # 24. Maestro de la escuela (V9): llega cuando hay niños en edad de ir
-	RESTAURATEUR        # 25. Cocinero de la Trattoria «Il Corvo» (R1): comedor, terraza, cocina y cámara frigorífica
+	RESTAURATEUR,       # 25. Cocinero de la Trattoria «Il Corvo» (R1): comedor, terraza, cocina y cámara frigorífica
+	WAITER              # 26. Camarero de la Posada «El Jabalí Dorado» (Paso 3): recoge pedidos en las mesas y sirve platos desde la barra
 }
 
 ## Oficios con taller y mostrador propios (V5: lista común para no repetirla en cada sitio)
@@ -142,6 +144,7 @@ var _social_decay_rate: float = 1.05
 var current_activity: ActivityState = ActivityState.WORKING
 var _eat_at_tavern: bool = false
 var _restaurant_seat: Vector2 = Vector2.ZERO ## R1b: silla en la trattoria donde va a comer (ZERO = no)
+var _tavern_seat: Vector2 = Vector2.ZERO ## Paso 3: silla libre de una mesa del salón de la taberna donde va a comer
 var _meal_consumed_this_sitting: bool = false
 var _has_valid_meal_this_sitting: bool = false
 var _sitting_meal_ingested: float = 0.0
@@ -336,7 +339,7 @@ const ROLE_INITIAL_GOLD: Dictionary = {
 	TradeRole.BUTCHER: Vector2i(48, 72), TradeRole.CARPENTER: Vector2i(48, 72),
 	TradeRole.HERBALIST: Vector2i(48, 72), TradeRole.FISHMONGER: Vector2i(48, 72),
 	TradeRole.BAKER: Vector2i(40, 62), TradeRole.TAILOR: Vector2i(48, 72), TradeRole.LODGEKEEPER: Vector2i(36, 58),
-	TradeRole.FARMER: Vector2i(55, 80), TradeRole.RANCHER: Vector2i(55, 80), TradeRole.QUARRYMAN: Vector2i(45, 70), TradeRole.WOODCUTTER: Vector2i(40, 62), TradeRole.TINKER: Vector2i(45, 70), TradeRole.NOBLE: Vector2i(200, 300), TradeRole.CHILD: Vector2i(0, 0), TradeRole.TEACHER: Vector2i(30, 50), TradeRole.RESTAURATEUR: Vector2i(50, 76),
+	TradeRole.FARMER: Vector2i(55, 80), TradeRole.RANCHER: Vector2i(55, 80), TradeRole.QUARRYMAN: Vector2i(45, 70), TradeRole.WOODCUTTER: Vector2i(40, 62), TradeRole.TINKER: Vector2i(45, 70), TradeRole.NOBLE: Vector2i(200, 300), TradeRole.CHILD: Vector2i(0, 0), TradeRole.TEACHER: Vector2i(30, 50), TradeRole.RESTAURATEUR: Vector2i(50, 76), TradeRole.WAITER: Vector2i(36, 58),
 	TradeRole.DOCTOR: Vector2i(52, 78), TradeRole.SHERIFF: Vector2i(52, 78), TradeRole.GUARD: Vector2i(52, 78),
 	TradeRole.FAMILY_MEMBER: Vector2i(26, 44), TradeRole.TRAVELING_MERCHANT: Vector2i(172, 238), TradeRole.ROYAL_INVESTIGATOR: Vector2i(110, 155),
 }
@@ -347,7 +350,7 @@ const ROLE_INITIAL_MATERIALS: Dictionary = {
 	TradeRole.FISHMONGER: {"wood": 1, "herbal_poultice": 1}, TradeRole.INNKEEPER: {"cooked_meat": 1, "bread": 1},
 	TradeRole.DOCTOR: {"herbal_poultice": 2, "leather": 1},
 	TradeRole.BAKER: {"bread": 1, "wood": 1}, TradeRole.TAILOR: {"leather": 2}, TradeRole.LODGEKEEPER: {"cooked_meat": 1},
-	TradeRole.FARMER: {"fertilizer": 1}, TradeRole.RANCHER: {"wheat": 1}, TradeRole.QUARRYMAN: {"repair_kit": 1}, TradeRole.WOODCUTTER: {"repair_kit": 1}, TradeRole.TINKER: {"iron_ore": 1}, TradeRole.RESTAURATEUR: {"wheat": 1, "raw_meat": 1},
+	TradeRole.FARMER: {"fertilizer": 1}, TradeRole.RANCHER: {"wheat": 1}, TradeRole.QUARRYMAN: {"repair_kit": 1}, TradeRole.WOODCUTTER: {"repair_kit": 1}, TradeRole.TINKER: {"iron_ore": 1}, TradeRole.RESTAURATEUR: {"wheat": 1, "raw_meat": 1}, TradeRole.WAITER: {"bread": 1},
 }
 
 const ROLE_PSYCHOLOGY: Dictionary = {
@@ -368,6 +371,7 @@ const ROLE_PSYCHOLOGY: Dictionary = {
 	TradeRole.TEACHER: [["Paciente", "Curioso"], "bread", ["Los niños aprenden (+5)"]],
 	TradeRole.LODGEKEEPER: [["Hospitalario", "Sencillo"], "country_stew", ["Hay luz en El Candil (+5)"]],
 	TradeRole.RESTAURATEUR: [["Hospitalario", "Perfeccionista"], "pasta_dish", ["El comedor está lleno (+6)"]],
+	TradeRole.WAITER: [["Hospitalario", "Alegre"], "country_stew", ["Las mesas de la taberna están llenas (+6)"]],
 	TradeRole.TAILOR: [["Perfeccionista", "Coqueto"], "clothes", ["Una costura perfecta (+6)"]],
 	TradeRole.DOCTOR: [["Cirujano Experto", "Forense Meticuloso"], "surgical_kit", ["Urgencias y morgue en orden (+8)"]],
 	TradeRole.SHERIFF: [["Justiciero", "Observador"], "cooked_meat", ["Vigilando la ley en el valle (+7)"]],
@@ -406,6 +410,7 @@ const ROLE_FALLBACK_LORE: Dictionary = {
 	TradeRole.WOODCUTTER: ["bram", "mila", "Leñador que corta madera en la linde del bosque para carpinteros, hornos y hogares."],
 	TradeRole.LODGEKEEPER: ["dario", "nora", "Posadero modesto que alquila camas baratas a quien no puede pagar El Jabalí Dorado."],
 	TradeRole.RESTAURATEUR: ["marlo", "mila", "Cocinero que regenta la Trattoria «Il Corvo»: pasta casera, carne al vino y una mesa al fondo para quien no quiere ser visto."],
+	TradeRole.WAITER: ["dario", "sora", "Camarero de salón en «El Jabalí Dorado»: toma nota en las mesas, recoge los platos calientes en la barra y conoce todos los rumores del salón y del sótano."],
 	TradeRole.BAKER: ["marlo", "marta", "Panadero llegado de un valle vecino para encender el horno de la calle norte y dar pan a casas y posadas."],
 	TradeRole.TAILOR: ["dario", "mila", "Sastre de mano fina que remienda la ropa del pueblo y cose prendas nuevas para quien pueda pagarlas."],
 	TradeRole.HERBALIST: ["tomas", "elena", "Herborista y botánico rural dedicado al cultivo de semillas y a la preparación de cataplasmas medicinales."],
@@ -3039,6 +3044,8 @@ func _is_mandatory_work_hours() -> bool:
 		return h >= 9 and h < 13
 	if trade_role == TradeRole.INNKEEPER:
 		return h >= 8 and h < 23
+	if trade_role == TradeRole.WAITER:
+		return h >= 10 and h < 23
 	if trade_role in [TradeRole.FISHMONGER, TradeRole.BUTCHER, TradeRole.HERBALIST]:
 		return h >= 8 and h < 20
 	if trade_role == TradeRole.BAKER:
@@ -3158,20 +3165,28 @@ func feed_npc_gradual(nutrition_amount: float = 38.0) -> void:
 func _current_meal_pos() -> Vector2:
 	if _restaurant_seat != Vector2.ZERO:
 		return _restaurant_seat
-	return tavern_social_pos if _eat_at_tavern else home_table_pos
+	if _eat_at_tavern:
+		return _tavern_seat if _tavern_seat != Vector2.ZERO else tavern_social_pos
+	return home_table_pos
 
 func _choose_preferred_meal_location() -> bool:
 	var vm = _get_vm()
 	_restaurant_seat = _VillageRestaurant.pick_seat_for(vm, self)
 	if _restaurant_seat != Vector2.ZERO:
+		_tavern_seat = Vector2.ZERO
 		return false # R1b: sale a comer a la trattoria
 	if vm != null and vm.has_method("is_building_door_blocked") and bool(vm.call("is_building_door_blocked", "tavern")):
+		_tavern_seat = Vector2.ZERO
 		return false
-	if trade_role == TradeRole.INNKEEPER:
-		return true
-	if trade_role == TradeRole.UNEMPLOYED:
-		return not is_vagrant_camper and personal_gold >= 13
-	return personal_gold >= 36 and randf() < (0.35 if personal_gold >= 160 else 0.10) # E3: los ricos comen fuera más a menudo
+	var go_tavern: bool = false
+	if trade_role in [TradeRole.INNKEEPER, TradeRole.WAITER]:
+		go_tavern = true
+	elif trade_role == TradeRole.UNEMPLOYED:
+		go_tavern = not is_vagrant_camper and personal_gold >= 13
+	else:
+		go_tavern = personal_gold >= 36 and randf() < (0.35 if personal_gold >= 160 else 0.10) # E3: los ricos comen fuera más a menudo
+	_tavern_seat = _VillageTavern.pick_seat_for(vm, self) if go_tavern else Vector2.ZERO
+	return go_tavern
 
 ## Actualiza Hambre (escala de 3 días estilo Kenshi + digestión gradual), Energía (16h despierto / 8h de sueño nocturno 22:00-06:00) y Socialización.
 func _update_needs_and_decisions(delta: float) -> void:
@@ -3197,6 +3212,7 @@ func _update_needs_and_decisions(delta: float) -> void:
 
 	if current_activity != ActivityState.EATING:
 		_restaurant_seat = Vector2.ZERO
+		_tavern_seat = Vector2.ZERO
 		_meal_consumed_this_sitting = false
 		_has_valid_meal_this_sitting = false
 		_sitting_meal_ingested = 0.0
@@ -3442,6 +3458,9 @@ func _execute_dynamic_activity(delta: float) -> void:
 				var _pa: int = Time.get_ticks_usec() if perf_on else 0
 				_process_artisan_workshop_crafting_and_supply_runs(delta)
 				if perf_on: _perf_add("d_artisan_total", _pa)
+				return
+			if trade_role == TradeRole.WAITER:
+				_VillageTavern.tick_waiter(_get_vm(), self, delta)
 				return
 			_stop_crafting_bar()
 			_wander_timer -= delta
@@ -4273,6 +4292,13 @@ func get_activity_description() -> String:
 			if _is_morning_expedition_hours(): return _get_expedition_description()
 			if _supply_run_target_role != 0: return "🛒 Yendo a comprar %s al taller vecino" % _supply_run_input_label
 			if _is_actively_crafting: return "⚒️ Crafteando en Taller (%d%%)" % int(round(_craft_progress))
+			if trade_role == TradeRole.INNKEEPER: return "🍺 Atendiendo el Mostrador de la Posada"
+			if trade_role == TradeRole.WAITER:
+				var w_step: String = str(get_meta("waiter_step", "idle"))
+				if w_step == "take_order": return "📝 Tomando nota en las mesas de la Taberna"
+				if w_step == "pickup_kitchen": return "🍲 Recogiendo comanda en el pasa-platos"
+				if w_step == "serve_table": return "🍺 Llevando platos y jarras a las mesas"
+				return "🍺 Atendiendo el Salón de la Taberna"
 			if trade_role == TradeRole.DOCTOR: return "🩺 En Guardia de Urgencias y Morgue"
 			if trade_role == TradeRole.SHERIFF: return "🚓 Dirigiendo la Comisaría"
 			if trade_role == TradeRole.GUARD: return "🛡️ Patrullando la Aldea"

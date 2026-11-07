@@ -14,6 +14,7 @@ const AssetLib = preload("res://scripts/visuals/AssetLibrary3D.gd")
 const VillageLots = preload("res://scripts/systems/VillageLots.gd")
 const VillageCulture = preload("res://scripts/systems/VillageCulture.gd")
 const VillageRestaurant = preload("res://scripts/systems/VillageRestaurant.gd") # R1
+const VillageTavern = preload("res://scripts/systems/VillageTavern.gd")
 const VillageWorkScript = preload("res://scripts/systems/VillageWork.gd")
 const VillageUnderworldScript = preload("res://scripts/systems/VillageUnderworld.gd")
 const VillageHousingScript = preload("res://scripts/systems/VillageHousing.gd")
@@ -501,7 +502,7 @@ func _build_static_terrain_3d() -> void:
 		Rect2(Vector2(-498, 64), Vector2(18, 36)),
 		Rect2(Vector2(-1520, -140), Vector2(22, 176)),
 		Rect2(Vector2(-1520, 64), Vector2(22, 120)),
-		Rect2(Vector2(452, -310), Vector2(26, 350)),
+		Rect2(Vector2(452, -132), Vector2(26, 172)),
 		Rect2(Vector2(452, 62), Vector2(26, 700)),
 		Rect2(Vector2(-380, 760), Vector2(1040, 24)),
 		Rect2(Vector2(130, 780), Vector2(26, 260)),
@@ -723,8 +724,8 @@ func _style_for_building(b_id: String) -> Dictionary:
 		wall_col = Color(0.86, 0.74, 0.56)
 		roof_col = Color(0.66, 0.24, 0.20)
 		floor_col = Color(0.52, 0.34, 0.20)
-		wall_h = 32.0
-		roof_h = 16.0
+		wall_h = 44.0
+		roof_h = 20.0
 	elif b_id == "building_hospital":
 		wall_tex = "town_textures/wall_brick_small_sand.png"
 		roof_tex = "town_textures/roof_clay_grey_center.png"
@@ -852,8 +853,8 @@ func rebuild_buildings_3d() -> void:
 		var door_pos: Vector2 = b["door_pos"]
 		var door_south: bool = bool(b["door_south"])
 		var style: Dictionary = _style_for_building(b_id)
-		# Altura de muro algo mayor y distinta en cada edificio (+0..10 px), para que no parezcan clones.
-		var wall_h: float = float(style["wall_h"]) + 4.0 + float(absi(b_id.hash()) % 6) * 2.0
+		# Altura de muro algo mayor y distinta en cada edificio (+0..10 px), salvo la taberna de 2 plantas (44 px exactos: 22 px por planta).
+		var wall_h: float = float(style["wall_h"]) if b_id == "building_tavern" else (float(style["wall_h"]) + 4.0 + float(absi(b_id.hash()) % 6) * 2.0)
 		var roof_h: float = float(style["roof_h"])
 		var m_wall: Material = style["wall_mat"]
 		var m_roof: Material = style["roof_mat"]
@@ -901,7 +902,16 @@ func rebuild_buildings_3d() -> void:
 		_add_box_2d(b_root, Vector2(door_left_x, door_y), Vector2(3.5, wall_t + 2.0), 2.0, wall_h, m_trim)
 		_add_box_2d(b_root, Vector2(door_right_x, door_y), Vector2(3.5, wall_t + 2.0), 2.0, wall_h, m_trim)
 		var lintel_mat: Material = m_wall if b_id == "building_restaurant" else m_trim
-		_add_box_2d(b_root, Vector2(door_pos.x, door_y), Vector2(door_w + 4.0, wall_t + 1.5), 2.0 + wall_h * 0.72, wall_h * 0.28, lintel_mat)
+		if b_id == "building_tavern":
+			_add_box_2d(b_root, Vector2(door_pos.x, door_y), Vector2(door_w + 4.0, wall_t + 1.5), 19.0, 3.0, m_trim)
+			_add_box_2d(b_root, Vector2(door_pos.x, door_y), Vector2(door_w + 2.0, wall_t), 22.0, wall_h - 20.0, m_wall)
+			# Cinta de vigas de entreplanta exterior (h = 22.0) y ventanas del piso superior en la fachada de 2 plantas
+			_add_box_2d(b_root, Vector2(center.x, rect.position.y), Vector2(sz.x + 2.5, wall_t + 1.8), 21.2, 2.2, m_trim)
+			_add_box_2d(b_root, Vector2(center.x, rect.end.y), Vector2(sz.x + 2.5, wall_t + 1.8), 21.2, 2.2, m_trim)
+			_add_box_2d(b_root, Vector2(rect.position.x, center.y), Vector2(wall_t + 1.8, sz.y + 2.5), 21.2, 2.2, m_trim)
+			_add_box_2d(b_root, Vector2(rect.end.x, center.y), Vector2(wall_t + 1.8, sz.y + 2.5), 21.2, 2.2, m_trim)
+		else:
+			_add_box_2d(b_root, Vector2(door_pos.x, door_y), Vector2(door_w + 4.0, wall_t + 1.5), 2.0 + wall_h * 0.72, wall_h * 0.28, lintel_mat)
 
 		# 3. Puerta abatible 3D sincronizada con `vm.building_doors`
 		for d_entry in vm.building_doors:
@@ -912,7 +922,7 @@ func rebuild_buildings_3d() -> void:
 				pivot.position = to_3d(hinge_pos, 2.0)
 				b_root.add_child(pivot)
 				var leaf_w: float = maxf(18.0, door_w - 4.0)
-				var leaf_h: float = wall_h * 0.70
+				var leaf_h: float = 17.0 if b_id == "building_tavern" else (wall_h * 0.70)
 				if not _is_headless:
 					var door_leaf := _make_texture_panel(leaf_w, leaf_h, 3.0, _panel_mat("door_wood", "town_textures/door_wood.png", false))
 					door_leaf.position = Vector3((leaf_w * 0.5) * WORLD_SCALE, (leaf_h * 0.5 * WORLD_SCALE) / _cos_p, 0.0)
@@ -950,10 +960,13 @@ func rebuild_buildings_3d() -> void:
 		loft_root.name = "Loft3D_" + b_id
 		loft_root.visible = false
 		b_root.add_child(loft_root)
-		var loft_y: float = center.y + (-half.y * 0.42 if door_south else half.y * 0.42)
-		_add_box_2d(loft_root, Vector2(center.x, loft_y), Vector2(sz.x - 10.0, sz.y * 0.42), wall_h - 3.0, 2.0, m_wood)
-		_add_box_2d(loft_root, Vector2(center.x, loft_y + (sz.y * 0.20 if door_south else -sz.y * 0.20)), Vector2(sz.x - 12.0, 2.5), wall_h - 1.0, 6.0, m_dark_wood)
-		_add_model_2d(loft_root, "props/Chest_Wood.gltf", Vector2(center.x - sz.x * 0.22, loft_y), wall_h - 1.0, Vector2(12.0, 8.0), 6.5)
+		if b_id == "building_tavern":
+			_build_tavern_floor_1_3d(loft_root, wall_h, m_wall, m_trim, m_wood, m_dark_wood, m_iron, m_gold)
+		else:
+			var loft_y: float = center.y + (-half.y * 0.42 if door_south else half.y * 0.42)
+			_add_box_2d(loft_root, Vector2(center.x, loft_y), Vector2(sz.x - 10.0, sz.y * 0.42), wall_h - 3.0, 2.0, m_wood)
+			_add_box_2d(loft_root, Vector2(center.x, loft_y + (sz.y * 0.20 if door_south else -sz.y * 0.20)), Vector2(sz.x - 12.0, 2.5), wall_h - 1.0, 6.0, m_dark_wood)
+			_add_model_2d(loft_root, "props/Chest_Wood.gltf", Vector2(center.x - sz.x * 0.22, loft_y), wall_h - 1.0, Vector2(12.0, 8.0), 6.5)
 
 		# 7. Tejado a dos aguas con alero (se retira en modo Cutaway). Cada edificio varía según su id:
 		#    orientación de la cumbrera, altura, ala más baja en los edificios anchos, porche sobre la puerta y chimenea.
@@ -1124,25 +1137,7 @@ func _populate_building_interior_3d(b_root: Node3D, b_id: String, rect: Rect2, d
 		"building_restaurant":
 			_build_restaurant_3d(b_root, wall_h, m_wall, m_trim, m_wood, m_dark_wood, m_iron, m_gold)
 		"building_tavern":
-			# Tabique divisorio de habitaciones y barra de la posada
-			_add_box_2d(b_root, Vector2(362, -222), Vector2(96, 5.5), 2.0, wall_h * 0.85, m_wall)
-			_add_box_2d(b_root, Vector2(502, -222), Vector2(116, 5.5), 2.0, wall_h * 0.85, m_wall)
-			# Barra del tabernero y barriles reales 3D
-			_add_box_2d(b_root, Vector2(358, -196), Vector2(48, 9), 2.0, 9.5, m_dark_wood)
-			_add_model_2d(b_root, "props/Mug.gltf", Vector2(350, -196), 11.5, Vector2(4.0, 4.0), 4.0)
-			_add_model_2d(b_root, "props/Chalice.gltf", Vector2(366, -196), 11.5, Vector2(4.0, 4.0), 4.5)
-			for bx in [-18.0, 0.0, 18.0]:
-				_add_model_2d(b_root, "props/Barrel.gltf", Vector2(358 + bx, -210), 2.0, Vector2(9.5, 9.5), 10.5)
-			# Mesa de póker y mesa de billar + sillas 3D
-			_add_model_2d(b_root, "props/Table_Large.gltf", vm._tavern_games_pos, 2.0, Vector2(22, 16), 6.8)
-			_add_box_2d(b_root, vm._tavern_games_pos, Vector2(18, 12), 8.5, 0.8, m_felt)
-			_add_model_2d(b_root, "props/Chair_1.gltf", vm._tavern_games_pos + Vector2(-14, 0), 2.0, Vector2(6.5, 6.5), 8.5, 90.0)
-			_add_model_2d(b_root, "props/Chair_1.gltf", vm._tavern_games_pos + Vector2(14, 0), 2.0, Vector2(6.5, 6.5), 8.5, -90.0)
-			_add_model_2d(b_root, "props/Table_Large.gltf", vm._tavern_pool_pos, 2.0, Vector2(26, 16), 6.8)
-			_add_box_2d(b_root, vm._tavern_pool_pos, Vector2(22, 12), 8.8, 0.8, m_felt)
-			# Camas de huéspedes y cama de alquiler
-			for bp in [Vector2(435, -252), Vector2(468, -252), Vector2(502, -252), vm._tavern_bed_pos]:
-				_build_bed_3d(b_root, bp, m_wood, m_bed, m_pillow)
+			_build_tavern_floor_0_3d(b_root, wall_h, m_wall, m_trim, m_wood, m_dark_wood, m_iron, m_gold)
 		"building_hospital":
 			# Tabique entre Urgencias y Morgue Forense
 			_add_box_2d(b_root, Vector2(704, 152), Vector2(56, 5.5), 2.0, wall_h * 0.85, m_wall)
@@ -1524,13 +1519,282 @@ func _build_restaurant_3d(b_root: Node3D, wall_h: float, m_wall: Material, m_tri
 	_add_box_2d(b_root, R.PATH_RECT.get_center(), R.PATH_RECT.size, 0.0, 0.8, m_terr)
 
 func _build_bed_3d(parent: Node3D, pos_2d: Vector2, m_frame: Material, m_blanket: Material, m_pillow: Material) -> void:
+	_build_bed_3d_at_h(parent, pos_2d, 2.0, m_frame, m_blanket, m_pillow)
+
+func _build_bed_3d_at_h(parent: Node3D, pos_2d: Vector2, base_h: float, m_frame: Material, m_blanket: Material, m_pillow: Material) -> void:
 	if not _is_headless:
-		var bed := _add_model_2d(parent, "props/Bed_Twin1.gltf", pos_2d, 2.0, Vector2(15.0, 21.0), 8.5)
+		var bed := _add_model_2d(parent, "props/Bed_Twin1.gltf", pos_2d, base_h, Vector2(15.0, 21.0), 8.5)
 		if bed != null:
 			return
-	_add_box_2d(parent, pos_2d, Vector2(15.0, 21.0), 2.0, 4.5, m_frame)
-	_add_box_2d(parent, pos_2d + Vector2(0, 2.0), Vector2(13.5, 15.0), 6.5, 2.0, m_blanket)
-	_add_box_2d(parent, pos_2d + Vector2(0, -6.5), Vector2(11.0, 4.5), 6.5, 2.2, m_pillow)
+	_add_box_2d(parent, pos_2d, Vector2(15.0, 21.0), base_h, 4.5, m_frame)
+	_add_box_2d(parent, pos_2d + Vector2(0, 2.0), Vector2(13.5, 15.0), base_h + 4.5, 2.0, m_blanket)
+	_add_box_2d(parent, pos_2d + Vector2(0, -6.5), Vector2(11.0, 4.5), base_h + 4.5, 2.2, m_pillow)
+
+## Paso 3: Planta Baja (Planta 0) de la Gran Taberna «El Jabalí Dorado» (Salón-Comedor, Barra-Cocina, Casino con Póker y Mesa de Billar real 3D, Escalera al Piso +1 y Bodega con Trampilla del Club).
+func _build_tavern_floor_0_3d(b_root: Node3D, _wall_h: float, m_wall: Material, m_trim: Material, m_wood: Material, m_dark_wood: Material, m_iron: Material, m_gold: Material) -> void:
+	var T = VillageTavern
+	var ih0: float = 19.0
+	var m_felt := _mat("tavern_green_felt", Color(0.12, 0.52, 0.28), 0.82, 0.0)
+	var m_carpet := _mat("tavern_casino_carpet", Color(0.48, 0.12, 0.14), 0.92, 0.0)
+	var m_hall_rug := _mat("tavern_hall_rug", Color(0.56, 0.24, 0.16), 0.90, 0.0)
+	var m_tile := _mat("tavern_kitchen_tile", Color(0.76, 0.70, 0.62), 0.75, 0.0, Color.BLACK, 0.0, "town_textures/floor_tiles_sand_small.png")
+	var m_stone := _mat("tavern_hearth_stone", Color(0.52, 0.48, 0.44), 0.88, 0.04, Color.BLACK, 0.0, "town_textures/wall_brick_stone_center.png")
+	var m_stove := _mat("tavern_stove_iron", Color(0.16, 0.16, 0.18), 0.48, 0.72)
+	var m_ember := _mat("tavern_ember", Color(1.0, 0.42, 0.12), 0.35, 0.0, Color(1.0, 0.38, 0.08), 2.4)
+	var m_plate := _mat("tavern_plate", Color(0.92, 0.90, 0.84), 0.45, 0.05)
+	var m_chip_red := _mat("poker_chip_red", Color(0.84, 0.18, 0.18), 0.55, 0.1)
+	var m_chip_blue := _mat("poker_chip_blue", Color(0.18, 0.38, 0.82), 0.55, 0.1)
+
+	# 1. Tabiques interiores de Planta 0 (con los mismos huecos de paso que en VillageTavern.OPENINGS_FLOOR_0)
+	var x0: float = T.RECT.position.x
+	var x1: float = T.RECT.end.x
+	var h_gaps: Array[float] = [316.0, 434.0, 524.0]
+	var cur_x: float = x0
+	for gx in h_gaps:
+		var a: float = gx - T.GAP * 0.5
+		if a - cur_x > 2.0:
+			_add_box_2d(b_root, Vector2((cur_x + a) * 0.5, T.MID_WALL_Y), Vector2(a - cur_x, 5.5), 2.0, ih0, m_wall)
+		_add_box_2d(b_root, Vector2(gx, T.MID_WALL_Y), Vector2(T.GAP + 4.0, 5.5), 2.0 + ih0 * 0.78, ih0 * 0.22, m_trim)
+		cur_x = gx + T.GAP * 0.5
+	if x1 - cur_x > 2.0:
+		_add_box_2d(b_root, Vector2((cur_x + x1) * 0.5, T.MID_WALL_Y), Vector2(x1 - cur_x, 5.5), 2.0, ih0, m_wall)
+
+	var y0: float = T.RECT.position.y
+	var y1: float = T.RECT.end.y
+	var v_gaps: Array[float] = [-252.0, -168.0]
+	var cur_y: float = y0
+	for gy in v_gaps:
+		var ay: float = gy - T.GAP * 0.5
+		if ay - cur_y > 2.0:
+			_add_box_2d(b_root, Vector2(T.EAST_WING_X, (cur_y + ay) * 0.5), Vector2(5.5, ay - cur_y), 2.0, ih0, m_wall)
+		_add_box_2d(b_root, Vector2(T.EAST_WING_X, gy), Vector2(5.5, T.GAP + 4.0), 2.0 + ih0 * 0.78, ih0 * 0.22, m_trim)
+		cur_y = gy + T.GAP * 0.5
+	if y1 - cur_y > 2.0:
+		_add_box_2d(b_root, Vector2(T.EAST_WING_X, (cur_y + y1) * 0.5), Vector2(5.5, y1 - cur_y), 2.0, ih0, m_wall)
+
+	# 2. Alfombras y pavimentos diferenciados por sala en Planta 0
+	_add_box_2d(b_root, T.ROOMS_FLOOR_0["barra_cocina"].get_center(), T.ROOMS_FLOOR_0["barra_cocina"].size - Vector2(8, 8), 2.5, 0.35, m_tile)
+	_add_box_2d(b_root, T.ROOMS_FLOOR_0["casino"].get_center(), T.ROOMS_FLOOR_0["casino"].size - Vector2(10, 10), 2.5, 0.38, m_carpet)
+	_add_box_2d(b_root, Vector2(368.0, -174.0), Vector2(168.0, 56.0), 2.5, 0.35, m_hall_rug)
+
+	# 3. Gran Salón y Comedor: Hogar de piedra con brasas, 6 mesas con 12 sillas, platos, jarras y arañas de techo
+	_add_box_2d(b_root, T.FIREPLACE_POS, Vector2(14.0, 32.0), 2.0, 18.5, m_stone)
+	_add_box_2d(b_root, T.FIREPLACE_POS + Vector2(2.0, 0.0), Vector2(16.0, 36.0), 14.5, 2.2, m_dark_wood) # Repisa de roble
+	_add_box_2d(b_root, T.FIREPLACE_POS + Vector2(5.0, 0.0), Vector2(6.0, 20.0), 2.8, 5.5, m_ember)
+	_add_model_2d(b_root, "props/Cauldron.gltf", T.FIREPLACE_POS + Vector2(4.5, 0.0), 4.0, Vector2(7.5, 7.5), 5.5)
+
+	for ti in range(T.DINING_TABLES.size()):
+		var tp: Vector2 = T.DINING_TABLES[ti]
+		if _add_model_2d(b_root, "props/Table_Large.gltf", tp, 2.0, Vector2(22.0, 14.0), 7.2) == null:
+			_add_box_2d(b_root, tp, Vector2(22.0, 14.0), 2.0, 7.2, m_wood)
+		# 2 sillas enfrentadas (izquierda y derecha de cada mesa)
+		_add_model_2d(b_root, "props/Chair_1.gltf", tp + Vector2(-15.0, 0.0), 2.0, Vector2(6.5, 6.5), 8.5, 90.0)
+		_add_model_2d(b_root, "props/Chair_1.gltf", tp + Vector2(15.0, 0.0), 2.0, Vector2(6.5, 6.5), 8.5, -90.0)
+		# Platos y jarras servidas sobre la mesa
+		_add_cyl_2d(b_root, tp + Vector2(-5.5, -1.5), 2.6, 9.2, 0.5, m_plate, 2.2, 10)
+		_add_cyl_2d(b_root, tp + Vector2(5.5, 1.5), 2.6, 9.2, 0.5, m_plate, 2.2, 10)
+		_add_model_2d(b_root, "props/Mug.gltf", tp + Vector2(-4.0, 2.5), 9.2, Vector2(3.2, 3.2), 3.6)
+		_add_model_2d(b_root, "props/Mug.gltf", tp + Vector2(4.5, -2.5), 9.2, Vector2(3.2, 3.2), 3.6)
+		if (ti % 2) == 0:
+			_add_model_2d(b_root, "props/CandleStick_Triple.gltf", tp, 9.2, Vector2(3.8, 3.8), 5.0)
+
+	for ch_pos in [Vector2(332.0, -172.0), Vector2(416.0, -172.0)]:
+		_add_model_2d(b_root, "props/Chandelier.gltf", ch_pos, 14.5, Vector2(12.0, 12.0), 6.5)
+		_restaurant_light(b_root, ch_pos, 15.5, Color(1.0, 0.80, 0.48), 1.15, 2.8, false)
+
+	# Letrero exterior y faroles en la fachada sur de la taberna
+	_add_model_2d(b_root, "fantasy_town/banner-red.glb", T.DOOR_POS + Vector2(32.0, 3.0), 16.0, Vector2(8.0, 3.0), 14.0)
+	_add_model_2d(b_root, "props/Lantern_Wall.gltf", T.DOOR_POS + Vector2(-28.0, 3.0), 15.0, Vector2(4.2, 4.2), 6.2)
+	_add_model_2d(b_root, "props/Lantern_Wall.gltf", T.DOOR_POS + Vector2(28.0, 3.0), 15.0, Vector2(4.2, 4.2), 6.2)
+
+	# 4. Barra del Tabernero (con Marta detrás), Pasa-platos del Camarero, Toneles y Cocina
+	_add_box_2d(b_root, T.BAR_COUNTER_POS, Vector2(92.0, 10.0), 2.0, 10.0, m_dark_wood)
+	_add_box_2d(b_root, T.BAR_COUNTER_POS, Vector2(95.0, 12.0), 11.6, 1.2, m_wood)
+	_add_box_2d(b_root, T.BAR_COUNTER_POS + Vector2(0.0, 5.8), Vector2(90.0, 1.2), 3.6, 0.9, m_gold) # Barra reposapiés de latón
+	# 3 tiradores de cerveza de latón + jarras y botellas
+	for tap_x in [-24.0, 0.0, 24.0]:
+		_add_cyl_2d(b_root, T.BAR_COUNTER_POS + Vector2(tap_x, -2.0), 1.1, 12.8, 4.2, m_gold, 0.8, 8)
+	_add_model_2d(b_root, "props/Mug.gltf", T.BAR_COUNTER_POS + Vector2(-32.0, 1.0), 12.8, Vector2(3.8, 3.8), 4.0)
+	_add_model_2d(b_root, "props/Mug.gltf", T.BAR_COUNTER_POS + Vector2(-10.0, 1.5), 12.8, Vector2(3.8, 3.8), 4.0)
+	_add_model_2d(b_root, "props/Chalice.gltf", T.BAR_COUNTER_POS + Vector2(12.0, 1.0), 12.8, Vector2(3.8, 3.8), 4.4)
+	_add_model_2d(b_root, "props/Bottle_1.gltf", T.BAR_COUNTER_POS + Vector2(34.0, -1.0), 12.8, Vector2(2.8, 2.8), 5.2)
+	# 4 taburetes altos frente a la barra
+	for st_x in [-33.0, -11.0, 11.0, 33.0]:
+		var st_pos: Vector2 = T.BAR_COUNTER_POS + Vector2(st_x, 11.0)
+		_add_cyl_2d(b_root, st_pos, 1.2, 2.0, 5.8, m_dark_wood, 1.8, 8)
+		_add_cyl_2d(b_root, st_pos, 3.6, 7.8, 1.1, m_wood, 3.6, 10)
+	# Pasa-platos del camarero al este de la barra
+	_add_box_2d(b_root, T.PASS_COUNTER_POS + Vector2(0.0, 8.0), Vector2(22.0, 9.0), 2.0, 9.8, m_dark_wood)
+	_add_box_2d(b_root, T.PASS_COUNTER_POS + Vector2(0.0, 8.0), Vector2(24.0, 10.5), 11.6, 1.0, m_gold)
+	_add_cyl_2d(b_root, T.PASS_COUNTER_POS + Vector2(-4.0, 8.0), 3.2, 12.6, 0.6, m_plate, 2.8, 10)
+	_add_model_2d(b_root, "props/Mug.gltf", T.PASS_COUNTER_POS + Vector2(4.0, 8.0), 12.6, Vector2(3.5, 3.5), 3.8)
+	# Estantería de botellas tras Marta y hilera de grandes toneles de roble
+	_add_model_2d(b_root, "props/Shelf_Small_Bottles.gltf", Vector2(346.0, -306.0), 2.0, Vector2(26.0, 6.0), 17.0)
+	for bx in [-24.0, -8.0, 8.0, 24.0]:
+		_add_model_2d(b_root, "props/Barrel.gltf", T.BARREL_RACK_POS + Vector2(bx, 0.0), 2.0, Vector2(10.0, 10.0), 11.0)
+	# Fogones de cocina de la posada y mesa de preparación
+	_add_box_2d(b_root, T.STOVE_POS, Vector2(26.0, 12.0), 2.0, 10.0, m_stove)
+	_add_box_2d(b_root, T.STOVE_POS, Vector2(21.0, 8.5), 12.0, 0.6, m_ember)
+	_add_model_2d(b_root, "props/Cauldron.gltf", T.STOVE_POS + Vector2(-5.5, 0.0), 12.0, Vector2(8.0, 8.0), 6.0)
+	_add_model_2d(b_root, "props/Pot_1.gltf", T.STOVE_POS + Vector2(6.5, 0.0), 12.0, Vector2(6.0, 6.0), 4.5)
+	_add_model_2d(b_root, "props/Workbench.gltf", T.PREP_POS, 2.0, Vector2(26.0, 10.0), 9.5)
+	_restaurant_light(b_root, Vector2(368.0, -268.0), 16.5, Color(1.0, 0.86, 0.60), 1.0, 2.5, false)
+
+	# 5. Sala de Casino y Billar: Mesa de Póker con 4 sillas y fichas + Mesa de Billar Real en 3D
+	var gp: Vector2 = T.GAMES_POS
+	_add_cyl_2d(b_root, gp, 3.2, 2.0, 6.4, m_dark_wood, 5.2, 10) # Pedestal central torneado de la mesa de póker
+	_add_cyl_2d(b_root, gp, 12.6, 8.2, 1.4, m_dark_wood, 12.6, 12) # Aro de caoba
+	_add_cyl_2d(b_root, gp, 10.6, 9.3, 0.5, m_felt, 10.6, 12) # Paño verde de póker
+	# 4 sillas de póker (Oeste, Este, Norte, Sur) sincronizadas con T.POKER_CHAIRS
+	_add_model_2d(b_root, "props/Chair_1.gltf", T.POKER_CHAIRS[0], 2.0, Vector2(6.5, 6.5), 8.5, 90.0)
+	_add_model_2d(b_root, "props/Chair_1.gltf", T.POKER_CHAIRS[1], 2.0, Vector2(6.5, 6.5), 8.5, -90.0)
+	_add_model_2d(b_root, "props/Chair_1.gltf", T.POKER_CHAIRS[2], 2.0, Vector2(6.5, 6.5), 8.5, 0.0)
+	_add_model_2d(b_root, "props/Chair_1.gltf", T.POKER_CHAIRS[3], 2.0, Vector2(6.5, 6.5), 8.5, 180.0)
+	# Montón de fichas de póker en el bote central y cartas frente a cada jugador
+	_add_cyl_2d(b_root, gp + Vector2(-1.4, -0.8), 1.3, 9.8, 1.4, m_gold, 1.3, 8)
+	_add_cyl_2d(b_root, gp + Vector2(1.5, 0.6), 1.3, 9.8, 1.1, m_chip_red, 1.3, 8)
+	_add_cyl_2d(b_root, gp + Vector2(0.2, -1.6), 1.2, 9.8, 0.9, m_chip_blue, 1.2, 8)
+	for c_off in [Vector2(-6.8, 0.0), Vector2(6.8, 0.0), Vector2(0.0, -6.8), Vector2(0.0, 6.8)]:
+		_add_box_2d(b_root, gp + c_off, Vector2(2.6, 1.8), 9.8, 0.25, m_plate)
+
+	# Mesa de Billar Real en 3D (sin usar Table_Large ni patas de cama)
+	_build_billiard_table_3d(b_root, T.POOL_POS, m_dark_wood, m_wood, m_gold)
+	_restaurant_light(b_root, Vector2(546.0, -178.0), 16.5, Color(1.0, 0.84, 0.50), 1.1, 2.4, false)
+
+	# 6. Vestíbulo de Escalera y Bodega: Escalera física real de 12 peldaños (h = 2.0 -> 22.0) y rincón de la Trampilla del Club
+	var num_steps: int = 12
+	var stair_x: float = T.STAIRS_BOTTOM_POS.x
+	var y_bot: float = T.STAIRS_BOTTOM_POS.y
+	var y_top: float = T.STAIRS_TOP_POS.y
+	var step_dy: float = (y_top - y_bot) / float(num_steps)
+	var step_dh: float = (T.FLOOR_1_H - 2.0) / float(num_steps)
+	for si in range(num_steps):
+		var sy: float = y_bot + (float(si) + 0.5) * step_dy
+		var sh: float = 2.0 + float(si) * step_dh
+		# Zanca/contorno de soporte bajo el peldaño y huella de roble macizo
+		_add_box_2d(b_root, Vector2(stair_x, sy), Vector2(24.0, absf(step_dy) + 0.8), 2.0, sh - 1.5, m_dark_wood)
+		_add_box_2d(b_root, Vector2(stair_x, sy), Vector2(26.0, absf(step_dy) + 1.2), sh, step_dh + 0.5, m_wood)
+		if (si % 2) == 0:
+			for rail_side in [-13.0, 13.0]:
+				_add_box_2d(b_root, Vector2(stair_x + rail_side, sy), Vector2(1.4, 1.4), sh + step_dh, 5.5, m_dark_wood)
+				_add_box_2d(b_root, Vector2(stair_x + rail_side, sy), Vector2(1.8, absf(step_dy) * 2.2), sh + step_dh + 5.2, 1.1, m_trim)
+	# Toneles y cajas de bodega flanqueando la trampilla del Club de la Lucha (516, -286)
+	_add_model_2d(b_root, "props/Barrel.gltf", Vector2(498.0, -302.0), 2.0, Vector2(9.5, 9.5), 10.5)
+	_add_model_2d(b_root, "props/Barrel.gltf", Vector2(534.0, -302.0), 2.0, Vector2(9.5, 9.5), 10.5)
+	_add_model_2d(b_root, "props/Crate_Wooden.gltf", Vector2(498.0, -268.0), 2.0, Vector2(9.0, 9.0), 8.0)
+	_restaurant_light(b_root, Vector2(526.0, -276.0), 15.5, Color(1.0, 0.64, 0.32), 0.9, 2.0, false)
+
+## Construye una mesa de billar 3D auténtica: 4 patas torneadas de caoba con casquillos de latón, faldón perimetral,
+## pizarra de paño verde esmeralda, 4 bandas de caoba con herrajes dorados, 6 troneras oscuras, triángulo de bolas de colores + blanca y 2 tacos.
+func _build_billiard_table_3d(parent: Node3D, pos: Vector2, m_mahogany: Material, m_cue_wood: Material, m_brass: Material) -> void:
+	var m_baize := _mat("billiard_baize_emerald", Color(0.08, 0.56, 0.30), 0.78, 0.02)
+	var m_pocket := _mat("billiard_pocket_dark", Color(0.07, 0.06, 0.06), 0.92, 0.1)
+	var m_cue_ball := _mat("billiard_ball_white", Color(0.97, 0.96, 0.92), 0.18, 0.08)
+	var m_ball_yellow := _mat("billiard_ball_yellow", Color(0.95, 0.80, 0.14), 0.20, 0.08)
+	var m_ball_blue := _mat("billiard_ball_blue", Color(0.14, 0.36, 0.86), 0.20, 0.08)
+	var m_ball_red := _mat("billiard_ball_red", Color(0.86, 0.16, 0.16), 0.20, 0.08)
+	var m_ball_eight := _mat("billiard_ball_eight", Color(0.08, 0.08, 0.10), 0.16, 0.12)
+	var m_chalk := _mat("billiard_chalk_tip", Color(0.22, 0.58, 0.92), 0.70, 0.0)
+
+	# 1. 4 patas torneadas de caoba con casquillo inferior de latón
+	for lx in [-11.2, 11.2]:
+		for ly in [-6.6, 6.6]:
+			var lp: Vector2 = pos + Vector2(lx, ly)
+			_add_cyl_2d(parent, lp, 1.35, 2.0, 1.2, m_brass, 1.15, 10)
+			_add_cyl_2d(parent, lp, 1.85, 3.2, 3.8, m_mahogany, 1.30, 10)
+
+	# 2. Faldón / bastidor de caoba maciza y lecho de pizarra con paño verde esmeralda
+	_add_box_2d(parent, pos, Vector2(26.4, 16.8), 6.6, 2.1, m_mahogany)
+	_add_box_2d(parent, pos, Vector2(23.8, 14.2), 8.7, 0.65, m_baize)
+	# Línea de saque blanca sobre el paño
+	_add_box_2d(parent, pos + Vector2(-5.8, 0.0), Vector2(0.35, 13.2), 9.36, 0.08, m_cue_ball)
+
+	# 3. Bandas elevadas de caoba (divididas en los lados largos para dejar las 6 troneras) y cantoneras de latón
+	for sy in [-7.6, 7.6]:
+		_add_box_2d(parent, pos + Vector2(-5.6, sy), Vector2(9.2, 1.5), 8.9, 1.1, m_mahogany)
+		_add_box_2d(parent, pos + Vector2(5.6, sy), Vector2(9.2, 1.5), 8.9, 1.1, m_mahogany)
+	for sx in [-12.4, 12.4]:
+		_add_box_2d(parent, pos + Vector2(sx, 0.0), Vector2(1.5, 11.6), 8.9, 1.1, m_mahogany)
+
+	# 4. 6 Troneras (4 esquinas + 2 centrales) con embocadura de latón y hueco oscuro
+	var pockets: Array[Vector2] = [
+		Vector2(-11.8, -7.1), Vector2(11.8, -7.1),
+		Vector2(-11.8, 7.1), Vector2(11.8, 7.1),
+		Vector2(0.0, -7.4), Vector2(0.0, 7.4),
+	]
+	for pk in pockets:
+		_add_cyl_2d(parent, pos + pk, 1.65, 8.85, 1.2, m_brass, 1.65, 10)
+		_add_cyl_2d(parent, pos + pk * 0.94, 1.28, 8.95, 1.18, m_pocket, 1.28, 10)
+
+	# 5. Bolas de billar sobre el paño: bola blanca en zona de saque + triángulo de bolas de colores en el punto de pie
+	_add_cyl_2d(parent, pos + Vector2(-6.2, 0.6), 0.68, 9.35, 0.95, m_cue_ball, 0.62, 10)
+	var rack_balls: Array = [
+		[Vector2(3.6, 0.0), m_ball_yellow],
+		[Vector2(5.0, -0.8), m_ball_blue],
+		[Vector2(5.0, 0.8), m_ball_red],
+		[Vector2(6.4, -1.5), m_ball_red],
+		[Vector2(6.4, 0.0), m_ball_eight],
+		[Vector2(6.4, 1.5), m_ball_yellow],
+	]
+	for rb in rack_balls:
+		_add_cyl_2d(parent, pos + (rb[0] as Vector2), 0.68, 9.35, 0.95, rb[1] as Material, 0.62, 10)
+
+	# 6. 2 Tacos de billar de madera con virola de tiza azul apoyados sobre las bandas
+	_add_box_2d(parent, pos + Vector2(-2.0, -4.4), Vector2(15.5, 0.48), 10.05, 0.42, m_cue_wood, 14.0)
+	_add_box_2d(parent, pos + Vector2(5.4, -2.5), Vector2(0.9, 0.48), 10.06, 0.44, m_chalk, 14.0)
+	_add_box_2d(parent, pos + Vector2(-1.5, 4.8), Vector2(15.5, 0.48), 10.05, 0.42, m_cue_wood, -11.0)
+	_add_box_2d(parent, pos + Vector2(5.9, 3.3), Vector2(0.9, 0.48), 10.06, 0.44, m_chalk, -11.0)
+
+## Paso 3: Primer Piso (Planta +1, h = 22.0) de la Gran Taberna «El Jabalí Dorado»:
+## galería con barandilla sobre el salón, pasillo superior y 5 cuartos de huéspedes con las 6 camas reales.
+func _build_tavern_floor_1_3d(loft_root: Node3D, _wall_h: float, m_wall: Material, m_trim: Material, m_wood: Material, m_dark_wood: Material, _m_iron: Material, _m_gold: Material) -> void:
+	var T = VillageTavern
+	var h1: float = T.FLOOR_1_H # 22.0
+	var ih1: float = 19.5
+	var m_bed_red := _mat("tavern_bed_red", Color(0.82, 0.24, 0.22), 0.85, 0.0)
+	var m_bed_gold := _mat("tavern_bed_gold", Color(0.84, 0.62, 0.22), 0.85, 0.0)
+	var m_pillow := _mat("tavern_bed_pillow", Color(0.95, 0.93, 0.88), 0.85, 0.0)
+	var m_rug := _mat("tavern_upper_rug", Color(0.52, 0.18, 0.16), 0.92, 0.0)
+
+	# 1. Forjado de madera de la Planta +1 (deja libre el hueco de la escalera en x = 558..604, y = -290..-206 y el balcón sur en y = -168..-132)
+	_add_box_2d(loft_root, Vector2(411.0, -241.0), Vector2(294.0, 146.0), h1 - 1.6, 1.6, m_wood)
+	# Relleno del desembarco superior de la escalera (x = 558..604, y = -206..-168)
+	_add_box_2d(loft_root, Vector2(581.0, -187.0), Vector2(46.0, 38.0), h1 - 1.6, 1.6, m_wood)
+	# Alfombra larga del pasillo de la galería alta
+	_add_box_2d(loft_root, Vector2(422.0, T.HALLWAY_Y), Vector2(280.0, 18.0), h1 + 0.1, 0.35, m_rug)
+
+	# 2. Barandilla de madera de la galería alta (asomada al Gran Salón en y = -168.0) y barandilla del hueco de escalera
+	_add_box_2d(loft_root, Vector2(434.0, -168.0), Vector2(340.0, 2.6), h1 + 5.2, 1.4, m_dark_wood)
+	for bx in range(272, 602, 18):
+		_add_box_2d(loft_root, Vector2(float(bx), -168.0), Vector2(1.8, 2.2), h1, 5.2, m_trim)
+	_add_box_2d(loft_root, Vector2(558.0, -248.0), Vector2(2.4, 84.0), h1 + 5.2, 1.4, m_dark_wood)
+	for by in [-284.0, -264.0, -244.0, -224.0, -208.0]:
+		_add_box_2d(loft_root, Vector2(558.0, by), Vector2(2.0, 2.0), h1, 5.2, m_trim)
+
+	# 3. Tabique del pasillo de los 5 dormitorios (y = -216.0, x = 264..558) con sus 5 puertas y dinteles
+	var cur_x: float = 264.0
+	for dx in T.BEDROOM_DOORS_X:
+		var a: float = dx - 11.0
+		if a - cur_x > 2.0:
+			_add_box_2d(loft_root, Vector2((cur_x + a) * 0.5, -216.0), Vector2(a - cur_x, 5.0), h1, ih1, m_wall)
+		_add_box_2d(loft_root, Vector2(dx, -216.0), Vector2(24.0, 5.2), h1 + ih1 * 0.76, ih1 * 0.24, m_trim)
+		cur_x = dx + 11.0
+	if 558.0 - cur_x > 2.0:
+		_add_box_2d(loft_root, Vector2((cur_x + 558.0) * 0.5, -216.0), Vector2(558.0 - cur_x, 5.0), h1, ih1, m_wall)
+
+	# Tabiques divisorios entre los 5 cuartos de huéspedes (y = -314..-216)
+	for part_x in [374.0, 418.0, 452.0, 486.0, 558.0]:
+		_add_box_2d(loft_root, Vector2(part_x, -265.0), Vector2(4.8, 98.0), h1, ih1, m_wall)
+
+	# 4. Las 6 camas reales en Planta +1 (con mesillas, cofres y alfombras a los pies)
+	for bi in range(T.ALL_UPPER_BEDS.size()):
+		var bp: Vector2 = T.ALL_UPPER_BEDS[bi]
+		var blanket_mat: Material = m_bed_gold if bi == 0 else m_bed_red
+		_build_bed_3d_at_h(loft_root, bp, h1, m_wood, blanket_mat, m_pillow)
+		_add_model_2d(loft_root, "props/Nightstand_Shelf.gltf", bp + Vector2(0.0, -16.0), h1, Vector2(7.0, 6.0), 7.5)
+		_add_box_2d(loft_root, bp + Vector2(0.0, 14.0), Vector2(16.0, 10.0), h1 + 0.1, 0.3, m_rug)
+	_add_model_2d(loft_root, "props/Chest_Wood.gltf", Vector2(312.0, -252.0), h1, Vector2(12.0, 8.0), 6.8)
+	_add_model_2d(loft_root, "props/Chest_Wood.gltf", Vector2(520.0, -288.0), h1, Vector2(12.0, 8.0), 6.8)
 
 # ==============================================================================
 # 3. SOLARES VACÍOS Y OBRAS EN CONSTRUCCIÓN (`VillageLots.LOTS`)
@@ -1950,8 +2214,8 @@ func _update_fp_camera_transform() -> void:
 			var m_ctrl = pl.get_node_or_null("PlayerMovementController")
 			if m_ctrl != null and m_ctrl.get("is_stealthing") == true:
 				eye_h -= 3.5
-	if vm != null and int(vm.player_elevation_level) == 1:
-		eye_h += 22.0
+	if vm != null:
+		eye_h += VillageTavern.elevation_height_for(pl_pos, int(vm.player_elevation_level))
 	var eye_3d: Vector3 = to_3d(pl_pos, eye_h)
 	var dir_2d: Vector2 = get_fp_forward_2d()
 	var horiz_3d: Vector3 = Vector3(dir_2d.x, 0.0, dir_2d.y / maxf(0.1, _sin_p)).normalized()
@@ -2318,12 +2582,13 @@ func _sync_club_3d() -> void:
 				lt.light_energy = 1.2
 				lt.omni_range = 3.4
 				_club_root_3d.add_child(lt)
-		# Trampilla en el patio de la taberna (siempre visible en la calle)
+		# Trampilla en la sala trasera de escalera/bodega de la taberna (sobre la losa del suelo en h = 2.5)
 		var trap := Node3D.new()
 		trap.name = "ClubTrapdoor3D"
 		stage_root_3d.add_child(trap)
-		_add_box_2d(trap, Club.TRAPDOOR_POS, Vector2(14.0, 12.0), 0.3, 1.0, m_wood)
-		_add_box_2d(trap, Club.TRAPDOOR_POS + Vector2(0, 4), Vector2(10.0, 1.2), 1.3, 0.6, m_iron)
+		_add_box_2d(trap, Club.TRAPDOOR_POS, Vector2(14.0, 12.0), 2.5, 1.0, m_wood)
+		_add_box_2d(trap, Club.TRAPDOOR_POS + Vector2(0, 4), Vector2(10.0, 1.2), 3.5, 0.6, m_iron)
+		_add_box_2d(trap, Club.TRAPDOOR_POS + Vector2(0, -4), Vector2(10.0, 1.2), 3.5, 0.6, m_iron)
 	_club_root_3d.visible = Club.is_player_in_club(vm)
 
 ## P5: libro de cuentas abierto sobre la mesa del ayuntamiento (se construye una vez).
@@ -2410,7 +2675,8 @@ func _update_roof_cutaways_and_lighting() -> void:
 		var open_roof: bool = r_near.has_point(detective_topdown_pos) if detective_topdown_active else (false if first_person_active else (r_near.has_point(pl_pos) or r_inside.has_point(mouse_pos)))
 		roof_cap.visible = not open_roof
 		if is_instance_valid(loft_root):
-			loft_root.visible = (first_person_active or elev == 1) and r_near.has_point(pl_pos)
+			var on_tavern_stairs: bool = str(rec.get("id", "")) == "building_tavern" and VillageTavern.elevation_height_for(pl_pos, elev) > 6.0
+			loft_root.visible = (first_person_active or elev == 1 or on_tavern_stairs) and r_near.has_point(pl_pos)
 
 	# Casa mejorada del jugador: en primera persona conserva el tejado cerrado
 	if is_instance_valid(_player_house_roof):

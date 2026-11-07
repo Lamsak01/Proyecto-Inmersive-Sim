@@ -13,13 +13,13 @@ const VillageHousing = preload("res://scripts/systems/VillageHousing.gd")
 const VillageUnderworld = preload("res://scripts/systems/VillageUnderworld.gd")
 const TraitCatalog = preload("res://scripts/data/TraitCatalog.gd")
 
-const TRAPDOOR_POS: Vector2 = Vector2(520.0, -300.0) # patio trasero de la taberna, lejos del pozo y del callejón del perista
+const TRAPDOOR_POS: Vector2 = Vector2(516.0, -286.0) # cuarto trasero de escalera y bodega de la taberna (planta 0)
 const CLUB_CENTER: Vector2 = Vector2(1150.0, 1520.0) # franja de túneles del sur, lejos de las 3 cámaras (x ≤ 638)
 const CLUB_SIZE: Vector2 = Vector2(150.0, 110.0)
 const LADDER_POS: Vector2 = Vector2(1092.0, 1484.0)
 const RING_RADIUS: float = 40.0
 const SEAT_RADIUS: float = 56.0
-const OPEN_FROM: int = 23
+const OPEN_FROM: int = 21
 const OPEN_UNTIL: int = 3
 const NPC_BOUT_HOUR: int = 0
 const ENTRY_FEE: int = 10
@@ -46,13 +46,13 @@ static func state(vm) -> Dictionary:
 static func is_club_hour(h: int) -> bool:
 	return h >= OPEN_FROM or h < OPEN_UNTIL
 
-## Día al que pertenece la noche (la de las 23:00).
+## Día al que pertenece la noche (la de las 21:00).
 static func night_of(h: int) -> int:
 	var d: int = VillageUnderworld.today()
 	return d if h >= OPEN_FROM else d - 1
 
 static func is_club_night(vm, night: int) -> bool:
-	return night % 2 == 0 and int(state(vm).get("closed_night", -99)) != night
+	return int(state(vm).get("closed_night", -99)) != night
 
 static func is_open_now(vm) -> bool:
 	var h: int = VillageUnderworld.hour()
@@ -66,7 +66,7 @@ static func on_hour(vm, h: int) -> void:
 	if vm == null:
 		return
 	var c: Dictionary = state(vm)
-	if h == OPEN_FROM and is_club_night(vm, night_of(h)):
+	if h in [OPEN_FROM, 22, 23] and is_club_night(vm, night_of(h)) and int(c.get("night", -99)) != night_of(h):
 		open_night(vm)
 	elif h == NPC_BOUT_HOUR and is_open_now(vm) and int(c.get("night", -99)) == night_of(h):
 		if (c.get("bout", {}) as Dictionary).is_empty() and int(c.get("player_fought_night", -99)) != int(c["night"]):
@@ -86,13 +86,14 @@ static func _free_adult(n) -> bool:
 static func _rowdy(n) -> bool:
 	return TraitCatalog.npc_tendency(n, "aggression") >= 0.35 or TraitCatalog.npc_tendency(n, "malice") >= 0.3
 
-## 23:00: el perista y 3–6 vecinos pendencieros van a la trampilla (primero los despiertos).
+## 21:00–23:00: el perista y 3–6 vecinos pendencieros van a la trampilla (primero los despiertos).
 static func open_night(vm) -> int:
 	var c: Dictionary = state(vm)
 	var fence = VillageUnderworld.get_fence_npc(vm)
 	if fence == null or not _free_adult(fence):
 		return 0
-	c["night"] = night_of(OPEN_FROM)
+	var cur_h: int = VillageUnderworld.hour()
+	c["night"] = night_of(cur_h) if is_club_hour(cur_h) else night_of(OPEN_FROM)
 	c["pot"] = 0
 	c["bet"] = {}
 	c["bout"] = {}
@@ -173,7 +174,7 @@ static func attendees_below(vm) -> Array:
 
 # ------------------------------------------------------------------ trampilla y escalerilla
 static func trapdoor_label(vm) -> String:
-	return "Bajar al sótano" if is_open_now(vm) else "La trampilla está cerrada"
+	return "🕳️🥊 Bajar al Club de Peleas del Sótano" if is_open_now(vm) else "🕳️🔒 Trampilla del Sótano de Peleas (Abre cada noche de 21:00 a 03:00)"
 
 static func go_down(vm, player: Node2D) -> bool:
 	if not is_open_now(vm) or player == null:

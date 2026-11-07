@@ -101,66 +101,9 @@ static func _add_cobble_rect(vm: VillageManager, rect: Rect2) -> void:
 	else:
 		_add_road_rect(vm, rect, Color(0.46, 0.42, 0.36, 0.90))
 
-# EDIFICIO MIXTO #1: GRAN POSADA, TABERNA Y SALA DE CASINO/BILLAR
+# EDIFICIO MIXTO #1: GRAN POSADA DE 2 PLANTAS, TABERNA, CASINO Y SÓTANO DE PELEAS
 static func _spawn_tavern_and_rooms(vm: VillageManager) -> void:
-	var tex_bed := vm._load_tex("res://assests/world/village/tavern_bed.png")
-	var tex_stall := vm._load_tex("res://assests/world/village/work_stall.png")
-	var tex_innkeeper := vm._load_tex("res://assests/world/village/villager_innkeeper.png")
-	var tex_wall_h := vm._load_tex("res://assests/world/village/wall_timber_h.png")
-
-	vm._construct_solid_building(
-		"building_tavern", "🍺 Gran Posada, Taberna y Casino 'El Jabalí Dorado'",
-		Vector2(440, -208), Vector2(260, 145), true,
-		"res://assests/world/village/floor_wood_planks.png",
-		"res://assests/world/village/wall_timber_h.png",
-		"res://assests/world/village/wall_timber_v.png",
-		50.0, 20.0, Color(1.0, 0.88, 0.45)
-	)
-
-	vm._add_poly(PackedVector2Array([Vector2(435, -202), Vector2(556, -202), Vector2(556, -144), Vector2(435, -144)]), Color(0.55, 0.14, 0.14, 0.62), -1)
-	vm._add_solid_wall_segment(Vector2(355, -222), Vector2(90, 6), tex_wall_h)
-	vm._add_solid_wall_segment(Vector2(510, -222), Vector2(120, 6), tex_wall_h)
-
-	vm._spawn_decor_prop("res://assests/Comprados/Epic RPG World - Village(interiors) V1.3/assets/furniture_and_props_sprites/shelves_3.png", Vector2(325, -268), Vector2(0.45, 0.45))
-	vm._spawn_decor_prop("res://assests/Comprados/Epic RPG World - The Village V2.1/tilesets and props/props-sprites/potted-flower_0.png", Vector2(555, -148))
-	vm._add_sprite_prop(tex_stall, Vector2(348, -172), Vector2(1.4, 1.4), 0)
-	vm._add_rect_poly(vm._tavern_social_pos, Vector2(20, 9), Color(0.54, 0.35, 0.18, 0.98), -1)
-
-	# 1. Mesa Verde de Póker / Blackjack / Ruleta
-	vm._add_rect_poly(vm._tavern_games_pos, Vector2(20, 12), Color(0.42, 0.26, 0.12, 1.0), -1)
-	vm._add_rect_poly(vm._tavern_games_pos, Vector2(16, 8), Color(0.10, 0.50, 0.25, 1.0), -1)
-	for chair_offset in [Vector2(-24, 0), Vector2(24, 0), Vector2(0, -16), Vector2(0, 16)]:
-		vm._add_rect_poly(vm._tavern_games_pos + chair_offset, Vector2(4, 4), Color(0.55, 0.36, 0.18, 0.95), -1)
-
-	vm._add_station_area("TavernGamesTableArea", vm._tavern_games_pos, 16.0, "tavern_games")
-	vm._tavern_games_label = vm._make_station_label(vm._tavern_games_pos + Vector2(-120, -30), "🃏 Mesa de Póker y Casino [E: Jugar con Aldeanos]")
-	vm.entities_root.add_child(vm._tavern_games_label)
-
-	# 2. Mesa de Billar de la Posada
-	vm._add_rect_poly(vm._tavern_pool_pos, Vector2(22, 12), Color(0.38, 0.22, 0.10, 1.0), -1)
-	vm._add_rect_poly(vm._tavern_pool_pos, Vector2(18, 8), Color(0.08, 0.42, 0.32, 1.0), -1)
-	vm._add_station_area("TavernPoolTableArea", vm._tavern_pool_pos, 16.0, "tavern_pool")
-	vm._tavern_pool_label = vm._make_station_label(vm._tavern_pool_pos + Vector2(-115, -30), "🎱 Mesa de Billar [E: Jugar Billar de Posada]")
-	vm.entities_root.add_child(vm._tavern_pool_label)
-
-	for b_pos in [Vector2(342, -252), Vector2(400, -252), Vector2(435, -252), Vector2(468, -252), Vector2(502, -252), vm._tavern_bed_pos]:
-		vm._add_sprite_prop(tex_bed, b_pos, Vector2(1.18, 1.18), -1)
-
-	vm._add_station_area("TavernPlayerBedArea", vm._tavern_bed_pos, 11.0, "tavern_bed")
-	vm._tavern_bed_label = vm._make_station_label(vm._tavern_bed_pos + Vector2(-115, -28), "🛌 Cama de Posada [E: Dormir hasta 06:00 (-8 Oro)]")
-	vm.entities_root.add_child(vm._tavern_bed_label)
-
-	vm._spawn_house_chest(Vector2(372, -256), "Cofre de la Posada El Jabalí", "family_tavern")
-
-	var marta := VillageNPC.new()
-	marta.name = "NPC_Marta_Innkeeper"
-	marta.npc_name = "Marta"
-	marta.npc_role = "Chef y Posadera"
-	marta.trade_role = VillageNPC.TradeRole.INNKEEPER
-	marta.tavern_social_pos = vm._tavern_social_pos
-	vm.entities_root.add_child(marta)
-	marta.setup_npc(tex_innkeeper, Vector2(348, -154), Vector2(342, -252), {"country_stew": 5, "bread": 7, "roasted_chicken": 3}, vm._tavern_social_pos, "family_tavern", "Posada El Jabalí")
-	vm._innkeeper_npc = marta
+	preload("res://scripts/systems/VillageTavern.gd").setup_world(vm)
 
 # 4 LOCALES COMERCIALES + 4 CASAS RESIDENCIALES + BOTICA-VIVIENDA MIXTA
 static func _spawn_five_family_houses_and_trades(vm: VillageManager) -> void:

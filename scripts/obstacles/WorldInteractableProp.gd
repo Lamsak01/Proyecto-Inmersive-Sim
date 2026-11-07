@@ -16,6 +16,7 @@ const VillageUnderworld = preload("res://scripts/systems/VillageUnderworld.gd")
 const VillageHousing = preload("res://scripts/systems/VillageHousing.gd")
 const VillageCollections = preload("res://scripts/systems/VillageCollections.gd")
 const VillageClub = preload("res://scripts/systems/VillageClub.gd")
+const VillageTavern = preload("res://scripts/systems/VillageTavern.gd")
 const VillageFame = preload("res://scripts/systems/VillageFame.gd")
 const CharacterAvatar3DScript = preload("res://scripts/visuals/CharacterAvatar3D.gd")
 
@@ -116,6 +117,10 @@ func setup_prop(village_manager: Node2D, kind: String, h_id: String = "", h_labe
 			npc_name = {"club_trapdoor": "Trampilla", "club_ladder": "Escalerilla a la Taberna", "club_ring": "Corro de Cuerda", "club_bet": "Apuestas"}[prop_kind]
 			npc_role = "Sótano de la Taberna"
 			add_to_group("club_prop")
+		"tavern_stairs":
+			npc_name = "Escalera de la Posada"
+			npc_role = "Cambio de Planta (0 / +1)"
+			add_to_group("tavern_stairs")
 	_rebuild_visual_and_area()
 
 
@@ -170,6 +175,8 @@ func _rebuild_visual_and_area() -> void:
 			_draw_sewer_grate_2d()
 		"club_ladder":
 			_draw_sewer_ladder_2d()
+		"tavern_stairs":
+			_draw_home_stairs_2d()
 
 	if interact_area == null or not is_instance_valid(interact_area):
 		interact_area = Area2D.new()
@@ -179,7 +186,7 @@ func _rebuild_visual_and_area() -> void:
 		interact_area.add_to_group("interactable")
 		var shape := CollisionShape2D.new()
 		var circle := CircleShape2D.new()
-		circle.radius = 20.0
+		circle.radius = 48.0 if prop_kind == "tavern_stairs" else 20.0
 		shape.shape = circle
 		interact_area.add_child(shape)
 		add_child(interact_area)
@@ -418,6 +425,8 @@ func get_interact_label(_player: Node2D = null) -> String:
 			return VillageClub.ring_label(vm, _player) if vm != null else ""
 		"club_bet":
 			return VillageClub.bet_label(vm, VillageClub.fighter_key_at(vm, heist_id)) if vm != null else ""
+		"tavern_stairs":
+			return VillageTavern.stairs_label(vm)
 	return "Usar"
 
 
@@ -468,6 +477,8 @@ func interact(player: Node2D) -> void:
 			VillageClub.start_player_bout(vm, player)
 		"club_bet":
 			VillageClub.place_bet(vm, player, VillageClub.fighter_key_at(vm, heist_id))
+		"tavern_stairs":
+			VillageTavern.use_stairs(vm, player)
 
 
 func on_dialogue_action(action_id: String) -> void:

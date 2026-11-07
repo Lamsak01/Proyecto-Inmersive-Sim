@@ -1,6 +1,33 @@
 # Informe de Trabajo — Antigravity (2026-11-07)
 
-## Encargo: Paso 2 — Agrandar y separar el entorno
+## Encargo: Paso 3 — La taberna «El Jabalí Dorado» (2 pisos)
+
+### Qué se hizo en este bloque
+- **Edificio mucho más grande y primer edificio de 2 plantas reales (`scripts/systems/VillageTavern.gd`, `scripts/systems/VillageWorldBuilder.gd`, `scripts/systems/VillageManager.gd`, `scripts/obstacles/WorldInteractableProp.gd`, `scripts/visuals/CharacterAvatar3D.gd`, `scripts/visuals/WorldStage3D.gd`, `scripts/ui/ValleyMapUI.gd`):**
+  - Se amplió la huella de la taberna a `Rect2(Vector2(260, -316), Vector2(348, 184))` con muros de 2 plantas (`wall_h = 44.0`, `22.0 px` por piso).
+  - **Planta Baja (`Planta 0`, `elevation_level = 0`):** dividida por tabiques interiores con dinteles en 4 salas comunicadas: **Gran Salón y Comedor** (`salon`, con chimenea de piedra y brasas, 6 mesas de roble con 12 sillas, platos, jarras y 2 arañas de techo), **Barra y Cocina** (`barra_cocina`, con gran mostrador de caoba y latón, 4 taburetes, tiradores de cerveza, estantería de licores, toneles de roble, fogones con caldero y encimera), **Sala de Casino y Billar** (`casino`, con alfombra carmesí, mesa de póker y mesa de billar) y **Vestíbulo de Escalera y Bodega** (`escalera_bodega`).
+  - **Primer Piso (`Planta +1`, `elevation_level = 1`, `FLOOR_1_H = 22.0`):** galería alta con barandilla de madera asomada al salón, pasillo alfombrado y **5 cuartos de huéspedes** con puertas y tabiques que alojan las **6 camas reales de la posada** (`(342, -252)` de alquiler + `(400, -252)`, `(435, -252)`, `(468, -252)`, `(502, -252)`, `(538, -252)` para vecinos/viajeros), con mesillas, cofres y alfombras.
+  - **Escalera física real (`STAIRS_BOTTOM_POS = Vector2(576, -284)` ↔ `STAIRS_TOP_POS = Vector2(576, -202)`):** 12 peldaños macizos de roble con barandillas en 3D y objeto interactivo `"tavern_stairs"` (`[E] Subir al primer piso (+1: Habitaciones)` / `[E] Bajar a la planta baja (0: Salón)`). El enrutador `VillageTavern.route(...)` guía automáticamente tanto a los vecinos que suben a dormir o bajan por la mañana como entre cualquier sala de ambas plantas, y `CharacterAvatar3D` / `WorldStage3D._update_fp_camera_transform` interpolan suavemente la altura 3D al subir o bajar los peldaños.
+- **Mesas con gente sentada comiendo, partida de póker en vivo, Marta tras la barra y Camarero (`scripts/systems/VillageTavern.gd`, `scripts/enemies/VillageNPC.gd`, `scripts/systems/VillagePlaces.gd`, `scripts/systems/VillageNeeds.gd`, `scripts/data/PersonProfile.gd`, `scripts/ui/SocialGlossaryUI.gd`, `scripts/enemies/NPCDialogue.gd`):**
+  - **Marta detrás del mostrador:** `INNKEEPER_WORK_POS = Vector2(338, -248)` coloca a la posadera detrás del mostrador de caoba (`BAR_COUNTER_POS = Vector2(338, -234)`) atendiendo la barra.
+  - **Nuevo oficio `TradeRole.WAITER` (Camarero, índice 26):** añadido al final de `enum TradeRole` y registrado en `vm.trade_configs` para cubrirse como cualquier oficio vacante (y creado al inicio de la partida). En su horario (`10:00–23:00`), `VillageTavern.tick_waiter` hace que recorra las mesas con comensales sentados, tome nota del pedido, camine al pasa-platos de la barra (`PASS_COUNTER_POS = Vector2(396, -246)`) a recoger las jarras/platos y los sirva en la mesa.
+  - **Comensales sentados y jugadores de póker:** los vecinos que comen en la posada o acuden por ocio (`"tavern"`, `"tavern_hall"`, `"tavern_poker"`, o recados `"drink"` / `"gamble"`) eligen una silla libre de las 6 mesas del salón (`DINING_TABLES`) o de las 4 sillas de la mesa de póker (`POKER_CHAIRS`), se sientan mirando a la mesa (`set_poker_seating`) y conversan o comentan las jugadas en vivo (`VillageTavern.tick`). Además, `seed_initial_patrons` sienta comensales y jugadores de póker desde el arranque de la partida para que la taberna nunca se vea vacía.
+- **Sótano con el Club de la Lucha Clandestino (`scripts/systems/VillageClub.gd`, `scripts/systems/VillageUnderworld.gd`, `scripts/enemies/NPCDialogue.gd`, `scripts/visuals/WorldStage3D.gd`):**
+  - La trampilla `VillageClub.TRAPDOOR_POS = Vector2(516, -286)` está ahora **dentro de la sala trasera de escalera y bodega de la taberna** (entre toneles y bajo un farol cálido, sobre la losa del suelo en `h = 2.5`).
+  - El club abre **todas las noches de `21:00` a `03:00`** (`OPEN_FROM = 21`, incluidas las noches impares como la primera noche de partida, salvo cierre policial tras una redada) y es fácil de descubrir preguntando a Marta o al Camarero (`"ask_club_rumor"`: *«¿Qué son esos golpes que se oyen bajo el suelo de la bodega?»*) o mediante los rumores nocturnos de taberna (`FENCE_RUMORS`).
+- **Mesa de billar auténtica en 3D (`scripts/visuals/WorldStage3D.gd::_build_billiard_table_3d`):**
+  - Eliminado el uso de `Table_Large.gltf` con un rectángulo verde encima. La nueva mesa de billar en `POOL_POS = Vector2(574, -178)` se construye con geometría 3D propia: 4 patas torneadas de caoba con casquillos de latón, faldón perimetral de caoba, pizarra de paño verde esmeralda con línea blanca de saque, 4 bandas elevadas de caoba partidas en el centro, 6 troneras con herrajes de latón y hueco oscuro, bola blanca + triángulo de bolas de colores (amarilla, azul, roja y bola 8 negra) y 2 tacos de madera con virola de tiza azul apoyados sobre las bandas.
+
+### Qué queda sin comprobar (por orden expresa del usuario hoy)
+- **Pendiente de comprobar al regreso del usuario** (siguiendo la instrucción *«HOY NO PASES NINGUNA PRUEBA, NI ARRANQUES GODOT, NI HAGAS CAPTURAS: el usuario las hará al volver»*):
+  1. Ejecución de `tools/tests/verify_all.gd` (comprobación de rutas, camas de la posada en Planta `+1`, oficio `WAITER` y trampilla del Club de la Lucha).
+  2. Arranque de Godot y revisión visual en 3D y 1.ª persona de:
+     - La nueva taberna de 2 pisos («El Jabalí Dorado»), la subida/bajada por la escalera física a los 5 cuartos de huéspedes con las 6 camas en Planta `+1`, y el cambio de altura suave de cámara/avatares en los peldaños.
+     - Marta atendiendo tras el mostrador, el Camarero yendo de las mesas al pasa-platos de la barra, los vecinos sentados en las 6 mesas de comedor y en las 4 sillas de la mesa de póker, la mesa de billar 3D con troneras, bolas y tacos, y la bajada al Club de la Lucha desde la trampilla de la bodega entre las `21:00` y las `03:00`.
+
+---
+
+## Encargo anterior: Paso 2 — Agrandar y separar el entorno
 
 ### Qué se hizo en este bloque
 - **Campamento inicial y Lago del Oeste alejados del pueblo (`scripts/World.gd`, `scenes/World.tscn`, `scripts/obstacles/FishingSpot.gd`, `scripts/systems/VillageManager.gd`, `scripts/systems/VillageWorldBuilder.gd`, `scripts/visuals/WorldStage3D.gd`):**

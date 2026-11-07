@@ -155,6 +155,7 @@ const ROLE_GENERATION_HINTS: Dictionary = {
 	8: {"age": Vector2i(30, 58), "traits": ["Curioso", "Paciente", "Honrado", "Frío"], "likes": ["hierbas", "silencio", "reliquias"], "fav": "surgical_kit"}, # DOCTOR
 	9: {"age": Vector2i(34, 58), "traits": ["Honrado", "Valiente", "Desconfiado", "Frío"], "likes": ["carne_asada", "silencio", "caza"], "fav": "cooked_meat"}, # SHERIFF
 	10: {"age": Vector2i(20, 35), "traits": ["Leal", "Valiente", "Honrado", "Trabajador"], "likes": ["pan_caliente", "caza", "animales"], "fav": "bread"}, # GUARD
+	26: {"age": Vector2i(19, 36), "traits": ["Alegre", "Trabajador", "Chismoso", "Paciente"], "likes": ["estofado", "pan_caliente", "musica", "historias"], "fav": "country_stew"}, # WAITER
 }
 
 ## Elige género ("F" o "M") equilibrando la proporción actual de residentes vivos.

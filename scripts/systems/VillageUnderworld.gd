@@ -115,8 +115,8 @@ const DUST_COOK_COST: int = 25
 const RACKET_WEEKLY: int = 10
 const BOSS_TRIBUTE: int = 12
 const SEWER_KEY_COST: int = 20
-## P5b: el perista trasnocha en el callejón de detrás de la taberna (esquina noroeste, lejos del pozo trasero).
-const FENCE_ALLEY_POS: Vector2 = Vector2(328.0, -298.0)
+## P5b: el perista trasnocha en el callejón de detrás de la taberna (esquina noroeste, fuera del edificio ampliado).
+const FENCE_ALLEY_POS: Vector2 = Vector2(232.0, -298.0)
 const FENCE_ALLEY_FROM: int = 22
 const FENCE_ALLEY_UNTIL: int = 3
 ## P5b: rumores sutiles en la taberna (raros; solo de vecinos con algo turbio).
@@ -128,6 +128,8 @@ const FENCE_RUMORS: Array[String] = [
 	"Hay quien paga por lo que no tiene dueño. No me preguntes quién, que no lo sé.",
 	"Lo que se pierde en este pueblo no se pierde: cambia de manos antes del alba.",
 	"Si oyes una puerta trasera pasada la medianoche, mejor no mires.",
+	"Pasadas las nueve de la noche se oyen gritos y golpes sordos bajo las tablas de la bodega de la taberna.",
+	"En el cuarto de la escalera de la taberna hay una trampilla entre barriles: de noche bajan a jugarse los cuartos a puñetazos.",
 ]
 
 ## Bloque FIS3: Cada entrada de `SEWER_LOCATIONS` define:

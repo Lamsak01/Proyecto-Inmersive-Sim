@@ -3,6 +3,12 @@
 Cambios del juego, del más nuevo al más antiguo. Añade una entrada al cerrar cada bloque, en lenguaje sencillo.
 El detalle técnico está en `docs/HANDOFF.md` (sección 7) y el historial completo en `git log`. Lo anterior a B0.1 está en `AUDIT_LOG.md` y `SESSION_CONTEXT_LOG.md`.
 
+## 2026-11-07 — La nueva taberna «El Jabalí Dorado» de 2 pisos: comedor lleno, póker, camarero, mesa de billar 3D y club de lucha en el sótano (Paso 3)
+- **Primer edificio de 2 pisos reales con escalera física:** la posada es ahora mucho más grande; en la planta baja tiene el gran salón con chimenea y 6 mesas de comedor, la barra con cocina, la sala de casino/billar y la bodega trasera, y subiendo por la escalera de madera llegas al primer piso con galería asomada al salón y 5 cuartos de huéspedes para las 6 camas.
+- **Marta tras la barra, un camarero sirviendo mesas y clientes sentados:** la tabernera atiende detrás del mostrador de caoba, un nuevo camarero va tomando nota en las mesas ocupadas y trayendo jarras y platos desde el pasa-platos de la barra, y los vecinos se sientan de verdad a comer, beber y jugar al póker comentando las manos en vivo.
+- **Mesa de billar auténtica en 3D:** sustituida la antigua mesa con patas de cama por una mesa de billar de caoba con 4 patas torneadas con latón, paño verde esmeralda con línea de saque, 6 troneras con cantoneras doradas, bolas de colores en triángulo más bola blanca y dos tacos apoyados.
+- **El club de peleas clandestinas en el sótano de la taberna:** la trampilla está ahora dentro de la bodega trasera de la taberna, abre todas las noches de `21:00` a `03:00` (también desde la primera noche) y puedes enterarte de cómo bajar por los rumores del salón o preguntando a Marta o al camarero por los ruidos bajo el suelo.
+
 ## 2026-11-07 — Agrandar y separar el entorno: campamento y lago alejados, bosque ~3,5× mayor con borde orgánico, árboles 3D corregidos y trattoria en la Calle Mayor (Paso 2)
 - **Campamento inicial y Lago del Oeste fuera del pueblo:** tu campamento (tienda, hoguera, huerto de 3×3 parcelas, gallinero y el perro Toby) queda ahora apartado junto al Lago del Oeste, con un único muelle de pesca y un camino largo hasta la entrada del pueblo.
 - **Lavadero en el pueblo, Parque del Roble ampliado y camino del este despejado:** el lavadero pasa de la orilla del lago al pueblo (al norte del parque); el Parque del Roble tiene casi el doble de tamaño, sin murete bajo y con los bancos despejados de árboles; y se ha quitado el «Huerto vecinal» que cortaba el camino del este.

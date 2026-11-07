@@ -734,18 +734,47 @@ static func _build_dialogue(npc: VillageNPC) -> Dictionary:
 				]
 			}}
 		VillageNPC.TradeRole.INNKEEPER:
-			return {"start": {
-				"text": "¡Bienvenido a la Posada y Casino El Jabalí Dorado! Soy %s, Chef y Posadera. %s%s%s\nAquí el tiempo se detiene mientras juegas al Póker, Blackjack, Ruleta o Billar con los vecinos." % [npc.npc_name, needs_line, discount_tag, npc._get_market_header_line()],
-				"choices": [
-					{"label": "🃏🎱 Sentarse a la Mesa de Casino y Billar (Póker, 21, Ruleta y Billar)", "next": "END", "action": "open_tavern_games"},
-					{"label": "🛌 Alquilar habitación y dormir hasta las 06:00 AM (-8 Oro)", "next": "END", "action": "rent_tavern_bed"},
-					{"label": "🍗 Comprar 1 Pollo Asado Crujiente (-%d Oro) [Stock: %d]" % [npc._get_dynamic_buy_price(13), int(npc.shop_stock.get("roasted_chicken", 0))], "next": "start", "action": "buy:roasted_chicken:13"},
-					{"label": "🐸 Vender 1 Ancas de Rana al Ajillo (+%d Oro)" % npc._get_dynamic_sell_price(24), "next": "start", "action": "sell:fried_frog_legs:24"},
-					{"label": "🍲 Comprar 1 Estofado Campesino (-%d Oro) [Stock: %d]" % [npc._get_dynamic_buy_price(14), int(npc.shop_stock.get("country_stew", 0))], "next": "start", "action": "buy:country_stew:14"},
-					{"label": "🍞 Comprar 1 Hogaza de Pan (-%d Oro) [Stock: %d]" % [npc._get_dynamic_buy_price(7), int(npc.shop_stock.get("bread", 0))], "next": "start", "action": "buy:bread:7"},
-					{"label": "Solo pasaba a saludar. [Salir]", "next": "END"}
-				]
-			}}
+			return {
+				"start": {
+					"text": "¡Bienvenido a la Posada y Casino El Jabalí Dorado! Soy %s, Chef y Posadera. %s%s%s\nAbajo tienes el salón comedor, la barra, la mesa de póker y el billar; subiendo las escaleras del fondo están las habitaciones de la segunda planta." % [npc.npc_name, needs_line, discount_tag, npc._get_market_header_line()],
+					"choices": [
+						{"label": "🃏🎱 Sentarse a la Mesa de Casino y Billar (Póker, 21, Ruleta y Billar)", "next": "END", "action": "open_tavern_games"},
+						{"label": "🛌 Alquilar habitación en la 2.ª planta y dormir hasta las 06:00 AM (-8 Oro)", "next": "END", "action": "rent_tavern_bed"},
+						{"label": "🍗 Comprar 1 Pollo Asado Crujiente (-%d Oro) [Stock: %d]" % [npc._get_dynamic_buy_price(13), int(npc.shop_stock.get("roasted_chicken", 0))], "next": "start", "action": "buy:roasted_chicken:13"},
+						{"label": "🐸 Vender 1 Ancas de Rana al Ajillo (+%d Oro)" % npc._get_dynamic_sell_price(24), "next": "start", "action": "sell:fried_frog_legs:24"},
+						{"label": "🍲 Comprar 1 Estofado Campesino (-%d Oro) [Stock: %d]" % [npc._get_dynamic_buy_price(14), int(npc.shop_stock.get("country_stew", 0))], "next": "start", "action": "buy:country_stew:14"},
+						{"label": "🍞 Comprar 1 Hogaza de Pan (-%d Oro) [Stock: %d]" % [npc._get_dynamic_buy_price(7), int(npc.shop_stock.get("bread", 0))], "next": "start", "action": "buy:bread:7"},
+						{"label": "🥊 Preguntar en voz baja por los ruidos del sótano (Club de Peleas)", "next": "club_rumor_info", "action": "ask_club_rumor"},
+						{"label": "Solo pasaba a saludar. [Salir]", "next": "END"}
+					]
+				},
+				"club_rumor_info": {
+					"text": "«Baja la voz... En el cuarto de la escalera, al fondo a la derecha, hay una trampilla entre los barriles de la bodega. Todas las noches, de 21:00 a 03:00, el perista abre el sótano para organizar peleas a puño limpio y apuestas. Mientras no traigas a la guardia ni rompas mis barriles, yo no he visto nada.»",
+					"choices": [
+						{"label": "Entendido, no diré una palabra. [Volver]", "next": "start"}
+					]
+				}
+			}
+		VillageNPC.TradeRole.WAITER:
+			return {
+				"start": {
+					"text": "¡Buenas! Soy %s (%s) en El Jabalí Dorado. %s\nVoy de mesa en mesa tomando comanda y sacando platos calientes y jarras de la barra de Marta. ¿Te sirvo algo o buscas mesa?" % [npc.npc_name, npc.npc_role, needs_line],
+					"choices": [
+						{"label": "🍲 Pedir 1 Estofado Campesino recién servido (-%d Oro) [Stock: %d]" % [npc._get_dynamic_buy_price(14), int(npc.shop_stock.get("country_stew", 0))], "next": "start", "action": "buy:country_stew:14"},
+						{"label": "🍗 Pedir 1 Pollo Asado Crujiente (-%d Oro) [Stock: %d]" % [npc._get_dynamic_buy_price(13), int(npc.shop_stock.get("roasted_chicken", 0))], "next": "start", "action": "buy:roasted_chicken:13"},
+						{"label": "🍞 Pedir 1 Hogaza de Pan (-%d Oro) [Stock: %d]" % [npc._get_dynamic_buy_price(7), int(npc.shop_stock.get("bread", 0))], "next": "start", "action": "buy:bread:7"},
+						{"label": "🃏🎱 Ir a la sala de Póker y Billar", "next": "END", "action": "open_tavern_games"},
+						{"label": "🥊 Preguntar por los golpes que suenan bajo la bodega de noche", "next": "waiter_club_info", "action": "ask_club_rumor"},
+						{"label": "Sigue con las mesas, gracias. [Salir]", "next": "END"}
+					]
+				},
+				"waiter_club_info": {
+					"text": "«¿Los golpes bajo el suelo? Cada noche a partir de las 21:00 bajan varios vecinos por la trampilla del cuarto de la escalera. Hay un corro con antorchas en el sótano donde pelean a puño limpio hasta las 03:00 y cruzan apuestas con el perista.»",
+					"choices": [
+						{"label": "Gracias por el soplo. [Volver]", "next": "start"}
+					]
+				}
+			}
 		VillageNPC.TradeRole.FAMILY_MEMBER:
 			return {"start": {
 				"text": "Soy %s de la %s (%s). %s\n%s" % [npc.npc_name, npc.family_name, npc.npc_role, needs_line, npc.character_tagline],
@@ -1130,11 +1159,22 @@ static func on_dialogue_action(npc: VillageNPC, action_id: String) -> void:
 		if games_ui and games_ui.has_method("open_games"): games_ui.call_deferred("open_games")
 		return
 
+	if action_id == "ask_club_rumor":
+		if vm != null and "VillageUnderworld" in vm:
+			vm.VillageUnderworld.state(vm)["known_fence"] = true
+		npc._spawn_floating_text("🕳️🥊 «La trampilla del cuarto de la escalera abre de 21:00 a 03:00»", Color(0.95, 0.82, 0.45), -44.0)
+		return
+
 	if action_id == "rent_tavern_bed":
 		if inv.gold < 8:
 			npc._spawn_floating_text("Necesitas 8 Oro para alquilar cama", Color.ORANGE_RED, -44.0)
 			return
 		inv.add_gold(-8)
+		npc.personal_gold = maxi(0, npc.personal_gold) + 8
+		if vm != null:
+			player.global_position = vm._tavern_bed_pos
+			if vm.has_method("set_player_elevation_level"):
+				vm.set_player_elevation_level(1)
 		var surv: SurvivalComponent = player.get_node_or_null("SurvivalComponent")
 		var stam: StaminaComponent = player.get_node_or_null("StaminaComponent")
 		var health: HealthComponent = player.get_node_or_null("HealthComponent")
@@ -1149,7 +1189,7 @@ static func on_dialogue_action(npc: VillageNPC, action_id: String) -> void:
 		if WorldClock:
 			WorldClock.sleep_until_morning()
 		if player.has_method("_spawn_floating_text"):
-			player._spawn_floating_text("🛌 Dormiste en la Taberna (+100% Sueño, +40 HP)", Color.GOLD, -44.0)
+			player._spawn_floating_text("🛌 Dormiste en la 2.ª planta de la Taberna (+100% Sueño, +40 HP)", Color.GOLD, -44.0)
 		return
 
 	if action_id == "give_npc_food_ration":
