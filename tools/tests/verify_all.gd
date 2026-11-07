@@ -2,7 +2,18 @@ extends SceneTree
 
 const SkillCatalog = preload("res://scripts/systems/SkillCatalog.gd")
 
+var _watchdog_frames: int = 0
+
+func _process(_delta: float) -> bool:
+	_watchdog_frames += 1
+	if _watchdog_frames > 800:
+		printerr("WATCHDOG: _initialize() aborted early (assertion failed above). Exiting with code 1.")
+		quit(1)
+		return true
+	return false
+
 func _initialize() -> void:
+	seed(12345)
 	var packed: PackedScene = load("uid://dsoiuct8kdsk3")
 	var main_inst: Node = packed.instantiate()
 	root.add_child(main_inst)
@@ -2383,6 +2394,11 @@ func _initialize() -> void:
 	var v5_poor = vm._find_npc_by_name("Thoran")
 	var v5_rg: int = v5_rich.personal_gold
 	var v5_pg: int = v5_poor.personal_gold
+	var v5_rich_traits_bak: Array = v5_rich.person_profile.personality.duplicate() if v5_rich.person_profile != null else []
+	if v5_rich.person_profile != null:
+		v5_rich.person_profile.personality.assign(["Valiente", "Generoso", "Sociable"])
+	v5_rich.is_dead = false
+	v5_rich.is_downed = false
 	var v5_buys: int = 0
 	for _d5 in range(80):
 		v5_rich.personal_gold = 400
@@ -2393,6 +2409,8 @@ func _initialize() -> void:
 		if v5_rich.personal_gold < 400:
 			v5_buys += 1
 		assert(v5_poor.personal_gold == 15, "V5: Somebody poor does not buy clothes")
+	if v5_rich.person_profile != null:
+		v5_rich.person_profile.personality.assign(v5_rich_traits_bak)
 	assert(v5_buys >= 1 and v5_buys < 40, "V5: The rich sometimes buy new clothes (%d/80)" % v5_buys)
 	vm.shop_businesses[v5_bk]["owner_mode"] = "PARTNER"
 	vm._lot_visuals["n2"][2] = "redibujar"
@@ -3943,6 +3961,7 @@ func _initialize() -> void:
 	vil_pj.on_player_action(vm, pj_doc, "illness_prosthetic_npc:" + p70_b.get_person_key(), p70_inv)
 	assert(vil_pj.has_prosthetic(vm, p70_b.get_person_key()) and p70_inv.gold == 75 and pj_doc.personal_gold == 25 and pj_tinker.personal_gold == 20 and int(pj_tinker.shop_stock["repair_kit"]) == 2 and float(p70_b.health_comp.region_hp["left_arm"]) == 20.0, "PJ.1b: Sponsoring prosthetic pays Doctor (15) + Tinker (10), uses 1 repair_kit, and restores limb to 50%")
 	# PJ.1c: El propio vecino se costea su prótesis si tiene >= 25 de oro
+	vil_pj.recover(vm, pj_doc.get_person_key())
 	vil_pj.amputate(vm, p70_c.get_person_key(), "right_leg", "fractura séptica")
 	p70_c.personal_gold = 40
 	vil_pj.daily(vm)
@@ -6876,6 +6895,12 @@ func _initialize() -> void:
 	var b4_prof_bak: Array = b4_walker.person_profile.personality.duplicate()
 	var b4_err_bak: String = b4_walker.errand_kind
 	b4_wc.current_hour = 23
+	b4_walker.is_dead = false
+	b4_walker.is_downed = false
+	b4_walker.is_hostile = false
+	vm.VillageJustice.release_npc(vm, b4_walker.get_person_key())
+	if "VillageDesires" in vm:
+		(vm.VillageNeeds.state(vm).get("desire", {}) as Dictionary).erase(b4_walker.get_person_key())
 	b4_walker.end_errand()
 	b4_walker.sick_level = 0
 	b4_walker.hangout_id = -1
@@ -7047,5 +7072,133 @@ func _initialize() -> void:
 	vm.player_elevation_level = b7_elev_bak
 	b7_stage._update_roof_cutaways_and_lighting()
 	print("Block B7 (First-Person Prototype: F6/F8 Toggle, Perspective Eye Camera, Relative WASD & Closed Roofs) OK")
+
+	# ==============================================================================
+	# Blocks D1–D5: Detective Tools (Body Exam, Morgue Autopsy, Crime Scene Lantern, Corkboard & 10-Case Data)
+	# ==============================================================================
+	var d_ui_root = root.find_child("UIRoot", true, false)
+	assert(d_ui_root != null and d_ui_root.get("detective_ui") != null, "D1.0: UIRoot has detective_ui instance")
+	var det_ui = d_ui_root.detective_ui
+
+	# D5.1: Verify DetectiveCaseData has 10 case slots and Case I skeleton with PENDIENTE_DECISION_USUARIO
+	var d5_case_script = preload("res://scripts/systems/DetectiveCaseData.gd")
+	var d5_cases: Dictionary = d5_case_script.CASES
+	assert(d5_cases.size() == 10 and d5_cases.has("case_01_forest_woman") and d5_cases.has("case_10"), "D5.1a: DetectiveCaseData defines 10 case slots (case_01_forest_woman..case_10)")
+	var d5_c1: Dictionary = d5_case_script.get_case_def("case_01_forest_woman")
+	var d5_pending: Dictionary = d5_c1.get("pending_author_decisions", {})
+	assert(str(d5_pending.get("herb_name", "")) == d5_case_script.PENDING_DECISION and str(d5_pending.get("potion_name", "")) == d5_case_script.PENDING_DECISION, "D5.1b: Uninvented plot details in Case I are marked PENDIENTE_DECISION_USUARIO")
+	var d5_roles: Dictionary = d5_case_script.assign_case_roles("case_01_forest_woman", vm)
+	assert(str(d5_roles.get("victim", "")) != "" and str(d5_roles.get("alchemist", "")) != "", "D5.1c: assign_case_roles maps scripted roles onto living villagers")
+
+	# D1: Open DetectiveUI on scripted Case I ("La mujer del bosque") and test 7 zones, gender toggle, lupa lock/unlock, clock advance & notebook pin
+	det_ui.player = p70_pl
+	if p70_pl.inventory.has_item("magnifying_glass", 1):
+		p70_pl.inventory.remove_item("magnifying_glass", p70_pl.inventory.get_count("magnifying_glass"))
+	det_ui.notebook_notes.clear()
+	det_ui.done_actions.clear()
+	det_ui.revealed_marks.clear()
+	det_ui.elapsed_minutes = 0
+	det_ui.findings_count = 0
+	det_ui.open_for_corpse(null, "body")
+	assert(det_ui.visible == true and det_ui.current_mode == "body", "D1.1a: open_for_corpse opens DetectiveUI in 'body' mode")
+	assert(det_ui.is_female_model == true and det_ui.zone_data.size() == 7, "D1.1b: Case I defaults to female silhouette and 7 anatomical zones")
+	det_ui.set_body_gender(false)
+	assert(det_ui.is_female_model == false, "D1.1c: set_body_gender(false) switches to male silhouette")
+	det_ui.set_body_gender(true)
+	# Without magnifying_glass, lupa actions are locked
+	var d1_neck_acts: Array = det_ui.zone_data["cuello"]["acts"]
+	var d1_lupa_act: Dictionary = {}
+	var d1_mirar_act: Dictionary = {}
+	for a_d1 in d1_neck_acts:
+		if str(a_d1.get("id", "")) == "lupa":
+			d1_lupa_act = a_d1
+		elif str(a_d1.get("id", "")) == "mirar":
+			d1_mirar_act = a_d1
+	assert(d1_lupa_act.get("locked") == true, "D1.2a: Lupa action is locked when player lacks magnifying_glass")
+	det_ui._do_zone_action("cuello", d1_mirar_act)
+	assert(det_ui.elapsed_minutes == 2 and det_ui.findings_count == 1 and det_ui.revealed_marks.get("m-neck") == true, "D1.2b: Inspecting neck ('mirar') advances 2 min, increments findings and reveals m-neck mark on silhouette")
+	# Give magnifying_glass and rebuild zones
+	p70_pl.inventory.add_item("magnifying_glass", 1)
+	det_ui._build_case_from_corpse(null)
+	for a_d1b in det_ui.zone_data["cuello"]["acts"]:
+		if str(a_d1b.get("id", "")) == "lupa":
+			d1_lupa_act = a_d1b
+	assert(d1_lupa_act.get("locked") == false, "D1.2c: Lupa action unlocks when player carries magnifying_glass")
+	det_ui._do_zone_action("cuello", d1_lupa_act)
+	assert(det_ui.elapsed_minutes == 7 and det_ui.findings_count == 2, "D1.2d: Using lupa on neck advances +5 min (total 7 min)")
+	det_ui.add_notebook_note("Cuello y garganta", str(d1_lupa_act.get("note", "")), str(d1_lupa_act.get("tag", "")), "cuello:lupa")
+	assert(det_ui.notebook_notes.size() == 1 and det_ui._has_note_with_key("cuello:lupa"), "D1.3: Pinning a finding adds it to notebook_notes without auto-pinning unchosen findings")
+
+	# D2: Morgue Autopsy — step-by-step tests, limited blood vials (2/2), Dr. Valen hint (+5 min), ruined vs done states, and real cause text
+	det_ui.switch_mode("morgue")
+	assert(det_ui.current_mode == "morgue" and det_ui._check_morgue_status().get("can_autopsy") == true, "D2.1a: Morgue mode is active and can_autopsy is true")
+	var d2_mins_before: int = det_ui.elapsed_minutes
+	det_ui.ask_morgue_doctor("sangre")
+	assert(det_ui.elapsed_minutes == d2_mins_before + 5, "D2.1b: Asking Dr. Valen for advice on step 0 advances +5 min")
+	# Step 0 of sangre: "Del corazón" (idx 0 -> ok)
+	det_ui.choose_morgue_option("sangre", 0)
+	assert(int(det_ui.morgue_tests_state["sangre"]["step"]) == 1 and int(det_ui.morgue_tests_state["sangre"]["vials"]) == 2, "D2.2a: Choosing heart blood advances to step 1 with 2/2 vials intact")
+	# Step 1 of sangre: wrong reagent "Sal de plata" (idx 0 -> fail) spends 1 vial
+	det_ui.choose_morgue_option("sangre", 0)
+	assert(int(det_ui.morgue_tests_state["sangre"]["step"]) == 1 and int(det_ui.morgue_tests_state["sangre"]["vials"]) == 1 and str(det_ui.morgue_tests_state["sangre"]["state"]) == "", "D2.2b: Wrong reagent spends 1 blood vial (1/2 remaining)")
+	# Correct reagent "Tintura de corteza" (idx 1 -> ok)
+	det_ui.choose_morgue_option("sangre", 1)
+	assert(int(det_ui.morgue_tests_state["sangre"]["step"]) == 2, "D2.2c: Correct reagent advances blood test to step 2 (color chart)")
+	# Step 2 of sangre: "Una hierba de embalsamar" (idx 0 -> ok) completes blood test
+	det_ui.choose_morgue_option("sangre", 0)
+	assert(str(det_ui.morgue_tests_state["sangre"]["state"]) == "done" and det_ui.get_real_cause_text().find("hierba de embalsamar") != -1, "D2.2d: Completing blood test marks state='done' and updates real cause text")
+	# Cuello: test fast cut (idx 1 -> ruin) ruins the hyoid bone test
+	det_ui.choose_morgue_option("cuello", 1)
+	assert(str(det_ui.morgue_tests_state["cuello"]["state"]) == "ruin", "D2.3: Choosing 'Corte rápido' on neck ruins the test ('estropeada')")
+	# Estómago: open (idx 0) + seal flask (idx 0) -> done
+	det_ui.choose_morgue_option("estomago", 0)
+	det_ui.choose_morgue_option("estomago", 0)
+	assert(str(det_ui.morgue_tests_state["estomago"]["state"]) == "done", "D2.4: Sealing stomach contents completes stomach test")
+
+	# D3: Crime Scene — dark background + lantern radius check + witnesses (Preguntar / Presionar)
+	det_ui.switch_mode("scene")
+	assert(det_ui.current_mode == "scene" and det_ui.scene_clues.size() >= 4, "D3.1a: Scene mode loads ground clues and witnesses")
+	var d3_clue0: Dictionary = det_ui.scene_clues[0]
+	var d3_cpos := Vector2(float(d3_clue0.get("x", 220.0)), float(d3_clue0.get("y", 280.0)))
+	# Move lantern far away from clue 0 -> crime_find_clue(0) must return false
+	det_ui.set_lantern_canvas_pos(Vector2(10.0, 10.0), Vector2(10.0, 10.0), Vector2(520.0, 560.0))
+	assert(det_ui.crime_find_clue(0) == false, "D3.1b: Clues outside the lantern light radius cannot be inspected")
+	# Move lantern over clue 0 -> crime_find_clue(0) succeeds
+	det_ui.set_lantern_canvas_pos(d3_cpos, d3_cpos, Vector2(520.0, 560.0))
+	assert(det_ui.crime_find_clue(0) == true and det_ui.scene_clues_found.get(0) == true, "D3.1c: Moving the lantern over clue 0 illuminates and inspects it")
+	# Test witness ask + press (witness 0 El leñador closes up, witness 1 La pastora opens up)
+	det_ui.ask_scene_witness(0)
+	assert((det_ui.scene_witnesses[0]["log"] as Array).size() == 1, "D3.2a: Asking witness 0 records initial statement (+10 min)")
+	det_ui.press_scene_witness(0)
+	assert((det_ui.scene_witnesses[0]["log"] as Array).size() == 2 and str(det_ui.scene_witnesses[0]["log"][1][1]) == "bad", "D3.2b: Pressing proud witness 0 (El leñador) causes him to shut down ('bad')")
+	det_ui.ask_scene_witness(1)
+	det_ui.press_scene_witness(1)
+	assert((det_ui.scene_witnesses[1]["log"] as Array).size() == 2 and str(det_ui.scene_witnesses[1]["log"][1][1]) == "ok", "D3.2c: Pressing cooperative witness 1 (La pastora) reveals deeper testimony ('ok')")
+
+	# D4: Case Corkboard — suspect & note cards, moving pins, linking/unlinking red threads, and save/load persistence
+	det_ui.switch_mode("board")
+	var d4_items: Array[Dictionary] = det_ui.get_board_items()
+	assert(d4_items.size() >= 5, "D4.1a: Corkboard combines 4 suspects + pinned notebook notes")
+	det_ui.clear_all_board_links()
+	var d4_pin_a: String = str(d4_items[0].get("id", "s0"))
+	var d4_pin_b: String = str(d4_items[d4_items.size() - 1].get("id", "cuello:lupa"))
+	det_ui.move_board_pin(d4_pin_a, Vector2(140.0, 95.0))
+	assert((det_ui.board_positions[d4_pin_a] as Vector2).distance_to(Vector2(140.0, 95.0)) < 1.0, "D4.1b: move_board_pin updates card coordinates on the corkboard")
+	det_ui.click_board_pin(d4_pin_a)
+	assert(det_ui.board_link_from == d4_pin_a, "D4.2a: Clicking first pin selects it as red thread origin")
+	det_ui.click_board_pin(d4_pin_b)
+	assert(det_ui.board_link_from == "" and det_ui.board_links.size() == 1, "D4.2b: Clicking second pin creates a red thread between the two cards")
+	# Verify persistence in VillageForensics.state(vm)["detective_board"]
+	det_ui.save_detective_state()
+	det_ui.board_links.clear()
+	det_ui.board_positions.clear()
+	det_ui.load_detective_state()
+	assert(det_ui.board_links.size() == 1 and (det_ui.board_positions[d4_pin_a] as Vector2).distance_to(Vector2(140.0, 95.0)) < 1.0, "D4.3: save_detective_state and load_detective_state persist notes, positions and red threads")
+	det_ui.remove_board_link_at(0)
+	assert(det_ui.board_links.is_empty(), "D4.4: remove_board_link_at removes the clicked red thread")
+	det_ui.close_panel()
+	assert(det_ui.visible == false, "D4.5: close_panel hides DetectiveUI and restores normal camera")
+	print("Blocks D1–D5 (Detective Tools: Body Exam, Morgue Autopsy, Crime Scene Lantern, Corkboard & 10-Case Data) OK")
+
 	print("ALL RIMWORLD MEDICAL, FOOTPRINTS, 3-PHASE CORPSE REPORT, MULTI-CORPSE FIX, RPG INTERROGATION, PUBLIC TRIAL, DYNAMIC RELATIONSHIPS, MISSING FAMILY SEARCH, SOCIAL GLOSSARY & UNCONSCIOUS REACTION TESTS PASSED!")
 	quit(0)

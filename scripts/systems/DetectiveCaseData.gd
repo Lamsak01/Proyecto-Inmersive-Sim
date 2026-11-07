@@ -16,7 +16,7 @@ const PENDING_DECISION := "PENDIENTE_DECISION_USUARIO"
 
 const CASE_01_ID := "case_01_forest_woman"
 
-const CASES: Dictionary = {
+static var CASES: Dictionary = {
 	"case_01_forest_woman": {
 		"id": "case_01_forest_woman",
 		"number": 1,
@@ -386,13 +386,23 @@ static func get_case_def(case_id: String = CASE_01_ID) -> Dictionary:
 
 static func get_body_zones(case_id: String, has_lupa: bool) -> Dictionary:
 	var cdef := get_case_def(case_id)
-	var zones: Dictionary = cdef.get("body_zones", {})
-	for z_id in zones.keys():
-		var z: Dictionary = zones[z_id]
-		var acts: Array = z.get("acts", [])
-		for act in acts:
-			if act is Dictionary and act.get("requires_lupa") == true:
-				act["locked"] = not has_lupa
+	var raw_zones: Dictionary = cdef.get("body_zones", {})
+	var zones: Dictionary = {}
+	for z_id in raw_zones.keys():
+		var z: Dictionary = raw_zones[z_id]
+		var z_copy: Dictionary = {"title": str(z.get("title", z_id))}
+		var acts_out: Array = []
+		var raw_acts: Array = z.get("acts", [])
+		for act in raw_acts:
+			if act is Dictionary:
+				var act_copy: Dictionary = {}
+				for ak in (act as Dictionary).keys():
+					act_copy[ak] = act[ak]
+				if act_copy.get("requires_lupa") == true:
+					act_copy["locked"] = not has_lupa
+				acts_out.append(act_copy)
+		z_copy["acts"] = acts_out
+		zones[z_id] = z_copy
 	return zones
 
 
@@ -436,11 +446,15 @@ static func assign_case_roles(case_id: String, vm: Node) -> Dictionary:
 	var cdef := get_case_def(case_id)
 	var roles_def: Dictionary = cdef.get("roles", {})
 	var assigned: Dictionary = {}
-	if vm == null or not ("village_npcs" in vm):
+	if vm == null:
 		return assigned
 
 	var used_names: Dictionary = {}
-	var npcs: Array = vm.village_npcs
+	var npcs: Array = []
+	if vm.is_inside_tree() and vm.get_tree() != null:
+		npcs = vm.get_tree().get_nodes_in_group("village_npcs")
+	elif "trade_npcs" in vm and vm.trade_npcs is Dictionary:
+		npcs = (vm.trade_npcs as Dictionary).values()
 
 	# 1. Roles de oficio fijo primero (alquimista, sacerdote, noble)
 	for role_id in ["alchemist", "priest", "noble_head"]:
@@ -458,6 +472,12 @@ static func assign_case_roles(case_id: String, vm: Node) -> Dictionary:
 				assigned[role_id] = n_name
 				used_names[n_name] = true
 				break
+		if not assigned.has(role_id) and "trade_npcs" in vm and (vm.trade_npcs as Dictionary).has(wanted_trade):
+			var tn = vm.trade_npcs[wanted_trade]
+			if is_instance_valid(tn):
+				var tn_name: String = str(tn.get("npc_name"))
+				assigned[role_id] = tn_name
+				used_names[tn_name] = true
 
 	# 2. Resto de papeles según género, edad y afinidad
 	for role_id in roles_def.keys():

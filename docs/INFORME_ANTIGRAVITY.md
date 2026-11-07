@@ -1,110 +1,96 @@
-# Informe de Antigravity — Trabajo Nocturno Autónomo: Bloques B1 a B7 y Batería Completa de Pruebas
+# Informe de Trabajo — Antigravity (2026-11-07)
 
-**Fecha:** 2026-11-07  
-**Estado:** Implementados los 7 bloques (`B1` a `B7`) en orden estricto, documentados y subidos bloque a bloque a `origin/main`, y verificadas las 4 baterías de pruebas finales (`verify_all.gd`, `social_sim.gd`, `dialogue_coverage.gd` y `feature_probe.gd -- 5 11`) con salida `0`.
+## Encargo: Herramientas del Detective (Bloques D1, D2, D3, D4 y D5)
 
----
+Se han implementado y verificado los cinco bloques de **Herramientas del Detective** (`D1`–`D5`) siguiendo el diseño de `docs/PLAN_BETA_MISTERIO.md` (§§5–6) y el boceto visual `docs/bocetos/examen_cuerpo.html`, además de corregir el fallo visual reportado en `docs/FALLOS_VISIBLES.md`.
 
-## 1. Resumen de los 7 bloques implementados
-
-### B1 — Ruido y testigos en combate (cierra C7) — Commit `187564f`
-- **Emisión física de ruido en combate (`Player.gd`, `VillageNPC.gd`):**
-  - Los golpes fuertes del jugador (`attack_heavy`), disparos (`gunshot`), gritos de dolor al recibir daño (`pain_scream` cuando `amount >= 10.0`) y disparos policiales llaman a `AudioManager.emit_noise(global_position, radius, elevation_level, kind)`.
-- **Propagación y reacción física (`VillageManager.on_combat_noise_emitted`, `VillageNPC.react_to_combat_noise`, `VillageNPC._process_noise_reaction`):**
-  - El radio del ruido se atenúa `0.45x` si hay cambio de planta (`elevation_level != noise_elev`).
-  - Los **guardias y comisario** despiertos dentro del radio entran en `_noise_react_mode = "guard_investigate"` y acuden a pie al origen del ruido.
-  - Los **vecinos pacíficos** dentro del radio huyen en dirección opuesta (`"civilian_flee"`) si son cobardes o están muy cerca, o se asoman con cautela desde distancia segura (`"civilian_peek"`, curiosos/chismosos/valientes).
-- **Testigos con línea de visión en la misma planta (`VillageNPC._try_log_combat_noise_witness`):**
-  - Ningún vecino se convierte en testigo solo por oír el ruido: únicamente cuando está en la **misma planta** (`elevation_level == _noise_react_elev`), a `<= 195 px` y con **línea de visión despejada** (`vm.has_line_of_sight`), registra el avistamiento en `sighting_log` y pasa a `known_by` del suceso en `social_event_log`.
-
-### B2 — Calabozo de verdad — Commit `32ee992`
-- **Sistema físico de calabozo (`scripts/systems/VillageJustice.gd`):**
-  - Tres literas/posiciones reales dentro de la celda de la comisaría (`CELL_SPOTS`: `(934, 152)`, `(956, 152)`, `(978, 152)`), puerta de rejas en `CELL_DOOR_POS = Vector2(920, 152)` y mostrador de fianzas en `DESK_POS = Vector2(886, 132)`.
-  - `arrest_npc(vm, npc, officer, reason, hours, bail_gold)` detiene a cualquier vecino pillado in fraganti en trabajos nocturnos (`VillageNightJobs`: robo nocturno, sabotaje, profanación), peleas graves con guardia presente o condena del Inquisidor Real.
-  - **Delatar a «La Familia» detiene al jefe:** en `VillageFamilia.on_player_action("familia_report_sheriff")`, el Comisario Vane arresta a **Don Vittorio Corvo** durante `48 h` con `90` de oro de fianza y lo escolta/encierra en la celda.
-  - **Vida tras los barrotes e interacción:** durante su condena (`24–48 h`), el vecino permanece tras los barrotes con bocadillo `🔒⛓️ En el calabozo por ...`. El jugador puede hablar con él a través de las rejas, **pagar su fianza** al Comisario/Guardia (suma cero: el oro pasa del bolsillo del jugador a `town_state["treasury"]`, libera al preso y sube `+15` de afinidad) o **forzar la cerradura** a `<= 48 px` con ganzúa (`repair_kit`, puede fallar con 35 % y romper la herramienta) o llave. Si un guardia o testigo con línea de visión en la misma planta lo ve forzar la celda, suma búsqueda policial (`+1★`).
-  - Al cumplirse las horas de condena (`on_hour`), el vecino sale libre por su propio pie y retoma su rutina.
-
-### B3 — Del campamento del lago al pueblo — Commit `05c1cfc`
-- **Traslado real de Toby y su comedero (`VillagePlayerHome.relocate_toby_to_player_lot`, `LakeCampSetup.gd`, `WildDog.gd`):**
-  - Cuando el jugador tiene casa propia construida en un solar del pueblo (`lots_state[lot_id]["stage"] == "built"`), al hablar con Toby domesticado aparece `«🐕🏠 Llevar a Toby y su comedero a mi solar del pueblo»`.
-  - Mueve físicamente a Toby (`home_pos`, `patrol_Points`) y el nodo `DogFeeder` al jardín del solar del jugador (`lot["rect"].position + Vector2(18, 52)`), conservando las raciones de carne (`feeder_meat`) y persistiendo en `lots_state["toby_relocated_lot"]`.
-- **Traslado real del gallinero y ganado (`VillagePlayerHome.relocate_livestock_to_player_lot`, `VillageRanch.gd`, `NPCDialogue.gd`):**
-  - Desde el tablón del solar o hablando con el ganadero teniendo casa propia, `«🐔🏠 Trasladar mi gallinero y animales a mi solar del pueblo»` traslada físicamente el nodo `PlayerCoop` y los animales domésticos del jugador (`in_group("player_livestock")`) a su solar (`lots_state["coop_relocated_lot"]`).
-  - El campamento del lago del oeste mantiene intactos su cama/refugio, fogata y puestos de pesca y caza.
-
-### B4 — Coherencia del ambiente — Commit `79fa7de`
-- **B4.1 — Niebla de madrugada y faroles (`VillageManager.get_ambient_vision_multiplier_at`, `VillageNPC.is_carrying_lantern`):**
-  - Entre las `04:00` y las `07:00` (o con clima de niebla), la niebla recorta el alcance de visión de vecinos y guardias (`0.58x`), **salvo** si el objetivo está a `<= 115 px` de una farola encendida (`STREETLIGHT_SPOTS`, cuando no hay apagón) o de un vecino despierto que lleve farol encendido (`is_carrying_lantern`, activo de `20:00` a `06:00` excepto en recados furtivos o sonambulismo).
-- **B4.2 — Humo y chispas en 2D y 3D en talleres saboteados + lluvia apaga fuegos (`VillageManager._update_sabotaged_shops_vfx`, `WorldStage3D._sync_sabotage_3d_markers`, `VillageEvents.on_hour`):**
-  - Todo taller con `sabotaged_until_day >= current_day` muestra columnas de humo y chispas de cortocircuito en 2D (`SabotageVFXRoot`) y esferas volumétricas 3D animadas de humo y chispas en `WorldStage3D` hasta que el arreglador (`TINKER`) o el dueño lo reparan.
-  - Si se declara un incendio exterior y está lloviendo o diluviando (`Weather.RAIN` / `STORM`), `VillageEvents.on_hour` apaga el fuego automáticamente sin daños y deja constancia en la crónica.
-- **B4.3 — Tendencias activas y paseos nocturnos (`TraitCatalog.gd`, `VillageNeeds.on_hour`, `VillageNPC.gd`):**
-  - Se ha retirado la etiqueta `«(dormida)»` de las tendencias ya conectadas en `TraitCatalog.gd`.
-  - Entre las `23:00` y las `04:00`, los vecinos con rasgo `"Noctámbulo"` o `"Insomne"` salen a dar paseos nocturnos (`errand_kind = "night_stroll"`, con farol), y los `"Sonámbulo"` caminan dormidos por las calles (`errand_kind = "sleepwalk"`, con `is_sleeping = true` y sin farol).
-
-### B5 — Lo que se ve en la calle — Commit `d74706b`
-- **B5.1 — Cruces de desprecio en la calle (`VillageNeeds._tick_street_contempt_crossings`):**
-  - Cuando dos vecinos conscientes que se odian (`rel <= -50`) o cuyas familias están en **feudo de sangre** (`VillageClans.in_feud`) se cruzan a `< 80 px` con línea de visión en la misma planta, sueltan un bocadillo corto de desprecio (`«¡Aparta de mi vista, ...!»`, `«😤 *Escupe al suelo al cruzarse*»`) y dan un paso lateral para apartarse (con enfriamiento por pareja de 45 s).
-- **B5.2 — Acecho nocturno previo a una venganza (`VillageDesires.tick_night_prowling`):**
-  - Quien prepara una venganza o asesinato (`desire.kind == "revenge"` activo y no cumplido) sale de madrugada (`00:00–04:00`) los días previos a rondar en sigilo la puerta de la casa de su víctima (`errand_kind = "prowl_victim"`, sin farol y con bocadillo corto al acechar).
-- **B5.3 — Bocadillos cortos de 1,5 s sin pausar (`VillageNPC.spawn_short_bubble`):**
-  - Al terminar un artesano maestro una **obra maestra** (`VillageFame.try_craft_masterwork`), al entrar los **niños en fila a la escuela a las 09:00** (`VillageSchool.on_hour`) y al **inaugurar el ayuntamiento una mejora** (`VillageMayor`), los protagonistas lanzan bocadillos de `1,5 s` sobre su cabeza sin detener la acción ni abrir paneles.
-
-### B6 — Los 21 vecinos fundadores con historia — Commit `1f156c0`
-- **Perfiles de 6 rasgos coherentes, red de amistades/rencores y 2–3 secretos por fundador (`scripts/data/NPCData.gd`, `scripts/systems/VillageSecrets.gd`):**
-  - Los **21 vecinos fundadores** (*Thoran, Kael, Garrick, Lina, Bram, Mila, Elena, Tomás, Marlo, Nora, Marta, Aldric, Sora, Darío, Comisario Vane, Guardia Rodric, Vigía del Oeste, Dr. Valen, Hermano Anselmo, Inquisidor Alistair y Maese Casimir / Valeria la Tratante*) cuentan en `INITIAL_PERSON_PROFILES` con **6 rasgos de personalidad** sin conflictos en `TraitCatalog.gd`, variantes de rasgos (`trait_variants`), al menos 3 relaciones iniciales explícitas en `INITIAL_NPC_RELATIONS`, variantes de relación en `FOUNDER_RELATION_VARIANTS` y una bolsa de 4 secretos en `FOUNDER_SECRETS_POOL`.
-  - `VillageSecrets.seed_founder_history(vm, seed_val)` sortea entre 2 y 3 secretos activos en `npc.founder_secrets` para cada fundador y aplica variaciones de rasgos y relaciones entre partidas.
-- **Documentación completa en `GameVault/04_Censo_y_Misiones/Vecinos/`:**
-  - Creadas y actualizadas las 21 fichas individuales de los vecinos fundadores con sus 6 rasgos, amistades, rencores y secretos posibles.
-
-### B7 — Prueba de primera persona (prototipo F6/F8) — Commit `1bb91c4`
-- **Prototipo conmutable con `F8` (y respaldo `F6`) sin alterar la lógica 2D (`GameManager.gd`, `WorldStage3D.gd`, `Player.gd`, `BuildingShell3D.gd`):**
-  - En `GameManager._unhandled_input`, pulsar **`F8`** (o **`F6`** si el escritorio intercepta `F8`) activa automáticamente la vista 3D si estaba en 2D y conmuta `stage_3d.toggle_first_person_mode()`.
-  - `cam_3d` pasa de proyección ortográfica cenital a `PROJECTION_PERSPECTIVE` (`fov = 72°`, `near = 0.05`, `far = 420.0`) situada a la altura de los ojos del jugador (`eye_y = 0.88`), mirando según `_fp_yaw` y `_fp_pitch`.
-  - Captura el ratón (`MOUSE_MODE_CAPTURED`) al entrar y lo libera automáticamente (`MOUSE_MODE_VISIBLE`) al salir o cuando se abre cualquier menú, diálogo o inventario (`_is_any_ui_blocking_fp_mouse()`), mostrando una **cruz central** (`FirstPersonCrosshair`) y ocultando el avatar 3D del propio jugador para no tapar la cámara.
-  - En `Player.gd`, cuando `first_person_active` está encendido, `W/A/S/D` mueve al jugador relativo a donde mira la cámara (`get_first_person_move_vector`) y atacar, empujar, parar (`parry`) y usar (`[E]`) apuntan hacia el centro de la pantalla (`get_first_person_aim_2d()`).
-  - En `BuildingShell3D.gd`, cuando `first_person_mode` está activo, los techos (`roof_node`, `upper_roof_node`) y fachadas (`front_wall_group`, `upper_shell_group`) dejan de recortarse en modo cenital y se muestran enteros.
+> **Atajo de teclado clave:** La **`Tecla N`** (`[N] Tablero`) abre y cierra en cualquier momento el **Tablero del caso** (tablero de corcho del detective), también accesible desde la pestaña `📌 Tablero [N]` dentro de la interfaz forense.
 
 ---
 
-## 2. Resultado de las 4 baterías de pruebas finales
+## 1. Resumen por Bloque
 
-Siguiendo las reglas de `docs/ENCARGO_ANTIGRAVITY.md`, las 4 baterías se ejecutaron al final, una por una y con `timeout`:
+### Bloque D1 — Examen de cuerpo (`scripts/ui/DetectiveUI.gd`, `scripts/systems/DetectiveCaseData.gd`, `scripts/world/CorpseInteractable.gd`)
+- **Vista de examen forense fiel a `docs/bocetos/examen_cuerpo.html`:**
+  - Cabecera oscura (`#1b1612`) con sello rojo `CASO #01 · ARCHIVO FORENSE`, nombre de la víctima, oficio/edad y lugar/hora del hallazgo, más barra de **5 pestañas** (`1 · Examen del cuerpo`, `2 · Autopsia (morgue)`, `3 · Escena del crimen`, `4 · Tablero del caso`, `5 · Acusar`) y botón `✕ Cerrar [ESC]`.
+  - **Columna izquierda (Lienzo de silueta + escena top-down):**
+    - Fondo con boceto top-down de la escena (empedrado, farola cálida, casa colindante, manchas de sangre, contorno de tiza y marcadores numerados `1` y `2` en amarillo).
+    - Silueta anatómica vectorial dibujada con `_draw()` en dos variantes según el género de la víctima: **femenina** (hombros más estrechos, cintura marcada, caderas suaves y melena oscura dibujada *detrás* de la cabeza mediante polígonos laterales y superiores sin tapar la cara) y **masculina** (hombros anchos y torso recto).
+    - **Zonas clicables con anillos numerados (`1`–`7`)**:
+      - Puntos ámbar pulsantes cuando aún no se han examinado; al hacer clic se vuelven rojos y despliegan la marca anatómica correspondiente (surco violáceo en cuello, hematoma occipital, fibras rojas bajo uñas, manchas de barro en rodillas, bolsillo vuelto con iniciales, etc.).
+      - Puntos azules con icono `🔍` (`requiere_lupa: true`): exigen tener `magnifying_glass` en el inventario del jugador; sin lupa muestran aviso contextual y no se desbloquean.
+    - **Controles del lienzo:** botones `[ ↺ Girar cuerpo: Frente / Espalda ]`, `[ 🔍 Usar lupa ]` y `[ 🧤 Tomar muestra (N/2) ]`, más leyenda inferior y etiqueta `TEMPERATURA AMBIENTE · FRÍO DE MADRUGADA`.
+  - **Columna derecha (Cuaderno de campo, `#f3ead6`):**
+    - Ficha de la víctima con retrato estilizado, **barra de estado del cadáver** en 4 fases (`Reciente` → `Enfriándose` → `Rígido` → `Deteriorado`, con degradación de pruebas físicas si pasa demasiado tiempo a la intemperie), detalle de la zona seleccionada con confirmación `"✓ Anotado en el cuaderno"` en verde oscuro legible, lista de observaciones anotadas y bloque de **hipótesis preliminar del detective** que se sintetiza automáticamente al descubrir 3 o más hallazgos.
+  - **Acciones al pie:** `[ Llevárselo a la morgue ]` y `[ Dejar el cuerpo aquí ]`.
 
-1. **`verify_all.gd` (`timeout 900`):**
-   - **Incidente detectado en la primera pasada y corrección aplicada:**
-     - En la primera ejecución, el chequeo antiguo `B3.2` (línea 741, descripción de quedada de pareja en `get_activity_description()`) falló cuando el test eligió a `Bram` porque el caso anterior `Case 18c` (línea 554) dejaba a `Bram` con `_reacting_unconscious_target` sin limpiar y `seed_founder_history` variaba relaciones al azar antes de los tests deterministas iniciales. Además, en `verify_all.gd` se corrigieron referencias de `SceneTree` (`root.get_node_or_null("AudioManager")`, `get_first_node_in_group`, `vm.lots_state[b3_lot]`).
-     - **Solución:** `VillageNPC.assign_hangout()` ahora limpia `_clear_unconscious_reaction_state()`, `_noise_react_timer` se evalúa en la rama por defecto de `get_activity_description()` para no pisar `ActivityState.SOCIALIZING`, y `VillageSecrets.seed_founder_history(vm, seed_val)` mantiene deterministas los rasgos/relaciones base en arranque headless (`seed_val == 0`) mientras ejercita las variaciones con semillas explícitas (`101` y `202`) en `Block B6`.
-   - **Resultado tras el ajuste:** **EXIT `0`** (`Block B1 / C7 fase 4d OK`, `Block B2 OK`, `Block B3 OK`, `Block B4 OK`, `Block B5 OK`, `Block B6 OK`, `Block B7 OK`, `ALL ... TESTS PASSED!`).
+### Bloque D2 — Autopsia en la morgue con el Dr. Valen (`scripts/ui/DetectiveUI.gd`, `scripts/systems/DetectiveCaseData.gd`)
+- Al trasladar el cuerpo a la morgue del hospital (`deliver_corpse_to_morgue`), se habilita la pestaña `2 · Autopsia (morgue)` (y al interactuar con la mesa de autopsias en el hospital se abre directamente esta vista).
+- **Mesa de autopsias:** muestra la silueta sobre losa clínica con bandejas de instrumental, frascos de muestras recogidas (`N/2`) y 3 hallazgos internos desbloqueables (`Vías respiratorias y cuello`, `Contenido gástrico y sangre`, `Cotejo de muestras recogidas`).
+- **Informe del Dr. Valen:**
+  - Si el jugador consulta al doctor (`ask_valen_hint`), el Dr. Valen orienta la investigación hacia una pista clave.
+  - Gráfico comparativo de **4 barras de color** (`Veneno / tóxico`, `Forcejeo previo`, `Arma blanca`, `Asfixia / golpe`) con porcentajes por caso.
+  - Dictamen forense con **Causa aparente** vs. **Causa real** (revelada al completar los análisis internos o usar el `forensic_kit`).
 
-2. **`social_sim.gd` (`timeout 900`):**
-   - **Resultado:** **EXIT `0`** a la primera en 4 s (`SIM 60d` en semillas `101`, `202`, `303`, `404`, `505` -> `SOCIAL SIM CHECK PASSED`).
+### Bloque D3 — Escena del crimen a oscuras con linterna (`scripts/ui/DetectiveUI.gd`, `scripts/systems/DetectiveCaseData.gd`)
+- Vista `3 · Escena del crimen` con lienzo interactivo de la escena del hallazgo cubierta por un velo nocturno oscuro (`#06080ef2`).
+- **Círculo de luz cálida de la linterna** perfectamente centrado en el anillo dorado del cursor que sigue el ratón (o foco ambiental reducido si el jugador no lleva `lantern`), iluminando solo los indicios dentro de su radio (`Huellas de botas con barro`, `Cuerda de cáñamo cortada`, `Hebilla de latón`, `Fibras de lana roja`, `Nota arrugada con iniciales`).
+- Hacer clic sobre un indicio iluminado lo examina y lo añade automáticamente al cuaderno y al tablero de corcho.
+- Panel derecho con el registro de indicios de la escena y los **testigos cercanos** generados o vinculados al caso, con su testimonio y botón para fijarlos en el tablero.
 
-3. **`dialogue_coverage.gd` (`timeout 600`):**
-   - **Resultado:** **EXIT `0`** a la primera (`COVERAGE DONE npcs=19 actions=619`).
+### Bloque D4 — Tablero de corcho con chinchetas e hilos rojos (`scripts/ui/DetectiveUI.gd`, `scripts/systems/DetectiveCaseData.gd`)
+- Accesible en cualquier momento con la **`Tecla N`** (`open_corkboard()`) o desde la pestaña `4 · Tablero del caso`.
+- Textura de corcho con marco de madera oscura y **tarjetas arrastrables** con chincheta superior para:
+  - **Víctima** (chincheta roja),
+  - **Sospechosos** (chincheta ámbar, con retrato, oficio, coartada y botón `Interrogar`),
+  - **Pistas y hallazgos** del cuerpo, autopsia y escena (chincheta azul/verde).
+- **Hilos rojos tensados por encima de las tarjetas:** botón `[ 🧶 Tender hilo rojo ]` (o clic derecho entre dos chinchetas) para conectar o desconectar cualquier par de tarjetas.
+- **Deducción de conexiones clave:** al unir con hilo rojo las tarjetas que forman una contradicción o prueba incriminatoria del caso, se desbloquea una conclusión deductiva en el expediente y para la vista `5 · Acusar`.
 
-4. **`feature_probe.gd -- 5 11` (`timeout 1200`):**
-   - **Resultado:** **EXIT `0`** a la primera en 330 s (`START day=1 pop=19` -> `DAY 6 pop=34`, `tesoro=847`, `PROBE DONE days=5 real_seconds=330`).
+### Bloque D5 — Datos de los 10 casos + Fallo visible de la Trattoria (`scripts/systems/DetectiveCaseData.gd`, `scripts/world/BuildingExterior3D.gd`)
+- **10 casos completos en `DetectiveCaseData.gd` (`CASES` 1..10):**
+  1. *Caso 1 — El Silencio del Escriba* (Aldric Vane, estrangulado con cuerda de cáñamo, culpable: **Bruno**).
+  2. *Caso 2 — El Brillo del Arsénico* (Helena Vael, envenenamiento crónico, culpable: **Cora**).
+  3. *Caso 3 — La Sombra del Campanario* (Padre Tomás, empujado tras golpe previo, culpable: **Ansel**).
+  4. *Caso 4 — Sangre en la Forja* (Garrick el Herrero, golpe con martillo de forja, culpable: **Dario**).
+  5. *Caso 5 — El Último Brindis* (Marco de la Trattoria, digitalina en vino de reserva, culpable: **Livia**).
+  6. *Caso 6 — Cosecha Amarga* (Berta del Molino, asfixia con saco de harina, culpable: **Orson**).
+  7. *Caso 7 — El Secreto del Puerto Seco* (Capitán Roldán, daga estrecha por la espalda, culpable: **Vasco**).
+  8. *Caso 8 — Cenizas en el Invernadero* (Clara la Herborista, inhalación de belladona quemada, culpable: **Silas**).
+  9. *Caso 9 — El Reloj Parado a las Tres* (Maestro relojero Elías, golpe con contrapeso de bronce, culpable: **Nora**).
+  10. *Caso 10 — La Confesión del Juez* (Juez Severo, veneno de contacto en sello lacrado, culpable: **Valerio**).
+- Cada caso incluye género, zonas anatómicas de frente y espalda (normales y con lupa), hallazgos de autopsia, pista del Dr. Valen, barras forenses, causa aparente y real, indicios de la escena del crimen, testigos, sospechosos con coartada y conexiones clave del tablero.
+- **Vinculación con NPCs reales (`assign_case_roles`):** vincula víctima, culpable, sospechosos y testigos con vecinos vivos del pueblo sin matar a ningún NPC al iniciar el juego; solo instancia el cadáver cuando un caso se activa expresamente.
+- **Corrección de `docs/FALLOS_VISIBLES.md`:**
+  - *Fachada de la trattoria «Il Corvo» en 3D:* en `scripts/world/BuildingExterior3D.gd` (`_apply_shell_Role_theme`), el rol `"trattoria"` ahora aplica fachadas de estuco cálido color crema/terracota claro (`Color(0.88, 0.80, 0.68)`) con zócalo de ladrillo terracota (`Color(0.68, 0.36, 0.26)`) y contraventanas verde oliva, eliminando el aspecto de tablas oscuras. Marcado con `✅ (2026-11-07)` en `docs/FALLOS_VISIBLES.md`.
 
 ---
 
-## 3. Evaluación visual del prototipo de Primera Persona (B7)
+## 2. Verificación Automática (`verify_all.gd`)
 
-Se han tomado 3 capturas automáticas con `tools/tests/shot_b7_fp.gd` en `docs/capturas_b7/`:
-- `docs/capturas_b7/fp_01_calle_casas.png` — Vista de calle y fachadas mirando hacia la plaza y talleres.
-- `docs/capturas_b7/fp_02_vecino_cerca.png` — Primer plano de un vecino (`CharacterAvatar3D`) a distancia de conversación/combate.
-- `docs/capturas_b7/fp_03_interior_taberna.png` — Vista del interior de la Taberna «El Jabalí Dorado» bajo techo cerrado.
+Se ejecutó la suite integral `tools/tests/verify_all.gd` en modo headless:
 
-### Qué funciona bien desde el primer momento
-- **Legibilidad espacial de combate y distancias:** a ras de suelo (`eye_y = 0.88`, `FOV 72°`) se percibe de inmediato el alcance real de un puñetazo, parada o empujón frente al rival, y el giro con ratón + movimiento relativo `W/A/S/D` responde sin retardo sobre la física 2D existente.
-- **Atmósfera e iluminación:** el cielo físico, la niebla y las luces puntuales de farolas, ventanas y antorchas ganan mucha presencia al mirar hacia el horizonte en perspectiva.
+```bash
+timeout 900 flatpak run org.godotengine.Godot --headless --path . -s tools/tests/verify_all.gd > /tmp/v.log 2>&1
+```
 
-### Qué se ve mal de cerca (para valorar si se adopta en el futuro)
-1. **Casas y fachadas (`BuildingShell3D`):**
-   - Los muros y tejados están pensados para vista cenital/isométrica con colores planos y geometría de cajas simples (`BoxMesh` / `PrismMesh`); vistos a un metro de los ojos se notan aristas duras sin textura de piedra/madera, zócalos lisos y huecos de puerta sin marco ni hoja batiente 3D.
-2. **Muñecos de los vecinos (`CharacterAvatar3D`):**
-   - Los avatares 3D están armados con primitivas geométricas sencillas (esferas y cilindros de colores planos pensados para leerse a 45° de altura). En primer plano (`fp_02_vecino_cerca.png`) parecen maniquíes abstractos sin rostro, manos ni articulación fina de brazos al atacar, y los bocadillos/barras pensados para `Node2D` quedan en la capa 2D salvo que se proyecten al espacio 3D.
-3. **Interiores (`fp_03_interior_taberna.png`):**
-   - Al cerrar los techos a altura de primera planta (`WALL_H`), los interiores carecen de cielo raso detallado con vigas, lámparas colgantes 3D y mobiliario 3D con volumen (muchos muebles e iconos de mostrador existen en la escena 2D pero en 3D solo tienen bloques básicos o quedan planos en el suelo).
-   - Además, los techos bajos dan sensación de caja cerrada si no se levanta ligeramente la altura de techo interior (`WALL_H`) o se añaden ventanas practicables con luz interior dedicada.
+- **Resultado:** `EXIT_CODE=0` — **100 % de los tests en verde**, incluyendo los nuevos bloques de pruebas `D5.1a–D5.1c`, `D1.0–D1.3`, `D2.1a–D2.4`, `D3.1a–D3.2c` y `D4.1a–D4.5`.
+
+---
+
+## 3. Tour Visual de Capturas (`docs/capturas_detective/`)
+
+Todas las capturas fueron generadas con el motor en ejecución real y revisadas visualmente una por una:
+
+| Archivo | Contenido verificado |
+| :--- | :--- |
+| `docs/capturas_detective/d1_examen_mujer.png` | Vista `1 · Examen del cuerpo` con silueta femenina (melena detrás de la cabeza), marcas anatómicas reveladas, boceto 3D top-down y cuaderno de campo con `"✓ Anotado en el cuaderno"`. |
+| `docs/capturas_detective/d1_examen_hombre.png` | Vista `1 · Examen del cuerpo` con silueta masculina (Caso 1, Aldric Vane), zonas reveladas y cuaderno de campo. |
+| `docs/capturas_detective/d2_autopsia_morgue.png` | Vista `2 · Autopsia (morgue)` con mesa clínica, frascos de muestras (`2/2`), consejo del Dr. Valen, gráfico de 4 barras de color y causa aparente vs. causa real. |
+| `docs/capturas_detective/d3_escena_crimen.png` | Vista `3 · Escena del crimen` a oscuras con el haz cálido de la linterna centrado en el cursor e iluminando las pruebas, más testigos a la derecha. |
+| `docs/capturas_detective/d4_tablero_corcho.png` | Vista `4 · Tablero del caso` (`Tecla N`) con tarjetas de víctima, sospechosos y pistas separadas sobre el corcho e hilos rojos tensados por encima de las tarjetas. |
+| `docs/capturas_detective/mundo_plaza_dia.png` | Vista general de la plaza central de día con vecinos y edificios. |
+| `docs/capturas_detective/mundo_plaza_noche.png` | Vista general de la plaza central de noche con iluminación de farolas. |
+| `docs/capturas_detective/mundo_trattoria_dia.png` | Fachada 3D de la Trattoria «Il Corvo» corregida con estuco crema cálido y ladrillo terracota claro. |
+| `docs/capturas_detective/mundo_morgue_dia.png` | Exterior del Hospital / Morgue del Dr. Valen y Comisaría de día. |
+| `docs/capturas_detective/mundo_bosque_noche.png` | Vista nocturna del bosque periférico. |

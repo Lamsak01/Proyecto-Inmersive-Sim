@@ -926,7 +926,7 @@ func _build_body_view() -> Control:
 	lbl_corner_right = Label.new()
 	lbl_corner_right.text = "TEMPERATURA AMBIENTE · FRÍO"
 	lbl_corner_right.set_anchors_and_offsets_preset(Control.PRESET_TOP_RIGHT)
-	lbl_corner_right.offset_left = -240
+	lbl_corner_right.offset_left = -330
 	lbl_corner_right.offset_right = -12
 	lbl_corner_right.offset_top = 10
 	lbl_corner_right.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
@@ -1839,6 +1839,7 @@ func _render_finding_card(f: Dictionary) -> void:
 		pin_btn.disabled = already_pinned
 		pin_btn.add_theme_font_size_override("font_size", 11)
 		pin_btn.add_theme_color_override("font_color", COL_GREEN_OK if already_pinned else Color("#f3ecdc"))
+		pin_btn.add_theme_color_override("font_disabled_color", COL_GREEN_OK)
 		var p_bg := Color("#dfd4bc") if already_pinned else COL_PAPER_INK
 		pin_btn.add_theme_stylebox_override("normal", _style_box(p_bg, COL_PAPER_INK, 1, 0, 9, 4))
 		pin_btn.add_theme_stylebox_override("disabled", _style_box(Color("#dfd4bc"), COL_GREEN_OK, 1, 0, 9, 4))
@@ -2496,6 +2497,7 @@ func _render_morgue_view() -> void:
 		note_btn.disabled = already_pinned
 		note_btn.add_theme_font_size_override("font_size", 12)
 		note_btn.add_theme_color_override("font_color", COL_GREEN_OK if already_pinned else Color("#f3ecdc"))
+		note_btn.add_theme_color_override("font_disabled_color", COL_GREEN_OK)
 		var p_bg := Color("#dfd4bc") if already_pinned else COL_PAPER_INK
 		note_btn.add_theme_stylebox_override("normal", _style_box(p_bg, COL_PAPER_INK, 1, 0, 10, 5))
 		note_btn.add_theme_stylebox_override("disabled", _style_box(Color("#dfd4bc"), COL_GREEN_OK, 1, 0, 10, 5))
@@ -2518,7 +2520,10 @@ func set_lantern_canvas_pos(bpos: Vector2, raw_px: Vector2 = Vector2.ZERO, canva
 		crime_scene_canvas.queue_redraw()
 	if scene_sketch_mat != null:
 		var uv: Vector2
-		if canvas_sz.x > 1.0 and canvas_sz.y > 1.0:
+		if crime_scene_canvas != null and crime_scene_canvas.size.x > 1.0 and crime_scene_canvas.size.y > 1.0:
+			var c_pt: Vector2 = crime_scene_canvas._to_canvas(clamped)
+			uv = Vector2(clampf(c_pt.x / crime_scene_canvas.size.x, 0.0, 1.0), clampf(c_pt.y / crime_scene_canvas.size.y, 0.0, 1.0))
+		elif canvas_sz.x > 1.0 and canvas_sz.y > 1.0:
 			uv = Vector2(clampf(raw_px.x / canvas_sz.x, 0.0, 1.0), clampf(raw_px.y / canvas_sz.y, 0.0, 1.0))
 		else:
 			uv = Vector2(clamped.x / 520.0, clamped.y / 560.0)
@@ -2775,6 +2780,7 @@ func _render_scene_view() -> void:
 			nbtn.disabled = already_n
 			nbtn.add_theme_font_size_override("font_size", 11)
 			nbtn.add_theme_color_override("font_color", COL_GREEN_OK if already_n else Color("#f3ecdc"))
+			nbtn.add_theme_color_override("font_disabled_color", COL_GREEN_OK)
 			var bg_n := Color("#dfd4bc") if already_n else COL_PAPER_INK
 			nbtn.add_theme_stylebox_override("normal", _style_box(bg_n, COL_PAPER_INK, 1, 0, 9, 4))
 			nbtn.add_theme_stylebox_override("disabled", _style_box(Color("#dfd4bc"), COL_GREEN_OK, 1, 0, 9, 4))
@@ -2941,7 +2947,7 @@ func _ensure_board_positions(items: Array[Dictionary]) -> void:
 		if not board_positions.has(pid):
 			var col: int = idx % 4
 			var row: int = int(idx / 4)
-			board_positions[pid] = Vector2(26.0 + float(col) * 195.0, 26.0 + float(row) * 125.0)
+			board_positions[pid] = Vector2(26.0 + float(col) * 195.0, 22.0 + float(row) * 146.0)
 
 
 func _render_board_view() -> void:
@@ -3015,6 +3021,8 @@ func _render_board_view() -> void:
 		corkboard_canvas.add_child(card)
 		corkboard_canvas.card_nodes[pid] = card
 
+	if corkboard_canvas.strings_overlay != null:
+		corkboard_canvas.move_child(corkboard_canvas.strings_overlay, -1)
 	corkboard_canvas.redraw_links()
 
 
