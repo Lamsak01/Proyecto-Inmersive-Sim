@@ -35,6 +35,6 @@
   tierra · 3D, de día.
 - [ ] **La trattoria «Il Corvo» está justo al lado del cementerio:** no tiene sentido abrir un restaurante ahí.
   Moverla a un sitio con vida (calle principal o plaza). Ojo: es error de Claude Code al elegir el hueco libre.
-- [ ] Fachada de la trattoria «Il Corvo» en 3D: parece de tablas oscuras en vez de estuco/ladrillo claro.
 
 ## Arreglados
+- [x] ✅ (2026-11-07) Fachada de la trattoria «Il Corvo» en 3D: parece de tablas oscuras en vez de estuco/ladrillo claro (`WorldStage3D.gd`: cambiada la textura de muros de `building_restaurant` a `town_textures/wall_brick_sand_center.png` con `uv1_scale = Vector3(2.4, 0.72, 2.4)`, tono claro de estuco/ladrillo cálido `Color(1.0, 0.95, 0.84)`, iluminación cálida de rebote `0.58` en la fachada sur y dintel con el mismo estuco en vez de `rf_planks.png`).

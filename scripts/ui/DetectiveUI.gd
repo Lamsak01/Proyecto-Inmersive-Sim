@@ -1,6 +1,8 @@
 extends Control
 class_name DetectiveUI
 
+const DetectiveCaseDataScript = preload("res://scripts/systems/DetectiveCaseData.gd")
+
 ## Herramientas del Detective (Bloques D1–D5)
 ## Copia fiel en Godot del boceto aprobado en `docs/bocetos/examen_cuerpo.html`.
 ## D1: Examen del cuerpo en la escena (7 zonas, acciones superficiales, silueta plana M/F, fondo 3D cenital en esquema).
@@ -1534,16 +1536,18 @@ func _build_case_from_corpse(corpse_node: Node2D) -> void:
 	dynamic_wound_marks.clear()
 	var has_lupa: bool = _player_has_magnifying_glass()
 
-	# Si no hay cadáver específico o tiene el metadato del Caso I («La mujer del bosque»), usar los datos de referencia
-	if corpse_node == null or not is_instance_valid(corpse_node) or corpse_node.has_meta("scripted_case_zones"):
-		set_body_gender(true)
+	# Si no hay cadáver específico o tiene metadato de caso guionizado (Bloque D5), cargar desde DetectiveCaseData
+	if corpse_node == null or not is_instance_valid(corpse_node) or corpse_node.has_meta("scripted_case_zones") or corpse_node.has_meta("scripted_case_id"):
+		var sc_id: String = str(corpse_node.get_meta("scripted_case_id", DetectiveCaseDataScript.CASE_01_ID)) if (corpse_node != null and is_instance_valid(corpse_node)) else DetectiveCaseDataScript.CASE_01_ID
+		var cdef: Dictionary = DetectiveCaseDataScript.get_case_def(sc_id)
+		set_body_gender(str(cdef.get("victim_gender", "F")) == "F")
 		if lbl_hdr_sub != null:
-			lbl_hdr_sub.text = "Caso I · «La mujer del bosque» — hallada al alba junto al arroyo del norte"
+			lbl_hdr_sub.text = str(cdef.get("subtitle", cdef.get("title", "")))
 		if lbl_corner_left != null:
-			lbl_corner_left.text = "CADÁVER EN EL SUELO · NO MOVIDO"
+			lbl_corner_left.text = str(cdef.get("corner_left", "CADÁVER EN EL SUELO · NO MOVIDO"))
 		if lbl_corner_right != null:
-			lbl_corner_right.text = "TEMPERATURA AMBIENTE · FRÍO DE MADRUGADA"
-		zone_data = _get_default_forest_woman_zones(has_lupa)
+			lbl_corner_right.text = str(cdef.get("corner_right", "TEMPERATURA AMBIENTE · FRÍO DE MADRUGADA"))
+		zone_data = DetectiveCaseDataScript.get_body_zones(sc_id, has_lupa)
 		_build_morgue_tests_for_corpse(corpse_node)
 		_build_scene_data_for_corpse(corpse_node)
 		_build_board_suspects_for_corpse(corpse_node)
@@ -1686,62 +1690,7 @@ func _describe_zone_wounds(w_arr: Array, weapon_cause: String, fallback_txt: Str
 
 
 func _get_default_forest_woman_zones(has_lupa: bool) -> Dictionary:
-	return {
-		"cabeza": {
-			"title": "Cabeza y rostro",
-			"acts": [
-				{"id": "mirar", "name": "Mirar de cerca", "cost": 2, "find": "No hay golpe en la frente ni sangre en el pelo. Los ojos tienen puntitos rojos en el blanco; los labios están azulados."},
-				{"id": "oler", "name": "Oler boca y nariz", "cost": 2, "find": "Un olor suave y amargo, como a almendra machacada o hueso de melocotón, sale todavía de la boca.", "tag": "Olor: almendra amarga", "note": "Aliento: olor amargo a almendra en la boca (¿algo bebido antes de morir?)."},
-				{"id": "palpar", "name": "Palpar cráneo", "cost": 3, "find": "Hueso entero, sin hundimientos. No murió de una pedrada ni de un porrazo en la cabeza."},
-				{"id": "lupa", "name": "Usar lupa en el pelo", "cost": 4, "locked": not has_lupa, "find": "Entre el pelo hay polen amarillo de sauce y dos briznas de paja seca que no crecen junto al arroyo: vienen de un granero o establo."}
-			]
-		},
-		"cuello": {
-			"title": "Cuello y garganta",
-			"acts": [
-				{"id": "mirar", "name": "Mirar la piel", "cost": 2, "find": "Una franja morada cruza la garganta, pero está borrosa, como si la sangre no hubiera corrido hacia el golpe.", "mark": "m-neck", "note": "Cuello: marca morada horizontal en la garganta, extrañamente pálida por dentro."},
-				{"id": "palpar", "name": "Palpar garganta", "cost": 3, "find": "Desde fuera se nota el cartílago duro, pero sin abrir en la morgue no puedes saber si el hueso interno está roto."},
-				{"id": "lupa", "name": "Usar lupa en el surco", "cost": 5, "locked": not has_lupa, "find": "En los bordes del surco no hay pellejos levantados ni sangre coagulada: apretaron cuando el corazón ya latía muy débil o estaba parado.", "tag": "Surco sin sangrado", "note": "Surco del cuello: sin sangrado en los bordes; puede haberse hecho cuando ya se moría por otra causa."},
-				{"id": "interna", "name": "Abrir tráquea", "cost": 0, "locked": true, "find": "Hace falta llevar el cuerpo a la morgue para abrir y ver si el hueso del cuello está roto."}
-			]
-		},
-		"torso": {
-			"title": "Pecho y vestido",
-			"acts": [
-				{"id": "mirar", "name": "Mirar la ropa", "cost": 2, "find": "El vestido de lana está húmedo por la espalda, pero seco en el pecho. No hay cortes ni agujeros de cuchillo."},
-				{"id": "palpar", "name": "Palpar costillas y espalda", "cost": 4, "find": "Costillas enteras. Al girar un poco el hombro, ves que la sangre acumulada tras morir (lividez) está en el costado derecho, no en la espalda, aunque yace boca arriba.", "tag": "Cuerpo movido tras morir", "note": "Lividez en el costado derecho aunque yace boca arriba: estuvo horas tumbada de lado en otro sitio antes de traerla aquí."},
-				{"id": "interna", "name": "Examinar estómago", "cost": 0, "locked": true, "find": "Hace falta abrir el cuerpo en la morgue para ver qué comió o bebió antes de morir."}
-			]
-		},
-		"brazos": {
-			"title": "Brazos y muñecas",
-			"acts": [
-				{"id": "mirar", "name": "Mirar muñecas", "cost": 2, "find": "Dos marcas rojas estrechas rodean las muñecas, como si la hubieran sujetado por detrás o atado con cuerda fina.", "mark": "m-wrist"},
-				{"id": "lupa", "name": "Usar lupa en las marcas", "cost": 4, "locked": not has_lupa, "find": "Hay pelusa de cáñamo encerado clavada en la piel: el tipo de cordel que usan en el almacén de grano y en las barcas.", "tag": "Fibra: cáñamo encerado", "note": "Muñecas: restos de cordel de cáñamo encerado (usado en almacén de grano o barcas)."}
-			]
-		},
-		"manos": {
-			"title": "Manos y uñas",
-			"acts": [
-				{"id": "mirar", "name": "Abrir los dedos", "cost": 3, "find": "Los dedos están rígidos (entre 6 y 10 horas muerta). No tiene cortes de haberse defendido de un cuchillo."},
-				{"id": "lupa", "name": "Mirar bajo las uñas", "cost": 4, "locked": not has_lupa, "find": "Bajo dos uñas de la mano derecha hay hebras de lana teñida de azul oscuro, arrancadas de una manga o capote.", "tag": "Fibra: lana azul oscuro", "note": "Bajo las uñas: lana azul oscuro arrancada de la ropa de otra persona."}
-			]
-		},
-		"piernas": {
-			"title": "Piernas y calzado",
-			"acts": [
-				{"id": "mirar", "name": "Mirar pies y bajos", "cost": 2, "find": "Falta el zapato izquierdo. Los dos talones tienen barro oscuro por detrás, como si la hubieran arrastrado sujetándola por las axilas.", "mark": "m-heel", "tag": "Arrastrada hasta aquí", "note": "Talones manchados por detrás y falta el zapato izquierdo: la arrastraron hasta el arroyo."},
-				{"id": "oler", "name": "Oler el barro del vestido", "cost": 2, "find": "El barro de las rodillas huele a ceniza de carbón vegetal, no al lodo limpio del arroyo.", "tag": "Barro con ceniza de carbón", "note": "Barro en las rodillas mezclado con ceniza de carbón vegetal (¿carbonera, fragua o horno?)."}
-			]
-		},
-		"bolsillos": {
-			"title": "Bolsillos del delantal",
-			"acts": [
-				{"id": "palpar", "name": "Palpar desde fuera", "cost": 2, "find": "En el bolsillo derecho suena vidrio pequeño y un papel doblado."},
-				{"id": "registrar", "name": "Vaciar bolsillo (10 min)", "cost": 10, "find": "Sacas un frasco pequeño vacío sin etiqueta (huele igual que su boca, a almendra amarga) y una nota húmeda donde solo se lee «…después del toque de queda en el puente viejo — V.».", "mark": "m-pocket", "tag": "Objeto: frasco vacío + nota «V.»", "note": "Bolsillo: frasco vacío con olor a almendra amarga y nota rota firmada «V.» citándola en el puente viejo tras el toque de queda.", "loot_corpse": true}
-			]
-		}
-	}
+	return DetectiveCaseDataScript.get_body_zones(DetectiveCaseDataScript.CASE_01_ID, has_lupa)
 
 
 # ==============================================================================
@@ -1989,8 +1938,11 @@ func _build_morgue_tests_for_corpse(corpse_node: Node2D) -> void:
 
 
 func _get_default_morgue_tests(corpse_node: Node2D) -> Dictionary:
-	var is_scripted: bool = (corpse_node == null or not is_instance_valid(corpse_node) or corpse_node.has_meta("scripted_case_zones"))
-	var v_name: String = str(corpse_node.get("npc_name")) if not is_scripted else "La mujer del bosque"
+	var is_scripted: bool = (corpse_node == null or not is_instance_valid(corpse_node) or corpse_node.has_meta("scripted_case_zones") or corpse_node.has_meta("scripted_case_id"))
+	if is_scripted:
+		var sc_id: String = str(corpse_node.get_meta("scripted_case_id", DetectiveCaseDataScript.CASE_01_ID)) if (corpse_node != null and is_instance_valid(corpse_node)) else DetectiveCaseDataScript.CASE_01_ID
+		return DetectiveCaseDataScript.get_morgue_tests(sc_id)
+	var v_name: String = str(corpse_node.get("npc_name"))
 	var fem: bool = is_female_model
 	var vm = get_tree().get_first_node_in_group("village_manager") if is_inside_tree() else null
 	var f_state: Dictionary = vm.VillageForensics.state(vm) if (vm != null and "VillageForensics" in vm) else {}
@@ -2574,39 +2526,15 @@ func set_lantern_canvas_pos(bpos: Vector2, raw_px: Vector2 = Vector2.ZERO, canva
 
 
 func _build_scene_data_for_corpse(corpse_node: Node2D) -> void:
-	var is_scripted: bool = (corpse_node == null or not is_instance_valid(corpse_node) or corpse_node.has_meta("scripted_case_zones"))
+	var is_scripted: bool = (corpse_node == null or not is_instance_valid(corpse_node) or corpse_node.has_meta("scripted_case_zones") or corpse_node.has_meta("scripted_case_id"))
 	if is_scripted:
+		var sc_id: String = str(corpse_node.get_meta("scripted_case_id", DetectiveCaseDataScript.CASE_01_ID)) if (corpse_node != null and is_instance_valid(corpse_node)) else DetectiveCaseDataScript.CASE_01_ID
+		var cdef: Dictionary = DetectiveCaseDataScript.get_case_def(sc_id)
 		if lbl_scene_ground != null:
-			lbl_scene_ground.text = "CLARO JUNTO AL ARROYO · CAMINO DEL NORTE ARRIBA"
-		scene_clues = [
-			{"x": 300.0, "y": 150.0, "r": 16.0, "draw_kind": "drag", "k": "Hojarasca", "t": "Dos surcos paralelos desde el camino hasta el cuerpo: la trajeron a rastras.", "m": 10},
-			{"x": 214.0, "y": 196.0, "r": 14.0, "draw_kind": "prints", "k": "Huellas", "t": "Huellas de botas pequeñas, de una sola persona. Pisada nerviosa, de alguien joven.", "m": 10},
-			{"x": 258.0, "y": 60.0, "r": 16.0, "draw_kind": "wheels", "k": "Camino", "t": "Marcas de rueda de carro que paró aquí de madrugada y se dio la vuelta.", "m": 10},
-			{"x": 330.0, "y": 300.0, "r": 12.0, "draw_kind": "herb", "k": "Junto al cuerpo", "t": "Una ramita seca de una hierba que no crece aquí. Huele igual que el pelo de la víctima.", "m": 5},
-			{"x": 250.0, "y": 400.0, "r": 18.0, "draw_kind": "circle", "k": "Bajo el cuerpo", "t": "Ni una gota de sangre en el suelo. No la mataron de un golpe, y quizá no aquí.", "m": 5},
-			{"x": 200.0, "y": 480.0, "r": 14.0, "draw_kind": "mud", "k": "Orilla del arroyo", "t": "Barro removido en la orilla, como si alguien se hubiera lavado las manos con prisa.", "m": 10}
-		]
+			lbl_scene_ground.text = str(cdef.get("scene_ground_label", "CLARO JUNTO AL ARROYO · CAMINO DEL NORTE ARRIBA"))
+		scene_clues = DetectiveCaseDataScript.get_scene_clues(sc_id)
 		if scene_witnesses.is_empty():
-			scene_witnesses = [
-				{
-					"name": "El leñador",
-					"npc_ref": null,
-					"ask_text": "«Oí un carro de madrugada, sin farol. Raro a esas horas.»",
-					"press_ok_text": "«Bajaba hacia los almacenes del sur antes de que cantara el gallo.»",
-					"press_bad_text": "«¡Ya te he dicho lo que sé! No me líes.»",
-					"can_press_succeed": false,
-					"log": []
-				},
-				{
-					"name": "La pastora",
-					"npc_ref": null,
-					"ask_text": "«Yo no vi nada… bueno, a un muchacho en el arroyo. Se fue corriendo.»",
-					"press_ok_text": "«Era joven, con una capa parda. Nunca lo había visto por el pueblo.»",
-					"press_bad_text": "«No me pregunte más, señor, tengo miedo.»",
-					"can_press_succeed": true,
-					"log": []
-				}
-			]
+			scene_witnesses = DetectiveCaseDataScript.get_scene_witnesses(sc_id)
 		return
 
 	var v_name: String = str(corpse_node.get("npc_name"))
@@ -2949,13 +2877,9 @@ func _render_scene_view() -> void:
 # Bloque D4 — Cuaderno y tablero del caso (sospechosos, fichas, hilos rojos y persistencia)
 # ==============================================================================
 func _build_board_suspects_for_corpse(corpse_node: Node2D) -> void:
-	var is_scripted: bool = (corpse_node == null or not is_instance_valid(corpse_node) or corpse_node.has_meta("scripted_case_zones"))
-	var default_suspects: Array[Dictionary] = [
-		{"id": "s_v", "k": "Sospechoso", "t": "«V.» — firmó la nota del bolsillo citándola en el puente viejo."},
-		{"id": "s_alch", "k": "Sospechoso", "t": "El boticario — guarda hierbas de embalsamar bajo llave."},
-		{"id": "s_miller", "k": "Sospechoso", "t": "El molinero — tiene carro y cordel de cáñamo encerado."},
-		{"id": "s_boy", "k": "Sospechoso", "t": "Muchacho de capa parda — visto corriendo junto al arroyo."}
-	]
+	var is_scripted: bool = (corpse_node == null or not is_instance_valid(corpse_node) or corpse_node.has_meta("scripted_case_zones") or corpse_node.has_meta("scripted_case_id"))
+	var sc_id: String = str(corpse_node.get_meta("scripted_case_id", DetectiveCaseDataScript.CASE_01_ID)) if (corpse_node != null and is_instance_valid(corpse_node)) else DetectiveCaseDataScript.CASE_01_ID
+	var default_suspects: Array[Dictionary] = DetectiveCaseDataScript.get_board_suspects(sc_id)
 	if is_scripted:
 		board_suspects = default_suspects
 		return

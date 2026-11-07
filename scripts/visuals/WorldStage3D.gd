@@ -705,14 +705,14 @@ func _style_for_building(b_id: String) -> Dictionary:
 		wall_norm = ""
 		wall_h = 32.0
 		roof_h = 16.0
-	elif b_id == "building_restaurant": # R1: trattoria de estuco ocre, teja roja y carpintería verde oscura
-		wall_tex = "town_textures/wall_brick_small_sand.png"
+	elif b_id == "building_restaurant": # R1: trattoria de estuco/ladrillo claro ocre, teja roja y carpintería verde oscura
+		wall_tex = "town_textures/wall_brick_sand_center.png"
 		wall_norm = ""
-		wall_col = Color(1.0, 0.80, 0.56)
+		wall_col = Color(1.0, 0.94, 0.80)
 		roof_col = Color(0.64, 0.26, 0.18)
 		floor_col = Color(0.74, 0.46, 0.30)
 		floor_tex = "town_textures/floor_tiles_tan_large.png"
-		trim_col = Color(0.18, 0.30, 0.20)
+		trim_col = Color(0.24, 0.40, 0.28)
 		wall_h = 32.0
 		roof_h = 16.0
 	elif b_id == "building_candil":
@@ -755,8 +755,14 @@ func _style_for_building(b_id: String) -> Dictionary:
 		wall_col = Color(0.86, 0.76, 0.58)
 		roof_col = Color(0.28, 0.52, 0.36)
 
+	var wall_emit_col := Color(0.98, 0.90, 0.74) if b_id == "building_restaurant" else Color.BLACK
+	var wall_emit_e: float = 0.58 if b_id == "building_restaurant" else 0.0
+	var w_mat := _mat("wall_" + b_id, wall_col, 0.86, 0.04, wall_emit_col, wall_emit_e, wall_tex, wall_norm, 0.70)
+	if b_id == "building_restaurant":
+		w_mat.albedo_color = Color(1.0, 0.95, 0.84)
+		w_mat.uv1_scale = Vector3(2.4, 0.72, 2.4)
 	return {
-		"wall_mat": _mat("wall_" + b_id, wall_col, 0.86, 0.04, Color.BLACK, 0.0, wall_tex, wall_norm, 0.70),
+		"wall_mat": w_mat,
 		"roof_mat": _mat("roof_" + b_id, roof_col, 0.80, 0.06, Color.BLACK, 0.0, roof_tex, roof_norm, 0.75),
 		"floor_mat": _mat("floor_" + b_id, floor_col, 0.88, 0.02, Color.BLACK, 0.0, floor_tex, "", 0.85),
 		"trim_mat": _mat("trim_" + b_id, trim_col, 0.84, 0.05, Color.BLACK, 0.0, "town_textures/rf_planks.png", "", 0.85),
@@ -839,7 +845,8 @@ func rebuild_buildings_3d() -> void:
 		# Jambas y dintel de la puerta
 		_add_box_2d(b_root, Vector2(door_left_x, door_y), Vector2(3.5, wall_t + 2.0), 2.0, wall_h, m_trim)
 		_add_box_2d(b_root, Vector2(door_right_x, door_y), Vector2(3.5, wall_t + 2.0), 2.0, wall_h, m_trim)
-		_add_box_2d(b_root, Vector2(door_pos.x, door_y), Vector2(door_w + 4.0, wall_t + 1.5), 2.0 + wall_h * 0.72, wall_h * 0.28, m_trim)
+		var lintel_mat: Material = m_wall if b_id == "building_restaurant" else m_trim
+		_add_box_2d(b_root, Vector2(door_pos.x, door_y), Vector2(door_w + 4.0, wall_t + 1.5), 2.0 + wall_h * 0.72, wall_h * 0.28, lintel_mat)
 
 		# 3. Puerta abatible 3D sincronizada con `vm.building_doors`
 		for d_entry in vm.building_doors:

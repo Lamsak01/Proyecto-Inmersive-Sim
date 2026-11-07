@@ -3,6 +3,10 @@
 Cambios del juego, del más nuevo al más antiguo. Añade una entrada al cerrar cada bloque, en lenguaje sencillo.
 El detalle técnico está en `docs/HANDOFF.md` (sección 7) y el historial completo en `git log`. Lo anterior a B0.1 está en `AUDIT_LOG.md` y `SESSION_CONTEXT_LOG.md`.
 
+## 2026-11-07 — Estructura para los 10 casos del detective y fachada de estuco claro en «Il Corvo» (paso 5)
+- **Preparado para los 10 casos:** separada toda la información de cada misterio (zonas del cuerpo, pasos de autopsia, pistas del suelo, testigos, sospechosos y papeles asignados a vecinos reales) en un archivo de datos independiente con hueco para los 10 casos y el esqueleto del Caso I («La mujer del bosque»), dejando marcados como pendientes los detalles de trama aún no decididos.
+- **Fachada de la trattoria «Il Corvo» en 3D corregida:** cambiado el acabado exterior del restaurante en 3D para que luzca como estuco y ladrillo claro cálido en lugar de tablas oscuras (`docs/FALLOS_VISIBLES.md`).
+
 ## 2026-11-07 — Cuaderno y tablero de corcho con hilos rojos (herramientas del detective, paso 4)
 - **Abrir el tablero en cualquier momento con la tecla `[N]`:** además de la pestaña «4 · Tablero del caso» dentro de la mesa de investigación, puedes pulsar `[N]` en cualquier momento para abrir tu tablero de corcho con lo que llevas anotado.
 - **Fichas que se arrastran e hilos rojos:** en el corcho aparecen las fichas de los sospechosos del caso y todas las pistas que hayas decidido anotar desde el cuerpo, la autopsia o la escena del crimen. Puedes colocarlas donde quieras arrastrándolas con el ratón, unir dos fichas con hilo rojo pulsando una y luego otra, y quitar cualquier hilo haciendo clic encima.
