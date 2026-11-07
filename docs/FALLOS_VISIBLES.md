@@ -107,5 +107,11 @@
   cuarto puesto en otro sitio, no un sótano). El sótano debe estar justo bajo la taberna (misma posición, otra planta,
   como los pisos de arriba), y vecinos y jugador deben entrar y salir solo por la trampilla/escalera.
 
+- [ ] **Interfaz llena de ruido: letreros flotantes amontonados** (2026-11-07 18:42, captura, día 1, 14:21, plaza):
+  con varios cadáveres juntos se apilan 10+ líneas largas («Cadáver en el suelo (2h) | [E: Saquear Bolsillos (41 Oro +
+  Objetos)] | [E: Reportar Cadáver]», nombres, «Comprobando pulso», direcciones «Este: Hospital…»), una encima de otra e
+  ilegibles. El usuario: «no hay forma de que esto sea una manera elegante de hacer una interfaz». Ver propuesta de Claude
+  en el encargo (un solo letrero para lo que miras; las acciones solo abajo, en el aviso de [E]).
+
 ## Arreglados
 - [x] ✅ (2026-11-07) Fachada de la trattoria «Il Corvo» en 3D: parece de tablas oscuras en vez de estuco/ladrillo claro (`WorldStage3D.gd`: cambiada la textura de muros de `building_restaurant` a `town_textures/wall_brick_sand_center.png` con `uv1_scale = Vector3(2.4, 0.72, 2.4)`, tono claro de estuco/ladrillo cálido `Color(1.0, 0.95, 0.84)`, iluminación cálida de rebote `0.58` en la fachada sur y dintel con el mismo estuco en vez de `rf_planks.png`).
