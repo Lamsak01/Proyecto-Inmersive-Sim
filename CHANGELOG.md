@@ -3,6 +3,11 @@
 Cambios del juego, del más nuevo al más antiguo. Añade una entrada al cerrar cada bloque, en lenguaje sencillo.
 El detalle técnico está en `docs/HANDOFF.md` (sección 7) y el historial completo en `git log`. Lo anterior a B0.1 está en `AUDIT_LOG.md` y `SESSION_CONTEXT_LOG.md`.
 
+## 2026-11-06 — El combate pesa: cadenas y golpes cargados
+- **Espada:** si vuelves a pulsar justo al terminar un golpe, encadenas otro; el tercero es más lento y pega fuerte.
+- **Martillo y hacha:** mantén el clic para cargar (el arma se echa atrás y brilla); al soltar, golpe que empuja y
+  tumba más. Cuesta más energía y mientras cargas andas despacio. Un toque corto sigue siendo un golpe normal.
+
 ## 2026-11-06 — El combate pesa: los rivales juegan con las mismas reglas
 - **Oyes venir sus golpes:** guardias, vecinos, bandidos y jabalíes hacen el zumbido del golpe al soltarlo.
 - **Si fallan, puedes castigarles:** tras dar se quedan quietos un instante, y tras fallar, más rato.

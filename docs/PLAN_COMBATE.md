@@ -28,6 +28,9 @@ zorro 0,7, conejo y mascotas 0,5, bandido 1,1) divide el empujón y, por su raí
 - El tambaleo que les provocas depende de su tamaño (un jabalí apenas se mueve con la hoz).
 
 ## Fase 3 — Más opciones en tus manos
+**3a ✅ (2026-11-06):** cadena de la espada (pulsar en la recuperación; el 3.º ×1,5 de daño, preparación ×1,8) y golpe
+cargado de martillo/hacha (mantener el clic 0,65 s: hasta ×1,7 de daño, empujón y tambaleo largos, +10 de energía;
+cargando andas al 55 %). **3b pendiente:** bloqueo sostenido con Q y empujón con X.
 - Espada: **cadena de 3 golpes** si vuelves a pulsar a tiempo (el 3.º más lento y fuerte).
 - Martillo y hacha: **golpe cargado** manteniendo el clic (rompe la guardia, tumba).
 - **Bloqueo sostenido** con Q gastando energía (la parada perfecta de 0,2 s sigue siendo la mejor).

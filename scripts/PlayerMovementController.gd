@@ -275,6 +275,8 @@ func _handle_input(delta: float) -> void:
 	var c_sw = player.get_node_or_null("PlayerCombatController")
 	if c_sw != null and float(c_sw.get("attack_timer")) > 0.0:
 		current_speed *= float(c_sw.get("swing_move_mult"))
+	elif c_sw != null and bool(c_sw.get("is_charging")):
+		current_speed *= 0.55 # C7 fase 3a: cargando el golpe vas despacio
 
 	anim.speed_scale = target_anim_scale
 

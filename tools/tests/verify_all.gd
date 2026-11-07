@@ -6158,5 +6158,49 @@ func _initialize() -> void:
 	c72_n._attack_timer = 0.0
 	p70_pl.global_position = c72_ppos
 	print("Block C7 fase 2 (Rivals: Swing Sound, Punishable Recovery, Weapon Push & Target Mass) OK")
+	# ==========================================================================
+	# Bloque C7 fase 3a: cadena de la espada y golpe cargado («C7 combate fase 3a»)
+	# ==========================================================================
+	var c73_ppos: Vector2 = p70_pl.global_position
+	var c73_wbak = p70_pl.equipped_weapon
+	p70_pl.global_position = Vector2(-1600.0, 1400.0) # lejos de todos: golpes al aire
+	p70_pl.equip_weapon(p70_pl.sword_weapon)
+	await create_timer(0.7).timeout
+	c7_cc.attack_timer = 0.0
+	c7_cc.combo_step = 0
+	c7_st.current_stamina = c7_st.max_stamina
+	c7_cc.attack()
+	assert(c7_cc.combo_step == 1, "C7.9: The first sword swing starts a chain")
+	for _c73_i in range(60): # espera a la recuperación (puede ir más lenta si el brazo está tocado)
+		if bool(c7_cc._in_recovery):
+			break
+		await create_timer(0.02).timeout
+	assert(bool(c7_cc._in_recovery), "C7.10: After the strike comes the recovery (chain window)")
+	c7_cc.attack()
+	assert(c7_cc.combo_step == 2 and not bool(c7_cc._in_recovery), "C7.11: Clicking during the recovery chains the 2nd swing")
+	for _c73_j in range(60):
+		if bool(c7_cc._in_recovery):
+			break
+		await create_timer(0.02).timeout
+	c7_cc.attack()
+	var c73_sword_total: float = c7_feel.swing_total(c7_feel.WEAPON_FEEL["sword"])
+	assert(c7_cc.combo_step == 3 and float(c7_cc._swing_power) > 1.3 and c7_cc.swing_duration > c73_sword_total + 0.05, "C7.12: The 3rd swing is slower and stronger (%.2f s)" % c7_cc.swing_duration)
+	await create_timer(1.6).timeout
+	assert(c7_cc.combo_step == 0 and not bool(c7_cc._swing_locked), "C7.13: The chain ends after the 3rd swing's recovery")
+	# Golpe cargado del martillo
+	p70_pl.equip_weapon(p70_pl.hammer_weapon)
+	c7_st.current_stamina = c7_st.max_stamina
+	c7_cc.attack_timer = 0.0
+	c7_cc.start_charge(true)
+	assert(bool(c7_cc.is_charging), "C7.14: Holding the click with the hammer charges the blow")
+	c7_cc.charge_t = c7_cc.CHARGE_FULL
+	var c73_base: float = p70_pl.hammer_weapon.damage_data.amount
+	var c73_st0: float = c7_st.current_stamina
+	c7_cc.release_charge()
+	assert(not bool(c7_cc.is_charging) and float(c7_cc._swing_power) > 1.6 and c7_cc.hitbox_area.damage_data.amount > c73_base * 1.6 and c73_st0 - c7_st.current_stamina > 20.0, "C7.15: A full charge hits much harder and costs more stamina")
+	await create_timer(1.0).timeout
+	p70_pl.equip_weapon(c73_wbak)
+	p70_pl.global_position = c73_ppos
+	print("Block C7 fase 3a (Sword 3-Hit Chain & Charged Hammer/Axe Blow) OK")
 	print("ALL RIMWORLD MEDICAL, FOOTPRINTS, 3-PHASE CORPSE REPORT, MULTI-CORPSE FIX, RPG INTERROGATION, PUBLIC TRIAL, DYNAMIC RELATIONSHIPS, MISSING FAMILY SEARCH, SOCIAL GLOSSARY & UNCONSCIOUS REACTION TESTS PASSED!")
 	quit(0)

@@ -39,6 +39,17 @@ var swing_move_mult: float = 1.0
 var _swing_feel: Dictionary = {}
 var _swing_locked: bool = false
 var _swing_id: int = 0
+## C7 fase 3a: cadena de la espada y golpe cargado de martillo/hacha
+const COMBO_WEAPONS: Array[String] = ["sword"] ## volver a pulsar durante la recuperación encadena el siguiente golpe
+const CHARGE_WEAPONS: Array[String] = ["hammer", "axe"] ## mantener el clic carga el golpe
+const CHARGE_FULL: float = 0.65 ## segundos de carga para el golpe cargado completo
+const CHARGE_MIN: float = 0.25 ## por debajo de esto, un toque normal
+var combo_step: int = 0 ## 1, 2 o 3 dentro de la cadena actual
+var _in_recovery: bool = false
+var is_charging: bool = false
+var charge_t: float = 0.0
+var _charge_from_mouse: bool = true
+var _swing_power: float = 1.0 ## multiplicador de daño/empujón/tambaleo del golpe en curso (3.º de la cadena, cargado)
 
 func _ready() -> void:
 	_setup_visuals()
@@ -68,6 +79,21 @@ func _process(delta: float) -> void:
 				# Si el jugador soltó el botón fuera de foco, disparar igualmente
 				if not Input.is_mouse_button_pressed(MOUSE_BUTTON_LEFT) and not Input.is_action_pressed("ui_accept"):
 					_release_bow_shot()
+
+	if is_charging:
+		var eq_c: WeaponData = player.equipped_weapon
+		if eq_c == null or eq_c.is_ranged or not (str(eq_c.name).to_lower() in CHARGE_WEAPONS):
+			is_charging = false
+			charge_t = 0.0
+		else:
+			charge_t = minf(CHARGE_FULL, charge_t + delta)
+			if weapon_sprite:
+				weapon_sprite.visible = true
+				weapon_sprite.rotation_degrees = lerpf(-45.0, -95.0, charge_t / CHARGE_FULL)
+				weapon_sprite.modulate = Color(1.0, 1.0, 1.0).lerp(Color(1.45, 1.1, 0.7), charge_t / CHARGE_FULL)
+			# Si se soltó el botón fuera de foco, soltar igualmente
+			if not Input.is_mouse_button_pressed(MOUSE_BUTTON_LEFT) and not Input.is_action_pressed("ui_accept"):
+				release_charge()
 
 	if _takedown_check_timer > 0.0:
 		_takedown_check_timer -= delta
@@ -175,6 +201,15 @@ func _unhandled_input(event: InputEvent) -> void:
 				_start_bow_draw()
 			elif not event.is_pressed() and is_drawing_bow:
 				_release_bow_shot()
+			return
+
+	var is_charge_weapon: bool = equipped != null and not equipped.is_ranged and (str(equipped.name).to_lower() in CHARGE_WEAPONS)
+	if is_charge_weapon:
+		if (event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT) or event.is_action("ui_accept"):
+			if event.is_pressed() and not event.is_echo():
+				start_charge(event is InputEventMouseButton)
+			elif not event.is_pressed() and is_charging:
+				release_charge()
 			return
 
 	if event.is_action_pressed("ui_accept"):
@@ -322,15 +357,40 @@ func _release_bow_shot(skip_release_cost: bool = false) -> void:
 	_update_weapon_visuals()
 	_fire_bow(equipped, final_tension * manip_bow)
 
-func attack(_aim_with_mouse: bool = true) -> void:
+## C7 fase 3a: empezar a cargar (martillo/hacha). Un toque corto suelta un golpe normal al soltar.
+func start_charge(from_mouse: bool = true) -> void:
+	if attack_timer > 0.0 or is_charging:
+		return
+	is_charging = true
+	charge_t = 0.0
+	_charge_from_mouse = from_mouse
+
+func release_charge() -> void:
+	if not is_charging:
+		return
+	is_charging = false
+	var ratio: float = 0.0 if charge_t < CHARGE_MIN else clampf((charge_t - CHARGE_MIN) / (CHARGE_FULL - CHARGE_MIN), 0.0, 1.0)
+	charge_t = 0.0
+	if weapon_sprite:
+		weapon_sprite.modulate = Color.WHITE
+	attack(_charge_from_mouse, ratio)
+
+## `charge` (0–1): solo martillo/hacha; 1 = golpe cargado completo (más daño, empuja y tumba más, cuesta más energía).
+func attack(_aim_with_mouse: bool = true, charge: float = 0.0) -> void:
 	var equipped: WeaponData = player.equipped_weapon
-	if not equipped or attack_timer > 0.0: return
+	if not equipped: return
+	var w_key: String = str(equipped.name).to_lower()
+	# Cadena de la espada: volver a pulsar durante la recuperación corta lo que queda y suelta el siguiente golpe
+	var chaining: bool = attack_timer > 0.0 and _in_recovery and not equipped.is_ranged and (w_key in COMBO_WEAPONS) and combo_step >= 1 and combo_step < 3
+	if attack_timer > 0.0 and not chaining: return
 	if equipped == player.get("watering_can_weapon") and player.has_method("is_bloodstained") and bool(player.call("is_bloodstained")):
 		if player.has_method("consume_water_charge") and bool(player.call("consume_water_charge")):
 			attack_timer = 0.30
 			player.call("wash_bloodstains", true)
 			return
 	var stam_cost: float = 10.0 if equipped.is_ranged else 14.0
+	if not equipped.is_ranged and charge > 0.0:
+		stam_cost += 10.0 * charge
 	if stamina_comp:
 		if stamina_comp.current_stamina < stam_cost: return
 		stamina_comp.use_stamina(stam_cost)
@@ -341,7 +401,21 @@ func attack(_aim_with_mouse: bool = true) -> void:
 		swing_duration = 0.36 * slow_k
 		attack_timer = swing_duration
 	else:
-		_swing_feel = CombatFeel.feel_for(equipped)
+		combo_step = (combo_step + 1) if chaining else 1
+		_swing_feel = CombatFeel.feel_for(equipped).duplicate()
+		_swing_power = 1.0
+		if combo_step == 3: # el 3.º de la cadena: más lento y más fuerte
+			_swing_power = 1.5
+			_swing_feel["windup"] = float(_swing_feel["windup"]) * 1.8
+			_swing_feel["recovery"] = float(_swing_feel["recovery"]) * 1.5
+		elif charge > 0.0: # golpe cargado: la carga ya fue la preparación
+			_swing_power = 1.0 + 0.7 * charge
+			_swing_feel["windup"] = float(_swing_feel["windup"]) * 0.5
+			_swing_feel["recovery"] = float(_swing_feel["recovery"]) * (1.0 + 0.4 * charge)
+		_swing_feel["knockback"] = float(_swing_feel["knockback"]) * (1.0 + (_swing_power - 1.0) * 1.6)
+		_swing_feel["stagger"] = float(_swing_feel["stagger"]) * (1.0 + (_swing_power - 1.0) * 2.2)
+		_swing_feel["hitstop"] = float(_swing_feel["hitstop"]) * (1.0 + (_swing_power - 1.0) * 0.8)
+		_swing_feel["shake"] = float(_swing_feel["shake"]) * _swing_power
 		swing_duration = CombatFeel.swing_total(_swing_feel) * slow_k
 		attack_timer = swing_duration
 	if crosshair:
@@ -362,9 +436,12 @@ func attack(_aim_with_mouse: bool = true) -> void:
 	var t_rec: float = float(f["recovery"]) * slow_k
 	_swing_id += 1
 	var my_id: int = _swing_id
+	_in_recovery = false
 	_swing_locked = true
 	swing_move_mult = float(f["move_mult"])
-	CombatFeel.play(player, CombatFeel.SFX_SWING, player.global_position, float(f["pitch"]), -8.0)
+	CombatFeel.play(player, CombatFeel.SFX_SWING, player.global_position, float(f["pitch"]) / sqrt(_swing_power), -8.0)
+	if _swing_power >= 1.3 and player.has_method("_spawn_combat_popup"):
+		player.call("_spawn_combat_popup", "💥" if combo_step == 3 else "💥 ¡Golpe cargado!", Color(1.0, 0.78, 0.4))
 	if weapon_sprite:
 		weapon_sprite.visible = true
 		weapon_sprite.rotation_degrees = -45
@@ -382,6 +459,9 @@ func attack(_aim_with_mouse: bool = true) -> void:
 	if "paralytic_venom_timer" in player and float(player.get("paralytic_venom_timer")) > 0.0:
 		hitbox_area.damage_data.stun_buildup += 50.0
 	hitbox_area.damage_data.source = player
+	if _swing_power > 1.0:
+		hitbox_area.damage_data.amount *= _swing_power
+		hitbox_area.damage_data.stun_buildup *= _swing_power
 
 	if t_wind > 0.0:
 		await get_tree().create_timer(t_wind).timeout
@@ -394,11 +474,18 @@ func attack(_aim_with_mouse: bool = true) -> void:
 	await get_tree().create_timer(t_act).timeout
 	if is_instance_valid(hitbox_shape):
 		hitbox_shape.disabled = true
+	if my_id != _swing_id:
+		return
+	_in_recovery = true # C7 fase 3a: ventana para encadenar (espada)
 	if t_rec > 0.0:
 		await get_tree().create_timer(t_rec).timeout
 	if my_id == _swing_id:
+		_in_recovery = false
 		_swing_locked = false
 		swing_move_mult = 1.0
+		_swing_power = 1.0
+		if attack_timer <= 0.05:
+			combo_step = 0
 
 func _fire_bow(equipped: WeaponData, tension: float = 1.0) -> void:
 	var shoot_dir := current_aim_dir
