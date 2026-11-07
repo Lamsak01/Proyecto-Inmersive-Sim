@@ -5,6 +5,16 @@
 > Formato: `- [ ] Qué se ve mal · dónde · cuándo (hora del juego, 2D/3D/primera persona)`.
 
 ## Pendientes
+- [ ] **El campamento inicial está en medio del pueblo** (tienda, hoguera y tronco pegados a las casas); las texturas
+  se aprietan entre sí · 1.ª persona, de noche.
+- [ ] **Todo está demasiado comprimido** (petición grande del usuario): pueblo, campamento, lago, bosque y llanura
+  están pegados. Quiere **un mapa unas 3 veces más grande**, con todo más separado y más largo (ver `ENCARGO_SIGUIENTE.md`).
+- [ ] **El bosque parece un parque:** demasiado cerca del pueblo, poca vegetación, y su borde (dónde empieza y acaba)
+  es recto y mecánico; saca de la inmersión · 3D, de día.
+- [ ] **Los animales solo rondan sus nidos/madrigueras** y siempre van todos juntos; no hacen nada más · bosque.
+- [ ] **Enemigos todavía en 2D** (los sapos de la Llanura Salvaje) **y con los conos de visión de depuración
+  visibles** (abanicos verdes enormes) · de día. **Petición:** mantener los sapos, pero con **modelo 3D basado en su
+  sprite** (mismo diseño: sapo verde de pie con ropa roja).
 - [ ] **«Huerto vecinal» plantado en medio de un camino** (cajones encima del sendero junto a la Residencia Aguas
   Claras): quitarlo de ahí; el usuario no lo quiere en ese sitio · 3D, de día.
 - [ ] **Biblioteca: «Leer un rato [E]» no hace nada** (el letrero promete una interacción que no existe) · de noche.
