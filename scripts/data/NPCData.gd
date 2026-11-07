@@ -376,4 +376,9 @@ const INITIAL_PERSON_PROFILES: Dictionary = {
 	},
 }
 
+static func canonical_npc_name(raw_name: String) -> String:
+	var clean_nm: String = raw_name.strip_edges()
+	return str(NPC_NAME_ALIASES.get(clean_nm, clean_nm))
+
+
 

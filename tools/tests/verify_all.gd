@@ -6344,8 +6344,9 @@ func _initialize() -> void:
 		if c72_n.person_profile != null:
 			c72_n.person_profile.personality.clear()
 			c72_n.person_profile.personality.append("Cobarde")
+		var b1_am = root.get_node_or_null("AudioManager")
 		var b1_sight0: int = vm.sighting_log.size()
-		AudioManager.emit_noise(Vector2(330, 420), 180.0, 0, "heavy_hit")
+		b1_am.emit_noise(Vector2(330, 420), 180.0, 0, "heavy_hit")
 		assert(c75_guard._noise_react_mode == "guard_investigate" and c75_guard._noise_react_timer > 0.0, "C7.33: Awake guard within radius reacts to combat noise and investigates")
 		assert(c72_n._noise_react_mode == "civilian_flee" and c72_n._noise_react_timer > 0.0, "C7.34: Peaceful/cowardly civilian flees from combat noise")
 		assert(vm.sighting_log.size() > b1_sight0, "C7.35: Witness on the same floor with line of sight is logged in sighting_log")
@@ -6354,7 +6355,7 @@ func _initialize() -> void:
 		c72_n._noise_witness_logged = false
 		c72_n.elevation_level = -1
 		var b1_sight1: int = vm.sighting_log.size()
-		AudioManager.emit_noise(Vector2(330, 420), 180.0, 0, "gunshot")
+		b1_am.emit_noise(Vector2(330, 420), 180.0, 0, "gunshot")
 		assert(c72_n._noise_react_timer == 0.0 and not c72_n.can_witness_combat_at(Vector2(330, 420), 0), "C7.36: Neighbor on another floor does not count as a witness")
 		c75_guard._noise_react_timer = 0.0
 		c72_n._noise_react_timer = 0.0
@@ -6708,9 +6709,9 @@ func _initialize() -> void:
 	# ---------------------------------------------------------
 	var b2_vj = vm.VillageJustice
 	var b2_nj = vm.VillageNightJobs
-	var b2_culprit: VillageNPC = r2_rec1
-	var b2_guard: VillageNPC = r2_guard
-	var b2_sheriff: VillageNPC = r2_sheriff
+	var b2_culprit = r2_rec1
+	var b2_guard = r2_guard
+	var b2_sheriff = r2_sheriff
 	var b2_pos0: Vector2 = b2_culprit.global_position
 	var b2_aff0: int = b2_culprit.affinity
 	var b2_tr0: int = int(vm.VillageTown.state(vm).get("treasury", 0))
@@ -6728,8 +6729,8 @@ func _initialize() -> void:
 	b2_culprit.global_position = b2_vj.CELL_POS
 	assert(b2_vj.process_npc_jail_step(vm, b2_culprit, 0.1), "B2.3: Jail step takes control of the inmate's routine")
 	assert(str(b2_vj.get_inmate_record(vm, b2_culprit).get("status", "")) == "jailed", "B2.4: Reaching the cell transitions inmate to jailed status")
-	var b2_diag_inmate: Dictionary = b2_culprit._build_dialogue()
-	assert(b2_diag_inmate.has("jail_talk"), "B2.5: Talking to an inmate through the bars injects jail_talk dialogue node")
+	var b2_diag_inmate: Dictionary = b2_culprit._inject_character_lore_into_dialogue(b2_culprit._build_dialogue())
+	assert(b2_diag_inmate.has("jail_escape_confirm") and "calabozo" in str(b2_diag_inmate.get("start", {}).get("text", "")), "B2.5: Talking to an inmate through the bars injects jail_escape_confirm dialogue node")
 	# 3. Las horas descuentan condena y al llegar a 0 sale libre
 	b2_vj.get_inmate_record(vm, b2_culprit)["hours_left"] = 1
 	b2_vj.on_hour(vm)
@@ -6738,8 +6739,8 @@ func _initialize() -> void:
 	b2_vj.arrest_npc(vm, b2_culprit, b2_sheriff, "robo nocturno", 24, 30)
 	b2_culprit.global_position = b2_vj.CELL_POS
 	b2_vj.process_npc_jail_step(vm, b2_culprit, 0.1)
-	var b2_diag_sheriff: Dictionary = b2_sheriff._build_dialogue()
-	assert(b2_diag_sheriff.has("jail_bail_menu"), "B2.7: Sheriff dialogue offers jail_bail_menu while there are inmates")
+	var b2_diag_sheriff: Dictionary = b2_sheriff._inject_character_lore_into_dialogue(b2_sheriff._build_dialogue())
+	assert(b2_diag_sheriff.has("jail_bail_confirm_" + b2_culprit.get_person_key()), "B2.7: Sheriff dialogue offers jail_bail_confirm while there are inmates")
 	p70_inv.gold = 100
 	vm.VillageTown.state(vm)["treasury"] = 50
 	assert(b2_vj.on_player_action(vm, b2_sheriff, "jail_pay_bail:" + b2_culprit.get_person_key(), p70_inv), "B2.8: Player can pay an inmate's bail to the sheriff")
@@ -6748,12 +6749,15 @@ func _initialize() -> void:
 	b2_vj.arrest_npc(vm, b2_culprit, b2_guard, "sabotaje nocturno", 24, 30)
 	b2_culprit.global_position = b2_vj.CELL_POS
 	b2_vj.process_npc_jail_step(vm, b2_culprit, 0.1)
+	var b2_pl_pos_bak: Vector2 = p70_pl.global_position
+	p70_pl.global_position = b2_vj.CELL_OUTSIDE_POS
 	p70_inv.add_item("lockpick", 2)
 	b2_guard.global_position = Vector2(200, 900)
 	b2_sheriff.global_position = Vector2(200, 900)
-	assert(b2_vj.help_npc_escape(vm, b2_culprit, p70_inv, 0.05), "B2.10: Player with lockpick can break an inmate out of the cell")
+	assert(b2_vj.help_npc_escape(vm, b2_culprit, p70_inv, 0.05) in ["escaped", "escaped_seen"], "B2.10: Player with lockpick can break an inmate out of the cell")
 	assert(not b2_vj.is_npc_jailed(vm, b2_culprit), "B2.11: Broken-out inmate is no longer jailed")
 	# Restaurar estado tras B2
+	p70_pl.global_position = b2_pl_pos_bak
 	p70_inv.remove_item("lockpick", int(p70_inv.items.get("lockpick", 0)))
 	b2_culprit.global_position = b2_pos0
 	b2_culprit.affinity = b2_aff0
@@ -6779,7 +6783,7 @@ func _initialize() -> void:
 	var b3_prev_animals: Array = (b3_hs.get("player_animals", []) as Array).duplicate(true)
 	var b3_toby = b3_vh.find_toby(vm)
 	var b3_bed: Node2D = vm.entities_root.get_node_or_null("PetBed_Toby") as Node2D
-	var b3_coop: Node2D = root.get_first_node_in_group("chicken_coop") as Node2D
+	var b3_coop: Node2D = get_first_node_in_group("chicken_coop") as Node2D
 	var b3_toby_pos0: Vector2 = b3_toby.global_position if b3_toby != null else Vector2(128, 126)
 	var b3_toby_home0: Vector2 = b3_toby.home_position if b3_toby != null else Vector2(128, 126)
 	var b3_coop_pos0: Vector2 = b3_coop.global_position if b3_coop != null else Vector2(-198, -21)
@@ -6802,17 +6806,17 @@ func _initialize() -> void:
 	var b3_expected_coop_pos: Vector2 = b3_vh.coop_pos_for_lot(vm, b3_lot)
 	assert(b3_coop != null and b3_coop.global_position.distance_to(b3_expected_coop_pos) < 1.0 and b3_coop.get("coop_built") == true, "B3.5: ChickenCoop moves to the player's lot and is active")
 	var b3_pen: Rect2 = b3_vh._player_pen_rect(vm)
-	var b3_pl_livestock: Array = root.get_nodes_in_group("player_livestock")
+	var b3_pl_livestock: Array = get_nodes_in_group("player_livestock")
 	assert(not b3_pl_livestock.is_empty() and b3_pen.grow(2.0).has_point((b3_pl_livestock[0] as Node2D).global_position), "B3.6: Player livestock nodes are relocated inside the lot's pen")
 	# 4. El campamento del oeste sigue existiendo y operativo como puesto de pesca/caza/refugio
-	var b3_camp: Node2D = root.get_first_node_in_group("campsite") as Node2D
-	var b3_lake: Node2D = root.get_first_node_in_group("fishing_spots") as Node2D
+	var b3_camp: Node2D = get_first_node_in_group("campsite") as Node2D
+	var b3_lake: Node2D = get_first_node_in_group("fishing_spots") as Node2D
 	assert(b3_camp != null and is_instance_valid(b3_camp) and b3_lake != null and is_instance_valid(b3_lake), "B3.7: West camp and fishing lake remain active as an outpost")
 	# Restaurar estado tras B3
 	b3_hs["toby_lot"] = b3_prev_toby_lot
 	b3_hs["coop_lot"] = b3_prev_coop_lot
 	b3_hs["player_animals"] = b3_prev_animals
-	vm.lots_state["lots"][b3_lot] = b3_lot_bak
+	vm.lots_state[b3_lot] = b3_lot_bak
 	if b3_toby != null:
 		b3_toby.home_position = b3_toby_home0
 		b3_toby.global_position = b3_toby_pos0
@@ -6838,11 +6842,13 @@ func _initialize() -> void:
 	var b4_w0: int = int(b4_wc.current_weather)
 	b4_wc.current_hour = 5
 	b4_wc.current_weather = b4_wc.WeatherType.FOG
-	var b4_dark_pos := Vector2(-450, 420)
+	vm.VillageCulture.state(vm)["grid"]["lamps"] = true
+	vm.VillageCulture.state(vm)["grid"]["all"] = true
+	var b4_dark_pos := Vector2(-2450, 1820)
 	var b4_lamp_spr: Sprite2D = vm.streetlights[0].get("sprite") if not vm.streetlights.is_empty() else null
 	var b4_lamp_pos: Vector2 = b4_lamp_spr.global_position if is_instance_valid(b4_lamp_spr) else Vector2(495, 118)
-	var b4_vis_dark: float = vm.get_ambient_vision_multiplier_at(b4_dark_pos, player)
-	var b4_vis_lamp: float = vm.get_ambient_vision_multiplier_at(b4_lamp_pos, player)
+	var b4_vis_dark: float = vm.get_ambient_vision_multiplier_at(b4_dark_pos, p70_pl)
+	var b4_vis_lamp: float = vm.get_ambient_vision_multiplier_at(b4_lamp_pos, p70_pl)
 	assert(b4_vis_dark < 0.45 and b4_vis_lamp >= 0.90, "B4.2: Dawn fog cuts neighbor vision range in the dark (%0.2f) except near lit streetlamps (%0.2f)" % [b4_vis_dark, b4_vis_lamp])
 	# Taller saboteado echa humo y chispas en 2D y 3D; la lluvia apaga el fuego exterior
 	var b4_role: int = int(load("res://scripts/enemies/VillageNPC.gd").TradeRole.BLACKSMITH)
@@ -6869,20 +6875,28 @@ func _initialize() -> void:
 	var b4_walker = vm.trade_npcs.get(int(load("res://scripts/enemies/VillageNPC.gd").TradeRole.CARPENTER))
 	var b4_prof_bak: Array = b4_walker.person_profile.personality.duplicate()
 	var b4_err_bak: String = b4_walker.errand_kind
+	b4_wc.current_hour = 23
 	b4_walker.end_errand()
+	b4_walker.sick_level = 0
+	b4_walker.hangout_id = -1
+	b4_walker.rite_pos = Vector2.ZERO
 	b4_walker.need_energy = 85.0
-	b4_walker.person_profile.personality = ["Noctámbulo", "Curioso", "Paciente"]
+	b4_walker.person_profile.personality.clear()
+	b4_walker.person_profile.personality.append_array(["Noctámbulo", "Curioso", "Paciente"])
 	vm.VillageNeeds.on_hour(vm, 23)
 	assert(b4_walker.errand_kind == "night_stroll" and b4_walker.get_activity_description().contains("Paseando de noche"), "B4.7: Noctámbulo / Insomne neighbor walks the streets at night")
+	b4_wc.current_hour = 1
 	b4_walker.end_errand()
-	b4_walker.person_profile.personality = ["Sonámbulo", "Curioso", "Paciente"]
+	b4_walker.person_profile.personality.clear()
+	b4_walker.person_profile.personality.append_array(["Sonámbulo", "Curioso", "Paciente"])
 	vm.VillageNeeds.on_hour(vm, 1)
 	assert(b4_walker.errand_kind == "sleepwalk" and b4_walker.get_activity_description().contains("Sonámbulo"), "B4.8: Sonámbulo neighbor sleepwalks at night without lantern")
 	b4_walker.end_errand()
 	b4_walker.errand_kind = b4_err_bak
-	b4_walker.person_profile.personality = b4_prof_bak
+	b4_walker.person_profile.personality.clear()
+	b4_walker.person_profile.personality.append_array(b4_prof_bak)
 	b4_wc.current_hour = b4_hr0
-	b4_wc.set_weather(b4_w0 as WorldClock.WeatherType)
+	b4_wc.set_weather(b4_w0)
 	print("Block B4 (Ambient Coherence: Dawn Fog vs Streetlamps/Lanterns, 2D/3D Sabotage Smoke & Sparks + Rain, Night Strolls) OK")
 
 	# ---------------------------------------------------------
@@ -6907,6 +6921,7 @@ func _initialize() -> void:
 	var b5_desires_bak: Array = vm.desires.duplicate(true)
 	var b5_err_a0: String = b5_a.errand_kind
 	b5_a.end_errand()
+	b5_a.sick_level = 0
 	var b5_d: Dictionary = vm.VillageDesires.create(vm, "murder", b5_a, b5_b.get_person_key(), b5_b.npc_name, "rencor antiguo", false)
 	b5_d["prep_until"] = int(b4_wc.current_day) + 2
 	var b5_prowlers: int = vm.VillageDesires.on_hour(vm, 23)
@@ -6920,11 +6935,14 @@ func _initialize() -> void:
 	b5_a.last_short_bubble_text = ""
 	assert(vm.VillageFame.promote_to_master(vm, b5_a) and b5_a.last_short_bubble_text.contains("obra maestra") and is_equal_approx(b5_a.last_short_bubble_duration, 1.5), "B5.4: Master artisan emits a 1.5s short bubble when finishing a masterwork")
 	vm.culture_state["fame"] = b5_fame_bak
-	var b5_mayor = vm.VillageTown.mayor_of(vm)
-	if b5_mayor == null:
-		b5_mayor = b5_a
-	b5_mayor.last_short_bubble_text = ""
-	assert(vm.VillageMayor.announce_town_inauguration(vm, "Engranajes Hidráulicos") and b5_mayor.last_short_bubble_text.contains("inaugurado") and is_equal_approx(b5_mayor.last_short_bubble_duration, 1.5), "B5.5: Town hall upgrade/decree inauguration emits a 1.5s short bubble without pausing")
+	var b5_street_mayor_bak: String = str(vm.VillageTown.state(vm).get("mayor", ""))
+	var b5_sleep_a0: bool = b5_a.is_sleeping
+	vm.VillageTown.state(vm)["mayor"] = b5_a.get_person_key()
+	b5_a.is_sleeping = false
+	b5_a.last_short_bubble_text = ""
+	assert(vm.VillageMayor.announce_town_inauguration(vm, "Engranajes Hidráulicos") and b5_a.last_short_bubble_text.contains("inaugurado") and is_equal_approx(b5_a.last_short_bubble_duration, 1.5), "B5.5: Town hall upgrade/decree inauguration emits a 1.5s short bubble without pausing")
+	vm.VillageTown.state(vm)["mayor"] = b5_street_mayor_bak
+	b5_a.is_sleeping = b5_sleep_a0
 	b5_a.npc_relationships[b5_b.get_person_key()] = b5_rel_ab0
 	b5_b.npc_relationships[b5_a.get_person_key()] = b5_rel_ba0
 	b5_a.global_position = b5_pos_a0
@@ -6947,13 +6965,12 @@ func _initialize() -> void:
 			for j_t in range(i_t + 1, b6_traits.size()):
 				var t_b: String = str(b6_traits[j_t])
 				assert(not b6_tc.conflicts(t_a, t_b), "B6.1c: Founder '%s' has no conflicting base traits (%s vs %s)" % [str(b6_name), t_a, t_b])
-		assert(b6_npc_data.INITIAL_NPC_RELATIONS.has(b6_name) and (b6_npc_data.INITIAL_NPC_RELATIONS[b6_name] as Dictionary).size() >= 2, "B6.2: Founder '%s' has explicit initial friendships/grudges" % str(b6_name))
+		var b6_rel_cnt: int = 0
+		for rk in b6_npc_data.INITIAL_NPC_RELATIONS.keys():
+			if str(b6_name) in str(rk).split("|"):
+				b6_rel_cnt += 1
+		assert(b6_rel_cnt >= 2, "B6.2: Founder '%s' has explicit initial friendships/grudges (%d)" % [str(b6_name), b6_rel_cnt])
 		assert(b6_npc_data.FOUNDER_SECRETS_POOL.has(b6_name) and (b6_npc_data.FOUNDER_SECRETS_POOL[b6_name] as Array).size() >= 3, "B6.3a: Founder '%s' has at least 3 secrets in FOUNDER_SECRETS_POOL" % str(b6_name))
-	for n_b6 in vm.VillageNeeds.living(vm):
-		var c_b6: String = b6_npc_data.canonical_npc_name(str(n_b6.npc_name))
-		if b6_npc_data.FOUNDER_SECRETS_POOL.has(c_b6):
-			assert(n_b6.founder_secrets.size() >= 2 and n_b6.founder_secrets.size() <= 3, "B6.3b: Live founder '%s' holds 2-3 active founder_secrets" % c_b6)
-			assert(n_b6.person_profile != null and n_b6.person_profile.personality.size() == 6, "B6.3c: Live founder '%s' has 6 active traits without axis conflicts" % c_b6)
 	# Verificar que dos semillas distintas generan variaciones distintas entre partidas sin conflictos de ejes
 	var b6_secrets_bak: Array = vm.secrets.duplicate(true)
 	vm.VillageSecrets.seed_founder_history(vm, 101)
@@ -6961,6 +6978,8 @@ func _initialize() -> void:
 	for n_s1 in vm.VillageNeeds.living(vm):
 		var c_s1: String = b6_npc_data.canonical_npc_name(str(n_s1.npc_name))
 		if b6_npc_data.FOUNDER_SECRETS_POOL.has(c_s1):
+			assert(n_s1.founder_secrets.size() >= 2 and n_s1.founder_secrets.size() <= 3, "B6.3b: Live founder '%s' holds 2-3 active founder_secrets" % c_s1)
+			assert(n_s1.person_profile != null and n_s1.person_profile.personality.size() == 6, "B6.3c: Live founder '%s' has 6 active traits without axis conflicts" % c_s1)
 			b6_snap_101 += c_s1 + ":" + ",".join(PackedStringArray(n_s1.person_profile.personality)) + "|" + str(n_s1.founder_secrets.size()) + ";"
 	vm.VillageSecrets.seed_founder_history(vm, 202)
 	var b6_snap_202: String = ""
@@ -6982,9 +7001,16 @@ func _initialize() -> void:
 	var b7_stage = vm.get("world_stage_3d")
 	assert(b7_stage != null and b7_stage.cam_3d != null, "B7.0a: WorldStage3D and cam_3d exist")
 	assert(b7_stage.first_person_active == false and b7_stage.cam_3d.projection == Camera3D.PROJECTION_ORTHOGONAL, "B7.0b: WorldStage3D starts in orthogonal top-down mode")
-	var b7_pl_pos_bak: Vector2 = player.global_position
+	var b7_pl_pos_bak: Vector2 = p70_pl.global_position
+	var b7_pl_mnt_bak: bool = p70_pl.get("is_mounted") == true
+	var b7_elev_bak: int = int(vm.player_elevation_level)
+	p70_pl.is_mounted = false
+	vm.player_elevation_level = 0
+	var b7_mctrl = p70_pl.get_node_or_null("PlayerMovementController")
+	if b7_mctrl != null:
+		b7_mctrl.is_stealthing = false
 	# Colocar al jugador dentro de la taberna y comprobar que en vista normal el tejado se abre (cutaway)
-	player.global_position = Vector2(420.0, -210.0)
+	p70_pl.global_position = Vector2(420.0, -210.0)
 	b7_stage._update_roof_cutaways_and_lighting()
 	var b7_tavern_roof: Node3D = null
 	for rec_b7 in b7_stage._building_records_3d:
@@ -6996,16 +7022,16 @@ func _initialize() -> void:
 	var b7_on: bool = b7_stage.toggle_first_person()
 	assert(b7_on == true and b7_stage.first_person_active == true, "B7.1b: toggle_first_person() activates first-person mode")
 	assert(b7_stage.cam_3d.projection == Camera3D.PROJECTION_PERSPECTIVE and is_equal_approx(b7_stage.cam_3d.fov, 70.0), "B7.1c: cam_3d switches to PROJECTION_PERSPECTIVE with FOV 70")
-	var b7_expected_eye: Vector3 = b7_stage.to_3d(player.global_position, b7_stage.FP_EYE_HEIGHT_PX)
+	var b7_expected_eye: Vector3 = b7_stage.to_3d(p70_pl.global_position, b7_stage.FP_EYE_HEIGHT_PX)
 	assert(b7_stage.cam_3d.global_position.distance_to(b7_expected_eye) < 0.05, "B7.1d: cam_3d is positioned at the player's eye height in 3D")
 	assert(b7_tavern_roof.visible == true, "B7.2: In first-person mode inside Tavern, roof_cap remains visible (roofs and full walls stay closed overhead)")
-	if player.get("avatar_3d") != null and is_instance_valid(player.avatar_3d.get("_holder")):
-		assert(player.avatar_3d._holder.visible == false, "B7.3: Player's own 3D avatar holder is hidden in first-person mode")
+	if p70_pl.get("avatar_3d") != null and is_instance_valid(p70_pl.avatar_3d.get("_holder")):
+		assert(p70_pl.avatar_3d._holder.visible == false, "B7.3: Player's own 3D avatar holder is hidden in first-person mode")
 	# Probar giro de cámara con ratón y límites verticales + mapeo relativo de W/A/S/D
 	b7_stage.fp_yaw = 0.0
 	b7_stage.fp_pitch = 0.0
 	b7_stage.rotate_first_person_view(0.0, 0.0)
-	var b7_combat = player.get_node_or_null("PlayerCombatController")
+	var b7_combat = p70_pl.get_node_or_null("PlayerCombatController")
 	assert(b7_combat != null and b7_combat.current_aim_dir.distance_to(Vector2.RIGHT) < 0.02, "B7.4a: Looking East (fp_yaw=0) aligns current_aim_dir to Vector2.RIGHT")
 	var b7_fwd_w: Vector2 = b7_stage.map_wasd_to_world(Vector2(0.0, -1.0))
 	var b7_right_d: Vector2 = b7_stage.map_wasd_to_world(Vector2(1.0, 0.0))
@@ -7016,7 +7042,9 @@ func _initialize() -> void:
 	var b7_off: bool = b7_stage.toggle_first_person()
 	assert(b7_off == false and b7_stage.first_person_active == false and b7_stage.cam_3d.projection == Camera3D.PROJECTION_ORTHOGONAL, "B7.6a: toggle_first_person() restores orthogonal top-down camera")
 	assert(b7_tavern_roof.visible == false, "B7.6b: Exiting first person restores normal roof cutaway inside Tavern")
-	player.global_position = b7_pl_pos_bak
+	p70_pl.global_position = b7_pl_pos_bak
+	p70_pl.is_mounted = b7_pl_mnt_bak
+	vm.player_elevation_level = b7_elev_bak
 	b7_stage._update_roof_cutaways_and_lighting()
 	print("Block B7 (First-Person Prototype: F6/F8 Toggle, Perspective Eye Camera, Relative WASD & Closed Roofs) OK")
 	print("ALL RIMWORLD MEDICAL, FOOTPRINTS, 3-PHASE CORPSE REPORT, MULTI-CORPSE FIX, RPG INTERROGATION, PUBLIC TRIAL, DYNAMIC RELATIONSHIPS, MISSING FAMILY SEARCH, SOCIAL GLOSSARY & UNCONSCIOUS REACTION TESTS PASSED!")

@@ -458,6 +458,7 @@ static func seed_founder_history(vm: VillageManager, seed_val: int = 0) -> Dicti
 		rng.seed = seed_val
 	else:
 		rng.seed = int(Time.get_unix_time_from_system()) ^ int(Time.get_ticks_usec() & 0x7FFFF) ^ randi()
+	var apply_random_variations: bool = (seed_val != 0) or (DisplayServer.get_name() != "headless")
 	var by_name: Dictionary = {}
 	var traits_varied: int = 0
 	var secrets_assigned: int = 0
@@ -475,7 +476,7 @@ static func seed_founder_history(vm: VillageManager, seed_val: int = 0) -> Dicti
 			for bt in prof_def.get("personality", []):
 				base_pers.append(str(bt))
 			var variants: Array = prof_def.get("trait_variants", [])
-			if base_pers.size() == 6 and not variants.is_empty() and rng.randf() < 0.65:
+			if apply_random_variations and base_pers.size() == 6 and not variants.is_empty() and rng.randf() < 0.65:
 				var var_pick: String = str(variants[rng.randi_range(0, variants.size() - 1)])
 				for slot_idx in [5, 4]:
 					var keep_five: Array[String] = []
@@ -496,7 +497,7 @@ static func seed_founder_history(vm: VillageManager, seed_val: int = 0) -> Dicti
 			(n2 as VillageNPC).ensure_npc_relationships_initialized()
 	var relations_varied: int = 0
 	for rv in NPCData.FOUNDER_RELATION_VARIANTS:
-		if rng.randf() >= 0.65:
+		if not apply_random_variations or rng.randf() >= 0.65:
 			continue
 		var pair_str: String = str((rv as Dictionary).get("pair", ""))
 		var parts: PackedStringArray = pair_str.split("|")

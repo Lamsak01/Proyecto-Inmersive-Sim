@@ -3991,11 +3991,15 @@ func get_person_key() -> String:
 
 ## B2.2: Asigna una quedada (llamado por el VillageManager). El vecino pasa a socializar y camina al punto de encuentro.
 func assign_hangout(h_id: int, spot_pos: Vector2, partner: VillageNPC, side: int, spot_label: String = "") -> void:
+	_clear_unconscious_reaction_state()
 	hangout_id = h_id
 	hangout_spot_pos = spot_pos
 	hangout_side = side
 	hangout_spot_label = spot_label
 	_social_partner = partner
+	_noise_react_timer = 0.0
+	errand_kind = ""
+	errand_pos = Vector2.ZERO
 	is_sleeping = false
 	current_activity = ActivityState.SOCIALIZING
 	_decision_timer = randf_range(2.0, 3.0)
@@ -4010,6 +4014,7 @@ func clear_hangout() -> void:
 func join_rite(spot: Vector2, kind: String = "rite") -> void:
 	rite_pos = spot
 	rite_kind = kind
+	_noise_react_timer = 0.0
 	is_sleeping = false
 	_social_partner = null
 	current_activity = ActivityState.SOCIALIZING
@@ -4024,6 +4029,7 @@ func start_errand(kind: String, spot: Vector2) -> void:
 	errand_kind = kind
 	errand_pos = spot
 	errand_since = (int(WorldClock.current_day) * 24 + int(WorldClock.current_hour)) if WorldClock else 0
+	_noise_react_timer = 0.0
 	is_sleeping = false
 	_social_partner = null
 	current_activity = ActivityState.SOCIALIZING
@@ -4170,12 +4176,6 @@ func get_activity_description() -> String:
 				return "🤝⚡ Socorriendo y despertando a %s" % _reacting_unconscious_target.npc_name
 			return "🗣️🚓 Informando a la guardia del ataque a %s" % _reacting_unconscious_target.npc_name
 		return "🤨🤚 Despertando con cautela a %s" % _reacting_unconscious_target.npc_name
-	if _noise_react_timer > 0.0 and not is_hostile:
-		if _noise_react_mode == "guard_investigate":
-			return "🛡️👂 Acudiendo a un ruido sospechoso"
-		elif _noise_react_mode == "civilian_peek":
-			return "👀 Asomándose a mirar el alboroto"
-		return "😨🏃 Alejándose de una pelea"
 	var sick_tag: String = ""
 	if health_comp and health_comp.has_active_sickness_or_infection():
 		sick_tag = " [🌡️Enfermo/Fiebre %d%%]" % int(round(maxf(health_comp.fever, maxf(health_comp.food_poisoning, health_comp.swamp_sickness))))
@@ -4250,6 +4250,12 @@ func get_activity_description() -> String:
 				return ("🪦 Visitando la tumba de %s" % d_nm_g) if global_position.distance_to(_get_social_target_pos()) <= 26.0 else ("🚶🕯️ Yendo al cementerio a recordar a %s" % d_nm_g)
 			return ("💬 Charlando con %s" % _social_partner.npc_name) if is_instance_valid(_social_partner) else "💬 Socializando"
 		_:
+			if _noise_react_timer > 0.0 and not is_hostile:
+				if _noise_react_mode == "guard_investigate":
+					return "🛡️👂 Acudiendo a un ruido sospechoso"
+				elif _noise_react_mode == "civilian_peek":
+					return "👀 Asomándose a mirar el alboroto"
+				return "😨🏃 Alejándose de una pelea"
 			if _is_morning_expedition_hours(): return _get_expedition_description()
 			if _supply_run_target_role != 0: return "🛒 Yendo a comprar %s al taller vecino" % _supply_run_input_label
 			if _is_actively_crafting: return "⚒️ Crafteando en Taller (%d%%)" % int(round(_craft_progress))
