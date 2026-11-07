@@ -27,6 +27,7 @@ const SkillsPanelUIScript = preload("res://scripts/ui/SkillsPanelUI.gd")
 const QuestLogUIScript = preload("res://scripts/ui/QuestLogUI.gd")
 const ChronicleUIScript = preload("res://scripts/ui/ChronicleUI.gd")
 const CharacterShowcase3DUIScript = preload("res://scripts/ui/CharacterShowcase3DUI.gd")
+const DetectiveUIScript = preload("res://scripts/ui/DetectiveUI.gd")
 
 var tool_wheel: ToolWheelUI = null
 var tavern_games: TavernGamesUI = null
@@ -37,6 +38,7 @@ var skills_panel: Control = null
 var quest_log: Control = null
 var chronicle_panel: Control = null
 var showcase_3d_panel: Control = null
+var detective_ui: Control = null
 
 func _ready() -> void:
 	# 1. Find Player if not assigned
@@ -129,6 +131,9 @@ func _ready() -> void:
 	add_child(chronicle_panel)
 	showcase_3d_panel = CharacterShowcase3DUIScript.new()
 	add_child(showcase_3d_panel)
+	detective_ui = DetectiveUIScript.new()
+	detective_ui.set("player", player)
+	add_child(detective_ui)
 	_setup_controls_panel_ui()
 	if GameManager and not GameManager.game_loaded.is_connected(_on_game_loaded):
 		GameManager.game_loaded.connect(_on_game_loaded)
@@ -328,6 +333,10 @@ func _unhandled_input(event: InputEvent) -> void:
 					chronicle_panel.call("open_panel")
 				get_viewport().set_input_as_handled()
 			elif event.keycode == KEY_ESCAPE:
+				if detective_ui and detective_ui.visible:
+					detective_ui.call("close_panel")
+					get_viewport().set_input_as_handled()
+					return
 				if chronicle_panel and chronicle_panel.visible:
 					chronicle_panel.call("close_panel")
 					get_viewport().set_input_as_handled()
@@ -367,6 +376,23 @@ func _close_quest_log() -> void:
 		quest_log.call("close_panel")
 	if chronicle_panel and chronicle_panel.visible:
 		chronicle_panel.call("close_panel")
+	if detective_ui and detective_ui.visible:
+		detective_ui.call("close_panel")
+
+func open_detective_ui(corpse_node: Node2D = null, initial_mode: String = "body") -> void:
+	_close_skills_panel()
+	if tool_wheel and tool_wheel.visible:
+		tool_wheel.close_wheel(false)
+	if inv_panel and inv_panel.visible:
+		inv_panel.visible = false
+	if medical_panel and medical_panel.visible:
+		medical_panel.call("close_panel")
+	if social_glossary and social_glossary.visible:
+		social_glossary.call("close_panel")
+	if valley_map and bool(valley_map.get("is_full_map_open")):
+		valley_map.call("close_full_map")
+	if detective_ui and detective_ui.has_method("open_for_corpse"):
+		detective_ui.call("open_for_corpse", corpse_node, initial_mode)
 
 func _setup_quest_log_ui() -> void:
 	quest_log = QuestLogUIScript.new()

@@ -101,6 +101,31 @@ var fp_interact_label: Label = null
 var fp_mode_badge: Label = null
 var fp_lantern_light: OmniLight3D = null
 
+## D1/D3: Vista cenital 3D en esquema del lugar del crimen (oculta vecinos y jugador).
+var detective_topdown_active: bool = false
+var detective_topdown_pos: Vector2 = Vector2.ZERO
+var detective_topdown_size: float = 4.2
+
+func set_detective_topdown(active: bool, world_pos_2d: Vector2 = Vector2.ZERO, ortho_size: float = 4.2) -> Texture2D:
+	detective_topdown_active = active
+	detective_topdown_pos = world_pos_2d
+	detective_topdown_size = ortho_size
+	if stage_root_3d != null and is_instance_valid(stage_root_3d):
+		var chars := stage_root_3d.get_node_or_null("Characters3D") as Node3D
+		if chars != null:
+			chars.visible = not active
+	if not _is_headless:
+		if active:
+			Input.set_mouse_mode(Input.MOUSE_MODE_VISIBLE)
+		elif first_person_active:
+			Input.set_mouse_mode(Input.MOUSE_MODE_CAPTURED)
+	if cam_3d != null and not active and not first_person_active:
+		cam_3d.projection = Camera3D.PROJECTION_ORTHOGONAL
+		cam_3d.rotation_degrees = Vector3(-PITCH_DEG, 0.0, 0.0)
+	_update_roof_cutaways_and_lighting()
+	_sync_camera_with_2d()
+	return sub_viewport.get_texture() if sub_viewport != null else null
+
 static func get_fp_forward_2d() -> Vector2:
 	return Vector2(cos(fp_yaw), sin(fp_yaw))
 
@@ -1982,6 +2007,16 @@ static func _perf_add(part: String, since: int) -> int:
 func _sync_camera_with_2d() -> void:
 	if cam_3d == null:
 		return
+	if detective_topdown_active:
+		cam_3d.projection = Camera3D.PROJECTION_ORTHOGONAL
+		cam_3d.rotation_degrees = Vector3(-86.0, 0.0, 0.0)
+		cam_3d.near = 0.1
+		cam_3d.far = 250.0
+		cam_3d.size = maxf(1.5, detective_topdown_size)
+		var target_top_3d: Vector3 = to_3d(detective_topdown_pos, 0.0)
+		var fwd_top: Vector3 = -cam_3d.global_transform.basis.z.normalized()
+		cam_3d.global_position = target_top_3d - fwd_top * 65.0
+		return
 	if first_person_active:
 		_update_fp_camera_transform()
 	if stage_sprite == null:
@@ -1995,7 +2030,7 @@ func _sync_camera_with_2d() -> void:
 	var zoom_2d: Vector2 = cam2d.zoom if cam2d != null else Vector2(3.0, 3.0)
 
 	if not first_person_active:
-		if cam_3d.projection != Camera3D.PROJECTION_ORTHOGONAL:
+		if cam_3d.projection != Camera3D.PROJECTION_ORTHOGONAL or not is_equal_approx(cam_3d.rotation_degrees.x, -PITCH_DEG):
 			cam_3d.projection = Camera3D.PROJECTION_ORTHOGONAL
 			cam_3d.rotation_degrees = Vector3(-PITCH_DEG, 0.0, 0.0)
 			cam_3d.near = 0.1
@@ -2304,7 +2339,8 @@ func _update_roof_cutaways_and_lighting() -> void:
 		var r_near: Rect2 = rect.grow(38.0)
 		var r_inside: Rect2 = rect.grow(8.0)
 		# B7: En primera persona los tejados y muros altos NO se retiran al entrar: ves el techo encima y las paredes enteras.
-		var open_roof: bool = false if first_person_active else (r_near.has_point(pl_pos) or r_inside.has_point(mouse_pos))
+		# D1/D3: En la vista cenital del detective, si el cadáver está dentro de un edificio, se retira su tejado.
+		var open_roof: bool = r_near.has_point(detective_topdown_pos) if detective_topdown_active else (false if first_person_active else (r_near.has_point(pl_pos) or r_inside.has_point(mouse_pos)))
 		roof_cap.visible = not open_roof
 		if is_instance_valid(loft_root):
 			loft_root.visible = (first_person_active or elev == 1) and r_near.has_point(pl_pos)

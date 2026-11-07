@@ -2386,7 +2386,7 @@ func try_priority_door_or_corpse_interaction(player: Node2D, mouse_pos: Vector2)
 			if pos.distance_to(c.global_position) <= 32.0:
 				var can_loot_pockets: bool = not c.corpse_pocket_looted and (c.personal_gold > 0 or c.carries_royal_safe_conduct or not c.pocket_items.is_empty())
 				var mouse_aiming_c: bool = c.global_position.distance_to(mouse_pos) <= 20.0
-				if (c.is_dead and not c.corpse_buried and ((c.corpse_on_ground and not c.corpse_in_morgue and (can_loot_pockets or not c.corpse_reported or mouse_aiming_c)) or (c.corpse_in_morgue and can_loot_pockets))) or (not c.is_dead and (c.is_downed or ((c.sedated_timer > 0.0 or c.is_stunned_flag) and can_loot_pockets))):
+				if (c.is_dead and not c.corpse_buried and (c.corpse_on_ground or c.corpse_in_morgue)) or (not c.is_dead and (c.is_downed or ((c.sedated_timer > 0.0 or c.is_stunned_flag) and can_loot_pockets))):
 					c.interact(player)
 					return true
 

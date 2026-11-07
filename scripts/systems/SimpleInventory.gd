@@ -86,6 +86,7 @@ const CATALOG: Dictionary = {
 	"organ_liver": {"name": "Hígado Humano", "category": "Órgano Vital (Cirugía)", "desc": "Órgano hepático vital extraído quirúrgicamente. Restaura la filtración sanguínea al 100% mediante trasplante.", "usable": false, "organ_id": "liver"},
 	"organ_stomach": {"name": "Estómago Humano", "category": "Órgano Interno (Cirugía)", "desc": "Órgano digestivo extraído quirúrgicamente. Restaura el estómago dañado por venenos o heridas.", "usable": false, "organ_id": "stomach"},
 	"organ_eye": {"name": "Globo Ocular", "category": "Órgano Sensorial (Cirugía)", "desc": "Órgano visual extraído quirúrgicamente. Restaura la visión y precisión mediante trasplante.", "usable": false, "organ_id": "eyes"},
+	"magnifying_glass": {"name": "Lupa de Latón", "category": "Herramienta de Detective", "desc": "Lente de aumento para examinar fibras, marcas de uñas, polen y restos diminutos en un cadáver ([E] sobre un cuerpo).", "usable": false},
 
 	# --- ARMADURAS TIER 1..3 (CUERO / HIERRO / ACERO) ---
 	"helm_leather": {"name": "Capucha de Cuero", "category": "Armadura (Casco)", "desc": "Tier 1 [Casco]: +6% Defensa física, +15% Resistencia a Stun/KO y +10% Resistencia a Sangrado.", "usable": true, "armor_slot": "HEAD", "armor_tier": 1, "defense": 0.06, "bleed_res": 0.10, "stun_res": 0.15, "speed_bonus": 0.0, "icon": "res://assests/items/armor/helm_leather.png"},
@@ -145,6 +146,7 @@ func _ready() -> void:
 	add_item("bandage", 2)
 	add_item("clean_water", 1)
 	add_item("empty_flask", 1)
+	add_item("magnifying_glass", 1)
 	add_item("bread", 1)
 	add_item("carrot_seeds", 3)
 	add_item("cabbage_seeds", 3)

@@ -3,6 +3,11 @@
 Cambios del juego, del más nuevo al más antiguo. Añade una entrada al cerrar cada bloque, en lenguaje sencillo.
 El detalle técnico está en `docs/HANDOFF.md` (sección 7) y el historial completo en `git log`. Lo anterior a B0.1 está en `AUDIT_LOG.md` y `SESSION_CONTEXT_LOG.md`.
 
+## 2026-11-07 — Examen del cuerpo en la escena (herramientas del detective, paso 1)
+- **Examinar el cadáver en el sitio con `[E]`:** al acercarte a un cuerpo y pulsar `[E]` se abre la mesa de examen (pausando el mundo mientras miras, pero sumando al reloj los minutos que cuesta cada comprobación).
+- **Siete zonas y silueta de hombre o mujer:** puedes mirar de cerca, palpar, oler, usar la lupa de latón (si la llevas encima) o vaciar los bolsillos sobre las 7 partes del cuerpo (`cabeza`, `cuello`, `torso`, `brazos`, `manos`, `piernas` y `bolsillos`). La silueta plana cambia entre mujer (con pelo largo tras la cabeza) y hombre según quién sea la víctima, y va dibujando encima las marcas que descubres.
+- **Fondo cenital en boceto del lugar real:** el fondo bajo el cuerpo toma una vista cenital 3D del punto exacto donde yace (ocultando vecinos y jugador) pasada por un filtro de dibujo a tinta oscura, y lo que apuntas baja a la tira inferior de tu cuaderno del caso.
+
 ## 2026-11-07 — Prueba de primera persona (prototipo con F6 / F8)
 - **Cambio al vuelo con F6 o F8:** pulsando `[F6]` o `[F8]` pasas en cualquier momento de la vista desde arriba a caminar por el pueblo en primera persona a la altura de los ojos, y vuelves a la vista normal cuando quieras sin que nada del juego se rompa.
 - **Mirar alrededor y andar hacia donde miras:** el ratón (o las flechas) gira la cabeza a los lados y arriba/abajo, `W/A/S/D` camina respecto a hacia dónde miras, `[E]` usa lo que tienes delante en el centro de la pantalla y el clic ataca o dispara de frente.

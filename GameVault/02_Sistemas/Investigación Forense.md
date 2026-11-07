@@ -36,4 +36,4 @@ Todas las mecánicas forenses exigen estar cerca o tener acceso real y ninguna o
 | `P2.17` | **Confesión forzada** | Arrancar una confesión firmada mediante chantaje (con `20%` de riesgo de que se rebele y te delate). |
 
 ## Notas de diseño
--
+- **Herramientas del Detective — Bloque D1 (Examen del cuerpo en la escena):** al pulsar `[E]` junto a un cadáver se abre la pantalla de examen (`DetectiveUI`), inspirada en `docs/bocetos/examen_cuerpo.html`. El tiempo del mundo se pausa mientras estás dentro y cada comprobación suma los minutos que cuesta al reloj. Cuenta con fondo cenital 3D en esquema del sitio real donde yace el cuerpo (ocultando vecinos y jugador), silueta anatómica plana de **Mujer** (con pelo tras la cabeza) u **Hombre** según el género de la víctima, 7 zonas (`cabeza`, `cuello`, `torso`, `brazos`, `manos`, `piernas`, `bolsillos`), acciones superficiales (`mirar`, `palpar`, `oler`, `usar lupa` si llevas la Lupa de Latón, `registrar` bolsillos), marcas visuales sobre el cuerpo y tira inferior del **Cuaderno del caso** para fijar las pistas que decidas guardar. Las pruebas internas exigen trasladar el cuerpo a la morgue (`D2`).

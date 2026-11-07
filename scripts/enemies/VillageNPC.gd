@@ -5010,6 +5010,13 @@ func interact(player: Node) -> void:
 	if is_dead:
 		if corpse_buried:
 			return
+		var cs_ui = get_tree().current_scene if is_inside_tree() else null
+		var ui_root = cs_ui.get_node_or_null("UI/UIRoot") if cs_ui else null
+		if ui_root == null and cs_ui != null:
+			ui_root = cs_ui.get_node_or_null("UIRoot")
+		if ui_root != null and ui_root.has_method("open_detective_ui"):
+			ui_root.call("open_detective_ui", self, "morgue" if corpse_in_morgue else "body")
+			return
 		if not corpse_pocket_looted and (personal_gold > 0 or carries_royal_safe_conduct or not pocket_items.is_empty()):
 			loot_npc_pockets(player)
 			return

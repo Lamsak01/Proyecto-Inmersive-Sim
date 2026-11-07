@@ -381,6 +381,14 @@ o vino ya dado. Conviene confirmarlo.
 **Dónde:** `scripts/visuals/WorldStage3D.gd` (`_setup_fp_hud_layer`, `set_first_person`), `scripts/ui/CharacterShowcase3DUI.gd`.
 **Depende:** solo textos de interfaz.
 
+## Textos forenses genéricos de respaldo en el examen del cuerpo (D1, provisionales)
+- Objeto en inventario: «Lupa de Latón» (`magnifying_glass`).
+- Frases descriptivas de respaldo cuando se inspecciona un cadáver procedural del pueblo (adaptadas según sus heridas reales en `HealthComponent.wounds`, si fue movido en `VillageForensics.state(vm)["moved"]`, envenenado en `["poisoned"]` o enfriado en `["tampered_time"]`), además de los textos literales del boceto `docs/bocetos/examen_cuerpo.html` para «La mujer del bosque».
+
+**Dónde:** `scripts/ui/DetectiveUI.gd` (`_build_case_from_corpse`, `_get_default_forest_woman_zones`), `scripts/systems/SimpleInventory.gd` (`CATALOG["magnifying_glass"]`).
+**Depende:** solo textos descriptivos mostrados en el cuaderno de papel derecho.
+
+
 
 
 
