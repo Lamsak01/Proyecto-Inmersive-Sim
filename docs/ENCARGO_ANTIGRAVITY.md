@@ -4,9 +4,16 @@
 > bloque y en este orden. Dile «Lee `docs/ENCARGO_ANTIGRAVITY.md` y haz lo que pone».
 
 ## Reglas
-- **Pruebas en pausa hasta nuevo aviso (orden del usuario):** no pases `verify_all` ni las otras pruebas. Comprueba
+- **Pruebas solo al final de todo (orden del usuario):** mientras escribes los 6 bloques, NO pases pruebas; comprueba
   solo que el juego arranca sin errores de script (`timeout 120 flatpak run org.godotengine.Godot --headless --path .
-  --quit-after 300`). Añade su test al final de `verify_all.gd` si quieres, pero no lo ejecutes.
+  --quit-after 300`). Cuando **todo el código** esté hecho y subido, pasa las pruebas **una a una y siempre con
+  límite de tiempo** (si se cuelga, se corta sola y sigues con la siguiente; nunca la dejes sin `timeout`):
+  1. `timeout 900 flatpak run org.godotengine.Godot --headless --path . -s tools/tests/verify_all.gd > /tmp/v.log 2>&1`
+  2. `timeout 900 ... -s tools/tests/social_sim.gd`, 3. `timeout 600 ... -s tools/tests/dialogue_coverage.gd`,
+  4. `timeout 1200 ... --fixed-fps 60 -s tools/tests/feature_probe.gd -- 5 11`.
+  Salida `124` = se cortó por tiempo (casi siempre un assert que falló y dejó la prueba colgada): busca la línea
+  `Assertion failed` en el log, arréglalo si es tuyo y repite solo esa prueba (máximo 2 intentos por prueba).
+  Pon en el informe qué pasó, qué falló y qué arreglaste.
 - **No toques** `scripts/systems/VillageSect.gd`, `GameVault/03_La_Secta/`, el Lore provisional, `GameVault/99_Archivo/`,
   `GameVault/.obsidian/` ni `.claude/`. Nada de rendimiento ni de comprar arte.
 - Nada de sistemas aislados ni de menús: todo se ve en el mundo. Las 7 Reglas de las Auditorías: suma cero, nada se
