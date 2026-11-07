@@ -14,12 +14,27 @@ extends RefCounted
 ## Sin `class_name`: se carga con `preload`.
 
 const TraitCatalog = preload("res://scripts/data/TraitCatalog.gd")
+const PersonProfile = preload("res://scripts/data/PersonProfile.gd")
 const VillageNeeds = preload("res://scripts/systems/VillageNeeds.gd")
 const VillageChronicle = preload("res://scripts/systems/VillageChronicle.gd")
 const VillageRestaurant = preload("res://scripts/systems/VillageRestaurant.gd")
 const VillageLoans = preload("res://scripts/systems/VillageLoans.gd")
 const VillageUnderworld = preload("res://scripts/systems/VillageUnderworld.gd")
 const VillageDesires = preload("res://scripts/systems/VillageDesires.gd")
+
+## Jefe inicial desde el Día 0: Don Vittorio Corvo (cumple todos los requisitos de ambición, falta de escrúpulos, persuasión y motivo)
+const INITIAL_BOSS_ID: String = "vittorio_corvo"
+const INITIAL_BOSS_NAME: String = "Don Vittorio Corvo"
+const INITIAL_BOSS_ROLE: String = "Patrón de la Casa del Corvo"
+const INITIAL_BOSS_GOLD: int = 120
+const INITIAL_BOSS_TRAITS: Array[String] = [
+	"Sediento de poder",
+	"Manipulador",
+	"Líder",
+	"Codicioso",
+	"Astuto",
+	"Rencoroso",
+]
 
 const MIN_AGE: int = 18
 const MIN_BOSS_GOLD: int = 45
@@ -54,6 +69,11 @@ const BRIBE_DURATION_DAYS: int = 5
 const BRIBE_COOLDOWN_DAYS: int = 5
 const WITNESS_GUARD_RADIUS: float = 110.0
 
+## Bloque R4: descubrimiento en persona (espiar tras la puerta del reservado, oír rumores) e intervención del jugador
+const EAVESDROP_RADIUS: float = 78.0
+const REPORT_REWARD: int = 35
+const PLAYER_COLLECT_RADIUS: float = 95.0
+
 ## Frases provisionales del cocinero cuando le preguntas por el reservado (anotadas en docs/APORTES_CREATIVOS.md).
 const COOK_LINE_MEETING: String = "«Chist... baje la voz. Esta noche hay gente cenando a puerta cerrada en el reservado del fondo. Yo llevo las fuentes, dejo el vino y miro al suelo. En esta cocina el que no pregunta llega a viejo.»"
 const COOK_LINE_ACTIVE: String = "«¿La mesa del reservado? Hay clientes que prefieren cenar tarde con la puerta cerrada y sin que nadie apunte sus nombres. Pagan al contado, no arman ruido y yo no pregunto de qué hablan.»"
@@ -61,9 +81,19 @@ const COOK_LINE_QUIET: String = "«El reservado del fondo está tranquilo últim
 
 static func state(vm) -> Dictionary:
 	var ns: Dictionary = VillageNeeds.state(vm)
-	if not (ns.get("familia", null) is Dictionary):
+	var fresh: bool = not (ns.get("familia", null) is Dictionary)
+	if fresh:
 		ns["familia"] = {}
 	var st: Dictionary = ns["familia"]
+	if fresh and vm != null and is_instance_valid(vm) and vm.is_inside_tree():
+		var init_b = vm._get_npcs_by_person_key().get(INITIAL_BOSS_ID, null)
+		if init_b != null and is_instance_valid(init_b) and not init_b.is_dead:
+			var d0: int = VillageNeeds.today()
+			st["boss"] = INITIAL_BOSS_ID
+			st["boss_name"] = init_b.npc_name
+			st["members"] = {INITIAL_BOSS_ID: d0}
+			st["founded_day"] = d0
+			st["target_recruits"] = MAX_RECRUITS
 	for pair in [
 		["boss", ""],
 		["boss_name", ""],
@@ -86,10 +116,65 @@ static func state(vm) -> Dictionary:
 		["bribe_cooldown", {}],
 		["pending_business", {}],
 		["business_done", 0],
+		["player_knows_boss", false],
+		["player_evidence", 0],
+		["last_eavesdrop_night", -99],
+		["known_members", {}],
+		["known_target", ""],
+		["player_job_target", ""],
+		["player_job_collected", false],
+		["reported_by_player", false],
 	]:
 		if not st.has(pair[0]):
 			st[pair[0]] = pair[1]
 	return st
+
+## Crea desde el Día 0 a Don Vittorio Corvo en la Trattoria «Il Corvo» con los 6 rasgos ideales de líder mafioso y funda «La Familia».
+static func spawn_initial_boss(vm):
+	if vm == null or not is_instance_valid(vm):
+		return null
+	var existing = vm._get_npcs_by_person_key().get(INITIAL_BOSS_ID, null) if vm.is_inside_tree() else null
+	if existing == null and is_instance_valid(vm.entities_root):
+		existing = vm.entities_root.get_node_or_null("NPC_Don_Vittorio_Corvo")
+	if existing != null and is_instance_valid(existing):
+		if not active(vm):
+			found(vm, existing)
+		return existing
+	var boss := VillageNPC.new()
+	boss.name = "NPC_Don_Vittorio_Corvo"
+	boss.npc_name = INITIAL_BOSS_NAME
+	boss.npc_role = INITIAL_BOSS_ROLE
+	boss.trade_role = VillageNPC.TradeRole.FAMILY_MEMBER
+	boss.linked_trade = VillageNPC.TradeRole.RESTAURATEUR
+	boss.days_in_role = 7
+	boss.personal_gold = INITIAL_BOSS_GOLD
+	boss.tavern_social_pos = vm._tavern_social_pos
+	boss.person_profile = PersonProfile.from_dict({
+		"person_id": INITIAL_BOSS_ID,
+		"gender": "M",
+		"age": 49,
+		"personality": INITIAL_BOSS_TRAITS.duplicate(),
+		"likes": ["comida", "negocios"],
+		"dislikes": ["chismes"],
+		"romance_status": "single",
+		"partner_id": "",
+		"favorite_item": "braised_meat",
+	})
+	vm.entities_root.add_child(boss)
+	boss.setup_npc(
+		vm._load_tex("res://assests/world/village/villager_traveler.png"),
+		VillageRestaurant.DINING_TABLES[4],
+		VillageRestaurant.OWNER_BED2,
+		{},
+		VillageRestaurant.BACKROOM_TABLE,
+		VillageRestaurant.FAMILY_ID,
+		VillageRestaurant.FAMILY_NAME
+	)
+	boss.character_tagline = "Caballero de modales suaves que almuerza siempre en la mesa del rincón de la Trattoria."
+	boss.character_lore = "«Un hombre prudente no necesita alzar la voz para que lo escuchen en este valle. En la Trattoria siempre hay un plato caliente y una silla para quien sabe agradecer un favor a tiempo.»"
+	boss.character_secret = "«Las cuentas importantes no se apuntan en los libros del Ayuntamiento; se cierran con un apretón de manos en el reservado del fondo cuando el comedor ya ha echado el cierre.»"
+	found(vm, boss)
+	return boss
 
 static func active(vm) -> bool:
 	return vm != null and str(state(vm).get("boss", "")) != ""
@@ -985,6 +1070,116 @@ static func tick(vm) -> void:
 			in_backroom += 1
 	if in_backroom >= 2:
 		st["meeting_status"] = "meeting"
+	try_eavesdrop_meeting(vm)
+
+# ------------------------------------------------------------------ 4b. Descubrimiento e intervención del jugador (Bloque R4)
+static func is_boss_known_to_player(vm) -> bool:
+	if vm == null or not active(vm):
+		return false
+	var st: Dictionary = state(vm)
+	if bool(st.get("player_knows_boss", false)):
+		return true
+	var boss_k: String = str(st.get("boss", ""))
+	for ev in vm.social_event_log:
+		if str(ev.get("type", "")) == "familia_rumor":
+			var kb: Dictionary = ev.get("known_by", {}) if ev.get("known_by", {}) is Dictionary else {}
+			if kb.has("player") or str(ev.get("actor_id", "")) == boss_k and kb.size() >= 3:
+				if kb.has("player"):
+					st["player_knows_boss"] = true
+					return true
+	return false
+
+## Si el jugador se acerca con discreción a la puerta del reservado durante una reunión nocturna, escucha sus planes.
+static func try_eavesdrop_meeting(vm, player = null) -> bool:
+	if vm == null or not is_meeting_now(vm):
+		return false
+	if player == null and vm.is_inside_tree():
+		player = vm.get_tree().get_first_node_in_group("player")
+	if player == null or not is_instance_valid(player):
+		return false
+	if int(vm.player_elevation_level) != 0:
+		return false
+	var dist: float = player.global_position.distance_to(VillageRestaurant.BACKROOM_TABLE)
+	if dist > EAVESDROP_RADIUS:
+		return false
+	var st: Dictionary = state(vm)
+	var today: int = VillageNeeds.today()
+	var boss = boss_of(vm)
+	st["player_knows_boss"] = true
+	var km: Dictionary = st.get("known_members", {})
+	for k in (st.get("attending", []) as Array):
+		km[str(k)] = true
+	if boss != null:
+		km[boss.get_person_key()] = true
+	st["known_members"] = km
+	if int(st.get("last_eavesdrop_night", -99)) != today:
+		st["last_eavesdrop_night"] = today
+		st["player_evidence"] = int(st.get("player_evidence", 0)) + 1
+		var pb: Dictionary = st.get("pending_business", {})
+		if pb.is_empty():
+			pb = plan_next_business(vm)
+		if not pb.is_empty() and str(pb.get("target", "")) != "":
+			st["known_target"] = str(pb.get("target", ""))
+		if boss != null:
+			boss._spawn_floating_text("🍷 «Mañana pasaremos a cobrar... y ni media palabra fuera de esta mesa.»", Color(0.95, 0.80, 0.58), -40.0)
+		VillageChronicle.add(
+			vm,
+			"familia_eavesdrop",
+			"Escuchaste tras la puerta del reservado los tratos de la Familia de %s" % str(st.get("boss_name", "")),
+			true
+		)
+	return true
+
+## El jugador cobra en persona la comisión de «tranquilidad» encargada por el jefe (suma cero: sale de merchant.personal_gold y entra en inv).
+static func player_collect_protection(vm, merchant, inv, force_roll: float = -1.0) -> String:
+	if vm == null or merchant == null or inv == null or not active(vm):
+		return ""
+	var st: Dictionary = state(vm)
+	if str(st.get("player_job_target", "")) != merchant.get_person_key() or bool(st.get("player_job_collected", false)):
+		return ""
+	var player = vm.get_tree().get_first_node_in_group("player") if vm.is_inside_tree() else null
+	if player != null and is_instance_valid(player) and player.global_position.distance_to(merchant.global_position) > PLAYER_COLLECT_RADIUS:
+		merchant._spawn_floating_text("🚫 Acércate en persona para hablar en voz baja.", Color.ORANGE_RED, -42.0)
+		return "too_far"
+	if has_guard_witness_at(vm, merchant.global_position):
+		vm.wanted_level = maxi(1, int(vm.wanted_level) + 1)
+		vm.bounty_gold = int(vm.bounty_gold) + 15
+		merchant._spawn_floating_text("🚨 ¡Un guardia vio cómo intentabas extorsionarme!", Color.ORANGE_RED, -44.0)
+		return "witnessed_guard"
+	var boss = boss_of(vm)
+	var chance: float = protection_chance(vm, boss if boss != null else merchant, merchant)
+	if player != null and player.has_method("get_skill_bonus"):
+		chance = clampf(chance + float(player.call("get_skill_bonus", "charisma")) * 0.5, 0.12, 0.92)
+	var roll: float = force_roll if force_roll >= 0.0 else randf()
+	var today: int = VillageNeeds.today()
+	var m_key: String = merchant.get_person_key()
+	if roll < chance and int(merchant.personal_gold) >= 2:
+		var fee: int = mini(PROTECTION_FEE, int(merchant.personal_gold))
+		merchant.personal_gold -= fee
+		inv.add_gold(fee)
+		st["player_job_collected"] = true
+		(st["protected_shops"] as Dictionary)[m_key] = {
+			"fee": fee,
+			"last_day": today,
+			"collector": "player",
+		}
+		merchant.modify_affinity(-10)
+		merchant.add_thought("Tuve que pagar %d de oro al recadero de %s (-6)" % [fee, str(st.get("boss_name", "la Familia"))], -6.0)
+		merchant._spawn_floating_text("💰 «Toma los %d de oro y dile a %s que no quiero líos.»" % [fee, str(st.get("boss_name", "la Familia"))], Color.GOLD, -44.0)
+		return "paid"
+	(st["protection_cooldown"] as Dictionary)[m_key] = today + PROTECTION_COOLDOWN_DAYS
+	st["player_job_target"] = ""
+	merchant.modify_affinity(-12)
+	merchant.add_thought("Me negué a pagar comisión al recadero de %s (-5)" % str(st.get("boss_name", "la Familia")), -5.0)
+	if not _has(merchant, "Discreto") and not _has(merchant, "Cobarde") and boss != null:
+		vm.record_social_event(
+			"familia_rumor",
+			boss,
+			merchant,
+			"%s cuenta que mandaron a cobrarle una comisión en nombre de %s" % [merchant.npc_name, boss.npc_name]
+		)
+	merchant._spawn_floating_text("😤 «¡No pienso pagaros ni una moneda!»", Color.ORANGE, -44.0)
+	return "refused"
 
 static func after_load(vm) -> void:
 	if vm == null:
@@ -1028,13 +1223,157 @@ static func cook_line(vm) -> String:
 	return COOK_LINE_QUIET
 
 static func add_dialogue_choices(vm, npc, diag: Dictionary, ch_arr: Array) -> void:
-	if vm == null or npc == null or int(npc.trade_role) != int(VillageNPC.TradeRole.RESTAURATEUR):
+	if vm == null or npc == null:
 		return
-	var pos: int = maxi(0, ch_arr.size() - 1)
-	ch_arr.insert(pos, {"label": "🍷 Preguntar por el reservado del fondo", "next": "familia_cook_ask"})
-	diag["familia_cook_ask"] = {
-		"text": cook_line(vm),
-		"choices": [{"label": "Entendido. [Volver]", "next": "start"}],
-	}
-	if diag.has("family_chat") and diag["family_chat"] is Dictionary and active(vm):
-		diag["family_chat"]["text"] = str(diag["family_chat"].get("text", "")) + "\n\n" + cook_line(vm)
+	var st: Dictionary = state(vm)
+	var n_key: String = npc.get_person_key()
+	# 1. Cocinero de la Trattoria: pista sobre el reservado
+	if int(npc.trade_role) == int(VillageNPC.TradeRole.RESTAURATEUR):
+		var pos_c: int = maxi(0, ch_arr.size() - 1)
+		ch_arr.insert(pos_c, {"label": "🍷 Preguntar por el reservado del fondo", "next": "familia_cook_ask"})
+		diag["familia_cook_ask"] = {
+			"text": cook_line(vm),
+			"choices": [{"label": "Entendido. [Volver]", "next": "start"}],
+		}
+		if diag.has("family_chat") and diag["family_chat"] is Dictionary and active(vm):
+			diag["family_chat"]["text"] = str(diag["family_chat"].get("text", "")) + "\n\n" + cook_line(vm)
+	if not active(vm):
+		return
+	var boss = boss_of(vm)
+	var b_name: String = str(st.get("boss_name", "la Familia"))
+	# 2. Avisar al vecino que va a recibir una visita de «La Familia»
+	if str(st.get("known_target", "")) == n_key and n_key != "":
+		var pos_w: int = maxi(0, ch_arr.size() - 1)
+		ch_arr.insert(pos_w, {
+			"label": "🤫 Avisarle de que la gente de %s planea pasar a cobrarle" % b_name,
+			"action": "familia_warn_target",
+			"next": "END",
+		})
+	# 3. Delatar al Comisario Vane cuando tienes pruebas del reservado
+	if int(npc.trade_role) == int(VillageNPC.TradeRole.SHERIFF) and int(st.get("player_evidence", 0)) >= 1:
+		var pos_s: int = maxi(0, ch_arr.size() - 1)
+		ch_arr.insert(pos_s, {
+			"label": "⚖️ Entregar pruebas de los tratos del reservado de %s" % b_name,
+			"next": "familia_report_confirm",
+		})
+		diag["familia_report_confirm"] = {
+			"text": "«¿Dices que has oído a %s y a su gente repartirse cobros tras la puerta del reservado? Si me das los nombres ahora mismo, mandaré patrullas a cortarles el paso y te pagaré %d de oro de las arcas por el soplo.»" % [b_name, REPORT_REWARD],
+			"choices": [
+				{"label": "⚖️ [Confirmar] Sí, delatar a la Familia de %s (+%d Oro)" % [b_name, REPORT_REWARD], "action": "familia_report_sheriff", "next": "END"},
+				{"label": "Mejor me callo por ahora. [Volver]", "next": "start"},
+			],
+		}
+	# 4. Hablar con el jefe (si ya sabes quién es): pedir un encargo o entregar su parte
+	if boss != null and npc == boss and is_boss_known_to_player(vm) and not bool(st.get("reported_by_player", false)) and npc.affinity >= -15:
+		var pos_b: int = maxi(0, ch_arr.size() - 1)
+		if bool(st.get("player_job_collected", false)):
+			var cut: int = PROTECTION_FEE / 2
+			ch_arr.insert(pos_b, {
+				"label": "🪙 Entregar la mitad del cobro al jefe (%d Oro)" % cut,
+				"action": "familia_deliver_cut",
+				"next": "END",
+			})
+		elif str(st.get("player_job_target", "")) == "":
+			ch_arr.insert(pos_b, {
+				"label": "🍷 «Sé de qué habláis en el reservado. ¿Tienes algún encargo discreto?»",
+				"action": "familia_ask_work",
+				"next": "END",
+			})
+	# 5. Cobrar en persona al comerciante que te señaló el jefe
+	if str(st.get("player_job_target", "")) == n_key and n_key != "" and not bool(st.get("player_job_collected", false)):
+		var pos_e: int = maxi(0, ch_arr.size() - 1)
+		ch_arr.insert(pos_e, {
+			"label": "🤝 Cobrar comisión de «tranquilidad» (%d Oro) de parte de %s" % [PROTECTION_FEE, b_name],
+			"action": "familia_player_extort",
+			"next": "END",
+		})
+
+static func on_player_action(vm, npc, action_str: String, inv = null, force_roll: float = -1.0) -> bool:
+	if vm == null or npc == null or not action_str.begins_with("familia_"):
+		return false
+	var st: Dictionary = state(vm)
+	var today: int = VillageNeeds.today()
+	var boss = boss_of(vm)
+	var b_name: String = str(st.get("boss_name", "la Familia"))
+	match action_str:
+		"familia_warn_target":
+			var n_key: String = npc.get_person_key()
+			if str(st.get("known_target", "")) != n_key:
+				return false
+			(st["protection_cooldown"] as Dictionary)[n_key] = today + PROTECTION_COOLDOWN_DAYS + 2
+			st["known_target"] = ""
+			var pb: Dictionary = st.get("pending_business", {})
+			if str(pb.get("target", "")) == n_key:
+				st["pending_business"] = {}
+			npc.modify_affinity(10)
+			npc.add_thought("El forastero me avisó a tiempo de los planes de %s (+8)" % b_name, 8.0)
+			if boss != null and is_instance_valid(boss):
+				boss.modify_affinity(-12)
+				boss.add_thought("Alguien puso sobre aviso a nuestro objetivo antes de cobrar (-6)", -6.0)
+			npc._spawn_floating_text("🤝 «Gracias por el aviso. Guardaré el oro bajo llave cuando asomen.» (+10 Relación)", Color.SPRING_GREEN, -44.0)
+			VillageChronicle.add(vm, "familia_warn", "Pusiste sobre aviso a %s antes de que la Familia de %s pasara a cobrarle" % [npc.npc_name, b_name], true)
+			return true
+		"familia_report_sheriff":
+			if int(npc.trade_role) != int(VillageNPC.TradeRole.SHERIFF) or int(st.get("player_evidence", 0)) < 1:
+				return false
+			var ts: Dictionary = vm.VillageTown.state(vm)
+			var tr: int = maxi(0, int(ts.get("treasury", 0)))
+			var reward: int = mini(REPORT_REWARD, tr)
+			ts["treasury"] = tr - reward
+			if inv != null and reward > 0:
+				inv.add_gold(reward)
+			(st["bribed_guards"] as Dictionary).clear()
+			(st["protected_shops"] as Dictionary).clear()
+			st["pending_business"] = {}
+			st["postponed"] = true
+			st["player_evidence"] = 0
+			st["reported_by_player"] = true
+			st["next_plan_night"] = today + 4
+			npc.modify_affinity(10)
+			npc.add_thought("Desarticulamos los cobros del reservado gracias a un soplo (+8)", 8.0)
+			if boss != null and is_instance_valid(boss):
+				boss.modify_affinity(-25)
+				boss.add_thought("El forastero nos delató ante la comisaría (-15)", -15.0)
+			npc._spawn_floating_text("⚖️ «Buen trabajo. Se acabaron sus cobros por ahora (+%d Oro de recompensa).»" % reward, Color.GOLD, -44.0)
+			VillageChronicle.add(vm, "familia_reported", "Delataste ante %s los tratos del reservado de %s (+%d Oro)" % [npc.npc_name, b_name, reward], true)
+			return true
+		"familia_ask_work":
+			if boss == null or npc != boss or not is_boss_known_to_player(vm) or bool(st.get("reported_by_player", false)):
+				return false
+			var target = null
+			var best_g: int = PROTECTION_FEE - 1
+			for n in VillageNeeds.living(vm):
+				if can_target_merchant(vm, n) and int(n.personal_gold) > best_g:
+					best_g = int(n.personal_gold)
+					target = n
+			if target == null:
+				for n2 in VillageNeeds.living(vm):
+					if _can_be_member(n2) and not is_member(vm, n2) and int(n2.personal_gold) > best_g:
+						best_g = int(n2.personal_gold)
+						target = n2
+			if target == null:
+				npc._spawn_floating_text("🍷 «Hoy no hay nadie con la bolsa lo bastante llena. Vuelve otro día.»", Color(0.9, 0.8, 0.65), -40.0)
+				return false
+			st["player_job_target"] = target.get_person_key()
+			st["player_job_collected"] = false
+			npc._spawn_floating_text("🍷 «Pásate a ver a %s, cóbrale %d de oro por su tranquilidad y tráeme mi mitad.»" % [target.npc_name, PROTECTION_FEE], Color(0.95, 0.82, 0.58), -44.0)
+			return true
+		"familia_player_extort":
+			return player_collect_protection(vm, npc, inv, force_roll) != ""
+		"familia_deliver_cut":
+			if boss == null or npc != boss or not bool(st.get("player_job_collected", false)):
+				return false
+			var cut: int = PROTECTION_FEE / 2
+			if inv == null or int(inv.gold) < cut:
+				npc._spawn_floating_text("😠 «¿Dónde está mi parte (%d de oro)? Con la Familia no se juega.»" % cut, Color.ORANGE_RED, -42.0)
+				return false
+			inv.add_gold(-cut)
+			npc.personal_gold += cut
+			st["player_job_target"] = ""
+			st["player_job_collected"] = false
+			st["business_done"] = int(st.get("business_done", 0)) + 1
+			npc.modify_affinity(8)
+			npc.add_thought("El forastero cumplió el encargo y trajo mi parte sin hacer preguntas (+6)", 6.0)
+			npc._spawn_floating_text("🍷 «Un trabajo limpio (-%d Oro para el jefe, te quedas tu mitad).»" % cut, Color.SPRING_GREEN, -44.0)
+			return true
+	return false

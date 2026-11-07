@@ -891,6 +891,10 @@ static func on_dialogue_action(npc: VillageNPC, action_id: String) -> void:
 		if vm != null:
 			VillageUnderworld.on_player_action(vm, npc, action_id, inv)
 		return
+	if action_id.begins_with("familia_"):
+		if vm != null:
+			VillageFamilia.on_player_action(vm, npc, action_id, inv)
+		return
 	if action_id.begins_with("fame_"):
 		if vm != null:
 			VillageFame.on_player_action(vm, npc, action_id, inv)

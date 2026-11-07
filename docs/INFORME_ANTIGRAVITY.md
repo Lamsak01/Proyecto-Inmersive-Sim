@@ -49,22 +49,22 @@ Se han añadido los tres negocios discretos de «La Familia», todos de suma cer
 3. **Comprar el silencio de guardias poco honrados (`can_bribe_guard`, `bribe_guard_chance`, `try_bribe_guard`, `is_guard_bribed`):**
    - Si el guardia acepta (`"bribed"`), `BRIBE_AMOUNT = 15` pasa en suma cero del bolsillo del jefe al guardia y durante 5 días (`bribed_guards`) ese guardia hace la vista gorda en `has_unwanted_witness_near(vm)` sin abortar las reuniones nocturnas del reservado; si rechaza (`"refused"`), entra en `bribe_cooldown` y suelta rumor.
 
-- `scripts/systems/VillageFamilia.gd` (nuevo)
-- `scripts/systems/VillageManager.gd` (`preload`, `GOSSIP_EVENT_TYPES`, `on_hour`, `daily`, `after_load`)
+### D. Don Vittorio Corvo (jefe desde el Día 0) y Bloque R4 — El jugador descubre «La Familia» e interviene
+
+1. **Jefe mafioso desde el Día 0 (`Don Vittorio Corvo`):**
+   - `VillageFamilia.spawn_initial_boss(vm)` crea al arrancar el pueblo a `npc_familia_boss` (**Don Vittorio Corvo**, 46 años, `personal_gold = 120`, instalado en `VillageRestaurant.OWNER_BED2` y `BACKROOM_TABLE`) con 6 rasgos válidos y sin conflicto de `TraitCatalog.gd`: `["Sediento de poder", "Manipulador", "Líder", "Codicioso", "Astuto", "Rencoroso"]` (`ambition >= 2`, `honesty <= -2`, `persuasion >= 1`), dejándolo al frente de «La Familia» desde el Día 0 (`found(vm, boss)`).
+2. **Descubrimiento sin menús mágicos (`try_eavesdrop_meeting`, `is_boss_known_to_player`):**
+   - Acercarse a `<= 78 px` de `BACKROOM_TABLE` durante una reunión nocturna activa (`is_meeting_now(vm)`) permite escuchar en voz baja quiénes están reunidos (`known_members`), quién manda (`player_knows_boss = true`), sumar prueba (`player_evidence += 1`) y enterarse del próximo comercio objetivo (`known_target`). También se descubre al jefe si el jugador ha oído un `"familia_rumor"` en `social_event_log`.
+3. **Tres formas de intervenir (`add_dialogue_choices`, `on_player_action`, `player_collect_protection`):**
+   - **Avisar a la víctima (`"familia_warn_target"`):** previene al comerciante amenazado (`protection_cooldown` durante 4 días, desmonta el encargo contra él, `+10` de afinidad con la víctima y `-12` con el jefe).
+   - **Delatar ante el Comisario con pruebas (`"familia_report_confirm"` → `"familia_report_sheriff"`):** tras confirmar, el Comisario paga `35` de oro en suma cero desde `town_state["treasury"]`, limpia los sobornos (`bribed_guards`), comercios intimidados (`protected_shops`) y encargos pendientes (`pending_business`), sube `+10` de afinidad con el Comisario y baja `-25` con el jefe.
+   - **Trabajar para el jefe (`"familia_ask_work"`, `"familia_player_extort"`, `"familia_deliver_cut"`):** el jefe encarga cobrar a un comerciante; el jugador va en persona (`<= 95 px`), cobra `12` de oro en suma cero del bolsillo del comerciante (abortando con `+1` de búsqueda si mira un guardia no sobornado, o fallando con enfriamiento y rumor si sale mal) y entrega `6` al jefe quedándose `6` limpios y `+8` de afinidad.
+
+- `scripts/systems/VillageFamilia.gd` (nuevo, R2 + R3 + R4 + Don Vittorio Corvo)
+- `scripts/systems/VillageManager.gd` (`preload`, `spawn_initial_boss`, `_pick_ambitious_successor`, `GOSSIP_EVENT_TYPES`, `on_hour`, `daily`, `after_load`)
 - `scripts/systems/VillageNeeds.gd` (`tick`: recado `"familia_meet"` sin caducar por tiempo en marcha y llamada a `VillageFamilia.tick(vm)`)
-- `scripts/enemies/VillageNPC.gd` (`NIGHT_ERRANDS` y `get_activity_description` para `"familia_meet"`)
-- `scripts/enemies/NPCDialogue.gd` (`preload` y `VillageFamilia.add_dialogue_choices`)
+- `scripts/enemies/VillageNPC.gd` (`NIGHT_ERRANDS` y `get_activity_description` para `"familia_meet"` y `"familia_errand"`)
+- `scripts/enemies/NPCDialogue.gd` (`preload`, `VillageFamilia.add_dialogue_choices` y `VillageFamilia.on_player_action`)
 - `tools/export_vault_html.py` (nuevo)
-- `tools/tests/verify_all.gd` (`Block R2`)
+- `tools/tests/verify_all.gd` (`R2.0a–R2.0e`, `Block R2`, `Block R3`, `Block R4`)
 - Documentación y Vault: `docs/HANDOFF.md`, `CHANGELOG.md`, `docs/REGISTRO_TRABAJO.md`, `docs/APORTES_CREATIVOS.md`, `docs/INFORME_ANTIGRAVITY.md`, `GameVault/04_Censo_y_Misiones/Trattoria Il Corvo.md`, `GameVault/05_Roadmap_y_Lore/Tablero.md`, `GameVault/06_Diario/2026-11-06.md`.
-
----
-
-## 3. Ideas y sugerencias para R3 y R4
-
-1. **Para R3 (Negocios discretos de «La Familia»):**
-   - **Comisión por «tranquilidad» a los comercios prósperos:** cuando una reunión nocturna en el reservado termina con éxito (`finish_meeting`), el jefe puede elegir un negocio con buena caja y enviar a la mañana siguiente a un miembro en persona a cobrar una pequeña «cuota de amigos» (suma cero: del `personal_gold` del comerciante al bolsillo del cobrador y luego repartido con el jefe en la siguiente cena del reservado).
-   - **Préstamos del reservado y favores con el guardia:** si un vecino desesperado pide dinero o si un miembro tiene roce con la justicia, el jefe puede usar sus ahorros para comprar el silencio o la vista gorda de un guardia corruptible (`TraitCatalog.npc_tendency(guard, "honesty") < 0`), haciendo que ese guardia evite patrullar cerca de la Trattoria en noches de reunión.
-2. **Para R4 (El jugador se entera e interviene):**
-   - **Espiar desde la bodega o el comedor:** como el reservado está pegado a la bodega (`ROOMS["bodega"]`) y al comedor (`ROOMS["comedor"]`), si el jugador se queda en sigilo junto al tabique durante una reunión activa (`is_meeting_now(vm)`), podría escuchar de qué negocio o vecino están hablando sin necesidad de abrir ningún menú.
-   - **Tres formas de intervenir:** usar ese secreto para avisar al comerciante amenazado, contárselo al Comisario Vane con pruebas (si además vio quiénes entraban al reservado) o sentarse a hablar con el jefe para pedir parte en sus encargos.

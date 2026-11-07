@@ -50,6 +50,7 @@ kanban-plugin: board
 
 ## ✅ Hecho
 
+- [x] El jugador descubre «La Familia» e interviene (`R4`, espiando reuniones nocturnas en el reservado, avisando a la víctima, delatando al Comisario o trabajando para el jefe) y **Don Vittorio Corvo** lidera «La Familia» desde el Día 0 ([[Trattoria Il Corvo]]) (2026-11-06)
 - [x] Negocios discretos de «La Familia» (`R3`): cobro en persona de comisión de «tranquilidad» a comercios prósperos, préstamos del reservado y soborno a guardias poco honrados para que hagan la vista gorda de noche ([[Trattoria Il Corvo]]) (2026-11-06)
 - [x] «La Familia» (`R2`): nace sola de un vecino ambicioso, sin escrúpulos y persuasivo; recluta de 2 a 4 vecinos de uno en uno (con rechazos y rumores) y se reúne de noche en el reservado de la [[Trattoria Il Corvo]] si no hay guardias cerca (2026-11-06)
 - [x] Trattoria «Il Corvo»: restaurante grande con comedor, terraza, cocina, cámara fría, bodega, cuarto del dueño y reservado ([[Trattoria Il Corvo]]) (2026-11-06)

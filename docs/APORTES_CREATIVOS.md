@@ -322,7 +322,8 @@ o vino ya dado. Conviene confirmarlo.
   - Antes de que nazca «La Familia»: ««El reservado del fondo está tranquilo últimamente. Sólo se abre cuando alguien quiere hablar de negocios lejos de los curiosos.»»
 - Rumor de quien rechaza entrar (`familia_rumor`): «%s tanteó en voz baja a %s para meterlo en negocios turbios en el reservado», y pensamientos/notas de relación al aceptar o negarse.
 - Frases y rumores de los negocios discretos (R3, provisionales): «🤝 «Así todos trabajamos tranquilos.»», «🪙 «Esta noche haré la ronda por el otro lado.»», «%s cuenta que %s pasó por su negocio pidiendo una comisión por «evitar disgustos»» y «%s cuenta que %s intentó untarle con unas monedas para que mirase a otro lado».
+- Personaje inicial del jefe mafioso y textos de intervención del jugador (R4, provisionales): nombre «Don Vittorio Corvo» (`npc_familia_boss`, familia «Corvo», 46 años, rasgos `Sediento de poder`, `Manipulador`, `Líder`, `Codicioso`, `Astuto`, `Rencoroso`), frase de escucha en el reservado («👂 Oyes voces bajas en el reservado…») y líneas de diálogo al avisar a la víctima (`familia_warn_target`), delatar ante el Comisario (`familia_report_confirm` / `familia_report_sheriff`) o trabajar cobrando la comisión (`familia_ask_work`, `familia_player_extort`, `familia_deliver_cut`).
 
-**Dónde:** `scripts/systems/VillageFamilia.gd` (`cook_line`, `add_dialogue_choices`, `try_recruit`, `finish_meeting`, `resolve_protection`, `give_loan`, `collect_loan`, `try_bribe_guard`).
-**Depende:** solo los textos de diálogo, pensamientos y rumor; la lógica usa claves internas (`"familia"`, `"familia_meet"`, `"familia_errand"`, `"familia_rumor"`).
+**Dónde:** `scripts/systems/VillageFamilia.gd` (`spawn_initial_boss`, `cook_line`, `try_eavesdrop_meeting`, `add_dialogue_choices`, `on_player_action`, `player_collect_protection`, `try_recruit`, `finish_meeting`, `resolve_protection`, `give_loan`, `collect_loan`, `try_bribe_guard`).
+**Depende:** solo los textos de diálogo, pensamientos, rumor y el nombre de «Don Vittorio Corvo»; la lógica usa claves internas (`"familia"`, `"familia_meet"`, `"familia_errand"`, `"familia_rumor"`).
 

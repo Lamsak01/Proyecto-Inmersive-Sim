@@ -3,6 +3,11 @@
 Cambios del juego, del más nuevo al más antiguo. Añade una entrada al cerrar cada bloque, en lenguaje sencillo.
 El detalle técnico está en `docs/HANDOFF.md` (sección 7) y el historial completo en `git log`. Lo anterior a B0.1 está en `AUDIT_LOG.md` y `SESSION_CONTEXT_LOG.md`.
 
+## 2026-11-06 — Don Vittorio Corvo y cómo intervenir ante «La Familia»
+- **Don Vittorio Corvo, jefe desde el primer día:** la partida arranca ya con un padrino al frente de «La Familia», instalado en el cuarto del dueño y la mesa del reservado de «Il Corvo», con ahorros propios y el carácter exacto para dirigir el negocio (sediento de poder, manipulador, líder, codicioso, astuto y rencoroso). Si algún día cae, otro vecino ambicioso puede seguir su camino.
+- **Descubrir el pastel sin menús mágicos:** ninguna opción nueva aparece gratis. Para enterarte de quién manda y a por qué comercio van, tienes que escuchar los rumores del pueblo o acercarte con sigilo al reservado de «Il Corvo» en mitad de una reunión nocturna.
+- **Tres formas de meter mano:** una vez sabes lo que se cuece, puedes avisar al comerciante amenazado para que esté prevenido, delatar a «La Familia» ante el Comisario con pruebas (cobrando recompensa de las arcas y desmontando sus sobornos y cobros activos) o pedirle trabajo al jefe para ir en persona a cobrar la comisión y repartir el botín a medias.
+
 ## 2026-11-06 — Los negocios discretos de «La Familia»
 - **Comisión de «tranquilidad» a los comercios que van bien:** tras sus reuniones nocturnas, un miembro va en persona durante el día a pedir una aportación a los comerciantes con dinero (si hay un guardia cerca, disimula y se marcha). Si el comerciante acepta, el oro sale de su bolsillo y se reparte entre el cobrador y el jefe; si se niega, no paga nada, se enfada y puede correr el rumor.
 - **Préstamos del reservado:** el jefe presta de su propio bolsillo a vecinos sin blanca; si al vencer el plazo no pueden devolverlo con intereses, quedan atrapados debiéndole un favor personal.

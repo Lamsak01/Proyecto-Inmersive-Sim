@@ -6412,25 +6412,35 @@ func _initialize() -> void:
 		vm.trade_npcs[r1_rt] = r1b_prev
 	print("Block R1b (Dining at the Trattoria, Paying the Cook, Cold Room Trip) OK")
 	# ==========================================================================
-	# Bloque R2: «La Familia» (crimen organizado discreto en el reservado)
+	# Bloque R2: «La Familia» (crimen organizado discreto en el reservado, con Don Vittorio Corvo desde el Día 0)
 	# ==========================================================================
 	var r2_fam = load("res://scripts/systems/VillageFamilia.gd")
+	var r2_vittorio = vm._get_npcs_by_person_key().get(r2_fam.INITIAL_BOSS_ID, null)
+	assert(r2_vittorio != null and r2_vittorio.npc_name == "Don Vittorio Corvo", "R2.0a: Don Vittorio Corvo exists from Day 0")
+	assert(r2_fam.active(vm) and r2_fam.boss_of(vm) == r2_vittorio, "R2.0b: La Familia starts active from Day 0 with Don Vittorio Corvo as its boss")
+	assert(r2_vittorio.person_profile != null and r2_vittorio.person_profile.personality.size() == 6, "R2.0c: Don Vittorio Corvo has 6 personality traits")
+	for tr_v in r2_fam.INITIAL_BOSS_TRAITS:
+		assert(tr_v in r2_vittorio.person_profile.personality, "R2.0d: Don Vittorio Corvo has trait %s" % tr_v)
+	assert(r2_fam.can_be_boss(vm, r2_vittorio) and r2_fam.has_boss_motive(vm, r2_vittorio), "R2.0e: Don Vittorio Corvo meets all trait and motive requirements of the ideal mafia boss")
 	var r2_prev_state: Dictionary = r2_fam.state(vm).duplicate(true)
 	var r2_prev_log_sz: int = vm.social_event_log.size()
 	var r2_prev_cook = vm.trade_npcs.get(r1_rt, null)
 	var r2_prev_hour: int = int(t5_wc.current_hour)
 	var r2_cands: Array = []
 	var r2_guard = null
+	var r2_sheriff = null
 	for n_r2 in vm.VillageNeeds.living(vm):
 		if n_r2.is_hostile or n_r2.is_downed or n_r2.is_incapacitated():
 			continue
 		if int(n_r2.trade_role) in [int(n_r2.TradeRole.SHERIFF), int(n_r2.TradeRole.GUARD)]:
 			if r2_guard == null and int(n_r2.trade_role) == int(n_r2.TradeRole.GUARD):
 				r2_guard = n_r2
+			elif r2_sheriff == null and int(n_r2.trade_role) == int(n_r2.TradeRole.SHERIFF):
+				r2_sheriff = n_r2
 			continue
 		if r2_fam._can_be_member(n_r2) and r2_cands.size() < 5:
 			r2_cands.append(n_r2)
-	assert(r2_cands.size() >= 5 and r2_guard != null, "R2.0: Enough adult villagers and a guard for La Familia test")
+	assert(r2_cands.size() >= 5 and r2_guard != null and r2_sheriff != null, "R2.0: Enough adult villagers, a guard and the sheriff for La Familia test")
 	var r2_saved_npcs: Array = []
 	for n_all in vm.VillageNeeds.living(vm):
 		r2_saved_npcs.append({
@@ -6565,6 +6575,63 @@ func _initialize() -> void:
 	r2_guard.global_position = r1_rs.BACKROOM_TABLE + Vector2(18, 0)
 	assert(r2_fam.has_unwanted_witness_near(vm) == null, "R3.12: Bribed guard looks the other way and does not abort the back-room meeting")
 	print("Block R3 (La Familia Discrete Businesses: Zero-Sum Protection, Back-Room Loans & Guard Bribes) OK")
+	# ==========================================================================
+	# Bloque R4: el jugador descubre «La Familia» e interviene (espiar, avisar, trabajar para el jefe o delatar)
+	# ==========================================================================
+	var r4_pl_pos0: Vector2 = p70_pl.global_position
+	var r4_inv_g0: int = int(p70_inv.gold)
+	var r4_tr0: int = int(vm.VillageTown.state(vm).get("treasury", 0))
+	var r4_boss_aff0: int = r2_boss.affinity
+	var r4_cook_aff0: int = r2_cook.affinity
+	var r4_sher_aff0: int = r2_sheriff.affinity
+	# 1. Espiar en el reservado durante una reunión nocturna: descubre al jefe, suma prueba y revela el próximo objetivo
+	r2_guard.global_position = Vector2(300, 900)
+	r2_cook.personal_gold = 75
+	r2_fam.state(vm)["protected_shops"].clear()
+	r2_fam.state(vm)["protection_cooldown"].clear()
+	r2_fam.state(vm)["pending_business"] = {"kind": "protection", "agent": r2_rec1.get_person_key(), "target": r2_cook.get_person_key(), "status": "planned"}
+	r2_fam.state(vm)["meeting_status"] = "meeting"
+	r2_fam.state(vm)["attending"] = [r2_boss.get_person_key(), r2_rec1.get_person_key()]
+	r2_fam.state(vm)["player_knows_boss"] = false
+	r2_fam.state(vm)["player_evidence"] = 0
+	r2_fam.state(vm)["last_eavesdrop_night"] = -99
+	p70_pl.global_position = r1_rs.BACKROOM_TABLE + Vector2(0, 52)
+	assert(r2_fam.try_eavesdrop_meeting(vm, p70_pl), "R4.1: Player near the reservado during a night meeting overhears La Familia")
+	assert(r2_fam.is_boss_known_to_player(vm) and int(r2_fam.state(vm)["player_evidence"]) == 1 and str(r2_fam.state(vm)["known_target"]) == r2_cook.get_person_key(), "R4.2: Eavesdropping reveals the boss, adds evidence and identifies the next target")
+	# 2. Avisar a la víctima antes del cobro: queda prevenida, sube afinidad con la víctima y molesta al jefe
+	assert(r2_fam.on_player_action(vm, r2_cook, "familia_warn_target", p70_inv), "R4.3: Player can warn the targeted merchant")
+	assert(not r2_fam.can_target_merchant(vm, r2_cook) and r2_cook.affinity > r4_cook_aff0 and r2_boss.affinity < r4_boss_aff0, "R4.4: Warning protects the merchant on cooldown, raises merchant affinity and lowers boss affinity")
+	# 3. Trabajar para el jefe: pedir encargo, cobrar en persona (suma cero) y entregar la mitad al jefe (suma cero)
+	r2_boss.affinity = 20
+	r2_fam.state(vm)["protection_cooldown"].clear()
+	r2_cook.personal_gold = 65
+	assert(r2_fam.on_player_action(vm, r2_boss, "familia_ask_work", p70_inv) and str(r2_fam.state(vm)["player_job_target"]) != "", "R4.5: Boss assigns a discrete collection job to the player")
+	var r4_target = vm._get_npcs_by_person_key().get(str(r2_fam.state(vm)["player_job_target"]), null)
+	assert(r4_target != null, "R4.6: Assigned target exists")
+	r4_target.personal_gold = 65
+	r4_target.global_position = Vector2(520, 380)
+	p70_pl.global_position = r4_target.global_position + Vector2(18, 0)
+	p70_inv.gold = 20
+	assert(r2_fam.on_player_action(vm, r4_target, "familia_player_extort", p70_inv, 0.01), "R4.7: Player collects the protection fee in person")
+	assert(r4_target.personal_gold == 65 - r2_fam.PROTECTION_FEE and int(p70_inv.gold) == 20 + r2_fam.PROTECTION_FEE and bool(r2_fam.state(vm)["player_job_collected"]), "R4.8: Player collection is strictly zero-sum from merchant to player")
+	var r4_boss_g_before: int = r2_boss.personal_gold
+	var r4_boss_aff_before: int = r2_boss.affinity
+	assert(r2_fam.on_player_action(vm, r2_boss, "familia_deliver_cut", p70_inv), "R4.9: Player delivers the boss's half of the collection")
+	assert(int(p70_inv.gold) == 20 + (r2_fam.PROTECTION_FEE / 2) and r2_boss.personal_gold == r4_boss_g_before + (r2_fam.PROTECTION_FEE / 2) and r2_boss.affinity > r4_boss_aff_before, "R4.10: Delivering the cut is strictly zero-sum and raises boss affinity")
+	# 4. Delatar «La Familia» al Comisario Vane con pruebas: recompensa de suma cero desde las arcas y desarticula sobornos/cobros
+	vm.VillageTown.state(vm)["treasury"] = 200
+	var r4_inv_before_rep: int = int(p70_inv.gold)
+	var r4_boss_aff_pre_rep: int = r2_boss.affinity
+	assert(r2_fam.on_player_action(vm, r2_sheriff, "familia_report_sheriff", p70_inv), "R4.11: Player reports La Familia to the Sheriff with evidence")
+	assert(int(p70_inv.gold) == r4_inv_before_rep + r2_fam.REPORT_REWARD and int(vm.VillageTown.state(vm)["treasury"]) == 200 - r2_fam.REPORT_REWARD, "R4.12: Sheriff reward is strictly zero-sum from municipal treasury")
+	assert((r2_fam.state(vm)["bribed_guards"] as Dictionary).is_empty() and (r2_fam.state(vm)["protected_shops"] as Dictionary).is_empty() and bool(r2_fam.state(vm)["reported_by_player"]) and r2_boss.affinity < r4_boss_aff_pre_rep, "R4.13: Reporting dismantles bribes and protection and angers the boss")
+	p70_pl.global_position = r4_pl_pos0
+	p70_inv.gold = r4_inv_g0
+	vm.VillageTown.state(vm)["treasury"] = r4_tr0
+	r2_boss.affinity = r4_boss_aff0
+	r2_cook.affinity = r4_cook_aff0
+	r2_sheriff.affinity = r4_sher_aff0
+	print("Block R4 (Player Discovers La Familia & Intervenes: Eavesdrop, Warn Target, Work for Boss, Report to Sheriff) OK")
 	# Restaurar estado previo al test
 	for sv_r2 in r2_saved_npcs:
 		var n_sv = sv_r2["npc"]

@@ -280,6 +280,7 @@ func setup_village(target_entities_root: Node) -> void:
 	VillageCivic.setup_world(self) # V5b: ayuntamiento, albergue y El Candil
 	VillageRestaurant.setup_world(self) # R1: Trattoria «Il Corvo» (puesto vacante)
 	VillageRestaurant.build(self) # R1: edificio grande con comedor, terraza, cocina, cámara, bodega y reservado
+	VillageFamilia.spawn_initial_boss(self) # R2/R4: Don Vittorio Corvo empieza como jefe de La Familia desde el Día 0
 	VillageCulture.ensure_lots(self) # V5e: biblioteca y escuela
 	VillageNobility.ensure_lots(self) # V6: mansión y casa grande
 	VillageLots.build_world(self) # V4: calles y solares del borde, afueras y lomas
@@ -3394,6 +3395,8 @@ func _pick_ambitious_successor(_role_key, title: String) -> VillageNPC:
 	var rivals: Array = []
 	for n in get_tree().get_nodes_in_group("village_npcs"):
 		if not (n is VillageNPC) or n.is_dead or n.is_downed or VillageNeeds.is_outsider(n) or n.person_profile == null or int(n.person_profile.age) < 16:
+			continue
+		if n.get_person_key() == VillageFamilia.INITIAL_BOSS_ID or VillageFamilia.boss_of(self) == n:
 			continue
 		var amb: float = TraitCatalog.npc_tendency(n, "ambition")
 		if n.trade_role == VillageNPC.TradeRole.FAMILY_MEMBER:
