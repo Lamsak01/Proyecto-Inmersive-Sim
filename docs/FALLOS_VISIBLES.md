@@ -5,6 +5,20 @@
 > Formato: `- [ ] Qué se ve mal · dónde · cuándo (hora del juego, 2D/3D/primera persona)`.
 
 ## Pendientes
+- [ ] **«Huerto vecinal» plantado en medio de un camino** (cajones encima del sendero junto a la Residencia Aguas
+  Claras): quitarlo de ahí; el usuario no lo quiere en ese sitio · 3D, de día.
+- [ ] **Biblioteca: «Leer un rato [E]» no hace nada** (el letrero promete una interacción que no existe) · de noche.
+- [ ] **Los edificios antiguos son diminutos y feos:** cuartos de una sala, muebles arrinconados, sprites sin sentido
+  (p. ej. la comisaría: rejas verdes gigantes, cajón suelto, cepo). **Petición del usuario:** que TODOS los edificios
+  tengan el nivel de detalle de la trattoria (varias salas con sentido, muebles 3D colocados, luces). Es un proyecto
+  grande: hacerlo edificio a edificio, empezando por los que pisa el detective (comisaría, morgue/hospital, capilla,
+  taberna, biblioteca).
+- [ ] **Trattoria: quitar la cama** del cuarto del dueño (no pinta nada en un restaurante; que sea un despacho).
+- [ ] **La ropa atraviesa el cuerpo** de algunos vecinos (al guardia se le sale el hombro por la ropa) · 1.ª persona.
+- [ ] **No hay cielo ni textura en el suelo** en primera persona: cielo azul plano y césped liso; todo se ve tosco.
+  El usuario quiere **empezar a ambientar el pueblo ya** (cielo con nubes y hora del día, suelo con textura, hierba,
+  niebla), aunque más adelante compre arte · 1.ª persona, de día.
+- [ ] **Todas las casas comparten la misma puerta**, que a veces no pega con la fachada · 1.ª persona.
 - [ ] **Árboles 3D raros en todo el pueblo:** copas como bloques arrugados con ramas rosas pegadas por fuera; se
   amontonan y se solapan entre sí y con muros · parque, campamento, lago · 3D, de día.
 - [ ] **El parque (junto al campamento del oeste) es ridículamente pequeño:** un cuadrado de césped con muro bajo y un
