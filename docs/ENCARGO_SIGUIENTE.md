@@ -9,11 +9,21 @@ El usuario quiere que **todos** los edificios tengan el nivel de la trattoria «
 + `WorldStage3D._build_restaurant_3d`): varias salas con sentido, tabiques con pasos, rutas internas, muebles 3D bien
 colocados (no arrinconados), luces, suelos propios, fachada y puerta acordes. Ahora son cuartos diminutos con sprites
 sin sentido. **Orden (los que pisa el detective primero):**
+0. **PRIMERO: la taberna «El Jabalí Dorado»** (orden del usuario, 2026-11-07: «da pena, es el primer edificio que
+   quiero que se remodele»). Requisitos del usuario:
+   - **Mucho más grande** y **el primer edificio con 2 pisos**: abajo el salón; **arriba los cuartos de huéspedes**
+     (escalera de verdad; usa las capas verticales que ya existen, planta 0 y +1).
+   - **Mesas con gente sentada** que viene a pasar el rato y a comer (como las cenas de la trattoria: los vecinos
+     eligen ir, se sientan en sillas libres y pagan).
+   - **Gente jugando al póker** en una mesa (el casino/póker ya existe: que se vea a los vecinos sentados jugando).
+   - **El tabernero detrás del mostrador** atendiendo.
+   - **Al menos un camarero** trabajando: recoge los pedidos en las mesas y lleva los platos de la cocina a la mesa
+     (oficio nuevo al final de `TradeRole`, se ocupa como cualquier vacante; recorridos físicos, nada de teletransporte).
+   - Arreglar lo que se ve mal: la «mesa de billar» es un tablero con un rectángulo verde encima y patas de cama.
 1. **Comisaría y cárcel** (recepción, despacho del comisario, sala de interrogatorios, calabozos con rejas de verdad,
    armero). Quitar las rejas verdes gigantes, el cajón suelto y el cepo sin sentido.
 2. **Morgue / hospital** (sala de autopsias con mesa, estantes de frascos y reactivos, cámara de cuerpos, consulta).
 3. **Capilla del Alba** (nave con bancos, altar, confesionario, sacristía) — sin tocar nada de la secta.
-4. **Taberna «El Jabalí Dorado»** (barra, salón, cocina, habitaciones, sótano del club).
 5. **Biblioteca** (salas de lectura, estanterías, archivo) y que **«Leer un rato» haga algo real** (p. ej. consultar
    libros que sirvan como pistas o conocimientos para los casos).
 Un bloque por edificio, con capturas antes y después. Si un edificio crece, muévelo o recoloca lo de alrededor sin
