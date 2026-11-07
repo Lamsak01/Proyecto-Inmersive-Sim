@@ -1,74 +1,52 @@
-# Encargo para Antigravity (escrito por Claude Code, supervisor) — trabajo de noche
+# Encargo para Antigravity (Claude Code, supervisor) — Herramientas del detective
 
-> Fecha: 2026-11-07. El usuario se va a dormir: **trabaja en autónomo, sin pedir permiso ni plan previo**, bloque a
-> bloque y en este orden. Dile «Lee `docs/ENCARGO_ANTIGRAVITY.md` y haz lo que pone».
+> Fecha: 2026-11-07. Trabaja en autónomo, bloque a bloque y en orden. Es **el eje del bucle jugable** (el usuario
+> eligió «detective»): tiene que quedar muy bien. Lee antes `docs/ESTADO_DEL_JUEGO.md` y `docs/PLAN_BETA_MISTERIO.md` §6.
+
+## La referencia visual (obligatoria)
+Abre `docs/bocetos/examen_cuerpo.html` en el navegador: es el boceto **aprobado por el usuario** («me encanta»).
+Cópialo lo más fiel posible en Godot (colores, tipografías parecidas, libreta de papel a la derecha, fichas con
+chincheta abajo, tablero de corcho con hilo rojo). Silueta **plana**, sin líneas interiores ni cara; **dos modelos,
+mujer y hombre**, según la víctima; el pelo de la mujer cae detrás de la cabeza.
 
 ## Reglas
-- **Pruebas solo al final de todo (orden del usuario):** mientras escribes los 6 bloques, NO pases pruebas; comprueba
-  solo que el juego arranca sin errores de script (`timeout 120 flatpak run org.godotengine.Godot --headless --path .
-  --quit-after 300`). Cuando **todo el código** esté hecho y subido, pasa las pruebas **una a una y siempre con
-  límite de tiempo** (si se cuelga, se corta sola y sigues con la siguiente; nunca la dejes sin `timeout`):
-  1. `timeout 900 flatpak run org.godotengine.Godot --headless --path . -s tools/tests/verify_all.gd > /tmp/v.log 2>&1`
-  2. `timeout 900 ... -s tools/tests/social_sim.gd`, 3. `timeout 600 ... -s tools/tests/dialogue_coverage.gd`,
-  4. `timeout 1200 ... --fixed-fps 60 -s tools/tests/feature_probe.gd -- 5 11`.
-  Salida `124` = se cortó por tiempo (casi siempre un assert que falló y dejó la prueba colgada): busca la línea
-  `Assertion failed` en el log, arréglalo si es tuyo y repite solo esa prueba (máximo 2 intentos por prueba).
-  Pon en el informe qué pasó, qué falló y qué arreglaste.
-- **No toques** `scripts/systems/VillageSect.gd`, `GameVault/03_La_Secta/`, el Lore provisional, `GameVault/99_Archivo/`,
-  `GameVault/.obsidian/` ni `.claude/`. Nada de rendimiento ni de comprar arte.
-- Nada de sistemas aislados ni de menús: todo se ve en el mundo. Las 7 Reglas de las Auditorías: suma cero, nada se
-  destripa en menús si el jugador no lo sabe, todo puede fallar y tiene espera, lo arriesgado exige cercanía y testigos
-  con línea de visión.
-- Al cerrar **cada** bloque: HANDOFF §7, `CHANGELOG.md`, `docs/REGISTRO_TRABAJO.md`, nota del vault afectada, Tablero,
-  diario `GameVault/06_Diario/AAAA-MM-DD.md`, textos nuevos en `docs/APORTES_CREATIVOS.md`; **commit y push a `main`**
-  (así, si algo falla de madrugada, lo anterior queda guardado). Al final, un informe nuevo en `docs/INFORME_ANTIGRAVITY.md`.
-- Trampas: usa `x.get("campo") == true`, nunca `bool(x.get(...))`; los oficios nuevos van al FINAL de `TradeRole`;
-  no uses `ui_accept` para acciones del jugador (incluye Espacio).
+- No toques `scripts/systems/VillageSect.gd`, `GameVault/03_La_Secta/`, el Lore provisional, `GameVault/99_Archivo/`,
+  `GameVault/.obsidian/` ni `.claude/`. Las 7 Reglas de las Auditorías (cercanía física, testigos, todo puede fallar).
+- Aprovecha lo que ya existe; no lo dupliques: heridas por zonas y su causa (`HealthComponent`, `wounds`),
+  venenos e intoxicaciones, `VillageForensics` (escena, sangre, huellas, lejía), la morgue y la autopsia, testigos y
+  chismes (`known_by`, `sighting_log`, `GossipMemory`), interrogatorio y juicio (`VillageJustice`), registro de
+  misiones. Lo que ve el jugador sale de los datos reales del muerto, no de textos fijos (salvo en casos guionizados).
+- **Pruebas:** no las pases mientras programas; solo comprueba que arranca sin errores de script
+  (`timeout 120 flatpak run org.godotengine.Godot --headless --path . --quit-after 300`). Al terminar TODO, pasa una a
+  una y siempre con `timeout`: verify_all (900 s), social_sim (900), dialogue_coverage (600), feature_probe -- 5 11 (1200).
+  EXIT 124 = colgada por un assert: busca `Assertion failed`, arregla y repite (máx. 2 veces).
+- Al cerrar cada bloque: HANDOFF §7, CHANGELOG, REGISTRO_TRABAJO, nota del vault (`Investigación Forense.md`),
+  Tablero, diario, APORTES_CREATIVOS para textos nuevos; commit y push a `main`. Al final, informe nuevo en
+  `docs/INFORME_ANTIGRAVITY.md` con **capturas** de cada pantalla en `docs/capturas_detective/`.
 
-## Los 6 bloques (orden estricto)
+## Bloques
+**D1 — Examen del cuerpo en la escena.** Con E junto a un cadáver se abre la pantalla (pausa el reloj del mundo solo lo
+justo; cada acción suma minutos de juego). Zonas: cabeza, cuello, torso, brazos, manos, piernas, bolsillos; acciones
+mirar / palpar / oler / lupa (si la llevas) / registrar. Solo lo **superficial** (golpes, cortes, marcas, olores,
+objetos, causa obvia); lo interno queda «hace falta la morgue». Las marcas descubiertas se dibujan sobre la silueta.
+**Fondo real:** al abrir, saca una imagen desde arriba del sitio del cuerpo con la vista 3D (sin vecinos ni jugador,
+como `tools/tests/shot_probe.gd`) y pásala a **esquema** (oscura, casi sin color, bordes marcados tipo plano a tinta,
+p. ej. con un shader de posterizado + detección de bordes). Si falla la captura (headless), un fondo liso.
 
-**B1 — Ruido y testigos en combate (cierra C7).** Golpes fuertes, gritos de dolor y disparos emiten ruido en el mapa
-(ya existe `AudioManager.emit_noise`). Los guardias despiertos dentro del radio acuden a mirar o intervenir; los vecinos
-pacíficos huyen o se asoman a distancia, y solo cuentan como testigos (`known_by` / `sighting_log`) si tienen línea de
-visión en la misma planta.
+**D2 — Autopsia en la morgue.** Con el cuerpo en la morgue y el forense presente. Pruebas por pasos donde se puede
+fallar: sangre (de dónde sacarla, reactivo, leer el color; muestra limitada, el reactivo equivocado gasta), cuello
+(corte lento o rápido: el rápido estropea), estómago (guardar o tirar el contenido), piel y rigidez (manchas que
+dicen si lo movieron, rigidez rara). Consejo del forense a cambio de tiempo. La **causa real** se va completando.
 
-**B2 — Calabozo de verdad.** Si un guardia o el comisario pillan a un vecino en plena falta (sabotaje, robo nocturno,
-profanación, pelea grave) o el inquisidor lo condena en juicio, lo llevan a pie a la celda del calabozo de la comisaría
-durante su condena (24–48 h de juego) y luego vuelve a su vida. Se le ve tras los barrotes, se puede hablar con él,
-pagar su fianza en la comisaría (el dinero va a las arcas) o ayudarle a escapar con ganzúa o llave, con riesgo de
-testigos. Aprovecha aquí lo pendiente del Tablero: **delatar a la Familia detiene al jefe** y lo lleva a la celda/juicio.
+**D3 — Escena del crimen.** Misma idea de fondo real. A oscuras; las pistas solo se ven bajo el farol del jugador
+(el ratón mueve la luz). Pistas reales de `VillageForensics` y del lugar (sangre o su ausencia, arrastre, huellas,
+objetos). Testigos cercanos: preguntar y presionar (presionar puede cerrarlos según su carácter y su relación contigo).
 
-**B3 — Del campamento del lago al pueblo.** Con casa propia en el pueblo, el jugador puede llevarse a Toby (y su
-comedero) y sus animales o gallinero a su solar. El campamento del oeste sigue sirviendo de puesto de pesca, caza y
-refugio.
+**D4 — Cuaderno y tablero del caso.** Todo hallazgo se puede anotar como ficha (cuaderno abajo, como el boceto).
+Tablero de corcho (tecla propia libre; dila en el informe) con sospechosos y fichas: arrastrar y unir con hilo rojo,
+quitar hilos. Se guarda con la partida. El tablero **no** dice quién es el culpable: solo ordena lo que sabes.
 
-**B4 — Coherencia del ambiente.** (1) La niebla nocturna recorta de madrugada el alcance de la vista de los vecinos,
-salvo cerca de farolas o faroles encendidos. (2) Un taller saboteado echa humo o chispas en 2D y 3D hasta que se
-repara; si hay fuego fuera, la lluvia ayuda a apagarlo. (3) Quita la etiqueta «(dormida)» de las tendencias ya usadas
-en `TraitCatalog.gd` y haz que Noctámbulos, Insomnes y Sonámbulos paseen de noche por las calles.
-
-**B5 — Lo que se ve en la calle.** (1) Dos vecinos con odio fuerte (≤ −50) o en feudo de sangre que se cruzan a menos
-de 80 px sueltan un gesto o bocadillo de desprecio o se apartan. (2) Quien prepara un asesinato o venganza ronda de
-noche la casa de su víctima los días antes. (3) Bocadillos cortos (1,5 s, sin pausar) cuando un maestro termina una
-obra maestra, cuando los niños entran en fila a la escuela a las 9:00 o cuando el ayuntamiento inaugura una mejora.
-
-**B6 — Los 21 vecinos fundadores con historia.** Thoran, Kael, Garrick, Lina, Bram, Mila, Elena, Tomás, Marlo, Nora,
-Marta, Aldric, Sora, Darío, Comisario Vane, Guardia Rodric, Vigía del Oeste, Dr. Valen, Hermano Anselmo, Inquisidor
-Alistair y Casimir/Valeria: seis rasgos coherentes con su descripción, una red inicial de amistades y rencores y 2–3
-secretos cada uno, para que haya tensión desde el día 1. Que no sea todo fijo: deja algo de azar para que cada partida
-cambie. Refléjalo en sus notas de `GameVault/04_Censo_y_Misiones/Vecinos/` (créalas desde `GameVault/Plantillas/Vecino.md`
-si faltan).
-
-**B7 — Prueba de primera persona (prototipo, después de B6 y antes de las pruebas finales).** El usuario quiere ver si el
-juego gana en primera persona (el combate no le convence desde arriba). Es solo una **prueba que se enciende y apaga con
-una tecla libre** (p. ej. F8; mira que no la use nadie), sin cambiar nada de la lógica 2D:
-- Con la vista 3D activa (`WorldStage3D`, cámara `cam_3d` ortográfica; F9 cambia 2D/3D en `GameManager.gd`), al pulsar
-  la tecla la cámara pasa a perspectiva a la altura de los ojos del jugador, mirando hacia donde apunta. El ratón gira la
-  vista (captúralo al entrar y suéltalo al salir o al abrir menús) y W/A/S/D se mueve relativo a donde miras.
-- El ataque, empujar, parar y usar (E) apuntan hacia el centro de la pantalla: traduce la dirección de la mirada a la
-  dirección de apuntado 2D que ya usa el jugador. Una cruz en el centro. Oculta el muñeco del propio jugador (o solo su
-  cabeza) para que no tape la cámara.
-- Los techos y las paredes que en vista cenital se ocultan/recortan deben verse enteros en primera persona.
-- No arregles arte ni animaciones: anota en el informe qué se ve mal de cerca (casas, muñecos, interiores), con
-  capturas si puedes (`tools/tests/shot_probe.gd` sirve de ejemplo).
-Apúntalo en el Tablero como prueba y en `docs/VISION_Y_FUTURO.md` como idea en evaluación (no decidida).
+**D5 — Preparado para 10 casos guionizados.** Formato de datos de un caso en su propio archivo (pistas fijas, papeles
+que se reparten entre vecinos reales, diálogos y sucesos propios), usado por D1–D4 sin tocar su código. Crea solo el
+esqueleto de «La mujer del bosque» con las pistas de los bocetos; los huecos de la trama **no** los inventes: déjalos
+marcados como pendientes del usuario.

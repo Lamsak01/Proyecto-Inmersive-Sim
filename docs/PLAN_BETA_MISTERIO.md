@@ -89,3 +89,7 @@ Eje central del bucle jugable; tiene que quedar «perfecto». Boceto aprobado po
 4. Todo hallazgo se anota en el **cuaderno del caso** (fichas) que luego pasan al tablero.
 5. **10 casos principales guionizados** con diálogos y sucesos propios, cada uno en su archivo de datos, usando las
    mismas herramientas; además, el sistema procedural de siempre.
+6. **Fondo real del lugar (idea del usuario, 2026-11-07):** al examinar un cuerpo o una escena, el fondo es una «foto»
+   desde arriba del sitio real donde está (bosque, calle, interior, alcantarilla), tomada en ese momento con la vista 3D
+   sin vecinos ni jugador, y pasada a **esquema**: oscura, casi sin color, bordes marcados como un plano a tinta. La
+   silueta del cuerpo y las pistas van encima. El efecto se ajusta a ojo con el usuario.
