@@ -3,6 +3,11 @@
 Cambios del juego, del más nuevo al más antiguo. Añade una entrada al cerrar cada bloque, en lenguaje sencillo.
 El detalle técnico está en `docs/HANDOFF.md` (sección 7) y el historial completo en `git log`. Lo anterior a B0.1 está en `AUDIT_LOG.md` y `SESSION_CONTEXT_LOG.md`.
 
+## 2026-11-07 — Coherencia del ambiente (niebla, humo en talleres saboteados y paseos nocturnos)
+- **Niebla de madrugada y charcos de luz:** de madrugada y en días de niebla los vecinos y guardias ven bastante menos lejos en la penumbra, salvo si pasas cerca de una farola encendida o de alguien que lleva un farol (si vas en sigilo apagas tu farol para no delatarte).
+- **Humo y chispas en los talleres saboteados, y lluvia contra el fuego:** un taller saboteado echa humo, chispas y llamas en 2D y 3D hasta que alguien lo repara; si se pone a llover, la lluvia apaga el fuego exterior y alivia los daños.
+- **Noctámbulos, insomnes y sonámbulos por las calles:** quitada la marca de «dormida» de las tendencias ya activas en el catálogo de rasgos, y ahora quienes son noctámbulos o insomnes salen a pasear de noche por las calles, mientras que los sonámbulos caminan dormidos y a oscuras de madrugada.
+
 ## 2026-11-07 — Del campamento del lago a tu casa del pueblo
 - **Mudanza de Toby y su comedero:** cuando ya tienes casa construida en un solar del pueblo, puedes llevarte a Toby y su cama con comedero junto a tu puerta (hablando con el carpintero, desde la mesa de tu casa o en la mesa de obras del campamento).
 - **Mudanza de tu gallinero y tus animales de corral:** también puedes trasladar tu gallinero y tus ovejas y gallinas al patio de tu solar en el pueblo (o se trasladan al montar allí el huerto y gallinero con el carpintero), mientras el campamento del oeste junto al lago sigue sirviendo como puesto de pesca, caza y refugio.

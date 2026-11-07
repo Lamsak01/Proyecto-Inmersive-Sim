@@ -85,6 +85,7 @@ var _club_root_3d: Node3D = null # P6: club de pelea del sótano de la taberna
 var _town_ledger_3d: Node3D = null # P5: libro de cuentas en la mesa del ayuntamiento
 var _home_props_3d: Node3D = null
 var _last_home_props_sig: String = ""
+var _sabotage_fx_3d: Dictionary = {} # role_id -> Node3D (humo, chispas y fuego 3D de taller saboteado)
 
 func setup_stage(village_manager: Node2D) -> void:
 	vm = village_manager
@@ -2394,6 +2395,7 @@ func _sync_props_3d(only_update: bool) -> void:
 			(ci as CanvasItem).self_modulate.a = 0.0 if use_3d else 1.0
 	_sync_player_house_3d()
 	_sync_coop_3d()
+	_sync_sabotage_fx_3d()
 	if only_update:
 		return
 	for id in _prop_nodes.keys():
@@ -2645,3 +2647,91 @@ func _sync_2d_flat_visuals(use_3d: bool) -> void:
 	for rf in get_tree().get_nodes_in_group("ranch_fence_2d"):
 		if rf is CanvasItem and is_instance_valid(rf):
 			(rf as CanvasItem).self_modulate.a = target_a
+
+
+## B4.2: Un taller saboteado echa humo y chispas en 3D hasta que se repara; si llueve, el fuego exterior se apaga.
+func _sync_sabotage_fx_3d() -> void:
+	if vm == null or not ("shop_businesses" in vm) or not is_instance_valid(nature_root_3d):
+		return
+	var raining: bool = WorldClock != null and int(WorldClock.current_weather) == 1
+	for r_id in vm.shop_businesses.keys():
+		var role_int: int = int(r_id)
+		var biz: Dictionary = vm.shop_businesses[role_int]
+		var sab_d: int = int(biz.get("sabotaged_days", 0))
+		var node3d: Node3D = _sabotage_fx_3d.get(role_int) as Node3D if is_instance_valid(_sabotage_fx_3d.get(role_int)) else null
+		if sab_d <= 0:
+			if node3d != null:
+				node3d.queue_free()
+			_sabotage_fx_3d.erase(role_int)
+			continue
+		var s_pos: Vector2 = biz.get("stall_pos", Vector2.ZERO)
+		var has_fire: bool = (biz.get("outdoor_fire") == true) and not raining
+		if node3d == null:
+			node3d = Node3D.new()
+			node3d.name = "SabotageFX3D_%d" % role_int
+			node3d.position = to_3d(s_pos, 10.0)
+			var smoke3 := CPUParticles3D.new()
+			smoke3.name = "Smoke3D"
+			var sm_mesh := SphereMesh.new()
+			sm_mesh.radius = 0.14
+			sm_mesh.height = 0.28
+			sm_mesh.material = _mat("sab_smoke_3d", Color(0.24, 0.24, 0.27), 0.95, 0.0)
+			smoke3.mesh = sm_mesh
+			smoke3.amount = 10
+			smoke3.lifetime = 1.4
+			smoke3.direction = Vector3(0.1, 1.0, -0.05)
+			smoke3.spread = 24.0
+			smoke3.initial_velocity_min = 0.45
+			smoke3.initial_velocity_max = 0.95
+			smoke3.gravity = Vector3(0.0, 0.35, 0.0)
+			smoke3.emitting = true
+			node3d.add_child(smoke3)
+			var sparks3 := CPUParticles3D.new()
+			sparks3.name = "Sparks3D"
+			var sp_mesh := BoxMesh.new()
+			sp_mesh.size = Vector3(0.06, 0.06, 0.06)
+			sp_mesh.material = _mat("sab_spark_3d", Color(1.0, 0.80, 0.25), 0.2, 0.0, Color(1.0, 0.72, 0.18), 2.2)
+			sparks3.mesh = sp_mesh
+			sparks3.amount = 8
+			sparks3.lifetime = 0.45
+			sparks3.explosiveness = 0.35
+			sparks3.direction = Vector3(0.0, 1.0, 0.0)
+			sparks3.spread = 58.0
+			sparks3.initial_velocity_min = 0.8
+			sparks3.initial_velocity_max = 1.6
+			sparks3.gravity = Vector3(0.0, -3.2, 0.0)
+			sparks3.emitting = true
+			node3d.add_child(sparks3)
+			var fire3 := CPUParticles3D.new()
+			fire3.name = "Fire3D"
+			var fi_mesh := SphereMesh.new()
+			fi_mesh.radius = 0.11
+			fi_mesh.height = 0.24
+			fi_mesh.material = _mat("sab_fire_3d", Color(1.0, 0.45, 0.12), 0.3, 0.0, Color(1.0, 0.38, 0.08), 2.5)
+			fire3.mesh = fi_mesh
+			fire3.amount = 8
+			fire3.lifetime = 0.55
+			fire3.direction = Vector3(0.0, 1.0, 0.0)
+			fire3.spread = 26.0
+			fire3.initial_velocity_min = 0.35
+			fire3.initial_velocity_max = 0.75
+			fire3.gravity = Vector3(0.0, 0.6, 0.0)
+			fire3.emitting = has_fire
+			node3d.add_child(fire3)
+			if not _is_headless:
+				var lt := OmniLight3D.new()
+				lt.name = "FireLight3D"
+				lt.light_color = Color(1.0, 0.58, 0.20)
+				lt.light_energy = 1.15 if has_fire else 0.35
+				lt.omni_range = 2.4
+				node3d.add_child(lt)
+			nature_root_3d.add_child(node3d)
+			_sabotage_fx_3d[role_int] = node3d
+		else:
+			node3d.position = to_3d(s_pos, 10.0)
+			var f3 := node3d.get_node_or_null("Fire3D") as CPUParticles3D
+			if f3 != null:
+				f3.emitting = has_fire
+			var lt3 := node3d.get_node_or_null("FireLight3D") as OmniLight3D
+			if lt3 != null:
+				lt3.light_energy = 1.15 if has_fire else 0.35

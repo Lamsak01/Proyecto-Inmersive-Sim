@@ -351,5 +351,12 @@ o vino ya dado. Conviene confirmarlo.
 **Dónde:** `scripts/systems/VillageHousing.gd` (`move_toby_to_lot`, `move_coop_to_lot`, `add_dialogue_choices`, `open_home_table_menu`), `scripts/obstacles/CampSite.gd` (`_setup_upgrade_ui`, `_on_move_to_village_house_pressed`).
 **Depende:** solo los textos; la lógica usa `toby_lot` y `coop_lot` en `town_state["housing"]`.
 
+## Textos de actividad de paseos nocturnos y sonambulismo (B4, provisionales)
+- Paseos nocturnos (`night_stroll`): «🌙🚶 Paseando de noche por las calles».
+- Sonambulismo (`sleepwalk`): «😴🚶 Caminando dormido por la calle (Sonámbulo)» y bocadillo ocasional «😴💤 «Zzz...»».
+
+**Dónde:** `scripts/enemies/VillageNPC.gd` (`get_activity_description`), `scripts/systems/VillageNeeds.gd` (`tick`).
+**Depende:** solo los textos flotantes y de estado; la lógica usa `errand_kind` (`"night_stroll"`, `"sleepwalk"`).
+
 
 

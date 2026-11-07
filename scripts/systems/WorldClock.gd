@@ -130,6 +130,9 @@ func _water_all_farm_plots_from_rain() -> void:
 	for plot in get_tree().get_nodes_in_group("farm_plots"):
 		if is_instance_valid(plot) and plot.has_method("water_from_rain_or_sprinkler"):
 			plot.call("water_from_rain_or_sprinkler")
+	var vm = get_tree().get_first_node_in_group("village_manager")
+	if is_instance_valid(vm) and vm.has_method("extinguish_outdoor_fires_from_rain"):
+		vm.call("extinguish_outdoor_fires_from_rain")
 
 func _advance_one_minute() -> void:
 	current_minute += 1
@@ -298,7 +301,7 @@ func is_rite_day() -> bool:
 func get_formatted_time() -> String:
 	return "Día %d, %s%s | %02d:%02d" % [current_day, get_weekday_name(), " ☀️" if is_rite_day() else "", current_hour, current_minute] + " (%s | %s %s) [%s]" % [get_phase_name(_current_phase), get_weather_icon(current_weather), get_weather_name(current_weather), get_speed_badge()]
 
-## Multiplicador sistémico de visión según la luz del día y el clima actual (Niebla reduce -35%, Lluvia -15%)
+## Multiplicador sistémico de visión según la luz del día y el clima actual (Niebla reduce -35%, Lluvia -15%, Niebla nocturna de madrugada recorta la vista)
 func get_vision_multiplier() -> float:
 	var exact_hour: float = float(current_hour) + float(current_minute) / 60.0
 	var base_vis: float = 1.0
@@ -306,18 +309,19 @@ func get_vision_multiplier() -> float:
 		base_vis = 1.0
 	elif exact_hour >= 18.0 and exact_hour < 21.0:
 		var t: float = (exact_hour - 18.0) / 3.0
-		base_vis = lerpf(1.0, 0.6, t)
-	elif exact_hour >= 21.0 or exact_hour < 5.0:
-		base_vis = 0.6
+		base_vis = lerpf(1.0, 0.58, t)
+	elif exact_hour >= 21.0 or exact_hour < 4.0:
+		base_vis = 0.55
 	else:
-		var t: float = (exact_hour - 5.0) / 2.0
-		base_vis = lerpf(0.6, 1.0, t)
+		# B4.1: de madrugada (04:00-07:00) se levanta la niebla nocturna del valle y recorta el alcance visual
+		var dist_from_peak: float = absf(exact_hour - 5.25) / 1.75
+		base_vis = lerpf(0.42, 0.72, clampf(dist_from_peak, 0.0, 1.0))
 
 	if current_weather == WeatherType.FOG:
 		base_vis *= 0.65
 	elif current_weather == WeatherType.RAIN:
 		base_vis *= 0.85
-	return clampf(base_vis, 0.28, 1.0)
+	return clampf(base_vis, 0.25, 1.0)
 
 ## Color ambiental interpolado suavemente según la hora exacta del día y el clima
 func get_ambient_color() -> Color:

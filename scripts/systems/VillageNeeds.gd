@@ -140,6 +140,45 @@ static func class_of(npc) -> String:
 static func beg_spot(vm, npc) -> Vector2:
 	return vm._plaza_well_pos + Vector2(-26.0 + float(abs(npc.get_person_key().hash()) % 3) * 13.0, 22.0)
 
+# ---------------------------------------------------------------- B4.3 paseos nocturnos (Noctámbulo, Insomne, Sonámbulo)
+
+const NIGHT_STROLL_SPOTS: Array[Vector2] = [
+	Vector2(495, 118), Vector2(390, 56), Vector2(615, 145),
+	Vector2(555, 76), Vector2(735, 205), Vector2(310, 132),
+]
+
+static func night_walk_kind(npc) -> String:
+	if npc == null:
+		return ""
+	var p: Array = npc.person_profile.personality if npc.person_profile != null else npc.traits
+	if "Sonámbulo" in p:
+		return "sleepwalk"
+	if "Noctámbulo" in p or "Insomne" in p or TraitCatalog.npc_tendency(npc, "night") >= 0.5:
+		return "night_stroll"
+	return ""
+
+static func can_night_stroll(vm, npc) -> bool:
+	if npc == null or npc.is_dead or npc.is_downed or npc.is_hostile or is_outsider(npc):
+		return false
+	if vm != null and vm.VillageJustice.is_npc_jailed(vm, npc):
+		return false
+	if npc.hangout_id >= 0 or npc.is_in_live_fight() or npc.is_busy_with_player():
+		return false
+	if npc.rite_pos != Vector2.ZERO or npc.errand_kind != "" or npc.sick_level >= 2:
+		return false
+	if npc._is_mandatory_work_hours() or npc.need_energy <= 18.0:
+		return false
+	return night_walk_kind(npc) != ""
+
+static func night_stroll_spot(vm, npc, step: int = 0) -> Vector2:
+	var h_idx: int = abs((npc.get_person_key() + ":" + str(step)).hash())
+	if vm != null and "streetlights" in vm and not vm.streetlights.is_empty() and (step % 2 == 0):
+		var sl: Dictionary = vm.streetlights[h_idx % vm.streetlights.size()]
+		var spr: Sprite2D = sl.get("sprite")
+		if is_instance_valid(spr):
+			return spr.global_position + Vector2(float((h_idx % 3) - 1) * 14.0, 16.0)
+	return NIGHT_STROLL_SPOTS[h_idx % NIGHT_STROLL_SPOTS.size()] + Vector2(float((h_idx % 5) - 2) * 8.0, float(((h_idx / 5) % 3) - 1) * 8.0)
+
 # ---------------------------------------------------------------- E5 vicios
 
 static func addiction(vm, key: String, kind: String) -> float:
@@ -222,7 +261,7 @@ static func tick(vm) -> void:
 	for n in living(vm):
 		if n.errand_kind == "":
 			continue
-		if now - int(n.errand_since) > ERRAND_TIMEOUT_HOURS and not (n.errand_kind in ["beg", "outpost_work", "player_shop_clerk", "fence_alley", "gathering", "catering", "club_go", "club_watch", "night_job", "familia_meet"]):
+		if now - int(n.errand_since) > ERRAND_TIMEOUT_HOURS and not (n.errand_kind in ["beg", "outpost_work", "player_shop_clerk", "fence_alley", "gathering", "catering", "club_go", "club_watch", "night_job", "familia_meet", "night_stroll", "sleepwalk", "prowl_victim"]):
 			if n.errand_kind == "leisure":
 				vm.VillagePlaces._leave(n)
 				continue
@@ -243,6 +282,14 @@ static func tick(vm) -> void:
 				vm.VillageNightJobs.on_arrived(vm, n) # P6b: llega al taller, la casa o la lápida
 			"club_go":
 				vm.VillageClub.on_arrived(vm, n) # P6: baja por la trampilla al club del sótano
+			"night_stroll", "sleepwalk":
+				var next_step: int = int(n.get_meta("night_stroll_step", 0)) + 1
+				n.set_meta("night_stroll_step", next_step)
+				n.errand_pos = night_stroll_spot(vm, n, next_step)
+				if n.errand_kind == "sleepwalk" and randf() < 0.45:
+					n._spawn_floating_text("😴💤 «Zzz...»", Color(0.78, 0.86, 1.0), -28.0)
+			"prowl_victim":
+				pass # B5.2: ronda la casa de su víctima hasta que amanezca
 			"beg", "outpost_work", "player_shop_clerk", "fence_alley", "club_watch", "familia_meet":
 				pass # Se queda hasta la tarde (on_hour); el perista, hasta las 3:00 (P5b)
 			"player_shop_buy":
@@ -284,6 +331,25 @@ static func on_hour(vm, hour: int) -> void:
 	for n in people:
 		n.need_hygiene = maxf(0.0, n.need_hygiene - hygiene_decay(n))
 	for n in people:
+		# B4.3 / B5.2: Paseos nocturnos (Noctámbulo, Insomne, Sonámbulo) y rondas nocturnas
+		if n.errand_kind in ["night_stroll", "sleepwalk", "prowl_victim"]:
+			if hour >= 5 and hour < 22:
+				n.end_errand()
+			elif n.errand_kind in ["night_stroll", "sleepwalk"]:
+				var st_step: int = int(n.get_meta("night_stroll_step", 0)) + 1
+				n.set_meta("night_stroll_step", st_step)
+				n.errand_pos = night_stroll_spot(vm, n, st_step)
+			continue
+		if (hour >= 22 or hour <= 4) and can_night_stroll(vm, n):
+			var w_kind: String = night_walk_kind(n)
+			if w_kind == "sleepwalk" and (hour >= 0 and hour <= 4):
+				n.set_meta("night_stroll_step", hour)
+				n.start_errand("sleepwalk", night_stroll_spot(vm, n, hour))
+				continue
+			elif w_kind == "night_stroll":
+				n.set_meta("night_stroll_step", hour)
+				n.start_errand("night_stroll", night_stroll_spot(vm, n, hour))
+				continue
 		# Mendigos: piden en la plaza durante el día
 		if n.errand_kind == "beg":
 			if hour >= BEG_HOURS_TO or hour < BEG_HOURS_FROM:

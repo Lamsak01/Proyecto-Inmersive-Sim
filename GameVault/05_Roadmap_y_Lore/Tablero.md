@@ -34,9 +34,6 @@ kanban-plugin: board
 ## 🧹 Pulido
 
 - [ ] Personajes 3D con más estilo, tipo Signalis ([[Assets de pago]])
-- [ ] Decidir si la niebla nocturna también quita vista a los vecinos (ahora solo es visual)
-- [ ] Quitar la etiqueta «dormida» de las tendencias ya conectadas (`TraitCatalog.gd`)
-- [ ] Paseos nocturnos visibles de Noctámbulos e Insomnes
 - [ ] Rendimiento: abaratar el cálculo de los vecinos sin cambiar lo que hacen
 - [ ] Animales 3D: conejo, gato y gallinas siguen planos (buscar modelos animados del mismo estilo)
 - [ ] Buscar un jabalí 3D animado que guste al usuario (ahora es un lobo provisional)
@@ -50,6 +47,7 @@ kanban-plugin: board
 
 ## ✅ Hecho
 
+- [x] Coherencia del ambiente (`B4`): la niebla nocturna recorta de madrugada la vista de los vecinos salvo cerca de farolas o faroles encendidos; los talleres saboteados echan humo y chispas en 2D y 3D hasta repararse y la lluvia apaga el fuego exterior; quitada la etiqueta «(dormida)» de las tendencias conectadas en `TraitCatalog.gd` y paseos nocturnos para Noctámbulos, Insomnes y Sonámbulos ([[Supervivencia y Clima]], [[Identidad y Rasgos Ocultos]]) (2026-11-07)
 - [x] Del campamento del lago al pueblo (`B3`): con casa construida en el pueblo, trasladar a Toby (y su comedero) y tu gallinero/animales a tu solar, manteniendo el campamento del oeste como puesto de pesca, caza y refugio ([[Campamento, Agricultura y Pesca]], [[Vivienda e Hipotecas]]) (2026-11-07)
 - [x] Calabozo de verdad (`B2`): los vecinos pillados en delitos nocturnos, peleas graves, veredictos o al delatar al jefe de «La Familia» van encerrados a la celda de la comisaría; se puede hablar con ellos entre rejas, pagar su fianza a las arcas o ayudarlos a escapar con ganzúas ([[Justicia y Comisaría]]) (2026-11-07)
 - [x] El jugador descubre «La Familia» e interviene (`R4`, espiando reuniones nocturnas en el reservado, avisando a la víctima, delatando al Comisario o trabajando para el jefe) y **Don Vittorio Corvo** lidera «La Familia» desde el Día 0 ([[Trattoria Il Corvo]]) (2026-11-06)

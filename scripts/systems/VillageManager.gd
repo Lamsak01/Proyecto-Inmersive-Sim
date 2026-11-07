@@ -1443,11 +1443,48 @@ func _refresh_elevation_layer_visuals() -> void:
 			var v: VillageNPC = n as VillageNPC
 			v.modulate.a = 1.0 if are_on_same_elevation(v.elevation_level, player_elevation_level) else 0.35
 
+func is_position_lit_by_lamp_or_lantern(pos: Vector2, ignore_entity: Node2D = null) -> bool:
+	var hr: int = int(WorldClock.current_hour) if WorldClock else 12
+	var gm = get_node_or_null("/root/GameManager")
+	var grid_on: bool = gm != null and gm.get_flag("electric_grid_active", false) == true
+	var lamps_lit: bool = VillageCulture.is_lamps_powered(self) and (hr >= 19 or hr < 7 or grid_on)
+	if lamps_lit:
+		for sl in streetlights:
+			var spr: Sprite2D = sl.get("sprite")
+			var sl_pos: Vector2 = spr.global_position if is_instance_valid(spr) else (sl.get("pos", Vector2.ZERO) as Vector2)
+			if pos.distance_squared_to(sl_pos) <= 82.0 * 82.0:
+				return true
+	if hr >= 20 or hr < 7:
+		var pl := get_tree().get_first_node_in_group("player") as Node2D if is_inside_tree() else null
+		if is_instance_valid(pl) and pl != ignore_entity and pl.get("is_carrying_lantern") == true:
+			if pos.distance_squared_to(pl.global_position) <= 62.0 * 62.0:
+				return true
+		if is_inside_tree():
+			for n in get_tree().get_nodes_in_group("village_npcs"):
+				if n is VillageNPC and n != ignore_entity:
+					var v: VillageNPC = n as VillageNPC
+					if v.is_carrying_lantern and pos.distance_squared_to(v.global_position) <= 58.0 * 58.0:
+						return true
+	return false
+
+func get_ambient_vision_multiplier_at(pos: Vector2, ignore_entity: Node2D = null) -> float:
+	var base_mult: float = float(WorldClock.call("get_weather_vision_multiplier")) if (WorldClock and WorldClock.has_method("get_weather_vision_multiplier")) else 1.0
+	if WorldClock == null:
+		return base_mult
+	var hr: int = int(WorldClock.current_hour)
+	var is_fog_or_night: bool = (hr >= 19 or hr < 7) or int(WorldClock.current_weather) == 2
+	if not is_fog_or_night:
+		return base_mult
+	if is_position_lit_by_lamp_or_lantern(pos, ignore_entity):
+		return maxf(base_mult, 0.92)
+	if hr >= 0 and hr < 7:
+		# B4.1: de madrugada la niebla nocturna recorta el alcance de la vista lejos de farolas y faroles
+		return clampf(base_mult * 0.65, 0.22, 1.0)
+	return base_mult
+
 func _find_conscious_witness_near(pos: Vector2, max_dist: float, exclude_npc: VillageNPC, required_level: int = -999) -> VillageNPC:
 	var best: VillageNPC = null
-	var eff_dist: float = max_dist
-	if WorldClock and WorldClock.has_method("get_weather_vision_multiplier"):
-		eff_dist *= float(WorldClock.call("get_weather_vision_multiplier"))
+	var eff_dist: float = max_dist * get_ambient_vision_multiplier_at(pos, exclude_npc)
 	var best_d2: float = eff_dist * eff_dist
 	var target_level: int = required_level if required_level != -999 else (exclude_npc.elevation_level if exclude_npc != null else player_elevation_level)
 	for n in get_tree().get_nodes_in_group("village_npcs"):
@@ -3481,6 +3518,7 @@ func _find_nearest_business_stall(pos: Vector2, max_rad: float) -> Dictionary:
 func _update_shop_business_stalls(player: Node2D, mouse_pos: Vector2) -> void:
 	for r_id in shop_businesses.keys():
 		var role_int: int = int(r_id)
+		_sync_shop_sabotage_fx_2d(role_int)
 		var biz: Dictionary = shop_businesses[role_int]
 		var lbl: Label = biz.get("stall_label")
 		var s_pos: Vector2 = biz.get("stall_pos", Vector2.ZERO)
@@ -3524,6 +3562,99 @@ func _refresh_shop_stall_visual(role_id: int) -> void:
 			spr.modulate = Color(1.06, 1.04, 0.88, 1.0)
 		else:
 			spr.modulate = Color.WHITE
+	_sync_shop_sabotage_fx_2d(role_id)
+
+## B4.2: Taller saboteado echa humo y chispas en 2D hasta que se repara; si hay fuego fuera, la lluvia ayuda a apagarlo.
+func _sync_shop_sabotage_fx_2d(role_id: int) -> void:
+	if not shop_businesses.has(role_id):
+		return
+	var biz: Dictionary = shop_businesses[role_id]
+	var sab_d: int = int(biz.get("sabotaged_days", 0))
+	var existing: Node2D = biz.get("sabotage_fx_2d") as Node2D if is_instance_valid(biz.get("sabotage_fx_2d")) else null
+	if sab_d <= 0:
+		biz["outdoor_fire"] = false
+		biz["fire_intensity"] = 0.0
+		biz["rain_helped_day"] = -1
+		if existing != null:
+			existing.queue_free()
+		biz.erase("sabotage_fx_2d")
+		return
+	var raining: bool = WorldClock != null and int(WorldClock.current_weather) == 1
+	if not biz.has("outdoor_fire"):
+		biz["outdoor_fire"] = not raining
+		biz["fire_intensity"] = 0.25 if raining else 1.0
+	if raining and (biz.get("outdoor_fire") == true or float(biz.get("fire_intensity", 0.0)) > 0.25):
+		biz["outdoor_fire"] = false
+		biz["fire_intensity"] = 0.20
+		var cur_d: int = int(WorldClock.current_day) if WorldClock else 1
+		if sab_d > 1 and int(biz.get("rain_helped_day", -1)) != cur_d:
+			biz["rain_helped_day"] = cur_d
+			biz["sabotaged_days"] = maxi(1, sab_d - 1)
+	if existing == null:
+		existing = Node2D.new()
+		existing.name = "SabotageFX2D_%d" % role_id
+		existing.position = (biz.get("stall_pos", Vector2.ZERO) as Vector2) + Vector2(0.0, -10.0)
+		existing.z_index = 28
+		var smoke := CPUParticles2D.new()
+		smoke.name = "Smoke2D"
+		smoke.amount = 14
+		smoke.lifetime = 1.35
+		smoke.direction = Vector2(0.15, -1.0)
+		smoke.spread = 28.0
+		smoke.initial_velocity_min = 10.0
+		smoke.initial_velocity_max = 22.0
+		smoke.gravity = Vector2(4.0, -12.0)
+		smoke.scale_amount_min = 2.2
+		smoke.scale_amount_max = 4.2
+		smoke.color = Color(0.24, 0.24, 0.26, 0.72)
+		smoke.emitting = true
+		existing.add_child(smoke)
+		var sparks := CPUParticles2D.new()
+		sparks.name = "Sparks2D"
+		sparks.amount = 10
+		sparks.lifetime = 0.45
+		sparks.explosiveness = 0.35
+		sparks.direction = Vector2(0.0, -1.0)
+		sparks.spread = 65.0
+		sparks.initial_velocity_min = 24.0
+		sparks.initial_velocity_max = 52.0
+		sparks.gravity = Vector2(0.0, 95.0)
+		sparks.scale_amount_min = 1.2
+		sparks.scale_amount_max = 2.2
+		sparks.color = Color(1.0, 0.78, 0.25, 0.95)
+		sparks.emitting = true
+		existing.add_child(sparks)
+		var fire := CPUParticles2D.new()
+		fire.name = "Fire2D"
+		fire.amount = 12
+		fire.lifetime = 0.55
+		fire.direction = Vector2(0.0, -1.0)
+		fire.spread = 32.0
+		fire.initial_velocity_min = 8.0
+		fire.initial_velocity_max = 18.0
+		fire.gravity = Vector2(0.0, -24.0)
+		fire.scale_amount_min = 2.0
+		fire.scale_amount_max = 3.6
+		fire.color = Color(1.0, 0.42, 0.12, 0.88)
+		fire.emitting = biz.get("outdoor_fire") == true
+		existing.add_child(fire)
+		add_child(existing)
+		biz["sabotage_fx_2d"] = existing
+	else:
+		existing.position = (biz.get("stall_pos", Vector2.ZERO) as Vector2) + Vector2(0.0, -10.0)
+		var fire_node := existing.get_node_or_null("Fire2D") as CPUParticles2D
+		if fire_node != null:
+			fire_node.emitting = biz.get("outdoor_fire") == true
+
+func extinguish_outdoor_fires_from_rain() -> int:
+	var count: int = 0
+	for r_id in shop_businesses.keys():
+		var role_int: int = int(r_id)
+		var biz: Dictionary = shop_businesses[role_int]
+		if int(biz.get("sabotaged_days", 0)) > 0 and (biz.get("outdoor_fire") == true or float(biz.get("fire_intensity", 0.0)) > 0.25):
+			count += 1
+		_sync_shop_sabotage_fx_2d(role_int)
+	return count
 
 ## Obtiene el diccionario de stock activo del negocio (del NPC titular si vive, o de `stock_override` si está vacante)
 func get_trade_stock_dict(role_id: int) -> Dictionary:

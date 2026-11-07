@@ -31,10 +31,12 @@ var is_mounted: bool = false
 var is_pulling_cart: bool = false
 var is_cart_hitched: bool = false
 var interaction_selector: Node2D = null
-## El jugador saca el farol de 20:00 a 6:00, igual que los vecinos (lo usan la niebla nocturna y el muñeco 3D).
+## El jugador saca el farol de 20:00 a 6:00 salvo cuando va en sigilo (lo usan la niebla nocturna y el muñeco 3D).
 var is_carrying_lantern: bool:
 	get:
 		if WorldClock == null:
+			return false
+		if is_stealthing():
 			return false
 		var hr: int = int(WorldClock.current_hour)
 		return hr >= 20 or hr < 6

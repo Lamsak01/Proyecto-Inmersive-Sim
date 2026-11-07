@@ -6826,5 +6826,63 @@ func _initialize() -> void:
 	b3_vh.sync_livestock(vm)
 	b3_vh.sync_home_props(vm)
 	print("Block B3 (Relocate Toby & Feeder and Chicken Coop & Livestock from Lake Camp to Village Lot) OK")
+
+	# ---------------------------------------------------------
+	# Block B4: Coherencia del ambiente (niebla nocturna y farolas/faroles, humo/chispas en talleres saboteados y lluvia, tendencias sin «dormida» y paseos nocturnos)
+	# ---------------------------------------------------------
+	var b4_tc = load("res://scripts/data/TraitCatalog.gd")
+	for b4_k in b4_tc.TENDENCIES.keys():
+		assert(not str(b4_tc.TENDENCIES[b4_k]).contains("(dormida)"), "B4.1: No connected tendency in TraitCatalog.gd keeps the '(dormida)' label (%s)" % str(b4_k))
+	var b4_wc = root.get_node_or_null("/root/WorldClock")
+	var b4_hr0: int = b4_wc.current_hour
+	var b4_w0: int = int(b4_wc.current_weather)
+	b4_wc.current_hour = 5
+	b4_wc.current_weather = b4_wc.WeatherType.FOG
+	var b4_dark_pos := Vector2(-450, 420)
+	var b4_lamp_spr: Sprite2D = vm.streetlights[0].get("sprite") if not vm.streetlights.is_empty() else null
+	var b4_lamp_pos: Vector2 = b4_lamp_spr.global_position if is_instance_valid(b4_lamp_spr) else Vector2(495, 118)
+	var b4_vis_dark: float = vm.get_ambient_vision_multiplier_at(b4_dark_pos, player)
+	var b4_vis_lamp: float = vm.get_ambient_vision_multiplier_at(b4_lamp_pos, player)
+	assert(b4_vis_dark < 0.45 and b4_vis_lamp >= 0.90, "B4.2: Dawn fog cuts neighbor vision range in the dark (%0.2f) except near lit streetlamps (%0.2f)" % [b4_vis_dark, b4_vis_lamp])
+	# Taller saboteado echa humo y chispas en 2D y 3D; la lluvia apaga el fuego exterior
+	var b4_role: int = int(load("res://scripts/enemies/VillageNPC.gd").TradeRole.BLACKSMITH)
+	var b4_biz: Dictionary = vm.shop_businesses[b4_role]
+	var b4_sab0: int = int(b4_biz.get("sabotaged_days", 0))
+	b4_wc.current_weather = b4_wc.WeatherType.CLEAR
+	b4_biz.erase("outdoor_fire")
+	b4_biz["sabotaged_days"] = 2
+	vm._refresh_shop_stall_visual(b4_role)
+	var b4_stage3d = vm.get_node_or_null("WorldStage3D")
+	if b4_stage3d != null and b4_stage3d.has_method("_sync_sabotage_fx_3d"):
+		b4_stage3d.call("_sync_sabotage_fx_3d")
+	assert(is_instance_valid(b4_biz.get("sabotage_fx_2d")) and b4_biz.get("outdoor_fire") == true, "B4.3: Sabotaged workshop spawns 2D smoke/sparks/fire FX")
+	if b4_stage3d != null:
+		assert(is_instance_valid(b4_stage3d._sabotage_fx_3d.get(b4_role)), "B4.4: Sabotaged workshop spawns 3D smoke/sparks FX")
+	b4_wc.set_weather(b4_wc.WeatherType.RAIN)
+	assert(b4_biz.get("outdoor_fire") == false and int(b4_biz.get("sabotaged_days", 0)) == 1, "B4.5: Rain extinguishes outdoor fire on sabotaged workshop and helps recovery")
+	b4_biz["sabotaged_days"] = b4_sab0
+	vm._refresh_shop_stall_visual(b4_role)
+	if b4_stage3d != null and b4_stage3d.has_method("_sync_sabotage_fx_3d"):
+		b4_stage3d.call("_sync_sabotage_fx_3d")
+	assert(not b4_biz.has("sabotage_fx_2d"), "B4.6: Repairing workshop removes smoke/sparks FX")
+	# Noctámbulos, Insomnes y Sonámbulos pasean de noche por las calles
+	var b4_walker = vm.trade_npcs.get(int(load("res://scripts/enemies/VillageNPC.gd").TradeRole.CARPENTER))
+	var b4_prof_bak: Array = b4_walker.person_profile.personality.duplicate()
+	var b4_err_bak: String = b4_walker.errand_kind
+	b4_walker.end_errand()
+	b4_walker.need_energy = 85.0
+	b4_walker.person_profile.personality = ["Noctámbulo", "Curioso", "Paciente"]
+	vm.VillageNeeds.on_hour(vm, 23)
+	assert(b4_walker.errand_kind == "night_stroll" and b4_walker.get_activity_description().contains("Paseando de noche"), "B4.7: Noctámbulo / Insomne neighbor walks the streets at night")
+	b4_walker.end_errand()
+	b4_walker.person_profile.personality = ["Sonámbulo", "Curioso", "Paciente"]
+	vm.VillageNeeds.on_hour(vm, 1)
+	assert(b4_walker.errand_kind == "sleepwalk" and b4_walker.get_activity_description().contains("Sonámbulo"), "B4.8: Sonámbulo neighbor sleepwalks at night without lantern")
+	b4_walker.end_errand()
+	b4_walker.errand_kind = b4_err_bak
+	b4_walker.person_profile.personality = b4_prof_bak
+	b4_wc.current_hour = b4_hr0
+	b4_wc.set_weather(b4_w0 as WorldClock.WeatherType)
+	print("Block B4 (Ambient Coherence: Dawn Fog vs Streetlamps/Lanterns, 2D/3D Sabotage Smoke & Sparks + Rain, Night Strolls) OK")
 	print("ALL RIMWORLD MEDICAL, FOOTPRINTS, 3-PHASE CORPSE REPORT, MULTI-CORPSE FIX, RPG INTERROGATION, PUBLIC TRIAL, DYNAMIC RELATIONSHIPS, MISSING FAMILY SEARCH, SOCIAL GLOSSARY & UNCONSCIOUS REACTION TESTS PASSED!")
 	quit(0)

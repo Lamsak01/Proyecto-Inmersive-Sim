@@ -154,10 +154,19 @@ var rite_pos: Vector2 = Vector2.ZERO
 var rite_kind: String = "" # "rite" (Oficio del Alba), "sect" (reunión de la secta), "sect_lure" (víctima engañada)
 ## E1/E3/E5: encargos cortos a pie (lavarse «wash», beber «drink», jugar «gamble», pedir limosna «beg»); ver VillageNeeds
 var errand_kind: String = ""
-## Recados que se hacen de noche: no se cancelan al caer la noche (P5b: el perista en el callejón).
-const NIGHT_ERRANDS: Array[String] = ["fence_alley", "smuggler_bust", "gathering", "catering", "club_go", "club_watch", "night_job", "familia_meet"]
+## Recados que se hacen de noche: no se cancelan al caer la noche (P5b: el perista en el callejón; B4: paseos nocturnos; B5: acecho).
+const NIGHT_ERRANDS: Array[String] = ["fence_alley", "smuggler_bust", "gathering", "catering", "club_go", "club_watch", "night_job", "familia_meet", "night_stroll", "sleepwalk", "prowl_victim"]
 var errand_pos: Vector2 = Vector2.ZERO
 var errand_since: int = 0
+## B4.1: Los vecinos despiertos llevan farol encendido de 20:00 a 6:00, salvo si van en sigilo, sonámbulos o de faena turbia.
+var is_carrying_lantern: bool:
+	get:
+		if WorldClock == null or is_sleeping or is_incapacitated():
+			return false
+		if errand_kind in ["fence_alley", "night_job", "sleepwalk", "prowl_victim"]:
+			return false
+		var hr: int = int(WorldClock.current_hour)
+		return hr >= 20 or hr < 6
 ## E1: higiene (100 limpio → 0 sucio). E2: 0 sano, 1 enfermo leve, 2 guarda cama (lo pone VillageIllness)
 var need_hygiene: float = 80.0
 var sick_level: int = 0
@@ -2543,7 +2552,8 @@ func _process_police_law_enforcement(delta: float, vm: Node) -> bool:
 	var in_stealth: bool = player.has_method("is_stealthing") and bool(player.call("is_stealthing"))
 	var cloak_mult: float = float(player.call("get_stealth_detection_multiplier")) if player.has_method("get_stealth_detection_multiplier") else 1.0
 	var eff_pol: float = get_job_efficiency()
-	var detect_range: float = (95.0 if in_stealth else 235.0) * cloak_mult * lerpf(0.68, 1.0, eff_pol) * get_sleep_vision_multiplier()
+	var amb_pol_vis: float = float(vm.call("get_ambient_vision_multiplier_at", player.global_position, self)) if (vm and vm.has_method("get_ambient_vision_multiplier_at")) else (float(WorldClock.call("get_weather_vision_multiplier")) if WorldClock else 1.0)
+	var detect_range: float = (95.0 if in_stealth else 235.0) * cloak_mult * lerpf(0.68, 1.0, eff_pol) * get_sleep_vision_multiplier() * amb_pol_vis
 	var can_see_player: bool = (not vm.has_method("has_line_of_sight")) or bool(vm.call("has_line_of_sight", global_position, player.global_position))
 
 	if can_see_player and dist_p <= detect_range:
@@ -2685,7 +2695,8 @@ func _update_visual_memory(delta: float) -> void:
 	if is_instance_valid(player) and not witness_silenced_player:
 		var in_st: bool = player.has_method("is_stealthing") and bool(player.call("is_stealthing"))
 		var clk_m: float = float(player.call("get_stealth_detection_multiplier")) if player.has_method("get_stealth_detection_multiplier") else 1.0
-		var p_range: float = (62.0 if in_st else 195.0) * clk_m * vis_mult
+		var p_amb: float = float(vm.call("get_ambient_vision_multiplier_at", player.global_position, self)) if (vm != null and vm.has_method("get_ambient_vision_multiplier_at")) else (float(WorldClock.call("get_weather_vision_multiplier")) if WorldClock else 1.0)
+		var p_range: float = (62.0 if in_st else 195.0) * clk_m * get_sleep_vision_multiplier() * p_amb
 		if global_position.distance_to(player.global_position) <= p_range:
 			if vm == null or not vm.has_method("has_line_of_sight") or bool(vm.call("has_line_of_sight", global_position, player.global_position)):
 				var p_hc: HealthComponent = player.get_node_or_null("HealthComponent")
@@ -2699,7 +2710,9 @@ func _update_visual_memory(delta: float) -> void:
 			var other := n as VillageNPC
 			if other.is_dead:
 				continue
-			if global_position.distance_squared_to(other.global_position) <= npc_range * npc_range:
+			var o_amb: float = float(vm.call("get_ambient_vision_multiplier_at", other.global_position, self)) if (vm != null and vm.has_method("get_ambient_vision_multiplier_at")) else (vis_mult / maxf(0.01, get_sleep_vision_multiplier()))
+			var eff_npc_range: float = 195.0 * get_sleep_vision_multiplier() * o_amb
+			if global_position.distance_squared_to(other.global_position) <= eff_npc_range * eff_npc_range:
 				if vm == null or not vm.has_method("has_line_of_sight") or bool(vm.call("has_line_of_sight", global_position, other.global_position)):
 					var o_stained: bool = other.is_bloodstained()
 					var o_wounded: bool = other.health_comp != null and other.health_comp.has_fresh_combat_wounds_or_makeshift()
@@ -4189,6 +4202,9 @@ func get_activity_description() -> String:
 					"fence_alley": return "🌙 Rondando de madrugada" if at_e else "🚶🌙 Paseando de madrugada"
 					"familia_meet": return "🍷 Cenando tarde en el reservado" if at_e else "🚶🌙 Paseando de noche"
 					"familia_errand": return "🗣️ Hablando en voz baja" if at_e else "🚶 Haciendo un recado por el pueblo"
+					"night_stroll": return "🌙🚶 Paseando de noche por las calles"
+					"sleepwalk": return "😴🚶 Caminando dormido por la calle (Sonámbulo)"
+					"prowl_victim": return "🕵️‍♂️🌑 Rondando en las sombras de madrugada"
 			if rite_kind in ["sect", "sect_lure"]:
 				var vm_sc = _get_vm()
 				var known_sc: bool = vm_sc != null and "sect_state" in vm_sc and (bool(vm_sc.sect_state.get("player_member", false)) or (vm_sc.sect_state.get("known", {}) as Dictionary).has(get_person_key()))
