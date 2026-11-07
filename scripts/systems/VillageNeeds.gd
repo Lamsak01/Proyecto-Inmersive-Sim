@@ -222,7 +222,7 @@ static func tick(vm) -> void:
 	for n in living(vm):
 		if n.errand_kind == "":
 			continue
-		if now - int(n.errand_since) > ERRAND_TIMEOUT_HOURS and not (n.errand_kind in ["beg", "outpost_work", "player_shop_clerk", "fence_alley", "gathering", "catering", "club_go", "club_watch", "night_job"]):
+		if now - int(n.errand_since) > ERRAND_TIMEOUT_HOURS and not (n.errand_kind in ["beg", "outpost_work", "player_shop_clerk", "fence_alley", "gathering", "catering", "club_go", "club_watch", "night_job", "familia_meet"]):
 			if n.errand_kind == "leisure":
 				vm.VillagePlaces._leave(n)
 				continue
@@ -243,7 +243,7 @@ static func tick(vm) -> void:
 				vm.VillageNightJobs.on_arrived(vm, n) # P6b: llega al taller, la casa o la lápida
 			"club_go":
 				vm.VillageClub.on_arrived(vm, n) # P6: baja por la trampilla al club del sótano
-			"beg", "outpost_work", "player_shop_clerk", "fence_alley", "club_watch":
+			"beg", "outpost_work", "player_shop_clerk", "fence_alley", "club_watch", "familia_meet":
 				pass # Se queda hasta la tarde (on_hour); el perista, hasta las 3:00 (P5b)
 			"player_shop_buy":
 				vm.VillageHousing.on_customer_arrived(vm, n) # Bloque P1: cliente compra en el mostrador de tu tienda
@@ -269,6 +269,7 @@ static func tick(vm) -> void:
 	vm.VillageHousing.tick_gathering(vm) # P4: duración, charla y cierre de cenas, fiestas y cenas de paz
 
 	vm.VillageNightJobs.tick(vm) # P6b: guardias que pillan a quien sabotea, roba o profana; fin de la faena
+	vm.VillageFamilia.tick(vm) # R2: reunión nocturna discreta en el reservado de la trattoria
 
 static func on_hour(vm, hour: int) -> void:
 	var st: Dictionary = state(vm)

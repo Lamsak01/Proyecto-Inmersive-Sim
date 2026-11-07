@@ -21,6 +21,7 @@ const VillageHousing = preload("res://scripts/systems/VillageHousing.gd")
 const VillageUnderworld = preload("res://scripts/systems/VillageUnderworld.gd")
 const VillageFame = preload("res://scripts/systems/VillageFame.gd")
 const VillageCulture = preload("res://scripts/systems/VillageCulture.gd")
+const VillageFamilia = preload("res://scripts/systems/VillageFamilia.gd")
 const TraitDiscovery = preload("res://scripts/systems/TraitDiscovery.gd")
 const TraitCatalog = preload("res://scripts/data/TraitCatalog.gd")
 
@@ -293,6 +294,7 @@ static func _add_neighbor_opinions(npc: VillageNPC, diag: Dictionary, ch_arr: Ar
 		VillageUnderworld.add_dialogue_choices(vm_p, npc, diag, ch_arr) # P7
 		VillageFame.add_dialogue_choices(vm_p, npc, diag, ch_arr) # Fama y Maestros Artesanos
 		VillageCulture.add_dialogue_choices(vm_p, npc, diag, ch_arr) # PJ.2: Red eléctrica lógica
+		VillageFamilia.add_dialogue_choices(vm_p, npc, diag, ch_arr) # R2: pista del cocinero sobre el reservado
 	if npc.affinity < 0:
 		var hint_q: String = ""
 		var qm_h = npc.get_node_or_null("/root/QuestManager")

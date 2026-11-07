@@ -50,6 +50,7 @@ kanban-plugin: board
 
 ## ✅ Hecho
 
+- [x] «La Familia» (`R2`): nace sola de un vecino ambicioso, sin escrúpulos y persuasivo; recluta de 2 a 4 vecinos de uno en uno (con rechazos y rumores) y se reúne de noche en el reservado de la [[Trattoria Il Corvo]] si no hay guardias cerca (2026-11-06)
 - [x] Trattoria «Il Corvo»: restaurante grande con comedor, terraza, cocina, cámara fría, bodega, cuarto del dueño y reservado ([[Trattoria Il Corvo]]) (2026-11-06)
 - [x] Rehacer el combate (`C7` fases 1–4, 2026-11-06): peso y sonidos, rivales con las mismas reglas, cadena de espada, golpe cargado, guardia alta, empujón, zonas por dirección, armas melladas y desarmar. Pendiente: testigos que acuden al ruido (con el crimen interno) ([[Armaduras, Sigilo y Arcabuz]])
 - [x] Asaltos al pueblo medidos y puestos en pausa (el usuario prefiere crimen interno de bajo perfil) (2026-11-06)

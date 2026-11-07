@@ -22,6 +22,7 @@ const VillageLots = preload("res://scripts/systems/VillageLots.gd")
 const VillageTrades = preload("res://scripts/systems/VillageTrades.gd")
 const VillageCivic = preload("res://scripts/systems/VillageCivic.gd")
 const VillageRestaurant = preload("res://scripts/systems/VillageRestaurant.gd") # R1: Trattoria «Il Corvo»
+const VillageFamilia = preload("res://scripts/systems/VillageFamilia.gd") # R2: La Familia (crimen organizado discreto)
 const VillagePlaces = preload("res://scripts/systems/VillagePlaces.gd")
 const VillageCulture = preload("res://scripts/systems/VillageCulture.gd")
 const VillageMigration = preload("res://scripts/systems/VillageMigration.gd")
@@ -1095,7 +1096,7 @@ func record_social_event(type_str: String, actor: VillageNPC, target: VillageNPC
 
 ## B6.1: Eventos que merecen chisme. Son solo información: no mueven relaciones entre vecinos.
 const GOSSIP_EVENT_TYPES: Array[String] = ["fight", "breakup", "couple", "couple_reconciled", "feud", "reconciliation", "player_slander", "npc_slander", "rejection",
-	"date", "romance_flirt", "romance_dating", "jealousy", "arrival", "departure", "affair_forgiven", "theft", "theft_caught", "embezzle", "police_bribe", "sect_rumor", "sect_night"] # R5: más cosas de las que hablar # Sin "widowed": revelaría muertes aún sin descubrir
+	"date", "romance_flirt", "romance_dating", "jealousy", "arrival", "departure", "affair_forgiven", "theft", "theft_caught", "embezzle", "police_bribe", "sect_rumor", "sect_night", "familia_rumor"] # R5: más cosas de las que hablar # Sin "widowed": revelaría muertes aún sin descubrir
 const GOSSIP_MAX_AGE_DAYS: int = 20 # R1: tope; antes lo decide la memoria de cada vecino (GossipMemory)
 const NEWS_MIN_KNOWERS: int = 3
 
@@ -2494,6 +2495,7 @@ func _on_hour_passed(_day: int, new_hour: int = 8) -> void:
 	VillageNeeds.on_hour(self, actual_hour) # E: higiene, taberna, limosna
 	VillageIllness.on_hour(self, actual_hour) # E2: contagios
 	VillageSect.on_hour(self, actual_hour) # O3: reunión de la secta (viernes de madrugada)
+	VillageFamilia.on_hour(self, actual_hour) # R2: reuniones nocturnas en el reservado de la Trattoria
 	VillageLots.on_hour(self, actual_hour) # V4: el carpintero avanza la obra si está allí
 	VillageCivic.on_hour(self, actual_hour) # V5b: votar en persona y el alcalde en el ayuntamiento
 	VillagePlaces.on_hour(self, actual_hour) # V5c: ratos libres en el parque, la plaza o el mirador
@@ -3182,6 +3184,7 @@ func _on_day_passed(_new_day: int) -> void:
 		VillageDesires.daily(self)
 		VillageFaith.daily(self) # G: roces de fe, sacerdote y bandos
 		VillageSect.daily(self) # O: la secta (justo después: vuelve a añadir su bando oculto)
+		VillageFamilia.daily(self) # R2: La Familia (nace sola, recluta y planea reuniones en el reservado)
 		VillageNeeds.daily(self) # E1/E3/E5
 		VillageTrades.daily(self) # V5: estrenar ropa en la sastrería
 		VillageCivic.daily(self) # V5b: arcas robadas y albergue
@@ -4852,6 +4855,7 @@ func load_economy_save_dict(data: Dictionary) -> void:
 	VillageClub.after_load(self)
 	VillageHousing.after_load_gathering(self)
 	VillageSect._update_band(self)
+	VillageFamilia.after_load(self)
 	if data.has("chronicle") and typeof(data["chronicle"]) == TYPE_ARRAY:
 		chronicle.clear()
 		for ch_it in (data["chronicle"] as Array):

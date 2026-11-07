@@ -6411,5 +6411,143 @@ func _initialize() -> void:
 	else:
 		vm.trade_npcs[r1_rt] = r1b_prev
 	print("Block R1b (Dining at the Trattoria, Paying the Cook, Cold Room Trip) OK")
+	# ==========================================================================
+	# Bloque R2: «La Familia» (crimen organizado discreto en el reservado)
+	# ==========================================================================
+	var r2_fam = load("res://scripts/systems/VillageFamilia.gd")
+	var r2_prev_state: Dictionary = r2_fam.state(vm).duplicate(true)
+	var r2_prev_log_sz: int = vm.social_event_log.size()
+	var r2_prev_cook = vm.trade_npcs.get(r1_rt, null)
+	var r2_prev_hour: int = int(t5_wc.current_hour)
+	var r2_cands: Array = []
+	var r2_guard = null
+	for n_r2 in vm.VillageNeeds.living(vm):
+		if n_r2.is_hostile or n_r2.is_downed or n_r2.is_incapacitated():
+			continue
+		if int(n_r2.trade_role) in [int(n_r2.TradeRole.SHERIFF), int(n_r2.TradeRole.GUARD)]:
+			if r2_guard == null:
+				r2_guard = n_r2
+			continue
+		if r2_fam._can_be_member(n_r2) and r2_cands.size() < 5:
+			r2_cands.append(n_r2)
+	assert(r2_cands.size() >= 5 and r2_guard != null, "R2.0: Enough adult villagers and a guard for La Familia test")
+	var r2_saved_npcs: Array = []
+	for n_all in vm.VillageNeeds.living(vm):
+		r2_saved_npcs.append({
+			"npc": n_all,
+			"gold": n_all.personal_gold,
+			"pers": n_all.person_profile.personality.duplicate() if n_all.person_profile != null else [],
+			"pos": n_all.global_position,
+			"act": n_all.current_activity,
+			"sleep": n_all.is_sleeping,
+			"ek": n_all.errand_kind,
+			"ep": n_all.errand_pos,
+			"es": n_all.errand_since
+		})
+		if n_all.person_profile != null:
+			n_all.person_profile.personality.clear()
+			n_all.person_profile.personality.append_array(["Honrado", "Pacífico"])
+		n_all.personal_gold = 10
+	r2_fam.state(vm).clear()
+	r2_fam._update_band(vm)
+	# 1. Sin un vecino adecuado no nace
+	assert(not r2_fam.try_found(vm) and not r2_fam.active(vm), "R2.1: Without an ambitious, unscrupulous and persuasive neighbour with a motive, La Familia does not form")
+	# 2. Con un vecino preparado (ambicioso, sin escrúpulos, persuasivo y con oro ahorrado + frustración), funda «La Familia»
+	var r2_boss = r2_cands[0]
+	var r2_rec1 = r2_cands[1]
+	var r2_rec2 = r2_cands[2]
+	var r2_honest = r2_cands[3]
+	var r2_cook = r2_cands[4]
+	r2_boss.person_profile.personality.clear()
+	r2_boss.person_profile.personality.append_array(["Ambicioso", "Manipulador", "Líder", "Codicioso", "Rencoroso", "Astuto"])
+	r2_boss.personal_gold = 95
+	r2_boss.modify_npc_relationship(r2_rec1, -30, "Viejo agravio comercial", true)
+	assert(r2_fam.try_found(vm) and r2_fam.active(vm) and r2_fam.boss_of(vm) == r2_boss, "R2.2: Prepared neighbour founds La Familia on their own")
+	assert(r2_fam.is_member(vm, r2_boss), "R2.3: The boss is the first member of La Familia")
+	# 3. Reclutamiento de uno en uno: alguien puede negarse (lo recuerda y corre el rumor) y otros aceptan por afecto/desesperación
+	r2_honest.person_profile.personality.clear()
+	r2_honest.person_profile.personality.append_array(["Honrado", "Íntegro", "Cumplidor", "Valiente"])
+	r2_honest.personal_gold = 2
+	var r2_rel_before: int = r2_honest.get_relationship_with_npc(r2_boss.get_person_key())
+	assert(r2_fam.recruit_motive(vm, r2_boss, r2_honest) != "", "R2.4: Poor neighbour has a recruitment motive")
+	assert(r2_fam.try_recruit(vm, r2_honest, 0.99) == "refused" and r2_fam.has_refused(vm, r2_honest), "R2.5: Honest neighbour refuses recruitment and is remembered in refusals")
+	assert(r2_honest.get_relationship_with_npc(r2_boss.get_person_key()) < r2_rel_before, "R2.6: Refusing recruitment leaves a bad impression of the boss")
+	var r2_rumor_found: bool = false
+	for ev_r2 in vm.social_event_log:
+		if str(ev_r2.get("type", "")) == "familia_rumor" and str(ev_r2.get("target_id", "")) == r2_honest.get_person_key():
+			r2_rumor_found = true
+			break
+	assert(r2_rumor_found, "R2.7: Whoever refuses can spread a rumour about the shady offer")
+	r2_rec1.person_profile.personality.clear()
+	r2_rec1.person_profile.personality.append_array(["Codicioso", "Pragmático", "Cínico"])
+	r2_rec1.personal_gold = 1
+	r2_rec2.person_profile.personality.clear()
+	r2_rec2.person_profile.personality.append_array(["Discreto", "Ambicioso"])
+	r2_rec2.modify_npc_relationship(r2_boss, 35, "Vieja amistad", true)
+	assert(r2_fam.try_recruit(vm, r2_rec1, 0.01) == "joined" and r2_fam.is_member(vm, r2_rec1), "R2.8: Desperate neighbour accepts and joins La Familia")
+	assert(r2_fam.try_recruit(vm, r2_rec2, 0.01) == "joined" and r2_fam.is_member(vm, r2_rec2) and r2_fam.member_nodes(vm).size() == 3, "R2.9: Second recruit joins one by one (boss + 2 recruits)")
+	# 4. De noche se reúnen en el reservado de la Trattoria (y el cocinero suelta una pista si le preguntan)
+	for sv_r2 in r2_saved_npcs:
+		var n_sv = sv_r2["npc"]
+		n_sv.global_position = Vector2(300, 900)
+		n_sv.is_sleeping = false
+	for m_r2 in [r2_boss, r2_rec1, r2_rec2]:
+		m_r2.sick_level = 0
+		m_r2.rite_pos = Vector2.ZERO
+	vm.trade_npcs[r1_rt] = r2_cook
+	t5_wc.current_hour = 23
+	r2_fam.state(vm)["meeting_status"] = ""
+	r2_fam.state(vm)["last_meeting_day"] = -99
+	r2_fam.plan_meeting(vm)
+	r2_fam.on_hour(vm, 23)
+	assert(r2_fam.is_meeting_now(vm) and r2_boss.errand_kind == "familia_meet" and r2_rec1.errand_kind == "familia_meet", "R2.10: At the chosen night hour members are called to the reservado")
+	assert(r1_rs.room_of(r2_boss.errand_pos) == "reservado" and r1_rs.room_of(r2_rec1.errand_pos) == "reservado", "R2.11: Every seat target is inside the Trattoria back room")
+	var r2_wp: Vector2 = vm.get_navigation_waypoint(Vector2(1150, 350), r2_boss.errand_pos, r2_boss)
+	assert(r2_wp.distance_to(Vector2(1062, 306)) < 3.0, "R2.12: Members route through the back-room door from the dining hall")
+	var r2_cline: String = r2_fam.cook_line(vm)
+	assert(r2_cline.find("puerta cerrada") != -1, "R2.13: The cook drops a hint when they are dining behind closed doors")
+	# 5. Si un guardia se acerca al reservado, abortan y lo dejan para otra noche
+	r2_guard.is_sleeping = false
+	r2_guard.global_position = r1_rs.BACKROOM_TABLE + Vector2(18, 0)
+	r2_fam.tick(vm)
+	assert(str(r2_fam.state(vm).get("meeting_status", "")) == "aborted" and r2_fam.state(vm).get("postponed") == true and r2_boss.errand_kind == "", "R2.14: Spotting a guard near the back room aborts the meeting for another night")
+	# 6. Guardar y cargar conserva jefe, miembros y rechazos
+	var r2_expected_boss: String = str(r2_fam.state(vm)["boss"])
+	var r2_expected_count: int = r2_fam.member_nodes(vm).size()
+	var r2_eco_dump: Dictionary = vm.get_economy_save_dict()
+	r2_fam.state(vm).clear()
+	r2_fam._update_band(vm)
+	assert(not r2_fam.active(vm), "R2.15: Cleared state before load")
+	vm.load_economy_save_dict(r2_eco_dump)
+	assert(r2_fam.active(vm) and str(r2_fam.state(vm)["boss"]) == r2_expected_boss and r2_fam.member_nodes(vm).size() == r2_expected_count and r2_fam.has_refused(vm, r2_honest), "R2.16: Boss, members and refusals survive save and load")
+	var r2_band_found: bool = false
+	for b_r2 in vm.faith_bands:
+		if str(b_r2.get("kind", "")) == "familia" and (b_r2.get("members", []) as Array).size() == r2_expected_count:
+			r2_band_found = true
+			break
+	assert(r2_band_found, "R2.17: Hidden band is restored after load")
+	# Restaurar estado previo al test
+	for sv_r2 in r2_saved_npcs:
+		var n_sv = sv_r2["npc"]
+		n_sv.personal_gold = int(sv_r2["gold"])
+		if n_sv.person_profile != null:
+			n_sv.person_profile.personality.clear()
+			n_sv.person_profile.personality.append_array(sv_r2["pers"] as Array)
+		n_sv.global_position = sv_r2["pos"]
+		n_sv.current_activity = sv_r2["act"]
+		n_sv.is_sleeping = sv_r2.get("sleep") == true
+		n_sv.errand_kind = str(sv_r2["ek"])
+		n_sv.errand_pos = sv_r2["ep"]
+		n_sv.errand_since = int(sv_r2["es"])
+	while vm.social_event_log.size() > r2_prev_log_sz:
+		vm.social_event_log.pop_back()
+	vm.VillageNeeds.state(vm)["familia"] = r2_prev_state
+	r2_fam._update_band(vm)
+	t5_wc.current_hour = r2_prev_hour
+	if r2_prev_cook == null:
+		vm.trade_npcs.erase(r1_rt)
+	else:
+		vm.trade_npcs[r1_rt] = r2_prev_cook
+	print("Block R2 (La Familia: Organic Founding, Recruitment & Refusal Rumours, Night Back-Room Meetings, Guard Abort, Save/Load) OK")
 	print("ALL RIMWORLD MEDICAL, FOOTPRINTS, 3-PHASE CORPSE REPORT, MULTI-CORPSE FIX, RPG INTERROGATION, PUBLIC TRIAL, DYNAMIC RELATIONSHIPS, MISSING FAMILY SEARCH, SOCIAL GLOSSARY & UNCONSCIOUS REACTION TESTS PASSED!")
 	quit(0)

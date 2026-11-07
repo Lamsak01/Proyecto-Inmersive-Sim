@@ -3,6 +3,12 @@
 Cambios del juego, del más nuevo al más antiguo. Añade una entrada al cerrar cada bloque, en lenguaje sencillo.
 El detalle técnico está en `docs/HANDOFF.md` (sección 7) y el historial completo en `git log`. Lo anterior a B0.1 está en `AUDIT_LOG.md` y `SESSION_CONTEXT_LOG.md`.
 
+## 2026-11-06 — «La Familia» se reúne en el reservado
+- **Nace sola cuando se dan las condiciones:** un vecino ambicioso, sin escrúpulos y con don de gentes que haya ahorrado o arrastre deudas, envidias o agravios decide fundar «La Familia» por su cuenta (no existe al empezar la partida).
+- **Recluta de 2 a 4 vecinos de uno en uno** entre quienes le deben favores, le tienen afecto o miedo, o están desesperados sin blanca. Quien es honrado puede negarse: se queda con mal recuerdo y puede contarlo por el pueblo.
+- **Reuniones nocturnas en el reservado de «Il Corvo»:** se citan de noche alrededor de la mesa redonda cuando el jefe lo decide; si ven un guardia o un extraño cerca, abortan y lo dejan para otra noche. Si le preguntas al cocinero, deja caer una indirecta.
+- **Enciclopedia en una sola página:** añadida herramienta para juntar las notas del proyecto en un único archivo `.html` que se abre en cualquier navegador o móvil sin internet.
+
 ## 2026-11-06 — La trattoria cobra vida
 - **Los vecinos con dinero salen a comer o a cenar** a «Il Corvo» (de 13 a 22 h; más por la noche): se sientan en el
   comedor o en la terraza, piden tallarines o estofado y se lo pagan al cocinero. Si no queda nada, se van a casa.

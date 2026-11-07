@@ -313,3 +313,15 @@ o vino ya dado. Conviene confirmarlo.
 
 **Dónde:** `scripts/systems/VillageRestaurant.gd`, `SimpleInventory.CATALOG`, `NPCDialogue.gd` (rama del cocinero).
 **Depende:** solo los textos; la Familia (R2) usará el reservado, no el nombre.
+
+## Pistas del cocinero y rumores de «La Familia» (R2, provisionales)
+- Opción de diálogo con el cocinero: «🍷 Preguntar por el reservado del fondo» (`familia_cook_ask`).
+- Respuestas del cocinero (`cook_line` / `COOK_LINE_MEETING`, `COOK_LINE_ACTIVE`, `COOK_LINE_QUIET`):
+  - En plena reunión nocturna: ««Chist... baje la voz. Esta noche hay gente cenando a puerta cerrada en el reservado del fondo. Yo llevo las fuentes, dejo el vino y miro al suelo. En esta cocina el que no pregunta llega a viejo.»»
+  - Cuando «La Familia» ya existe: ««¿La mesa del reservado? Hay clientes que prefieren cenar tarde con la puerta cerrada y sin que nadie apunte sus nombres. Pagan al contado, no arman ruido y yo no pregunto de qué hablan.»»
+  - Antes de que nazca «La Familia»: ««El reservado del fondo está tranquilo últimamente. Sólo se abre cuando alguien quiere hablar de negocios lejos de los curiosos.»»
+- Rumor de quien rechaza entrar (`familia_rumor`): «%s tanteó en voz baja a %s para meterlo en negocios turbios en el reservado», y pensamientos/notas de relación al aceptar o negarse.
+
+**Dónde:** `scripts/systems/VillageFamilia.gd` (`cook_line`, `add_dialogue_choices`, `try_recruit`, `finish_meeting`).
+**Depende:** solo los textos de diálogo, pensamientos y rumor; la lógica usa claves internas (`"familia"`, `"familia_meet"`, `"familia_rumor"`).
+
