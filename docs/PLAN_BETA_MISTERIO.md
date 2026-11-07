@@ -85,7 +85,7 @@ Eje central del bucle jugable; tiene que quedar «perfecto». Boceto aprobado po
 2. **Autopsia en la morgue con el forense:** pruebas por pasos donde puedes fallar (muestra de sangre limitada,
    reactivo equivocado gasta muestra, corte rápido estropea el cuello, tirar el contenido del estómago lo pierde),
    consejo del forense a cambio de tiempo; la causa real se va completando.
-3. **Escena del crimen** (sangre, pistas ambientales, testigos) y **tablero de corcho** con fichas: boceto pendiente.
+3. **Escena del crimen:** mapa desde arriba a oscuras; las pistas solo se ven bajo el farol (surcos de arrastre, huellas, ruedas, la hierba, ausencia de sangre, barro en el arroyo); testigos con «preguntar» y «presionar» (puede cerrarse). **Tablero de corcho:** sospechosos arriba, fichas del cuaderno debajo, se arrastran y se unen con hilo rojo.
 4. Todo hallazgo se anota en el **cuaderno del caso** (fichas) que luego pasan al tablero.
 5. **10 casos principales guionizados** con diálogos y sucesos propios, cada uno en su archivo de datos, usando las
    mismas herramientas; además, el sistema procedural de siempre.
