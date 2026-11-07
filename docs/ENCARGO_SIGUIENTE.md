@@ -20,6 +20,16 @@ sin sentido. **Orden (los que pisa el detective primero):**
    - **Al menos un camarero** trabajando: recoge los pedidos en las mesas y lleva los platos de la cocina a la mesa
      (oficio nuevo al final de `TradeRole`, se ocupa como cualquier vacante; recorridos físicos, nada de teletransporte).
    - Arreglar lo que se ve mal: la «mesa de billar» es un tablero con un rectángulo verde encima y patas de cama.
+   **Después de la taberna, antes de la comisaría — cosas que el usuario vio (2026-11-07):**
+   - **Ropa y caras variadas para los vecinos:** usar todos los modelos y texturas de `assests/curated_3d/characters/`
+     (campesino/explorador, hombre/mujer, 2 texturas de cada, 5 peinados, barba, piel clara/oscura), repartidos de
+     forma fija por persona (que el mismo vecino se vea igual siempre) y con algo de lógica por oficio.
+   - **Alcantarillas de verdad:** más grandes, con túneles, y el **sitio de las peleas clandestinas** visible (foso o
+     círculo, bancos, apuestas) con gente cuando haya pelea.
+   - **Tablón de encargos nuevo:** más bonito, y cada papel muestra en pequeño el encargo real (se lee al acercarse);
+     aceptar sigue siendo con el menú.
+   - **Rancho poblado:** rebaño creíble (vacas, caballos, burros, alpacas, gallinas) con los modelos que ya hay,
+     ligado a la economía (crían, se venden), no de adorno.
 1. **Comisaría y cárcel** (recepción, despacho del comisario, sala de interrogatorios, calabozos con rejas de verdad,
    armero). Quitar las rejas verdes gigantes, el cajón suelto y el cepo sin sentido.
 2. **Morgue / hospital** (sala de autopsias con mesa, estantes de frascos y reactivos, cámara de cuerpos, consulta).
