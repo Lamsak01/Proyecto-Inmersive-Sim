@@ -16,6 +16,13 @@
    poblado, tablón legible, puertas distintas.
 6. **Sapos en 3D** basados en su sprite.
 
+### Feedback del usuario en los interiores (orden del usuario, 2026-11-07)
+- **Taberna:** el usuario ya dio sus requisitos; constrúyela directamente y enséñale capturas al terminar.
+- **Paso 5 (resto de edificios):** ANTES de construir ninguno, escribe `docs/BOCETOS_EDIFICIOS.md` con un boceto
+  corto de **todos** (por edificio: salas, muebles principales, quién está dentro y qué hace ahí, qué puede hacer el
+  jugador). Para ahí y avisa al usuario. Cuando lo corrija, construye todos seguidos sin pararte y deja capturas de
+  cada uno al acabarlo. No le preguntes mueble a mueble.
+
 ### Cuándo probar (orden del usuario: solo cuando haga falta, no tras cada paso)
 - **Tras el paso 1:** una vez `verify_all` (toca vecinos) + capturas.
 - **Tras el paso 2:** `verify_all` + **recorrido de capturas largo mirado** (es el cambio más arriesgado: caminos,
