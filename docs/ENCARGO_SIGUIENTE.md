@@ -26,10 +26,17 @@ Fallo en `FALLOS_VISIBLES.md` (captura de la plaza con 4 cadáveres: 10+ líneas
 - Barras de trabajo y bocadillos: que nunca se monten; si hay varios cerca, se apartan o se ocultan los lejanos.
 - Capturas antes y después en 2D y 3D de la plaza con varios vecinos y cadáveres.
 
-## 3. Relieve del terreno (pendiente de decisión del usuario)
-El usuario ve el terreno perfectamente plano. Claude recomienda hacerlo **antes** de los edificios de los bocetos:
-desniveles suaves en el pueblo y relieve fuerte fuera (bosque, lomas, orillas del lago). Cuesta mucho. No empezar
-sin la decisión del usuario.
+## 3. Relieve del terreno (APROBADO por el usuario, 2026-11-07: antes de los edificios)
+El terreno es perfectamente plano. Hacerlo **antes** de los edificios de los bocetos, en este orden y con parada para
+capturas entre fases:
+- **Fase A (fuera del pueblo):** lomas en la llanura, desniveles en el bosque, orillas del lago y de la ciénaga más bajas
+  que el terreno. Relieve fuerte permitido.
+- **Fase B (pueblo):** solo desniveles suaves (calles que suben un poco, una plaza algo más alta, escalones o rampas
+  donde haga falta). Los edificios se asientan en llano (plataforma o zócalo), nunca inclinados ni flotando.
+- Vecinos, animales, carros, caravanas y el jugador deben andar por las cuestas sin atascarse; nada flota ni se hunde
+  (árboles, muebles, cadáveres, objetos tirados). En 2D, el relieve se nota con sombreado o curvas suaves.
+- Tras cada fase: capturas 2D y 3D (1.ª persona) de día y de noche, mirarlas; comprobar que el juego arranca y pasar
+  verify_all con timeout 900. Si algo se atasca, arreglarlo antes de seguir.
 
 ## 4. Edificios de los bocetos (`docs/BOCETOS_EDIFICIOS.md`)
 Esperan las correcciones del usuario. Después, construirlos todos seguidos con capturas de cada uno.
