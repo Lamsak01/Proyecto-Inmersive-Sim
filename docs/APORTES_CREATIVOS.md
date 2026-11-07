@@ -381,12 +381,12 @@ o vino ya dado. Conviene confirmarlo.
 **Dónde:** `scripts/visuals/WorldStage3D.gd` (`_setup_fp_hud_layer`, `set_first_person`), `scripts/ui/CharacterShowcase3DUI.gd`.
 **Depende:** solo textos de interfaz.
 
-## Textos forenses genéricos de respaldo en el examen del cuerpo, autopsia y escena del crimen (D1, D2 y D3, provisionales)
+## Textos forenses genéricos de respaldo en el examen del cuerpo, autopsia, escena del crimen y tablero (D1, D2, D3 y D4, provisionales)
 - Objeto en inventario: «Lupa de Latón» (`magnifying_glass`).
-- Frases descriptivas de respaldo cuando se inspecciona un cadáver procedural del pueblo (adaptadas según sus heridas reales en `HealthComponent.wounds`, si fue movido en `VillageForensics.state(vm)["moved"]`, envenenado en `["poisoned"]` o enfriado en `["tampered_time"]`), además de los textos literales del boceto `docs/bocetos/examen_cuerpo.html` para «La mujer del bosque», los consejos del Dr. Valen en la mesa de autopsias (`D2`) y las frases de respaldo de pistas en el suelo y testigos cercanos en la escena del crimen (`D3`).
+- Frases descriptivas de respaldo cuando se inspecciona un cadáver procedural del pueblo (adaptadas según sus heridas reales en `HealthComponent.wounds`, si fue movido en `VillageForensics.state(vm)["moved"]`, envenenado en `["poisoned"]` o enfriado en `["tampered_time"]`), además de los textos literales del boceto `docs/bocetos/examen_cuerpo.html` para «La mujer del bosque», los consejos del Dr. Valen en la mesa de autopsias (`D2`), las frases de respaldo de pistas en el suelo y testigos cercanos en la escena del crimen (`D3`) y las 4 fichas de sospechosos de referencia en el tablero de corcho (`D4`).
 
-**Dónde:** `scripts/ui/DetectiveUI.gd` (`_build_case_from_corpse`, `_get_default_forest_woman_zones`, `_get_default_morgue_tests`, `_build_scene_data_for_corpse`), `scripts/systems/SimpleInventory.gd` (`CATALOG["magnifying_glass"]`).
-**Depende:** solo textos descriptivos mostrados en el cuaderno de papel derecho y en el banco de autopsias.
+**Dónde:** `scripts/ui/DetectiveUI.gd` (`_build_case_from_corpse`, `_get_default_forest_woman_zones`, `_get_default_morgue_tests`, `_build_scene_data_for_corpse`, `_build_board_suspects_for_corpse`), `scripts/systems/SimpleInventory.gd` (`CATALOG["magnifying_glass"]`).
+**Depende:** solo textos descriptivos mostrados en el cuaderno de papel derecho, en el banco de autopsias y en las fichas de referencia del tablero.
 
 
 

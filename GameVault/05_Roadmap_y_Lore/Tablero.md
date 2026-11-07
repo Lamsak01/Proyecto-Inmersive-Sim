@@ -46,6 +46,7 @@ kanban-plugin: board
 
 ## ✅ Hecho
 
+- [x] Herramientas del detective — Cuaderno y tablero del caso (`D4`): atajo con tecla `[N]` en cualquier momento, tablero de corcho con fichas arrastrables de sospechosos y pistas anotadas, unión y borrado de hilos rojos entre fichas, y guardado/carga en la partida ([[Investigación Forense]]) (2026-11-07)
 - [x] Herramientas del detective — Escena del crimen (`D3`): búsqueda a oscuras moviendo el farol con el ratón sobre el fondo cenital 3D en esquema, pistas físicas reales de `VillageForensics` (sangre o su ausencia, arrastre, huellas, objetos plantados) y testigos cercanos con «Preguntar» y «Presionar» según su carácter y afinidad ([[Investigación Forense]]) (2026-11-07)
 - [x] Herramientas del detective — Autopsia en la morgue (`D2`): mesa de autopsias con el Dr. Valen, 4 pruebas por pasos con riesgo de fallo (`sangre` con 2 viales y tabla de colores, `cuello`, `estomago`, `piel`), consejo del forense a cambio de minutos, actualización de la causa real y conexión con `VillageForensics` ([[Investigación Forense]]) (2026-11-07)
 - [x] Herramientas del detective — Examen del cuerpo en la escena (`D1`): pantalla fiel a `docs/bocetos/examen_cuerpo.html` al pulsar `[E]` junto a un cadáver, con fondo cenital 3D en esquema del lugar real, silueta plana de mujer u hombre según la víctima, 7 zonas clicables, acciones superficiales que avanzan minutos del reloj, marcas sobre el cuerpo y tira inferior del cuaderno del caso ([[Investigación Forense]]) (2026-11-07)

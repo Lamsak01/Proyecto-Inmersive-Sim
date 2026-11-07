@@ -143,6 +143,13 @@ var scene_witnesses: Array[Dictionary] = [] # [{name, npc_ref, ask_text, press_o
 var scene_finds_vbox: VBoxContainer = null
 var scene_witnesses_vbox: VBoxContainer = null
 
+# Vista D4: Cuaderno y tablero del caso (corcho, fichas arrastrables e hilos rojos)
+var corkboard_canvas: CorkboardCanvas = null
+var board_suspects: Array[Dictionary] = []
+var board_positions: Dictionary = {} # pin_id -> Vector2(x, y)
+var board_links: Array = []          # [[id_a, id_b], ...]
+var board_link_from: String = ""
+
 # Tira inferior: Cuaderno del caso
 var strip_notes_hbox: HBoxContainer = null
 var lbl_strip_empty: Label = null
@@ -551,6 +558,123 @@ class CrimeSceneCanvas extends Control:
 
 
 # ==============================================================================
+# Subclases de dibujo para el tablero de corcho e hilos rojos (Bloque D4)
+# ==============================================================================
+class StringsOverlay extends Control:
+	var board: CorkboardCanvas = null
+
+	func _draw() -> void:
+		if board == null or board.ui == null:
+			return
+		var ui_ref: DetectiveUI = board.ui
+		for l in ui_ref.board_links:
+			if not (l is Array) or (l as Array).size() < 2:
+				continue
+			var id_a: String = str(l[0])
+			var id_b: String = str(l[1])
+			if not ui_ref.board_positions.has(id_a) or not ui_ref.board_positions.has(id_b):
+				continue
+			var pa: Vector2 = ui_ref.board_positions[id_a] + Vector2(84.0, 5.0)
+			var pb: Vector2 = ui_ref.board_positions[id_b] + Vector2(84.0, 5.0)
+			draw_line(pa + Vector2(0, 2), pb + Vector2(0, 2), Color(0, 0, 0, 0.35), 3.0, true)
+			draw_line(pa, pb, COL_RED_PIN, 2.6, true)
+			draw_circle(pa, 4.5, COL_RED_PIN)
+			draw_circle(pb, 4.5, COL_RED_PIN)
+
+
+class CorkboardCanvas extends Control:
+	var ui: DetectiveUI = null
+	var strings_overlay: StringsOverlay = null
+	var card_nodes: Dictionary = {} # pin_id -> Control
+	var dragging_id: String = ""
+	var drag_start_mouse: Vector2 = Vector2.ZERO
+	var drag_start_pos: Vector2 = Vector2.ZERO
+	var drag_moved: bool = false
+
+	func _ready() -> void:
+		clip_contents = true
+		strings_overlay = StringsOverlay.new()
+		strings_overlay.board = self
+		strings_overlay.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+		strings_overlay.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		strings_overlay.z_index = 20
+		add_child(strings_overlay)
+
+	func _gui_input(event: InputEvent) -> void:
+		if ui == null:
+			return
+		if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
+			var hit_link := _find_link_near(event.position)
+			if hit_link >= 0:
+				ui.remove_board_link_at(hit_link)
+				accept_event()
+
+	func _find_link_near(pt: Vector2) -> int:
+		if ui == null:
+			return -1
+		for i in range(ui.board_links.size()):
+			var l = ui.board_links[i]
+			if not (l is Array) or (l as Array).size() < 2:
+				continue
+			var id_a: String = str(l[0])
+			var id_b: String = str(l[1])
+			if not ui.board_positions.has(id_a) or not ui.board_positions.has(id_b):
+				continue
+			var pa: Vector2 = ui.board_positions[id_a] + Vector2(84.0, 5.0)
+			var pb: Vector2 = ui.board_positions[id_b] + Vector2(84.0, 5.0)
+			var closest := Geometry2D.get_closest_point_to_segment(pt, pa, pb)
+			if pt.distance_to(closest) <= 9.0:
+				return i
+		return -1
+
+	func on_card_gui_input(event: InputEvent, pin_id: String) -> void:
+		if ui == null:
+			return
+		if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT:
+			if event.pressed:
+				dragging_id = pin_id
+				drag_start_mouse = get_local_mouse_position()
+				drag_start_pos = ui.board_positions.get(pin_id, Vector2(30, 30))
+				drag_moved = false
+			else:
+				if dragging_id == pin_id:
+					var was_moved := drag_moved
+					dragging_id = ""
+					if not was_moved:
+						ui.click_board_pin(pin_id)
+					else:
+						ui.save_detective_state()
+		elif event is InputEventMouseMotion and dragging_id == pin_id:
+			var cur_m := get_local_mouse_position()
+			var delta := cur_m - drag_start_mouse
+			if absf(delta.x) + absf(delta.y) > 4.0:
+				drag_moved = true
+			ui.move_board_pin(pin_id, drag_start_pos + delta)
+
+	func redraw_links() -> void:
+		if strings_overlay != null:
+			strings_overlay.queue_redraw()
+
+	func _draw() -> void:
+		# Fondo de corcho (#9a7147) con motas de corcho (#a57c4f y #8a643c) como en el boceto HTML
+		draw_rect(Rect2(Vector2.ZERO, size), Color("#9a7147"), true)
+		var col_light := Color("#a57c4f")
+		var col_dark := Color("#8a643c")
+		var step_x := 28.0
+		var step_y := 24.0
+		var y := 8.0
+		var row := 0
+		while y < size.y:
+			var x := 10.0 + float((row * 13) % 19)
+			while x < size.x:
+				draw_rect(Rect2(Vector2(x, y), Vector2(2, 2)), col_light, true)
+				draw_rect(Rect2(Vector2(x + 11.0, y + 9.0), Vector2(2, 2)), col_dark, true)
+				x += step_x
+			y += step_y
+			row += 1
+
+
+# ==============================================================================
 # Construcción de la interfaz
 # ==============================================================================
 func _ready() -> void:
@@ -680,7 +804,7 @@ func _build_ui() -> void:
 	view_scene = _build_scene_view()
 	views_holder.add_child(view_scene)
 
-	view_board = _build_placeholder_view("Tablero del caso (Bloque D4)")
+	view_board = _build_board_view()
 	views_holder.add_child(view_board)
 
 	# 4. Tira inferior: Cuaderno del caso (fichas clavadas con chincheta roja)
@@ -1172,6 +1296,51 @@ func _build_scene_view() -> Control:
 	return split
 
 
+# ==============================================================================
+# Vista 4 (Bloque D4): Tablero del caso (tablero de corcho con sospechosos, fichas e hilos rojos)
+# ==============================================================================
+func _build_board_view() -> Control:
+	var board_vbox := VBoxContainer.new()
+	board_vbox.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	board_vbox.add_theme_constant_override("separation", 8)
+	board_vbox.visible = false
+
+	var hdr_hb := HBoxContainer.new()
+	hdr_hb.add_theme_constant_override("separation", 12)
+	board_vbox.add_child(hdr_hb)
+
+	var lbl_bh := Label.new()
+	lbl_bh.text = "Tablero del caso"
+	lbl_bh.add_theme_font_size_override("font_size", 19)
+	lbl_bh.add_theme_color_override("font_color", COL_INK)
+	hdr_hb.add_child(lbl_bh)
+
+	var lbl_bsub := Label.new()
+	lbl_bsub.text = "Arrastra las fichas. Pulsa una y luego otra para unirlas con hilo rojo. Pulsa un hilo para quitarlo."
+	lbl_bsub.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	lbl_bsub.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	lbl_bsub.add_theme_font_size_override("font_size", 12)
+	lbl_bsub.add_theme_color_override("font_color", COL_DIM)
+	hdr_hb.add_child(lbl_bsub)
+
+	var btn_clear_links := _make_header_btn("Quitar todos los hilos", func(): clear_all_board_links())
+	hdr_hb.add_child(btn_clear_links)
+
+	var cork_frame := PanelContainer.new()
+	cork_frame.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	cork_frame.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	cork_frame.add_theme_stylebox_override("panel", _style_box(Color("#9a7147"), Color("#4a3523"), 8, 0, 0, 0))
+	board_vbox.add_child(cork_frame)
+
+	corkboard_canvas = CorkboardCanvas.new()
+	corkboard_canvas.ui = self
+	corkboard_canvas.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	corkboard_canvas.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	cork_frame.add_child(corkboard_canvas)
+
+	return board_vbox
+
+
 func _add_legend_dot(parent: Node, col: Color, txt: String) -> void:
 	var hb := HBoxContainer.new()
 	hb.add_theme_constant_override("separation", 5)
@@ -1199,6 +1368,7 @@ func open_for_corpse(corpse_node: Node2D, initial_mode: String = "body") -> void
 	if WorldClock != null:
 		WorldClock.set_activity_pause(true)
 
+	load_detective_state()
 	_build_case_from_corpse(corpse_node)
 	_refresh_3d_topdown_sketch()
 	switch_mode(initial_mode)
@@ -1208,6 +1378,7 @@ func open_for_corpse(corpse_node: Node2D, initial_mode: String = "body") -> void
 		_render_notebook_zone()
 	_render_morgue_view()
 	_render_scene_view()
+	_render_board_view()
 	_render_strip_notes()
 	_update_header_meta()
 
@@ -1215,6 +1386,7 @@ func open_for_corpse(corpse_node: Node2D, initial_mode: String = "body") -> void
 func close_panel() -> void:
 	if not visible:
 		return
+	save_detective_state()
 	visible = false
 	var st := _find_world_stage_3d()
 	if st != null and st.has_method("set_detective_topdown"):
@@ -1254,6 +1426,8 @@ func switch_mode(mode_id: String) -> void:
 		_render_morgue_view()
 	elif mode_id == "scene":
 		_render_scene_view()
+	elif mode_id == "board":
+		_render_board_view()
 	_refresh_tab_styles()
 	_refresh_3d_topdown_sketch()
 	_update_header_meta()
@@ -1372,6 +1546,7 @@ func _build_case_from_corpse(corpse_node: Node2D) -> void:
 		zone_data = _get_default_forest_woman_zones(has_lupa)
 		_build_morgue_tests_for_corpse(corpse_node)
 		_build_scene_data_for_corpse(corpse_node)
+		_build_board_suspects_for_corpse(corpse_node)
 		return
 
 	var v_name: String = str(corpse_node.get("npc_name"))
@@ -1496,6 +1671,7 @@ func _build_case_from_corpse(corpse_node: Node2D) -> void:
 	}
 	_build_morgue_tests_for_corpse(corpse_node)
 	_build_scene_data_for_corpse(corpse_node)
+	_build_board_suspects_for_corpse(corpse_node)
 
 
 func _describe_zone_wounds(w_arr: Array, weapon_cause: String, fallback_txt: String) -> String:
@@ -1739,13 +1915,18 @@ func _has_note_with_key(src_key: String) -> bool:
 func add_notebook_note(title: String, text: String, tag: String = "", source_key: String = "") -> void:
 	if source_key != "" and _has_note_with_key(source_key):
 		return
+	var pin_id: String = source_key if source_key != "" else ("n_%d" % notebook_notes.size())
 	notebook_notes.append({
+		"id": pin_id,
 		"title": title,
 		"text": text,
 		"tag": tag,
 		"source_key": source_key
 	})
 	_render_strip_notes()
+	if current_mode == "board":
+		_render_board_view()
+	save_detective_state()
 
 
 func _render_strip_notes() -> void:
@@ -2762,5 +2943,268 @@ func _render_scene_view() -> void:
 				_render_scene_view()
 			)
 			acts_hb.add_child(nb2)
+
+
+# ==============================================================================
+# Bloque D4 — Cuaderno y tablero del caso (sospechosos, fichas, hilos rojos y persistencia)
+# ==============================================================================
+func _build_board_suspects_for_corpse(corpse_node: Node2D) -> void:
+	var is_scripted: bool = (corpse_node == null or not is_instance_valid(corpse_node) or corpse_node.has_meta("scripted_case_zones"))
+	var default_suspects: Array[Dictionary] = [
+		{"id": "s_v", "k": "Sospechoso", "t": "«V.» — firmó la nota del bolsillo citándola en el puente viejo."},
+		{"id": "s_alch", "k": "Sospechoso", "t": "El boticario — guarda hierbas de embalsamar bajo llave."},
+		{"id": "s_miller", "k": "Sospechoso", "t": "El molinero — tiene carro y cordel de cáñamo encerado."},
+		{"id": "s_boy", "k": "Sospechoso", "t": "Muchacho de capa parda — visto corriendo junto al arroyo."}
+	]
+	if is_scripted:
+		board_suspects = default_suspects
+		return
+
+	board_suspects.clear()
+	var vm = get_tree().get_first_node_in_group("village_manager") if is_inside_tree() else null
+	if vm != null and "active_sheriff_investigation" in vm:
+		var inv: Dictionary = vm.active_sheriff_investigation
+		if inv.get("active") == true and inv.get("suspects") is Dictionary:
+			var susp_dict: Dictionary = inv["suspects"]
+			var sorted_names: Array = susp_dict.keys()
+			sorted_names.sort_custom(func(a, b):
+				return int(susp_dict[a].get("score", 0)) > int(susp_dict[b].get("score", 0))
+			)
+			for i in range(mini(4, sorted_names.size())):
+				var s_name: String = str(sorted_names[i])
+				var s_info: Dictionary = susp_dict[s_name]
+				var motive_txt: String = str(s_info.get("motive", "Visto cerca del lugar del crimen"))
+				var alibi_txt: String = str(s_info.get("alibi", ""))
+				var full_txt: String = "%s — %s%s" % [s_name, motive_txt, (" (" + alibi_txt + ")") if alibi_txt != "" else ""]
+				board_suspects.append({
+					"id": "s_real_%d" % i,
+					"k": "Sospechoso",
+					"t": full_txt
+				})
+	if board_suspects.is_empty():
+		board_suspects = default_suspects
+
+
+func get_board_items() -> Array[Dictionary]:
+	if board_suspects.is_empty():
+		_build_board_suspects_for_corpse(current_corpse)
+	var items: Array[Dictionary] = []
+	for s in board_suspects:
+		items.append({
+			"id": str(s.get("id", "")),
+			"k": str(s.get("k", "Sospechoso")),
+			"t": str(s.get("t", "")),
+			"suspect": true
+		})
+	for i in range(notebook_notes.size()):
+		var n: Dictionary = notebook_notes[i]
+		var pid: String = str(n.get("id", n.get("source_key", "n_%d" % i)))
+		if pid == "":
+			pid = "n_%d" % i
+		items.append({
+			"id": pid,
+			"k": str(n.get("title", "Pista")),
+			"t": str(n.get("text", "")),
+			"suspect": false
+		})
+	return items
+
+
+func _ensure_board_positions(items: Array[Dictionary]) -> void:
+	for idx in range(items.size()):
+		var it: Dictionary = items[idx]
+		var pid: String = str(it.get("id", ""))
+		if not board_positions.has(pid):
+			var col: int = idx % 4
+			var row: int = int(idx / 4)
+			board_positions[pid] = Vector2(26.0 + float(col) * 195.0, 26.0 + float(row) * 125.0)
+
+
+func _render_board_view() -> void:
+	if corkboard_canvas == null:
+		return
+	var items := get_board_items()
+	_ensure_board_positions(items)
+
+	for child in corkboard_canvas.get_children():
+		if child != corkboard_canvas.strings_overlay:
+			child.queue_free()
+	corkboard_canvas.card_nodes.clear()
+
+	for it in items:
+		var pid: String = str(it.get("id", ""))
+		var is_susp: bool = (it.get("suspect") == true)
+		var is_linked_sel: bool = (board_link_from == pid)
+		var pos: Vector2 = board_positions.get(pid, Vector2(26, 26))
+
+		var card := PanelContainer.new()
+		card.custom_minimum_size = Vector2(168, 72)
+		card.position = pos
+		card.mouse_default_cursor_shape = Control.CURSOR_MOVE
+
+		var bg_col := Color("#f5e3df") if is_susp else COL_PAPER
+		var border_col := COL_RED_PIN if is_linked_sel else COL_PAPER_INK
+		var border_w := 2 if is_linked_sel else 1
+		var st := _style_box(bg_col, border_col, border_w, 0, 10, 9)
+		st.shadow_color = Color(0, 0, 0, 0.35)
+		st.shadow_size = 5
+		st.shadow_offset = Vector2(0, 3)
+		card.add_theme_stylebox_override("panel", st)
+
+		var vb := VBoxContainer.new()
+		vb.add_theme_constant_override("separation", 4)
+		vb.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		card.add_child(vb)
+
+		var top_hb := HBoxContainer.new()
+		top_hb.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		vb.add_child(top_hb)
+
+		var kl := Label.new()
+		kl.text = str(it.get("k", "Pista")).to_upper()
+		kl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		kl.add_theme_font_size_override("font_size", 10)
+		kl.add_theme_color_override("font_color", Color("#7a1f1b") if is_susp else Color("#7b6f5a"))
+		kl.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		top_hb.add_child(kl)
+
+		# Chincheta superior en el centro
+		var pin_dot := ColorRect.new()
+		pin_dot.color = COL_RED_PIN
+		pin_dot.custom_minimum_size = Vector2(10, 10)
+		pin_dot.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		top_hb.add_child(pin_dot)
+
+		var tl := Label.new()
+		tl.text = str(it.get("t", ""))
+		tl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		tl.custom_minimum_size = Vector2(146, 0)
+		tl.add_theme_font_size_override("font_size", 12)
+		tl.add_theme_color_override("font_color", COL_PAPER_INK)
+		tl.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		vb.add_child(tl)
+
+		var cap_id: String = pid
+		card.gui_input.connect(func(ev: InputEvent):
+			corkboard_canvas.on_card_gui_input(ev, cap_id)
+		)
+		corkboard_canvas.add_child(card)
+		corkboard_canvas.card_nodes[pid] = card
+
+	corkboard_canvas.redraw_links()
+
+
+func click_board_pin(pin_id: String) -> void:
+	if board_link_from == "":
+		board_link_from = pin_id
+	elif board_link_from == pin_id:
+		board_link_from = ""
+	else:
+		var id_a := board_link_from
+		var id_b := pin_id
+		var exists := false
+		for i in range(board_links.size() - 1, -1, -1):
+			var l = board_links[i]
+			if l is Array and l.size() >= 2:
+				if (str(l[0]) == id_a and str(l[1]) == id_b) or (str(l[0]) == id_b and str(l[1]) == id_a):
+					board_links.remove_at(i)
+					exists = true
+		if not exists:
+			board_links.append([id_a, id_b])
+		board_link_from = ""
+		save_detective_state()
+	_render_board_view()
+
+
+func move_board_pin(pin_id: String, new_pos: Vector2) -> void:
+	var max_x := 640.0
+	var max_y := 440.0
+	if corkboard_canvas != null and corkboard_canvas.size.x > 180.0:
+		max_x = corkboard_canvas.size.x - 172.0
+		max_y = corkboard_canvas.size.y - 78.0
+	var clamped := Vector2(clampf(new_pos.x, 8.0, maxf(8.0, max_x)), clampf(new_pos.y, 8.0, maxf(8.0, max_y)))
+	board_positions[pin_id] = clamped
+	if corkboard_canvas != null and corkboard_canvas.card_nodes.has(pin_id):
+		var c_node: Control = corkboard_canvas.card_nodes[pin_id]
+		if is_instance_valid(c_node):
+			c_node.position = clamped
+		corkboard_canvas.redraw_links()
+
+
+func remove_board_link_at(link_idx: int) -> void:
+	if link_idx < 0 or link_idx >= board_links.size():
+		return
+	board_links.remove_at(link_idx)
+	save_detective_state()
+	if corkboard_canvas != null:
+		corkboard_canvas.redraw_links()
+
+
+func remove_board_link(id_a: String, id_b: String) -> void:
+	for i in range(board_links.size() - 1, -1, -1):
+		var l = board_links[i]
+		if l is Array and l.size() >= 2:
+			if (str(l[0]) == id_a and str(l[1]) == id_b) or (str(l[0]) == id_b and str(l[1]) == id_a):
+				board_links.remove_at(i)
+	save_detective_state()
+	if corkboard_canvas != null:
+		corkboard_canvas.redraw_links()
+
+
+func clear_all_board_links() -> void:
+	board_links.clear()
+	board_link_from = ""
+	save_detective_state()
+	_render_board_view()
+
+
+func save_detective_state() -> void:
+	var vm = get_tree().get_first_node_in_group("village_manager") if is_inside_tree() else null
+	if vm == null or not ("VillageForensics" in vm):
+		return
+	var st: Dictionary = vm.VillageForensics.state(vm)
+	var pos_serialized: Dictionary = {}
+	for k in board_positions.keys():
+		var v: Vector2 = board_positions[k]
+		pos_serialized[str(k)] = [v.x, v.y]
+	st["detective_board"] = {
+		"notes": notebook_notes.duplicate(true),
+		"positions": pos_serialized,
+		"links": board_links.duplicate(true),
+		"elapsed_minutes": elapsed_minutes,
+		"findings_count": findings_count
+	}
+
+
+func load_detective_state() -> void:
+	var vm = get_tree().get_first_node_in_group("village_manager") if is_inside_tree() else null
+	if vm == null or not ("VillageForensics" in vm):
+		return
+	var st: Dictionary = vm.VillageForensics.state(vm)
+	var db = st.get("detective_board", {})
+	if not (db is Dictionary) or (db as Dictionary).is_empty():
+		return
+	var saved_notes = db.get("notes", [])
+	if saved_notes is Array and not (saved_notes as Array).is_empty():
+		notebook_notes.clear()
+		for n in saved_notes:
+			if n is Dictionary:
+				notebook_notes.append((n as Dictionary).duplicate(true))
+	var saved_pos = db.get("positions", {})
+	if saved_pos is Dictionary:
+		for k in (saved_pos as Dictionary).keys():
+			var arr = saved_pos[k]
+			if arr is Array and (arr as Array).size() >= 2:
+				board_positions[str(k)] = Vector2(float(arr[0]), float(arr[1]))
+			elif arr is Vector2:
+				board_positions[str(k)] = arr
+	var saved_links = db.get("links", [])
+	if saved_links is Array:
+		board_links = (saved_links as Array).duplicate(true)
+	if db.has("elapsed_minutes"):
+		elapsed_minutes = int(db.get("elapsed_minutes", elapsed_minutes))
+	if db.has("findings_count"):
+		findings_count = int(db.get("findings_count", findings_count))
+
 
 

@@ -3,6 +3,11 @@
 Cambios del juego, del más nuevo al más antiguo. Añade una entrada al cerrar cada bloque, en lenguaje sencillo.
 El detalle técnico está en `docs/HANDOFF.md` (sección 7) y el historial completo en `git log`. Lo anterior a B0.1 está en `AUDIT_LOG.md` y `SESSION_CONTEXT_LOG.md`.
 
+## 2026-11-07 — Cuaderno y tablero de corcho con hilos rojos (herramientas del detective, paso 4)
+- **Abrir el tablero en cualquier momento con la tecla `[N]`:** además de la pestaña «4 · Tablero del caso» dentro de la mesa de investigación, puedes pulsar `[N]` en cualquier momento para abrir tu tablero de corcho con lo que llevas anotado.
+- **Fichas que se arrastran e hilos rojos:** en el corcho aparecen las fichas de los sospechosos del caso y todas las pistas que hayas decidido anotar desde el cuerpo, la autopsia o la escena del crimen. Puedes colocarlas donde quieras arrastrándolas con el ratón, unir dos fichas con hilo rojo pulsando una y luego otra, y quitar cualquier hilo haciendo clic encima.
+- **Se guarda con tu partida:** todas tus notas del cuaderno, la posición de cada ficha en el corcho y los hilos rojos que hayas tendido se guardan y recuperan al cargar la partida.
+
 ## 2026-11-07 — Escena del crimen bajo el farol (herramientas del detective, paso 3)
 - **Buscar a oscuras con tu farol:** en la pestaña «Escena del crimen» el lugar del hallazgo queda a oscuras y solo ves lo que alumbra el círculo de tu farol al mover el ratón, junto a la silueta de donde yacía el cuerpo.
 - **Pistas reales en el suelo:** bajo la luz del farol aparecen las señales reales de lo ocurrido (surcos si arrastraron el cadáver desde otro sitio, charcos de sangre o piedra fregada con lejía, huellas de huida, barro removido u objetos plantados para incriminar a otro vecino).

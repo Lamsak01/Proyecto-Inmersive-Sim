@@ -332,6 +332,16 @@ func _unhandled_input(event: InputEvent) -> void:
 				if chronicle_panel and not chron_open:
 					chronicle_panel.call("open_panel")
 				get_viewport().set_input_as_handled()
+			elif event.physical_keycode == KEY_N or event.keycode == KEY_N:
+				if detective_ui and detective_ui.visible:
+					if str(detective_ui.get("current_mode")) == "board":
+						detective_ui.call("close_panel")
+					else:
+						detective_ui.call("switch_mode", "board")
+				else:
+					var active_c: Node2D = detective_ui.get("current_corpse") if detective_ui else null
+					open_detective_ui(active_c, "board")
+				get_viewport().set_input_as_handled()
 			elif event.keycode == KEY_ESCAPE:
 				if detective_ui and detective_ui.visible:
 					detective_ui.call("close_panel")
@@ -855,7 +865,7 @@ func _on_clock_time_updated(_day: int, _hour: int, _minute: int) -> void:
 	var gold_val := 25
 	if player and "inventory" in player and player.inventory:
 		gold_val = player.inventory.gold
-	clock_sub_label.text = "💰 %d Oro | Visión: %d%% | [Espacio] Rodar · [Q] Parar · [X] Empujar | [TAB] Rueda | [I] Mochila | [J] Vecinos | [M] Mapa | [P] 1.ª Persona | [F9] 3D/2D | [F5/F12] Guardar/Cargar" % [gold_val, vis_pct]
+	clock_sub_label.text = "💰 %d Oro | Visión: %d%% | [Espacio] Rodar · [Q] Parar · [X] Empujar | [TAB] Rueda | [I] Mochila | [J] Vecinos | [N] Tablero | [M] Mapa | [P] 1.ª Persona | [F9] 3D/2D | [F5/F12] Guardar/Cargar" % [gold_val, vis_pct]
 
 func _init_default_objectives() -> void:
 	var old_hud: Control = get_node_or_null("ObjectiveHUD") as Control

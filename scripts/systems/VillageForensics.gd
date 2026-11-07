@@ -39,7 +39,7 @@ static func state(vm) -> Dictionary:
 	if not ts.has("forensics") or not (ts["forensics"] is Dictionary):
 		ts["forensics"] = {}
 	var st: Dictionary = ts["forensics"]
-	for k in ["planted", "alibis", "tampered", "hitmen", "poisoned", "moved", "slips", "scapegoats", "player_contracts", "insurance", "tampered_time", "copycats"]:
+	for k in ["planted", "alibis", "tampered", "hitmen", "poisoned", "moved", "slips", "scapegoats", "player_contracts", "insurance", "tampered_time", "copycats", "detective_board"]:
 		if not st.has(k) or not (st[k] is Dictionary):
 			st[k] = {}
 	return st
