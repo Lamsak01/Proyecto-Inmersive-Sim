@@ -12,7 +12,14 @@ El usuario prueba el juego matando con sigilo y recorriendo todo; quiere no mori
 - Aviso del supervisor: el oro infinito rompe la suma cero de la economía; es solo para pruebas.
 - Una prueba corta que lo compruebe (activar, recibir daño, gastar, desactivar). Arranque sin errores; súbelo.
 
-## 2. Letreros flotantes limpios (PROPUESTO por Claude; pendiente del visto bueno del usuario)
+## 2. Interfaz nueva en partida (APROBADA por el usuario, 2026-11-07: «me gusta todo»)
+**Referencia obligatoria:** `docs/bocetos/interfaz_juego.html` (ábrelo en el navegador y cópialo lo más fiel posible:
+colores, tipografías parecidas, papel y tinta como el examen forense). Resumen: barras de vida/energía arriba a la
+izquierda (hambre y sueño solo cuando bajan); reloj pequeño en placa arriba al centro (velocidad solo si no es 1x);
+mapa redondo de papel arriba a la derecha; avisos breves a la izquierda (máx. 3, se desvanecen, borde rojo los graves);
+tarjeta de papel abajo al centro con nombre, estado y acciones (rueda o G); objetos en mano abajo a la izquierda; oro
+abajo a la derecha; la barra de teclas actual pasa a una ayuda con [H]; aviso «MODO PRUEBAS» bajo el reloj.
+Además, lo de abajo:
 Fallo en `FALLOS_VISIBLES.md` (captura de la plaza con 4 cadáveres: 10+ líneas apiladas e ilegibles).
 - Solo la cosa que miras/tienes más cerca muestra letrero, y corto («Garrick · muerto»). El resto, solo un icono.
 - Las acciones (saquear, reportar, examinar, precios) solo abajo, en el aviso de [E] con «1/6 · Mayús+rueda o G».
