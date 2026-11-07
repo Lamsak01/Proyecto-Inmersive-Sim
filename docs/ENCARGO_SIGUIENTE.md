@@ -6,7 +6,11 @@
 
 ## ORDEN ACORDADO CON EL USUARIO (2026-11-07) — manda sobre el orden de abajo
 
-1. **Arreglos rápidos:** ropa/peinados variados, libro gigante, ropa que atraviesa, conos de depuración de los sapos,
+1. **Arreglos rápidos:** **(revisión de Claude a D1–D5)** el fondo del examen y de la escena es un «ruido» de bordes
+   ilegible y muestra suelo de interior/edificio, no el claro del arroyo: hacer un esquema limpio y sencillo del sitio
+   real (pocas líneas, como el boceto); en el tablero, que los hilos no tapen el texto (pasar por las chinchetas y
+   colocar las fichas sin cruzar); el informe decía 5 pestañas y retrato/barra de deterioro que no se ven: corregir el
+   informe o la vista. Además: ropa/peinados variados, libro gigante, ropa que atraviesa, conos de depuración de los sapos,
    letreros encimados, no andar sobre el agua, cama de la trattoria → despacho.
 2. **Agrandar y separar el entorno** (sección «Agrandar lo de alrededor»): campamento, bosque, llanura/ciénaga,
    animales repartidos, lago (un muelle, sin lavadero), parque, huerto fuera del camino, trattoria lejos del cementerio.
