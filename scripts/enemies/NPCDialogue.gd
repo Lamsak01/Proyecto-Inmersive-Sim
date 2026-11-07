@@ -1,6 +1,7 @@
 extends RefCounted
 
 const VillageQuests = preload("res://scripts/systems/VillageQuests.gd")
+const WeaponWear = preload("res://scripts/systems/combat/WeaponWear.gd") # C7 fase 4b
 const VillageSocialLife = preload("res://scripts/systems/VillageSocialLife.gd")
 const VillageChronicle = preload("res://scripts/systems/VillageChronicle.gd")
 const VillageSecrets = preload("res://scripts/systems/VillageSecrets.gd")
@@ -277,6 +278,7 @@ static func _add_neighbor_opinions(npc: VillageNPC, diag: Dictionary, ch_arr: Ar
 	VillageFaith.add_dialogue_choices(npc._get_vm(), npc, diag, ch_arr) # G6
 	VillageNeeds.add_dialogue_choices(npc._get_vm(), npc, diag, ch_arr) # E6
 	VillageIllness.add_dialogue_choices(npc._get_vm(), npc, diag, ch_arr) # E2
+	WeaponWear.add_dialogue_choices(npc._get_vm(), npc, diag, ch_arr) # C7 fase 4b: el herrero arregla tus armas
 	VillageCrime.add_dialogue_choices(npc._get_vm(), npc, diag, ch_arr) # E4
 	VillageTown.add_dialogue_choices(npc._get_vm(), npc, diag, ch_arr) # I5
 	VillageSect.add_dialogue_choices(npc._get_vm(), npc, diag, ch_arr) # O6
@@ -839,6 +841,9 @@ static func on_dialogue_action(npc: VillageNPC, action_id: String) -> void:
 			VillageTown.on_player_news(vm, npc)
 			VillageSect.on_player_news(vm, npc)
 			TraitDiscovery.reveal_next(npc, "con unas copas")
+		return
+	if action_id.begins_with("weapon_wear_"):
+		WeaponWear.on_player_action(vm, npc, action_id, inv)
 		return
 	if action_id.begins_with("illness_"):
 		if vm != null:

@@ -21,6 +21,7 @@ const CharacterAvatar3DScript = preload("res://scripts/visuals/CharacterAvatar3D
 
 var last_dir := "down"
 var equipped_weapon: WeaponData
+var weapon_wear: Dictionary = {} ## C7 fase 4b: estado de cada arma (0–100; sin entrada = nueva). Ver WeaponWear.gd
 var inventory: SimpleInventory = null
 var survival_comp: SurvivalComponent = null
 var avatar_3d: Node2D = null
@@ -899,11 +900,17 @@ func to_save_dict() -> Dictionary:
 		"player_skills": player_skills.duplicate(),
 		"player_skill_xp": player_skill_xp.duplicate(),
 		"weapon": weapon_id,
+		"weapon_wear": weapon_wear.duplicate(),
 		"medical": health_comp.to_medical_dict() if health_comp else {},
 		"inventory": inventory.to_dict() if inventory else {}
 	}
 
 func from_save_dict(data: Dictionary) -> void:
+	weapon_wear = {}
+	var ww = data.get("weapon_wear", {})
+	if ww is Dictionary:
+		for k in ww:
+			weapon_wear[str(k)] = clampf(float(ww[k]), 0.0, 100.0)
 	if data.has("pos_x") and data.has("pos_y"):
 		global_position = Vector2(float(data["pos_x"]), float(data["pos_y"]))
 	velocity = Vector2.ZERO

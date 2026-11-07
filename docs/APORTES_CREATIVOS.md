@@ -299,3 +299,10 @@ o vino ya dado. Conviene confirmarlo.
 
 **Dónde:** `LEEME_BETA.txt` (se copia como `LEEME.txt` junto al .exe).
 **Depende:** solo el texto que leen los amigos antes de jugar; nada del juego.
+
+## Frases del herrero y avisos de armas (C7 fase 4, provisional)
+- «Afilar y enderezar tus armas», «Listo: filo nuevo y el mango bien prieto», «Son N de oro. La piedra de afilar no gira sola»,
+  «Tus armas están bien…»; avisos «Tu espada se ha mellado: pega menos…», «¡Se le cae el arma!», heridas «(por la espalda)».
+
+**Dónde:** `scripts/systems/combat/WeaponWear.gd`, `VillageNPC.disarm`, `HealthComponent` (nombre de la herida).
+**Depende:** solo los textos; los números (precio, desgaste) están en `WeaponWear.gd`.

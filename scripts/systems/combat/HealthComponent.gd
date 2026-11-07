@@ -377,13 +377,77 @@ func take_damage(data: DamageData) -> void:
 	if buildup > 0.0:
 		add_bleed_buildup(buildup * 0.16, final_damage)
 
-func _pick_hit_region(data: DamageData) -> String:
-	var roll: float = randf()
-	var acc: float = 0.0
-	if data and data.stun_buildup >= 35.0 and randf() < 0.38:
-		return "head"
+## C7 fase 4a: la zona herida depende de desde dónde llega el golpe. Pesos por zona para este golpe:
+## - Atacantes bajos (animales, mascotas, jabalíes): sobre todo piernas.
+## - Por la espalda (el herido mira hacia otro lado): espalda y nuca; los brazos no llegan a cubrir.
+## - Por un costado: el brazo y la pierna de ese lado.
+## - Herido en el suelo: la cabeza queda a tiro.
+var last_hit_context: String = "" ## "espalda", "bajo", "costado" o "" (para el nombre de la herida)
+
+func _owner_facing() -> Vector2:
+	var o: Node = get_parent()
+	if o == null:
+		return Vector2.ZERO
+	var f = o.get("facing_dir")
+	if f is Vector2:
+		return f
+	var cc: Node = o.get_node_or_null("PlayerCombatController")
+	if cc != null and cc.get("current_aim_dir") is Vector2:
+		return cc.get("current_aim_dir")
+	return Vector2.ZERO
+
+func hit_region_weights(data: DamageData) -> Dictionary:
+	var w: Dictionary = {}
 	for r_id in REGION_ORDER:
-		acc += float(REGION_DEFS[r_id]["weight"])
+		w[r_id] = float(REGION_DEFS[r_id]["weight"])
+	last_hit_context = ""
+	var o: Node = get_parent()
+	if data == null or not is_instance_valid(data.source) or not (data.source is Node2D) or not (o is Node2D):
+		return w
+	var src: Node2D = data.source as Node2D
+	var low: bool = src.is_in_group("wild_animals") or src.is_in_group("domestic_pets") or (src.is_in_group("raiders") and str(src.get("kind")) == "boar")
+	if low:
+		w["left_leg"] *= 3.0
+		w["right_leg"] *= 3.0
+		w["left_arm"] *= 0.7
+		w["right_arm"] *= 0.7
+		w["head"] *= 0.15
+		last_hit_context = "bajo"
+	var to_src: Vector2 = src.global_position - (o as Node2D).global_position
+	var facing: Vector2 = _owner_facing()
+	if to_src.length_squared() > 1.0 and facing.length_squared() > 0.01:
+		var d: Vector2 = to_src.normalized()
+		var fwd: float = facing.normalized().dot(d)
+		var right_side: float = facing.normalized().rotated(PI / 2.0).dot(d) # >0: le llega por su derecha
+		if fwd < -0.35:
+			w["torso"] *= 1.5
+			w["head"] *= 1.3
+			w["left_arm"] *= 0.5
+			w["right_arm"] *= 0.5
+			if last_hit_context == "":
+				last_hit_context = "espalda"
+		elif absf(right_side) > 0.6:
+			var side: String = "right" if right_side > 0.0 else "left"
+			w[side + "_arm"] *= 1.8
+			w[side + "_leg"] *= 1.8
+			if last_hit_context == "":
+				last_hit_context = "costado"
+	if o.get("is_downed") == true:
+		w["head"] *= 2.5
+	return w
+
+func _pick_hit_region(data: DamageData) -> String:
+	if data and data.stun_buildup >= 35.0 and randf() < 0.38:
+		hit_region_weights(data) # deja el contexto (espalda, bajo…) para el nombre de la herida
+		return "head"
+	var w: Dictionary = hit_region_weights(data)
+	var total: float = 0.0
+	for r_id in REGION_ORDER:
+		total += float(w[r_id])
+	var roll: float = randf() * total
+	var acc: float = 0.0
+	for r_id in REGION_ORDER:
+		acc += float(w[r_id])
 		if roll <= acc:
 			return r_id
 	return "torso"
@@ -482,7 +546,7 @@ func _inflict_anatomical_wound(data: DamageData, final_damage: float) -> void:
 		"immunity": 0.0,
 		"tend_quality": 0.0,
 		"tend_tier": "none",
-		"weapon_cause": w_tag
+		"weapon_cause": w_tag + (" (por la espalda)" if last_hit_context == "espalda" else "")
 	}
 	_next_wound_id += 1
 	wounds.append(w_entry)

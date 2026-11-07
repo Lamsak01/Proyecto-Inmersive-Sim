@@ -6255,5 +6255,62 @@ func _initialize() -> void:
 	p70_pl.global_position = c74_ppos
 	await create_timer(0.5).timeout
 	print("Block C7 fase 3b (Sustained Guard & Shove) OK")
+	# ==========================================================================
+	# Bloque C7 fase 4: zonas por dirección, armas melladas y desarmar («C7 combate fase 4»)
+	# ==========================================================================
+	var c75_hc = c72_n.get_node_or_null("HealthComponent")
+	var c75_src = Node2D.new()
+	root.add_child(c75_src)
+	c75_src.add_to_group("wild_animals")
+	c72_n.facing_direction = Vector2.RIGHT
+	c75_src.global_position = c72_n.global_position + Vector2(30.0, 0.0) # delante y bajo
+	var c75_d = DamageData.new()
+	c75_d.amount = 5.0
+	c75_d.source = c75_src
+	var c75_w: Dictionary = c75_hc.hit_region_weights(c75_d)
+	var c75_base: Dictionary = c75_hc.REGION_DEFS
+	assert(float(c75_w["left_leg"]) > float(c75_base["left_leg"]["weight"]) * 2.5 and float(c75_w["head"]) < float(c75_base["head"]["weight"]) * 0.5 and c75_hc.last_hit_context == "bajo", "C7.23: An animal bites mostly the legs")
+	c75_src.remove_from_group("wild_animals")
+	c75_src.global_position = c72_n.global_position + Vector2(-30.0, 0.0) # por la espalda
+	c75_w = c75_hc.hit_region_weights(c75_d)
+	assert(float(c75_w["torso"]) > float(c75_base["torso"]["weight"]) * 1.4 and float(c75_w["right_arm"]) < float(c75_base["right_arm"]["weight"]) * 0.6 and c75_hc.last_hit_context == "espalda", "C7.24: From behind, the back and nape take it; the arms can't cover")
+	c75_src.global_position = c72_n.global_position + Vector2(0.0, 30.0) # mirando a la derecha, le llega por su derecha
+	c75_w = c75_hc.hit_region_weights(c75_d)
+	assert(float(c75_w["right_arm"]) > float(c75_base["right_arm"]["weight"]) * 1.7 and float(c75_w["left_arm"]) <= float(c75_base["left_arm"]["weight"]) + 0.001, "C7.25: From one side, that side's arm and leg take it")
+	c75_src.queue_free()
+	c72_n.facing_direction = Vector2.DOWN
+	# Armas melladas y el herrero
+	var c75_ww = load("res://scripts/systems/combat/WeaponWear.gd")
+	p70_pl.weapon_wear.clear()
+	for _c75_i in range(100):
+		c75_ww.wear_on_hit(p70_pl, p70_pl.sword_weapon, c72_n)
+	var c75_k: float = c75_ww.damage_mult(p70_pl, p70_pl.sword_weapon)
+	assert(c75_ww.condition(p70_pl, p70_pl.sword_weapon) < 60.0 and c75_k < 1.0 and c75_k > 0.65, "C7.26: After many blows the sword is notched and hits less (x%.2f)" % c75_k)
+	assert(p70_pl.to_save_dict().get("weapon_wear", {}).has("sword"), "C7.27: The weapon's condition is saved")
+	var c75_smith = vm.trade_npcs.get(int(c72_n.TradeRole.BLACKSMITH))
+	if c75_smith != null and is_instance_valid(c75_smith):
+		var c75_cost: int = c75_ww.repair_cost(p70_pl)
+		var c75_ch: Array = []
+		c75_ww.add_dialogue_choices(vm, c75_smith, {}, c75_ch)
+		assert(c75_cost > 0 and c75_ch.size() == 1, "C7.28: The smith offers to fix it (%d gold)" % c75_cost)
+		p70_inv.add_gold(c75_cost + 5)
+		var c75_g0: int = int(p70_inv.gold)
+		c75_ww.on_player_action(vm, c75_smith, "weapon_wear_repair", p70_inv)
+		assert(p70_pl.weapon_wear.is_empty() and int(p70_inv.gold) == c75_g0 - c75_cost, "C7.29: Paying the smith leaves the weapons as new")
+	p70_pl.weapon_wear.clear()
+	# Desarmar: solo quien lleva arma (guardia); un golpe fuerte en el brazo se la hace soltar
+	var c75_guard = null
+	for n_c75 in vm.VillageNeeds.living(vm):
+		if n_c75.trade_role in [n_c75.TradeRole.GUARD, n_c75.TradeRole.SHERIFF]:
+			c75_guard = n_c75
+			break
+	assert(not c72_n.disarm(5.0), "C7.30: A civilian has nothing to drop")
+	if c75_guard != null:
+		var c75_ghc = c75_guard.get_node_or_null("HealthComponent")
+		c75_ghc.wounds.append({"region": "right_arm"})
+		assert(c7_feel.try_disarm(c75_guard, 5.0) and c75_guard.is_disarmed(), "C7.31: A strong blow to a guard's arm makes them drop the baton")
+		c75_ghc.wounds.pop_back()
+		c75_guard.disarmed_until_msec = 0
+	print("Block C7 fase 4 (Directional Hit Zones, Notched Weapons & Smith Repair, Disarming) OK")
 	print("ALL RIMWORLD MEDICAL, FOOTPRINTS, 3-PHASE CORPSE REPORT, MULTI-CORPSE FIX, RPG INTERROGATION, PUBLIC TRIAL, DYNAMIC RELATIONSHIPS, MISSING FAMILY SEARCH, SOCIAL GLOSSARY & UNCONSCIOUS REACTION TESTS PASSED!")
 	quit(0)

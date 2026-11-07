@@ -31,6 +31,7 @@ var target: Node2D = null
 var _retarget_t: float = 0.0
 var _attack_t: float = 0.6
 var _windup_t: float = 0.0
+var disarmed_until_msec: int = 0 ## C7 fase 4c: el bandido sin su cuchillo pega la mitad
 var _recover_t: float = 0.0 ## C7 fase 2: quieto tras soltar un golpe (más si falló)
 ## C7 fase 2: masa al recibir golpes (un jabalí apenas se mueve; un bandido, como una persona algo recia)
 var hit_mass: float:
@@ -127,6 +128,16 @@ func _finish(outcome: String) -> void:
 	_done = true
 	gone.emit(self, outcome)
 
+
+func is_disarmed() -> bool:
+	return Time.get_ticks_msec() < disarmed_until_msec
+
+func disarm(seconds: float = 20.0) -> bool:
+	if kind == "boar" or is_disarmed():
+		return false
+	disarmed_until_msec = Time.get_ticks_msec() + int(seconds * 1000.0)
+	_windup_t = 0.0
+	return true
 
 func apply_parry_stagger(duration: float = 0.8, quiet: bool = false) -> void:
 	stagger_timer = maxf(stagger_timer, duration)
@@ -236,7 +247,7 @@ func _hit(t: Node2D) -> void:
 	if not t.has_method("take_damage"):
 		return
 	var d := DamageData.new()
-	d.amount = hit_damage
+	d.amount = hit_damage * (0.5 if is_disarmed() else 1.0)
 	d.weapon_tag = "Embestida de jabalí" if kind == "boar" else "Tajo de bandido"
 	d.knockback_force = float(_CombatFeel.attack_feel("colmillos" if kind == "boar" else "bandido")["push"])
 	d.source = self

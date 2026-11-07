@@ -96,6 +96,19 @@ static func apply_hit_reaction(target: Node, dir: Vector2, feel: Dictionary) -> 
 		target.call("apply_parry_stagger", float(feel.get("stagger", 0.2)) / sqrt(mass), true)
 	spawn_impact_spark(t2d, t2d.global_position + Vector2(0, -8) - dir.normalized() * 4.0, dir)
 
+## C7 fase 4c: un golpe fuerte (3.º de la cadena o cargado) que acaba en el brazo hace soltar el arma a quien lleva
+## una (guardia, bandido). Mira la herida que acaba de dejar; sin anatomía, una de cada tres veces.
+static func try_disarm(target: Node, seconds: float = 20.0) -> bool:
+	if target == null or not is_instance_valid(target) or not target.has_method("disarm") or target.get("is_dead") == true:
+		return false
+	var hc: Node = target.get_node_or_null("HealthComponent")
+	var on_arm: bool = false
+	if hc != null and hc.get("wounds") is Array and not (hc.get("wounds") as Array).is_empty():
+		on_arm = str((hc.get("wounds") as Array).back().get("region", "")) in ["left_arm", "right_arm"]
+	elif hc == null:
+		on_arm = randf() < 0.35
+	return on_arm and bool(target.call("disarm", seconds))
+
 ## Chispa breve en el punto del impacto (unas pocas motas que salen en la dirección del golpe).
 static func spawn_impact_spark(near: Node, pos: Vector2, dir: Vector2) -> void:
 	if near == null or not near.is_inside_tree() or near.get_tree().current_scene == null:

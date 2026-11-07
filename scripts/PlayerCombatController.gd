@@ -34,6 +34,7 @@ var _swing_hit_targets: Array[Node] = []
 ## C7 fase 1 (peso y respuesta): cómo se siente el golpe en curso (tabla de CombatFeel) y su duración total, que
 ## también usa el muñeco 3D para su animación. Mientras dura, la dirección del golpe queda fijada (compromiso).
 const CombatFeel = preload("res://scripts/systems/combat/CombatFeel.gd")
+const WeaponWear = preload("res://scripts/systems/combat/WeaponWear.gd") # C7 fase 4b: armas melladas
 var swing_duration: float = 0.36
 var swing_move_mult: float = 1.0
 var _swing_feel: Dictionary = {}
@@ -556,6 +557,12 @@ func attack(_aim_with_mouse: bool = true, charge: float = 0.0) -> void:
 	if _swing_power > 1.0:
 		hitbox_area.damage_data.amount *= _swing_power
 		hitbox_area.damage_data.stun_buildup *= _swing_power
+	var wear_k: float = WeaponWear.damage_mult(player, equipped) # un arma mellada pega, corta y tala menos
+	if wear_k < 1.0:
+		hitbox_area.damage_data.amount *= wear_k
+		hitbox_area.damage_data.bleed_buildup *= wear_k
+		hitbox_area.damage_data.logging_efficiency *= wear_k
+		hitbox_area.damage_data.mining_efficiency *= wear_k
 
 	if t_wind > 0.0:
 		await get_tree().create_timer(t_wind).timeout
@@ -668,6 +675,10 @@ func _on_hitbox_body_entered(body: Node2D) -> void:
 
 ## C7: respuesta del impacto según el arma: empujón, tambaleo, chispa, sonido, congelado y temblor.
 func _on_melee_impact(target: Node) -> void:
+	if is_instance_valid(player):
+		WeaponWear.wear_on_hit(player, player.equipped_weapon, target)
+	if _swing_power >= 1.3:
+		CombatFeel.try_disarm(target) # golpe fuerte al brazo: suelta el arma
 	var f: Dictionary = _swing_feel if not _swing_feel.is_empty() else CombatFeel.WEAPON_FEEL["default"]
 	if target is Node2D and is_instance_valid(player):
 		var dir: Vector2 = ((target as Node2D).global_position - player.global_position)

@@ -6,7 +6,6 @@ kanban-plugin: board
 
 ## 🔥 Prioridad alta (presencia física)
 
-- [ ] Rehacer el combate: hechas las fases 1 (peso y respuesta), 2 (rivales con las mismas reglas) y 3 (cadena, golpe cargado, guardia alta y empujón); faltan las consecuencias (zonas, mellas, desarmar) ([[Armaduras, Sigilo y Arcabuz]])
 - [ ] Arcabuz de chispa usable en combate directo ([[Armaduras, Sigilo y Arcabuz]])
 - [ ] Recinto caminable del [[Puesto del Paso]]
 - [ ] Sótanos y altillos dibujados en el tilemap ([[Capas Verticales y Alcantarillas]])
@@ -51,6 +50,7 @@ kanban-plugin: board
 
 ## ✅ Hecho
 
+- [x] Rehacer el combate (`C7` fases 1–4, 2026-11-06): peso y sonidos, rivales con las mismas reglas, cadena de espada, golpe cargado, guardia alta, empujón, zonas por dirección, armas melladas y desarmar. Pendiente: testigos que acuden al ruido (con el crimen interno) ([[Armaduras, Sigilo y Arcabuz]])
 - [x] Asaltos al pueblo medidos y puestos en pausa (el usuario prefiere crimen interno de bajo perfil) (2026-11-06)
 - [x] Versión para Windows con «Léeme» para los amigos (2026-11-06)
 - [x] Los vecinos lejanos viven siempre del todo (sin simulación «a ratos»); rendimiento medido y aparcado (2026-11-06)

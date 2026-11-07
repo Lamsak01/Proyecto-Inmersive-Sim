@@ -249,6 +249,7 @@ var _police_alerted_timer: float = 0.0
 var _civilian_hostile_timer: float = 0.0
 var _melee_windup_timer: float = 0.0
 var _police_baton_windup_timer: float = 0.0
+var disarmed_until_msec: int = 0 ## C7 fase 4c: sin porra ni pistola hasta entonces (le diste fuerte en el brazo)
 var _melee_recover_timer: float = 0.0 ## C7 fase 2: quieto tras soltar un golpe (más si falló): ventana para castigarle
 var _stagger_timer: float = 0.0
 var _last_seen_player_pos: Vector2 = Vector2.ZERO
@@ -2476,8 +2477,8 @@ func _process_police_law_enforcement(delta: float, vm: Node) -> bool:
 				sprite.modulate = Color(1.35, 0.9, 0.45)
 			_spawn_floating_text("❗", Color.ORANGE_RED, -36.0)
 	elif can_see_player and dist_p <= 195.0:
-		_move_towards_point(player.global_position, 82.0 * spd_mult, delta)
-		if _attack_timer <= 0.0:
+		_move_towards_point(player.global_position, (96.0 if is_disarmed() else 82.0) * spd_mult, delta)
+		if _attack_timer <= 0.0 and not is_disarmed():
 			_attack_timer = 1.25 / maxf(0.55, eff_pol)
 			_fire_police_pistol(player)
 	else:
@@ -2490,11 +2491,12 @@ func _strike_police_baton(player: Node2D) -> void:
 	if not player or not player.has_method("take_damage"):
 		return
 	var eff: float = get_job_efficiency()
+	var unarmed: bool = is_disarmed() # C7 fase 4c: sin porra, a puñetazos
 	var d := DamageData.new()
-	d.amount = 14.0 * eff
+	d.amount = (8.0 if unarmed else 14.0) * eff
 	d.type = CombatConstants.DamageType.BLUNT
-	d.stun_buildup = 36.0 * eff
-	d.weapon_tag = "Porra Policial"
+	d.stun_buildup = (14.0 if unarmed else 36.0) * eff
+	d.weapon_tag = ("Puñetazo de " + npc_name) if unarmed else "Porra Policial"
 	d.knockback_force = float(_CombatFeel.attack_feel("porra")["push"])
 	d.source = self
 	player.call("take_damage", d)
@@ -4053,6 +4055,18 @@ func get_activity_description() -> String:
 				return "🏠 Turno del Hogar (08-18h)" if _is_mandatory_work_hours() else "🏠 Cuidando el Hogar"
 			return "⚒️ En Turno Laboral (08-18h)" if _is_mandatory_work_hours() else "⚒️ Atendiendo su Oficio"
 
+## C7 fase 4c: solo guardia y alguaciles llevan armas que se puedan tirar (porra y pistola).
+func is_disarmed() -> bool:
+	return Time.get_ticks_msec() < disarmed_until_msec
+
+func disarm(seconds: float = 20.0) -> bool:
+	if not (trade_role in [TradeRole.SHERIFF, TradeRole.GUARD, TradeRole.ROYAL_INVESTIGATOR]) or is_disarmed():
+		return false
+	disarmed_until_msec = Time.get_ticks_msec() + int(seconds * 1000.0)
+	_police_baton_windup_timer = 0.0
+	_spawn_floating_text("🫳 ¡Se le cae el arma!", Color(1.0, 0.75, 0.35), -44.0)
+	return true
+
 func apply_parry_stagger(duration: float = 0.8, quiet: bool = false) -> void:
 	_stagger_timer = maxf(_stagger_timer, duration)
 	_melee_windup_timer = 0.0
@@ -4118,8 +4132,9 @@ func _process_hostile_combat(delta: float) -> void:
 			_CombatFeel.enemy_swing(self, "porra" if is_police_unit else "puño")
 			if is_instance_valid(player) and global_position.distance_to(player.global_position) <= 34.0 and player.has_method("take_damage"):
 				var d := DamageData.new()
-				d.amount = 14.0 if is_police_unit else 9.0
-				d.weapon_tag = "Porra Policial" if is_police_unit else ("Golpe de " + npc_name)
+				var armed_pol: bool = is_police_unit and not is_disarmed()
+				d.amount = 14.0 if armed_pol else 9.0
+				d.weapon_tag = "Porra Policial" if armed_pol else ("Golpe de " + npc_name)
 				d.knockback_force = float(af["push"])
 				d.source = self
 				player.call("take_damage", d)

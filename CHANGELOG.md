@@ -3,6 +3,14 @@
 Cambios del juego, del más nuevo al más antiguo. Añade una entrada al cerrar cada bloque, en lenguaje sencillo.
 El detalle técnico está en `docs/HANDOFF.md` (sección 7) y el historial completo en `git log`. Lo anterior a B0.1 está en `AUDIT_LOG.md` y `SESSION_CONTEXT_LOG.md`.
 
+## 2026-11-06 — El combate pesa: las consecuencias
+- **Dónde duele depende de desde dónde llega:** un jabalí o un perro muerden sobre todo las piernas; por la espalda se
+  hiere la espalda y la nuca (los brazos no llegan a cubrir, y la herida lo dice); de lado, el brazo y la pierna de ese lado.
+- **Las armas se mellan:** con el uso, tu espada, martillo, hacha, pico u hoz pierden filo y pegan menos (te avisa).
+  Talar con la espada la mella mucho antes. El herrero las deja como nuevas por unas monedas.
+- **Desarmar:** un golpe fuerte (el 3.º de la espada o uno cargado) que acaba en el brazo de un guardia le hace soltar
+  la porra y la pistola un rato: pelea a puñetazos. A un bandido le quita el cuchillo.
+
 ## 2026-11-06 — El combate pesa: cubrirse y empujar
 - **Cubrirte:** mantén Q después de parar y levantas la guardia: los golpes pasan muy flojos pero gastan energía;
   si te quedas sin ella, la guardia se rompe. Con la guardia alta andas despacio y no puedes golpear. No para flechas ni balas.
