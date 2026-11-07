@@ -64,5 +64,9 @@
   que el saboteador nocturno que no llega al taller (`verify_all` P6b.3a). Buscar todas las posiciones de trabajo, recados
   y rutas escritas a mano que no siguieron al edificio.
 
+- [ ] **Las alcantarillas aparecen en medio del bosque** (2026-11-07, tras agrandar el mapa): en 3D no se ven, pero en
+  2D sí, y tienen colisión (chocas con algo invisible en 3D). Ponerlas en su sitio (bajo el pueblo, con su entrada) y que
+  en 3D se vean igual que en 2D.
+
 ## Arreglados
 - [x] ✅ (2026-11-07) Fachada de la trattoria «Il Corvo» en 3D: parece de tablas oscuras en vez de estuco/ladrillo claro (`WorldStage3D.gd`: cambiada la textura de muros de `building_restaurant` a `town_textures/wall_brick_sand_center.png` con `uv1_scale = Vector3(2.4, 0.72, 2.4)`, tono claro de estuco/ladrillo cálido `Color(1.0, 0.95, 0.84)`, iluminación cálida de rebote `0.58` en la fachada sur y dintel con el mismo estuco en vez de `rf_planks.png`).
