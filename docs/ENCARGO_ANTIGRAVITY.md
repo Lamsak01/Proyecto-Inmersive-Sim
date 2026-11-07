@@ -1,61 +1,53 @@
-# Encargo para Antigravity (escrito por Claude Code, supervisor)
+# Encargo para Antigravity (escrito por Claude Code, supervisor) — trabajo de noche
 
-> Fecha: 2026-11-06. Pega este archivo entero como primer mensaje a Antigravity, o dile: «Lee
-> `docs/ENCARGO_ANTIGRAVITY.md` y haz lo que pone».
-> Al usuario le queda poca cuota de Claude Code: **trabaja sin pedir permiso** y deja todo bien explicado en el informe.
+> Fecha: 2026-11-07. El usuario se va a dormir: **trabaja en autónomo, sin pedir permiso ni plan previo**, bloque a
+> bloque y en este orden. Dile «Lee `docs/ENCARGO_ANTIGRAVITY.md` y haz lo que pone».
 
-## 0. Reglas (resumen)
+## Reglas
+- **Pruebas en pausa hasta nuevo aviso (orden del usuario):** no pases `verify_all` ni las otras pruebas. Comprueba
+  solo que el juego arranca sin errores de script (`timeout 120 flatpak run org.godotengine.Godot --headless --path .
+  --quit-after 300`). Añade su test al final de `verify_all.gd` si quieres, pero no lo ejecutes.
+- **No toques** `scripts/systems/VillageSect.gd`, `GameVault/03_La_Secta/`, el Lore provisional, `GameVault/99_Archivo/`,
+  `GameVault/.obsidian/` ni `.claude/`. Nada de rendimiento ni de comprar arte.
+- Nada de sistemas aislados ni de menús: todo se ve en el mundo. Las 7 Reglas de las Auditorías: suma cero, nada se
+  destripa en menús si el jugador no lo sabe, todo puede fallar y tiene espera, lo arriesgado exige cercanía y testigos
+  con línea de visión.
+- Al cerrar **cada** bloque: HANDOFF §7, `CHANGELOG.md`, `docs/REGISTRO_TRABAJO.md`, nota del vault afectada, Tablero,
+  diario `GameVault/06_Diario/AAAA-MM-DD.md`, textos nuevos en `docs/APORTES_CREATIVOS.md`; **commit y push a `main`**
+  (así, si algo falla de madrugada, lo anterior queda guardado). Al final, un informe nuevo en `docs/INFORME_ANTIGRAVITY.md`.
+- Trampas: usa `x.get("campo") == true`, nunca `bool(x.get(...))`; los oficios nuevos van al FINAL de `TradeRole`;
+  no uses `ui_accept` para acciones del jugador (incluye Espacio).
 
-- Tú escribes el código; Claude Code revisa. El usuario no programa: háblale en español, breve, sin código.
-- Lee antes `CLAUDE.md`, `docs/HANDOFF.md` (secciones 7 y 8), `docs/VISION_Y_FUTURO.md` (punto «crimen dentro del
-  pueblo») y `GameVault/04_Censo_y_Misiones/Trattoria Il Corvo.md`.
-- No toques `scripts/systems/VillageSect.gd`, `GameVault/03_La_Secta/`, el Lore provisional, `GameVault/99_Archivo/`,
-  `GameVault/.obsidian/` ni `.claude/`.
-- Nada rígido: sin temporizadores ni sucesos «porque sí»; todo nace de vecinos con rasgos y condiciones reales.
-- Al cerrar cada bloque: test nuevo en `tools/tests/verify_all.gd` (antes de la línea `print("ALL RIMWORLD MEDICAL`),
-  una sola pasada de `verify_all` con `timeout 900`, HANDOFF §7, `CHANGELOG.md`, `docs/REGISTRO_TRABAJO.md`, nota del
-  vault, Tablero, diario `GameVault/06_Diario/AAAA-MM-DD.md`, textos nuevos en `docs/APORTES_CREATIVOS.md`; commit y push
-  a `main`; informe nuevo (reescrito entero) en `docs/INFORME_ANTIGRAVITY.md`.
-- Trampas: un assert que falla deja la prueba colgada hasta el timeout (EXIT 124); en pruebas no uses esperas fijas
-  (espera en bucle hasta que se cumpla); usa `x.get("campo") == true`, nunca `bool(x.get(...))`; los oficios nuevos se
-  añaden al FINAL del enum `TradeRole`.
+## Los 6 bloques (orden estricto)
 
----
+**B1 — Ruido y testigos en combate (cierra C7).** Golpes fuertes, gritos de dolor y disparos emiten ruido en el mapa
+(ya existe `AudioManager.emit_noise`). Los guardias despiertos dentro del radio acuden a mirar o intervenir; los vecinos
+pacíficos huyen o se asoman a distancia, y solo cuentan como testigos (`known_by` / `sighting_log`) si tienen línea de
+visión en la misma planta.
 
-## Bloque R2 — «La Familia» (crimen organizado discreto)
+**B2 — Calabozo de verdad.** Si un guardia o el comisario pillan a un vecino en plena falta (sabotaje, robo nocturno,
+profanación, pelea grave) o el inquisidor lo condena en juicio, lo llevan a pie a la celda del calabozo de la comisaría
+durante su condena (24–48 h de juego) y luego vuelve a su vida. Se le ve tras los barrotes, se puede hablar con él,
+pagar su fianza en la comisaría (el dinero va a las arcas) o ayudarle a escapar con ganzúa o llave, con riesgo de
+testigos. Aprovecha aquí lo pendiente del Tablero: **delatar a la Familia detiene al jefe** y lo lleva a la celda/juicio.
 
-**Contexto:** ya existe la Trattoria «Il Corvo» (`scripts/systems/VillageRestaurant.gd`), con un reservado al fondo
-(`BACKROOM_TABLE`, sala `"reservado"`). Plan acordado con el usuario: R2 la Familia → R3 sus negocios → R4 el jugador.
-**Haz solo R2.**
+**B3 — Del campamento del lago al pueblo.** Con casa propia en el pueblo, el jugador puede llevarse a Toby (y su
+comedero) y sus animales o gallinero a su solar. El campamento del oeste sigue sirviendo de puesto de pesca, caza y
+refugio.
 
-**Qué tiene que pasar en el juego:**
-1. **Nace sola, no al empezar.** Un vecino adulto **ambicioso, sin escrúpulos y persuasivo** (usa los rasgos y la
-   psicología que ya existen; si no hay ninguno así, no nace, y una partida sin Familia es válida) decide montarla
-   cuando tiene motivo: dinero ahorrado y frustración (deudas, envidia, rencor) o una oportunidad.
-2. **Recluta de 2 a 4 vecinos** de uno en uno, entre quienes le deben algo, le tienen afecto o miedo, o están
-   desesperados (pobres, endeudados). Puede fallar: el que se niega lo recuerda y puede contarlo como chisme.
-3. **Se reúnen de noche en el reservado** cuando el jefe lo decide según sus planes (no por calendario fijo). Si ven a
-   la guardia o a un desconocido cerca, lo dejan para otra noche.
-4. **Perfil bajo:** no hacen nada a la vista; de día siguen con sus oficios.
-5. **Guardar y cargar:** jefe, miembros y rechazos se guardan con la partida.
-6. **Se nota sin menús:** de noche hay gente en el reservado; el cocinero suelta una frase si le preguntas
-   (provisional, a `APORTES_CREATIVOS.md`).
+**B4 — Coherencia del ambiente.** (1) La niebla nocturna recorta de madrugada el alcance de la vista de los vecinos,
+salvo cerca de farolas o faroles encendidos. (2) Un taller saboteado echa humo o chispas en 2D y 3D hasta que se
+repara; si hay fuego fuera, la lluvia ayuda a apagarlo. (3) Quita la etiqueta «(dormida)» de las tendencias ya usadas
+en `TraitCatalog.gd` y haz que Noctámbulos, Insomnes y Sonámbulos paseen de noche por las calles.
 
-**Cómo hacerlo (sugerencia):** módulo nuevo sin `class_name` (`scripts/systems/VillageFamilia.gd`, con `preload`), con
-su estado guardado como hacen `VillageNightJobs.gd` o `VillageClub.gd` (copia su patrón de recados nocturnos y de
-guardado). Para llegar al reservado ya funciona la ruta interna del restaurante (`VillageRestaurant.route`).
+**B5 — Lo que se ve en la calle.** (1) Dos vecinos con odio fuerte (≤ −50) o en feudo de sangre que se cruzan a menos
+de 80 px sueltan un gesto o bocadillo de desprecio o se apartan. (2) Quien prepara un asesinato o venganza ronda de
+noche la casa de su víctima los días antes. (3) Bocadillos cortos (1,5 s, sin pausar) cuando un maestro termina una
+obra maestra, cuando los niños entran en fila a la escuela a las 9:00 o cuando el ayuntamiento inaugura una mejora.
 
-**Test `Block R2`:** con un vecino preparado con los rasgos y condiciones adecuados, comprueba que funda la Familia,
-que recluta (y que alguien puede negarse), que de noche los miembros van al reservado, que no se reúnen con un guardia
-cerca y que todo sobrevive a guardar y cargar. Sin el vecino adecuado, no nace.
-
-**No hagas** R3 (protección, préstamos, blanqueo, soborno) ni R4: apunta ideas en el informe.
-
----
-
-## Encargo aparte (pequeño): la enciclopedia del vault en una página
-
-El usuario quiere pasar el vault (`GameVault/`) a alguien que no tiene Obsidian. **Antes pregúntale** si va entera o
-sin `03_La_Secta/` y sin los diarios (`06_Diario/`). Luego: script en `tools/` que genere un único `.html` (índice a un
-lado, buscador, enlaces `[[...]]` que funcionen, el Tablero como lista), sin `.obsidian/` ni `99_Archivo/`. Déjalo
-fuera del repo (no lo subas) y dile al usuario dónde está y que puede mandarlo como archivo.
+**B6 — Los 21 vecinos fundadores con historia.** Thoran, Kael, Garrick, Lina, Bram, Mila, Elena, Tomás, Marlo, Nora,
+Marta, Aldric, Sora, Darío, Comisario Vane, Guardia Rodric, Vigía del Oeste, Dr. Valen, Hermano Anselmo, Inquisidor
+Alistair y Casimir/Valeria: seis rasgos coherentes con su descripción, una red inicial de amistades y rencores y 2–3
+secretos cada uno, para que haya tensión desde el día 1. Que no sea todo fijo: deja algo de azar para que cada partida
+cambie. Refléjalo en sus notas de `GameVault/04_Censo_y_Misiones/Vecinos/` (créalas desde `GameVault/Plantillas/Vecino.md`
+si faltan).
