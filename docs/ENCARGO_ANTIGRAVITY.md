@@ -58,3 +58,17 @@ Alistair y Casimir/Valeria: seis rasgos coherentes con su descripción, una red 
 secretos cada uno, para que haya tensión desde el día 1. Que no sea todo fijo: deja algo de azar para que cada partida
 cambie. Refléjalo en sus notas de `GameVault/04_Censo_y_Misiones/Vecinos/` (créalas desde `GameVault/Plantillas/Vecino.md`
 si faltan).
+
+**B7 — Prueba de primera persona (prototipo, después de B6 y antes de las pruebas finales).** El usuario quiere ver si el
+juego gana en primera persona (el combate no le convence desde arriba). Es solo una **prueba que se enciende y apaga con
+una tecla libre** (p. ej. F8; mira que no la use nadie), sin cambiar nada de la lógica 2D:
+- Con la vista 3D activa (`WorldStage3D`, cámara `cam_3d` ortográfica; F9 cambia 2D/3D en `GameManager.gd`), al pulsar
+  la tecla la cámara pasa a perspectiva a la altura de los ojos del jugador, mirando hacia donde apunta. El ratón gira la
+  vista (captúralo al entrar y suéltalo al salir o al abrir menús) y W/A/S/D se mueve relativo a donde miras.
+- El ataque, empujar, parar y usar (E) apuntan hacia el centro de la pantalla: traduce la dirección de la mirada a la
+  dirección de apuntado 2D que ya usa el jugador. Una cruz en el centro. Oculta el muñeco del propio jugador (o solo su
+  cabeza) para que no tape la cámara.
+- Los techos y las paredes que en vista cenital se ocultan/recortan deben verse enteros en primera persona.
+- No arregles arte ni animaciones: anota en el informe qué se ve mal de cerca (casas, muñecos, interiores), con
+  capturas si puedes (`tools/tests/shot_probe.gd` sirve de ejemplo).
+Apúntalo en el Tablero como prueba y en `docs/VISION_Y_FUTURO.md` como idea en evaluación (no decidida).
