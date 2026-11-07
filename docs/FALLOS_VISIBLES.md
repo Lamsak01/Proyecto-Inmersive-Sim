@@ -102,5 +102,10 @@
 - [ ] **La trampilla del club de peleas siempre está cerrada** (2026-11-07): el usuario nunca la ha visto abierta.
   Comprobar en partida (no solo en prueba) que abre las noches que toca, que se ve, y que un vecino o rumor te dice cuándo.
 
+- [ ] **Club de peleas: los vecinos salen atravesando las paredes, y el sótano no está debajo de la taberna**
+  (2026-11-07 18:17, captura, día 2, 22:57): al bajar, el minimapa muestra que saltas a otro punto del mapa (es un
+  cuarto puesto en otro sitio, no un sótano). El sótano debe estar justo bajo la taberna (misma posición, otra planta,
+  como los pisos de arriba), y vecinos y jugador deben entrar y salir solo por la trampilla/escalera.
+
 ## Arreglados
 - [x] ✅ (2026-11-07) Fachada de la trattoria «Il Corvo» en 3D: parece de tablas oscuras en vez de estuco/ladrillo claro (`WorldStage3D.gd`: cambiada la textura de muros de `building_restaurant` a `town_textures/wall_brick_sand_center.png` con `uv1_scale = Vector3(2.4, 0.72, 2.4)`, tono claro de estuco/ladrillo cálido `Color(1.0, 0.95, 0.84)`, iluminación cálida de rebote `0.58` en la fachada sur y dintel con el mismo estuco en vez de `rf_planks.png`).
