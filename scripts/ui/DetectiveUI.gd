@@ -117,6 +117,8 @@ var nb_actions_grid: GridContainer = null
 var nb_findings_box: VBoxContainer = null
 var lbl_apparent_cause: RichTextLabel = null
 var apparent_cause_str: String = "sin determinar"
+var decay_phase_panels: Array[PanelContainer] = []
+var lbl_decay_status: Label = null
 
 # Vista D2: Autopsia en la morgue
 var morgue_tests_def: Dictionary = {}
@@ -237,11 +239,14 @@ class SilhouetteCanvas extends Control:
 		var hair_fill := Color("#4a3a2c")
 		var hair_stroke := Color("#2e2319")
 
-		# 1. Sombra suave bajo el cuerpo
+		# 0. Fondo esquemático limpio de dónde yace el cuerpo (pocas líneas, colores planos, sin ruido)
+		_draw_body_site_schematic(ui._get_corpse_site_kind())
+
+		# 1. Óvalo oscuro de suelo bajo el cuerpo (idéntico al boceto HTML)
 		_draw_poly_scaled(PackedVector2Array([
-			Vector2(56, 28), Vector2(164, 28), Vector2(188, 120), Vector2(184, 255),
-			Vector2(154, 444), Vector2(66, 444), Vector2(36, 255), Vector2(32, 120)
-		]), Color(0, 0, 0, 0.35), Color(0, 0, 0, 0), 0.0)
+			Vector2(52, 24), Vector2(168, 24), Vector2(192, 118), Vector2(188, 260),
+			Vector2(158, 446), Vector2(62, 446), Vector2(32, 260), Vector2(28, 118)
+		]), Color(0.07, 0.09, 0.07, 0.55), Color(0.22, 0.25, 0.20, 0.35), 1.2)
 
 		# 2. Pelo largo detrás de la cabeza y hombros (solo en modelo femenino, igual al SVG del boceto)
 		if fem:
@@ -368,6 +373,68 @@ class SilhouetteCanvas extends Control:
 			for r in rects_map.get(ui.selected_zone, []):
 				_draw_rect_scaled(r as Rect2, Color(0.906, 0.706, 0.353, 0.16), COL_LAMP, 1.8, false)
 
+	func _draw_body_site_schematic(site_kind: String) -> void:
+		if size.x <= 2.0 or size.y <= 2.0:
+			return
+		var w: float = size.x
+		var h: float = size.y
+		if site_kind == "morgue":
+			draw_rect(Rect2(0, 0, w, h), Color("#171d22"), true)
+			var slab := Rect2(w * 0.16, h * 0.03, w * 0.68, h * 0.94)
+			draw_rect(slab, Color("#222b32"), true)
+			draw_rect(slab, Color("#35424c"), false, 2.0)
+			draw_line(Vector2(slab.position.x + 14, slab.position.y + 18), Vector2(slab.end.x - 14, slab.position.y + 18), Color("#2c3740"), 1.5)
+			draw_line(Vector2(slab.position.x + 14, slab.end.y - 18), Vector2(slab.end.x - 14, slab.end.y - 18), Color("#2c3740"), 1.5)
+			return
+		if site_kind == "lake":
+			draw_rect(Rect2(0, 0, w, h), Color("#1d261c"), true)
+			# Orilla y agua del lago a la izquierda
+			var water_pts := PackedVector2Array([
+				Vector2(0, 0), Vector2(w * 0.30, 0), Vector2(w * 0.24, h * 0.45),
+				Vector2(w * 0.32, h), Vector2(0, h)
+			])
+			draw_colored_polygon(water_pts, Color("#1d3240"))
+			draw_polyline(PackedVector2Array([Vector2(w * 0.30, 0), Vector2(w * 0.24, h * 0.45), Vector2(w * 0.32, h)]), Color("#354d5c"), 2.0)
+			# Pasarela de madera arriba a la izquierda
+			draw_rect(Rect2(w * 0.08, h * 0.12, w * 0.28, h * 0.09), Color("#382b1e"), true)
+			draw_rect(Rect2(w * 0.08, h * 0.12, w * 0.28, h * 0.09), Color("#4e3c2a"), false, 1.5)
+			# Juncos y piedras planas en la orilla
+			draw_circle(Vector2(w * 0.34, h * 0.28), 11.0, Color("#263322"))
+			draw_circle(Vector2(w * 0.78, h * 0.22), 14.0, Color("#282a26"))
+			draw_circle(Vector2(w * 0.82, h * 0.76), 18.0, Color("#162012"))
+			return
+		if site_kind == "town":
+			draw_rect(Rect2(0, 0, w, h), Color("#1f2327"), true)
+			# Calzada empedrada con bordillos limpios
+			draw_rect(Rect2(w * 0.08, 0, w * 0.84, h), Color("#262a2e"), true)
+			draw_line(Vector2(w * 0.08, 0), Vector2(w * 0.08, h), Color("#363b40"), 2.0)
+			draw_line(Vector2(w * 0.92, 0), Vector2(w * 0.92, h), Color("#363b40"), 2.0)
+			for ry in [0.22, 0.50, 0.78]:
+				draw_line(Vector2(w * 0.12, h * ry), Vector2(w * 0.88, h * ry), Color("#1c2024"), 1.2)
+			return
+		if site_kind == "ranch":
+			draw_rect(Rect2(0, 0, w, h), Color("#232018"), true)
+			# Sendero de tierra y valla de madera arriba
+			draw_rect(Rect2(0, h * 0.06, w, h * 0.05), Color("#3c2b1b"), true)
+			draw_circle(Vector2(w * 0.18, h * 0.30), 22.0, Color("#1d2617"))
+			draw_circle(Vector2(w * 0.82, h * 0.72), 26.0, Color("#1d2617"))
+			return
+		# Por defecto ("forest" / Caso 1): claro de bosque con sendero arriba, arroyo abajo y copas oscuras
+		draw_rect(Rect2(0, 0, w, h), Color("#1c2519"), true)
+		var path_pts := PackedVector2Array([
+			Vector2(0, h * 0.05), Vector2(w, h * 0.02), Vector2(w, h * 0.14), Vector2(0, h * 0.17)
+		])
+		draw_colored_polygon(path_pts, Color("#2f281f"))
+		var stream_pts := PackedVector2Array([
+			Vector2(0, h * 0.82), Vector2(w * 0.52, h * 0.88), Vector2(w * 0.65, h), Vector2(0, h)
+		])
+		draw_colored_polygon(stream_pts, Color("#1e323f"))
+		draw_circle(Vector2(w * 0.12, h * 0.28), 32.0, Color("#141d10"))
+		draw_circle(Vector2(w * 0.88, h * 0.24), 36.0, Color("#141d10"))
+		draw_circle(Vector2(w * 0.86, h * 0.80), 30.0, Color("#141d10"))
+		draw_circle(Vector2(w * 0.22, h * 0.66), 8.0, Color("#2b2923"))
+		draw_circle(Vector2(w * 0.76, h * 0.54), 7.0, Color("#2b2923"))
+
 	func _draw_poly_scaled(pts: PackedVector2Array, fill_c: Color, stroke_c: Color, width: float) -> void:
 		var scaled := PackedVector2Array()
 		for p in pts:
@@ -475,14 +542,60 @@ class CrimeSceneCanvas extends Control:
 				return i
 		return -1
 
+	func _draw_bpoly(pts: Array, col: Color) -> void:
+		var scaled := PackedVector2Array()
+		for p in pts:
+			scaled.append(_to_canvas(p as Vector2))
+		draw_colored_polygon(scaled, col)
+
 	func _draw() -> void:
 		if ui == null:
 			return
 		var scale_f: float = minf(size.x / BASE_W, size.y / BASE_H)
-		var chalk_col := Color("#d9d2c2")
-		chalk_col.a = 0.78
+		var site_kind: String = ui._get_corpse_site_kind()
+		var l_px := _to_canvas(lantern_base_pos)
+		var l_rad := LANTERN_RADIUS * scale_f
 
-		# 1. Silueta discontinua donde yacía el cuerpo (exacta a #csvg en el boceto HTML)
+		# 0. Fondo cenital esquemático limpio de la escena (exacto a #csvg del boceto HTML)
+		draw_rect(Rect2(Vector2.ZERO, size), Color("#0b0e11"), true)
+		# Suelo bajo el círculo del farol e iluminación tenue exterior
+		draw_circle(l_px, l_rad * 1.18, Color("#151c14"))
+		draw_circle(l_px, l_rad, Color("#1f2a1d") if site_kind != "town" else Color("#24282c"))
+
+		if site_kind == "lake":
+			# Orilla del Lago del Oeste: agua al oeste y abajo, pasarela de madera arriba
+			_draw_bpoly([Vector2(0, 120), Vector2(185, 160), Vector2(165, 420), Vector2(520, 445), Vector2(520, 560), Vector2(0, 560)], Color("#233846"))
+			_draw_bpoly([Vector2(140, 40), Vector2(360, 40), Vector2(360, 92), Vector2(140, 92)], Color("#3a3226"))
+			for tr in [Vector2(88, 92), Vector2(435, 120), Vector2(440, 380)]:
+				var d_tr: float = lantern_base_pos.distance_to(tr)
+				var c_tr := Color("#16200f").lightened(0.08 if d_tr < 110.0 else 0.0)
+				draw_circle(_to_canvas(tr), 40.0 * scale_f, c_tr)
+		elif site_kind == "town":
+			# Calle / plaza empedrada
+			_draw_bpoly([Vector2(0, 40), Vector2(520, 40), Vector2(520, 110), Vector2(0, 110)], Color("#31353b"))
+			_draw_bpoly([Vector2(60, 110), Vector2(460, 110), Vector2(460, 460), Vector2(60, 460)], Color("#262a30"))
+			_draw_bpoly([Vector2(0, 460), Vector2(520, 460), Vector2(520, 530), Vector2(0, 530)], Color("#1f2e38"))
+		else:
+			# Claro del bosque junto al arroyo (idéntico al boceto HTML #csvg)
+			# Camino del norte arriba
+			_draw_bpoly([Vector2(0, 40), Vector2(520, 22), Vector2(520, 92), Vector2(0, 110)], Color("#3a3226"))
+			# Arroyo abajo
+			_draw_bpoly([Vector2(0, 455), Vector2(220, 438), Vector2(360, 472), Vector2(520, 448), Vector2(520, 532), Vector2(360, 548), Vector2(200, 514), Vector2(0, 530)], Color("#233846"))
+			# Árboles del claro
+			for tr_info in [
+				[Vector2(70, 180), 42.0], [Vector2(440, 160), 48.0],
+				[Vector2(90, 360), 38.0], [Vector2(430, 340), 44.0], [Vector2(170, 260), 30.0]
+			]:
+				var tpos: Vector2 = tr_info[0]
+				var trad: float = float(tr_info[1])
+				draw_circle(_to_canvas(tpos), trad * scale_f, Color("#16200f"))
+				if lantern_base_pos.distance_to(tpos) <= LANTERN_RADIUS + trad:
+					draw_arc(_to_canvas(tpos), trad * scale_f, 0.0, TAU, 24, Color("#2c3c20"), 1.5, true)
+
+		# 1. Silueta discontinua de tiza donde yacía el cuerpo (exacta a #csvg en el boceto HTML)
+		var chalk_col := Color("#d9d2c2")
+		var dist_chalk := lantern_base_pos.distance_to(Vector2(250, 295))
+		chalk_col.a = clampf(1.05 - dist_chalk / 160.0, 0.28, 0.86)
 		var chalk_head := _to_canvas(Vector2(250, 232))
 		var head_r: float = 14.0 * scale_f
 		for s in range(10):
@@ -552,11 +665,9 @@ class CrimeSceneCanvas extends Control:
 			ring_col.a = vis_alpha * (0.90 if hovered_clue_idx == i else 0.55)
 			draw_arc(center_px, (float(c.get("r", 15.0)) + 4.0) * scale_f, 0.0, TAU, 24, ring_col, 1.5, true)
 
-		# 3. Halo y anillo del farol del jugador (#lampring)
-		var l_px := _to_canvas(lantern_base_pos)
-		var l_rad := LANTERN_RADIUS * scale_f
-		draw_circle(l_px, l_rad, Color(0.906, 0.706, 0.353, 0.07))
-		draw_arc(l_px, l_rad, 0.0, TAU, 40, Color(0.906, 0.706, 0.353, 0.58), 1.4, true)
+		# 3. Halo cálido y anillo del farol del jugador (#lampring)
+		draw_circle(l_px, l_rad, Color(0.906, 0.706, 0.353, 0.10))
+		draw_arc(l_px, l_rad, 0.0, TAU, 40, Color(0.906, 0.706, 0.353, 0.65), 1.6, true)
 
 
 # ==============================================================================
@@ -576,17 +687,32 @@ class StringsOverlay extends Control:
 			var id_b: String = str(l[1])
 			if not ui_ref.board_positions.has(id_a) or not ui_ref.board_positions.has(id_b):
 				continue
-			var pa: Vector2 = ui_ref.board_positions[id_a] + Vector2(84.0, 5.0)
-			var pb: Vector2 = ui_ref.board_positions[id_b] + Vector2(84.0, 5.0)
+			var pa: Vector2 = ui_ref.board_positions[id_a] + Vector2(84.0, 2.0)
+			var pb: Vector2 = ui_ref.board_positions[id_b] + Vector2(84.0, 2.0)
 			draw_line(pa + Vector2(0, 2), pb + Vector2(0, 2), Color(0, 0, 0, 0.35), 3.0, true)
 			draw_line(pa, pb, COL_RED_PIN, 2.6, true)
-			draw_circle(pa, 4.5, COL_RED_PIN)
-			draw_circle(pb, 4.5, COL_RED_PIN)
+
+
+class PinsOverlay extends Control:
+	var board: CorkboardCanvas = null
+
+	func _draw() -> void:
+		if board == null or board.ui == null:
+			return
+		var ui_ref: DetectiveUI = board.ui
+		for pid in board.card_nodes.keys():
+			if not ui_ref.board_positions.has(pid):
+				continue
+			var p: Vector2 = ui_ref.board_positions[pid] + Vector2(84.0, 2.0)
+			draw_circle(p + Vector2(0, 1.5), 6.5, Color(0, 0, 0, 0.38))
+			draw_circle(p, 5.8, COL_RED_PIN)
+			draw_circle(p + Vector2(-1.6, -1.6), 1.8, Color(1.0, 0.78, 0.78, 0.65))
 
 
 class CorkboardCanvas extends Control:
 	var ui: DetectiveUI = null
 	var strings_overlay: StringsOverlay = null
+	var pins_overlay: PinsOverlay = null
 	var card_nodes: Dictionary = {} # pin_id -> Control
 	var dragging_id: String = ""
 	var drag_start_mouse: Vector2 = Vector2.ZERO
@@ -599,8 +725,15 @@ class CorkboardCanvas extends Control:
 		strings_overlay.board = self
 		strings_overlay.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 		strings_overlay.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		strings_overlay.z_index = 20
+		strings_overlay.z_index = 1
 		add_child(strings_overlay)
+
+		pins_overlay = PinsOverlay.new()
+		pins_overlay.board = self
+		pins_overlay.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+		pins_overlay.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		pins_overlay.z_index = 10
+		add_child(pins_overlay)
 
 	func _gui_input(event: InputEvent) -> void:
 		if ui == null:
@@ -622,8 +755,8 @@ class CorkboardCanvas extends Control:
 			var id_b: String = str(l[1])
 			if not ui.board_positions.has(id_a) or not ui.board_positions.has(id_b):
 				continue
-			var pa: Vector2 = ui.board_positions[id_a] + Vector2(84.0, 5.0)
-			var pb: Vector2 = ui.board_positions[id_b] + Vector2(84.0, 5.0)
+			var pa: Vector2 = ui.board_positions[id_a] + Vector2(84.0, 2.0)
+			var pb: Vector2 = ui.board_positions[id_b] + Vector2(84.0, 2.0)
 			var closest := Geometry2D.get_closest_point_to_segment(pt, pa, pb)
 			if pt.distance_to(closest) <= 9.0:
 				return i
@@ -656,6 +789,8 @@ class CorkboardCanvas extends Control:
 	func redraw_links() -> void:
 		if strings_overlay != null:
 			strings_overlay.queue_redraw()
+		if pins_overlay != null:
+			pins_overlay.queue_redraw()
 
 	func _draw() -> void:
 		# Fondo de corcho (#9a7147) con motas de corcho (#a57c4f y #8a643c) como en el boceto HTML
@@ -903,16 +1038,9 @@ func _build_body_view() -> Control:
 	tray_overlay.clip_contents = true
 	tray_panel.add_child(tray_overlay)
 
-	# Imagen cenital 3D en esquema del lugar donde yace el cadáver
+	# Imagen cenital 3D desactivada: usamos dibujo esquemático limpio en SilhouetteCanvas._draw()
 	body_sketch_tex_rect = TextureRect.new()
-	body_sketch_tex_rect.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	body_sketch_tex_rect.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-	body_sketch_tex_rect.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_COVERED
-	var sh := Shader.new()
-	sh.code = SKETCH_SHADER_CODE
-	body_sketch_mat = ShaderMaterial.new()
-	body_sketch_mat.shader = sh
-	body_sketch_tex_rect.material = body_sketch_mat
+	body_sketch_tex_rect.visible = false
 	tray_overlay.add_child(body_sketch_tex_rect)
 
 	# Etiquetas de esquina (CADÁVER EN EL SUELO / TEMPERATURA)
@@ -976,6 +1104,35 @@ func _build_body_view() -> Control:
 	nb_vbox.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	nb_vbox.add_theme_constant_override("separation", 10)
 	nb_panel.add_child(nb_vbox)
+
+	# Barra de estado del cadáver en 4 fases (Reciente -> Enfriándose -> Rígido -> Deteriorado)
+	var decay_box := VBoxContainer.new()
+	decay_box.add_theme_constant_override("separation", 4)
+	nb_vbox.add_child(decay_box)
+
+	lbl_decay_status = Label.new()
+	lbl_decay_status.text = "ESTADO DEL CUERPO · RECIENTE"
+	lbl_decay_status.add_theme_font_size_override("font_size", 11)
+	lbl_decay_status.add_theme_color_override("font_color", Color("#5a5244"))
+	decay_box.add_child(lbl_decay_status)
+
+	var decay_row := HBoxContainer.new()
+	decay_row.add_theme_constant_override("separation", 4)
+	decay_box.add_child(decay_row)
+	decay_phase_panels.clear()
+	for ph_name in ["1 · Reciente", "2 · Enfriándose", "3 · Rígido", "4 · Deteriorado"]:
+		var ph_p := PanelContainer.new()
+		ph_p.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		ph_p.add_theme_stylebox_override("panel", _style_box(Color("#d8ceba"), COL_PAPER_EDGE, 1, 0, 4, 3))
+		var ph_l := Label.new()
+		ph_l.name = "PhaseLbl"
+		ph_l.text = ph_name
+		ph_l.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		ph_l.add_theme_font_size_override("font_size", 10)
+		ph_l.add_theme_color_override("font_color", Color("#5a5244"))
+		ph_p.add_child(ph_l)
+		decay_row.add_child(ph_p)
+		decay_phase_panels.append(ph_p)
 
 	nb_zone_title = Label.new()
 	nb_zone_title.text = "Selecciona una zona del cuerpo"
@@ -1200,17 +1357,7 @@ func _build_scene_view() -> Control:
 	stage_panel.add_child(stage_overlay)
 
 	scene_sketch_tex_rect = TextureRect.new()
-	scene_sketch_tex_rect.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	scene_sketch_tex_rect.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-	scene_sketch_tex_rect.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_COVERED
-	var sh_sc := Shader.new()
-	sh_sc.code = SKETCH_SHADER_CODE
-	scene_sketch_mat = ShaderMaterial.new()
-	scene_sketch_mat.shader = sh_sc
-	scene_sketch_mat.set_shader_parameter("lantern_mode", 1.0)
-	scene_sketch_mat.set_shader_parameter("lantern_uv", Vector2(0.5, 0.5))
-	scene_sketch_mat.set_shader_parameter("lantern_radius_uv", 0.16)
-	scene_sketch_tex_rect.material = scene_sketch_mat
+	scene_sketch_tex_rect.visible = false
 	stage_overlay.add_child(scene_sketch_tex_rect)
 
 	crime_scene_canvas = CrimeSceneCanvas.new()
@@ -1463,32 +1610,49 @@ func _find_world_stage_3d() -> Node:
 	return get_tree().root.find_child("WorldStage3D", true, false)
 
 
+func _get_corpse_site_kind() -> String:
+	if is_instance_valid(current_corpse):
+		if current_corpse.get("corpse_in_morgue") == true:
+			return "morgue"
+		if not current_corpse.has_meta("scripted_case_zones") and not current_corpse.has_meta("scripted_case_id"):
+			var dpos: Vector2 = current_corpse.global_position
+			var raw_dp = current_corpse.get("death_world_pos")
+			if raw_dp is Vector2 and (raw_dp as Vector2) != Vector2.ZERO:
+				dpos = raw_dp
+			if dpos.x < -60.0 and dpos.y > 30.0 and dpos.y < 320.0:
+				return "lake"
+			if dpos.y > 380.0 and dpos.x > -340.0 and dpos.x < 450.0:
+				return "ranch"
+			if dpos.x >= 100.0 and dpos.x <= 1350.0 and dpos.y >= -450.0 and dpos.y <= 430.0:
+				return "town"
+			return "forest"
+	return "forest"
+
+
+func _describe_world_site(dpos: Vector2) -> String:
+	if dpos.x < -60.0 and dpos.y > 30.0 and dpos.y < 320.0:
+		return "la orilla del Lago del Oeste"
+	if dpos.y > 380.0 and dpos.x > 180.0 and dpos.x < 450.0:
+		return "el Rancho del Sur"
+	if dpos.y > 380.0 and dpos.x > -360.0 and dpos.x <= 180.0:
+		return "los campos de la Granja del Sur"
+	if dpos.x > 1000.0 and dpos.y > 190.0 and dpos.y < 430.0:
+		return "las inmediaciones de la Trattoria «Il Corvo»"
+	if dpos.x >= 180.0 and dpos.x <= 430.0 and dpos.y >= 200.0 and dpos.y <= 310.0:
+		return "el Parque del Roble"
+	if dpos.x >= 100.0 and dpos.x <= 1350.0 and dpos.y >= -450.0 and dpos.y <= 430.0:
+		return "las calles del pueblo"
+	return "los senderos de las afueras"
+
+
 func _refresh_3d_topdown_sketch() -> void:
 	var st := _find_world_stage_3d()
-	if st == null or not st.has_method("set_detective_topdown"):
-		return
-	if not visible or current_mode not in ["body", "scene"]:
+	if st != null and st.has_method("set_detective_topdown"):
 		st.call("set_detective_topdown", false)
-		return
-	var target_pos := Vector2(465, 48)
-	if is_instance_valid(current_corpse):
-		var d_pos = current_corpse.get("death_world_pos")
-		if d_pos is Vector2 and (d_pos as Vector2) != Vector2.ZERO and current_mode == "scene":
-			target_pos = d_pos
-		else:
-			target_pos = current_corpse.global_position
-	elif player != null and is_instance_valid(player):
-		target_pos = player.global_position
-	var ortho_sz: float = 3.6 if current_mode == "body" else 5.2
-	var tex: Texture2D = st.call("set_detective_topdown", true, target_pos, ortho_sz)
-	if body_sketch_tex_rect != null and tex != null:
-		body_sketch_tex_rect.texture = tex
-	if body_sketch_mat != null:
-		body_sketch_mat.set_shader_parameter("lantern_mode", 0.0)
-	if scene_sketch_tex_rect != null and tex != null:
-		scene_sketch_tex_rect.texture = tex
-	if scene_sketch_mat != null:
-		scene_sketch_mat.set_shader_parameter("lantern_mode", 1.0)
+	if silhouette_canvas != null:
+		silhouette_canvas.queue_redraw()
+	if crime_scene_canvas != null:
+		crime_scene_canvas.queue_redraw()
 
 
 func _player_has_magnifying_glass() -> bool:
@@ -1527,6 +1691,40 @@ func _update_header_meta() -> void:
 	if btn_report_guard != null:
 		var can_rep: bool = is_instance_valid(current_corpse) and current_corpse.get("is_dead") == true and current_corpse.get("corpse_in_morgue") != true and current_corpse.get("corpse_reported") != true
 		btn_report_guard.visible = can_rep
+	_update_decay_bar()
+
+
+func _update_decay_bar() -> void:
+	if decay_phase_panels.size() != 4:
+		return
+	var base_rot: float = float(current_corpse.get("corpse_rot_hours")) if is_instance_valid(current_corpse) else 1.8
+	var total_h: float = base_rot + float(elapsed_minutes) / 60.0
+	var phase_idx: int = 0
+	var phase_desc: String = "RECIENTE (rastro fresco)"
+	if total_h >= 12.0:
+		phase_idx = 3
+		phase_desc = "DETERIORADO (%.1f h · se pierden rastros finos)" % total_h
+	elif total_h >= 5.0:
+		phase_idx = 2
+		phase_desc = "RÍGIDO (%.1f h · rigor mortis completo)" % total_h
+	elif total_h >= 1.5:
+		phase_idx = 1
+		phase_desc = "ENFRIÁNDOSE (%.1f h · livideces fijándose)" % total_h
+	else:
+		phase_desc = "RECIENTE (%.1f h · aún conserva calor)" % maxf(0.2, total_h)
+	if lbl_decay_status != null:
+		lbl_decay_status.text = "ESTADO DEL CUERPO · %s" % phase_desc
+	var active_cols: Array[Color] = [Color("#4a7043"), Color("#b5862c"), Color("#a6582a"), Color("#8e2a23")]
+	for i in range(4):
+		var p: PanelContainer = decay_phase_panels[i]
+		if not is_instance_valid(p):
+			continue
+		var is_act: bool = (i == phase_idx)
+		var bg: Color = active_cols[i] if is_act else (Color("#cfc3ac") if i < phase_idx else Color("#dfd5c2"))
+		p.add_theme_stylebox_override("panel", _style_box(bg, COL_PAPER_INK if is_act else COL_PAPER_EDGE, 1, 0, 4, 3))
+		var lbl := p.get_node_or_null("PhaseLbl") as Label
+		if lbl != null:
+			lbl.add_theme_color_override("font_color", COL_PAPER if is_act else Color("#5a5244"))
 
 
 # ==============================================================================
@@ -1559,7 +1757,7 @@ func _build_case_from_corpse(corpse_node: Node2D) -> void:
 	var fem: bool = (prof != null and str(prof.get("gender")) == "F") or (prof == null and v_name.ends_with("a"))
 	set_body_gender(fem)
 
-	var vm = get_tree().get_first_node_in_group("village_manager")
+	var vm = get_tree().get_first_node_in_group("village_manager") if is_inside_tree() else null
 	var f_state: Dictionary = vm.VillageForensics.state(vm) if (vm != null and "VillageForensics" in vm) else {}
 	var is_moved: bool = (f_state.get("moved", {}) as Dictionary).has(v_name)
 	var is_poisoned: bool = (f_state.get("poisoned", {}) as Dictionary).has(v_name)
@@ -1567,109 +1765,140 @@ func _build_case_from_corpse(corpse_node: Node2D) -> void:
 	var planted_info: Dictionary = (f_state.get("planted", {}) as Dictionary).get(v_name, {})
 	var weapon_cause: String = str(corpse_node.get("last_hit_weapon_name"))
 	var rot_h: float = float(corpse_node.get("corpse_rot_hours"))
+	var dpos: Vector2 = corpse_node.global_position
+	var raw_dp = corpse_node.get("death_world_pos")
+	if raw_dp is Vector2 and (raw_dp as Vector2) != Vector2.ZERO:
+		dpos = raw_dp
+	var site_desc: String = _describe_world_site(dpos)
 
 	if lbl_hdr_sub != null:
-		var hallado_str: String = "hallada" if fem else "hallado"
-		lbl_hdr_sub.text = "Caso · %s (%s) — %s en el valle" % [v_name, v_role if v_role != "" else "Vecino", hallado_str]
+		var hallado_str: String = "hallada sin vida" if fem else "hallado sin vida"
+		lbl_hdr_sub.text = "Caso · %s (%s) — %s en %s" % [v_name, v_role if v_role != "" else "Vecino", hallado_str, site_desc]
 	if lbl_corner_left != null:
 		if corpse_node.get("corpse_in_morgue") == true:
 			lbl_corner_left.text = "CAMILLA DE LA MORGUE · %s" % v_name.to_upper()
 		elif is_moved:
-			lbl_corner_left.text = "CADÁVER EN EL SUELO · POSICIÓN EXTRAÑA"
+			lbl_corner_left.text = "CADÁVER EN EL SUELO · MOVIDO TRAS CAER"
 		else:
-			lbl_corner_left.text = "CADÁVER EN EL SUELO · NO MOVIDO"
+			lbl_corner_left.text = "CADÁVER EN EL SUELO · %s" % site_desc.to_upper()
 	if lbl_corner_right != null:
 		var w_str: String = WorldClock.get_weather_name() if (WorldClock != null and WorldClock.has_method("get_weather_name")) else "FRÍO"
 		lbl_corner_right.text = "CLIMA · %s (%.1f H SIN VIDA)" % [w_str.to_upper(), maxf(0.2, rot_h)]
 
-	# Recopilar heridas reales por región desde HealthComponent
+	# Recopilar heridas reales por región desde HealthComponent (`part`, `type`, `source_tag`)
 	var hc = corpse_node.get("health_comp")
-	var wounds_by_zone: Dictionary = {"cabeza": [], "torso": [], "brazos": [], "piernas": []}
+	var wounds_by_zone: Dictionary = {"cabeza": [], "cuello": [], "torso": [], "brazos": [], "piernas": []}
+	var total_wounds: int = 0
 	if hc != null and hc.get("wounds") is Array:
-		var w_idx: int = 0
 		for w in (hc.get("wounds") as Array):
 			if not (w is Dictionary):
 				continue
-			var reg: String = str(w.get("region", "torso"))
+			var part_raw: String = str(w.get("part", w.get("region", "Torso"))).to_lower()
 			var target_z := "torso"
-			if reg == "head":
+			if part_raw in ["head", "cabeza", "skull", "jaw", "lefteye", "righteye", "nose"]:
 				target_z = "cabeza"
-			elif reg in ["left_arm", "right_arm"]:
+			elif part_raw in ["neck", "cuello"]:
+				target_z = "cuello"
+			elif part_raw in ["leftarm", "rightarm", "left_arm", "right_arm", "brazos"]:
 				target_z = "brazos"
-			elif reg in ["left_leg", "right_leg"]:
+			elif part_raw in ["leftleg", "rightleg", "left_leg", "right_leg", "piernas"]:
 				target_z = "piernas"
 			wounds_by_zone[target_z].append(w)
-			var w_type: String = "bruise" if str(w.get("type", "")) in ["bruise", "fracture"] else "cut"
+			total_wounds += 1
+			var w_t_low: String = str(w.get("type", "")).to_lower()
+			var w_type: String = "bruise" if (w_t_low.find("contus") != -1 or w_t_low.find("bruise") != -1 or w_t_low.find("fract") != -1) else "cut"
 			dynamic_wound_marks.append({
 				"mark_id": "m-dyn-%s" % target_z,
 				"zone": target_z,
 				"type": w_type
 			})
-			w_idx += 1
 
-	# Construir las 7 zonas combinando los datos reales del cuerpo y el formato forense de D1
-	var head_wounds_txt: String = _describe_zone_wounds(wounds_by_zone["cabeza"], weapon_cause, "No hay golpe abierto en el cráneo. Ojos vidriosos y labios amoratados.")
-	var torso_wounds_txt: String = _describe_zone_wounds(wounds_by_zone["torso"], weapon_cause, "Ropa húmeda pegada al pecho. Sin cortes ni agujeros de hoja en la tela.")
-	var arm_wounds_txt: String = _describe_zone_wounds(wounds_by_zone["brazos"], weapon_cause, "Dos marcas rojas estrechas rodean las muñecas, como si la hubieran sujetado con fuerza o atado con cuerda fina.")
-	var leg_wounds_txt: String = _describe_zone_wounds(wounds_by_zone["piernas"], weapon_cause, "Falta el zapato izquierdo. Los dos talones tienen barro oscuro por detrás, como si hubieran arrastrado el cuerpo." if is_moved else "Calzado puesto; manchas de tierra húmeda del lugar donde cayó.")
+	# Si murió por golpe directo sin herida registrada en HealthComponent, añadir la marca en la zona correspondiente
+	var wc_low := weapon_cause.to_lower()
+	if total_wounds == 0 and weapon_cause != "" and not is_poisoned and wc_low.find("inanición") == -1:
+		var fallback_z := "torso"
+		if wc_low.find("martillo") != -1 or wc_low.find("contundente") != -1:
+			fallback_z = "cabeza"
+		elif wc_low.find("espalda") != -1 or wc_low.find("cuello") != -1:
+			fallback_z = "cuello"
+		var synt_w := {"type": "Contusión Severa" if fallback_z == "cabeza" else "Herida Letal", "source_tag": weapon_cause}
+		wounds_by_zone[fallback_z].append(synt_w)
+		dynamic_wound_marks.append({
+			"mark_id": "m-dyn-%s" % fallback_z,
+			"zone": fallback_z,
+			"type": "bruise" if fallback_z == "cabeza" else "cut"
+		})
+		total_wounds = 1
 
-	var pocket_summary: String = corpse_node.call("get_pocket_summary_text") if corpse_node.has_method("get_pocket_summary_text") else "Bolsillos con pertenencias"
+	var head_wounds_txt: String = _describe_zone_wounds(wounds_by_zone["cabeza"], weapon_cause, "Rostro pálido y sin fracturas ni golpes abiertos en el cráneo.")
+	var neck_wounds_txt: String = _describe_zone_wounds(wounds_by_zone["cuello"], weapon_cause, "Cuello y garganta intactos: no hay surcos de cuerda ni marcas de estrangulamiento.")
+	var torso_wounds_txt: String = _describe_zone_wounds(wounds_by_zone["torso"], weapon_cause, "Ropa de %s sin desgarros de arma blanca en el pecho." % (v_role.to_lower() if v_role != "" else "vecino"))
+	var arm_wounds_txt: String = _describe_zone_wounds(wounds_by_zone["brazos"], weapon_cause, "Antebrazos y muñecas libres de ataduras; el ataque no le dio tiempo a cubrirse." if total_wounds <= 1 else "Contusiones defensivas en los antebrazos producidas durante el forcejeo.")
+	var leg_wounds_txt: String = _describe_zone_wounds(wounds_by_zone["piernas"], weapon_cause, ("Talones rozados por el suelo: arrastraron el cuerpo hasta %s." % site_desc) if is_moved else ("Calzado completo y en su sitio; cayó desplomad%s en %s sin ser arrastrad%s." % ["a" if fem else "o", site_desc, "a" if fem else "o"]))
+
+	var rigor_txt: String = "Dedos aún tibios y flexibles (murió hace menos de 1 hora)."
+	if rot_h >= 4.0:
+		rigor_txt = "Dedos rígidos y fríos (lleva unas %.1f horas sin vida)." % rot_h
+	elif rot_h >= 1.0:
+		rigor_txt = "Rigidez incipiente en mandíbula y dedos (unas %.1f horas sin vida)." % rot_h
+
+	var pocket_summary: String = corpse_node.call("get_pocket_summary_text") if corpse_node.has_method("get_pocket_summary_text") else "Sin objetos en los bolsillos"
 	if not planted_info.is_empty() and planted_info.get("debunked") != true:
-		pocket_summary += ". Además asoma un objeto personal de %s que parece colocado a propósito." % str(planted_info.get("framed_name", "otro vecino"))
+		pocket_summary += ". Además asoma un objeto personal de %s colocado a propósito." % str(planted_info.get("framed_name", "otro vecino"))
 
 	zone_data = {
 		"cabeza": {
 			"title": "Cabeza y rostro",
 			"acts": [
-				{"id": "mirar", "name": "Mirar de cerca", "cost": 2, "find": head_wounds_txt, "mark": "m-dyn-cabeza" if not wounds_by_zone["cabeza"].is_empty() else "", "note": "Cabeza (%s): %s" % [v_name, head_wounds_txt]},
-				{"id": "oler", "name": "Oler boca y nariz", "cost": 2, "find": "Un olor suave y amargo, como a almendra machacada o hierba cocida, sale todavía de la boca." if (is_poisoned or weapon_cause.to_lower().find("veneno") != -1) else "No huele a alcohol ni a brebaje amargo en los labios.", "tag": "Olor: almendra amarga" if is_poisoned else "", "note": "Aliento (%s): %s" % [v_name, "olor amargo en la boca (posible tóxico ingerido)." if is_poisoned else "sin rastro de veneno oral ni licor."]},
-				{"id": "palpar", "name": "Palpar cráneo", "cost": 3, "find": "Se nota crepitación ósea o hematoma en la sien." if not wounds_by_zone["cabeza"].is_empty() else "Hueso entero, sin hundimientos. No murió de una pedrada ni de un porrazo en la cabeza."},
-				{"id": "lupa", "name": "Usar lupa en el pelo", "cost": 4, "locked": not has_lupa, "find": "Entre el pelo hay polen amarillo de sauce y briznas del lugar donde cayó." if has_lupa else "Hace falta llevar una Lupa de Latón en el inventario para examinar fibras y polen."}
+				{"id": "mirar", "name": "Mirar de cerca", "cost": 2, "find": head_wounds_txt, "mark": "m-dyn-cabeza" if not wounds_by_zone["cabeza"].is_empty() else "", "tag": ("Herida en cabeza: %s" % weapon_cause) if not wounds_by_zone["cabeza"].is_empty() else "", "note": "Cabeza (%s): %s" % [v_name, head_wounds_txt]},
+				{"id": "oler", "name": "Oler boca y nariz", "cost": 2, "find": "Un olor amargo sale todavía de la boca." if (is_poisoned or wc_low.find("veneno") != -1) else "No hay olor a veneno ni a brebajes extraños en boca ni nariz.", "tag": "Olor: tóxico amargo" if is_poisoned else "", "note": "Aliento (%s): %s" % [v_name, "olor amargo en la boca (posible tóxico ingerido)." if is_poisoned else "sin rastro de veneno oral."]},
+				{"id": "palpar", "name": "Palpar cráneo", "cost": 3, "find": ("Hundimiento y fractura ósea compatibles con %s." % weapon_cause) if not wounds_by_zone["cabeza"].is_empty() else "Hueso craneal entero, sin hundimientos ni fracturas."},
+				{"id": "lupa", "name": "Usar lupa en el pelo", "cost": 4, "locked": not has_lupa, "find": ("Con la lupa ves polvo y restos del suelo de %s adheridos al pelo tras caer." % site_desc) if has_lupa else "Hace falta llevar una Lupa de Latón en el inventario para examinar fibras y polvo."}
 			]
 		},
 		"cuello": {
 			"title": "Cuello y garganta",
 			"acts": [
-				{"id": "mirar", "name": "Mirar la piel", "cost": 2, "find": "Una franja morada cruza la garganta, pero está borrosa: la sangre se ha ido hacia la nuca horas después." if (is_moved or weapon_cause == "") else ("Herida visible causada por %s." % weapon_cause), "mark": "m-neck", "note": "Cuello (%s): surco morado en la garganta y lividez desplazada." % v_name},
-				{"id": "palpar", "name": "Palpar garganta", "cost": 3, "find": "Desde fuera se nota el cartílago rígido, pero sin abrir en la morgue no puedes saber si el hueso interno está roto o si apretaron antes o después de morir."},
-				{"id": "lupa", "name": "Usar lupa en el surco", "cost": 5, "locked": not has_lupa, "find": "En los bordes del surco no hay pellejos levantados ni sangre coagulada: apretaron cuando el corazón ya latía muy débil o estaba parado." if has_lupa else "Hace falta llevar una Lupa de Latón para revisar la epidermis del surco.", "tag": "Surco sin sangrado", "note": "Surco del cuello (%s): sin sangrado en los bordes; posible simulación." % v_name},
-				{"id": "interna", "name": "Abrir tráquea", "cost": 0, "locked": true, "find": "Hace falta llevar el cuerpo a la morgue para abrir y ver si el hueso del cuello está roto."}
+				{"id": "mirar", "name": "Mirar la piel", "cost": 2, "find": neck_wounds_txt, "mark": "m-dyn-cuello" if not wounds_by_zone["cuello"].is_empty() else "", "tag": ("Lesión en cuello: %s" % weapon_cause) if not wounds_by_zone["cuello"].is_empty() else "", "note": "Cuello (%s): %s" % [v_name, neck_wounds_txt]},
+				{"id": "palpar", "name": "Palpar garganta", "cost": 3, "find": ("Tejido desgarrado en la zona cervical por %s." % weapon_cause) if not wounds_by_zone["cuello"].is_empty() else "Tráquea y cartílagos del cuello enteros, sin señales de asfixia mecánica."},
+				{"id": "lupa", "name": "Usar lupa en el cuello", "cost": 5, "locked": not has_lupa, "find": (("Bordes limpios producidos por %s." % weapon_cause) if not wounds_by_zone["cuello"].is_empty() else "La epidermis del cuello no presenta marcas de cuerda ni arañazos.") if has_lupa else "Hace falta llevar una Lupa de Latón para revisar la epidermis.", "tag": ("Trauma cervical: %s" % weapon_cause) if not wounds_by_zone["cuello"].is_empty() else "", "note": "Detalle del cuello (%s): %s" % [v_name, weapon_cause if not wounds_by_zone["cuello"].is_empty() else "sin surcos ni estrangulamiento."]},
+				{"id": "interna", "name": "Abrir tráquea", "cost": 0, "locked": true, "find": "Hace falta trasladar el cuerpo a la morgue para realizar la disección interna."}
 			]
 		},
 		"torso": {
-			"title": "Pecho y vestido",
+			"title": "Pecho y ropa",
 			"acts": [
-				{"id": "mirar", "name": "Mirar la ropa", "cost": 2, "find": torso_wounds_txt, "mark": "m-dyn-torso" if not wounds_by_zone["torso"].is_empty() else "", "note": "Torso (%s): %s" % [v_name, torso_wounds_txt]},
-				{"id": "palpar", "name": "Palpar costillas y espalda", "cost": 4, "find": "La piel está anormalmente fría para el tiempo transcurrido: alguien enfrió el cuerpo para trucar la hora de la muerte." if is_tampered_time else "Costillas enteras. Al girar un poco el hombro, ves que la sangre acumulada (lividez) está fijada en el costado derecho, aunque el cuerpo yace boca arriba.", "tag": "Cuerpo movido tras morir" if (is_moved or is_tampered_time) else "", "note": "Lividez (%s): %s" % [v_name, "la temperatura y lividez indican que manipularon el cadáver tras morir." if (is_moved or is_tampered_time) else "costillas enteras, lividez asentada."]},
-				{"id": "interna", "name": "Examinar estómago", "cost": 0, "locked": true, "find": "Hace falta abrir el cuerpo en la morgue para ver qué comió o bebió antes de morir."}
+				{"id": "mirar", "name": "Mirar la ropa", "cost": 2, "find": torso_wounds_txt, "mark": "m-dyn-torso" if not wounds_by_zone["torso"].is_empty() else "", "tag": ("Lesión en torso: %s" % weapon_cause) if not wounds_by_zone["torso"].is_empty() else "", "note": "Torso (%s): %s" % [v_name, torso_wounds_txt]},
+				{"id": "palpar", "name": "Palpar costillas y espalda", "cost": 4, "find": "La piel está anormalmente fría para el tiempo transcurrido: alguien enfrió el cuerpo para trucar la hora de la muerte." if is_tampered_time else ("Lividez desplazada en dos costados: movieron el cadáver horas después de morir." if is_moved else ("El cuerpo cayó en %s hace %.1f h; la lividez coincide con la postura actual." % [site_desc, maxf(0.2, rot_h)])), "tag": "Cuerpo manipulado tras morir" if (is_moved or is_tampered_time) else "", "note": "Lividez (%s): %s" % [v_name, "manipularon el cadáver tras morir." if (is_moved or is_tampered_time) else ("postura original en %s." % site_desc)]},
+				{"id": "interna", "name": "Examinar estómago", "cost": 0, "locked": true, "find": "Hace falta abrir el cuerpo en la morgue para analizar el contenido gástrico."}
 			]
 		},
 		"brazos": {
 			"title": "Brazos y muñecas",
 			"acts": [
-				{"id": "mirar", "name": "Mirar muñecas", "cost": 2, "find": arm_wounds_txt, "mark": "m-wrist", "note": "Muñecas (%s): %s" % [v_name, arm_wounds_txt]},
-				{"id": "lupa", "name": "Usar lupa en las marcas", "cost": 4, "locked": not has_lupa, "find": "Hay pelusa de cáñamo encerado clavada en la piel: el cordel que usan en el almacén de grano y en las barcas." if has_lupa else "Necesitas una Lupa de Latón para identificar las fibras en las muñecas.", "tag": "Fibra: cáñamo encerado", "note": "Fibra en muñecas (%s): cáñamo encerado." % v_name}
+				{"id": "mirar", "name": "Mirar muñecas", "cost": 2, "find": arm_wounds_txt, "mark": "m-dyn-brazos" if not wounds_by_zone["brazos"].is_empty() else "", "note": "Brazos (%s): %s" % [v_name, arm_wounds_txt]},
+				{"id": "lupa", "name": "Usar lupa en mangas", "cost": 4, "locked": not has_lupa, "find": ("Las mangas muestran el desgaste habitual de su oficio (%s), sin restos de cuerdas." % (v_role if v_role != "" else "vecino")) if has_lupa else "Necesitas una Lupa de Latón para revisar las fibras de las mangas."}
 			]
 		},
 		"manos": {
 			"title": "Manos y uñas",
 			"acts": [
-				{"id": "mirar", "name": "Abrir los dedos", "cost": 3, "find": "Los dedos están rígidos (entre 6 y 10 horas muerta). No tiene cortes de haberse defendido de un cuchillo."},
-				{"id": "lupa", "name": "Mirar bajo las uñas", "cost": 4, "locked": not has_lupa, "find": "Bajo dos uñas de la mano derecha hay hebras de lana teñida de azul oscuro, arrancadas de una manga o capote." if has_lupa else "Necesitas una Lupa de Latón para examinar debajo de las uñas.", "tag": "Fibra: lana azul oscuro", "note": "Bajo las uñas (%s): lana azul oscuro arrancada de la ropa de otra persona." % v_name}
+				{"id": "mirar", "name": "Abrir los dedos", "cost": 3, "find": "%s %s" % [rigor_txt, "No llegó a empuñar arma ni defenderse." if total_wounds <= 1 else "Nudillos marcados por el forcejeo."], "note": "Manos (%s): %s" % [v_name, rigor_txt]},
+				{"id": "lupa", "name": "Mirar bajo las uñas", "cost": 4, "locked": not has_lupa, "find": ("Uñas limpias de fibras ajenas: el ataque (%s) fue rápido y por sorpresa." % (weapon_cause if weapon_cause != "" else "letal")) if has_lupa else "Necesitas una Lupa de Latón para examinar debajo de las uñas."}
 			]
 		},
 		"piernas": {
 			"title": "Piernas y calzado",
 			"acts": [
-				{"id": "mirar", "name": "Mirar pies y bajos", "cost": 2, "find": leg_wounds_txt, "mark": "m-heel", "tag": "Arrastrada hasta aquí" if is_moved else "", "note": "Pies (%s): %s" % [v_name, leg_wounds_txt]},
-				{"id": "oler", "name": "Oler el barro del vestido", "cost": 2, "find": "El barro de las rodillas huele a ceniza de carbón vegetal, no al lodo limpio del arroyo.", "tag": "Barro con ceniza de carbón", "note": "Barro en rodillas (%s): mezclado con ceniza de carbón vegetal." % v_name}
+				{"id": "mirar", "name": "Mirar pies y bajos", "cost": 2, "find": leg_wounds_txt, "mark": "m-dyn-piernas" if not wounds_by_zone["piernas"].is_empty() else ("m-heel" if is_moved else ""), "tag": "Arrastrado tras morir" if is_moved else "", "note": "Calzado (%s): %s" % [v_name, leg_wounds_txt]},
+				{"id": "oler", "name": "Examinar suelas", "cost": 2, "find": "Las suelas solo tienen tierra y humedad propias de %s." % site_desc}
 			]
 		},
 		"bolsillos": {
-			"title": "Bolsillos del delantal",
+			"title": "Bolsillos y zurrón",
 			"acts": [
-				{"id": "palpar", "name": "Palpar desde fuera", "cost": 2, "find": "En el bolsillo derecho suena vidrio pequeño y un papel doblado (%s)." % pocket_summary},
-				{"id": "registrar", "name": "Vaciar bolsillo (10 min)", "cost": 10, "find": "Sacas el contenido de los bolsillos (%s): un frasco pequeño vacío sin etiqueta (huele igual que su boca, a almendra amarga) y una nota húmeda donde solo se lee «…después del toque de queda en el puente viejo — V.»." % pocket_summary, "mark": "m-pocket", "tag": "Objeto: frasco vacío + nota «V.»", "note": "Bolsillo (%s): %s + frasco vacío con olor amargo y nota firmada «V.»." % [v_name, pocket_summary], "loot_corpse": true}
+				{"id": "palpar", "name": "Palpar desde fuera", "cost": 2, "find": "Al palpar la ropa de %s notas su contenido actual: %s." % [v_name, pocket_summary]},
+				{"id": "registrar", "name": "Vaciar bolsillo (10 min)", "cost": 10, "find": "Registras las pertenencias reales de %s (%s): %s." % [v_name, v_role if v_role != "" else "Vecino", pocket_summary], "tag": "Pertenencias de " + v_name, "note": "Bolsillos (%s): %s." % [v_name, pocket_summary], "loot_corpse": true}
 			]
 		}
 	}
@@ -1683,9 +1912,12 @@ func _describe_zone_wounds(w_arr: Array, weapon_cause: String, fallback_txt: Str
 		return fallback_txt
 	var parts: Array[String] = []
 	for w in w_arr:
-		var wn: String = str(w.get("name", "Herida"))
-		var wc: String = str(w.get("weapon_cause", weapon_cause))
-		parts.append("%s (%s)" % [wn, wc if wc != "" else "impacto físico"])
+		var wn: String = str(w.get("type", w.get("name", "Herida")))
+		var wc: String = str(w.get("source_tag", w.get("weapon_cause", weapon_cause)))
+		if wc != "" and wc != wn:
+			parts.append("%s (%s)" % [wn, wc])
+		else:
+			parts.append(wn if wn != "" else weapon_cause)
 	return "Se aprecian lesiones visibles: " + ", ".join(parts) + "."
 
 
@@ -1777,11 +2009,14 @@ func _do_zone_action(z_id: String, act: Dictionary) -> void:
 			revealed_marks[mk] = true
 			if silhouette_canvas != null:
 				silhouette_canvas.queue_redraw()
-		if z_id == "cuello" and a_id == "mirar":
+		if a_id == "mirar" and (z_id == "cuello" or str(act.get("mark", "")).begins_with("m-dyn-")):
 			if is_instance_valid(current_corpse) and not current_corpse.has_meta("scripted_case_zones"):
 				var wc: String = str(current_corpse.get("last_hit_weapon_name"))
-				apparent_cause_str = ("%s (sin confirmar)" % wc) if wc != "" else "Estrangulamiento con las manos (sin confirmar)"
-			else:
+				if wc != "":
+					apparent_cause_str = "%s (sin confirmar)" % wc
+				elif z_id == "cuello":
+					apparent_cause_str = "Sin lesiones letales visibles en el cuello"
+			elif z_id == "cuello":
 				apparent_cause_str = "Estrangulamiento con las manos (sin confirmar)"
 			if lbl_apparent_cause != null:
 				lbl_apparent_cause.text = "Causa aparente: [color=#e7b45a][b]%s[/b][/color]" % apparent_cause_str
@@ -1947,20 +2182,16 @@ func _get_default_morgue_tests(corpse_node: Node2D) -> Dictionary:
 	var fem: bool = is_female_model
 	var vm = get_tree().get_first_node_in_group("village_manager") if is_inside_tree() else null
 	var f_state: Dictionary = vm.VillageForensics.state(vm) if (vm != null and "VillageForensics" in vm) else {}
-	var is_poisoned: bool = is_scripted or (f_state.get("poisoned", {}) as Dictionary).has(v_name)
-	var is_moved: bool = is_scripted or (f_state.get("moved", {}) as Dictionary).has(v_name)
+	var is_poisoned: bool = (f_state.get("poisoned", {}) as Dictionary).has(v_name)
+	var is_moved: bool = (f_state.get("moved", {}) as Dictionary).has(v_name)
 	var is_tampered_time: bool = (f_state.get("tampered_time", {}) as Dictionary).has(v_name)
-	var weapon_cause: String = str(corpse_node.get("last_hit_weapon_name")) if not is_scripted else ""
+	var weapon_cause: String = str(corpse_node.get("last_hit_weapon_name"))
+	var rot_h: float = float(corpse_node.get("corpse_rot_hours"))
 
-	var par_str: String = "paralizada por una hierba de embalsamar" if fem else "paralizado por una hierba de embalsamar"
-	if not is_scripted and is_poisoned:
-		par_str = ("envenenada con tóxico lento" if fem else "envenenado con tóxico lento")
-	var strangled_str: String = "estrangulada con las manos" if fem else "estrangulado con las manos"
-	if not is_scripted and weapon_cause != "" and not is_poisoned:
-		strangled_str = "lesión mortal por %s" % weapon_cause.to_lower()
-	var moved_str: String = "movida horas después" if fem else "movido horas después"
-	if not is_scripted and is_tampered_time:
-		moved_str = ("enfriada tras morir para trucar la hora" if fem else "enfriado tras morir para trucar la hora")
+	var blood_cause: String = ("envenenada con tóxico lento" if fem else "envenenado con tóxico lento") if is_poisoned else ("hemorragia aguda (%s)" % (weapon_cause.to_lower() if weapon_cause != "" else "trauma físico"))
+	var blood_note_tag: String = "Sangre: tóxico lento" if is_poisoned else "Sangre: limpia de veneno"
+	var trauma_cause: String = "lesión mortal por %s" % (weapon_cause.to_lower() if weapon_cause != "" else "impacto")
+	var skin_cause: String = ("movida tras morir" if fem else "movido tras morir") if is_moved else (("enfriada artificialmente" if fem else "enfriado artificialmente") if is_tampered_time else ("fallecid%s en el acto hace %.1f h" % ["a" if fem else "o", maxf(0.2, rot_h)]))
 
 	return {
 		"sangre": {
@@ -1971,57 +2202,56 @@ func _get_default_morgue_tests(corpse_node: Node2D) -> Dictionary:
 					"q": "¿De dónde sacas la sangre?",
 					"hint": "«Del corazón. La del brazo ya se ha posado.»",
 					"opts": [
-						["Del corazón", "ok", "Sangre oscura y espesa: buena muestra."],
+						["Del corazón", "ok", "Sangre oscura y homogénea: buena muestra."],
 						["Del brazo", "dud", "Apenas sale. Muestra pobre: lo que veas será dudoso."]
 					]
 				},
 				{
-					"q": "Elige el reactivo",
-					"hint": "«Para hierbas, la corteza. Para metales, la plata. Para la adormidera, el cobre.»",
+					"q": "Elige el reactivo toxicológico",
+					"hint": "«La tintura de corteza revela alcaloides y venenos vegetales.»",
 					"opts": [
-						["Sal de plata", "fail", "Nada. No hay metales. Gastas parte de la muestra."],
-						["Tintura de corteza", "ok", "La gota se vuelve verde oscuro en segundos."],
-						["Vinagre de cobre", "fail", "Nada. No hay adormidera. Gastas parte de la muestra."]
+						["Sal de plata", "fail", "No reacciona. Gastas parte de la muestra."],
+						["Tintura de corteza", "ok", "La gota vira a verde oscuro: hay veneno en sangre." if is_poisoned else "La gota permanece rojiza sin virar: no hay veneno en la sangre."],
+						["Vinagre de cobre", "fail", "Sin reacción útil. Gastas parte de la muestra."]
 					]
 				},
 				{
-					"q": "¿Qué indica el verde oscuro?",
+					"q": "¿Qué concluyes del análisis de sangre?",
 					"chart": true,
-					"hint": "«Verde oscuro… eso no lo uso yo. Es de embalsamadores.»",
+					"hint": "«Si no vira de color, la muerte fue por el golpe o la herida, no por veneno.»",
 					"opts": [
-						["Una hierba de embalsamar", "ok", "Restos de una hierba de embalsamar en la sangre. Paraliza."],
-						["Veneno de setas", "dud", "Anotas «setas», pero el color no encaja del todo."],
-						["Nada raro", "dud", "Lo das por normal. Algo no te cuadra."]
+						["Tóxico vegetal en sangre" if is_poisoned else "Sangre sin veneno (muerte traumática)", "ok", "Confirmas envenenamiento en la sangre de %s." % v_name if is_poisoned else "Descartas veneno: %s murió por %s." % [v_name, weapon_cause if weapon_cause != "" else "herida traumática"]],
+						["Resultado inconcluso", "dud", "Anotas duda sobre la muestra."]
 					]
 				}
 			],
-			"cause": par_str,
+			"cause": blood_cause,
 			"note_title": "Autopsia · Sangre",
-			"note_tag": "Sangre: hierba paralizante"
+			"note_tag": blood_note_tag
 		},
 		"cuello": {
-			"name": "Cuello",
+			"name": "Lesión mortal",
 			"vials": 0,
 			"steps": [
 				{
-					"q": "¿Cómo abres el cuello?",
-					"hint": "«Despacio, por capas. Si cortas deprisa, rompes lo que buscas.»",
+					"q": "¿Cómo disecas la zona de la herida principal?",
+					"hint": "«Despacio, por planos. Si cortas deprisa destrozas el rastro del arma.»",
 					"opts": [
-						["Corte lento, por capas", "ok", "Llegas al hueso de la garganta sin tocarlo."],
-						["Corte rápido", "ruin", "Rompes el hueso al cortar: ya no dice nada."]
+						["Corte lento, por capas", "ok", "Expones limpiamente el plano muscular y óseo de la lesión."],
+						["Corte rápido", "ruin", "Destrozas los bordes internos al cortar: ya no se distingue el arma."]
 					]
 				},
 				{
-					"q": "Mira el hueso de la garganta",
+					"q": "Examina la lesión interna",
 					"hint": "",
 					"opts": [
-						["Mirar", "ok", "Roto por los dos lados: la apretaron con las dos manos." if (is_scripted or weapon_cause == "" or is_poisoned) else ("Traumatismo interno compatible con %s." % weapon_cause)]
+						["Inspeccionar", "ok", "Traumatismo interno letal producido por %s." % (weapon_cause if weapon_cause != "" else "un golpe directo")]
 					]
 				}
 			],
-			"cause": strangled_str,
-			"note_title": "Autopsia · Cuello",
-			"note_tag": "Hioides roto (dos manos)"
+			"cause": trauma_cause,
+			"note_title": "Autopsia · Lesión mortal",
+			"note_tag": "Arma: " + (weapon_cause if weapon_cause != "" else "trauma")
 		},
 		"estomago": {
 			"name": "Estómago",
@@ -2031,44 +2261,44 @@ func _get_default_morgue_tests(corpse_node: Node2D) -> Dictionary:
 					"q": "Abre el estómago",
 					"hint": "",
 					"opts": [
-						["Abrir y vaciar en un cuenco", "ok", "Casi vacío. Un poco de líquido espeso, amargo y verdoso."]
+						["Abrir y vaciar en un cuenco", "ok", "Líquido amargo y verdoso de un tóxico recién ingerido." if is_poisoned else "Restos normales de su última comida en el pueblo, sin rastro de veneno."]
 					]
 				},
 				{
-					"q": "¿Qué haces con el líquido?",
-					"hint": "«Guárdalo. El alquimista sabrá más que yo.»",
+					"q": "¿Qué haces con la muestra gástrica?",
+					"hint": "«Séllala en un frasco para dejar constancia en el informe.»",
 					"opts": [
-						["Guardarlo en un frasco sellado", "ok", "Frasco sellado. El alquimista podrá analizarlo."],
-						["Tirarlo, ya lo has visto", "ruin", "Se pierde. Nadie podrá analizarlo."]
+						["Guardarla en un frasco sellado", "ok", "Muestra gástrica de %s sellada y etiquetada." % v_name],
+						["Descartarla", "ruin", "Tiras el contenido sin conservar muestra."]
 					]
 				}
 			],
 			"cause": "",
 			"note_title": "Autopsia · Estómago",
-			"note_tag": "Frasco sellado (líquido amargo)"
+			"note_tag": "Estómago: tóxico" if is_poisoned else "Estómago: comida normal"
 		},
 		"piel": {
 			"name": "Piel y rigidez",
 			"vials": 0,
 			"steps": [
 				{
-					"q": "Gira el cuerpo y mira la espalda",
+					"q": "Gira el cuerpo y revisa las livideces",
 					"hint": "",
 					"opts": [
-						["Girar el cuerpo", "ok", "Manchas moradas en la espalda y otras en el costado: estuvo tumbada en dos sitios. La movieron horas después de morir."]
+						["Girar el cuerpo", "ok", "Doble marca de lividez: movieron a %s horas después de morir." % v_name if is_moved else "Lividez única y asentada: el cuerpo no fue movido del sitio donde cayó."]
 					]
 				},
 				{
-					"q": "Prueba la rigidez",
+					"q": "Comprueba la rigidez articular",
 					"hint": "",
 					"opts": [
-						["Doblar codos y rodillas", "ok", "Rigidez desigual: algunos músculos estaban agarrotados antes de morir, como por algo que paraliza." if not is_tampered_time else "Rigidez alterada por frío artificial: enfriaron el cadáver para falsear la hora de la muerte."]
+						["Doblar codos y rodillas", "ok", "Enfriamiento artificial para falsear la hora de la muerte." if is_tampered_time else ("Rigidez acorde a %.1f horas desde el fallecimiento." % maxf(0.2, rot_h))]
 					]
 				}
 			],
-			"cause": moved_str,
+			"cause": skin_cause,
 			"note_title": "Autopsia · Piel y rigidez",
-			"note_tag": "Lividez doble (movida)"
+			"note_tag": "Lividez doble (movido)" if is_moved else ("Hora muerte: ~%.1f h" % maxf(0.2, rot_h))
 		}
 	}
 
@@ -2912,7 +3142,25 @@ func _build_board_suspects_for_corpse(corpse_node: Node2D) -> void:
 					"t": full_txt
 				})
 	if board_suspects.is_empty():
-		board_suspects = default_suspects
+		var v_name: String = str(corpse_node.get("npc_name"))
+		var v_role: String = str(corpse_node.get("npc_role"))
+		var wc: String = str(corpse_node.get("last_hit_weapon_name"))
+		var dpos: Vector2 = corpse_node.global_position
+		var raw_dp = corpse_node.get("death_world_pos")
+		if raw_dp is Vector2 and (raw_dp as Vector2) != Vector2.ZERO:
+			dpos = raw_dp
+		board_suspects.append({
+			"id": "s_victim",
+			"k": "Víctima",
+			"t": "%s (%s) — Hallad%s en %s. Causa preliminar: %s." % [v_name, v_role if v_role != "" else "Vecino", "a" if is_female_model else "o", _describe_world_site(dpos), wc if wc != "" else "por determinar"]
+		})
+		for wi in range(mini(3, scene_witnesses.size())):
+			var w: Dictionary = scene_witnesses[wi]
+			board_suspects.append({
+				"id": "s_wit_%d" % wi,
+				"k": "Vecino cercano",
+				"t": "%s — Estaba por las inmediaciones cuando se halló el cuerpo." % str(w.get("name", "Vecino"))
+			})
 
 
 func get_board_items() -> Array[Dictionary]:
@@ -2947,7 +3195,8 @@ func _ensure_board_positions(items: Array[Dictionary]) -> void:
 		if not board_positions.has(pid):
 			var col: int = idx % 4
 			var row: int = int(idx / 4)
-			board_positions[pid] = Vector2(26.0 + float(col) * 195.0, 22.0 + float(row) * 146.0)
+			var stagger_y: float = 16.0 if (col % 2 == 1) else 0.0
+			board_positions[pid] = Vector2(26.0 + float(col) * 195.0, 22.0 + float(row) * 150.0 + stagger_y)
 
 
 func _render_board_view() -> void:
@@ -2957,7 +3206,7 @@ func _render_board_view() -> void:
 	_ensure_board_positions(items)
 
 	for child in corkboard_canvas.get_children():
-		if child != corkboard_canvas.strings_overlay:
+		if child != corkboard_canvas.strings_overlay and child != corkboard_canvas.pins_overlay:
 			child.queue_free()
 	corkboard_canvas.card_nodes.clear()
 
@@ -2970,12 +3219,13 @@ func _render_board_view() -> void:
 		var card := PanelContainer.new()
 		card.custom_minimum_size = Vector2(168, 72)
 		card.position = pos
+		card.z_index = 4
 		card.mouse_default_cursor_shape = Control.CURSOR_MOVE
 
 		var bg_col := Color("#f5e3df") if is_susp else COL_PAPER
 		var border_col := COL_RED_PIN if is_linked_sel else COL_PAPER_INK
 		var border_w := 2 if is_linked_sel else 1
-		var st := _style_box(bg_col, border_col, border_w, 0, 10, 9)
+		var st := _style_box(bg_col, border_col, border_w, 0, 10, 11)
 		st.shadow_color = Color(0, 0, 0, 0.35)
 		st.shadow_size = 5
 		st.shadow_offset = Vector2(0, 3)
@@ -2998,13 +3248,6 @@ func _render_board_view() -> void:
 		kl.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		top_hb.add_child(kl)
 
-		# Chincheta superior en el centro
-		var pin_dot := ColorRect.new()
-		pin_dot.color = COL_RED_PIN
-		pin_dot.custom_minimum_size = Vector2(10, 10)
-		pin_dot.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		top_hb.add_child(pin_dot)
-
 		var tl := Label.new()
 		tl.text = str(it.get("t", ""))
 		tl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
@@ -3021,8 +3264,11 @@ func _render_board_view() -> void:
 		corkboard_canvas.add_child(card)
 		corkboard_canvas.card_nodes[pid] = card
 
+	# Los hilos rojos van por detrás de las tarjetas (z_index = 1) y las cabezas de chincheta arriba al centro (z_index = 10)
 	if corkboard_canvas.strings_overlay != null:
-		corkboard_canvas.move_child(corkboard_canvas.strings_overlay, -1)
+		corkboard_canvas.move_child(corkboard_canvas.strings_overlay, 0)
+	if corkboard_canvas.pins_overlay != null:
+		corkboard_canvas.move_child(corkboard_canvas.pins_overlay, -1)
 	corkboard_canvas.redraw_links()
 
 

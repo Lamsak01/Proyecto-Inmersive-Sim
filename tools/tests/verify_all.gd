@@ -7198,6 +7198,28 @@ func _initialize() -> void:
 	assert(det_ui.board_links.is_empty(), "D4.4: remove_board_link_at removes the clicked red thread")
 	det_ui.close_panel()
 	assert(det_ui.visible == false, "D4.5: close_panel hides DetectiveUI and restores normal camera")
+
+	# D1.4 (Paso 1a): Non-case corpse examination must reflect real wounds/weapon/gender and never copy Case I clues
+	var d14_butcher = vm.trade_npcs.get(int(load("res://scripts/enemies/VillageNPC.gd").TradeRole.BUTCHER))
+	if d14_butcher != null:
+		var d14_prev_w = p70_pl.equipped_weapon
+		if p70_pl.get("axe_weapon") != null:
+			p70_pl.equipped_weapon = p70_pl.axe_weapon
+		d14_butcher.health_comp.wounds.clear()
+		d14_butcher.stealth_assassinate(p70_pl)
+		p70_pl.equipped_weapon = d14_prev_w
+		assert(d14_butcher.is_dead and not d14_butcher.health_comp.wounds.is_empty(), "D1.4a: Stealth kill records a real wound in HealthComponent.wounds")
+		det_ui.open_for_corpse(d14_butcher, "body")
+		assert(det_ui.is_female_model == false, "D1.4b: Male villager corpse uses male silhouette")
+		var d14_torso_find: String = str(det_ui.zone_data["torso"]["acts"][0].get("find", ""))
+		var d14_arms_find: String = str(det_ui.zone_data["brazos"]["acts"][0].get("find", ""))
+		var d14_legs_find: String = str(det_ui.zone_data["piernas"]["acts"][0].get("find", ""))
+		var d14_all_txt: String = (d14_torso_find + " " + d14_arms_find + " " + d14_legs_find).to_lower()
+		assert(d14_torso_find.to_lower().find("espalda") != -1 and d14_torso_find.to_lower().find("hacha") != -1, "D1.4c: Torso examination reports stealth axe wound from behind: " + d14_torso_find)
+		assert(d14_arms_find.to_lower().find("nada fuera de lo normal") != -1, "D1.4d: Uninjured arms report 'nada fuera de lo normal': " + d14_arms_find)
+		assert(d14_all_txt.find("cáñamo") == -1 and d14_all_txt.find("vestido") == -1 and d14_all_txt.find("ceniza") == -1, "D1.4e: Non-case corpse never leaks Case I strings ('cáñamo', 'vestido', 'ceniza')")
+		det_ui.close_panel()
+
 	print("Blocks D1–D5 (Detective Tools: Body Exam, Morgue Autopsy, Crime Scene Lantern, Corkboard & 10-Case Data) OK")
 
 	print("ALL RIMWORLD MEDICAL, FOOTPRINTS, 3-PHASE CORPSE REPORT, MULTI-CORPSE FIX, RPG INTERROGATION, PUBLIC TRIAL, DYNAMIC RELATIONSHIPS, MISSING FAMILY SEARCH, SOCIAL GLOSSARY & UNCONSCIOUS REACTION TESTS PASSED!")

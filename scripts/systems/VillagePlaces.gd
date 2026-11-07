@@ -48,12 +48,15 @@ static func build_world(vm) -> void:
 	var bench: String = "res://assests/Comprados/Epic RPG World - Village(interiors) V1.3/assets/furniture_and_props_sprites/bench_0.png"
 	# Parque: césped, borde, pinos, flores y bancos
 	var r: Rect2 = PARK_RECT
-	vm._add_poly(PackedVector2Array([r.position, Vector2(r.end.x, r.position.y), r.end, Vector2(r.position.x, r.end.y)]), Color(0.30, 0.52, 0.26, 0.55), -4)
+	var park_poly: Polygon2D = vm._add_poly(PackedVector2Array([r.position, Vector2(r.end.x, r.position.y), r.end, Vector2(r.position.x, r.end.y)]), Color(0.30, 0.52, 0.26, 0.55), -4)
+	if park_poly != null:
+		park_poly.add_to_group("ranch_fence_2d")
 	var border := Line2D.new()
 	border.width = 1.5
 	border.default_color = Color(0.46, 0.36, 0.22, 0.8)
 	border.points = PackedVector2Array([r.position, Vector2(r.end.x, r.position.y), r.end, Vector2(r.position.x, r.end.y), r.position])
 	border.z_index = -3
+	border.add_to_group("ranch_fence_2d")
 	vm.entities_root.add_child(border)
 	var tree: Texture2D = vm._load_tex(dec + "tilesets and props/props-sprites/pine-tree_0.png")
 	for tp in [Vector2(200, 232), Vector2(410, 236), Vector2(270, 290), Vector2(380, 288)]:
@@ -62,15 +65,19 @@ static func build_world(vm) -> void:
 		vm._spawn_decor_prop(dec + "buildings/Decorations_sprites/flowers_plants_0.png", fp, Vector2(0.5, 0.5))
 	vm._spawn_decor_prop(bench, place("park_bench")["pos"] + Vector2(0, -8), Vector2(0.4, 0.4))
 	vm._spawn_decor_prop(bench, Vector2(330, 236), Vector2(0.4, 0.4))
-	vm._add_title_label(Vector2(224, 218), Vector2(160, 14), "🌳 Parque del Roble", Color(0.78, 0.96, 0.66), 8)
+	vm._add_title_label(Vector2(224, 194), Vector2(160, 14), "🌳 Parque del Roble", Color(0.78, 0.96, 0.66), 8)
 	# Bancos de la plaza
 	vm._spawn_decor_prop(bench, place("plaza_benches")["pos"] + Vector2(0, -8), Vector2(0.4, 0.4))
 	vm._spawn_decor_prop(bench, Vector2(440, 80), Vector2(0.4, 0.4))
 	# Mirador del lago: barandilla de madera y un banco
 	var lv: Vector2 = place("lake_view")["pos"]
-	vm._add_rect_poly(lv + Vector2(0, -12), Vector2(36, 2), Color(0.50, 0.34, 0.18, 0.95), -1)
+	var rail_top: Polygon2D = vm._add_rect_poly(lv + Vector2(0, -12), Vector2(36, 2), Color(0.50, 0.34, 0.18, 0.95), -1)
+	if rail_top != null:
+		rail_top.add_to_group("ranch_fence_2d")
 	for px in [-34, -12, 12, 34]:
-		vm._add_rect_poly(lv + Vector2(px, -9), Vector2(1.5, 4), Color(0.42, 0.28, 0.14, 0.95), -1)
+		var rail_post: Polygon2D = vm._add_rect_poly(lv + Vector2(px, -9), Vector2(1.5, 4), Color(0.42, 0.28, 0.14, 0.95), -1)
+		if rail_post != null:
+			rail_post.add_to_group("ranch_fence_2d")
 	vm._spawn_decor_prop(bench, lv + Vector2(0, -2), Vector2(0.4, 0.4))
 	vm._add_title_label(lv + Vector2(-70, 8), Vector2(140, 14), "🌅 Mirador del Lago", Color(0.70, 0.88, 1.0), 7)
 

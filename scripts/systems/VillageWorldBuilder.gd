@@ -450,16 +450,19 @@ static func _spawn_church_and_cemetery(vm: VillageManager) -> void:
 	)
 
 	# 2. Cementerio Parroquial al Este de la Capilla (sur de la Comisaría, `Rect2(826, 262, 166, 98)`)
-	vm._add_poly(PackedVector2Array([Vector2(826, 262), Vector2(992, 262), Vector2(992, 360), Vector2(826, 360)]), Color(0.22, 0.30, 0.22, 0.78), -2)
+	var cem_ground_2d := vm._add_poly(PackedVector2Array([Vector2(826, 262), Vector2(992, 262), Vector2(992, 360), Vector2(826, 360)]), Color(0.22, 0.30, 0.22, 0.78), -2)
+	if cem_ground_2d != null:
+		cem_ground_2d.add_to_group("ranch_fence_2d")
 
 	var fence_border := Line2D.new()
 	fence_border.width = 2.5
 	fence_border.default_color = Color(0.26, 0.28, 0.34, 0.95)
 	fence_border.points = PackedVector2Array([Vector2(870, 262), Vector2(826, 262), Vector2(826, 360), Vector2(992, 360), Vector2(992, 262), Vector2(906, 262)])
 	fence_border.z_index = 0
+	fence_border.add_to_group("ranch_fence_2d")
 	vm.entities_root.add_child(fence_border)
 
-	vm._add_title_label(Vector2(784, 244), Vector2(250, 16), "🪦 Cementerio Parroquial del Alba", Color(0.82, 0.86, 0.96), 8)
+	vm._add_title_label(Vector2(784, 240), Vector2(250, 16), "🪦 Cementerio Parroquial del Alba", Color(0.82, 0.86, 0.96), 8)
 	vm._add_station_area("CemeteryGateArea", vm._cemetery_gate_pos, 22.0, "cemetery_gate")
 	vm._cemetery_label = vm._make_station_label(vm._cemetery_gate_pos + Vector2(-125, -26), "🪦 Cementerio Parroquial [E: Inspeccionar Sepulturas]")
 	vm.entities_root.add_child(vm._cemetery_label)
@@ -469,7 +472,9 @@ static func _spawn_church_and_cemetery(vm: VillageManager) -> void:
 		for col_i in range(6):
 			var g_pos := Vector2(844.0 + float(col_i) * 26.0, 282.0 + float(row_i) * 28.0)
 			vm._cemetery_grave_positions.append(g_pos)
-			vm._add_rect_poly(g_pos, Vector2(7, 9), Color(0.18, 0.24, 0.18, 0.50), -2)
+			var g_rect_2d := vm._add_rect_poly(g_pos, Vector2(4.5, 5.5), Color(0.18, 0.24, 0.18, 0.50), -2)
+			if g_rect_2d != null:
+				g_rect_2d.add_to_group("ranch_fence_2d")
 
 # ==============================================================================
 # PASO 5: 📋 TABLÓN DE ENCARGOS EN LA PLAZA CENTRAL (`Vector2(465, 24)`)

@@ -457,9 +457,10 @@ static func instantiate_model(
 	return wrapper
 
 
-static func extract_head_only_mesh(key: String, full_mesh: Mesh, min_y: float = 1.44) -> ArrayMesh:
-	if _head_mesh_cache.has(key):
-		return _head_mesh_cache[key]
+static func extract_head_only_mesh(key: String, full_mesh: Mesh, min_y: float = 1.44, max_abs_x: float = 0.135) -> ArrayMesh:
+	var cache_key := "%s_v2_%.3f_%.3f" % [key, min_y, max_abs_x]
+	if _head_mesh_cache.has(cache_key):
+		return _head_mesh_cache[cache_key]
 	if full_mesh == null or full_mesh.get_surface_count() == 0:
 		return null
 	var arrays := full_mesh.surface_get_arrays(0)
@@ -475,7 +476,10 @@ static func extract_head_only_mesh(key: String, full_mesh: Mesh, min_y: float = 
 		var i0 := indices[t * 3]
 		var i1 := indices[t * 3 + 1]
 		var i2 := indices[t * 3 + 2]
-		if verts[i0].y >= min_y and verts[i1].y >= min_y and verts[i2].y >= min_y:
+		var v0 := verts[i0]
+		var v1 := verts[i1]
+		var v2 := verts[i2]
+		if v0.y >= min_y and v1.y >= min_y and v2.y >= min_y and absf(v0.x) <= max_abs_x and absf(v1.x) <= max_abs_x and absf(v2.x) <= max_abs_x:
 			new_indices.append(i0)
 			new_indices.append(i1)
 			new_indices.append(i2)
@@ -500,5 +504,5 @@ static func extract_head_only_mesh(key: String, full_mesh: Mesh, min_y: float = 
 	var orig_mat := full_mesh.surface_get_material(0)
 	if orig_mat != null:
 		out_mesh.surface_set_material(0, orig_mat)
-	_head_mesh_cache[key] = out_mesh
+	_head_mesh_cache[cache_key] = out_mesh
 	return out_mesh

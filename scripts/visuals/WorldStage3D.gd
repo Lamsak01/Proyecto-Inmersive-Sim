@@ -560,17 +560,27 @@ func _build_static_terrain_3d() -> void:
 	]:
 		_build_fence_run_3d(terrain_root_3d, r_side[0] as Vector2, r_side[1] as Vector2, m_wood)
 
-	# Parque del Roble (Vector2(105, -55)) con árboles 3D reales
-	var park_c := Vector2(105, -55)
-	_add_box_2d(terrain_root_3d, park_c, Vector2(92, 68), 0.0, 1.6, m_grass_park)
-	_add_box_2d(terrain_root_3d, park_c + Vector2(0, -34), Vector2(94, 3), 0.0, 5.0, m_curb)
-	_add_box_2d(terrain_root_3d, park_c + Vector2(0, 34), Vector2(94, 3), 0.0, 5.0, m_curb)
+	# Parque del Roble (Rect2(184, 216, 240, 84)) con árboles, bancos y macetas 3D reales
+	var park_r := Rect2(Vector2(184.0, 216.0), Vector2(240.0, 84.0))
+	var park_c: Vector2 = park_r.get_center()
+	_add_box_2d(terrain_root_3d, park_c, park_r.size, 0.0, 1.4, m_grass_park)
+	_add_box_2d(terrain_root_3d, park_c + Vector2(0.0, -park_r.size.y * 0.5), Vector2(park_r.size.x + 2.0, 3.0), 0.0, 4.5, m_curb)
+	_add_box_2d(terrain_root_3d, park_c + Vector2(0.0, park_r.size.y * 0.5), Vector2(park_r.size.x + 2.0, 3.0), 0.0, 4.5, m_curb)
 	var tree_idx := 0
-	for tp in [Vector2(-32, -18), Vector2(32, -18), Vector2(-34, 18), Vector2(34, 18), Vector2(0, -6)]:
-		_build_tree_3d(terrain_root_3d, park_c + tp, m_dark_wood, m_pine, m_pine_top, 1.25 if tp == Vector2(0, -6) else 0.95, tree_idx)
+	for tp in [Vector2(200.0, 232.0), Vector2(410.0, 236.0), Vector2(270.0, 290.0), Vector2(380.0, 288.0), Vector2(304.0, 256.0)]:
+		_build_tree_3d(terrain_root_3d, tp, m_dark_wood, m_pine, m_pine_top, 1.22 if tp == Vector2(304.0, 256.0) else 0.95, tree_idx)
 		tree_idx += 1
-	_build_bench_3d(terrain_root_3d, park_c + Vector2(-16, 12), m_wood, m_iron)
-	_build_bench_3d(terrain_root_3d, park_c + Vector2(16, 12), m_wood, m_iron)
+	_build_bench_3d(terrain_root_3d, Vector2(232.0, 228.0), m_wood, m_iron)
+	_build_bench_3d(terrain_root_3d, Vector2(330.0, 236.0), m_wood, m_iron)
+	for fp in [Vector2(304.0, 228.0), Vector2(250.0, 280.0), Vector2(350.0, 262.0)]:
+		_add_cyl_2d(terrain_root_3d, fp, 4.5, 0.0, 4.5, _mat("terracotta_pot", Color(0.68, 0.34, 0.20), 0.85, 0.0), 3.2, 8)
+		_add_cyl_2d(terrain_root_3d, fp, 5.2, 4.0, 4.5, m_pine_top, 3.5, 8)
+	# Bancos de la plaza y Mirador del Lago en 3D
+	_build_bench_3d(terrain_root_3d, Vector2(500.0, 66.0), m_wood, m_iron)
+	_build_bench_3d(terrain_root_3d, Vector2(440.0, 80.0), m_wood, m_iron)
+	var lv_pos := Vector2(-65.0, 166.0)
+	_build_fence_run_3d(terrain_root_3d, lv_pos + Vector2(-34.0, -12.0), lv_pos + Vector2(34.0, -12.0), m_wood)
+	_build_bench_3d(terrain_root_3d, lv_pos + Vector2(0.0, -2.0), m_wood, m_iron)
 
 	# Lavadero Municipal, en su sitio real (orilla norte del lago)
 	var wash_c: Vector2 = VillageWorkScript.LAVADERO_POS
@@ -599,18 +609,29 @@ func _build_static_terrain_3d() -> void:
 	_add_model_2d(terrain_root_3d, "nature/Willow_2.obj", Vector2(-678, 56), 0.0, Vector2.ZERO, 30.0)
 	_add_model_2d(terrain_root_3d, "nature/Rock_2.obj", Vector2(-540, 62), 0.0, Vector2.ZERO, 11.0)
 
-	# Cercado del Cementerio Parroquial (Rect2(Vector2(822, 258), Vector2(174, 108))) con Cripta y Verjas 3D reales
+	# Cercado del Cementerio Parroquial (Rect2(Vector2(822, 258), Vector2(174, 108))) con Cripta, sendero de piedra y lápidas proporcionadas
 	var cem_r := Rect2(Vector2(822, 258), Vector2(174, 108))
 	var cem_c := cem_r.get_center()
-	_add_box_2d(terrain_root_3d, cem_c, cem_r.size, 0.0, 1.0, _mat("cem_ground", Color(0.28, 0.31, 0.26), 0.95, 0.0))
+	_add_box_2d(terrain_root_3d, cem_c, cem_r.size, 0.0, 1.0, _mat("cem_ground", Color(0.24, 0.32, 0.22), 0.95, 0.0, Color.BLACK, 0.0, "town_textures/floor_ground_dirt.png", "", 0.45))
+	_add_box_2d(terrain_root_3d, Vector2(888, cem_c.y), Vector2(14, cem_r.size.y - 8.0), 1.0, 0.4, m_stone)
 	_add_box_2d(terrain_root_3d, Vector2(cem_c.x, cem_r.end.y), Vector2(cem_r.size.x, 3.5), 0.0, 11.0, m_iron)
 	_add_box_2d(terrain_root_3d, Vector2(cem_r.position.x, cem_c.y), Vector2(3.5, cem_r.size.y), 0.0, 11.0, m_iron)
 	_add_box_2d(terrain_root_3d, Vector2(cem_r.end.x, cem_c.y), Vector2(3.5, cem_r.size.y), 0.0, 11.0, m_iron)
 	_add_box_2d(terrain_root_3d, Vector2(848, cem_r.position.y), Vector2(52, 3.5), 0.0, 11.0, m_iron)
 	_add_box_2d(terrain_root_3d, Vector2(950, cem_r.position.y), Vector2(92, 3.5), 0.0, 11.0, m_iron)
 	_add_model_2d(terrain_root_3d, "graveyard/iron-fence.glb", Vector2(888, cem_r.position.y), 0.0, Vector2.ZERO, 18.0)
-	_add_model_2d(terrain_root_3d, "graveyard/crypt.glb", Vector2(972, 282), 1.0, Vector2.ZERO, 26.0, -90.0)
-	_add_model_2d(terrain_root_3d, "graveyard/altar-stone.glb", Vector2(968, 336), 1.0, Vector2.ZERO, 12.0)
+	_add_model_2d(terrain_root_3d, "graveyard/crypt.glb", Vector2(972, 282), 1.0, Vector2.ZERO, 24.0, -90.0)
+	_add_model_2d(terrain_root_3d, "graveyard/altar-stone.glb", Vector2(968, 336), 1.0, Vector2.ZERO, 10.0)
+	var old_stones: Array = [
+		[Vector2(844, 282), "graveyard/gravestone-cross.glb"],
+		[Vector2(870, 282), "graveyard/gravestone-round.glb"],
+		[Vector2(922, 282), "graveyard/gravestone-decorative.glb"],
+		[Vector2(844, 310), "graveyard/gravestone-broken.glb"],
+		[Vector2(922, 310), "graveyard/gravestone-round.glb"],
+		[Vector2(844, 338), "graveyard/gravestone-cross.glb"],
+	]
+	for os_def in old_stones:
+		_add_model_2d(terrain_root_3d, str(os_def[1]), os_def[0] as Vector2, 1.0, Vector2(6.5, 3.0), 8.2)
 
 	# Bloque FIS3: Trampillas / rejillas físicas de acceso a las Alcantarillas (-1) en sus posiciones reales de la calle
 	var m_sewer_dark := _mat("sewer_dark", Color(0.06, 0.10, 0.08), 0.9, 0.2)
@@ -1412,9 +1433,14 @@ func _build_restaurant_3d(b_root: Node3D, wall_h: float, m_wall: Material, m_tri
 		for wx in [-10.0, -4.0, 2.0, 8.0]:
 			_add_cyl_2d(b_root, R.WINE_RACK + Vector2(wx, 0), 1.0, wy, 3.5, _mat("chianti_bottle", Color(0.16, 0.42, 0.22, 0.92), 0.2, 0.1), 0.5, 6)
 
-	# --- Cuarto del dueño
-	for b in [R.OWNER_BED, R.OWNER_BED2]:
-		_build_bed_3d(b_root, b, m_wood, _mat("bed_linen_green", Color(0.24, 0.42, 0.28), 0.85, 0.0), _mat("bed_pillow", Color(0.94, 0.92, 0.86), 0.85, 0.0))
+	# --- Despacho del dueño: escritorio de madera noble, silla de dirección, estantería, libro de cuentas y alfombra
+	_add_box_2d(b_root, Vector2(1184, 250), Vector2(28, 22), 2.0, 0.5, _mat("office_rug", Color(0.46, 0.14, 0.14), 0.92, 0.0))
+	_add_model_2d(b_root, "props/Workbench.gltf", R.OWNER_BED + Vector2(4, 6), 2.0, Vector2(18.0, 10.0), 9.0)
+	_add_model_2d(b_root, "props/Chair_1.gltf", R.OWNER_BED + Vector2(4, -5), 2.0, Vector2(6.5, 6.5), 8.5, 0.0)
+	_add_model_2d(b_root, "props/Chair_1.gltf", R.OWNER_BED + Vector2(4, 16), 2.0, Vector2(6.5, 6.5), 8.5, 180.0)
+	_add_model_2d(b_root, "props/Book_5.gltf", R.OWNER_BED + Vector2(1, 5), 11.0, Vector2(5.0, 4.0), 2.2)
+	_add_model_2d(b_root, "props/CandleStick_Triple.gltf", R.OWNER_BED + Vector2(9, 4), 11.0, Vector2(4.0, 4.0), 5.5)
+	_add_model_2d(b_root, "props/Shelf_Simple.gltf", Vector2(1168, 222), 2.0, Vector2(12.0, 5.0), 18.0)
 	_add_model_2d(b_root, "props/Nightstand_Shelf.gltf", Vector2(1200, 228), 2.0, Vector2(7.0, 6.0), 8.0)
 
 	# --- Reservado: mesa redonda grande, cinco sillas, candelabro, chimenea y luz roja tenue
@@ -1600,9 +1626,9 @@ func rebuild_graves_3d() -> void:
 			g_pos = vm._cemetery_grave_positions[i]
 		else:
 			g_pos = Vector2(844.0 + float(i % 6) * 26.0, 282.0 + float(int(float(i) / 6.0) % 3) * 28.0)
-		_add_box_2d(graves_root_3d, g_pos + Vector2(0, 4), Vector2(14.0, 12.0), 1.0, 3.2, m_mound)
+		_add_box_2d(graves_root_3d, g_pos + Vector2(0, 3), Vector2(7.5, 8.5), 1.0, 1.8, m_mound)
 		var g_mdl: String = grave_models[i % grave_models.size()]
-		_add_model_2d(graves_root_3d, g_mdl, g_pos + Vector2(0, -5), 1.0, Vector2(11.0, 6.0), 14.0)
+		_add_model_2d(graves_root_3d, g_mdl, g_pos + Vector2(0, -4), 1.0, Vector2(6.8, 3.2), 8.8)
 
 func _build_sewers_3d() -> void:
 	_clear_children(sewers_root_3d)
@@ -2672,6 +2698,12 @@ const PROP_KIND_BY_TEXTURE := {
 	"compost_bin.png": "compost",
 	"questboard_1.png": "hide",
 	"lamp-post1.png": "hide",
+	"bench_0.png": "hide",
+	"flowers_plants_0.png": "hide",
+	"pine-tree_0.png": "hide",
+	"hay_0.png": "hide",
+	"hay_2.png": "hide",
+	"logs_0.png": "hide",
 	"camp_tent.png": "tent",
 	"campfire_pot.png": "campfire",
 	"camp_log_seat.png": "log_seat",

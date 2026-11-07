@@ -37,7 +37,7 @@ const ROOMS: Dictionary = {
 }
 const ROOM_NAMES: Dictionary = {
 	"comedor": "Comedor", "cocina": "Cocina", "reservado": "Reservado", "bodega": "Bodega",
-	"dueno": "Cuarto del dueño", "camara": "Cámara frigorífica",
+	"dueno": "Despacho del dueño", "camara": "Cámara frigorífica",
 }
 ## Pasos entre salas: «h» = hueco en un tabique horizontal (se cruza en vertical), «v» = en uno vertical.
 const OPENINGS: Array = [
@@ -159,12 +159,11 @@ static func _build_furniture(vm) -> void:
 	vm._spawn_decor_prop(PROPS + "drinks_shelf_1.png", WINE_RACK, Vector2(0.5, 0.5))
 	vm._spawn_decor_prop(PROPS + "barrels3_0.png", Vector2(1116, 262), Vector2(0.5, 0.5))
 	vm._spawn_decor_prop(PROPS + "barrels_2.png", Vector2(1150, 262), Vector2(0.5, 0.5))
-	# Reservado y cuarto del dueño
+	# Reservado y despacho del dueño
 	vm._spawn_decor_prop(PROPS + "big_round_table_chairs_0.png", BACKROOM_TABLE, Vector2(0.5, 0.5))
 	vm._spawn_decor_prop(PROPS + "fireplace_0.png", Vector2(1030, 226), Vector2(0.45, 0.45))
-	var tex_bed: Texture2D = vm._load_tex("res://assests/world/village/tavern_bed.png")
-	for b in [OWNER_BED, OWNER_BED2]:
-		vm._add_sprite_prop(tex_bed, b, Vector2(1.0, 1.0), -1)
+	vm._spawn_decor_prop(PROPS + "table_chairs_0.png", OWNER_BED, Vector2(0.44, 0.44))
+	vm._spawn_decor_prop(PROPS + "storage_countertop_0.png", Vector2(1174, 222), Vector2(0.42, 0.42))
 
 static func _build_terrace(vm) -> void:
 	vm._add_rect_poly(TERRACE.get_center(), TERRACE.size * 0.5, Color(0.62, 0.50, 0.40, 1.0), -2) # Losas de barro

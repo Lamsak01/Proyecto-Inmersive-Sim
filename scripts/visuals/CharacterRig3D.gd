@@ -70,6 +70,9 @@ var _has_skirt: bool = false
 var _has_cape: bool = false
 var _cape_color: Color = Color(0.55, 0.16, 0.16)
 var _outfit_kind: String = "peasant" # "peasant" | "ranger"
+var _outfit_tex_variant: int = 0
+var _hair_tex_variant: int = 0
+var _is_dark_skin: bool = false
 
 # Equipo y prótesis
 var _weapon_id: String = "none"
@@ -237,6 +240,9 @@ func apply_character_appearance(config: Dictionary) -> void:
 	_cape_color = config.get("cape_color", _cape_color)
 	_hair_style = str(config.get("hair_style", _hair_style))
 	_outfit_kind = str(config.get("outfit_kind", _outfit_kind))
+	_outfit_tex_variant = int(config.get("outfit_tex_variant", _outfit_tex_variant))
+	_hair_tex_variant = int(config.get("hair_tex_variant", _hair_tex_variant))
+	_is_dark_skin = bool(config.get("is_dark_skin", (_skin_color.r + _skin_color.g + _skin_color.b) <= 2.15))
 
 	# Soporte tanto para claves de CharacterAvatar3D/Showcase ("headgear", "weapon", "chest_armor_tier") como directas
 	if config.has("headgear"):
@@ -448,7 +454,7 @@ func _rebuild_real_quaternius_character() -> bool:
 				var bname_low := bmi.name.to_lower()
 				if bname_low.find("superhero") != -1:
 					var head_key := "female_head" if _is_female else "male_head"
-					var head_mesh := AssetLib.extract_head_only_mesh(head_key, bmi.mesh, 1.43)
+					var head_mesh := AssetLib.extract_head_only_mesh(head_key, bmi.mesh, 1.45, 0.135)
 					if head_mesh != null:
 						var h_mi := MeshInstance3D.new()
 						h_mi.name = "SculptedHead"
@@ -464,6 +470,11 @@ func _rebuild_real_quaternius_character() -> bool:
 						eye_dup.material_override = _make_mat(_hair_color.darkened(0.15), 0.85, 0.0)
 					_skeleton.add_child(eye_dup)
 
+	var outfit_alt_tex: Texture2D = null
+	if _outfit_tex_variant == 1:
+		var alt_tex_path := "characters/T_Ranger_3_BaseColor.png" if use_ranger else "characters/T_Peasant_2_BaseColor.png"
+		outfit_alt_tex = AssetLib.load_texture(alt_tex_path)
+
 	# 2. Teñir ropa y piel sobre las texturas PBR reales del traje
 	for sc in _skeleton.get_children():
 		if not (sc is MeshInstance3D):
@@ -474,13 +485,13 @@ func _rebuild_real_quaternius_character() -> bool:
 		if nm.find("head_hood") != -1:
 			smi.visible = (_hat_style in ["hood", "helmet", "inquisitor"] or _helmet_tier >= 1)
 			if smi.visible:
-				_tint_textured_mesh(smi, _tunic_color.darkened(0.15), 0.75, 0.15 if _helmet_tier == 0 else 0.65)
+				_tint_textured_mesh(smi, _tunic_color.darkened(0.15), 0.75, 0.15 if _helmet_tier == 0 else 0.65, outfit_alt_tex)
 			continue
 		if nm.find("pauldron") != -1:
 			smi.visible = (_chest_tier >= 1 or _hat_style in ["helmet", "inquisitor", "crown"])
 			if smi.visible:
 				var p_col := Color(0.72, 0.75, 0.80) if _chest_tier >= 2 else _tunic_color.lightened(0.12)
-				_tint_textured_mesh(smi, p_col, 0.45, 0.55 if _chest_tier >= 2 else 0.15)
+				_tint_textured_mesh(smi, p_col, 0.45, 0.55 if _chest_tier >= 2 else 0.15, outfit_alt_tex)
 			continue
 		if nm.find("body") != -1 and nm.find("belt") == -1:
 			var body_col := _tunic_color.lerp(Color(1, 1, 1), 0.25)
@@ -490,17 +501,17 @@ func _rebuild_real_quaternius_character() -> bool:
 				body_col = Color(0.68, 0.71, 0.76)
 			elif _chest_tier >= 3:
 				body_col = Color(0.84, 0.86, 0.92)
-			_tint_textured_mesh(smi, body_col, 0.78 if _chest_tier < 2 else 0.35, 0.05 if _chest_tier < 2 else 0.70)
+			_tint_textured_mesh(smi, body_col, 0.78 if _chest_tier < 2 else 0.35, 0.05 if _chest_tier < 2 else 0.70, outfit_alt_tex)
 		elif nm.find("legs") != -1:
 			var leg_col := (_tunic_color.darkened(0.18) if _has_skirt else _pants_color).lerp(Color(1, 1, 1), 0.28)
 			if _legs_tier >= 2:
 				leg_col = Color(0.65, 0.68, 0.74)
-			_tint_textured_mesh(smi, leg_col, 0.82, 0.05 if _legs_tier < 2 else 0.60)
+			_tint_textured_mesh(smi, leg_col, 0.82, 0.05 if _legs_tier < 2 else 0.60, outfit_alt_tex)
 		elif nm.find("feet") != -1:
 			var boot_col := Color(0.32, 0.22, 0.15) if _boots_tier < 2 else Color(0.58, 0.60, 0.66)
-			_tint_textured_mesh(smi, boot_col, 0.75, 0.08 if _boots_tier < 2 else 0.62)
+			_tint_textured_mesh(smi, boot_col, 0.75, 0.08 if _boots_tier < 2 else 0.62, outfit_alt_tex)
 		elif nm.find("arms") != -1 and nm.find("bracer") == -1:
-			_tint_arms_mesh(smi, (_cape_color if _has_cape else _tunic_color).lerp(Color(1, 1, 1), 0.30))
+			_tint_arms_mesh(smi, (_cape_color if _has_cape else _tunic_color).lerp(Color(1, 1, 1), 0.30), outfit_alt_tex)
 
 	# 3. Peinado y barba 3D reales anclados al esqueleto
 	if _helmet_tier == 0 and not (_hat_style in ["hood", "helmet"]):
@@ -586,37 +597,39 @@ func _rebuild_real_quaternius_character() -> bool:
 
 
 func _pick_real_hair_file() -> String:
-	if _hair_style == "bald":
+	if _hair_style in ["bald", "none"]:
 		return ""
-	if _is_female:
-		match _hair_style:
-			"bun":
-				return "characters/Hair_Buns.gltf"
-			"short":
-				return "characters/Hair_BuzzedFemale.gltf"
-			_:
-				return "characters/Hair_Long.gltf"
-	else:
-		match _hair_style:
-			"long", "ponytail":
-				return "characters/Hair_Long.gltf"
-			"tonsure":
-				return "characters/Hair_Buzzed.gltf"
-			_:
-				return "characters/Hair_SimpleParted.gltf"
+	match _hair_style:
+		"bun", "buns":
+			return "characters/Hair_Buns.gltf"
+		"buzzed_female", "short_female":
+			return "characters/Hair_BuzzedFemale.gltf"
+		"long", "ponytail":
+			return "characters/Hair_Long.gltf"
+		"tonsure", "buzzed":
+			return "characters/Hair_Buzzed.gltf"
+		"parted":
+			return "characters/Hair_SimpleParted.gltf"
+		"short":
+			return "characters/Hair_BuzzedFemale.gltf" if _is_female else "characters/Hair_SimpleParted.gltf"
+		_:
+			return "characters/Hair_Long.gltf" if _is_female else "characters/Hair_SimpleParted.gltf"
 
 
 func _attach_rigged_part_to_skeleton(rel_path: String, tint_col: Color) -> void:
 	var tmpl := AssetLib.load_gltf_template(rel_path)
 	if tmpl == null or _skeleton == null:
 		return
+	var hair_alt_tex: Texture2D = null
+	if _hair_tex_variant == 1:
+		hair_alt_tex = AssetLib.load_texture("characters/T_Hair_2_BaseColor.png")
 	var src_skel := tmpl.find_child("Skeleton3D", true, false) as Skeleton3D
 	if src_skel != null:
 		for c in src_skel.get_children():
 			if c is MeshInstance3D:
 				var dup := c.duplicate() as MeshInstance3D
 				dup.skeleton = NodePath("..")
-				_tint_textured_mesh(dup, tint_col, 0.85, 0.0)
+				_tint_textured_mesh(dup, tint_col, 0.85, 0.0, hair_alt_tex)
 				_skeleton.add_child(dup)
 
 
@@ -627,21 +640,21 @@ func _apply_skin_material_override(mi: MeshInstance3D) -> void:
 	var sm := StandardMaterial3D.new()
 	if orig is StandardMaterial3D:
 		sm = (orig as StandardMaterial3D).duplicate() as StandardMaterial3D
-	var light_skin := (_skin_color.r + _skin_color.g + _skin_color.b) > 2.1
+	var light_skin := not _is_dark_skin and (_skin_color.r + _skin_color.g + _skin_color.b) > 2.1
 	var tex_file := ""
 	if _is_female:
-		tex_file = "characters/T_Superhero_Female_Light_BaseColor.png" if light_skin else "characters/T_Regular_Female_Dark_BaseColor.png"
+		tex_file = "characters/T_Superhero_Female_Light_BaseColor.png" if light_skin else "characters/T_Female_Simple_Dark_BaseColor.png"
 	else:
-		tex_file = "characters/T_Superhero_Male_Ligh.png" if light_skin else "characters/T_Regular_Male_Dark_BaseColor.png"
+		tex_file = "characters/T_Superhero_Male_Ligh.png" if light_skin else "characters/T_Superhero_Simple_Dark_BaseColor.png"
 	var stex := AssetLib.load_texture(tex_file)
 	if stex != null:
 		sm.albedo_texture = stex
-	sm.albedo_color = _skin_color.lerp(Color.WHITE, 0.55)
+	sm.albedo_color = _skin_color.lerp(Color.WHITE, 0.55 if light_skin else 0.72)
 	sm.roughness = 0.82
 	mi.set_surface_override_material(0, sm)
 
 
-func _tint_textured_mesh(mi: MeshInstance3D, tint: Color, rough: float = 0.80, metal: float = 0.05) -> void:
+func _tint_textured_mesh(mi: MeshInstance3D, tint: Color, rough: float = 0.80, metal: float = 0.05, override_tex: Texture2D = null) -> void:
 	if mi.mesh == null:
 		return
 	for s in range(mi.mesh.get_surface_count()):
@@ -649,13 +662,15 @@ func _tint_textured_mesh(mi: MeshInstance3D, tint: Color, rough: float = 0.80, m
 		var sm := StandardMaterial3D.new()
 		if orig is StandardMaterial3D:
 			sm = (orig as StandardMaterial3D).duplicate() as StandardMaterial3D
+		if override_tex != null:
+			sm.albedo_texture = override_tex
 		sm.albedo_color = tint
 		sm.roughness = rough
 		sm.metallic = metal
 		mi.set_surface_override_material(s, sm)
 
 
-func _tint_arms_mesh(mi: MeshInstance3D, sleeve_tint: Color) -> void:
+func _tint_arms_mesh(mi: MeshInstance3D, sleeve_tint: Color, override_tex: Texture2D = null) -> void:
 	if mi.mesh == null:
 		return
 	for s in range(mi.mesh.get_surface_count()):
@@ -665,13 +680,15 @@ func _tint_arms_mesh(mi: MeshInstance3D, sleeve_tint: Color) -> void:
 			sm = (orig as StandardMaterial3D).duplicate() as StandardMaterial3D
 		var mname := sm.resource_name.to_lower()
 		if mname.find("regular") != -1 or mname.find("superhero") != -1:
-			var light_skin := (_skin_color.r + _skin_color.g + _skin_color.b) > 2.1
+			var light_skin := not _is_dark_skin and (_skin_color.r + _skin_color.g + _skin_color.b) > 2.1
 			var tex_file := ("characters/T_Superhero_Female_Light_BaseColor.png" if light_skin else "characters/T_Regular_Female_Dark_BaseColor.png") if _is_female else ("characters/T_Superhero_Male_Ligh.png" if light_skin else "characters/T_Regular_Male_Dark_BaseColor.png")
 			var stex := AssetLib.load_texture(tex_file)
 			if stex != null:
 				sm.albedo_texture = stex
-			sm.albedo_color = _skin_color.lerp(Color.WHITE, 0.55)
+			sm.albedo_color = _skin_color.lerp(Color.WHITE, 0.55 if light_skin else 0.72)
 		else:
+			if override_tex != null:
+				sm.albedo_texture = override_tex
 			sm.albedo_color = sleeve_tint
 		mi.set_surface_override_material(s, sm)
 
@@ -799,7 +816,7 @@ func _build_real_curated_tools() -> void:
 			muzzle_flash_node = _add_part(weapon_Holder, flash_sphere, flash_mat, Vector3(0.42, 0.14, 0.0))
 			muzzle_flash_node.visible = false
 		"book", "ledger":
-			model_node = AssetLib.instantiate_model("props/Book_5.gltf", Vector3.ZERO, 0.30, true, false)
+			model_node = AssetLib.instantiate_model("props/Book_5.gltf", Vector3(0.18, 0.04, 0.22), -1.0, true, false)
 		"mug", "chalice":
 			model_node = AssetLib.instantiate_model("props/Mug.gltf", Vector3.ZERO, 0.26, true, true)
 		"crate", "sack":
@@ -838,7 +855,7 @@ func _build_real_curated_tools() -> void:
 			"shield":
 				l_node = AssetLib.instantiate_model("weapons/Shield_Heater.obj", Vector3.ZERO, 0.58, true, false)
 			"book":
-				l_node = AssetLib.instantiate_model("props/Book_5.gltf", Vector3.ZERO, 0.30, true, false)
+				l_node = AssetLib.instantiate_model("props/Book_5.gltf", Vector3(0.18, 0.04, 0.22), -1.0, true, false)
 			"crutch":
 				l_node = AssetLib.instantiate_model("weapons/Spear.obj", Vector3.ZERO, 1.05, true, true)
 			"torch":

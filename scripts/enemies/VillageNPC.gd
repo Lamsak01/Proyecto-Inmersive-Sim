@@ -4678,7 +4678,53 @@ func stealth_assassinate(player: Node = null) -> void:
 		return
 	hide_prompt()
 	last_hit_by_player = true
-	last_hit_weapon_name = "Ejecución Silenciosa por la Espalda"
+	var w_label := "Puñalada por la Espalda (Hoja Afilada)"
+	var w_type := "Corte / Puñalada"
+	var w_part := "Neck"
+	var w_bleed := 2.8
+	if player != null and is_instance_valid(player):
+		var eq_w: Variant = player.get("equipped_weapon")
+		if eq_w != null and eq_w == player.get("hammer_weapon"):
+			w_label = "Traumatismo Contundente por la Espalda (Martillo)"
+			w_type = "Contusión / Fractura"
+			w_part = "Head"
+			w_bleed = 0.6
+		elif eq_w != null and eq_w == player.get("axe_weapon"):
+			w_label = "Tajo Profundo por la Espalda (Hacha)"
+			w_type = "Tajo Profundo"
+			w_part = "Neck"
+			w_bleed = 3.2
+		elif eq_w != null and eq_w == player.get("pickaxe_weapon"):
+			w_label = "Impacto de Pico Minero por la Espalda"
+			w_type = "Perforación Profunda"
+			w_part = "Torso"
+			w_bleed = 2.4
+		elif eq_w != null and eq_w == player.get("sickle_weapon"):
+			w_label = "Corte de Hoz Agrícola por la Espalda"
+			w_type = "Corte"
+			w_part = "Neck"
+			w_bleed = 2.8
+		elif eq_w != null and eq_w == player.get("bow_weapon"):
+			w_label = "Ejecución Silenciosa por la Espalda (Cuchillo)"
+		else:
+			w_label = "Corte Letal por la Espalda (Espada)"
+	last_hit_weapon_name = w_label
+	if health_comp != null:
+		health_comp.wounds.append({
+			"id": health_comp._next_wound_id,
+			"part": w_part,
+			"type": w_type,
+			"severity": 44.0,
+			"bleeding": w_bleed,
+			"pain": 32.0,
+			"bandaged": false,
+			"bandage_quality": 0.0,
+			"infection": 0.0,
+			"heal_rate": 0.0,
+			"permanent": false,
+			"source_tag": last_hit_weapon_name,
+		})
+		health_comp._next_wound_id += 1
 	_confirm_true_death()
 	_spawn_floating_text("🗡️🩸 ¡Asesinato sigiloso! (%s eliminado)" % npc_name, Color.CRIMSON, -48.0)
 	if player and player.has_method("show_hint"):

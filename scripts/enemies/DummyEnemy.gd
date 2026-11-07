@@ -58,6 +58,8 @@ func _ready() -> void:
 	
 	if hurtbox:
 		hurtbox.hit_received.connect(take_damage)
+	if vision_cone:
+		vision_cone.visible = false
 
 func _physics_process(delta: float) -> void:
 	if push_velocity.length_squared() > 1.0:
@@ -89,7 +91,7 @@ func _physics_process(delta: float) -> void:
 	elif anim.sprite_frames.has_animation("fly") and anim.animation != "fly":
 		anim.play("fly")
 	if vision_cone and is_instance_valid(ai):
-		vision_cone.visible = not far_offscreen
+		vision_cone.visible = false
 		if not far_offscreen:
 			if ai.facing_direction.length_squared() > 0.001:
 				vision_cone.rotation = ai.facing_direction.angle()
@@ -164,7 +166,7 @@ func _on_stunned(stunned: bool) -> void:
 	if ai:
 		ai.set_physics_process(not stunned)
 	if vision_cone:
-		vision_cone.visible = not stunned
+		vision_cone.visible = false
 	if stunned:
 		anim.stop()
 		hide_prompt()

@@ -23,7 +23,15 @@ class_name VisionCone2D
 		color = value
 		queue_redraw()
 
+@export var show_debug_cone: bool = false
+
+func _ready() -> void:
+	if not Engine.is_editor_hint() and not show_debug_cone:
+		visible = false
+
 func _draw() -> void:
+	if not Engine.is_editor_hint() and not show_debug_cone:
+		return
 	var points = PackedVector2Array()
 	points.append(Vector2.ZERO)
 	

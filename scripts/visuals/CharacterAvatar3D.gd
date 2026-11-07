@@ -505,20 +505,45 @@ func _build_npc_appearance_cfg() -> Dictionary:
 		Color(0.95, 0.79, 0.66),
 		Color(0.90, 0.72, 0.58),
 		Color(0.84, 0.65, 0.50),
-		Color(0.96, 0.83, 0.72)
+		Color(0.96, 0.83, 0.72),
+		Color(0.68, 0.48, 0.35),
+		Color(0.55, 0.38, 0.27)
 	]
 	var hair_palette: Array[Color] = [
 		Color(0.20, 0.13, 0.08),
 		Color(0.38, 0.22, 0.12),
 		Color(0.68, 0.52, 0.26),
 		Color(0.52, 0.22, 0.14),
-		Color(0.14, 0.14, 0.16)
+		Color(0.14, 0.14, 0.16),
+		Color(0.28, 0.18, 0.11),
+		Color(0.76, 0.62, 0.34)
 	]
+	var skin_idx: int = int(float(h_val) / 3.0) % skin_palette.size()
+	var is_dark_skin: bool = (skin_idx >= 4)
 	var hair_col: Color = Color(0.76, 0.76, 0.80) if age_val >= 54 else hair_palette[h_val % hair_palette.size()]
-	var skin_col: Color = skin_palette[int(float(h_val) / 3.0) % skin_palette.size()]
+	var skin_col: Color = skin_palette[skin_idx]
 
+	var fem_hairs: Array[String] = ["buns", "long", "buzzed_female", "parted", "buns"]
+	var male_hairs: Array[String] = ["parted", "buzzed", "long", "parted", "buzzed_female"]
+	var hair_style: String = fem_hairs[(h_val / 2) % fem_hairs.size()] if is_fem else male_hairs[(h_val / 2) % male_hairs.size()]
+	if not is_fem and age_val >= 50 and (h_val % 4 == 0):
+		hair_style = "bald"
+	if role_id == 13 and not is_fem:
+		hair_style = "tonsure"
+
+	var outfit_kind: String = "ranger" if (role_id in [6, 8, 9, 10, 11, 12, 15, 20, 21, 22, 24] or ((h_val / 5) % 2 == 1)) else "peasant"
+	var outfit_tex_variant: int = (h_val / 3) % 2
+	var hair_tex_variant: int = (h_val / 7) % 2
+
+	var pants_palette: Array[Color] = [
+		Color(0.24, 0.22, 0.20),
+		Color(0.18, 0.22, 0.28),
+		Color(0.30, 0.24, 0.18),
+		Color(0.22, 0.26, 0.20),
+		Color(0.28, 0.20, 0.22)
+	]
 	var tunic_col := Color(0.36, 0.48, 0.38)
-	var pants_col := Color(0.24, 0.22, 0.20)
+	var pants_col: Color = pants_palette[(h_val / 4) % pants_palette.size()]
 	var has_apron := false
 	var apron_col := Color(0.52, 0.34, 0.18)
 	var has_cape := false
@@ -527,7 +552,7 @@ func _build_npc_appearance_cfg() -> Dictionary:
 	var chest_tier := 0
 	var weapon_k := "none"
 	var offhand_k := "none"
-	var has_beard: bool = (not is_fem and not is_child) and (role_id in [3, 4, 5, 7, 11] or (h_val % 3 == 0))
+	var has_beard: bool = (not is_fem and not is_child) and (role_id in [3, 4, 5, 7, 11] or (h_val % 2 == 0))
 
 	match role_id:
 		3: # BUTCHER
@@ -618,16 +643,28 @@ func _build_npc_appearance_cfg() -> Dictionary:
 				Color(0.34, 0.50, 0.42),
 				Color(0.52, 0.38, 0.28),
 				Color(0.38, 0.44, 0.58),
-				Color(0.58, 0.46, 0.32)
+				Color(0.58, 0.46, 0.32),
+				Color(0.64, 0.28, 0.32),
+				Color(0.28, 0.48, 0.54),
+				Color(0.54, 0.36, 0.52),
+				Color(0.68, 0.54, 0.28)
 			]
 			tunic_col = fallback_tunics[h_val % fallback_tunics.size()]
 
-	var is_working_now: bool = bool(target_entity.get("_is_actively_crafting")) or int(target_entity.get("current_activity")) == 0
+	# Variación individual sutil de tono de ropa por vecino para evitar gemelos idénticos en la misma profesión
+	if not (role_id in [9, 10, 12, 13]):
+		var shift_h: float = float((h_val % 11) - 5) * 0.022
+		var shift_v: float = float(((h_val / 11) % 7) - 3) * 0.035
+		tunic_col = Color.from_hsv(fposmod(tunic_col.h + shift_h, 1.0), clampf(tunic_col.s, 0.15, 0.88), clampf(tunic_col.v + shift_v, 0.22, 0.92))
+
+	var hr_now: int = int(WorldClock.current_hour) if WorldClock != null else 12
+	var is_working_now: bool = bool(target_entity.get("_is_actively_crafting")) or (int(target_entity.get("current_activity")) == 0 and hr_now >= 6 and hr_now < 20 and not bool(target_entity.get("is_strolling_outside")))
 	var is_guard_role: bool = role_id in [9, 10, 12]
 	if not is_working_now and not is_guard_role and not bool(target_entity.get("is_hostile")):
 		weapon_k = "none"
+	if offhand_k == "book" and not (is_working_now and target_entity.global_position.distance_to(target_entity.get("work_position")) <= 70.0):
+		offhand_k = "none"
 
-	var hr_now: int = int(WorldClock.current_hour) if WorldClock != null else 12
 	if (hr_now >= 20 or hr_now < 6) and offhand_k == "none" and not bool(target_entity.get("is_sleeping")):
 		offhand_k = "lantern"
 	# P5b: el perista, de noche en el callejón, va con capa oscura y capucha y sin farol
@@ -643,7 +680,12 @@ func _build_npc_appearance_cfg() -> Dictionary:
 
 	var cfg := {
 		"skin_color": skin_col,
+		"is_dark_skin": is_dark_skin,
 		"hair_color": hair_col,
+		"hair_style": hair_style,
+		"hair_tex_variant": hair_tex_variant,
+		"outfit_kind": outfit_kind,
+		"outfit_tex_variant": outfit_tex_variant,
 		"tunic_color": tunic_col,
 		"pants_color": pants_col,
 		"is_female": is_fem,

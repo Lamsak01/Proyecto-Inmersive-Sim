@@ -586,7 +586,7 @@ func _construct_solid_building(
 	_add_solid_wall_segment(Vector2(rect.end.x - right_seg_w * 0.5, door_y), Vector2(right_seg_w, wall_t), tex_h)
 
 	_add_rect_poly(door_pos, Vector2(door_width * 0.5, 3.0), Color(0.72, 0.54, 0.30, 0.85), -2)
-	_add_title_label(center + Vector2(-125, -half.y - 19.0), Vector2(250, 16), b_title, title_color, 8)
+	_add_title_label(center + Vector2(-125, -half.y - 36.0), Vector2(250, 16), b_title, title_color, 8)
 	_spawn_building_door_and_window(b_id, b_title, rect, door_pos, door_on_south, door_width)
 
 func _spawn_building_door_and_window(

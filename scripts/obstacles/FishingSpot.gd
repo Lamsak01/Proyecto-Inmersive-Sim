@@ -68,6 +68,7 @@ func _ready() -> void:
 	set_process(not Engine.is_editor_hint())
 	add_to_group("fishing_spots")
 	_build_lake_visuals()
+	_build_water_collision()
 	_build_interaction_zone()
 
 func _add_poly(pts: Array[Vector2], col: Color, z: int) -> Polygon2D:
@@ -98,10 +99,10 @@ func _build_lake_visuals() -> void:
 		for v in pts:
 			arr.append(v - LAKE_NODE_POS)
 		return arr
-	_add_poly(to_local_pts.call(lake_scaled(1.0, 9.0)), Color(0.56, 0.48, 0.34, 0.88), -3)
-	_add_poly(to_local_pts.call(lake_scaled(1.0, 0.0)), Color(0.14, 0.42, 0.68, 0.94), -2)
-	_add_poly(to_local_pts.call(lake_scaled(0.62, 0.0)), Color(0.09, 0.30, 0.54, 0.92), -2)
-	_add_poly([Vector2(14, -9), Vector2(50, -9), Vector2(50, 9), Vector2(14, 9)], Color(0.46, 0.30, 0.16, 1.0), -1)
+	var p_sand := _add_poly(to_local_pts.call(lake_scaled(1.0, 9.0)), Color(0.56, 0.48, 0.34, 0.88), -3)
+	var p_water := _add_poly(to_local_pts.call(lake_scaled(1.0, 0.0)), Color(0.14, 0.42, 0.68, 0.94), -2)
+	var p_deep := _add_poly(to_local_pts.call(lake_scaled(0.62, 0.0)), Color(0.09, 0.30, 0.54, 0.92), -2)
+	var p_dock := _add_poly([Vector2(14, -9), Vector2(50, -9), Vector2(50, 9), Vector2(14, 9)], Color(0.46, 0.30, 0.16, 1.0), -1)
 
 	var dock_border := Line2D.new()
 	dock_border.width = 2.0
@@ -109,6 +110,9 @@ func _build_lake_visuals() -> void:
 	dock_border.points = PackedVector2Array([Vector2(14, -9), Vector2(50, -9), Vector2(50, 9), Vector2(14, 9), Vector2(14, -9)])
 	dock_border.z_index = -1
 	add_child(dock_border)
+	for ci_2d in [p_sand, p_water, p_deep, p_dock, dock_border]:
+		if ci_2d != null:
+			ci_2d.add_to_group("ranch_fence_2d")
 
 	_make_lbl("🎣 Lago del Oeste", Vector2(-265, 57), Vector2(160, 18), Color(0.65, 0.92, 1.0))
 
@@ -135,6 +139,27 @@ func _build_lake_visuals() -> void:
 	bobber_poly = _add_poly([Vector2(-3, -3), Vector2(3, -3), Vector2(3, 3), Vector2(-3, 3)], Color(1.0, 0.25, 0.20, 1.0), 5)
 	bobber_poly.position = Vector2(-8, 0)
 	bobber_poly.visible = false
+
+func _build_water_collision() -> void:
+	var body := StaticBody2D.new()
+	body.name = "LakeWaterBody"
+	body.collision_layer = 1
+	body.collision_mask = 0
+	var col_poly := CollisionPolygon2D.new()
+	var pts := PackedVector2Array()
+	for i in range(LAKE_WATER_WORLD.size()):
+		var lp: Vector2 = LAKE_WATER_WORLD[i] - LAKE_NODE_POS
+		if i == 2:
+			# Hueco para poder caminar sobre el muelle de madera (x: 12..50, y: -11..11) sin pisar el agua
+			pts.append(Vector2(42, -12))
+			pts.append(Vector2(12, -12))
+			pts.append(Vector2(12, 12))
+			pts.append(Vector2(40, 12))
+		else:
+			pts.append(lp)
+	col_poly.polygon = pts
+	body.add_child(col_poly)
+	add_child(body)
 
 func _build_interaction_zone() -> void:
 	interact_area = Area2D.new()
