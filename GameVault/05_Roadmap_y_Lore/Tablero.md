@@ -33,6 +33,7 @@ kanban-plugin: board
 
 ## 🧹 Pulido
 
+- [ ] Delatar a la Familia con consecuencias: detener al jefe, juicio y que los miembros reaccionen (ahora solo te pagan y se acaban los negocios)
 - [ ] Personajes 3D con más estilo, tipo Signalis ([[Assets de pago]])
 - [ ] Decidir si la niebla nocturna también quita vista a los vecinos (ahora solo es visual)
 - [ ] Quitar la etiqueta «dormida» de las tendencias ya conectadas (`TraitCatalog.gd`)
