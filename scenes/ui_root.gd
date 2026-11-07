@@ -620,7 +620,9 @@ func _setup_controls_panel_ui() -> void:
 		"Mapa: M",
 		"Misiones: L",
 		"Herramientas: 1–9",
-		"Guardar / cargar: F5 / F9",
+		"1.ª Persona / 2.5D: P o F6",
+		"Vista 3D / 2D: F9",
+		"Guardar / cargar: F5 / F12",
 		"Velocidad del tiempo: F1–F4",
 	]
 	for line in more_lines:
@@ -827,7 +829,7 @@ func _on_clock_time_updated(_day: int, _hour: int, _minute: int) -> void:
 	var gold_val := 25
 	if player and "inventory" in player and player.inventory:
 		gold_val = player.inventory.gold
-	clock_sub_label.text = "💰 %d Oro | Visión: %d%% | [Espacio] Rodar · [Q] Parar · [X] Empujar | [TAB] Rueda | [I] Mochila | [J] Vecinos | [M] Mapa | [F5/F9] Guardar/Cargar" % [gold_val, vis_pct]
+	clock_sub_label.text = "💰 %d Oro | Visión: %d%% | [Espacio] Rodar · [Q] Parar · [X] Empujar | [TAB] Rueda | [I] Mochila | [J] Vecinos | [M] Mapa | [P] 1.ª Persona | [F9] 3D/2D | [F5/F12] Guardar/Cargar" % [gold_val, vis_pct]
 
 func _init_default_objectives() -> void:
 	var old_hud: Control = get_node_or_null("ObjectiveHUD") as Control

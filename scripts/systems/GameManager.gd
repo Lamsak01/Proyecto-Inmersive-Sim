@@ -15,7 +15,7 @@ func _unhandled_input(event: InputEvent) -> void:
 	if event is InputEventKey and event.pressed and not event.echo:
 		if event.keycode == KEY_F5:
 			save_game()
-		elif event.keycode == KEY_F9:
+		elif event.keycode == KEY_F12:
 			load_game()
 
 func set_flag(id: String, value: Variant) -> void:

@@ -1731,7 +1731,7 @@ func _setup_fp_hud_layer() -> void:
 	fp_mode_badge.add_theme_color_override("font_color", Color(0.86, 0.92, 0.98, 0.88))
 	fp_mode_badge.add_theme_color_override("font_outline_color", Color(0.04, 0.04, 0.06, 0.92))
 	fp_mode_badge.add_theme_constant_override("outline_size", 3)
-	fp_mode_badge.text = "👁️ 1.ª Persona (Prototipo) · [F6]/[F8] Salir · Ratón/Flechas: mirar · W/A/S/D: andar · [E]: usar"
+	fp_mode_badge.text = "👁️ 1.ª Persona (Prototipo) · [P]/[F6] Salir · [F9] 2D/3D · Ratón/Flechas: mirar · W/A/S/D: andar · [E]: usar"
 	root_ctrl.add_child(fp_mode_badge)
 
 func _is_ui_blocking_fp() -> bool:
@@ -1782,7 +1782,7 @@ func set_first_person(enable: bool) -> void:
 			if not _is_ui_blocking_fp():
 				Input.set_mouse_mode(Input.MOUSE_MODE_CAPTURED)
 		if is_instance_valid(pl) and pl.has_method("show_hint"):
-			pl.call("show_hint", "👁️ [F6/F8] Vista en 1.ª Persona ACTIVADA (Ratón: mirar · W/A/S/D: caminar · [E]: usar)")
+			pl.call("show_hint", "👁️ [P/F6] Vista en 1.ª Persona ACTIVADA (Ratón: mirar · W/A/S/D: caminar · [E]: usar · [F9]: pasar a 2D)")
 	else:
 		first_person_active = false
 		fp_pitch = 0.0
@@ -1809,7 +1809,7 @@ func set_first_person(enable: bool) -> void:
 		_update_roof_cutaways_and_lighting()
 		var pl2 := get_tree().get_first_node_in_group("player") as Node2D if is_inside_tree() else null
 		if is_instance_valid(pl2) and pl2.has_method("show_hint"):
-			pl2.call("show_hint", "🎥 [F6/F8] Vista superior 2.5D restaurada")
+			pl2.call("show_hint", "🎥 [P/F6] Vista superior 2.5D restaurada ([F9] alterna 3D/2D)")
 
 func rotate_first_person_view(delta_x_px: float, delta_y_px: float = 0.0) -> void:
 	fp_yaw = wrapf(fp_yaw + delta_x_px * FP_MOUSE_SENS, -PI, PI)
@@ -1876,7 +1876,7 @@ func _update_fp_camera_transform() -> void:
 
 func _unhandled_input(event: InputEvent) -> void:
 	if event is InputEventKey and event.pressed and not event.echo:
-		if event.keycode == KEY_F6 or (event.keycode == KEY_F8 and not event.shift_pressed):
+		if event.keycode == KEY_F6 or event.physical_keycode == KEY_F6 or ((event.keycode == KEY_P or event.physical_keycode == KEY_P) and not _is_ui_blocking_fp()):
 			toggle_first_person()
 			get_viewport().set_input_as_handled()
 
