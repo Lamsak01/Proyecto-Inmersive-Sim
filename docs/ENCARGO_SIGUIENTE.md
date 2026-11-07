@@ -1,4 +1,28 @@
 # Siguiente encargo (cola)
 
-> Claude Code, 2026-11-07. La cola anterior (arreglos, entorno, taberna, edificios, sapos 3D) pasó a ser el encargo
-> actual en `docs/ENCARGO_ANTIGRAVITY.md`. De momento no hay nada más en cola.
+> Claude Code, 2026-11-07. Lanzar cuando Antigravity termine la tanda de arreglos de la segunda ronda del usuario
+> (los pendientes de hoy en `docs/FALLOS_VISIBLES.md`). Luego pasa a `docs/ENCARGO_ANTIGRAVITY.md`.
+
+## 1. Modo pruebas del jugador (APROBADO por el usuario, 2026-11-07)
+El usuario prueba el juego matando con sigilo y recorriendo todo; quiere no morir ni quedarse sin recursos.
+- Una tecla libre (dila en el informe) lo activa y desactiva. Empieza **desactivado** y **no se guarda** en la partida.
+- Activo: no pierde vida; energía infinita; hambre y sueño no bajan; el oro no baja al gastar (empieza con 9999).
+- Aviso visible fijo «MODO PRUEBAS» en pantalla mientras esté activo.
+- Los vecinos reaccionan igual que siempre (testigos, denuncias, persecuciones): no los toca.
+- Aviso del supervisor: el oro infinito rompe la suma cero de la economía; es solo para pruebas.
+- Una prueba corta que lo compruebe (activar, recibir daño, gastar, desactivar). Arranque sin errores; súbelo.
+
+## 2. Letreros flotantes limpios (PROPUESTO por Claude; pendiente del visto bueno del usuario)
+Fallo en `FALLOS_VISIBLES.md` (captura de la plaza con 4 cadáveres: 10+ líneas apiladas e ilegibles).
+- Solo la cosa que miras/tienes más cerca muestra letrero, y corto («Garrick · muerto»). El resto, solo un icono.
+- Las acciones (saquear, reportar, examinar, precios) solo abajo, en el aviso de [E] con «1/6 · Mayús+rueda o G».
+- Barras de trabajo y bocadillos: que nunca se monten; si hay varios cerca, se apartan o se ocultan los lejanos.
+- Capturas antes y después en 2D y 3D de la plaza con varios vecinos y cadáveres.
+
+## 3. Relieve del terreno (pendiente de decisión del usuario)
+El usuario ve el terreno perfectamente plano. Claude recomienda hacerlo **antes** de los edificios de los bocetos:
+desniveles suaves en el pueblo y relieve fuerte fuera (bosque, lomas, orillas del lago). Cuesta mucho. No empezar
+sin la decisión del usuario.
+
+## 4. Edificios de los bocetos (`docs/BOCETOS_EDIFICIOS.md`)
+Esperan las correcciones del usuario. Después, construirlos todos seguidos con capturas de cada uno.
