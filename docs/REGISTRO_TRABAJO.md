@@ -509,6 +509,7 @@ Ya hechos antes: caballo físico (AUD11). Los 3 robos ya se hacían en persona (
 | B4-GUARDADO | Guardar y cargar con cosas a medias: `revive_vectors` (Vector2 en texto tras JSON), `after_load` de recados nocturnos, club y cenas | ✅ | VillageManager.gd, VillageNightJobs.gd, VillageClub.gd, VillageHousing.gd, verify_all.gd | Claude Code. Test `Block B4` |
 | B3-RENDIMIENTO | Simulación «a ratos» apagada (`lod_enabled = false`), cronómetros de medición y 3 sondas; resultados en HANDOFF; aparcado por el usuario | ✅ | VillageNPC.gd, WorldStage3D.gd, CharacterAvatar3D.gd, tools/tests/perf_*.gd, verify_all.gd | Claude Code |
 | B6-WINDOWS | Nombre del juego «La Placa de Petri», preset de exportación a Windows, plantillas oficiales 4.7.2 instaladas, .exe + `LEEME_BETA.txt` en `~/LaPlacaDePetri_Windows.zip` | 🟡 | export_presets.cfg, LEEME_BETA.txt | Claude Code. Probado con Wine; sin probar en Windows real |
+| B5-ASALTOS | Sonda `raid_probe.gd` (frecuencia y 24 peleas sin jugador) y asaltos en pausa (`RAIDS_ENABLED = false`) | ✅ | VillageCulture.gd, tools/tests/raid_probe.gd | Claude Code |
 
 
 

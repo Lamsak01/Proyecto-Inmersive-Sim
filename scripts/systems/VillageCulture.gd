@@ -38,6 +38,9 @@ const SAPLING_COST: int = 6
 const MAX_PLANTED_TREES: int = 12 # Tope de pinos sembrados por el jugador
 const MILITIA_MAX_BONUS: int = 4
 ## Incursiones con motivo (nada de calendario): los bandidos se fijan en un pueblo rico y con rutas que corren la voz.
+## En pausa (orden del usuario, 2026-11-06: «poco realista»; prefiere crimen de robos y mafias dentro del pueblo).
+## Apagado, la amenaza no sube y no hay avisos ni asaltos nuevos; todo el código sigue ahí por si cambia de opinión.
+const RAIDS_ENABLED: bool = false
 const RAID_RICH_TREASURY: int = 300 # Por encima de esto, las arcas llenas atraen a los bandidos
 const RAID_THREAT_WARN: int = 40 # A partir de aquí hay probabilidad diaria de que se decidan a atacar
 const RAID_GATHER_HOUR: int = 16 # Los defensores acuden a la entrada del pueblo
@@ -2044,6 +2047,8 @@ static func daily(vm) -> int:
 	var act_raid: Dictionary = rd.get("active_raid", {})
 	if not act_raid.is_empty() and today > int(act_raid.get("day_due", today)):
 		resolve_raid(vm, false, null) # Por si nadie estaba despierto a la hora del asalto
+	elif act_raid.is_empty() and not RAIDS_ENABLED:
+		rd["threat"] = 0 # Asaltos en pausa: nada de amenaza, avisos ni milicia
 	elif act_raid.is_empty():
 		# La amenaza sube solo si algo atrae a los bandidos y baja si el pueblo se ve bien defendido o pobre
 		var lure: int = raid_lure(vm)

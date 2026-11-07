@@ -115,6 +115,8 @@ Estado: **✅ HECHO** = ya construido y funcionando en el juego. **🟡 EN PARTE
   - ✅ **Hecho en V5e:** día de mercado entre semana (miércoles por la mañana en la plaza).
   - ✅ **Hecho en P4 (`VillageConfession.gd`):** confesión entre semana (martes y jueves) con el sacerdote como fuente de secretos, espiar el confesionario en sigilo, sacerdote corrupto que vende secretos o chantajea, penitencias visibles al día siguiente, excomunión, confesarte tú mismo, bulas de indulgencia compradas por ricos, sermón dominical con indirectas, crisis de fe del sacerdote y derecho de santuario en la capilla.
 - ✅ **HECHO** — Ladrones (robos nocturnos a vecinos, tiendas o al jugador, testigos, denuncias y devolución con multa o soborno). *(Hecho en E4.)*
+- ⏸️ **EN PAUSA (usuario, 2026-11-06)** — Asaltos de bandidos y jabalíes al pueblo: «poco realista». El código sigue (`VillageCulture.RAIDS_ENABLED = false`) por si cambia de opinión. Medido antes de pausar: casi nunca llegaban (arcas < ~400 → nunca) y el pueblo ganaba 21 de 24 sin el jugador.
+- 💡 **IDEA (usuario, 2026-11-06)** — El crimen debe ser **dentro del pueblo**: robos y mafias que sepan **mantener un perfil bajo** (que no se note quién manda, que eviten testigos y que la guardia no los vea venir), en vez de amenazas de fuera.
 - 💡 **PENDIENTE** — Prostitución. *(Recomendación: solo implícita, fuera de cámara, como oficio y hecho social; nunca explícita. Se puede quitar sin perder nada importante.)*
 - ✅ **HECHO** — Clases sociales: nobles, ricos, acomodados, humildes, pobres y mendigos (con limosna en la plaza, Albergue del Alba y raciones de gachas). *(Hecho en E3, V5b, V6 y J4.)*
 

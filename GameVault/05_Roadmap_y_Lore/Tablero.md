@@ -51,6 +51,7 @@ kanban-plugin: board
 
 ## ✅ Hecho
 
+- [x] Asaltos al pueblo medidos y puestos en pausa (el usuario prefiere crimen interno de bajo perfil) (2026-11-06)
 - [x] Versión para Windows con «Léeme» para los amigos (2026-11-06)
 - [x] Los vecinos lejanos viven siempre del todo (sin simulación «a ratos»); rendimiento medido y aparcado (2026-11-06)
 - [x] Guardar y cargar sin sustos: lo que estaba a medias se retoma o se anula sin perder nada (2026-11-06)
