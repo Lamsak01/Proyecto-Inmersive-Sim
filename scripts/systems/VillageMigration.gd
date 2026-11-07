@@ -376,7 +376,7 @@ static func seed_start_population(vm, target: int = START_POPULATION) -> int:
 	# Colocar a cada recién llegado en su barrio, taller o puesto de jornalero en vez de apilarlos en la plaza
 	var spread_i: int = 0
 	for n in residents(vm):
-		if not n.has_meta("arrived_day"):
+		if not n.has_meta("arrived_day") or not is_unemployed(n):
 			continue
 		if n.has_meta("day_job_pos"):
 			n.global_position = (n.get_meta("day_job_pos") as Vector2) + Vector2(float((spread_i % 3) - 1) * 10.0, float(spread_i % 2) * 8.0)

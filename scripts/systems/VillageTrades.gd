@@ -70,8 +70,10 @@ static func setup_world(vm) -> void:
 			"title": c["title"], "tex": vm._load_tex(str(c["tex"])), "stock": (c["stock"] as Dictionary).duplicate(),
 			"work_pos": lay["work_pos"], "bed1_pos": lay["bed1_pos"], "bed2_pos": lay["bed2_pos"], "table_pos": lay["table_pos"],
 		}
-		if str(c.get("extras", "")) == "quarry": # K1: el cantero trabaja (y vende) en la roca, a la vista
+		if str(c.get("extras", "")) in ["quarry", "farm", "ranch"]: # K1: el cantero, granjero y ganadero trabajan (y venden) en la roca, campo o corral, a la vista
 			vm.trade_configs[role_of(key)]["work_pos"] = yard_pos(str(c["lot"]))
+		elif str(c.get("extras", "")) == "woods":
+			vm.trade_configs[role_of(key)]["work_pos"] = VillageLots.building_center(str(c["lot"])) + Vector2(82, 14)
 		vm.trade_configs[role_of(key)]["shop_center"] = VillageLots.building_center(str(c["lot"]))
 		vm.trade_configs[role_of(key)]["house_center"] = VillageLots.building_center(str(c["lot"]))
 		if not vm.house_pantry.has(str(c["family_id"])):
@@ -86,11 +88,15 @@ static func yard_pos(id: String) -> Vector2:
 	var x0: float = VillageLots.building_center(id).x + 70.0
 	return Vector2((x0 + lc.x + half.x - 8.0) * 0.5, lc.y)
 
-## K1: partidas de antes: el cantero se muda a la roca.
+## K1: partidas de antes: el cantero, granjero, ganadero y leñador trabajan en su roca, campo, corral o pila de troncos.
 static func fix_quarry_post(vm) -> void:
-	var q = vm.trade_npcs.get(role_of("quarry"))
-	if q != null and is_instance_valid(q) and not q.is_dead:
-		q.work_position = yard_pos(str(CONFIG["quarry"]["lot"]))
+	for key in ["quarry", "farmer", "rancher", "woodcutter"]:
+		var q = vm.trade_npcs.get(role_of(key))
+		if q != null and is_instance_valid(q) and not q.is_dead:
+			if key == "woodcutter":
+				q.work_position = VillageLots.building_center(str(CONFIG[key]["lot"])) + Vector2(82, 14)
+			else:
+				q.work_position = yard_pos(str(CONFIG[key]["lot"]))
 
 ## Lo que puede abastecer cada negocio nuevo (lo usa VillageManager al registrar el puesto).
 static func supply_items_for(role_id: int) -> Array[String]:
@@ -148,10 +154,14 @@ static func build_extras(vm, id: String) -> void:
 	var y1: float = lc.y + half.y - 10.0
 	match str(c["extras"]):
 		"farm":
-			vm._add_poly(_rect(x0, y0, x1, y1), Color(0.40, 0.30, 0.18, 0.75), -4) # Tierra arada
+			var p_soil: Polygon2D = vm._add_poly(_rect(x0, y0, x1, y1), Color(0.40, 0.30, 0.18, 0.75), -4) # Tierra arada
+			if p_soil != null:
+				p_soil.add_to_group("ranch_fence_2d")
 			var yy: float = y0 + 8.0
 			while yy < y1 - 4.0:
-				vm._add_poly(_rect(x0 + 4.0, yy, x1 - 4.0, yy + 4.0), Color(0.62, 0.66, 0.24, 0.85), -3) # Surcos de trigo
+				var p_furrow: Polygon2D = vm._add_poly(_rect(x0 + 4.0, yy, x1 - 4.0, yy + 4.0), Color(0.62, 0.66, 0.24, 0.85), -3) # Surcos de trigo
+				if p_furrow != null:
+					p_furrow.add_to_group("ranch_fence_2d")
 				yy += 14.0
 			if not is_fields_lot:
 				vm._spawn_decor_prop(props + "hay_0.png", Vector2(x1 - 14.0, y1 - 10.0), Vector2(0.7, 0.7))
@@ -165,11 +175,15 @@ static func build_extras(vm, id: String) -> void:
 			border.z_index = -2
 			border.add_to_group("ranch_fence_2d")
 			vm.entities_root.add_child(border)
-			vm._add_poly(_rect(x0, y0, x1, y1), Color(0.44, 0.56, 0.26, 0.55), -4)
+			var p_ranch: Polygon2D = vm._add_poly(_rect(x0, y0, x1, y1), Color(0.44, 0.56, 0.26, 0.55), -4)
+			if p_ranch != null:
+				p_ranch.add_to_group("ranch_fence_2d")
 			vm._spawn_decor_prop(props + "hay_2.png", Vector2(x0 + 12.0, y1 - 12.0), Vector2(0.7, 0.7))
 			load("res://scripts/systems/VillageHousing.gd").sync_livestock(vm)
 		"quarry":
-			vm._add_poly(_rect(x0, y0, x1, y1), Color(0.46, 0.44, 0.40, 0.8), -4) # Roca a cielo abierto
+			var p_quarry: Polygon2D = vm._add_poly(_rect(x0, y0, x1, y1), Color(0.46, 0.44, 0.40, 0.8), -4) # Roca a cielo abierto
+			if p_quarry != null:
+				p_quarry.add_to_group("ranch_fence_2d")
 			var rock: Texture2D = vm._load_tex("res://assests/world/harvest/rock_iron_vein.png")
 			for rp in [Vector2(x0 + 18, y0 + 22), Vector2(x1 - 20, y0 + 40), Vector2(x0 + 30, y1 - 24), Vector2(x1 - 30, y1 - 18)]:
 				vm._add_sprite_prop(rock, rp, Vector2(0.8, 0.8), 0)

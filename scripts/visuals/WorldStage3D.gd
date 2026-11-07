@@ -720,6 +720,19 @@ func _build_static_terrain_3d() -> void:
 
 	# (2026-11-06) Los pozos ya no van fijos aquí: los pone _sync_props_3d donde esté cada pozo 2D (también los de solares nuevos).
 
+	# Campos arados 3D de la Granja del Sur (s1: x = -200..-113, s2: x = -77..137, y = 400..540) y explanada de roca de la Cantera (w1: x = -210..-123, y = -400..-260)
+	var m_plowed := _mat("farm_plowed_soil", Color(0.38, 0.28, 0.17), 0.94, 0.0, Color.BLACK, 0.0, "town_textures/floor_ground_dirt.png", "", 0.45)
+	var m_furrow := _mat("farm_wheat_furrow", Color(0.68, 0.72, 0.26), 0.88, 0.0)
+	for f_rect in [Rect2(Vector2(-200.0, 400.0), Vector2(87.0, 140.0)), Rect2(Vector2(-77.0, 400.0), Vector2(214.0, 140.0))]:
+		_add_box_2d(terrain_root_3d, f_rect.get_center(), f_rect.size, 0.0, 0.8, m_plowed)
+		var fy: float = f_rect.position.y + 10.0
+		while fy < f_rect.end.y - 4.0:
+			_add_box_2d(terrain_root_3d, Vector2(f_rect.get_center().x, fy), Vector2(f_rect.size.x - 8.0, 4.0), 0.8, 1.4, m_furrow)
+			fy += 14.0
+	var quarry_r := Rect2(Vector2(-210.0, -400.0), Vector2(87.0, 140.0))
+	var m_quarry_rock := _mat("quarry_slab_3d", Color(0.50, 0.48, 0.44), 0.90, 0.04, Color.BLACK, 0.0, "town_textures/wall_brick_stone_center.png", "", 0.42)
+	_add_box_2d(terrain_root_3d, quarry_r.get_center(), quarry_r.size, 0.0, 1.0, m_quarry_rock)
+
 	# Corral 3D de madera y tierra del Rancho del Sur (x = 310..397, y = 400..540; el ganado vivo lo sincroniza VillageHousing.sync_livestock)
 	var ranch_floor_r := Rect2(Vector2(310.0, 400.0), Vector2(87.0, 140.0))
 	_add_box_2d(terrain_root_3d, ranch_floor_r.get_center(), ranch_floor_r.size, 0.0, 0.8, m_road)

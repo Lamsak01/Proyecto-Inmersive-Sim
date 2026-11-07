@@ -3035,8 +3035,8 @@ func _is_mandatory_work_hours() -> bool:
 	if not WorldClock or _is_morning_expedition_hours():
 		return true
 	var h: int = WorldClock.current_hour
-	if trade_role == TradeRole.RESTAURATEUR: # R1b: la trattoria abre a mediodía y sirve cenas, también el fin de semana
-		return h >= _VillageRestaurant.OPEN_FROM and h < _VillageRestaurant.OPEN_TO and not WorldClock.is_rite_day()
+	if trade_role == TradeRole.RESTAURATEUR: # R1b: la trattoria prepara desde las 8 h, abre a mediodía y sirve cenas, también el fin de semana
+		return h >= 8 and h < _VillageRestaurant.OPEN_TO and not WorldClock.is_rite_day()
 	# G2: fin de semana. Los oficios y sus familias trabajan solo la mañana del sábado y descansan el domingo
 	if WorldClock.has_method("is_weekend") and WorldClock.is_weekend() and (trade_role in SHOP_ROLES or trade_role == TradeRole.FAMILY_MEMBER):
 		if WorldClock.is_rite_day():
@@ -3601,6 +3601,13 @@ func _process_artisan_workshop_crafting_and_supply_runs(delta: float) -> void:
 		if not r_recs.is_empty() and _VillageRestaurant.cook_cold_room_trip(self, r_recs[_crafting_recipe_idx % r_recs.size()], delta):
 			_is_actively_crafting = false
 			return
+	var in_wed_market: bool = vm != null and "VillageCulture" in vm and vm.VillageCulture != null and (vm.VillageCulture.state(vm).get("market_sellers", {}) as Dictionary).has(get_person_key())
+	var carp_on_site: bool = (trade_role == TradeRole.CARPENTER and vm != null and "VillageLots" in vm and vm.VillageLots != null and str(vm.VillageLots.active_site(vm)) != "")
+	if not in_wed_market and not carp_on_site and vm != null and "trade_configs" in vm and vm.trade_configs.has(int(trade_role)):
+		var true_wp: Vector2 = (vm.trade_configs[int(trade_role)] as Dictionary).get("work_pos", work_position)
+		if true_wp != Vector2.ZERO and work_position.distance_to(true_wp) > 4.0:
+			work_position = true_wp
+
 	# 2. Regresar o permanecer en su propio puesto de trabajo (`work_position`)
 	if global_position.distance_to(work_position) > 16.0:
 		_is_actively_crafting = false
@@ -3609,6 +3616,9 @@ func _process_artisan_workshop_crafting_and_supply_runs(delta: float) -> void:
 		return
 
 	velocity = Vector2.ZERO
+	if in_wed_market:
+		_stop_crafting_bar()
+		return
 	var recipes: Array[Dictionary] = _get_artisan_recipes()
 	if recipes.is_empty():
 		_stop_crafting_bar()
