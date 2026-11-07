@@ -87,6 +87,167 @@ var _town_ledger_3d: Node3D = null # P5: libro de cuentas en la mesa del ayuntam
 var _home_props_3d: Node3D = null
 var _last_home_props_sig: String = ""
 var _sabotage_fx_3d: Dictionary = {} # role_id -> Node3D (humo, chispas y fuego 3D de taller saboteado)
+var _sky_mat: ShaderMaterial = null
+var _sky_res: Sky = null
+
+const SKY_CLOUD_SHADER_CODE := """
+shader_type sky;
+
+uniform vec3 zenith_col : source_color = vec3(0.20, 0.46, 0.82);
+uniform vec3 horizon_col : source_color = vec3(0.68, 0.84, 0.96);
+uniform vec3 ground_col : source_color = vec3(0.22, 0.34, 0.18);
+uniform vec3 sun_dir = vec3(-0.45, 0.65, -0.60);
+uniform vec3 sun_col : source_color = vec3(1.0, 0.94, 0.78);
+uniform vec3 cloud_lit_col : source_color = vec3(0.98, 0.97, 0.94);
+uniform vec3 cloud_shade_col : source_color = vec3(0.62, 0.70, 0.82);
+uniform float cloud_coverage : hint_range(0.0, 1.0) = 0.48;
+uniform float star_visibility : hint_range(0.0, 1.0) = 0.0;
+
+float hash21(vec2 p) {
+	p = fract(p * vec2(123.34, 456.21));
+	p += dot(p, p + 45.32);
+	return fract(p.x * p.y);
+}
+
+float noise2(vec2 p) {
+	vec2 i = floor(p);
+	vec2 f = fract(p);
+	f = f * f * (3.0 - 2.0 * f);
+	float a = hash21(i);
+	float b = hash21(i + vec2(1.0, 0.0));
+	float c = hash21(i + vec2(0.0, 1.0));
+	float d = hash21(i + vec2(1.0, 1.0));
+	return mix(mix(a, b, f.x), mix(c, d, f.x), f.y);
+}
+
+float fbm(vec2 p) {
+	float v = 0.0;
+	float amp = 0.52;
+	for (int i = 0; i < 4; i++) {
+		v += amp * noise2(p);
+		p = p * 2.07 + vec2(13.7, 9.2);
+		amp *= 0.5;
+	}
+	return v;
+}
+
+void sky() {
+	vec3 dir = normalize(EYEDIR);
+	float y = dir.y;
+	if (y < 0.0) {
+		COLOR = mix(horizon_col, ground_col, clamp(-y * 3.5, 0.0, 1.0));
+	} else {
+		float h_t = pow(clamp(1.0 - y, 0.0, 1.0), 2.2);
+		vec3 sky_base = mix(zenith_col, horizon_col, h_t);
+		vec3 s_dir = normalize(sun_dir);
+		float sun_dot = max(dot(dir, s_dir), 0.0);
+		// Halo solar / lunar y disco celeste
+		sky_base += sun_col * pow(sun_dot, 8.0) * 0.28;
+		float sun_disc = smoothstep(0.9965, 0.9990, sun_dot);
+		sky_base = mix(sky_base, sun_col * 1.35, sun_disc);
+
+		// Estrellas nocturnas en la bóveda superior
+		if (star_visibility > 0.01 && y > 0.06) {
+			vec2 star_cell = floor(dir.xz / max(y + 0.15, 0.15) * 95.0);
+			float sh = hash21(star_cell);
+			if (sh > 0.986) {
+				float twinkle = 0.65 + 0.35 * sin(TIME * 2.4 + sh * 40.0);
+				sky_base += vec3(0.90, 0.94, 1.0) * star_visibility * twinkle * smoothstep(0.06, 0.28, y);
+			}
+		}
+
+		// Dos capas de nubes con ligero pixelado retro y volumen iluminado por el sol
+		if (y > 0.02) {
+			vec2 proj = dir.xz / max(y + 0.16, 0.16);
+			vec2 p_q = floor(proj * 64.0) / 64.0;
+			vec2 uv1 = mix(proj, p_q, 0.35) * 1.15 + vec2(TIME * 0.012, TIME * 0.005);
+			vec2 uv2 = proj * 2.35 - vec2(TIME * 0.007, TIME * 0.009);
+			float n1 = fbm(uv1);
+			float n2 = fbm(uv2);
+			float c_val = n1 * 0.72 + n2 * 0.28;
+			float thresh = 1.0 - cloud_coverage * 0.78;
+			float cloud_mask = smoothstep(thresh, thresh + 0.24, c_val) * smoothstep(0.02, 0.18, y);
+			float light_grad = clamp(fbm(uv1 + s_dir.xz * 0.18) - n1 + 0.55, 0.0, 1.0);
+			vec3 c_col = mix(cloud_shade_col, cloud_lit_col, light_grad);
+			c_col += sun_col * pow(sun_dot, 5.0) * 0.22;
+			sky_base = mix(sky_base, c_col, clamp(cloud_mask * 0.90, 0.0, 0.92));
+		}
+		COLOR = sky_base;
+	}
+}
+"""
+
+const GROUND_TERRAIN_SHADER_CODE := """
+shader_type spatial;
+render_mode diffuse_burley, specular_schlick_ggx, cull_disabled;
+
+uniform sampler2D tex_grass : source_color, filter_nearest_mipmap, repeat_enable;
+uniform sampler2D tex_overlay : source_color, filter_nearest_mipmap, repeat_enable;
+uniform sampler2D tex_dirt : source_color, filter_nearest_mipmap, repeat_enable;
+uniform vec3 tint_primary : source_color = vec3(0.38, 0.62, 0.30);
+uniform vec3 tint_secondary : source_color = vec3(0.28, 0.48, 0.22);
+uniform vec3 tint_earth : source_color = vec3(0.46, 0.36, 0.24);
+uniform float dirt_blend : hint_range(0.0, 1.0) = 0.18;
+
+varying vec3 v_world_pos;
+
+float g_hash(vec2 p) {
+	p = fract(p * vec2(234.17, 567.89));
+	p += dot(p, p + 34.56);
+	return fract(p.x * p.y);
+}
+
+float g_noise(vec2 p) {
+	vec2 i = floor(p);
+	vec2 f = fract(p);
+	f = f * f * (3.0 - 2.0 * f);
+	return mix(
+		mix(g_hash(i), g_hash(i + vec2(1.0, 0.0)), f.x),
+		mix(g_hash(i + vec2(0.0, 1.0)), g_hash(i + vec2(1.0, 1.0)), f.x),
+		f.y
+	);
+}
+
+void vertex() {
+	v_world_pos = (MODEL_MATRIX * vec4(VERTEX, 1.0)).xyz;
+}
+
+void fragment() {
+	vec2 w_uv = v_world_pos.xz;
+	// 3 escalas: pradera amplia, baldosa pixelada media y brizna cercana para 1.ª persona
+	vec3 g_mid = texture(tex_grass, w_uv * 0.85).rgb;
+	vec3 g_near = texture(tex_grass, w_uv * 3.40).rgb;
+	vec3 g_over = texture(tex_overlay, w_uv * 1.90 + vec2(0.37, 0.61)).rgb;
+	vec3 d_tex = texture(tex_dirt, w_uv * 1.35).rgb;
+
+	float macro = g_noise(w_uv * 0.22);
+	float meso = g_noise(w_uv * 0.95);
+	// Píxel de brizna nítido a ras de suelo
+	vec2 blade_cell = floor(w_uv * 28.0);
+	float blade_rnd = g_hash(blade_cell);
+
+	vec3 meadow_tint = mix(tint_primary, tint_secondary, smoothstep(0.28, 0.74, macro));
+	vec3 base_grass = mix(g_mid, g_near, 0.45) * 1.25 * meadow_tint;
+	base_grass = mix(base_grass, g_over * meadow_tint * 1.15, 0.28);
+
+	// Briznas claras, trébol oscuro y florecillas silvestres diminutas
+	if (blade_rnd > 0.78) {
+		base_grass *= 1.14;
+	} else if (blade_rnd < 0.18) {
+		base_grass *= 0.86;
+	}
+	if (blade_rnd > 0.992 && dirt_blend < 0.35) {
+		base_grass = mix(base_grass, vec3(0.94, 0.86, 0.34), 0.65);
+	}
+
+	// Calvas naturales de tierra húmeda y sendero
+	float earth_mask = smoothstep(0.68 - dirt_blend * 0.35, 0.86, macro * 0.65 + meso * 0.35);
+	vec3 earth_col = d_tex * tint_earth * 1.25;
+	ALBEDO = mix(base_grass, earth_col, clamp(earth_mask, 0.0, 0.78));
+	ROUGHNESS = mix(0.88, 0.95, earth_mask);
+	METALLIC = 0.0;
+}
+"""
 
 ## B7: Prototipo de vista en primera persona ([F6] o [F8]).
 static var first_person_active: bool = false
@@ -211,6 +372,13 @@ func setup_stage(village_manager: Node2D) -> void:
 
 		var env := Environment.new()
 		env.background_mode = Environment.BG_CLEAR_COLOR
+		var sky_sh := Shader.new()
+		sky_sh.code = SKY_CLOUD_SHADER_CODE
+		_sky_mat = ShaderMaterial.new()
+		_sky_mat.shader = sky_sh
+		_sky_res = Sky.new()
+		_sky_res.sky_material = _sky_mat
+		env.sky = _sky_res
 		env.ambient_light_source = Environment.AMBIENT_SOURCE_COLOR
 		env.ambient_light_color = Color(0.84, 0.86, 0.90)
 		env.ambient_light_energy = 0.58
@@ -683,9 +851,13 @@ func _build_static_terrain_3d() -> void:
 		_add_cyl_2d(terrain_root_3d, gp + Vector2(4.2, 0.0), 1.4, 2.3, 1.4, m_sewer_brass, 1.4, 8)
 
 func _build_tree_3d(parent: Node3D, pos_2d: Vector2, m_trunk: Material, m_leaf1: Material, m_leaf2: Material, scale_f: float = 1.0, variant: int = 0) -> void:
-	var tree_files := ["nature/CommonTree_1.obj", "nature/CommonTree_2.obj", "nature/BirchTree_1.obj", "nature/PineTree_1.obj", "nature/CommonTree_3.obj"]
+	var tree_files := [
+		"nature/CommonTree_1.obj", "nature/CommonTree_2.obj", "nature/BirchTree_1.obj",
+		"nature/CommonTree_3.obj", "nature/BirchTree_2.obj", "nature/CommonTree_4.obj",
+		"nature/PineTree_1.obj", "nature/BirchTree_3.obj",
+	]
 	var t_file: String = tree_files[posmod(variant, tree_files.size())]
-	if _add_model_2d(parent, t_file, pos_2d, 0.0, Vector2.ZERO, 34.0 * scale_f, float(variant * 67)) != null:
+	if _add_model_2d(parent, t_file, pos_2d, 0.0, Vector2.ZERO, 36.0 * scale_f, float(variant * 67)) != null:
 		return
 	_add_cyl_2d(parent, pos_2d, 3.2 * scale_f, 0.0, 11.0 * scale_f, m_trunk, 2.4 * scale_f, 8)
 	_add_cyl_2d(parent, pos_2d, 12.0 * scale_f, 8.0 * scale_f, 14.0 * scale_f, m_leaf1, 2.0 * scale_f, 9)
@@ -2682,34 +2854,92 @@ func _update_roof_cutaways_and_lighting() -> void:
 	if is_instance_valid(_player_house_roof):
 		_player_house_roof.visible = true if first_person_active else not (_player_house_rect.grow(38.0).has_point(pl_pos) or _player_house_rect.grow(8.0).has_point(mouse_pos))
 
-	# Luz diurna/nocturna y farolas eléctricas 3D
+	# Luz diurna/nocturna, cielo con nubes según la hora, niebla atmosférica y farolas eléctricas 3D
 	var wc2 = get_node_or_null("/root/WorldClock") if is_inside_tree() else null
 	var gm2 = get_node_or_null("/root/GameManager") if is_inside_tree() else null
 	var hour: int = int(wc2.current_hour) if wc2 != null else 12
+	var minute: int = int(wc2.current_minute) if wc2 != null and "current_minute" in wc2 else 0
+	var hour_f: float = float(hour) + float(minute) / 60.0
+	var weather_str: String = str(wc2.current_weather) if wc2 != null and "current_weather" in wc2 else "clear"
+	var is_foggy_weather: bool = weather_str in ["fog", "rain", "storm"]
 	var is_night: bool = (hour >= 19 or hour < 6)
 	var is_dusk: bool = (hour in [6, 7, 17, 18])
+	var is_dawn_mist: bool = (hour_f >= 5.0 and hour_f <= 8.0)
 	var grid_on: bool = gm2 != null and gm2.get_flag("electric_grid_active", false) == true and VillageCulture.is_lamps_powered(vm)
+	var pl_indoors: bool = vm != null and is_finite(pl_pos.x) and vm.has_method("_is_pos_inside_any_building") and bool(vm._is_pos_inside_any_building(pl_pos))
+
+	# Interpolación continua de colores del cielo, nubes, sol/luna y niebla según la hora del día y el clima
+	var zenith_col := Color(0.18, 0.46, 0.84)
+	var horizon_col := Color(0.68, 0.84, 0.96)
+	var sun_col := Color(1.0, 0.95, 0.82)
+	var cloud_lit := Color(0.98, 0.97, 0.94)
+	var cloud_shade := Color(0.60, 0.68, 0.80)
+	var star_vis: float = 0.0
+	var sun_ang: float = clampf((hour_f - 6.0) / 13.0, 0.0, 1.0) * PI
+	var sun_dir := Vector3(-cos(sun_ang) * 0.78, maxf(0.16, sin(sun_ang) * 0.86), -0.46).normalized()
+	if hour_f >= 5.5 and hour_f < 8.0: # Amanecer rosado-dorado
+		var t_dawn: float = clampf((hour_f - 5.5) / 2.5, 0.0, 1.0)
+		zenith_col = Color(0.08, 0.14, 0.32).lerp(Color(0.20, 0.46, 0.82), t_dawn)
+		horizon_col = Color(0.88, 0.52, 0.38).lerp(Color(0.70, 0.84, 0.95), t_dawn)
+		sun_col = Color(1.0, 0.68, 0.42).lerp(Color(1.0, 0.94, 0.82), t_dawn)
+		cloud_lit = Color(1.0, 0.78, 0.62).lerp(Color(0.98, 0.97, 0.94), t_dawn)
+		cloud_shade = Color(0.46, 0.38, 0.54).lerp(Color(0.60, 0.68, 0.80), t_dawn)
+		star_vis = 1.0 - t_dawn
+	elif hour_f >= 17.0 and hour_f < 19.8: # Atardecer ámbar-violeta
+		var t_dusk: float = clampf((hour_f - 17.0) / 2.8, 0.0, 1.0)
+		zenith_col = Color(0.20, 0.44, 0.80).lerp(Color(0.06, 0.09, 0.20), t_dusk)
+		horizon_col = Color(0.92, 0.50, 0.30).lerp(Color(0.14, 0.16, 0.28), t_dusk)
+		sun_col = Color(1.0, 0.60, 0.32).lerp(Color(0.62, 0.74, 0.96), t_dusk)
+		cloud_lit = Color(1.0, 0.68, 0.46).lerp(Color(0.26, 0.32, 0.48), t_dusk)
+		cloud_shade = Color(0.44, 0.28, 0.42).lerp(Color(0.10, 0.14, 0.24), t_dusk)
+		star_vis = t_dusk * 0.85
+	elif is_night: # Noche estrellada con luna plateada
+		zenith_col = Color(0.03, 0.05, 0.12)
+		horizon_col = Color(0.09, 0.13, 0.24)
+		sun_col = Color(0.68, 0.78, 0.98)
+		cloud_lit = Color(0.24, 0.30, 0.44)
+		cloud_shade = Color(0.08, 0.11, 0.18)
+		sun_dir = Vector3(0.42, 0.68, -0.58).normalized()
+		star_vis = 1.0
+
+	var cloud_cov: float = 0.78 if is_foggy_weather else (0.54 if (is_dusk or is_dawn_mist) else 0.46)
+	if is_foggy_weather:
+		horizon_col = horizon_col.lerp(Color(0.66, 0.72, 0.76), 0.45)
+		zenith_col = zenith_col.lerp(Color(0.52, 0.58, 0.64), 0.35)
+
+	if _sky_mat != null:
+		_sky_mat.set_shader_parameter("zenith_col", zenith_col)
+		_sky_mat.set_shader_parameter("horizon_col", horizon_col)
+		_sky_mat.set_shader_parameter("sun_dir", sun_dir)
+		_sky_mat.set_shader_parameter("sun_col", sun_col)
+		_sky_mat.set_shader_parameter("cloud_lit_col", cloud_lit)
+		_sky_mat.set_shader_parameter("cloud_shade_col", cloud_shade)
+		_sky_mat.set_shader_parameter("cloud_coverage", cloud_cov)
+		_sky_mat.set_shader_parameter("star_visibility", star_vis)
 
 	if is_instance_valid(world_env) and world_env.environment != null:
 		var env: Environment = world_env.environment
 		if first_person_active:
-			var sky_col: Color = Color(0.52, 0.72, 0.92)
-			if is_night:
-				sky_col = Color(0.05, 0.07, 0.14)
-			elif is_dusk:
-				sky_col = Color(0.76, 0.48, 0.34)
-			env.background_mode = Environment.BG_COLOR
-			env.background_color = sky_col
+			env.background_mode = Environment.BG_SKY if _sky_res != null else Environment.BG_COLOR
+			env.background_color = horizon_col
 			env.ambient_light_color = Color(0.42, 0.48, 0.68) if is_night else (Color(0.92, 0.76, 0.64) if is_dusk else Color(0.86, 0.88, 0.92))
-			env.ambient_light_energy = 0.42 if is_night else (0.52 if is_dusk else 0.62)
-			env.fog_enabled = true
-			env.fog_light_color = sky_col
-			env.fog_density = 0.018 if is_night else 0.006
+			env.ambient_light_energy = 0.44 if is_night else (0.54 if is_dusk else 0.62)
+			env.fog_enabled = not pl_indoors
+			env.fog_light_color = horizon_col
+			env.fog_light_energy = 0.85 if not is_night else 0.45
+			env.fog_sun_scatter = 0.22 if (is_dusk or is_dawn_mist) else 0.08
+			env.fog_sky_affect = 0.28
+			var base_fog: float = 0.014 if is_night else (0.0085 if (is_dusk or is_dawn_mist) else 0.0045)
+			if is_foggy_weather:
+				base_fog *= 2.1
+			env.fog_density = base_fog
 		else:
 			env.background_mode = Environment.BG_CLEAR_COLOR
 			env.ambient_light_color = Color(0.84, 0.86, 0.90)
 			env.ambient_light_energy = 0.58
-			env.fog_enabled = false
+			env.fog_enabled = (is_foggy_weather or is_dawn_mist) and not pl_indoors
+			env.fog_light_color = horizon_col
+			env.fog_density = 0.0045 if is_foggy_weather else 0.0020
 
 	if is_instance_valid(fp_lantern_light):
 		if first_person_active:
@@ -2721,12 +2951,15 @@ func _update_roof_cutaways_and_lighting() -> void:
 			fp_lantern_light.visible = false
 
 	if is_instance_valid(sun_light):
+		var yaw_deg: float = lerpf(-115.0, -155.0, clampf((hour_f - 6.0) / 13.0, 0.0, 1.0))
+		var pitch_deg: float = -38.0 - 18.0 * sin(sun_ang) if not is_night else -48.0
+		sun_light.rotation_degrees = Vector3(pitch_deg, yaw_deg, 0.0)
 		if is_night:
 			sun_light.light_energy = 0.55 # luz de luna: fría, pero deja ver las siluetas
 			sun_light.light_color = Color(0.58, 0.68, 0.95)
-		elif is_dusk:
-			sun_light.light_energy = 0.82
-			sun_light.light_color = Color(1.0, 0.78, 0.56)
+		elif is_dusk or is_dawn_mist:
+			sun_light.light_energy = 0.86
+			sun_light.light_color = sun_col
 		else:
 			sun_light.light_energy = 1.14
 			sun_light.light_color = Color(1.0, 0.96, 0.88)
@@ -2753,15 +2986,40 @@ func _update_roof_cutaways_and_lighting() -> void:
 # ==============================================================================
 # SUELO 3D Y NATURALEZA (2026-11-05): sustituyen a la hierba y a los pinos dibujados en 2D
 # ==============================================================================
-## Suelo opaco de hierba bajo todo el valle, con zonas: bosque profundo más oscuro, llanura oeste seca y ciénaga.
+func _make_ground_shader_mat(key: String, c_prim: Color, c_sec: Color, c_earth: Color, dirt_b: float) -> Material:
+	if _mat_cache.has(key):
+		return _mat_cache[key]
+	if _is_headless:
+		return _mat(key + "_hl", c_prim, 0.95, 0.0)
+	var sh := Shader.new()
+	sh.code = GROUND_TERRAIN_SHADER_CODE
+	var sm := ShaderMaterial.new()
+	sm.shader = sh
+	var t_grass := AssetLib.load_texture("town_textures/floor_ground_grass.png")
+	var t_over := AssetLib.load_texture("town_textures/floor_ground_grass_overlay.png")
+	var t_dirt := AssetLib.load_texture("town_textures/floor_ground_dirt.png")
+	if t_grass != null:
+		sm.set_shader_parameter("tex_grass", t_grass)
+	if t_over != null:
+		sm.set_shader_parameter("tex_overlay", t_over)
+	if t_dirt != null:
+		sm.set_shader_parameter("tex_dirt", t_dirt)
+	sm.set_shader_parameter("tint_primary", c_prim)
+	sm.set_shader_parameter("tint_secondary", c_sec)
+	sm.set_shader_parameter("tint_earth", c_earth)
+	sm.set_shader_parameter("dirt_blend", dirt_b)
+	_mat_cache[key] = sm
+	return sm
+
+## Suelo opaco de hierba con textura multiescala bajo todo el valle, zonas diferenciadas y matas de hierba/flores 3D.
 ## Recibe las sombras del sol; tapa los decorados planos 2D con z <= -3 (bordes, césped del bosque).
 func _build_ground_3d() -> void:
-	var m_grass := _mat("ground_grass", Color(0.50, 0.74, 0.40), 0.95, 0.0, Color.BLACK, 0.0, "town_textures/floor_ground_grass.png", "", 0.78)
-	var m_forest := _mat("ground_forest", Color(0.30, 0.50, 0.30), 0.95, 0.0, Color.BLACK, 0.0, "town_textures/floor_ground_grass.png", "", 0.78)
-	var m_plains := _mat("ground_plains", Color(0.86, 0.80, 0.48), 0.95, 0.0, Color.BLACK, 0.0, "town_textures/floor_ground_grass.png", "", 0.78)
+	var m_grass := _make_ground_shader_mat("ground_grass_sh", Color(0.42, 0.68, 0.32), Color(0.30, 0.54, 0.24), Color(0.48, 0.38, 0.26), 0.16)
+	var m_forest := _make_ground_shader_mat("ground_forest_sh", Color(0.24, 0.44, 0.22), Color(0.18, 0.34, 0.17), Color(0.36, 0.27, 0.18), 0.28)
+	var m_plains := _make_ground_shader_mat("ground_plains_sh", Color(0.76, 0.68, 0.36), Color(0.62, 0.54, 0.28), Color(0.56, 0.44, 0.30), 0.32)
 	var m_mud := _mat("ground_mud", Color(0.55, 0.46, 0.34), 0.95, 0.0, Color.BLACK, 0.0, "town_textures/floor_ground_dirt.png", "", 0.78)
 	var m_marsh := _mat("ground_marsh_water", Color(0.30, 0.42, 0.30), 0.35, 0.05, Color.BLACK, 0.0, "town_textures/floor_ground_water_green.png", "", 0.78)
-	for gm in [m_forest, m_plains, m_mud, m_marsh]:
+	for gm in [m_mud, m_marsh]:
 		(gm as StandardMaterial3D).cull_mode = BaseMaterial3D.CULL_DISABLED
 	_add_box_2d(terrain_root_3d, Vector2(-150, 620), Vector2(5200, 4400), -1.0, 1.0, m_grass)
 	# Bosque profundo con borde irregular y orgánico (mismo polígono que EcosystemManager.FOREST_POLY)
@@ -2783,6 +3041,38 @@ func _build_ground_3d() -> void:
 		Vector2(-2020, 320)
 	])
 	_add_flat_poly_2d(terrain_root_3d, marsh_outer_pts, 0.18, m_mud)
+	# Matas de hierba, tréboles, helechos y flores silvestres 3D repartidas por praderas, cunetas, campamento y linde del bosque
+	_build_ground_foliage_3d()
+
+func _build_ground_foliage_3d() -> void:
+	if _is_headless or not AssetLib.has_curated_assets():
+		return
+	var foliage_models: Array[String] = [
+		"nature/Plant_1.obj", "nature/Plant_2.obj", "nature/Plant_3.obj",
+		"nature/Flowers.obj", "nature/Plant_1.obj", "nature/Wheat.obj",
+	]
+	var idx: int = 0
+	for gx in range(-920, 1480, 95):
+		for gy in range(-460, 1180, 95):
+			idx += 1
+			var jx: float = float(((idx * 73) % 59) - 29)
+			var jy: float = float(((idx * 41) % 59) - 29)
+			var fp := Vector2(float(gx) + jx, float(gy) + jy)
+			# Saltar calzadas principales, plaza central, lago y huellas de edificios
+			if absf(fp.y - 50.0) < 30.0 or (fp.x > 375.0 and fp.x < 555.0 and fp.y > 0.0 and fp.y < 95.0):
+				continue
+			if fp.distance_to(FishingSpotScript.LAKE_NODE_POS) < 130.0:
+				continue
+			if VillageRestaurant.RECT.grow(16.0).has_point(fp) or VillageTavern.RECT.grow(16.0).has_point(fp):
+				continue
+			if fp.x > 160.0 and fp.x < 1380.0 and fp.y > -480.0 and fp.y < 360.0 and ((idx % 3) != 0):
+				continue
+			var mdl: String = foliage_models[idx % foliage_models.size()]
+			var h_f: float = 4.2 + float(idx % 4) * 1.1
+			var node_f := _add_model_2d(terrain_root_3d, mdl, fp, 0.0, Vector2.ZERO, h_f, float((idx * 53) % 360))
+			if node_f != null and nature_root_3d != null:
+				_absorb_into_batches(node_f, fp)
+	_flush_batches()
 
 
 ## Lago 3D a partir del mismo polígono que el lago 2D: orilla de arena, agua y zona honda más oscura.
@@ -3003,8 +3293,20 @@ func _make_nature_3d(n: Node2D, kind: String) -> Dictionary:
 	var pos := n.global_position
 	var rot: float = float(hv % 360)
 	if kind == "pine" or kind == "deco_pine":
-		var files := ["nature/PineTree_1.obj", "nature/PineTree_2.obj", "nature/PineTree_3.obj", "nature/PineTree_4.obj"]
-		var h: float = 58.0 + float(hv % 5) * 6.0
+		# Árboles variados por zona: robles/hayas frondosos, abedules de corteza blanca y pinos altos
+		var village_trees := [
+			"nature/CommonTree_1.obj", "nature/CommonTree_2.obj", "nature/BirchTree_1.obj",
+			"nature/CommonTree_3.obj", "nature/BirchTree_2.obj", "nature/PineTree_1.obj",
+			"nature/CommonTree_4.obj", "nature/BirchTree_3.obj", "nature/PineTree_2.obj",
+		]
+		var forest_trees := [
+			"nature/PineTree_1.obj", "nature/CommonTree_1.obj", "nature/PineTree_2.obj",
+			"nature/BirchTree_1.obj", "nature/PineTree_3.obj", "nature/CommonTree_2.obj",
+			"nature/PineTree_4.obj", "nature/CommonTree_3.obj", "nature/BirchTree_2.obj",
+			"nature/CommonTree_4.obj", "nature/BirchTree_3.obj",
+		]
+		var files: Array = forest_trees if pos.y >= 680.0 else village_trees
+		var h: float = 52.0 + float(hv % 6) * 6.0
 		var t := _add_model_2d(nature_root_3d, files[hv % files.size()], pos, 0.0, Vector2.ZERO, h, rot)
 		var stump: Node3D = null
 		if kind == "pine":

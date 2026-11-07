@@ -24,9 +24,9 @@
   taberna, biblioteca).
 - [x] ✅ (2026-11-07) **Trattoria: quitar la cama** del cuarto del dueño (no pinta nada en un restaurante; que sea un despacho) (`VillageRestaurant.gd` y `WorldStage3D.gd`: renombrada la sala a «Despacho del dueño» y sustituidas las camas por escritorio de madera, sillas, libro de cuentas, candelabro, estantería y alfombra).
 - [x] ✅ (2026-11-07) **La ropa atraviesa el cuerpo** de algunos vecinos (al guardia se le sale el hombro por la ropa) · 1.ª persona (`AssetLibrary3D.gd::extract_head_only_mesh` y `CharacterRig3D.gd`: recortados los vértices con `abs(x) <= 0.135` y `y >= 1.45` para que los hombros/brazos en T-pose de la malla base nunca asomen por las mangas).
-- [ ] **No hay cielo ni textura en el suelo** en primera persona: cielo azul plano y césped liso; todo se ve tosco.
+- [x] ✅ (2026-11-07) **No hay cielo ni textura en el suelo** en primera persona: cielo azul plano y césped liso; todo se ve tosco.
   El usuario quiere **empezar a ambientar el pueblo ya** (cielo con nubes y hora del día, suelo con textura, hierba,
-  niebla), aunque más adelante compre arte · 1.ª persona, de día.
+  niebla), aunque más adelante compre arte · 1.ª persona, de día (`WorldStage3D.gd` y `AssetLibrary3D.gd`: añadido cielo dinámico `SKY_CLOUD_SHADER_CODE` con bóveda celeste que cambia según la hora, sol/luna, estrellas nocturnas y 2 capas de nubes volumétricas en movimiento; suelo con shader multiescala `GROUND_TERRAIN_SHADER_CODE` y cientos de matas de hierba, helechos y flores 3D `_build_ground_foliage_3d`; variedad de árboles `CommonTree_1..4`, `BirchTree_1..3` y `PineTree_1..4` por zona; y niebla atmosférica reactiva a la hora y al clima).
 - [ ] **Todas las casas comparten la misma puerta**, que a veces no pega con la fachada · 1.ª persona.
 - [x] ✅ (2026-11-07) **Árboles 3D raros en todo el pueblo:** copas como bloques arrugados con ramas rosas pegadas por fuera; se
   amontonan y se solapan entre sí y con muros · parque, campamento, lago · 3D, de día (`AssetLibrary3D.gd`: corregido el orden horario CW de triangulación de caras `.obj` que invertía las copas por dentro y ajustados los colores de `Wood`/`Green`/`DarkGreen` en `_parse_mtl_file` para eliminar el tono rosa; `WorldStage3D.gd::_scan_nature_sources`: filtrados los pinos decorativos que solapaban muros de edificios o estaban a `< 18 px` de otro árbol).

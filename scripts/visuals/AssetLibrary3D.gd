@@ -354,15 +354,19 @@ static func _parse_mtl_file(abs_mtl: String) -> Dictionary:
 			if p.size() >= 3:
 				var lin := Color(p[0].to_float(), p[1].to_float(), p[2].to_float(), 1.0)
 				var srgb := lin.linear_to_srgb()
-				var low_m := cur_name.to_lower()
+				var low_m := cur_name.to_lower().split(".")[0]
 				if low_m == "wood":
 					srgb = Color(0.40, 0.27, 0.16, 1.0)
 				elif low_m == "darkwood":
 					srgb = Color(0.28, 0.19, 0.11, 1.0)
-				elif low_m == "green":
-					srgb = Color(0.22, 0.48, 0.20, 1.0)
+				elif low_m == "green" or low_m == "leaves":
+					srgb = Color(0.22, 0.50, 0.20, 1.0)
 				elif low_m == "darkgreen":
-					srgb = Color(0.15, 0.36, 0.15, 1.0)
+					srgb = Color(0.15, 0.37, 0.15, 1.0)
+				elif low_m == "white":
+					srgb = Color(0.88, 0.86, 0.82, 1.0)
+				elif low_m == "black":
+					srgb = Color(0.20, 0.19, 0.18, 1.0)
 				cur_mat.albedo_color = srgb
 		elif line.begins_with("Ke ") and cur_mat != null:
 			var p := line.substr(3).strip_edges().split(" ", false)

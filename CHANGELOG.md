@@ -3,6 +3,12 @@
 Cambios del juego, del más nuevo al más antiguo. Añade una entrada al cerrar cada bloque, en lenguaje sencillo.
 El detalle técnico está en `docs/HANDOFF.md` (sección 7) y el historial completo en `git log`. Lo anterior a B0.1 está en `AUDIT_LOG.md` y `SESSION_CONTEXT_LOG.md`.
 
+## 2026-11-07 — Ambiente del valle: cielo con nubes y hora del día, suelo con textura y hierba 3D, árboles variados y niebla (Paso 4)
+- **Cielo vivo con nubes, sol, luna y estrellas en primera persona:** el cielo plano se sustituye por una bóveda celeste con dos capas de nubes que se mueven despacio, sol diurno, atardeceres dorados y noche estrellada según la hora del reloj.
+- **Suelo con textura de hierba y tierra más matas de hierba y flores 3D:** el césped ya no se ve como una lámina lisa; combina textura de briznas, trébol y calvas de tierra a varias escalas junto con cientos de matas de hierba, helechos y flores silvestres 3D repartidas por praderas, cunetas y linderos.
+- **Robles, abedules y pinos repartidos por el valle:** los árboles del pueblo, el campamento y el bosque mezclan ahora robles frondosos, abedules de corteza blanca y pinos altos de distintos tamaños.
+- **Niebla atmosférica según la hora y el clima:** bruma suave de madrugada y al atardecer, niebla espesa en días lluviosos o de niebla y horizonte difuminado en el exterior (aclarándose al entrar dentro de cualquier edificio).
+
 ## 2026-11-07 — La nueva taberna «El Jabalí Dorado» de 2 pisos: comedor lleno, póker, camarero, mesa de billar 3D y club de lucha en el sótano (Paso 3)
 - **Primer edificio de 2 pisos reales con escalera física:** la posada es ahora mucho más grande; en la planta baja tiene el gran salón con chimenea y 6 mesas de comedor, la barra con cocina, la sala de casino/billar y la bodega trasera, y subiendo por la escalera de madera llegas al primer piso con galería asomada al salón y 5 cuartos de huéspedes para las 6 camas.
 - **Marta tras la barra, un camarero sirviendo mesas y clientes sentados:** la tabernera atiende detrás del mostrador de caoba, un nuevo camarero va tomando nota en las mesas ocupadas y trayendo jarras y platos desde el pasa-platos de la barra, y los vecinos se sientan de verdad a comer, beber y jugar al póker comentando las manos en vivo.

@@ -1,6 +1,28 @@
 # Informe de Trabajo — Antigravity (2026-11-07)
 
-## Encargo: Paso 3 — La taberna «El Jabalí Dorado» (2 pisos)
+## Encargo: Paso 4 — Ambiente: cielo con nubes y hora, suelo con textura, árboles nuevos, niebla
+
+### Qué se hizo en este bloque
+- **Cielo dinámico con nubes en movimiento, sol/luna y estrellas según la hora (`scripts/visuals/WorldStage3D.gd::SKY_CLOUD_SHADER_CODE`, `setup_stage`, `_update_roof_cutaways_and_lighting`):**
+  - En primera persona se sustituyó el fondo azul plano (`Environment.BG_COLOR`) por un recurso `Sky` con el shader `SKY_CLOUD_SHADER_CODE` (`Environment.BG_SKY`).
+  - La bóveda celeste interpola de forma continua con la hora y los minutos de `WorldClock` (`hour_f = hour + minute / 60.0`): amanecer rosado-dorado (`05:30–08:00`), día azul celeste con horizonte brumoso (`08:00–17:00`), atardecer ámbar-violeta (`17:00–19:48`) y noche azul índigo con estrellas parpadeantes y luna plateada.
+  - Dibuja el disco solar/lunar con su halo atmosférico, mueve la dirección e inclinación de `sun_light` a lo largo del arco diurno y proyecta **dos capas de nubes en movimiento** con ligero pixelado retro e iluminación cálida en sus bordes.
+- **Suelo con textura multiescala y matas de hierba y flores silvestres 3D (`scripts/visuals/WorldStage3D.gd::GROUND_TERRAIN_SHADER_CODE`, `_make_ground_shader_mat`, `_build_ground_3d`, `_build_ground_foliage_3d`):**
+  - El suelo de pradera (`m_grass`), bosque (`m_forest`) y llanura (`m_plains`) usa ahora el shader `GROUND_TERRAIN_SHADER_CODE`, que combina `floor_ground_grass.png`, `floor_ground_grass_overlay.png` y `floor_ground_dirt.png` en coordenadas de mundo a **3 escalas distintas** (manchas de pradera, baldosa media y brizna nítida a ras de suelo en 1.ª persona), añadiendo briznas claras/oscuras, florecillas y calvas naturales de tierra húmeda.
+  - `_build_ground_foliage_3d()` reparte cientos de matas de hierba, tréboles, helechos, espigas y flores silvestres 3D (`nature/Plant_1..3.obj`, `Flowers.obj`, `Wheat.obj`) por las praderas, cunetas, campamento, orilla del lago y linde del bosque (respetando caminos, plaza y edificios y agrupándolos en `MultiMeshInstance3D` mediante `_absorb_into_batches`).
+- **Árboles variados por zona y colores de materiales corregidos (`scripts/visuals/WorldStage3D.gd::_make_nature_3d`, `_build_tree_3d`, `scripts/visuals/AssetLibrary3D.gd::_parse_mtl_file`):**
+  - `_make_nature_3d` y `_build_tree_3d` alternan ahora robles y hayas frondosos (`CommonTree_1..4.obj`), abedules de corteza blanca (`BirchTree_1..3.obj`) y pinos altos (`PineTree_1..4.obj`) según la zona del valle, en vez de repetir únicamente pinos en todo el mapa.
+  - `AssetLibrary3D._parse_mtl_file` normaliza los materiales con sufijo `.001` (`Green.001`, `DarkGreen.001`, `White.001`, `Black.001` en `BirchTree_2.mtl`) y `Leaves` para que todos los abedules y árboles frondosos luzcan con corteza y follaje naturales.
+- **Niebla atmosférica según la hora del día y el clima (`scripts/visuals/WorldStage3D.gd::_update_roof_cutaways_and_lighting`):**
+  - Configurada la niebla atmosférica (`fog_light_color`, `fog_sun_scatter`, `fog_sky_affect`, `fog_density`) reactiva a la hora (bruma matinal al amanecer, bruma cálida al atardecer, niebla nocturna azulada y bruma suave de horizonte al mediodía) y al clima de `WorldClock` (`"fog"`, `"rain"`, `"storm"` duplican la densidad de niebla y aumentan la cobertura de nubes), desactivándose automáticamente al entrar bajo techo (`pl_indoors`) para mantener nítidos los interiores.
+
+### Qué queda sin comprobar (por orden expresa del usuario hoy)
+- **Pendiente de comprobar al regreso del usuario** (siguiendo la instrucción *«HOY NO PASES NINGUNA PRUEBA, NI ARRANQUES GODOT, NI HAGAS CAPTURAS: el usuario las hará al volver»*):
+  1. Arranque de Godot y revisión visual en 1.ª persona (`[F6]`/`[F8]`) y en vista 3D a distintas horas del día (amanecer, mediodía, atardecer, noche y día de niebla/lluvia) para comprobar el cielo con nubes en movimiento, el suelo texturizado con matas de hierba y flores 3D, la variedad de robles/abedules/pinos y la niebla atmosférica.
+
+---
+
+## Encargo anterior: Paso 3 — La taberna «El Jabalí Dorado» (2 pisos)
 
 ### Qué se hizo en este bloque
 - **Edificio mucho más grande y primer edificio de 2 plantas reales (`scripts/systems/VillageTavern.gd`, `scripts/systems/VillageWorldBuilder.gd`, `scripts/systems/VillageManager.gd`, `scripts/obstacles/WorldInteractableProp.gd`, `scripts/visuals/CharacterAvatar3D.gd`, `scripts/visuals/WorldStage3D.gd`, `scripts/ui/ValleyMapUI.gd`):**

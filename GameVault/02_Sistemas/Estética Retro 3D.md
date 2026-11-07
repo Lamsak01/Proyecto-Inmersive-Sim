@@ -60,6 +60,11 @@ tags:
   verdad cada zancada en el escenario para que los personajes no parezcan patinar sobre el suelo, y giradas 180° las
   armas y herramientas en la mano (espada, hacha, pico, martillo, hoz, arco, arcabuz, caña/lanza, regadera, escudo y
   farol) para que apunten hacia delante tanto en el jugador como en los vecinos.
+- 2026-11-07 (Antigravity, `Paso 4 — Ambiente`): añadido en `WorldStage3D.gd` el cielo dinámico `SKY_CLOUD_SHADER_CODE`
+  con dos capas de nubes en movimiento, arco solar/lunar y estrellas nocturnas según la hora de `WorldClock`; el shader
+  de terreno multiescala `GROUND_TERRAIN_SHADER_CODE` junto con matas de hierba, helechos y flores 3D
+  (`_build_ground_foliage_3d`); variedad de robles (`CommonTree_1..4`), abedules (`BirchTree_1..3`) y pinos
+  (`PineTree_1..4`) por zona; y niebla atmosférica reactiva a la hora y al clima (`"fog"`, `"rain"`, `"storm"`).
 
 ## Tareas
 - [x] Animaciones reales en vez de balanceos
