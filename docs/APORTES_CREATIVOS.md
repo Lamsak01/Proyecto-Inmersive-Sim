@@ -367,6 +367,14 @@ o vino ya dado. Conviene confirmarlo.
 **Dónde:** `scripts/systems/VillageSocialLife.gd` (`_try_street_contempt_encounter`), `scripts/systems/VillageNeeds.gd` (`tick`), `scripts/systems/VillageFame.gd`, `scripts/systems/VillageMayor.gd`, `scripts/systems/VillageFamily.gd`.
 **Depende:** solo los textos cortos de 1,5 s (`spawn_short_bubble`).
 
+## Secretos propios, rasgos 4–6 y variantes de los 21 vecinos fundadores (B6, provisionales)
+- **3 secretos por cada uno de los 21 fundadores (+ Valeria)** en `NPCData.FOUNDER_SECRETS_POOL` (p. ej. hojas sin sello de Thoran, veta de plata de Kael, jabalí blanco de Garrick, llave de plomo de Marlo, diario cifrado de Elena, caja bajo el altar de Anselmo, informe lacrado de Vane, etc.), de los cuales se eligen 2 o 3 por partida en `npc.founder_secrets`.
+- **Rasgos 4–6 y `trait_variants`** en `NPCData.INITIAL_PERSON_PROFILES` y variaciones de relación en `NPCData.FOUNDER_RELATION_VARIANTS`.
+
+**Dónde:** `scripts/data/NPCData.gd` (`INITIAL_PERSON_PROFILES`, `INITIAL_NPC_RELATIONS`, `FOUNDER_RELATION_VARIANTS`, `FOUNDER_SECRETS_POOL`), `scripts/systems/VillageSecrets.gd` (`seed_founder_history`), `GameVault/04_Censo_y_Misiones/Vecinos/*.md`.
+**Depende:** solo los textos de `FOUNDER_SECRETS_POOL` y las listas de rasgos/relaciones en `NPCData.gd`.
+
+
 
 
 

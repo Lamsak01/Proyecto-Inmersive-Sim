@@ -39,3 +39,8 @@ Además de los hasta **79 vecinos adicionales** que llegan por migración o nace
 | **Capilla del Alba** | **Hermano Anselmo** | Sacerdote del Alba | Oficia la misa dominical, atiende el confesionario los martes y jueves y cuida expósitos. |
 | **Tierras Reales (Visitante)** | **Inquisidor Alistair** | Inquisidor Real | Llega cuando hay asesinatos o alerta máxima; interroga testigos y preside juicios públicos. |
 | **Mercaderes Reales (Semanales)** | **Maese Casimir y Valeria** | Mercaderes de Caravana | Traen artículos exóticos de las Tierras Reales (*Veneno Paralizante, Ganzúa Maestra, Capa de Camuflaje, Cepo de Acero*). |
+
+## Historia, rasgos, relaciones y secretos por partida (`B6`)
+- **6 rasgos de personalidad coherentes** (`NPCData.INITIAL_PERSON_PROFILES`): cada uno de los 21 vecinos fundadores (más Valeria en la caravana real) cuenta con 6 rasgos explícitos en `TraitCatalog.gd` sin contradicciones de ejes, además de 3 rasgos alternativos (`trait_variants`) para que cada partida tenga matices distintos sin romper su carácter.
+- **Amistades y rencores de partida** (`NPCData.INITIAL_NPC_RELATIONS` y `FOUNDER_RELATION_VARIANTS`): todos los fundadores arrancan con amistades y rencores cruzados entre sí, más variaciones por semilla (`VillageSecrets.seed_founder_history(vm, seed_val)`) que alteran algunas afinidades y agravios entre partidas.
+- **De 2 a 3 secretos propios** (`NPCData.FOUNDER_SECRETS_POOL` y `npc.founder_secrets`): cada fundador guarda 2 o 3 secretos personales elegidos al empezar la partida que pueden descubrirse mediante rumores, confesiones o alta confianza en el diálogo (`NPCDialogue.gd`).

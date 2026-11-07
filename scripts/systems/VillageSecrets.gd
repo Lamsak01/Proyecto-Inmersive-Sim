@@ -11,6 +11,7 @@ const VillageChronicle = preload("res://scripts/systems/VillageChronicle.gd")
 const GossipMemory = preload("res://scripts/systems/GossipMemory.gd")
 const TraitCatalog = preload("res://scripts/data/TraitCatalog.gd")
 const VillageNeeds = preload("res://scripts/systems/VillageNeeds.gd")
+const NPCData = preload("res://scripts/data/NPCData.gd")
 
 # --- Diales (ajustar con la sonda) ---
 const MIN_AGE: int = 18
@@ -422,3 +423,110 @@ static func on_player_action(vm: VillageManager, npc: VillageNPC, action_id: Str
 			cheater.modify_affinity(-25) # Le prometiste callar
 		VillageChronicle.add(vm, "player_told_secret", "Le contaste a %s que %s se ve a escondidas con %s" % [npc.npc_name, s["a_name"], s["player_lover"]], true)
 		partner_reaction(vm, s, npc, str(s["a_name"]), str(s["player_lover"]), "se lo contaste tú")
+
+# ==============================================================================
+# B6: Los 21 vecinos fundadores con historia (rasgos, relaciones y 2–3 secretos con azar por partida)
+# ==============================================================================
+static func roll_founder_secrets_for_name(npc_name_str: String, rng: RandomNumberGenerator = null) -> Array:
+	var clean: String = npc_name_str.strip_edges()
+	var lookup: String = str(NPCData.NPC_NAME_ALIASES.get(clean, clean))
+	if not NPCData.FOUNDER_SECRETS_POOL.has(lookup):
+		return []
+	var pool_arr: Array = NPCData.FOUNDER_SECRETS_POOL[lookup]
+	var r: RandomNumberGenerator = rng if rng != null else RandomNumberGenerator.new()
+	if rng == null:
+		r.seed = abs(("fsec_roll:" + lookup).hash()) ^ int(Time.get_ticks_usec() & 0xFFFF)
+	var idxs: Array[int] = []
+	for i in range(pool_arr.size()):
+		idxs.append(i)
+	for i in range(idxs.size() - 1, 0, -1):
+		var j: int = r.randi_range(0, i)
+		var tmp: int = idxs[i]
+		idxs[i] = idxs[j]
+		idxs[j] = tmp
+	var want_n: int = clampi(r.randi_range(2, 3), 2, idxs.size())
+	var out: Array = []
+	for k in range(want_n):
+		out.append((pool_arr[idxs[k]] as Dictionary).duplicate(true))
+	return out
+
+static func seed_founder_history(vm: VillageManager, seed_val: int = 0) -> Dictionary:
+	if vm == null or not vm.is_inside_tree():
+		return {}
+	var rng := RandomNumberGenerator.new()
+	if seed_val != 0:
+		rng.seed = seed_val
+	else:
+		rng.seed = int(Time.get_unix_time_from_system()) ^ int(Time.get_ticks_usec() & 0x7FFFF) ^ randi()
+	var by_name: Dictionary = {}
+	var traits_varied: int = 0
+	var secrets_assigned: int = 0
+	for n in vm.get_tree().get_nodes_in_group("village_npcs"):
+		if not (n is VillageNPC) or n.is_dead:
+			continue
+		var vn := n as VillageNPC
+		var clean_nm: String = vn.npc_name.strip_edges()
+		var lookup_nm: String = str(NPCData.NPC_NAME_ALIASES.get(clean_nm, clean_nm))
+		by_name[lookup_nm] = vn
+		by_name[clean_nm] = vn
+		if NPCData.INITIAL_PERSON_PROFILES.has(lookup_nm) and vn.person_profile != null:
+			var prof_def: Dictionary = NPCData.INITIAL_PERSON_PROFILES[lookup_nm]
+			var base_pers: Array[String] = []
+			for bt in prof_def.get("personality", []):
+				base_pers.append(str(bt))
+			var variants: Array = prof_def.get("trait_variants", [])
+			if base_pers.size() == 6 and not variants.is_empty() and rng.randf() < 0.65:
+				var var_pick: String = str(variants[rng.randi_range(0, variants.size() - 1)])
+				for slot_idx in [5, 4]:
+					var keep_five: Array[String] = []
+					for bi in range(base_pers.size()):
+						if bi != slot_idx:
+							keep_five.append(base_pers[bi])
+					if not (var_pick in keep_five) and not TraitCatalog.conflicts_with_any(var_pick, keep_five):
+						base_pers[slot_idx] = var_pick
+						traits_varied += 1
+						break
+			vn.person_profile.personality.assign(base_pers)
+			vn.traits.assign(base_pers)
+		if NPCData.FOUNDER_SECRETS_POOL.has(lookup_nm):
+			vn.founder_secrets = roll_founder_secrets_for_name(lookup_nm, rng)
+			secrets_assigned += vn.founder_secrets.size()
+	for n2 in vm.get_tree().get_nodes_in_group("village_npcs"):
+		if n2 is VillageNPC and not n2.is_dead:
+			(n2 as VillageNPC).ensure_npc_relationships_initialized()
+	var relations_varied: int = 0
+	for rv in NPCData.FOUNDER_RELATION_VARIANTS:
+		if rng.randf() >= 0.65:
+			continue
+		var pair_str: String = str((rv as Dictionary).get("pair", ""))
+		var parts: PackedStringArray = pair_str.split("|")
+		if parts.size() != 2:
+			continue
+		var na: VillageNPC = by_name.get(parts[0], null)
+		var nb: VillageNPC = by_name.get(parts[1], null)
+		if na == null or nb == null or na == nb:
+			continue
+		var ka: String = na.get_person_key()
+		var kb: String = nb.get_person_key()
+		var delta_rel: int = int((rv as Dictionary).get("delta", 0)) + rng.randi_range(-5, 5)
+		var note_str: String = str((rv as Dictionary).get("note", ""))
+		var cur_ab: int = na.get_relationship_with_npc(kb)
+		var new_rel: int = clampi(cur_ab + delta_rel, -100, 100)
+		na.npc_relationships[kb] = new_rel
+		nb.npc_relationships[ka] = new_rel
+		if note_str != "":
+			na.npc_relationship_notes[kb] = note_str
+			nb.npc_relationship_notes[ka] = note_str
+		if vm.social_director != null:
+			var pe: Dictionary = vm.social_director.get_pair_entry(ka, kb, new_rel)
+			pe["affinity"] = new_rel
+			if new_rel <= -30:
+				pe["tension"] = clampi(maxi(int(pe.get("tension", 0)), -new_rel - 4), 0, 100)
+		relations_varied += 1
+	return {
+		"seed": int(rng.seed),
+		"traits_varied": traits_varied,
+		"relations_varied": relations_varied,
+		"secrets_assigned": secrets_assigned,
+	}
+

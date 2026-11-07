@@ -3,6 +3,11 @@
 Cambios del juego, del más nuevo al más antiguo. Añade una entrada al cerrar cada bloque, en lenguaje sencillo.
 El detalle técnico está en `docs/HANDOFF.md` (sección 7) y el historial completo en `git log`. Lo anterior a B0.1 está en `AUDIT_LOG.md` y `SESSION_CONTEXT_LOG.md`.
 
+## 2026-11-07 — Los 21 vecinos fundadores con historia (rasgos, relaciones, secretos y variación por partida)
+- **Seis rasgos coherentes por fundador:** cada uno de los 21 vecinos originales (más Valeria en la caravana real) tiene ahora 6 rasgos de carácter bien definidos y sin contradicciones, con pequeñas variaciones de una partida a otra que mantienen su esencia.
+- **Amistades, rencores y de 2 a 3 secretos propios:** todos los fundadores empiezan con sus propias simpatías y enemistades en el pueblo (algunas fijas y otras variables según la partida) y guardan entre 2 y 3 secretos personales que pueden salir a la luz hablando con ellos o investigando rumores.
+- **Las 21 fichas de vecinos al día:** completadas todas las notas de `GameVault/04_Censo_y_Misiones/Vecinos/` con sus rasgos, relaciones y secretos.
+
 ## 2026-11-07 — Lo que se ve en la calle (desprecio, merodeo nocturno, pregones y fila de la escuela)
 - **Miradas de desprecio y feudos de sangre en la calle:** cuando dos vecinos que se odian o cuyas familias están enfrentadas se cruzan de cerca, sueltan un bocadillo corto de 1,5 segundos sin parar el juego y se apartan el uno del otro.
 - **Merodeo antes de una venganza:** quien planea una venganza o un crimen sale las noches anteriores a rondar la casa de su víctima a escondidas, dando pistas visuales antes de actuar.

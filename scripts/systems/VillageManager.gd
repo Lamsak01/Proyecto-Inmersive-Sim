@@ -291,6 +291,7 @@ func setup_village(target_entities_root: Node) -> void:
 	VillageHousing.sync_livestock(self) # FIS4: ganado vivo del rancho y animales propios del corral
 	VillageHousing.sync_home_props(self) # FIS-P1 y P1: objetos físicos en tu casa y mostrador de tu tienda
 	_spawn_domestic_pets()
+	VillageSecrets.seed_founder_history(self) # B6: rasgos con variante, red de amistades/rencores y 2–3 secretos por fundador
 	if not in_editor and DisplayServer.get_name() != "headless":
 		VillageMigration.seed_start_population(self) # Provisional: arranque con 40 vecinos para probar (no en las pruebas)
 	if is_instance_valid(world_stage_3d):

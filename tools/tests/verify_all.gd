@@ -6930,5 +6930,50 @@ func _initialize() -> void:
 	b5_a.global_position = b5_pos_a0
 	b5_b.global_position = b5_pos_b0
 	print("Block B5 (Street Life: Contempt Crossings <80px, Night Victim Prowling & 1.5s Non-Pausing Short Bubbles) OK")
+
+	# ---------------------------------------------------------
+	# Block B6: Los 21 vecinos fundadores con historia (6 rasgos sin contradicción, amistades/rencores, 2-3 secretos y variación por partida)
+	# ---------------------------------------------------------
+	var b6_npc_data = load("res://scripts/data/NPCData.gd")
+	var b6_tc = load("res://scripts/data/TraitCatalog.gd")
+	assert(b6_npc_data.INITIAL_PERSON_PROFILES.size() >= 22, "B6.0: All 21 founders (+ Valeria) have explicit profiles in NPCData.INITIAL_PERSON_PROFILES")
+	for b6_name in b6_npc_data.INITIAL_PERSON_PROFILES.keys():
+		var b6_prof: Dictionary = b6_npc_data.INITIAL_PERSON_PROFILES[b6_name]
+		var b6_traits: Array = b6_prof.get("personality", [])
+		assert(b6_traits.size() == 6, "B6.1a: Founder '%s' has 6 base personality traits (got %d)" % [str(b6_name), b6_traits.size()])
+		for i_t in range(b6_traits.size()):
+			var t_a: String = str(b6_traits[i_t])
+			assert(b6_tc.TRAITS.has(t_a), "B6.1b: Founder '%s' trait '%s' exists in TraitCatalog" % [str(b6_name), t_a])
+			for j_t in range(i_t + 1, b6_traits.size()):
+				var t_b: String = str(b6_traits[j_t])
+				assert(not b6_tc.conflicts(t_a, t_b), "B6.1c: Founder '%s' has no conflicting base traits (%s vs %s)" % [str(b6_name), t_a, t_b])
+		assert(b6_npc_data.INITIAL_NPC_RELATIONS.has(b6_name) and (b6_npc_data.INITIAL_NPC_RELATIONS[b6_name] as Dictionary).size() >= 2, "B6.2: Founder '%s' has explicit initial friendships/grudges" % str(b6_name))
+		assert(b6_npc_data.FOUNDER_SECRETS_POOL.has(b6_name) and (b6_npc_data.FOUNDER_SECRETS_POOL[b6_name] as Array).size() >= 3, "B6.3a: Founder '%s' has at least 3 secrets in FOUNDER_SECRETS_POOL" % str(b6_name))
+	for n_b6 in vm.VillageNeeds.living(vm):
+		var c_b6: String = b6_npc_data.canonical_npc_name(str(n_b6.npc_name))
+		if b6_npc_data.FOUNDER_SECRETS_POOL.has(c_b6):
+			assert(n_b6.founder_secrets.size() >= 2 and n_b6.founder_secrets.size() <= 3, "B6.3b: Live founder '%s' holds 2-3 active founder_secrets" % c_b6)
+			assert(n_b6.person_profile != null and n_b6.person_profile.personality.size() == 6, "B6.3c: Live founder '%s' has 6 active traits without axis conflicts" % c_b6)
+	# Verificar que dos semillas distintas generan variaciones distintas entre partidas sin conflictos de ejes
+	var b6_secrets_bak: Array = vm.secrets.duplicate(true)
+	vm.VillageSecrets.seed_founder_history(vm, 101)
+	var b6_snap_101: String = ""
+	for n_s1 in vm.VillageNeeds.living(vm):
+		var c_s1: String = b6_npc_data.canonical_npc_name(str(n_s1.npc_name))
+		if b6_npc_data.FOUNDER_SECRETS_POOL.has(c_s1):
+			b6_snap_101 += c_s1 + ":" + ",".join(PackedStringArray(n_s1.person_profile.personality)) + "|" + str(n_s1.founder_secrets.size()) + ";"
+	vm.VillageSecrets.seed_founder_history(vm, 202)
+	var b6_snap_202: String = ""
+	for n_s2 in vm.VillageNeeds.living(vm):
+		var c_s2: String = b6_npc_data.canonical_npc_name(str(n_s2.npc_name))
+		if b6_npc_data.FOUNDER_SECRETS_POOL.has(c_s2):
+			b6_snap_202 += c_s2 + ":" + ",".join(PackedStringArray(n_s2.person_profile.personality)) + "|" + str(n_s2.founder_secrets.size()) + ";"
+			var p_s2: Array = n_s2.person_profile.personality
+			for i_s2 in range(p_s2.size()):
+				for j_s2 in range(i_s2 + 1, p_s2.size()):
+					assert(not b6_tc.conflicts(str(p_s2[i_s2]), str(p_s2[j_s2])), "B6.4a: Seeded playthrough traits for '%s' have zero axis conflicts" % c_s2)
+	assert(b6_snap_101 != b6_snap_202, "B6.4b: Different seeds (101 vs 202) produce distinct founder trait/secret combinations across playthroughs")
+	vm.secrets = b6_secrets_bak
+	print("Block B6 (21 Founding Neighbors with 6 Traits, Friendships/Grudges, 2-3 Secrets & Playthrough Variations) OK")
 	print("ALL RIMWORLD MEDICAL, FOOTPRINTS, 3-PHASE CORPSE REPORT, MULTI-CORPSE FIX, RPG INTERROGATION, PUBLIC TRIAL, DYNAMIC RELATIONSHIPS, MISSING FAMILY SEARCH, SOCIAL GLOSSARY & UNCONSCIOUS REACTION TESTS PASSED!")
 	quit(0)

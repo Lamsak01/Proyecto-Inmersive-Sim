@@ -145,7 +145,15 @@ static func _inject_character_lore_into_dialogue(npc: VillageNPC, diag: Dictiona
 			{"label": "⬅️ Volver a la conversación principal", "next": "start"}
 		]
 	}
-	diag["character_secret"] = {"text": "🤫 Confidencia de %s:\n%s" % [npc.npc_name, npc.character_secret], "choices": [{"label": "Guardaré el secreto. [Volver]", "next": "start"}]}
+	var secret_full_txt: String = npc.character_secret
+	if not npc.founder_secrets.is_empty():
+		var fs_lines: PackedStringArray = []
+		for fs_d in npc.founder_secrets:
+			if fs_d is Dictionary:
+				fs_lines.append("• %s: %s" % [str(fs_d.get("title", "Secreto")), str(fs_d.get("text", ""))])
+		if not fs_lines.is_empty():
+			secret_full_txt += "\n\n🗝️ Secretos que guarda (%d):\n%s" % [fs_lines.size(), "\n".join(fs_lines)]
+	diag["character_secret"] = {"text": "🤫 Confidencia de %s:\n%s" % [npc.npc_name, secret_full_txt], "choices": [{"label": "Guardaré el secreto. [Volver]", "next": "start"}]}
 
 	if npc.trade_role in [VillageNPC.TradeRole.SHERIFF, VillageNPC.TradeRole.GUARD, VillageNPC.TradeRole.ROYAL_INVESTIGATOR]:
 		var blood_or_wound_hint: String = ""

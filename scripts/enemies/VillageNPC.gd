@@ -126,6 +126,7 @@ var portrait_texture: Texture2D = null
 var character_tagline: String = ""
 var character_lore: String = ""
 var character_secret: String = ""
+var founder_secrets: Array = [] # B6: 2–3 secretos iniciales sorteados para cada vecino fundador
 
 # Control de Asiento en la Mesa de Juegos de la Taberna
 var is_at_poker_table: bool = false
@@ -736,9 +737,9 @@ func _init_rimworld_psychology() -> void:
 	mood = clampf(78.0 + randf_range(-6.0, 12.0), 40.0, 98.0)
 
 func _init_person_profile() -> void:
+	var clean_name := npc_name.strip_edges()
+	var lookup_name: String = str(NPC_NAME_ALIASES.get(clean_name, clean_name))
 	if person_profile == null:
-		var clean_name := npc_name.strip_edges()
-		var lookup_name: String = str(NPC_NAME_ALIASES.get(clean_name, clean_name))
 		if INITIAL_PERSON_PROFILES.has(lookup_name):
 			person_profile = PersonProfile.from_dict(INITIAL_PERSON_PROFILES[lookup_name])
 		else:
@@ -749,6 +750,21 @@ func _init_person_profile() -> void:
 			traits.assign(person_profile.personality)
 		if str(person_profile.favorite_item) != "":
 			favorite_item = str(person_profile.favorite_item)
+	if founder_secrets.is_empty() and NPCData.FOUNDER_SECRETS_POOL.has(lookup_name):
+		var pool_arr: Array = NPCData.FOUNDER_SECRETS_POOL[lookup_name]
+		var s_rng := RandomNumberGenerator.new()
+		s_rng.seed = abs(("fsec:" + lookup_name).hash()) ^ int(Time.get_ticks_usec() & 0x7FFF)
+		var indices: Array[int] = []
+		for pi in range(pool_arr.size()):
+			indices.append(pi)
+		for pi in range(indices.size() - 1, 0, -1):
+			var swap_idx: int = s_rng.randi_range(0, pi)
+			var tmp_i: int = indices[pi]
+			indices[pi] = indices[swap_idx]
+			indices[swap_idx] = tmp_i
+		var pick_count: int = clampi(s_rng.randi_range(2, 3), 2, indices.size())
+		for k_idx in range(pick_count):
+			founder_secrets.append((pool_arr[indices[k_idx]] as Dictionary).duplicate(true))
 
 func get_portrait_texture() -> Texture2D:
 	return portrait_texture if portrait_texture != null else (sprite.texture if sprite else null)
@@ -5155,6 +5171,7 @@ func to_save_dict() -> Dictionary:
 		"witness_silenced_player": witness_silenced_player, "witness_alibi_for_player": witness_alibi_for_player,
 		"witness_framed_target_name": witness_framed_target_name,
 		"npc_relationships": npc_relationships.duplicate(), "npc_relationship_notes": npc_relationship_notes.duplicate(),
+		"founder_secrets": founder_secrets.duplicate(true),
 		"missing_kin_reported_day": _missing_kin_reported_day,
 		"medical": health_comp.to_medical_dict() if health_comp else {}
 	}
@@ -5195,6 +5212,11 @@ func from_save_dict(data: Dictionary) -> void:
 		npc_relationships = (data["npc_relationships"] as Dictionary).duplicate()
 	if data.has("npc_relationship_notes") and typeof(data["npc_relationship_notes"]) == TYPE_DICTIONARY:
 		npc_relationship_notes = (data["npc_relationship_notes"] as Dictionary).duplicate()
+	if data.has("founder_secrets") and typeof(data["founder_secrets"]) == TYPE_ARRAY:
+		founder_secrets.clear()
+		for fs_it in (data["founder_secrets"] as Array):
+			if typeof(fs_it) == TYPE_DICTIONARY:
+				founder_secrets.append((fs_it as Dictionary).duplicate(true))
 	_migrate_legacy_relationship_keys()
 	_missing_kin_reported_day = int(data.get("missing_kin_reported_day", -1))
 	_searching_missing_kin = null
