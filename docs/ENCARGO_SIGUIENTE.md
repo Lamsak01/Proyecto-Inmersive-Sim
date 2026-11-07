@@ -4,12 +4,34 @@
 > `docs/ENCARGO_ANTIGRAVITY.md`. Reglas de siempre (ver `docs/ESTADO_DEL_JUEGO.md` §5 y la forma de comprobar §3:
 > solo verify_all al final con timeout + recorrido de capturas mirado).
 
+## ORDEN ACORDADO CON EL USUARIO (2026-11-07) — manda sobre el orden de abajo
+
+1. **Arreglos rápidos:** ropa/peinados variados, libro gigante, ropa que atraviesa, conos de depuración de los sapos,
+   letreros encimados, no andar sobre el agua, cama de la trattoria → despacho.
+2. **Agrandar y separar el entorno** (sección «Agrandar lo de alrededor»): campamento, bosque, llanura/ciénaga,
+   animales repartidos, lago (un muelle, sin lavadero), parque, huerto fuera del camino, trattoria lejos del cementerio.
+3. **Taberna de 2 pisos** (requisitos abajo).
+4. **Ambiente:** cielo con nubes y hora, suelo con textura, árboles nuevos, niebla.
+5. **Edificios uno a uno:** comisaría, morgue, capilla, biblioteca («Leer» real), alcantarillas con peleas, rancho
+   poblado, tablón legible, puertas distintas.
+6. **Sapos en 3D** basados en su sprite.
+
+### Cuándo probar (orden del usuario: solo cuando haga falta, no tras cada paso)
+- **Tras el paso 1:** una vez `verify_all` (toca vecinos) + capturas.
+- **Tras el paso 2:** `verify_all` + **recorrido de capturas largo mirado** (es el cambio más arriesgado: caminos,
+  vecinos que se atascan, cosas fuera de sitio). Si algo se rompe aquí, arreglarlo antes de seguir.
+- **Tras el paso 3:** `verify_all` + capturas de los dos pisos y de vecinos subiendo/bajando y comiendo.
+- **Paso 4:** solo capturas (es visual, no toca reglas).
+- **Paso 5:** capturas de cada edificio al terminarlo; `verify_all` **una vez al acabar todos**.
+- **Paso 6 y final:** ronda grande con las cuatro pruebas.
+Siempre con `timeout`. Entre medias, nada de pruebas.
+
 ## Edificios con el detalle de la trattoria, uno a uno
 El usuario quiere que **todos** los edificios tengan el nivel de la trattoria «Il Corvo» (`scripts/systems/VillageRestaurant.gd`
 + `WorldStage3D._build_restaurant_3d`): varias salas con sentido, tabiques con pasos, rutas internas, muebles 3D bien
 colocados (no arrinconados), luces, suelos propios, fachada y puerta acordes. Ahora son cuartos diminutos con sprites
 sin sentido. **Orden (los que pisa el detective primero):**
-0. **PRIMERO: la taberna «El Jabalí Dorado»** (orden del usuario, 2026-11-07: «da pena, es el primer edificio que
+0. **La taberna (paso 3 del orden acordado) «El Jabalí Dorado»** (orden del usuario, 2026-11-07: «da pena, es el primer edificio que
    quiero que se remodele»). Requisitos del usuario:
    - **Mucho más grande** y **el primer edificio con 2 pisos**: abajo el salón; **arriba los cuartos de huéspedes**
      (escalera de verdad; usa las capas verticales que ya existen, planta 0 y +1).
