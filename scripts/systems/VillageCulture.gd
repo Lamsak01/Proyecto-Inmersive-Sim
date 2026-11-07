@@ -208,6 +208,8 @@ static func upgrade_outpost(vm, upg_id: String, artisan, inv) -> bool:
 		vm.town_state["treasury"] = int(vm.town_state.get("treasury", 0)) + OUTPOST_UPGRADE_COST
 	upgs[upg_id] = true
 	sync_outpost_visuals(vm)
+	if "VillageMayor" in vm and vm.VillageMayor != null:
+		vm.VillageMayor.announce_town_inauguration(vm, str(OUTPOST_UPGRADES.get(upg_id, upg_id)))
 	VillageChronicle.add(vm, "outpost_upgraded", "Construiste %s en tu asentamiento «%s»" % [upg_id, str(op["name"])], true)
 	return true
 
@@ -863,6 +865,8 @@ static func advance_research(vm, extra_points: int = 1) -> bool:
 		var tinker = vm.trade_npcs.get(VillageTrades.role_of("tinker"))
 		if tinker != null and is_instance_valid(tinker) and not tinker.is_dead:
 			VillageFame.add_fame(vm, tinker, 10, "Desarrolló la tecnología: %s" % str(t_def["name"]))
+		if "VillageMayor" in vm and vm.VillageMayor != null:
+			vm.VillageMayor.announce_town_inauguration(vm, str(t_def["name"]))
 		VillageChronicle.add(vm, "tech_unlocked", "El taller de ingeniería completó el invento: %s" % str(t_def["name"]), true)
 		return true
 	return false

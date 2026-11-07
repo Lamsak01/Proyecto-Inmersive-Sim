@@ -17,4 +17,4 @@ fuente: "Biblia §9.1"
 - **Graduación (`PF.3`):** Al completar **8 lecciones** (o al cumplir 16 años tras haber estudiado), el alumno se gradúa y recibe una **bonificación de aprendizaje (`school_bonus_days`)** que acelera su ascenso en su **primer oficio** adulto.
 
 ## Notas de diseño
--
+- 2026-11-07 (Antigravity, Bloque B5): a las `09:00` en día lectivo, los escolares forman **fila india en la puerta de la escuela** (`school_door + Vector2(0, idx * 14)`) y sueltan un bocadillo corto de 1,5 s (`«📚🛎️ ¡En fila a la escuela!»`) antes de entrar a clase.

@@ -289,7 +289,11 @@ static func tick(vm) -> void:
 				if n.errand_kind == "sleepwalk" and randf() < 0.45:
 					n._spawn_floating_text("😴💤 «Zzz...»", Color(0.78, 0.86, 1.0), -28.0)
 			"prowl_victim":
-				pass # B5.2: ronda la casa de su víctima hasta que amanezca
+				var d_prowl: Dictionary = vm.VillageDesires.active_of(vm, n.get_person_key())
+				if not d_prowl.is_empty():
+					var p_step: int = int(n.get_meta("prowl_step", 0)) + 1
+					n.set_meta("prowl_step", p_step)
+					n.errand_pos = vm.VillageDesires.prowl_spot_for_desire(vm, d_prowl, p_step)
 			"beg", "outpost_work", "player_shop_clerk", "fence_alley", "club_watch", "familia_meet":
 				pass # Se queda hasta la tarde (on_hour); el perista, hasta las 3:00 (P5b)
 			"player_shop_buy":
@@ -330,6 +334,7 @@ static func on_hour(vm, hour: int) -> void:
 	var people: Array = living(vm)
 	for n in people:
 		n.need_hygiene = maxf(0.0, n.need_hygiene - hygiene_decay(n))
+	vm.VillageDesires.on_hour(vm, hour) # B5.2: quien prepara asesinato o venganza ronda de noche la casa de su víctima
 	for n in people:
 		# B4.3 / B5.2: Paseos nocturnos (Noctámbulo, Insomne, Sonámbulo) y rondas nocturnas
 		if n.errand_kind in ["night_stroll", "sleepwalk", "prowl_victim"]:

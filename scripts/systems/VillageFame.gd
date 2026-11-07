@@ -238,6 +238,8 @@ static func promote_to_master(vm, npc) -> bool:
 	}
 	add_fame(vm, npc, 25, "Reconocido por su estilo «%s»" % style)
 	npc.add_thought("Alcanzar la maestría en mi oficio me llena de orgullo (+12)", 12.0)
+	if npc.has_method("spawn_short_bubble"):
+		npc.spawn_short_bubble("🏆✨ «¡Mi obra maestra de estilo %s está lista!»" % style, Color.GOLD, -40.0, 1.5)
 	VillageChronicle.add(vm, "master_artisan", "%s alcanzó el rango de %s con su propio estilo («%s»)" % [npc.npc_name, title, style], true)
 	return true
 
@@ -284,6 +286,8 @@ static func daily(vm) -> void:
 					if int(m.get("last_sale_day", -1)) != cur_day and cur_day - int(m.get("last_craft_day", 0)) >= CRAFT_INTERVAL_DAYS and int(m.get("stock", 0)) < MAX_MASTER_STOCK:
 						m["stock"] = int(m.get("stock", 0)) + 1
 						m["last_craft_day"] = cur_day
+						if n.has_method("spawn_short_bubble"):
+							n.spawn_short_bubble("🏆✨ «¡Terminé otra pieza de mi estilo %s!»" % str(m.get("style", "Autor")), Color.GOLD, -40.0, 1.5)
 		if TraitCatalog.npc_tendency(n, "fame") >= 0.5 and randf() < 0.25:
 			add_fame(vm, n, 2, "Le gusta hacerse notar en las tertulias del pueblo")
 		if vm.VillageTown.is_mayor(vm, n) and fame_of(vm, n) < 25:

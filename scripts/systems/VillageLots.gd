@@ -544,6 +544,8 @@ static func _finish(vm, id: String, carp) -> void:
 		carp.work_position = cfg.get("work_pos", carp.work_position)
 		carp.add_thought("Terminé %s (+6)" % str(st["title"]).to_lower(), 6.0)
 		vm.VillageChronicle.add(vm, "construction", "%s terminó %s" % [carp.npc_name, str(st["title"]).to_lower()], true)
+	if str(st.get("payer", "")) == "town" and "VillageMayor" in vm and vm.VillageMayor != null:
+		vm.VillageMayor.announce_town_inauguration(vm, str(st.get("title", "obra municipal")))
 
 ## Partida nueva con más vecinos: una casa que ya está en pie al empezar (sin obra ni pago).
 static func build_instant_house(vm, id: String) -> bool:

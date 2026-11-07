@@ -414,6 +414,63 @@ static func try_commit_murder(vm: VillageManager, d: Dictionary, h: VillageNPC, 
 static func killer_of(vm: VillageManager, victim_name: String) -> String:
 	return str(vm.npc_murders.get(victim_name, ""))
 
+## B5.2: Quien prepara un asesinato o una venganza ronda de noche cerca de la casa de su víctima los días previos.
+static func prowl_spot_for_desire(vm: VillageManager, d: Dictionary, step: int = 0) -> Vector2:
+	var by_key: Dictionary = vm._get_npcs_by_person_key()
+	var t_key: String = str(d.get("target", ""))
+	var h_idx: int = absi((str(d.get("holder", "")) + ":" + str(step)).hash())
+	var ring: Array[Vector2] = [Vector2(-24.0, 22.0), Vector2(24.0, 22.0), Vector2(0.0, 28.0), Vector2(-28.0, -14.0), Vector2(28.0, -14.0)]
+	var off: Vector2 = ring[h_idx % ring.size()]
+	if t_key == "player":
+		var pl = vm.get_tree().get_first_node_in_group("player") as Node2D if vm.is_inside_tree() else null
+		if pl != null:
+			return pl.global_position + off
+		return Vector2(450.0, 120.0) + off
+	var t: VillageNPC = by_key.get(t_key, null)
+	if t == null or not is_instance_valid(t):
+		return Vector2.ZERO
+	var base: Vector2 = t.home_table_pos if t.home_table_pos != Vector2.ZERO else (t.bed_position if t.bed_position != Vector2.ZERO else t.global_position)
+	return base + off
+
+static func on_hour(vm: VillageManager, hour: int) -> int:
+	if vm == null:
+		return 0
+	var is_night: bool = (hour >= 22 or hour <= 4)
+	if not is_night:
+		return 0
+	var today: int = _today()
+	var by_key: Dictionary = vm._get_npcs_by_person_key()
+	var prowlers: int = 0
+	for d in vm.desires:
+		if d.get("active") != true:
+			continue
+		var typ: String = str(d.get("type", ""))
+		if not (typ in ["murder", "revenge"]):
+			continue
+		# En asesinato: los días previos a prep_until (o la misma víspera). En venganza: los días previos al siguiente paso (o mientras esté activa).
+		if typ == "murder" and int(d.get("prep_until", -1)) > 0 and today > int(d.get("prep_until", -1)):
+			continue
+		var h: VillageNPC = by_key.get(str(d.get("holder", "")), null)
+		if h == null or not is_instance_valid(h) or h.is_dead or h.is_downed or h.is_hostile:
+			continue
+		if vm.VillageJustice.is_npc_jailed(vm, h) or h.is_in_live_fight() or h.is_busy_with_player() or h.sick_level >= 2:
+			continue
+		if h.errand_kind != "" and not (h.errand_kind in ["prowl_victim", "night_stroll", "sleepwalk"]):
+			continue
+		var spot: Vector2 = prowl_spot_for_desire(vm, d, hour)
+		if spot == Vector2.ZERO:
+			continue
+		h.set_meta("prowl_target_key", str(d.get("target", "")))
+		h.set_meta("prowl_step", hour)
+		if h.errand_kind != "prowl_victim":
+			h.start_errand("prowl_victim", spot)
+		else:
+			h.errand_pos = spot
+		if (hour == 22 or hour == 0) and h.has_method("spawn_short_bubble"):
+			h.spawn_short_bubble("👁️🗡️ «Pronto, %s…»" % str(d.get("target_name", "")), Color(0.95, 0.55, 0.50), -38.0, 1.5)
+		prowlers += 1
+	return prowlers
+
 # ==============================================================================
 # Cómo se descubren
 # ==============================================================================

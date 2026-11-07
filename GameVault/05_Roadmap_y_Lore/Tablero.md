@@ -9,7 +9,6 @@ kanban-plugin: board
 - [ ] Arcabuz de chispa usable en combate directo ([[Armaduras, Sigilo y Arcabuz]])
 - [ ] Recinto caminable del [[Puesto del Paso]]
 - [ ] Sótanos y altillos dibujados en el tilemap ([[Capas Verticales y Alcantarillas]])
-- [ ] Señales visuales en el mapa de lo que pasa sin abrir menús
 
 
 ## 🔒 La Secta (autor)
@@ -47,6 +46,7 @@ kanban-plugin: board
 
 ## ✅ Hecho
 
+- [x] Lo que se ve en la calle (`B5`): bocadillos cortos de 1,5 s sin pausar al cruzarse enemigos o familias en feudo (apartándose en la calle), merodeo nocturno alrededor de la casa de la víctima antes de una venganza, pregón de obras maestras y decretos/inauguraciones, y fila escolar a las 9:00 en la puerta de la escuela ([[Clanes Familiares]], [[Secretos y Deseos Propios]], [[Maestros Artesanos]], [[Escuela y Graduación]]) (2026-11-07)
 - [x] Coherencia del ambiente (`B4`): la niebla nocturna recorta de madrugada la vista de los vecinos salvo cerca de farolas o faroles encendidos; los talleres saboteados echan humo y chispas en 2D y 3D hasta repararse y la lluvia apaga el fuego exterior; quitada la etiqueta «(dormida)» de las tendencias conectadas en `TraitCatalog.gd` y paseos nocturnos para Noctámbulos, Insomnes y Sonámbulos ([[Supervivencia y Clima]], [[Identidad y Rasgos Ocultos]]) (2026-11-07)
 - [x] Del campamento del lago al pueblo (`B3`): con casa construida en el pueblo, trasladar a Toby (y su comedero) y tu gallinero/animales a tu solar, manteniendo el campamento del oeste como puesto de pesca, caza y refugio ([[Campamento, Agricultura y Pesca]], [[Vivienda e Hipotecas]]) (2026-11-07)
 - [x] Calabozo de verdad (`B2`): los vecinos pillados en delitos nocturnos, peleas graves, veredictos o al delatar al jefe de «La Familia» van encerrados a la celda de la comisaría; se puede hablar con ellos entre rejas, pagar su fianza a las arcas o ayudarlos a escapar con ganzúas ([[Justicia y Comisaría]]) (2026-11-07)

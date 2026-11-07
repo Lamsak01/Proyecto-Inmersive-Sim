@@ -150,7 +150,24 @@ static func toggle_decree(vm, decree_id: String) -> bool:
 		for n in VillageNeeds.living(vm):
 			if "Bebedor" in (n.person_profile.personality if n.person_profile != null else []) or "Tahúr" in (n.person_profile.personality if n.person_profile != null else []):
 				n.add_thought("La alcaldía cerró la bebida y el juego (-6)", -6.0)
+	announce_town_inauguration(vm, "decreto de %s" % str(labels.get(decree_id, decree_id)))
 	return new_val
+
+## B5.3: Bocadillo corto (1.5 s) en la calle cuando el ayuntamiento inaugura una mejora, obra o decreto.
+static func announce_town_inauguration(vm, what_title: String) -> bool:
+	if vm == null:
+		return false
+	var speaker = vm.VillageTown.mayor_of(vm) if "VillageTown" in vm and vm.VillageTown != null else null
+	if speaker == null or speaker.is_dead or not speaker.is_conscious():
+		for n in VillageNeeds.living(vm):
+			if n.is_conscious() and int(n.trade_role) != int(VillageNPC.TradeRole.CHILD):
+				speaker = n
+				break
+	if speaker == null:
+		return false
+	if speaker.has_method("spawn_short_bubble"):
+		speaker.spawn_short_bubble("🏛️🎉 «¡Queda inaugurado: %s!»" % what_title, Color(1.0, 0.90, 0.55), -40.0, 1.5)
+	return true
 
 ## Tanda 4 (19): Si está activo el decreto «Tributo de paz», quienes se pelean pagan hasta 8 de oro de su bolsillo a las arcas.
 static func apply_peace_tax(vm, a, b) -> int:

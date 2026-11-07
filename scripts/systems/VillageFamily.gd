@@ -375,19 +375,30 @@ static func update_school(vm, pay: bool = true) -> void:
 			state(vm)["teacher_unpaid"] = int(state(vm)["teacher_unpaid"]) + TEACHER_PAY
 			t.add_thought("Las arcas no me pagan la escuela (-6)", -6.0)
 
-## Durante el horario escolar (10–14 h): los niños en edad escolar acuden al pupitre y aprenden su lección diaria.
+## Durante el horario escolar (9–14 h): a las 9:00 los niños caminan en fila a la escuela con bocadillos cortos; luego acuden al pupitre y aprenden su lección diaria.
 static func on_hour(vm, hour: int) -> void:
-	if teacher_of(vm) == null or not (hour in [10, 11, 12, 14]):
+	if teacher_of(vm) == null or not (hour in [9, 10, 11, 12, 14]):
 		return
 	var is_wknd: bool = WorldClock != null and WorldClock.has_method("is_weekend") and WorldClock.is_weekend()
 	if is_wknd and hour != 14:
 		return
 	var st: Dictionary = state(vm)
 	var cur_d: int = today()
+	var line_idx: int = 0
+	var school_door: Vector2 = VillageLots.site_work_pos("e3")
 	for n in pupils(vm):
 		if not n.has_meta("school_pos") or n.is_dead or n.is_downed:
 			continue
 		var s_pos: Vector2 = n.get_meta("school_pos")
+		if hour == 9:
+			# B5.3: A las 9:00 van en fila hacia la puerta de la escuela con un bocadillo corto (1.5 s)
+			n.work_position = school_door + Vector2(0.0, float(line_idx) * 14.0)
+			n.set_meta("school_line_rank", line_idx)
+			if n.has_method("spawn_short_bubble"):
+				var bubble_txt: String = "📚🛎️ «¡En fila a la escuela!»" if line_idx == 0 else "🎒 «¡Ya vamos a clase!»"
+				n.spawn_short_bubble(bubble_txt, Color(0.75, 0.95, 1.0), -36.0, 1.5)
+			line_idx += 1
+			continue
 		if hour in [10, 11, 12]:
 			n.work_position = s_pos
 		var max_dist: float = 95.0 if hour == 12 else 60.0

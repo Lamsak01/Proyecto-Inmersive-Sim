@@ -3,6 +3,11 @@
 Cambios del juego, del más nuevo al más antiguo. Añade una entrada al cerrar cada bloque, en lenguaje sencillo.
 El detalle técnico está en `docs/HANDOFF.md` (sección 7) y el historial completo en `git log`. Lo anterior a B0.1 está en `AUDIT_LOG.md` y `SESSION_CONTEXT_LOG.md`.
 
+## 2026-11-07 — Lo que se ve en la calle (desprecio, merodeo nocturno, pregones y fila de la escuela)
+- **Miradas de desprecio y feudos de sangre en la calle:** cuando dos vecinos que se odian o cuyas familias están enfrentadas se cruzan de cerca, sueltan un bocadillo corto de 1,5 segundos sin parar el juego y se apartan el uno del otro.
+- **Merodeo antes de una venganza:** quien planea una venganza o un crimen sale las noches anteriores a rondar la casa de su víctima a escondidas, dando pistas visuales antes de actuar.
+- **Obras maestras, decretos y fila del colegio:** los maestros artesanos pregonan sus obras nuevas, los vecinos comentan en voz alta los decretos y edificios recién inaugurados, y los niños hacen fila en la puerta de la escuela a las nueve antes de entrar a clase.
+
 ## 2026-11-07 — Coherencia del ambiente (niebla, humo en talleres saboteados y paseos nocturnos)
 - **Niebla de madrugada y charcos de luz:** de madrugada y en días de niebla los vecinos y guardias ven bastante menos lejos en la penumbra, salvo si pasas cerca de una farola encendida o de alguien que lleva un farol (si vas en sigilo apagas tu farol para no delatarte).
 - **Humo y chispas en los talleres saboteados, y lluvia contra el fuego:** un taller saboteado echa humo, chispas y llamas en 2D y 3D hasta que alguien lo repara; si se pone a llover, la lluvia apaga el fuego exterior y alivia los daños.

@@ -65,7 +65,10 @@ static func _scan_rival_friction(vm: VillageManager) -> void:
 		for j in range(i + 1, npcs.size()):
 			var a: VillageNPC = npcs[i]
 			var b: VillageNPC = npcs[j]
-			if a.global_position.distance_squared_to(b.global_position) > vm.FIGHT_TRIGGER_RADIUS * vm.FIGHT_TRIGGER_RADIUS:
+			var dist_sq: float = a.global_position.distance_squared_to(b.global_position)
+			if dist_sq <= STREET_CONTEMPT_RADIUS * STREET_CONTEMPT_RADIUS:
+				_try_street_contempt_encounter(vm, a, b)
+			if dist_sq > vm.FIGHT_TRIGGER_RADIUS * vm.FIGHT_TRIGGER_RADIUS:
 				continue
 			if a.family_id != "none" and a.family_id != "family_police" and a.family_id == b.family_id:
 				continue
@@ -73,6 +76,57 @@ static func _scan_rival_friction(vm: VillageManager) -> void:
 			var t_mult: float = clampf(1.0 + 0.25 * (TraitCatalog.npc_tendency(a, "aggression") + TraitCatalog.npc_tendency(b, "aggression")) + 0.15 * (TraitCatalog.npc_tendency(a, "grudge") + TraitCatalog.npc_tendency(b, "grudge")), 0.5, 1.6)
 			if vm.social_director.register_rival_encounter(a.get_person_key(), b.get_person_key(), rel, cur_day, t_mult):
 				a._spawn_floating_text("😠", Color(1.0, 0.60, 0.40), -28.0)
+
+const STREET_CONTEMPT_RADIUS: float = 80.0
+const STREET_CONTEMPT_COOLDOWN_SEC: float = 25.0
+const CONTEMPT_BUBBLES: Array[String] = [
+	"😤 «¡Aparta de mi vista!»",
+	"😒 «Ni me mires al pasar…»",
+	"😠 «Cámbiate de acera.»",
+]
+const FEUD_BUBBLES: Array[String] = [
+	"🩸 «Nuestra sangre no olvida.»",
+	"😤🩸 «¡Fuera de mi camino!»",
+]
+
+## B5.1: Dos vecinos con odio fuerte (<= -50) o en feudo de sangre que se cruzan a menos de 80 px se lanzan un gesto/bocadillo corto de desprecio o se apartan.
+static func _try_street_contempt_encounter(vm: VillageManager, a: VillageNPC, b: VillageNPC, ignore_cooldown: bool = false) -> bool:
+	if not is_instance_valid(a) or not is_instance_valid(b) or a == b:
+		return false
+	if a.is_dead or b.is_dead or not a.is_conscious() or not b.is_conscious():
+		return false
+	if a.global_position.distance_to(b.global_position) > STREET_CONTEMPT_RADIUS:
+		return false
+	var ka: String = a.get_person_key()
+	var kb: String = b.get_person_key()
+	var rel_ab: int = a.get_relationship_with_npc(kb)
+	var rel_ba: int = b.get_relationship_with_npc(ka)
+	var in_feud: bool = "VillageClans" in vm and vm.VillageClans != null and vm.VillageClans.is_blood_feud(vm, str(a.family_id), str(b.family_id))
+	if rel_ab > -50 and rel_ba > -50 and not in_feud:
+		return false
+	var now_sec: float = float(Time.get_ticks_msec()) * 0.001
+	var meta_k: String = "contempt_cd_" + kb
+	if not ignore_cooldown and a.has_meta(meta_k) and now_sec - float(a.get_meta(meta_k, -999.0)) < STREET_CONTEMPT_COOLDOWN_SEC:
+		return false
+	a.set_meta("contempt_cd_" + kb, now_sec)
+	b.set_meta("contempt_cd_" + ka, now_sec)
+	var away: Vector2 = (a.global_position - b.global_position)
+	if away.length_squared() < 0.01:
+		away = Vector2(1.0, 0.0)
+	else:
+		away = away.normalized()
+	var side_step: Vector2 = Vector2(-away.y, away.x) * 14.0 + away * 10.0
+	a._wander_offset = side_step
+	b._wander_offset = -side_step
+	a.global_position += away * 6.0
+	b.global_position -= away * 6.0
+	a.set_meta("last_contempt_target", kb)
+	b.set_meta("last_contempt_target", ka)
+	var pool: Array[String] = FEUD_BUBBLES if in_feud else CONTEMPT_BUBBLES
+	var msg_a: String = pool[absi(ka.hash() + kb.hash()) % pool.size()]
+	a.spawn_short_bubble(msg_a, Color(1.0, 0.58, 0.45), -38.0, 1.5)
+	b.spawn_short_bubble("😤", Color(1.0, 0.68, 0.50), -32.0, 1.5)
+	return true
 
 static func _try_start_live_fight(vm: VillageManager) -> void:
 	var cur_day: int = int(WorldClock.current_day) if WorldClock != null else 1

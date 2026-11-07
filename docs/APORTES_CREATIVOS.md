@@ -358,5 +358,15 @@ o vino ya dado. Conviene confirmarlo.
 **Dónde:** `scripts/enemies/VillageNPC.gd` (`get_activity_description`), `scripts/systems/VillageNeeds.gd` (`tick`).
 **Depende:** solo los textos flotantes y de estado; la lógica usa `errand_kind` (`"night_stroll"`, `"sleepwalk"`).
 
+## Bocadillos cortos de calle: desprecio, merodeo, pregones y fila escolar (B5, provisionales)
+- Cruce de enemigos o feudos de sangre (`CONTEMPT_BUBBLES`, `FEUD_BUBBLES`): «😒 «Ni me mires.»», «💢 «Apártate de mi vista.»», «😠 «Por la otra acera.»», «🩸💢 «Tu apellido apesta aquí.»», «⚔️😠 «Ni agua a los tuyos.»».
+- Merodeo nocturno previo a un crimen (`prowl_victim`): «🗡️👀 «Pronto pagará...»».
+- Pregones de Maestros, decretos e inauguraciones: «🏅 «¡Maestro del gremio!»», «✨ «¡Obra maestra terminada!»», «📜 «¡Nuevo edicto: X!»» y «🎉 «¡Estrenamos X!»».
+- Fila escolar a las 9:00: «📚🛎️ ¡En fila a la escuela!» y «🎒 ¡Ya vamos a clase!».
+
+**Dónde:** `scripts/systems/VillageSocialLife.gd` (`_try_street_contempt_encounter`), `scripts/systems/VillageNeeds.gd` (`tick`), `scripts/systems/VillageFame.gd`, `scripts/systems/VillageMayor.gd`, `scripts/systems/VillageFamily.gd`.
+**Depende:** solo los textos cortos de 1,5 s (`spawn_short_bubble`).
+
+
 
 

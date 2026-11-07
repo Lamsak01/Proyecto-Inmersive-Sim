@@ -297,6 +297,8 @@ var _anim_action_timer: float = 0.0
 var _anim_cycle_clock: float = 0.0
 var _attack_timer: float = 0.0
 var _chat_bubble_timer: float = 0.0
+var last_short_bubble_text: String = ""
+var last_short_bubble_duration: float = 0.0
 var _expedition_gather_timer: float = 0.0
 var _completed_expedition_day: int = -1
 var _expedition_target_node: Node2D = null
@@ -5093,15 +5095,22 @@ func _build_dialogue() -> Dictionary:
 func on_dialogue_action(action_id: String) -> void:
 	NPCDialogue.on_dialogue_action(self, action_id)
 
-func _spawn_floating_text(text: String, color: Color, offset_y: float = -36.0) -> void:
+func _spawn_floating_text(text: String, color: Color, offset_y: float = -36.0, duration: float = 1.0) -> void:
 	if FloatingTextScene and is_inside_tree():
 		var parent_scene: Node = get_tree().current_scene if get_tree().current_scene else get_parent()
 		if parent_scene:
 			var ft = FloatingTextScene.instantiate()
 			ft.start_text = text
 			ft.text_color = color
+			ft.duration = duration
 			ft.global_position = global_position + Vector2(0, offset_y)
 			parent_scene.add_child(ft)
+
+## B5.3: Bocadillo corto sobre la cabeza (1.5 s) que no para nada ni pausa el juego.
+func spawn_short_bubble(text: String, color: Color = Color(1.0, 0.96, 0.78), offset_y: float = -40.0, duration: float = 1.5) -> void:
+	last_short_bubble_text = text
+	last_short_bubble_duration = duration
+	_spawn_floating_text(text, color, offset_y, duration)
 
 const SAVED_INT_METAS: Array = ["evicted_day", "inherited_day", "read_day", "arrived_day", "rite_invited_week", "new_clothes_day", "school_bonus_days"]
 const SAVED_STR_METAS: Array = ["evicted_lot", "inherited_from", "inherited_family"]

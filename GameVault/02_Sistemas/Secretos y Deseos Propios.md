@@ -20,4 +20,4 @@ fuente: "Biblia §7.3"
   - **Venganza y Crimen Pasional:** Un vecino traicionado o lleno de odio (`<= -75`) empieza a seguir a su víctima, compra veneno o ronda su casa de noche (**señales previas visibles** para que el jugador pueda advertir a la víctima o detenerle) y, si nadie interviene, comete un **asesinato real** cuando no hay testigos cerca.
 
 ## Notas de diseño
--
+- 2026-11-07 (Antigravity, Bloque B5): cuando un vecino alberga un deseo activo de **venganza o asesinato** (`"revenge"` o `"murder"`), las noches previas (`22:00–04:00`) sale con el recado `"prowl_victim"` a **merodear los alrededores de la casa de su víctima** (`prowl_spot_for_desire`), cambiando de esquina y soltando bocadillos cortos de 1,5 s si pasas cerca para que puedas descubrir sus intenciones sin abrir menús.

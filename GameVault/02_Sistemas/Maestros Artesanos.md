@@ -22,4 +22,4 @@ fuente: "Biblia §4.2"
 
 ## Notas de diseño
 - 2026-11-06 (Claude Code, Bloque A1): la Obra Maestra ya no se compra hablando con el maestro en la calle: se compra en el **mostrador de su taller**, con el maestro allí y despierto (pulsando E dos veces, porque es un gasto). Si no está: «El maestro no está; vuelve cuando abra».
--
+- 2026-11-07 (Antigravity, Bloque B5): al ascender a **Maestro** o al terminar una **Obra Maestra** nueva en su taller, el artesano lo pregona en voz alta con un bocadillo corto de 1,5 s (`spawn_short_bubble`) sin pausar la partida.

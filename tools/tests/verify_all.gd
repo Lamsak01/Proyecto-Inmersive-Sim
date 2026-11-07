@@ -6884,5 +6884,51 @@ func _initialize() -> void:
 	b4_wc.current_hour = b4_hr0
 	b4_wc.set_weather(b4_w0 as WorldClock.WeatherType)
 	print("Block B4 (Ambient Coherence: Dawn Fog vs Streetlamps/Lanterns, 2D/3D Sabotage Smoke & Sparks + Rain, Night Strolls) OK")
+
+	# ---------------------------------------------------------
+	# Block B5: Lo que se ve en la calle (cruces de odio/feudo <80 px, ronda nocturna antes de crimen/venganza, bocadillos cortos 1.5 s sin pausar)
+	# ---------------------------------------------------------
+	var b5_npc_script = load("res://scripts/enemies/VillageNPC.gd")
+	var b5_a = vm.trade_npcs.get(int(b5_npc_script.TradeRole.BLACKSMITH))
+	var b5_b = vm.trade_npcs.get(int(b5_npc_script.TradeRole.BUTCHER))
+	assert(b5_a != null and b5_b != null, "B5.0: Two adult trade NPCs exist for street encounter test")
+	var b5_pos_a0: Vector2 = b5_a.global_position
+	var b5_pos_b0: Vector2 = b5_b.global_position
+	var b5_rel_ab0: int = b5_a.get_relationship_with_npc(b5_b.get_person_key())
+	var b5_rel_ba0: int = b5_b.get_relationship_with_npc(b5_a.get_person_key())
+	# 1. Cruce a < 80 px con odio <= -50 lanza bocadillo corto (1.5 s) y los aparta
+	b5_a.global_position = Vector2(460.0, 90.0)
+	b5_b.global_position = Vector2(500.0, 90.0)
+	b5_a.npc_relationships[b5_b.get_person_key()] = -65
+	var b5_crossed: bool = vm.VillageSocialLife._try_street_contempt_encounter(vm, b5_a, b5_b, true)
+	assert(b5_crossed and b5_a.last_short_bubble_text != "" and is_equal_approx(b5_a.last_short_bubble_duration, 1.5), "B5.1: Neighbors with hatred <= -50 crossing within 80 px emit a 1.5s contempt bubble and step aside")
+	assert(b5_a.global_position.distance_to(b5_b.global_position) > 40.0, "B5.2: Neighbors step away from each other on street contempt encounter")
+	# 2. Quien prepara asesinato o venganza ronda de noche cerca de la casa de su víctima
+	var b5_desires_bak: Array = vm.desires.duplicate(true)
+	var b5_err_a0: String = b5_a.errand_kind
+	b5_a.end_errand()
+	var b5_d: Dictionary = vm.VillageDesires.create(vm, "murder", b5_a, b5_b.get_person_key(), b5_b.npc_name, "rencor antiguo", false)
+	b5_d["prep_until"] = int(b4_wc.current_day) + 2
+	var b5_prowlers: int = vm.VillageDesires.on_hour(vm, 23)
+	assert(b5_prowlers >= 1 and b5_a.errand_kind == "prowl_victim" and b5_a.errand_pos.distance_to(b5_b.home_table_pos) <= 45.0, "B5.3: Neighbor preparing murder/revenge prowls at night near victim's house on the days before")
+	b5_a.end_errand()
+	b5_a.errand_kind = b5_err_a0
+	vm.desires = b5_desires_bak
+	# 3. Bocadillos cortos (1.5 s) en obra maestra, fila escolar a las 9:00 e inauguración municipal
+	var b5_fame_bak: Dictionary = vm.VillageFame.state(vm).duplicate(true)
+	vm.VillageFame.state(vm)["masters"].erase(b5_a.get_person_key())
+	b5_a.last_short_bubble_text = ""
+	assert(vm.VillageFame.promote_to_master(vm, b5_a) and b5_a.last_short_bubble_text.contains("obra maestra") and is_equal_approx(b5_a.last_short_bubble_duration, 1.5), "B5.4: Master artisan emits a 1.5s short bubble when finishing a masterwork")
+	vm.culture_state["fame"] = b5_fame_bak
+	var b5_mayor = vm.VillageTown.mayor_of(vm)
+	if b5_mayor == null:
+		b5_mayor = b5_a
+	b5_mayor.last_short_bubble_text = ""
+	assert(vm.VillageMayor.announce_town_inauguration(vm, "Engranajes Hidráulicos") and b5_mayor.last_short_bubble_text.contains("inaugurado") and is_equal_approx(b5_mayor.last_short_bubble_duration, 1.5), "B5.5: Town hall upgrade/decree inauguration emits a 1.5s short bubble without pausing")
+	b5_a.npc_relationships[b5_b.get_person_key()] = b5_rel_ab0
+	b5_b.npc_relationships[b5_a.get_person_key()] = b5_rel_ba0
+	b5_a.global_position = b5_pos_a0
+	b5_b.global_position = b5_pos_b0
+	print("Block B5 (Street Life: Contempt Crossings <80px, Night Victim Prowling & 1.5s Non-Pausing Short Bubbles) OK")
 	print("ALL RIMWORLD MEDICAL, FOOTPRINTS, 3-PHASE CORPSE REPORT, MULTI-CORPSE FIX, RPG INTERROGATION, PUBLIC TRIAL, DYNAMIC RELATIONSHIPS, MISSING FAMILY SEARCH, SOCIAL GLOSSARY & UNCONSCIOUS REACTION TESTS PASSED!")
 	quit(0)
