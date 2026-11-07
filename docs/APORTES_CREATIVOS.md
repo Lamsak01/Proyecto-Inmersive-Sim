@@ -327,3 +327,11 @@ o vino ya dado. Conviene confirmarlo.
 **Dónde:** `scripts/systems/VillageFamilia.gd` (`spawn_initial_boss`, `cook_line`, `try_eavesdrop_meeting`, `add_dialogue_choices`, `on_player_action`, `player_collect_protection`, `try_recruit`, `finish_meeting`, `resolve_protection`, `give_loan`, `collect_loan`, `try_bribe_guard`).
 **Depende:** solo los textos de diálogo, pensamientos, rumor y el nombre de «Don Vittorio Corvo»; la lógica usa claves internas (`"familia"`, `"familia_meet"`, `"familia_errand"`, `"familia_rumor"`).
 
+## Bocadillos de reacción al ruido de combate (B1, provisionales)
+- Guardia que oye el golpe o disparo: «🛡️👂 ¡¿Qué ha sido ese ruido?!».
+- Vecino curioso o valiente que se asoma: «👀 ¿Qué pasa ahí?».
+- Vecino pacífico o asustadizo que se aparta: «😨 ¡Socorro, pelea!».
+
+**Dónde:** `scripts/enemies/VillageNPC.gd` (`on_noise_heard`, `get_activity_description`).
+**Depende:** solo los textos flotantes; la lógica usa `_noise_react_mode` (`"guard_investigate"`, `"civilian_peek"`, `"civilian_flee"`).
+

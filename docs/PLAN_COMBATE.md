@@ -38,14 +38,16 @@ cuesta 8 + 0,6·daño de energía, 2,5/s; sin energía se rompe; andas al 50 %; 
 - **Bloqueo sostenido** con Q gastando energía (la parada perfecta de 0,2 s sigue siendo la mejor).
 - **Empujón/patada** para abrir distancia o tirar a alguien por las escaleras.
 
-## Fase 4 — Consecuencias inmersivas ✅ (2026-11-06, salvo testigos)
+## Fase 4 — Consecuencias inmersivas ✅ (2026-11-06 / 2026-11-07)
 Hecho: `HealthComponent.hit_region_weights` (animales y jabalíes → piernas ×3, cabeza ×0,15; por la espalda → torso ×1,5,
 cabeza ×1,3, brazos ×0,5 y la herida lo dice; por un costado → brazo y pierna de ese lado ×1,8; en el suelo → cabeza ×2,5).
 `WeaponWear.gd`: estado 0–100 por arma del jugador (guardado), −0,5 por golpe a seres vivos, −0,25 herramienta en su
 trabajo, −1,2 espada contra madera/piedra; por debajo de 60 pega, corta y tala menos (hasta ×0,65); el herrero lo deja
 nuevo por 1 de oro cada 8 puntos. Desarmar: un golpe fuerte (3.º de cadena o cargado) que acaba en el brazo de un guardia
 o bandido le quita el arma 20 s (guardia: sin pistola y a puñetazos; bandido: la mitad de daño).
-Falta: testigos que reaccionan al ruido del combate (se deja para el bloque de crimen interno).
+Ruido y testigos (`B1`, 2026-11-07): golpes fuertes, gritos de dolor y disparos emiten ruido con `AudioManager.emit_noise`;
+los guardias despiertos acuden a mirar o intervenir, los vecinos pacíficos huyen o se asoman a distancia, y solo cuentan
+como testigos (`known_by` / `sighting_log`) si tienen línea de visión en la misma planta.
 - La zona herida depende de la dirección y la altura del golpe (por detrás, en las piernas…), usando la anatomía que ya existe.
 - Armas que se **mellan** con el uso y se arreglan en la herrería; **desarmar** con un golpe fuerte a la mano.
 - Testigos que reaccionan al ruido del combate (ya existe el ruido con `AudioManager.emit_noise`).

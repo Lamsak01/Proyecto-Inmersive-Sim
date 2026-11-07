@@ -380,6 +380,8 @@ static func fire_flintlock_shot(vm, target_npc, inv) -> bool:
 	if target_npc.health_comp != null:
 		target_npc.health_comp.apply_minor_bruise(48.0, 0.10, "Disparo de Arcabuz de Chispa")
 	target_npc.modify_affinity(-35)
+	if AudioManager:
+		AudioManager.emit_noise(target_npc.global_position, 260.0, int(target_npc.elevation_level), "gunshot")
 	var witness = vm._find_conscious_witness_near(target_npc.global_position, 260.0, target_npc)
 	if witness != null:
 		vm.wanted_level = clampi(int(vm.wanted_level) + 1, 1, 5)

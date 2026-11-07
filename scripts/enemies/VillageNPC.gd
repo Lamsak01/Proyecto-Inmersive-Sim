@@ -255,6 +255,11 @@ var _police_baton_windup_timer: float = 0.0
 var disarmed_until_msec: int = 0 ## C7 fase 4c: sin porra ni pistola hasta entonces (le diste fuerte en el brazo)
 var _melee_recover_timer: float = 0.0 ## C7 fase 2: quieto tras soltar un golpe (más si falló): ventana para castigarle
 var _stagger_timer: float = 0.0
+var _noise_react_timer: float = 0.0 ## B1 (C7 fase 4d): reacción al ruido de combate (guardia acude, civil huye o se asoma)
+var _noise_react_pos: Vector2 = Vector2.ZERO
+var _noise_react_mode: String = "" ## "guard_investigate", "civilian_flee", "civilian_peek"
+var _noise_react_elev: int = 0
+var _noise_witness_logged: bool = false
 var _last_seen_player_pos: Vector2 = Vector2.ZERO
 var _stuck_timer: float = 0.0
 var _last_frame_pos: Vector2 = Vector2.ZERO
@@ -1954,6 +1959,9 @@ func _process_duties(delta: float) -> bool:
 	if _process_police_duty(delta):
 		return true
 
+	if not is_hostile and _process_noise_reaction(delta):
+		return true
+
 	if trade_role == TradeRole.ROYAL_INVESTIGATOR:
 		if is_hostile:
 			_police_alerted_timer = maxf(_police_alerted_timer, 25.0)
@@ -2015,7 +2023,128 @@ func _process_police_duty(delta: float) -> bool:
 				return true
 		if not is_hostile and _process_police_missing_person_patrol(delta):
 			return true
+		if not is_hostile and _noise_react_mode == "guard_investigate" and _process_noise_reaction(delta):
+			return true
 	return false
+
+## B1 (C7 fase 4d): reacción física al ruido de golpes fuertes, gritos de dolor o disparos.
+## Los guardias despiertos acuden a mirar o intervenir; los vecinos pacíficos huyen o se asoman a distancia,
+## y solo cuentan como testigos (`known_by` / `sighting_log`) si tienen línea de visión en la misma planta.
+func on_noise_heard(origin: Vector2, _radius: float = 160.0, _kind: String = "combat", src_elev: int = 0) -> void:
+	if is_dead or is_downed or is_sleeping or is_stunned_flag or sedated_timer > 0.0 or is_at_poker_table or get_meta("club_bout", false) == true:
+		return
+	if is_in_live_fight() or is_busy_with_player() or is_busy_with_emergency():
+		return
+	if elevation_level != src_elev:
+		return
+	if is_hostile:
+		if trade_role in [TradeRole.SHERIFF, TradeRole.GUARD, TradeRole.ROYAL_INVESTIGATOR]:
+			_last_seen_player_pos = origin
+			_police_alerted_timer = maxf(_police_alerted_timer, 6.0)
+		return
+	_noise_react_pos = origin
+	_noise_react_elev = src_elev
+	_noise_witness_logged = false
+	if trade_role in [TradeRole.SHERIFF, TradeRole.GUARD, TradeRole.ROYAL_INVESTIGATOR]:
+		_noise_react_mode = "guard_investigate"
+		_noise_react_timer = 8.0
+		_spawn_floating_text("🛡️👂 ¡¿Qué ha sido ese ruido?!", Color.AQUA, -38.0)
+	else:
+		if TraitCatalog.npc_tendency(self, "curiosity") > 0 or TraitCatalog.npc_tendency(self, "courage") > 0:
+			_noise_react_mode = "civilian_peek"
+			_spawn_floating_text("👀 ¿Qué pasa ahí?", Color(1.0, 0.90, 0.55), -36.0)
+		else:
+			_noise_react_mode = "civilian_flee"
+			_spawn_floating_text("😨 ¡Socorro, pelea!", Color(1.0, 0.65, 0.45), -36.0)
+		_noise_react_timer = 6.0
+	_try_log_combat_witness()
+
+func can_witness_combat_at(pos: Vector2, target_elev: int = 0) -> bool:
+	if not is_conscious() or elevation_level != target_elev:
+		return false
+	var vm = _get_vm()
+	if vm != null and vm.has_method("has_line_of_sight"):
+		return bool(vm.call("has_line_of_sight", global_position, pos))
+	return true
+
+func _try_log_combat_witness() -> bool:
+	if _noise_witness_logged:
+		return true
+	if not can_witness_combat_at(_noise_react_pos, _noise_react_elev):
+		return false
+	var vm = _get_vm()
+	if vm == null:
+		return false
+	_noise_witness_logged = true
+	var b_at: Dictionary = vm._get_building_at_pos(_noise_react_pos) if vm.has_method("_get_building_at_pos") else {}
+	var b_id: String = str(b_at.get("id", "street"))
+	var b_title: String = str(b_at.get("title", "Vía Pública"))
+	var h: int = WorldClock.current_hour if WorldClock else 12
+	var m: int = WorldClock.current_minute if WorldClock else 0
+	var d: int = WorldClock.current_day if WorldClock else 1
+	if "sighting_log" in vm and typeof(vm.sighting_log) == TYPE_ARRAY:
+		vm.sighting_log.push_front({
+			"building_id": b_id, "building_title": b_title,
+			"witness_name": npc_name, "action": "pelear en",
+			"hour": h, "minute": m, "day": d, "total_minutes": d * 1440 + h * 60 + m
+		})
+		while vm.sighting_log.size() > 25:
+			vm.sighting_log.pop_back()
+	if "social_event_log" in vm and typeof(vm.social_event_log) == TYPE_ARRAY:
+		var my_key: String = get_person_key()
+		for idx in range(vm.social_event_log.size() - 1, maxi(-1, vm.social_event_log.size() - 6), -1):
+			var ev: Dictionary = vm.social_event_log[idx]
+			if str(ev.get("type", "")) in ["fight", "feud"] and ev.get("known_by") is Dictionary:
+				(ev["known_by"] as Dictionary)[my_key] = true
+				break
+	return true
+
+func _process_noise_reaction(delta: float) -> bool:
+	if _noise_react_timer <= 0.0:
+		return false
+	if is_dead or is_downed or is_sleeping or is_hostile or is_in_live_fight():
+		_noise_react_timer = 0.0
+		return false
+	_noise_react_timer = maxf(0.0, _noise_react_timer - delta)
+	_try_log_combat_witness()
+	var vm = _get_vm()
+	if _noise_react_mode == "guard_investigate":
+		if _noise_witness_logged and vm != null:
+			for n in get_tree().get_nodes_in_group("village_npcs"):
+				if n is VillageNPC and n != self:
+					var v: VillageNPC = n as VillageNPC
+					if v.elevation_level == elevation_level and v.global_position.distance_to(_noise_react_pos) <= 95.0 and v.last_hit_by_player and (v.is_hostile or v.is_downed):
+						if int(vm.get("wanted_level")) <= 0 and vm.has_method("report_assault_crime"):
+							vm.call("report_assault_crime", v)
+						_police_alerted_timer = maxf(_police_alerted_timer, 6.0)
+						_last_seen_player_pos = _cached_player.global_position if is_instance_valid(_cached_player) else _noise_react_pos
+						_noise_react_timer = 0.0
+						return true
+		if global_position.distance_to(_noise_react_pos) > 26.0:
+			_move_towards_point(_noise_react_pos, 76.0, delta)
+		else:
+			velocity = Vector2.ZERO
+			trigger_action_animation(0.3)
+	elif _noise_react_mode == "civilian_flee":
+		var away: Vector2 = global_position - _noise_react_pos
+		var dir: Vector2 = away.normalized() if away.length_squared() > 1.0 else Vector2.RIGHT
+		if away.length() < 130.0:
+			_move_towards_point(global_position + dir * 75.0, 72.0, delta)
+		else:
+			velocity = Vector2.ZERO
+	elif _noise_react_mode == "civilian_peek":
+		var dist: float = global_position.distance_to(_noise_react_pos)
+		if dist > 92.0:
+			_move_towards_point(_noise_react_pos, 54.0, delta)
+		elif dist < 60.0:
+			var back_dir: Vector2 = (global_position - _noise_react_pos).normalized() if dist > 1.0 else Vector2.LEFT
+			_move_towards_point(global_position + back_dir * 45.0, 56.0, delta)
+		else:
+			velocity = Vector2.ZERO
+			if sprite:
+				sprite.flip_h = (_noise_react_pos.x < global_position.x)
+	_finish_frame_movement(delta)
+	return true
 
 ## Si está herido o enfermo, va a la cama del hospital y descansa allí.
 func _process_hospital_care(delta: float) -> bool:
@@ -2520,6 +2649,8 @@ func _fire_police_pistol(player: Node2D) -> void:
 	d.is_ranged_projectile = true
 	d.source = self
 	player.call("take_damage", d)
+	if AudioManager:
+		AudioManager.emit_noise(global_position, 260.0, elevation_level, "gunshot")
 	_spawn_floating_text("🔫 ¡Disparo Policial!", Color(1.0, 0.82, 0.28), -42.0)
 
 func _find_downed_npc() -> VillageNPC:
@@ -4000,6 +4131,12 @@ func get_activity_description() -> String:
 				return "🤝⚡ Socorriendo y despertando a %s" % _reacting_unconscious_target.npc_name
 			return "🗣️🚓 Informando a la guardia del ataque a %s" % _reacting_unconscious_target.npc_name
 		return "🤨🤚 Despertando con cautela a %s" % _reacting_unconscious_target.npc_name
+	if _noise_react_timer > 0.0 and not is_hostile:
+		if _noise_react_mode == "guard_investigate":
+			return "🛡️👂 Acudiendo a un ruido sospechoso"
+		elif _noise_react_mode == "civilian_peek":
+			return "👀 Asomándose a mirar el alboroto"
+		return "😨🏃 Alejándose de una pelea"
 	var sick_tag: String = ""
 	if health_comp and health_comp.has_active_sickness_or_infection():
 		sick_tag = " [🌡️Enfermo/Fiebre %d%%]" % int(round(maxf(health_comp.fever, maxf(health_comp.food_poisoning, health_comp.swamp_sickness))))
@@ -4413,6 +4550,8 @@ func take_damage(data: DamageData) -> void:
 		health_comp.take_damage(data)
 	if stun_comp and health_comp and health_comp.current_health > 0.0:
 		stun_comp.take_damage(data)
+	if data != null and data.amount >= 6.0 and AudioManager:
+		AudioManager.emit_noise(global_position, 175.0, elevation_level, "pain_scream")
 
 ## Comprueba si el jugador en Sigilo (`[C]`) está situado por la espalda del NPC (o junto a un NPC dormido) para ejecutar un ataque sigiloso (No Letal o Letal)
 func can_be_stealth_targeted(player: Node2D) -> bool:

@@ -205,6 +205,8 @@ func shove() -> bool:
 			hit_any = true
 	if hit_any:
 		_apply_camera_shake(float(SHOVE_FEEL["shake"]))
+		if AudioManager:
+			AudioManager.emit_noise(player.global_position, 115.0, -999, "heavy_hit")
 	return true
 
 func start_parry() -> bool:
@@ -660,9 +662,12 @@ func _fire_flintlock_realtime(equipped: WeaponData) -> void:
 
 	# Alerta sonora a testigos conscientes en 260 px (en el mismo nivel vertical)
 	var vm = get_tree().get_first_node_in_group("village_manager")
+	var pl_elev: int = int(vm.get("player_elevation_level")) if vm != null and "player_elevation_level" in vm else 0
+	if AudioManager:
+		AudioManager.emit_noise(player.global_position, 260.0, pl_elev, "gunshot")
 	for n in get_tree().get_nodes_in_group("village_npcs"):
 		if n is VillageNPC and not n.is_dead and not n.is_downed and not n.is_sleeping and not n.is_stunned_flag:
-			if vm and vm.has_method("are_on_same_elevation") and not bool(vm.call("are_on_same_elevation", player, n)):
+			if vm and vm.has_method("are_on_same_elevation") and not bool(vm.call("are_on_same_elevation", pl_elev, n.elevation_level)):
 				continue
 			if (n as Node2D).global_position.distance_to(player.global_position) <= 260.0:
 				if n.has_method("_spawn_floating_text"):
@@ -695,6 +700,9 @@ func _on_melee_impact(target: Node) -> void:
 	if target is Node2D and is_instance_valid(player):
 		var dir: Vector2 = ((target as Node2D).global_position - player.global_position)
 		CombatFeel.apply_hit_reaction(target, dir if dir.length_squared() > 0.01 else current_aim_dir, f)
+		if AudioManager:
+			var is_heavy: bool = _swing_power >= 1.3 or float(f.get("knockback", 8.0)) >= 14.0
+			AudioManager.emit_noise(player.global_position, 190.0 if is_heavy else 115.0, -999, "heavy_hit" if is_heavy else "melee_hit")
 	_apply_hitstop(float(f.get("hitstop", 0.05)))
 	_apply_camera_shake(float(f.get("shake", 4.0)))
 

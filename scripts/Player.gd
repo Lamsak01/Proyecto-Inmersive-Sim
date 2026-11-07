@@ -853,6 +853,8 @@ func take_damage(data: DamageData) -> void:
 			_hit_flash_timer = 0.18
 		# C7: que se note que te han dado: quejido, temblor de cámara y un pequeño empujón desde el golpe
 		_CombatFeel.play(self, _CombatFeel.SFX_HURT, global_position, 1.0, -4.0)
+		if hp_lost >= 6.0 and AudioManager:
+			AudioManager.emit_noise(global_position, 155.0, -999, "pain_scream")
 		if not is_ranged_hit and data != null and is_instance_valid(data.source) and data.source is Node2D:
 			var away: Vector2 = global_position - (data.source as Node2D).global_position
 			if away.length_squared() > 0.01:

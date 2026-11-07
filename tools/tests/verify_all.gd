@@ -6326,6 +6326,50 @@ func _initialize() -> void:
 	c76_en.pressed = true
 	assert(not c7_cc._is_attack_key(c76_sp) and c7_cc._is_attack_key(c76_en), "C7.32: Space only rolls; Enter still attacks")
 	print("Block C7 espacio (Roll Key Never Attacks) OK")
+	# B1 (C7 fase 4d): Ruido y testigos en combate (guardias acuden, vecinos huyen o se asoman, testigos solo con LoS en la misma planta)
+	if c75_guard != null:
+		var b1_gpos0: Vector2 = c75_guard.global_position
+		var b1_npos0: Vector2 = c72_n.global_position
+		var b1_gelev0: int = c75_guard.elevation_level
+		var b1_nelev0: int = c72_n.elevation_level
+		var b1_gsleep0: bool = c75_guard.is_sleeping
+		var b1_nsleep0: bool = c72_n.is_sleeping
+		var b1_npers0: Array = c72_n.person_profile.personality.duplicate() if c72_n.person_profile != null else []
+		c75_guard.is_sleeping = false
+		c72_n.is_sleeping = false
+		c75_guard.elevation_level = 0
+		c72_n.elevation_level = 0
+		c75_guard.global_position = Vector2(360, 420)
+		c72_n.global_position = Vector2(380, 420)
+		if c72_n.person_profile != null:
+			c72_n.person_profile.personality.clear()
+			c72_n.person_profile.personality.append("Cobarde")
+		var b1_sight0: int = vm.sighting_log.size()
+		AudioManager.emit_noise(Vector2(330, 420), 180.0, 0, "heavy_hit")
+		assert(c75_guard._noise_react_mode == "guard_investigate" and c75_guard._noise_react_timer > 0.0, "C7.33: Awake guard within radius reacts to combat noise and investigates")
+		assert(c72_n._noise_react_mode == "civilian_flee" and c72_n._noise_react_timer > 0.0, "C7.34: Peaceful/cowardly civilian flees from combat noise")
+		assert(vm.sighting_log.size() > b1_sight0, "C7.35: Witness on the same floor with line of sight is logged in sighting_log")
+		# En otra planta no escucha ni cuenta como testigo
+		c72_n._noise_react_timer = 0.0
+		c72_n._noise_witness_logged = false
+		c72_n.elevation_level = -1
+		var b1_sight1: int = vm.sighting_log.size()
+		AudioManager.emit_noise(Vector2(330, 420), 180.0, 0, "gunshot")
+		assert(c72_n._noise_react_timer == 0.0 and not c72_n.can_witness_combat_at(Vector2(330, 420), 0), "C7.36: Neighbor on another floor does not count as a witness")
+		c75_guard._noise_react_timer = 0.0
+		c72_n._noise_react_timer = 0.0
+		c75_guard.global_position = b1_gpos0
+		c72_n.global_position = b1_npos0
+		c75_guard.elevation_level = b1_gelev0
+		c72_n.elevation_level = b1_nelev0
+		c75_guard.is_sleeping = b1_gsleep0
+		c72_n.is_sleeping = b1_nsleep0
+		if c72_n.person_profile != null:
+			c72_n.person_profile.personality.clear()
+			c72_n.person_profile.personality.append_array(b1_npers0)
+		while vm.sighting_log.size() > b1_sight0:
+			vm.sighting_log.pop_front()
+	print("Block B1 / C7 fase 4d (Combat Noise & Witnesses: Guard Investigation, Civilian Flee/Peek, Same-Floor LoS Witness) OK")
 	# ==========================================================================
 	# Bloque R1: la Trattoria «Il Corvo» (local grande con varias salas, terraza, cocina y cámara)
 	# ==========================================================================

@@ -3,6 +3,11 @@
 Cambios del juego, del más nuevo al más antiguo. Añade una entrada al cerrar cada bloque, en lenguaje sencillo.
 El detalle técnico está en `docs/HANDOFF.md` (sección 7) y el historial completo en `git log`. Lo anterior a B0.1 está en `AUDIT_LOG.md` y `SESSION_CONTEXT_LOG.md`.
 
+## 2026-11-07 — Ruido y testigos en combate (cierra C7)
+- **Los golpes fuertes, gritos de dolor y disparos se oyen alrededor:** el ruido viaja por la misma planta (amortiguado por los muros) y hace reaccionar a quienes están despiertos cerca.
+- **Guardias que acuden y vecinos que huyen o se asoman:** los guardias y el comisario van a mirar qué pasa e intervienen si pillan la pelea; los vecinos pacíficos se alejan asustados o se asoman a una distancia prudente si son curiosos o valientes.
+- **Testigos solo si te ven de verdad:** oír el ruido tras una pared o desde otro piso no basta para delatarte; un vecino solo cuenta como testigo si está en la misma planta y tiene línea de visión directa.
+
 ## 2026-11-06 — Don Vittorio Corvo y cómo intervenir ante «La Familia»
 - **Don Vittorio Corvo, jefe desde el primer día:** la partida arranca ya con un padrino al frente de «La Familia», instalado en el cuarto del dueño y la mesa del reservado de «Il Corvo», con ahorros propios y el carácter exacto para dirigir el negocio (sediento de poder, manipulador, líder, codicioso, astuto y rencoroso). Si algún día cae, otro vecino ambicioso puede seguir su camino.
 - **Descubrir el pastel sin menús mágicos:** ninguna opción nueva aparece gratis. Para enterarte de quién manda y a por qué comercio van, tienes que escuchar los rumores del pueblo o acercarte con sigilo al reservado de «Il Corvo» en mitad de una reunión nocturna.
