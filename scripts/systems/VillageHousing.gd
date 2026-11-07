@@ -55,7 +55,7 @@ const TABLE_SEAT_DIST: float = 14.0
 const GATHERING_PLAYER_RADIUS: float = 90.0
 const GATHERING_DURATION_MIN: int = 120
 const GATHERING_CHAT_INTERVAL_MIN: int = 20
-const TABLE_FOOD_ITEMS: Array[String] = ["bread", "cooked_meat", "country_stew", "roasted_chicken", "cooked_fish", "fried_frog_legs", "royal_ration", "fish", "carrot", "cabbage", "raw_meat", "raw_chicken", "wheat"]
+const TABLE_FOOD_ITEMS: Array[String] = ["bread", "cooked_meat", "pasta_dish", "braised_meat", "country_stew", "roasted_chicken", "cooked_fish", "fried_frog_legs", "royal_ration", "fish", "carrot", "cabbage", "raw_meat", "raw_chicken", "wheat"]
 const GATHERING_CHAT_PHRASES: Array[String] = [
 	"🍷 «¡A vuestra salud!»",
 	"🍲 «Esta comida huele de maravilla.»",

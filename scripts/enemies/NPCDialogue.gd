@@ -630,6 +630,22 @@ static func _build_dialogue(npc: VillageNPC) -> Dictionary:
 				},
 				"family_chat": {"text": "El horno se enciende antes del alba. Si el molino no muele o no llega leña, no hay pan para nadie: así de sencillo.", "choices": [{"label": "Entendido. [Volver]", "next": "start"}]}
 			}
+		VillageNPC.TradeRole.RESTAURATEUR:
+			return {
+				"start": {
+					"text": "Soy %s, de la %s (%s). %s%s%s\n[Tallarines: %d | Carne al vino: %d]" % [npc.npc_name, npc.family_name, npc.npc_role, needs_line, discount_tag, npc._get_market_header_line(), int(npc.shop_stock.get("pasta_dish", 0)), int(npc.shop_stock.get("braised_meat", 0))],
+					"choices": [
+						{"label": "📜 Negocio, Escritura de Propiedad y Caja Registradora", "next": "END", "action": "open_business_panel"},
+						{"label": "🍝 Pedir unos Tallarines de la Casa (-%d Oro) [Quedan: %d]" % [npc._get_dynamic_buy_price(12), int(npc.shop_stock.get("pasta_dish", 0))], "next": "start", "action": "buy:pasta_dish:12"},
+						{"label": "🍷 Pedir Carne Estofada al Vino (-%d Oro) [Quedan: %d]" % [npc._get_dynamic_buy_price(18), int(npc.shop_stock.get("braised_meat", 0))], "next": "start", "action": "buy:braised_meat:18"},
+						{"label": "🌾 Venderle 1 Trigo para la pasta (+%d Oro)" % npc._get_dynamic_sell_price(6), "next": "start", "action": "sell:wheat:6"},
+						{"label": "🥩 Venderle 1 Carne Cruda para la cámara (+%d Oro)" % npc._get_dynamic_sell_price(7), "next": "start", "action": "sell:raw_meat:7"},
+						{"label": "💬 Charlar un rato (+8 Relación)", "next": "family_chat", "affinity": 8},
+						{"label": "Hasta pronto. [Salir]", "next": "END"}
+					]
+				},
+				"family_chat": {"text": "La salsa lleva cuatro horas al fuego, como hacía mi abuela. Y la mesa del fondo está reservada: no pregunte para quién.", "choices": [{"label": "No pregunto. [Volver]", "next": "start"}]}
+			}
 		VillageNPC.TradeRole.LODGEKEEPER:
 			return {
 				"start": {

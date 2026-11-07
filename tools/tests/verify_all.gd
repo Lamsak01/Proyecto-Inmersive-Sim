@@ -6323,5 +6323,30 @@ func _initialize() -> void:
 	c76_en.pressed = true
 	assert(not c7_cc._is_attack_key(c76_sp) and c7_cc._is_attack_key(c76_en), "C7.32: Space only rolls; Enter still attacks")
 	print("Block C7 espacio (Roll Key Never Attacks) OK")
+	# ==========================================================================
+	# Bloque R1: la Trattoria «Il Corvo» (local grande con varias salas, terraza, cocina y cámara)
+	# ==========================================================================
+	var r1_rs = load("res://scripts/systems/VillageRestaurant.gd")
+	var r1_fp: Dictionary = {}
+	for b_r1 in vm.building_footprints:
+		if str(b_r1["id"]) == r1_rs.BUILDING_ID:
+			r1_fp = b_r1
+	assert(not r1_fp.is_empty() and (r1_fp["rect"] as Rect2).size.x >= 250.0 and (r1_fp["rect"] as Rect2).size.y >= 180.0, "R1.1: The restaurant is built, much bigger than a house")
+	for b_r1 in vm.building_footprints:
+		if str(b_r1["id"]) != r1_rs.BUILDING_ID:
+			assert(not (b_r1["rect"] as Rect2).intersects(r1_fp["rect"]), "R1.2: The restaurant doesn't overlap %s" % str(b_r1["title"]))
+	assert(r1_rs.ROOMS.size() == 6 and r1_rs.room_of(r1_rs.STOVE_POS) == "cocina" and r1_rs.room_of(r1_rs.COLD_SHELF) == "camara" and r1_rs.room_of(r1_rs.BACKROOM_TABLE) == "reservado", "R1.3: Dining room, kitchen, cold room, cellar, owner's room and back room")
+	# Por dentro se cruza por los pasos: del comedor a la cámara se pasa por la cocina
+	var r1_w: Vector2 = vm.get_navigation_waypoint(Vector2(1100, 350), r1_rs.COLD_SHELF, null)
+	assert(r1_w.distance_to(Vector2(1203, 349)) < 3.0, "R1.4: From the dining room to the cold room you first head to the kitchen pass (%s)" % str(r1_w))
+	r1_w = vm.get_navigation_waypoint(Vector2(1255, 340), r1_rs.COLD_SHELF, null)
+	assert(r1_w.distance_to(Vector2(1255, 306)) < 3.0, "R1.5: From the kitchen you head to the cold room door (%s)" % str(r1_w))
+	r1_w = vm.get_navigation_waypoint(r1_rs.COLD_SHELF, Vector2(1150, 480), null)
+	assert(r1_w.distance_to(Vector2(1255, 282)) < 3.0, "R1.6: Leaving the cold room you go back through its door (%s)" % str(r1_w))
+	var r1_rt: int = int(c72_n.TradeRole.RESTAURATEUR)
+	assert(vm.trade_configs.has(r1_rt) and vm.shop_businesses.has(r1_rt), "R1.7: The cook's post exists (vacant until someone comes)")
+	var r1_inv = load("res://scripts/systems/SimpleInventory.gd")
+	assert(r1_inv.CATALOG.has("pasta_dish") and r1_inv.CATALOG.has("braised_meat"), "R1.8: The house dishes exist")
+	print("Block R1 (Trattoria Il Corvo: Big Multi-Room Restaurant, Terrace, Kitchen, Cold Room, Room Routing) OK")
 	print("ALL RIMWORLD MEDICAL, FOOTPRINTS, 3-PHASE CORPSE REPORT, MULTI-CORPSE FIX, RPG INTERROGATION, PUBLIC TRIAL, DYNAMIC RELATIONSHIPS, MISSING FAMILY SEARCH, SOCIAL GLOSSARY & UNCONSCIOUS REACTION TESTS PASSED!")
 	quit(0)

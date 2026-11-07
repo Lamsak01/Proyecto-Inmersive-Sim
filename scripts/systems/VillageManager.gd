@@ -21,6 +21,7 @@ const VillageWorldBuilder = preload("res://scripts/systems/VillageWorldBuilder.g
 const VillageLots = preload("res://scripts/systems/VillageLots.gd")
 const VillageTrades = preload("res://scripts/systems/VillageTrades.gd")
 const VillageCivic = preload("res://scripts/systems/VillageCivic.gd")
+const VillageRestaurant = preload("res://scripts/systems/VillageRestaurant.gd") # R1: Trattoria «Il Corvo»
 const VillagePlaces = preload("res://scripts/systems/VillagePlaces.gd")
 const VillageCulture = preload("res://scripts/systems/VillageCulture.gd")
 const VillageMigration = preload("res://scripts/systems/VillageMigration.gd")
@@ -276,6 +277,8 @@ func setup_village(target_entities_root: Node) -> void:
 	VillageTrades.setup_world(self) # V5: panadería y sastrería (puestos vacantes al empezar)
 	VillageTown.state(self) # J3: arcas iniciales (1000) en partida nueva
 	VillageCivic.setup_world(self) # V5b: ayuntamiento, albergue y El Candil
+	VillageRestaurant.setup_world(self) # R1: Trattoria «Il Corvo» (puesto vacante)
+	VillageRestaurant.build(self) # R1: edificio grande con comedor, terraza, cocina, cámara, bodega y reservado
 	VillageCulture.ensure_lots(self) # V5e: biblioteca y escuela
 	VillageNobility.ensure_lots(self) # V6: mansión y casa grande
 	VillageLots.build_world(self) # V4: calles y solares del borde, afueras y lomas
@@ -787,6 +790,8 @@ func _route_internal_building_partitions(b_id: String, from_pos: Vector2, target
 				return Vector2(745.0, 138.0 if absf(from_pos.x - 745.0) > 10.0 else 165.0)
 			elif from_pos.y > 155.0 and target_pos.y < 149.0:
 				return Vector2(745.0, 165.0 if absf(from_pos.x - 745.0) > 10.0 else 138.0)
+		"building_restaurant": # R1: varias salas; cruza por los pasos (ver VillageRestaurant.OPENINGS)
+			return VillageRestaurant.route(from_pos, target_pos)
 		"building_police":
 			if from_pos.y < 149.0 and target_pos.y > 155.0:
 				return Vector2(902.0, 138.0 if absf(from_pos.x - 902.0) > 9.0 else 165.0)
@@ -3443,6 +3448,7 @@ func _register_shop_business_stall(role_id: int, shop_title: String, fam_id: Str
 		int(VillageNPC.TradeRole.BAKER): sup_items = ["bread", "wheat"]
 		int(VillageNPC.TradeRole.TAILOR): sup_items = ["clothes", "leather", "fox_pelt"]
 		int(VillageNPC.TradeRole.LODGEKEEPER): sup_items = ["country_stew", "cooked_meat"]
+		int(VillageNPC.TradeRole.RESTAURATEUR): sup_items = ["pasta_dish", "braised_meat"]
 		_: sup_items = VillageTrades.supply_items_for(role_id) # V5d
 
 	var cfg: Dictionary = trade_configs.get(role_id, {})

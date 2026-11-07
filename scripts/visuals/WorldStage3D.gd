@@ -13,6 +13,7 @@ const CharacterAvatar3DScript = preload("res://scripts/visuals/CharacterAvatar3D
 const AssetLib = preload("res://scripts/visuals/AssetLibrary3D.gd")
 const VillageLots = preload("res://scripts/systems/VillageLots.gd")
 const VillageCulture = preload("res://scripts/systems/VillageCulture.gd")
+const VillageRestaurant = preload("res://scripts/systems/VillageRestaurant.gd") # R1
 const VillageWorkScript = preload("res://scripts/systems/VillageWork.gd")
 const VillageUnderworldScript = preload("res://scripts/systems/VillageUnderworld.gd")
 const VillageHousingScript = preload("res://scripts/systems/VillageHousing.gd")
@@ -617,6 +618,16 @@ func _style_for_building(b_id: String) -> Dictionary:
 		wall_norm = ""
 		wall_h = 32.0
 		roof_h = 16.0
+	elif b_id == "building_restaurant": # R1: trattoria de estuco ocre, teja roja y carpintería verde oscura
+		wall_tex = "town_textures/wall_brick_small_sand.png"
+		wall_norm = ""
+		wall_col = Color(1.0, 0.80, 0.56)
+		roof_col = Color(0.64, 0.26, 0.18)
+		floor_col = Color(0.74, 0.46, 0.30)
+		floor_tex = "town_textures/floor_tiles_tan_large.png"
+		trim_col = Color(0.18, 0.30, 0.20)
+		wall_h = 32.0
+		roof_h = 16.0
 	elif b_id == "building_candil":
 		wall_col = Color(0.56, 0.38, 0.48)
 		roof_col = Color(0.58, 0.22, 0.38)
@@ -673,6 +684,7 @@ func rebuild_buildings_3d() -> void:
 	_window_nodes_3d.clear()
 	_chest_nodes_3d.clear()
 	_morgue_body_nodes_3d.clear()
+	_restaurant_night_nodes.clear()
 	_jail_gate_pivot_3d = null
 	if vm == null:
 		return
@@ -877,6 +889,8 @@ func _merge_building_meshes() -> void:
 				excl[w[k]] = true
 	for mb in _morgue_body_nodes_3d:
 		excl[mb] = true
+	for rn in _restaurant_night_nodes: # R1: bombillas de la terraza (se encienden y apagan)
+		excl[rn] = true
 	if _jail_gate_pivot_3d != null:
 		excl[_jail_gate_pivot_3d] = true
 	for rec in _building_records_3d:
@@ -956,6 +970,8 @@ func _populate_building_interior_3d(b_root: Node3D, b_id: String, rect: Rect2, d
 	var m_ember := _mat("forge_ember", Color(1.0, 0.42, 0.12), 0.4, 0.0, Color(1.0, 0.38, 0.08), 2.2)
 
 	match b_id:
+		"building_restaurant":
+			_build_restaurant_3d(b_root, wall_h, m_wall, m_trim, m_wood, m_dark_wood, m_iron, m_gold)
 		"building_tavern":
 			# Tabique divisorio de habitaciones y barra de la posada
 			_add_box_2d(b_root, Vector2(362, -222), Vector2(96, 5.5), 2.0, wall_h * 0.85, m_wall)
@@ -1122,6 +1138,234 @@ func _populate_building_interior_3d(b_root: Node3D, b_id: String, rect: Rect2, d
 				_add_model_2d(b_root, "props/Table_Large.gltf", c + Vector2(0, -10 if door_south else 10), 2.0, Vector2(28.0, 12.0), 7.5)
 				_add_model_2d(b_root, "props/Cabinet.gltf", c + Vector2(-32, 12 if door_south else -12), 2.0, Vector2(18.0, 10.0), 13.0)
 				_add_model_2d(b_root, "props/Bookcase_2.gltf", c + Vector2(32, 12 if door_south else -12), 2.0, Vector2(18.0, 10.0), 15.0)
+
+# ==============================================================================
+# R1: TRATTORIA «IL CORVO» (comedor, terraza, cocina, cámara frigorífica, bodega, cuarto y reservado)
+# ==============================================================================
+var _restaurant_night_nodes: Array = [] ## bombillas y luces de la terraza: se encienden al caer la tarde
+
+## Mantel de cuadros rojos y blancos (textura de 2×2 píxeles repetida).
+func _checker_cloth_mat() -> StandardMaterial3D:
+	if _mat_cache.has("checker_cloth"):
+		return _mat_cache["checker_cloth"]
+	var m := StandardMaterial3D.new()
+	m.roughness = 0.9
+	if not _is_headless:
+		var img := Image.create(2, 2, false, Image.FORMAT_RGB8)
+		img.set_pixel(0, 0, Color(0.82, 0.14, 0.12))
+		img.set_pixel(1, 1, Color(0.82, 0.14, 0.12))
+		img.set_pixel(1, 0, Color(0.96, 0.94, 0.90))
+		img.set_pixel(0, 1, Color(0.96, 0.94, 0.90))
+		m.albedo_texture = ImageTexture.create_from_image(img)
+		m.texture_filter = BaseMaterial3D.TEXTURE_FILTER_NEAREST
+		m.uv1_triplanar = true
+		m.uv1_scale = Vector3(5.0, 5.0, 5.0)
+	else:
+		m.albedo_color = Color(0.86, 0.4, 0.36)
+	_mat_cache["checker_cloth"] = m
+	return m
+
+func _restaurant_light(parent: Node3D, pos_2d: Vector2, h_px: float, col: Color, energy: float, rng: float, night_only: bool) -> void:
+	if _is_headless:
+		return
+	var lt := OmniLight3D.new()
+	lt.position = to_3d(pos_2d, h_px)
+	lt.light_color = col
+	lt.light_energy = energy
+	lt.omni_range = rng
+	lt.shadow_enabled = false
+	parent.add_child(lt)
+	if night_only:
+		_restaurant_night_nodes.append(lt)
+
+## Mesa con mantel de cuadros, vela en botella y dos sillas.
+func _restaurant_table_3d(parent: Node3D, p: Vector2, m_wood: Material, round_top: bool) -> void:
+	var m_bottle := _mat("chianti_bottle", Color(0.16, 0.42, 0.22, 0.92), 0.2, 0.1)
+	var m_flame := _mat("candle_flame", Color(1.0, 0.78, 0.36), 0.4, 0.0, Color(1.0, 0.66, 0.24), 3.0)
+	var m_wax := _mat("candle_wax", Color(0.96, 0.92, 0.82), 0.7, 0.0)
+	if round_top:
+		_add_cyl_2d(parent, p, 1.4, 2.0, 7.0, m_wood, 1.4, 8)
+		_add_cyl_2d(parent, p, 8.0, 9.0, 0.9, _checker_cloth_mat(), 8.0, 14)
+	else:
+		_add_model_2d(parent, "props/Table_Large.gltf", p, 2.0, Vector2(20, 13), 6.8)
+		_add_box_2d(parent, p, Vector2(21, 14), 8.8, 0.7, _checker_cloth_mat())
+	_add_cyl_2d(parent, p + Vector2(2, 0), 1.6, 9.6, 4.2, m_bottle, 0.7, 8) # botella de vino con la vela
+	_add_cyl_2d(parent, p + Vector2(2, 0), 0.6, 13.8, 1.6, m_wax, 0.6, 6)
+	_add_cyl_2d(parent, p + Vector2(2, 0), 0.4, 15.4, 1.0, m_flame, 0.1, 6)
+	_add_model_2d(parent, "props/Chair_1.gltf", p + Vector2(-13, 0), 2.0, Vector2(6.5, 6.5), 8.5, 90.0)
+	_add_model_2d(parent, "props/Chair_1.gltf", p + Vector2(13, 0), 2.0, Vector2(6.5, 6.5), 8.5, -90.0)
+
+func _build_restaurant_3d(b_root: Node3D, wall_h: float, m_wall: Material, m_trim: Material, m_wood: Material, m_dark_wood: Material, m_iron: Material, m_gold: Material) -> void:
+	var R = VillageRestaurant
+	var ih: float = wall_h * 0.85
+	var m_frost := _mat("frost_tile", Color(0.80, 0.90, 0.96), 0.35, 0.1, Color.BLACK, 0.0, "town_textures/floor_tiles_blue_small.png")
+	var m_ice := _mat("ice_block", Color(0.78, 0.92, 1.0, 0.82), 0.1, 0.0)
+	var m_meat := _mat("hung_meat", Color(0.66, 0.14, 0.12), 0.6, 0.0)
+	var m_fat := _mat("hung_meat_fat", Color(0.92, 0.84, 0.74), 0.7, 0.0)
+	var m_steel := _mat("kitchen_steel", Color(0.70, 0.74, 0.78), 0.3, 0.8)
+	var m_stove := _mat("stove_iron", Color(0.16, 0.16, 0.18), 0.5, 0.7)
+	var m_ember := _mat("stove_ember", Color(1.0, 0.40, 0.12), 0.4, 0.0, Color(1.0, 0.36, 0.08), 2.4)
+	var m_rug := _mat("backroom_rug", Color(0.46, 0.08, 0.10), 0.95, 0.0)
+	var m_felt := _mat("piano_keys", Color(0.95, 0.94, 0.90), 0.6, 0.0)
+	var m_black := _mat("piano_black", Color(0.06, 0.05, 0.05), 0.35, 0.2)
+	var m_tile := _mat("kitchen_tile", Color(0.86, 0.84, 0.78), 0.6, 0.0, Color.BLACK, 0.0, "town_textures/floor_tiles_sand_small.png")
+	var m_terr := _mat("terrace_slabs", Color(0.70, 0.52, 0.40), 0.9, 0.0, Color.BLACK, 0.0, "town_textures/floor_stone_sand_random.png")
+	var m_canvas_g := _mat("parasol_green", Color(0.20, 0.44, 0.26), 0.9, 0.0)
+	var m_canvas_w := _mat("parasol_cream", Color(0.95, 0.90, 0.78), 0.9, 0.0)
+	var m_bulb := _mat("string_bulb", Color(1.0, 0.86, 0.52), 0.3, 0.0, Color(1.0, 0.78, 0.40), 2.6)
+	var m_frame := _mat("painting_frame", Color(0.62, 0.46, 0.18), 0.5, 0.6)
+	var m_canvas_p := _mat("painting_canvas", Color(0.30, 0.22, 0.16), 0.9, 0.0)
+	var m_plant := _mat("pot_plant", Color(0.22, 0.46, 0.20), 0.9, 0.0)
+	var m_pot := _mat("terracotta_pot", Color(0.70, 0.36, 0.22), 0.85, 0.0)
+
+	# --- Tabiques (los mismos huecos que en 2D)
+	var x0: float = R.RECT.position.x
+	var x1: float = R.RECT.end.x
+	var cur: float = x0
+	var gaps: Array[float] = []
+	for o in R.OPENINGS:
+		if str(o["axis"]) == "h":
+			gaps.append(float((o["pos"] as Vector2).x))
+	gaps.sort()
+	for gx in gaps:
+		var a: float = gx - R.GAP * 0.5
+		if a - cur > 2.0:
+			_add_box_2d(b_root, Vector2((cur + a) * 0.5, R.ROW_Y), Vector2(a - cur, 5.5), 2.0, ih, m_wall)
+		_add_box_2d(b_root, Vector2(gx, R.ROW_Y), Vector2(R.GAP + 4.0, 5.5), 2.0 + ih * 0.78, ih * 0.22, m_trim) # dintel
+		cur = gx + R.GAP * 0.5
+	if x1 - cur > 2.0:
+		_add_box_2d(b_root, Vector2((cur + x1) * 0.5, R.ROW_Y), Vector2(x1 - cur, 5.5), 2.0, ih, m_wall)
+	for vx in [1105.0, 1160.0]:
+		_add_box_2d(b_root, Vector2(vx, (R.RECT.position.y + R.ROW_Y) * 0.5), Vector2(5.5, R.ROW_Y - R.RECT.position.y), 2.0, ih, m_wall)
+	var top: float = R.RECT.position.y
+	var bottom: float = R.RECT.end.y
+	var gy: float = 349.0
+	_add_box_2d(b_root, Vector2(R.KITCHEN_X, (top + gy - R.GAP * 0.5) * 0.5), Vector2(5.5, gy - R.GAP * 0.5 - top), 2.0, ih, m_wall)
+	_add_box_2d(b_root, Vector2(R.KITCHEN_X, (gy + R.GAP * 0.5 + bottom) * 0.5), Vector2(5.5, bottom - gy - R.GAP * 0.5), 2.0, ih, m_wall)
+	_add_box_2d(b_root, Vector2(R.KITCHEN_X, gy), Vector2(5.5, R.GAP + 4.0), 2.0 + ih * 0.78, ih * 0.22, m_trim)
+
+	# --- Suelos de cada sala sobre el suelo general (baldosa de barro)
+	_add_box_2d(b_root, R.ROOMS["cocina"].get_center(), R.ROOMS["cocina"].size - Vector2(6, 6), 2.5, 0.4, m_tile)
+	_add_box_2d(b_root, R.ROOMS["camara"].get_center(), R.ROOMS["camara"].size - Vector2(6, 6), 2.5, 0.4, m_frost)
+	_add_box_2d(b_root, R.ROOMS["bodega"].get_center(), R.ROOMS["bodega"].size - Vector2(6, 6), 2.5, 0.4, m_dark_wood)
+	_add_box_2d(b_root, R.BACKROOM_TABLE, Vector2(58, 46), 2.5, 0.4, m_rug)
+
+	# --- Comedor: mesas con mantel de cuadros, barra, piano, cuadros, plantas y dos arañas de luz
+	for t in R.DINING_TABLES:
+		_restaurant_table_3d(b_root, t, m_wood, false)
+	_add_box_2d(b_root, R.COUNTER_POS, Vector2(34, 9), 2.0, 10.0, m_dark_wood) # barra
+	_add_box_2d(b_root, R.COUNTER_POS, Vector2(36, 10.5), 12.0, 1.0, m_gold) # canto de latón
+	_add_model_2d(b_root, "props/Shelf_Small_Bottles.gltf", R.COUNTER_POS + Vector2(4, 12), 2.0, Vector2(18.0, 5.0), 16.0)
+	for bx in [-10.0, -4.0, 8.0]:
+		_add_model_2d(b_root, "props/Bottle_1.gltf", R.COUNTER_POS + Vector2(bx, -1), 13.0, Vector2(2.5, 2.5), 5.0)
+	_add_model_2d(b_root, "props/Mug.gltf", R.COUNTER_POS + Vector2(2, -1), 13.0, Vector2(3.0, 3.0), 3.5)
+	# Piano vertical contra la pared
+	_add_box_2d(b_root, R.PIANO_POS, Vector2(22, 9), 2.0, 16.0, m_black)
+	_add_box_2d(b_root, R.PIANO_POS + Vector2(0, -5.0), Vector2(20, 3), 9.0, 1.2, m_felt)
+	_add_box_2d(b_root, R.PIANO_POS + Vector2(0, -8.0), Vector2(10, 5), 2.0, 6.0, m_dark_wood) # banqueta
+	for pp in [Vector2(1060, 297), Vector2(1170, 297)]: # cuadros en el tabique del fondo
+		_add_box_2d(b_root, pp, Vector2(16, 1.5), 13.0, 11.0, m_frame)
+		_add_box_2d(b_root, pp + Vector2(0, 0.6), Vector2(13, 1.0), 14.5, 8.0, m_canvas_p)
+	for pl_p in [Vector2(1028, 302), Vector2(1207, 302), Vector2(1207, 398)]:
+		_add_cyl_2d(b_root, pl_p, 3.5, 2.0, 5.0, m_pot, 2.8, 10)
+		_add_cyl_2d(b_root, pl_p, 4.5, 7.0, 7.0, m_plant, 1.5, 8)
+	for ch in [Vector2(1066, 346), Vector2(1158, 346)]:
+		_add_model_2d(b_root, "props/Chandelier.gltf", ch, ih - 8.0, Vector2(12.0, 12.0), 7.0)
+		_restaurant_light(b_root, ch, ih - 6.0, Color(1.0, 0.80, 0.52), 1.15, 2.6, false)
+
+	# --- Cocina: fogones con brasas, ollas, encimera, fregadero y cajas de verdura
+	_add_box_2d(b_root, R.STOVE_POS, Vector2(24, 12), 2.0, 10.0, m_stove)
+	_add_box_2d(b_root, R.STOVE_POS, Vector2(20, 9), 12.0, 0.6, m_ember)
+	_add_model_2d(b_root, "props/Cauldron.gltf", R.STOVE_POS + Vector2(-5, 0), 12.0, Vector2(8.0, 8.0), 6.0)
+	_add_model_2d(b_root, "props/Pot_1.gltf", R.STOVE_POS + Vector2(6, 0), 12.0, Vector2(6.0, 6.0), 4.5)
+	_add_box_2d(b_root, R.STOVE_POS + Vector2(0, -8), Vector2(26, 3), 22.0, 10.0, m_steel) # campana
+	_add_model_2d(b_root, "props/Workbench.gltf", R.KITCHEN_COUNTER, 2.0, Vector2(30.0, 10.0), 10.0)
+	_add_box_2d(b_root, Vector2(1230, 330), Vector2(10, 18), 2.0, 9.0, m_steel) # fregadero
+	_add_model_2d(b_root, "props/Bucket_Metal.gltf", Vector2(1230, 344), 2.0, Vector2(5.0, 5.0), 5.0)
+	_add_model_2d(b_root, "props/FarmCrate_Carrot.gltf", Vector2(1286, 362), 2.0, Vector2(9.0, 7.0), 6.0)
+	_add_model_2d(b_root, "props/FarmCrate_Apple.gltf", Vector2(1286, 376), 2.0, Vector2(9.0, 7.0), 6.0)
+	_add_model_2d(b_root, "props/Barrel_Apples.gltf", Vector2(1232, 392), 2.0, Vector2(8.0, 8.0), 9.0)
+	_restaurant_light(b_root, Vector2(1255, 340), ih - 4.0, Color(1.0, 0.92, 0.80), 0.9, 2.2, false)
+
+	# --- Cámara frigorífica: paredes forradas de escarcha, bloques de hielo, carne colgada de un riel y marco de acero
+	var cam: Rect2 = R.ROOMS["camara"]
+	_add_box_2d(b_root, Vector2(cam.get_center().x, cam.position.y + 4.0), Vector2(cam.size.x - 8.0, 2.0), 2.0, ih - 2.0, m_frost)
+	_add_box_2d(b_root, Vector2(cam.end.x - 4.0, cam.get_center().y), Vector2(2.0, cam.size.y - 8.0), 2.0, ih - 2.0, m_frost)
+	_add_box_2d(b_root, Vector2(cam.position.x + 4.0, cam.get_center().y), Vector2(2.0, cam.size.y - 8.0), 2.0, ih - 2.0, m_frost)
+	for ip in [Vector2(1226, 222), Vector2(1226, 236), Vector2(1288, 224), Vector2(1288, 238)]:
+		_add_box_2d(b_root, ip, Vector2(10, 10), 2.0, 8.0, m_ice)
+	_add_box_2d(b_root, Vector2(1262, 232), Vector2(46, 1.5), ih - 5.0, 1.5, m_steel) # riel de ganchos
+	for mp in [Vector2(1246, 232), Vector2(1258, 232), Vector2(1270, 232), Vector2(1280, 232)]:
+		_add_box_2d(b_root, mp, Vector2(0.6, 0.6), ih - 9.0, 4.0, m_steel) # gancho
+		_add_box_2d(b_root, mp, Vector2(5.5, 4.0), ih - 23.0, 14.0, m_meat) # pieza de carne
+		_add_box_2d(b_root, mp + Vector2(0, -1.0), Vector2(5.8, 2.0), ih - 13.0, 3.0, m_fat)
+	_add_model_2d(b_root, "props/Crate_Metal.gltf", Vector2(1284, 270), 2.0, Vector2(10.0, 10.0), 8.0)
+	_add_model_2d(b_root, "props/Crate_Wooden.gltf", Vector2(1284, 258), 10.0, Vector2(8.0, 8.0), 6.0)
+	var cam_gap: Vector2 = Vector2(1255, R.ROW_Y)
+	for side in [-1.0, 1.0]:
+		_add_box_2d(b_root, cam_gap + Vector2(side * (R.GAP * 0.5 + 1.0), 0), Vector2(3.0, 7.0), 2.0, ih, m_steel)
+	_add_box_2d(b_root, cam_gap, Vector2(R.GAP + 6.0, 7.0), 2.0 + ih * 0.78, ih * 0.22, m_steel)
+	_restaurant_light(b_root, cam.get_center(), ih - 4.0, Color(0.62, 0.82, 1.0), 0.75, 1.8, false)
+
+	# --- Bodega: barriles y botellero
+	for bp in [Vector2(1116, 262), Vector2(1116, 276), Vector2(1150, 262)]:
+		_add_model_2d(b_root, "props/Barrel.gltf", bp, 2.0, Vector2(10.0, 10.0), 11.0)
+	_add_model_2d(b_root, "props/Barrel.gltf", Vector2(1116, 269), 13.0, Vector2(9.0, 9.0), 10.0, 90.0)
+	_add_model_2d(b_root, "props/Shelf_Simple.gltf", R.WINE_RACK, 2.0, Vector2(30.0, 6.0), 20.0)
+	for wy in [6.0, 12.0, 18.0]:
+		for wx in [-10.0, -4.0, 2.0, 8.0]:
+			_add_cyl_2d(b_root, R.WINE_RACK + Vector2(wx, 0), 1.0, wy, 3.5, _mat("chianti_bottle", Color(0.16, 0.42, 0.22, 0.92), 0.2, 0.1), 0.5, 6)
+
+	# --- Cuarto del dueño
+	for b in [R.OWNER_BED, R.OWNER_BED2]:
+		_build_bed_3d(b_root, b, m_wood, _mat("bed_linen_green", Color(0.24, 0.42, 0.28), 0.85, 0.0), _mat("bed_pillow", Color(0.94, 0.92, 0.86), 0.85, 0.0))
+	_add_model_2d(b_root, "props/Nightstand_Shelf.gltf", Vector2(1200, 228), 2.0, Vector2(7.0, 6.0), 8.0)
+
+	# --- Reservado: mesa redonda grande, cinco sillas, candelabro, chimenea y luz roja tenue
+	_add_cyl_2d(b_root, R.BACKROOM_TABLE, 2.0, 2.0, 7.0, m_dark_wood, 2.0, 8)
+	_add_cyl_2d(b_root, R.BACKROOM_TABLE, 15.0, 9.0, 1.0, _mat("backroom_cloth", Color(0.92, 0.90, 0.84), 0.9, 0.0), 15.0, 18)
+	_add_model_2d(b_root, "props/CandleStick_Triple.gltf", R.BACKROOM_TABLE, 10.0, Vector2(5.0, 5.0), 7.0)
+	for i in range(5):
+		var ang: float = TAU * float(i) / 5.0 + PI * 0.5
+		var cp: Vector2 = R.BACKROOM_TABLE + Vector2(cos(ang), sin(ang)) * 21.0
+		_add_model_2d(b_root, "props/Chair_1.gltf", cp, 2.0, Vector2(6.5, 6.5), 8.5, rad_to_deg(-ang) - 90.0)
+	_add_box_2d(b_root, Vector2(1028, 226), Vector2(9, 18), 2.0, 16.0, _mat("fireplace_stone", Color(0.50, 0.46, 0.42), 0.9, 0.0))
+	_add_box_2d(b_root, Vector2(1031, 226), Vector2(3, 12), 3.0, 6.0, m_ember)
+	_restaurant_light(b_root, R.BACKROOM_TABLE, ih - 8.0, Color(1.0, 0.46, 0.30), 0.85, 1.8, false)
+
+	# --- Terraza: losas, mesas con sombrilla, macetas, guirnalda de bombillas, toldo verde y letrero
+	_add_box_2d(b_root, R.TERRACE.get_center(), R.TERRACE.size, 0.0, 1.2, m_terr)
+	for t in R.TERRACE_TABLES:
+		_restaurant_table_3d(b_root, t, m_wood, true)
+		_add_cyl_2d(b_root, t, 0.6, 9.0, 18.0, m_wood, 0.6, 6) # palo de la sombrilla
+		_add_cyl_2d(b_root, t, 13.0, 27.0, 4.0, m_canvas_g if (int(t.x) % 2 == 0) else m_canvas_w, 0.8, 12)
+	for pp in [Vector2(1024, 446), Vector2(1300, 446), Vector2(1100, 446), Vector2(1140, 446)]:
+		_add_cyl_2d(b_root, pp, 3.8, 1.2, 5.5, m_pot, 3.0, 10) # maceta de barro
+		_add_cyl_2d(b_root, pp, 3.2, 6.5, 3.0, m_plant, 5.0, 10) # mata redonda
+		_add_cyl_2d(b_root, pp, 5.0, 9.5, 3.5, m_plant, 2.0, 10)
+	# Postes y guirnalda de bombillas a lo largo de la terraza (se encienden al caer la tarde)
+	var posts: Array[Vector2] = [Vector2(1022, 448), Vector2(1100, 448), Vector2(1140, 448), Vector2(1228, 448), Vector2(1322, 448)]
+	for pi in range(posts.size()):
+		_add_cyl_2d(b_root, posts[pi], 0.8, 1.2, 30.0, m_iron, 0.8, 6)
+		if pi + 1 < posts.size():
+			var a2: Vector2 = posts[pi]
+			var b2: Vector2 = posts[pi + 1]
+			for k in range(1, 6):
+				var tk: float = float(k) / 6.0
+				var sag: float = 4.0 * sin(tk * PI)
+				var bulb := _add_cyl_2d(b_root, a2.lerp(b2, tk), 0.9, 29.0 - sag, 1.6, m_bulb, 0.9, 6)
+				_restaurant_night_nodes.append(bulb)
+	_restaurant_light(b_root, Vector2(1080, 430), 26.0, Color(1.0, 0.80, 0.46), 0.9, 2.4, true)
+	_restaurant_light(b_root, Vector2(1230, 430), 26.0, Color(1.0, 0.80, 0.46), 0.9, 2.4, true)
+	# Toldo verde sobre la puerta y letrero
+	var door_c: Vector2 = Vector2(R.DOOR_X, R.RECT.end.y + 6.0)
+	_add_box_2d(b_root, door_c, Vector2(R.DOOR_W + 26.0, 12.0), wall_h * 0.72, 2.0, m_canvas_g)
+	_add_box_2d(b_root, door_c + Vector2(0, 6.0), Vector2(R.DOOR_W + 26.0, 1.0), wall_h * 0.72 - 3.0, 3.0, m_canvas_w)
+	_add_model_2d(b_root, "fantasy_town/banner-red.glb", Vector2(R.DOOR_X + 34.0, R.RECT.end.y + 2.0), wall_h * 0.45, Vector2(8.0, 3.0), 14.0)
+	_add_model_2d(b_root, "props/Lantern_Wall.gltf", Vector2(R.DOOR_X - 24.0, R.RECT.end.y + 2.0), wall_h * 0.55, Vector2(4.0, 4.0), 6.0)
+	_add_model_2d(b_root, "props/Lantern_Wall.gltf", Vector2(R.DOOR_X + 24.0, R.RECT.end.y + 2.0), wall_h * 0.55, Vector2(4.0, 4.0), 6.0)
+	# Sendero desde el camino del este
+	_add_box_2d(b_root, R.PATH_RECT.get_center(), R.PATH_RECT.size, 0.0, 0.8, m_terr)
 
 func _build_bed_3d(parent: Node3D, pos_2d: Vector2, m_frame: Material, m_blanket: Material, m_pillow: Material) -> void:
 	if not _is_headless:
@@ -1760,6 +2004,12 @@ func _update_roof_cutaways_and_lighting() -> void:
 		else:
 			sun_light.light_energy = 1.14
 			sun_light.light_color = Color(1.0, 0.96, 0.88)
+
+	# R1: la terraza de la trattoria enciende su guirnalda de bombillas al caer la tarde (17:00–2:00)
+	var terrace_on: bool = hour >= 17 or hour < 2
+	for rn in _restaurant_night_nodes:
+		if is_instance_valid(rn):
+			(rn as Node3D).visible = terrace_on
 
 	# Con el circuito de farolas cortado (sabotaje), las calles quedan a oscuras también de noche.
 	var lamps_lit: bool = VillageCulture.is_lamps_powered(vm) and (is_night or grid_on)

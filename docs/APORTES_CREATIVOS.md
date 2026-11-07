@@ -306,3 +306,10 @@ o vino ya dado. Conviene confirmarlo.
 
 **Dónde:** `scripts/systems/combat/WeaponWear.gd`, `VillageNPC.disarm`, `HealthComponent` (nombre de la herida).
 **Depende:** solo los textos; los números (precio, desgaste) están en `WeaponWear.gd`.
+
+## Trattoria «Il Corvo» (R1, provisional)
+- Nombre «🍝 Trattoria 'Il Corvo'», familia «Corvo», oficio «Cocinero»; platos «Tallarines de la Casa» y «Carne Estofada al Vino»;
+  frase del cocinero «…la mesa del fondo está reservada: no pregunte para quién.»
+
+**Dónde:** `scripts/systems/VillageRestaurant.gd`, `SimpleInventory.CATALOG`, `NPCDialogue.gd` (rama del cocinero).
+**Depende:** solo los textos; la Familia (R2) usará el reservado, no el nombre.

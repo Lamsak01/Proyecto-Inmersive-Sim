@@ -42,7 +42,8 @@ const STYLE_BY_ROLE: Dictionary = {
 	18: ["Vellón de Pasto Alto", "Crianza de Monte", "Cuero Engrasado"], # RANCHER
 	19: ["Sillar Escuadrado", "Corte de Veta Gris", "Piedra Pulida a Cincel"], # QUARRYMAN
 	20: ["Leña Secada al Viento", "Viga de Pino Viejo", "Corte de Hacha Limpia"], # WOODCUTTER
-	21: ["Engranaje de Precisión", "Soldadura de Latón", "Resorte Templado"] # TINKER
+	21: ["Engranaje de Precisión", "Soldadura de Latón", "Resorte Templado"], # TINKER
+	25: ["Salsa de la Nonna", "Pasta Tirada a Mano", "Guiso de Domingo"] # RESTAURATEUR
 }
 
 static func state(vm) -> Dictionary:

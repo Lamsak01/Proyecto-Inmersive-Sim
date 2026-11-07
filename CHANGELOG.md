@@ -3,6 +3,14 @@
 Cambios del juego, del más nuevo al más antiguo. Añade una entrada al cerrar cada bloque, en lenguaje sencillo.
 El detalle técnico está en `docs/HANDOFF.md` (sección 7) y el historial completo en `git log`. Lo anterior a B0.1 está en `AUDIT_LOG.md` y `SESSION_CONTEXT_LOG.md`.
 
+## 2026-11-06 — Trattoria «Il Corvo»
+- **Nuevo restaurante italiano al este del pueblo**, grande y con varias salas: comedor con mesas de mantel a cuadros,
+  velas, barra y piano; cocina con fogón y campana; cámara fría con hielo y carne colgada; bodega de vinos; el cuarto
+  del dueño; y un **reservado** al fondo con mesa redonda, chimenea y luz roja, donde «no se pregunta para quién es».
+- **Terraza** con mesas, sombrillas, macetas y guirnalda de bombillas que se enciende al caer la tarde.
+- Un vecino recién llegado se hace cargo como cocinero: vende tallarines y carne estofada al vino, y compra trigo y carne.
+- Es la primera pieza del crimen dentro del pueblo: aquí se reunirá más adelante «la Familia».
+
 ## 2026-11-06 — Rodar ya no ataca
 - **El Espacio solo sirve para rodar.** Antes, al rodar también soltabas un golpe, y si estabas detrás de alguien
   ¡podías rematarlo por sigilo sin querer! Se ataca con el clic izquierdo (o con Intro).

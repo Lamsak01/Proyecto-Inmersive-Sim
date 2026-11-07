@@ -39,11 +39,12 @@ enum TradeRole {
 	TINKER,             # 21. Arreglador del Taller de Reparaciones (V5e): arregla tiendas saboteadas
 	NOBLE,              # 22. Señor del valle, su familia y los rentistas (V6): viven de rentas, no del oficio
 	CHILD,              # 23. Niño o niña (V9): nace en el pueblo, va a la escuela y a los 16 busca su sitio
-	TEACHER             # 24. Maestro de la escuela (V9): llega cuando hay niños en edad de ir
+	TEACHER,            # 24. Maestro de la escuela (V9): llega cuando hay niños en edad de ir
+	RESTAURATEUR        # 25. Cocinero de la Trattoria «Il Corvo» (R1): comedor, terraza, cocina y cámara frigorífica
 }
 
 ## Oficios con taller y mostrador propios (V5: lista común para no repetirla en cada sitio)
-const SHOP_ROLES: Array = [TradeRole.BLACKSMITH, TradeRole.BUTCHER, TradeRole.CARPENTER, TradeRole.HERBALIST, TradeRole.FISHMONGER, TradeRole.BAKER, TradeRole.TAILOR, TradeRole.LODGEKEEPER, TradeRole.FARMER, TradeRole.RANCHER, TradeRole.QUARRYMAN, TradeRole.WOODCUTTER, TradeRole.TINKER]
+const SHOP_ROLES: Array = [TradeRole.BLACKSMITH, TradeRole.BUTCHER, TradeRole.CARPENTER, TradeRole.HERBALIST, TradeRole.FISHMONGER, TradeRole.BAKER, TradeRole.TAILOR, TradeRole.LODGEKEEPER, TradeRole.FARMER, TradeRole.RANCHER, TradeRole.QUARRYMAN, TradeRole.WOODCUTTER, TradeRole.TINKER, TradeRole.RESTAURATEUR]
 
 enum ActivityState {
 	WORKING,     # Atendiendo su taller, ayudando en casa o paseando
@@ -316,7 +317,7 @@ const ROLE_INITIAL_GOLD: Dictionary = {
 	TradeRole.BUTCHER: Vector2i(48, 72), TradeRole.CARPENTER: Vector2i(48, 72),
 	TradeRole.HERBALIST: Vector2i(48, 72), TradeRole.FISHMONGER: Vector2i(48, 72),
 	TradeRole.BAKER: Vector2i(40, 62), TradeRole.TAILOR: Vector2i(48, 72), TradeRole.LODGEKEEPER: Vector2i(36, 58),
-	TradeRole.FARMER: Vector2i(55, 80), TradeRole.RANCHER: Vector2i(55, 80), TradeRole.QUARRYMAN: Vector2i(45, 70), TradeRole.WOODCUTTER: Vector2i(40, 62), TradeRole.TINKER: Vector2i(45, 70), TradeRole.NOBLE: Vector2i(200, 300), TradeRole.CHILD: Vector2i(0, 0), TradeRole.TEACHER: Vector2i(30, 50),
+	TradeRole.FARMER: Vector2i(55, 80), TradeRole.RANCHER: Vector2i(55, 80), TradeRole.QUARRYMAN: Vector2i(45, 70), TradeRole.WOODCUTTER: Vector2i(40, 62), TradeRole.TINKER: Vector2i(45, 70), TradeRole.NOBLE: Vector2i(200, 300), TradeRole.CHILD: Vector2i(0, 0), TradeRole.TEACHER: Vector2i(30, 50), TradeRole.RESTAURATEUR: Vector2i(50, 76),
 	TradeRole.DOCTOR: Vector2i(52, 78), TradeRole.SHERIFF: Vector2i(52, 78), TradeRole.GUARD: Vector2i(52, 78),
 	TradeRole.FAMILY_MEMBER: Vector2i(26, 44), TradeRole.TRAVELING_MERCHANT: Vector2i(172, 238), TradeRole.ROYAL_INVESTIGATOR: Vector2i(110, 155),
 }
@@ -327,7 +328,7 @@ const ROLE_INITIAL_MATERIALS: Dictionary = {
 	TradeRole.FISHMONGER: {"wood": 1, "herbal_poultice": 1}, TradeRole.INNKEEPER: {"cooked_meat": 1, "bread": 1},
 	TradeRole.DOCTOR: {"herbal_poultice": 2, "leather": 1},
 	TradeRole.BAKER: {"bread": 1, "wood": 1}, TradeRole.TAILOR: {"leather": 2}, TradeRole.LODGEKEEPER: {"cooked_meat": 1},
-	TradeRole.FARMER: {"fertilizer": 1}, TradeRole.RANCHER: {"wheat": 1}, TradeRole.QUARRYMAN: {"repair_kit": 1}, TradeRole.WOODCUTTER: {"repair_kit": 1}, TradeRole.TINKER: {"iron_ore": 1},
+	TradeRole.FARMER: {"fertilizer": 1}, TradeRole.RANCHER: {"wheat": 1}, TradeRole.QUARRYMAN: {"repair_kit": 1}, TradeRole.WOODCUTTER: {"repair_kit": 1}, TradeRole.TINKER: {"iron_ore": 1}, TradeRole.RESTAURATEUR: {"wheat": 1, "raw_meat": 1},
 }
 
 const ROLE_PSYCHOLOGY: Dictionary = {
@@ -347,6 +348,7 @@ const ROLE_PSYCHOLOGY: Dictionary = {
 	TradeRole.CHILD: [["Juguetón", "Curioso"], "bread", ["Jugando con los demás (+6)"]],
 	TradeRole.TEACHER: [["Paciente", "Curioso"], "bread", ["Los niños aprenden (+5)"]],
 	TradeRole.LODGEKEEPER: [["Hospitalario", "Sencillo"], "country_stew", ["Hay luz en El Candil (+5)"]],
+	TradeRole.RESTAURATEUR: [["Hospitalario", "Perfeccionista"], "pasta_dish", ["El comedor está lleno (+6)"]],
 	TradeRole.TAILOR: [["Perfeccionista", "Coqueto"], "clothes", ["Una costura perfecta (+6)"]],
 	TradeRole.DOCTOR: [["Cirujano Experto", "Forense Meticuloso"], "surgical_kit", ["Urgencias y morgue en orden (+8)"]],
 	TradeRole.SHERIFF: [["Justiciero", "Observador"], "cooked_meat", ["Vigilando la ley en el valle (+7)"]],
@@ -384,6 +386,7 @@ const ROLE_FALLBACK_LORE: Dictionary = {
 	TradeRole.TINKER: ["kael", "sora", "Arreglador que remienda lo que se rompe en el pueblo: puestos, herramientas y cerrojos."],
 	TradeRole.WOODCUTTER: ["bram", "mila", "Leñador que corta madera en la linde del bosque para carpinteros, hornos y hogares."],
 	TradeRole.LODGEKEEPER: ["dario", "nora", "Posadero modesto que alquila camas baratas a quien no puede pagar El Jabalí Dorado."],
+	TradeRole.RESTAURATEUR: ["marlo", "mila", "Cocinero que regenta la Trattoria «Il Corvo»: pasta casera, carne al vino y una mesa al fondo para quien no quiere ser visto."],
 	TradeRole.BAKER: ["marlo", "marta", "Panadero llegado de un valle vecino para encender el horno de la calle norte y dar pan a casas y posadas."],
 	TradeRole.TAILOR: ["dario", "mila", "Sastre de mano fina que remienda la ropa del pueblo y cose prendas nuevas para quien pueda pagarlas."],
 	TradeRole.HERBALIST: ["tomas", "elena", "Herborista y botánico rural dedicado al cultivo de semillas y a la preparación de cataplasmas medicinales."],
@@ -3196,7 +3199,7 @@ func _update_needs_and_decisions(delta: float) -> void:
 var _npc_env_sickness_timer: float = 0.0
 
 func _consume_pocket_meal_if_any() -> bool:
-	var priority_foods: Array[String] = ["poisoned_stew", "spoiled_food", "country_stew", "roasted_chicken", "cooked_meat", "cooked_fish", "fried_frog_legs", "royal_ration", "bread", "raw_meat", "raw_chicken"]
+	var priority_foods: Array[String] = ["poisoned_stew", "spoiled_food", "braised_meat", "pasta_dish", "country_stew", "roasted_chicken", "cooked_meat", "cooked_fish", "fried_frog_legs", "royal_ration", "bread", "raw_meat", "raw_chicken"]
 	for fid in priority_foods:
 		if has_pocket_item(fid, 1):
 			remove_pocket_item(fid, 1)
@@ -3282,6 +3285,7 @@ const ARTISAN_RECIPES: Dictionary = {
 	TradeRole.BAKER: [{"output": "bread", "label": "Hogaza", "verb": "🍞 Horneando", "input": "bread", "supplier": int(TradeRole.FISHMONGER), "input_name": "Harina"}, {"output": "bread", "label": "Pan de Leña", "verb": "🔥 Avivando el horno", "input": "wood", "supplier": int(TradeRole.CARPENTER), "input_name": "Leña"}, {"output": "bread", "label": "Pan de Trigo", "verb": "🍞 Amasando", "input": "wheat", "supplier": int(TradeRole.FARMER), "input_name": "Trigo"}],
 	TradeRole.TAILOR: [{"output": "clothes", "label": "Ropa", "verb": "🧵 Cosiendo", "input": "leather", "supplier": int(TradeRole.BUTCHER), "input_name": "Cuero"}, {"output": "clothes", "label": "Ropa de Lana", "verb": "🧶 Tejiendo", "input": "wool", "supplier": int(TradeRole.RANCHER), "input_name": "Lana"}],
 	TradeRole.LODGEKEEPER: [{"output": "country_stew", "label": "Estofado", "verb": "🍲 Guisando", "input": "cooked_meat", "supplier": int(TradeRole.BUTCHER), "input_name": "Carne"}],
+	TradeRole.RESTAURATEUR: [{"output": "pasta_dish", "label": "Tallarines", "verb": "🍝 Amasando la pasta", "input": "wheat", "supplier": int(TradeRole.FARMER), "input_name": "Trigo"}, {"output": "braised_meat", "label": "Carne al vino", "verb": "🍷 Guisando carne al vino", "input": "raw_meat", "supplier": int(TradeRole.RANCHER), "input_name": "Carne"}],
 	TradeRole.FARMER: [{"output": "wheat", "label": "Trigo", "verb": "🌾 Segando", "input": "fertilizer", "supplier": int(TradeRole.FISHMONGER), "input_name": "Abono"}, {"output": "carrot", "label": "Zanahorias", "verb": "🥕 Recogiendo", "input": "fertilizer", "supplier": int(TradeRole.FISHMONGER), "input_name": "Abono"}],
 	TradeRole.RANCHER: [{"output": "wool", "label": "Lana", "verb": "🐑 Esquilando", "input": "wheat", "supplier": int(TradeRole.FARMER), "input_name": "Pienso"}, {"output": "raw_meat", "label": "Carne", "verb": "🐖 Cuidando el ganado", "input": "wheat", "supplier": int(TradeRole.FARMER), "input_name": "Pienso"}],
 	TradeRole.QUARRYMAN: [{"output": "stone", "label": "Piedra", "verb": "⛏️ Picando piedra", "input": "repair_kit", "supplier": int(TradeRole.BLACKSMITH), "input_name": "Herramientas"}],

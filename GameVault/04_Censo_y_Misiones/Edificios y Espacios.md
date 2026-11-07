@@ -22,6 +22,7 @@ fuente: "Biblia §10.2"
    - **Gran Posada y Casino «El Jabalí Dorado»** (sur).
    - **Segunda Posada «El Candil»** (norte, para absorber viajeros e inmigrantes cuando crece la población).
    - **Albergue del Alba:** Refugio gratuito con camas comunitarias y **reparto matutino de gachas solidarias** para pobres y mendigos.
+   - **Trattoria «Il Corvo»** (este, junto al cementerio): restaurante italiano de seis salas con terraza; su reservado será el lugar de reunión de la Familia ([[Trattoria Il Corvo]]).
 4. **Productores Primarios de las Afueras (`Bloque F`):**
    - **Granja del Sur** (cultivo extensivo de grano y hortalizas).
    - **Rancho del Sur** (cría de ganado, leche, lana, cuero y caballos).

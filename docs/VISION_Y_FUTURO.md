@@ -117,6 +117,8 @@ Estado: **✅ HECHO** = ya construido y funcionando en el juego. **🟡 EN PARTE
 - ✅ **HECHO** — Ladrones (robos nocturnos a vecinos, tiendas o al jugador, testigos, denuncias y devolución con multa o soborno). *(Hecho en E4.)*
 - ⏸️ **EN PAUSA (usuario, 2026-11-06)** — Asaltos de bandidos y jabalíes al pueblo: «poco realista». El código sigue (`VillageCulture.RAIDS_ENABLED = false`) por si cambia de opinión. Medido antes de pausar: casi nunca llegaban (arcas < ~400 → nunca) y el pueblo ganaba 21 de 24 sin el jugador.
 - 💡 **IDEA (usuario, 2026-11-06)** — El crimen debe ser **dentro del pueblo**: robos y mafias que sepan **mantener un perfil bajo** (que no se note quién manda, que eviten testigos y que la guardia no los vea venir), en vez de amenazas de fuera.
+  - 🟡 **EN MARCHA (2026-11-06)** — Plan acordado: R1 restaurante «Il Corvo» ✅ → R2 «la Familia» (un jefe ambicioso y persuasivo recluta a 2–4 vecinos y se reúnen de noche en el reservado) → R3 negocios discretos (protección, préstamos, blanqueo por la caja, soborno al guardia, sin testigos) → R4 el jugador nota señales, escucha, hace favores o reúne pruebas.
+  - 💡 **IDEA (Claude Code, 2026-11-06)** — El cocinero baja a la cámara fría a por carne y los vecinos cenan en el restaurante y la terraza por la tarde (R1b).
 - 💡 **PENDIENTE** — Prostitución. *(Recomendación: solo implícita, fuera de cámara, como oficio y hecho social; nunca explícita. Se puede quitar sin perder nada importante.)*
 - ✅ **HECHO** — Clases sociales: nobles, ricos, acomodados, humildes, pobres y mendigos (con limosna en la plaza, Albergue del Alba y raciones de gachas). *(Hecho en E3, V5b, V6 y J4.)*
 
