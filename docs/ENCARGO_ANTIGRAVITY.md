@@ -1,55 +1,135 @@
-# Encargo para Antigravity (Claude Code, supervisor) — Herramientas del detective
+# Encargo para Antigravity (Claude Code, supervisor) — Arreglos, entorno grande, taberna y edificios
 
-> Fecha: 2026-11-07. Trabaja en autónomo, bloque a bloque y en orden. Es **el eje del bucle jugable** (el usuario
-> eligió «detective»): tiene que quedar muy bien. Lee antes `docs/ESTADO_DEL_JUEGO.md` y `docs/PLAN_BETA_MISTERIO.md` §6.
-
-## La referencia visual (obligatoria)
-Abre `docs/bocetos/examen_cuerpo.html` en el navegador: es el boceto **aprobado por el usuario** («me encanta»).
-Cópialo lo más fiel posible en Godot (colores, tipografías parecidas, libreta de papel a la derecha, fichas con
-chincheta abajo, tablero de corcho con hilo rojo). Silueta **plana**, sin líneas interiores ni cara; **dos modelos,
-mujer y hombre**, según la víctima; el pelo de la mujer cae detrás de la cabeza.
+> Fecha: 2026-11-07. Sustituye al encargo D1–D5 (cerrado y revisado). Lee antes `docs/DIRECTIVAS_ANTIGRAVITY.md` y
+> `docs/FALLOS_VISIBLES.md`. Trabaja en autónomo, en el orden de abajo, un bloque cada vez (commit y push por bloque).
+> **Para solo en el punto marcado con ⛔** (bocetos de edificios) y espera al usuario.
 
 ## Reglas
-- **CAMBIO (2026-11-07):** al final pasa SOLO `verify_all` (900 s), no las otras tres; y haz un recorrido de
-  capturas de las pantallas nuevas y de la plaza/morgue de día y de noche, y míralas antes de dar por terminado.
-  Mira también `docs/FALLOS_VISIBLES.md`.
 - No toques `scripts/systems/VillageSect.gd`, `GameVault/03_La_Secta/`, el Lore provisional, `GameVault/99_Archivo/`,
-  `GameVault/.obsidian/` ni `.claude/`. Las 7 Reglas de las Auditorías (cercanía física, testigos, todo puede fallar).
-- Aprovecha lo que ya existe; no lo dupliques: heridas por zonas y su causa (`HealthComponent`, `wounds`),
-  venenos e intoxicaciones, `VillageForensics` (escena, sangre, huellas, lejía), la morgue y la autopsia, testigos y
-  chismes (`known_by`, `sighting_log`, `GossipMemory`), interrogatorio y juicio (`VillageJustice`), registro de
-  misiones. Lo que ve el jugador sale de los datos reales del muerto, no de textos fijos (salvo en casos guionizados).
-- **Pruebas:** no las pases mientras programas; solo comprueba que arranca sin errores de script
-  (`timeout 120 flatpak run org.godotengine.Godot --headless --path . --quit-after 300`). Al terminar TODO, pasa una a
-  una y siempre con `timeout`: verify_all (900 s), social_sim (900), dialogue_coverage (600), feature_probe -- 5 11 (1200).
-  EXIT 124 = colgada por un assert: busca `Assertion failed`, arregla y repite (máx. 2 veces).
-- Al cerrar cada bloque: HANDOFF §7, CHANGELOG, REGISTRO_TRABAJO, nota del vault (`Investigación Forense.md`),
-  Tablero, diario, APORTES_CREATIVOS para textos nuevos; commit y push a `main`. Al final, informe nuevo en
-  `docs/INFORME_ANTIGRAVITY.md` con **capturas** de cada pantalla en `docs/capturas_detective/`.
+  `GameVault/.obsidian/` ni `.claude/`. Las 7 Reglas de las Auditorías. Nada de teletransportes.
+- Mientras programas, solo comprueba que arranca sin errores de script
+  (`timeout 120 flatpak run org.godotengine.Godot --headless --path . --quit-after 300`). Las pruebas de verdad, solo
+  en los momentos de «Cuándo probar». EXIT 124 = colgada por un assert: busca `Assertion failed`, arregla, repite (máx. 2).
+- Cada arreglo de `FALLOS_VISIBLES.md`: márcalo ✅ con la fecha (no lo borres).
+- Al cerrar cada bloque: HANDOFF §7, CHANGELOG, REGISTRO_TRABAJO, nota del vault del sistema tocado, Tablero, diario,
+  APORTES_CREATIVOS si hay textos nuevos; commit y push a `main`.
+- Informe: al acabar cada paso del orden, añade una sección a `docs/INFORME_ANTIGRAVITY.md` con capturas en
+  `docs/capturas_<paso>/` y **qué viste en ellas**. Separa lo comprobado de lo supuesto. No describas cosas que no
+  se ven en pantalla (en D1–D5 el informe hablaba de 5 pestañas, retrato y barra de deterioro que no aparecen).
 
-## Bloques
-**D1 — Examen del cuerpo en la escena.** Con E junto a un cadáver se abre la pantalla (pausa el reloj del mundo solo lo
-justo; cada acción suma minutos de juego). Zonas: cabeza, cuello, torso, brazos, manos, piernas, bolsillos; acciones
-mirar / palpar / oler / lupa (si la llevas) / registrar. Solo lo **superficial** (golpes, cortes, marcas, olores,
-objetos, causa obvia); lo interno queda «hace falta la morgue». Las marcas descubiertas se dibujan sobre la silueta.
-**Fondo real:** al abrir, saca una imagen desde arriba del sitio del cuerpo con la vista 3D (sin vecinos ni jugador,
-como `tools/tests/shot_probe.gd`) y pásala a **esquema** (oscura, casi sin color, bordes marcados tipo plano a tinta,
-p. ej. con un shader de posterizado + detección de bordes). Si falla la captura (headless), un fondo liso.
+## Paso 1 — Arreglos rápidos (en este orden)
+**1a. Examen de muertos que no son de un caso (lo primero).** Hoy copia las pistas de «La mujer del bosque»: el usuario
+mató con sigilo al carnicero Garrick y el examen dijo muñecas atadas, cáñamo, barro del vestido y olor a ceniza.
+- Solo los casos guionizados usan pistas fijas. Cualquier otro muerto se describe **con lo que pasó de verdad**:
+  heridas guardadas (zona, arma o golpe, por la espalda, caída, veneno), hora y sitio de la muerte, clima, lo que
+  llevaba encima. Si una zona no tiene nada: «nada fuera de lo normal».
+- Textos según hombre o mujer. Sin marcas inventadas.
+- Prueba propia (una sola, nueva o dentro de una existente): matar a un vecino con un arma concreta por la espalda y
+  comprobar que el examen dice eso y no menciona nada del caso 1.
 
-**D2 — Autopsia en la morgue.** Con el cuerpo en la morgue y el forense presente. Pruebas por pasos donde se puede
-fallar: sangre (de dónde sacarla, reactivo, leer el color; muestra limitada, el reactivo equivocado gasta), cuello
-(corte lento o rápido: el rápido estropea), estómago (guardar o tirar el contenido), piel y rigidez (manchas que
-dicen si lo movieron, rigidez rara). Consejo del forense a cambio de tiempo. La **causa real** se va completando.
+**1b. Revisión de Claude a D1–D5:**
+- **Fondo del examen y de la escena:** hoy es un «ruido» de bordes ilegible y además saca suelo de interior/edificio
+  en vez del sitio real (el claro del arroyo). Hacer un esquema limpio y sencillo (pocas líneas, como el boceto
+  `docs/bocetos/examen_cuerpo.html`) del sitio real. Comprueba que la cámara apunta al cuerpo y no a un tejado.
+- **Tablero:** los hilos no deben tapar el texto: que salgan y lleguen a las chinchetas, y coloca las fichas para que
+  no se crucen sobre ellas.
+- **Informe/vista:** o se añaden de verdad las pestañas, el retrato y la barra de deterioro, o se quitan del informe.
+  Recomendación: añadir la barra de deterioro (da tensión de tiempo) y quitar del informe lo demás.
 
-**D3 — Escena del crimen.** Misma idea de fondo real. A oscuras; las pistas solo se ven bajo el farol del jugador
-(el ratón mueve la luz). Pistas reales de `VillageForensics` y del lugar (sangre o su ausencia, arrastre, huellas,
-objetos). Testigos cercanos: preguntar y presionar (presionar puede cerrarlos según su carácter y su relación contigo).
+**1c. Fallos visibles pequeños:** libro gigante en la mano (Anselmo y la maestra), ropa que atraviesa el cuerpo
+(hombro del guardia), conos de depuración de los sapos, letreros encimados («Esquilando lana» sobre «Rancho del
+Sur»; letrero del Parque del Roble tapado), no andar sobre el agua, cama de la trattoria → despacho del dueño,
+lápidas del tamaño de camas.
 
-**D4 — Cuaderno y tablero del caso.** Todo hallazgo se puede anotar como ficha (cuaderno abajo, como el boceto).
-Tablero de corcho (tecla propia libre; dila en el informe) con sospechosos y fichas: arrastrar y unir con hilo rojo,
-quitar hilos. Se guarda con la partida. El tablero **no** dice quién es el culpable: solo ordena lo que sabes.
+**Al acabar el paso 1:** `verify_all` (900 s) + capturas del examen (un muerto de caso y uno normal), del tablero y de
+cada fallo arreglado, de día y de noche.
 
-**D5 — Preparado para 10 casos guionizados.** Formato de datos de un caso en su propio archivo (pistas fijas, papeles
-que se reparten entre vecinos reales, diálogos y sucesos propios), usado por D1–D4 sin tocar su código. Crea solo el
-esqueleto de «La mujer del bosque» con las pistas de los bocetos; los huecos de la trama **no** los inventes: déjalos
-marcados como pendientes del usuario.
+## Pasos 2 a 6 — orden acordado con el usuario (2026-11-07)
+
+1. **Arreglos rápidos (detalle arriba, en «Paso 1»):** **LO PRIMERO: el examen de muertos que no son de un caso** debe salir de sus heridas reales
+   (ver `FALLOS_VISIBLES.md`, el carnicero matado con sigilo salió con muñecas atadas y cáñamo). **(revisión de Claude a D1–D5)** el fondo del examen y de la escena es un «ruido» de bordes
+   ilegible y muestra suelo de interior/edificio, no el claro del arroyo: hacer un esquema limpio y sencillo del sitio
+   real (pocas líneas, como el boceto); en el tablero, que los hilos no tapen el texto (pasar por las chinchetas y
+   colocar las fichas sin cruzar); el informe decía 5 pestañas y retrato/barra de deterioro que no se ven: corregir el
+   informe o la vista. Además: ropa/peinados variados, libro gigante, ropa que atraviesa, conos de depuración de los sapos,
+   letreros encimados, no andar sobre el agua, cama de la trattoria → despacho.
+2. **Agrandar y separar el entorno** (sección «Agrandar lo de alrededor»): campamento, bosque, llanura/ciénaga,
+   animales repartidos, lago (un muelle, sin lavadero), parque, huerto fuera del camino, trattoria lejos del cementerio.
+3. **Taberna de 2 pisos** (requisitos abajo).
+4. **Ambiente:** cielo con nubes y hora, suelo con textura, árboles nuevos, niebla.
+5. **Edificios uno a uno:** comisaría, morgue, capilla, biblioteca («Leer» real), alcantarillas con peleas, rancho
+   poblado, tablón legible, puertas distintas.
+6. **Sapos en 3D** basados en su sprite.
+
+### Feedback del usuario en los interiores (orden del usuario, 2026-11-07)
+- **Taberna:** el usuario ya dio sus requisitos; constrúyela directamente y enséñale capturas al terminar.
+- ⛔ **Paso 5 (resto de edificios):** ANTES de construir ninguno, escribe `docs/BOCETOS_EDIFICIOS.md` con un boceto
+  corto de **todos** (por edificio: salas, muebles principales, quién está dentro y qué hace ahí, qué puede hacer el
+  jugador). Para ahí y avisa al usuario. Cuando lo corrija, construye todos seguidos sin pararte y deja capturas de
+  cada uno al acabarlo. No le preguntes mueble a mueble.
+
+### Cuándo probar (orden del usuario: solo cuando haga falta, no tras cada paso)
+- **Tras el paso 1:** una vez `verify_all` (toca vecinos) + capturas.
+- **Tras el paso 2:** `verify_all` + **recorrido de capturas largo mirado** (es el cambio más arriesgado: caminos,
+  vecinos que se atascan, cosas fuera de sitio). Si algo se rompe aquí, arreglarlo antes de seguir.
+- **Tras el paso 3:** `verify_all` + capturas de los dos pisos y de vecinos subiendo/bajando y comiendo.
+- **Paso 4:** solo capturas (es visual, no toca reglas).
+- **Paso 5:** capturas de cada edificio al terminarlo; `verify_all` **una vez al acabar todos**.
+- **Paso 6 y final:** ronda grande con las cuatro pruebas.
+Siempre con `timeout`. Entre medias, nada de pruebas.
+
+## Edificios con el detalle de la trattoria, uno a uno
+El usuario quiere que **todos** los edificios tengan el nivel de la trattoria «Il Corvo» (`scripts/systems/VillageRestaurant.gd`
++ `WorldStage3D._build_restaurant_3d`): varias salas con sentido, tabiques con pasos, rutas internas, muebles 3D bien
+colocados (no arrinconados), luces, suelos propios, fachada y puerta acordes. Ahora son cuartos diminutos con sprites
+sin sentido. **Orden (los que pisa el detective primero):**
+0. **La taberna (paso 3 del orden acordado) «El Jabalí Dorado»** (orden del usuario, 2026-11-07: «da pena, es el primer edificio que
+   quiero que se remodele»). Requisitos del usuario:
+   - **Mucho más grande** y **el primer edificio con 2 pisos**: abajo el salón; **arriba los cuartos de huéspedes**
+     (escalera de verdad; usa las capas verticales que ya existen, planta 0 y +1).
+   - **Mesas con gente sentada** que viene a pasar el rato y a comer (como las cenas de la trattoria: los vecinos
+     eligen ir, se sientan en sillas libres y pagan).
+   - **Gente jugando al póker** en una mesa (el casino/póker ya existe: que se vea a los vecinos sentados jugando).
+   - **El tabernero detrás del mostrador** atendiendo.
+   - **Al menos un camarero** trabajando: recoge los pedidos en las mesas y lleva los platos de la cocina a la mesa
+     (oficio nuevo al final de `TradeRole`, se ocupa como cualquier vacante; recorridos físicos, nada de teletransporte).
+   - **Sótano con el club de peleas clandestinas** (hoy el usuario no lo encuentra nunca: ver `FALLOS_VISIBLES.md`):
+     comprobar en partida que abre y tiene gente, y que se pueda descubrir por rumores.
+   - Arreglar lo que se ve mal: la «mesa de billar» es un tablero con un rectángulo verde encima y patas de cama.
+   **Después de la taberna, antes de la comisaría — cosas que el usuario vio (2026-11-07):**
+   - **Ropa y caras variadas para los vecinos:** usar todos los modelos y texturas de `assests/curated_3d/characters/`
+     (campesino/explorador, hombre/mujer, 2 texturas de cada, 5 peinados, barba, piel clara/oscura), repartidos de
+     forma fija por persona (que el mismo vecino se vea igual siempre) y con algo de lógica por oficio.
+   - **Alcantarillas de verdad:** más grandes, con túneles, y el **sitio de las peleas clandestinas** visible (foso o
+     círculo, bancos, apuestas) con gente cuando haya pelea.
+   - **Tablón de encargos nuevo:** más bonito, y cada papel muestra en pequeño el encargo real (se lee al acercarse);
+     aceptar sigue siendo con el menú.
+   - **Rancho poblado:** rebaño creíble (vacas, caballos, burros, alpacas, gallinas) con los modelos que ya hay,
+     ligado a la economía (crían, se venden), no de adorno.
+1. **Comisaría y cárcel** (recepción, despacho del comisario, sala de interrogatorios, calabozos con rejas de verdad,
+   armero). Quitar las rejas verdes gigantes, el cajón suelto y el cepo sin sentido.
+2. **Morgue / hospital** (sala de autopsias con mesa, estantes de frascos y reactivos, cámara de cuerpos, consulta).
+3. **Capilla del Alba** (nave con bancos, altar, confesionario, sacristía) — sin tocar nada de la secta.
+4. **Biblioteca** (salas de lectura, estanterías, archivo) y que **«Leer un rato» haga algo real** (p. ej. consultar
+   libros que sirvan como pistas o conocimientos para los casos).
+Un bloque por edificio, con capturas antes y después. Si un edificio crece, muévelo o recoloca lo de alrededor sin
+romper caminos (usa `tools/tests/free_space_probe.gd`).
+
+## Arreglos de la lista `docs/FALLOS_VISIBLES.md` que vayan saliendo al paso
+Como mínimo: quitar la cama de la trattoria (despacho del dueño), mover la trattoria lejos del cementerio (calle
+principal o plaza), quitar el huerto vecinal del camino, puertas distintas según la fachada.
+
+## Agrandar lo de alrededor (decidido por el usuario, 2026-11-07; recomendación de Claude Code)
+El usuario siente todo «muy comprimido» y pidió un mapa ~3 veces más grande. Decisión: **el pueblo se queda como
+está** (estirarlo rompería posiciones escritas a mano por todo el código); se **agranda y separa el entorno**, en 2–3
+bloques:
+1. **Campamento inicial fuera del pueblo**, junto al lago del oeste (tienda, hoguera, gallinero, Toby), con un camino
+   hasta el pueblo que se tarde en recorrer. Quitar el segundo muelle 2D, recolocar el lavadero (arroyo o fuente) y
+   que el agua bloquee el paso.
+2. **Bosque ~3 veces más grande y alejado**, espeso, con borde irregular y natural (nada de líneas rectas), claros,
+   matorral, troncos caídos; árboles nuevos que no se vean «arrugados» ni se solapen con muros ni muebles.
+3. **Llanura y ciénaga separadas y más amplias.** Animales que **deambulen y se repartan** (no pegados al nido ni
+   siempre juntos). **Sapos con modelo 3D** basado en su sprite (sapo verde de pie con ropa roja). Quitar los conos de
+   visión de depuración.
+Comprueba que vecinos, recados nocturnos, expediciones y rutas siguen llegando a sus sitios. El rendimiento está
+aparcado por el usuario, pero no dupliques vecinos ni animales sin motivo.
