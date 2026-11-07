@@ -28,4 +28,5 @@ fuente: "Biblia §3.3"
   - **Golpes enemigos con aviso (`~0,4 s`):** vecinos hostiles, guardias, asaltantes, perros enfadados y jabalíes avisan durante `~0,4 s` antes de descargar su golpe cuerpo a cuerpo (y solo impactan si sigues a su alcance al terminar el aviso).
 
 ## Notas de diseño
+- 2026-11-06 (Claude Code): **rehacer el combate, fase 1 «peso y respuesta»** (plan completo en `docs/PLAN_COMBATE.md`). Cada arma tiene preparación, golpe y recuperación propios (martillo lento y pesado, hoz rápida); paso adelante al golpear; andas más despacio y no puedes girar el golpe a medias; el que recibe sale empujado y se tambalea un instante; chispa, sonidos (antes no había ninguno), congelado y temblor según el peso. Al recibir tú: quejido, temblor y empujón. Siguen: rivales con las mismas reglas, cadena de golpes y golpe cargado, consecuencias (zonas, mellas, desarmar).
 -

@@ -3,6 +3,13 @@
 Cambios del juego, del más nuevo al más antiguo. Añade una entrada al cerrar cada bloque, en lenguaje sencillo.
 El detalle técnico está en `docs/HANDOFF.md` (sección 7) y el historial completo en `git log`. Lo anterior a B0.1 está en `AUDIT_LOG.md` y `SESSION_CONTEXT_LOG.md`.
 
+## 2026-11-06 — El combate pesa: primera parte del combate nuevo
+- **Cada arma se siente distinta:** el martillo se echa atrás, tarda y golpea fuerte; la hoz y los puños son rápidos;
+  la espada, en medio. Al soltar el golpe das un paso adelante y, mientras golpeas, andas más despacio.
+- **Se nota el impacto:** el que recibe sale empujado y se tambalea un instante (se le corta el ataque), salta una
+  chispa y el golpe suena. Primeros sonidos del juego: el tajo al aire, el golpe, el quejido al recibir, esquivar y parar.
+- **Cuando te dan a ti:** quejido, la cámara tiembla y te empuja un poco hacia atrás.
+
 ## 2026-11-06 — Los asaltos al pueblo, en pausa
 - **Ya no llegan bandidos ni jabalíes** al pueblo: no convencían (poco realistas). Está todo guardado por si vuelven.
   El crimen irá por robos y mafias dentro del pueblo.

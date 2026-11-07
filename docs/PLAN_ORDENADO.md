@@ -38,7 +38,7 @@
 | C4 | **Expediciones fuera del valle** | Ir andando al borde del valle (solo o con guía), viajar unas horas o explorar una zona pequeña y volver cargado | Auditoría fila 7 |
 | C5 | **Puesto del Paso en el mapa** | El asentamiento fronterizo con casas, colonos y caminos, no solo menús | VISION, PENDIENTE |
 | C6 | **Pasada de arte** | Conejo y gato que aún se ven planos, jabalí con aspecto de lobo, oveja con aspecto de alpaca | Propuesta beta §3.7 |
-| C7 | **Rehacer el combate** | Que pegar se sienta con peso y respuesta (hoy «flojo, sin peso, incompleto, sin feedback», palabras del usuario). Aplazado; plan propio antes de empezar | Usuario, 2026-11-06 |
+| C7 | 🔄 **Rehacer el combate** (fase 1 hecha el 2026-11-06; plan en `docs/PLAN_COMBATE.md`) | Que pegar se sienta con peso y respuesta (hoy «flojo, sin peso, incompleto, sin feedback», palabras del usuario). Aplazado; plan propio antes de empezar | Usuario, 2026-11-06 |
 
 ## D. Ideas que necesitan antes una decisión del usuario (no empezar sin su sí)
 

@@ -6090,5 +6090,39 @@ func _initialize() -> void:
 	vm.VillageUnderworld.state(vm)["fence_busted_until"] = b4_busted_bak
 	DirAccess.remove_absolute(ProjectSettings.globalize_path(b4_path))
 	print("Block B4 (Save and Load with Half-Done Night Jobs, Club Bout, Collections, Dinner, Prosthetic & Stash) OK")
+	# ==========================================================================
+	# Bloque C7 fase 1: peso y respuesta del golpe («C7 combate»)
+	# ==========================================================================
+	var c7_feel = load("res://scripts/systems/combat/CombatFeel.gd")
+	assert(c7_feel.swing_total(c7_feel.WEAPON_FEEL["hammer"]) > c7_feel.swing_total(c7_feel.WEAPON_FEEL["sword"]) and float(c7_feel.WEAPON_FEEL["hammer"]["knockback"]) > float(c7_feel.WEAPON_FEEL["sword"]["knockback"]), "C7.1: The hammer is slower and pushes harder than the sword")
+	var c7_cc = p70_pl.get_node_or_null("PlayerCombatController")
+	var c7_w_bak = p70_pl.equipped_weapon
+	var c7_st = p70_pl.get_node_or_null("StaminaComponent")
+	if c7_st != null:
+		c7_st.current_stamina = c7_st.max_stamina
+	var c7_ppos: Vector2 = p70_pl.global_position
+	p70_pl.global_position = Vector2(-1600.0, 1400.0) # lejos de todos: el golpe al aire no puede dar a nadie
+	p70_pl.equip_weapon(p70_pl.sword_weapon)
+	c7_cc.attack_timer = 0.0
+	c7_cc.attack()
+	assert(is_equal_approx(c7_cc.attack_timer, c7_cc.swing_duration) and c7_cc.swing_duration >= c7_feel.swing_total(c7_feel.WEAPON_FEEL["sword"]) - 0.001 and c7_cc.swing_move_mult < 1.0 and bool(c7_cc._swing_locked), "C7.2: A sword swing lasts its windup+strike+recovery, slows your walk and locks the swing direction")
+	# Reacción del que recibe: empujón en la dirección del golpe y tambaleo corto (corta su ataque)
+	var c7_n = null
+	for n_c7 in vm.VillageNeeds.living(vm):
+		if not n_c7.is_hostile and not n_c7.is_downed:
+			c7_n = n_c7
+			break
+	var c7_pos0: Vector2 = c7_n.global_position
+	c7_n._stagger_timer = 0.0
+	c7_feel.apply_hit_reaction(c7_n, Vector2.RIGHT, c7_feel.WEAPON_FEEL["hammer"])
+	assert(c7_n.global_position.x > c7_pos0.x + 1.0 and c7_n._stagger_timer > 0.3, "C7.3: A hit pushes the target away and briefly staggers it (moved %.1f px)" % (c7_n.global_position.x - c7_pos0.x))
+	c7_n.global_position = c7_pos0
+	c7_n._stagger_timer = 0.0
+	c7_n._attack_timer = 0.0
+	await create_timer(0.6).timeout
+	assert(not bool(c7_cc._swing_locked) and is_equal_approx(c7_cc.swing_move_mult, 1.0), "C7.4: After the recovery you can aim and walk normally again")
+	p70_pl.equip_weapon(c7_w_bak)
+	p70_pl.global_position = c7_ppos
+	print("Block C7 (Combat Phase 1: Windup, Lunge, Knockback, Flinch, Weapon Weight & Hit Feedback) OK")
 	print("ALL RIMWORLD MEDICAL, FOOTPRINTS, 3-PHASE CORPSE REPORT, MULTI-CORPSE FIX, RPG INTERROGATION, PUBLIC TRIAL, DYNAMIC RELATIONSHIPS, MISSING FAMILY SEARCH, SOCIAL GLOSSARY & UNCONSCIOUS REACTION TESTS PASSED!")
 	quit(0)

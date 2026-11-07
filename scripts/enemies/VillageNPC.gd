@@ -4041,12 +4041,14 @@ func get_activity_description() -> String:
 				return "🏠 Turno del Hogar (08-18h)" if _is_mandatory_work_hours() else "🏠 Cuidando el Hogar"
 			return "⚒️ En Turno Laboral (08-18h)" if _is_mandatory_work_hours() else "⚒️ Atendiendo su Oficio"
 
-func apply_parry_stagger(duration: float = 0.8) -> void:
+func apply_parry_stagger(duration: float = 0.8, quiet: bool = false) -> void:
 	_stagger_timer = maxf(_stagger_timer, duration)
 	_melee_windup_timer = 0.0
 	_police_baton_windup_timer = 0.0
 	_attack_timer = maxf(_attack_timer, duration)
 	velocity = Vector2.ZERO
+	if quiet:
+		return # C7: tambaleo corto de un golpe normal, sin letrero ni tinte
 	if sprite:
 		sprite.modulate = Color(0.75, 0.92, 1.35)
 	_spawn_floating_text("💫 ¡Desequilibrado!", Color.AQUA, -36.0)

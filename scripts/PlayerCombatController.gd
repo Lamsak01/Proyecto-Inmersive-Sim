@@ -31,6 +31,15 @@ var bow_tension: float = 0.0
 const BOW_DRAW_DURATION: float = 0.85
 var _swing_hit_targets: Array[Node] = []
 
+## C7 fase 1 (peso y respuesta): cómo se siente el golpe en curso (tabla de CombatFeel) y su duración total, que
+## también usa el muñeco 3D para su animación. Mientras dura, la dirección del golpe queda fijada (compromiso).
+const CombatFeel = preload("res://scripts/systems/combat/CombatFeel.gd")
+var swing_duration: float = 0.36
+var swing_move_mult: float = 1.0
+var _swing_feel: Dictionary = {}
+var _swing_locked: bool = false
+var _swing_id: int = 0
+
 func _ready() -> void:
 	_setup_visuals()
 	_setup_hitbox()
@@ -246,7 +255,7 @@ func _update_weapon_visuals() -> void:
 	var pivot_global := player.global_position + Vector2(0, -10)
 	var aim_pos := crosshair.get_aim_world_position() if is_instance_valid(crosshair) else player.get_global_mouse_position()
 	var diff := aim_pos - pivot_global
-	if diff.length_squared() > 4.0:
+	if diff.length_squared() > 4.0 and not _swing_locked:
 		current_aim_dir = diff.normalized()
 	weapon_pivot.rotation = current_aim_dir.angle()
 	weapon_pivot.z_index = -1 if current_aim_dir.y < -0.35 else 1
@@ -327,7 +336,14 @@ func attack(_aim_with_mouse: bool = true) -> void:
 		stamina_comp.use_stamina(stam_cost)
 	var hc_atk: HealthComponent = player.get_node_or_null("HealthComponent")
 	var manip_atk: float = hc_atk.get_manipulation_capacity() if hc_atk else 1.0
-	attack_timer = 0.36 / maxf(0.35, manip_atk)
+	var slow_k: float = 1.0 / maxf(0.35, manip_atk) # sin brazo (o con prótesis) todo el golpe va más lento
+	if equipped.is_ranged:
+		swing_duration = 0.36 * slow_k
+		attack_timer = swing_duration
+	else:
+		_swing_feel = CombatFeel.feel_for(equipped)
+		swing_duration = CombatFeel.swing_total(_swing_feel) * slow_k
+		attack_timer = swing_duration
 	if crosshair:
 		crosshair.add_recoil(4.5)
 	_update_weapon_visuals()
@@ -338,28 +354,51 @@ func attack(_aim_with_mouse: bool = true) -> void:
 			_fire_bow(equipped, 0.5)
 		return
 
+	# C7: preparación (se echa el arma atrás) → golpe con un paso adelante → recuperación. Mientras, andas más
+	# despacio y la dirección queda fijada; el golpe solo puede dar durante la parte «active».
+	var f: Dictionary = _swing_feel
+	var t_wind: float = float(f["windup"]) * slow_k
+	var t_act: float = float(f["active"]) * slow_k
+	var t_rec: float = float(f["recovery"]) * slow_k
+	_swing_id += 1
+	var my_id: int = _swing_id
+	_swing_locked = true
+	swing_move_mult = float(f["move_mult"])
+	CombatFeel.play(player, CombatFeel.SFX_SWING, player.global_position, float(f["pitch"]), -8.0)
 	if weapon_sprite:
 		weapon_sprite.visible = true
 		weapon_sprite.rotation_degrees = -45
 		var tween = create_tween()
-		tween.tween_property(weapon_sprite, "rotation_degrees", 45, 0.12)
-		tween.tween_property(weapon_sprite, "rotation_degrees", -45, 0.12)
+		tween.tween_property(weapon_sprite, "rotation_degrees", -80, t_wind).set_ease(Tween.EASE_OUT)
+		tween.tween_property(weapon_sprite, "rotation_degrees", 55, t_act).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
+		tween.tween_property(weapon_sprite, "rotation_degrees", -45, t_rec)
 		tween.tween_callback(func():
 			if is_instance_valid(weapon_sprite):
 				weapon_sprite.visible = false
 		)
-	
-	# Enable hitbox briefly in the exact 360° mouse aim direction
+
 	_swing_hit_targets.clear()
 	hitbox_area.damage_data = equipped.damage_data.copy()
 	if "paralytic_venom_timer" in player and float(player.get("paralytic_venom_timer")) > 0.0:
 		hitbox_area.damage_data.stun_buildup += 50.0
 	hitbox_area.damage_data.source = player
-	
+
+	if t_wind > 0.0:
+		await get_tree().create_timer(t_wind).timeout
+	if my_id != _swing_id or not is_instance_valid(player):
+		return
+	# Paso adelante al soltar el golpe (choca con paredes)
+	if player is CharacterBody2D and float(f["lunge"]) > 0.0:
+		(player as CharacterBody2D).move_and_collide(current_aim_dir * float(f["lunge"]))
 	hitbox_shape.disabled = false
-	await get_tree().create_timer(0.18).timeout
+	await get_tree().create_timer(t_act).timeout
 	if is_instance_valid(hitbox_shape):
 		hitbox_shape.disabled = true
+	if t_rec > 0.0:
+		await get_tree().create_timer(t_rec).timeout
+	if my_id == _swing_id:
+		_swing_locked = false
+		swing_move_mult = 1.0
 
 func _fire_bow(equipped: WeaponData, tension: float = 1.0) -> void:
 	var shoot_dir := current_aim_dir
@@ -436,8 +475,7 @@ func _on_hitbox_entered(area: Area2D) -> void:
 			return
 		_swing_hit_targets.append(target_entity)
 		hitbox_area.apply_damage(area)
-		_apply_hitstop()
-		_apply_camera_shake()
+		_on_melee_impact(target_entity)
 
 func _on_hitbox_body_entered(body: Node2D) -> void:
 	if body != player and (body.is_in_group("destructible") or body.is_in_group("wild_animals")) and body.has_method("take_damage"):
@@ -445,20 +483,28 @@ func _on_hitbox_body_entered(body: Node2D) -> void:
 			return
 		_swing_hit_targets.append(body)
 		body.take_damage(hitbox_area.damage_data)
-		_apply_hitstop()
-		_apply_camera_shake()
+		_on_melee_impact(body)
 
-func _apply_hitstop() -> void:
+## C7: respuesta del impacto según el arma: empujón, tambaleo, chispa, sonido, congelado y temblor.
+func _on_melee_impact(target: Node) -> void:
+	var f: Dictionary = _swing_feel if not _swing_feel.is_empty() else CombatFeel.WEAPON_FEEL["default"]
+	if target is Node2D and is_instance_valid(player):
+		var dir: Vector2 = ((target as Node2D).global_position - player.global_position)
+		CombatFeel.apply_hit_reaction(target, dir if dir.length_squared() > 0.01 else current_aim_dir, f)
+	_apply_hitstop(float(f.get("hitstop", 0.05)))
+	_apply_camera_shake(float(f.get("shake", 4.0)))
+
+func _apply_hitstop(duration: float = 0.05) -> void:
 	Engine.time_scale = 0.1
-	await get_tree().create_timer(0.05, true, false, true).timeout
+	await get_tree().create_timer(duration, true, false, true).timeout
 	Engine.time_scale = WorldClock.get_active_time_scale() if (WorldClock and WorldClock.has_method("get_active_time_scale")) else 1.0
 
-func _apply_camera_shake() -> void:
+func _apply_camera_shake(amp: float = 4.0) -> void:
 	var cam := get_viewport().get_camera_2d()
 	if cam:
 		var shake_tween := create_tween()
-		shake_tween.tween_property(cam, "position", Vector2(randf_range(-4, 4), randf_range(-4, 4)), 0.03)
-		shake_tween.tween_property(cam, "position", Vector2(randf_range(-4, 4), randf_range(-4, 4)), 0.03)
+		shake_tween.tween_property(cam, "position", Vector2(randf_range(-amp, amp), randf_range(-amp, amp)), 0.03)
+		shake_tween.tween_property(cam, "position", Vector2(randf_range(-amp, amp), randf_range(-amp, amp)), 0.03)
 		shake_tween.tween_property(cam, "position", Vector2.ZERO, 0.03)
 
 func _check_stealth_takedown() -> void:

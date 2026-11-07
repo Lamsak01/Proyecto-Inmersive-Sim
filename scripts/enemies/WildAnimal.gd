@@ -857,7 +857,7 @@ func _process_flee(delta: float) -> void:
 		state = AnimalState.GRAZE
 		velocity = Vector2.ZERO
 
-func apply_parry_stagger(duration: float = 0.8) -> void:
+func apply_parry_stagger(duration: float = 0.8, quiet: bool = false) -> void:
 	stagger_timer = maxf(stagger_timer, duration)
 	boar_charge_windup = 0.0
 	boar_charge_timer = 0.0

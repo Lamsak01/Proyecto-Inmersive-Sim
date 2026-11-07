@@ -122,7 +122,7 @@ func _finish(outcome: String) -> void:
 	gone.emit(self, outcome)
 
 
-func apply_parry_stagger(duration: float = 0.8) -> void:
+func apply_parry_stagger(duration: float = 0.8, quiet: bool = false) -> void:
 	stagger_timer = maxf(stagger_timer, duration)
 	_windup_t = 0.0
 	_attack_t = maxf(_attack_t, duration)

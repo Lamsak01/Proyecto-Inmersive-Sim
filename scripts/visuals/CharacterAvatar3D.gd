@@ -698,7 +698,7 @@ func _sync_pose_and_tint(delta: float) -> void:
 				bow_draw = float(c_ctrl.get("bow_tension"))
 			var atk_t: float = float(c_ctrl.get("attack_timer"))
 			if atk_t > 0.0:
-				atk_prog = clampf(1.0 - (atk_t / 0.36), 0.0, 1.0)
+				atk_prog = clampf(1.0 - (atk_t / maxf(0.05, float(c_ctrl.get("swing_duration")) if c_ctrl.get("swing_duration") != null else 0.36)), 0.0, 1.0)
 		if not is_rolling_now and vel.length_squared() > 9.0 and atk_prog <= 0.0 and bow_draw <= 0.0 and not is_parrying_now:
 			facing = vel.normalized()
 		if target_entity.has_method("is_stunned") and bool(target_entity.call("is_stunned")):

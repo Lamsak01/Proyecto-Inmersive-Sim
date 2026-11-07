@@ -271,6 +271,11 @@ func _handle_input(delta: float) -> void:
 	elif bool(player.get("is_pulling_cart")):
 		current_speed *= CART_HAND_SPEED_MULT
 
+	# C7: mientras golpeas andas más despacio (cuanto más pesada el arma, más)
+	var c_sw = player.get_node_or_null("PlayerCombatController")
+	if c_sw != null and float(c_sw.get("attack_timer")) > 0.0:
+		current_speed *= float(c_sw.get("swing_move_mult"))
+
 	anim.speed_scale = target_anim_scale
 
 	if input != Vector2.ZERO:

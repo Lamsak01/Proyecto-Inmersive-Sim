@@ -1,4 +1,5 @@
 extends CharacterBody2D
+const _CombatFeel = preload("res://scripts/systems/combat/CombatFeel.gd") # C7: sonidos de golpe
 
 @export var dialogue_manager: Node
 @export var hint_label: Label
@@ -811,6 +812,7 @@ func take_damage(data: DamageData) -> void:
 		return
 	if is_roll_invulnerable():
 		_spawn_floating_text("💨 ¡ESQUIVADO!", Color(0.75, 0.98, 0.85), -38.0)
+		_CombatFeel.play(self, _CombatFeel.SFX_EVADE, global_position, 1.0, -6.0)
 		return
 	var is_ranged_hit: bool = data != null and (data.is_ranged_projectile or str(data.weapon_tag).find("Flecha") != -1 or str(data.weapon_tag).find("Arcabuz") != -1 or str(data.weapon_tag).find("Pistola") != -1)
 	if is_parrying() and not is_ranged_hit:
@@ -819,6 +821,7 @@ func take_damage(data: DamageData) -> void:
 		if combat_ctrl and combat_ctrl.has_method("resolve_parry_hit"):
 			combat_ctrl.call("resolve_parry_hit", data.source if data else null)
 		_spawn_floating_text("🛡️ ¡PARADA!", Color(0.45, 0.95, 1.0), -40.0)
+		_CombatFeel.play(self, _CombatFeel.SFX_HIT, global_position, 1.45, -3.0) # choque de metal, más agudo
 		return
 	if data and is_instance_valid(data.source):
 		last_damage_source = data.source
@@ -833,6 +836,16 @@ func take_damage(data: DamageData) -> void:
 		if anim:
 			anim.modulate = Color(1.35, 0.45, 0.45)
 			_hit_flash_timer = 0.18
+		# C7: que se note que te han dado: quejido, temblor de cámara y un pequeño empujón desde el golpe
+		_CombatFeel.play(self, _CombatFeel.SFX_HURT, global_position, 1.0, -4.0)
+		if not is_ranged_hit and data != null and is_instance_valid(data.source) and data.source is Node2D:
+			var away: Vector2 = global_position - (data.source as Node2D).global_position
+			if away.length_squared() > 0.01:
+				move_and_collide(away.normalized() * clampf(hp_lost * 0.6, 3.0, 10.0))
+		if combat_ctrl == null:
+			combat_ctrl = get_node_or_null("PlayerCombatController")
+		if combat_ctrl != null and combat_ctrl.has_method("_apply_camera_shake"):
+			combat_ctrl.call("_apply_camera_shake", clampf(hp_lost * 0.35, 2.0, 6.0))
 
 func to_save_dict() -> Dictionary:
 	var stam_comp: StaminaComponent = get_node_or_null("StaminaComponent")

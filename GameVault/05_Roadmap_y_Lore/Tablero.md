@@ -6,7 +6,7 @@ kanban-plugin: board
 
 ## 🔥 Prioridad alta (presencia física)
 
-- [ ] Rehacer el combate: hoy se siente flojo, sin peso ni respuesta (aplazado, con plan propio) ([[Armaduras, Sigilo y Arcabuz]])
+- [ ] Rehacer el combate: fase 1 hecha (peso y respuesta); faltan rivales, cadena/golpe cargado y consecuencias ([[Armaduras, Sigilo y Arcabuz]])
 - [ ] Arcabuz de chispa usable en combate directo ([[Armaduras, Sigilo y Arcabuz]])
 - [ ] Recinto caminable del [[Puesto del Paso]]
 - [ ] Sótanos y altillos dibujados en el tilemap ([[Capas Verticales y Alcantarillas]])

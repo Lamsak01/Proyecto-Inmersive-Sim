@@ -356,14 +356,15 @@ func _try_eat_from_home_bowl(_delta: float) -> void:
 			is_fed_today = true
 			_spawn_floating_text("🥣↗ %s comió en casa (Digeriendo...)" % pet_name, Color.SPRING_GREEN)
 
-func apply_parry_stagger(duration: float = 0.8) -> void:
+func apply_parry_stagger(duration: float = 0.8, quiet: bool = false) -> void:
 	stagger_timer = maxf(stagger_timer, duration)
 	_bite_windup_timer = 0.0
 	_attack_cooldown = maxf(_attack_cooldown, duration)
 	velocity = Vector2.ZERO
 	if sprite:
 		sprite.modulate = Color(0.65, 0.88, 1.35)
-	_spawn_floating_text("💫 ¡Desequilibrado!", Color.AQUA)
+	if not quiet:
+		_spawn_floating_text("💫 ¡Desequilibrado!", Color.AQUA)
 
 func take_damage(data: DamageData) -> void:
 	if is_dead or corpse_looted:
