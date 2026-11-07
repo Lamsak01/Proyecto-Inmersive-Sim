@@ -87,7 +87,7 @@ func _process(delta: float) -> void:
 					crosshair.is_drawing_bow = true
 					crosshair.bow_tension = bow_tension
 				# Si el jugador soltó el botón fuera de foco, disparar igualmente
-				if not Input.is_mouse_button_pressed(MOUSE_BUTTON_LEFT) and not Input.is_action_pressed("ui_accept"):
+				if not Input.is_mouse_button_pressed(MOUSE_BUTTON_LEFT) and not _attack_key_held():
 					_release_bow_shot()
 
 	if is_charging:
@@ -102,7 +102,7 @@ func _process(delta: float) -> void:
 				weapon_sprite.rotation_degrees = lerpf(-45.0, -95.0, charge_t / CHARGE_FULL)
 				weapon_sprite.modulate = Color(1.0, 1.0, 1.0).lerp(Color(1.45, 1.1, 0.7), charge_t / CHARGE_FULL)
 			# Si se soltó el botón fuera de foco, soltar igualmente
-			if not Input.is_mouse_button_pressed(MOUSE_BUTTON_LEFT) and not Input.is_action_pressed("ui_accept"):
+			if not Input.is_mouse_button_pressed(MOUSE_BUTTON_LEFT) and not _attack_key_held():
 				release_charge()
 
 	if _takedown_check_timer > 0.0:
@@ -242,6 +242,18 @@ func resolve_parry_hit(attacker: Node) -> void:
 	if is_instance_valid(player) and player.has_method("_spawn_combat_popup"):
 		player.call("_spawn_combat_popup", "🛡️ ¡PARADA!", Color(0.45, 0.95, 1.0))
 
+## La tecla de «aceptar» (Intro) también ataca, pero NUNCA el Espacio: el Espacio es solo para rodar
+## (antes rodar soltaba a la vez un golpe y, por la espalda de alguien, hasta lo mataba por sigilo).
+func _is_attack_key(event: InputEvent) -> bool:
+	if not event.is_action("ui_accept"):
+		return false
+	if event is InputEventKey and ((event as InputEventKey).keycode == KEY_SPACE or (event as InputEventKey).physical_keycode == KEY_SPACE):
+		return false
+	return true
+
+func _attack_key_held() -> bool:
+	return Input.is_key_pressed(KEY_ENTER) or Input.is_key_pressed(KEY_KP_ENTER)
+
 func _unhandled_input(event: InputEvent) -> void:
 	if not is_instance_valid(player):
 		return
@@ -265,7 +277,7 @@ func _unhandled_input(event: InputEvent) -> void:
 				get_viewport().set_input_as_handled()
 				return
 		var is_non_lethal_key: bool = event.is_action_pressed("Interact") or (event is InputEventKey and event.pressed and not event.echo and (event.physical_keycode == KEY_Q or event.keycode == KEY_Q))
-		var is_lethal_key: bool = event.is_action_pressed("ui_accept") or (event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT) or (event is InputEventKey and event.pressed and not event.echo and (event.physical_keycode == KEY_V or event.keycode == KEY_V))
+		var is_lethal_key: bool = (_is_attack_key(event) and event.is_pressed() and not event.is_echo()) or (event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT) or (event is InputEventKey and event.pressed and not event.echo and (event.physical_keycode == KEY_V or event.keycode == KEY_V))
 		if is_non_lethal_key:
 			_execute_stealth_takedown(current_prompt_target, false)
 			get_viewport().set_input_as_handled()
@@ -289,7 +301,7 @@ func _unhandled_input(event: InputEvent) -> void:
 	var is_bow: bool = equipped != null and equipped.is_ranged and not is_flintlock
 
 	if is_bow:
-		if (event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT) or event.is_action("ui_accept"):
+		if (event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT) or _is_attack_key(event):
 			if event.is_pressed() and not event.is_echo():
 				_start_bow_draw()
 			elif not event.is_pressed() and is_drawing_bow:
@@ -298,14 +310,14 @@ func _unhandled_input(event: InputEvent) -> void:
 
 	var is_charge_weapon: bool = equipped != null and not equipped.is_ranged and (str(equipped.name).to_lower() in CHARGE_WEAPONS)
 	if is_charge_weapon:
-		if (event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT) or event.is_action("ui_accept"):
+		if (event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT) or _is_attack_key(event):
 			if event.is_pressed() and not event.is_echo():
 				start_charge(event is InputEventMouseButton)
 			elif not event.is_pressed() and is_charging:
 				release_charge()
 			return
 
-	if event.is_action_pressed("ui_accept"):
+	if _is_attack_key(event) and event.is_pressed() and not event.is_echo():
 		attack(false)
 	elif event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
 		attack(true)

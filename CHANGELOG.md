@@ -3,6 +3,10 @@
 Cambios del juego, del más nuevo al más antiguo. Añade una entrada al cerrar cada bloque, en lenguaje sencillo.
 El detalle técnico está en `docs/HANDOFF.md` (sección 7) y el historial completo en `git log`. Lo anterior a B0.1 está en `AUDIT_LOG.md` y `SESSION_CONTEXT_LOG.md`.
 
+## 2026-11-06 — Rodar ya no ataca
+- **El Espacio solo sirve para rodar.** Antes, al rodar también soltabas un golpe, y si estabas detrás de alguien
+  ¡podías rematarlo por sigilo sin querer! Se ataca con el clic izquierdo (o con Intro).
+
 ## 2026-11-06 — El combate pesa: las consecuencias
 - **Dónde duele depende de desde dónde llega:** un jabalí o un perro muerden sobre todo las piernas; por la espalda se
   hiere la espalda y la nuca (los brazos no llegan a cubrir, y la herida lo dice); de lado, el brazo y la pierna de ese lado.

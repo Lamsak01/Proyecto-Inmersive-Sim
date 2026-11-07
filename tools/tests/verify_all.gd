@@ -6312,5 +6312,16 @@ func _initialize() -> void:
 		c75_ghc.wounds.pop_back()
 		c75_guard.disarmed_until_msec = 0
 	print("Block C7 fase 4 (Directional Hit Zones, Notched Weapons & Smith Repair, Disarming) OK")
+	# Espacio = solo rodar (antes también atacaba y, por la espalda, remataba por sigilo)
+	var c76_sp = InputEventKey.new()
+	c76_sp.keycode = KEY_SPACE
+	c76_sp.physical_keycode = KEY_SPACE
+	c76_sp.pressed = true
+	var c76_en = InputEventKey.new()
+	c76_en.keycode = KEY_ENTER
+	c76_en.physical_keycode = KEY_ENTER
+	c76_en.pressed = true
+	assert(not c7_cc._is_attack_key(c76_sp) and c7_cc._is_attack_key(c76_en), "C7.32: Space only rolls; Enter still attacks")
+	print("Block C7 espacio (Roll Key Never Attacks) OK")
 	print("ALL RIMWORLD MEDICAL, FOOTPRINTS, 3-PHASE CORPSE REPORT, MULTI-CORPSE FIX, RPG INTERROGATION, PUBLIC TRIAL, DYNAMIC RELATIONSHIPS, MISSING FAMILY SEARCH, SOCIAL GLOSSARY & UNCONSCIOUS REACTION TESTS PASSED!")
 	quit(0)
