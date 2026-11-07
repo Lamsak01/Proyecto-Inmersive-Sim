@@ -21,5 +21,6 @@ fuente: "Biblia §3.4"
 - **Pesca en el Lago del Oeste:** Tres especies según la hora del día: **Trucha de arroyo** (diurna), **Carpa dorada** (tarde) y **Siluro del fondo** (nocturno, más difícil en la barra de tensión).
 
 ## Notas de diseño
+- 2026-11-07 (Antigravity, Bloque B3): cuando el jugador tiene una casa construida en el pueblo ([[Vivienda e Hipotecas]]), puede trasladar a **Toby** (con su cama y comedero `PetBed_Toby`) y su **gallinero y animales de corral** (`PlayerChickenCoop` y `player_livestock`) al solar de su casa (desde el carpintero, la mesa del comedor de su casa o la mesa de obras del campamento). El campamento del oeste junto al lago se conserva íntegro como puesto de pesca, caza y refugio.
 - 2026-11-06 (Claude Code): en 3D, la cabaña (madera y paja) y la casa de piedra (piedra y teja, con cofre) tienen muros, cama, luz y tejado que se abre al acercarte. Gallinero con cerca 3D (el tramo roto desaparece si entra el zorro), comedero según grano y nido con huevos. Las gallinas siguen planas.
 -

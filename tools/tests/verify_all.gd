@@ -6765,5 +6765,66 @@ func _initialize() -> void:
 	if vm.has_method("set_jail_cell_gate_locked"):
 		vm.set_jail_cell_gate_locked(false)
 	print("Block B2 (Real Jail Cell: Arrest on Caught Night Job, Walk/Lock in Cell, Bail to Treasury, Lockpick Escape, Hourly Release) OK")
+
+	# ---------------------------------------------------------
+	# Block B3: Del campamento del lago al pueblo (trasladar a Toby con su comedero y el gallinero/animales a tu solar)
+	# ---------------------------------------------------------
+	var b3_vh = vm.VillageHousing
+	var b3_vl = vm.VillageLots
+	var b3_lot: String = "n1"
+	var b3_lot_bak: Dictionary = b3_vl.lot(vm, b3_lot).duplicate(true)
+	var b3_hs: Dictionary = b3_vh.state(vm)
+	var b3_prev_toby_lot: String = str(b3_hs.get("toby_lot", ""))
+	var b3_prev_coop_lot: String = str(b3_hs.get("coop_lot", ""))
+	var b3_prev_animals: Array = (b3_hs.get("player_animals", []) as Array).duplicate(true)
+	var b3_toby = b3_vh.find_toby(vm)
+	var b3_bed: Node2D = vm.entities_root.get_node_or_null("PetBed_Toby") as Node2D
+	var b3_coop: Node2D = root.get_first_node_in_group("chicken_coop") as Node2D
+	var b3_toby_pos0: Vector2 = b3_toby.global_position if b3_toby != null else Vector2(128, 126)
+	var b3_toby_home0: Vector2 = b3_toby.home_position if b3_toby != null else Vector2(128, 126)
+	var b3_coop_pos0: Vector2 = b3_coop.global_position if b3_coop != null else Vector2(-198, -21)
+	var b3_coop_built0: bool = b3_coop.get("coop_built") == true if b3_coop != null else false
+	# 1. Sin casa construida no se puede trasladar a Toby ni el gallinero
+	b3_vl.lot(vm, b3_lot)["status"] = "empty"
+	b3_vl.lot(vm, b3_lot)["payer"] = ""
+	assert(not b3_vh.move_toby_to_lot(vm, b3_lot) and not b3_vh.move_coop_to_lot(vm, b3_lot), "B3.1: Cannot relocate Toby or coop to a lot without a built player house")
+	# 2. Con casa construida en el solar, trasladar a Toby mueve su cama/comedero y su posición de hogar al solar
+	b3_vl.lot(vm, b3_lot)["status"] = "built"
+	b3_vl.lot(vm, b3_lot)["kind"] = "house"
+	b3_vl.lot(vm, b3_lot)["payer"] = "player"
+	b3_hs["player_animals"] = [{"species": "sheep", "stage": "adult", "age_days": 8, "power": 2, "fed_day": b3_vh.today()}]
+	b3_vh.sync_livestock(vm)
+	assert(b3_vh.move_toby_to_lot(vm, b3_lot), "B3.2: Player with a built house can relocate Toby and his feeder to their lot")
+	var b3_expected_toby_pos: Vector2 = b3_vh.toby_pos_for_lot(vm, b3_lot)
+	assert(b3_toby != null and b3_toby.home_position.distance_to(b3_expected_toby_pos) < 1.0 and b3_bed != null and b3_bed.global_position.distance_to(b3_expected_toby_pos) < 1.0, "B3.3: Toby's home_position and PetBed_Toby move to the player's lot")
+	# 3. Trasladar el gallinero y animales mueve PlayerChickenCoop y los animales de player_livestock al corral del solar
+	assert(b3_vh.move_coop_to_lot(vm, b3_lot), "B3.4: Player with a built house can relocate the chicken coop and livestock to their lot")
+	var b3_expected_coop_pos: Vector2 = b3_vh.coop_pos_for_lot(vm, b3_lot)
+	assert(b3_coop != null and b3_coop.global_position.distance_to(b3_expected_coop_pos) < 1.0 and b3_coop.get("coop_built") == true, "B3.5: ChickenCoop moves to the player's lot and is active")
+	var b3_pen: Rect2 = b3_vh._player_pen_rect(vm)
+	var b3_pl_livestock: Array = root.get_nodes_in_group("player_livestock")
+	assert(not b3_pl_livestock.is_empty() and b3_pen.grow(2.0).has_point((b3_pl_livestock[0] as Node2D).global_position), "B3.6: Player livestock nodes are relocated inside the lot's pen")
+	# 4. El campamento del oeste sigue existiendo y operativo como puesto de pesca/caza/refugio
+	var b3_camp: Node2D = root.get_first_node_in_group("campsite") as Node2D
+	var b3_lake: Node2D = root.get_first_node_in_group("fishing_spots") as Node2D
+	assert(b3_camp != null and is_instance_valid(b3_camp) and b3_lake != null and is_instance_valid(b3_lake), "B3.7: West camp and fishing lake remain active as an outpost")
+	# Restaurar estado tras B3
+	b3_hs["toby_lot"] = b3_prev_toby_lot
+	b3_hs["coop_lot"] = b3_prev_coop_lot
+	b3_hs["player_animals"] = b3_prev_animals
+	vm.lots_state["lots"][b3_lot] = b3_lot_bak
+	if b3_toby != null:
+		b3_toby.home_position = b3_toby_home0
+		b3_toby.global_position = b3_toby_pos0
+		b3_toby._wander_target = b3_toby_home0
+		b3_toby.owner_label = "Granja del Jugador"
+	if b3_bed != null:
+		b3_bed.global_position = b3_toby_home0
+	if b3_coop != null:
+		b3_coop.global_position = b3_coop_pos0
+		b3_coop.call("set_coop_built", b3_coop_built0)
+	b3_vh.sync_livestock(vm)
+	b3_vh.sync_home_props(vm)
+	print("Block B3 (Relocate Toby & Feeder and Chicken Coop & Livestock from Lake Camp to Village Lot) OK")
 	print("ALL RIMWORLD MEDICAL, FOOTPRINTS, 3-PHASE CORPSE REPORT, MULTI-CORPSE FIX, RPG INTERROGATION, PUBLIC TRIAL, DYNAMIC RELATIONSHIPS, MISSING FAMILY SEARCH, SOCIAL GLOSSARY & UNCONSCIOUS REACTION TESTS PASSED!")
 	quit(0)

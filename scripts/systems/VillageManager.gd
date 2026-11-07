@@ -5001,6 +5001,8 @@ func load_economy_save_dict(data: Dictionary) -> void:
 	# Reconciliar primero los registros de NPCs vivos para que `trade_npcs` apunte a los titulares actuales antes de aplicar `stock_override`
 	reconcile_npc_registries_after_load()
 	VillageJustice.after_load(self)
+	VillageHousing.sync_relocated_camp_assets(self, false)
+	VillageHousing.sync_livestock(self)
 
 	var b_dict: Variant = data.get("businesses", {})
 	if typeof(b_dict) != TYPE_DICTIONARY:

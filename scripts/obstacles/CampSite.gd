@@ -181,7 +181,10 @@ func _unhandled_input(event: InputEvent) -> void:
 					"camp_house_up":
 						_on_upgrade_house_pressed()
 						get_viewport().set_input_as_handled()
-			elif event.keycode in [KEY_5, KEY_ESCAPE]:
+			elif event.keycode in [KEY_5]:
+				_on_move_to_village_house_pressed()
+				get_viewport().set_input_as_handled()
+			elif event.keycode in [KEY_6, KEY_ESCAPE]:
 				upgrade_panel.visible = false
 				get_viewport().set_input_as_handled()
 		return
@@ -393,10 +396,14 @@ func _sync_camp_facilities() -> void:
 	for plot in get_tree().get_nodes_in_group("farm_plots"):
 		if plot != null and is_instance_valid(plot) and plot.has_method("set_plot_enabled"):
 			plot.call("set_plot_enabled", camp_farm_built)
+	var vm: Node = get_tree().get_first_node_in_group("village_manager")
+	var coop_relocated: bool = false
+	if vm != null and is_instance_valid(vm) and "VillageHousing" in vm:
+		var hs_c: Dictionary = vm.VillageHousing.state(vm)
+		coop_relocated = str(hs_c.get("coop_lot", "")) != "" or not (hs_c.get("player_animals", []) as Array).is_empty()
 	var coop: Node2D = get_tree().get_first_node_in_group("chicken_coop") as Node2D
 	if coop != null and is_instance_valid(coop) and coop.has_method("set_coop_built"):
-		coop.call("set_coop_built", camp_coop_built)
-	var vm: Node = get_tree().get_first_node_in_group("village_manager")
+		coop.call("set_coop_built", camp_coop_built or coop_relocated)
 	if vm != null and is_instance_valid(vm) and vm.has_method("set_camp_farm_enabled"):
 		vm.call("set_camp_farm_enabled", camp_farm_built)
 
@@ -459,7 +466,7 @@ func _setup_sleep_confirm_ui() -> void:
 	_make_ui_btn(btn_row, "  [2] No  ", _on_sleep_cancelled)
 
 func _setup_upgrade_ui() -> void:
-	var res := _make_modal_panel(Vector2(245, 130), Color(0.08, 0.10, 0.14, 0.97), Color(0.88, 0.72, 0.36, 1.0), 16, 12, 8)
+	var res := _make_modal_panel(Vector2(245, 148), Color(0.08, 0.10, 0.14, 0.97), Color(0.88, 0.72, 0.36, 1.0), 16, 12, 8)
 	upgrade_panel = res[0]
 	var vbox: VBoxContainer = res[1]
 	upgrade_desc_lbl = _make_ui_lbl(vbox, "", 12, Color(0.98, 0.94, 0.80))
@@ -467,7 +474,8 @@ func _setup_upgrade_ui() -> void:
 	_make_ui_btn(vbox, "[2] 🐔 Construir Gallinero con 3 Gallinas (4 Madera o 30 Oro)", _on_build_camp_coop_pressed)
 	_make_ui_btn(vbox, "[3] ⚡ Instalar / Alternar Generador Eléctrico (1 Bobina Cobre o 18 Oro)", _on_build_generator_pressed)
 	_make_ui_btn(vbox, "[4] 💦 Instalar Aspersor Automático en Huerto 3×3 (1 Bobina Cobre o 15 Oro)", _on_build_sprinkler_pressed)
-	_make_ui_btn(vbox, "[5 / ESC] Cerrar", func(): upgrade_panel.visible = false)
+	_make_ui_btn(vbox, "[5] 🏡🐕 Trasladar a Toby y tus animales/gallinero a tu casa del pueblo", _on_move_to_village_house_pressed)
+	_make_ui_btn(vbox, "[6 / ESC] Cerrar", func(): upgrade_panel.visible = false)
 
 func _setup_chest_ui() -> void:
 	var res := _make_modal_panel(Vector2(195, 85), Color(0.09, 0.08, 0.12, 0.96), Color(0.92, 0.76, 0.34, 1.0), 16, 12, 8)
@@ -685,6 +693,23 @@ func _on_build_camp_coop_pressed() -> void:
 		_open_upgrade_ui()
 	if player and player.has_method("_spawn_floating_text"):
 		player._spawn_floating_text("🐔 ¡Gallinero con 3 Gallinas construido en tu campamento!", Color.GOLD, -44.0)
+
+func _on_move_to_village_house_pressed() -> void:
+	var player = get_tree().get_first_node_in_group("player")
+	var vm: Node = _get_vm()
+	if vm == null or not is_instance_valid(vm) or not ("VillageHousing" in vm):
+		return
+	var p_lot: String = vm.VillageHousing.primary_player_lot(vm)
+	if p_lot == "" or str(vm.VillageLots.lot(vm, p_lot).get("status", "")) != "built":
+		if player and player.has_method("_spawn_floating_text"):
+			player._spawn_floating_text("🏡 Primero necesitas tener tu casa construida en un solar del pueblo", Color.ORANGE_RED, -42.0)
+		return
+	var moved_t: bool = vm.VillageHousing.move_toby_to_lot(vm, p_lot)
+	var moved_c: bool = vm.VillageHousing.move_coop_to_lot(vm, p_lot)
+	if upgrade_panel and upgrade_panel.visible:
+		upgrade_panel.visible = false
+	if (moved_t or moved_c) and player and player.has_method("show_hint"):
+		player.show_hint("🏡🐕🐔 Trasladaste a Toby (y su comedero) y tu gallinero/animales al solar %s de tu casa. El campamento del lago sigue activo como puesto de pesca, caza y refugio." % p_lot)
 
 func _on_build_generator_pressed() -> void:
 	var player = get_tree().get_first_node_in_group("player")

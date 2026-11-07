@@ -101,6 +101,10 @@ static func state(vm) -> Dictionary:
 		]
 	if not hs.has("player_animals") or not (hs["player_animals"] is Array):
 		hs["player_animals"] = []
+	if not hs.has("toby_lot"):
+		hs["toby_lot"] = ""
+	if not hs.has("coop_lot"):
+		hs["coop_lot"] = ""
 	return hs
 
 static func today() -> int:
@@ -510,12 +514,106 @@ static func feed_player_animals(vm, inv) -> int:
 	sync_home_props(vm)
 	return arr.size()
 
+static func find_toby(vm):
+	if vm == null:
+		return null
+	if "domestic_pets" in vm:
+		for p in vm.domestic_pets:
+			if is_instance_valid(p) and str(p.get("pet_name")) == "Toby":
+				return p
+	if vm.is_inside_tree() and vm.get_tree() != null:
+		for p2 in vm.get_tree().get_nodes_in_group("domestic_pets"):
+			if is_instance_valid(p2) and str(p2.get("pet_name")) == "Toby":
+				return p2
+	return null
+
+static func toby_pos_for_lot(_vm, lot_id: String) -> Vector2:
+	var d: Dictionary = VillageLots.lot_def(lot_id)
+	if d.is_empty():
+		return Vector2(128.0, 126.0)
+	var c: Vector2 = d.get("center", Vector2.ZERO)
+	var half_sz: Vector2 = (VillageLots.HOUSE_PLOTS[VillageLots.plot_of(lot_id)]["size"] as Vector2) * 0.5
+	var m: float = 1.0 if d.get("door_south") == true else -1.0
+	return c + Vector2(half_sz.x * 0.55, (half_sz.y + 10.0) * m)
+
+static func coop_pos_for_lot(_vm, lot_id: String) -> Vector2:
+	var d: Dictionary = VillageLots.lot_def(lot_id)
+	if d.is_empty():
+		return Vector2(-198.0, -21.0)
+	var c: Vector2 = d.get("center", Vector2.ZERO)
+	var half_sz: Vector2 = (VillageLots.HOUSE_PLOTS[VillageLots.plot_of(lot_id)]["size"] as Vector2) * 0.5
+	var m: float = 1.0 if d.get("door_south") == true else -1.0
+	return c + Vector2(-34.0, -(half_sz.y + 24.0) * m)
+
+static func sync_relocated_camp_assets(vm, teleport_toby: bool = false) -> void:
+	if vm == null:
+		return
+	var hs: Dictionary = state(vm)
+	var t_lot: String = str(hs.get("toby_lot", ""))
+	if t_lot != "" and str(VillageLots.lot(vm, t_lot).get("payer", "")) == "player" and str(VillageLots.lot(vm, t_lot).get("status", "")) == "built":
+		var t_pos: Vector2 = toby_pos_for_lot(vm, t_lot)
+		if "entities_root" in vm and is_instance_valid(vm.entities_root):
+			var bed: Node2D = vm.entities_root.get_node_or_null("PetBed_Toby") as Node2D
+			if bed != null:
+				bed.global_position = t_pos
+		var toby = find_toby(vm)
+		if toby != null and is_instance_valid(toby):
+			toby.home_position = t_pos
+			toby.owner_label = "Casa del Jugador (%s)" % t_lot
+			if teleport_toby or toby.global_position.distance_to(t_pos) > 120.0:
+				toby.global_position = t_pos
+				toby._wander_target = t_pos
+	var c_lot: String = str(hs.get("coop_lot", ""))
+	if c_lot != "" and str(VillageLots.lot(vm, c_lot).get("payer", "")) == "player" and str(VillageLots.lot(vm, c_lot).get("status", "")) == "built":
+		var c_pos: Vector2 = coop_pos_for_lot(vm, c_lot)
+		if vm.is_inside_tree() and vm.get_tree() != null:
+			var coop: Node2D = vm.get_tree().get_first_node_in_group("chicken_coop") as Node2D
+			if coop != null and is_instance_valid(coop):
+				coop.global_position = c_pos
+				if coop.has_method("set_coop_built"):
+					coop.call("set_coop_built", true)
+
+static func move_toby_to_lot(vm, lot_id: String = "") -> bool:
+	if vm == null:
+		return false
+	var lid: String = lot_id if not lot_id.is_empty() else primary_player_lot(vm)
+	if lid.is_empty():
+		return false
+	var st: Dictionary = VillageLots.lot(vm, lid)
+	if str(st.get("payer", "")) != "player" or str(st.get("status", "")) != "built":
+		return false
+	state(vm)["toby_lot"] = lid
+	sync_relocated_camp_assets(vm, true)
+	VillageChronicle.add(vm, "toby_moved_home", "Trasladaste a Toby y su comedero al patio de tu casa en el solar %s" % lid, true)
+	return true
+
+static func move_coop_to_lot(vm, lot_id: String = "") -> bool:
+	if vm == null:
+		return false
+	var lid: String = lot_id if not lot_id.is_empty() else primary_player_lot(vm)
+	if lid.is_empty():
+		return false
+	var st: Dictionary = VillageLots.lot(vm, lid)
+	if str(st.get("payer", "")) != "player" or str(st.get("status", "")) != "built":
+		return false
+	state(vm)["coop_lot"] = lid
+	sync_relocated_camp_assets(vm, false)
+	sync_livestock(vm)
+	if vm.has_method("refresh_world_stage_3d"):
+		vm.refresh_world_stage_3d()
+	VillageChronicle.add(vm, "coop_moved_home", "Trasladaste tu gallinero y tus animales de corral al solar %s" % lid, true)
+	return true
+
 static func _player_pen_rect(vm) -> Rect2:
 	var coop_pos: Vector2 = Vector2(-198.0, -21.0)
-	if vm != null and vm.is_inside_tree() and vm.get_tree() != null:
-		var coop: Node2D = vm.get_tree().get_first_node_in_group("chicken_coop") as Node2D
-		if coop != null and is_instance_valid(coop):
-			coop_pos = coop.global_position
+	if vm != null:
+		var c_lot: String = str(state(vm).get("coop_lot", ""))
+		if c_lot != "" and str(VillageLots.lot(vm, c_lot).get("payer", "")) == "player" and str(VillageLots.lot(vm, c_lot).get("status", "")) == "built":
+			coop_pos = coop_pos_for_lot(vm, c_lot)
+		elif vm.is_inside_tree() and vm.get_tree() != null:
+			var coop: Node2D = vm.get_tree().get_first_node_in_group("chicken_coop") as Node2D
+			if coop != null and is_instance_valid(coop):
+				coop_pos = coop.global_position
 	return Rect2(coop_pos + Vector2(-33.0, -6.0), Vector2(66.0, 31.0))
 
 static func sync_livestock(vm) -> void:
@@ -998,6 +1096,10 @@ static func add_dialogue_choices(vm, npc, diag: Dictionary, ch_arr: Array) -> vo
 				opts.append({"label": "🪵🗝️ Construir escondite secreto bajo las tablas (-%d Oro)" % STASH_BUILD_COST, "next": "END", "action": "housing_build_stash"})
 			if not has_player_shop(vm):
 				opts.append({"label": "🏪🔨 Acondicionar mostrador y fundar tu propio negocio en el solar %s (-%d Oro)" % [p_lot, FOUND_SHOP_COST], "next": "END", "action": "housing_found_shop:" + p_lot})
+			if str(hs.get("toby_lot", "")) != p_lot:
+				opts.append({"label": "🐕🥣 Trasladar a Toby y su comedero al patio de tu casa en el solar %s" % p_lot, "next": "END", "action": "housing_move_toby:" + p_lot})
+			if str(hs.get("coop_lot", "")) != p_lot:
+				opts.append({"label": "🐔🐑 Trasladar tu gallinero y animales al solar de tu casa (%s)" % p_lot, "next": "END", "action": "housing_move_coop:" + p_lot})
 		# P6.5: Comprar una casa embargada al pueblo o al noble para alquilarla
 		for l in VillageLots.LOTS:
 			var id2: String = str(l["id"])
@@ -1121,9 +1223,22 @@ static func on_player_action(vm, npc, action_id: String, inv) -> void:
 		st["has_garden"] = true
 		var c: Vector2 = VillageLots.lot_def(arg)["center"]
 		vm._spawn_decor_prop("res://assests/world/village/chicken_1.png", c + Vector2(-46, 22), Vector2(0.9, 0.9))
+		move_coop_to_lot(vm, arg)
 		sync_home_props(vm)
 		VillageChronicle.add(vm, "home_garden", "Montaste un huerto y gallinero doméstico junto a tu casa", true)
 		_notify_player(vm, npc, "🌱🐔 «¡Ya tienes tu huerto y gallinero en casa! Coséchalo con [E].»", Color.SPRING_GREEN)
+
+	elif action_id.begins_with("housing_move_toby:"):
+		if move_toby_to_lot(vm, arg):
+			_notify_player(vm, npc, "🐕🥣 Toby y su comedero ahora están junto a tu casa en el solar %s." % (arg if not arg.is_empty() else primary_player_lot(vm)), Color.SPRING_GREEN)
+		else:
+			_notify_player(vm, npc, "Necesitas tener tu casa ya construida en el pueblo", Color.ORANGE_RED)
+
+	elif action_id.begins_with("housing_move_coop:"):
+		if move_coop_to_lot(vm, arg):
+			_notify_player(vm, npc, "🐔🐑 Tu gallinero y animales del campamento se han trasladado a tu solar %s." % (arg if not arg.is_empty() else primary_player_lot(vm)), Color.SPRING_GREEN)
+		else:
+			_notify_player(vm, npc, "Necesitas tener tu casa ya construida en el pueblo", Color.ORANGE_RED)
 
 	elif action_id == "housing_build_stash":
 		if inv == null or int(inv.gold) < STASH_BUILD_COST:
@@ -1506,6 +1621,7 @@ static func sync_home_props(vm) -> void:
 	var hs: Dictionary = state(vm)
 	var prim_lot: String = primary_player_lot(vm)
 	var shop_lot: String = player_shop_lot(vm) if has_player_shop(vm) else ""
+	sync_relocated_camp_assets(vm, false)
 	for lid in player_lots(vm, true):
 		var st: Dictionary = VillageLots.lot(vm, lid)
 		var up: Dictionary = st.get("upgrades", {})
@@ -1872,6 +1988,20 @@ static func open_home_table_menu(vm, speaker: Node, _player: Node2D = null) -> v
 			"next": "END",
 			"action": "housing_party_call"
 		})
+	var p_lot_tb: String = primary_player_lot(vm)
+	if p_lot_tb != "" and str(VillageLots.lot(vm, p_lot_tb).get("status", "")) == "built":
+		if str(hs.get("toby_lot", "")) != p_lot_tb:
+			choices.append({
+				"label": "🐕🥣 Traer a Toby y su comedero al patio de tu casa (%s)" % p_lot_tb,
+				"next": "END",
+				"action": "housing_move_toby:" + p_lot_tb
+			})
+		if str(hs.get("coop_lot", "")) != p_lot_tb:
+			choices.append({
+				"label": "🐔🐑 Traer tu gallinero y animales del campamento al solar %s" % p_lot_tb,
+				"next": "END",
+				"action": "housing_move_coop:" + p_lot_tb
+			})
 	choices.append({"label": "Apartarse de la mesa [Salir]", "next": "END"})
 	var status_txt: String = "Sin reunión prevista hoy."
 	if has_active_gathering(vm) and str(g.get("place", "")) == "home":

@@ -34,6 +34,8 @@ func configure_from_entry(p_vm: Node2D, p_owner_kind: String, p_index: int, d: D
 		pen_rect = p_pen_rect
 		global_position.x = clampf(global_position.x, pen_rect.position.x, pen_rect.end.x)
 		global_position.y = clampf(global_position.y, pen_rect.position.y, pen_rect.end.y)
+		_target_pos.x = clampf(_target_pos.x, pen_rect.position.x, pen_rect.end.x)
+		_target_pos.y = clampf(_target_pos.y, pen_rect.position.y, pen_rect.end.y)
 		update_from_dict(p_index, d)
 
 

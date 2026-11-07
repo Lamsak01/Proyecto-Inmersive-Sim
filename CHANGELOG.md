@@ -3,6 +3,10 @@
 Cambios del juego, del más nuevo al más antiguo. Añade una entrada al cerrar cada bloque, en lenguaje sencillo.
 El detalle técnico está en `docs/HANDOFF.md` (sección 7) y el historial completo en `git log`. Lo anterior a B0.1 está en `AUDIT_LOG.md` y `SESSION_CONTEXT_LOG.md`.
 
+## 2026-11-07 — Del campamento del lago a tu casa del pueblo
+- **Mudanza de Toby y su comedero:** cuando ya tienes casa construida en un solar del pueblo, puedes llevarte a Toby y su cama con comedero junto a tu puerta (hablando con el carpintero, desde la mesa de tu casa o en la mesa de obras del campamento).
+- **Mudanza de tu gallinero y tus animales de corral:** también puedes trasladar tu gallinero y tus ovejas y gallinas al patio de tu solar en el pueblo (o se trasladan al montar allí el huerto y gallinero con el carpintero), mientras el campamento del oeste junto al lago sigue sirviendo como puesto de pesca, caza y refugio.
+
 ## 2026-11-07 — Calabozo de verdad (vecinos entre rejas, fianza y fuga)
 - **Los vecinos detenidos van de verdad al calabozo:** cuando un guardia pilla a alguien en un trabajo nocturno (sabotaje, robo o profanación), separa una pelea grave, ejecuta una sentencia o detiene al jefe de «La Familia» tras tu denuncia, el detenido camina hasta la celda de la comisaría y queda encerrado tras los barrotes (sin acudir a su puesto ni a reuniones) hasta cumplir su condena de 1 o 2 días.
 - **Visitar al preso, pagar su fianza o abrirle la reja:** puedes hablar con él a través de los barrotes, pagar su fianza al comisario o a un guardia (el oro entra en las arcas municipales y el preso sale agradecido) o forzar la cerradura con ganzúas o llave para sacarlo a escondidas, arriesgándote a que la guardia te busque por complicidad si te ven.

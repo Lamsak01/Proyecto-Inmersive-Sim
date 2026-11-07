@@ -2372,7 +2372,7 @@ func _sync_props_3d(only_update: bool) -> void:
 		var kind: String = src["kind"]
 		var variant := _tex_file(spr.texture) if kind in ["soil", "crop", "feeder", "nest"] else kind
 		var rec: Dictionary = _prop_nodes.get(id, {})
-		var stale: bool = not rec.is_empty() and String(rec.get("variant", "")) != variant
+		var stale: bool = not rec.is_empty() and (String(rec.get("variant", "")) != variant or (rec.get("pos", Vector2.ZERO) as Vector2).distance_squared_to(spr.global_position) > 0.25)
 		if stale:
 			var old_root = rec.get("root")
 			if old_root is Node3D and is_instance_valid(old_root):
@@ -2383,7 +2383,7 @@ func _sync_props_3d(only_update: bool) -> void:
 			root.name = "Prop3D_" + kind
 			nature_root_3d.add_child(root)
 			_build_prop_3d(root, kind, spr)
-			rec = {"root": root, "variant": variant}
+			rec = {"root": root, "variant": variant, "pos": spr.global_position}
 			_prop_nodes[id] = rec
 		var r3 = rec.get("root")
 		if r3 is Node3D and is_instance_valid(r3):
@@ -2532,11 +2532,16 @@ func _sync_player_house_3d() -> void:
 func _sync_coop_3d() -> void:
 	if not is_instance_valid(_coop_node) or nature_root_3d == null:
 		return
+	if is_instance_valid(_coop_3d) and (_coop_3d.get_meta("coop_pos", Vector2.ZERO) as Vector2).distance_squared_to(_coop_node.global_position) > 0.25:
+		_coop_3d.queue_free()
+		_coop_3d = null
+		_coop_gap_3d = null
 	if not is_instance_valid(_coop_3d):
 		_coop_3d = Node3D.new()
 		_coop_3d.name = "ChickenCoop3D"
 		nature_root_3d.add_child(_coop_3d)
 		var c: Vector2 = _coop_node.global_position
+		_coop_3d.set_meta("coop_pos", c)
 		var m_post := _mat("coop_post", Color(0.50, 0.34, 0.20), 0.9, 0.02, Color.BLACK, 0.0, "town_textures/rf_planks.png", "", 0.78)
 		var m_floor := _mat("coop_floor", Color(0.46, 0.36, 0.22), 0.97, 0.0, Color.BLACK, 0.0, "town_textures/floor_ground_dirt.png", "", 0.5)
 		_add_box_2d(_coop_3d, c, Vector2(76, 60), 0.0, 0.8, m_floor)

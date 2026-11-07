@@ -50,6 +50,7 @@ kanban-plugin: board
 
 ## ✅ Hecho
 
+- [x] Del campamento del lago al pueblo (`B3`): con casa construida en el pueblo, trasladar a Toby (y su comedero) y tu gallinero/animales a tu solar, manteniendo el campamento del oeste como puesto de pesca, caza y refugio ([[Campamento, Agricultura y Pesca]], [[Vivienda e Hipotecas]]) (2026-11-07)
 - [x] Calabozo de verdad (`B2`): los vecinos pillados en delitos nocturnos, peleas graves, veredictos o al delatar al jefe de «La Familia» van encerrados a la celda de la comisaría; se puede hablar con ellos entre rejas, pagar su fianza a las arcas o ayudarlos a escapar con ganzúas ([[Justicia y Comisaría]]) (2026-11-07)
 - [x] El jugador descubre «La Familia» e interviene (`R4`, espiando reuniones nocturnas en el reservado, avisando a la víctima, delatando al Comisario o trabajando para el jefe) y **Don Vittorio Corvo** lidera «La Familia» desde el Día 0 ([[Trattoria Il Corvo]]) (2026-11-06)
 - [x] Negocios discretos de «La Familia» (`R3`): cobro en persona de comisión de «tranquilidad» a comercios prósperos, préstamos del reservado y soborno a guardias poco honrados para que hagan la vista gorda de noche ([[Trattoria Il Corvo]]) (2026-11-06)

@@ -344,4 +344,12 @@ o vino ya dado. Conviene confirmarlo.
 **Dónde:** `scripts/systems/VillageJustice.gd` (`arrest_npc`, `release_npc`, `pay_npc_bail`, `help_npc_escape`, `add_dialogue_choices`).
 **Depende:** solo los textos; la lógica usa `town_state["jail_inmates"]` y las acciones `"jail_pay_bail:"` y `"jail_escape_npc"`.
 
+## Opciones de traslado de Toby y del gallinero a tu casa (B3, provisionales)
+- En conversación con el carpintero o en la mesa de casa: «🐕🥣 Trasladar a Toby y su comedero al patio de tu casa en el solar X» y «🐔🐑 Trasladar tu gallinero y animales al solar de tu casa (X)».
+- En la mesa de obras del campamento: «[5] 🏡🐕 Trasladar a Toby y tus animales/gallinero a tu casa del pueblo».
+
+**Dónde:** `scripts/systems/VillageHousing.gd` (`move_toby_to_lot`, `move_coop_to_lot`, `add_dialogue_choices`, `open_home_table_menu`), `scripts/obstacles/CampSite.gd` (`_setup_upgrade_ui`, `_on_move_to_village_house_pressed`).
+**Depende:** solo los textos; la lógica usa `toby_lot` y `coop_lot` en `town_state["housing"]`.
+
+
 
