@@ -131,7 +131,15 @@ func _ready() -> void:
 
 func _process(_delta: float) -> void:
 	if is_instance_valid(visual_2d):
-		visual_2d.visible = not CharacterAvatar3DScript.use_3d_characters
+		var show_2d: bool = not CharacterAvatar3DScript.use_3d_characters
+		if show_2d and vm != null:
+			if prop_kind in ["sewer_ladder", "sewer_chest"]:
+				show_2d = VillageUnderworld.is_player_in_sewers(vm)
+			elif prop_kind in ["club_ladder", "club_ring", "club_bet"]:
+				show_2d = VillageClub.is_player_in_club(vm)
+			elif prop_kind in ["sewer_grate", "club_trapdoor"]:
+				show_2d = (int(vm.player_elevation_level) == 0)
+		visual_2d.visible = show_2d
 
 
 func _rebuild_visual_and_area() -> void:
@@ -385,13 +393,19 @@ func get_interact_label(_player: Node2D = null) -> String:
 				lbl = str(VillageUnderworld.state(vm).get("active_heist", {}).get("label", "el objetivo"))
 			return "Robar %s" % (lbl if not lbl.is_empty() else "el objetivo")
 		"sewer_grate":
+			if vm != null and int(vm.player_elevation_level) != 0:
+				return ""
 			var unlocked: bool = vm != null and bool(VillageUnderworld.sewers_state(vm).get("unlocked", false))
 			if not unlocked:
 				return "Cerrada: el perista vende la llave"
 			return "Bajar a las alcantarillas (%s)" % (heist_label if not heist_label.is_empty() else "acceso")
 		"sewer_ladder":
+			if vm != null and not VillageUnderworld.is_player_in_sewers(vm):
+				return ""
 			return "Subir a la calle (%s)" % (heist_label if not heist_label.is_empty() else "superficie")
 		"sewer_chest":
+			if vm != null and not VillageUnderworld.is_player_in_sewers(vm):
+				return ""
 			if vm != null and VillageUnderworld.is_sewer_chest_looted_today(vm, sewer_loc_id):
 				return "Cofre de contrabando (vacío hoy)"
 			return "Abrir cofre de contrabando (%s)" % (heist_label if not heist_label.is_empty() else "alijo")

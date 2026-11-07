@@ -101,11 +101,11 @@ class SmugglerCampCart extends Node2D:
 ## Bloque FIS2: cada objetivo de robo está físicamente dentro de su edificio:
 ## - `sello_noble`: Mansión señorial (`solar f1`, estudio en `Vector2(1275, -444)`).
 ## - `caliz_capilla`: Capilla (`building_church`, altar en `Vector2(745, 336)`).
-## - `libro_gremial`: Ayuntamiento (`solar n4`, mesa municipal en `Vector2(764, -444)`).
+## - `libro_gremial`: Ayuntamiento (`solar n4`, mesa municipal en `Vector2(764, -449)`).
 const HEIST_TARGETS: Array[Dictionary] = [
 	{"id": "sello_noble", "label": "el Sello de Lacre Noble", "pos": Vector2(1275.0, -444.0), "reward": 55},
 	{"id": "caliz_capilla", "label": "el Cáliz de Plata de la Capilla", "pos": Vector2(745.0, 336.0), "reward": 55},
-	{"id": "libro_gremial", "label": "el Libro Mayor de los Gremios", "pos": Vector2(764.0, -444.0), "reward": 55},
+	{"id": "libro_gremial", "label": "el Libro Mayor de los Gremios", "pos": Vector2(764.0, -449.0), "reward": 55},
 ]
 
 ## Lo que el perista acepta como «mercancía caliente» y cuánto paga (de su bolsillo). Antes daba 25 sin pedir nada.
@@ -134,38 +134,39 @@ const FENCE_RUMORS: Array[String] = [
 
 ## Bloque FIS3: Cada entrada de `SEWER_LOCATIONS` define:
 ## - `pos`: Trampilla/rejilla en la calle (fuera de edificios y fuera de las calzadas de paso de los vecinos).
-## - `chamber_center`: Centro de su cámara en la red de túneles conectada al sur del mapa (`y = 1520`).
+## - `chamber_center`: Centro de su cámara en la red de túneles conectada directamente bajo el centro del pueblo (`y = SEWER_Y = 63.0`).
 ## - `tunnel_pos`: Punto donde aparece el jugador al bajar por esa trampilla.
 ## - `ladder_pos`: Escalerilla física para subir de vuelta a esa trampilla de la calle.
 ## - `chest_pos`: Cofre de contrabando físico (1 vez al día por cámara).
+const SEWER_Y: float = 63.0
 const SEWER_LOCATIONS: Dictionary = {
 	"cistern": {
 		"title": "Cisterna Vieja bajo la Plaza",
 		"pos": Vector2(518.0, 26.0),
-		"chamber_center": Vector2(580.0, 1520.0),
-		"tunnel_pos": Vector2(556.0, 1514.0),
-		"ladder_pos": Vector2(556.0, 1496.0),
-		"chest_pos": Vector2(604.0, 1496.0),
+		"chamber_center": Vector2(580.0, SEWER_Y),
+		"tunnel_pos": Vector2(556.0, SEWER_Y - 6.0),
+		"ladder_pos": Vector2(556.0, SEWER_Y - 24.0),
+		"chest_pos": Vector2(604.0, SEWER_Y - 24.0),
 		"difficulty": 0.30,
 		"loot_item": "copper_coil"
 	},
 	"smuggler_tunnel": {
 		"title": "Pasadizo del Contrabandista",
 		"pos": Vector2(398.0, -118.0),
-		"chamber_center": Vector2(420.0, 1520.0),
-		"tunnel_pos": Vector2(396.0, 1514.0),
-		"ladder_pos": Vector2(396.0, 1496.0),
-		"chest_pos": Vector2(444.0, 1496.0),
+		"chamber_center": Vector2(420.0, SEWER_Y),
+		"tunnel_pos": Vector2(396.0, SEWER_Y - 6.0),
+		"ladder_pos": Vector2(396.0, SEWER_Y - 24.0),
+		"chest_pos": Vector2(444.0, SEWER_Y - 24.0),
 		"difficulty": 0.25,
 		"loot_item": "bandit_scrap"
 	},
 	"flooded_vault": {
 		"title": "Bóveda Inundada del Antiguo Gremio",
 		"pos": Vector2(248.0, -90.0),
-		"chamber_center": Vector2(260.0, 1520.0),
-		"tunnel_pos": Vector2(236.0, 1514.0),
-		"ladder_pos": Vector2(236.0, 1496.0),
-		"chest_pos": Vector2(284.0, 1496.0),
+		"chamber_center": Vector2(260.0, SEWER_Y),
+		"tunnel_pos": Vector2(236.0, SEWER_Y - 6.0),
+		"ladder_pos": Vector2(236.0, SEWER_Y - 24.0),
+		"chest_pos": Vector2(284.0, SEWER_Y - 24.0),
 		"difficulty": 0.40,
 		"loot_item": "steel_ingot"
 	}
@@ -270,6 +271,7 @@ static func enter_sewer_location(vm, loc_id: String, player: Node2D = null) -> b
 		pl.global_position = SEWER_LOCATIONS[loc_id].get("tunnel_pos", SEWER_LOCATIONS[loc_id]["pos"])
 	vm.set_player_elevation_level(-1)
 	vm._elevation_anchor = Vector2.INF
+	sync_sewer_visibility(vm)
 	return true
 
 ## El nivel -1 lo comparten el sótano de tu casa y las alcantarillas: solo estás en las alcantarillas si entraste por ellas.
@@ -283,6 +285,7 @@ static func exit_sewers_to_surface(vm) -> void:
 	var cur: String = str(sw.get("current_loc", ""))
 	sw["current_loc"] = ""
 	vm.set_player_elevation_level(0)
+	sync_sewer_visibility(vm)
 	if SEWER_LOCATIONS.has(cur):
 		var pl = VillageNeeds.player_of(vm)
 		if pl != null and is_instance_valid(pl):
@@ -475,8 +478,8 @@ static func build_sewers_world(vm) -> void:
 		p.color = col
 		vis_2d.add_child(p)
 
-	# Losa oscura subterránea alrededor de las galerías
-	add_rect_2d.call(Vector2(420.0, 1520.0), Vector2(480.0, 120.0), Color(0.08, 0.10, 0.09, 0.96))
+	# Losa oscura subterránea alrededor de las galerías (bajo el centro del pueblo, en y = SEWER_Y)
+	add_rect_2d.call(Vector2(420.0, SEWER_Y), Vector2(480.0, 120.0), Color(0.08, 0.10, 0.09, 0.96))
 	# Suelos de piedra y canal de aguas turbias de las 3 cámaras
 	for loc_id in ["flooded_vault", "smuggler_tunnel", "cistern"]:
 		var c: Vector2 = SEWER_LOCATIONS[loc_id]["chamber_center"]
@@ -485,37 +488,37 @@ static func build_sewers_world(vm) -> void:
 		add_rect_2d.call(c + Vector2(0.0, 26.0), Vector2(106.0, 18.0), Color(0.12, 0.40, 0.32, 0.92))
 	# Dos galerías de paso entre las cámaras (x = 315..365 y x = 475..525)
 	for corr_x in [340.0, 500.0]:
-		add_rect_2d.call(Vector2(corr_x, 1520.0), Vector2(54.0, 40.0), Color(0.28, 0.32, 0.30))
-		add_rect_2d.call(Vector2(corr_x, 1534.0), Vector2(54.0, 10.0), Color(0.12, 0.40, 0.32, 0.90))
+		add_rect_2d.call(Vector2(corr_x, SEWER_Y), Vector2(54.0, 40.0), Color(0.28, 0.32, 0.30))
+		add_rect_2d.call(Vector2(corr_x, SEWER_Y + 14.0), Vector2(54.0, 10.0), Color(0.12, 0.40, 0.32, 0.90))
 
 	# Paredes físicas StaticBody2D que encierran las 3 cámaras y los 2 pasillos conectados
 	var walls_body := StaticBody2D.new()
 	walls_body.name = "SewerTunnelWallsBody"
-	walls_body.collision_layer = 1
+	walls_body.collision_layer = 1 if is_player_in_sewers(vm) else 0
 	walls_body.collision_mask = 0
 	net_root.add_child(walls_body)
 
 	var wall_segments: Array = [
-		[Vector2(202.0, 1520.0), Vector2(6.0, 86.0)],
-		[Vector2(638.0, 1520.0), Vector2(6.0, 86.0)],
-		[Vector2(260.0, 1477.0), Vector2(116.0, 6.0)],
-		[Vector2(420.0, 1477.0), Vector2(116.0, 6.0)],
-		[Vector2(580.0, 1477.0), Vector2(116.0, 6.0)],
-		[Vector2(260.0, 1563.0), Vector2(116.0, 6.0)],
-		[Vector2(420.0, 1563.0), Vector2(116.0, 6.0)],
-		[Vector2(580.0, 1563.0), Vector2(116.0, 6.0)],
-		[Vector2(340.0, 1497.0), Vector2(56.0, 6.0)],
-		[Vector2(340.0, 1543.0), Vector2(56.0, 6.0)],
-		[Vector2(315.0, 1488.0), Vector2(6.0, 22.0)],
-		[Vector2(315.0, 1552.0), Vector2(6.0, 22.0)],
-		[Vector2(365.0, 1488.0), Vector2(6.0, 22.0)],
-		[Vector2(365.0, 1552.0), Vector2(6.0, 22.0)],
-		[Vector2(500.0, 1497.0), Vector2(56.0, 6.0)],
-		[Vector2(500.0, 1543.0), Vector2(56.0, 6.0)],
-		[Vector2(475.0, 1488.0), Vector2(6.0, 22.0)],
-		[Vector2(475.0, 1552.0), Vector2(6.0, 22.0)],
-		[Vector2(525.0, 1488.0), Vector2(6.0, 22.0)],
-		[Vector2(525.0, 1552.0), Vector2(6.0, 22.0)],
+		[Vector2(202.0, SEWER_Y), Vector2(6.0, 86.0)],
+		[Vector2(638.0, SEWER_Y), Vector2(6.0, 86.0)],
+		[Vector2(260.0, SEWER_Y - 43.0), Vector2(116.0, 6.0)],
+		[Vector2(420.0, SEWER_Y - 43.0), Vector2(116.0, 6.0)],
+		[Vector2(580.0, SEWER_Y - 43.0), Vector2(116.0, 6.0)],
+		[Vector2(260.0, SEWER_Y + 43.0), Vector2(116.0, 6.0)],
+		[Vector2(420.0, SEWER_Y + 43.0), Vector2(116.0, 6.0)],
+		[Vector2(580.0, SEWER_Y + 43.0), Vector2(116.0, 6.0)],
+		[Vector2(340.0, SEWER_Y - 23.0), Vector2(56.0, 6.0)],
+		[Vector2(340.0, SEWER_Y + 23.0), Vector2(56.0, 6.0)],
+		[Vector2(315.0, SEWER_Y - 32.0), Vector2(6.0, 22.0)],
+		[Vector2(315.0, SEWER_Y + 32.0), Vector2(6.0, 22.0)],
+		[Vector2(365.0, SEWER_Y - 32.0), Vector2(6.0, 22.0)],
+		[Vector2(365.0, SEWER_Y + 32.0), Vector2(6.0, 22.0)],
+		[Vector2(500.0, SEWER_Y - 23.0), Vector2(56.0, 6.0)],
+		[Vector2(500.0, SEWER_Y + 23.0), Vector2(56.0, 6.0)],
+		[Vector2(475.0, SEWER_Y - 32.0), Vector2(6.0, 22.0)],
+		[Vector2(475.0, SEWER_Y + 32.0), Vector2(6.0, 22.0)],
+		[Vector2(525.0, SEWER_Y - 32.0), Vector2(6.0, 22.0)],
+		[Vector2(525.0, SEWER_Y + 32.0), Vector2(6.0, 22.0)],
 	]
 	for seg in wall_segments:
 		var w_pos: Vector2 = seg[0]
@@ -551,6 +554,22 @@ static func build_sewers_world(vm) -> void:
 		vm.entities_root.add_child(chest)
 		chest.setup_prop(vm, "sewer_chest", loc_id, title)
 
+	sync_sewer_visibility(vm)
+
+static func sync_sewer_visibility(vm) -> void:
+	if vm == null or not ("entities_root" in vm) or not is_instance_valid(vm.entities_root):
+		return
+	var in_sewers: bool = is_player_in_sewers(vm)
+	var use_3d: bool = load("res://scripts/visuals/CharacterAvatar3D.gd").use_3d_characters
+	var net_root: Node2D = vm.entities_root.get_node_or_null("SewersNetwork2D") as Node2D
+	if is_instance_valid(net_root):
+		var vis_2d: Node2D = net_root.get_node_or_null("SewersVisual2D") as Node2D
+		if is_instance_valid(vis_2d):
+			vis_2d.visible = in_sewers and not use_3d
+		var walls_body: StaticBody2D = net_root.get_node_or_null("SewerTunnelWallsBody") as StaticBody2D
+		if is_instance_valid(walls_body):
+			walls_body.collision_layer = 1 if in_sewers else 0
+
 static func after_load(vm) -> void:
 	if vm == null:
 		return
@@ -558,6 +577,7 @@ static func after_load(vm) -> void:
 	if str(sw.get("current_loc", "")) != "":
 		vm.set_player_elevation_level(-1)
 		vm._elevation_anchor = Vector2.INF
+	sync_sewer_visibility(vm)
 
 static func explore_sewer_location(vm, loc_id: String, inv, force_outcome: int = 0) -> Dictionary:
 	var sw: Dictionary = sewers_state(vm)
@@ -1480,10 +1500,19 @@ static func on_player_action(vm, npc, action_id: String, inv) -> void:
 		npc.personal_gold += 25
 		var role_id: int = int(VillageNPC.TradeRole.BLACKSMITH)
 		var role_title: String = "la Herrería"
+		var found_owned: bool = false
 		for rk in vm.shop_businesses.keys():
-			role_id = int(rk)
-			role_title = str(vm.shop_businesses[rk].get("title", "el taller"))
-			break
+			var o_cand = vm.trade_npcs.get(int(rk), null)
+			if o_cand != null and is_instance_valid(o_cand) and not o_cand.is_dead:
+				role_id = int(rk)
+				role_title = str(vm.shop_businesses[rk].get("title", "el taller"))
+				found_owned = true
+				break
+		if not found_owned:
+			for rk in vm.shop_businesses.keys():
+				role_id = int(rk)
+				role_title = str(vm.shop_businesses[rk].get("title", "el taller"))
+				break
 		VillageNightJobs.queue(vm, {"type": "sabotage", "role_id": role_id, "role_title": role_title, "paid_by_player": true}) # P6b: alguien va de verdad a la 1:00
 		npc._spawn_floating_text("💣 «Esta noche averiaremos %s. Tú tendrás coartada limpia.»" % role_title, Color.GOLD, -46.0)
 

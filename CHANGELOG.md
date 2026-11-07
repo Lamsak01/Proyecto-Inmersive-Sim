@@ -3,6 +3,11 @@
 Cambios del juego, del más nuevo al más antiguo. Añade una entrada al cerrar cada bloque, en lenguaje sencillo.
 El detalle técnico está en `docs/HANDOFF.md` (sección 7) y el historial completo en `git log`. Lo anterior a B0.1 está en `AUDIT_LOG.md` y `SESSION_CONTEXT_LOG.md`.
 
+## 2026-11-07 — Corrección de puestos de trabajo, sabotaje nocturno y alcantarillas bajo el pueblo tras agrandar el mapa
+- **Vecinos trabajando y saliendo de expedición a los sitios reales:** los 4 ayudantes familiares (Kael, Lina, Mila y Nora) acuden ahora a su taller en vez de quedarse en su casa; Corin va a pescar a la nueva orilla del Lago del Oeste; Bram, Thoran, Elena, Garrick y el leñador acuden al nuevo Bosque Profundo del sur; y todos los puntos de la posada «El Jabalí Dorado», la Biblioteca, el Ayuntamiento, la Mansión y la Trattoria «Il Corvo» apuntan a su posición actual.
+- **Saboteador nocturno a la 1:00 de la madrugada:** corregido el encargo nocturno de sabotaje para que el vecino contratado siempre tenga la ruta real al mostrador del taller objetivo.
+- **Alcantarillas y sótano de peleas bajo el pueblo (en 2D y 3D):** las alcantarillas dejan de aparecer en mitad del bosque ni bloquear el paso con muros invisibles en 3D; ahora están bajo el centro del pueblo con sus 3 rejillas de entrada, sin colisión mientras caminas por la calle y visibles tanto en 2D como en 3D al bajar.
+
 ## 2026-11-07 — Bocetos de todos los edificios y espacios pendientes antes de construirlos (Paso 5 ⛔)
 - **Documento de bocetos (`docs/BOCETOS_EDIFICIOS.md`) listo para revisión:** incluye la distribución de salas, muebles principales, quién trabaja o vive dentro, qué puede hacer el jugador y el estilo de fachada y puerta exterior para la **Comisaría y Cárcel**, el **Hospital y Morgue Forense**, la **Capilla del Alba**, la **Biblioteca Municipal** (con lectura útil de 4 materias reales al pulsar `[E]`), las **Alcantarillas ampliadas y el Club de la Lucha**, el **Rancho del Sur con su gran corral de ganado**, el **Tablón de Encargos legible de la Plaza** y el **resto de edificios del pueblo** (Ayuntamiento, Escuela, Salón «El Candil», Mansiones, Casas y Talleres/Tiendas).
 

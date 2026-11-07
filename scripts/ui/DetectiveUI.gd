@@ -1619,28 +1619,28 @@ func _get_corpse_site_kind() -> String:
 			var raw_dp = current_corpse.get("death_world_pos")
 			if raw_dp is Vector2 and (raw_dp as Vector2) != Vector2.ZERO:
 				dpos = raw_dp
-			if dpos.x < -60.0 and dpos.y > 30.0 and dpos.y < 320.0:
+			if dpos.x < -280.0 and dpos.y >= -130.0 and dpos.y <= 260.0:
 				return "lake"
-			if dpos.y > 380.0 and dpos.x > -340.0 and dpos.x < 450.0:
+			if dpos.y > 380.0 and dpos.x > -660.0 and dpos.x < 480.0:
 				return "ranch"
-			if dpos.x >= 100.0 and dpos.x <= 1350.0 and dpos.y >= -450.0 and dpos.y <= 430.0:
+			if dpos.x >= -270.0 and dpos.x <= 1350.0 and dpos.y >= -520.0 and dpos.y <= 430.0:
 				return "town"
 			return "forest"
 	return "forest"
 
 
 func _describe_world_site(dpos: Vector2) -> String:
-	if dpos.x < -60.0 and dpos.y > 30.0 and dpos.y < 320.0:
+	if dpos.x < -280.0 and dpos.y >= -130.0 and dpos.y <= 260.0:
 		return "la orilla del Lago del Oeste"
-	if dpos.y > 380.0 and dpos.x > 180.0 and dpos.x < 450.0:
+	if dpos.y > 380.0 and dpos.x > 180.0 and dpos.x < 480.0:
 		return "el Rancho del Sur"
-	if dpos.y > 380.0 and dpos.x > -360.0 and dpos.x <= 180.0:
+	if dpos.y > 380.0 and dpos.x > -660.0 and dpos.x <= 180.0:
 		return "los campos de la Granja del Sur"
-	if dpos.x > 1000.0 and dpos.y > 190.0 and dpos.y < 430.0:
+	if dpos.x >= -270.0 and dpos.x <= 40.0 and dpos.y >= -220.0 and dpos.y <= 55.0:
 		return "las inmediaciones de la Trattoria «Il Corvo»"
-	if dpos.x >= 180.0 and dpos.x <= 430.0 and dpos.y >= 200.0 and dpos.y <= 310.0:
+	if dpos.x >= 180.0 and dpos.x <= 430.0 and dpos.y >= 200.0 and dpos.y <= 360.0:
 		return "el Parque del Roble"
-	if dpos.x >= 100.0 and dpos.x <= 1350.0 and dpos.y >= -450.0 and dpos.y <= 430.0:
+	if dpos.x >= -270.0 and dpos.x <= 1350.0 and dpos.y >= -520.0 and dpos.y <= 430.0:
 		return "las calles del pueblo"
 	return "los senderos de las afueras"
 
@@ -1833,7 +1833,7 @@ func _build_case_from_corpse(corpse_node: Node2D) -> void:
 	var head_wounds_txt: String = _describe_zone_wounds(wounds_by_zone["cabeza"], weapon_cause, "Rostro pálido y sin fracturas ni golpes abiertos en el cráneo.")
 	var neck_wounds_txt: String = _describe_zone_wounds(wounds_by_zone["cuello"], weapon_cause, "Cuello y garganta intactos: no hay surcos de cuerda ni marcas de estrangulamiento.")
 	var torso_wounds_txt: String = _describe_zone_wounds(wounds_by_zone["torso"], weapon_cause, "Ropa de %s sin desgarros de arma blanca en el pecho." % (v_role.to_lower() if v_role != "" else "vecino"))
-	var arm_wounds_txt: String = _describe_zone_wounds(wounds_by_zone["brazos"], weapon_cause, "Antebrazos y muñecas libres de ataduras; el ataque no le dio tiempo a cubrirse." if total_wounds <= 1 else "Contusiones defensivas en los antebrazos producidas durante el forcejeo.")
+	var arm_wounds_txt: String = _describe_zone_wounds(wounds_by_zone["brazos"], weapon_cause, "Antebrazos y muñecas libres de ataduras, sin nada fuera de lo normal; el ataque no le dio tiempo a cubrirse." if total_wounds <= 1 else "Contusiones defensivas en los antebrazos producidas durante el forcejeo.")
 	var leg_wounds_txt: String = _describe_zone_wounds(wounds_by_zone["piernas"], weapon_cause, ("Talones rozados por el suelo: arrastraron el cuerpo hasta %s." % site_desc) if is_moved else ("Calzado completo y en su sitio; cayó desplomad%s en %s sin ser arrastrad%s." % ["a" if fem else "o", site_desc, "a" if fem else "o"]))
 
 	var rigor_txt: String = "Dedos aún tibios y flexibles (murió hace menos de 1 hora)."

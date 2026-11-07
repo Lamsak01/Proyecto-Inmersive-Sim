@@ -1421,9 +1421,10 @@ func _populate_building_interior_3d(b_root: Node3D, b_id: String, rect: Rect2, d
 			if is_instance_valid(_grid_panel_bulb_3d):
 				_grid_panel_bulb_3d.queue_free()
 			_grid_panel_bulb_3d = _add_cyl_2d(buildings_root_3d, gp_pos + Vector2(0, 4.5), 2.6, 38.0, 4.5, m_screen, 2.0, 8)
-		"building_mansion":
-			# Mansión señorial (f1): estudio con escritorio en (1275, -444), salón y alcoba
-			var study_p := Vector2(1275.0, -444.0)
+		"building_mansion", "building_manor":
+			# Mansión señorial (f1) o Casa solariega (f2): estudio con escritorio, salón y alcoba
+			var nob_lot: String = "f1" if b_id == "building_mansion" else "f2"
+			var study_p: Vector2 = load("res://scripts/systems/VillageNobility.gd").study_pos(nob_lot)
 			if _add_model_2d(b_root, "props/Workbench_Drawers.gltf", study_p, 2.0, Vector2(24.0, 14.0), 8.2) == null:
 				_add_box_2d(b_root, study_p, Vector2(24.0, 14.0), 2.0, 8.2, m_dark_wood)
 			_add_model_2d(b_root, "props/Chair_1.gltf", study_p + Vector2(0, -12), 2.0, Vector2(6.5, 6.5), 8.5)
@@ -2111,10 +2112,11 @@ func _build_sewers_3d() -> void:
 	var m_brass := _mat("sewer_brass", Color(0.90, 0.74, 0.26), 0.28, 0.85, Color(0.85, 0.68, 0.20), 0.45)
 	var m_torch := _mat("sewer_torch", Color(1.0, 0.76, 0.32), 0.20, 0.0, Color(1.0, 0.68, 0.22), 2.8)
 
-	# Losa oscura de roca subterránea para cubrir la hierba exterior alrededor de la red de túneles (y = 1520)
-	_add_box_2d(sewers_root_3d, Vector2(420.0, 1520.0), Vector2(560.0, 200.0), 0.0, 1.0, m_bedrock)
+	var sy: float = VillageUnderworldScript.SEWER_Y
+	# Losa oscura de roca subterránea para cubrir el entorno exterior alrededor de la red de túneles bajo el pueblo (y = SEWER_Y)
+	_add_box_2d(sewers_root_3d, Vector2(420.0, sy), Vector2(720.0, 320.0), 1.2, 0.8, m_bedrock)
 
-	# 3 cámaras conectadas: Bóveda Inundada (260, 1520), Pasadizo del Contrabandista (420, 1520) y Cisterna (580, 1520)
+	# 3 cámaras conectadas bajo el centro del pueblo: Bóveda Inundada (260, SEWER_Y), Pasadizo del Contrabandista (420, SEWER_Y) y Cisterna (580, SEWER_Y)
 	for loc_id in ["flooded_vault", "smuggler_tunnel", "cistern"]:
 		var def: Dictionary = VillageUnderworldScript.SEWER_LOCATIONS[loc_id]
 		var ch_p: Vector2 = def["chamber_center"]
@@ -2122,53 +2124,53 @@ func _build_sewers_3d() -> void:
 		var chs_p: Vector2 = def["chest_pos"]
 
 		# Suelo de piedra, andén seco norte y canal de aguas turbias al sur
-		_add_box_2d(sewers_root_3d, ch_p, Vector2(110.0, 80.0), 1.0, 1.4, m_brick)
-		_add_box_2d(sewers_root_3d, ch_p + Vector2(0.0, -8.0), Vector2(106.0, 56.0), 2.4, 1.2, m_walkway)
-		_add_box_2d(sewers_root_3d, ch_p + Vector2(0.0, 26.0), Vector2(106.0, 18.0), 1.6, 1.0, m_water)
+		_add_box_2d(sewers_root_3d, ch_p, Vector2(110.0, 80.0), 2.0, 1.4, m_brick)
+		_add_box_2d(sewers_root_3d, ch_p + Vector2(0.0, -8.0), Vector2(106.0, 56.0), 3.4, 1.2, m_walkway)
+		_add_box_2d(sewers_root_3d, ch_p + Vector2(0.0, 26.0), Vector2(106.0, 18.0), 2.6, 1.0, m_water)
 
 		# Muro norte alto y zócalo sur bajo (para que la cámara isométrica vea el interior sin tapar al jugador)
-		_add_box_2d(sewers_root_3d, ch_p + Vector2(0.0, -43.0), Vector2(116.0, 6.0), 2.0, 20.0, m_brick)
-		_add_box_2d(sewers_root_3d, ch_p + Vector2(0.0, 43.0), Vector2(116.0, 6.0), 2.0, 5.0, m_brick)
+		_add_box_2d(sewers_root_3d, ch_p + Vector2(0.0, -43.0), Vector2(116.0, 6.0), 3.0, 20.0, m_brick)
+		_add_box_2d(sewers_root_3d, ch_p + Vector2(0.0, 43.0), Vector2(116.0, 6.0), 3.0, 5.0, m_brick)
 
 		# Escalerilla 3D de salida a la calle junto a la boca del túnel
-		_add_box_2d(sewers_root_3d, lad_p + Vector2(0.0, -2.0), Vector2(11.0, 8.0), 3.6, 0.8, m_iron)
-		_add_box_2d(sewers_root_3d, lad_p + Vector2(-4.0, -10.0), Vector2(1.4, 2.0), 3.6, 20.0, m_iron)
-		_add_box_2d(sewers_root_3d, lad_p + Vector2(4.0, -10.0), Vector2(1.4, 2.0), 3.6, 20.0, m_iron)
+		_add_box_2d(sewers_root_3d, lad_p + Vector2(0.0, -2.0), Vector2(11.0, 8.0), 4.6, 0.8, m_iron)
+		_add_box_2d(sewers_root_3d, lad_p + Vector2(-4.0, -10.0), Vector2(1.4, 2.0), 4.6, 20.0, m_iron)
+		_add_box_2d(sewers_root_3d, lad_p + Vector2(4.0, -10.0), Vector2(1.4, 2.0), 4.6, 20.0, m_iron)
 		for rung_i in range(6):
-			_add_box_2d(sewers_root_3d, lad_p + Vector2(0.0, -10.0), Vector2(8.0, 1.2), 5.5 + float(rung_i) * 3.0, 0.9, m_brass)
+			_add_box_2d(sewers_root_3d, lad_p + Vector2(0.0, -10.0), Vector2(8.0, 1.2), 6.5 + float(rung_i) * 3.0, 0.9, m_brass)
 
 		# Antorcha mural subterránea junto a la escalerilla
-		_add_cyl_2d(sewers_root_3d, lad_p + Vector2(12.0, -13.0), 1.4, 12.0, 5.0, m_wood, 1.0, 6)
-		_add_cyl_2d(sewers_root_3d, lad_p + Vector2(12.0, -13.0), 2.2, 17.0, 3.0, m_torch, 1.4, 8)
+		_add_cyl_2d(sewers_root_3d, lad_p + Vector2(12.0, -13.0), 1.4, 13.0, 5.0, m_wood, 1.0, 6)
+		_add_cyl_2d(sewers_root_3d, lad_p + Vector2(12.0, -13.0), 2.2, 18.0, 3.0, m_torch, 1.4, 8)
 		if not _is_headless:
 			var t_light := OmniLight3D.new()
-			t_light.position = to_3d(lad_p + Vector2(12.0, -8.0), 18.0)
+			t_light.position = to_3d(lad_p + Vector2(12.0, -8.0), 19.0)
 			t_light.light_color = Color(1.0, 0.78, 0.42)
 			t_light.light_energy = 1.35
 			t_light.omni_range = 3.2
 			sewers_root_3d.add_child(t_light)
 
 		# Cofre de contrabando 3D sobre losa de piedra + barriles y cajas de alijo
-		_add_box_2d(sewers_root_3d, chs_p, Vector2(16.0, 12.0), 3.6, 1.4, m_brick)
-		if _add_model_2d(sewers_root_3d, "props/Chest_Wood.gltf", chs_p, 5.0, Vector2(13.0, 9.5), 8.5) == null:
-			_add_box_2d(sewers_root_3d, chs_p, Vector2(13.0, 9.0), 5.0, 5.5, m_wood)
-			_add_box_2d(sewers_root_3d, chs_p, Vector2(13.4, 9.4), 10.5, 2.5, m_iron)
-		_add_box_2d(sewers_root_3d, chs_p + Vector2(0.0, 4.6), Vector2(2.4, 1.4), 7.5, 2.6, m_brass)
-		_add_model_2d(sewers_root_3d, "props/Barrel.gltf", ch_p + Vector2(-38.0, 6.0), 3.6, Vector2(9.0, 9.0), 9.5)
-		_add_model_2d(sewers_root_3d, "props/Crate_Wooden.gltf", ch_p + Vector2(38.0, 6.0), 3.6, Vector2(11.0, 11.0), 8.5)
+		_add_box_2d(sewers_root_3d, chs_p, Vector2(16.0, 12.0), 4.6, 1.4, m_brick)
+		if _add_model_2d(sewers_root_3d, "props/Chest_Wood.gltf", chs_p, 6.0, Vector2(13.0, 9.5), 8.5) == null:
+			_add_box_2d(sewers_root_3d, chs_p, Vector2(13.0, 9.0), 6.0, 5.5, m_wood)
+			_add_box_2d(sewers_root_3d, chs_p, Vector2(13.4, 9.4), 11.5, 2.5, m_iron)
+		_add_box_2d(sewers_root_3d, chs_p + Vector2(0.0, 4.6), Vector2(2.4, 1.4), 8.5, 2.6, m_brass)
+		_add_model_2d(sewers_root_3d, "props/Barrel.gltf", ch_p + Vector2(-38.0, 6.0), 4.6, Vector2(9.0, 9.0), 9.5)
+		_add_model_2d(sewers_root_3d, "props/Crate_Wooden.gltf", ch_p + Vector2(38.0, 6.0), 4.6, Vector2(11.0, 11.0), 8.5)
 
 	# 2 galerías de conexión entre las 3 cámaras (x = 340 y x = 500) y muros laterales de cierre
 	for corr_x in [340.0, 500.0]:
-		var cp := Vector2(corr_x, 1520.0)
-		_add_box_2d(sewers_root_3d, cp, Vector2(56.0, 42.0), 1.0, 2.4, m_walkway)
-		_add_box_2d(sewers_root_3d, cp + Vector2(0.0, 14.0), Vector2(56.0, 10.0), 1.6, 1.0, m_water)
-		_add_box_2d(sewers_root_3d, cp + Vector2(0.0, -23.0), Vector2(56.0, 6.0), 2.0, 18.0, m_brick)
-		_add_box_2d(sewers_root_3d, cp + Vector2(0.0, 23.0), Vector2(56.0, 6.0), 2.0, 5.0, m_brick)
+		var cp := Vector2(corr_x, sy)
+		_add_box_2d(sewers_root_3d, cp, Vector2(56.0, 42.0), 2.0, 2.4, m_walkway)
+		_add_box_2d(sewers_root_3d, cp + Vector2(0.0, 14.0), Vector2(56.0, 10.0), 2.6, 1.0, m_water)
+		_add_box_2d(sewers_root_3d, cp + Vector2(0.0, -23.0), Vector2(56.0, 6.0), 3.0, 18.0, m_brick)
+		_add_box_2d(sewers_root_3d, cp + Vector2(0.0, 23.0), Vector2(56.0, 6.0), 3.0, 5.0, m_brick)
 	for sx in [315.0, 365.0, 475.0, 525.0]:
-		_add_box_2d(sewers_root_3d, Vector2(sx, 1488.0), Vector2(6.0, 22.0), 2.0, 20.0, m_brick)
-		_add_box_2d(sewers_root_3d, Vector2(sx, 1552.0), Vector2(6.0, 22.0), 2.0, 5.0, m_brick)
-	_add_box_2d(sewers_root_3d, Vector2(202.0, 1520.0), Vector2(6.0, 86.0), 2.0, 20.0, m_brick)
-	_add_box_2d(sewers_root_3d, Vector2(638.0, 1520.0), Vector2(6.0, 86.0), 2.0, 20.0, m_brick)
+		_add_box_2d(sewers_root_3d, Vector2(sx, sy - 32.0), Vector2(6.0, 22.0), 3.0, 20.0, m_brick)
+		_add_box_2d(sewers_root_3d, Vector2(sx, sy + 32.0), Vector2(6.0, 22.0), 3.0, 5.0, m_brick)
+	_add_box_2d(sewers_root_3d, Vector2(202.0, sy), Vector2(6.0, 86.0), 3.0, 20.0, m_brick)
+	_add_box_2d(sewers_root_3d, Vector2(638.0, sy), Vector2(6.0, 86.0), 3.0, 20.0, m_brick)
 
 func _build_streetlights_3d() -> void:
 	_clear_children(streetlights_root_3d)
@@ -2592,10 +2594,21 @@ func _sync_dynamic_props_3d() -> void:
 		var gate_locked: bool = is_instance_valid(vm._jail_cell_gate_col) and not vm._jail_cell_gate_col.disabled
 		_jail_gate_pivot_3d.rotation_degrees.y = 0.0 if gate_locked else -80.0
 
-	# 6. Visibilidad de las alcantarillas (-1)
+	# 6. Visibilidad de las alcantarillas y del club del sótano (-1): al bajar bajo el pueblo, ocultar superficie 3D para ver las galerías limpias igual que en 2D
+	var in_sewers: bool = VillageUnderworldScript.is_player_in_sewers(vm)
+	var in_club: bool = load("res://scripts/systems/VillageClub.gd").is_player_in_club(vm)
+	var underground_view: bool = in_sewers or in_club
 	if is_instance_valid(sewers_root_3d):
-		sewers_root_3d.visible = VillageUnderworldScript.is_player_in_sewers(vm)
+		sewers_root_3d.visible = in_sewers
 	_sync_club_3d()
+	if is_instance_valid(buildings_root_3d):
+		buildings_root_3d.visible = not underground_view
+	if is_instance_valid(lots_root_3d):
+		lots_root_3d.visible = not underground_view
+	if is_instance_valid(nature_root_3d):
+		nature_root_3d.visible = not underground_view
+	if is_instance_valid(streetlights_root_3d):
+		streetlights_root_3d.visible = not underground_view
 
 	# 7. Piloto luminoso del Cuadro Eléctrico del Taller y objeto físico del robo activo (Bloque FIS2)
 	if is_instance_valid(_grid_panel_bulb_3d):
@@ -3706,9 +3719,8 @@ func _sync_2d_flat_visuals(use_3d: bool) -> void:
 		var sw: Sprite2D = w_entry.get("sprite")
 		if is_instance_valid(sw):
 			sw.self_modulate.a = target_a
-	for sv in get_tree().get_nodes_in_group("sewer_visual_2d"):
-		if sv is CanvasItem and is_instance_valid(sv):
-			(sv as CanvasItem).visible = not use_3d
+	VillageUnderworldScript.sync_sewer_visibility(vm)
+	load("res://scripts/systems/VillageClub.gd").sync_club_visibility(vm)
 	for rf in get_tree().get_nodes_in_group("ranch_fence_2d"):
 		if rf is CanvasItem and is_instance_valid(rf):
 			(rf as CanvasItem).self_modulate.a = target_a

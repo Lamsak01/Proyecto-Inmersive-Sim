@@ -4636,7 +4636,7 @@ func _initialize() -> void:
 	var fis3_cistern_tpos: Vector2 = vun.SEWER_LOCATIONS["cistern"]["tunnel_pos"]
 	assert(p70_pl.global_position.distance_to(fis3_cistern_tpos) < 1.0, "FIS3.3d: Entering cistern grate places player in cistern underground chamber")
 	# Caminar por las galerías hacia otra cámara sin que check_elevation_exit devuelva al nivel 0
-	p70_pl.global_position = Vector2(500.0, 1520.0)
+	p70_pl.global_position = Vector2(500.0, vun.SEWER_Y)
 	vm.check_elevation_exit(p70_pl)
 	assert(vm.player_elevation_level == -1 and vun.is_player_in_sewers(vm), "FIS3.3e: Moving far inside the sewer tunnels keeps player at elevation -1")
 	p70_pl.global_position = vun.SEWER_LOCATIONS["smuggler_tunnel"]["tunnel_pos"]
@@ -6576,8 +6576,8 @@ func _initialize() -> void:
 	r2_fam.on_hour(vm, 23)
 	assert(r2_fam.is_meeting_now(vm) and r2_boss.errand_kind == "familia_meet" and r2_rec1.errand_kind == "familia_meet", "R2.10: At the chosen night hour members are called to the reservado")
 	assert(r1_rs.room_of(r2_boss.errand_pos) == "reservado" and r1_rs.room_of(r2_rec1.errand_pos) == "reservado", "R2.11: Every seat target is inside the Trattoria back room")
-	var r2_wp: Vector2 = vm.get_navigation_waypoint(Vector2(1150, 350), r2_boss.errand_pos, r2_boss)
-	assert(r2_wp.distance_to(Vector2(1062, 306)) < 3.0, "R2.12: Members route through the back-room door from the dining hall")
+	var r2_wp: Vector2 = vm.get_navigation_waypoint(r1_rs.BASE + Vector2(130, 136), r2_boss.errand_pos, r2_boss)
+	assert(r2_wp.distance_to(r1_rs.BASE + Vector2(42, 92)) < 3.0, "R2.12: Members route through the back-room door from the dining hall")
 	var r2_cline: String = r2_fam.cook_line(vm)
 	assert(r2_cline.find("puerta cerrada") != -1, "R2.13: The cook drops a hint when they are dining behind closed doors")
 	# 5. Si un guardia se acerca al reservado, abortan y lo dejan para otra noche

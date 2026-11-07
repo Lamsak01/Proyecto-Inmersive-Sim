@@ -193,15 +193,15 @@ var _tavern_bed_label: Label = null
 var _tavern_games_label: Label = null
 var _tavern_pool_label: Label = null
 
-var _tavern_bed_pos := Vector2(538, -252)
-var _tavern_social_pos := Vector2(376, -184)
-var _tavern_games_pos := Vector2(518, -178)
-var _tavern_pool_pos := Vector2(574, -178)
+var _tavern_bed_pos := VillageTavern.PLAYER_BED_POS
+var _tavern_social_pos := VillageTavern.SOCIAL_POS
+var _tavern_games_pos := VillageTavern.GAMES_POS
+var _tavern_pool_pos := VillageTavern.POOL_POS
 var _well_pos := Vector2(184, 82)
-var _tavern_well_pos := Vector2(440, -332)
+var _tavern_well_pos := VillageTavern.WELL_POS
 var _plaza_well_pos := Vector2(412, 54)
-var _well_positions: Array[Vector2] = [Vector2(184, 82), Vector2(440, -332), Vector2(412, 54)]
-var _compost_pos := Vector2(-56, -6)
+var _well_positions: Array[Vector2] = [Vector2(184, 82), VillageTavern.WELL_POS, Vector2(412, 54)]
+var _compost_pos := Vector2(-516, -6)
 
 # Capas de Interfaz para Morgue Forense, Arresto/Cárcel, Tablón de Encargos y Gestión de Negocios/Escrituras
 var ui_layer: CanvasLayer = null
@@ -1448,6 +1448,8 @@ func _refresh_elevation_layer_visuals() -> void:
 		if n is VillageNPC:
 			var v: VillageNPC = n as VillageNPC
 			v.modulate.a = 1.0 if are_on_same_elevation(v.elevation_level, player_elevation_level) else 0.35
+	VillageUnderworld.sync_sewer_visibility(self)
+	VillageClub.sync_club_visibility(self)
 
 func is_position_lit_by_lamp_or_lantern(pos: Vector2, ignore_entity: Node2D = null) -> bool:
 	var hr: int = int(WorldClock.current_hour) if WorldClock else 12
@@ -2279,9 +2281,9 @@ func _complete_board_contract(player: Node2D, contract_idx: int) -> void:
 func _spawn_unemployed_tavern_guests() -> void:
 	var tex_traveler := _load_tex("res://assests/world/village/villager_traveler.png")
 	var guest_defs: Array[Dictionary] = [
-		{"name": "Aldric", "role": "Viajero sin Oficio", "day_pos": Vector2(440, 44), "bed_pos": Vector2(435, -252)},
-		{"name": "Sora", "role": "Forastera sin Oficio", "day_pos": Vector2(495, 44), "bed_pos": Vector2(468, -252)},
-		{"name": "Darío", "role": "Jornalero sin Oficio", "day_pos": Vector2(415, -105), "bed_pos": Vector2(502, -252)}
+		{"name": "Aldric", "role": "Viajero sin Oficio", "day_pos": Vector2(440, 44), "bed_pos": VillageTavern.GUEST_BEDS[0]},
+		{"name": "Sora", "role": "Forastera sin Oficio", "day_pos": Vector2(495, 44), "bed_pos": VillageTavern.GUEST_BEDS[1]},
+		{"name": "Darío", "role": "Jornalero sin Oficio", "day_pos": Vector2(415, -105), "bed_pos": VillageTavern.GUEST_BEDS[2]}
 	]
 	for g in guest_defs:
 		var npc := VillageNPC.new()
@@ -3403,8 +3405,8 @@ func _process_daily_map_edge_arrivals() -> void:
 			VillageNPC.TradeRole.INNKEEPER,
 			"Chef y Posadera (Novata)",
 			_load_tex("res://assests/world/village/villager_innkeeper.png"),
-			Vector2(348, -154),
-			Vector2(342, -252),
+			VillageTavern.INNKEEPER_WORK_POS,
+			VillageTavern.MARTA_BED_POS,
 			{"country_stew": 2, "bread": 3, "roasted_chicken": 1},
 			_tavern_social_pos,
 			"family_tavern",
@@ -5207,9 +5209,10 @@ func spawn_dynamic_npc_from_save(node_name: String, npc_data: Dictionary) -> Vil
 		dyn_npc.person_profile = PersonProfile.from_dict(npc_data["person_profile"])
 	entities_root.add_child(dyn_npc)
 	var default_tex := _load_tex("res://assests/world/village/villager_traveler.png")
+	var def_bed: Vector2 = VillageTavern.GUEST_BEDS[0]
 	dyn_npc.setup_npc(
 		default_tex, Vector2(float(npc_data.get("work_x", 440.0)), float(npc_data.get("work_y", 44.0))),
-		Vector2(float(npc_data.get("bed_x", 435.0)), float(npc_data.get("bed_y", -252.0))), {},
+		Vector2(float(npc_data.get("bed_x", def_bed.x)), float(npc_data.get("bed_y", def_bed.y))), {},
 		Vector2(float(npc_data.get("table_x", _tavern_social_pos.x)), float(npc_data.get("table_y", _tavern_social_pos.y))),
 		str(npc_data.get("family_id", "none")), str(npc_data.get("family_name", "Independiente"))
 	)
@@ -5238,19 +5241,40 @@ func reconcile_npc_registries_after_load() -> void:
 	for n in get_tree().get_nodes_in_group("village_npcs"):
 		if n is VillageNPC:
 			var v := n as VillageNPC
+			v.tavern_social_pos = _tavern_social_pos
+			if v.home_table_pos.distance_to(Vector2(376.0, -184.0)) < 2.0:
+				v.home_table_pos = _tavern_social_pos
 			if v.trade_role == VillageNPC.TradeRole.ROYAL_INVESTIGATOR and not v.is_dead and not str(v.name).begins_with("NPC_Royal_Investigator_Corpse_"):
 				_royal_investigator_npc = v
 			elif v.trade_role == VillageNPC.TradeRole.TRAVELING_MERCHANT and not v.is_dead and not str(v.name).begins_with("NPC_Merchant_Corpse_"):
 				_active_traveling_merchant = v
 			var r_int: int = int(v.trade_role)
-			if v.trade_role in VillageNPC.SHOP_ROLES and not v.is_dead:
+			if (v.trade_role in VillageNPC.SHOP_ROLES or v.trade_role == VillageNPC.TradeRole.WAITER) and not v.is_dead:
 				trade_npcs[r_int] = v
+				if trade_configs.has(r_int):
+					v.work_position = (trade_configs[r_int] as Dictionary).get("work_pos", v.work_position)
 			elif v.trade_role == VillageNPC.TradeRole.FAMILY_MEMBER and not v.is_dead:
 				family_npcs[int(v.linked_trade)] = v
+				if v.npc_name == VillageFamilia.INITIAL_BOSS_NAME:
+					v.work_position = VillageRestaurant.DINING_TABLES[4]
+					v.bed_position = VillageRestaurant.OWNER_BED2
+					v.home_table_pos = VillageRestaurant.BACKROOM_TABLE
+				elif trade_configs.has(int(v.linked_trade)):
+					var l_cfg: Dictionary = trade_configs[int(v.linked_trade)]
+					v.work_position = l_cfg.get("kin_work_pos", l_cfg.get("work_pos", v.work_position))
+			elif v.trade_role == VillageNPC.TradeRole.TEACHER and not v.is_dead:
+				v.work_position = VillageLots.building_center("e3") + Vector2(0, -16)
+			elif v.trade_role == VillageNPC.TradeRole.NOBLE and not v.is_dead:
+				var n_lot: String = "f1" if v.family_id == "family_vane" else ("f2" if v.family_id == "family_solis" else "")
+				if n_lot != "":
+					v.work_position = VillageNobility.study_pos(n_lot)
 			elif v.trade_role == VillageNPC.TradeRole.UNEMPLOYED and not v.is_dead:
 				unemployed_npcs.append(v)
 			elif v.trade_role == VillageNPC.TradeRole.INNKEEPER and not v.is_dead:
 				_innkeeper_npc = v
+				v.work_position = VillageTavern.INNKEEPER_WORK_POS
+				v.bed_position = VillageTavern.MARTA_BED_POS
+				v.home_table_pos = VillageTavern.SOCIAL_POS
 			elif v.trade_role in [VillageNPC.TradeRole.DOCTOR, VillageNPC.TradeRole.SHERIFF, VillageNPC.TradeRole.GUARD, VillageNPC.TradeRole.PRIEST] and not v.is_dead:
 				authority_npcs.append(v)
 				trade_npcs[r_int] = v
@@ -5259,6 +5283,7 @@ func reconcile_npc_registries_after_load() -> void:
 						slot["npc"] = v
 						slot["rehire_timer"] = 0.0
 						slot["vacancy_announced"] = false
+						v.work_position = slot.get("work_pos", v.work_position)
 			if v.is_vagrant_camper and not v.is_dead and not v.in_shelter:
 				_spawn_or_update_vagrant_camp_visual(v, v.vagrant_camp_pos)
 

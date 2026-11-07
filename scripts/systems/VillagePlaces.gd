@@ -18,7 +18,7 @@ const PLACES: Array = [
 	{"id": "park_bench", "kind": "bench", "pos": Vector2(236, 268), "label": "un banco del parque", "text": "🪑 Sentado en el parque"},
 	{"id": "plaza_benches", "kind": "bench", "pos": Vector2(500, 74), "label": "los bancos de la plaza", "text": "🪑 Sentado en la plaza"},
 	{"id": "lake_view", "kind": "overlook", "pos": Vector2(-525, 166), "label": "el Mirador del Lago", "text": "🌅 Mirando el lago"},
-	{"id": "library", "kind": "library", "pos": Vector2(910, -436), "label": "la Biblioteca", "text": "📖 Leyendo en la biblioteca", "indoor": true}, # V5e
+	{"id": "library", "kind": "library", "pos": Vector2(906, -451), "label": "la Biblioteca", "text": "📖 Leyendo en la biblioteca", "indoor": true}, # V5e
 ]
 const LEISURE_FREE_HOURS: Vector2i = Vector2i(17, 21) # Entre semana, al salir del trabajo
 const LEISURE_WEEKEND_HOURS: Vector2i = Vector2i(10, 21)

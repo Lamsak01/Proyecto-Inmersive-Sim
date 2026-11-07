@@ -1,6 +1,46 @@
 # Informe de Trabajo — Antigravity (2026-11-07)
 
-## Encargo: ⛔ Paso 5 (bocetos previos) — Bocetos de todos los edificios y espacios pendientes (`docs/BOCETOS_EDIFICIOS.md`)
+## Encargo: Corrección de puestos de trabajo, recados nocturnos (`P6b.3a`) y alcantarillas tras los Pasos 2 y 3
+
+### 1. Qué edificios, lugares y vecinos seguían usando coordenadas antiguas (2D y 3D) y se corrigieron
+- **Aprendices y ayudantes familiares de los talleres (`scripts/systems/VillageWorldBuilder.gd`):**
+  - **Kael** (aprendiz de herrero en *Forja de Thoran*), **Lina** (aprendiz de carnicero en *Carnicería de Garrick*), **Mila** (hija carpintera en *Aserradero de Bram*) y **Nora** (hermana pescadora en *Pescadería de Corin*) tenían `kin_work_pos = hc + ...` (su casa residencial) en lugar de `sc + ...` (el centro real de su taller comercial). Ahora derivan de `sc` (el taller real).
+- **Posada «El Jabalí Dorado» y sus trabajadores/huéspedes (`scripts/systems/VillageManager.gd`, `scripts/systems/VillageMigration.gd`, `scripts/systems/VillageWorldBuilder.gd`):**
+  - En `VillageManager.gd` seguían escritas a mano las coordenadas de la posada antigua: `_tavern_bed_pos` (`Vector2(548, -264)` → `VillageTavern.PLAYER_BED_POS`), `_tavern_social_pos` (`Vector2(476, -214)` → `VillageTavern.SOCIAL_POS`), `_tavern_games_pos` (`Vector2(552, -206)` → `VillageTavern.GAMES_POS`), `_tavern_pool_pos` (`Vector2(382, -210)` → `VillageTavern.POOL_POS`) y `_tavern_well_pos` (`Vector2(440, -308)` → `VillageTavern.WELL_POS`).
+  - Los **3 huéspedes desempleados iniciales** (`_spawn_unemployed_tavern_guests`) y la **sustituta de la posadera Marta** (`_process_daily_map_edge_arrivals`) usaban las camas y mostrador antiguos (`y = -268`, `(445, -242)`) en lugar de `VillageTavern.GUEST_BEDS` y `VillageTavern.INNKEEPER_WORK_POS` / `MARTA_BED_POS`.
+  - En `VillageMigration.gd`, `TAVERN_DAY_SPOTS` seguía apuntando a `(462..508, -214..-198)` en vez del salón real de `VillageTavern`.
+  - En `VillageWorldBuilder.gd`, el empedrado del pozo de la taberna seguía en `Rect2(414, -326, 52, 46)` (dentro del salón de la nueva posada) y se creaba un segundo `TavernWaterWellArea` duplicado; ahora usa `Rect2(202, -250, 52, 46)` alrededor de `VillageTavern.WELL_POS = Vector2(228, -224)`.
+- **Pescador Corin, Leñador, Herrero Thoran, Herborista Elena y Carnicero Garrick en sus expediciones y puestos (`scripts/enemies/VillageNPC.gd`, `scripts/systems/VillageWork.gd`):**
+  - En `VillageNPC.EXPEDITION_TARGETS`, **Corin (`FISHMONGER`)** seguía yendo a pescar a `Vector2(-62, 145)` (donde estaba el lago antes del Paso 2, ahora pradera vacía) en vez de la orilla real del Lago del Oeste (`Vector2(-497, 105)`).
+  - **Bram (`CARPENTER`)**, **Thoran (`BLACKSMITH`)**, **Elena (`HERBALIST`)** y **Garrick (`BUTCHER`)** seguían saliendo de expedición a `y = 338..362` (antiguo borde del bosque, hoy ocupado por el Rancho/Granja del Sur) en vez del nuevo Bosque Profundo (`y = 785..810`), y el punto de recolección `fallback_spot` seguía en `Vector2(88, 350)` en vez de `Vector2(88, 785)`.
+  - En `VillageWork.gd`, el **Leñador (`WOODCUTTER`)** seguía trabajando en `[Vector2(-350, 560), Vector2(-280, 580)]` (dentro de la Granja del Sur ampliada) en vez del lindero del bosque junto a su serrería (`[Vector2(-470, 625), Vector2(-390, 635)]`).
+  - En `VillageNPC.IDLE_STROLL_SPOTS`, los paseos al **Parque del Roble**, **Mirador del Lago** y **Lavadero** conservaban las coordenadas anteriores al Paso 2.
+- **Ayuntamiento (`n4`), Biblioteca (`n5`), Mansión Noble (`f1`) y Trattoria «Il Corvo» (`scripts/systems/VillagePlaces.gd`, `scripts/systems/VillageUnderworld.gd`, `scripts/visuals/WorldStage3D.gd`, `scripts/ui/DetectiveUI.gd`, `tools/tests/verify_all.gd`):**
+  - En `VillagePlaces.gd`, el destino de ocio de la **Biblioteca (`n5`)** seguía en `Vector2(890, -445)` en vez de `Vector2(906, -451)`.
+  - En `VillageUnderworld.HEIST_TARGETS`, el `"libro_gremial"` del **Ayuntamiento (`n4`)** seguía en `Vector2(764, -444)` en vez de `Vector2(764, -449)`.
+  - En `WorldStage3D.gd`, el escritorio 3D de la **Mansión Noble (`f1`)** seguía con offset fijo `c + Vector2(-28, -16)` (solapando la cama) en vez de `VillageNobility.study_pos(b["id"], c)`.
+  - En `DetectiveUI.gd`, `_get_corpse_site_kind` y `_describe_world_site` seguían buscando la **Trattoria «Il Corvo»** en `x > 1000, y > 190` y el **Lago del Oeste** en `x < -60, y > 30`, actualizados ahora a la Calle Mayor (`Rect2(-255, -206, 275, 190)`) y al nuevo lago (`x < -280, y = -130..260`). En `verify_all.gd` (`R2.12`), el paso del comedor al reservado se calculó desde `r1_rs.BASE` en lugar del antiguo `(1150, 350)`.
+
+### 2. Fallo de `verify_all.gd` en `P6b.3a` (saboteador contratado a la 01:00)
+- **Causa real:** al registrar `TradeRole.WAITER` (`26`) en `vm.trade_configs` antes de que un camarero titular estuviera asignado en `vm.trade_npcs`, `underworld_hire_saboteur` podía elegir un oficio sin dueño vivo en `trade_npcs`, y `VillageNightJobs.target_pos(vm, job)` devolvía `Vector2.ZERO` cuando `vm.trade_npcs.get(r_id)` era `null`, abortando `on_hour` a la `01:00` antes de asignar `night_job`.
+- **Solución (`scripts/systems/VillageNightJobs.gd`, `scripts/systems/VillageUnderworld.gd`):**
+  - `VillageNightJobs.target_pos` para `"sabotage"` y `"clan_sabotage"` recurre ahora a `vm.shop_businesses[r_id]["stall_pos"] + Vector2(0, 10)` o `vm.trade_configs[r_id]["work_pos"] + Vector2(0, 10)` si el artesano titular no está en `trade_npcs`.
+  - `VillageUnderworld.underworld_hire_saboteur` prioriza negocios con titular vivo en `vm.trade_npcs`.
+
+### 3. Alcantarillas en medio del bosque, invisibles en 3D y con colisión en superficie
+- **Causa real:** las cámaras de las alcantarillas (`build_sewers_world` y `_build_sewers_3d`) estaban construidas en `y = 1520` (que tras agrandar el bosque en el Paso 2 quedó en mitad del Bosque Profundo). En 2D su `SewersVisual2D` se veía siempre sobre la hierba del bosque, y en 3D `sewers_root_3d` se ocultaba en superficie (`player_elevation_level != -1`) pero el `StaticBody2D` `SewerTunnelWallsBody` mantenía `collision_layer = 1`, haciendo chocar al jugador contra muros invisibles en el bosque (y lo mismo ocurría con `FightClubWallsBody`).
+- **Solución (`scripts/systems/VillageUnderworld.gd`, `scripts/systems/VillageClub.gd`, `scripts/obstacles/WorldInteractableProp.gd`, `scripts/systems/VillageManager.gd`, `scripts/visuals/WorldStage3D.gd`):**
+  - Las alcantarillas se trasladaron bajo el centro del pueblo en `SEWER_Y = 63.0` (`x = 260, 420, 580`), justo debajo de sus 3 rejillas de entrada (`(248, -90)`, `(398, -118)`, `(518, 26)`), y el sótano del Club de la Lucha se colocó en `Vector2(165, -224)` bajo el patio oeste de la taberna.
+  - `VillageUnderworld.sync_sewer_visibility(vm)` y `VillageClub.sync_club_visibility(vm)` desactivan `collision_layer` (`0`) y ocultan `SewersVisual2D` / `FightClubVisual2D` e iconos de escalerillas/cofres cuando el jugador está en la superficie (`player_elevation_level == 0`), y al bajar (`player_elevation_level == -1`) activan la colisión y muestran las alcantarillas o el club tanto en 2D como en 3D (ocultando los edificios y árboles de la superficie en `WorldStage3D._sync_dynamic_props_3d` para que se vean limpiamente bajo el pueblo).
+
+### 4. Verificación ejecutada
+- **Arranque limpio:** `flatpak run org.godotengine.Godot --headless --quit-after 3` → `EXIT_CODE=0`, sin errores de script.
+- **Suite completa `verify_all.gd`:** `timeout 900 flatpak run org.godotengine.Godot --headless --path . -s tools/tests/verify_all.gd` → **`EXIT_CODE=0`** (`ALL ... TESTS PASSED!`, incluidos `P6b`, `FIS3`, `R1`, `R2`, `B1–B7` y `D1–D5`).
+- Los edificios de `docs/BOCETOS_EDIFICIOS.md` (Paso 5) no se han tocado, a la espera de revisión del usuario.
+
+---
+
+## Encargo anterior: ⛔ Paso 5 (bocetos previos) — Bocetos de todos los edificios y espacios pendientes (`docs/BOCETOS_EDIFICIOS.md`)
 
 ### Qué se hizo en este bloque
 - **Redacción completa de `docs/BOCETOS_EDIFICIOS.md` antes de construir ningún edificio del Paso 5 (siguiendo la parada obligatoria ⛔ de `docs/ENCARGO_ANTIGRAVITY.md`):**

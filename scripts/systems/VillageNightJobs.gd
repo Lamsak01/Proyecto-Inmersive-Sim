@@ -63,9 +63,18 @@ static func pick_hired_agent(vm):
 static func target_pos(vm, job: Dictionary) -> Vector2:
 	match str(job.get("type", "")):
 		"sabotage", "clan_sabotage":
-			var o = vm.trade_npcs.get(int(job.get("role_id", -1)), null)
-			if o != null and is_instance_valid(o):
+			var r_id: int = int(job.get("role_id", -1))
+			var o = vm.trade_npcs.get(r_id, null)
+			if o != null and is_instance_valid(o) and not o.is_dead:
 				return o.work_position + Vector2(0, 10)
+			if vm.shop_businesses.has(r_id):
+				var stall_p: Vector2 = (vm.shop_businesses[r_id] as Dictionary).get("stall_pos", Vector2.ZERO)
+				if stall_p != Vector2.ZERO:
+					return stall_p + Vector2(0, 10)
+			if vm.trade_configs.has(r_id):
+				var work_p: Vector2 = (vm.trade_configs[r_id] as Dictionary).get("work_pos", Vector2.ZERO)
+				if work_p != Vector2.ZERO:
+					return work_p + Vector2(0, 10)
 		"thief":
 			var t = vm._get_npcs_by_person_key().get(str(job.get("target_key", "")), null)
 			if t != null and is_instance_valid(t) and t.bed_position != Vector2.ZERO:

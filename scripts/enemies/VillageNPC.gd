@@ -3011,8 +3011,8 @@ func _is_morning_expedition_hours() -> bool:
 	return (h == 6 and m >= 30) or h == 7 or h == 8 or (h == 9 and m < 30)
 
 const EXPEDITION_TARGETS: Dictionary = {
-	TradeRole.CARPENTER: Vector2(65, 640), TradeRole.BLACKSMITH: Vector2(515, 648),
-	TradeRole.HERBALIST: Vector2(-180, 665), TradeRole.FISHMONGER: Vector2(-52, 105), TradeRole.BUTCHER: Vector2(142, 615),
+	TradeRole.CARPENTER: Vector2(65, 790), TradeRole.BLACKSMITH: Vector2(515, 795),
+	TradeRole.HERBALIST: Vector2(-180, 810), TradeRole.FISHMONGER: Vector2(-497, 105), TradeRole.BUTCHER: Vector2(142, 785),
 }
 
 const EXPEDITION_DESCS: Dictionary = {
@@ -3484,8 +3484,8 @@ func _execute_dynamic_activity(delta: float) -> void:
 			_approach_or_stop(target_pos, 5.0, 44.0, delta)
 
 const IDLE_STROLL_SPOTS: Array[Vector2] = [
-	Vector2(304, 262), Vector2(232, 236), Vector2(360, 252), # Parque del Roble
-	Vector2(-65, 166), Vector2(-115, 92), # Mirador del Lago y Lavadero
+	Vector2(304, 280), Vector2(236, 268), Vector2(360, 280), # Parque del Roble
+	Vector2(-525, 166), Vector2(215, 145), # Mirador del Lago y Lavadero
 	Vector2(215, 44), Vector2(340, 44), Vector2(540, 44), Vector2(680, 44), Vector2(820, 44), Vector2(990, 44), # Calle Principal
 	Vector2(330, -352), Vector2(520, -352), Vector2(740, -352), Vector2(940, -352), # Calle Norte
 	Vector2(672, -210), Vector2(575, 225), Vector2(825, 225), # Barrio Residencial, Albergue y Capilla
@@ -3926,7 +3926,7 @@ func _process_amateur_survival_hunting(delta: float) -> void:
 
 	# Si tras 18s no logra encontrar o alcanzar animales, desentierra raíces y bayas amargas para no morir de hambre
 	if prey == null or _amateur_forage_timer >= 20.0:
-		var fallback_spot := Vector2(88, 622)
+		var fallback_spot := Vector2(88, 785)
 		if global_position.distance_to(fallback_spot) > 22.0 and _amateur_forage_timer < 18.0:
 			_move_towards_point(fallback_spot, 48.0, delta)
 			return
@@ -4274,10 +4274,10 @@ func get_activity_description() -> String:
 				if person_profile != null and str(person_profile.partner_id) == p_key:
 					st_act = "couple"
 				if st_act == "couple":
-					return ("💑 Pasando la tarde con %s%s" % [_social_partner.npc_name, (" (%s)" % hangout_spot_label) if hangout_spot_label != "" else ""]) if is_at_hangout_spot(24.0) else ("💑 Ha quedado con su pareja %s%s" % [_social_partner.npc_name, (" en %s" % hangout_spot_label) if hangout_spot_label != "" else ""])
+					return ("💑 Pasando la tarde con %s%s" % [_social_partner.npc_name, (" (%s)" % hangout_spot_label) if hangout_spot_label != "" else ""]) if is_at_hangout_spot(20.0) else ("💑 Ha quedado con su pareja %s%s" % [_social_partner.npc_name, (" en %s" % hangout_spot_label) if hangout_spot_label != "" else ""])
 				elif st_act in ["dating", "flirt"]:
-					return ("💞 En una cita con %s%s" % [_social_partner.npc_name, (" (%s)" % hangout_spot_label) if hangout_spot_label != "" else ""]) if is_at_hangout_spot(24.0) else ("💞 Yendo a su cita con %s%s" % [_social_partner.npc_name, (" en %s" % hangout_spot_label) if hangout_spot_label != "" else ""])
-				return ("☕ Pasando el rato con %s%s" % [_social_partner.npc_name, (" (%s)" % hangout_spot_label) if hangout_spot_label != "" else ""]) if is_at_hangout_spot(24.0) else ("🚶 Ha quedado con %s%s" % [_social_partner.npc_name, (" en %s" % hangout_spot_label) if hangout_spot_label != "" else ""])
+					return ("💞 En una cita con %s%s" % [_social_partner.npc_name, (" (%s)" % hangout_spot_label) if hangout_spot_label != "" else ""]) if is_at_hangout_spot(20.0) else ("💞 Yendo a su cita con %s%s" % [_social_partner.npc_name, (" en %s" % hangout_spot_label) if hangout_spot_label != "" else ""])
+				return ("☕ Pasando el rato con %s%s" % [_social_partner.npc_name, (" (%s)" % hangout_spot_label) if hangout_spot_label != "" else ""]) if is_at_hangout_spot(20.0) else ("🚶 Ha quedado con %s%s" % [_social_partner.npc_name, (" en %s" % hangout_spot_label) if hangout_spot_label != "" else ""])
 			if is_visiting_grave():
 				var d_nm_g: String = str(person_profile.deceased_partner_name)
 				return ("🪦 Visitando la tumba de %s" % d_nm_g) if global_position.distance_to(_get_social_target_pos()) <= 26.0 else ("🚶🕯️ Yendo al cementerio a recordar a %s" % d_nm_g)
@@ -4718,7 +4718,7 @@ func stealth_assassinate(player: Node = null) -> void:
 		elif eq_w != null and eq_w == player.get("axe_weapon"):
 			w_label = "Tajo Profundo por la Espalda (Hacha)"
 			w_type = "Tajo Profundo"
-			w_part = "Neck"
+			w_part = "Torso"
 			w_bleed = 3.2
 		elif eq_w != null and eq_w == player.get("pickaxe_weapon"):
 			w_label = "Impacto de Pico Minero por la Espalda"

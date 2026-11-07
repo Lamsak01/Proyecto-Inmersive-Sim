@@ -59,14 +59,14 @@
   pasó de verdad** (heridas reales que guarda el juego: zona, arma, por la espalda, caída, hora, sitio, clima). Sin
   marcas que no existieron; textos según sea hombre o mujer (`VillageNPC.gd::stealth_assassinate` y `DetectiveUI.gd`).
 
-- [ ] **Muchos vecinos siguen trabajando en el sitio antiguo de los edificios** (2026-11-07, tras agrandar el mapa y mover
+- [x] ✅ (2026-11-07) **Muchos vecinos siguen trabajando en el sitio antiguo de los edificios** (2026-11-07, tras agrandar el mapa y mover
   la trattoria/la taberna): van a trabajar donde estaba el edificio, no donde está ahora. Probablemente es la misma causa
   que el saboteador nocturno que no llega al taller (`verify_all` P6b.3a). Buscar todas las posiciones de trabajo, recados
-  y rutas escritas a mano que no siguieron al edificio.
+  y rutas escritas a mano que no siguieron al edificio (`VillageWorldBuilder.gd`, `VillageManager.gd`, `VillageNPC.gd`, `VillageMigration.gd`, `VillageWork.gd`, `VillagePlaces.gd`, `VillageUnderworld.gd`, `VillageNightJobs.gd`, `WorldStage3D.gd`, `DetectiveUI.gd`: actualizadas todas las coordenadas heredadas de la Posada «El Jabalí Dorado», Trattoria «Il Corvo», Lago del Oeste, Bosque Profundo, Lavadero, Parque del Roble, solares `n4`/`n5` y mansión `f1`, los 4 ayudantes familiares Kael/Lina/Mila/Nora que iban a su casa en vez de a su taller, y el destino de sabotaje nocturno en `VillageNightJobs.target_pos` y `VillageUnderworld.underworld_hire_saboteur`).
 
-- [ ] **Las alcantarillas aparecen en medio del bosque** (2026-11-07, tras agrandar el mapa): en 3D no se ven, pero en
+- [x] ✅ (2026-11-07) **Las alcantarillas aparecen en medio del bosque** (2026-11-07, tras agrandar el mapa): en 3D no se ven, pero en
   2D sí, y tienen colisión (chocas con algo invisible en 3D). Ponerlas en su sitio (bajo el pueblo, con su entrada) y que
-  en 3D se vean igual que en 2D.
+  en 3D se vean igual que en 2D (`VillageUnderworld.gd`, `VillageClub.gd`, `WorldInteractableProp.gd`, `VillageManager.gd`, `WorldStage3D.gd`: trasladadas las 3 cámaras y galerías de alcantarillas de `y = 1520` en mitad del bosque a `SEWER_Y = 63.0` bajo el centro del pueblo y el sótano del Club de la Lucha a `Vector2(165, -224)` bajo el ala oeste de la taberna; `sync_sewer_visibility` y `sync_club_visibility` desactivan la colisión `StaticBody2D` e iconos en superficie y aíslan la vista subterránea tanto en 2D como en 3D).
 
 ## Arreglados
 - [x] ✅ (2026-11-07) Fachada de la trattoria «Il Corvo» en 3D: parece de tablas oscuras en vez de estuco/ladrillo claro (`WorldStage3D.gd`: cambiada la textura de muros de `building_restaurant` a `town_textures/wall_brick_sand_center.png` con `uv1_scale = Vector3(2.4, 0.72, 2.4)`, tono claro de estuco/ladrillo cálido `Color(1.0, 0.95, 0.84)`, iluminación cálida de rebote `0.58` en la fachada sur y dintel con el mismo estuco en vez de `rf_planks.png`).

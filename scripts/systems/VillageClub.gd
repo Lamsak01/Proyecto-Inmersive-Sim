@@ -14,9 +14,9 @@ const VillageUnderworld = preload("res://scripts/systems/VillageUnderworld.gd")
 const TraitCatalog = preload("res://scripts/data/TraitCatalog.gd")
 
 const TRAPDOOR_POS: Vector2 = Vector2(516.0, -286.0) # cuarto trasero de escalera y bodega de la taberna (planta 0)
-const CLUB_CENTER: Vector2 = Vector2(1150.0, 1520.0) # franja de túneles del sur, lejos de las 3 cámaras (x ≤ 638)
+const CLUB_CENTER: Vector2 = Vector2(165.0, -224.0) # sótano bajo el patio oeste de la taberna (nivel -1, libre de muros en planta 0)
 const CLUB_SIZE: Vector2 = Vector2(150.0, 110.0)
-const LADDER_POS: Vector2 = Vector2(1092.0, 1484.0)
+const LADDER_POS: Vector2 = Vector2(107.0, -260.0)
 const RING_RADIUS: float = 40.0
 const SEAT_RADIUS: float = 56.0
 const OPEN_FROM: int = 21
@@ -185,6 +185,7 @@ static func go_down(vm, player: Node2D) -> bool:
 	vm.set_player_elevation_level(-1)
 	vm._elevation_anchor = Vector2.INF
 	state(vm)["player_inside"] = true
+	sync_club_visibility(vm)
 	return true
 
 static func go_up(vm, player: Node2D) -> void:
@@ -195,6 +196,7 @@ static func go_up(vm, player: Node2D) -> void:
 	player.global_position = TRAPDOOR_POS + Vector2(0, 12)
 	vm.set_player_elevation_level(0)
 	state(vm)["player_inside"] = false
+	sync_club_visibility(vm)
 	_check_trapdoor_witness(vm, player, TRAPDOOR_POS)
 
 ## B4: al cargar partida. Un combate en marcha se anula sin ganador (se devuelven la entrada y la apuesta); los vecinos
@@ -551,6 +553,7 @@ static func build_world(vm) -> void:
 	root.add_to_group("club_world")
 	vm.entities_root.add_child(root)
 	var vis := Node2D.new()
+	vis.name = "FightClubVisual2D"
 	vis.z_index = -2
 	vis.add_to_group("sewer_visual_2d")
 	root.add_child(vis)
@@ -571,7 +574,8 @@ static func build_world(vm) -> void:
 	vis.add_child(rope)
 	# Paredes de piedra
 	var body := StaticBody2D.new()
-	body.collision_layer = 1
+	body.name = "FightClubWallsBody"
+	body.collision_layer = 1 if is_player_in_club(vm) else 0
 	body.collision_mask = 0
 	root.add_child(body)
 	var hs: Vector2 = CLUB_SIZE * 0.5
@@ -592,6 +596,22 @@ static func build_world(vm) -> void:
 		p.add_to_group("club_world")
 		vm.entities_root.add_child(p)
 		p.setup_prop(vm, spec[0], spec[2], "")
+	sync_club_visibility(vm)
+
+static func sync_club_visibility(vm) -> void:
+	if vm == null or not ("entities_root" in vm) or not is_instance_valid(vm.entities_root):
+		return
+	var in_club: bool = is_player_in_club(vm)
+	var has_bout: bool = not (state(vm).get("bout", {}) as Dictionary).is_empty()
+	var use_3d: bool = load("res://scripts/visuals/CharacterAvatar3D.gd").use_3d_characters
+	var root: Node2D = vm.entities_root.get_node_or_null("FightClub2D") as Node2D
+	if is_instance_valid(root):
+		var vis: Node2D = root.get_node_or_null("FightClubVisual2D") as Node2D
+		if is_instance_valid(vis):
+			vis.visible = in_club and not use_3d
+		var body: StaticBody2D = root.get_node_or_null("FightClubWallsBody") as StaticBody2D
+		if is_instance_valid(body):
+			body.collision_layer = 1 if (in_club or has_bout) else 0
 
 static func fighter_key_at(vm, slot: String) -> String:
 	var f: Array = state(vm).get("fighters", [])

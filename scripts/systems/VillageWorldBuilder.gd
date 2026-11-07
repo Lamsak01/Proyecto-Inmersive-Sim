@@ -17,9 +17,9 @@ static func _spawn_village_roads_and_plaza(vm: VillageManager) -> void:
 	_add_road_rect(vm, Rect2(Vector2(-1520, -140), Vector2(22, 176)), dirt_col)
 	_add_road_rect(vm, Rect2(Vector2(-1520, 64), Vector2(22, 120)), dirt_col)
 
-	# 2. Plaza Central Empedrada (x = 395..535, y = 10..88) y Patio Trasero del Pozo de la Taberna
+	# 2. Plaza Central Empedrada (x = 395..535, y = 10..88) y Patio Lateral del Pozo de la Taberna
 	_add_cobble_rect(vm, Rect2(Vector2(395, 10), Vector2(140, 78)))
-	_add_cobble_rect(vm, Rect2(Vector2(414, -326), Vector2(52, 46)))
+	_add_cobble_rect(vm, Rect2(Vector2(202, -250), Vector2(52, 46)))
 	var plaza_border := Line2D.new()
 	plaza_border.width = 2.0
 	plaza_border.default_color = Color(0.28, 0.24, 0.20, 0.90)
@@ -176,7 +176,7 @@ static func _spawn_five_family_houses_and_trades(vm: VillageManager) -> void:
 		var bed1_pos: Vector2 = hc + Vector2(-30, -18)
 		var bed2_pos: Vector2 = hc + Vector2(30, -18)
 		var table_pos: Vector2 = hc + Vector2(0, -2)
-		var kin_work_pos: Vector2 = hc + Vector2(-20, -2)
+		var kin_work_pos: Vector2 = sc + (Vector2(-24, -6) if shop_door_s else Vector2(-24, 8))
 
 		if is_mixed:
 			work_pos = sc + Vector2(0, -18)
@@ -191,6 +191,7 @@ static func _spawn_five_family_houses_and_trades(vm: VillageManager) -> void:
 			_build_residential_house_visuals(vm, hc, str(cfg["house_title"]), tex_bed, bed1_pos, bed2_pos, table_pos, fam_id)
 
 		cfg["work_pos"] = work_pos
+		cfg["kin_work_pos"] = kin_work_pos
 		cfg["bed1_pos"] = bed1_pos
 		cfg["bed2_pos"] = bed2_pos
 		cfg["table_pos"] = table_pos
@@ -465,11 +466,7 @@ static func _spawn_farm_well_and_compost(vm: VillageManager) -> void:
 	vm._well_label = vm._make_station_label(vm._well_pos + Vector2(-130, -28), "🪣 Pozo de la Granja [E: Llenar Recipiente / Lavar Heridas y Sangre]")
 	vm.entities_root.add_child(vm._well_label)
 
-	# Pozo detrás de la Taberna ('El Jabalí Dorado')
-	vm._add_sprite_prop(well_tex, vm._tavern_well_pos, Vector2(1.25, 1.25), 0)
-	vm._add_station_area("TavernWaterWellArea", vm._tavern_well_pos, 24.0, "well")
-	vm._tavern_well_label = vm._make_station_label(vm._tavern_well_pos + Vector2(-135, -28), "🪣 Pozo Trasero de la Taberna [E: Llenar Recipiente / Lavar Heridas y Sangre]")
-	vm.entities_root.add_child(vm._tavern_well_label)
+	# El Pozo de la Taberna ('El Jabalí Dorado') ya se construye en VillageTavern.setup_world(vm) en VillageTavern.WELL_POS
 
 	# Pozo en la Plaza Central del Pueblo
 	vm._add_sprite_prop(well_tex, vm._plaza_well_pos, Vector2(1.25, 1.25), 0)

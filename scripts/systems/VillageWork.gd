@@ -31,7 +31,7 @@ const PLACES: Dictionary = {
 	"farmer": {"label": "la Granja del Sur", "icon": "🌾", "spots": [Vector2(-40, 445), Vector2(40, 445), Vector2(-40, 500), Vector2(40, 500)], "yield": {"wheat": 0.25, "carrot": 0.08}},
 	"rancher": {"label": "el Rancho", "icon": "🐑", "spots": [Vector2(335, 440), Vector2(370, 500)], "yield": {"wool": 0.15, "raw_meat": 0.1}},
 	"quarry": {"label": "la Cantera", "icon": "⛏️", "spots": [Vector2(-185, -350), Vector2(-150, -300)], "yield": {"stone": 0.3}},
-	"woodcutter": {"label": "el bosque", "icon": "🪓", "spots": [Vector2(-470, 820), Vector2(-380, 845)], "yield": {"wood": 0.35}},
+	"woodcutter": {"label": "el bosque", "icon": "🪓", "spots": [Vector2(-470, 625), Vector2(-390, 635)], "yield": {"wood": 0.35}},
 }
 
 static func state(vm) -> Dictionary:
