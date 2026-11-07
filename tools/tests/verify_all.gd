@@ -6124,5 +6124,39 @@ func _initialize() -> void:
 	p70_pl.equip_weapon(c7_w_bak)
 	p70_pl.global_position = c7_ppos
 	print("Block C7 (Combat Phase 1: Windup, Lunge, Knockback, Flinch, Weapon Weight & Hit Feedback) OK")
+	# ==========================================================================
+	# Bloque C7 fase 2: los rivales con las mismas reglas («C7 combate fase 2»)
+	# ==========================================================================
+	var c72_wa = load("res://scripts/enemies/WildAnimal.gd")
+	var c72_boar = c72_wa.new()
+	c72_boar.species = 3 # jabalí
+	var c72_rab = c72_wa.new()
+	c72_rab.species = 0 # conejo
+	assert(c7_feel.mass_of(c72_boar) >= 2.0 and c7_feel.mass_of(c72_rab) < 1.0 and is_equal_approx(c7_feel.mass_of(c7_n), 1.0), "C7.5: A boar is heavy to shove, a rabbit light, a neighbour weighs as a person")
+	c72_boar.free()
+	c72_rab.free()
+	assert(float(c7_feel.attack_feel("colmillos")["push"]) > float(c7_feel.attack_feel("puño")["push"]) and float(c7_feel.attack_feel("porra")["miss_recover"]) > float(c7_feel.attack_feel("porra")["recover"]), "C7.6: Tusks push harder than fists, and a missed blow leaves a longer opening")
+	# Un vecino que suelta el golpe y falla se queda quieto un rato (ventana para castigarle)
+	var c72_n = null
+	for n_c72 in vm.VillageNeeds.living(vm):
+		if not n_c72.is_hostile and not n_c72.is_downed and not (n_c72.trade_role in [n_c72.TradeRole.SHERIFF, n_c72.TradeRole.GUARD, n_c72.TradeRole.ROYAL_INVESTIGATOR]):
+			c72_n = n_c72
+			break
+	var c72_ppos: Vector2 = p70_pl.global_position
+	p70_pl.global_position = c72_n.global_position + Vector2(300.0, 0.0) # fuera de su alcance: el golpe falla
+	c72_n._stagger_timer = 0.0
+	c72_n._civilian_hostile_timer = 5.0
+	c72_n._melee_recover_timer = 0.0
+	c72_n._melee_windup_timer = 0.001
+	c72_n._process_hostile_combat(0.02)
+	var c72_rec: float = c72_n._melee_recover_timer
+	assert(c72_rec > 0.4, "C7.7: After a missed blow a neighbour stays open (recovery %.2f s)" % c72_rec)
+	c72_n._process_hostile_combat(0.02)
+	assert(c72_n._melee_recover_timer < c72_rec and c72_n.velocity == Vector2.ZERO, "C7.8: During the opening they stand still")
+	c72_n._melee_recover_timer = 0.0
+	c72_n._civilian_hostile_timer = 0.0
+	c72_n._attack_timer = 0.0
+	p70_pl.global_position = c72_ppos
+	print("Block C7 fase 2 (Rivals: Swing Sound, Punishable Recovery, Weapon Push & Target Mass) OK")
 	print("ALL RIMWORLD MEDICAL, FOOTPRINTS, 3-PHASE CORPSE REPORT, MULTI-CORPSE FIX, RPG INTERROGATION, PUBLIC TRIAL, DYNAMIC RELATIONSHIPS, MISSING FAMILY SEARCH, SOCIAL GLOSSARY & UNCONSCIOUS REACTION TESTS PASSED!")
 	quit(0)

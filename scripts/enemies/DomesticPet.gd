@@ -19,6 +19,7 @@ enum PetType { DOG, CAT }
 @export var is_guard_dog: bool = false
 @export var tint_color: Color = Color.WHITE
 
+var hit_mass: float = 0.5 ## C7 fase 2: un animal pequeño sale despedido con cualquier golpe
 var is_fed_today: bool = true
 var affection: float = 75.0
 var need_hunger: float = 88.0

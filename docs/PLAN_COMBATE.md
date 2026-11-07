@@ -18,7 +18,11 @@
   congelado y temblor según el peso del arma.
 - Al recibir: quejido, temblor y pequeño empujón; esquivar y parar también suenan.
 
-## Fase 2 — Los rivales con las mismas reglas
+## Fase 2 — Los rivales con las mismas reglas ✅ (2026-11-06)
+Hecho: `CombatFeel.ATTACK_FEEL` (porra, puño, bandido, colmillos: empujón, recuperación al dar y al fallar, tono);
+zumbido del golpe al soltarlo; quietos 0,3 s tras dar y 0,55–0,75 s tras fallar (vecinos, guardias, bandidos, jabalíes
+de incursión y salvajes); `DamageData.knockback_force` decide cuánto te empujan; `hit_mass` (jabalí 2,5, venado 1,4,
+zorro 0,7, conejo y mascotas 0,5, bandido 1,1) divide el empujón y, por su raíz, el tambaleo que les provocas.
 - Guardias, bandidos, animales y vecinos: preparación visible (ya hay aviso de 0,4 s), **recuperación castigable**
   tras fallar, y sus golpes te empujan según su arma (porra, horca, cuchillo, colmillos).
 - El tambaleo que les provocas depende de su tamaño (un jabalí apenas se mueve con la hoz).

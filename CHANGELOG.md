@@ -3,6 +3,12 @@
 Cambios del juego, del más nuevo al más antiguo. Añade una entrada al cerrar cada bloque, en lenguaje sencillo.
 El detalle técnico está en `docs/HANDOFF.md` (sección 7) y el historial completo en `git log`. Lo anterior a B0.1 está en `AUDIT_LOG.md` y `SESSION_CONTEXT_LOG.md`.
 
+## 2026-11-06 — El combate pesa: los rivales juegan con las mismas reglas
+- **Oyes venir sus golpes:** guardias, vecinos, bandidos y jabalíes hacen el zumbido del golpe al soltarlo.
+- **Si fallan, puedes castigarles:** tras dar se quedan quietos un instante, y tras fallar, más rato.
+- **Cada rival empuja distinto:** el jabalí te tira hacia atrás, la porra bastante, los puños poco.
+- **El tamaño cuenta:** un jabalí apenas se mueve con tus golpes; un conejo o un perro salen despedidos.
+
 ## 2026-11-06 — El combate pesa: primera parte del combate nuevo
 - **Cada arma se siente distinta:** el martillo se echa atrás, tarda y golpea fuerte; la hoz y los puños son rápidos;
   la espada, en medio. Al soltar el golpe das un paso adelante y, mientras golpeas, andas más despacio.

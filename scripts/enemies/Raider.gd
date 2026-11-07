@@ -1,4 +1,5 @@
 extends CharacterBody2D
+const _CombatFeel = preload("res://scripts/systems/combat/CombatFeel.gd") # C7 fase 2: rivales con las mismas reglas
 
 ## Asaltante de una incursión (2026-11-05, Regla «todo es físico»). Bandidos o jabalíes que entran de verdad por el
 ## camino del este al atardecer y avanzan hacia la plaza. Pelean con guardias, vecinos con arrojo y el jugador; se
@@ -30,6 +31,11 @@ var target: Node2D = null
 var _retarget_t: float = 0.0
 var _attack_t: float = 0.6
 var _windup_t: float = 0.0
+var _recover_t: float = 0.0 ## C7 fase 2: quieto tras soltar un golpe (más si falló)
+## C7 fase 2: masa al recibir golpes (un jabalí apenas se mueve; un bandido, como una persona algo recia)
+var hit_mass: float:
+	get:
+		return 2.5 if kind == "boar" else 1.1
 var stagger_timer: float = 0.0
 var _done: bool = false
 
@@ -149,6 +155,10 @@ func _physics_process(delta: float) -> void:
 			_finish("fled")
 			queue_free()
 		return
+	if _recover_t > 0.0:
+		_recover_t = maxf(0.0, _recover_t - delta)
+		velocity = Vector2.ZERO
+		return
 	if _windup_t > 0.0:
 		_windup_t = maxf(0.0, _windup_t - delta)
 		velocity = Vector2.ZERO
@@ -156,8 +166,13 @@ func _physics_process(delta: float) -> void:
 			_attack_t = 1.1
 			if sprite:
 				sprite.modulate = Color.WHITE if kind == "boar" else Color(0.55, 0.32, 0.30)
+			var af: Dictionary = _CombatFeel.attack_feel("colmillos" if kind == "boar" else "bandido")
+			_CombatFeel.enemy_swing(self, "colmillos" if kind == "boar" else "bandido")
 			if target != null and is_instance_valid(target) and global_position.distance_to(target.global_position) <= MELEE_RANGE + 6.0:
 				_hit(target)
+				_recover_t = float(af["recover"])
+			else:
+				_recover_t = float(af["miss_recover"])
 		return
 	_retarget_t -= delta
 	if _retarget_t <= 0.0:
@@ -223,5 +238,6 @@ func _hit(t: Node2D) -> void:
 	var d := DamageData.new()
 	d.amount = hit_damage
 	d.weapon_tag = "Embestida de jabalí" if kind == "boar" else "Tajo de bandido"
+	d.knockback_force = float(_CombatFeel.attack_feel("colmillos" if kind == "boar" else "bandido")["push"])
 	d.source = self
 	t.call("take_damage", d)

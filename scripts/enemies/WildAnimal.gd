@@ -1,6 +1,7 @@
 @tool
 extends CharacterBody2D
 class_name WildAnimal
+const _CombatFeel = preload("res://scripts/systems/combat/CombatFeel.gd") # C7 fase 2: rivales con las mismas reglas
 
 ## Fauna Silvestre con Simulación de Vida (Estilo RDR2), Sigilo/Salto de Cazador y Saciedad de 2 Niveles — Fase 3.5
 ## - Saciedad y Día de Reserva: Cada animal puede comer hasta 2 veces al día (meals_eaten = 2/2).
@@ -71,6 +72,15 @@ var boar_aggro_timer: float = 0.0
 var boar_charge_windup: float = 0.0
 var boar_charge_timer: float = 0.0
 var boar_melee_windup: float = 0.0
+var boar_recover: float = 0.0 ## C7 fase 2: el jabalí queda quieto tras un topetazo fallido (ventana para castigarle)
+## C7 fase 2: masa al recibir golpes (1 = una persona): el empujón se divide por ella
+var hit_mass: float:
+	get:
+		match species:
+			SpeciesType.BOAR: return 2.5
+			SpeciesType.DEER: return 1.4
+			SpeciesType.FOX: return 0.7
+			_: return 0.5
 var stagger_timer: float = 0.0
 var boar_charge_dir: Vector2 = Vector2.RIGHT
 
@@ -914,16 +924,23 @@ func _process_boar_charge_attack(delta: float) -> void:
 	var to_target: Vector2 = boar_aggressor.global_position - global_position
 	var dist: float = to_target.length()
 
+	if boar_recover > 0.0:
+		boar_recover = maxf(0.0, boar_recover - delta)
+		velocity = Vector2.ZERO
+		return
 	if boar_melee_windup > 0.0:
 		boar_melee_windup = maxf(0.0, boar_melee_windup - delta)
 		velocity = Vector2.ZERO
 		if boar_melee_windup <= 0.0:
 			if sprite:
 				sprite.modulate = Color.WHITE
+			_CombatFeel.enemy_swing(self, "colmillos")
 			if is_instance_valid(boar_aggressor) and global_position.distance_to(boar_aggressor.global_position) <= 26.0:
 				_deliver_boar_ram_hit(boar_aggressor)
+				boar_recover = float(_CombatFeel.attack_feel("colmillos")["recover"])
 			else:
 				attack_cooldown = 1.0
+				boar_recover = float(_CombatFeel.attack_feel("colmillos")["miss_recover"])
 		return
 
 	# 1. Fase de Embestida a toda velocidad
@@ -987,6 +1004,7 @@ func _deliver_boar_ram_hit(target: Node2D) -> void:
 		dmg.amount = 18.0
 		dmg.type = CombatConstants.DamageType.BLUNT
 		dmg.stun_buildup = 32.0
+		dmg.knockback_force = float(_CombatFeel.attack_feel("colmillos")["push"])
 		dmg.source = self
 		target.call("take_damage", dmg)
 	if target.has_method("apply_push"):

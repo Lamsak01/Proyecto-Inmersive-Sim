@@ -841,7 +841,8 @@ func take_damage(data: DamageData) -> void:
 		if not is_ranged_hit and data != null and is_instance_valid(data.source) and data.source is Node2D:
 			var away: Vector2 = global_position - (data.source as Node2D).global_position
 			if away.length_squared() > 0.01:
-				move_and_collide(away.normalized() * clampf(hp_lost * 0.6, 3.0, 10.0))
+				var push_px: float = data.knockback_force if data.knockback_force > 0.0 else clampf(hp_lost * 0.6, 3.0, 10.0)
+				move_and_collide(away.normalized() * push_px) # C7 fase 2: el empujón depende del arma del rival
 		if combat_ctrl == null:
 			combat_ctrl = get_node_or_null("PlayerCombatController")
 		if combat_ctrl != null and combat_ctrl.has_method("_apply_camera_shake"):

@@ -1,6 +1,7 @@
 @tool
 extends CharacterBody2D
 class_name VillageNPC
+const _CombatFeel = preload("res://scripts/systems/combat/CombatFeel.gd") # C7 fase 2: rivales con las mismas reglas
 
 ## Habitante Sistémico de la Aldea con Casa, Familia, Sub-stats y Rutinas Dinámicas (IA de Utilidad) — Fase 2.3 y 2.4
 ## - Cada NPC pertenece a una Casa y Familia (`family_id`, `family_name`, `home_table_pos`, `bed_position`, `tavern_pos`).
@@ -248,6 +249,7 @@ var _police_alerted_timer: float = 0.0
 var _civilian_hostile_timer: float = 0.0
 var _melee_windup_timer: float = 0.0
 var _police_baton_windup_timer: float = 0.0
+var _melee_recover_timer: float = 0.0 ## C7 fase 2: quieto tras soltar un golpe (más si falló): ventana para castigarle
 var _stagger_timer: float = 0.0
 var _last_seen_player_pos: Vector2 = Vector2.ZERO
 var _stuck_timer: float = 0.0
@@ -2440,6 +2442,11 @@ func _process_police_law_enforcement(delta: float, vm: Node) -> bool:
 		_finish_frame_movement(delta)
 		return true
 
+	if _melee_recover_timer > 0.0:
+		_melee_recover_timer = maxf(0.0, _melee_recover_timer - delta)
+		velocity = Vector2.ZERO
+		_finish_frame_movement(delta)
+		return true
 	if _police_baton_windup_timer > 0.0:
 		_police_baton_windup_timer = maxf(0.0, _police_baton_windup_timer - delta)
 		velocity = Vector2.ZERO
@@ -2447,8 +2454,12 @@ func _process_police_law_enforcement(delta: float, vm: Node) -> bool:
 			_attack_timer = 0.85 / maxf(0.55, eff_pol)
 			if sprite:
 				sprite.modulate = Color.WHITE
+			_CombatFeel.enemy_swing(self, "porra")
 			if is_instance_valid(player) and global_position.distance_to(player.global_position) <= 38.0:
 				_strike_police_baton(player)
+				_melee_recover_timer = float(_CombatFeel.attack_feel("porra")["recover"])
+			else:
+				_melee_recover_timer = float(_CombatFeel.attack_feel("porra")["miss_recover"])
 		_finish_frame_movement(delta)
 		return true
 
@@ -2484,6 +2495,7 @@ func _strike_police_baton(player: Node2D) -> void:
 	d.type = CombatConstants.DamageType.BLUNT
 	d.stun_buildup = 36.0 * eff
 	d.weapon_tag = "Porra Policial"
+	d.knockback_force = float(_CombatFeel.attack_feel("porra")["push"])
 	d.source = self
 	player.call("take_damage", d)
 	_spawn_floating_text("🏏 ¡Porrazo Policial!", Color.AQUA, -40.0)
@@ -4091,6 +4103,10 @@ func _process_hostile_combat(delta: float) -> void:
 			velocity = Vector2.ZERO
 			return
 
+	if _melee_recover_timer > 0.0:
+		_melee_recover_timer = maxf(0.0, _melee_recover_timer - delta)
+		velocity = Vector2.ZERO
+		return
 	if _melee_windup_timer > 0.0:
 		_melee_windup_timer = maxf(0.0, _melee_windup_timer - delta)
 		velocity = Vector2.ZERO
@@ -4098,12 +4114,18 @@ func _process_hostile_combat(delta: float) -> void:
 			_attack_timer = 1.0
 			if sprite:
 				sprite.modulate = Color.WHITE
+			var af: Dictionary = _CombatFeel.attack_feel("porra" if is_police_unit else "puño")
+			_CombatFeel.enemy_swing(self, "porra" if is_police_unit else "puño")
 			if is_instance_valid(player) and global_position.distance_to(player.global_position) <= 34.0 and player.has_method("take_damage"):
 				var d := DamageData.new()
 				d.amount = 14.0 if is_police_unit else 9.0
 				d.weapon_tag = "Porra Policial" if is_police_unit else ("Golpe de " + npc_name)
+				d.knockback_force = float(af["push"])
 				d.source = self
 				player.call("take_damage", d)
+				_melee_recover_timer = float(af["recover"])
+			else:
+				_melee_recover_timer = float(af["miss_recover"])
 		return
 
 	var dist: float = global_position.distance_to(player.global_position)

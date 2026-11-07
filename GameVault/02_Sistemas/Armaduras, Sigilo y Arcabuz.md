@@ -29,4 +29,5 @@ fuente: "Biblia §3.3"
 
 ## Notas de diseño
 - 2026-11-06 (Claude Code): **rehacer el combate, fase 1 «peso y respuesta»** (plan completo en `docs/PLAN_COMBATE.md`). Cada arma tiene preparación, golpe y recuperación propios (martillo lento y pesado, hoz rápida); paso adelante al golpear; andas más despacio y no puedes girar el golpe a medias; el que recibe sale empujado y se tambalea un instante; chispa, sonidos (antes no había ninguno), congelado y temblor según el peso. Al recibir tú: quejido, temblor y empujón. Siguen: rivales con las mismas reglas, cadena de golpes y golpe cargado, consecuencias (zonas, mellas, desarmar).
+- 2026-11-06 (Claude Code): **fase 2 «rivales con las mismas reglas»**. Guardias, vecinos, bandidos y jabalíes hacen zumbido al soltar el golpe; tras dar se quedan quietos un instante y tras fallar más rato (ventana para castigarles); su golpe te empuja según el arma (colmillos > porra > puños). El tamaño cuenta: un jabalí pesa como dos personas y media y apenas se mueve; conejos y mascotas salen despedidos.
 -
