@@ -3,6 +3,13 @@
 Cambios del juego, del más nuevo al más antiguo. Añade una entrada al cerrar cada bloque, en lenguaje sencillo.
 El detalle técnico está en `docs/HANDOFF.md` (sección 7) y el historial completo en `git log`. Lo anterior a B0.1 está en `AUDIT_LOG.md` y `SESSION_CONTEXT_LOG.md`.
 
+## 2026-11-06 — La trattoria cobra vida
+- **Los vecinos con dinero salen a comer o a cenar** a «Il Corvo» (de 13 a 22 h; más por la noche): se sientan en el
+  comedor o en la terraza, piden tallarines o estofado y se lo pagan al cocinero. Si no queda nada, se van a casa.
+- **El cocinero abre de 12 a 23 h, también el fin de semana**, y antes de cada estofado baja a la cámara fría a
+  descolgar una pieza de carne.
+- En una prueba de 7 días sin jugador, el cocinero llegó al pueblo el día 4 y sirvió 6 comidas en 4 días.
+
 ## 2026-11-06 — Trattoria «Il Corvo»
 - **Nuevo restaurante italiano al este del pueblo**, grande y con varias salas: comedor con mesas de mantel a cuadros,
   velas, barra y piano; cocina con fogón y campana; cámara fría con hielo y carne colgada; bodega de vinos; el cuarto

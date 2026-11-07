@@ -24,7 +24,7 @@ tags:
 - [x] No destripa secretos desde el menú
 - [ ] Se puede fallar y tiene cooldown (llegará con la Familia)
 - [x] Ocurre en el mundo físico, con testigos
-- [ ] El pueblo lo usa por su cuenta (falta que los vecinos cenen allí: R1b)
+- [x] El pueblo lo usa por su cuenta (sonda `restaurant_probe.gd`: 6 comidas en 4 días)
 - [x] El test prueba el flujo real (`Block R1`)
 
 Ver [[Las 7 Reglas de las Auditorías]]
@@ -34,11 +34,12 @@ Ver [[Las 7 Reglas de las Auditorías]]
 - [[Economía de Oferta y Demanda]] (compra de trigo y carne).
 
 ## Notas de diseño
-- 2026-11-06 (R1): edificio y oficio hechos. Pendiente R1b: el cocinero va a la cámara fría y los vecinos cenan por la tarde; fachada 3D aún parece de tablas oscuras.
+- 2026-11-06 (R1b): los vecinos con dinero comen o cenan (13–22 h) en el comedor o la terraza y pagan al cocinero; el cocinero abre de 12 a 23 h y baja a la cámara fría antes de cada estofado. El puesto empieza vacante: en la sonda, el cocinero llegó el día 4.
+- 2026-11-06 (R1): edificio y oficio hechos. Fachada 3D aún parece de tablas oscuras.
 
 ## Tareas
 - [x] R1 Restaurante
-- [ ] R1b Vida en el restaurante (cenas, cámara fría)
+- [x] R1b Vida en el restaurante (cenas, cámara fría)
 - [ ] R2 La Familia
 - [ ] R3 Negocios discretos
 - [ ] R4 El jugador se entera e interviene

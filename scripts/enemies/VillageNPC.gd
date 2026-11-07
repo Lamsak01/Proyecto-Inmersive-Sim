@@ -1,6 +1,7 @@
 @tool
 extends CharacterBody2D
 class_name VillageNPC
+const _VillageRestaurant = preload("res://scripts/systems/VillageRestaurant.gd") # R1b: comer en la trattoria
 const _CombatFeel = preload("res://scripts/systems/combat/CombatFeel.gd") # C7 fase 2: rivales con las mismas reglas
 
 ## Habitante Sistémico de la Aldea con Casa, Familia, Sub-stats y Rutinas Dinámicas (IA de Utilidad) — Fase 2.3 y 2.4
@@ -139,6 +140,7 @@ var _social_decay_rate: float = 1.05
 
 var current_activity: ActivityState = ActivityState.WORKING
 var _eat_at_tavern: bool = false
+var _restaurant_seat: Vector2 = Vector2.ZERO ## R1b: silla en la trattoria donde va a comer (ZERO = no)
 var _meal_consumed_this_sitting: bool = false
 var _has_valid_meal_this_sitting: bool = false
 var _sitting_meal_ingested: float = 0.0
@@ -2864,6 +2866,8 @@ func _is_mandatory_work_hours() -> bool:
 	if not WorldClock or _is_morning_expedition_hours():
 		return true
 	var h: int = WorldClock.current_hour
+	if trade_role == TradeRole.RESTAURATEUR: # R1b: la trattoria abre a mediodía y sirve cenas, también el fin de semana
+		return h >= _VillageRestaurant.OPEN_FROM and h < _VillageRestaurant.OPEN_TO and not WorldClock.is_rite_day()
 	# G2: fin de semana. Los oficios y sus familias trabajan solo la mañana del sábado y descansan el domingo
 	if WorldClock.has_method("is_weekend") and WorldClock.is_weekend() and (trade_role in SHOP_ROLES or trade_role == TradeRole.FAMILY_MEMBER):
 		if WorldClock.is_rite_day():
@@ -2986,8 +2990,17 @@ func feed_npc_gradual(nutrition_amount: float = 38.0) -> void:
 	_starvation_tick_timer = 0.0
 
 ## Prioridad "Casa Primero": comer en casa es la opción principal; la Taberna es capricho o para viajeros con oro
+## R1b: dónde come ahora: la silla de la trattoria, la taberna o la mesa de casa.
+func _current_meal_pos() -> Vector2:
+	if _restaurant_seat != Vector2.ZERO:
+		return _restaurant_seat
+	return tavern_social_pos if _eat_at_tavern else home_table_pos
+
 func _choose_preferred_meal_location() -> bool:
 	var vm = _get_vm()
+	_restaurant_seat = _VillageRestaurant.pick_seat_for(vm, self)
+	if _restaurant_seat != Vector2.ZERO:
+		return false # R1b: sale a comer a la trattoria
 	if vm != null and vm.has_method("is_building_door_blocked") and bool(vm.call("is_building_door_blocked", "tavern")):
 		return false
 	if trade_role == TradeRole.INNKEEPER:
@@ -3019,6 +3032,7 @@ func _update_needs_and_decisions(delta: float) -> void:
 	var malnutrition_fatigue_mult: float = lerpf(1.25, 1.0, clampf(need_hunger / 60.0, 0.0, 1.0))
 
 	if current_activity != ActivityState.EATING:
+		_restaurant_seat = Vector2.ZERO
 		_meal_consumed_this_sitting = false
 		_has_valid_meal_this_sitting = false
 		_sitting_meal_ingested = 0.0
@@ -3044,11 +3058,17 @@ func _update_needs_and_decisions(delta: float) -> void:
 				if _eat_at_tavern and vm_chk and vm_chk.has_method("is_building_door_blocked") and bool(vm_chk.call("is_building_door_blocked", "tavern")):
 					_eat_at_tavern = false
 					_spawn_floating_text("🚪🔒 ¡Taberna bloqueada! Iré a comer en casa / buscar suministros", Color.GOLD, -36.0)
-				var meal_pos: Vector2 = tavern_social_pos if _eat_at_tavern else home_table_pos
+				var meal_pos: Vector2 = _current_meal_pos()
 				if global_position.distance_to(meal_pos) <= 14.0:
 					if not _meal_consumed_this_sitting:
 						_meal_consumed_this_sitting = true
-						if _consume_pocket_meal_if_any():
+						if _restaurant_seat != Vector2.ZERO:
+							_has_valid_meal_this_sitting = _VillageRestaurant.serve_meal(vm_chk, self)
+							if not _has_valid_meal_this_sitting:
+								_restaurant_seat = Vector2.ZERO # R1b: no queda plato (o el cocinero no está): a comer a casa
+								_meal_consumed_this_sitting = false
+								_spawn_floating_text("🍝🚫 No sirven nada: comeré en casa", Color.LIGHT_GRAY, -32.0)
+						elif _consume_pocket_meal_if_any():
 							_has_valid_meal_this_sitting = true
 						else:
 							_has_valid_meal_this_sitting = bool(vm_chk.call("consume_village_meal_for_npc", self)) if (vm_chk and vm_chk.has_method("consume_village_meal_for_npc")) else false
@@ -3246,7 +3266,7 @@ func _execute_dynamic_activity(delta: float) -> void:
 			if _is_amateur_foraging:
 				_process_amateur_survival_hunting(delta)
 				return
-			_approach_or_stop(tavern_social_pos if _eat_at_tavern else home_table_pos, 10.0, 40.0, delta)
+			_approach_or_stop(_current_meal_pos(), 10.0, 40.0, delta)
 		ActivityState.SOCIALIZING:
 			_approach_or_stop(_get_social_target_pos(), 16.0, 38.0, delta)
 		ActivityState.WORKING:
@@ -3378,6 +3398,12 @@ func _process_artisan_workshop_crafting_and_supply_runs(delta: float) -> void:
 		_supply_run_cooldown = randf_range(38.0, 56.0)
 		return
 
+	# R1b: el cocinero va a la cámara fría a por la carne antes del estofado
+	if trade_role == TradeRole.RESTAURATEUR and _craft_progress < 1.0:
+		var r_recs: Array[Dictionary] = _get_artisan_recipes()
+		if not r_recs.is_empty() and _VillageRestaurant.cook_cold_room_trip(self, r_recs[_crafting_recipe_idx % r_recs.size()], delta):
+			_is_actively_crafting = false
+			return
 	# 2. Regresar o permanecer en su propio puesto de trabajo (`work_position`)
 	if global_position.distance_to(work_position) > 16.0:
 		_is_actively_crafting = false
@@ -3439,6 +3465,8 @@ func _process_artisan_workshop_crafting_and_supply_runs(delta: float) -> void:
 		_craft_progress = 0.0
 		if cur_mat_count > 0:
 			workshop_materials[req_input] = cur_mat_count - 1
+		if has_meta("cold_room_fetched"):
+			remove_meta("cold_room_fetched")
 		shop_stock[out_id] = int(shop_stock.get(out_id, 0)) + 1
 		_sync_shop_stock_to_vm()
 		_spawn_floating_text("⚒️✨ ¡%s fabricó +1 %s!" % [npc_name, out_label], Color(0.55, 1.0, 0.68), -40.0)
@@ -3996,7 +4024,7 @@ func get_activity_description() -> String:
 		ActivityState.EATING:
 			if _is_amateur_foraging:
 				return "🏹💦 Cazando/Recolectando Torpemente (Sin Dinero/Comida)"
-			var loc := "en la Taberna" if _eat_at_tavern else ("en el Albergue" if in_shelter else ("en su Fogata" if is_vagrant_camper else "en Casa"))
+			var loc := "en la Trattoria" if _restaurant_seat != Vector2.ZERO else "en la Taberna" if _eat_at_tavern else ("en el Albergue" if in_shelter else ("en su Fogata" if is_vagrant_camper else "en Casa"))
 			return "🍲 Comiendo %s" % loc
 		ActivityState.SOCIALIZING:
 			if errand_kind != "":

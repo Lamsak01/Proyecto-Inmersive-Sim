@@ -237,3 +237,121 @@ static func route(from_pos: Vector2, target_pos: Vector2) -> Vector2:
 	else:
 		in_gap = absf(from_pos.y - pos.y) <= 9.0 and absf(from_pos.x - pos.x) <= 14.0
 	return far if in_gap else near
+
+# ==========================================================================
+# R1b: vida en el restaurante. Los vecinos con dinero salen a comer o a cenar (13–22 h) cuando el cocinero está
+# trabajando; se sientan en una mesa del comedor o de la terraza y pagan su plato al cocinero (suma cero: el plato
+# sale de su existencia y el oro pasa de uno a otro). Si no queda nada en la cocina, se van a cenar a casa.
+# El cocinero baja a la cámara fría a por la carne antes de cada estofado.
+# ==========================================================================
+const OPEN_FROM: int = 12
+const OPEN_TO: int = 23
+const MENU_PRICES: Dictionary = {"braised_meat": 18, "pasta_dish": 12}
+const MIN_GOLD_TO_DINE: int = 30
+
+static func cook(vm):
+	if vm == null or not ("trade_npcs" in vm):
+		return null
+	var c = vm.trade_npcs.get(int(VillageNPC.TradeRole.RESTAURATEUR))
+	if c == null or not is_instance_valid(c) or c.is_dead:
+		return null
+	return c
+
+## El local sirve si el cocinero está trabajando dentro (en los fogones, en la cámara o en la barra).
+static func is_serving(vm) -> bool:
+	var c = cook(vm)
+	if c == null or c.is_incapacitated() or c.is_sleeping or c.is_hostile:
+		return false
+	if int(c.current_activity) != int(VillageNPC.ActivityState.WORKING):
+		return false
+	if vm.has_method("is_trade_sabotaged") and bool(vm.call("is_trade_sabotaged", int(VillageNPC.TradeRole.RESTAURATEUR))):
+		return false
+	return room_of(c.global_position) != ""
+
+static func has_food(vm) -> bool:
+	var c = cook(vm)
+	if c == null:
+		return false
+	for k in MENU_PRICES:
+		if int(c.shop_stock.get(k, 0)) > 0:
+			return true
+	return false
+
+## Sitios para sentarse: una silla junto a cada mesa del comedor (menos la de la familia del cocinero) y de la terraza.
+static func seats() -> Array[Vector2]:
+	var out: Array[Vector2] = []
+	for i in DINING_TABLES.size():
+		if i == 3:
+			continue # mesa de la familia del cocinero
+		out.append(DINING_TABLES[i] + Vector2(-12, 4))
+		out.append(DINING_TABLES[i] + Vector2(12, 4))
+	for t in TERRACE_TABLES:
+		out.append(t + Vector2(-11, 3))
+		out.append(t + Vector2(11, 3))
+	return out
+
+## ¿Sale este vecino a comer al restaurante? Devuelve el sitio donde se sienta, o Vector2.ZERO si no.
+static func pick_seat_for(vm, npc, force: bool = false) -> Vector2:
+	if vm == null or npc == null or npc.is_dead:
+		return Vector2.ZERO
+	if int(npc.trade_role) in [int(VillageNPC.TradeRole.RESTAURATEUR), int(VillageNPC.TradeRole.INNKEEPER), int(VillageNPC.TradeRole.UNEMPLOYED), int(VillageNPC.TradeRole.CHILD)]:
+		return Vector2.ZERO
+	if str(npc.family_id) == FAMILY_ID or bool(npc.get("is_vagrant_camper")):
+		return Vector2.ZERO
+	var h: int = WorldClock.current_hour if WorldClock else 12
+	if h < 13 or h >= 22 or int(npc.personal_gold) < MIN_GOLD_TO_DINE:
+		return Vector2.ZERO
+	if not is_serving(vm) or not has_food(vm):
+		return Vector2.ZERO
+	var chance: float = 0.30 if int(npc.personal_gold) >= 160 else 0.12
+	if h >= 19:
+		chance *= 1.6 # de cena salen más
+	if not force and randf() >= chance:
+		return Vector2.ZERO
+	var free: Array[Vector2] = seats()
+	for n in VillageNeeds.living(vm):
+		var s = n.get("_restaurant_seat")
+		if n != npc and s is Vector2 and s != Vector2.ZERO:
+			free.erase(s)
+	if free.is_empty():
+		return Vector2.ZERO # lleno
+	return free[randi() % free.size()]
+
+## Sirve el plato al vecino sentado: uno al azar de los que queden y pueda pagar. Devuelve false si no hay plato o dinero.
+static func serve_meal(vm, npc) -> bool:
+	var c = cook(vm)
+	if c == null or npc == null or not is_serving(vm):
+		return false
+	var order: Array = ["braised_meat", "pasta_dish"]
+	order.shuffle() # cada uno pide lo que le apetece (si no puede pagarlo o no queda, el otro)
+	for dish in order:
+		var price: int = int(MENU_PRICES[dish])
+		if int(c.shop_stock.get(dish, 0)) <= 0 or int(npc.personal_gold) < price:
+			continue
+		c.shop_stock[dish] = int(c.shop_stock[dish]) - 1
+		c._sync_shop_stock_to_vm()
+		npc.personal_gold -= price
+		c.personal_gold += price
+		var dname: String = str(SimpleInventory.CATALOG.get(dish, {}).get("name", dish))
+		var where: String = "en la terraza" if TERRACE.grow(14.0).has_point(npc.global_position) else "en el comedor"
+		vm.set_meta("restaurant_meals", int(vm.get_meta("restaurant_meals", 0)) + 1) # para la sonda
+		npc.add_thought("Comió %s en la trattoria (-%d Oro, +8)" % [dname, price], 8.0)
+		npc._spawn_floating_text("🍝 %s %s (-%d Oro)" % [dname, where, price], Color(1.0, 0.82, 0.55), -32.0)
+		return true
+	return false
+
+## Antes de un estofado el cocinero va a por la carne a la cámara fría. Devuelve true mientras está en ello.
+static func cook_cold_room_trip(npc, rec: Dictionary, delta: float) -> bool:
+	if str(rec.get("input", "")) != "raw_meat" or int(npc.workshop_materials.get("raw_meat", 0)) <= 0:
+		return false
+	if npc.has_meta("cold_room_fetched"):
+		return false
+	if npc.global_position.distance_to(COLD_SHELF) > 10.0:
+		npc._update_craft_bar_visual(0.3, "🥩 A la cámara fría a por carne", Color(0.6, 0.85, 1.0, 0.9))
+		npc._move_towards_point(COLD_SHELF, 46.0, delta)
+		return true
+	npc.velocity = Vector2.ZERO
+	npc.set_meta("cold_room_fetched", true)
+	npc.set_meta("cold_room_trips", int(npc.get_meta("cold_room_trips", 0)) + 1)
+	npc._spawn_floating_text("🥩❄️ Descuelga una pieza de la cámara", Color(0.7, 0.9, 1.0), -38.0)
+	return false

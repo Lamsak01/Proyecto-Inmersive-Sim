@@ -6119,7 +6119,10 @@ func _initialize() -> void:
 	c7_n.global_position = c7_pos0
 	c7_n._stagger_timer = 0.0
 	c7_n._attack_timer = 0.0
-	await create_timer(0.6).timeout
+	for _c74 in 30: # sin espera fija: con un brazo tocado todo va más lento
+		await create_timer(0.1).timeout
+		if not bool(c7_cc._swing_locked) and is_equal_approx(c7_cc.swing_move_mult, 1.0):
+			break
 	assert(not bool(c7_cc._swing_locked) and is_equal_approx(c7_cc.swing_move_mult, 1.0), "C7.4: After the recovery you can aim and walk normally again")
 	p70_pl.equip_weapon(c7_w_bak)
 	p70_pl.global_position = c7_ppos
@@ -6348,5 +6351,65 @@ func _initialize() -> void:
 	var r1_inv = load("res://scripts/systems/SimpleInventory.gd")
 	assert(r1_inv.CATALOG.has("pasta_dish") and r1_inv.CATALOG.has("braised_meat"), "R1.8: The house dishes exist")
 	print("Block R1 (Trattoria Il Corvo: Big Multi-Room Restaurant, Terrace, Kitchen, Cold Room, Room Routing) OK")
+	# Bloque R1b: comer en la trattoria (el cocinero sirve, cobra y baja a la cámara fría)
+	var r1b_c = null
+	var r1b_d = null
+	for n_r1b in vm.VillageNeeds.living(vm):
+		if n_r1b.is_hostile or n_r1b.is_downed or n_r1b.is_incapacitated() or n_r1b.family_id == r1_rs.FAMILY_ID:
+			continue
+		if n_r1b.trade_role in [n_r1b.TradeRole.UNEMPLOYED, n_r1b.TradeRole.CHILD, n_r1b.TradeRole.INNKEEPER, n_r1b.TradeRole.RESTAURATEUR] or n_r1b.is_vagrant_camper:
+			continue
+		if r1b_c == null:
+			r1b_c = n_r1b
+		elif r1b_d == null:
+			r1b_d = n_r1b
+			break
+	var r1b_prev = vm.trade_npcs.get(r1_rt, null)
+	var r1b_hour: int = int(t5_wc.current_hour)
+	var r1b_cpos: Vector2 = r1b_c.global_position
+	var r1b_dpos: Vector2 = r1b_d.global_position
+	var r1b_cstock: Dictionary = r1b_c.shop_stock.duplicate()
+	var r1b_cmat: Dictionary = r1b_c.workshop_materials.duplicate()
+	var r1b_cact = r1b_c.current_activity
+	var r1b_cgold: int = r1b_c.personal_gold
+	var r1b_dgold: int = r1b_d.personal_gold
+	vm.trade_npcs[r1_rt] = r1b_c
+	r1b_c.is_sleeping = false
+	r1b_c.current_activity = r1b_c.ActivityState.WORKING
+	r1b_c.global_position = r1_rs.STOVE_POS
+	r1b_c.shop_stock = {"braised_meat": 1, "pasta_dish": 0}
+	t5_wc.current_hour = 20
+	r1b_d.personal_gold = 100
+	var r1b_seat: Vector2 = r1_rs.pick_seat_for(vm, r1b_d, true)
+	assert(r1b_seat != Vector2.ZERO and r1b_seat in r1_rs.seats(), "R1b.1: A neighbour with money finds a seat for dinner")
+	r1b_d.global_position = r1b_seat
+	assert(r1_rs.serve_meal(vm, r1b_d) and r1b_d.personal_gold == 82 and r1b_c.personal_gold == r1b_cgold + 18 and int(r1b_c.shop_stock["braised_meat"]) == 0, "R1b.2: The cook serves the stew and the gold changes hands")
+	assert(not r1_rs.serve_meal(vm, r1b_d) and r1_rs.pick_seat_for(vm, r1b_d, true) == Vector2.ZERO, "R1b.3: With nothing left in the kitchen nobody is served")
+	r1b_c.shop_stock = {"pasta_dish": 2}
+	t5_wc.current_hour = 23
+	assert(r1_rs.pick_seat_for(vm, r1b_d, true) == Vector2.ZERO, "R1b.4: Closed at night")
+	t5_wc.current_hour = 20
+	r1b_c.current_activity = r1b_c.ActivityState.SLEEPING
+	assert(r1_rs.pick_seat_for(vm, r1b_d, true) == Vector2.ZERO, "R1b.5: Without the cook working, no dinners")
+	r1b_c.current_activity = r1b_c.ActivityState.WORKING
+	r1b_c.workshop_materials["raw_meat"] = 1
+	var r1b_rec: Dictionary = {"input": "raw_meat", "output": "braised_meat"}
+	assert(r1_rs.cook_cold_room_trip(r1b_c, r1b_rec, 0.1), "R1b.6: Before the stew the cook heads to the cold room")
+	r1b_c.global_position = r1_rs.COLD_SHELF
+	assert(not r1_rs.cook_cold_room_trip(r1b_c, r1b_rec, 0.1) and r1b_c.has_meta("cold_room_fetched") and not r1_rs.cook_cold_room_trip(r1b_c, r1b_rec, 0.1), "R1b.7: He takes the meat and goes back to the stove")
+	r1b_c.remove_meta("cold_room_fetched")
+	r1b_c.shop_stock = r1b_cstock
+	r1b_c.workshop_materials = r1b_cmat
+	r1b_c.current_activity = r1b_cact
+	r1b_c.personal_gold = r1b_cgold
+	r1b_d.personal_gold = r1b_dgold
+	r1b_c.global_position = r1b_cpos
+	r1b_d.global_position = r1b_dpos
+	t5_wc.current_hour = r1b_hour
+	if r1b_prev == null:
+		vm.trade_npcs.erase(r1_rt)
+	else:
+		vm.trade_npcs[r1_rt] = r1b_prev
+	print("Block R1b (Dining at the Trattoria, Paying the Cook, Cold Room Trip) OK")
 	print("ALL RIMWORLD MEDICAL, FOOTPRINTS, 3-PHASE CORPSE REPORT, MULTI-CORPSE FIX, RPG INTERROGATION, PUBLIC TRIAL, DYNAMIC RELATIONSHIPS, MISSING FAMILY SEARCH, SOCIAL GLOSSARY & UNCONSCIOUS REACTION TESTS PASSED!")
 	quit(0)
