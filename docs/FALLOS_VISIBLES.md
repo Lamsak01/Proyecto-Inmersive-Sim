@@ -59,5 +59,10 @@
   pasó de verdad** (heridas reales que guarda el juego: zona, arma, por la espalda, caída, hora, sitio, clima). Sin
   marcas que no existieron; textos según sea hombre o mujer (`VillageNPC.gd::stealth_assassinate` y `DetectiveUI.gd`).
 
+- [ ] **Muchos vecinos siguen trabajando en el sitio antiguo de los edificios** (2026-11-07, tras agrandar el mapa y mover
+  la trattoria/la taberna): van a trabajar donde estaba el edificio, no donde está ahora. Probablemente es la misma causa
+  que el saboteador nocturno que no llega al taller (`verify_all` P6b.3a). Buscar todas las posiciones de trabajo, recados
+  y rutas escritas a mano que no siguieron al edificio.
+
 ## Arreglados
 - [x] ✅ (2026-11-07) Fachada de la trattoria «Il Corvo» en 3D: parece de tablas oscuras en vez de estuco/ladrillo claro (`WorldStage3D.gd`: cambiada la textura de muros de `building_restaurant` a `town_textures/wall_brick_sand_center.png` con `uv1_scale = Vector3(2.4, 0.72, 2.4)`, tono claro de estuco/ladrillo cálido `Color(1.0, 0.95, 0.84)`, iluminación cálida de rebote `0.58` en la fachada sur y dintel con el mismo estuco en vez de `rf_planks.png`).
