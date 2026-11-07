@@ -1,86 +1,61 @@
 # Encargo para Antigravity (escrito por Claude Code, supervisor)
 
-> Fecha: 2026-11-05. Pega este archivo entero como primer mensaje a Antigravity, o dile: «Lee
+> Fecha: 2026-11-06. Pega este archivo entero como primer mensaje a Antigravity, o dile: «Lee
 > `docs/ENCARGO_ANTIGRAVITY.md` y haz lo que pone».
+> Al usuario le queda poca cuota de Claude Code: **trabaja sin pedir permiso** y deja todo bien explicado en el informe.
+
+## 0. Reglas (resumen)
+
+- Tú escribes el código; Claude Code revisa. El usuario no programa: háblale en español, breve, sin código.
+- Lee antes `CLAUDE.md`, `docs/HANDOFF.md` (secciones 7 y 8), `docs/VISION_Y_FUTURO.md` (punto «crimen dentro del
+  pueblo») y `GameVault/04_Censo_y_Misiones/Trattoria Il Corvo.md`.
+- No toques `scripts/systems/VillageSect.gd`, `GameVault/03_La_Secta/`, el Lore provisional, `GameVault/99_Archivo/`,
+  `GameVault/.obsidian/` ni `.claude/`.
+- Nada rígido: sin temporizadores ni sucesos «porque sí»; todo nace de vecinos con rasgos y condiciones reales.
+- Al cerrar cada bloque: test nuevo en `tools/tests/verify_all.gd` (antes de la línea `print("ALL RIMWORLD MEDICAL`),
+  una sola pasada de `verify_all` con `timeout 900`, HANDOFF §7, `CHANGELOG.md`, `docs/REGISTRO_TRABAJO.md`, nota del
+  vault, Tablero, diario `GameVault/06_Diario/AAAA-MM-DD.md`, textos nuevos en `docs/APORTES_CREATIVOS.md`; commit y push
+  a `main`; informe nuevo (reescrito entero) en `docs/INFORME_ANTIGRAVITY.md`.
+- Trampas: un assert que falla deja la prueba colgada hasta el timeout (EXIT 124); en pruebas no uses esperas fijas
+  (espera en bucle hasta que se cumpla); usa `x.get("campo") == true`, nunca `bool(x.get(...))`; los oficios nuevos se
+  añaden al FINAL del enum `TradeRole`.
 
 ---
 
-## 0. Las cosas han cambiado: nuevo reparto de trabajo
+## Bloque R2 — «La Familia» (crimen organizado discreto)
 
-Desde hoy (2026-11-05), por decisión del usuario:
+**Contexto:** ya existe la Trattoria «Il Corvo» (`scripts/systems/VillageRestaurant.gd`), con un reservado al fondo
+(`BACKROOM_TABLE`, sala `"reservado"`). Plan acordado con el usuario: R2 la Familia → R3 sus negocios → R4 el jugador.
+**Haz solo R2.**
 
-- **Antigravity (tú) escribe el código** del juego.
-- **Claude Code es el supervisor**: prepara los encargos (como este), revisa lo que subas a GitHub (cambios, pruebas,
-  reglas del proyecto) y le dice al usuario si está bien o qué hay que corregir.
-- **El usuario** decide el diseño y aprueba. No programa: háblale siempre en español, breve y sin código.
+**Qué tiene que pasar en el juego:**
+1. **Nace sola, no al empezar.** Un vecino adulto **ambicioso, sin escrúpulos y persuasivo** (usa los rasgos y la
+   psicología que ya existen; si no hay ninguno así, no nace, y una partida sin Familia es válida) decide montarla
+   cuando tiene motivo: dinero ahorrado y frustración (deudas, envidia, rencor) o una oportunidad.
+2. **Recluta de 2 a 4 vecinos** de uno en uno, entre quienes le deben algo, le tienen afecto o miedo, o están
+   desesperados (pobres, endeudados). Puede fallar: el que se niega lo recuerda y puede contarlo como chisme.
+3. **Se reúnen de noche en el reservado** cuando el jefe lo decide según sus planes (no por calendario fijo). Si ven a
+   la guardia o a un desconocido cerca, lo dejan para otra noche.
+4. **Perfil bajo:** no hacen nada a la vista; de día siguen con sus oficios.
+5. **Guardar y cargar:** jefe, miembros y rechazos se guardan con la partida.
+6. **Se nota sin menús:** de noche hay gente en el reservado; el cocinero suelta una frase si le preguntas
+   (provisional, a `APORTES_CREATIVOS.md`).
 
-Cómo trabajamos a partir de ahora:
+**Cómo hacerlo (sugerencia):** módulo nuevo sin `class_name` (`scripts/systems/VillageFamilia.gd`, con `preload`), con
+su estado guardado como hacen `VillageNightJobs.gd` o `VillageClub.gd` (copia su patrón de recados nocturnos y de
+guardado). Para llegar al reservado ya funciona la ruta interna del restaurante (`VillageRestaurant.route`).
 
-1. Haces **solo** lo que pide el encargo. Si ves otra cosa rota, apúntala en tu informe; no la arregles por tu cuenta.
-2. Trabajas en bloques pequeños. Al cerrar el bloque: pruebas, documentación, commit y push a `main` (ver §3).
-3. Al terminar, deja un **informe para el supervisor** en `docs/INFORME_ANTIGRAVITY.md` (qué hiciste, qué archivos
-   tocaste, qué probaste y con qué resultado, qué no pudiste hacer). Claude Code lo leerá y revisará tu commit.
-4. Si algo del encargo no te cuadra o el código no es como dice aquí, **no lo inventes**: escríbelo en el informe y
-   pregunta. Si el encargo y `git` no coinciden, manda `git`.
+**Test `Block R2`:** con un vecino preparado con los rasgos y condiciones adecuados, comprueba que funda la Familia,
+que recluta (y que alguien puede negarse), que de noche los miembros van al reservado, que no se reúnen con un guardia
+cerca y que todo sobrevive a guardar y cargar. Sin el vecino adecuado, no nace.
 
----
-
-## 1. Antes de tocar nada (lectura obligatoria)
-
-- `CLAUDE.md` (reglas de comunicación y de trabajo; valen también para ti).
-- `docs/HANDOFF.md` §3 (cómo pasar las pruebas) y §7 (estado; arriba del todo están los cambios de hoy).
-- `GameVault/01_Vision_y_Reglas/Las 7 Reglas de las Auditorías.md`.
-- Notas de la bóveda de los sistemas que toques: `GameVault/02_Sistemas/Red Eléctrica.md`,
-  `Terminales Lógicas Electromecánicas.md`, `Red de las Sombras.md`.
-- `git log --oneline -15` para ver lo último.
-
-Reglas que el supervisor va a comprobar sí o sí:
-
-- **Todo es físico:** nada se resuelve desde un menú de conversación ni con contadores invisibles. Las acciones de
-  riesgo ocurren junto al objeto, con testigos reales (vecinos despiertos cerca, en la misma planta).
-- **Suma cero:** ningún oro nace ni desaparece. Usa las ayudas `pay_into`, `take_from_treasury`, `role_npc` de
-  `VillageManager` (ver HANDOFF §7).
-- **Doble E** para gastar oro en el mundo (`VillageHousing.press_twice`).
-- **Todo reto se puede perder y tiene espera** (1 vez al día como ya está).
-- **La tecla E:** cualquier objeto nuevo con el que se interactúe debe ser una `Area2D` del grupo `interactable` y
-  tener `get_interact_label(player)` para que salga su letrero «[E] …» (`scripts/ui/InteractionSelector.gd`).
-- **Vista 2D y 3D:** todo objeto nuevo debe verse en 2D y en 3D (`WorldStage3D.gd`). F10 cambia de vista (F9 es cargar).
-- Ya decidido, no lo cambies: velocidad del caballo ×1,45; impuestos por tramos 0/15/30 %.
+**No hagas** R3 (protección, préstamos, blanqueo, soborno) ni R4: apunta ideas en el informe.
 
 ---
 
-## 2. El encargo actual: bloque P1 — tu tienda propia («Bazar del Forastero») hecha física
+## Encargo aparte (pequeño): la enciclopedia del vault en una página
 
-> ANIM-1 entregado (pendiente de que el usuario lo vea en movimiento). Fila 2 de `docs/AUDITORIA_REALISMO.md`.
-
-Ahora mismo (`VillageHousing`): abastecer el mostrador (`stock_player_shop`), vaciar la caja (`housing_collect_shop`),
-pregonar (`advertise_player_shop`) y contratar dependiente (`housing_hire_clerk`) se hacen **hablando con cualquier
-vecino**; el dependiente (`player_shop["clerk_key"]`) nunca va a tu solar y las ventas ocurren en el ciclo diario sin que
-nadie entre a comprar.
-
-Hay que:
-1. **Mostrador y caja físicos** en el solar de tu tienda (`player_shop["lot"]`), 2D + 3D, con [E]: «Reponer mercancía»
-   (lo mismo que `stock_player_shop`, desde tu mochila) y «Recoger la caja» (`till_gold`). Quita esas dos opciones de la
-   charla con vecinos.
-2. **El dependiente va de verdad:** en horario comercial (el mismo que los demás negocios) el vecino contratado camina
-   hasta detrás de tu mostrador (`start_errand` o lo que usen los otros dependientes) y se queda allí; si no está, la
-   tienda no vende. Su sueldo (`CLERK_WAGE`) sigue saliendo de la caja.
-3. **Clientes de verdad:** durante el día, vecinos con oro se acercan andando a tu mostrador y compran una unidad cada uno
-   (pagan de su bolsillo a la caja, suma cero), en vez de ventas hechas solas en el ciclo diario. Pregonar sigue
-   atrayendo más clientes durante 3 días.
-4. Pregonar y contratar pueden seguir en la charla (son tratos con personas), pero gastar oro pide doble E si se hace en
-   el mundo.
-5. Pruebas: un test por comportamiento (mostrador repone desde la mochila; la caja se recoge en el mostrador; sin
-   dependiente presente no hay ventas; un cliente que compra paga de su bolsillo). Arranque sin errores y **una sola**
-   prueba: `verify_all` con `timeout 900`. Nada de las cuatro: se pasan en las rondas de auditoría.
-
-## 3. Al cerrar el bloque
-
-1. `docs/HANDOFF.md` §7: una entrada arriba con lo técnico.
-2. `CHANGELOG.md`: entrada en lenguaje de jugador.
-3. `docs/REGISTRO_TRABAJO.md`: fila del bloque en el «Bloque FIS».
-4. Bóveda: notas de los sistemas tocados («Notas de diseño»), tarjeta en `GameVault/05_Roadmap_y_Lore/Tablero.md` y
-   línea en el diario del día (`GameVault/06_Diario/`).
-5. Commit con mensaje en español y push a `main`.
-6. `docs/INFORME_ANTIGRAVITY.md` para el supervisor (ver §0). **Reescríbelo entero** para este bloque.
-7. Al usuario: resumen corto en lenguaje de jugador, sin código, y una sola pregunta al final.
+El usuario quiere pasar el vault (`GameVault/`) a alguien que no tiene Obsidian. **Antes pregúntale** si va entera o
+sin `03_La_Secta/` y sin los diarios (`06_Diario/`). Luego: script en `tools/` que genere un único `.html` (índice a un
+lado, buscador, enlaces `[[...]]` que funcionen, el Tablero como lista), sin `.obsidian/` ni `99_Archivo/`. Déjalo
+fuera del repo (no lo subas) y dile al usuario dónde está y que puede mandarlo como archivo.
