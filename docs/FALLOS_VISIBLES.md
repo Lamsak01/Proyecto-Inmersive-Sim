@@ -90,5 +90,17 @@
 - [ ] **Franja rosa/morada sobre el tejado de la capilla** (2026-11-07 18:12, junto al cementerio, 2D): parece una
   alfombra o un letrero dibujado encima del tejado.
 
+- [ ] **Siguen cosas en 2D plano en el campamento** (2026-11-07 18:13, captura, 17:54): tienda de campaña, letreros de
+  madera, tendedero, espada y objeto morado tirados en el suelo, hoguera. Además alguien «Guisando carne al vino» encima
+  del muelle del Lago del Oeste, y el campamento parece pegado a la trattoria (borde derecho): comprobar la distancia.
+- [ ] **Se atraviesan casi todos los muebles y decoraciones** (2026-11-07 18:14, captura: el jugador entre las mesas y
+  sillas de la terraza de la trattoria). Mesas, sillas, macetas, barriles, cajas, bancos… necesitan choque (salvo lo
+  que sea suelo/alfombra). Ojo con no bloquear puertas ni caminos de los vecinos.
+- [ ] **Vecinos atascados** (2026-11-07 18:15, captura, día 2, 01:49, lluvia): varios quietos en el callejón entre la
+  taberna y la herrería; Nora no llegó a dormir a casa y Mario va a buscarlo. Probablemente rutas que chocan con los
+  edificios movidos/agrandados (taberna de 2 pisos).
+- [ ] **La trampilla del club de peleas siempre está cerrada** (2026-11-07): el usuario nunca la ha visto abierta.
+  Comprobar en partida (no solo en prueba) que abre las noches que toca, que se ve, y que un vecino o rumor te dice cuándo.
+
 ## Arreglados
 - [x] ✅ (2026-11-07) Fachada de la trattoria «Il Corvo» en 3D: parece de tablas oscuras en vez de estuco/ladrillo claro (`WorldStage3D.gd`: cambiada la textura de muros de `building_restaurant` a `town_textures/wall_brick_sand_center.png` con `uv1_scale = Vector3(2.4, 0.72, 2.4)`, tono claro de estuco/ladrillo cálido `Color(1.0, 0.95, 0.84)`, iluminación cálida de rebote `0.58` en la fachada sur y dintel con el mismo estuco en vez de `rf_planks.png`).
