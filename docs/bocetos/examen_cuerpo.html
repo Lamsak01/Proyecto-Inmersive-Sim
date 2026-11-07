@@ -1,0 +1,406 @@
+<title>Examen del cuerpo</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IM+Fell+English+SC&family=IM+Fell+English:ital@0;1&family=Alegreya+Sans:wght@400;500;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: pantalla de juego a oscuras; el cuerpo bajo un farol a la izquierda, la libreta del detective a la derecha, fichas del cuaderno abajo */
+:root {
+  --night: #12161a;
+  --panel: #1b2126;
+  --edge: #313a41;
+  --ink: #e6dfd2;
+  --dim: #8f948f;
+  --lamp: #e7b45a;
+  --paper: #e9e0cc;
+  --paper-ink: #2a2620;
+  --bruise: #7d5aa6;
+  --blood: #a8433b;
+  --f-display: "IM Fell English SC", "IM Fell English", Georgia, serif;
+  --f-hand: "IM Fell English", Georgia, serif;
+  --f-ui: "Alegreya Sans", "Trebuchet MS", system-ui, sans-serif;
+  --f-mono: "IBM Plex Mono", ui-monospace, Menlo, monospace;
+  color-scheme: dark;
+}
+html, body { height: 100%; }
+body { background: var(--night); color: var(--ink); font-family: var(--f-ui); font-size: 15px; line-height: 1.5;
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); padding-block: 18px 28px; }
+.wrap { max-width: 1180px; margin: 0 auto; display: flex; flex-direction: column; gap: 14px; }
+.top { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 8px 20px; border-bottom: 1px solid var(--edge); padding-bottom: 10px; }
+.top h1 { font-family: var(--f-display); font-weight: 400; font-size: 1.9rem; margin: 0; letter-spacing: 0.02em; }
+.top .case { font-family: var(--f-hand); font-style: italic; color: var(--dim); }
+.meta { display: flex; gap: 18px; font-family: var(--f-mono); font-size: 0.8rem; color: var(--dim); flex-wrap: wrap; }
+.meta b { color: var(--lamp); font-weight: 500; }
+.tabs { display: flex; gap: 6px; flex-wrap: wrap; }
+.tab { font-family: var(--f-ui); font-size: 0.9rem; background: transparent; color: var(--dim); border: 1px solid var(--edge); padding: 6px 14px; cursor: pointer; }
+.tab[aria-selected="true"] { color: var(--night); background: var(--lamp); border-color: var(--lamp); font-weight: 700; }
+.tab:disabled { cursor: not-allowed; opacity: 0.55; }
+.tab:focus-visible, .zone:focus-visible, .act:focus-visible, .note-btn:focus-visible { outline: 2px solid var(--lamp); outline-offset: 2px; }
+.main { display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr); gap: 14px; }
+.stage { position: relative; background: radial-gradient(ellipse 55% 60% at 50% 48%, #3a3a30 0%, #23251f 45%, var(--night) 80%); border: 1px solid var(--edge); min-height: 520px; overflow: hidden; }
+.stage svg { width: 100%; height: 100%; display: block; }
+.ground-label { position: absolute; left: 12px; bottom: 10px; font-family: var(--f-mono); font-size: 0.72rem; color: var(--dim); letter-spacing: 0.06em; }
+.hint { position: absolute; right: 12px; top: 10px; font-family: var(--f-mono); font-size: 0.72rem; color: var(--dim); text-align: right; }
+.sexsw { position: absolute; left: 12px; top: 10px; display: flex; gap: 4px; }
+.sexsw .tab { padding: 3px 10px; font-size: 0.8rem; }
+.sexsw .tab[aria-pressed="true"] { color: var(--night); background: var(--lamp); border-color: var(--lamp); }
+.stage[data-sex="f"] .only-m, .stage[data-sex="m"] .only-f { display: none; }
+.zone { fill: transparent; stroke: transparent; stroke-width: 2; cursor: pointer; transition: fill .15s, stroke .15s; }
+.zone:hover, .zone.sel { fill: rgba(231,180,90,0.13); stroke: var(--lamp); }
+.zone.done { stroke: rgba(231,180,90,0.35); stroke-dasharray: 4 4; }
+.mark { opacity: 0; transition: opacity .6s; pointer-events: none; }
+.mark.on { opacity: 1; }
+.book { background: var(--paper); color: var(--paper-ink); padding: 18px 20px; display: flex; flex-direction: column; gap: 12px; min-width: 0;
+  box-shadow: inset 0 0 0 1px #cdbf9f, 0 8px 30px rgba(0,0,0,0.45); }
+.book h2 { font-family: var(--f-display); font-weight: 400; font-size: 1.5rem; margin: 0; }
+.book .sub { font-family: var(--f-hand); font-style: italic; color: #6b6253; margin: -6px 0 0; }
+.acts { display: flex; flex-wrap: wrap; gap: 6px; }
+.act { font-family: var(--f-ui); font-size: 0.88rem; background: #2a2620; color: var(--paper); border: 0; padding: 6px 12px; cursor: pointer; display: inline-flex; gap: 6px; align-items: center; }
+.act .t { font-family: var(--f-mono); font-size: 0.72rem; opacity: 0.7; }
+.act[disabled] { background: #b7ab92; color: #5d5547; cursor: not-allowed; }
+.act.used { background: #6e6656; }
+.finds { display: flex; flex-direction: column; gap: 10px; }
+.find { border-top: 1px dashed #b9ab8c; padding-top: 10px; display: flex; flex-direction: column; gap: 4px; }
+.find .k { font-family: var(--f-mono); font-size: 0.7rem; letter-spacing: 0.1em; text-transform: uppercase; color: #7b6f5a; }
+.find p { margin: 0; font-family: var(--f-hand); font-size: 1.12rem; line-height: 1.4; }
+.find .lock { font-family: var(--f-ui); font-size: 0.9rem; color: #7b6f5a; font-style: italic; }
+.note-btn { align-self: flex-start; font-family: var(--f-ui); font-size: 0.82rem; background: transparent; border: 1px solid #2a2620; color: #2a2620; padding: 3px 10px; cursor: pointer; }
+.note-btn[disabled] { opacity: 0.5; cursor: default; }
+.empty { font-family: var(--f-hand); font-style: italic; color: #7b6f5a; font-size: 1.1rem; margin: 0; }
+.cause { background: #2a2620; color: var(--paper); padding: 10px 12px; font-size: 0.92rem; }
+.cause b { color: var(--lamp); }
+.strip { border: 1px solid var(--edge); background: var(--panel); padding: 12px 14px; display: flex; flex-direction: column; gap: 10px; }
+.strip-h { display: flex; justify-content: space-between; align-items: baseline; flex-wrap: wrap; gap: 6px; }
+.strip-h h3 { margin: 0; font-family: var(--f-display); font-weight: 400; font-size: 1.2rem; }
+.strip-h span { font-family: var(--f-mono); font-size: 0.75rem; color: var(--dim); }
+.cards { display: flex; gap: 10px; overflow-x: auto; padding-bottom: 4px; min-height: 92px; }
+.card { flex: 0 0 190px; background: var(--paper); color: var(--paper-ink); padding: 10px 12px 12px; font-family: var(--f-hand); font-size: 0.98rem; line-height: 1.3;
+  transform: rotate(var(--r, 0deg)); box-shadow: 0 4px 12px rgba(0,0,0,0.4); position: relative; }
+.card::before { content: ""; position: absolute; top: -5px; left: 50%; width: 10px; height: 10px; margin-left: -5px; border-radius: 50%; background: var(--blood); box-shadow: 0 1px 2px rgba(0,0,0,.5); }
+.card small { display: block; font-family: var(--f-mono); font-size: 0.66rem; letter-spacing: 0.08em; text-transform: uppercase; color: #7b6f5a; margin-bottom: 4px; }
+.cards .none { color: var(--dim); font-style: italic; align-self: center; }
+.morgue { background: var(--panel); border: 1px solid var(--edge); padding: 20px; display: flex; flex-direction: column; gap: 12px; }
+.morgue h2 { font-family: var(--f-display); font-weight: 400; margin: 0; font-size: 1.5rem; }
+.tests { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 10px; }
+.test { border: 1px solid var(--edge); padding: 12px; display: flex; flex-direction: column; gap: 4px; }
+.test h4 { margin: 0; font-size: 1rem; color: var(--lamp); }
+.test p { margin: 0; color: var(--dim); font-size: 0.9rem; }
+.foot { font-family: var(--f-mono); font-size: 0.72rem; color: var(--dim); }
+.lab { display: grid; grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.4fr); gap: 14px; }
+.tlist { background: var(--panel); border: 1px solid var(--edge); padding: 16px; display: flex; flex-direction: column; gap: 10px; min-width: 0; }
+.lab-h h2, .bench-h h2 { font-family: var(--f-display); font-weight: 400; margin: 0; font-size: 1.45rem; }
+.lab-h p { margin: 2px 0 0; color: var(--dim); font-size: 0.9rem; }
+#tlist { display: flex; flex-direction: column; gap: 6px; }
+.titem { text-align: left; background: transparent; border: 1px solid var(--edge); color: var(--ink); padding: 10px 12px; cursor: pointer; display: flex; justify-content: space-between; gap: 10px; font-family: var(--f-ui); font-size: 0.95rem; }
+.titem:hover, .titem.sel { border-color: var(--lamp); }
+.titem .st { font-family: var(--f-mono); font-size: 0.72rem; color: var(--dim); white-space: nowrap; }
+.titem .st.ok { color: #9cc28a; } .titem .st.bad { color: var(--blood); } .titem .st.dud { color: var(--lamp); }
+.titem:focus-visible, .opt:focus-visible, .ask:focus-visible { outline: 2px solid var(--lamp); outline-offset: 2px; }
+.bench { background: var(--paper); color: var(--paper-ink); padding: 18px 20px; display: flex; flex-direction: column; gap: 14px; min-width: 0; box-shadow: inset 0 0 0 1px #cdbf9f, 0 8px 30px rgba(0,0,0,0.45); }
+.bench-h { display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; }
+#vials { display: flex; gap: 6px; align-items: center; font-family: var(--f-mono); font-size: 0.72rem; color: #7b6f5a; }
+.vial { width: 12px; height: 26px; border: 1.5px solid #2a2620; border-radius: 0 0 6px 6px; background: linear-gradient(to top, var(--blood) 70%, transparent 70%); }
+.vial.empty { background: transparent; opacity: 0.5; }
+.stepq { font-family: var(--f-hand); font-size: 1.2rem; margin: 0; }
+.opts { display: flex; flex-wrap: wrap; gap: 6px; }
+.opt { font-family: var(--f-ui); font-size: 0.9rem; background: #2a2620; color: var(--paper); border: 0; padding: 7px 13px; cursor: pointer; }
+.ask { font-family: var(--f-ui); font-size: 0.85rem; background: transparent; border: 1px solid #2a2620; color: #2a2620; padding: 5px 11px; cursor: pointer; align-self: flex-start; }
+.log { display: flex; flex-direction: column; gap: 8px; }
+.log p { margin: 0; font-family: var(--f-hand); font-size: 1.08rem; border-top: 1px dashed #b9ab8c; padding-top: 8px; }
+.log p.bad { color: #8a2f2a; } .log p.dud { color: #7a5a1e; }
+.chart { display: flex; gap: 8px; flex-wrap: wrap; }
+.sw { display: flex; align-items: center; gap: 6px; font-size: 0.85rem; }
+.sw i { width: 18px; height: 18px; border: 1px solid #2a2620; display: inline-block; }
+.doc { background: #2a2620; color: var(--paper); padding: 10px 12px; font-size: 0.92rem; }
+.doc b { color: var(--lamp); font-weight: 500; }
+@media (max-width: 820px) { .lab { grid-template-columns: 1fr; } }
+@media (max-width: 820px) { .main { grid-template-columns: 1fr; } .stage { min-height: 420px; } }
+@media (prefers-reduced-motion: reduce) { .mark, .zone { transition: none; } }
+</style>
+
+<div class="wrap">
+  <div class="top">
+    <div>
+      <h1>Examen del cuerpo</h1>
+      <div class="case">Caso I · «La mujer del bosque» · claro junto al arroyo, al alba</div>
+    </div>
+    <div class="meta"><span>Tiempo en la escena <b id="clock">0 min</b></span><span>Hallazgos <b id="count">0</b></span><span>Luz <b>farol</b></span></div>
+  </div>
+
+  <div class="tabs" role="tablist">
+    <button class="tab" role="tab" id="tab-scene" aria-selected="true">En la escena</button>
+    <button class="tab" role="tab" id="tab-morgue" aria-selected="false">Autopsia en la morgue</button>
+    <button class="tab" role="tab" aria-selected="false" disabled title="Siguiente boceto">Escena del crimen</button>
+    <button class="tab" role="tab" aria-selected="false" disabled title="Siguiente boceto">Tablero del caso</button>
+  </div>
+
+  <div id="view-scene" class="main">
+    <div class="stage" data-sex="f" aria-label="Cuerpo tendido. Elige una zona para examinarla.">
+      <svg viewBox="0 0 520 560" role="img" aria-label="Figura anatómica tendida boca arriba">
+        <defs>
+          <radialGradient id="skin" gradientUnits="userSpaceOnUse" cx="260" cy="230" r="320"><stop offset="0" stop-color="#d9c8a8"/><stop offset="0.7" stop-color="#b9a585"/><stop offset="1" stop-color="#8f7d62"/></radialGradient>
+          <path id="halfF" d="M260 84 L249 84 L247 100 Q224 104 212 112 C198 116 194 132 194 150 C192 180 186 205 184 228 C180 260 176 285 174 302 C171 316 166 334 171 347 C175 356 186 353 188 342 C190 330 188 316 187 304 C191 280 195 258 199 232 C203 205 207 182 212 162 L218 166 C222 196 230 222 230 246 C230 264 206 280 204 300 C202 334 212 372 220 406 C224 426 222 442 222 462 C222 482 226 496 228 506 C226 516 219 527 230 531 L248 531 C252 523 250 513 248 505 C250 482 252 452 250 432 C250 412 252 382 254 352 C256 332 258 320 260 316"/>
+          <path id="half" d="M260 84 L249 84 L247 100 Q222 104 205 112 C190 116 186 132 186 150 C184 180 178 205 176 228 C172 260 168 285 166 302 C163 316 158 334 163 347 C167 356 178 353 180 342 C182 330 180 316 179 304 C183 280 187 258 191 232 C195 205 200 182 205 162 L212 166 C216 200 222 228 222 250 C222 268 212 282 210 298 C208 332 214 372 220 406 C224 426 222 442 222 462 C222 482 226 496 228 506 C226 516 219 527 230 531 L248 531 C252 523 250 513 248 505 C250 482 252 452 250 432 C250 412 252 382 254 352 C256 332 258 320 260 316"/>
+        </defs>
+        <ellipse cx="260" cy="300" rx="175" ry="250" fill="#14160f" opacity="0.55"/>
+        <path class="only-f" d="M260 12 C222 12 214 44 218 74 C220 96 214 112 222 122 C232 116 238 104 240 92 L280 92 C282 104 288 116 298 122 C306 112 300 96 302 74 C306 44 298 12 260 12 Z" fill="#3b2f24"/>
+        <ellipse class="only-m" cx="260" cy="46" rx="28" ry="35" fill="#3b2f24"/>
+        <g fill="url(#skin)" stroke="#4f4434" stroke-width="1.6" stroke-linejoin="round">
+          <g class="only-m"><use href="#half"/><use href="#half" transform="translate(520 0) scale(-1 1)"/></g>
+          <g class="only-f"><use href="#halfF"/><use href="#halfF" transform="translate(520 0) scale(-1 1)"/></g>
+          <rect x="257" y="86" width="6" height="228" stroke="none"/>
+          <ellipse cx="260" cy="50" rx="25" ry="33"/>
+        </g>
+        
+        <g class="mark" id="m-neck"><path d="M248 92 Q260 100 272 92" stroke="var(--bruise)" stroke-width="5" fill="none" stroke-linecap="round" opacity="0.85"/><ellipse cx="251" cy="102" rx="4" ry="3" fill="var(--bruise)" opacity="0.8"/><ellipse cx="269" cy="102" rx="4" ry="3" fill="var(--bruise)" opacity="0.8"/></g>
+        <g class="mark" id="m-wrist"><path d="M164 299 L182 303" stroke="var(--blood)" stroke-width="4" opacity="0.7"/><path d="M356 299 L338 303" stroke="var(--blood)" stroke-width="4" opacity="0.7"/></g>
+        <g class="mark" id="m-heel"><path d="M231 530 L247 530" stroke="var(--blood)" stroke-width="4" opacity="0.65"/><path d="M273 530 L289 530" stroke="var(--blood)" stroke-width="4" opacity="0.65"/></g>
+        <g class="mark" id="m-pocket"><rect x="288" y="268" width="24" height="18" fill="none" stroke="var(--lamp)" stroke-width="2"/></g>
+        <ellipse class="zone" data-z="cabeza" cx="260" cy="48" rx="34" ry="40" tabindex="0"/>
+        <rect class="zone" data-z="cuello" x="242" y="84" width="36" height="26" rx="8" tabindex="0"/>
+        <path class="zone" data-z="torso" d="M208 112 L312 112 L306 166 L298 250 L310 298 L260 316 L210 298 L222 250 L214 166 Z" tabindex="0"/>
+        <path class="zone" data-z="brazos" d="M186 116 L208 116 L205 164 L192 234 L181 300 L165 300 L172 230 L184 160 Z M334 116 L312 116 L315 164 L328 234 L339 300 L355 300 L348 230 L336 160 Z" tabindex="0"/>
+        <path class="zone" data-z="manos" d="M157 326 a14 26 0 1 0 28 0 a14 26 0 1 0 -28 0 M335 326 a14 26 0 1 0 28 0 a14 26 0 1 0 -28 0" tabindex="0"/>
+        <path class="zone" data-z="piernas" d="M210 300 L258 318 L252 430 L250 532 L224 532 L220 410 Z M310 300 L262 318 L268 430 L270 532 L296 532 L300 410 Z" tabindex="0"/>
+        <rect class="zone" data-z="bolsillos" x="282" y="262" width="36" height="30" rx="4" tabindex="0"/>
+      </svg>
+      <div class="sexsw" role="group" aria-label="Modelo de cuerpo"><button class="tab" id="sx-f" aria-pressed="true">Mujer</button><button class="tab" id="sx-m" aria-pressed="false">Hombre</button></div>
+      <div class="hint">Pasa el ratón por el cuerpo<br>Cada acción gasta tiempo</div>
+      <div class="ground-label">HOJARASCA HÚMEDA · SIN RASTRO DE LUCHA ALREDEDOR</div>
+    </div>
+
+    <div class="book" aria-live="polite">
+      <div>
+        <h2 id="zname">Elige una zona</h2>
+        <p class="sub" id="zsub">Mira, palpa, huele o usa la lupa. Lo que encuentres puedes anotarlo en el cuaderno.</p>
+      </div>
+      <div class="acts" id="acts"></div>
+      <div class="finds" id="finds"><p class="empty">Aún no has mirado nada.</p></div>
+      <div class="cause" id="cause">Causa aparente: <b>sin determinar</b></div>
+    </div>
+  </div>
+
+  <div id="view-morgue" class="lab" hidden>
+    <div class="tlist" role="list">
+      <div class="lab-h"><h2>Mesa de autopsias</h2><p>Con el Dr. Valen. Si te equivocas, la muestra se pierde.</p></div>
+      <div id="tlist"></div>
+      <div class="cause" id="realcause">Causa real: <b>sin determinar</b></div>
+    </div>
+    <div class="bench" aria-live="polite">
+      <div class="bench-h"><h2 id="tname">Elige una prueba</h2><div id="vials"></div></div>
+      <div id="tbody"><p class="empty">Cada prueba tiene varios pasos. Algunas elecciones estropean lo que querías ver; otras solo dan un resultado dudoso.</p></div>
+      <div class="doc" id="doc" hidden></div>
+    </div>
+  </div>
+
+  <div class="strip">
+    <div class="strip-h"><h3>Cuaderno del caso</h3><span>Las fichas pasarán luego al tablero de corcho</span></div>
+    <div class="cards" id="cards"><span class="none">Sin fichas todavía.</span></div>
+  </div>
+
+  <div class="foot">Boceto de la pantalla · textos y caso provisionales · la autopsia, la escena y el tablero tendrán su propio boceto</div>
+</div>
+
+<script>
+const Z = {
+  cabeza: { name: "Cabeza", sub: "Cara, ojos, pelo, boca", acts: {
+    mirar: ["Ojos con puntitos rojos en lo blanco.", 2],
+    oler: ["El pelo huele dulce y resinoso, como a hierba seca. No es perfume.", 1],
+    lupa: ["Labios algo azulados. Sin golpes en la cara.", 3] } },
+  cuello: { name: "Cuello", sub: "Piel y garganta", acts: {
+    mirar: ["Marcas moradas alrededor del cuello: dedos, no cuerda.", 2, "m-neck", "Estrangulamiento con las manos (sin confirmar)"],
+    palpar: [null, 0, null, null, "Hace falta la morgue para saber si el hueso de la garganta está roto."] } },
+  torso: { name: "Torso", sub: "Ropa y pecho", acts: {
+    mirar: ["La ropa está desgarrada y colocada otra vez, mal y deprisa.", 2],
+    oler: ["El mismo olor a hierba, más fuerte en el pecho.", 1] } },
+  brazos: { name: "Brazos", sub: "Muñecas y antebrazos", acts: {
+    mirar: ["Marcas de cuerda en las muñecas. Son de varios días, ya amarillean.", 2, "m-wrist"],
+    palpar: ["Los brazos aún se doblan con dificultad, como si la rigidez hubiera ido y venido.", 3] } },
+  manos: { name: "Manos", sub: "Dedos y uñas", acts: {
+    mirar: ["Uñas sin sangre ni piel: no arañó a nadie.", 1],
+    lupa: ["Tierra negra y musgo bajo las uñas. No es tierra de este claro.", 4] } },
+  piernas: { name: "Piernas", sub: "Rodillas, tobillos y talones", acts: {
+    mirar: ["Rozaduras en los talones: la arrastraron un trecho.", 2, "m-heel"] } },
+  bolsillos: { name: "Bolsillos", sub: "Lo que llevaba encima", acts: {
+    registrar: ["Un trozo de lacre verde, roto. Lleva medio sello.", 3, "m-pocket"] } }
+};
+const LABEL = { mirar: "Mirar", palpar: "Palpar", oler: "Oler", lupa: "Lupa", registrar: "Registrar" };
+let cur = null, minutes = 0, found = 0;
+const used = {}, noted = {};
+const $ = id => document.getElementById(id);
+
+function select(z) {
+  cur = z;
+  document.querySelectorAll(".zone").forEach(el => el.classList.toggle("sel", el.dataset.z === z));
+  $("zname").textContent = Z[z].name;
+  $("zsub").textContent = Z[z].sub;
+  const acts = $("acts"); acts.innerHTML = "";
+  for (const [k, v] of Object.entries(Z[z].acts)) {
+    const b = document.createElement("button");
+    b.className = "act" + (used[z + k] ? " used" : "");
+    b.innerHTML = LABEL[k] + (v[1] ? ' <span class="t">' + v[1] * 5 + ' min</span>' : "");
+    if (v[0] === null) { b.disabled = true; b.title = v[4]; b.innerHTML = LABEL[k] + ' <span class="t">morgue</span>'; }
+    b.addEventListener("click", () => doAct(z, k));
+    acts.appendChild(b);
+  }
+  renderFinds();
+}
+function doAct(z, k) {
+  const v = Z[z].acts[k];
+  if (!used[z + k]) {
+    used[z + k] = true; minutes += v[1] * 5; found++;
+    $("clock").textContent = minutes + " min"; $("count").textContent = found;
+    if (v[2]) $(v[2]).classList.add("on");
+    if (v[3]) $("cause").innerHTML = "Causa aparente: <b>" + v[3] + "</b>";
+    const all = Object.keys(Z[z].acts).filter(a => Z[z].acts[a][0] !== null).every(a => used[z + a]);
+    if (all) document.querySelector('.zone[data-z="' + z + '"]').classList.add("done");
+  }
+  select(z);
+}
+function renderFinds() {
+  const box = $("finds"); box.innerHTML = "";
+  const items = Object.entries(Z[cur].acts).filter(([k, v]) => used[cur + k] || v[0] === null);
+  if (!items.length) { box.innerHTML = '<p class="empty">Aún no has mirado nada aquí.</p>'; return; }
+  for (const [k, v] of items) {
+    const d = document.createElement("div"); d.className = "find";
+    if (v[0] === null) { d.innerHTML = '<span class="k">' + LABEL[k] + '</span><span class="lock">' + v[4] + '</span>'; box.appendChild(d); continue; }
+    d.innerHTML = '<span class="k">' + LABEL[k] + ' · ' + Z[cur].name + '</span><p>' + v[0] + '</p>';
+    const b = document.createElement("button"); b.className = "note-btn";
+    const key = cur + k;
+    b.textContent = noted[key] ? "En el cuaderno" : "Anotar en el cuaderno"; b.disabled = !!noted[key];
+    b.addEventListener("click", () => { noted[key] = { z: Z[cur].name, t: v[0] }; renderCards(); renderFinds(); });
+    d.appendChild(b); box.appendChild(d);
+  }
+}
+function renderCards() {
+  const c = $("cards"); c.innerHTML = "";
+  const list = Object.values(noted);
+  if (!list.length) { c.innerHTML = '<span class="none">Sin fichas todavía.</span>'; return; }
+  list.forEach((n, i) => {
+    const d = document.createElement("div"); d.className = "card";
+    d.style.setProperty("--r", ((i * 37) % 5 - 2) + "deg");
+    d.innerHTML = "<small>" + n.z + "</small>" + n.t; c.appendChild(d);
+  });
+}
+document.querySelectorAll(".zone").forEach(el => {
+  el.addEventListener("click", () => select(el.dataset.z));
+  el.addEventListener("keydown", e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); select(el.dataset.z); } });
+});
+function tab(which) {
+  $("tab-scene").setAttribute("aria-selected", which === "scene");
+  $("tab-morgue").setAttribute("aria-selected", which === "morgue");
+  $("view-scene").hidden = which !== "scene";
+  $("view-morgue").hidden = which !== "morgue";
+}
+$("tab-scene").addEventListener("click", () => tab("scene"));
+$("tab-morgue").addEventListener("click", () => tab("morgue"));
+
+const T = {
+  sangre: { name: "Sangre", vials: 2, steps: [
+    { q: "¿De dónde sacas la sangre?", hint: "«Del corazón. La del brazo ya se ha posado.»", opts: [
+      ["Del corazón", "ok", "Sangre oscura y espesa: buena muestra."],
+      ["Del brazo", "dud", "Apenas sale. Muestra pobre: lo que veas será dudoso."]] },
+    { q: "Elige el reactivo", hint: "«Para hierbas, la corteza. Para metales, la plata. Para la adormidera, el cobre.»", opts: [
+      ["Sal de plata", "fail", "Nada. No hay metales. Gastas parte de la muestra."],
+      ["Tintura de corteza", "ok", "La gota se vuelve verde oscuro en segundos."],
+      ["Vinagre de cobre", "fail", "Nada. No hay adormidera. Gastas parte de la muestra."]] },
+    { q: "¿Qué indica el verde oscuro?", chart: true, hint: "«Verde oscuro… eso no lo uso yo. Es de embalsamadores.»", opts: [
+      ["Una hierba de embalsamar", "ok", "Restos de una hierba de embalsamar en la sangre. Paraliza."],
+      ["Veneno de setas", "dud", "Anotas «setas», pero el color no encaja del todo."],
+      ["Nada raro", "dud", "Lo das por normal. Algo no te cuadra."]] } ],
+    cause: "paralizada por una hierba de embalsamar" },
+  cuello: { name: "Cuello", steps: [
+    { q: "¿Cómo abres el cuello?", hint: "«Despacio, por capas. Si cortas deprisa, rompes lo que buscas.»", opts: [
+      ["Corte lento, por capas", "ok", "Llegas al hueso de la garganta sin tocarlo."],
+      ["Corte rápido", "ruin", "Rompes el hueso al cortar: ya no dice nada."]] },
+    { q: "Mira el hueso de la garganta", opts: [
+      ["Mirar", "ok", "Roto por los dos lados: la apretaron con las dos manos."]] } ],
+    cause: "estrangulada con las manos" },
+  estomago: { name: "Estómago", steps: [
+    { q: "Abre el estómago", opts: [["Abrir y vaciar en un cuenco", "ok", "Casi vacío. Un poco de líquido espeso, amargo y verdoso."]] },
+    { q: "¿Qué haces con el líquido?", hint: "«Guárdalo. El alquimista sabrá más que yo.»", opts: [
+      ["Guardarlo en un frasco sellado", "ok", "Frasco sellado. El alquimista podrá analizarlo."],
+      ["Tirarlo, ya lo has visto", "ruin", "Se pierde. Nadie podrá analizarlo."]] } ] },
+  piel: { name: "Piel y rigidez", steps: [
+    { q: "Gira el cuerpo y mira la espalda", opts: [["Girar el cuerpo", "ok", "Manchas moradas en la espalda y otras en el costado: estuvo tumbada en dos sitios. La movieron horas después de morir."]] },
+    { q: "Prueba la rigidez", opts: [["Doblar codos y rodillas", "ok", "Rigidez desigual: algunos músculos estaban agarrotados antes de morir, como por algo que paraliza."]] } ],
+    cause: "movida horas después" }
+};
+const ts = {};
+let tcur = null;
+for (const k in T) ts[k] = { step: 0, log: [], state: "", vials: T[k].vials || 0, dud: false };
+function stLabel(k) {
+  const t = ts[k];
+  if (t.state === "ruin") return ['<span class="st bad">estropeada</span>'];
+  if (t.state === "done") return [t.dud ? '<span class="st dud">dudosa</span>' : '<span class="st ok">hecha</span>'];
+  return [t.step ? '<span class="st">paso ' + (t.step + 1) + '/' + T[k].steps.length + '</span>' : '<span class="st">sin hacer</span>'];
+}
+function renderList() {
+  const l = $("tlist"); l.innerHTML = "";
+  for (const k in T) {
+    const b = document.createElement("button");
+    b.className = "titem" + (tcur === k ? " sel" : "");
+    b.innerHTML = "<span>" + T[k].name + "</span>" + stLabel(k)[0];
+    b.addEventListener("click", () => { tcur = k; renderList(); renderBench(); });
+    l.appendChild(b);
+  }
+  const parts = [];
+  if (ts.cuello.state === "done") parts.push(T.cuello.cause);
+  if (ts.sangre.state === "done" && !ts.sangre.dud) parts.push(T.sangre.cause);
+  if (ts.piel.state === "done") parts.push(T.piel.cause);
+  $("realcause").innerHTML = "Causa real: <b>" + (parts.length ? parts.join(", ") : "sin determinar") + "</b>";
+}
+function renderBench() {
+  const k = tcur, t = ts[k], d = T[k];
+  $("tname").textContent = d.name;
+  $("vials").innerHTML = d.vials ? "muestra " + Array.from({ length: d.vials }, (_, i) => '<span class="vial' + (i < t.vials ? "" : " empty") + '"></span>').join("") : "";
+  const body = $("tbody"); body.innerHTML = "";
+  const log = document.createElement("div"); log.className = "log";
+  t.log.forEach(e => { const p = document.createElement("p"); p.className = e[0]; p.textContent = e[1]; log.appendChild(p); });
+  $("doc").hidden = true;
+  if (t.state === "" && t.step < d.steps.length) {
+    const st = d.steps[t.step];
+    const q = document.createElement("p"); q.className = "stepq"; q.textContent = st.q; body.appendChild(q);
+    if (st.chart) {
+      const c = document.createElement("div"); c.className = "chart";
+      c.innerHTML = '<span class="sw"><i style="background:#2f4a2a"></i>verde oscuro</span><span class="sw"><i style="background:#8a7a2a"></i>pardo</span><span class="sw"><i style="background:#6a3a6a"></i>morado</span><span class="sw"><i style="background:#cfc7b5"></i>sin cambio</span>';
+      body.appendChild(c);
+    }
+    const o = document.createElement("div"); o.className = "opts";
+    st.opts.forEach(op => { const b = document.createElement("button"); b.className = "opt"; b.textContent = op[0]; b.addEventListener("click", () => choose(k, op)); o.appendChild(b); });
+    body.appendChild(o);
+    if (st.hint) { const a = document.createElement("button"); a.className = "ask"; a.textContent = "Preguntar al Dr. Valen (+5 min)"; a.addEventListener("click", () => { minutes += 5; $("clock").textContent = minutes + " min"; $("doc").hidden = false; $("doc").innerHTML = "<b>Dr. Valen:</b> " + st.hint; a.remove(); }); body.appendChild(a); }
+  }
+  body.appendChild(log);
+  if (t.state === "done" || t.state === "ruin") {
+    const last = t.log[t.log.length - 1];
+    if (t.state === "done") {
+      const key = "m_" + k;
+      const b = document.createElement("button"); b.className = "note-btn";
+      b.textContent = noted[key] ? "En el cuaderno" : "Anotar en el cuaderno"; b.disabled = !!noted[key];
+      b.addEventListener("click", () => { noted[key] = { z: "Autopsia · " + d.name, t: last[1] }; renderCards(); renderBench(); });
+      body.appendChild(b);
+    }
+  }
+}
+function choose(k, op) {
+  const t = ts[k], d = T[k];
+  minutes += 10; $("clock").textContent = minutes + " min";
+  if (op[1] === "fail") {
+    t.vials--; t.log.push(["bad", op[2]]);
+    if (t.vials <= 0) { t.state = "ruin"; t.log.push(["bad", "Muestra agotada. Esta prueba ya no se puede repetir."]); }
+  } else if (op[1] === "ruin") {
+    t.log.push(["bad", op[2]]); t.state = "ruin";
+  } else {
+    if (op[1] === "dud") t.dud = true;
+    t.log.push([op[1] === "dud" ? "dud" : "", op[2]]);
+    t.step++;
+    if (t.step >= d.steps.length) { t.state = "done"; found++; $("count").textContent = found; }
+  }
+  renderList(); renderBench();
+}
+renderList();
+function sex(x) { document.querySelector(".stage").dataset.sex = x; $("sx-f").setAttribute("aria-pressed", x === "f"); $("sx-m").setAttribute("aria-pressed", x === "m"); }
+$("sx-f").addEventListener("click", () => sex("f"));
+$("sx-m").addEventListener("click", () => sex("m"));
+</script>

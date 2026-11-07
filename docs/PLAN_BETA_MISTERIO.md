@@ -75,3 +75,17 @@
 8. Deja abierta la investigación de la secta y la corrupción del pueblo.
 
 **Nombres por decidir:** la hierba y la poción (propuestas del supervisor en el chat; ninguna elegida).
+
+## 6. Herramientas del detective (decidido por el usuario, 2026-11-07)
+Eje central del bucle jugable; tiene que quedar «perfecto». Boceto aprobado por el usuario («me encanta»):
+`docs/bocetos/examen_cuerpo.html` (ábrelo en el navegador; también publicado en claude.ai/artifact/NMDw1NPEkcWCQrkGAttkFk).
+1. **Examen del cuerpo en la escena:** silueta plana (sin líneas interiores ni cara), **dos modelos, mujer y hombre**,
+   según la víctima. Zonas (cabeza, cuello, torso, brazos, manos, piernas, bolsillos) con acciones mirar / palpar /
+   oler / lupa / registrar que gastan minutos; solo lo superficial; las marcas aparecen dibujadas en la silueta.
+2. **Autopsia en la morgue con el forense:** pruebas por pasos donde puedes fallar (muestra de sangre limitada,
+   reactivo equivocado gasta muestra, corte rápido estropea el cuello, tirar el contenido del estómago lo pierde),
+   consejo del forense a cambio de tiempo; la causa real se va completando.
+3. **Escena del crimen** (sangre, pistas ambientales, testigos) y **tablero de corcho** con fichas: boceto pendiente.
+4. Todo hallazgo se anota en el **cuaderno del caso** (fichas) que luego pasan al tablero.
+5. **10 casos principales guionizados** con diálogos y sucesos propios, cada uno en su archivo de datos, usando las
+   mismas herramientas; además, el sistema procedural de siempre.
