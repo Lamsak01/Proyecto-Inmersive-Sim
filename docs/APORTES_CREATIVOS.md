@@ -374,6 +374,13 @@ o vino ya dado. Conviene confirmarlo.
 **Dónde:** `scripts/data/NPCData.gd` (`INITIAL_PERSON_PROFILES`, `INITIAL_NPC_RELATIONS`, `FOUNDER_RELATION_VARIANTS`, `FOUNDER_SECRETS_POOL`), `scripts/systems/VillageSecrets.gd` (`seed_founder_history`), `GameVault/04_Censo_y_Misiones/Vecinos/*.md`.
 **Depende:** solo los textos de `FOUNDER_SECRETS_POOL` y las listas de rasgos/relaciones en `NPCData.gd`.
 
+## Cintillo y avisos de la prueba de primera persona (B7, provisionales)
+- Cintillo superior en `WorldStage3D.fp_mode_badge`: «👁️ 1.ª Persona (Prototipo) · [F6]/[F8] Salir · Ratón/Flechas: mirar · W/A/S/D: andar · [E]: usar».
+- Avisos al activar/desactivar (`set_first_person`): «👁️ [F6/F8] Vista en 1.ª Persona ACTIVADA (Ratón: mirar · W/A/S/D: caminar · [E]: usar)» y «🎥 [F6/F8] Vista superior 2.5D restaurada».
+
+**Dónde:** `scripts/visuals/WorldStage3D.gd` (`_setup_fp_hud_layer`, `set_first_person`), `scripts/ui/CharacterShowcase3DUI.gd`.
+**Depende:** solo textos de interfaz.
+
 
 
 

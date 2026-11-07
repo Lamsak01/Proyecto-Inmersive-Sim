@@ -242,16 +242,23 @@ func _process_in_stage(delta: float) -> void:
 	if _last_was_3d != use_3d_characters:
 		_last_was_3d = use_3d_characters
 		_apply_2d_vs_3d_visibility()
+	var fp_on: bool = _stage != null and _stage.get("first_person_active") == true
 	var show := use_3d_characters and target_entity.is_visible_in_tree()
-	if show and not is_player_avatar:
+	if is_player_avatar and fp_on:
+		show = false
+	elif show and not is_player_avatar:
 		show = _is_entity_near_camera()
 	if perf_on: _pt = _perf_add("visibility_check", _pt)
 	if not show:
 		_holder.visible = false
 		rig_3d.process_mode = Node.PROCESS_MODE_DISABLED
+		if is_player_avatar and fp_on:
+			_apply_2d_vs_3d_visibility()
 		return
 	rig_3d.process_mode = Node.PROCESS_MODE_INHERIT
 	_holder.visible = true
+	var cos_p_eff: float = 1.0 if fp_on else float(_stage.get("_cos_p"))
+	_holder.scale = Vector3(STAGE_K, STAGE_K / maxf(0.1, cos_p_eff), STAGE_K)
 	_sync_holder_position()
 	if perf_on: _pt = _perf_add("holder_position", _pt)
 	_appearance_sync_timer -= delta
@@ -291,13 +298,16 @@ func _is_entity_near_camera() -> bool:
 	if cam2d == null:
 		return true
 	var center: Vector2 = cam2d.get_screen_center_position()
+	if _stage != null and _stage.get("first_person_active") == true:
+		return target_entity.global_position.distance_squared_to(center) <= 950.0 * 950.0
 	var zoom_val: float = maxf(0.25, cam2d.zoom.x)
 	var half_ext: Vector2 = (vp.get_visible_rect().size / zoom_val) * 0.55 + Vector2(90.0, 90.0)
 	return absf(target_entity.global_position.x - center.x) <= half_ext.x and absf(target_entity.global_position.y - center.y) <= half_ext.y
 
 func _apply_2d_vs_3d_visibility() -> void:
+	var fp_on: bool = _stage != null and _stage.get("first_person_active") == true
 	if display_sprite:
-		display_sprite.visible = use_3d_characters
+		display_sprite.visible = use_3d_characters and not (is_player_avatar and fp_on)
 	if not is_instance_valid(target_entity):
 		return
 	if is_player_avatar:

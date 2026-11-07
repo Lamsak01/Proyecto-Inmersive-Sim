@@ -218,7 +218,7 @@ func _ready() -> void:
 
 func _unhandled_input(event: InputEvent) -> void:
 	if event is InputEventKey and event.pressed and not event.echo:
-		if event.keycode == KEY_F8:
+		if event.keycode == KEY_F8 and event.shift_pressed:
 			toggle_panel()
 			get_viewport().set_input_as_handled()
 		elif event.keycode == KEY_F10:
@@ -226,7 +226,7 @@ func _unhandled_input(event: InputEvent) -> void:
 			var p = get_tree().get_first_node_in_group("player")
 			if p and p.has_method("show_hint"):
 				var mode_txt := "Mundo, Edificios y Personajes 3D ACTIVADOS" if CharacterAvatar3DScript.use_3d_characters else "Mapa y Sprites 2D Clásicos ACTIVADOS"
-				p.call("show_hint", "🎥 [F10] %s (Pulsa [F8] para abrir el Visor 3D en primer plano)" % mode_txt)
+				p.call("show_hint", "🎥 [F10] %s ([F6]/[F8] 1.ª Persona · [Mayús+F8] Visor 3D)" % mode_txt)
 			_update_status_text()
 			get_viewport().set_input_as_handled()
 		elif visible and event.keycode == KEY_ESCAPE:

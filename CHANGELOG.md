@@ -3,6 +3,11 @@
 Cambios del juego, del más nuevo al más antiguo. Añade una entrada al cerrar cada bloque, en lenguaje sencillo.
 El detalle técnico está en `docs/HANDOFF.md` (sección 7) y el historial completo en `git log`. Lo anterior a B0.1 está en `AUDIT_LOG.md` y `SESSION_CONTEXT_LOG.md`.
 
+## 2026-11-07 — Prueba de primera persona (prototipo con F6 / F8)
+- **Cambio al vuelo con F6 o F8:** pulsando `[F6]` o `[F8]` pasas en cualquier momento de la vista desde arriba a caminar por el pueblo en primera persona a la altura de los ojos, y vuelves a la vista normal cuando quieras sin que nada del juego se rompa.
+- **Mirar alrededor y andar hacia donde miras:** el ratón (o las flechas) gira la cabeza a los lados y arriba/abajo, `W/A/S/D` camina respecto a hacia dónde miras, `[E]` usa lo que tienes delante en el centro de la pantalla y el clic ataca o dispara de frente.
+- **Techos cerrados desde dentro:** al entrar en cualquier edificio en primera persona, los tejados y las cuatro paredes se mantienen cerrados con su techo de madera encima, y el cuerpo 3D de tu propio personaje se oculta para no estorbar la vista.
+
 ## 2026-11-07 — Los 21 vecinos fundadores con historia (rasgos, relaciones, secretos y variación por partida)
 - **Seis rasgos coherentes por fundador:** cada uno de los 21 vecinos originales (más Valeria en la caravana real) tiene ahora 6 rasgos de carácter bien definidos y sin contradicciones, con pequeñas variaciones de una partida a otra que mantienen su esencia.
 - **Amistades, rencores y de 2 a 3 secretos propios:** todos los fundadores empiezan con sus propias simpatías y enemistades en el pueblo (algunas fijas y otras variables según la partida) y guardan entre 2 y 3 secretos personales que pueden salir a la luz hablando con ellos o investigando rumores.

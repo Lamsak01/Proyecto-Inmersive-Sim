@@ -7,6 +7,7 @@ extends CanvasLayer
 ## No se crea en modo headless (pruebas automáticas) ni en el editor.
 
 const VillageCulture = preload("res://scripts/systems/VillageCulture.gd")
+const WorldStage3DScript = preload("res://scripts/visuals/WorldStage3D.gd")
 const SHADER := preload("res://shaders/retro_post_fx.gdshader")
 const MAX_LIGHTS := 24
 
@@ -51,6 +52,10 @@ static func dusk_factor(hour_f: float) -> float:
 func _process(delta: float) -> void:
 	if _mat == null:
 		return
+	if is_instance_valid(_rect):
+		_rect.visible = not WorldStage3DScript.first_person_active
+		if not _rect.visible:
+			return
 	_time += delta
 	var wc = get_node_or_null("/root/WorldClock")
 	var hour_f: float = 12.0

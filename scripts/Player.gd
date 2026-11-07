@@ -18,6 +18,7 @@ const _CombatFeel = preload("res://scripts/systems/combat/CombatFeel.gd") # C7: 
 
 const FloatingTextScene = preload("res://scenes/ui/FloatingText.tscn")
 const CharacterAvatar3DScript = preload("res://scripts/visuals/CharacterAvatar3D.gd")
+const WorldStage3DScript = preload("res://scripts/visuals/WorldStage3D.gd")
 
 var last_dir := "down"
 var equipped_weapon: WeaponData
@@ -590,7 +591,7 @@ func _handle_interactions() -> void:
 		get_viewport().set_input_as_handled()
 		return
 	var vm = get_tree().get_first_node_in_group("village_manager")
-	var mouse_pos := get_global_mouse_position()
+	var mouse_pos := WorldStage3DScript.get_fp_aim_world_pos(global_position, 28.0) if WorldStage3DScript.first_person_active else get_global_mouse_position()
 	# Prioridad de salida/puerta cerrada (referencia Stardew Valley / Baldur's Gate 3):
 	# Si el jugador está ante una puerta cerrada o apunta a una puerta, nunca queda atrapado aunque haya un NPC parado junto al marco.
 	if vm and vm.has_method("try_priority_door_or_corpse_interaction"):

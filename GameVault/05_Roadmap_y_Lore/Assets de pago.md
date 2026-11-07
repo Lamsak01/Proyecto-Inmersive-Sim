@@ -46,3 +46,4 @@ es para que decidas tú. Los precios y licencias se comprobaron en la web el **2
   Mouthwashing. Antes conviene descargar gratis el «PSX Villager Man» del mismo autor y probar si su esqueleto acepta
   nuestras animaciones. Coste de integrarlo: medio.
 - Los edificios ya se ven coherentes con las texturas retro gratuitas. No hace falta comprar nada para ellos todavía.
+- **Impresión desde la prueba de 1.ª persona (`B7`, `[F6]`/`[F8]`, 2026-11-07):** de cerca a nivel de calle, los muros con entramado de madera, el adoquinado, las farolas, los tejados cerrados y los muebles 3D (barra con jarras y cáliz, camas, barriles, pozo) aguantan sorprendentemente bien y dan ambiente de *Gloomwood* / *Daggerfall Unity*; en cambio, los personajes de Quaternius vistos a dos pasos confirman que un pack low-poly con texturas pixeladas tipo PSX (*Villager NPC Pack*) les daría mucha más personalidad cara a cara.

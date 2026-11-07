@@ -1,6 +1,8 @@
 extends Node2D
 class_name Crosshair2D
 
+const WorldStage3DScript = preload("res://scripts/visuals/WorldStage3D.gd")
+
 ## Punto de Mira Dinámico Híbrido (Ratón 360° + Modo ThinkPad/Teclado sin ratón)
 ## - Si mueves el ratón/TrackPoint, apunta exactamente al cursor en el mundo.
 ## - Si juegas solo con teclado (sin tocar el ratón):
@@ -106,6 +108,14 @@ func _process(delta: float) -> void:
 		if Input.get_mouse_mode() != Input.MOUSE_MODE_VISIBLE:
 			Input.set_mouse_mode(Input.MOUSE_MODE_VISIBLE)
 		visible = false
+		return
+	elif WorldStage3DScript.first_person_active:
+		if Input.get_mouse_mode() != Input.MOUSE_MODE_CAPTURED:
+			Input.set_mouse_mode(Input.MOUSE_MODE_CAPTURED)
+		visible = false
+		var fp_dist: float = 75.0 if is_ranged_mode else 42.0
+		aim_offset = WorldStage3DScript.get_fp_forward_2d() * fp_dist
+		global_position = get_aim_world_position()
 		return
 	else:
 		if Input.get_mouse_mode() != Input.MOUSE_MODE_HIDDEN:

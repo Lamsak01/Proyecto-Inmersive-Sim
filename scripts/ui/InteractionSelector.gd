@@ -1,5 +1,7 @@
 extends Node2D
 
+const WorldStage3DScript = preload("res://scripts/visuals/WorldStage3D.gd")
+
 ## Selector de la tecla [E] (2026-11-05). Antes, con varias cosas cerca (puerta, mostrador, vecino, cofre, caballo…),
 ## el juego elegía una por su cuenta. Ahora:
 ## 1. Encima de lo que se va a usar sale un letrero «[E] …», así sabes qué pasará antes de pulsar.
@@ -121,6 +123,23 @@ func refresh() -> void:
 func selected() -> Dictionary:
 	if candidates.is_empty():
 		return {}
+	if WorldStage3DScript.first_person_active:
+		if _index > 0 and _index < candidates.size():
+			return candidates[_index]
+		var fwd: Vector2 = WorldStage3DScript.get_fp_forward_2d()
+		var best_fp: Dictionary = {}
+		var best_score: float = -999999.0
+		for c in candidates:
+			var to_c: Vector2 = (c["pos"] as Vector2) - player.global_position
+			var dist: float = to_c.length()
+			var align: float = (to_c / maxf(1.0, dist)).dot(fwd) if dist > 1.5 else 1.0
+			# Prioriza lo que tienes delante de la mirada en el centro de la pantalla
+			var score: float = align * 60.0 - dist * 0.45
+			if score > best_score:
+				best_score = score
+				best_fp = c
+		if not best_fp.is_empty():
+			return best_fp
 	var mp: Vector2 = player.get_global_mouse_position()
 	if player.global_position.distance_to(mp) <= MOUSE_REACH_PX:
 		var best: Dictionary = {}
@@ -229,6 +248,9 @@ func _label_for(a: Node, tgt: Node) -> String:
 
 func _update_label() -> void:
 	if _label == null:
+		return
+	if WorldStage3DScript.first_person_active:
+		_label.visible = false
 		return
 	var c: Dictionary = selected()
 	if c.is_empty():

@@ -1,6 +1,8 @@
 extends Node
 class_name PlayerMovementController
 
+const WorldStage3DScript = preload("res://scripts/visuals/WorldStage3D.gd")
+
 @export var max_walk_speed: float = 120.0
 ## Velocidad extra yendo a caballo y freno al tirar de la carreta (a mano o con caballo).
 const MOUNT_SPEED_MULT: float = 1.45
@@ -79,7 +81,7 @@ func start_roll(dir_override: Vector2 = Vector2.ZERO) -> bool:
 	if dir_override.length_squared() > 0.001:
 		dir = dir_override.normalized()
 	else:
-		var inp := Input.get_vector("move_left", "move_right", "move_up", "move_down")
+		var inp := WorldStage3DScript.map_wasd_to_world(Input.get_vector("move_left", "move_right", "move_up", "move_down"))
 		if inp.length_squared() > 0.001:
 			dir = inp.normalized()
 		elif player.velocity.length_squared() > 9.0:
@@ -177,7 +179,7 @@ func _update_aim_and_camera(delta: float) -> void:
 	var pivot_pos: Vector2 = player.global_position + Vector2(0, -10)
 	var ch: Crosshair2D = player.get_node_or_null("Crosshair2D")
 	var aim_world: Vector2 = ch.get_aim_world_position() if ch else player.get_global_mouse_position()
-	var aim_vec: Vector2 = aim_world - pivot_pos
+	var aim_vec: Vector2 = WorldStage3DScript.get_fp_forward_2d() * 42.0 if WorldStage3DScript.first_person_active else (aim_world - pivot_pos)
 
 	# Actualizar hacia dónde mira el personaje según el Punto de Mira
 	if aim_vec.length_squared() > 4.0:
@@ -189,6 +191,9 @@ func _update_aim_and_camera(delta: float) -> void:
 	# Desplazar suavemente la cámara hacia donde estás mirando/apuntando (estilo Enter the Gungeon / Zero Sievert)
 	# Funciona en todo momento, incluso mientras caminas con WASD en cualquier dirección.
 	if is_instance_valid(cam):
+		if WorldStage3DScript.first_person_active:
+			cam.offset = Vector2.ZERO
+			return
 		var is_peeking: bool = Input.is_mouse_button_pressed(MOUSE_BUTTON_RIGHT)
 		var look_mult: float = (camera_look_ahead_ratio * 1.65) if is_peeking else camera_look_ahead_ratio
 		var limit_dist: float = max_aim_camera_offset if is_peeking else max_camera_offset
@@ -223,7 +228,7 @@ func apply_impulse(force: Vector2) -> void:
 
 func _handle_input(delta: float) -> void:
 	var is_sprint_pressed = Input.is_action_pressed("sprint")
-	var input := Input.get_vector("move_left", "move_right", "move_up", "move_down")
+	var input := WorldStage3DScript.map_wasd_to_world(Input.get_vector("move_left", "move_right", "move_up", "move_down"))
 	var pulling_hand: bool = bool(player.get("is_pulling_cart")) and not bool(player.get("is_mounted"))
 	if pulling_hand or bool(player.get("is_mounted")):
 		is_stealthing = false

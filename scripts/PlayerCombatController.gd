@@ -1,6 +1,8 @@
 extends Node
 class_name PlayerCombatController
 
+const WorldStage3DScript = preload("res://scripts/visuals/WorldStage3D.gd")
+
 @onready var player: CharacterBody2D = get_parent()
 @onready var interact_area: Area2D = $"../InteractArea"
 @onready var stamina_comp: StaminaComponent = $"../StaminaComponent"
@@ -274,8 +276,9 @@ func _unhandled_input(event: InputEvent) -> void:
 	# - Opción NO LETAL (Aturdir): [E] (Interact) o [Q]
 	# - Opción LETAL (Asesinar): [Clic Izq.], [ui_accept] o [V]
 	if is_instance_valid(current_prompt_target):
+		var prio_pt: Vector2 = WorldStage3DScript.get_fp_aim_world_pos(player.global_position, 28.0) if WorldStage3DScript.first_person_active else player.get_global_mouse_position()
 		if event.is_action_pressed("Interact") and vm and vm.has_method("try_priority_door_or_corpse_interaction"):
-			if bool(vm.call("try_priority_door_or_corpse_interaction", player, player.get_global_mouse_position())):
+			if bool(vm.call("try_priority_door_or_corpse_interaction", player, prio_pt)):
 				get_viewport().set_input_as_handled()
 				return
 		var is_non_lethal_key: bool = event.is_action_pressed("Interact") or (event is InputEventKey and event.pressed and not event.echo and (event.physical_keycode == KEY_Q or event.keycode == KEY_Q))
@@ -393,6 +396,12 @@ func _setup_hitbox() -> void:
 
 func _update_weapon_visuals() -> void:
 	if not is_instance_valid(weapon_pivot) or not is_instance_valid(player):
+		return
+	if WorldStage3DScript.first_person_active:
+		if not _swing_locked:
+			current_aim_dir = WorldStage3DScript.get_fp_forward_2d()
+		weapon_pivot.rotation = current_aim_dir.angle()
+		weapon_pivot.z_index = -1 if current_aim_dir.y < -0.35 else 1
 		return
 	var pivot_global := player.global_position + Vector2(0, -10)
 	var aim_pos := crosshair.get_aim_world_position() if is_instance_valid(crosshair) else player.get_global_mouse_position()

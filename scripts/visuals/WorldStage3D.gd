@@ -87,10 +87,53 @@ var _home_props_3d: Node3D = null
 var _last_home_props_sig: String = ""
 var _sabotage_fx_3d: Dictionary = {} # role_id -> Node3D (humo, chispas y fuego 3D de taller saboteado)
 
+## B7: Prototipo de vista en primera persona ([F6] o [F8]).
+static var first_person_active: bool = false
+static var fp_yaw: float = PI * 0.5 # ángulo horizontal en el plano 2D (0 = Este, PI/2 = Sur, -PI/2 = Norte)
+static var fp_pitch: float = 0.0    # ángulo vertical en radianes (positivo = mirar arriba, negativo = abajo)
+const FP_EYE_HEIGHT_PX: float = 15.5
+const FP_MOUSE_SENS: float = 0.0032
+const FP_MAX_PITCH: float = 0.85
+
+var fp_hud_layer: CanvasLayer = null
+var fp_crosshair: Control = null
+var fp_interact_label: Label = null
+var fp_mode_badge: Label = null
+var fp_lantern_light: OmniLight3D = null
+
+static func get_fp_forward_2d() -> Vector2:
+	return Vector2(cos(fp_yaw), sin(fp_yaw))
+
+static func get_fp_right_2d() -> Vector2:
+	return Vector2(-sin(fp_yaw), cos(fp_yaw))
+
+static func get_fp_aim_world_pos(origin_2d: Vector2, dist: float = 42.0) -> Vector2:
+	return origin_2d + get_fp_forward_2d() * dist
+
+static func map_wasd_to_world(raw_input: Vector2) -> Vector2:
+	if not first_person_active or raw_input.length_squared() <= 0.0001:
+		return raw_input
+	var fwd := get_fp_forward_2d()
+	var rgt := get_fp_right_2d()
+	var mapped := fwd * (-raw_input.y) + rgt * raw_input.x
+	if mapped.length_squared() > 1.0:
+		mapped = mapped.normalized()
+	return mapped
+
+func _exit_tree() -> void:
+	if first_person_active:
+		first_person_active = false
+		fp_pitch = 0.0
+		if not _is_headless:
+			Input.set_mouse_mode(Input.MOUSE_MODE_VISIBLE)
+
 func setup_stage(village_manager: Node2D) -> void:
 	vm = village_manager
 	name = "WorldStage3D"
 	_is_headless = DisplayServer.get_name() == "headless" or Engine.is_editor_hint()
+	first_person_active = false
+	fp_yaw = PI * 0.5
+	fp_pitch = 0.0
 
 	stage_root_3d = Node3D.new()
 	stage_root_3d.name = "StageRoot3D"
@@ -181,6 +224,14 @@ func setup_stage(village_manager: Node2D) -> void:
 		cam_3d.current = true
 		stage_root_3d.add_child(cam_3d)
 
+		fp_lantern_light = OmniLight3D.new()
+		fp_lantern_light.name = "FPLanternLight3D"
+		fp_lantern_light.light_color = Color(1.0, 0.84, 0.56)
+		fp_lantern_light.light_energy = 0.0
+		fp_lantern_light.omni_range = 4.2
+		fp_lantern_light.visible = false
+		cam_3d.add_child(fp_lantern_light)
+
 		stage_sprite = Sprite2D.new()
 		stage_sprite.name = "WorldStageSprite2D"
 		stage_sprite.top_level = true
@@ -192,7 +243,17 @@ func setup_stage(village_manager: Node2D) -> void:
 		stage_sprite.texture = sub_viewport.get_texture()
 		stage_sprite.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
 		add_child(stage_sprite)
+
+		_setup_fp_hud_layer()
 	else:
+		cam_3d = Camera3D.new()
+		cam_3d.name = "WorldCamera3D"
+		cam_3d.projection = Camera3D.PROJECTION_ORTHOGONAL
+		cam_3d.rotation_degrees = Vector3(-PITCH_DEG, 0.0, 0.0)
+		cam_3d.near = 0.1
+		cam_3d.far = 250.0
+		cam_3d.size = 12.0
+		stage_root_3d.add_child(cam_3d)
 		add_child(stage_root_3d)
 
 	_build_static_terrain_3d()
@@ -812,6 +873,8 @@ func rebuild_buildings_3d() -> void:
 		var roof_cap := Node3D.new()
 		roof_cap.name = "RoofCap_" + b_id
 		b_root.add_child(roof_cap)
+		# B7: Forjado/techo de tablas bajo la cubierta para que en 1.ª persona se vea el techo cerrado desde dentro
+		_add_box_2d(roof_cap, center, sz - Vector2(2.0, 2.0), wall_h, 1.8, m_wood)
 		var hv: int = absi(b_id.hash())
 		var ov: float = 6.0
 		var short_side: float = minf(sz.x, sz.y)
@@ -1610,11 +1673,255 @@ func _build_streetlights_3d() -> void:
 # ==============================================================================
 # 6. SINCRONIZACIÓN EN VIVO (CÁMARA 3D, PUERTAS, TEJADOS CUTAWAY Y TECLA [F10])
 # ==============================================================================
+func _setup_fp_hud_layer() -> void:
+	if _is_headless:
+		return
+	fp_hud_layer = CanvasLayer.new()
+	fp_hud_layer.name = "FirstPersonHUDLayer"
+	fp_hud_layer.layer = 2
+	fp_hud_layer.visible = false
+	add_child(fp_hud_layer)
+
+	var root_ctrl := Control.new()
+	root_ctrl.name = "FPHUDRoot"
+	root_ctrl.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	root_ctrl.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	fp_hud_layer.add_child(root_ctrl)
+
+	fp_crosshair = Control.new()
+	fp_crosshair.name = "FPCrosshair"
+	fp_crosshair.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	fp_crosshair.set_anchors_and_offsets_preset(Control.PRESET_CENTER)
+	root_ctrl.add_child(fp_crosshair)
+	for rect_def in [
+		[Rect2(-7, -1.5, 14, 3), Color(0.05, 0.06, 0.08, 0.85)],
+		[Rect2(-1.5, -7, 3, 14), Color(0.05, 0.06, 0.08, 0.85)],
+		[Rect2(-6, -0.5, 12, 1), Color(0.98, 0.96, 0.86, 0.95)],
+		[Rect2(-0.5, -6, 1, 12), Color(0.98, 0.96, 0.86, 0.95)],
+	]:
+		var cr := ColorRect.new()
+		cr.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		cr.position = rect_def[0].position
+		cr.size = rect_def[0].size
+		cr.color = rect_def[1]
+		fp_crosshair.add_child(cr)
+
+	fp_interact_label = Label.new()
+	fp_interact_label.name = "FPInteractLabel"
+	fp_interact_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	fp_interact_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	fp_interact_label.set_anchors_and_offsets_preset(Control.PRESET_CENTER)
+	fp_interact_label.position = Vector2(-220, 18)
+	fp_interact_label.custom_minimum_size = Vector2(440, 24)
+	fp_interact_label.add_theme_font_size_override("font_size", 14)
+	fp_interact_label.add_theme_color_override("font_color", Color(1.0, 0.95, 0.72))
+	fp_interact_label.add_theme_color_override("font_outline_color", Color(0.04, 0.04, 0.06, 0.95))
+	fp_interact_label.add_theme_constant_override("outline_size", 4)
+	fp_interact_label.visible = false
+	root_ctrl.add_child(fp_interact_label)
+
+	fp_mode_badge = Label.new()
+	fp_mode_badge.name = "FPModeBadge"
+	fp_mode_badge.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	fp_mode_badge.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	fp_mode_badge.set_anchors_and_offsets_preset(Control.PRESET_CENTER_TOP)
+	fp_mode_badge.position = Vector2(-260, 8)
+	fp_mode_badge.custom_minimum_size = Vector2(520, 20)
+	fp_mode_badge.add_theme_font_size_override("font_size", 11)
+	fp_mode_badge.add_theme_color_override("font_color", Color(0.86, 0.92, 0.98, 0.88))
+	fp_mode_badge.add_theme_color_override("font_outline_color", Color(0.04, 0.04, 0.06, 0.92))
+	fp_mode_badge.add_theme_constant_override("outline_size", 3)
+	fp_mode_badge.text = "👁️ 1.ª Persona (Prototipo) · [F6]/[F8] Salir · Ratón/Flechas: mirar · W/A/S/D: andar · [E]: usar"
+	root_ctrl.add_child(fp_mode_badge)
+
+func _is_ui_blocking_fp() -> bool:
+	if not is_inside_tree():
+		return false
+	var pl := get_tree().get_first_node_in_group("player")
+	if is_instance_valid(pl):
+		if pl.has_method("is_any_ui_modal_open") and pl.call("is_any_ui_modal_open") == true:
+			return true
+		var dm = pl.get("dialogue_manager")
+		if dm and dm.has_method("is_active") and dm.call("is_active") == true:
+			return true
+	return false
+
+func toggle_first_person() -> bool:
+	set_first_person(not first_person_active)
+	return first_person_active
+
+func set_first_person(enable: bool) -> void:
+	if enable:
+		if not CharacterAvatar3DScript.use_3d_characters:
+			CharacterAvatar3DScript.use_3d_characters = true
+			_last_use_3d = true
+			_sync_2d_flat_visuals(true)
+		first_person_active = true
+		fp_pitch = 0.0
+		var pl := get_tree().get_first_node_in_group("player") as Node2D if is_inside_tree() else null
+		if is_instance_valid(pl):
+			var c_ctrl = pl.get_node_or_null("PlayerCombatController")
+			if c_ctrl != null and c_ctrl.get("current_aim_dir") is Vector2 and (c_ctrl.get("current_aim_dir") as Vector2).length_squared() > 0.01:
+				fp_yaw = (c_ctrl.get("current_aim_dir") as Vector2).angle()
+			else:
+				match str(pl.get("last_dir")):
+					"right": fp_yaw = 0.0
+					"left": fp_yaw = PI
+					"up": fp_yaw = -PI * 0.5
+					_: fp_yaw = PI * 0.5
+		_sync_player_aim_from_fp()
+		_update_fp_camera_transform()
+		_update_roof_cutaways_and_lighting()
+		if not _is_headless:
+			if is_instance_valid(sub_viewport):
+				sub_viewport.transparent_bg = false
+			if is_instance_valid(stage_sprite):
+				stage_sprite.z_index = 120
+			if is_instance_valid(fp_hud_layer):
+				fp_hud_layer.visible = true
+			if not _is_ui_blocking_fp():
+				Input.set_mouse_mode(Input.MOUSE_MODE_CAPTURED)
+		if is_instance_valid(pl) and pl.has_method("show_hint"):
+			pl.call("show_hint", "👁️ [F6/F8] Vista en 1.ª Persona ACTIVADA (Ratón: mirar · W/A/S/D: caminar · [E]: usar)")
+	else:
+		first_person_active = false
+		fp_pitch = 0.0
+		if cam_3d != null:
+			cam_3d.projection = Camera3D.PROJECTION_ORTHOGONAL
+			cam_3d.rotation_degrees = Vector3(-PITCH_DEG, 0.0, 0.0)
+			cam_3d.near = 0.1
+			cam_3d.far = 250.0
+		if not _is_headless:
+			if is_instance_valid(sub_viewport):
+				sub_viewport.transparent_bg = true
+			if is_instance_valid(world_env) and world_env.environment != null:
+				world_env.environment.background_mode = Environment.BG_CLEAR_COLOR
+				world_env.environment.fog_enabled = false
+			if is_instance_valid(stage_sprite):
+				stage_sprite.z_index = -2
+			if is_instance_valid(fp_hud_layer):
+				fp_hud_layer.visible = false
+			if is_instance_valid(fp_lantern_light):
+				fp_lantern_light.visible = false
+			Input.set_mouse_mode(Input.MOUSE_MODE_VISIBLE if _is_ui_blocking_fp() else Input.MOUSE_MODE_HIDDEN)
+		_sync_player_aim_from_fp()
+		_sync_camera_with_2d()
+		_update_roof_cutaways_and_lighting()
+		var pl2 := get_tree().get_first_node_in_group("player") as Node2D if is_inside_tree() else null
+		if is_instance_valid(pl2) and pl2.has_method("show_hint"):
+			pl2.call("show_hint", "🎥 [F6/F8] Vista superior 2.5D restaurada")
+
+func rotate_first_person_view(delta_x_px: float, delta_y_px: float = 0.0) -> void:
+	fp_yaw = wrapf(fp_yaw + delta_x_px * FP_MOUSE_SENS, -PI, PI)
+	fp_pitch = clampf(fp_pitch - delta_y_px * FP_MOUSE_SENS, -FP_MAX_PITCH, FP_MAX_PITCH)
+	_sync_player_aim_from_fp()
+	_update_fp_camera_transform()
+
+func _sync_player_aim_from_fp() -> void:
+	if not is_inside_tree():
+		return
+	var pl := get_tree().get_first_node_in_group("player") as Node2D
+	if not is_instance_valid(pl):
+		return
+	var av = pl.get("avatar_3d")
+	if av != null and is_instance_valid(av.get("_holder")):
+		(av.get("_holder") as Node3D).visible = not first_person_active
+	if not first_person_active:
+		return
+	var dir_2d: Vector2 = get_fp_forward_2d()
+	var c_ctrl = pl.get_node_or_null("PlayerCombatController")
+	if c_ctrl != null and not (c_ctrl.get("_swing_locked") == true):
+		c_ctrl.current_aim_dir = dir_2d
+		var wp = c_ctrl.get("weapon_pivot")
+		if is_instance_valid(wp):
+			(wp as Node2D).rotation = dir_2d.angle()
+	var ch = pl.get_node_or_null("Crosshair2D")
+	if ch != null:
+		var dist: float = 75.0 if (ch.get("is_ranged_mode") == true) else 42.0
+		ch.aim_offset = dir_2d * dist
+		ch.global_position = pl.global_position + Vector2(0, -10) + dir_2d * dist
+	if absf(dir_2d.x) >= absf(dir_2d.y):
+		pl.last_dir = "right" if dir_2d.x >= 0.0 else "left"
+	else:
+		pl.last_dir = "down" if dir_2d.y >= 0.0 else "up"
+
+func _update_fp_camera_transform() -> void:
+	if cam_3d == null or not first_person_active:
+		return
+	var pl := get_tree().get_first_node_in_group("player") as Node2D if is_inside_tree() else null
+	var pl_pos: Vector2 = pl.global_position if is_instance_valid(pl) else Vector2(465, 48)
+	var eye_h: float = FP_EYE_HEIGHT_PX
+	if is_instance_valid(pl):
+		if pl.get("is_mounted") == true:
+			eye_h += 6.0
+		else:
+			var m_ctrl = pl.get_node_or_null("PlayerMovementController")
+			if m_ctrl != null and m_ctrl.get("is_stealthing") == true:
+				eye_h -= 3.5
+	if vm != null and int(vm.player_elevation_level) == 1:
+		eye_h += 22.0
+	var eye_3d: Vector3 = to_3d(pl_pos, eye_h)
+	var dir_2d: Vector2 = get_fp_forward_2d()
+	var horiz_3d: Vector3 = Vector3(dir_2d.x, 0.0, dir_2d.y / maxf(0.1, _sin_p)).normalized()
+	var look_dir_3d: Vector3 = (horiz_3d * cos(fp_pitch) + Vector3(0.0, sin(fp_pitch), 0.0)).normalized()
+	cam_3d.projection = Camera3D.PROJECTION_PERSPECTIVE
+	cam_3d.fov = 70.0
+	cam_3d.near = 0.03
+	cam_3d.far = 250.0
+	cam_3d.global_position = eye_3d
+	if cam_3d.is_inside_tree():
+		cam_3d.look_at(eye_3d + look_dir_3d * 10.0, Vector3.UP)
+	else:
+		cam_3d.transform = cam_3d.transform.looking_at(eye_3d + look_dir_3d * 10.0, Vector3.UP)
+
+func _unhandled_input(event: InputEvent) -> void:
+	if event is InputEventKey and event.pressed and not event.echo:
+		if event.keycode == KEY_F6 or (event.keycode == KEY_F8 and not event.shift_pressed):
+			toggle_first_person()
+			get_viewport().set_input_as_handled()
+
+func _input(event: InputEvent) -> void:
+	if not first_person_active or _is_headless:
+		return
+	if _is_ui_blocking_fp():
+		return
+	if event is InputEventMouseMotion:
+		var mm := event as InputEventMouseMotion
+		rotate_first_person_view(mm.relative.x, mm.relative.y)
+
+func _update_fp_hud() -> void:
+	if fp_hud_layer == null:
+		return
+	if not first_person_active or not CharacterAvatar3DScript.use_3d_characters:
+		fp_hud_layer.visible = false
+		return
+	var ui_blocked: bool = _is_ui_blocking_fp()
+	fp_hud_layer.visible = not ui_blocked
+	if ui_blocked:
+		return
+	var pl := get_tree().get_first_node_in_group("player") as Node2D
+	if not is_instance_valid(pl) or fp_interact_label == null:
+		return
+	var sel = pl.get("interaction_selector")
+	if sel != null and sel.has_method("selected"):
+		var cand: Dictionary = sel.call("selected")
+		if not cand.is_empty():
+			var txt: String = "[E] " + str(cand.get("label", "Usar"))
+			var all_cands: Array = sel.get("candidates") if "candidates" in sel else []
+			if all_cands.size() > 1:
+				txt += "   (%d/%d · Mayús+rueda o G)" % [all_cands.find(cand) + 1, all_cands.size()]
+			fp_interact_label.text = txt
+			fp_interact_label.visible = true
+			return
+	fp_interact_label.visible = false
+
 func _process(delta: float) -> void:
 	if _is_headless or vm == null:
 		return
 
 	var use_3d: bool = CharacterAvatar3DScript.use_3d_characters
+	if not use_3d and first_person_active:
+		set_first_person(false)
 	if use_3d != _last_use_3d:
 		_last_use_3d = use_3d
 		_sync_2d_flat_visuals(use_3d)
@@ -1623,6 +1930,16 @@ func _process(delta: float) -> void:
 		stage_sprite.visible = use_3d
 	if not use_3d:
 		return
+
+	if first_person_active and not _is_ui_blocking_fp():
+		var arrow_turn := Vector2(
+			float(Input.is_key_pressed(KEY_RIGHT)) - float(Input.is_key_pressed(KEY_LEFT)),
+			float(Input.is_key_pressed(KEY_DOWN)) - float(Input.is_key_pressed(KEY_UP))
+		)
+		if arrow_turn.length_squared() > 0.01:
+			rotate_first_person_view(arrow_turn.x * 520.0 * delta, arrow_turn.y * 360.0 * delta)
+		_sync_player_aim_from_fp()
+	_update_fp_hud()
 
 	if vm.buried_graves.size() != _last_buried_count:
 		rebuild_graves_3d()
@@ -1663,7 +1980,11 @@ static func _perf_add(part: String, since: int) -> int:
 	return now
 
 func _sync_camera_with_2d() -> void:
-	if cam_3d == null or stage_sprite == null:
+	if cam_3d == null:
+		return
+	if first_person_active:
+		_update_fp_camera_transform()
+	if stage_sprite == null:
 		return
 	var vp := get_viewport()
 	if vp == null:
@@ -1673,12 +1994,18 @@ func _sync_camera_with_2d() -> void:
 	var center_2d: Vector2 = cam2d.get_screen_center_position() if cam2d != null else Vector2(465, 48)
 	var zoom_2d: Vector2 = cam2d.zoom if cam2d != null else Vector2(3.0, 3.0)
 
-	var world_vis_h: float = vp_rect.size.y / maxf(0.1, zoom_2d.y)
-	cam_3d.size = maxf(1.0, world_vis_h * WORLD_SCALE)
+	if not first_person_active:
+		if cam_3d.projection != Camera3D.PROJECTION_ORTHOGONAL:
+			cam_3d.projection = Camera3D.PROJECTION_ORTHOGONAL
+			cam_3d.rotation_degrees = Vector3(-PITCH_DEG, 0.0, 0.0)
+			cam_3d.near = 0.1
+			cam_3d.far = 250.0
+		var world_vis_h: float = vp_rect.size.y / maxf(0.1, zoom_2d.y)
+		cam_3d.size = maxf(1.0, world_vis_h * WORLD_SCALE)
 
-	var target_3d: Vector3 = to_3d(center_2d, 0.0)
-	var forward_vec: Vector3 = -cam_3d.global_transform.basis.z.normalized()
-	cam_3d.global_position = target_3d - forward_vec * 65.0
+		var target_3d: Vector3 = to_3d(center_2d, 0.0)
+		var forward_vec: Vector3 = -cam_3d.global_transform.basis.z.normalized()
+		cam_3d.global_position = target_3d - forward_vec * 65.0
 
 	stage_sprite.global_position = center_2d
 	stage_sprite.scale = Vector2(
@@ -1963,10 +2290,10 @@ func _sync_heist_target_3d() -> void:
 			_add_box_2d(root, h_pos + Vector2(5.8, 0), Vector2(1.4, 8.8), 10.2, 3.6, m_gold)
 
 func _update_roof_cutaways_and_lighting() -> void:
-	var pl := get_tree().get_first_node_in_group("player") as Node2D
+	var pl := get_tree().get_first_node_in_group("player") as Node2D if is_inside_tree() else null
 	var pl_pos: Vector2 = pl.global_position if is_instance_valid(pl) else Vector2.INF
-	var mouse_pos: Vector2 = get_global_mouse_position()
-	var elev: int = vm.player_elevation_level
+	var mouse_pos: Vector2 = get_global_mouse_position() if is_inside_tree() else Vector2.INF
+	var elev: int = vm.player_elevation_level if vm != null else 0
 
 	for rec in _building_records_3d:
 		var rect: Rect2 = rec["rect"]
@@ -1976,24 +2303,53 @@ func _update_roof_cutaways_and_lighting() -> void:
 			continue
 		var r_near: Rect2 = rect.grow(38.0)
 		var r_inside: Rect2 = rect.grow(8.0)
-		var open_roof: bool = r_near.has_point(pl_pos) or r_inside.has_point(mouse_pos)
-		# (2026-11-05, 2ª noche) Ya no se abre porque haya un vecino dentro: los muñecos 3D están dentro del escenario
-		# y el pueblo debe verse con sus tejados. Solo lo abren el jugador (dentro o pegado) y el ratón encima.
+		# B7: En primera persona los tejados y muros altos NO se retiran al entrar: ves el techo encima y las paredes enteras.
+		var open_roof: bool = false if first_person_active else (r_near.has_point(pl_pos) or r_inside.has_point(mouse_pos))
 		roof_cap.visible = not open_roof
 		if is_instance_valid(loft_root):
-			loft_root.visible = (elev == 1 and r_near.has_point(pl_pos))
+			loft_root.visible = (first_person_active or elev == 1) and r_near.has_point(pl_pos)
 
-	# Casa mejorada del jugador: el tejado se abre igual que en los demás edificios
+	# Casa mejorada del jugador: en primera persona conserva el tejado cerrado
 	if is_instance_valid(_player_house_roof):
-		_player_house_roof.visible = not (_player_house_rect.grow(38.0).has_point(pl_pos) or _player_house_rect.grow(8.0).has_point(mouse_pos))
+		_player_house_roof.visible = true if first_person_active else not (_player_house_rect.grow(38.0).has_point(pl_pos) or _player_house_rect.grow(8.0).has_point(mouse_pos))
 
 	# Luz diurna/nocturna y farolas eléctricas 3D
-	var wc2 = get_node_or_null("/root/WorldClock")
-	var gm2 = get_node_or_null("/root/GameManager")
+	var wc2 = get_node_or_null("/root/WorldClock") if is_inside_tree() else null
+	var gm2 = get_node_or_null("/root/GameManager") if is_inside_tree() else null
 	var hour: int = int(wc2.current_hour) if wc2 != null else 12
 	var is_night: bool = (hour >= 19 or hour < 6)
 	var is_dusk: bool = (hour in [6, 7, 17, 18])
-	var grid_on: bool = gm2 != null and bool(gm2.get_flag("electric_grid_active", false)) and VillageCulture.is_lamps_powered(vm)
+	var grid_on: bool = gm2 != null and gm2.get_flag("electric_grid_active", false) == true and VillageCulture.is_lamps_powered(vm)
+
+	if is_instance_valid(world_env) and world_env.environment != null:
+		var env: Environment = world_env.environment
+		if first_person_active:
+			var sky_col: Color = Color(0.52, 0.72, 0.92)
+			if is_night:
+				sky_col = Color(0.05, 0.07, 0.14)
+			elif is_dusk:
+				sky_col = Color(0.76, 0.48, 0.34)
+			env.background_mode = Environment.BG_COLOR
+			env.background_color = sky_col
+			env.ambient_light_color = Color(0.42, 0.48, 0.68) if is_night else (Color(0.92, 0.76, 0.64) if is_dusk else Color(0.86, 0.88, 0.92))
+			env.ambient_light_energy = 0.42 if is_night else (0.52 if is_dusk else 0.62)
+			env.fog_enabled = true
+			env.fog_light_color = sky_col
+			env.fog_density = 0.018 if is_night else 0.006
+		else:
+			env.background_mode = Environment.BG_CLEAR_COLOR
+			env.ambient_light_color = Color(0.84, 0.86, 0.90)
+			env.ambient_light_energy = 0.58
+			env.fog_enabled = false
+
+	if is_instance_valid(fp_lantern_light):
+		if first_person_active:
+			var carrying_lantern: bool = is_instance_valid(pl) and pl.get("is_carrying_lantern") == true
+			fp_lantern_light.visible = is_night or is_dusk or carrying_lantern
+			fp_lantern_light.light_energy = 1.15 if carrying_lantern else (0.55 if is_night else 0.30)
+			fp_lantern_light.omni_range = 5.4 if carrying_lantern else 3.2
+		else:
+			fp_lantern_light.visible = false
 
 	if is_instance_valid(sun_light):
 		if is_night:

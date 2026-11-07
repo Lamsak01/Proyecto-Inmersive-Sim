@@ -6975,5 +6975,49 @@ func _initialize() -> void:
 	assert(b6_snap_101 != b6_snap_202, "B6.4b: Different seeds (101 vs 202) produce distinct founder trait/secret combinations across playthroughs")
 	vm.secrets = b6_secrets_bak
 	print("Block B6 (21 Founding Neighbors with 6 Traits, Friendships/Grudges, 2-3 Secrets & Playthrough Variations) OK")
+
+	# ---------------------------------------------------------
+	# Block B7: Prueba de primera persona (prototipo F6/F8, cámara perspectiva, giro de vista, WASD relativo y tejados cerrados)
+	# ---------------------------------------------------------
+	var b7_stage = vm.get("world_stage_3d")
+	assert(b7_stage != null and b7_stage.cam_3d != null, "B7.0a: WorldStage3D and cam_3d exist")
+	assert(b7_stage.first_person_active == false and b7_stage.cam_3d.projection == Camera3D.PROJECTION_ORTHOGONAL, "B7.0b: WorldStage3D starts in orthogonal top-down mode")
+	var b7_pl_pos_bak: Vector2 = player.global_position
+	# Colocar al jugador dentro de la taberna y comprobar que en vista normal el tejado se abre (cutaway)
+	player.global_position = Vector2(420.0, -210.0)
+	b7_stage._update_roof_cutaways_and_lighting()
+	var b7_tavern_roof: Node3D = null
+	for rec_b7 in b7_stage._building_records_3d:
+		if str(rec_b7.get("id", "")) == "building_tavern":
+			b7_tavern_roof = rec_b7.get("roof_cap")
+			break
+	assert(b7_tavern_roof != null and b7_tavern_roof.visible == false, "B7.1a: In top-down mode inside Tavern, roof_cap is hidden by cutaway")
+	# Activar primera persona
+	var b7_on: bool = b7_stage.toggle_first_person()
+	assert(b7_on == true and b7_stage.first_person_active == true, "B7.1b: toggle_first_person() activates first-person mode")
+	assert(b7_stage.cam_3d.projection == Camera3D.PROJECTION_PERSPECTIVE and is_equal_approx(b7_stage.cam_3d.fov, 70.0), "B7.1c: cam_3d switches to PROJECTION_PERSPECTIVE with FOV 70")
+	var b7_expected_eye: Vector3 = b7_stage.to_3d(player.global_position, b7_stage.FP_EYE_HEIGHT_PX)
+	assert(b7_stage.cam_3d.global_position.distance_to(b7_expected_eye) < 0.05, "B7.1d: cam_3d is positioned at the player's eye height in 3D")
+	assert(b7_tavern_roof.visible == true, "B7.2: In first-person mode inside Tavern, roof_cap remains visible (roofs and full walls stay closed overhead)")
+	if player.get("avatar_3d") != null and is_instance_valid(player.avatar_3d.get("_holder")):
+		assert(player.avatar_3d._holder.visible == false, "B7.3: Player's own 3D avatar holder is hidden in first-person mode")
+	# Probar giro de cámara con ratón y límites verticales + mapeo relativo de W/A/S/D
+	b7_stage.fp_yaw = 0.0
+	b7_stage.fp_pitch = 0.0
+	b7_stage.rotate_first_person_view(0.0, 0.0)
+	var b7_combat = player.get_node_or_null("PlayerCombatController")
+	assert(b7_combat != null and b7_combat.current_aim_dir.distance_to(Vector2.RIGHT) < 0.02, "B7.4a: Looking East (fp_yaw=0) aligns current_aim_dir to Vector2.RIGHT")
+	var b7_fwd_w: Vector2 = b7_stage.map_wasd_to_world(Vector2(0.0, -1.0))
+	var b7_right_d: Vector2 = b7_stage.map_wasd_to_world(Vector2(1.0, 0.0))
+	assert(b7_fwd_w.distance_to(Vector2.RIGHT) < 0.02 and b7_right_d.distance_to(Vector2.DOWN) < 0.02, "B7.4b: In first person looking East, W moves East (+X) and D moves South (+Y)")
+	b7_stage.rotate_first_person_view(float(PI * 0.5 / b7_stage.FP_MOUSE_SENS), -5000.0)
+	assert(absf(b7_stage.fp_yaw - PI * 0.5) < 0.02 and is_equal_approx(b7_stage.fp_pitch, b7_stage.FP_MAX_PITCH), "B7.5: rotate_first_person_view turns yaw and clamps vertical pitch to FP_MAX_PITCH")
+	# Salir de primera persona y restaurar estado
+	var b7_off: bool = b7_stage.toggle_first_person()
+	assert(b7_off == false and b7_stage.first_person_active == false and b7_stage.cam_3d.projection == Camera3D.PROJECTION_ORTHOGONAL, "B7.6a: toggle_first_person() restores orthogonal top-down camera")
+	assert(b7_tavern_roof.visible == false, "B7.6b: Exiting first person restores normal roof cutaway inside Tavern")
+	player.global_position = b7_pl_pos_bak
+	b7_stage._update_roof_cutaways_and_lighting()
+	print("Block B7 (First-Person Prototype: F6/F8 Toggle, Perspective Eye Camera, Relative WASD & Closed Roofs) OK")
 	print("ALL RIMWORLD MEDICAL, FOOTPRINTS, 3-PHASE CORPSE REPORT, MULTI-CORPSE FIX, RPG INTERROGATION, PUBLIC TRIAL, DYNAMIC RELATIONSHIPS, MISSING FAMILY SEARCH, SOCIAL GLOSSARY & UNCONSCIOUS REACTION TESTS PASSED!")
 	quit(0)

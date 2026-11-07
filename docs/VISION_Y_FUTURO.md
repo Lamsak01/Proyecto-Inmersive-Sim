@@ -22,6 +22,7 @@ Cuando muere alguien llegan personas nuevas generadas al azar, así que todo sis
 
 ### Decisiones firmes del usuario (2026-11-02)
 - **(2026-11-06) El juego pasa de 2D a 3D.** La vista 2D queda solo de respaldo (F9 y pruebas automáticas).
+- **🧪 En evaluación (2026-11-07, no decidida): Vista en primera persona (`[F6]` / `[F8]`).** Existe un prototipo jugable en `WorldStage3D.gd` que alterna al vuelo entre la vista superior 3D y una cámara en perspectiva a la altura de los ojos del jugador (`FOV 70°`, giro con ratón, `W/A/S/D` relativo a la mirada y tejados cerrados al entrar en edificios) para valorar si compensa como modo opcional o principal sin romper nada del juego actual.
 - **Tamaño**: se empieza pequeño (máxima profundidad en pocas casas), pero el **objetivo final es una ciudad de al menos 100 vecinos**. Orden: profundidad primero, tamaño después. Hará falta simulación simplificada para los vecinos lejanos o en otro nivel (rendimiento).
 - **Habrá sótanos y varios pisos.**
   - Sótanos: como en otros juegos del estilo, un mapa aparte que se desarrolla debajo del mapa principal (bodegas, túneles, alcantarillas; puede extenderse más allá de los edificios).
