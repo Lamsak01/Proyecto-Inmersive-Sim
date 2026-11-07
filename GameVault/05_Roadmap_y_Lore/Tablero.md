@@ -46,6 +46,7 @@ kanban-plugin: board
 
 ## ✅ Hecho
 
+- [x] Herramientas del detective — Autopsia en la morgue (`D2`): mesa de autopsias con el Dr. Valen, 4 pruebas por pasos con riesgo de fallo (`sangre` con 2 viales y tabla de colores, `cuello`, `estomago`, `piel`), consejo del forense a cambio de minutos, actualización de la causa real y conexión con `VillageForensics` ([[Investigación Forense]]) (2026-11-07)
 - [x] Herramientas del detective — Examen del cuerpo en la escena (`D1`): pantalla fiel a `docs/bocetos/examen_cuerpo.html` al pulsar `[E]` junto a un cadáver, con fondo cenital 3D en esquema del lugar real, silueta plana de mujer u hombre según la víctima, 7 zonas clicables, acciones superficiales que avanzan minutos del reloj, marcas sobre el cuerpo y tira inferior del cuaderno del caso ([[Investigación Forense]]) (2026-11-07)
 - [x] Prueba de primera persona (`B7`, prototipo en evaluación): tecla `[F6]` / `[F8]` cambia al vuelo entre la vista normal y primera persona (`PROJECTION_PERSPECTIVE`, FOV 70° a la altura de los ojos, giro con ratón/flechas, `W/A/S/D` relativo a hacia dónde miras, `[E]` en el centro de la pantalla, avatar propio oculto y tejados cerrados al entrar en edificios) ([[Assets de pago]]) (2026-11-07)
 - [x] Los 21 vecinos fundadores con historia (`B6`): 6 rasgos coherentes sin contradicciones (más variantes entre partidas), amistades y rencores cruzados, 2 o 3 secretos propios por fundador y las 21 fichas de vecinos completadas ([[Los 21 Vecinos Originales]], [[Identidad y Rasgos Ocultos]], [[Secretos y Deseos Propios]]) (2026-11-07)

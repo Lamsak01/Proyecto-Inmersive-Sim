@@ -3,6 +3,11 @@
 Cambios del juego, del más nuevo al más antiguo. Añade una entrada al cerrar cada bloque, en lenguaje sencillo.
 El detalle técnico está en `docs/HANDOFF.md` (sección 7) y el historial completo en `git log`. Lo anterior a B0.1 está en `AUDIT_LOG.md` y `SESSION_CONTEXT_LOG.md`.
 
+## 2026-11-07 — Autopsia en la morgue (herramientas del detective, paso 2)
+- **Mesa de autopsias con el Dr. Valen:** cuando el cuerpo ya está en la morgue y el médico forense está disponible (o entrando desde la camilla del hospital), puedes hacer las 4 pruebas internas paso a paso: sangre, cuello, estómago y piel y rigidez.
+- **Muestras que se pueden estropear o quedar dudosas:** la sangre solo da para 2 tubos de muestra (equivocarse de reactivo gasta un tubo y al segundo fallo se pierde; sacarla del brazo en vez del corazón deja un resultado dudoso), cortar el cuello deprisa rompe el hueso que buscabas y tirar el contenido del estómago impide que el alquimista lo analice.
+- **Consejo del forense y causa real:** en los pasos delicados puedes pedir consejo al Dr. Valen a cambio de 5 minutos, la «Causa real» de la muerte se va completando a medida que aciertas las pruebas, y cualquier conclusión se puede clavar como ficha en el cuaderno del caso.
+
 ## 2026-11-07 — Examen del cuerpo en la escena (herramientas del detective, paso 1)
 - **Examinar el cadáver en el sitio con `[E]`:** al acercarte a un cuerpo y pulsar `[E]` se abre la mesa de examen (pausando el mundo mientras miras, pero sumando al reloj los minutos que cuesta cada comprobación).
 - **Siete zonas y silueta de hombre o mujer:** puedes mirar de cerca, palpar, oler, usar la lupa de latón (si la llevas encima) o vaciar los bolsillos sobre las 7 partes del cuerpo (`cabeza`, `cuello`, `torso`, `brazos`, `manos`, `piernas` y `bolsillos`). La silueta plana cambia entre mujer (con pelo largo tras la cabeza) y hombre según quién sea la víctima, y va dibujando encima las marcas que descubres.

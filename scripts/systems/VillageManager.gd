@@ -495,6 +495,7 @@ func _unhandled_input(event: InputEvent) -> void:
 		if event is InputEventKey and event.pressed and not event.echo:
 			var player = get_tree().get_first_node_in_group("player") as Node2D
 			match event.keycode:
+				KEY_0: _on_morgue_open_detective_autopsy(); get_viewport().set_input_as_handled()
 				KEY_1: _on_morgue_loot_corpses(player); get_viewport().set_input_as_handled()
 				KEY_2: _on_morgue_open_anatomy_panel(); get_viewport().set_input_as_handled()
 				KEY_3, KEY_ESCAPE, KEY_ENTER, KEY_E: morgue_panel.visible = false; get_viewport().set_input_as_handled()
@@ -1738,9 +1739,10 @@ func _setup_Interactive_modals_ui() -> void:
 	ui_layer.layer = 32
 	add_child(ui_layer)
 
-	var m1 := _build_modal_base(Vector2(540, 300), Color(0.38, 0.85, 0.78), 11, Color(0.92, 0.98, 0.96))
+	var m1 := _build_modal_base(Vector2(540, 325), Color(0.38, 0.85, 0.78), 11, Color(0.92, 0.98, 0.96))
 	morgue_panel = m1["panel"]
 	morgue_info_lbl = m1["lbl"]
+	_add_modal_btn(m1["vbox"], "[0] 🔬 Mesa de Autopsias del Detective (Sangre, Cuello, Estómago, Piel)", func(): _on_morgue_open_detective_autopsy())
 	_add_modal_btn(m1["vbox"], "[1] 💰 Saquear Bolsillos / Propiedades de los Cuerpos en la Morgue", func(): _on_morgue_loot_corpses(get_tree().get_first_node_in_group("player") as Node2D))
 	_add_modal_btn(m1["vbox"], "[2] 🩺 Examen Anatómico / Bolsillos y Órganos en Camilla [H]", func(): _on_morgue_open_anatomy_panel())
 	_add_modal_btn(m1["vbox"], "[3 / ESC] Cerrar Informe Forense de la Morgue", func(): morgue_panel.visible = false)
@@ -1851,6 +1853,23 @@ func _on_morgue_open_anatomy_panel() -> void:
 	var ui_root := get_tree().current_scene.get_node_or_null("UIRoot") if get_tree().current_scene else null
 	if ui_root and "medical_panel" in ui_root and is_instance_valid(ui_root.medical_panel):
 		ui_root.medical_panel.open_panel(target_corpse)
+
+func _on_morgue_open_detective_autopsy() -> void:
+	var target_corpse: VillageNPC = null
+	var p := get_tree().get_first_node_in_group("player") as Node2D
+	var best_d2: float = INF
+	for rec in morgue_active_corpses:
+		var c_node: VillageNPC = _find_corpse_npc_by_name(str(rec.get("victim_name", "")))
+		if is_instance_valid(c_node):
+			var d2: float = p.global_position.distance_squared_to(c_node.global_position) if p else 0.0
+			if d2 < best_d2:
+				best_d2 = d2
+				target_corpse = c_node
+	if morgue_panel:
+		morgue_panel.visible = false
+	var ui_root := get_tree().current_scene.get_node_or_null("UIRoot") if get_tree().current_scene else null
+	if ui_root and "detective_ui" in ui_root and is_instance_valid(ui_root.detective_ui):
+		ui_root.detective_ui.open_for_corpse(target_corpse, "morgue")
 
 func _open_church_registry_ui() -> void:
 	if not church_panel:

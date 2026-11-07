@@ -113,6 +113,24 @@ var nb_zone_title: Label = null
 var nb_zone_sub: Label = null
 var nb_actions_grid: GridContainer = null
 var nb_findings_box: VBoxContainer = null
+var lbl_apparent_cause: RichTextLabel = null
+var apparent_cause_str: String = "sin determinar"
+
+# Vista D2: Autopsia en la morgue
+var morgue_tests_def: Dictionary = {}
+var morgue_tests_state: Dictionary = {} # test_id -> {step, log: Array, state: "", vials: int, dud: bool, hint_asked: Dictionary}
+var selected_morgue_test: String = "sangre"
+var morgue_list_vbox: VBoxContainer = null
+var lbl_morgue_sub: Label = null
+var lbl_real_cause: RichTextLabel = null
+var lbl_bench_title: Label = null
+var bench_vials_hbox: HBoxContainer = null
+var bench_body_vbox: VBoxContainer = null
+var bench_doc_panel: PanelContainer = null
+var lbl_bench_doc: RichTextLabel = null
+var morgue_status_banner: PanelContainer = null
+var lbl_morgue_banner: Label = null
+var btn_morgue_transfer: Button = null
 
 # Tira inferior: Cuaderno del caso
 var strip_notes_hbox: HBoxContainer = null
@@ -453,6 +471,8 @@ func _build_ui() -> void:
 	btn_report_guard = _make_header_btn("📢 Avisar a la guardia", func():
 		if is_instance_valid(current_corpse) and current_corpse.has_method("report_corpse_by_player"):
 			current_corpse.call("report_corpse_by_player", player)
+			_build_case_from_corpse(current_corpse)
+			_render_morgue_view()
 			_update_header_meta()
 	)
 	hdr_hbox.add_child(btn_report_guard)
@@ -506,7 +526,7 @@ func _build_ui() -> void:
 	view_body = _build_body_view()
 	views_holder.add_child(view_body)
 
-	view_morgue = _build_placeholder_view("Autopsia en la morgue (Bloque D2)")
+	view_morgue = _build_morgue_view()
 	views_holder.add_child(view_morgue)
 
 	view_scene = _build_placeholder_view("Escena del crimen (Bloque D3)")
@@ -715,6 +735,170 @@ func _build_body_view() -> Control:
 	nb_findings_box.add_theme_constant_override("separation", 8)
 	nb_scroll.add_child(nb_findings_box)
 
+	var cause_box := PanelContainer.new()
+	cause_box.add_theme_stylebox_override("panel", _style_box(COL_PAPER_INK, COL_PAPER_INK, 0, 0, 12, 8))
+	nb_vbox.add_child(cause_box)
+
+	lbl_apparent_cause = RichTextLabel.new()
+	lbl_apparent_cause.bbcode_enabled = true
+	lbl_apparent_cause.fit_content = true
+	lbl_apparent_cause.scroll_active = false
+	lbl_apparent_cause.add_theme_font_size_override("normal_font_size", 12)
+	lbl_apparent_cause.add_theme_font_size_override("bold_font_size", 12)
+	lbl_apparent_cause.add_theme_color_override("default_color", COL_PAPER)
+	lbl_apparent_cause.text = "Causa aparente: [color=#e7b45a][b]sin determinar[/b][/color]"
+	cause_box.add_child(lbl_apparent_cause)
+
+	return split
+
+
+# ==============================================================================
+# Vista 2 (Bloque D2): Autopsia en la morgue (Mesa de autopsias con el Dr. Valen)
+# ==============================================================================
+func _build_morgue_view() -> Control:
+	var split := HBoxContainer.new()
+	split.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	split.add_theme_constant_override("separation", 14)
+	split.visible = false
+
+	# Columna izquierda (.tlist): Lista de pruebas y causa real
+	var left_panel := PanelContainer.new()
+	left_panel.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	left_panel.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	left_panel.size_flags_stretch_ratio = 0.82
+	left_panel.add_theme_stylebox_override("panel", _style_box(COL_PANEL, COL_EDGE, 1, 0, 16, 16))
+	split.add_child(left_panel)
+
+	var left_vbox := VBoxContainer.new()
+	left_vbox.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	left_vbox.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	left_vbox.add_theme_constant_override("separation", 10)
+	left_panel.add_child(left_vbox)
+
+	var lbl_morgue_h := Label.new()
+	lbl_morgue_h.text = "Mesa de autopsias"
+	lbl_morgue_h.add_theme_font_size_override("font_size", 19)
+	lbl_morgue_h.add_theme_color_override("font_color", COL_INK)
+	left_vbox.add_child(lbl_morgue_h)
+
+	lbl_morgue_sub = Label.new()
+	lbl_morgue_sub.text = "Con el Dr. Valen. Si te equivocas, la muestra se pierde."
+	lbl_morgue_sub.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	lbl_morgue_sub.add_theme_font_size_override("font_size", 12)
+	lbl_morgue_sub.add_theme_color_override("font_color", COL_DIM)
+	left_vbox.add_child(lbl_morgue_sub)
+
+	morgue_list_vbox = VBoxContainer.new()
+	morgue_list_vbox.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	morgue_list_vbox.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	morgue_list_vbox.add_theme_constant_override("separation", 6)
+	left_vbox.add_child(morgue_list_vbox)
+
+	var real_cause_box := PanelContainer.new()
+	real_cause_box.add_theme_stylebox_override("panel", _style_box(COL_PAPER_INK, COL_EDGE, 1, 0, 12, 10))
+	left_vbox.add_child(real_cause_box)
+
+	lbl_real_cause = RichTextLabel.new()
+	lbl_real_cause.bbcode_enabled = true
+	lbl_real_cause.fit_content = true
+	lbl_real_cause.scroll_active = false
+	lbl_real_cause.add_theme_font_size_override("normal_font_size", 13)
+	lbl_real_cause.add_theme_font_size_override("bold_font_size", 13)
+	lbl_real_cause.add_theme_color_override("default_color", COL_PAPER)
+	lbl_real_cause.text = "Causa real: [color=#e7b45a][b]sin determinar[/b][/color]"
+	real_cause_box.add_child(lbl_real_cause)
+
+	# Columna derecha (.bench): Banco de pruebas sobre papel, muestras de sangre, pasos y consejo del Dr. Valen
+	var bench_panel := PanelContainer.new()
+	bench_panel.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	bench_panel.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	bench_panel.size_flags_stretch_ratio = 1.40
+	bench_panel.add_theme_stylebox_override("panel", _style_box(COL_PAPER, COL_PAPER_EDGE, 1, 0, 20, 16))
+	split.add_child(bench_panel)
+
+	var bench_vbox := VBoxContainer.new()
+	bench_vbox.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	bench_vbox.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	bench_vbox.add_theme_constant_override("separation", 12)
+	bench_panel.add_child(bench_vbox)
+
+	# Aviso superior si el cadáver aún no está en la morgue o si el forense no está disponible
+	morgue_status_banner = PanelContainer.new()
+	morgue_status_banner.add_theme_stylebox_override("panel", _style_box(Color("#3a2622"), COL_BLOOD, 1, 0, 12, 8))
+	morgue_status_banner.visible = false
+	bench_vbox.add_child(morgue_status_banner)
+
+	var banner_hbox := HBoxContainer.new()
+	banner_hbox.add_theme_constant_override("separation", 10)
+	morgue_status_banner.add_child(banner_hbox)
+
+	lbl_morgue_banner = Label.new()
+	lbl_morgue_banner.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	lbl_morgue_banner.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	lbl_morgue_banner.add_theme_font_size_override("font_size", 12)
+	lbl_morgue_banner.add_theme_color_override("font_color", COL_INK)
+	banner_hbox.add_child(lbl_morgue_banner)
+
+	btn_morgue_transfer = Button.new()
+	btn_morgue_transfer.text = "⚰️ Trasladar a la morgue"
+	btn_morgue_transfer.focus_mode = Control.FOCUS_NONE
+	btn_morgue_transfer.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
+	btn_morgue_transfer.add_theme_font_size_override("font_size", 11)
+	btn_morgue_transfer.add_theme_color_override("font_color", Color("#18140d"))
+	btn_morgue_transfer.add_theme_stylebox_override("normal", _style_box(COL_LAMP, COL_LAMP, 1, 0, 10, 5))
+	btn_morgue_transfer.pressed.connect(func():
+		if is_instance_valid(current_corpse):
+			if current_corpse.has_method("report_corpse_by_player") and current_corpse.get("corpse_reported") != true:
+				current_corpse.call("report_corpse_by_player", player)
+			current_corpse.set("corpse_in_morgue", true)
+			_build_case_from_corpse(current_corpse)
+			_render_morgue_view()
+			_update_header_meta()
+	)
+	banner_hbox.add_child(btn_morgue_transfer)
+
+	var bench_hdr := HBoxContainer.new()
+	bench_hdr.add_theme_constant_override("separation", 12)
+	bench_vbox.add_child(bench_hdr)
+
+	lbl_bench_title = Label.new()
+	lbl_bench_title.text = "Elige una prueba"
+	lbl_bench_title.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	lbl_bench_title.add_theme_font_size_override("font_size", 19)
+	lbl_bench_title.add_theme_color_override("font_color", COL_PAPER_INK)
+	bench_hdr.add_child(lbl_bench_title)
+
+	bench_vials_hbox = HBoxContainer.new()
+	bench_vials_hbox.add_theme_constant_override("separation", 6)
+	bench_hdr.add_child(bench_vials_hbox)
+
+	var bench_sep := HSeparator.new()
+	bench_vbox.add_child(bench_sep)
+
+	var bench_scroll := ScrollContainer.new()
+	bench_scroll.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	bench_scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	bench_vbox.add_child(bench_scroll)
+
+	bench_body_vbox = VBoxContainer.new()
+	bench_body_vbox.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	bench_body_vbox.add_theme_constant_override("separation", 10)
+	bench_scroll.add_child(bench_body_vbox)
+
+	bench_doc_panel = PanelContainer.new()
+	bench_doc_panel.add_theme_stylebox_override("panel", _style_box(COL_PAPER_INK, COL_PAPER_INK, 0, 0, 12, 10))
+	bench_doc_panel.visible = false
+	bench_vbox.add_child(bench_doc_panel)
+
+	lbl_bench_doc = RichTextLabel.new()
+	lbl_bench_doc.bbcode_enabled = true
+	lbl_bench_doc.fit_content = true
+	lbl_bench_doc.scroll_active = false
+	lbl_bench_doc.add_theme_font_size_override("normal_font_size", 12)
+	lbl_bench_doc.add_theme_font_size_override("bold_font_size", 12)
+	lbl_bench_doc.add_theme_color_override("default_color", COL_PAPER)
+	bench_doc_panel.add_child(lbl_bench_doc)
+
 	return split
 
 
@@ -752,6 +936,7 @@ func open_for_corpse(corpse_node: Node2D, initial_mode: String = "body") -> void
 		select_zone("cuello")
 	else:
 		_render_notebook_zone()
+	_render_morgue_view()
 	_render_strip_notes()
 	_update_header_meta()
 
@@ -794,6 +979,8 @@ func switch_mode(mode_id: String) -> void:
 	view_morgue.visible = (mode_id == "morgue")
 	view_scene.visible = (mode_id == "scene")
 	view_board.visible = (mode_id == "board")
+	if mode_id == "morgue":
+		_render_morgue_view()
 	_refresh_tab_styles()
 	_refresh_3d_topdown_sketch()
 	_update_header_meta()
@@ -906,6 +1093,7 @@ func _build_case_from_corpse(corpse_node: Node2D) -> void:
 		if lbl_corner_right != null:
 			lbl_corner_right.text = "TEMPERATURA AMBIENTE · FRÍO DE MADRUGADA"
 		zone_data = _get_default_forest_woman_zones(has_lupa)
+		_build_morgue_tests_for_corpse(corpse_node)
 		return
 
 	var v_name: String = str(corpse_node.get("npc_name"))
@@ -1028,6 +1216,7 @@ func _build_case_from_corpse(corpse_node: Node2D) -> void:
 			]
 		}
 	}
+	_build_morgue_tests_for_corpse(corpse_node)
 
 
 func _describe_zone_wounds(w_arr: Array, weapon_cause: String, fallback_txt: String) -> String:
@@ -1184,6 +1373,14 @@ func _do_zone_action(z_id: String, act: Dictionary) -> void:
 			revealed_marks[mk] = true
 			if silhouette_canvas != null:
 				silhouette_canvas.queue_redraw()
+		if z_id == "cuello" and a_id == "mirar":
+			if is_instance_valid(current_corpse) and not current_corpse.has_meta("scripted_case_zones"):
+				var wc: String = str(current_corpse.get("last_hit_weapon_name"))
+				apparent_cause_str = ("%s (sin confirmar)" % wc) if wc != "" else "Estrangulamiento con las manos (sin confirmar)"
+			else:
+				apparent_cause_str = "Estrangulamiento con las manos (sin confirmar)"
+			if lbl_apparent_cause != null:
+				lbl_apparent_cause.text = "Causa aparente: [color=#e7b45a][b]%s[/b][/color]" % apparent_cause_str
 		if act.get("loot_corpse") == true and is_instance_valid(current_corpse) and current_corpse.has_method("loot_npc_pockets") and player != null:
 			current_corpse.call("loot_npc_pockets", player)
 	current_finding = {
@@ -1306,3 +1503,595 @@ func _render_strip_notes() -> void:
 		lbl.add_theme_font_size_override("font_size", 11)
 		lbl.add_theme_color_override("font_color", COL_PAPER_INK)
 		hb.add_child(lbl)
+
+
+# ==============================================================================
+# Bloque D2 — Autopsia en la morgue (4 pruebas por pasos, muestras limitadas, consejo del forense)
+# ==============================================================================
+func _build_morgue_tests_for_corpse(corpse_node: Node2D) -> void:
+	morgue_tests_def = _get_default_morgue_tests(corpse_node)
+	var target_key: String = str(corpse_node.get("npc_name")) if (corpse_node != null and is_instance_valid(corpse_node) and not corpse_node.has_meta("scripted_case_zones")) else "scripted_forest_woman"
+	if current_case_id != target_key or morgue_tests_state.is_empty():
+		current_case_id = target_key
+		morgue_tests_state.clear()
+		for k in ["sangre", "cuello", "estomago", "piel"]:
+			var d: Dictionary = morgue_tests_def.get(k, {})
+			morgue_tests_state[k] = {
+				"step": 0,
+				"log": [],
+				"state": "",
+				"vials": int(d.get("vials", 0)),
+				"dud": false,
+				"hint_asked": {}
+			}
+	if selected_morgue_test == "" or not morgue_tests_def.has(selected_morgue_test):
+		selected_morgue_test = "sangre"
+
+
+func _get_default_morgue_tests(corpse_node: Node2D) -> Dictionary:
+	var is_scripted: bool = (corpse_node == null or not is_instance_valid(corpse_node) or corpse_node.has_meta("scripted_case_zones"))
+	var v_name: String = str(corpse_node.get("npc_name")) if not is_scripted else "La mujer del bosque"
+	var fem: bool = is_female_model
+	var vm = get_tree().get_first_node_in_group("village_manager") if is_inside_tree() else null
+	var f_state: Dictionary = vm.VillageForensics.state(vm) if (vm != null and "VillageForensics" in vm) else {}
+	var is_poisoned: bool = is_scripted or (f_state.get("poisoned", {}) as Dictionary).has(v_name)
+	var is_moved: bool = is_scripted or (f_state.get("moved", {}) as Dictionary).has(v_name)
+	var is_tampered_time: bool = (f_state.get("tampered_time", {}) as Dictionary).has(v_name)
+	var weapon_cause: String = str(corpse_node.get("last_hit_weapon_name")) if not is_scripted else ""
+
+	var par_str: String = "paralizada por una hierba de embalsamar" if fem else "paralizado por una hierba de embalsamar"
+	if not is_scripted and is_poisoned:
+		par_str = ("envenenada con tóxico lento" if fem else "envenenado con tóxico lento")
+	var strangled_str: String = "estrangulada con las manos" if fem else "estrangulado con las manos"
+	if not is_scripted and weapon_cause != "" and not is_poisoned:
+		strangled_str = "lesión mortal por %s" % weapon_cause.to_lower()
+	var moved_str: String = "movida horas después" if fem else "movido horas después"
+	if not is_scripted and is_tampered_time:
+		moved_str = ("enfriada tras morir para trucar la hora" if fem else "enfriado tras morir para trucar la hora")
+
+	return {
+		"sangre": {
+			"name": "Sangre",
+			"vials": 2,
+			"steps": [
+				{
+					"q": "¿De dónde sacas la sangre?",
+					"hint": "«Del corazón. La del brazo ya se ha posado.»",
+					"opts": [
+						["Del corazón", "ok", "Sangre oscura y espesa: buena muestra."],
+						["Del brazo", "dud", "Apenas sale. Muestra pobre: lo que veas será dudoso."]
+					]
+				},
+				{
+					"q": "Elige el reactivo",
+					"hint": "«Para hierbas, la corteza. Para metales, la plata. Para la adormidera, el cobre.»",
+					"opts": [
+						["Sal de plata", "fail", "Nada. No hay metales. Gastas parte de la muestra."],
+						["Tintura de corteza", "ok", "La gota se vuelve verde oscuro en segundos."],
+						["Vinagre de cobre", "fail", "Nada. No hay adormidera. Gastas parte de la muestra."]
+					]
+				},
+				{
+					"q": "¿Qué indica el verde oscuro?",
+					"chart": true,
+					"hint": "«Verde oscuro… eso no lo uso yo. Es de embalsamadores.»",
+					"opts": [
+						["Una hierba de embalsamar", "ok", "Restos de una hierba de embalsamar en la sangre. Paraliza."],
+						["Veneno de setas", "dud", "Anotas «setas», pero el color no encaja del todo."],
+						["Nada raro", "dud", "Lo das por normal. Algo no te cuadra."]
+					]
+				}
+			],
+			"cause": par_str,
+			"note_title": "Autopsia · Sangre",
+			"note_tag": "Sangre: hierba paralizante"
+		},
+		"cuello": {
+			"name": "Cuello",
+			"vials": 0,
+			"steps": [
+				{
+					"q": "¿Cómo abres el cuello?",
+					"hint": "«Despacio, por capas. Si cortas deprisa, rompes lo que buscas.»",
+					"opts": [
+						["Corte lento, por capas", "ok", "Llegas al hueso de la garganta sin tocarlo."],
+						["Corte rápido", "ruin", "Rompes el hueso al cortar: ya no dice nada."]
+					]
+				},
+				{
+					"q": "Mira el hueso de la garganta",
+					"hint": "",
+					"opts": [
+						["Mirar", "ok", "Roto por los dos lados: la apretaron con las dos manos." if (is_scripted or weapon_cause == "" or is_poisoned) else ("Traumatismo interno compatible con %s." % weapon_cause)]
+					]
+				}
+			],
+			"cause": strangled_str,
+			"note_title": "Autopsia · Cuello",
+			"note_tag": "Hioides roto (dos manos)"
+		},
+		"estomago": {
+			"name": "Estómago",
+			"vials": 0,
+			"steps": [
+				{
+					"q": "Abre el estómago",
+					"hint": "",
+					"opts": [
+						["Abrir y vaciar en un cuenco", "ok", "Casi vacío. Un poco de líquido espeso, amargo y verdoso."]
+					]
+				},
+				{
+					"q": "¿Qué haces con el líquido?",
+					"hint": "«Guárdalo. El alquimista sabrá más que yo.»",
+					"opts": [
+						["Guardarlo en un frasco sellado", "ok", "Frasco sellado. El alquimista podrá analizarlo."],
+						["Tirarlo, ya lo has visto", "ruin", "Se pierde. Nadie podrá analizarlo."]
+					]
+				}
+			],
+			"cause": "",
+			"note_title": "Autopsia · Estómago",
+			"note_tag": "Frasco sellado (líquido amargo)"
+		},
+		"piel": {
+			"name": "Piel y rigidez",
+			"vials": 0,
+			"steps": [
+				{
+					"q": "Gira el cuerpo y mira la espalda",
+					"hint": "",
+					"opts": [
+						["Girar el cuerpo", "ok", "Manchas moradas en la espalda y otras en el costado: estuvo tumbada en dos sitios. La movieron horas después de morir."]
+					]
+				},
+				{
+					"q": "Prueba la rigidez",
+					"hint": "",
+					"opts": [
+						["Doblar codos y rodillas", "ok", "Rigidez desigual: algunos músculos estaban agarrotados antes de morir, como por algo que paraliza." if not is_tampered_time else "Rigidez alterada por frío artificial: enfriaron el cadáver para falsear la hora de la muerte."]
+					]
+				}
+			],
+			"cause": moved_str,
+			"note_title": "Autopsia · Piel y rigidez",
+			"note_tag": "Lividez doble (movida)"
+		}
+	}
+
+
+func _check_morgue_status() -> Dictionary:
+	var doc_name := "Dr. Valen"
+	var doc_ok := true
+	var in_morgue := true
+	var is_scripted: bool = (current_corpse == null or not is_instance_valid(current_corpse) or current_corpse.has_meta("scripted_case_zones"))
+	if not is_scripted:
+		in_morgue = (current_corpse.get("corpse_in_morgue") == true)
+		var vm = get_tree().get_first_node_in_group("village_manager") if is_inside_tree() else null
+		if vm != null:
+			if not in_morgue and "morgue_active_corpses" in vm:
+				var vn: String = str(current_corpse.get("npc_name"))
+				for rec in vm.morgue_active_corpses:
+					if str(rec.get("victim_name", "")) == vn:
+						in_morgue = true
+						break
+			if "trade_npcs" in vm:
+				var doc_npc = vm.trade_npcs.get(12, null) # TradeRole.DOCTOR == 12
+				if doc_npc == null and "village_npcs" in vm:
+					for n in vm.village_npcs:
+						if is_instance_valid(n) and int(n.get("trade_role")) == 12:
+							doc_npc = n
+							break
+				if doc_npc != null and is_instance_valid(doc_npc):
+					doc_name = str(doc_npc.get("npc_name"))
+					if not doc_name.begins_with("Dr."):
+						doc_name = "Dr. " + doc_name
+					if doc_npc.get("is_dead") == true or doc_npc.get("is_downed") == true:
+						doc_ok = false
+	return {
+		"can_autopsy": in_morgue and doc_ok,
+		"in_morgue": in_morgue,
+		"doc_ok": doc_ok,
+		"doc_name": doc_name
+	}
+
+
+func _morgue_status_badge(test_id: String) -> Dictionary:
+	var t: Dictionary = morgue_tests_state.get(test_id, {})
+	var st: String = str(t.get("state", ""))
+	var d: Dictionary = morgue_tests_def.get(test_id, {})
+	var steps: Array = d.get("steps", [])
+	if st == "ruin":
+		return {"text": "estropeada", "color": COL_BLOOD}
+	if st == "done":
+		if t.get("dud") == true:
+			return {"text": "dudosa", "color": COL_LAMP}
+		return {"text": "hecha", "color": Color("#9cc28a")}
+	var step_idx: int = int(t.get("step", 0))
+	if step_idx > 0:
+		return {"text": "paso %d/%d" % [step_idx + 1, steps.size()], "color": COL_DIM}
+	return {"text": "sin hacer", "color": COL_DIM}
+
+
+func get_real_cause_text() -> String:
+	var parts: Array[String] = []
+	var tc: Dictionary = morgue_tests_state.get("cuello", {})
+	if str(tc.get("state", "")) == "done":
+		var c1: String = str(morgue_tests_def.get("cuello", {}).get("cause", ""))
+		if c1 != "":
+			parts.append(c1)
+	var ts: Dictionary = morgue_tests_state.get("sangre", {})
+	if str(ts.get("state", "")) == "done" and ts.get("dud") != true:
+		var c2: String = str(morgue_tests_def.get("sangre", {}).get("cause", ""))
+		if c2 != "":
+			parts.append(c2)
+	var tp: Dictionary = morgue_tests_state.get("piel", {})
+	if str(tp.get("state", "")) == "done":
+		var c3: String = str(morgue_tests_def.get("piel", {}).get("cause", ""))
+		if c3 != "":
+			parts.append(c3)
+	return ", ".join(parts) if not parts.is_empty() else "sin determinar"
+
+
+func select_morgue_test(test_id: String) -> void:
+	if not morgue_tests_def.has(test_id):
+		return
+	selected_morgue_test = test_id
+	_render_morgue_view()
+
+
+func ask_morgue_doctor(test_id: String) -> void:
+	if not morgue_tests_def.has(test_id) or not morgue_tests_state.has(test_id):
+		return
+	var mst := _check_morgue_status()
+	if mst.get("can_autopsy") != true:
+		return
+	var t: Dictionary = morgue_tests_state[test_id]
+	var d: Dictionary = morgue_tests_def[test_id]
+	var steps: Array = d.get("steps", [])
+	var step_idx: int = int(t.get("step", 0))
+	if str(t.get("state", "")) != "" or step_idx >= steps.size():
+		return
+	var st_dict: Dictionary = steps[step_idx]
+	var hint_txt: String = str(st_dict.get("hint", ""))
+	if hint_txt == "":
+		return
+	var asked_map: Dictionary = t.get("hint_asked", {})
+	if asked_map.get(step_idx) != true:
+		asked_map[step_idx] = true
+		t["hint_asked"] = asked_map
+		_advance_investigation_minutes(5)
+	_render_morgue_view()
+
+
+func choose_morgue_option(test_id: String, opt_idx: int) -> void:
+	if not morgue_tests_def.has(test_id) or not morgue_tests_state.has(test_id):
+		return
+	var mst := _check_morgue_status()
+	if mst.get("can_autopsy") != true:
+		return
+	var t: Dictionary = morgue_tests_state[test_id]
+	var d: Dictionary = morgue_tests_def[test_id]
+	var steps: Array = d.get("steps", [])
+	var step_idx: int = int(t.get("step", 0))
+	if str(t.get("state", "")) != "" or step_idx >= steps.size():
+		return
+	var st_dict: Dictionary = steps[step_idx]
+	var opts: Array = st_dict.get("opts", [])
+	if opt_idx < 0 or opt_idx >= opts.size():
+		return
+	var op: Array = opts[opt_idx]
+	var outcome: String = str(op[1])
+	var msg: String = str(op[2])
+
+	_advance_investigation_minutes(10)
+	var log_arr: Array = t.get("log", [])
+
+	if outcome == "fail":
+		var v_left: int = int(t.get("vials", 0)) - 1
+		t["vials"] = v_left
+		log_arr.append(["bad", msg])
+		if v_left <= 0:
+			t["state"] = "ruin"
+			log_arr.append(["bad", "Muestra agotada. Esta prueba ya no se puede repetir."])
+	elif outcome == "ruin":
+		log_arr.append(["bad", msg])
+		t["state"] = "ruin"
+	else:
+		if outcome == "dud":
+			t["dud"] = true
+		log_arr.append(["dud" if outcome == "dud" else "ok", msg])
+		step_idx += 1
+		t["step"] = step_idx
+		if step_idx >= steps.size():
+			t["state"] = "done"
+			findings_count += 1
+			_apply_real_forensics_on_morgue_done(test_id, t.get("dud") == true)
+
+	t["log"] = log_arr
+	_update_header_meta()
+	_render_morgue_view()
+
+
+func _apply_real_forensics_on_morgue_done(test_id: String, is_dud: bool) -> void:
+	if current_corpse == null or not is_instance_valid(current_corpse) or current_corpse.has_meta("scripted_case_zones"):
+		return
+	var vm = get_tree().get_first_node_in_group("village_manager") if is_inside_tree() else null
+	if vm == null or not ("VillageForensics" in vm):
+		return
+	var v_name: String = str(current_corpse.get("npc_name"))
+	var st: Dictionary = vm.VillageForensics.state(vm)
+	if test_id == "sangre" and not is_dud:
+		if (st.get("poisoned", {}) as Dictionary).has(v_name):
+			var p_info: Dictionary = st["poisoned"][v_name]
+			if p_info.get("autopsied") != true:
+				p_info["autopsied"] = true
+				current_corpse.set("last_hit_weapon_name", "Envenenamiento lento confirmado")
+				if vm.has_method("start_sheriff_investigation"):
+					vm.call("start_sheriff_investigation", current_corpse, current_corpse.get("death_world_pos"), "Envenenamiento lento confirmado", "Jugador")
+				if vm.active_sheriff_investigation.get("active") == true:
+					var susp2: Dictionary = vm.active_sheriff_investigation.get("suspects", {})
+					var kn: String = str(p_info.get("killer_name", ""))
+					if susp2.has(kn):
+						susp2[kn]["score"] = int(susp2[kn].get("score", 10)) + 30
+	elif test_id == "piel":
+		if (st.get("tampered_time", {}) as Dictionary).has(v_name):
+			var tt: Dictionary = st["tampered_time"][v_name]
+			if tt.get("examined") != true:
+				tt["examined"] = true
+				if vm.active_sheriff_investigation.get("active") == true:
+					var susp_t: Dictionary = vm.active_sheriff_investigation.get("suspects", {})
+					var kn_t: String = str(tt.get("killer_name", ""))
+					if susp_t.has(kn_t):
+						susp_t[kn_t]["score"] = int(susp_t[kn_t].get("score", 15)) + 25
+
+
+func _render_morgue_view() -> void:
+	if morgue_list_vbox == null or bench_body_vbox == null:
+		return
+	if morgue_tests_def.is_empty():
+		_build_morgue_tests_for_corpse(current_corpse)
+
+	var mst := _check_morgue_status()
+	var can_autopsy: bool = mst.get("can_autopsy") == true
+	var doc_name: String = str(mst.get("doc_name", "Dr. Valen"))
+
+	if lbl_morgue_sub != null:
+		lbl_morgue_sub.text = "Con el %s. Si te equivocas, la muestra se pierde." % doc_name
+
+	if morgue_status_banner != null:
+		morgue_status_banner.visible = not can_autopsy
+		if not can_autopsy:
+			if mst.get("in_morgue") != true:
+				lbl_morgue_banner.text = "El cuerpo aún yace en la escena del crimen. Trasládalo a la camilla de la morgue para realizar la autopsia."
+				btn_morgue_transfer.visible = true
+			else:
+				lbl_morgue_banner.text = "El forense (%s) se encuentra incapacitado o ausente y no puede asistir en la mesa de autopsias." % doc_name
+				btn_morgue_transfer.visible = false
+
+	# 1. Renderizar lista de las 4 pruebas a la izquierda
+	for c in morgue_list_vbox.get_children():
+		c.queue_free()
+
+	for k in ["sangre", "cuello", "estomago", "piel"]:
+		if not morgue_tests_def.has(k):
+			continue
+		var d: Dictionary = morgue_tests_def[k]
+		var badge := _morgue_status_badge(k)
+		var is_sel: bool = (selected_morgue_test == k)
+
+		var row_btn := Button.new()
+		row_btn.custom_minimum_size = Vector2(0, 40)
+		row_btn.focus_mode = Control.FOCUS_NONE
+		row_btn.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
+		var b_border := COL_LAMP if is_sel else COL_EDGE
+		var b_bg := Color("#232b31") if is_sel else Color("#181d22")
+		row_btn.add_theme_stylebox_override("normal", _style_box(b_bg, b_border, 1, 0, 12, 8))
+		row_btn.add_theme_stylebox_override("hover", _style_box(Color("#273038"), COL_LAMP, 1, 0, 12, 8))
+		row_btn.add_theme_stylebox_override("pressed", _style_box(Color("#2c363f"), COL_LAMP, 1, 0, 12, 8))
+		row_btn.pressed.connect(func(): select_morgue_test(k))
+		morgue_list_vbox.add_child(row_btn)
+
+		var hb := HBoxContainer.new()
+		hb.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+		hb.offset_left = 12
+		hb.offset_right = -12
+		hb.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		row_btn.add_child(hb)
+
+		var nl := Label.new()
+		nl.text = str(d.get("name", k))
+		nl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		nl.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+		nl.add_theme_font_size_override("font_size", 14)
+		nl.add_theme_color_override("font_color", COL_INK)
+		nl.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		hb.add_child(nl)
+
+		var sl := Label.new()
+		sl.text = str(badge.get("text", "sin hacer"))
+		sl.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+		sl.add_theme_font_size_override("font_size", 11)
+		sl.add_theme_color_override("font_color", badge.get("color", COL_DIM))
+		sl.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		hb.add_child(sl)
+
+	# 2. Actualizar Causa real abajo a la izquierda
+	if lbl_real_cause != null:
+		lbl_real_cause.text = "Causa real: [color=#e7b45a][b]%s[/b][/color]" % get_real_cause_text()
+
+	# 3. Renderizar banco de pruebas a la derecha (.bench)
+	for c in bench_vials_hbox.get_children():
+		c.queue_free()
+	for c in bench_body_vbox.get_children():
+		c.queue_free()
+	bench_doc_panel.visible = false
+
+	if selected_morgue_test == "" or not morgue_tests_def.has(selected_morgue_test):
+		lbl_bench_title.text = "Elige una prueba"
+		var empty_l := Label.new()
+		empty_l.text = "Cada prueba tiene varios pasos. Algunas elecciones estropean lo que querías ver; otras solo dan un resultado dudoso."
+		empty_l.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		empty_l.add_theme_font_size_override("font_size", 13)
+		empty_l.add_theme_color_override("font_color", Color("#6a6254"))
+		bench_body_vbox.add_child(empty_l)
+		return
+
+	var k_cur: String = selected_morgue_test
+	var d_cur: Dictionary = morgue_tests_def[k_cur]
+	var t_cur: Dictionary = morgue_tests_state[k_cur]
+	lbl_bench_title.text = str(d_cur.get("name", k_cur))
+
+	# Indicador de viales de muestra ("Muestras de sangre: X / 2" + iconos de tubo)
+	var max_vials: int = int(d_cur.get("vials", 0))
+	var cur_vials: int = int(t_cur.get("vials", 0))
+	if max_vials > 0:
+		var vl := Label.new()
+		vl.text = "muestra (%d/%d)" % [cur_vials, max_vials]
+		vl.add_theme_font_size_override("font_size", 11)
+		vl.add_theme_color_override("font_color", Color("#7b6f5a"))
+		bench_vials_hbox.add_child(vl)
+		for vi in range(max_vials):
+			var vial_panel := PanelContainer.new()
+			vial_panel.custom_minimum_size = Vector2(12, 24)
+			var is_full: bool = (vi < cur_vials)
+			var v_bg := COL_BLOOD if is_full else Color(0, 0, 0, 0)
+			var v_st := _style_box(v_bg, COL_PAPER_INK, 1, 3, 0, 0)
+			vial_panel.add_theme_stylebox_override("panel", v_st)
+			bench_vials_hbox.add_child(vial_panel)
+
+	var st_str: String = str(t_cur.get("state", ""))
+	var step_idx: int = int(t_cur.get("step", 0))
+	var steps: Array = d_cur.get("steps", [])
+
+	# Si la prueba sigue en curso, mostrar pregunta del paso actual, tabla de colores, opciones y botón del Dr. Valen
+	if st_str == "" and step_idx < steps.size():
+		var st_dict: Dictionary = steps[step_idx]
+		var q_lbl := Label.new()
+		q_lbl.text = str(st_dict.get("q", ""))
+		q_lbl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		q_lbl.add_theme_font_size_override("font_size", 16)
+		q_lbl.add_theme_color_override("font_color", COL_PAPER_INK)
+		bench_body_vbox.add_child(q_lbl)
+
+		# Tabla de colores de referencia (paso 3 de Sangre)
+		if st_dict.get("chart") == true:
+			var chart_flow := HFlowContainer.new()
+			chart_flow.add_theme_constant_override("h_separation", 12)
+			chart_flow.add_theme_constant_override("v_separation", 6)
+			bench_body_vbox.add_child(chart_flow)
+			var swatches := [
+				[Color("#2f4a2a"), "verde oscuro"],
+				[Color("#8a7a2a"), "pardo"],
+				[Color("#6a3a6a"), "morado"],
+				[Color("#cfc7b5"), "sin cambio"]
+			]
+			for sw in swatches:
+				var sw_hb := HBoxContainer.new()
+				sw_hb.add_theme_constant_override("separation", 6)
+				var sq := PanelContainer.new()
+				sq.custom_minimum_size = Vector2(18, 18)
+				sq.add_theme_stylebox_override("panel", _style_box(sw[0], COL_PAPER_INK, 1, 0, 0, 0))
+				sw_hb.add_child(sq)
+				var sw_l := Label.new()
+				sw_l.text = str(sw[1])
+				sw_l.add_theme_font_size_override("font_size", 12)
+				sw_l.add_theme_color_override("font_color", COL_PAPER_INK)
+				sw_hb.add_child(sw_l)
+				chart_flow.add_child(sw_hb)
+
+		# Botones de elección del paso
+		var opts_flow := HFlowContainer.new()
+		opts_flow.add_theme_constant_override("h_separation", 6)
+		opts_flow.add_theme_constant_override("v_separation", 6)
+		bench_body_vbox.add_child(opts_flow)
+
+		var opts: Array = st_dict.get("opts", [])
+		for oi in range(opts.size()):
+			var op: Array = opts[oi]
+			var opt_btn := Button.new()
+			opt_btn.text = str(op[0])
+			opt_btn.disabled = not can_autopsy
+			opt_btn.focus_mode = Control.FOCUS_NONE
+			opt_btn.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND if can_autopsy else Control.CURSOR_FORBIDDEN
+			opt_btn.add_theme_font_size_override("font_size", 13)
+			opt_btn.add_theme_color_override("font_color", COL_PAPER)
+			opt_btn.add_theme_color_override("font_hover_color", COL_LAMP)
+			opt_btn.add_theme_stylebox_override("normal", _style_box(COL_PAPER_INK, COL_PAPER_INK, 1, 0, 12, 7))
+			opt_btn.add_theme_stylebox_override("hover", _style_box(Color("#3b352d"), COL_LAMP, 1, 0, 12, 7))
+			opt_btn.add_theme_stylebox_override("disabled", _style_box(Color("#b7ab92"), Color("#8e836d"), 1, 0, 12, 7))
+			var captured_oi: int = oi
+			opt_btn.pressed.connect(func(): choose_morgue_option(k_cur, captured_oi))
+			opts_flow.add_child(opt_btn)
+
+		# Botón «Preguntar al Dr. Valen (+5 min)» o consejo ya revelado
+		var hint_txt: String = str(st_dict.get("hint", ""))
+		if hint_txt != "":
+			var asked_map: Dictionary = t_cur.get("hint_asked", {})
+			if asked_map.get(step_idx) == true:
+				bench_doc_panel.visible = true
+				lbl_bench_doc.text = "[color=#e7b45a][b]%s:[/b][/color] %s" % [doc_name, hint_txt]
+			else:
+				var ask_btn := Button.new()
+				ask_btn.text = "Preguntar al %s (+5 min)" % doc_name
+				ask_btn.disabled = not can_autopsy
+				ask_btn.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
+				ask_btn.focus_mode = Control.FOCUS_NONE
+				ask_btn.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND if can_autopsy else Control.CURSOR_FORBIDDEN
+				ask_btn.add_theme_font_size_override("font_size", 12)
+				ask_btn.add_theme_color_override("font_color", COL_PAPER_INK)
+				ask_btn.add_theme_stylebox_override("normal", _style_box(Color(0, 0, 0, 0), COL_PAPER_INK, 1, 0, 10, 5))
+				ask_btn.add_theme_stylebox_override("hover", _style_box(Color("#dcd0b6"), COL_PAPER_INK, 1, 0, 10, 5))
+				ask_btn.pressed.connect(func(): ask_morgue_doctor(k_cur))
+				bench_body_vbox.add_child(ask_btn)
+
+	# Registro de pasos realizados en esta prueba (.log)
+	var log_arr: Array = t_cur.get("log", [])
+	for entry in log_arr:
+		var e_kind: String = str(entry[0])
+		var e_txt: String = str(entry[1])
+		var step_card := PanelContainer.new()
+		var st_box := _style_box(Color("#f3ecdc"), COL_PAPER_EDGE, 1, 0, 10, 7)
+		st_box.border_width_left = 3
+		if e_kind == "bad":
+			st_box.border_color = Color("#8a2f2a")
+		elif e_kind == "dud":
+			st_box.border_color = Color("#7a5a1e")
+		else:
+			st_box.border_color = COL_GREEN_OK
+		step_card.add_theme_stylebox_override("panel", st_box)
+		bench_body_vbox.add_child(step_card)
+
+		var pl := Label.new()
+		pl.text = e_txt
+		pl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		pl.add_theme_font_size_override("font_size", 13)
+		var p_col := Color("#8a2f2a") if e_kind == "bad" else (Color("#7a5a1e") if e_kind == "dud" else COL_PAPER_INK)
+		pl.add_theme_color_override("font_color", p_col)
+		step_card.add_child(pl)
+
+	# Si la prueba ha concluido con éxito ("done"), mostrar botón para anotar en el cuaderno
+	if st_str == "done" and not log_arr.is_empty():
+		var last_entry: Array = log_arr[log_arr.size() - 1]
+		var last_txt: String = str(last_entry[1])
+		var note_key: String = "m_%s" % k_cur
+		var already_pinned: bool = _has_note_with_key(note_key)
+		var note_btn := Button.new()
+		note_btn.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
+		note_btn.focus_mode = Control.FOCUS_NONE
+		note_btn.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
+		note_btn.text = "✓ En el cuaderno" if already_pinned else "📌 Anotar en el cuaderno"
+		note_btn.disabled = already_pinned
+		note_btn.add_theme_font_size_override("font_size", 12)
+		note_btn.add_theme_color_override("font_color", COL_GREEN_OK if already_pinned else Color("#f3ecdc"))
+		var p_bg := Color("#dfd4bc") if already_pinned else COL_PAPER_INK
+		note_btn.add_theme_stylebox_override("normal", _style_box(p_bg, COL_PAPER_INK, 1, 0, 10, 5))
+		note_btn.add_theme_stylebox_override("disabled", _style_box(Color("#dfd4bc"), COL_GREEN_OK, 1, 0, 10, 5))
+		note_btn.pressed.connect(func():
+			var n_title: String = str(d_cur.get("note_title", "Autopsia · " + str(d_cur.get("name", k_cur))))
+			var n_tag: String = str(d_cur.get("note_tag", n_title))
+			add_notebook_note(n_title, last_txt, n_tag, note_key)
+			_render_morgue_view()
+		)
+		bench_body_vbox.add_child(note_btn)
+
