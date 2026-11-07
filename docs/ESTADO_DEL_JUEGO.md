@@ -33,8 +33,11 @@
 ## 3. En pausa o descartado
 - **Asaltos** de bandidos y jabalíes: en pausa (`RAIDS_ENABLED = false`). El crimen es interno y discreto.
 - **Rendimiento** y **compra de arte**: aparcados. **Exportar/compartir** con amigos: no hasta tener el caso largo.
-- **Pruebas:** no las pases a mitad de trabajo. Solo al final de un encargo largo, una a una y **siempre con `timeout`**
-  (verify_all 900 s, social_sim 900, dialogue_coverage 600, feature_probe 1200). EXIT 124 = colgada por un assert.
+- **Pruebas (decisión del usuario, 2026-11-07):** las pruebas automáticas no ven lo visual; no bastan. Al final de
+  cada encargo: **solo `verify_all`** con `timeout 900` como red de seguridad (las otras tres solo en revisiones
+  grandes que pida el usuario) **y un recorrido de capturas** en sitios fijos (plaza, taberna, morgue, trattoria, el
+  bosque; de día y de noche; 2D, 3D y primera persona si aplica) que **mires de verdad** antes de decir «terminado».
+  Pon las capturas en el informe. Empieza siempre por `docs/FALLOS_VISIBLES.md`.
 
 ## 4. Pendiente (orden sugerido; el usuario decide)
 1. **El caso «La mujer del bosque»** jugable de principio a fin: arranque de partida que lo prepara, pistas físicas en

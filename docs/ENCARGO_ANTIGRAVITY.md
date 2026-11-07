@@ -10,6 +10,9 @@ chincheta abajo, tablero de corcho con hilo rojo). Silueta **plana**, sin línea
 mujer y hombre**, según la víctima; el pelo de la mujer cae detrás de la cabeza.
 
 ## Reglas
+- **CAMBIO (2026-11-07):** al final pasa SOLO `verify_all` (900 s), no las otras tres; y haz un recorrido de
+  capturas de las pantallas nuevas y de la plaza/morgue de día y de noche, y míralas antes de dar por terminado.
+  Mira también `docs/FALLOS_VISIBLES.md`.
 - No toques `scripts/systems/VillageSect.gd`, `GameVault/03_La_Secta/`, el Lore provisional, `GameVault/99_Archivo/`,
   `GameVault/.obsidian/` ni `.claude/`. Las 7 Reglas de las Auditorías (cercanía física, testigos, todo puede fallar).
 - Aprovecha lo que ya existe; no lo dupliques: heridas por zonas y su causa (`HealthComponent`, `wounds`),
