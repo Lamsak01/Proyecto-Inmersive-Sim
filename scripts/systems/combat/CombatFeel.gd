@@ -84,15 +84,15 @@ static func apply_hit_reaction(target: Node, dir: Vector2, feel: Dictionary) -> 
 	if target == null or not is_instance_valid(target) or not (target is Node2D):
 		return
 	var t2d := target as Node2D
-	if bool(target.get("is_dead")):
+	if target.get("is_dead") == true:
 		play(t2d, SFX_DIE, t2d.global_position, float(feel.get("pitch", 1.0)))
 	else:
 		play(t2d, SFX_HIT, t2d.global_position, float(feel.get("pitch", 1.0)))
 	var mass: float = mass_of(target)
 	var push: Vector2 = dir.normalized() * float(feel.get("knockback", 8.0)) / mass
-	if target is CharacterBody2D and push != Vector2.ZERO and not bool(target.get("is_dead")) and not bool(target.get("is_downed")):
+	if target is CharacterBody2D and push != Vector2.ZERO and target.get("is_dead") != true and target.get("is_downed") != true:
 		(target as CharacterBody2D).move_and_collide(push) # choca con muros: no atraviesa paredes
-	if target.has_method("apply_parry_stagger") and not bool(target.get("is_dead")):
+	if target.has_method("apply_parry_stagger") and target.get("is_dead") != true:
 		target.call("apply_parry_stagger", float(feel.get("stagger", 0.2)) / sqrt(mass), true)
 	spawn_impact_spark(t2d, t2d.global_position + Vector2(0, -8) - dir.normalized() * 4.0, dir)
 

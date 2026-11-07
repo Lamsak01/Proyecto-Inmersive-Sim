@@ -6202,5 +6202,58 @@ func _initialize() -> void:
 	p70_pl.equip_weapon(c73_wbak)
 	p70_pl.global_position = c73_ppos
 	print("Block C7 fase 3a (Sword 3-Hit Chain & Charged Hammer/Axe Blow) OK")
+	# ==========================================================================
+	# Bloque C7 fase 3b: guardia alta sostenida y empujón («C7 combate fase 3b»)
+	# ==========================================================================
+	var c74_ppos: Vector2 = p70_pl.global_position
+	c7_cc.attack_timer = 0.0
+	c7_cc.parry_cooldown_timer = 0.0
+	c7_cc.parry_window_timer = 0.0
+	c7_st.current_stamina = c7_st.max_stamina
+	c7_cc.block_key_override = 1 # Q mantenida
+	assert(c7_cc.start_parry(), "C7.16: Q starts the parry")
+	await create_timer(0.3).timeout
+	assert(bool(c7_cc.is_blocking), "C7.17: Holding Q after the parry window raises the guard")
+	var c74_hc = p70_pl.get_node_or_null("HealthComponent")
+	c74_hc.current_health = c74_hc.max_health
+	var c74_hp0: float = c74_hc.current_health
+	var c74_st0: float = c7_st.current_stamina
+	var c74_d = DamageData.new()
+	c74_d.amount = 20.0
+	c74_d.weapon_tag = "Prueba"
+	p70_pl.take_damage(c74_d)
+	var c74_lost: float = c74_hp0 - c74_hc.current_health
+	assert(c74_lost < 20.0 * 0.5 and c74_st0 - c7_st.current_stamina >= 15.0, "C7.18: A blocked blow lets through a small part and costs stamina (lost %.1f HP)" % c74_lost)
+	c7_st.current_stamina = 2.0
+	var c74_hp1: float = c74_hc.current_health
+	p70_pl.take_damage(c74_d)
+	assert(not bool(c7_cc.is_blocking) and c74_hp1 - c74_hc.current_health > 10.0, "C7.19: Without stamina the guard breaks and the blow goes through")
+	c7_cc.block_key_override = 0
+	c7_cc.end_block()
+	c74_hc.current_health = c74_hc.max_health
+	# Empujón: aparta al de delante casi sin daño
+	await create_timer(0.6).timeout
+	c7_cc.attack_timer = 0.0
+	c7_cc.shove_cooldown = 0.0
+	c7_st.current_stamina = c7_st.max_stamina
+	var c74_n = c72_n
+	var c74_npos: Vector2 = c74_n.global_position
+	p70_pl.global_position = c74_npos + Vector2(-20.0, 0.0)
+	c7_cc.current_aim_dir = Vector2.RIGHT
+	c7_cc._swing_locked = true
+	c74_n._stagger_timer = 0.0
+	assert(c7_cc.shove(), "C7.20: X shoves")
+	assert(c74_n.global_position.x > c74_npos.x + 3.0 and c74_n._stagger_timer > 0.3, "C7.21: The shove pushes them away and unbalances them (moved %.1f px)" % (c74_n.global_position.x - c74_npos.x))
+	assert(not c7_cc.shove(), "C7.22: The shove has a cooldown")
+	c7_cc._swing_locked = false
+	c74_n.global_position = c74_npos
+	c74_n._stagger_timer = 0.0
+	c74_n._civilian_hostile_timer = 0.0
+	if c74_n.has_method("_clear_combat_hostility"):
+		c74_n._clear_combat_hostility(false)
+	c7_cc.block_key_override = -1
+	p70_pl.global_position = c74_ppos
+	await create_timer(0.5).timeout
+	print("Block C7 fase 3b (Sustained Guard & Shove) OK")
 	print("ALL RIMWORLD MEDICAL, FOOTPRINTS, 3-PHASE CORPSE REPORT, MULTI-CORPSE FIX, RPG INTERROGATION, PUBLIC TRIAL, DYNAMIC RELATIONSHIPS, MISSING FAMILY SEARCH, SOCIAL GLOSSARY & UNCONSCIOUS REACTION TESTS PASSED!")
 	quit(0)

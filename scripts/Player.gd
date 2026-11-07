@@ -823,6 +823,20 @@ func take_damage(data: DamageData) -> void:
 		_spawn_floating_text("🛡️ ¡PARADA!", Color(0.45, 0.95, 1.0), -40.0)
 		_CombatFeel.play(self, _CombatFeel.SFX_HIT, global_position, 1.45, -3.0) # choque de metal, más agudo
 		return
+	# C7 fase 3b: guardia alta (Q mantenida): para casi todo el golpe a cambio de energía
+	if not is_ranged_hit and data != null:
+		if not combat_ctrl:
+			combat_ctrl = get_node_or_null("PlayerCombatController")
+		if combat_ctrl and bool(combat_ctrl.get("is_blocking")):
+			var pass_mult: float = float(combat_ctrl.call("block_hit", data))
+			if pass_mult < 1.0:
+				data = data.copy()
+				data.amount *= pass_mult
+				data.bleed_buildup *= pass_mult
+				data.stun_buildup *= pass_mult
+				data.knockback_force = maxf(4.0, data.knockback_force * 0.6)
+				_spawn_floating_text("🛡️ Bloqueado", Color(0.7, 0.85, 1.0), -40.0)
+				_CombatFeel.play(self, _CombatFeel.SFX_HIT, global_position, 1.25, -5.0)
 	if data and is_instance_valid(data.source):
 		last_damage_source = data.source
 	var hp_before: float = health_comp.current_health if health_comp else 100.0

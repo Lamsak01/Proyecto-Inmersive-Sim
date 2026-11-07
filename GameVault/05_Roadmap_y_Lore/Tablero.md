@@ -6,7 +6,7 @@ kanban-plugin: board
 
 ## 🔥 Prioridad alta (presencia física)
 
-- [ ] Rehacer el combate: hechas las fases 1 (peso y respuesta), 2 (rivales con las mismas reglas) y 3a (cadena y golpe cargado); faltan bloqueo y empujón, y consecuencias ([[Armaduras, Sigilo y Arcabuz]])
+- [ ] Rehacer el combate: hechas las fases 1 (peso y respuesta), 2 (rivales con las mismas reglas) y 3 (cadena, golpe cargado, guardia alta y empujón); faltan las consecuencias (zonas, mellas, desarmar) ([[Armaduras, Sigilo y Arcabuz]])
 - [ ] Arcabuz de chispa usable en combate directo ([[Armaduras, Sigilo y Arcabuz]])
 - [ ] Recinto caminable del [[Puesto del Paso]]
 - [ ] Sótanos y altillos dibujados en el tilemap ([[Capas Verticales y Alcantarillas]])

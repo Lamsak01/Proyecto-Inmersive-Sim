@@ -277,6 +277,8 @@ func _handle_input(delta: float) -> void:
 		current_speed *= float(c_sw.get("swing_move_mult"))
 	elif c_sw != null and bool(c_sw.get("is_charging")):
 		current_speed *= 0.55 # C7 fase 3a: cargando el golpe vas despacio
+	elif c_sw != null and bool(c_sw.get("is_blocking")):
+		current_speed *= 0.5 # C7 fase 3b: con la guardia alta andas despacio
 
 	anim.speed_scale = target_anim_scale
 

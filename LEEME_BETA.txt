@@ -21,7 +21,10 @@ Lo básico
   Usar o hablar ........................ E
   Cambiar de objetivo (si hay varios) ... G, o Mayús + rueda del ratón
   Rodar ................................ Espacio
-  Parar un golpe ....................... Q
+  Parar un golpe ....................... Q (mantenla para cubrirte; gasta energía)
+  Empujar .............................. X
+  Golpe cargado (martillo, hacha) ...... mantén el clic y suelta
+  Cadena con la espada ................. vuelve a pulsar justo al acabar el golpe
   Sigilo ............................... C
   Mochila .............................. I
 Más

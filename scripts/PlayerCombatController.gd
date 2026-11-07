@@ -49,6 +49,15 @@ var _in_recovery: bool = false
 var is_charging: bool = false
 var charge_t: float = 0.0
 var _charge_from_mouse: bool = true
+## C7 fase 3b: bloqueo sostenido (mantener Q tras la parada) y empujón (X)
+const BLOCK_DAMAGE_MULT: float = 0.30 ## lo que pasa del golpe al bloquear (la parada perfecta sigue anulándolo)
+const BLOCK_DRAIN: float = 2.5 ## energía por segundo con la guardia alta
+const SHOVE_RANGE: float = 32.0
+const SHOVE_COOLDOWN: float = 0.8
+const SHOVE_STAMINA: float = 12.0
+const SHOVE_FEEL: Dictionary = {"knockback": 26.0, "stagger": 0.6, "hitstop": 0.04, "shake": 2.5, "pitch": 0.85}
+var is_blocking: bool = false
+var shove_cooldown: float = 0.0
 var _swing_power: float = 1.0 ## multiplicador de daño/empujón/tambaleo del golpe en curso (3.º de la cadena, cargado)
 
 func _ready() -> void:
@@ -105,18 +114,97 @@ func _process(delta: float) -> void:
 		attack_timer -= delta
 
 func _physics_process(delta: float) -> void:
-	if parry_window_timer > 0.0:
+	if shove_cooldown > 0.0:
+		shove_cooldown = maxf(0.0, shove_cooldown - delta)
+	if is_blocking:
+		if stamina_comp:
+			stamina_comp.use_stamina(BLOCK_DRAIN * delta)
+		if not _block_key_held() or (stamina_comp and stamina_comp.current_stamina <= 1.0):
+			end_block()
+	elif parry_window_timer > 0.0:
 		parry_window_timer = maxf(0.0, parry_window_timer - delta)
 		if parry_window_timer <= 0.0:
-			parry_cooldown_timer = PARRY_COOLDOWN
-			if weapon_sprite and attack_timer <= 0.0 and not is_drawing_bow:
-				weapon_sprite.visible = false
-				weapon_sprite.modulate = Color.WHITE
+			# C7 fase 3b: si sigues con Q pulsada, la parada pasa a guardia alta
+			if _block_key_held() and (stamina_comp == null or stamina_comp.current_stamina > 5.0):
+				is_blocking = true
+				if weapon_sprite:
+					weapon_sprite.modulate = Color(0.85, 0.9, 1.1)
+			else:
+				parry_cooldown_timer = PARRY_COOLDOWN
+				if weapon_sprite and attack_timer <= 0.0 and not is_drawing_bow:
+					weapon_sprite.visible = false
+					weapon_sprite.modulate = Color.WHITE
 	elif parry_cooldown_timer > 0.0:
 		parry_cooldown_timer = maxf(0.0, parry_cooldown_timer - delta)
 
 func is_parrying() -> bool:
 	return parry_window_timer > 0.0
+
+var block_key_override: int = -1 ## solo pruebas: 1 = Q pulsada, 0 = suelta, -1 = leer el teclado
+func _block_key_held() -> bool:
+	if block_key_override >= 0:
+		return block_key_override == 1
+	return Input.is_physical_key_pressed(KEY_Q)
+
+func end_block() -> void:
+	if not is_blocking:
+		return
+	is_blocking = false
+	parry_cooldown_timer = PARRY_COOLDOWN
+	if weapon_sprite and attack_timer <= 0.0 and not is_drawing_bow:
+		weapon_sprite.visible = false
+		weapon_sprite.modulate = Color.WHITE
+
+## Golpe recibido con la guardia alta: gasta energía según el golpe. Devuelve la parte del daño que pasa
+## (BLOCK_DAMAGE_MULT, o 1 si no te quedaba energía: la guardia se rompe).
+func block_hit(data: DamageData) -> float:
+	var cost: float = 8.0 + (data.amount * 0.6 if data != null else 0.0)
+	if stamina_comp and stamina_comp.current_stamina < cost:
+		stamina_comp.use_stamina(stamina_comp.current_stamina)
+		end_block()
+		if player.has_method("_spawn_combat_popup"):
+			player.call("_spawn_combat_popup", "💢 ¡Guardia rota!", Color(1.0, 0.5, 0.35))
+		return 1.0
+	if stamina_comp:
+		stamina_comp.use_stamina(cost)
+	return BLOCK_DAMAGE_MULT
+
+## C7 fase 3b: empujón con el hombro (X). Casi sin daño; abre distancia y desequilibra. Cuenta como agresión.
+func shove() -> bool:
+	if not is_instance_valid(player) or attack_timer > 0.0 or is_blocking or is_charging or shove_cooldown > 0.0:
+		return false
+	if player.has_method("is_rolling") and bool(player.call("is_rolling")):
+		return false
+	if stamina_comp:
+		if stamina_comp.current_stamina < SHOVE_STAMINA:
+			return false
+		stamina_comp.use_stamina(SHOVE_STAMINA)
+	shove_cooldown = SHOVE_COOLDOWN
+	attack_timer = 0.35
+	swing_duration = 0.35
+	swing_move_mult = 0.4
+	CombatFeel.play(player, CombatFeel.SFX_SWING, player.global_position, 0.7, -9.0)
+	var hit_any: bool = false
+	for g in ["npcs", "wild_animals", "raiders", "domestic_pets", "enemies"]:
+		for t in get_tree().get_nodes_in_group(g):
+			if t == player or not (t is Node2D) or not is_instance_valid(t) or t.get("is_dead") == true:
+				continue
+			var to_t: Vector2 = (t as Node2D).global_position - player.global_position
+			if to_t.length() > SHOVE_RANGE or (to_t.length_squared() > 1.0 and to_t.normalized().dot(current_aim_dir) < 0.3):
+				continue
+			if t.has_method("take_damage"):
+				var d := DamageData.new()
+				d.amount = 1.0
+				d.type = CombatConstants.DamageType.BLUNT
+				d.stun_buildup = 12.0
+				d.weapon_tag = "Empujón"
+				d.source = player
+				t.call("take_damage", d)
+			CombatFeel.apply_hit_reaction(t, to_t if to_t.length_squared() > 1.0 else current_aim_dir, SHOVE_FEEL)
+			hit_any = true
+	if hit_any:
+		_apply_camera_shake(float(SHOVE_FEEL["shake"]))
+	return true
 
 func start_parry() -> bool:
 	if not is_instance_valid(player):
@@ -188,6 +276,10 @@ func _unhandled_input(event: InputEvent) -> void:
 
 	if event is InputEventKey and event.pressed and not event.echo and (event.keycode == KEY_Q or event.physical_keycode == KEY_Q):
 		if start_parry():
+			get_viewport().set_input_as_handled()
+		return
+	if event is InputEventKey and event.pressed and not event.echo and (event.keycode == KEY_X or event.physical_keycode == KEY_X):
+		if shove():
 			get_viewport().set_input_as_handled()
 		return
 
@@ -381,6 +473,8 @@ func attack(_aim_with_mouse: bool = true, charge: float = 0.0) -> void:
 	if not equipped: return
 	var w_key: String = str(equipped.name).to_lower()
 	# Cadena de la espada: volver a pulsar durante la recuperación corta lo que queda y suelta el siguiente golpe
+	if is_blocking:
+		return # con la guardia alta no se golpea
 	var chaining: bool = attack_timer > 0.0 and _in_recovery and not equipped.is_ranged and (w_key in COMBO_WEAPONS) and combo_step >= 1 and combo_step < 3
 	if attack_timer > 0.0 and not chaining: return
 	if equipped == player.get("watering_can_weapon") and player.has_method("is_bloodstained") and bool(player.call("is_bloodstained")):

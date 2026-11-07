@@ -3,6 +3,13 @@
 Cambios del juego, del más nuevo al más antiguo. Añade una entrada al cerrar cada bloque, en lenguaje sencillo.
 El detalle técnico está en `docs/HANDOFF.md` (sección 7) y el historial completo en `git log`. Lo anterior a B0.1 está en `AUDIT_LOG.md` y `SESSION_CONTEXT_LOG.md`.
 
+## 2026-11-06 — El combate pesa: cubrirse y empujar
+- **Cubrirte:** mantén Q después de parar y levantas la guardia: los golpes pasan muy flojos pero gastan energía;
+  si te quedas sin ella, la guardia se rompe. Con la guardia alta andas despacio y no puedes golpear. No para flechas ni balas.
+- **Empujar (X):** un empujón con el hombro que aparta y desequilibra al que tienes delante. Casi no hace daño, pero
+  empujar a un vecino sigue siendo una agresión.
+- La pantalla de controles y el «Léeme» ya lo cuentan.
+
 ## 2026-11-06 — El combate pesa: cadenas y golpes cargados
 - **Espada:** si vuelves a pulsar justo al terminar un golpe, encadenas otro; el tercero es más lento y pega fuerte.
 - **Martillo y hacha:** mantén el clic para cargar (el arma se echa atrás y brilla); al soltar, golpe que empuja y
