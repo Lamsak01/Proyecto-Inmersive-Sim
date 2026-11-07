@@ -1,5 +1,10 @@
 # Visión a largo plazo y banco de ideas
 
+> **DECISIÓN DEL USUARIO (2026-11-07): el bucle principal del juego es el DETECTIVE.** Llega un caso, investigas
+> (cuerpo, pistas en el mundo, testigos, chismes), acusas y el pueblo cambia según aciertes o falles; luego llega otro.
+> Subir en el crimen (la Familia) y echar raíces (casa, negocio) quedan como caminos secundarios que alimentan los casos.
+> Lo nuevo debe servir a ese bucle o esperar. Primer caso: «La mujer del bosque» (`docs/PLAN_BETA_MISTERIO.md` §5).
+
 Documento permanente con la aspiración del juego y la lluvia de ideas del usuario.
 **Cualquier asistente (sea el modelo que sea) debe leerlo antes de proponer sistemas nuevos.**
 Nada de esta lista está aprobado para construir: cada idea necesita su plan corto y la aprobación del usuario
