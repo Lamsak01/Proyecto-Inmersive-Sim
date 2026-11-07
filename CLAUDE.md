@@ -9,6 +9,8 @@ Immersive sim 2D en pixel art hecho con Godot 4.7.2 (GDScript). El usuario no pr
 
 ## Antes de trabajar
 
+**Directivas por papel (valen en cualquier ordenador):** Claude Code lee `docs/DIRECTIVAS_CLAUDE.md`; Antigravity lee `docs/DIRECTIVAS_ANTIGRAVITY.md`. Las pruebas automáticas no ven los fallos visibles: mira capturas y `docs/FALLOS_VISIBLES.md`.
+
 0. Si eres un agente nuevo (Antigravity u otro), empieza por `docs/PROMPT_SIGUIENTE_AGENTE.md`. Si ya trabajaste aquí, lee antes `docs/NOTA_PARA_OTRO_AGENTE.md`.
    - **Base de datos de Obsidian (`GameVault/`):** Dentro del repositorio vive la bóveda de Obsidian del proyecto (`GameVault/00_MOC/La Placa de Petri.md` y subcarpetas `01_Vision_y_Reglas` a `06_Diario`). Cualquier agente de IA (Claude Code, Antigravity u otro futuro) debe consultarla y **mantenerla actualizada y sincronizada en GitHub** en cada bloque que modifique sistemas, misiones, censo, pendientes o el diario.
 

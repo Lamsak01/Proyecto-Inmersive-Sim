@@ -3,6 +3,9 @@
 > Escrito por Claude (Claude Code) el 2026-11-03 al cerrar su etapa. Pega el bloque de abajo entero como primer
 > mensaje. Es la fuente principal del traspaso; `docs/HANDOFF.md` §0 apunta aquí.
 >
+> **Novedad 2026-11-07 (antes que nada):** lee `docs/DIRECTIVAS_ANTIGRAVITY.md` (tu papel, cuándo probar y por
+> qué las pruebas no bastan: mira capturas y `docs/FALLOS_VISIBLES.md`).
+>
 > **Novedad 2026-11-05 (lo primero):** ahora Antigravity escribe el código y Claude Code supervisa. Tu encargo actual
 > está en `docs/ENCARGO_ANTIGRAVITY.md`; al terminar deja tu informe en `docs/INFORME_ANTIGRAVITY.md`.
 >
