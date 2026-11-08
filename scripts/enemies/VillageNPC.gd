@@ -573,6 +573,7 @@ func setup_npc(tex: Texture2D, p_work_pos: Vector2, p_bed_pos: Vector2, initial_
 		if trade_role == TradeRole.TRAVELING_MERCHANT:
 			carries_royal_safe_conduct = true
 	_init_rimworld_psychology()
+	npc_role = feminize_role_title(npc_role, is_female())
 
 	sprite = Sprite2D.new()
 	sprite.name = "Sprite2D"
@@ -1419,6 +1420,10 @@ var _pre_poker_pos: Vector2 = Vector2.ZERO
 
 func _show_status_label(txt: String, col: Color) -> void:
 	if status_label:
+		var vm_sl = _get_vm()
+		if vm_sl != null and int(vm_sl.player_elevation_level) != int(elevation_level):
+			status_label.visible = false
+			return
 		status_label.text = txt
 		status_label.add_theme_color_override("font_color", col)
 		status_label.scale = Vector2(0.74, 0.74)
@@ -1471,6 +1476,8 @@ func _is_focused_npc() -> bool:
 				var best_d2: float = 42.0 * 42.0
 				for n in get_tree().get_nodes_in_group("village_npcs"):
 					if n is VillageNPC and is_instance_valid(n) and (n as Node2D).visible and not bool(n.get("corpse_buried")):
+						if vm_f != null and int(vm_f.player_elevation_level) != int((n as VillageNPC).elevation_level):
+							continue
 						var d2: float = (n as Node2D).global_position.distance_squared_to(pl.global_position)
 						if d2 < best_d2:
 							if vm_f == null or not vm_f.has_method("has_line_of_sight") or bool(vm_f.call("has_line_of_sight", pl.global_position, (n as Node2D).global_position)):
@@ -1482,7 +1489,56 @@ func _is_focused_npc() -> bool:
 
 func is_female() -> bool:
 	var clean_name: String = npc_name.split(" ")[0]
-	return (person_profile != null and str(person_profile.gender) == "F") or (person_profile == null and (clean_name.ends_with("a") or clean_name in ["Inés", "Carmen", "Beatriz", "Dolores", "Mercedes", "Pilar", "Rocío", "Luz", "Sol"]))
+	return (person_profile != null and str(person_profile.gender) == "F") or (person_profile == null and (clean_name.ends_with("a") or clean_name in ["Eloise", "Inés", "Carmen", "Beatriz", "Dolores", "Mercedes", "Pilar", "Rocío", "Luz", "Sol", "Iris", "Astrid", "Maren", "Freya", "Ingrid"]))
+
+static func feminize_role_title(title: String, fem: bool) -> String:
+	if not fem or title.is_empty():
+		return title
+	var out: String = title
+	var pairs: Array = [
+		["Maestro Herrero y Armero", "Maestra Herrera y Armera"],
+		["Maestro Carnicero", "Maestra Carnicera"],
+		["Maestro Carpintero", "Maestra Carpintera"],
+		["Pescador y Molinero", "Pescadora y Molinera"],
+		["Médico Cirujano", "Médica Cirujana"],
+		["Posadero", "Posadera"],
+		["Tabernero", "Tabernera"],
+		["Camarero", "Camarera"],
+		["Panadero", "Panadera"],
+		["Sastre", "Sastra"],
+		["Granjero", "Granjera"],
+		["Ganadero", "Ganadera"],
+		["Cantero", "Cantera"],
+		["Leñador", "Leñadora"],
+		["Arreglador", "Arregladora"],
+		["Herrero", "Herrera"],
+		["Armero", "Armera"],
+		["Carnicero", "Carnicera"],
+		["Carpintero", "Carpintera"],
+		["Pescador", "Pescadora"],
+		["Molinero", "Molinera"],
+		["Cocinero", "Cocinera"],
+		["Jardinero", "Jardinera"],
+		["Médico", "Médica"],
+		["Cirujano", "Cirujana"],
+		["Comisario", "Comisaria"],
+		["Sacerdote", "Sacerdotisa"],
+		["Artesano", "Artesana"],
+		["Encargado", "Encargada"],
+		["Forastero", "Forastera"],
+		["Jornalero", "Jornalera"],
+		["Viajero", "Viajera"],
+		["Vecino", "Vecina"],
+		["Recién Llegado", "Recién Llegada"],
+		["Contratado", "Contratada"],
+		["Sucesor", "Sucesora"],
+		["Relegado", "Relegada"],
+		["Señor del Valle", "Señora del Valle"],
+	]
+	for p in pairs:
+		if out.find(str(p[0])) != -1:
+			out = out.replace(str(p[0]), str(p[1]))
+	return out
 
 func get_short_world_state() -> String:
 	var fem: bool = is_female()
@@ -1511,10 +1567,14 @@ func get_short_world_state() -> String:
 		return "Descansando"
 	if act.find("charl") != -1 or act.find("habl") != -1:
 		return "Hablando"
-	return npc_role if npc_role != "" else ("Vecina" if fem else "Vecino")
+	return feminize_role_title(npc_role, fem) if npc_role != "" else ("Vecina" if fem else "Vecino")
 
 func _update_world_tag_for_state(focused_color: Color, fallback_icon: String = "") -> void:
 	if not status_label:
+		return
+	var vm_tag = _get_vm()
+	if vm_tag != null and int(vm_tag.player_elevation_level) != int(elevation_level):
+		status_label.visible = false
 		return
 	var pl := _get_player()
 	var dist_sq: float = global_position.distance_squared_to(pl.global_position) if pl != null else INF
@@ -3293,7 +3353,8 @@ func _update_needs_and_decisions(delta: float) -> void:
 
 	if current_activity != ActivityState.EATING:
 		_restaurant_seat = Vector2.ZERO
-		_tavern_seat = Vector2.ZERO
+		if current_activity != ActivityState.SOCIALIZING:
+			_tavern_seat = Vector2.ZERO
 		_meal_consumed_this_sitting = false
 		_has_valid_meal_this_sitting = false
 		_sitting_meal_ingested = 0.0
@@ -4278,7 +4339,19 @@ func _get_social_target_pos() -> Vector2:
 		if vm_g and vm_g.has_method("get_grave_pos_for_victim"):
 			return vm_g.call("get_grave_pos_for_victim", str(person_profile.deceased_partner_name))
 		return Vector2(888, 262)
+	var vm_s = _get_vm()
+	if _VillageTavern.RECT.has_point(global_position) or (family_id == "none" and not is_vagrant_camper) or home_table_pos == tavern_social_pos:
+		if not (trade_role in [TradeRole.INNKEEPER, TradeRole.WAITER]):
+			if _tavern_seat == Vector2.ZERO or _tavern_seat == tavern_social_pos or _VillageTavern.is_seat_taken(vm_s, _tavern_seat, self):
+				_tavern_seat = _VillageTavern.pick_seat_for(vm_s, self)
+			if _tavern_seat != Vector2.ZERO and _tavern_seat != tavern_social_pos:
+				return _tavern_seat
 	if is_instance_valid(_social_partner) and not _social_partner.is_dead and not _social_partner.is_downed and not _social_partner.is_sleeping:
+		if _VillageTavern.RECT.has_point(_social_partner.global_position):
+			if _tavern_seat == Vector2.ZERO or _tavern_seat == tavern_social_pos or _VillageTavern.is_seat_taken(vm_s, _tavern_seat, self):
+				_tavern_seat = _VillageTavern.pick_seat_for(vm_s, self)
+			if _tavern_seat != Vector2.ZERO and _tavern_seat != tavern_social_pos:
+				return _tavern_seat
 		var angle_idx: float = float(abs(npc_name.hash()) % 8) * (TAU / 8.0)
 		var ring_offset := Vector2.RIGHT.rotated(angle_idx) * 14.0
 		var ref_p: Vector2 = _social_partner.home_table_pos if _social_partner.velocity.length_squared() > 25.0 else _social_partner.global_position
@@ -5071,7 +5144,7 @@ func promote_to_trade(new_role: TradeRole, new_title: String, new_work_pos: Vect
 	if has_meta("school_bonus_days"):
 		remove_meta("school_bonus_days")
 	days_in_role = clampi(base_days + school_bonus, 0, 7)
-	npc_role = new_title + (" (Herencia Familiar)" if was_family else " (Sucesor)")
+	npc_role = feminize_role_title(new_title + (" (Herencia Familiar)" if was_family else " (Sucesor)"), is_female())
 	work_position = new_work_pos
 	if new_bed_pos != Vector2.ZERO: bed_position = new_bed_pos
 	if new_table_pos != Vector2.ZERO: home_table_pos = new_table_pos

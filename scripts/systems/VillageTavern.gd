@@ -70,19 +70,19 @@ const WELL_POS: Vector2 = Vector2(228.0, -230.0)           # Pozo en el patio la
 ## Escalera real entre Planta 0 y Planta +1 y Trampilla al Sótano (-1)
 const STAIRS_BOTTOM_POS: Vector2 = Vector2(576.0, -284.0)  # Pie de la escalera en Planta 0 (sala noreste)
 const STAIRS_TOP_POS: Vector2 = Vector2(576.0, -202.0)     # Desembarco de la escalera en Planta +1 (galería alta)
-const STAIRS_PROP_POS: Vector2 = Vector2(576.0, -244.0)    # Punto interactivo [E] de la escalera
-const STAIRS_RAMP_RECT: Rect2 = Rect2(Vector2(558.0, -292.0), Vector2(36.0, 96.0))
+const STAIRS_PROP_POS: Vector2 = Vector2(576.0, -244.0)    # Punto medio de la rampa de la escalera
+const STAIRS_RAMP_RECT: Rect2 = Rect2(Vector2(560.0, -294.0), Vector2(36.0, 102.0))
 
-## 6 Mesas del Gran Salón Comedor (Planta 0) con 2 sillas cada una (12 plazas sentadas)
+## 6 Mesas del Gran Salón Comedor (Planta 0) con 2 sillas cada una (12 plazas sentadas, todas visibles frente al muro sur)
 const DINING_TABLES: Array = [
-	Vector2(296.0, -198.0),
-	Vector2(358.0, -198.0),
-	Vector2(420.0, -198.0),
-	Vector2(296.0, -158.0),
-	Vector2(358.0, -158.0),
-	Vector2(454.0, -198.0),
+	Vector2(296.0, -218.0),
+	Vector2(358.0, -218.0),
+	Vector2(296.0, -190.0),
+	Vector2(358.0, -190.0),
+	Vector2(420.0, -190.0),
+	Vector2(454.0, -218.0),
 ]
-const CHAIR_OFFSETS: Array = [Vector2(-13.0, 0.0), Vector2(13.0, 0.0)]
+const CHAIR_OFFSETS: Array = [Vector2(-15.0, 0.0), Vector2(15.0, 0.0)]
 
 ## 4 Sillas alrededor de la Mesa de Póker (Planta 0: Oeste, Este, Norte, Sur)
 const POKER_CHAIR_OFFSETS: Array = [
@@ -150,13 +150,14 @@ static func setup_world(vm) -> void:
 	var cas_rug: Polygon2D = vm._add_rect_poly(Vector2(543.0, -182.0), Vector2(52.0, 38.0), Color(0.44, 0.16, 0.14, 0.36), -2)
 	cas_rug.add_to_group("tavern_floor0_2d")
 
-	# Tabiques internos de Planta 0 (idénticos a los pasos de OPENINGS_FLOOR_0 en 2D y 3D)
+	# Tabiques internos de Planta 0 (idénticos a los pasos de OPENINGS_FLOOR_0 en 2D y 3D, dejando libre el canal de la escalera x = 560..604)
 	var tex_wall_h: Texture2D = vm._load_tex("res://assests/world/village/wall_timber_h.png")
 	var tex_wall_v: Texture2D = vm._load_tex("res://assests/world/village/wall_timber_v.png")
 	var part_segs: Array = [
 		[Vector2(335.0, MID_WALL_Y), Vector2(150.0, 6.0), tex_wall_h],
 		[Vector2(484.0, MID_WALL_Y), Vector2(60.0, 6.0), tex_wall_h],
-		[Vector2(581.0, MID_WALL_Y), Vector2(54.0, 6.0), tex_wall_h],
+		[Vector2(553.0, MID_WALL_Y), Vector2(10.0, 6.0), tex_wall_h],
+		[Vector2(558.0, -223.0), Vector2(5.0, 42.0), tex_wall_v],
 		[Vector2(EAST_WING_X, -304.5), Vector2(6.0, 23.0), tex_wall_v],
 		[Vector2(EAST_WING_X, -231.5), Vector2(6.0, 55.0), tex_wall_v],
 		[Vector2(EAST_WING_X, -146.0), Vector2(6.0, 28.0), tex_wall_v],
@@ -188,19 +189,19 @@ static func setup_world(vm) -> void:
 		vm._add_rect_poly(b_cell_pos, Vector2(4.5, 4.5), Color(0.42, 0.27, 0.14, 0.96), -1).add_to_group("tavern_floor0_2d")
 		vm._add_prop_collider(b_cell_pos, Vector2(9.0, 9.0), "tavern_floor0_walls")
 
-	# 6 Mesas de comedor y tertulia en el Gran Salón (Planta 0)
+	# 6 Mesas de comedor y tertulia en el Gran Salón (Planta 0) — colisión de tablero ajustada para dejar libres las sillas
 	for tp in DINING_TABLES:
 		vm._add_rect_poly(tp, Vector2(11.0, 6.5), Color(0.54, 0.35, 0.18, 0.98), -1).add_to_group("tavern_floor0_2d")
 		for off in CHAIR_OFFSETS:
 			vm._add_rect_poly(tp + (off as Vector2), Vector2(3.5, 3.5), Color(0.38, 0.24, 0.12, 0.95), -1).add_to_group("tavern_floor0_2d")
-		vm._add_prop_collider(tp, Vector2(28.0, 11.0), "tavern_floor0_walls")
+		vm._add_prop_collider(tp, Vector2(13.0, 8.0), "tavern_floor0_walls")
 
 	# 1. Mesa Verde de Póker / Blackjack / Ruleta con 4 sillas
 	vm._add_rect_poly(GAMES_POS, Vector2(14.0, 10.0), Color(0.42, 0.26, 0.12, 1.0), -1).add_to_group("tavern_floor0_2d")
 	vm._add_rect_poly(GAMES_POS, Vector2(11.5, 7.5), Color(0.10, 0.50, 0.25, 1.0), -1).add_to_group("tavern_floor0_2d")
 	for chair_off in POKER_CHAIR_OFFSETS:
 		vm._add_rect_poly(GAMES_POS + (chair_off as Vector2), Vector2(4.0, 4.0), Color(0.55, 0.36, 0.18, 0.95), -1).add_to_group("tavern_floor0_2d")
-	vm._add_prop_collider(GAMES_POS, Vector2(28.0, 20.0), "tavern_floor0_walls")
+	vm._add_prop_collider(GAMES_POS, Vector2(14.0, 10.0), "tavern_floor0_walls")
 
 	vm._add_station_area("TavernGamesTableArea", GAMES_POS, 24.0, "tavern_games")
 	vm._tavern_games_label = vm._make_station_label(GAMES_POS + Vector2(-120.0, -30.0), "🃏 Mesa de Póker y Casino [E: Jugar con Aldeanos]")
@@ -214,15 +215,25 @@ static func setup_world(vm) -> void:
 	vm._tavern_pool_label = vm._make_station_label(POOL_POS + Vector2(-115.0, -30.0), "🎱 Mesa de Billar [E: Jugar Billar de Posada]")
 	vm.entities_root.add_child(vm._tavern_pool_label)
 
-	# 3. Escalera de madera entre Planta 0 y Planta +1 (Cuartos de Huéspedes)
+	# 3. Escalera de madera entre Planta 0 y Planta +1 (se sube y baja caminando, sin pulsar [E])
 	for step_i in range(8):
 		var sy: float = lerpf(STAIRS_BOTTOM_POS.y, STAIRS_TOP_POS.y, float(step_i) / 7.0)
 		vm._add_rect_poly(Vector2(STAIRS_BOTTOM_POS.x, sy), Vector2(12.0, 2.5), Color(0.48, 0.31, 0.16, 0.95), -1).add_to_group("tavern_floor0_2d")
-	var stairs_prop := WorldInteractableProp.new()
-	stairs_prop.name = "Prop_Tavern_Stairs"
-	stairs_prop.global_position = STAIRS_PROP_POS
-	vm.entities_root.add_child(stairs_prop)
-	stairs_prop.setup_prop(vm, "tavern_stairs", BUILDING_ID, "Escalera de la Posada")
+
+	# 3b. Barandillas sólidas y tabiques de los cuartos en Planta +1 ("tavern_upper_walls")
+	vm._add_prop_collider(Vector2(434.0, -168.0), Vector2(348.0, 6.0), "tavern_upper_walls") # Barandilla sur de la galería alta
+	vm._add_prop_collider(Vector2(558.0, -261.0), Vector2(6.0, 110.0), "tavern_upper_walls") # Barandilla oeste del hueco de escalera
+	vm._add_prop_collider(Vector2(582.0, -298.0), Vector2(48.0, 6.0), "tavern_upper_walls")  # Tope norte del hueco de escalera en Planta +1
+	var cur_ux: float = 264.0
+	for dx in BEDROOM_DOORS_X:
+		var a_ux: float = float(dx) - 11.0
+		if a_ux - cur_ux > 2.0:
+			vm._add_prop_collider(Vector2((cur_ux + a_ux) * 0.5, BEDROOM_WALL_Y), Vector2(a_ux - cur_ux, 5.0), "tavern_upper_walls")
+		cur_ux = float(dx) + 11.0
+	if 558.0 - cur_ux > 2.0:
+		vm._add_prop_collider(Vector2((cur_ux + 558.0) * 0.5, BEDROOM_WALL_Y), Vector2(558.0 - cur_ux, 5.0), "tavern_upper_walls")
+	for part_ux in [374.0, 418.0, 452.0, 486.0]:
+		vm._add_prop_collider(Vector2(float(part_ux), -265.0), Vector2(5.0, 98.0), "tavern_upper_walls")
 
 	# 4. Camas de huéspedes en Planta +1 (2.º piso)
 	for b_pos in ALL_UPPER_BEDS:
@@ -291,6 +302,26 @@ static func table_center_for_seat(seat: Vector2) -> Vector2:
 	if seat.distance_to(GAMES_POS) <= 22.0:
 		return GAMES_POS
 	return SOCIAL_POS
+
+static func is_at_seat(pos: Vector2) -> bool:
+	if not RECT.grow(4.0).has_point(pos):
+		return false
+	for s in dining_seats():
+		if pos.distance_to(s as Vector2) <= 6.5:
+			return true
+	for ps in poker_seats():
+		if pos.distance_to(ps as Vector2) <= 6.5:
+			return true
+	return false
+
+static func snap_seat_pos(pos: Vector2) -> Vector2:
+	for s in dining_seats():
+		if pos.distance_to(s as Vector2) <= 6.5:
+			return s as Vector2
+	for ps in poker_seats():
+		if pos.distance_to(ps as Vector2) <= 6.5:
+			return ps as Vector2
+	return pos
 
 static func is_seat_taken(vm, pos: Vector2, ignore_npc = null) -> bool:
 	if vm == null:
@@ -453,12 +484,16 @@ static func route(from_pos: Vector2, target_pos: Vector2, agent: Node2D = null, 
 		return route_floor_1(from_pos, target_pos)
 	return route_floor_0(from_pos, target_pos)
 
-## Altura 3D adicional (`0..22 px`) para quien sube/baja la escalera o está en la Planta +1.
+## Altura 3D adicional (`2.95..22.55 px`) para que los pies apoyen sobre las tablas/alfombras de Planta 0, escalera y Planta +1.
 static func elevation_height_for(pos: Vector2, elev_level: int) -> float:
 	if RECT.grow(10.0).has_point(pos) and STAIRS_RAMP_RECT.has_point(pos):
 		var t: float = clampf((pos.y - STAIRS_BOTTOM_POS.y) / maxf(1.0, STAIRS_TOP_POS.y - STAIRS_BOTTOM_POS.y), 0.0, 1.0)
-		return t * FLOOR_1_H
-	return FLOOR_1_H if elev_level == 1 else 0.0
+		return lerpf(2.95, FLOOR_1_H + 0.55, t)
+	if elev_level == 1:
+		return FLOOR_1_H + 0.55
+	if elev_level == 0 and RECT.grow(2.0).has_point(pos):
+		return 2.95
+	return 0.0
 
 ## Interacción con la escalera [E] para el jugador (subir al Piso +1 o bajar al Salón Planta 0).
 static func stairs_label(vm) -> String:
@@ -617,6 +652,13 @@ static func on_hour(vm, hour: int) -> void:
 	candidates.shuffle()
 
 	for cand in candidates:
+		if table_count < 4 and poker_count >= 2:
+			var d_seat0: Vector2 = pick_seat_for(vm, cand)
+			if d_seat0 != Vector2.ZERO and d_seat0 != SOCIAL_POS:
+				cand.set_meta("leisure_place", "tavern_hall")
+				cand.start_errand("leisure", d_seat0)
+				table_count += 1
+				continue
 		if poker_count < 3:
 			var p_seat: Vector2 = pick_poker_seat_for(vm, cand)
 			if p_seat != Vector2.ZERO:
@@ -624,24 +666,41 @@ static func on_hour(vm, hour: int) -> void:
 				cand.start_errand("leisure", p_seat)
 				poker_count += 1
 				continue
-		if table_count < 4:
+		if table_count < 7:
 			var d_seat: Vector2 = pick_seat_for(vm, cand)
-			if d_seat != Vector2.ZERO:
+			if d_seat != Vector2.ZERO and d_seat != SOCIAL_POS:
 				cand.set_meta("leisure_place", "tavern_hall")
 				cand.start_errand("leisure", d_seat)
 				table_count += 1
-		if poker_count >= 3 and table_count >= 4:
+		if poker_count >= 3 and table_count >= 7:
 			break
 
-## Semilla inicial al arrancar partida: sienta a un par de vecinos libres en el póker y en las mesas para que la taberna esté viva desde las 08:00.
+## Semilla inicial al arrancar partida: sienta a varios vecinos en el póker y en las mesas para que la taberna esté viva desde las 08:00.
 static func seed_initial_patrons(vm) -> void:
 	if vm == null:
 		return
 	on_hour(vm, 12)
+	var seated_hall: int = 0
+	for n in vm.VillageNeeds.living(vm):
+		if str(n.get_meta("leisure_place", "")) == "tavern_hall":
+			seated_hall += 1
+	if seated_hall < 4:
+		for n in vm.VillageNeeds.living(vm):
+			if seated_hall >= 4:
+				break
+			if str(n.get_meta("leisure_place", "")) != "" or n.is_vagrant_camper or n.is_sleeping:
+				continue
+			if int(n.trade_role) in [int(VillageNPC.TradeRole.FAMILY_MEMBER), int(VillageNPC.TradeRole.UNEMPLOYED)]:
+				var d_s: Vector2 = pick_seat_for(vm, n)
+				if d_s != Vector2.ZERO and d_s != SOCIAL_POS:
+					n.set_meta("leisure_place", "tavern_hall")
+					n.start_errand("leisure", d_s)
+					seated_hall += 1
 	for n in vm.VillageNeeds.living(vm):
 		var lp: String = str(n.get_meta("leisure_place", ""))
 		if lp in ["tavern_poker", "tavern_hall"] and n.errand_pos != Vector2.ZERO:
 			n.global_position = n.errand_pos
+			n.facing_direction = (table_center_for_seat(n.errand_pos) - n.errand_pos).normalized()
 			n.set_meta("leisure_since", vm.VillageNeeds.total_hours())
 
 static var _poker_callout_cooldown: float = 4.0
@@ -651,13 +710,18 @@ static func tick(vm, delta: float) -> void:
 	if vm == null:
 		return
 	var pl = vm.VillageNeeds.player_of(vm)
-	if pl != null and is_instance_valid(pl) and STAIRS_RAMP_RECT.has_point(pl.global_position):
-		if int(vm.player_elevation_level) == 0 and pl.global_position.y >= STAIRS_TOP_POS.y - 6.0:
-			vm.set_player_elevation_level(1)
-		elif int(vm.player_elevation_level) == 1 and pl.global_position.y <= STAIRS_BOTTOM_POS.y + 6.0:
-			vm.set_player_elevation_level(0)
+	if pl != null and is_instance_valid(pl):
+		if STAIRS_RAMP_RECT.has_point(pl.global_position):
+			if int(vm.player_elevation_level) == 0 and pl.global_position.y >= -244.0:
+				vm.set_player_elevation_level(1)
+			elif int(vm.player_elevation_level) == 1 and pl.global_position.y < -244.0:
+				vm.set_player_elevation_level(0)
+		elif int(vm.player_elevation_level) == 1 and RECT.grow(24.0).has_point(pl.global_position):
+			# Seguridad: nadie queda flotando en el aire fuera del forjado de Planta +1 (y <= -166)
+			if pl.global_position.y > -165.0 or not RECT.grow(2.0).has_point(pl.global_position):
+				vm.set_player_elevation_level(0)
 	# 1. Mantener la capa vertical (`elevation_level = 1`) de los vecinos que duermen en las camas del Piso +1,
-	#    y orientar a Marta (detrás de la barra) y a los jugadores de póker/comensales hacia su mesa.
+	#    y orientar a Marta (detrás de la barra) y a los jugadores de póker/comensales sentados hacia su mesa.
 	if is_instance_valid(vm._innkeeper_npc) and not vm._innkeeper_npc.is_dead:
 		if vm._innkeeper_npc.global_position.distance_to(INNKEEPER_WORK_POS) <= 14.0 and vm._innkeeper_npc.velocity.length_squared() < 4.0:
 			vm._innkeeper_npc.facing_direction = Vector2.DOWN
@@ -671,7 +735,16 @@ static func tick(vm, delta: float) -> void:
 			if str(n.lodging) == "":
 				vm.set_npc_elevation_level(n, 0)
 		if int(n.elevation_level) == 0 and n.velocity.length_squared() < 4.0:
-			if n.global_position.distance_to(GAMES_POS) <= 22.0:
+			if is_at_seat(n.global_position):
+				var snapped: Vector2 = snap_seat_pos(n.global_position)
+				if n.global_position.distance_to(snapped) > 0.2:
+					n.global_position = snapped
+				var tc: Vector2 = table_center_for_seat(snapped)
+				if tc.distance_to(snapped) > 1.0:
+					n.facing_direction = (tc - snapped).normalized()
+				if snapped.distance_to(GAMES_POS) <= 22.0:
+					poker_seated.append(n)
+			elif n.global_position.distance_to(GAMES_POS) <= 22.0:
 				n.facing_direction = (GAMES_POS - n.global_position).normalized()
 				poker_seated.append(n)
 			else:

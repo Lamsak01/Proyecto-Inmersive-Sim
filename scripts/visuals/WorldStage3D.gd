@@ -1954,8 +1954,9 @@ func _build_tavern_floor_0_3d(b_root: Node3D, _wall_h: float, m_wall: Material, 
 			_add_box_2d(b_root, Vector2((cur_x + a) * 0.5, T.MID_WALL_Y), Vector2(a - cur_x, 5.5), 2.0, ih0, m_wall)
 		_add_box_2d(b_root, Vector2(gx, T.MID_WALL_Y), Vector2(T.GAP + 4.0, 5.5), 2.0 + ih0 * 0.78, ih0 * 0.22, m_trim)
 		cur_x = gx + T.GAP * 0.5
-	if x1 - cur_x > 2.0:
-		_add_box_2d(b_root, Vector2((cur_x + x1) * 0.5, T.MID_WALL_Y), Vector2(x1 - cur_x, 5.5), 2.0, ih0, m_wall)
+	if 558.0 - cur_x > 2.0:
+		_add_box_2d(b_root, Vector2((cur_x + 558.0) * 0.5, T.MID_WALL_Y), Vector2(558.0 - cur_x, 5.5), 2.0, ih0, m_wall)
+	_add_box_2d(b_root, Vector2(558.0, -223.0), Vector2(4.8, 42.0), 2.0, ih0, m_wall)
 
 	var y0: float = T.RECT.position.y
 	var y1: float = T.RECT.end.y
@@ -3798,7 +3799,7 @@ func _build_pet_bed_3d_for(bed_node: Node2D) -> void:
 	var pos: Vector2 = bed_node.global_position
 	var is_dog: bool = int(bed_node.get_meta("pet_type", 0)) == 0
 	var m_frame := _mat("pet_bed_wood", Color(0.46, 0.30, 0.16), 0.88, 0.02, Color.BLACK, 0.0, "town_textures/rf_planks.png", "", 0.75)
-	var m_cush := _mat("pet_bed_cush_dog" if is_dog else "pet_bed_cush_cat", Color(0.74, 0.28, 0.24) if is_dog else Color(0.32, 0.54, 0.76), 0.92, 0.0, Color.BLACK, 0.0, "town_textures/T_Trim_Cloth_BaseColor.png", "", 0.65)
+	var m_cush := _mat("pet_bed_cush_dog" if is_dog else "pet_bed_cush_cat", Color(0.74, 0.28, 0.24) if is_dog else Color(0.72, 0.54, 0.38), 0.92, 0.0, Color.BLACK, 0.0, "town_textures/T_Trim_Cloth_BaseColor.png", "", 0.65)
 	var m_bowl := _mat("pet_bowl_brass", Color(0.82, 0.68, 0.30), 0.38, 0.65)
 	var m_water := _mat("pet_bowl_water", Color(0.22, 0.56, 0.82), 0.20, 0.10)
 	_add_box_2d(root, pos, Vector2(19.0, 11.0), 0.0, 2.2, m_frame)

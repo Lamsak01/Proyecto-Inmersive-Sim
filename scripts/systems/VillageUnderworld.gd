@@ -152,7 +152,7 @@ const SEWER_LOCATIONS: Dictionary = {
 	},
 	"smuggler_tunnel": {
 		"title": "Pasadizo del Contrabandista",
-		"pos": Vector2(492.0, -108.0),
+		"pos": Vector2(236.0, -148.0),
 		"chamber_center": Vector2(420.0, SEWER_Y),
 		"tunnel_pos": Vector2(396.0, SEWER_Y - 6.0),
 		"ladder_pos": Vector2(396.0, SEWER_Y - 24.0),

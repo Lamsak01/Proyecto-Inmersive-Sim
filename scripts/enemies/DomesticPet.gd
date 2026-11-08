@@ -315,6 +315,9 @@ func _physics_process(delta: float) -> void:
 		_wander_timer = randf_range(2.0, 4.5)
 		var radius: float = 28.0 if is_guard_dog else 36.0
 		_wander_target = home_position + Vector2(randf_range(-radius, radius), randf_range(-radius, radius))
+		var vm_w = get_tree().get_first_node_in_group("village_manager") if is_inside_tree() else null
+		if vm_w != null and vm_w.has_method("clamp_point_outside_buildings"):
+			_wander_target = vm_w.call("clamp_point_outside_buildings", home_position, _wander_target)
 
 	var diff: Vector2 = _wander_target - global_position
 	var soft_push: Vector2 = _compute_player_soft_push()

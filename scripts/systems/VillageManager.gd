@@ -1316,6 +1316,8 @@ func _prune_door_blocking_prop_colliders() -> void:
 	for n in get_tree().get_nodes_in_group("prop_collider"):
 		if n is StaticBody2D and is_instance_valid(n):
 			var sb := n as StaticBody2D
+			if sb.is_in_group("tavern_upper_walls"):
+				continue
 			var sz := Vector2(10.0, 10.0)
 			for ch in sb.get_children():
 				if ch is CollisionShape2D and ch.shape is RectangleShape2D:
@@ -1326,7 +1328,7 @@ func _prune_door_blocking_prop_colliders() -> void:
 func _add_prop_collider(pos: Vector2, sz: Vector2, group_tag: String = "") -> StaticBody2D:
 	if not is_instance_valid(entities_root) or sz.x <= 0.0 or sz.y <= 0.0:
 		return null
-	if _is_prop_collider_blocking_passage(pos, sz):
+	if group_tag != "tavern_upper_walls" and _is_prop_collider_blocking_passage(pos, sz):
 		return null
 	var tag: String = group_tag
 	if tag == "" and VillageTavern.RECT.has_point(pos):
@@ -1417,6 +1419,9 @@ func _get_building_at_pos(world_pos: Vector2) -> Dictionary:
 		if r.has_point(world_pos):
 			return b
 	return {}
+
+func _is_pos_inside_any_building(world_pos: Vector2) -> bool:
+	return not _get_building_at_pos(world_pos).is_empty()
 
 ## Paso 2: Registra si algún vecino ve al jugador entrar o salir de un edificio sin usar Sigilo [C]
 func _track_player_building_sightings(player: Node2D) -> void:
@@ -2361,7 +2366,7 @@ func _spawn_domestic_pets() -> void:
 		{"type": DomesticPet.PetType.DOG, "name": "Toby", "owner": "Granja del Jugador", "fam": "player_farm", "pos": Vector2(-685, -52), "guard": true, "tint": Color(1.0, 0.96, 0.90)},
 		{"type": DomesticPet.PetType.DOG, "name": "Sultán", "owner": "Herrería Yunque Gris", "fam": "family_smith", "pos": Vector2(365, 16), "guard": false, "tint": Color(0.88, 0.82, 0.78)},
 		{"type": DomesticPet.PetType.DOG, "name": "Canela", "owner": "Barrio Residencial", "fam": "family_carpenter", "pos": Vector2(745, -135), "guard": false, "tint": Color(1.0, 0.85, 0.72)},
-		{"type": DomesticPet.PetType.CAT, "name": "Michi", "owner": "Posada El Jabalí Dorado", "fam": "family_tavern", "pos": Vector2(405, -168), "guard": false, "tint": Color(1.0, 0.92, 0.82)},
+		{"type": DomesticPet.PetType.CAT, "name": "Michi", "owner": "Posada El Jabalí Dorado", "fam": "family_tavern", "pos": Vector2(226, -212), "guard": false, "tint": Color(1.0, 0.92, 0.82)},
 		{"type": DomesticPet.PetType.CAT, "name": "Pelusa", "owner": "Botica Raíz Verde", "fam": "family_herbalist", "pos": Vector2(325, 96), "guard": false, "tint": Color(0.92, 0.92, 0.98)},
 		{"type": DomesticPet.PetType.CAT, "name": "Sombra", "owner": "Pescadería Aguas Claras", "fam": "family_fishmonger", "pos": Vector2(465, 96), "guard": false, "tint": Color(0.75, 0.78, 0.85)}
 	]

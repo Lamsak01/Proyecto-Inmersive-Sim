@@ -163,14 +163,24 @@ func _sync_holder_position() -> void:
 	# A caballo, el muñeco va sentado sobre el lomo (más alto).
 	var seat_h: float = MOUNT_SEAT_PX if (is_player_avatar and bool(target_entity.get("is_mounted"))) else 0.0
 	var elev_lvl: int = 0
+	var vm_node = target_entity.get_tree().get_first_node_in_group("village_manager") if target_entity.is_inside_tree() else null
 	if is_player_avatar:
-		var vm_node = target_entity.get_tree().get_first_node_in_group("village_manager") if target_entity.is_inside_tree() else null
 		if vm_node != null:
 			elev_lvl = int(vm_node.player_elevation_level)
 	elif "elevation_level" in target_entity:
 		elev_lvl = int(target_entity.get("elevation_level"))
-	seat_h += preload("res://scripts/systems/VillageTavern.gd").elevation_height_for(target_entity.global_position, elev_lvl)
-	_holder.position = _stage.call("to_3d", target_entity.global_position + Vector2(0.0, FOOT_OFFSET_PX), seat_h)
+	var pos_2d: Vector2 = target_entity.global_position
+	var tav_h: float = preload("res://scripts/systems/VillageTavern.gd").elevation_height_for(pos_2d, elev_lvl)
+	if tav_h > 0.0:
+		seat_h += tav_h
+	elif elev_lvl == 0 and vm_node != null and vm_node.has_method("_is_pos_inside_any_building") and bool(vm_node.call("_is_pos_inside_any_building", pos_2d)):
+		seat_h += 2.65
+	var foot_off := Vector2(0.0, FOOT_OFFSET_PX)
+	if not is_player_avatar and preload("res://scripts/systems/VillageTavern.gd").is_at_seat(pos_2d):
+		var v_chk: Vector2 = target_entity.get("velocity") if "velocity" in target_entity else Vector2.ZERO
+		if v_chk.length_squared() < 4.0:
+			foot_off = Vector2(0.0, 1.0)
+	_holder.position = _stage.call("to_3d", pos_2d + foot_off, seat_h)
 
 
 func _exit_tree() -> void:
@@ -255,7 +265,14 @@ func _process_in_stage(delta: float) -> void:
 	if is_player_avatar and fp_on:
 		show = false
 	elif show and not is_player_avatar:
-		show = _is_entity_near_camera()
+		var vm_elev_chk = target_entity.get_tree().get_first_node_in_group("village_manager") if target_entity.is_inside_tree() else null
+		if vm_elev_chk != null and "elevation_level" in target_entity:
+			var pl_el: int = int(vm_elev_chk.player_elevation_level)
+			var ent_el: int = int(target_entity.get("elevation_level"))
+			if pl_el == 1 and ent_el == 0 and preload("res://scripts/systems/VillageTavern.gd").RECT.grow(6.0).has_point(target_entity.global_position):
+				show = false
+		if show:
+			show = _is_entity_near_camera()
 	if perf_on: _pt = _perf_add("visibility_check", _pt)
 	if not show:
 		_holder.visible = false
@@ -787,6 +804,9 @@ func _sync_pose_and_tint(delta: float) -> void:
 		if w_t > 0.0:
 			atk_prog = clampf(1.0 - (w_t / 0.40), 0.05, 0.95)
 			is_working = false
+		if vel.length_squared() < 4.0 and not is_sleeping and not is_downed and not is_dead and not is_fighting and not is_working and not is_hostile:
+			if preload("res://scripts/systems/VillageTavern.gd").is_at_seat(target_entity.global_position):
+				is_mounted_now = true
 
 	var state_dict := {
 		"facing": facing,

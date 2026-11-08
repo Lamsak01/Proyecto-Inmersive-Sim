@@ -87,6 +87,9 @@ func _unhandled_input(event: InputEvent) -> void:
 ## Recalcula qué cosas se pueden usar ahora mismo con [E].
 func refresh() -> void:
 	var out: Array = []
+	var pp: Vector2 = player.global_position
+	var vm_chk = player.get_tree().get_first_node_in_group("village_manager") if player.is_inside_tree() else null
+	var pl_b_id: String = str(vm_chk._get_building_at_pos(pp).get("id", "")) if (vm_chk != null and vm_chk.has_method("_get_building_at_pos")) else ""
 	var ia = player.get("interact_area")
 	if ia is Area2D and is_instance_valid(ia):
 		for a in (ia as Area2D).get_overlapping_areas():
@@ -95,11 +98,22 @@ func refresh() -> void:
 			var tgt: Node = _resolve_target(a)
 			if tgt == null:
 				continue
+			if pl_b_id != "" and tgt.is_in_group("sewer_grate"):
+				continue
+			if vm_chk != null:
+				var pl_elev: int = int(vm_chk.player_elevation_level)
+				if "elevation_level" in tgt and int(tgt.get("elevation_level")) != pl_elev:
+					continue
+				if a.has_meta("village_station"):
+					var st_tag_chk: String = str(a.get_meta("village_station"))
+					if pl_elev == 1 and st_tag_chk in ["tavern_games", "tavern_pool", "building_door"]:
+						continue
+					if pl_elev == 0 and st_tag_chk == "tavern_bed":
+						continue
 			var lbl: String = _label_for(a, tgt)
 			if lbl == "":
 				continue
 			out.append({"key": str(a.get_instance_id()), "area": a, "target": tgt, "pos": (a as Node2D).global_position, "label": lbl})
-	var pp: Vector2 = player.global_position
 	# Montado, «bajar del caballo» va la última: así puedes hablar o abrir puertas sin bajarte.
 	var rank := func(c: Dictionary) -> float:
 		var d: float = pp.distance_squared_to(c["pos"])

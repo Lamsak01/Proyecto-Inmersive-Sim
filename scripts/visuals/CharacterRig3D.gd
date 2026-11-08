@@ -1124,6 +1124,18 @@ func _apply_skeleton_pose(_delta: float) -> void:
 				char_root.rotation_degrees.x = -88.0
 				char_root.position = Vector3(0.0, 0.14, 0.55)
 
+		AnimState.MOUNTED:
+			tl_rx = -82.0
+			tr_rx = -82.0
+			cl_rx = 82.0
+			cr_rx = 82.0
+			ul_rz = -58.0
+			ur_rz = 58.0
+			ul_ry = -24.0
+			ur_ry = 24.0
+			ll_rz = -28.0
+			lr_rz = 28.0
+
 		AnimState.AIM_GUN:
 			ur_rz = 15.0
 			ur_ry = 72.0

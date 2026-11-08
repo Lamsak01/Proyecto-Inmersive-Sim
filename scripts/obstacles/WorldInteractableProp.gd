@@ -441,6 +441,8 @@ func get_interact_label(_player: Node2D = null) -> String:
 		"sewer_grate":
 			if vm != null and int(vm.player_elevation_level) != 0:
 				return ""
+			if vm != null and _player != null and vm.has_method("_is_pos_inside_any_building") and bool(vm.call("_is_pos_inside_any_building", _player.global_position)):
+				return ""
 			var unlocked: bool = vm != null and bool(VillageUnderworld.sewers_state(vm).get("unlocked", false))
 			if not unlocked:
 				return "Cerrada: el perista vende la llave"
