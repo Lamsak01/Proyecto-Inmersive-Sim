@@ -685,7 +685,8 @@ func _setup_controls_panel_ui() -> void:
 	var basic_pairs: Array = [
 		["Caminar", "WASD"],
 		["Correr", "Mayús"],
-		["Rodar", "Espacio"],
+		["Saltar", "Espacio"],
+		["Rodar", "Alt / V"],
 		["Sigilo", "Ctrl / C"],
 		["Atacar", "Clic izq."],
 		["Bloquear / parar", "Q"],

@@ -184,6 +184,8 @@ func _sync_holder_position() -> void:
 		var v_chk: Vector2 = target_entity.get("velocity") if "velocity" in target_entity else Vector2.ZERO
 		if v_chk.length_squared() < 4.0:
 			foot_off = Vector2(0.0, 1.0)
+	if is_player_avatar and target_entity.has_method("get_jump_height"):
+		seat_h += float(target_entity.call("get_jump_height"))
 	var base_pos_3d: Vector3 = _stage.call("to_3d", pos_2d + foot_off, seat_h)
 	var rec_rot := Vector3.ZERO
 	if target_entity.has_meta("hit_recoil_3d_until_ms"):

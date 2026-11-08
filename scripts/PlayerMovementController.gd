@@ -17,17 +17,24 @@ var is_sprinting: bool = false
 var is_stealthing: bool = false
 var current_speed: float = 120.0
 
-## Rodar con Espacio (COMBATE-1): distancia ~50 px en 0.35 s, invulnerable los primeros 0.25 s.
+## Rodar con Alt / V (COMBATE-1): distancia ~50 px en 0.35 s, invulnerable los primeros 0.25 s.
 const ROLL_DURATION: float = 0.35
 const ROLL_INVULN_DURATION: float = 0.25
 const ROLL_DISTANCE: float = 50.0
 const ROLL_COOLDOWN: float = 0.60
 const ROLL_STAMINA_COST: float = 18.0
 
+## Saltar con Espacio: impulso vertical con gravedad suave en 3D y 1.ª persona (~11.5 px de altura máxima).
+const JUMP_INITIAL_VEL_Z: float = 56.0
+const JUMP_GRAVITY_Z: float = 140.0
+const JUMP_STAMINA_COST: float = 8.0
+
 var roll_timer: float = 0.0
 var roll_invuln_timer: float = 0.0
 var roll_cooldown_timer: float = 0.0
 var roll_direction: Vector2 = Vector2.DOWN
+var jump_z: float = 0.0
+var jump_vel_z: float = 0.0
 
 @onready var player: CharacterBody2D = get_parent()
 @onready var anim: AnimatedSprite2D = $"../Animations"
@@ -50,6 +57,38 @@ func get_roll_progress() -> float:
 	if roll_timer <= 0.0:
 		return 0.0
 	return clampf(1.0 - (roll_timer / ROLL_DURATION), 0.0, 1.0)
+
+func is_jumping() -> bool:
+	return jump_z > 0.001 or jump_vel_z > 0.001
+
+func get_jump_height() -> float:
+	return maxf(0.0, jump_z)
+
+func start_jump() -> bool:
+	if not is_instance_valid(player):
+		return false
+	var lake = get_tree().current_scene.find_child("WestFishingLake", true, false) if get_tree().current_scene else null
+	var in_fishing_minigame: bool = lake != null and int(lake.get("state")) == 3
+	var camp = get_tree().current_scene.find_child("PlayerCampSite", true, false) if get_tree().current_scene else null
+	var sitting_on_log: bool = camp != null and bool(camp.get("is_player_sitting"))
+	var vm = get_tree().get_first_node_in_group("village_manager")
+	var being_escorted: bool = vm != null and bool(vm.get("player_being_escorted_to_jail"))
+	if (dialogue_manager and dialogue_manager.has_method("is_active") and dialogue_manager.call("is_active")) or (WorldClock and WorldClock.has_method("is_time_frozen") and WorldClock.is_time_frozen()) or (player.has_method("is_any_ui_modal_open") and bool(player.call("is_any_ui_modal_open"))) or in_fishing_minigame or sitting_on_log or being_escorted:
+		return false
+	if player.has_method("is_stunned") and player.is_stunned():
+		return false
+	if bool(player.get("is_pulling_cart")) and not bool(player.get("is_mounted")):
+		if player.has_method("show_hint"):
+			player.show_hint("🛒 Tirando de la carreta a mano no puedes saltar: suéltala con [E]")
+		return false
+	if is_jumping() or roll_timer > 0.0:
+		return false
+	if is_instance_valid(stamina_comp) and stamina_comp.current_stamina >= JUMP_STAMINA_COST:
+		stamina_comp.use_stamina(JUMP_STAMINA_COST)
+	is_stealthing = false
+	jump_vel_z = JUMP_INITIAL_VEL_Z
+	jump_z = 0.08
+	return true
 
 func start_roll(dir_override: Vector2 = Vector2.ZERO) -> bool:
 	if not is_instance_valid(player):
@@ -121,6 +160,12 @@ func _physics_process(delta: float) -> void:
 		roll_cooldown_timer = maxf(0.0, roll_cooldown_timer - delta)
 	if roll_invuln_timer > 0.0:
 		roll_invuln_timer = maxf(0.0, roll_invuln_timer - delta)
+	if jump_z > 0.0 or jump_vel_z != 0.0:
+		jump_z += jump_vel_z * delta
+		jump_vel_z -= JUMP_GRAVITY_Z * delta
+		if jump_z <= 0.0:
+			jump_z = 0.0
+			jump_vel_z = 0.0
 
 	# Block movement if dialogue active, modal open, tavern minigame time freeze, sitting on camp log, in fishing minigame, or handcuffed in police escort
 	var lake = get_tree().current_scene.find_child("WestFishingLake", true, false) if get_tree().current_scene else null
@@ -211,6 +256,10 @@ func _unhandled_input(event: InputEvent) -> void:
 		return
 	if event is InputEventKey and event.pressed and not event.echo:
 		if event.keycode == KEY_SPACE or event.physical_keycode == KEY_SPACE:
+			if start_jump():
+				get_viewport().set_input_as_handled()
+			return
+		if event.keycode == KEY_ALT or event.physical_keycode == KEY_ALT or event.keycode == KEY_V or event.physical_keycode == KEY_V:
 			if start_roll():
 				get_viewport().set_input_as_handled()
 			return

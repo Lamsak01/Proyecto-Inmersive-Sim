@@ -3609,6 +3609,14 @@ func _update_fp_viewmodel(delta: float, pl: Node2D) -> void:
 		r_pos += Vector3(0.03 * hk, -0.04 * hk, 0.05 * hk)
 		l_pos += Vector3(-0.04 * hk, -0.02 * hk, 0.05 * hk)
 
+	if pl != null and pl.has_method("get_jump_height"):
+		var jh_vm: float = clampf(float(pl.call("get_jump_height")) / 11.2, 0.0, 1.0)
+		if jh_vm > 0.001:
+			r_pos.y += 0.018 * jh_vm
+			l_pos.y += 0.022 * jh_vm
+			r_rot.x -= 6.0 * jh_vm
+			l_rot.x -= 8.0 * jh_vm
+
 	_fp_right_arm.position = r_pos
 	_fp_right_arm.rotation_degrees = r_rot
 	_fp_left_arm.position = l_pos
@@ -3639,6 +3647,8 @@ func _update_fp_camera_transform() -> void:
 			var m_ctrl = pl.get_node_or_null("PlayerMovementController")
 			if m_ctrl != null and m_ctrl.get("is_stealthing") == true:
 				eye_h -= 3.5
+		if pl.has_method("get_jump_height"):
+			eye_h += float(pl.call("get_jump_height"))
 	if vm != null:
 		var tav_eye_h: float = VillageTavern.elevation_height_for(pl_pos, int(vm.player_elevation_level))
 		if tav_eye_h > 3.0:

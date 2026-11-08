@@ -867,6 +867,25 @@ func is_roll_invulnerable() -> bool:
 		move_ctrl = get_node_or_null("PlayerMovementController")
 	return move_ctrl != null and move_ctrl.has_method("is_roll_invulnerable") and bool(move_ctrl.call("is_roll_invulnerable"))
 
+func start_jump() -> bool:
+	if not move_ctrl:
+		move_ctrl = get_node_or_null("PlayerMovementController")
+	if move_ctrl and move_ctrl.has_method("start_jump"):
+		return bool(move_ctrl.call("start_jump"))
+	return false
+
+func is_jumping() -> bool:
+	if not move_ctrl:
+		move_ctrl = get_node_or_null("PlayerMovementController")
+	return move_ctrl != null and move_ctrl.has_method("is_jumping") and bool(move_ctrl.call("is_jumping"))
+
+func get_jump_height() -> float:
+	if not move_ctrl:
+		move_ctrl = get_node_or_null("PlayerMovementController")
+	if move_ctrl and move_ctrl.has_method("get_jump_height"):
+		return float(move_ctrl.call("get_jump_height"))
+	return 0.0
+
 func start_parry() -> bool:
 	if not combat_ctrl:
 		combat_ctrl = get_node_or_null("PlayerCombatController")
