@@ -29,7 +29,7 @@ static var CASES: Dictionary = {
 		"corner_right": "TEMPERATURA AMBIENTE · FRÍO DE MADRUGADA",
 		"scene_ground_label": "CLARO JUNTO AL ARROYO · CAMINO DEL NORTE ARRIBA",
 		"pending_author_decisions": {
-			"herb_name": PENDING_DECISION,
+			"herb_name": "Belladama gris",
 			"potion_name": PENDING_DECISION,
 			"how_stolen_potion_is_discovered": PENDING_DECISION,
 			"abandoned_house_location": PENDING_DECISION,
@@ -93,7 +93,7 @@ static var CASES: Dictionary = {
 				"id": "alchemist_identifies_herb",
 				"summary": "El alquimista identifica la hierba: se usaba para embalsamar, pero el cura del pueblo no la usa.",
 				"role": "alchemist",
-				"herb_name": PENDING_DECISION
+				"herb_name": "Belladama gris"
 			},
 			{
 				"step": 3,
@@ -138,7 +138,7 @@ static var CASES: Dictionary = {
 			"alchemist_analyze_flask": {
 				"speaker_role": "alchemist",
 				"requires_note": "m_estomago",
-				"line": "«Este líquido verdoso lleva una hierba de embalsamar muy cara [Nombre: PENDIENTE_DECISION_USUARIO]. Se degrada en pocas horas y el padre Anselmo jamás la pide.»"
+				"line": "«Este líquido verdoso lleva una hierba de embalsamar muy cara: belladama gris. Se degrada en pocas horas y el padre Anselmo jamás la pide.»"
 			},
 			"noble_maid_recognize_vial": {
 				"speaker_role": "noble_maid",

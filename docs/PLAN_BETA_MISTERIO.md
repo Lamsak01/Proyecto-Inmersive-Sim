@@ -74,7 +74,7 @@
 7. Lo del familiar lo sabes hablando con él; lo de los secuestradores, **interrogando a uno si lo capturas vivo**.
 8. Deja abierta la investigación de la secta y la corrupción del pueblo.
 
-**Nombres por decidir:** la hierba y la poción (propuestas del supervisor en el chat; ninguna elegida).
+**Nombres:** la hierba es la **belladama gris** (elegido por el usuario, 2026-11-08: recuerda a la belladona y el «dama» apunta a los ricos). La poción, por decidir.
 
 ## 6. Herramientas del detective (decidido por el usuario, 2026-11-07)
 Eje central del bucle jugable; tiene que quedar «perfecto». Boceto aprobado por el usuario («me encanta»):
