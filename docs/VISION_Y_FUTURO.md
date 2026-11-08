@@ -196,6 +196,14 @@ Estado: **✅ HECHO** = ya construido y funcionando en el juego. **🟡 EN PARTE
   policía, ropa de bandas y de cada facción, y se verá puesta. El artista hará solo a mano algunos personajes
   principales. Al artista se le pide el **kit** (cuerpo base, cabeza común, peinados y unas prendas de prueba) y una
   guía para que el usuario pueda hacer ropa nueva que encaje en ese cuerpo.
+  **Época decidida (2026-11-07, del usuario tras hablar con Gemini):** mundo propio **anacrónico**: 80 % medieval o
+  preindustrial (piedra, madera, gremios, jubones, capas, cuero, armaduras) y 20 % tecnología analógica tosca (terminales
+  de pantalla abombada verde o ámbar en cajas de hierro y latón, tarjetas perforadas, cables gruesos clavados en los
+  muros), solo en manos del poder, los ricos y los contrabandistas. Referentes: *Thief II*, *Dishonored*, *Arcanum*.
+  Nada de ropa moderna: las imágenes de referencia valen solo por el estilo, no por la ropa. 4 plantillas de ropa para
+  el artista: A) camisa o túnica con pantalón metido en botas altas; B) jubón acolchado, chaleco de cuero o chaqueta
+  corta de paño; C) gabardina larga de cuero, tabardo o capa corta (detective, guardia, noble); D) peto de cuero,
+  coraza oxidada o delantal pesado (herrero, carnicero, facción).
 
 ### Tecnología anacrónica
 - ✅ **HECHO** — Vehículos de época: caballos de silla y carretas de carga (`VillageCulture.gd`, test #90): en el Rancho del Sur puedes comprar al ganadero un Caballo de Silla (45 de oro, aumenta tu velocidad y mejora un +15 % el éxito de tus expediciones) y una Carreta de Carga (55 de oro, añade +4 de oro de rendimiento por cada remesa comercial enviada por ruta). *(Hecho en bloque PM; motos/coches quedan descartados para el tamaño actual del valle.)*

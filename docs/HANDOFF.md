@@ -1095,6 +1095,7 @@ Cada fase se dividirá en bloques pequeños cuando se llegue a ella (detalle en 
 
 ## 8. Decisiones de diseño ya tomadas (no volver a preguntarlas)
 
+- **Época** (decisión del usuario, 2026-11-07): mundo propio anacrónico, 80 % medieval/preindustrial y 20 % tecnología analógica tosca (terminales verdes, tarjetas perforadas, cables por los muros), solo para el poder, ricos y contrabandistas. Nada de ropa ni objetos modernos. Detalle en `docs/VISION_Y_FUTURO.md` (Jugador).
 - **Solo 3D** (decisión del usuario, 2026-11-07): el juego será en 3D. El 2D se deja de mantener, probar y capturar; no se borra todavía, solo se ignora.
 - **Tamaño y niveles**: empezar pequeño, objetivo final una ciudad de 100+ vecinos. Habrá sótanos (mapa aparte debajo del principal) y varios pisos con un sistema de capas tipo Project Zomboid, el mismo para sótanos y pisos (`docs/VISION_Y_FUTURO.md` §6; construir más adelante). Los sistemas nuevos que usen distancias (testigos, oír, ver) deben pasar por una función común para poder añadir «mismo nivel» después.
 - **Visión a largo plazo**: pueblo realista con lo bueno y lo malo, profundidad tipo Dwarf Fortress / RimWorld / Song of Syx, construida con 6 piezas comunes y en el orden de `docs/VISION_Y_FUTURO.md` (siguiente tras T2: relaciones de un solo sentido). Las ideas nuevas del usuario se añaden a ese documento.
