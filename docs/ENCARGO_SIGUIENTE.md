@@ -19,6 +19,8 @@ izquierda (hambre y sueño solo cuando bajan); reloj pequeño en placa arriba al
 mapa redondo de papel arriba a la derecha; avisos breves a la izquierda (máx. 3, se desvanecen, borde rojo los graves);
 tarjeta de papel abajo al centro con nombre, estado y acciones (rueda o G); objetos en mano abajo a la izquierda; oro
 abajo a la derecha; la barra de teclas actual pasa a una ayuda con [H]; aviso «MODO PRUEBAS» bajo el reloj.
+- Hoy la barra superior está corrida a la derecha: empieza a mitad de pantalla, se mete debajo del minimapa y corta
+  texto («[▶ ×1]», «2D», la lista de teclas). En la nueva, nada se corta ni se solapa en 1280×720, 1920×1080 y 2560×1440.
 Además, lo de abajo:
 Fallo en `FALLOS_VISIBLES.md` (captura de la plaza con 4 cadáveres: 10+ líneas apiladas e ilegibles).
 - Solo la cosa que miras/tienes más cerca muestra letrero, y corto («Garrick · muerto»). El resto, solo un icono.
