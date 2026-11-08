@@ -367,13 +367,19 @@ static func is_upper_floor_target(pos: Vector2) -> bool:
 	return false
 
 static func room_at_floor_0(pos: Vector2) -> String:
+	var p_in := Vector2(
+		clampf(pos.x, RECT.position.x + 1.0, RECT.end.x - 1.0),
+		clampf(pos.y, RECT.position.y + 1.0, RECT.end.y - 1.0)
+	)
 	for id in ROOMS_FLOOR_0.keys():
-		if (ROOMS_FLOOR_0[id] as Rect2).has_point(pos):
+		if (ROOMS_FLOOR_0[id] as Rect2).has_point(p_in):
 			return id
 	var best: String = "salon"
 	var best_d: float = INF
 	for id in ROOMS_FLOOR_0.keys():
-		var d: float = pos.distance_to((ROOMS_FLOOR_0[id] as Rect2).get_center())
+		var r: Rect2 = ROOMS_FLOOR_0[id]
+		var cl := Vector2(clampf(p_in.x, r.position.x, r.end.x), clampf(p_in.y, r.position.y, r.end.y))
+		var d: float = p_in.distance_to(cl)
 		if d < best_d:
 			best_d = d
 			best = id

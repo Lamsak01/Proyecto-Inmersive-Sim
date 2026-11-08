@@ -481,21 +481,23 @@ func get_navigation_waypoint(from_pos: Vector2, to_pos: Vector2, agent: Node2D =
 		var r_interior: Rect2 = b["rect"].grow(1.5)
 		var d_pos: Vector2 = b["door_pos"]
 		var door_south: bool = bool(b["door_south"])
-		var r_door_threshold := Rect2(d_pos - Vector2(20.0, 16.0 if door_south else 18.0), Vector2(40.0, 34.0))
+		var r_door_threshold := Rect2(d_pos - Vector2(20.0, 16.0 if door_south else 12.0), Vector2(40.0, 28.0))
 		if (r_interior.has_point(from_pos) or r_door_threshold.has_point(from_pos)) and not r_building_check.has_point(to_pos):
 			var b_id: String = str(b.get("id", ""))
-			# Carril derecho de salida (-5 px en puerta sur, +5 px en puerta norte) para no chocar de frente con los que entran
-			var exit_lane_x: float = d_pos.x + (-5.0 if door_south else 5.0) + lane_shift * 0.65
+			# Carril derecho de salida (-7.5 px en puerta sur, +7.5 px en puerta norte) para no chocar de frente con los que entran
+			var exit_lane_x: float = d_pos.x + (-7.5 if door_south else 7.5) + lane_shift * 0.5
 			var inside_pt := Vector2(exit_lane_x, d_pos.y + (-16.0 if door_south else 16.0))
-			var outside_pt := Vector2(exit_lane_x, d_pos.y + (22.0 if door_south else -22.0))
+			var outside_pt := Vector2(exit_lane_x, d_pos.y + (20.0 if door_south else -20.0))
 
 			# Primero salvar cualquier tabique interno hacia la antesala de la puerta principal
-			var part_wp: Vector2 = _route_internal_building_partitions(b_id, from_pos, inside_pt, agent)
-			if part_wp != inside_pt:
-				return part_wp
+			var still_inside_wall: bool = (from_pos.y < d_pos.y - 2.0) if door_south else (from_pos.y > d_pos.y + 2.0)
+			var on_other_floor: bool = agent != null and "elevation_level" in agent and int(agent.elevation_level) != 0
+			if still_inside_wall or on_other_floor:
+				var part_wp: Vector2 = _route_internal_building_partitions(b_id, from_pos, inside_pt, agent)
+				if part_wp != inside_pt:
+					return part_wp
 
-			var still_inside_wall: bool = (from_pos.y < d_pos.y - 3.0) if door_south else (from_pos.y > d_pos.y + 3.0)
-			if still_inside_wall and absf(from_pos.x - d_pos.x) > 15.0:
+			if still_inside_wall and absf(from_pos.x - exit_lane_x) > 6.5:
 				return inside_pt
 			return outside_pt
 
@@ -506,8 +508,8 @@ func get_navigation_waypoint(from_pos: Vector2, to_pos: Vector2, agent: Node2D =
 			var b_id: String = str(b.get("id", ""))
 			var d_pos2: Vector2 = b["door_pos"]
 			var door_south2: bool = bool(b["door_south"])
-			# Carril derecho de entrada (+5 px en puerta sur, -5 px en puerta norte) separado del carril de salida
-			var enter_lane_x: float = d_pos2.x + (5.0 if door_south2 else -5.0) + lane_shift * 0.65
+			# Carril derecho de entrada (+7.5 px en puerta sur, -7.5 px en puerta norte) separado del carril de salida
+			var enter_lane_x: float = d_pos2.x + (7.5 if door_south2 else -7.5) + lane_shift * 0.5
 
 			# Si el objetivo (p. ej. un cadáver o el jugador) está pegado a un muro interior, proyectar el punto de destino
 			# ligeramente hacia el suelo caminable del interior (a >= 10 px de la pared) para no chocar con el muro
@@ -525,7 +527,7 @@ func get_navigation_waypoint(from_pos: Vector2, to_pos: Vector2, agent: Node2D =
 				var outside_pt2 := Vector2(enter_lane_x, d_pos2.y + (18.0 if door_south2 else -18.0))
 				var inside_pt2 := Vector2(enter_lane_x, d_pos2.y + (-16.0 if door_south2 else 16.0))
 
-				var aligned_x: bool = absf(from_pos.x - d_pos2.x) <= 15.5
+				var aligned_x: bool = absf(from_pos.x - enter_lane_x) <= 6.5
 				var in_door_funnel_y: bool = (from_pos.y >= d_pos2.y - 18.0 and from_pos.y <= d_pos2.y + 24.0) if door_south2 else (from_pos.y >= d_pos2.y - 24.0 and from_pos.y <= d_pos2.y + 18.0)
 				if aligned_x and in_door_funnel_y:
 					return inside_pt2
@@ -638,7 +640,7 @@ func _avoid_outdoor_buildings(from_pos: Vector2, target_pos: Vector2, ignore_b_i
 					merged_changed = true
 
 		var r_inner: Rect2 = merged_rect.grow(7.0)
-		var r_corners: Rect2 = merged_rect.grow(16.0)
+		var r_corners: Rect2 = merged_rect.grow(18.0)
 		var corners: Array[Vector2] = [
 			r_corners.position,
 			Vector2(r_corners.end.x, r_corners.position.y),

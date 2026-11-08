@@ -7327,5 +7327,15 @@ func _initialize() -> void:
 		assert(furn_overlaps.is_empty(), "No two floor furniture items may overlap and all chairs must face their table! Found: " + str(furn_overlaps))
 		print("Furniture Overlap & Chair Orientation Check (0 issues across all buildings) OK")
 
+	# Verify tavern doorway double-lane and no threshold oscillation when exiting to north/east destinations
+	for tx in [440.0, 448.0, 454.0, 462.5, 468.0]:
+		for ty in [-142.0, -133.0, -131.5, -124.0]:
+			var wp_exit: Vector2 = vm.get_navigation_waypoint(Vector2(tx, ty), Vector2(570.0, -456.0), null)
+			assert(wp_exit.y > -150.0, "Tavern doorway exit must never route an exiting villager back inside to casino/north rooms! Got wp=" + str(wp_exit) + " from (" + str(tx) + "," + str(ty) + ")")
+	var wp_out_lane: Vector2 = vm.get_navigation_waypoint(Vector2(454.0, -140.0), Vector2(454.0, -60.0), null)
+	var wp_in_lane: Vector2 = vm.get_navigation_waypoint(Vector2(454.0, -100.0), Vector2(420.0, -198.0), null)
+	assert(wp_out_lane.x < 450.0 and wp_in_lane.x > 458.0, "Tavern doorway must separate exiting lane (<450) and entering lane (>458)! Got out=" + str(wp_out_lane) + " in=" + str(wp_in_lane))
+	print("Tavern Doorway Double-Lane & Threshold Non-Oscillation Check OK")
+
 	print("ALL RIMWORLD MEDICAL, FOOTPRINTS, 3-PHASE CORPSE REPORT, MULTI-CORPSE FIX, RPG INTERROGATION, PUBLIC TRIAL, DYNAMIC RELATIONSHIPS, MISSING FAMILY SEARCH, SOCIAL GLOSSARY & UNCONSCIOUS REACTION TESTS PASSED!")
 	quit(0)
