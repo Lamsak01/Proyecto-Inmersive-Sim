@@ -36,8 +36,8 @@ capturas entre fases:
 - **Fase B (pueblo):** solo desniveles suaves (calles que suben un poco, una plaza algo más alta, escalones o rampas
   donde haga falta). Los edificios se asientan en llano (plataforma o zócalo), nunca inclinados ni flotando.
 - Vecinos, animales, carros, caravanas y el jugador deben andar por las cuestas sin atascarse; nada flota ni se hunde
-  (árboles, muebles, cadáveres, objetos tirados). En 2D, el relieve se nota con sombreado o curvas suaves.
-- Tras cada fase: capturas 2D y 3D (1.ª persona) de día y de noche, mirarlas; comprobar que el juego arranca y pasar
+  (árboles, muebles, cadáveres, objetos tirados). El 2D se ignora (decisión del usuario: solo 3D).
+- Tras cada fase: unas pocas capturas 3D (1.ª persona) de los sitios con relieve, mirarlas; comprobar que el juego arranca y pasar
   verify_all con timeout 900. Si algo se atasca, arreglarlo antes de seguir.
 
 ## 4. Edificios de los bocetos (`docs/BOCETOS_EDIFICIOS.md`)
