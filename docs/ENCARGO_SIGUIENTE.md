@@ -33,6 +33,9 @@ El terreno es perfectamente plano. Hacerlo **antes** de los edificios de los boc
 capturas entre fases:
 - **Fase A (fuera del pueblo):** lomas en la llanura, desniveles en el bosque, orillas del lago y de la ciénaga más bajas
   que el terreno. Relieve fuerte permitido.
+- **⚠️ Antes de la Fase B:** arregla, sin rehacer nada más, la entrada «Partida del usuario tras la interfaz nueva» de
+  `FALLOS_VISIBLES.md` (mapa grande, aviso [E] doble, ayuda sobre el reloj, puerta de la taberna comprobada viendo a
+  varios vecinos entrar y salir, tira roja, pescador fuera del lago).
 - **Fase B (pueblo):** solo desniveles suaves (calles que suben un poco, una plaza algo más alta, escalones o rampas
   donde haga falta). Los edificios se asientan en llano (plataforma o zócalo), nunca inclinados ni flotando.
 - Vecinos, animales, carros, caravanas y el jugador deben andar por las cuestas sin atascarse; nada flota ni se hunde
