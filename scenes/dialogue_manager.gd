@@ -193,7 +193,7 @@ func _update_header() -> void:
 			if current_speaker.has_method("get_portrait_texture"):
 				p_tex = current_speaker.call("get_portrait_texture") as Texture2D
 			elif "sprite" in current_speaker and current_speaker.sprite:
-				p_tex = current_speaker.sprite.texture
+					p_tex = current_speaker.sprite.texture
 			_portrait_rect.texture = p_tex
 			_portrait_frame.visible = (p_tex != null)
 	else:

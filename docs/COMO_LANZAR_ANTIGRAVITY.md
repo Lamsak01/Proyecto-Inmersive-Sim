@@ -4,7 +4,7 @@
 1. Descargar el juego de GitHub (o `git pull` si ya está) en una carpeta, p. ej. `~/Videojuego`.
 2. Godot 4.7.2 por Flatpak: `flatpak install flathub org.godotengine.Godot`.
 3. Antigravity instalado y con la sesión iniciada. Saber dónde está su programa `agy`
-   (en el ordenador principal: `~/AntigravityTerminal/agy`).
+   (ordenador principal: `~/AntigravityTerminal/agy`; portátil `lamsaktp`: `/home/lamsaktp/.local/bin/agy`).
 4. Quitar la suspensión del ordenador si va a trabajar solo mucho rato.
 
 ## ⭐ Trabajo de todo el día sin vigilarlo (lo recomendado)
