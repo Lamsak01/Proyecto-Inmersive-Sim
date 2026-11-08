@@ -31,7 +31,8 @@ static var CASES: Dictionary = {
 		"pending_author_decisions": {
 			"herb_name": "Belladama gris",
 			"potion_name": "Sueño de cera",
-			"how_stolen_potion_is_discovered": PENDING_DECISION,
+			"how_stolen_potion_is_discovered": "La criada reconoce el frasco y menciona el gabinete de los señores; al registrar el gabinete (con su permiso o a escondidas) se ve la cerradura forzada. Sin marca en el polvo.",
+			"potion_stability": {"full_strength_until_hour": 12, "degrades_from_hour": 13, "useless_at_hour": 48},
 			"abandoned_house_location": PENDING_DECISION,
 			"sect_open_thread_hook": PENDING_DECISION
 		},
@@ -106,7 +107,7 @@ static var CASES: Dictionary = {
 				"id": "investigate_nobles_and_maid",
 				"summary": "Los nobles esconden algo pero no fueron ellos (la poción era suya y se la robaron; no pueden decirlo). Una criada reconoce el frasco.",
 				"role": "noble_maid",
-				"how_theft_is_discovered": PENDING_DECISION
+				"how_theft_is_discovered": "La criada reconoce el frasco y menciona el gabinete de los señores; al registrar el gabinete (con su permiso o a escondidas) se ve la cerradura forzada. Sin marca en el polvo."
 			},
 			{
 				"step": 5,
@@ -138,12 +139,12 @@ static var CASES: Dictionary = {
 			"alchemist_analyze_flask": {
 				"speaker_role": "alchemist",
 				"requires_note": "m_estomago",
-				"line": "«Este líquido verdoso lleva una hierba de embalsamar muy cara: belladama gris. Se degrada en pocas horas y el padre Anselmo jamás la pide.»"
+				"line": "«Este líquido verdoso lleva una hierba de embalsamar muy cara: belladama gris. Con ella se hace el sueño de cera, y es muy inestable: a las doce horas empieza a perder fuerza y a los dos días no vale nada. Quien la usó la tenía recién hecha. El padre Anselmo jamás la pide.»"
 			},
 			"noble_maid_recognize_vial": {
 				"speaker_role": "noble_maid",
 				"requires_note": "bolsillos:registrar",
-				"line": "«Ese frasco sin etiqueta… es del gabinete de los señores. Cómo se descubre el robo exacto: [PENDIENTE_DECISION_USUARIO].»"
+				"line": "«Ese frasco sin etiqueta… es del gabinete de los señores. Hace un par de días alguien forzó la cerradura y me mandaron callar. No diga que se lo he contado yo.»"
 			},
 			"relative_confession": {
 				"speaker_role": "apparent_culprit_relative",

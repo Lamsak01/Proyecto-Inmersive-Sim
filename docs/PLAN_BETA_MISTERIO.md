@@ -62,10 +62,12 @@
 1. Aparece una mujer muerta en el bosque: estrangulada; el cuerpo huele a una hierba rara.
 2. El **alquimista** identifica la hierba: se usaba para embalsamar, pero el cura del pueblo no la usa.
 3. Hay que buscar quién sabe prepararla y tiene acceso a la planta. No crece por aquí: huerto privado o caravana.
-   La poción se degrada muy rápido → fue **premeditado y caro** → apunta a gente pudiente.
+   La poción es **muy inestable** (usuario, 2026-11-08): plena hasta la hora 12, se degrada desde la hora 13 y a la
+   hora 48 no vale nada → se usó recién hecha → fue **premeditado y caro** → apunta a gente pudiente.
 4. Investigas a los **nobles**: esconden algo, pero no fueron ellos (presagio de la secta: la poción era suya y se la
    robaron; no pueden decirlo sin meterse en líos). Una **criada** identifica la sustancia (reconoce el frasco).
-   *Hueco por pensar:* cómo descubres que fue robada (¿lo vio la criada?).
+   **Cómo se descubre el robo (decidido por el usuario, 2026-11-08):** la criada reconoce el frasco y menciona el gabinete
+   de los señores; registrando el gabinete (con permiso o a escondidas) se ve la cerradura forzada. Sin marca de polvo.
 5. El «culpable» aparente es un **familiar o pareja** de la víctima que quería salvarla de un **culto que la tenía
    secuestrada** en una casa abandonada: mezcló la poción con otras de un libro antiguo de la biblioteca para fingir su
    muerte. La dosis salió mal (libro antiguo): la paralizó y duró poco.
