@@ -3135,6 +3135,8 @@ func _doctor_apply_single_step_treatment(pat: Node2D, hc: HealthComponent, pat_l
 	hc.heal(18.0)
 
 func _apply_player_and_doorway_yield(delta: float) -> void:
+	if _VillageTavern.is_at_seat(global_position) or _VillageRestaurant.is_at_seat(global_position):
+		return
 	var player = _cached_player
 	if is_instance_valid(player) and not is_sleeping and not is_at_poker_table:
 		var d_p_sq: float = global_position.distance_squared_to(player.global_position)
@@ -3262,6 +3264,8 @@ func _get_expedition_description() -> String:
 func _is_mandatory_work_hours() -> bool:
 	if (trade_role == TradeRole.UNEMPLOYED and not has_meta("day_job")) or rite_pos != Vector2.ZERO or sick_level >= 2 or errand_kind in NIGHT_ERRANDS:
 		return false # V5d: el jornalero con jornal sí tiene horario de trabajo (8–18)
+	if errand_kind == "leisure" and str(get_meta("leisure_place", "")) in ["tavern_poker", "tavern_hall", "restaurant_terrace", "restaurant_hall"]:
+		return false
 	if not WorldClock or _is_morning_expedition_hours():
 		return true
 	var h: int = WorldClock.current_hour
@@ -3414,7 +3418,7 @@ func _choose_preferred_meal_location() -> bool:
 	elif trade_role == TradeRole.UNEMPLOYED:
 		go_tavern = not is_vagrant_camper and personal_gold >= 13
 	else:
-		go_tavern = personal_gold >= 36 and randf() < (0.35 if personal_gold >= 160 else 0.10) # E3: los ricos comen fuera más a menudo
+		go_tavern = personal_gold >= 24 and randf() < (0.55 if personal_gold >= 120 else 0.30) # E3: los ricos y vecinos con ahorros salen a comer a la taberna
 	_tavern_seat = _VillageTavern.pick_seat_for(vm, self) if go_tavern else Vector2.ZERO
 	return go_tavern
 
@@ -3422,8 +3426,9 @@ func _choose_preferred_meal_location() -> bool:
 func _update_needs_and_decisions(delta: float) -> void:
 	var is_night_env: bool = WorldClock != null and (WorldClock.current_hour >= 22 or WorldClock.current_hour < 6)
 	var in_work_shift: bool = _is_mandatory_work_hours()
+	var busy_eating: bool = (current_activity == ActivityState.EATING and not _is_amateur_foraging and _sitting_meal_ingested < 36.0 and (need_hunger + digestion_buffer) < 96.0)
 
-	if in_work_shift and current_activity != ActivityState.WORKING and (need_hunger > 22.0 or digestion_buffer > 5.0):
+	if in_work_shift and current_activity != ActivityState.WORKING and not busy_eating and (need_hunger > 22.0 or digestion_buffer > 5.0):
 		is_sleeping = false
 		_is_amateur_foraging = false
 		_social_partner = null
@@ -3485,7 +3490,9 @@ func _update_needs_and_decisions(delta: float) -> void:
 							_has_valid_meal_this_sitting = bool(vm_chk.call("consume_village_meal_for_npc", self)) if (vm_chk and vm_chk.has_method("consume_village_meal_for_npc")) else false
 						_sitting_meal_ingested = 0.0
 					if _has_valid_meal_this_sitting:
-						var ingest_step: float = minf(38.0 - _sitting_meal_ingested, 9.5 * delta)
+						var at_public_table: bool = (_restaurant_seat != Vector2.ZERO or _tavern_seat != Vector2.ZERO or _eat_at_tavern)
+						var eat_rate: float = 2.0 if at_public_table else 9.5
+						var ingest_step: float = minf(38.0 - _sitting_meal_ingested, eat_rate * delta)
 						if ingest_step > 0.0:
 							_sitting_meal_ingested += ingest_step
 							feed_npc_gradual(ingest_step)
@@ -3592,6 +3599,14 @@ func _update_needs_and_decisions(delta: float) -> void:
 
 	if current_activity == ActivityState.EATING:
 		if not _is_amateur_foraging and (_sitting_meal_ingested >= 36.0 or (need_hunger + digestion_buffer) >= 96.0):
+			var cur_h_m: int = int(WorldClock.current_hour) if WorldClock else 12
+			if not is_night_env and cur_h_m >= 8 and cur_h_m < 23 and (_tavern_seat != Vector2.ZERO or _restaurant_seat != Vector2.ZERO):
+				var linger_seat: Vector2 = _restaurant_seat if _restaurant_seat != Vector2.ZERO else _tavern_seat
+				var linger_place: String = ("restaurant_terrace" if _VillageRestaurant.TERRACE.grow(10.0).has_point(linger_seat) else "restaurant_hall") if _restaurant_seat != Vector2.ZERO else "tavern_hall"
+				if not _is_mandatory_work_hours() or randf() < 0.65:
+					set_meta("leisure_place", linger_place)
+					start_errand("leisure", linger_seat)
+					return
 			if is_night_env or need_energy <= 12.0:
 				current_activity = ActivityState.SLEEPING
 			elif need_social < 75.0:
@@ -3679,9 +3694,13 @@ func _execute_dynamic_activity(delta: float) -> void:
 			if _is_amateur_foraging:
 				_process_amateur_survival_hunting(delta)
 				return
-			_approach_or_stop(_current_meal_pos(), 10.0, 40.0, delta)
+			var meal_t: Vector2 = _current_meal_pos()
+			var meal_tol: float = 2.0 if (_tavern_seat != Vector2.ZERO or _restaurant_seat != Vector2.ZERO or _VillageTavern.is_at_seat(meal_t) or _VillageRestaurant.is_at_seat(meal_t)) else 10.0
+			_approach_or_stop(meal_t, meal_tol, 40.0, delta)
 		ActivityState.SOCIALIZING:
-			_approach_or_stop(_get_social_target_pos(), 16.0, 38.0, delta)
+			var soc_t: Vector2 = _get_social_target_pos()
+			var soc_tol: float = 2.0 if (_VillageTavern.is_at_seat(soc_t) or _VillageRestaurant.is_at_seat(soc_t)) else 16.0
+			_approach_or_stop(soc_t, soc_tol, 38.0, delta)
 		ActivityState.WORKING:
 			if _is_morning_expedition_hours():
 				_stop_crafting_bar()
@@ -4336,6 +4355,9 @@ func start_errand(kind: String, spot: Vector2) -> void:
 func end_errand() -> void:
 	errand_kind = ""
 	errand_pos = Vector2.ZERO
+	for m in ["leisure_since", "leisure_place", "leisure_until_hour"]:
+		if has_meta(m):
+			remove_meta(m)
 
 ## B4.2: Escena discreta de pelea. `VillageManager` decide inicio, fin y consecuencias; aquí solo se representa.
 func is_in_live_fight() -> bool:

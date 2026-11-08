@@ -293,18 +293,83 @@ static func has_food(vm) -> bool:
 			return true
 	return false
 
-## Sitios para sentarse: una silla junto a cada mesa del comedor (menos la de la familia del cocinero) y de la terraza.
-static func seats() -> Array[Vector2]:
+## Sitios para sentarse: dos sillas enfrentadas junto a cada mesa del comedor (menos la de la familia del cocinero) y de la terraza (sincronizadas con las sillas 3D de _restaurant_table_3d).
+static func indoor_seats() -> Array[Vector2]:
 	var out: Array[Vector2] = []
 	for i in DINING_TABLES.size():
 		if i == 3:
 			continue # mesa de la familia del cocinero
-		out.append(DINING_TABLES[i] + Vector2(-12, 4))
-		out.append(DINING_TABLES[i] + Vector2(12, 4))
-	for t in TERRACE_TABLES:
-		out.append(t + Vector2(-11, 3))
-		out.append(t + Vector2(11, 3))
+		out.append(DINING_TABLES[i] + Vector2(-14.5, 0.0))
+		out.append(DINING_TABLES[i] + Vector2(14.5, 0.0))
 	return out
+
+static func terrace_seats() -> Array[Vector2]:
+	var out: Array[Vector2] = []
+	for t in TERRACE_TABLES:
+		out.append(t + Vector2(-12.5, 0.0))
+		out.append(t + Vector2(12.5, 0.0))
+	return out
+
+static func seats() -> Array[Vector2]:
+	var out: Array[Vector2] = indoor_seats()
+	out.append_array(terrace_seats())
+	return out
+
+static func table_center_for_seat(seat: Vector2) -> Vector2:
+	for t in TERRACE_TABLES:
+		if seat.distance_to(t) <= 18.0:
+			return t
+	for t in DINING_TABLES:
+		if seat.distance_to(t) <= 20.0:
+			return t
+	return RECT.get_center()
+
+static func is_at_seat(pos: Vector2) -> bool:
+	if not RECT.grow(6.0).has_point(pos) and not TERRACE.grow(10.0).has_point(pos):
+		return false
+	for s in seats():
+		if pos.distance_to(s) <= 6.5:
+			return true
+	return false
+
+static func snap_seat_pos(pos: Vector2) -> Vector2:
+	for s in seats():
+		if pos.distance_to(s) <= 6.5:
+			return s
+	return pos
+
+static func is_seat_taken(vm, pos: Vector2, ignore_npc = null) -> bool:
+	if vm == null:
+		return false
+	for n in VillageNeeds.living(vm):
+		if n == ignore_npc:
+			continue
+		if n.global_position.distance_to(pos) <= 9.0:
+			return true
+		var s = n.get("_restaurant_seat")
+		if s is Vector2 and (s as Vector2).distance_to(pos) <= 4.0:
+			return true
+		if n.errand_kind != "" and n.errand_pos.distance_to(pos) <= 7.0:
+			return true
+	return false
+
+static func pick_terrace_seat_for(vm, npc) -> Vector2:
+	var free: Array[Vector2] = []
+	for s in terrace_seats():
+		if not is_seat_taken(vm, s, npc):
+			free.append(s)
+	if free.is_empty():
+		return Vector2.ZERO
+	return free[absi(npc.npc_name.hash() + int(Time.get_ticks_msec() / 1000)) % free.size()]
+
+static func pick_indoor_seat_for(vm, npc) -> Vector2:
+	var free: Array[Vector2] = []
+	for s in indoor_seats():
+		if not is_seat_taken(vm, s, npc):
+			free.append(s)
+	if free.is_empty():
+		return Vector2.ZERO
+	return free[absi(npc.npc_name.hash() + int(Time.get_ticks_msec() / 1000)) % free.size()]
 
 ## ¿Sale este vecino a comer al restaurante? Devuelve el sitio donde se sienta, o Vector2.ZERO si no.
 static func pick_seat_for(vm, npc, force: bool = false) -> Vector2:
@@ -315,23 +380,114 @@ static func pick_seat_for(vm, npc, force: bool = false) -> Vector2:
 	if str(npc.family_id) == FAMILY_ID or bool(npc.get("is_vagrant_camper")):
 		return Vector2.ZERO
 	var h: int = WorldClock.current_hour if WorldClock else 12
-	if h < 13 or h >= 22 or int(npc.personal_gold) < MIN_GOLD_TO_DINE:
+	if h < 12 or h >= 23 or int(npc.personal_gold) < MIN_GOLD_TO_DINE:
 		return Vector2.ZERO
 	if not is_serving(vm) or not has_food(vm):
 		return Vector2.ZERO
-	var chance: float = 0.30 if int(npc.personal_gold) >= 160 else 0.12
-	if h >= 19:
-		chance *= 1.6 # de cena salen más
+	var chance: float = 0.35 if int(npc.personal_gold) >= 140 else 0.16
+	if h >= 18:
+		chance *= 1.75 # de cena salen más
 	if not force and randf() >= chance:
 		return Vector2.ZERO
-	var free: Array[Vector2] = seats()
-	for n in VillageNeeds.living(vm):
-		var s = n.get("_restaurant_seat")
-		if n != npc and s is Vector2 and s != Vector2.ZERO:
-			free.erase(s)
+	# Al atardecer y de noche prefieren la terraza iluminada si no llueve
+	var raining: bool = WorldClock != null and int(WorldClock.current_weather) == 1
+	if h >= 18 and not raining:
+		var ts: Vector2 = pick_terrace_seat_for(vm, npc)
+		if ts != Vector2.ZERO:
+			return ts
+	var free: Array[Vector2] = []
+	for s in seats():
+		if not is_seat_taken(vm, s, npc):
+			free.append(s)
 	if free.is_empty():
 		return Vector2.ZERO # lleno
 	return free[randi() % free.size()]
+
+const TERRACE_CALLOUTS: Array[String] = [
+	"🍷 «Qué buena noche hace en la terraza bajo las bombillas...»",
+	"🍝 «Un plato caliente y una copa de vino después del jornal.»",
+	"🕯️ «Aquí fuera se está de lujo viendo pasar a la gente.»",
+	"🍷 «Brindemos por otra tarde tranquila en el valle.»",
+]
+static var _terrace_callout_cooldown: float = 6.0
+
+## Por la tarde y de noche (18:00 a 23:00), varios vecinos se sientan en las mesas de la terraza exterior (y en el comedor) a tomar algo y cenar un rato.
+static func on_hour(vm, hour: int) -> void:
+	if vm == null:
+		return
+	if hour < 18 or hour >= 24:
+		return
+	var raining: bool = WorldClock != null and int(WorldClock.current_weather) == 1
+	var terrace_count: int = 0
+	var hall_count: int = 0
+	for n in VillageNeeds.living(vm):
+		if n.errand_kind != "leisure":
+			continue
+		var lp: String = str(n.get_meta("leisure_place", ""))
+		if lp == "restaurant_terrace":
+			terrace_count += 1
+		elif lp == "restaurant_hall":
+			hall_count += 1
+
+	var candidates: Array = []
+	for n in VillageNeeds.living(vm):
+		if n.is_vagrant_camper or n.is_sleeping or n.rite_pos != Vector2.ZERO or n.errand_kind != "":
+			continue
+		if int(n.trade_role) in [int(VillageNPC.TradeRole.RESTAURATEUR), int(VillageNPC.TradeRole.INNKEEPER), int(VillageNPC.TradeRole.WAITER), int(VillageNPC.TradeRole.CHILD), int(VillageNPC.TradeRole.SHERIFF), int(VillageNPC.TradeRole.ROYAL_INVESTIGATOR)]:
+			continue
+		var can_go: bool = VillageNeeds.is_free(n) or int(n.trade_role) in [int(VillageNPC.TradeRole.UNEMPLOYED), int(VillageNPC.TradeRole.FAMILY_MEMBER), int(VillageNPC.TradeRole.NOBLE)]
+		if can_go and int(n.personal_gold) >= 8:
+			candidates.append(n)
+	candidates.shuffle()
+
+	var target_terrace: int = 0 if raining else 5
+	var target_hall: int = 3
+	for cand in candidates:
+		if terrace_count < target_terrace:
+			var t_seat: Vector2 = pick_terrace_seat_for(vm, cand)
+			if t_seat != Vector2.ZERO:
+				cand.set_meta("leisure_place", "restaurant_terrace")
+				cand.start_errand("leisure", t_seat)
+				if terrace_count < 3:
+					cand.global_position = t_seat
+					cand.facing_direction = (table_center_for_seat(t_seat) - t_seat).normalized()
+					cand.set_meta("leisure_since", VillageNeeds.total_hours())
+					cand.errand_since = VillageNeeds.total_hours()
+				terrace_count += 1
+				continue
+		if hall_count < target_hall and not vm.is_building_door_blocked(BUILDING_ID):
+			var h_seat: Vector2 = pick_indoor_seat_for(vm, cand)
+			if h_seat != Vector2.ZERO:
+				cand.set_meta("leisure_place", "restaurant_hall")
+				cand.start_errand("leisure", h_seat)
+				hall_count += 1
+		if terrace_count >= target_terrace and hall_count >= target_hall:
+			break
+
+static func tick(vm, delta: float) -> void:
+	if vm == null:
+		return
+	var cur_h: int = int(WorldClock.current_hour) if WorldClock else 12
+	var is_evening: bool = (cur_h >= 18 and cur_h < 24)
+	var seated_terrace: Array = []
+	for n in VillageNeeds.living(vm):
+		if int(n.elevation_level) == 0 and n.velocity.length_squared() < 4.0:
+			if is_at_seat(n.global_position):
+				var snapped: Vector2 = snap_seat_pos(n.global_position)
+				if n.global_position.distance_to(snapped) > 0.2:
+					n.global_position = snapped
+				var tc: Vector2 = table_center_for_seat(snapped)
+				if tc.distance_to(snapped) > 1.0:
+					n.facing_direction = (tc - snapped).normalized()
+				if TERRACE.grow(10.0).has_point(snapped):
+					seated_terrace.append(n)
+	if is_evening and seated_terrace.is_empty():
+		on_hour(vm, cur_h)
+	_terrace_callout_cooldown = maxf(0.0, _terrace_callout_cooldown - delta)
+	if seated_terrace.size() >= 1 and _terrace_callout_cooldown <= 0.0:
+		_terrace_callout_cooldown = randf_range(9.0, 15.0)
+		var speaker = seated_terrace[randi() % seated_terrace.size()]
+		speaker._spawn_floating_text(TERRACE_CALLOUTS[randi() % TERRACE_CALLOUTS.size()], Color(1.0, 0.86, 0.58), -30.0)
 
 ## Sirve el plato al vecino sentado: uno al azar de los que queden y pueda pagar. Devuelve false si no hay plato o dinero.
 static func serve_meal(vm, npc) -> bool:

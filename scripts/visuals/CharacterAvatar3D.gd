@@ -170,13 +170,17 @@ func _sync_holder_position() -> void:
 	elif "elevation_level" in target_entity:
 		elev_lvl = int(target_entity.get("elevation_level"))
 	var pos_2d: Vector2 = target_entity.global_position
-	var tav_h: float = preload("res://scripts/systems/VillageTavern.gd").elevation_height_for(pos_2d, elev_lvl)
+	var tav_gd = preload("res://scripts/systems/VillageTavern.gd")
+	var rest_gd = preload("res://scripts/systems/VillageRestaurant.gd")
+	var tav_h: float = tav_gd.elevation_height_for(pos_2d, elev_lvl)
 	if tav_h > 0.0:
 		seat_h += tav_h
 	elif elev_lvl == 0 and vm_node != null and vm_node.has_method("_is_pos_inside_any_building") and bool(vm_node.call("_is_pos_inside_any_building", pos_2d)):
 		seat_h += 2.65
+	elif elev_lvl == 0 and rest_gd.TERRACE.grow(6.0).has_point(pos_2d):
+		seat_h += 1.8
 	var foot_off := Vector2(0.0, FOOT_OFFSET_PX)
-	if not is_player_avatar and preload("res://scripts/systems/VillageTavern.gd").is_at_seat(pos_2d):
+	if not is_player_avatar and (tav_gd.is_at_seat(pos_2d) or rest_gd.is_at_seat(pos_2d)):
 		var v_chk: Vector2 = target_entity.get("velocity") if "velocity" in target_entity else Vector2.ZERO
 		if v_chk.length_squared() < 4.0:
 			foot_off = Vector2(0.0, 1.0)
@@ -833,8 +837,18 @@ func _sync_pose_and_tint(delta: float) -> void:
 			atk_prog = clampf(1.0 - (w_t / 0.40), 0.05, 0.95)
 			is_working = false
 		if vel.length_squared() < 4.0 and not is_sleeping and not is_downed and not is_dead and not is_fighting and not is_working and not is_hostile:
-			if preload("res://scripts/systems/VillageTavern.gd").is_at_seat(target_entity.global_position):
+			var tav_s = preload("res://scripts/systems/VillageTavern.gd")
+			var rest_s = preload("res://scripts/systems/VillageRestaurant.gd")
+			if tav_s.is_at_seat(target_entity.global_position):
 				is_mounted_now = true
+				var tc_t: Vector2 = tav_s.table_center_for_seat(target_entity.global_position)
+				if tc_t.distance_to(target_entity.global_position) > 1.0:
+					facing = (tc_t - target_entity.global_position).normalized()
+			elif rest_s.is_at_seat(target_entity.global_position):
+				is_mounted_now = true
+				var tc_r: Vector2 = rest_s.table_center_for_seat(target_entity.global_position)
+				if tc_r.distance_to(target_entity.global_position) > 1.0:
+					facing = (tc_r - target_entity.global_position).normalized()
 
 	var state_dict := {
 		"facing": facing,

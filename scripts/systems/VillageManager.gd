@@ -336,6 +336,7 @@ func _process(delta: float) -> void:
 		_needs_tick_acc = 0.0
 		VillageNeeds.tick(self) # E: terminar encargos al llegar
 	VillageTavern.tick(self, delta) # Paso 3: escalera al 2.º piso, mesa de póker viva y ambiente de taberna
+	VillageRestaurant.tick(self, delta) # Terraza y comedor de la trattoria con vecinos sentados de tarde y noche
 	VillageClub.tick(self, delta) # P6: la pelea en curso en el club del sótano
 	if social_director != null:
 		social_director.tick(delta, self)
@@ -2630,6 +2631,7 @@ func _on_hour_passed(_day: int, new_hour: int = 8) -> void:
 	VillageNightJobs.on_hour(self, actual_hour) # P6b: a la 1:00 salen los saboteadores, rateros y profanadores
 	VillageClub.on_hour(self, actual_hour) # P6: el club del sótano abre cada noche de 21:00 a 03:00
 	VillageTavern.on_hour(self, actual_hour) # Paso 3: clientes en mesas y partida de póker en El Jabalí Dorado
+	VillageRestaurant.on_hour(self, actual_hour) # Clientes sentados cenando y tomando algo en la terraza de la trattoria de noche
 	VillageFame.sync_masterwork_counters(self) # A1: mostrador de las Obras Maestras en el taller de cada maestro
 	VillageCollections.sync_points(self) # P5: puntos de cobro en los locales y objetos del ayuntamiento
 	VillageNeeds.on_hour(self, actual_hour) # E: higiene, taberna, limosna
@@ -3815,7 +3817,7 @@ func consume_village_meal_for_npc(npc: VillageNPC) -> bool:
 		return false
 
 	var p_key: String = npc.family_id if (npc.family_id != "none" and npc.family_id != "") else npc.npc_name
-	var near_tavern: bool = npc.global_position.distance_to(_tavern_social_pos) <= 55.0
+	var near_tavern: bool = VillageTavern.RECT.grow(8.0).has_point(npc.global_position)
 
 	# 1º PRIORIDAD: Si está en su casa/cuartel (no en la Taberna) y su despensa doméstica (`house_pantry`) tiene suministros, cocina en casa gratis
 	var cur_pantry: int = int(house_pantry.get(p_key, 0))

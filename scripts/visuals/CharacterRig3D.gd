@@ -1021,6 +1021,10 @@ func _apply_real_animation() -> void:
 	var spd: float = pick[1]
 	if not _anim_player.has_animation(clip):
 		clip = "idle"
+	if clip == "sit" and char_root != null:
+		# En Sitting_Idle_Loop la pelvis queda en z = -0.294 respecto al origen de los pies;
+		# adelantamos char_root +0.26 en Z y bajamos -0.05 en Y para que la cadera apoye sobre el asiento de la silla.
+		char_root.position = Vector3(0.0, -0.05, 0.26)
 	if clip != _current_clip:
 		_current_clip = clip
 		_anim_player.play(clip, 0.18)

@@ -32,7 +32,11 @@ static func place(id: String) -> Dictionary:
 	if id == "tavern_poker":
 		return {"id": "tavern_poker", "kind": "tavern", "pos": Vector2(518.0, -178.0), "label": "la mesa de póker de El Jabalí Dorado", "text": "🃏 Jugando al póker en la taberna", "indoor": true}
 	if id == "tavern_hall":
-		return {"id": "tavern_hall", "kind": "tavern", "pos": Vector2(420.0, -198.0), "label": "el salón de El Jabalí Dorado", "text": "🍺 Sentado en una mesa de la taberna", "indoor": true}
+		return {"id": "tavern_hall", "kind": "tavern", "pos": Vector2(420.0, -198.0), "label": "el salón de El Jabalí Dorado", "text": "🍺 Sentado comiendo y bebiendo en la taberna", "indoor": true}
+	if id == "restaurant_terrace":
+		return {"id": "restaurant_terrace", "kind": "terrace", "pos": Vector2(-118.0, 10.0), "label": "la terraza de la Casa de Comidas", "text": "🍷 Tomando algo en la terraza de la trattoria", "indoor": false}
+	if id == "restaurant_hall":
+		return {"id": "restaurant_hall", "kind": "restaurant", "pos": Vector2(-150.0, -76.0), "label": "el comedor de la Casa de Comidas", "text": "🍝 Cenando en la Casa de Comidas", "indoor": true}
 	for p in PLACES:
 		if str(p["id"]) == id:
 			return p
@@ -102,7 +106,9 @@ static func hangout_spots() -> Array:
 # ---------------------------------------------------------------- ocio
 static func is_leisure_hour(hour: int, n = null) -> bool:
 	if n != null and str(n.get_meta("leisure_place", "")) in ["tavern_poker", "tavern_hall"]:
-		return hour >= 11 and hour < 23
+		return hour >= 8 and hour < 24
+	if n != null and str(n.get_meta("leisure_place", "")) in ["restaurant_terrace", "restaurant_hall"]:
+		return hour >= 12 and hour < 24
 	var weekend: bool = WorldClock != null and WorldClock.has_method("is_weekend") and WorldClock.is_weekend()
 	var span: Vector2i = LEISURE_WEEKEND_HOURS if weekend else LEISURE_FREE_HOURS
 	if n != null and int(n.trade_role) == int(VillageNPC.TradeRole.CHILD) and not weekend:
@@ -161,10 +167,11 @@ static func on_hour(vm, hour: int) -> void:
 			continue
 		if not n.has_meta("leisure_since"):
 			continue # Aún de camino
-		if now - int(n.get_meta("leisure_since")) >= STAY_HOURS and randf() < 0.5:
+		var pid: String = str(n.get_meta("leisure_place", ""))
+		var min_stay: int = 2 if pid in ["tavern_hall", "tavern_poker", "restaurant_terrace", "restaurant_hall"] else STAY_HOURS
+		if now - int(n.get_meta("leisure_since")) >= min_stay and randf() < 0.35:
 			_leave(n)
 			continue
-		var pid: String = str(n.get_meta("leisure_place", ""))
 		if not at_place.has(pid):
 			at_place[pid] = []
 		at_place[pid].append(n)

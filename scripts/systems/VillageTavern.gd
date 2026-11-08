@@ -32,8 +32,8 @@ const DOOR_POS: Vector2 = Vector2(454.0, -132.0)
 const DOOR_W: float = 44.0
 
 ## Alturas 3D de la posada de 2 pisos
-const FLOOR_1_H: float = 22.0
-const TOTAL_WALL_H: float = 44.0
+const FLOOR_1_H: float = 34.0
+const TOTAL_WALL_H: float = 68.0
 
 ## Planta 0: 4 salas comunicadas por arcos anchos
 const MID_WALL_Y: float = -232.0
@@ -630,12 +630,14 @@ static func _pick_unserved_customer(vm, waiter):
 static func on_hour(vm, hour: int) -> void:
 	if vm == null or vm.is_building_door_blocked(BUILDING_ID):
 		return
-	# Entre las 11:00 y las 22:00, asegurar que haya vecinos sentados jugando al póker y pasando el rato en las mesas
-	if hour < 11 or hour >= 23:
+	# Entre las 08:00 y las 23:00, asegurar que haya vecinos sentados jugando al póker y comiendo/bebiendo en las mesas
+	if hour < 8 or hour >= 24:
 		return
 	var poker_count: int = 0
 	var table_count: int = 0
 	for n in vm.VillageNeeds.living(vm):
+		if n.errand_kind != "leisure":
+			continue
 		if str(n.get_meta("leisure_place", "")) == "tavern_poker":
 			poker_count += 1
 		elif str(n.get_meta("leisure_place", "")) == "tavern_hall":
@@ -643,11 +645,12 @@ static func on_hour(vm, hour: int) -> void:
 
 	var candidates: Array = []
 	for n in vm.VillageNeeds.living(vm):
-		if not vm.VillageNeeds.is_free(n) or n.is_vagrant_camper:
+		if n.is_vagrant_camper or n.is_sleeping or n.rite_pos != Vector2.ZERO or n.errand_kind != "":
 			continue
 		if int(n.trade_role) in [int(VillageNPC.TradeRole.INNKEEPER), int(VillageNPC.TradeRole.WAITER), int(VillageNPC.TradeRole.CHILD), int(VillageNPC.TradeRole.SHERIFF), int(VillageNPC.TradeRole.ROYAL_INVESTIGATOR)]:
 			continue
-		if int(n.personal_gold) >= 6:
+		var can_go: bool = vm.VillageNeeds.is_free(n) or int(n.trade_role) in [int(VillageNPC.TradeRole.UNEMPLOYED), int(VillageNPC.TradeRole.FAMILY_MEMBER)]
+		if can_go and int(n.personal_gold) >= 5:
 			candidates.append(n)
 	candidates.shuffle()
 
@@ -671,6 +674,10 @@ static func on_hour(vm, hour: int) -> void:
 			if d_seat != Vector2.ZERO and d_seat != SOCIAL_POS:
 				cand.set_meta("leisure_place", "tavern_hall")
 				cand.start_errand("leisure", d_seat)
+				if table_count < 4:
+					cand.global_position = d_seat
+					cand.facing_direction = (table_center_for_seat(d_seat) - d_seat).normalized()
+					cand.set_meta("leisure_since", vm.VillageNeeds.total_hours())
 				table_count += 1
 		if poker_count >= 3 and table_count >= 7:
 			break
@@ -698,10 +705,11 @@ static func seed_initial_patrons(vm) -> void:
 					seated_hall += 1
 	for n in vm.VillageNeeds.living(vm):
 		var lp: String = str(n.get_meta("leisure_place", ""))
-		if lp in ["tavern_poker", "tavern_hall"] and n.errand_pos != Vector2.ZERO:
+		if n.errand_kind == "leisure" and lp in ["tavern_poker", "tavern_hall"] and n.errand_pos != Vector2.ZERO:
 			n.global_position = n.errand_pos
 			n.facing_direction = (table_center_for_seat(n.errand_pos) - n.errand_pos).normalized()
 			n.set_meta("leisure_since", vm.VillageNeeds.total_hours())
+			n.errand_since = vm.VillageNeeds.total_hours()
 
 static var _poker_callout_cooldown: float = 4.0
 static var _club_rumor_cooldown: float = 9.0
@@ -727,6 +735,7 @@ static func tick(vm, delta: float) -> void:
 			vm._innkeeper_npc.facing_direction = Vector2.DOWN
 
 	var poker_seated: Array = []
+	var hall_seated_count: int = 0
 	for n in vm.VillageNeeds.living(vm):
 		if n.is_sleeping and is_upper_floor_target(n.global_position) and int(n.elevation_level) != 1:
 			vm.set_npc_elevation_level(n, 1)
@@ -744,6 +753,8 @@ static func tick(vm, delta: float) -> void:
 					n.facing_direction = (tc - snapped).normalized()
 				if snapped.distance_to(GAMES_POS) <= 22.0:
 					poker_seated.append(n)
+				else:
+					hall_seated_count += 1
 			elif n.global_position.distance_to(GAMES_POS) <= 22.0:
 				n.facing_direction = (GAMES_POS - n.global_position).normalized()
 				poker_seated.append(n)
@@ -764,6 +775,8 @@ static func tick(vm, delta: float) -> void:
 	# 2b. Rumor en vivo en la taberna sobre el horario y ubicación de la trampilla del Club de Peleas
 	_club_rumor_cooldown = maxf(0.0, _club_rumor_cooldown - delta)
 	var cur_h_t: int = int(WorldClock.current_hour) if WorldClock else 12
+	if cur_h_t >= 8 and cur_h_t < 24 and hall_seated_count == 0 and not vm.is_building_door_blocked(BUILDING_ID):
+		on_hour(vm, cur_h_t)
 	if (cur_h_t >= 20 or cur_h_t < 3) and _club_rumor_cooldown <= 0.0:
 		_club_rumor_cooldown = randf_range(16.0, 24.0)
 		var speaker = vm._innkeeper_npc if (is_instance_valid(vm._innkeeper_npc) and not vm._innkeeper_npc.is_sleeping and not vm._innkeeper_npc.is_dead) else (poker_seated[0] if not poker_seated.is_empty() else null)

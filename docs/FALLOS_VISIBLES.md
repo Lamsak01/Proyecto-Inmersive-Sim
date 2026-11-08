@@ -18,14 +18,14 @@
   arreglar eso y que el vecino tenga nombre y aspecto 3D o retirarlo si sobra) (`scenes/dialogue_manager.gd`, `scenes/npc.gd`, `scripts/ui/InteractionSelector.gd`, `scripts/visuals/CharacterAvatar3D.gd`, `scripts/data/NPCData.gd`: corregido el acceso a `.texture` sobre `AnimatedSprite2D` al abrir el diálogo, resuelto `_resolve_target` en `InteractionSelector.gd` cuando `InteractArea` envuelve al NPC, y dotado el vigía de nombre propio «Roldán · Vigía del Oeste», retrato fijo y aspecto 3D de explorador fronterizo; comprobado en `docs/capturas_arreglos/hoy_1_aldeano_guia_3d.png`).
 - [ ] **Plaza incómoda: el jugador se atasca entre la farola y el pozo** (hueco demasiado estrecho; despejar el paso)
   · 1.ª persona, 09:38.
-- [ ] **Taberna: el techo de la planta baja es demasiado bajo** y agobia; las vigas quedan a la altura de la cara
-  · 1.ª persona, 11:08.
-- [ ] **Taberna, piso de arriba: todo es enano** («parezco Gandalf en casa de Bilbo»): techo, puertas y cuartos a
-  escala de niño. Subir la altura de los dos pisos a escala de persona adulta · 1.ª persona, 12:08.
-- [ ] **Taberna: sillas que atraviesan las mesas** y **nadie se sienta**: los clientes entran, compran y se van; los que
+- [x] ✅ (2026-11-08) **Taberna: el techo de la planta baja es demasiado bajo** y agobia; las vigas quedan a la altura de la cara
+  · 1.ª persona, 11:08 (`scripts/systems/VillageTavern.gd`, `scripts/visuals/WorldStage3D.gd`: elevada la altura de la Planta 0 de `22 px` a `34 px` y subidas las lámparas de araña a `24.5 px`, tabiques interiores a `30.4 px` y chimenea a `29 px`; comprobado en `docs/capturas_arreglos/hoy_3_taberna_escala_y_clientes_3d.png`).
+- [x] ✅ (2026-11-08) **Taberna, piso de arriba: todo es enano** («parezco Gandalf en casa de Bilbo»): techo, puertas y cuartos a
+  escala de niño. Subir la altura de los dos pisos a escala de persona adulta · 1.ª persona, 12:08 (`scripts/systems/VillageTavern.gd`, `scripts/visuals/WorldStage3D.gd`: elevada la altura total de muros a `68 px` —`34 px` por planta—, ampliadas las puertas de los cuartos del piso superior a `26 px` de ancho con dinteles altos, escalera de `16` peldaños hasta `34 px` y corregida la altura de ojos en 1.ª persona en Planta +1; comprobado en `docs/capturas_arreglos/hoy_3_taberna_escala_y_clientes_3d.png`).
+- [x] ✅ (2026-11-08) **Taberna: sillas que atraviesan las mesas** y **nadie se sienta**: los clientes entran, compran y se van; los que
   comen se quedan de pie junto a la mesa (el arreglo del 2026-11-08 de «pose sentada» no se ve en la partida real)
-  · 1.ª persona, 13:45 y 14:52.
-- [ ] **Terraza de la trattoria vacía de noche:** mesas y sillas puestas pero nadie las usa · 1.ª persona, 21:44.
+  · 1.ª persona, 13:45 y 14:52 (`scripts/enemies/VillageNPC.gd`, `scripts/systems/VillageTavern.gd`, `scripts/systems/VillagePlaces.gd`, `scripts/visuals/CharacterAvatar3D.gd`, `scripts/visuals/CharacterRig3D.gd`: corregida la condición de turno laboral en `_update_needs_and_decisions` que cortaba `ActivityState.EATING` medio segundo después de comprar el plato al subir `digestion_buffer > 5.0`, reducida la tolerancia de llegada a la silla a `2.0 px`, centrado el desplazamiento pélvico de `Sitting_Idle_Loop` sobre el asiento y añadida sobremesa tranquila tras comer; comprobado en `docs/capturas_arreglos/hoy_3_taberna_escala_y_clientes_3d.png`).
+- [x] ✅ (2026-11-08) **Terraza de la trattoria vacía de noche:** mesas y sillas puestas pero nadie las usa · 1.ª persona, 21:44 (`scripts/systems/VillageRestaurant.gd`, `scripts/systems/VillagePlaces.gd`, `scripts/systems/VillageManager.gd`, `scripts/visuals/CharacterAvatar3D.gd`, `scripts/visuals/WorldStage3D.gd`: sincronizadas las coordenadas de las sillas de terraza y comedor con las mallas 3D orientadas hacia la mesa, y añadidos `VillageRestaurant.on_hour` y `tick` para que de `18:00` a `24:00` los vecinos se sienten a cenar y charlar en la terraza; comprobado en `docs/capturas_arreglos/hoy_3b_terraza_noche_3d.png`).
 - [ ] **Combate en 1.ª persona feo:** al golpear, la estela sale como bloques blancos enormes que tapan media pantalla,
   y los brazos son cajas de colores (visto por el supervisor en la captura del paso 5a).
 - [ ] **El campamento inicial está en medio del pueblo** (tienda, hoguera y tronco pegados a las casas); las texturas
