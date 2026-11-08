@@ -115,5 +115,13 @@
   el aire** junto a la puerta de la taberna, al lado del farol colgado. (6) **El pescador pesca fuera del lago**, en el
   sitio viejo del lago (antes de moverlo al oeste).
 
+- [ ] **Revisión de Claude a la Fase A del relieve** (2026-11-07, capturas `relieve_fase_a_*_3d.png`): se aprueba; las
+  lomas y el bosque quedan bien. Detalles: (1) **el lago parece un charco en una zanja de arena**: poca agua, orillas de
+  arena lisa como excavadas y el muelle muy por encima del agua; más agua, orilla con hierba, juncos o piedras, y el
+  muelle a ras del agua. (2) **Lomas de color arena amarilla** en la llanura: parecen dunas de desierto; usar hierba seca
+  o verde apagado. (3) **Al fondo, a la izquierda, se ve el borde del mundo** (gris liso donde acaba el suelo): taparlo
+  con más lomas, árboles o niebla. (4) La tarjeta de [E] cerca del muelle dice solo «Usar · Interacción»: debe decir qué
+  es. (5) El aviso «[P/F6] Vista en 1.ª Persona ACTIVADA…» sale cortado con «…».
+
 ## Arreglados
 - [x] ✅ (2026-11-07) Fachada de la trattoria «Il Corvo» en 3D: parece de tablas oscuras en vez de estuco/ladrillo claro (`WorldStage3D.gd`: cambiada la textura de muros de `building_restaurant` a `town_textures/wall_brick_sand_center.png` con `uv1_scale = Vector3(2.4, 0.72, 2.4)`, tono claro de estuco/ladrillo cálido `Color(1.0, 0.95, 0.84)`, iluminación cálida de rebote `0.58` en la fachada sur y dintel con el mismo estuco en vez de `rf_planks.png`).
