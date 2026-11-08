@@ -12,6 +12,7 @@
     5. **Terminales de pantalla verde (CRT fósforo verde):** sobre el escritorio de la Comisaría (`Vector2(933, 130)`), en una mesa lateral del Ayuntamiento (`Vector2(718, -442)`) y en la consola del Taller (`Vector2(1188, 122)`), todas operables con `[E]`.
   - **3 propuestas de nombre para la casa de comidas del valle (§3b.4):** 1) **«Casa de Comidas El Fogón del Valle»** (usado por defecto), 2) **«Figón La Caldera»**, 3) **«Mesón del Arroyo»**. Platos cambiados a «Guiso de Trigo y Hogaza» y «Asado de Caza al Fuego».
   - **Inventos del taller (§3b.5):** renombrados a «Radio de onda corta», «Cerradura magnética» y «Generador diésel». Cargo policial renombrado a «Alguacil mayor» / «alguacil» (§3b.1).
+- **§3c Ocultar la historia principal actual (`VillageCulture.gd`, `QuestLogUI.gd`):** ocultados sin borrar el código (marca `# [OCULTO_HISTORIA_PRINCIPAL_PP]` y constante `MAIN_STORY_PP_HIDDEN = true`) los 4 capítulos descartados del bloque PP: ocultada la pestaña «Principal» en `[L]`, desactivado el avance y pago de recompensas en el ciclo diario y retiradas sus opciones de diálogo. Comprobado en `docs/capturas_arreglos/ocultar_historia_3c_panel_l.png`.
 
 ---
 

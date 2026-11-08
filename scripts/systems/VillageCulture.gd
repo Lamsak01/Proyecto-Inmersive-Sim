@@ -84,6 +84,9 @@ const OUTPOST_UPGRADES: Dictionary = {
 	"granary": "Granero del Paso (+1 trigo/día y raciones)",
 	"watchtower": "Atalaya de Guardia (+2 defensa del asentamiento)",
 }
+# [OCULTO_HISTORIA_PRINCIPAL_PP] §3c: Premisa de los 4 capítulos (bloque PP) ocultada sin borrar el código (docs/HANDOFF.md §8).
+# Cambiar MAIN_STORY_PP_HIDDEN a false si se desea reactivar en el futuro.
+const MAIN_STORY_PP_HIDDEN: bool = true
 const MAIN_STORY_CHAPTERS: Array[Dictionary] = [
 	{
 		"id": "main_ch1",
@@ -2063,7 +2066,14 @@ static func daily(vm) -> int:
 	restore_planted_trees(vm)
 	var pl_d = VillageNeeds.player_of(vm)
 	var inv_d = pl_d.get("inventory") if pl_d != null else null
-	sync_main_story(vm, inv_d)
+	# [OCULTO_HISTORIA_PRINCIPAL_PP] §3c: No avanzar capítulos, ni pagar recompensas, ni emitir avisos en partida:
+	if not MAIN_STORY_PP_HIDDEN:
+		sync_main_story(vm, inv_d)
+	elif vm != null:
+		var qm_clean = vm.get_node_or_null("/root/QuestManager")
+		if qm_clean != null and "quests" in qm_clean and qm_clean.quests is Dictionary:
+			for ch_clean in MAIN_STORY_CHAPTERS:
+				qm_clean.quests.erase(str(ch_clean.get("id", "")))
 	var f_st: Dictionary = forest_state(vm)
 	if int(f_st.get("soil_fertility", 0)) >= 2:
 		f_st["soil_fertility"] = maxi(0, int(f_st.get("soil_fertility", 0)) - 1)
@@ -2293,7 +2303,8 @@ static func add_dialogue_choices(vm, npc, diag: Dictionary, ch_arr: Array) -> vo
 				ch_arr.append({"label": "💰🏕️ Recaudar excedente del arca de tu asentamiento (+%d Oro)" % (int(op.get("treasury", 0)) - 6), "next": "END", "action": "culture_collect_outpost"})
 	if bool(op.get("founded", false)) and role_i == int(VillageNPC.TradeRole.UNEMPLOYED) and (op["settlers"] as Array).size() < 3 and not (npc.get_person_key() in (op["settlers"] as Array)):
 		ch_arr.append({"label": "🤝🏕️ Reclutarle como colono para tu asentamiento «Puesto del Paso» (-%d Oro de adelanto)" % OUTPOST_SETTLER_BONUS, "next": "END", "action": "culture_recruit_settler"})
-	if not bool(main_story_state(vm).get("completed", false)) and role_i in [int(VillageNPC.TradeRole.TINKER), int(VillageNPC.TradeRole.SHERIFF), int(VillageNPC.TradeRole.PRIEST)]:
+	# [OCULTO_HISTORIA_PRINCIPAL_PP] §3c: Opción de diálogo de los 4 capítulos oculta en partida:
+	if not MAIN_STORY_PP_HIDDEN and not bool(main_story_state(vm).get("completed", false)) and role_i in [int(VillageNPC.TradeRole.TINKER), int(VillageNPC.TradeRole.SHERIFF), int(VillageNPC.TradeRole.PRIEST)]:
 		ch_arr.append({"label": "👑📜 Actualizar tu avance en la Historia Principal del Valle [Panel L]", "next": "END", "action": "culture_sync_main_story"})
 
 static func _msg_actor(vm, npc, txt: String, col: Color, dy: float = -46.0) -> void:
@@ -2488,6 +2499,9 @@ static func on_player_action(vm, npc, action_id: String, inv) -> void:
 		else:
 			npc._spawn_floating_text("El arca del asentamiento solo tiene la reserva para pagar a los colonos", Color.LIGHT_GRAY, -44.0)
 	elif action_id == "culture_sync_main_story":
+		# [OCULTO_HISTORIA_PRINCIPAL_PP] §3c: Desactivado mientras la historia principal PP esté oculta:
+		if MAIN_STORY_PP_HIDDEN:
+			return
 		var adv: int = sync_main_story(vm, inv)
 		if adv > 0:
 			npc._spawn_floating_text("👑📜 ¡Avanzaste %d capítulo(s) en la Historia Principal! Consulta el panel [L]." % adv, Color.GOLD, -46.0)

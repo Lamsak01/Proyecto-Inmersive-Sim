@@ -72,7 +72,8 @@ func _build_ui() -> void:
 
 	_tab_bar = TabBar.new()
 	_tab_bar.add_tab("🗺️ Secundarias")
-	_tab_bar.add_tab("👑 Principal")
+	# [OCULTO_HISTORIA_PRINCIPAL_PP] §3c: Pestaña «Principal» de los 4 capítulos oculta sin borrar código (docs/HANDOFF.md §8):
+	# _tab_bar.add_tab("👑 Principal")
 	_tab_bar.tab_changed.connect(func(_i: int) -> void:
 		_selected_id = ""
 		refresh_ui()
@@ -117,6 +118,9 @@ func refresh_ui() -> void:
 	_shown_ids.clear()
 	var quests: Array = qm.get_quests(_current_category()) if qm else []
 	for q in quests:
+		# [OCULTO_HISTORIA_PRINCIPAL_PP] §3c: No mostrar nunca los 4 capítulos descartados del bloque PP:
+		if str(q.get("type", "")) == "main_story" or str(q.get("id", "")).begins_with("main_ch"):
+			continue
 		var st: String = str(q.get("status", "active"))
 		_list.add_item("%s %s" % [STATUS_ICON.get(st, "•"), str(q.get("title", "Misión"))])
 		_shown_ids.append(str(q.get("id", "")))
@@ -133,7 +137,8 @@ func _show_detail() -> void:
 	var q: Dictionary = qm.get_quest(_selected_id) if (qm and _selected_id != "") else {}
 	if q.is_empty():
 		if _current_category() == "main":
-			_detail.text = "[color=#9aa4b5]La historia principal aún no ha comenzado.[/color]"
+			# [OCULTO_HISTORIA_PRINCIPAL_PP] §3c: Si se reactiva la pestaña sin historia nueva, mostrar solo «Próximamente»:
+			_detail.text = "[color=#9aa4b5]Próximamente.[/color]"
 		else:
 			_detail.text = "[color=#9aa4b5]No tienes misiones secundarias.\nHabla con los vecinos: a veces alguien necesita ayuda (lo verás con un ❗ sobre su cabeza).[/color]"
 		return
