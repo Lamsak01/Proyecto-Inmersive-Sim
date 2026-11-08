@@ -105,5 +105,15 @@
   amarilla de progreso suelta sobre el tejado, lejos de cualquier vecino; (4) el icono de la mano 1 parece letras
   revueltas en vez de un dibujo; (5) el bocadillo de Lina sale cortado con «…». Arreglar sin rehacer nada más.
 
+- [ ] **Partida del usuario tras la interfaz nueva** (2026-11-07 23:00, capturas del usuario, 3D):
+  (1) **El mapa grande [M] sigue con el estilo viejo** (azul oscuro, letras amarillas): solo cambió el minimapa. Pasarlo
+  al papel y tinta del boceto. Además las etiquetas no cuadran con lo dibujado («Lago» junto a la trattoria, pero el
+  lago azul está más al oeste). (2) **En 1.ª persona sale doble el aviso de [E]**: el texto viejo flotando en mitad de
+  la pantalla («[E] Abrir la puerta · Residencia…») y además la tarjeta nueva abajo. Quitar el viejo. (3) **La línea de
+  ayuda de 1.ª persona** («1.ª Persona (Prototipo) · [P]/[F6] Salir…») se monta encima del reloj: quitarla o pasarla a
+  [H]. (4) **Vecinos que se siguen atorando en la puerta de la taberna** (12:39, de día). (5) **Una tira roja flotando en
+  el aire** junto a la puerta de la taberna, al lado del farol colgado. (6) **El pescador pesca fuera del lago**, en el
+  sitio viejo del lago (antes de moverlo al oeste).
+
 ## Arreglados
 - [x] ✅ (2026-11-07) Fachada de la trattoria «Il Corvo» en 3D: parece de tablas oscuras en vez de estuco/ladrillo claro (`WorldStage3D.gd`: cambiada la textura de muros de `building_restaurant` a `town_textures/wall_brick_sand_center.png` con `uv1_scale = Vector3(2.4, 0.72, 2.4)`, tono claro de estuco/ladrillo cálido `Color(1.0, 0.95, 0.84)`, iluminación cálida de rebote `0.58` en la fachada sur y dintel con el mismo estuco en vez de `rf_planks.png`).
