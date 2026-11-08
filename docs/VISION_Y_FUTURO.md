@@ -225,6 +225,19 @@ Estado: **✅ HECHO** = ya construido y funcionando en el juego. **🟡 EN PARTE
   gordo, viejo), no musculosos de superhéroe; máquinas portátiles solo en manos de poder o contrabando (no una criada);
   pedir también una imagen de día, porque gran parte del juego pasa de día.
 
+- 💡 **PROPUESTAS DE CLAUDE para la época tecnofeudal (2026-11-08, sin aprobar):**
+  1. **Balística forense**: cada arma de fuego deja marcas propias en casquillos y balas; la armería anota a quién
+     vende cada arma; comparar un casquillo de la escena con el arma de un sospechoso. Une forense y armería.
+  2. **Ley de armas del señor**: llevar fusil sin licencia es delito; la guardia cachea en el Puesto del Paso y en
+     controles; licencias que se compran, se roban o se falsifican; esconder el arma en una carreta.
+  3. **Radios de la guardia**: los guardias se avisan por radio; si robas la radio, cortas la antena o saboteas la red,
+     la alarma no llega. En la taberna, la radio da noticias y propaganda del señor (fuente de rumores).
+  4. **Toque de queda con focos**: de noche patrullas y focos que barren las calles; el sigilo depende de la luz;
+     apagar un foco cortando su cable abre un hueco (y deja una pista).
+  5. **Archivo del censo en la terminal**: piratearla da fichas de vecinos (domicilio, deudas, antecedentes) que
+     sirven como pistas en los casos, y se pueden borrar o falsificar.
+  6. **Combustible escaso**: el gasóleo mueve generadores, tractores y focos; se raciona, se roba y se contrabandea.
+
 ### Tecnología anacrónica
 - ✅ **HECHO** — Vehículos de época: caballos de silla y carretas de carga (`VillageCulture.gd`, test #90): en el Rancho del Sur puedes comprar al ganadero un Caballo de Silla (45 de oro, aumenta tu velocidad y mejora un +15 % el éxito de tus expediciones) y una Carreta de Carga (55 de oro, añade +4 de oro de rendimiento por cada remesa comercial enviada por ruta). *(Hecho en bloque PM; motos/coches quedan descartados para el tamaño actual del valle.)*
 - ✅ **HECHO** — Armas de fuego de chispa (`SimpleInventory.gd`, `VillageCulture.gd`, test #92): tras investigar «Cerraduras y Empalizadas de Precisión», puedes encargar en la herrería o el taller un Arcabuz de Chispa con 2 cargas de pólvora (60 de oro al artesano) y comprar paquetes de Cargas de Pólvora Negra (14 de oro); llevar el arcabuz cargado añade +3 de defensa al encabezar el rechazo de incursiones *(Hecho en bloque PO.)*
