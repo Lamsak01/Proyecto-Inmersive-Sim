@@ -98,9 +98,10 @@
 - [ ] **Farola delante de la puerta de la taberna: los vecinos se atascan en ella** (2026-11-07 21:12, captura, día 2,
   00:37, 2D). Moverla a un lado de la entrada y revisar que ningún choque nuevo (muebles, farolas, macetas) tape puertas.
 - [ ] **La niebla se ve a franjas horizontales** (misma captura): bandas grises rectas de lado a lado de la pantalla, como
-  un fallo de imagen. Debe ser una niebla suave y continua (paso 4, ambiente).
-- [ ] **Cuadrícula del césped en 3D** (revisión de Claude de las capturas fix5/fix6 de Antigravity): fuera del parque
-  sigue viéndose la cuadrícula, aunque el informe dice que se quitó. Comprobar en partida.
+  un fallo de imagen. Debe ser una niebla suave y continua (paso 4, ambiente). También de día (08:14, captura 21:13).
+- [ ] **(BAJA PRIORIDAD: el usuario lo tolera por ahora) Césped con dibujo repetido** (2026-11-07 21:13, captura, 3D):
+  la cuadrícula pasó a ser un dibujo de rombos que se repite por todo el suelo; no es natural y no le gusta. Arreglarlo
+  más adelante con una hierba sin patrón visible (manchas irregulares, variación de tono).
 
 ## Arreglados
 - [x] ✅ (2026-11-07) Fachada de la trattoria «Il Corvo» en 3D: parece de tablas oscuras en vez de estuco/ladrillo claro (`WorldStage3D.gd`: cambiada la textura de muros de `building_restaurant` a `town_textures/wall_brick_sand_center.png` con `uv1_scale = Vector3(2.4, 0.72, 2.4)`, tono claro de estuco/ladrillo cálido `Color(1.0, 0.95, 0.84)`, iluminación cálida de rebote `0.58` en la fachada sur y dintel con el mismo estuco en vez de `rf_planks.png`).
