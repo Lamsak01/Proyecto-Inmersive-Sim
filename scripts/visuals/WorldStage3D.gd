@@ -521,6 +521,56 @@ static func _road_flat_mask(pos_2d: Vector2) -> float:
 	return smoothstep(32.0, 155.0, d_min)
 
 
+## Relieve Fase B (pueblo): desniveles suaves por terrazas dentro del pueblo.
+## - Calles que suben suavemente hacia el barrio norte (+4.2 -> +7.0 -> +9.4 px) y hacia el barrio cívico del este (+3.2 -> +5.2 px).
+## - Plaza Central ligeramente elevada (+2.4 px) con rampa/escalones suaves.
+## - Campos del sur ligeramente más bajos (-2.0 px).
+## - Cada solar y edificio se asienta en una terraza/plataforma horizontal llana (pendiente 0° bajo la huella del edificio).
+static func _village_terrace_height_px(pos_2d: Vector2) -> float:
+	var x: float = pos_2d.x
+	var y: float = pos_2d.y
+
+	# 1. Terrazas norte (y < -330): suben suavemente de sur a norte; cada fila (n, m, u, f1, f2, w1) es una meseta llana.
+	var north_h: float = 0.0
+	if y < -240.0 and x > -400.0 and x < 1520.0:
+		var t_n1: float = smoothstep(-245.0, -350.0, y) # subida de la posada/casas hacia la calle norte (n0..n6): +4.2 px
+		var t_n2: float = smoothstep(-480.0, -525.0, y) # subida hacia la calleja de atrás (m1..m6, f2): +2.8 px adicionales (total +7.0 px)
+		var t_n3: float = smoothstep(-640.0, -685.0, y) # subida hacia la ronda alta (u0..u6): +2.4 px adicionales (total +9.4 px)
+		var w_fade: float = smoothstep(-390.0, -140.0, x) * (1.0 - smoothstep(1420.0, 1510.0, x))
+		north_h = (t_n1 * 4.2 + t_n2 * 2.8 + t_n3 * 2.4) * w_fade
+		# Terraza propia llana para la Cantera del Noroeste (w1: x = -345..-115, y = -410..-250) a +3.5 px
+		if x < -95.0 and y < -200.0:
+			var qw: float = smoothstep(-380.0, -340.0, x) * (1.0 - smoothstep(-115.0, -65.0, x))
+			var qy: float = smoothstep(-210.0, -255.0, y) * (1.0 - smoothstep(-415.0, -455.0, y))
+			north_h = lerpf(north_h, 3.5, qw * qy)
+
+	# 2. Terrazas este (x > 640, y in -280..450): barrio residencial/cívico (+3.2 px) y loma del este / Puesto del Paso (+5.2 px)
+	var east_h: float = 0.0
+	if x > 640.0 and y > -310.0 and y < 460.0:
+		var t_e1: float = smoothstep(642.0, 682.0, x) # subida tras cruzar la calle de los talleres hacia casas/hospital/comisaría/capilla: +3.2 px
+		var t_e2: float = smoothstep(1015.0, 1072.0, x) # subida hacia los solares del este (e2..e6, Puesto del Paso, Molino): +2.0 px (total +5.2 px)
+		var ey_fade: float = smoothstep(-305.0, -245.0, y) * (1.0 - smoothstep(425.0, 458.0, y))
+		east_h = (t_e1 * 3.2 + t_e2 * 2.0) * ey_fade
+
+	# 3. Plataforma elevada de la Plaza Central (x in 380..550, y in 4..92): +2.4 px en llano con rampas suaves en los 4 accesos
+	var plaza_h: float = 0.0
+	if x > 356.0 and x < 574.0 and y > -18.0 and y < 114.0:
+		var px_in: float = smoothstep(362.0, 390.0, x) * (1.0 - smoothstep(540.0, 568.0, x))
+		var py_in: float = smoothstep(-12.0, 12.0, y) * (1.0 - smoothstep(84.0, 108.0, y))
+		plaza_h = 2.4 * px_in * py_in
+
+	# 4. Vaguada suave de los campos del sur y Barrio del Lago (y > 235): -1.8 px en llano bajo granjas, rancho y casitas
+	var south_h: float = 0.0
+	if y > 220.0 and x > -520.0 and x < 520.0:
+		var sy_in: float = smoothstep(225.0, 285.0, y) * (1.0 - smoothstep(595.0, 645.0, y))
+		var sx_in: float = smoothstep(-510.0, -430.0, x) * (1.0 - smoothstep(435.0, 505.0, x))
+		# El Parque del Roble (x in 168..440, y in 208..354) queda a cota +0.6 px como terraza ajardinada
+		var in_park: float = smoothstep(155.0, 172.0, x) * (1.0 - smoothstep(436.0, 452.0, x)) * smoothstep(198.0, 212.0, y) * (1.0 - smoothstep(350.0, 366.0, y))
+		south_h = lerpf(-1.8 * sy_in * sx_in, 0.6, in_park)
+
+	return north_h + east_h + plaza_h + south_h
+
+
 static func terrain_height_px(pos_2d: Vector2) -> float:
 	var x: float = pos_2d.x
 	var y: float = pos_2d.y
@@ -551,7 +601,7 @@ static func terrain_height_px(pos_2d: Vector2) -> float:
 			var m_bank: float = 2.2 * smoothstep(0.95, 1.14, mr) * (1.0 - smoothstep(1.16, 1.32, mr))
 			marsh_h = m_basin + m_bank
 
-	# 3. Explanada llana para TODOS los edificios, solares (n, m, u, f1, f2, e, o, l, s, w1, fw, c1..c3), campamento y Puesto del Paso
+	# 3. Relieve Fase B (pueblo): desniveles suaves por terrazas (calle norte y cívico ligeramente más altos, plaza en plataforma con escalones/rampas, campos del sur algo más bajos), mientras CADA edificio se asienta en un solar/zócalo completamente llano.
 	var dx_v: float = (-665.0 - x) if x < -665.0 else ((x - 1785.0) if x > 1785.0 else 0.0)
 	var dy_v: float = (-825.0 - y) if y < -825.0 else ((y - 650.0) if y > 650.0 else 0.0)
 	var d_village: float = sqrt(dx_v * dx_v + dy_v * dy_v)
@@ -566,9 +616,15 @@ static func terrain_height_px(pos_2d: Vector2) -> float:
 	var dy_cas: float = (600.0 - y) if y < 600.0 else ((y - 1045.0) if y > 1045.0 else 0.0)
 	var d_cas: float = sqrt(dx_cas * dx_cas + dy_cas * dy_cas)
 
-	var d_out: float = minf(d_village, minf(d_camp, d_cas))
-	if d_out <= 0.001 and absf(lake_h) < 0.001:
+	if d_camp <= 0.001 or d_cas <= 0.001:
 		return 0.0
+
+	# Relieve suave dentro del casco del pueblo y sus terrazas (Fase B):
+	if d_village <= 0.001 and absf(lake_h) < 0.001:
+		return _village_terrace_height_px(pos_2d)
+
+	var d_out: float = minf(d_village, minf(d_camp, d_cas))
+	var village_edge_h: float = _village_terrace_height_px(Vector2(clampf(x, -665.0, 1785.0), clampf(y, -825.0, 650.0))) * (1.0 - smoothstep(0.0, 160.0, d_village))
 	var outer_mask: float = smoothstep(0.0, 175.0, d_out) * _road_flat_mask(pos_2d)
 
 	# 4. Lomas anchas y suaves en la Llanura Salvaje y borde exterior (sin montículos aislados; pendiente < 10°)
@@ -595,7 +651,7 @@ static func terrain_height_px(pos_2d: Vector2) -> float:
 		var rim_s: float = smoothstep(2050.0, 2650.0, y) * 14.0
 		forest_h = ((fw1 * 11.0 + fw2 * 7.5 + 5.5) + rim_s) * fy
 
-	return (plains_h + forest_h) * outer_mask + lake_h + marsh_h
+	return (plains_h + forest_h) * outer_mask + village_edge_h + lake_h + marsh_h
 
 
 func to_3d_flat(pos_2d: Vector2, h_px: float = 0.0) -> Vector3:
@@ -866,17 +922,10 @@ func _build_static_terrain_3d() -> void:
 		Rect2(Vector2(452, 232), Vector2(885, 20)),
 	]
 	for rr in road_rects:
-		if rr.position.x < -630.0 or rr.end.y > 645.0:
-			_add_road_strip_3d(terrain_root_3d, rr, 1.2, m_road)
-		else:
-			_add_box_2d(terrain_root_3d, rr.get_center(), rr.size, 0.0, 1.2, m_road)
+		_add_road_strip_3d(terrain_root_3d, rr, 1.2, m_road)
 	for lr in VillageLots.ROADS:
 		if lr is Rect2:
-			var r_lot: Rect2 = lr
-			if r_lot.position.x < -630.0 or r_lot.end.y > 645.0:
-				_add_road_strip_3d(terrain_root_3d, r_lot, 1.2, m_road)
-			else:
-				_add_box_2d(terrain_root_3d, r_lot.get_center(), r_lot.size, 0.0, 1.2, m_road)
+			_add_road_strip_3d(terrain_root_3d, lr as Rect2, 1.2, m_road)
 	_build_barrios_3d(m_wood)
 	# Callejas curvas del norte: un tramo de camino por segmento, girado, con una losa en cada codo
 	for cr in VillageLots.CURVED_ROADS:
@@ -887,11 +936,21 @@ func _build_static_terrain_3d() -> void:
 			var b: Vector2 = cpts[i + 1]
 			_add_box_2d(terrain_root_3d, (a + b) * 0.5, Vector2(a.distance_to(b) + 2.0, cw), 0.0, 1.2, m_road, -rad_to_deg((b - a).angle()))
 
-	# Plaza Central Empedrada con bordillos 3D
+	# Plaza Central Empedrada en plataforma ligeramente elevada (+2.4 px en terreno) con bordillos y rampa empedrada suave en los 4 accesos
 	var plaza_r := Rect2(Vector2(388, 12), Vector2(154, 72))
-	_add_box_2d(terrain_root_3d, plaza_r.get_center(), plaza_r.size, 0.0, 1.8, m_plaza)
-	_add_box_2d(terrain_root_3d, Vector2(plaza_r.get_center().x, plaza_r.position.y), Vector2(plaza_r.size.x, 4.0), 1.8, 1.8, m_plaza_trim)
-	_add_box_2d(terrain_root_3d, Vector2(plaza_r.get_center().x, plaza_r.end.y), Vector2(plaza_r.size.x, 4.0), 1.8, 1.8, m_plaza_trim)
+	_add_road_strip_3d(terrain_root_3d, plaza_r, 1.5, m_plaza)
+	_add_box_2d(terrain_root_3d, Vector2(plaza_r.get_center().x, plaza_r.position.y), Vector2(plaza_r.size.x, 4.0), 1.5, 1.6, m_plaza_trim)
+	_add_box_2d(terrain_root_3d, Vector2(plaza_r.get_center().x, plaza_r.end.y), Vector2(plaza_r.size.x, 4.0), 1.5, 1.6, m_plaza_trim)
+	# Bordillos de piedra de la rampa de subida en los 4 accesos de la Plaza y en la subida al barrio del Este
+	for access_curb in [
+		[Vector2(374.0, 34.0), Vector2(24.0, 2.8)],
+		[Vector2(374.0, 66.0), Vector2(24.0, 2.8)],
+		[Vector2(556.0, 34.0), Vector2(24.0, 2.8)],
+		[Vector2(556.0, 66.0), Vector2(24.0, 2.8)],
+		[Vector2(662.0, 34.0), Vector2(28.0, 2.8)],
+		[Vector2(662.0, 66.0), Vector2(28.0, 2.8)],
+	]:
+		_add_box_2d(terrain_root_3d, access_curb[0] as Vector2, access_curb[1] as Vector2, 0.2, 1.6, m_curb)
 
 	# Bancos reales 3D de la Plaza Central
 	for bp in [Vector2(436, 76), Vector2(494, 76)]:
@@ -1240,6 +1299,7 @@ func rebuild_buildings_3d() -> void:
 	var m_iron := _mat("wrought_iron", Color(0.22, 0.24, 0.28), 0.45, 0.75)
 	var m_gold := _mat("brass_gold", Color(0.85, 0.68, 0.24), 0.35, 0.82)
 	var m_glass := _mat("win_glass", Color(0.56, 0.82, 0.96, 0.75), 0.15, 0.25)
+	var m_plinth := _mat("building_plinth_stone", Color(0.58, 0.56, 0.52), 0.90, 0.03, Color.BLACK, 0.0, "town_textures/wall_stone.png", "", 0.70)
 
 	for b in vm.building_footprints:
 		var b_id: String = str(b.get("id", ""))
@@ -1262,7 +1322,8 @@ func rebuild_buildings_3d() -> void:
 		b_root.name = "B3D_" + b_id
 		buildings_root_3d.add_child(b_root)
 
-		# 1. Losa de suelo 3D y zócalo exterior
+		# 1. Zócalo de piedra enterrado (cimentación contra posibles microdesniveles) + losa de suelo 3D y zócalo exterior
+		_add_box_2d(b_root, center, sz + Vector2(6, 6), -2.5, 2.5, m_plinth)
 		_add_box_2d(b_root, center, sz + Vector2(4, 4), 0.0, 1.5, m_trim)
 		_add_box_2d(b_root, center, sz - Vector2(2, 2), 1.5, 1.0, m_floor)
 

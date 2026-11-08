@@ -509,15 +509,16 @@ func _draw_valley_cartography(canvas: Control, detailed: bool) -> void:
 			if detailed:
 				canvas.draw_circle(np, 3.8, Color(0.149, 0.129, 0.106, 0.95), false, 1.0)
 
-	# 10. Marcador Pulsante del Jugador en tinta y lacre
+	# 10. Marcador Pulsante del Jugador en azul cobalto de tinta
 	if is_instance_valid(player):
 		var pp := _world_to_map(player.global_position, csize)
 		var pulse_r: float = (5.8 if detailed else 3.5) + sin(_pulse_phase) * 1.4
-		canvas.draw_circle(pp, pulse_r + 2.0, Color(0.561, 0.176, 0.149, 0.28))
-		canvas.draw_circle(pp, 4.6 if detailed else 2.8, Color(0.561, 0.176, 0.149, 1.0))
+		var p_blue := Color(0.16, 0.38, 0.68, 1.0)
+		canvas.draw_circle(pp, pulse_r + 2.0, Color(0.16, 0.38, 0.68, 0.28))
+		canvas.draw_circle(pp, 4.6 if detailed else 2.8, p_blue)
 		canvas.draw_circle(pp, 4.6 if detailed else 2.8, Color(0.945, 0.910, 0.831, 1.0), false, 1.2)
 		if detailed and font:
-			_draw_ink_tag(canvas, font, pp + Vector2(7, 4), "Tú", 10, Color(0.561, 0.176, 0.149, 1.0))
+			_draw_ink_tag(canvas, font, pp + Vector2(7, 4), "Tú", 10, p_blue)
 
 	# Marco interior de tinta del lienzo cartográfico
 	canvas.draw_rect(Rect2(Vector2.ZERO, csize), Color(0.227, 0.196, 0.157, 0.95), false, 2.0)
