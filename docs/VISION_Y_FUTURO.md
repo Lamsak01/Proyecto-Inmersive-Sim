@@ -225,7 +225,7 @@ Estado: **✅ HECHO** = ya construido y funcionando en el juego. **🟡 EN PARTE
   gordo, viejo), no musculosos de superhéroe; máquinas portátiles solo en manos de poder o contrabando (no una criada);
   pedir también una imagen de día, porque gran parte del juego pasa de día.
 
-- 💡 **PROPUESTAS DE CLAUDE para la época tecnofeudal (2026-11-08, sin aprobar):**
+- 💡 **PROPUESTAS DE CLAUDE para la época tecnofeudal (2026-11-08). Al usuario le gustan la 1, 2 y 3 (después de rehacer el combate); 4–6 pendientes:**
   1. **Balística forense**: cada arma de fuego deja marcas propias en casquillos y balas; la armería anota a quién
      vende cada arma; comparar un casquillo de la escena con el arma de un sospechoso. Une forense y armería.
   2. **Ley de armas del señor**: llevar fusil sin licencia es delito; la guardia cachea en el Puesto del Paso y en
