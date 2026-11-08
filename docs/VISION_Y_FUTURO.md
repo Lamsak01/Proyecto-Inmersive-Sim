@@ -241,7 +241,7 @@ Estado: **✅ HECHO** = ya construido y funcionando en el juego. **🟡 EN PARTE
   - **4 (focos y patrullas): SÍ, pero solo cuando el pueblo está en alerta.** Esquivar focos todas las noches sería
     tedioso. Se engancha a la seguridad del pueblo que ya existe (sube con delitos, cadáveres y robos recientes:
     Tranquila / Desconfiada / Alerta máxima) y al decreto de toque de queda del alcalde. En calma, noches normales.
-  - **5 (fichas en la terminal): SÍ, pero sin que sea un atajo** que sustituya hablar con los vecinos. Propuesta de
+  - **5 (fichas en la terminal): SÍ, pero sin que sea un atajo** que sustituya hablar con los vecinos. Freno APROBADO por el usuario (2026-11-08), propuesto por
     Claude para evitarlo: la ficha solo dice lo que sabe la autoridad (datos oficiales, a veces viejos o falsos por
     sobornos), nunca rasgos, secretos ni relaciones; leerla tiene riesgo (te pueden pillar) y es limitada; lo
     importante de un caso sigue saliendo de la gente.
