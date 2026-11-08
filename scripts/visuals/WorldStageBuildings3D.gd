@@ -1164,7 +1164,7 @@ func _build_billiard_table_3d(parent: Node3D, pos: Vector2, m_mahogany: Material
 func _build_tavern_floor_1_3d(loft_root: Node3D, _wall_h: float, m_wall: Material, m_trim: Material, m_wood: Material, m_dark_wood: Material, _m_iron: Material, _m_gold: Material) -> void:
 	var T = VillageTavern
 	var h1: float = T.FLOOR_1_H # 34.0
-	var ih1: float = 32.0
+	var ih1: float = 34.0
 	var m_bed_red := _mat("tavern_bed_red", Color(0.82, 0.24, 0.22), 0.85, 0.0)
 	var m_bed_gold := _mat("tavern_bed_gold", Color(0.84, 0.62, 0.22), 0.85, 0.0)
 	var m_pillow := _mat("tavern_bed_pillow", Color(0.95, 0.93, 0.88), 0.85, 0.0)
@@ -1185,20 +1185,28 @@ func _build_tavern_floor_1_3d(loft_root: Node3D, _wall_h: float, m_wall: Materia
 	for by in [-284.0, -264.0, -244.0, -224.0, -208.0]:
 		_add_box_2d(loft_root, Vector2(558.0, by), Vector2(2.0, 2.0), h1, 7.2, m_trim)
 
-	# 3. Tabique del pasillo de los 5 dormitorios (y = -216.0, x = 264..558) con sus 5 puertas anchas y dinteles altos a escala adulta
+	# 3. Tabique completo del pasillo de los 5 dormitorios (y = -216.0, x = 264..558) con sus 5 huecos de puerta enmarcados y muro superior continuo
+	var d_hw: float = T.BEDROOM_DOOR_HALF_W
 	var cur_x: float = 264.0
-	for dx in T.BEDROOM_DOORS_X:
-		var a: float = dx - 13.0
-		if a - cur_x > 2.0:
+	for dx_v in T.BEDROOM_DOORS_X:
+		var dx: float = float(dx_v)
+		var a: float = dx - d_hw
+		if a - cur_x > 1.0:
 			_add_box_2d(loft_root, Vector2((cur_x + a) * 0.5, -216.0), Vector2(a - cur_x, 5.0), h1, ih1, m_wall)
-		_add_box_2d(loft_root, Vector2(dx, -216.0), Vector2(28.0, 5.2), h1 + 23.5, ih1 - 23.5, m_trim)
-		cur_x = dx + 13.0
-	if 558.0 - cur_x > 2.0:
+		# Jambas verticales, dintel de madera y cerramiento de muro hasta el techo sobre cada puerta
+		_add_box_2d(loft_root, Vector2(dx - d_hw, -216.0), Vector2(2.4, 5.6), h1, ih1, m_trim)
+		_add_box_2d(loft_root, Vector2(dx + d_hw, -216.0), Vector2(2.4, 5.6), h1, ih1, m_trim)
+		_add_box_2d(loft_root, Vector2(dx, -216.0), Vector2(d_hw * 2.0 + 2.4, 5.8), h1 + 22.2, 2.2, m_trim)
+		_add_box_2d(loft_root, Vector2(dx, -216.0), Vector2(d_hw * 2.0, 5.0), h1 + 24.4, ih1 - 24.4, m_wall)
+		cur_x = dx + d_hw
+	if 558.0 - cur_x > 1.0:
 		_add_box_2d(loft_root, Vector2((cur_x + 558.0) * 0.5, -216.0), Vector2(558.0 - cur_x, 5.0), h1, ih1, m_wall)
 
-	# Tabiques divisorios entre los 5 cuartos de huéspedes (y = -314..-216)
-	for part_x in [374.0, 418.0, 452.0, 486.0, 558.0]:
-		_add_box_2d(loft_root, Vector2(part_x, -265.0), Vector2(4.8, 98.0), h1, ih1, m_wall)
+	# Tabiques divisorios completos entre los 5 cuartos de huéspedes (y = -314..-216), alineados con T.BEDROOM_PARTITIONS_X
+	for part_x_v in T.BEDROOM_PARTITIONS_X:
+		var part_x: float = float(part_x_v)
+		_add_box_2d(loft_root, Vector2(part_x, -265.0), Vector2(4.8, 99.0), h1, ih1, m_wall)
+		_add_box_2d(loft_root, Vector2(part_x, -216.0), Vector2(5.6, 5.6), h1, ih1, m_trim)
 
 	# Iluminación cálida del pasillo y dormitorios de la Planta +1
 	_restaurant_light(loft_root, Vector2(346.0, T.HALLWAY_Y), h1 + 25.0, Color(1.0, 0.82, 0.52), 1.0, 2.8, false)
