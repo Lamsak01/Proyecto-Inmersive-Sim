@@ -648,6 +648,12 @@ func _mat(key: String, col: Color, rough: float = 0.82, metal: float = 0.05, emi
 	_mat_cache[key] = m
 	return m
 
+func _chair_rot_y_towards(chair_pos: Vector2, table_pos: Vector2) -> float:
+	var d: Vector2 = table_pos - chair_pos
+	if d.length_squared() < 0.0001:
+		return 0.0
+	return rad_to_deg(atan2(d.x, d.y))
+
 func _register_furniture_rect(item_name: String, center_2d: Vector2, sz_2d: Vector2, rot_y_deg: float = 0.0) -> void:
 	if _current_building_id == "" or sz_2d == Vector2.ZERO:
 		return
@@ -662,10 +668,12 @@ func _register_furniture_rect(item_name: String, center_2d: Vector2, sz_2d: Vect
 		"name": item_name,
 		"rect": Rect2(center_2d - eff_sz * 0.5, eff_sz),
 		"center": center_2d,
+		"rot_y_deg": rot_y_deg,
 	})
 
 func check_furniture_overlaps(warn_on_overlap: bool = true) -> Array[String]:
 	var overlaps: Array[String] = []
+	var table_names: Array[String] = ["Table_Large", "Workbench", "Workbench_Drawers", "TerraceRoundTable", "BackroomRoundTable", "PokerTable"]
 	for key in _building_furniture_rects.keys():
 		var items: Array = _building_furniture_rects[key]
 		for i in range(items.size()):
@@ -685,6 +693,38 @@ func check_furniture_overlaps(warn_on_overlap: bool = true) -> Array[String]:
 					overlaps.append(msg)
 					if warn_on_overlap:
 						push_warning(msg)
+			# Vigilar orientación de cada silla: el asiento debe mirar hacia su mesa o escritorio más cercano
+			if str(a.get("name", "")).begins_with("Chair_"):
+				var c_pos: Vector2 = a.get("center", Vector2.ZERO)
+				var best_tbl: Dictionary = {}
+				var best_d2: float = 36.0 * 36.0
+				for k in range(items.size()):
+					if k == i:
+						continue
+					var cand: Dictionary = items[k]
+					if str(cand.get("name", "")) in table_names:
+						var d2: float = c_pos.distance_squared_to(cand.get("center", Vector2.ZERO))
+						if d2 < best_d2:
+							best_d2 = d2
+							best_tbl = cand
+				if best_tbl.is_empty():
+					var msg_no_t := "[WorldStage3D] Silla sin mesa cercana en %s: '%s' en %s" % [str(key), str(a["name"]), str(c_pos)]
+					overlaps.append(msg_no_t)
+					if warn_on_overlap:
+						push_warning(msg_no_t)
+				else:
+					var t_pos: Vector2 = best_tbl.get("center", Vector2.ZERO)
+					var to_tbl: Vector2 = (t_pos - c_pos).normalized()
+					var yaw_r: float = deg_to_rad(float(a.get("rot_y_deg", 0.0)))
+					var seat_fwd := Vector2(sin(yaw_r), cos(yaw_r))
+					var align_dot: float = seat_fwd.dot(to_tbl)
+					if align_dot < 0.80:
+						var msg_rot := "[WorldStage3D] Silla al revés o mal orientada en %s: '%s' en %s (rot_y=%.1f°, dot=%.2f con '%s' en %s)" % [
+							str(key), str(a["name"]), str(c_pos), float(a.get("rot_y_deg", 0.0)), align_dot, str(best_tbl["name"]), str(t_pos)
+						]
+						overlaps.append(msg_rot)
+						if warn_on_overlap:
+							push_warning(msg_rot)
 	return overlaps
 
 func _add_model_2d(parent: Node3D, rel_path: String, center_2d: Vector2, bottom_h_px: float, sz_2d: Vector2 = Vector2.ZERO, height_px: float = 24.0, rot_y_deg: float = 0.0) -> Node3D:

@@ -7324,8 +7324,8 @@ func _initialize() -> void:
 	if ws3d != null and ws3d.has_method("check_furniture_overlaps"):
 		ws3d.rebuild_buildings_3d()
 		var furn_overlaps: Array = ws3d.check_furniture_overlaps(false)
-		assert(furn_overlaps.is_empty(), "No two floor furniture items may overlap in any building! Found: " + str(furn_overlaps))
-		print("Furniture Overlap Check (0 overlaps across all buildings) OK")
+		assert(furn_overlaps.is_empty(), "No two floor furniture items may overlap and all chairs must face their table! Found: " + str(furn_overlaps))
+		print("Furniture Overlap & Chair Orientation Check (0 issues across all buildings) OK")
 
 	print("ALL RIMWORLD MEDICAL, FOOTPRINTS, 3-PHASE CORPSE REPORT, MULTI-CORPSE FIX, RPG INTERROGATION, PUBLIC TRIAL, DYNAMIC RELATIONSHIPS, MISSING FAMILY SEARCH, SOCIAL GLOSSARY & UNCONSCIOUS REACTION TESTS PASSED!")
 	quit(0)
