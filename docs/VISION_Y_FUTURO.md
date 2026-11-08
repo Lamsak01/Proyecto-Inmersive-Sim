@@ -9,6 +9,13 @@
 > apoyo). (2) **Congelado todo lo que no sirva al Caso I**: no se empiezan sistemas ni mejoras nuevas hasta que «La mujer
 > del bosque» se pueda jugar de principio a fin y un amigo lo termine sin ayuda. Solo se arreglan fallos visibles.
 
+> **MAPA FUTURO (usuario, 2026-11-08, aplazado: no es lo más urgente):** hoy todo el valle mide ~400 × 350 m (medido con la
+> altura de ojos). Objetivo: **mezcla de *Dishonored* y *Kingdom Come: Deliverance***: el **centro del pueblo denso**,
+> aprovechando mucho el espacio (callejones, pisos, tejados, interiores), y las **afueras como Kingdom Come** (río,
+> molino, campos, cercas, bosque a unos minutos andando). Tamaño orientativo propuesto: valle de ~1 × 1 km. Riesgo
+> conocido: ~2.400 posiciones fijas en el código; hará falta un plan propio antes de tocarlo. **El Caso I necesita al
+> menos el río y el molino**: si el mapa grande no está listo, se meterán en el mapa actual.
+
 Documento permanente con la aspiración del juego y la lluvia de ideas del usuario.
 **Cualquier asistente (sea el modelo que sea) debe leerlo antes de proponer sistemas nuevos.**
 Nada de esta lista está aprobado para construir: cada idea necesita su plan corto y la aprobación del usuario
