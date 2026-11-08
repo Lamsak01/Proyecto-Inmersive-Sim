@@ -700,20 +700,21 @@ func get_navigation_waypoint(from_pos: Vector2, to_pos: Vector2, agent: Node2D =
 		var r_interior: Rect2 = b["rect"].grow(1.5)
 		var d_pos: Vector2 = b["door_pos"]
 		var door_south: bool = bool(b["door_south"])
-		var r_door_threshold := Rect2(d_pos - Vector2(16.0, 14.0 if door_south else 16.5), Vector2(32.0, 30.5))
+		var r_door_threshold := Rect2(d_pos - Vector2(20.0, 16.0 if door_south else 18.0), Vector2(40.0, 34.0))
 		if (r_interior.has_point(from_pos) or r_door_threshold.has_point(from_pos)) and not r_building_check.has_point(to_pos):
 			var b_id: String = str(b.get("id", ""))
-			var lane_x: float = d_pos.x + lane_shift
-			var inside_pt := Vector2(lane_x, d_pos.y + (-15.0 if door_south else 15.0))
-			var outside_pt := Vector2(lane_x, d_pos.y + (20.0 if door_south else -20.0))
+			# Carril derecho de salida (-5 px en puerta sur, +5 px en puerta norte) para no chocar de frente con los que entran
+			var exit_lane_x: float = d_pos.x + (-5.0 if door_south else 5.0) + lane_shift * 0.65
+			var inside_pt := Vector2(exit_lane_x, d_pos.y + (-16.0 if door_south else 16.0))
+			var outside_pt := Vector2(exit_lane_x, d_pos.y + (22.0 if door_south else -22.0))
 
 			# Primero salvar cualquier tabique interno hacia la antesala de la puerta principal
 			var part_wp: Vector2 = _route_internal_building_partitions(b_id, from_pos, inside_pt, agent)
 			if part_wp != inside_pt:
 				return part_wp
 
-			var still_inside_wall: bool = (from_pos.y < d_pos.y - 2.0) if door_south else (from_pos.y > d_pos.y + 2.0)
-			if still_inside_wall and absf(from_pos.x - lane_x) > 8.5:
+			var still_inside_wall: bool = (from_pos.y < d_pos.y - 3.0) if door_south else (from_pos.y > d_pos.y + 3.0)
+			if still_inside_wall and absf(from_pos.x - d_pos.x) > 15.0:
 				return inside_pt
 			return outside_pt
 
@@ -724,7 +725,8 @@ func get_navigation_waypoint(from_pos: Vector2, to_pos: Vector2, agent: Node2D =
 			var b_id: String = str(b.get("id", ""))
 			var d_pos2: Vector2 = b["door_pos"]
 			var door_south2: bool = bool(b["door_south"])
-			var lane_x2: float = d_pos2.x + lane_shift
+			# Carril derecho de entrada (+5 px en puerta sur, -5 px en puerta norte) separado del carril de salida
+			var enter_lane_x: float = d_pos2.x + (5.0 if door_south2 else -5.0) + lane_shift * 0.65
 
 			# Si el objetivo (p. ej. un cadáver o el jugador) está pegado a un muro interior, proyectar el punto de destino
 			# ligeramente hacia el suelo caminable del interior (a >= 10 px de la pared) para no chocar con el muro
@@ -734,16 +736,16 @@ func get_navigation_waypoint(from_pos: Vector2, to_pos: Vector2, agent: Node2D =
 				clampf(to_pos.y, r_safe_dest.position.y, r_safe_dest.end.y)
 			)
 
-			var r_inside_room: Rect2 = b["rect"].grow(-3.0)
-			var past_door_line: bool = (from_pos.y <= d_pos2.y - 7.0) if door_south2 else (from_pos.y >= d_pos2.y + 7.0)
+			var r_inside_room: Rect2 = b["rect"].grow(-2.5)
+			var past_door_line: bool = (from_pos.y <= d_pos2.y - 5.5) if door_south2 else (from_pos.y >= d_pos2.y + 5.5)
 			var already_inside: bool = r_inside_room.has_point(from_pos) and past_door_line
 
 			if not already_inside:
-				var outside_pt2 := Vector2(lane_x2, d_pos2.y + (18.0 if door_south2 else -18.0))
-				var inside_pt2 := Vector2(lane_x2, d_pos2.y + (-15.0 if door_south2 else 15.0))
+				var outside_pt2 := Vector2(enter_lane_x, d_pos2.y + (18.0 if door_south2 else -18.0))
+				var inside_pt2 := Vector2(enter_lane_x, d_pos2.y + (-16.0 if door_south2 else 16.0))
 
-				var aligned_x: bool = absf(from_pos.x - lane_x2) <= 9.5
-				var in_door_funnel_y: bool = (from_pos.y >= d_pos2.y - 16.0 and from_pos.y <= d_pos2.y + 22.0) if door_south2 else (from_pos.y >= d_pos2.y - 22.0 and from_pos.y <= d_pos2.y + 16.0)
+				var aligned_x: bool = absf(from_pos.x - d_pos2.x) <= 15.5
+				var in_door_funnel_y: bool = (from_pos.y >= d_pos2.y - 18.0 and from_pos.y <= d_pos2.y + 24.0) if door_south2 else (from_pos.y >= d_pos2.y - 24.0 and from_pos.y <= d_pos2.y + 18.0)
 				if aligned_x and in_door_funnel_y:
 					return inside_pt2
 				return _avoid_outdoor_buildings(from_pos, outside_pt2, "")
@@ -2773,7 +2775,7 @@ func npc_interact_with_door(npc: VillageNPC, delta: float = 0.016, target_pos: V
 	var npc_pos: Vector2 = npc.global_position
 	for d_entry in building_doors:
 		var d_pos: Vector2 = d_entry.get("pos", Vector2.ZERO)
-		if npc_pos.distance_to(d_pos) <= 18.5:
+		if npc_pos.distance_to(d_pos) <= 24.0:
 			# Intención estricta: el origen y el destino final DEBEN estar en lados opuestos de ESTE edificio (uno dentro y otro fuera)
 			var b_rect_npc: Rect2 = d_entry["building_rect"].grow(-1.0)
 			var b_rect_dest: Rect2 = d_entry["building_rect"].grow(2.5)
@@ -2800,7 +2802,7 @@ func npc_interact_with_door(npc: VillageNPC, delta: float = 0.016, target_pos: V
 
 			# El NPC abre la puerta mientras cruza el umbral y esta se cierra sola en cuanto entra al centro de la habitación
 			var was_passing: bool = float(d_entry.get("npc_pass_timer", 0.0)) > 0.0
-			d_entry["npc_pass_timer"] = 0.65
+			d_entry["npc_pass_timer"] = 1.15
 			if not was_passing:
 				_refresh_door_visual_and_collision(d_entry)
 				var is_lck: bool = bool(d_entry.get("is_locked", false))

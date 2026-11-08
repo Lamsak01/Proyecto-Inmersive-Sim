@@ -268,7 +268,11 @@ func _build_full_map_ui() -> void:
 	full_map_panel.offset_top = -275.0
 	full_map_panel.offset_right = 450.0
 	full_map_panel.offset_bottom = 275.0
-	full_map_panel.add_theme_stylebox_override("panel", _make_map_style(Color(0.07, 0.09, 0.12, 0.97), Color(0.84, 0.70, 0.36, 1.0), 8, 16, 12))
+	var panel_sb := _make_map_style(Color(0.945, 0.910, 0.831, 0.98), Color(0.227, 0.196, 0.157, 1.0), 3, 18, 14)
+	panel_sb.shadow_color = Color(0.0, 0.0, 0.0, 0.45)
+	panel_sb.shadow_size = 2
+	panel_sb.shadow_offset = Vector2(4, 4)
+	full_map_panel.add_theme_stylebox_override("panel", panel_sb)
 	add_child(full_map_panel)
 
 	var vbox := VBoxContainer.new()
@@ -277,14 +281,27 @@ func _build_full_map_ui() -> void:
 
 	var top_bar := HBoxContainer.new()
 	vbox.add_child(top_bar)
-	top_bar.add_child(_make_map_lbl("🗺️ Mapa Cartográfico del Valle — Regiones, Aldeanos en Vivo y Ecosistema", 16, Color(0.98, 0.90, 0.64), true))
+	top_bar.add_child(_make_map_lbl("Mapa Cartográfico del Valle — Regiones, Aldeanos y Ecosistema", 16, Color(0.149, 0.129, 0.106, 1.0), true))
 
 	var close_btn := Button.new()
-	close_btn.text = "✖ [M / ESC] Cerrar"
+	close_btn.text = "[M / Esc] Cerrar"
+	close_btn.focus_mode = Control.FOCUS_NONE
+	close_btn.add_theme_font_size_override("font_size", 12)
+	close_btn.add_theme_color_override("font_color", Color(0.149, 0.129, 0.106, 1.0))
+	close_btn.add_theme_color_override("font_hover_color", Color(0.561, 0.176, 0.149, 1.0))
+	var close_sb := _make_map_style(Color(0.882, 0.831, 0.722, 1.0), Color(0.227, 0.196, 0.157, 1.0), 2, 10, 4)
+	close_btn.add_theme_stylebox_override("normal", close_sb)
+	close_btn.add_theme_stylebox_override("hover", close_sb)
+	close_btn.add_theme_stylebox_override("pressed", close_sb)
 	close_btn.pressed.connect(close_full_map)
 	top_bar.add_child(close_btn)
 
-	census_label = _make_map_lbl("", 11, Color(0.76, 0.88, 0.98))
+	var sep_top := ColorRect.new()
+	sep_top.custom_minimum_size = Vector2(0, 1)
+	sep_top.color = Color(0.227, 0.196, 0.157, 0.55)
+	vbox.add_child(sep_top)
+
+	census_label = _make_map_lbl("", 11, Color(0.353, 0.314, 0.259, 1.0))
 	vbox.add_child(census_label)
 
 	full_map_canvas = Control.new()
@@ -294,7 +311,7 @@ func _build_full_map_ui() -> void:
 	full_map_canvas.draw.connect(func(): _draw_valley_cartography(full_map_canvas, true))
 	vbox.add_child(full_map_canvas)
 
-	hover_info_label = _make_map_lbl("💡 Pasa el cursor sobre cualquier punto del mapa para inspeccionar Aldeanos, Edificios o Hábitats.", 12, Color(0.95, 0.92, 0.72))
+	hover_info_label = _make_map_lbl("Pasa el cursor sobre cualquier punto del mapa para inspeccionar vecinos, edificios o hábitats.", 12, Color(0.180, 0.153, 0.122, 1.0))
 	vbox.add_child(hover_info_label)
 
 func _world_to_map(world_pos: Vector2, canvas_size: Vector2) -> Vector2:
@@ -307,51 +324,59 @@ func _world_rect_to_map(w_rect: Rect2, canvas_size: Vector2) -> Rect2:
 	var br := _world_to_map(w_rect.end, canvas_size)
 	return Rect2(tl, br - tl)
 
+func _draw_ink_tag(canvas: Control, font: Font, pos: Vector2, txt: String, f_sz: int, fg: Color) -> void:
+	var tw: float = font.get_string_size(txt, HORIZONTAL_ALIGNMENT_LEFT, -1, f_sz).x
+	var bg_r := Rect2(pos - Vector2(3.0, float(f_sz) - 1.0), Vector2(tw + 6.0, float(f_sz) + 4.0))
+	canvas.draw_rect(bg_r, Color(0.945, 0.910, 0.831, 0.86), true)
+	canvas.draw_rect(bg_r, Color(0.227, 0.196, 0.157, 0.45), false, 1.0)
+	canvas.draw_string(font, pos, txt, HORIZONTAL_ALIGNMENT_LEFT, -1, f_sz, fg)
+
 func _draw_valley_cartography(canvas: Control, detailed: bool) -> void:
 	var csize := canvas.size
 	if csize.x <= 4.0 or csize.y <= 4.0:
 		return
 
-	# 1. Fondo general de pradera del valle
-	canvas.draw_rect(Rect2(Vector2.ZERO, csize), Color(0.14, 0.24, 0.15, 0.96), true)
+	# 1. Fondo general de pergamino cartográfico con marco de tinta
+	canvas.draw_rect(Rect2(Vector2.ZERO, csize), Color(0.875, 0.820, 0.698, 1.0), true)
 
-	# 2. Bioma Oeste: Llanura Salvaje (Noroeste) y Ciénaga de Ranas (Suroeste), separadas y ampliadas
+	# 2. Bioma Oeste: Llanura Salvaje (Noroeste) y Ciénaga de Ranas (Suroeste), en aguadas de tinta sobre papel
 	var plains_r := _world_rect_to_map(Rect2(Vector2(-2060, -560), Vector2(980, 540)), csize)
-	canvas.draw_rect(plains_r, Color(0.46, 0.40, 0.22, 0.75), true)
-	canvas.draw_rect(plains_r, Color(0.75, 0.64, 0.34, 0.85), false, 1.5)
+	canvas.draw_rect(plains_r, Color(0.81, 0.75, 0.58, 0.72), true)
+	canvas.draw_rect(plains_r, Color(0.42, 0.35, 0.25, 0.78), false, 1.5)
 
 	var bandit_r := _world_rect_to_map(Rect2(Vector2(-1760, -390), Vector2(470, 230)), csize)
-	canvas.draw_rect(bandit_r, Color(0.42, 0.26, 0.20, 0.80), true)
+	canvas.draw_rect(bandit_r, Color(0.73, 0.56, 0.48, 0.72), true)
+	canvas.draw_rect(bandit_r, Color(0.48, 0.26, 0.22, 0.78), false, 1.0)
 
 	var marsh_r := _world_rect_to_map(Rect2(Vector2(-2020, 110), Vector2(920, 450)), csize)
-	canvas.draw_rect(marsh_r, Color(0.16, 0.44, 0.42, 0.88), true)
-	canvas.draw_rect(marsh_r, Color(0.32, 0.68, 0.56, 0.85), false, 1.2)
+	canvas.draw_rect(marsh_r, Color(0.58, 0.69, 0.64, 0.82), true)
+	canvas.draw_rect(marsh_r, Color(0.30, 0.42, 0.38, 0.85), false, 1.2)
 
-	# 3. Bioma Sur: Bosque Profundo ampliado (~3.5x) con borde orgánico y sus Hábitats
+	# 3. Bioma Sur: Bosque Profundo con aguada salvia y borde de tinta
 	var forest_pts := PackedVector2Array()
 	for fp in EcosystemManager.FOREST_POLY:
 		forest_pts.append(_world_to_map(fp, csize))
 	if forest_pts.size() >= 3:
-		canvas.draw_colored_polygon(forest_pts, Color(0.09, 0.19, 0.11, 0.92))
+		canvas.draw_colored_polygon(forest_pts, Color(0.71, 0.76, 0.60, 0.78))
 		var border_pts := PackedVector2Array(forest_pts)
 		border_pts.append(forest_pts[0])
-		canvas.draw_polyline(border_pts, Color(0.28, 0.55, 0.32, 0.85), 1.5)
+		canvas.draw_polyline(border_pts, Color(0.32, 0.39, 0.26, 0.85), 1.5)
 
 	# Sub-hábitat 1: Soto de Conejos (Noroeste del Bosque)
 	var rab_r := _world_rect_to_map(Rect2(Vector2(-1050, 800), Vector2(720, 520)), csize)
-	canvas.draw_rect(rab_r, Color(0.18, 0.38, 0.22, 0.48), true)
+	canvas.draw_rect(rab_r, Color(0.65, 0.73, 0.55, 0.48), true)
 	# Sub-hábitat 2: Claros de Venados (Centro-Sur del Bosque)
 	var deer_r := _world_rect_to_map(Rect2(Vector2(-220, 960), Vector2(820, 1180)), csize)
-	canvas.draw_rect(deer_r, Color(0.16, 0.33, 0.20, 0.48), true)
+	canvas.draw_rect(deer_r, Color(0.67, 0.74, 0.56, 0.48), true)
 	# Sub-hábitat 3: Riscos y Zorros (Este del Bosque)
 	var fox_r := _world_rect_to_map(Rect2(Vector2(700, 820), Vector2(760, 920)), csize)
-	canvas.draw_rect(fox_r, Color(0.32, 0.28, 0.24, 0.52), true)
+	canvas.draw_rect(fox_r, Color(0.72, 0.66, 0.55, 0.52), true)
 	# Sub-hábitat 4: Robledal de Jabalíes (Suroeste del Bosque)
 	var boar_r := _world_rect_to_map(Rect2(Vector2(-1060, 1380), Vector2(760, 740)), csize)
-	canvas.draw_rect(boar_r, Color(0.26, 0.22, 0.18, 0.48), true)
+	canvas.draw_rect(boar_r, Color(0.68, 0.63, 0.52, 0.48), true)
 
-	# 4. Red de Caminos y Plaza Central
-	var road_col := Color(0.54, 0.42, 0.28, 0.90)
+	# 4. Red de Caminos y Plaza Central en tono pergamino tostado (#b9a882)
+	var road_col := Color(0.725, 0.659, 0.510, 0.96)
 	for r_rect in [
 		Rect2(Vector2(-1950, 36), Vector2(2960, 28)),
 		Rect2(Vector2(-688, -88), Vector2(18, 124)),
@@ -373,42 +398,45 @@ func _draw_valley_cartography(canvas: Control, detailed: bool) -> void:
 		canvas.draw_polyline(cpts, road_col, maxf(1.0, cw))
 
 	var plaza_r := _world_rect_to_map(Rect2(Vector2(395, 10), Vector2(140, 78)), csize)
-	canvas.draw_rect(plaza_r, Color(0.56, 0.58, 0.62, 0.95), true)
+	canvas.draw_rect(plaza_r, Color(0.67, 0.62, 0.52, 0.95), true)
+	canvas.draw_rect(plaza_r, Color(0.227, 0.196, 0.157, 0.70), false, 1.0)
 
-	# 5. Lago de Pesca, Campamento del Jugador y (si ya se han construido) Gallinero y Huerto
-	var lake_r := _world_rect_to_map(Rect2(Vector2(-1078, 78), Vector2(412, 162)), csize)
-	canvas.draw_rect(lake_r, Color(0.18, 0.52, 0.78, 0.92), true)
+	# 5. Lago del Oeste, Campamento del Jugador y (si ya se han construido) Gallinero y Huerto
+	var lake_r := _world_rect_to_map(Rect2(Vector2(-1082, 76), Vector2(418, 166)), csize)
+	canvas.draw_rect(lake_r, Color(0.498, 0.639, 0.678, 0.94), true)
+	canvas.draw_rect(lake_r, Color(0.24, 0.35, 0.39, 0.90), false, 1.2)
 
 	var camp_r := _world_rect_to_map(Rect2(Vector2(-782, -124), Vector2(88, 46)), csize)
-	canvas.draw_rect(camp_r, Color(0.76, 0.62, 0.36, 0.85), true)
+	canvas.draw_rect(camp_r, Color(0.66, 0.54, 0.36, 0.90), true)
+	canvas.draw_rect(camp_r, Color(0.227, 0.196, 0.157, 0.85), false, 1.0)
 
 	var coop_node := get_tree().get_first_node_in_group("chicken_coop") as Node2D
 	if coop_node != null and coop_node.visible:
 		var coop_r := _world_rect_to_map(Rect2(Vector2(-886, -51), Vector2(76, 60)), csize)
-		canvas.draw_rect(coop_r, Color(0.68, 0.48, 0.26, 0.90), true)
+		canvas.draw_rect(coop_r, Color(0.62, 0.46, 0.30, 0.90), true)
 
 	var plots := get_tree().get_nodes_in_group("farm_plots")
 	if not plots.is_empty() and (plots[0] as Node2D).visible:
 		var farm_r := _world_rect_to_map(Rect2(Vector2(-792, -62), Vector2(82, 82)), csize)
-		canvas.draw_rect(farm_r, Color(0.36, 0.62, 0.24, 0.90), true)
+		canvas.draw_rect(farm_r, Color(0.52, 0.64, 0.38, 0.90), true)
 
-	# 6. Edificios de la Aldea (incluyendo Trattoria en la Calle Mayor, Hospital/Morgue y Comisaría/Cárcel)
+	# 6. Edificios de la Aldea en tonos teja/madera y borde de tinta
 	var buildings: Array[Dictionary] = [
-		{"rect": VillageRestaurant.RECT, "col": Color(0.76, 0.36, 0.22), "label": "🍝 Trattoria Il Corvo"},
-		{"rect": Rect2(Vector2(260, -316), Vector2(348, 184)), "col": Color(0.68, 0.34, 0.20), "label": "🍺 Posada y Casino (2 pisos)"},
-		{"rect": Rect2(Vector2(277, -74), Vector2(116, 76)), "col": Color(0.48, 0.52, 0.60), "label": "⚒️ Herrería"},
-		{"rect": Rect2(Vector2(527, -74), Vector2(116, 76)), "col": Color(0.65, 0.28, 0.26), "label": "🥩 Carnicería"},
-		{"rect": Rect2(Vector2(527, 110), Vector2(116, 76)), "col": Color(0.62, 0.44, 0.24), "label": "🪚 Carpintería"},
-		{"rect": Rect2(Vector2(407, 110), Vector2(116, 76)), "col": Color(0.28, 0.54, 0.68), "label": "🐟 Pescadería"},
-		{"rect": Rect2(Vector2(261, 107), Vector2(128, 96)), "col": Color(0.32, 0.58, 0.34), "label": "🌿 Botica-Casa"},
-		{"rect": Rect2(Vector2(689, -234), Vector2(112, 78)), "col": Color(0.52, 0.38, 0.26), "label": "🏠 Casa Herrero"},
-		{"rect": Rect2(Vector2(849, -234), Vector2(112, 78)), "col": Color(0.52, 0.38, 0.26), "label": "🏠 Casa Carnicero"},
-		{"rect": Rect2(Vector2(689, -75), Vector2(112, 78)), "col": Color(0.52, 0.38, 0.26), "label": "🏠 Casa Carpintero"},
-		{"rect": Rect2(Vector2(849, -75), Vector2(112, 78)), "col": Color(0.52, 0.38, 0.26), "label": "🏠 Casa Pescador"},
-		{"rect": Rect2(Vector2(676, 100), Vector2(138, 96)), "col": Color(0.22, 0.64, 0.58), "label": "🏥 Hospital y Morgue"},
-		{"rect": Rect2(Vector2(844, 100), Vector2(142, 96)), "col": Color(0.26, 0.42, 0.72), "label": "🚓 Comisaría y Cárcel"},
-		{"rect": Rect2(Vector2(679, 266), Vector2(132, 92)), "col": Color(0.52, 0.36, 0.68), "label": "☀️ Capilla del Alba"},
-		{"rect": Rect2(Vector2(822, 260), Vector2(268, 168)), "col": Color(0.32, 0.42, 0.36), "label": "🪦 Cementerio Parroquial"}
+		{"rect": VillageRestaurant.RECT, "col": Color(0.68, 0.42, 0.32), "label": "Trattoria Il Corvo"},
+		{"rect": Rect2(Vector2(260, -316), Vector2(348, 184)), "col": Color(0.64, 0.40, 0.28), "label": "Posada El Jabalí"},
+		{"rect": Rect2(Vector2(277, -74), Vector2(116, 76)), "col": Color(0.52, 0.48, 0.44), "label": "Herrería"},
+		{"rect": Rect2(Vector2(527, -74), Vector2(116, 76)), "col": Color(0.62, 0.38, 0.34), "label": "Carnicería"},
+		{"rect": Rect2(Vector2(527, 110), Vector2(116, 76)), "col": Color(0.58, 0.46, 0.32), "label": "Carpintería"},
+		{"rect": Rect2(Vector2(407, 110), Vector2(116, 76)), "col": Color(0.42, 0.54, 0.58), "label": "Pescadería"},
+		{"rect": Rect2(Vector2(261, 107), Vector2(128, 96)), "col": Color(0.46, 0.56, 0.42), "label": "Botica"},
+		{"rect": Rect2(Vector2(689, -234), Vector2(112, 78)), "col": Color(0.56, 0.46, 0.35), "label": "Casa Herrero"},
+		{"rect": Rect2(Vector2(849, -234), Vector2(112, 78)), "col": Color(0.56, 0.46, 0.35), "label": "Casa Carnicero"},
+		{"rect": Rect2(Vector2(689, -75), Vector2(112, 78)), "col": Color(0.56, 0.46, 0.35), "label": "Casa Carpintero"},
+		{"rect": Rect2(Vector2(849, -75), Vector2(112, 78)), "col": Color(0.56, 0.46, 0.35), "label": "Casa Pescador"},
+		{"rect": Rect2(Vector2(676, 100), Vector2(138, 96)), "col": Color(0.44, 0.56, 0.52), "label": "Hospital"},
+		{"rect": Rect2(Vector2(844, 100), Vector2(142, 96)), "col": Color(0.42, 0.48, 0.58), "label": "Comisaría"},
+		{"rect": Rect2(Vector2(679, 266), Vector2(132, 92)), "col": Color(0.56, 0.46, 0.54), "label": "Capilla"},
+		{"rect": Rect2(Vector2(822, 260), Vector2(268, 168)), "col": Color(0.48, 0.52, 0.46), "label": "Cementerio"}
 	]
 	var vm_lots = get_tree().get_first_node_in_group("village_manager")
 	if vm_lots and "lots_state" in vm_lots:
@@ -420,76 +448,81 @@ func _draw_valley_cartography(canvas: Control, detailed: bool) -> void:
 				"built":
 					var bsz: Vector2 = Vector2(128, 96) if str(lst["kind"]) in ["shop_house", "civic", "inn"] else Vector2(112, 78)
 					if str(lst["kind"]) == "fields":
-						buildings.append({"rect": Rect2(lc - lsz * 0.5, lsz), "col": Color(0.52, 0.62, 0.26, 0.8), "label": str(lst["title"])})
+						buildings.append({"rect": Rect2(lc - lsz * 0.5, lsz), "col": Color(0.58, 0.64, 0.42, 0.85), "label": str(lst["title"])})
 					else:
-						buildings.append({"rect": Rect2(VillageLots.building_center(str(l["id"])) - bsz * 0.5, bsz), "col": Color(0.60, 0.46, 0.28), "label": str(lst["title"])})
+						buildings.append({"rect": Rect2(VillageLots.building_center(str(l["id"])) - bsz * 0.5, bsz), "col": Color(0.56, 0.46, 0.35), "label": str(lst["title"])})
 				"building":
-					buildings.append({"rect": Rect2(lc - lsz * 0.5, lsz), "col": Color(0.74, 0.52, 0.22, 0.7), "label": "🚧 Obra"})
+					buildings.append({"rect": Rect2(lc - lsz * 0.5, lsz), "col": Color(0.70, 0.56, 0.34, 0.80), "label": "Obra"})
 				_:
-					canvas.draw_rect(_world_rect_to_map(Rect2(lc - lsz * 0.5, lsz), csize), Color(0.62, 0.56, 0.40, 0.35), false, 1.0)
+					canvas.draw_rect(_world_rect_to_map(Rect2(lc - lsz * 0.5, lsz), csize), Color(0.35, 0.30, 0.24, 0.32), false, 1.0)
 	var font: Font = ThemeDB.fallback_font
 	for b in buildings:
 		var br := _world_rect_to_map(b["rect"], csize)
 		canvas.draw_rect(br, b["col"], true)
-		canvas.draw_rect(br, Color(0.92, 0.85, 0.65, 0.85), false, 1.0)
+		canvas.draw_rect(br, Color(0.227, 0.196, 0.157, 0.92), false, 1.0)
 	if detailed and font:
 		_draw_building_labels(canvas, font, buildings, csize)
 
-	# Etiquetas de Regiones en el Mapa Completo
+	# Etiquetas de Regiones en tinta cartográfica exactamente sobre cada accidente geográfico
+	var ink_main := Color(0.149, 0.129, 0.106, 1.0)
+	var ink_sub := Color(0.28, 0.23, 0.18, 1.0)
 	if detailed and font:
-		canvas.draw_string(font, _world_to_map(Vector2(-2020, -580), csize), "🌾 LLANURA SALVAJE (NOROESTE)", HORIZONTAL_ALIGNMENT_LEFT, -1, 11, Color(1.0, 0.84, 0.45))
-		canvas.draw_string(font, _world_to_map(Vector2(-1740, -405), csize), "⚔️ Ruinas Bandidos", HORIZONTAL_ALIGNMENT_LEFT, -1, 10, Color(1.0, 0.65, 0.55))
-		canvas.draw_string(font, _world_to_map(Vector2(-1980, 95), csize), "🐸 CIÉNAGA DE LAS RANAS (SUROESTE)", HORIZONTAL_ALIGNMENT_LEFT, -1, 11, Color(0.58, 0.98, 0.68))
-		canvas.draw_string(font, _world_to_map(Vector2(-760, -140), csize), "🏕️ Campamento | 🐔 Corral | 🌱 Huerto | 🎣 Lago", HORIZONTAL_ALIGNMENT_LEFT, -1, 10, Color(0.75, 0.94, 1.0))
-		canvas.draw_string(font, _world_to_map(Vector2(-980, 785), csize), "🐇 Soto de Conejos y Hierbas", HORIZONTAL_ALIGNMENT_LEFT, -1, 11, Color(0.72, 0.98, 0.75))
-		canvas.draw_string(font, _world_to_map(Vector2(-980, 1365), csize), "🐗 Robledal de Jabalíes", HORIZONTAL_ALIGNMENT_LEFT, -1, 11, Color(0.92, 0.76, 0.68))
-		canvas.draw_string(font, _world_to_map(Vector2(-120, 945), csize), "🦌 Claros de Venados y Hongos", HORIZONTAL_ALIGNMENT_LEFT, -1, 11, Color(0.85, 0.96, 0.72))
-		canvas.draw_string(font, _world_to_map(Vector2(720, 800), csize), "🦊 Riscos de Hierro y Zorros", HORIZONTAL_ALIGNMENT_LEFT, -1, 11, Color(1.0, 0.78, 0.58))
+		_draw_ink_tag(canvas, font, _world_to_map(Vector2(-1980, -490), csize), "Llanura Salvaje", 11, ink_main)
+		_draw_ink_tag(canvas, font, _world_to_map(Vector2(-1710, -290), csize), "Ruinas Bandidos", 10, Color(0.48, 0.18, 0.15, 1.0))
+		_draw_ink_tag(canvas, font, _world_to_map(Vector2(-1940, 290), csize), "Ciénaga de las Ranas", 11, ink_main)
+		_draw_ink_tag(canvas, font, _world_to_map(Vector2(-910, -145), csize), "Campamento y Huerto", 10, ink_sub)
+		_draw_ink_tag(canvas, font, _world_to_map(Vector2(-1035, 165), csize), "Lago del Oeste", 10, Color(0.14, 0.26, 0.32, 1.0))
+		_draw_ink_tag(canvas, font, _world_to_map(Vector2(-980, 960), csize), "Soto de Conejos", 10, ink_sub)
+		_draw_ink_tag(canvas, font, _world_to_map(Vector2(-980, 1620), csize), "Robledal de Jabalíes", 10, ink_sub)
+		_draw_ink_tag(canvas, font, _world_to_map(Vector2(-120, 1280), csize), "Claros de Venados", 10, ink_sub)
+		_draw_ink_tag(canvas, font, _world_to_map(Vector2(740, 1120), csize), "Riscos y Zorros", 10, ink_sub)
 
 	# 7. Puntos en Vivo de Fauna del Bosque
 	for animal in get_tree().get_nodes_in_group("wild_animals"):
 		if animal is WildAnimal and animal.is_alive_in_ecosystem() and animal.visible:
 			var ap := _world_to_map(animal.global_position, csize)
-			var acol := Color(0.75, 0.95, 0.75)
+			var acol := Color(0.28, 0.52, 0.28)
 			if animal.species == WildAnimal.SpeciesType.DEER:
-				acol = Color(0.90, 0.76, 0.48)
+				acol = Color(0.58, 0.42, 0.22)
 			elif animal.species == WildAnimal.SpeciesType.FOX:
-				acol = Color(1.0, 0.48, 0.28)
+				acol = Color(0.76, 0.32, 0.18)
 			elif animal.species == WildAnimal.SpeciesType.BOAR:
-				acol = Color(0.76, 0.42, 0.62)
+				acol = Color(0.42, 0.28, 0.36)
 			canvas.draw_circle(ap, 2.8 if detailed else 1.6, acol)
 
 	# 8. Puntos en Vivo de Enemigos Hostiles de la Llanura
 	for h in get_tree().get_nodes_in_group("plains_hostiles"):
 		if h is Node2D and h.visible and h.get("is_dead_flag") != true and h.get("is_dead") != true:
 			var hp := _world_to_map(h.global_position, csize)
-			canvas.draw_circle(hp, 3.8 if detailed else 2.0, Color(1.0, 0.25, 0.25))
+			canvas.draw_circle(hp, 3.6 if detailed else 2.0, Color(0.68, 0.18, 0.15))
 
 	# 9. Puntos en Vivo de Aldeanos (VillageNPC)
 	for npc in get_tree().get_nodes_in_group("village_npcs"):
 		if npc is VillageNPC and not npc.is_dead:
 			var np := _world_to_map(npc.global_position, csize)
-			var ncol := Color(1.0, 0.86, 0.32)
+			var ncol := Color(0.72, 0.52, 0.16)
 			if npc.trade_role == VillageNPC.TradeRole.FAMILY_MEMBER:
-				ncol = Color(0.45, 0.92, 0.58)
+				ncol = Color(0.26, 0.54, 0.32)
 			elif npc.trade_role == VillageNPC.TradeRole.UNEMPLOYED:
-				ncol = Color(0.55, 0.82, 1.0)
-			canvas.draw_circle(np, 4.2 if detailed else 2.2, ncol)
+				ncol = Color(0.28, 0.46, 0.62)
+			canvas.draw_circle(np, 3.8 if detailed else 2.2, ncol)
 			if detailed:
-				canvas.draw_circle(np, 4.2, Color.BLACK, false, 1.0)
+				canvas.draw_circle(np, 3.8, Color(0.149, 0.129, 0.106, 0.95), false, 1.0)
 
-	# 10. Marcador Pulsante del Jugador
+	# 10. Marcador Pulsante del Jugador en tinta y lacre
 	if is_instance_valid(player):
 		var pp := _world_to_map(player.global_position, csize)
-		var pulse_r: float = (6.0 if detailed else 3.5) + sin(_pulse_phase) * 1.5
-		canvas.draw_circle(pp, pulse_r + 2.0, Color(0.15, 0.95, 1.0, 0.38))
-		canvas.draw_circle(pp, 4.8 if detailed else 2.8, Color(0.20, 1.0, 1.0))
-		canvas.draw_circle(pp, 4.8 if detailed else 2.8, Color.BLACK, false, 1.2)
+		var pulse_r: float = (5.8 if detailed else 3.5) + sin(_pulse_phase) * 1.4
+		canvas.draw_circle(pp, pulse_r + 2.0, Color(0.561, 0.176, 0.149, 0.28))
+		canvas.draw_circle(pp, 4.6 if detailed else 2.8, Color(0.561, 0.176, 0.149, 1.0))
+		canvas.draw_circle(pp, 4.6 if detailed else 2.8, Color(0.945, 0.910, 0.831, 1.0), false, 1.2)
 		if detailed and font:
-			canvas.draw_string(font, pp + Vector2(7, 4), "★ TÚ", HORIZONTAL_ALIGNMENT_LEFT, -1, 11, Color(0.35, 1.0, 1.0))
+			_draw_ink_tag(canvas, font, pp + Vector2(7, 4), "Tú", 10, Color(0.561, 0.176, 0.149, 1.0))
 
-## Nombres de edificios sin pisarse: si no cabe, se acorta (icono + primera palabra); va con un fondo oscuro encima del
-## edificio, o debajo si arriba choca con otro; si tampoco cabe, se omite (al pasar el cursor sigue saliendo).
+	# Marco interior de tinta del lienzo cartográfico
+	canvas.draw_rect(Rect2(Vector2.ZERO, csize), Color(0.227, 0.196, 0.157, 0.95), false, 2.0)
+
+## Nombres de edificios sin pisarse en etiquetas de papel y tinta.
 func _draw_building_labels(canvas: Control, font: Font, buildings: Array, csize: Vector2) -> void:
 	var placed: Array[Rect2] = []
 	var fs: int = 10
@@ -500,20 +533,21 @@ func _draw_building_labels(canvas: Control, font: Font, buildings: Array, csize:
 		_label_hits.append({"rect": br, "label": full})
 		var options: Array[String] = [full]
 		var words: PackedStringArray = full.split(" ", false)
-		if words.size() > 2:
-			options.append(words[0] + " " + words[1])
+		if words.size() > 1:
+			options.append(words[0])
 		for txt in options:
 			var tw: float = font.get_string_size(txt, HORIZONTAL_ALIGNMENT_LEFT, -1, fs).x
 			if tw > br.size.x + 24.0 and txt != options[options.size() - 1]:
 				continue # demasiado largo para su edificio: probamos la versión corta
 			var done: bool = false
 			for pos in [br.position + Vector2(0, -13), Vector2(br.position.x, br.end.y + 1)]:
-				var lr := Rect2(pos, Vector2(tw + 4.0, 12.0))
+				var lr := Rect2(pos, Vector2(tw + 6.0, 13.0))
 				if placed.any(func(r): return r.intersects(lr)):
 					continue
 				placed.append(lr)
-				canvas.draw_rect(lr, Color(0.05, 0.06, 0.08, 0.72), true)
-				canvas.draw_string(font, lr.position + Vector2(2, 10), txt, HORIZONTAL_ALIGNMENT_LEFT, -1, fs, Color(0.98, 0.94, 0.78))
+				canvas.draw_rect(lr, Color(0.945, 0.910, 0.831, 0.92), true)
+				canvas.draw_rect(lr, Color(0.227, 0.196, 0.157, 0.72), false, 1.0)
+				canvas.draw_string(font, lr.position + Vector2(3, 10), txt, HORIZONTAL_ALIGNMENT_LEFT, -1, fs, Color(0.149, 0.129, 0.106, 1.0))
 				done = true
 				break
 			if done:

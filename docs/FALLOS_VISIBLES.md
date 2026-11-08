@@ -105,7 +105,7 @@
   amarilla de progreso suelta sobre el tejado, lejos de cualquier vecino; (4) el icono de la mano 1 parece letras
   revueltas en vez de un dibujo; (5) el bocadillo de Lina sale cortado con «…». Arreglar sin rehacer nada más (`VillageNPC.gd`, `InteractionSelector.gd`, `FloatingText.gd`, `VillageManager.gd`, `DomesticPet.gd`, `scenes/ui_root.gd`: añadido `is_female()` para concordancia femenina «Muerta» / «tendida» en etiqueta, tarjeta `[E]` y bocadillos; reducido el tamaño y radio de aparición de títulos de edificio anclándolos a su puerta y ocultándolos al enfocar a un vecino; ocultada la barra de progreso 2D de vecinos no enfocados o dentro de edificios; usado el icono real `TextureRect` de cada arma/herramienta en los 3 huecos de manos; y ampliado el límite de `FloatingText` con frase concisa sin corte «…»; comprobado en `docs/capturas_arreglos/ui_after_plaza_3d.png`).
 
-- [ ] **Partida del usuario tras la interfaz nueva** (2026-11-07 23:00, capturas del usuario, 3D):
+- [x] ✅ (2026-11-08) **Partida del usuario tras la interfaz nueva** (2026-11-07 23:00, capturas del usuario, 3D):
   (1) **El mapa grande [M] sigue con el estilo viejo** (azul oscuro, letras amarillas): solo cambió el minimapa. Pasarlo
   al papel y tinta del boceto. Además las etiquetas no cuadran con lo dibujado («Lago» junto a la trattoria, pero el
   lago azul está más al oeste). (2) **En 1.ª persona sale doble el aviso de [E]**: el texto viejo flotando en mitad de
@@ -113,7 +113,7 @@
   ayuda de 1.ª persona** («1.ª Persona (Prototipo) · [P]/[F6] Salir…») se monta encima del reloj: quitarla o pasarla a
   [H]. (4) **Vecinos que se siguen atorando en la puerta de la taberna** (12:39, de día). (5) **Una tira roja flotando en
   el aire** junto a la puerta de la taberna, al lado del farol colgado. (6) **El pescador pesca fuera del lago**, en el
-  sitio viejo del lago (antes de moverlo al oeste).
+  sitio viejo del lago (antes de moverlo al oeste) (`ValleyMapUI.gd`, `WorldStage3D.gd`, `InteractionSelector.gd`, `scenes/ui_root.gd`, `VillageManager.gd`, `VillageNPC.gd`: rediseñado el mapa grande `[M]` en papel pergamino cálido `#f1e8d4` y tinta oscura `#26211b` con etiquetas reubicadas sobre cada elemento real como «Lago del Oeste» en `(-1035, 165)` y «Campamento y Huerto» en `(-910, -145)`; ocultados en 1.ª persona el cartel central duplicado `fp_interact_label` y la banda superior `fp_mode_badge`, pasando los atajos `P / F6` y `F9` al panel `[H]`; eliminadas las tiras rojas flotantes `banner-red.glb` junto a las puertas de taberna y trattoria; separados los carriles de entrada y salida (`±5 px`) y desactivado el empuje lateral entre vecinos mientras cruzan el umbral (`6/6` vecinos entrando y saliendo a la vez a las 12:39 sin atasco); y movido el puesto de pesca del pescador `EXPEDITION_TARGETS[FISHMONGER]` al muelle del Lago del Oeste `Vector2(-683, 105)`; comprobado en `docs/capturas_arreglos/fix_mapa_m_papel_3d.png` y `docs/capturas_arreglos/fix_puerta_taberna_vecinos_3d.png`).
 
 - [x] ✅ (2026-11-08) **Revisión de Claude a la Fase A del relieve** (2026-11-07, capturas `relieve_fase_a_*_3d.png`): se aprueba; las
   lomas y el bosque quedan bien. Detalles: (1) **el lago parece un charco en una zanja de arena**: poca agua, orillas de

@@ -346,8 +346,8 @@ func get_prompt_card_data() -> Dictionary:
 				var opened: bool = bool(d.get("is_open", false))
 				var locked: bool = bool(d.get("is_locked", false))
 				target_state = "Abierta" if opened else ("Con llave" if locked else "Cerrada")
+				actions[0]["text"] = "Cerrar la puerta" if opened else ("Probar picaporte" if locked else "Abrir la puerta")
 				if locked and not opened:
-					actions[0]["text"] = "Probar picaporte"
 					actions.append({"key": "F", "text": "Forzar cerradura", "selected": false})
 			"building_window":
 				var w: Dictionary = vm._find_nearest_window(ap, 16.0) if vm != null else {}

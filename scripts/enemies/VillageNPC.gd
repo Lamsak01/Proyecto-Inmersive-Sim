@@ -3115,13 +3115,20 @@ func _move_towards_point(target_pos: Vector2, speed: float, delta: float = 0.016
 		return
 
 	var desired_vel: Vector2 = diff.normalized() * eff_speed
+	var in_doorway_now: bool = vm != null and vm.has_method("get_doorway_clearance_nudge") and (vm.call("get_doorway_clearance_nudge", global_position, 24.0) as Vector2).length_squared() > 0.01
 
 	if global_position.distance_squared_to(_last_frame_pos) < 0.09 and eff_speed > 12.0:
 		_stuck_timer += delta
 		if _stuck_timer >= 0.40:
 			_nav_waypoint_timer = 0.0
-			var perp := Vector2(-diff.y, diff.x).normalized() if (abs(npc_name.hash()) % 2 == 0) else Vector2(diff.y, -diff.x).normalized()
-			desired_vel = (diff.normalized() * 0.55 + perp * 0.75).normalized() * eff_speed
+			if in_doorway_now:
+				# En el umbral de una puerta no empujar perpendicularmente contra las jambas; avanzar por el eje del paso
+				if _stuck_timer >= 0.70:
+					global_position += diff.normalized() * minf(6.0, diff.length())
+					_stuck_timer = 0.0
+			else:
+				var perp := Vector2(-diff.y, diff.x).normalized() if (abs(npc_name.hash()) % 2 == 0) else Vector2(diff.y, -diff.x).normalized()
+				desired_vel = (diff.normalized() * 0.55 + perp * 0.75).normalized() * eff_speed
 	else:
 		_stuck_timer = 0.0
 
@@ -3130,19 +3137,20 @@ func _move_towards_point(target_pos: Vector2, speed: float, delta: float = 0.016
 	if _sep_timer <= 0.0:
 		_sep_timer = 0.10
 		var sep_vec := Vector2.ZERO
-		for n in get_tree().get_nodes_in_group("village_npcs"):
-			if n is VillageNPC and n != self:
-				var other := n as VillageNPC
-				if not other.is_dead and not other.is_downed and not other.is_sleeping:
-					var d_sq: float = global_position.distance_squared_to(other.global_position)
-					if d_sq > 0.01 and d_sq < 196.0:
-						var d_other: float = sqrt(d_sq)
-						sep_vec += (global_position - other.global_position).normalized() * ((14.0 - d_other) / 14.0) * 22.0
+		if not in_doorway_now:
+			for n in get_tree().get_nodes_in_group("village_npcs"):
+				if n is VillageNPC and n != self:
+					var other := n as VillageNPC
+					if not other.is_dead and not other.is_downed and not other.is_sleeping:
+						var d_sq: float = global_position.distance_squared_to(other.global_position)
+						if d_sq > 0.01 and d_sq < 196.0:
+							var d_other: float = sqrt(d_sq)
+							sep_vec += (global_position - other.global_position).normalized() * ((14.0 - d_other) / 14.0) * 22.0
 		_cached_sep_vec = sep_vec
 	if perf_on: _perf_add("a_separation", _pt)
 
 	_last_frame_pos = global_position
-	velocity = desired_vel if is_escorting_player else (desired_vel + _cached_sep_vec).limit_length(eff_speed * 1.15)
+	velocity = desired_vel if (is_escorting_player or in_doorway_now) else (desired_vel + _cached_sep_vec).limit_length(eff_speed * 1.15)
 
 func _is_morning_expedition_hours() -> bool:
 	if not (trade_role in [TradeRole.BLACKSMITH, TradeRole.CARPENTER, TradeRole.HERBALIST, TradeRole.FISHMONGER, TradeRole.BUTCHER]) or not WorldClock or _completed_expedition_day == WorldClock.current_day:
@@ -3153,7 +3161,7 @@ func _is_morning_expedition_hours() -> bool:
 
 const EXPEDITION_TARGETS: Dictionary = {
 	TradeRole.CARPENTER: Vector2(65, 790), TradeRole.BLACKSMITH: Vector2(515, 795),
-	TradeRole.HERBALIST: Vector2(-180, 810), TradeRole.FISHMONGER: Vector2(-497, 105), TradeRole.BUTCHER: Vector2(142, 785),
+	TradeRole.HERBALIST: Vector2(-180, 810), TradeRole.FISHMONGER: Vector2(-683, 105), TradeRole.BUTCHER: Vector2(142, 785),
 }
 
 const EXPEDITION_DESCS: Dictionary = {
@@ -3883,6 +3891,7 @@ func _process_physical_morning_expedition(delta: float) -> void:
 			_move_towards_point(dock_pos, 58.0, delta)
 			return
 		velocity = Vector2.ZERO
+		facing_direction = Vector2.LEFT
 		trigger_action_animation(0.6)
 		_expedition_gather_timer += delta
 		if _expedition_gather_timer >= (2.2 / maxf(0.35, eff)):

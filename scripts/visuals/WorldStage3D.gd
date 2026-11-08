@@ -1906,11 +1906,10 @@ func _build_restaurant_3d(b_root: Node3D, wall_h: float, m_wall: Material, m_tri
 				_restaurant_night_nodes.append(bulb)
 	_restaurant_light(b_root, R.BASE + Vector2(60, 216), 26.0, Color(1.0, 0.80, 0.46), 0.9, 2.4, true)
 	_restaurant_light(b_root, R.BASE + Vector2(210, 216), 26.0, Color(1.0, 0.80, 0.46), 0.9, 2.4, true)
-	# Toldo verde sobre la puerta y letrero
+	# Toldo verde sobre la puerta y faroles
 	var door_c: Vector2 = Vector2(R.DOOR_X, R.RECT.end.y + 6.0)
 	_add_box_2d(b_root, door_c, Vector2(R.DOOR_W + 26.0, 12.0), wall_h * 0.72, 2.0, m_canvas_g)
 	_add_box_2d(b_root, door_c + Vector2(0, 6.0), Vector2(R.DOOR_W + 26.0, 1.0), wall_h * 0.72 - 3.0, 3.0, m_canvas_w)
-	_add_model_2d(b_root, "fantasy_town/banner-red.glb", Vector2(R.DOOR_X + 34.0, R.RECT.end.y + 2.0), wall_h * 0.45, Vector2(8.0, 3.0), 14.0)
 	_add_model_2d(b_root, "props/Lantern_Wall.gltf", Vector2(R.DOOR_X - 24.0, R.RECT.end.y + 2.0), wall_h * 0.55, Vector2(4.0, 4.0), 6.0)
 	_add_model_2d(b_root, "props/Lantern_Wall.gltf", Vector2(R.DOOR_X + 24.0, R.RECT.end.y + 2.0), wall_h * 0.55, Vector2(4.0, 4.0), 6.0)
 	# Sendero desde el camino del este
@@ -2001,8 +2000,7 @@ func _build_tavern_floor_0_3d(b_root: Node3D, _wall_h: float, m_wall: Material, 
 		_add_model_2d(b_root, "props/Chandelier.gltf", ch_pos, 14.5, Vector2(12.0, 12.0), 6.5)
 		_restaurant_light(b_root, ch_pos, 15.5, Color(1.0, 0.80, 0.48), 1.15, 2.8, false)
 
-	# Letrero exterior y faroles en la fachada sur de la taberna
-	_add_model_2d(b_root, "fantasy_town/banner-red.glb", T.DOOR_POS + Vector2(32.0, 3.0), 16.0, Vector2(8.0, 3.0), 14.0)
+	# Faroles en la fachada sur de la taberna
 	_add_model_2d(b_root, "props/Lantern_Wall.gltf", T.DOOR_POS + Vector2(-28.0, 3.0), 15.0, Vector2(4.2, 4.2), 6.2)
 	_add_model_2d(b_root, "props/Lantern_Wall.gltf", T.DOOR_POS + Vector2(28.0, 3.0), 15.0, Vector2(4.2, 4.2), 6.2)
 
@@ -2655,7 +2653,11 @@ func _update_fp_hud() -> void:
 	var ui_blocked: bool = _is_ui_blocking_fp()
 	fp_hud_layer.visible = not ui_blocked
 	if fp_interact_label != null:
+		fp_interact_label.text = ""
 		fp_interact_label.visible = false
+	if fp_mode_badge != null:
+		fp_mode_badge.text = ""
+		fp_mode_badge.visible = false
 	return
 
 func _process(delta: float) -> void:
