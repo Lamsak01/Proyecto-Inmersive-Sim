@@ -105,10 +105,18 @@ haber luchado. La **secta** mandó matar al verdadero detective y lo disfrazó d
 principio** que el jugador no es quien dice. Callaron porque creyeron que sería un incompetente en el cargo (les
 convenía), pero resultó tener talento para resolver crímenes y se volvió una molestia.
 
-**Huecos de esta parte (por decidir con el usuario):** cuántos días tarda el preso en «morir»; qué médico firma el acta
-(¿el Dr. Valen, cómplice, u otro?); el verdadero nombre del protagonista y el del detective suplantado; dónde encontró
-el cuerpo del detective y si la partida empieza mostrando esa escena; cómo se excava una tumba (herramienta, de noche,
-testigos según las 7 reglas).
+**Decidido por el usuario (2026-11-08, noche):**
+- **Muerte del preso:** aparece «muerto» **un día después de que llegue el mercader** al pueblo.
+- **El médico es el Dr. Valen:** no es cómplice directo, solo **sigue órdenes**; es un peón más. **Los nobles deciden todo
+  lo que pasa en el pueblo.**
+- **Nombres:** el detective suplantado es **Jean Porterre**; el nombre real del protagonista es **Dean Hollow**.
+- **Pasado de Dean:** **desertor** de la guerra que existe en el mundo; huyó tras **matar a un superior en una discusión**.
+  Está en **territorio enemigo** y no puede volver a casa.
+- **Excavar la tumba:** con la **pala** que ya existe en el juego. Si alguien te ve, **llama a la guardia**: multa y
+  **noche en el calabozo**.
+- **Inicio de la partida:** llegas a las **afueras del pueblo** mientras una **voz en off lee tu carta de contratación**,
+  escrita como si fueras el verdadero detective (Jean Porterre). **El giro (eres un impostor) se guarda para el final de
+  la demo**: nada antes debe delatarlo.
 
 ## 6. Herramientas del detective (decidido por el usuario, 2026-11-07)
 Eje central del bucle jugable; tiene que quedar «perfecto». Boceto aprobado por el usuario («me encanta»):
