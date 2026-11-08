@@ -168,7 +168,10 @@ static func can_night_stroll(vm, npc) -> bool:
 		return false
 	if npc._is_mandatory_work_hours() or npc.need_energy <= 18.0:
 		return false
-	return night_walk_kind(npc) != ""
+	var w_kind: String = night_walk_kind(npc)
+	if w_kind == "night_stroll" and WorldClock != null and int(WorldClock.current_weather) == 1:
+		return false
+	return w_kind != ""
 
 static func night_stroll_spot(vm, npc, step: int = 0) -> Vector2:
 	var h_idx: int = abs((npc.get_person_key() + ":" + str(step)).hash())
@@ -280,9 +283,14 @@ static func tick(vm) -> void:
 				var vice_k: String = n.errand_kind
 				var cur_h_v: int = int(WorldClock.current_hour) if WorldClock else 12
 				if vm.VillagePlaces.is_leisure_hour(cur_h_v, n):
+					var p_seat: Vector2 = vm.VillageTavern.pick_poker_seat_for(vm, n) if vice_k == "gamble" else vm.VillageTavern.pick_seat_for(vm, n)
+					var p_id: String = "tavern_poker" if vice_k == "gamble" else "tavern_hall"
+					if p_seat == Vector2.ZERO:
+						p_seat = vm.VillageTavern.pick_seat_for(vm, n)
+						p_id = "tavern_hall"
 					n.errand_kind = "leisure"
-					n.errand_pos = vm.VillageTavern.pick_poker_seat_for(vm, n) if vice_k == "gamble" else vm.VillageTavern.pick_seat_for(vm, n)
-					n.set_meta("leisure_id", "tavern_poker" if vice_k == "gamble" else "tavern_hall")
+					n.errand_pos = p_seat
+					n.set_meta("leisure_place", p_id)
 					n.set_meta("leisure_until_hour", -1)
 					vm.VillagePlaces.on_arrived(vm, n)
 				else:
@@ -347,7 +355,10 @@ static func on_hour(vm, hour: int) -> void:
 	for n in people:
 		# B4.3 / B5.2: Paseos nocturnos (Noctámbulo, Insomne, Sonámbulo) y rondas nocturnas
 		if n.errand_kind in ["night_stroll", "sleepwalk", "prowl_victim"]:
-			if hour >= 5 and hour < 22:
+			var end_night_walk: bool = (hour >= 5 and hour < 22)
+			if n.errand_kind == "night_stroll" and ((hour >= 0 and hour < 22) or (WorldClock != null and int(WorldClock.current_weather) == 1)):
+				end_night_walk = true
+			if end_night_walk:
 				n.end_errand()
 			elif n.errand_kind in ["night_stroll", "sleepwalk"]:
 				var st_step: int = int(n.get_meta("night_stroll_step", 0)) + 1
@@ -360,7 +371,7 @@ static func on_hour(vm, hour: int) -> void:
 				n.set_meta("night_stroll_step", hour)
 				n.start_errand("sleepwalk", night_stroll_spot(vm, n, hour))
 				continue
-			elif w_kind == "night_stroll":
+			elif w_kind == "night_stroll" and hour >= 22:
 				n.set_meta("night_stroll_step", hour)
 				n.start_errand("night_stroll", night_stroll_spot(vm, n, hour))
 				continue

@@ -20,7 +20,7 @@ const TraitCatalog = preload("res://scripts/data/TraitCatalog.gd")
 const POP_CAP: int = 100
 const TAVERN_GUEST_BEDS: Array = [Vector2(435, -252), Vector2(468, -252), Vector2(502, -252)]
 const TAVERN_DAY_SPOTS: Array = [
-	Vector2(440, 44), Vector2(495, 44), Vector2(415, -105),
+	Vector2(440, 44), Vector2(495, 44), Vector2(465, 58),
 	Vector2(304, 280), Vector2(236, 268), Vector2(360, 280),
 	Vector2(-525, 166), Vector2(215, 44), Vector2(640, 44),
 	Vector2(780, 44), Vector2(672, -210), Vector2(330, -352),

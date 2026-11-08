@@ -148,10 +148,13 @@ static func on_hour(vm, hour: int) -> void:
 	for n in people:
 		if n.errand_kind != "leisure":
 			continue
+		var indoor: bool = bool(place(str(n.get_meta("leisure_place", ""))).get("indoor", false))
+		if not is_leisure_hour(hour, n) or (is_raining() and not indoor):
+			_leave(n)
+			continue
 		if not n.has_meta("leisure_since"):
 			continue # Aún de camino
-		var indoor: bool = bool(place(str(n.get_meta("leisure_place", ""))).get("indoor", false))
-		if not is_leisure_hour(hour, n) or (now - int(n.get_meta("leisure_since")) >= STAY_HOURS and randf() < 0.5) or (is_raining() and not indoor):
+		if now - int(n.get_meta("leisure_since")) >= STAY_HOURS and randf() < 0.5:
 			_leave(n)
 			continue
 		var pid: String = str(n.get_meta("leisure_place", ""))

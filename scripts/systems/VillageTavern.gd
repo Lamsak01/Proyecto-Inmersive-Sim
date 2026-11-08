@@ -294,7 +294,7 @@ static func is_upper_floor_target(pos: Vector2) -> bool:
 	if not RECT.grow(6.0).has_point(pos):
 		return false
 	for b in ALL_UPPER_BEDS:
-		if pos.distance_to(b as Vector2) <= 16.0:
+		if pos.distance_to(b as Vector2) <= 3.5:
 			return true
 	return false
 

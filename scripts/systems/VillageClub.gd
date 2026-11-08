@@ -486,6 +486,8 @@ static func _end_bout(vm, winner: String, why: String) -> void:
 		for v in [a, bb]:
 			if v != null and is_instance_valid(v):
 				v.end_live_fight()
+				if v.health_comp != null:
+					v.health_comp.current_health = maxf(v.health_comp.current_health, v.health_comp.get_effective_max_health() * 0.82)
 		var bet: Dictionary = c.get("bet", {})
 		if winner != "" and not bet.is_empty():
 			if str(bet.get("on", "")) == winner:

@@ -844,7 +844,7 @@ func get_doorway_clearance_nudge(pos: Vector2, radius: float = 18.0) -> Vector2:
 
 func _avoid_outdoor_buildings(from_pos: Vector2, target_pos: Vector2, ignore_b_id: String) -> Vector2:
 	var cur_target: Vector2 = target_pos
-	for _step in range(2):
+	for _step in range(3):
 		var blocking_b: Dictionary = {}
 		var closest_d: float = INF
 		for b in building_footprints:
@@ -856,9 +856,13 @@ func _avoid_outdoor_buildings(from_pos: Vector2, target_pos: Vector2, ignore_b_i
 			if r_core.has_point(from_pos) or r_core.has_point(cur_target):
 				continue
 			if _segment_intersects_rect(from_pos, cur_target, r_avoid):
-				var d_center: float = from_pos.distance_to(r_avoid.get_center())
-				if d_center < closest_d:
-					closest_d = d_center
+				var clamped_pt := Vector2(
+					clampf(from_pos.x, r_avoid.position.x, r_avoid.end.x),
+					clampf(from_pos.y, r_avoid.position.y, r_avoid.end.y)
+				)
+				var d_closest: float = from_pos.distance_to(clamped_pt)
+				if d_closest < closest_d:
+					closest_d = d_closest
 					blocking_b = b
 
 		if blocking_b.is_empty():
@@ -876,7 +880,7 @@ func _avoid_outdoor_buildings(from_pos: Vector2, target_pos: Vector2, ignore_b_i
 					merged_rect = merged_rect.merge(r_o)
 					merged_changed = true
 
-		var r_inner: Rect2 = merged_rect.grow(2.5)
+		var r_inner: Rect2 = merged_rect.grow(7.0)
 		var r_corners: Rect2 = merged_rect.grow(16.0)
 		var corners: Array[Vector2] = [
 			r_corners.position,
@@ -2283,7 +2287,7 @@ func _spawn_unemployed_tavern_guests() -> void:
 	var guest_defs: Array[Dictionary] = [
 		{"name": "Aldric", "role": "Viajero sin Oficio", "day_pos": Vector2(440, 44), "bed_pos": VillageTavern.GUEST_BEDS[0]},
 		{"name": "Sora", "role": "Forastera sin Oficio", "day_pos": Vector2(495, 44), "bed_pos": VillageTavern.GUEST_BEDS[1]},
-		{"name": "Darío", "role": "Jornalero sin Oficio", "day_pos": Vector2(415, -105), "bed_pos": VillageTavern.GUEST_BEDS[2]}
+		{"name": "Darío", "role": "Jornalero sin Oficio", "day_pos": Vector2(465, 58), "bed_pos": VillageTavern.GUEST_BEDS[2]}
 	]
 	for g in guest_defs:
 		var npc := VillageNPC.new()

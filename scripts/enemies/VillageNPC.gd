@@ -85,7 +85,7 @@ var days_in_role: int = 7
 var work_position: Vector2 = Vector2.ZERO
 var bed_position: Vector2 = Vector2.ZERO
 var home_table_pos: Vector2 = Vector2.ZERO
-var tavern_social_pos: Vector2 = Vector2(395, -135)
+var tavern_social_pos: Vector2 = Vector2(420.0, -198.0)
 var shop_stock: Dictionary = {}
 
 # Economía Personal Real (`personal_gold`), Salvoconducto Real, Vagabundeo Rústico y Caza Amateur
@@ -1300,8 +1300,8 @@ func _process_family_missing_search(delta: float) -> bool:
 					if cand_kin.family_id == family_id and not cand_kin.corpse_reported and not cand_kin.corpse_in_morgue:
 						var dist_home: float = minf(cand_kin.global_position.distance_to(cand_kin.bed_position), cand_kin.global_position.distance_to(home_table_pos))
 						if dist_home > 85.0:
-							# Si el familiar está muerto, abatido, sedado o ya pasan de las 22:00 sin estar en casa, crece la preocupación
-							if cand_kin.is_dead or cand_kin.is_downed or cand_kin.sedated_timer > 0.0 or cur_h >= 22 or cur_h < 6:
+							# Si el familiar está muerto, abatido o sedado fuera de casa de noche, crece la preocupación
+							if cand_kin.is_dead or cand_kin.is_downed or cand_kin.sedated_timer > 0.0:
 								_kin_absence_worry_timer += delta
 								if _kin_absence_worry_timer >= 4.0:
 									_kin_absence_worry_timer = 0.0
@@ -2182,6 +2182,8 @@ func _process_noise_reaction(delta: float) -> bool:
 
 ## Si está herido o enfermo, va a la cama del hospital y descansa allí.
 func _process_hospital_care(delta: float) -> bool:
+	if int(elevation_level) == -1 or errand_kind in ["club_go", "club_watch"] or get_meta("club_bout", false) == true:
+		return false
 	var needs_hospital_care: bool = false
 	if health_comp and need_hunger > 5.0 and trade_role != TradeRole.DOCTOR:
 		if health_comp.current_blood >= 22.0 or health_comp.get_most_urgent_untreated_wound_id(false) != -1:
@@ -3300,7 +3302,8 @@ func _update_needs_and_decisions(delta: float) -> void:
 			var vm_slp = _get_vm()
 			if trade_role == TradeRole.UNEMPLOYED and not is_vagrant_camper and vm_slp and vm_slp.has_method("is_building_door_blocked") and bool(vm_slp.call("is_building_door_blocked", "tavern")) and vm_slp.has_method("evict_npc_to_vagrant_camp"):
 				vm_slp.call("evict_npc_to_vagrant_camp", self, "Puerta de la Taberna bloqueada")
-			if global_position.distance_to(bed_position) <= 12.0:
+			var bed_target_elev: int = 1 if _VillageTavern.is_upper_floor_target(bed_position) else 0
+			if global_position.distance_to(bed_position) <= 12.0 and int(elevation_level) == bed_target_elev:
 				is_sleeping = true
 				if is_vagrant_camper and not in_shelter:
 					var max_camp_energy: float = 62.0 if (WorldClock != null and int(WorldClock.current_weather) == 1) else 74.0
@@ -3429,7 +3432,8 @@ func _check_npc_environmental_sickness() -> void:
 				break
 
 func _approach_or_stop(target_pos: Vector2, tol: float, spd: float, delta: float) -> void:
-	if global_position.distance_to(target_pos) > tol:
+	var target_elev: int = 1 if _VillageTavern.is_upper_floor_target(target_pos) else (-1 if errand_kind == "club_watch" else 0)
+	if global_position.distance_to(target_pos) > tol or int(elevation_level) != target_elev:
 		_move_towards_point(target_pos, spd, delta)
 	else:
 		velocity = Vector2.ZERO
@@ -3609,7 +3613,7 @@ func _process_artisan_workshop_crafting_and_supply_runs(delta: float) -> void:
 			work_position = true_wp
 
 	# 2. Regresar o permanecer en su propio puesto de trabajo (`work_position`)
-	if global_position.distance_to(work_position) > 16.0:
+	if global_position.distance_to(work_position) > 16.0 or int(elevation_level) != 0:
 		_is_actively_crafting = false
 		_update_craft_bar_visual(0.20, "🚶 Volviendo al taller...", Color(0.75, 0.85, 0.95, 0.85))
 		_move_towards_point(work_position, 50.0, delta)
