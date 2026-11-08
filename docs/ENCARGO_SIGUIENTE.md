@@ -79,5 +79,10 @@ que no salga la pestaña «Principal» del panel de misiones [L] (o que diga sol
 capítulos, no paguen recompensas ni aparezcan sus avisos, rumores o diálogos. Deja una marca clara en el código para
 recuperarla si hiciera falta. Una prueba: abrir [L] y comprobar que no aparece nada de los 4 capítulos.
 
+## 3d. Combate nuevo: fase 5 de `docs/PLAN_COMBATE.md` (APROBADO; el usuario lo pone ANTES de los edificios, 2026-11-08)
+Hacer 5a → 5e en orden, un paso cada vez, parando tras cada paso para que el usuario lo pruebe (es lo que menos le
+gusta del juego: «flojo, sin peso, sin respuesta»). **No hacer 5f** (huecos de la armadura): espera a los muñecos del
+artista. Solo 3D en primera persona. Armas inventadas «tipo» fusil de asalto, sin nombres reales.
+
 ## 4. Edificios de los bocetos (`docs/BOCETOS_EDIFICIOS.md`)
 Esperan las correcciones del usuario. Después, construirlos todos seguidos con capturas de cada uno.
