@@ -1,1 +1,0 @@
-2026-11-08 18:51 — ENCARGO DE HOY (noche 3: vecinos sin superponerse en la plaza y en todo el pueblo + prueba automática en verify_all.gd + captura 1.ª persona 3D) y TROCEO DE ARCHIVOS GRANDES completados.
