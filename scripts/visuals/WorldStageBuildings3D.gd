@@ -306,7 +306,7 @@ func rebuild_buildings_3d() -> void:
 		roof_cap.name = "RoofCap_" + b_id
 		b_root.add_child(roof_cap)
 		# B7: Forjado/techo de tablas bajo la cubierta para que en 1.ª persona se vea el techo cerrado desde dentro
-		_add_box_2d(roof_cap, center, sz - Vector2(2.0, 2.0), wall_h, 1.8, m_wood)
+		_add_box_2d(roof_cap, center, sz - Vector2(2.0, 2.0), wall_h - 0.4, 2.2, m_wood)
 		var hv: int = absi(b_id.hash())
 		var ov: float = 6.0
 		var short_side: float = minf(sz.x, sz.y)
@@ -314,7 +314,7 @@ func rebuild_buildings_3d() -> void:
 		var ridge_x: bool = sz.x >= sz.y
 		if absf(sz.x - sz.y) < 12.0:
 			ridge_x = (hv % 2) == 0
-		var roof_base_h: float = wall_h + 2.0
+		var roof_base_h: float = wall_h + 2.2
 		if sz.x > 118.0 and not (b_id in ["building_church"]):
 			# Cuerpo principal + ala más baja (rompe la caja: silueta en L vista desde arriba)
 			var main_w: float = sz.x * 0.60
@@ -323,7 +323,7 @@ func rebuild_buildings_3d() -> void:
 			var main_cx: float = rect.position.x + (main_w * 0.5 if main_left else wing_w + main_w * 0.5)
 			var wing_cx: float = rect.position.x + (main_w + wing_w * 0.5 if main_left else wing_w * 0.5)
 			_add_prism_2d(roof_cap, Vector2(main_cx, center.y), Vector2(main_w + ov * 2.0, sz.y + ov * 2.0), roof_base_h, rh, m_roof, false)
-			_add_prism_2d(roof_cap, Vector2(wing_cx, center.y), Vector2(wing_w + ov, sz.y * 0.86 + ov), roof_base_h - 2.0, rh * 0.62, m_roof, true)
+			_add_prism_2d(roof_cap, Vector2(wing_cx, center.y), Vector2(wing_w + ov, sz.y * 0.86 + ov), roof_base_h, rh * 0.62, m_roof, true)
 		else:
 			_add_prism_2d(roof_cap, center, sz + Vector2(ov * 2.0, ov * 2.0), roof_base_h, rh, m_roof, ridge_x)
 		# Remate de madera bajo el alero (se ve con el tejado puesto y quitado)
