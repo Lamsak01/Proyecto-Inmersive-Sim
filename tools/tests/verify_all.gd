@@ -7337,5 +7337,17 @@ func _initialize() -> void:
 	assert(wp_out_lane.x < 450.0 and wp_in_lane.x > 458.0, "Tavern doorway must separate exiting lane (<450) and entering lane (>458)! Got out=" + str(wp_out_lane) + " in=" + str(wp_in_lane))
 	print("Tavern Doorway Double-Lane & Threshold Non-Oscillation Check OK")
 
+	var wc_test = root.get_node_or_null("/root/WorldClock")
+	if wc_test != null and tm_ui_root != null and tm_ui_root.get("clock_weather_label") != null:
+		var prev_w: int = int(wc_test.current_weather)
+		wc_test.set_weather(wc_test.WeatherType.RAIN)
+		assert(tm_ui_root.clock_weather_label.text == "lluvia", "Clock weather label must show 'lluvia' when raining! Got: " + str(tm_ui_root.clock_weather_label.text))
+		wc_test.set_weather(wc_test.WeatherType.FOG)
+		assert(tm_ui_root.clock_weather_label.text == "niebla", "Clock weather label must show 'niebla' when foggy! Got: " + str(tm_ui_root.clock_weather_label.text))
+		wc_test.set_weather(wc_test.WeatherType.CLEAR)
+		assert(tm_ui_root.clock_weather_label.text == "despejado", "Clock weather label must show 'despejado' when clear! Got: " + str(tm_ui_root.clock_weather_label.text))
+		wc_test.set_weather(prev_w)
+		print("Clock Weather Indicator Sync Check (lluvia / niebla / despejado) OK")
+
 	print("ALL RIMWORLD MEDICAL, FOOTPRINTS, 3-PHASE CORPSE REPORT, MULTI-CORPSE FIX, RPG INTERROGATION, PUBLIC TRIAL, DYNAMIC RELATIONSHIPS, MISSING FAMILY SEARCH, SOCIAL GLOSSARY & UNCONSCIOUS REACTION TESTS PASSED!")
 	quit(0)

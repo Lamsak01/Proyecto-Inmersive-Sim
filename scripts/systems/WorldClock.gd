@@ -274,6 +274,9 @@ func get_phase_icon(phase: DayPhase = _current_phase) -> String:
 func get_weather_name(w: WeatherType = current_weather) -> String:
 	return "Lluvia" if w == WeatherType.RAIN else ("Niebla" if w == WeatherType.FOG else "Despejado")
 
+func get_weather_label(w: WeatherType = current_weather) -> String:
+	return get_weather_name(w)
+
 func get_weather_icon(w: WeatherType = current_weather) -> String:
 	return "🌧️" if w == WeatherType.RAIN else ("🌫️" if w == WeatherType.FOG else "☀️")
 

@@ -1191,8 +1191,9 @@ func _update_roof_cutaways_and_lighting() -> void:
 	var hour: int = int(wc2.current_hour) if wc2 != null else 12
 	var minute: int = int(wc2.current_minute) if wc2 != null and "current_minute" in wc2 else 0
 	var hour_f: float = float(hour) + float(minute) / 60.0
-	var weather_str: String = str(wc2.current_weather) if wc2 != null and "current_weather" in wc2 else "clear"
-	var is_foggy_weather: bool = weather_str in ["fog", "rain", "storm"]
+	var weather_str: String = str(wc2.get_weather_name()).to_lower() if (wc2 != null and wc2.has_method("get_weather_name")) else (str(wc2.current_weather).to_lower() if wc2 != null and "current_weather" in wc2 else "clear")
+	var weather_id: int = int(wc2.current_weather) if wc2 != null and "current_weather" in wc2 else 0
+	var is_foggy_weather: bool = weather_id in [1, 2] or weather_str in ["fog", "rain", "storm", "lluvia", "niebla", "tormenta"]
 	var is_night: bool = (hour >= 19 or hour < 6)
 	var is_dusk: bool = (hour in [6, 7, 17, 18])
 	var is_dawn_mist: bool = (hour_f >= 5.0 and hour_f <= 8.0)

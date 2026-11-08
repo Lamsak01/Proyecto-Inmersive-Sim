@@ -921,6 +921,8 @@ func _setup_clock_ui() -> void:
 
 	if WorldClock:
 		WorldClock.time_updated.connect(_on_clock_time_updated)
+		if WorldClock.has_signal("weather_changed") and not WorldClock.weather_changed.is_connected(_on_clock_weather_changed):
+			WorldClock.weather_changed.connect(_on_clock_weather_changed)
 		_on_clock_time_updated(WorldClock.current_day, WorldClock.current_hour, WorldClock.current_minute)
 
 func _setup_toast_ui() -> void:
@@ -1306,6 +1308,10 @@ func _on_player_test_mode_changed(active: bool) -> void:
 	if WorldClock:
 		_on_clock_time_updated(WorldClock.current_day, WorldClock.current_hour, WorldClock.current_minute)
 
+func _on_clock_weather_changed(_weather_type: int, _weather_name: String) -> void:
+	if WorldClock:
+		_on_clock_time_updated(WorldClock.current_day, WorldClock.current_hour, WorldClock.current_minute)
+
 func _on_clock_time_updated(_day: int, _hour: int, _minute: int) -> void:
 	_init_default_objectives()
 	if not clock_label or not WorldClock:
@@ -1316,12 +1322,17 @@ func _on_clock_time_updated(_day: int, _hour: int, _minute: int) -> void:
 	clock_label.text = "%s  %s · %02d:%02d" % [icon, d_name, int(WorldClock.current_hour), int(WorldClock.current_minute)]
 	if clock_weather_label:
 		var w_txt: String = "despejado"
-		var w_str: String = str(WorldClock.get_weather_label()).to_lower() if WorldClock.has_method("get_weather_label") else ""
+		var w_str: String = ""
+		if WorldClock.has_method("get_weather_name"):
+			w_str = str(WorldClock.get_weather_name()).to_lower()
+		elif WorldClock.has_method("get_weather_label"):
+			w_str = str(WorldClock.get_weather_label()).to_lower()
+		var w_enum: int = int(WorldClock.current_weather) if "current_weather" in WorldClock else 0
 		if w_str.find("tormenta") != -1:
 			w_txt = "tormenta"
-		elif w_str.find("lluvia") != -1:
+		elif w_str.find("lluvia") != -1 or w_enum == 1:
 			w_txt = "lluvia"
-		elif w_str.find("niebla") != -1:
+		elif w_str.find("niebla") != -1 or w_enum == 2:
 			w_txt = "niebla"
 		clock_weather_label.text = w_txt
 	var cur_sp: float = float(WorldClock.get("persistent_time_scale")) if "persistent_time_scale" in WorldClock else 1.0
