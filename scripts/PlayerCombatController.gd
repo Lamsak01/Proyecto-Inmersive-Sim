@@ -563,6 +563,8 @@ func _setup_hitbox() -> void:
 func _update_weapon_visuals() -> void:
 	if not is_instance_valid(weapon_pivot) or not is_instance_valid(player):
 		return
+	if is_instance_valid(weapon_sprite) and (WorldStage3DScript.first_person_active or WorldStage3DScript.CharacterAvatar3DScript.use_3d_characters):
+		weapon_sprite.visible = false
 	if WorldStage3DScript.first_person_active:
 		if not _swing_locked:
 			current_aim_dir = WorldStage3DScript.get_fp_forward_2d()

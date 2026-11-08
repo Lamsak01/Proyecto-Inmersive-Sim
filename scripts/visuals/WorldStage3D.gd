@@ -3019,6 +3019,8 @@ func set_first_person(enable: bool) -> void:
 	else:
 		first_person_active = false
 		fp_pitch = 0.0
+		if is_instance_valid(_fp_viewmodel_root):
+			_fp_viewmodel_root.visible = false
 		if cam_3d != null:
 			cam_3d.projection = Camera3D.PROJECTION_ORTHOGONAL
 			cam_3d.rotation_degrees = Vector3(-PITCH_DEG, 0.0, 0.0)
@@ -3089,6 +3091,115 @@ func _add_box(parent: Node3D, sz: Vector3, pos: Vector3, mat: Material) -> MeshI
 	parent.add_child(mi)
 	return mi
 
+func _add_fp_arm_limb(arm_root: Node3D, is_right: bool, mat_sleeve: Material, mat_cuff: Material, mat_skin: Material, mat_gold: Material) -> void:
+	# Antebrazo redondeado con manga de paño y codo suave (compacto tras la muñeca para no invadir la vista al girar)
+	var sleeve_mi := MeshInstance3D.new()
+	var sleeve_cyl := CylinderMesh.new()
+	sleeve_cyl.top_radius = 0.026
+	sleeve_cyl.bottom_radius = 0.033
+	sleeve_cyl.height = 0.16
+	sleeve_cyl.radial_segments = 16
+	sleeve_mi.mesh = sleeve_cyl
+	sleeve_mi.position = Vector3(0.0, -0.004, 0.055)
+	sleeve_mi.rotation_degrees = Vector3(90.0, 0.0, 0.0)
+	sleeve_mi.material_override = mat_sleeve
+	sleeve_mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	arm_root.add_child(sleeve_mi)
+
+	var elbow_mi := MeshInstance3D.new()
+	var elbow_sph := SphereMesh.new()
+	elbow_sph.radius = 0.032
+	elbow_sph.height = 0.064
+	elbow_mi.mesh = elbow_sph
+	elbow_mi.position = Vector3(0.0, -0.004, 0.135)
+	elbow_mi.material_override = mat_sleeve
+	elbow_mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	arm_root.add_child(elbow_mi)
+
+	# Muñequera / puño de cuero redondeado con pasador de latón
+	var cuff_mi := MeshInstance3D.new()
+	var cuff_cyl := CylinderMesh.new()
+	cuff_cyl.top_radius = 0.026
+	cuff_cyl.bottom_radius = 0.030
+	cuff_cyl.height = 0.052
+	cuff_cyl.radial_segments = 16
+	cuff_mi.mesh = cuff_cyl
+	cuff_mi.position = Vector3(0.0, -0.003, -0.022)
+	cuff_mi.rotation_degrees = Vector3(90.0, 0.0, 0.0)
+	cuff_mi.material_override = mat_cuff
+	cuff_mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	arm_root.add_child(cuff_mi)
+
+	var ring_mi := MeshInstance3D.new()
+	var ring_cyl := CylinderMesh.new()
+	ring_cyl.top_radius = 0.0285
+	ring_cyl.bottom_radius = 0.0285
+	ring_cyl.height = 0.008
+	ring_cyl.radial_segments = 16
+	ring_mi.mesh = ring_cyl
+	ring_mi.position = Vector3(0.0, -0.003, -0.040)
+	ring_mi.rotation_degrees = Vector3(90.0, 0.0, 0.0)
+	ring_mi.material_override = mat_gold
+	ring_mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	arm_root.add_child(ring_mi)
+
+	# Muñeca y palma orgánica (esfera achatada / cápsula anatómica, no caja)
+	var wrist_mi := MeshInstance3D.new()
+	var wrist_sph := SphereMesh.new()
+	wrist_sph.radius = 0.023
+	wrist_sph.height = 0.046
+	wrist_mi.mesh = wrist_sph
+	wrist_mi.position = Vector3(0.0, -0.002, -0.054)
+	wrist_mi.material_override = mat_skin
+	wrist_mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	arm_root.add_child(wrist_mi)
+
+	var palm_mi := MeshInstance3D.new()
+	var palm_sph := SphereMesh.new()
+	palm_sph.radius = 0.029
+	palm_sph.height = 0.058
+	palm_mi.mesh = palm_sph
+	palm_mi.position = Vector3(0.0, -0.002, -0.084)
+	palm_mi.scale = Vector3(1.08, 0.72, 1.24)
+	palm_mi.material_override = mat_skin
+	palm_mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	arm_root.add_child(palm_mi)
+
+	# Pulgar e hilera de 4 dedos articulados con cápsulas redondeadas
+	var s_dir: float = -1.0 if is_right else 1.0
+	var thumb_mi := MeshInstance3D.new()
+	var thumb_cap := CapsuleMesh.new()
+	thumb_cap.radius = 0.0082
+	thumb_cap.height = 0.036
+	thumb_mi.mesh = thumb_cap
+	thumb_mi.position = Vector3(s_dir * 0.024, 0.010, -0.092)
+	thumb_mi.rotation_degrees = Vector3(32.0, s_dir * -24.0, s_dir * -36.0)
+	thumb_mi.material_override = mat_skin
+	thumb_mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	arm_root.add_child(thumb_mi)
+
+	var finger_x_offsets: Array[float] = [-0.019, -0.006, 0.007, 0.019]
+	var finger_lengths: Array[float] = [0.032, 0.035, 0.033, 0.028]
+	for f_idx in range(4):
+		var fx: float = finger_x_offsets[f_idx] * (-1.0 if is_right else 1.0)
+		var flen: float = finger_lengths[f_idx]
+		var f_mi := MeshInstance3D.new()
+		var f_cap := CapsuleMesh.new()
+		f_cap.radius = 0.0068
+		f_cap.height = flen
+		f_mi.mesh = f_cap
+		if is_right:
+			# Dedos cerrados empuñando el mango
+			f_mi.position = Vector3(fx, 0.006, -0.114)
+			f_mi.rotation_degrees = Vector3(18.0, 0.0, -68.0)
+		else:
+			# Dedos semicurvados de la mano izquierda de apoyo
+			f_mi.position = Vector3(fx, 0.002, -0.116)
+			f_mi.rotation_degrees = Vector3(52.0, 0.0, 22.0)
+		f_mi.material_override = mat_skin
+		f_mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+		arm_root.add_child(f_mi)
+
 func _setup_fp_viewmodel() -> void:
 	if cam_3d == null or _is_headless:
 		return
@@ -3105,46 +3216,57 @@ func _setup_fp_viewmodel() -> void:
 	var mat_wood := _mat("fp_vm_wood", Color(0.44, 0.29, 0.16), 0.86)
 	var mat_gold := _mat("fp_vm_gold", Color(0.76, 0.62, 0.26), 0.42, 0.55)
 
-	# Brazo izquierdo (guardia / equilibrio / arco)
+	# Brazo izquierdo (guardia / equilibrio / arco) con antebrazo cilíndrico, palma redondeada y dedos
 	_fp_left_arm = Node3D.new()
 	_fp_left_arm.name = "FPLeftArm"
 	_fp_left_arm.position = Vector3(-0.22, -0.21, -0.34)
 	_fp_left_arm.rotation_degrees = Vector3(18.0, 16.0, -14.0)
 	_fp_viewmodel_root.add_child(_fp_left_arm)
-	_add_box(_fp_left_arm, Vector3(0.072, 0.072, 0.22), Vector3(0.0, 0.0, 0.08), mat_sleeve)
-	_add_box(_fp_left_arm, Vector3(0.076, 0.076, 0.045), Vector3(0.0, 0.0, -0.03), mat_cuff)
-	_add_box(_fp_left_arm, Vector3(0.064, 0.058, 0.085), Vector3(0.0, 0.0, -0.09), mat_skin)
+	_add_fp_arm_limb(_fp_left_arm, false, mat_sleeve, mat_cuff, mat_skin, mat_gold)
 
-	# Brazo derecho (empuña el arma activa)
+	# Brazo derecho (empuña el arma activa) con antebrazo cilíndrico, palma redondeada y dedos
 	_fp_right_arm = Node3D.new()
 	_fp_right_arm.name = "FPRightArm"
 	_fp_right_arm.position = Vector3(0.23, -0.20, -0.36)
 	_fp_right_arm.rotation_degrees = Vector3(14.0, -14.0, 10.0)
 	_fp_viewmodel_root.add_child(_fp_right_arm)
-	_add_box(_fp_right_arm, Vector3(0.075, 0.075, 0.24), Vector3(0.0, 0.0, 0.09), mat_sleeve)
-	_add_box(_fp_right_arm, Vector3(0.079, 0.079, 0.048), Vector3(0.0, 0.0, -0.03), mat_cuff)
-	_add_box(_fp_right_arm, Vector3(0.066, 0.062, 0.09), Vector3(0.0, 0.0, -0.095), mat_skin)
+	_add_fp_arm_limb(_fp_right_arm, true, mat_sleeve, mat_cuff, mat_skin, mat_gold)
 
 	_fp_weapon_mount = Node3D.new()
 	_fp_weapon_mount.name = "FPWeaponMount"
 	_fp_weapon_mount.position = Vector3(0.0, 0.01, -0.11)
 	_fp_right_arm.add_child(_fp_weapon_mount)
 
-	# Estela luminosa de golpe (solo visible durante la fase "active" del tajo/maza)
+	# Estela fina y semitransparente de filo (solo visible durante la fase "active" del golpe)
 	_fp_swing_trail = MeshInstance3D.new()
-	var tr_box := BoxMesh.new()
-	tr_box.size = Vector3(0.018, 0.42, 0.14)
-	_fp_swing_trail.mesh = tr_box
-	_fp_swing_trail.position = Vector3(-0.04, 0.22, -0.04)
+	var tr_prism := BoxMesh.new()
+	tr_prism.size = Vector3(0.052, 0.39, 0.0022)
+	_fp_swing_trail.mesh = tr_prism
+	_fp_swing_trail.position = Vector3(0.032, 0.26, 0.014)
+	_fp_swing_trail.rotation_degrees = Vector3(0.0, -18.0, 0.0)
 	var mat_trail := StandardMaterial3D.new()
 	mat_trail.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
-	mat_trail.albedo_color = Color(1.0, 0.94, 0.72, 0.55)
+	mat_trail.albedo_color = Color(0.84, 0.92, 1.0, 0.26)
 	mat_trail.emission_enabled = true
-	mat_trail.emission = Color(1.0, 0.86, 0.48)
-	mat_trail.emission_energy_multiplier = 1.6
+	mat_trail.emission = Color(0.80, 0.90, 1.0)
+	mat_trail.emission_energy_multiplier = 0.32
 	mat_trail.cull_mode = BaseMaterial3D.CULL_DISABLED
 	_fp_swing_trail.material_override = mat_trail
+	_fp_swing_trail.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 	_fp_swing_trail.visible = false
+	# Cinta secundaria aún más tenue en el borde de salida del tajo
+	var mat_trail_soft := StandardMaterial3D.new()
+	mat_trail_soft.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	mat_trail_soft.albedo_color = Color(0.84, 0.92, 1.0, 0.12)
+	mat_trail_soft.cull_mode = BaseMaterial3D.CULL_DISABLED
+	var trail_wisp := MeshInstance3D.new()
+	var wisp_prism := BoxMesh.new()
+	wisp_prism.size = Vector3(0.044, 0.35, 0.0016)
+	trail_wisp.mesh = wisp_prism
+	trail_wisp.position = Vector3(0.038, -0.01, 0.010)
+	trail_wisp.material_override = mat_trail_soft
+	trail_wisp.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	_fp_swing_trail.add_child(trail_wisp)
 	_fp_weapon_mount.add_child(_fp_swing_trail)
 
 	# 1. Espada ("sword")
@@ -3272,10 +3394,10 @@ func _setup_fp_viewmodel() -> void:
 func _spawn_3d_hit_effect(pos_2d: Vector2, dir_2d: Vector2, power: float = 1.0) -> void:
 	if stage_root_3d == null or _is_headless:
 		return
-	var elev_h: float = 11.0
+	var elev_h: float = 8.5
 	if vm != null:
 		elev_h += VillageTavern.elevation_height_for(pos_2d, int(vm.player_elevation_level))
-	var hit_3d: Vector3 = to_3d(pos_2d - dir_2d.normalized() * 4.0, elev_h)
+	var hit_3d: Vector3 = to_3d(pos_2d - dir_2d.normalized() * 3.0, elev_h)
 	var fx_root := Node3D.new()
 	fx_root.name = "HitSpark3D"
 	fx_root.position = hit_3d
@@ -3283,35 +3405,43 @@ func _spawn_3d_hit_effect(pos_2d: Vector2, dir_2d: Vector2, power: float = 1.0) 
 
 	var flash := OmniLight3D.new()
 	flash.light_color = Color(1.0, 0.86, 0.44)
-	flash.light_energy = 2.6 * clampf(power, 0.9, 1.8)
-	flash.omni_range = 2.2
+	flash.light_energy = 0.85 * clampf(power, 0.9, 1.4)
+	flash.omni_range = 1.1
 	fx_root.add_child(flash)
 
 	var spark_mat := StandardMaterial3D.new()
-	spark_mat.albedo_color = Color(1.0, 0.92, 0.56)
+	spark_mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	spark_mat.albedo_color = Color(1.0, 0.90, 0.58, 0.42)
 	spark_mat.emission_enabled = true
-	spark_mat.emission = Color(1.0, 0.80, 0.32)
-	spark_mat.emission_energy_multiplier = 2.4
+	spark_mat.emission = Color(1.0, 0.80, 0.36)
+	spark_mat.emission_energy_multiplier = 0.55
 	var dirs: Array[Vector3] = [
-		Vector3(0.16, 0.14, -0.08),
-		Vector3(-0.15, 0.18, 0.07),
-		Vector3(0.08, -0.10, 0.15),
-		Vector3(-0.12, 0.08, -0.14),
-		Vector3(0.19, 0.04, 0.11),
+		Vector3(0.06, 0.05, -0.03),
+		Vector3(-0.05, 0.06, 0.03),
+		Vector3(0.03, -0.04, 0.05),
+		Vector3(-0.04, 0.03, -0.05),
+		Vector3(0.07, 0.02, 0.04),
 	]
 	var spark_nodes: Array[MeshInstance3D] = []
 	for d_v in dirs:
-		var sm := _add_box(fx_root, Vector3(0.035, 0.035, 0.09) * clampf(power, 0.9, 1.5), d_v * 0.35, spark_mat)
-		sm.rotation = d_v.normalized()
+		var sm := MeshInstance3D.new()
+		var sph := SphereMesh.new()
+		sph.radius = 0.0055 * clampf(power, 0.9, 1.3)
+		sph.height = sph.radius * 2.0
+		sm.mesh = sph
+		sm.position = d_v * 0.25
+		sm.material_override = spark_mat
+		sm.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+		fx_root.add_child(sm)
 		spark_nodes.append(sm)
 
 	var tw := create_tween()
 	tw.set_parallel(true)
-	tw.tween_property(flash, "light_energy", 0.0, 0.18)
+	tw.tween_property(flash, "light_energy", 0.0, 0.14)
 	for idx in range(spark_nodes.size()):
 		var sn: MeshInstance3D = spark_nodes[idx]
-		tw.tween_property(sn, "position", dirs[idx] * 1.45, 0.18)
-		tw.tween_property(sn, "scale", Vector3.ONE * 0.1, 0.18)
+		tw.tween_property(sn, "position", dirs[idx] * 1.6, 0.14)
+		tw.tween_property(sn, "scale", Vector3.ONE * 0.15, 0.14)
 	tw.chain().tween_callback(fx_root.queue_free)
 
 func _update_fp_viewmodel(delta: float, pl: Node2D) -> void:
@@ -3458,10 +3588,10 @@ func _update_fp_viewmodel(delta: float, pl: Node2D) -> void:
 				r_pos = Vector3(0.14, -0.02, -0.30).lerp(Vector3(0.04, -0.28, -0.48), e_a)
 				r_rot = Vector3(54.0, -16.0, -14.0).lerp(Vector3(-64.0, 8.0, 18.0), e_a)
 			else:
-				# Tajo diagonal de derecha a izquierda hacia el centro
-				r_pos = Vector3(0.28, -0.08, -0.30).lerp(Vector3(-0.14, -0.24, -0.46), e_a)
-				r_rot = Vector3(38.0, -28.0, -20.0).lerp(Vector3(-46.0, 34.0, 52.0), e_a)
-			l_pos = Vector3(-0.25, -0.24, -0.28)
+				# Tajo diagonal de derecha a izquierda hacia el centro manteniendo mano y antebrazo visibles
+				r_pos = Vector3(0.26, -0.10, -0.32).lerp(Vector3(-0.04, -0.16, -0.40), e_a)
+				r_rot = Vector3(32.0, -24.0, -18.0).lerp(Vector3(-18.0, 22.0, 44.0), e_a)
+			l_pos = Vector3(-0.22, -0.19, -0.32)
 		elif phase == "recovery":
 			var e_r: float = smoothstep(0.0, 1.0, prog)
 			var start_p := Vector3(-0.12, -0.25, -0.44) if c_step != 2 else Vector3(0.24, -0.24, -0.42)
@@ -3684,6 +3814,8 @@ func _sync_camera_with_2d() -> void:
 	if cam_3d == null:
 		return
 	if detective_topdown_active:
+		if is_instance_valid(_fp_viewmodel_root):
+			_fp_viewmodel_root.visible = false
 		cam_3d.projection = Camera3D.PROJECTION_ORTHOGONAL
 		cam_3d.rotation_degrees = Vector3(-86.0, 0.0, 0.0)
 		cam_3d.near = 0.1
@@ -3695,6 +3827,8 @@ func _sync_camera_with_2d() -> void:
 		return
 	if first_person_active:
 		_update_fp_camera_transform()
+	elif is_instance_valid(_fp_viewmodel_root):
+		_fp_viewmodel_root.visible = false
 	if stage_sprite == null:
 		return
 	var vp := get_viewport()
