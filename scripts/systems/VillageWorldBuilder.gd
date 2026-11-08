@@ -516,7 +516,7 @@ static func _spawn_notice_board_in_plaza(vm: VillageManager) -> void:
 # ==============================================================================
 static func _spawn_electric_streetlights(vm: VillageManager) -> void:
 	var lamp_tex := vm._load_tex("res://assests/Comprados/Epic RPG World - The Village V2.1/tilesets and props/props-sprites/lamp-post1.png")
-	var lamp_positions: Array[Vector2] = [Vector2(215, 36), Vector2(405, 18), Vector2(525, 18), Vector2(396, -118), Vector2(692, 88), Vector2(862, 88)]
+	var lamp_positions: Array[Vector2] = [Vector2(215, 36), Vector2(392, 10), Vector2(534, 10), Vector2(396, -118), Vector2(692, 88), Vector2(862, 88)]
 	for l_pos in lamp_positions:
 		var l_spr := vm._add_sprite_prop(lamp_tex, l_pos, Vector2(0.75, 0.75), 1)
 		var glow := vm._add_poly(PackedVector2Array([Vector2(-26, -18), Vector2(26, -18), Vector2(34, 18), Vector2(-34, 18)]), Color(1.0, 0.92, 0.55, 0.22), -1, l_pos)

@@ -1064,11 +1064,11 @@ func _build_static_terrain_3d() -> void:
 		_add_box_2d(terrain_root_3d, access_curb[0] as Vector2, access_curb[1] as Vector2, 0.2, 1.6, m_curb)
 
 	# Bancos reales 3D de la Plaza Central
-	for bp in [Vector2(436, 76), Vector2(494, 76)]:
+	for bp in [Vector2(468, 82), Vector2(516, 82)]:
 		_build_bench_3d(terrain_root_3d, bp, m_wood, m_iron)
 
-	# Tablón de Encargos 3D detallado en la Plaza (Vector2(465, 24)) con 3 pliegos legibles desde fuera
-	var nb: Vector2 = vm._notice_board_pos if vm != null else Vector2(465, 24)
+	# Tablón de Encargos 3D detallado en la Plaza (Vector2(476, 14)) con 3 pliegos legibles desde fuera
+	var nb: Vector2 = vm._notice_board_pos if vm != null else Vector2(476, 14)
 	_add_box_2d(terrain_root_3d, nb + Vector2(-10.0, 0.0), Vector2(3.6, 3.6), 0.0, 2.2, m_curb)
 	_add_box_2d(terrain_root_3d, nb + Vector2(10.0, 0.0), Vector2(3.6, 3.6), 0.0, 2.2, m_curb)
 	_add_box_2d(terrain_root_3d, nb + Vector2(-10.0, 0.0), Vector2(2.6, 2.6), 2.0, 17.5, m_dark_wood)
@@ -1165,9 +1165,7 @@ func _build_static_terrain_3d() -> void:
 	for fp in [Vector2(248.0, 226.0), Vector2(360.0, 226.0), Vector2(248.0, 334.0), Vector2(360.0, 334.0), Vector2(304.0, 316.0)]:
 		_add_cyl_2d(terrain_root_3d, fp, 4.5, 0.0, 4.5, _mat("terracotta_pot", Color(0.68, 0.34, 0.20), 0.85, 0.0), 3.2, 8)
 		_add_cyl_2d(terrain_root_3d, fp, 5.2, 4.0, 4.5, m_pine_top, 3.5, 8)
-	# Bancos de la plaza y Mirador del Lago en 3D
-	_build_bench_3d(terrain_root_3d, Vector2(500.0, 66.0), m_wood, m_iron)
-	_build_bench_3d(terrain_root_3d, Vector2(440.0, 80.0), m_wood, m_iron)
+	# Mirador del Lago en 3D
 	var lv_pos := Vector2(-715.0, 184.0)
 	_build_fence_run_3d(terrain_root_3d, lv_pos + Vector2(-34.0, -12.0), lv_pos + Vector2(34.0, -12.0), m_wood)
 	_build_bench_3d(terrain_root_3d, lv_pos + Vector2(0.0, -2.0), m_wood, m_iron)

@@ -16,7 +16,7 @@ const PARK_RECT: Rect2 = Rect2(Vector2(168, 208), Vector2(272, 146))
 const PLACES: Array = [
 	{"id": "park_lawn", "kind": "park", "pos": Vector2(304, 280), "label": "el Parque del Roble", "text": "🌳 Paseando por el parque"},
 	{"id": "park_bench", "kind": "bench", "pos": Vector2(236, 268), "label": "un banco del parque", "text": "🪑 Sentado en el parque"},
-	{"id": "plaza_benches", "kind": "bench", "pos": Vector2(500, 74), "label": "los bancos de la plaza", "text": "🪑 Sentado en la plaza"},
+	{"id": "plaza_benches", "kind": "bench", "pos": Vector2(516, 82), "label": "los bancos de la plaza", "text": "🪑 Sentado en la plaza"},
 	{"id": "lake_view", "kind": "overlook", "pos": Vector2(-715, 166), "label": "el Mirador del Lago", "text": "🌅 Mirando el lago"},
 	{"id": "library", "kind": "library", "pos": Vector2(906, -451), "label": "la Biblioteca", "text": "📖 Leyendo en la biblioteca", "indoor": true}, # V5e
 ]
@@ -81,8 +81,8 @@ static func build_world(vm) -> void:
 	vm._spawn_decor_prop(bench, Vector2(372, 260), Vector2(0.4, 0.4))
 	vm._add_title_label(Vector2(224, 194), Vector2(160, 14), "🌳 Parque del Roble", Color(0.78, 0.96, 0.66), 8)
 	# Bancos de la plaza
-	vm._spawn_decor_prop(bench, place("plaza_benches")["pos"] + Vector2(0, -8), Vector2(0.4, 0.4))
-	vm._spawn_decor_prop(bench, Vector2(440, 80), Vector2(0.4, 0.4))
+	vm._spawn_decor_prop(bench, place("plaza_benches")["pos"], Vector2(0.4, 0.4))
+	vm._spawn_decor_prop(bench, Vector2(468, 82), Vector2(0.4, 0.4))
 	# Mirador del lago: barandilla de madera y un banco
 	var lv: Vector2 = place("lake_view")["pos"]
 	var rail_top: Polygon2D = vm._add_rect_poly(lv + Vector2(0, -12), Vector2(36, 2), Color(0.50, 0.34, 0.18, 0.95), -1)

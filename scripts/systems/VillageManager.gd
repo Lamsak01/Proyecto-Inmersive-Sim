@@ -175,7 +175,7 @@ var building_windows: Array[Dictionary] = []
 var recent_breakins_count: int = 0
 
 # Paso 5: Tablón de Encargos en la Plaza Central
-var _notice_board_pos := Vector2(465, 24)
+var _notice_board_pos := Vector2(476, 14)
 var _notice_board_label: Label = null
 var completed_contracts_today: Dictionary = {}
 
@@ -199,8 +199,8 @@ var _tavern_games_pos := VillageTavern.GAMES_POS
 var _tavern_pool_pos := VillageTavern.POOL_POS
 var _well_pos := Vector2(184, 82)
 var _tavern_well_pos := VillageTavern.WELL_POS
-var _plaza_well_pos := Vector2(412, 54)
-var _well_positions: Array[Vector2] = [Vector2(184, 82), VillageTavern.WELL_POS, Vector2(412, 54)]
+var _plaza_well_pos := Vector2(416, 62)
+var _well_positions: Array[Vector2] = [Vector2(184, 82), VillageTavern.WELL_POS, Vector2(416, 62)]
 var _compost_pos := Vector2(-706, -6)
 
 # Capas de Interfaz para Morgue Forense, Arresto/Cárcel, Tablón de Encargos y Gestión de Negocios/Escrituras
