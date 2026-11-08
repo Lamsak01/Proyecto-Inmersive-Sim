@@ -33,6 +33,9 @@ var _attack_t: float = 0.6
 var _windup_t: float = 0.0
 var disarmed_until_msec: int = 0 ## C7 fase 4c: el bandido sin su cuchillo pega la mitad
 var _recover_t: float = 0.0 ## C7 fase 2: quieto tras soltar un golpe (más si falló)
+var bandit_ammo_loaded: int = 2 ## 5e: carabina vieja de bandido (2 cartuchos, poca puntería y recarga lenta)
+var bandit_reload_timer: float = 0.0
+var _carbine_cd: float = 1.6
 ## C7 fase 2: masa al recibir golpes (un jabalí apenas se mueve; un bandido, como una persona algo recia)
 var hit_mass: float:
 	get:
@@ -191,8 +194,22 @@ func _physics_process(delta: float) -> void:
 		target = _pick_target()
 	if target != null and is_instance_valid(target):
 		var d: float = global_position.distance_to(target.global_position)
+		if kind == "bandit" and not is_disarmed():
+			if bandit_reload_timer > 0.0:
+				bandit_reload_timer = maxf(0.0, bandit_reload_timer - delta)
+				if bandit_reload_timer <= 0.0:
+					bandit_ammo_loaded = 2
+			else:
+				_carbine_cd = maxf(0.0, _carbine_cd - delta)
 		if d > MELEE_RANGE:
 			_move_to(target.global_position, speed, delta)
+			if kind == "bandit" and not is_disarmed() and bandit_reload_timer <= 0.0 and _carbine_cd <= 0.0 and d >= 40.0 and d <= 125.0:
+				if bandit_ammo_loaded > 0:
+					bandit_ammo_loaded -= 1
+					_carbine_cd = 2.2
+					_fire_bandit_carbine(target, d)
+					if bandit_ammo_loaded <= 0:
+						bandit_reload_timer = 2.6
 		else:
 			velocity = Vector2.ZERO
 			_attack_t -= delta
@@ -250,5 +267,26 @@ func _hit(t: Node2D) -> void:
 	d.amount = hit_damage * (0.5 if is_disarmed() else 1.0)
 	d.weapon_tag = "Embestida de jabalí" if kind == "boar" else "Tajo de bandido"
 	d.knockback_force = float(_CombatFeel.attack_feel("colmillos" if kind == "boar" else "bandido")["push"])
+	d.source = self
+	t.call("take_damage", d)
+
+
+func _fire_bandit_carbine(t: Node2D, dist: float) -> void:
+	attack_anim = 0.85
+	if not is_instance_valid(t) or not t.has_method("take_damage"):
+		return
+	# Carabina vieja con poca puntería: a media distancia puede errar el tiro
+	var hit_chance: float = clampf(0.72 - (dist - 40.0) * 0.003, 0.35, 0.72)
+	if randf() > hit_chance:
+		return
+	var d := DamageData.new()
+	d.amount = 9.0
+	d.type = CombatConstants.DamageType.CUT
+	d.bleed_buildup = 10.0
+	d.weapon_tag = "Carabina Vieja de Bandido"
+	d.is_ranged_projectile = true
+	d.is_firearm_bullet = true
+	d.firearm_kind = "pistol"
+	d.shot_distance_px = dist
 	d.source = self
 	t.call("take_damage", d)

@@ -807,13 +807,18 @@ func _build_real_curated_tools() -> void:
 				model_node.rotation_degrees = Vector3(0.0, 180.0, 0.0)
 		"scythe", "sickle", "hoe":
 			model_node = AssetLib.instantiate_model("weapons/Scythe.obj", Vector3.ZERO, 1.05, true, true)
-		"flintlock", "pistol", "arquebus":
-			model_node = AssetLib.instantiate_model("weapons/Pistol_1.obj", Vector3.ZERO, 0.46, true, false)
+		"flintlock", "pistol", "arquebus", "rifle":
+			var is_rf: bool = (_weapon_id == "rifle")
+			model_node = AssetLib.instantiate_model("weapons/Pistol_1.obj", Vector3.ZERO, 0.24 if is_rf else 0.20, true, false)
+			if is_rf:
+				var rf_barrel := BoxMesh.new()
+				rf_barrel.size = Vector3(0.38, 0.026, 0.026)
+				_add_part(weapon_Holder, rf_barrel, _make_mat(Color(0.22, 0.24, 0.27), 0.35, 0.8), Vector3(0.22, 0.075, 0.0))
 			var flash_mat := _make_mat(Color(1.0, 0.82, 0.25), 0.1, 0.0, Color(1.0, 0.65, 0.15, 1.0))
 			var flash_sphere := SphereMesh.new()
-			flash_sphere.radius = 0.14
-			flash_sphere.height = 0.28
-			muzzle_flash_node = _add_part(weapon_Holder, flash_sphere, flash_mat, Vector3(0.42, 0.14, 0.0))
+			flash_sphere.radius = 0.06
+			flash_sphere.height = 0.12
+			muzzle_flash_node = _add_part(weapon_Holder, flash_sphere, flash_mat, Vector3(0.43 if is_rf else 0.22, 0.075, 0.0))
 			muzzle_flash_node.visible = false
 		"book", "ledger":
 			model_node = AssetLib.instantiate_model("props/Book_5.gltf", Vector3(0.18, 0.04, 0.22), -1.0, true, false)
@@ -896,7 +901,7 @@ func update_pose(delta: float, state: Dictionary) -> void:
 		st_enum = AnimState.BLOCK
 	elif bool(state.get("is_mounted", false)) and atk_prog <= 0.01 and bow_dr <= 0.05:
 		st_enum = AnimState.MOUNTED
-	elif _weapon_id in ["flintlock", "pistol", "arquebus"] and (atk_prog > 0.01 or _muzzle_flash_t > 0.0):
+	elif _weapon_id in ["flintlock", "pistol", "arquebus", "rifle"] and (atk_prog > 0.01 or _muzzle_flash_t > 0.0):
 		st_enum = AnimState.AIM_GUN
 	elif atk_prog > 0.01 or bow_dr > 0.05 or bool(state.get("is_fighting", false)):
 		st_enum = AnimState.ATTACK
@@ -962,7 +967,7 @@ func _pick_clip() -> Array:
 		return ["roll", 1.85]
 	if _is_parrying or _anim_state == AnimState.BLOCK:
 		return ["block", 1.25]
-	var gun := _weapon_id in ["flintlock", "pistol", "arquebus"]
+	var gun := _weapon_id in ["flintlock", "pistol", "arquebus", "rifle"]
 	if _attack_swing_t > 0.0:
 		if gun:
 			return ["shoot", 1.0]
@@ -1165,7 +1170,7 @@ func _apply_skeleton_pose(_delta: float) -> void:
 	if _attack_swing_t > 0.0:
 		var p := 1.0 - (_attack_swing_t / 0.34)
 		var arc := sin(p * PI)
-		if _weapon_id in ["flintlock", "pistol", "arquebus"]:
+		if _weapon_id in ["flintlock", "pistol", "arquebus", "rifle"]:
 			ur_rz = 18.0
 			ur_ry = 75.0 - arc * 22.0
 		else:

@@ -268,6 +268,11 @@ var _police_alerted_timer: float = 0.0
 var _civilian_hostile_timer: float = 0.0
 var _melee_windup_timer: float = 0.0
 var _police_baton_windup_timer: float = 0.0
+var police_mag_loaded: int = 5 ## 5e: cargador policial de 5 balas; al vaciarse recarga en 3 pasos (ventana para el jugador)
+var police_reload_step: int = 0
+var police_reload_timer: float = 0.0
+var _police_warning_done: bool = false
+var _police_warning_timer: float = 0.0
 var disarmed_until_msec: int = 0 ## C7 fase 4c: sin porra ni pistola hasta entonces (le diste fuerte en el brazo)
 var _melee_recover_timer: float = 0.0 ## C7 fase 2: quieto tras soltar un golpe (más si falló): ventana para castigarle
 var _stagger_timer: float = 0.0
@@ -2726,6 +2731,8 @@ func _process_police_law_enforcement(delta: float, vm: Node) -> bool:
 	elif _police_alerted_timer > 0.0:
 		_police_alerted_timer -= delta
 	if _police_alerted_timer <= 0.0:
+		_police_warning_done = false
+		_police_warning_timer = 0.0
 		return false
 
 	var resisting: bool = bool(vm.get("is_resisting_arrest")) or is_hostile
@@ -2733,6 +2740,8 @@ func _process_police_law_enforcement(delta: float, vm: Node) -> bool:
 	var spd_mult: float = lerpf(0.78, 1.0, eff_pol)
 
 	if not resisting:
+		_police_warning_done = false
+		_police_warning_timer = 0.0
 		if can_see_player and dist_p <= 34.0:
 			velocity = Vector2.ZERO
 			if vm.has_method("trigger_police_confrontation"):
@@ -2750,6 +2759,25 @@ func _process_police_law_enforcement(delta: float, vm: Node) -> bool:
 		velocity = Vector2.ZERO
 		if _stagger_timer <= 0.0 and sprite:
 			sprite.modulate = Color.WHITE
+		_finish_frame_movement(delta)
+		return true
+
+	if police_reload_step > 0 and not is_disarmed():
+		police_reload_timer -= delta
+		var away_dir: Vector2 = (global_position - player.global_position).normalized()
+		if away_dir.length_squared() < 0.01:
+			away_dir = Vector2.LEFT
+		_move_towards_point(global_position + away_dir * 30.0, 42.0 * spd_mult, delta)
+		facing_direction = -away_dir
+		if police_reload_timer <= 0.0:
+			if police_reload_step < 3:
+				police_reload_step += 1
+				police_reload_timer = 0.75
+				_spawn_floating_text("🔄 Recargando (%d/3)..." % police_reload_step, Color(0.82, 0.90, 1.0), -38.0)
+			else:
+				police_reload_step = 0
+				police_mag_loaded = 5
+				_spawn_floating_text("🔫 ¡Cargador listo (5/5)!", Color(1.0, 0.88, 0.35), -38.0)
 		_finish_frame_movement(delta)
 		return true
 
@@ -2774,6 +2802,13 @@ func _process_police_law_enforcement(delta: float, vm: Node) -> bool:
 		_finish_frame_movement(delta)
 		return true
 
+	if _police_warning_timer > 0.0:
+		_police_warning_timer = maxf(0.0, _police_warning_timer - delta)
+		velocity = Vector2.ZERO
+		facing_direction = (player.global_position - global_position).normalized()
+		_finish_frame_movement(delta)
+		return true
+
 	_attack_timer = maxf(0.0, _attack_timer - delta)
 	if can_see_player and dist_p <= 36.0:
 		if dist_p > 22.0:
@@ -2787,15 +2822,49 @@ func _process_police_law_enforcement(delta: float, vm: Node) -> bool:
 				sprite.modulate = Color(1.35, 0.9, 0.45)
 			_spawn_floating_text("❗", Color.ORANGE_RED, -36.0)
 	elif can_see_player and dist_p <= 195.0:
+		if not _police_warning_done and not is_disarmed():
+			_police_warning_done = true
+			_police_warning_timer = 0.90
+			velocity = Vector2.ZERO
+			facing_direction = (player.global_position - global_position).normalized()
+			trigger_action_animation(0.75)
+			_spawn_floating_text("✋ ¡Alto en nombre de la ley o disparo!", Color(1.0, 0.86, 0.28), -44.0)
+			spawn_short_bubble("¡Alto en nombre de la ley o abro fuego!", Color(1.0, 0.96, 0.78), -40.0, 2.4)
+			if vm and vm.has_method("_show_toast"):
+				vm.call("_show_toast", "🚨 %s te apunta: «¡Alto en nombre de la ley o disparo!»" % npc_name, Color(1.0, 0.78, 0.28))
+			_finish_frame_movement(delta)
+			return true
 		_move_towards_point(player.global_position, (96.0 if is_disarmed() else 82.0) * spd_mult, delta)
 		if _attack_timer <= 0.0 and not is_disarmed():
-			_attack_timer = 1.25 / maxf(0.55, eff_pol)
-			_fire_police_pistol(player)
+			if police_mag_loaded <= 0:
+				police_reload_step = 1
+				police_reload_timer = 0.75
+				_spawn_floating_text("🔄 Recargando (1/3)...", Color(0.82, 0.90, 1.0), -38.0)
+				spawn_short_bubble("¡Sin balas, recargando!", Color(0.82, 0.90, 1.0), -38.0, 1.9)
+			else:
+				police_mag_loaded -= 1
+				_attack_timer = (1.35 if carries_police_rifle() else 1.25) / maxf(0.55, eff_pol)
+				_fire_police_pistol(player)
+				if police_mag_loaded <= 0:
+					police_reload_step = 1
+					police_reload_timer = 0.75
 	else:
 		_move_towards_point(target_pt, 96.0 * spd_mult, delta)
 
 	_finish_frame_movement(delta)
 	return true
+
+func carries_police_rifle() -> bool:
+	if not (trade_role in [TradeRole.SHERIFF, TradeRole.GUARD, TradeRole.ROYAL_INVESTIGATOR]) or is_disarmed():
+		return false
+	if trade_role in [TradeRole.SHERIFF, TradeRole.ROYAL_INVESTIGATOR]:
+		return true
+	if global_position.x >= 1320.0: # Puesto del Paso / frontera del este
+		return true
+	var vm = _cached_vm if _cached_vm != null else _get_vm()
+	if vm != null and (int(vm.get("wanted_level")) >= 2 or bool(vm.get("is_resisting_arrest"))):
+		return true
+	return is_hostile
 
 func _strike_police_baton(player: Node2D) -> void:
 	if not player or not player.has_method("take_damage"):
@@ -2815,19 +2884,31 @@ func _strike_police_baton(player: Node2D) -> void:
 func _fire_police_pistol(player: Node2D) -> void:
 	if not player or not player.has_method("take_damage"):
 		return
-	_spawn_shot_tracer(player.global_position, Color(1.0, 0.88, 0.32, 0.95), 2.2, 18, -6.0, 0.18)
+	var is_rifle: bool = carries_police_rifle()
+	var to_p: Vector2 = player.global_position - global_position
+	if to_p.length_squared() > 0.01:
+		facing_direction = to_p.normalized()
+	trigger_action_animation(0.38)
+	var av3d = get_node_or_null("CharacterAvatar3D")
+	if av3d and av3d.has_method("trigger_muzzle_flash"):
+		av3d.call("trigger_muzzle_flash")
+	_spawn_shot_tracer(player.global_position, Color(1.0, 0.88, 0.32, 0.95), 2.4 if is_rifle else 2.0, 18, -6.0, 0.18)
 	var eff: float = get_job_efficiency()
+	var dist_shot: float = global_position.distance_to(player.global_position)
 	var d := DamageData.new()
-	d.amount = 16.0 * eff
+	d.amount = (22.0 if is_rifle else 16.0) * eff
 	d.type = CombatConstants.DamageType.CUT
-	d.bleed_buildup = 20.0 * eff
-	d.weapon_tag = "Pistola Policial"
+	d.bleed_buildup = (26.0 if is_rifle else 20.0) * eff
+	d.weapon_tag = "Fusil Policial del Paso" if is_rifle else "Pistola Policial"
 	d.is_ranged_projectile = true
+	d.is_firearm_bullet = true
+	d.firearm_kind = "rifle" if is_rifle else "pistol"
+	d.shot_distance_px = dist_shot
 	d.source = self
 	player.call("take_damage", d)
 	if AudioManager:
-		AudioManager.emit_noise(global_position, 260.0, elevation_level, "gunshot")
-	_spawn_floating_text("🔫 ¡Disparo Policial!", Color(1.0, 0.82, 0.28), -42.0)
+		AudioManager.emit_noise(global_position, 320.0 if is_rifle else 260.0, elevation_level, "gunshot")
+	_spawn_floating_text("🔫 ¡Disparo de Fusil!" if is_rifle else "🔫 ¡Disparo Policial!", Color(1.0, 0.82, 0.28), -42.0)
 
 func _find_downed_npc() -> VillageNPC:
 	var vm = _cached_vm
@@ -4519,6 +4600,8 @@ func disarm(seconds: float = 20.0) -> bool:
 		return false
 	disarmed_until_msec = Time.get_ticks_msec() + int(seconds * 1000.0)
 	_police_baton_windup_timer = 0.0
+	police_reload_step = 0
+	police_reload_timer = 0.0
 	_spawn_floating_text("🫳 ¡Se le cae el arma!", Color(1.0, 0.75, 0.35), -44.0)
 	return true
 
@@ -4526,6 +4609,10 @@ func apply_parry_stagger(duration: float = 0.8, quiet: bool = false) -> void:
 	_stagger_timer = maxf(_stagger_timer, duration)
 	_melee_windup_timer = 0.0
 	_police_baton_windup_timer = 0.0
+	if police_reload_step > 0:
+		police_reload_step = 0
+		police_reload_timer = 0.0
+		_spawn_floating_text("💥 ¡Recarga interrumpida!", Color(1.0, 0.65, 0.35), -42.0)
 	_attack_timer = maxf(_attack_timer, duration)
 	velocity = Vector2.ZERO
 	if quiet:

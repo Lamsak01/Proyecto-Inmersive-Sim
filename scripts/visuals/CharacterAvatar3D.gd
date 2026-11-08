@@ -396,7 +396,8 @@ func _compute_equipment_signature() -> String:
 		var night_b: bool = (hr >= 20 or hr < 6)
 		var amp_npc: String = _get_limb_signature_for_entity(target_entity)
 		var hooded_b: bool = str(target_entity.get("errand_kind")) == "fence_alley"
-		return "%d|%s|%s|%s|%s" % [role_i, str(work_b), str(night_b), amp_npc, str(hooded_b)]
+		var carries_rifle_b: bool = target_entity.has_method("carries_police_rifle") and bool(target_entity.call("carries_police_rifle"))
+		return "%d|%s|%s|%s|%s|%s" % [role_i, str(work_b), str(night_b), amp_npc, str(hooded_b), str(carries_rifle_b)]
 
 func _get_limb_signature_for_entity(ent: Node2D) -> String:
 	var states: Dictionary = _resolve_entity_limb_states(ent)
@@ -624,13 +625,17 @@ func _build_npc_appearance_cfg() -> Dictionary:
 			chest_tier = 2
 			has_cape = true
 			cape_col = Color(0.18, 0.22, 0.34)
-			weapon_k = "sword"
+			weapon_k = "rifle" if (target_entity.has_method("carries_police_rifle") and bool(target_entity.call("carries_police_rifle"))) else "sword"
 		10: # GUARD
 			tunic_col = Color(0.25, 0.36, 0.56)
 			headgear = "helm_t2"
 			chest_tier = 2
-			weapon_k = "guard_spear"
-			offhand_k = "shield"
+			if target_entity.has_method("carries_police_rifle") and bool(target_entity.call("carries_police_rifle")):
+				weapon_k = "rifle"
+				offhand_k = "none"
+			else:
+				weapon_k = "guard_spear"
+				offhand_k = "shield"
 		11: # TRAVELING_MERCHANT
 			tunic_col = Color(0.56, 0.32, 0.62)
 			has_cape = true
@@ -641,7 +646,7 @@ func _build_npc_appearance_cfg() -> Dictionary:
 			chest_tier = 3
 			has_cape = true
 			cape_col = Color(0.65, 0.12, 0.16)
-			weapon_k = "sword"
+			weapon_k = "rifle" if (target_entity.has_method("carries_police_rifle") and bool(target_entity.call("carries_police_rifle"))) else "sword"
 		13: # PRIEST
 			tunic_col = Color(0.92, 0.88, 0.76)
 			headgear = "priest_cap"
