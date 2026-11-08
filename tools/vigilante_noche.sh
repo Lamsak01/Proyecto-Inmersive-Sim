@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Vigilante nocturno de Antigravity (Claude Code, 2026-11-08).
-# Cada 10 min mira si alguien trabaja en el juego. Si lleva 20 min parado y la lista
+# Cada 10 min mira si alguien trabaja en el juego. Si su Antigravity sigue abierto pero lleva ATASCADO_MIN sin tocar nada, lo reinicia. Si lleva 20 min parado y la lista
 # de la noche no está acabada, lanza un Antigravity nuevo para que siga.
 # Se para solo: al acabar la lista (docs/NOCHE_TERMINADA.txt), tras MAX_LANZAMIENTOS o a la HORA_FIN.
 # Uso:   nohup bash tools/vigilante_noche.sh >/dev/null 2>&1 &
@@ -13,6 +13,7 @@ PARAR="$HOME/PARAR_VIGILANTE"
 MODELO="gemini-4-argon-medium"
 ESPERA=600            # segundos entre comprobaciones (10 min)
 INACTIVO_MIN=20       # minutos sin tocar archivos = parado
+ATASCADO_MIN="${ATASCADO_MIN:-25}" # mi Antigravity sigue abierto pero sin tocar nada este tiempo = atascado: lo reinicio
 DURACION_MAX="3h"     # tiempo máximo de cada lanzamiento
 MODO="${MODO:-noche}" # MODO=dia: trabaja de día, sin hora de fin, y arranca en seguida
 MAX_LANZAMIENTOS="${MAX_LANZAMIENTOS:-6}"
@@ -30,8 +31,22 @@ log() { echo "$(date '+%Y-%m-%d %H:%M') $*" >> "$LOG"; [ "$DRYRUN" = 1 ] && echo
 lanzados=0
 primera=1
 pid_mio=""
+relanzar_ya=0
 rm -f "$PARAR"
 log "Vigilante arrancado en modo $MODO (máx. $MAX_LANZAMIENTOS lanzamientos, hasta las $HORA_FIN:00)."
+# Si ya hay un Antigravity trabajando (p. ej. al reiniciar el vigilante), lo adopto en vez de lanzar otro.
+adoptado=$(pgrep -f -- "$AGY -p" | head -1)
+if [ -n "$adoptado" ]; then pid_mio="$adoptado"; primera=0; log "Adopto el Antigravity que ya trabajaba ($pid_mio)."; fi
+
+# ¿Hay señales de trabajo real en los últimos N minutos? (archivos del juego, un Godot de pruebas o el registro de Antigravity)
+hay_actividad() {
+  local min="$1"
+  [ -n "$(find "$REPO" \( -path "$REPO/.git" -o -path "$REPO/.godot" \) -prune -o \
+      -type f -mmin -"$min" ! -name '*.import' ! -name '*.uid' -print 2>/dev/null | head -1)" ] && return 0
+  [ -n "$(ps -eo args= | grep 'godot-bin' | grep -v -- '--editor' | grep -v grep | head -1)" ] && return 0
+  [ -n "$(find "$HOME" -maxdepth 1 -name 'vigilante_agy_*.log' -mmin -"$min" 2>/dev/null | head -1)" ] && return 0
+  return 1
+}
 
 while true; do
   if [ -f "$PARAR" ]; then log "Parado a mano."; exit 0; fi
@@ -39,8 +54,18 @@ while true; do
 
   # ¿Sigue vivo el Antigravity que lancé yo?
   if [ -n "$pid_mio" ] && kill -0 "$pid_mio" 2>/dev/null; then
-    log "Mi Antigravity ($pid_mio) sigue trabajando."
-  else
+    if hay_actividad "$ATASCADO_MIN"; then
+      log "Mi Antigravity ($pid_mio) sigue trabajando."
+    else
+      log "Mi Antigravity ($pid_mio) lleva $ATASCADO_MIN min sin tocar nada: parece atascado. Lo reinicio."
+      if [ "$DRYRUN" != 1 ]; then
+        pkill -TERM -P "$pid_mio" 2>/dev/null; kill "$pid_mio" 2>/dev/null
+        pkill -TERM -f -- "$AGY -p" 2>/dev/null
+      fi
+      pid_mio=""; relanzar_ya=1
+    fi
+  fi
+  if [ -z "$pid_mio" ] || ! kill -0 "$pid_mio" 2>/dev/null; then
     [ -n "$pid_mio" ] && log "Mi Antigravity ($pid_mio) ha terminado."
     pid_mio=""
     # ¿Alguien ha tocado archivos del juego hace poco? (sin .git, .godot ni .import)
@@ -51,7 +76,8 @@ while true; do
     godot=$(ps -eo args= | grep 'godot-bin' | grep -v -- '--editor' | grep -v grep | head -1)
     hora=$(date +%-H)
     if [ "$MODO" = dia ] && [ "$primera" = 1 ] && [ -z "$godot" ]; then recientes=""; fi
-    primera=0
+    if [ "$relanzar_ya" = 1 ] && [ -z "$godot" ]; then recientes=""; fi
+    primera=0; relanzar_ya=0
     if [ -n "$recientes" ] || [ -n "$godot" ]; then
       log "Alguien está trabajando (${recientes:+archivo reciente}${godot:+ Godot en marcha}). Espero."
     elif [ "$MODO" != dia ] && [ "$hora" -ge "$HORA_FIN" ] && [ "$hora" -lt 20 ]; then
