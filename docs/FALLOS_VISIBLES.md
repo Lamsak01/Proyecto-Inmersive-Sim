@@ -5,6 +5,10 @@
 > Formato: `- [ ] Qué se ve mal · dónde · cuándo (hora del juego, 2D/3D/primera persona)`.
 
 ## Pendientes
+- [ ] **🔴 Vecinos atascados en la puerta de la taberna (otra vez):** dos se quedan pegados/superpuestos en el umbral, uno
+  entrando y otro saliendo. Ya se arregló una vez («doble carril») y ha vuelto, quizá tras el troceo de archivos · 3D,
+  miércoles 04:11 (`docs/capturas_usuario/2026-11-08/7_atasco_puerta_taberna.png`). Probar **jugando un día entero** con la taberna llena.
+- [ ] **El tiempo dice «despejado» mientras llueve** (misma captura) · miércoles 04:11.
 - [x] ✅ (2026-11-08) **🔴 [E] aparece sin mirar el objeto:** basta con estar cerca para que salga «Cerrar la puerta» o «Trampilla» aunque
   mires al suelo o a la escalera. En 1.ª persona, [E] debe referirse **a lo que está bajo la cruz del centro** (y a poca
   distancia) · taberna, 10:56 y 12:28 (`docs/capturas_usuario/2026-11-08/1_sillas_al_reves.png`, `2_E_sin_mirar_y_barandilla.png`) (`scripts/ui/InteractionSelector.gd`, `scripts/Player.gd`: añadido `_fp_crosshair_score()` en 1.ª persona que filtra candidatos por distancia corta `24–32 px`, cono horizontal estricto bajo la cruz central `horiz_cos >= 0.90` y desvío lateral `<= 7.0–9.5 px`, e inclinación vertical `fp_pitch` para que los objetos del suelo como trampillas o alcantarillas exijan mirar hacia abajo `pitch <= -0.18` y las puertas/vecinos no salgan al mirar al suelo, al techo o de espaldas; comprobado en `docs/capturas_arreglos/tarde_1_e_solo_al_mirar_3d.png`).

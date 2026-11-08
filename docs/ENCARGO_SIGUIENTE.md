@@ -1,19 +1,10 @@
-# ⭐ ENCARGO DE HOY (2026-11-08, tarde) — MANDA SOBRE TODO LO DEMÁS
-El encargo de la mañana y el troceo ya están hechos (✅ 13:27). El usuario jugó y encontró fallos nuevos: están arriba del todo
-en `FALLOS_VISIBLES.md` con sus capturas en `docs/capturas_usuario/2026-11-08/`. **Mira esas capturas antes de empezar.**
-Trabaja **sin parar ni preguntar** (dudas a `docs/PREGUNTAS_PENDIENTES.md`), commit + push tras cada punto, 1 captura en
-1.ª persona por punto **jugando de verdad** y **mirándola tú** antes de dar el punto por bueno. Orden:
-1. **[E] solo sobre lo que miras** (cruz del centro + poca distancia), no por estar cerca.
-2. **Quitar [Alt]** de rodar (dejar [V] u otra tecla libre) y actualizar la ayuda [H].
-3. **Salto en el piso de arriba:** que no pueda atascar al jugador en techos/vigas ni quitarle vida; y **morir por accidente
-   no lleva a la comisaría** (solo si hubo delito).
-4. **Sillas al revés** en todos los edificios + que la comprobación automática de muebles vigile también hacia dónde miran.
-5. **Vecinos que atraviesan aceras/escalones** y vecinos superpuestos en la calle.
-6. **Techo del pasillo de arriba de la taberna:** que no se mezcle la textura del tejado.
-7. **Paredes cortadas** del piso de arriba de la taberna: tabiques completos, sin huecos raros.
-8. **Barandilla de la escalera** más sencilla y limpia.
-**No hagas** los cuartos sin puertas/camas pequeñas (el usuario lo deja para más adelante). Al acabar: ✅ en
-`FALLOS_VISIBLES.md`, resumen corto al principio del informe y commit + push.
+# ⭐ ENCARGO DE HOY (2026-11-08, noche) — MANDA SOBRE TODO LO DEMÁS
+Lo de la tarde ya está hecho (✅ 15:01). Solo quedan **dos fallos** (arriba del todo en `FALLOS_VISIBLES.md`, con captura).
+Trabaja sin parar ni preguntar, commit + push tras cada punto y 1 captura **jugando de verdad** mirada por ti:
+1. **Atasco en la puerta de la taberna:** vecinos que entran y salen se quedan pegados en el umbral. Busca por qué volvió
+   (mira si el troceo de archivos dejó de llamar algo del «doble carril») y compruébalo dejando pasar un día de juego entero.
+2. **El indicador del tiempo dice «despejado» mientras llueve.**
+Al acabar: ✅ en `FALLOS_VISIBLES.md`, resumen corto al principio del informe y commit + push.
 
 # ✅ TROCEO DE ARCHIVOS GRANDES — HECHO (2026-11-08 13:27). No lo repitas.
 
