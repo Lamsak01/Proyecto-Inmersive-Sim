@@ -60,18 +60,47 @@ static func repair_cost(player) -> int:
 		return 0
 	return maxi(2, int(ceil(missing * REPAIR_GOLD_PER_POINT)))
 
+static func armor_dent_repair_cost(player) -> int:
+	if player == null:
+		return 0
+	var hc = player.get_node_or_null("HealthComponent")
+	if hc == null or not ("armor_dents" in hc):
+		return 0
+	var dents: int = int(hc.armor_dents)
+	return dents * 4 if dents > 0 else 0
+
 static func add_dialogue_choices(vm, npc, _diag: Dictionary, ch_arr: Array) -> void:
 	if npc == null or int(npc.trade_role) != int(VillageNPC.TradeRole.BLACKSMITH):
 		return
 	var pl = npc._get_player() if npc.has_method("_get_player") else null
+	var dent_cost: int = armor_dent_repair_cost(pl)
+	if dent_cost > 0:
+		var hc_d = pl.get_node_or_null("HealthComponent")
+		var n_dents: int = int(hc_d.armor_dents) if hc_d != null else 1
+		ch_arr.insert(0, {"label": "🛡️⚒️ Desabollar coraza y casco (%d impacto(s) de bala, -%d Oro)" % [n_dents, dent_cost], "next": "END", "action": "weapon_wear_repair_dents"})
 	var cost: int = repair_cost(pl)
 	if cost > 0:
 		ch_arr.insert(0, {"label": "⚒️ Afilar y enderezar tus armas (-%d Oro)" % cost, "next": "END", "action": "weapon_wear_repair"})
 
 static func on_player_action(_vm, npc, action_id: String, inv) -> void:
+	var pl = npc._get_player() if npc.has_method("_get_player") else null
+	if action_id == "weapon_wear_repair_dents":
+		var d_cost: int = armor_dent_repair_cost(pl)
+		if d_cost <= 0:
+			npc._spawn_floating_text("«Tu coraza no tiene abolladuras de bala.»", Color.LIGHT_GRAY, -46.0)
+			return
+		if inv == null or int(inv.gold) < d_cost:
+			npc._spawn_floating_text("«Son %d de oro para sacar esos bollos de plomo en el yunque.»" % d_cost, Color.CORAL, -46.0)
+			return
+		inv.add_gold(-d_cost)
+		npc.personal_gold += d_cost
+		var hc = pl.get_node_or_null("HealthComponent") if pl != null else null
+		if hc != null and hc.has_method("repair_armor_dents"):
+			hc.call("repair_armor_dents")
+		npc._spawn_floating_text("🛡️⚒️ «Coraza desabollada en el yunque: ni rastro de los balazos.»", Color(0.82, 0.92, 1.0), -46.0)
+		return
 	if action_id != "weapon_wear_repair":
 		return
-	var pl = npc._get_player() if npc.has_method("_get_player") else null
 	var cost: int = repair_cost(pl)
 	if cost <= 0:
 		npc._spawn_floating_text("«Tus armas están bien. Vuelve cuando las hayas usado.»", Color.LIGHT_GRAY, -46.0)

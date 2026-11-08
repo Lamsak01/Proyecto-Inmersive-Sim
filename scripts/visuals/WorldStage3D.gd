@@ -3052,13 +3052,13 @@ func _setup_fp_viewmodel() -> void:
 	mat_mflash.albedo_color = Color(1.0, 0.90, 0.42, 0.92)
 	mat_mflash.emission_enabled = true
 	mat_mflash.emission = Color(1.0, 0.78, 0.22)
-	mat_mflash.emission_energy_multiplier = 3.6
-	_fp_muzzle_flash_mesh = _add_box(_fp_weapon_mount, Vector3(0.14, 0.14, 0.18), Vector3(0.0, 0.075, -0.42), mat_mflash)
+	mat_mflash.emission_energy_multiplier = 2.4
+	_fp_muzzle_flash_mesh = _add_box(_fp_weapon_mount, Vector3(0.045, 0.045, 0.08), Vector3(0.0, 0.075, -0.42), mat_mflash)
 	_fp_muzzle_flash_mesh.visible = false
 	_fp_muzzle_light = OmniLight3D.new()
 	_fp_muzzle_light.light_color = Color(1.0, 0.82, 0.38)
-	_fp_muzzle_light.light_energy = 3.4
-	_fp_muzzle_light.omni_range = 4.5
+	_fp_muzzle_light.light_energy = 1.25
+	_fp_muzzle_light.omni_range = 3.2
 	_fp_muzzle_light.position = Vector3(0.0, 0.08, -0.45)
 	_fp_muzzle_light.visible = false
 	_fp_weapon_mount.add_child(_fp_muzzle_light)

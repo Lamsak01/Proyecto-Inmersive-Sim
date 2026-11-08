@@ -45,6 +45,55 @@ var is_bleeding: bool = false
 var is_weak: bool = false
 var armor_defense: float = 0.0 ## Reducción porcentual de daño físico por armadura (0.0 a 0.75)
 var armor_bleed_resistance: float = 0.0 ## Reducción de acumulación de sangrado (0.0 a 0.85)
+## C7 fase 5d: abolladuras de bala en la coraza o el casco metálico (sirven de pista forense y el herrero las repara)
+var armor_dents: int = 0
+var armor_dent_log: Array[Dictionary] = []
+var _last_bullet_stopped_by_chestplate: bool = false
+var _last_bullet_glanced_by_helmet: bool = false
+
+func get_metal_chest_armor_tier() -> int:
+	var p := get_parent()
+	if p == null:
+		return 0
+	var ov = p.get("chest_armor_tier")
+	if ov != null:
+		return int(ov)
+	var inv = p.get("inventory")
+	if inv != null and "equipped_armor" in inv and inv.equipped_armor is Dictionary:
+		var cid: String = str(inv.equipped_armor.get("CHEST", ""))
+		if cid != "" and inv.has_method("get_item_info"):
+			return int(inv.call("get_item_info", cid).get("armor_tier", 1))
+	if "trade_role" in p:
+		var tr: int = int(p.get("trade_role"))
+		# VillageNPC.TradeRole: SHERIFF (9), GUARD (10), ROYAL_INVESTIGATOR (12) llevan coraza metálica
+		if tr in [9, 10]:
+			return 2
+		elif tr == 12:
+			return 3
+	return 0
+
+func get_metal_helmet_tier() -> int:
+	var p := get_parent()
+	if p == null:
+		return 0
+	var ov = p.get("head_armor_tier")
+	if ov != null:
+		return int(ov)
+	var inv = p.get("inventory")
+	if inv != null and "equipped_armor" in inv and inv.equipped_armor is Dictionary:
+		var hid: String = str(inv.equipped_armor.get("HEAD", ""))
+		if hid != "" and inv.has_method("get_item_info"):
+			return int(inv.call("get_item_info", hid).get("armor_tier", 1))
+	if "trade_role" in p and int(p.get("trade_role")) == 10: # GUARD lleva yelmo de hierro
+		return 2
+	return 0
+
+func repair_armor_dents() -> int:
+	var repaired: int = armor_dents
+	armor_dents = 0
+	armor_dent_log.clear()
+	anatomy_changed.emit()
+	return repaired
 
 var _bleed_timer: float = 0.0
 var _bleed_dps: float = 0.0
@@ -90,6 +139,11 @@ func _init_anatomy() -> void:
 	swamp_sickness = 0.0
 	systemic_immunity = 0.0
 	systemic_tend_quality = 0.0
+	if _init_anatomy != null:
+		armor_dents = 0
+		armor_dent_log.clear()
+		_last_bullet_stopped_by_chestplate = false
+		_last_bullet_glanced_by_helmet = false
 	last_sickness_cause = ""
 	last_death_reason = ""
 
@@ -391,11 +445,75 @@ func take_damage(data: DamageData) -> void:
 	if current_health <= 0.0:
 		return
 
+	_last_bullet_stopped_by_chestplate = false
+	_last_bullet_glanced_by_helmet = false
+	var chosen_region: String = _pick_hit_region(data)
+	var w_tag_low: String = str(data.weapon_tag).to_lower() if data != null else ""
+	var is_bullet_hit: bool = (data != null and data.is_firearm_bullet) or ("pistola" in w_tag_low or "disparo" in w_tag_low or "bala" in w_tag_low or "arcabuz" in w_tag_low or "fusil" in w_tag_low or "cartucho" in w_tag_low)
+
 	# 1. Aplicar daño directo a la resistencia física (limitada por `get_effective_max_health()` si está enfermo/infectado)
 	var dmg_mult: float = clampf(1.0 - armor_defense, 0.20, 1.0)
 	var final_damage: float = maxf(1.0, data.amount * dmg_mult) if data.amount > 0.0 else 0.0
+	var p_owner := get_parent()
+
+	# C7 fase 5d: Corazas y balas + Casco medieval
+	if is_bullet_hit and data != null:
+		var f_kind: String = data.firearm_kind if data.firearm_kind != "" else ("rifle" if "fusil" in w_tag_low else "pistol")
+		var dist_px: float = data.shot_distance_px
+		if dist_px <= 0.01 and is_instance_valid(data.source) and data.source is Node2D and p_owner is Node2D:
+			dist_px = (data.source as Node2D).global_position.distance_to((p_owner as Node2D).global_position)
+		if chosen_region == "torso" and get_metal_chest_armor_tier() >= 2:
+			var is_close_rifle: bool = (f_kind == "rifle" and dist_px < 95.0)
+			armor_dents += 1
+			armor_dent_log.append({
+				"firearm_kind": f_kind,
+				"region": "torso",
+				"distance_px": int(round(dist_px)),
+				"pierced": is_close_rifle,
+				"weapon_tag": str(data.weapon_tag)
+			})
+			if not is_close_rifle:
+				# La coraza detiene la bala de pistola y la de fusil a distancia (>= 95 px)
+				_last_bullet_stopped_by_chestplate = true
+				final_damage = clampf(data.amount * 0.14, 4.0, 10.0)
+				if is_instance_valid(p_owner):
+					if p_owner.has_method("_spawn_floating_text"):
+						p_owner.call("_spawn_floating_text", "🛡️💥 ¡La coraza detuvo la bala! (+1 abolladura)", Color(0.75, 0.90, 1.0), -46.0)
+					if p_owner.has_method("show_hint") and p_owner.is_in_group("player"):
+						p_owner.call("show_hint", "🛡️💥 ¡Tu coraza detuvo el disparo! Ha quedado una abolladura (el herrero puede repararla).")
+				if is_instance_valid(data.source) and data.source.is_in_group("player") and data.source.has_method("show_hint"):
+					var t_n: String = str(p_owner.get("npc_name")) if (is_instance_valid(p_owner) and "npc_name" in p_owner) else "el rival"
+					data.source.call("show_hint", "🛡️ ¡La coraza de %s paró la bala! (+1 abolladura)" % t_n)
+			else:
+				# De cerca (< 95 px), el fusil perfora la coraza metálica
+				if is_instance_valid(p_owner) and p_owner.has_method("_spawn_floating_text"):
+					p_owner.call("_spawn_floating_text", "💥🛡️ ¡El fusil perforó la coraza de cerca!", Color(1.0, 0.38, 0.25), -46.0)
+				if is_instance_valid(data.source) and data.source.is_in_group("player") and data.source.has_method("show_hint"):
+					var t_n2: String = str(p_owner.get("npc_name")) if (is_instance_valid(p_owner) and "npc_name" in p_owner) else "el rival"
+					data.source.call("show_hint", "💥 ¡Tu fusil perforó la coraza de %s de cerca!" % t_n2)
+		elif chosen_region == "head" and get_metal_helmet_tier() >= 2:
+			# Casco medieval protege la cabeza en parte
+			_last_bullet_glanced_by_helmet = true
+			armor_dents += 1
+			armor_dent_log.append({
+				"firearm_kind": f_kind,
+				"region": "head",
+				"distance_px": int(round(dist_px)),
+				"pierced": false,
+				"weapon_tag": str(data.weapon_tag)
+			})
+			final_damage = clampf(data.amount * 0.42, 8.0, 34.0)
+			if is_instance_valid(p_owner):
+				if p_owner.has_method("_spawn_floating_text"):
+					p_owner.call("_spawn_floating_text", "🪖💥 ¡El casco desvió parte del disparo! (+1 abolladura)", Color(0.85, 0.90, 0.98), -46.0)
+				if p_owner.has_method("show_hint") and p_owner.is_in_group("player"):
+					p_owner.call("show_hint", "🪖 ¡Tu casco medieval amortiguó el disparo!")
+			if is_instance_valid(data.source) and data.source.is_in_group("player") and data.source.has_method("show_hint"):
+				var t_nh: String = str(p_owner.get("npc_name")) if (is_instance_valid(p_owner) and "npc_name" in p_owner) else "el rival"
+				data.source.call("show_hint", "🪖 ¡El casco de %s amortiguó el disparo! (+1 abolladura)" % t_nh)
+
 	if final_damage > 0.0:
-		_inflict_anatomical_wound(data, final_damage)
+		_inflict_anatomical_wound(data, final_damage, chosen_region)
 	current_health = clampf(current_health - final_damage, 0.0, get_effective_max_health())
 	health_changed.emit(current_health, max_health)
 	
@@ -407,9 +525,11 @@ func take_damage(data: DamageData) -> void:
 	
 	# 2. En RimWorld, los impactos cortantes aumentan levemente la pérdida inicial de sangre (`current_blood`),
 	# mientras que la hemorragia continua depende de la tasa de sangrado (`bleed_rate`) de las heridas abiertas.
-	var buildup: float = data.bleed_buildup
-	if buildup <= 0.0 and data.type == CombatConstants.DamageType.CUT and data.bleed_chance > 0.0:
+	var buildup: float = 0.0 if _last_bullet_stopped_by_chestplate else data.bleed_buildup
+	if buildup <= 0.0 and not _last_bullet_stopped_by_chestplate and data.type == CombatConstants.DamageType.CUT and data.bleed_chance > 0.0:
 		buildup = data.amount * 1.5
+	if _last_bullet_glanced_by_helmet:
+		buildup *= 0.35
 
 	buildup *= clampf(1.0 - armor_bleed_resistance, 0.10, 1.0)
 	if buildup > 0.0:
@@ -473,8 +593,12 @@ func hit_region_weights(data: DamageData) -> Dictionary:
 	if o.get("is_downed") == true:
 		w["head"] *= 2.5
 	if data.is_aimed_shot:
-		w["torso"] *= 2.2
+		w["torso"] *= 3.2
 		w["head"] *= 2.0
+		w["left_arm"] *= 0.25
+		w["right_arm"] *= 0.25
+		w["left_leg"] *= 0.20
+		w["right_leg"] *= 0.20
 	return w
 
 func _pick_hit_region(data: DamageData) -> String:
@@ -493,18 +617,18 @@ func _pick_hit_region(data: DamageData) -> String:
 			return r_id
 	return "torso"
 
-func _inflict_anatomical_wound(data: DamageData, final_damage: float) -> void:
-	var r_id: String = _pick_hit_region(data)
+func _inflict_anatomical_wound(data: DamageData, final_damage: float, forced_region: String = "") -> void:
+	var r_id: String = forced_region if forced_region != "" else _pick_hit_region(data)
 	var max_r: float = float(REGION_DEFS[r_id]["max_hp"])
 	var cur_r: float = float(region_hp.get(r_id, max_r))
-	var reg_loss: float = maxf(2.0, final_damage * 1.15)
+	var reg_loss: float = maxf(2.0, final_damage * (0.65 if _last_bullet_stopped_by_chestplate else 1.15))
 	if cur_r - reg_loss < 0.0 and r_id != "torso":
 		var overflow: float = reg_loss - cur_r
 		region_hp[r_id] = 0.0
 		var max_t: float = float(REGION_DEFS["torso"]["max_hp"])
 		region_hp["torso"] = maxf(0.0, float(region_hp.get("torso", max_t)) - overflow)
 	else:
-		region_hp[r_id] = maxf(0.0, cur_r - reg_loss)
+		region_hp[r_id] = maxf(1.0 if (_last_bullet_stopped_by_chestplate or _last_bullet_glanced_by_helmet) else 0.0, cur_r - reg_loss)
 
 	var w_tag: String = str(data.weapon_tag) if data else ""
 	if w_tag == "" and data and is_instance_valid(data.source):
@@ -527,7 +651,19 @@ func _inflict_anatomical_wound(data: DamageData, final_damage: float) -> void:
 	var is_bullet: bool = (data != null and data.is_firearm_bullet) or ("pistola" in low_tag or "disparo" in low_tag or "bala" in low_tag or "arcabuz" in low_tag or "fusil" in low_tag or "cartucho" in low_tag)
 	var is_arrow: bool = ("arco" in low_tag or "flecha" in low_tag)
 
-	if (data and data.type == CombatConstants.DamageType.CUT) or is_bullet:
+	if _last_bullet_stopped_by_chestplate:
+		w_type = "bruise"
+		custom_w_name = "Contusión Amortiguada por Coraza"
+		bleed_r = 0.0
+		pain_v = 8.0
+		sev_v = 16.0
+	elif _last_bullet_glanced_by_helmet:
+		w_type = "laceration"
+		custom_w_name = "Impacto de Bala Desviado por Casco"
+		bleed_r = 0.25
+		pain_v = 18.0
+		sev_v = 34.0
+	elif (data and data.type == CombatConstants.DamageType.CUT) or is_bullet:
 		if is_bullet:
 			w_type = "deep_wound"
 			custom_w_name = "Herida de Bala"
@@ -562,12 +698,12 @@ func _inflict_anatomical_wound(data: DamageData, final_damage: float) -> void:
 			w_type = "bruise"
 
 	var organ_hit := ""
-	var organ_chance: float = 0.55 if (is_bullet or is_arrow) else (0.38 if final_damage >= 8.0 else 0.18)
+	var organ_chance: float = 0.0 if _last_bullet_stopped_by_chestplate else (0.20 if _last_bullet_glanced_by_helmet else (0.55 if (is_bullet or is_arrow) else (0.38 if final_damage >= 8.0 else 0.18)))
 	if r_id in ["head", "torso"] and randf() < organ_chance:
 		var cand_organs: Array = ["eyes", "brain"] if r_id == "head" else ["lungs", "stomach", "liver", "kidneys", "heart"]
 		organ_hit = str(cand_organs[randi() % cand_organs.size()])
-		var o_loss: float = clampf(final_damage * 1.45, 14.0, 52.0)
-		organ_hp[organ_hit] = maxf(10.0, float(organ_hp.get(organ_hit, 100.0)) - o_loss)
+		var o_loss: float = clampf(final_damage * (0.65 if _last_bullet_glanced_by_helmet else 1.45), 10.0, 52.0)
+		organ_hp[organ_hit] = maxf(25.0 if _last_bullet_glanced_by_helmet else 10.0, float(organ_hp.get(organ_hit, 100.0)) - o_loss)
 
 	var w_entry: Dictionary = {
 		"id": _next_wound_id,
@@ -591,7 +727,7 @@ func _inflict_anatomical_wound(data: DamageData, final_damage: float) -> void:
 	}
 	_next_wound_id += 1
 	wounds.append(w_entry)
-	if is_bullet and final_damage >= 22.0:
+	if is_bullet and not _last_bullet_stopped_by_chestplate and not _last_bullet_glanced_by_helmet and final_damage >= 22.0:
 		var frac_name: String = "Conmoción / Fisura Craneal por Bala" if r_id == "head" else "Fractura Ósea por Bala"
 		var frac_entry: Dictionary = {
 			"id": _next_wound_id,
@@ -1085,6 +1221,10 @@ func get_forensic_autopsy_summary() -> String:
 		parts.append("%s en %s%s%s (%s)" % [str(w.get("name", "Herida")), r_name, o_tag, inf_tag, str(w.get("weapon_cause", "Arma"))])
 	if food_poisoning >= 40.0 or fever >= 50.0 or swamp_sickness >= 40.0:
 		parts.append("Patología interna: %s (%s)" % [get_sickness_summary_label(), last_sickness_cause if last_sickness_cause != "" else "Sepsis/Toxinas"])
+	if armor_dents > 0:
+		var last_dent: Dictionary = armor_dent_log[armor_dent_log.size() - 1] if not armor_dent_log.is_empty() else {}
+		var fk_es: String = "fusil" if str(last_dent.get("firearm_kind", "")) == "rifle" else "pistola"
+		parts.append("Pista en armadura: %d abolladura(s) de bala de %s" % [armor_dents, fk_es])
 	if parts.is_empty():
 		return "Sin traumatismos externos registrados"
 	return "; ".join(parts)
@@ -1102,11 +1242,16 @@ func to_medical_dict() -> Dictionary:
 	var w_copy: Array = []
 	for w in wounds:
 		w_copy.append(w.duplicate())
+	var d_copy: Array = []
+	for d in armor_dent_log:
+		d_copy.append(d.duplicate())
 	return {
 		"region_hp": region_hp.duplicate(),
 		"region_max_override": region_max_override.duplicate(),
 		"organ_hp": organ_hp.duplicate(),
 		"wounds": w_copy,
+		"armor_dents": armor_dents,
+		"armor_dent_log": d_copy,
 		"fever": fever,
 		"food_poisoning": food_poisoning,
 		"swamp_sickness": swamp_sickness,
@@ -1140,6 +1285,11 @@ func from_medical_dict(data: Dictionary) -> void:
 		for raw_w in (data["wounds"] as Array):
 			if typeof(raw_w) == TYPE_DICTIONARY:
 				wounds.append((raw_w as Dictionary).duplicate())
+	armor_dents = maxi(0, int(data.get("armor_dents", 0)))
+	if data.has("armor_dent_log") and typeof(data["armor_dent_log"]) == TYPE_ARRAY:
+		for raw_d in (data["armor_dent_log"] as Array):
+			if typeof(raw_d) == TYPE_DICTIONARY:
+				armor_dent_log.append((raw_d as Dictionary).duplicate())
 	fever = clampf(float(data.get("fever", 0.0)), 0.0, 100.0)
 	food_poisoning = clampf(float(data.get("food_poisoning", 0.0)), 0.0, 100.0)
 	swamp_sickness = clampf(float(data.get("swamp_sickness", 0.0)), 0.0, 100.0)
