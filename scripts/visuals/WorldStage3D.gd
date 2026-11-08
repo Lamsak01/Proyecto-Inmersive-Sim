@@ -188,8 +188,10 @@ uniform vec3 tint_primary : source_color = vec3(0.33, 0.50, 0.24);
 uniform vec3 tint_secondary : source_color = vec3(0.24, 0.39, 0.18);
 uniform vec3 tint_earth : source_color = vec3(0.44, 0.35, 0.24);
 uniform float dirt_blend : hint_range(0.0, 1.0) = 0.16;
+uniform float use_vertex_biomes : hint_range(0.0, 1.0) = 0.0;
 
 varying vec3 v_world_pos;
+varying vec4 v_biome;
 
 float g_hash(vec2 p) {
 	p = fract(p * vec2(234.17, 567.89));
@@ -216,6 +218,7 @@ vec2 g_rot(vec2 uv, float ang) {
 
 void vertex() {
 	v_world_pos = (MODEL_MATRIX * vec4(VERTEX, 1.0)).xyz;
+	v_biome = COLOR;
 }
 
 void fragment() {
@@ -225,34 +228,55 @@ void fragment() {
 		g_noise(w_uv * 0.38 + vec2(3.1, 7.4)) - 0.5,
 		g_noise(w_uv * 0.38 + vec2(19.2, 11.8)) - 0.5
 	) * 0.65;
-	vec2 uv_a = g_rot(w_uv + warp, 0.54) * 0.62;
-	vec2 uv_b = g_rot(w_uv - warp * 0.8, -0.89) * 0.79 + vec2(0.41, 0.27);
-	float rot_mix = smoothstep(0.30, 0.70, g_noise(w_uv * 0.27 + vec2(5.2, 1.9)));
+	vec2 uv_a = g_rot(w_uv + warp * 1.35, 0.54) * 1.65;
+	vec2 uv_b = g_rot(w_uv - warp * 1.15, -0.89) * 2.15 + vec2(0.41, 0.27);
+	float rot_mix = smoothstep(0.25, 0.75, g_noise(w_uv * 0.27 + vec2(5.2, 1.9)));
 
 	vec3 g_a = texture(tex_grass, uv_a).rgb;
 	vec3 g_b = texture(tex_grass, uv_b).rgb;
 	vec3 g_mid = mix(g_a, g_b, rot_mix);
-	// Suavizar variaciones extremas del borde de la textura original para que no se marquen líneas
-	g_mid = mix(vec3(dot(g_mid, vec3(0.333))), g_mid, 0.55);
+	// Eliminar por completo cualquier borde periódico de baldosa en laderas vistas de lejos
+	g_mid = mix(vec3(0.78), g_mid, 0.22);
 
-	vec3 g_over = texture(tex_overlay, g_rot(w_uv + warp * 0.5, 1.12) * 1.15 + vec2(0.37, 0.61)).rgb;
-	vec3 d_tex = texture(tex_dirt, g_rot(w_uv + warp * 0.4, 0.33) * 0.95).rgb;
+	vec3 g_over = mix(vec3(0.78), texture(tex_overlay, g_rot(w_uv + warp * 0.8, 1.12) * 1.95 + vec2(0.37, 0.61)).rgb, 0.24);
+	vec3 d_tex = mix(vec3(0.75), texture(tex_dirt, g_rot(w_uv + warp * 0.6, 0.33) * 1.75).rgb, 0.32);
 
 	float macro = g_noise(w_uv * 0.14);
 	float meso = g_noise(w_uv * 0.55 + warp);
 	float micro = g_noise(w_uv * 3.8 + warp * 2.0);
 	float blade = g_noise(w_uv * 16.0 + vec2(macro, meso) * 2.5);
 
-	vec3 meadow_tint = mix(tint_primary, tint_secondary, smoothstep(0.25, 0.75, macro * 0.65 + meso * 0.35));
+	float b_mix = smoothstep(0.25, 0.75, macro * 0.65 + meso * 0.35);
+	vec3 meadow_tint = mix(tint_primary, tint_secondary, b_mix);
+	float eff_dirt_b = dirt_blend;
+	vec3 eff_earth = tint_earth;
+	if (use_vertex_biomes > 0.5) {
+		vec3 forest_tint = mix(vec3(0.22, 0.39, 0.19), vec3(0.15, 0.29, 0.13), b_mix);
+		vec3 plains_tint = mix(vec3(0.76, 0.67, 0.35), vec3(0.60, 0.51, 0.26), b_mix);
+		meadow_tint = mix(meadow_tint, forest_tint, clamp(v_biome.r, 0.0, 1.0));
+		meadow_tint = mix(meadow_tint, plains_tint, clamp(v_biome.g, 0.0, 1.0));
+		eff_dirt_b = clamp(dirt_blend + v_biome.r * 0.12 + v_biome.g * 0.16 + v_biome.b * 0.62, 0.0, 0.95);
+		eff_earth = mix(eff_earth, vec3(0.36, 0.27, 0.18), clamp(v_biome.r, 0.0, 1.0));
+		eff_earth = mix(eff_earth, vec3(0.54, 0.43, 0.28), clamp(v_biome.g, 0.0, 1.0));
+		eff_earth = mix(eff_earth, vec3(0.46, 0.38, 0.26), clamp(v_biome.b, 0.0, 1.0));
+	}
 	vec3 base_grass = mix(meadow_tint * 0.88, g_mid * 1.18 * meadow_tint, 0.48);
 	base_grass = mix(base_grass, g_over * meadow_tint * 1.08, 0.22);
 	base_grass *= mix(0.90, 1.10, micro * 0.55 + blade * 0.45);
 
-	// Calvas naturales de tierra húmeda y sendero
-	float earth_mask = smoothstep(0.68 - dirt_blend * 0.35, 0.88, macro * 0.60 + meso * 0.40);
-	vec3 earth_col = mix(tint_earth * 0.92, d_tex * tint_earth * 1.18, 0.55);
-	ALBEDO = mix(base_grass, earth_col, clamp(earth_mask, 0.0, 0.72));
-	ROUGHNESS = mix(0.90, 0.96, earth_mask);
+	// Calvas naturales de tierra húmeda, orillas y laderas empinadas
+	float earth_mask = smoothstep(0.68 - eff_dirt_b * 0.42, 0.88, macro * 0.60 + meso * 0.40);
+	if (use_vertex_biomes > 0.5) {
+		earth_mask = max(earth_mask, clamp(v_biome.b * 0.88, 0.0, 0.92));
+	}
+	vec3 earth_col = mix(eff_earth * 0.92, d_tex * eff_earth * 1.18, 0.55);
+	vec3 surface_col = mix(base_grass, earth_col, clamp(earth_mask, 0.0, 0.88));
+	if (use_vertex_biomes > 0.5 && v_biome.a > 0.02) {
+		vec3 rock_slope = mix(vec3(0.46, 0.42, 0.35), d_tex * vec3(0.58, 0.53, 0.44), 0.60);
+		surface_col = mix(surface_col, rock_slope, clamp(v_biome.a * 0.85, 0.0, 0.78));
+	}
+	ALBEDO = surface_col;
+	ROUGHNESS = mix(0.90, 0.97, max(earth_mask, v_biome.a * use_vertex_biomes));
 	METALLIC = 0.0;
 }
 """
@@ -464,12 +488,152 @@ func setup_stage(village_manager: Node2D) -> void:
 	rebuild_all_3d()
 	_sync_2d_flat_visuals(CharacterAvatar3DScript.use_3d_characters)
 
-func to_3d(pos_2d: Vector2, h_px: float = 0.0) -> Vector3:
+## Relieve del terreno (Fase A — fuera del pueblo):
+## - Dentro del pueblo, campamento, granja/rancho del sur, cantera y Puesto del Paso queda plano (0.0 px)
+##   para que ningún edificio, solar, valla ni calle quede torcido ni flotando.
+## - Fuera del pueblo devuelve la cota en píxeles:
+##   * Llanura Salvaje del Noroeste y colinas del Norte: lomas amplias y crestas (+35..+86 px) con vaguadas suaves.
+##   * Bosque Profundo del Sur: desniveles marcados, lomas boscosas (+40..+78 px) y hondonadas (-14 px).
+##   * Lago del Oeste y Ciénaga de las Ranas: cuencas hundidas (-22..-24 px) bajo la lámina de agua (-14 px) y orillas en talud.
+static func terrain_height_px(pos_2d: Vector2) -> float:
+	var x: float = pos_2d.x
+	var y: float = pos_2d.y
+
+	# 1. Cuenca y orillas hundidas del Lago del Oeste (x ~ -1080..-665, y ~ 75..245)
+	var lake_h: float = 0.0
+	if x < -640.0 and x > -1220.0 and y > 52.0 and y < 340.0:
+		var t_east: float = smoothstep(-1010.0, -715.0, x)
+		var lake_cy: float = lerpf(168.0, 114.0, t_east)
+		var lake_ry: float = lerpf(80.0, 44.0, t_east)
+		var ld := Vector2((x + 875.0) / 215.0, (y - lake_cy) / lake_ry)
+		var lr: float = ld.length()
+		if lr < 1.50:
+			# Fondo hundido (-15.5 px) bajo la lámina de agua (-7.5 px) y orillas suaves en talud; ribazo al oeste/sur (+14 px)
+			var basin: float = -15.5 * (1.0 - smoothstep(0.38, 1.06, lr))
+			var outer_rim: float = clampf((-750.0 - x) / 180.0, 0.0, 1.0) * smoothstep(65.0, 135.0, y)
+			var rim: float = 14.0 * outer_rim * smoothstep(0.92, 1.20, lr) * (1.0 - smoothstep(1.22, 1.48, lr))
+			var north_fade: float = smoothstep(54.0, 74.0, y)
+			var east_fade: float = clampf((-645.0 - x) / 28.0, 0.0, 1.0)
+			lake_h = (basin + rim) * north_fade * east_fade
+
+	# 2. Cuenca y orillas bajas de la Ciénaga de las Ranas (x ~ -1960..-1100, y ~ 110..560)
+	var marsh_h: float = 0.0
+	if x < -1020.0 and y > 65.0 and y < 650.0:
+		var mc := Vector2(-1535.0, 328.0)
+		var md := Vector2((x - mc.x) / 395.0, (y - mc.y) / 185.0)
+		var mr: float = md.length()
+		if mr < 1.48:
+			var m_basin: float = -15.5 * (1.0 - smoothstep(0.45, 1.04, mr))
+			# Ribazos de tierra elevados rodeando la hondonada de la ciénaga
+			var m_bank: float = 20.0 * smoothstep(0.88, 1.15, mr) * (1.0 - smoothstep(1.18, 1.46, mr))
+			var islets: float = 4.2 * sin(x * 0.032 + y * 0.024) * cos(x * 0.019 - y * 0.038) * (1.0 - smoothstep(0.55, 0.95, mr))
+			marsh_h = m_basin + m_bank + islets
+
+	# 3. Máscara de zona plana del pueblo, campamento/gallinero/huerto, granja/rancho, cantera y Puesto del Paso
+	var d_village: float = 0.0
+	var dx_v: float = (-640.0 - x) if x < -640.0 else ((x - 1705.0) if x > 1705.0 else 0.0)
+	var dy_v: float = (-445.0 - y) if y < -445.0 else ((y - 650.0) if y > 650.0 else 0.0)
+	d_village = sqrt(dx_v * dx_v + dy_v * dy_v)
+
+	# Claro plano del campamento inicial, huerto 3x3 y gallinero (x in -915..-640, y in -185..58)
+	var dx_c: float = (-915.0 - x) if x < -915.0 else ((x + 640.0) if x > -640.0 else 0.0)
+	var dy_c: float = (-185.0 - y) if y < -185.0 else ((y - 58.0) if y > 58.0 else 0.0)
+	var d_camp: float = sqrt(dx_c * dx_c + dy_c * dy_c)
+
+	var d_out: float = minf(d_village, d_camp)
+	if d_out <= 0.001 and absf(lake_h) < 0.001:
+		return 0.0
+	var outer_mask: float = smoothstep(0.0, 90.0, d_out)
+
+	# 4. Lomas fuertes en la Llanura Salvaje (noroeste y oeste) y colinas del borde norte
+	var plains_h: float = 0.0
+	if x < -640.0 or y < -445.0 or x > 1705.0:
+		var w1: float = sin(x * 0.0052 + 0.4) * cos(y * 0.0064 - 0.3)
+		var w2: float = sin((x * 0.0085 - y * 0.0072) + 1.7) * 0.65
+		var w3: float = cos((x * 0.014 + y * 0.012) - 0.8) * 0.32
+		var ridge: float = maxf(0.0, w1 + w2 * 0.75 + 0.25)
+		plains_h = (ridge * 46.0 + w3 * 14.0)
+		# Colinas más pronunciadas en el corazón de la Llanura Salvaje (x < -1050, y < -40)
+		var nw_boost: float = smoothstep(-760.0, -1180.0, x) * smoothstep(35.0, -140.0, y)
+		var dome1: float = exp(-pow((x + 1580.0) / 260.0, 2.0) - pow((y + 340.0) / 175.0, 2.0)) * 42.0
+		var dome2: float = exp(-pow((x + 1190.0) / 210.0, 2.0) - pow((y + 210.0) / 145.0, 2.0)) * 36.0
+		var dome3: float = exp(-pow((x + 1840.0) / 230.0, 2.0) - pow((y + 135.0) / 140.0, 2.0)) * 34.0
+		var valley_dip: float = -exp(-pow((x + 1480.0) / 150.0, 2.0) - pow((y + 215.0) / 110.0, 2.0)) * 18.0
+		plains_h = plains_h * (0.55 + 0.45 * nw_boost) + dome1 + dome2 + dome3 + valley_dip
+		# Atenuar junto al lago y la ciénaga para que manden sus cuencas y orillas
+		var near_water: float = clampf(absf(lake_h + marsh_h) / 10.0, 0.0, 1.0)
+		plains_h *= (1.0 - near_water * 0.82)
+
+	# 5. Desniveles, lomas y vaguadas en el Bosque Profundo (sur, y > 650)
+	var forest_h: float = 0.0
+	if y > 650.0:
+		var fy: float = smoothstep(650.0, 820.0, y)
+		var fw1: float = sin(x * 0.0058 - 0.6) * sin((y - 680.0) * 0.0062 + 0.5)
+		var fw2: float = cos(x * 0.0105 + y * 0.0088 + 1.1) * 0.55
+		var fw3: float = sin(x * 0.018 - y * 0.015) * 0.25
+		# Lomas boscosas a ambos lados del camino de entrada (x ~ 130) y barrancos suaves
+		var hill_w: float = exp(-pow((x + 640.0) / 280.0, 2.0) - pow((y - 1180.0) / 260.0, 2.0)) * 48.0
+		var hill_c: float = exp(-pow((x - 360.0) / 250.0, 2.0) - pow((y - 1080.0) / 230.0, 2.0)) * 42.0
+		var hill_e: float = exp(-pow((x - 940.0) / 290.0, 2.0) - pow((y - 1320.0) / 280.0, 2.0)) * 52.0
+		var hill_s: float = exp(-pow((x + 140.0) / 340.0, 2.0) - pow((y - 1680.0) / 310.0, 2.0)) * 56.0
+		var gully: float = -exp(-pow((x + 210.0) / 160.0, 2.0) - pow((y - 1020.0) / 150.0, 2.0)) * 18.0
+		forest_h = ((fw1 * 32.0 + fw2 * 22.0 + fw3 * 9.0 + 14.0) + hill_w + hill_c + hill_e + hill_s + gully) * fy
+
+	return (plains_h + forest_h) * outer_mask + lake_h + marsh_h
+
+
+func to_3d_flat(pos_2d: Vector2, h_px: float = 0.0) -> Vector3:
 	return Vector3(
 		pos_2d.x * WORLD_SCALE,
 		(h_px * WORLD_SCALE) / _cos_p,
 		(pos_2d.y * WORLD_SCALE) / _sin_p
 	)
+
+
+func to_3d(pos_2d: Vector2, h_px: float = 0.0) -> Vector3:
+	var eff_h: float = h_px
+	if h_px > -40.0:
+		eff_h += terrain_height_px(pos_2d)
+	return Vector3(
+		pos_2d.x * WORLD_SCALE,
+		(eff_h * WORLD_SCALE) / _cos_p,
+		(pos_2d.y * WORLD_SCALE) / _sin_p
+	)
+
+
+func terrain_normal_3d(pos_2d: Vector2, step_px: float = 10.0) -> Vector3:
+	var px1: Vector3 = to_3d(pos_2d + Vector2(step_px, 0.0), 0.0)
+	var px0: Vector3 = to_3d(pos_2d - Vector2(step_px, 0.0), 0.0)
+	var pz1: Vector3 = to_3d(pos_2d + Vector2(0.0, step_px), 0.0)
+	var pz0: Vector3 = to_3d(pos_2d - Vector2(0.0, step_px), 0.0)
+	var n: Vector3 = (pz1 - pz0).cross(px1 - px0)
+	return n.normalized() if n.length_squared() > 0.000001 else Vector3.UP
+
+
+func _terrain_biome_color(pos_2d: Vector2, normal_3d: Vector3) -> Color:
+	var x: float = pos_2d.x
+	var y: float = pos_2d.y
+	var edge_wave: float = sin(x * 0.009 + 1.2) * 32.0 + cos(x * 0.021 - 0.5) * 16.0
+	var w_forest: float = smoothstep(665.0 + edge_wave, 775.0 + edge_wave, y)
+	var w_plains: float = smoothstep(-940.0, -1140.0, x) * smoothstep(10.0, -90.0, y) * smoothstep(-620.0, -490.0, y)
+	var w_mud: float = 0.0
+	# Orilla y lecho del Lago del Oeste
+	var lc := Vector2(-875.0, 152.0)
+	var lr: float = Vector2((x - lc.x) / 225.0, (y - lc.y) / 102.0).length()
+	if lr < 1.25 and x < -645.0:
+		w_mud = maxf(w_mud, 1.0 - smoothstep(0.65, 1.22, lr))
+	# Orilla y cuenca de la Ciénaga de las Ranas
+	var mc := Vector2(-1535.0, 328.0)
+	var mr: float = Vector2((x - mc.x) / 420.0, (y - mc.y) / 205.0).length()
+	if mr < 1.28:
+		w_mud = maxf(w_mud, 1.0 - smoothstep(0.72, 1.25, mr))
+	# Calva terrosa de la Llanura
+	var pc := Vector2(-1525.0, -270.0)
+	var pr: float = Vector2((x - pc.x) / 230.0, (y - pc.y) / 120.0).length()
+	if pr < 1.15:
+		w_mud = maxf(w_mud, (1.0 - smoothstep(0.55, 1.12, pr)) * 0.85)
+	var w_slope: float = clampf((1.0 - normal_3d.y) * 3.4, 0.0, 1.0)
+	return Color(w_forest, w_plains, w_mud, w_slope)
 
 func size_3d(sz_2d: Vector2, h_px: float) -> Vector3:
 	return Vector3(
@@ -691,11 +855,17 @@ func _build_static_terrain_3d() -> void:
 		Rect2(Vector2(452, 232), Vector2(885, 20)),
 	]
 	for rr in road_rects:
-		_add_box_2d(terrain_root_3d, rr.get_center(), rr.size, 0.0, 1.2, m_road)
+		if rr.position.x < -630.0 or rr.end.y > 645.0:
+			_add_road_strip_3d(terrain_root_3d, rr, 1.2, m_road)
+		else:
+			_add_box_2d(terrain_root_3d, rr.get_center(), rr.size, 0.0, 1.2, m_road)
 	for lr in VillageLots.ROADS:
 		if lr is Rect2:
 			var r_lot: Rect2 = lr
-			_add_box_2d(terrain_root_3d, r_lot.get_center(), r_lot.size, 0.0, 1.2, m_road)
+			if r_lot.position.x < -630.0 or r_lot.end.y > 645.0:
+				_add_road_strip_3d(terrain_root_3d, r_lot, 1.2, m_road)
+			else:
+				_add_box_2d(terrain_root_3d, r_lot.get_center(), r_lot.size, 0.0, 1.2, m_road)
 	_build_barrios_3d(m_wood)
 	# Callejas curvas del norte: un tramo de camino por segmento, girado, con una losa en cada codo
 	for cr in VillageLots.CURVED_ROADS:
@@ -791,28 +961,28 @@ func _build_static_terrain_3d() -> void:
 
 	# Lago del Oeste (junto al campamento inicial, un solo muelle, sin lavadero); sauces en la orilla
 	_build_lake_3d()
-	_add_model_2d(terrain_root_3d, "nature/Willow_1.obj", Vector2(-950, 82), 0.0, Vector2.ZERO, 40.0)
-	_add_model_2d(terrain_root_3d, "nature/Willow_2.obj", Vector2(-1090, 190), 0.0, Vector2.ZERO, 38.0, 70.0)
-	_add_model_2d(terrain_root_3d, "nature/Willow_1.obj", Vector2(-840, 225), 0.0, Vector2.ZERO, 34.0, 140.0)
+	_add_model_2d(terrain_root_3d, "nature/Willow_1.obj", Vector2(-950, 82), -1.0, Vector2.ZERO, 40.0)
+	_add_model_2d(terrain_root_3d, "nature/Willow_2.obj", Vector2(-1090, 190), -1.0, Vector2.ZERO, 38.0, 70.0)
+	_add_model_2d(terrain_root_3d, "nature/Willow_1.obj", Vector2(-840, 225), -1.0, Vector2.ZERO, 34.0, 140.0)
 
-	# Ciénaga de las Ranas del Suroeste (separada de la Llanura Salvaje y ampliada)
+	# Ciénaga de las Ranas del Suroeste (cuenca hundida con lámina de agua a cota fija -7.8 px y orillas en talud)
 	var marsh_water_pts := PackedVector2Array([
 		Vector2(-1860, 210), Vector2(-1620, 165), Vector2(-1340, 180), Vector2(-1200, 250),
 		Vector2(-1220, 390), Vector2(-1360, 470), Vector2(-1650, 485), Vector2(-1850, 420),
 		Vector2(-1910, 310)
 	])
-	_add_flat_poly_2d(terrain_root_3d, marsh_water_pts, 0.65, m_marsh)
-	_add_box_2d(terrain_root_3d, Vector2(-1520, 188), Vector2(76, 12), 1.2, 2.0, m_wood)
+	_add_flat_poly_2d(terrain_root_3d, marsh_water_pts, -7.8, m_marsh, true)
+	_add_box_2d(terrain_root_3d, Vector2(-1520, 188), Vector2(76, 12), 1.5, 2.2, m_wood)
 	for rp in [
 		Vector2(-1820, 220), Vector2(-1710, 185), Vector2(-1580, 240), Vector2(-1410, 210),
 		Vector2(-1290, 280), Vector2(-1350, 420), Vector2(-1560, 440), Vector2(-1760, 380)
 	]:
-		if _add_model_2d(terrain_root_3d, "nature/Bush_1.obj", rp, 1.0, Vector2.ZERO, 12.0) == null:
-			_add_cyl_2d(terrain_root_3d, rp, 4.0, 1.0, 8.0, m_pine, 1.5, 6)
-	_add_model_2d(terrain_root_3d, "nature/Willow_2.obj", Vector2(-1840, 195), 0.0, Vector2.ZERO, 36.0)
-	_add_model_2d(terrain_root_3d, "nature/Willow_1.obj", Vector2(-1260, 395), 0.0, Vector2.ZERO, 34.0, 110.0)
-	_add_model_2d(terrain_root_3d, "nature/Rock_2.obj", Vector2(-1390, 190), 0.0, Vector2.ZERO, 13.0)
-	_add_model_2d(terrain_root_3d, "nature/WoodLog.obj", Vector2(-1640, 340), 0.5, Vector2.ZERO, 16.0, 35.0)
+		if _add_model_2d(terrain_root_3d, "nature/Bush_1.obj", rp, -0.8, Vector2.ZERO, 12.0) == null:
+			_add_cyl_2d(terrain_root_3d, rp, 4.0, -0.8, 8.0, m_pine, 1.5, 6)
+	_add_model_2d(terrain_root_3d, "nature/Willow_2.obj", Vector2(-1840, 195), -1.0, Vector2.ZERO, 36.0)
+	_add_model_2d(terrain_root_3d, "nature/Willow_1.obj", Vector2(-1260, 395), -1.0, Vector2.ZERO, 34.0, 110.0)
+	_add_model_2d(terrain_root_3d, "nature/Rock_2.obj", Vector2(-1390, 190), -1.0, Vector2.ZERO, 13.0)
+	_add_model_2d(terrain_root_3d, "nature/WoodLog.obj", Vector2(-1640, 340), 0.0, Vector2.ZERO, 16.0, 35.0)
 
 	# Matorral, arbustos de bayas y troncos caídos repartidos por el Bosque Profundo ampliado (y = 780..2300)
 	var forest_bushes: Array[Vector2] = [
@@ -828,14 +998,14 @@ func _build_static_terrain_3d() -> void:
 	var bush_models := ["nature/Bush_1.obj", "nature/Bush_2.obj", "nature/BushBerries_1.obj", "nature/BushBerries_2.obj"]
 	for bi in range(forest_bushes.size()):
 		var bm: String = bush_models[bi % bush_models.size()]
-		_add_model_2d(terrain_root_3d, bm, forest_bushes[bi], 0.0, Vector2.ZERO, 12.5, float((bi * 47) % 360))
+		_add_model_2d(terrain_root_3d, bm, forest_bushes[bi], -1.0, Vector2.ZERO, 12.5, float((bi * 47) % 360))
 	var fallen_logs: Array[Vector2] = [
 		Vector2(-860, 1040), Vector2(-490, 1240), Vector2(-740, 1560), Vector2(-560, 1820),
 		Vector2(-20, 1090), Vector2(290, 1310), Vector2(80, 1580), Vector2(380, 1810),
 		Vector2(180, 2040), Vector2(890, 1180), Vector2(1080, 1490), Vector2(1120, 1920)
 	]
 	for li in range(fallen_logs.size()):
-		_add_model_2d(terrain_root_3d, "nature/WoodLog.obj", fallen_logs[li], 0.0, Vector2.ZERO, 16.0, float((li * 63) % 360))
+		_add_model_2d(terrain_root_3d, "nature/WoodLog.obj", fallen_logs[li], -0.8, Vector2.ZERO, 16.0, float((li * 63) % 360))
 
 	# Cercado del Cementerio Parroquial ampliado (Rect2(Vector2(822, 260), Vector2(268, 168))) con caminos en cruz, verja de hierro y piedra y 24 tumbas en filas
 	var cem_r := Rect2(Vector2(822.0, 260.0), Vector2(268.0, 168.0))
@@ -2301,13 +2471,14 @@ func _setup_fp_hud_layer() -> void:
 	fp_mode_badge.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	fp_mode_badge.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	fp_mode_badge.set_anchors_and_offsets_preset(Control.PRESET_CENTER_TOP)
-	fp_mode_badge.position = Vector2(-260, 8)
+	fp_mode_badge.position = Vector2(-260, 40)
 	fp_mode_badge.custom_minimum_size = Vector2(520, 20)
 	fp_mode_badge.add_theme_font_size_override("font_size", 11)
 	fp_mode_badge.add_theme_color_override("font_color", Color(0.86, 0.92, 0.98, 0.88))
 	fp_mode_badge.add_theme_color_override("font_outline_color", Color(0.04, 0.04, 0.06, 0.92))
 	fp_mode_badge.add_theme_constant_override("outline_size", 3)
-	fp_mode_badge.text = "👁️ 1.ª Persona (Prototipo) · [P]/[F6] Salir · [F9] 2D/3D · Ratón/Flechas: mirar · W/A/S/D: andar · [E]: usar"
+	fp_mode_badge.text = ""
+	fp_mode_badge.visible = false
 	root_ctrl.add_child(fp_mode_badge)
 
 func _is_ui_blocking_fp() -> bool:
@@ -2473,23 +2644,9 @@ func _update_fp_hud() -> void:
 		return
 	var ui_blocked: bool = _is_ui_blocking_fp()
 	fp_hud_layer.visible = not ui_blocked
-	if ui_blocked:
-		return
-	var pl := get_tree().get_first_node_in_group("player") as Node2D
-	if not is_instance_valid(pl) or fp_interact_label == null:
-		return
-	var sel = pl.get("interaction_selector")
-	if sel != null and sel.has_method("selected"):
-		var cand: Dictionary = sel.call("selected")
-		if not cand.is_empty():
-			var txt: String = "[E] " + str(cand.get("label", "Usar"))
-			var all_cands: Array = sel.get("candidates") if "candidates" in sel else []
-			if all_cands.size() > 1:
-				txt += "   (%d/%d · Mayús+rueda o G)" % [all_cands.find(cand) + 1, all_cands.size()]
-			fp_interact_label.text = txt
-			fp_interact_label.visible = true
-			return
-	fp_interact_label.visible = false
+	if fp_interact_label != null:
+		fp_interact_label.visible = false
+	return
 
 func _process(delta: float) -> void:
 	if _is_headless or vm == null:
@@ -3109,38 +3266,97 @@ func _make_ground_shader_mat(key: String, c_prim: Color, c_sec: Color, c_earth: 
 	_mat_cache[key] = sm
 	return sm
 
-## Suelo opaco de hierba con textura multiescala bajo todo el valle, zonas diferenciadas y matas de hierba/flores 3D.
-## Recibe las sombras del sol; tapa los decorados planos 2D con z <= -3 (bordes, césped del bosque).
+## Suelo opaco 3D con malla de relieve continuo (Fase A: lomas en la llanura, desniveles en el bosque y cuencas hundidas
+## en el lago y la ciénaga; plano dentro del pueblo), normales suaves para el sombreado solar y mezcla de biomas por vértice.
 func _build_ground_3d() -> void:
-	var m_grass := _make_ground_shader_mat("ground_grass_sh", Color(0.35, 0.54, 0.26), Color(0.25, 0.42, 0.19), Color(0.45, 0.36, 0.24), 0.16)
-	var m_forest := _make_ground_shader_mat("ground_forest_sh", Color(0.23, 0.40, 0.20), Color(0.17, 0.31, 0.15), Color(0.36, 0.27, 0.18), 0.28)
-	var m_plains := _make_ground_shader_mat("ground_plains_sh", Color(0.76, 0.68, 0.36), Color(0.62, 0.54, 0.28), Color(0.56, 0.44, 0.30), 0.32)
-	var m_mud := _mat("ground_mud", Color(0.55, 0.46, 0.34), 0.95, 0.0, Color.BLACK, 0.0, "town_textures/floor_ground_dirt.png", "", 0.78)
-	var m_marsh := _mat("ground_marsh_water", Color(0.30, 0.42, 0.30), 0.35, 0.05, Color.BLACK, 0.0, "town_textures/floor_ground_water_green.png", "", 0.78)
-	for gm in [m_mud, m_marsh]:
-		(gm as StandardMaterial3D).cull_mode = BaseMaterial3D.CULL_DISABLED
-	_add_box_2d(terrain_root_3d, Vector2(-150, 620), Vector2(5200, 4400), -1.0, 1.0, m_grass)
-	# Bosque profundo con borde irregular y orgánico (mismo polígono que EcosystemManager.FOREST_POLY)
-	_add_flat_poly_2d(terrain_root_3d, PackedVector2Array(EcosystemManager.FOREST_POLY), 0.15, m_forest)
-	# Llanura Salvaje del Noroeste (separada y amplia)
-	var plains_pts := PackedVector2Array([
-		Vector2(-2020, -490), Vector2(-1780, -560), Vector2(-1420, -540), Vector2(-1120, -470),
-		Vector2(-1080, -260), Vector2(-1110, -45), Vector2(-1380, -20), Vector2(-1760, -28),
-		Vector2(-2040, -110), Vector2(-2060, -310)
-	])
-	_add_flat_poly_2d(terrain_root_3d, plains_pts, 0.15, m_plains)
-	_add_flat_poly_2d(terrain_root_3d, PackedVector2Array([
-		Vector2(-1740, -380), Vector2(-1320, -390), Vector2(-1290, -160), Vector2(-1760, -150)
-	]), 0.28, m_mud)
-	# Ciénaga de las Ranas del Suroeste (separada y amplia)
-	var marsh_outer_pts := PackedVector2Array([
-		Vector2(-1960, 150), Vector2(-1680, 110), Vector2(-1320, 120), Vector2(-1100, 190),
-		Vector2(-1120, 420), Vector2(-1280, 540), Vector2(-1640, 560), Vector2(-1940, 490),
-		Vector2(-2020, 320)
-	])
-	_add_flat_poly_2d(terrain_root_3d, marsh_outer_pts, 0.18, m_mud)
+	var m_terrain := _make_ground_shader_mat("ground_terrain_heightfield_sh", Color(0.35, 0.54, 0.26), Color(0.25, 0.42, 0.19), Color(0.45, 0.36, 0.24), 0.16)
+	if m_terrain is ShaderMaterial:
+		(m_terrain as ShaderMaterial).set_shader_parameter("use_vertex_biomes", 1.0)
+	var min_x: float = -2450.0
+	var max_x: float = 2150.0
+	var min_y: float = -1050.0
+	var max_y: float = 2550.0
+	var step: float = 28.0
+	var nx: int = int(ceil((max_x - min_x) / step))
+	var ny: int = int(ceil((max_y - min_y) / step))
+	var st := SurfaceTool.new()
+	st.begin(Mesh.PRIMITIVE_TRIANGLES)
+	for iy in range(ny):
+		var y0: float = min_y + float(iy) * step
+		var y1: float = minf(max_y, y0 + step)
+		for ix in range(nx):
+			var x0: float = min_x + float(ix) * step
+			var x1: float = minf(max_x, x0 + step)
+			var p00 := Vector2(x0, y0)
+			var p10 := Vector2(x1, y0)
+			var p01 := Vector2(x0, y1)
+			var p11 := Vector2(x1, y1)
+			var v00: Vector3 = to_3d(p00, 0.0)
+			var v10: Vector3 = to_3d(p10, 0.0)
+			var v01: Vector3 = to_3d(p01, 0.0)
+			var v11: Vector3 = to_3d(p11, 0.0)
+			var n00: Vector3 = terrain_normal_3d(p00, step * 0.5)
+			var n10: Vector3 = terrain_normal_3d(p10, step * 0.5)
+			var n01: Vector3 = terrain_normal_3d(p01, step * 0.5)
+			var n11: Vector3 = terrain_normal_3d(p11, step * 0.5)
+			var c00: Color = _terrain_biome_color(p00, n00)
+			var c10: Color = _terrain_biome_color(p10, n10)
+			var c01: Color = _terrain_biome_color(p01, n01)
+			var c11: Color = _terrain_biome_color(p11, n11)
+			# Triángulo 1 (p00, p10, p11)
+			st.set_color(c00); st.set_normal(n00); st.add_vertex(v00)
+			st.set_color(c10); st.set_normal(n10); st.add_vertex(v10)
+			st.set_color(c11); st.set_normal(n11); st.add_vertex(v11)
+			# Triángulo 2 (p00, p11, p01)
+			st.set_color(c00); st.set_normal(n00); st.add_vertex(v00)
+			st.set_color(c11); st.set_normal(n11); st.add_vertex(v11)
+			st.set_color(c01); st.set_normal(n01); st.add_vertex(v01)
+	var ground_mi := MeshInstance3D.new()
+	ground_mi.name = "TerrainHeightfield3D"
+	ground_mi.mesh = st.commit()
+	ground_mi.material_override = m_terrain
+	ground_mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_ON
+	terrain_root_3d.add_child(ground_mi)
 	# Matas de hierba, tréboles, helechos y flores silvestres 3D repartidas por praderas, cunetas, campamento y linde del bosque
 	_build_ground_foliage_3d()
+
+func _add_road_strip_3d(parent: Node3D, rect: Rect2, height_px: float, mat: Material) -> MeshInstance3D:
+	var step: float = 20.0
+	var nx: int = maxi(1, int(ceil(rect.size.x / step)))
+	var ny: int = maxi(1, int(ceil(rect.size.y / step)))
+	var dx: float = rect.size.x / float(nx)
+	var dy: float = rect.size.y / float(ny)
+	var st := SurfaceTool.new()
+	st.begin(Mesh.PRIMITIVE_TRIANGLES)
+	for iy in range(ny):
+		var y0: float = rect.position.y + float(iy) * dy
+		var y1: float = y0 + dy
+		for ix in range(nx):
+			var x0: float = rect.position.x + float(ix) * dx
+			var x1: float = x0 + dx
+			var p00 := Vector2(x0, y0)
+			var p10 := Vector2(x1, y0)
+			var p01 := Vector2(x0, y1)
+			var p11 := Vector2(x1, y1)
+			var v00: Vector3 = to_3d(p00, height_px)
+			var v10: Vector3 = to_3d(p10, height_px)
+			var v01: Vector3 = to_3d(p01, height_px)
+			var v11: Vector3 = to_3d(p11, height_px)
+			var n00: Vector3 = terrain_normal_3d(p00, 12.0)
+			var n10: Vector3 = terrain_normal_3d(p10, 12.0)
+			var n01: Vector3 = terrain_normal_3d(p01, 12.0)
+			var n11: Vector3 = terrain_normal_3d(p11, 12.0)
+			st.set_normal(n00); st.add_vertex(v00)
+			st.set_normal(n10); st.add_vertex(v10)
+			st.set_normal(n11); st.add_vertex(v11)
+			st.set_normal(n00); st.add_vertex(v00)
+			st.set_normal(n11); st.add_vertex(v11)
+			st.set_normal(n01); st.add_vertex(v01)
+	var mi := MeshInstance3D.new()
+	mi.mesh = st.commit()
+	mi.material_override = mat
+	parent.add_child(mi)
+	return mi
 
 func _build_ground_foliage_3d() -> void:
 	if _is_headless or not AssetLib.has_curated_assets():
@@ -3150,8 +3366,8 @@ func _build_ground_foliage_3d() -> void:
 		"nature/Flowers.obj", "nature/Plant_1.obj", "nature/Wheat.obj",
 	]
 	var idx: int = 0
-	for gx in range(-920, 1480, 95):
-		for gy in range(-460, 1180, 95):
+	for gx in range(-2050, 1480, 95):
+		for gy in range(-520, 1280, 95):
 			idx += 1
 			var jx: float = float(((idx * 73) % 59) - 29)
 			var jy: float = float(((idx * 41) % 59) - 29)
@@ -3159,7 +3375,7 @@ func _build_ground_foliage_3d() -> void:
 			# Saltar calzadas principales, plaza central, lago y huellas de edificios
 			if absf(fp.y - 50.0) < 30.0 or (fp.x > 375.0 and fp.x < 555.0 and fp.y > 0.0 and fp.y < 95.0):
 				continue
-			if fp.distance_to(FishingSpotScript.LAKE_NODE_POS) < 130.0:
+			if fp.distance_to(FishingSpotScript.LAKE_NODE_POS) < 130.0 or terrain_height_px(fp) < -8.0:
 				continue
 			if VillageRestaurant.RECT.grow(16.0).has_point(fp) or VillageTavern.RECT.grow(16.0).has_point(fp):
 				continue
@@ -3167,33 +3383,32 @@ func _build_ground_foliage_3d() -> void:
 				continue
 			var mdl: String = foliage_models[idx % foliage_models.size()]
 			var h_f: float = 4.2 + float(idx % 4) * 1.1
-			var node_f := _add_model_2d(terrain_root_3d, mdl, fp, 0.0, Vector2.ZERO, h_f, float((idx * 53) % 360))
+			var node_f := _add_model_2d(terrain_root_3d, mdl, fp, -0.8, Vector2.ZERO, h_f, float((idx * 53) % 360))
 			if node_f != null and nature_root_3d != null:
 				_absorb_into_batches(node_f, fp)
 	_flush_batches()
 
 
-## Lago 3D a partir del mismo polígono que el lago 2D: orilla de arena, agua y zona honda más oscura.
+## Lago 3D en cuenca hundida: las orillas bajan en talud desde el terreno hasta la lámina de agua (-7.5 px) y el fondo.
 func _build_lake_3d() -> void:
-	var m_sand := _mat("lake_sand", Color(0.86, 0.78, 0.58), 0.95, 0.0, Color.BLACK, 0.0, "town_textures/floor_ground_sand.png", "", 0.78)
-	var m_lake := _mat("lake_water", Color(0.36, 0.62, 0.86), 0.12, 0.10, Color.BLACK, 0.0, "town_textures/floor_ground_water.png", "", 0.55)
-	var m_deep := _mat("lake_deep", Color(0.20, 0.38, 0.62), 0.10, 0.10, Color.BLACK, 0.0, "town_textures/floor_ground_water.png", "", 0.55)
-	for lm in [m_sand, m_lake, m_deep]:
+	var m_lake := _mat("lake_water", Color(0.28, 0.56, 0.82, 0.90), 0.12, 0.14, Color.BLACK, 0.0, "town_textures/floor_ground_water.png", "", 0.55)
+	var m_deep := _mat("lake_deep", Color(0.16, 0.34, 0.58, 0.94), 0.10, 0.12, Color.BLACK, 0.0, "town_textures/floor_ground_water.png", "", 0.55)
+	for lm in [m_lake, m_deep]:
 		(lm as StandardMaterial3D).cull_mode = BaseMaterial3D.CULL_DISABLED
-	_add_flat_poly_2d(terrain_root_3d, FishingSpotScript.lake_scaled(1.0, 9.0), 0.25, m_sand)
-	_add_flat_poly_2d(terrain_root_3d, FishingSpotScript.lake_scaled(1.0, 0.0), 0.55, m_lake)
-	_add_flat_poly_2d(terrain_root_3d, FishingSpotScript.lake_scaled(0.62, 0.0), 0.7, m_deep)
-	# Un único muelle de madera en la orilla este del lago (mismo sitio que el 2D)
+	_add_flat_poly_2d(terrain_root_3d, FishingSpotScript.lake_scaled(1.06, 5.0), -7.5, m_lake, true)
+	_add_flat_poly_2d(terrain_root_3d, FishingSpotScript.lake_scaled(0.62, 0.0), -7.2, m_deep, true)
+	# Un único muelle de madera en la orilla este del lago con pasarela desde el talud de la orilla
 	var m_dock := _mat("dock_wood", Color(0.62, 0.44, 0.28), 0.9, 0.0, Color.BLACK, 0.0, "town_textures/rf_planks.png", "", 0.78)
 	var dock_c: Vector2 = FishingSpotScript.LAKE_NODE_POS + Vector2(32.0, 0.0)
-	_add_box_2d(terrain_root_3d, dock_c, Vector2(38, 16), 1.0, 2.5, m_dock)
-	for px in [-14.0, 0.0, 14.0]:
+	_add_box_2d(terrain_root_3d, dock_c, Vector2(42, 16), 2.5, 2.5, m_dock)
+	_add_box_2d(terrain_root_3d, dock_c + Vector2(24.0, 0.0), Vector2(18, 14), 0.5, 2.2, m_dock)
+	for px in [-15.0, 0.0, 15.0]:
 		for py in [-7.0, 7.0]:
-			_add_box_2d(terrain_root_3d, dock_c + Vector2(px, py), Vector2(2.5, 2.5), -0.5, 3.5, m_dock)
+			_add_box_2d(terrain_root_3d, dock_c + Vector2(px, py), Vector2(2.5, 2.5), -8.0, 14.5, m_dock)
 
 
-## Superficie plana con la forma de un polígono del mapa 2D, a una altura dada (agua, arena…).
-func _add_flat_poly_2d(parent: Node3D, pts: PackedVector2Array, h_px: float, mat: Material) -> MeshInstance3D:
+## Superficie plana con la forma de un polígono del mapa 2D, a una altura dada (si absolute_h es true, no suma el relieve).
+func _add_flat_poly_2d(parent: Node3D, pts: PackedVector2Array, h_px: float, mat: Material, absolute_h: bool = false) -> MeshInstance3D:
 	var idx := Geometry2D.triangulate_polygon(pts)
 	if idx.is_empty():
 		return null
@@ -3201,7 +3416,7 @@ func _add_flat_poly_2d(parent: Node3D, pts: PackedVector2Array, h_px: float, mat
 	st.begin(Mesh.PRIMITIVE_TRIANGLES)
 	st.set_normal(Vector3.UP)
 	for i in idx:
-		st.add_vertex(to_3d(pts[i], h_px))
+		st.add_vertex(to_3d_flat(pts[i], h_px) if absolute_h else to_3d(pts[i], h_px))
 	var mi := MeshInstance3D.new()
 	mi.mesh = st.commit()
 	mi.material_override = mat
@@ -3405,16 +3620,16 @@ func _make_nature_3d(n: Node2D, kind: String) -> Dictionary:
 		]
 		var files: Array = forest_trees if pos.y >= 680.0 else village_trees
 		var h: float = 52.0 + float(hv % 6) * 6.0
-		var t := _add_model_2d(nature_root_3d, files[hv % files.size()], pos, 0.0, Vector2.ZERO, h, rot)
+		var t := _add_model_2d(nature_root_3d, files[hv % files.size()], pos, -1.4, Vector2.ZERO, h, rot)
 		var stump: Node3D = null
 		if kind == "pine":
-			stump = _add_cyl_2d(nature_root_3d, pos, 5.0, 0.0, 5.0, _mat("tree_stump", Color(0.45, 0.32, 0.20), 0.9, 0.0, Color.BLACK, 0.0, "town_textures/rf_planks.png", "", 0.78), 4.5, 8)
+			stump = _add_cyl_2d(nature_root_3d, pos, 5.0, -1.2, 6.2, _mat("tree_stump", Color(0.45, 0.32, 0.20), 0.9, 0.0, Color.BLACK, 0.0, "town_textures/rf_planks.png", "", 0.78), 4.5, 8)
 			stump.visible = false
 		return {"tree": t, "stump": stump}
 	if kind == "rock":
 		var rfiles := ["nature/Rock_1.obj", "nature/Rock_2.obj", "nature/Rock_3.obj", "nature/Rock_4.obj", "nature/Rock_5.obj"]
-		var r := _add_model_2d(nature_root_3d, rfiles[hv % rfiles.size()], pos, 0.0, Vector2.ZERO, 16.0, rot)
-		var low := _add_model_2d(nature_root_3d, rfiles[(hv + 2) % rfiles.size()], pos, 0.0, Vector2.ZERO, 6.0, rot + 40.0)
+		var r := _add_model_2d(nature_root_3d, rfiles[hv % rfiles.size()], pos, -1.4, Vector2.ZERO, 16.0, rot)
+		var low := _add_model_2d(nature_root_3d, rfiles[(hv + 2) % rfiles.size()], pos, -1.2, Vector2.ZERO, 6.0, rot + 40.0)
 		if low != null:
 			low.visible = false
 		return {"tree": r, "stump": low}
@@ -3456,6 +3671,10 @@ const PROP_KIND_BY_TEXTURE := {
 	"coop_feeder_full.png": "feeder",
 	"coop_nest_empty.png": "nest",
 	"coop_nest_eggs.png": "nest",
+	"wild_herb.png": "wild_herb",
+	"wild_mushroom.png": "wild_mushroom",
+	"rabbit_burrow.png": "rabbit_burrow",
+	"fox_den.png": "fox_den",
 }
 
 static func _tex_file(t: Texture2D) -> String:
@@ -3468,10 +3687,16 @@ static func _tex_file(t: Texture2D) -> String:
 func _prop_kind_for(spr: Sprite2D) -> String:
 	if spr.name == "CropSprite":
 		return "crop"
-	return String(PROP_KIND_BY_TEXTURE.get(_tex_file(spr.texture), ""))
+	var mapped: String = String(PROP_KIND_BY_TEXTURE.get(_tex_file(spr.texture), ""))
+	if not mapped.is_empty():
+		return mapped
+	var p: Node = spr.get_parent()
+	if p != null and p.get_parent() != null and p.get_parent().name == "Items":
+		return "dropped_item"
+	return ""
 
 
-## Busca los dibujos 2D de objetos quietos: hijos directos del pueblo y piezas del campamento y los huertos.
+## Busca los dibujos 2D de objetos quietos: hijos directos del pueblo, ecosistema (hierbas, setas, madrigueras) y piezas del campamento y los huertos.
 func _scan_props_sources() -> void:
 	_prop_sources.clear()
 	_extra_hidden_2d.clear()
@@ -3500,6 +3725,8 @@ func _scan_props_sources() -> void:
 				_collect_canvas_items(hr, _extra_hidden_2d)
 		elif c is Node2D and String(c.name).begins_with("PetBed_"):
 			_build_pet_bed_3d_for(c as Node2D)
+	for eco in get_tree().get_nodes_in_group("ecosystem_manager"):
+		_collect_camp_sprites(eco)
 	var w_root: Node = vm.get_parent()
 	if w_root != null and is_instance_valid(w_root):
 		for container_name in ["Items", "Environment"]:
@@ -3764,6 +3991,33 @@ func _build_prop_3d(root: Node3D, kind: String, spr: Sprite2D) -> void:
 				var m_egg := _mat("coop_egg", Color(0.96, 0.92, 0.82), 0.7, 0.0)
 				for off in [Vector2(-2.5, -1), Vector2(2.5, 0.5), Vector2(0, 2.5)]:
 					_add_cyl_2d(root, pos + off, 1.6, 5.0, 2.4, m_egg, 1.0, 6)
+		"wild_herb":
+			var m_herb := _mat("forest_herb_3d", Color(0.26, 0.74, 0.34), 0.80, 0.0)
+			if _add_model_2d(root, "nature/Flowers.obj", pos, -0.5, Vector2(12, 12), 7.5) == null:
+				for off in [Vector2(-2.5, -1.5), Vector2(2.5, -1.0), Vector2(0.0, 2.2)]:
+					_add_cyl_2d(root, pos + off, 2.2, 0.0, 5.5, m_herb, 0.6, 6)
+		"wild_mushroom":
+			var m_stem := _mat("mush_stem_3d", Color(0.92, 0.88, 0.78), 0.88, 0.0)
+			var m_cap := _mat("mush_cap_3d", Color(0.82, 0.24, 0.18), 0.78, 0.0)
+			for m_off in [Vector2(-2.2, 0.8), Vector2(2.4, -1.2), Vector2(0.2, -2.0)]:
+				var sc: float = 1.0 if m_off.x < 0.0 else 0.75
+				_add_cyl_2d(root, pos + m_off, 1.1 * sc, -0.4, 3.4 * sc, m_stem, 0.9 * sc, 7)
+				_add_cyl_2d(root, pos + m_off, 2.8 * sc, 2.6 * sc, 2.2 * sc, m_cap, 0.6 * sc, 8)
+		"rabbit_burrow":
+			var m_earth := _mat("burrow_earth_3d", Color(0.42, 0.30, 0.19), 0.95, 0.0)
+			var m_hole := _mat("burrow_hole_3d", Color(0.08, 0.06, 0.05), 0.98, 0.0)
+			_add_cyl_2d(root, pos, 8.5, -0.8, 3.2, m_earth, 5.2, 10)
+			_add_cyl_2d(root, pos + Vector2(0, 1.0), 4.2, 1.6, 1.0, m_hole, 3.8, 8)
+		"fox_den":
+			var m_den_rock := _mat("fox_den_rock_3d", Color(0.46, 0.43, 0.39), 0.92, 0.02)
+			var m_den_earth := _mat("burrow_earth_3d", Color(0.42, 0.30, 0.19), 0.95, 0.0)
+			var m_den_hole := _mat("burrow_hole_3d", Color(0.08, 0.06, 0.05), 0.98, 0.0)
+			_add_cyl_2d(root, pos, 11.5, -1.0, 5.5, m_den_earth, 7.5, 10)
+			_add_box_2d(root, pos + Vector2(0, -3.0), Vector2(14.0, 9.0), 0.0, 6.8, m_den_rock)
+			_add_cyl_2d(root, pos + Vector2(0, 2.2), 5.2, 1.2, 2.4, m_den_hole, 4.6, 8)
+		"dropped_item":
+			var m_pouch := _mat("dropped_pouch_3d", Color(0.68, 0.52, 0.32), 0.85, 0.05)
+			_add_cyl_2d(root, pos, 3.4, 0.0, 4.2, m_pouch, 2.0, 8)
 
 
 ## Casa mejorada del jugador (nivel 2 = cabaña de madera, 3 = casa de piedra con cofre). Copia la planta de la 2D

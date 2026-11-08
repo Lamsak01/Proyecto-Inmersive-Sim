@@ -1,6 +1,13 @@
 # Informe de Trabajo — Antigravity (2026-11-07)
 
-## Encargo: 2 pendientes de `FALLOS_VISIBLES.md` (farola frente a puerta de taberna y niebla a franjas) + Punto 1 (`Modo pruebas [F8]`) y Punto 2 (`Interfaz nueva en partida`) de `docs/ENCARGO_SIGUIENTE.md`
+## Actualización rápida (2026-11-07 noche — «Ritmo y alcance»): 5 detalles de interfaz + Relieve Fase A (fuera del pueblo)
+- **5 detalles de «Revisión de Claude a la interfaz nueva» (`docs/FALLOS_VISIBLES.md:101-106`):** ocultada la etiqueta de nombre sobre vecinos que no están frente al jugador; quitados el contorno amarillo del vecino apuntado y la lista flotante encima del cuerpo; limpiados de inglés, `HP` y coordenadas los bocadillos/avisos/carteles; y reubicados los avisos flotantes (`FloatingText`) sobre la barra de herramientas para que no tapen la tarjeta de `[E]`. Comprobado en 3D (`docs/capturas_arreglos/ui_after_plaza_3d.png`) y subido en `e6c0e92`.
+- **Relieve del terreno — Fase A (fuera del pueblo, `scripts/visuals/WorldStage3D.gd`, `scripts/visuals/AnimalModel3D.gd`, `scripts/systems/ai/EnemyAI.gd`):** terreno 3D continuo con lomas en la llanura, colinas y hondonadas en el bosque, y cuencas hundidas con orilla en pendiente en el lago del Oeste y la ciénaga del Sur, manteniendo planos el pueblo, el campamento/huerto/gallinero del jugador, la granja/rancho, la cantera y el Puesto del Paso. Vecinos, animales, carros, caravanas, jugador, árboles, rocas, hierbas, setas, madrigueras, objetos tirados y caminos exteriores siguen la altura del suelo sin flotar ni hundirse.
+- **Comprobado en 3 capturas 3D (`docs/capturas_arreglos/relieve_fase_a_llanura_3d.png`, `relieve_fase_a_bosque_3d.png`, `relieve_fase_a_lago_cienaga_3d.png`):** se ven las lomas doradas y verdes sin cuadrícula mirando hacia el pueblo plano (`relieve_fase_a_llanura_3d.png`), los desniveles del bosque con árboles, arbustos y hierbas medicinales 3D apoyados en la ladera (`relieve_fase_a_bosque_3d.png`), y la orilla en cuesta del lago con su rampa al muelle y dos vecinos subiendo por el camino de la colina (`relieve_fase_a_lago_cienaga_3d.png`). Paramos aquí para revisar Fase A antes de pasar a Fase B.
+
+---
+
+## Encargo anterior: 2 pendientes de `FALLOS_VISIBLES.md` (farola frente a puerta de taberna y niebla a franjas) + Punto 1 (`Modo pruebas [F8]`) y Punto 2 (`Interfaz nueva en partida`) de `docs/ENCARGO_SIGUIENTE.md`
 
 ### 0. Dos pendientes de `docs/FALLOS_VISIBLES.md` (antes de la cola)
 

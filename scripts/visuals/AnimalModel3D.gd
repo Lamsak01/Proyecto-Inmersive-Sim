@@ -180,6 +180,12 @@ func _process(delta: float) -> void:
 			_cur_yaw = lerp_angle(_cur_yaw, target, clampf(delta * 8.0, 0.0, 1.0))
 	_last_pos = pos
 	_yaw.rotation.y = _cur_yaw
+	if _stage != null and _stage.has_method("terrain_height_px"):
+		var fwd_2d := Vector2(sin(_cur_yaw), cos(_cur_yaw))
+		var h_front: float = float(_stage.call("terrain_height_px", pos + fwd_2d * 8.0))
+		var h_back: float = float(_stage.call("terrain_height_px", pos - fwd_2d * 8.0))
+		var slope_pitch: float = clampf(-atan2(h_front - h_back, 16.0) * 0.65, -0.42, 0.42)
+		_yaw.rotation.x = lerpf(_yaw.rotation.x, slope_pitch, clampf(delta * 8.0, 0.0, 1.0))
 	# Tumbado de lado si el sprite 2D está tumbado (muerto o aturdido).
 	var spr = _entity.get("sprite")
 	var lying: bool = spr is Node2D and absf((spr as Node2D).rotation_degrees) > 45.0
@@ -319,7 +325,9 @@ func _near_camera() -> bool:
 	if cam2d == null:
 		return true
 	var center: Vector2 = cam2d.get_screen_center_position()
+	var p: Vector2 = _entity.global_position
+	if _stage != null and _stage.get("first_person_active") == true:
+		return p.distance_squared_to(center) <= 980.0 * 980.0
 	var zoom_val: float = maxf(0.25, cam2d.zoom.x)
 	var half_ext: Vector2 = (vp.get_visible_rect().size / zoom_val) * 0.55 + Vector2(90.0, 90.0)
-	var p: Vector2 = _entity.global_position
 	return absf(p.x - center.x) <= half_ext.x and absf(p.y - center.y) <= half_ext.y

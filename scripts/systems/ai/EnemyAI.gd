@@ -498,7 +498,8 @@ func _spawn_ghost(pos: Vector2, target_node: Node2D) -> void:
 		ghost_instance.material = mat
 	else:
 		ghost_instance.modulate = Color(0.5, 0.8, 1.0, 0.5)
-	get_tree().current_scene.add_child(ghost_instance)
+	var host_scene: Node = get_tree().current_scene if get_tree().current_scene != null else get_tree().root
+	host_scene.add_child(ghost_instance)
 	get_tree().create_timer(3.0).timeout.connect(_clear_ghost)
 
 func _clear_ghost() -> void:
