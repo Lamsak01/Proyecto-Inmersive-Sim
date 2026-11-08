@@ -180,7 +180,18 @@ func _sync_holder_position() -> void:
 		var v_chk: Vector2 = target_entity.get("velocity") if "velocity" in target_entity else Vector2.ZERO
 		if v_chk.length_squared() < 4.0:
 			foot_off = Vector2(0.0, 1.0)
-	_holder.position = _stage.call("to_3d", pos_2d + foot_off, seat_h)
+	var base_pos_3d: Vector3 = _stage.call("to_3d", pos_2d + foot_off, seat_h)
+	var rec_rot := Vector3.ZERO
+	if target_entity.has_meta("hit_recoil_3d_until_ms"):
+		var rem_ms: int = int(target_entity.get_meta("hit_recoil_3d_until_ms")) - Time.get_ticks_msec()
+		var dur_ms: int = maxi(1, int(target_entity.get_meta("hit_recoil_3d_dur_ms", 240)))
+		if rem_ms > 0:
+			var k_rec: float = sin(clampf(float(rem_ms) / float(dur_ms), 0.0, 1.0) * PI)
+			var r_dir: Vector2 = target_entity.get_meta("hit_recoil_3d_dir", Vector2.RIGHT)
+			base_pos_3d += Vector3(r_dir.x, 0.0, r_dir.y) * (0.14 * k_rec)
+			rec_rot = Vector3(r_dir.y * 0.36 * k_rec, 0.0, -r_dir.x * 0.36 * k_rec)
+	_holder.position = base_pos_3d
+	_holder.rotation = rec_rot
 
 
 func _exit_tree() -> void:

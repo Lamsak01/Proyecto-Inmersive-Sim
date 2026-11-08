@@ -868,6 +868,7 @@ func take_damage(data: DamageData) -> void:
 			combat_ctrl.call("resolve_parry_hit", data.source if data else null)
 		_spawn_floating_text("🛡️ ¡PARADA!", Color(0.45, 0.95, 1.0), -40.0)
 		_CombatFeel.play(self, _CombatFeel.SFX_HIT, global_position, 1.45, -3.0) # choque de metal, más agudo
+		WorldStage3DScript.notify_fp_block_impact(true)
 		return
 	# C7 fase 3b: guardia alta (Q mantenida): para casi todo el golpe a cambio de energía
 	if not is_ranged_hit and data != null:
@@ -883,6 +884,7 @@ func take_damage(data: DamageData) -> void:
 				data.knockback_force = maxf(4.0, data.knockback_force * 0.6)
 				_spawn_floating_text("🛡️ Bloqueado", Color(0.7, 0.85, 1.0), -40.0)
 				_CombatFeel.play(self, _CombatFeel.SFX_HIT, global_position, 1.25, -5.0)
+				WorldStage3DScript.notify_fp_block_impact(false)
 	if data and is_instance_valid(data.source):
 		last_damage_source = data.source
 	if test_mode_active:
@@ -914,6 +916,7 @@ func take_damage(data: DamageData) -> void:
 			combat_ctrl = get_node_or_null("PlayerCombatController")
 		if combat_ctrl != null and combat_ctrl.has_method("_apply_camera_shake"):
 			combat_ctrl.call("_apply_camera_shake", clampf(hp_lost * 0.35, 2.0, 6.0))
+		WorldStage3DScript.notify_fp_player_hit(self, data.source if data else null, hp_lost, is_ranged_hit)
 
 func to_save_dict() -> Dictionary:
 	var stam_comp: StaminaComponent = get_node_or_null("StaminaComponent")

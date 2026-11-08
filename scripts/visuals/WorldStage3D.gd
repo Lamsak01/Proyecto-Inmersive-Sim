@@ -295,6 +295,55 @@ var fp_crosshair: Control = null
 var fp_interact_label: Label = null
 var fp_mode_badge: Label = null
 var fp_lantern_light: OmniLight3D = null
+var _fp_viewmodel_root: Node3D = null
+var _fp_left_arm: Node3D = null
+var _fp_right_arm: Node3D = null
+var _fp_weapon_mount: Node3D = null
+var _fp_swing_trail: MeshInstance3D = null
+var _fp_weapon_meshes: Dictionary = {}
+var _fp_walk_bob_t: float = 0.0
+var _fp_damage_vignette: ColorRect = null
+var _fp_hit_flash_rect: ColorRect = null
+
+## C7 fase 5a: estado de sacudida, impacto y daño en primera persona
+static var _fp_shake_timer: float = 0.0
+static var _fp_shake_amp: float = 0.0
+static var _fp_hit_confirm_timer: float = 0.0
+static var _fp_hurt_flash_timer: float = 0.0
+static var _fp_block_flash_timer: float = 0.0
+static var _fp_camera_punch_pitch: float = 0.0
+static var _fp_camera_punch_roll: float = 0.0
+static var _active_stage_instance: Node = null
+
+static func trigger_fp_camera_shake(amp: float = 4.0) -> void:
+	_fp_shake_amp = maxf(_fp_shake_amp, clampf(amp * 0.012, 0.015, 0.095))
+	_fp_shake_timer = maxf(_fp_shake_timer, 0.14)
+
+static func notify_fp_melee_hit(_player: Node2D, target: Node2D, dir_2d: Vector2, feel: Dictionary, power: float = 1.0) -> void:
+	var shk: float = float(feel.get("shake", 3.0)) * maxf(1.0, power)
+	trigger_fp_camera_shake(shk)
+	_fp_hit_confirm_timer = 0.18
+	_fp_camera_punch_pitch = -0.045 * clampf(power, 0.8, 1.8)
+	_fp_camera_punch_roll = 0.032 * (1.0 if randf() > 0.5 else -1.0)
+	if is_instance_valid(_active_stage_instance) and _active_stage_instance.has_method("_spawn_3d_hit_effect") and is_instance_valid(target):
+		_active_stage_instance.call("_spawn_3d_hit_effect", target.global_position, dir_2d, power)
+
+static func notify_fp_player_hit(player: Node2D, attacker: Node, hp_lost: float, _is_ranged: bool = false) -> void:
+	var intensity: float = clampf(hp_lost / 18.0, 0.35, 1.25)
+	trigger_fp_camera_shake(clampf(hp_lost * 0.45, 2.5, 7.5))
+	_fp_hurt_flash_timer = clampf(0.28 + intensity * 0.14, 0.28, 0.48)
+	_fp_camera_punch_pitch = 0.065 * intensity
+	var roll_sign: float = 1.0
+	if is_instance_valid(player) and is_instance_valid(attacker) and attacker is Node2D:
+		var rel: Vector2 = ((attacker as Node2D).global_position - player.global_position).normalized()
+		roll_sign = 1.0 if rel.dot(get_fp_right_2d()) >= 0.0 else -1.0
+	_fp_camera_punch_roll = 0.075 * intensity * roll_sign
+
+static func notify_fp_block_impact(is_parry: bool = false) -> void:
+	trigger_fp_camera_shake(2.8 if is_parry else 1.8)
+	_fp_block_flash_timer = 0.20 if is_parry else 0.14
+	_fp_camera_punch_pitch = 0.032
+	_fp_camera_punch_roll = -0.025
 
 ## D1/D3: Vista cenital 3D en esquema del lugar del crimen (oculta vecinos y jugador).
 var detective_topdown_active: bool = false
@@ -350,6 +399,7 @@ func _exit_tree() -> void:
 func setup_stage(village_manager: Node2D) -> void:
 	vm = village_manager
 	name = "WorldStage3D"
+	_active_stage_instance = self
 	_is_headless = DisplayServer.get_name() == "headless" or Engine.is_editor_hint()
 	first_person_active = false
 	fp_yaw = PI * 0.5
@@ -458,6 +508,7 @@ func setup_stage(village_manager: Node2D) -> void:
 		fp_lantern_light.omni_range = 4.2
 		fp_lantern_light.visible = false
 		cam_3d.add_child(fp_lantern_light)
+		_setup_fp_viewmodel()
 
 		stage_sprite = Sprite2D.new()
 		stage_sprite.name = "WorldStageSprite2D"
@@ -2668,6 +2719,24 @@ func _setup_fp_hud_layer() -> void:
 	root_ctrl.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	fp_hud_layer.add_child(root_ctrl)
 
+	_fp_damage_vignette = ColorRect.new()
+	_fp_damage_vignette.name = "FPDamageVignette"
+	_fp_damage_vignette.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_fp_damage_vignette.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	_fp_damage_vignette.color = Color(0.75, 0.08, 0.06, 0.0)
+	_fp_damage_vignette.visible = false
+	root_ctrl.add_child(_fp_damage_vignette)
+
+	_fp_hit_flash_rect = ColorRect.new()
+	_fp_hit_flash_rect.name = "FPHitConfirmFlash"
+	_fp_hit_flash_rect.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_fp_hit_flash_rect.set_anchors_and_offsets_preset(Control.PRESET_CENTER)
+	_fp_hit_flash_rect.position = Vector2(-14, -14)
+	_fp_hit_flash_rect.size = Vector2(28, 28)
+	_fp_hit_flash_rect.color = Color(1.0, 0.88, 0.42, 0.0)
+	_fp_hit_flash_rect.visible = false
+	root_ctrl.add_child(_fp_hit_flash_rect)
+
 	fp_crosshair = Control.new()
 	fp_crosshair.name = "FPCrosshair"
 	fp_crosshair.mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -2826,9 +2895,314 @@ func _sync_player_aim_from_fp() -> void:
 	else:
 		pl.last_dir = "down" if dir_2d.y >= 0.0 else "up"
 
+func _add_box(parent: Node3D, sz: Vector3, pos: Vector3, mat: Material) -> MeshInstance3D:
+	var mi := MeshInstance3D.new()
+	var bm := BoxMesh.new()
+	bm.size = sz
+	mi.mesh = bm
+	mi.position = pos
+	mi.material_override = mat
+	mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	parent.add_child(mi)
+	return mi
+
+func _setup_fp_viewmodel() -> void:
+	if cam_3d == null or _is_headless:
+		return
+	_fp_viewmodel_root = Node3D.new()
+	_fp_viewmodel_root.name = "FPViewmodelRoot"
+	_fp_viewmodel_root.visible = false
+	cam_3d.add_child(_fp_viewmodel_root)
+
+	var mat_sleeve := _mat("fp_vm_sleeve", Color(0.24, 0.22, 0.19), 0.90)
+	var mat_cuff := _mat("fp_vm_cuff", Color(0.36, 0.26, 0.17), 0.85)
+	var mat_skin := _mat("fp_vm_skin", Color(0.84, 0.67, 0.54), 0.78)
+	var mat_steel := _mat("fp_vm_steel", Color(0.74, 0.77, 0.82), 0.35, 0.65)
+	var mat_dark_iron := _mat("fp_vm_iron", Color(0.26, 0.28, 0.31), 0.50, 0.55)
+	var mat_wood := _mat("fp_vm_wood", Color(0.44, 0.29, 0.16), 0.86)
+	var mat_gold := _mat("fp_vm_gold", Color(0.76, 0.62, 0.26), 0.42, 0.55)
+
+	# Brazo izquierdo (guardia / equilibrio / arco)
+	_fp_left_arm = Node3D.new()
+	_fp_left_arm.name = "FPLeftArm"
+	_fp_left_arm.position = Vector3(-0.22, -0.21, -0.34)
+	_fp_left_arm.rotation_degrees = Vector3(18.0, 16.0, -14.0)
+	_fp_viewmodel_root.add_child(_fp_left_arm)
+	_add_box(_fp_left_arm, Vector3(0.072, 0.072, 0.22), Vector3(0.0, 0.0, 0.08), mat_sleeve)
+	_add_box(_fp_left_arm, Vector3(0.076, 0.076, 0.045), Vector3(0.0, 0.0, -0.03), mat_cuff)
+	_add_box(_fp_left_arm, Vector3(0.064, 0.058, 0.085), Vector3(0.0, 0.0, -0.09), mat_skin)
+
+	# Brazo derecho (empuña el arma activa)
+	_fp_right_arm = Node3D.new()
+	_fp_right_arm.name = "FPRightArm"
+	_fp_right_arm.position = Vector3(0.23, -0.20, -0.36)
+	_fp_right_arm.rotation_degrees = Vector3(14.0, -14.0, 10.0)
+	_fp_viewmodel_root.add_child(_fp_right_arm)
+	_add_box(_fp_right_arm, Vector3(0.075, 0.075, 0.24), Vector3(0.0, 0.0, 0.09), mat_sleeve)
+	_add_box(_fp_right_arm, Vector3(0.079, 0.079, 0.048), Vector3(0.0, 0.0, -0.03), mat_cuff)
+	_add_box(_fp_right_arm, Vector3(0.066, 0.062, 0.09), Vector3(0.0, 0.0, -0.095), mat_skin)
+
+	_fp_weapon_mount = Node3D.new()
+	_fp_weapon_mount.name = "FPWeaponMount"
+	_fp_weapon_mount.position = Vector3(0.0, 0.01, -0.11)
+	_fp_right_arm.add_child(_fp_weapon_mount)
+
+	# Estela luminosa de golpe (solo visible durante la fase "active" del tajo/maza)
+	_fp_swing_trail = MeshInstance3D.new()
+	var tr_box := BoxMesh.new()
+	tr_box.size = Vector3(0.018, 0.42, 0.14)
+	_fp_swing_trail.mesh = tr_box
+	_fp_swing_trail.position = Vector3(-0.04, 0.22, -0.04)
+	var mat_trail := StandardMaterial3D.new()
+	mat_trail.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	mat_trail.albedo_color = Color(1.0, 0.94, 0.72, 0.55)
+	mat_trail.emission_enabled = true
+	mat_trail.emission = Color(1.0, 0.86, 0.48)
+	mat_trail.emission_energy_multiplier = 1.6
+	mat_trail.cull_mode = BaseMaterial3D.CULL_DISABLED
+	_fp_swing_trail.material_override = mat_trail
+	_fp_swing_trail.visible = false
+	_fp_weapon_mount.add_child(_fp_swing_trail)
+
+	# 1. Espada ("sword")
+	var w_sword := Node3D.new()
+	_add_box(w_sword, Vector3(0.028, 0.11, 0.032), Vector3(0.0, -0.02, 0.0), mat_wood)
+	_add_box(w_sword, Vector3(0.038, 0.028, 0.038), Vector3(0.0, -0.08, 0.0), mat_gold)
+	_add_box(w_sword, Vector3(0.14, 0.024, 0.038), Vector3(0.0, 0.04, 0.0), mat_gold)
+	_add_box(w_sword, Vector3(0.016, 0.42, 0.044), Vector3(0.0, 0.26, 0.0), mat_steel)
+	_add_box(w_sword, Vector3(0.020, 0.05, 0.026), Vector3(0.0, 0.49, 0.0), mat_steel)
+	_fp_weapon_mount.add_child(w_sword)
+	_fp_weapon_meshes["sword"] = w_sword
+
+	# 2. Martillo ("hammer")
+	var w_hammer := Node3D.new()
+	_add_box(w_hammer, Vector3(0.032, 0.38, 0.032), Vector3(0.0, 0.14, 0.0), mat_wood)
+	_add_box(w_hammer, Vector3(0.09, 0.10, 0.19), Vector3(0.0, 0.34, 0.0), mat_dark_iron)
+	_add_box(w_hammer, Vector3(0.096, 0.092, 0.03), Vector3(0.0, 0.34, -0.095), mat_steel)
+	_fp_weapon_mount.add_child(w_hammer)
+	_fp_weapon_meshes["hammer"] = w_hammer
+
+	# 3. Hacha ("axe")
+	var w_axe := Node3D.new()
+	_add_box(w_axe, Vector3(0.030, 0.36, 0.032), Vector3(0.0, 0.13, 0.0), mat_wood)
+	_add_box(w_axe, Vector3(0.036, 0.11, 0.13), Vector3(0.0, 0.29, -0.04), mat_dark_iron)
+	_add_box(w_axe, Vector3(0.018, 0.14, 0.05), Vector3(0.0, 0.29, -0.11), mat_steel)
+	_fp_weapon_mount.add_child(w_axe)
+	_fp_weapon_meshes["axe"] = w_axe
+
+	# 4. Pico ("pickaxe")
+	var w_pick := Node3D.new()
+	_add_box(w_pick, Vector3(0.030, 0.36, 0.030), Vector3(0.0, 0.13, 0.0), mat_wood)
+	_add_box(w_pick, Vector3(0.034, 0.045, 0.24), Vector3(0.0, 0.31, 0.0), mat_dark_iron)
+	_add_box(w_pick, Vector3(0.022, 0.032, 0.06), Vector3(0.0, 0.30, -0.14), mat_steel)
+	_fp_weapon_mount.add_child(w_pick)
+	_fp_weapon_meshes["pickaxe"] = w_pick
+
+	# 5. Hoz ("sickle")
+	var w_sickle := Node3D.new()
+	_add_box(w_sickle, Vector3(0.028, 0.14, 0.028), Vector3(0.0, 0.02, 0.0), mat_wood)
+	_add_box(w_sickle, Vector3(0.016, 0.16, 0.04), Vector3(0.0, 0.16, -0.02), mat_steel)
+	_add_box(w_sickle, Vector3(0.016, 0.05, 0.13), Vector3(0.0, 0.23, -0.08), mat_steel)
+	_fp_weapon_mount.add_child(w_sickle)
+	_fp_weapon_meshes["sickle"] = w_sickle
+
+	# 6. Arco ("bow")
+	var w_bow := Node3D.new()
+	_add_box(w_bow, Vector3(0.026, 0.42, 0.032), Vector3(-0.08, 0.14, -0.04), mat_wood)
+	_add_box(w_bow, Vector3(0.006, 0.40, 0.006), Vector3(-0.08, 0.14, 0.02), _mat("fp_vm_bowstring", Color(0.86, 0.82, 0.72), 0.8))
+	_fp_weapon_mount.add_child(w_bow)
+	_fp_weapon_meshes["bow"] = w_bow
+
+	# 7. Arma de fuego ("flintlock" / pistola / fusil)
+	var w_gun := Node3D.new()
+	_add_box(w_gun, Vector3(0.036, 0.11, 0.08), Vector3(0.0, 0.01, 0.02), mat_wood)
+	_add_box(w_gun, Vector3(0.042, 0.055, 0.28), Vector3(0.0, 0.06, -0.10), mat_dark_iron)
+	_add_box(w_gun, Vector3(0.024, 0.028, 0.34), Vector3(0.0, 0.075, -0.16), mat_steel)
+	_fp_weapon_mount.add_child(w_gun)
+	_fp_weapon_meshes["flintlock"] = w_gun
+
+	# 8. Puños / herramienta genérica ("fists")
+	var w_fists := Node3D.new()
+	_fp_weapon_mount.add_child(w_fists)
+	_fp_weapon_meshes["fists"] = w_fists
+
+func _spawn_3d_hit_effect(pos_2d: Vector2, dir_2d: Vector2, power: float = 1.0) -> void:
+	if stage_root_3d == null or _is_headless:
+		return
+	var elev_h: float = 11.0
+	if vm != null:
+		elev_h += VillageTavern.elevation_height_for(pos_2d, int(vm.player_elevation_level))
+	var hit_3d: Vector3 = to_3d(pos_2d - dir_2d.normalized() * 4.0, elev_h)
+	var fx_root := Node3D.new()
+	fx_root.name = "HitSpark3D"
+	fx_root.position = hit_3d
+	stage_root_3d.add_child(fx_root)
+
+	var flash := OmniLight3D.new()
+	flash.light_color = Color(1.0, 0.86, 0.44)
+	flash.light_energy = 2.6 * clampf(power, 0.9, 1.8)
+	flash.omni_range = 2.2
+	fx_root.add_child(flash)
+
+	var spark_mat := StandardMaterial3D.new()
+	spark_mat.albedo_color = Color(1.0, 0.92, 0.56)
+	spark_mat.emission_enabled = true
+	spark_mat.emission = Color(1.0, 0.80, 0.32)
+	spark_mat.emission_energy_multiplier = 2.4
+	var dirs: Array[Vector3] = [
+		Vector3(0.16, 0.14, -0.08),
+		Vector3(-0.15, 0.18, 0.07),
+		Vector3(0.08, -0.10, 0.15),
+		Vector3(-0.12, 0.08, -0.14),
+		Vector3(0.19, 0.04, 0.11),
+	]
+	var spark_nodes: Array[MeshInstance3D] = []
+	for d_v in dirs:
+		var sm := _add_box(fx_root, Vector3(0.035, 0.035, 0.09) * clampf(power, 0.9, 1.5), d_v * 0.35, spark_mat)
+		sm.rotation = d_v.normalized()
+		spark_nodes.append(sm)
+
+	var tw := create_tween()
+	tw.set_parallel(true)
+	tw.tween_property(flash, "light_energy", 0.0, 0.18)
+	for idx in range(spark_nodes.size()):
+		var sn: MeshInstance3D = spark_nodes[idx]
+		tw.tween_property(sn, "position", dirs[idx] * 1.45, 0.18)
+		tw.tween_property(sn, "scale", Vector3.ONE * 0.1, 0.18)
+	tw.chain().tween_callback(fx_root.queue_free)
+
+func _update_fp_viewmodel(delta: float, pl: Node2D) -> void:
+	if _fp_viewmodel_root == null:
+		return
+	if not first_person_active or not is_instance_valid(pl) or _is_ui_blocking_fp():
+		_fp_viewmodel_root.visible = false
+		return
+	_fp_viewmodel_root.visible = true
+
+	var c_ctrl = pl.get_node_or_null("PlayerCombatController")
+	var eq = pl.get("equipped_weapon")
+	var w_key: String = str(eq.get("name")).to_lower() if eq != null else "fists"
+	var mesh_key: String = w_key if _fp_weapon_meshes.has(w_key) else "sword"
+	for k in _fp_weapon_meshes.keys():
+		var wn: Node3D = _fp_weapon_meshes[k]
+		if is_instance_valid(wn):
+			wn.visible = (k == mesh_key)
+
+	# Balanceo al caminar y respirar
+	var vel_2d: Vector2 = pl.get("velocity") if "velocity" in pl else Vector2.ZERO
+	var spd_ratio: float = clampf(vel_2d.length() / 120.0, 0.0, 1.35)
+	_fp_walk_bob_t += delta * (2.2 + spd_ratio * 6.8)
+	var bob_x: float = sin(_fp_walk_bob_t) * (0.004 + 0.014 * spd_ratio)
+	var bob_y: float = absf(cos(_fp_walk_bob_t)) * (0.003 + 0.012 * spd_ratio)
+
+	# Peso visual según el arma (martillo y hacha descansan algo más bajos y pesados)
+	var heavy_off_y: float = -0.025 if mesh_key in ["hammer", "axe", "pickaxe"] else 0.0
+	var r_pos := Vector3(0.23 + bob_x, -0.20 - bob_y + heavy_off_y, -0.36)
+	var r_rot := Vector3(14.0, -14.0, 10.0)
+	var l_pos := Vector3(-0.22 - bob_x * 0.7, -0.22 - bob_y * 0.8, -0.34)
+	var l_rot := Vector3(18.0, 16.0, -14.0)
+	var show_trail: bool = false
+
+	if c_ctrl != null:
+		var phase: String = str(c_ctrl.get("swing_phase"))
+		var p_el: float = float(c_ctrl.get("swing_phase_elapsed"))
+		var p_dur: float = maxf(0.01, float(c_ctrl.get("swing_phase_duration")))
+		var prog: float = clampf(p_el / p_dur, 0.0, 1.0)
+		var c_step: int = int(c_ctrl.get("combo_step"))
+		var charging: bool = bool(c_ctrl.get("is_charging"))
+		var charge_ratio: float = clampf(float(c_ctrl.get("charge_t")) / 0.65, 0.0, 1.0)
+		var parrying: bool = c_ctrl.has_method("is_parrying") and bool(c_ctrl.call("is_parrying"))
+		var blocking: bool = bool(c_ctrl.get("is_blocking"))
+		var drawing_bow: bool = bool(c_ctrl.get("is_drawing_bow"))
+		var bow_tens: float = float(c_ctrl.get("bow_tension"))
+
+		if parrying or blocking:
+			# Parada (Q) o guardia alta sostenida: hoja cruzada frente al pecho y antebrazo izquierdo reforzando
+			var guard_lift: float = 0.03 if parrying else 0.0
+			r_pos = Vector3(0.08, -0.11 + guard_lift, -0.31)
+			r_rot = Vector3(8.0, -32.0, 58.0)
+			l_pos = Vector3(-0.10, -0.13 + guard_lift, -0.29)
+			l_rot = Vector3(28.0, 28.0, -38.0)
+		elif drawing_bow:
+			l_pos = Vector3(-0.06, -0.14, -0.40)
+			l_rot = Vector3(6.0, 6.0, -4.0)
+			r_pos = Vector3(0.16, -0.16, lerpf(-0.34, -0.20, bow_tens))
+			r_rot = Vector3(10.0, -18.0, 8.0)
+		elif charging:
+			# Cargando golpe pesado (martillo / hacha): arma alzada atrás con temblor de tensión
+			var jitter: float = sin(Time.get_ticks_msec() * 0.045) * 0.006 * charge_ratio
+			r_pos = Vector3(0.28 + jitter, lerpf(-0.18, -0.05, charge_ratio), lerpf(-0.34, -0.25, charge_ratio))
+			r_rot = Vector3(lerpf(14.0, 54.0, charge_ratio), lerpf(-14.0, -34.0, charge_ratio), lerpf(10.0, -28.0, charge_ratio))
+			l_pos = Vector3(-0.20, lerpf(-0.22, -0.16, charge_ratio), -0.32)
+			l_rot = Vector3(24.0, 20.0, -20.0)
+		elif phase == "windup":
+			var e_w: float = 1.0 - pow(1.0 - prog, 2.0)
+			if c_step == 2:
+				# 2.º golpe de cadena: prepara desde el costado izquierdo
+				r_pos = r_pos.lerp(Vector3(-0.12, -0.10, -0.30), e_w)
+				r_rot = r_rot.lerp(Vector3(24.0, 32.0, 48.0), e_w)
+			elif c_step == 3 or mesh_key in ["hammer", "axe", "pickaxe"]:
+				# 3.º golpe o arma pesada: alza sobre la cabeza con peso
+				r_pos = r_pos.lerp(Vector3(0.18, -0.03, -0.26), e_w)
+				r_rot = r_rot.lerp(Vector3(58.0, -24.0, -22.0), e_w)
+			else:
+				# 1.er golpe: echa el brazo atrás y arriba a la derecha
+				r_pos = r_pos.lerp(Vector3(0.31, -0.08, -0.27), e_w)
+				r_rot = r_rot.lerp(Vector3(44.0, -32.0, -26.0), e_w)
+			l_pos = l_pos.lerp(Vector3(-0.24, -0.18, -0.30), e_w)
+		elif phase == "active":
+			show_trail = true
+			var e_a: float = pow(prog, 0.65)
+			if c_step == 2:
+				# Revés de izquierda a derecha
+				r_pos = Vector3(-0.12, -0.10, -0.32).lerp(Vector3(0.26, -0.22, -0.44), e_a)
+				r_rot = Vector3(12.0, 28.0, 46.0).lerp(Vector3(-38.0, -36.0, -48.0), e_a)
+			elif c_step == 3 or mesh_key in ["hammer", "axe", "pickaxe"]:
+				# Descarga vertical pesada hacia delante
+				r_pos = Vector3(0.14, -0.02, -0.30).lerp(Vector3(0.04, -0.28, -0.48), e_a)
+				r_rot = Vector3(54.0, -16.0, -14.0).lerp(Vector3(-64.0, 8.0, 18.0), e_a)
+			else:
+				# Tajo diagonal de derecha a izquierda hacia el centro
+				r_pos = Vector3(0.28, -0.08, -0.30).lerp(Vector3(-0.14, -0.24, -0.46), e_a)
+				r_rot = Vector3(38.0, -28.0, -20.0).lerp(Vector3(-46.0, 34.0, 52.0), e_a)
+			l_pos = Vector3(-0.25, -0.24, -0.28)
+		elif phase == "recovery":
+			var e_r: float = smoothstep(0.0, 1.0, prog)
+			var start_p := Vector3(-0.12, -0.25, -0.44) if c_step != 2 else Vector3(0.24, -0.24, -0.42)
+			var start_r := Vector3(-44.0, 26.0, 44.0) if c_step != 2 else Vector3(-36.0, -32.0, -42.0)
+			r_pos = start_p.lerp(r_pos, e_r)
+			r_rot = start_r.lerp(r_rot, e_r)
+		elif phase == "shove":
+			var e_s: float = sin(prog * PI)
+			l_pos = l_pos.lerp(Vector3(-0.04, -0.14, -0.52), e_s)
+			l_rot = l_rot.lerp(Vector3(-12.0, 8.0, -42.0), e_s)
+			r_pos = r_pos.lerp(Vector3(0.26, -0.24, -0.30), e_s)
+
+	if _fp_hurt_flash_timer > 0.0:
+		var hk: float = clampf(_fp_hurt_flash_timer / 0.35, 0.0, 1.0)
+		r_pos += Vector3(0.03 * hk, -0.04 * hk, 0.05 * hk)
+		l_pos += Vector3(-0.04 * hk, -0.02 * hk, 0.05 * hk)
+
+	_fp_right_arm.position = r_pos
+	_fp_right_arm.rotation_degrees = r_rot
+	_fp_left_arm.position = l_pos
+	_fp_left_arm.rotation_degrees = l_rot
+	if is_instance_valid(_fp_swing_trail):
+		_fp_swing_trail.visible = show_trail
+
 func _update_fp_camera_transform() -> void:
 	if cam_3d == null or not first_person_active:
+		if _fp_viewmodel_root != null:
+			_fp_viewmodel_root.visible = false
 		return
+	var dt: float = get_process_delta_time()
+	if _fp_shake_timer > 0.0:
+		_fp_shake_timer = maxf(0.0, _fp_shake_timer - dt)
+		if _fp_shake_timer <= 0.0:
+			_fp_shake_amp = 0.0
+	_fp_camera_punch_pitch = move_toward(_fp_camera_punch_pitch, 0.0, dt * 0.32)
+	_fp_camera_punch_roll = move_toward(_fp_camera_punch_roll, 0.0, dt * 0.36)
+
 	var pl := get_tree().get_first_node_in_group("player") as Node2D if is_inside_tree() else null
 	var pl_pos: Vector2 = pl.global_position if is_instance_valid(pl) else Vector2(465, 48)
 	var eye_h: float = FP_EYE_HEIGHT_PX
@@ -2842,9 +3216,16 @@ func _update_fp_camera_transform() -> void:
 	if vm != null:
 		eye_h += VillageTavern.elevation_height_for(pl_pos, int(vm.player_elevation_level))
 	var eye_3d: Vector3 = to_3d(pl_pos, eye_h)
+	if _fp_shake_timer > 0.0 and _fp_shake_amp > 0.0:
+		eye_3d += Vector3(
+			randf_range(-_fp_shake_amp, _fp_shake_amp),
+			randf_range(-_fp_shake_amp, _fp_shake_amp),
+			randf_range(-_fp_shake_amp, _fp_shake_amp)
+		)
 	var dir_2d: Vector2 = get_fp_forward_2d()
 	var horiz_3d: Vector3 = Vector3(dir_2d.x, 0.0, dir_2d.y / maxf(0.1, _sin_p)).normalized()
-	var look_dir_3d: Vector3 = (horiz_3d * cos(fp_pitch) + Vector3(0.0, sin(fp_pitch), 0.0)).normalized()
+	var eff_pitch: float = clampf(fp_pitch + _fp_camera_punch_pitch, -FP_MAX_PITCH, FP_MAX_PITCH)
+	var look_dir_3d: Vector3 = (horiz_3d * cos(eff_pitch) + Vector3(0.0, sin(eff_pitch), 0.0)).normalized()
 	cam_3d.projection = Camera3D.PROJECTION_PERSPECTIVE
 	cam_3d.fov = 70.0
 	cam_3d.near = 0.03
@@ -2854,6 +3235,9 @@ func _update_fp_camera_transform() -> void:
 		cam_3d.look_at(eye_3d + look_dir_3d * 10.0, Vector3.UP)
 	else:
 		cam_3d.transform = cam_3d.transform.looking_at(eye_3d + look_dir_3d * 10.0, Vector3.UP)
+	if absf(_fp_camera_punch_roll) > 0.0005:
+		cam_3d.rotate_object_local(Vector3.FORWARD, _fp_camera_punch_roll)
+	_update_fp_viewmodel(dt, pl)
 
 func _unhandled_input(event: InputEvent) -> void:
 	if event is InputEventKey and event.pressed and not event.echo:
@@ -2878,6 +3262,28 @@ func _update_fp_hud() -> void:
 		return
 	var ui_blocked: bool = _is_ui_blocking_fp()
 	fp_hud_layer.visible = not ui_blocked
+	var dt: float = get_process_delta_time()
+	if _fp_hurt_flash_timer > 0.0:
+		_fp_hurt_flash_timer = maxf(0.0, _fp_hurt_flash_timer - dt)
+	if _fp_hit_confirm_timer > 0.0:
+		_fp_hit_confirm_timer = maxf(0.0, _fp_hit_confirm_timer - dt)
+	if _fp_block_flash_timer > 0.0:
+		_fp_block_flash_timer = maxf(0.0, _fp_block_flash_timer - dt)
+	if is_instance_valid(_fp_damage_vignette):
+		if _fp_hurt_flash_timer > 0.0:
+			_fp_damage_vignette.visible = true
+			_fp_damage_vignette.color = Color(0.82, 0.08, 0.06, clampf(_fp_hurt_flash_timer * 0.95, 0.0, 0.42))
+		elif _fp_block_flash_timer > 0.0:
+			_fp_damage_vignette.visible = true
+			_fp_damage_vignette.color = Color(0.42, 0.78, 1.0, clampf(_fp_block_flash_timer * 0.90, 0.0, 0.26))
+		else:
+			_fp_damage_vignette.visible = false
+	if is_instance_valid(_fp_hit_flash_rect):
+		if _fp_hit_confirm_timer > 0.0:
+			_fp_hit_flash_rect.visible = true
+			_fp_hit_flash_rect.color = Color(1.0, 0.88, 0.36, clampf(_fp_hit_confirm_timer * 2.2, 0.0, 0.48))
+		else:
+			_fp_hit_flash_rect.visible = false
 	if fp_interact_label != null:
 		fp_interact_label.text = ""
 		fp_interact_label.visible = false

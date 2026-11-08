@@ -62,6 +62,10 @@ const SHOVE_FEEL: Dictionary = {"knockback": 26.0, "stagger": 0.6, "hitstop": 0.
 var is_blocking: bool = false
 var shove_cooldown: float = 0.0
 var _swing_power: float = 1.0 ## multiplicador de daño/empujón/tambaleo del golpe en curso (3.º de la cadena, cargado)
+## C7 fase 5a: fase exacta del golpe en 1.ª persona ("idle", "windup", "active", "recovery", "shove") y su progreso (0..1)
+var swing_phase: String = "idle"
+var swing_phase_elapsed: float = 0.0
+var swing_phase_duration: float = 0.0
 
 func _ready() -> void:
 	_setup_visuals()
@@ -115,6 +119,12 @@ func _process(delta: float) -> void:
 	
 	if attack_timer > 0.0:
 		attack_timer -= delta
+	if swing_phase != "idle":
+		swing_phase_elapsed += delta
+		if swing_phase == "shove" and swing_phase_elapsed >= swing_phase_duration:
+			swing_phase = "idle"
+			swing_phase_elapsed = 0.0
+			swing_phase_duration = 0.0
 
 func _physics_process(delta: float) -> void:
 	if shove_cooldown > 0.0:
@@ -186,6 +196,9 @@ func shove() -> bool:
 	attack_timer = 0.35
 	swing_duration = 0.35
 	swing_move_mult = 0.4
+	swing_phase = "shove"
+	swing_phase_elapsed = 0.0
+	swing_phase_duration = 0.35
 	CombatFeel.play(player, CombatFeel.SFX_SWING, player.global_position, 0.7, -9.0)
 	var hit_any: bool = false
 	for g in ["npcs", "wild_animals", "raiders", "domestic_pets", "enemies"]:
@@ -587,6 +600,9 @@ func attack(_aim_with_mouse: bool = true, charge: float = 0.0) -> void:
 		hitbox_area.damage_data.logging_efficiency *= wear_k
 		hitbox_area.damage_data.mining_efficiency *= wear_k
 
+	swing_phase = "windup"
+	swing_phase_elapsed = 0.0
+	swing_phase_duration = maxf(0.01, t_wind)
 	if t_wind > 0.0:
 		await get_tree().create_timer(t_wind).timeout
 	if my_id != _swing_id or not is_instance_valid(player):
@@ -594,6 +610,9 @@ func attack(_aim_with_mouse: bool = true, charge: float = 0.0) -> void:
 	# Paso adelante al soltar el golpe (choca con paredes)
 	if player is CharacterBody2D and float(f["lunge"]) > 0.0:
 		(player as CharacterBody2D).move_and_collide(current_aim_dir * float(f["lunge"]))
+	swing_phase = "active"
+	swing_phase_elapsed = 0.0
+	swing_phase_duration = maxf(0.01, t_act)
 	hitbox_shape.disabled = false
 	await get_tree().create_timer(t_act).timeout
 	if is_instance_valid(hitbox_shape):
@@ -601,9 +620,15 @@ func attack(_aim_with_mouse: bool = true, charge: float = 0.0) -> void:
 	if my_id != _swing_id:
 		return
 	_in_recovery = true # C7 fase 3a: ventana para encadenar (espada)
+	swing_phase = "recovery"
+	swing_phase_elapsed = 0.0
+	swing_phase_duration = maxf(0.01, t_rec)
 	if t_rec > 0.0:
 		await get_tree().create_timer(t_rec).timeout
 	if my_id == _swing_id:
+		swing_phase = "idle"
+		swing_phase_elapsed = 0.0
+		swing_phase_duration = 0.0
 		_in_recovery = false
 		_swing_locked = false
 		swing_move_mult = 1.0
@@ -709,6 +734,7 @@ func _on_melee_impact(target: Node) -> void:
 	if target is Node2D and is_instance_valid(player):
 		var dir: Vector2 = ((target as Node2D).global_position - player.global_position)
 		CombatFeel.apply_hit_reaction(target, dir if dir.length_squared() > 0.01 else current_aim_dir, f)
+		WorldStage3DScript.notify_fp_melee_hit(player, target as Node2D, dir if dir.length_squared() > 0.01 else current_aim_dir, f, _swing_power)
 		if AudioManager:
 			var is_heavy: bool = _swing_power >= 1.3 or float(f.get("knockback", 8.0)) >= 14.0
 			AudioManager.emit_noise(player.global_position, 190.0 if is_heavy else 115.0, -999, "heavy_hit" if is_heavy else "melee_hit")
@@ -721,6 +747,7 @@ func _apply_hitstop(duration: float = 0.05) -> void:
 	Engine.time_scale = WorldClock.get_active_time_scale() if (WorldClock and WorldClock.has_method("get_active_time_scale")) else 1.0
 
 func _apply_camera_shake(amp: float = 4.0) -> void:
+	WorldStage3DScript.trigger_fp_camera_shake(amp)
 	var cam := get_viewport().get_camera_2d()
 	if cam:
 		var shake_tween := create_tween()

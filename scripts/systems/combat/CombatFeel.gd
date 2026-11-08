@@ -94,6 +94,10 @@ static func apply_hit_reaction(target: Node, dir: Vector2, feel: Dictionary) -> 
 		(target as CharacterBody2D).move_and_collide(push) # choca con muros: no atraviesa paredes
 	if target.has_method("apply_parry_stagger") and target.get("is_dead") != true:
 		target.call("apply_parry_stagger", float(feel.get("stagger", 0.2)) / sqrt(mass), true)
+	var rec_ms: int = maxi(200, int(clampf(float(feel.get("stagger", 0.24)) / sqrt(mass), 0.20, 0.55) * 1000.0))
+	target.set_meta("hit_recoil_3d_dir", dir.normalized() if dir.length_squared() > 0.001 else Vector2.RIGHT)
+	target.set_meta("hit_recoil_3d_until_ms", Time.get_ticks_msec() + rec_ms)
+	target.set_meta("hit_recoil_3d_dur_ms", rec_ms)
 	spawn_impact_spark(t2d, t2d.global_position + Vector2(0, -8) - dir.normalized() * 4.0, dir)
 
 ## C7 fase 4c: un golpe fuerte (3.º de la cadena o cargado) que acaba en el brazo hace soltar el arma a quien lleva

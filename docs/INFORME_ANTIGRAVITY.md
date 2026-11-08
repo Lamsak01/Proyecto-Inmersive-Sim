@@ -13,6 +13,7 @@
   - **3 propuestas de nombre para la casa de comidas del valle (§3b.4):** 1) **«Casa de Comidas El Fogón del Valle»** (usado por defecto), 2) **«Figón La Caldera»**, 3) **«Mesón del Arroyo»**. Platos cambiados a «Guiso de Trigo y Hogaza» y «Asado de Caza al Fuego».
   - **Inventos del taller (§3b.5):** renombrados a «Radio de onda corta», «Cerradura magnética» y «Generador diésel». Cargo policial renombrado a «Alguacil mayor» / «alguacil» (§3b.1).
 - **§3c Ocultar la historia principal actual (`VillageCulture.gd`, `QuestLogUI.gd`):** ocultados sin borrar el código (marca `# [OCULTO_HISTORIA_PRINCIPAL_PP]` y constante `MAIN_STORY_PP_HIDDEN = true`) los 4 capítulos descartados del bloque PP: ocultada la pestaña «Principal» en `[L]`, desactivado el avance y pago de recompensas en el ciclo diario y retiradas sus opciones de diálogo. Comprobado en `docs/capturas_arreglos/ocultar_historia_3c_panel_l.png`.
+- **§3d Combate nuevo — Paso 5a (cuerpo a cuerpo en 1.ª persona, `PlayerCombatController.gd`, `Player.gd`, `WorldStage3D.gd`, `CombatFeel.gd`, `CharacterAvatar3D.gd`):** añadido modelo 3D de brazos y manos en 1.ª persona anclado a la cámara con mallas diferenciadas para cada arma equipada, fases claras de golpe (`windup`, `active`, `recovery`, `shove`), estela luminosa de tajo 3D, chispas de impacto 3D sobre el rival, retroceso visible del cuerpo del vecino golpeado y sacudida/viñeta roja al recibir un golpe o bloquear. Comprobado en `docs/capturas_arreglos/combate_5a_golpe_dado_3d.png` y `docs/capturas_arreglos/combate_5a_golpe_recibido_3d.png`.
 
 ---
 
