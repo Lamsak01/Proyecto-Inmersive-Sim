@@ -225,7 +225,7 @@ Estado: **✅ HECHO** = ya construido y funcionando en el juego. **🟡 EN PARTE
   gordo, viejo), no musculosos de superhéroe; máquinas portátiles solo en manos de poder o contrabando (no una criada);
   pedir también una imagen de día, porque gran parte del juego pasa de día.
 
-- 💡 **PROPUESTAS DE CLAUDE para la época tecnofeudal (2026-11-08). Al usuario le gustan la 1, 2 y 3 (después de rehacer el combate); 4–6 pendientes:**
+- 💡 **PROPUESTAS DE CLAUDE para la época tecnofeudal (2026-11-08). Al usuario le gustan las 6 (1–3 después de rehacer el combate; condiciones de 4–6 abajo):**
   1. **Balística forense**: cada arma de fuego deja marcas propias en casquillos y balas; la armería anota a quién
      vende cada arma; comparar un casquillo de la escena con el arma de un sospechoso. Une forense y armería.
   2. **Ley de armas del señor**: llevar fusil sin licencia es delito; la guardia cachea en el Puesto del Paso y en
@@ -237,6 +237,17 @@ Estado: **✅ HECHO** = ya construido y funcionando en el juego. **🟡 EN PARTE
   5. **Archivo del censo en la terminal**: piratearla da fichas de vecinos (domicilio, deudas, antecedentes) que
      sirven como pistas en los casos, y se pueden borrar o falsificar.
   6. **Combustible escaso**: el gasóleo mueve generadores, tractores y focos; se raciona, se roba y se contrabandea.
+  **Decisiones del usuario sobre 4–6 (2026-11-08):**
+  - **4 (focos y patrullas): SÍ, pero solo cuando el pueblo está en alerta.** Esquivar focos todas las noches sería
+    tedioso. Se engancha a la seguridad del pueblo que ya existe (sube con delitos, cadáveres y robos recientes:
+    Tranquila / Desconfiada / Alerta máxima) y al decreto de toque de queda del alcalde. En calma, noches normales.
+  - **5 (fichas en la terminal): SÍ, pero sin que sea un atajo** que sustituya hablar con los vecinos. Propuesta de
+    Claude para evitarlo: la ficha solo dice lo que sabe la autoridad (datos oficiales, a veces viejos o falsos por
+    sobornos), nunca rasgos, secretos ni relaciones; leerla tiene riesgo (te pueden pillar) y es limitada; lo
+    importante de un caso sigue saliendo de la gente.
+  - **6 (gasóleo): SÍ, y sin tendido eléctrico general.** La red eléctrica es solo infraestructura del señor
+    (comisaría, ayuntamiento, focos, farolas oficiales). Locales independientes y casas que quieran luz necesitan su
+    propio generador y comprar gasóleo. Ojo: el sistema «Red Eléctrica» actual habrá que adaptarlo a esto.
 
 ### Tecnología anacrónica
 - ✅ **HECHO** — Vehículos de época: caballos de silla y carretas de carga (`VillageCulture.gd`, test #90): en el Rancho del Sur puedes comprar al ganadero un Caballo de Silla (45 de oro, aumenta tu velocidad y mejora un +15 % el éxito de tus expediciones) y una Carreta de Carga (55 de oro, añade +4 de oro de rendimiento por cada remesa comercial enviada por ruta). *(Hecho en bloque PM; motos/coches quedan descartados para el tamaño actual del valle.)*
