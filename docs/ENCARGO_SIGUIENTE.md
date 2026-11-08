@@ -19,6 +19,19 @@ commit + push tras cada punto, 1 captura en 1.ª persona por punto **jugando de 
    corto de cómo hacerlo y sigue.
 Al acabar: ✅ en `FALLOS_VISIBLES.md`, resumen corto al principio del informe y commit + push.
 
+# ⭐ TROCEO DE ARCHIVOS GRANDES (aprobado por el usuario el 2026-11-08) — justo después del ENCARGO DE HOY
+**Por qué:** tres archivos de más de 5.000 líneas hacen que cada arreglo pequeño sea lento y caro. **El juego no debe
+cambiar en nada visible.** Orden (uno cada vez, cerrado y subido antes de empezar el siguiente):
+1. `scripts/visuals/WorldStage3D.gd` (~5.200 líneas): sacar a archivos propios lo que va por temas (terreno y relieve,
+   edificios e interiores, vegetación y cielo, objetos de la época, 1.ª persona…).
+2. `scripts/systems/VillageManager.gd` (~5.500).
+3. `scripts/enemies/VillageNPC.gd` (~5.800).
+**Reglas:** objetivo < ~1.500 líneas por archivo; trocea por temas (mover funciones tal cual, sin reescribirlas); el
+archivo original conserva las funciones que llaman otros (aunque solo reenvíen) para no romper nada; nada de cambiar
+comportamientos ni «aprovechar para mejorar». Tras cada archivo: arranque sin errores + **batería completa**
+(`tools/tests/verify_all.gd`) + 1 captura 3D en 1.ª persona del sitio afectado; commit + push. Si algo falla dos veces,
+deshaz ese archivo y pasa al siguiente. En `docs/HANDOFF.md` actualiza el mapa del código con los archivos nuevos.
+
 # ⭐ MODO NOCHE (orden del usuario, noche del 2026-11-08) — MANDA SOBRE TODO LO DEMÁS
 El usuario duerme y quiere que trabajes **sin parar hasta acabar la lista**. La noche anterior te quedaste esperando
 y no se hizo nada: eso no puede volver a pasar.

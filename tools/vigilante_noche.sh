@@ -14,23 +14,28 @@ MODELO="gemini-4-argon-medium"
 ESPERA=600            # segundos entre comprobaciones (10 min)
 INACTIVO_MIN=20       # minutos sin tocar archivos = parado
 DURACION_MAX="3h"     # tiempo máximo de cada lanzamiento
-MAX_LANZAMIENTOS=6
-HORA_FIN=9            # a partir de las 9:00 no lanza nada nuevo
+MODO="${MODO:-noche}" # MODO=dia: trabaja de día, sin hora de fin, y arranca en seguida
+MAX_LANZAMIENTOS="${MAX_LANZAMIENTOS:-6}"
+HORA_FIN=9            # (solo de noche) a partir de las 9:00 no lanza nada nuevo
+FIN="$REPO/docs/NOCHE_TERMINADA.txt"
+[ "$MODO" = dia ] && FIN="$REPO/docs/DIA_TERMINADO.txt" && MAX_LANZAMIENTOS="${MAX_LANZAMIENTOS_DIA:-10}"
 DRYRUN="${DRYRUN:-0}" # DRYRUN=1: solo dice qué haría
 ONCE="${ONCE:-0}"     # ONCE=1: una sola comprobación
 
 ORDEN='Lee docs/GUIA_CORTA_ANTIGRAVITY.md, «Ahorro de tokens» en docs/DIRECTIVAS_ANTIGRAVITY.md y «MODO NOCHE» al principio de docs/ENCARGO_SIGUIENTE.md, y síguelo hasta acabar la lista sin parar ni preguntar. Mira antes git log, git status y docs/INFORME_ANTIGRAVITY.md: sigue desde el primer punto no hecho. Si hay cambios sin guardar en git, son trabajo a medias: revísalos y termínalos primero. Tras cada paso, mira «Notas del supervisor (noche)». Al acabar toda la lista, crea docs/NOCHE_TERMINADA.txt y haz commit y push.'
+[ "$MODO" = dia ] && ORDEN='Lee docs/GUIA_CORTA_ANTIGRAVITY.md y «Ahorro de tokens» en docs/DIRECTIVAS_ANTIGRAVITY.md. Haz, sin parar ni preguntar, el «ENCARGO DE HOY» del principio de docs/ENCARGO_SIGUIENTE.md y después «TROCEO DE ARCHIVOS GRANDES» (justo debajo). Dudas de diseño a docs/PREGUNTAS_PENDIENTES.md y sigue. Mira antes git log, git status y docs/INFORME_ANTIGRAVITY.md: sigue desde el primer punto no hecho; si hay cambios sin guardar, son trabajo a medias: termínalos primero. Commit y push tras cada punto. Tras cada punto, mira «Notas del supervisor». Al acabar las dos listas, crea docs/DIA_TERMINADO.txt y haz commit y push.'
 
 log() { echo "$(date '+%Y-%m-%d %H:%M') $*" >> "$LOG"; [ "$DRYRUN" = 1 ] && echo "$*"; }
 
 lanzados=0
+primera=1
 pid_mio=""
 rm -f "$PARAR"
-log "Vigilante arrancado (máx. $MAX_LANZAMIENTOS lanzamientos, hasta las $HORA_FIN:00)."
+log "Vigilante arrancado en modo $MODO (máx. $MAX_LANZAMIENTOS lanzamientos, hasta las $HORA_FIN:00)."
 
 while true; do
   if [ -f "$PARAR" ]; then log "Parado a mano."; exit 0; fi
-  if [ -f "$REPO/docs/NOCHE_TERMINADA.txt" ]; then log "Lista de la noche terminada. Fin."; exit 0; fi
+  if [ -f "$FIN" ]; then log "Lista terminada ($FIN). Fin."; exit 0; fi
 
   # ¿Sigue vivo el Antigravity que lancé yo?
   if [ -n "$pid_mio" ] && kill -0 "$pid_mio" 2>/dev/null; then
@@ -45,9 +50,11 @@ while true; do
     # (no cuenta el editor de Godot del usuario, que puede estar abierto toda la noche)
     godot=$(ps -eo args= | grep 'godot-bin' | grep -v -- '--editor' | grep -v grep | head -1)
     hora=$(date +%-H)
+    if [ "$MODO" = dia ] && [ "$primera" = 1 ] && [ -z "$godot" ]; then recientes=""; fi
+    primera=0
     if [ -n "$recientes" ] || [ -n "$godot" ]; then
       log "Alguien está trabajando (${recientes:+archivo reciente}${godot:+ Godot en marcha}). Espero."
-    elif [ "$hora" -ge "$HORA_FIN" ] && [ "$hora" -lt 20 ]; then
+    elif [ "$MODO" != dia ] && [ "$hora" -ge "$HORA_FIN" ] && [ "$hora" -lt 20 ]; then
       log "Ya es de día ($hora h): no lanzo más. Fin."; exit 0
     elif [ "$lanzados" -ge "$MAX_LANZAMIENTOS" ]; then
       log "Llegado al máximo de $MAX_LANZAMIENTOS lanzamientos. Fin."; exit 0
