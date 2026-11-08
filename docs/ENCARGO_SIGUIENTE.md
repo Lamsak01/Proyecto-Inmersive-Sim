@@ -28,7 +28,8 @@ y no se hizo nada: eso no puede volver a pasar.
   son trabajo a medias: revísalos y termínalos primero.
 
 ## Notas del supervisor (noche)
-- (vacío por ahora)
+- [ ] (01:15, Claude) Mapa [M] en papel: bien. Detalle pequeño: en la leyenda «Tú» sale en azul, pero en el mapa tu
+  marca es roja. Que coincidan.
 
 # Siguiente encargo (cola)
 
