@@ -10,6 +10,8 @@
 - Tu encargo está en `docs/ENCARGO_ANTIGRAVITY.md` (y la cola en `docs/ENCARGO_SIGUIENTE.md`). Al terminar, deja tu
   informe en `docs/INFORME_ANTIGRAVITY.md`, haz commit y push a `main`.
 
+## ⭐ Esta noche (2026-11-08): lee primero «MODO NOCHE» al principio de `docs/ENCARGO_SIGUIENTE.md`. No te pares.
+
 ## Ritmo y alcance (orden del usuario, 2026-11-07 noche) — MANDA SOBRE LO DEMÁS
 - **El juego es solo 3D.** Deja de trabajar en el 2D: no lo arregles, no le hagas capturas, no lo pruebes. **No lo
   borres** todavía; solo ignóralo. Si un cambio rompe algo que solo se ve en 2D, da igual.

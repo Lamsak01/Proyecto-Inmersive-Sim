@@ -1,3 +1,26 @@
+# ⭐ MODO NOCHE (orden del usuario, noche del 2026-11-08) — MANDA SOBRE TODO LO DEMÁS
+El usuario duerme y quiere que trabajes **sin parar hasta acabar la lista**. La noche anterior te quedaste esperando
+y no se hizo nada: eso no puede volver a pasar.
+- **Esta noche no hay paradas.** Donde este archivo o `FALLOS_VISIBLES.md` digan «para», «espera al usuario» o «para
+  que lo pruebe»: haz la captura, escribe 2–3 líneas en `docs/INFORME_ANTIGRAVITY.md` y **sigue con lo siguiente**.
+- **No preguntes nada en el chat.** Si hace falta una decisión de diseño, apúntala en `docs/PREGUNTAS_PENDIENTES.md`,
+  elige la opción más prudente (o salta ese punto) y sigue.
+- **Si algo falla dos veces**, deshaz ese paso (vuelve al último commit bueno), apúntalo en el informe y pasa al
+  siguiente. No te quedes atascado en nada más de ~1 hora.
+- **Cada ejecución de Godot con `timeout`** y en `--headless` o con `xvfb-run`; nunca abras el editor ni comandos que
+  esperen una respuesta por teclado. No cierres el editor de Godot del usuario.
+- **Commit y push a `main` tras cada paso**, para que el trabajo no se pierda.
+- **Orden de la noche:**
+  1. Lo que tienes en marcha: las 5 entradas de `FALLOS_VISIBLES.md` (relieve de la Fase A más suave, taberna: suelo
+     y sillas, taberna: escalera y barandilla, interfaz y partida del usuario, revisión de la Fase A).
+  2. §3 Fase B del relieve (pueblo).
+  3. §3b aspecto de la época (alguacil, ambiente, elementos, casa de comidas, inventos).
+  4. §3c ocultar la historia principal.
+  5. §3d combate nuevo 5a → 5e (sin 5f), un paso detrás de otro, con captura de cada uno.
+  6. Si sobra tiempo: fallos pequeños pendientes de `FALLOS_VISIBLES.md`. **No empieces** los edificios de los
+     bocetos (§4), el 5f ni sistemas nuevos.
+- **Al terminar:** resumen al principio del informe: qué se hizo, qué falló y se deshizo, y qué preguntas quedan.
+
 # Siguiente encargo (cola)
 
 > Claude Code, 2026-11-07. Lanzar cuando Antigravity termine la tanda de arreglos de la segunda ronda del usuario
