@@ -19,7 +19,12 @@ y no se hizo nada: eso no puede volver a pasar.
   5. §3d combate nuevo 5a → 5e (sin 5f), un paso detrás de otro, con captura de cada uno.
   6. Si sobra tiempo: fallos pequeños pendientes de `FALLOS_VISIBLES.md`. **No empieces** los edificios de los
      bocetos (§4), el 5f ni sistemas nuevos.
+- **Tras cada paso, lee «Notas del supervisor (noche)» justo debajo.** Claude Code revisa tus commits durante la
+  noche y deja ahí correcciones; si hay alguna nueva, hazla antes de seguir y márcala con ✅.
 - **Al terminar:** resumen al principio del informe: qué se hizo, qué falló y se deshizo, y qué preguntas quedan.
+
+## Notas del supervisor (noche)
+- (vacío por ahora)
 
 # Siguiente encargo (cola)
 
