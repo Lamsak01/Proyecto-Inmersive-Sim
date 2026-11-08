@@ -24,12 +24,21 @@ var _player_ref: Node2D = null
 var _last_stealth_state: int = -1 # -1 = uninitialized, 0 = normal, 1 = stealthing
 var _death_tween: Tween = null
 var _damaged_by_player: bool = false
+var sprite: CanvasItem = null
+var facing: Vector2 = Vector2.DOWN
+var is_dead: bool = false
+var attack_anim: float = 0.0
 
 func _ready() -> void:
 	motion_mode = CharacterBody2D.MOTION_MODE_FLOATING
 	home_spawn_pos = global_position
+	sprite = anim
 	add_to_group("enemies")
 	add_to_group("plains_hostiles")
+	if enemy_id == "frog":
+		load("res://scripts/visuals/AnimalModel3D.gd").attach(self, "animals/Frog.glb", 9.0, 3.0, Color(0.45, 0.85, 0.42))
+	else:
+		load("res://scripts/visuals/BanditModel3D.gd").attach(self)
 
 	if WorldClock and not WorldClock.day_passed.is_connected(_on_day_passed):
 		WorldClock.day_passed.connect(_on_day_passed)

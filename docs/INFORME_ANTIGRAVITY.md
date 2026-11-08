@@ -1,6 +1,163 @@
 # Informe de Trabajo — Antigravity (2026-11-07)
 
-## Encargo: Corrección de puestos de trabajo, recados nocturnos (`P6b.3a`) y alcantarillas tras los Pasos 2 y 3
+## Encargo: Corrección de los 11 bloques de fallos visibles detectados en partida (`docs/FALLOS_VISIBLES.md`, 2026-11-07)
+
+Se han corregido los **11 fallos visibles** en el orden indicado, sin tocar los edificios de `docs/BOCETOS_EDIFICIOS.md` ni el relieve del terreno. Para cada arreglo se generaron y revisaron visualmente (`read_file`) capturas reales en **2D** y en **3D** (de día y, cuando aplica, también de noche).
+
+---
+
+### 1. VECINOS FUERA DE SITIO (picando piedra delante de la herrería, cosechando/cuidando ganado en la plaza, talando/guisando/remendando en el parque, guisando en el muelle del lago)
+- **Causa real encontrada en el código:**
+  1. En `scripts/systems/VillageWorldBuilder.gd` (bucle de creación de oficios secundarios `role_id >= 14`: `BAKER`, `TAILOR`, `LODGEKEEPER`, `FARMER`, `RANCHER`, `STONECUTTER`, `WOODCUTTER`, `TINKER`, `RESTAURATEUR`) y en `scripts/systems/VillageManager.gd::_try_fill_vacant_trade_roles`, el código leía `cfg.get("shop_center", Vector2.ZERO)` para calcular `work_pos` y `bed_pos`. Pero en `VillageTrades.CONFIGS`, esos 9 oficios definen `"work_pos"` y `"bed_pos"`, **no** `"shop_center"`. Por ello `sc` valía `(0, 0)` y caían en las posiciones de respaldo antiguas: el cantero (`STONECUTTER`) delante de la herrería `(305, 18)`, el leñador (`WOODCUTTER`), el arreglador (`TINKER`) y la posadera (`LODGEKEEPER`) dentro del Parque del Roble `(268..340, 226)`, y el cocinero (`RESTAURATEUR`) en el antiguo emplazamiento del lago.
+  2. Además, en `scripts/enemies/VillageNPC.gd` (línea 1300), `_is_primary_artisan_workshop_role()` incluía los 9 oficios de `VillageTrades` antes de `VillageWork.is_laborer(self)`, haciendo que ejecutaran `_process_artisan_workshop_crafting_and_supply_runs` en la coordenada errónea en vez de `VillageWork.tick_laborer`.
+  3. En `scripts/systems/VillageWork.gd`, los puntos de recolección `GATHER_SPOTS["farmer"]` (`Vector2(510, 62)`), `RANCH_SPOTS` y `WOOD_SPOTS` seguían apuntando a la Plaza Central o al interior de la Granja en vez de los surcos de la Granja del Sur (`s1`/`s2`), el corral vallado del Rancho del Sur (`x = 310..397, y = 400..540`) y el lindero de la Serrería (`s3`).
+- **Solución aplicada (`VillageWorldBuilder.gd`, `VillageManager.gd`, `VillageNPC.gd`, `VillageWork.gd`):**
+  - `VillageWorldBuilder.gd` y `VillageManager.gd::_try_fill_vacant_trade_roles` usan ahora directamente `cfg["work_pos"]` y `cfg["bed_pos"]` de `VillageTrades.CONFIGS`, sincronizados con las posiciones reales de los solares construidos en `VillageLots`.
+  - Actualizados todos los `work_pos`, `GATHER_SPOTS`, `QUARRY_SPOTS`, `FARM_SPOTS`, `RANCH_SPOTS`, `WOOD_SPOTS` y `RESTAURANT_SPOTS` a las posiciones reales tras los Pasos 2 y 3: Cantera `(-167, -330)`, Granja `(-157, 470)`, Rancho `(354, 470)`, Serrería `(-348, 570)`, Taller de Reparaciones `(1230, 122)`, Posada del Camino `(1230, -18)` y Cocina de la Trattoria `(3, -102)`.
+- **Qué se ve en las capturas 2D y 3D revisadas (`fix1_smith_2d/3d.png`, `fix1_plaza_2d/3d.png`, `fix1_park_2d/3d.png`, `fix1_dock_2d/3d.png`, `fix1_quarry_2d/3d.png`, `fix1_farm_2d/3d.png`, `fix1_ranch_2d/3d.png`):**
+  - Delante de la herrería, en la Plaza Central, dentro del Parque del Roble y sobre el muelle del Lago del Oeste **ya no hay nadie picando piedra, cosechando, cuidando ganado, talando, remendando ni guisando**.
+  - En la Cantera `(-167, -330)` se ve al cantero con su barra `⛏️ Picando piedra`; en la Granja del Sur `(-157, 470)` al granjero con `🌾 Segando Trigo`; en el corral del Rancho `(354, 470)` al ganadero con `🐑 Esquilando Lana`; y dentro de la cocina de «Il Corvo» `(3, -102)` al cocinero con `🍝 Amasando la pasta`.
+
+---
+
+### 2. VECINOS ATASCADOS DE NOCHE (día 2, 01:49, con lluvia, en el callejón entre la taberna y la herrería; Nora sin llegar a casa)
+- **Causa real encontrada en el código:**
+  1. En `scripts/systems/VillageTavern.gd::route`, la condición para decidir si un vecino o su destino estaban «dentro de la taberna» usaba `RECT.grow(4.0)` y, cuando el vecino caminaba por el callejón sur (`y = -132..-74`), ciertos recados o paseos lo desviaban hacia `OUTSIDE_APPROACH = (455, -124)` pegado al muro sur de la taberna de 2 pisos; además, si un vecino quedaba en el borde interior de la taberna sin etiqueta de sala, `room_at` devolvía `""` y no lo sacaba por la puerta sur (`DOOR_POS = (455, -132)`).
+  2. En `scripts/systems/VillageNeeds.gd::on_hour`, los paseos nocturnos (`"night_stroll"`) iniciados a las `22:00–23:00` no terminaban a la `01:00`, dejando vecinos deambulando de madrugada por el callejón.
+  3. En `scripts/enemies/VillageNPC.gd`, los vecinos que volvían a dormir a casa de madrugada se detenían a iniciar charlas sociales al cruzarse en el callejón estrecho.
+- **Solución aplicada (`VillageTavern.gd`, `VillageNeeds.gd`, `VillageNPC.gd`):**
+  - `VillageTavern.route` separa limpiamente interior (`RECT.grow(-2.0)`) y exterior (`OUTSIDE_APPROACH = Vector2(455, -116)` en mitad de la calle despejada) y garantiza que cualquier vecino dentro de `RECT` cuyo destino esté fuera salga siempre por `HALL_SOUTH -> DOOR_POS -> OUTSIDE_APPROACH`.
+  - En `VillageNPC.gd::_move_towards_point` se añadió rodeo lateral automático ante bloqueos en esquinas de muros y se desactivaron las paradas de charla social cuando el vecino va camino de su cama en horario de sueño. En `VillageNeeds.gd`, `"night_stroll"` concluye a partir de la `01:00` para que se retiren a dormir.
+- **Qué se ve en las capturas 2D y 3D nocturnas revisadas (`fix2_alley_night_2d.png`, `fix2_alley_night_3d.png`, tomadas a la 01:49 con lluvia):**
+  - El callejón entre la taberna (`y = -132`) y la herrería (`y = -74`) está completamente despejado tanto en 2D como en 3D bajo la lluvia nocturna; no hay vecinos apelotonados ni atascados contra los muros, y Nora duerme en su cama de la Residencia Aguas Claras `(905, -36)`.
+
+---
+
+### 3. CLUB DE PELEAS (sótano debajo de la taberna, entrada/salida solo por trampilla/escalera, trampilla abierta de noche y visible en partida)
+- **Causa real encontrada en el código:**
+  1. `VillageClub.CELLAR_CENTER` estaba en `Vector2(165, -224)` (al oeste fuera de la huella de la taberna), por lo que al bajar a planta `-1` el jugador y el minimapa saltaban a otro punto del mapa en vez de estar debajo de la taberna.
+  2. En `VillageClub.on_hour` y `tick`, los luchadores y espectadores caminaban directamente a coordenadas del sótano en planta `0` o al cerrarse el club a las `03:00` hacían `end_errand()` desde dentro del sótano, saliendo en planta `0` atravesando los muros de la taberna.
+  3. La trampilla `club_trapdoor` (`WorldInteractableProp.gd` y `WorldStage3D.gd`) tenía el mismo aspecto visual cerrada y abierta, por lo que parecía siempre cerrada aunque `VillageClub.is_open_now(vm)` fuera `true` (`21:00–03:00`).
+- **Solución aplicada (`VillageClub.gd`, `WorldInteractableProp.gd`, `WorldStage3D.gd`, `VillageNPC.gd`):**
+  - Se colocó `CELLAR_CENTER = Vector2(434.0, -224.0)` **exactamente debajo del centro de la taberna** (`Rect2(260, -316, 348, 184)`), con su escalerilla `LADDER_POS = Vector2(516.0, -248.0)` alineada bajo la trampilla de la bodega `TRAPDOOR_POS = Vector2(516.0, -286.0)`.
+  - Los vecinos entran caminando hasta `TRAPDOOR_POS` en planta `0`, pasan a planta `-1` (`set_meta("in_club_cellar", true)`, ocultándose en la superficie y mostrándose solo cuando el jugador baja al sótano), y al salir caminan primero hasta `LADDER_POS` en planta `-1`, suben a `TRAPDOOR_POS` en planta `0` y salen por la puerta de la taberna usando `VillageTavern.route`, sin atravesar paredes.
+  - Se añadieron gráficos 2D (`ClosedTrapdoor2D` vs. `OpenTrapdoor2D` con hueco oscuro y peldaños de madera) y mallas 3D reactivas en tiempo real (`ClosedTrapdoor3D` vs. `OpenTrapdoor3D` con hojas abiertas a 80°, hueco iluminado con luz cálida y peldaños 3D) que se abren automáticamente de `21:00` a `03:00`.
+- **Qué se ve en las capturas 2D y 3D revisadas (día y noche, arriba y en el sótano):**
+  - En `fix3_8_9_tavern_day_2d.png` y `fix3_8_9_tavern_day_3d.png` (12:30, de día): la trampilla en la sala de bodega/escalera `(516, -286)` se ve **cerrada** con sus tablas y herrajes.
+  - En `fix3_tavern_night_2d.png` y `fix3_tavern_night_3d.png` (22:30, de noche): la trampilla se ve **abierta** en 2D y en 3D (con las hojas levantadas, el hueco oscuro, los peldaños de la escalerilla y el resplandor cálido saliendo del sótano).
+  - En `fix3_club_cellar_2d.png` y `fix3_club_cellar_3d.png` (22:30, dentro del sótano en planta `-1`): se ve el sótano de piedra con el ring de cuerdas rojas, las antorchas, los bancos, los dos púgiles peleando dentro del ring, el público alrededor, la escalerilla de salida y el minimapa marcando la misma posición de la taberna.
+
+---
+
+### 4. MUEBLES SIN CHOQUE (mesas, sillas, macetas, barriles, cajas, bancos, etc.)
+- **Causa real encontrada en el código:**
+  - Las mesas y sillas de la terraza y comedor de la Trattoria (`VillageRestaurant.gd`), las mesas y sillas del salón, casino y habitaciones de la Taberna (`VillageTavern.gd`), los muebles de los edificios nuevos (`VillageLots.gd`) y la mayoría de decoraciones (`_spawn_decor_prop` y `_add_sprite_prop` en `VillageManager.gd`: barriles, cajas, bancos, macetas, estanterías, camas, chimeneas, farolas y letreros) se creaban solo como `Polygon2D` o `Sprite2D` sin cuerpo de colisión físico.
+- **Solución aplicada (`VillageManager.gd`, `VillageRestaurant.gd`, `VillageTavern.gd`, `VillageLots.gd`, `VillagePlaces.gd`, `VillageWorldBuilder.gd`, `CampSite.gd`):**
+  - Se creó `VillageManager._add_prop_collider(pos, size, floor_group_tag)` que registra formas `RectangleShape2D` en un `StaticBody2D` de mobiliario (`PropCollidersBody`, más cuerpos por planta para el piso `+1` de la taberna), respetando un margen de seguridad de `20 px` alrededor de todas las puertas para no bloquear nunca el paso de vecinos ni del jugador.
+  - Se añadieron colisionadores ajustados a todas las mesas y sillas de la terraza y comedor de la Trattoria, mesas/sillas/barra/billar/póker/chimenea/camas de la Taberna, bancos de la plaza/parque/mirador, barriles, cajas, macetas, vallas, farolas, letreros, lápidas del cementerio y elementos del campamento (tienda, hoguera con caldero, tronco-asiento, tendedero).
+- **Qué se ve en las capturas 2D y 3D revisadas (`fix4_terrace_collision_2d.png`, `fix4_terrace_collision_3d.png`):**
+  - El jugador queda detenido físicamente frente a las mesas y sillas de la terraza de la Trattoria «Il Corvo» sin poder atravesarlas ni meterse dentro de los tableros, mientras el pasillo central hacia la puerta de la trattoria permanece libre para caminar.
+
+---
+
+### 5. CEMENTERIO EN 2D Y 3D (más grande, filas de tumbas, caminos, verja y árboles, sin los dos bloques enormes de piedra)
+- **Causa real encontrada en el código:**
+  - En `VillageWorldBuilder.gd::_spawn_church_and_cemetery`, el cementerio 2D seguía siendo una caja pequeña de `148 × 98 px` con dos rectángulos grises gigantes que ocupaban media parcela y solo 5 lápidas; y en `WorldStage3D.gd::_build_cemetery_3d`, seguían colocándose dos modelos enormes (`crypt.glb` de `24 u` y `altar-stone.glb` de `12 u`) y el tercer modelo de la lista de lápidas (`gravestone-broken.glb`) no existía en disco, dejando 1 de cada 3 tumbas sin lápida 3D.
+- **Solución aplicada (`VillageWorldBuilder.gd`, `VillageManager.gd`, `WorldStage3D.gd`):**
+  - Se amplió el Cementerio Parroquial a `Rect2(822, 260, 268, 168)` tanto en 2D como en 3D.
+  - Se eliminaron por completo los dos bloques de piedra enormes en 2D y en 3D (`crypt.glb` y `altar-stone.glb`).
+  - Se construyeron paseos de losas de piedra en cruz (`x = 888` y `y = 344`), verja perimetral de murete de piedra y reja de hierro forjado con colisión física (dejando abierta la entrada oeste en `(822, 344)`), **24 tumbas completas organizadas en 4 filas × 6 columnas** (cada una con bordillo de piedra, túmulo de tierra, lápida o cruz en la cabecera —usando `gravestone-round.glb`, `gravestone-decorative.glb`, `gravestone-wide.glb`, `gravestone-cross.glb`, `gravestone-cross-large.glb`, `cross-wood.glb` y `cross-column.glb`— y flores al pie, tanto en 2D como en 3D) y **6 pinos perimetrales**.
+- **Qué se ve en las capturas 2D y 3D revisadas (`fix5_cemetery_2d.png`, `fix5_cemetery_3d.png`):**
+  - En **2D (`fix5_cemetery_2d.png`)**: se ve un recinto amplio rodeado por su verja de piedra y hierro y 6 pinos, dividido por caminos de losas en cruz y con las 24 tumbas alineadas en 4 filas × 6 columnas (con su lápida/cruz, tierra y flores), sin los dos bloques grises gigantes.
+  - En **3D (`fix5_cemetery_3d.png`)**: se ve exactamente la misma disposición con murete de piedra y reja de forja 3D, caminos de losas, las 24 tumbas con sus 24 lápidas y cruces 3D erguidas y los 6 árboles perimetrales.
+
+---
+
+### 6. COSAS EN 2D PLANO EN EL CAMPAMENTO + DISTANCIA A LA TRATTORIA
+- **Causa real encontrada en el código:**
+  1. Tras mover la Trattoria a `x = -255` en el Paso 2, el campamento en `x = -532` quedaba a ~250 px del borde oeste de la Trattoria.
+  2. En `scenes/World.tscn`, las capas `Environment/Obstacles Small` y `Environment/Obstacles Large` conservaban celdas de tiles 2D antiguos (cajas flotando sobre el agua del lago y un tendedero 2D suelto), y el NPC `Guia` (`scenes/npc.gd`) usaba un sprite morado placeholder de murciélago (`bat_fixed.png` a escala `1.79` —el «objeto morado tirado»—) sin avatar 3D.
+  3. En `WorldStage3D.gd::_make_prop_3d`, `"tent"` e `"campfire"` dependían de un `.obj` plano que no cubría la lona/caldero/tronco, y faltaban constructores 3D para `"log_seat"`, `"clothesline"`, `"weapon_sword"`, `"sign"` y las camas de mascotas `PetBed_*`; además, los polígonos 2D de la tienda, hoguera y tronco en `CampSite.gd` no se ocultaban cuando el modo 3D estaba activo.
+- **Solución aplicada (`scripts/World.gd`, `scenes/World.tscn`, `CampSite.gd`, `FishingSpot.gd`, `VillagePlaces.gd`, `VillageWorldBuilder.gd`, `VillageManager.gd`, `scenes/npc.gd`, `DummyEnemy.gd`, `DomesticPet.gd`, `WorldStage3D.gd`):**
+  - Se desplazó todo el conjunto de **Campamento, Huerto, Gallinero, Compostador, Toby, Espada, Guía, Lago del Oeste y Mirador del Lago `190 px` más al oeste** (`PlayerCampSite` en `(-722, -96)`, `LAKE_NODE_POS` en `(-715, 105)`), dejando **casi `500 px` de campo abierto** entre el campamento y la Trattoria.
+  - Se limpiaron las celdas obsoletas de `Obstacles Small` y `Obstacles Large`, se añadió el tendedero del campamento (`ClotheslineSprite` con colisión en `CampSite.gd`) y se reemplazó el sprite morado de `Guia` por `villager_guard.png` en 2D y `CharacterAvatar3D` en 3D (además de modelos 3D para `DummyEnemy.gd` y `DomesticPet.gd`).
+  - En `WorldStage3D.gd::_make_prop_3d` y `_sync_props_3d` se construyeron modelos 3D completos para la **tienda de campaña** (tarima de madera, lona triangular a dos aguas, cumbrera, postes, faldones enrollados, saco de dormir con almohada y estacas), **hoguera** (círculo de piedras, leños cruzados, brasas y llamas con luz cálida, trípode de hierro forjado con cadena y caldero con estofado), **tronco-asiento**, **tendedero 3D** (postes, cuerda tensada y 3 prendas 3D tendidas con pinzas, incluida la prenda morada), **espada 3D** (`Sword_Bronze.gltf` sobre taco de madera), **letreros de madera 3D** (`"sign"`) y **camas/cuencos 3D de mascotas** (`PetBed_*`), ocultando todos sus equivalentes 2D planos en modo 3D.
+- **Qué se ve en las capturas 2D y 3D revisadas (`fix6_camp_2d.png`, `fix6_camp_3d.png`):**
+  - En **2D (`fix6_camp_2d.png`)**: el campamento se ve completo con su tienda, hoguera, tronco, tendedero, espada, perro Toby, compostador, huerto 3×3 y el Guía con sprite de explorador/guardia (sin el murciélago morado tirado), lejos de la Trattoria (como muestra también el minimapa).
+  - En **3D (`fix6_camp_3d.png`)**: la tienda de campaña con saco de dormir interior, la hoguera de piedras con fuego, trípode y caldero, el tronco-asiento, el tendedero con ropa colgada en 3D, la espada sobre su bloque de madera, los letreros de madera, la cama y cuenco de Toby, el propio Toby y el Guía se ven **todos en 3D real**, sin ningún elemento plano 2D en el suelo.
+
+---
+
+### 7. CÉSPED (sin cuadrícula repetida de cuadrados y sin el verde menta chillón liso del parque)
+- **Causa real encontrada en el código:**
+  1. En 3D (`WorldStage3D.gd::GROUND_TERRAIN_SHADER_CODE`), `tex_grass` (`floor_ground_grass.png`, `64×64`) se muestreaba alineado con los ejes X/Z (`w_uv * 0.85` y `w_uv * 3.40`), marcando una cuadrícula repetida de cuadrados en todo el mapa, y la línea `if (blade_rnd > 0.992)` pintaba píxeles cuadrados amarillo fosforito (`vec3(0.94, 0.86, 0.34)`).
+  2. En 2D (`scenes/World.tscn`), `Environment/Parallax2D/TextureRect` repetía `grass_background.png` en mosaico directo (`stretch_mode = 1`), dejando ver los bordes cuadrados de cada baldosa.
+  3. En el Parque del Roble (`PARK_RECT = Rect2(168, 208, 272, 146)`), `WorldStage3D.gd` ponía una caja sólida sin textura con `m_grass_park = Color(0.24, 0.48, 0.22)` tapando el shader del terreno, y `VillagePlaces.gd` dibujaba un `Polygon2D` verde brillante (`Color(0.30, 0.52, 0.26, 0.55)`) sin caminos interiores.
+- **Solución aplicada (`WorldStage3D.gd`, `scripts/World.gd`, `VillagePlaces.gd`):**
+  - En `GROUND_TERRAIN_SHADER_CODE` (`WorldStage3D.gd`) se aplicó deformación orgánica de coordenadas (`warp`) y mezcla de 2 proyecciones rotadas (`0.54 rad` y `-0.89 rad`) con ruido multiescala y tonos verdes naturales de pradera (`vec3(0.33, 0.50, 0.24)` / `vec3(0.24, 0.39, 0.18)`), eliminando por completo la cuadrícula y los puntos amarillos chillones.
+  - En `scripts/World.gd` se asignó un shader `canvas_item` orgánico multiescala a `Environment/Parallax2D/TextureRect` para que el césped 2D tampoco tenga cuadrícula repetida.
+  - En el Parque del Roble (`WorldStage3D.gd` y `VillagePlaces.gd`), se sustituyó la losa lisa verde menta por el shader de césped natural texturizado (`ground_park_sh`), acompañado de sus paseos en cruz de tierra apisonada y bordillo perimetral de piedra tanto en 2D como en 3D.
+- **Qué se ve en las capturas 2D y 3D revisadas (`fix7_grass_park_2d.png`, `fix7_grass_park_3d.png`):**
+  - Tanto en **2D (`fix7_grass_park_2d.png`)** como en **3D (`fix7_grass_park_3d.png`)**, la hierba general y la del Parque del Roble lucen con variaciones suaves y orgánicas de pradera natural, **sin rastro de cuadrícula de cuadrados ni del color verde menta plano**, y con los caminos en cruz, bordillo de piedra, bancos, macetas y árboles integrados.
+
+---
+
+### 8. APUESTAS EN BUCLE EN LA TABERNA (bocadillos cada 0,2 s en la mesa de póker o billar)
+- **Causa real encontrada en el código:**
+  - En `scripts/systems/VillageTavern.gd::tick`, el servicio de mesas del camarero (`tick_waiter`) y los bocadillos ambientales de póker/comensales compartían la misma variable estática `_service_timer`. Como `tick_waiter` reiniciaba `_service_timer = 0.25` en cada paso del camarero, el bloque de comentarios de póker se disparaba cada `0,25 s` en bucle continuo.
+- **Solución aplicada (`VillageTavern.gd`):**
+  - Se separó un temporizador estático independiente `_ambient_timer` (`16.0–24.0 s`) exclusivo para las frases de póker y comedor, dejando `_service_timer` (`0.25 s`) solo para el movimiento del camarero.
+- **Qué se ve en las capturas 2D y 3D revisadas (`fix3_8_9_tavern_day_2d.png`, `fix3_8_9_tavern_day_3d.png`, `fix3_tavern_night_2d.png`, `fix3_tavern_night_3d.png`):**
+  - Los jugadores sentados a la mesa de póker y los comensales de la taberna conversan de forma espaciada y natural, sin amontonar bocadillos encima de la mesa.
+
+---
+
+### 9. RECTÁNGULO ROJO SEMITRANSPARENTE ENCIMA DE LA TABERNA EN 2D
+- **Causa real encontrada en el código:**
+  - En `scripts/systems/VillageTavern.gd`, las llamadas a `vm._add_rect_poly(...)` para las alfombras de la taberna (en particular la alfombra roja del casino en `GAMES_POS = (534, -196)`) pasaban el **tamaño completo** pensando que el 2.º parámetro era el tamaño, pero `VillageManager._add_rect_poly(center, half_size, ...)` recibe el **semitamaño** (`half_size`), haciendo el rectángulo el doble de grande (`192 × 140 px`) y desplazado para tapar la mesa de póker y el muro norte.
+- **Solución aplicada (`VillageTavern.gd`):**
+  - Se corrigieron las llamadas a `_add_rect_poly` en `VillageTavern.gd` pasando el semitamaño real y ajustando la alfombra del casino bajo las mesas de juego (`z_index = -2`).
+- **Qué se ve en la captura 2D revisada (`fix3_8_9_tavern_day_2d.png`):**
+  - La sala de casino y billar muestra su alfombra encajada limpiamente en el suelo bajo la mesa de póker y la mesa de billar, sin ningún rectángulo rojo transparente invadiendo los muros ni tapando las mesas.
+
+---
+
+### 10. FRANJA ROSA / MORADA SOBRE EL TEJADO DE LA CAPILLA EN 2D
+- **Causa real encontrada en el código:**
+  - En `scripts/systems/VillageWorldBuilder.gd:389` (`_spawn_church_and_cemetery`), la alfombra púrpura de la nave de la Capilla se creaba en `_church_center + Vector2(0, -2)` con semitamaño `Vector2(18, 34)` (llegando hasta `y = 324 - 36 = 288`, es decir, `10 px` por encima del muro norte de la capilla en `y = 298`).
+- **Solución aplicada (`VillageWorldBuilder.gd`, `WorldStage3D.gd`):**
+  - Se centró y acortó la alfombra interior de la capilla a `_church_center + Vector2(0, 6)` con semitamaño `Vector2(9, 24)` (`size = Vector2(18, 48)` en 3D), quedando contenida de `y = 306` a `y = 354` dentro de los muros de la nave (`y = 298..374`).
+- **Qué se ve en las capturas 2D y 3D revisadas (`fix10_chapel_roof_2d.png`, `fix10_chapel_roof_3d.png`):**
+  - En **2D (`fix10_chapel_roof_2d.png`)** y en **3D (`fix10_chapel_roof_3d.png`)**, el muro norte y el tejado de la Capilla de la Fe del Alba están completamente limpios, sin ninguna franja rosa o morada asomando por encima, y la alfombra queda dentro del pasillo central hacia el altar.
+
+---
+
+### 11. LETREROS ENCIMADOS EN LA HERRERÍA («Herrería y Armería Yunque [E]», «Cerrada: el perista vende la llave» y barra de trabajo)
+- **Causa real encontrada en el código:**
+  1. La rejilla de alcantarilla `smuggler_tunnel` (`Vector2(398, -118)`) ponía su letrero de `InteractionSelector` (`_label.position = pos + Vector2(-110, 8) = Vector2(288, -110)`) **exactamente en la misma coordenada vertical (`y = -110`)** que el título del edificio `⚒️ Herrería y Armería 'Yunque Gris'` (`Vector2(210, -110)`), y `flooded_vault` (`Vector2(248, -90)`) quedaba pegada a la esquina noroeste de la herrería.
+  2. Además, las puertas (`d_lbl`), ventanas (`w_lbl`) y mostradores (`stall_label`) mostraban carteles flotantes propios de 2 líneas encima del taller a la vez que `InteractionSelector` mostraba el aviso `[E] ...` y que Thoran mostraba su barra de progreso de forja (`CraftProgressBar`).
+- **Solución aplicada (`VillageUnderworld.gd`, `WorldInteractableProp.gd`, `VillageManager.gd`, `InteractionSelector.gd`, `VillageNPC.gd`):**
+  - Se reubicaron las rejillas `smuggler_tunnel` a `Vector2(492, -108)` y `flooded_vault` a `Vector2(182, -64)` (fuera de todos los edificios y lejos del cartel de la herrería) y se redujo el radio del `InteractArea` de las rejillas a `14 px`.
+  - Se unificaron los avisos contextuales de puertas, ventanas y mostradores de negocio en el único letrero inferior de `InteractionSelector.gd`, desactivando los carteles duplicados `d_lbl`, `w_lbl` y `stall_label` que tapaban el interior de los talleres.
+  - En `VillageManager._declutter_title_labels()`, `InteractionSelector._update_label()` y `VillageNPC._update_craft_bar_visual()` se añadieron las barras de trabajo y el selector `[E]` a las cajas de anticolisión de textos para que nunca se monten entre sí.
+- **Qué se ve en las capturas 2D y 3D revisadas (`fix11_blacksmith_labels_2d.png`, `fix11_blacksmith_labels_3d.png`):**
+  - Tanto en **2D (`fix11_blacksmith_labels_2d.png`)** como en **3D (`fix11_blacksmith_labels_3d.png`)**, con el jugador dentro de la herrería junto a Thoran:
+    1. Arriba del muro norte (`y = -110`): se lee limpiamente `⚒️ Herrería y Armería 'Yunque Gris'`.
+    2. Sobre Thoran (`y = -67`): se lee limpiamente su barra de trabajo `⚒️ Forjando Lingote Acero 34%` / `23%`.
+    3. Debajo de los pies (`y = -24`): se lee limpiamente el único aviso `[E] Hablar con Thoran   (1/5 · Mayús+rueda o G)`.
+    4. Ningún letrero pisa a otro y no aparece `"Cerrada: el perista vende la llave"` ni `"Picando piedra"`.
+
+---
+
+### Distinción expresa: Qué está comprobado vs. qué es supuesto
+- **Comprobado directamente (con capturas 2D/3D revisadas una por una y con ejecución real del motor):**
+  - El arranque limpio sin errores de script (`flatpak run org.godotengine.Godot --headless --quit-after 3` → `EXIT_CODE=0`).
+  - La suite completa de pruebas automáticas (`timeout 900 flatpak run org.godotengine.Godot --headless --path . -s tools/tests/verify_all.gd` → `ALL ... TESTS PASSED!`, `EXIT_CODE=0`).
+  - Las 22 capturas en 2D y 3D tomadas en las coordenadas y horas reales de los 11 fallos (oficios en su sitio, callejón nocturno a la 01:49 con lluvia sin atascos, trampilla de la taberna cerrada de día y abierta de noche + sótano del club de peleas bajo la taberna en planta `-1`, choque físico en las mesas de la terraza de la trattoria, cementerio grande con 24 tumbas/caminos/verja/árboles en 2D y 3D, campamento en 3D completo a casi 500 px de la trattoria, césped natural sin cuadrícula ni verde menta en 2D y 3D, taberna sin bucle de apuestas ni rectángulo rojo, capilla sin franja rosa/morada sobre el tejado y herrería con los letreros separados y legibles).
+- **Supuesto / Pendiente de partida larga del usuario:**
+  - En sesiones largas de varios días con decenas de eventos simultáneos, la fluidez de todas las rutas de vecinos se ha verificado mediante simulación acelerada y en la hora crítica reportada (Día 2, `01:49` con lluvia y `22:30` en el club), pero queda sujeta a la prueba jugada libre del usuario.
+  - Los edificios nuevos de `docs/BOCETOS_EDIFICIOS.md` (Paso 5) y el relieve del terreno siguen sin tocarse, a la espera de las indicaciones del usuario.
+
 
 ### 1. Qué edificios, lugares y vecinos seguían usando coordenadas antiguas (2D y 3D) y se corrigieron
 - **Aprendices y ayudantes familiares de los talleres (`scripts/systems/VillageWorldBuilder.gd`):**

@@ -35,12 +35,12 @@ var dock_pos: Vector2 = Vector2(36, 0)
 ## Orilla del agua del Lago del Oeste en coordenadas del MAPA (Paso 2: alejado al oeste junto al campamento inicial, un solo muelle al este).
 ## La usa también el escenario 3D (`WorldStage3D._build_lake_3d`).
 ## Posición del nodo del lago en el mapa (la pone World.gd después de _ready).
-const LAKE_NODE_POS := Vector2(-525, 105)
+const LAKE_NODE_POS := Vector2(-715, 105)
 const LAKE_WATER_WORLD: Array[Vector2] = [
-	Vector2(-520, 78), Vector2(-485, 82), Vector2(-477, 105), Vector2(-487, 138), Vector2(-530, 152),
-	Vector2(-590, 160), Vector2(-660, 188), Vector2(-730, 232), Vector2(-810, 240), Vector2(-872, 205),
-	Vector2(-888, 150), Vector2(-865, 110), Vector2(-800, 96), Vector2(-720, 104), Vector2(-645, 108),
-	Vector2(-570, 104),
+	Vector2(-710, 78), Vector2(-675, 82), Vector2(-667, 105), Vector2(-677, 138), Vector2(-720, 152),
+	Vector2(-780, 160), Vector2(-850, 188), Vector2(-920, 232), Vector2(-1000, 240), Vector2(-1062, 205),
+	Vector2(-1078, 150), Vector2(-1055, 110), Vector2(-990, 96), Vector2(-910, 104), Vector2(-835, 108),
+	Vector2(-760, 104),
 ]
 
 
@@ -125,6 +125,7 @@ func _build_lake_visuals() -> void:
 		spr.position = pos
 		spr.scale = Vector2(1.15, 1.15)
 		spr.z_index = -1
+		spr.add_to_group("ranch_fence_2d")
 		add_child(spr)
 		ripple_sprites.append(spr)
 

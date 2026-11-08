@@ -201,7 +201,7 @@ var _well_pos := Vector2(184, 82)
 var _tavern_well_pos := VillageTavern.WELL_POS
 var _plaza_well_pos := Vector2(412, 54)
 var _well_positions: Array[Vector2] = [Vector2(184, 82), VillageTavern.WELL_POS, Vector2(412, 54)]
-var _compost_pos := Vector2(-516, -6)
+var _compost_pos := Vector2(-706, -6)
 
 # Capas de Interfaz para Morgue Forense, Arresto/Cárcel, Tablón de Encargos y Gestión de Negocios/Escrituras
 var ui_layer: CanvasLayer = null
@@ -2366,7 +2366,7 @@ func _spawn_unemployed_tavern_guests() -> void:
 
 func _spawn_domestic_pets() -> void:
 	var pet_defs: Array[Dictionary] = [
-		{"type": DomesticPet.PetType.DOG, "name": "Toby", "owner": "Granja del Jugador", "fam": "player_farm", "pos": Vector2(-495, -52), "guard": true, "tint": Color(1.0, 0.96, 0.90)},
+		{"type": DomesticPet.PetType.DOG, "name": "Toby", "owner": "Granja del Jugador", "fam": "player_farm", "pos": Vector2(-685, -52), "guard": true, "tint": Color(1.0, 0.96, 0.90)},
 		{"type": DomesticPet.PetType.DOG, "name": "Sultán", "owner": "Herrería Yunque Gris", "fam": "family_smith", "pos": Vector2(365, 16), "guard": false, "tint": Color(0.88, 0.82, 0.78)},
 		{"type": DomesticPet.PetType.DOG, "name": "Canela", "owner": "Barrio Residencial", "fam": "family_carpenter", "pos": Vector2(745, -135), "guard": false, "tint": Color(1.0, 0.85, 0.72)},
 		{"type": DomesticPet.PetType.CAT, "name": "Michi", "owner": "Posada El Jabalí Dorado", "fam": "family_tavern", "pos": Vector2(405, -168), "guard": false, "tint": Color(1.0, 0.92, 0.82)},
@@ -2396,10 +2396,15 @@ func _spawn_pet_bed_and_bowl(pos: Vector2, p_type: int, _p_name: String) -> void
 	bed_root.name = "PetBed_" + _p_name
 	bed_root.global_position = pos
 	bed_root.z_index = -1
+	bed_root.set_meta("pet_type", p_type)
+	bed_root.add_to_group("ranch_fence_2d")
 	entities_root.add_child(bed_root)
-	_add_poly(PackedVector2Array([Vector2(-9, -5), Vector2(9, -5), Vector2(10, 5), Vector2(-10, 5)]), Color(0.45, 0.28, 0.15, 0.95) if p_type == DomesticPet.PetType.DOG else Color(0.52, 0.34, 0.22, 0.95), 0, Vector2.ZERO, bed_root)
-	_add_poly(PackedVector2Array([Vector2(-7, -3), Vector2(7, -3), Vector2(8, 3), Vector2(-8, 3)]), Color(0.76, 0.28, 0.24, 0.95) if p_type == DomesticPet.PetType.DOG else Color(0.32, 0.56, 0.78, 0.95), 0, Vector2.ZERO, bed_root)
-	_add_poly(PackedVector2Array([Vector2(11, -1), Vector2(16, -1), Vector2(15, 3), Vector2(12, 3)]), Color(0.78, 0.68, 0.32, 0.95), 0, Vector2.ZERO, bed_root)
+	var p1 := _add_poly(PackedVector2Array([Vector2(-9, -5), Vector2(9, -5), Vector2(10, 5), Vector2(-10, 5)]), Color(0.45, 0.28, 0.15, 0.95) if p_type == DomesticPet.PetType.DOG else Color(0.52, 0.34, 0.22, 0.95), 0, Vector2.ZERO, bed_root)
+	var p2 := _add_poly(PackedVector2Array([Vector2(-7, -3), Vector2(7, -3), Vector2(8, 3), Vector2(-8, 3)]), Color(0.76, 0.28, 0.24, 0.95) if p_type == DomesticPet.PetType.DOG else Color(0.32, 0.56, 0.78, 0.95), 0, Vector2.ZERO, bed_root)
+	var p3 := _add_poly(PackedVector2Array([Vector2(11, -1), Vector2(16, -1), Vector2(15, 3), Vector2(12, 3)]), Color(0.78, 0.68, 0.32, 0.95), 0, Vector2.ZERO, bed_root)
+	for p_it in [p1, p2, p3]:
+		if p_it != null:
+			p_it.add_to_group("ranch_fence_2d")
 
 func can_family_feed_pet(fam_id: String) -> bool:
 	if fam_id == "player_farm":
@@ -2549,7 +2554,7 @@ func interact(player: Node2D) -> void:
 		return
 
 	# 3b. Capilla del Alba y Cementerio Parroquial
-	if pos.distance_squared_to(_church_altar_pos) <= 34.0 * 34.0 or pos.distance_squared_to(_cemetery_gate_pos) <= 34.0 * 34.0 or Rect2(Vector2(822, 258), Vector2(174, 108)).has_point(pos):
+	if pos.distance_squared_to(_church_altar_pos) <= 34.0 * 34.0 or pos.distance_squared_to(_cemetery_gate_pos) <= 34.0 * 34.0 or Rect2(Vector2(822, 260), Vector2(268, 168)).has_point(pos):
 		_open_church_registry_ui()
 		return
 
@@ -2818,33 +2823,15 @@ func is_building_door_blocked(building_id_or_keyword: String) -> bool:
 				return true
 	return false
 
-func _update_doors_and_windows(_delta: float, player: Node2D, mouse_pos: Vector2) -> void:
-	var sec_txt: String = get_village_security_text()
+func _update_doors_and_windows(_delta: float, _player: Node2D, _mouse_pos: Vector2) -> void:
 	for d_entry in building_doors:
-		var d_pos: Vector2 = d_entry.get("pos", Vector2.ZERO)
 		var d_lbl: Label = d_entry.get("label")
 		if is_instance_valid(d_lbl):
-			d_lbl.visible = _is_near(player, mouse_pos, d_pos, 24.0, 16.0)
-			if d_lbl.visible:
-				var b_title: String = str(d_entry.get("building_title", "Edificio"))
-				if bool(d_entry.get("is_open", true)):
-					d_lbl.text = "🚪 Puerta de %s (Abierta)\n[E: Cerrar Puerta | B: Cerrar y Bloquear con Cerrojo]" % b_title
-				elif bool(d_entry.get("locked_by_player", false)):
-					d_lbl.text = "🔒 Puerta de %s (TRANCADA POR TI)\n[E / B: Quitar Cerrojo y Abrir]" % b_title
-				elif bool(d_entry.get("is_locked", false)):
-					d_lbl.text = "🔒 Puerta Cerrada con Llave — Seguridad Aldea: %s\n[F: Forzar Cerradura (Usa Sigilo [C]) | E: Probar Picaporte]" % sec_txt
-				else:
-					d_lbl.text = "🚪 Puerta de %s (Cerrada sin llave)\n[E: Abrir Puerta | B: Echar Cerrojo]" % b_title
-
+			d_lbl.visible = false
 	for w_entry in building_windows:
-		var w_pos: Vector2 = w_entry.get("pos", Vector2.ZERO)
 		var w_lbl: Label = w_entry.get("label")
 		if is_instance_valid(w_lbl):
-			w_lbl.visible = _is_near(player, mouse_pos, w_pos, 20.0, 14.0)
-			if w_lbl.visible:
-				var wb_title: String = str(w_entry.get("building_title", "Edificio"))
-				var shut: bool = bool(w_entry.get("is_shuttered", false))
-				w_lbl.text = "🪟🔒 Ventana Cerrada de %s [F: Forzar Postigo y Entrar]" % wb_title if shut else "🪟 Ventana de %s [E: Colarse por la Ventana]" % wb_title
+			w_lbl.visible = false
 
 func _find_nearest_door(pos: Vector2, max_rad: float) -> Dictionary:
 	var best: Dictionary = {}
@@ -3576,7 +3563,7 @@ func _pop_living_unemployed() -> VillageNPC:
 # ==============================================================================
 func _register_shop_business_stall(role_id: int, shop_title: String, fam_id: String, stall_pos: Vector2, stall_spr: Sprite2D) -> void:
 	_add_station_area("ShopBusinessStall_%d" % role_id, stall_pos, 18.0, "shop_business_stall")
-	var lbl := _make_station_label(stall_pos + Vector2(-130, -32), "📜 %s [E: Gestionar Negocio | F: Sabotear]" % shop_title)
+	var lbl := _make_station_label(stall_pos + Vector2(-130, 14), "📜 %s [E: Gestionar Negocio | F: Sabotear]" % shop_title)
 	lbl.custom_minimum_size = Vector2(260, 26)
 	entities_root.add_child(lbl)
 
@@ -3613,38 +3600,14 @@ func _find_nearest_business_stall(pos: Vector2, max_rad: float) -> Dictionary:
 			best = biz
 	return best
 
-func _update_shop_business_stalls(player: Node2D, mouse_pos: Vector2) -> void:
+func _update_shop_business_stalls(_player: Node2D, _mouse_pos: Vector2) -> void:
 	for r_id in shop_businesses.keys():
 		var role_int: int = int(r_id)
 		_sync_shop_sabotage_fx_2d(role_int)
 		var biz: Dictionary = shop_businesses[role_int]
 		var lbl: Label = biz.get("stall_label")
-		var s_pos: Vector2 = biz.get("stall_pos", Vector2.ZERO)
-		if not is_instance_valid(lbl):
-			continue
-		lbl.visible = _is_near(player, mouse_pos, s_pos, 25.0, 17.0)
-		if lbl.visible:
-			var b_title: String = str(biz.get("title", "Negocio"))
-			var owner_m: String = str(biz.get("owner_mode", "NPC"))
-			var vault_g: int = int(biz.get("vault_gold", 0))
-			var sab_d: int = int(biz.get("sabotaged_days", 0))
-			var mkt_txt: String = get_trade_market_status_text(role_int)
-			var tot_stk: int = get_trade_total_stock(role_int)
-			var own_tag: String = "🏢 Familiar"
-			if owner_m == "PARTNER":
-				own_tag = "🤝 Eres Socio (Caja: %d Oro)" % vault_g
-			elif owner_m == "SOLE_OWNER":
-				own_tag = "👑 TU NEGOCIO (Caja: %d Oro)" % vault_g
-			var sab_tag: String = " | 🔧💥 SABOTEADO (%dd)" % sab_d if sab_d > 0 else ""
-			lbl.text = "%s [%s | Stock:%d | %s%s]\n[E: 📜 Gestionar Negocio / Escritura / Caja | F: 💣 Sabotear Taller]" % [
-				b_title, own_tag, tot_stk, mkt_txt, sab_tag
-			]
-			if sab_d > 0:
-				lbl.add_theme_color_override("font_color", Color(1.0, 0.58, 0.48))
-			elif owner_m != "NPC":
-				lbl.add_theme_color_override("font_color", Color(0.58, 1.0, 0.72))
-			else:
-				lbl.add_theme_color_override("font_color", Color(0.95, 0.92, 0.68))
+		if is_instance_valid(lbl):
+			lbl.visible = false
 
 func _refresh_shop_stall_visual(role_id: int) -> void:
 	if not shop_businesses.has(role_id):
@@ -5452,6 +5415,20 @@ func _declutter_title_labels() -> void:
 			lbl.modulate.a = 0.0
 	cands.sort_custom(func(a, b): return float(a[0]) < float(b[0]))
 	var kept: Array = []
+	var sel_node := pl.get_node_or_null("InteractionSelector/PromptLabel") as Label
+	if sel_node != null and sel_node.is_visible_in_tree():
+		kept.append(_title_text_rect(sel_node).grow(3.0))
+	for n in get_tree().get_nodes_in_group("village_npcs"):
+		if n is VillageNPC:
+			var vnpc := n as VillageNPC
+			if vnpc._craft_bar_root != null and vnpc._craft_bar_root.is_visible_in_tree() and vnpc._craft_bar_label != null:
+				kept.append(_title_text_rect(vnpc._craft_bar_label).grow(3.0))
+			if vnpc.status_label != null and vnpc.status_label.is_visible_in_tree():
+				kept.append(_title_text_rect(vnpc.status_label).grow(3.0))
+	for r_id in shop_businesses.keys():
+		var sb_lbl: Label = shop_businesses[r_id].get("stall_label")
+		if sb_lbl != null and is_instance_valid(sb_lbl) and sb_lbl.is_visible_in_tree():
+			kept.append(_title_text_rect(sb_lbl).grow(3.0))
 	for c in cands:
 		var r2: Rect2 = c[2]
 		var clash: bool = false

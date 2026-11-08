@@ -169,8 +169,6 @@ static func can_night_stroll(vm, npc) -> bool:
 	if npc._is_mandatory_work_hours() or npc.need_energy <= 18.0:
 		return false
 	var w_kind: String = night_walk_kind(npc)
-	if w_kind == "night_stroll" and WorldClock != null and int(WorldClock.current_weather) == 1:
-		return false
 	return w_kind != ""
 
 static func night_stroll_spot(vm, npc, step: int = 0) -> Vector2:
@@ -356,7 +354,7 @@ static func on_hour(vm, hour: int) -> void:
 		# B4.3 / B5.2: Paseos nocturnos (Noctámbulo, Insomne, Sonámbulo) y rondas nocturnas
 		if n.errand_kind in ["night_stroll", "sleepwalk", "prowl_victim"]:
 			var end_night_walk: bool = (hour >= 5 and hour < 22)
-			if n.errand_kind == "night_stroll" and ((hour >= 0 and hour < 22) or (WorldClock != null and int(WorldClock.current_weather) == 1)):
+			if n.errand_kind == "night_stroll" and (hour >= 1 and hour < 22):
 				end_night_walk = true
 			if end_night_walk:
 				n.end_errand()

@@ -3489,7 +3489,7 @@ func _execute_dynamic_activity(delta: float) -> void:
 
 const IDLE_STROLL_SPOTS: Array[Vector2] = [
 	Vector2(304, 280), Vector2(236, 268), Vector2(360, 280), # Parque del Roble
-	Vector2(-525, 166), Vector2(215, 145), # Mirador del Lago y Lavadero
+	Vector2(-715, 166), Vector2(215, 145), # Mirador del Lago y Lavadero
 	Vector2(215, 44), Vector2(340, 44), Vector2(540, 44), Vector2(680, 44), Vector2(820, 44), Vector2(990, 44), # Calle Principal
 	Vector2(330, -352), Vector2(520, -352), Vector2(740, -352), Vector2(940, -352), # Calle Norte
 	Vector2(672, -210), Vector2(575, 225), Vector2(825, 225), # Barrio Residencial, Albergue y Capilla
@@ -3524,6 +3524,7 @@ func _update_craft_bar_visual(ratio: float, label_txt: String, bar_color: Color)
 	if not _craft_bar_root:
 		return
 	_craft_bar_root.visible = true
+	_craft_bar_root.position = Vector2(0.0, -50.0 if (status_label != null and status_label.visible) else -25.0)
 	var fill_w: float = 38.0 * clampf(ratio, 0.02, 1.0)
 	if _craft_bar_fill:
 		_craft_bar_fill.color = bar_color

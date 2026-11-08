@@ -202,7 +202,7 @@ func _rebuild_visual_and_area() -> void:
 		interact_area.add_to_group("interactable")
 		var shape := CollisionShape2D.new()
 		var circle := CircleShape2D.new()
-		circle.radius = 48.0 if prop_kind == "tavern_stairs" else 20.0
+		circle.radius = 48.0 if prop_kind == "tavern_stairs" else (14.0 if prop_kind == "sewer_grate" else 20.0)
 		shape.shape = circle
 		interact_area.add_child(shape)
 		add_child(interact_area)

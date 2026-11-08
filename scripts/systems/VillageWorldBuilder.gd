@@ -10,10 +10,10 @@ extends RefCounted
 static func _spawn_village_roads_and_plaza(vm: VillageManager) -> void:
 	var dirt_col := Color(0.46, 0.36, 0.24, 0.65)
 
-	# 1. Camino Largo Oeste-Este desde las tierras salvajes (-1950, 36) pasando por el Campamento/Lago (-525) hasta el Borde Este (1010)
+	# 1. Camino Largo Oeste-Este desde las tierras salvajes (-1950, 36) pasando por el Campamento/Lago (-715) hasta el Borde Este (1010)
 	_add_road_rect(vm, Rect2(Vector2(-1950, 36), Vector2(2960, 28)), dirt_col)
-	_add_road_rect(vm, Rect2(Vector2(-498, -88), Vector2(18, 124)), dirt_col)
-	_add_road_rect(vm, Rect2(Vector2(-498, 64), Vector2(18, 36)), dirt_col)
+	_add_road_rect(vm, Rect2(Vector2(-688, -88), Vector2(18, 124)), dirt_col)
+	_add_road_rect(vm, Rect2(Vector2(-688, 64), Vector2(18, 36)), dirt_col)
 	_add_road_rect(vm, Rect2(Vector2(-1520, -140), Vector2(22, 176)), dirt_col)
 	_add_road_rect(vm, Rect2(Vector2(-1520, 64), Vector2(22, 120)), dirt_col)
 
@@ -40,10 +40,10 @@ static func _spawn_village_roads_and_plaza(vm: VillageManager) -> void:
 	_add_road_rect(vm, Rect2(Vector2(660, -135), Vector2(310, 24)), dirt_col)
 	_add_road_rect(vm, Rect2(Vector2(660, -135), Vector2(24, 240)), dirt_col)
 	_add_cobble_rect(vm, Rect2(Vector2(660, 76), Vector2(325, 22)))
-	_add_cobble_rect(vm, Rect2(Vector2(819, 76), Vector2(20, 186)))
-	_add_cobble_rect(vm, Rect2(Vector2(720, 244), Vector2(240, 18)))
+	_add_cobble_rect(vm, Rect2(Vector2(819, 76), Vector2(20, 184)))
+	_add_cobble_rect(vm, Rect2(Vector2(680, 240), Vector2(415, 20)))
 
-	_spawn_world_signpost(vm, Vector2(-465, 12), "🏕️ Campamento y Lago del Oeste | ➡️ Camino Largo a la Aldea", Color(0.75, 0.94, 1.0))
+	_spawn_world_signpost(vm, Vector2(-655, 12), "🏕️ Campamento y Lago del Oeste | ➡️ Camino Largo a la Aldea", Color(0.75, 0.94, 1.0))
 	_spawn_world_signpost(vm, Vector2(-1010, 12), "⬅️ Oeste Lejano: Llanura Salvaje (N) y Ciénaga de Ranas (S)", Color(1.0, 0.86, 0.48))
 	_spawn_world_signpost(vm, Vector2(465, 580), "⬇️ Sendero al Bosque Profundo del Sur", Color(0.76, 0.96, 0.68))
 	_spawn_world_signpost(vm, Vector2(668, 72), "➡️ Este: 🏥 Hospital y Morgue Forense | 🚓 Comisaría y Cárcel", Color(0.68, 0.92, 1.0))
@@ -245,7 +245,7 @@ static func _build_residential_house_visuals(vm: VillageManager, hc: Vector2, ho
 		"res://assests/world/village/wall_timber_v.png",
 		38.0, 0.0, Color(0.92, 0.88, 0.72)
 	)
-	vm._add_poly(PackedVector2Array([hc + Vector2(-24, -8), hc + Vector2(24, -8), hc + Vector2(24, 18), hc + Vector2(-24, 18)]), Color(0.52, 0.24, 0.20, 0.55), -1)
+	vm._add_rect_poly(hc + Vector2(0, 5), Vector2(24, 13), Color(0.52, 0.24, 0.20, 0.55), -2)
 	for b_pos in [bed1_pos, bed2_pos]:
 		vm._add_sprite_prop(tex_bed, b_pos, Vector2(1.12, 1.12), -1)
 
@@ -386,7 +386,8 @@ static func _spawn_church_and_cemetery(vm: VillageManager) -> void:
 		"res://assests/world/village/wall_stone_v.png",
 		42.0, 0.0, Color(0.92, 0.86, 1.0)
 	)
-	vm._add_poly(PackedVector2Array([vm._church_center + Vector2(-12, -42), vm._church_center + Vector2(12, -42), vm._church_center + Vector2(12, 34), vm._church_center + Vector2(-12, 34)]), Color(0.46, 0.16, 0.36, 0.72), -1)
+	# Alfombra central sobria bajo el pasillo de bancos (con posición centrada y z_index = -2 para no montar sobre el tejado)
+	vm._add_rect_poly(vm._church_center + Vector2(0, -4), Vector2(10, 32), Color(0.54, 0.24, 0.20, 0.62), -2)
 
 	for pew_offset in [Vector2(-36, -16), Vector2(-36, 6), Vector2(36, -16), Vector2(36, 6)]:
 		vm._add_rect_poly(vm._church_center + pew_offset, Vector2(18, 5), Color(0.46, 0.30, 0.16, 0.96), -1)
@@ -410,32 +411,96 @@ static func _spawn_church_and_cemetery(vm: VillageManager) -> void:
 		["Hermano Teodoro", "Hermana Clara", "Hermano Bastián", "Hermana Inés", "Hermano Lucio"]
 	)
 
-	# 2. Cementerio Parroquial al Este de la Capilla (sur de la Comisaría, `Rect2(826, 262, 166, 98)`)
-	var cem_ground_2d := vm._add_poly(PackedVector2Array([Vector2(826, 262), Vector2(992, 262), Vector2(992, 360), Vector2(826, 360)]), Color(0.22, 0.30, 0.22, 0.78), -2)
+	# 2. Cementerio Parroquial ampliado al Este de la Capilla (`Rect2(822, 260, 268, 168)`) con caminos en cruz, verja de hierro/piedra, árboles y 24 tumbas en filas
+	var cem_rect := Rect2(Vector2(822.0, 260.0), Vector2(268.0, 168.0))
+	var cem_outer_2d := vm._add_rect_poly(cem_rect.get_center(), cem_rect.size * 0.5, Color(0.20, 0.27, 0.19, 0.92), -3)
+	if cem_outer_2d != null:
+		cem_outer_2d.add_to_group("ranch_fence_2d")
+	var cem_ground_2d := vm._add_rect_poly(cem_rect.get_center(), cem_rect.size * 0.5 - Vector2(4.0, 4.0), Color(0.25, 0.33, 0.23, 0.88), -2)
 	if cem_ground_2d != null:
 		cem_ground_2d.add_to_group("ranch_fence_2d")
 
+	# Caminos interiores de piedra en cruz: camino principal Norte-Sur desde la verja (x = 888) y paseo transversal Este-Oeste (y = 344)
+	var path_v_2d := vm._add_rect_poly(Vector2(888.0, 344.0), Vector2(9.0, 82.0), Color(0.50, 0.48, 0.44, 0.94), -2)
+	if path_v_2d != null:
+		path_v_2d.add_to_group("ranch_fence_2d")
+	var path_h_2d := vm._add_rect_poly(Vector2(956.0, 344.0), Vector2(128.0, 7.0), Color(0.50, 0.48, 0.44, 0.94), -2)
+	if path_h_2d != null:
+		path_h_2d.add_to_group("ranch_fence_2d")
+	for slab_y in range(268, 422, 12):
+		var sl_v := vm._add_rect_poly(Vector2(888.0, float(slab_y)), Vector2(7.0, 4.0), Color(0.62, 0.60, 0.56, 0.92), -2)
+		if sl_v != null:
+			sl_v.add_to_group("ranch_fence_2d")
+	for slab_x in range(832, 1082, 14):
+		var sl_h := vm._add_rect_poly(Vector2(float(slab_x), 344.0), Vector2(5.0, 5.0), Color(0.62, 0.60, 0.56, 0.92), -2)
+		if sl_h != null:
+			sl_h.add_to_group("ranch_fence_2d")
+
+	# Verja perimetral de hierro forjado y pilares de piedra (con choque físico salvo el paso de entrada en x = 870..906)
 	var fence_border := Line2D.new()
-	fence_border.width = 2.5
-	fence_border.default_color = Color(0.26, 0.28, 0.34, 0.95)
-	fence_border.points = PackedVector2Array([Vector2(870, 262), Vector2(826, 262), Vector2(826, 360), Vector2(992, 360), Vector2(992, 262), Vector2(906, 262)])
+	fence_border.width = 3.0
+	fence_border.default_color = Color(0.24, 0.26, 0.32, 0.98)
+	fence_border.points = PackedVector2Array([Vector2(870, 260), Vector2(822, 260), Vector2(822, 428), Vector2(1090, 428), Vector2(1090, 260), Vector2(906, 260)])
 	fence_border.z_index = 0
 	fence_border.add_to_group("ranch_fence_2d")
 	vm.entities_root.add_child(fence_border)
+	# Rejilla de barrotes verticales en el muro norte y sur en 2D
+	for fx in range(826, 1088, 8):
+		if fx < 870 or fx > 906:
+			var bar_n := vm._add_rect_poly(Vector2(float(fx), 260.0), Vector2(1.0, 3.5), Color(0.18, 0.20, 0.25, 0.95), 0)
+			if bar_n != null:
+				bar_n.add_to_group("ranch_fence_2d")
+		var bar_s := vm._add_rect_poly(Vector2(float(fx), 428.0), Vector2(1.0, 3.5), Color(0.18, 0.20, 0.25, 0.95), 0)
+		if bar_s != null:
+			bar_s.add_to_group("ranch_fence_2d")
+	for pil_pos in [Vector2(822, 260), Vector2(870, 260), Vector2(906, 260), Vector2(998, 260), Vector2(1090, 260), Vector2(822, 344), Vector2(1090, 344), Vector2(822, 428), Vector2(956, 428), Vector2(1090, 428)]:
+		var pil_p := vm._add_rect_poly(pil_pos, Vector2(3.5, 4.5), Color(0.52, 0.54, 0.58, 0.98), 0)
+		if pil_p != null:
+			pil_p.add_to_group("ranch_fence_2d")
+	# Colisión física de la verja del cementerio (dejando libre la puerta norte en 870..906)
+	vm._add_prop_collider(Vector2(846.0, 260.0), Vector2(48.0, 4.0))
+	vm._add_prop_collider(Vector2(998.0, 260.0), Vector2(184.0, 4.0))
+	vm._add_prop_collider(Vector2(956.0, 428.0), Vector2(268.0, 4.0))
+	vm._add_prop_collider(Vector2(822.0, 344.0), Vector2(4.0, 168.0))
+	vm._add_prop_collider(Vector2(1090.0, 344.0), Vector2(4.0, 168.0))
 
-	vm._add_title_label(Vector2(784, 240), Vector2(250, 16), "🪦 Cementerio Parroquial del Alba", Color(0.82, 0.86, 0.96), 8)
-	vm._add_station_area("CemeteryGateArea", vm._cemetery_gate_pos, 22.0, "cemetery_gate")
+	vm._add_title_label(Vector2(830, 238), Vector2(250, 16), "🪦 Cementerio Parroquial del Alba", Color(0.82, 0.86, 0.96), 8)
+	vm._add_station_area("CemeteryGateArea", vm._cemetery_gate_pos, 24.0, "cemetery_gate")
 	vm._cemetery_label = vm._make_station_label(vm._cemetery_gate_pos + Vector2(-125, -26), "🪦 Cementerio Parroquial [E: Inspeccionar Sepulturas]")
 	vm.entities_root.add_child(vm._cemetery_label)
 
+	# 4 filas ordenadas × 6 columnas = 24 tumbas completas con túmulo de tierra, bordillo de piedra, lápida y cruz tallada en 2D
 	vm._cemetery_grave_positions.clear()
-	for row_i in range(3):
-		for col_i in range(6):
-			var g_pos := Vector2(844.0 + float(col_i) * 26.0, 282.0 + float(row_i) * 28.0)
+	var row_ys: Array[float] = [286.0, 316.0, 372.0, 402.0]
+	var col_xs: Array[float] = [852.0, 924.0, 954.0, 984.0, 1014.0, 1044.0]
+	var g_idx_2d: int = 0
+	for ry in row_ys:
+		for cx in col_xs:
+			var g_pos := Vector2(cx, ry)
 			vm._cemetery_grave_positions.append(g_pos)
-			var g_rect_2d := vm._add_rect_poly(g_pos, Vector2(4.5, 5.5), Color(0.18, 0.24, 0.18, 0.50), -2)
-			if g_rect_2d != null:
-				g_rect_2d.add_to_group("ranch_fence_2d")
+			# Bordillo de piedra y túmulo de tierra
+			var curb_2d := vm._add_rect_poly(g_pos + Vector2(0, 2), Vector2(7.0, 7.5), Color(0.42, 0.44, 0.48, 0.92), -2)
+			var mound_2d := vm._add_rect_poly(g_pos + Vector2(0, 2.5), Vector2(5.5, 6.0), Color(0.36, 0.26, 0.18, 0.95), -1)
+			# Lápida vertical en la cabecera norte de cada tumba + cruz grabada
+			var stone_col := Color(0.68, 0.71, 0.76, 0.98) if (g_idx_2d % 2 == 0) else Color(0.58, 0.61, 0.66, 0.98)
+			var head_2d := vm._add_rect_poly(g_pos + Vector2(0, -5.5), Vector2(5.0, 3.8), stone_col, -1)
+			var head_top_2d := vm._add_rect_poly(g_pos + Vector2(0, -9.8), Vector2(3.4, 1.4), stone_col, -1)
+			var cr_v := vm._add_rect_poly(g_pos + Vector2(0, -6.2), Vector2(0.8, 2.8), Color(0.30, 0.32, 0.38, 0.95), -1)
+			var cr_h := vm._add_rect_poly(g_pos + Vector2(0, -7.0), Vector2(2.2, 0.8), Color(0.30, 0.32, 0.38, 0.95), -1)
+			for p_item in [curb_2d, mound_2d, head_2d, head_top_2d, cr_v, cr_h]:
+				if p_item != null:
+					p_item.add_to_group("ranch_fence_2d")
+			if (g_idx_2d % 3) == 0:
+				var flw := vm._add_rect_poly(g_pos + Vector2(2.5, 3.5), Vector2(1.6, 1.4), Color(0.92, 0.80, 0.32, 0.92), -1)
+				if flw != null:
+					flw.add_to_group("ranch_fence_2d")
+			vm._add_prop_collider(g_pos, Vector2(10.0, 10.0))
+			g_idx_2d += 1
+
+	# Árboles (pinos/cipreses) flanqueando el perímetro del cementerio en 2D y 3D
+	var cem_tree_tex := vm._load_tex("res://assests/Comprados/Epic RPG World - The Village V2.1/tilesets and props/props-sprites/pine-tree_0.png")
+	for c_tp in [Vector2(834.0, 272.0), Vector2(1076.0, 272.0), Vector2(1076.0, 344.0), Vector2(834.0, 416.0), Vector2(968.0, 418.0), Vector2(1076.0, 416.0)]:
+		vm._add_sprite_prop(cem_tree_tex, c_tp, Vector2(0.62, 0.62), 0)
 
 # ==============================================================================
 # PASO 5: 📋 TABLÓN DE ENCARGOS EN LA PLAZA CENTRAL (`Vector2(465, 24)`)

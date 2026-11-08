@@ -21,6 +21,21 @@ var is_attacking: bool = false
 var is_stunned_flag: bool = false
 var is_dead: bool = false
 var push_velocity: Vector2 = Vector2.ZERO
+var sprite: CanvasItem = null
+var trade_role: int = 10
+var facing: Vector2 = Vector2.DOWN
+var facing_direction: Vector2 = Vector2.DOWN
+var _is_actively_crafting: bool = false
+var current_activity: int = 1
+var is_strolling_outside: bool = true
+var is_hostile: bool = false
+var is_sleeping: bool = false
+var is_downed: bool = false
+var errand_kind: String = ""
+var _anim_action_timer: float = 0.0
+var _melee_windup_timer: float = 0.0
+var _police_baton_windup_timer: float = 0.0
+var work_position: Vector2 = Vector2.ZERO
 @export var weight: float = 25.0
 
 func _ready() -> void:
@@ -28,7 +43,22 @@ func _ready() -> void:
 	collision_layer = 4
 	collision_mask = 3
 	add_to_group("npcs")
-	anim.play("idle")
+	sprite = anim
+	if anim != null:
+		var guard_tex := load("res://assests/world/village/villager_guard.png") as Texture2D
+		if guard_tex != null:
+			var sf := SpriteFrames.new()
+			sf.add_animation("idle")
+			sf.add_frame("idle", guard_tex)
+			anim.sprite_frames = sf
+			anim.position = Vector2(0, -10)
+			anim.scale = Vector2(0.5, 0.5)
+		anim.play("idle")
+	var av3d_script = load("res://scripts/visuals/CharacterAvatar3D.gd")
+	if av3d_script != null:
+		var av: Node2D = av3d_script.new()
+		add_child(av)
+		av.setup_for_entity(self, false)
 	_update_attitude_from_affinity()
 
 	if enemy_ai:

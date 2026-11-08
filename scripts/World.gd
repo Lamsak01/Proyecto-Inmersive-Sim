@@ -39,10 +39,62 @@ func _ready() -> void:
 		parallax.repeat_size = Vector2.ZERO
 	var grass_rect := get_node_or_null("Environment/Parallax2D/TextureRect") as TextureRect
 	if grass_rect:
-		grass_rect.offset_left = -1450.0
-		grass_rect.offset_top = -850.0
-		grass_rect.offset_right = 1550.0
-		grass_rect.offset_bottom = 1650.0
+		grass_rect.offset_left = -2250.0
+		grass_rect.offset_top = -950.0
+		grass_rect.offset_right = 1650.0
+		grass_rect.offset_bottom = 2250.0
+		var sh_2d := Shader.new()
+		sh_2d.code = """
+shader_type canvas_item;
+
+float h2(vec2 p) {
+	p = fract(p * vec2(234.17, 567.89));
+	p += dot(p, p + 34.56);
+	return fract(p.x * p.y);
+}
+
+float n2(vec2 p) {
+	vec2 i = floor(p);
+	vec2 f = fract(p);
+	f = f * f * (3.0 - 2.0 * f);
+	return mix(
+		mix(h2(i), h2(i + vec2(1.0, 0.0)), f.x),
+		mix(h2(i + vec2(0.0, 1.0)), h2(i + vec2(1.0, 1.0)), f.x),
+		f.y
+	);
+}
+
+void fragment() {
+	vec2 px = UV * vec2(3900.0, 3200.0);
+	float macro = n2(px * 0.008);
+	float meso = n2(px * 0.032 + vec2(5.4, 2.7));
+	float micro = n2(px * 0.14 + vec2(macro, meso) * 3.0);
+	float blade = n2(px * 0.48 + vec2(meso, macro) * 5.0);
+	vec3 c_light = vec3(0.35, 0.54, 0.25);
+	vec3 c_mid = vec3(0.28, 0.46, 0.20);
+	vec3 c_dark = vec3(0.22, 0.38, 0.16);
+	vec3 c_earth = vec3(0.38, 0.32, 0.22);
+	vec3 col = mix(c_light, c_mid, smoothstep(0.25, 0.75, macro * 0.65 + meso * 0.35));
+	col = mix(col, c_dark, smoothstep(0.55, 0.88, meso * 0.6 + micro * 0.4) * 0.55);
+	col = mix(col, c_earth, smoothstep(0.74, 0.92, macro * 0.5 + meso * 0.5) * 0.35);
+	col *= mix(0.91, 1.09, micro * 0.5 + blade * 0.5);
+	COLOR = vec4(col, 1.0);
+}
+"""
+		var sm_2d := ShaderMaterial.new()
+		sm_2d.shader = sh_2d
+		grass_rect.material = sm_2d
+	var obs_small := get_node_or_null("Environment/Obstacles Small") as TileMapLayer
+	if obs_small:
+		obs_small.clear()
+		obs_small.add_to_group("ranch_fence_2d")
+	var obs_large := get_node_or_null("Environment/Obstacles Large") as TileMapLayer
+	if obs_large:
+		for cell in obs_large.get_used_cells():
+			var src_id: int = obs_large.get_cell_source_id(cell)
+			if src_id == 13 or (cell.x >= -6 and cell.y >= 8) or (cell.x <= -20 and cell.y >= 8):
+				obs_large.erase_cell(cell)
+		obs_large.add_to_group("ranch_fence_2d")
 
 	# Ajustar zoom inicial de la cámara para ver un área más amplia y cómoda en pantalla completa
 	if not in_editor:
@@ -153,8 +205,8 @@ func _draw_weather_overlay() -> void:
 			_weather_canvas.draw_rect(Rect2(Vector2(0.0, band_y), Vector2(sz.x, 38.0)), Color(0.84, 0.88, 0.92, 0.08), true)
 
 func _spawn_player_garden(entities_root: Node) -> void:
-	# A. Huerto de 3x3 parcelas (en el claro oeste alejado del pueblo, al norte del camino de llegada y frente al lago)
-	var start_pos := Vector2(-585, -45)
+	# A. Huerto de 3x3 parcelas (en el claro oeste bien alejado de la Trattoria y del pueblo, frente al lago)
+	var start_pos := Vector2(-775, -45)
 	var spacing := 24.0
 	var idx := 0
 	for row in range(3):
@@ -166,17 +218,17 @@ func _spawn_player_garden(entities_root: Node) -> void:
 			plot.set_plot_enabled(false)
 			idx += 1
 
-	# B. Campamento (Hoguera con Cacerola para cocinar + Tronco para sentarse + Tienda de Campaña)
+	# B. Campamento (Hoguera con Cacerola para cocinar + Tronco para sentarse + Tienda de Campaña + Tendedero)
 	var camp := CampSite.new()
 	camp.name = "PlayerCampSite"
 	entities_root.add_child(camp)
-	camp.global_position = Vector2(-532, -96)
+	camp.global_position = Vector2(-722, -96)
 
 	# C. Gallinero Cuadrado (Comedero de 2 toques, Nido de Huevos y defensa contra Zorros nocturnos)
 	var coop := ChickenCoop.new()
 	coop.name = "PlayerChickenCoop"
 	entities_root.add_child(coop)
-	coop.global_position = Vector2(-658, -21)
+	coop.global_position = Vector2(-848, -21)
 	coop.set_coop_built(false)
 
 	# D. Lago y Muelle de Pesca al Sur del Campamento

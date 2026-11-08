@@ -17,7 +17,7 @@ const PLACES: Array = [
 	{"id": "park_lawn", "kind": "park", "pos": Vector2(304, 280), "label": "el Parque del Roble", "text": "🌳 Paseando por el parque"},
 	{"id": "park_bench", "kind": "bench", "pos": Vector2(236, 268), "label": "un banco del parque", "text": "🪑 Sentado en el parque"},
 	{"id": "plaza_benches", "kind": "bench", "pos": Vector2(500, 74), "label": "los bancos de la plaza", "text": "🪑 Sentado en la plaza"},
-	{"id": "lake_view", "kind": "overlook", "pos": Vector2(-525, 166), "label": "el Mirador del Lago", "text": "🌅 Mirando el lago"},
+	{"id": "lake_view", "kind": "overlook", "pos": Vector2(-715, 166), "label": "el Mirador del Lago", "text": "🌅 Mirando el lago"},
 	{"id": "library", "kind": "library", "pos": Vector2(906, -451), "label": "la Biblioteca", "text": "📖 Leyendo en la biblioteca", "indoor": true}, # V5e
 ]
 const LEISURE_FREE_HOURS: Vector2i = Vector2i(17, 21) # Entre semana, al salir del trabajo
@@ -50,14 +50,20 @@ static func state(vm) -> Dictionary:
 static func build_world(vm) -> void:
 	var dec: String = "res://assests/Comprados/Epic RPG World - The Village V2.1/"
 	var bench: String = "res://assests/Comprados/Epic RPG World - Village(interiors) V1.3/assets/furniture_and_props_sprites/bench_0.png"
-	# Parque: césped, borde, pinos, flores y bancos
+	# Parque: césped natural (sin capa verde menta), paseos en cruz, bordillo de piedra, pinos, flores y bancos
 	var r: Rect2 = PARK_RECT
-	var park_poly: Polygon2D = vm._add_poly(PackedVector2Array([r.position, Vector2(r.end.x, r.position.y), r.end, Vector2(r.position.x, r.end.y)]), Color(0.30, 0.52, 0.26, 0.55), -4)
+	var park_poly: Polygon2D = vm._add_poly(PackedVector2Array([r.position, Vector2(r.end.x, r.position.y), r.end, Vector2(r.position.x, r.end.y)]), Color(0.24, 0.38, 0.18, 0.14), -4)
 	if park_poly != null:
 		park_poly.add_to_group("ranch_fence_2d")
+	var park_path_h: Polygon2D = vm._add_rect_poly(Vector2(r.get_center().x, 280.0), Vector2((r.size.x - 16.0) * 0.5, 9.0), Color(0.54, 0.44, 0.31, 0.78), -3)
+	if park_path_h != null:
+		park_path_h.add_to_group("ranch_fence_2d")
+	var park_path_v: Polygon2D = vm._add_rect_poly(r.get_center(), Vector2(9.0, (r.size.y - 16.0) * 0.5), Color(0.54, 0.44, 0.31, 0.78), -3)
+	if park_path_v != null:
+		park_path_v.add_to_group("ranch_fence_2d")
 	var border := Line2D.new()
-	border.width = 1.5
-	border.default_color = Color(0.46, 0.36, 0.22, 0.8)
+	border.width = 2.5
+	border.default_color = Color(0.52, 0.48, 0.42, 0.88)
 	border.points = PackedVector2Array([r.position, Vector2(r.end.x, r.position.y), r.end, Vector2(r.position.x, r.end.y), r.position])
 	border.z_index = -3
 	border.add_to_group("ranch_fence_2d")

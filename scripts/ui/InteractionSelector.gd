@@ -212,13 +212,22 @@ func _resolve_target(a: Node) -> Node:
 func _label_for(a: Node, tgt: Node) -> String:
 	if a.has_meta("village_station"):
 		var tag: String = str(a.get_meta("village_station"))
+		var vm = player.get_tree().get_first_node_in_group("village_manager")
 		if tag == "building_door":
-			var vm = player.get_tree().get_first_node_in_group("village_manager")
 			var d: Dictionary = vm._find_nearest_door((a as Node2D).global_position, 18.0) if vm != null else {}
 			var opened: bool = bool(d.get("is_open", false))
-			return ("Cerrar la puerta" if opened else "Abrir la puerta") + ((" · " + str(d.get("title", ""))) if str(d.get("title", "")) != "" else "")
+			var locked: bool = bool(d.get("is_locked", false))
+			var b_t: String = str(d.get("building_title", d.get("title", "")))
+			var action_t: String = "Cerrar la puerta" if opened else ("Probar picaporte (cerrada con llave · [F] forzar)" if locked else "Abrir la puerta")
+			return action_t + ((" · " + b_t) if b_t != "" else "")
+		if tag == "building_window":
+			var w: Dictionary = vm._find_nearest_window((a as Node2D).global_position, 16.0) if vm != null else {}
+			var shut: bool = bool(w.get("is_shuttered", false))
+			return "Postigo cerrado ([F] forzar)" if shut else "Colarse por la ventana"
 		if tag == "shop_business_stall":
-			return "Gestionar el negocio"
+			var s: Dictionary = vm._find_nearest_business_stall((a as Node2D).global_position, 18.0) if vm != null else {}
+			var s_title: String = str(s.get("title", "el negocio"))
+			return "Gestionar %s ([F] sabotear)" % s_title
 		return str(STATION_LABELS.get(tag, "Usar"))
 	if tgt.has_method("get_interact_label"):
 		return str(tgt.call("get_interact_label", player))
@@ -261,5 +270,13 @@ func _update_label() -> void:
 		txt += "   (%d/%d · Mayús+rueda o G)" % [candidates.find(c) + 1, candidates.size()]
 	_label.text = txt
 	_label.visible = true
-	# Debajo de los pies: así no pisa la ficha del vecino, que va encima de la cabeza.
-	_label.position = (c["pos"] as Vector2) + Vector2(-110.0, 8.0)
+	# Debajo de los pies: así no pisa la ficha del vecino, que va encima de la cabeza, ni la barra de trabajo.
+	var base_pos: Vector2 = (c["pos"] as Vector2) + Vector2(-110.0, 10.0)
+	for n in player.get_tree().get_nodes_in_group("village_npcs"):
+		if n is Node2D and is_instance_valid(n):
+			var cbar := (n as Node).get_node_or_null("CraftProgressBar") as Node2D
+			if cbar != null and cbar.is_visible_in_tree():
+				var cpos: Vector2 = cbar.global_position
+				if absf((base_pos.x + 110.0) - cpos.x) < 95.0 and absf(base_pos.y - (cpos.y - 8.0)) < 16.0:
+					base_pos.y = cpos.y + 8.0
+	_label.position = base_pos

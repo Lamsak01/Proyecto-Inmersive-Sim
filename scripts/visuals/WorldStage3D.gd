@@ -181,13 +181,13 @@ const GROUND_TERRAIN_SHADER_CODE := """
 shader_type spatial;
 render_mode diffuse_burley, specular_schlick_ggx, cull_disabled;
 
-uniform sampler2D tex_grass : source_color, filter_nearest_mipmap, repeat_enable;
-uniform sampler2D tex_overlay : source_color, filter_nearest_mipmap, repeat_enable;
-uniform sampler2D tex_dirt : source_color, filter_nearest_mipmap, repeat_enable;
-uniform vec3 tint_primary : source_color = vec3(0.38, 0.62, 0.30);
-uniform vec3 tint_secondary : source_color = vec3(0.28, 0.48, 0.22);
-uniform vec3 tint_earth : source_color = vec3(0.46, 0.36, 0.24);
-uniform float dirt_blend : hint_range(0.0, 1.0) = 0.18;
+uniform sampler2D tex_grass : source_color, filter_linear_mipmap, repeat_enable;
+uniform sampler2D tex_overlay : source_color, filter_linear_mipmap, repeat_enable;
+uniform sampler2D tex_dirt : source_color, filter_linear_mipmap, repeat_enable;
+uniform vec3 tint_primary : source_color = vec3(0.33, 0.50, 0.24);
+uniform vec3 tint_secondary : source_color = vec3(0.24, 0.39, 0.18);
+uniform vec3 tint_earth : source_color = vec3(0.44, 0.35, 0.24);
+uniform float dirt_blend : hint_range(0.0, 1.0) = 0.16;
 
 varying vec3 v_world_pos;
 
@@ -208,43 +208,51 @@ float g_noise(vec2 p) {
 	);
 }
 
+vec2 g_rot(vec2 uv, float ang) {
+	float c = cos(ang);
+	float s = sin(ang);
+	return vec2(uv.x * c - uv.y * s, uv.x * s + uv.y * c);
+}
+
 void vertex() {
 	v_world_pos = (MODEL_MATRIX * vec4(VERTEX, 1.0)).xyz;
 }
 
 void fragment() {
 	vec2 w_uv = v_world_pos.xz;
-	// 3 escalas: pradera amplia, baldosa pixelada media y brizna cercana para 1.ª persona
-	vec3 g_mid = texture(tex_grass, w_uv * 0.85).rgb;
-	vec3 g_near = texture(tex_grass, w_uv * 3.40).rgb;
-	vec3 g_over = texture(tex_overlay, w_uv * 1.90 + vec2(0.37, 0.61)).rgb;
-	vec3 d_tex = texture(tex_dirt, w_uv * 1.35).rgb;
+	// Deformación orgánica y mezcla de 2 proyecciones rotadas para eliminar por completo la cuadrícula de baldosas
+	vec2 warp = vec2(
+		g_noise(w_uv * 0.38 + vec2(3.1, 7.4)) - 0.5,
+		g_noise(w_uv * 0.38 + vec2(19.2, 11.8)) - 0.5
+	) * 0.65;
+	vec2 uv_a = g_rot(w_uv + warp, 0.54) * 0.62;
+	vec2 uv_b = g_rot(w_uv - warp * 0.8, -0.89) * 0.79 + vec2(0.41, 0.27);
+	float rot_mix = smoothstep(0.30, 0.70, g_noise(w_uv * 0.27 + vec2(5.2, 1.9)));
 
-	float macro = g_noise(w_uv * 0.22);
-	float meso = g_noise(w_uv * 0.95);
-	// Píxel de brizna nítido a ras de suelo
-	vec2 blade_cell = floor(w_uv * 28.0);
-	float blade_rnd = g_hash(blade_cell);
+	vec3 g_a = texture(tex_grass, uv_a).rgb;
+	vec3 g_b = texture(tex_grass, uv_b).rgb;
+	vec3 g_mid = mix(g_a, g_b, rot_mix);
+	// Suavizar variaciones extremas del borde de la textura original para que no se marquen líneas
+	g_mid = mix(vec3(dot(g_mid, vec3(0.333))), g_mid, 0.55);
 
-	vec3 meadow_tint = mix(tint_primary, tint_secondary, smoothstep(0.28, 0.74, macro));
-	vec3 base_grass = mix(g_mid, g_near, 0.45) * 1.25 * meadow_tint;
-	base_grass = mix(base_grass, g_over * meadow_tint * 1.15, 0.28);
+	vec3 g_over = texture(tex_overlay, g_rot(w_uv + warp * 0.5, 1.12) * 1.15 + vec2(0.37, 0.61)).rgb;
+	vec3 d_tex = texture(tex_dirt, g_rot(w_uv + warp * 0.4, 0.33) * 0.95).rgb;
 
-	// Briznas claras, trébol oscuro y florecillas silvestres diminutas
-	if (blade_rnd > 0.78) {
-		base_grass *= 1.14;
-	} else if (blade_rnd < 0.18) {
-		base_grass *= 0.86;
-	}
-	if (blade_rnd > 0.992 && dirt_blend < 0.35) {
-		base_grass = mix(base_grass, vec3(0.94, 0.86, 0.34), 0.65);
-	}
+	float macro = g_noise(w_uv * 0.14);
+	float meso = g_noise(w_uv * 0.55 + warp);
+	float micro = g_noise(w_uv * 3.8 + warp * 2.0);
+	float blade = g_noise(w_uv * 16.0 + vec2(macro, meso) * 2.5);
+
+	vec3 meadow_tint = mix(tint_primary, tint_secondary, smoothstep(0.25, 0.75, macro * 0.65 + meso * 0.35));
+	vec3 base_grass = mix(meadow_tint * 0.88, g_mid * 1.18 * meadow_tint, 0.48);
+	base_grass = mix(base_grass, g_over * meadow_tint * 1.08, 0.22);
+	base_grass *= mix(0.90, 1.10, micro * 0.55 + blade * 0.45);
 
 	// Calvas naturales de tierra húmeda y sendero
-	float earth_mask = smoothstep(0.68 - dirt_blend * 0.35, 0.86, macro * 0.65 + meso * 0.35);
-	vec3 earth_col = d_tex * tint_earth * 1.25;
-	ALBEDO = mix(base_grass, earth_col, clamp(earth_mask, 0.0, 0.78));
-	ROUGHNESS = mix(0.88, 0.95, earth_mask);
+	float earth_mask = smoothstep(0.68 - dirt_blend * 0.35, 0.88, macro * 0.60 + meso * 0.40);
+	vec3 earth_col = mix(tint_earth * 0.92, d_tex * tint_earth * 1.18, 0.55);
+	ALBEDO = mix(base_grass, earth_col, clamp(earth_mask, 0.0, 0.72));
+	ROUGHNESS = mix(0.90, 0.96, earth_mask);
 	METALLIC = 0.0;
 }
 """
@@ -657,7 +665,7 @@ func _build_static_terrain_3d() -> void:
 	var m_stone := _mat("prop_stone", Color(0.66, 0.68, 0.72), 0.85, 0.05, Color.BLACK, 0.0, "town_textures/wall_brick_stone_center.png", "", 0.70)
 	var m_water := _mat("water_blue", Color(0.18, 0.52, 0.74, 0.90), 0.20, 0.15)
 	var m_marsh := _mat("water_marsh", Color(0.20, 0.42, 0.30, 0.92), 0.28, 0.10)
-	var m_grass_park := _mat("grass_park", Color(0.24, 0.48, 0.22), 0.92, 0.0)
+	var m_grass_park := _make_ground_shader_mat("ground_park_sh", Color(0.31, 0.48, 0.23), Color(0.23, 0.38, 0.17), Color(0.42, 0.34, 0.23), 0.10)
 	var m_pine := _mat("pine_leaf", Color(0.16, 0.38, 0.18), 0.88, 0.0)
 	var m_pine_top := _mat("pine_leaf_top", Color(0.22, 0.46, 0.22), 0.86, 0.0)
 	var m_iron := _mat("wrought_iron", Color(0.22, 0.24, 0.28), 0.45, 0.75)
@@ -666,8 +674,8 @@ func _build_static_terrain_3d() -> void:
 	# Caminos principales y calles con relieve 3D
 	var road_rects: Array[Rect2] = [
 		Rect2(Vector2(-1950, 36), Vector2(3288, 28)),
-		Rect2(Vector2(-498, -88), Vector2(18, 124)),
-		Rect2(Vector2(-498, 64), Vector2(18, 36)),
+		Rect2(Vector2(-688, -88), Vector2(18, 124)),
+		Rect2(Vector2(-688, 64), Vector2(18, 36)),
 		Rect2(Vector2(-1520, -140), Vector2(22, 176)),
 		Rect2(Vector2(-1520, 64), Vector2(22, 120)),
 		Rect2(Vector2(452, -132), Vector2(26, 172)),
@@ -676,7 +684,7 @@ func _build_static_terrain_3d() -> void:
 		Rect2(Vector2(130, 780), Vector2(26, 260)),
 		Rect2(Vector2(140, 130), Vector2(24, 248)),
 		Rect2(Vector2(140, 356), Vector2(312, 22)),
-		Rect2(Vector2(822, -230), Vector2(24, 520)),
+		Rect2(Vector2(822, -230), Vector2(24, 466)),
 		Rect2(Vector2(215, -310), Vector2(20, 515)),
 		Rect2(Vector2(1078, -230), Vector2(20, 480)),
 		Rect2(Vector2(1318, -230), Vector2(20, 480)),
@@ -744,12 +752,16 @@ func _build_static_terrain_3d() -> void:
 	]:
 		_build_fence_run_3d(terrain_root_3d, r_side[0] as Vector2, r_side[1] as Vector2, m_wood)
 
-	# Parque del Roble ampliado (Rect2(168, 208, 272, 146)) sin murete cerrado y con bancos despejados de árboles
+	# Parque del Roble ampliado (Rect2(168, 208, 272, 146)) con césped natural texturizado, bordillo bajo de piedra y bancos despejados
 	var park_r := Rect2(Vector2(168.0, 208.0), Vector2(272.0, 146.0))
 	var park_c: Vector2 = park_r.get_center()
-	_add_box_2d(terrain_root_3d, park_c, park_r.size, 0.0, 1.2, m_grass_park)
-	_add_box_2d(terrain_root_3d, Vector2(park_c.x, 280.0), Vector2(park_r.size.x - 16.0, 18.0), 0.0, 1.5, m_road)
-	_add_box_2d(terrain_root_3d, park_c, Vector2(18.0, park_r.size.y - 16.0), 0.0, 1.5, m_road)
+	_add_box_2d(terrain_root_3d, park_c, park_r.size, 0.0, 0.25, m_grass_park)
+	_add_box_2d(terrain_root_3d, Vector2(park_c.x, park_r.position.y), Vector2(park_r.size.x, 3.0), 0.0, 1.4, m_curb)
+	_add_box_2d(terrain_root_3d, Vector2(park_c.x, park_r.end.y), Vector2(park_r.size.x, 3.0), 0.0, 1.4, m_curb)
+	_add_box_2d(terrain_root_3d, Vector2(park_r.position.x, park_c.y), Vector2(3.0, park_r.size.y), 0.0, 1.4, m_curb)
+	_add_box_2d(terrain_root_3d, Vector2(park_r.end.x, park_c.y), Vector2(3.0, park_r.size.y), 0.0, 1.4, m_curb)
+	_add_box_2d(terrain_root_3d, Vector2(park_c.x, 280.0), Vector2(park_r.size.x - 16.0, 18.0), 0.0, 0.8, m_road)
+	_add_box_2d(terrain_root_3d, park_c, Vector2(18.0, park_r.size.y - 16.0), 0.0, 0.8, m_road)
 	var tree_idx := 0
 	for tp in [Vector2(188.0, 224.0), Vector2(420.0, 224.0), Vector2(188.0, 338.0), Vector2(420.0, 338.0), Vector2(304.0, 228.0)]:
 		_build_tree_3d(terrain_root_3d, tp, m_dark_wood, m_pine, m_pine_top, 1.22 if tp == Vector2(304.0, 228.0) else 0.95, tree_idx)
@@ -762,7 +774,7 @@ func _build_static_terrain_3d() -> void:
 	# Bancos de la plaza y Mirador del Lago en 3D
 	_build_bench_3d(terrain_root_3d, Vector2(500.0, 66.0), m_wood, m_iron)
 	_build_bench_3d(terrain_root_3d, Vector2(440.0, 80.0), m_wood, m_iron)
-	var lv_pos := Vector2(-525.0, 166.0)
+	var lv_pos := Vector2(-715.0, 166.0)
 	_build_fence_run_3d(terrain_root_3d, lv_pos + Vector2(-34.0, -12.0), lv_pos + Vector2(34.0, -12.0), m_wood)
 	_build_bench_3d(terrain_root_3d, lv_pos + Vector2(0.0, -2.0), m_wood, m_iron)
 
@@ -779,9 +791,9 @@ func _build_static_terrain_3d() -> void:
 
 	# Lago del Oeste (junto al campamento inicial, un solo muelle, sin lavadero); sauces en la orilla
 	_build_lake_3d()
-	_add_model_2d(terrain_root_3d, "nature/Willow_1.obj", Vector2(-760, 82), 0.0, Vector2.ZERO, 40.0)
-	_add_model_2d(terrain_root_3d, "nature/Willow_2.obj", Vector2(-900, 190), 0.0, Vector2.ZERO, 38.0, 70.0)
-	_add_model_2d(terrain_root_3d, "nature/Willow_1.obj", Vector2(-650, 225), 0.0, Vector2.ZERO, 34.0, 140.0)
+	_add_model_2d(terrain_root_3d, "nature/Willow_1.obj", Vector2(-950, 82), 0.0, Vector2.ZERO, 40.0)
+	_add_model_2d(terrain_root_3d, "nature/Willow_2.obj", Vector2(-1090, 190), 0.0, Vector2.ZERO, 38.0, 70.0)
+	_add_model_2d(terrain_root_3d, "nature/Willow_1.obj", Vector2(-840, 225), 0.0, Vector2.ZERO, 34.0, 140.0)
 
 	# Ciénaga de las Ranas del Suroeste (separada de la Llanura Salvaje y ampliada)
 	var marsh_water_pts := PackedVector2Array([
@@ -825,29 +837,50 @@ func _build_static_terrain_3d() -> void:
 	for li in range(fallen_logs.size()):
 		_add_model_2d(terrain_root_3d, "nature/WoodLog.obj", fallen_logs[li], 0.0, Vector2.ZERO, 16.0, float((li * 63) % 360))
 
-	# Cercado del Cementerio Parroquial (Rect2(Vector2(822, 258), Vector2(174, 108))) con Cripta, sendero de piedra y lápidas proporcionadas
-	var cem_r := Rect2(Vector2(822, 258), Vector2(174, 108))
+	# Cercado del Cementerio Parroquial ampliado (Rect2(Vector2(822, 260), Vector2(268, 168))) con caminos en cruz, verja de hierro y piedra y 24 tumbas en filas
+	var cem_r := Rect2(Vector2(822.0, 260.0), Vector2(268.0, 168.0))
 	var cem_c := cem_r.get_center()
+	var m_cem_curb := _mat("cem_curb_stone", Color(0.48, 0.50, 0.54), 0.88, 0.05)
+	var m_cem_mound := _mat("cem_mound_earth", Color(0.34, 0.24, 0.16), 0.95, 0.0)
 	_add_box_2d(terrain_root_3d, cem_c, cem_r.size, 0.0, 1.0, _mat("cem_ground", Color(0.24, 0.32, 0.22), 0.95, 0.0, Color.BLACK, 0.0, "town_textures/floor_ground_dirt.png", "", 0.45))
-	_add_box_2d(terrain_root_3d, Vector2(888, cem_c.y), Vector2(14, cem_r.size.y - 8.0), 1.0, 0.4, m_stone)
-	_add_box_2d(terrain_root_3d, Vector2(cem_c.x, cem_r.end.y), Vector2(cem_r.size.x, 3.5), 0.0, 11.0, m_iron)
-	_add_box_2d(terrain_root_3d, Vector2(cem_r.position.x, cem_c.y), Vector2(3.5, cem_r.size.y), 0.0, 11.0, m_iron)
-	_add_box_2d(terrain_root_3d, Vector2(cem_r.end.x, cem_c.y), Vector2(3.5, cem_r.size.y), 0.0, 11.0, m_iron)
-	_add_box_2d(terrain_root_3d, Vector2(848, cem_r.position.y), Vector2(52, 3.5), 0.0, 11.0, m_iron)
-	_add_box_2d(terrain_root_3d, Vector2(950, cem_r.position.y), Vector2(92, 3.5), 0.0, 11.0, m_iron)
-	_add_model_2d(terrain_root_3d, "graveyard/iron-fence.glb", Vector2(888, cem_r.position.y), 0.0, Vector2.ZERO, 18.0)
-	_add_model_2d(terrain_root_3d, "graveyard/crypt.glb", Vector2(972, 282), 1.0, Vector2.ZERO, 24.0, -90.0)
-	_add_model_2d(terrain_root_3d, "graveyard/altar-stone.glb", Vector2(968, 336), 1.0, Vector2.ZERO, 10.0)
-	var old_stones: Array = [
-		[Vector2(844, 282), "graveyard/gravestone-cross.glb"],
-		[Vector2(870, 282), "graveyard/gravestone-round.glb"],
-		[Vector2(922, 282), "graveyard/gravestone-decorative.glb"],
-		[Vector2(844, 310), "graveyard/gravestone-broken.glb"],
-		[Vector2(922, 310), "graveyard/gravestone-round.glb"],
-		[Vector2(844, 338), "graveyard/gravestone-cross.glb"],
+	# Caminos interiores de losas de piedra en cruz (Norte-Sur en x = 888 y Este-Oeste en y = 344)
+	_add_box_2d(terrain_root_3d, Vector2(888.0, cem_c.y), Vector2(16.0, cem_r.size.y - 6.0), 1.0, 0.45, m_stone)
+	_add_box_2d(terrain_root_3d, Vector2(cem_c.x, 344.0), Vector2(cem_r.size.x - 8.0, 14.0), 1.0, 0.45, m_stone)
+	# Zócalo de piedra y verja perimetral de hierro forjado con pilares
+	_add_box_2d(terrain_root_3d, Vector2(cem_c.x, cem_r.end.y), Vector2(cem_r.size.x, 3.5), 0.0, 4.0, m_cem_curb)
+	_add_box_2d(terrain_root_3d, Vector2(cem_c.x, cem_r.end.y), Vector2(cem_r.size.x, 2.2), 4.0, 8.0, m_iron)
+	_add_box_2d(terrain_root_3d, Vector2(cem_r.position.x, cem_c.y), Vector2(3.5, cem_r.size.y), 0.0, 4.0, m_cem_curb)
+	_add_box_2d(terrain_root_3d, Vector2(cem_r.position.x, cem_c.y), Vector2(2.2, cem_r.size.y), 4.0, 8.0, m_iron)
+	_add_box_2d(terrain_root_3d, Vector2(cem_r.end.x, cem_c.y), Vector2(3.5, cem_r.size.y), 0.0, 4.0, m_cem_curb)
+	_add_box_2d(terrain_root_3d, Vector2(cem_r.end.x, cem_c.y), Vector2(2.2, cem_r.size.y), 4.0, 8.0, m_iron)
+	_add_box_2d(terrain_root_3d, Vector2(846.0, cem_r.position.y), Vector2(48.0, 3.5), 0.0, 4.0, m_cem_curb)
+	_add_box_2d(terrain_root_3d, Vector2(846.0, cem_r.position.y), Vector2(48.0, 2.2), 4.0, 8.0, m_iron)
+	_add_box_2d(terrain_root_3d, Vector2(998.0, cem_r.position.y), Vector2(184.0, 3.5), 0.0, 4.0, m_cem_curb)
+	_add_box_2d(terrain_root_3d, Vector2(998.0, cem_r.position.y), Vector2(184.0, 2.2), 4.0, 8.0, m_iron)
+	for pil_p in [Vector2(822, 260), Vector2(870, 260), Vector2(906, 260), Vector2(998, 260), Vector2(1090, 260), Vector2(822, 344), Vector2(1090, 344), Vector2(822, 428), Vector2(956, 428), Vector2(1090, 428)]:
+		_add_box_2d(terrain_root_3d, pil_p, Vector2(6.5, 6.5), 0.0, 14.0, m_cem_curb)
+	_add_model_2d(terrain_root_3d, "graveyard/iron-fence.glb", Vector2(888.0, cem_r.position.y), 0.0, Vector2.ZERO, 18.0)
+
+	# 4 filas × 6 columnas = 24 tumbas con bordillo, túmulo de tierra y lápidas/cruces variadas (sin los 2 bloques enormes de piedra)
+	var stone_models: Array[String] = [
+		"graveyard/gravestone-cross.glb",
+		"graveyard/gravestone-round.glb",
+		"graveyard/gravestone-decorative.glb",
+		"graveyard/gravestone-wide.glb",
+		"graveyard/cross-column.glb",
+		"graveyard/cross-wood.glb",
 	]
-	for os_def in old_stones:
-		_add_model_2d(terrain_root_3d, str(os_def[1]), os_def[0] as Vector2, 1.0, Vector2(6.5, 3.0), 8.2)
+	var row_ys_3d: Array[float] = [286.0, 316.0, 372.0, 402.0]
+	var col_xs_3d: Array[float] = [852.0, 924.0, 954.0, 984.0, 1014.0, 1044.0]
+	var g_i3d: int = 0
+	for ry in row_ys_3d:
+		for cx in col_xs_3d:
+			var gp_cem := Vector2(cx, ry)
+			_add_box_2d(terrain_root_3d, gp_cem + Vector2(0, 2.5), Vector2(12.0, 13.0), 1.0, 1.2, m_cem_curb)
+			_add_box_2d(terrain_root_3d, gp_cem + Vector2(0, 2.5), Vector2(9.2, 10.2), 2.2, 1.4, m_cem_mound)
+			var mdl_path: String = stone_models[g_i3d % stone_models.size()]
+			_add_model_2d(terrain_root_3d, mdl_path, gp_cem + Vector2(0, -4.5), 1.5, Vector2(7.5, 3.6), 9.6)
+			g_i3d += 1
 
 	# Bloque FIS3: Trampillas / rejillas físicas de acceso a las Alcantarillas (-1) en sus posiciones reales de la calle
 	var m_sewer_dark := _mat("sewer_dark", Color(0.06, 0.10, 0.08), 0.9, 0.2)
@@ -931,7 +964,7 @@ func _style_for_building(b_id: String) -> Dictionary:
 	elif b_id == "building_church":
 		roof_tex = "town_textures/roof_clay_grey_center.png"
 		wall_col = Color(0.88, 0.84, 0.78)
-		roof_col = Color(0.44, 0.34, 0.58)
+		roof_col = Color(0.36, 0.38, 0.44)
 		floor_col = Color(0.66, 0.62, 0.58)
 		trim_col = Color(0.52, 0.46, 0.42)
 		wall_tex = "town_textures/wall_brick_sand_center.png"
@@ -3079,8 +3112,8 @@ func _make_ground_shader_mat(key: String, c_prim: Color, c_sec: Color, c_earth: 
 ## Suelo opaco de hierba con textura multiescala bajo todo el valle, zonas diferenciadas y matas de hierba/flores 3D.
 ## Recibe las sombras del sol; tapa los decorados planos 2D con z <= -3 (bordes, césped del bosque).
 func _build_ground_3d() -> void:
-	var m_grass := _make_ground_shader_mat("ground_grass_sh", Color(0.42, 0.68, 0.32), Color(0.30, 0.54, 0.24), Color(0.48, 0.38, 0.26), 0.16)
-	var m_forest := _make_ground_shader_mat("ground_forest_sh", Color(0.24, 0.44, 0.22), Color(0.18, 0.34, 0.17), Color(0.36, 0.27, 0.18), 0.28)
+	var m_grass := _make_ground_shader_mat("ground_grass_sh", Color(0.35, 0.54, 0.26), Color(0.25, 0.42, 0.19), Color(0.45, 0.36, 0.24), 0.16)
+	var m_forest := _make_ground_shader_mat("ground_forest_sh", Color(0.23, 0.40, 0.20), Color(0.17, 0.31, 0.15), Color(0.36, 0.27, 0.18), 0.28)
 	var m_plains := _make_ground_shader_mat("ground_plains_sh", Color(0.76, 0.68, 0.36), Color(0.62, 0.54, 0.28), Color(0.56, 0.44, 0.30), 0.32)
 	var m_mud := _mat("ground_mud", Color(0.55, 0.46, 0.34), 0.95, 0.0, Color.BLACK, 0.0, "town_textures/floor_ground_dirt.png", "", 0.78)
 	var m_marsh := _mat("ground_marsh_water", Color(0.30, 0.42, 0.30), 0.35, 0.05, Color.BLACK, 0.0, "town_textures/floor_ground_water_green.png", "", 0.78)
@@ -3403,9 +3436,16 @@ const PROP_KIND_BY_TEXTURE := {
 	"hay_0.png": "hide",
 	"hay_2.png": "hide",
 	"logs_0.png": "hide",
+	"fish_spot_ripples.png": "hide",
 	"camp_tent.png": "tent",
 	"campfire_pot.png": "campfire",
 	"camp_log_seat.png": "log_seat",
+	"clothes-line_0.png": "clothesline",
+	"iron_sword.png": "weapon_sword",
+	"steel_hammer.png": "weapon_hammer",
+	"crate.png": "crate",
+	"barrel.png": "barrel",
+	"weak_wall.png": "weak_wall",
 	"sign_1.png": "sign",
 	"ancient_generator.png": "generator",
 	"auto_sprinkler.png": "sprinkler",
@@ -3458,7 +3498,40 @@ func _scan_props_sources() -> void:
 			var hr: Node = c.get_node_or_null("PlayerHouseRoot")
 			if hr != null:
 				_collect_canvas_items(hr, _extra_hidden_2d)
+		elif c is Node2D and String(c.name).begins_with("PetBed_"):
+			_build_pet_bed_3d_for(c as Node2D)
+	var w_root: Node = vm.get_parent()
+	if w_root != null and is_instance_valid(w_root):
+		for container_name in ["Items", "Environment"]:
+			var cont: Node = w_root.get_node_or_null(container_name)
+			if cont != null:
+				_collect_camp_sprites(cont)
 	_sync_props_3d(false)
+
+
+func _build_pet_bed_3d_for(bed_node: Node2D) -> void:
+	if nature_root_3d == null or bed_node == null:
+		return
+	var b_name := "PetBed3D_" + String(bed_node.name)
+	var old := nature_root_3d.get_node_or_null(b_name)
+	if old != null:
+		old.queue_free()
+	var root := Node3D.new()
+	root.name = b_name
+	nature_root_3d.add_child(root)
+	var pos: Vector2 = bed_node.global_position
+	var is_dog: bool = int(bed_node.get_meta("pet_type", 0)) == 0
+	var m_frame := _mat("pet_bed_wood", Color(0.46, 0.30, 0.16), 0.88, 0.02, Color.BLACK, 0.0, "town_textures/rf_planks.png", "", 0.75)
+	var m_cush := _mat("pet_bed_cush_dog" if is_dog else "pet_bed_cush_cat", Color(0.74, 0.28, 0.24) if is_dog else Color(0.32, 0.54, 0.76), 0.92, 0.0, Color.BLACK, 0.0, "town_textures/T_Trim_Cloth_BaseColor.png", "", 0.65)
+	var m_bowl := _mat("pet_bowl_brass", Color(0.82, 0.68, 0.30), 0.38, 0.65)
+	var m_water := _mat("pet_bowl_water", Color(0.22, 0.56, 0.82), 0.20, 0.10)
+	_add_box_2d(root, pos, Vector2(19.0, 11.0), 0.0, 2.2, m_frame)
+	_add_box_2d(root, pos + Vector2(0, -4.8), Vector2(19.0, 1.8), 2.2, 2.0, m_frame)
+	_add_box_2d(root, pos + Vector2(-8.6, 0), Vector2(1.8, 11.0), 2.2, 1.8, m_frame)
+	_add_box_2d(root, pos + Vector2(8.6, 0), Vector2(1.8, 11.0), 2.2, 1.8, m_frame)
+	_add_box_2d(root, pos + Vector2(0, 0.5), Vector2(15.0, 7.6), 1.8, 1.8, m_cush)
+	_add_cyl_2d(root, pos + Vector2(13.5, 1.0), 2.8, 0.0, 2.2, m_bowl, 2.4, 10)
+	_add_cyl_2d(root, pos + Vector2(13.5, 1.0), 2.1, 1.6, 0.8, m_water, 2.1, 10)
 
 
 func _collect_canvas_items(n: Node, out: Array) -> void:
@@ -3549,27 +3622,118 @@ func _build_prop_3d(root: Node3D, kind: String, spr: Sprite2D) -> void:
 			_add_box_2d(root, pos, Vector2(18, 13), 0.0, 9.0, m_wood)
 			_add_box_2d(root, pos, Vector2(15, 10), 8.6, 1.2, _mat("compost_soil", Color(0.25, 0.18, 0.11), 0.98, 0.0))
 		"tent":
-			var m_canvas := _mat("tent_canvas", Color(0.80, 0.71, 0.52), 0.95, 0.0)
-			_add_prism_2d(root, pos + Vector2(0, 2), Vector2(32, 22), 0.0, 17.0, m_canvas, false)
-			_add_box_2d(root, pos + Vector2(0, 13.2), Vector2(7, 0.6), 0.0, 10.0, _mat("tent_door", Color(0.22, 0.17, 0.12), 0.95, 0.0))
+			var m_canvas := _mat("tent_canvas", Color(0.84, 0.74, 0.54), 0.88, 0.0, Color.BLACK, 0.0, "town_textures/T_Trim_Cloth_BaseColor.png", "town_textures/T_Trim_Cloth_Normal.png", 0.55)
+			var m_flap := _mat("tent_flap", Color(0.72, 0.60, 0.42), 0.90, 0.0, Color.BLACK, 0.0, "town_textures/T_Trim_Cloth_BaseColor.png", "", 0.65)
+			var m_bedroll := _mat("tent_bedroll", Color(0.58, 0.24, 0.20), 0.92, 0.0, Color.BLACK, 0.0, "town_textures/T_Trim_Cloth_BaseColor.png", "", 0.70)
+			var m_pillow := _mat("tent_pillow", Color(0.92, 0.88, 0.78), 0.90, 0.0)
+			# Plataforma base de madera + cuerpo principal de lona a dos aguas + cumbrera y postes de madera
+			_add_box_2d(root, pos + Vector2(0, 2), Vector2(34, 24), 0.0, 1.6, m_dark)
+			_add_prism_2d(root, pos + Vector2(0, 2), Vector2(32, 22), 1.4, 17.5, m_canvas, false)
+			_add_box_2d(root, pos + Vector2(0, 2), Vector2(3.0, 25.0), 17.2, 2.2, m_dark)
+			_add_cyl_2d(root, pos + Vector2(0, -9.2), 1.4, 1.4, 17.6, m_dark, 1.4, 8)
+			_add_cyl_2d(root, pos + Vector2(0, 13.2), 1.3, 1.4, 17.6, m_dark, 1.3, 8)
+			# Entrada abierta con faldones enrollados e interior con saco de dormir y almohada 3D
+			_add_box_2d(root, pos + Vector2(0, 12.6), Vector2(8.5, 1.2), 1.6, 10.5, _mat("tent_door", Color(0.16, 0.12, 0.09), 0.96, 0.0))
+			_add_cyl_2d(root, pos + Vector2(-4.8, 13.0), 1.6, 1.6, 11.2, m_flap, 1.4, 8)
+			_add_cyl_2d(root, pos + Vector2(4.8, 13.0), 1.6, 1.6, 11.2, m_flap, 1.4, 8)
+			_add_box_2d(root, pos + Vector2(0, 4.5), Vector2(8.0, 13.0), 1.6, 2.2, m_bedroll)
+			_add_box_2d(root, pos + Vector2(0, -0.5), Vector2(6.8, 3.4), 3.6, 1.4, m_pillow)
+			# Estacas y vientos tensores en las 4 esquinas
+			for stake_off in [Vector2(-18.5, -8.5), Vector2(18.5, -8.5), Vector2(-18.5, 12.5), Vector2(18.5, 12.5)]:
+				_add_cyl_2d(root, pos + stake_off, 1.0, 0.0, 4.2, m_dark, 0.8, 6)
+				_add_box_2d(root, pos + stake_off * 0.82, Vector2(3.6, 0.9), 2.5, 1.2, m_wood)
 		"campfire":
+			var m_stone_ring := _mat("campfire_stone", Color(0.48, 0.46, 0.44), 0.92, 0.02)
+			var m_ember := _mat("campfire_ember", Color(0.95, 0.34, 0.08), 0.40, 0.0, Color(1.0, 0.36, 0.06), 2.4)
+			var m_flame := _mat("campfire_flame", Color(1.0, 0.72, 0.18), 0.25, 0.0, Color(1.0, 0.58, 0.10), 3.0)
+			var m_stew := _mat("campfire_stew", Color(0.76, 0.42, 0.18), 0.35, 0.05)
+			for i in range(8):
+				var ang: float = float(i) * TAU / 8.0
+				_add_box_2d(root, pos + Vector2(cos(ang), sin(ang)) * 7.2, Vector2(3.8, 3.2), 0.0, 2.6, m_stone_ring, rad_to_deg(ang))
+			_add_cyl_2d(root, pos, 5.8, 0.0, 1.6, m_ember, 5.2, 10)
+			_add_box_2d(root, pos, Vector2(13.0, 2.4), 0.8, 2.2, m_dark, 28.0)
+			_add_box_2d(root, pos, Vector2(13.0, 2.4), 0.8, 2.2, m_dark, -32.0)
+			_add_cyl_2d(root, pos + Vector2(-1.8, 0.8), 2.4, 1.4, 4.8, m_flame, 0.4, 7)
+			_add_cyl_2d(root, pos + Vector2(1.8, -0.6), 2.0, 1.4, 4.2, m_flame, 0.3, 7)
 			_add_model_2d(root, "exterior/Bonfire_Lit.obj", pos, 0.0, Vector2(16, 16), 9.0)
-			_add_model_2d(root, "exterior/Cauldron.obj", pos, 2.5, Vector2(10, 10), 7.0)
+			_add_model_2d(root, "exterior/Cauldron.obj", pos, 3.2, Vector2(11, 11), 7.8)
+			_add_cyl_2d(root, pos, 3.8, 8.8, 1.2, m_stew, 3.8, 10)
+			# Trípode de hierro forjado sosteniendo la cacerola sobre la hoguera
+			for t_ang in [-2.1, 0.0, 2.1]:
+				var leg_p := pos + Vector2(cos(t_ang), sin(t_ang)) * 5.2
+				_add_cyl_2d(root, leg_p, 0.75, 0.0, 15.5, m_iron, 0.65, 6)
+			_add_cyl_2d(root, pos, 4.8, 14.5, 1.2, m_iron, 4.8, 10)
+			_add_cyl_2d(root, pos, 0.6, 9.5, 5.5, m_iron, 0.6, 6)
 			if not _is_headless:
 				var lt := OmniLight3D.new()
 				lt.position = to_3d(pos, 10.0)
 				lt.light_color = Color(1.0, 0.62, 0.28)
-				lt.light_energy = 1.2
-				lt.omni_range = 2.6
+				lt.light_energy = 1.35
+				lt.omni_range = 2.8
 				root.add_child(lt)
 		"log_seat":
-			# Tronco tumbado: el modelo de leña sale de pie al encajarlo, así que va hecho a mano.
-			var log_mi := _add_cyl_2d(root, pos, 3.2, 0.0, 22.0, m_dark, 3.2, 8)
+			# Tronco tumbado 3D con corteza, anillos de madera en los extremos y calzos de apoyo
+			var m_ring := _mat("log_end_ring", Color(0.78, 0.64, 0.42), 0.85, 0.0)
+			var log_mi := _add_cyl_2d(root, pos, 3.8, 0.0, 23.0, m_dark, 3.8, 10)
 			log_mi.rotation_degrees.z = 90.0
-			log_mi.position = to_3d(pos, 3.2)
+			log_mi.position = to_3d(pos, 3.8)
+			for end_x in [-11.6, 11.6]:
+				var cap_mi := _add_cyl_2d(root, pos + Vector2(end_x, 0), 3.4, 0.0, 0.6, m_ring, 3.4, 10)
+				cap_mi.rotation_degrees.z = 90.0
+				cap_mi.position = to_3d(pos + Vector2(end_x, 0), 3.8)
+			_add_box_2d(root, pos + Vector2(-7.0, 0), Vector2(3.0, 8.2), 0.0, 2.2, m_wood)
+			_add_box_2d(root, pos + Vector2(7.0, 0), Vector2(3.0, 8.2), 0.0, 2.2, m_wood)
+		"clothesline":
+			# Tendedero 3D con dos postes de madera, cuerda tensada y 3 prendas tendidas (incluyendo la prenda morada)
+			var m_rope := _mat("clothesline_rope", Color(0.76, 0.66, 0.48), 0.90, 0.0)
+			var m_cloth_purple := _mat("cloth_purple", Color(0.62, 0.46, 0.84), 0.88, 0.0, Color.BLACK, 0.0, "town_textures/T_Trim_Cloth_BaseColor.png", "", 0.7)
+			var m_cloth_tunic := _mat("cloth_tunic", Color(0.58, 0.52, 0.42), 0.90, 0.0, Color.BLACK, 0.0, "town_textures/T_Trim_Cloth_BaseColor.png", "", 0.7)
+			var m_cloth_teal := _mat("cloth_teal", Color(0.24, 0.58, 0.68), 0.88, 0.0, Color.BLACK, 0.0, "town_textures/T_Trim_Cloth_BaseColor.png", "", 0.7)
+			for px in [-13.0, 13.0]:
+				_add_box_2d(root, pos + Vector2(px, 3.0), Vector2(3.8, 3.8), 0.0, 2.0, m_dark)
+				_add_cyl_2d(root, pos + Vector2(px, 3.0), 1.6, 0.0, 16.5, m_wood, 1.4, 8)
+				_add_box_2d(root, pos + Vector2(px, 3.0), Vector2(2.6, 2.8), 13.5, 1.8, m_rope)
+			_add_box_2d(root, pos + Vector2(0, 3.0), Vector2(26.0, 1.2), 14.0, 1.0, m_rope)
+			# Prenda 1 (izquierda): pantalón/tela morada con dos perneras y pinzas de madera
+			_add_box_2d(root, pos + Vector2(-7.2, 3.2), Vector2(5.6, 1.6), 9.5, 4.8, m_cloth_purple)
+			_add_box_2d(root, pos + Vector2(-8.6, 3.2), Vector2(2.4, 1.6), 5.2, 4.5, m_cloth_purple)
+			_add_box_2d(root, pos + Vector2(-5.8, 3.2), Vector2(2.4, 1.6), 5.2, 4.5, m_cloth_purple)
+			# Prenda 2 (centro): casaca/camisa con mangas
+			_add_box_2d(root, pos + Vector2(0.0, 3.2), Vector2(6.4, 1.8), 4.8, 9.5, m_cloth_tunic)
+			_add_box_2d(root, pos + Vector2(0.0, 3.2), Vector2(9.2, 1.6), 11.2, 3.0, m_cloth_tunic)
+			# Prenda 3 (derecha): prenda azul turquesa
+			_add_box_2d(root, pos + Vector2(7.4, 3.2), Vector2(5.4, 1.6), 9.5, 4.8, m_cloth_teal)
+			_add_box_2d(root, pos + Vector2(6.1, 3.2), Vector2(2.3, 1.6), 5.5, 4.2, m_cloth_teal)
+			_add_box_2d(root, pos + Vector2(8.7, 3.2), Vector2(2.3, 1.6), 5.5, 4.2, m_cloth_teal)
+			for pin_x in [-8.4, -6.0, -1.8, 1.8, 6.2, 8.6]:
+				_add_box_2d(root, pos + Vector2(pin_x, 3.2), Vector2(0.9, 2.0), 14.2, 1.6, m_dark)
+		"weapon_sword", "weapon_hammer":
+			# Espada / Martillo 3D apoyado sobre un caballete/tocón de armero en el campamento
+			var m_steel := _mat("weapon_steel_3d", Color(0.82, 0.85, 0.90), 0.25, 0.85)
+			var m_hilt := _mat("weapon_hilt_brass", Color(0.86, 0.68, 0.24), 0.32, 0.80)
+			_add_cyl_2d(root, pos + Vector2(0, 2.0), 4.8, 0.0, 4.5, m_dark, 4.2, 10)
+			_add_box_2d(root, pos + Vector2(0, 2.0), Vector2(8.0, 3.2), 4.2, 1.6, m_wood)
+			var w_mdl_path: String = "props/Sword_Bronze.gltf" if kind == "weapon_sword" else "weapons/Hammer_Double.obj"
+			var w_mdl := _add_model_2d(root, w_mdl_path, pos + Vector2(0, 1.5), 4.5, Vector2.ZERO, 15.0, 25.0)
+			if w_mdl != null:
+				w_mdl.rotation_degrees.z = -28.0
+			else:
+				_add_box_2d(root, pos + Vector2(0, 1.5), Vector2(2.2, 13.0), 5.5, 1.8, m_steel, -25.0)
+				_add_box_2d(root, pos + Vector2(-2.2, 3.5), Vector2(5.8, 1.8), 5.2, 2.0, m_hilt, -25.0)
+		"crate":
+			if _add_model_2d(root, "exterior/Crate.obj", pos, 0.0, Vector2(14, 14), 12.0) == null:
+				_add_box_2d(root, pos, Vector2(14, 14), 0.0, 12.0, m_wood)
+		"barrel":
+			if _add_model_2d(root, "props/Barrel.gltf", pos, 0.0, Vector2(13, 13), 13.0) == null:
+				_add_cyl_2d(root, pos, 6.5, 0.0, 13.0, m_dark, 6.0, 10)
+		"weak_wall":
+			_add_box_2d(root, pos, Vector2(18, 28), 0.0, 22.0, _mat("weak_wall_stone", Color(0.48, 0.46, 0.44), 0.90, 0.02, Color.BLACK, 0.0, "town_textures/wall_brick_stone_center.png", "", 0.65))
 		"sign":
-			_add_box_2d(root, pos + Vector2(0, 4), Vector2(2.2, 2.2), 0.0, 13.0, m_dark)
-			_add_box_2d(root, pos + Vector2(0, 4.5), Vector2(15, 1.6), 7.0, 8.0, m_wood)
+			_add_box_2d(root, pos + Vector2(0, 4.0), Vector2(12.5, 5.2), 0.0, 2.2, m_dark)
+			_add_box_2d(root, pos + Vector2(-4.5, 4.0), Vector2(2.4, 2.6), 0.0, 14.5, m_dark)
+			_add_box_2d(root, pos + Vector2(4.5, 4.0), Vector2(2.4, 2.6), 0.0, 14.5, m_dark)
+			_add_box_2d(root, pos + Vector2(0, 4.4), Vector2(16.5, 3.4), 6.2, 7.6, m_wood)
+			_add_prism_2d(root, pos + Vector2(0, 4.2), Vector2(18.5, 5.8), 13.6, 3.6, m_dark, false)
 		"generator":
 			if _add_model_2d(root, "props/Crate_Metal.gltf", pos, 0.0, Vector2(16, 14), 12.0) == null:
 				_add_box_2d(root, pos, Vector2(16, 14), 0.0, 12.0, m_iron)
@@ -3749,6 +3913,8 @@ func _sync_2d_flat_visuals(use_3d: bool) -> void:
 		# Muebles y suelos 2D dentro de los edificios (camas, mesas, alfombras…): el interior 3D ya los tiene.
 		if (child is Sprite2D or child is TextureRect or child is Polygon2D) and (child as CanvasItem).z_index <= 0 and not child.has_meta("flat_2d_building_visual"):
 			var cpos: Vector2 = (child as Node2D).global_position if child is Node2D else (child as Control).global_position + (child as Control).size * 0.5
+			if child is Polygon2D and cpos == Vector2.ZERO and (child as Polygon2D).polygon.size() > 0:
+				cpos = (child as Polygon2D).polygon[0]
 			for ir in inner_rects:
 				if ir.has_point(cpos):
 					(child as CanvasItem).self_modulate.a = target_a

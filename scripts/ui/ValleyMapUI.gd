@@ -231,8 +231,8 @@ func _draw_valley_cartography(canvas: Control, detailed: bool) -> void:
 	var road_col := Color(0.54, 0.42, 0.28, 0.90)
 	for r_rect in [
 		Rect2(Vector2(-1950, 36), Vector2(2960, 28)),
-		Rect2(Vector2(-498, -88), Vector2(18, 124)),
-		Rect2(Vector2(-498, 64), Vector2(18, 36)),
+		Rect2(Vector2(-688, -88), Vector2(18, 124)),
+		Rect2(Vector2(-688, 64), Vector2(18, 36)),
 		Rect2(Vector2(448, -135), Vector2(34, 920)),
 		Rect2(Vector2(140, 130), Vector2(24, 248)),
 		Rect2(Vector2(140, 356), Vector2(312, 22)),
@@ -253,20 +253,20 @@ func _draw_valley_cartography(canvas: Control, detailed: bool) -> void:
 	canvas.draw_rect(plaza_r, Color(0.56, 0.58, 0.62, 0.95), true)
 
 	# 5. Lago de Pesca, Campamento del Jugador y (si ya se han construido) Gallinero y Huerto
-	var lake_r := _world_rect_to_map(Rect2(Vector2(-888, 78), Vector2(412, 162)), csize)
+	var lake_r := _world_rect_to_map(Rect2(Vector2(-1078, 78), Vector2(412, 162)), csize)
 	canvas.draw_rect(lake_r, Color(0.18, 0.52, 0.78, 0.92), true)
 
-	var camp_r := _world_rect_to_map(Rect2(Vector2(-592, -124), Vector2(88, 46)), csize)
+	var camp_r := _world_rect_to_map(Rect2(Vector2(-782, -124), Vector2(88, 46)), csize)
 	canvas.draw_rect(camp_r, Color(0.76, 0.62, 0.36, 0.85), true)
 
 	var coop_node := get_tree().get_first_node_in_group("chicken_coop") as Node2D
 	if coop_node != null and coop_node.visible:
-		var coop_r := _world_rect_to_map(Rect2(Vector2(-696, -51), Vector2(76, 60)), csize)
+		var coop_r := _world_rect_to_map(Rect2(Vector2(-886, -51), Vector2(76, 60)), csize)
 		canvas.draw_rect(coop_r, Color(0.68, 0.48, 0.26, 0.90), true)
 
 	var plots := get_tree().get_nodes_in_group("farm_plots")
 	if not plots.is_empty() and (plots[0] as Node2D).visible:
-		var farm_r := _world_rect_to_map(Rect2(Vector2(-602, -62), Vector2(82, 82)), csize)
+		var farm_r := _world_rect_to_map(Rect2(Vector2(-792, -62), Vector2(82, 82)), csize)
 		canvas.draw_rect(farm_r, Color(0.36, 0.62, 0.24, 0.90), true)
 
 	# 6. Edificios de la Aldea (incluyendo Trattoria en la Calle Mayor, Hospital/Morgue y Comisaría/Cárcel)
@@ -285,7 +285,7 @@ func _draw_valley_cartography(canvas: Control, detailed: bool) -> void:
 		{"rect": Rect2(Vector2(676, 100), Vector2(138, 96)), "col": Color(0.22, 0.64, 0.58), "label": "🏥 Hospital y Morgue"},
 		{"rect": Rect2(Vector2(844, 100), Vector2(142, 96)), "col": Color(0.26, 0.42, 0.72), "label": "🚓 Comisaría y Cárcel"},
 		{"rect": Rect2(Vector2(679, 266), Vector2(132, 92)), "col": Color(0.52, 0.36, 0.68), "label": "☀️ Capilla del Alba"},
-		{"rect": Rect2(Vector2(826, 262), Vector2(166, 98)), "col": Color(0.32, 0.42, 0.36), "label": "🪦 Cementerio Parroquial"}
+		{"rect": Rect2(Vector2(822, 260), Vector2(268, 168)), "col": Color(0.32, 0.42, 0.36), "label": "🪦 Cementerio Parroquial"}
 	]
 	var vm_lots = get_tree().get_first_node_in_group("village_manager")
 	if vm_lots and "lots_state" in vm_lots:

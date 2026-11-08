@@ -123,7 +123,9 @@ func _setup_components_and_visuals() -> void:
 	add_child(sprite)
 	# Modelo 3D (solo visual) para el perro; el gato sigue en 2D hasta tener modelo.
 	if pet_type == PetType.DOG:
-		AnimalModel3DScript.attach(self, "animals/animated/ShibaInu.glb", 11.0, 1.0)
+		AnimalModel3DScript.attach(self, "animals/animated/ShibaInu.glb", 11.0, 1.0, tint_color)
+	else:
+		AnimalModel3DScript.attach(self, "animals/animated/Fox.glb", 8.0, 1.0, tint_color)
 
 	interact_area = Area2D.new()
 	interact_area.name = "PetInteractArea"

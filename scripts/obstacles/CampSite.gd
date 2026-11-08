@@ -12,6 +12,7 @@ class_name CampSite
 ##    - Alimenta la red eléctrica del campamento y del pueblo, y activa el Aspersor Automático en el huerto 3x3 (`Vector2(-101, -21)`).
 
 const TENT_OFFSET := Vector2(-46, -18)
+const CLOTHESLINE_OFFSET := Vector2(-36, 14)
 const POT_OFFSET := Vector2(4, 6)
 const SEAT_OFFSET := Vector2(28, 6)
 const UPGRADE_SIGN_OFFSET := Vector2(-6, -24)
@@ -69,6 +70,7 @@ func _ready() -> void:
 	set_process(not in_editor)
 	set_process_unhandled_input(not in_editor)
 	_setup_tent_and_house()
+	_setup_clothesline()
 	_setup_campfire_pot()
 	_setup_log_seat()
 	_setup_upgrade_sign()
@@ -369,6 +371,19 @@ func _setup_upgrade_sign() -> void:
 	_add_interact_area(self, "SignInteractArea", UPGRADE_SIGN_OFFSET, 6.0)
 	sign_label = _create_label(UPGRADE_SIGN_OFFSET + Vector2(-115, -28), Color(0.95, 0.85, 0.52))
 	add_child(sign_label)
+
+func _setup_clothesline() -> void:
+	var cl_body := StaticBody2D.new()
+	cl_body.name = "CampClotheslineBody"
+	cl_body.position = CLOTHESLINE_OFFSET
+	add_child(cl_body)
+	_add_prop_sprite(cl_body, "ClotheslineSprite", "res://assests/Comprados/Epic RPG World - The Village V2.1/tilesets and props/props-sprites/clothes-line_0.png", Vector2.ZERO, 0.62)
+	var col := CollisionShape2D.new()
+	var rect := RectangleShape2D.new()
+	rect.size = Vector2(28.0, 5.0)
+	col.shape = rect
+	col.position = Vector2(0.0, 4.0)
+	cl_body.add_child(col)
 
 # --- 5. GENERADOR ANTIGUO Y ASPERSOR AUTOMÁTICO (Paso 10) ---
 func _setup_generator_and_sprinkler() -> void:
