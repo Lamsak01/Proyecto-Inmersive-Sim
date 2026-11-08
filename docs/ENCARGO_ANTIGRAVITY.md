@@ -11,11 +11,12 @@
   (`timeout 120 flatpak run org.godotengine.Godot --headless --path . --quit-after 300`). Las pruebas de verdad, solo
   en los momentos de «Cuándo probar». EXIT 124 = colgada por un assert: busca `Assertion failed`, arregla, repite (máx. 2).
 - Cada arreglo de `FALLOS_VISIBLES.md`: márcalo ✅ con la fecha (no lo borres).
-- Al cerrar cada bloque: HANDOFF §7, CHANGELOG, REGISTRO_TRABAJO, nota del vault del sistema tocado, Tablero, diario,
-  APORTES_CREATIVOS si hay textos nuevos; commit y push a `main`.
-- Informe: al acabar cada paso del orden, añade una sección a `docs/INFORME_ANTIGRAVITY.md` con capturas en
-  `docs/capturas_<paso>/` y **qué viste en ellas**. Separa lo comprobado de lo supuesto. No describas cosas que no
-  se ven en pantalla (en D1–D5 el informe hablaba de 5 pestañas, retrato y barra de deterioro que no aparecen).
+- **Nuevo (2026-11-07 noche): mira «Ritmo y alcance» en `docs/DIRECTIVAS_ANTIGRAVITY.md`; manda sobre todo lo de
+  este encargo.** En resumen: solo 3D (el 2D se ignora, no se borra); solo lo que pide cada punto, sin rehacer partes
+  enteras; una captura 3D por arreglo; papeleo (HANDOFF, CHANGELOG, REGISTRO, vault, Tablero, diario) una vez al
+  final del día. Tras cada arreglo: ✅ en `FALLOS_VISIBLES.md`, commit con push y 2–3 líneas en el informe.
+- **Lo que tienes a medias de la interfaz:** termínalo sin ampliarlo más, súbelo y explica en el informe qué cambiaste
+  aparte de los letreros amontonados.
 
 ## Paso 1 — Arreglos rápidos (en este orden)
 **1a. Examen de muertos que no son de un caso (lo primero).** Hoy copia las pistas de «La mujer del bosque»: el usuario

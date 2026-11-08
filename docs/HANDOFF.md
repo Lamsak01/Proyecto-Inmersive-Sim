@@ -1095,6 +1095,7 @@ Cada fase se dividirá en bloques pequeños cuando se llegue a ella (detalle en 
 
 ## 8. Decisiones de diseño ya tomadas (no volver a preguntarlas)
 
+- **Solo 3D** (decisión del usuario, 2026-11-07): el juego será en 3D. El 2D se deja de mantener, probar y capturar; no se borra todavía, solo se ignora.
 - **Tamaño y niveles**: empezar pequeño, objetivo final una ciudad de 100+ vecinos. Habrá sótanos (mapa aparte debajo del principal) y varios pisos con un sistema de capas tipo Project Zomboid, el mismo para sótanos y pisos (`docs/VISION_Y_FUTURO.md` §6; construir más adelante). Los sistemas nuevos que usen distancias (testigos, oír, ver) deben pasar por una función común para poder añadir «mismo nivel» después.
 - **Visión a largo plazo**: pueblo realista con lo bueno y lo malo, profundidad tipo Dwarf Fortress / RimWorld / Song of Syx, construida con 6 piezas comunes y en el orden de `docs/VISION_Y_FUTURO.md` (siguiente tras T2: relaciones de un solo sentido). Las ideas nuevas del usuario se añaden a ese documento.
 - **Rasgos**: unos 140 (más de 100; la cifra era orientativa), nombres según el género, oscuros pero raros, un vecino malicioso o Mentiroso puede contarte rasgos falsos («según X»), con ejes de opuestos (no puede ser Trabajador y Holgazán a la vez), unos 6 por vecino, ocultos al principio y descubiertos al interactuar. Los recién llegados tras una muerte se generan solos con el catálogo; las partidas guardadas conservan sus rasgos y se completan.

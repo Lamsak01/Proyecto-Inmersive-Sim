@@ -17,7 +17,7 @@
   lápidas enormes, caminar sobre el agua, peleas clandestinas que nunca aparecen…). Ningún agente los vio: los
   encontró el usuario jugando. **Una prueba verde NO significa que esté bien.**
 - Por eso, al revisar un trabajo:
-  1. **Mira capturas de verdad** (en 3D y en primera persona, de día y de noche) del sitio cambiado. Si Antigravity
+  1. **Mira capturas de verdad** (solo 3D; el 2D se ignora desde 2026-11-07) del sitio cambiado. Si Antigravity
      no las dejó, pídeselas. Compáralas con lo que pidió el usuario.
   2. Pregúntate «¿esto lo encontraría un jugador?»: ¿se ve?, ¿se entiende sin leer el código?, ¿hay gente donde
      debería?, ¿las cosas tienen tamaño y sitio con sentido?
