@@ -106,7 +106,11 @@ principio** que el jugador no es quien dice. Callaron porque creyeron que sería
 convenía), pero resultó tener talento para resolver crímenes y se volvió una molestia.
 
 **Decidido por el usuario (2026-11-08, noche):**
-- **Muerte del preso:** aparece «muerto» **un día después de que llegue el mercader** al pueblo.
+- **Muerte del preso:** aparece «muerto» **un día después de que llegue el mercader** al pueblo. En la demo el mercader
+  **llega un día fijo después de la acusación** (no se espera a la caravana normal).
+- **Calendario del final (propuesto por el supervisor, pendiente de confirmar):** día A, acusación → día A+1, llega el
+  mercader → día A+2, el preso amanece «muerto», Valen firma y lo entierran ese día → **esa noche los nobles dan una
+  fiesta para el pueblo**: la gente está **ebria y distraída**, así que hay menos testigos para excavar la tumba.
 - **El médico es el Dr. Valen:** no es cómplice directo, solo **sigue órdenes**; es un peón más. **Los nobles deciden todo
   lo que pasa en el pueblo.**
 - **Nombres:** el detective suplantado es **Jean Porterre**; el nombre real del protagonista es **Dean Hollow**.
@@ -114,7 +118,7 @@ convenía), pero resultó tener talento para resolver crímenes y se volvió una
   Está en **territorio enemigo** y no puede volver a casa.
 - **Excavar la tumba:** con la **pala** que ya existe en el juego. Si alguien te ve, **llama a la guardia**: multa y
   **noche en el calabozo**.
-- **Inicio de la partida:** llegas a las **afueras del pueblo** mientras una **voz en off lee tu carta de contratación**,
+- **Inicio de la partida:** llegas a las **afueras del pueblo** mientras se lee tu carta de contratación (**solo texto en pantalla**, sin voz grabada),
   escrita como si fueras el verdadero detective (Jean Porterre). **El giro (eres un impostor) se guarda para el final de
   la demo**: nada antes debe delatarlo.
 
