@@ -123,5 +123,22 @@
   con más lomas, árboles o niebla. (4) La tarjeta de [E] cerca del muelle dice solo «Usar · Interacción»: debe decir qué
   es. (5) El aviso «[P/F6] Vista en 1.ª Persona ACTIVADA…» sale cortado con «…».
 
+- [ ] **⚠️ PRIORIDAD — Partida del usuario: el relieve de la Fase A no vale así** (2026-11-07 23:47–23:49, 6 capturas
+  del usuario, 3D). El usuario: «algunas pendientes están demasiado inclinadas, parece que estoy en un juego de Super
+  Mario»; «el relieve tiene elevaciones muy pronunciadas y poco realistas». La revisión de Claude lo aprobó demasiado
+  rápido. Hay que rehacerlo más suave:
+  (1) **Lomas bajas y anchas**, sin montículos redondos de golpe; pendientes suaves que se suban andando sin notarlo
+  (como mucho unos 15°). Nada de bultos aislados en mitad de un llano. (2) **Los caminos no suben y bajan por encima de
+  las lomas como una montaña rusa**: el terreno bajo un camino se allana y el camino rodea las lomas. (3) **Una casa en
+  lo alto de una loma se desarma**: sus piezas quedan a alturas distintas. Todo edificio, fuera o dentro del pueblo,
+  sobre una explanada llana. (4) **Un bloque de piedra medio enterrado** en una loma junto al camino. (5) **El arroyo
+  es una zanja honda** de orillas casi verticales: orillas bajas y suaves. (6) **El lago**: el muelle se mete y se
+  hunde en el agua, un arbusto flota en el agua y hay un tablón suelto en el agua. (7) Los postes naranjas de valla
+  de la cuesta junto a la casa salen de colores planos y torcidos.
+- [ ] **Taberna: los vecinos atraviesan el suelo con los pies y nadie se sienta** (2026-11-07 23:49, captura del
+  usuario, 21:27, 1.ª persona): los pies se hunden en el suelo de la sala; con mesas y sillas libres, todos están de
+  pie. Además: **un zorro dentro de la taberna**, una **caja con agua** en mitad del suelo, «Eloise Fenwick ·
+  **Posadero**» (debe ser Posadera) y la tarjeta dice «Cerrada: el perista vende la llave» estando dentro y abierta.
+
 ## Arreglados
 - [x] ✅ (2026-11-07) Fachada de la trattoria «Il Corvo» en 3D: parece de tablas oscuras en vez de estuco/ladrillo claro (`WorldStage3D.gd`: cambiada la textura de muros de `building_restaurant` a `town_textures/wall_brick_sand_center.png` con `uv1_scale = Vector3(2.4, 0.72, 2.4)`, tono claro de estuco/ladrillo cálido `Color(1.0, 0.95, 0.84)`, iluminación cálida de rebote `0.58` en la fachada sur y dintel con el mismo estuco en vez de `rf_planks.png`).

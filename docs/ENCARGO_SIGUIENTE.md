@@ -32,8 +32,11 @@ Fallo en `FALLOS_VISIBLES.md` (captura de la plaza con 4 cadáveres: 10+ líneas
 El terreno es perfectamente plano. Hacerlo **antes** de los edificios de los bocetos, en este orden y con parada para
 capturas entre fases:
 - **Fase A (fuera del pueblo):** lomas en la llanura, desniveles en el bosque, orillas del lago y de la ciénaga más bajas
-  que el terreno. Relieve fuerte permitido.
-- **⚠️ Antes de la Fase B:** arregla, sin rehacer nada más, la entrada «Partida del usuario tras la interfaz nueva» de
+  que el terreno. **Corregido por el usuario (2026-11-07): el relieve fuerte NO vale; lomas bajas y anchas, pendientes
+  suaves (≤ ~15°), caminos y edificios en llano.**
+- **⚠️ Antes de la Fase B:** rehaz la Fase A según «PRIORIDAD — el relieve de la Fase A no vale así» y arregla la
+  taberna («atraviesan el suelo y nadie se sienta»), ambas en `FALLOS_VISIBLES.md`, y para para que el usuario lo vea.
+  Luego arregla, sin rehacer nada más, la entrada «Partida del usuario tras la interfaz nueva» de
   `FALLOS_VISIBLES.md` (mapa grande, aviso [E] doble, ayuda sobre el reloj, puerta de la taberna comprobada viendo a
   varios vecinos entrar y salir, tira roja, pescador fuera del lago).
 - **Fase B (pueblo):** solo desniveles suaves (calles que suben un poco, una plaza algo más alta, escalones o rampas
