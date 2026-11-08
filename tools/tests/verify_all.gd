@@ -7092,7 +7092,7 @@ func _initialize() -> void:
 	assert(d5_cases.size() == 10 and d5_cases.has("case_01_forest_woman") and d5_cases.has("case_10"), "D5.1a: DetectiveCaseData defines 10 case slots (case_01_forest_woman..case_10)")
 	var d5_c1: Dictionary = d5_case_script.get_case_def("case_01_forest_woman")
 	var d5_pending: Dictionary = d5_c1.get("pending_author_decisions", {})
-	assert(str(d5_pending.get("herb_name", "")) == "Belladama gris" and str(d5_pending.get("potion_name", "")) == d5_case_script.PENDING_DECISION, "D5.1b: Case I herb chosen by the user (Belladama gris); undecided details stay PENDIENTE_DECISION_USUARIO")
+	assert(str(d5_pending.get("herb_name", "")) == "Belladama gris" and str(d5_pending.get("potion_name", "")) == "Sueño de cera" and str(d5_pending.get("how_stolen_potion_is_discovered", "")) == d5_case_script.PENDING_DECISION, "D5.1b: Case I herb/potion chosen by the user; undecided details stay PENDIENTE_DECISION_USUARIO")
 	var d5_roles: Dictionary = d5_case_script.assign_case_roles("case_01_forest_woman", vm)
 	assert(str(d5_roles.get("victim", "")) != "" and str(d5_roles.get("alchemist", "")) != "", "D5.1c: assign_case_roles maps scripted roles onto living villagers")
 

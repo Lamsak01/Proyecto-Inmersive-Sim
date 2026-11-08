@@ -30,7 +30,7 @@ static var CASES: Dictionary = {
 		"scene_ground_label": "CLARO JUNTO AL ARROYO · CAMINO DEL NORTE ARRIBA",
 		"pending_author_decisions": {
 			"herb_name": "Belladama gris",
-			"potion_name": PENDING_DECISION,
+			"potion_name": "Sueño de cera",
 			"how_stolen_potion_is_discovered": PENDING_DECISION,
 			"abandoned_house_location": PENDING_DECISION,
 			"sect_open_thread_hook": PENDING_DECISION
@@ -99,7 +99,7 @@ static var CASES: Dictionary = {
 				"step": 3,
 				"id": "trace_rare_potion_to_wealthy",
 				"summary": "No crece por aquí (huerto privado o caravana) y la poción se degrada muy rápido: fue premeditado y caro, apuntando a gente pudiente.",
-				"potion_name": PENDING_DECISION
+				"potion_name": "Sueño de cera"
 			},
 			{
 				"step": 4,
