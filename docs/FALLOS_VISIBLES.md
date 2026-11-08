@@ -5,6 +5,27 @@
 > Formato: `- [ ] Qué se ve mal · dónde · cuándo (hora del juego, 2D/3D/primera persona)`.
 
 ## Pendientes
+- [ ] **🔴 [E] aparece sin mirar el objeto:** basta con estar cerca para que salga «Cerrar la puerta» o «Trampilla» aunque
+  mires al suelo o a la escalera. En 1.ª persona, [E] debe referirse **a lo que está bajo la cruz del centro** (y a poca
+  distancia) · taberna, 10:56 y 12:28 (`docs/capturas_usuario/2026-11-08/1_sillas_al_reves.png`, `2_E_sin_mirar_y_barandilla.png`).
+- [ ] **🔴 [Alt] hace andar/rodar al personaje** y estorba al hacer capturas (Alt+ImprPant). Viene del arreglo del salto, que pasó
+  «rodar» a [Alt]/[V]: quitar [Alt]; dejar rodar solo en [V] (o en otra tecla libre) y actualizar la ayuda [H].
+- [ ] **🔴 Saltar en el piso de arriba de la taberna deja al jugador atascado** perdiendo vida hasta morir, y **al morir lo llevan
+  a la comisaría como si hubiera cometido un delito**. Dos fallos: (1) el salto no puede meter al jugador dentro de techos/vigas
+  ni hacerle daño; (2) morir por accidente no es un delito: no debe acabar en la comisaría · 1.ª persona, 2.º piso.
+- [ ] **Sillas al revés:** algunas sillas miran hacia fuera, con el respaldo pegado a la mesa · taberna, 10:56
+  (`docs/capturas_usuario/2026-11-08/1_sillas_al_reves.png`). Revisar la orientación de **todas** las sillas en todos los edificios y añadirlo a la
+  comprobación automática de muebles.
+- [ ] **Gente que atraviesa suelos:** vecinos andando metidos dentro de la acera/escalón de la calle (se les ven las piernas
+  hundidas) y dos vecinas superpuestas · calle de la plaza, 19:37 (`docs/capturas_usuario/2026-11-08/6_gente_atraviesa_acera.png`).
+- [ ] **Texturas del techo solapadas:** en el pasillo de arriba de la taberna, la textura de tejas del tejado se mezcla con la
+  del techo de madera (parpadea) · 17:17 (`docs/capturas_usuario/2026-11-08/3_techo_texturas_solapadas.png`).
+- [ ] **Paredes que se cortan sin sentido** en el piso de arriba de la taberna: tabiques que acaban de golpe dejando huecos
+  · 21:14 (`docs/capturas_usuario/2026-11-08/5_paredes_cortadas.png`).
+- [ ] **No me gusta la barandilla de la escalera** de la taberna: demasiados palos, liosa y tosca. Hacerla más sencilla y limpia
+  (pasamanos + pocos balaústres) · 12:28 (`docs/capturas_usuario/2026-11-08/2_E_sin_mirar_y_barandilla.png`).
+- [ ] *(No prioritario, más adelante)* **Cuartos de la posada sin puertas ni muebles** y **camas demasiado pequeñas** · 18:54
+  (`docs/capturas_usuario/2026-11-08/4_cuartos_sin_puertas.png`).
 - [x] ✅ (2026-11-08) **Sillas que atraviesan mesas también en la Casa de Comidas «El Fogón del Valle»** (y seguramente en más sitios).
   El usuario quiere más adelante objetos con físicas (arrastrar sillas, tirar cosas): **ningún mueble puede atravesar
   a otro en ningún edificio** · 1.ª persona, 23:17 (`scripts/visuals/AssetLibrary3D.gd`, `scripts/visuals/WorldStage3D.gd`, `scripts/systems/VillageTavern.gd`, `tools/tests/verify_all.gd`: corregido el escalado de modelos 3D rectangulares en `AssetLibrary3D.instantiate_model` que casi duplicaba el ancho de las mesas al usar la cota vertical proyectada `sy`, separadas todas las sillas, mesas, taburetes, escritorios, librerías y cofres con `2–3 px` de holgura en todos los edificios, y añadida comprobación automática `check_furniture_overlaps()` verificada con `0` solapes en todos los edificios; comprobado en `docs/capturas_arreglos/hoy_2_muebles_sin_solape_3d.png`).

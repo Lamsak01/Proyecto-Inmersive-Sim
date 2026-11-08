@@ -1,36 +1,21 @@
-# ⭐ ENCARGO DE HOY (2026-11-08) — MANDA SOBRE TODO LO DEMÁS
-El MODO NOCHE de abajo ya terminó (✅ 03:58). Trabaja **sin parar ni preguntar** (dudas a `docs/PREGUNTAS_PENDIENTES.md`),
-commit + push tras cada punto, 1 captura en 1.ª persona por punto **jugando de verdad** (no solo con pruebas: la taberna
-«ya sentaba» a la gente según el informe y en la partida del usuario nadie se sienta). Orden:
-1. **Cierre del juego** al pulsar [E] sobre el «Aldeano Guía» junto al campamento (primera entrada de
-   `FALLOS_VISIBLES.md`): el diálogo pide la imagen fija de un dibujo 2D animado. Arreglarlo y darle nombre y aspecto 3D.
-2. **Muebles que se atraviesan, en TODOS los edificios** (taberna, Casa de Comidas, trattoria, el resto): sillas
-   fuera de las mesas, separadas lo justo. Añade una comprobación automática que avise si dos muebles se solapan.
-   El usuario quiere físicas tipo Skyrim más adelante: esto no puede existir.
-3. **Taberna:** techos de los dos pisos a escala adulta (puertas, cuartos y vigas por encima de la cabeza) y clientes
-   que se sientan de verdad a comer y beber un rato. Lo mismo en la **terraza de la trattoria** de noche.
-4. **Plaza:** paso cómodo entre farola y pozo.
-5. **Armas de fuego usables:** el clic izquierdo vuelve a disparar; la pistola (y el fusil) con **modelo 3D visible**
-   en las manos; se pueden **comprar en la armería** con munición, y hay una forma de **robarla**. Si faltan modelos,
-   descarga **gratis y con licencia libre (CC0)**, p. ej. Kenney o Quaternius, y apunta la fuente en el informe.
-6. **Combate en 1.ª persona:** estela fina y semitransparente, brazos con aspecto de brazos (no cajas), y que manos y
-   espada de la 1.ª persona **no se vean en la vista desde arriba**.
-7. **Saltar** (tecla espacio si está libre): si cabe en ~2 h sin romper nada, hazlo; si no, deja en el informe un plan
-   corto de cómo hacerlo y sigue.
-Al acabar: ✅ en `FALLOS_VISIBLES.md`, resumen corto al principio del informe y commit + push.
+# ⭐ ENCARGO DE HOY (2026-11-08, tarde) — MANDA SOBRE TODO LO DEMÁS
+El encargo de la mañana y el troceo ya están hechos (✅ 13:27). El usuario jugó y encontró fallos nuevos: están arriba del todo
+en `FALLOS_VISIBLES.md` con sus capturas en `docs/capturas_usuario/2026-11-08/`. **Mira esas capturas antes de empezar.**
+Trabaja **sin parar ni preguntar** (dudas a `docs/PREGUNTAS_PENDIENTES.md`), commit + push tras cada punto, 1 captura en
+1.ª persona por punto **jugando de verdad** y **mirándola tú** antes de dar el punto por bueno. Orden:
+1. **[E] solo sobre lo que miras** (cruz del centro + poca distancia), no por estar cerca.
+2. **Quitar [Alt]** de rodar (dejar [V] u otra tecla libre) y actualizar la ayuda [H].
+3. **Salto en el piso de arriba:** que no pueda atascar al jugador en techos/vigas ni quitarle vida; y **morir por accidente
+   no lleva a la comisaría** (solo si hubo delito).
+4. **Sillas al revés** en todos los edificios + que la comprobación automática de muebles vigile también hacia dónde miran.
+5. **Vecinos que atraviesan aceras/escalones** y vecinos superpuestos en la calle.
+6. **Techo del pasillo de arriba de la taberna:** que no se mezcle la textura del tejado.
+7. **Paredes cortadas** del piso de arriba de la taberna: tabiques completos, sin huecos raros.
+8. **Barandilla de la escalera** más sencilla y limpia.
+**No hagas** los cuartos sin puertas/camas pequeñas (el usuario lo deja para más adelante). Al acabar: ✅ en
+`FALLOS_VISIBLES.md`, resumen corto al principio del informe y commit + push.
 
-# ⭐ TROCEO DE ARCHIVOS GRANDES (aprobado por el usuario el 2026-11-08) — justo después del ENCARGO DE HOY
-**Por qué:** tres archivos de más de 5.000 líneas hacen que cada arreglo pequeño sea lento y caro. **El juego no debe
-cambiar en nada visible.** Orden (uno cada vez, cerrado y subido antes de empezar el siguiente):
-1. `scripts/visuals/WorldStage3D.gd` (~5.200 líneas): sacar a archivos propios lo que va por temas (terreno y relieve,
-   edificios e interiores, vegetación y cielo, objetos de la época, 1.ª persona…).
-2. `scripts/systems/VillageManager.gd` (~5.500).
-3. `scripts/enemies/VillageNPC.gd` (~5.800).
-**Reglas:** objetivo < ~1.500 líneas por archivo; trocea por temas (mover funciones tal cual, sin reescribirlas); el
-archivo original conserva las funciones que llaman otros (aunque solo reenvíen) para no romper nada; nada de cambiar
-comportamientos ni «aprovechar para mejorar». Tras cada archivo: arranque sin errores + **batería completa**
-(`tools/tests/verify_all.gd`) + 1 captura 3D en 1.ª persona del sitio afectado; commit + push. Si algo falla dos veces,
-deshaz ese archivo y pasa al siguiente. En `docs/HANDOFF.md` actualiza el mapa del código con los archivos nuevos.
+# ✅ TROCEO DE ARCHIVOS GRANDES — HECHO (2026-11-08 13:27). No lo repitas.
 
 # ⭐ MODO NOCHE (orden del usuario, noche del 2026-11-08) — MANDA SOBRE TODO LO DEMÁS
 El usuario duerme y quiere que trabajes **sin parar hasta acabar la lista**. La noche anterior te quedaste esperando
