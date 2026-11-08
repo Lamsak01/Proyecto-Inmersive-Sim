@@ -172,27 +172,45 @@ static func setup_world(vm) -> void:
 	# Mostrador largo de Marta y pasa-platos del camarero
 	vm._add_rect_poly(BAR_COUNTER_POS, BAR_COUNTER_SIZE * 0.5, Color(0.42, 0.25, 0.12, 0.98), -1).add_to_group("tavern_floor0_2d")
 	vm._add_sprite_prop(tex_stall, BAR_COUNTER_POS + Vector2(0.0, 4.0), Vector2(1.4, 1.2), -1).add_to_group("tavern_floor0_2d")
+	vm._add_prop_collider(BAR_COUNTER_POS, Vector2(96.0, 10.0), "tavern_floor0_walls")
+
+	# Chimenea del gran salón, fogón de cocina, mesa de preparación y toneles tras la barra (2D + choque)
+	vm._add_rect_poly(FIREPLACE_POS, Vector2(6.0, 14.0), Color(0.36, 0.34, 0.32, 0.98), -1).add_to_group("tavern_floor0_2d")
+	vm._add_rect_poly(FIREPLACE_POS + Vector2(2.0, 0.0), Vector2(3.0, 9.0), Color(0.95, 0.42, 0.12, 0.92), -1).add_to_group("tavern_floor0_2d")
+	vm._add_prop_collider(FIREPLACE_POS, Vector2(12.0, 28.0), "tavern_floor0_walls")
+	vm._add_rect_poly(STOVE_POS, Vector2(12.0, 5.5), Color(0.24, 0.22, 0.22, 0.98), -1).add_to_group("tavern_floor0_2d")
+	vm._add_prop_collider(STOVE_POS, Vector2(24.0, 11.0), "tavern_floor0_walls")
+	vm._add_rect_poly(PREP_POS, Vector2(12.0, 5.0), Color(0.48, 0.32, 0.18, 0.98), -1).add_to_group("tavern_floor0_2d")
+	vm._add_prop_collider(PREP_POS, Vector2(24.0, 10.0), "tavern_floor0_walls")
+	vm._add_rect_poly(BARREL_RACK_POS, Vector2(26.0, 5.0), Color(0.38, 0.24, 0.12, 0.98), -1).add_to_group("tavern_floor0_2d")
+	vm._add_prop_collider(BARREL_RACK_POS, Vector2(52.0, 10.0), "tavern_floor0_walls")
+	for b_cell_pos in [Vector2(498.0, -302.0), Vector2(534.0, -302.0), Vector2(498.0, -268.0)]:
+		vm._add_rect_poly(b_cell_pos, Vector2(4.5, 4.5), Color(0.42, 0.27, 0.14, 0.96), -1).add_to_group("tavern_floor0_2d")
+		vm._add_prop_collider(b_cell_pos, Vector2(9.0, 9.0), "tavern_floor0_walls")
 
 	# 6 Mesas de comedor y tertulia en el Gran Salón (Planta 0)
 	for tp in DINING_TABLES:
 		vm._add_rect_poly(tp, Vector2(11.0, 6.5), Color(0.54, 0.35, 0.18, 0.98), -1).add_to_group("tavern_floor0_2d")
 		for off in CHAIR_OFFSETS:
 			vm._add_rect_poly(tp + (off as Vector2), Vector2(3.5, 3.5), Color(0.38, 0.24, 0.12, 0.95), -1).add_to_group("tavern_floor0_2d")
+		vm._add_prop_collider(tp, Vector2(28.0, 11.0), "tavern_floor0_walls")
 
 	# 1. Mesa Verde de Póker / Blackjack / Ruleta con 4 sillas
 	vm._add_rect_poly(GAMES_POS, Vector2(14.0, 10.0), Color(0.42, 0.26, 0.12, 1.0), -1).add_to_group("tavern_floor0_2d")
 	vm._add_rect_poly(GAMES_POS, Vector2(11.5, 7.5), Color(0.10, 0.50, 0.25, 1.0), -1).add_to_group("tavern_floor0_2d")
 	for chair_off in POKER_CHAIR_OFFSETS:
 		vm._add_rect_poly(GAMES_POS + (chair_off as Vector2), Vector2(4.0, 4.0), Color(0.55, 0.36, 0.18, 0.95), -1).add_to_group("tavern_floor0_2d")
+	vm._add_prop_collider(GAMES_POS, Vector2(28.0, 20.0), "tavern_floor0_walls")
 
-	vm._add_station_area("TavernGamesTableArea", GAMES_POS, 18.0, "tavern_games")
+	vm._add_station_area("TavernGamesTableArea", GAMES_POS, 24.0, "tavern_games")
 	vm._tavern_games_label = vm._make_station_label(GAMES_POS + Vector2(-120.0, -30.0), "🃏 Mesa de Póker y Casino [E: Jugar con Aldeanos]")
 	vm.entities_root.add_child(vm._tavern_games_label)
 
 	# 2. Mesa de Billar de la Posada
 	vm._add_rect_poly(POOL_POS, Vector2(14.0, 8.5), Color(0.38, 0.22, 0.10, 1.0), -1).add_to_group("tavern_floor0_2d")
 	vm._add_rect_poly(POOL_POS, Vector2(12.0, 6.5), Color(0.08, 0.48, 0.30, 1.0), -1).add_to_group("tavern_floor0_2d")
-	vm._add_station_area("TavernPoolTableArea", POOL_POS, 18.0, "tavern_pool")
+	vm._add_prop_collider(POOL_POS, Vector2(26.0, 16.0), "tavern_floor0_walls")
+	vm._add_station_area("TavernPoolTableArea", POOL_POS, 24.0, "tavern_pool")
 	vm._tavern_pool_label = vm._make_station_label(POOL_POS + Vector2(-115.0, -30.0), "🎱 Mesa de Billar [E: Jugar Billar de Posada]")
 	vm.entities_root.add_child(vm._tavern_pool_label)
 
@@ -212,7 +230,7 @@ static func setup_world(vm) -> void:
 		if spr != null:
 			spr.add_to_group("tavern_upper_2d")
 
-	vm._add_station_area("TavernPlayerBedArea", PLAYER_BED_POS, 14.0, "tavern_bed")
+	vm._add_station_area("TavernPlayerBedArea", PLAYER_BED_POS, 20.0, "tavern_bed")
 	vm._tavern_bed_label = vm._make_station_label(PLAYER_BED_POS + Vector2(-115.0, -28.0), "🛌 Cama de Posada (Piso +1) [E: Dormir hasta 06:00 (-8 Oro)]")
 	vm.entities_root.add_child(vm._tavern_bed_label)
 

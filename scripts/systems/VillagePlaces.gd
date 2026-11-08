@@ -78,6 +78,7 @@ static func build_world(vm) -> void:
 	var rail_top: Polygon2D = vm._add_rect_poly(lv + Vector2(0, -12), Vector2(36, 2), Color(0.50, 0.34, 0.18, 0.95), -1)
 	if rail_top != null:
 		rail_top.add_to_group("ranch_fence_2d")
+	vm._add_prop_collider(lv + Vector2(0, -12), Vector2(72.0, 5.0))
 	for px in [-34, -12, 12, 34]:
 		var rail_post: Polygon2D = vm._add_rect_poly(lv + Vector2(px, -9), Vector2(1.5, 4), Color(0.42, 0.28, 0.14, 0.95), -1)
 		if rail_post != null:

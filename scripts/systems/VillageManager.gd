@@ -1323,10 +1323,37 @@ func _rebuild_cemetery_graves_from_save() -> void:
 # ==============================================================================
 func _spawn_house_chest(pos: Vector2, chest_title: String, fam_id: String) -> void:
 	var spr := _add_sprite_prop(_load_tex("res://assests/world/village/house_chest_closed.png"), pos, Vector2(1.05, 1.05), -1)
-	_add_station_area("", pos, 9.0, "house_chest")
+	_add_prop_collider(pos, Vector2(11.0, 8.0))
+	_add_station_area("", pos, 15.0, "house_chest")
 	var lbl := _make_station_label(pos + Vector2(-115, -24), "🔓 %s [E: Forzar Cerradura (Usa Sigilo [C])]" % chest_title)
 	entities_root.add_child(lbl)
 	house_chests.append({"pos": pos, "sprite": spr, "label": lbl, "title": chest_title, "family_id": fam_id, "looted_day": -1})
+
+func _add_prop_collider(pos: Vector2, sz: Vector2, group_tag: String = "") -> StaticBody2D:
+	if not is_instance_valid(entities_root) or sz.x <= 0.0 or sz.y <= 0.0:
+		return null
+	for d_entry in building_doors:
+		var d_pos: Vector2 = d_entry.get("pos", Vector2.ZERO)
+		if pos.distance_to(d_pos) < 16.0:
+			return null
+	var tag: String = group_tag
+	if tag == "" and VillageTavern.RECT.has_point(pos):
+		tag = "tavern_floor0_walls"
+	var sb := StaticBody2D.new()
+	sb.name = "PropCollider"
+	sb.global_position = pos
+	sb.collision_layer = 1 if tag != "tavern_upper_walls" else (1 if int(player_elevation_level) == 1 else 0)
+	sb.collision_mask = 0
+	sb.add_to_group("prop_collider")
+	if tag != "":
+		sb.add_to_group(tag)
+	var col := CollisionShape2D.new()
+	var rect := RectangleShape2D.new()
+	rect.size = sz
+	col.shape = rect
+	sb.add_child(col)
+	entities_root.add_child(sb)
+	return sb
 
 func _update_streetlights_glow() -> void:
 	if Engine.is_editor_hint():
@@ -1352,6 +1379,25 @@ func _spawn_decor_prop(tex_path: String, pos: Vector2, sc: Vector2 = Vector2.ONE
 	spr.scale = sc
 	spr.z_index = -1
 	entities_root.add_child(spr)
+	var fname: String = tex_path.get_file()
+	var col_sz := Vector2.ZERO
+	match fname:
+		"round_table_0.png":
+			col_sz = Vector2(22.0, 9.0)
+		"table_chairs_0.png", "table_chairs_1.png":
+			col_sz = Vector2(18.0, 10.0)
+		"big_round_table_chairs_0.png":
+			col_sz = Vector2(22.0, 16.0)
+		"piano.png", "stove.png", "storage_countertop_0.png", "storage_countertop2_0.png", "drinks_shelf_0.png", "drinks_shelf_1.png", "fireplace_0.png", "stand-1_part5.png":
+			col_sz = Vector2(16.0, 9.0)
+		"bench_0.png":
+			col_sz = Vector2(16.0, 7.0)
+		"barrels3_0.png", "barrels_2.png", "crates_0.png", "crates_3.png", "hay_0.png", "hay_2.png", "logs_0.png":
+			col_sz = Vector2(11.0, 8.0)
+		"plants_3.png", "plants_5.png", "plants_8.png", "kitchen_props_3.png", "pots_pack_0.png":
+			col_sz = Vector2(8.0, 8.0)
+	if col_sz != Vector2.ZERO:
+		_add_prop_collider(pos, col_sz)
 
 func _add_station_area(area_name: String, pos: Vector2, radius: float, meta_tag: String) -> Area2D:
 	var area := Area2D.new()
@@ -3529,7 +3575,7 @@ func _pop_living_unemployed() -> VillageNPC:
 # FASE 8: ECONOMÍA DINÁMICA DE OFERTA Y DEMANDA, CONSUMO REAL, SABOTAJE Y PROPIEDAD DE NEGOCIOS
 # ==============================================================================
 func _register_shop_business_stall(role_id: int, shop_title: String, fam_id: String, stall_pos: Vector2, stall_spr: Sprite2D) -> void:
-	_add_station_area("ShopBusinessStall_%d" % role_id, stall_pos, 14.0, "shop_business_stall")
+	_add_station_area("ShopBusinessStall_%d" % role_id, stall_pos, 18.0, "shop_business_stall")
 	var lbl := _make_station_label(stall_pos + Vector2(-130, -32), "📜 %s [E: Gestionar Negocio | F: Sabotear]" % shop_title)
 	lbl.custom_minimum_size = Vector2(260, 26)
 	entities_root.add_child(lbl)
@@ -5333,6 +5379,24 @@ func _add_sprite_prop(tex: Texture2D, pos: Vector2, sc: Vector2 = Vector2.ONE, z
 	if mod != Color.WHITE:
 		s.modulate = mod
 	entities_root.add_child(s)
+	if tex != null and tex.has_meta("src_path"):
+		var fname: String = str(tex.get_meta("src_path")).get_file()
+		match fname:
+			"work_stall.png", "storage_countertop_0.png":
+				_add_prop_collider(pos, Vector2(16.0, 9.0))
+			"water_well.png":
+				_add_prop_collider(pos, Vector2(14.0, 14.0))
+			"compost_bin.png":
+				_add_prop_collider(pos, Vector2(10.0, 9.0))
+			"pine-tree_0.png":
+				_add_prop_collider(pos, Vector2(10.0, 10.0))
+			"questboard_1.png", "sign_1.png", "lamp-post1.png":
+				_add_prop_collider(pos, Vector2(7.0, 6.0))
+			"morgue_table.png":
+				_add_prop_collider(pos, Vector2(10.0, 14.0))
+			"tavern_bed.png", "hospital_bed.png":
+				var b_tag: String = "tavern_upper_walls" if VillageTavern.RECT.has_point(pos) else ""
+				_add_prop_collider(pos, Vector2(10.0, 14.0), b_tag)
 	return s
 
 func _add_title_label(pos: Vector2, min_sz: Vector2, txt: String, col: Color, f_sz: int = 8, parent_node: Node = null) -> Label:

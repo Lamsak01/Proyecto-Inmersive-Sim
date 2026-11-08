@@ -182,8 +182,12 @@ static func _build_terrace(vm) -> void:
 	vm._add_rect_poly(TERRACE.get_center(), TERRACE.size * 0.5, Color(0.62, 0.50, 0.40, 1.0), -2) # Losas de barro
 	vm._add_rect_poly(PATH_RECT.get_center(), PATH_RECT.size * 0.5, Color(0.55, 0.47, 0.36, 1.0), -3) # Sendero
 	for t in TERRACE_TABLES:
+		for cx in [-9.0, 9.0]:
+			var ch_poly: Polygon2D = vm._add_rect_poly((t as Vector2) + Vector2(cx, 0.0), Vector2(3.0, 3.0), Color(0.42, 0.27, 0.14, 0.95), -1)
+			if ch_poly != null:
+				ch_poly.add_to_group("ranch_fence_2d")
 		vm._spawn_decor_prop(PROPS + "round_table_0.png", t, Vector2(0.4, 0.4))
-	for pp in [BASE + Vector2(4, 232), BASE + Vector2(270, 232)]:
+	for pp in [BASE + Vector2(4, 232), BASE + Vector2(80, 232), BASE + Vector2(120, 232), BASE + Vector2(270, 232)]:
 		vm._spawn_decor_prop(PROPS + "plants_8.png", pp, Vector2(0.5, 0.5))
 
 # ---------------------------------------------------------------- recorrido por dentro

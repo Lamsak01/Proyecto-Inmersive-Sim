@@ -622,6 +622,10 @@ static func sync_club_visibility(vm) -> void:
 		for w0 in vm.get_tree().get_nodes_in_group("tavern_floor0_walls"):
 			if w0 is StaticBody2D and is_instance_valid(w0):
 				(w0 as StaticBody2D).collision_layer = 1 if on_floor0 else 0
+		var on_floor1: bool = (int(vm.player_elevation_level) == 1)
+		for w1 in vm.get_tree().get_nodes_in_group("tavern_upper_walls"):
+			if w1 is StaticBody2D and is_instance_valid(w1):
+				(w1 as StaticBody2D).collision_layer = 1 if on_floor1 else 0
 
 static func fighter_key_at(vm, slot: String) -> String:
 	var f: Array = state(vm).get("fighters", [])

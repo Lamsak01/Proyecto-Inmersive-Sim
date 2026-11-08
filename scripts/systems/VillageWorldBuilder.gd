@@ -390,6 +390,7 @@ static func _spawn_church_and_cemetery(vm: VillageManager) -> void:
 
 	for pew_offset in [Vector2(-36, -16), Vector2(-36, 6), Vector2(36, -16), Vector2(36, 6)]:
 		vm._add_rect_poly(vm._church_center + pew_offset, Vector2(18, 5), Color(0.46, 0.30, 0.16, 0.96), -1)
+		vm._add_prop_collider(vm._church_center + pew_offset, Vector2(34.0, 8.0))
 
 	vm._add_rect_poly(vm._church_altar_pos, Vector2(24, 8), Color(0.82, 0.78, 0.72, 1.0), -1)
 	vm._add_rect_poly(vm._church_altar_pos, Vector2(14, 8), Color(0.88, 0.72, 0.24, 0.95), -1)
@@ -466,7 +467,11 @@ static func _spawn_farm_well_and_compost(vm: VillageManager) -> void:
 	vm._well_label = vm._make_station_label(vm._well_pos + Vector2(-130, -28), "🪣 Pozo de la Granja [E: Llenar Recipiente / Lavar Heridas y Sangre]")
 	vm.entities_root.add_child(vm._well_label)
 
-	# El Pozo de la Taberna ('El Jabalí Dorado') ya se construye en VillageTavern.setup_world(vm) en VillageTavern.WELL_POS
+	# Pozo en el Patio Lateral de la Gran Posada ('El Jabalí Dorado')
+	vm._add_sprite_prop(well_tex, vm._tavern_well_pos, Vector2(1.25, 1.25), 0)
+	vm._add_station_area("TavernWaterWellArea", vm._tavern_well_pos, 24.0, "well")
+	vm._tavern_well_label = vm._make_station_label(vm._tavern_well_pos + Vector2(-135, -28), "🪣 Pozo de la Posada [E: Llenar Recipiente / Lavar Heridas y Sangre]")
+	vm.entities_root.add_child(vm._tavern_well_label)
 
 	# Pozo en la Plaza Central del Pueblo
 	vm._add_sprite_prop(well_tex, vm._plaza_well_pos, Vector2(1.25, 1.25), 0)
@@ -475,7 +480,7 @@ static func _spawn_farm_well_and_compost(vm: VillageManager) -> void:
 	vm.entities_root.add_child(vm._plaza_well_label)
 
 	vm._compost_sprite = vm._add_sprite_prop(vm._load_tex("res://assests/world/village/compost_bin.png"), vm._compost_pos, Vector2(1.25, 1.25), 0)
-	vm._compost_area = vm._add_station_area("CompostBinArea", vm._compost_pos, 10.0, "compost")
+	vm._compost_area = vm._add_station_area("CompostBinArea", vm._compost_pos, 16.0, "compost")
 	vm._compost_label = vm._make_station_label(vm._compost_pos + Vector2(-115, -28), "♻️ Compostador [E: Crear Abono con Hierba/Hongo]")
 	vm.entities_root.add_child(vm._compost_label)
 	vm.set_camp_farm_enabled(false)

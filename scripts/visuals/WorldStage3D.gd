@@ -3742,7 +3742,7 @@ func _sync_2d_flat_visuals(use_3d: bool) -> void:
 	for ci in _extra_hidden_2d:
 		if is_instance_valid(ci):
 			(ci as CanvasItem).self_modulate.a = target_a
-	var inner_rects: Array[Rect2] = []
+	var inner_rects: Array[Rect2] = [VillageRestaurant.TERRACE.grow(6.0)]
 	for b in vm.building_footprints:
 		inner_rects.append((b["rect"] as Rect2).grow(-3.0))
 	for child in vm.entities_root.get_children():
