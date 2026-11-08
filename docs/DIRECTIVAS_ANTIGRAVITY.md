@@ -12,6 +12,18 @@
 
 ## ⭐ Esta noche (2026-11-08): lee primero «MODO NOCHE» al principio de `docs/ENCARGO_SIGUIENTE.md`. No te pares.
 
+## Ahorro de tokens (orden del usuario, 2026-11-08) — hasta la recarga (~2026-11-13)
+- **Al empezar, lee solo `docs/GUIA_CORTA_ANTIGRAVITY.md`** (una página), tu encargo y las entradas de
+  `FALLOS_VISIBLES.md` que te toquen. El HANDOFF, el vault y los demás documentos, solo la sección que necesites.
+- **Continúa la misma conversación** (`agy -c`) en vez de abrir una nueva para cada paso.
+- **No leas archivos grandes enteros** (VillageManager, VillageNPC, WorldStage3D tienen 4.000–5.700 líneas): busca
+  con `grep -n` y lee solo las líneas que necesitas.
+- **Modelo según la tarea:** rápido/barato (Flash o esfuerzo bajo) para renombres, textos y arreglos pequeños; el
+  potente solo para lo difícil (combate, relieve, rutas de vecinos).
+- **Una prueba y una captura** de lo tocado. Las pruebas completas, solo antes de cerrar algo grande.
+- **Prioridad antes de la recarga:** arreglos de `FALLOS_VISIBLES.md`, Fase B del relieve, §3b y §3c. Del combate
+  (§3d), solo 5a y 5b; 5c–5e después de la recarga.
+
 ## Ritmo y alcance (orden del usuario, 2026-11-07 noche) — MANDA SOBRE LO DEMÁS
 - **El juego es solo 3D.** Deja de trabajar en el 2D: no lo arregles, no le hagas capturas, no lo pruebes. **No lo
   borres** todavía; solo ignóralo. Si un cambio rompe algo que solo se ve en 2D, da igual.
