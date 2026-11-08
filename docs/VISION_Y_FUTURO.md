@@ -131,7 +131,8 @@ Estado: **✅ HECHO** = ya construido y funcionando en el juego. **🟡 EN PARTE
 - 💡 **IDEA DEL USUARIO (2026-11-08)** — **La resistencia contra los gobernantes**. **Aplazada:** probablemente irá
   ligada a la historia principal; se diseñará con ella. **Por ahora** la casa de comidas (la antigua trattoria) es el
   punto de reunión de los **bajos fondos**: bandidos y gente en malos pasos (el perista y el hampa que ya existen,
-  traficantes de drogas, adictos). Nota: el juego aún no tiene drogas ni adicción; sería un sistema nuevo (plan antes).
+  traficantes de drogas, adictos). Nota: el juego aún no tiene drogas ni adicción; sería un sistema nuevo. **Decisión del usuario (2026-11-08): para más
+  adelante**, con plan corto, después de lo que ya está en cola.
   Ideas de Claude para el plan: miembros que salen de vecinos descontentos (rasgos, deudas, familiares presos o
   muertos por la guardia); reuniones de noche en la trastienda que el jugador puede espiar, delatar o unirse;
   encargos de sabotaje (cortar cables, robar gasóleo, liberar presos) que suben la alerta del pueblo; el señor
