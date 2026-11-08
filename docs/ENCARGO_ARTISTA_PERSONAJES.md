@@ -35,6 +35,12 @@
   perfil humanoide de Godot para poder reutilizar animaciones (andar, sentarse, trabajar, pelear, caer).
 - Cada prenda va **pesada sobre ese mismo esqueleto**, como malla aparte, para ponerla y quitarla.
 
+## 4b. Huecos de la armadura (importante para el combate)
+El juego comprobará los impactos por zonas del cuerpo pegadas a los huesos: cabeza, cara, cuello, axilas, codos,
+manos, ingles, rodillas, pecho, vientre, espalda y piernas. Cada armadura debe dejar **huecos creíbles** (visera
+que se abre, axilas, ingles, corvas, juntas de codo y rodilla) y conviene que el esqueleto tenga huesos claros para
+esas zonas. Indica en cada pieza de armadura qué zonas cubre.
+
 ## 5. Ranuras del cuerpo
 Cabeza · Pelo o sombrero · Torso · Capa exterior (abrigo, armadura) · Piernas · Pies.
 Una prenda de capa exterior debe poder ir **encima** de cualquier prenda de torso sin atravesarla. Si hace falta,

@@ -72,6 +72,14 @@ mano, apuntar con calma es más preciso**. El cuerpo a cuerpo sigue importando: 
 - **5e — Los rivales con las mismas reglas.** Guardias con fusil: pocos, solo en alerta o en puestos de control;
   avisan antes de disparar («¡Alto!»), buscan cobertura y recargan (ventana para actuar). Bandidos con armas viejas.
   Los vecinos civiles casi nunca llevan arma de fuego (ley de armas del señor, cuando se haga).
+- **5f — Huecos de la armadura (APROBADO por el usuario, 2026-11-08; hacer cuando lleguen los muñecos del artista).**
+  Zonas tocables invisibles pegadas a los huesos del esqueleto común: cabeza, cara, cuello, axilas, codos, manos,
+  ingles, rodillas, pecho, vientre, espalda, piernas. Cada pieza de armadura declara qué zonas tapa (un casco con la
+  visera abierta no tapa la cara; ninguna coraza tapa bien axilas ni ingles, porque hay que moverse). Bala o filo que
+  entra por un hueco hiere directamente. Funciona sobre todo de cerca, apuntando con calma o con cuchillo en sigilo
+  (con el pixelado, una axila de lejos es casi imposible). **Requisito técnico:** hoy los vecinos se mueven en un plano
+  2D y el 3D es solo la imagen; la zona herida se decide por la dirección del golpe. Para esto hay que comprobar los
+  impactos contra el cuerpo 3D (rayo desde el arma a las zonas tocables). Coste: medio-mucho.
 - **Después (ya aprobado como idea):** pistas de bala (casquillos y marcas propias de cada arma), ley de armas y
   radios de la guardia (`docs/VISION_Y_FUTURO.md`).
 - **Abierto:** el arcabuz de chispa actual pasa a ser fusil y pistola de cartuchos (`docs/REVISION_EPOCA.md`); arcos y
