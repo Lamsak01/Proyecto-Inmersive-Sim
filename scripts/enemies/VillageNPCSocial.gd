@@ -740,12 +740,25 @@ func _apply_player_and_doorway_yield(delta: float) -> void:
 	if velocity.length_squared() < 9.0 and not is_sleeping and not is_at_poker_table:
 		_door_nudge_timer -= delta
 		if _door_nudge_timer <= 0.0:
-			_door_nudge_timer = 0.25
+			_door_nudge_timer = 0.16
 			var vm = _cached_vm
 			if vm and vm.has_method("get_doorway_clearance_nudge"):
 				var nudge: Vector2 = vm.call("get_doorway_clearance_nudge", global_position, 18.0)
 				if nudge.length_squared() > 0.1:
 					velocity = nudge * 28.0
+			var idle_sep := Vector2.ZERO
+			for n in get_tree().get_nodes_in_group("village_npcs"):
+				if n is VillageNPCBase and n != self:
+					var other := n
+					if not other.is_dead and not other.is_downed and not other.is_sleeping and int(other.elevation_level) == int(elevation_level):
+						var d_sq: float = global_position.distance_squared_to(other.global_position)
+						if d_sq < 289.0:
+							var d_other: float = sqrt(d_sq)
+							var push_dir: Vector2 = (global_position - other.global_position).normalized() if d_sq > 0.04 else Vector2.RIGHT.rotated(float(absi(npc_name.hash()) % 360) * (TAU / 360.0))
+							idle_sep += push_dir * ((17.0 - d_other) / 17.0) * 36.0
+			_cached_sep_vec = idle_sep
+		if _cached_sep_vec.length_squared() > 0.25:
+			velocity += _cached_sep_vec.limit_length(38.0)
 
 func _move_towards_point(target_pos: Vector2, speed: float, delta: float = 0.016) -> void:
 	var vm = _get_vm()
@@ -815,11 +828,12 @@ func _move_towards_point(target_pos: Vector2, speed: float, delta: float = 0.016
 			for n in get_tree().get_nodes_in_group("village_npcs"):
 				if n is VillageNPCBase and n != self:
 					var other := n
-					if not other.is_dead and not other.is_downed and not other.is_sleeping:
+					if not other.is_dead and not other.is_downed and not other.is_sleeping and int(other.elevation_level) == int(elevation_level):
 						var d_sq: float = global_position.distance_squared_to(other.global_position)
-						if d_sq > 0.01 and d_sq < 196.0:
+						if d_sq < 289.0:
 							var d_other: float = sqrt(d_sq)
-							sep_vec += (global_position - other.global_position).normalized() * ((14.0 - d_other) / 14.0) * 22.0
+							var push_dir: Vector2 = (global_position - other.global_position).normalized() if d_sq > 0.04 else Vector2.RIGHT.rotated(float(absi(npc_name.hash()) % 360) * (TAU / 360.0))
+							sep_vec += push_dir * ((17.0 - d_other) / 17.0) * 30.0
 		_cached_sep_vec = sep_vec
 	if perf_on: _perf_add("a_separation", _pt)
 
@@ -885,10 +899,13 @@ func is_visiting_grave() -> bool:
 	return current_activity == ActivityState.SOCIALIZING and hangout_id < 0 and person_profile != null and int(person_profile.bereavement_days_left) > 0 and str(person_profile.deceased_partner_name) != ""
 
 func _get_social_target_pos() -> Vector2:
+	var h_ang: float = float(absi(npc_name.hash()) % 360) * (TAU / 360.0)
 	if rite_pos != Vector2.ZERO:
-		return rite_pos
+		return rite_pos + Vector2.RIGHT.rotated(h_ang) * 10.0
 	if errand_kind != "":
-		return errand_pos
+		if _VillageTavern.is_at_seat(errand_pos) or _VillageRestaurant.is_at_seat(errand_pos):
+			return errand_pos
+		return errand_pos + Vector2.RIGHT.rotated(h_ang) * 9.0
 	if hangout_id >= 0:
 		return hangout_spot_pos + Vector2(float(hangout_side) * 11.0, 0.0)
 	if is_visiting_grave():
@@ -909,8 +926,7 @@ func _get_social_target_pos() -> Vector2:
 				_tavern_seat = _VillageTavern.pick_seat_for(vm_s, self)
 			if _tavern_seat != Vector2.ZERO and _tavern_seat != tavern_social_pos:
 				return _tavern_seat
-		var angle_idx: float = float(abs(npc_name.hash()) % 8) * (TAU / 8.0)
-		var ring_offset := Vector2.RIGHT.rotated(angle_idx) * 14.0
+		var ring_offset := Vector2.RIGHT.rotated(h_ang) * 20.0
 		var ref_p: Vector2 = _social_partner.home_table_pos if _social_partner.velocity.length_squared() > 25.0 else _social_partner.global_position
 		var cand_p: Vector2 = ref_p + ring_offset
 		var vm = get_tree().get_first_node_in_group("village_manager")

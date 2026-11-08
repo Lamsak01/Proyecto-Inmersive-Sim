@@ -460,9 +460,9 @@ static func _village_terrace_height_px(pos_2d: Vector2) -> float:
 
 	# 3. Plataforma elevada de la Plaza Central (x in 380..550, y in 4..92): +2.4 px en llano con rampas suaves en los 4 accesos
 	var plaza_h: float = 0.0
-	if x > 356.0 and x < 574.0 and y > -18.0 and y < 114.0:
-		var px_in: float = smoothstep(362.0, 390.0, x) * (1.0 - smoothstep(540.0, 568.0, x))
-		var py_in: float = smoothstep(-12.0, 12.0, y) * (1.0 - smoothstep(84.0, 108.0, y))
+	if x > 352.0 and x < 578.0 and y > -18.0 and y < 114.0:
+		var px_in: float = smoothstep(356.0, 382.0, x) * (1.0 - smoothstep(548.0, 574.0, x))
+		var py_in: float = smoothstep(-14.0, 8.0, y) * (1.0 - smoothstep(88.0, 110.0, y))
 		plaza_h = 2.4 * px_in * py_in
 
 	# 4. Vaguada suave de los campos del sur y Barrio del Lago (y > 235): -1.8 px en llano bajo granjas, rancho y casitas
@@ -475,6 +475,14 @@ static func _village_terrace_height_px(pos_2d: Vector2) -> float:
 		south_h = lerpf(-1.8 * sy_in * sx_in, 0.6, in_park)
 
 	return north_h + east_h + plaza_h + south_h
+
+
+static func surface_elevation_offset_px(pos_2d: Vector2) -> float:
+	if Rect2(Vector2(384.0, 8.0), Vector2(162.0, 80.0)).has_point(pos_2d):
+		return 0.48
+	if _road_flat_mask(pos_2d) < 0.85:
+		return 0.28
+	return 0.15
 
 
 static func terrain_height_px(pos_2d: Vector2) -> float:

@@ -447,7 +447,7 @@ func _execute_dynamic_activity(delta: float) -> void:
 			_approach_or_stop(meal_t, meal_tol, 40.0, delta)
 		ActivityState.SOCIALIZING:
 			var soc_t: Vector2 = _get_social_target_pos()
-			var soc_tol: float = 2.0 if (_VillageTavern.is_at_seat(soc_t) or _VillageRestaurant.is_at_seat(soc_t)) else 16.0
+			var soc_tol: float = 2.0 if (_VillageTavern.is_at_seat(soc_t) or _VillageRestaurant.is_at_seat(soc_t)) else (8.0 if is_instance_valid(_social_partner) else 12.0)
 			_approach_or_stop(soc_t, soc_tol, 38.0, delta)
 		ActivityState.WORKING:
 			if _is_morning_expedition_hours():

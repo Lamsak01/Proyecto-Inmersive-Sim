@@ -179,6 +179,8 @@ func _sync_holder_position() -> void:
 		seat_h += 2.65
 	elif elev_lvl == 0 and rest_gd.TERRACE.grow(6.0).has_point(pos_2d):
 		seat_h += 1.8
+	elif elev_lvl == 0 and _stage != null and _stage.has_method("surface_elevation_offset_px"):
+		seat_h += float(_stage.call("surface_elevation_offset_px", pos_2d))
 	var foot_off := Vector2(0.0, FOOT_OFFSET_PX)
 	if not is_player_avatar and (tav_gd.is_at_seat(pos_2d) or rest_gd.is_at_seat(pos_2d)):
 		var v_chk: Vector2 = target_entity.get("velocity") if "velocity" in target_entity else Vector2.ZERO

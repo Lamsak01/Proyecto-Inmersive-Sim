@@ -483,10 +483,10 @@ func _build_static_terrain_3d() -> void:
 		Rect2(Vector2(452, 232), Vector2(885, 20)),
 	]
 	for rr in road_rects:
-		_add_road_strip_3d(terrain_root_3d, rr, 1.2, m_road)
+		_add_road_strip_3d(terrain_root_3d, rr, 0.25, m_road)
 	for lr in VillageLots.ROADS:
 		if lr is Rect2:
-			_add_road_strip_3d(terrain_root_3d, lr as Rect2, 1.2, m_road)
+			_add_road_strip_3d(terrain_root_3d, lr as Rect2, 0.25, m_road)
 	_build_barrios_3d(m_wood)
 	# Callejas curvas del norte: un tramo de camino por segmento, girado, con una losa en cada codo
 	for cr in VillageLots.CURVED_ROADS:
@@ -495,13 +495,13 @@ func _build_static_terrain_3d() -> void:
 		for i in range(cpts.size() - 1):
 			var a: Vector2 = cpts[i]
 			var b: Vector2 = cpts[i + 1]
-			_add_box_2d(terrain_root_3d, (a + b) * 0.5, Vector2(a.distance_to(b) + 2.0, cw), 0.0, 1.2, m_road, -rad_to_deg((b - a).angle()))
+			_add_box_2d(terrain_root_3d, (a + b) * 0.5, Vector2(a.distance_to(b) + 2.0, cw), -0.35, 0.60, m_road, -rad_to_deg((b - a).angle()))
 
-	# Plaza Central Empedrada en plataforma ligeramente elevada (+2.4 px en terreno) con bordillos y rampa empedrada suave en los 4 accesos
+	# Plaza Central Empedrada en plataforma ligeramente elevada (+2.4 px en terreno) con bordillos a ras de calzada y rampa empedrada suave en los 4 accesos
 	var plaza_r := Rect2(Vector2(388, 12), Vector2(154, 72))
-	_add_road_strip_3d(terrain_root_3d, plaza_r, 1.5, m_plaza)
-	_add_box_2d(terrain_root_3d, Vector2(plaza_r.get_center().x, plaza_r.position.y), Vector2(plaza_r.size.x, 4.0), 1.5, 1.6, m_plaza_trim)
-	_add_box_2d(terrain_root_3d, Vector2(plaza_r.get_center().x, plaza_r.end.y), Vector2(plaza_r.size.x, 4.0), 1.5, 1.6, m_plaza_trim)
+	_add_road_strip_3d(terrain_root_3d, plaza_r, 0.35, m_plaza)
+	_add_box_2d(terrain_root_3d, Vector2(plaza_r.get_center().x, plaza_r.position.y), Vector2(plaza_r.size.x, 4.0), -1.0, 1.45, m_plaza_trim)
+	_add_box_2d(terrain_root_3d, Vector2(plaza_r.get_center().x, plaza_r.end.y), Vector2(plaza_r.size.x, 4.0), -1.0, 1.45, m_plaza_trim)
 	# Bordillos de piedra de la rampa de subida en los 4 accesos de la Plaza y en la subida al barrio del Este
 	for access_curb in [
 		[Vector2(374.0, 34.0), Vector2(24.0, 2.8)],
@@ -511,7 +511,7 @@ func _build_static_terrain_3d() -> void:
 		[Vector2(662.0, 34.0), Vector2(28.0, 2.8)],
 		[Vector2(662.0, 66.0), Vector2(28.0, 2.8)],
 	]:
-		_add_box_2d(terrain_root_3d, access_curb[0] as Vector2, access_curb[1] as Vector2, 0.2, 1.6, m_curb)
+		_add_box_2d(terrain_root_3d, access_curb[0] as Vector2, access_curb[1] as Vector2, -0.8, 1.25, m_curb)
 
 	# Bancos reales 3D de la Plaza Central
 	for bp in [Vector2(468, 82), Vector2(516, 82)]:
@@ -750,10 +750,11 @@ func _build_tree_3d(parent: Node3D, pos_2d: Vector2, m_trunk: Material, m_leaf1:
 	_add_cyl_2d(parent, pos_2d, 9.0 * scale_f, 16.0 * scale_f, 12.0 * scale_f, m_leaf2, 0.8 * scale_f, 9)
 
 func _build_bench_3d(parent: Node3D, pos_2d: Vector2, m_wood: Material, m_iron: Material, rot_y: float = 0.0) -> void:
-	if _add_model_2d(parent, "props/Bench.gltf", pos_2d, 0.0, Vector2(18.0, 7.0), 8.5, rot_y) != null:
+	var z_off: float = surface_elevation_offset_px(pos_2d)
+	if _add_model_2d(parent, "props/Bench.gltf", pos_2d, z_off, Vector2(18.0, 7.0), 8.5, rot_y) != null:
 		return
-	_add_box_2d(parent, pos_2d, Vector2(18.0, 6.0), 2.5, 2.0, m_wood)
-	_add_box_2d(parent, pos_2d + Vector2(0, -2.5), Vector2(18.0, 1.5), 4.5, 4.5, m_wood)
-	_add_box_2d(parent, pos_2d + Vector2(-7, 0), Vector2(2.0, 6.0), 0.0, 3.0, m_iron)
-	_add_box_2d(parent, pos_2d + Vector2(7, 0), Vector2(2.0, 6.0), 0.0, 3.0, m_iron)
+	_add_box_2d(parent, pos_2d, Vector2(18.0, 6.0), z_off + 2.5, 2.0, m_wood)
+	_add_box_2d(parent, pos_2d + Vector2(0, -2.5), Vector2(18.0, 1.5), z_off + 4.5, 4.5, m_wood)
+	_add_box_2d(parent, pos_2d + Vector2(-7, 0), Vector2(2.0, 6.0), z_off, 3.0, m_iron)
+	_add_box_2d(parent, pos_2d + Vector2(7, 0), Vector2(2.0, 6.0), z_off, 3.0, m_iron)
 
