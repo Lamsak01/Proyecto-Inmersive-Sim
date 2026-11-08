@@ -15,3 +15,4 @@
   `GameVault/99_Archivo/`, `GameVault/.obsidian/`, `.claude/`.
 - **Decisiones ya tomadas** (no preguntar): `docs/HANDOFF.md` §8 (lee solo esa sección si dudas).
 - **Archivos enormes:** `VillageManager.gd`, `VillageNPC.gd`, `WorldStage3D.gd`: busca con `grep -n`, no los leas enteros.
+- **Godot siempre en primer plano** (con `timeout`, esperando su salida en el mismo comando), **nunca como tarea en segundo plano**: te quedas esperando para siempre.

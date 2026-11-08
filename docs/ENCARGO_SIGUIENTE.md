@@ -1,4 +1,8 @@
 # ⭐ ENCARGO DE HOY (2026-11-08, noche 3) — MANDA SOBRE TODO LO DEMÁS
+**⚠️ AVISO DEL SUPERVISOR (18:27):** dos veces seguidas te has quedado esperando para siempre una «simulación diagnóstica»
+lanzada **en segundo plano** que en realidad no estaba corriendo (no había ningún Godot en marcha). **Ejecuta Godot
+SIEMPRE en primer plano**, con `timeout` y esperando su salida en el mismo comando; **nunca como tarea de fondo**. Si un
+diagnóstico no da salida en 5 minutos, mira el código directamente en vez de esperar.
 **Rendimiento: APARCADO otra vez por el usuario** (su portátil es viejo y con gráfica integrada; su PC de escritorio mueve
 bien el juego). No trabajes en rendimiento. Solo esto:
 1. **Vecinos superpuestos** (primera entrada de `FALLOS_VISIBLES.md`, con captura): dos vecinos metidos uno dentro del
