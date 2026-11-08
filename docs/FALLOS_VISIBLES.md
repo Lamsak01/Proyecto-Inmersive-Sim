@@ -140,5 +140,10 @@
   pie. Además: **un zorro dentro de la taberna**, una **caja con agua** en mitad del suelo, «Eloise Fenwick ·
   **Posadero**» (debe ser Posadera) y la tarjeta dice «Cerrada: el perista vende la llave» estando dentro y abierta.
 
+- [ ] **Taberna, segundo piso** (2026-11-07, el usuario en partida, 1.ª persona): (1) **no quiere pulsar [E] en la
+  escalera para cambiar de piso**: se sube y se baja andando por los peldaños, como en cualquier sitio; (2) **la
+  barandilla del balcón/galería se atraviesa**, y al pasarla **el jugador flota en el aire** en vez de caer o quedar
+  frenado. La barandilla debe ser sólida y fuera del suelo del piso de arriba nadie se sostiene en el aire.
+
 ## Arreglados
 - [x] ✅ (2026-11-07) Fachada de la trattoria «Il Corvo» en 3D: parece de tablas oscuras en vez de estuco/ladrillo claro (`WorldStage3D.gd`: cambiada la textura de muros de `building_restaurant` a `town_textures/wall_brick_sand_center.png` con `uv1_scale = Vector3(2.4, 0.72, 2.4)`, tono claro de estuco/ladrillo cálido `Color(1.0, 0.95, 0.84)`, iluminación cálida de rebote `0.58` en la fachada sur y dintel con el mismo estuco en vez de `rf_planks.png`).
