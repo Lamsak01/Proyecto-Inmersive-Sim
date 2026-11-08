@@ -8,8 +8,9 @@ class_name FloatingText
 
 func _ready() -> void:
 	var clean_txt := start_text.strip_edges()
-	if clean_txt.length() > 46:
-		clean_txt = clean_txt.substr(0, 44) + "…"
+	if clean_txt.length() > 88:
+		var cut_idx: int = clean_txt.rfind(" ", 85)
+		clean_txt = (clean_txt.substr(0, cut_idx) if cut_idx > 40 else clean_txt.substr(0, 85)) + "…"
 	text = clean_txt
 	horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	add_theme_font_size_override("font_size", 7)

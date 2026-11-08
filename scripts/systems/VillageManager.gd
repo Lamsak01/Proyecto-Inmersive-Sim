@@ -548,7 +548,8 @@ func _construct_solid_building(
 	_add_solid_wall_segment(Vector2(rect.end.x - right_seg_w * 0.5, door_y), Vector2(right_seg_w, wall_t), tex_h)
 
 	_add_rect_poly(door_pos, Vector2(door_width * 0.5, 3.0), Color(0.72, 0.54, 0.30, 0.85), -2)
-	_add_title_label(center + Vector2(-125, -half.y - 36.0), Vector2(250, 16), b_title, title_color, 8)
+	var t_lbl := _add_title_label(center + Vector2(-125, -half.y - 18.0), Vector2(250, 14), b_title, title_color, 7)
+	t_lbl.set_meta("anchor_pos", door_pos)
 	_spawn_building_door_and_window(b_id, b_title, rect, door_pos, door_on_south, door_width)
 
 func _spawn_building_door_and_window(
@@ -5353,23 +5354,24 @@ func _add_sprite_prop(tex: Texture2D, pos: Vector2, sc: Vector2 = Vector2.ONE, z
 				_add_prop_collider(pos, Vector2(10.0, 14.0), b_tag)
 	return s
 
-func _add_title_label(pos: Vector2, min_sz: Vector2, txt: String, col: Color, f_sz: int = 8, parent_node: Node = null) -> Label:
+func _add_title_label(pos: Vector2, min_sz: Vector2, txt: String, col: Color, f_sz: int = 7, parent_node: Node = null) -> Label:
 	var lbl := Label.new()
 	lbl.text = txt
 	lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	lbl.position = pos
+	lbl.scale = Vector2(0.62, 0.62)
+	lbl.position = Vector2(pos.x + min_sz.x * (1.0 - lbl.scale.x) * 0.5, pos.y)
 	lbl.custom_minimum_size = min_sz
 	lbl.add_theme_font_size_override("font_size", f_sz)
 	lbl.add_theme_color_override("font_color", col)
-	lbl.add_theme_color_override("font_outline_color", Color.BLACK)
-	lbl.add_theme_constant_override("outline_size", 3)
+	lbl.add_theme_color_override("font_outline_color", Color(0.08, 0.07, 0.05, 0.92))
+	lbl.add_theme_constant_override("outline_size", 2)
 	(parent_node if parent_node else entities_root).add_child(lbl)
 	lbl.add_to_group("world_title_label")
 	return lbl
 
 ## Letreros del mapa sin amontonarse (2026-11-05): solo se ven los que están cerca del jugador (o bajo el ratón), y si
 ## dos se pisan, se queda el más cercano. Usa la transparencia (modulate.a), así no toca su `visible`.
-const TITLE_SHOW_RADIUS: float = 72.0
+const TITLE_SHOW_RADIUS: float = 28.0
 var _titles_declutter_t: float = 0.0
 
 ## El trozo del letrero que ocupa el texto de verdad (los letreros son más anchos que su texto y van centrados).
@@ -5392,16 +5394,25 @@ func _declutter_title_labels() -> void:
 	if pl == null:
 		return
 	var pp: Vector2 = pl.global_position
-	var mp: Vector2 = get_global_mouse_position()
+	var focusing_npc: bool = false
+	var isel = pl.get("interaction_selector")
+	if isel != null and is_instance_valid(isel) and isel.has_method("selected"):
+		var sel: Dictionary = isel.call("selected")
+		if not sel.is_empty() and sel.get("target") is VillageNPC:
+			focusing_npc = true
 	var cands: Array = []
 	for l in get_tree().get_nodes_in_group("world_title_label"):
 		var lbl := l as Label
 		if lbl == null or not lbl.is_visible_in_tree():
 			continue
+		if focusing_npc:
+			lbl.modulate.a = 0.0
+			continue
 		var r: Rect2 = _title_text_rect(lbl)
-		var d: float = r.get_center().distance_to(pp)
-		if d <= TITLE_SHOW_RADIUS or r.grow(6.0).has_point(mp):
-			cands.append([d if not r.grow(6.0).has_point(mp) else -1.0, lbl, r])
+		var anchor: Vector2 = lbl.get_meta("anchor_pos") if lbl.has_meta("anchor_pos") else r.get_center()
+		var d: float = anchor.distance_to(pp)
+		if d <= TITLE_SHOW_RADIUS:
+			cands.append([d, lbl, r])
 		else:
 			lbl.modulate.a = 0.0
 	cands.sort_custom(func(a, b): return float(a[0]) < float(b[0]))

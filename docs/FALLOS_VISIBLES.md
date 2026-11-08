@@ -98,12 +98,12 @@
   la cuadrícula pasó a ser un dibujo de rombos que se repite por todo el suelo; no es natural y no le gusta. Arreglarlo
   más adelante con una hierba sin patrón visible (manchas irregulares, variación de tono).
 
-- [ ] **Revisión de Claude a la interfaz nueva** (2026-11-07, captura `ui_after_plaza_3d.png`): la mejora es grande y
+- [x] ✅ (2026-11-07) **Revisión de Claude a la interfaz nueva** (2026-11-07, captura `ui_after_plaza_3d.png`): la mejora es grande y
   se aprueba; quedan detalles pequeños: (1) **género**: «Marta · Muerto» y «vio a Marta tendido» deben ser «Muerta» y
   «tendida» (en la etiqueta, en la tarjeta de [E] y en los bocadillos); (2) el nombre del edificio («Pescadería y
   Molino 'Aguas Claras'») sigue flotando en grande sobre el tejado: más pequeño o solo al acercarse; (3) una barrita
   amarilla de progreso suelta sobre el tejado, lejos de cualquier vecino; (4) el icono de la mano 1 parece letras
-  revueltas en vez de un dibujo; (5) el bocadillo de Lina sale cortado con «…». Arreglar sin rehacer nada más.
+  revueltas en vez de un dibujo; (5) el bocadillo de Lina sale cortado con «…». Arreglar sin rehacer nada más (`VillageNPC.gd`, `InteractionSelector.gd`, `FloatingText.gd`, `VillageManager.gd`, `DomesticPet.gd`, `scenes/ui_root.gd`: añadido `is_female()` para concordancia femenina «Muerta» / «tendida» en etiqueta, tarjeta `[E]` y bocadillos; reducido el tamaño y radio de aparición de títulos de edificio anclándolos a su puerta y ocultándolos al enfocar a un vecino; ocultada la barra de progreso 2D de vecinos no enfocados o dentro de edificios; usado el icono real `TextureRect` de cada arma/herramienta en los 3 huecos de manos; y ampliado el límite de `FloatingText` con frase concisa sin corte «…»; comprobado en `docs/capturas_arreglos/ui_after_plaza_3d.png`).
 
 - [ ] **Partida del usuario tras la interfaz nueva** (2026-11-07 23:00, capturas del usuario, 3D):
   (1) **El mapa grande [M] sigue con el estilo viejo** (azul oscuro, letras amarillas): solo cambió el minimapa. Pasarlo

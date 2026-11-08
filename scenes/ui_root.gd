@@ -30,6 +30,7 @@ var hands_box: HBoxContainer = null
 var _hand_slot_panels: Array[PanelContainer] = []
 var _hand_slot_key_labels: Array[Label] = []
 var _hand_slot_icon_labels: Array[Label] = []
+var _hand_slot_icon_rects: Array[TextureRect] = []
 var corner_right_box: HBoxContainer = null
 var hud_gold_label: Label = null
 
@@ -978,7 +979,8 @@ func _setup_bottom_hud_ui() -> void:
 	_hand_slot_panels.clear()
 	_hand_slot_key_labels.clear()
 	_hand_slot_icon_labels.clear()
-	var default_icons: Array[String] = ["🗡", "🔨", "🪓"]
+	_hand_slot_icon_rects.clear()
+	var default_icons: Array[String] = ["⚔", "🔨", "🪓"]
 	for i in range(3):
 		var slot_p := PanelContainer.new()
 		slot_p.custom_minimum_size = Vector2(38, 38)
@@ -1006,13 +1008,23 @@ func _setup_bottom_hud_ui() -> void:
 		overlay.add_child(k_lbl)
 		_hand_slot_key_labels.append(k_lbl)
 
+		var ic_rect := TextureRect.new()
+		ic_rect.position = Vector2(9, 10)
+		ic_rect.size = Vector2(20, 20)
+		ic_rect.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+		ic_rect.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+		ic_rect.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+		ic_rect.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		overlay.add_child(ic_rect)
+		_hand_slot_icon_rects.append(ic_rect)
+
 		var ic_lbl := Label.new()
 		ic_lbl.text = default_icons[i]
 		ic_lbl.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 		ic_lbl.offset_top = 4.0
 		ic_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		ic_lbl.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-		ic_lbl.add_theme_font_size_override("font_size", 16)
+		ic_lbl.add_theme_font_size_override("font_size", 15)
 		ic_lbl.add_theme_color_override("font_color", Color(0.149, 0.129, 0.106, 1.0))
 		ic_lbl.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		overlay.add_child(ic_lbl)
@@ -1125,7 +1137,11 @@ func _refresh_hand_slots() -> void:
 	var active_slot: int = 0
 	var slot3_key: String = "3"
 	var slot3_icon: String = "🪓"
+	var slot_weapons: Array = [null, null, null]
 	if player:
+		slot_weapons[0] = player.get("sword_weapon")
+		slot_weapons[1] = player.get("hammer_weapon")
+		slot_weapons[2] = player.get("axe_weapon")
 		var eq = player.get("equipped_weapon")
 		if eq == player.get("sword_weapon"):
 			active_slot = 0
@@ -1139,29 +1155,42 @@ func _refresh_hand_slots() -> void:
 			active_slot = 2
 			slot3_key = "4"
 			slot3_icon = "⛏"
+			slot_weapons[2] = eq
 		elif eq == player.get("bow_weapon"):
 			active_slot = 2
 			slot3_key = "5"
 			slot3_icon = "🏹"
+			slot_weapons[2] = eq
 		elif eq == player.get("sickle_weapon"):
 			active_slot = 2
 			slot3_key = "6"
 			slot3_icon = "🌾"
+			slot_weapons[2] = eq
 		elif eq == player.get("watering_can_weapon"):
 			active_slot = 2
 			slot3_key = "7"
 			slot3_icon = "💧"
+			slot_weapons[2] = eq
 		elif eq == player.get("fishing_rod_weapon"):
 			active_slot = 2
 			slot3_key = "8"
 			slot3_icon = "🎣"
+			slot_weapons[2] = eq
 		elif eq == player.get("flintlock_weapon"):
 			active_slot = 2
 			slot3_key = "9"
 			slot3_icon = "🔫"
+			slot_weapons[2] = eq
 	_hand_slot_key_labels[2].text = slot3_key
 	_hand_slot_icon_labels[2].text = slot3_icon
 	for i in range(3):
+		var w_obj = slot_weapons[i]
+		var w_tex: Texture2D = w_obj.get("icon") if (w_obj != null and "icon" in w_obj) else null
+		if i < _hand_slot_icon_rects.size() and _hand_slot_icon_rects[i]:
+			_hand_slot_icon_rects[i].texture = w_tex
+			_hand_slot_icon_rects[i].visible = (w_tex != null)
+		if i < _hand_slot_icon_labels.size() and _hand_slot_icon_labels[i]:
+			_hand_slot_icon_labels[i].visible = (w_tex == null)
 		var is_act: bool = (i == active_slot)
 		var sb := _make_style(
 			Color(0.945, 0.910, 0.831, 0.98) if is_act else Color(0.945, 0.910, 0.831, 0.88),

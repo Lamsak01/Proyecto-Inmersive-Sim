@@ -292,11 +292,12 @@ func get_prompt_card_data() -> Dictionary:
 	var vm = player.get_tree().get_first_node_in_group("village_manager")
 	if tgt is VillageNPC:
 		var n: VillageNPC = tgt as VillageNPC
+		var fem_n: bool = n.has_method("is_female") and bool(n.call("is_female"))
 		target_name = n.npc_name
 		if n.has_method("get_short_world_state"):
 			target_state = str(n.call("get_short_world_state"))
 		else:
-			target_state = "Muerto" if n.is_dead else n.npc_role
+			target_state = ("Muerta" if fem_n else "Muerto") if n.is_dead else n.npc_role
 		if n.is_dead:
 			if not n.corpse_pocket_looted and (n.personal_gold > 0 or n.carries_royal_safe_conduct or not n.pocket_items.is_empty()):
 				var extra_loot: String = ", salvoconducto" if n.carries_royal_safe_conduct else (", objetos" if not n.pocket_items.is_empty() else "")
@@ -304,7 +305,7 @@ func get_prompt_card_data() -> Dictionary:
 			if n.corpse_in_morgue:
 				actions.append({"key": "·", "text": "Camilla forense · autopsia", "selected": false})
 			elif n.corpse_reported:
-				actions.append({"key": "·", "text": "Denunciado por %s" % (n.corpse_discovered_by if n.corpse_discovered_by != "" else "un vecino"), "selected": false})
+				actions.append({"key": "·", "text": "Denunciad%s por %s" % ["a" if fem_n else "o", n.corpse_discovered_by if n.corpse_discovered_by != "" else "un vecino"], "selected": false})
 			else:
 				actions.append({"key": "·", "text": "Denunciar hallazgo al alguacil", "selected": false})
 		elif n.is_downed:

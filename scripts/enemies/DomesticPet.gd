@@ -532,28 +532,26 @@ func _update_label(delta: float = 0.016) -> void:
 		return
 	_label_timer = 0.10
 
-	var mouse_near: bool = global_position.distance_squared_to(get_global_mouse_position()) <= 24.0 * 24.0
-	if _player_near or mouse_near:
-		var icon_str: String = "🐕" if pet_type == PetType.DOG else "🐈"
+	var is_selected_pet: bool = false
+	var pl := get_tree().get_first_node_in_group("player")
+	if pl != null and is_instance_valid(pl):
+		var isel = pl.get("interaction_selector")
+		if isel != null and is_instance_valid(isel) and isel.has_method("selected"):
+			var sel: Dictionary = isel.call("selected")
+			if not sel.is_empty() and sel.get("target") == self:
+				is_selected_pet = true
+	status_label.scale = Vector2(0.68, 0.68)
+	if is_selected_pet:
+		var kind_str: String = "Perro" if pet_type == PetType.DOG else "Gato"
 		if is_dead:
-			status_label.text = "💀 Cadáver de %s (%s)\n[E: Desollar / Saquear Carne]" % [pet_name, owner_label]
+			status_label.text = "%s · Muerto" % pet_name
 			status_label.add_theme_color_override("font_color", Color(0.95, 0.55, 0.55))
 		elif is_stunned_flag:
-			status_label.text = "💫 %s (%s) — Aturdido" % [pet_name, owner_label]
+			status_label.text = "%s · Aturdido" % pet_name
 			status_label.add_theme_color_override("font_color", Color(0.65, 0.85, 1.0))
 		else:
-			var role_tag: String = "Guardián del Gallinero" if is_guard_dog else owner_label
-			var hp_pct: int = int(round((health_comp.current_health / maxf(1.0, health_comp.max_health)) * 100.0)) if health_comp else 100
-			var sleep_tag: String = " · 💤 Durmiendo en Cama" if is_sleeping else ""
-			var act_tag: String = "E: Acariciar" if (is_fed_today and need_hunger >= 75.0) else "E: Alimentar / Acariciar"
-			status_label.text = "%s %s (%s%s)\n[❤️%d%% 🍖%d%% 💤%d%% | %s]" % [
-				icon_str, pet_name, role_tag, sleep_tag, hp_pct, int(round(need_hunger)), int(round(need_energy)), act_tag
-			]
-			status_label.add_theme_color_override("font_color", Color(1.0, 0.90, 0.68))
-		status_label.visible = true
-	elif is_sleeping and not is_dead:
-		status_label.text = "Zzz"
-		status_label.add_theme_color_override("font_color", Color(0.75, 0.88, 1.0))
+			status_label.text = "%s · %s" % [pet_name, kind_str]
+			status_label.add_theme_color_override("font_color", Color(0.95, 0.91, 0.83))
 		status_label.visible = true
 	else:
 		status_label.visible = false

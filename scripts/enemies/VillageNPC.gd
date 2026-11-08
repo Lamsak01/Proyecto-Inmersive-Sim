@@ -1427,6 +1427,8 @@ func _show_status_label(txt: String, col: Color) -> void:
 		status_label.position = Vector2(-(status_label.size.x * 0.74) * 0.5, -30.0)
 
 func _refresh_unfocused_tag() -> void:
+	if _craft_bar_root != null:
+		_craft_bar_root.visible = false
 	if not status_label:
 		return
 	var pl := _get_player()
@@ -1456,6 +1458,7 @@ func _is_focused_npc() -> bool:
 		var prev_focused: Node = _focused_npc
 		_focused_npc = null
 		var pl := _get_player()
+		var vm_f = _get_vm()
 		if pl != null and is_instance_valid(pl):
 			var isel = pl.get("interaction_selector")
 			if isel != null and is_instance_valid(isel) and isel.has_method("selected"):
@@ -1470,21 +1473,27 @@ func _is_focused_npc() -> bool:
 					if n is VillageNPC and is_instance_valid(n) and (n as Node2D).visible and not bool(n.get("corpse_buried")):
 						var d2: float = (n as Node2D).global_position.distance_squared_to(pl.global_position)
 						if d2 < best_d2:
-							best_d2 = d2
-							_focused_npc = n
+							if vm_f == null or not vm_f.has_method("has_line_of_sight") or bool(vm_f.call("has_line_of_sight", pl.global_position, (n as Node2D).global_position)):
+								best_d2 = d2
+								_focused_npc = n
 		if prev_focused != null and prev_focused != _focused_npc and is_instance_valid(prev_focused) and prev_focused is VillageNPC:
 			(prev_focused as VillageNPC)._refresh_unfocused_tag()
 	return _focused_npc == self
 
+func is_female() -> bool:
+	var clean_name: String = npc_name.split(" ")[0]
+	return (person_profile != null and str(person_profile.gender) == "F") or (person_profile == null and (clean_name.ends_with("a") or clean_name in ["Inés", "Carmen", "Beatriz", "Dolores", "Mercedes", "Pilar", "Rocío", "Luz", "Sol"]))
+
 func get_short_world_state() -> String:
+	var fem: bool = is_female()
 	if is_dead:
-		return "En Morgue" if corpse_in_morgue else "Muerto"
+		return "En Morgue" if corpse_in_morgue else ("Muerta" if fem else "Muerto")
 	if is_downed:
 		return "Agonizando"
 	if sedated_timer > 0.0 or is_stunned_flag:
 		return "Inconsciente"
 	if _showing_stealth_prompt:
-		return "Desprevenido"
+		return "Desprevenida" if fem else "Desprevenido"
 	if is_sleeping:
 		return "Durmiendo"
 	if is_at_poker_table:
@@ -1502,7 +1511,7 @@ func get_short_world_state() -> String:
 		return "Descansando"
 	if act.find("charl") != -1 or act.find("habl") != -1:
 		return "Hablando"
-	return npc_role if npc_role != "" else "Vecino"
+	return npc_role if npc_role != "" else ("Vecina" if fem else "Vecino")
 
 func _update_world_tag_for_state(focused_color: Color, fallback_icon: String = "") -> void:
 	if not status_label:
@@ -2339,6 +2348,9 @@ func _process_corpse_state(delta: float) -> void:
 		var rot_col: Color = Color(0.68, 0.54, 0.54, 0.96) if corpse_rot_hours < 12.0 else (Color(0.54, 0.60, 0.46, 0.96) if corpse_rot_hours < 24.0 else Color(0.38, 0.56, 0.30, 0.96))
 		_set_sprite_pose(90.0, rot_col)
 
+	if status_label:
+		_update_world_tag_for_state(Color(0.95, 0.91, 0.83), "☠")
+
 	_corpse_scan_timer -= delta
 	if _corpse_scan_timer > 0.0:
 		return
@@ -2360,9 +2372,6 @@ func _process_corpse_state(delta: float) -> void:
 						begin_physical_corpse_discovery(other)
 						break
 
-	if status_label:
-		_update_world_tag_for_state(Color(0.95, 0.91, 0.83), "☠")
-
 ## Inicia el proceso físico en 3 fases para quien descubre un cuerpo:
 ## 1) Acercarse y comprobar durante 10s si está muerto -> 2) Caminar personalmente a buscar a la policía -> 3) Explicar durante 12.5s lo sucedido
 func begin_physical_corpse_discovery(discoverer: VillageNPC) -> void:
@@ -2382,7 +2391,8 @@ func begin_physical_corpse_discovery(discoverer: VillageNPC) -> void:
 	discoverer._reporting_corpse_target = self
 	discoverer._corpse_report_phase = 1
 	discoverer._corpse_report_timer = 0.0
-	_spawn_floating_text("😟❓ ¡%s vio a %s tendido y se acerca a comprobar si está muerto!" % [discoverer.npc_name, npc_name], Color.GOLD, -42.0)
+	var tend_w: String = "tendida" if is_female() else "tendido"
+	discoverer._spawn_floating_text("😟❓ ¡%s vio a %s %s y va a comprobarlo!" % [discoverer.npc_name, npc_name, tend_w], Color.GOLD, -42.0)
 
 ## Cuando un testigo termina de reportar un cadáver a la policía, también quedan reportados otros cadáveres de la misma escena (<= 165 px)
 func _report_nearby_corpses_from_same_scene(primary_corpse: VillageNPC) -> void:
@@ -2502,7 +2512,8 @@ func _process_witness_corpse_reporting(delta: float) -> bool:
 				_report_nearby_corpses_from_same_scene(corpse_to_report)
 			else:
 				_corpse_report_phase = 2
-				_spawn_floating_text("😱💀 ¡No respira, está muerto! ¡Voy en persona a avisar a la policía!", Color.ORANGE_RED, -42.0)
+				var dead_w: String = "muerta" if corpse_to_report.is_female() else "muerto"
+				_spawn_floating_text("😱💀 ¡No respira, está %s! ¡Voy a avisar a la guardia!" % dead_w, Color.ORANGE_RED, -42.0)
 		return true
 
 	# Buscar al policía consciente más cercano (o despertarlo en la Comisaría si es de noche)
@@ -2523,7 +2534,8 @@ func _process_witness_corpse_reporting(delta: float) -> bool:
 			nearest_authority.is_sleeping = false
 			if nearest_authority.sprite:
 				nearest_authority.sprite.rotation_degrees = 0.0
-		_spawn_floating_text("🗣️🚓 ¡Guardia, escúcheme! ¡He encontrado a %s muerto!" % corpse_to_report.npc_name, Color.GOLD, -42.0)
+		var dead_w2: String = "muerta" if corpse_to_report.is_female() else "muerto"
+		_spawn_floating_text("🗣️🚓 ¡Guardia! ¡He encontrado a %s %s!" % [corpse_to_report.npc_name, dead_w2], Color.GOLD, -42.0)
 		return true
 
 	# FASE 3: Explicar durante 12.5 segundos a la policía lo que pasó
@@ -3592,20 +3604,17 @@ func _update_craft_bar_visual(ratio: float, label_txt: String, bar_color: Color)
 		return
 	var pl := _get_player()
 	var dist_sq: float = global_position.distance_squared_to(pl.global_position) if pl != null else INF
-	if dist_sq > 130.0 * 130.0:
+	if dist_sq > 85.0 * 85.0:
 		_craft_bar_root.visible = false
 		return
 	var focused: bool = _is_focused_npc()
-	if not focused and is_instance_valid(_focused_npc) and (_focused_npc as Node2D).global_position.distance_squared_to(global_position) <= 32.0 * 32.0:
+	if not focused:
 		_craft_bar_root.visible = false
 		return
-	for n in get_tree().get_nodes_in_group("village_npcs"):
-		if n is VillageNPC and n != self and is_instance_valid(n):
-			var vn := n as VillageNPC
-			if vn._craft_bar_root != null and vn._craft_bar_root.visible and vn.global_position.distance_squared_to(global_position) <= 28.0 * 28.0:
-				if not focused:
-					_craft_bar_root.visible = false
-					return
+	var vm_cb = _get_vm()
+	if pl != null and vm_cb != null and vm_cb.has_method("has_line_of_sight") and not bool(vm_cb.call("has_line_of_sight", pl.global_position, global_position)):
+		_craft_bar_root.visible = false
+		return
 	_craft_bar_root.visible = true
 	_craft_bar_root.scale = Vector2(0.72, 0.72)
 	_craft_bar_root.position = Vector2(0.0, -42.0 if (status_label != null and status_label.visible) else -23.0)
