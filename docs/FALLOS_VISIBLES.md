@@ -5,6 +5,8 @@
 > Formato: `- [ ] Qué se ve mal · dónde · cuándo (hora del juego, 2D/3D/primera persona)`.
 
 ## Pendientes
+- [ ] **Dos vecinos metidos uno dentro del otro** en la plaza (siguen pasando, aunque se arregló en la acera) · martes 12:46
+  (`docs/capturas_usuario/2026-11-08/8_vecinos_superpuestos_plaza.png`, a la izquierda del pozo).
 - [x] ✅ (2026-11-08) **🔴 Vecinos atascados en la puerta de la taberna (otra vez):** dos se quedan pegados/superpuestos en el umbral, uno
   entrando y otro saliendo. Ya se arregló una vez («doble carril») y ha vuelto, quizá tras el troceo de archivos · 3D,
   miércoles 04:11 (`docs/capturas_usuario/2026-11-08/7_atasco_puerta_taberna.png`). Probar **jugando un día entero** con la taberna llena (`scripts/systems/VillageManagerBase.gd`, `scripts/systems/VillageTavern.gd`, `tools/tests/verify_all.gd`: restaurado en `get_navigation_waypoint` el alineamiento estricto de los dos carriles de puerta —`exit_lane_x = d_pos.x - 7.5` al salir y `enter_lane_x = d_pos.x + 7.5` al entrar—, corregido `VillageTavern.room_at_floor_0(pos)` para medir distancia a la caja `Rect2` de cada sala en vez de a su centro y evitar que el umbral exterior derecho `x ~ 462, y ~ -132` se clasificara como `"casino"` devolviendo al vecino hacia dentro en bucle, ajustado el rodeo exterior en `_avoid_outdoor_buildings` a `y = -114` fuera de `r_door_threshold`, y verificado simulando 48 horas seguidas de juego con `0` atascos y en `docs/capturas_arreglos/noche_1_puerta_taberna_doble_carril_3d.png`).

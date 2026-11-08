@@ -1,1 +1,0 @@
-2026-11-08 17:37 - ENCARGO DE HOY (noche 2 — MODO DEMO, puntos 1 a 6) y TROCEO DE ARCHIVOS GRANDES completados y verificados (verify_all.gd EXIT_CODE=0 en demo_mode=true y demo_mode=false; +29.2% FPS en Plaza Central 14:00: 17.8 -> 23.0 FPS; 6 capturas 3D en docs/capturas_arreglos/demo_1..6_*.png).

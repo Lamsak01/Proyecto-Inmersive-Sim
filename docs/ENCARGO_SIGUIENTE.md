@@ -1,31 +1,19 @@
-# ⭐ ENCARGO DE HOY (2026-11-08, noche 2) — «MODO DEMO» — MANDA SOBRE TODO LO DEMÁS
-Lo anterior ya está hecho (✅ 16:20). **Contexto:** el usuario decidió preparar una demo de un solo caso (Caso I, ver
-`docs/PLAN_BETA_MISTERIO.md` §5 y §5b). Para la demo hay que **pausar** sistemas secundarios que podrían estropear el caso
-(otro asesinato a mitad de investigación, una enfermedad que mata al alquimista…), dar fallos o gastar rendimiento.
-**Pausar NO es borrar:** el usuario usará varios en la historia principal. Todo debe volver a funcionar igual al apagar
-el modo demo.
-
-1. **Un solo interruptor «MODO DEMO»** en un sitio central (una constante o ajuste fácil de encontrar, explicado en
-   `docs/HANDOFF.md`). **Encendido por defecto** mientras dure la preparación de la demo.
-2. **Con el modo demo encendido quedan en pausa** (no arrancan, no programan sucesos, no cambian datos):
-   - Crimen por su cuenta: deseos de venganza y planes de asesinato, ladrones nocturnos, sabotajes/robos/profanaciones nocturnas.
-   - Bajos fondos: la Familia (mafia), mercado negro, contrabando, perista, club de peleas del sótano y casino.
-   - Mecánicas de la secta (captación, reuniones, ritos, profanaciones). **No toques su código más que para el interruptor.**
-   - Vida que cambia el reparto: llegadas y marchas, hijos y herencias/hijos secretos, enfermedades contagiosas.
-   - Política y dinero: alcalde y elecciones, impuestos, préstamos y casas a plazos, casa propia/terrateniente, rentas y
-     «protección», fama y clanes.
-   - Ecosistema del bosque (caza y cría de animales), escuela, mercado semanal. Asaltos (ya pausados).
-3. **Se quedan encendidos** (el caso los necesita): justicia, comisaría y calabozo, forense, chismes/recuerdos y secretos
-   (solo como información), nobles (como personas que mandan), taberna (sin casino ni peleas), comer y dormir, oficios
-   y trabajo, cuaderno de misiones, biblioteca, fe y el padre Anselmo, restaurante como sitio para comer.
-4. **Los edificios y las personas siguen ahí** (la trattoria, el casino, los nobles, Don Vittorio…): solo se apagan sus
-   mecánicas. Nadie debe quedarse congelado o atascado; si un vecino tenía un papel en un sistema pausado, que haga
-   su vida normal (trabajo, comer, dormir, taberna).
-5. **Pruebas:** una prueba que pase **unos días de juego con el modo demo** y compruebe que no ocurre nada de lo pausado
-   (ni asesinatos, ni robos, ni llegadas…) y que nadie se queda atascado; y que **con el modo demo apagado** la batería
-   completa sigue en verde. Mide las imágenes por segundo antes y después (mismo sitio, misma hora) y apúntalo.
-6. Capturas jugando de verdad: plaza, taberna y trattoria de día y de noche, para ver que todo sigue vivo.
-Commit + push tras cada parte. Al acabar: resumen corto al principio del informe y commit + push.
+# ⭐ ENCARGO DE HOY (2026-11-08, noche 3) — RENDIMIENTO EN MODO DEMO — MANDA SOBRE TODO LO DEMÁS
+El modo demo ya está (✅ 17:42: de 17,8 a 23 fps). **Objetivo: 30 fps o más** en el portátil del usuario (Intel UHD 620,
+pantalla 3072×1728, 1.ª persona, modo demo encendido), en estos sitios fijos y medidos siempre igual: **plaza de día,
+taberna llena de noche y linde del bosque**. Antes de tocar nada, mide y apunta en el informe los fps de los tres sitios.
+Reglas:
+- **Primero averigua qué gasta** con las herramientas de medir que ya existen (ver `docs/HANDOFF.md`, bloque B3) y
+  apunta el reparto (vecinos, escenario 3D, sombras/luces, interfaz, otros). Ataca lo que más gaste.
+- **El juego no debe cambiar** en nada que se juegue: ni rutinas, ni reglas, ni lo que ve un jugador a 1080p.
+- **No reactives la «simulación a ratos» de los vecinos lejanos** (está apagada por orden del usuario). Si crees que es
+  imprescindible, apúntalo en `docs/PREGUNTAS_PENDIENTES.md` con lo que ganaría y sigue con lo demás.
+- Se permite añadir en el menú de opciones (si existe; si no, una tecla documentada en [H]) una **escala de resolución
+  3D** (p. ej. 100 % / 75 % / 50 %) y calidad de sombras: ayuda a ordenadores modestos sin cambiar el juego. Por defecto,
+  lo que dé ≥30 fps en el portátil sin verse mal (comprueba con captura).
+- Además: **vecinos superpuestos** en la plaza (primera entrada de `FALLOS_VISIBLES.md`).
+- Tras cada mejora: batería `verify_all` + fps de los tres sitios; commit + push. Si algo falla dos veces, deshazlo.
+Al acabar: tabla «antes / después» de los tres sitios al principio del informe, ✅ en `FALLOS_VISIBLES.md`, commit + push.
 
 # ✅ TROCEO DE ARCHIVOS GRANDES — HECHO (2026-11-08 13:27). No lo repitas.
 
