@@ -79,6 +79,11 @@
    **más joven** la estranguló por miedo a que los delatara.
 7. Lo del familiar lo sabes hablando con él; lo de los secuestradores, **interrogando a uno si lo capturas vivo**.
 8. Deja abierta la investigación de la secta y la corrupción del pueblo.
+   **Gancho de la secta (usuario, 2026-11-08):** (a) en el molino aparece una **lista de nombres de personas desaparecidas**;
+   (b) por la regla de las 48 horas, el jugador debe **averiguar quién más sabe preparar el sueño de cera**. Lo que hay
+   detrás es lore del usuario: no se explica en el Caso I.
+   **Regla:** si sobrevive un secuestrador se le puede interrogar, pero **no tiene por qué sobrevivir**: el caso debe poder
+   resolverse sin capturarlo (lo que contaría él tiene que poder deducirse por otras pistas).
 
 **Nombres:** la hierba es la **belladama gris** (elegido por el usuario, 2026-11-08: recuerda a la belladona y el «dama» apunta a los ricos). La poción es el **sueño de cera** (elegido por el usuario, 2026-11-08: deja el cuerpo quieto y pálido como de cera).
 

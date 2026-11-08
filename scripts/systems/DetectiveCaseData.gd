@@ -34,7 +34,8 @@ static var CASES: Dictionary = {
 			"how_stolen_potion_is_discovered": "La criada reconoce el frasco y menciona el gabinete de los señores; al registrar el gabinete (con su permiso o a escondidas) se ve la cerradura forzada. Sin marca en el polvo.",
 			"potion_stability": {"full_strength_until_hour": 12, "degrades_from_hour": 13, "useless_at_hour": 48},
 			"abandoned_house_location": "Molino viejo abandonado junto al arroyo, río arriba del claro donde aparece el cuerpo. Se llega siguiendo el agua. Allí la orilla es de barro rojo (la misma arcilla de los ladrillos de algunas casas del pueblo).",
-			"sect_open_thread_hook": PENDING_DECISION
+			"sect_open_thread_hook": "Dos ganchos juntos: (a) en el molino hay una lista de nombres de personas desaparecidas; (b) la regla de las 48 horas obliga a preguntarse quién fabricó el sueño de cera recién hecho: el jugador debe averiguar quién más en el valle sabe prepararlo. Lo que hay detrás es de la secta (lore del usuario): no se explica en este caso.",
+			"kidnapper_survival_optional": true
 		},
 		"roles": {
 			"victim": {
@@ -154,6 +155,7 @@ static var CASES: Dictionary = {
 			"kidnapper_captured_interrogation": {
 				"speaker_role": "young_kidnapper",
 				"requires_live_capture": true,
+				"optional": true,
 				"line": "«¡Nos dijeron que estaba muerta! Cuando abrió los ojos en mitad de la noche perdí la cabeza… la apretamos y la llevamos en el carro hasta el arroyo.»"
 			}
 		},
