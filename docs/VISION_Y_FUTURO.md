@@ -180,6 +180,17 @@ Estado: **✅ HECHO** = ya construido y funcionando en el juego. **🟡 EN PARTE
   animación de dolor), aguante por golpe, golpes distintos (rápido, fuerte, cargado) y lo que cubre cada arma. Ojo: el club
   de pelea (P6a), los asaltos, la guardia y la caza usan este combate; hay que revisarlos después.
 
+- 💡 **IDEA DEL USUARIO (2026-11-07)** — **Estética de personajes «retro de PlayStation 1», oscura y sucia** (referentes:
+  *Mouthwashing*, *Gloomwood*). Imágenes de ejemplo (hechas con Gemini, solo orientativas) en `docs/referencias_personajes/`.
+  **No es para ahora**: el usuario contratará a un artista para los diseños. Ideas de la conversación con Gemini: el
+  jugador y todos los vecinos con el mismo cuerpo y esqueleto, así que cualquier ropa vale para cualquiera (robar
+  uniformes, disfrazarse); 2 cuerpos (hombre/mujer) con complexiones; ropa y pelo teñibles por oficio o bando; una cabeza
+  común con rasgos variables y capas de arrugas, ojeras, cicatrices y barba; ojos que miran y gestos de cara y postura
+  (brazos cruzados, tenso) para los interrogatorios. Opinión de Claude: muy buena dirección; los disfraces y las caras
+  en los interrogatorios son un gran gancho. Avisos: el resultado real será más simple que las imágenes; no preparar el
+  sistema antes de tener un muñeco de verdad del artista; la ropa moderna de las imágenes (chaleco antibalas, chupa de
+  cuero) choca con el pueblo actual, así que hay que decidir la época antes de encargar el arte; empezar con pocos gestos.
+
 ### Tecnología anacrónica
 - ✅ **HECHO** — Vehículos de época: caballos de silla y carretas de carga (`VillageCulture.gd`, test #90): en el Rancho del Sur puedes comprar al ganadero un Caballo de Silla (45 de oro, aumenta tu velocidad y mejora un +15 % el éxito de tus expediciones) y una Carreta de Carga (55 de oro, añade +4 de oro de rendimiento por cada remesa comercial enviada por ruta). *(Hecho en bloque PM; motos/coches quedan descartados para el tamaño actual del valle.)*
 - ✅ **HECHO** — Armas de fuego de chispa (`SimpleInventory.gd`, `VillageCulture.gd`, test #92): tras investigar «Cerraduras y Empalizadas de Precisión», puedes encargar en la herrería o el taller un Arcabuz de Chispa con 2 cargas de pólvora (60 de oro al artesano) y comprar paquetes de Cargas de Pólvora Negra (14 de oro); llevar el arcabuz cargado añade +3 de defensa al encabezar el rechazo de incursiones *(Hecho en bloque PO.)*

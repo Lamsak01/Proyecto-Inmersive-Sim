@@ -65,6 +65,7 @@ tags:
   de terreno multiescala `GROUND_TERRAIN_SHADER_CODE` junto con matas de hierba, helechos y flores 3D
   (`_build_ground_foliage_3d`); variedad de robles (`CommonTree_1..4`), abedules (`BirchTree_1..3`) y pinos
   (`PineTree_1..4`) por zona; y niebla atmosférica reactiva a la hora y al clima (`"fog"`, `"rain"`, `"storm"`).
+- 2026-11-07 (Claude Code): el usuario fija la estética futura de los personajes: retro tipo PlayStation 1, oscura y sucia (*Mouthwashing*, *Gloomwood*), con ropa intercambiable entre todos (disfraces) y caras con gestos para interrogatorios. Lo diseñará un artista contratado; no se implementa aún. Ejemplos en `docs/referencias_personajes/` y detalle en `docs/VISION_Y_FUTURO.md` (Jugador). Pendiente: decidir la época (las imágenes son modernas; el pueblo, no).
 
 ## Tareas
 - [x] Animaciones reales en vez de balanceos
