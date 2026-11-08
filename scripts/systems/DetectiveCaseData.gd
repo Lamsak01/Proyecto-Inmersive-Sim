@@ -33,7 +33,7 @@ static var CASES: Dictionary = {
 			"potion_name": "Sueño de cera",
 			"how_stolen_potion_is_discovered": "La criada reconoce el frasco y menciona el gabinete de los señores; al registrar el gabinete (con su permiso o a escondidas) se ve la cerradura forzada. Sin marca en el polvo.",
 			"potion_stability": {"full_strength_until_hour": 12, "degrades_from_hour": 13, "useless_at_hour": 48},
-			"abandoned_house_location": PENDING_DECISION,
+			"abandoned_house_location": "Molino viejo abandonado junto al arroyo, río arriba del claro donde aparece el cuerpo. Se llega siguiendo el agua. Allí la orilla es de barro rojo (la misma arcilla de los ladrillos de algunas casas del pueblo).",
 			"sect_open_thread_hook": PENDING_DECISION
 		},
 		"roles": {
@@ -114,7 +114,7 @@ static var CASES: Dictionary = {
 				"id": "relative_faked_death_plan",
 				"summary": "Un familiar o pareja de la víctima quiso salvarla de unos secuestradores en una casa abandonada mezclando la poción con otra de un libro antiguo de la biblioteca para fingir su muerte; la dosis salió mal y solo la paralizó.",
 				"role": "apparent_culprit_relative",
-				"abandoned_house_location": PENDING_DECISION
+				"abandoned_house_location": "Molino viejo abandonado junto al arroyo, río arriba del claro donde aparece el cuerpo. Se llega siguiendo el agua. Allí la orilla es de barro rojo (la misma arcilla de los ladrillos de algunas casas del pueblo)."
 			},
 			{
 				"step": 6,
@@ -201,7 +201,7 @@ static var CASES: Dictionary = {
 			"piernas": {
 				"title": "Piernas y calzado",
 				"acts": [
-					{"id": "mirar", "name": "Mirar pies y bajos", "cost": 2, "find": "Falta el zapato izquierdo. Los dos talones tienen barro oscuro por detrás, como si la hubieran arrastrado sujetándola por las axilas.", "mark": "m-heel", "tag": "Arrastrada hasta aquí", "note": "Talones manchados por detrás y falta el zapato izquierdo: la arrastraron hasta el arroyo."},
+					{"id": "mirar", "name": "Mirar pies y bajos", "cost": 2, "find": "Falta el zapato izquierdo. Los dos talones tienen barro rojo por detrás, como si la hubieran arrastrado sujetándola por las axilas. Junto al claro el barro es pardo, no rojo.", "mark": "m-heel", "tag": "Arrastrada hasta aquí", "note": "Talones con barro rojo y falta el zapato izquierdo: la arrastraron desde otro sitio. El barro rojo es la arcilla de los ladrillos… ¿o de río arriba?"},
 					{"id": "oler", "name": "Oler el barro del vestido", "cost": 2, "find": "El barro de las rodillas huele a ceniza de carbón vegetal, no al lodo limpio del arroyo.", "tag": "Barro con ceniza de carbón", "note": "Barro en las rodillas mezclado con ceniza de carbón vegetal (¿carbonera, fragua o horno?)."}
 				]
 			},

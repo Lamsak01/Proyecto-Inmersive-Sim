@@ -68,6 +68,10 @@
    robaron; no pueden decirlo sin meterse en líos). Una **criada** identifica la sustancia (reconoce el frasco).
    **Cómo se descubre el robo (decidido por el usuario, 2026-11-08):** la criada reconoce el frasco y menciona el gabinete
    de los señores; registrando el gabinete (con permiso o a escondidas) se ve la cerradura forzada. Sin marca de polvo.
+   **Casa abandonada (usuario, 2026-11-08):** un **molino viejo junto al arroyo, río arriba del claro** del cuerpo; se
+   llega siguiendo el agua. Allí el barro es **rojo**, la misma arcilla de los ladrillos de algunas casas del pueblo
+   (pista doble: lleva al molino… o hace sospechar de quien vive en casas de ladrillo rojo). **Requisito del mapa:** el
+   usuario quiere **un río que cruce el pueblo** (no solo lagos); el arroyo del caso nace de él / es su tramo alto.
 5. El «culpable» aparente es un **familiar o pareja** de la víctima que quería salvarla de un **culto que la tenía
    secuestrada** en una casa abandonada: mezcló la poción con otras de un libro antiguo de la biblioteca para fingir su
    muerte. La dosis salió mal (libro antiguo): la paralizó y duró poco.
