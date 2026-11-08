@@ -73,5 +73,11 @@ repaso en `docs/REVISION_EPOCA.md`). Solo 3D. Una captura por punto.
    «Cerraduras de Precisión» → «Cerradura magnética», «Condensadores Voltaicos» → «Generador diésel». Solo nombres y
    textos; lo que hacen no cambia.
 
+## 3c. Ocultar la historia principal actual (APROBADO por el usuario, 2026-11-08) — junto con el 3b
+La premisa de los 4 capítulos (bloque PP) queda descartada (`docs/HANDOFF.md` §8). **Ocúltala sin borrar el código**:
+que no salga la pestaña «Principal» del panel de misiones [L] (o que diga solo «Próximamente»), que no avancen sus
+capítulos, no paguen recompensas ni aparezcan sus avisos, rumores o diálogos. Deja una marca clara en el código para
+recuperarla si hiciera falta. Una prueba: abrir [L] y comprobar que no aparece nada de los 4 capítulos.
+
 ## 4. Edificios de los bocetos (`docs/BOCETOS_EDIFICIOS.md`)
 Esperan las correcciones del usuario. Después, construirlos todos seguidos con capturas de cada uno.
