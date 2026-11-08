@@ -225,7 +225,7 @@ func _update_needs_and_decisions(delta: float) -> void:
 					_eat_at_tavern = false
 					_spawn_floating_text("🚪🔒 ¡Taberna bloqueada! Iré a comer en casa / buscar suministros", Color.GOLD, -36.0)
 				var meal_pos: Vector2 = _current_meal_pos()
-				if global_position.distance_to(meal_pos) <= 14.0:
+				if global_position.distance_to(meal_pos) <= 22.0:
 					if not _meal_consumed_this_sitting:
 						_meal_consumed_this_sitting = true
 						if _restaurant_seat != Vector2.ZERO:
@@ -272,7 +272,7 @@ func _update_needs_and_decisions(delta: float) -> void:
 			if digestion_buffer <= 0.0:
 				need_hunger = maxf(0.0, need_hunger - base_3day_hunger_rate * 0.90 * delta)
 			need_energy = maxf(0.0, need_energy - _energy_decay_rate * 0.80 * malnutrition_fatigue_mult * delta)
-			if global_position.distance_to(_get_social_target_pos()) <= 22.0:
+			if global_position.distance_to(_get_social_target_pos()) <= 26.0:
 				need_social = minf(100.0, need_social + 15.0 * delta)
 				_chat_bubble_timer -= delta
 				if _chat_bubble_timer <= 0.0:
@@ -293,7 +293,7 @@ func _update_needs_and_decisions(delta: float) -> void:
 			if trade_role == TradeRole.UNEMPLOYED and not is_vagrant_camper and vm_slp and vm_slp.has_method("is_building_door_blocked") and bool(vm_slp.call("is_building_door_blocked", "tavern")) and vm_slp.has_method("evict_npc_to_vagrant_camp"):
 				vm_slp.call("evict_npc_to_vagrant_camp", self, "Puerta de la Taberna bloqueada")
 			var bed_target_elev: int = 1 if _VillageTavern.is_upper_floor_target(bed_position) else 0
-			if global_position.distance_to(bed_position) <= 12.0 and int(elevation_level) == bed_target_elev:
+			if global_position.distance_to(bed_position) <= 20.0 and int(elevation_level) == bed_target_elev:
 				is_sleeping = true
 				if is_vagrant_camper and not in_shelter:
 					var max_camp_energy: float = 62.0 if (WorldClock != null and int(WorldClock.current_weather) == 1) else 74.0
@@ -471,9 +471,9 @@ func _execute_dynamic_activity(delta: float) -> void:
 			if _wander_timer <= 0.0:
 				var is_idle_stroller: bool = (trade_role == TradeRole.UNEMPLOYED and not has_meta("day_job_pos"))
 				_wander_timer = randf_range(7.0, 14.0) if is_idle_stroller else randf_range(2.2, 4.6)
-				var radius: float = 34.0 if (trade_role == TradeRole.UNEMPLOYED or trade_role == TradeRole.GUARD) else 8.0
-				var base_ang: float = float(absi(npc_name.hash()) % 360) * (TAU / 360.0) + randf_range(-1.2, 1.2)
-				_wander_offset = Vector2.RIGHT.rotated(base_ang) * randf_range(10.0, radius) if is_idle_stroller else (Vector2.ZERO if randf() < 0.55 else Vector2.RIGHT.rotated(randf() * TAU) * randf_range(3.0, radius))
+				var radius: float = 34.0 if (trade_role == TradeRole.UNEMPLOYED or trade_role == TradeRole.GUARD) else 11.0
+				var base_ang: float = float(absi(npc_name.hash()) % 360) * (TAU / 360.0) + randf_range(-0.85, 0.85)
+				_wander_offset = Vector2.RIGHT.rotated(base_ang) * randf_range(12.0, radius) if is_idle_stroller else Vector2.RIGHT.rotated(base_ang) * randf_range(6.5, radius)
 				if is_idle_stroller and randf() < 0.45:
 					set_meta("stroll_anchor", IDLE_STROLL_SPOTS[randi() % IDLE_STROLL_SPOTS.size()])
 				elif is_idle_stroller and has_meta("stroll_anchor") and randf() < 0.30:
@@ -575,7 +575,7 @@ func _process_artisan_workshop_crafting_and_supply_runs(delta: float) -> void:
 			work_position = true_wp
 
 	# 2. Regresar o permanecer en su propio puesto de trabajo (`work_position`)
-	if global_position.distance_to(work_position) > 16.0 or int(elevation_level) != 0:
+	if global_position.distance_to(work_position) > 22.0 or int(elevation_level) != 0:
 		_is_actively_crafting = false
 		_update_craft_bar_visual(0.20, "🚶 Volviendo al taller...", Color(0.75, 0.85, 0.95, 0.85))
 		_move_towards_point(work_position, 50.0, delta)

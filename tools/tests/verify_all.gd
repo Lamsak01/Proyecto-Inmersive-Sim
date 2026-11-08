@@ -7425,5 +7425,41 @@ func _initialize() -> void:
 	assert(saw_working_count > 10 and saw_tavern_hall > 0, "Villagers must keep working and visiting the tavern hall in demo mode")
 	print("Demo Mode Multi-Day Simulation Check (4 days with demo_mode=true, 0 paused events, village alive) OK")
 
+	# Prueba automática de no-superposición de vecinos en la plaza y en todo el pueblo
+	var overlap_test_npcs: Array = []
+	for n_ov in vm.VillageNeeds.living(vm):
+		if n_ov.is_conscious() and not n_ov.is_sleeping and not n_ov.is_at_poker_table and int(n_ov.elevation_level) == 0:
+			overlap_test_npcs.append(n_ov)
+	assert(overlap_test_npcs.size() >= 3, "Need at least 3 conscious NPCs for overlap check")
+	var ov_a = overlap_test_npcs[0]
+	var ov_b = overlap_test_npcs[1]
+	var saved_ov_a_pos: Vector2 = ov_a.global_position
+	var saved_ov_b_pos: Vector2 = ov_b.global_position
+	# Caso 1: dos vecinos metidos uno dentro del otro en el camino norte-sur de la plaza (Vector2(455, 25)) yendo al mismo punto
+	ov_a.global_position = Vector2(455.0, 25.0)
+	ov_b.global_position = Vector2(455.2, 25.1)
+	for _step_ov in range(30):
+		ov_a._move_towards_point(Vector2(455.0, 44.0), 44.0, 0.05)
+		ov_a._finish_frame_movement(0.05, true)
+		ov_b._move_towards_point(Vector2(455.0, 44.0), 44.0, 0.05)
+		ov_b._finish_frame_movement(0.05, true)
+	var sep_ab: float = ov_a.global_position.distance_to(ov_b.global_position)
+	assert(sep_ab >= 14.0, "Two overlapping NPCs in the plaza must separate to >= 14 px! Got dist=" + str(sep_ab))
+	ov_a.global_position = saved_ov_a_pos
+	ov_b.global_position = saved_ov_b_pos
+	# Caso 2: simular a todos los vecinos del pueblo caminando (martes 12:46) y vigilar 0 solapes en todo el pueblo
+	wc_demo.current_day = 2
+	wc_demo.current_hour = 12
+	wc_demo.current_minute = 46
+	for _step_all in range(45):
+		for n_step in vm.VillageNeeds.living(vm):
+			if n_step.is_conscious() and not n_step.is_sleeping and not n_step.is_at_poker_table:
+				n_step._lod_k = 1.0
+				n_step._execute_dynamic_activity(0.05)
+				n_step._finish_frame_movement(0.05, true)
+	var village_overlaps: Array = vm.check_npc_overlaps(11.5)
+	assert(village_overlaps.is_empty(), "No two conscious villagers may overlap anywhere in the village! Found: " + str(village_overlaps))
+	print("Village-Wide NPC Anti-Overlap Check (0 overlapping villagers in plaza and across entire village) OK")
+
 	print("ALL RIMWORLD MEDICAL, FOOTPRINTS, 3-PHASE CORPSE REPORT, MULTI-CORPSE FIX, RPG INTERROGATION, PUBLIC TRIAL, DYNAMIC RELATIONSHIPS, MISSING FAMILY SEARCH, SOCIAL GLOSSARY & UNCONSCIOUS REACTION TESTS PASSED!")
 	quit(0)

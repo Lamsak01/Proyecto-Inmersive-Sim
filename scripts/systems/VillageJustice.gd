@@ -1731,18 +1731,20 @@ static func process_npc_jail_step(vm: VillageManager, npc: VillageNPC, delta: fl
 		npc.is_sleeping = false
 		npc.elevation_level = 0
 		npc._stop_crafting_bar()
+		var cell_off := Vector2(float((absi(k.hash()) % 3) - 1) * 14.0, float((absi(k.hash() / 3) % 2) * 2 - 1) * 6.0)
+		var my_cell_pos: Vector2 = CELL_POS + cell_off
 		if str(rec.get("status", "escorting")) == "escorting":
-			if npc.global_position.distance_to(CELL_POS) > 22.0:
-				npc._move_towards_point(CELL_POS, 66.0, delta)
+			if npc.global_position.distance_to(my_cell_pos) > 22.0:
+				npc._move_towards_point(my_cell_pos, 66.0, delta)
 			else:
 				rec["status"] = "jailed"
-				npc.global_position = CELL_POS
+				npc.global_position = my_cell_pos
 				npc.velocity = Vector2.ZERO
 				vm.set_jail_cell_gate_locked(true)
 				npc._spawn_floating_text("🔒⛓️ Encerrado en el calabozo (%dh)" % int(rec.get("hours_left", 24)), Color(0.75, 0.85, 1.0), -40.0)
 		else:
 			if not CELL_RECT.has_point(npc.global_position):
-				npc.global_position = CELL_POS
+				npc.global_position = my_cell_pos
 			npc.velocity = Vector2.ZERO
 			vm.set_jail_cell_gate_locked(true)
 		npc._finish_frame_movement(delta)

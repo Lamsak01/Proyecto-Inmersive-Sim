@@ -298,6 +298,7 @@ func _process_player_attention(delta: float) -> bool:
 			_being_interviewed_timer = maxf(0.0, _being_interviewed_timer - delta)
 		velocity = Vector2.ZERO
 		_stop_crafting_bar()
+		_enforce_npc_personal_space(delta)
 		var face_node: Node2D = _cached_player if talking_to_player else _interviewer_node
 		if is_instance_valid(face_node) and sprite:
 			sprite.flip_h = (face_node.global_position.x < global_position.x)

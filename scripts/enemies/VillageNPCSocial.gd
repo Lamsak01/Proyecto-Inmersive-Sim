@@ -2,7 +2,7 @@
 extends "res://scripts/enemies/VillageNPCBase.gd"
 
 
-func _finish_frame_movement(delta: float, apply_yield: bool = false) -> void:
+func _finish_frame_movement(delta: float, apply_yield: bool = true) -> void:
 	var _pt: int = Time.get_ticks_usec() if perf_on else 0
 	if apply_yield:
 		_apply_player_and_doorway_yield(delta)
@@ -11,6 +11,7 @@ func _finish_frame_movement(delta: float, apply_yield: bool = false) -> void:
 	if lod_k > 1.0:
 		velocity *= lod_k # V2: un paso de varios fotogramas recorre la distancia de todos ellos
 	move_and_slide()
+	_enforce_npc_personal_space(delta)
 	if perf_on: _pt = _perf_add("m_move_and_slide", _pt)
 	if lod_k > 1.0:
 		velocity /= lod_k
@@ -725,8 +726,77 @@ func _process_unconscious_neighbor_reaction(delta: float) -> bool:
 ## V2: simulación simplificada lejos del jugador. Fuera de la vista, el vecino piensa y se mueve 1 de cada
 ## LOD_STEP fotogramas con el tiempo acumulado (llega igual de lejos, solo que a saltos que nadie ve).
 
+func _is_seated_on_furniture(pos: Vector2) -> bool:
+	return _VillageTavern.is_at_seat(pos) or _VillageRestaurant.is_at_seat(pos)
+
+func _has_nearby_standing_npc(pt: Vector2, radius: float = 16.0) -> bool:
+	var r_sq: float = radius * radius
+	for n in get_tree().get_nodes_in_group("village_npcs"):
+		if n is VillageNPCBase and n != self:
+			var other := n as VillageNPCBase
+			if other.is_conscious() and not other.is_sleeping and not other.is_at_poker_table and int(other.elevation_level) == int(elevation_level):
+				if other.global_position.distance_squared_to(pt) < r_sq:
+					return true
+	return false
+
+func _is_target_occupied_by_closer_npc(target_pos: Vector2) -> bool:
+	var my_d: float = global_position.distance_to(target_pos)
+	if my_d > 21.0:
+		return false
+	for n in get_tree().get_nodes_in_group("village_npcs"):
+		if n is VillageNPCBase and n != self:
+			var other := n as VillageNPCBase
+			if other.is_conscious() and not other.is_sleeping and not other.is_at_poker_table and int(other.elevation_level) == int(elevation_level):
+				var d_pair_sq: float = global_position.distance_squared_to(other.global_position)
+				if d_pair_sq <= 17.5 * 17.5:
+					var ot_d: float = other.global_position.distance_to(target_pos)
+					if ot_d <= 14.5 or ot_d + 1.0 < my_d:
+						return true
+	return false
+
+func _enforce_npc_personal_space(delta: float) -> void:
+	if not is_conscious() or is_sleeping or is_at_poker_table or _is_seated_on_furniture(global_position):
+		return
+	var vm = _get_vm()
+	if vm != null and vm.has_method("get_doorway_clearance_nudge") and (vm.call("get_doorway_clearance_nudge", global_position, 22.0) as Vector2).length_squared() > 0.01:
+		return
+	var min_sep: float = 15.0
+	var min_sep_sq: float = min_sep * min_sep
+	for n in get_tree().get_nodes_in_group("village_npcs"):
+		if n is VillageNPCBase and n != self:
+			var other := n as VillageNPCBase
+			if not other.is_conscious() or other.is_sleeping or other.is_at_poker_table or int(other.elevation_level) != int(elevation_level):
+				continue
+			if vm != null and vm.has_method("get_doorway_clearance_nudge") and (vm.call("get_doorway_clearance_nudge", other.global_position, 20.0) as Vector2).length_squared() > 0.01:
+				continue
+			var diff_o: Vector2 = global_position - other.global_position
+			var d_sq: float = diff_o.length_squared()
+			if d_sq < min_sep_sq:
+				var d_o: float = sqrt(d_sq)
+				var push_dir: Vector2
+				if d_o > 0.05:
+					push_dir = diff_o / d_o
+				else:
+					var ang: float = float((absi(npc_name.hash()) + absi(other.npc_name.hash())) % 180) * (TAU / 360.0)
+					var dir_base := Vector2.RIGHT.rotated(ang)
+					push_dir = dir_base if get_instance_id() > other.get_instance_id() else -dir_base
+				var overlap: float = min_sep - d_o
+				var other_fixed: bool = _is_seated_on_furniture(other.global_position) or other.velocity.length_squared() < 4.0
+				var step_push: float = minf(overlap * (0.85 if other_fixed else 0.58), maxf(2.2, 56.0 * delta))
+				var cand_pos: Vector2 = global_position + push_dir * step_push
+				if vm != null and vm.has_method("sanitize_npc_separation_pos"):
+					var san_pos: Vector2 = vm.call("sanitize_npc_separation_pos", global_position, cand_pos, int(elevation_level))
+					if san_pos.distance_squared_to(global_position) < 0.01:
+						var perp := Vector2(-push_dir.y, push_dir.x) if (get_instance_id() % 2 == 0) else Vector2(push_dir.y, -push_dir.x)
+						san_pos = vm.call("sanitize_npc_separation_pos", global_position, global_position + perp * step_push, int(elevation_level))
+						if san_pos.distance_squared_to(global_position) < 0.01:
+							san_pos = vm.call("sanitize_npc_separation_pos", global_position, global_position - perp * step_push, int(elevation_level))
+					global_position = san_pos
+				else:
+					global_position = cand_pos
+
 func _apply_player_and_doorway_yield(delta: float) -> void:
-	if _VillageTavern.is_at_seat(global_position) or _VillageRestaurant.is_at_seat(global_position):
+	if _is_seated_on_furniture(global_position):
 		return
 	var player = _cached_player
 	if is_instance_valid(player) and not is_sleeping and not is_at_poker_table:
@@ -740,7 +810,7 @@ func _apply_player_and_doorway_yield(delta: float) -> void:
 	if velocity.length_squared() < 9.0 and not is_sleeping and not is_at_poker_table:
 		_door_nudge_timer -= delta
 		if _door_nudge_timer <= 0.0:
-			_door_nudge_timer = 0.16
+			_door_nudge_timer = 0.08
 			var vm = _cached_vm
 			if vm and vm.has_method("get_doorway_clearance_nudge"):
 				var nudge: Vector2 = vm.call("get_doorway_clearance_nudge", global_position, 18.0)
@@ -752,19 +822,28 @@ func _apply_player_and_doorway_yield(delta: float) -> void:
 					var other := n
 					if not other.is_dead and not other.is_downed and not other.is_sleeping and int(other.elevation_level) == int(elevation_level):
 						var d_sq: float = global_position.distance_squared_to(other.global_position)
-						if d_sq < 289.0:
+						if d_sq < 324.0:
 							var d_other: float = sqrt(d_sq)
-							var push_dir: Vector2 = (global_position - other.global_position).normalized() if d_sq > 0.04 else Vector2.RIGHT.rotated(float(absi(npc_name.hash()) % 360) * (TAU / 360.0))
-							idle_sep += push_dir * ((17.0 - d_other) / 17.0) * 36.0
+							var push_dir: Vector2 = (global_position - other.global_position).normalized() if d_sq > 0.04 else (Vector2.RIGHT.rotated(float((absi(npc_name.hash()) + absi(other.npc_name.hash())) % 180) * (TAU / 360.0)) * (1.0 if get_instance_id() > other.get_instance_id() else -1.0))
+							idle_sep += push_dir * ((18.0 - d_other) / 18.0) * 42.0
 			_cached_sep_vec = idle_sep
 		if _cached_sep_vec.length_squared() > 0.25:
-			velocity += _cached_sep_vec.limit_length(38.0)
+			velocity += _cached_sep_vec.limit_length(42.0)
 
 func _move_towards_point(target_pos: Vector2, speed: float, delta: float = 0.016) -> void:
 	var vm = _get_vm()
 	var is_escorting_player: bool = vm != null and bool(vm.get("player_being_escorted_to_jail")) and vm.get("escorting_officer") == self
 	var leg_mult: float = health_comp.get_moving_capacity() if health_comp else 1.0
 	var eff_speed: float = maxf(62.0, speed) if is_escorting_player else (speed * get_nutrition_speed_multiplier() * get_sleep_speed_multiplier() * leg_mult)
+
+	var in_doorway_now: bool = vm != null and vm.has_method("get_doorway_clearance_nudge") and (vm.call("get_doorway_clearance_nudge", global_position, 24.0) as Vector2).length_squared() > 0.01
+	var is_seat_target: bool = _is_seated_on_furniture(target_pos)
+	if not is_escorting_player and not is_hostile and not in_doorway_now and not is_seat_target:
+		if _is_target_occupied_by_closer_npc(target_pos):
+			velocity = Vector2.ZERO
+			_stuck_timer = 0.0
+			_last_frame_pos = global_position
+			return
 
 	var _pt: int = Time.get_ticks_usec() if perf_on else 0
 	_nav_waypoint_timer -= delta
@@ -777,10 +856,10 @@ func _move_towards_point(target_pos: Vector2, speed: float, delta: float = 0.016
 	var diff: Vector2 = nav_target - global_position
 	var step_snap: float = maxf(4.5, eff_speed * delta * 0.85)
 	if diff.length() <= step_snap:
-		if diff.length() <= 6.5:
+		if diff.length() <= 6.5 and (in_doorway_now or is_seat_target or not _has_nearby_standing_npc(nav_target, 16.5)):
 			global_position = nav_target
 		if nav_target.distance_squared_to(target_pos) > 9.0 and vm and vm.has_method("get_navigation_waypoint"):
-			_cached_nav_waypoint = vm.call("get_navigation_waypoint", global_position, target_pos, self)
+			_cached_nav_waypoint = vm.call("get_navigation_waypoint", nav_target, target_pos, self)
 			nav_target = _cached_nav_waypoint
 			diff = nav_target - global_position
 		if diff.length() <= step_snap:
@@ -802,7 +881,6 @@ func _move_towards_point(target_pos: Vector2, speed: float, delta: float = 0.016
 		return
 
 	var desired_vel: Vector2 = diff.normalized() * eff_speed
-	var in_doorway_now: bool = vm != null and vm.has_method("get_doorway_clearance_nudge") and (vm.call("get_doorway_clearance_nudge", global_position, 24.0) as Vector2).length_squared() > 0.01
 
 	if global_position.distance_squared_to(_last_frame_pos) < 0.09 and eff_speed > 12.0:
 		_stuck_timer += delta
@@ -822,7 +900,7 @@ func _move_towards_point(target_pos: Vector2, speed: float, delta: float = 0.016
 	if perf_on: _pt = _perf_add("a_stuck", _pt)
 	_sep_timer -= delta
 	if _sep_timer <= 0.0:
-		_sep_timer = 0.10
+		_sep_timer = 0.04
 		var sep_vec := Vector2.ZERO
 		if not in_doorway_now:
 			for n in get_tree().get_nodes_in_group("village_npcs"):
@@ -830,11 +908,24 @@ func _move_towards_point(target_pos: Vector2, speed: float, delta: float = 0.016
 					var other := n
 					if not other.is_dead and not other.is_downed and not other.is_sleeping and int(other.elevation_level) == int(elevation_level):
 						var d_sq: float = global_position.distance_squared_to(other.global_position)
-						if d_sq < 289.0:
+						if d_sq < 484.0:
 							var d_other: float = sqrt(d_sq)
-							var push_dir: Vector2 = (global_position - other.global_position).normalized() if d_sq > 0.04 else Vector2.RIGHT.rotated(float(absi(npc_name.hash()) % 360) * (TAU / 360.0))
-							sep_vec += push_dir * ((17.0 - d_other) / 17.0) * 30.0
+							var push_dir: Vector2 = (global_position - other.global_position).normalized() if d_sq > 0.04 else (Vector2.RIGHT.rotated(float((absi(npc_name.hash()) + absi(other.npc_name.hash())) % 180) * (TAU / 360.0)) * (1.0 if get_instance_id() > other.get_instance_id() else -1.0))
+							var side_dir := Vector2(-push_dir.y, push_dir.x)
+							var steer_dir: Vector2 = (push_dir + side_dir * 0.45).normalized() if desired_vel.dot(-push_dir) > 0.0 else push_dir
+							sep_vec += steer_dir * ((22.0 - d_other) / 22.0) * 52.0
 		_cached_sep_vec = sep_vec
+	if not in_doorway_now and not is_escorting_player:
+		for n in get_tree().get_nodes_in_group("village_npcs"):
+			if n is VillageNPCBase and n != self:
+				var other := n as VillageNPCBase
+				if not other.is_dead and not other.is_downed and not other.is_sleeping and int(other.elevation_level) == int(elevation_level):
+					var d_sq_now: float = global_position.distance_squared_to(other.global_position)
+					if d_sq_now > 0.01 and d_sq_now < 256.0:
+						var push_now: Vector2 = (global_position - other.global_position).normalized()
+						var toward_dot: float = desired_vel.dot(-push_now)
+						if toward_dot > 0.0:
+							desired_vel += push_now * toward_dot
 	if perf_on: _perf_add("a_separation", _pt)
 
 	_last_frame_pos = global_position
@@ -843,6 +934,7 @@ func _move_towards_point(target_pos: Vector2, speed: float, delta: float = 0.016
 func _process_live_fight(delta: float) -> void:
 	velocity = Vector2.ZERO
 	_stop_crafting_bar()
+	_enforce_npc_personal_space(delta)
 	var prev_beat: int = int(_live_fight_clock / 1.3)
 	_live_fight_clock += delta
 	if sprite:
@@ -931,9 +1023,13 @@ func _get_social_target_pos() -> Vector2:
 		if vm and vm.has_method("clamp_point_to_building_interior"):
 			cand_p = vm.call("clamp_point_to_building_interior", ref_p, cand_p)
 		return cand_p
+	var h_ang_home: float = float(absi(npc_name.hash()) % 360) * (TAU / 360.0)
 	if family_id != "none":
-		return home_table_pos
-	return tavern_social_pos
+		var cand_ht: Vector2 = home_table_pos + Vector2.RIGHT.rotated(h_ang_home) * 9.0
+		if vm_s and vm_s.has_method("clamp_point_to_building_interior"):
+			cand_ht = vm_s.call("clamp_point_to_building_interior", home_table_pos, cand_ht)
+		return cand_ht
+	return tavern_social_pos + Vector2.RIGHT.rotated(h_ang_home) * 9.0
 
 func get_activity_description() -> String:
 	if is_downed: return "🩸 Agonizando (%ds)" % maxi(1, int(ceil(bleedout_timer)))

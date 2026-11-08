@@ -720,6 +720,72 @@ func clamp_point_outside_buildings(ref_pos: Vector2, candidate_pos: Vector2) -> 
 			return ref_pos
 	return candidate_pos
 
+## Garantiza que el empuje de separación entre vecinos nunca meta a nadie dentro de un muro, edificio o pozo.
+func sanitize_npc_separation_pos(prev_pos: Vector2, candidate_pos: Vector2, elev: int = 0) -> Vector2:
+	if elev == 1:
+		var r_up: Rect2 = VillageTavern.RECT.grow(-13.0)
+		return Vector2(
+			clampf(candidate_pos.x, r_up.position.x, r_up.end.x),
+			clampf(candidate_pos.y, r_up.position.y, r_up.end.y)
+		)
+	if elev != 0:
+		return candidate_pos
+	for b in building_footprints:
+		var r: Rect2 = b["rect"]
+		if r.has_point(prev_pos):
+			var r_safe: Rect2 = r.grow(-12.5)
+			var clamped_in := Vector2(
+				clampf(candidate_pos.x, r_safe.position.x, r_safe.end.x),
+				clampf(candidate_pos.y, r_safe.position.y, r_safe.end.y)
+			)
+			for w_rect in _wall_occluder_rects:
+				if _segment_intersects_rect(prev_pos, clamped_in, w_rect.grow(3.0)):
+					return prev_pos
+			return clamped_in
+	for b in building_footprints:
+		var r_avoid: Rect2 = (b["rect"] as Rect2).grow(9.5)
+		if r_avoid.has_point(candidate_pos):
+			return prev_pos
+	for w_pos in [_plaza_well_pos, _well_pos, _tavern_well_pos]:
+		if w_pos != Vector2.ZERO and candidate_pos.distance_squared_to(w_pos) < 18.0 * 18.0:
+			var away_w: Vector2 = candidate_pos - w_pos
+			if away_w.length_squared() > 0.01:
+				return w_pos + away_w.normalized() * 18.0
+			return prev_pos
+	if _notice_board_pos != Vector2.ZERO and candidate_pos.distance_squared_to(_notice_board_pos) < 14.0 * 14.0:
+		var away_nb: Vector2 = candidate_pos - _notice_board_pos
+		if away_nb.length_squared() > 0.01:
+			return _notice_board_pos + away_nb.normalized() * 14.0
+		return prev_pos
+	return candidate_pos
+
+## Comprobación automática de solapes entre vecinos conscientes en todo el pueblo.
+func check_npc_overlaps(min_dist: float = 11.5) -> Array:
+	var issues: Array = []
+	if not is_inside_tree():
+		return issues
+	var npcs: Array = []
+	for n in get_tree().get_nodes_in_group("village_npcs"):
+		if n is VillageNPC and is_instance_valid(n):
+			var v: VillageNPC = n as VillageNPC
+			if v.is_conscious() and not v.is_sleeping and not v.is_at_poker_table:
+				npcs.append(v)
+	for i in range(npcs.size()):
+		var a: VillageNPC = npcs[i]
+		for j in range(i + 1, npcs.size()):
+			var b: VillageNPC = npcs[j]
+			if int(a.elevation_level) != int(b.elevation_level):
+				continue
+			var d: float = a.global_position.distance_to(b.global_position)
+			var in_door_a: bool = get_doorway_clearance_nudge(a.global_position, 22.0).length_squared() > 0.01
+			var in_door_b: bool = get_doorway_clearance_nudge(b.global_position, 22.0).length_squared() > 0.01
+			var req_d: float = 8.5 if (in_door_a or in_door_b) else min_dist
+			if d < req_d:
+				issues.append("%s and %s overlapping (dist=%.2f < %.1f at %s vs %s, elev=%d)" % [
+					a.npc_name, b.npc_name, d, req_d, str(a.global_position.round()), str(b.global_position.round()), int(a.elevation_level)
+				])
+	return issues
+
 ## Si un NPC está parado justo en el umbral de una puerta (`<= radius`), devuelve un vector hacia adentro/afuera para despejar el paso
 
 func get_doorway_clearance_nudge(pos: Vector2, radius: float = 18.0) -> Vector2:

@@ -1179,9 +1179,16 @@ func feed_npc_gradual(nutrition_amount: float = 38.0) -> void:
 func _current_meal_pos() -> Vector2:
 	if _restaurant_seat != Vector2.ZERO:
 		return _restaurant_seat
+	var h_ang: float = float(absi(npc_name.hash()) % 360) * (TAU / 360.0)
 	if _eat_at_tavern:
-		return _tavern_seat if _tavern_seat != Vector2.ZERO else tavern_social_pos
-	return home_table_pos
+		if _tavern_seat != Vector2.ZERO and _tavern_seat != tavern_social_pos:
+			return _tavern_seat
+		return tavern_social_pos + Vector2.RIGHT.rotated(h_ang) * 9.0
+	var cand_home: Vector2 = home_table_pos + Vector2.RIGHT.rotated(h_ang) * 9.0
+	var vm = _get_vm()
+	if vm and vm.has_method("clamp_point_to_building_interior"):
+		cand_home = vm.call("clamp_point_to_building_interior", home_table_pos, cand_home)
+	return cand_home
 
 func _choose_preferred_meal_location() -> bool:
 	var vm = _get_vm()
