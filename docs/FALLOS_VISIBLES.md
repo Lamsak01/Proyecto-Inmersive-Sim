@@ -8,8 +8,8 @@
 - [x] ✅ (2026-11-08) **🔴 [E] aparece sin mirar el objeto:** basta con estar cerca para que salga «Cerrar la puerta» o «Trampilla» aunque
   mires al suelo o a la escalera. En 1.ª persona, [E] debe referirse **a lo que está bajo la cruz del centro** (y a poca
   distancia) · taberna, 10:56 y 12:28 (`docs/capturas_usuario/2026-11-08/1_sillas_al_reves.png`, `2_E_sin_mirar_y_barandilla.png`) (`scripts/ui/InteractionSelector.gd`, `scripts/Player.gd`: añadido `_fp_crosshair_score()` en 1.ª persona que filtra candidatos por distancia corta `24–32 px`, cono horizontal estricto bajo la cruz central `horiz_cos >= 0.90` y desvío lateral `<= 7.0–9.5 px`, e inclinación vertical `fp_pitch` para que los objetos del suelo como trampillas o alcantarillas exijan mirar hacia abajo `pitch <= -0.18` y las puertas/vecinos no salgan al mirar al suelo, al techo o de espaldas; comprobado en `docs/capturas_arreglos/tarde_1_e_solo_al_mirar_3d.png`).
-- [ ] **🔴 [Alt] hace andar/rodar al personaje** y estorba al hacer capturas (Alt+ImprPant). Viene del arreglo del salto, que pasó
-  «rodar» a [Alt]/[V]: quitar [Alt]; dejar rodar solo en [V] (o en otra tecla libre) y actualizar la ayuda [H].
+- [x] ✅ (2026-11-08) **🔴 [Alt] hace andar/rodar al personaje** y estorba al hacer capturas (Alt+ImprPant). Viene del arreglo del salto, que pasó
+  «rodar» a [Alt]/[V]: quitar [Alt]; dejar rodar solo en [V] (o en otra tecla libre) y actualizar la ayuda [H] (`scripts/PlayerMovementController.gd`, `scenes/ui_root.gd`: eliminado `KEY_ALT` de `_unhandled_input` —ignorando también combinaciones con `alt_pressed`— para que rodar quede únicamente en `[V]`, y actualizado el panel de ayuda `[H]` a `Rodar: V`; comprobado en `docs/capturas_arreglos/tarde_2_sin_alt_ayuda_h_3d.png`).
 - [ ] **🔴 Saltar en el piso de arriba de la taberna deja al jugador atascado** perdiendo vida hasta morir, y **al morir lo llevan
   a la comisaría como si hubiera cometido un delito**. Dos fallos: (1) el salto no puede meter al jugador dentro de techos/vigas
   ni hacerle daño; (2) morir por accidente no es un delito: no debe acabar en la comisaría · 1.ª persona, 2.º piso.

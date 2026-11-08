@@ -17,7 +17,7 @@ var is_sprinting: bool = false
 var is_stealthing: bool = false
 var current_speed: float = 120.0
 
-## Rodar con Alt / V (COMBATE-1): distancia ~50 px en 0.35 s, invulnerable los primeros 0.25 s.
+## Rodar con V (COMBATE-1): distancia ~50 px en 0.35 s, invulnerable los primeros 0.25 s.
 const ROLL_DURATION: float = 0.35
 const ROLL_INVULN_DURATION: float = 0.25
 const ROLL_DISTANCE: float = 50.0
@@ -259,7 +259,7 @@ func _unhandled_input(event: InputEvent) -> void:
 			if start_jump():
 				get_viewport().set_input_as_handled()
 			return
-		if event.keycode == KEY_ALT or event.physical_keycode == KEY_ALT or event.keycode == KEY_V or event.physical_keycode == KEY_V:
+		if (event.keycode == KEY_V or event.physical_keycode == KEY_V) and not event.alt_pressed:
 			if start_roll():
 				get_viewport().set_input_as_handled()
 			return

@@ -686,7 +686,7 @@ func _setup_controls_panel_ui() -> void:
 		["Caminar", "WASD"],
 		["Correr", "Mayús"],
 		["Saltar", "Espacio"],
-		["Rodar", "Alt / V"],
+		["Rodar", "V"],
 		["Sigilo", "Ctrl / C"],
 		["Atacar", "Clic izq."],
 		["Bloquear / parar", "Q"],
