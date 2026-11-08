@@ -87,6 +87,29 @@
 
 **Nombres:** la hierba es la **belladama gris** (elegido por el usuario, 2026-11-08: recuerda a la belladona y el «dama» apunta a los ricos). La poción es el **sueño de cera** (elegido por el usuario, 2026-11-08: deja el cuerpo quieto y pálido como de cera).
 
+## 5b. Acusación y final de la demo (decidido por el usuario, 2026-11-08)
+
+**Acusación por niveles:** acusar al familiar = final malo (condenan a quien quería salvarla); acusar al grupo de
+secuestradores = final bueno; acusar al secuestrador joven en concreto = final perfecto.
+
+**Final común de la demo (pase lo que pase en la acusación):**
+1. A **cualquiera que encarceles** lo encuentran **«muerto» en prisión** pasados unos días. El médico firma el acta de
+   defunción **sin pasarlo por la morgue** y lo **entierran el mismo día**.
+2. Si el jugador va a la tumba y **decide excavarla**, la encuentra **vacía**, con una **nota que dice su verdadero nombre**.
+3. Mientras la lee, **alguien le habla por detrás**; antes de que pueda verle la cara, **le golpea en la cabeza** y pierde el
+   conocimiento. **Fin de la demo.**
+
+**Trasfondo del protagonista (usuario, 2026-11-08):** el jugador es un **impostor**: tomó la identidad del verdadero
+investigador que iba a llegar al pueblo. No lo mató: lo encontró **«suicidado»** en algún lugar, aunque con señales de
+haber luchado. La **secta** mandó matar al verdadero detective y lo disfrazó de suicidio; por eso **saben desde el
+principio** que el jugador no es quien dice. Callaron porque creyeron que sería un incompetente en el cargo (les
+convenía), pero resultó tener talento para resolver crímenes y se volvió una molestia.
+
+**Huecos de esta parte (por decidir con el usuario):** cuántos días tarda el preso en «morir»; qué médico firma el acta
+(¿el Dr. Valen, cómplice, u otro?); el verdadero nombre del protagonista y el del detective suplantado; dónde encontró
+el cuerpo del detective y si la partida empieza mostrando esa escena; cómo se excava una tumba (herramienta, de noche,
+testigos según las 7 reglas).
+
 ## 6. Herramientas del detective (decidido por el usuario, 2026-11-07)
 Eje central del bucle jugable; tiene que quedar «perfecto». Boceto aprobado por el usuario («me encanta»):
 `docs/bocetos/examen_cuerpo.html` (ábrelo en el navegador; también publicado en claude.ai/artifact/NMDw1NPEkcWCQrkGAttkFk).
