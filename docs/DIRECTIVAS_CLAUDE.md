@@ -40,6 +40,26 @@
 Español, corto, sin código ni nombres de archivo, sin jerga; formato qué pasa / qué notas / qué pasa si no / recomendación
 y coste; máximo 10–12 líneas; una sola pregunta al final.
 
+## Ahorro de cuota (orden del usuario, 2026-11-08)
+- En 2 días se gastó el 97 % de la cuota de Claude y el 50 % de la de Antigravity (recarga hacia el 2026-11-13).
+- **Tú no cargas con lo pesado:** nada de búsquedas grandes por el código, vigilancia nocturna activa ni revisiones
+  extensas. Eso es de Antigravity.
+- **Revisión normal:** `git log`, el resumen del informe y **1–2 capturas**. Veredicto al usuario en pocas líneas.
+- Si ves un fallo, no lo arreglas tú: lo apuntas en `docs/FALLOS_VISIBLES.md` y en el encargo.
+
+## Decisiones ya tomadas sobre el método
+- **Solo 3D** (2026-11-07): el 2D no se arregla, prueba ni captura (tampoco se borra). Revisa solo el 3D.
+- **Ritmo de Antigravity:** solo lo que pide cada punto, 1 captura 3D por arreglo, papeleo una vez al final del día.
+- **Dudas de diseño con el usuario fuera:** no decidir por él; aparcar, apuntar en `docs/PREGUNTAS_PENDIENTES.md` y
+  seguir con otra cosa. Lo técnico se decide sin preguntar.
+- **Noches:** antes de que el usuario duerma, deja un «MODO NOCHE» al principio de `docs/ENCARGO_SIGUIENTE.md` (sin
+  paradas; dudas a preguntas pendientes; lo que falle dos veces se deshace; commit tras cada paso; al acabar,
+  `docs/NOCHE_TERMINADA.txt`). Recuérdale quitar la suspensión del ordenador. No prometas que saldrá bien.
+  El vigilante `tools/vigilante_noche.sh` relanza a Antigravity si se para (se para solo al ver `NOCHE_TERMINADA.txt`,
+  a las 9:00 o con `touch ~/PARAR_VIGILANTE`; registro en `~/vigilante_noche.log`). Borra `NOCHE_TERMINADA.txt` antes
+  de una noche nueva.
+- **Cómo lanzar a Antigravity sin permisos:** ver `docs/COMO_LANZAR_ANTIGRAVITY.md`.
+
 ## Al cambiar de ordenador
 1. `git pull` antes de nada. 2. Lee esto, `docs/FALLOS_VISIBLES.md`, el encargo actual y la cola.
 3. Si Antigravity tiene trabajo a medias en el otro equipo, que lo suba antes de seguir.
