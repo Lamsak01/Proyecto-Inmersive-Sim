@@ -68,8 +68,10 @@ func _process(delta: float) -> void:
 func _unhandled_input(event: InputEvent) -> void:
 	if candidates.size() < 2:
 		return
+	if player != null and is_instance_valid(player) and player.has_method("is_any_ui_modal_open") and bool(player.call("is_any_ui_modal_open")):
+		return
 	var step: int = 0
-	if event is InputEventMouseButton and event.pressed and event.shift_pressed:
+	if event is InputEventMouseButton and event.pressed:
 		if event.button_index == MOUSE_BUTTON_WHEEL_DOWN:
 			step = 1
 		elif event.button_index == MOUSE_BUTTON_WHEEL_UP:
@@ -258,25 +260,154 @@ func _label_for(a: Node, tgt: Node) -> String:
 func _update_label() -> void:
 	if _label == null:
 		return
-	if WorldStage3DScript.first_person_active:
-		_label.visible = false
-		return
 	var c: Dictionary = selected()
 	if c.is_empty():
 		_label.visible = false
 		return
 	var txt: String = "[E] " + str(c["label"])
 	if candidates.size() > 1:
-		txt += "   (%d/%d · Mayús+rueda o G)" % [candidates.find(c) + 1, candidates.size()]
+		txt += "   (%d/%d · rueda o G)" % [candidates.find(c) + 1, candidates.size()]
 	_label.text = txt
-	_label.visible = true
-	# Debajo de los pies: así no pisa la ficha del vecino, que va encima de la cabeza, ni la barra de trabajo.
-	var base_pos: Vector2 = (c["pos"] as Vector2) + Vector2(-110.0, 10.0)
-	for n in player.get_tree().get_nodes_in_group("village_npcs"):
-		if n is Node2D and is_instance_valid(n):
-			var cbar := (n as Node).get_node_or_null("CraftProgressBar") as Node2D
-			if cbar != null and cbar.is_visible_in_tree():
-				var cpos: Vector2 = cbar.global_position
-				if absf((base_pos.x + 110.0) - cpos.x) < 95.0 and absf(base_pos.y - (cpos.y - 8.0)) < 16.0:
-					base_pos.y = cpos.y + 8.0
-	_label.position = base_pos
+	# Las acciones [E] nunca flotan sobre el mundo: se muestran únicamente en la tarjeta de papel inferior del HUD.
+	_label.visible = false
+
+
+func get_prompt_card_data() -> Dictionary:
+	if player == null or not is_instance_valid(player):
+		return {}
+	if player.has_method("is_any_ui_modal_open") and bool(player.call("is_any_ui_modal_open")):
+		return {}
+	var c: Dictionary = selected()
+	if c.is_empty() or not is_instance_valid(c.get("target")):
+		return {}
+	var tgt: Node = c["target"]
+	var area: Area2D = c.get("area") as Area2D
+	var sel_idx: int = maxi(0, candidates.find(c))
+	var target_name: String = "Objetivo"
+	var target_state: String = ""
+	var actions: Array[Dictionary] = [
+		{"key": "E", "text": str(c.get("label", "Usar")), "selected": true}
+	]
+
+	var vm = player.get_tree().get_first_node_in_group("village_manager")
+	if tgt is VillageNPC:
+		var n: VillageNPC = tgt as VillageNPC
+		target_name = n.npc_name
+		if n.has_method("get_short_world_state"):
+			target_state = str(n.call("get_short_world_state"))
+		else:
+			target_state = "Muerto" if n.is_dead else n.npc_role
+		if n.is_dead:
+			if not n.corpse_pocket_looted and (n.personal_gold > 0 or n.carries_royal_safe_conduct or not n.pocket_items.is_empty()):
+				var extra_loot: String = ", salvoconducto" if n.carries_royal_safe_conduct else (", objetos" if not n.pocket_items.is_empty() else "")
+				actions.append({"key": "·", "text": "Registrar bolsillo (%d oro%s)" % [maxi(0, n.personal_gold), extra_loot], "selected": false})
+			if n.corpse_in_morgue:
+				actions.append({"key": "·", "text": "Camilla forense · autopsia", "selected": false})
+			elif n.corpse_reported:
+				actions.append({"key": "·", "text": "Denunciado por %s" % (n.corpse_discovered_by if n.corpse_discovered_by != "" else "un vecino"), "selected": false})
+			else:
+				actions.append({"key": "·", "text": "Denunciar hallazgo al alguacil", "selected": false})
+		elif n.is_downed:
+			actions.append({"key": "·", "text": "Agonizando (%ds) · llevar al hospital" % maxi(1, int(ceil(n.bleedout_timer))), "selected": false})
+		elif (n.sedated_timer > 0.0 or n.is_stunned_flag) and not n.corpse_pocket_looted and n.personal_gold > 0:
+			actions.append({"key": "·", "text": "Registrar bolsillo (%d oro)" % maxi(0, n.personal_gold), "selected": false})
+	elif area != null and area.has_meta("village_station"):
+		var tag: String = str(area.get_meta("village_station"))
+		var ap: Vector2 = area.global_position
+		match tag:
+			"building_door":
+				var d: Dictionary = vm._find_nearest_door(ap, 18.0) if vm != null else {}
+				target_name = str(d.get("building_title", d.get("title", "Puerta")))
+				if target_name == "":
+					target_name = "Puerta"
+				var opened: bool = bool(d.get("is_open", false))
+				var locked: bool = bool(d.get("is_locked", false))
+				target_state = "Abierta" if opened else ("Con llave" if locked else "Cerrada")
+				if locked and not opened:
+					actions[0]["text"] = "Probar picaporte"
+					actions.append({"key": "F", "text": "Forzar cerradura", "selected": false})
+			"building_window":
+				var w: Dictionary = vm._find_nearest_window(ap, 16.0) if vm != null else {}
+				target_name = "Ventana"
+				var shut: bool = bool(w.get("is_shuttered", false))
+				target_state = "Postigo cerrado" if shut else "Abierta"
+				if shut:
+					actions[0]["text"] = "Inspeccionar postigo"
+					actions.append({"key": "F", "text": "Forzar postigo", "selected": false})
+			"house_chest":
+				target_name = "Cofre privado"
+				target_state = "Cerrado"
+			"shop_business_stall":
+				var s: Dictionary = vm._find_nearest_business_stall(ap, 18.0) if vm != null else {}
+				target_name = str(s.get("title", "Mostrador"))
+				target_state = "Saboteado" if int(s.get("sabotaged_days", 0)) > 0 else "Negocio"
+				actions[0]["text"] = "Gestionar %s" % target_name
+				actions.append({"key": "F", "text": "Sabotear taller", "selected": false})
+			"well":
+				target_name = "Pozo"
+				target_state = "Agua limpia"
+			"tavern_games":
+				target_name = "Mesa de póker"
+				target_state = "Posada"
+			"tavern_pool":
+				target_name = "Mesa de billar"
+				target_state = "Posada"
+			"tavern_bed":
+				target_name = "Cama de posada"
+				target_state = "8 oro"
+			"hospital_bed":
+				target_name = "Cama de urgencias"
+				target_state = "10 oro"
+			"morgue_table":
+				target_name = "Morgue forense"
+				target_state = "Autopsias"
+			"police_jail":
+				target_name = "Comisaría"
+				target_state = ("Multa %d oro" % int(vm.get("bounty_gold"))) if (vm != null and int(vm.get("bounty_gold")) > 0) else "Celda"
+			"church_altar":
+				target_name = "Altar del Alba"
+				target_state = "Capilla"
+			"cemetery_gate":
+				target_name = "Cementerio"
+				target_state = "Registro"
+			"notice_board":
+				target_name = "Tablón de encargos"
+				target_state = "Plaza"
+			"compost":
+				target_name = "Compostador"
+				target_state = "Huerto"
+			_:
+				target_name = str(STATION_LABELS.get(tag, "Puesto"))
+				target_state = "Aldea"
+	elif "animal_name" in tgt:
+		target_name = str(tgt.get("animal_name"))
+		target_state = "Caza"
+	elif "pet_name" in tgt:
+		target_name = str(tgt.get("pet_name"))
+		target_state = "Mascota"
+	elif "node_title" in tgt:
+		target_name = str(tgt.get("node_title"))
+		target_state = "Recurso"
+	else:
+		var raw_l: String = str(c.get("label", "Objeto"))
+		target_name = raw_l.split(":")[0] if raw_l.find(":") != -1 else raw_l
+		target_state = "Interacción"
+
+	if candidates.size() > 1:
+		var max_extra: int = maxi(0, 3 - actions.size())
+		for offset in range(1, candidates.size()):
+			if max_extra <= 0:
+				break
+			var next_c: Dictionary = candidates[(sel_idx + offset) % candidates.size()]
+			var next_txt: String = str(next_c.get("label", ""))
+			if next_txt != "" and next_txt != str(c.get("label", "")):
+				actions.append({"key": "·", "text": next_txt, "selected": false})
+				max_extra -= 1
+
+	return {
+		"target_name": target_name,
+		"target_state": target_state,
+		"cycle_text": ("%d/%d · Mayús+rueda o G" % [sel_idx + 1, candidates.size()]) if candidates.size() > 1 else "",
+		"actions": actions,
+		"footer": "Rueda o G: cambiar acción o vecino cercano" if (candidates.size() > 1 or actions.size() > 1) else ""
+	}

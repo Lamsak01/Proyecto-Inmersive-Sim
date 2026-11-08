@@ -7229,17 +7229,17 @@ func _initialize() -> void:
 	var tm_ui_root = root.find_child("UIRoot", true, false)
 	assert(tm_ui_root != null and tm_ui_root.get("test_mode_badge") != null and tm_ui_root.test_mode_badge.visible == false, "TM1.0b: Test mode badge is hidden when disabled")
 	var tm_gold_before: int = p70_inv.gold
-	var tm_hc: HealthComponent = p70_pl.get_node_or_null("HealthComponent")
-	var tm_sc: StaminaComponent = p70_pl.get_node_or_null("StaminaComponent")
-	var tm_surv: SurvivalComponent = p70_pl.get_node_or_null("SurvivalComponent")
+	var tm_hc = p70_pl.get_node_or_null("HealthComponent")
+	var tm_sc = p70_pl.get_node_or_null("StaminaComponent")
+	var tm_surv = p70_pl.get_node_or_null("SurvivalComponent")
 	p70_pl.set_test_mode(true)
 	assert(p70_pl.test_mode_active == true, "TM1.1a: set_test_mode(true) activates test mode")
 	assert(tm_ui_root.test_mode_badge.visible == true, "TM1.1b: Test mode badge is visible when active")
 	assert(p70_inv.gold >= 9999, "TM1.1c: Activating test mode sets infinite gold (>= 9999)")
 	# Receive a heavy hit, bleed, food poisoning, stamina drain, and survival tick while in test mode
-	var tm_dmg := DamageData.new()
+	var tm_dmg = dmg_script.new()
 	tm_dmg.amount = 65.0
-	tm_dmg.type = CombatConstants.DamageType.CUT
+	tm_dmg.type = 0
 	tm_dmg.bleed_buildup = 80.0
 	tm_dmg.stun_buildup = 90.0
 	p70_pl.take_damage(tm_dmg)
@@ -7273,6 +7273,46 @@ func _initialize() -> void:
 	tm_hc.heal(100.0, true)
 	tm_hc.stop_bleeding()
 	print("Block TM1 (Player Test Mode [F8]) OK")
+
+	# ==========================================================================
+	# Bloque UI2: Interfaz nueva en partida (papel y tinta, ENCARGO_SIGUIENTE #2)
+	# ==========================================================================
+	assert(tm_ui_root.get("prompt_card") != null and tm_ui_root.get("hands_box") != null and tm_ui_root.get("corner_right_box") != null and tm_ui_root.get("toast_box") != null, "UI2.1a: New paper HUD components (prompt_card, hands_box, corner_right_box, toast_box) exist")
+	assert(tm_ui_root.get("controls_panel") != null, "UI2.1b: Paper controls modal [H] exists")
+	tm_ui_root.push_toast("Aviso de prueba normal", false)
+	tm_ui_root.push_toast("Aviso grave de prueba", true)
+	assert(tm_ui_root.toast_box.get_child_count() >= 2 and tm_ui_root.toast_box.get_child_count() <= 3, "UI2.2: Brief paper toasts appear in toast_box (max 3)")
+	var ui2_vmap = tm_ui_root.get("valley_map")
+	assert(ui2_vmap != null and ui2_vmap.get("minimap_canvas") != null and is_equal_approx(ui2_vmap.minimap_canvas.custom_minimum_size.x, 118.0), "UI2.3: Round paper minimap (118x118) is configured in ValleyMapUI")
+	# Verificar limpieza de letreros flotantes con múltiples cadáveres cerca del jugador
+	var ui2_corpses: Array = []
+	for n_cand in get_nodes_in_group("village_npcs"):
+		if is_instance_valid(n_cand) and n_cand.get("npc_name") != null and ui2_corpses.size() < 3:
+			ui2_corpses.append(n_cand)
+	if ui2_corpses.size() >= 3:
+		var ui2_saved_pos: Array[Vector2] = []
+		var ui2_saved_dead: Array[bool] = []
+		var ui2_saved_ground: Array[bool] = []
+		for idx_c in range(ui2_corpses.size()):
+			var cn = ui2_corpses[idx_c]
+			ui2_saved_pos.append(cn.global_position)
+			ui2_saved_dead.append(cn.is_dead)
+			ui2_saved_ground.append(cn.corpse_on_ground)
+			cn.global_position = p70_pl.global_position + Vector2(float(idx_c) * 8.0 - 8.0, 4.0)
+			cn.is_dead = true
+			cn.corpse_on_ground = true
+			cn._process_corpse_state(0.016)
+		var full_name_tags: int = 0
+		for cn in ui2_corpses:
+			if cn.status_label and cn.status_label.visible and cn.status_label.text.find("·") != -1:
+				full_name_tags += 1
+		assert(full_name_tags <= 1, "UI2.4: At most 1 nearby corpse shows a full 'Name · State' world tag while others show only an icon")
+		for idx_c in range(ui2_corpses.size()):
+			var cn = ui2_corpses[idx_c]
+			cn.global_position = ui2_saved_pos[idx_c]
+			cn.is_dead = ui2_saved_dead[idx_c]
+			cn.corpse_on_ground = ui2_saved_ground[idx_c]
+	print("Block UI2 (Paper-and-Ink In-Game UI & World Label Declutter) OK")
 
 	print("ALL RIMWORLD MEDICAL, FOOTPRINTS, 3-PHASE CORPSE REPORT, MULTI-CORPSE FIX, RPG INTERROGATION, PUBLIC TRIAL, DYNAMIC RELATIONSHIPS, MISSING FAMILY SEARCH, SOCIAL GLOSSARY & UNCONSCIOUS REACTION TESTS PASSED!")
 	quit(0)

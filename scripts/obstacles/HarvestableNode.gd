@@ -115,14 +115,14 @@ func _update_prompt_text() -> void:
 		return
 	match harvest_type:
 		HarvestType.FORAGE:
-			prompt_label.text = "[E] Recoger %s" % node_title
+			prompt_label.text = "%s · Planta" % node_title
 		HarvestType.LOGGING:
-			prompt_label.text = "%s ([3] Hacha)" % node_title
+			prompt_label.text = "%s · Talar" % node_title
 		HarvestType.MINING:
-			prompt_label.text = "%s ([4] Pico)" % node_title
+			prompt_label.text = "%s · Picar" % node_title
 
 func _on_body_entered(body: Node) -> void:
-	if not is_depleted and body.is_in_group("player") and prompt_label:
+	if not is_depleted and body.is_in_group("player") and prompt_label and harvest_type != HarvestType.FORAGE:
 		prompt_label.visible = true
 
 func _on_body_exited(body: Node) -> void:

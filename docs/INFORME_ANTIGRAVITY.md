@@ -1,6 +1,82 @@
 # Informe de Trabajo — Antigravity (2026-11-07)
 
-## Encargo: Corrección de los 11 bloques de fallos visibles detectados en partida (`docs/FALLOS_VISIBLES.md`, 2026-11-07)
+## Encargo: 2 pendientes de `FALLOS_VISIBLES.md` (farola frente a puerta de taberna y niebla a franjas) + Punto 1 (`Modo pruebas [F8]`) y Punto 2 (`Interfaz nueva en partida`) de `docs/ENCARGO_SIGUIENTE.md`
+
+### 0. Dos pendientes de `docs/FALLOS_VISIBLES.md` (antes de la cola)
+
+#### 0.1. Farola delante de la puerta de la taberna y revisión de choques frente a puertas
+- **Causa real encontrada en el código:**
+  - En `scripts/systems/VillageWorldBuilder.gd:519`, una farola (`_spawn_streetlight`) estaba situada en `Vector2(466, -118)`, justo delante de la puerta de la Taberna (`Rect2(436, -138, 36, 12)`, centro X = `454`), bloqueando la línea de salida hacia `OUTSIDE_APPROACH = Vector2(454, -116)`.
+  - Además, en `scripts/systems/VillageManager.gd` (`PASADA 1` de `_build_nav_waypoints`), el radio para redirigir destinos desde el interior de un edificio a su puerta era `22.0 px`, de modo que cuando un vecino salía a `OUTSIDE_APPROACH` (a `16 px` de la puerta) la ruta lo devolvía de nuevo hacia `DOOR_POS`, provocando oscilación en el umbral.
+- **Solución aplicada (`VillageWorldBuilder.gd`, `VillageTavern.gd`, `VillageManager.gd`, `VillageNPC.gd`):**
+  - Movida la farola de `Vector2(466, -118)` a `Vector2(396, -118)` (a la izquierda de la fachada sur, lejos de la puerta `x = 454`).
+  - Ajustados `DOOR_POS = Vector2(454.0, -132.0)` y `OUTSIDE_APPROACH = Vector2(454.0, -116.0)` en `VillageTavern.gd`.
+  - Reducido a `12.0 px` el umbral de `PASADA 1` en `VillageManager.gd` y ampliado a `10.0 px` el radio de llegada a waypoints en `VillageNPC.gd:2945`.
+  - Añadidos `_is_prop_collider_blocking_passage(pos, size)` y `_prune_door_blocking_prop_colliders()` en `VillageManager.gd` para garantizar que ningún colisionador de mueble, farola o decoración invada una caja de `22 × 24 px` alrededor de ninguna puerta exterior ni paso interior del juego.
+- **Comprobado visualmente en capturas (`docs/capturas_arreglos/fix0_tavern_door_night_2d.png`, `fix0_tavern_door_night_3d.png`):**
+  - El acceso frente a la puerta doble de la Taberna (`x = 454, y = -132..-116`) está completamente libre de obstáculos tanto en 2D como en 3D; la farola luce encendida a la izquierda de la fachada (`x = 396`) sin estorbar el paso.
+
+#### 0.2. Niebla que se veía a franjas horizontales (de día y de noche)
+- **Causa real encontrada en el código:**
+  - En `scripts/World.gd:201-205` (`_draw_weather_overlay`), cuando `WorldClock.current_weather == Weather.FOG` (`2`), se dibujaban literalmente 6 rectángulos horizontales (`for band in range(6): draw_rect(...)`) que cruzaban toda la pantalla como franjas.
+- **Solución aplicada (`scripts/World.gd`, `shaders/retro_post_fx.gdshader`, `scripts/visuals/RetroPostFX.gd`):**
+  - Eliminado el bucle de las 6 bandas rectangulares en `scripts/World.gd`.
+  - Conectado el estado de niebla meteorológica (`weather_fog`) al shader de pantalla completa `shaders/retro_post_fx.gdshader` (`RetroPostFX.gd`), que aplica una caída radial continua alrededor del jugador combinada con ruido FBM rotado de 3 octavas sin direcciones privilegiadas ni bandas horizontales, respetando además los halos cálidos de farolas y faroles de noche y desactivándose bajo techo.
+- **Comprobado visualmente en capturas (`fix0_tavern_door_night_2d.png`, `fix0_tavern_door_night_3d.png` a las 00:37 y `fix0_fog_day_2d.png`, `fix0_fog_day_3d.png` a las 08:14):**
+  - Tanto de noche como de día, en 2D y en 3D, la bruma es suave, orgánica y radial, sin una sola franja horizontal.
+
+---
+
+### 1. Punto 1 de `docs/ENCARGO_SIGUIENTE.md`: Modo pruebas del jugador (`[F8]`)
+- **Tecla asignada:** **`F8`** (activa y desactiva al instante en partida).
+- **Comportamiento implementado (`scripts/Player.gd`, `scripts/systems/SimpleInventory.gd`, `scripts/systems/combat/HealthComponent.gd`, `scripts/systems/combat/StaminaComponent.gd`, `scripts/systems/combat/SurvivalComponent.gd`, `scenes/ui_root.gd`):**
+  - Empieza **desactivado** (`test_mode_active = false`) y **no se guarda** en la partida (`to_save_dict()` omite `test_mode_active` y guarda el oro real previo `_pre_test_mode_gold`; `from_save_dict()` lo desactiva si estaba encendido).
+  - Mientras está activo:
+    - **Vida infinita:** `HealthComponent.take_damage()` e infecciones/venenos/desangrado ignoran el daño al jugador y mantienen su salud al máximo.
+    - **Energía infinita:** `StaminaComponent.use_stamina()` devuelve `true` sin restar energía.
+    - **Hambre, sueño e higiene fijos al 100 %:** `SurvivalComponent._process()` los mantiene al máximo sin bajar.
+    - **Oro infinito (`9999`):** `SimpleInventory.set_test_mode_infinite_gold(true)` fija el oro en `9999` y bloquea cualquier descuento al comprar o gastar; al desactivar `F8`, restaura el oro exacto que tenía el jugador antes de activar el modo pruebas.
+      - *Nota de economía:* tal como advirtió el supervisor, el oro infinito en modo pruebas rompe deliberadamente la suma cero mientras está activo; es exclusivamente para pruebas del jugador.
+    - **Reacciones intactas de los vecinos:** testigos, denuncias, alarmas, persecuciones e investigaciones funcionan exactamente igual.
+    - **Aviso fijo en pantalla:** placa roja **`MODO PRUEBAS`** visible justo debajo del reloj central mientras esté activo.
+- **Comprobado visualmente y en pruebas:**
+  - Capturas revisadas en 2D y 3D con el modo activo: `docs/capturas_arreglos/test_mode_2d.png` y `docs/capturas_arreglos/test_mode_3d.png` (se ve la placa roja `MODO PRUEBAS` bajo el reloj y `9999 oro` abajo a la derecha).
+  - Prueba automática `Block TM1` en `tools/tests/verify_all.gd`: verifica arranque desactivado, activación con `set_test_mode(true)`, inmunidad al daño/sangrado/intoxicación, gasto de energía sin bajada, hambre/sueño fijos, gasto de oro sin bajada, no persistencia en `to_save_dict()`, y restauración del comportamiento normal tras `set_test_mode(false)`.
+
+---
+
+### 2. Punto 2 de `docs/ENCARGO_SIGUIENTE.md`: Interfaz nueva en partida (papel y tinta) y limpieza de letreros flotantes
+- **Implementación fiel a `docs/bocetos/interfaz_juego.html` (`scenes/ui_root.gd`, `scripts/ui/InteractionSelector.gd`, `scripts/ui/ValleyMapUI.gd`, `scripts/enemies/VillageNPC.gd`, `scripts/systems/VillageManager.gd`, `scripts/obstacles/HarvestableNode.gd`, `scenes/ui/FloatingText.gd`):**
+  1. **Arriba a la izquierda (barras de papel y tinta):**
+     - Barras de **Vida** (`❤`, `#b5473f`) y **Energía** (`⚡`, `#6f9a5a`) siempre visibles con etiqueta de papel (`#f1e8d4`) y borde de tinta (`#3a3228`).
+     - Barras de **Hambre** (`🍞`, `#c98a3c`) y **Sueño** (`☾`, `#5f7fa6`) ocultas cuando están altas y visibles automáticamente cuando bajan del `75 %` (e higiene `< 65 %`, sangrado/aturdimiento `> 0.5`).
+  2. **Arriba al centro (placa de reloj + `MODO PRUEBAS`):**
+     - Placa pequeña de papel centrada (`☀ Lunes · 14:22 despejado`), mostrando la etiqueta de velocidad (`×2`, `×4`, `×8`) únicamente cuando no es `×1`, y la placa roja `MODO PRUEBAS` debajo cuando `F8` está activo.
+  3. **Arriba a la derecha (minimapa redondo de papel):**
+     - Minimapa circular de `118 × 118 px` en `ValleyMapUI.gd` con fondo de pergamino, borde doble de tinta, caminos, edificios, río/lago, vecinos, punto cardinal `N` y etiqueta inferior `Valle · [M] mapa`.
+  4. **Izquierda bajo las barras (avisos breves / toasts):**
+     - Contenedor `ToastBox` con hasta **3 avisos breves** en tiras de papel que se desvanecen solos y llevan borde izquierdo rojo (`#8f2d26`) cuando son graves (p. ej. hallazgo de cadáver o delito).
+  5. **Abajo al centro (tarjeta de papel de `[E]`):**
+     - `InteractionPromptCard` con el nombre del objetivo (`Marta`), estado corto (`Muerto`, `Trabajando`, `Con llave`), contador `1/N · Mayús+rueda o G`, filas de acciones (`[E] Examinar el cuerpo de Marta`, `· Registrar bolsillo (41 oro, objetos)`, `· Denunciar hallazgo al alguacil`) y pie explicativo (`Rueda o G: cambiar acción o vecino cercano`).
+  6. **Abajo a la izquierda y abajo a la derecha:**
+     - Abajo a la izquierda: **3 casillas de mano** (`1`, `2`, `3`) en tarjetas de papel con borde ocre en la herramienta activa.
+     - Abajo a la derecha: placa de **oro** (`45 oro`) + botón **`[H] teclas`** que abre/cierra el cuadro modal de papel con todas las teclas (`[U]` abre el panel médico).
+  7. **Limpieza total de letreros flotantes en el mundo (`FALLOS_VISIBLES.md` línea 92):**
+     - Con varios vecinos y cadáveres juntos, **únicamente el objetivo enfocado** muestra una etiqueta corta (`Marta · Muerto` o `Bram · Trabajando`); el resto de cadáveres o caídos cercanos muestran solo un icono pequeño (`☠`, `🩸`, `💤`, `💫`).
+     - Las acciones de `[E]` ya nunca flotan sobre los cuerpos ni sobre los puestos del mundo: aparecen solo en la tarjeta de papel inferior.
+     - Las barras de progreso de trabajo/pulso y los bocadillos cortos (`FloatingText.gd`) usan escala compacta con pastilla de tinta y se ocultan o desplazan si hay otro vecino enfocado o hablando al lado, evitando que se monten jamás.
+- **Comprobado visualmente en capturas (todas inspeccionadas con `read_file` en `docs/capturas_arreglos/`):**
+  - **Antes (plaza con vecinos y cadáveres):** `ui_before_plaza_2d.png` y `ui_before_plaza_3d.png`.
+  - **Después (misma escena en 2D y 3D):** `ui_after_plaza_2d.png` y `ui_after_plaza_3d.png` (se ven las 4 barras de vida/energía/hambre/sueño, los 3 avisos breves a la izquierda, el reloj centrado, el minimapa redondo a la derecha, las 3 manos abajo a la izquierda, la tarjeta de `[E]` abajo al centro, `45 oro` + `[H] teclas` abajo a la derecha, y en la plaza solo `Marta · Muerto` con `☠` en los demás cuerpos).
+  - **Comprobación en 3 resoluciones sin cortes ni solapes:** `ui_res_1280x720.png` (`1280×720`), `ui_res_1920x1080.png` (`1920×1080`) y `ui_res_2560x1440.png` (`2560×1440`).
+  - **Ayuda de teclas `[H]`:** `ui_controls_modal_2d.png`.
+- **Comprobado en pruebas automáticas:**
+  - Arranque limpio (`--quit-after 3`): `EXIT_CODE=0`, cero errores de script.
+  - Suite completa `verify_all.gd` (`timeout 900`): `EXIT_CODE=0` (`Block TM1 OK`, `Block UI2 OK`, `ALL ... TESTS PASSED!`).
+
+---
+
+## Encargo anterior: Corrección de los 11 bloques de fallos visibles detectados en partida (`docs/FALLOS_VISIBLES.md`, 2026-11-07)
 
 Se han corregido los **11 fallos visibles** en el orden indicado, sin tocar los edificios de `docs/BOCETOS_EDIFICIOS.md` ni el relieve del terreno. Para cada arreglo se generaron y revisaron visualmente (`read_file`) capturas reales en **2D** y en **3D** (de día y, cuando aplica, también de noche).
 

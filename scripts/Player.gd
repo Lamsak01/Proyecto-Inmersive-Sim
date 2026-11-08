@@ -111,9 +111,6 @@ func set_test_mode(active: bool) -> void:
 		if stun_comp and stun_comp.has_method("clear_stun"):
 			stun_comp.clear_stun()
 		is_stunned_flag = false
-		_spawn_floating_text("MODO PRUEBAS ACTIVADO [F8]", Color(0.95, 0.92, 0.84), -48.0)
-	else:
-		_spawn_floating_text("Modo pruebas desactivado [F8]", Color(0.85, 0.80, 0.72), -48.0)
 	test_mode_changed.emit(test_mode_active)
 
 func toggle_test_mode() -> bool:

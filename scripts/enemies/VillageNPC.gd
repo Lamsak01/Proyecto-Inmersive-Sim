@@ -259,6 +259,9 @@ var _hover_label_timer: float = 0.0
 ## Vecino que enseña su ficha (el más cercano al ratón): así solo hay una a la vez.
 static var _hover_owner: Node = null
 static var _hover_owner_d: float = 0.0
+static var _focused_npc: Node = null
+static var _focused_npc_frame: int = -1
+var _active_floating_text: Node = null
 
 # Estado Policial y Sigilo (Negociación -> Persecución + Derribo No Letal / Asesinato Letal por la Espalda)
 var _police_alerted_timer: float = 0.0
@@ -619,7 +622,17 @@ func setup_npc(tex: Texture2D, p_work_pos: Vector2, p_bed_pos: Vector2, initial_
 
 	status_label = Label.new()
 	status_label.visible = false
-	_style_label(status_label, Vector2(-135, -42), Vector2(270, 28), 8, Color(1.0, 0.92, 0.68), 3, 20)
+	_style_label(status_label, Vector2(-60, -34), Vector2.ZERO, 8, Color(0.95, 0.91, 0.83), 2, 20)
+	var tag_sb := StyleBoxFlat.new()
+	tag_sb.bg_color = Color(0.094, 0.082, 0.067, 0.88)
+	tag_sb.border_color = Color(0.227, 0.196, 0.157, 1.0)
+	tag_sb.set_border_width_all(1)
+	tag_sb.set_corner_radius_all(2)
+	tag_sb.content_margin_left = 5
+	tag_sb.content_margin_right = 5
+	tag_sb.content_margin_top = 1
+	tag_sb.content_margin_bottom = 1
+	status_label.add_theme_stylebox_override("normal", tag_sb)
 	add_child(status_label)
 
 	_setup_craft_progress_bar_ui()
@@ -1408,7 +1421,100 @@ func _show_status_label(txt: String, col: Color) -> void:
 	if status_label:
 		status_label.text = txt
 		status_label.add_theme_color_override("font_color", col)
+		status_label.scale = Vector2(0.74, 0.74)
 		status_label.visible = true
+		status_label.reset_size()
+		status_label.position = Vector2(-(status_label.size.x * 0.74) * 0.5, -30.0)
+
+func _refresh_unfocused_tag() -> void:
+	if not status_label:
+		return
+	var pl := _get_player()
+	var near_pl: bool = pl != null and global_position.distance_squared_to(pl.global_position) <= 85.0 * 85.0
+	if not near_pl:
+		status_label.visible = false
+		return
+	if is_dead:
+		_show_status_label("☠", Color(0.95, 0.91, 0.83))
+	elif is_downed:
+		_show_status_label("🩸", Color(0.96, 0.55, 0.52))
+	elif sedated_timer > 0.0:
+		_show_status_label("💤", Color(0.84, 0.78, 0.96))
+	elif is_stunned_flag:
+		_show_status_label("💫", Color(0.82, 0.88, 0.96))
+	elif is_sleeping:
+		_show_status_label("💤", Color(0.82, 0.88, 0.96))
+	elif is_instance_valid(_active_floating_text):
+		_show_status_label("💬", Color(0.95, 0.91, 0.83))
+	else:
+		status_label.visible = false
+
+func _is_focused_npc() -> bool:
+	var f: int = Engine.get_process_frames()
+	if _focused_npc_frame != f:
+		_focused_npc_frame = f
+		var prev_focused: Node = _focused_npc
+		_focused_npc = null
+		var pl := _get_player()
+		if pl != null and is_instance_valid(pl):
+			var isel = pl.get("interaction_selector")
+			if isel != null and is_instance_valid(isel) and isel.has_method("selected"):
+				var sel: Dictionary = isel.call("selected")
+				if not sel.is_empty() and sel.get("target") is VillageNPC and is_instance_valid(sel.get("target")):
+					_focused_npc = sel.get("target")
+			if _focused_npc == null and is_instance_valid(_hover_owner) and (_hover_owner as Node2D).global_position.distance_to(get_global_mouse_position()) <= 24.0:
+				_focused_npc = _hover_owner
+			if _focused_npc == null:
+				var best_d2: float = 42.0 * 42.0
+				for n in get_tree().get_nodes_in_group("village_npcs"):
+					if n is VillageNPC and is_instance_valid(n) and (n as Node2D).visible and not bool(n.get("corpse_buried")):
+						var d2: float = (n as Node2D).global_position.distance_squared_to(pl.global_position)
+						if d2 < best_d2:
+							best_d2 = d2
+							_focused_npc = n
+		if prev_focused != null and prev_focused != _focused_npc and is_instance_valid(prev_focused) and prev_focused is VillageNPC:
+			(prev_focused as VillageNPC)._refresh_unfocused_tag()
+	return _focused_npc == self
+
+func get_short_world_state() -> String:
+	if is_dead:
+		return "En Morgue" if corpse_in_morgue else "Muerto"
+	if is_downed:
+		return "Agonizando"
+	if sedated_timer > 0.0 or is_stunned_flag:
+		return "Inconsciente"
+	if _showing_stealth_prompt:
+		return "Desprevenido"
+	if is_sleeping:
+		return "Durmiendo"
+	if is_at_poker_table:
+		return "Póker"
+	if is_hostile or _police_alerted_timer > 0.0 or _civilian_hostile_timer > 0.0:
+		return "Alerta"
+	if _is_actively_crafting or (_craft_bar_root != null and _craft_bar_root.visible):
+		return "Trabajando"
+	var act: String = get_activity_description().to_lower()
+	if act.find("trabaj") != -1 or act.find("forj") != -1 or act.find("talan") != -1 or act.find("pesc") != -1 or act.find("cosech") != -1 or act.find("cuid") != -1 or act.find("atend") != -1 or act.find("cocin") != -1 or act.find("horne") != -1:
+		return "Trabajando"
+	if act.find("patrull") != -1 or act.find("guardia") != -1 or act.find("investig") != -1:
+		return "Patrullando"
+	if act.find("taberna") != -1 or act.find("posada") != -1 or act.find("beb") != -1 or act.find("cen") != -1 or act.find("trattoria") != -1:
+		return "Descansando"
+	if act.find("charl") != -1 or act.find("habl") != -1:
+		return "Hablando"
+	return npc_role if npc_role != "" else "Vecino"
+
+func _update_world_tag_for_state(focused_color: Color, fallback_icon: String = "") -> void:
+	if not status_label:
+		return
+	var pl := _get_player()
+	var dist_sq: float = global_position.distance_squared_to(pl.global_position) if pl != null else INF
+	if _is_focused_npc():
+		_show_status_label("%s · %s" % [npc_name, get_short_world_state()], focused_color)
+	elif fallback_icon != "" and dist_sq <= 90.0 * 90.0:
+		_show_status_label(fallback_icon, focused_color)
+	else:
+		status_label.visible = false
 
 func set_poker_seating(active: bool, seat_world_pos: Vector2 = Vector2.ZERO) -> void:
 	_stop_crafting_bar()
@@ -1871,7 +1977,7 @@ func _process_inactive_states(delta: float) -> bool:
 			bleedout_timer -= delta
 		var pulse_r: float = 0.65 + absf(sin(bleedout_timer * 4.0)) * 0.35
 		_set_sprite_pose(82.0, Color(1.15, pulse_r * 0.45, pulse_r * 0.45, 0.95))
-		_show_status_label("🩸 %s — ¡AGONIZANDO! (%ds)\n[E: Salvar y llevar al Hospital | Atacar: Rematar]" % [npc_name, maxi(1, int(ceil(bleedout_timer)))], Color(1.0, 0.35, 0.35))
+		_update_world_tag_for_state(Color(0.96, 0.55, 0.52), "🩸")
 		if bleedout_timer <= 0.0:
 			_confirm_true_death()
 		return true
@@ -1885,15 +1991,7 @@ func _process_inactive_states(delta: float) -> bool:
 		if sprite:
 			sprite.rotation_degrees = 90.0
 		_scan_unconscious_victim_for_passersby(delta)
-		var helper_tag: String = ""
-		if is_instance_valid(_unconscious_helper_npc) and _unconscious_helper_npc._reacting_unconscious_target == self:
-			if _unconscious_helper_npc._unconscious_react_mode == "opportunist_steal":
-				helper_tag = "\n[🕵️‍♂️ %s vigila que nadie mire para robarle]" % _unconscious_helper_npc.npc_name
-			elif _unconscious_helper_npc._unconscious_react_mode == "friend_rescue":
-				helper_tag = "\n[🤝 %s corre a socorrerlo y despertarlo]" % _unconscious_helper_npc.npc_name
-			else:
-				helper_tag = "\n[🤨 %s se acerca a despertarlo]" % _unconscious_helper_npc.npc_name
-		_show_status_label("💤 %s — Inconsciente / Dormido (%ds)%s%s" % [npc_name, maxi(1, int(ceil(sedated_timer))), _get_pocket_loot_hint(), helper_tag], Color(0.78, 0.65, 1.0))
+		_update_world_tag_for_state(Color(0.84, 0.78, 0.96), "💤")
 		if sedated_timer <= 0.0:
 			wake_up_from_unconscious()
 		return true
@@ -1902,7 +2000,7 @@ func _process_inactive_states(delta: float) -> bool:
 		velocity = Vector2.ZERO
 		_stop_crafting_bar()
 		_scan_unconscious_victim_for_passersby(delta)
-		_show_status_label("💫 %s — Aturdido%s" % [npc_name, _get_pocket_loot_hint()], Color(0.75, 0.85, 1.0))
+		_update_world_tag_for_state(Color(0.82, 0.88, 0.96), "💫")
 		return true
 
 	if is_at_poker_table:
@@ -2220,16 +2318,7 @@ func _process_corpse_state(delta: float) -> void:
 	if corpse_buried:
 		return
 	if corpse_in_morgue:
-		if status_label:
-			var player_m = _get_player()
-			var near_pm: bool = player_m != null and global_position.distance_squared_to(player_m.global_position) <= 42.0 * 42.0
-			var near_mm: bool = global_position.distance_squared_to(get_global_mouse_position()) <= 26.0 * 26.0
-			if near_pm or near_mm:
-				var loot_m: String = _get_pocket_loot_hint(true)
-				var act_hint: String = loot_m if loot_m != "" else " | [E: Informe Forense]"
-				_show_status_label("⚰️ Cadáver en Morgue: %s (%s)\n[En Camilla Forense%s | H: Examinar Cuerpo / Órganos]" % [npc_name, npc_role, act_hint], Color(0.68, 0.96, 0.90))
-			else:
-				status_label.visible = false
+		_update_world_tag_for_state(Color(0.85, 0.92, 0.88), "☠")
 		return
 	if not corpse_on_ground:
 		return
@@ -2272,29 +2361,7 @@ func _process_corpse_state(delta: float) -> void:
 						break
 
 	if status_label:
-		var player = _get_player()
-		var near_p: bool = player != null and global_position.distance_squared_to(player.global_position) <= 44.0 * 44.0
-		var near_m: bool = global_position.distance_squared_to(get_global_mouse_position()) <= 28.0 * 28.0
-		if near_p or near_m or corpse_being_carried:
-			var rot_days: int = int(floor(corpse_rot_hours / 24.0))
-			var rot_rem_h: int = int(floor(corpse_rot_hours)) % 24
-			var loot_tag: String = _get_pocket_loot_hint(true)
-			var state_line: String = ("🩸 Cadáver en el suelo (%dh)%s | [E: 📢 Reportar Cadáver]" % [rot_rem_h, loot_tag]) if rot_days < 1 else ("🦠🪰 PUDRIÉNDOSE EN EL LUGAR (%d días, %dh)%s | [E: 📢 Reportar Cadáver]" % [rot_days, rot_rem_h, loot_tag])
-			if corpse_being_carried and is_instance_valid(corpse_carrier):
-				state_line = "⚰️ Trasladando cuerpo a la Morgue (Llevado por %s)%s" % [corpse_carrier.npc_name, loot_tag]
-			elif corpse_reported:
-				state_line = "🚨 Reportado por %s — En espera de traslado a la Morgue%s" % [corpse_discovered_by, loot_tag]
-			elif corpse_discovered and is_instance_valid(corpse_reporter_npc):
-				var r_phase: int = corpse_reporter_npc._corpse_report_phase
-				if r_phase == 1:
-					state_line = "🔍 %s comprueba si está muerto (10s)%s | [E: 📢 Reportar]" % [corpse_reporter_npc.npc_name, loot_tag]
-				elif r_phase == 3:
-					state_line = "🗣️ %s está explicando el hallazgo a la policía%s" % [corpse_reporter_npc.npc_name, loot_tag]
-				else:
-					state_line = "🏃 %s va en persona a avisar a la policía%s | [E: 📢 Reportar]" % [corpse_reporter_npc.npc_name, loot_tag]
-			_show_status_label("💀 Cadáver de %s (%s)\n[%s]" % [npc_name, npc_role, state_line], Color(0.72, 0.96, 0.62) if rot_days >= 1 else Color(0.92, 0.55, 0.55))
-		else:
-			status_label.visible = false
+		_update_world_tag_for_state(Color(0.95, 0.91, 0.83), "☠")
 
 ## Inicia el proceso físico en 3 fases para quien descubre un cuerpo:
 ## 1) Acercarse y comprobar durante 10s si está muerto -> 2) Caminar personalmente a buscar a la policía -> 3) Explicar durante 12.5s lo sucedido
@@ -3523,14 +3590,37 @@ func _get_artisan_recipes() -> Array[Dictionary]:
 func _update_craft_bar_visual(ratio: float, label_txt: String, bar_color: Color) -> void:
 	if not _craft_bar_root:
 		return
+	var pl := _get_player()
+	var dist_sq: float = global_position.distance_squared_to(pl.global_position) if pl != null else INF
+	if dist_sq > 130.0 * 130.0:
+		_craft_bar_root.visible = false
+		return
+	var focused: bool = _is_focused_npc()
+	if not focused and is_instance_valid(_focused_npc) and (_focused_npc as Node2D).global_position.distance_squared_to(global_position) <= 32.0 * 32.0:
+		_craft_bar_root.visible = false
+		return
+	for n in get_tree().get_nodes_in_group("village_npcs"):
+		if n is VillageNPC and n != self and is_instance_valid(n):
+			var vn := n as VillageNPC
+			if vn._craft_bar_root != null and vn._craft_bar_root.visible and vn.global_position.distance_squared_to(global_position) <= 28.0 * 28.0:
+				if not focused:
+					_craft_bar_root.visible = false
+					return
 	_craft_bar_root.visible = true
-	_craft_bar_root.position = Vector2(0.0, -50.0 if (status_label != null and status_label.visible) else -25.0)
+	_craft_bar_root.scale = Vector2(0.72, 0.72)
+	_craft_bar_root.position = Vector2(0.0, -42.0 if (status_label != null and status_label.visible) else -23.0)
 	var fill_w: float = 38.0 * clampf(ratio, 0.02, 1.0)
 	if _craft_bar_fill:
 		_craft_bar_fill.color = bar_color
 		_craft_bar_fill.polygon = PackedVector2Array([Vector2(-19.0, -2.0), Vector2(-19.0 + fill_w, -2.0), Vector2(-19.0 + fill_w, 1.0), Vector2(-19.0, 1.0)])
-	if _craft_bar_label and _craft_bar_label.text != label_txt:
-		_craft_bar_label.text = label_txt
+	if _craft_bar_label:
+		var has_bubble: bool = is_instance_valid(_active_floating_text)
+		if focused and not has_bubble:
+			_craft_bar_label.visible = true
+			if _craft_bar_label.text != label_txt:
+				_craft_bar_label.text = label_txt
+		else:
+			_craft_bar_label.visible = false
 
 func _process_artisan_workshop_crafting_and_supply_runs(delta: float) -> void:
 	if _supply_run_cooldown > 0.0:
@@ -4484,21 +4574,22 @@ func _update_hover_label(delta: float = 0.016) -> void:
 	if not status_label or is_dead or is_downed:
 		return
 	if is_stunned_flag:
-		_show_status_label("💫 %s (%s) — Inconsciente / Aturdido (No Letal)%s" % [npc_name, npc_role, _get_pocket_loot_hint()], Color(0.65, 0.82, 1.0))
+		_update_world_tag_for_state(Color(0.82, 0.88, 0.96), "💫")
 		return
 	if _showing_stealth_prompt:
-		_show_status_label("🕵️ SIGILO POR LA ESPALDA — %s\n[E / Q: 💤 Aturdir (No Letal) | Clic Izq. / V: 🗡️ Matar (Letal)]" % npc_name, Color(0.55, 0.98, 0.82))
+		_show_status_label("%s · Desprevenido" % npc_name, Color(0.95, 0.91, 0.83))
 		return
 
+	var focused_now: bool = _is_focused_npc()
 	_hover_label_timer -= delta
-	if _hover_label_timer > 0.0:
+	if _hover_label_timer > 0.0 and not focused_now:
+		if status_label and status_label.visible and status_label.text.find("·") != -1:
+			_refresh_unfocused_tag()
 		return
-	_hover_label_timer = 0.10
+	_hover_label_timer = 0.08
 
 	var player := _get_player()
-	var near_player: bool = player != null and global_position.distance_squared_to(player.global_position) <= 30.0 * 30.0
-	# Ficha al pasar el ratón (2026-11-05): solo la del vecino más cercano al puntero, y corta.
-	# La ficha completa (bolsillo, rasgos, hambre, sueño…) solo manteniendo Alt.
+	var near_player: bool = player != null and global_position.distance_squared_to(player.global_position) <= 85.0 * 85.0
 	var mouse_d: float = global_position.distance_to(get_global_mouse_position())
 	var near_mouse: bool = mouse_d <= 22.0
 	if near_mouse:
@@ -4507,26 +4598,22 @@ func _update_hover_label(delta: float = 0.016) -> void:
 			_hover_owner_d = mouse_d
 	elif _hover_owner == self:
 		_hover_owner = null
-	near_mouse = near_mouse and _hover_owner == self
 
-	if is_sleeping and not near_mouse and not near_player:
-		if status_label.text != "Zzz" or not status_label.visible:
-			_show_status_label("Zzz", Color(0.72, 0.85, 1.0))
-		return
-
-	if near_mouse and not Input.is_key_pressed(KEY_ALT):
-		var act_short: String = "🃏 En la Mesa de Póker" if is_at_poker_table else get_activity_description()
-		_show_status_label("%s — %s\n%s  (Alt: ficha)" % [npc_name, npc_role, act_short], Color(1.0, 0.92, 0.68))
-	elif near_mouse:
-		var act_txt: String = "🃏 En la Mesa de Póker" if is_at_poker_table else get_activity_description()
-		var traits_str: String = ", ".join(traits) if not traits.is_empty() else "Equilibrado"
-		var eff_badge: String = (" · ⚒️" + get_job_efficiency_label()) if not (trade_role in [TradeRole.UNEMPLOYED, TradeRole.FAMILY_MEMBER]) else ""
-		var sleep_badge: String = (" (" + get_sleep_status_label() + ")") if (need_energy < 50.0 or is_vagrant_camper) else ""
-		var seal_badge: String = " · 📜Salvoconducto Real" if carries_royal_safe_conduct else ""
-		_show_status_label("%s (%s) — %s%s · 💰%d Oro%s [%s]\n[%s | 😊Humor:%d%% 🍖%d%% (%s) 💤%d%%%s 💬%d%%]" % [
-			npc_name, family_name, npc_role, eff_badge, maxi(0, personal_gold), seal_badge, traits_str,
-			act_txt, int(round(mood)), int(round(need_hunger)), get_nutrition_status_label(), int(round(need_energy)), sleep_badge, int(round(need_social))
-		], Color(1.0, 0.92, 0.68))
+	if _is_focused_npc():
+		if near_mouse and Input.is_key_pressed(KEY_ALT):
+			var traits_str: String = ", ".join(traits) if not traits.is_empty() else "Equilibrado"
+			_show_status_label("%s (%s) · %s [%s]" % [npc_name, npc_role, get_short_world_state(), traits_str], Color(0.95, 0.91, 0.83))
+		else:
+			_show_status_label("%s · %s" % [npc_name, get_short_world_state()], Color(0.95, 0.91, 0.83))
+	elif near_player:
+		if is_sleeping:
+			_show_status_label("💤", Color(0.82, 0.88, 0.96))
+		elif is_instance_valid(_active_floating_text):
+			_show_status_label("💬", Color(0.95, 0.91, 0.83))
+		elif _is_actively_crafting or (_craft_bar_root != null and _craft_bar_root.visible):
+			status_label.visible = false
+		else:
+			status_label.visible = false
 	else:
 		status_label.visible = false
 
@@ -4782,7 +4869,7 @@ func knockout() -> void:
 
 func show_prompt() -> void:
 	_showing_stealth_prompt = true
-	_show_status_label("🕵️ SIGILO POR LA ESPALDA — %s\n[E / Q: 💤 Aturdir (No Letal) | Clic Izq. / V: 🗡️ Matar (Letal)]" % npc_name, Color(0.55, 0.98, 0.82))
+	_show_status_label("%s · Desprevenido" % npc_name, Color(0.95, 0.91, 0.83))
 
 func hide_prompt() -> void:
 	_showing_stealth_prompt = false
@@ -5227,14 +5314,35 @@ func on_dialogue_action(action_id: String) -> void:
 
 func _spawn_floating_text(text: String, color: Color, offset_y: float = -36.0, duration: float = 1.0) -> void:
 	if FloatingTextScene and is_inside_tree():
+		var pl := _get_player()
+		if pl != null and global_position.distance_squared_to(pl.global_position) > 190.0 * 190.0:
+			return
 		var parent_scene: Node = get_tree().current_scene if get_tree().current_scene else get_parent()
 		if parent_scene:
+			if is_instance_valid(_active_floating_text):
+				_active_floating_text.queue_free()
+				_active_floating_text = null
+			var adj_y: float = offset_y
+			if _craft_bar_root != null and _craft_bar_root.visible:
+				if _craft_bar_label != null:
+					_craft_bar_label.visible = false
+				adj_y = minf(adj_y, -48.0)
+			var nearby_bubbles: int = 0
+			for n in get_tree().get_nodes_in_group("village_npcs"):
+				if n is VillageNPC and n != self and is_instance_valid((n as VillageNPC)._active_floating_text):
+					if (n as Node2D).global_position.distance_squared_to(global_position) <= 84.0 * 84.0:
+						nearby_bubbles += 1
+			if nearby_bubbles >= 1 and not _is_focused_npc():
+				return
+			if nearby_bubbles >= 1:
+				adj_y -= 16.0
 			var ft = FloatingTextScene.instantiate()
 			ft.start_text = text
 			ft.text_color = color
 			ft.duration = duration
-			ft.global_position = global_position + Vector2(0, offset_y)
+			ft.global_position = global_position + Vector2(0, adj_y)
 			parent_scene.add_child(ft)
+			_active_floating_text = ft
 
 ## B5.3: Bocadillo corto sobre la cabeza (1.5 s) que no para nada ni pausa el juego.
 func spawn_short_bubble(text: String, color: Color = Color(1.0, 0.96, 0.78), offset_y: float = -40.0, duration: float = 1.5) -> void:

@@ -102,39 +102,162 @@ func _build_minimap_ui() -> void:
 	minimap_panel = PanelContainer.new()
 	minimap_panel.name = "MinimapPanel"
 	minimap_panel.set_anchors_and_offsets_preset(Control.PRESET_TOP_RIGHT)
-	minimap_panel.offset_left = -202.0
-	minimap_panel.offset_top = 10.0
-	minimap_panel.offset_right = -12.0
-	minimap_panel.offset_bottom = 154.0
-	minimap_panel.add_theme_stylebox_override("panel", _make_map_style(Color(0.06, 0.08, 0.11, 0.90), Color(0.72, 0.60, 0.34, 0.92), 6, 6, 5))
+	minimap_panel.offset_left = -138.0
+	minimap_panel.offset_top = 14.0
+	minimap_panel.offset_right = -16.0
+	minimap_panel.offset_bottom = 160.0
+	var empty_sb := StyleBoxEmpty.new()
+	minimap_panel.add_theme_stylebox_override("panel", empty_sb)
 	add_child(minimap_panel)
 
 	var vbox := VBoxContainer.new()
-	vbox.add_theme_constant_override("separation", 3)
+	vbox.add_theme_constant_override("separation", 4)
+	vbox.alignment = BoxContainer.ALIGNMENT_BEGIN
 	minimap_panel.add_child(vbox)
 
-	var header_btn := Button.new()
-	header_btn.text = "🗺️ Mapa del Valle [M]"
-	header_btn.flat = true
-	header_btn.add_theme_font_size_override("font_size", 11)
-	header_btn.add_theme_color_override("font_color", Color(0.96, 0.88, 0.62))
-	header_btn.pressed.connect(func():
-		if _can_open_full_map():
-			toggle_full_map()
-	)
-	vbox.add_child(header_btn)
+	var circle_holder := CenterContainer.new()
+	vbox.add_child(circle_holder)
 
 	minimap_canvas = Control.new()
-	minimap_canvas.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	minimap_canvas.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	minimap_canvas.custom_minimum_size = Vector2(174, 112)
-	minimap_canvas.clip_contents = true
+	minimap_canvas.custom_minimum_size = Vector2(118, 118)
 	minimap_canvas.gui_input.connect(func(ev: InputEvent):
 		if ev is InputEventMouseButton and ev.pressed and ev.button_index == MOUSE_BUTTON_LEFT and _can_open_full_map():
 			toggle_full_map()
 	)
-	minimap_canvas.draw.connect(func(): _draw_valley_cartography(minimap_canvas, false))
-	vbox.add_child(minimap_canvas)
+	minimap_canvas.draw.connect(func(): _draw_round_paper_minimap(minimap_canvas))
+	circle_holder.add_child(minimap_canvas)
+
+	var tag_holder := HBoxContainer.new()
+	tag_holder.alignment = BoxContainer.ALIGNMENT_END
+	vbox.add_child(tag_holder)
+
+	var header_btn := Button.new()
+	header_btn.text = "Valle · [M] mapa"
+	header_btn.focus_mode = Control.FOCUS_NONE
+	header_btn.add_theme_font_size_override("font_size", 11)
+	header_btn.add_theme_color_override("font_color", Color(0.149, 0.129, 0.106, 1.0))
+	header_btn.add_theme_color_override("font_hover_color", Color(0.561, 0.176, 0.149, 1.0))
+	var tag_sb := StyleBoxFlat.new()
+	tag_sb.bg_color = Color(0.945, 0.910, 0.831, 0.94)
+	tag_sb.border_color = Color(0.227, 0.196, 0.157, 1.0)
+	tag_sb.set_border_width_all(1)
+	tag_sb.set_corner_radius_all(2)
+	tag_sb.content_margin_left = 7
+	tag_sb.content_margin_right = 7
+	tag_sb.content_margin_top = 2
+	tag_sb.content_margin_bottom = 2
+	tag_sb.shadow_color = Color(0.0, 0.0, 0.0, 0.35)
+	tag_sb.shadow_size = 1
+	tag_sb.shadow_offset = Vector2(2, 2)
+	header_btn.add_theme_stylebox_override("normal", tag_sb)
+	header_btn.add_theme_stylebox_override("hover", tag_sb)
+	header_btn.add_theme_stylebox_override("pressed", tag_sb)
+	header_btn.pressed.connect(func():
+		if _can_open_full_map():
+			toggle_full_map()
+	)
+	tag_holder.add_child(header_btn)
+
+func _clip_rect_to_circle(r: Rect2, center: Vector2, max_rad: float) -> Rect2:
+	var min_x: float = maxf(r.position.x, center.x - max_rad)
+	var min_y: float = maxf(r.position.y, center.y - max_rad)
+	var max_x: float = minf(r.end.x, center.x + max_rad)
+	var max_y: float = minf(r.end.y, center.y + max_rad)
+	if max_x <= min_x or max_y <= min_y:
+		return Rect2()
+	var clipped := Rect2(Vector2(min_x, min_y), Vector2(max_x - min_x, max_y - min_y))
+	if clipped.get_center().distance_to(center) > max_rad - 2.0:
+		return Rect2()
+	return clipped
+
+func _draw_round_paper_minimap(canvas: Control) -> void:
+	var csize: Vector2 = canvas.size
+	if csize.x <= 8.0 or csize.y <= 8.0:
+		return
+	var center: Vector2 = csize * 0.5
+	var rad: float = minf(csize.x, csize.y) * 0.5 - 2.0
+	var p_world: Vector2 = player.global_position if is_instance_valid(player) else Vector2(450.0, 40.0)
+	var scale_px: float = rad / 540.0 # ~540 px de radio del mundo alrededor del jugador
+
+	# Sombra dura estilo papel + fondo pergamino redondo
+	canvas.draw_circle(center + Vector2(3.0, 3.0), rad, Color(0.0, 0.0, 0.0, 0.45))
+	canvas.draw_circle(center, rad, Color(0.875, 0.820, 0.698, 1.0)) # #dfd1b2
+
+	var to_mini := func(wpos: Vector2) -> Vector2:
+		return center + (wpos - p_world) * scale_px
+
+	# Agua (lago y ciénaga)
+	for w_rect in [Rect2(Vector2(-1078, 78), Vector2(412, 162)), Rect2(Vector2(-2020, 110), Vector2(920, 450))]:
+		var mr := Rect2(to_mini.call(w_rect.position), w_rect.size * scale_px)
+		var cr := _clip_rect_to_circle(mr, center, rad - 3.0)
+		if cr.size.x > 0.5:
+			canvas.draw_rect(cr, Color(0.498, 0.639, 0.678, 0.90), true)
+
+	# Caminos y plaza en tono pergamino tostado (#b9a882)
+	var road_col := Color(0.725, 0.659, 0.510, 0.95)
+	for r_rect in [
+		Rect2(Vector2(-1950, 36), Vector2(2960, 28)),
+		Rect2(Vector2(-688, -88), Vector2(18, 124)),
+		Rect2(Vector2(448, -135), Vector2(34, 920)),
+		Rect2(Vector2(140, 130), Vector2(24, 248)),
+		Rect2(Vector2(140, 356), Vector2(312, 22)),
+		Rect2(Vector2(660, -135), Vector2(280, 24)),
+		Rect2(Vector2(660, -135), Vector2(24, 185)),
+		Rect2(Vector2(395, 10), Vector2(140, 78))
+	] + VillageLots.ROADS:
+		var mr2 := Rect2(to_mini.call(r_rect.position), r_rect.size * scale_px)
+		var cr2 := _clip_rect_to_circle(mr2, center, rad - 3.0)
+		if cr2.size.x > 0.5:
+			canvas.draw_rect(cr2, road_col, true)
+
+	# Edificios (#8a7356 con borde de tinta #3a3228)
+	var b_rects: Array[Rect2] = [
+		VillageRestaurant.RECT,
+		Rect2(Vector2(260, -316), Vector2(348, 184)),
+		Rect2(Vector2(277, -74), Vector2(116, 76)),
+		Rect2(Vector2(527, -74), Vector2(116, 76)),
+		Rect2(Vector2(527, 110), Vector2(116, 76)),
+		Rect2(Vector2(407, 110), Vector2(116, 76)),
+		Rect2(Vector2(261, 107), Vector2(128, 96)),
+		Rect2(Vector2(689, -234), Vector2(112, 78)),
+		Rect2(Vector2(849, -234), Vector2(112, 78)),
+		Rect2(Vector2(689, -75), Vector2(112, 78)),
+		Rect2(Vector2(849, -75), Vector2(112, 78)),
+		Rect2(Vector2(676, 100), Vector2(138, 96)),
+		Rect2(Vector2(844, 100), Vector2(142, 96)),
+		Rect2(Vector2(679, 266), Vector2(132, 92)),
+		Rect2(Vector2(822, 260), Vector2(268, 168))
+	]
+	for br_w in b_rects:
+		var mr3 := Rect2(to_mini.call(br_w.position), br_w.size * scale_px)
+		var cr3 := _clip_rect_to_circle(mr3, center, rad - 4.0)
+		if cr3.size.x > 1.5 and cr3.size.y > 1.5:
+			canvas.draw_rect(cr3, Color(0.541, 0.451, 0.337, 0.96), true)
+			canvas.draw_rect(cr3, Color(0.227, 0.196, 0.157, 0.95), false, 1.0)
+
+	# Vecinos vivos (#5a5042) y cadáveres (#8f2d26)
+	for npc in get_tree().get_nodes_in_group("village_npcs"):
+		if npc is VillageNPC and (npc as Node2D).visible and not bool(npc.get("corpse_buried")):
+			var np: Vector2 = to_mini.call((npc as Node2D).global_position)
+			if np.distance_to(center) <= rad - 5.0:
+				var col_n: Color = Color(0.561, 0.176, 0.149, 1.0) if npc.is_dead else Color(0.353, 0.314, 0.259, 0.95)
+				canvas.draw_circle(np, 2.3 if npc.is_dead else 2.0, col_n)
+
+	# Punto del jugador en el centro (#26211b con halo papel #f1e8d4)
+	canvas.draw_circle(center, 4.2, Color(0.945, 0.910, 0.831, 0.95))
+	canvas.draw_circle(center, 2.8, Color(0.149, 0.129, 0.106, 1.0))
+
+	# Borde interior suave y aro de tinta exterior (#3a3228)
+	canvas.draw_arc(center, rad - 2.0, 0.0, TAU, 48, Color(0.149, 0.129, 0.106, 0.18), 3.0)
+	canvas.draw_arc(center, rad, 0.0, TAU, 48, Color(0.227, 0.196, 0.157, 1.0), 2.5)
+
+	# Marca cardinal "N" arriba al centro
+	var font: Font = ThemeDB.fallback_font
+	if font:
+		var n_rect := Rect2(Vector2(center.x - 6.0, 2.0), Vector2(12.0, 11.0))
+		canvas.draw_rect(n_rect, Color(0.945, 0.910, 0.831, 0.96), true)
+		canvas.draw_rect(n_rect, Color(0.227, 0.196, 0.157, 0.85), false, 1.0)
+		canvas.draw_string(font, Vector2(center.x - 3.5, 11.0), "N", HORIZONTAL_ALIGNMENT_LEFT, -1, 9, Color(0.149, 0.129, 0.106, 1.0))
 
 func _build_full_map_ui() -> void:
 	full_map_panel = PanelContainer.new()

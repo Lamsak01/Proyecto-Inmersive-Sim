@@ -411,74 +411,30 @@ func _process(delta: float) -> void:
 
 	var mouse_pos := get_global_mouse_position()
 
-	if _tavern_bed_label:
-		_tavern_bed_label.visible = _is_near(player, mouse_pos, _tavern_bed_pos, 24.0, 18.0)
-	if _tavern_games_label:
-		_tavern_games_label.visible = _is_near(player, mouse_pos, _tavern_games_pos, 26.0, 20.0)
-	if _tavern_pool_label:
-		_tavern_pool_label.visible = _is_near(player, mouse_pos, _tavern_pool_pos, 26.0, 20.0)
-	if _well_label:
-		_well_label.visible = _is_near(player, mouse_pos, _well_pos, 24.0, 16.0)
-	if _tavern_well_label:
-		_tavern_well_label.visible = _is_near(player, mouse_pos, _tavern_well_pos, 24.0, 16.0)
-	if _plaza_well_label:
-		_plaza_well_label.visible = _is_near(player, mouse_pos, _plaza_well_pos, 24.0, 16.0)
-	if _compost_label:
-		var comp_vis: bool = _compost_sprite == null or _compost_sprite.visible
-		_compost_label.visible = comp_vis and _is_near(player, mouse_pos, _compost_pos, 22.0, 16.0)
+	for st_lbl in [_tavern_bed_label, _tavern_games_label, _tavern_pool_label, _well_label, _tavern_well_label, _plaza_well_label, _compost_label, _hospital_bed_label, _morgue_label, _church_altar_label, _cemetery_label, _notice_board_label]:
+		if is_instance_valid(st_lbl):
+			st_lbl.visible = false
 	for esl in _extra_station_labels:
 		if is_instance_valid(esl[0]):
-			(esl[0] as Label).visible = _is_near(player, mouse_pos, esl[1], 24.0, 16.0)
-	if _hospital_bed_label:
-		_hospital_bed_label.visible = _is_near(player, mouse_pos, _hospital_bed_pos, 26.0, 18.0)
-	if _morgue_label:
-		var m_center := _morgue_table_positions[1]
-		_morgue_label.visible = _is_near(player, mouse_pos, m_center, 34.0, 24.0)
-		if _morgue_label.visible:
-			_morgue_label.text = "⚰️ Morgue Forense (%d/%d Camillas | %d en Cementerio) [E: Examinar Autopsias]" % [morgue_active_corpses.size(), MAX_MORGUE_CAPACITY, buried_graves.size()]
-	if _church_altar_label:
-		_church_altar_label.visible = _is_near(player, mouse_pos, _church_altar_pos, 30.0, 22.0)
-		if _church_altar_label.visible:
-			_church_altar_label.text = "⛪ Altar del Alba y Libro de Difuntos (%d Sepulturas) [E: Consultar / Orar]" % buried_graves.size()
-	if _cemetery_label:
-		_cemetery_label.visible = _is_near(player, mouse_pos, _cemetery_gate_pos, 28.0, 20.0)
-		if _cemetery_label.visible:
-			_cemetery_label.text = "🪦 Cementerio Parroquial (%d/18 Tumbas Ocupadas) [E: Ver Registro]" % buried_graves.size()
+			(esl[0] as Label).visible = false
 	for g_node in _cemetery_grave_nodes:
 		if is_instance_valid(g_node):
 			var g_lbl: Label = g_node.get_node_or_null("GraveHoverLabel") as Label
 			if g_lbl:
-				g_lbl.visible = _is_near(player, mouse_pos, g_node.global_position, 22.0, 15.0)
+				g_lbl.visible = _is_near(player, mouse_pos, g_node.global_position, 18.0, 14.0)
 	if _jail_label:
-		_jail_label.visible = player_in_jail or player_being_escorted_to_jail or _is_near(player, mouse_pos, _jail_cell_pos, 30.0, 20.0)
+		_jail_label.visible = player_in_jail or player_being_escorted_to_jail
 		if _jail_label.visible:
 			if player_being_escorted_to_jail:
-				_jail_label.text = "🚔⛓️ Siendo escoltado físicamente hacia la Celda de la Comisaría..."
+				_jail_label.text = "🚔 Siendo escoltado a la celda..."
 			elif player_in_jail and jail_mandatory_stay_timer > 0.0:
-				_jail_label.text = "🔒 Celda Policial — Tiempo obligatorio en celda: %ds antes de usar el Camastro [E: Opciones]" % int(ceil(jail_mandatory_stay_timer))
-			elif player_in_jail:
-				_jail_label.text = "🔒🛏️ Camastro de la Celda Listo [E: Acostarse y cumplir condena orgánica hasta las 06:00 AM]"
+				_jail_label.text = "🔒 Celda — Espera %ds" % int(ceil(jail_mandatory_stay_timer))
 			else:
-				_jail_label.text = "🚓 Celda Policial (Nivel Búsqueda: %d | Multa: %d Oro) [E: Gestionar]" % [wanted_level, bounty_gold]
-	if _notice_board_label:
-		_notice_board_label.visible = _is_near(player, mouse_pos, _notice_board_pos, 26.0, 18.0)
-
-	var cur_day_ch: int = WorldClock.current_day if WorldClock else 1
+				_jail_label.text = "🔒 Celda lista"
 	for ch in house_chests:
 		var c_lbl: Label = ch.get("label")
-		var c_pos: Vector2 = ch.get("pos", Vector2.ZERO)
-		if c_lbl:
-			c_lbl.visible = _is_near(player, mouse_pos, c_pos, 22.0, 14.0)
-			if c_lbl.visible:
-				var ch_title_str: String = str(ch.get("title", "Cofre"))
-				var planted_id: String = str(ch.get("planted_evidence", ""))
-				if planted_id != "":
-					var pl_name: String = str(SimpleInventory.CATALOG.get(planted_id, {}).get("name", planted_id))
-					c_lbl.text = "📦🕵️ %s [Prueba Plantada: %s]" % [ch_title_str, pl_name]
-				elif int(ch.get("looted_day", -1)) == cur_day_ch:
-					c_lbl.text = "📦 %s (Abierto hoy)\n[E: 🕵️ Plantar Prueba Incriminatoria en el Cofre]" % ch_title_str
-				else:
-					c_lbl.text = "🔓 %s [E: Forzar Cerradura (Usa Sigilo [C])]" % ch_title_str
+		if is_instance_valid(c_lbl):
+			c_lbl.visible = false
 
 	_update_shop_business_stalls(player, mouse_pos)
 	_update_doors_and_windows(delta, player, mouse_pos)
@@ -5413,7 +5369,7 @@ func _add_title_label(pos: Vector2, min_sz: Vector2, txt: String, col: Color, f_
 
 ## Letreros del mapa sin amontonarse (2026-11-05): solo se ven los que están cerca del jugador (o bajo el ratón), y si
 ## dos se pisan, se queda el más cercano. Usa la transparencia (modulate.a), así no toca su `visible`.
-const TITLE_SHOW_RADIUS: float = 150.0
+const TITLE_SHOW_RADIUS: float = 72.0
 var _titles_declutter_t: float = 0.0
 
 ## El trozo del letrero que ocupa el texto de verdad (los letreros son más anchos que su texto y van centrados).
@@ -5464,16 +5420,19 @@ func _declutter_title_labels() -> void:
 		var sb_lbl: Label = shop_businesses[r_id].get("stall_label")
 		if sb_lbl != null and is_instance_valid(sb_lbl) and sb_lbl.is_visible_in_tree():
 			kept.append(_title_text_rect(sb_lbl).grow(3.0))
+	var shown_count: int = 0
 	for c in cands:
 		var r2: Rect2 = c[2]
-		var clash: bool = false
-		for k in kept:
-			if r2.grow(-1.0).intersects(k):
-				clash = true
-				break
-		(c[1] as Label).modulate.a = 0.0 if clash else 1.0
+		var clash: bool = (shown_count >= 1)
+		if not clash:
+			for k in kept:
+				if r2.grow(2.0).intersects(k):
+					clash = true
+					break
+		(c[1] as Label).modulate.a = 0.0 if clash else 0.88
 		if not clash:
 			kept.append(r2)
+			shown_count += 1
 
 # ==============================================================================
 # Regla 1 (suma cero): ayudas para que todo oro salga de un bolsillo, una caja o las arcas, y vaya a otro.

@@ -11,9 +11,27 @@ var sleep_bar: ProgressBar = null
 
 var clock_panel: PanelContainer = null
 var clock_label: Label = null
+var clock_weather_label: Label = null
+var clock_speed_badge: PanelContainer = null
+var clock_speed_label: Label = null
 var clock_sub_label: Label = null
 var test_mode_badge: PanelContainer = null
 var test_mode_label: Label = null
+
+var toast_box: VBoxContainer = null
+var _last_hint_text: String = ""
+var prompt_card: PanelContainer = null
+var prompt_target_label: Label = null
+var prompt_state_label: Label = null
+var prompt_cycle_label: Label = null
+var prompt_actions_box: VBoxContainer = null
+var prompt_footer_label: Label = null
+var hands_box: HBoxContainer = null
+var _hand_slot_panels: Array[PanelContainer] = []
+var _hand_slot_key_labels: Array[Label] = []
+var _hand_slot_icon_labels: Array[Label] = []
+var corner_right_box: HBoxContainer = null
+var hud_gold_label: Label = null
 
 var inv_panel: PanelContainer = null
 var controls_panel: PanelContainer = null
@@ -53,46 +71,38 @@ func _ready() -> void:
 		print("UI: Player not found!")
 		return
 
-	# 2. Setup Bars if not assigned
-	# Recuadro de estado (arriba a la izquierda). Sangre y aturdimiento siguen funcionando por dentro, pero no se muestran.
+	# 2. Setup Bars if not assigned (papel y tinta, arriba a la izquierda)
 	var stats_box: VBoxContainer = _create_stats_box()
 	if not health_bar:
-		health_bar = _create_fallback_bar(Color(0.86, 0.26, 0.26), Vector2.ZERO, "❤️")
-		stats_box.add_child(health_bar)
+		health_bar = _create_paper_bar_row(stats_box, "❤", Color(0.710, 0.278, 0.247, 1.0), true)
 
 	if not stamina_bar:
-		stamina_bar = _create_fallback_bar(Color(0.35, 0.80, 0.40), Vector2.ZERO, "⚡")
-		stats_box.add_child(stamina_bar)
+		stamina_bar = _create_paper_bar_row(stats_box, "⚡", Color(0.435, 0.604, 0.353, 1.0), true)
 
 	if not blood_bar:
-		blood_bar = _create_fallback_bar(Color(0.70, 0.10, 0.16), Vector2.ZERO, "BLD")
+		blood_bar = _create_paper_bar_row(stats_box, "🩸", Color(0.70, 0.10, 0.16, 1.0), false)
 		blood_bar.value = 0.0
 		blood_bar.visible = false
-		stats_box.add_child(blood_bar)
 
 	if not stun_bar:
-		stun_bar = _create_fallback_bar(Color(0.95, 0.80, 0.25), Vector2.ZERO, "💫")
+		stun_bar = _create_paper_bar_row(stats_box, "💫", Color(0.95, 0.80, 0.25, 1.0), false)
 		stun_bar.value = 0.0
 		stun_bar.visible = false
-		stats_box.add_child(stun_bar)
 
 	if not hunger_bar:
-		hunger_bar = _create_fallback_bar(Color(0.95, 0.58, 0.22), Vector2.ZERO, "🍖")
+		hunger_bar = _create_paper_bar_row(stats_box, "🍞", Color(0.788, 0.541, 0.235, 1.0), false)
 		hunger_bar.value = 100.0
 		hunger_bar.visible = false
-		stats_box.add_child(hunger_bar)
 
 	if not sleep_bar:
-		sleep_bar = _create_fallback_bar(Color(0.45, 0.72, 1.0), Vector2.ZERO, "💤")
+		sleep_bar = _create_paper_bar_row(stats_box, "☾", Color(0.373, 0.498, 0.651, 1.0), false)
 		sleep_bar.value = 100.0
 		sleep_bar.visible = false
-		stats_box.add_child(sleep_bar)
 
 	if not hygiene_bar:
-		hygiene_bar = _create_fallback_bar(Color(0.55, 0.85, 0.95), Vector2.ZERO, "🧼")
+		hygiene_bar = _create_paper_bar_row(stats_box, "🧼", Color(0.373, 0.561, 0.651, 1.0), false)
 		hygiene_bar.value = 100.0
 		hygiene_bar.visible = false
-		stats_box.add_child(hygiene_bar)
 
 	# 3. Connect Signals
 	if player.has_node("HealthComponent"):
@@ -121,6 +131,8 @@ func _ready() -> void:
 	
 	setup_hint_label()
 	_setup_clock_ui()
+	_setup_toast_ui()
+	_setup_bottom_hud_ui()
 	_setup_inventory_ui()
 	_setup_tool_wheel_ui()
 	_setup_tavern_games_ui()
@@ -139,8 +151,6 @@ func _ready() -> void:
 	_setup_controls_panel_ui()
 	if GameManager and not GameManager.game_loaded.is_connected(_on_game_loaded):
 		GameManager.game_loaded.connect(_on_game_loaded)
-	if DisplayServer.get_name() != "headless" and (GameManager == null or GameManager.game_data.is_empty()):
-		open_controls_panel()
 	_init_default_objectives()
 	if "inventory" in player and player.inventory:
 		_bind_player_inventory()
@@ -208,7 +218,7 @@ func _input(event: InputEvent) -> void:
 			return
 	if controls_panel and controls_panel.visible:
 		if event is InputEventKey and event.pressed and not event.echo:
-			if event.keycode in [KEY_ESCAPE, KEY_ENTER, KEY_KP_ENTER] or event.physical_keycode in [KEY_ESCAPE, KEY_ENTER, KEY_KP_ENTER]:
+			if event.keycode in [KEY_ESCAPE, KEY_ENTER, KEY_KP_ENTER, KEY_H] or event.physical_keycode in [KEY_ESCAPE, KEY_ENTER, KEY_KP_ENTER, KEY_H]:
 				close_controls_panel()
 				get_viewport().set_input_as_handled()
 		elif event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
@@ -257,6 +267,23 @@ func _unhandled_input(event: InputEvent) -> void:
 				_toggle_inventory()
 				get_viewport().set_input_as_handled()
 			elif event.physical_keycode == KEY_H:
+				_close_skills_panel()
+				if tool_wheel and tool_wheel.visible:
+					tool_wheel.close_wheel(false)
+				if inv_panel and inv_panel.visible:
+					inv_panel.visible = false
+				if social_glossary and social_glossary.visible:
+					social_glossary.call("close_panel")
+				if medical_panel and medical_panel.visible:
+					medical_panel.call("close_panel")
+				if valley_map and bool(valley_map.get("is_full_map_open")):
+					valley_map.call("close_full_map")
+				if controls_panel and controls_panel.visible:
+					close_controls_panel()
+				else:
+					open_controls_panel()
+				get_viewport().set_input_as_handled()
+			elif event.physical_keycode == KEY_U:
 				_close_skills_panel()
 				if tool_wheel and tool_wheel.visible:
 					tool_wheel.close_wheel(false)
@@ -616,68 +643,88 @@ func _setup_controls_panel_ui() -> void:
 	controls_panel.name = "ControlsPanel"
 	controls_panel.visible = false
 	controls_panel.set_anchors_and_offsets_preset(Control.PRESET_CENTER)
-	controls_panel.offset_left = -360.0
-	controls_panel.offset_top = -175.0
-	controls_panel.offset_right = 360.0
-	controls_panel.offset_bottom = 175.0
-	controls_panel.add_theme_stylebox_override("panel", _make_style(Color(0.07, 0.08, 0.11, 0.96), Color(0.75, 0.63, 0.35, 1.0), 2, 8, 18, 14))
+	controls_panel.offset_left = -260.0
+	controls_panel.offset_top = -182.0
+	controls_panel.offset_right = 260.0
+	controls_panel.offset_bottom = 182.0
+	var cp_style := _make_style(Color(0.945, 0.910, 0.831, 0.98), Color(0.227, 0.196, 0.157, 1.0), 2, 2, 20, 16)
+	cp_style.shadow_color = Color(0.0, 0.0, 0.0, 0.5)
+	cp_style.shadow_size = 1
+	cp_style.shadow_offset = Vector2(5, 5)
+	controls_panel.add_theme_stylebox_override("panel", cp_style)
 
 	var main_vbox := VBoxContainer.new()
-	main_vbox.add_theme_constant_override("separation", 8)
+	main_vbox.add_theme_constant_override("separation", 10)
 	controls_panel.add_child(main_vbox)
 
-	_make_lbl(main_vbox, "Controles", 18, Color(0.96, 0.88, 0.65), true, HORIZONTAL_ALIGNMENT_CENTER)
-	main_vbox.add_child(HSeparator.new())
+	var title_row := HBoxContainer.new()
+	main_vbox.add_child(title_row)
+	var t_lbl := _make_lbl(title_row, "Teclas", 16, Color(0.149, 0.129, 0.106, 1.0), true)
+	t_lbl.add_theme_color_override("font_color", Color(0.149, 0.129, 0.106, 1.0))
+	var close_hint := _make_lbl(title_row, "[H / Esc] cerrar", 11, Color(0.353, 0.314, 0.259, 1.0))
+	close_hint.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+
+	var sep_line := ColorRect.new()
+	sep_line.custom_minimum_size = Vector2(0, 1)
+	sep_line.color = Color(0.227, 0.196, 0.157, 0.65)
+	main_vbox.add_child(sep_line)
 
 	var columns := HBoxContainer.new()
 	columns.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	columns.add_theme_constant_override("separation", 18)
+	columns.add_theme_constant_override("separation", 22)
 	main_vbox.add_child(columns)
 
 	var left_col := VBoxContainer.new()
 	left_col.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	left_col.add_theme_constant_override("separation", 4)
 	columns.add_child(left_col)
-	_make_lbl(left_col, "Lo básico", 14, Color(0.80, 0.88, 0.98))
-	var basic_lines: Array[String] = [
-		"Mover: W A S D",
-		"Atacar: clic izquierdo, apuntando con el ratón",
-		"Usar o hablar: E",
-		"Cambiar de objetivo cuando hay varios: G o Mayús + rueda",
-		"Rodar: Espacio",
-		"Parar un golpe: Q (mantenla para cubrirte)",
-		"Empujar: X",
-		"Sigilo: C",
-		"Mochila: I",
+	_make_lbl(left_col, "MOVERSE Y PELEAR", 11, Color(0.561, 0.176, 0.149, 1.0))
+	var basic_pairs: Array = [
+		["Caminar", "WASD"],
+		["Correr", "Mayús"],
+		["Rodar", "Espacio"],
+		["Sigilo", "Ctrl / C"],
+		["Atacar", "Clic izq."],
+		["Bloquear / parar", "Q"],
+		["Empujar", "X"],
 	]
-	for line in basic_lines:
-		_make_lbl(left_col, line, 12, Color(0.93, 0.94, 0.97))
-
-	columns.add_child(VSeparator.new())
+	for pair in basic_pairs:
+		_add_help_key_row(left_col, str(pair[0]), str(pair[1]))
 
 	var right_col := VBoxContainer.new()
 	right_col.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	right_col.add_theme_constant_override("separation", 4)
 	columns.add_child(right_col)
-	_make_lbl(right_col, "Más", 14, Color(0.95, 0.82, 0.55))
-	var more_lines: Array[String] = [
-		"Rueda de acciones: Tab",
-		"Vecinos: J",
-		"Mapa: M",
-		"Misiones: L",
-		"Herramientas: 1–9",
-		"1.ª Persona / 2.5D: P o F6",
-		"Vista 3D / 2D: F9",
-		"Guardar / cargar: F5 / F12",
-		"Velocidad del tiempo: F1–F4",
-		"Modo pruebas: F8",
+	_make_lbl(right_col, "MUNDO Y PANELES", 11, Color(0.561, 0.176, 0.149, 1.0))
+	var more_pairs: Array = [
+		["Acción / hablar", "E"],
+		["Otra acción / objetivo", "Rueda / G"],
+		["Mochila", "I"],
+		["Rueda de herramientas", "Tab"],
+		["Mapa del valle", "M"],
+		["Vecinos / Caso", "J / N"],
+		["Salud / heridas", "U"],
+		["Cámara 2D / 3D / 1.ª", "F9 / P"],
+		["Velocidad del reloj", "F1–F4"],
+		["Modo pruebas", "F8"],
+		["Guardar / cargar", "F5 / F12"],
+		["Ver esta ayuda", "H"],
 	]
-	for line in more_lines:
-		_make_lbl(right_col, line, 12, Color(0.93, 0.94, 0.97))
+	for pair in more_pairs:
+		_add_help_key_row(right_col, str(pair[0]), str(pair[1]))
 
-	main_vbox.add_child(HSeparator.new())
-	_make_lbl(main_vbox, "Pulsa Esc, Intro o haz clic para empezar", 12, Color(0.75, 0.82, 0.92), true, HORIZONTAL_ALIGNMENT_CENTER)
 	add_child(controls_panel)
+
+func _add_help_key_row(parent: VBoxContainer, action_txt: String, key_txt: String) -> void:
+	var row := HBoxContainer.new()
+	row.add_theme_constant_override("separation", 6)
+	parent.add_child(row)
+	_make_lbl(row, action_txt, 11, Color(0.149, 0.129, 0.106, 1.0), true)
+	var k_panel := PanelContainer.new()
+	var k_sb := _make_style(Color(0.882, 0.831, 0.722, 1.0), Color(0.227, 0.196, 0.157, 1.0), 1, 1, 5, 1)
+	k_panel.add_theme_stylebox_override("panel", k_sb)
+	row.add_child(k_panel)
+	_make_lbl(k_panel, key_txt, 10, Color(0.149, 0.129, 0.106, 1.0))
 
 func open_controls_panel() -> void:
 	if not controls_panel:
@@ -810,50 +857,39 @@ func _refresh_inventory_list() -> void:
 			_make_btn(r_hbox, "Fabricar", func(): inv.craft_recipe(captured_recipe, player), not craftable)
 			inv_recipes_box.add_child(r_row)
 
-var _speed_buttons: Dictionary = {} # float -> Button
-
 func _setup_clock_ui() -> void:
 	clock_panel = PanelContainer.new()
 	clock_panel.name = "WorldClockPanel"
 	clock_panel.set_anchors_and_offsets_preset(Control.PRESET_CENTER_TOP)
-	clock_panel.offset_left = -215.0
-	clock_panel.offset_top = 8.0
-	clock_panel.offset_right = 215.0
-	clock_panel.offset_bottom = 82.0
-	clock_panel.add_theme_stylebox_override("panel", _make_style(Color(0.08, 0.09, 0.12, 0.88), Color(0.45, 0.55, 0.72, 0.9), 2, 6, 12, 6))
-
-	var vbox := VBoxContainer.new()
-	vbox.add_theme_constant_override("separation", 2)
-	clock_panel.add_child(vbox)
+	clock_panel.grow_horizontal = Control.GROW_DIRECTION_BOTH
+	clock_panel.offset_left = -95.0
+	clock_panel.offset_top = 12.0
+	clock_panel.offset_right = 95.0
+	clock_panel.offset_bottom = 38.0
+	var clk_style := _make_style(Color(0.945, 0.910, 0.831, 0.95), Color(0.227, 0.196, 0.157, 1.0), 2, 2, 12, 4)
+	clk_style.shadow_color = Color(0.0, 0.0, 0.0, 0.40)
+	clk_style.shadow_size = 1
+	clk_style.shadow_offset = Vector2(2, 2)
+	clock_panel.add_theme_stylebox_override("panel", clk_style)
 
 	var top_hbox := HBoxContainer.new()
 	top_hbox.alignment = BoxContainer.ALIGNMENT_CENTER
-	top_hbox.add_theme_constant_override("separation", 6)
-	vbox.add_child(top_hbox)
-	clock_label = _make_lbl(top_hbox, "", 14, Color(0.96, 0.92, 0.78), false, HORIZONTAL_ALIGNMENT_CENTER)
+	top_hbox.add_theme_constant_override("separation", 8)
+	clock_panel.add_child(top_hbox)
 
-	var speed_hbox := HBoxContainer.new()
-	speed_hbox.alignment = BoxContainer.ALIGNMENT_CENTER
-	speed_hbox.add_theme_constant_override("separation", 4)
-	vbox.add_child(speed_hbox)
-	_make_lbl(speed_hbox, "Velocidad [F1-F4 / - +]:", 10, Color(0.75, 0.82, 0.92))
-	_speed_buttons.clear()
-	for sp_val in [1.0, 2.0, 4.0, 8.0]:
-		var b_lbl: String = "▶ 1x" if sp_val == 1.0 else ("▶▶ 2x" if sp_val == 2.0 else ("▶▶▶ 4x" if sp_val == 4.0 else "⏩ 8x"))
-		var btn := Button.new()
-		btn.text = b_lbl
-		btn.custom_minimum_size = Vector2(46, 20)
-		btn.focus_mode = Control.FOCUS_NONE
-		btn.add_theme_font_size_override("font_size", 10)
-		var captured_sp: float = sp_val
-		btn.pressed.connect(func() -> void:
-			if WorldClock and WorldClock.has_method("set_persistent_time_scale"):
-				WorldClock.set_persistent_time_scale(captured_sp)
-		)
-		speed_hbox.add_child(btn)
-		_speed_buttons[sp_val] = btn
+	clock_label = _make_lbl(top_hbox, "", 13, Color(0.149, 0.129, 0.106, 1.0), false, HORIZONTAL_ALIGNMENT_CENTER)
+	clock_weather_label = _make_lbl(top_hbox, "despejado", 11, Color(0.353, 0.314, 0.259, 1.0), false, HORIZONTAL_ALIGNMENT_CENTER)
 
-	clock_sub_label = _make_lbl(vbox, "", 11, Color(0.70, 0.78, 0.88), false, HORIZONTAL_ALIGNMENT_CENTER)
+	clock_speed_badge = PanelContainer.new()
+	clock_speed_badge.visible = false
+	var sp_style := _make_style(Color(0.882, 0.831, 0.722, 1.0), Color(0.227, 0.196, 0.157, 1.0), 1, 1, 4, 0)
+	clock_speed_badge.add_theme_stylebox_override("panel", sp_style)
+	top_hbox.add_child(clock_speed_badge)
+	clock_speed_label = _make_lbl(clock_speed_badge, "×2", 10, Color(0.149, 0.129, 0.106, 1.0), false, HORIZONTAL_ALIGNMENT_CENTER)
+
+	clock_sub_label = Label.new()
+	clock_sub_label.visible = false
+	add_child(clock_sub_label)
 	add_child(clock_panel)
 
 	test_mode_badge = PanelContainer.new()
@@ -861,21 +897,361 @@ func _setup_clock_ui() -> void:
 	test_mode_badge.visible = (player.get("test_mode_active") == true) if player else false
 	test_mode_badge.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	test_mode_badge.set_anchors_and_offsets_preset(Control.PRESET_CENTER_TOP)
-	test_mode_badge.offset_left = -74.0
+	test_mode_badge.grow_horizontal = Control.GROW_DIRECTION_BOTH
+	test_mode_badge.offset_left = -64.0
 	test_mode_badge.offset_top = 42.0
-	test_mode_badge.offset_right = 74.0
-	test_mode_badge.offset_bottom = 64.0
-	var tm_style := _make_style(Color(0.56, 0.18, 0.15, 0.96), Color(0.23, 0.20, 0.16, 1.0), 1, 2, 8, 2)
+	test_mode_badge.offset_right = 64.0
+	test_mode_badge.offset_bottom = 62.0
+	var tm_style := _make_style(Color(0.561, 0.176, 0.149, 0.98), Color(0.227, 0.196, 0.157, 1.0), 1, 2, 8, 2)
 	tm_style.shadow_color = Color(0.0, 0.0, 0.0, 0.35)
 	tm_style.shadow_size = 1
 	tm_style.shadow_offset = Vector2(2, 2)
 	test_mode_badge.add_theme_stylebox_override("panel", tm_style)
-	test_mode_label = _make_lbl(test_mode_badge, "MODO PRUEBAS", 11, Color(0.95, 0.92, 0.84), true, HORIZONTAL_ALIGNMENT_CENTER)
+	test_mode_label = _make_lbl(test_mode_badge, "MODO PRUEBAS", 10, Color(0.953, 0.918, 0.839, 1.0), true, HORIZONTAL_ALIGNMENT_CENTER)
 	add_child(test_mode_badge)
 
 	if WorldClock:
 		WorldClock.time_updated.connect(_on_clock_time_updated)
 		_on_clock_time_updated(WorldClock.current_day, WorldClock.current_hour, WorldClock.current_minute)
+
+func _setup_toast_ui() -> void:
+	toast_box = VBoxContainer.new()
+	toast_box.name = "ToastBox"
+	toast_box.position = Vector2(16, 96)
+	toast_box.custom_minimum_size = Vector2(228, 0)
+	toast_box.add_theme_constant_override("separation", 5)
+	toast_box.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	add_child(toast_box)
+
+func push_toast(raw_txt: String, force_bad: bool = false) -> void:
+	if not toast_box:
+		return
+	var clean_t: String = raw_txt.strip_edges()
+	if clean_t == "":
+		return
+	if clean_t.length() > 74:
+		clean_t = clean_t.substr(0, 71) + "…"
+	var lower_t: String = clean_t.to_lower()
+	var is_bad: bool = force_bad or lower_t.find("testigo") != -1 or lower_t.find("crimen") != -1 or lower_t.find("sangr") != -1 or lower_t.find("herid") != -1 or lower_t.find("cerrad") != -1 or lower_t.find("vacía") != -1 or lower_t.find("necesitas") != -1 or lower_t.find("alerta") != -1 or lower_t.find("❌") != -1 or lower_t.find("⚠️") != -1
+	while toast_box.get_child_count() >= 3:
+		var oldest := toast_box.get_child(0)
+		toast_box.remove_child(oldest)
+		oldest.queue_free()
+	var card := PanelContainer.new()
+	card.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	var t_sb := StyleBoxFlat.new()
+	t_sb.bg_color = Color(0.945, 0.910, 0.831, 0.94)
+	t_sb.border_color = Color(0.561, 0.176, 0.149, 1.0) if is_bad else Color(0.722, 0.537, 0.180, 1.0)
+	t_sb.border_width_left = 4
+	t_sb.border_width_top = 1
+	t_sb.border_width_right = 1
+	t_sb.border_width_bottom = 1
+	t_sb.content_margin_left = 8
+	t_sb.content_margin_right = 8
+	t_sb.content_margin_top = 4
+	t_sb.content_margin_bottom = 4
+	t_sb.shadow_color = Color(0.0, 0.0, 0.0, 0.35)
+	t_sb.shadow_size = 1
+	t_sb.shadow_offset = Vector2(2, 2)
+	card.add_theme_stylebox_override("panel", t_sb)
+	var lbl := _make_lbl(card, clean_t, 11, Color(0.149, 0.129, 0.106, 1.0), true)
+	lbl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	lbl.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	toast_box.add_child(card)
+	var tw := card.create_tween()
+	tw.tween_interval(2.8)
+	tw.tween_property(card, "modulate:a", 0.0, 0.5)
+	tw.tween_callback(card.queue_free)
+
+func _setup_bottom_hud_ui() -> void:
+	# 1. Abajo a la izquierda: manos / ranuras rápidas (1, 2, 3)
+	hands_box = HBoxContainer.new()
+	hands_box.name = "HandsBox"
+	hands_box.set_anchors_and_offsets_preset(Control.PRESET_BOTTOM_LEFT)
+	hands_box.offset_left = 16.0
+	hands_box.offset_top = -52.0
+	hands_box.offset_right = 142.0
+	hands_box.offset_bottom = -14.0
+	hands_box.add_theme_constant_override("separation", 5)
+	add_child(hands_box)
+
+	_hand_slot_panels.clear()
+	_hand_slot_key_labels.clear()
+	_hand_slot_icon_labels.clear()
+	var default_icons: Array[String] = ["🗡", "🔨", "🪓"]
+	for i in range(3):
+		var slot_p := PanelContainer.new()
+		slot_p.custom_minimum_size = Vector2(38, 38)
+		var captured_idx: int = i
+		slot_p.gui_input.connect(func(ev: InputEvent):
+			if ev is InputEventMouseButton and ev.pressed and ev.button_index == MOUSE_BUTTON_LEFT:
+				if player and player.has_method("equip_tool_by_index"):
+					player.call("equip_tool_by_index", captured_idx)
+					_refresh_hand_slots()
+		)
+		hands_box.add_child(slot_p)
+		_hand_slot_panels.append(slot_p)
+
+		var overlay := Control.new()
+		overlay.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+		overlay.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		slot_p.add_child(overlay)
+
+		var k_lbl := Label.new()
+		k_lbl.text = str(i + 1)
+		k_lbl.position = Vector2(3, 1)
+		k_lbl.add_theme_font_size_override("font_size", 9)
+		k_lbl.add_theme_color_override("font_color", Color(0.353, 0.314, 0.259, 1.0))
+		k_lbl.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		overlay.add_child(k_lbl)
+		_hand_slot_key_labels.append(k_lbl)
+
+		var ic_lbl := Label.new()
+		ic_lbl.text = default_icons[i]
+		ic_lbl.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+		ic_lbl.offset_top = 4.0
+		ic_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		ic_lbl.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+		ic_lbl.add_theme_font_size_override("font_size", 16)
+		ic_lbl.add_theme_color_override("font_color", Color(0.149, 0.129, 0.106, 1.0))
+		ic_lbl.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		overlay.add_child(ic_lbl)
+		_hand_slot_icon_labels.append(ic_lbl)
+
+	# 2. Abajo a la derecha: oro y [H] teclas
+	corner_right_box = HBoxContainer.new()
+	corner_right_box.name = "CornerRightBox"
+	corner_right_box.set_anchors_and_offsets_preset(Control.PRESET_BOTTOM_RIGHT)
+	corner_right_box.grow_horizontal = Control.GROW_DIRECTION_BEGIN
+	corner_right_box.offset_left = -220.0
+	corner_right_box.offset_top = -42.0
+	corner_right_box.offset_right = -16.0
+	corner_right_box.offset_bottom = -14.0
+	corner_right_box.alignment = BoxContainer.ALIGNMENT_END
+	corner_right_box.add_theme_constant_override("separation", 8)
+	add_child(corner_right_box)
+
+	var gold_panel := PanelContainer.new()
+	var g_sb := _make_style(Color(0.945, 0.910, 0.831, 0.95), Color(0.227, 0.196, 0.157, 1.0), 1, 2, 9, 4)
+	g_sb.shadow_color = Color(0.0, 0.0, 0.0, 0.35)
+	g_sb.shadow_size = 1
+	g_sb.shadow_offset = Vector2(2, 2)
+	gold_panel.add_theme_stylebox_override("panel", g_sb)
+	corner_right_box.add_child(gold_panel)
+
+	var g_hbox := HBoxContainer.new()
+	g_hbox.alignment = BoxContainer.ALIGNMENT_CENTER
+	g_hbox.add_theme_constant_override("separation", 6)
+	gold_panel.add_child(g_hbox)
+
+	var coin_dot := PanelContainer.new()
+	coin_dot.custom_minimum_size = Vector2(10, 10)
+	coin_dot.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	var c_sb := _make_style(Color(0.847, 0.663, 0.243, 1.0), Color(0.227, 0.196, 0.157, 1.0), 1, 5, 0, 0)
+	coin_dot.add_theme_stylebox_override("panel", c_sb)
+	g_hbox.add_child(coin_dot)
+
+	hud_gold_label = _make_lbl(g_hbox, "45 oro", 12, Color(0.149, 0.129, 0.106, 1.0))
+
+	var help_btn := Button.new()
+	help_btn.text = "[H] teclas"
+	help_btn.focus_mode = Control.FOCUS_NONE
+	help_btn.add_theme_font_size_override("font_size", 11)
+	help_btn.add_theme_color_override("font_color", Color(0.945, 0.910, 0.831, 1.0))
+	var h_sb := _make_style(Color(0.094, 0.082, 0.067, 0.78), Color(0.227, 0.196, 0.157, 1.0), 1, 2, 8, 4)
+	help_btn.add_theme_stylebox_override("normal", h_sb)
+	help_btn.add_theme_stylebox_override("hover", h_sb)
+	help_btn.add_theme_stylebox_override("pressed", h_sb)
+	help_btn.pressed.connect(func():
+		if controls_panel and controls_panel.visible:
+			close_controls_panel()
+		else:
+			open_controls_panel()
+	)
+	corner_right_box.add_child(help_btn)
+
+	# 3. Abajo al centro: tarjeta de papel de interacción [E]
+	prompt_card = PanelContainer.new()
+	prompt_card.name = "InteractionPromptCard"
+	prompt_card.visible = false
+	prompt_card.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	prompt_card.set_anchors_and_offsets_preset(Control.PRESET_CENTER_BOTTOM)
+	prompt_card.grow_horizontal = Control.GROW_DIRECTION_BOTH
+	prompt_card.grow_vertical = Control.GROW_DIRECTION_BEGIN
+	prompt_card.custom_minimum_size = Vector2(256, 0)
+	prompt_card.offset_left = -140.0
+	prompt_card.offset_right = 140.0
+	prompt_card.offset_top = -120.0
+	prompt_card.offset_bottom = -14.0
+	var p_sb := _make_style(Color(0.945, 0.910, 0.831, 0.97), Color(0.227, 0.196, 0.157, 1.0), 2, 2, 12, 8)
+	p_sb.shadow_color = Color(0.0, 0.0, 0.0, 0.45)
+	p_sb.shadow_size = 1
+	p_sb.shadow_offset = Vector2(3, 3)
+	prompt_card.add_theme_stylebox_override("panel", p_sb)
+	add_child(prompt_card)
+
+	var p_vbox := VBoxContainer.new()
+	p_vbox.add_theme_constant_override("separation", 4)
+	p_vbox.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	prompt_card.add_child(p_vbox)
+
+	var p_head := HBoxContainer.new()
+	p_head.add_theme_constant_override("separation", 8)
+	p_head.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	p_vbox.add_child(p_head)
+	prompt_target_label = _make_lbl(p_head, "Objetivo", 13, Color(0.149, 0.129, 0.106, 1.0))
+	prompt_state_label = _make_lbl(p_head, "", 11, Color(0.353, 0.314, 0.259, 1.0), true)
+	prompt_cycle_label = _make_lbl(p_head, "", 10, Color(0.353, 0.314, 0.259, 1.0), false, HORIZONTAL_ALIGNMENT_RIGHT)
+
+	var p_line := ColorRect.new()
+	p_line.custom_minimum_size = Vector2(0, 1)
+	p_line.color = Color(0.796, 0.741, 0.620, 1.0)
+	p_line.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	p_vbox.add_child(p_line)
+
+	prompt_actions_box = VBoxContainer.new()
+	prompt_actions_box.add_theme_constant_override("separation", 3)
+	prompt_actions_box.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	p_vbox.add_child(prompt_actions_box)
+
+	prompt_footer_label = _make_lbl(p_vbox, "", 10, Color(0.353, 0.314, 0.259, 1.0))
+	prompt_footer_label.visible = false
+
+	_refresh_hand_slots()
+
+func _refresh_hand_slots() -> void:
+	if _hand_slot_panels.size() < 3:
+		return
+	var active_slot: int = 0
+	var slot3_key: String = "3"
+	var slot3_icon: String = "🪓"
+	if player:
+		var eq = player.get("equipped_weapon")
+		if eq == player.get("sword_weapon"):
+			active_slot = 0
+		elif eq == player.get("hammer_weapon"):
+			active_slot = 1
+		elif eq == player.get("axe_weapon"):
+			active_slot = 2
+			slot3_key = "3"
+			slot3_icon = "🪓"
+		elif eq == player.get("pickaxe_weapon"):
+			active_slot = 2
+			slot3_key = "4"
+			slot3_icon = "⛏"
+		elif eq == player.get("bow_weapon"):
+			active_slot = 2
+			slot3_key = "5"
+			slot3_icon = "🏹"
+		elif eq == player.get("sickle_weapon"):
+			active_slot = 2
+			slot3_key = "6"
+			slot3_icon = "🌾"
+		elif eq == player.get("watering_can_weapon"):
+			active_slot = 2
+			slot3_key = "7"
+			slot3_icon = "💧"
+		elif eq == player.get("fishing_rod_weapon"):
+			active_slot = 2
+			slot3_key = "8"
+			slot3_icon = "🎣"
+		elif eq == player.get("flintlock_weapon"):
+			active_slot = 2
+			slot3_key = "9"
+			slot3_icon = "🔫"
+	_hand_slot_key_labels[2].text = slot3_key
+	_hand_slot_icon_labels[2].text = slot3_icon
+	for i in range(3):
+		var is_act: bool = (i == active_slot)
+		var sb := _make_style(
+			Color(0.945, 0.910, 0.831, 0.98) if is_act else Color(0.945, 0.910, 0.831, 0.88),
+			Color(0.722, 0.537, 0.180, 1.0) if is_act else Color(0.227, 0.196, 0.157, 1.0),
+			2 if is_act else 1, 2, 0, 0
+		)
+		sb.shadow_color = Color(0.0, 0.0, 0.0, 0.35)
+		sb.shadow_size = 1
+		sb.shadow_offset = Vector2(2, 2)
+		_hand_slot_panels[i].add_theme_stylebox_override("panel", sb)
+
+func _process(_delta: float) -> void:
+	_refresh_hand_slots()
+	var hint := get_node_or_null("HintLabel") as Label
+	if hint:
+		hint.modulate.a = 0.0
+		if hint.text != _last_hint_text:
+			_last_hint_text = hint.text
+			if _last_hint_text.strip_edges() != "":
+				push_toast(_last_hint_text)
+	_update_prompt_card()
+
+func _update_prompt_card() -> void:
+	if not prompt_card:
+		return
+	if not player or not is_instance_valid(player):
+		prompt_card.visible = false
+		return
+	var isel = player.get("interaction_selector")
+	if isel == null or not is_instance_valid(isel) or not isel.has_method("get_prompt_card_data"):
+		prompt_card.visible = false
+		return
+	var data: Dictionary = isel.call("get_prompt_card_data")
+	if data.is_empty():
+		prompt_card.visible = false
+		return
+	prompt_card.visible = true
+	if prompt_target_label:
+		prompt_target_label.text = str(data.get("target_name", "Objetivo"))
+	if prompt_state_label:
+		prompt_state_label.text = str(data.get("target_state", ""))
+	if prompt_cycle_label:
+		prompt_cycle_label.text = str(data.get("cycle_text", ""))
+	if prompt_actions_box:
+		for ch in prompt_actions_box.get_children():
+			prompt_actions_box.remove_child(ch)
+			ch.queue_free()
+		var acts: Array = data.get("actions", [])
+		for a_entry in acts:
+			if not (a_entry is Dictionary):
+				continue
+			var is_sel: bool = bool(a_entry.get("selected", false))
+			var row_p := PanelContainer.new()
+			row_p.mouse_filter = Control.MOUSE_FILTER_IGNORE
+			var r_sb := _make_style(
+				Color(0.882, 0.831, 0.722, 1.0) if is_sel else Color(0, 0, 0, 0),
+				Color(0, 0, 0, 0), 0, 1, 4, 2
+			)
+			row_p.add_theme_stylebox_override("panel", r_sb)
+			prompt_actions_box.add_child(row_p)
+
+			var r_hbox := HBoxContainer.new()
+			r_hbox.add_theme_constant_override("separation", 7)
+			r_hbox.mouse_filter = Control.MOUSE_FILTER_IGNORE
+			row_p.add_child(r_hbox)
+
+			var k_box := PanelContainer.new()
+			k_box.custom_minimum_size = Vector2(16, 16)
+			k_box.mouse_filter = Control.MOUSE_FILTER_IGNORE
+			var k_sb := _make_style(
+				Color(0.149, 0.129, 0.106, 1.0) if is_sel else Color(0.882, 0.831, 0.722, 0.8),
+				Color(0.227, 0.196, 0.157, 1.0), 1, 1, 3, 0
+			)
+			k_box.add_theme_stylebox_override("panel", k_sb)
+			r_hbox.add_child(k_box)
+			_make_lbl(k_box, str(a_entry.get("key", "E")), 10, Color(0.945, 0.910, 0.831, 1.0) if is_sel else Color(0.353, 0.314, 0.259, 1.0), false, HORIZONTAL_ALIGNMENT_CENTER)
+
+			_make_lbl(r_hbox, str(a_entry.get("text", "Usar")), 12 if is_sel else 11, Color(0.149, 0.129, 0.106, 1.0) if is_sel else Color(0.353, 0.314, 0.259, 1.0), true)
+
+	if prompt_footer_label:
+		var ft: String = str(data.get("footer", ""))
+		prompt_footer_label.text = ft
+		prompt_footer_label.visible = (ft != "")
+	prompt_card.reset_size()
+	var min_sz: Vector2 = prompt_card.get_combined_minimum_size()
+	var w_half: float = maxf(140.0, min_sz.x * 0.5)
+	prompt_card.offset_left = -w_half
+	prompt_card.offset_right = w_half
+	prompt_card.offset_bottom = -16.0
+	prompt_card.offset_top = -16.0 - min_sz.y
 
 func _on_player_test_mode_changed(active: bool) -> void:
 	if test_mode_badge:
@@ -885,21 +1261,31 @@ func _on_player_test_mode_changed(active: bool) -> void:
 
 func _on_clock_time_updated(_day: int, _hour: int, _minute: int) -> void:
 	_init_default_objectives()
-	_ensure_compact_bars()
 	if not clock_label or not WorldClock:
 		return
-	var icon := WorldClock.get_phase_icon()
-	clock_label.text = "%s %s" % [icon, WorldClock.get_formatted_time()]
+	var icon := "☀" if (WorldClock.current_hour >= 6 and WorldClock.current_hour < 20) else "☾"
+	var day_names: Array[String] = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo"]
+	var d_name: String = day_names[posmod(int(WorldClock.current_day) - 1, 7)]
+	clock_label.text = "%s  %s · %02d:%02d" % [icon, d_name, int(WorldClock.current_hour), int(WorldClock.current_minute)]
+	if clock_weather_label:
+		var w_txt: String = "despejado"
+		var w_str: String = str(WorldClock.get_weather_label()).to_lower() if WorldClock.has_method("get_weather_label") else ""
+		if w_str.find("tormenta") != -1:
+			w_txt = "tormenta"
+		elif w_str.find("lluvia") != -1:
+			w_txt = "lluvia"
+		elif w_str.find("niebla") != -1:
+			w_txt = "niebla"
+		clock_weather_label.text = w_txt
 	var cur_sp: float = float(WorldClock.get("persistent_time_scale")) if "persistent_time_scale" in WorldClock else 1.0
-	for sp_k in _speed_buttons.keys():
-		var b: Button = _speed_buttons[sp_k]
-		if is_instance_valid(b):
-			b.add_theme_color_override("font_color", Color(1.0, 0.92, 0.42) if is_equal_approx(float(sp_k), cur_sp) else Color(0.80, 0.84, 0.90))
-	var vis_pct := int(round(WorldClock.get_vision_multiplier() * 100.0))
-	var gold_val := 25
+	if clock_speed_badge and clock_speed_label:
+		clock_speed_badge.visible = not is_equal_approx(cur_sp, 1.0)
+		clock_speed_label.text = "×%d" % int(round(cur_sp))
+	var gold_val := 45
 	if player and "inventory" in player and player.inventory:
 		gold_val = player.inventory.gold
-	clock_sub_label.text = "💰 %d Oro | Visión: %d%% | [Espacio] Rodar · [Q] Parar · [X] Empujar | [TAB] Rueda | [I] Mochila | [J] Vecinos | [N] Tablero | [M] Mapa | [P] 1.ª Persona | [F9] 3D/2D | [F5/F12] Guardar/Cargar" % [gold_val, vis_pct]
+	if hud_gold_label:
+		hud_gold_label.text = "%d oro" % gold_val
 
 func _init_default_objectives() -> void:
 	var old_hud: Control = get_node_or_null("ObjectiveHUD") as Control
@@ -920,52 +1306,48 @@ func setup_hint_label() -> void:
 func _on_health_changed(current: float, max_val: float) -> void:
 	health_bar.value = current
 	health_bar.max_value = max_val
-	if health_bar.get_child_count() > 0 and health_bar.get_child(0) is Label:
-		var hc: HealthComponent = player.get_node_or_null("HealthComponent") if player else null
-		var eff_max: int = int(round(hc.get_effective_max_health())) if hc else int(round(max_val))
-		(health_bar.get_child(0) as Label).text = ("❤️ %d/%d (Enf.)" % [int(round(current)), eff_max]) if eff_max < int(round(max_val)) else ("❤️ %d/%d" % [int(round(current)), int(round(max_val))])
 
 func _on_stamina_changed(current: float, max_val: float) -> void:
 	stamina_bar.value = current
 	stamina_bar.max_value = max_val
 
+func _set_bar_row_visible(bar: ProgressBar, vis: bool) -> void:
+	if not bar:
+		return
+	bar.visible = vis
+	var p := bar.get_parent() as CanvasItem
+	if p:
+		p.visible = vis
+
 func _on_blood_changed(current: float, max_val: float) -> void:
 	blood_bar.value = current
 	blood_bar.max_value = max_val
-	if blood_bar.get_child_count() > 0 and blood_bar.get_child(0) is Label:
-		var hc: HealthComponent = player.get_node_or_null("HealthComponent") if player else null
-		var stg: String = hc.get_blood_loss_stage_name() if hc else "Estable"
-		(blood_bar.get_child(0) as Label).text = "🩸 -%d%% (%s)" % [int(round(current)), stg]
+	_set_bar_row_visible(blood_bar, current > 0.5)
 
 func _on_stun_changed(current: float, max_val: float) -> void:
 	stun_bar.value = current
 	stun_bar.max_value = max_val
+	_set_bar_row_visible(stun_bar, current > 0.5)
 
 func _on_hygiene_changed(current: float, max_val: float) -> void:
 	if hygiene_bar:
 		hygiene_bar.max_value = max_val
 		hygiene_bar.value = current
-		hygiene_bar.visible = (current < 75.0)
-		if hygiene_bar.get_child_count() > 0 and hygiene_bar.get_child(0) is Label:
-			(hygiene_bar.get_child(0) as Label).text = "🧼 %d%%" % int(round(current))
+		_set_bar_row_visible(hygiene_bar, current < 65.0)
 		_shrink_stats_box()
 
 func _on_hunger_changed(current: float, max_val: float) -> void:
 	if hunger_bar:
 		hunger_bar.max_value = max_val
 		hunger_bar.value = current
-		hunger_bar.visible = (current < 75.0)
-		if hunger_bar.get_child_count() > 0 and hunger_bar.get_child(0) is Label:
-			(hunger_bar.get_child(0) as Label).text = "🍖 %d%%" % int(round(current))
+		_set_bar_row_visible(hunger_bar, current < 75.0)
 		_shrink_stats_box()
 
 func _on_sleep_changed(current: float, max_val: float) -> void:
 	if sleep_bar:
 		sleep_bar.max_value = max_val
 		sleep_bar.value = current
-		sleep_bar.visible = (current < 75.0)
-		if sleep_bar.get_child_count() > 0 and sleep_bar.get_child(0) is Label:
-			(sleep_bar.get_child(0) as Label).text = "💤 %d%%" % int(round(current))
+		_set_bar_row_visible(sleep_bar, current < 75.0)
 		_shrink_stats_box()
 
 func _shrink_stats_box() -> void:
@@ -974,76 +1356,69 @@ func _shrink_stats_box() -> void:
 		sb.size = Vector2.ZERO
 
 func _ensure_compact_bars() -> void:
-	if not health_bar or health_bar.custom_minimum_size.x <= 120.0:
-		return
-	for b in [health_bar, stamina_bar, blood_bar, stun_bar, hunger_bar, sleep_bar, hygiene_bar]:
-		if b:
-			b.custom_minimum_size = Vector2(108, 12)
-			if b.get_child_count() > 0 and b.get_child(0) is Label:
-				var l: Label = b.get_child(0) as Label
-				l.offset_left = 4
-				l.add_theme_font_size_override("font_size", 9)
-	if stamina_bar and stamina_bar.get_child_count() > 0 and stamina_bar.get_child(0) is Label:
-		(stamina_bar.get_child(0) as Label).text = "⚡"
-	_on_health_changed(health_bar.value, health_bar.max_value)
-	if hunger_bar:
-		_on_hunger_changed(hunger_bar.value, hunger_bar.max_value)
-	if sleep_bar:
-		_on_sleep_changed(sleep_bar.value, sleep_bar.max_value)
-	if hygiene_bar:
-		_on_hygiene_changed(hygiene_bar.value, hygiene_bar.max_value)
+	pass
 
 func _on_exhausted() -> void:
 	stamina_bar.modulate = Color.GRAY
 	get_tree().create_timer(1.0).timeout.connect(func(): stamina_bar.modulate = Color.WHITE)
 
-## Recuadro oscuro donde van las barras; devuelve la columna donde se apilan (las ocultas no dejan hueco).
 func _create_stats_box() -> VBoxContainer:
 	var panel := PanelContainer.new()
 	panel.name = "StatsBox"
-	panel.position = Vector2(12, 12)
+	panel.position = Vector2(16, 14)
 	panel.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	var st := StyleBoxFlat.new()
-	st.bg_color = Color(0.06, 0.07, 0.09, 0.72)
-	st.border_color = Color(0.70, 0.55, 0.32, 0.48)
-	st.set_border_width_all(1)
-	st.set_corner_radius_all(5)
-	st.content_margin_left = 6
-	st.content_margin_right = 6
-	st.content_margin_top = 5
-	st.content_margin_bottom = 5
-	panel.add_theme_stylebox_override("panel", st)
+	panel.add_theme_stylebox_override("panel", StyleBoxEmpty.new())
 	add_child(panel)
 	var col := VBoxContainer.new()
-	col.add_theme_constant_override("separation", 3)
+	col.add_theme_constant_override("separation", 5)
 	col.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	panel.add_child(col)
 	return col
 
-## Barra fina: fondo oscuro, relleno del color dado y el icono/dato encima en blanco.
-func _create_fallback_bar(color: Color, pos: Vector2, label_text: String = "") -> ProgressBar:
-	var bar = ProgressBar.new()
-	bar.position = pos
-	bar.custom_minimum_size = Vector2(108, 12)
+func _create_paper_bar_row(stats_box: VBoxContainer, icon_txt: String, fill_color: Color, start_visible: bool) -> ProgressBar:
+	var row := HBoxContainer.new()
+	row.visible = start_visible
+	row.add_theme_constant_override("separation", 6)
+	row.alignment = BoxContainer.ALIGNMENT_CENTER
+	row.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	stats_box.add_child(row)
+
+	var icon_panel := PanelContainer.new()
+	icon_panel.custom_minimum_size = Vector2(20, 14)
+	icon_panel.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	var ic_sb := _make_style(Color(0.945, 0.910, 0.831, 0.94), Color(0.227, 0.196, 0.157, 1.0), 1, 1, 2, 0)
+	ic_sb.shadow_color = Color(0.0, 0.0, 0.0, 0.35)
+	ic_sb.shadow_size = 1
+	ic_sb.shadow_offset = Vector2(2, 2)
+	icon_panel.add_theme_stylebox_override("panel", ic_sb)
+	row.add_child(icon_panel)
+	_make_lbl(icon_panel, icon_txt, 10, Color(0.149, 0.129, 0.106, 1.0), true, HORIZONTAL_ALIGNMENT_CENTER)
+
+	var bar := ProgressBar.new()
+	bar.visible = start_visible
+	bar.custom_minimum_size = Vector2(138, 11)
+	bar.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	bar.show_percentage = false
 	bar.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	var bg := StyleBoxFlat.new()
-	bg.bg_color = Color(0.14, 0.15, 0.18, 0.92)
-	bg.set_corner_radius_all(3)
+	bg.bg_color = Color(0.094, 0.082, 0.067, 0.82)
+	bg.border_color = Color(0.106, 0.094, 0.078, 1.0)
+	bg.set_border_width_all(1)
+	bg.set_corner_radius_all(1)
+	bg.shadow_color = Color(0.0, 0.0, 0.0, 0.35)
+	bg.shadow_size = 1
+	bg.shadow_offset = Vector2(2, 2)
 	var fill := StyleBoxFlat.new()
-	fill.bg_color = color.darkened(0.15)
-	fill.set_corner_radius_all(3)
+	fill.bg_color = fill_color
+	fill.border_color = Color(0.847, 0.800, 0.706, 0.45)
+	fill.border_width_top = 1
+	fill.set_corner_radius_all(1)
 	bar.add_theme_stylebox_override("background", bg)
 	bar.add_theme_stylebox_override("fill", fill)
-	if label_text != "":
-		var lbl = Label.new()
-		lbl.text = label_text
-		lbl.set_anchors_preset(Control.PRESET_FULL_RECT)
-		lbl.offset_left = 4
-		lbl.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-		lbl.add_theme_font_size_override("font_size", 9)
-		lbl.add_theme_color_override("font_color", Color(0.96, 0.96, 0.96))
-		lbl.add_theme_color_override("font_outline_color", Color(0, 0, 0, 0.85))
-		lbl.add_theme_constant_override("outline_size", 2)
-		bar.add_child(lbl)
+	row.add_child(bar)
+
+	bar.visibility_changed.connect(func():
+		if is_instance_valid(row):
+			row.visible = bar.visible
+	)
 	return bar
