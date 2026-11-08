@@ -85,6 +85,7 @@ timeout 80 flatpak run org.godotengine.Godot --headless --path . -s tools/tests/
 - Los Nodos NPC se identifican por `get_person_key()` (`person_profile.person_id`).
 - Modelos `.obj` nuevos: borra las líneas `Ka` de su `.mtl` (`sed -i '/^Ka /d'`) o el editor saca un aviso «Ambient light … ignored in PBR» por material.
 - Los 3 archivos que superaban las 5.000 líneas (`WorldStage3D.gd`, `VillageManager.gd` y `VillageNPC.gd`) fueron troceados por temas el 2026-11-08 en cadenas limpias de 5 scripts cada uno (`< ~1.480` líneas por archivo).
+- **Regla obligatoria para las puertas de cualquier edificio nuevo (`VillageManagerBase.gd`):** toda puerta de edificio debe tener al menos **dos personas de ancho** (`door_width >= MIN_DUAL_LANE_DOOR_WIDTH` = `34.0 px`, recomendado `38–44 px`), quedar registrada en `building_footprints` y `building_doors` (vía `_construct_solid_building`) indicando su dirección (`door_dir` en `"south"`, `"north"`, `"east"` o `"west"`, o `door_on_south: bool`) para que reciba automáticamente sus dos carriles separados de entrada y salida (`get_door_lanes`), dejar ambos carriles despejados de muebles y tabiques, y pasar la comprobación automática `vm.check_all_building_doors_and_lanes()` en `tools/tests/verify_all.gd`.
 
 ## 5. Mapa del código (lo imprescindible)
 

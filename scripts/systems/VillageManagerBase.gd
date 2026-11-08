@@ -282,18 +282,96 @@ func set_camp_farm_enabled(en: bool) -> void:
 func _is_near(player: Node2D, mouse_pos: Vector2, target_pos: Vector2, p_rad: float, m_rad: float) -> bool:
 	return (player != null and player.global_position.distance_squared_to(target_pos) <= p_rad * p_rad) or (target_pos.distance_squared_to(mouse_pos) <= m_rad * m_rad)
 
+const MIN_DUAL_LANE_DOOR_WIDTH: float = 34.0
+
+func get_door_outward_dir(b_or_door: Dictionary) -> Vector2:
+	if b_or_door.has("door_dir"):
+		var dd = b_or_door["door_dir"]
+		if dd is Vector2 and (dd as Vector2).length_squared() > 0.01:
+			return (dd as Vector2).normalized()
+		var s: String = str(dd).to_lower().strip_edges()
+		match s:
+			"south", "s", "down", "sur":
+				return Vector2(0.0, 1.0)
+			"north", "n", "up", "norte":
+				return Vector2(0.0, -1.0)
+			"east", "e", "right", "este":
+				return Vector2(1.0, 0.0)
+			"west", "w", "left", "oeste":
+				return Vector2(-1.0, 0.0)
+	if b_or_door.has("door_south"):
+		return Vector2(0.0, 1.0 if bool(b_or_door["door_south"]) else -1.0)
+	var r: Rect2 = b_or_door.get("rect", b_or_door.get("building_rect", Rect2()))
+	var dp: Vector2 = b_or_door.get("door_pos", b_or_door.get("pos", r.get_center()))
+	if r.size.x > 0.0 and r.size.y > 0.0:
+		var d_s: float = absf(dp.y - r.end.y)
+		var d_n: float = absf(dp.y - r.position.y)
+		var d_e: float = absf(dp.x - r.end.x)
+		var d_w: float = absf(dp.x - r.position.x)
+		var m: float = minf(minf(d_s, d_n), minf(d_e, d_w))
+		if is_equal_approx(m, d_s):
+			return Vector2(0.0, 1.0)
+		elif is_equal_approx(m, d_n):
+			return Vector2(0.0, -1.0)
+		elif is_equal_approx(m, d_e):
+			return Vector2(1.0, 0.0)
+		else:
+			return Vector2(-1.0, 0.0)
+	return Vector2(0.0, 1.0)
+
+func get_door_lanes(b_or_door: Dictionary, lane_shift: float = 0.0) -> Dictionary:
+	var d_pos: Vector2 = b_or_door.get("door_pos", b_or_door.get("pos", Vector2.ZERO))
+	var out_dir: Vector2 = get_door_outward_dir(b_or_door)
+	var in_dir: Vector2 = -out_dir
+	# Carril derecho según el sentido de la marcha: al salir (`out_dir`) gira +90° (`Vector2(-out_dir.y, out_dir.x)`),
+	# y al entrar (`in_dir`) va por el carril opuesto (`-exit_side`). Vale para Norte, Sur, Este, Oeste o cualquier ángulo.
+	var exit_side: Vector2 = Vector2(-out_dir.y, out_dir.x)
+	var enter_side: Vector2 = -exit_side
+	var tangent_axis: Vector2 = Vector2(1.0, 0.0) if absf(out_dir.y) >= absf(out_dir.x) else Vector2(0.0, 1.0)
+	var exit_lane_center: Vector2 = d_pos + exit_side * 7.5 + tangent_axis * (lane_shift * 0.5)
+	var enter_lane_center: Vector2 = d_pos + enter_side * 7.5 + tangent_axis * (lane_shift * 0.5)
+	return {
+		"door_pos": d_pos,
+		"out_dir": out_dir,
+		"in_dir": in_dir,
+		"exit_side": exit_side,
+		"enter_side": enter_side,
+		"exit_lane_center": exit_lane_center,
+		"enter_lane_center": enter_lane_center,
+		"exit_inside_pt": exit_lane_center + in_dir * 16.0,
+		"exit_outside_pt": exit_lane_center + out_dir * 20.0,
+		"enter_outside_pt": enter_lane_center + out_dir * 18.0,
+		"enter_inside_pt": enter_lane_center + in_dir * 16.0,
+	}
+
 func _construct_solid_building(
-	b_id: String, b_title: String, center: Vector2, size: Vector2, door_on_south: bool,
+	b_id: String, b_title: String, center: Vector2, size: Vector2, door_on_south,
 	floor_tex_path: String, wall_h_path: String, wall_v_path: String,
 	door_width: float = 42.0, door_offset_x: float = 0.0, title_color: Color = Color(0.96, 0.90, 0.68)
 ) -> void:
 	var half := size * 0.5
 	var rect := Rect2(center - half, size)
-	var door_y: float = (center.y + half.y) if door_on_south else (center.y - half.y)
-	var door_pos := Vector2(center.x + door_offset_x, door_y)
+	var door_dir: String = "south"
+	if typeof(door_on_south) == TYPE_STRING:
+		var dd_s: String = str(door_on_south).to_lower().strip_edges()
+		if dd_s in ["south", "north", "east", "west"]:
+			door_dir = dd_s
+	else:
+		door_dir = "south" if bool(door_on_south) else "north"
+	var is_south: bool = (door_dir == "south")
+	var is_horiz_door: bool = (door_dir in ["south", "north"])
+	var door_pos: Vector2
+	if is_horiz_door:
+		var door_y: float = (center.y + half.y) if is_south else (center.y - half.y)
+		door_pos = Vector2(center.x + door_offset_x, door_y)
+	else:
+		var is_east: bool = (door_dir == "east")
+		var door_x: float = (center.x + half.x) if is_east else (center.x - half.x)
+		door_pos = Vector2(door_x, center.y + door_offset_x)
 
 	building_footprints.append({
-		"id": b_id, "title": b_title, "rect": rect, "door_pos": door_pos, "door_south": door_on_south
+		"id": b_id, "title": b_title, "rect": rect, "door_pos": door_pos,
+		"door_south": is_south, "door_dir": door_dir, "door_width": door_width
 	})
 
 	var floor_tex := _load_tex(floor_tex_path)
@@ -312,24 +390,41 @@ func _construct_solid_building(
 	var tex_v := _load_tex(wall_v_path)
 	var wall_t: float = 7.0
 
-	_add_solid_wall_segment(Vector2(rect.position.x, center.y), Vector2(wall_t, size.y), tex_v)
-	_add_solid_wall_segment(Vector2(rect.end.x, center.y), Vector2(wall_t, size.y), tex_v)
+	if is_horiz_door:
+		_add_solid_wall_segment(Vector2(rect.position.x, center.y), Vector2(wall_t, size.y), tex_v)
+		_add_solid_wall_segment(Vector2(rect.end.x, center.y), Vector2(wall_t, size.y), tex_v)
 
-	var closed_y: float = (center.y - half.y) if door_on_south else (center.y + half.y)
-	_add_solid_wall_segment(Vector2(center.x, closed_y), Vector2(size.x, wall_t), tex_h)
+		var closed_y: float = (center.y - half.y) if is_south else (center.y + half.y)
+		_add_solid_wall_segment(Vector2(center.x, closed_y), Vector2(size.x, wall_t), tex_h)
 
-	var door_left_x: float = (center.x + door_offset_x) - door_width * 0.5
-	var door_right_x: float = (center.x + door_offset_x) + door_width * 0.5
-	var left_seg_w: float = maxf(8.0, door_left_x - rect.position.x)
-	var right_seg_w: float = maxf(8.0, rect.end.x - door_right_x)
+		var door_left_x: float = door_pos.x - door_width * 0.5
+		var door_right_x: float = door_pos.x + door_width * 0.5
+		var left_seg_w: float = maxf(8.0, door_left_x - rect.position.x)
+		var right_seg_w: float = maxf(8.0, rect.end.x - door_right_x)
 
-	_add_solid_wall_segment(Vector2(rect.position.x + left_seg_w * 0.5, door_y), Vector2(left_seg_w, wall_t), tex_h)
-	_add_solid_wall_segment(Vector2(rect.end.x - right_seg_w * 0.5, door_y), Vector2(right_seg_w, wall_t), tex_h)
+		_add_solid_wall_segment(Vector2(rect.position.x + left_seg_w * 0.5, door_pos.y), Vector2(left_seg_w, wall_t), tex_h)
+		_add_solid_wall_segment(Vector2(rect.end.x - right_seg_w * 0.5, door_pos.y), Vector2(right_seg_w, wall_t), tex_h)
+		_add_rect_poly(door_pos, Vector2(door_width * 0.5, 3.0), Color(0.72, 0.54, 0.30, 0.85), -2)
+	else:
+		_add_solid_wall_segment(Vector2(center.x, rect.position.y), Vector2(size.x, wall_t), tex_h)
+		_add_solid_wall_segment(Vector2(center.x, rect.end.y), Vector2(size.x, wall_t), tex_h)
 
-	_add_rect_poly(door_pos, Vector2(door_width * 0.5, 3.0), Color(0.72, 0.54, 0.30, 0.85), -2)
+		var is_east: bool = (door_dir == "east")
+		var closed_x: float = (center.x - half.x) if is_east else (center.x + half.x)
+		_add_solid_wall_segment(Vector2(closed_x, center.y), Vector2(wall_t, size.y), tex_v)
+
+		var door_top_y: float = door_pos.y - door_width * 0.5
+		var door_bot_y: float = door_pos.y + door_width * 0.5
+		var top_seg_h: float = maxf(8.0, door_top_y - rect.position.y)
+		var bot_seg_h: float = maxf(8.0, rect.end.y - door_bot_y)
+
+		_add_solid_wall_segment(Vector2(door_pos.x, rect.position.y + top_seg_h * 0.5), Vector2(wall_t, top_seg_h), tex_v)
+		_add_solid_wall_segment(Vector2(door_pos.x, rect.end.y - bot_seg_h * 0.5), Vector2(wall_t, bot_seg_h), tex_v)
+		_add_rect_poly(door_pos, Vector2(3.0, door_width * 0.5), Color(0.72, 0.54, 0.30, 0.85), -2)
+
 	var t_lbl := _add_title_label(center + Vector2(-125, -half.y - 18.0), Vector2(250, 14), b_title, title_color, 7)
 	t_lbl.set_meta("anchor_pos", door_pos)
-	_spawn_building_door_and_window(b_id, b_title, rect, door_pos, door_on_south, door_width)
+	_spawn_building_door_and_window(b_id, b_title, rect, door_pos, is_south, door_width, door_dir)
 
 func _spawn_building_door_and_window(
 	b_id: String,
@@ -337,8 +432,11 @@ func _spawn_building_door_and_window(
 	rect: Rect2,
 	door_pos: Vector2,
 	door_on_south: bool,
-	door_width: float
+	door_width: float,
+	door_dir: String = ""
 ) -> void:
+	var eff_dir: String = door_dir if door_dir != "" else ("south" if door_on_south else "north")
+	var is_horiz_door: bool = (eff_dir in ["south", "north"])
 	var tex_door_closed := _load_tex("res://assests/world/village/door_wood_closed.png")
 	var tex_door_open := _load_tex("res://assests/world/village/door_wood_open.png")
 	var tex_win_open := _load_tex("res://assests/world/village/window_glass_open.png")
@@ -351,7 +449,7 @@ func _spawn_building_door_and_window(
 	d_body.collision_mask = 0
 	var d_col := CollisionShape2D.new()
 	var d_rect_shape := RectangleShape2D.new()
-	d_rect_shape.size = Vector2(maxf(20.0, door_width - 4.0), 7.0)
+	d_rect_shape.size = Vector2(maxf(20.0, door_width - 4.0), 7.0) if is_horiz_door else Vector2(7.0, maxf(20.0, door_width - 4.0))
 	d_col.shape = d_rect_shape
 	d_col.disabled = false # Las puertas permanecen cerradas por defecto y se abren solo al cruzar el umbral
 	d_body.add_child(d_col)
@@ -364,19 +462,27 @@ func _spawn_building_door_and_window(
 	var d_lbl := _make_station_label(door_pos + Vector2(-125, -26), "🚪 Puerta de %s" % b_title)
 	entities_root.add_child(d_lbl)
 
+	var occ_rect: Rect2 = Rect2(door_pos - Vector2(door_width * 0.5, 4.0), Vector2(door_width, 8.0)) if is_horiz_door else Rect2(door_pos - Vector2(4.0, door_width * 0.5), Vector2(8.0, door_width))
 	building_doors.append({
 		"building_id": b_id, "building_title": b_title, "building_rect": rect, "pos": door_pos,
-		"door_south": door_on_south, "width": door_width, "body": d_body, "col": d_col,
+		"door_south": door_on_south, "door_dir": eff_dir, "width": door_width, "body": d_body, "col": d_col,
 		"spr_closed": spr_closed, "spr_open": spr_open, "label": d_lbl,
-		"occluder_rect": Rect2(door_pos - Vector2(door_width * 0.5, 4.0), Vector2(door_width, 8.0)),
+		"occluder_rect": occ_rect,
 		"is_open": false, "is_locked": false, "locked_by_player": false,
 		"manual_override_timer": 0.0, "npc_pass_timer": 0.0, "police_breach_timer": 0.0
 	})
 
-	var win_x: float = door_pos.x - door_width * 0.5 - 18.0
-	if win_x < rect.position.x + 15.0:
-		win_x = door_pos.x + door_width * 0.5 + 18.0
-	var win_pos := Vector2(clampf(win_x, rect.position.x + 14.0, rect.end.x - 14.0), door_pos.y)
+	var win_pos: Vector2
+	if is_horiz_door:
+		var win_x: float = door_pos.x - door_width * 0.5 - 18.0
+		if win_x < rect.position.x + 15.0:
+			win_x = door_pos.x + door_width * 0.5 + 18.0
+		win_pos = Vector2(clampf(win_x, rect.position.x + 14.0, rect.end.x - 14.0), door_pos.y)
+	else:
+		var win_y: float = door_pos.y - door_width * 0.5 - 18.0
+		if win_y < rect.position.y + 15.0:
+			win_y = door_pos.y + door_width * 0.5 + 18.0
+		win_pos = Vector2(door_pos.x, clampf(win_y, rect.position.y + 14.0, rect.end.y - 14.0))
 	var spr_win := _add_sprite_prop(tex_win_open, win_pos, Vector2.ONE, 3)
 
 	_add_station_area("WindowArea_" + b_id, win_pos, 11.0, "building_window")
@@ -385,7 +491,7 @@ func _spawn_building_door_and_window(
 
 	building_windows.append({
 		"building_id": b_id, "building_title": b_title, "building_rect": rect, "pos": win_pos,
-		"door_south": door_on_south, "sprite": spr_win, "label": w_lbl,
+		"door_south": door_on_south, "door_dir": eff_dir, "sprite": spr_win, "label": w_lbl,
 		"is_shuttered": false, "manual_override_timer": 0.0
 	})
 
@@ -475,41 +581,48 @@ func get_navigation_waypoint(from_pos: Vector2, to_pos: Vector2, agent: Node2D =
 		lane_shift = float((abs(agent.name.hash()) % 5) - 2) * 1.5
 
 	# PASADA 1: Si el origen está dentro (o en el umbral de la puerta) de un edificio y el destino está fuera de él,
-	# primero salir limpiamente por los tabiques internos y el pasillo de la puerta de ese edificio.
+	# primero salir limpiamente por los tabiques internos y el pasillo de la puerta de ese edificio (vale para N/S/E/O).
 	for b in building_footprints:
 		var r_building_check: Rect2 = b["rect"].grow(2.5)
 		var r_interior: Rect2 = b["rect"].grow(1.5)
 		var d_pos: Vector2 = b["door_pos"]
-		var door_south: bool = bool(b["door_south"])
-		var r_door_threshold := Rect2(d_pos - Vector2(20.0, 16.0 if door_south else 12.0), Vector2(40.0, 28.0))
+		var lanes: Dictionary = get_door_lanes(b, lane_shift)
+		var out_dir: Vector2 = lanes["out_dir"]
+		var exit_side: Vector2 = lanes["exit_side"]
+		var exit_lane_center: Vector2 = lanes["exit_lane_center"]
+		var inside_pt: Vector2 = lanes["exit_inside_pt"]
+		var outside_pt: Vector2 = lanes["exit_outside_pt"]
+		var is_horiz_door: bool = absf(out_dir.y) >= absf(out_dir.x)
+		var r_door_threshold: Rect2
+		if is_horiz_door:
+			r_door_threshold = Rect2(d_pos - Vector2(20.0, 16.0 if out_dir.y > 0.0 else 12.0), Vector2(40.0, 28.0))
+		else:
+			r_door_threshold = Rect2(d_pos - Vector2(16.0 if out_dir.x > 0.0 else 12.0, 20.0), Vector2(28.0, 40.0))
 		if (r_interior.has_point(from_pos) or r_door_threshold.has_point(from_pos)) and not r_building_check.has_point(to_pos):
 			var b_id: String = str(b.get("id", ""))
-			# Carril derecho de salida (-7.5 px en puerta sur, +7.5 px en puerta norte) para no chocar de frente con los que entran
-			var exit_lane_x: float = d_pos.x + (-7.5 if door_south else 7.5) + lane_shift * 0.5
-			var inside_pt := Vector2(exit_lane_x, d_pos.y + (-16.0 if door_south else 16.0))
-			var outside_pt := Vector2(exit_lane_x, d_pos.y + (20.0 if door_south else -20.0))
-
-			# Primero salvar cualquier tabique interno hacia la antesala de la puerta principal
-			var still_inside_wall: bool = (from_pos.y < d_pos.y - 2.0) if door_south else (from_pos.y > d_pos.y + 2.0)
+			var along_out: float = (from_pos - d_pos).dot(out_dir)
+			var still_inside_wall: bool = along_out < -2.0
 			var on_other_floor: bool = agent != null and "elevation_level" in agent and int(agent.elevation_level) != 0
 			if still_inside_wall or on_other_floor:
 				var part_wp: Vector2 = _route_internal_building_partitions(b_id, from_pos, inside_pt, agent)
 				if part_wp != inside_pt:
 					return part_wp
 
-			if still_inside_wall and absf(from_pos.x - exit_lane_x) > 6.5:
+			var lateral_err_exit: float = absf((from_pos - exit_lane_center).dot(exit_side))
+			if still_inside_wall and lateral_err_exit > 6.5:
 				return inside_pt
 			return outside_pt
 
-	# PASADA 2: Si el destino está dentro de un edificio, entrar limpiamente por el pasillo exterior -> puerta -> interior
+	# PASADA 2: Si el destino está dentro de un edificio, entrar limpiamente por el pasillo exterior -> puerta -> interior (N/S/E/O)
 	for b in building_footprints:
 		var r_target: Rect2 = b["rect"].grow(2.5)
 		if r_target.has_point(to_pos):
 			var b_id: String = str(b.get("id", ""))
 			var d_pos2: Vector2 = b["door_pos"]
-			var door_south2: bool = bool(b["door_south"])
-			# Carril derecho de entrada (+7.5 px en puerta sur, -7.5 px en puerta norte) separado del carril de salida
-			var enter_lane_x: float = d_pos2.x + (7.5 if door_south2 else -7.5) + lane_shift * 0.5
+			var lanes2: Dictionary = get_door_lanes(b, lane_shift)
+			var out_dir2: Vector2 = lanes2["out_dir"]
+			var enter_side2: Vector2 = lanes2["enter_side"]
+			var enter_lane_center: Vector2 = lanes2["enter_lane_center"]
 
 			# Si el objetivo (p. ej. un cadáver o el jugador) está pegado a un muro interior, proyectar el punto de destino
 			# ligeramente hacia el suelo caminable del interior (a >= 10 px de la pared) para no chocar con el muro
@@ -520,16 +633,17 @@ func get_navigation_waypoint(from_pos: Vector2, to_pos: Vector2, agent: Node2D =
 			)
 
 			var r_inside_room: Rect2 = b["rect"].grow(-2.5)
-			var past_door_line: bool = (from_pos.y <= d_pos2.y - 5.5) if door_south2 else (from_pos.y >= d_pos2.y + 5.5)
+			var along_out2: float = (from_pos - d_pos2).dot(out_dir2)
+			var past_door_line: bool = along_out2 <= -5.5
 			var already_inside: bool = r_inside_room.has_point(from_pos) and past_door_line
 
 			if not already_inside:
-				var outside_pt2 := Vector2(enter_lane_x, d_pos2.y + (18.0 if door_south2 else -18.0))
-				var inside_pt2 := Vector2(enter_lane_x, d_pos2.y + (-16.0 if door_south2 else 16.0))
+				var outside_pt2: Vector2 = lanes2["enter_outside_pt"]
+				var inside_pt2: Vector2 = lanes2["enter_inside_pt"]
 
-				var aligned_x: bool = absf(from_pos.x - enter_lane_x) <= 6.5
-				var in_door_funnel_y: bool = (from_pos.y >= d_pos2.y - 18.0 and from_pos.y <= d_pos2.y + 24.0) if door_south2 else (from_pos.y >= d_pos2.y - 24.0 and from_pos.y <= d_pos2.y + 18.0)
-				if aligned_x and in_door_funnel_y:
+				var aligned_lateral: bool = absf((from_pos - enter_lane_center).dot(enter_side2)) <= 6.5
+				var in_door_funnel: bool = along_out2 >= -18.0 and along_out2 <= 24.0
+				if aligned_lateral and in_door_funnel:
 					return inside_pt2
 				return _avoid_outdoor_buildings(from_pos, outside_pt2, "")
 			else:
@@ -593,13 +707,74 @@ func get_doorway_clearance_nudge(pos: Vector2, radius: float = 18.0) -> Vector2:
 		var d_pos: Vector2 = d_entry.get("pos", Vector2.ZERO)
 		if pos.distance_to(d_pos) <= radius:
 			var b_rect: Rect2 = d_entry.get("building_rect", Rect2())
-			var door_south: bool = bool(d_entry.get("door_south", true))
+			var out_dir: Vector2 = get_door_outward_dir(d_entry)
 			var is_inside: bool = b_rect.has_point(pos)
-			if is_inside:
-				return Vector2(0.0, -1.0 if door_south else 1.0)
-			else:
-				return Vector2(0.0, 1.0 if door_south else -1.0)
+			return -out_dir if is_inside else out_dir
 	return Vector2.ZERO
+
+## Comprobación automática de todas las puertas del pueblo (presentes y futuras):
+## 1) Que toda huella en `building_footprints` tenga puerta registrada con dirección (`door_dir` en N/S/E/O) y ancho >= `MIN_DUAL_LANE_DOOR_WIDTH` (dos personas).
+## 2) Que sus dos carriles (`exit_lane` y `enter_lane`) estén bien separados y despejados de paredes/tabiques (`_wall_occluder_rects`) y de muebles (`prop_collider`).
+func check_all_building_doors_and_lanes() -> Array:
+	var issues: Array = []
+	var prop_rects: Array[Rect2] = []
+	if is_inside_tree():
+		for n in get_tree().get_nodes_in_group("prop_collider"):
+			if n is StaticBody2D and is_instance_valid(n):
+				var sb := n as StaticBody2D
+				if sb.is_in_group("tavern_upper_walls"):
+					continue
+				var sz := Vector2(10.0, 10.0)
+				for ch in sb.get_children():
+					if ch is CollisionShape2D and ch.shape is RectangleShape2D:
+						sz = (ch.shape as RectangleShape2D).size
+				prop_rects.append(Rect2(sb.global_position - sz * 0.5, sz))
+
+	for b in building_footprints:
+		var b_id: String = str(b.get("id", "unknown"))
+		var d_dir: String = str(b.get("door_dir", ""))
+		if not (d_dir in ["south", "north", "east", "west"]):
+			issues.append("%s: missing or invalid door_dir '%s'" % [b_id, d_dir])
+		var d_w: float = float(b.get("door_width", 0.0))
+		if d_w < MIN_DUAL_LANE_DOOR_WIDTH:
+			issues.append("%s: door_width %.1f < %.1f (too narrow for 2 people)" % [b_id, d_w, MIN_DUAL_LANE_DOOR_WIDTH])
+
+		var lanes: Dictionary = get_door_lanes(b, 0.0)
+		var out_dir: Vector2 = lanes["out_dir"]
+		var exit_side: Vector2 = lanes["exit_side"]
+		var exit_c: Vector2 = lanes["exit_lane_center"]
+		var enter_c: Vector2 = lanes["enter_lane_center"]
+		var sep: float = absf((enter_c - exit_c).dot(exit_side))
+		if sep < 14.0 or out_dir.length_squared() < 0.9:
+			issues.append("%s: invalid door lanes (sep=%.1f, out_dir=%s)" % [b_id, sep, str(out_dir)])
+
+		var exit_in: Vector2 = lanes["exit_inside_pt"]
+		var exit_out: Vector2 = lanes["exit_outside_pt"]
+		var enter_out: Vector2 = lanes["enter_outside_pt"]
+		var enter_in: Vector2 = lanes["enter_inside_pt"]
+
+		for w_rect in _wall_occluder_rects:
+			if _segment_intersects_rect(exit_in, exit_out, w_rect):
+				issues.append("%s: wall/partition %s blocks exit lane (%s -> %s)" % [b_id, str(w_rect), str(exit_in), str(exit_out)])
+			if _segment_intersects_rect(enter_out, enter_in, w_rect):
+				issues.append("%s: wall/partition %s blocks enter lane (%s -> %s)" % [b_id, str(w_rect), str(enter_out), str(enter_in)])
+
+		for pr in prop_rects:
+			if _segment_intersects_rect(exit_in, exit_out, pr.grow(3.0)):
+				issues.append("%s: furniture/prop %s blocks exit lane (%s -> %s)" % [b_id, str(pr), str(exit_in), str(exit_out)])
+			if _segment_intersects_rect(enter_out, enter_in, pr.grow(3.0)):
+				issues.append("%s: furniture/prop %s blocks enter lane (%s -> %s)" % [b_id, str(pr), str(enter_out), str(enter_in)])
+
+	for d_entry in building_doors:
+		var db_id: String = str(d_entry.get("building_id", "unknown"))
+		var dw: float = float(d_entry.get("width", 0.0))
+		if dw < MIN_DUAL_LANE_DOOR_WIDTH:
+			issues.append("door %s: width %.1f < %.1f" % [db_id, dw, MIN_DUAL_LANE_DOOR_WIDTH])
+		var dd: String = str(d_entry.get("door_dir", ""))
+		if not (dd in ["south", "north", "east", "west"]):
+			issues.append("door %s: missing door_dir '%s'" % [db_id, dd])
+
+	return issues
 
 func _avoid_outdoor_buildings(from_pos: Vector2, target_pos: Vector2, ignore_b_id: String) -> Vector2:
 	var cur_target: Vector2 = target_pos
