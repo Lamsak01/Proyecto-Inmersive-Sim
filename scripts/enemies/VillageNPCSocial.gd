@@ -899,13 +899,10 @@ func is_visiting_grave() -> bool:
 	return current_activity == ActivityState.SOCIALIZING and hangout_id < 0 and person_profile != null and int(person_profile.bereavement_days_left) > 0 and str(person_profile.deceased_partner_name) != ""
 
 func _get_social_target_pos() -> Vector2:
-	var h_ang: float = float(absi(npc_name.hash()) % 360) * (TAU / 360.0)
 	if rite_pos != Vector2.ZERO:
-		return rite_pos + Vector2.RIGHT.rotated(h_ang) * 10.0
+		return rite_pos
 	if errand_kind != "":
-		if _VillageTavern.is_at_seat(errand_pos) or _VillageRestaurant.is_at_seat(errand_pos):
-			return errand_pos
-		return errand_pos + Vector2.RIGHT.rotated(h_ang) * 9.0
+		return errand_pos
 	if hangout_id >= 0:
 		return hangout_spot_pos + Vector2(float(hangout_side) * 11.0, 0.0)
 	if is_visiting_grave():
@@ -926,6 +923,7 @@ func _get_social_target_pos() -> Vector2:
 				_tavern_seat = _VillageTavern.pick_seat_for(vm_s, self)
 			if _tavern_seat != Vector2.ZERO and _tavern_seat != tavern_social_pos:
 				return _tavern_seat
+		var h_ang: float = float(absi(npc_name.hash()) % 360) * (TAU / 360.0)
 		var ring_offset := Vector2.RIGHT.rotated(h_ang) * 20.0
 		var ref_p: Vector2 = _social_partner.home_table_pos if _social_partner.velocity.length_squared() > 25.0 else _social_partner.global_position
 		var cand_p: Vector2 = ref_p + ring_offset

@@ -1087,10 +1087,24 @@ func _build_tavern_floor_0_3d(b_root: Node3D, _wall_h: float, m_wall: Material, 
 		# Zanca/contorno de soporte bajo el peldaño y huella de roble macizo
 		_add_box_2d(b_root, Vector2(stair_x, sy), Vector2(24.0, absf(step_dy) + 0.8), 2.0, sh - 1.5, m_dark_wood)
 		_add_box_2d(b_root, Vector2(stair_x, sy), Vector2(26.0, absf(step_dy) + 1.2), sh, step_dh + 0.5, m_wood)
-		if (si % 2) == 0:
-			for rail_side in [-13.0, 13.0]:
-				_add_box_2d(b_root, Vector2(stair_x + rail_side, sy), Vector2(1.4, 1.4), sh + step_dh, 6.5, m_dark_wood)
-				_add_box_2d(b_root, Vector2(stair_x + rail_side, sy), Vector2(1.8, absf(step_dy) * 2.2), sh + step_dh + 6.2, 1.1, m_trim)
+		if si in [0, 5, 10, 15]:
+			var is_end_post: bool = (si == 0 or si == 15)
+			var post_w: float = 2.0 if is_end_post else 1.3
+			var post_h: float = 7.4 if is_end_post else 6.8
+			for rail_side in [-12.5, 12.5]:
+				_add_box_2d(b_root, Vector2(stair_x + rail_side, sy), Vector2(post_w, post_w), sh + step_dh, post_h, m_dark_wood)
+	# Pasamanos continuo inclinado a cada lado de la escalera (de peldaño 0 a peldaño 15)
+	for rail_side in [-12.5, 12.5]:
+		var p0_3d: Vector3 = to_3d(Vector2(stair_x + rail_side, y_bot + 0.5 * step_dy), 2.0 + step_dh + 7.0)
+		var p1_3d: Vector3 = to_3d(Vector2(stair_x + rail_side, y_top - 0.5 * step_dy), T.FLOOR_1_H + 7.0)
+		var rail_mi := MeshInstance3D.new()
+		var rail_bm := BoxMesh.new()
+		rail_bm.size = Vector3(1.9 * WORLD_SCALE, (1.2 * WORLD_SCALE) / _cos_p, p0_3d.distance_to(p1_3d) + 0.04)
+		rail_mi.mesh = rail_bm
+		rail_mi.material_override = m_trim
+		rail_mi.position = (p0_3d + p1_3d) * 0.5
+		rail_mi.rotation.x = -atan2(p1_3d.y - p0_3d.y, p1_3d.z - p0_3d.z)
+		b_root.add_child(rail_mi)
 	# Toneles y cajas de bodega flanqueando la trampilla del Club de la Lucha (516, -286)
 	_add_model_2d(b_root, "props/Barrel.gltf", Vector2(498.0, -302.0), 2.0, Vector2(9.5, 9.5), 10.5)
 	_add_model_2d(b_root, "props/Barrel.gltf", Vector2(534.0, -302.0), 2.0, Vector2(9.5, 9.5), 10.5)
@@ -1179,10 +1193,10 @@ func _build_tavern_floor_1_3d(loft_root: Node3D, _wall_h: float, m_wall: Materia
 
 	# 2. Barandilla de madera de la galería alta (asomada al Gran Salón en y = -168.0) y barandilla del hueco de escalera
 	_add_box_2d(loft_root, Vector2(434.0, -168.0), Vector2(340.0, 2.6), h1 + 7.2, 1.5, m_dark_wood)
-	for bx in range(272, 602, 18):
+	for bx in range(272, 602, 28):
 		_add_box_2d(loft_root, Vector2(float(bx), -168.0), Vector2(1.8, 2.2), h1, 7.2, m_trim)
 	_add_box_2d(loft_root, Vector2(558.0, -248.0), Vector2(2.4, 84.0), h1 + 7.2, 1.5, m_dark_wood)
-	for by in [-284.0, -264.0, -244.0, -224.0, -208.0]:
+	for by in [-284.0, -246.0, -208.0]:
 		_add_box_2d(loft_root, Vector2(558.0, by), Vector2(2.0, 2.0), h1, 7.2, m_trim)
 
 	# 3. Tabique completo del pasillo de los 5 dormitorios (y = -216.0, x = 264..558) con sus 5 huecos de puerta enmarcados y muro superior continuo
