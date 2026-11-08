@@ -1031,7 +1031,7 @@ func _is_mandatory_work_hours() -> bool:
 		return false # V5d: el jornalero con jornal sí tiene horario de trabajo (8–18)
 	if errand_kind == "leisure":
 		var lp_w: String = str(get_meta("leisure_place", ""))
-		if lp_w == "tavern_poker" or (lp_w in ["tavern_hall", "restaurant_terrace", "restaurant_hall"] and WorldClock != null and int(WorldClock.current_hour) >= 18):
+		if lp_w == "tavern_poker" or (lp_w in ["tavern_hall", "restaurant_terrace", "restaurant_hall"] and WorldClock != null and int(WorldClock.current_hour) >= 12):
 			return false
 	if not WorldClock or _is_morning_expedition_hours():
 		return true

@@ -26,6 +26,17 @@ func _initialize() -> void:
 	assert(vm != null, "VillageManager must exist")
 	assert(player != null, "Player must exist")
 
+	# 0. Verificar que MODO DEMO arranca encendido por defecto, y apagarlo para correr la batería histórica completa
+	var gm_demo = root.get_node_or_null("GameManager")
+	var wc_demo = root.get_node_or_null("WorldClock")
+	assert(gm_demo != null and wc_demo != null, "GameManager and WorldClock must exist")
+	assert(gm_demo.DEMO_MODE_DEFAULT == true, "DEMO_MODE_DEFAULT must be true by default")
+	assert(gm_demo.is_demo_mode() and vm.is_demo_mode(), "Demo mode must start enabled in GameManager and VillageManager")
+	var don_vittorio_init = vm._find_npc_by_name("Don Vittorio Corvo")
+	assert(don_vittorio_init != null and not don_vittorio_init.is_dead, "Don Vittorio Corvo must be present at the Trattoria in demo mode")
+	gm_demo.set_demo_mode(false)
+	assert(not gm_demo.is_demo_mode() and not vm.is_demo_mode(), "Turning demo_mode OFF must re-enable all systems for full suite")
+
 	# 1. Test RimWorld HealthComponent (Independent Blood Loss, Symbolic Effective Max Health, Makeshift Tending)
 	var hc_script = load("res://scripts/systems/combat/HealthComponent.gd")
 	var dmg_script = load("res://scripts/systems/combat/DamageData.gd")
@@ -7363,6 +7374,56 @@ func _initialize() -> void:
 		assert(tm_ui_root.clock_weather_label.text == "despejado", "Clock weather label must show 'despejado' when clear! Got: " + str(tm_ui_root.clock_weather_label.text))
 		wc_test.set_weather(prev_w)
 		print("Clock Weather Indicator Sync Check (lluvia / niebla / despejado) OK")
+
+	# Simulación de 4 días completos con MODO DEMO encendido: comprobar que nada de lo pausado ocurre y nadie se atasca
+	gm_demo.set_demo_mode(true)
+	assert(gm_demo.is_demo_mode() and vm.is_demo_mode(), "Demo mode must be active for multi-day simulation")
+	vm.npc_murders.clear()
+	vm.desires.clear()
+	(vm.VillageNeeds.state(vm).get("thefts", []) as Array).clear()
+	vm.VillageNightJobs.jobs(vm).clear()
+	(vm.sect_state.get("members", {}) as Dictionary).clear()
+	var fam_members_before: int = (vm.VillageFamilia.state(vm).get("members", {}) as Dictionary).size()
+	vm.VillageFamilia.state(vm)["meeting_tonight"] = false
+	vm.town_state["voting_day"] = -1
+	for n_clean in vm.VillageNeeds.living(vm):
+		n_clean.sick_level = 0
+		if n_clean.is_at_poker_table:
+			n_clean.set_poker_seating(false)
+		if str(n_clean.get_meta("leisure_place", "")) == "tavern_poker":
+			n_clean.end_errand()
+		if n_clean.has_meta("leaving"):
+			n_clean.remove_meta("leaving")
+	var demo_living_before: int = vm.VillageNeeds.living(vm).size()
+	var eco_demo_end = get_first_node_in_group("ecosystem_manager")
+	assert(eco_demo_end != null and eco_demo_end.find_sustainable_hunt_prey(Vector2.ZERO) == null, "Forest hunting must be paused in demo mode")
+	var saw_working_count: int = 0
+	var saw_tavern_hall: int = 0
+	for sim_day in range(20, 24):
+		wc_demo.current_day = sim_day
+		for sim_h in [8, 12, 16, 20, 23, 2]:
+			wc_demo.current_hour = sim_h
+			vm._on_hour_passed(sim_day, sim_h)
+			vm._process(0.25)
+			for n_sim in vm.VillageNeeds.living(vm):
+				n_sim._update_needs_and_decisions(0.5)
+				if sim_h == 12 and int(n_sim.current_activity) == int(n_sim.ActivityState.WORKING):
+					saw_working_count += 1
+				if str(n_sim.get_meta("leisure_place", "")) == "tavern_hall":
+					saw_tavern_hall += 1
+		vm._on_day_passed(sim_day + 1)
+	assert(vm.npc_murders.is_empty(), "No spontaneous murders may occur in demo mode")
+	assert(vm.desires.is_empty(), "No revenge/murder desires may spawn in demo mode")
+	assert((vm.VillageNeeds.state(vm).get("thefts", []) as Array).is_empty(), "No night thefts may occur in demo mode")
+	assert(vm.VillageNightJobs.jobs(vm).is_empty(), "No night jobs may start in demo mode")
+	assert(vm.VillageNeeds.living(vm).filter(func(n): return int(n.sick_level) > 0).is_empty(), "No illnesses may spread in demo mode")
+	assert((vm.sect_state.get("members", {}) as Dictionary).is_empty(), "No sect recruitment may happen in demo mode")
+	assert((vm.VillageFamilia.state(vm).get("members", {}) as Dictionary).size() == fam_members_before and not bool(vm.VillageFamilia.state(vm).get("meeting_tonight", false)), "No Familia recruitment or meetings in demo mode")
+	assert(vm.VillageNeeds.living(vm).filter(func(n): return n.is_at_poker_table or str(n.get_meta("leisure_place", "")) == "tavern_poker").is_empty(), "No poker casino players in demo mode")
+	assert(vm.VillageNeeds.living(vm).size() == demo_living_before, "Cast size must not change (no arrivals/departures/births) in demo mode")
+	assert(int(vm.town_state.get("voting_day", -1)) == -1, "No elections may be called in demo mode")
+	assert(saw_working_count > 10 and saw_tavern_hall > 0, "Villagers must keep working and visiting the tavern hall in demo mode")
+	print("Demo Mode Multi-Day Simulation Check (4 days with demo_mode=true, 0 paused events, village alive) OK")
 
 	print("ALL RIMWORLD MEDICAL, FOOTPRINTS, 3-PHASE CORPSE REPORT, MULTI-CORPSE FIX, RPG INTERROGATION, PUBLIC TRIAL, DYNAMIC RELATIONSHIPS, MISSING FAMILY SEARCH, SOCIAL GLOSSARY & UNCONSCIOUS REACTION TESTS PASSED!")
 	quit(0)

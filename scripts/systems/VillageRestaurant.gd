@@ -411,11 +411,11 @@ const TERRACE_CALLOUTS: Array[String] = [
 ]
 static var _terrace_callout_cooldown: float = 6.0
 
-## Por la tarde y de noche (18:00 a 23:00), varios vecinos se sientan en las mesas de la terraza exterior (y en el comedor) a tomar algo y cenar un rato.
+## Al mediodía, tarde y noche (12:00 a 23:00), varios vecinos se sientan en las mesas de la terraza exterior y del comedor a comer y cenar.
 static func on_hour(vm, hour: int) -> void:
 	if vm == null:
 		return
-	if hour < 18 or hour >= 24:
+	if hour < OPEN_FROM or hour >= 24:
 		return
 	var raining: bool = WorldClock != null and int(WorldClock.current_weather) == 1
 	var terrace_count: int = 0
@@ -443,6 +443,17 @@ static func on_hour(vm, hour: int) -> void:
 	var target_terrace: int = 0 if raining else 5
 	var target_hall: int = 3
 	for cand in candidates:
+		if hall_count < 2 and not vm.is_building_door_blocked(BUILDING_ID):
+			var h_seat0: Vector2 = pick_indoor_seat_for(vm, cand)
+			if h_seat0 != Vector2.ZERO:
+				cand.set_meta("leisure_place", "restaurant_hall")
+				cand.start_errand("leisure", h_seat0)
+				cand.global_position = h_seat0
+				cand.facing_direction = (table_center_for_seat(h_seat0) - h_seat0).normalized()
+				cand.set_meta("leisure_since", VillageNeeds.total_hours())
+				cand.errand_since = VillageNeeds.total_hours()
+				hall_count += 1
+				continue
 		if terrace_count < target_terrace:
 			var t_seat: Vector2 = pick_terrace_seat_for(vm, cand)
 			if t_seat != Vector2.ZERO:
@@ -468,7 +479,7 @@ static func tick(vm, delta: float) -> void:
 	if vm == null:
 		return
 	var cur_h: int = int(WorldClock.current_hour) if WorldClock else 12
-	var is_evening: bool = (cur_h >= 18 and cur_h < 24)
+	var is_open_hours: bool = (cur_h >= OPEN_FROM and cur_h < 24)
 	var seated_terrace: Array = []
 	for n in VillageNeeds.living(vm):
 		if int(n.elevation_level) == 0 and n.velocity.length_squared() < 4.0:
@@ -481,7 +492,7 @@ static func tick(vm, delta: float) -> void:
 					n.facing_direction = (tc - snapped).normalized()
 				if TERRACE.grow(10.0).has_point(snapped):
 					seated_terrace.append(n)
-	if is_evening and seated_terrace.is_empty():
+	if is_open_hours and seated_terrace.is_empty():
 		on_hour(vm, cur_h)
 	_terrace_callout_cooldown = maxf(0.0, _terrace_callout_cooldown - delta)
 	if seated_terrace.size() >= 1 and _terrace_callout_cooldown <= 0.0:
