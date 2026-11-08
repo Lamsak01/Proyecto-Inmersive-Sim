@@ -61,7 +61,7 @@ static var CASES: Dictionary = {
 				"description": "Criada de la casa noble que reconoce el frasco vacío",
 				"gender": "F",
 				"prefer_family_of": "noble_head",
-				"discovery_gap": PENDING_DECISION
+				"discovery_gap": "Reconoce el frasco y menciona el gabinete de los señores; en el gabinete se ve la cerradura forzada."
 			},
 			"apparent_culprit_relative": {
 				"description": "Familiar o pareja de la víctima que intentó fingir su muerte con una receta antigua de la biblioteca para salvarla",
@@ -133,7 +133,7 @@ static var CASES: Dictionary = {
 				"step": 8,
 				"id": "open_thread_corruption",
 				"summary": "Deja abierta la investigación de la secta y la corrupción del pueblo.",
-				"followup_hook": PENDING_DECISION
+				"followup_hook": "Lista de desaparecidos en el molino + averiguar quién más sabe preparar el sueño de cera."
 			}
 		],
 		"custom_dialogues": {
