@@ -103,6 +103,9 @@ func start_roll(dir_override: Vector2 = Vector2.ZERO) -> bool:
 
 	is_stealthing = false
 	is_sprinting = false
+	var c_roll = player.get_node_or_null("PlayerCombatController")
+	if c_roll != null and c_roll.has_method("cancel_reload"):
+		c_roll.call("cancel_reload", "Rodar")
 	roll_direction = dir
 	roll_timer = ROLL_DURATION
 	roll_invuln_timer = ROLL_INVULN_DURATION
@@ -237,7 +240,11 @@ func _handle_input(delta: float) -> void:
 	if is_stealthing and is_sprint_pressed and input != Vector2.ZERO:
 		is_stealthing = false
 
-	var wants_sprint = is_sprint_pressed and not is_stealthing and not pulling_hand and input != Vector2.ZERO
+	var c_sw = player.get_node_or_null("PlayerCombatController")
+	var aiming_gun: bool = c_sw != null and bool(c_sw.get("is_aiming_firearm"))
+	var wants_sprint = is_sprint_pressed and not is_stealthing and not pulling_hand and not aiming_gun and input != Vector2.ZERO
+	if wants_sprint and c_sw != null and int(c_sw.get("reload_step")) > 0 and c_sw.has_method("cancel_reload"):
+		c_sw.call("cancel_reload", "Correr")
 	if is_instance_valid(stamina_comp):
 		stamina_comp.is_input_blocking = wants_sprint
 
@@ -276,14 +283,17 @@ func _handle_input(delta: float) -> void:
 	elif bool(player.get("is_pulling_cart")):
 		current_speed *= CART_HAND_SPEED_MULT
 
-	# C7: mientras golpeas andas más despacio (cuanto más pesada el arma, más)
-	var c_sw = player.get_node_or_null("PlayerCombatController")
+	# C7: mientras golpeas, apuntas con arma de fuego o recargas andas más despacio
 	if c_sw != null and float(c_sw.get("attack_timer")) > 0.0:
 		current_speed *= float(c_sw.get("swing_move_mult"))
 	elif c_sw != null and bool(c_sw.get("is_charging")):
 		current_speed *= 0.55 # C7 fase 3a: cargando el golpe vas despacio
 	elif c_sw != null and bool(c_sw.get("is_blocking")):
 		current_speed *= 0.5 # C7 fase 3b: con la guardia alta andas despacio
+	elif aiming_gun:
+		current_speed *= 0.48 # C7 fase 5b: apuntando con clic derecho vas más despacio pero con pulso firme
+	elif c_sw != null and int(c_sw.get("reload_step")) > 0:
+		current_speed *= 0.55 # C7 fase 5c: recargando a mano andas más despacio
 
 	anim.speed_scale = target_anim_scale
 

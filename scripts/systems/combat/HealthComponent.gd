@@ -472,6 +472,9 @@ func hit_region_weights(data: DamageData) -> Dictionary:
 				last_hit_context = "costado"
 	if o.get("is_downed") == true:
 		w["head"] *= 2.5
+	if data.is_aimed_shot:
+		w["torso"] *= 2.2
+		w["head"] *= 2.0
 	return w
 
 func _pick_hit_region(data: DamageData) -> String:
@@ -521,16 +524,16 @@ func _inflict_anatomical_wound(data: DamageData, final_damage: float) -> void:
 	var pain_v: float = clampf(final_damage * 0.95, 6.0, 42.0)
 	var sev_v: float = clampf(final_damage * 2.1, 18.0, 98.0)
 	var low_tag := w_tag.to_lower()
-	var is_bullet: bool = ("pistola" in low_tag or "disparo" in low_tag or "bala" in low_tag)
+	var is_bullet: bool = (data != null and data.is_firearm_bullet) or ("pistola" in low_tag or "disparo" in low_tag or "bala" in low_tag or "arcabuz" in low_tag or "fusil" in low_tag or "cartucho" in low_tag)
 	var is_arrow: bool = ("arco" in low_tag or "flecha" in low_tag)
 
-	if data and data.type == CombatConstants.DamageType.CUT:
+	if (data and data.type == CombatConstants.DamageType.CUT) or is_bullet:
 		if is_bullet:
 			w_type = "deep_wound"
 			custom_w_name = "Herida de Bala"
-			bleed_r = 0.72 # ~138s (2.3 min reales / 9h de juego) para llegar a 100% Blood Loss
-			pain_v = maxf(pain_v, 24.0)
-			sev_v = maxf(sev_v, 48.0)
+			bleed_r = 1.05 # Hemorragia severa por proyectil de arma de fuego
+			pain_v = maxf(pain_v, 30.0)
+			sev_v = maxf(sev_v, 60.0)
 		elif is_arrow:
 			w_type = "lodged_arrow"
 			bleed_r = 0.55 # ~180s (3 min reales / 12h de juego)
@@ -588,6 +591,30 @@ func _inflict_anatomical_wound(data: DamageData, final_damage: float) -> void:
 	}
 	_next_wound_id += 1
 	wounds.append(w_entry)
+	if is_bullet and final_damage >= 22.0:
+		var frac_name: String = "Conmoción / Fisura Craneal por Bala" if r_id == "head" else "Fractura Ósea por Bala"
+		var frac_entry: Dictionary = {
+			"id": _next_wound_id,
+			"region": r_id,
+			"organ": "",
+			"type": "fracture",
+			"name": frac_name,
+			"severity": clampf(final_damage * 1.4, 38.0, 85.0),
+			"bleed_rate": 0.0,
+			"pain": 22.0,
+			"bandaged": false,
+			"bandage_dirty": 0.0,
+			"stitched": false,
+			"splinted": false,
+			"clean": true,
+			"infection": 0.0,
+			"immunity": 0.0,
+			"tend_quality": 0.0,
+			"tend_tier": "none",
+			"weapon_cause": w_tag
+		}
+		_next_wound_id += 1
+		wounds.append(frac_entry)
 	while wounds.size() > 14:
 		wounds.pop_front()
 	if bleed_r > 0.0:

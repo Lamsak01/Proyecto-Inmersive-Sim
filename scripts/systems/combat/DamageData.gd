@@ -11,6 +11,10 @@ class_name DamageData
 @export var knockback_force: float = 0.0
 var weapon_tag: String = ""
 var is_ranged_projectile: bool = false
+var is_firearm_bullet: bool = false
+var firearm_kind: String = "" ## "pistol" o "rifle"
+var shot_distance_px: float = 0.0
+var is_aimed_shot: bool = false
 var source: Node
 
 func copy() -> DamageData:
@@ -25,5 +29,9 @@ func copy() -> DamageData:
 	new_data.knockback_force = knockback_force
 	new_data.weapon_tag = weapon_tag
 	new_data.is_ranged_projectile = is_ranged_projectile
+	new_data.is_firearm_bullet = is_firearm_bullet
+	new_data.firearm_kind = firearm_kind
+	new_data.shot_distance_px = shot_distance_px
+	new_data.is_aimed_shot = is_aimed_shot
 	new_data.source = source
 	return new_data

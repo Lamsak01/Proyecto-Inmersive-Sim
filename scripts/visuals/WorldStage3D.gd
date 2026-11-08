@@ -304,8 +304,10 @@ var _fp_weapon_meshes: Dictionary = {}
 var _fp_walk_bob_t: float = 0.0
 var _fp_damage_vignette: ColorRect = null
 var _fp_hit_flash_rect: ColorRect = null
+var _fp_muzzle_flash_mesh: MeshInstance3D = null
+var _fp_muzzle_light: OmniLight3D = null
 
-## C7 fase 5a: estado de sacudida, impacto y daño en primera persona
+## C7 fase 5a/5b: estado de sacudida, impacto, retroceso de disparo y daño en primera persona
 static var _fp_shake_timer: float = 0.0
 static var _fp_shake_amp: float = 0.0
 static var _fp_hit_confirm_timer: float = 0.0
@@ -313,11 +315,22 @@ static var _fp_hurt_flash_timer: float = 0.0
 static var _fp_block_flash_timer: float = 0.0
 static var _fp_camera_punch_pitch: float = 0.0
 static var _fp_camera_punch_roll: float = 0.0
+static var _fp_gun_recoil_kick: float = 0.0
+static var _fp_muzzle_flash_timer: float = 0.0
 static var _active_stage_instance: Node = null
 
 static func trigger_fp_camera_shake(amp: float = 4.0) -> void:
 	_fp_shake_amp = maxf(_fp_shake_amp, clampf(amp * 0.012, 0.015, 0.095))
 	_fp_shake_timer = maxf(_fp_shake_timer, 0.14)
+
+static func notify_fp_firearm_shot(_player: Node2D, is_rifle: bool = false, ads_blend: float = 0.0) -> void:
+	var recoil_up: float = (0.082 if is_rifle else 0.058) * lerpf(1.0, 0.65, clampf(ads_blend, 0.0, 1.0))
+	fp_pitch = clampf(fp_pitch + recoil_up, -FP_MAX_PITCH, FP_MAX_PITCH)
+	_fp_gun_recoil_kick = 1.0
+	_fp_muzzle_flash_timer = 0.12
+	_fp_camera_punch_pitch = 0.075 if is_rifle else 0.055
+	_fp_camera_punch_roll = 0.032 * (1.0 if randf() > 0.5 else -1.0)
+	trigger_fp_camera_shake(6.2 if is_rifle else 4.8)
 
 static func notify_fp_melee_hit(_player: Node2D, target: Node2D, dir_2d: Vector2, feel: Dictionary, power: float = 1.0) -> void:
 	var shk: float = float(feel.get("shake", 3.0)) * maxf(1.0, power)
@@ -3013,15 +3026,44 @@ func _setup_fp_viewmodel() -> void:
 	_fp_weapon_mount.add_child(w_bow)
 	_fp_weapon_meshes["bow"] = w_bow
 
-	# 7. Arma de fuego ("flintlock" / pistola / fusil)
+	# 7. Pistola de Cartuchos ("flintlock" / "pistol")
 	var w_gun := Node3D.new()
-	_add_box(w_gun, Vector3(0.036, 0.11, 0.08), Vector3(0.0, 0.01, 0.02), mat_wood)
-	_add_box(w_gun, Vector3(0.042, 0.055, 0.28), Vector3(0.0, 0.06, -0.10), mat_dark_iron)
-	_add_box(w_gun, Vector3(0.024, 0.028, 0.34), Vector3(0.0, 0.075, -0.16), mat_steel)
+	_add_box(w_gun, Vector3(0.036, 0.11, 0.065), Vector3(0.0, 0.00, 0.02), mat_wood)
+	_add_box(w_gun, Vector3(0.042, 0.056, 0.24), Vector3(0.0, 0.058, -0.09), mat_dark_iron)
+	_add_box(w_gun, Vector3(0.026, 0.030, 0.28), Vector3(0.0, 0.074, -0.14), mat_steel)
+	_add_box(w_gun, Vector3(0.008, 0.018, 0.012), Vector3(0.0, 0.096, -0.26), mat_gold) # Punto de mira
 	_fp_weapon_mount.add_child(w_gun)
 	_fp_weapon_meshes["flintlock"] = w_gun
 
-	# 8. Puños / herramienta genérica ("fists")
+	# 8. Fusil de Cartuchos del Paso ("rifle")
+	var w_rifle := Node3D.new()
+	_add_box(w_rifle, Vector3(0.040, 0.095, 0.22), Vector3(0.0, 0.01, 0.10), mat_wood) # Culata de madera
+	_add_box(w_rifle, Vector3(0.044, 0.064, 0.34), Vector3(0.0, 0.056, -0.12), mat_dark_iron) # Cajón de mecanismos
+	_add_box(w_rifle, Vector3(0.032, 0.12, 0.055), Vector3(0.0, -0.025, -0.14), mat_dark_iron) # Cargador de petaca
+	_add_box(w_rifle, Vector3(0.024, 0.026, 0.44), Vector3(0.0, 0.072, -0.32), mat_steel) # Cañón largo
+	_add_box(w_rifle, Vector3(0.016, 0.016, 0.045), Vector3(0.030, 0.064, -0.06), mat_gold) # Maneta del cerrojo
+	_add_box(w_rifle, Vector3(0.008, 0.022, 0.012), Vector3(0.0, 0.094, -0.50), mat_gold) # Punto de mira delantero
+	_fp_weapon_mount.add_child(w_rifle)
+	_fp_weapon_meshes["rifle"] = w_rifle
+
+	# Fogonazo 3D en la boca del cañón al disparar
+	var mat_mflash := StandardMaterial3D.new()
+	mat_mflash.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	mat_mflash.albedo_color = Color(1.0, 0.90, 0.42, 0.92)
+	mat_mflash.emission_enabled = true
+	mat_mflash.emission = Color(1.0, 0.78, 0.22)
+	mat_mflash.emission_energy_multiplier = 3.6
+	_fp_muzzle_flash_mesh = _add_box(_fp_weapon_mount, Vector3(0.14, 0.14, 0.18), Vector3(0.0, 0.075, -0.42), mat_mflash)
+	_fp_muzzle_flash_mesh.visible = false
+	_fp_muzzle_light = OmniLight3D.new()
+	_fp_muzzle_light.light_color = Color(1.0, 0.82, 0.38)
+	_fp_muzzle_light.light_energy = 3.4
+	_fp_muzzle_light.omni_range = 4.5
+	_fp_muzzle_light.position = Vector3(0.0, 0.08, -0.45)
+	_fp_muzzle_light.visible = false
+	_fp_weapon_mount.add_child(_fp_muzzle_light)
+
+	# 9. Puños / herramienta genérica ("fists")
 	var w_fists := Node3D.new()
 	_fp_weapon_mount.add_child(w_fists)
 	_fp_weapon_meshes["fists"] = w_fists
@@ -3082,11 +3124,26 @@ func _update_fp_viewmodel(delta: float, pl: Node2D) -> void:
 	var c_ctrl = pl.get_node_or_null("PlayerCombatController")
 	var eq = pl.get("equipped_weapon")
 	var w_key: String = str(eq.get("name")).to_lower() if eq != null else "fists"
+	if w_key in ["pistol", "flintlock_pistol"]:
+		w_key = "flintlock"
+	elif w_key in ["assault_rifle", "rifle_weapon"]:
+		w_key = "rifle"
 	var mesh_key: String = w_key if _fp_weapon_meshes.has(w_key) else "sword"
 	for k in _fp_weapon_meshes.keys():
 		var wn: Node3D = _fp_weapon_meshes[k]
 		if is_instance_valid(wn):
 			wn.visible = (k == mesh_key)
+
+	if _fp_gun_recoil_kick > 0.0:
+		_fp_gun_recoil_kick = maxf(0.0, _fp_gun_recoil_kick - delta * 4.8)
+	if _fp_muzzle_flash_timer > 0.0:
+		_fp_muzzle_flash_timer = maxf(0.0, _fp_muzzle_flash_timer - delta)
+	if is_instance_valid(_fp_muzzle_flash_mesh):
+		_fp_muzzle_flash_mesh.visible = (_fp_muzzle_flash_timer > 0.0) and (mesh_key in ["flintlock", "rifle"])
+		_fp_muzzle_flash_mesh.position = Vector3(0.0, 0.075, -0.58 if mesh_key == "rifle" else -0.34)
+	if is_instance_valid(_fp_muzzle_light):
+		_fp_muzzle_light.visible = (_fp_muzzle_flash_timer > 0.0) and (mesh_key in ["flintlock", "rifle"])
+		_fp_muzzle_light.position = Vector3(0.0, 0.08, -0.62 if mesh_key == "rifle" else -0.38)
 
 	# Balanceo al caminar y respirar
 	var vel_2d: Vector2 = pl.get("velocity") if "velocity" in pl else Vector2.ZERO
@@ -3102,6 +3159,7 @@ func _update_fp_viewmodel(delta: float, pl: Node2D) -> void:
 	var l_pos := Vector3(-0.22 - bob_x * 0.7, -0.22 - bob_y * 0.8, -0.34)
 	var l_rot := Vector3(18.0, 16.0, -14.0)
 	var show_trail: bool = false
+	var ads_blend: float = 0.0
 
 	if c_ctrl != null:
 		var phase: String = str(c_ctrl.get("swing_phase"))
@@ -3115,8 +3173,45 @@ func _update_fp_viewmodel(delta: float, pl: Node2D) -> void:
 		var blocking: bool = bool(c_ctrl.get("is_blocking"))
 		var drawing_bow: bool = bool(c_ctrl.get("is_drawing_bow"))
 		var bow_tens: float = float(c_ctrl.get("bow_tension"))
+		ads_blend = clampf(float(c_ctrl.get("aim_down_sights_blend")) if "aim_down_sights_blend" in c_ctrl else 0.0, 0.0, 1.0)
+		var rel_step: int = int(c_ctrl.get("reload_step")) if "reload_step" in c_ctrl else 0
+		var rel_prog: float = clampf(float(c_ctrl.get("reload_step_progress")) if "reload_step_progress" in c_ctrl else 0.0, 0.0, 1.0)
 
-		if parrying or blocking:
+		if mesh_key in ["flintlock", "rifle"]:
+			# Posición base con arma de fuego (mano izquierda sujeta guardamanos en fusil)
+			r_pos = Vector3(0.18 + bob_x * 0.5, -0.17 - bob_y * 0.5, -0.34)
+			r_rot = Vector3(4.0, -6.0, 2.0)
+			if mesh_key == "rifle":
+				l_pos = Vector3(0.04, -0.19 - bob_y * 0.5, -0.44)
+				l_rot = Vector3(12.0, 28.0, -18.0)
+			# Apuntando al centro (Clic Derecho / ADS): encare preciso alineado con la cruceta central
+			if ads_blend > 0.01 and rel_step == 0:
+				r_pos = r_pos.lerp(Vector3(0.0, -0.095 if mesh_key == "rifle" else -0.105, -0.28), ads_blend)
+				r_rot = r_rot.lerp(Vector3(0.0, 0.0, 0.0), ads_blend)
+				l_pos = l_pos.lerp(Vector3(-0.04, -0.14, -0.38), ads_blend)
+				l_rot = l_rot.lerp(Vector3(8.0, 18.0, -12.0), ads_blend)
+			# Recarga manual en 3 pasos (5c: 1. sacar cargador, 2. meter cargador, 3. montar cerrojo)
+			if rel_step == 1:
+				r_pos = Vector3(0.10, -0.16, -0.32)
+				r_rot = Vector3(18.0, 16.0, -28.0)
+				l_pos = Vector3(0.06, -0.16, -0.36).lerp(Vector3(-0.14, -0.34, -0.26), rel_prog)
+				l_rot = Vector3(24.0, 32.0, -24.0)
+			elif rel_step == 2:
+				r_pos = Vector3(0.10, -0.16, -0.32)
+				r_rot = Vector3(18.0, 16.0, -28.0)
+				l_pos = Vector3(-0.14, -0.34, -0.26).lerp(Vector3(0.06, -0.15, -0.36), rel_prog)
+				l_rot = Vector3(28.0, 36.0, -18.0)
+			elif rel_step == 3:
+				r_pos = Vector3(0.12, -0.15, -0.30 + sin(rel_prog * PI) * 0.04)
+				r_rot = Vector3(10.0, 8.0, -12.0)
+				l_pos = Vector3(0.08, -0.10, -0.28 + sin(rel_prog * PI) * 0.08)
+				l_rot = Vector3(32.0, 42.0, -32.0)
+			# Retroceso que levanta el arma tras disparar (5b)
+			if _fp_gun_recoil_kick > 0.0:
+				r_pos += Vector3(0.0, 0.036 * _fp_gun_recoil_kick, 0.085 * _fp_gun_recoil_kick)
+				r_rot += Vector3(26.0 * _fp_gun_recoil_kick, 0.0, 0.0)
+				l_pos += Vector3(0.0, 0.025 * _fp_gun_recoil_kick, 0.065 * _fp_gun_recoil_kick)
+		elif parrying or blocking:
 			# Parada (Q) o guardia alta sostenida: hoja cruzada frente al pecho y antebrazo izquierdo reforzando
 			var guard_lift: float = 0.03 if parrying else 0.0
 			r_pos = Vector3(0.08, -0.11 + guard_lift, -0.31)
@@ -3227,7 +3322,12 @@ func _update_fp_camera_transform() -> void:
 	var eff_pitch: float = clampf(fp_pitch + _fp_camera_punch_pitch, -FP_MAX_PITCH, FP_MAX_PITCH)
 	var look_dir_3d: Vector3 = (horiz_3d * cos(eff_pitch) + Vector3(0.0, sin(eff_pitch), 0.0)).normalized()
 	cam_3d.projection = Camera3D.PROJECTION_PERSPECTIVE
-	cam_3d.fov = 70.0
+	var ads_fov_blend: float = 0.0
+	if is_instance_valid(pl):
+		var c_ctrl_f = pl.get_node_or_null("PlayerCombatController")
+		if c_ctrl_f != null and "aim_down_sights_blend" in c_ctrl_f:
+			ads_fov_blend = clampf(float(c_ctrl_f.get("aim_down_sights_blend")), 0.0, 1.0)
+	cam_3d.fov = lerpf(70.0, 55.0, ads_fov_blend)
 	cam_3d.near = 0.03
 	cam_3d.far = 250.0
 	cam_3d.global_position = eye_3d
@@ -3288,8 +3388,29 @@ func _update_fp_hud() -> void:
 		fp_interact_label.text = ""
 		fp_interact_label.visible = false
 	if fp_mode_badge != null:
-		fp_mode_badge.text = ""
-		fp_mode_badge.visible = false
+		var pl_hud := get_tree().get_first_node_in_group("player") if is_inside_tree() else null
+		var c_ctrl_hud = pl_hud.get_node_or_null("PlayerCombatController") if is_instance_valid(pl_hud) else null
+		var eq_hud = pl_hud.get("equipped_weapon") if is_instance_valid(pl_hud) else null
+		var eq_name_hud: String = str(eq_hud.name).to_lower() if (eq_hud != null and "name" in eq_hud) else ""
+		if c_ctrl_hud != null and (eq_name_hud == "flintlock" or eq_name_hud == "rifle"):
+			var is_rf_hud: bool = (eq_name_hud == "rifle")
+			var rel_step_hud: int = int(c_ctrl_hud.get("reload_step"))
+			var mag_hud: int = int(c_ctrl_hud.get("rifle_mag_loaded" if is_rf_hud else "pistol_mag_loaded"))
+			var cap_hud: int = 5 if is_rf_hud else 6
+			var ads_hud: bool = float(c_ctrl_hud.get("aim_down_sights_blend")) >= 0.5
+			if rel_step_hud > 0:
+				var step_txt: String = "Sacando cargador vacío" if rel_step_hud == 1 else ("Metiendo cargador nuevo" if rel_step_hud == 2 else "Montando el cerrojo")
+				fp_mode_badge.text = "🔄 RECARGA MANUAL [Paso %d/3]: %s..." % [rel_step_hud, step_txt]
+				fp_mode_badge.add_theme_color_override("font_color", Color(1.0, 0.88, 0.36, 0.96))
+			else:
+				var w_lbl: String = "🎯 Fusil del Paso" if is_rf_hud else "🔫 Pistola de Chispa"
+				var aim_lbl: String = " [MIRA ALZADA]" if ads_hud else " [Clic der. apuntar | R recargar]"
+				fp_mode_badge.text = "%s — Cargador: %d/%d%s" % [w_lbl, mag_hud, cap_hud, aim_lbl]
+				fp_mode_badge.add_theme_color_override("font_color", Color(0.92, 0.96, 1.0, 0.92))
+			fp_mode_badge.visible = true
+		else:
+			fp_mode_badge.text = ""
+			fp_mode_badge.visible = false
 	return
 
 func _process(delta: float) -> void:

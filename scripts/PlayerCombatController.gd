@@ -66,6 +66,105 @@ var _swing_power: float = 1.0 ## multiplicador de daño/empujón/tambaleo del go
 var swing_phase: String = "idle"
 var swing_phase_elapsed: float = 0.0
 var swing_phase_duration: float = 0.0
+## C7 fase 5b/5c: apuntado con clic derecho (ADS) y recarga manual lenta en 3 pasos (pistola y fusil con munición distinta)
+const PISTOL_MAG_MAX: int = 6
+const RIFLE_MAG_MAX: int = 5
+const RELOAD_STEP_DURATIONS: Array[float] = [0.65, 0.75, 0.60] # 1: sacar cargador, 2: meter cargador, 3: montar cerrojo
+const RELOAD_STEP_LABELS: Array[String] = ["1/3 · Sacando cargador…", "2/3 · Insertando cargador…", "3/3 · Montando cerrojo…"]
+var is_aiming_firearm: bool = false
+var aim_down_sights_blend: float = 0.0
+var aim_override: int = -1 ## solo pruebas/capturas: 1 = apuntando, 0 = sin apuntar, -1 = leer clic derecho
+var pistol_mag_loaded: int = 6
+var rifle_mag_loaded: int = 5
+var reload_step: int = 0 ## 0 = sin recargar, 1 = sacar cargador, 2 = meter cargador, 3 = montar cerrojo
+var reload_step_elapsed: float = 0.0
+var reload_step_progress: float = 0.0
+var reload_weapon_kind: String = ""
+
+func is_firearm_weapon(w: WeaponData) -> bool:
+	if w == null:
+		return false
+	return str(w.name).to_lower() in ["flintlock", "pistol", "flintlock_pistol", "rifle", "assault_rifle", "rifle_weapon"]
+
+func is_firearm_equipped() -> bool:
+	return is_instance_valid(player) and is_firearm_weapon(player.equipped_weapon)
+
+func is_rifle_weapon(w: WeaponData) -> bool:
+	if w == null:
+		return false
+	return str(w.name).to_lower() in ["rifle", "assault_rifle", "rifle_weapon"]
+
+func get_reserve_ammo_count(is_rifle: bool) -> int:
+	var inv = player.get("inventory") if is_instance_valid(player) else null
+	if inv == null:
+		return 0
+	if is_rifle:
+		return int(inv.get_count("rifle_ammo"))
+	return int(inv.get_count("pistol_ammo")) + int(inv.get_count("powder_charge"))
+
+func _consume_one_reserve_ammo(is_rifle: bool) -> bool:
+	var inv = player.get("inventory") if is_instance_valid(player) else null
+	if inv == null:
+		return false
+	if is_rifle:
+		if inv.has_item("rifle_ammo", 1):
+			inv.remove_item("rifle_ammo", 1)
+			return true
+		return false
+	if inv.has_item("pistol_ammo", 1):
+		inv.remove_item("pistol_ammo", 1)
+		return true
+	if inv.has_item("powder_charge", 1):
+		inv.remove_item("powder_charge", 1)
+		return true
+	return false
+
+func start_manual_reload() -> bool:
+	if not is_instance_valid(player) or not is_firearm_equipped():
+		return false
+	if reload_step > 0:
+		return false
+	var is_rifle: bool = is_rifle_weapon(player.equipped_weapon)
+	var cur_mag: int = rifle_mag_loaded if is_rifle else pistol_mag_loaded
+	var max_mag: int = RIFLE_MAG_MAX if is_rifle else PISTOL_MAG_MAX
+	var reserve: int = get_reserve_ammo_count(is_rifle)
+	if reserve <= 0:
+		if player.has_method("show_hint"):
+			player.call("show_hint", "⚠️ No te queda munición de %s en la mochila. Cómprala al armero o róbala." % ("fusil" if is_rifle else "pistola"))
+		return false
+	if cur_mag >= min(max_mag, reserve):
+		if player.has_method("show_hint"):
+			player.call("show_hint", "🔫 Cargador lleno (%d/%d)." % [cur_mag, max_mag])
+		return false
+	reload_weapon_kind = "rifle" if is_rifle else "pistol"
+	reload_step = 1
+	reload_step_elapsed = 0.0
+	reload_step_progress = 0.0
+	is_aiming_firearm = false
+	CombatFeel.play(player, CombatFeel.SFX_EVADE, player.global_position, 1.35, -7.0)
+	if player.has_method("show_hint"):
+		player.call("show_hint", "🔄 Recargando %s — %s" % [("Fusil del Paso" if is_rifle else "Pistola de Cartuchos"), RELOAD_STEP_LABELS[0]])
+	if player.has_method("_spawn_floating_text"):
+		player.call("_spawn_floating_text", "🔄 " + RELOAD_STEP_LABELS[0], Color(0.95, 0.86, 0.52), -44.0)
+	return true
+
+func cancel_reload(reason: String = "Interrumpido") -> void:
+	if reload_step <= 0:
+		return
+	var was_step: int = reload_step
+	var was_rifle: bool = (reload_weapon_kind == "rifle")
+	reload_step = 0
+	reload_step_elapsed = 0.0
+	reload_step_progress = 0.0
+	reload_weapon_kind = ""
+	# Si te interrumpen mientras estabas metiendo el cargador (paso 2), pierdes un cartucho al suelo
+	if was_step == 2:
+		_consume_one_reserve_ammo(was_rifle)
+	if is_instance_valid(player):
+		if player.has_method("_spawn_floating_text"):
+			player.call("_spawn_floating_text", "⚠️ ¡Recarga perdida! (%s)" % reason, Color(1.0, 0.42, 0.32), -44.0)
+		if player.has_method("show_hint"):
+			player.call("show_hint", "⚠️ ¡Recarga interrumpida (%s)! Tienes que empezar la recarga de nuevo con [R]." % reason)
 
 func _ready() -> void:
 	_setup_visuals()
@@ -125,6 +224,60 @@ func _process(delta: float) -> void:
 			swing_phase = "idle"
 			swing_phase_elapsed = 0.0
 			swing_phase_duration = 0.0
+
+	# C7 fase 5b/5c: apuntado con clic derecho (ADS) y progresión de la recarga manual en 3 pasos
+	var eq_gun: WeaponData = player.equipped_weapon if is_instance_valid(player) else null
+	if is_firearm_weapon(eq_gun):
+		if reload_step > 0:
+			is_aiming_firearm = false
+			aim_down_sights_blend = move_toward(aim_down_sights_blend, 0.0, delta * 9.0)
+			var step_dur: float = RELOAD_STEP_DURATIONS[clampi(reload_step - 1, 0, 2)]
+			reload_step_elapsed += delta
+			reload_step_progress = clampf(reload_step_elapsed / maxf(0.05, step_dur), 0.0, 1.0)
+			if reload_step_elapsed >= step_dur:
+				reload_step_elapsed = 0.0
+				reload_step_progress = 0.0
+				if reload_step == 1:
+					reload_step = 2
+					CombatFeel.play(player, CombatFeel.SFX_EVADE, player.global_position, 1.15, -6.0)
+					if player.has_method("show_hint"):
+						player.call("show_hint", "🔄 Recargando — " + RELOAD_STEP_LABELS[1])
+					if player.has_method("_spawn_floating_text"):
+						player.call("_spawn_floating_text", "🔄 " + RELOAD_STEP_LABELS[1], Color(0.95, 0.86, 0.52), -44.0)
+				elif reload_step == 2:
+					reload_step = 3
+					CombatFeel.play(player, CombatFeel.SFX_HIT, player.global_position, 1.45, -7.0)
+					if player.has_method("show_hint"):
+						player.call("show_hint", "🔄 Recargando — " + RELOAD_STEP_LABELS[2])
+					if player.has_method("_spawn_floating_text"):
+						player.call("_spawn_floating_text", "🔄 " + RELOAD_STEP_LABELS[2], Color(0.95, 0.86, 0.52), -44.0)
+				else:
+					var is_r: bool = (reload_weapon_kind == "rifle")
+					var max_m: int = RIFLE_MAG_MAX if is_r else PISTOL_MAG_MAX
+					var res_c: int = get_reserve_ammo_count(is_r)
+					var new_loaded: int = mini(max_m, res_c)
+					if is_r:
+						rifle_mag_loaded = new_loaded
+					else:
+						pistol_mag_loaded = new_loaded
+					reload_step = 0
+					reload_weapon_kind = ""
+					CombatFeel.play(player, CombatFeel.SFX_HIT, player.global_position, 0.92, -4.0)
+					if player.has_method("show_hint"):
+						player.call("show_hint", "🔫 ¡Armada y lista! Cargador: %d/%d (Reserva en mochila: %d)" % [new_loaded, max_m, res_c])
+					if player.has_method("_spawn_floating_text"):
+						player.call("_spawn_floating_text", "🔫 ¡Cargada! (%d/%d)" % [new_loaded, max_m], Color(0.55, 0.96, 0.65), -44.0)
+		else:
+			var wants_ads: bool = (aim_override == 1) if aim_override >= 0 else Input.is_mouse_button_pressed(MOUSE_BUTTON_RIGHT)
+			if player.has_method("is_rolling") and bool(player.call("is_rolling")):
+				wants_ads = false
+			is_aiming_firearm = wants_ads
+			aim_down_sights_blend = move_toward(aim_down_sights_blend, 1.0 if is_aiming_firearm else 0.0, delta * 7.5)
+	else:
+		if reload_step > 0:
+			cancel_reload("Cambio de arma")
+		is_aiming_firearm = false
+		aim_down_sights_blend = move_toward(aim_down_sights_blend, 0.0, delta * 9.0)
 
 func _physics_process(delta: float) -> void:
 	if shove_cooldown > 0.0:
@@ -315,8 +468,8 @@ func _unhandled_input(event: InputEvent) -> void:
 		return
 
 	var equipped: WeaponData = player.equipped_weapon
-	var is_flintlock: bool = equipped != null and str(equipped.name).to_lower() == "flintlock"
-	var is_bow: bool = equipped != null and equipped.is_ranged and not is_flintlock
+	var is_firearm: bool = is_firearm_weapon(equipped)
+	var is_bow: bool = equipped != null and equipped.is_ranged and not is_firearm
 
 	if is_bow:
 		if (event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT) or _is_attack_key(event):
@@ -427,6 +580,10 @@ func _update_weapon_visuals() -> void:
 func equip_weapon(weapon_data: WeaponData) -> void:
 	if is_drawing_bow:
 		_cancel_bow_draw()
+	if reload_step > 0 and weapon_data != player.equipped_weapon:
+		cancel_reload("Cambio de arma")
+	is_aiming_firearm = false
+	aim_down_sights_blend = 0.0
 	player.equipped_weapon = weapon_data
 	if weapon_sprite and weapon_data and weapon_data.icon:
 		weapon_sprite.texture = weapon_data.icon
@@ -512,6 +669,10 @@ func attack(_aim_with_mouse: bool = true, charge: float = 0.0) -> void:
 	# Cadena de la espada: volver a pulsar durante la recuperación corta lo que queda y suelta el siguiente golpe
 	if is_blocking:
 		return # con la guardia alta no se golpea
+	if is_firearm_weapon(equipped) and reload_step > 0:
+		if player.has_method("show_hint"):
+			player.call("show_hint", "🔄 Termina la recarga antes de disparar (paso %d/3)..." % reload_step)
+		return
 	var chaining: bool = attack_timer > 0.0 and _in_recovery and not equipped.is_ranged and (w_key in COMBO_WEAPONS) and combo_step >= 1 and combo_step < 3
 	if attack_timer > 0.0 and not chaining: return
 	if equipped == player.get("watering_can_weapon") and player.has_method("is_bloodstained") and bool(player.call("is_bloodstained")):
@@ -553,7 +714,7 @@ func attack(_aim_with_mouse: bool = true, charge: float = 0.0) -> void:
 		crosshair.add_recoil(4.5)
 	_update_weapon_visuals()
 	if equipped.is_ranged:
-		if str(equipped.name).to_lower() == "flintlock":
+		if is_firearm_weapon(equipped):
 			_fire_flintlock_realtime(equipped)
 		else:
 			_fire_bow(equipped, 0.5)
@@ -662,50 +823,108 @@ func _fire_bow(equipped: WeaponData, tension: float = 1.0) -> void:
 	if "paralytic_venom_timer" in player and float(player.get("paralytic_venom_timer")) > 0.0:
 		arrow.damage_data.stun_buildup += 50.0
 	arrow.damage_data.source = player
-	player.get_tree().current_scene.add_child(arrow)
+	var scene_root_bow: Node = player.get_tree().current_scene if player.get_tree().current_scene != null else player.get_parent()
+	if scene_root_bow != null:
+		scene_root_bow.add_child(arrow)
 
 func _fire_flintlock_realtime(equipped: WeaponData) -> void:
-	var inv = player.get("inventory")
-	if inv == null or not inv.has_item("flintlock_pistol", 1) or not inv.has_item("powder_charge", 1):
+	var is_rifle: bool = str(equipped.name).to_lower() == "rifle"
+	if reload_step > 0:
 		if player.has_method("show_hint"):
-			player.call("show_hint", "⚠️ Necesitas 1 Carga de Pólvora Negra en la mochila para disparar el Arcabuz de Chispa.")
+			player.call("show_hint", "🔄 Recargando (%d/3)... Espera a montar el arma." % reload_step)
 		return
-	inv.remove_item("powder_charge", 1)
-	attack_timer = 0.85
+	var inv = player.get("inventory")
+	var mag_now: int = rifle_mag_loaded if is_rifle else pistol_mag_loaded
+	if mag_now <= 0:
+		CombatFeel.play(player, CombatFeel.SFX_EVADE, player.global_position, 1.65, -8.0)
+		if get_reserve_ammo_count(is_rifle) > 0:
+			if player.has_method("show_hint"):
+				player.call("show_hint", "🔫 ¡Cargador vacío! Iniciando recarga manual [R] (3 pasos)...")
+			start_manual_reload()
+		else:
+			if player.has_method("show_hint"):
+				player.call("show_hint", "⚠️ ¡Sin munición de %s! Compra o roba cartuchos en la armería." % ("fusil" if is_rifle else "pistola"))
+		return
+	if is_rifle:
+		rifle_mag_loaded = maxi(0, rifle_mag_loaded - 1)
+	else:
+		pistol_mag_loaded = maxi(0, pistol_mag_loaded - 1)
+		if inv != null and inv.has_item("powder_charge", 1) and not inv.has_item("pistol_ammo", 1):
+			inv.remove_item("powder_charge", 1)
+
+	var is_aimed: bool = aim_down_sights_blend >= 0.65
+	attack_timer = (0.42 if is_rifle else 0.52)
 	var av3d = player.get("avatar_3d")
 	if av3d and av3d.has_method("trigger_muzzle_flash"):
 		av3d.call("trigger_muzzle_flash")
-	_apply_camera_shake()
+	WorldStage3DScript.notify_fp_firearm_shot(player, is_rifle, aim_down_sights_blend)
+	CombatFeel.play(player, CombatFeel.SFX_HIT, player.global_position, 0.72 if is_rifle else 0.88, -1.0)
+	if crosshair:
+		crosshair.add_recoil((6.5 if is_rifle else 5.0) * (0.55 if is_aimed else 1.35))
 
-	var shoot_dir := current_aim_dir
+	var spread_rad: float = 0.0
+	if is_aimed:
+		spread_rad = randf_range(-0.008, 0.008) if is_rifle else randf_range(-0.015, 0.015)
+	else:
+		spread_rad = randf_range(-0.22, 0.22) if is_rifle else randf_range(-0.18, 0.18)
+	var shoot_dir: Vector2 = current_aim_dir.rotated(spread_rad).normalized()
 	var pivot_global := player.global_position + Vector2(0, -10)
 	var bullet := ArrowProjectile.new()
+	bullet.is_bullet = true
 	bullet.global_position = pivot_global + shoot_dir * 14.0
 	bullet.direction = shoot_dir
-	bullet.max_range = 360.0
-	bullet.speed = 620.0
+	bullet.max_range = 480.0 if is_rifle else 360.0
+	bullet.speed = 860.0 if is_rifle else 680.0
 	bullet.shooter = player
 	bullet.damage_data = equipped.damage_data.copy()
-	bullet.damage_data.weapon_tag = "Arcabuz de Chispa"
-	bullet.damage_data.amount = 48.0
+	bullet.damage_data.is_firearm_bullet = true
+	bullet.damage_data.firearm_kind = "rifle" if is_rifle else "pistol"
+	bullet.damage_data.is_aimed_shot = is_aimed
+	bullet.damage_data.weapon_tag = "Fusil de Asalto" if is_rifle else "Arcabuz de Chispa"
+	bullet.damage_data.amount = (96.0 if is_aimed else 84.0) if is_rifle else (72.0 if is_aimed else 62.0)
+	bullet.damage_data.bleed_buildup = 75.0 if is_rifle else 58.0
+	bullet.damage_data.stun_buildup = 48.0 if is_rifle else 34.0
 	bullet.damage_data.source = player
-	player.get_tree().current_scene.add_child(bullet)
+	var scene_root_gun: Node = player.get_tree().current_scene if player.get_tree().current_scene != null else player.get_parent()
+	if scene_root_gun != null:
+		scene_root_gun.add_child(bullet)
 
+	var rem_mag: int = rifle_mag_loaded if is_rifle else pistol_mag_loaded
+	var cap_mag: int = RIFLE_MAG_MAX if is_rifle else PISTOL_MAG_MAX
 	if player.has_method("_spawn_floating_text"):
-		player.call("_spawn_floating_text", "💥🔫 ¡Estampido de Arcabuz! (-1 Pólvora)", Color(1.0, 0.82, 0.35), -48.0)
+		var shot_lbl: String = "💥🔫 ¡Disparo de %s! (%d/%d)" % [("Fusil" if is_rifle else "Pistola"), rem_mag, cap_mag]
+		player.call("_spawn_floating_text", shot_lbl, Color(1.0, 0.82, 0.35), -48.0)
 
-	# Alerta sonora a testigos conscientes en 260 px (en el mismo nivel vertical)
+	# Alerta sonora potente a todo el entorno cercano (420 px): asusta a civiles y atrae a guardias
 	var vm = get_tree().get_first_node_in_group("village_manager")
 	var pl_elev: int = int(vm.get("player_elevation_level")) if vm != null and "player_elevation_level" in vm else 0
 	if AudioManager:
-		AudioManager.emit_noise(player.global_position, 260.0, pl_elev, "gunshot")
+		AudioManager.emit_noise(player.global_position, 420.0, pl_elev, "gunshot")
+	var alerted_guard: bool = false
 	for n in get_tree().get_nodes_in_group("village_npcs"):
 		if n is VillageNPC and not n.is_dead and not n.is_downed and not n.is_sleeping and not n.is_stunned_flag:
 			if vm and vm.has_method("are_on_same_elevation") and not bool(vm.call("are_on_same_elevation", pl_elev, n.elevation_level)):
 				continue
-			if (n as Node2D).global_position.distance_to(player.global_position) <= 260.0:
-				if n.has_method("_spawn_floating_text"):
-					n.call("_spawn_floating_text", "⚠️ ¡Un disparo de arcabuz!", Color.ORANGE_RED, -42.0)
+			var d_npc: float = (n as Node2D).global_position.distance_to(player.global_position)
+			if d_npc <= 420.0:
+				var is_guard_npc: bool = int(n.trade_role) in [int(VillageNPC.TradeRole.GUARD), int(VillageNPC.TradeRole.SHERIFF)]
+				if is_guard_npc:
+					alerted_guard = true
+					if "investigate_pos" in n:
+						n.investigate_pos = player.global_position
+					if "investigate_timer" in n:
+						n.investigate_timer = maxf(float(n.investigate_timer), 14.0)
+					if "alert_flash_timer" in n:
+						n.alert_flash_timer = 2.0
+					if n.has_method("_spawn_floating_text"):
+						n.call("_spawn_floating_text", "🚨 ¡Disparo en el valle! ¡A cubierto!", Color(1.0, 0.32, 0.22), -44.0)
+				else:
+					if n.has_method("_spawn_floating_text"):
+						n.call("_spawn_floating_text", "⚠️ ¡Un disparo de arma de fuego!", Color.ORANGE_RED, -42.0)
+	if alerted_guard and vm != null and "wanted_level" in vm:
+		var raid_active: bool = bool(vm.get("raid_active")) if "raid_active" in vm else false
+		if not raid_active and int(vm.wanted_level) < 1:
+			vm.wanted_level = 1
 
 func _on_hitbox_entered(area: Area2D) -> void:
 	if area is Hurtbox:

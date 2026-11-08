@@ -51,6 +51,7 @@ var sickle_weapon: WeaponData = null
 var watering_can_weapon: WeaponData = null
 var fishing_rod_weapon: WeaponData = null
 var flintlock_weapon: WeaponData = null
+var rifle_weapon: WeaponData = null
 
 ## Niveles de Mejora de Herramientas y Armas estilo Stardew Valley (1 = Básico, 2 = Hierro Forjado, 3 = Acero Maestro)
 var tool_tiers: Dictionary = {"sword": 1, "hammer": 1, "axe": 1, "pickaxe": 1, "bow": 1, "sickle": 1, "watering_can": 1, "fishing_rod": 1}
@@ -199,9 +200,14 @@ func _setup_tools() -> void:
 	fishing_rod_weapon = _make_tool_weapon("FishingRod", "res://assests/items/tools/fishing_rod.png", CombatConstants.DamageType.BLUNT)
 	flintlock_weapon = _make_tool_weapon("Flintlock", "res://assests/items/tools/bow_weapon.png", CombatConstants.DamageType.CUT, true)
 	if flintlock_weapon and flintlock_weapon.damage_data:
-		flintlock_weapon.damage_data.amount = 48.0
-		flintlock_weapon.damage_data.bleed_buildup = 65.0
-		flintlock_weapon.damage_data.stun_buildup = 45.0
+		flintlock_weapon.damage_data.amount = 65.0
+		flintlock_weapon.damage_data.bleed_buildup = 75.0
+		flintlock_weapon.damage_data.stun_buildup = 48.0
+	rifle_weapon = _make_tool_weapon("Rifle", "res://assests/items/tools/bow_weapon.png", CombatConstants.DamageType.CUT, true)
+	if rifle_weapon and rifle_weapon.damage_data:
+		rifle_weapon.damage_data.amount = 88.0
+		rifle_weapon.damage_data.bleed_buildup = 95.0
+		rifle_weapon.damage_data.stun_buildup = 60.0
 	_apply_tool_tiers()
 
 func _normalize_tool_key(tool_key: String) -> String:
@@ -590,12 +596,31 @@ func equip_tool_by_index(idx: int) -> void:
 			equip_weapon(fishing_rod_weapon)
 			show_hint("[8] Caña de Pescar (%s) — Barra de Pesca: %d%%" % [get_tool_tier_label("fishing_rod"), int(round(get_fishing_bar_multiplier() * 100.0))])
 		8:
-			if inventory and inventory.has_item("flintlock_pistol", 1):
+			var has_pistol: bool = inventory != null and inventory.has_item("flintlock_pistol", 1)
+			var has_rifle: bool = inventory != null and inventory.has_item("assault_rifle", 1)
+			if has_pistol and has_rifle and equipped_weapon == flintlock_weapon:
+				equip_weapon(rifle_weapon)
+				var r_cnt: int = inventory.get_count("rifle_ammo")
+				var r_mag: int = int(combat_ctrl.get("rifle_mag_loaded")) if combat_ctrl else 0
+				show_hint("[9] Fusil del Paso — Cargador: %d/5 | Reserva: %d cartuchos ([Clic Der.] apuntar, [R] recargar)" % [r_mag, r_cnt])
+			elif has_pistol:
 				equip_weapon(flintlock_weapon)
-				var p_cnt: int = inventory.get_count("powder_charge")
-				show_hint("[9] Arcabuz de Chispa — Daño: 48 | Pólvora: %d carga(s) (Clic Izq. para disparar)" % p_cnt)
+				var p_cnt: int = inventory.get_count("powder_charge") + inventory.get_count("pistol_ammo")
+				var p_mag: int = int(combat_ctrl.get("pistol_mag_loaded")) if combat_ctrl else 0
+				show_hint("[9] Pistola de Cartuchos — Cargador: %d/6 | Reserva: %d ([Clic Der.] apuntar, [R] recargar)" % [p_mag, p_cnt])
+			elif has_rifle:
+				equip_weapon(rifle_weapon)
+				var r_cnt2: int = inventory.get_count("rifle_ammo")
+				var r_mag2: int = int(combat_ctrl.get("rifle_mag_loaded")) if combat_ctrl else 0
+				show_hint("[9] Fusil del Paso — Cargador: %d/5 | Reserva: %d cartuchos ([Clic Der.] apuntar, [R] recargar)" % [r_mag2, r_cnt2])
 			else:
-				show_hint("[9] Arcabuz de Chispa (Aún no tienes uno; encárgalo en la Herrería o el Taller)")
+				show_hint("[9] Arma de fuego (Encárgala al armero en la Herrería o el Taller)")
+		9:
+			if inventory and inventory.has_item("assault_rifle", 1):
+				equip_weapon(rifle_weapon)
+				var r_cnt3: int = inventory.get_count("rifle_ammo")
+				var r_mag3: int = int(combat_ctrl.get("rifle_mag_loaded")) if combat_ctrl else 0
+				show_hint("[0] Fusil del Paso — Cargador: %d/5 | Reserva: %d cartuchos ([Clic Der.] apuntar, [R] recargar)" % [r_mag3, r_cnt3])
 
 func refill_watering_can() -> void:
 	watering_can_charges = max_water_charges
@@ -732,12 +757,21 @@ func _unhandled_input(event: InputEvent) -> void:
 			return
 		elif event.keycode >= KEY_1 and event.keycode <= KEY_9:
 			equip_tool_by_index(int(event.keycode - KEY_1))
-		elif event.keycode == KEY_R and inventory:
-			var next_seed := inventory.cycle_selected_seed()
-			var s_name := inventory.get_item_name(next_seed)
-			var s_count := inventory.get_count(next_seed)
-			_spawn_floating_text("🌱 %s (%d)" % [s_name, s_count], Color.SPRING_GREEN, -40.0)
-			show_hint("[R] Semilla activa para sembrar: %s (Tienes %d)" % [s_name, s_count])
+		elif event.keycode == KEY_0:
+			equip_tool_by_index(9)
+		elif event.keycode == KEY_R:
+			if not combat_ctrl:
+				combat_ctrl = get_node_or_null("PlayerCombatController")
+			if combat_ctrl and combat_ctrl.has_method("is_firearm_equipped") and bool(combat_ctrl.call("is_firearm_equipped")):
+				combat_ctrl.call("start_manual_reload")
+				get_viewport().set_input_as_handled()
+				return
+			if inventory:
+				var next_seed := inventory.cycle_selected_seed()
+				var s_name := inventory.get_item_name(next_seed)
+				var s_count := inventory.get_count(next_seed)
+				_spawn_floating_text("🌱 %s (%d)" % [s_name, s_count], Color.SPRING_GREEN, -40.0)
+				show_hint("[R] Semilla activa para sembrar: %s (Tienes %d)" % [s_name, s_count])
 
 	if event.is_action_pressed("Interact"):
 		_handle_interactions()
@@ -914,6 +948,8 @@ func take_damage(data: DamageData) -> void:
 				move_and_collide(away.normalized() * push_px) # C7 fase 2: el empujón depende del arma del rival
 		if combat_ctrl == null:
 			combat_ctrl = get_node_or_null("PlayerCombatController")
+		if combat_ctrl != null and combat_ctrl.has_method("cancel_reload"):
+			combat_ctrl.call("cancel_reload", "Herido")
 		if combat_ctrl != null and combat_ctrl.has_method("_apply_camera_shake"):
 			combat_ctrl.call("_apply_camera_shake", clampf(hp_lost * 0.35, 2.0, 6.0))
 		WorldStage3DScript.notify_fp_player_hit(self, data.source if data else null, hp_lost, is_ranged_hit)
@@ -937,6 +973,8 @@ func to_save_dict() -> Dictionary:
 		weapon_id = "fishing_rod"
 	elif equipped_weapon == flintlock_weapon:
 		weapon_id = "flintlock"
+	elif equipped_weapon == rifle_weapon:
+		weapon_id = "rifle"
 	return {
 		"pos_x": global_position.x,
 		"pos_y": global_position.y,
@@ -1053,6 +1091,7 @@ func from_save_dict(data: Dictionary) -> void:
 		"watering_can": equip_weapon(watering_can_weapon)
 		"fishing_rod": equip_weapon(fishing_rod_weapon)
 		"flintlock": equip_weapon(flintlock_weapon)
+		"rifle": equip_weapon(rifle_weapon)
 		_: equip_weapon(sword_weapon)
 	if inventory and data.has("inventory"):
 		inventory.from_dict(data["inventory"])

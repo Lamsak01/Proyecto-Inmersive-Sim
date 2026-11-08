@@ -73,6 +73,9 @@ const HORSE_COST: int = 45
 const CART_COST: int = 55
 const FIREARM_COST: int = 60
 const POWDER_PACK_COST: int = 14
+const PISTOL_AMMO_PACK_COST: int = 16
+const RIFLE_COST: int = 95
+const RIFLE_AMMO_PACK_COST: int = 22
 const OUTPOST_CHARTER_COST: int = 90
 const OUTPOST_SETTLER_BONUS: int = 15
 const OUTPOST_UPGRADE_COST: int = 35
@@ -352,9 +355,29 @@ static func sync_main_story(vm, inv = null) -> int:
 		ms["completed"] = true
 	return advanced
 
-## Bloque PO: Armas de fuego de chispa (flintlock_pistol, powder_charge) y Terminales lógicas / Hackeo electromecánico
+## Bloque PO + 5c: Armas de fuego (pistola y fusil), munición diferenciada, registro de venta y terminales lógicas
+static func ammo_sales_log(vm) -> Array:
+	var st: Dictionary = state(vm)
+	if not (st.get("ammo_sales_log", null) is Array):
+		st["ammo_sales_log"] = []
+	return st["ammo_sales_log"] as Array
+
+static func _record_ammo_sale(vm, seller, item_id: String, count: int) -> void:
+	if vm == null:
+		return
+	var log_arr: Array = ammo_sales_log(vm)
+	var seller_name: String = str(seller.npc_name) if (seller != null and is_instance_valid(seller) and "npc_name" in seller) else "Armería"
+	var day_now: int = int(vm.town_state.get("day", 1)) if ("town_state" in vm and vm.town_state is Dictionary) else 1
+	log_arr.append({
+		"buyer": "Jugador",
+		"seller": seller_name,
+		"item": item_id,
+		"count": count,
+		"day": day_now,
+	})
+
 static func has_loaded_firearm(inv) -> bool:
-	return inv != null and inv.has_item("flintlock_pistol", 1) and inv.has_item("powder_charge", 1)
+	return inv != null and inv.has_item("flintlock_pistol", 1) and (inv.has_item("powder_charge", 1) or inv.has_item("pistol_ammo", 1))
 
 static func buy_firearm(vm, seller, inv) -> bool:
 	if vm == null or seller == null or inv == null:
@@ -365,7 +388,8 @@ static func buy_firearm(vm, seller, inv) -> bool:
 	seller.personal_gold += FIREARM_COST
 	inv.add_item("flintlock_pistol", 1)
 	inv.add_item("powder_charge", 2)
-	VillageChronicle.add(vm, "firearm_bought", "Adquiriste un Arcabuz de Chispa con cargas de pólvora en el taller (-%d de oro)" % FIREARM_COST, false)
+	_record_ammo_sale(vm, seller, "flintlock_pistol+powder_charge", 2)
+	VillageChronicle.add(vm, "firearm_bought", "Adquiriste un Arcabuz de Chispa con cargas de pólvora en el taller (-%d de oro; anotado en el libro armero)" % FIREARM_COST, false)
 	return true
 
 static func buy_powder_pack(vm, seller, inv) -> bool:
@@ -374,7 +398,64 @@ static func buy_powder_pack(vm, seller, inv) -> bool:
 	inv.add_gold(-POWDER_PACK_COST)
 	seller.personal_gold += POWDER_PACK_COST
 	inv.add_item("powder_charge", 2)
+	_record_ammo_sale(vm, seller, "powder_charge", 2)
 	return true
+
+static func buy_pistol_ammo(vm, seller, inv) -> bool:
+	if vm == null or seller == null or inv == null or int(inv.gold) < PISTOL_AMMO_PACK_COST:
+		return false
+	inv.add_gold(-PISTOL_AMMO_PACK_COST)
+	seller.personal_gold += PISTOL_AMMO_PACK_COST
+	inv.add_item("pistol_ammo", 6)
+	_record_ammo_sale(vm, seller, "pistol_ammo", 6)
+	VillageChronicle.add(vm, "pistol_ammo_bought", "Compraste 6 Cartuchos de Pistola en la armería (venta registrada a tu nombre)", false)
+	return true
+
+static func buy_rifle(vm, seller, inv) -> bool:
+	if vm == null or seller == null or inv == null:
+		return false
+	if not has_tech(vm, "reinforced_locks") or inv.has_item("assault_rifle", 1) or int(inv.gold) < RIFLE_COST:
+		return false
+	inv.add_gold(-RIFLE_COST)
+	seller.personal_gold += RIFLE_COST
+	inv.add_item("assault_rifle", 1)
+	inv.add_item("rifle_ammo", 5)
+	_record_ammo_sale(vm, seller, "assault_rifle+rifle_ammo", 5)
+	VillageChronicle.add(vm, "rifle_bought", "Adquiriste un Fusil de Asalto del Paso con 5 cartuchos de fusil (-%d de oro; registrado en el libro armero)" % RIFLE_COST, false)
+	return true
+
+static func buy_rifle_ammo(vm, seller, inv) -> bool:
+	if vm == null or seller == null or inv == null or int(inv.gold) < RIFLE_AMMO_PACK_COST:
+		return false
+	inv.add_gold(-RIFLE_AMMO_PACK_COST)
+	seller.personal_gold += RIFLE_AMMO_PACK_COST
+	inv.add_item("rifle_ammo", 5)
+	_record_ammo_sale(vm, seller, "rifle_ammo", 5)
+	VillageChronicle.add(vm, "rifle_ammo_bought", "Compraste 5 Cartuchos de Fusil en la armería (venta registrada a tu nombre)", false)
+	return true
+
+static func steal_armory_ammo(vm, inv, for_rifle: bool = false) -> Dictionary:
+	if vm == null or inv == null:
+		return {"ok": false}
+	var st: Dictionary = state(vm)
+	var day_now: int = int(vm.town_state.get("day", 1)) if ("town_state" in vm and vm.town_state is Dictionary) else 1
+	if int(st.get("last_ammo_theft_day", -99)) == day_now:
+		return {"ok": false, "already_today": true}
+	st["last_ammo_theft_day"] = day_now
+	if for_rifle:
+		inv.add_item("rifle_ammo", 5)
+	else:
+		inv.add_item("pistol_ammo", 6)
+	var pl = VillageNeeds.player_of(vm)
+	var pl_pos: Vector2 = pl.global_position if pl != null else Vector2(465, 48)
+	var witness = vm._find_conscious_witness_near(pl_pos, 165.0, null) if vm.has_method("_find_conscious_witness_near") else null
+	if witness != null:
+		vm.wanted_level = clampi(int(vm.wanted_level) + 1, 1, 5)
+		vm.bounty_gold += 18
+		VillageChronicle.add(vm, "ammo_stolen_witnessed", "Robaste munición de %s en la armería pero %s te vio" % [("fusil" if for_rifle else "pistola"), str(witness.npc_name)], true)
+		return {"ok": true, "witnessed": true, "witness": witness}
+	VillageChronicle.add(vm, "ammo_stolen", "Robaste cartuchos de %s sin quedar anotado en el registro de ventas" % ("fusil" if for_rifle else "pistola"), false)
+	return {"ok": true, "witnessed": false}
 
 static func fire_flintlock_shot(vm, target_npc, inv) -> bool:
 	if vm == null or target_npc == null or not is_instance_valid(target_npc) or not has_loaded_firearm(inv):
@@ -2287,6 +2368,11 @@ static func add_dialogue_choices(vm, npc, diag: Dictionary, ch_arr: Array) -> vo
 			ch_arr.append({"label": "🔫🛠️ Encargar Arcabuz de Chispa con 2 cargas de pólvora (-%d Oro)" % FIREARM_COST, "next": "END", "action": "culture_buy_firearm"})
 		if has_tech(vm, "reinforced_locks") or (inv_po != null and inv_po.has_item("flintlock_pistol", 1)):
 			ch_arr.append({"label": "🧨🪙 Comprar 2 Cargas de Pólvora Negra (-%d Oro)" % POWDER_PACK_COST, "next": "END", "action": "culture_buy_powder"})
+			ch_arr.append({"label": "🔫📦 Comprar 6 Cartuchos de Pistola (-%d Oro, con registro)" % PISTOL_AMMO_PACK_COST, "next": "END", "action": "culture_buy_pistol_ammo"})
+		if has_tech(vm, "reinforced_locks") and (inv_po == null or not inv_po.has_item("assault_rifle", 1)):
+			ch_arr.append({"label": "🎯🛠️ Encargar Fusil de Asalto del Paso con 5 cartuchos (-%d Oro, con registro)" % RIFLE_COST, "next": "END", "action": "culture_buy_rifle"})
+		if has_tech(vm, "reinforced_locks") or (inv_po != null and inv_po.has_item("assault_rifle", 1)):
+			ch_arr.append({"label": "🎯📦 Comprar 5 Cartuchos de Fusil (-%d Oro, con registro)" % RIFLE_AMMO_PACK_COST, "next": "END", "action": "culture_buy_rifle_ammo"})
 	# Disparar desde la conversación quedó retirado (como el robo desde el diálogo): el arma se usa en las incursiones.
 	# Bloque FIS2: la Terminal Lógica ya no se hackea hablando con el arreglador; es una máquina física dentro del taller (TINKER_TERMINAL_POS).
 	# Bloque PP: Crear tu propio asentamiento fronterizo («Puesto del Paso») e Historia Principal (Panel L)
@@ -2456,9 +2542,25 @@ static func on_player_action(vm, npc, action_id: String, inv) -> void:
 			npc._spawn_floating_text("«Necesitas %d de oro y haber investigado Cerradura magnética.»" % FIREARM_COST, Color.ORANGE_RED, -46.0)
 	elif action_id == "culture_buy_powder":
 		if buy_powder_pack(vm, npc, inv):
-			npc._spawn_floating_text("🧨🪙 Compraste 2 Cargas de Pólvora Negra (-%d Oro)" % POWDER_PACK_COST, Color.GOLD, -46.0)
+			npc._spawn_floating_text("🧨🪙 Compraste 2 Cargas de Pólvora Negra (-%d Oro; venta anotada)" % POWDER_PACK_COST, Color.GOLD, -46.0)
 		else:
 			npc._spawn_floating_text("«Necesitas %d de oro para las cargas de pólvora.»" % POWDER_PACK_COST, Color.ORANGE_RED, -46.0)
+	elif action_id == "culture_buy_pistol_ammo":
+		if buy_pistol_ammo(vm, npc, inv):
+			npc._spawn_floating_text("🔫📦 Compraste 6 Cartuchos de Pistola (-%d Oro; anotado en el libro armero)" % PISTOL_AMMO_PACK_COST, Color.GOLD, -46.0)
+		else:
+			npc._spawn_floating_text("«Necesitas %d de oro para la caja de cartuchos de pistola.»" % PISTOL_AMMO_PACK_COST, Color.ORANGE_RED, -46.0)
+	elif action_id == "culture_buy_rifle":
+		if buy_rifle(vm, npc, inv):
+			npc.affinity = clampi(npc.affinity + 10, -100, 100)
+			npc._spawn_floating_text("🎯🛠️ «¡El Fusil de Asalto del Paso ([0])! Incluye 5 cartuchos de fusil; tu firma queda en el registro.»", Color.GOLD, -46.0)
+		else:
+			npc._spawn_floating_text("«Necesitas %d de oro y haber investigado Cerradura magnética.»" % RIFLE_COST, Color.ORANGE_RED, -46.0)
+	elif action_id == "culture_buy_rifle_ammo":
+		if buy_rifle_ammo(vm, npc, inv):
+			npc._spawn_floating_text("🎯📦 Compraste 5 Cartuchos de Fusil (-%d Oro; anotado en el libro armero)" % RIFLE_AMMO_PACK_COST, Color.GOLD, -46.0)
+		else:
+			npc._spawn_floating_text("«Necesitas %d de oro para la caja de cartuchos de fusil.»" % RIFLE_AMMO_PACK_COST, Color.ORANGE_RED, -46.0)
 	elif action_id.begins_with("culture_hack_terminal:"):
 		var sub_id: String = action_id.substr("culture_hack_terminal:".length())
 		var hres: Dictionary = hack_terminal(vm, sub_id, inv)
