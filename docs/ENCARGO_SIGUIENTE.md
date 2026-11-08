@@ -1,19 +1,10 @@
-# ⭐ ENCARGO DE HOY (2026-11-08, noche 3) — RENDIMIENTO EN MODO DEMO — MANDA SOBRE TODO LO DEMÁS
-El modo demo ya está (✅ 17:42: de 17,8 a 23 fps). **Objetivo: 30 fps o más** en el portátil del usuario (Intel UHD 620,
-pantalla 3072×1728, 1.ª persona, modo demo encendido), en estos sitios fijos y medidos siempre igual: **plaza de día,
-taberna llena de noche y linde del bosque**. Antes de tocar nada, mide y apunta en el informe los fps de los tres sitios.
-Reglas:
-- **Primero averigua qué gasta** con las herramientas de medir que ya existen (ver `docs/HANDOFF.md`, bloque B3) y
-  apunta el reparto (vecinos, escenario 3D, sombras/luces, interfaz, otros). Ataca lo que más gaste.
-- **El juego no debe cambiar** en nada que se juegue: ni rutinas, ni reglas, ni lo que ve un jugador a 1080p.
-- **No reactives la «simulación a ratos» de los vecinos lejanos** (está apagada por orden del usuario). Si crees que es
-  imprescindible, apúntalo en `docs/PREGUNTAS_PENDIENTES.md` con lo que ganaría y sigue con lo demás.
-- Se permite añadir en el menú de opciones (si existe; si no, una tecla documentada en [H]) una **escala de resolución
-  3D** (p. ej. 100 % / 75 % / 50 %) y calidad de sombras: ayuda a ordenadores modestos sin cambiar el juego. Por defecto,
-  lo que dé ≥30 fps en el portátil sin verse mal (comprueba con captura).
-- Además: **vecinos superpuestos** en la plaza (primera entrada de `FALLOS_VISIBLES.md`).
-- Tras cada mejora: batería `verify_all` + fps de los tres sitios; commit + push. Si algo falla dos veces, deshazlo.
-Al acabar: tabla «antes / después» de los tres sitios al principio del informe, ✅ en `FALLOS_VISIBLES.md`, commit + push.
+# ⭐ ENCARGO DE HOY (2026-11-08, noche 3) — MANDA SOBRE TODO LO DEMÁS
+**Rendimiento: APARCADO otra vez por el usuario** (su portátil es viejo y con gráfica integrada; su PC de escritorio mueve
+bien el juego). No trabajes en rendimiento. Solo esto:
+1. **Vecinos superpuestos** (primera entrada de `FALLOS_VISIBLES.md`, con captura): dos vecinos metidos uno dentro del
+   otro en la plaza. Averigua por qué siguen pudiendo solaparse fuera de las aceras y puertas, y arréglalo para todo el
+   pueblo (no solo la plaza). Una prueba automática que lo vigile y 1 captura en 1.ª persona jugando de verdad, mirada por ti.
+Al acabar: ✅ en `FALLOS_VISIBLES.md`, resumen corto al principio del informe y commit + push.
 
 # ✅ TROCEO DE ARCHIVOS GRANDES — HECHO (2026-11-08 13:27). No lo repitas.
 
