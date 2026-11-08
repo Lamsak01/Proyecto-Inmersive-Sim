@@ -1,0 +1,6 @@
+DIA_TERMINADO 2026-11-08 (noche)
+Completados los 3 puntos del ENCARGO DE HOY (2026-11-08, noche) (con TROCEO DE ARCHIVOS GRANDES ya completado):
+1. Atasco en la puerta de la taberna eliminado y verificado durante 48h de juego continuas + captura en 1.ª persona 3D (docs/capturas_arreglos/noche_1_puerta_taberna_doble_carril_3d.png).
+2. Indicador del tiempo en el reloj superior sincronizado con lluvia/niebla/despejado + captura en 1.ª persona 3D bajo la lluvia (docs/capturas_arreglos/noche_2_tiempo_lluvia_reloj_3d.png).
+3. Carriles de puerta en las 4 direcciones (N/S/E/O) para todos los edificios presentes y futuros + comprobación automática de todas las puertas en tools/tests/verify_all.gd + regla documentada en docs/HANDOFF.md.
+Batería completa tools/tests/verify_all.gd en verde (EXIT_CODE=0).
