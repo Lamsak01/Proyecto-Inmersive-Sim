@@ -52,7 +52,7 @@ como testigos (`known_by` / `sighting_log`) si tienen línea de visión en la mi
 - Armas que se **mellan** con el uso y se arreglan en la herrería; **desarmar** con un golpe fuerte a la mano.
 - Testigos que reaccionan al ruido del combate (ya existe el ruido con `AudioManager.emit_noise`).
 
-## Fase 5 — Primera persona y armas de fuego (PROPUESTA, 2026-11-08; decisiones del usuario incluidas)
+## Fase 5 — Primera persona y armas de fuego (APROBADA por el usuario, 2026-11-08: «me gusta»)
 Contexto: el juego es solo 3D en primera persona y la época es tecnofeudal con armas de fuego (`docs/HANDOFF.md` §8).
 Las fases 1–4 se pensaron con vista desde arriba. **Decidido por el usuario (2026-11-08):** armas de fuego **muy
 mortales** (uno o dos disparos bien dados matan o dejan muy herido), **munición escasa y cara**, **recarga lenta y a
