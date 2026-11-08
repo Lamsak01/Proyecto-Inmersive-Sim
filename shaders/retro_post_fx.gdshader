@@ -8,13 +8,14 @@ shader_type canvas_item;
 uniform sampler2D screen_tex : hint_screen_texture, filter_nearest;
 uniform float night : hint_range(0.0, 1.0) = 0.0;
 uniform float dusk : hint_range(0.0, 1.0) = 0.0;
+uniform float weather_fog : hint_range(0.0, 1.0) = 0.0;
 uniform float time_s = 0.0;
 uniform float pixel_size = 4.0;      // tamaño de un píxel del juego en píxeles de pantalla
-uniform float color_levels = 32.0;   // niveles por canal (32 = color de 15 bits, como la PS1)
+uniform float color_levels = 64.0;   // niveles por canal con tramado Bayer suave
 uniform int light_count = 0;
 uniform vec4 lights[24];             // xy = posición en pantalla (px), z = radio (px), w = intensidad
 uniform vec3 light_tint = vec3(1.0, 0.78, 0.48);
-// Niebla nocturna (estilo Gloomwood): se cierra con la distancia al jugador y deja ver solo siluetas a lo lejos.
+// Niebla suave y continua: se cierra gradualmente con la distancia al jugador (de noche y en días de niebla).
 // Las luces (farolas, ventanas, farol de mano) la atraviesan y la tiñen de ámbar.
 uniform vec2 player_px = vec2(0.0);       // jugador en pantalla (px)
 uniform vec2 world_origin_px = vec2(0.0); // dónde cae el (0,0) del mundo en pantalla, para que la niebla no siga a la cámara
@@ -23,6 +24,7 @@ uniform float fog_clear = 70.0;           // radio despejado alrededor del jugad
 uniform float fog_full = 240.0;           // a partir de aquí, niebla máxima
 uniform float fog_max = 0.82;
 uniform vec3 fog_color = vec3(0.26, 0.30, 0.35);
+uniform vec3 day_fog_color = vec3(0.76, 0.81, 0.85);
 
 float vnoise(vec2 p) {
 	vec2 i = floor(p);
@@ -62,9 +64,7 @@ void fragment() {
 		if (i >= light_count) { break; }
 		vec4 L = lights[i];
 		float d = distance(frag, L.xy) / max(1.0, L.z);
-		// Borde de la luz «escalonado» en anillos, más retro que un degradado suave
-		float f = clamp(1.0 - d, 0.0, 1.0);
-		f = floor(f * 6.0 + 0.5) / 6.0;
+		float f = smoothstep(0.0, 1.0, clamp(1.0 - d, 0.0, 1.0));
 		lit = max(lit, f * f * L.w);
 	}
 	lit = clamp(lit, 0.0, 1.0);
@@ -72,24 +72,30 @@ void fragment() {
 	cold = pow(max(cold, vec3(0.0)), vec3(1.18)) * vec3(0.66, 0.80, 0.95) * 0.78;
 	vec3 warm = c * light_tint * 1.35;
 	vec3 nite = mix(cold, warm, lit);
+	vec3 col = mix(day, nite, night);
 
-	// --- Niebla nocturna ---
-	float fog_on = smoothstep(0.35, 1.0, night);
-	if (fog_on > 0.001) {
+	// --- Niebla suave y continua (nocturna y meteorológica de día/noche) ---
+	float fog_night = smoothstep(0.35, 1.0, night);
+	float fog_total_on = max(fog_night, weather_fog * 0.85);
+	if (fog_total_on > 0.001) {
 		float pw = max(0.001, px_per_world);
 		float dist_w = distance(frag, player_px) / pw;
-		float fog = smoothstep(fog_clear, fog_full, dist_w);
-		// Bancos de niebla que se desplazan despacio, anclados al mundo (pixelados a tamaño de píxel del juego)
-		vec2 wp = (floor(frag / pixel_size) * pixel_size - world_origin_px) / pw;
-		float drift = vnoise(wp * 0.012 + vec2(time_s * 0.05, time_s * 0.02)) * 0.65
-			+ vnoise(wp * 0.031 - vec2(time_s * 0.03, 0.0)) * 0.35;
-		fog *= mix(0.62, 1.0, drift);
-		fog = clamp(fog * fog_max * fog_on, 0.0, 1.0);
-		// Donde hay luz, la niebla se aclara y brilla en ámbar en vez de tapar
-		vec3 fog_c = mix(fog_color, light_tint * 0.62, lit);
-		nite = mix(nite, fog_c, fog * (1.0 - lit * 0.55));
+		float radial_fog = smoothstep(fog_clear * mix(1.0, 0.75, weather_fog), fog_full * mix(1.0, 0.90, weather_fog), dist_w);
+		float ambient_veil = weather_fog * 0.24;
+		float fog = clamp(max(radial_fog, ambient_veil), 0.0, 1.0);
+		// Remolinos orgánicos continuos anclados al mundo (rotados para evitar cualquier patrón horizontal o vertical)
+		vec2 wp = (frag - world_origin_px) / pw;
+		vec2 wp_rot = vec2(wp.x * 0.80 - wp.y * 0.60, wp.x * 0.60 + wp.y * 0.80);
+		float drift = vnoise(wp_rot * 0.009 + vec2(time_s * 0.035, time_s * 0.018)) * 0.55
+			+ vnoise(wp * 0.019 - vec2(time_s * 0.022, time_s * 0.014)) * 0.30
+			+ vnoise(wp_rot * 0.037 + vec2(-time_s * 0.015, time_s * 0.025)) * 0.15;
+		fog *= mix(0.70, 1.0, drift);
+		float max_f = mix(0.54, fog_max, max(fog_night, weather_fog * 0.65));
+		fog = clamp(fog * max_f * fog_total_on, 0.0, 1.0);
+		vec3 base_fog_c = mix(day_fog_color, fog_color, night);
+		vec3 fog_c = mix(base_fog_c, light_tint * 0.62, lit * night);
+		col = mix(col, fog_c, fog * (1.0 - lit * night * 0.55));
 	}
-	vec3 col = mix(day, nite, night);
 
 	// --- Viñeta (más cerrada de noche) ---
 	vec2 uv = SCREEN_UV - 0.5;

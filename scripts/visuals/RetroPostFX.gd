@@ -59,11 +59,18 @@ func _process(delta: float) -> void:
 	_time += delta
 	var wc = get_node_or_null("/root/WorldClock")
 	var hour_f: float = 12.0
+	var weather_fog: float = 0.0
 	if wc != null:
 		hour_f = float(wc.current_hour) + float(wc.current_minute) / 60.0
+		var w_mode: int = int(wc.get("current_weather")) if wc.get("current_weather") != null else 0
+		if w_mode == 2:
+			weather_fog = 1.0
+		elif w_mode == 1:
+			weather_fog = 0.22
 	var nf := night_factor(hour_f)
 	_mat.set_shader_parameter("night", nf)
 	_mat.set_shader_parameter("dusk", dusk_factor(hour_f))
+	_mat.set_shader_parameter("weather_fog", weather_fog)
 	_mat.set_shader_parameter("time_s", _time)
 
 	var vp := get_viewport()

@@ -298,6 +298,7 @@ func setup_village(target_entities_root: Node) -> void:
 		VillageTavern.seed_initial_patrons(self) # Paso 3: clientes sentados en el salón y partida de póker en curso al abrir la taberna
 	else:
 		VillageTavern.seed_initial_patrons(self)
+	_prune_door_blocking_prop_colliders()
 	if is_instance_valid(world_stage_3d):
 		world_stage_3d.queue_free()
 	world_stage_3d = WorldStage3DScript.new()
@@ -741,13 +742,13 @@ func get_navigation_waypoint(from_pos: Vector2, to_pos: Vector2, agent: Node2D =
 		var r_building_check: Rect2 = b["rect"].grow(2.5)
 		var r_interior: Rect2 = b["rect"].grow(1.5)
 		var d_pos: Vector2 = b["door_pos"]
-		var r_door_threshold := Rect2(d_pos - Vector2(16.0, 11.0), Vector2(32.0, 22.0))
+		var door_south: bool = bool(b["door_south"])
+		var r_door_threshold := Rect2(d_pos - Vector2(16.0, 14.0 if door_south else 16.5), Vector2(32.0, 30.5))
 		if (r_interior.has_point(from_pos) or r_door_threshold.has_point(from_pos)) and not r_building_check.has_point(to_pos):
 			var b_id: String = str(b.get("id", ""))
-			var door_south: bool = bool(b["door_south"])
 			var lane_x: float = d_pos.x + lane_shift
 			var inside_pt := Vector2(lane_x, d_pos.y + (-15.0 if door_south else 15.0))
-			var outside_pt := Vector2(lane_x, d_pos.y + (18.0 if door_south else -18.0))
+			var outside_pt := Vector2(lane_x, d_pos.y + (20.0 if door_south else -20.0))
 
 			# Primero salvar cualquier tabique interno hacia la antesala de la puerta principal
 			var part_wp: Vector2 = _route_internal_building_partitions(b_id, from_pos, inside_pt, agent)
@@ -1329,13 +1330,47 @@ func _spawn_house_chest(pos: Vector2, chest_title: String, fam_id: String) -> vo
 	entities_root.add_child(lbl)
 	house_chests.append({"pos": pos, "sprite": spr, "label": lbl, "title": chest_title, "family_id": fam_id, "looted_day": -1})
 
+func _is_prop_collider_blocking_passage(pos: Vector2, sz: Vector2) -> bool:
+	var prop_rect := Rect2(pos - sz * 0.5, sz)
+	for d_entry in building_doors:
+		var d_pos: Vector2 = d_entry.get("pos", Vector2.ZERO)
+		if prop_rect.intersects(Rect2(d_pos - Vector2(22.0, 24.0), Vector2(44.0, 48.0))):
+			return true
+	for b in building_footprints:
+		var d_pos2: Vector2 = b.get("door_pos", Vector2.ZERO)
+		if prop_rect.intersects(Rect2(d_pos2 - Vector2(22.0, 24.0), Vector2(44.0, 48.0))):
+			return true
+	for op in VillageTavern.OPENINGS_FLOOR_0:
+		var op_pos: Vector2 = op.get("pos", Vector2.ZERO)
+		if prop_rect.intersects(Rect2(op_pos - Vector2(18.0, 18.0), Vector2(36.0, 36.0))):
+			return true
+	for op_r in VillageRestaurant.OPENINGS:
+		var opr_pos: Vector2 = op_r.get("pos", Vector2.ZERO)
+		if prop_rect.intersects(Rect2(opr_pos - Vector2(16.0, 16.0), Vector2(32.0, 32.0))):
+			return true
+	for p_gap in [Vector2(325.0, 158.0), Vector2(745.0, 152.0), Vector2(902.0, 152.0)]:
+		if prop_rect.intersects(Rect2(p_gap - Vector2(16.0, 16.0), Vector2(32.0, 32.0))):
+			return true
+	return false
+
+func _prune_door_blocking_prop_colliders() -> void:
+	if not is_inside_tree():
+		return
+	for n in get_tree().get_nodes_in_group("prop_collider"):
+		if n is StaticBody2D and is_instance_valid(n):
+			var sb := n as StaticBody2D
+			var sz := Vector2(10.0, 10.0)
+			for ch in sb.get_children():
+				if ch is CollisionShape2D and ch.shape is RectangleShape2D:
+					sz = (ch.shape as RectangleShape2D).size
+			if _is_prop_collider_blocking_passage(sb.global_position, sz):
+				sb.queue_free()
+
 func _add_prop_collider(pos: Vector2, sz: Vector2, group_tag: String = "") -> StaticBody2D:
 	if not is_instance_valid(entities_root) or sz.x <= 0.0 or sz.y <= 0.0:
 		return null
-	for d_entry in building_doors:
-		var d_pos: Vector2 = d_entry.get("pos", Vector2.ZERO)
-		if pos.distance_to(d_pos) < 16.0:
-			return null
+	if _is_prop_collider_blocking_passage(pos, sz):
+		return null
 	var tag: String = group_tag
 	if tag == "" and VillageTavern.RECT.has_point(pos):
 		tag = "tavern_floor0_walls"

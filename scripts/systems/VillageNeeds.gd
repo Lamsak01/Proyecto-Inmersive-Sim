@@ -143,8 +143,8 @@ static func beg_spot(vm, npc) -> Vector2:
 # ---------------------------------------------------------------- B4.3 paseos nocturnos (Noctámbulo, Insomne, Sonámbulo)
 
 const NIGHT_STROLL_SPOTS: Array[Vector2] = [
-	Vector2(495, 118), Vector2(390, 56), Vector2(615, 145),
-	Vector2(555, 76), Vector2(735, 205), Vector2(310, 132),
+	Vector2(495, 88), Vector2(390, 56), Vector2(615, 88),
+	Vector2(555, 76), Vector2(735, 78), Vector2(405, -24),
 ]
 
 static func night_walk_kind(npc) -> String:

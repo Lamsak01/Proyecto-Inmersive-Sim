@@ -199,10 +199,7 @@ func _draw_weather_overlay() -> void:
 			var p2 := p1 + Vector2(-6.0, 18.0)
 			_weather_canvas.draw_line(p1, p2, drop_col, 1.4)
 	elif w_mode == 2: # FOG
-		_weather_canvas.draw_rect(Rect2(Vector2.ZERO, sz), Color(0.76, 0.82, 0.86, 0.18), true)
-		for b in range(6):
-			var band_y: float = (sz.y / 6.0) * float(b) + sin(_weather_anim_time * 0.6 + float(b)) * 18.0
-			_weather_canvas.draw_rect(Rect2(Vector2(0.0, band_y), Vector2(sz.x, 38.0)), Color(0.84, 0.88, 0.92, 0.08), true)
+		_weather_canvas.draw_rect(Rect2(Vector2.ZERO, sz), Color(0.76, 0.82, 0.86, 0.07), true)
 
 func _spawn_player_garden(entities_root: Node) -> void:
 	# A. Huerto de 3x3 parcelas (en el claro oeste bien alejado de la Trattoria y del pueblo, frente al lago)

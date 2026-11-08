@@ -95,10 +95,8 @@
   ilegibles. El usuario: «no hay forma de que esto sea una manera elegante de hacer una interfaz». Ver propuesta de Claude
   en el encargo (un solo letrero para lo que miras; las acciones solo abajo, en el aviso de [E]).
 
-- [ ] **Farola delante de la puerta de la taberna: los vecinos se atascan en ella** (2026-11-07 21:12, captura, día 2,
-  00:37, 2D). Moverla a un lado de la entrada y revisar que ningún choque nuevo (muebles, farolas, macetas) tape puertas.
-- [ ] **La niebla se ve a franjas horizontales** (misma captura): bandas grises rectas de lado a lado de la pantalla, como
-  un fallo de imagen. Debe ser una niebla suave y continua (paso 4, ambiente). También de día (08:14, captura 21:13).
+- [x] ✅ (2026-11-07) **Farola delante de la puerta de la taberna: los vecinos se atascan en ella** (2026-11-07 21:12, captura, día 2, 00:37, 2D): desplazada la farola de `Vector2(466, -118)` al costado oeste de la fachada (`Vector2(396, -118)`) en `VillageWorldBuilder.gd:519`; actualizado `DOOR_POS = Vector2(454, -132)` en `VillageTavern.gd:31`; ampliado el umbral de salida en `VillageManager.gd` (`PASADA 1`) y el encaje de waypoints en `VillageNPC.gd:2945` para evitar oscilaciones al salir; y añadido `_is_prop_collider_blocking_passage` + `_prune_door_blocking_prop_colliders` en `VillageManager.gd` para que ningún colisionador de mueble/farola/decoración pueda quedar a menos de `22×24 px` de una puerta o paso interior (comprobado en `fix0_tavern_door_night_2d.png` y `fix0_tavern_door_night_3d.png`).
+- [x] ✅ (2026-11-07) **La niebla se ve a franjas horizontales** (misma captura, de noche 00:37 y de día 08:14): eliminadas las 6 bandas rectangulares horizontales de `_draw_weather_overlay` en `scripts/World.gd:201-205` y conectada la niebla meteorológica (`weather_fog`) al shader `shaders/retro_post_fx.gdshader` (`RetroPostFX.gd`) con caída radial continua y ruido orgánico rotado de 3 octavas sin bandas (comprobado de noche y de día en 2D y 3D en `fix0_tavern_door_night_2d/3d.png` y `fix0_fog_day_2d/3d.png`).
 - [ ] **(BAJA PRIORIDAD: el usuario lo tolera por ahora) Césped con dibujo repetido** (2026-11-07 21:13, captura, 3D):
   la cuadrícula pasó a ser un dibujo de rombos que se repite por todo el suelo; no es natural y no le gusta. Arreglarlo
   más adelante con una hierba sin patrón visible (manchas irregulares, variación de tono).

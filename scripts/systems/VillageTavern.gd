@@ -28,7 +28,7 @@ const BASE: Vector2 = Vector2(260.0, -316.0)
 const SIZE: Vector2 = Vector2(348.0, 184.0)
 const RECT: Rect2 = Rect2(BASE, SIZE)
 const CENTER: Vector2 = Vector2(434.0, -224.0)
-const DOOR_POS: Vector2 = Vector2(434.0, -132.0)
+const DOOR_POS: Vector2 = Vector2(454.0, -132.0)
 const DOOR_W: float = 44.0
 
 ## Alturas 3D de la posada de 2 pisos
@@ -335,7 +335,7 @@ static func is_upper_floor_target(pos: Vector2) -> bool:
 
 static func room_at_floor_0(pos: Vector2) -> String:
 	for id in ROOMS_FLOOR_0.keys():
-		if (ROOMS_FLOOR_0[id] as Rect2).grow(2.0).has_point(pos):
+		if (ROOMS_FLOOR_0[id] as Rect2).has_point(pos):
 			return id
 	var best: String = "salon"
 	var best_d: float = INF

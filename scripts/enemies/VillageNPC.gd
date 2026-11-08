@@ -2942,16 +2942,16 @@ func _move_towards_point(target_pos: Vector2, speed: float, delta: float = 0.016
 
 	var _pt: int = Time.get_ticks_usec() if perf_on else 0
 	_nav_waypoint_timer -= delta
-	if (_nav_waypoint_timer <= 0.0) or (_cached_nav_waypoint == Vector2.INF) or (target_pos.distance_squared_to(_last_nav_dest) > 16.0) or (global_position.distance_squared_to(_cached_nav_waypoint) <= 20.0):
+	if (_nav_waypoint_timer <= 0.0) or (_cached_nav_waypoint == Vector2.INF) or (target_pos.distance_squared_to(_last_nav_dest) > 16.0):
 		_nav_waypoint_timer = 0.12
 		_last_nav_dest = target_pos
 		_cached_nav_waypoint = vm.call("get_navigation_waypoint", global_position, target_pos, self) if (vm and vm.has_method("get_navigation_waypoint")) else target_pos
 
 	var nav_target: Vector2 = _cached_nav_waypoint
 	var diff: Vector2 = nav_target - global_position
-	var step_snap: float = maxf(3.5, eff_speed * delta * 0.65)
+	var step_snap: float = maxf(4.5, eff_speed * delta * 0.85)
 	if diff.length() <= step_snap:
-		if diff.length() <= 6.0:
+		if diff.length() <= 6.5:
 			global_position = nav_target
 		if nav_target.distance_squared_to(target_pos) > 9.0 and vm and vm.has_method("get_navigation_waypoint"):
 			_cached_nav_waypoint = vm.call("get_navigation_waypoint", global_position, target_pos, self)
