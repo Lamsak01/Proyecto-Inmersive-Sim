@@ -112,6 +112,10 @@ convenía), pero resultó tener talento para resolver crímenes y se volvió una
   fiesta para el pueblo** y por eso llega el mercader un día no previsto (trae lo de la fiesta); esa noche la gente está
   **ebria y distraída** → día A+2, el preso amanece «muerto», Valen firma y lo entierran ese día → el jugador puede
   excavar la tumba (sin la cobertura de la fiesta: cuidado con los testigos).
+- **La fiesta es la tapadera (usuario, 2026-11-08):** mientras el pueblo bebe esa noche, **sacan al preso del calabozo**
+  sin que nadie lo vea; a la mañana siguiente lo dan por «muerto». Un jugador atento puede sospechar de una fiesta
+  sorpresa justo esa noche (p. ej. el carcelero borracho, la puerta del calabozo sin vigilancia un rato, alguien que vio
+  un carro salir de madrugada), pero nada lo confirma antes de la tumba vacía.
 - **El médico es el Dr. Valen:** no es cómplice directo, solo **sigue órdenes**; es un peón más. **Los nobles deciden todo
   lo que pasa en el pueblo.**
 - **Nombres:** el detective suplantado es **Jean Porterre**; el nombre real del protagonista es **Dean Hollow**.
