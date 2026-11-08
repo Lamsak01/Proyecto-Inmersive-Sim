@@ -98,5 +98,12 @@
   la cuadrícula pasó a ser un dibujo de rombos que se repite por todo el suelo; no es natural y no le gusta. Arreglarlo
   más adelante con una hierba sin patrón visible (manchas irregulares, variación de tono).
 
+- [ ] **Revisión de Claude a la interfaz nueva** (2026-11-07, captura `ui_after_plaza_3d.png`): la mejora es grande y
+  se aprueba; quedan detalles pequeños: (1) **género**: «Marta · Muerto» y «vio a Marta tendido» deben ser «Muerta» y
+  «tendida» (en la etiqueta, en la tarjeta de [E] y en los bocadillos); (2) el nombre del edificio («Pescadería y
+  Molino 'Aguas Claras'») sigue flotando en grande sobre el tejado: más pequeño o solo al acercarse; (3) una barrita
+  amarilla de progreso suelta sobre el tejado, lejos de cualquier vecino; (4) el icono de la mano 1 parece letras
+  revueltas en vez de un dibujo; (5) el bocadillo de Lina sale cortado con «…». Arreglar sin rehacer nada más.
+
 ## Arreglados
 - [x] ✅ (2026-11-07) Fachada de la trattoria «Il Corvo» en 3D: parece de tablas oscuras en vez de estuco/ladrillo claro (`WorldStage3D.gd`: cambiada la textura de muros de `building_restaurant` a `town_textures/wall_brick_sand_center.png` con `uv1_scale = Vector3(2.4, 0.72, 2.4)`, tono claro de estuco/ladrillo cálido `Color(1.0, 0.95, 0.84)`, iluminación cálida de rebote `0.58` en la fachada sur y dintel con el mismo estuco en vez de `rf_planks.png`).
