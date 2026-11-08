@@ -71,7 +71,7 @@ const WELL_POS: Vector2 = Vector2(228.0, -230.0)           # Pozo en el patio la
 const STAIRS_BOTTOM_POS: Vector2 = Vector2(576.0, -284.0)  # Pie de la escalera en Planta 0 (sala noreste)
 const STAIRS_TOP_POS: Vector2 = Vector2(576.0, -202.0)     # Desembarco de la escalera en Planta +1 (galería alta)
 const STAIRS_PROP_POS: Vector2 = Vector2(576.0, -244.0)    # Punto medio de la rampa de la escalera
-const STAIRS_RAMP_RECT: Rect2 = Rect2(Vector2(560.0, -294.0), Vector2(36.0, 102.0))
+const STAIRS_RAMP_RECT: Rect2 = Rect2(Vector2(563.0, -292.0), Vector2(28.0, 96.0))
 
 ## 6 Mesas del Gran Salón Comedor (Planta 0) con 2 sillas cada una (12 plazas sentadas, todas visibles frente al muro sur)
 const DINING_TABLES: Array = [
@@ -113,8 +113,9 @@ const ALL_UPPER_BEDS: Array = [
 	Vector2(502.0, -252.0),
 	Vector2(538.0, -252.0),
 ]
-const BEDROOM_DOORS_X: Array = [342.0, 400.0, 451.0, 502.0, 538.0]
-const BEDROOM_PARTITIONS_X: Array = [374.0, 418.0, 484.0, 520.0, 558.0]
+const BEDROOM_DOORS_X: Array = [342.0, 394.0, 451.0, 502.0, 539.0]
+const BEDROOM_PARTITIONS_X: Array = [370.0, 418.0, 484.0, 520.0, 558.0]
+const BEDROOM_DOOR_HALF_W: float = 10.0
 
 const POKER_CALLOUTS: Array[String] = [
 	"🃏 «Veo tus 5 monedas»",
@@ -226,14 +227,15 @@ static func setup_world(vm) -> void:
 	vm._add_prop_collider(Vector2(582.0, -298.0), Vector2(48.0, 6.0), "tavern_upper_walls")  # Tope norte del hueco de escalera en Planta +1
 	var cur_ux: float = 264.0
 	for dx in BEDROOM_DOORS_X:
-		var a_ux: float = float(dx) - 11.0
+		var a_ux: float = float(dx) - BEDROOM_DOOR_HALF_W
 		if a_ux - cur_ux > 2.0:
 			vm._add_prop_collider(Vector2((cur_ux + a_ux) * 0.5, BEDROOM_WALL_Y), Vector2(a_ux - cur_ux, 5.0), "tavern_upper_walls")
-		cur_ux = float(dx) + 11.0
+		cur_ux = float(dx) + BEDROOM_DOOR_HALF_W
 	if 558.0 - cur_ux > 2.0:
 		vm._add_prop_collider(Vector2((cur_ux + 558.0) * 0.5, BEDROOM_WALL_Y), Vector2(558.0 - cur_ux, 5.0), "tavern_upper_walls")
-	for part_ux in [374.0, 418.0, 452.0, 486.0]:
-		vm._add_prop_collider(Vector2(float(part_ux), -265.0), Vector2(5.0, 98.0), "tavern_upper_walls")
+	for part_ux in BEDROOM_PARTITIONS_X:
+		if float(part_ux) < 556.0:
+			vm._add_prop_collider(Vector2(float(part_ux), -265.0), Vector2(5.0, 98.0), "tavern_upper_walls")
 
 	# 4. Camas de huéspedes en Planta +1 (2.º piso)
 	for b_pos in ALL_UPPER_BEDS:

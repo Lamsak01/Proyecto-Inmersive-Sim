@@ -354,9 +354,14 @@ func shove() -> bool:
 	swing_phase_duration = 0.35
 	CombatFeel.play(player, CombatFeel.SFX_SWING, player.global_position, 0.7, -9.0)
 	var hit_any: bool = false
+	var vm_shove = get_tree().get_first_node_in_group("village_manager")
+	var pl_elev_shove: int = int(vm_shove.get("player_elevation_level")) if vm_shove != null and "player_elevation_level" in vm_shove else 0
 	for g in ["npcs", "wild_animals", "raiders", "domestic_pets", "enemies"]:
 		for t in get_tree().get_nodes_in_group(g):
 			if t == player or not (t is Node2D) or not is_instance_valid(t) or t.get("is_dead") == true:
+				continue
+			var t_elev_v = t.get("elevation_level")
+			if t_elev_v != null and int(t_elev_v) != pl_elev_shove:
 				continue
 			var to_t: Vector2 = (t as Node2D).global_position - player.global_position
 			if to_t.length() > SHOVE_RANGE or (to_t.length_squared() > 1.0 and to_t.normalized().dot(current_aim_dir) < 0.3):
@@ -931,6 +936,11 @@ func _fire_flintlock_realtime(equipped: WeaponData) -> void:
 func _on_hitbox_entered(area: Area2D) -> void:
 	if area is Hurtbox:
 		var target_entity: Node = area.get_parent() if area.get_parent() else area
+		var vm_hb = get_tree().get_first_node_in_group("village_manager")
+		if vm_hb != null and target_entity != null:
+			var t_elev_hb = target_entity.get("elevation_level")
+			if t_elev_hb != null and int(t_elev_hb) != int(vm_hb.get("player_elevation_level")):
+				return
 		if target_entity in _swing_hit_targets:
 			return
 		_swing_hit_targets.append(target_entity)

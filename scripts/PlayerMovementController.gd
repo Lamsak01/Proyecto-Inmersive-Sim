@@ -24,10 +24,11 @@ const ROLL_DISTANCE: float = 50.0
 const ROLL_COOLDOWN: float = 0.60
 const ROLL_STAMINA_COST: float = 18.0
 
-## Saltar con Espacio: impulso vertical con gravedad suave en 3D y 1.ª persona (~11.5 px de altura máxima).
+## Saltar con Espacio: impulso vertical con gravedad suave en 3D y 1.ª persona (~11.5 px al aire libre; tope bajo en interiores para no dar con techos ni vigas).
 const JUMP_INITIAL_VEL_Z: float = 56.0
 const JUMP_GRAVITY_Z: float = 140.0
 const JUMP_STAMINA_COST: float = 8.0
+const MAX_INDOOR_JUMP_Z: float = 4.8
 
 var roll_timer: float = 0.0
 var roll_invuln_timer: float = 0.0
@@ -64,6 +65,18 @@ func is_jumping() -> bool:
 func get_jump_height() -> float:
 	return maxf(0.0, jump_z)
 
+func _is_player_indoors(vm_ref: Node = null) -> bool:
+	if not is_instance_valid(player):
+		return false
+	var v: Node = vm_ref if vm_ref != null else get_tree().get_first_node_in_group("village_manager")
+	if v == null:
+		return false
+	if int(v.get("player_elevation_level")) != 0:
+		return true
+	if v.has_method("_is_pos_inside_any_building") and bool(v.call("_is_pos_inside_any_building", player.global_position)):
+		return true
+	return false
+
 func start_jump() -> bool:
 	if not is_instance_valid(player):
 		return false
@@ -85,8 +98,8 @@ func start_jump() -> bool:
 		return false
 	if is_instance_valid(stamina_comp) and stamina_comp.current_stamina >= JUMP_STAMINA_COST:
 		stamina_comp.use_stamina(JUMP_STAMINA_COST)
-	is_stealthing = false
-	jump_vel_z = JUMP_INITIAL_VEL_Z
+	var indoors: bool = _is_player_indoors(vm)
+	jump_vel_z = JUMP_INITIAL_VEL_Z * (0.62 if indoors else 1.0)
 	jump_z = 0.08
 	return true
 
@@ -163,6 +176,10 @@ func _physics_process(delta: float) -> void:
 	if jump_z > 0.0 or jump_vel_z != 0.0:
 		jump_z += jump_vel_z * delta
 		jump_vel_z -= JUMP_GRAVITY_Z * delta
+		if _is_player_indoors() and jump_z > MAX_INDOOR_JUMP_Z:
+			jump_z = MAX_INDOOR_JUMP_Z
+			if jump_vel_z > 0.0:
+				jump_vel_z = 0.0
 		if jump_z <= 0.0:
 			jump_z = 0.0
 			jump_vel_z = 0.0

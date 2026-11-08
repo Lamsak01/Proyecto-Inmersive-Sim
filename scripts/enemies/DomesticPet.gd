@@ -228,7 +228,8 @@ func _physics_process(delta: float) -> void:
 		var player := get_tree().get_first_node_in_group("player") as Node2D
 		var vm_p := get_tree().get_first_node_in_group("village_manager")
 		var player_jailed: bool = vm_p != null and (bool(vm_p.get("player_being_escorted_to_jail")) or bool(vm_p.get("player_in_jail")))
-		if _hostile_timer <= 0.0 or not is_instance_valid(player) or player_jailed or global_position.distance_to(player.global_position) > 190.0:
+		var diff_elev: bool = vm_p != null and int(vm_p.get("player_elevation_level")) != 0
+		if _hostile_timer <= 0.0 or not is_instance_valid(player) or player_jailed or diff_elev or global_position.distance_to(player.global_position) > 190.0:
 			is_hostile = false
 			_bite_windup_timer = 0.0
 			remove_from_group("enemies")

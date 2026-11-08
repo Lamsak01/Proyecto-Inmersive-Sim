@@ -942,6 +942,10 @@ func _update_fp_camera_transform() -> void:
 		var tav_eye_h: float = VillageTavern.elevation_height_for(pl_pos, int(vm.player_elevation_level))
 		if tav_eye_h > 3.0:
 			eye_h += (tav_eye_h - 2.95)
+		if int(vm.player_elevation_level) == 1 and VillageTavern.RECT.grow(8.0).has_point(pl_pos):
+			eye_h = minf(eye_h, 54.5)
+		elif vm.has_method("_is_pos_inside_any_building") and bool(vm.call("_is_pos_inside_any_building", pl_pos)):
+			eye_h = minf(eye_h, 23.5)
 	var eye_3d: Vector3 = to_3d(pl_pos, eye_h)
 	if _fp_shake_timer > 0.0 and _fp_shake_amp > 0.0:
 		eye_3d += Vector3(

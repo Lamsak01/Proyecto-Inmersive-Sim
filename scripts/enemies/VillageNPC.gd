@@ -252,8 +252,10 @@ func _process_inactive_states(delta: float) -> bool:
 ## Temporizadores y comprobaciones que corren en cada fotograma si el vecino está activo.
 
 func _tick_frame_upkeep(delta: float) -> void:
+	var vm_up = _get_vm()
+	var same_elev_up: bool = vm_up == null or not vm_up.has_method("are_on_same_elevation") or bool(vm_up.call("are_on_same_elevation", elevation_level, vm_up.player_elevation_level))
 	if body_col:
-		body_col.disabled = not is_hostile
+		body_col.disabled = not (is_hostile and same_elev_up)
 	_get_vm()
 	_get_player()
 	if bloodstained_timer > 0.0:
@@ -372,6 +374,10 @@ func _process_hostile_combat(delta: float) -> void:
 
 	var player = _get_player()
 	if not player:
+		velocity = Vector2.ZERO
+		return
+	if vm and vm.has_method("are_on_same_elevation") and not bool(vm.call("are_on_same_elevation", elevation_level, vm.player_elevation_level)):
+		_melee_windup_timer = 0.0
 		velocity = Vector2.ZERO
 		return
 

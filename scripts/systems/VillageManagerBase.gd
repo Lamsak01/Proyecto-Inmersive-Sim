@@ -924,11 +924,14 @@ func _refresh_elevation_layer_visuals() -> void:
 	for n in get_tree().get_nodes_in_group("village_npcs"):
 		if n is VillageNPC:
 			var v: VillageNPC = n as VillageNPC
+			var same_elev: bool = are_on_same_elevation(v.elevation_level, player_elevation_level)
 			var same_underground: bool = (int(v.elevation_level) == -1) == (int(player_elevation_level) == -1)
 			if not same_underground:
 				v.modulate.a = 0.0
 			else:
-				v.modulate.a = 1.0 if are_on_same_elevation(v.elevation_level, player_elevation_level) else 0.35
+				v.modulate.a = 1.0 if same_elev else 0.35
+			if v.body_col:
+				v.body_col.set_deferred("disabled", not (v.is_hostile and same_elev))
 	VillageUnderworld.sync_sewer_visibility(self)
 	VillageClub.sync_club_visibility(self)
 

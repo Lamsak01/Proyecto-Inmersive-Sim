@@ -539,6 +539,10 @@ func _process_police_law_enforcement(delta: float, vm: Node) -> bool:
 	var player = _cached_player
 	if not is_instance_valid(player):
 		return false
+	if vm and vm.has_method("are_on_same_elevation") and not bool(vm.call("are_on_same_elevation", elevation_level, vm.player_elevation_level)):
+		_police_baton_windup_timer = 0.0
+		velocity = Vector2.ZERO
+		return false
 
 	var dist_p: float = global_position.distance_to(player.global_position)
 	var in_stealth: bool = player.has_method("is_stealthing") and bool(player.call("is_stealthing"))

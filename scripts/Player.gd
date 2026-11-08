@@ -78,6 +78,7 @@ var _armor_visual_overlay: Node2D = null
 var is_weak: bool = false
 var is_stunned_flag: bool = false
 var last_damage_source: Node = null
+var _last_damage_timestamp: float = -999.0
 var _hit_flash_timer: float = 0.0
 
 ## Modo pruebas del jugador (F8): empieza apagado y no se guarda en la partida.
@@ -789,30 +790,39 @@ func _unhandled_input(event: InputEvent) -> void:
 func _on_died() -> void:
 	var vm = get_tree().get_first_node_in_group("village_manager")
 	var knocked_by_police := false
-	if is_instance_valid(last_damage_source) and (last_damage_source is VillageNPC):
+	var recent_hit: bool = (Time.get_ticks_msec() * 0.001 - _last_damage_timestamp) <= 4.0
+	if recent_hit and is_instance_valid(last_damage_source) and (last_damage_source is VillageNPC):
 		var v_src := last_damage_source as VillageNPC
 		if v_src.trade_role in [VillageNPC.TradeRole.SHERIFF, VillageNPC.TradeRole.GUARD, VillageNPC.TradeRole.ROYAL_INVESTIGATOR]:
 			knocked_by_police = true
-	if vm and (int(vm.get("wanted_level")) > 0 or bool(vm.get("is_resisting_arrest")) or knocked_by_police):
+	var has_crime: bool = vm != null and (int(vm.get("wanted_level")) > 0 or bool(vm.get("is_resisting_arrest")) or int(vm.get("bounty_gold")) > 0 or int(vm.get("player_murder_warrants_count")) > 0)
+	# Morir por accidente (desangrado, hambre, infección, animales, etc.) nunca lleva a la comisaría: solo si hubo delito y te abatió la guardia.
+	if vm and has_crime and knocked_by_police:
 		if health_comp:
 			health_comp.stabilize_after_knockout(0.45)
 		if stun_comp and stun_comp.has_method("clear_stun"):
 			stun_comp.clear_stun()
 		is_stunned_flag = false
+		last_damage_source = null
+		if vm.has_method("set_player_elevation_level"):
+			vm.call("set_player_elevation_level", 0)
 		if vm.has_method("capture_knocked_out_player_to_jail"):
 			vm.call("capture_knocked_out_player_to_jail", self)
 		return
 
-	# Si cae abatido fuera de persecución policial, es trasladado de urgencia al Hospital del Dr. Valen (conservando las heridas abiertas para tratarlas)
+	# Si cae abatido por accidente o fuera de arresto policial, es trasladado de urgencia al Hospital del Dr. Valen
 	if health_comp:
 		health_comp.stabilize_after_knockout(0.55)
 	if stun_comp and stun_comp.has_method("clear_stun"):
 		stun_comp.clear_stun()
 	is_stunned_flag = false
+	last_damage_source = null
 	velocity = Vector2.ZERO
+	if vm and vm.has_method("set_player_elevation_level"):
+		vm.call("set_player_elevation_level", 0)
 	global_position = Vector2(710, 132)
 	_spawn_floating_text("🚑 ¡Rescatado de urgencia en el Hospital!", Color.SPRING_GREEN, -46.0)
-	show_hint("🏥 Caíste inconsciente y el Dr. Valen te estabilizó en la Sala de Urgencias del Hospital.")
+	show_hint("🏥 Caíste inconsciente: el Dr. Valen te curó en el Hospital.")
 
 func _on_weakness_changed(weak: bool) -> void:
 	is_weak = weak
@@ -919,6 +929,9 @@ func take_damage(data: DamageData) -> void:
 	var vm: Node = get_tree().get_first_node_in_group("village_manager")
 	if vm and ((("player_being_escorted_to_jail" in vm) and vm.player_being_escorted_to_jail) or (("player_in_jail" in vm) and vm.player_in_jail)):
 		return
+	if data and is_instance_valid(data.source) and vm and "player_elevation_level" in vm and "elevation_level" in data.source:
+		if int(data.source.get("elevation_level")) != int(vm.get("player_elevation_level")):
+			return
 	if is_roll_invulnerable():
 		_spawn_floating_text("💨 ¡ESQUIVADO!", Color(0.75, 0.98, 0.85), -38.0)
 		_CombatFeel.play(self, _CombatFeel.SFX_EVADE, global_position, 1.0, -6.0)
@@ -950,6 +963,7 @@ func take_damage(data: DamageData) -> void:
 				WorldStage3DScript.notify_fp_block_impact(false)
 	if data and is_instance_valid(data.source):
 		last_damage_source = data.source
+		_last_damage_timestamp = Time.get_ticks_msec() * 0.001
 	if test_mode_active:
 		if health_comp:
 			health_comp.current_health = health_comp.max_health
