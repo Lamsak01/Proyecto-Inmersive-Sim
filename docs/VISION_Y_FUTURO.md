@@ -204,6 +204,10 @@ Estado: **✅ HECHO** = ya construido y funcionando en el juego. **🟡 EN PARTE
   el artista: A) camisa o túnica con pantalón metido en botas altas; B) jubón acolchado, chaleco de cuero o chaqueta
   corta de paño; C) gabardina larga de cuero, tabardo o capa corta (detective, guardia, noble); D) peto de cuero,
   coraza oxidada o delantal pesado (herrero, carnicero, facción).
+  Imágenes de la época buena (las que más se acercan a lo que quiere el usuario): `docs/referencias_personajes/04_*`,
+  `05_*` y `06_*` (las 01–03 valen solo por el estilo). Avisos de Claude para el artista: cuerpos base normales (delgado,
+  gordo, viejo), no musculosos de superhéroe; máquinas portátiles solo en manos de poder o contrabando (no una criada);
+  pedir también una imagen de día, porque gran parte del juego pasa de día.
 
 ### Tecnología anacrónica
 - ✅ **HECHO** — Vehículos de época: caballos de silla y carretas de carga (`VillageCulture.gd`, test #90): en el Rancho del Sur puedes comprar al ganadero un Caballo de Silla (45 de oro, aumenta tu velocidad y mejora un +15 % el éxito de tus expediciones) y una Carreta de Carga (55 de oro, añade +4 de oro de rendimiento por cada remesa comercial enviada por ruta). *(Hecho en bloque PM; motos/coches quedan descartados para el tamaño actual del valle.)*
