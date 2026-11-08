@@ -2,9 +2,9 @@
 
 ## Decisiones del usuario (2026-11-08)
 - **Sheriff → alguacil:** sí (encargado en `docs/ENCARGO_SIGUIENTE.md` §3b).
-- **Trattoria «Il Corvo» → casa de comidas del valle** (nombre y platos locales: guisos, pan, asados). **Además, será
-  el punto de reunión de los bajos fondos y de la resistencia contra los gobernantes** (idea nueva del usuario; ver
-  `docs/VISION_Y_FUTURO.md`, Sociedad).
+- **Trattoria «Il Corvo» → casa de comidas del valle** (nombre y platos locales: guisos, pan, asados). **Por ahora será
+  el punto de reunión de los bajos fondos** (bandidos, perista, traficantes, adictos); la resistencia se aplaza y irá
+  con la historia principal (`docs/VISION_Y_FUTURO.md`, Sociedad).
 - **Caballos y carretas conviven** con tractores y camiones diésel, que son solo del señor, la guardia y los ricos
   (gastan gasóleo).
 - **Inventos del taller → de la época:** «Radio de onda corta», «Generador diésel», «Cerradura magnética» (aprobados

@@ -67,8 +67,8 @@ repaso en `docs/REVISION_EPOCA.md`). Solo 3D. Una captura por punto.
    Antes de poner nada, enséñalo en una lista corta en el informe (qué y dónde) y sigue; no hace falta esperar.
 4. **Trattoria «Il Corvo» → casa de comidas del valle**: nombre nuevo de casa de comidas local (propón 3 en el
    informe y usa el primero; el usuario puede cambiarlo) y platos del valle (guisos, pan, asados, nada italiano) en
-   carta, letreros, diálogos y avisos. Mismo edificio y mismo funcionamiento. (Más adelante será la guarida de la
-   resistencia: no lo construyas aún.)
+   carta, letreros, diálogos y avisos. Mismo edificio y mismo funcionamiento. (Será el punto de reunión de los bajos fondos;
+   eso se encargará aparte: no lo construyas aún.)
 5. **Inventos del taller**: renombrar en todo lo visible «Engranajes Hidráulicos» → «Radio de onda corta»,
    «Cerraduras de Precisión» → «Cerradura magnética», «Condensadores Voltaicos» → «Generador diésel». Solo nombres y
    textos; lo que hacen no cambia.
