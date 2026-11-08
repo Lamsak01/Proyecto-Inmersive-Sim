@@ -451,8 +451,12 @@ static func instantiate_model(
 		var sy := target_size.y / maxf(0.01, sz.y)
 		var sz_f := target_size.z / maxf(0.01, sz.z)
 		if preserve_aspect:
-			var u := minf(sy, maxf(sx, sz_f) * 1.15)
-			scale_vec = Vector3(u, u, u)
+			var u_xz := minf(sx, sz_f)
+			var ratio_xz := maxf(sx, sz_f) / maxf(0.001, u_xz)
+			var scale_x := u_xz if ratio_xz <= 1.28 else sx
+			var scale_z := u_xz if ratio_xz <= 1.28 else sz_f
+			var scale_y := minf(sy, maxf(scale_x, scale_z) * 1.35)
+			scale_vec = Vector3(scale_x, scale_y, scale_z)
 		else:
 			scale_vec = Vector3(sx, sy, sz_f)
 	elif fit_height_only > 0.0:

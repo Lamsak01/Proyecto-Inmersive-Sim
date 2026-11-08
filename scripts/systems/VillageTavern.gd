@@ -75,27 +75,27 @@ const STAIRS_RAMP_RECT: Rect2 = Rect2(Vector2(560.0, -294.0), Vector2(36.0, 102.
 
 ## 6 Mesas del Gran Salón Comedor (Planta 0) con 2 sillas cada una (12 plazas sentadas, todas visibles frente al muro sur)
 const DINING_TABLES: Array = [
-	Vector2(296.0, -218.0),
-	Vector2(358.0, -218.0),
-	Vector2(296.0, -190.0),
-	Vector2(358.0, -190.0),
-	Vector2(420.0, -190.0),
-	Vector2(454.0, -218.0),
+	Vector2(298.0, -202.0),
+	Vector2(358.0, -202.0),
+	Vector2(298.0, -168.0),
+	Vector2(358.0, -168.0),
+	Vector2(418.0, -168.0),
+	Vector2(454.0, -206.0),
 ]
 const CHAIR_OFFSETS: Array = [Vector2(-15.0, 0.0), Vector2(15.0, 0.0)]
 
 ## 4 Sillas alrededor de la Mesa de Póker (Planta 0: Oeste, Este, Norte, Sur)
 const POKER_CHAIR_OFFSETS: Array = [
-	Vector2(-16.0, 0.0),
-	Vector2(16.0, 0.0),
-	Vector2(0.0, -13.0),
-	Vector2(0.0, 13.0),
+	Vector2(-16.5, 0.0),
+	Vector2(16.5, 0.0),
+	Vector2(0.0, -16.0),
+	Vector2(0.0, 16.0),
 ]
 const POKER_CHAIRS: Array[Vector2] = [
-	Vector2(502.0, -178.0),
-	Vector2(534.0, -178.0),
-	Vector2(518.0, -191.0),
-	Vector2(518.0, -165.0),
+	Vector2(501.5, -178.0),
+	Vector2(534.5, -178.0),
+	Vector2(518.0, -194.0),
+	Vector2(518.0, -162.0),
 ]
 
 ## Planta +1: 5 Cuartos de Huéspedes en el ala norte (`y = -316..-216`) + Galería alta (`y = -216..-168`)

@@ -7314,5 +7314,12 @@ func _initialize() -> void:
 			cn.corpse_on_ground = ui2_saved_ground[idx_c]
 	print("Block UI2 (Paper-and-Ink In-Game UI & World Label Declutter) OK")
 
+	var ws3d = root.find_child("WorldStage3D", true, false)
+	if ws3d != null and ws3d.has_method("check_furniture_overlaps"):
+		ws3d.rebuild_buildings_3d()
+		var furn_overlaps: Array = ws3d.check_furniture_overlaps(false)
+		assert(furn_overlaps.is_empty(), "No two floor furniture items may overlap in any building! Found: " + str(furn_overlaps))
+		print("Furniture Overlap Check (0 overlaps across all buildings) OK")
+
 	print("ALL RIMWORLD MEDICAL, FOOTPRINTS, 3-PHASE CORPSE REPORT, MULTI-CORPSE FIX, RPG INTERROGATION, PUBLIC TRIAL, DYNAMIC RELATIONSHIPS, MISSING FAMILY SEARCH, SOCIAL GLOSSARY & UNCONSCIOUS REACTION TESTS PASSED!")
 	quit(0)

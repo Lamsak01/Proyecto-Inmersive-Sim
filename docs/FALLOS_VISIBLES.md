@@ -5,9 +5,9 @@
 > Formato: `- [ ] Qué se ve mal · dónde · cuándo (hora del juego, 2D/3D/primera persona)`.
 
 ## Pendientes
-- [ ] **Sillas que atraviesan mesas también en la Casa de Comidas «El Fogón del Valle»** (y seguramente en más sitios).
+- [x] ✅ (2026-11-08) **Sillas que atraviesan mesas también en la Casa de Comidas «El Fogón del Valle»** (y seguramente en más sitios).
   El usuario quiere más adelante objetos con físicas (arrastrar sillas, tirar cosas): **ningún mueble puede atravesar
-  a otro en ningún edificio** · 1.ª persona, 23:17.
+  a otro en ningún edificio** · 1.ª persona, 23:17 (`scripts/visuals/AssetLibrary3D.gd`, `scripts/visuals/WorldStage3D.gd`, `scripts/systems/VillageTavern.gd`, `tools/tests/verify_all.gd`: corregido el escalado de modelos 3D rectangulares en `AssetLibrary3D.instantiate_model` que casi duplicaba el ancho de las mesas al usar la cota vertical proyectada `sy`, separadas todas las sillas, mesas, taburetes, escritorios, librerías y cofres con `2–3 px` de holgura en todos los edificios, y añadida comprobación automática `check_furniture_overlaps()` verificada con `0` solapes en todos los edificios; comprobado en `docs/capturas_arreglos/hoy_2_muebles_sin_solape_3d.png`).
 - [ ] **En vista desde arriba se siguen viendo la espada/manos de la 1.ª persona** flotando junto al personaje · 05:53.
 - [ ] **Clic izquierdo ya no dispara** (antes sí), y **no hay pistola a la vista ni forma de conseguirla** (ni bala ni
   tienda que la venda): el combate de fuego existe pero el jugador no puede usarlo.
