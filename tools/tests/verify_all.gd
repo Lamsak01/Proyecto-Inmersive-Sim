@@ -6345,8 +6345,8 @@ func _initialize() -> void:
 	c76_en.physical_keycode = KEY_ENTER
 	c76_en.pressed = true
 	assert(not c7_cc._is_attack_key(c76_sp) and c7_cc._is_attack_key(c76_en), "C7.32: Space never attacks; Enter still attacks")
-	assert(c7_pl.start_jump() and c7_pl.is_jumping() and c7_pl.get_jump_height() > 0.0, "C7.32b: Space / start_jump triggers vertical jump")
-	var c7_mc = c7_pl.get_node_or_null("PlayerMovementController")
+	assert(p70_pl.start_jump() and p70_pl.is_jumping() and p70_pl.get_jump_height() > 0.0, "C7.32b: Space / start_jump triggers vertical jump")
+	var c7_mc = p70_pl.get_node_or_null("PlayerMovementController")
 	if c7_mc != null:
 		c7_mc.jump_z = 0.0
 		c7_mc.jump_vel_z = 0.0
