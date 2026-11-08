@@ -16,3 +16,4 @@
 - **Decisiones ya tomadas** (no preguntar): `docs/HANDOFF.md` §8 (lee solo esa sección si dudas).
 - **Archivos enormes:** `VillageManager.gd`, `VillageNPC.gd`, `WorldStage3D.gd`: busca con `grep -n`, no los leas enteros.
 - **Godot siempre en primer plano** (con `timeout`, esperando su salida en el mismo comando), **nunca como tarea en segundo plano**: te quedas esperando para siempre.
+- **Lectura mínima (orden del usuario, 2026-11-08):** lee solo esta guía, la sección de tu encargo y las entradas de fallos que te toquen. Nada de repasar el proyecto entero: el resto, solo la sección exacta que necesites.
