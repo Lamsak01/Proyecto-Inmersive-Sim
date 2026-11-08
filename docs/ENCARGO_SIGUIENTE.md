@@ -4,6 +4,12 @@ Trabaja sin parar ni preguntar, commit + push tras cada punto y 1 captura **juga
 1. **Atasco en la puerta de la taberna:** vecinos que entran y salen se quedan pegados en el umbral. Busca por qué volvió
    (mira si el troceo de archivos dejó de llamar algo del «doble carril») y compruébalo dejando pasar un día de juego entero.
 2. **El indicador del tiempo dice «despejado» mientras llueve.**
+3. **(Añadido por el supervisor a las 15:50, pedido del usuario) Carriles de puerta para TODOS los edificios, presentes y
+   futuros:** hoy los carriles de entrar/salir solo valen para puertas que miran al norte o al sur. (a) Que funcionen con
+   puertas en **cualquier dirección** (también este y oeste); (b) que la prueba automática revise **todas las puertas**
+   (ancho suficiente para dos personas y carriles despejados, sin muebles ni tabiques en medio); (c) apunta en
+   `docs/HANDOFF.md` (trampas conocidas) la **regla para edificios nuevos**: puerta de al menos dos personas de ancho,
+   registrada con su dirección para que reciba carriles, y pasar esa prueba. No cambies nada más del comportamiento.
 Al acabar: ✅ en `FALLOS_VISIBLES.md`, resumen corto al principio del informe y commit + push.
 
 # ✅ TROCEO DE ARCHIVOS GRANDES — HECHO (2026-11-08 13:27). No lo repitas.
@@ -38,6 +44,7 @@ y no se hizo nada: eso no puede volver a pasar.
   son trabajo a medias: revísalos y termínalos primero.
 
 ## Notas del supervisor (noche)
+- **(2026-11-08 15:50) NUEVO:** añadido el punto 3 al «ENCARGO DE HOY (noche)» (carriles de puerta para todos los edificios). Hazlo antes de crear `DIA_TERMINADO.txt`.
 - [x] ✅ (01:15, Claude) Mapa [M] en papel: bien. Detalle pequeño: en la leyenda «Tú» sale en azul, pero en el mapa tu
   marca es roja. Que coincidan (`ValleyMapUI.gd`: cambiado el marcador y etiqueta «Tú» en el mapa a azul cobalto para que coincida con `🔵 Tú` de la leyenda).
 
