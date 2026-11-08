@@ -11,14 +11,15 @@
 - **Cualquier prenda vale para cualquier personaje**, jugador incluido: robar el uniforme de un guardia y ponérselo
   tiene que funcionar y verse.
 
-## 2. Época y ambiente
-- Mundo propio **anacrónico**: **80 % medieval o preindustrial** (piedra, madera, entramado, gremios, jubones, capas,
-  cuero, armaduras) y **20 % tecnología analógica tosca** (terminales de pantalla abombada verde o ámbar en cajas de
-  hierro y latón, tarjetas perforadas, cables gruesos clavados en los muros, porras eléctricas con batería).
-- La tecnología es **rara y cara**: solo la tienen el poder (ayuntamiento, guardia), los ricos y los contrabandistas.
-  La gente corriente vive con velas y herramientas de mano.
-- Referentes: *Thief II*, *Dishonored*, *Arcanum*, y para el acabado *Mouthwashing* y *Gloomwood*.
-- **Nada moderno**: ni vaqueros, ni chalecos antibalas, ni chupas de cuero, ni zapatillas.
+## 2. Época y ambiente (definitiva, 2026-11-08)
+- Mundo propio **tecnofeudal / medieval-balístico**: sociedad y arquitectura **feudales** (piedra, entramado de madera,
+  gremios, señores) con **tecnología analógica de los años 70/80 y armas de fuego militares**: fusiles de asalto,
+  radios de baquelita, focos de vigilancia, tractores y generadores diésel, terminales de pantalla verde o ámbar,
+  cables gruesos clavados en los muros, alambre de espino y sacos terreros.
+- Todo **tosco y gastado**: hierro forjado, piedra, madera, hormigón, baquelita, lona.
+- Referentes: *Trench Crusade*, *Thief*, *Kenshi*; para el acabado *Mouthwashing* y *Gloomwood*.
+- **Nada de**: pantallas planas, móviles, coches modernos ni engranajes dorados de estilo victoriano (*steampunk*).
+- Las armas, inventadas «tipo» fusil de asalto, no copias de modelos reales con nombre.
 
 ## 3. Estilo visual
 - **Retro tipo PlayStation 1**: pocos polígonos, texturas pequeñas pixeladas, todo el detalle pintado en la textura.
@@ -50,11 +51,13 @@ indica qué partes del cuerpo o de la prenda de debajo se ocultan.
    sonrisa, boca hacia abajo, boca apretada. Son para los **interrogatorios**: la cara delata al que miente.
 6. **Peinados** en escala de grises (se tiñen por código). Empezar con pocos.
 7. **Ropa** en 4 plantillas de volumen, en tonos neutros que se puedan teñir o cambiar de textura por oficio o bando:
-   - **A — Civil / gremios:** camisa o túnica de manga ancha, pantalón de tela gruesa metido en botas altas.
-   - **B — Chaqueta:** jubón acolchado, chaleco de cuero con hebillas o chaqueta corta de paño.
-   - **C — Abrigo:** gabardina larga de cuero, tabardo o capa corta (detective, guardia, noble).
-   - **D — Armadura / oficio:** peto de cuero, coraza oxidada o delantal pesado (herrero, carnicero, facción).
-8. Algunos **sombreros y cascos** y un par de **botas**.
+   - **A — Civil / gremios:** túnica o camisa de lino, pantalón grueso, delantal de cuero pesado, botas militares.
+   - **B — Chaqueta:** gambesón acolchado, chaleco de cuero con hebillas o chaqueta corta de paño.
+   - **C — Abrigo:** gabardina larga gastada o tabardo, con hombreras metálicas opcionales (detective, mercenario).
+   - **D — Armadura / guardia:** cota de malla, coraza de acero (hace de chaleco antibalas) y correas de lona para
+     cargadores y radio; también delantal pesado de herrero o carnicero.
+8. Algunos **sombreros y cascos** (de estilo medieval, algunos con auriculares de radio), una **máscara antigás** y un par
+   de **botas**.
 
 ## 7. Ropa hecha por el dueño del juego
 El dueño del juego quiere **crear él mismo ropa nueva** más adelante (uniformes de policía, de bandas, de cada facción).
@@ -69,13 +72,15 @@ Entrega también:
 - Con eso montaremos **dos vecinos distintos dentro del pueblo** para ver cómo quedan de día y de noche. Si funciona,
   se encarga el resto.
 
-## 9. Qué evitar (errores de las imágenes de referencia)
+## 9. Qué evitar
 - Cuerpos musculosos de superhéroe en el kit base.
-- Máquinas en manos de gente corriente (una criada con un ordenador portátil rompe la regla de la época).
-- Ropa moderna: las imágenes `01`–`03` valen solo por el estilo, no por la ropa.
+- Ropa moderna de ciudad (vaqueros, chupas de cuero, zapatillas) y uniformes de policía actuales. Lo militar sí, pero
+  siempre mezclado con lo medieval (coraza en vez de chaleco táctico moderno).
+- Las imágenes `01`–`06` son de una época descartada: valen solo por el acabado de caras y el kit, no por la época.
 
 ## 10. Imágenes de referencia (`docs/referencias_personajes/`)
-- `04_epoca_terminal_interior` — ambiente: vela junto a terminal verde, cables en la piedra.
-- `05_epoca_kit_cuerpo_ropa` — idea del kit (cuerpos, chaleco, gabardina, coraza con aparato, botas, peinados, cascos).
-- `06_epoca_cuatro_vecinos` — criada, comerciante rico, guardia con porra eléctrica, saboteador con tenazas.
-- `01`–`03` — solo estilo de acabado y de caras con gestos (ropa moderna: no usar).
+- **`07_DEFINITIVA_comisaria`**, **`08_DEFINITIVA_granja_noche`**, **`09_DEFINITIVA_herreria`** — la época y el ambiente
+  buenos. Fíjate en el guardia: casco medieval, cota de malla, coraza, correas y fusil.
+- `05_epoca_kit_cuerpo_ropa` — idea de cómo presentar el kit (piezas sueltas).
+- `03_expresiones` — idea de los gestos de la cara.
+- Todas están hechas con IA y tienen errores: son ideas, no planos.

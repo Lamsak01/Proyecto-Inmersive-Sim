@@ -204,6 +204,21 @@ Estado: **✅ HECHO** = ya construido y funcionando en el juego. **🟡 EN PARTE
   el artista: A) camisa o túnica con pantalón metido en botas altas; B) jubón acolchado, chaleco de cuero o chaqueta
   corta de paño; C) gabardina larga de cuero, tabardo o capa corta (detective, guardia, noble); D) peto de cuero,
   coraza oxidada o delantal pesado (herrero, carnicero, facción).
+  **⚠️ ÉPOCA DEFINITIVA (2026-11-08, el usuario está «100 % seguro»; sustituye a la de arriba): tecnofeudal /
+  medieval-balística.** Feudalismo con tecnología analógica de los años 70/80 y armamento balístico militar
+  (referentes: *Trench Crusade*, *Thief*, *Kenshi*). Imágenes: `docs/referencias_personajes/07–09_DEFINITIVA_*`
+  (comisaría con terminal verde y fusiles, granja de noche con foco, tractor, sacos terreros y alambre de espino,
+  herrería con forja de carbón y prensa eléctrica). Ideas del usuario (sueltas, no al pie de la letra): casas medievales
+  reforzadas para la guerra (sacos terreros, planchas remachadas, barrotes, alambre, puestos de control); cables gruesos
+  por fuera de los muros hasta generadores, focos y terminales; herrería que forja corazas y piezas de fusil; comisaría
+  con celdas, velas y terminales; botica que extrae balas; guardias con cota de malla, gambesón, coraza como chaleco
+  antibalas, correas de lona y radio; detectives y mercenarios con gabardina, hombreras, faroles, máscaras antigás o
+  cascos medievales con auriculares. Juego: casquillos y abolladuras en armaduras como pistas, cortar cables para
+  apagar un edificio, piratear terminales, leyes feudales sobre llevar armas.
+  Opinión de Claude: identidad mucho más fuerte y propia; encaja con el simulador inmersivo. Consecuencias: (1) el
+  combate tendrá que ser también de disparo (ya estaba pendiente rehacerlo); (2) cosas actuales como el arcabuz de
+  chispa, caballos y carretas, la «Fe del Alba» o la trattoria habrá que revisarlas para que encajen; (3) conviene
+  inventar armas propias «tipo» AK en vez de copiar modelos reales con nombre.
   Encargo listo para el artista: `docs/ENCARGO_ARTISTA_PERSONAJES.md`.
   Imágenes de la época buena (las que más se acercan a lo que quiere el usuario): `docs/referencias_personajes/04_*`,
   `05_*` y `06_*` (las 01–03 valen solo por el estilo). Avisos de Claude para el artista: cuerpos base normales (delgado,
