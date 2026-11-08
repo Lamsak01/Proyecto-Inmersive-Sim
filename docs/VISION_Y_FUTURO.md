@@ -190,6 +190,12 @@ Estado: **✅ HECHO** = ya construido y funcionando en el juego. **🟡 EN PARTE
   en los interrogatorios son un gran gancho. Avisos: el resultado real será más simple que las imágenes; no preparar el
   sistema antes de tener un muñeco de verdad del artista; la ropa moderna de las imágenes (chaleco antibalas, chupa de
   cuero) choca con el pueblo actual, así que hay que decidir la época antes de encargar el arte; empezar con pocos gestos.
+  **Aclaración del usuario (2026-11-07):** nada de un modelo único por personaje (caro y choca con cambiarse de ropa).
+  Quiere un **creador de personajes tipo Skyrim** (peinado, rasgos, cicatrices…) del que salen los vecinos; el jugador
+  es uno más con las mismas reglas. Habrá **mucha ropa**, también creada por el propio usuario: armaduras, uniformes de
+  policía, ropa de bandas y de cada facción, y se verá puesta. El artista hará solo a mano algunos personajes
+  principales. Al artista se le pide el **kit** (cuerpo base, cabeza común, peinados y unas prendas de prueba) y una
+  guía para que el usuario pueda hacer ropa nueva que encaje en ese cuerpo.
 
 ### Tecnología anacrónica
 - ✅ **HECHO** — Vehículos de época: caballos de silla y carretas de carga (`VillageCulture.gd`, test #90): en el Rancho del Sur puedes comprar al ganadero un Caballo de Silla (45 de oro, aumenta tu velocidad y mejora un +15 % el éxito de tus expediciones) y una Carreta de Carga (55 de oro, añade +4 de oro de rendimiento por cada remesa comercial enviada por ruta). *(Hecho en bloque PM; motos/coches quedan descartados para el tamaño actual del valle.)*
