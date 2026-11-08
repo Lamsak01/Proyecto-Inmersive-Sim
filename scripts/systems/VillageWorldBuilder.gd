@@ -362,11 +362,11 @@ static func _spawn_police_station_and_jail(vm: VillageManager) -> void:
 
 	# Comisario Vane y Guardia Rodric (Con mesa de comedor propia en la Comisaría `Vector2(886, 126)` / `Vector2(896, 126)`)
 	vm._register_authority_npc(
-		"NPC_Sheriff_Vane", "Comisario Vane", "Comisario Jefe", VillageNPC.TradeRole.SHERIFF,
+		"NPC_Sheriff_Vane", "Comisario Vane", "Alguacil mayor", VillageNPC.TradeRole.SHERIFF,
 		"res://assests/world/village/villager_sheriff.png",
 		Vector2(915, 126), Vector2(968, 132), Vector2(886, 126), {},
 		"family_police", "Guardia del Valle",
-		["Comisario Thorne", "Comisaria Vance", "Comisario Haldor", "Comisaria Lyra", "Comisario Rourke"]
+		["Alguacil Thorne", "Alguacil Vance", "Alguacil Haldor", "Alguacil Lyra", "Alguacil Rourke"]
 	)
 	vm._register_authority_npc(
 		"NPC_Guard_Rodric", "Guardia Rodric", "Oficial de Patrulla", VillageNPC.TradeRole.GUARD,

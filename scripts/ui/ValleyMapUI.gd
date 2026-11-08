@@ -422,7 +422,7 @@ func _draw_valley_cartography(canvas: Control, detailed: bool) -> void:
 
 	# 6. Edificios de la Aldea en tonos teja/madera y borde de tinta
 	var buildings: Array[Dictionary] = [
-		{"rect": VillageRestaurant.RECT, "col": Color(0.68, 0.42, 0.32), "label": "Trattoria Il Corvo"},
+		{"rect": VillageRestaurant.RECT, "col": Color(0.68, 0.42, 0.32), "label": "Casa de Comidas El Fogón"},
 		{"rect": Rect2(Vector2(260, -316), Vector2(348, 184)), "col": Color(0.64, 0.40, 0.28), "label": "Posada El Jabalí"},
 		{"rect": Rect2(Vector2(277, -74), Vector2(116, 76)), "col": Color(0.52, 0.48, 0.44), "label": "Herrería"},
 		{"rect": Rect2(Vector2(527, -74), Vector2(116, 76)), "col": Color(0.62, 0.38, 0.34), "label": "Carnicería"},

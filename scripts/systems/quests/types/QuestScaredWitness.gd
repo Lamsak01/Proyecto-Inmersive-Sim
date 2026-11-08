@@ -25,8 +25,8 @@ func texts(off: Dictionary) -> Dictionary:
 	var vn: String = str(off.get("target_name", ""))
 	return {
 		"title": "El testigo con miedo",
-		"ask": "«Fui yo quien encontró a %s... Desde entonces no duermo. Si el que lo hizo sabe que hablé, voy yo detrás. ¿Puedes pedirle al comisario que me proteja?»" % vn,
-		"desc": "%s halló el cuerpo de %s y teme por su vida. Pide protección al comisario (🛡️ en su diálogo). Más tranquilo/a, quizá recuerde algo." % [str(off.get("giver_name", "")), vn],
+		"ask": "«Fui yo quien encontró a %s... Desde entonces no duermo. Si el que lo hizo sabe que hablé, voy yo detrás. ¿Puedes pedirle al alguacil que me proteja?»" % vn,
+		"desc": "%s halló el cuerpo de %s y teme por su vida. Pide protección al alguacil (🛡️ en su diálogo). Más tranquilo/a, quizá recuerde algo." % [str(off.get("giver_name", "")), vn],
 	}
 
 func init_data(_vm: VillageManager, _giver: VillageNPC, off: Dictionary) -> Dictionary:
@@ -36,7 +36,7 @@ func is_done(_vm: VillageManager, q: Dictionary) -> bool:
 	return bool(q["data"].get("protected", false))
 
 func progress_hint(_q: Dictionary) -> String:
-	return "«¿Has hablado con el comisario? Cada ruido de noche me parece un paso...»"
+	return "«¿Has hablado con el alguacil? Cada ruido de noche me parece un paso...»"
 
 func failure_reason(vm: VillageManager, q: Dictionary, by_key: Dictionary) -> String:
 	var base: String = super.failure_reason(vm, q, by_key)
@@ -76,4 +76,4 @@ func on_extra_action(vm: VillageManager, qm: Node, npc: VillageNPC, action_id: S
 	return true
 
 func done_dialogue(_vm: VillageManager, _q: Dictionary) -> Dictionary:
-	return {"text": "«Gracias... ya respiro mejor. Y he recordado algo; se lo he contado al comisario.»", "choices": [{"label": "💰 Cobrar", "next": "END", "action": "quest_turn_in"}]}
+	return {"text": "«Gracias... ya respiro mejor. Y he recordado algo; se lo he contado al alguacil.»", "choices": [{"label": "💰 Cobrar", "next": "END", "action": "quest_turn_in"}]}

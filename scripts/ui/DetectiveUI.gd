@@ -1637,7 +1637,7 @@ func _describe_world_site(dpos: Vector2) -> String:
 	if dpos.y > 380.0 and dpos.x > -660.0 and dpos.x <= 180.0:
 		return "los campos de la Granja del Sur"
 	if dpos.x >= -270.0 and dpos.x <= 40.0 and dpos.y >= -220.0 and dpos.y <= 55.0:
-		return "las inmediaciones de la Trattoria «Il Corvo»"
+		return "las inmediaciones de la Casa de Comidas «El Fogón del Valle»"
 	if dpos.x >= 180.0 and dpos.x <= 430.0 and dpos.y >= 200.0 and dpos.y <= 360.0:
 		return "el Parque del Roble"
 	if dpos.x >= -270.0 and dpos.x <= 1350.0 and dpos.y >= -520.0 and dpos.y <= 430.0:

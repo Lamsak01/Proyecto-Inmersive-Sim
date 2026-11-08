@@ -174,7 +174,7 @@ static func catch(vm, t: Dictionary, how: String) -> void:
 		victim.modify_npc_relationship(thief, VICTIM_REL, "Me robó", true)
 	thief.add_thought("Me pillaron robando (-10)", -10.0)
 	vm.VillageFame.add_fame(vm, thief, -15, "Pillado robando a %s" % str(t["victim_name"]))
-	var ev: Dictionary = vm.record_social_event("theft_caught", thief, victim, "%s robó %d de oro a %s y el comisario le obligó a devolverlo (%s)" % [thief.npc_name, int(t["amount"]), t["victim_name"], how])
+	var ev: Dictionary = vm.record_social_event("theft_caught", thief, victim, "%s robó %d de oro a %s y el alguacil le obligó a devolverlo (%s)" % [thief.npc_name, int(t["amount"]), t["victim_name"], how])
 	t["ev_uid"] = int(ev.get("uid", -1))
 	VillageChronicle.add(vm, "theft_caught", "%s robó a %s y tuvo que devolverlo (%s)" % [thief.npc_name, t["victim_name"], how], true)
 

@@ -261,7 +261,7 @@ static func start_sheriff_investigation(vm: VillageManager, victim: VillageNPC, 
 		return
 	vm.active_sheriff_investigation = _build_investigation_case_dict(vm, victim, death_pos, weapon_name, discoverer_name, 5, false)
 	var rep_txt: String = str(vm.active_sheriff_investigation.get("reporter_name", "quien halló el cuerpo"))
-	vm._hint_player("🕵️‍♂️🚓 El Comisario Vane abrió investigación por el homicidio de %s: inspeccionará huellas en la escena e interrogará primero a %s (cadena de hasta 5 testigos)." % [victim.npc_name, rep_txt])
+	vm._hint_player("🕵️‍♂️🚓 El Alguacil mayor Vane abrió investigación por el homicidio de %s: inspeccionará huellas en la escena e interrogará primero a %s (cadena de hasta 5 testigos)." % [victim.npc_name, rep_txt])
 
 ## Se ejecuta cuando REPORTAN el cadáver de `Maese Casimir` o de `Valeria la Tratante`:
 static func on_traveling_merchant_murdered(vm: VillageManager, merchant: VillageNPC, cause_text: String = "") -> void:
@@ -459,7 +459,7 @@ static func update_royal_investigator_ai(vm: VillageManager, inv_npc: VillageNPC
 				r_timer += delta
 				vm.active_royal_investigation["routine_timer"] = r_timer
 				if int(r_timer * 10.0) % 40 == 0:
-					inv_npc._spawn_floating_text("📋🕯️ Día %d: Cotejando actas con el Comisario Vane (%d/%d interrogados)..." % [days_inv, done_cnt, max_cnt], Color(1.0, 0.88, 0.45), -36.0)
+					inv_npc._spawn_floating_text("📋🕯️ Día %d: Cotejando actas con el Alguacil mayor Vane (%d/%d interrogados)..." % [days_inv, done_cnt, max_cnt], Color(1.0, 0.88, 0.45), -36.0)
 			return
 
 		# 3. Noche temprana (20:00 a 22:00): Cena y vigila a los sospechosos en la Posada (`_tavern_social_pos`)
@@ -728,7 +728,7 @@ static func update_sheriff_investigator_ai(vm: VillageManager, sheriff: VillageN
 					sheriff._move_towards_point(arr_npc.global_position, 82.0, delta)
 					return true
 				vm.active_sheriff_investigation["handcuffed_npc"] = true
-				arr_npc._spawn_floating_text("⛓️😱 ¡Comisario Vane, juro que me han incriminado!", Color.ORANGE_RED, -40.0)
+				arr_npc._spawn_floating_text("⛓️😱 ¡Alguacil mayor Vane, juro que me han incriminado!", Color.ORANGE_RED, -40.0)
 				sheriff._spawn_floating_text("🚓⛓️ ¡%s, quedas detenido! ¡Camina hacia la Celda Policial!" % arr_npc.npc_name, Color.GOLD, -42.0)
 				return true
 			var cell_dest := Vector2(872, 176)
@@ -741,9 +741,9 @@ static func update_sheriff_investigator_ai(vm: VillageManager, sheriff: VillageN
 				return true
 			sheriff.velocity = Vector2.ZERO
 			arr_npc.velocity = Vector2.ZERO
-			arrest_npc(vm, arr_npc, sheriff, "condena del Comisario Vane", 48, 50)
+			arrest_npc(vm, arr_npc, sheriff, "condena del Alguacil mayor Vane", 48, 50)
 			sheriff._spawn_floating_text("🚓🔒 %s encerrado en la Celda Policial. Caso cerrado." % arr_npc.npc_name, Color.AQUA, -42.0)
-			vm._hint_player("🚓🔒 El Comisario Vane encerró físicamente a %s en la Celda Policial tras concluir su investigación." % arr_npc.npc_name)
+			vm._hint_player("🚓🔒 El Alguacil mayor Vane encerró físicamente a %s en la Celda Policial tras concluir su investigación." % arr_npc.npc_name)
 			vm.active_sheriff_investigation["active"] = false
 			_check_and_start_next_morgue_sheriff_case(vm)
 			return true
@@ -1302,7 +1302,7 @@ static func resolve_player_interrogation_outcome(vm: VillageManager, inv_npc: Vi
 					inv_npc.personal_gold = maxi(0, inv_npc.personal_gold) + 45
 					p_entry["score"] = maxi(8, int(p_entry.get("score", 30)) - 38)
 					p_entry["status_note"] = "Acuerdo discreto en el interrogatorio (-38% sospecha)"
-					clues.append("El Comisario dio por buena la declaración del Forastero tras un acuerdo discreto (-38% sospecha).")
+					clues.append("El Alguacil mayor dio por buena la declaración del Forastero tras un acuerdo discreto (-38% sospecha).")
 					inv_npc._spawn_floating_text("💰🤫 «Haremos la vista gorda en el informe por esta vez... (-45 Oro, -38% sospecha)»", Color.GOLD, -44.0)
 				else:
 					p_entry["score"] = int(p_entry.get("score", 20)) + 22
@@ -1344,7 +1344,7 @@ static func _conclude_sheriff_investigation_verdict(vm: VillageManager, sheriff:
 		vm.wanted_level = clampi(vm.wanted_level + 2, 2, 5)
 		vm.bounty_gold += 70
 		vm.player_murder_warrants_count += 1
-		var msg := "🚓⚖️ ¡Tras interrogar a la cadena de testigos del asesinato de %s, el Comisario Vane te declaró CULPABLE (%d%% sospecha)! (+70 Oro de multa)" % [v_name, clampi(best_score, 48, 100)]
+		var msg := "🚓⚖️ ¡Tras interrogar a la cadena de testigos del asesinato de %s, el Alguacil mayor Vane te declaró CULPABLE (%d%% sospecha)! (+70 Oro de multa)" % [v_name, clampi(best_score, 48, 100)]
 		vm.crime_history.push_front(msg)
 		_notify_inquisitor_of_police_crime(vm, msg, 45)
 		if is_instance_valid(sheriff):
@@ -1363,16 +1363,16 @@ static func _conclude_sheriff_investigation_verdict(vm: VillageManager, sheriff:
 			vm.active_sheriff_investigation["handcuffed_npc"] = false
 			vm.active_sheriff_investigation["stage_timer"] = 0.0
 			sheriff._spawn_floating_text("🚓⛓️ ¡Las pruebas apuntan a %s (%d%%)! ¡Voy a arrestarlo y llevarlo a la Celda!" % [best_key, best_score], Color.GOLD, -40.0)
-			vm._hint_player("🚓⛓️ El Comisario Vane concluyó su investigación por la muerte de %s: las pistas señalan a %s (%d%% sospecha) y va en persona a arrestarlo y encerrarlo en la Celda." % [v_name, best_key, best_score], p)
+			vm._hint_player("🚓⛓️ El Alguacil mayor Vane concluyó su investigación por la muerte de %s: las pistas señalan a %s (%d%% sospecha) y va en persona a arrestarlo y encerrarlo en la Celda." % [v_name, best_key, best_score], p)
 			return
 		if is_instance_valid(sheriff):
 			sheriff._spawn_floating_text("🚓📋 Investigación cerrada: las pruebas apuntan a %s (%d%%)." % [best_key, best_score], Color.GOLD, -40.0)
-		vm._hint_player("🚓📋 El Comisario Vane concluyó sus 5 interrogatorios por la muerte de %s: las pistas señalan a %s (%d%% sospecha)." % [v_name, best_key, best_score], p)
+		vm._hint_player("🚓📋 El Alguacil mayor Vane concluyó sus 5 interrogatorios por la muerte de %s: las pistas señalan a %s (%d%% sospecha)." % [v_name, best_key, best_score], p)
 	else:
 		vm._mark_morgue_case_resolved(v_name, "Caso Archivado por el Comisario Vane (Sin pruebas)")
 		if is_instance_valid(sheriff):
 			sheriff._spawn_floating_text("🚓📋 Sin pruebas suficientes tras interrogar a los testigos cercanos.", Color.LIGHT_GRAY, -38.0)
-		vm._hint_player("🚓📋 El Comisario Vane archivó sin cargos la investigación local de %s (ningún testigo te situó como culpable)." % v_name, p)
+		vm._hint_player("🚓📋 El Alguacil mayor Vane archivó sin cargos la investigación local de %s (ningún testigo te situó como culpable)." % v_name, p)
 
 	_check_and_start_next_morgue_sheriff_case(vm)
 

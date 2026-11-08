@@ -355,7 +355,7 @@ static func on_player_action(vm, npc, action_id: String, inv) -> void:
 		vm.town_state["treasury"] = int(vm.town_state.get("treasury", 0)) + SANCTUARY_COST
 		vm.wanted_level = 0
 		VillageChronicle.add(vm, "chapel_sanctuary", "Te acogiste a santuario en la Capilla del Alba y el sacerdote medió para levantar tus cargos menores", true)
-		npc._spawn_floating_text("⛪🛡️ «Bajo este techo nadie te pondrá la mano encima. He mediado con el comisario.»", Color.SPRING_GREEN, -46.0)
+		npc._spawn_floating_text("⛪🛡️ «Bajo este techo nadie te pondrá la mano encima. He mediado con el alguacil.»", Color.SPRING_GREEN, -46.0)
 
 	elif action_id == "faith_console_priest":
 		st["priest_doubt"] = 0

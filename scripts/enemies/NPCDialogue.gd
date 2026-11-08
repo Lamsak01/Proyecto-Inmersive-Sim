@@ -102,7 +102,7 @@ static func _inject_character_lore_into_dialogue(npc: VillageNPC, diag: Dictiona
 						break
 	frame_choices.append({"label": "⬅️ Volver al menú de manipulación", "next": "witness_manipulation_menu"})
 	diag["witness_frame_select"] = {
-		"text": "👉 Sembrar Rumor / Inculpar a otro habitante:\nElige a quién dirá %s que vio merodeando junto a la escena del crimen cuando lo interrogue el Comisario Vane o el Inquisidor Real:" % npc.npc_name,
+		"text": "👉 Sembrar Rumor / Inculpar a otro habitante:\nElige a quién dirá %s que vio merodeando junto a la escena del crimen cuando lo interrogue el Alguacil mayor Vane o el Inquisidor Real:" % npc.npc_name,
 		"choices": frame_choices
 	}
 	diag["witness_manipulation_menu"] = {
@@ -582,9 +582,10 @@ static func _build_dialogue(npc: VillageNPC) -> Dictionary:
 			var b_gold: int = int(vm.get("bounty_gold")) if vm else 0
 			var status_crime: String = "✅ Sin cargos pendientes" if w_lvl <= 0 else ("🚨 BUSCADO (Nivel %d | Multa: %d Oro)" % [w_lvl, b_gold])
 			var sh_inv_line: String = ("\n" + str(vm.call("get_sheriff_investigation_dialogue_summary"))) if (vm and vm.has_method("get_sheriff_investigation_dialogue_summary")) else ""
+			var disp_sh_name: String = "Alguacil mayor Vane" if npc.npc_name == "Comisario Vane" else npc.npc_name
 			return {
 				"start": {
-					"text": "Soy %s (%s). %s\nEstado Policial: %s%s\nDesde la Comisaría vigilamos las calles, analizamos huellas de sangre e interrogamos empezando por quien reportó el crimen." % [npc.npc_name, npc.npc_role, needs_line, status_crime, sh_inv_line],
+					"text": "Soy %s (%s). %s\nEstado Policial: %s%s\nDesde la Comisaría vigilamos las calles, analizamos huellas de sangre e interrogamos empezando por quien reportó el crimen." % [disp_sh_name, npc.npc_role, needs_line, status_crime, sh_inv_line],
 					"choices": [
 						{"label": "⚖️ Pagar Multa / Fianza Policial para limpiar historial (-%d Oro)" % maxi(15, b_gold), "next": "start", "action": "pay_police_bounty"},
 						{"label": "🔒 Entregarse voluntariamente y cumplir condena en la Celda hasta las 06:00 AM", "next": "END", "action": "surrender_to_jail"},
@@ -645,18 +646,18 @@ static func _build_dialogue(npc: VillageNPC) -> Dictionary:
 		VillageNPC.TradeRole.RESTAURATEUR:
 			return {
 				"start": {
-					"text": "Soy %s, de la %s (%s). %s%s%s\n[Tallarines: %d | Carne al vino: %d]" % [npc.npc_name, npc.family_name, npc.npc_role, needs_line, discount_tag, npc._get_market_header_line(), int(npc.shop_stock.get("pasta_dish", 0)), int(npc.shop_stock.get("braised_meat", 0))],
+					"text": "Soy %s, de la %s (%s). %s%s%s\n[Guiso de trigo: %d | Asado de caza: %d]" % [npc.npc_name, npc.family_name, npc.npc_role, needs_line, discount_tag, npc._get_market_header_line(), int(npc.shop_stock.get("pasta_dish", 0)), int(npc.shop_stock.get("braised_meat", 0))],
 					"choices": [
 						{"label": "📜 Negocio, Escritura de Propiedad y Caja Registradora", "next": "END", "action": "open_business_panel"},
-						{"label": "🍝 Pedir unos Tallarines de la Casa (-%d Oro) [Quedan: %d]" % [npc._get_dynamic_buy_price(12), int(npc.shop_stock.get("pasta_dish", 0))], "next": "start", "action": "buy:pasta_dish:12"},
-						{"label": "🍷 Pedir Carne Estofada al Vino (-%d Oro) [Quedan: %d]" % [npc._get_dynamic_buy_price(18), int(npc.shop_stock.get("braised_meat", 0))], "next": "start", "action": "buy:braised_meat:18"},
-						{"label": "🌾 Venderle 1 Trigo para la pasta (+%d Oro)" % npc._get_dynamic_sell_price(6), "next": "start", "action": "sell:wheat:6"},
+						{"label": "🍲 Pedir Guiso de Trigo y Hogaza (-%d Oro) [Quedan: %d]" % [npc._get_dynamic_buy_price(12), int(npc.shop_stock.get("pasta_dish", 0))], "next": "start", "action": "buy:pasta_dish:12"},
+						{"label": "🥩 Pedir Asado de Caza al Fuego (-%d Oro) [Quedan: %d]" % [npc._get_dynamic_buy_price(18), int(npc.shop_stock.get("braised_meat", 0))], "next": "start", "action": "buy:braised_meat:18"},
+						{"label": "🌾 Venderle 1 Trigo para el guiso (+%d Oro)" % npc._get_dynamic_sell_price(6), "next": "start", "action": "sell:wheat:6"},
 						{"label": "🥩 Venderle 1 Carne Cruda para la cámara (+%d Oro)" % npc._get_dynamic_sell_price(7), "next": "start", "action": "sell:raw_meat:7"},
 						{"label": "💬 Charlar un rato (+8 Relación)", "next": "family_chat", "affinity": 8},
 						{"label": "Hasta pronto. [Salir]", "next": "END"}
 					]
 				},
-				"family_chat": {"text": "La salsa lleva cuatro horas al fuego, como hacía mi abuela. Y la mesa del fondo está reservada: no pregunte para quién.", "choices": [{"label": "No pregunto. [Volver]", "next": "start"}]}
+				"family_chat": {"text": "El caldo lleva cuatro horas al fuego, como se hacía siempre en el valle. Y la mesa del fondo está reservada: no pregunte para quién.", "choices": [{"label": "No pregunto. [Volver]", "next": "start"}]}
 			}
 		VillageNPC.TradeRole.LODGEKEEPER:
 			return {

@@ -14,7 +14,7 @@ extends RefCounted
 const VillageNeeds = preload("res://scripts/systems/VillageNeeds.gd")
 
 const BUILDING_ID: String = "building_restaurant"
-const TITLE: String = "🍝 Trattoria 'Il Corvo'"
+const TITLE: String = "🍲 Casa de Comidas 'El Fogón del Valle'"
 const FAMILY_ID: String = "family_corvo"
 const FAMILY_NAME: String = "Casa del Corvo"
 
@@ -144,11 +144,11 @@ static func _build_room_floors(vm) -> void:
 	vm._add_rect_poly(ROOMS["camara"].get_center(), ROOMS["camara"].size * 0.5 - Vector2(3, 3), Color(0.70, 0.82, 0.90, 1.0), -2)
 	vm._add_rect_poly(ROOMS["bodega"].get_center(), ROOMS["bodega"].size * 0.5 - Vector2(3, 3), Color(0.40, 0.30, 0.22, 1.0), -2)
 	vm._add_rect_poly(BACKROOM_TABLE, Vector2(30, 24), Color(0.48, 0.10, 0.10, 1.0), -2)
-	# Manteles de cuadros rojos y blancos bajo cada mesa del comedor
+	# Manteles rústicos de lino y arpillera del valle bajo cada mesa del comedor
 	for t in DINING_TABLES:
-		vm._add_rect_poly(t, Vector2(13, 9), Color(0.86, 0.22, 0.20, 1.0), -2)
-		for q in [Vector2(-6.5, -4.5), Vector2(6.5, 4.5)]: # dos cuadros blancos en diagonal
-			vm._add_rect_poly(t + q, Vector2(6.5, 4.5), Color(0.96, 0.94, 0.90, 1.0), -2)
+		vm._add_rect_poly(t, Vector2(13, 9), Color(0.48, 0.38, 0.28, 1.0), -2)
+		for q in [Vector2(-6.5, -4.5), Vector2(6.5, 4.5)]:
+			vm._add_rect_poly(t + q, Vector2(6.5, 4.5), Color(0.58, 0.48, 0.36, 1.0), -2)
 
 static func _build_furniture(vm) -> void:
 	for t in DINING_TABLES:
@@ -351,8 +351,8 @@ static func serve_meal(vm, npc) -> bool:
 		var dname: String = str(SimpleInventory.CATALOG.get(dish, {}).get("name", dish))
 		var where: String = "en la terraza" if TERRACE.grow(14.0).has_point(npc.global_position) else "en el comedor"
 		vm.set_meta("restaurant_meals", int(vm.get_meta("restaurant_meals", 0)) + 1) # para la sonda
-		npc.add_thought("Comió %s en la trattoria (-%d Oro, +8)" % [dname, price], 8.0)
-		npc._spawn_floating_text("🍝 %s %s (-%d Oro)" % [dname, where, price], Color(1.0, 0.82, 0.55), -32.0)
+		npc.add_thought("Comió %s en la casa de comidas (-%d Oro, +8)" % [dname, price], 8.0)
+		npc._spawn_floating_text("🍲 %s %s (-%d Oro)" % [dname, where, price], Color(1.0, 0.82, 0.55), -32.0)
 		return true
 	return false
 

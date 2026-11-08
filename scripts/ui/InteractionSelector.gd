@@ -249,10 +249,11 @@ func _label_for(a: Node, tgt: Node) -> String:
 		return str(tgt.call("get_interact_label", player))
 	if tgt is VillageNPC:
 		var n: VillageNPC = tgt
+		var disp_n: String = "Alguacil mayor Vane" if n.npc_name == "Comisario Vane" else n.npc_name
 		if n.is_dead:
-			return "Examinar el cuerpo de %s" % n.npc_name
+			return "Examinar el cuerpo de %s" % disp_n
 		if n.is_downed or n.is_stunned_flag or n.sedated_timer > 0.0:
-			return "Registrar a %s" % n.npc_name
+			return "Registrar a %s" % disp_n
 		var vm_a = n._get_vm()
 		if vm_a != null and "VillageUnderworld" in vm_a and vm_a.VillageUnderworld != null:
 			var caught_lbl: String = str(vm_a.VillageNightJobs.catch_label(vm_a, n, player))
@@ -261,7 +262,7 @@ func _label_for(a: Node, tgt: Node) -> String:
 			var hooded: String = str(vm_a.VillageUnderworld.alley_interact_label(vm_a, n))
 			if hooded != "":
 				return hooded # P5b: de noche en el callejón, el perista es solo una figura encapuchada
-		return "Hablar con %s" % n.npc_name
+		return "Hablar con %s" % disp_n
 	if "animal_name" in tgt:
 		return "Despiezar: %s" % str(tgt.get("animal_name"))
 	if "pet_name" in tgt:
@@ -315,7 +316,7 @@ func get_prompt_card_data() -> Dictionary:
 	if tgt is VillageNPC:
 		var n: VillageNPC = tgt as VillageNPC
 		var fem_n: bool = n.has_method("is_female") and bool(n.call("is_female"))
-		target_name = n.npc_name
+		target_name = "Alguacil mayor Vane" if n.npc_name == "Comisario Vane" else n.npc_name
 		if n.has_method("get_short_world_state"):
 			target_state = str(n.call("get_short_world_state"))
 		else:

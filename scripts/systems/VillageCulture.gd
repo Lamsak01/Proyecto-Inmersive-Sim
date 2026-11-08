@@ -117,15 +117,15 @@ const EXPLORATION_SITES: Dictionary = {
 }
 const TECH_TREE: Dictionary = {
 	"waterwheel_gears": {
-		"name": "Engranajes Hidráulicos", "cost_gold": 25, "req_points": 3, "prereq": "",
-		"desc": "+1 pan diario en panadería y mejor molienda",
+		"name": "Radio de onda corta", "cost_gold": 25, "req_points": 3, "prereq": "",
+		"desc": "+1 pan diario en panadería y mejor coordinación de abastos",
 	},
 	"reinforced_locks": {
-		"name": "Cerraduras y Empalizadas de Precisión", "cost_gold": 30, "req_points": 4, "prereq": "waterwheel_gears",
+		"name": "Cerradura magnética", "cost_gold": 30, "req_points": 4, "prereq": "waterwheel_gears",
 		"desc": "+2 de defensa permanente contra incursiones al pueblo",
 	},
 	"voltaic_capacitors": {
-		"name": "Condensadores Voltaicos", "cost_gold": 35, "req_points": 5, "prereq": "waterwheel_gears",
+		"name": "Generador diésel", "cost_gold": 35, "req_points": 5, "prereq": "waterwheel_gears",
 		"desc": "+1 kit de reparación diario en el taller del ingeniero",
 	},
 }
@@ -403,7 +403,10 @@ static func terminal_state(vm) -> Dictionary:
 
 const TINKER_LOT: String = "e5"
 const TINKER_TERMINAL_POS: Vector2 = Vector2(1188.0, 122.0) # Dentro del Taller de Reparaciones (e5), sobre una mesa en el rincón noroeste
+const POLICE_TERMINAL_POS: Vector2 = Vector2(933.0, 130.0) # Dentro de la Comisaría (building_police), sobre el escritorio del alguacil
+const TOWN_HALL_TERMINAL_POS: Vector2 = Vector2(718.0, -442.0) # Dentro del Ayuntamiento (building_town_hall), sobre la mesa lateral de consola
 const TINKER_GRID_PANEL_POS: Vector2 = Vector2(1270.0, 90.0) # En la pared exterior norte del Taller de Reparaciones (e5), a la derecha de la puerta
+const TINKER_GENERATOR_POS: Vector2 = Vector2(1316.0, 126.0) # Generador diésel junto al muro exterior este del Taller de Reparaciones (e5)
 
 static func build_tinker_stations(vm) -> void:
 	if vm == null or not ("entities_root" in vm) or not is_instance_valid(vm.entities_root):
@@ -415,17 +418,48 @@ static func build_tinker_stations(vm) -> void:
 		for old_n in vm.get_tree().get_nodes_in_group("tinker_station"):
 			if is_instance_valid(old_n):
 				old_n.queue_free()
+		for old_c in vm.get_tree().get_nodes_in_group("epoch_prop_collider"):
+			if is_instance_valid(old_c):
+				old_c.queue_free()
 	var term: Node2D = PropScript.new()
 	term.name = "TinkerLogicTerminal"
 	term.global_position = TINKER_TERMINAL_POS
 	vm.entities_root.add_child(term)
 	term.setup_prop(vm, "terminal")
 
+	var p_term: Node2D = PropScript.new()
+	p_term.name = "PoliceLogicTerminal"
+	p_term.global_position = POLICE_TERMINAL_POS
+	vm.entities_root.add_child(p_term)
+	p_term.setup_prop(vm, "terminal")
+
+	if VillageLots.lot(vm, "n4").get("kind", "") == "town_hall":
+		var th_term: Node2D = PropScript.new()
+		th_term.name = "TownHallLogicTerminal"
+		th_term.global_position = TOWN_HALL_TERMINAL_POS
+		vm.entities_root.add_child(th_term)
+		th_term.setup_prop(vm, "terminal")
+
 	var panel: Node2D = PropScript.new()
 	panel.name = "TinkerElectricPanel"
 	panel.global_position = TINKER_GRID_PANEL_POS
 	vm.entities_root.add_child(panel)
 	panel.setup_prop(vm, "grid_panel")
+
+	# §3b.3: Colisionadores 2D para elementos de la época (generador, sacos terreros con alambre y postes de foco) sin tapar puertas ni caminos
+	if vm.has_method("_add_prop_collider"):
+		for ep in [
+			[TINKER_GENERATOR_POS, Vector2(16.0, 22.0)],
+			[Vector2(864.0, 92.0), Vector2(22.0, 8.0)],
+			[Vector2(966.0, 92.0), Vector2(22.0, 8.0)],
+			[Vector2(994.0, 96.0), Vector2(6.0, 6.0)],
+			[Vector2(1528.0, 22.0), Vector2(22.0, 8.0)],
+			[Vector2(1528.0, 78.0), Vector2(22.0, 8.0)],
+			[Vector2(1538.0, 18.0), Vector2(6.0, 6.0)],
+		]:
+			var sb = vm._add_prop_collider(ep[0], ep[1], "epoch_prop_collider")
+			if sb != null:
+				sb.add_to_group("epoch_prop_collider")
 
 static func open_terminal_menu(vm, speaker: Node, _player: Node2D = null) -> void:
 	if vm == null:
@@ -913,7 +947,7 @@ static func start_raid_warning(vm, kind: String = "bandits") -> Dictionary:
 	VillageChronicle.add(vm, "raid_warning", "⚠️ Los vigías avistan a %s en el camino del este (%s). Atacarán al atardecer" % [str(raid["name"]), lure_txt], true)
 	var pl_w = VillageNeeds.player_of(vm)
 	if pl_w != null and pl_w.has_method("show_hint"):
-		pl_w.show_hint("⚠️ %s viene hacia el pueblo (%s). Atacará al atardecer: habla con el comisario o un guardia para encabezar la defensa." % [str(raid["name"]), lure_txt])
+		pl_w.show_hint("⚠️ %s viene hacia el pueblo (%s). Atacará al atardecer: habla con el alguacil o un guardia para encabezar la defensa." % [str(raid["name"]), lure_txt])
 	return raid
 
 ## Por qué vienen: lo que el pueblo deja ver hacia fuera. Devuelve 0 si no hay nada que atraiga a los bandidos.
@@ -1775,7 +1809,7 @@ static func on_read(vm, n) -> void:
 static func try_interact(vm, player, pos: Vector2) -> bool:
 	if _try_outpost_interact(vm, player, pos):
 		return true
-	if pos.distance_to(TINKER_TERMINAL_POS) <= 26.0:
+	if pos.distance_to(TINKER_TERMINAL_POS) <= 26.0 or pos.distance_to(POLICE_TERMINAL_POS) <= 26.0 or (VillageLots.lot(vm, "n4").get("kind", "") == "town_hall" and pos.distance_to(TOWN_HALL_TERMINAL_POS) <= 26.0):
 		var term_node: Node = vm.get_tree().get_first_node_in_group("tinker_terminal") if vm.is_inside_tree() else null
 		open_terminal_menu(vm, term_node, player)
 		return true
@@ -2408,7 +2442,7 @@ static func on_player_action(vm, npc, action_id: String, inv) -> void:
 			npc.affinity = clampi(npc.affinity + 8, -100, 100)
 			npc._spawn_floating_text("🔫🛠️ «¡Un arcabuz de chispa de cañón estriado! Incluye 2 cargas de pólvora.»", Color.GOLD, -46.0)
 		else:
-			npc._spawn_floating_text("«Necesitas %d de oro y haber investigado Cerraduras de Precisión.»" % FIREARM_COST, Color.ORANGE_RED, -46.0)
+			npc._spawn_floating_text("«Necesitas %d de oro y haber investigado Cerradura magnética.»" % FIREARM_COST, Color.ORANGE_RED, -46.0)
 	elif action_id == "culture_buy_powder":
 		if buy_powder_pack(vm, npc, inv):
 			npc._spawn_floating_text("🧨🪙 Compraste 2 Cargas de Pólvora Negra (-%d Oro)" % POWDER_PACK_COST, Color.GOLD, -46.0)

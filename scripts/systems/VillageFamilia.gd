@@ -170,8 +170,8 @@ static func spawn_initial_boss(vm):
 		VillageRestaurant.FAMILY_ID,
 		VillageRestaurant.FAMILY_NAME
 	)
-	boss.character_tagline = "Caballero de modales suaves que almuerza siempre en la mesa del rincón de la Trattoria."
-	boss.character_lore = "«Un hombre prudente no necesita alzar la voz para que lo escuchen en este valle. En la Trattoria siempre hay un plato caliente y una silla para quien sabe agradecer un favor a tiempo.»"
+	boss.character_tagline = "Caballero de modales suaves que almuerza siempre en la mesa del rincón de la Casa de Comidas."
+	boss.character_lore = "«Un hombre prudente no necesita alzar la voz para que lo escuchen en este valle. En El Fogón del Valle siempre hay un plato caliente y una silla para quien sabe agradecer un favor a tiempo.»"
 	boss.character_secret = "«Las cuentas importantes no se apuntan en los libros del Ayuntamiento; se cierran con un apretón de manos en el reservado del fondo cuando el comedor ya ha echado el cierre.»"
 	found(vm, boss)
 	return boss
@@ -649,7 +649,7 @@ static func finish_meeting(vm) -> void:
 		st["next_plan_night"] = today + gap
 		if (st.get("pending_business", {}) as Dictionary).is_empty():
 			plan_next_business(vm)
-		VillageChronicle.add(vm, "familia_meet", "La Familia de %s se reunió a puerta cerrada en el reservado de la trattoria" % str(st.get("boss_name", "")), false)
+		VillageChronicle.add(vm, "familia_meet", "La Familia de %s se reunió a puerta cerrada en el reservado de la casa de comidas" % str(st.get("boss_name", "")), false)
 
 # ------------------------------------------------------------------ 3b. Negocios discretos (Bloque R3)
 static func is_guard_bribed(vm, guard) -> bool:

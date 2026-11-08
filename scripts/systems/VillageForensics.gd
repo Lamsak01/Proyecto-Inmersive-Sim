@@ -199,7 +199,7 @@ static func apply_to_case(vm, victim, case_dict: Dictionary) -> void:
 				suspects[scapegoat.npc_name]["score"] = int(suspects[scapegoat.npc_name].get("score", 10)) + SCAPEGOAT_PTS
 				suspects[killer_name]["score"] = maxi(5, int(suspects[killer_name].get("score", 25)) - 15)
 				st["scapegoats"][v_name] = {"scapegoat_name": scapegoat.npc_name, "scapegoat_key": scapegoat.get_person_key(), "killer_name": killer_name, "exposed": false}
-				clues.append("Informe oficial sesgado: el comisario señala con insistencia a %s como sospechoso principal (+%d%% sospecha)." % [scapegoat.npc_name, SCAPEGOAT_PTS])
+				clues.append("Informe oficial sesgado: el alguacil señala con insistencia a %s como sospechoso principal (+%d%% sospecha)." % [scapegoat.npc_name, SCAPEGOAT_PTS])
 
 # ==============================================================================
 # Paso diario: P2.4 (Sicarios entre vecinos) y P2.8 (Confesión ebrio/fiebre)
@@ -471,7 +471,7 @@ static func add_dialogue_choices(vm, npc, diag: Dictionary, ch_arr: Array) -> vo
 		if (st["scapegoats"] as Dictionary).has(v_name) and not bool(st["scapegoats"][v_name].get("exposed", false)):
 			var sg: Dictionary = st["scapegoats"][v_name]
 			if npc.npc_name == str(sg["scapegoat_name"]):
-				f_choices.append({"label": "⚖️🔓 Ayudarle a demostrar que el comisario le señala sin pruebas", "next": "END", "action": "forensic_scapegoat:" + v_name})
+				f_choices.append({"label": "⚖️🔓 Ayudarle a demostrar que el alguacil le señala sin pruebas", "next": "END", "action": "forensic_scapegoat:" + v_name})
 		# Tanda 1 (1): La lejía se usa EN la escena (E sobre el charco), no desde un diálogo a distancia
 		# Tanda 1 (2): Sobornar al médico para falsear la autopsia
 		if is_doc and not bool(case_dict.get("autopsy_bribed", false)):
@@ -645,7 +645,7 @@ static func on_player_action(vm, npc, action_id: String, inv) -> void:
 		var kn: String = str(mv["killer_name"])
 		if suspects.has(kn):
 			suspects[kn]["score"] = int(suspects[kn].get("score", 20)) + 20
-		clues.append("Rastro forense: el cuerpo no murió donde se encontró; lo arrastraron de noche. El comisario revisa a quién se vio por allí.")
+		clues.append("Rastro forense: el cuerpo no murió donde se encontró; lo arrastraron de noche. El alguacil revisa a quién se vio por allí.")
 		npc._spawn_floating_text("👣 «Lo arrastraron hasta aquí. Ya sé por dónde seguir.»", Color.SPRING_GREEN, -46.0)
 
 	elif action_id.begins_with("forensic_scapegoat:"):
@@ -664,7 +664,7 @@ static func on_player_action(vm, npc, action_id: String, inv) -> void:
 				VillageClans.grant_honor_debt(vm, n, "demostró que era un chivo expiatorio inocente")
 				break
 		clues.append("Acusación sin pruebas: el informe contra %s no se sostiene; alguien quería cerrar el caso deprisa." % sg_name)
-		VillageChronicle.add(vm, "scapegoat_cleared", "Se demostró que %s era un chivo expiatorio del comisario" % sg_name, true)
+		VillageChronicle.add(vm, "scapegoat_cleared", "Se demostró que %s era un chivo expiatorio del alguacil" % sg_name, true)
 		npc._spawn_floating_text("⚖️ «¡Gracias! Ahora todos saben que no fui yo.»", Color.SPRING_GREEN, -46.0)
 
 	elif action_id.begins_with("forensic_contract_listen:"):
@@ -882,4 +882,4 @@ static func on_player_action(vm, npc, action_id: String, inv) -> void:
 		npc.modify_affinity(-80)
 		VillageClans.mark_player_offense(vm, npc, true)
 		VillageChronicle.add(vm, "forced_confession", "%s se declaró culpable de la muerte de %s para que no saliera a la luz su secreto" % [npc.npc_name, arg], true)
-		npc._spawn_floating_text("😰⚖️ «¡Calla, por favor! Diré al comisario que fui yo antes de que arruines mi nombre...»", Color.ORANGE_RED, -46.0)
+		npc._spawn_floating_text("😰⚖️ «¡Calla, por favor! Diré al alguacil que fui yo antes de que arruines mi nombre...»", Color.ORANGE_RED, -46.0)

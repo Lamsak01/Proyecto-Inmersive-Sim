@@ -70,7 +70,7 @@ const ARCHETYPE_PRESETS: Array[Dictionary] = [
 		}
 	},
 	{
-		"title": "3. Guardia / Comisario",
+		"title": "3. Guardia / Alguacil mayor",
 		"cfg": {
 			"skin_color": Color(0.92, 0.75, 0.62),
 			"hair_color": Color(0.32, 0.22, 0.14),

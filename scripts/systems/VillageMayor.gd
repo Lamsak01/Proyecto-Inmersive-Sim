@@ -221,7 +221,7 @@ static func appoint_new_sheriff(vm) -> String:
 	if not (guard in vm.authority_npcs):
 		vm.authority_npcs.append(guard)
 	guard.trade_role = VillageNPC.TradeRole.SHERIFF
-	guard.npc_role = "Comisario Municipal"
+	guard.npc_role = "Alguacil mayor"
 	guard.modify_affinity(35)
 	vm.trade_npcs[VillageNPC.TradeRole.SHERIFF] = guard
 	for slot in vm._authority_slots:
@@ -234,7 +234,7 @@ static func appoint_new_sheriff(vm) -> String:
 			slot["rehire_timer"] = 0.0
 			slot["vacancy_announced"] = false
 	# Un comisario nuevo hereda los expedientes: tu búsqueda no se borra
-	VillageChronicle.add(vm, "sheriff_appointed", "La alcaldía nombró a %s nuevo Comisario del valle" % guard.npc_name, true)
+	VillageChronicle.add(vm, "sheriff_appointed", "La alcaldía nombró a %s nuevo Alguacil mayor del valle" % guard.npc_name, true)
 	return guard.npc_name
 
 static func daily(vm) -> void:
@@ -393,7 +393,7 @@ static func add_dialogue_choices(vm, npc, diag: Dictionary, ch_arr: Array) -> vo
 		if int(ts.get("treasury", 0)) >= 20:
 			opts.append({"label": "🥣🏛️ Financiar 8 raciones extra en el Albergue con las arcas (20 Oro de arcas)", "next": "END", "action": "town_work_shelter"})
 		if int(ts.get("treasury", 0)) >= 30:
-			opts.append({"label": "👮🔄 Relevar al Comisario y nombrar a un nuevo jefe policial leal (30 Oro de arcas)", "next": "END", "action": "town_appoint_sheriff"})
+			opts.append({"label": "👮🔄 Relevar al Alguacil mayor y nombrar a un nuevo jefe de la guardia leal (30 Oro de arcas)", "next": "END", "action": "town_appoint_sheriff"})
 		# P5: desviar oro y maquillar el libro ya no van en la charla: se hacen en el cofre de las arcas y en la mesa del ayuntamiento (VillageCollections).
 
 	if not opts.is_empty():
@@ -539,7 +539,7 @@ static func on_player_action(vm, npc, action_id: String, inv) -> bool:
 	elif action_id == "town_appoint_sheriff":
 		var new_sh: String = appoint_new_sheriff(vm)
 		if new_sh != "":
-			npc._spawn_floating_text("👮🔄 «%s es el nuevo Comisario del valle.»" % new_sh, Color.SPRING_GREEN, -46.0)
+			npc._spawn_floating_text("👮🔄 «%s es el nuevo Alguacil mayor del valle.»" % new_sh, Color.SPRING_GREEN, -46.0)
 		return true
 
 	elif action_id == "town_player_embezzle":

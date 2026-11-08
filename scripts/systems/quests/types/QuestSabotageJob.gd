@@ -36,7 +36,7 @@ func texts(off: Dictionary) -> Dictionary:
 	return {
 		"title": "Sabotaje por encargo",
 		"ask": "«%s me está hundiendo el negocio. Una noche, nadie mirando, un par de golpes a su puesto... Te pagaré bien. ¿Hay trato?»" % tn,
-		"desc": "%s te paga por sabotear el puesto de %s (de noche, cuando no haya nadie). O ve al comisario y denuncia el encargo (🚨)." % [str(off.get("giver_name", "")), tn],
+		"desc": "%s te paga por sabotear el puesto de %s (de noche, cuando no haya nadie). O ve al alguacil y denuncia el encargo (🚨)." % [str(off.get("giver_name", "")), tn],
 	}
 
 func init_data(_vm: VillageManager, _giver: VillageNPC, off: Dictionary) -> Dictionary:
@@ -64,7 +64,7 @@ func on_extra_action(vm: VillageManager, qm: Node, npc: VillageNPC, action_id: S
 	var victim: VillageNPC = by_key.get(str(q.get("target_key", "")), null)
 	if giver != null:
 		giver.modify_affinity(-35)
-		giver.add_thought("El forastero me ha delatado al comisario (-10)", -10.0)
+		giver.add_thought("El forastero me ha delatado al alguacil (-10)", -10.0)
 		npc.modify_npc_relationship(giver, -15, "Encargó un sabotaje", true)
 		if victim != null:
 			victim.modify_npc_relationship(giver, -20, "Quiso sabotearme el puesto", true)
@@ -73,7 +73,7 @@ func on_extra_action(vm: VillageManager, qm: Node, npc: VillageNPC, action_id: S
 	vm.VillageFaith.add_rep(vm, "law", 3)
 	vm.VillageChronicle.add(vm, "feud","%s fue denunciado/a por encargar un sabotaje contra %s" % [str(q.get("giver_name", "")), str(q.get("target_name", ""))], true)
 	npc._spawn_floating_text("🚔 «Bien hecho. Le tendré vigilado/a.»", Color(0.7, 0.85, 1.0), -46.0)
-	qm.complete_quest(str(q["id"]), "Denunciaste el encargo al comisario.")
+	qm.complete_quest(str(q["id"]), "Denunciaste el encargo al alguacil.")
 	return true
 
 func done_dialogue(_vm: VillageManager, q: Dictionary) -> Dictionary:

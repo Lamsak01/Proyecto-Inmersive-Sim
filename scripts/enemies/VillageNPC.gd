@@ -396,7 +396,7 @@ const INITIAL_PERSON_PROFILES: Dictionary = NPCData.INITIAL_PERSON_PROFILES
 
 const ROLE_FALLBACK_LORE: Dictionary = {
 	TradeRole.DOCTOR: ["valen", "valen", "Médico forense y cirujano rural enviado por el Colegio Médico para mantener operativo el Hospital y la Morgue del valle."],
-	TradeRole.SHERIFF: ["vane", "vane", "Comisario de frontera designado para restablecer la ley, investigar crímenes y dirigir las patrullas del valle."],
+	TradeRole.SHERIFF: ["vane", "vane", "Alguacil mayor de frontera designado para restablecer la ley, investigar crímenes y dirigir las patrullas del valle."],
 	TradeRole.GUARD: ["rodric", "rodric", "Centinela de guardia asignado a la comisaría local para vigilar las calles, entradas y comercios de la aldea."],
 	TradeRole.INNKEEPER: ["marta", "marta", "Regente de 'El Jabalí Dorado'; sirve platos calientes y administra las mesas de juego del salón."],
 	TradeRole.BLACKSMITH: ["thoran", "kiera", "Maestro forjador llegado de los valles vecinos para mantener encendida la fragua y abastecer de herramientas al pueblo."],
@@ -412,7 +412,7 @@ const ROLE_FALLBACK_LORE: Dictionary = {
 	TradeRole.TINKER: ["kael", "sora", "Arreglador que remienda lo que se rompe en el pueblo: puestos, herramientas y cerrojos."],
 	TradeRole.WOODCUTTER: ["bram", "mila", "Leñador que corta madera en la linde del bosque para carpinteros, hornos y hogares."],
 	TradeRole.LODGEKEEPER: ["dario", "nora", "Posadero modesto que alquila camas baratas a quien no puede pagar El Jabalí Dorado."],
-	TradeRole.RESTAURATEUR: ["marlo", "mila", "Cocinero que regenta la Trattoria «Il Corvo»: pasta casera, carne al vino y una mesa al fondo para quien no quiere ser visto."],
+	TradeRole.RESTAURATEUR: ["marlo", "mila", "Cocinero que regenta la Casa de Comidas «El Fogón del Valle»: guiso de trigo, asados de caza y una mesa al fondo para quien no quiere ser visto."],
 	TradeRole.WAITER: ["dario", "sora", "Camarero de salón en «El Jabalí Dorado»: toma nota en las mesas, recoge los platos calientes en la barra y conoce todos los rumores del salón y del sótano."],
 	TradeRole.BAKER: ["marlo", "marta", "Panadero llegado de un valle vecino para encender el horno de la calle norte y dar pan a casas y posadas."],
 	TradeRole.TAILOR: ["dario", "mila", "Sastre de mano fina que remienda la ropa del pueblo y cose prendas nuevas para quien pueda pagarlas."],
@@ -1424,7 +1424,7 @@ func _show_status_label(txt: String, col: Color) -> void:
 		if vm_sl != null and int(vm_sl.player_elevation_level) != int(elevation_level):
 			status_label.visible = false
 			return
-		status_label.text = txt
+		status_label.text = txt.replace("Comisario Vane", "Alguacil mayor Vane").replace("Don Vittorio Corvo", "Don Vittorio")
 		status_label.add_theme_color_override("font_color", col)
 		status_label.scale = Vector2(0.74, 0.74)
 		status_label.visible = true
@@ -3654,7 +3654,7 @@ const ARTISAN_RECIPES: Dictionary = {
 	TradeRole.BAKER: [{"output": "bread", "label": "Hogaza", "verb": "🍞 Horneando", "input": "bread", "supplier": int(TradeRole.FISHMONGER), "input_name": "Harina"}, {"output": "bread", "label": "Pan de Leña", "verb": "🔥 Avivando el horno", "input": "wood", "supplier": int(TradeRole.CARPENTER), "input_name": "Leña"}, {"output": "bread", "label": "Pan de Trigo", "verb": "🍞 Amasando", "input": "wheat", "supplier": int(TradeRole.FARMER), "input_name": "Trigo"}],
 	TradeRole.TAILOR: [{"output": "clothes", "label": "Ropa", "verb": "🧵 Cosiendo", "input": "leather", "supplier": int(TradeRole.BUTCHER), "input_name": "Cuero"}, {"output": "clothes", "label": "Ropa de Lana", "verb": "🧶 Tejiendo", "input": "wool", "supplier": int(TradeRole.RANCHER), "input_name": "Lana"}],
 	TradeRole.LODGEKEEPER: [{"output": "country_stew", "label": "Estofado", "verb": "🍲 Guisando", "input": "cooked_meat", "supplier": int(TradeRole.BUTCHER), "input_name": "Carne"}],
-	TradeRole.RESTAURATEUR: [{"output": "pasta_dish", "label": "Tallarines", "verb": "🍝 Amasando la pasta", "input": "wheat", "supplier": int(TradeRole.FARMER), "input_name": "Trigo"}, {"output": "braised_meat", "label": "Carne al vino", "verb": "🍷 Guisando carne al vino", "input": "raw_meat", "supplier": int(TradeRole.RANCHER), "input_name": "Carne"}],
+	TradeRole.RESTAURATEUR: [{"output": "pasta_dish", "label": "Guiso de trigo", "verb": "🍲 Removiendo el guiso de trigo", "input": "wheat", "supplier": int(TradeRole.FARMER), "input_name": "Trigo"}, {"output": "braised_meat", "label": "Asado de caza", "verb": "🥩 Asando carne a la brasa", "input": "raw_meat", "supplier": int(TradeRole.RANCHER), "input_name": "Carne"}],
 	TradeRole.FARMER: [{"output": "wheat", "label": "Trigo", "verb": "🌾 Segando", "input": "fertilizer", "supplier": int(TradeRole.FISHMONGER), "input_name": "Abono"}, {"output": "carrot", "label": "Zanahorias", "verb": "🥕 Recogiendo", "input": "fertilizer", "supplier": int(TradeRole.FISHMONGER), "input_name": "Abono"}],
 	TradeRole.RANCHER: [{"output": "wool", "label": "Lana", "verb": "🐑 Esquilando", "input": "wheat", "supplier": int(TradeRole.FARMER), "input_name": "Pienso"}, {"output": "raw_meat", "label": "Carne", "verb": "🐖 Cuidando el ganado", "input": "wheat", "supplier": int(TradeRole.FARMER), "input_name": "Pienso"}],
 	TradeRole.QUARRYMAN: [{"output": "stone", "label": "Piedra", "verb": "⛏️ Picando piedra", "input": "repair_kit", "supplier": int(TradeRole.BLACKSMITH), "input_name": "Herramientas"}],
@@ -4429,7 +4429,7 @@ func get_activity_description() -> String:
 		ActivityState.EATING:
 			if _is_amateur_foraging:
 				return "🏹💦 Cazando/Recolectando Torpemente (Sin Dinero/Comida)"
-			var loc := "en la Trattoria" if _restaurant_seat != Vector2.ZERO else "en la Taberna" if _eat_at_tavern else ("en el Albergue" if in_shelter else ("en su Fogata" if is_vagrant_camper else "en Casa"))
+			var loc := "en la Casa de Comidas" if _restaurant_seat != Vector2.ZERO else "en la Taberna" if _eat_at_tavern else ("en el Albergue" if in_shelter else ("en su Fogata" if is_vagrant_camper else "en Casa"))
 			return "🍲 Comiendo %s" % loc
 		ActivityState.SOCIALIZING:
 			if errand_kind != "":

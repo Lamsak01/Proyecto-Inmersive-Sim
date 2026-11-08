@@ -56,6 +56,7 @@ var _chest_nodes_3d: Array[Dictionary] = []
 var _morgue_body_nodes_3d: Array[Node3D] = []
 var _jail_gate_pivot_3d: Node3D = null
 var _streetlight_nodes_3d: Array[Dictionary] = []
+var _floodlight_nodes_3d: Array[Dictionary] = []
 var _last_buried_count: int = -1
 var _last_use_3d: bool = true
 var _cutaway_accum: float = 0.0
@@ -251,14 +252,14 @@ void fragment() {
 	float eff_dirt_b = dirt_blend;
 	vec3 eff_earth = tint_earth;
 	if (use_vertex_biomes > 0.5) {
-		vec3 forest_tint = mix(vec3(0.22, 0.39, 0.19), vec3(0.15, 0.29, 0.13), b_mix);
-		vec3 plains_tint = mix(vec3(0.41, 0.49, 0.26), vec3(0.32, 0.40, 0.21), b_mix);
+		vec3 forest_tint = mix(vec3(0.17, 0.29, 0.14), vec3(0.11, 0.21, 0.10), b_mix);
+		vec3 plains_tint = mix(vec3(0.31, 0.37, 0.20), vec3(0.23, 0.29, 0.16), b_mix);
 		meadow_tint = mix(meadow_tint, forest_tint, clamp(v_biome.r, 0.0, 1.0));
 		meadow_tint = mix(meadow_tint, plains_tint, clamp(v_biome.g, 0.0, 1.0));
-		eff_dirt_b = clamp(dirt_blend + v_biome.r * 0.10 + v_biome.g * 0.08 + v_biome.b * 0.52, 0.0, 0.90);
-		eff_earth = mix(eff_earth, vec3(0.36, 0.27, 0.18), clamp(v_biome.r, 0.0, 1.0));
-		eff_earth = mix(eff_earth, vec3(0.42, 0.35, 0.24), clamp(v_biome.g, 0.0, 1.0));
-		eff_earth = mix(eff_earth, vec3(0.40, 0.34, 0.24), clamp(v_biome.b, 0.0, 1.0));
+		eff_dirt_b = clamp(dirt_blend + v_biome.r * 0.14 + v_biome.g * 0.12 + v_biome.b * 0.58, 0.0, 0.92);
+		eff_earth = mix(eff_earth, vec3(0.30, 0.22, 0.15), clamp(v_biome.r, 0.0, 1.0));
+		eff_earth = mix(eff_earth, vec3(0.35, 0.28, 0.19), clamp(v_biome.g, 0.0, 1.0));
+		eff_earth = mix(eff_earth, vec3(0.33, 0.27, 0.19), clamp(v_biome.b, 0.0, 1.0));
 	}
 	vec3 base_grass = mix(meadow_tint * 0.88, g_mid * 1.18 * meadow_tint, 0.48);
 	base_grass = mix(base_grass, g_over * meadow_tint * 1.08, 0.22);
@@ -1267,11 +1268,11 @@ func _style_for_building(b_id: String) -> Dictionary:
 		wall_col = Color(0.86, 0.76, 0.58)
 		roof_col = Color(0.28, 0.52, 0.36)
 
-	var wall_emit_col := Color(0.98, 0.90, 0.74) if b_id == "building_restaurant" else Color.BLACK
-	var wall_emit_e: float = 0.58 if b_id == "building_restaurant" else 0.0
-	var w_mat := _mat("wall_" + b_id, wall_col, 0.86, 0.04, wall_emit_col, wall_emit_e, wall_tex, wall_norm, 0.70)
+	var wall_emit_col := Color.BLACK
+	var wall_emit_e: float = 0.0
+	var w_mat := _mat("wall_" + b_id, wall_col, 0.88, 0.04, wall_emit_col, wall_emit_e, wall_tex, wall_norm, 0.70)
 	if b_id == "building_restaurant":
-		w_mat.albedo_color = Color(1.0, 0.95, 0.84)
+		w_mat.albedo_color = Color(0.76, 0.66, 0.52)
 		w_mat.uv1_scale = Vector3(2.4, 0.72, 2.4)
 	return {
 		"wall_mat": w_mat,
@@ -1409,6 +1410,24 @@ func rebuild_buildings_3d() -> void:
 				var shutter := _add_box_2d(b_root, w_pos, Vector2(12.0, wall_t + 2.8), 12.0, 8.2, m_dark_wood)
 				_window_nodes_3d.append({"entry": w_entry, "pane": pane, "shutter": shutter})
 				break
+
+		# §3b.3: Barrotes de hierro y planchas remachadas en ventanas bajas de comisaría y ayuntamiento
+		if b_id in ["building_police", "building_town_hall"]:
+			var m_rivet := _mat("epoch_rivet_steel", Color(0.18, 0.20, 0.23), 0.52, 0.82)
+			for side_s in [-1.0, 1.0]:
+				var wx_low: float = center.x + side_s * (half.x * 0.58)
+				var wy_low: float = door_y
+				# Plancha superior e inferior remachada + 4 barrotes verticales en fachada
+				_add_box_2d(b_root, Vector2(wx_low, wy_low), Vector2(16.0, wall_t + 2.8), 8.5, 2.2, m_rivet)
+				_add_box_2d(b_root, Vector2(wx_low, wy_low), Vector2(16.0, wall_t + 2.8), 18.2, 2.2, m_rivet)
+				_add_box_2d(b_root, Vector2(wx_low, wy_low), Vector2(14.5, wall_t + 1.8), 10.5, 8.0, _mat("epoch_dark_win", Color(0.08, 0.10, 0.12), 0.7, 0.2))
+				for bx_i in [-5.4, -1.8, 1.8, 5.4]:
+					_add_cyl_2d(b_root, Vector2(wx_low + bx_i, wy_low), 0.55, 8.5, 11.8, m_iron, 0.55, 6)
+				# Ventana baja blindada con plancha remachada en muros laterales
+				var sx_wall: float = rect.position.x if side_s < 0.0 else rect.end.x
+				_add_box_2d(b_root, Vector2(sx_wall, center.y), Vector2(wall_t + 2.6, 16.0), 9.0, 10.0, m_rivet)
+				for ry_i in [-5.5, 0.0, 5.5]:
+					_add_cyl_2d(b_root, Vector2(sx_wall, center.y + ry_i), 0.55, 8.5, 11.0, m_iron, 0.55, 6)
 
 		# 5. Mobiliario interior 3D específico de cada edificio
 		_populate_building_interior_3d(b_root, b_id, rect, door_south, wall_h, m_wall, m_trim, m_wood, m_dark_wood, m_iron, m_gold)
@@ -1630,6 +1649,8 @@ func _populate_building_interior_3d(b_root: Node3D, b_id: String, rect: Rect2, d
 			_add_model_2d(b_root, "props/Cage_Small.gltf", vm._jail_cell_pos + Vector2(16, 6), 2.0, Vector2(9.0, 9.0), 10.0)
 			_add_model_2d(b_root, "props/Workbench_Drawers.gltf", vm._police_center + Vector2(18, -18), 2.0, Vector2(22, 12), 8.5)
 			_add_model_2d(b_root, "props/WeaponStand.gltf", vm._police_center + Vector2(-24, -18), 2.0, Vector2(14, 7), 11.0)
+			# §3b.3: Terminal de pantalla verde sobre el escritorio de la Comisaría
+			_add_green_crt_terminal_3d(b_root, VillageCulture.POLICE_TERMINAL_POS, 10.5, true)
 		"building_church":
 			# Altar mayor con velas y bancos de madera 3D
 			_add_model_2d(b_root, "graveyard/altar-stone.glb", vm._church_altar_pos, 2.0, Vector2(32.0, 14.0), 11.0)
@@ -1678,22 +1699,22 @@ func _populate_building_interior_3d(b_root: Node3D, b_id: String, rect: Rect2, d
 			# Bloque FIS2 (§2.1): Terminal Lógica Electromecánica física sobre una mesa dentro del taller (TINKER_TERMINAL_POS)
 			var t_pos: Vector2 = VillageCulture.TINKER_TERMINAL_POS
 			var m_copper := _mat("tinker_copper", Color(0.84, 0.48, 0.22), 0.35, 0.78)
-			var m_screen := _mat("tinker_screen", Color(0.32, 0.96, 0.82), 0.2, 0.0, Color(0.24, 0.92, 0.76), 2.8)
+			var m_screen := _mat("tinker_screen", Color(0.14, 0.96, 0.34), 0.2, 0.0, Color(0.10, 0.92, 0.28), 3.1)
 			var m_card := _mat("tinker_card", Color(0.92, 0.86, 0.70), 0.85, 0.0)
 			if _add_model_2d(b_root, "props/Table_Large.gltf", t_pos, 2.0, Vector2(24.0, 15.0), 8.0) == null:
 				_add_box_2d(b_root, t_pos, Vector2(24.0, 15.0), 2.0, 8.0, m_dark_wood)
 			_add_box_2d(b_root, t_pos + Vector2(0, -1.0), Vector2(18.0, 10.5), 10.0, 12.5, m_iron) # Chasis de acero alto
 			_add_box_2d(b_root, t_pos + Vector2(0, -1.0), Vector2(16.0, 8.8), 11.2, 11.8, m_gold) # Bastidor de latón
-			_add_box_2d(b_root, t_pos + Vector2(-1.6, 3.8), Vector2(10.5, 2.6), 12.5, 8.2, m_screen) # Visor fosforescente grande hacia cámara
+			_add_box_2d(b_root, t_pos + Vector2(-1.6, 3.8), Vector2(10.5, 2.6), 12.5, 8.2, m_screen) # Visor fosforescente verde hacia cámara
 			_add_box_2d(b_root, t_pos + Vector2(0, 4.6), Vector2(13.0, 3.8), 10.0, 2.4, m_iron) # Teclado mecánico frontal
 			_add_cyl_2d(b_root, t_pos + Vector2(4.8, -1.2), 2.8, 22.8, 6.0, m_card, 2.8, 10) # Tambor de tarjetas perforadas
 			_add_cyl_2d(b_root, t_pos + Vector2(-4.8, -1.6), 2.2, 22.8, 5.5, m_copper, 2.2, 8) # Bobina de relés
 			if not _is_headless:
 				var term_lt := OmniLight3D.new()
 				term_lt.position = to_3d(t_pos + Vector2(0, 2.0), 18.0)
-				term_lt.light_color = Color(0.35, 0.96, 0.82)
-				term_lt.light_energy = 0.95
-				term_lt.omni_range = 1.8
+				term_lt.light_color = Color(0.16, 0.96, 0.36)
+				term_lt.light_energy = 1.05
+				term_lt.omni_range = 2.0
 				b_root.add_child(term_lt)
 			# Bloque FIS2 (§2.2): Cuadro Eléctrico físico en la pared exterior norte del taller (TINKER_GRID_PANEL_POS)
 			var gp_pos: Vector2 = VillageCulture.TINKER_GRID_PANEL_POS
@@ -1719,12 +1740,16 @@ func _populate_building_interior_3d(b_root: Node3D, b_id: String, rect: Rect2, d
 			_build_bed_3d(b_root, c + Vector2(56, -24), m_wood, m_bed, m_pillow)
 			_build_bed_3d(b_root, c + Vector2(56, 18), m_wood, m_bed, m_pillow)
 		"building_town_hall":
-			# Ayuntamiento (n4): mesa municipal en (764, -444), urna y estanterías
+			# Ayuntamiento (n4): mesa municipal en (764, -444), urna, estanterías y terminal de pantalla verde
 			var desk_p: Vector2 = c + Vector2(0, -24)
 			if _add_model_2d(b_root, "props/Table_Large.gltf", desk_p, 2.0, Vector2(28.0, 14.0), 8.2) == null:
 				_add_box_2d(b_root, desk_p, Vector2(28.0, 14.0), 2.0, 8.2, m_dark_wood)
 			_add_model_2d(b_root, "props/Cabinet.gltf", c + Vector2(-42, 6), 2.0, Vector2(16.0, 10.0), 12.0)
 			_add_model_2d(b_root, "props/Bookcase_2.gltf", c + Vector2(36, -18), 2.0, Vector2(18.0, 10.0), 15.0)
+			var th_term_p: Vector2 = VillageCulture.TOWN_HALL_TERMINAL_POS
+			if _add_model_2d(b_root, "props/Table_Large.gltf", th_term_p, 2.0, Vector2(20.0, 12.0), 8.0) == null:
+				_add_box_2d(b_root, th_term_p, Vector2(20.0, 12.0), 2.0, 8.0, m_dark_wood)
+			_add_green_crt_terminal_3d(b_root, th_term_p, 10.0, false)
 		_:
 			if b_id.begins_with("shop_"):
 				var stall_y: float = -14.0 if door_south else 14.0
@@ -1754,19 +1779,19 @@ func _checker_cloth_mat() -> StandardMaterial3D:
 	if _mat_cache.has("checker_cloth"):
 		return _mat_cache["checker_cloth"]
 	var m := StandardMaterial3D.new()
-	m.roughness = 0.9
+	m.roughness = 0.92
 	if not _is_headless:
 		var img := Image.create(2, 2, false, Image.FORMAT_RGB8)
-		img.set_pixel(0, 0, Color(0.82, 0.14, 0.12))
-		img.set_pixel(1, 1, Color(0.82, 0.14, 0.12))
-		img.set_pixel(1, 0, Color(0.96, 0.94, 0.90))
-		img.set_pixel(0, 1, Color(0.96, 0.94, 0.90))
+		img.set_pixel(0, 0, Color(0.42, 0.34, 0.25))
+		img.set_pixel(1, 1, Color(0.42, 0.34, 0.25))
+		img.set_pixel(1, 0, Color(0.56, 0.46, 0.35))
+		img.set_pixel(0, 1, Color(0.56, 0.46, 0.35))
 		m.albedo_texture = ImageTexture.create_from_image(img)
 		m.texture_filter = BaseMaterial3D.TEXTURE_FILTER_NEAREST
 		m.uv1_triplanar = true
 		m.uv1_scale = Vector3(5.0, 5.0, 5.0)
 	else:
-		m.albedo_color = Color(0.86, 0.4, 0.36)
+		m.albedo_color = Color(0.48, 0.39, 0.30)
 	_mat_cache["checker_cloth"] = m
 	return m
 
@@ -2457,13 +2482,152 @@ func _build_sewers_3d() -> void:
 	_add_box_2d(sewers_root_3d, Vector2(202.0, sy), Vector2(6.0, 86.0), 3.0, 20.0, m_brick)
 	_add_box_2d(sewers_root_3d, Vector2(638.0, sy), Vector2(6.0, 86.0), 3.0, 20.0, m_brick)
 
+func _add_green_crt_terminal_3d(parent: Node3D, pos_2d: Vector2, base_h: float, face_north: bool = false) -> void:
+	var m_crt_case := _mat("crt_case_iron", Color(0.18, 0.21, 0.20), 0.55, 0.72)
+	var m_crt_bezel := _mat("crt_bezel_dark", Color(0.10, 0.12, 0.11), 0.65, 0.35)
+	var m_crt_green := _mat("crt_screen_green", Color(0.12, 0.96, 0.34), 0.15, 0.0, Color(0.10, 0.92, 0.30), 3.4)
+	var m_crt_line := _mat("crt_scanline", Color(0.42, 1.0, 0.58), 0.10, 0.0, Color(0.32, 0.98, 0.48), 4.2)
+	var dir_y: float = -1.0 if face_north else 1.0
+	# Monitor CRT robusto con chasis metálico y pantalla de fósforo verde
+	_add_box_2d(parent, pos_2d + Vector2(0, -1.2 * dir_y), Vector2(11.0, 8.2), base_h, 8.6, m_crt_case)
+	_add_box_2d(parent, pos_2d + Vector2(0, 2.2 * dir_y), Vector2(9.6, 2.0), base_h + 0.8, 7.0, m_crt_bezel)
+	_add_box_2d(parent, pos_2d + Vector2(0, 2.9 * dir_y), Vector2(8.2, 1.0), base_h + 1.4, 5.6, m_crt_green)
+	# Líneas de texto fosforescentes en la pantalla
+	for ly in [2.4, 3.8, 5.2]:
+		_add_box_2d(parent, pos_2d + Vector2(-0.8, 3.3 * dir_y), Vector2(5.6, 0.4), base_h + ly, 0.45, m_crt_line)
+	# Teclado mecánico delantero
+	_add_box_2d(parent, pos_2d + Vector2(0, 5.0 * dir_y), Vector2(10.2, 3.6), base_h, 1.4, m_crt_case)
+	_add_box_2d(parent, pos_2d + Vector2(0, 5.0 * dir_y), Vector2(8.8, 2.4), base_h + 1.2, 0.5, m_crt_bezel)
+	if not _is_headless:
+		var crt_lt := OmniLight3D.new()
+		crt_lt.position = to_3d(pos_2d + Vector2(0, 4.0 * dir_y), base_h + 5.0)
+		crt_lt.light_color = Color(0.16, 0.96, 0.38)
+		crt_lt.light_energy = 1.15
+		crt_lt.omni_range = 2.4
+		parent.add_child(crt_lt)
+
+func _add_sandbag_wire_barrier_3d(parent: Node3D, pos_2d: Vector2) -> void:
+	var m_bag := _mat("epoch_sandbag", Color(0.50, 0.43, 0.31), 0.95, 0.0, Color.BLACK, 0.0, "town_textures/floor_ground_dirt.png", "", 0.8)
+	var m_stake := _mat("epoch_stake_wood", Color(0.30, 0.20, 0.12), 0.90, 0.0)
+	var m_wire := _mat("epoch_barbed_wire", Color(0.24, 0.25, 0.27), 0.48, 0.82)
+	# Dos hileras escalonadas de sacos terreros
+	for bx in [-7.5, -2.5, 2.5, 7.5]:
+		_add_box_2d(parent, pos_2d + Vector2(bx, 1.2), Vector2(4.8, 3.4), 0.0, 2.4, m_bag)
+		_add_box_2d(parent, pos_2d + Vector2(bx, -1.2), Vector2(4.8, 3.4), 0.0, 2.4, m_bag)
+	for bx2 in [-5.0, 0.0, 5.0]:
+		_add_box_2d(parent, pos_2d + Vector2(bx2, 0.0), Vector2(4.8, 3.6), 2.3, 2.3, m_bag)
+	for bx3 in [-2.5, 2.5]:
+		_add_box_2d(parent, pos_2d + Vector2(bx3, 0.0), Vector2(4.6, 3.2), 4.5, 2.0, m_bag)
+	# Caballetes en X y rollos de alambre de espino encima y delante
+	for sx in [-8.5, 0.0, 8.5]:
+		_add_cyl_2d(parent, pos_2d + Vector2(sx, -2.8), 0.65, 0.0, 8.2, m_stake, 0.55, 6)
+		_add_cyl_2d(parent, pos_2d + Vector2(sx, 2.8), 0.65, 0.0, 8.2, m_stake, 0.55, 6)
+	for wy in [5.2, 6.8, 8.0]:
+		_add_box_2d(parent, pos_2d, Vector2(21.0, 0.45), wy, 0.45, m_wire)
+	for cx in [-7.0, -3.5, 0.0, 3.5, 7.0]:
+		_add_cyl_2d(parent, pos_2d + Vector2(cx, 2.4), 2.2, 2.2, 3.8, m_wire, 2.2, 8)
+
+func _add_floodlight_tower_3d(parent: Node3D, pos_2d: Vector2, target_2d: Vector2, m_bulb_warm: Material, m_bulb_voltaic: Material) -> void:
+	var m_pole := _mat("epoch_pole_wood", Color(0.28, 0.19, 0.11), 0.90, 0.0)
+	var m_hood := _mat("epoch_hood_iron", Color(0.16, 0.18, 0.21), 0.45, 0.82)
+	# Poste alto de madera con cruceta y carcasa de proyector metálico
+	_add_cyl_2d(parent, pos_2d, 2.2, 0.0, 35.0, m_pole, 1.5, 8)
+	_add_box_2d(parent, pos_2d, Vector2(7.5, 2.2), 31.5, 1.8, m_pole)
+	var dir_2d: Vector2 = (target_2d - pos_2d).normalized()
+	var head_2d: Vector2 = pos_2d + dir_2d * 2.8
+	_add_box_2d(parent, head_2d, Vector2(5.2, 5.2), 33.0, 4.2, m_hood)
+	var bulb := _add_cyl_2d(parent, head_2d + dir_2d * 1.6, 2.1, 33.4, 2.6, m_bulb_warm, 2.1, 8)
+	var spot: SpotLight3D = null
+	var pool: OmniLight3D = null
+	if not _is_headless:
+		spot = SpotLight3D.new()
+		spot.position = to_3d(head_2d, 34.5)
+		var tgt_3d: Vector3 = to_3d(target_2d, 0.5)
+		spot.spot_range = 9.5
+		spot.spot_angle = 42.0
+		spot.light_energy = 2.8
+		spot.light_color = Color(1.0, 0.90, 0.62)
+		parent.add_child(spot)
+		if spot.position.distance_to(tgt_3d) > 0.05:
+			spot.look_at_from_position(spot.position, tgt_3d, Vector3.UP)
+		pool = OmniLight3D.new()
+		pool.position = to_3d(pos_2d.lerp(target_2d, 0.55), 10.0)
+		pool.omni_range = 5.4
+		pool.light_energy = 1.65
+		pool.light_color = Color(1.0, 0.88, 0.56)
+		parent.add_child(pool)
+	_floodlight_nodes_3d.append({
+		"bulb": bulb,
+		"spot": spot,
+		"pool": pool,
+		"mat_warm": m_bulb_warm,
+		"mat_voltaic": m_bulb_voltaic,
+	})
+
+func _build_epoch_props_3d(m_bulb_warm: Material, m_bulb_voltaic: Material) -> void:
+	var m_cable := _mat("epoch_thick_cable", Color(0.08, 0.09, 0.11), 0.72, 0.25)
+	var m_insul := _mat("epoch_insulator", Color(0.76, 0.78, 0.74), 0.35, 0.10)
+	var m_gen_iron := _mat("epoch_gen_iron", Color(0.18, 0.21, 0.22), 0.48, 0.78)
+	var m_gen_rust := _mat("epoch_gen_rust", Color(0.38, 0.24, 0.16), 0.75, 0.45)
+	var m_brass := _mat("epoch_gen_brass", Color(0.82, 0.64, 0.22), 0.35, 0.85)
+	var m_pad := _mat("epoch_gen_pad", Color(0.44, 0.43, 0.40), 0.92, 0.0)
+
+	# 1. Generador diésel junto al muro este del Taller de Reparaciones (e5: Vector2(1316, 126))
+	var gp: Vector2 = VillageCulture.TINKER_GENERATOR_POS
+	_add_box_2d(streetlights_root_3d, gp, Vector2(18.0, 24.0), 0.0, 2.2, m_pad) # Losa de hormigón
+	_add_box_2d(streetlights_root_3d, gp, Vector2(13.5, 18.0), 2.2, 11.5, m_gen_iron) # Bloque motor diésel
+	_add_box_2d(streetlights_root_3d, gp + Vector2(0.0, -3.5), Vector2(11.0, 9.0), 13.7, 3.8, m_gen_rust) # Culata con aletas
+	_add_cyl_2d(streetlights_root_3d, gp + Vector2(0.0, 5.2), 4.2, 13.5, 6.2, m_gen_rust, 4.2, 10) # Depósito de gasóleo
+	_add_cyl_2d(streetlights_root_3d, gp + Vector2(-5.5, -2.0), 4.4, 5.5, 3.0, m_brass, 4.4, 12) # Volante de inercia / alternador
+	_add_cyl_2d(streetlights_root_3d, gp + Vector2(5.2, -6.5), 1.1, 13.0, 17.5, m_gen_iron, 1.1, 8) # Tubo de escape vertical
+	_add_cyl_2d(streetlights_root_3d, gp + Vector2(5.2, -6.5), 2.0, 21.0, 5.5, m_gen_rust, 2.0, 8) # Silenciador
+
+	# 2. Cables gruesos por las fachadas del Taller (e5), Comisaría y Ayuntamiento hasta el generador
+	# Taller (e5: rect x=1166..1304, y=90..194): desde el generador (1316, 126) por el muro este y fachada norte hasta el cuadro eléctrico (1270, 90)
+	_add_box_2d(streetlights_root_3d, Vector2(1310.0, 122.0), Vector2(12.0, 1.8), 11.0, 1.8, m_cable)
+	_add_box_2d(streetlights_root_3d, Vector2(1304.8, 106.0), Vector2(1.8, 34.0), 11.0, 1.8, m_cable)
+	_add_box_2d(streetlights_root_3d, Vector2(1304.8, 90.0), Vector2(1.8, 2.2), 11.0, 14.5, m_cable)
+	_add_box_2d(streetlights_root_3d, Vector2(1240.0, 89.2), Vector2(130.0, 1.8), 24.0, 1.6, m_cable)
+	_add_box_2d(streetlights_root_3d, Vector2(1240.0, 89.2), Vector2(130.0, 1.5), 21.2, 1.4, m_cable)
+	for ix_t in [1182.0, 1212.0, 1270.0, 1300.0]:
+		_add_cyl_2d(streetlights_root_3d, Vector2(ix_t, 88.5), 1.1, 23.5, 2.6, m_insul, 1.1, 6)
+
+	# Comisaría (building_police: rect x=844..986, y=100..196): cables gruesos por la fachada norte y esquina este hasta el poste del foco
+	_add_box_2d(streetlights_root_3d, Vector2(915.0, 99.2), Vector2(140.0, 1.8), 24.5, 1.6, m_cable)
+	_add_box_2d(streetlights_root_3d, Vector2(915.0, 99.2), Vector2(140.0, 1.5), 21.5, 1.4, m_cable)
+	_add_box_2d(streetlights_root_3d, Vector2(986.8, 136.0), Vector2(1.8, 72.0), 23.0, 1.6, m_cable)
+	_add_box_2d(streetlights_root_3d, Vector2(936.0, 99.0), Vector2(1.6, 1.8), 12.0, 12.5, m_cable) # Bajante hacia la terminal policial
+	_add_box_2d(streetlights_root_3d, Vector2(990.0, 97.5), Vector2(9.0, 1.6), 24.5, 1.6, m_cable) # Ramal al poste del foco
+	for ix_p in [852.0, 886.0, 944.0, 980.0]:
+		_add_cyl_2d(streetlights_root_3d, Vector2(ix_p, 98.5), 1.1, 24.0, 2.6, m_insul, 1.1, 6)
+
+	# Ayuntamiento (building_town_hall: rect x=695..825, y=-468..-372): cables gruesos por la fachada sur y muro oeste hacia la terminal
+	if vm != null and VillageCulture.VillageLots.lot(vm, "n4").get("kind", "") == "town_hall":
+		_add_box_2d(streetlights_root_3d, Vector2(760.0, -371.2), Vector2(128.0, 1.8), 24.5, 1.6, m_cable)
+		_add_box_2d(streetlights_root_3d, Vector2(760.0, -371.2), Vector2(128.0, 1.5), 21.5, 1.4, m_cable)
+		_add_box_2d(streetlights_root_3d, Vector2(694.2, -412.0), Vector2(1.8, 82.0), 23.0, 1.6, m_cable)
+		_add_box_2d(streetlights_root_3d, Vector2(716.0, -371.0), Vector2(1.6, 1.8), 11.0, 13.5, m_cable)
+		for ix_th in [704.0, 734.0, 786.0, 816.0]:
+			_add_cyl_2d(streetlights_root_3d, Vector2(ix_th, -370.5), 1.1, 24.0, 2.6, m_insul, 1.1, 6)
+
+	# 3. Sacos terreros y alambre de espino a la entrada de la Comisaría (dejando libre la puerta x=893..937) y en el Puesto del Paso
+	_add_sandbag_wire_barrier_3d(streetlights_root_3d, Vector2(864.0, 92.0))
+	_add_sandbag_wire_barrier_3d(streetlights_root_3d, Vector2(966.0, 92.0))
+	_add_sandbag_wire_barrier_3d(streetlights_root_3d, Vector2(1528.0, 22.0))
+	_add_sandbag_wire_barrier_3d(streetlights_root_3d, Vector2(1528.0, 78.0))
+
+	# 4. Focos en poste de madera en la Comisaría y en el Puesto del Paso (se apagan si se sabotea la red eléctrica)
+	_add_floodlight_tower_3d(streetlights_root_3d, Vector2(994.0, 96.0), Vector2(915.0, 62.0), m_bulb_warm, m_bulb_voltaic)
+	_add_floodlight_tower_3d(streetlights_root_3d, Vector2(1538.0, 18.0), Vector2(1506.0, 50.0), m_bulb_warm, m_bulb_voltaic)
+
 func _build_streetlights_3d() -> void:
 	_clear_children(streetlights_root_3d)
 	_streetlight_nodes_3d.clear()
+	_floodlight_nodes_3d.clear()
 	if vm == null:
 		return
-	var m_bulb_warm := _mat("bulb_warm", Color(1.0, 0.88, 0.52), 0.2, 0.0, Color(1.0, 0.82, 0.40), 2.4)
-	var m_bulb_voltaic := _mat("bulb_voltaic", Color(0.55, 0.96, 1.0), 0.2, 0.0, Color(0.45, 0.92, 1.0), 3.2)
+	var m_bulb_warm := _mat("bulb_warm", Color(1.0, 0.88, 0.52), 0.2, 0.0, Color(1.0, 0.82, 0.40), 2.8)
+	var m_bulb_voltaic := _mat("bulb_voltaic", Color(0.55, 0.96, 1.0), 0.2, 0.0, Color(0.45, 0.92, 1.0), 3.4)
 
 	for sl in vm.streetlights:
 		var spr: Sprite2D = sl.get("sprite")
@@ -2474,8 +2638,8 @@ func _build_streetlights_3d() -> void:
 		if not _is_headless:
 			omni = OmniLight3D.new()
 			omni.position = to_3d(pos + Vector2(3.5, 0), 24.0)
-			omni.omni_range = 3.6
-			omni.light_energy = 1.2
+			omni.omni_range = 4.8
+			omni.light_energy = 1.65
 			omni.light_color = Color(1.0, 0.86, 0.52)
 			streetlights_root_3d.add_child(omni)
 		_streetlight_nodes_3d.append({
@@ -2484,6 +2648,7 @@ func _build_streetlights_3d() -> void:
 			"mat_warm": m_bulb_warm,
 			"mat_voltaic": m_bulb_voltaic,
 		})
+	_build_epoch_props_3d(m_bulb_warm, m_bulb_voltaic)
 
 # ==============================================================================
 # 6. SINCRONIZACIÓN EN VIVO (CÁMARA 3D, PUERTAS, TEJADOS CUTAWAY Y TECLA [F10])
@@ -3196,44 +3361,44 @@ func _update_roof_cutaways_and_lighting() -> void:
 	var grid_on: bool = gm2 != null and gm2.get_flag("electric_grid_active", false) == true and VillageCulture.is_lamps_powered(vm)
 	var pl_indoors: bool = vm != null and is_finite(pl_pos.x) and vm.has_method("_is_pos_inside_any_building") and bool(vm._is_pos_inside_any_building(pl_pos))
 
-	# Interpolación continua de colores del cielo, nubes, sol/luna y niebla según la hora del día y el clima
-	var zenith_col := Color(0.18, 0.46, 0.84)
-	var horizon_col := Color(0.68, 0.84, 0.96)
-	var sun_col := Color(1.0, 0.95, 0.82)
-	var cloud_lit := Color(0.98, 0.97, 0.94)
-	var cloud_shade := Color(0.60, 0.68, 0.80)
+	# Interpolación continua de colores del cielo, nubes, sol/luna y niebla según la hora del día y el clima (§3b.2: ambiente más oscuro, sucio y nublado)
+	var zenith_col := Color(0.24, 0.34, 0.46)
+	var horizon_col := Color(0.54, 0.59, 0.64)
+	var sun_col := Color(0.94, 0.88, 0.74)
+	var cloud_lit := Color(0.82, 0.80, 0.77)
+	var cloud_shade := Color(0.40, 0.44, 0.50)
 	var star_vis: float = 0.0
 	var sun_ang: float = clampf((hour_f - 6.0) / 13.0, 0.0, 1.0) * PI
 	var sun_dir := Vector3(-cos(sun_ang) * 0.78, maxf(0.16, sin(sun_ang) * 0.86), -0.46).normalized()
-	if hour_f >= 5.5 and hour_f < 8.0: # Amanecer rosado-dorado
+	if hour_f >= 5.5 and hour_f < 8.0: # Amanecer plomizo-ámbar
 		var t_dawn: float = clampf((hour_f - 5.5) / 2.5, 0.0, 1.0)
-		zenith_col = Color(0.08, 0.14, 0.32).lerp(Color(0.20, 0.46, 0.82), t_dawn)
-		horizon_col = Color(0.88, 0.52, 0.38).lerp(Color(0.70, 0.84, 0.95), t_dawn)
-		sun_col = Color(1.0, 0.68, 0.42).lerp(Color(1.0, 0.94, 0.82), t_dawn)
-		cloud_lit = Color(1.0, 0.78, 0.62).lerp(Color(0.98, 0.97, 0.94), t_dawn)
-		cloud_shade = Color(0.46, 0.38, 0.54).lerp(Color(0.60, 0.68, 0.80), t_dawn)
+		zenith_col = Color(0.05, 0.09, 0.18).lerp(Color(0.24, 0.34, 0.46), t_dawn)
+		horizon_col = Color(0.68, 0.42, 0.30).lerp(Color(0.54, 0.59, 0.64), t_dawn)
+		sun_col = Color(0.92, 0.60, 0.36).lerp(Color(0.94, 0.88, 0.74), t_dawn)
+		cloud_lit = Color(0.84, 0.64, 0.50).lerp(Color(0.82, 0.80, 0.77), t_dawn)
+		cloud_shade = Color(0.34, 0.28, 0.38).lerp(Color(0.40, 0.44, 0.50), t_dawn)
 		star_vis = 1.0 - t_dawn
-	elif hour_f >= 17.0 and hour_f < 19.8: # Atardecer ámbar-violeta
+	elif hour_f >= 17.0 and hour_f < 19.8: # Atardecer ocre-pizarra
 		var t_dusk: float = clampf((hour_f - 17.0) / 2.8, 0.0, 1.0)
-		zenith_col = Color(0.20, 0.44, 0.80).lerp(Color(0.06, 0.09, 0.20), t_dusk)
-		horizon_col = Color(0.92, 0.50, 0.30).lerp(Color(0.14, 0.16, 0.28), t_dusk)
-		sun_col = Color(1.0, 0.60, 0.32).lerp(Color(0.62, 0.74, 0.96), t_dusk)
-		cloud_lit = Color(1.0, 0.68, 0.46).lerp(Color(0.26, 0.32, 0.48), t_dusk)
-		cloud_shade = Color(0.44, 0.28, 0.42).lerp(Color(0.10, 0.14, 0.24), t_dusk)
-		star_vis = t_dusk * 0.85
-	elif is_night: # Noche estrellada con luna plateada
-		zenith_col = Color(0.03, 0.05, 0.12)
-		horizon_col = Color(0.09, 0.13, 0.24)
-		sun_col = Color(0.68, 0.78, 0.98)
-		cloud_lit = Color(0.24, 0.30, 0.44)
-		cloud_shade = Color(0.08, 0.11, 0.18)
+		zenith_col = Color(0.22, 0.32, 0.44).lerp(Color(0.03, 0.05, 0.10), t_dusk)
+		horizon_col = Color(0.72, 0.40, 0.24).lerp(Color(0.07, 0.09, 0.15), t_dusk)
+		sun_col = Color(0.92, 0.54, 0.28).lerp(Color(0.52, 0.62, 0.80), t_dusk)
+		cloud_lit = Color(0.84, 0.56, 0.38).lerp(Color(0.18, 0.22, 0.32), t_dusk)
+		cloud_shade = Color(0.34, 0.22, 0.30).lerp(Color(0.06, 0.08, 0.14), t_dusk)
+		star_vis = t_dusk * 0.70
+	elif is_night: # Noche cerrada con nubes bajas oscuras
+		zenith_col = Color(0.015, 0.024, 0.052)
+		horizon_col = Color(0.042, 0.058, 0.10)
+		sun_col = Color(0.52, 0.60, 0.78)
+		cloud_lit = Color(0.14, 0.18, 0.26)
+		cloud_shade = Color(0.04, 0.06, 0.10)
 		sun_dir = Vector3(0.42, 0.68, -0.58).normalized()
-		star_vis = 1.0
+		star_vis = 0.75
 
-	var cloud_cov: float = 0.78 if is_foggy_weather else (0.54 if (is_dusk or is_dawn_mist) else 0.46)
+	var cloud_cov: float = 0.88 if is_foggy_weather else (0.72 if (is_dusk or is_dawn_mist) else 0.64)
 	if is_foggy_weather:
-		horizon_col = horizon_col.lerp(Color(0.66, 0.72, 0.76), 0.45)
-		zenith_col = zenith_col.lerp(Color(0.52, 0.58, 0.64), 0.35)
+		horizon_col = horizon_col.lerp(Color(0.48, 0.52, 0.55), 0.55)
+		zenith_col = zenith_col.lerp(Color(0.38, 0.42, 0.46), 0.45)
 
 	if _sky_mat != null:
 		_sky_mat.set_shader_parameter("zenith_col", zenith_col)
@@ -3250,31 +3415,31 @@ func _update_roof_cutaways_and_lighting() -> void:
 		if first_person_active:
 			env.background_mode = Environment.BG_SKY if _sky_res != null else Environment.BG_COLOR
 			env.background_color = horizon_col
-			env.ambient_light_color = Color(0.42, 0.48, 0.68) if is_night else (Color(0.92, 0.76, 0.64) if is_dusk else Color(0.86, 0.88, 0.92))
-			env.ambient_light_energy = 0.44 if is_night else (0.54 if is_dusk else 0.62)
+			env.ambient_light_color = Color(0.22, 0.26, 0.38) if is_night else (Color(0.76, 0.64, 0.54) if is_dusk else Color(0.72, 0.74, 0.76))
+			env.ambient_light_energy = 0.20 if is_night else (0.45 if is_dusk else 0.52)
 			env.fog_enabled = not pl_indoors
-			env.fog_light_color = horizon_col
-			env.fog_light_energy = 0.85 if not is_night else 0.45
-			env.fog_sun_scatter = 0.22 if (is_dusk or is_dawn_mist) else 0.08
-			env.fog_sky_affect = 0.52
-			var base_fog: float = 0.014 if is_night else (0.0088 if (is_dusk or is_dawn_mist) else 0.0065)
+			env.fog_light_color = Color(0.05, 0.07, 0.11) if is_night else horizon_col.lerp(Color(0.46, 0.48, 0.50), 0.35)
+			env.fog_light_energy = 0.72 if not is_night else 0.26
+			env.fog_sun_scatter = 0.18 if (is_dusk or is_dawn_mist) else 0.06
+			env.fog_sky_affect = 0.62
+			var base_fog: float = 0.022 if is_night else (0.0135 if (is_dusk or is_dawn_mist) else 0.0095)
 			if is_foggy_weather:
 				base_fog *= 2.1
 			env.fog_density = base_fog
 		else:
 			env.background_mode = Environment.BG_CLEAR_COLOR
-			env.ambient_light_color = Color(0.84, 0.86, 0.90)
-			env.ambient_light_energy = 0.58
+			env.ambient_light_color = Color(0.74, 0.76, 0.78)
+			env.ambient_light_energy = 0.52
 			env.fog_enabled = (is_foggy_weather or is_dawn_mist) and not pl_indoors
 			env.fog_light_color = horizon_col
-			env.fog_density = 0.0045 if is_foggy_weather else 0.0020
+			env.fog_density = 0.0055 if is_foggy_weather else 0.0028
 
 	if is_instance_valid(fp_lantern_light):
 		if first_person_active:
 			var carrying_lantern: bool = is_instance_valid(pl) and pl.get("is_carrying_lantern") == true
 			fp_lantern_light.visible = is_night or is_dusk or carrying_lantern
-			fp_lantern_light.light_energy = 1.15 if carrying_lantern else (0.55 if is_night else 0.30)
-			fp_lantern_light.omni_range = 5.4 if carrying_lantern else 3.2
+			fp_lantern_light.light_energy = 1.25 if carrying_lantern else (0.60 if is_night else 0.30)
+			fp_lantern_light.omni_range = 5.6 if carrying_lantern else 3.4
 		else:
 			fp_lantern_light.visible = false
 
@@ -3283,22 +3448,22 @@ func _update_roof_cutaways_and_lighting() -> void:
 		var pitch_deg: float = -38.0 - 18.0 * sin(sun_ang) if not is_night else -48.0
 		sun_light.rotation_degrees = Vector3(pitch_deg, yaw_deg, 0.0)
 		if is_night:
-			sun_light.light_energy = 0.55 # luz de luna: fría, pero deja ver las siluetas
-			sun_light.light_color = Color(0.58, 0.68, 0.95)
+			sun_light.light_energy = 0.22 # noches más oscuras para que destaquen los charcos de luz de farolas y focos
+			sun_light.light_color = Color(0.46, 0.54, 0.76)
 		elif is_dusk or is_dawn_mist:
-			sun_light.light_energy = 0.86
+			sun_light.light_energy = 0.74
 			sun_light.light_color = sun_col
 		else:
-			sun_light.light_energy = 1.14
-			sun_light.light_color = Color(1.0, 0.96, 0.88)
+			sun_light.light_energy = 0.96
+			sun_light.light_color = Color(0.94, 0.89, 0.79)
 
-	# R1: la terraza de la trattoria enciende su guirnalda de bombillas al caer la tarde (17:00–2:00)
+	# R1: la terraza de la casa de comidas enciende su guirnalda de bombillas al caer la tarde (17:00–2:00)
 	var terrace_on: bool = hour >= 17 or hour < 2
 	for rn in _restaurant_night_nodes:
 		if is_instance_valid(rn):
 			(rn as Node3D).visible = terrace_on
 
-	# Con el circuito de farolas cortado (sabotaje), las calles quedan a oscuras también de noche.
+	# Con el circuito de farolas cortado (sabotaje), las calles y los focos quedan a oscuras también de noche.
 	var lamps_lit: bool = VillageCulture.is_lamps_powered(vm) and (is_night or grid_on)
 	for sl_node in _streetlight_nodes_3d:
 		var bulb: MeshInstance3D = sl_node["bulb"]
@@ -3308,8 +3473,23 @@ func _update_roof_cutaways_and_lighting() -> void:
 			bulb.material_override = sl_node["mat_voltaic"] if grid_on else sl_node["mat_warm"]
 		if is_instance_valid(lt):
 			lt.visible = lamps_lit
-			lt.light_color = Color(0.55, 0.96, 1.0) if grid_on else Color(1.0, 0.85, 0.45)
-			lt.light_energy = 1.65 if grid_on else 1.10
+			lt.light_color = Color(0.55, 0.96, 1.0) if grid_on else Color(1.0, 0.82, 0.42)
+			lt.light_energy = 2.35 if grid_on else 1.75
+	for fl_node in _floodlight_nodes_3d:
+		var f_bulb: MeshInstance3D = fl_node.get("bulb")
+		var f_spot: SpotLight3D = fl_node.get("spot")
+		var f_pool: OmniLight3D = fl_node.get("pool")
+		if is_instance_valid(f_bulb):
+			f_bulb.visible = lamps_lit
+			f_bulb.material_override = fl_node["mat_voltaic"] if grid_on else fl_node["mat_warm"]
+		if is_instance_valid(f_spot):
+			f_spot.visible = lamps_lit
+			f_spot.light_color = Color(0.62, 0.96, 1.0) if grid_on else Color(1.0, 0.90, 0.62)
+			f_spot.light_energy = 3.2 if grid_on else 2.6
+		if is_instance_valid(f_pool):
+			f_pool.visible = lamps_lit
+			f_pool.light_color = Color(0.62, 0.96, 1.0) if grid_on else Color(1.0, 0.88, 0.56)
+			f_pool.light_energy = 2.1 if grid_on else 1.65
 
 # ==============================================================================
 # SUELO 3D Y NATURALEZA (2026-11-05): sustituyen a la hierba y a los pinos dibujados en 2D
@@ -3342,7 +3522,7 @@ func _make_ground_shader_mat(key: String, c_prim: Color, c_sec: Color, c_earth: 
 ## Suelo opaco 3D con malla de relieve continuo (Fase A: lomas en la llanura, desniveles en el bosque y cuencas hundidas
 ## en el lago y la ciénaga; plano dentro del pueblo), normales suaves para el sombreado solar y mezcla de biomas por vértice.
 func _build_ground_3d() -> void:
-	var m_terrain := _make_ground_shader_mat("ground_terrain_heightfield_sh", Color(0.35, 0.54, 0.26), Color(0.25, 0.42, 0.19), Color(0.45, 0.36, 0.24), 0.16)
+	var m_terrain := _make_ground_shader_mat("ground_terrain_heightfield_sh", Color(0.28, 0.40, 0.21), Color(0.20, 0.30, 0.15), Color(0.37, 0.29, 0.19), 0.26)
 	if m_terrain is ShaderMaterial:
 		(m_terrain as ShaderMaterial).set_shader_parameter("use_vertex_biomes", 1.0)
 	var min_x: float = -3450.0

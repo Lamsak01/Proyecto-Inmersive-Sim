@@ -339,13 +339,13 @@ static func police_takes_bribe(vm, thief, witness) -> bool:
 	state(vm)["bribes"] = int(state(vm)["bribes"]) + 1
 	if witness != null:
 		witness.modify_npc_relationship(sheriff, -10, "Dejó escapar a %s" % thief.npc_name, true)
-	var ev: Dictionary = vm.record_social_event("police_bribe", sheriff, thief, "El comisario %s dejó ir a %s a cambio de %d de oro" % [sheriff.npc_name, thief.npc_name, pay])
+	var ev: Dictionary = vm.record_social_event("police_bribe", sheriff, thief, "El alguacil %s dejó ir a %s a cambio de %d de oro" % [sheriff.npc_name, thief.npc_name, pay])
 	ev["known_by"] = {sheriff.get_person_key(): true, thief.get_person_key(): true}
 	if witness != null:
 		ev["known_by"][witness.get_person_key()] = true
 	ev["heard_from"] = {}
 	ev["quiet"] = [sheriff.get_person_key(), thief.get_person_key()]
-	VillageChronicle.add(vm, "police_bribe", "El comisario %s aceptó %d de oro de %s para olvidar un robo" % [sheriff.npc_name, pay, thief.npc_name], false)
+	VillageChronicle.add(vm, "police_bribe", "El alguacil %s aceptó %d de oro de %s para olvidar un robo" % [sheriff.npc_name, pay, thief.npc_name], false)
 	return true
 
 # ---------------------------------------------------------------- I5 diálogo
@@ -404,7 +404,7 @@ static func on_player_action(vm, npc, action_id: String, inv) -> void:
 		st["player_knows_embezzle"] = false
 		VillageFaith.add_rep(vm, "law", 6)
 		npc._spawn_floating_text("🚓 «Lo investigaré. Si es verdad, lo pagará.»", Color(0.7, 0.85, 1.0), -46.0)
-		expose(vm, "lo denunciaste tú al comisario")
+		expose(vm, "lo denunciaste tú al alguacil")
 	elif action_id.begins_with("town_pledge:"):
 		var ck: String = action_id.get_slice(":", 1)
 		if npc.affinity >= PLEDGE_MIN_AFF:

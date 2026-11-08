@@ -1590,7 +1590,7 @@ static func on_player_action(vm, npc, action_id: String, inv) -> void:
 			inv.add_gold(total_rep)
 		npc.modify_affinity(18)
 		vm.VillageFaith.add_rep(vm, "law", 12)
-		VillageChronicle.add(vm, "fence_busted", "Delataste el mercado negro de %s ante el Comisario (+%d de oro)" % [fname, total_rep], true)
+		VillageChronicle.add(vm, "fence_busted", "Delataste el mercado negro de %s ante el Alguacil mayor (+%d de oro)" % [fname, total_rep], true)
 		npc._spawn_floating_text("🚨⚖️ «¡Conque %s dirigía el contrabando! Toma %d de oro de recompensa.»" % [fname, total_rep], Color.SPRING_GREEN, -46.0)
 
 	elif action_id == "underworld_takeover_boss":

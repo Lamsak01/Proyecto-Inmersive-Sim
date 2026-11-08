@@ -3,6 +3,15 @@
 ## MODO NOCHE (2026-11-08)
 - **Nota del supervisor (01:15, leyenda del mapa `[M]`):** cambiado en `ValleyMapUI.gd` el color del marcador y etiqueta «Tú» en el mapa grande `[M]` a azul cobalto para que coincida con `🔵 Tú` de la leyenda.
 - **§3 Relieve del terreno — Fase B (pueblo, `WorldStage3D.gd`):** añadidos desniveles suaves por terrazas dentro del pueblo (`_village_terrace_height_px`: calles que suben hacia el barrio norte `+4.2..+9.4 px` y hacia el barrio cívico del este `+3.2..+5.2 px`, Plaza Central ligeramente elevada `+2.4 px` con rampa empedrada y bordillos en sus accesos, y vaguada suave `-1.8 px` hacia los campos del sur), manteniendo cada edificio y solar en una explanada horizontal llana con zócalo de piedra enterrado (`-2.5..0.0 px`) para que nada se incline ni flote. Comprobado en 1.ª persona 3D en `docs/capturas_arreglos/relieve_fase_b_plaza_3d.png`, `docs/capturas_arreglos/relieve_fase_b_este_3d.png` y `docs/capturas_arreglos/relieve_fase_b_norte_3d.png`.
+- **§3b Aspecto de la época definitiva (tecnofeudal / medieval-balística):**
+  - **Lista corta de elementos de la época (§3b.3 — qué y dónde, con colisión y sin tapar puertas ni caminos):**
+    1. **Generador diésel y cables gruesos:** generador de hierro fundido con depósito y escape junto al muro este del Taller de Reparaciones (`Vector2(1316, 126)`, colisión `16 × 22 px`), con mangueras/cables gruesos por las fachadas del taller (`e5`), comisaría (`building_police`) y ayuntamiento (`building_town_hall`).
+    2. **Focos en poste de madera (`SpotLight3D`):** en la esquina noreste de la Comisaría (`Vector2(994, 96)`) y junto al pórtico norte del Puesto del Paso (`Vector2(1538, 18)`), encendidos de noche y apagados si se sabotea la red eléctrica (`VillageCulture.is_lamps_powered`).
+    3. **Sacos terreros y alambre de espino:** parapetados a ambos lados de la fachada norte de la Comisaría (`Vector2(864, 92)` y `Vector2(966, 92)`, dejando libre el corredor de la puerta `x = 893..937`) y flanqueando la barrera del Puesto del Paso (`Vector2(1528, 22)` y `Vector2(1528, 78)`, dejando libre el camino `y = 34..66`).
+    4. **Barrotes y planchas remachadas:** rejas de hierro y chapas de acero remachado en las ventanas bajas de la Comisaría (`building_police`) y del Ayuntamiento (`building_town_hall`).
+    5. **Terminales de pantalla verde (CRT fósforo verde):** sobre el escritorio de la Comisaría (`Vector2(933, 130)`), en una mesa lateral del Ayuntamiento (`Vector2(718, -442)`) y en la consola del Taller (`Vector2(1188, 122)`), todas operables con `[E]`.
+  - **3 propuestas de nombre para la casa de comidas del valle (§3b.4):** 1) **«Casa de Comidas El Fogón del Valle»** (usado por defecto), 2) **«Figón La Caldera»**, 3) **«Mesón del Arroyo»**. Platos cambiados a «Guiso de Trigo y Hogaza» y «Asado de Caza al Fuego».
+  - **Inventos del taller (§3b.5):** renombrados a «Radio de onda corta», «Cerradura magnética» y «Generador diésel». Cargo policial renombrado a «Alguacil mayor» / «alguacil» (§3b.1).
 
 ---
 

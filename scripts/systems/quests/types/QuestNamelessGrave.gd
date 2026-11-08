@@ -41,7 +41,7 @@ func texts(off: Dictionary) -> Dictionary:
 	var vn: String = str(off.get("target_name", ""))
 	return {
 		"title": "La tumba sin nombre",
-		"ask": "«El comisario cerró lo de %s sin más: ‹sin pruebas›, dijo. Pero alguien lo hizo, y sigue paseando por el valle. Yo no puedo dormir así.»" % vn,
+		"ask": "«El alguacil cerró lo de %s sin más: ‹sin pruebas›, dijo. Pero alguien lo hizo, y sigue paseando por el valle. Yo no puedo dormir así.»" % vn,
 		"desc": "La muerte de %s se archivó sin culpable. Pregunta a los vecinos qué recuerdan de aquella noche (🕯️) hasta reunir %d testimonios. Luego dile a %s quién fue... o a quién culpar." % [vn, WITNESSES, str(off.get("giver_name", ""))],
 	}
 
