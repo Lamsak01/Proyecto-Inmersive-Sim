@@ -252,13 +252,13 @@ void fragment() {
 	vec3 eff_earth = tint_earth;
 	if (use_vertex_biomes > 0.5) {
 		vec3 forest_tint = mix(vec3(0.22, 0.39, 0.19), vec3(0.15, 0.29, 0.13), b_mix);
-		vec3 plains_tint = mix(vec3(0.76, 0.67, 0.35), vec3(0.60, 0.51, 0.26), b_mix);
+		vec3 plains_tint = mix(vec3(0.41, 0.49, 0.26), vec3(0.32, 0.40, 0.21), b_mix);
 		meadow_tint = mix(meadow_tint, forest_tint, clamp(v_biome.r, 0.0, 1.0));
 		meadow_tint = mix(meadow_tint, plains_tint, clamp(v_biome.g, 0.0, 1.0));
-		eff_dirt_b = clamp(dirt_blend + v_biome.r * 0.12 + v_biome.g * 0.16 + v_biome.b * 0.62, 0.0, 0.95);
+		eff_dirt_b = clamp(dirt_blend + v_biome.r * 0.10 + v_biome.g * 0.08 + v_biome.b * 0.52, 0.0, 0.90);
 		eff_earth = mix(eff_earth, vec3(0.36, 0.27, 0.18), clamp(v_biome.r, 0.0, 1.0));
-		eff_earth = mix(eff_earth, vec3(0.54, 0.43, 0.28), clamp(v_biome.g, 0.0, 1.0));
-		eff_earth = mix(eff_earth, vec3(0.46, 0.38, 0.26), clamp(v_biome.b, 0.0, 1.0));
+		eff_earth = mix(eff_earth, vec3(0.42, 0.35, 0.24), clamp(v_biome.g, 0.0, 1.0));
+		eff_earth = mix(eff_earth, vec3(0.40, 0.34, 0.24), clamp(v_biome.b, 0.0, 1.0));
 	}
 	vec3 base_grass = mix(meadow_tint * 0.88, g_mid * 1.18 * meadow_tint, 0.48);
 	base_grass = mix(base_grass, g_over * meadow_tint * 1.08, 0.22);
@@ -488,96 +488,112 @@ func setup_stage(village_manager: Node2D) -> void:
 	rebuild_all_3d()
 	_sync_2d_flat_visuals(CharacterAvatar3DScript.use_3d_characters)
 
-## Relieve del terreno (Fase A — fuera del pueblo):
-## - Dentro del pueblo, campamento, granja/rancho del sur, cantera y Puesto del Paso queda plano (0.0 px)
-##   para que ningún edificio, solar, valla ni calle quede torcido ni flotando.
-## - Fuera del pueblo devuelve la cota en píxeles:
-##   * Llanura Salvaje del Noroeste y colinas del Norte: lomas amplias y crestas (+35..+86 px) con vaguadas suaves.
-##   * Bosque Profundo del Sur: desniveles marcados, lomas boscosas (+40..+78 px) y hondonadas (-14 px).
-##   * Lago del Oeste y Ciénaga de las Ranas: cuencas hundidas (-22..-24 px) bajo la lámina de agua (-14 px) y orillas en talud.
+## Relieve del terreno (Fase A — fuera del pueblo, rehecho suave):
+## - Todo edificio, solar, barrio, campamento, granja/rancho, cantera y Puesto del Paso queda sobre explanada llana (0.0 px).
+## - Todo camino exterior allana su trazado y sus márgenes para no subir y bajar como montaña rusa.
+## - Fuera del pueblo devuelve lomas anchas y bajas (pendiente máxima < 12°, sin montículos aislados):
+##   * Llanura Salvaje y borde norte: ondulaciones amplias (+10..+18 px).
+##   * Bosque Profundo del Sur: lomas boscosas suaves (+12..+20 px) y vaguadas ligeras (-4 px).
+##   * Lago del Oeste y Ciénaga de las Ranas: cuencas bajas (-3.8..-4.2 px) con agua a -1.5 px y orillas suaves de hierba.
+static func _dist_to_seg_2d(p: Vector2, a: Vector2, b: Vector2) -> float:
+	var ab: Vector2 = b - a
+	var l2: float = ab.length_squared()
+	if l2 <= 0.0001:
+		return p.distance_to(a)
+	var t: float = clampf((p - a).dot(ab) / l2, 0.0, 1.0)
+	return p.distance_to(a + ab * t)
+
+
+static func _road_flat_mask(pos_2d: Vector2) -> float:
+	var d_min: float = 99999.0
+	# Calzada principal Oeste-Este (y = 50)
+	d_min = minf(d_min, _dist_to_seg_2d(pos_2d, Vector2(-2150.0, 50.0), Vector2(1800.0, 50.0)))
+	# Ramal Norte-Sur de la Llanura Salvaje (x = -1509, hasta las ruinas del norte en y = -285)
+	d_min = minf(d_min, _dist_to_seg_2d(pos_2d, Vector2(-1509.0, -285.0), Vector2(-1509.0, 210.0)))
+	d_min = minf(d_min, _dist_to_seg_2d(pos_2d, Vector2(-1560.0, -220.0), Vector2(-1460.0, -220.0)))
+	# Camino transversal de entrada al Bosque y Caseríos (y = 772)
+	d_min = minf(d_min, _dist_to_seg_2d(pos_2d, Vector2(-710.0, 772.0), Vector2(680.0, 772.0)))
+	# Camino central del Bosque (x = 143) y bajada desde el pueblo (x = 465)
+	d_min = minf(d_min, _dist_to_seg_2d(pos_2d, Vector2(143.0, 640.0), Vector2(143.0, 1080.0)))
+	d_min = minf(d_min, _dist_to_seg_2d(pos_2d, Vector2(465.0, 640.0), Vector2(465.0, 790.0)))
+	# Senda de los Caseríos del Bosque (x = -680)
+	d_min = minf(d_min, _dist_to_seg_2d(pos_2d, Vector2(-680.0, 600.0), Vector2(-680.0, 960.0)))
+	return smoothstep(32.0, 155.0, d_min)
+
+
 static func terrain_height_px(pos_2d: Vector2) -> float:
 	var x: float = pos_2d.x
 	var y: float = pos_2d.y
 
-	# 1. Cuenca y orillas hundidas del Lago del Oeste (x ~ -1080..-665, y ~ 75..245)
+	# 1. Cuenca baja y de orillas suaves del Lago del Oeste (x ~ -1080..-665, y ~ 75..245)
 	var lake_h: float = 0.0
-	if x < -640.0 and x > -1220.0 and y > 52.0 and y < 340.0:
-		var t_east: float = smoothstep(-1010.0, -715.0, x)
-		var lake_cy: float = lerpf(168.0, 114.0, t_east)
-		var lake_ry: float = lerpf(80.0, 44.0, t_east)
-		var ld := Vector2((x + 875.0) / 215.0, (y - lake_cy) / lake_ry)
+	if x < -645.0 and x > -1180.0 and y > 56.0 and y < 295.0:
+		var t_east: float = smoothstep(-940.0, -730.0, x)
+		var lake_cy: float = lerpf(152.0, 108.0, t_east)
+		var lake_ry: float = lerpf(92.0, 44.0, t_east)
+		var ld := Vector2((x + 872.0) / 238.0, (y - lake_cy) / lake_ry)
 		var lr: float = ld.length()
-		if lr < 1.50:
-			# Fondo hundido (-15.5 px) bajo la lámina de agua (-7.5 px) y orillas suaves en talud; ribazo al oeste/sur (+14 px)
-			var basin: float = -15.5 * (1.0 - smoothstep(0.38, 1.06, lr))
-			var outer_rim: float = clampf((-750.0 - x) / 180.0, 0.0, 1.0) * smoothstep(65.0, 135.0, y)
-			var rim: float = 14.0 * outer_rim * smoothstep(0.92, 1.20, lr) * (1.0 - smoothstep(1.22, 1.48, lr))
-			var north_fade: float = smoothstep(54.0, 74.0, y)
-			var east_fade: float = clampf((-645.0 - x) / 28.0, 0.0, 1.0)
-			lake_h = (basin + rim) * north_fade * east_fade
+		if lr < 1.30:
+			# Lecho suave (-5.8 px) bajo la lámina de agua (-0.8 px); orillas muy tendidas sin escalón ni zanja
+			var basin: float = -5.8 * (1.0 - smoothstep(0.80, 1.26, lr))
+			var north_fade: float = smoothstep(56.0, 76.0, y)
+			var east_fade: float = clampf((-646.0 - x) / 26.0, 0.0, 1.0)
+			lake_h = basin * north_fade * east_fade
 
-	# 2. Cuenca y orillas bajas de la Ciénaga de las Ranas (x ~ -1960..-1100, y ~ 110..560)
+	# 2. Cuenca baja de la Ciénaga de las Ranas (x ~ -1960..-1100, y ~ 135..520)
 	var marsh_h: float = 0.0
-	if x < -1020.0 and y > 65.0 and y < 650.0:
+	if x < -1080.0 and y > 105.0 and y < 580.0:
 		var mc := Vector2(-1535.0, 328.0)
-		var md := Vector2((x - mc.x) / 395.0, (y - mc.y) / 185.0)
+		var md := Vector2((x - mc.x) / 390.0, (y - mc.y) / 180.0)
 		var mr: float = md.length()
-		if mr < 1.48:
-			var m_basin: float = -15.5 * (1.0 - smoothstep(0.45, 1.04, mr))
-			# Ribazos de tierra elevados rodeando la hondonada de la ciénaga
-			var m_bank: float = 20.0 * smoothstep(0.88, 1.15, mr) * (1.0 - smoothstep(1.18, 1.46, mr))
-			var islets: float = 4.2 * sin(x * 0.032 + y * 0.024) * cos(x * 0.019 - y * 0.038) * (1.0 - smoothstep(0.55, 0.95, mr))
-			marsh_h = m_basin + m_bank + islets
+		if mr < 1.32:
+			var m_basin: float = -3.6 * (1.0 - smoothstep(0.55, 1.12, mr))
+			var m_bank: float = 2.2 * smoothstep(0.95, 1.14, mr) * (1.0 - smoothstep(1.16, 1.32, mr))
+			marsh_h = m_basin + m_bank
 
-	# 3. Máscara de zona plana del pueblo, campamento/gallinero/huerto, granja/rancho, cantera y Puesto del Paso
-	var d_village: float = 0.0
-	var dx_v: float = (-640.0 - x) if x < -640.0 else ((x - 1705.0) if x > 1705.0 else 0.0)
-	var dy_v: float = (-445.0 - y) if y < -445.0 else ((y - 650.0) if y > 650.0 else 0.0)
-	d_village = sqrt(dx_v * dx_v + dy_v * dy_v)
+	# 3. Explanada llana para TODOS los edificios, solares (n, m, u, f1, f2, e, o, l, s, w1, fw, c1..c3), campamento y Puesto del Paso
+	var dx_v: float = (-665.0 - x) if x < -665.0 else ((x - 1785.0) if x > 1785.0 else 0.0)
+	var dy_v: float = (-825.0 - y) if y < -825.0 else ((y - 650.0) if y > 650.0 else 0.0)
+	var d_village: float = sqrt(dx_v * dx_v + dy_v * dy_v)
 
-	# Claro plano del campamento inicial, huerto 3x3 y gallinero (x in -915..-640, y in -185..58)
-	var dx_c: float = (-915.0 - x) if x < -915.0 else ((x + 640.0) if x > -640.0 else 0.0)
-	var dy_c: float = (-185.0 - y) if y < -185.0 else ((y - 58.0) if y > 58.0 else 0.0)
+	# Claro llano del campamento inicial, huerto 3x3 y gallinero (x in -935..-640, y in -215..72)
+	var dx_c: float = (-935.0 - x) if x < -935.0 else ((x + 640.0) if x > -640.0 else 0.0)
+	var dy_c: float = (-215.0 - y) if y < -215.0 else ((y - 72.0) if y > 72.0 else 0.0)
 	var d_camp: float = sqrt(dx_c * dx_c + dy_c * dy_c)
 
-	var d_out: float = minf(d_village, d_camp)
+	# Explanada llana de los Caseríos del Bosque (c1, c2, c3 en x = -610..-600, y = 668..1040)
+	var dx_cas: float = (-725.0 - x) if x < -725.0 else ((x + 505.0) if x > -505.0 else 0.0)
+	var dy_cas: float = (600.0 - y) if y < 600.0 else ((y - 1045.0) if y > 1045.0 else 0.0)
+	var d_cas: float = sqrt(dx_cas * dx_cas + dy_cas * dy_cas)
+
+	var d_out: float = minf(d_village, minf(d_camp, d_cas))
 	if d_out <= 0.001 and absf(lake_h) < 0.001:
 		return 0.0
-	var outer_mask: float = smoothstep(0.0, 90.0, d_out)
+	var outer_mask: float = smoothstep(0.0, 175.0, d_out) * _road_flat_mask(pos_2d)
 
-	# 4. Lomas fuertes en la Llanura Salvaje (noroeste y oeste) y colinas del borde norte
+	# 4. Lomas anchas y suaves en la Llanura Salvaje y borde exterior (sin montículos aislados; pendiente < 10°)
 	var plains_h: float = 0.0
-	if x < -640.0 or y < -445.0 or x > 1705.0:
-		var w1: float = sin(x * 0.0052 + 0.4) * cos(y * 0.0064 - 0.3)
-		var w2: float = sin((x * 0.0085 - y * 0.0072) + 1.7) * 0.65
-		var w3: float = cos((x * 0.014 + y * 0.012) - 0.8) * 0.32
-		var ridge: float = maxf(0.0, w1 + w2 * 0.75 + 0.25)
-		plains_h = (ridge * 46.0 + w3 * 14.0)
-		# Colinas más pronunciadas en el corazón de la Llanura Salvaje (x < -1050, y < -40)
-		var nw_boost: float = smoothstep(-760.0, -1180.0, x) * smoothstep(35.0, -140.0, y)
-		var dome1: float = exp(-pow((x + 1580.0) / 260.0, 2.0) - pow((y + 340.0) / 175.0, 2.0)) * 42.0
-		var dome2: float = exp(-pow((x + 1190.0) / 210.0, 2.0) - pow((y + 210.0) / 145.0, 2.0)) * 36.0
-		var dome3: float = exp(-pow((x + 1840.0) / 230.0, 2.0) - pow((y + 135.0) / 140.0, 2.0)) * 34.0
-		var valley_dip: float = -exp(-pow((x + 1480.0) / 150.0, 2.0) - pow((y + 215.0) / 110.0, 2.0)) * 18.0
-		plains_h = plains_h * (0.55 + 0.45 * nw_boost) + dome1 + dome2 + dome3 + valley_dip
-		# Atenuar junto al lago y la ciénaga para que manden sus cuencas y orillas
-		var near_water: float = clampf(absf(lake_h + marsh_h) / 10.0, 0.0, 1.0)
-		plains_h *= (1.0 - near_water * 0.82)
+	if x < -665.0 or y < -825.0 or x > 1785.0:
+		var w1: float = sin(x * 0.0024 + 0.5) * cos(y * 0.0028 - 0.3)
+		var w2: float = sin((x * 0.0036 - y * 0.0030) + 1.4) * 0.55
+		var swell: float = maxf(0.0, w1 + w2 * 0.70 + 0.35)
+		plains_h = swell * 13.5
+		# Horizonte suavemente elevado en el borde lejano del mundo para tapar el corte del suelo
+		var rim_w: float = smoothstep(-1850.0, -2550.0, x) * 14.0
+		var rim_n: float = smoothstep(-950.0, -1450.0, y) * 12.0
+		var rim_e: float = smoothstep(1900.0, 2500.0, x) * 12.0
+		plains_h += rim_w + rim_n + rim_e
+		var near_water: float = clampf(absf(lake_h + marsh_h) / 2.2, 0.0, 1.0)
+		plains_h *= (1.0 - near_water * 0.90)
 
-	# 5. Desniveles, lomas y vaguadas en el Bosque Profundo (sur, y > 650)
+	# 5. Ondulaciones anchas y bajas en el Bosque Profundo (sur, y > 650)
 	var forest_h: float = 0.0
 	if y > 650.0:
-		var fy: float = smoothstep(650.0, 820.0, y)
-		var fw1: float = sin(x * 0.0058 - 0.6) * sin((y - 680.0) * 0.0062 + 0.5)
-		var fw2: float = cos(x * 0.0105 + y * 0.0088 + 1.1) * 0.55
-		var fw3: float = sin(x * 0.018 - y * 0.015) * 0.25
-		# Lomas boscosas a ambos lados del camino de entrada (x ~ 130) y barrancos suaves
-		var hill_w: float = exp(-pow((x + 640.0) / 280.0, 2.0) - pow((y - 1180.0) / 260.0, 2.0)) * 48.0
-		var hill_c: float = exp(-pow((x - 360.0) / 250.0, 2.0) - pow((y - 1080.0) / 230.0, 2.0)) * 42.0
-		var hill_e: float = exp(-pow((x - 940.0) / 290.0, 2.0) - pow((y - 1320.0) / 280.0, 2.0)) * 52.0
-		var hill_s: float = exp(-pow((x + 140.0) / 340.0, 2.0) - pow((y - 1680.0) / 310.0, 2.0)) * 56.0
-		var gully: float = -exp(-pow((x + 210.0) / 160.0, 2.0) - pow((y - 1020.0) / 150.0, 2.0)) * 18.0
-		forest_h = ((fw1 * 32.0 + fw2 * 22.0 + fw3 * 9.0 + 14.0) + hill_w + hill_c + hill_e + hill_s + gully) * fy
+		var fy: float = smoothstep(650.0, 880.0, y)
+		var fw1: float = sin(x * 0.0026 - 0.6) * sin((y - 700.0) * 0.0028 + 0.5)
+		var fw2: float = cos(x * 0.0040 + y * 0.0034 + 1.1) * 0.50
+		var rim_s: float = smoothstep(2050.0, 2650.0, y) * 14.0
+		forest_h = ((fw1 * 11.0 + fw2 * 7.5 + 5.5) + rim_s) * fy
 
 	return (plains_h + forest_h) * outer_mask + lake_h + marsh_h
 
@@ -615,24 +631,19 @@ func _terrain_biome_color(pos_2d: Vector2, normal_3d: Vector3) -> Color:
 	var y: float = pos_2d.y
 	var edge_wave: float = sin(x * 0.009 + 1.2) * 32.0 + cos(x * 0.021 - 0.5) * 16.0
 	var w_forest: float = smoothstep(665.0 + edge_wave, 775.0 + edge_wave, y)
-	var w_plains: float = smoothstep(-940.0, -1140.0, x) * smoothstep(10.0, -90.0, y) * smoothstep(-620.0, -490.0, y)
+	var w_plains: float = smoothstep(-940.0, -1180.0, x) * smoothstep(20.0, -90.0, y)
 	var w_mud: float = 0.0
-	# Orilla y lecho del Lago del Oeste
+	# Lecho húmedo solo bajo el agua del Lago del Oeste (la orilla exterior queda de hierba verde)
 	var lc := Vector2(-875.0, 152.0)
-	var lr: float = Vector2((x - lc.x) / 225.0, (y - lc.y) / 102.0).length()
-	if lr < 1.25 and x < -645.0:
-		w_mud = maxf(w_mud, 1.0 - smoothstep(0.65, 1.22, lr))
-	# Orilla y cuenca de la Ciénaga de las Ranas
+	var lr: float = Vector2((x - lc.x) / 195.0, (y - lc.y) / 76.0).length()
+	if lr < 0.92 and x < -655.0:
+		w_mud = maxf(w_mud, (1.0 - smoothstep(0.55, 0.92, lr)) * 0.55)
+	# Lecho húmedo de la Ciénaga de las Ranas
 	var mc := Vector2(-1535.0, 328.0)
-	var mr: float = Vector2((x - mc.x) / 420.0, (y - mc.y) / 205.0).length()
-	if mr < 1.28:
-		w_mud = maxf(w_mud, 1.0 - smoothstep(0.72, 1.25, mr))
-	# Calva terrosa de la Llanura
-	var pc := Vector2(-1525.0, -270.0)
-	var pr: float = Vector2((x - pc.x) / 230.0, (y - pc.y) / 120.0).length()
-	if pr < 1.15:
-		w_mud = maxf(w_mud, (1.0 - smoothstep(0.55, 1.12, pr)) * 0.85)
-	var w_slope: float = clampf((1.0 - normal_3d.y) * 3.4, 0.0, 1.0)
+	var mr: float = Vector2((x - mc.x) / 385.0, (y - mc.y) / 175.0).length()
+	if mr < 1.05:
+		w_mud = maxf(w_mud, (1.0 - smoothstep(0.65, 1.05, mr)) * 0.65)
+	var w_slope: float = clampf((1.0 - normal_3d.y) * 2.6, 0.0, 1.0)
 	return Color(w_forest, w_plains, w_mud, w_slope)
 
 func size_3d(sz_2d: Vector2, h_px: float) -> Vector3:
@@ -944,7 +955,7 @@ func _build_static_terrain_3d() -> void:
 	# Bancos de la plaza y Mirador del Lago en 3D
 	_build_bench_3d(terrain_root_3d, Vector2(500.0, 66.0), m_wood, m_iron)
 	_build_bench_3d(terrain_root_3d, Vector2(440.0, 80.0), m_wood, m_iron)
-	var lv_pos := Vector2(-715.0, 166.0)
+	var lv_pos := Vector2(-715.0, 184.0)
 	_build_fence_run_3d(terrain_root_3d, lv_pos + Vector2(-34.0, -12.0), lv_pos + Vector2(34.0, -12.0), m_wood)
 	_build_bench_3d(terrain_root_3d, lv_pos + Vector2(0.0, -2.0), m_wood, m_iron)
 
@@ -959,30 +970,28 @@ func _build_static_terrain_3d() -> void:
 	_add_model_2d(terrain_root_3d, "props/Bucket_Wooden_1.gltf", wash_c + Vector2(-14, 10), 2.0, Vector2.ZERO, 6.5)
 	_add_model_2d(terrain_root_3d, "props/Barrel.gltf", wash_c + Vector2(16, -10), 2.0, Vector2.ZERO, 10.0)
 
-	# Lago del Oeste (junto al campamento inicial, un solo muelle, sin lavadero); sauces en la orilla
+	# Lago del Oeste (junto al campamento inicial, un solo muelle a ras del agua, sin lavadero); sauces en la orilla exterior
 	_build_lake_3d()
-	_add_model_2d(terrain_root_3d, "nature/Willow_1.obj", Vector2(-950, 82), -1.0, Vector2.ZERO, 40.0)
-	_add_model_2d(terrain_root_3d, "nature/Willow_2.obj", Vector2(-1090, 190), -1.0, Vector2.ZERO, 38.0, 70.0)
-	_add_model_2d(terrain_root_3d, "nature/Willow_1.obj", Vector2(-840, 225), -1.0, Vector2.ZERO, 34.0, 140.0)
+	_add_model_2d(terrain_root_3d, "nature/Willow_1.obj", Vector2(-955, 72), -0.6, Vector2.ZERO, 40.0)
+	_add_model_2d(terrain_root_3d, "nature/Willow_2.obj", Vector2(-1105, 195), -0.6, Vector2.ZERO, 38.0, 70.0)
+	_add_model_2d(terrain_root_3d, "nature/Willow_1.obj", Vector2(-840, 238), -0.6, Vector2.ZERO, 34.0, 140.0)
 
-	# Ciénaga de las Ranas del Suroeste (cuenca hundida con lámina de agua a cota fija -7.8 px y orillas en talud)
+	# Ciénaga de las Ranas del Suroeste (cuenca baja con lámina de agua a -1.4 px y arbustos/sauces solo en las orillas secas)
 	var marsh_water_pts := PackedVector2Array([
 		Vector2(-1860, 210), Vector2(-1620, 165), Vector2(-1340, 180), Vector2(-1200, 250),
 		Vector2(-1220, 390), Vector2(-1360, 470), Vector2(-1650, 485), Vector2(-1850, 420),
 		Vector2(-1910, 310)
 	])
-	_add_flat_poly_2d(terrain_root_3d, marsh_water_pts, -7.8, m_marsh, true)
-	_add_box_2d(terrain_root_3d, Vector2(-1520, 188), Vector2(76, 12), 1.5, 2.2, m_wood)
+	_add_flat_poly_2d(terrain_root_3d, marsh_water_pts, -1.4, m_marsh, true)
 	for rp in [
-		Vector2(-1820, 220), Vector2(-1710, 185), Vector2(-1580, 240), Vector2(-1410, 210),
-		Vector2(-1290, 280), Vector2(-1350, 420), Vector2(-1560, 440), Vector2(-1760, 380)
+		Vector2(-1880, 198), Vector2(-1710, 152), Vector2(-1480, 155), Vector2(-1310, 166),
+		Vector2(-1185, 255), Vector2(-1205, 415), Vector2(-1560, 500), Vector2(-1865, 435)
 	]:
-		if _add_model_2d(terrain_root_3d, "nature/Bush_1.obj", rp, -0.8, Vector2.ZERO, 12.0) == null:
-			_add_cyl_2d(terrain_root_3d, rp, 4.0, -0.8, 8.0, m_pine, 1.5, 6)
-	_add_model_2d(terrain_root_3d, "nature/Willow_2.obj", Vector2(-1840, 195), -1.0, Vector2.ZERO, 36.0)
-	_add_model_2d(terrain_root_3d, "nature/Willow_1.obj", Vector2(-1260, 395), -1.0, Vector2.ZERO, 34.0, 110.0)
-	_add_model_2d(terrain_root_3d, "nature/Rock_2.obj", Vector2(-1390, 190), -1.0, Vector2.ZERO, 13.0)
-	_add_model_2d(terrain_root_3d, "nature/WoodLog.obj", Vector2(-1640, 340), 0.0, Vector2.ZERO, 16.0, 35.0)
+		if _add_model_2d(terrain_root_3d, "nature/Bush_1.obj", rp, -0.5, Vector2.ZERO, 12.0) == null:
+			_add_cyl_2d(terrain_root_3d, rp, 4.0, -0.5, 8.0, m_pine, 1.5, 6)
+	_add_model_2d(terrain_root_3d, "nature/Willow_2.obj", Vector2(-1895, 205), -0.6, Vector2.ZERO, 36.0)
+	_add_model_2d(terrain_root_3d, "nature/Willow_1.obj", Vector2(-1195, 395), -0.6, Vector2.ZERO, 34.0, 110.0)
+	_add_model_2d(terrain_root_3d, "nature/Rock_2.obj", Vector2(-1360, 162), -0.6, Vector2.ZERO, 13.0)
 
 	# Matorral, arbustos de bayas y troncos caídos repartidos por el Bosque Profundo ampliado (y = 780..2300)
 	var forest_bushes: Array[Vector2] = [
@@ -2192,9 +2201,9 @@ func rebuild_lots_3d() -> void:
 	_clear_children(lots_root_3d)
 	if vm == null:
 		return
-	var m_stake := _mat("lot_stake", Color(0.54, 0.36, 0.18), 0.88, 0.02)
-	var m_scaffold := _mat("lot_scaffold", Color(0.68, 0.50, 0.28), 0.85, 0.02)
-	var m_found := _mat("lot_foundation", Color(0.52, 0.50, 0.46), 0.90, 0.02)
+	var m_stake := _mat("lot_stake", Color(0.52, 0.36, 0.22), 0.88, 0.02, Color.BLACK, 0.0, "town_textures/rf_planks.png", "", 0.80)
+	var m_scaffold := _mat("lot_scaffold", Color(0.64, 0.48, 0.30), 0.85, 0.02, Color.BLACK, 0.0, "town_textures/rf_planks.png", "", 0.80)
+	var m_found := _mat("lot_foundation", Color(0.56, 0.54, 0.50), 0.90, 0.02, Color.BLACK, 0.0, "town_textures/wall_stone.png", "", 0.70)
 
 	for l_entry in VillageLots.LOTS:
 		var l_dict: Dictionary = l_entry
@@ -2529,7 +2538,7 @@ func set_first_person(enable: bool) -> void:
 			if not _is_ui_blocking_fp():
 				Input.set_mouse_mode(Input.MOUSE_MODE_CAPTURED)
 		if is_instance_valid(pl) and pl.has_method("show_hint"):
-			pl.call("show_hint", "👁️ [P/F6] Vista en 1.ª Persona ACTIVADA (Ratón: mirar · W/A/S/D: caminar · [E]: usar · [F9]: pasar a 2D)")
+			pl.call("show_hint", "👁️ Vista en 1.ª persona activada ([P] o [F6] para salir)")
 	else:
 		first_person_active = false
 		fp_pitch = 0.0
@@ -3183,8 +3192,8 @@ func _update_roof_cutaways_and_lighting() -> void:
 			env.fog_light_color = horizon_col
 			env.fog_light_energy = 0.85 if not is_night else 0.45
 			env.fog_sun_scatter = 0.22 if (is_dusk or is_dawn_mist) else 0.08
-			env.fog_sky_affect = 0.28
-			var base_fog: float = 0.014 if is_night else (0.0085 if (is_dusk or is_dawn_mist) else 0.0045)
+			env.fog_sky_affect = 0.52
+			var base_fog: float = 0.014 if is_night else (0.0088 if (is_dusk or is_dawn_mist) else 0.0065)
 			if is_foggy_weather:
 				base_fog *= 2.1
 			env.fog_density = base_fog
@@ -3272,11 +3281,11 @@ func _build_ground_3d() -> void:
 	var m_terrain := _make_ground_shader_mat("ground_terrain_heightfield_sh", Color(0.35, 0.54, 0.26), Color(0.25, 0.42, 0.19), Color(0.45, 0.36, 0.24), 0.16)
 	if m_terrain is ShaderMaterial:
 		(m_terrain as ShaderMaterial).set_shader_parameter("use_vertex_biomes", 1.0)
-	var min_x: float = -2450.0
-	var max_x: float = 2150.0
-	var min_y: float = -1050.0
-	var max_y: float = 2550.0
-	var step: float = 28.0
+	var min_x: float = -3450.0
+	var max_x: float = 3050.0
+	var min_y: float = -1850.0
+	var max_y: float = 3250.0
+	var step: float = 34.0
 	var nx: int = int(ceil((max_x - min_x) / step))
 	var ny: int = int(ceil((max_y - min_y) / step))
 	var st := SurfaceTool.new()
@@ -3317,6 +3326,18 @@ func _build_ground_3d() -> void:
 	ground_mi.material_override = m_terrain
 	ground_mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_ON
 	terrain_root_3d.add_child(ground_mi)
+	# Árboles perimetrales en el horizonte oeste y norte para cerrar el horizonte visual
+	var horizon_trees := [
+		Vector2(-2180, -680), Vector2(-2260, -480), Vector2(-2320, -260), Vector2(-2280, -80),
+		Vector2(-2340, 120), Vector2(-2290, 340), Vector2(-2220, 560), Vector2(-1980, -820),
+		Vector2(-1720, -890), Vector2(-1460, -920), Vector2(-1180, -940), Vector2(-880, -960),
+	]
+	for hti in range(horizon_trees.size()):
+		var htp: Vector2 = horizon_trees[hti]
+		var ht_file: String = "nature/PineTree_1.obj" if (hti % 2) == 0 else "nature/CommonTree_2.obj"
+		var ht_node := _add_model_2d(terrain_root_3d, ht_file, htp, -1.2, Vector2.ZERO, 54.0 + float(hti % 4) * 6.0, float(hti * 47))
+		if ht_node != null and nature_root_3d != null:
+			_absorb_into_batches(ht_node, htp)
 	# Matas de hierba, tréboles, helechos y flores silvestres 3D repartidas por praderas, cunetas, campamento y linde del bosque
 	_build_ground_foliage_3d()
 
@@ -3365,6 +3386,12 @@ func _build_ground_foliage_3d() -> void:
 		"nature/Plant_1.obj", "nature/Plant_2.obj", "nature/Plant_3.obj",
 		"nature/Flowers.obj", "nature/Plant_1.obj", "nature/Wheat.obj",
 	]
+	var lake_poly_guard: PackedVector2Array = FishingSpotScript.lake_scaled(1.18, 12.0)
+	var marsh_poly_guard := PackedVector2Array([
+		Vector2(-1890, 195), Vector2(-1620, 150), Vector2(-1325, 165), Vector2(-1180, 240),
+		Vector2(-1200, 405), Vector2(-1345, 485), Vector2(-1660, 500), Vector2(-1875, 435),
+		Vector2(-1930, 310)
+	])
 	var idx: int = 0
 	for gx in range(-2050, 1480, 95):
 		for gy in range(-520, 1280, 95):
@@ -3372,10 +3399,12 @@ func _build_ground_foliage_3d() -> void:
 			var jx: float = float(((idx * 73) % 59) - 29)
 			var jy: float = float(((idx * 41) % 59) - 29)
 			var fp := Vector2(float(gx) + jx, float(gy) + jy)
-			# Saltar calzadas principales, plaza central, lago y huellas de edificios
+			# Saltar calzadas principales, plaza central, lago, ciénaga y huellas de edificios
 			if absf(fp.y - 50.0) < 30.0 or (fp.x > 375.0 and fp.x < 555.0 and fp.y > 0.0 and fp.y < 95.0):
 				continue
-			if fp.distance_to(FishingSpotScript.LAKE_NODE_POS) < 130.0 or terrain_height_px(fp) < -8.0:
+			if Geometry2D.is_point_in_polygon(fp, lake_poly_guard) or Geometry2D.is_point_in_polygon(fp, marsh_poly_guard):
+				continue
+			if fp.distance_to(FishingSpotScript.LAKE_NODE_POS) < 95.0 or terrain_height_px(fp) < -0.8:
 				continue
 			if VillageRestaurant.RECT.grow(16.0).has_point(fp) or VillageTavern.RECT.grow(16.0).has_point(fp):
 				continue
@@ -3389,22 +3418,42 @@ func _build_ground_foliage_3d() -> void:
 	_flush_batches()
 
 
-## Lago 3D en cuenca hundida: las orillas bajan en talud desde el terreno hasta la lámina de agua (-7.5 px) y el fondo.
+## Lago 3D con abundante agua azul a cota -1.5 px, orillas suaves de hierba con juncos y piedras, y un único muelle a ras del agua.
 func _build_lake_3d() -> void:
-	var m_lake := _mat("lake_water", Color(0.28, 0.56, 0.82, 0.90), 0.12, 0.14, Color.BLACK, 0.0, "town_textures/floor_ground_water.png", "", 0.55)
-	var m_deep := _mat("lake_deep", Color(0.16, 0.34, 0.58, 0.94), 0.10, 0.12, Color.BLACK, 0.0, "town_textures/floor_ground_water.png", "", 0.55)
+	var m_lake := _mat("lake_water", Color(0.24, 0.54, 0.82, 0.92), 0.12, 0.14, Color.BLACK, 0.0, "town_textures/floor_ground_water.png", "", 0.55)
+	var m_deep := _mat("lake_deep", Color(0.14, 0.34, 0.60, 0.95), 0.10, 0.12, Color.BLACK, 0.0, "town_textures/floor_ground_water.png", "", 0.55)
 	for lm in [m_lake, m_deep]:
 		(lm as StandardMaterial3D).cull_mode = BaseMaterial3D.CULL_DISABLED
-	_add_flat_poly_2d(terrain_root_3d, FishingSpotScript.lake_scaled(1.06, 5.0), -7.5, m_lake, true)
-	_add_flat_poly_2d(terrain_root_3d, FishingSpotScript.lake_scaled(0.62, 0.0), -7.2, m_deep, true)
-	# Un único muelle de madera en la orilla este del lago con pasarela desde el talud de la orilla
+	_add_flat_poly_2d(terrain_root_3d, FishingSpotScript.lake_scaled(1.12, 8.0), -1.0, m_lake, true)
+	_add_flat_poly_2d(terrain_root_3d, FishingSpotScript.lake_scaled(0.66, 0.0), -0.8, m_deep, true)
+	# Un único muelle de madera en la orilla este del lago, a ras del agua (-1.0 px) y sin tablón suelto
 	var m_dock := _mat("dock_wood", Color(0.62, 0.44, 0.28), 0.9, 0.0, Color.BLACK, 0.0, "town_textures/rf_planks.png", "", 0.78)
 	var dock_c: Vector2 = FishingSpotScript.LAKE_NODE_POS + Vector2(32.0, 0.0)
-	_add_box_2d(terrain_root_3d, dock_c, Vector2(42, 16), 2.5, 2.5, m_dock)
-	_add_box_2d(terrain_root_3d, dock_c + Vector2(24.0, 0.0), Vector2(18, 14), 0.5, 2.2, m_dock)
+	var dock_mi := MeshInstance3D.new()
+	var dock_bm := BoxMesh.new()
+	dock_bm.size = size_3d(Vector2(44.0, 16.0), 1.6)
+	dock_mi.mesh = dock_bm
+	dock_mi.material_override = m_dock
+	dock_mi.position = to_3d_flat(dock_c, 0.1)
+	terrain_root_3d.add_child(dock_mi)
 	for px in [-15.0, 0.0, 15.0]:
 		for py in [-7.0, 7.0]:
-			_add_box_2d(terrain_root_3d, dock_c + Vector2(px, py), Vector2(2.5, 2.5), -8.0, 14.5, m_dock)
+			var post_mi := MeshInstance3D.new()
+			var post_bm := BoxMesh.new()
+			post_bm.size = size_3d(Vector2(2.4, 2.4), 5.2)
+			post_mi.mesh = post_bm
+			post_mi.material_override = m_dock
+			post_mi.position = to_3d_flat(dock_c + Vector2(px, py), -1.8)
+			terrain_root_3d.add_child(post_mi)
+	# Juncos, matas ribereñas y piedras a lo largo de la orilla exterior del lago
+	var shore_pts: PackedVector2Array = FishingSpotScript.lake_scaled(1.15, 8.0)
+	for si in range(shore_pts.size()):
+		var sp: Vector2 = shore_pts[si]
+		if sp.distance_to(dock_c) < 28.0:
+			continue
+		if (si % 3) == 0:
+			_add_model_2d(terrain_root_3d, "nature/Rock_1.obj" if (si % 2) == 0 else "nature/Rock_2.obj", sp, -0.6, Vector2.ZERO, 7.5, float(si * 53))
+		_add_model_2d(terrain_root_3d, "nature/Plant_1.obj" if (si % 2) == 0 else "nature/Plant_3.obj", sp + Vector2(3.0, -2.0), -0.5, Vector2.ZERO, 7.2, float(si * 37))
 
 
 ## Superficie plana con la forma de un polígono del mapa 2D, a una altura dada (si absolute_h es true, no suma el relieve).
@@ -3954,7 +4003,10 @@ func _build_prop_3d(root: Node3D, kind: String, spr: Sprite2D) -> void:
 			if _add_model_2d(root, "props/Barrel.gltf", pos, 0.0, Vector2(13, 13), 13.0) == null:
 				_add_cyl_2d(root, pos, 6.5, 0.0, 13.0, m_dark, 6.0, 10)
 		"weak_wall":
-			_add_box_2d(root, pos, Vector2(18, 28), 0.0, 22.0, _mat("weak_wall_stone", Color(0.48, 0.46, 0.44), 0.90, 0.02, Color.BLACK, 0.0, "town_textures/wall_brick_stone_center.png", "", 0.65))
+			var m_ww := _mat("weak_wall_stone", Color(0.56, 0.54, 0.50), 0.90, 0.02, Color.BLACK, 0.0, "town_textures/wall_stone.png", "", 0.70)
+			_add_box_2d(root, pos, Vector2(18.0, 28.0), 0.0, 2.0, m_ww)
+			_add_box_2d(root, pos + Vector2(0.0, -4.0), Vector2(10.0, 18.0), 2.0, 12.0, m_ww)
+			_add_box_2d(root, pos + Vector2(0.0, 7.0), Vector2(10.0, 8.0), 2.0, 7.5, m_ww)
 		"sign":
 			_add_box_2d(root, pos + Vector2(0, 4.0), Vector2(12.5, 5.2), 0.0, 2.2, m_dark)
 			_add_box_2d(root, pos + Vector2(-4.5, 4.0), Vector2(2.4, 2.6), 0.0, 14.5, m_dark)

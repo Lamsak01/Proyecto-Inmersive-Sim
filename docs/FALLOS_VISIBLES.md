@@ -115,15 +115,15 @@
   el aire** junto a la puerta de la taberna, al lado del farol colgado. (6) **El pescador pesca fuera del lago**, en el
   sitio viejo del lago (antes de moverlo al oeste).
 
-- [ ] **Revisión de Claude a la Fase A del relieve** (2026-11-07, capturas `relieve_fase_a_*_3d.png`): se aprueba; las
+- [x] ✅ (2026-11-08) **Revisión de Claude a la Fase A del relieve** (2026-11-07, capturas `relieve_fase_a_*_3d.png`): se aprueba; las
   lomas y el bosque quedan bien. Detalles: (1) **el lago parece un charco en una zanja de arena**: poca agua, orillas de
   arena lisa como excavadas y el muelle muy por encima del agua; más agua, orilla con hierba, juncos o piedras, y el
   muelle a ras del agua. (2) **Lomas de color arena amarilla** en la llanura: parecen dunas de desierto; usar hierba seca
   o verde apagado. (3) **Al fondo, a la izquierda, se ve el borde del mundo** (gris liso donde acaba el suelo): taparlo
   con más lomas, árboles o niebla. (4) La tarjeta de [E] cerca del muelle dice solo «Usar · Interacción»: debe decir qué
-  es. (5) El aviso «[P/F6] Vista en 1.ª Persona ACTIVADA…» sale cortado con «…».
+  es. (5) El aviso «[P/F6] Vista en 1.ª Persona ACTIVADA…» sale cortado con «…» (`WorldStage3D.gd`, `FishingSpot.gd`, `InteractionSelector.gd`: ampliado el polígono y lámina de agua del Lago del Oeste con orillas suaves de hierba, juncos y rocas y muelle a ras del agua; cambiado el tinte de la Llanura a verde oliva/hierba seca; ampliada la malla de terreno hasta `[-3450..3050] x [-1850..3250]` con árboles de horizonte y niebla diurna suave; añadida tarjeta específica «Muelle del Lago del Oeste · Pesca y agua / [E] Pescar en el lago o llenar regadera»; y acortado el aviso de 1.ª persona sin corte «…»; comprobado en `docs/capturas_arreglos/relieve_fase_a_suave_lago_3d.png`).
 
-- [ ] **⚠️ PRIORIDAD — Partida del usuario: el relieve de la Fase A no vale así** (2026-11-07 23:47–23:49, 6 capturas
+- [x] ✅ (2026-11-08) **⚠️ PRIORIDAD — Partida del usuario: el relieve de la Fase A no vale así** (2026-11-07 23:47–23:49, 6 capturas
   del usuario, 3D). El usuario: «algunas pendientes están demasiado inclinadas, parece que estoy en un juego de Super
   Mario»; «el relieve tiene elevaciones muy pronunciadas y poco realistas». La revisión de Claude lo aprobó demasiado
   rápido. Hay que rehacerlo más suave:
@@ -134,7 +134,7 @@
   sobre una explanada llana. (4) **Un bloque de piedra medio enterrado** en una loma junto al camino. (5) **El arroyo
   es una zanja honda** de orillas casi verticales: orillas bajas y suaves. (6) **El lago**: el muelle se mete y se
   hunde en el agua, un arbusto flota en el agua y hay un tablón suelto en el agua. (7) Los postes naranjas de valla
-  de la cuesta junto a la casa salen de colores planos y torcidos.
+  de la cuesta junto a la casa salen de colores planos y torcidos (`WorldStage3D.gd`, `FishingSpot.gd`: eliminadas todas las campanas gaussianas de relieve y sustituido por ondulaciones anchas de baja frecuencia con pendiente máxima `< 10°`; añadido `_road_flat_mask` para allanar el terreno bajo todos los caminos exteriores; ampliada la explanada llana `0.0 px` a todos los solares del norte `n/m/u/f1/f2`, este `e/o1/o2`, sur `s/l/fw`, oeste `w1`, campamento y Caseríos del Bosque `c1..c3`; remodelado `weak_wall` sobre terreno llano; suavizadas las cuencas del lago y la ciénaga sin tablón suelto ni arbustos en el agua; y texturizados los postes de solares con `rf_planks.png`; comprobado en `docs/capturas_arreglos/relieve_fase_a_suave_lago_3d.png` y `docs/capturas_arreglos/relieve_fase_a_suave_lomas_3d.png`).
 - [ ] **Taberna: los vecinos atraviesan el suelo con los pies y nadie se sienta** (2026-11-07 23:49, captura del
   usuario, 21:27, 1.ª persona): los pies se hunden en el suelo de la sala; con mesas y sillas libres, todos están de
   pie. Además: **un zorro dentro de la taberna**, una **caja con agua** en mitad del suelo, «Eloise Fenwick ·

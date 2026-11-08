@@ -37,10 +37,10 @@ var dock_pos: Vector2 = Vector2(36, 0)
 ## Posición del nodo del lago en el mapa (la pone World.gd después de _ready).
 const LAKE_NODE_POS := Vector2(-715, 105)
 const LAKE_WATER_WORLD: Array[Vector2] = [
-	Vector2(-710, 78), Vector2(-675, 82), Vector2(-667, 105), Vector2(-677, 138), Vector2(-720, 152),
-	Vector2(-780, 160), Vector2(-850, 188), Vector2(-920, 232), Vector2(-1000, 240), Vector2(-1062, 205),
-	Vector2(-1078, 150), Vector2(-1055, 110), Vector2(-990, 96), Vector2(-910, 104), Vector2(-835, 108),
-	Vector2(-760, 104),
+	Vector2(-710, 76), Vector2(-672, 82), Vector2(-665, 105), Vector2(-675, 142), Vector2(-720, 164),
+	Vector2(-785, 186), Vector2(-855, 214), Vector2(-925, 238), Vector2(-1005, 242), Vector2(-1065, 206),
+	Vector2(-1082, 150), Vector2(-1058, 102), Vector2(-990, 82), Vector2(-910, 80), Vector2(-835, 82),
+	Vector2(-760, 80),
 ]
 
 

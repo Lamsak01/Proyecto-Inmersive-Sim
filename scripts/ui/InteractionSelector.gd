@@ -254,6 +254,14 @@ func _label_for(a: Node, tgt: Node) -> String:
 		return "%s (mascota)" % str(tgt.get("pet_name"))
 	if "node_title" in tgt:
 		return "Recoger: %s" % str(tgt.get("node_title"))
+	if tgt.is_in_group("fishing_spots"):
+		return "Pescar en el lago o llenar regadera"
+	if "house_tier" in tgt or String(tgt.name) == "PlayerCampSite":
+		return "Cocinar, descansar o gestionar campamento"
+	if "fence_hp" in tgt or String(tgt.name) == "PlayerChickenCoop":
+		return "Atender el gallinero"
+	if "crop_stage" in tgt or String(tgt.name).begins_with("FarmPlot"):
+		return "Cultivar parcela del huerto"
 	return "Usar"
 
 
@@ -389,6 +397,18 @@ func get_prompt_card_data() -> Dictionary:
 	elif "node_title" in tgt:
 		target_name = str(tgt.get("node_title"))
 		target_state = "Recurso"
+	elif tgt.is_in_group("fishing_spots"):
+		target_name = "Muelle del Lago del Oeste"
+		target_state = "Pesca y agua"
+	elif "house_tier" in tgt or String(tgt.name) == "PlayerCampSite":
+		target_name = "Campamento"
+		target_state = "Hoguera y descanso"
+	elif "fence_hp" in tgt or String(tgt.name) == "PlayerChickenCoop":
+		target_name = "Gallinero"
+		target_state = "Corral"
+	elif "crop_stage" in tgt or String(tgt.name).begins_with("FarmPlot"):
+		target_name = "Parcela de cultivo"
+		target_state = "Huerto"
 	else:
 		var raw_l: String = str(c.get("label", "Objeto"))
 		target_name = raw_l.split(":")[0] if raw_l.find(":") != -1 else raw_l
