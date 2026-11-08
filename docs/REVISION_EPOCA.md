@@ -49,6 +49,5 @@
 - **Pistas nuevas que da la época** (para el sistema forense): casquillos en el suelo, heridas de bala, abolladuras
   en corazas.
 
-## 4. Lore (no se toca sin orden del usuario)
-- La premisa del «experimento social vigilado desde fuera» puede encajar muy bien: el exterior tendría más tecnología
-  que el valle. Solo anotado; decide el usuario.
+## 4. Lore
+- La premisa del «experimento social vigilado desde fuera» queda **descartada** por el usuario (2026-11-08).
