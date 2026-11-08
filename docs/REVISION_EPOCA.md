@@ -1,5 +1,16 @@
 # Revisión: qué encaja con la época definitiva (tecnofeudal / medieval-balística)
 
+## Decisiones del usuario (2026-11-08)
+- **Sheriff → alguacil:** sí (encargado en `docs/ENCARGO_SIGUIENTE.md` §3b).
+- **Trattoria «Il Corvo» → casa de comidas del valle** (nombre y platos locales: guisos, pan, asados). **Además, será
+  el punto de reunión de los bajos fondos y de la resistencia contra los gobernantes** (idea nueva del usuario; ver
+  `docs/VISION_Y_FUTURO.md`, Sociedad).
+- **Caballos y carretas conviven** con tractores y camiones diésel, que son solo del señor, la guardia y los ricos
+  (gastan gasóleo).
+- **Inventos del taller → de la época:** «Radio de onda corta», «Generador diésel», «Cerradura magnética» (aprobados
+  por el usuario; sustituyen a Engranajes Hidráulicos, Cerraduras de Precisión y Condensadores Voltaicos).
+
+
 > Claude Code, 2026-11-08. Solo lectura del juego actual; **nada cambiado**. Época en `docs/HANDOFF.md` §8 y
 > `docs/VISION_Y_FUTURO.md` (Jugador). Cada punto espera la decisión del usuario.
 

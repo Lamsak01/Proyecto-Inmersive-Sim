@@ -128,6 +128,14 @@ Estado: **✅ HECHO** = ya construido y funcionando en el juego. **🟡 EN PARTE
 - 💡 **PENDIENTE** — Prostitución. *(Recomendación: solo implícita, fuera de cámara, como oficio y hecho social; nunca explícita. Se puede quitar sin perder nada importante.)*
 - ✅ **HECHO** — Clases sociales: nobles, ricos, acomodados, humildes, pobres y mendigos (con limosna en la plaza, Albergue del Alba y raciones de gachas). *(Hecho en E3, V5b, V6 y J4.)*
 
+- 💡 **IDEA DEL USUARIO (2026-11-08)** — **La resistencia contra los gobernantes**, con su punto de reunión en la
+  casa de comidas (la antigua trattoria), junto a los bajos fondos. Por diseñar (plan corto antes de tocar nada).
+  Ideas de Claude para el plan: miembros que salen de vecinos descontentos (rasgos, deudas, familiares presos o
+  muertos por la guardia); reuniones de noche en la trastienda que el jugador puede espiar, delatar o unirse;
+  encargos de sabotaje (cortar cables, robar gasóleo, liberar presos) que suben la alerta del pueblo; el señor
+  responde con más guardia, controles y toque de queda. Relacionar con [[Red de las Sombras]] y bandos (P4) sin pisar
+  a La Secta (no tocar sin orden).
+
 ### Economía, oficios y negocios (P5)
 - ✅ **HECHO** — Más servicios y trabajos en el pueblo: panadería, sastrería, segunda posada («El Candil»), albergue, granja, rancho, cantera, cabaña del leñador, taller de reparaciones, biblioteca, escuela y jornaleros por horas. *(Hecho en V5a–V5e y V9.)*
 - ✅ **HECHO** — Maestros artesanos con estilos propios (`VillageFame.gd`, test #83): los artesanos con experiencia e inclinación por el oficio (`craft`, `diligence`, `trade`) alcanzan el título de Maestro Artesano con un estilo de autor propio de su gremio, elaboran Obras Maestras firmadas (`masterwork_piece`) que compran los vecinos ricos y nobles con oro de su bolsillo, cobran suplemento de prestigio en el mercado y permiten al jugador patrocinar talleres o comerciar con sus piezas.
