@@ -108,9 +108,10 @@ convenía), pero resultó tener talento para resolver crímenes y se volvió una
 **Decidido por el usuario (2026-11-08, noche):**
 - **Muerte del preso:** aparece «muerto» **un día después de que llegue el mercader** al pueblo. En la demo el mercader
   **llega un día fijo después de la acusación** (no se espera a la caravana normal).
-- **Calendario del final (propuesto por el supervisor, pendiente de confirmar):** día A, acusación → día A+1, llega el
-  mercader → día A+2, el preso amanece «muerto», Valen firma y lo entierran ese día → **esa noche los nobles dan una
-  fiesta para el pueblo**: la gente está **ebria y distraída**, así que hay menos testigos para excavar la tumba.
+- **Calendario del final (corregido por el usuario, 2026-11-08):** día A, acusación → día A+1, **los nobles organizan una
+  fiesta para el pueblo** y por eso llega el mercader un día no previsto (trae lo de la fiesta); esa noche la gente está
+  **ebria y distraída** → día A+2, el preso amanece «muerto», Valen firma y lo entierran ese día → el jugador puede
+  excavar la tumba (sin la cobertura de la fiesta: cuidado con los testigos).
 - **El médico es el Dr. Valen:** no es cómplice directo, solo **sigue órdenes**; es un peón más. **Los nobles deciden todo
   lo que pasa en el pueblo.**
 - **Nombres:** el detective suplantado es **Jean Porterre**; el nombre real del protagonista es **Dean Hollow**.
