@@ -79,6 +79,47 @@ var is_stunned_flag: bool = false
 var last_damage_source: Node = null
 var _hit_flash_timer: float = 0.0
 
+## Modo pruebas del jugador (F8): empieza apagado y no se guarda en la partida.
+signal test_mode_changed(active: bool)
+var test_mode_active: bool = false
+
+func set_test_mode(active: bool) -> void:
+	if test_mode_active == active:
+		return
+	test_mode_active = active
+	if inventory and inventory.has_method("set_test_mode_infinite_gold"):
+		inventory.set_test_mode_infinite_gold(active)
+	if active:
+		if health_comp:
+			health_comp.current_health = health_comp.max_health
+			health_comp.stop_bleeding()
+			health_comp.fever = 0.0
+			health_comp.food_poisoning = 0.0
+			health_comp.swamp_sickness = 0.0
+			health_comp.health_changed.emit(health_comp.current_health, health_comp.max_health)
+		var stam_comp: StaminaComponent = get_node_or_null("StaminaComponent")
+		if stam_comp:
+			stam_comp.current_stamina = stam_comp.max_stamina
+			stam_comp.regen_cooldown = 0.0
+			stam_comp.stamina_changed.emit(stam_comp.current_stamina, stam_comp.max_stamina)
+		if survival_comp:
+			survival_comp.current_hunger = survival_comp.max_hunger
+			survival_comp.current_sleep = survival_comp.max_sleep
+			survival_comp.current_hygiene = survival_comp.max_hygiene
+			survival_comp.sick_level = 0
+			survival_comp._emit_all()
+		if stun_comp and stun_comp.has_method("clear_stun"):
+			stun_comp.clear_stun()
+		is_stunned_flag = false
+		_spawn_floating_text("MODO PRUEBAS ACTIVADO [F8]", Color(0.95, 0.92, 0.84), -48.0)
+	else:
+		_spawn_floating_text("Modo pruebas desactivado [F8]", Color(0.85, 0.80, 0.72), -48.0)
+	test_mode_changed.emit(test_mode_active)
+
+func toggle_test_mode() -> bool:
+	set_test_mode(not test_mode_active)
+	return test_mode_active
+
 ## Hook arquitectónico preparado para el futuro Sistema de Habilidades RPG (Carisma, Caza, Elaboración, Cocina, Alquimia, Trato con Animales, Sigilo, Medicina)
 var player_skills: Dictionary = SkillCatalog.default_levels()
 
@@ -688,7 +729,11 @@ func _unhandled_input(event: InputEvent) -> void:
 		return
 
 	if event is InputEventKey and event.pressed and not event.echo:
-		if event.keycode >= KEY_1 and event.keycode <= KEY_9:
+		if event.keycode == KEY_F8:
+			toggle_test_mode()
+			get_viewport().set_input_as_handled()
+			return
+		elif event.keycode >= KEY_1 and event.keycode <= KEY_9:
 			equip_tool_by_index(int(event.keycode - KEY_1))
 		elif event.keycode == KEY_R and inventory:
 			var next_seed := inventory.cycle_selected_seed()
@@ -843,6 +888,11 @@ func take_damage(data: DamageData) -> void:
 				_CombatFeel.play(self, _CombatFeel.SFX_HIT, global_position, 1.25, -5.0)
 	if data and is_instance_valid(data.source):
 		last_damage_source = data.source
+	if test_mode_active:
+		if health_comp:
+			health_comp.current_health = health_comp.max_health
+			health_comp.health_changed.emit(health_comp.current_health, health_comp.max_health)
+		return
 	var hp_before: float = health_comp.current_health if health_comp else 100.0
 	if health_comp:
 		health_comp.take_damage(data)
@@ -911,6 +961,8 @@ func to_save_dict() -> Dictionary:
 	}
 
 func from_save_dict(data: Dictionary) -> void:
+	if test_mode_active:
+		set_test_mode(false)
 	weapon_wear = {}
 	var ww = data.get("weapon_wear", {})
 	if ww is Dictionary:

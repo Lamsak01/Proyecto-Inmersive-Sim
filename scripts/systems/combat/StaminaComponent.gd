@@ -16,7 +16,17 @@ var is_input_blocking: bool = false
 func _ready() -> void:
 	current_stamina = max_stamina
 
+func _is_player_test_mode() -> bool:
+	var p := get_parent()
+	return p != null and p.get("test_mode_active") == true
+
 func _process(delta: float) -> void:
+	if _is_player_test_mode():
+		regen_cooldown = 0.0
+		if current_stamina < max_stamina:
+			current_stamina = max_stamina
+			stamina_changed.emit(current_stamina, max_stamina)
+		return
 	if regen_cooldown > 0:
 		regen_cooldown -= delta
 	
@@ -25,6 +35,11 @@ func _process(delta: float) -> void:
 		stamina_changed.emit(current_stamina, max_stamina)
 
 func use_stamina(amount: float) -> bool:
+	if _is_player_test_mode():
+		current_stamina = max_stamina
+		regen_cooldown = 0.0
+		stamina_changed.emit(current_stamina, max_stamina)
+		return true
 	if current_stamina > 0:
 		current_stamina -= amount
 		if current_stamina < 0:

@@ -131,7 +131,18 @@ const RECIPES: Array[Dictionary] = [
 
 const SEED_ORDER: Array[String] = ["carrot_seeds", "cabbage_seeds", "wheat_seeds"]
 
-var gold: int = 45
+var _gold_internal: int = 45
+var test_mode_lock_gold: bool = false
+var _pre_test_mode_gold: int = -1
+var gold: int = 45:
+	get:
+		return _gold_internal
+	set(v):
+		if test_mode_lock_gold and v < _gold_internal:
+			gold_changed.emit(_gold_internal)
+			return
+		_gold_internal = maxi(0, v)
+		gold_changed.emit(_gold_internal)
 var items: Dictionary = {} # item_id (String) -> count (int)
 var selected_seed_id: String = "carrot_seeds"
 var equipped_armor: Dictionary = {
@@ -285,8 +296,26 @@ func get_total_armor_stats() -> Dictionary:
 	}
 
 func add_gold(amount: int) -> void:
-	gold = max(0, gold + amount)
-	gold_changed.emit(gold)
+	if test_mode_lock_gold and amount < 0:
+		gold_changed.emit(_gold_internal)
+		inventory_changed.emit()
+		return
+	_gold_internal = maxi(0, _gold_internal + amount)
+	gold_changed.emit(_gold_internal)
+	inventory_changed.emit()
+
+func set_test_mode_infinite_gold(active: bool) -> void:
+	if active:
+		if not test_mode_lock_gold:
+			_pre_test_mode_gold = _gold_internal
+		test_mode_lock_gold = true
+		_gold_internal = maxi(9999, _gold_internal)
+	else:
+		if test_mode_lock_gold and _pre_test_mode_gold >= 0:
+			_gold_internal = _pre_test_mode_gold
+		test_mode_lock_gold = false
+		_pre_test_mode_gold = -1
+	gold_changed.emit(_gold_internal)
 	inventory_changed.emit()
 
 func add_item(item_id: String, amount: int = 1) -> void:
@@ -519,15 +548,18 @@ func craft_recipe(recipe: Dictionary, player: Node = null) -> bool:
 	return true
 
 func to_dict() -> Dictionary:
+	var saved_gold: int = _pre_test_mode_gold if (test_mode_lock_gold and _pre_test_mode_gold >= 0) else _gold_internal
 	return {
-		"gold": gold,
+		"gold": saved_gold,
 		"selected_seed_id": selected_seed_id,
 		"items": items.duplicate(),
 		"equipped_armor": equipped_armor.duplicate()
 	}
 
 func from_dict(data: Dictionary) -> void:
-	gold = int(data.get("gold", 45))
+	test_mode_lock_gold = false
+	_pre_test_mode_gold = -1
+	_gold_internal = maxi(0, int(data.get("gold", 45)))
 	selected_seed_id = str(data.get("selected_seed_id", "wheat_seeds"))
 	if selected_seed_id == "wheat_seed":
 		selected_seed_id = "wheat_seeds"

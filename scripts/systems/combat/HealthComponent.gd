@@ -129,8 +129,14 @@ func get_effective_max_health() -> float:
 func get_overall_health_pct() -> float:
 	return clampf(current_health / get_effective_max_health() * 100.0, 0.0, 100.0)
 
+func _is_player_test_mode() -> bool:
+	var p := get_parent()
+	return p != null and p.get("test_mode_active") == true
+
 ## Contusión leve de una pelea: sin fracturas, órganos ni sangrado, y nunca baja de `floor_ratio` de la salud. Devuelve el daño real.
 func apply_minor_bruise(amount: float, floor_ratio: float = 0.35, cause: String = "Pelea a puñetazos") -> float:
+	if _is_player_test_mode():
+		return 0.0
 	var dealt: float = minf(amount, current_health - get_effective_max_health() * floor_ratio)
 	if dealt <= 0.0:
 		return 0.0
@@ -152,6 +158,34 @@ func apply_minor_bruise(amount: float, floor_ratio: float = 0.35, cause: String 
 
 func _process(delta: float) -> void:
 	if Engine.is_editor_hint() or current_health <= 0.0 or (WorldClock and WorldClock.has_method("is_time_frozen") and WorldClock.is_time_frozen()):
+		return
+	if _is_player_test_mode():
+		var changed_tm := false
+		if current_health < max_health:
+			current_health = max_health
+			health_changed.emit(current_health, max_health)
+		if current_blood > 0.0 or is_bleeding:
+			current_blood = 0.0
+			is_bleeding = false
+			_bleed_timer = 0.0
+			_bleed_dps = 0.0
+			blood_changed.emit(current_blood, max_blood)
+			changed_tm = true
+		if is_weak:
+			is_weak = false
+			weakness_changed.emit(false)
+		if fever > 0.0 or food_poisoning > 0.0 or swamp_sickness > 0.0:
+			fever = 0.0
+			food_poisoning = 0.0
+			swamp_sickness = 0.0
+			changed_tm = true
+		for w in wounds:
+			if float(w.get("bleed_rate", 0.0)) > 0.0 or float(w.get("infection", 0.0)) > 0.0:
+				w["bleed_rate"] = 0.0
+				w["infection"] = 0.0
+				changed_tm = true
+		if changed_tm:
+			anatomy_changed.emit()
 		return
 
 	if _bleed_timer > 0.0:
@@ -350,6 +384,10 @@ func _tick_anatomical_recovery(dt: float) -> void:
 		anatomy_changed.emit()
 
 func take_damage(data: DamageData) -> void:
+	if _is_player_test_mode():
+		current_health = max_health
+		health_changed.emit(current_health, max_health)
+		return
 	if current_health <= 0.0:
 		return
 
@@ -558,6 +596,8 @@ func _inflict_anatomical_wound(data: DamageData, final_damage: float) -> void:
 	anatomy_changed.emit()
 
 func add_bleed_buildup(buildup_amount: float, _weapon_damage: float) -> void:
+	if _is_player_test_mode():
+		return
 	current_blood = clampf(current_blood + buildup_amount, 0.0, max_blood)
 	blood_changed.emit(current_blood, max_blood)
 	if current_blood >= 30.0 and not is_weak:
@@ -840,6 +880,8 @@ func wash_all_wounds() -> int:
 	return washed_count
 
 func add_food_poisoning(amount: float, cause: String = "Comida en mal estado") -> void:
+	if _is_player_test_mode():
+		return
 	food_poisoning = clampf(food_poisoning + amount, 0.0, 100.0)
 	fever = clampf(fever + amount * 0.45, 0.0, 96.0)
 	if systemic_immunity <= 0.0:
@@ -854,6 +896,8 @@ func add_food_poisoning(amount: float, cause: String = "Comida en mal estado") -
 	anatomy_changed.emit()
 
 func add_swamp_or_miasma_exposure(amount: float, cause: String = "Miasma / Fiebre del Pantano") -> void:
+	if _is_player_test_mode():
+		return
 	swamp_sickness = clampf(swamp_sickness + amount, 0.0, 100.0)
 	if swamp_sickness >= 25.0:
 		fever = clampf(fever + amount * 0.45, 0.0, 96.0)

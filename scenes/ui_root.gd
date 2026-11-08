@@ -12,6 +12,8 @@ var sleep_bar: ProgressBar = null
 var clock_panel: PanelContainer = null
 var clock_label: Label = null
 var clock_sub_label: Label = null
+var test_mode_badge: PanelContainer = null
+var test_mode_label: Label = null
 
 var inv_panel: PanelContainer = null
 var controls_panel: PanelContainer = null
@@ -144,6 +146,9 @@ func _ready() -> void:
 		_bind_player_inventory()
 	else:
 		call_deferred("_bind_player_inventory")
+	if player and player.has_signal("test_mode_changed") and not player.is_connected("test_mode_changed", _on_player_test_mode_changed):
+		player.connect("test_mode_changed", _on_player_test_mode_changed)
+	_on_player_test_mode_changed(player.get("test_mode_active") == true if player else false)
 
 func _bind_player_inventory() -> void:
 	if player and "inventory" in player and player.inventory:
@@ -196,6 +201,11 @@ func _is_external_world_modal_open() -> bool:
 	return false
 
 func _input(event: InputEvent) -> void:
+	if event is InputEventKey and event.pressed and not event.echo and (event.keycode == KEY_F8 or event.physical_keycode == KEY_F8):
+		if player and player.has_method("toggle_test_mode"):
+			player.call("toggle_test_mode")
+			get_viewport().set_input_as_handled()
+			return
 	if controls_panel and controls_panel.visible:
 		if event is InputEventKey and event.pressed and not event.echo:
 			if event.keycode in [KEY_ESCAPE, KEY_ENTER, KEY_KP_ENTER] or event.physical_keycode in [KEY_ESCAPE, KEY_ENTER, KEY_KP_ENTER]:
@@ -660,6 +670,7 @@ func _setup_controls_panel_ui() -> void:
 		"Vista 3D / 2D: F9",
 		"Guardar / cargar: F5 / F12",
 		"Velocidad del tiempo: F1–F4",
+		"Modo pruebas: F8",
 	]
 	for line in more_lines:
 		_make_lbl(right_col, line, 12, Color(0.93, 0.94, 0.97))
@@ -845,8 +856,31 @@ func _setup_clock_ui() -> void:
 	clock_sub_label = _make_lbl(vbox, "", 11, Color(0.70, 0.78, 0.88), false, HORIZONTAL_ALIGNMENT_CENTER)
 	add_child(clock_panel)
 
+	test_mode_badge = PanelContainer.new()
+	test_mode_badge.name = "TestModeBadge"
+	test_mode_badge.visible = (player.get("test_mode_active") == true) if player else false
+	test_mode_badge.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	test_mode_badge.set_anchors_and_offsets_preset(Control.PRESET_CENTER_TOP)
+	test_mode_badge.offset_left = -74.0
+	test_mode_badge.offset_top = 42.0
+	test_mode_badge.offset_right = 74.0
+	test_mode_badge.offset_bottom = 64.0
+	var tm_style := _make_style(Color(0.56, 0.18, 0.15, 0.96), Color(0.23, 0.20, 0.16, 1.0), 1, 2, 8, 2)
+	tm_style.shadow_color = Color(0.0, 0.0, 0.0, 0.35)
+	tm_style.shadow_size = 1
+	tm_style.shadow_offset = Vector2(2, 2)
+	test_mode_badge.add_theme_stylebox_override("panel", tm_style)
+	test_mode_label = _make_lbl(test_mode_badge, "MODO PRUEBAS", 11, Color(0.95, 0.92, 0.84), true, HORIZONTAL_ALIGNMENT_CENTER)
+	add_child(test_mode_badge)
+
 	if WorldClock:
 		WorldClock.time_updated.connect(_on_clock_time_updated)
+		_on_clock_time_updated(WorldClock.current_day, WorldClock.current_hour, WorldClock.current_minute)
+
+func _on_player_test_mode_changed(active: bool) -> void:
+	if test_mode_badge:
+		test_mode_badge.visible = active
+	if WorldClock:
 		_on_clock_time_updated(WorldClock.current_day, WorldClock.current_hour, WorldClock.current_minute)
 
 func _on_clock_time_updated(_day: int, _hour: int, _minute: int) -> void:

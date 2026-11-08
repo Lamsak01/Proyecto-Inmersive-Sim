@@ -37,6 +37,17 @@ func _ready() -> void:
 func _process(delta: float) -> void:
 	if Engine.is_editor_hint() or (WorldClock and ((WorldClock.has_method("is_time_frozen") and WorldClock.is_time_frozen()) or bool(WorldClock.get("is_fast_forwarding")))):
 		return
+	var player := get_parent()
+	if player and player.get("test_mode_active") == true:
+		var changed_tm := (current_hunger < max_hunger or current_sleep < max_sleep or current_hygiene < max_hygiene or sick_level != 0)
+		current_hunger = max_hunger
+		current_sleep = max_sleep
+		current_hygiene = max_hygiene
+		sick_level = 0
+		_starve_tick = 0.0
+		if changed_tm:
+			_emit_all()
+		return
 	var prev_h := current_hunger
 	var prev_s := current_sleep
 
@@ -52,7 +63,6 @@ func _process(delta: float) -> void:
 		_emit_all()
 
 	# Penalizaciones suaves si llegas a 0 de Hambre o 0 de Sueño
-	var player := get_parent()
 	var stam_cap: float = 55.0 if current_sleep <= 12.0 else 101.0
 	if sick_level > 0:
 		stam_cap = minf(stam_cap, 65.0 if sick_level == 1 else 40.0) # E2: enfermo te cansas antes

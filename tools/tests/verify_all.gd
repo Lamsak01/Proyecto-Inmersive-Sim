@@ -7222,5 +7222,57 @@ func _initialize() -> void:
 
 	print("Blocks D1–D5 (Detective Tools: Body Exam, Morgue Autopsy, Crime Scene Lantern, Corkboard & 10-Case Data) OK")
 
+	# ==========================================================================
+	# Bloque TM1: Modo pruebas del jugador (ENCARGO_SIGUIENTE #1 — F8)
+	# ==========================================================================
+	assert((p70_pl.get("test_mode_active") == true) == false, "TM1.0: Test mode starts disabled")
+	var tm_ui_root = root.find_child("UIRoot", true, false)
+	assert(tm_ui_root != null and tm_ui_root.get("test_mode_badge") != null and tm_ui_root.test_mode_badge.visible == false, "TM1.0b: Test mode badge is hidden when disabled")
+	var tm_gold_before: int = p70_inv.gold
+	var tm_hc: HealthComponent = p70_pl.get_node_or_null("HealthComponent")
+	var tm_sc: StaminaComponent = p70_pl.get_node_or_null("StaminaComponent")
+	var tm_surv: SurvivalComponent = p70_pl.get_node_or_null("SurvivalComponent")
+	p70_pl.set_test_mode(true)
+	assert(p70_pl.test_mode_active == true, "TM1.1a: set_test_mode(true) activates test mode")
+	assert(tm_ui_root.test_mode_badge.visible == true, "TM1.1b: Test mode badge is visible when active")
+	assert(p70_inv.gold >= 9999, "TM1.1c: Activating test mode sets infinite gold (>= 9999)")
+	# Receive a heavy hit, bleed, food poisoning, stamina drain, and survival tick while in test mode
+	var tm_dmg := DamageData.new()
+	tm_dmg.amount = 65.0
+	tm_dmg.type = CombatConstants.DamageType.CUT
+	tm_dmg.bleed_buildup = 80.0
+	tm_dmg.stun_buildup = 90.0
+	p70_pl.take_damage(tm_dmg)
+	tm_hc.add_food_poisoning(50.0, "Prueba TM1")
+	tm_hc._process(1.0)
+	assert(is_equal_approx(tm_hc.current_health, tm_hc.max_health) and tm_hc.current_blood == 0.0 and not tm_hc.is_bleeding and tm_hc.food_poisoning == 0.0, "TM1.2: Player loses no health, bleed or sickness in test mode")
+	var tm_used_stam: bool = tm_sc.use_stamina(85.0)
+	assert(tm_used_stam and is_equal_approx(tm_sc.current_stamina, tm_sc.max_stamina), "TM1.3: Stamina is infinite in test mode")
+	tm_surv.current_hunger = 25.0
+	tm_surv.current_sleep = 25.0
+	tm_surv._process(1.0)
+	assert(is_equal_approx(tm_surv.current_hunger, tm_surv.max_hunger) and is_equal_approx(tm_surv.current_sleep, tm_surv.max_sleep), "TM1.4: Hunger and sleep do not drop in test mode")
+	var tm_gold_active: int = p70_inv.gold
+	p70_inv.add_gold(-500)
+	p70_inv.gold -= 250
+	assert(p70_inv.gold == tm_gold_active, "TM1.5: Spending gold does not decrease gold in test mode")
+	var tm_save_dict: Dictionary = p70_pl.to_save_dict()
+	assert(not tm_save_dict.has("test_mode_active") and int(tm_save_dict.get("inventory", {}).get("gold", -1)) == tm_gold_before, "TM1.6: Test mode is not saved in save data and preserves pre-test-mode gold")
+	# Deactivate test mode and verify normal behavior returns
+	p70_pl.set_test_mode(false)
+	assert(p70_pl.test_mode_active == false and tm_ui_root.test_mode_badge.visible == false, "TM1.7a: Deactivating test mode hides badge")
+	assert(p70_inv.gold == tm_gold_before, "TM1.7b: Deactivating test mode restores pre-test-mode gold")
+	p70_inv.add_gold(20)
+	var tm_gold_after_add: int = p70_inv.gold
+	p70_inv.add_gold(-10)
+	assert(p70_inv.gold == tm_gold_after_add - 10, "TM1.7c: Normal gold spending resumes after deactivating test mode")
+	p70_inv.gold = tm_gold_before
+	var tm_hp_pre_hit: float = tm_hc.current_health
+	p70_pl.take_damage(tm_dmg)
+	assert(tm_hc.current_health < tm_hp_pre_hit, "TM1.7d: Normal health damage resumes after deactivating test mode")
+	tm_hc.heal(100.0, true)
+	tm_hc.stop_bleeding()
+	print("Block TM1 (Player Test Mode [F8]) OK")
+
 	print("ALL RIMWORLD MEDICAL, FOOTPRINTS, 3-PHASE CORPSE REPORT, MULTI-CORPSE FIX, RPG INTERROGATION, PUBLIC TRIAL, DYNAMIC RELATIONSHIPS, MISSING FAMILY SEARCH, SOCIAL GLOSSARY & UNCONSCIOUS REACTION TESTS PASSED!")
 	quit(0)
