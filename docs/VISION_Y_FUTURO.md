@@ -267,6 +267,10 @@ Estado: **✅ HECHO** = ya construido y funcionando en el juego. **🟡 EN PARTE
 - ✅ **HECHO** — Terminales lógicas electromecánicas y hackeo (`VillageCulture.gd`, test #92): en el taller o la comisaría puedes hackear una vez al día la consola de tarjetas perforadas y relés de cobre (con tirada de riesgo mejorada por los «Condensadores Voltaicos» o llevando una bobina de cobre) para desviar un reembolso de hasta 18 de oro desde las arcas municipales, purgar 1 nivel de búsqueda policial y 25 de recompensa del archivo o reprogramar el controlador de la red eléctrica (+2 lecturas y línea reparada); si fallas la tirada, salta una descarga y la alarma lógica (+1 búsqueda policial). *(Hecho en bloque PO.)*
 - ✅ **HECHO** — Electricidad con sistemas lógicos que se puedan sabotear (`VillageCulture.gd`, `VillageManager.gd`, `FarmPlot.gd`, test #87): red eléctrica dividida en circuitos independientes (circuito de farolas, bomba eléctrica de riego/aspersor y generador general) que pueden sabotearse por separado (1 vez al día, con riesgo de chispazo y búsqueda policial) para dejar las calles a oscuras o secar el riego automático, y repararse entregando una bobina de cobre (cobrando 12 de oro de las arcas municipales) o en el ciclo diario del arreglador con cargo al ayuntamiento. *(Base en V5e + hecho en bloque PJ.)*
 
+- 💡 **IDEA DEL USUARIO (2026-11-08) — Objetos con físicas, estilo Skyrim / Half-Life:** poder arrastrar sillas,
+  tirar objetos, empujar cosas; que todos los objetos tengan físicas. Consecuencia ya: ningún mueble puede atravesar
+  a otro (sillas metidas en mesas = fallo grave). Más adelante: **saltar** (hoy el jugador no puede).
+
 ## 5. Valoración honesta (2026-11-02)
 
 **Encajan bien y salen casi solas de las piezas** (prioridad media-alta): relaciones de un solo sentido, celos,

@@ -1,12 +1,23 @@
-# ⭐ ENCARGO DE HOY (2026-11-08, mañana) — MANDA SOBRE TODO LO DEMÁS
-El MODO NOCHE de abajo ya terminó (✅ 03:58). Ahora, en este orden, con 1 captura en 1.ª persona por punto:
-1. **Cierre del juego** al pulsar [E] sobre el «Aldeano Guía» (primera entrada de `FALLOS_VISIBLES.md`). Lo primero.
-2. **Taberna:** altura de techos en los dos pisos a escala adulta, sillas sin atravesar mesas, y clientes que de verdad
-   se sientan a comer y beber un rato (comprobarlo en partida real a media tarde, no solo en prueba).
-3. **Terraza de la trattoria** usada por los clientes de noche.
+# ⭐ ENCARGO DE HOY (2026-11-08) — MANDA SOBRE TODO LO DEMÁS
+El MODO NOCHE de abajo ya terminó (✅ 03:58). Trabaja **sin parar ni preguntar** (dudas a `docs/PREGUNTAS_PENDIENTES.md`),
+commit + push tras cada punto, 1 captura en 1.ª persona por punto **jugando de verdad** (no solo con pruebas: la taberna
+«ya sentaba» a la gente según el informe y en la partida del usuario nadie se sienta). Orden:
+1. **Cierre del juego** al pulsar [E] sobre el «Aldeano Guía» junto al campamento (primera entrada de
+   `FALLOS_VISIBLES.md`): el diálogo pide la imagen fija de un dibujo 2D animado. Arreglarlo y darle nombre y aspecto 3D.
+2. **Muebles que se atraviesan, en TODOS los edificios** (taberna, Casa de Comidas, trattoria, el resto): sillas
+   fuera de las mesas, separadas lo justo. Añade una comprobación automática que avise si dos muebles se solapan.
+   El usuario quiere físicas tipo Skyrim más adelante: esto no puede existir.
+3. **Taberna:** techos de los dos pisos a escala adulta (puertas, cuartos y vigas por encima de la cabeza) y clientes
+   que se sientan de verdad a comer y beber un rato. Lo mismo en la **terraza de la trattoria** de noche.
 4. **Plaza:** paso cómodo entre farola y pozo.
-5. **Combate 1.ª persona:** estela fina y semitransparente, y brazos con aspecto de brazos (no cajas).
-Al acabar: marca ✅ en `FALLOS_VISIBLES.md`, informe corto y commit + push.
+5. **Armas de fuego usables:** el clic izquierdo vuelve a disparar; la pistola (y el fusil) con **modelo 3D visible**
+   en las manos; se pueden **comprar en la armería** con munición, y hay una forma de **robarla**. Si faltan modelos,
+   descarga **gratis y con licencia libre (CC0)**, p. ej. Kenney o Quaternius, y apunta la fuente en el informe.
+6. **Combate en 1.ª persona:** estela fina y semitransparente, brazos con aspecto de brazos (no cajas), y que manos y
+   espada de la 1.ª persona **no se vean en la vista desde arriba**.
+7. **Saltar** (tecla espacio si está libre): si cabe en ~2 h sin romper nada, hazlo; si no, deja en el informe un plan
+   corto de cómo hacerlo y sigue.
+Al acabar: ✅ en `FALLOS_VISIBLES.md`, resumen corto al principio del informe y commit + push.
 
 # ⭐ MODO NOCHE (orden del usuario, noche del 2026-11-08) — MANDA SOBRE TODO LO DEMÁS
 El usuario duerme y quiere que trabajes **sin parar hasta acabar la lista**. La noche anterior te quedaste esperando

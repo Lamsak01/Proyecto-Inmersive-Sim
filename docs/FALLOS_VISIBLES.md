@@ -5,6 +5,13 @@
 > Formato: `- [ ] Qué se ve mal · dónde · cuándo (hora del juego, 2D/3D/primera persona)`.
 
 ## Pendientes
+- [ ] **Sillas que atraviesan mesas también en la Casa de Comidas «El Fogón del Valle»** (y seguramente en más sitios).
+  El usuario quiere más adelante objetos con físicas (arrastrar sillas, tirar cosas): **ningún mueble puede atravesar
+  a otro en ningún edificio** · 1.ª persona, 23:17.
+- [ ] **En vista desde arriba se siguen viendo la espada/manos de la 1.ª persona** flotando junto al personaje · 05:53.
+- [ ] **Clic izquierdo ya no dispara** (antes sí), y **no hay pistola a la vista ni forma de conseguirla** (ni bala ni
+  tienda que la venda): el combate de fuego existe pero el jugador no puede usarlo.
+- [ ] **El personaje no puede saltar.**
 - [ ] **🔴 El juego se cierra al pulsar [E] sobre el vecino sin nombre de fuera del campamento** («Aldeano Guía, Vigía
   de la Aldea»): no tiene nombre visible ni deja hacer nada, y al pulsar [E] se cuelga · 1.ª persona, 09:34
   (causa vista por el supervisor: el diálogo intenta sacar el retrato de su dibujo 2D animado, que no tiene imagen fija;
