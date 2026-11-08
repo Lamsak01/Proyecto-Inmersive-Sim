@@ -1,16 +1,31 @@
-# ⭐ ENCARGO DE HOY (2026-11-08, noche) — MANDA SOBRE TODO LO DEMÁS
-Lo de la tarde ya está hecho (✅ 15:01). Solo quedan **dos fallos** (arriba del todo en `FALLOS_VISIBLES.md`, con captura).
-Trabaja sin parar ni preguntar, commit + push tras cada punto y 1 captura **jugando de verdad** mirada por ti:
-1. **Atasco en la puerta de la taberna:** vecinos que entran y salen se quedan pegados en el umbral. Busca por qué volvió
-   (mira si el troceo de archivos dejó de llamar algo del «doble carril») y compruébalo dejando pasar un día de juego entero.
-2. **El indicador del tiempo dice «despejado» mientras llueve.**
-3. **(Añadido por el supervisor a las 15:50, pedido del usuario) Carriles de puerta para TODOS los edificios, presentes y
-   futuros:** hoy los carriles de entrar/salir solo valen para puertas que miran al norte o al sur. (a) Que funcionen con
-   puertas en **cualquier dirección** (también este y oeste); (b) que la prueba automática revise **todas las puertas**
-   (ancho suficiente para dos personas y carriles despejados, sin muebles ni tabiques en medio); (c) apunta en
-   `docs/HANDOFF.md` (trampas conocidas) la **regla para edificios nuevos**: puerta de al menos dos personas de ancho,
-   registrada con su dirección para que reciba carriles, y pasar esa prueba. No cambies nada más del comportamiento.
-Al acabar: ✅ en `FALLOS_VISIBLES.md`, resumen corto al principio del informe y commit + push.
+# ⭐ ENCARGO DE HOY (2026-11-08, noche 2) — «MODO DEMO» — MANDA SOBRE TODO LO DEMÁS
+Lo anterior ya está hecho (✅ 16:20). **Contexto:** el usuario decidió preparar una demo de un solo caso (Caso I, ver
+`docs/PLAN_BETA_MISTERIO.md` §5 y §5b). Para la demo hay que **pausar** sistemas secundarios que podrían estropear el caso
+(otro asesinato a mitad de investigación, una enfermedad que mata al alquimista…), dar fallos o gastar rendimiento.
+**Pausar NO es borrar:** el usuario usará varios en la historia principal. Todo debe volver a funcionar igual al apagar
+el modo demo.
+
+1. **Un solo interruptor «MODO DEMO»** en un sitio central (una constante o ajuste fácil de encontrar, explicado en
+   `docs/HANDOFF.md`). **Encendido por defecto** mientras dure la preparación de la demo.
+2. **Con el modo demo encendido quedan en pausa** (no arrancan, no programan sucesos, no cambian datos):
+   - Crimen por su cuenta: deseos de venganza y planes de asesinato, ladrones nocturnos, sabotajes/robos/profanaciones nocturnas.
+   - Bajos fondos: la Familia (mafia), mercado negro, contrabando, perista, club de peleas del sótano y casino.
+   - Mecánicas de la secta (captación, reuniones, ritos, profanaciones). **No toques su código más que para el interruptor.**
+   - Vida que cambia el reparto: llegadas y marchas, hijos y herencias/hijos secretos, enfermedades contagiosas.
+   - Política y dinero: alcalde y elecciones, impuestos, préstamos y casas a plazos, casa propia/terrateniente, rentas y
+     «protección», fama y clanes.
+   - Ecosistema del bosque (caza y cría de animales), escuela, mercado semanal. Asaltos (ya pausados).
+3. **Se quedan encendidos** (el caso los necesita): justicia, comisaría y calabozo, forense, chismes/recuerdos y secretos
+   (solo como información), nobles (como personas que mandan), taberna (sin casino ni peleas), comer y dormir, oficios
+   y trabajo, cuaderno de misiones, biblioteca, fe y el padre Anselmo, restaurante como sitio para comer.
+4. **Los edificios y las personas siguen ahí** (la trattoria, el casino, los nobles, Don Vittorio…): solo se apagan sus
+   mecánicas. Nadie debe quedarse congelado o atascado; si un vecino tenía un papel en un sistema pausado, que haga
+   su vida normal (trabajo, comer, dormir, taberna).
+5. **Pruebas:** una prueba que pase **unos días de juego con el modo demo** y compruebe que no ocurre nada de lo pausado
+   (ni asesinatos, ni robos, ni llegadas…) y que nadie se queda atascado; y que **con el modo demo apagado** la batería
+   completa sigue en verde. Mide las imágenes por segundo antes y después (mismo sitio, misma hora) y apúntalo.
+6. Capturas jugando de verdad: plaza, taberna y trattoria de día y de noche, para ver que todo sigue vivo.
+Commit + push tras cada parte. Al acabar: resumen corto al principio del informe y commit + push.
 
 # ✅ TROCEO DE ARCHIVOS GRANDES — HECHO (2026-11-08 13:27). No lo repitas.
 

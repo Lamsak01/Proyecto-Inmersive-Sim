@@ -9,6 +9,10 @@
 > apoyo). (2) **Congelado todo lo que no sirva al Caso I**: no se empiezan sistemas ni mejoras nuevas hasta que «La mujer
 > del bosque» se pueda jugar de principio a fin y un amigo lo termine sin ayuda. Solo se arreglan fallos visibles.
 
+> **MODO DEMO (usuario, 2026-11-08):** para la beta de un solo caso se **pausan** (no se borran) los sistemas secundarios:
+> crimen propio, bajos fondos, mecánicas de la secta, migración/hijos/enfermedades, política y dinero, ecosistema,
+> escuela y mercado. **Varios se usarán en la historia principal.**
+
 > **MAPA FUTURO (usuario, 2026-11-08, aplazado: no es lo más urgente):** hoy todo el valle mide ~400 × 350 m (medido con la
 > altura de ojos). Objetivo: **mezcla de *Dishonored* y *Kingdom Come: Deliverance***: el **centro del pueblo denso**,
 > aprovechando mucho el espacio (callejones, pisos, tejados, interiores), y las **afueras como Kingdom Come** (río,
