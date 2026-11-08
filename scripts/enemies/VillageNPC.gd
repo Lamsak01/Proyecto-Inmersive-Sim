@@ -344,7 +344,7 @@ func _process_duties(delta: float) -> bool:
 		return true
 
 	# Bloque PH: Si este vecino es el acompañante activo del jugador, camina a su lado durante el día
-	if not is_hostile and vm_escort != null and "VillageFame" in vm_escort and vm_escort.VillageFame != null and vm_escort.VillageFame.is_companion(vm_escort, self):
+	if not is_hostile and vm_escort != null and not (vm_escort.has_method("is_demo_mode") and bool(vm_escort.call("is_demo_mode"))) and "VillageFame" in vm_escort and vm_escort.VillageFame != null and vm_escort.VillageFame.is_companion(vm_escort, self):
 		var h_comp: int = int(WorldClock.current_hour) if WorldClock != null else 12
 		if h_comp >= 6 and h_comp < 22 and need_hunger > 25.0 and need_energy > 15.0 and is_instance_valid(_cached_player):
 			_stop_crafting_bar()
@@ -742,7 +742,7 @@ func revive_from_downed(rescuer: Node, used_surgical_kit: bool = false) -> void:
 		var vm = _get_vm()
 		if vm and vm.has_method("modify_family_reputation") and family_id != "none":
 			vm.call("modify_family_reputation", family_id, 40, "Salvó la vida de " + npc_name, self)
-		if vm:
+		if vm and not (vm.has_method("is_demo_mode") and bool(vm.call("is_demo_mode"))):
 			vm.VillageClans.grant_honor_debt(vm, self, "salvó la vida de " + npc_name)
 		if "inventory" in rescuer and rescuer.inventory:
 			rescuer.inventory.add_gold(25)
@@ -776,7 +776,7 @@ func _confirm_true_death() -> void:
 	is_downed = false
 	bleedout_timer = 0.0
 	is_dead = true
-	if vm:
+	if vm and not (vm.has_method("is_demo_mode") and bool(vm.call("is_demo_mode"))):
 		vm.VillageClans.on_npc_death(vm, self)
 	var my_dead_id: String = str(person_profile.person_id) if person_profile != null and str(person_profile.person_id) != "" else npc_id
 	if is_inside_tree():
@@ -918,7 +918,7 @@ func loot_npc_pockets(player: Node) -> bool:
 
 func interact(player: Node) -> void:
 	var vm_nj = _get_vm()
-	if vm_nj != null and not is_dead and vm_nj.VillageNightJobs.try_player_catch(vm_nj, self, player):
+	if vm_nj != null and not (vm_nj.has_method("is_demo_mode") and bool(vm_nj.call("is_demo_mode"))) and not is_dead and vm_nj.VillageNightJobs.try_player_catch(vm_nj, self, player):
 		return # P6b: lo pillas en plena faena nocturna
 	if is_dead:
 		if corpse_buried:
@@ -1006,7 +1006,7 @@ func _get_needs_status_line() -> String:
 		eff_info = " | ⚒️ Dominio: %s%s" % [get_job_efficiency_label(), shop_state]
 	var seal_str: String = " · 📜Salvoconducto Real" if carries_royal_safe_conduct else ""
 	var vm_d = _get_vm()
-	if vm_d != null and vm_d.has_method("_get_npcs_by_person_key"): # H: deuda de la casa
+	if vm_d != null and not (vm_d.has_method("is_demo_mode") and bool(vm_d.call("is_demo_mode"))) and vm_d.has_method("_get_npcs_by_person_key"): # H: deuda de la casa
 		var debt: String = vm_d.VillageLoans.debt_text(vm_d, self)
 		if debt != "":
 			seal_str += " · " + debt
@@ -1034,7 +1034,7 @@ func _get_dynamic_buy_price(base_price: int) -> int:
 	var mult: float = float(vm.call("get_trade_market_multiplier", int(trade_role))) if (vm and vm.has_method("get_trade_market_multiplier")) else 1.0
 	var is_owner: bool = bool(vm.call("is_player_owner_or_partner", int(trade_role))) if (vm and vm.has_method("is_player_owner_or_partner")) else false
 	var disc: float = 0.70 if is_owner else (0.80 if affinity >= 45 else 1.0)
-	if vm != null:
+	if vm != null and not (vm.has_method("is_demo_mode") and bool(vm.call("is_demo_mode"))):
 		disc *= vm.VillageClans.player_price_mult(vm, self)
 		if WorldClock != null and int(WorldClock.current_day) % 7 == 3 and vm.VillageMayor.has_decree(vm, "market_subsidy"):
 			disc *= 0.85

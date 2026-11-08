@@ -2048,7 +2048,7 @@ static func try_interact(vm, player, pos: Vector2) -> bool:
 	return true
 
 static func _try_outpost_interact(vm, player, pos: Vector2) -> bool:
-	if vm == null or player == null:
+	if vm == null or player == null or (vm.has_method("is_demo_mode") and bool(vm.call("is_demo_mode"))):
 		return false
 	if pos.distance_to(OUTPOST_GATE_POS) > 46.0 and pos.distance_to(OUTPOST_CENTER) > 58.0:
 		return false
@@ -2420,44 +2420,46 @@ static func add_dialogue_choices(vm, npc, diag: Dictionary, ch_arr: Array) -> vo
 	if vm == null:
 		return
 	var role_i: int = int(npc.trade_role)
+	var demo_active: bool = vm.has_method("is_demo_mode") and bool(vm.call("is_demo_mode"))
 	var today: int = int(WorldClock.current_day) if WorldClock else 1
 	if role_i == int(VillageNPC.TradeRole.TINKER):
 		# Bloque FIS2: manipular el cuadro eléctrico se hace en el cuadro físico de la pared exterior del taller, no hablando con el arreglador.
 		if is_grid_sabotaged(vm):
 			ch_arr.append({"label": "🛠️⚡ Ayudar a reparar el tendido eléctrico (-1 Bobina de Cobre, +%d Oro del arca)" % GRID_REPAIR_REWARD, "next": "END", "action": "culture_repair_grid"})
-		# PL.1: Árbol de Investigación e Ingeniería
-		var rs: Dictionary = research_state(vm)
-		var t_choices: Array = []
-		var act_t: String = str(rs.get("active_tech", ""))
-		if act_t != "" and TECH_TREE.has(act_t):
-			t_choices.append({"label": "🔩 Aportar 1 Chatarra al prototipo de %s (+2 avance)" % str(TECH_TREE[act_t]["name"]), "next": "END", "action": "culture_boost_tech"})
-		for t_id in TECH_TREE.keys():
-			if has_tech(vm, str(t_id)) or act_t != "":
-				continue
-			var td: Dictionary = TECH_TREE[t_id]
-			var pre: String = str(td.get("prereq", ""))
-			if pre != "" and not has_tech(vm, pre):
-				continue
-			t_choices.append({"label": "🔬 Financiar %s (-%d Oro al ingeniero, %s)" % [str(td["name"]), int(td["cost_gold"]), str(td["desc"])], "next": "END", "action": "culture_start_tech:" + str(t_id)})
-		t_choices.append({"label": "⬅️ Volver", "next": "start"})
-		ch_arr.append({"label": "🔬⚙️ Árbol de Investigación e Ingeniería", "next": "culture_research_menu"})
-		diag["culture_research_menu"] = {
-			"text": "«Con libros de la biblioteca, piezas de cobre y financiación puedo diseñar mejoras permanentes para todo el valle.»",
-			"choices": t_choices,
-		}
-	if role_i in [int(VillageNPC.TradeRole.SHERIFF), int(VillageNPC.TradeRole.GUARD)]:
+		if not demo_active:
+			# PL.1: Árbol de Investigación e Ingeniería
+			var rs: Dictionary = research_state(vm)
+			var t_choices: Array = []
+			var act_t: String = str(rs.get("active_tech", ""))
+			if act_t != "" and TECH_TREE.has(act_t):
+				t_choices.append({"label": "🔩 Aportar 1 Chatarra al prototipo de %s (+2 avance)" % str(TECH_TREE[act_t]["name"]), "next": "END", "action": "culture_boost_tech"})
+			for t_id in TECH_TREE.keys():
+				if has_tech(vm, str(t_id)) or act_t != "":
+					continue
+				var td: Dictionary = TECH_TREE[t_id]
+				var pre: String = str(td.get("prereq", ""))
+				if pre != "" and not has_tech(vm, pre):
+					continue
+				t_choices.append({"label": "🔬 Financiar %s (-%d Oro al ingeniero, %s)" % [str(td["name"]), int(td["cost_gold"]), str(td["desc"])], "next": "END", "action": "culture_start_tech:" + str(t_id)})
+			t_choices.append({"label": "⬅️ Volver", "next": "start"})
+			ch_arr.append({"label": "🔬⚙️ Árbol de Investigación e Ingeniería", "next": "culture_research_menu"})
+			diag["culture_research_menu"] = {
+				"text": "«Con libros de la biblioteca, piezas de cobre y financiación puedo diseñar mejoras permanentes para todo el valle.»",
+				"choices": t_choices,
+			}
+	if not demo_active and role_i in [int(VillageNPC.TradeRole.SHERIFF), int(VillageNPC.TradeRole.GUARD)]:
 		var rd: Dictionary = raids_state(vm)
 		if int(rd.get("militia_bonus", 0)) < MILITIA_MAX_BONUS:
 			ch_arr.append({"label": "🛡️📯 Financiar barricadas y milicia contra incursiones (-%d Oro a las arcas, +2 Defensa)" % MILITIA_COST, "next": "END", "action": "culture_fund_militia"})
 		var act_r: Dictionary = rd.get("active_raid", {})
 		if not act_r.is_empty():
 			ch_arr.insert(0, {"label": "⚔️🔥 Unirte a la defensa contra %s (llegan al atardecer por el este; recompensa si peleas)" % str(act_r.get("name", "Incursión")), "next": "END", "action": "culture_lead_defense"})
-	if role_i == int(VillageNPC.TradeRole.RANCHER):
+	if not demo_active and role_i == int(VillageNPC.TradeRole.RANCHER):
 		if not has_horse(vm):
 			ch_arr.append({"label": "🐎🪙 Comprar Caballo de Silla (-%d Oro al ganadero, velocidad y +15%% en expediciones)" % HORSE_COST, "next": "END", "action": "culture_buy_horse"})
 		if not has_cart(vm):
 			ch_arr.append({"label": "🛒 Comprar Carreta de Carga (-%d Oro al ganadero): la recoges en el rancho; caben 40 cosas" % CART_COST, "next": "END", "action": "culture_buy_cart"})
-	if role_i in [int(VillageNPC.TradeRole.RANCHER), int(VillageNPC.TradeRole.TINKER), int(VillageNPC.TradeRole.TRAVELING_MERCHANT)]:
+	if not demo_active and role_i in [int(VillageNPC.TradeRole.RANCHER), int(VillageNPC.TradeRole.TINKER), int(VillageNPC.TradeRole.TRAVELING_MERCHANT)]:
 		var ex: Dictionary = exploration_state(vm)
 		if int(ex.get("last_exp_day", -99)) != today:
 			var ex_choices: Array = []
@@ -2471,10 +2473,10 @@ static func add_dialogue_choices(vm, npc, diag: Dictionary, ch_arr: Array) -> vo
 				"text": "«Más allá de los lindes del valle quedan ruinas, grutas y atalayas con piezas antiguas y notas para la biblioteca.»",
 				"choices": ex_choices,
 			}
-	if role_i == int(VillageNPC.TradeRole.WOODCUTTER) and can_plant_tree(vm):
+	if not demo_active and role_i == int(VillageNPC.TradeRole.WOODCUTTER) and can_plant_tree(vm):
 		ch_arr.append({"label": "🌲🌱 Sembrar pino joven en el bosque (-1 Semilla de Cultivo, enriquece suelo y fauna)", "next": "END", "action": "culture_plant_tree"})
 		ch_arr.append({"label": "🌲🪙 Comprar y plantar plantón de pino (-%d Oro al leñador, enriquece suelo y fauna)" % SAPLING_COST, "next": "END", "action": "culture_buy_sapling"})
-	if role_i in [int(VillageNPC.TradeRole.TRAVELING_MERCHANT), int(VillageNPC.TradeRole.WOODCUTTER), int(VillageNPC.TradeRole.BAKER), int(VillageNPC.TradeRole.TAILOR)]:
+	if not demo_active and role_i in [int(VillageNPC.TradeRole.TRAVELING_MERCHANT), int(VillageNPC.TradeRole.WOODCUTTER), int(VillageNPC.TradeRole.BAKER), int(VillageNPC.TradeRole.TAILOR)]:
 		var routes: Dictionary = trade_routes_of(vm)
 		var r_choices: Array = []
 		for r_id in routes.keys():
@@ -2500,6 +2502,8 @@ static func add_dialogue_choices(vm, npc, diag: Dictionary, ch_arr: Array) -> vo
 		if inv_po == null or not inv_po.has_item("assault_rifle", 1):
 			ch_arr.append({"label": "🎯🛠️ Comprar Fusil de Asalto del Paso [0] con 5 cartuchos (-%d Oro)" % RIFLE_COST, "next": "END", "action": "culture_buy_rifle"})
 		ch_arr.append({"label": "🎯📦 Comprar 5 Cartuchos de Fusil (-%d Oro, con registro)" % RIFLE_AMMO_PACK_COST, "next": "END", "action": "culture_buy_rifle_ammo"})
+	if demo_active:
+		return
 	# Disparar desde la conversación quedó retirado (como el robo desde el diálogo): el arma se usa en las incursiones.
 	# Bloque FIS2: la Terminal Lógica ya no se hackea hablando con el arreglador; es una máquina física dentro del taller (TINKER_TERMINAL_POS).
 	# Bloque PP: Crear tu propio asentamiento fronterizo («Puesto del Paso») e Historia Principal (Panel L)

@@ -108,6 +108,8 @@ static func is_voting_today(vm) -> bool:
 static func on_hour(vm, hour: int) -> void:
 	if hour == RATION_HOUR:
 		cook_shelter_rations(vm)
+	if vm != null and vm.has_method("is_demo_mode") and bool(vm.call("is_demo_mode")):
+		return
 	if is_voting_today(vm):
 		if hour >= VOTE_HOURS.x and hour < VOTE_HOURS.y:
 			_send_voters(vm, hour)

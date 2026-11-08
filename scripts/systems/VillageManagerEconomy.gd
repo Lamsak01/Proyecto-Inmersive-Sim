@@ -355,6 +355,9 @@ func _use_hospital_emergency_bed(player: Node2D) -> void:
 		_msg_player(player, "🏥🛏️ Sin médico de guardia: te aplicaste un vendaje de urgencia; descansa en la camilla para recuperarte", Color.GOLD, -44.0)
 
 func _use_tavern_games_table(start_tab: int = 0) -> void:
+	if is_demo_mode():
+		_hint_player("🃏 La mesa de juego está cerrada por ahora.")
+		return
 	var games_ui = get_tree().root.find_child("TavernGamesUI", true, false)
 	if games_ui and games_ui.has_method("open_games"):
 		games_ui.call("open_games", start_tab)

@@ -94,11 +94,13 @@ func _process(delta: float) -> void:
 		VillageNeeds.tick(self) # E: terminar encargos al llegar
 	VillageTavern.tick(self, delta) # Paso 3: escalera al 2.º piso, mesa de póker viva y ambiente de taberna
 	VillageRestaurant.tick(self, delta) # Terraza y comedor de la trattoria con vecinos sentados de tarde y noche
-	VillageClub.tick(self, delta) # P6: la pelea en curso en el club del sótano
+	if not is_demo_mode():
+		VillageClub.tick(self, delta) # P6: la pelea en curso en el club del sótano
 	if social_director != null:
 		social_director.tick(delta, self)
 		_update_social_hangouts(delta)
-		_update_live_fights(delta)
+		if not is_demo_mode():
+			_update_live_fights(delta)
 
 	if not is_instance_valid(_cached_player):
 		_cached_player = get_tree().get_first_node_in_group("player") as Node2D
@@ -530,12 +532,13 @@ func interact(player: Node2D) -> void:
 			return
 	if VillageCulture.try_interact(self, player, pos): # V5e: leer en la biblioteca
 		return
-	if VillageMayor.try_interact(self, player, pos): # P5: alcaldía y candidatura
-		return
-	if VillageHousing.try_interact(self, player, pos): # P6: solar o cama de tu casa
-		return
-	if VillageUnderworld.try_interact(self, player, pos): # P7: encargo nocturno del perista
-		return
+	if not is_demo_mode():
+		if VillageMayor.try_interact(self, player, pos): # P5: alcaldía y candidatura
+			return
+		if VillageHousing.try_interact(self, player, pos): # P6: solar o cama de tu casa
+			return
+		if VillageUnderworld.try_interact(self, player, pos): # P7: encargo nocturno del perista
+			return
 	if VillageForensics.try_interact(self, player, pos): # P2: fregar escena de sangre con lejía (doble E)
 		return
 
@@ -591,33 +594,40 @@ func _on_hour_passed(_day: int, new_hour: int = 8) -> void:
 	var actual_hour: int = WorldClock.current_hour if WorldClock else new_hour
 	var actual_day: int = WorldClock.current_day if WorldClock else 1
 	_apply_hourly_door_security_schedule(actual_hour)
+	var demo_active: bool = is_demo_mode()
 	VillageFaith.on_hour(self, actual_hour) # G2: Oficio del Alba (domingo por la mañana)
-	VillageHousing.on_hour(self, actual_hour) # P1: dependiente y clientes reales en tu tienda
-	VillageUnderworld.fence_on_hour(self, actual_hour) # P5b: el perista trasnocha en el callejón de la taberna
-	VillageNightJobs.on_hour(self, actual_hour) # P6b: a la 1:00 salen los saboteadores, rateros y profanadores
-	VillageClub.on_hour(self, actual_hour) # P6: el club del sótano abre cada noche de 21:00 a 03:00
+	if not demo_active:
+		VillageHousing.on_hour(self, actual_hour) # P1: dependiente y clientes reales en tu tienda
+		VillageUnderworld.fence_on_hour(self, actual_hour) # P5b: el perista trasnocha en el callejón de la taberna
+		VillageNightJobs.on_hour(self, actual_hour) # P6b: a la 1:00 salen los saboteadores, rateros y profanadores
+		VillageClub.on_hour(self, actual_hour) # P6: el club del sótano abre cada noche de 21:00 a 03:00
 	VillageTavern.on_hour(self, actual_hour) # Paso 3: clientes en mesas y partida de póker en El Jabalí Dorado
 	VillageRestaurant.on_hour(self, actual_hour) # Clientes sentados cenando y tomando algo en la terraza de la trattoria de noche
-	VillageFame.sync_masterwork_counters(self) # A1: mostrador de las Obras Maestras en el taller de cada maestro
-	VillageCollections.sync_points(self) # P5: puntos de cobro en los locales y objetos del ayuntamiento
+	if not demo_active:
+		VillageFame.sync_masterwork_counters(self) # A1: mostrador de las Obras Maestras en el taller de cada maestro
+		VillageCollections.sync_points(self) # P5: puntos de cobro en los locales y objetos del ayuntamiento
 	VillageNeeds.on_hour(self, actual_hour) # E: higiene, taberna, limosna
-	VillageIllness.on_hour(self, actual_hour) # E2: contagios
-	VillageSect.on_hour(self, actual_hour) # O3: reunión de la secta (viernes de madrugada)
-	VillageFamilia.on_hour(self, actual_hour) # R2: reuniones nocturnas en el reservado de la Trattoria
-	VillageLots.on_hour(self, actual_hour) # V4: el carpintero avanza la obra si está allí
+	if not demo_active:
+		VillageIllness.on_hour(self, actual_hour) # E2: contagios
+		VillageSect.on_hour(self, actual_hour) # O3: reunión de la secta (viernes de madrugada)
+		VillageFamilia.on_hour(self, actual_hour) # R2: reuniones nocturnas en el reservado de la Trattoria
+		VillageLots.on_hour(self, actual_hour) # V4: el carpintero avanza la obra si está allí
 	VillageCivic.on_hour(self, actual_hour) # V5b: votar en persona y el alcalde en el ayuntamiento
 	VillagePlaces.on_hour(self, actual_hour) # V5c: ratos libres en el parque, la plaza o el mirador
 	VillageWork.on_hour(self, actual_hour) # V5d: jornaleros (contratar, contar horas, pagar)
-	VillageCulture.on_hour(self, actual_hour) # V5e: mercado de los miércoles
-	VillageMigration.on_hour(self, actual_hour) # V3: los que se marchan siguen su camino
+	if not demo_active:
+		VillageCulture.on_hour(self, actual_hour) # V5e: mercado de los miércoles
+		VillageMigration.on_hour(self, actual_hour) # V3: los que se marchan siguen su camino
 	VillageNobility.on_hour(self, actual_hour) # V6: los nobles aparecen en la primera hora
-	VillageFamily.on_hour(self, actual_hour) # V9: lo que se aprende en la escuela
+	if not demo_active:
+		VillageFamily.on_hour(self, actual_hour) # V9: lo que se aprende en la escuela
 	VillageConfession.on_hour(self, actual_hour) # P4: confesiones entre semana en la capilla
-	VillageUnderworld.on_hour(self, actual_hour) # P3 Parte B: caravana nocturna de contrabando
+	if not demo_active:
+		VillageUnderworld.on_hour(self, actual_hour) # P3 Parte B: caravana nocturna de contrabando
 	VillageJustice.on_hour(self) # B2: condenas por horas de los vecinos encerrados en el calabozo
 
 	# 07:00 AM -> Comprobar llegada semanal de los 2 Mercaderes Ambulantes (Día 3: Maese Casimir | Día 6: Valeria la Tratante)
-	if actual_hour == 7:
+	if actual_hour == 7 and not demo_active:
 		_check_weekly_merchant_arrival(actual_day)
 	# 08:00 AM -> Salarios de autoridades, compras recíprocas entre gremios y jornales diarios
 	elif actual_hour == 8:
@@ -647,34 +657,39 @@ func _on_day_passed(_new_day: int) -> void:
 	chronicle_daily = true
 	if social_director != null:
 		_advance_live_romances(_new_day)
+		var demo_active_day: bool = is_demo_mode()
 		social_director.on_day_passed(_new_day)
 		VillageSocialLife.daily_reciprocity(self)
 		VillageSocialLife.daily_distance_cooling(self, _new_day)
 		VillageChronicle.daily_friendship_scan(self)
 		VillageSocialLife.GossipMemory.daily_decay(self)
-		VillageSecrets.daily(self)
-		VillageDesires.daily(self)
+		if not demo_active_day:
+			VillageSecrets.daily(self)
+			VillageDesires.daily(self)
 		VillageFaith.daily(self) # G: roces de fe, sacerdote y bandos
-		VillageSect.daily(self) # O: la secta (justo después: vuelve a añadir su bando oculto)
-		VillageFamilia.daily(self) # R2: La Familia (nace sola, recluta y planea reuniones en el reservado)
+		if not demo_active_day:
+			VillageSect.daily(self) # O: la secta (justo después: vuelve a añadir su bando oculto)
+			VillageFamilia.daily(self) # R2: La Familia (nace sola, recluta y planea reuniones en el reservado)
 		VillageNeeds.daily(self) # E1/E3/E5
 		VillageTrades.daily(self) # V5: estrenar ropa en la sastrería
-		VillageCivic.daily(self) # V5b: arcas robadas y albergue
-		VillageCulture.daily(self) # V5e: el arreglador repara puestos saboteados
-		VillageNobility.daily(self) # V6: los lunes, rentas de las tierras
-		VillageFamily.daily(self) # V9: crecer, nacer, esperar un hijo y la escuela
-		VillageIllness.daily(self) # E2
-		VillageCrime.daily(self) # E4: como mucho un robo por noche
-		VillageTown.daily(self) # I: elecciones, impuestos del sábado, desfalcos
-		VillageClans.daily(self) # P1: romances prohibidos, ovejas negras y tumbas
-		VillageForensics.daily(self) # P2: sicarios y confesiones por embriaguez/fiebre
-		VillageLineage.daily(self) # P3: hijos secretos, manutención, cazafortunas y pasado
+		if not demo_active_day:
+			VillageCivic.daily(self) # V5b: arcas robadas y albergue
+			VillageCulture.daily(self) # V5e: el arreglador repara puestos saboteados
+			VillageNobility.daily(self) # V6: los lunes, rentas de las tierras
+			VillageFamily.daily(self) # V9: crecer, nacer, esperar un hijo y la escuela
+			VillageIllness.daily(self) # E2
+			VillageCrime.daily(self) # E4: como mucho un robo por noche
+			VillageTown.daily(self) # I: elecciones, impuestos del sábado, desfalcos
+			VillageClans.daily(self) # P1: romances prohibidos, ovejas negras y tumbas
+			VillageForensics.daily(self) # P2: sicarios y confesiones por embriaguez/fiebre
+			VillageLineage.daily(self) # P3: hijos secretos, manutención, cazafortunas y pasado
 		VillageConfession.daily(self) # P4: penitencias, santuario y excomuniones
-		VillageMayor.daily(self) # P5: promesas electorales, decretos y protestas
-		VillageHousing.daily(self) # P6: pareja en casa, huerto y rentas comerciales
-		VillageUnderworld.daily(self) # P7: mercado negro, usura, protección y jefe del hampa
-		VillageCollections.daily(self) # P5: el sábado se aparta lo que te deben; lo recoges en persona
-		VillageFame.daily(self) # Fama de los vecinos y Maestros Artesanos con estilo propio
+		if not demo_active_day:
+			VillageMayor.daily(self) # P5: promesas electorales, decretos y protestas
+			VillageHousing.daily(self) # P6: pareja en casa, huerto y rentas comerciales
+			VillageUnderworld.daily(self) # P7: mercado negro, usura, protección y jefe del hampa
+			VillageCollections.daily(self) # P5: el sábado se aparta lo que te deben; lo recoges en persona
+			VillageFame.daily(self) # Fama de los vecinos y Maestros Artesanos con estilo propio
 		VillageQuests.on_day_passed(self)
 	chronicle_daily = false
 
@@ -747,6 +762,8 @@ func _on_day_passed(_new_day: int) -> void:
 			total_player_dividends += day_profit
 
 		if not is_instance_valid(current_holder) or current_holder.is_dead:
+			if is_demo_mode():
+				continue
 			# Si el jugador ya compró la propiedad completa ("SOLE_OWNER"), él decide cuándo contratar encargado en [3]
 			if owner_mode == "SOLE_OWNER":
 				continue
@@ -780,8 +797,9 @@ func _on_day_passed(_new_day: int) -> void:
 			biz["stock_override"] = current_holder.shop_stock.duplicate()
 
 	# 2. LLEGADAS EXTERNAS DESDE EL BORDE DEL MAPA (Estricto límite de `MAX_DAILY_ARRIVALS = 2` personas por día)
-	_process_daily_map_edge_arrivals()
-	VillageMigration.daily(self) # V3: casas, marchas y llegadas según el atractivo del pueblo
+	if not is_demo_mode():
+		_process_daily_map_edge_arrivals()
+		VillageMigration.daily(self) # V3: casas, marchas y llegadas según el atractivo del pueblo
 
 	if total_player_dividends > 0:
 		var p_div = get_tree().get_first_node_in_group("player")

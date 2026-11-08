@@ -334,10 +334,10 @@ static func tick(vm) -> void:
 				vm.VillageFamilia.on_errand_arrived(vm, n) # R3: recado discreto de La Familia (cobro, préstamo o soborno)
 			_:
 				vm.VillageCivic.on_errand_arrived(vm, n) # V5b: votar, el alcalde en el ayuntamiento
-	vm.VillageHousing.tick_gathering(vm) # P4: duración, charla y cierre de cenas, fiestas y cenas de paz
-
-	vm.VillageNightJobs.tick(vm) # P6b: guardias que pillan a quien sabotea, roba o profana; fin de la faena
-	vm.VillageFamilia.tick(vm) # R2: reunión nocturna discreta en el reservado de la trattoria
+	if not vm.is_demo_mode():
+		vm.VillageHousing.tick_gathering(vm) # P4: duración, charla y cierre de cenas, fiestas y cenas de paz
+		vm.VillageNightJobs.tick(vm) # P6b: guardias que pillan a quien sabotea, roba o profana; fin de la faena
+		vm.VillageFamilia.tick(vm) # R2: reunión nocturna discreta en el reservado de la trattoria
 
 static func on_hour(vm, hour: int) -> void:
 	var st: Dictionary = state(vm)
@@ -349,7 +349,8 @@ static func on_hour(vm, hour: int) -> void:
 	var people: Array = living(vm)
 	for n in people:
 		n.need_hygiene = maxf(0.0, n.need_hygiene - hygiene_decay(n))
-	vm.VillageDesires.on_hour(vm, hour) # B5.2: quien prepara asesinato o venganza ronda de noche la casa de su víctima
+	if not vm.is_demo_mode():
+		vm.VillageDesires.on_hour(vm, hour) # B5.2: quien prepara asesinato o venganza ronda de noche la casa de su víctima
 	for n in people:
 		# B4.3 / B5.2: Paseos nocturnos (Noctámbulo, Insomne, Sonámbulo) y rondas nocturnas
 		if n.errand_kind in ["night_stroll", "sleepwalk", "prowl_victim"]:
@@ -384,7 +385,7 @@ static func on_hour(vm, hour: int) -> void:
 			continue
 		if hour in WASH_HOURS and n.need_hygiene < wash_threshold(n):
 			n.start_errand("wash", vm.VillageWork.wash_spot(vm, n, wash_spot(vm, n))) # V5d: a veces, al lavadero
-		elif hour in VICE_HOURS and not vm.is_building_door_blocked("tavern") and not vm.VillageMayor.has_decree(vm, "dry_law"):
+		elif hour in VICE_HOURS and not vm.is_building_door_blocked("tavern") and (vm.is_demo_mode() or not vm.VillageMayor.has_decree(vm, "dry_law")):
 			var key: String = n.get_person_key()
 			if randf() < vice_chance(vm, n, "drink"):
 				if n.personal_gold >= DRINK_COST:
@@ -392,7 +393,7 @@ static func on_hour(vm, hour: int) -> void:
 					n.start_errand("drink", seat_d)
 				elif is_addicted(vm, key, "drink"):
 					_crave(vm, n, "bebida")
-			elif randf() < vice_chance(vm, n, "gamble"):
+			elif not vm.is_demo_mode() and randf() < vice_chance(vm, n, "gamble"):
 				if n.personal_gold >= 2:
 					var seat_g: Vector2 = vm.VillageTavern.pick_poker_seat_for(vm, n) if "VillageTavern" in vm else (vm._tavern_games_pos + Vector2(randf_range(-10, 10), 10))
 					n.start_errand("gamble", seat_g)

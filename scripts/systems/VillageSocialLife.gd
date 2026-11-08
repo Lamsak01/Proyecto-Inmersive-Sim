@@ -415,7 +415,8 @@ static func spread_gossip(vm: VillageManager, teller: VillageNPC, listener: Vill
 				_on_slander_reached_target(vm, ev, teller, listener)
 			GossipMemory.on_told(vm, ev, teller, listener) # R2: puede llegar deformado
 			VillageSecrets.on_heard(vm, ev, teller, listener) # S3: quien lo oye piensa peor del que cree culpable
-			VillageDesires.on_heard(vm, ev, teller, listener) # D: rumores de deseos y contra el jugador
+			if not vm.is_demo_mode():
+				VillageDesires.on_heard(vm, ev, teller, listener) # D: rumores de deseos y contra el jugador
 			VillageChronicle.on_gossip(vm, ev, teller, listener)
 			return ev
 	return {}

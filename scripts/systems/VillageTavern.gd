@@ -641,12 +641,18 @@ static func on_hour(vm, hour: int) -> void:
 	# Entre las 08:00 y las 23:00, asegurar que haya vecinos sentados jugando al póker y comiendo/bebiendo en las mesas
 	if hour < 8 or hour >= 24:
 		return
+	var demo_active: bool = vm.has_method("is_demo_mode") and bool(vm.call("is_demo_mode"))
 	var poker_count: int = 0
 	var table_count: int = 0
 	for n in vm.VillageNeeds.living(vm):
+		if demo_active and n.is_at_poker_table:
+			n.set_poker_seating(false)
 		if n.errand_kind != "leisure":
 			continue
 		if str(n.get_meta("leisure_place", "")) == "tavern_poker":
+			if demo_active:
+				n.end_errand()
+				continue
 			poker_count += 1
 		elif str(n.get_meta("leisure_place", "")) == "tavern_hall":
 			table_count += 1
@@ -663,14 +669,14 @@ static func on_hour(vm, hour: int) -> void:
 	candidates.shuffle()
 
 	for cand in candidates:
-		if table_count < 4 and poker_count >= 2:
+		if table_count < 4 and (demo_active or poker_count >= 2):
 			var d_seat0: Vector2 = pick_seat_for(vm, cand)
 			if d_seat0 != Vector2.ZERO and d_seat0 != SOCIAL_POS:
 				cand.set_meta("leisure_place", "tavern_hall")
 				cand.start_errand("leisure", d_seat0)
 				table_count += 1
 				continue
-		if poker_count < 3:
+		if not demo_active and poker_count < 3:
 			var p_seat: Vector2 = pick_poker_seat_for(vm, cand)
 			if p_seat != Vector2.ZERO:
 				cand.set_meta("leisure_place", "tavern_poker")
@@ -687,7 +693,7 @@ static func on_hour(vm, hour: int) -> void:
 					cand.facing_direction = (table_center_for_seat(d_seat) - d_seat).normalized()
 					cand.set_meta("leisure_since", vm.VillageNeeds.total_hours())
 				table_count += 1
-		if poker_count >= 3 and table_count >= 7:
+		if (demo_active or poker_count >= 3) and table_count >= 7:
 			break
 
 ## Semilla inicial al arrancar partida: sienta a varios vecinos en el póker y en las mesas para que la taberna esté viva desde las 08:00.
@@ -773,8 +779,9 @@ static func tick(vm, delta: float) -> void:
 						break
 
 	# 2. Reacciones periódicas de la partida de póker con enfriamiento real (sin amontonar bocadillos)
+	var demo_active_t: bool = vm.has_method("is_demo_mode") and bool(vm.call("is_demo_mode"))
 	_poker_callout_cooldown = maxf(0.0, _poker_callout_cooldown - delta)
-	if poker_seated.size() >= 1 and _poker_callout_cooldown <= 0.0:
+	if not demo_active_t and poker_seated.size() >= 1 and _poker_callout_cooldown <= 0.0:
 		_poker_callout_cooldown = randf_range(7.0, 12.0)
 		var actor = poker_seated[randi() % poker_seated.size()]
 		var msg: String = POKER_CALLOUTS[randi() % POKER_CALLOUTS.size()]
@@ -785,7 +792,7 @@ static func tick(vm, delta: float) -> void:
 	var cur_h_t: int = int(WorldClock.current_hour) if WorldClock else 12
 	if cur_h_t >= 8 and cur_h_t < 24 and hall_seated_count == 0 and not vm.is_building_door_blocked(BUILDING_ID):
 		on_hour(vm, cur_h_t)
-	if (cur_h_t >= 20 or cur_h_t < 3) and _club_rumor_cooldown <= 0.0:
+	if not demo_active_t and (cur_h_t >= 20 or cur_h_t < 3) and _club_rumor_cooldown <= 0.0:
 		_club_rumor_cooldown = randf_range(16.0, 24.0)
 		var speaker = vm._innkeeper_npc if (is_instance_valid(vm._innkeeper_npc) and not vm._innkeeper_npc.is_sleeping and not vm._innkeeper_npc.is_dead) else (poker_seated[0] if not poker_seated.is_empty() else null)
 		if speaker != null:

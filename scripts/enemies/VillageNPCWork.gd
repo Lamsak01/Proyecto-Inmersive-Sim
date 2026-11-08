@@ -249,10 +249,14 @@ func _update_needs_and_decisions(delta: float) -> void:
 						need_energy = minf(100.0, need_energy + 1.2 * delta)
 						need_social = minf(100.0, need_social + 5.0 * delta)
 					elif need_hunger < 74.0 and need_energy > 15.0:
-						_is_amateur_foraging = true
-						_amateur_forage_timer = 0.0
-						_amateur_prey_target = null
-						_spawn_floating_text("🏹🥺 ¡Sin comida ni dinero! Saliendo al bosque a cazar/recolectar por mi cuenta...", Color.ORANGE, -38.0)
+						if vm_chk != null and vm_chk.has_method("is_demo_mode") and bool(vm_chk.call("is_demo_mode")):
+							feed_npc_gradual(22.0)
+							current_activity = ActivityState.SLEEPING if is_night_env else ActivityState.SOCIALIZING
+						else:
+							_is_amateur_foraging = true
+							_amateur_forage_timer = 0.0
+							_amateur_prey_target = null
+							_spawn_floating_text("🏹🥺 ¡Sin comida ni dinero! Saliendo al bosque a cazar/recolectar por mi cuenta...", Color.ORANGE, -38.0)
 					else:
 						if digestion_buffer <= 0.0:
 							need_hunger = maxf(0.0, need_hunger - base_3day_hunger_rate * 0.95 * delta)

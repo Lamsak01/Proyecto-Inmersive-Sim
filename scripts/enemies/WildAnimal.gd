@@ -223,6 +223,9 @@ func can_mate_today() -> bool:
 func _physics_process(delta: float) -> void:
 	if state == AnimalState.CARCASS or state == AnimalState.BUTCHERED:
 		return
+	if GameManager != null and GameManager.has_method("is_demo_mode") and GameManager.is_demo_mode():
+		velocity = Vector2.ZERO
+		return
 
 	if attack_cooldown > 0.0:
 		attack_cooldown -= delta

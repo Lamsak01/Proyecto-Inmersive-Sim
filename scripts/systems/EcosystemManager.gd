@@ -77,6 +77,16 @@ func setup_ecosystem(target_entities_root: Node) -> void:
 	_spawn_distant_forest()
 	if not Engine.is_editor_hint() and WorldClock and not WorldClock.day_passed.is_connected(_on_day_passed):
 		WorldClock.day_passed.connect(_on_day_passed)
+	if not Engine.is_editor_hint() and GameManager != null and GameManager.has_method("is_demo_mode"):
+		_on_demo_mode_changed(GameManager.is_demo_mode())
+
+func _on_demo_mode_changed(enabled: bool) -> void:
+	for pool in [rabbit_pool, deer_pool, fox_pool, boar_pool]:
+		for a in pool:
+			if is_instance_valid(a):
+				if enabled:
+					a.velocity = Vector2.ZERO
+				a.set_physics_process(not enabled)
 
 func _load_tex(res_path: String) -> Texture2D:
 	if ResourceLoader.exists(res_path):
@@ -251,6 +261,8 @@ func _spawn_animal_pool(pool: Array[WildAnimal], prefix: String, sp: WildAnimal.
 
 ## Evaluación ecológica cada nuevo día (06:00 AM)
 func _on_day_passed(_new_day: int) -> void:
+	if GameManager != null and GameManager.has_method("is_demo_mode") and GameManager.is_demo_mode():
+		return
 	rabbit_extinct_days = _process_species_daily_cycle(rabbit_pool, 2, rabbit_extinct_days, 2)
 	deer_extinct_days = _process_species_daily_cycle(deer_pool, 3, deer_extinct_days, 2)
 	fox_extinct_days = _process_species_daily_cycle(fox_pool, 2, fox_extinct_days, 1)
@@ -292,6 +304,8 @@ func find_sustainable_harvest_node(h_type: int, from_pos: Vector2) -> Harvestabl
 ## Devuelve una presa (`WildAnimal`) para que el Carnicero cace SOLO si esa especie tiene superávit sobre su umbral de equilibrio (N_actual > N_min).
 ## También devuelve un cadáver (`CARCASS`) existente si ya hay uno en el bosque para aprovecharlo sin matar otro animal.
 func find_sustainable_hunt_prey(from_pos: Vector2) -> WildAnimal:
+	if GameManager != null and GameManager.has_method("is_demo_mode") and GameManager.is_demo_mode():
+		return null
 	# 1º Prioridad ecológica: si ya hay algún cadáver de animal sin desollar en el bosque, aprovecharlo primero
 	for pool in [deer_pool, boar_pool, rabbit_pool]:
 		for a in pool:

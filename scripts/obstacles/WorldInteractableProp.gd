@@ -434,6 +434,9 @@ func _draw_home_table_2d() -> void:
 
 
 func get_interact_label(_player: Node2D = null) -> String:
+	if vm != null and vm.has_method("is_demo_mode") and bool(vm.call("is_demo_mode")):
+		if prop_kind in ["heist_target", "sewer_grate", "sewer_ladder", "sewer_chest", "home_workbench", "home_table", "home_stash", "home_stairs", "home_garden", "player_shop_counter", "collect_point", "town_coffers", "town_ledger", "masterwork_counter", "club_trapdoor", "club_ladder", "club_ring", "club_bet"]:
+			return ""
 	match prop_kind:
 		"terminal":
 			return "Usar la Terminal Lógica"
@@ -503,6 +506,9 @@ func get_interact_label(_player: Node2D = null) -> String:
 func interact(player: Node2D) -> void:
 	if vm == null or player == null:
 		return
+	if vm.has_method("is_demo_mode") and bool(vm.call("is_demo_mode")):
+		if prop_kind in ["heist_target", "sewer_grate", "sewer_ladder", "sewer_chest", "home_workbench", "home_table", "home_stash", "home_stairs", "home_garden", "player_shop_counter", "collect_point", "town_coffers", "town_ledger", "masterwork_counter", "club_trapdoor", "club_ladder", "club_ring", "club_bet"]:
+			return
 	match prop_kind:
 		"terminal":
 			VillageCulture.open_terminal_menu(vm, self, player)

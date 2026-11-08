@@ -332,6 +332,8 @@ func _label_for(a: Node, tgt: Node) -> String:
 	if a.has_meta("village_station"):
 		var tag: String = str(a.get_meta("village_station"))
 		var vm = player.get_tree().get_first_node_in_group("village_manager")
+		if vm != null and vm.has_method("is_demo_mode") and bool(vm.call("is_demo_mode")) and tag in ["tavern_games", "tavern_pool"]:
+			return ""
 		if tag == "building_door":
 			var d: Dictionary = vm._find_nearest_door((a as Node2D).global_position, 18.0) if vm != null else {}
 			var opened: bool = bool(d.get("is_open", false))
@@ -358,7 +360,7 @@ func _label_for(a: Node, tgt: Node) -> String:
 		if n.is_downed or n.is_stunned_flag or n.sedated_timer > 0.0:
 			return "Registrar a %s" % disp_n
 		var vm_a = n._get_vm()
-		if vm_a != null and "VillageUnderworld" in vm_a and vm_a.VillageUnderworld != null:
+		if vm_a != null and not (vm_a.has_method("is_demo_mode") and bool(vm_a.call("is_demo_mode"))) and "VillageUnderworld" in vm_a and vm_a.VillageUnderworld != null:
 			var caught_lbl: String = str(vm_a.VillageNightJobs.catch_label(vm_a, n, player))
 			if caught_lbl != "":
 				return caught_lbl # P6b: lo sorprendes de noche junto a un taller, una casa o una lápida

@@ -1014,6 +1014,8 @@ static func _perf_add(part: String, since: int) -> int:
 func _is_morning_expedition_hours() -> bool:
 	if not (trade_role in [TradeRole.BLACKSMITH, TradeRole.CARPENTER, TradeRole.HERBALIST, TradeRole.FISHMONGER, TradeRole.BUTCHER]) or not WorldClock or _completed_expedition_day == WorldClock.current_day:
 		return false
+	if trade_role == TradeRole.BUTCHER and GameManager != null and GameManager.has_method("is_demo_mode") and GameManager.is_demo_mode():
+		return false
 	var h: int = WorldClock.current_hour
 	var m: int = WorldClock.current_minute
 	return (h == 6 and m >= 30) or h == 7 or h == 8 or (h == 9 and m < 30)

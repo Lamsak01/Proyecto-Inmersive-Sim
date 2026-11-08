@@ -37,7 +37,15 @@ static func _inject_character_lore_into_dialogue(npc: VillageNPC, diag: Dictiona
 	if not start_node.has("choices") or typeof(start_node["choices"]) != TYPE_ARRAY:
 		return diag
 	var ch_arr: Array = start_node["choices"]
-	VillageDesires.filter_dialogue(npc._get_vm(), npc, diag) # D4: quien te odia no te vende
+	var vm_diag = npc._get_vm()
+	var demo_active: bool = (vm_diag != null and vm_diag.has_method("is_demo_mode") and bool(vm_diag.call("is_demo_mode"))) or (GameManager != null and GameManager.has_method("is_demo_mode") and GameManager.is_demo_mode())
+	if demo_active:
+		for i in range(ch_arr.size() - 1, -1, -1):
+			var c_item = ch_arr[i]
+			if typeof(c_item) == TYPE_DICTIONARY and str(c_item.get("action", "")) in ["open_tavern_games", "ask_club_rumor"]:
+				ch_arr.remove_at(i)
+	if not demo_active:
+		VillageDesires.filter_dialogue(vm_diag, npc, diag) # D4: quien te odia no te vende
 	ch_arr = start_node["choices"]
 	# Si está agraviado (compensate_family), no añadir charla amistosa hasta reconciliar
 	for c in ch_arr:
@@ -46,9 +54,8 @@ static func _inject_character_lore_into_dialogue(npc: VillageNPC, diag: Dictiona
 
 	TraitDiscovery.on_dialogue_opened(npc)
 	var insert_idx: int = maxi(0, ch_arr.size() - 1)
-	var vm_diag = npc._get_vm()
 	# P5b: de vez en cuando, en la taberna, un vecino turbio deja caer un comentario sobre el callejón (sin aviso ni icono)
-	if vm_diag != null and start_node.has("text"):
+	if not demo_active and vm_diag != null and start_node.has("text"):
 		var rumor: String = VillageUnderworld.tavern_rumor(vm_diag, npc)
 		if rumor != "":
 			start_node["text"] = str(start_node["text"]) + "\n\n«" + rumor + "»"
@@ -283,27 +290,35 @@ static func _add_neighbor_opinions(npc: VillageNPC, diag: Dictionary, ch_arr: Ar
 	if npc.is_in_live_fight():
 		ch_arr.insert(0, {"label": "✋ Separar a %s y %s" % [npc.npc_name, npc.live_fight_partner.npc_name], "next": "END", "action": "social_stop_fight"})
 	ch_arr.insert(maxi(0, ch_arr.size() - 1), {"label": "🗣️ Preguntar qué opina de los vecinos", "next": "neighbor_opinions"})
-	VillageSecrets.add_dialogue_choices(npc._get_vm(), npc, diag, ch_arr) # S5
-	VillageDesires.add_dialogue_choices(npc._get_vm(), npc, diag, ch_arr) # D
-	VillageFaith.add_dialogue_choices(npc._get_vm(), npc, diag, ch_arr) # G6
-	VillageNeeds.add_dialogue_choices(npc._get_vm(), npc, diag, ch_arr) # E6
-	VillageIllness.add_dialogue_choices(npc._get_vm(), npc, diag, ch_arr) # E2
-	WeaponWear.add_dialogue_choices(npc._get_vm(), npc, diag, ch_arr) # C7 fase 4b: el herrero arregla tus armas
-	VillageCrime.add_dialogue_choices(npc._get_vm(), npc, diag, ch_arr) # E4
-	VillageTown.add_dialogue_choices(npc._get_vm(), npc, diag, ch_arr) # I5
-	VillageSect.add_dialogue_choices(npc._get_vm(), npc, diag, ch_arr) # O6
-	if npc._get_vm() != null:
-		var vm_p = npc._get_vm()
-		VillageClans.add_dialogue_choices(vm_p, npc, diag, ch_arr) # P1
+	var vm_p = npc._get_vm()
+	var demo_active: bool = (vm_p != null and vm_p.has_method("is_demo_mode") and bool(vm_p.call("is_demo_mode"))) or (GameManager != null and GameManager.has_method("is_demo_mode") and GameManager.is_demo_mode())
+	if not demo_active:
+		VillageSecrets.add_dialogue_choices(vm_p, npc, diag, ch_arr) # S5
+		VillageDesires.add_dialogue_choices(vm_p, npc, diag, ch_arr) # D
+	VillageFaith.add_dialogue_choices(vm_p, npc, diag, ch_arr) # G6
+	VillageNeeds.add_dialogue_choices(vm_p, npc, diag, ch_arr) # E6
+	if not demo_active:
+		VillageIllness.add_dialogue_choices(vm_p, npc, diag, ch_arr) # E2
+	WeaponWear.add_dialogue_choices(vm_p, npc, diag, ch_arr) # C7 fase 4b: el herrero arregla tus armas
+	if not demo_active:
+		VillageCrime.add_dialogue_choices(vm_p, npc, diag, ch_arr) # E4
+		VillageTown.add_dialogue_choices(vm_p, npc, diag, ch_arr) # I5
+		VillageSect.add_dialogue_choices(vm_p, npc, diag, ch_arr) # O6
+	if vm_p != null:
+		if not demo_active:
+			VillageClans.add_dialogue_choices(vm_p, npc, diag, ch_arr) # P1
 		VillageForensics.add_dialogue_choices(vm_p, npc, diag, ch_arr) # P2
-		VillageLineage.add_dialogue_choices(vm_p, npc, diag, ch_arr) # P3
+		if not demo_active:
+			VillageLineage.add_dialogue_choices(vm_p, npc, diag, ch_arr) # P3
 		VillageConfession.add_dialogue_choices(vm_p, npc, diag, ch_arr) # P4
-		VillageMayor.add_dialogue_choices(vm_p, npc, diag, ch_arr) # P5
-		VillageHousing.add_dialogue_choices(vm_p, npc, diag, ch_arr) # P6
-		VillageUnderworld.add_dialogue_choices(vm_p, npc, diag, ch_arr) # P7
-		VillageFame.add_dialogue_choices(vm_p, npc, diag, ch_arr) # Fama y Maestros Artesanos
+		if not demo_active:
+			VillageMayor.add_dialogue_choices(vm_p, npc, diag, ch_arr) # P5
+			VillageHousing.add_dialogue_choices(vm_p, npc, diag, ch_arr) # P6
+			VillageUnderworld.add_dialogue_choices(vm_p, npc, diag, ch_arr) # P7
+			VillageFame.add_dialogue_choices(vm_p, npc, diag, ch_arr) # Fama y Maestros Artesanos
 		VillageCulture.add_dialogue_choices(vm_p, npc, diag, ch_arr) # PJ.2: Red eléctrica lógica
-		VillageFamilia.add_dialogue_choices(vm_p, npc, diag, ch_arr) # R2: pista del cocinero sobre el reservado
+		if not demo_active:
+			VillageFamilia.add_dialogue_choices(vm_p, npc, diag, ch_arr) # R2: pista del cocinero sobre el reservado
 		VillageJustice.add_dialogue_choices(vm_p, npc, diag, ch_arr) # B2: calabozo, fianza y fuga entre rejas
 	if npc.affinity < 0:
 		var hint_q: String = ""
@@ -882,33 +897,37 @@ static func on_dialogue_action(npc: VillageNPC, action_id: String) -> void:
 
 	if action_id == "chronicle_hear_news":
 		if vm != null:
+			var demo_active_n: bool = vm.has_method("is_demo_mode") and bool(vm.call("is_demo_mode"))
 			VillageChronicle.learn_news_from(vm, npc) # C: lo que te cuentan pasa a tu crónica
 			VillageSecrets.on_player_news(vm, npc) # S5: si te cuenta una aventura, ya la sabes
-			VillageDesires.on_player_news(vm, npc) # D: y lo que quiere hacer alguien
-			VillageCrime.on_player_news(vm, npc) # E4: y quién robó
-			VillageTown.on_player_news(vm, npc) # I3: y si el alcalde roba
-			VillageSect.on_player_news(vm, npc) # O5: y lo que se dice de la secta
+			if not demo_active_n:
+				VillageDesires.on_player_news(vm, npc) # D: y lo que quiere hacer alguien
+				VillageCrime.on_player_news(vm, npc) # E4: y quién robó
+				VillageTown.on_player_news(vm, npc) # I3: y si el alcalde roba
+				VillageSect.on_player_news(vm, npc) # O5: y lo que se dice de la secta
 		return
 	if action_id.begins_with("needs_"):
 		if vm != null and VillageNeeds.on_player_action(vm, npc, action_id, inv) and action_id == "needs_round":
+			var demo_active_r: bool = vm.has_method("is_demo_mode") and bool(vm.call("is_demo_mode"))
 			# E5: con unas copas te cuenta lo que sabe
 			VillageChronicle.learn_news_from(vm, npc)
 			VillageSecrets.on_player_news(vm, npc)
-			VillageDesires.on_player_news(vm, npc)
-			VillageCrime.on_player_news(vm, npc)
-			VillageTown.on_player_news(vm, npc)
-			VillageSect.on_player_news(vm, npc)
+			if not demo_active_r:
+				VillageDesires.on_player_news(vm, npc)
+				VillageCrime.on_player_news(vm, npc)
+				VillageTown.on_player_news(vm, npc)
+				VillageSect.on_player_news(vm, npc)
 			TraitDiscovery.reveal_next(npc, "con unas copas")
 		return
 	if action_id.begins_with("weapon_wear_"):
 		WeaponWear.on_player_action(vm, npc, action_id, inv)
 		return
 	if action_id.begins_with("illness_"):
-		if vm != null:
+		if vm != null and not (vm.has_method("is_demo_mode") and bool(vm.call("is_demo_mode"))):
 			VillageIllness.on_player_action(vm, npc, action_id, inv)
 		return
 	if action_id.begins_with("sect_"):
-		if vm != null:
+		if vm != null and not (vm.has_method("is_demo_mode") and bool(vm.call("is_demo_mode"))):
 			VillageSect.on_player_action(vm, npc, action_id, inv)
 		return
 	if action_id.begins_with("clan_"):
