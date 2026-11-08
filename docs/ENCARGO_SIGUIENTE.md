@@ -46,5 +46,25 @@ capturas entre fases:
 - Tras cada fase: unas pocas capturas 3D (1.ª persona) de los sitios con relieve, mirarlas; comprobar que el juego arranca y pasar
   verify_all con timeout 900. Si algo se atasca, arreglarlo antes de seguir.
 
+## 3b. Aspecto de la época definitiva (APROBADO por el usuario, 2026-11-08) — después de la Fase B del relieve
+Época: tecnofeudal / medieval-balística (`docs/HANDOFF.md` §8; imágenes `docs/referencias_personajes/07–09_DEFINITIVA_*`;
+repaso en `docs/REVISION_EPOCA.md`). Solo 3D. Una captura por punto.
+1. **«Sheriff» → «alguacil»** en todo lo que lee el jugador (diálogos, avisos, tarjetas, paneles, misiones, crónica).
+   Cargo del jefe: «Capitán de la guardia» o «Alguacil mayor». No hace falta renombrar lo interno si es arriesgado;
+   lo que importa es que el jugador no lea «sheriff». Una prueba: buscar que no quede «sheriff» en textos visibles.
+2. **Ambiente más oscuro y sucio** sin cambiar modelos: colores algo más apagados, cielo menos azul chillón, más
+   niebla y nubes, noches más oscuras con charcos de luz de farolas y focos. Ir con cuidado: que de día se siga viendo
+   bien para jugar. Captura de día y de noche en la plaza para comparar con antes.
+3. **Elementos de la época, pocos y bien puestos** (sin bloquear puertas ni caminos; con colisión; que los vecinos
+   los rodeen):
+   - Cables gruesos por las fachadas de comisaría, ayuntamiento y taller, hasta un **generador** junto a uno de ellos.
+   - **Focos** en poste o torre de madera en la comisaría y en el Puesto del Paso (encendidos de noche; si se sabotea
+     la red eléctrica, se apagan).
+   - **Sacos terreros y alambre de espino** en el Puesto del Paso y a la entrada de la comisaría.
+   - **Barrotes o planchas remachadas** en ventanas bajas de comisaría y ayuntamiento.
+   - **Terminal de pantalla verde** sobre una mesa dentro de la comisaría y del ayuntamiento (donde ya está la consola
+     que se puede piratear, si existe).
+   Antes de poner nada, enséñalo en una lista corta en el informe (qué y dónde) y sigue; no hace falta esperar.
+
 ## 4. Edificios de los bocetos (`docs/BOCETOS_EDIFICIOS.md`)
 Esperan las correcciones del usuario. Después, construirlos todos seguidos con capturas de cada uno.
