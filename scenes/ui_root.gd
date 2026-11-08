@@ -62,6 +62,7 @@ var showcase_3d_panel: Control = null
 var detective_ui: Control = null
 
 func _ready() -> void:
+	mouse_filter = Control.MOUSE_FILTER_IGNORE
 	# 1. Find Player if not assigned
 	if not player:
 		player = get_tree().get_first_node_in_group("player")
@@ -522,6 +523,7 @@ func _make_style(bg: Color, border: Color, bw: int, cr: int, mx: int, my: int) -
 func _make_lbl(parent: Node, txt: String, f_sz: int, col: Color, expand_h: bool = false, align: int = HORIZONTAL_ALIGNMENT_LEFT) -> Label:
 	var l := Label.new()
 	l.text = txt
+	l.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	l.horizontal_alignment = align as HorizontalAlignment
 	if expand_h:
 		l.size_flags_horizontal = Control.SIZE_EXPAND_FILL
@@ -816,9 +818,12 @@ func _refresh_inventory_list() -> void:
 
 			if info.get("usable", false):
 				var cat_str: String = str(info.get("category", ""))
-				var btn_txt := "🛡️ Equipar" if (info.has("armor_slot") or cat_str.begins_with("Armadura")) else ("🌱 Semilla" if info.get("is_seed", false) else "🍽️ Usar")
+				var btn_txt := "🔫 Equipar" if info.get("is_weapon_item", false) else ("🛡️ Equipar" if (info.has("armor_slot") or cat_str.begins_with("Armadura")) else ("🌱 Semilla" if info.get("is_seed", false) else "🍽️ Usar"))
 				var captured_id := str(item_id)
-				_make_btn(hbox, btn_txt, func(): inv.use_item(captured_id, player))
+				_make_btn(hbox, btn_txt, func():
+					inv.use_item(captured_id, player)
+					_refresh_hand_slots()
+				)
 
 			inv_items_box.add_child(row)
 
@@ -862,6 +867,7 @@ func _refresh_inventory_list() -> void:
 func _setup_clock_ui() -> void:
 	clock_panel = PanelContainer.new()
 	clock_panel.name = "WorldClockPanel"
+	clock_panel.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	clock_panel.set_anchors_and_offsets_preset(Control.PRESET_CENTER_TOP)
 	clock_panel.grow_horizontal = Control.GROW_DIRECTION_BOTH
 	clock_panel.offset_left = -95.0
@@ -969,6 +975,7 @@ func _setup_bottom_hud_ui() -> void:
 	# 1. Abajo a la izquierda: manos / ranuras rápidas (1, 2, 3)
 	hands_box = HBoxContainer.new()
 	hands_box.name = "HandsBox"
+	hands_box.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	hands_box.set_anchors_and_offsets_preset(Control.PRESET_BOTTOM_LEFT)
 	hands_box.offset_left = 16.0
 	hands_box.offset_top = -52.0
@@ -1034,6 +1041,7 @@ func _setup_bottom_hud_ui() -> void:
 	# 2. Abajo a la derecha: oro y [H] teclas
 	corner_right_box = HBoxContainer.new()
 	corner_right_box.name = "CornerRightBox"
+	corner_right_box.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	corner_right_box.set_anchors_and_offsets_preset(Control.PRESET_BOTTOM_RIGHT)
 	corner_right_box.grow_horizontal = Control.GROW_DIRECTION_BEGIN
 	corner_right_box.offset_left = -220.0
@@ -1045,6 +1053,7 @@ func _setup_bottom_hud_ui() -> void:
 	add_child(corner_right_box)
 
 	var gold_panel := PanelContainer.new()
+	gold_panel.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	var g_sb := _make_style(Color(0.945, 0.910, 0.831, 0.95), Color(0.227, 0.196, 0.157, 1.0), 1, 2, 9, 4)
 	g_sb.shadow_color = Color(0.0, 0.0, 0.0, 0.35)
 	g_sb.shadow_size = 1
@@ -1053,11 +1062,13 @@ func _setup_bottom_hud_ui() -> void:
 	corner_right_box.add_child(gold_panel)
 
 	var g_hbox := HBoxContainer.new()
+	g_hbox.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	g_hbox.alignment = BoxContainer.ALIGNMENT_CENTER
 	g_hbox.add_theme_constant_override("separation", 6)
 	gold_panel.add_child(g_hbox)
 
 	var coin_dot := PanelContainer.new()
+	coin_dot.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	coin_dot.custom_minimum_size = Vector2(10, 10)
 	coin_dot.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	var c_sb := _make_style(Color(0.847, 0.663, 0.243, 1.0), Color(0.227, 0.196, 0.157, 1.0), 1, 5, 0, 0)
@@ -1181,6 +1192,11 @@ func _refresh_hand_slots() -> void:
 			active_slot = 2
 			slot3_key = "9"
 			slot3_icon = "🔫"
+			slot_weapons[2] = eq
+		elif eq == player.get("rifle_weapon"):
+			active_slot = 2
+			slot3_key = "0"
+			slot3_icon = "🎯"
 			slot_weapons[2] = eq
 	_hand_slot_key_labels[2].text = slot3_key
 	_hand_slot_icon_labels[2].text = slot3_icon
@@ -1325,6 +1341,7 @@ func _init_default_objectives() -> void:
 func setup_hint_label() -> void:
 	var hint = get_node_or_null("HintLabel")
 	if hint:
+		hint.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		hint.layout_mode = 1
 		hint.set_anchors_and_offsets_preset(Control.PRESET_CENTER_TOP)
 		hint.position.y += 72

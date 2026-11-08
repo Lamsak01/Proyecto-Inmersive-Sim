@@ -44,6 +44,11 @@ func setup_prop(village_manager: Node2D, kind: String, h_id: String = "", h_labe
 			if heist_id.is_empty():
 				add_to_group("tinker_terminal")
 			add_to_group("tinker_station")
+		"armory_rack":
+			npc_name = heist_label if not heist_label.is_empty() else "Expositor de Armas y Munición"
+			npc_role = "Herrería y Armería «Yunque Gris»"
+			add_to_group("armory_rack")
+			add_to_group("tinker_station")
 		"grid_panel":
 			npc_name = "Cuadro Eléctrico General"
 			npc_role = "Pared Exterior del Taller"
@@ -432,6 +437,8 @@ func get_interact_label(_player: Node2D = null) -> String:
 	match prop_kind:
 		"terminal":
 			return "Usar la Terminal Lógica"
+		"armory_rack":
+			return "Expositor de Armas y Munición ([F] robar)"
 		"grid_panel":
 			return "Manipular el cuadro eléctrico"
 		"heist_target":
@@ -499,6 +506,8 @@ func interact(player: Node2D) -> void:
 	match prop_kind:
 		"terminal":
 			VillageCulture.open_terminal_menu(vm, self, player)
+		"armory_rack":
+			VillageCulture.open_armory_rack_menu(vm, self, player)
 		"grid_panel":
 			VillageCulture.open_grid_panel_menu(vm, self, player)
 		"heist_target":

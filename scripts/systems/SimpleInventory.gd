@@ -72,10 +72,10 @@ const CATALOG: Dictionary = {
 	"surgical_kit": {"name": "Botiquín Quirúrgico", "category": "Medicina Hospitalaria", "desc": "Instrumental del Dr. Valen. Corta hemorragias, cura +85 HP, limpia infecciones/fiebre o reanima heridos.", "usable": true, "heal_hp": 85.0, "stop_bleed": true, "cure_sickness": 100.0, "icon": "res://assests/items/icons/surgical_kit.png"},
 	"golden_egg": {"name": "Huevo Dorado (Genética Nv.3)", "category": "Ganadería Selecta", "desc": "Huevo extraordinario puesto por gallinas de Genética Nv.3 (+75 HP, +90 STM, +85 Hambre o véndelo por 35 Oro).", "usable": true, "heal_hp": 75.0, "restore_stamina": 90.0, "restore_hunger": 85.0, "icon": "res://assests/items/icons/golden_egg.png"},
 	"copper_coil": {"name": "Bobina de Cobre Antiguo", "category": "Tecnología / Ingeniería", "desc": "Conductor electromagnético para construir o mejorar el Generador Antiguo y el Aspersor Automático.", "usable": false, "icon": "res://assests/items/icons/copper_coil.png"},
-	"flintlock_pistol": {"name": "Arcabuz / Pistola de Chispa", "category": "Tecnología / Arma de Fuego", "desc": "Arma de fuego corta de precisión forjada en la herrería o el taller ([9]). Usa Cartuchos de Pistola o Cargas de Pólvora y se recarga en 3 pasos [R].", "usable": false},
+	"flintlock_pistol": {"name": "Arcabuz / Pistola de Chispa", "category": "Tecnología / Arma de Fuego", "desc": "Arma de fuego corta de precisión forjada en la herrería o el taller ([9] o Equipar). Usa Cartuchos de Pistola o Cargas de Pólvora y se recarga en 3 pasos [R].", "usable": true, "is_weapon_item": true},
 	"powder_charge": {"name": "Carga de Pólvora Negra", "category": "Tecnología / Munición", "desc": "Cartucho de pólvora prensada y proyectil de plomo para armas cortas de fuego.", "usable": false},
 	"pistol_ammo": {"name": "Cartuchos de Pistola", "category": "Tecnología / Munición", "desc": "Caja de cartuchos metálicos cortos para pistola ([9]). La armería registra cada compra en el libro de ventas.", "usable": false},
-	"assault_rifle": {"name": "Fusil de Asalto del Paso", "category": "Tecnología / Arma de Fuego", "desc": "Arma larga de repetición de gran calibre ([0]). Atraviesa corazas de metal a corta distancia y exige recarga manual en 3 pasos [R].", "usable": false},
+	"assault_rifle": {"name": "Fusil de Asalto del Paso", "category": "Tecnología / Arma de Fuego", "desc": "Arma larga de repetición de gran calibre ([0] o Equipar). Atraviesa corazas de metal a corta distancia y exige recarga manual en 3 pasos [R].", "usable": true, "is_weapon_item": true},
 	"rifle_ammo": {"name": "Cartuchos de Fusil", "category": "Tecnología / Munición", "desc": "Munición pesada de fusil de largo alcance ([0]). Distinta de la de pistola; su venta queda anotada en el registro armero.", "usable": false},
 	"royal_safe_conduct": {"name": "Salvoconducto Real Sellado", "category": "Documento de la Corona", "desc": "Cédula oficial con sello de lacre del Reino que autoriza a cruzar las fronteras del valle. ¡Cuidado: si un Investigador Real te lo encuentra encima tras la muerte de un mercader, será prueba irrefutable!", "usable": false},
 	"royal_ration": {"name": "Conserva Real de Extramuros", "category": "Importación Exótica", "desc": "Ración militar especiada traída de la capital por mercaderes con salvoconducto (+60 HP, +80 STM, +90 Hambre).", "usable": true, "heal_hp": 60.0, "restore_stamina": 80.0, "restore_hunger": 90.0},
@@ -229,6 +229,47 @@ func get_item_icon(item_id: String) -> Texture2D:
 		var gen_tex := ImageTexture.create_from_image(p_img)
 		_icon_cache[item_id] = gen_tex
 		return gen_tex
+	if item_id in ["flintlock_pistol", "assault_rifle", "pistol_ammo", "rifle_ammo", "powder_charge"]:
+		var g_img := Image.create(16, 16, false, Image.FORMAT_RGBA8)
+		g_img.fill(Color(0, 0, 0, 0))
+		var c_steel := Color(0.76, 0.80, 0.86, 1.0)
+		var c_iron := Color(0.28, 0.30, 0.35, 1.0)
+		var c_wood := Color(0.52, 0.33, 0.18, 1.0)
+		var c_brass := Color(0.88, 0.72, 0.24, 1.0)
+		if item_id == "flintlock_pistol":
+			for x in range(3, 14):
+				g_img.set_pixel(x, 6, c_steel)
+				g_img.set_pixel(x, 7, c_iron)
+			g_img.set_pixel(13, 5, c_brass)
+			g_img.set_pixel(5, 5, c_brass)
+			for y in range(8, 13):
+				var gx: int = 4 - int((y - 8) / 2)
+				g_img.set_pixel(gx, y, c_wood)
+				g_img.set_pixel(gx + 1, y, c_wood)
+				g_img.set_pixel(gx + 2, y, c_wood)
+			g_img.set_pixel(6, 8, c_brass)
+			g_img.set_pixel(7, 8, c_brass)
+		elif item_id == "assault_rifle":
+			for x in range(1, 15):
+				g_img.set_pixel(x, 6, c_steel if x >= 6 else c_iron)
+				g_img.set_pixel(x, 7, c_iron)
+			for x in range(1, 5):
+				g_img.set_pixel(x, 8, c_wood)
+				g_img.set_pixel(x, 9, c_wood)
+			for y in range(8, 12):
+				g_img.set_pixel(8, y, c_iron)
+				g_img.set_pixel(9, y, c_brass)
+			g_img.set_pixel(5, 8, c_wood)
+			g_img.set_pixel(5, 9, c_wood)
+			g_img.set_pixel(14, 5, c_brass)
+		else:
+			for bx in [4, 7, 10]:
+				for by in range(4, 13):
+					g_img.set_pixel(bx, by, c_steel if by <= 6 else c_brass)
+					g_img.set_pixel(bx + 1, by, c_steel if by <= 6 else c_brass)
+		var gun_tex := ImageTexture.create_from_image(g_img)
+		_icon_cache[item_id] = gun_tex
+		return gun_tex
 	return null
 
 func is_armor_item(item_id: String) -> bool:
@@ -362,6 +403,25 @@ func use_item(item_id: String, player: Node) -> bool:
 	# Si es una pieza de armadura, equiparla en su slot correspondiente
 	if info.has("armor_slot"):
 		return equip_armor_item(item_id, player)
+
+	# Si es un arma de fuego (pistola o fusil), equiparla en las manos sin consumirla
+	if info.get("is_weapon_item", false):
+		if item_id == "flintlock_pistol":
+			if player.has_method("equip_weapon") and player.get("flintlock_weapon") != null:
+				player.call("equip_weapon", player.get("flintlock_weapon"))
+			elif player.has_method("equip_tool_by_index"):
+				player.call("equip_tool_by_index", 8)
+			if player.has_method("_spawn_floating_text"):
+				player.call("_spawn_floating_text", "🔫 Equipada: Pistola de Cartuchos ([Clic Izq.] disparar, [Clic Der.] apuntar)", Color.GOLD, -42.0)
+			return true
+		elif item_id == "assault_rifle":
+			if player.has_method("equip_weapon") and player.get("rifle_weapon") != null:
+				player.call("equip_weapon", player.get("rifle_weapon"))
+			elif player.has_method("equip_tool_by_index"):
+				player.call("equip_tool_by_index", 9)
+			if player.has_method("_spawn_floating_text"):
+				player.call("_spawn_floating_text", "🎯 Equipado: Fusil de Asalto del Paso ([Clic Izq.] disparar, [Clic Der.] apuntar)", Color.GOLD, -42.0)
+			return true
 
 	# Si es un paquete de semillas, lo selecciona como semilla activa para sembrar con [E]
 	if info.get("is_seed", false):

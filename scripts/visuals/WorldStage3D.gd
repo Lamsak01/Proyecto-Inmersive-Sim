@@ -1855,6 +1855,23 @@ func _populate_building_interior_3d(b_root: Node3D, b_id: String, rect: Rect2, d
 			_add_model_2d(b_root, "props/Whetstone.gltf", c + Vector2(24, -14), 2.0, Vector2(9.0, 7.5), 9.5)
 			_add_model_2d(b_root, "props/WeaponStand.gltf", c + Vector2(34, 12), 2.0, Vector2(16.0, 8.0), 12.0)
 			_add_model_2d(b_root, "props/Workbench.gltf", c + Vector2(2, -16), 2.0, Vector2(24.0, 10.5), 8.5)
+			# Expositor de Armas de Fuego y Cajas de Munición en la Armería (ARMORY_RACK_POS = c + Vector2(34, 12))
+			var rack_p: Vector2 = c + Vector2(34, 12)
+			for gx in [-4.5, 0.0, 4.5]:
+				var rack_gun: Node3D = AssetLib.instantiate_model("weapons/Pistol_1.obj", Vector3.ZERO, 0.065, true, false)
+				if rack_gun != null:
+					rack_gun.position = to_3d(rack_p + Vector2(gx, -1.0), 10.5)
+					rack_gun.rotation_degrees = Vector3(0.0, 90.0, -25.0)
+					b_root.add_child(rack_gun)
+			# Dos fusiles largos apoyados en el armero
+			for rx in [-6.0, 6.0]:
+				_add_box_2d(b_root, rack_p + Vector2(rx, -1.5), Vector2(1.4, 2.2), 2.5, 5.5, m_wood)
+				_add_box_2d(b_root, rack_p + Vector2(rx, -1.5), Vector2(1.1, 1.4), 7.5, 9.5, m_iron)
+			# Cajas de cartuchos de pistola y fusil sobre el banco del armero
+			_add_box_2d(b_root, c + Vector2(8, -16), Vector2(6.5, 4.5), 10.5, 3.8, m_dark_wood)
+			_add_box_2d(b_root, c + Vector2(8, -16), Vector2(6.7, 4.7), 12.8, 0.8, m_gold)
+			_add_box_2d(b_root, c + Vector2(-4, -16), Vector2(7.5, 5.0), 10.5, 4.2, m_iron)
+			_add_box_2d(b_root, c + Vector2(-4, -16), Vector2(7.7, 5.2), 13.0, 0.8, m_gold)
 		"mixed_family_herbalist":
 			_add_box_2d(b_root, c + Vector2(-42, 4), Vector2(40, 5.5), 2.0, wall_h * 0.85, m_wall)
 			_add_box_2d(b_root, c + Vector2(42, 4), Vector2(40, 5.5), 2.0, wall_h * 0.85, m_wall)
@@ -3181,21 +3198,52 @@ func _setup_fp_viewmodel() -> void:
 
 	# 7. Pistola de Cartuchos ("flintlock" / "pistol")
 	var w_gun := Node3D.new()
-	_add_box(w_gun, Vector3(0.036, 0.11, 0.065), Vector3(0.0, 0.00, 0.02), mat_wood)
-	_add_box(w_gun, Vector3(0.042, 0.056, 0.24), Vector3(0.0, 0.058, -0.09), mat_dark_iron)
-	_add_box(w_gun, Vector3(0.026, 0.030, 0.28), Vector3(0.0, 0.074, -0.14), mat_steel)
-	_add_box(w_gun, Vector3(0.008, 0.018, 0.012), Vector3(0.0, 0.096, -0.26), mat_gold) # Punto de mira
+	var pistol_obj: Node3D = AssetLib.instantiate_model("weapons/Pistol_1.obj", Vector3.ZERO, 0.095, true, false)
+	if pistol_obj != null:
+		pistol_obj.position = Vector3(0.0, 0.02, -0.05)
+		pistol_obj.rotation_degrees = Vector3(0.0, 180.0, 0.0)
+		w_gun.add_child(pistol_obj)
+	_add_box(w_gun, Vector3(0.036, 0.11, 0.065), Vector3(0.0, 0.00, 0.02), mat_wood) # Empuñadura de nogal
+	_add_box(w_gun, Vector3(0.042, 0.056, 0.24), Vector3(0.0, 0.058, -0.09), mat_dark_iron) # Armazón pavonado
+	var p_barrel := MeshInstance3D.new()
+	var p_cyl := CylinderMesh.new()
+	p_cyl.top_radius = 0.015
+	p_cyl.bottom_radius = 0.016
+	p_cyl.height = 0.29
+	p_barrel.mesh = p_cyl
+	p_barrel.position = Vector3(0.0, 0.076, -0.145)
+	p_barrel.rotation_degrees = Vector3(90.0, 0.0, 0.0)
+	p_barrel.material_override = mat_steel
+	w_gun.add_child(p_barrel)
+	_add_box(w_gun, Vector3(0.012, 0.026, 0.018), Vector3(0.0, 0.095, 0.01), mat_gold) # Martillo percutor
+	_add_box(w_gun, Vector3(0.008, 0.016, 0.012), Vector3(-0.011, 0.092, -0.02), mat_dark_iron) # Alza izq
+	_add_box(w_gun, Vector3(0.008, 0.016, 0.012), Vector3(0.011, 0.092, -0.02), mat_dark_iron) # Alza der
+	_add_box(w_gun, Vector3(0.008, 0.020, 0.012), Vector3(0.0, 0.096, -0.27), mat_gold) # Punto de mira
 	_fp_weapon_mount.add_child(w_gun)
 	_fp_weapon_meshes["flintlock"] = w_gun
 
 	# 8. Fusil de Cartuchos del Paso ("rifle")
 	var w_rifle := Node3D.new()
 	_add_box(w_rifle, Vector3(0.040, 0.095, 0.22), Vector3(0.0, 0.01, 0.10), mat_wood) # Culata de madera
+	_add_box(w_rifle, Vector3(0.036, 0.10, 0.055), Vector3(0.0, -0.02, 0.01), mat_wood) # Pistolete de nogal
 	_add_box(w_rifle, Vector3(0.044, 0.064, 0.34), Vector3(0.0, 0.056, -0.12), mat_dark_iron) # Cajón de mecanismos
-	_add_box(w_rifle, Vector3(0.032, 0.12, 0.055), Vector3(0.0, -0.025, -0.14), mat_dark_iron) # Cargador de petaca
-	_add_box(w_rifle, Vector3(0.024, 0.026, 0.44), Vector3(0.0, 0.072, -0.32), mat_steel) # Cañón largo
-	_add_box(w_rifle, Vector3(0.016, 0.016, 0.045), Vector3(0.030, 0.064, -0.06), mat_gold) # Maneta del cerrojo
-	_add_box(w_rifle, Vector3(0.008, 0.022, 0.012), Vector3(0.0, 0.094, -0.50), mat_gold) # Punto de mira delantero
+	_add_box(w_rifle, Vector3(0.040, 0.048, 0.26), Vector3(0.0, 0.045, -0.24), mat_wood) # Guardamanos delantero
+	_add_box(w_rifle, Vector3(0.044, 0.052, 0.022), Vector3(0.0, 0.052, -0.32), mat_gold) # Abrazadera de latón
+	_add_box(w_rifle, Vector3(0.032, 0.13, 0.055), Vector3(0.0, -0.028, -0.14), mat_dark_iron) # Cargador de petaca
+	var r_barrel := MeshInstance3D.new()
+	var r_cyl := CylinderMesh.new()
+	r_cyl.top_radius = 0.013
+	r_cyl.bottom_radius = 0.015
+	r_cyl.height = 0.52
+	r_barrel.mesh = r_cyl
+	r_barrel.position = Vector3(0.0, 0.075, -0.35)
+	r_barrel.rotation_degrees = Vector3(90.0, 0.0, 0.0)
+	r_barrel.material_override = mat_steel
+	w_rifle.add_child(r_barrel)
+	_add_box(w_rifle, Vector3(0.024, 0.018, 0.045), Vector3(0.032, 0.064, -0.06), mat_gold) # Maneta del cerrojo
+	_add_box(w_rifle, Vector3(0.008, 0.018, 0.014), Vector3(-0.012, 0.094, -0.04), mat_dark_iron) # Alza trasera izq
+	_add_box(w_rifle, Vector3(0.008, 0.018, 0.014), Vector3(0.012, 0.094, -0.04), mat_dark_iron) # Alza trasera der
+	_add_box(w_rifle, Vector3(0.008, 0.024, 0.012), Vector3(0.0, 0.096, -0.56), mat_gold) # Punto de mira delantero
 	_fp_weapon_mount.add_child(w_rifle)
 	_fp_weapon_meshes["rifle"] = w_rifle
 

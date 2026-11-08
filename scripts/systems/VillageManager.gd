@@ -2952,7 +2952,16 @@ func force_lock_or_shutter_by_player(player: Node2D) -> bool:
 			player.global_position = w_pos + Vector2(0, -15.0 if door_south else 15.0)
 			return true
 
-	# 4. ¿Está junto al mostrador/taller de un negocio (`shop_businesses`)? -> [F] Sabotear Taller Industrial
+	# 4. ¿Está junto al expositor de armas de la Herrería (`ARMORY_RACK_POS`)? -> [F] Robar arma o munición
+	if player.global_position.distance_to(VillageCulture.ARMORY_RACK_POS) <= 32.0:
+		var inv_arm = player.get("inventory")
+		if inv_arm != null:
+			var want_rf: bool = inv_arm.has_item("flintlock_pistol", 1) and not inv_arm.has_item("assault_rifle", 1)
+			var act_arm: String = "culture_steal_rifle" if want_rf else ("culture_steal_firearm" if not inv_arm.has_item("flintlock_pistol", 1) else "culture_steal_pistol_ammo")
+			VillageCulture.on_player_action(self, null, act_arm, inv_arm)
+			return true
+
+	# 5. ¿Está junto al mostrador/taller de un negocio (`shop_businesses`)? -> [F] Sabotear Taller Industrial
 	var stall_entry: Dictionary = _find_nearest_business_stall(player.global_position, 28.0)
 	if not stall_entry.is_empty():
 		var s_role: int = int(stall_entry.get("role", -1))

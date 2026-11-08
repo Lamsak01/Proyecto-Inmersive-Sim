@@ -346,6 +346,9 @@ func get_prompt_card_data() -> Dictionary:
 			target_state = str(tgt.get("npc_role"))
 		else:
 			target_state = "Vecino"
+		if tgt.is_in_group("armory_rack"):
+			actions[0]["text"] = "Comprar o robar pistola, fusil y munición"
+			actions.append({"key": "F", "text": "Robar arma o cartuchos del expositor", "selected": false})
 	elif area != null and area.has_meta("village_station"):
 		var tag: String = str(area.get_meta("village_station"))
 		var ap: Vector2 = area.global_position

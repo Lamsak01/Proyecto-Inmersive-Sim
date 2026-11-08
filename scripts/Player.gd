@@ -336,6 +336,14 @@ func _ready() -> void:
 		add_child(inventory)
 	if not inventory.armor_changed.is_connected(apply_armor_stats):
 		inventory.armor_changed.connect(apply_armor_stats)
+	if flintlock_weapon and inventory.has_method("get_item_icon"):
+		var p_ic := inventory.get_item_icon("flintlock_pistol")
+		if p_ic:
+			flintlock_weapon.icon = p_ic
+	if rifle_weapon and inventory.has_method("get_item_icon"):
+		var r_ic := inventory.get_item_icon("assault_rifle")
+		if r_ic:
+			rifle_weapon.icon = r_ic
 
 	survival_comp = get_node_or_null("SurvivalComponent")
 	if not survival_comp:

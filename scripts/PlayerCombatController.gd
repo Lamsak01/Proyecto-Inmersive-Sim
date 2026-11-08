@@ -680,10 +680,10 @@ func attack(_aim_with_mouse: bool = true, charge: float = 0.0) -> void:
 			attack_timer = 0.30
 			player.call("wash_bloodstains", true)
 			return
-	var stam_cost: float = 10.0 if equipped.is_ranged else 14.0
+	var stam_cost: float = 0.0 if is_firearm_weapon(equipped) else (10.0 if equipped.is_ranged else 14.0)
 	if not equipped.is_ranged and charge > 0.0:
 		stam_cost += 10.0 * charge
-	if stamina_comp:
+	if stamina_comp and stam_cost > 0.0:
 		if stamina_comp.current_stamina < stam_cost: return
 		stamina_comp.use_stamina(stam_cost)
 	var hc_atk: HealthComponent = player.get_node_or_null("HealthComponent")
@@ -828,7 +828,7 @@ func _fire_bow(equipped: WeaponData, tension: float = 1.0) -> void:
 		scene_root_bow.add_child(arrow)
 
 func _fire_flintlock_realtime(equipped: WeaponData) -> void:
-	var is_rifle: bool = str(equipped.name).to_lower() == "rifle"
+	var is_rifle: bool = is_rifle_weapon(equipped)
 	if reload_step > 0:
 		if player.has_method("show_hint"):
 			player.call("show_hint", "🔄 Recargando (%d/3)... Espera a montar el arma." % reload_step)

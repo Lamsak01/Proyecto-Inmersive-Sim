@@ -4322,12 +4322,13 @@ func _initialize() -> void:
 	vcu_pj.state(vm)["terminal"] = {}
 	p70_inv.remove_item("flintlock_pistol", p70_inv.get_count("flintlock_pistol"))
 	p70_inv.remove_item("powder_charge", p70_inv.get_count("powder_charge"))
-	p70_inv.gold = 100
+	p70_inv.remove_item("pistol_ammo", p70_inv.get_count("pistol_ammo"))
+	p70_inv.gold = 20
 	p70_a.personal_gold = 10
-	assert(not vcu_pj.buy_firearm(vm, p70_a, p70_inv), "PO.1a: Firearm requires reinforced_locks technology unlocked first")
-	(vcu_pj.research_state(vm)["unlocked"] as Dictionary)["reinforced_locks"] = true
+	assert(not vcu_pj.buy_firearm(vm, p70_a, p70_inv), "PO.1a: Buying firearm requires enough gold (60)")
+	p70_inv.gold = 100
 	vcu_pj.on_player_action(vm, p70_a, "culture_buy_firearm", p70_inv)
-	assert(p70_inv.has_item("flintlock_pistol", 1) and p70_inv.get_count("powder_charge") == 2 and p70_inv.gold == 40 and p70_a.personal_gold == 70, "PO.1b: Buying firearm transfers 60 gold to artisan and grants flintlock_pistol + 2 powder_charge")
+	assert(p70_inv.has_item("flintlock_pistol", 1) and p70_inv.get_count("powder_charge") == 2 and p70_inv.get_count("pistol_ammo") == 6 and p70_inv.gold == 40 and p70_a.personal_gold == 70, "PO.1b: Buying firearm transfers 60 gold to artisan and grants flintlock_pistol + 2 powder_charge + 6 pistol_ammo")
 	vcu_pj.on_player_action(vm, p70_a, "culture_buy_powder", p70_inv)
 	assert(p70_inv.get_count("powder_charge") == 4 and p70_inv.gold == 26 and p70_a.personal_gold == 84, "PO.1c: Buying powder pack transfers 14 gold to artisan and adds 2 powder_charge")
 	var po_def_no_gun: int = vcu_pj.defense_power(vm, true, null)
