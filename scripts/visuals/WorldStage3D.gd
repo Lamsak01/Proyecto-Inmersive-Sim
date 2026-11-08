@@ -1734,7 +1734,7 @@ func _build_tavern_floor_0_3d(b_root: Node3D, _wall_h: float, m_wall: Material, 
 	# 1. Tabiques interiores de Planta 0 (con los mismos huecos de paso que en VillageTavern.OPENINGS_FLOOR_0)
 	var x0: float = T.RECT.position.x
 	var x1: float = T.RECT.end.x
-	var h_gaps: Array[float] = [316.0, 434.0, 524.0]
+	var h_gaps: Array[float] = [432.0, 534.0]
 	var cur_x: float = x0
 	for gx in h_gaps:
 		var a: float = gx - T.GAP * 0.5
@@ -1747,7 +1747,7 @@ func _build_tavern_floor_0_3d(b_root: Node3D, _wall_h: float, m_wall: Material, 
 
 	var y0: float = T.RECT.position.y
 	var y1: float = T.RECT.end.y
-	var v_gaps: Array[float] = [-252.0, -168.0]
+	var v_gaps: Array[float] = [-276.0, -182.0]
 	var cur_y: float = y0
 	for gy in v_gaps:
 		var ay: float = gy - T.GAP * 0.5
@@ -2784,10 +2784,46 @@ func _sync_club_3d() -> void:
 		var trap := Node3D.new()
 		trap.name = "ClubTrapdoor3D"
 		stage_root_3d.add_child(trap)
-		_add_box_2d(trap, Club.TRAPDOOR_POS, Vector2(14.0, 12.0), 2.5, 1.0, m_wood)
-		_add_box_2d(trap, Club.TRAPDOOR_POS + Vector2(0, 4), Vector2(10.0, 1.2), 3.5, 0.6, m_iron)
-		_add_box_2d(trap, Club.TRAPDOOR_POS + Vector2(0, -4), Vector2(10.0, 1.2), 3.5, 0.6, m_iron)
-	_club_root_3d.visible = Club.is_player_in_club(vm)
+		var closed_lid := Node3D.new()
+		closed_lid.name = "ClosedLid"
+		trap.add_child(closed_lid)
+		_add_box_2d(closed_lid, Club.TRAPDOOR_POS, Vector2(16.0, 14.0), 2.5, 1.1, m_wood)
+		_add_box_2d(closed_lid, Club.TRAPDOOR_POS + Vector2(0, 4.2), Vector2(12.0, 1.3), 3.6, 0.6, m_iron)
+		_add_box_2d(closed_lid, Club.TRAPDOOR_POS + Vector2(0, -4.2), Vector2(12.0, 1.3), 3.6, 0.6, m_iron)
+		var open_hatch := Node3D.new()
+		open_hatch.name = "OpenHatch"
+		trap.add_child(open_hatch)
+		# Marco de madera, hueco oscuro hacia el sótano (-1), hoja levantada al norte y peldaños de escalera asomando
+		_add_box_2d(open_hatch, Club.TRAPDOOR_POS + Vector2(0, -7.2), Vector2(16.0, 1.6), 2.5, 1.4, m_wood)
+		_add_box_2d(open_hatch, Club.TRAPDOOR_POS + Vector2(0, 7.2), Vector2(16.0, 1.6), 2.5, 1.4, m_wood)
+		_add_box_2d(open_hatch, Club.TRAPDOOR_POS + Vector2(-7.8, 0), Vector2(1.6, 13.0), 2.5, 1.4, m_wood)
+		_add_box_2d(open_hatch, Club.TRAPDOOR_POS + Vector2(7.8, 0), Vector2(1.6, 13.0), 2.5, 1.4, m_wood)
+		_add_box_2d(open_hatch, Club.TRAPDOOR_POS, Vector2(13.6, 12.2), 2.45, 0.4, m_rock) # Pozo oscuro abierto
+		_add_box_2d(open_hatch, Club.TRAPDOOR_POS + Vector2(0, -7.8), Vector2(15.2, 1.8), 3.2, 11.5, m_wood) # Tapa abierta levantada
+		_add_box_2d(open_hatch, Club.TRAPDOOR_POS + Vector2(0, -6.8), Vector2(12.0, 0.6), 6.0, 1.2, m_iron) # Herraje interior
+		_add_box_2d(open_hatch, Club.TRAPDOOR_POS + Vector2(-4.0, -1.5), Vector2(1.2, 1.4), 1.5, 4.8, m_iron) # Larguero izq
+		_add_box_2d(open_hatch, Club.TRAPDOOR_POS + Vector2(4.0, -1.5), Vector2(1.2, 1.4), 1.5, 4.8, m_iron) # Larguero der
+		_add_box_2d(open_hatch, Club.TRAPDOOR_POS + Vector2(0, -1.5), Vector2(7.4, 1.0), 3.2, 0.8, m_wood) # Peldaño superior
+		_add_box_2d(open_hatch, Club.TRAPDOOR_POS + Vector2(0, 1.5), Vector2(7.4, 1.0), 2.6, 0.8, m_torch) # Resplandor cálido del sótano
+		if not _is_headless:
+			var t_lt := OmniLight3D.new()
+			t_lt.position = to_3d(Club.TRAPDOOR_POS, 5.5)
+			t_lt.light_color = Color(1.0, 0.72, 0.28)
+			t_lt.light_energy = 1.35
+			t_lt.omni_range = 1.8
+			open_hatch.add_child(t_lt)
+	var in_club_now: bool = Club.is_player_in_club(vm)
+	var open_now: bool = Club.is_open_now(vm)
+	_club_root_3d.visible = in_club_now
+	var trap_node := stage_root_3d.get_node_or_null("ClubTrapdoor3D") as Node3D
+	if is_instance_valid(trap_node):
+		trap_node.visible = not in_club_now
+		var cl_n := trap_node.get_node_or_null("ClosedLid") as Node3D
+		var op_n := trap_node.get_node_or_null("OpenHatch") as Node3D
+		if is_instance_valid(cl_n):
+			cl_n.visible = not open_now
+		if is_instance_valid(op_n):
+			op_n.visible = open_now
 
 ## P5: libro de cuentas abierto sobre la mesa del ayuntamiento (se construye una vez).
 func _sync_town_ledger_3d() -> void:
@@ -2862,8 +2898,11 @@ func _update_roof_cutaways_and_lighting() -> void:
 
 	for rec in _building_records_3d:
 		var rect: Rect2 = rec["rect"]
+		var b_root_node: Node3D = rec.get("root") as Node3D
 		var roof_cap: Node3D = rec["roof_cap"]
 		var loft_root: Node3D = rec["loft_root"]
+		if str(rec.get("id", "")) == "building_tavern" and is_instance_valid(b_root_node):
+			b_root_node.visible = (elev != -1)
 		if not is_instance_valid(roof_cap):
 			continue
 		var r_near: Rect2 = rect.grow(38.0)

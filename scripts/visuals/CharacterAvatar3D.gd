@@ -287,6 +287,10 @@ func _process_in_stage(delta: float) -> void:
 		var spr_orig = target_entity.get("sprite")
 		if spr_orig is CanvasItem:
 			alpha = clampf((spr_orig as CanvasItem).modulate.a, 0.0, 1.0)
+		if target_entity is CanvasItem:
+			alpha *= clampf((target_entity as CanvasItem).modulate.a, 0.0, 1.0)
+	if alpha <= 0.02:
+		_holder.visible = false
 	_set_rig_alpha(alpha)
 	if perf_on: _pt = _perf_add("rig_alpha", _pt)
 	_apply_2d_vs_3d_visibility()

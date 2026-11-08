@@ -139,6 +139,14 @@ func _process(_delta: float) -> void:
 				show_2d = VillageClub.is_player_in_club(vm)
 			elif prop_kind in ["sewer_grate", "club_trapdoor"]:
 				show_2d = (int(vm.player_elevation_level) == 0)
+				if prop_kind == "club_trapdoor":
+					var open_now: bool = VillageClub.is_open_now(vm)
+					var n_closed := visual_2d.get_node_or_null("ClosedTrapdoor2D") as CanvasItem
+					var n_open := visual_2d.get_node_or_null("OpenTrapdoor2D") as CanvasItem
+					if is_instance_valid(n_closed):
+						n_closed.visible = not open_now
+					if is_instance_valid(n_open):
+						n_open.visible = open_now
 		visual_2d.visible = show_2d
 
 
@@ -180,7 +188,7 @@ func _rebuild_visual_and_area() -> void:
 		"town_ledger":
 			_draw_town_ledger_2d()
 		"club_trapdoor":
-			_draw_sewer_grate_2d()
+			_draw_club_trapdoor_2d()
 		"club_ladder":
 			_draw_sewer_ladder_2d()
 		"tavern_stairs":
@@ -289,6 +297,44 @@ func _draw_sewer_ladder_2d() -> void:
 	_rect(Vector2(4.2, 0), Vector2(1.0, 8.0), Color(0.56, 0.42, 0.24)) # Larguero der
 	for ry in [-5.5, -2.0, 1.5, 5.0]:
 		_rect(Vector2(0, ry), Vector2(4.2, 0.8), Color(0.76, 0.64, 0.38)) # Peldaños
+
+
+func _draw_club_trapdoor_2d() -> void:
+	var add_r := func(parent_n: Node2D, center: Vector2, half: Vector2, col: Color) -> void:
+		var p := Polygon2D.new()
+		p.polygon = PackedVector2Array([
+			center + Vector2(-half.x, -half.y),
+			center + Vector2(half.x, -half.y),
+			center + Vector2(half.x, half.y),
+			center + Vector2(-half.x, half.y),
+		])
+		p.color = col
+		p.set_meta("flat_2d_building_visual", true)
+		parent_n.add_child(p)
+	var closed_n := Node2D.new()
+	closed_n.name = "ClosedTrapdoor2D"
+	visual_2d.add_child(closed_n)
+	add_r.call(closed_n, Vector2(0, 1), Vector2(9.5, 8.5), Color(0.10, 0.08, 0.06, 0.60)) # Sombra
+	add_r.call(closed_n, Vector2(0, 0), Vector2(8.5, 7.5), Color(0.32, 0.20, 0.10)) # Marco de roble
+	add_r.call(closed_n, Vector2(0, 0), Vector2(7.2, 6.2), Color(0.48, 0.31, 0.16)) # Tablas cerradas
+	add_r.call(closed_n, Vector2(0, -3.4), Vector2(7.0, 0.9), Color(0.24, 0.27, 0.32)) # Herraje norte
+	add_r.call(closed_n, Vector2(0, 3.4), Vector2(7.0, 0.9), Color(0.24, 0.27, 0.32)) # Herraje sur
+	add_r.call(closed_n, Vector2(4.2, 0), Vector2(1.4, 1.4), Color(0.86, 0.68, 0.24)) # Candado cerrado
+
+	var open_n := Node2D.new()
+	open_n.name = "OpenTrapdoor2D"
+	open_n.visible = vm != null and VillageClub.is_open_now(vm)
+	closed_n.visible = not open_n.visible
+	visual_2d.add_child(open_n)
+	add_r.call(open_n, Vector2(0, 0), Vector2(12.0, 10.5), Color(1.0, 0.68, 0.22, 0.38)) # Resplandor cálido de antorchas del sótano
+	add_r.call(open_n, Vector2(0, -9.2), Vector2(7.8, 3.4), Color(0.50, 0.33, 0.17)) # Hoja de madera abierta hacia atrás
+	add_r.call(open_n, Vector2(0, -9.2), Vector2(7.2, 0.8), Color(0.24, 0.27, 0.32)) # Bisagra de hierro
+	add_r.call(open_n, Vector2(0, 0), Vector2(8.5, 7.5), Color(0.34, 0.21, 0.11)) # Brocal de madera
+	add_r.call(open_n, Vector2(0, 0), Vector2(6.8, 5.8), Color(0.06, 0.05, 0.04)) # Pozo abierto al sótano (-1)
+	add_r.call(open_n, Vector2(-3.6, 0.5), Vector2(0.8, 5.2), Color(0.58, 0.42, 0.24)) # Larguero escalera izq
+	add_r.call(open_n, Vector2(3.6, 0.5), Vector2(0.8, 5.2), Color(0.58, 0.42, 0.24)) # Larguero escalera der
+	for ry in [-3.2, -0.4, 2.4, 4.8]:
+		add_r.call(open_n, Vector2(0, ry), Vector2(3.6, 0.75), Color(0.82, 0.66, 0.38)) # Peldaños iluminados
 
 
 func _draw_sewer_chest_2d() -> void:

@@ -717,6 +717,20 @@ func has_line_of_sight(from_pos: Vector2, to_pos: Vector2) -> bool:
 
 ## Navegación inteligente por pasillos de puertas y tabiques internos (sin atascos ni giros contra muros)
 func get_navigation_waypoint(from_pos: Vector2, to_pos: Vector2, agent: Node2D = null) -> Vector2:
+	if agent != null and "elevation_level" in agent and int(agent.elevation_level) == -1:
+		var club_rect := Rect2(VillageClub.CLUB_CENTER - VillageClub.CLUB_SIZE * 0.5, VillageClub.CLUB_SIZE).grow(12.0)
+		var stay_in_club: bool = club_rect.has_point(to_pos) and (("errand_kind" in agent and str(agent.errand_kind) == "club_watch") or agent.get_meta("club_bout", false) == true)
+		if stay_in_club:
+			return to_pos
+		if from_pos.distance_to(VillageClub.LADDER_POS) > 10.0:
+			return VillageClub.LADDER_POS
+		agent.global_position = VillageClub.TRAPDOOR_POS + Vector2(0.0, 8.0)
+		if agent is VillageNPC:
+			set_npc_elevation_level(agent as VillageNPC, 0)
+		else:
+			agent.set("elevation_level", 0)
+		from_pos = agent.global_position
+
 	var lane_shift: float = 0.0
 	if agent != null:
 		lane_shift = float((abs(agent.name.hash()) % 5) - 2) * 1.5
@@ -1451,7 +1465,11 @@ func _refresh_elevation_layer_visuals() -> void:
 	for n in get_tree().get_nodes_in_group("village_npcs"):
 		if n is VillageNPC:
 			var v: VillageNPC = n as VillageNPC
-			v.modulate.a = 1.0 if are_on_same_elevation(v.elevation_level, player_elevation_level) else 0.35
+			var same_underground: bool = (int(v.elevation_level) == -1) == (int(player_elevation_level) == -1)
+			if not same_underground:
+				v.modulate.a = 0.0
+			else:
+				v.modulate.a = 1.0 if are_on_same_elevation(v.elevation_level, player_elevation_level) else 0.35
 	VillageUnderworld.sync_sewer_visibility(self)
 	VillageClub.sync_club_visibility(self)
 

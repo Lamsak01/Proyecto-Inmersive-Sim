@@ -146,35 +146,52 @@ static func setup_world(vm) -> void:
 		DOOR_W, 20.0, Color(1.0, 0.88, 0.45)
 	)
 
-	# Alfombras 2D de las salas de Planta 0 (Salón, Casino y Escalera)
-	vm._add_poly(PackedVector2Array([
-		Vector2(486.0, -226.0), Vector2(600.0, -226.0),
-		Vector2(600.0, -140.0), Vector2(486.0, -140.0)
-	]), Color(0.55, 0.14, 0.14, 0.62), -1)
+	# Alfombra discreta bajo el salón del casino en Planta 0 (z_index = -2, bajo las mesas)
+	var cas_rug: Polygon2D = vm._add_rect_poly(Vector2(543.0, -182.0), Vector2(52.0, 38.0), Color(0.44, 0.16, 0.14, 0.36), -2)
+	cas_rug.add_to_group("tavern_floor0_2d")
+
+	# Tabiques internos de Planta 0 (idénticos a los pasos de OPENINGS_FLOOR_0 en 2D y 3D)
+	var tex_wall_h: Texture2D = vm._load_tex("res://assests/world/village/wall_timber_h.png")
+	var tex_wall_v: Texture2D = vm._load_tex("res://assests/world/village/wall_timber_v.png")
+	var part_segs: Array = [
+		[Vector2(335.0, MID_WALL_Y), Vector2(150.0, 6.0), tex_wall_h],
+		[Vector2(484.0, MID_WALL_Y), Vector2(60.0, 6.0), tex_wall_h],
+		[Vector2(581.0, MID_WALL_Y), Vector2(54.0, 6.0), tex_wall_h],
+		[Vector2(EAST_WING_X, -304.5), Vector2(6.0, 23.0), tex_wall_v],
+		[Vector2(EAST_WING_X, -231.5), Vector2(6.0, 55.0), tex_wall_v],
+		[Vector2(EAST_WING_X, -146.0), Vector2(6.0, 28.0), tex_wall_v],
+	]
+	for pseg in part_segs:
+		var child_idx_before: int = vm.entities_root.get_child_count()
+		vm._add_solid_wall_segment(pseg[0], pseg[1], pseg[2])
+		if vm.entities_root.get_child_count() > child_idx_before:
+			var sb_w: Node = vm.entities_root.get_child(vm.entities_root.get_child_count() - 1)
+			sb_w.add_to_group("tavern_floor0_2d")
+			sb_w.add_to_group("tavern_floor0_walls")
 
 	# Mostrador largo de Marta y pasa-platos del camarero
-	vm._add_rect_poly(BAR_COUNTER_POS, BAR_COUNTER_SIZE * 0.5, Color(0.42, 0.25, 0.12, 0.98), -1)
-	vm._add_sprite_prop(tex_stall, BAR_COUNTER_POS + Vector2(0.0, 4.0), Vector2(1.4, 1.2), 0)
+	vm._add_rect_poly(BAR_COUNTER_POS, BAR_COUNTER_SIZE * 0.5, Color(0.42, 0.25, 0.12, 0.98), -1).add_to_group("tavern_floor0_2d")
+	vm._add_sprite_prop(tex_stall, BAR_COUNTER_POS + Vector2(0.0, 4.0), Vector2(1.4, 1.2), -1).add_to_group("tavern_floor0_2d")
 
 	# 6 Mesas de comedor y tertulia en el Gran Salón (Planta 0)
 	for tp in DINING_TABLES:
-		vm._add_rect_poly(tp, Vector2(11.0, 6.5), Color(0.54, 0.35, 0.18, 0.98), -1)
+		vm._add_rect_poly(tp, Vector2(11.0, 6.5), Color(0.54, 0.35, 0.18, 0.98), -1).add_to_group("tavern_floor0_2d")
 		for off in CHAIR_OFFSETS:
-			vm._add_rect_poly(tp + (off as Vector2), Vector2(3.5, 3.5), Color(0.38, 0.24, 0.12, 0.95), -1)
+			vm._add_rect_poly(tp + (off as Vector2), Vector2(3.5, 3.5), Color(0.38, 0.24, 0.12, 0.95), -1).add_to_group("tavern_floor0_2d")
 
 	# 1. Mesa Verde de Póker / Blackjack / Ruleta con 4 sillas
-	vm._add_rect_poly(GAMES_POS, Vector2(14.0, 10.0), Color(0.42, 0.26, 0.12, 1.0), -1)
-	vm._add_rect_poly(GAMES_POS, Vector2(11.5, 7.5), Color(0.10, 0.50, 0.25, 1.0), -1)
+	vm._add_rect_poly(GAMES_POS, Vector2(14.0, 10.0), Color(0.42, 0.26, 0.12, 1.0), -1).add_to_group("tavern_floor0_2d")
+	vm._add_rect_poly(GAMES_POS, Vector2(11.5, 7.5), Color(0.10, 0.50, 0.25, 1.0), -1).add_to_group("tavern_floor0_2d")
 	for chair_off in POKER_CHAIR_OFFSETS:
-		vm._add_rect_poly(GAMES_POS + (chair_off as Vector2), Vector2(4.0, 4.0), Color(0.55, 0.36, 0.18, 0.95), -1)
+		vm._add_rect_poly(GAMES_POS + (chair_off as Vector2), Vector2(4.0, 4.0), Color(0.55, 0.36, 0.18, 0.95), -1).add_to_group("tavern_floor0_2d")
 
 	vm._add_station_area("TavernGamesTableArea", GAMES_POS, 18.0, "tavern_games")
 	vm._tavern_games_label = vm._make_station_label(GAMES_POS + Vector2(-120.0, -30.0), "🃏 Mesa de Póker y Casino [E: Jugar con Aldeanos]")
 	vm.entities_root.add_child(vm._tavern_games_label)
 
 	# 2. Mesa de Billar de la Posada
-	vm._add_rect_poly(POOL_POS, Vector2(14.0, 8.5), Color(0.38, 0.22, 0.10, 1.0), -1)
-	vm._add_rect_poly(POOL_POS, Vector2(12.0, 6.5), Color(0.08, 0.48, 0.30, 1.0), -1)
+	vm._add_rect_poly(POOL_POS, Vector2(14.0, 8.5), Color(0.38, 0.22, 0.10, 1.0), -1).add_to_group("tavern_floor0_2d")
+	vm._add_rect_poly(POOL_POS, Vector2(12.0, 6.5), Color(0.08, 0.48, 0.30, 1.0), -1).add_to_group("tavern_floor0_2d")
 	vm._add_station_area("TavernPoolTableArea", POOL_POS, 18.0, "tavern_pool")
 	vm._tavern_pool_label = vm._make_station_label(POOL_POS + Vector2(-115.0, -30.0), "🎱 Mesa de Billar [E: Jugar Billar de Posada]")
 	vm.entities_root.add_child(vm._tavern_pool_label)
@@ -182,7 +199,7 @@ static func setup_world(vm) -> void:
 	# 3. Escalera de madera entre Planta 0 y Planta +1 (Cuartos de Huéspedes)
 	for step_i in range(8):
 		var sy: float = lerpf(STAIRS_BOTTOM_POS.y, STAIRS_TOP_POS.y, float(step_i) / 7.0)
-		vm._add_rect_poly(Vector2(STAIRS_BOTTOM_POS.x, sy), Vector2(12.0, 2.5), Color(0.48, 0.31, 0.16, 0.95), -1)
+		vm._add_rect_poly(Vector2(STAIRS_BOTTOM_POS.x, sy), Vector2(12.0, 2.5), Color(0.48, 0.31, 0.16, 0.95), -1).add_to_group("tavern_floor0_2d")
 	var stairs_prop := WorldInteractableProp.new()
 	stairs_prop.name = "Prop_Tavern_Stairs"
 	stairs_prop.global_position = STAIRS_PROP_POS
@@ -609,7 +626,10 @@ static func seed_initial_patrons(vm) -> void:
 			n.global_position = n.errand_pos
 			n.set_meta("leisure_since", vm.VillageNeeds.total_hours())
 
-static func tick(vm, _delta: float) -> void:
+static var _poker_callout_cooldown: float = 4.0
+static var _club_rumor_cooldown: float = 9.0
+
+static func tick(vm, delta: float) -> void:
 	if vm == null:
 		return
 	var pl = vm.VillageNeeds.player_of(vm)
@@ -642,11 +662,22 @@ static func tick(vm, _delta: float) -> void:
 						n.facing_direction = ((tp as Vector2) - n.global_position).normalized()
 						break
 
-	# 2. Reacciones periódicas de la partida de póker en vivo en la mesa del casino
-	if poker_seated.size() >= 1 and randf() < 0.14:
+	# 2. Reacciones periódicas de la partida de póker con enfriamiento real (sin amontonar bocadillos)
+	_poker_callout_cooldown = maxf(0.0, _poker_callout_cooldown - delta)
+	if poker_seated.size() >= 1 and _poker_callout_cooldown <= 0.0:
+		_poker_callout_cooldown = randf_range(7.0, 12.0)
 		var actor = poker_seated[randi() % poker_seated.size()]
 		var msg: String = POKER_CALLOUTS[randi() % POKER_CALLOUTS.size()]
 		actor._spawn_floating_text(msg, Color(0.65, 1.0, 0.78), -30.0)
+
+	# 2b. Rumor en vivo en la taberna sobre el horario y ubicación de la trampilla del Club de Peleas
+	_club_rumor_cooldown = maxf(0.0, _club_rumor_cooldown - delta)
+	var cur_h_t: int = int(WorldClock.current_hour) if WorldClock else 12
+	if (cur_h_t >= 20 or cur_h_t < 3) and _club_rumor_cooldown <= 0.0:
+		_club_rumor_cooldown = randf_range(16.0, 24.0)
+		var speaker = vm._innkeeper_npc if (is_instance_valid(vm._innkeeper_npc) and not vm._innkeeper_npc.is_sleeping and not vm._innkeeper_npc.is_dead) else (poker_seated[0] if not poker_seated.is_empty() else null)
+		if speaker != null:
+			speaker._spawn_floating_text("🕳️🥊 «De 21:00 a 03:00 abre la trampilla del sótano en el cuarto de la escalera»", Color(1.0, 0.84, 0.45), -34.0)
 
 	# 3. En modo 2D, mostrar las camas del piso superior solo cuando el jugador está en Planta +1
 	if vm.is_inside_tree():

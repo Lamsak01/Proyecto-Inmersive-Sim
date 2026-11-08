@@ -14,9 +14,9 @@ const VillageUnderworld = preload("res://scripts/systems/VillageUnderworld.gd")
 const TraitCatalog = preload("res://scripts/data/TraitCatalog.gd")
 
 const TRAPDOOR_POS: Vector2 = Vector2(516.0, -286.0) # cuarto trasero de escalera y bodega de la taberna (planta 0)
-const CLUB_CENTER: Vector2 = Vector2(165.0, -224.0) # sótano bajo el patio oeste de la taberna (nivel -1, libre de muros en planta 0)
-const CLUB_SIZE: Vector2 = Vector2(150.0, 110.0)
-const LADDER_POS: Vector2 = Vector2(107.0, -260.0)
+const CLUB_CENTER: Vector2 = Vector2(434.0, -224.0) # sótano directamente bajo la taberna (nivel -1, misma huella X/Y)
+const CLUB_SIZE: Vector2 = Vector2(240.0, 136.0)
+const LADDER_POS: Vector2 = Vector2(516.0, -276.0) # escalerilla justo debajo de la trampilla (516, -286)
 const RING_RADIUS: float = 40.0
 const SEAT_RADIUS: float = 56.0
 const OPEN_FROM: int = 21
@@ -124,13 +124,14 @@ static func open_night(vm) -> int:
 	if fence.errand_kind != "":
 		fence.end_errand() # deja el callejón (P5b)
 	fence.start_errand("club_go", TRAPDOOR_POS)
+	fence._spawn_floating_text("🕳️🥊 «Abierta la trampilla del sótano (21:00–03:00)»", Color(1.0, 0.84, 0.42), -36.0)
 	for n in picked:
 		if n.errand_kind == "leisure":
 			vm.VillagePlaces._leave(n)
 		n.start_errand("club_go", TRAPDOOR_POS)
 	return picked.size()
 
-## Al llegar a la trampilla: baja a la sala (nivel −1) y se coloca alrededor del corro.
+## Al llegar a la trampilla: baja por la escalerilla a la sala (nivel −1) y camina hasta su sitio alrededor del corro.
 static func on_arrived(vm, n) -> void:
 	var c: Dictionary = state(vm)
 	var keys: Array = c.get("attendees", [])
@@ -140,7 +141,7 @@ static func on_arrived(vm, n) -> void:
 		return
 	_check_trapdoor_witness(vm, n, TRAPDOOR_POS)
 	var seat: Vector2 = seat_pos(idx, keys.size())
-	n.global_position = seat
+	n.global_position = LADDER_POS + Vector2(randf_range(-4.0, 4.0), randf_range(2.0, 6.0))
 	vm.set_npc_elevation_level(n, -1)
 	n.start_errand("club_watch", seat)
 
@@ -275,22 +276,22 @@ static func is_player_in_club(vm) -> bool:
 static func _guard_watching(vm, pos: Vector2):
 	for n in VillageNeeds.living(vm):
 		if int(n.trade_role) in [int(VillageNPC.TradeRole.GUARD), int(VillageNPC.TradeRole.SHERIFF)]:
-			if not n.is_sleeping and not n.is_incapacitated() and int(n.elevation_level) == 0 and n.global_position.distance_to(pos) <= WITNESS_PX:
-				return n
+			if not n.is_sleeping and not n.is_incapacitated() and int(n.elevation_level) == 0 and n.global_position.distance_to(pos) <= 72.0:
+				if vm == null or not vm.has_method("has_line_of_sight") or vm.has_line_of_sight(n.global_position, pos):
+					return n
 	return null
 
 static func _check_trapdoor_witness(vm, who, pos: Vector2) -> void:
+	if who == null or not who.is_in_group("player"):
+		return
 	var g = _guard_watching(vm, pos)
 	if g == null:
 		return
 	var c: Dictionary = state(vm)
 	c["closed_night"] = int(c.get("night", night_of(OPEN_FROM))) + 2
-	if who != null and who.is_in_group("player"):
-		vm.wanted_level = clampi(int(vm.wanted_level) + 1, 1, 5)
-		_msg(who, "👮 ¡%s te vio en la trampilla! (Búsqueda +1)" % g.npc_name, Color.ORANGE_RED)
-		VillageChronicle.add(vm, "club_seen", "%s vio al forastero colarse por una trampilla detrás de la taberna" % g.npc_name, true)
-	else:
-		VillageChronicle.add(vm, "club_seen", "%s vio gente bajar por una trampilla detrás de la taberna; la guardia ronda la taberna" % g.npc_name, true)
+	vm.wanted_level = clampi(int(vm.wanted_level) + 1, 1, 5)
+	_msg(who, "👮 ¡%s te vio en la trampilla! (Búsqueda +1)" % g.npc_name, Color.ORANGE_RED)
+	VillageChronicle.add(vm, "club_seen", "%s vio al forastero colarse por una trampilla detrás de la taberna" % g.npc_name, true)
 
 # ------------------------------------------------------------------ pelear tú
 static func _player_hp_ratio(player) -> float:
@@ -556,7 +557,7 @@ static func build_world(vm) -> void:
 	vm.entities_root.add_child(root)
 	var vis := Node2D.new()
 	vis.name = "FightClubVisual2D"
-	vis.z_index = -2
+	vis.z_index = -1
 	vis.add_to_group("sewer_visual_2d")
 	root.add_child(vis)
 	var add_rect := func(center: Vector2, sz: Vector2, col: Color) -> void:
@@ -565,8 +566,8 @@ static func build_world(vm) -> void:
 		p.polygon = PackedVector2Array([center + Vector2(-h.x, -h.y), center + Vector2(h.x, -h.y), center + Vector2(h.x, h.y), center + Vector2(-h.x, h.y)])
 		p.color = col
 		vis.add_child(p)
-	add_rect.call(CLUB_CENTER, CLUB_SIZE + Vector2(60, 60), Color(0.08, 0.09, 0.08, 0.96)) # roca
-	add_rect.call(CLUB_CENTER, CLUB_SIZE, Color(0.36, 0.27, 0.18)) # suelo de tierra
+	add_rect.call(CLUB_CENTER, Vector2(368.0, 204.0), Color(0.08, 0.09, 0.08, 0.98)) # roca bajo toda la huella de la taberna
+	add_rect.call(CLUB_CENTER, CLUB_SIZE, Color(0.36, 0.27, 0.18)) # suelo de tierra del sótano
 	var rope := Line2D.new()
 	rope.width = 2.0
 	rope.default_color = Color(0.78, 0.66, 0.42)
@@ -604,7 +605,6 @@ static func sync_club_visibility(vm) -> void:
 	if vm == null or not ("entities_root" in vm) or not is_instance_valid(vm.entities_root):
 		return
 	var in_club: bool = is_player_in_club(vm)
-	var has_bout: bool = not (state(vm).get("bout", {}) as Dictionary).is_empty()
 	var use_3d: bool = load("res://scripts/visuals/CharacterAvatar3D.gd").use_3d_characters
 	var root: Node2D = vm.entities_root.get_node_or_null("FightClub2D") as Node2D
 	if is_instance_valid(root):
@@ -613,7 +613,15 @@ static func sync_club_visibility(vm) -> void:
 			vis.visible = in_club and not use_3d
 		var body: StaticBody2D = root.get_node_or_null("FightClubWallsBody") as StaticBody2D
 		if is_instance_valid(body):
-			body.collision_layer = 1 if (in_club or has_bout) else 0
+			body.collision_layer = 1 if in_club else 0
+	if vm.is_inside_tree():
+		for n0 in vm.get_tree().get_nodes_in_group("tavern_floor0_2d"):
+			if n0 is CanvasItem and is_instance_valid(n0):
+				(n0 as CanvasItem).visible = not in_club and not use_3d
+		var on_floor0: bool = (int(vm.player_elevation_level) == 0)
+		for w0 in vm.get_tree().get_nodes_in_group("tavern_floor0_walls"):
+			if w0 is StaticBody2D and is_instance_valid(w0):
+				(w0 as StaticBody2D).collision_layer = 1 if on_floor0 else 0
 
 static func fighter_key_at(vm, slot: String) -> String:
 	var f: Array = state(vm).get("fighters", [])
