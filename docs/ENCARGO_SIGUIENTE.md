@@ -22,6 +22,10 @@ y no se hizo nada: eso no puede volver a pasar.
 - **Tras cada paso, lee «Notas del supervisor (noche)» justo debajo.** Claude Code revisa tus commits durante la
   noche y deja ahí correcciones; si hay alguna nueva, hazla antes de seguir y márcala con ✅.
 - **Al terminar:** resumen al principio del informe: qué se hizo, qué falló y se deshizo, y qué preguntas quedan.
+  Luego crea el archivo `docs/NOCHE_TERMINADA.txt` (una línea con la hora) y haz commit: así el vigilante sabe que acabaste.
+- **Si te lanzan a mitad de la noche** (un vigilante automático te relanza si el anterior se paró): mira `git log`,
+  `git status` y el informe, y sigue desde el primer punto de la lista que no esté hecho. Si hay cambios sin guardar,
+  son trabajo a medias: revísalos y termínalos primero.
 
 ## Notas del supervisor (noche)
 - (vacío por ahora)
