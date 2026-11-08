@@ -46,6 +46,26 @@ const WorldStage3DScript = preload("res://scripts/visuals/WorldStage3D.gd")
 ## Gestor Integral de Urbanismo Sólido, Hospital/Morgue Forense, Comisaría/Cárcel, Testigos,
 ## Sigilo Doméstico, Reputación Familiar, Tablón de Encargos y Red Eléctrica (10 Pasos de Expansión)
 
+## Interruptor central «MODO DEMO» (Caso I), sincronizado con `GameManager.demo_mode` (encendido por defecto).
+const DEMO_MODE_DEFAULT: bool = true
+var demo_mode: bool = DEMO_MODE_DEFAULT:
+	set(value):
+		if demo_mode == value:
+			return
+		demo_mode = value
+		if is_inside_tree() and GameManager and bool(GameManager.get("demo_mode")) != value:
+			GameManager.demo_mode = value
+
+func is_demo_mode() -> bool:
+	if is_inside_tree() and GameManager and GameManager.has_method("is_demo_mode"):
+		return bool(GameManager.is_demo_mode())
+	return demo_mode
+
+func set_demo_mode(enabled: bool) -> void:
+	demo_mode = enabled
+	if is_inside_tree() and GameManager and GameManager.has_method("set_demo_mode"):
+		GameManager.set_demo_mode(enabled)
+
 var entities_root: Node = null
 var world_stage_3d: Node2D = null
 

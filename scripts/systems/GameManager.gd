@@ -8,6 +8,32 @@ signal game_loaded(filepath: String)
 
 const SAVE_FILE_PATH: String = "user://village_save.json"
 
+## Interruptor único del «MODO DEMO» (Caso I — `docs/PLAN_BETA_MISTERIO.md` §5 y §5b).
+## Encendido por defecto (`true`) mientras dure la preparación de la demo.
+## Cuando está activo, quedan en pausa los sistemas secundarios que podrían estropear el caso
+## (crímenes espontáneos, bajos fondos, secta, migración/linaje/enfermedades, política/préstamos/fama/clanes,
+## ecosistema del bosque, escuela y mercado semanal).
+## Al apagarlo (`GameManager.set_demo_mode(false)` o `DEMO_MODE_DEFAULT = false`), todo vuelve a funcionar igual.
+const DEMO_MODE_DEFAULT: bool = true
+var demo_mode: bool = DEMO_MODE_DEFAULT:
+	set(value):
+		if demo_mode == value:
+			return
+		demo_mode = value
+		if is_inside_tree() and get_tree():
+			var vm_d = get_tree().get_first_node_in_group("village_manager")
+			if vm_d and "demo_mode" in vm_d and bool(vm_d.get("demo_mode")) != value:
+				vm_d.set("demo_mode", value)
+			var eco_d = get_tree().get_first_node_in_group("ecosystem_manager")
+			if eco_d and eco_d.has_method("_on_demo_mode_changed"):
+				eco_d.call("_on_demo_mode_changed", value)
+
+func is_demo_mode() -> bool:
+	return demo_mode
+
+func set_demo_mode(enabled: bool) -> void:
+	demo_mode = enabled
+
 var game_data: Dictionary = {}
 var workplaces_data: Dictionary = {} # Listo para Paso 2.3 (Puestos de Trabajo y Sucesión)
 

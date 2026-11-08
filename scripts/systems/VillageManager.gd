@@ -9,6 +9,8 @@ func setup_village(target_entities_root: Node) -> void:
 	set_process(not in_editor)
 	set_process_unhandled_input(not in_editor)
 	add_to_group("village_manager")
+	if is_inside_tree() and GameManager and GameManager.has_method("is_demo_mode"):
+		demo_mode = bool(GameManager.is_demo_mode())
 
 	for arr in [building_footprints, _wall_occluder_rects, house_chests, building_doors, building_windows, streetlights, _authority_slots, morgue_active_corpses, buried_graves, _cemetery_grave_positions, _cemetery_grave_nodes, blood_puddles, social_event_log]:
 		arr.clear()
