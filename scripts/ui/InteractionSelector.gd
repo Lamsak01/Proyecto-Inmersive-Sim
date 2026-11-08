@@ -216,9 +216,11 @@ func _use_station(vm, area: Area2D) -> void:
 
 
 func _resolve_target(a: Node) -> Node:
+	var p: Node = a.get_parent()
+	if p != null and p.has_method("interact") and ("npc_name" in p or "animal_name" in p or "pet_name" in p or "node_title" in p):
+		return p
 	if a.has_method("interact"):
 		return a
-	var p: Node = a.get_parent()
 	if p != null and p.has_method("interact"):
 		return p
 	if p != null and p.get_parent() != null and p.get_parent().has_method("interact"):
@@ -336,6 +338,14 @@ func get_prompt_card_data() -> Dictionary:
 			actions.append({"key": "·", "text": "Agonizando (%ds) · llevar al hospital" % maxi(1, int(ceil(n.bleedout_timer))), "selected": false})
 		elif (n.sedated_timer > 0.0 or n.is_stunned_flag) and not n.corpse_pocket_looted and n.personal_gold > 0:
 			actions.append({"key": "·", "text": "Registrar bolsillo (%d oro)" % maxi(0, n.personal_gold), "selected": false})
+	elif "npc_name" in tgt:
+		target_name = str(tgt.get("npc_name"))
+		if tgt.has_method("get_short_world_state"):
+			target_state = str(tgt.call("get_short_world_state"))
+		elif "npc_role" in tgt:
+			target_state = str(tgt.get("npc_role"))
+		else:
+			target_state = "Vecino"
 	elif area != null and area.has_meta("village_station"):
 		var tag: String = str(area.get_meta("village_station"))
 		var ap: Vector2 = area.global_position

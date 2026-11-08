@@ -78,7 +78,9 @@ func _make_dlg_lbl(txt: String, f_sz: int, col: Color, autowrap: bool = false, a
 	return l
 
 func _build_clean_ui() -> void:
-	var cs := get_tree().current_scene
+	var cs: Node = get_tree().current_scene
+	if cs == null and get_parent() != null:
+		cs = get_parent().get_parent()
 	var ui_parent: Node = cs.get_node_or_null("UI/UIRoot") if cs else null
 	if not ui_parent:
 		ui_parent = get_parent()
@@ -192,8 +194,13 @@ func _update_header() -> void:
 			var p_tex: Texture2D = null
 			if current_speaker.has_method("get_portrait_texture"):
 				p_tex = current_speaker.call("get_portrait_texture") as Texture2D
-			elif "sprite" in current_speaker and current_speaker.sprite:
-					p_tex = current_speaker.sprite.texture
+			if p_tex == null and "sprite" in current_speaker and current_speaker.sprite != null:
+				if current_speaker.sprite is Sprite2D:
+					p_tex = (current_speaker.sprite as Sprite2D).texture
+				elif current_speaker.sprite is AnimatedSprite2D:
+					var aspr := current_speaker.sprite as AnimatedSprite2D
+					if aspr.sprite_frames != null and aspr.sprite_frames.has_animation(aspr.animation) and aspr.sprite_frames.get_frame_count(aspr.animation) > 0:
+						p_tex = aspr.sprite_frames.get_frame_texture(aspr.animation, clampi(aspr.frame, 0, aspr.sprite_frames.get_frame_count(aspr.animation) - 1))
 			_portrait_rect.texture = p_tex
 			_portrait_frame.visible = (p_tex != null)
 	else:

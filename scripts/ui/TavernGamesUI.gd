@@ -294,8 +294,8 @@ func _refresh_portraits_bar() -> void:
 		portrait.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
 		if npc and npc.has_method("get_portrait_texture"):
 			portrait.texture = npc.get_portrait_texture()
-		elif npc and npc.sprite and npc.sprite.texture:
-			portrait.texture = npc.sprite.texture
+		elif npc and "sprite" in npc and npc.sprite is Sprite2D and (npc.sprite as Sprite2D).texture:
+			portrait.texture = (npc.sprite as Sprite2D).texture
 		hbox.add_child(portrait)
 
 		var vbox := VBoxContainer.new()

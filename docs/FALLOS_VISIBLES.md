@@ -12,10 +12,10 @@
 - [ ] **Clic izquierdo ya no dispara** (antes sí), y **no hay pistola a la vista ni forma de conseguirla** (ni bala ni
   tienda que la venda): el combate de fuego existe pero el jugador no puede usarlo.
 - [ ] **El personaje no puede saltar.**
-- [ ] **🔴 El juego se cierra al pulsar [E] sobre el vecino sin nombre de fuera del campamento** («Aldeano Guía, Vigía
+- [x] ✅ (2026-11-08) **🔴 El juego se cierra al pulsar [E] sobre el vecino sin nombre de fuera del campamento** («Aldeano Guía, Vigía
   de la Aldea»): no tiene nombre visible ni deja hacer nada, y al pulsar [E] se cuelga · 1.ª persona, 09:34
   (causa vista por el supervisor: el diálogo intenta sacar el retrato de su dibujo 2D animado, que no tiene imagen fija;
-  arreglar eso y que el vecino tenga nombre y aspecto 3D o retirarlo si sobra).
+  arreglar eso y que el vecino tenga nombre y aspecto 3D o retirarlo si sobra) (`scenes/dialogue_manager.gd`, `scenes/npc.gd`, `scripts/ui/InteractionSelector.gd`, `scripts/visuals/CharacterAvatar3D.gd`, `scripts/data/NPCData.gd`: corregido el acceso a `.texture` sobre `AnimatedSprite2D` al abrir el diálogo, resuelto `_resolve_target` en `InteractionSelector.gd` cuando `InteractArea` envuelve al NPC, y dotado el vigía de nombre propio «Roldán · Vigía del Oeste», retrato fijo y aspecto 3D de explorador fronterizo; comprobado en `docs/capturas_arreglos/hoy_1_aldeano_guia_3d.png`).
 - [ ] **Plaza incómoda: el jugador se atasca entre la farola y el pozo** (hueco demasiado estrecho; despejar el paso)
   · 1.ª persona, 09:38.
 - [ ] **Taberna: el techo de la planta baja es demasiado bajo** y agobia; las vigas quedan a la altura de la cara

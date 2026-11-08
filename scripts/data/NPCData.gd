@@ -8,7 +8,7 @@ const NPC_NAME_ALIASES: Dictionary = {
 	"Comisario Thorne": "Comisario Vane", "Inspectora Lyra": "Comisario Vane",
 	"Alguacil Thorne": "Comisario Vane", "Alguacil Vance": "Comisario Vane", "Alguacil Haldor": "Comisario Vane", "Alguacil Lyra": "Comisario Vane", "Alguacil Rourke": "Comisario Vane",
 	"Guardia Kaelen": "Guardia Rodric", "Centinela Bastian": "Guardia Rodric",
-	"Aldeano Guía": "Vigía del Oeste", "Guarda Fronterizo": "Vigía del Oeste",
+	"Aldeano Guía": "Vigía del Oeste", "Guarda Fronterizo": "Vigía del Oeste", "Roldán": "Vigía del Oeste",
 }
 
 const NPC_LORE_PROFILES: Dictionary = {

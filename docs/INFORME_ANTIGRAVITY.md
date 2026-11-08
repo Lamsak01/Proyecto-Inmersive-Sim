@@ -1,5 +1,8 @@
 # Informe de Trabajo — Antigravity (2026-11-08)
 
+## ENCARGO DE HOY (2026-11-08) — Paso a paso
+- **1. Cierre del juego al pulsar `[E]` sobre el «Aldeano Guía» (`scenes/dialogue_manager.gd`, `scenes/npc.gd`, `scripts/ui/InteractionSelector.gd`, `scripts/visuals/CharacterAvatar3D.gd`, `scripts/data/NPCData.gd`):** corregido el fallo que intentaba leer `.texture` directamente de un `AnimatedSprite2D` al abrir el diálogo, ajustado `_resolve_target` en `InteractionSelector.gd` para que devuelva al NPC padre cuando el `Area2D` hija tiene `interact()`, y dado nombre propio («Roldán · Vigía del Oeste»), retrato y modelo 3D de explorador fronterizo. Comprobado en 1.ª persona 3D pulsando `[E]` en `docs/capturas_arreglos/hoy_1_aldeano_guia_3d.png`.
+
 ## Resumen de cierre del Modo Noche (2026-11-08)
 - **Qué se hizo:** Se completaron de principio a fin los **6 puntos del Orden de la Noche** de `docs/ENCARGO_SIGUIENTE.md` más la nota nocturna del supervisor, con capturas en 1.ª persona 3D revisadas visualmente tras cada paso y toda la batería de pruebas (`tools/tests/verify_all.gd`, `EXIT_CODE=0`) en verde:
   1. **5 entradas en marcha de `FALLOS_VISIBLES.md`:** relieve de la Fase A suavizado (`< 10°`, caminos y solares planos, muelle y orillas del Lago del Oeste), planta baja de la taberna (suelo subido, pose sentada, Michi fuera, títulos femeninos), planta alta de la taberna (escalera caminable sin `[E]` y barandilla con colisión), e interfaz/partida (mapa `[M]` en papel cálido con marcador «Tú» en azul cobalto según nota del supervisor, puerta de la taberna con doble carril sin atascos y puesto del pescador en el muelle).

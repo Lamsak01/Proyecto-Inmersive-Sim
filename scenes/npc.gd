@@ -1,8 +1,8 @@
 extends CharacterBody2D
 ## NPC Aldeano con sistema de Afinidad/Relación (-100 a +100), Combate (Sangrado y Stun/KO) y Diálogo Contextual.
 
-@export var npc_name: String = "Aldeano Guía"
-@export var npc_role: String = "Vigía de la Aldea"
+@export var npc_name: String = "Roldán"
+@export var npc_role: String = "Vigía del Oeste"
 @export var dialogue_manager: Node
 @export var enemy_ai: Node
 @export var affinity: int = 0 ## -100 (Enemigo mortal) a +100 (Aliado fiel)
@@ -22,7 +22,9 @@ var is_stunned_flag: bool = false
 var is_dead: bool = false
 var push_velocity: Vector2 = Vector2.ZERO
 var sprite: CanvasItem = null
-var trade_role: int = 10
+var portrait_texture: Texture2D = null
+var status_label: Label = null
+var trade_role: int = 25
 var facing: Vector2 = Vector2.DOWN
 var facing_direction: Vector2 = Vector2.DOWN
 var _is_actively_crafting: bool = false
@@ -43,9 +45,14 @@ func _ready() -> void:
 	collision_layer = 4
 	collision_mask = 3
 	add_to_group("npcs")
+	if npc_name == "" or npc_name == "Aldeano Guía" or npc_name == "Guia":
+		npc_name = "Roldán"
+	if npc_role == "" or npc_role == "Vigía de la Aldea":
+		npc_role = "Vigía del Oeste"
 	sprite = anim
+	var guard_tex := load("res://assests/world/village/villager_guard.png") as Texture2D
+	portrait_texture = guard_tex
 	if anim != null:
-		var guard_tex := load("res://assests/world/village/villager_guard.png") as Texture2D
 		if guard_tex != null:
 			var sf := SpriteFrames.new()
 			sf.add_animation("idle")
@@ -54,6 +61,17 @@ func _ready() -> void:
 			anim.position = Vector2(0, -10)
 			anim.scale = Vector2(0.5, 0.5)
 		anim.play("idle")
+	status_label = Label.new()
+	status_label.name = "StatusLabel"
+	status_label.position = Vector2(-72, -38)
+	status_label.custom_minimum_size = Vector2(144, 14)
+	status_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	status_label.add_theme_font_size_override("font_size", 8)
+	status_label.add_theme_color_override("font_color", Color(0.95, 0.91, 0.83))
+	status_label.add_theme_color_override("font_outline_color", Color(0.14, 0.12, 0.10))
+	status_label.add_theme_constant_override("outline_size", 3)
+	status_label.visible = false
+	add_child(status_label)
 	var av3d_script = load("res://scripts/visuals/CharacterAvatar3D.gd")
 	if av3d_script != null:
 		var av: Node2D = av3d_script.new()
@@ -90,9 +108,16 @@ func apply_push(force: Vector2) -> void:
 	push_velocity = force
 
 func _physics_process(delta: float) -> void:
+	_update_focus_label()
 	if is_dead:
 		velocity = Vector2.ZERO
 		return
+	var pl_look := get_tree().get_first_node_in_group("player") as Node2D if is_inside_tree() else null
+	if pl_look != null and not is_attacking and global_position.distance_squared_to(pl_look.global_position) <= 95.0 * 95.0:
+		var dir_to_pl: Vector2 = (pl_look.global_position - global_position)
+		if dir_to_pl.length_squared() > 1.0:
+			facing = dir_to_pl.normalized()
+			facing_direction = facing
 	if push_velocity.length_squared() > 1.0:
 		velocity = push_velocity
 		push_velocity = push_velocity.move_toward(Vector2.ZERO, 320.0 * delta)
@@ -103,6 +128,50 @@ func _physics_process(delta: float) -> void:
 		return
 
 	move_and_slide()
+
+func get_portrait_texture() -> Texture2D:
+	return portrait_texture
+
+func get_character_tagline() -> String:
+	return "Guarda fronterizo veterano apostado en el linde de la Llanura Salvaje."
+
+func get_short_world_state() -> String:
+	if is_dead:
+		return "Muerto"
+	if is_stunned_flag:
+		return "Inconsciente"
+	if is_attacking or current_attitude == Attitude.HOSTILE:
+		return "Alerta"
+	return npc_role if npc_role != "" else "Vigía del Oeste"
+
+func get_interact_label(_player: Node = null) -> String:
+	if is_dead:
+		return "Examinar el cuerpo de %s" % npc_name
+	if is_stunned_flag:
+		return "Registrar a %s" % npc_name
+	return "Hablar con %s" % npc_name
+
+func _update_focus_label() -> void:
+	if status_label == null:
+		return
+	var pl := get_tree().get_first_node_in_group("player") as Node2D if is_inside_tree() else null
+	if pl == null:
+		status_label.visible = false
+		return
+	var focused := false
+	var sel = pl.get_node_or_null("InteractionSelector")
+	if sel != null and sel.has_method("selected"):
+		var c: Dictionary = sel.call("selected")
+		if c.get("target") == self:
+			focused = true
+	if focused:
+		status_label.text = "%s · %s" % [npc_name, get_short_world_state()]
+		status_label.visible = true
+	elif is_dead and global_position.distance_squared_to(pl.global_position) <= 90.0 * 90.0:
+		status_label.text = "☠"
+		status_label.visible = true
+	else:
+		status_label.visible = false
 
 func _spawn_floating_text(text: String, color: Color, offset_y: float = -36.0) -> void:
 	if FloatingTextScene:
