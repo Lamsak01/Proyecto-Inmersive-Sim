@@ -52,6 +52,31 @@ como testigos (`known_by` / `sighting_log`) si tienen línea de visión en la mi
 - Armas que se **mellan** con el uso y se arreglan en la herrería; **desarmar** con un golpe fuerte a la mano.
 - Testigos que reaccionan al ruido del combate (ya existe el ruido con `AudioManager.emit_noise`).
 
+## Fase 5 — Primera persona y armas de fuego (PROPUESTA, 2026-11-08; decisiones del usuario incluidas)
+Contexto: el juego es solo 3D en primera persona y la época es tecnofeudal con armas de fuego (`docs/HANDOFF.md` §8).
+Las fases 1–4 se pensaron con vista desde arriba. **Decidido por el usuario (2026-11-08):** armas de fuego **muy
+mortales** (uno o dos disparos bien dados matan o dejan muy herido), **munición escasa y cara**, **recarga lenta y a
+mano, apuntar con calma es más preciso**. El cuerpo a cuerpo sigue importando: es silencioso y no gasta balas.
+
+- **5a — Cuerpo a cuerpo en primera persona.** Ver tus brazos y el arma; el golpe se ve venir y pesa (balanceo,
+  sacudida corta, destello y retroceso del rival al dar). Reaprovechar lo de las fases 1–4 (tiempos por arma, parada,
+  cadena, carga, zonas de herida, mellado). Prueba: capturas de un golpe dado y uno recibido.
+- **5b — Disparar.** Apuntar al centro; sin apuntar, la bala se desvía; apuntando (clic derecho) más preciso pero
+  andas despacio. Retroceso que levanta el arma. Disparo muy ruidoso: alarma el pueblo (nivel de alerta) y atrae a la
+  guardia. La bala usa las heridas por zona que ya existen (cabeza, pecho, brazo, pierna), con sangrado y fractura.
+- **5c — Recarga y munición.** Recarga lenta en pasos (sacar cargador, meter, montar); si te interrumpen, la pierdes.
+  Balas contadas en la mochila, compradas al armero (queda anotado a quién) o robadas. Pistola y fusil con munición
+  distinta.
+- **5d — Corazas y balas.** La coraza para la bala de pistola y a distancia, no la de fusil de cerca; cada impacto
+  deja una abolladura que el herrero repara (y que sirve de pista). Casco medieval protege la cabeza en parte.
+- **5e — Los rivales con las mismas reglas.** Guardias con fusil: pocos, solo en alerta o en puestos de control;
+  avisan antes de disparar («¡Alto!»), buscan cobertura y recargan (ventana para actuar). Bandidos con armas viejas.
+  Los vecinos civiles casi nunca llevan arma de fuego (ley de armas del señor, cuando se haga).
+- **Después (ya aprobado como idea):** pistas de bala (casquillos y marcas propias de cada arma), ley de armas y
+  radios de la guardia (`docs/VISION_Y_FUTURO.md`).
+- **Abierto:** el arcabuz de chispa actual pasa a ser fusil y pistola de cartuchos (`docs/REVISION_EPOCA.md`); arcos y
+  espadas siguen como armas baratas o de caza. Las armas, inventadas «tipo» fusil de asalto, no modelos reales.
+
 ## Pendiente de arte
 - Animación 3D de preparación propia (hoy el muñeco usa la misma curva de golpe, estirada a la nueva duración).
 - Sonidos distintos por arma y por material (hoy uno para todos, con el tono cambiado según el peso).
