@@ -100,15 +100,16 @@ func _attach_to_stage() -> bool:
 	if model_rel == "procedural:chicken":
 		model = _build_procedural_chicken(fit_h)
 	else:
-		model = AssetLib.instantiate_model(model_rel, Vector3.ZERO, fit_h, true, true)
+		model = AssetLib.instantiate_model(model_rel, Vector3.ZERO, fit_h, true, false)
 	if model == null:
 		_disabled = true
 		return false
 	_stage = st
 	_holder = Node3D.new()
 	_holder.name = "Animal_" + str(_entity.name)
-	# Igual que los vecinos: el escenario estira la altura (1/cos del ángulo de cámara) para cuadrar con el mapa 2D.
-	_holder.scale = Vector3(1.0, 1.0 / maxf(0.1, cos_p), 1.0)
+	var fp_on: bool = _stage != null and _stage.get("first_person_active") == true
+	var cos_p_eff: float = 1.0 if fp_on else cos_p
+	_holder.scale = Vector3(1.0, 1.0 / maxf(0.1, cos_p_eff), 1.0)
 	_yaw = Node3D.new()
 	_holder.add_child(_yaw)
 	_model = model
@@ -168,6 +169,9 @@ func _process(delta: float) -> void:
 	if not show:
 		_last_pos = Vector2.INF
 		return
+	var fp_now: bool = _stage != null and _stage.get("first_person_active") == true
+	var cos_now: float = 1.0 if fp_now else float(_stage.get("_cos_p"))
+	_holder.scale = Vector3(1.0, 1.0 / maxf(0.1, cos_now), 1.0)
 	var pos: Vector2 = _entity.global_position
 	_holder.position = _stage.call("to_3d", pos + Vector2(0.0, foot_offset_px), 0.0)
 	# Mira hacia donde camina (los modelos miran hacia +Z, que en el mapa es «hacia abajo»).
@@ -190,13 +194,13 @@ func _process(delta: float) -> void:
 	var spr = _entity.get("sprite")
 	var lying: bool = spr is Node2D and absf((spr as Node2D).rotation_degrees) > 45.0
 	if _anim == null:
-		if model_rel == "procedural:chicken" and not lying:
+		if not lying:
 			var hp := _model.get_node_or_null("HeadPivot") as Node3D
 			if _speed > 2.0:
 				_still_time = 0.0
 				var t_w: float = float(Time.get_ticks_msec()) * 0.015 + float(get_instance_id() % 11)
-				_model.position.y = absf(sin(t_w)) * height_px * WORLD_SCALE * 0.10
-				_model.rotation_degrees.z = sin(t_w) * 5.0
+				_model.position.y = absf(sin(t_w)) * height_px * WORLD_SCALE * 0.08
+				_model.rotation_degrees.z = sin(t_w) * 3.5
 				if hp != null:
 					hp.rotation_degrees.x = 10.0
 			else:

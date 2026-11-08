@@ -1021,15 +1021,51 @@ func _build_static_terrain_3d() -> void:
 	for bp in [Vector2(436, 76), Vector2(494, 76)]:
 		_build_bench_3d(terrain_root_3d, bp, m_wood, m_iron)
 
-	# Tablón de Encargos 3D en la Plaza (Vector2(465, 24))
+	# Tablón de Encargos 3D detallado en la Plaza (Vector2(465, 24)) con 3 pliegos legibles desde fuera
 	var nb: Vector2 = vm._notice_board_pos if vm != null else Vector2(465, 24)
-	_add_box_2d(terrain_root_3d, nb + Vector2(-9, 0), Vector2(2.5, 2.5), 0.0, 18.0, m_dark_wood)
-	_add_box_2d(terrain_root_3d, nb + Vector2(9, 0), Vector2(2.5, 2.5), 0.0, 18.0, m_dark_wood)
-	_add_box_2d(terrain_root_3d, nb, Vector2(22.0, 2.5), 7.0, 10.0, m_wood)
-	_add_box_2d(terrain_root_3d, nb, Vector2(25.0, 6.0), 17.0, 3.0, m_shingle)
+	_add_box_2d(terrain_root_3d, nb + Vector2(-10.0, 0.0), Vector2(3.6, 3.6), 0.0, 2.2, m_curb)
+	_add_box_2d(terrain_root_3d, nb + Vector2(10.0, 0.0), Vector2(3.6, 3.6), 0.0, 2.2, m_curb)
+	_add_box_2d(terrain_root_3d, nb + Vector2(-10.0, 0.0), Vector2(2.6, 2.6), 2.0, 17.5, m_dark_wood)
+	_add_box_2d(terrain_root_3d, nb + Vector2(10.0, 0.0), Vector2(2.6, 2.6), 2.0, 17.5, m_dark_wood)
+	_add_box_2d(terrain_root_3d, nb, Vector2(24.0, 2.6), 6.2, 11.2, m_dark_wood)
+	var m_cork := _mat("notice_cork", Color(0.56, 0.39, 0.23), 0.92, 0.0)
+	_add_box_2d(terrain_root_3d, nb + Vector2(0.0, 0.4), Vector2(21.6, 2.2), 7.0, 9.6, m_cork)
+	_add_box_2d(terrain_root_3d, nb, Vector2(26.5, 6.2), 17.2, 2.8, m_shingle)
+	_add_box_2d(terrain_root_3d, nb + Vector2(0.0, 1.4), Vector2(19.0, 1.0), 15.6, 2.0, m_dark_wood)
+	var hdr_lbl := Label3D.new()
+	hdr_lbl.text = "ENCARGOS DEL VALLE"
+	hdr_lbl.font_size = 22
+	hdr_lbl.pixel_size = 0.00075
+	hdr_lbl.modulate = Color(0.96, 0.88, 0.62)
+	hdr_lbl.outline_size = 2
+	hdr_lbl.outline_modulate = Color(0.14, 0.10, 0.06)
+	hdr_lbl.shaded = false
+	hdr_lbl.double_sided = true
+	hdr_lbl.position = to_3d(nb + Vector2(0.0, 2.05), 16.6)
+	terrain_root_3d.add_child(hdr_lbl)
 	var m_paper := _mat("parchment", Color(0.95, 0.90, 0.76), 0.90, 0.0)
-	for px in [-6.0, 0.0, 6.0]:
-		_add_box_2d(terrain_root_3d, nb + Vector2(px, 1.5), Vector2(4.0, 0.8), 9.5, 5.0, m_paper)
+	var m_wax := _mat("notice_wax_seal", Color(0.76, 0.18, 0.16), 0.55, 0.1)
+	var sheet_defs := [
+		[-6.8, "GREMIOS\n2 Maderas o\n1 Hierro\n28 ORO"],
+		[0.0, "HOSPITAL\n2 Hierbas o\nCataplasma\n26 ORO"],
+		[6.8, "ALGUACIL\nChatarra o\nAncas Rana\n34 ORO"],
+	]
+	for s_def in sheet_defs:
+		var px: float = float(s_def[0])
+		_add_box_2d(terrain_root_3d, nb + Vector2(px, 1.4), Vector2(5.8, 0.5), 7.5, 7.8, m_paper)
+		_add_box_2d(terrain_root_3d, nb + Vector2(px, 1.75), Vector2(0.9, 0.4), 14.3, 0.8, m_wax)
+		var s_lbl := Label3D.new()
+		s_lbl.text = str(s_def[1])
+		s_lbl.font_size = 20
+		s_lbl.line_spacing = -2.0
+		s_lbl.pixel_size = 0.00060
+		s_lbl.modulate = Color(0.16, 0.11, 0.06)
+		s_lbl.outline_size = 1
+		s_lbl.outline_modulate = Color(0.95, 0.90, 0.76)
+		s_lbl.shaded = false
+		s_lbl.double_sided = true
+		s_lbl.position = to_3d(nb + Vector2(px, 2.08), 11.1)
+		terrain_root_3d.add_child(s_lbl)
 
 	# (2026-11-06) Los pozos ya no van fijos aquí: los pone _sync_props_3d donde esté cada pozo 2D (también los de solares nuevos).
 
@@ -1046,16 +1082,23 @@ func _build_static_terrain_3d() -> void:
 	var m_quarry_rock := _mat("quarry_slab_3d", Color(0.50, 0.48, 0.44), 0.90, 0.04, Color.BLACK, 0.0, "town_textures/wall_brick_stone_center.png", "", 0.42)
 	_add_box_2d(terrain_root_3d, quarry_r.get_center(), quarry_r.size, 0.0, 1.0, m_quarry_rock)
 
-	# Corral 3D de madera y tierra del Rancho del Sur (x = 310..397, y = 400..540; el ganado vivo lo sincroniza VillageHousing.sync_livestock)
-	var ranch_floor_r := Rect2(Vector2(310.0, 400.0), Vector2(87.0, 140.0))
+	# Corral 3D de madera y tierra del Rancho del Sur (x = 304..416, y = 398..544; el ganado vivo lo sincroniza VillageHousing.sync_livestock)
+	var ranch_floor_r := Rect2(Vector2(304.0, 398.0), Vector2(112.0, 146.0))
 	_add_box_2d(terrain_root_3d, ranch_floor_r.get_center(), ranch_floor_r.size, 0.0, 0.8, m_road)
 	for r_side in [
-		[Vector2(310.0, 400.0), Vector2(397.0, 400.0)],
-		[Vector2(397.0, 400.0), Vector2(397.0, 540.0)],
-		[Vector2(397.0, 540.0), Vector2(310.0, 540.0)],
-		[Vector2(310.0, 540.0), Vector2(310.0, 400.0)],
+		[Vector2(304.0, 398.0), Vector2(416.0, 398.0)],
+		[Vector2(416.0, 398.0), Vector2(416.0, 544.0)],
+		[Vector2(416.0, 544.0), Vector2(304.0, 544.0)],
+		[Vector2(304.0, 544.0), Vector2(304.0, 398.0)],
 	]:
 		_build_fence_run_3d(terrain_root_3d, r_side[0] as Vector2, r_side[1] as Vector2, m_wood)
+	# Abrevadero de madera con agua y pacas de heno en el corral del Rancho del Sur
+	var m_hay := _mat("ranch_hay", Color(0.84, 0.72, 0.34), 0.92, 0.0)
+	var m_trough_w := _mat("ranch_trough_water", Color(0.24, 0.52, 0.68), 0.25, 0.1)
+	_add_box_2d(terrain_root_3d, Vector2(316.0, 412.0), Vector2(16.0, 6.0), 0.8, 4.2, m_dark_wood)
+	_add_box_2d(terrain_root_3d, Vector2(316.0, 412.0), Vector2(13.6, 4.0), 3.6, 1.6, m_trough_w)
+	_add_box_2d(terrain_root_3d, Vector2(404.0, 414.0), Vector2(9.0, 7.0), 0.8, 5.2, m_hay)
+	_add_box_2d(terrain_root_3d, Vector2(404.0, 423.0), Vector2(8.0, 6.5), 0.8, 4.4, m_hay)
 
 	# Parque del Roble ampliado (Rect2(168, 208, 272, 146)) con césped natural texturizado, bordillo bajo de piedra y bancos despejados
 	var park_r := Rect2(Vector2(168.0, 208.0), Vector2(272.0, 146.0))
@@ -2821,6 +2864,10 @@ func set_first_person(enable: bool) -> void:
 			_sync_2d_flat_visuals(true)
 		first_person_active = true
 		fp_pitch = 0.0
+		_fp_shake_timer = 0.0
+		_fp_shake_amp = 0.0
+		_fp_camera_punch_pitch = 0.0
+		_fp_camera_punch_roll = 0.0
 		var pl := get_tree().get_first_node_in_group("player") as Node2D if is_inside_tree() else null
 		if is_instance_valid(pl):
 			var c_ctrl = pl.get_node_or_null("PlayerCombatController")
@@ -3309,7 +3356,9 @@ func _update_fp_camera_transform() -> void:
 			if m_ctrl != null and m_ctrl.get("is_stealthing") == true:
 				eye_h -= 3.5
 	if vm != null:
-		eye_h += VillageTavern.elevation_height_for(pl_pos, int(vm.player_elevation_level))
+		var tav_eye_h: float = VillageTavern.elevation_height_for(pl_pos, int(vm.player_elevation_level))
+		if tav_eye_h > 3.0:
+			eye_h += tav_eye_h
 	var eye_3d: Vector3 = to_3d(pl_pos, eye_h)
 	if _fp_shake_timer > 0.0 and _fp_shake_amp > 0.0:
 		eye_3d += Vector3(

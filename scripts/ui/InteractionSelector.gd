@@ -24,6 +24,7 @@ const STATION_LABELS: Dictionary = {
 	"church_altar": "Altar de la capilla",
 	"cemetery_gate": "Puerta del cementerio",
 	"notice_board": "Tablón de encargos",
+	"library_reading": "Leer un rato en la biblioteca",
 	"compost": "Compostador",
 	"building_window": "Abrir o cerrar el postigo",
 	"house_chest": "Abrir el cofre",
@@ -396,7 +397,20 @@ func get_prompt_card_data() -> Dictionary:
 				target_state = "Registro"
 			"notice_board":
 				target_name = "Tablón de encargos"
-				target_state = "Plaza"
+				target_state = "Plaza Central"
+				var d_nb: int = int(WorldClock.current_day) if WorldClock else 1
+				var done_d: Dictionary = vm.get("completed_contracts_today") if (vm != null and "completed_contracts_today" in vm) else {}
+				var s1: String = "✓ Hecho" if int(done_d.get(1, -1)) == d_nb else "28 oro"
+				var s2: String = "✓ Hecho" if int(done_d.get(2, -1)) == d_nb else "26 oro"
+				var s3: String = "✓ Hecho" if int(done_d.get(3, -1)) == d_nb else "34 oro"
+				actions = [
+					{"key": "E", "text": "Abrir tablón de encargos y noticias", "selected": true},
+					{"key": "1", "text": "Gremios: 2 Maderas o 1 Hierro (%s)" % s1, "selected": false},
+					{"key": "2", "text": "Hospital: 2 Hierbas o 1 Cataplasma (%s) · Alguacil: Chatarra (%s)" % [s2, s3], "selected": false},
+				]
+			"library_reading":
+				target_name = "Mesa de lectura"
+				target_state = "Biblioteca"
 			"compost":
 				target_name = "Compostador"
 				target_state = "Huerto"

@@ -39,9 +39,10 @@ func setup_prop(village_manager: Node2D, kind: String, h_id: String = "", h_labe
 	sewer_loc_id = h_id
 	match prop_kind:
 		"terminal":
-			npc_name = "Terminal Lógica Electromecánica"
-			npc_role = "Taller de Reparaciones"
-			add_to_group("tinker_terminal")
+			npc_name = heist_label if not heist_label.is_empty() else "Terminal Lógica Electromecánica"
+			npc_role = "Comisaría del Alguacil" if heist_id == "police" else ("Ayuntamiento del Valle" if heist_id == "town_hall" else "Taller de Reparaciones")
+			if heist_id.is_empty():
+				add_to_group("tinker_terminal")
 			add_to_group("tinker_station")
 		"grid_panel":
 			npc_name = "Cuadro Eléctrico General"

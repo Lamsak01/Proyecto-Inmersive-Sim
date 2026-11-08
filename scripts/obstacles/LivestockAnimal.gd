@@ -88,7 +88,7 @@ func update_from_dict(p_index: int, d: Dictionary) -> void:
 	stage = str(d.get("stage", "chick"))
 
 	if sprite != null and is_instance_valid(sprite):
-		if species == "sheep":
+		if species in ["sheep", "cow", "bull", "donkey", "horse"]:
 			sprite.texture = load("res://assests/world/harvest/wild_deer.png")
 			sprite.modulate = Color(0.96, 0.94, 0.88)
 			var sc_s: float = 0.48 if stage == "chick" else (0.66 if stage == "juvenile" else 0.85)
@@ -99,8 +99,24 @@ func update_from_dict(p_index: int, d: Dictionary) -> void:
 			var sc_r: float = 0.68 if stage == "chick" else (0.90 if stage == "juvenile" else 1.15)
 			sprite.scale = Vector2(sc_r, sc_r)
 
-	var rel: String = "animals/animated/Alpaca.glb" if species == "sheep" else "procedural:chicken"
-	var h_px: float = (11.0 if stage == "chick" else (15.0 if stage == "juvenile" else 19.5)) if species == "sheep" else (6.5 if stage == "chick" else (8.5 if stage == "juvenile" else 11.0))
+	var rel: String = "procedural:chicken"
+	var h_px: float = 5.5 if stage == "chick" else (7.0 if stage == "juvenile" else 9.0)
+	match species:
+		"sheep":
+			rel = "animals/animated/Alpaca.glb"
+			h_px = 9.5 if stage == "chick" else (12.5 if stage == "juvenile" else 15.5)
+		"cow":
+			rel = "animals/Cow.obj"
+			h_px = 10.5 if stage == "chick" else (13.5 if stage == "juvenile" else 16.5)
+		"bull":
+			rel = "animals/Bull.obj"
+			h_px = 11.0 if stage == "chick" else (14.5 if stage == "juvenile" else 17.5)
+		"donkey":
+			rel = "animals/Donkey.obj"
+			h_px = 9.5 if stage == "chick" else (12.5 if stage == "juvenile" else 15.0)
+		"horse":
+			rel = "animals/animated/Horse.glb"
+			h_px = 11.5 if stage == "chick" else (15.0 if stage == "juvenile" else 18.5)
 	if model_3d == null or not is_instance_valid(model_3d):
 		model_3d = AnimalModel3DScript.attach(self, rel, h_px, 2.0)
 		if model_3d != null:

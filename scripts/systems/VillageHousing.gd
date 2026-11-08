@@ -49,7 +49,7 @@ const BUY_CHICK_COST: int = 15
 const JUVENILE_DAYS: int = 3
 const ADULT_ANIMAL_DAYS: int = 6
 const PRODUCT_COOLDOWN_DAYS: int = 2
-const RANCH_PEN_RECT: Rect2 = Rect2(Vector2(318.0, 408.0), Vector2(71.0, 124.0))
+const RANCH_PEN_RECT: Rect2 = Rect2(Vector2(310.0, 404.0), Vector2(100.0, 134.0))
 const CATERING_COST_PER_GUEST: int = 4
 const TABLE_SEAT_DIST: float = 14.0
 const GATHERING_PLAYER_RADIUS: float = 90.0
@@ -96,8 +96,14 @@ static func state(vm) -> Dictionary:
 		hs["player_shop"] = {}
 	if not hs.has("ranch_herd") or not (hs["ranch_herd"] is Array):
 		hs["ranch_herd"] = [
-			{"species": "sheep", "stage": "chick", "age_days": 0},
-			{"species": "rooster", "stage": "chick", "age_days": 1}
+			{"species": "cow", "stage": "adult", "age_days": 6},
+			{"species": "bull", "stage": "adult", "age_days": 7},
+			{"species": "sheep", "stage": "adult", "age_days": 6},
+			{"species": "sheep", "stage": "juvenile", "age_days": 3},
+			{"species": "donkey", "stage": "adult", "age_days": 6},
+			{"species": "horse", "stage": "juvenile", "age_days": 4},
+			{"species": "rooster", "stage": "adult", "age_days": 6},
+			{"species": "rooster", "stage": "chick", "age_days": 1},
 		]
 	if not hs.has("player_animals") or not (hs["player_animals"] is Array):
 		hs["player_animals"] = []
@@ -1022,7 +1028,7 @@ static func daily(vm) -> void:
 				rancher.shop_stock["wool"] = int(rancher.shop_stock.get("wool", 0)) + 1
 				rancher.shop_stock["raw_meat"] = int(rancher.shop_stock.get("raw_meat", 0)) + 1
 				rancher._sync_shop_stock_to_vm()
-			if r_herd.size() + new_r_chicks.size() < 4:
+			if r_herd.size() + new_r_chicks.size() < 8:
 				new_r_chicks.append({"species": str(ra.get("species", "sheep")), "stage": "chick", "age_days": 0})
 		elif int(ra["age_days"]) >= ADULT_ANIMAL_DAYS + 3 and r_herd.size() - culled_r.size() >= 2:
 			culled_r.append(ra)
@@ -1034,13 +1040,17 @@ static func daily(vm) -> void:
 				if butcher != null and is_instance_valid(butcher) and not butcher.is_dead and int(butcher.personal_gold) >= 12:
 					butcher.personal_gold -= 8
 					rancher.personal_gold += 8
-			var next_sp: String = "rooster" if str(ra.get("species", "sheep")) == "sheep" else "sheep"
+			const NEXT_SPECIES: Dictionary = {
+				"sheep": "rooster", "rooster": "cow", "cow": "donkey",
+				"donkey": "sheep", "bull": "horse", "horse": "bull",
+			}
+			var next_sp: String = str(NEXT_SPECIES.get(str(ra.get("species", "sheep")), "sheep"))
 			new_r_chicks.append({"species": next_sp, "stage": "chick", "age_days": 0})
 			VillageChronicle.add(vm, "animal_bred", "El rancho vendió una res madura y crió una nueva camada (%s)" % next_sp, false)
 	for c_ra in culled_r:
 		r_herd.erase(c_ra)
 	for nc in new_r_chicks:
-		if r_herd.size() < 4:
+		if r_herd.size() < 10:
 			r_herd.append(nc)
 	var p_animals: Array = hs["player_animals"]
 	var adult_p_cnt: int = 0

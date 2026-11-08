@@ -515,14 +515,14 @@ static func build_tinker_stations(vm) -> void:
 	p_term.name = "PoliceLogicTerminal"
 	p_term.global_position = POLICE_TERMINAL_POS
 	vm.entities_root.add_child(p_term)
-	p_term.setup_prop(vm, "terminal")
+	p_term.setup_prop(vm, "terminal", "police", "Terminal Policial de Fósforo Verde")
 
 	if VillageLots.lot(vm, "n4").get("kind", "") == "town_hall":
 		var th_term: Node2D = PropScript.new()
 		th_term.name = "TownHallLogicTerminal"
 		th_term.global_position = TOWN_HALL_TERMINAL_POS
 		vm.entities_root.add_child(th_term)
-		th_term.setup_prop(vm, "terminal")
+		th_term.setup_prop(vm, "terminal", "town_hall", "Terminal Municipal de Fósforo Verde")
 
 	var panel: Node2D = PropScript.new()
 	panel.name = "TinkerElectricPanel"
@@ -1874,6 +1874,7 @@ static func build(vm, id: String, st: Dictionary) -> void:
 				vm._add_rect_poly(c + Vector2(sx, 34 * m), Vector2(11, 4), Color(0.42, 0.26, 0.14, 1.0), -1)
 				vm._add_rect_poly(c + Vector2(sx, 31 * m), Vector2(9, 1.5), Color(0.75, 0.30, 0.25, 1.0), 0)
 			vm._spawn_decor_prop(props + "table_chairs_1.png", reading_spot(), Vector2(0.45, 0.45))
+			vm._add_station_area("LibraryReadingArea", reading_spot(), 24.0, "library_reading")
 			vm._add_title_label(reading_spot() + Vector2(-50, -22), Vector2(100, 12), "📖 Leer un rato [E]", Color(0.9, 0.95, 1.0), 7)
 		"school":
 			for p in [Vector2(-30, 6), Vector2(0, 6), Vector2(30, 6), Vector2(-30, 26), Vector2(0, 26), Vector2(30, 26)]:
@@ -1901,11 +1902,14 @@ static func try_interact(vm, player, pos: Vector2) -> bool:
 		var panel_node: Node = vm.get_tree().get_first_node_in_group("tinker_grid_panel") if vm.is_inside_tree() else null
 		open_grid_panel_menu(vm, panel_node, player)
 		return true
-	if VillageLots.lot(vm, LIBRARY_LOT).get("kind", "") != "library" or pos.distance_to(reading_spot()) > 26.0:
+	if VillageLots.lot(vm, LIBRARY_LOT).get("kind", "") != "library" or pos.distance_to(reading_spot()) > 36.0:
 		return false
 	var st: Dictionary = state(vm)
 	var day: int = int(WorldClock.current_day) if WorldClock else 0
 	if int(st["player_read_day"]) == day:
+		var msg_done := "📖 Hoy ya has leído bastante en la biblioteca."
+		if player.has_method("show_hint"):
+			player.call("show_hint", msg_done)
 		if player.has_method("_spawn_floating_text"):
 			player._spawn_floating_text("📖 Hoy ya has leído bastante", Color.LIGHT_GRAY, -40.0)
 		return true
@@ -1914,8 +1918,14 @@ static func try_interact(vm, player, pos: Vector2) -> bool:
 	var skill: String = str(READ_SKILLS.pick_random())
 	if player.has_method("add_skill_xp"):
 		player.add_skill_xp(skill, READ_XP)
+	var skill_es: String = str({"mining": "Minería", "woodcutting": "Tala", "foraging": "Recolección", "farming": "Agricultura", "fishing": "Pesca", "hunting": "Caza", "cooking": "Cocina", "carpentry": "Carpintería", "smithing": "Herrería", "alchemy": "Herboristería", "stealth": "Sigilo"}.get(skill, skill))
+	var msg_ok := "📖 Lees en la biblioteca (+%d EXP en %s)" % [READ_XP, skill_es]
+	if player.has_method("show_hint"):
+		player.call("show_hint", msg_ok)
+	if vm != null and vm.has_method("_show_toast"):
+		vm.call("_show_toast", msg_ok, Color(0.55, 0.82, 1.0))
 	if player.has_method("_spawn_floating_text"):
-		player._spawn_floating_text("📖 Lees un buen rato y aprendes algo (+%d %s)" % [READ_XP, skill], Color.LIGHT_SKY_BLUE, -40.0)
+		player._spawn_floating_text("📖 Lees un buen rato y aprendes algo (+%d %s)" % [READ_XP, skill_es], Color.LIGHT_SKY_BLUE, -40.0)
 	return true
 
 static func _try_outpost_interact(vm, player, pos: Vector2) -> bool:
