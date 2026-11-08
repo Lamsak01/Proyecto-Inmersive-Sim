@@ -84,16 +84,29 @@ timeout 80 flatpak run org.godotengine.Godot --headless --path . -s tools/tests/
 - En `VillageManager.gd` y `CampSite.gd`: cualquier `TextureRect` de muro o suelo debe llevar `expand_mode = TextureRect.EXPAND_IGNORE_SIZE` para que las texturas de 128 px no sobresalgan de los tramos cortos.
 - Los Nodos NPC se identifican por `get_person_key()` (`person_profile.person_id`).
 - Modelos `.obj` nuevos: borra las líneas `Ka` de su `.mtl` (`sed -i '/^Ka /d'`) o el editor saca un aviso «Ambient light … ignored in PBR» por material.
-- `VillageNPC.gd` (~4.150 líneas) sigue siendo grande. Intentos de partirlo más: ver nota en sección 6.
+- Los 3 archivos que superaban las 5.000 líneas (`WorldStage3D.gd`, `VillageManager.gd` y `VillageNPC.gd`) fueron troceados por temas el 2026-11-08 en cadenas limpias de 5 scripts cada uno (`< ~1.480` líneas por archivo).
 
 ## 5. Mapa del código (lo imprescindible)
 
 | Archivo | Rol |
 |---|---|
-| `scripts/enemies/VillageNPC.gd` | **Aldeano**: estado, necesidades, rutinas, reportes de cadáver, reacciones a inconscientes, relaciones entre vecinos |
+| `scripts/enemies/VillageNPC.gd` | **Aldeano (hoja principal, ~1.276 lín.)**: `_ready`, `setup_npc`, `_physics_process`, combate hostil, daño/sigilo/muerte, diálogo/robo y guardado/carga |
+| `scripts/enemies/VillageNPCBase.gd` | **Aldeano (base, ~1.476 lín.)**: enums (`TradeRole`, `ActivityState`), variables de estado, bolsillos, relaciones base, etiquetas, nutrición/sueño y utilidades |
+| `scripts/enemies/VillageNPCSocial.gd` | **Aldeano (social y movimiento, ~1.202 lín.)**: charla entre vecinos, búsqueda de familiares desaparecidos, reacción a inconscientes, quedadas, peleas, movimiento y animaciones |
+| `scripts/enemies/VillageNPCDuties.gd` | **Aldeano (deberes, ley y hospital, ~988 lín.)**: patrulla policial, arrestos, ruido/testigos de combate, reporte y traslado de cadáveres, memoria visual y curación médica |
+| `scripts/enemies/VillageNPCWork.gd` | **Aldeano (necesidades y oficios, ~941 lín.)**: toma de decisiones (`_update_needs_and_decisions`), artesanía en taller, expediciones matinales, caza y sucesión de oficio |
 | `scripts/enemies/NPCDialogue.gd` | Menús y acciones de diálogo (funciones `static` que reciben `npc`); `VillageNPC` mantiene envoltorios con los mismos nombres |
 | `scripts/data/NPCData.gd` | Tablas de datos: alias, perfiles de lore, relaciones iniciales entre vecinos |
-| `scripts/systems/VillageManager.gd` | Mundo del pueblo (4.700 líneas): tiendas, puertas, justicia, llegadas de NPC nuevos (`_process_daily_map_edge_arrivals`), guardado |
+| `scripts/systems/VillageManager.gd` | **Mundo del pueblo (hoja principal, ~1.308 lín.)**: `setup_village`, `_process`, `_unhandled_input`, `interact`, modales UI, ciclos horario/diario y guardado/carga |
+| `scripts/systems/VillageManagerBase.gd` | **Mundo del pueblo (base, ~1.433 lín.)**: constantes, variables de estado, geometría de edificios, navegación, puertas/ventanas y utilidades base |
+| `scripts/systems/VillageManagerSocial.gd` | **Mundo del pueblo (social, ~698 lín.)**: autoridades, recién llegados, rumores, morgue/cementerio, mascotas, quedadas, peleas, romances y sucesión |
+| `scripts/systems/VillageManagerPolice.gd` | **Mundo del pueblo (justicia/policía, ~815 lín.)**: denuncias, registro de cadáveres, escolta policial y cárcel, tablón de encargos, sangre/huellas, investigaciones y cepos |
+| `scripts/systems/VillageManagerEconomy.gd` | **Mundo del pueblo (economía, ~1.380 lín.)**: puestos comerciales, sabotajes, comidas y despensas, gestión de negocios, sueldos, alquiler de taberna, campamentos y mercader viajero |
+| `scripts/visuals/WorldStage3D.gd` | **Escenario 3D (hoja principal, ~1.328 lín.)**: ciclo de vida, cámara 3D, vista en 1.ª persona, brazos/armas 3D, cutaway de tejados y `check_furniture_overlaps()` |
+| `scripts/visuals/WorldStageBase3D.gd` | **Escenario 3D (base, ~859 lín.)**: constantes, shaders, matemáticas de relieve/elevación y constructores de primitivas 3D |
+| `scripts/visuals/WorldStageProps3D.gd` | **Escenario 3D (props y época, ~1.307 lín.)**: Puesto del Paso, cementerio, alcantarillas, elementos de la época, farolas y sincronización de props dinámicos |
+| `scripts/visuals/WorldStageBuildings3D.gd` | **Escenario 3D (edificios e interiores, ~1.243 lín.)**: fachadas 3D, interiores amueblados, taberna de 2 plantas, trattoria/casa de comidas y solares |
+| `scripts/visuals/WorldStageTerrain3D.gd` | **Escenario 3D (terreno y vegetación, ~760 lín.)**: malla del terreno con relieve, caminos, lago, barrios y vegetación 3D |
 | `scripts/systems/VillageWorldBuilder.gd` | Construcción inicial del pueblo (caminos, edificios y mobiliario) |
 | `scripts/systems/VillageLots.gd` | Solares (V4): dónde se puede construir, obras del carpintero, casas nuevas y sus camas |
 | `scripts/systems/VillageSocialLife.gd` | Quedadas, peleas en vivo y chismes aplicados al mundo |
