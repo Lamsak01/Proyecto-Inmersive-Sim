@@ -1,3 +1,13 @@
+# ⭐ ENCARGO DE HOY (2026-11-08, mañana) — MANDA SOBRE TODO LO DEMÁS
+El MODO NOCHE de abajo ya terminó (✅ 03:58). Ahora, en este orden, con 1 captura en 1.ª persona por punto:
+1. **Cierre del juego** al pulsar [E] sobre el «Aldeano Guía» (primera entrada de `FALLOS_VISIBLES.md`). Lo primero.
+2. **Taberna:** altura de techos en los dos pisos a escala adulta, sillas sin atravesar mesas, y clientes que de verdad
+   se sientan a comer y beber un rato (comprobarlo en partida real a media tarde, no solo en prueba).
+3. **Terraza de la trattoria** usada por los clientes de noche.
+4. **Plaza:** paso cómodo entre farola y pozo.
+5. **Combate 1.ª persona:** estela fina y semitransparente, y brazos con aspecto de brazos (no cajas).
+Al acabar: marca ✅ en `FALLOS_VISIBLES.md`, informe corto y commit + push.
+
 # ⭐ MODO NOCHE (orden del usuario, noche del 2026-11-08) — MANDA SOBRE TODO LO DEMÁS
 El usuario duerme y quiere que trabajes **sin parar hasta acabar la lista**. La noche anterior te quedaste esperando
 y no se hizo nada: eso no puede volver a pasar.

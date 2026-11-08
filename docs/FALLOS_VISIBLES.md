@@ -5,6 +5,22 @@
 > Formato: `- [ ] Qué se ve mal · dónde · cuándo (hora del juego, 2D/3D/primera persona)`.
 
 ## Pendientes
+- [ ] **🔴 El juego se cierra al pulsar [E] sobre el vecino sin nombre de fuera del campamento** («Aldeano Guía, Vigía
+  de la Aldea»): no tiene nombre visible ni deja hacer nada, y al pulsar [E] se cuelga · 1.ª persona, 09:34
+  (causa vista por el supervisor: el diálogo intenta sacar el retrato de su dibujo 2D animado, que no tiene imagen fija;
+  arreglar eso y que el vecino tenga nombre y aspecto 3D o retirarlo si sobra).
+- [ ] **Plaza incómoda: el jugador se atasca entre la farola y el pozo** (hueco demasiado estrecho; despejar el paso)
+  · 1.ª persona, 09:38.
+- [ ] **Taberna: el techo de la planta baja es demasiado bajo** y agobia; las vigas quedan a la altura de la cara
+  · 1.ª persona, 11:08.
+- [ ] **Taberna, piso de arriba: todo es enano** («parezco Gandalf en casa de Bilbo»): techo, puertas y cuartos a
+  escala de niño. Subir la altura de los dos pisos a escala de persona adulta · 1.ª persona, 12:08.
+- [ ] **Taberna: sillas que atraviesan las mesas** y **nadie se sienta**: los clientes entran, compran y se van; los que
+  comen se quedan de pie junto a la mesa (el arreglo del 2026-11-08 de «pose sentada» no se ve en la partida real)
+  · 1.ª persona, 13:45 y 14:52.
+- [ ] **Terraza de la trattoria vacía de noche:** mesas y sillas puestas pero nadie las usa · 1.ª persona, 21:44.
+- [ ] **Combate en 1.ª persona feo:** al golpear, la estela sale como bloques blancos enormes que tapan media pantalla,
+  y los brazos son cajas de colores (visto por el supervisor en la captura del paso 5a).
 - [ ] **El campamento inicial está en medio del pueblo** (tienda, hoguera y tronco pegados a las casas); las texturas
   se aprietan entre sí · 1.ª persona, de noche.
 - [ ] **Todo está demasiado comprimido** (petición grande del usuario): pueblo, campamento, lago, bosque y llanura
