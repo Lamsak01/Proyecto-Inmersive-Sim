@@ -661,6 +661,8 @@ func _handle_interactions() -> void:
 	if interaction_selector != null and interaction_selector.call("use_selected"):
 		get_viewport().set_input_as_handled()
 		return
+	if WorldStage3DScript.first_person_active:
+		return
 	var vm = get_tree().get_first_node_in_group("village_manager")
 	var mouse_pos := WorldStage3DScript.get_fp_aim_world_pos(global_position, 28.0) if WorldStage3DScript.first_person_active else get_global_mouse_position()
 	# Prioridad de salida/puerta cerrada (referencia Stardew Valley / Baldur's Gate 3):

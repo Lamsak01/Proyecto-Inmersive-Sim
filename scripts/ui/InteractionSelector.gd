@@ -9,7 +9,7 @@ const WorldStage3DScript = preload("res://scripts/visuals/WorldStage3D.gd")
 ## 3. Si hay varias, [Mayús + rueda] o [G] pasa a la siguiente (el letrero dice «1/3»).
 ## Solo elige el objetivo: lo que hace cada cosa al usarla no cambia.
 
-const REFRESH_S: float = 0.1
+const REFRESH_S: float = 0.05
 const MOUSE_PICK_PX: float = 16.0
 const MOUSE_REACH_PX: float = 55.0
 
@@ -114,9 +114,17 @@ func refresh() -> void:
 			var lbl: String = _label_for(a, tgt)
 			if lbl == "":
 				continue
-			out.append({"key": str(a.get_instance_id()), "area": a, "target": tgt, "pos": (a as Node2D).global_position, "label": lbl})
+			var c_pos: Vector2 = (a as Node2D).global_position
+			var fp_sc: float = 0.0
+			if WorldStage3DScript.first_person_active:
+				fp_sc = _fp_crosshair_score(a as Area2D, tgt, c_pos, pp)
+				if fp_sc < 0.0:
+					continue
+			out.append({"key": str(a.get_instance_id()), "area": a, "target": tgt, "pos": c_pos, "label": lbl, "fp_score": fp_sc})
 	# Montado, «bajar del caballo» va la última: así puedes hablar o abrir puertas sin bajarte.
 	var rank := func(c: Dictionary) -> float:
+		if WorldStage3DScript.first_person_active:
+			return -float(c.get("fp_score", 0.0))
 		var d: float = pp.distance_squared_to(c["pos"])
 		var t_node: Node = c["target"] as Node
 		if t_node.is_in_group("player_horse") and bool(player.get("is_mounted")):
@@ -136,27 +144,119 @@ func refresh() -> void:
 	candidates = out
 
 
-## La opción que se usará al pulsar [E]: la que está bajo el ratón, o la elegida con la rueda.
+## En 1.ª persona, [E] solo apunta a lo que está bajo la cruz del centro (en horizontal y vertical) y a poca distancia.
+func _fp_crosshair_score(a: Area2D, tgt: Node, c_pos: Vector2, pp: Vector2) -> float:
+	if tgt == null or not is_instance_valid(tgt):
+		return -1.0
+	var to_c: Vector2 = c_pos - pp
+	var dist_px: float = to_c.length()
+	var tag: String = str(a.get_meta("village_station")) if (a != null and a.has_meta("village_station")) else ""
+	var is_floor_obj: bool = false
+	var is_low_obj: bool = false
+	var max_reach_px: float = 28.0
+	var max_lat_px: float = 7.5
+
+	if tgt.is_in_group("sewer_grate") or tgt.is_in_group("club_trapdoor"):
+		is_floor_obj = true
+		max_reach_px = 24.0
+		max_lat_px = 7.0
+	elif "prop_kind" in tgt and str(tgt.get("prop_kind")) in ["sewer_grate", "club_trapdoor"]:
+		is_floor_obj = true
+		max_reach_px = 24.0
+		max_lat_px = 7.0
+	elif tgt is VillageNPC:
+		var n_chk := tgt as VillageNPC
+		if (n_chk.is_dead or n_chk.is_downed) and not n_chk.corpse_in_morgue:
+			is_floor_obj = true
+			max_reach_px = 26.0
+			max_lat_px = 8.0
+		else:
+			max_reach_px = 28.0
+			max_lat_px = 7.5
+	elif "animal_name" in tgt or "crop_stage" in tgt or String(tgt.name).begins_with("FarmPlot"):
+		is_floor_obj = true
+		max_reach_px = 26.0
+		max_lat_px = 8.0
+	elif "pet_name" in tgt or "node_title" in tgt or tgt.is_in_group("heist_target_prop"):
+		is_low_obj = true
+		max_reach_px = 26.0
+		max_lat_px = 7.5
+	elif tgt.is_in_group("fishing_spots") or "house_tier" in tgt or String(tgt.name) == "PlayerCampSite" or tgt.is_in_group("player_horse") or tgt.is_in_group("player_cart") or tgt.is_in_group("player_livestock"):
+		max_reach_px = 32.0
+		max_lat_px = 9.5
+
+	if tag != "":
+		match tag:
+			"building_door", "building_window":
+				max_reach_px = 24.0
+				max_lat_px = 7.0
+			"house_chest", "tavern_bed", "hospital_bed", "compost":
+				is_low_obj = true
+				max_reach_px = 25.0
+				max_lat_px = 7.5
+			"tavern_games", "tavern_pool", "morgue_table", "shop_business_stall", "library_reading":
+				is_low_obj = true
+				max_reach_px = 27.0
+				max_lat_px = 8.5
+			"notice_board", "well", "church_altar", "cemetery_gate", "police_jail":
+				max_reach_px = 27.0
+				max_lat_px = 8.0
+
+	if dist_px > max_reach_px:
+		return -1.0
+
+	var fwd_2d: Vector2 = WorldStage3DScript.get_fp_forward_2d()
+	var rgt_2d: Vector2 = WorldStage3DScript.get_fp_right_2d()
+	var forward_px: float = to_c.dot(fwd_2d)
+	var lateral_px: float = absf(to_c.dot(rgt_2d))
+	var pitch: float = WorldStage3DScript.fp_pitch
+
+	if is_floor_obj:
+		# Objetos en el suelo (trampilla, alcantarilla, cadáver, parcela): exigen bajar la vista hacia ellos
+		if pitch > -0.18:
+			return -1.0
+		if forward_px < 1.0 or lateral_px > max_lat_px:
+			return -1.0
+		var horiz_cos_f: float = forward_px / maxf(0.001, dist_px)
+		if horiz_cos_f < 0.86:
+			return -1.0
+		return horiz_cos_f * 100.0 - lateral_px * 2.5 - dist_px * 0.6
+
+	# Puertas, vecinos, mesas, carteles: deben estar delante de la cruz central y no mirando al suelo ni al techo
+	if forward_px < 2.5 or lateral_px > max_lat_px:
+		return -1.0
+	var horiz_cos: float = forward_px / maxf(0.001, dist_px)
+	if horiz_cos < 0.90:
+		return -1.0
+
+	if is_low_obj:
+		if pitch > 0.22 or pitch < -0.65:
+			return -1.0
+	else:
+		if pitch > 0.36 or pitch < -0.42:
+			return -1.0
+
+	return horiz_cos * 100.0 - lateral_px * 2.8 - dist_px * 0.5 - absf(pitch) * 12.0
+
+
+## La opción que se usará al pulsar [E]: la que está bajo el ratón (o bajo la cruz central en 1.ª persona), o la elegida con la rueda.
 func selected() -> Dictionary:
 	if candidates.is_empty():
 		return {}
 	if WorldStage3DScript.first_person_active:
+		var pp: Vector2 = player.global_position
 		if _index > 0 and _index < candidates.size():
-			return candidates[_index]
-		var fwd: Vector2 = WorldStage3DScript.get_fp_forward_2d()
+			var c_idx: Dictionary = candidates[_index]
+			if _fp_crosshair_score(c_idx.get("area") as Area2D, c_idx.get("target") as Node, c_idx.get("pos", pp), pp) >= 0.0:
+				return c_idx
 		var best_fp: Dictionary = {}
-		var best_score: float = -999999.0
+		var best_score: float = -1.0
 		for c in candidates:
-			var to_c: Vector2 = (c["pos"] as Vector2) - player.global_position
-			var dist: float = to_c.length()
-			var align: float = (to_c / maxf(1.0, dist)).dot(fwd) if dist > 1.5 else 1.0
-			# Prioriza lo que tienes delante de la mirada en el centro de la pantalla
-			var score: float = align * 60.0 - dist * 0.45
-			if score > best_score:
+			var score: float = _fp_crosshair_score(c.get("area") as Area2D, c.get("target") as Node, c.get("pos", pp), pp)
+			if score >= 0.0 and score > best_score:
 				best_score = score
 				best_fp = c
-		if not best_fp.is_empty():
-			return best_fp
+		return best_fp
 	var mp: Vector2 = player.get_global_mouse_position()
 	if player.global_position.distance_to(mp) <= MOUSE_REACH_PX:
 		var best: Dictionary = {}
