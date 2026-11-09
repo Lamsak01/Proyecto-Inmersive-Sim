@@ -19,4 +19,23 @@ Al final, `RECORRIDO PASSED`. Informe arriba de `docs/INFORME_ANTIGRAVITY.md`, m
 plano con `timeout`.
 
 ## Notas del supervisor
-(ninguna)
+**(01:15) El usuario quiere que trabajes toda la noche. NO crees `DIA_TERMINADO.txt` al acabar el punto 3: sigue con los
+puntos 4–9, en orden.** Trama decidida en `docs/PLAN_BETA_MISTERIO.md` §5 (lee solo los párrafos que cite cada punto).
+Pistas = objetos que se examinan con [E] en 1.ª persona, con su texto, y que se anotan en el cuaderno del caso si ese
+sistema ya lo permite (no inventes sistemas nuevos). Captura en 1.ª persona por punto en `docs/capturas_arreglos/caso1/`.
+
+4. **Molino: sótano con reja** («Cómo llegó el frasco»): sótano bajo el molino que da al **canal de la rueda**; reja de
+   hierro con **marcas de haberla intentado forzar** y un **trozo de tela** del familiar enganchado. **Comisaría:**
+   **denuncia de desaparición archivada** (papel examinable en el cuarto de pruebas o un archivador).
+5. **Biblioteca: sala oculta** («El libro y la sala oculta»): tras una estantería que se abre con un **libro-palanca**;
+   se delata por una **corriente de aire** (polvo que se mueve) y **marcas de arrastre** en el suelo. Dentro: libros de
+   ocultismo, venenos y la antigua fe; el **cuaderno secreto de firmas** y el **libro con una página arrancada**.
+6. **Puente viejo:** el **zapato izquierdo** de la víctima, examinable («La víctima»).
+7. **Inicio de la demo** (`FALLOS_VISIBLES.md`: «El campamento inicial está en medio del pueblo»): el jugador empieza
+   en **las afueras** (camino de entrada al valle), no en un campamento dentro del pueblo. Al empezar, pantalla con la
+   **carta de contratación** (solo texto) con un texto provisional: «Carta de contratación — texto pendiente del autor».
+8. **Bosque alrededor del claro del cuerpo** (`FALLOS_VISIBLES.md`: «El bosque parece un parque»): más denso y oscuro
+   alrededor del arroyo, con sotobosque y borde irregular, para que el claro se sienta escondido.
+9. **Río en el pueblo con más curvas** (aún parece un canal ancho): meandros y orillas desiguales, sin mover edificios.
+
+Al acabar el 9 (o si ya no da tiempo), informe arriba de `docs/INFORME_ANTIGRAVITY.md` y entonces sí `DIA_TERMINADO.txt`.
