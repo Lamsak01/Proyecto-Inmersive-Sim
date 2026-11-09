@@ -95,6 +95,12 @@ vacío** del mismo bolsillo es otra historia (el plan del familiar): el jugador 
 de «V.» con el Dr. **Valen** queda como sospecha falsa. *Pendiente:* pasar esto a los textos del caso en el juego y al
 documento de Word de `Documentos/`.
 
+**El carro (decidido por el usuario, 2026-11-08, noche):** tras dejar el cuerpo en el claro, los secuestradores dieron
+**un rodeo a propósito hacia el sur** (los almacenes) para no llevar a nadie hacia el molino. El leñador dice la verdad
+(lo oyó bajar hacia el sur), pero es un **despiste**. En el claro, las **marcas de rueda** muestran que el carro **llegó
+desde el norte** (río abajo desde el molino) y **dio la vuelta**: un jugador atento ve las dos direcciones y entiende el
+engaño. *Pendiente:* ajustar los textos de la pista de las ruedas y del leñador en el juego.
+
 **Nombres:** la hierba es la **belladama gris** (elegido por el usuario, 2026-11-08: recuerda a la belladona y el «dama» apunta a los ricos). La poción es el **sueño de cera** (elegido por el usuario, 2026-11-08: deja el cuerpo quieto y pálido como de cera).
 
 ## 5b. Acusación y final de la demo (decidido por el usuario, 2026-11-08)
