@@ -1,3 +1,0 @@
-Encargo del 2026-11-09 (noche 9) terminado:
-- Punto 2: Sala oculta de la biblioteca en penumbra iluminada únicamente por la vela de sebo corta y cálida sobre la mesa (captura 05b_biblioteca_sala_oculta_v3.png).
-- Punto 1: Prueba automática de partida completa a pie del Caso I (tools/tests/partida_caso1.gd), estado detallado de cada pista en docs/PLAN_PARTIDA_CASO1.md y docs/INFORME_ANTIGRAVITY.md, capturas en docs/capturas_arreglos/caso1/partida/ y RECORRIDO PASSED.
