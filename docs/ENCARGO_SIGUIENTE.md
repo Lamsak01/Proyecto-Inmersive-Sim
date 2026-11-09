@@ -1,6 +1,10 @@
 # ⭐ ENCARGO DE HOY — ¿Se puede jugar el Caso I de principio a fin?
 Modo demo activo. No muevas edificios ni crees sistemas. Trama en `docs/PLAN_BETA_MISTERIO.md` §5 (solo lo necesario).
 
+**ORDEN (10:55):** haz **primero el punto 2** (corto) y su commit. Luego, para el punto 1, **antes de estudiar el
+código** crea `docs/PLAN_PARTIDA_CASO1.md` con tu plan en 5–10 líneas y haz commit; después ve apuntando ahí cada pista
+comprobada (✅/❌) **según avanzas**, con commit cada 2–3 pistas. Si pasas 20 min sin escribir nada, te reinician.
+
 1. **Partida completa del Caso I, como un jugador** (prueba automática nueva o ampliación de `recorrido_fijo.gd`):
    empezar en las afueras con la carta → ir al claro → examinar el cuerpo y las pistas del claro → molino (dentro,
    sótano y reja, barro rojo) → puente viejo (zapato) → comisaría (denuncia archivada) → biblioteca (libro-palanca,
