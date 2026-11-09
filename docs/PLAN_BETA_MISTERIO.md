@@ -142,7 +142,9 @@ falta **una página arrancada** (en el índice se lee el capítulo, p. ej. «Del
 está **en casa del familiar** con **dosis tachadas y corregidas** de su puño y letra (por eso salió mal). **Cómo se
 encuentra la sala:** las dos vías: **por observación** (corriente de aire, marcas de arrastre junto a una estantería, un
 libro que no sale porque es la palanca) o **presionando al bibliotecario** cuando ya hay pruebas contra el familiar.
-**Por qué le ayudó el bibliotecario: pendiente de decidir por el usuario** (no inventarlo).
+**Por qué le ayudó el bibliotecario (decidido por el usuario, 2026-11-09):** es **viejo** y **recuerda cómo era todo
+antes del reinado actual**; **está en contra**, pero **sabe que no puede hacer nada**. Guardar la sala y ayudar en
+silencio es lo único que le queda. (Su secreto puede costarle la cárcel: el jugador podría delatarle o protegerle.)
 
 **Nombres:** la hierba es la **belladama gris** (elegido por el usuario, 2026-11-08: recuerda a la belladona y el «dama» apunta a los ricos). La poción es el **sueño de cera** (elegido por el usuario, 2026-11-08: deja el cuerpo quieto y pálido como de cera).
 
