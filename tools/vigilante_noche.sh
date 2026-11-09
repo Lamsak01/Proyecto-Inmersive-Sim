@@ -67,6 +67,12 @@ while true; do
   fi
   if [ -z "$pid_mio" ] || ! kill -0 "$pid_mio" 2>/dev/null; then
     [ -n "$pid_mio" ] && log "Mi Antigravity ($pid_mio) ha terminado."
+    # Sin cupo de Google: no tiene sentido reintentar (cada intento falla al momento).
+    cupo=$(tail -c +"$((${inicio_log:-0} + 1))" "$HOME/vigilante_agy_$lanzados.log" 2>/dev/null \
+      | grep -o 'quota reached.*Resets in [0-9hms]*' | tail -1)
+    if [ -n "$pid_mio" ] && [ -n "$cupo" ]; then
+      log "Antigravity sin cupo ($cupo). Paro: relánzame cuando se renueve."; exit 0
+    fi
     pid_mio=""
     # ¿Alguien ha tocado archivos del juego hace poco? (sin .git, .godot ni .import)
     recientes=$(find "$REPO" \( -path "$REPO/.git" -o -path "$REPO/.godot" \) -prune -o \
@@ -90,6 +96,7 @@ while true; do
         log "[prueba] Lanzaría Antigravity n.º $lanzados."
       else
         log "Todo parado $INACTIVO_MIN min: lanzo Antigravity n.º $lanzados."
+        inicio_log=$(stat -c %s "$HOME/vigilante_agy_$lanzados.log" 2>/dev/null || echo 0)
         ( cd "$REPO" && timeout "$DURACION_MAX" "$AGY" -p "$ORDEN" \
             --dangerously-skip-permissions --model "$MODELO" \
             >> "$HOME/vigilante_agy_$lanzados.log" 2>&1 ) &
