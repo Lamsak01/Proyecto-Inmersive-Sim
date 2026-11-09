@@ -1552,17 +1552,6 @@ func _build_police_station_3d(b_root: Node3D, _rect: Rect2, wall_h: float, m_wal
 		_add_box_2d(b_root, rep_pos + Vector2(1.5, r_line), Vector2(5.8, 0.36), 9.78, 0.08, m_ink_dark, 5.0)
 	# Sello rojo diagonal de «ARCHIVADA» sobre la denuncia
 	_add_box_2d(b_root, rep_pos + Vector2(2.6, 1.1), Vector2(3.6, 1.3), 9.80, 0.10, m_stamp_red, -18.0)
-	var rep_lbl := Label3D.new()
-	rep_lbl.name = "PoliceArchivedReportLabel3D"
-	rep_lbl.text = "📋 Denuncia de desaparición\n(ARCHIVADA)"
-	rep_lbl.font_size = 17
-	rep_lbl.outline_size = 4
-	rep_lbl.pixel_size = 0.00072
-	rep_lbl.modulate = Color(0.96, 0.90, 0.74, 0.96)
-	rep_lbl.outline_modulate = Color(0.08, 0.06, 0.04, 0.98)
-	rep_lbl.billboard = BaseMaterial3D.BILLBOARD_ENABLED
-	rep_lbl.position = to_3d(rep_pos + Vector2(1.0, -0.5), 11.4)
-	b_root.add_child(rep_lbl)
 
 	# 7. Iluminación interior y faroles de fachada
 	for lt_pos in [Vector2(882.0, 124.0), Vector2(952.0, 124.0)]:
@@ -1847,17 +1836,6 @@ func _build_library_3d(b_root: Node3D, rect: Rect2, door_south: bool, wall_h: fl
 	var lb_mi := _add_box_2d(b_root, lever_book_p, Vector2(2.2, 4.8), 12.2, 3.4, m_book_lever, sec_bc_rot)
 	lb_mi.rotation.x = 0.38
 	_add_box_2d(b_root, lever_book_p + Vector2(0.0, 0.4), Vector2(2.3, 1.2), 13.2, 2.8, m_gold, sec_bc_rot)
-	var lever_lbl := Label3D.new()
-	lever_lbl.name = "LibraryBookLeverLabel3D"
-	lever_lbl.text = "📕 Libro-palanca y estantería móvil\n(corriente de aire y marcas de arrastre)"
-	lever_lbl.font_size = 15
-	lever_lbl.outline_size = 4
-	lever_lbl.pixel_size = 0.00068
-	lever_lbl.modulate = Color(0.98, 0.88, 0.72, 0.96)
-	lever_lbl.outline_modulate = Color(0.08, 0.06, 0.04, 0.98)
-	lever_lbl.billboard = BaseMaterial3D.BILLBOARD_ENABLED
-	lever_lbl.position = to_3d(sec_bc_pos + Vector2(-1.0, 2.0), 22.8)
-	b_root.add_child(lever_lbl)
 
 	# D) INTERIOR DE LA SALA OCULTA: Libros de ocultismo, venenos y la antigua fe + Cuaderno de firmas + Libro con página arrancada
 	var occ_bc_pos: Vector2 = c + Vector2(43.5, 40.5 * m_dir)
@@ -1877,43 +1855,21 @@ func _build_library_3d(b_root: Node3D, rect: Rect2, door_south: bool, wall_h: fl
 	var sec_tbl: Vector2 = c + Vector2(42.0, 28.0 * m_dir)
 	_add_box_2d(b_root, sec_tbl, Vector2(25.0, 10.5), 2.0, 7.6, m_dark_wood)
 	_add_box_2d(b_root, sec_tbl, Vector2(26.2, 11.4), 9.2, 0.8, m_wainscot)
-	# (1) Cuaderno secreto de firmas (`c + Vector2(35, 28 * m_dir)`): muestra caligráfica auténtica del familiar
+	# (1) Cuaderno de firmas (`c + Vector2(35, 28 * m_dir)`)
 	var ledger_p: Vector2 = sec_tbl + Vector2(-6.5, 0.0)
 	_add_box_2d(b_root, ledger_p, Vector2(7.8, 5.8), 10.0, 0.55, m_book_leather, -8.0)
 	_add_box_2d(b_root, ledger_p + Vector2(-1.7, 0.0), Vector2(3.4, 5.0), 10.56, 0.18, m_page_paper, -8.0)
 	_add_box_2d(b_root, ledger_p + Vector2(1.7, 0.0), Vector2(3.4, 5.0), 10.56, 0.18, m_page_paper, -8.0)
 	for sig_y in [-1.4, -0.2, 1.0]:
 		_add_box_2d(b_root, ledger_p + Vector2(1.6, sig_y), Vector2(2.4, 0.32), 10.76, 0.08, m_ink_sig, -8.0)
-	var ledger_lbl := Label3D.new()
-	ledger_lbl.name = "LibrarySecretLedgerLabel3D"
-	ledger_lbl.text = "🖋️ Cuaderno secreto de firmas\n(firma del familiar)"
-	ledger_lbl.font_size = 15
-	ledger_lbl.outline_size = 4
-	ledger_lbl.pixel_size = 0.00068
-	ledger_lbl.modulate = Color(0.95, 0.90, 0.74, 0.96)
-	ledger_lbl.outline_modulate = Color(0.06, 0.05, 0.04, 0.98)
-	ledger_lbl.billboard = BaseMaterial3D.BILLBOARD_ENABLED
-	ledger_lbl.position = to_3d(ledger_p + Vector2(-1.5, 0.0), 12.6)
-	b_root.add_child(ledger_lbl)
 
-	# (2) Libro antiguo de venenos y la antigua fe con una PÁGINA ARRANCADA (`sec_tbl + Vector2(6.5, 0.0)`)
+	# (2) Libro antiguo con una PÁGINA ARRANCADA (`sec_tbl + Vector2(6.5, 0.0)`)
 	var torn_p: Vector2 = sec_tbl + Vector2(6.5, 0.0)
 	_add_box_2d(b_root, torn_p, Vector2(8.6, 6.4), 10.0, 0.85, m_book_occult, 10.0)
 	_add_box_2d(b_root, torn_p + Vector2(-1.9, 0.0), Vector2(3.6, 5.6), 10.86, 0.25, m_page_paper, 10.0)
 	# Muñón dentado de la página arrancada en el lado derecho del códice
 	_add_box_2d(b_root, torn_p + Vector2(0.6, -0.4), Vector2(1.1, 5.2), 10.92, 0.28, m_torn_stub, 16.0)
 	_add_box_2d(b_root, torn_p + Vector2(2.2, 0.2), Vector2(2.6, 5.4), 10.72, 0.18, m_page_paper, 10.0)
-	var torn_lbl := Label3D.new()
-	torn_lbl.name = "LibraryTornBookLabel3D"
-	torn_lbl.text = "📖 Códice prohibido de venenos\n(falta una página arrancada)"
-	torn_lbl.font_size = 15
-	torn_lbl.outline_size = 4
-	torn_lbl.pixel_size = 0.00068
-	torn_lbl.modulate = Color(0.92, 0.84, 0.98, 0.96)
-	torn_lbl.outline_modulate = Color(0.06, 0.04, 0.08, 0.98)
-	torn_lbl.billboard = BaseMaterial3D.BILLBOARD_ENABLED
-	torn_lbl.position = to_3d(torn_p + Vector2(1.5, -1.5), 14.2)
-	b_root.add_child(torn_lbl)
 	_restaurant_light(b_root, sec_tbl + Vector2(0.0, 2.0 * m_dir), 16.5, Color(0.96, 0.76, 0.46), 0.78, 2.1, false)
 
 	# 4. Gran Mesa Central de Lectura (`VillageCulture.reading_spot()`) con sillas, códices abiertos, candelabro y atril
@@ -2449,17 +2405,6 @@ func _build_abandoned_mill_3d(
 	var cloth_2 := _add_box_2d(b_root, cloth_pos + Vector2(0.8, 0.5), Vector2(2.0, 0.38), 4.2, 1.9, m_kin_cloth, -24.0)
 	cloth_2.rotation.x = 0.24
 	_restaurant_light(b_root, Vector2(grate_x + 3.0, cellar_pos.y), 7.8, Color(0.58, 0.72, 0.84), 0.42, 1.8, false)
-	var grate_lbl := Label3D.new()
-	grate_lbl.name = "MillCellarGrateLabel3D"
-	grate_lbl.text = "🔩 Reja del sótano al canal\n(marcas de forcejeo y tela enganchada)"
-	grate_lbl.font_size = 16
-	grate_lbl.outline_size = 4
-	grate_lbl.pixel_size = 0.00072
-	grate_lbl.modulate = Color(0.86, 0.92, 0.98, 0.95)
-	grate_lbl.outline_modulate = Color(0.06, 0.06, 0.08, 0.98)
-	grate_lbl.billboard = BaseMaterial3D.BILLBOARD_ENABLED
-	grate_lbl.position = to_3d(Vector2(grate_x + 4.8, cellar_pos.y), 11.2)
-	b_root.add_child(grate_lbl)
 	# Muelas de piedra viejas desplazadas un poco al norte del foso del sótano (`x = 138, y = -1076`)
 	_add_cyl_2d(b_root, Vector2(rect.position.x + 12.0, c.y - 16.0), 5.8, 2.0, 3.0, m_mill_stone, 5.8, 12)
 	_add_cyl_2d(b_root, Vector2(rect.position.x + 13.5, c.y - 14.0), 5.5, 5.0, 2.8, m_mill_stone, 5.5, 12)
@@ -2550,20 +2495,6 @@ func _build_abandoned_mill_3d(
 	# Tintero viejo volcado y palmatoria oxidada en la esquina de la mesa
 	_add_cyl_2d(b_root, table_pos + Vector2(7.0, -3.2), 1.4, 9.5, 2.0, m_rust, 1.2, 8)
 	_add_model_2d(b_root, "props/CandleStick.gltf", table_pos + Vector2(7.5, 2.8), 9.5, Vector2(2.8, 2.8), 4.2)
-
-	# Cartel 3D discreto sobre el papel de la mesa en primera persona
-	var lbl_3d := Label3D.new()
-	lbl_3d.name = "MillPaperLabel3D"
-	lbl_3d.text = "«Lista de nombres —\ntexto pendiente del autor»"
-	lbl_3d.font_size = 18
-	lbl_3d.outline_size = 4
-	lbl_3d.pixel_size = 0.00075
-	lbl_3d.modulate = Color(0.96, 0.91, 0.76, 0.96)
-	lbl_3d.outline_modulate = Color(0.08, 0.06, 0.04, 0.98)
-	lbl_3d.billboard = BaseMaterial3D.BILLBOARD_ENABLED
-	lbl_3d.no_depth_test = false
-	lbl_3d.position = to_3d(paper_center, 11.2)
-	b_root.add_child(lbl_3d)
 
 	# G) POCA LUZ: penumbra densa en el interior abandonado (absorción ambiental) con un único rayo pálido en el boquete
 	var gloom_light := OmniLight3D.new()

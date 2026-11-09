@@ -29,17 +29,17 @@ const STATION_LABELS: Dictionary = {
 	"building_window": "Abrir o cerrar el postigo",
 	"house_chest": "Abrir el cofre",
 	"shop_business_stall": "Gestionar el negocio",
-	"case1_clearing": "Examinar orilla de barro pardo del claro",
-	"mill_hayloft": "Examinar pajar con paja seca",
-	"mill_hearth": "Examinar hogar viejo con ceniza de carbón",
-	"mill_hemp_cord": "Examinar cordel de cáñamo encerado",
-	"mill_table_paper": "Leer «Lista de nombres — texto pendiente del autor»",
-	"mill_cellar_grate": "Examinar reja del sótano al canal de la rueda",
-	"police_archived_report": "Examinar denuncia de desaparición archivada",
-	"library_book_lever": "Accionar libro-palanca de la estantería secreta",
-	"library_secret_ledger": "Examinar cuaderno secreto de firmas",
-	"library_torn_book": "Examinar libro prohibido con página arrancada",
-	"old_bridge_left_shoe": "Examinar zapato izquierdo de la víctima",
+	"case1_clearing": "Examinar orilla del arroyo",
+	"mill_hayloft": "Examinar pajar",
+	"mill_hearth": "Examinar hogar de piedra",
+	"mill_hemp_cord": "Examinar rollo de cordel",
+	"mill_table_paper": "Examinar papel sobre la mesa",
+	"mill_cellar_grate": "Examinar reja de hierro",
+	"police_archived_report": "Examinar carpeta de archivo",
+	"library_book_lever": "Examinar estantería",
+	"library_secret_ledger": "Examinar cuaderno",
+	"library_torn_book": "Examinar libro antiguo",
+	"old_bridge_left_shoe": "Examinar zapato",
 }
 
 var player: Node2D = null
@@ -205,7 +205,7 @@ func _fp_crosshair_score(a: Area2D, tgt: Node, c_pos: Vector2, pp: Vector2) -> f
 				is_low_obj = true
 				max_reach_px = 25.0
 				max_lat_px = 7.5
-			"tavern_games", "tavern_pool", "morgue_table", "shop_business_stall", "library_reading":
+			"tavern_games", "tavern_pool", "morgue_table", "shop_business_stall", "library_reading", "mill_cellar_grate", "old_bridge_left_shoe", "library_secret_ledger", "library_torn_book", "police_archived_report", "mill_table_paper", "mill_hemp_cord", "mill_hearth", "mill_hayloft", "case1_clearing":
 				is_low_obj = true
 				max_reach_px = 27.0
 				max_lat_px = 8.5
@@ -433,21 +433,13 @@ func get_prompt_card_data() -> Dictionary:
 		var n: VillageNPC = tgt as VillageNPC
 		var fem_n: bool = n.has_method("is_female") and bool(n.call("is_female"))
 		target_name = "Alguacil mayor Vane" if n.npc_name == "Comisario Vane" else n.npc_name
-		if n.has_method("get_short_world_state"):
+		if n.is_dead:
+			target_state = ""
+		elif n.has_method("get_short_world_state"):
 			target_state = str(n.call("get_short_world_state"))
 		else:
 			target_state = ("Muerta" if fem_n else "Muerto") if n.is_dead else n.npc_role
-		if n.is_dead:
-			if not n.corpse_pocket_looted and (n.personal_gold > 0 or n.carries_royal_safe_conduct or not n.pocket_items.is_empty()):
-				var extra_loot: String = ", salvoconducto" if n.carries_royal_safe_conduct else (", objetos" if not n.pocket_items.is_empty() else "")
-				actions.append({"key": "·", "text": "Registrar bolsillo (%d oro%s)" % [maxi(0, n.personal_gold), extra_loot], "selected": false})
-			if n.corpse_in_morgue:
-				actions.append({"key": "·", "text": "Camilla forense · autopsia", "selected": false})
-			elif n.corpse_reported:
-				actions.append({"key": "·", "text": "Denunciad%s por %s" % ["a" if fem_n else "o", n.corpse_discovered_by if n.corpse_discovered_by != "" else "un vecino"], "selected": false})
-			else:
-				actions.append({"key": "·", "text": "Denunciar hallazgo al alguacil", "selected": false})
-		elif n.is_downed:
+		if n.is_downed:
 			actions.append({"key": "·", "text": "Agonizando (%ds) · llevar al hospital" % maxi(1, int(ceil(n.bleedout_timer))), "selected": false})
 		elif (n.sedated_timer > 0.0 or n.is_stunned_flag) and not n.corpse_pocket_looted and n.personal_gold > 0:
 			actions.append({"key": "·", "text": "Registrar bolsillo (%d oro)" % maxi(0, n.personal_gold), "selected": false})
@@ -541,38 +533,38 @@ func get_prompt_card_data() -> Dictionary:
 				target_name = "Compostador"
 				target_state = "Huerto"
 			"case1_clearing":
-				target_name = "Claro del arroyo"
-				target_state = "Barro pardo"
+				target_name = "Orilla del arroyo"
+				target_state = ""
 			"mill_hayloft":
-				target_name = "Pajar con paja seca"
-				target_state = "Molino viejo"
+				target_name = "Pajar"
+				target_state = ""
 			"mill_hearth":
-				target_name = "Hogar viejo"
-				target_state = "Ceniza de carbón"
+				target_name = "Hogar de piedra"
+				target_state = ""
 			"mill_hemp_cord":
-				target_name = "Cordel de cáñamo encerado"
-				target_state = "Molino viejo"
+				target_name = "Rollo de cordel"
+				target_state = ""
 			"mill_table_paper":
-				target_name = "Mesa del molino"
-				target_state = "Lista de nombres"
+				target_name = "Papel sobre la mesa"
+				target_state = ""
 			"mill_cellar_grate":
-				target_name = "Reja del sótano al canal"
-				target_state = "Forzada · tela enganchada"
+				target_name = "Reja de hierro"
+				target_state = ""
 			"police_archived_report":
-				target_name = "Denuncia archivada"
-				target_state = "Archivo policial"
+				target_name = "Carpeta de archivo"
+				target_state = ""
 			"library_book_lever":
-				target_name = "Libro-palanca"
-				target_state = "Corriente de aire · Marcas de arrastre"
+				target_name = "Estantería"
+				target_state = ""
 			"library_secret_ledger":
-				target_name = "Cuaderno secreto de firmas"
-				target_state = "Sala oculta"
+				target_name = "Cuaderno"
+				target_state = ""
 			"library_torn_book":
-				target_name = "Libro con página arrancada"
-				target_state = "Ocultismo y venenos"
+				target_name = "Libro antiguo"
+				target_state = ""
 			"old_bridge_left_shoe":
-				target_name = "Zapato izquierdo"
-				target_state = "Puente Viejo"
+				target_name = "Zapato"
+				target_state = ""
 			_:
 				target_name = str(STATION_LABELS.get(tag, "Puesto"))
 				target_state = "Aldea"

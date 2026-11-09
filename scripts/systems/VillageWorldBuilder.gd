@@ -386,9 +386,6 @@ static func _spawn_police_station_and_jail(vm: VillageManager) -> void:
 	vm._add_prop_collider(pol_rep_pos, Vector2(15.0, 9.0))
 	vm.register_no_stand_furniture(pol_rep_pos, Vector2(16.0, 9.5))
 	vm._add_station_area("PoliceArchivedReportArea", pol_rep_pos, 22.0, "police_archived_report")
-	var pol_rep_lbl := vm._make_station_label(pol_rep_pos + Vector2(-130.0, -24.0), "📋 Denuncia de Desaparición Archivada [E: Examinar]")
-	vm.entities_root.add_child(pol_rep_lbl)
-	vm._extra_station_labels.append([pol_rep_lbl, pol_rep_pos])
 	vm._add_station_area("PoliceJailCellArea", vm._jail_cell_pos, 22.0, "police_jail")
 	vm._jail_label = vm._make_station_label(vm._jail_cell_pos + Vector2(-120, -28), "🚓 Celda Policial [E: Gestionar Fianza / Condena]")
 	vm.entities_root.add_child(vm._jail_label)
@@ -708,9 +705,6 @@ static func _spawn_river_arroyo_and_abandoned_mill(vm: VillageManager) -> void:
 			if shoe_2d != null:
 				shoe_2d.add_to_group("ranch_fence_2d")
 			vm._add_station_area("OldBridgeVictimShoeArea", shoe_pos, 24.0, "old_bridge_left_shoe")
-			var shoe_lbl := vm._make_station_label(shoe_pos + Vector2(-115.0, -24.0), "👞 Zapato Izquierdo de la Víctima [E: Examinar]")
-			vm.entities_root.add_child(shoe_lbl)
-			vm._extra_station_labels.append([shoe_lbl, shoe_pos])
 		elif c_id == "bridge_north" or c_id == "south_fields_bridge":
 			var b_deck := vm._add_rect_poly(Vector2(deck_cx, c_pos.y), Vector2(deck_w, c_hy * 2.0), Color(0.46, 0.33, 0.20, 0.96), -1)
 			var b_rn := vm._add_rect_poly(Vector2(deck_cx, c_pos.y - c_hy), Vector2(deck_w, 3.0), Color(0.32, 0.22, 0.13, 0.98), 0)
@@ -744,9 +738,6 @@ static func _spawn_river_arroyo_and_abandoned_mill(vm: VillageManager) -> void:
 	# 6. Claro del Arroyo (Caso I) — etiqueta y área de inspección del lugar
 	vm._add_title_label(Vector2(68.0, -902.0), Vector2(160.0, 16.0), "🌲 Claro del Arroyo", Color(0.84, 0.92, 0.78), 8)
 	vm._add_station_area("Case1ClearingArea", FishingSpot.CASE1_CLEARING_POS, 22.0, "case1_clearing")
-	var clearing_lbl := vm._make_station_label(FishingSpot.CASE1_CLEARING_POS + Vector2(-120.0, -26.0), "🌲 Orilla de Barro Pardo del Arroyo [E: Examinar Claro]")
-	vm.entities_root.add_child(clearing_lbl)
-	vm._extra_station_labels.append([clearing_lbl, FishingSpot.CASE1_CLEARING_POS])
 
 	# 7. Molino Viejo Abandonado río arriba del claro (`Vector2(188, -1060)`, tamaño `Vector2(124, 92)`)
 	var mill_center: Vector2 = FishingSpot.ABANDONED_MILL_CENTER
@@ -777,9 +768,6 @@ static func _spawn_river_arroyo_and_abandoned_mill(vm: VillageManager) -> void:
 		straw_2d.add_to_group("ranch_fence_2d")
 	vm._add_prop_collider(straw_pos, Vector2(24.0, 16.0))
 	vm._add_station_area("MillHayloftArea", straw_pos, 22.0, "mill_hayloft")
-	var straw_lbl := vm._make_station_label(straw_pos + Vector2(-105.0, -24.0), "🌾 Pajar con Paja Seca [E: Examinar]")
-	vm.entities_root.add_child(straw_lbl)
-	vm._extra_station_labels.append([straw_lbl, straw_pos])
 
 	# (b) Hogar viejo con ceniza de carbón (esquina noreste: Vector2(224, -1086))
 	var hearth_pos := Vector2(224.0, -1086.0)
@@ -790,9 +778,6 @@ static func _spawn_river_arroyo_and_abandoned_mill(vm: VillageManager) -> void:
 			hp.add_to_group("ranch_fence_2d")
 	vm._add_prop_collider(hearth_pos, Vector2(24.0, 14.0))
 	vm._add_station_area("MillHearthArea", hearth_pos, 22.0, "mill_hearth")
-	var hearth_lbl := vm._make_station_label(hearth_pos + Vector2(-115.0, -24.0), "🪨 Hogar Viejo con Ceniza de Carbón [E: Examinar]")
-	vm.entities_root.add_child(hearth_lbl)
-	vm._extra_station_labels.append([hearth_lbl, hearth_pos])
 
 	# (c) Cordel de cáñamo encerado (esquina suroeste: Vector2(150, -1040))
 	var cord_pos := Vector2(150.0, -1040.0)
@@ -803,9 +788,6 @@ static func _spawn_river_arroyo_and_abandoned_mill(vm: VillageManager) -> void:
 			cp.add_to_group("ranch_fence_2d")
 	vm._add_prop_collider(cord_pos, Vector2(18.0, 12.0))
 	vm._add_station_area("MillHempCordArea", cord_pos, 22.0, "mill_hemp_cord")
-	var cord_lbl := vm._make_station_label(cord_pos + Vector2(-110.0, -24.0), "🪢 Cordel de Cáñamo Encerado [E: Examinar]")
-	vm.entities_root.add_child(cord_lbl)
-	vm._extra_station_labels.append([cord_lbl, cord_pos])
 
 	# (d) Mesa con papel («Lista de nombres — texto pendiente del autor») (sureste: Vector2(218, -1050))
 	var table_pos := Vector2(218.0, -1050.0)
@@ -816,11 +798,8 @@ static func _spawn_river_arroyo_and_abandoned_mill(vm: VillageManager) -> void:
 			tp.add_to_group("ranch_fence_2d")
 	vm._add_prop_collider(table_pos, Vector2(22.0, 14.0))
 	vm._add_station_area("MillPaperTableArea", table_pos, 24.0, "mill_table_paper")
-	var paper_lbl := vm._make_station_label(table_pos + Vector2(-135.0, -26.0), "📄 Mesa con Papel: «Lista de nombres — texto pendiente del autor» [E: Leer]")
-	vm.entities_root.add_child(paper_lbl)
-	vm._extra_station_labels.append([paper_lbl, table_pos])
 
-	# (e) Punto 4 (Caso I): Sótano del molino con reja de hierro al canal de la rueda y tela del familiar enganchada (oeste: Vector2(138, -1061))
+	# (e) Punto 4 (Caso I): Sótano del molino con reja de hierro al canal de la rueda (oeste: Vector2(138, -1061))
 	var cellar_pos := Vector2(138.0, -1061.0)
 	var cellar_pit_2d := vm._add_rect_poly(cellar_pos, Vector2(22.0, 20.0), Color(0.14, 0.16, 0.18, 0.96), -1)
 	var cellar_grate_2d := vm._add_rect_poly(Vector2(128.0, -1061.0), Vector2(3.5, 20.0), Color(0.32, 0.24, 0.18, 0.98), 0)
@@ -829,9 +808,6 @@ static func _spawn_river_arroyo_and_abandoned_mill(vm: VillageManager) -> void:
 		if clp != null:
 			clp.add_to_group("ranch_fence_2d")
 	vm._add_station_area("MillCellarGrateArea", cellar_pos, 26.0, "mill_cellar_grate")
-	var grate_lbl := vm._make_station_label(cellar_pos + Vector2(-125.0, -24.0), "🔩 Sótano y Reja al Canal de la Rueda [E: Examinar]")
-	vm.entities_root.add_child(grate_lbl)
-	vm._extra_station_labels.append([grate_lbl, cellar_pos])
 
 # ==============================================================================
 # PASO 5: 📋 TABLÓN DE ENCARGOS EN LA PLAZA CENTRAL (`Vector2(465, 24)`)

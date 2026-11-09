@@ -166,15 +166,15 @@ static var CASES: Dictionary = {
 					{"id": "mirar", "name": "Mirar de cerca", "cost": 2, "find": "No hay golpe en la frente ni sangre en el pelo. Los ojos tienen puntitos rojos en el blanco; los labios están azulados."},
 					{"id": "oler", "name": "Oler boca y nariz", "cost": 2, "find": "Un olor suave y amargo, como a almendra machacada o hueso de melocotón, sale todavía de la boca.", "tag": "Olor: almendra amarga", "note": "Aliento: olor amargo a almendra en la boca (¿algo bebido antes de morir?)."},
 					{"id": "palpar", "name": "Palpar cráneo", "cost": 3, "find": "Hueso entero, sin hundimientos. No murió de una pedrada ni de un porrazo en la cabeza."},
-					{"id": "lupa", "name": "Usar lupa en el pelo", "cost": 4, "requires_lupa": true, "find": "Entre el pelo hay polen amarillo de sauce y dos briznas de paja seca que no crecen junto al arroyo: vienen de un granero o establo."}
+					{"id": "lupa", "name": "Usar lupa en el pelo", "cost": 4, "requires_lupa": true, "find": "Entre el pelo hay polen amarillo de sauce y dos briznas de paja seca."}
 				]
 			},
 			"cuello": {
 				"title": "Cuello y garganta",
 				"acts": [
-					{"id": "mirar", "name": "Mirar la piel", "cost": 2, "find": "Una franja morada cruza la garganta, pero está borrosa, como si la sangre no hubiera corrido hacia el golpe.", "mark": "m-neck", "note": "Cuello: marca morada horizontal en la garganta, extrañamente pálida por dentro."},
+					{"id": "mirar", "name": "Mirar la piel", "cost": 2, "find": "Una franja morada cruza la garganta, pero está borrosa, como si la sangre no hubiera corrido hacia el golpe.", "mark": "m-neck", "note": "Cuello: marca morada horizontal en la garganta, pálida por dentro."},
 					{"id": "palpar", "name": "Palpar garganta", "cost": 3, "find": "Desde fuera se nota el cartílago duro, pero sin abrir en la morgue no puedes saber si el hueso interno está roto."},
-					{"id": "lupa", "name": "Usar lupa en el surco", "cost": 5, "requires_lupa": true, "find": "En los bordes del surco no hay pellejos levantados ni sangre coagulada: apretaron cuando el corazón ya latía muy débil o estaba parado.", "tag": "Surco sin sangrado", "note": "Surco del cuello: sin sangrado en los bordes; puede haberse hecho cuando ya se moría por otra causa."},
+					{"id": "lupa", "name": "Usar lupa en el surco", "cost": 5, "requires_lupa": true, "find": "En los bordes del surco no hay pellejos levantados ni sangre coagulada.", "tag": "Surco sin sangrado", "note": "Surco del cuello: sin sangrado ni pellejos levantados en los bordes."},
 					{"id": "interna", "name": "Abrir tráquea", "cost": 0, "locked": true, "find": "Hace falta llevar el cuerpo a la morgue para abrir y ver si el hueso del cuello está roto."}
 				]
 			},
@@ -182,29 +182,29 @@ static var CASES: Dictionary = {
 				"title": "Pecho y vestido",
 				"acts": [
 					{"id": "mirar", "name": "Mirar la ropa", "cost": 2, "find": "El vestido de lana está húmedo por la espalda, pero seco en el pecho. No hay cortes ni agujeros de cuchillo."},
-					{"id": "palpar", "name": "Palpar costillas y espalda", "cost": 4, "find": "Costillas enteras. Al girar un poco el hombro, ves que la sangre acumulada tras morir (lividez) está en el costado derecho, no en la espalda, aunque yace boca arriba.", "tag": "Cuerpo movido tras morir", "note": "Lividez en el costado derecho aunque yace boca arriba: estuvo horas tumbada de lado en otro sitio antes de traerla aquí."},
+					{"id": "palpar", "name": "Palpar costillas y espalda", "cost": 4, "find": "Costillas enteras. Al girar un poco el hombro, ves que la sangre acumulada tras morir (lividez) está marcada en el costado derecho, aunque el cuerpo yace boca arriba.", "tag": "Lividez en costado derecho", "note": "Lividez marcada en el costado derecho aunque el cuerpo yace boca arriba."},
 					{"id": "interna", "name": "Examinar estómago", "cost": 0, "locked": true, "find": "Hace falta abrir el cuerpo en la morgue para ver qué comió o bebió antes de morir."}
 				]
 			},
 			"brazos": {
 				"title": "Brazos y muñecas",
 				"acts": [
-					{"id": "mirar", "name": "Mirar muñecas", "cost": 2, "find": "Dos marcas rojas estrechas rodean las muñecas, como si la hubieran sujetado por detrás o atado con cuerda fina.", "mark": "m-wrist"},
-					{"id": "lupa", "name": "Usar lupa en las marcas", "cost": 4, "requires_lupa": true, "find": "Hay pelusa de cáñamo encerado clavada en la piel: el tipo de cordel que usan en el almacén de grano y en las barcas.", "tag": "Fibra: cáñamo encerado", "note": "Muñecas: restos de cordel de cáñamo encerado (usado en almacén de grano o barcas)."}
+					{"id": "mirar", "name": "Mirar muñecas", "cost": 2, "find": "Dos marcas rojas estrechas rodean las muñecas.", "mark": "m-wrist"},
+					{"id": "lupa", "name": "Usar lupa en las marcas", "cost": 4, "requires_lupa": true, "find": "Hay pelusa de cáñamo con restos de cera de abeja clavada en la piel.", "tag": "Fibra: cáñamo encerado", "note": "Muñecas: restos de cordel de cáñamo encerado clavados en la piel."}
 				]
 			},
 			"manos": {
 				"title": "Manos y uñas",
 				"acts": [
-					{"id": "mirar", "name": "Abrir los dedos", "cost": 3, "find": "Los dedos están rígidos (entre 6 y 10 horas muerta). No tiene cortes de haberse defendido de un cuchillo."},
-					{"id": "lupa", "name": "Mirar bajo las uñas", "cost": 4, "requires_lupa": true, "find": "Bajo dos uñas de la mano derecha hay hebras de lana teñida de azul oscuro, arrancadas de una manga o capote.", "tag": "Fibra: lana azul oscuro", "note": "Bajo las uñas: lana azul oscuro arrancada de la ropa de otra persona."}
+					{"id": "mirar", "name": "Abrir los dedos", "cost": 3, "find": "Los dedos están rígidos. No tiene cortes en las palmas."},
+					{"id": "lupa", "name": "Mirar bajo las uñas", "cost": 4, "requires_lupa": true, "find": "Bajo dos uñas de la mano derecha hay hebras de lana teñida de azul oscuro.", "tag": "Fibra: lana azul oscuro", "note": "Bajo las uñas: hebras de lana azul oscuro."}
 				]
 			},
 			"piernas": {
 				"title": "Piernas y calzado",
 				"acts": [
-					{"id": "mirar", "name": "Mirar pies y bajos", "cost": 2, "find": "Falta el zapato izquierdo. Los dos talones tienen barro rojo por detrás, como si la hubieran arrastrado sujetándola por las axilas. Junto al claro el barro es pardo, no rojo.", "mark": "m-heel", "tag": "Arrastrada hasta aquí", "note": "Talones con barro rojo y falta el zapato izquierdo: la arrastraron desde otro sitio. El barro rojo es la arcilla de los ladrillos… ¿o de río arriba?"},
-					{"id": "oler", "name": "Oler el barro del vestido", "cost": 2, "find": "El barro de las rodillas huele a ceniza de carbón vegetal, no al lodo limpio del arroyo.", "tag": "Barro con ceniza de carbón", "note": "Barro en las rodillas mezclado con ceniza de carbón vegetal (¿carbonera, fragua o horno?)."}
+					{"id": "mirar", "name": "Mirar pies y bajos", "cost": 2, "find": "Falta el zapato izquierdo. Los dos talones tienen costras de barro rojo de arcilla por la parte trasera.", "mark": "m-heel", "tag": "Talones con barro rojo", "note": "Pies: falta el zapato izquierdo y los dos talones tienen barro rojo de arcilla por detrás."},
+					{"id": "oler", "name": "Oler el barro del vestido", "cost": 2, "find": "Las manchas oscuras de las rodillas huelen a ceniza de carbón mezclada con tierra.", "tag": "Barro con ceniza de carbón", "note": "Rodillas: manchas de barro mezclado con ceniza negra de carbón."}
 				]
 			},
 			"bolsillos": {
@@ -325,12 +325,12 @@ static var CASES: Dictionary = {
 			}
 		},
 		"scene_clues": [
-			{"x": 300.0, "y": 150.0, "r": 16.0, "draw_kind": "drag", "k": "Hojarasca", "t": "Dos surcos paralelos desde el camino hasta el cuerpo: la trajeron a rastras.", "m": 10},
-			{"x": 214.0, "y": 196.0, "r": 14.0, "draw_kind": "prints", "k": "Huellas", "t": "Huellas de botas pequeñas, de una sola persona. Pisada nerviosa, de alguien joven.", "m": 10},
-			{"x": 258.0, "y": 60.0, "r": 16.0, "draw_kind": "wheels", "k": "Camino", "t": "Marcas de rueda de un carro que llegó de madrugada desde el norte, río abajo, paró aquí y se dio la vuelta hacia el sur. ¿Por qué no volvió por donde vino?", "m": 10},
-			{"x": 330.0, "y": 300.0, "r": 12.0, "draw_kind": "herb", "k": "Junto al cuerpo", "t": "Una ramita seca de una hierba que no crece aquí. Huele igual que el pelo de la víctima.", "m": 5},
-			{"x": 250.0, "y": 400.0, "r": 18.0, "draw_kind": "circle", "k": "Bajo el cuerpo", "t": "Ni una gota de sangre en el suelo. No la mataron de un golpe, y quizá no aquí.", "m": 5},
-			{"x": 200.0, "y": 480.0, "r": 14.0, "draw_kind": "mud", "k": "Orilla del arroyo", "t": "Barro removido en la orilla, como si alguien se hubiera lavado las manos con prisa.", "m": 10}
+			{"x": 300.0, "y": 150.0, "r": 16.0, "draw_kind": "drag", "k": "Hojarasca", "t": "Dos surcos paralelos en la hojarasca desde el camino hasta los talones del cuerpo.", "m": 10},
+			{"x": 214.0, "y": 196.0, "r": 14.0, "draw_kind": "prints", "k": "Huellas", "t": "Huellas de botas pequeñas y juntas, hundidas por la puntera en la tierra blanda.", "m": 10},
+			{"x": 258.0, "y": 60.0, "r": 16.0, "draw_kind": "wheels", "k": "Camino", "t": "Rodadas de carro que bajan desde el norte junto al arroyo, paran frente al claro y dan la vuelta hacia el sur.", "m": 10},
+			{"x": 330.0, "y": 300.0, "r": 12.0, "draw_kind": "herb", "k": "Junto al cuerpo", "t": "Una brizna de paja seca caída sobre el musgo húmedo.", "m": 5},
+			{"x": 250.0, "y": 400.0, "r": 18.0, "draw_kind": "circle", "k": "Bajo el cuerpo", "t": "La hierba aplastada bajo la espalda no tiene ni una gota de sangre.", "m": 5},
+			{"x": 200.0, "y": 480.0, "r": 14.0, "draw_kind": "mud", "k": "Orilla del arroyo", "t": "El barro pardo de la orilla está revuelto junto al agua.", "m": 10}
 		],
 		"scene_witnesses": [
 			{

@@ -530,14 +530,14 @@ func interact(player: Node2D) -> void:
 		if pos.distance_squared_to(c_pos) <= 22.0 * 22.0:
 			_interact_house_chest(player, ch)
 			return
-	# 1b. Punto 5 (Caso I): Sala oculta de la Biblioteca (libro-palanca, cuaderno secreto de firmas y libro con página arrancada)
+	# 1b. Punto 5 (Caso I): Sala oculta de la Biblioteca (libro-palanca, cuaderno de firmas y libro con página arrancada)
 	if pos.distance_squared_to(Vector2(944.0, -448.0)) <= 22.0 * 22.0:
 		_record_case_clue(
 			player,
-			"🖋️ Cuaderno secreto de firmas (Sala oculta)",
-			"🖋️ Quien consulta los tomos prohibidos firma en este registro secreto. Aquí figura la firma auténtica del familiar: su letra demuestra que la nota firmada «V.» es falsa.",
-			"Biblioteca (sala oculta): cuaderno secreto de consultas con la firma auténtica del familiar (muestra de letra que desmiente la nota «V.»).",
-			"Pista: Firma en cuaderno secreto",
+			"🖋️ Cuaderno",
+			"🖋️ Varias firmas de quienes han entrado en esta sala; una se parece a la del billete de «V.», aunque la presión y el rasgo final son distintos.",
+			"Biblioteca (sala oculta): cuaderno con varias firmas; una se parece a la del billete de «V.», pero el trazo no coincide.",
+			"Pista: Cuaderno de firmas",
 			"clue_library_secret_ledger",
 			Color(0.95, 0.88, 0.68)
 		)
@@ -545,10 +545,10 @@ func interact(player: Node2D) -> void:
 	if pos.distance_squared_to(Vector2(959.0, -448.0)) <= 22.0 * 22.0:
 		_record_case_clue(
 			player,
-			"📖 Libro prohibido con una página arrancada",
-			"📖 Un códice vetado sobre ocultismo, venenos y la antigua fe. En el índice figura el capítulo «Del sueño que imita la muerte (belladama gris)», pero esa página ha sido arrancada.",
-			"Biblioteca (sala oculta): al libro antiguo de venenos y la antigua fe le han arrancado la página de la receta («Del sueño que imita la muerte»).",
-			"Pista: Página arrancada en biblioteca",
+			"📖 Libro antiguo",
+			"📖 Un viejo tomo de herboristería y venenos. En el índice figura un capítulo sobre la belladama gris y las mezclas que apagan el pulso, pero falta esa hoja: solo queda el borde de papel rasgado junto al lomo.",
+			"Biblioteca (sala oculta): tomo antiguo de venenos al que han arrancado la página del capítulo sobre la belladama gris.",
+			"Pista: Página arrancada",
 			"clue_library_torn_book",
 			Color(0.88, 0.78, 0.96)
 		)
@@ -556,10 +556,10 @@ func interact(player: Node2D) -> void:
 	if pos.distance_squared_to(Vector2(951.0, -420.0)) <= 24.0 * 24.0:
 		_record_case_clue(
 			player,
-			"📕 Libro-palanca, corriente de aire y marcas de arrastre",
-			"📕 Marcas de arrastre en la madera y una corriente de aire que mueve el polvo delatan esta estantería: un libro que no sale actúa como palanca y abre la sala oculta de tomos prohibidos.",
-			"Biblioteca: marcas de arrastre en el suelo, polvo movido por una corriente de aire y un libro-palanca descubren la sala oculta del bibliotecario.",
-			"Pista: Sala oculta de la biblioteca",
+			"📕 Estantería",
+			"📕 En el suelo de madera hay marcas curvas de roce y por la rendija sale una corriente de aire frío que mueve el polvo. Uno de los tomos está sujeto a un pestillo interior y cede hacia abajo al tirar de él.",
+			"Biblioteca: marcas curvas en las tablas del suelo, corriente de aire y un libro sujeto a un pestillo que abre la estantería.",
+			"Pista: Estantería móvil",
 			"clue_library_book_lever",
 			Color(0.96, 0.84, 0.64)
 		)
@@ -600,9 +600,9 @@ func interact(player: Node2D) -> void:
 	if pos.distance_squared_to(Vector2(934.0, 180.0)) <= 26.0 * 26.0 or pos.distance_squared_to(Vector2(856.0, 107.0)) <= 24.0 * 24.0:
 		_record_case_clue(
 			player,
-			"📋 Denuncia de desaparición archivada",
-			"📋 Expediente cerrado sin investigar: el familiar acudió a la guardia pidiendo ayuda cuando desapareció la víctima, pero archivaron la denuncia sin buscarla.",
-			"Comisaría: el familiar denunció la desaparición ante la guardia, pero archivaron el expediente sin investigar nada.",
+			"📋 Carpeta de archivo",
+			"📋 Una denuncia de desaparición fechada anoche. Lleva un sello rojo de «Archivada» cruzado sobre la hoja y ninguna diligencia anotada debajo.",
+			"Comisaría: denuncia de desaparición fechada anoche y sellada como «Archivada» sin actuaciones registradas.",
 			"Pista: Denuncia archivada",
 			"clue_police_archived_report",
 			Color(0.95, 0.88, 0.68)
@@ -617,10 +617,10 @@ func interact(player: Node2D) -> void:
 	if pos.distance_squared_to(Vector2(138.0, -1061.0)) <= 28.0 * 28.0:
 		_record_case_clue(
 			player,
-			"🔩 Reja del sótano al canal de la rueda (con tela enganchada)",
-			"🔩 El sótano da al canal de la rueda. La reja de hierro tiene marcas de haber intentado forzarla desde el agua y un trozo de tela del familiar enganchado: entre los barrotes cabía el frasco.",
-			"Sótano del molino: reja al canal de la rueda con marcas de forcejeo y un trozo de tela del familiar enganchado; entre los barrotes cabía el frasco.",
-			"Pista: Reja y tela en el molino",
+			"🔩 Reja de hierro",
+			"🔩 Una reja oxidada que cierra el hueco hacia el canal de la rueda. Dos barrotes tienen muescas frescas en el metal, están algo separados y en una arista ha quedado enganchado un retal de lana azul oscuro.",
+			"Sótano del molino: reja hacia el canal con dos barrotes doblados, muescas frescas y un retal de lana azul oscuro enganchado.",
+			"Pista: Reja de hierro",
 			"clue_mill_cellar_grate",
 			Color(0.76, 0.88, 0.96)
 		)
@@ -628,10 +628,10 @@ func interact(player: Node2D) -> void:
 	if pos.distance_squared_to(Vector2(218.0, -1050.0)) <= 28.0 * 28.0:
 		_record_case_clue(
 			player,
-			"📄 «Lista de nombres — texto pendiente del autor»",
-			"📄 Sobre la mesa del molino abandonado hay una hoja doblada: «Lista de nombres — texto pendiente del autor».",
+			"📄 Papel sobre la mesa",
+			"📄 Sobre la mesa del molino hay una hoja doblada: «Lista de nombres — texto pendiente del autor».",
 			"Mesa del molino: hoja con una «Lista de nombres — texto pendiente del autor».",
-			"Pista: Lista en el molino",
+			"Pista: Papel en el molino",
 			"clue_mill_table_paper",
 			Color(0.96, 0.90, 0.72)
 		)
@@ -639,9 +639,9 @@ func interact(player: Node2D) -> void:
 	if pos.distance_squared_to(Vector2(150.0, -1040.0)) <= 26.0 * 26.0:
 		_record_case_clue(
 			player,
-			"🪢 Cordel de cáñamo encerado",
-			"🪢 Un rollo de cordel de cáñamo encerado con marcas recientes de corte sobre el banco del molino.",
-			"Molino viejo: rollo de cordel de cáñamo encerado recién cortado, idéntico a las fibras de las muñecas.",
+			"🪢 Rollo de cordel",
+			"🪢 Un carrete de cordel de cáñamo frotado con cera de abeja. El extremo está recién cortado junto a una navaja oxidada.",
+			"Molino viejo: carrete de cordel de cáñamo encerado con el extremo recién cortado.",
 			"Pista: Cordel en el molino",
 			"clue_mill_hemp_cord",
 			Color(0.90, 0.80, 0.58)
@@ -650,9 +650,9 @@ func interact(player: Node2D) -> void:
 	if pos.distance_squared_to(Vector2(224.0, -1086.0)) <= 26.0 * 26.0:
 		_record_case_clue(
 			player,
-			"🪨 Hogar viejo con ceniza de carbón",
-			"🪨 El hogar de piedra conserva ceniza negra de carbón mineral aún fría y restos de hollín.",
-			"Molino viejo: hogar de piedra con ceniza de carbón que coincide con el barro de las rodillas.",
+			"🪨 Hogar de piedra",
+			"🪨 El hogar apagado acumula ceniza negra de carbón mineral y polvo de hollín esparcido por las losas de delante.",
+			"Molino viejo: hogar de piedra apagado con ceniza negra de carbón esparcida por el suelo.",
 			"Pista: Ceniza en el molino",
 			"clue_mill_hearth",
 			Color(0.78, 0.78, 0.82)
@@ -661,9 +661,9 @@ func interact(player: Node2D) -> void:
 	if pos.distance_squared_to(Vector2(152.0, -1084.0)) <= 26.0 * 26.0:
 		_record_case_clue(
 			player,
-			"🌾 Pajar con paja seca",
-			"🌾 Paja seca aplastada en el rincón del molino, como si alguien hubiera estado retenido o tendido aquí.",
-			"Molino viejo: pajar con paja seca aplastada donde tuvieron retenida a la víctima.",
+			"🌾 Pajar",
+			"🌾 Un montón de paja seca y espigas de sauce en el rincón; el centro está aplastado y hundido.",
+			"Molino viejo: montón de paja seca y espigas de sauce hundido en el centro.",
 			"Pista: Pajar del molino",
 			"clue_mill_hayloft",
 			Color(0.92, 0.82, 0.45)
@@ -672,10 +672,10 @@ func interact(player: Node2D) -> void:
 	if pos.distance_squared_to(FishingSpot.CASE1_CLEARING_POS) <= 28.0 * 28.0:
 		_record_case_clue(
 			player,
-			"🌲 Claro del Arroyo (orilla de barro pardo)",
-			"🌲 El agua del arroyo deposita aquí barro pardo en un recodo tranquilo del bosque norte.",
-			"Claro del arroyo: el lodo de esta orilla es pardo, distinto del barro rojo de arcilla de los talones.",
-			"Pista: Barro pardo del claro",
+			"🌲 Orilla del arroyo",
+			"🌲 En este recodo del arroyo la tierra húmeda junto al agua es de barro pardo oscuro mezclado con hojarasca.",
+			"Claro del arroyo: la tierra húmeda de esta orilla es de barro pardo oscuro.",
+			"Pista: Orilla del claro",
 			"clue_case1_clearing",
 			Color(0.84, 0.72, 0.54)
 		)
@@ -684,10 +684,10 @@ func interact(player: Node2D) -> void:
 	if pos.distance_squared_to(bridge_shoe_pos) <= 26.0 * 26.0:
 		_record_case_clue(
 			player,
-			"👞 Zapato izquierdo de la víctima (Puente Viejo)",
-			"👞 El zapato izquierdo que le faltaba al cadáver, con la hebilla torcida por un forcejeo junto al pretil del Puente Viejo: aquí mismo la secuestraron.",
-			"Puente Viejo: hallado el zapato izquierdo que faltaba en el cuerpo, caído junto al pretil donde la secuestraron.",
-			"Pista: Zapato en el Puente Viejo",
+			"👞 Zapato",
+			"👞 Un zapato izquierdo de mujer, de cuero marrón con la hebilla de latón torcida, volcado de costado junto al pretil norte del puente.",
+			"Puente Viejo: zapato izquierdo de cuero con la hebilla torcida caído junto al pretil.",
+			"Pista: Zapato en el puente",
 			"clue_old_bridge_left_shoe",
 			Color(0.92, 0.82, 0.64)
 		)
