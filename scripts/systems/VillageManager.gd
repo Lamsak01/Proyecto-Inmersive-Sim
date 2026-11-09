@@ -349,6 +349,14 @@ func _create_styled_modal(sz: Vector2, border_col: Color) -> PanelContainer:
 	return panel
 
 func _open_morgue_autopsy_ui() -> void:
+	var ui_root := get_tree().get_first_node_in_group("game_ui") if is_inside_tree() else null
+	var det_ui = ui_root.get("detective_ui") if ui_root != null else null
+	if det_ui != null and is_inside_tree():
+		for n in get_tree().get_nodes_in_group("village_npcs"):
+			if is_instance_valid(n) and n.has_meta("scripted_case_id"):
+				n.set("corpse_in_morgue", true)
+				det_ui.call("open_for_corpse", n, "morgue")
+				return
 	if not morgue_panel:
 		return
 	if morgue_active_corpses.is_empty():

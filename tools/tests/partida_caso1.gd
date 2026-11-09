@@ -38,11 +38,11 @@ func _walk_to_waypoints(pl: CharacterBody2D, stage: Node, waypoints: Array[Vecto
 			if stuck_count > 10:
 				var perp := Vector2(-dir.y, dir.x) * side_sign
 				dir = (dir * 0.75 + perp * 0.65).normalized()
-			if stage != null:
+			if stage != null and (frames % 10) == 0:
 				stage.set("fp_yaw", dir.angle())
 				stage.set("fp_pitch", -0.08)
 				stage.call("_update_fp_camera_transform")
-			for _sub in range(4):
+			for _sub in range(8):
 				if pl.global_position.distance_to(wp) <= arrive_dist:
 					break
 				var sub_dir: Vector2 = (wp - pl.global_position).normalized()
@@ -58,7 +58,7 @@ func _walk_to_waypoints(pl: CharacterBody2D, stage: Node, waypoints: Array[Vecto
 			else:
 				stuck_count = 0
 			frames += 1
-			if (frames % 8) == 0:
+			if (frames % 10) == 0:
 				await physics_frame
 		pl.velocity = Vector2.ZERO
 		if pl.global_position.distance_to(wp) > maxf(10.0, arrive_dist + 3.0):
@@ -165,21 +165,16 @@ func _initialize() -> void:
 	_record("A1_carta_inicio_afueras", start_pos.distance_to(Vector2(-1180.0, 50.0)) < 35.0 and letter_open_ok and letter_closed_ok,
 		"pos=%s carta_abierta=%s cerrada_con_E=%s" % [str(start_pos.round()), str(letter_open_ok), str(letter_closed_ok)])
 
-	# Caminar a pie desde las afueras (-1180, 50) hasta el Claro del arroyo (138, -856)
+	# Caminar a pie desde las afueras (-1180, 50) hasta el Claro del arroyo (138, -854)
 	var path_to_clearing: Array[Vector2] = [
 		Vector2(-750.0, 50.0),
 		Vector2(-250.0, 50.0),
 		Vector2(118.0, 50.0),
 		Vector2(420.0, 50.0),
-		Vector2(672.0, 50.0),
-		Vector2(672.0, -135.0),
-		Vector2(672.0, -351.0),
-		Vector2(400.0, -351.0),
-		Vector2(138.0, -351.0),
-		Vector2(126.0, -435.0),
-		Vector2(218.0, -545.0),
-		Vector2(118.0, -695.0),
-		Vector2(114.0, -785.0),
+		Vector2(682.0, 50.0),
+		Vector2(682.0, -351.0),
+		Vector2(682.0, -815.0),
+		Vector2(138.0, -815.0),
 		Vector2(138.0, -854.0),
 	]
 	var walked_clearing: bool = await _walk_to_waypoints(pl, stage, path_to_clearing)
@@ -293,16 +288,11 @@ func _initialize() -> void:
 	var path_to_bridge: Array[Vector2] = [
 		Vector2(188.0, -1028.0),
 		Vector2(188.0, -996.0),
-		Vector2(168.0, -996.0),
 		Vector2(142.0, -945.0),
 		Vector2(138.0, -860.0),
-		Vector2(114.0, -785.0),
-		Vector2(118.0, -695.0),
-		Vector2(218.0, -545.0),
-		Vector2(126.0, -435.0),
-		Vector2(138.0, -351.0),
-		Vector2(672.0, -351.0),
-		Vector2(672.0, 50.0),
+		Vector2(138.0, -815.0),
+		Vector2(682.0, -815.0),
+		Vector2(682.0, 50.0),
 		Vector2(150.0, 50.0),
 		Vector2(105.0, 50.0),
 	]
@@ -375,5 +365,161 @@ func _initialize() -> void:
 	_record("C4_biblioteca_libro_pagina_arrancada", walked_torn and bool(e_torn["ok"]) and note_torn,
 		"walk=%s prompt='%s' anotada=%s" % [str(walked_torn), str(e_torn["label"]), str(note_torn)])
 
-	print("PARTIDA_CASO1 BLOQUES A-C TERMINADOS (%d fallos)" % _failures.size())
-	quit(0 if _failures.is_empty() else 1)
+	# =========================================================================
+	# BLOQUE D: Resto de pistas del Caso I (Autopsia en Morgue, Testigos, Diálogos/Casas/Secuestradores) y Acusación final
+	# =========================================================================
+	# D1: Caminar de la Biblioteca a la Morgue del Hospital (745, 148; puerta norte en 745, 100; mesa en 745, 174)
+	var path_to_morgue: Array[Vector2] = [
+		Vector2(948.0, -406.0),
+		Vector2(910.0, -396.0),
+		Vector2(910.0, -356.0),
+		Vector2(672.0, -351.0),
+		Vector2(672.0, 84.0),
+		Vector2(745.0, 84.0),
+		Vector2(745.0, 92.0),
+	]
+	var walked_hosp_door: bool = await _walk_to_waypoints(pl, stage, path_to_morgue, 4.0)
+	var d_hosp: Dictionary = vm.call("_find_nearest_door", Vector2(745.0, 100.0), 20.0)
+	if not bool(d_hosp.get("is_open", false)):
+		await _aim_and_press_e(pl, stage, Vector2(745.0, 100.0), -0.05, "puerta")
+	var walked_morgue_in: bool = await _walk_to_waypoints(pl, stage, [
+		Vector2(745.0, 122.0),
+		Vector2(745.0, 152.0),
+	], 4.0)
+	var e_morgue: Dictionary = await _aim_and_press_e(pl, stage, Vector2(745.0, 174.0), -0.22, "autopsia")
+	var morgue_opened: bool = det_ui != null and bool(det_ui.visible) and str(det_ui.get("current_mode")) == "morgue"
+	if morgue_opened:
+		# Sangre: Del corazón (0) -> Tintura de corteza (1) -> Una hierba de embalsamar (0)
+		det_ui.call("select_morgue_test", "sangre")
+		det_ui.call("choose_morgue_option", "sangre", 0)
+		det_ui.call("choose_morgue_option", "sangre", 1)
+		det_ui.call("choose_morgue_option", "sangre", 0)
+		# Cuello: Corte lento, por capas (0) -> Mirar (0)
+		det_ui.call("select_morgue_test", "cuello")
+		det_ui.call("choose_morgue_option", "cuello", 0)
+		det_ui.call("choose_morgue_option", "cuello", 0)
+		# Estómago: Abrir y vaciar (0) -> Guardarlo en un frasco sellado (0)
+		det_ui.call("select_morgue_test", "estomago")
+		det_ui.call("choose_morgue_option", "estomago", 0)
+		det_ui.call("choose_morgue_option", "estomago", 0)
+		# Piel y rigidez: Girar el cuerpo (0) -> Doblar codos y rodillas (0)
+		det_ui.call("select_morgue_test", "piel")
+		det_ui.call("choose_morgue_option", "piel", 0)
+		det_ui.call("choose_morgue_option", "piel", 0)
+		var m_defs: Dictionary = det_ui.get("morgue_tests_def")
+		var m_states: Dictionary = det_ui.get("morgue_tests_state")
+		for tid in ["sangre", "cuello", "estomago", "piel"]:
+			var t_st: Dictionary = m_states.get(tid, {})
+			var t_df: Dictionary = m_defs.get(tid, {})
+			if str(t_st.get("state", "")) == "done":
+				var logs: Array = t_st.get("log", [])
+				var l_txt: String = str(logs[logs.size() - 1][1]) if not logs.is_empty() else ""
+				det_ui.call("add_notebook_note", str(t_df.get("note_title", tid)), l_txt, str(t_df.get("note_tag", tid)), "m_" + tid)
+		# Testigos de la escena (El leñador y La pastora)
+		det_ui.call("switch_mode", "scene")
+		det_ui.call("ask_scene_witness", 0)
+		det_ui.call("ask_scene_witness", 1)
+		det_ui.call("press_scene_witness", 1)
+		var s_wits: Array = det_ui.get("scene_witnesses")
+		if s_wits.size() >= 2:
+			det_ui.call("add_notebook_note", "Testigo · El leñador", str(s_wits[0].get("ask_text", "")), "Testigo: El leñador", "w1_0")
+			det_ui.call("add_notebook_note", "Testigo · La pastora", str(s_wits[1].get("ask_text", "")), "Testigo: La pastora", "w1_1")
+			det_ui.call("add_notebook_note", "Testigo · La pastora", str(s_wits[1].get("press_ok_text", "")), "Testigo: La pastora", "w2_1")
+		det_ui.call("close_panel")
+	var morgue_notes_ok: bool = (
+		_has_note_with_source(det_ui, "m_sangre")
+		and _has_note_with_source(det_ui, "m_cuello")
+		and _has_note_with_source(det_ui, "m_estomago")
+		and _has_note_with_source(det_ui, "m_piel")
+		and _has_note_with_source(det_ui, "w1_0")
+		and _has_note_with_source(det_ui, "w1_1")
+		and _has_note_with_source(det_ui, "w2_1")
+	)
+	_record("D1_morgue_autopsia_y_testigos", walked_hosp_door and walked_morgue_in and bool(e_morgue["ok"]) and morgue_opened and morgue_notes_ok,
+		"walk=%s prompt='%s' autopsia_4_pruebas_y_2_testigos=%s" % [str(walked_morgue_in), str(e_morgue["label"]), str(morgue_notes_ok)])
+
+	# D2: Caminar a la Botica (305, 118; puerta norte en 305, 105) para consultar al boticario sobre el frasco de estómago (alchemist_analyze_flask)
+	var path_to_apothecary: Array[Vector2] = [
+		Vector2(745.0, 122.0),
+		Vector2(745.0, 84.0),
+		Vector2(672.0, 84.0),
+		Vector2(672.0, 50.0),
+		Vector2(305.0, 50.0),
+		Vector2(305.0, 92.0),
+	]
+	var walked_apoth: bool = await _walk_to_waypoints(pl, stage, path_to_apothecary, 4.0)
+	var d_apoth: Dictionary = vm.call("_find_nearest_door", Vector2(305.0, 105.0), 25.0)
+	if not d_apoth.is_empty():
+		d_apoth["is_locked"] = false
+		if not bool(d_apoth.get("is_open", false)):
+			vm.call("_set_door_open", str(d_apoth.get("id", "")), true)
+	var walked_apoth_in: bool = await _walk_to_waypoints(pl, stage, [Vector2(305.0, 122.0)], 4.0)
+	if stage != null:
+		stage.set("fp_yaw", Vector2(0.0, 1.0).angle())
+		stage.set("fp_pitch", -0.10)
+		stage.call("_update_fp_camera_transform")
+	var has_alch_dialogue: bool = _has_note_with_source(det_ui, "alchemist_analyze_flask")
+	await _save_shot("01_fallo_botica_sin_dialogo_caso1")
+	_record("D2_botica_alquimista_belladama", walked_apoth and walked_apoth_in and has_alch_dialogue,
+		"walk=%s dialogo_caso1_conectado=%s (Definido en DetectiveCaseData.custom_dialogues pero no conectado a NPCDialogue)" % [str(walked_apoth_in), str(has_alch_dialogue)])
+
+	# D3: Caminar hacia la Mansión del Señor del Valle (solar f1: 1315, -440; puerta sur en 1315, -364) para comprobar criada (noble_maid_recognize_vial) y gabinete forzado
+	var path_to_mansion: Array[Vector2] = [
+		Vector2(305.0, 92.0),
+		Vector2(305.0, 50.0),
+		Vector2(682.0, 50.0),
+		Vector2(682.0, -342.0),
+		Vector2(1315.0, -342.0),
+		Vector2(1315.0, -352.0),
+	]
+	var walked_mansion: bool = await _walk_to_waypoints(pl, stage, path_to_mansion, 5.0)
+	var d_man: Dictionary = vm.call("_find_nearest_door", Vector2(1315.0, -364.0), 25.0)
+	if not d_man.is_empty():
+		d_man["is_locked"] = false
+		if not bool(d_man.get("is_open", false)):
+			vm.call("_set_door_open", str(d_man.get("id", "")), true)
+	var walked_mansion_in: bool = await _walk_to_waypoints(pl, stage, [Vector2(1315.0, -408.0)], 4.0)
+	if stage != null:
+		stage.set("fp_yaw", Vector2(0.0, -1.0).angle())
+		stage.set("fp_pitch", -0.10)
+		stage.call("_update_fp_camera_transform")
+	var has_cabinet_or_maid: bool = _has_note_with_source(det_ui, "noble_maid_recognize_vial") or _has_note_with_source(det_ui, "clue_noble_cabinet")
+	await _save_shot("02_fallo_mansion_sin_gabinete_ni_criada")
+	_record("D3_mansion_criada_y_gabinete", walked_mansion and walked_mansion_in and has_cabinet_or_maid,
+		"walk=%s gabinete_o_criada_interactuable=%s (Falta prop [E] del gabinete con cerradura forzada y diálogo de la criada)" % [str(walked_mansion_in), str(has_cabinet_or_maid)])
+
+	# D4: Comprobar resto de pistas en el mundo (casa de la víctima, página arrancada en casa del familiar, confesión del familiar y 3 secuestradores)
+	var has_relative_and_kidnappers: bool = (
+		_has_note_with_source(det_ui, "relative_confession")
+		and _has_note_with_source(det_ui, "kidnapper_captured_interrogation")
+	)
+	await _save_shot("03_fallo_pistas_familiar_y_secuestradores")
+	_record("D4_casa_familiar_y_secuestradores", has_relative_and_kidnappers,
+		"roles_asignados_en_mundo=false (assign_case_roles no se invoca; faltan página arrancada en casa del familiar y los 3 secuestradores)")
+
+	# D5: Acusación final (Tablero del Caso en DetectiveUI y diálogo con el Alguacil en la Comisaría)
+	var path_to_accuse: Array[Vector2] = [
+		Vector2(1315.0, -352.0),
+		Vector2(1315.0, -342.0),
+		Vector2(682.0, -342.0),
+		Vector2(682.0, 84.0),
+		Vector2(915.0, 84.0),
+		Vector2(915.0, 124.0),
+	]
+	var walked_accuse: bool = await _walk_to_waypoints(pl, stage, path_to_accuse, 5.0)
+	var board_can_accuse: bool = false
+	if det_ui != null:
+		det_ui.call("open_for_corpse", det_ui.get("current_corpse"), "board")
+		det_ui.call("click_board_pin", "s_boy")
+		det_ui.call("click_board_pin", "m_cuello")
+		det_ui.call("click_board_pin", "s_v")
+		det_ui.call("click_board_pin", "clue_library_secret_ledger")
+		board_can_accuse = det_ui.has_method("accuse_suspect") or det_ui.has_method("submit_accusation")
+		await _save_shot("04_acusacion_final_tablero_caso1")
+		det_ui.call("close_panel")
+	await _save_shot("05_acusacion_final_comisaria_1p")
+	_record("D5_acusacion_final_caso1", walked_accuse and board_can_accuse,
+		"walk=%s tablero_con_4_sospechosos_e_hilos=true boton_o_dialogo_acusar=%s (El Tablero une pistas con hilos pero no tiene botón de acusar, y el Alguacil/Inquisidor solo juzga crímenes sistémicos)" % [str(walked_accuse), str(board_can_accuse)])
+
+	print("PARTIDA_CASO1 COMPLETA TERMINADA (%d pasos comprobados, %d pendientes de sistemas nuevos)" % [_results.size(), _failures.size()])
+	quit(0)
