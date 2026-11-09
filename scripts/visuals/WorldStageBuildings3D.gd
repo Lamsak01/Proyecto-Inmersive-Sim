@@ -537,14 +537,7 @@ func _populate_building_interior_3d(b_root: Node3D, b_id: String, rect: Rect2, d
 			_add_box_2d(b_root, c + Vector2(-4, -16), Vector2(7.5, 5.0), 10.5, 4.2, m_iron)
 			_add_box_2d(b_root, c + Vector2(-4, -16), Vector2(7.7, 5.2), 13.0, 0.8, m_gold)
 		"mixed_family_herbalist":
-			_add_box_2d(b_root, c + Vector2(-42, 4), Vector2(40, 5.5), 2.0, wall_h * 0.85, m_wall)
-			_add_box_2d(b_root, c + Vector2(42, 4), Vector2(40, 5.5), 2.0, wall_h * 0.85, m_wall)
-			_add_model_2d(b_root, "props/Workbench.gltf", c + Vector2(0, -10), 2.0, Vector2(24.0, 10.5), 8.5)
-			_add_model_2d(b_root, "props/Cauldron.gltf", c + Vector2(-24, -14), 2.0, Vector2(11.0, 11.0), 9.0)
-			_add_model_2d(b_root, "props/Shelf_Small_Bottles.gltf", c + Vector2(24, -16), 2.0, Vector2(14.0, 6.0), 13.0)
-			_build_bed_3d(b_root, c + Vector2(-36, 26), m_wood, m_bed, m_pillow)
-			_build_bed_3d(b_root, c + Vector2(36, 26), m_wood, m_bed, m_pillow)
-			_add_model_2d(b_root, "props/Table_Large.gltf", c + Vector2(0, 24), 2.0, Vector2(18.0, 12.0), 7.0)
+			_build_herbalist_apothecary_3d(b_root, rect, wall_h, m_wall, m_trim, m_wood, m_dark_wood, m_iron, m_gold)
 		"mixed_family_tinker":
 			# Tabiques internos, banco de trabajo, camas traseras y mesa
 			_add_box_2d(b_root, c + Vector2(-42, 4), Vector2(40, 5.5), 2.0, wall_h * 0.85, m_wall)
@@ -1754,6 +1747,100 @@ func _build_library_3d(b_root: Node3D, rect: Rect2, door_south: bool, wall_h: fl
 	_restaurant_light(b_root, c + Vector2(0.0, -20.0 * m_dir), ih - 4.5, Color(0.98, 0.84, 0.56), 0.90, 2.2, false)
 	_add_model_2d(b_root, "props/Lantern_Wall.gltf", c + Vector2(-26.0, -50.5 * m_dir), wall_h * 0.58, Vector2(4.0, 4.0), 6.0)
 	_add_model_2d(b_root, "props/Lantern_Wall.gltf", c + Vector2(26.0, -50.5 * m_dir), wall_h * 0.58, Vector2(4.0, 4.0), 6.0)
+
+## Punto 5 del Caso I: Botica y Casa-Jardín «Raíz Verde» (`mixed_family_herbalist`, centro 325,155, tamaño 128x96, puerta al norte).
+## Dos estancias conectadas por un paso central despejado y sincronizadas con las colisiones 2D:
+##  1) Sala Norte (Botica y Laboratorio Alquímico de Elena, y=107..159): mostrador de dispensario al oeste con estanterías de pociones, y laboratorio de destilación al este con hornillo de piedra, caldero humeante, alambiques y secadero de hierbas.
+##  2) Sala Sur (Trastienda y Vivienda de Elena y Tomás, y=159..203): comedor familiar con alfombra, mesa puesta con 2 sillas, y dormitorios laterales con camas, mesilla y librería.
+func _build_herbalist_apothecary_3d(b_root: Node3D, rect: Rect2, wall_h: float, m_wall: Material, m_trim: Material, m_wood: Material, m_dark_wood: Material, m_iron: Material, m_gold: Material) -> void:
+	var c: Vector2 = rect.get_center()
+	var ih: float = wall_h - 0.15
+	var m_herb_rug := _mat("herb_sage_rug", Color(0.24, 0.42, 0.28), 0.92, 0.0, Color.BLACK, 0.0, "town_textures/rf_planks.png")
+	var m_warm_rug := _mat("herb_home_rug", Color(0.46, 0.26, 0.18), 0.92, 0.0, Color.BLACK, 0.0, "town_textures/rf_planks.png")
+	var m_rug_trim := _mat("herb_rug_trim", Color(0.66, 0.54, 0.28), 0.86, 0.0)
+	var m_hearth_stone := _mat("herb_brazier_stone", Color(0.46, 0.44, 0.40), 0.88, 0.04, Color.BLACK, 0.0, "town_textures/wall_brick_stone_center.png")
+	var m_brew := _mat("herb_emerald_brew", Color(0.22, 0.82, 0.44), 0.25, 0.05, Color(0.14, 0.68, 0.34), 1.35)
+	var m_amber_glass := _mat("herb_amber_alembic", Color(0.88, 0.56, 0.18), 0.22, 0.12, Color(0.62, 0.36, 0.08), 0.45)
+	var m_coal := _mat("herb_brazier_coal", Color(0.72, 0.22, 0.06), 0.60, 0.0, Color(0.76, 0.18, 0.04), 0.65)
+	var m_herb_leaf := _mat("herb_dried_bundle", Color(0.28, 0.52, 0.24), 0.88, 0.0)
+	var m_lavender := _mat("herb_dried_lavender", Color(0.48, 0.34, 0.58), 0.88, 0.0)
+	var m_bed_green := _mat("herb_bed_linen", Color(0.26, 0.52, 0.38), 0.86, 0.0)
+	var m_pillow := _mat("herb_pillow", Color(0.94, 0.92, 0.86), 0.85, 0.0)
+	var m_plate := _mat("herb_plate", Color(0.90, 0.88, 0.82), 0.45, 0.05)
+
+	# 1. Alfombras de la Botica (pasillo central norte) y de la Vivienda trasera (comedor sur)
+	_add_box_2d(b_root, c + Vector2(0.0, -18.0), Vector2(24.0, 38.0), 2.5, 0.26, m_rug_trim)
+	_add_box_2d(b_root, c + Vector2(0.0, -18.0), Vector2(21.0, 35.0), 2.55, 0.28, m_herb_rug)
+	_add_box_2d(b_root, c + Vector2(0.0, 27.0), Vector2(46.0, 24.0), 2.5, 0.26, m_rug_trim)
+	_add_box_2d(b_root, c + Vector2(0.0, 27.0), Vector2(42.0, 21.0), 2.55, 0.28, m_warm_rug)
+
+	# 2. Tabique divisorio entre Botica (Norte) y Trastienda/Vivienda (Sur) en c.y + 4 (colisión 2D: c+(-42,4) [40x6] y c+(42,4) [40x6])
+	_add_box_2d(b_root, c + Vector2(-42.0, 4.0), Vector2(40.0, 5.4), 2.0, ih, m_wall)
+	_add_box_2d(b_root, c + Vector2(42.0, 4.0), Vector2(40.0, 5.4), 2.0, ih, m_wall)
+	# Jambas de madera y dintel superior sobre el paso central (x = c.x - 22 .. c.x + 22)
+	_add_box_2d(b_root, c + Vector2(-21.5, 4.0), Vector2(2.8, 6.0), 2.0, ih, m_trim)
+	_add_box_2d(b_root, c + Vector2(21.5, 4.0), Vector2(2.8, 6.0), 2.0, ih, m_trim)
+	_add_box_2d(b_root, c + Vector2(0.0, 4.0), Vector2(46.0, 5.6), 2.0 + ih * 0.78, ih * 0.22, m_wall)
+	_add_box_2d(b_root, c + Vector2(0.0, 4.0), Vector2(46.0, 6.0), 2.0 + ih * 0.76, 1.8, m_trim)
+
+	# 3. Sala Norte — Ala Oeste: Mostrador de la Botica, Vitrina de Remedios y Estantería de Frascos (pasillo central libre)
+	var stall_p: Vector2 = c + Vector2(-27.0, -17.0)
+	_register_furniture_rect("ApothecaryCounter", stall_p, Vector2(21.0, 9.5))
+	_add_box_2d(b_root, stall_p, Vector2(20.0, 8.6), 2.0, 7.2, m_dark_wood)
+	_add_box_2d(b_root, stall_p, Vector2(21.2, 9.6), 9.2, 0.8, m_wood)
+	_add_box_2d(b_root, stall_p + Vector2(0.0, -4.4), Vector2(18.0, 0.4), 3.2, 5.2, m_trim)
+	_add_model_2d(b_root, "props/Bottle_1.gltf", stall_p + Vector2(-6.0, -1.0), 10.0, Vector2(2.6, 2.6), 4.0)
+	_add_model_2d(b_root, "props/Bottle_2.gltf", stall_p + Vector2(-3.0, 1.2), 10.0, Vector2(2.6, 2.6), 3.8)
+	_add_model_2d(b_root, "props/Book_5.gltf", stall_p + Vector2(2.5, 0.0), 10.0, Vector2(4.5, 3.5), 2.0)
+	_add_model_2d(b_root, "props/Mug.gltf", stall_p + Vector2(7.0, -1.0), 10.0, Vector2(2.8, 2.8), 3.0) # Mortero de botica
+	_add_model_2d(b_root, "props/Shelf_Small_Bottles.gltf", c + Vector2(-34.0, -40.5), 2.0, Vector2(15.0, 5.5), 14.0)
+	_add_model_2d(b_root, "props/Cabinet.gltf", c + Vector2(-53.0, -24.0), 2.0, Vector2(12.0, 6.5), 13.5, 90.0)
+
+	# 4. Sala Norte — Ala Este: Laboratorio Alquímico (Hornillo de Piedra con Caldero Esmeralda, Mesa de Destilación y Secadero de Hierbas)
+	var brazier_p: Vector2 = c + Vector2(35.0, -14.0)
+	_register_furniture_rect("AlchemyBrazier", brazier_p, Vector2(12.0, 12.0))
+	_add_box_2d(b_root, brazier_p, Vector2(12.0, 12.0), 2.0, 3.2, m_hearth_stone)
+	_add_box_2d(b_root, brazier_p, Vector2(9.2, 9.2), 5.2, 0.5, m_coal)
+	_add_model_2d(b_root, "props/Cauldron.gltf", brazier_p, 5.2, Vector2(10.0, 10.0), 8.2)
+	_add_cyl_2d(b_root, brazier_p, 3.1, 9.8, 0.5, m_brew, 3.1, 10) # Brebaje alquímico verde esmeralda dentro del caldero
+	# Mesa de alambiques y destilación junto al muro noreste (c + Vector2(28, -38))
+	var dist_tbl: Vector2 = c + Vector2(28.0, -38.0)
+	if _add_model_2d(b_root, "props/Table_Large.gltf", dist_tbl, 2.0, Vector2(16.0, 8.5), 7.6) == null:
+		_add_box_2d(b_root, dist_tbl, Vector2(16.0, 8.5), 2.0, 7.6, m_wood)
+	# Retorta y matraz de vidrio con tubo de cobre sobre la mesa de destilación
+	_add_cyl_2d(b_root, dist_tbl + Vector2(-4.0, 0.0), 1.8, 9.6, 3.2, m_amber_glass, 0.8, 8)
+	_add_cyl_2d(b_root, dist_tbl + Vector2(1.5, 0.0), 1.6, 9.6, 3.8, m_brew, 0.6, 8)
+	_add_box_2d(b_root, dist_tbl + Vector2(-1.2, 0.0), Vector2(5.5, 0.5), 12.4, 0.5, m_gold)
+	_add_model_2d(b_root, "props/Scroll_1.gltf", dist_tbl + Vector2(5.2, 0.5), 9.6, Vector2(3.8, 3.8), 2.2)
+	# Viga aérea de secado con manojos colgantes de hierbas medicinales y lavanda
+	_add_box_2d(b_root, c + Vector2(32.0, -24.0), Vector2(24.0, 1.6), ih - 5.5, 1.4, m_dark_wood)
+	for hx_i in range(5):
+		var hx_off: float = 22.0 + float(hx_i) * 5.0
+		var h_mat: Material = m_herb_leaf if (hx_i % 2) == 0 else m_lavender
+		_add_cyl_2d(b_root, c + Vector2(hx_off, -24.0), 0.8, ih - 10.2, 4.6, h_mat, 1.8, 6)
+
+	# 5. Sala Sur — Trastienda y Vivienda Familiar de Elena y Tomás (c.y + 6 .. c.y + 44)
+	_build_bed_3d(b_root, c + Vector2(-42.0, 26.0), m_wood, m_bed_green, m_pillow)
+	_build_bed_3d(b_root, c + Vector2(42.0, 26.0), m_wood, m_bed_green, m_pillow)
+	_add_model_2d(b_root, "props/Nightstand_Shelf.gltf", c + Vector2(-53.0, 14.0), 2.0, Vector2(7.0, 6.0), 7.8, 90.0)
+	_add_model_2d(b_root, "props/Bookcase_2.gltf", c + Vector2(53.0, 14.0), 2.0, Vector2(14.0, 6.0), 16.5, -90.0)
+	var fam_tbl: Vector2 = c + Vector2(0.0, 28.0)
+	if _add_model_2d(b_root, "props/Table_Large.gltf", fam_tbl, 2.0, Vector2(17.0, 11.0), 7.4) == null:
+		_add_box_2d(b_root, fam_tbl, Vector2(17.0, 11.0), 2.0, 7.4, m_wood)
+	for f_ch in [fam_tbl + Vector2(-13.0, 0.0), fam_tbl + Vector2(13.0, 0.0)]:
+		_add_model_2d(b_root, "props/Chair_1.gltf", f_ch, 2.0, Vector2(6.0, 6.0), 8.5, _chair_rot_y_towards(f_ch, fam_tbl))
+	_add_cyl_2d(b_root, fam_tbl + Vector2(-4.2, 0.0), 2.2, 9.4, 0.45, m_plate, 2.0, 8)
+	_add_cyl_2d(b_root, fam_tbl + Vector2(4.2, 0.0), 2.2, 9.4, 0.45, m_plate, 2.0, 8)
+	_add_model_2d(b_root, "props/CandleStick.gltf", fam_tbl + Vector2(0.0, -2.0), 9.4, Vector2(3.0, 3.0), 4.6)
+
+	# 6. Iluminación interior (botica, caldero y vivienda trasera) y faroles de fachada
+	_add_model_2d(b_root, "props/Chandelier.gltf", c + Vector2(-16.0, -20.0), ih - 6.5, Vector2(10.0, 10.0), 6.0)
+	_restaurant_light(b_root, c + Vector2(-16.0, -20.0), ih - 5.0, Color(0.96, 0.90, 0.68), 1.05, 2.5, false)
+	_restaurant_light(b_root, brazier_p, 14.0, Color(0.42, 0.96, 0.58), 0.78, 1.9, false)
+	_restaurant_light(b_root, c + Vector2(0.0, 24.0), ih - 4.5, Color(1.0, 0.86, 0.58), 0.95, 2.4, false)
+	_add_model_2d(b_root, "props/Lantern_Wall.gltf", c + Vector2(-24.0, -50.5), wall_h * 0.58, Vector2(4.0, 4.0), 6.0)
+	_add_model_2d(b_root, "props/Lantern_Wall.gltf", c + Vector2(24.0, -50.5), wall_h * 0.58, Vector2(4.0, 4.0), 6.0)
+
 
 
 

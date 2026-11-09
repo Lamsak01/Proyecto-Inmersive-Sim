@@ -179,11 +179,11 @@ static func _spawn_five_family_houses_and_trades(vm: VillageManager) -> void:
 		var kin_work_pos: Vector2 = sc + (Vector2(-24, -6) if shop_door_s else Vector2(-24, 8))
 
 		if is_mixed:
-			work_pos = sc + Vector2(0, -18)
-			bed1_pos = sc + Vector2(-36, 26)
-			bed2_pos = sc + Vector2(36, 26)
-			table_pos = sc + Vector2(0, 24)
-			kin_work_pos = sc + Vector2(-24, -14)
+			work_pos = sc + Vector2(-27, -25)
+			bed1_pos = sc + Vector2(-42, 26)
+			bed2_pos = sc + Vector2(42, 26)
+			table_pos = sc + Vector2(0, 28)
+			kin_work_pos = sc + Vector2(24, -14)
 			_build_mixed_shop_house_visuals(vm, sc, str(cfg["shop_title"]), tex_bed, tex_stall, bed1_pos, bed2_pos, table_pos, work_pos, fam_id, int(role_key))
 		else:
 			var is_smithy: bool = (role_key == VillageNPC.TradeRole.BLACKSMITH)
@@ -267,9 +267,12 @@ static func _build_mixed_shop_house_visuals(vm: VillageManager, center: Vector2,
 	var stall := vm._add_sprite_prop(tex_stall, work_pos + Vector2(0, 8), Vector2(1.3, 1.3), -1)
 	if role_id >= 0:
 		vm._register_shop_business_stall(role_id, title, fam_id, stall.global_position, stall)
+	vm._add_prop_collider(work_pos + Vector2(0, 8), Vector2(18.0, 8.5))
+	vm._add_prop_collider(center + Vector2(35, -14), Vector2(11.0, 11.0))
 
 	for b_pos in [bed1_pos, bed2_pos]:
 		vm._add_sprite_prop(tex_bed, b_pos, Vector2(1.12, 1.12), -1)
+		vm._add_prop_collider(b_pos, Vector2(12.0, 17.0))
 
 	vm._spawn_decor_prop("res://assests/Comprados/Epic RPG World - Village(interiors) V1.3/assets/furniture_and_props_sprites/table_chairs_1.png", table_pos, Vector2(0.45, 0.45))
 	vm._spawn_house_chest(center + Vector2(42, -26), "Cofre de la Botica Raíz Verde", fam_id)
