@@ -690,10 +690,15 @@ func _route_internal_building_partitions(b_id: String, from_pos: Vector2, target
 		"building_restaurant": # R1: varias salas; cruza por los pasos (ver VillageRestaurant.OPENINGS)
 			return VillageRestaurant.route(from_pos, target_pos)
 		"building_police":
+			if from_pos.y > 154.0 and target_pos.y > 154.0 and ((from_pos.x < 915.0 and target_pos.x > 915.0) or (from_pos.x > 915.0 and target_pos.x < 915.0)):
+				var exit_x: float = 902.0 if from_pos.x < 915.0 else 928.0
+				return Vector2(exit_x, 165.0 if absf(from_pos.x - exit_x) > 8.0 else 138.0)
 			if from_pos.y < 149.0 and target_pos.y > 155.0:
-				return Vector2(902.0, 138.0 if absf(from_pos.x - 902.0) > 9.0 else 165.0)
+				var pass_x: float = 902.0 if target_pos.x < 915.0 else 928.0
+				return Vector2(pass_x, 138.0 if absf(from_pos.x - pass_x) > 8.0 else 165.0)
 			elif from_pos.y > 155.0 and target_pos.y < 149.0:
-				return Vector2(902.0, 165.0 if absf(from_pos.x - 902.0) > 9.0 else 138.0)
+				var pass_x2: float = 902.0 if from_pos.x < 915.0 else 928.0
+				return Vector2(pass_x2, 165.0 if absf(from_pos.x - pass_x2) > 8.0 else 138.0)
 	if b_id.begins_with("mixed_"):
 		for b in building_footprints:
 			if str(b.get("id", "")) == b_id:

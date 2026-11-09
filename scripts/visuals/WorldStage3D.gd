@@ -1179,7 +1179,7 @@ func _update_roof_cutaways_and_lighting() -> void:
 		if is_instance_valid(loft_root):
 			var is_tav: bool = str(rec.get("id", "")) == "building_tavern"
 			var on_tavern_stairs: bool = is_tav and VillageTavern.elevation_height_for(pl_pos, elev) > 6.0
-			loft_root.visible = (first_person_active or elev == 1 or on_tavern_stairs) and (is_tav or r_near.has_point(pl_pos))
+			loft_root.visible = is_tav and (first_person_active or elev == 1 or on_tavern_stairs)
 
 	# Casa mejorada del jugador: en primera persona conserva el tejado cerrado
 	if is_instance_valid(_player_house_roof):

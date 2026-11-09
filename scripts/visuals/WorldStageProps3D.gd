@@ -172,27 +172,27 @@ func _build_sewers_3d() -> void:
 	_add_box_2d(sewers_root_3d, Vector2(638.0, sy), Vector2(6.0, 86.0), 3.0, 20.0, m_brick)
 
 func _add_green_crt_terminal_3d(parent: Node3D, pos_2d: Vector2, base_h: float, face_north: bool = false) -> void:
-	var m_crt_case := _mat("crt_case_iron", Color(0.18, 0.21, 0.20), 0.55, 0.72)
-	var m_crt_bezel := _mat("crt_bezel_dark", Color(0.10, 0.12, 0.11), 0.65, 0.35)
-	var m_crt_green := _mat("crt_screen_green", Color(0.12, 0.96, 0.34), 0.15, 0.0, Color(0.10, 0.92, 0.30), 3.4)
-	var m_crt_line := _mat("crt_scanline", Color(0.42, 1.0, 0.58), 0.10, 0.0, Color(0.32, 0.98, 0.48), 4.2)
+	var m_crt_case := _mat("crt_case_iron", Color(0.22, 0.25, 0.24), 0.55, 0.68)
+	var m_crt_bezel := _mat("crt_bezel_dark", Color(0.11, 0.13, 0.12), 0.65, 0.35)
+	var m_crt_green := _mat("crt_screen_green", Color(0.12, 0.96, 0.34), 0.18, 0.0, Color(0.10, 0.88, 0.28), 2.2)
+	var m_crt_line := _mat("crt_scanline", Color(0.42, 1.0, 0.58), 0.12, 0.0, Color(0.32, 0.96, 0.46), 2.8)
 	var dir_y: float = -1.0 if face_north else 1.0
-	# Monitor CRT robusto con chasis metálico y pantalla de fósforo verde
-	_add_box_2d(parent, pos_2d + Vector2(0, -1.2 * dir_y), Vector2(11.0, 8.2), base_h, 8.6, m_crt_case)
-	_add_box_2d(parent, pos_2d + Vector2(0, 2.2 * dir_y), Vector2(9.6, 2.0), base_h + 0.8, 7.0, m_crt_bezel)
-	_add_box_2d(parent, pos_2d + Vector2(0, 2.9 * dir_y), Vector2(8.2, 1.0), base_h + 1.4, 5.6, m_crt_green)
+	# Monitor CRT compacto con chasis metálico y pantalla de fósforo verde
+	_add_box_2d(parent, pos_2d + Vector2(0, -0.8 * dir_y), Vector2(8.4, 6.0), base_h, 5.8, m_crt_case)
+	_add_box_2d(parent, pos_2d + Vector2(0, 1.8 * dir_y), Vector2(7.4, 1.4), base_h + 0.6, 4.6, m_crt_bezel)
+	_add_box_2d(parent, pos_2d + Vector2(0, 2.3 * dir_y), Vector2(6.4, 0.8), base_h + 1.0, 3.8, m_crt_green)
 	# Líneas de texto fosforescentes en la pantalla
-	for ly in [2.4, 3.8, 5.2]:
-		_add_box_2d(parent, pos_2d + Vector2(-0.8, 3.3 * dir_y), Vector2(5.6, 0.4), base_h + ly, 0.45, m_crt_line)
+	for ly in [1.7, 2.7, 3.7]:
+		_add_box_2d(parent, pos_2d + Vector2(-0.5, 2.6 * dir_y), Vector2(4.4, 0.35), base_h + ly, 0.32, m_crt_line)
 	# Teclado mecánico delantero
-	_add_box_2d(parent, pos_2d + Vector2(0, 5.0 * dir_y), Vector2(10.2, 3.6), base_h, 1.4, m_crt_case)
-	_add_box_2d(parent, pos_2d + Vector2(0, 5.0 * dir_y), Vector2(8.8, 2.4), base_h + 1.2, 0.5, m_crt_bezel)
+	_add_box_2d(parent, pos_2d + Vector2(0, 3.8 * dir_y), Vector2(7.8, 2.8), base_h, 1.0, m_crt_case)
+	_add_box_2d(parent, pos_2d + Vector2(0, 3.8 * dir_y), Vector2(6.8, 1.9), base_h + 0.85, 0.35, m_crt_bezel)
 	if not _is_headless:
 		var crt_lt := OmniLight3D.new()
-		crt_lt.position = to_3d(pos_2d + Vector2(0, 4.0 * dir_y), base_h + 5.0)
+		crt_lt.position = to_3d(pos_2d + Vector2(0, 3.2 * dir_y), base_h + 3.6)
 		crt_lt.light_color = Color(0.16, 0.96, 0.38)
-		crt_lt.light_energy = 1.15
-		crt_lt.omni_range = 2.4
+		crt_lt.light_energy = 0.75
+		crt_lt.omni_range = 1.8
 		parent.add_child(crt_lt)
 
 func _add_sandbag_wire_barrier_3d(parent: Node3D, pos_2d: Vector2) -> void:
@@ -376,10 +376,11 @@ func _sync_dynamic_props_3d() -> void:
 		if is_instance_valid(_morgue_body_nodes_3d[i]):
 			_morgue_body_nodes_3d[i].visible = (i < active_morgue)
 
-	# 5. Reja de la celda de la Comisaría
+	# 5. Reja corredera de la celda de la Comisaría (cerrada en x=889.5; abierta se desliza tras la reja fija en x=867.5)
 	if is_instance_valid(_jail_gate_pivot_3d):
 		var gate_locked: bool = is_instance_valid(vm._jail_cell_gate_col) and not vm._jail_cell_gate_col.disabled
-		_jail_gate_pivot_3d.rotation_degrees.y = 0.0 if gate_locked else -80.0
+		_jail_gate_pivot_3d.rotation_degrees.y = 0.0
+		_jail_gate_pivot_3d.position = to_3d(Vector2(889.5 if gate_locked else 867.5, 152.2), 2.0)
 
 	# 6. Visibilidad de las alcantarillas y del club del sótano (-1): al bajar bajo el pueblo, ocultar superficie 3D para ver las galerías limpias igual que en 2D
 	var in_sewers: bool = VillageUnderworldScript.is_player_in_sewers(vm)

@@ -352,26 +352,29 @@ static func _spawn_police_station_and_jail(vm: VillageManager) -> void:
 	vm._jail_cell_gate_spr_closed = vm._add_sprite_prop(tex_bars_h, Vector2(902, 152), Vector2(0.85, 1.0), 2, false)
 	vm._jail_cell_gate_spr_open = vm._add_sprite_prop(tex_bars_v, Vector2(890, 141), Vector2(1.0, 0.75), 2, true)
 
-	for c_bed_pos in [Vector2(872, 176), Vector2(958, 176), Vector2(862, 132), Vector2(968, 132)]:
+	for c_bed_pos in [Vector2(870, 182), Vector2(968, 178)]:
 		vm._add_sprite_prop(tex_bed, c_bed_pos, Vector2.ONE, -1, true, Color(0.75, 0.78, 0.85, 1.0))
 
-	vm._spawn_decor_prop("res://assests/Comprados/Epic RPG World - Village(interiors) V1.3/assets/furniture_and_props_sprites/table_chairs_1.png", Vector2(890, 126), Vector2(0.45, 0.45))
+	vm._spawn_decor_prop("res://assests/Comprados/Epic RPG World - Village(interiors) V1.3/assets/furniture_and_props_sprites/table_chairs_1.png", Vector2(870, 126), Vector2(0.45, 0.45))
+	vm._add_prop_collider(Vector2(960, 128), Vector2(20.0, 11.0))
+	vm._add_prop_collider(Vector2(870, 182), Vector2(19.0, 11.0))
+	vm._add_prop_collider(Vector2(968, 178), Vector2(14.0, 20.0))
 	vm._add_station_area("PoliceJailCellArea", vm._jail_cell_pos, 22.0, "police_jail")
 	vm._jail_label = vm._make_station_label(vm._jail_cell_pos + Vector2(-120, -28), "🚓 Celda Policial [E: Gestionar Fianza / Condena]")
 	vm.entities_root.add_child(vm._jail_label)
 
-	# Comisario Vane y Guardia Rodric (Con mesa de comedor propia en la Comisaría `Vector2(886, 126)` / `Vector2(896, 126)`)
+	# Comisario Vane y Guardia Rodric (Con mesa de comedor propia en la Comisaría `Vector2(870, 126)` / `Vector2(878, 126)`)
 	vm._register_authority_npc(
 		"NPC_Sheriff_Vane", "Comisario Vane", "Alguacil mayor", VillageNPC.TradeRole.SHERIFF,
 		"res://assests/world/village/villager_sheriff.png",
-		Vector2(915, 126), Vector2(968, 132), Vector2(886, 126), {},
+		Vector2(944, 128), Vector2(968, 178), Vector2(870, 126), {},
 		"family_police", "Guardia del Valle",
 		["Alguacil Thorne", "Alguacil Vance", "Alguacil Haldor", "Alguacil Lyra", "Alguacil Rourke"]
 	)
 	vm._register_authority_npc(
 		"NPC_Guard_Rodric", "Guardia Rodric", "Oficial de Patrulla", VillageNPC.TradeRole.GUARD,
 		"res://assests/world/village/villager_guard.png",
-		Vector2(510, 48), Vector2(862, 132), Vector2(896, 126), {},
+		Vector2(510, 48), Vector2(952, 178), Vector2(878, 126), {},
 		"family_police", "Guardia del Valle",
 		["Guardia Kaelen", "Guardia Darian", "Guardia Brenna", "Guardia Tormund", "Guardia Soren"]
 	)

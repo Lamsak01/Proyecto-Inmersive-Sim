@@ -195,18 +195,18 @@ func rebuild_buildings_3d() -> void:
 		# Muro cerrado (opuesto a la puerta): si es el muro sur (más cercano a la cámara), se rebaja al abrir el tejado (Cutaway)
 		var closed_y: float = (center.y - half.y) if door_south else (center.y + half.y)
 		if door_south:
-			_add_box_2d(b_root, Vector2(center.x, closed_y), Vector2(sz.x, wall_t), 2.0, wall_h, m_wall)
+			_add_box_2d(b_root, Vector2(center.x, closed_y), Vector2(maxf(8.0, sz.x - wall_t), wall_t), 2.0, wall_h, m_wall)
 		else:
-			_add_box_2d(b_root, Vector2(center.x, closed_y), Vector2(sz.x, wall_t), 2.0, 9.0, m_wall)
+			_add_box_2d(b_root, Vector2(center.x, closed_y), Vector2(maxf(8.0, sz.x - wall_t), wall_t), 2.0, 9.0, m_wall)
 
 		# Muro de la fachada con hueco de puerta + dintel sobre la puerta
 		var door_y: float = door_pos.y
 		var door_left_x: float = door_pos.x - door_w * 0.5
 		var door_right_x: float = door_pos.x + door_w * 0.5
-		var left_w: float = maxf(6.0, door_left_x - rect.position.x)
-		var right_w: float = maxf(6.0, rect.end.x - door_right_x)
-		_add_box_2d(b_root, Vector2(rect.position.x + left_w * 0.5, door_y), Vector2(left_w, wall_t), 2.0, wall_h, m_wall)
-		_add_box_2d(b_root, Vector2(rect.end.x - right_w * 0.5, door_y), Vector2(right_w, wall_t), 2.0, wall_h, m_wall)
+		var left_w: float = maxf(6.0, door_left_x - (rect.position.x + wall_t * 0.5))
+		var right_w: float = maxf(6.0, (rect.end.x - wall_t * 0.5) - door_right_x)
+		_add_box_2d(b_root, Vector2(rect.position.x + wall_t * 0.5 + left_w * 0.5, door_y), Vector2(left_w, wall_t), 2.0, wall_h, m_wall)
+		_add_box_2d(b_root, Vector2(rect.end.x - wall_t * 0.5 - right_w * 0.5, door_y), Vector2(right_w, wall_t), 2.0, wall_h, m_wall)
 		# Jambas y dintel de la puerta
 		_add_box_2d(b_root, Vector2(door_left_x, door_y), Vector2(3.5, wall_t + 2.0), 2.0, wall_h, m_trim)
 		_add_box_2d(b_root, Vector2(door_right_x, door_y), Vector2(3.5, wall_t + 2.0), 2.0, wall_h, m_trim)
@@ -222,7 +222,7 @@ func rebuild_buildings_3d() -> void:
 		else:
 			_add_box_2d(b_root, Vector2(door_pos.x, door_y), Vector2(door_w + 4.0, wall_t + 1.5), 2.0 + wall_h * 0.72, wall_h * 0.28, lintel_mat)
 
-		# 3. Puerta abatible 3D sincronizada con `vm.building_doors`
+		# 3. Puerta abatible 3D sincronizada con `vm.building_doors` (diseño propio por edificio acorde a la fachada)
 		for d_entry in vm.building_doors:
 			if str(d_entry.get("building_id", "")) == b_id:
 				var hinge_pos := Vector2(door_left_x + 2.0, door_y)
@@ -233,9 +233,7 @@ func rebuild_buildings_3d() -> void:
 				var leaf_w: float = maxf(18.0, door_w - 4.0)
 				var leaf_h: float = 23.0 if b_id == "building_tavern" else (wall_h * 0.70)
 				if not _is_headless:
-					var door_leaf := _make_texture_panel(leaf_w, leaf_h, 3.0, _panel_mat("door_wood", "town_textures/door_wood.png", false))
-					door_leaf.position = Vector3((leaf_w * 0.5) * WORLD_SCALE, (leaf_h * 0.5 * WORLD_SCALE) / _cos_p, 0.0)
-					pivot.add_child(door_leaf)
+					_build_door_leaf_3d(pivot, b_id, leaf_w, leaf_h, m_wood, m_dark_wood, m_iron, m_gold)
 				var lock_badge := MeshInstance3D.new()
 				var lb_bm := BoxMesh.new()
 				lb_bm.size = size_3d(Vector2(3.5, 4.2), 3.5)
@@ -249,10 +247,19 @@ func rebuild_buildings_3d() -> void:
 		# 4. Ventana 3D con postigos sincronizada con `vm.building_windows`
 		for w_entry in vm.building_windows:
 			if str(w_entry.get("building_id", "")) == b_id:
+				if b_id in ["building_police", "building_town_hall"]:
+					break
 				var w_pos: Vector2 = w_entry.get("pos", Vector2.ZERO)
 				var pane: Node3D = null
 				if not _is_headless:
-					pane = _make_texture_panel(13.0, 12.0, wall_t + 2.4, _panel_mat("win_day", "town_textures/window_square_divided.png", false))
+					var win_tex: String = "town_textures/window_square_divided.png"
+					if b_id == "building_church":
+						win_tex = "town_textures/window_tall_rounded.png"
+					elif b_id == "building_hospital":
+						win_tex = "town_textures/window_square_pane.png"
+					elif b_id == "building_library":
+						win_tex = "town_textures/window_tall_divided.png"
+					pane = _make_texture_panel(13.0, 12.0, wall_t + 2.4, _panel_mat("win_" + b_id, win_tex, false))
 					pane.position = to_3d(w_pos, 10.0 + 6.0)
 					b_root.add_child(pane)
 				else:
@@ -284,7 +291,7 @@ func rebuild_buildings_3d() -> void:
 		_current_building_floor = 0
 		_populate_building_interior_3d(b_root, b_id, rect, door_south, wall_h, m_wall, m_trim, m_wood, m_dark_wood, m_iron, m_gold)
 
-		# 6. Altillo / Primer Piso (+1) 3D (visible cuando estás en nivel +1 o cerca)
+		# 6. Altillo / Primer Piso (+1) 3D (exclusivo de la taberna de 2 plantas)
 		var loft_root := Node3D.new()
 		loft_root.name = "Loft3D_" + b_id
 		loft_root.visible = false
@@ -292,11 +299,6 @@ func rebuild_buildings_3d() -> void:
 		_current_building_floor = 1
 		if b_id == "building_tavern":
 			_build_tavern_floor_1_3d(loft_root, wall_h, m_wall, m_trim, m_wood, m_dark_wood, m_iron, m_gold)
-		else:
-			var loft_y: float = center.y + (-half.y * 0.42 if door_south else half.y * 0.42)
-			_add_box_2d(loft_root, Vector2(center.x, loft_y), Vector2(sz.x - 10.0, sz.y * 0.42), wall_h - 3.0, 2.0, m_wood)
-			_add_box_2d(loft_root, Vector2(center.x, loft_y + (sz.y * 0.20 if door_south else -sz.y * 0.20)), Vector2(sz.x - 12.0, 2.5), wall_h - 1.0, 6.0, m_dark_wood)
-			_add_model_2d(loft_root, "props/Chest_Wood.gltf", Vector2(center.x - sz.x * 0.22, loft_y), wall_h - 1.0, Vector2(12.0, 8.0), 6.5)
 		_current_building_id = ""
 		_current_building_floor = 0
 
@@ -305,8 +307,8 @@ func rebuild_buildings_3d() -> void:
 		var roof_cap := Node3D.new()
 		roof_cap.name = "RoofCap_" + b_id
 		b_root.add_child(roof_cap)
-		# B7: Forjado/techo de tablas bajo la cubierta para que en 1.ª persona se vea el techo cerrado desde dentro
-		_add_box_2d(roof_cap, center, sz - Vector2(2.0, 2.0), wall_h - 0.4, 2.2, m_wood)
+		# B7: Forjado/techo de tablas justo sobre la coronación de los muros (2.0 + wall_h + 0.08) para evitar Z-fighting (parpadeo) con paredes y tabiques
+		_add_box_2d(roof_cap, center, sz - Vector2(4.0, 4.0), 2.0 + wall_h + 0.08, 2.1, m_wood)
 		var hv: int = absi(b_id.hash())
 		var ov: float = 6.0
 		var short_side: float = minf(sz.x, sz.y)
@@ -314,7 +316,7 @@ func rebuild_buildings_3d() -> void:
 		var ridge_x: bool = sz.x >= sz.y
 		if absf(sz.x - sz.y) < 12.0:
 			ridge_x = (hv % 2) == 0
-		var roof_base_h: float = wall_h + 2.2
+		var roof_base_h: float = 2.0 + wall_h + 2.25
 		if sz.x > 118.0 and not (b_id in ["building_church"]):
 			# Cuerpo principal + ala más baja (rompe la caja: silueta en L vista desde arriba)
 			var main_w: float = sz.x * 0.60
@@ -328,11 +330,11 @@ func rebuild_buildings_3d() -> void:
 			_add_prism_2d(roof_cap, center, sz + Vector2(ov * 2.0, ov * 2.0), roof_base_h, rh, m_roof, ridge_x)
 		# Remate de madera bajo el alero (se ve con el tejado puesto y quitado)
 		if not door_south:
-			_add_box_2d(roof_cap, Vector2(center.x, closed_y), Vector2(sz.x, wall_t), 11.0, wall_h - 9.0, m_wall)
-			_add_box_2d(roof_cap, Vector2(center.x, rect.end.y), Vector2(sz.x + 2.0, 3.0), wall_h, 2.5, m_trim)
+			_add_box_2d(roof_cap, Vector2(center.x, closed_y), Vector2(maxf(8.0, sz.x - wall_t), wall_t), 11.05, wall_h - 9.05, m_wall)
+			_add_box_2d(roof_cap, Vector2(center.x, rect.end.y), Vector2(sz.x + 2.0, 3.0), 2.0 + wall_h + 0.08, 2.5, m_trim)
 		else:
-			_add_box_2d(b_root, Vector2(center.x, rect.end.y), Vector2(sz.x + 2.0, 3.0), wall_h, 2.5, m_trim)
-		_add_box_2d(b_root, Vector2(center.x, rect.position.y), Vector2(sz.x + 2.0, 3.0), wall_h, 2.5, m_trim)
+			_add_box_2d(b_root, Vector2(center.x, rect.end.y), Vector2(sz.x + 2.0, 3.0), 2.0 + wall_h + 0.08, 2.5, m_trim)
+		_add_box_2d(b_root, Vector2(center.x, rect.position.y), Vector2(sz.x + 2.0, 3.0), 2.0 + wall_h + 0.08, 2.5, m_trim)
 		# Porche sobre la puerta en tiendas y casas (tejadillo inclinado sobre dos postes)
 		if (hv % 3) != 0 and not (b_id in ["building_church", "building_police", "building_hospital"]):
 			var porch_dir: float = 1.0 if door_south else -1.0
@@ -503,26 +505,7 @@ func _populate_building_interior_3d(b_root: Node3D, b_id: String, rect: Rect2, d
 				_add_box_2d(body_n, mp + Vector2(0, -6.0), Vector2(5.5, 5.5), 13.5, 3.0, m_shroud)
 				_morgue_body_nodes_3d.append(body_n)
 		"building_police":
-			# Tabique de barrotes de acero del calabozo y puerta de reja en Vector2(902, 152)
-			_add_model_2d(b_root, "graveyard/iron-fence.glb", Vector2(874, 152), 2.0, Vector2(36, 4.5), wall_h * 0.85)
-			_add_model_2d(b_root, "graveyard/iron-fence.glb", Vector2(940, 152), 2.0, Vector2(52, 4.5), wall_h * 0.85)
-			_jail_gate_pivot_3d = Node3D.new()
-			_jail_gate_pivot_3d.position = to_3d(Vector2(892, 152), 2.0)
-			b_root.add_child(_jail_gate_pivot_3d)
-			var gate_mesh := MeshInstance3D.new()
-			var gm_box := BoxMesh.new()
-			gm_box.size = size_3d(Vector2(20.0, 3.0), wall_h * 0.75)
-			gate_mesh.mesh = gm_box
-			gate_mesh.material_override = m_iron
-			gate_mesh.position = Vector3(10.0 * WORLD_SCALE, (wall_h * 0.375 * WORLD_SCALE) / _cos_p, 0.0)
-			_jail_gate_pivot_3d.add_child(gate_mesh)
-			# Camastro del calabozo, jaula y escritorio del comisario
-			_build_bed_3d(b_root, vm._jail_cell_pos + Vector2(-14, 8), m_iron, m_dark_wood, m_pillow)
-			_add_model_2d(b_root, "props/Cage_Small.gltf", vm._jail_cell_pos + Vector2(16, 6), 2.0, Vector2(9.0, 9.0), 10.0)
-			_add_model_2d(b_root, "props/Workbench.gltf", vm._police_center + Vector2(18, -18), 2.0, Vector2(22, 12), 8.5)
-			_add_model_2d(b_root, "props/WeaponStand.gltf", vm._police_center + Vector2(-24, -18), 2.0, Vector2(14, 7), 11.0)
-			# §3b.3: Terminal de pantalla verde sobre el escritorio de la Comisaría
-			_add_green_crt_terminal_3d(b_root, VillageCulture.POLICE_TERMINAL_POS, 10.5, true)
+			_build_police_station_3d(b_root, rect, wall_h, m_wall, m_trim, m_wood, m_dark_wood, m_iron, m_gold)
 		"building_church":
 			# Altar mayor con velas y bancos de madera 3D
 			_add_model_2d(b_root, "graveyard/altar-stone.glb", vm._church_altar_pos, 2.0, Vector2(32.0, 14.0), 11.0)
@@ -1269,4 +1252,251 @@ func rebuild_lots_3d() -> void:
 			_add_box_2d(lots_root_3d, c + Vector2(0, -40.0), Vector2(118.0, 3.0), cur_h * 0.6, 2.5, m_scaffold)
 			_add_box_2d(lots_root_3d, c + Vector2(0, 40.0), Vector2(118.0, 3.0), cur_h * 0.6, 2.5, m_scaffold)
 			_add_model_2d(lots_root_3d, "props/Workbench.gltf", c + Vector2(-28.0, 0.0), 2.5, Vector2(24.0, 14.0), 8.0)
+
+# ==============================================================================
+# 4. PUERTAS PERSONALIZADAS POR FACHADA E INTERIORES DE EDIFICIOS DEL CASO I
+# ==============================================================================
+func _add_door_part(pivot: Node3D, cx_px: float, cy_px: float, cz_px: float, sx_px: float, sy_px: float, sz_px: float, mat: Material) -> MeshInstance3D:
+	var mi := MeshInstance3D.new()
+	var bm := BoxMesh.new()
+	bm.size = size_3d(Vector2(sx_px, sz_px), sy_px)
+	mi.mesh = bm
+	mi.material_override = mat
+	mi.position = Vector3(cx_px * WORLD_SCALE, (cy_px * WORLD_SCALE) / _cos_p, (cz_px * WORLD_SCALE) / _sin_p)
+	pivot.add_child(mi)
+	return mi
+
+func _build_door_leaf_3d(pivot: Node3D, b_id: String, leaf_w: float, leaf_h: float, m_wood: Material, m_dark_wood: Material, m_iron: Material, m_gold: Material) -> void:
+	var hw: float = leaf_w * 0.5
+	var hh: float = leaf_h * 0.5
+	match b_id:
+		"building_police":
+			# Puerta blindada de la Comisaría: acero gris-azulado remachado, marco de hierro, mirilla enrejada y placa de alguacil
+			var m_pol_steel := _mat("door_police_steel", Color(0.24, 0.28, 0.34), 0.48, 0.72)
+			var m_pol_dark := _mat("door_police_frame", Color(0.15, 0.17, 0.21), 0.42, 0.82)
+			var m_pol_win := _mat("door_police_win", Color(0.08, 0.11, 0.14), 0.35, 0.25)
+			_add_door_part(pivot, hw, hh, 0.0, leaf_w, leaf_h, 2.8, m_pol_steel)
+			# Marco perimetral y travesaños horizontales de acero remachado
+			_add_door_part(pivot, 1.4, hh, 0.0, 2.8, leaf_h, 3.3, m_pol_dark)
+			_add_door_part(pivot, leaf_w - 1.4, hh, 0.0, 2.8, leaf_h, 3.3, m_pol_dark)
+			for ry in [2.2, leaf_h * 0.45, leaf_h - 2.0]:
+				_add_door_part(pivot, hw, ry, 0.0, leaf_w, 2.2, 3.4, m_pol_dark)
+			# Ventanuco de inspección con 4 barrotes verticales en la mitad superior
+			var wy: float = leaf_h * 0.72
+			_add_door_part(pivot, hw, wy, 0.0, leaf_w * 0.48, leaf_h * 0.22, 3.1, m_pol_win)
+			for bx in [-4.8, -1.6, 1.6, 4.8]:
+				_add_door_part(pivot, hw + bx, wy, 0.0, 0.9, leaf_h * 0.24, 3.5, m_iron)
+			# Escudo policial de latón y manilla pesada
+			_add_door_part(pivot, hw, leaf_h * 0.32, 0.0, 4.5, 4.8, 3.5, m_gold)
+			_add_door_part(pivot, leaf_w - 5.2, leaf_h * 0.45, 0.0, 1.8, 3.6, 4.0, m_iron)
+		"building_hospital":
+			# Puerta clínica de doble hoja en madera clara y verde azulado sanitario con visores esmerilados y cruz médica roja
+			var m_hosp_leaf := _mat("door_hosp_leaf", Color(0.86, 0.90, 0.92), 0.65, 0.05)
+			var m_hosp_trim := _mat("door_hosp_trim", Color(0.26, 0.50, 0.54), 0.55, 0.10)
+			var m_hosp_glass := _mat("door_hosp_glass", Color(0.74, 0.92, 0.96), 0.20, 0.10, Color(0.45, 0.75, 0.82), 0.35)
+			var m_hosp_cross := _mat("door_hosp_cross", Color(0.84, 0.18, 0.18), 0.45, 0.05)
+			_add_door_part(pivot, hw, hh, 0.0, leaf_w, leaf_h, 2.6, m_hosp_leaf)
+			_add_door_part(pivot, 1.3, hh, 0.0, 2.6, leaf_h, 3.1, m_hosp_trim)
+			_add_door_part(pivot, hw, hh, 0.0, 2.2, leaf_h, 3.1, m_hosp_trim)
+			_add_door_part(pivot, leaf_w - 1.3, hh, 0.0, 2.6, leaf_h, 3.1, m_hosp_trim)
+			_add_door_part(pivot, hw, 2.0, 0.0, leaf_w, 3.2, 3.1, m_hosp_trim)
+			_add_door_part(pivot, hw, leaf_h * 0.46, 0.0, leaf_w, 2.0, 3.1, m_hosp_trim)
+			_add_door_part(pivot, hw, leaf_h - 1.5, 0.0, leaf_w, 2.4, 3.1, m_hosp_trim)
+			# Dos visores superiores y emblema de la cruz médica
+			_add_door_part(pivot, leaf_w * 0.27, leaf_h * 0.70, 0.0, leaf_w * 0.26, leaf_h * 0.28, 3.0, m_hosp_glass)
+			_add_door_part(pivot, leaf_w * 0.73, leaf_h * 0.70, 0.0, leaf_w * 0.26, leaf_h * 0.28, 3.0, m_hosp_glass)
+			_add_door_part(pivot, leaf_w * 0.27, leaf_h * 0.25, 0.0, 5.2, 1.6, 3.3, m_hosp_cross)
+			_add_door_part(pivot, leaf_w * 0.27, leaf_h * 0.25, 0.0, 1.6, 5.2, 3.3, m_hosp_cross)
+			_add_door_part(pivot, leaf_w * 0.73, leaf_h * 0.25, 0.0, 5.2, 1.6, 3.3, m_hosp_cross)
+			_add_door_part(pivot, leaf_w * 0.73, leaf_h * 0.25, 0.0, 1.6, 5.2, 3.3, m_hosp_cross)
+		"building_tavern":
+			# Portón de roble de la Gran Taberna «El Jabalí Dorado»: vidriera cálida iluminada, herrajes de forja y zócalo de latón
+			var door_leaf := _make_texture_panel(leaf_w, leaf_h, 2.8, _panel_mat("door_tavern", "town_textures/door_wood_window_lit.png", true))
+			door_leaf.position = Vector3(hw * WORLD_SCALE, (hh * WORLD_SCALE) / _cos_p, 0.0)
+			pivot.add_child(door_leaf)
+			_add_door_part(pivot, hw, 1.6, 0.0, leaf_w - 1.0, 2.8, 3.3, m_gold)
+			_add_door_part(pivot, hw, leaf_h * 0.44, 0.0, leaf_w - 1.0, 1.8, 3.3, m_dark_wood)
+			_add_door_part(pivot, leaf_w - 5.0, leaf_h * 0.44, 0.0, 2.2, 4.2, 3.8, m_gold)
+		"building_library":
+			# Puerta noble de nogal y azul pizarra de la Biblioteca con vitrales verticales de lectura y aldaba de latón
+			var m_lib_wood := _mat("door_lib_walnut", Color(0.36, 0.23, 0.14), 0.72, 0.05, Color.BLACK, 0.0, "town_textures/rf_planks.png")
+			var m_lib_slate := _mat("door_lib_slate", Color(0.24, 0.36, 0.52), 0.65, 0.12)
+			var m_lib_glass := _mat("door_lib_glass", Color(0.96, 0.84, 0.54), 0.25, 0.10, Color(0.85, 0.68, 0.34), 0.55)
+			_add_door_part(pivot, hw, hh, 0.0, leaf_w, leaf_h, 2.7, m_lib_wood)
+			_add_door_part(pivot, 1.4, hh, 0.0, 2.8, leaf_h, 3.2, m_lib_slate)
+			_add_door_part(pivot, hw, hh, 0.0, 2.2, leaf_h, 3.2, m_lib_slate)
+			_add_door_part(pivot, leaf_w - 1.4, hh, 0.0, 2.8, leaf_h, 3.2, m_lib_slate)
+			_add_door_part(pivot, hw, 2.0, 0.0, leaf_w, 3.0, 3.2, m_lib_slate)
+			_add_door_part(pivot, hw, leaf_h - 1.6, 0.0, leaf_w, 2.6, 3.2, m_lib_slate)
+			for gx in [leaf_w * 0.27, leaf_w * 0.73]:
+				_add_door_part(pivot, gx, leaf_h * 0.66, 0.0, leaf_w * 0.22, leaf_h * 0.36, 3.0, m_lib_glass)
+				_add_door_part(pivot, gx, leaf_h * 0.25, 0.0, leaf_w * 0.24, leaf_h * 0.22, 3.1, m_gold)
+		"mixed_family_herbalist":
+			# Puerta verde salvia de la Botica «Raíz Verde» con ventanuco de herbario, herrajes de cobre y corona botánica
+			var m_herb_green := _mat("door_herb_green", Color(0.22, 0.42, 0.26), 0.78, 0.04, Color.BLACK, 0.0, "town_textures/rf_planks.png")
+			var m_herb_trim := _mat("door_herb_trim", Color(0.38, 0.25, 0.15), 0.82, 0.03)
+			var m_herb_glass := _mat("door_herb_glass", Color(0.68, 0.92, 0.74), 0.22, 0.08, Color(0.38, 0.76, 0.46), 0.45)
+			var m_wreath := _mat("door_herb_wreath", Color(0.30, 0.62, 0.28), 0.85, 0.0)
+			_add_door_part(pivot, hw, hh, 0.0, leaf_w, leaf_h, 2.6, m_herb_green)
+			_add_door_part(pivot, 1.4, hh, 0.0, 2.8, leaf_h, 3.1, m_herb_trim)
+			_add_door_part(pivot, leaf_w - 1.4, hh, 0.0, 2.8, leaf_h, 3.1, m_herb_trim)
+			_add_door_part(pivot, hw, 2.0, 0.0, leaf_w, 3.0, 3.1, m_herb_trim)
+			_add_door_part(pivot, hw, leaf_h * 0.46, 0.0, leaf_w, 2.2, 3.1, m_herb_trim)
+			_add_door_part(pivot, hw, leaf_h - 1.6, 0.0, leaf_w, 2.4, 3.1, m_herb_trim)
+			_add_door_part(pivot, hw, leaf_h * 0.72, 0.0, leaf_w * 0.46, leaf_h * 0.24, 3.0, m_herb_glass)
+			_add_door_part(pivot, hw, leaf_h * 0.72, 0.0, 5.2, 5.2, 3.4, m_wreath)
+			_add_door_part(pivot, leaf_w - 5.0, leaf_h * 0.46, 0.0, 2.0, 3.6, 3.6, m_gold)
+		"building_church":
+			# Portón solemne de nogal oscuro de la Capilla del Alba con tachones de forja y cruz solar dorada en relieve
+			var m_ch_oak := _mat("door_church_oak", Color(0.26, 0.17, 0.11), 0.80, 0.04, Color.BLACK, 0.0, "town_textures/rf_planks.png")
+			_add_door_part(pivot, hw, hh, 0.0, leaf_w, leaf_h, 2.9, m_ch_oak)
+			_add_door_part(pivot, 1.5, hh, 0.0, 3.0, leaf_h, 3.4, m_iron)
+			_add_door_part(pivot, hw, hh, 0.0, 2.4, leaf_h, 3.4, m_iron)
+			_add_door_part(pivot, leaf_w - 1.5, hh, 0.0, 3.0, leaf_h, 3.4, m_iron)
+			for ry in [2.4, leaf_h * 0.48, leaf_h - 2.0]:
+				_add_door_part(pivot, hw, ry, 0.0, leaf_w, 2.0, 3.4, m_iron)
+			# Cruz del Alba en latón dorado sobre el portón
+			_add_door_part(pivot, hw, leaf_h * 0.62, 0.0, 2.2, leaf_h * 0.42, 3.6, m_gold)
+			_add_door_part(pivot, hw, leaf_h * 0.68, 0.0, leaf_w * 0.38, 2.2, 3.6, m_gold)
+			_add_door_part(pivot, hw, leaf_h * 0.68, 0.0, 4.4, 4.4, 3.8, m_gold)
+		_:
+			var door_leaf := _make_texture_panel(leaf_w, leaf_h, 3.0, _panel_mat("door_wood", "town_textures/door_wood.png", false))
+			door_leaf.position = Vector3(hw * WORLD_SCALE, (hh * WORLD_SCALE) / _cos_p, 0.0)
+			pivot.add_child(door_leaf)
+
+## Punto 1 del Caso I: Comisaría de Policía y Calabozo Municipal (`building_police`, rect x=844..986, y=100..196).
+## Tres estancias diferenciadas y sincronizadas con los muros 2D:
+##  1) Guardia y Despacho del Alguacil (Norte, y=100..152): mesa de interrogatorios, tablón de anuncios, archivadores y despacho con terminal CRT.
+##  2) El Calabozo (Suroeste, x=844..915, y=152..196): reja de hierro oscuro, puerta de barrotes con cerradura y llave, catre, cubo y grilletes.
+##  3) Cuarto de Guardia y Archivo de Pruebas (Sureste, x=915..986, y=152..196): tabique con puerta, camastro de guardia, armero y cajas de pruebas.
+func _build_police_station_3d(b_root: Node3D, _rect: Rect2, wall_h: float, m_wall: Material, m_trim: Material, m_wood: Material, m_dark_wood: Material, m_iron: Material, m_gold: Material) -> void:
+	var ih: float = wall_h - 0.15
+	var m_dark_iron := _mat("jail_dark_wrought_iron", Color(0.14, 0.16, 0.19), 0.42, 0.84)
+	var m_cell_stone := _mat("jail_cell_floor_stone", Color(0.36, 0.39, 0.43), 0.92, 0.04, Color.BLACK, 0.0, "town_textures/floor_stone_grate.png")
+	var m_guard_rug := _mat("police_office_rug", Color(0.18, 0.26, 0.38), 0.90, 0.0)
+	var m_straw_mat := _mat("jail_cot_straw", Color(0.56, 0.49, 0.36), 0.94, 0.0)
+	var m_cell_blanket := _mat("jail_cot_blanket", Color(0.34, 0.37, 0.42), 0.90, 0.0)
+	var m_guard_blanket := _mat("police_guard_blanket", Color(0.20, 0.32, 0.48), 0.86, 0.0)
+	var m_pillow := _mat("police_pillow", Color(0.86, 0.84, 0.78), 0.88, 0.0)
+	var m_paper := _mat("police_dossier_paper", Color(0.92, 0.89, 0.80), 0.85, 0.0)
+	var m_cork := _mat("police_board_cork", Color(0.58, 0.42, 0.24), 0.90, 0.0)
+
+	# 1. Pavimentos diferenciados por estancia (sin solapar alturas)
+	_add_box_2d(b_root, Vector2(880.0, 174.0), Vector2(64.0, 38.0), 2.5, 0.32, m_cell_stone)
+	_add_box_2d(b_root, Vector2(960.0, 128.0), Vector2(36.0, 26.0), 2.5, 0.28, m_guard_rug)
+
+	# 2. Tabiques interiores y cerramientos sincronizados al milímetro con las colisiones 2D:
+	# 2a. Reja frontal de hierro forjado oscuro del Calabozo: x = 847..889, y = 152 (colisión 2D: center 868,152 size 42x6)
+	_add_box_2d(b_root, Vector2(868.0, 152.0), Vector2(42.0, 5.2), 2.0, 3.2, m_trim) # Zócalo inferior de piedra/madera
+	_add_box_2d(b_root, Vector2(868.0, 152.0), Vector2(42.0, 5.2), 2.0 + ih * 0.82, ih * 0.18, m_wall) # Dintel superior
+	for rail_h in [5.2, 14.8, 2.0 + ih * 0.80]:
+		_add_box_2d(b_root, Vector2(868.0, 152.0), Vector2(42.0, 3.0), rail_h, 1.4, m_dark_iron)
+	for bx in [852.0, 857.5, 863.0, 868.5, 874.0, 879.5, 885.0]:
+		_add_cyl_2d(b_root, Vector2(bx, 152.0), 0.56, 5.0, ih * 0.80 - 2.5, m_dark_iron, 0.56, 8)
+	# Pilar maestro de hierro y piedra entre la reja fija y la puerta de la celda (x = 889, y = 152) y en x = 915, y = 152
+	_add_box_2d(b_root, Vector2(889.0, 152.0), Vector2(3.6, 5.8), 2.0, ih, m_dark_iron)
+	_add_box_2d(b_root, Vector2(915.0, 152.0), Vector2(4.2, 5.8), 2.0, ih, m_dark_iron)
+	_add_box_2d(b_root, Vector2(902.0, 152.0), Vector2(26.0, 5.2), 2.0 + ih * 0.80, ih * 0.20, m_dark_iron) # Dintel sobre la puerta de reja
+
+	# 2b. Puerta corredera de reja de hierro oscuro con cerradura y llave en Vector2(902, 152) (pivote en 889.5, 152; ancho 24.5)
+	_jail_gate_pivot_3d = Node3D.new()
+	_jail_gate_pivot_3d.name = "JailGatePivot3D"
+	_jail_gate_pivot_3d.position = to_3d(Vector2(889.5, 152.0), 2.0)
+	b_root.add_child(_jail_gate_pivot_3d)
+	var gate_h: float = ih * 0.78
+	var gate_w: float = 24.5
+	# Bastidor de la puerta de barrotes (travesaños inferior, medio y superior + montantes laterales + 4 barrotes verticales)
+	_add_door_part(_jail_gate_pivot_3d, gate_w * 0.5, 1.2, 0.0, gate_w, 1.5, 2.2, m_dark_iron)
+	_add_door_part(_jail_gate_pivot_3d, gate_w * 0.5, gate_h * 0.48, 0.0, gate_w, 1.4, 2.2, m_dark_iron)
+	_add_door_part(_jail_gate_pivot_3d, gate_w * 0.5, gate_h - 1.0, 0.0, gate_w, 1.6, 2.2, m_dark_iron)
+	_add_door_part(_jail_gate_pivot_3d, 1.0, gate_h * 0.5, 0.0, 1.5, gate_h, 2.2, m_dark_iron)
+	_add_door_part(_jail_gate_pivot_3d, gate_w - 1.0, gate_h * 0.5, 0.0, 1.6, gate_h, 2.2, m_dark_iron)
+	for gbx in [5.5, 10.5, 15.5, 20.5]:
+		_add_door_part(_jail_gate_pivot_3d, gbx, gate_h * 0.5, 0.0, 1.0, gate_h - 1.2, 1.6, m_dark_iron)
+	# Caja de cerradura pesada con escudo de latón y llave puesta en la puerta de la celda
+	_add_door_part(_jail_gate_pivot_3d, gate_w - 2.6, gate_h * 0.48, 0.0, 3.6, 4.8, 3.2, m_dark_iron)
+	_add_door_part(_jail_gate_pivot_3d, gate_w - 2.4, gate_h * 0.48, 0.0, 2.2, 3.2, 3.6, m_gold)
+	_add_door_part(_jail_gate_pivot_3d, gate_w - 2.4, gate_h * 0.48, -2.1, 0.9, 1.4, 2.4, m_gold) # Llave asomando en la cerradura
+	# Manojo de llaves del calabozo colgado en el pilar junto a la celda (Vector2(887.5, 148.8))
+	_add_box_2d(b_root, Vector2(887.5, 148.8), Vector2(1.2, 1.4), 15.5, 1.2, m_dark_iron)
+	_add_cyl_2d(b_root, Vector2(887.5, 148.4), 1.4, 14.0, 0.6, m_gold, 1.4, 8)
+	_add_box_2d(b_root, Vector2(887.1, 148.3), Vector2(0.5, 0.5), 11.8, 2.4, m_gold)
+	_add_box_2d(b_root, Vector2(887.9, 148.3), Vector2(0.5, 0.5), 12.1, 2.1, m_iron)
+
+	# 2c. Muro divisorio este del Calabozo: x = 915, y = 153..195 (colisión 2D: center 915,174 size 6x42)
+	_add_box_2d(b_root, Vector2(915.0, 174.0), Vector2(5.2, 42.0), 2.0, 11.5, m_wall)
+	_add_box_2d(b_root, Vector2(915.0, 174.0), Vector2(5.4, 42.0), 13.5, 1.5, m_dark_iron)
+	_add_box_2d(b_root, Vector2(915.0, 174.0), Vector2(5.2, 42.0), 2.0 + ih * 0.80, ih * 0.20, m_wall)
+	for by_c in range(157, 193, 5):
+		_add_cyl_2d(b_root, Vector2(915.0, float(by_c)), 0.56, 14.5, ih * 0.80 - 12.0, m_dark_iron, 0.56, 8)
+
+	# 2d. Tabique del Cuarto de Guardia / Archivo (Sureste): x = 941..983, y = 152 (hueco de paso libre en x = 917..941)
+	_add_box_2d(b_root, Vector2(962.0, 152.0), Vector2(42.0, 5.2), 2.0, ih, m_wall)
+	_add_box_2d(b_root, Vector2(941.0, 152.0), Vector2(3.0, 5.8), 2.0, ih, m_trim) # Jamba derecha del paso SE
+	_add_box_2d(b_root, Vector2(928.0, 152.0), Vector2(26.0, 5.6), 2.0 + ih * 0.78, ih * 0.22, m_trim) # Dintel sobre el paso SE
+
+	# 3. Interior del Calabozo (Suroeste, x = 848..912, y = 155..192; _jail_cell_pos = (886, 172) libre para el preso)
+	# Catre de hierro oscuro con jergón de paja y manta gris junto al muro sur de la celda (Vector2(870, 182))
+	var cot_p := Vector2(870.0, 182.0)
+	_register_furniture_rect("JailCellCot", cot_p, Vector2(19.0, 11.5))
+	_add_box_2d(b_root, cot_p, Vector2(19.0, 11.5), 2.0, 3.2, m_dark_iron)
+	_add_box_2d(b_root, cot_p + Vector2(-9.0, 0.0), Vector2(1.4, 11.5), 2.0, 6.8, m_dark_iron)
+	_add_box_2d(b_root, cot_p + Vector2(9.0, 0.0), Vector2(1.4, 11.5), 2.0, 5.2, m_dark_iron)
+	_add_box_2d(b_root, cot_p, Vector2(17.2, 10.4), 5.2, 1.4, m_straw_mat)
+	_add_box_2d(b_root, cot_p + Vector2(2.2, 0.0), Vector2(11.5, 10.2), 6.6, 0.8, m_cell_blanket)
+	_add_box_2d(b_root, cot_p + Vector2(-6.0, 0.0), Vector2(3.8, 8.2), 6.6, 1.2, m_pillow)
+	# Cubo de celda, banqueta baja con jarro de latón y grilletes de hierro en el muro del fondo
+	_add_model_2d(b_root, "props/Bucket_Wooden_1.gltf", Vector2(896.0, 183.0), 2.0, Vector2(5.5, 5.5), 5.5)
+	_add_model_2d(b_root, "props/Stool.gltf", Vector2(855.0, 165.0), 2.0, Vector2(5.5, 5.5), 5.2)
+	_add_model_2d(b_root, "props/Mug.gltf", Vector2(855.0, 165.0), 7.2, Vector2(2.8, 2.8), 3.2)
+	# Placa de anclaje y cadenas de grilletes en el muro sur de la celda (Vector2(878, 192))
+	_add_box_2d(b_root, Vector2(878.0, 192.2), Vector2(10.0, 1.4), 13.5, 3.2, m_dark_iron)
+	for sh_x in [-3.2, 3.2]:
+		_add_box_2d(b_root, Vector2(878.0 + sh_x, 191.6), Vector2(0.9, 1.2), 9.0, 5.0, m_dark_iron)
+		_add_cyl_2d(b_root, Vector2(878.0 + sh_x, 191.4), 1.5, 7.8, 1.2, m_dark_iron, 1.5, 8)
+
+	# 4. Sala Principal / Guardia e Interrogatorios (Oeste, x = 848..892, y = 104..144)
+	var int_tbl := Vector2(870.0, 126.0)
+	if _add_model_2d(b_root, "props/Table_Large.gltf", int_tbl, 2.0, Vector2(18.0, 11.0), 7.4) == null:
+		_add_box_2d(b_root, int_tbl, Vector2(18.0, 11.0), 2.0, 7.4, m_dark_wood)
+	for ch_p in [int_tbl + Vector2(-13.5, 0.0), int_tbl + Vector2(13.5, 0.0)]:
+		_add_model_2d(b_root, "props/Chair_1.gltf", ch_p, 2.0, Vector2(6.0, 6.0), 8.5, _chair_rot_y_towards(ch_p, int_tbl))
+	_add_model_2d(b_root, "props/Book_5.gltf", int_tbl + Vector2(-3.0, -1.5), 9.4, Vector2(4.5, 3.5), 2.0)
+	_add_model_2d(b_root, "props/Book_Stack_1.gltf", int_tbl + Vector2(4.0, 1.5), 9.4, Vector2(4.5, 4.5), 3.5)
+	_add_model_2d(b_root, "props/CandleStick.gltf", int_tbl + Vector2(0.0, -2.5), 9.4, Vector2(3.0, 3.0), 4.8)
+	# Archivador y estantería de expedientes junto al muro noroeste
+	_add_model_2d(b_root, "props/Cabinet.gltf", Vector2(856.0, 107.0), 2.0, Vector2(14.0, 8.0), 13.5)
+	_add_model_2d(b_root, "props/Shelf_Simple.gltf", Vector2(876.0, 106.5), 2.0, Vector2(16.0, 6.0), 16.5)
+	# Tablón policial de «SE BUSCA» y pistas en el muro oeste (Vector2(848, 126))
+	_add_box_2d(b_root, Vector2(847.8, 126.0), Vector2(1.4, 22.0), 11.5, 11.0, m_dark_wood)
+	_add_box_2d(b_root, Vector2(848.4, 126.0), Vector2(1.0, 19.5), 12.3, 9.4, m_cork)
+	for py_off in [-5.5, 0.0, 5.5]:
+		_add_box_2d(b_root, Vector2(848.8, 126.0 + py_off), Vector2(0.6, 4.2), 14.2, 5.4, m_paper)
+
+	# 5. Despacho del Comisario Vane y Terminal Policial (Este, x = 944..982, y = 104..144)
+	var sh_desk := VillageCulture.POLICE_TERMINAL_POS # Vector2(960, 128)
+	if _add_model_2d(b_root, "props/Table_Large.gltf", sh_desk, 2.0, Vector2(20.0, 11.5), 7.8) == null:
+		_add_box_2d(b_root, sh_desk, Vector2(20.0, 11.5), 2.0, 7.8, m_dark_wood)
+	var sh_chair := sh_desk + Vector2(0.0, -11.5)
+	_add_model_2d(b_root, "props/Chair_1.gltf", sh_chair, 2.0, Vector2(6.0, 6.0), 8.5, _chair_rot_y_towards(sh_chair, sh_desk))
+	_add_green_crt_terminal_3d(b_root, sh_desk + Vector2(-2.5, 0.0), 9.8, true)
+	_add_model_2d(b_root, "props/Book_Stack_2.gltf", sh_desk + Vector2(5.8, 1.0), 9.8, Vector2(4.5, 4.5), 3.8)
+	# Armero reglamentario adosado al muro noreste (lejos del paso central)
+	_add_model_2d(b_root, "props/WeaponStand.gltf", Vector2(960.0, 106.5), 2.0, Vector2(14.0, 6.5), 11.5)
+
+	# 6. Cuarto de Guardia y Archivo de Pruebas (Sureste, x = 918..982, y = 155..192)
+	_build_bed_3d(b_root, Vector2(968.0, 178.0), m_dark_wood, m_guard_blanket, m_pillow)
+	_add_model_2d(b_root, "props/Nightstand_Shelf.gltf", Vector2(952.0, 185.0), 2.0, Vector2(7.0, 6.0), 7.5, 180.0)
+	_add_model_2d(b_root, "props/Bookcase_2.gltf", Vector2(936.0, 189.0), 2.0, Vector2(18.0, 7.0), 16.5, 180.0)
+	_add_model_2d(b_root, "props/Crate_Wooden.gltf", Vector2(974.0, 160.0), 2.0, Vector2(8.5, 8.5), 7.5)
+
+	# 7. Iluminación interior y faroles de fachada
+	for lt_pos in [Vector2(882.0, 124.0), Vector2(952.0, 124.0)]:
+		_add_model_2d(b_root, "props/Chandelier.gltf", lt_pos, ih - 6.5, Vector2(10.0, 10.0), 6.0)
+		_restaurant_light(b_root, lt_pos, ih - 5.0, Color(0.95, 0.88, 0.72), 1.05, 2.5, false)
+	_restaurant_light(b_root, Vector2(882.0, 172.0), ih - 4.5, Color(0.86, 0.72, 0.48), 0.72, 1.9, false) # Luz tenue del calabozo
+	_restaurant_light(b_root, Vector2(954.0, 174.0), ih - 4.5, Color(0.96, 0.84, 0.62), 0.85, 2.1, false) # Luz del cuarto de guardia
+	_add_model_2d(b_root, "props/Lantern_Wall.gltf", Vector2(890.0, 97.5), wall_h * 0.58, Vector2(4.0, 4.0), 6.0)
+	_add_model_2d(b_root, "props/Lantern_Wall.gltf", Vector2(940.0, 97.5), wall_h * 0.58, Vector2(4.0, 4.0), 6.0)
+
 

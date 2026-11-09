@@ -568,7 +568,7 @@ static func terminal_state(vm) -> Dictionary:
 const TINKER_LOT: String = "e5"
 const ARMORY_RACK_POS: Vector2 = Vector2(369.0, -24.0) # Expositor de armas y cajas de munición dentro de la Herrería y Armería 'Yunque Gris'
 const TINKER_TERMINAL_POS: Vector2 = Vector2(1188.0, 122.0) # Dentro del Taller de Reparaciones (e5), sobre una mesa en el rincón noroeste
-const POLICE_TERMINAL_POS: Vector2 = Vector2(933.0, 130.0) # Dentro de la Comisaría (building_police), sobre el escritorio del alguacil
+const POLICE_TERMINAL_POS: Vector2 = Vector2(960.0, 128.0) # Dentro de la Comisaría (building_police), sobre el escritorio del alguacil en el ala este
 const TOWN_HALL_TERMINAL_POS: Vector2 = Vector2(718.0, -442.0) # Dentro del Ayuntamiento (building_town_hall), sobre la mesa lateral de consola
 const TINKER_GRID_PANEL_POS: Vector2 = Vector2(1270.0, 90.0) # En la pared exterior norte del Taller de Reparaciones (e5), a la derecha de la puerta
 const TINKER_GENERATOR_POS: Vector2 = Vector2(1316.0, 126.0) # Generador diésel junto al muro exterior este del Taller de Reparaciones (e5)
