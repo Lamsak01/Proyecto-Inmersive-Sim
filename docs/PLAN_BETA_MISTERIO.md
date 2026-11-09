@@ -117,6 +117,14 @@ susurró el plan. **Pistas en el molino:** reja con **marcas de haber intentado 
 familiar** enganchado. **El familiar tiene barro rojo en las botas** (estuvo en el molino): le hace aún más sospechoso.
 *Pendiente para el juego:* el molino necesita **sótano con reja al canal de la rueda**; la denuncia archivada en la comisaría.
 
+**La víctima (decidido por el usuario, 2026-11-09):** el papel lo hace una vecina al azar, con tres rasgos fijos:
+(1) **alguien sin peso en el pueblo** (criada, lavandera, jornalera o viuda pobre): por eso la guardia archivó la
+denuncia; si la lista de desaparecidos del molino es de gente así, el jugador ve un **patrón** sin que se explique;
+(2) **un hueco visible en su vida**: cama sin deshacer, una tarea a medias (ropa tendida que nadie recoge) y un vecino
+que pregunta por ella; (3) **su zapato izquierdo** (el que falta en el cuerpo) **aparece en el puente viejo**, donde la
+secuestraron: la pista lleva al lugar del secuestro. **Por qué el culto la eligió: abierto a propósito** (lore del
+usuario); se sabrá después de la demo. No inventarlo.
+
 **Nombres:** la hierba es la **belladama gris** (elegido por el usuario, 2026-11-08: recuerda a la belladona y el «dama» apunta a los ricos). La poción es el **sueño de cera** (elegido por el usuario, 2026-11-08: deja el cuerpo quieto y pálido como de cera).
 
 ## 5b. Acusación y final de la demo (decidido por el usuario, 2026-11-08)
