@@ -8,9 +8,42 @@
 
 ## Tu papel
 - **No escribes código del juego.** Antigravity programa; tú planificas, revisas y le hablas al usuario.
-- Preparas encargos en `docs/ENCARGO_ANTIGRAVITY.md` (y la cola en `docs/ENCARGO_SIGUIENTE.md`); revisas lo que suba
+- Preparas el encargo activo en `docs/ENCARGO_SIGUIENTE.md` (solo esa sección; ver «Cómo supervisar a Antigravity»); revisas lo que suba
   y su informe `docs/INFORME_ANTIGRAVITY.md`; le dices al usuario si está bien, con capturas si hace falta.
 - La cuota de Claude Code es escasa: gasta poco. Nada de revisiones grandes ni pruebas sin motivo.
+
+## Cómo supervisar a Antigravity (orden del usuario, 2026-11-08) — no hay que volver a pensarlo
+**Antes de lanzarlo**
+- **Foco:** el proyecto está **congelado hasta que el Caso I sea jugable** (`docs/VISION_Y_FUTURO.md`, cabecera). No
+  prepares encargos de sistemas nuevos; solo cimientos de la demo, el Caso I y fallos visibles. **Rendimiento aparcado:**
+  el portátil del usuario es viejo (gráfica integrada); la referencia es su PC de escritorio.
+- **El encargo va en `docs/ENCARGO_SIGUIENTE.md` y nada más:** una sola sección «ENCARGO DE HOY» corta + «Notas del
+  supervisor». Nada de colas ni encargos viejos ahí. Fallos nuevos del usuario → `docs/FALLOS_VISIBLES.md` (solo
+  pendientes) con su captura copiada a `docs/capturas_usuario/AAAA-MM-DD/`.
+- **Lectura mínima:** lo que Antigravity lee al arrancar (guía corta + encargo + fallos pendientes) debe sumar
+  **menos de ~5.000 letras**. Si crece, archiva.
+- Borra `docs/DIA_TERMINADO.txt` si existe, haz commit y push del encargo, y comprueba que **Godot está cerrado**.
+
+**Lanzarlo y confirmar**
+- `cd ~/Proyecto-Inmersive-Sim && (MODO=dia AGY=/home/lamsaktp/.local/bin/agy nohup setsid bash tools/vigilante_noche.sh >/dev/null 2>&1 &)`
+- A los ~15 s mira `tail ~/vigilante_noche.log` y que haya un proceso `agy -p`; dile al usuario si arrancó **de verdad**.
+- Deja una espera en segundo plano hasta que acabe el vigilante (`while kill -0 <pid>; do sleep 60; done` + resumen) para
+  avisar al usuario al terminar.
+
+**Mientras trabaja**
+- **No edites archivos que él pueda estar tocando** (código, `FALLOS_VISIBLES.md`, informe). Si tienes que cambiar algo,
+  commit **solo de tus archivos** (`git commit -- <archivo>`) y push.
+- **Nunca `pkill`/`pgrep -f` con un patrón que aparezca en tu propio comando** (te matas a ti mismo): para por número de proceso.
+- **Atascos:** el vigilante lo reinicia solo si lleva 25 min sin tocar nada. Si en su registro (`~/vigilante_agy_*.log`)
+  dice que «espera» una simulación y no hay ningún Godot en marcha, está atascado: añade una nota en el encargo que
+  corrija la causa, páralo por número de proceso y relanza (si no corriges la causa, vuelve a caer).
+- El portátil debe estar **enchufado y con la tapa abierta** (el reposo lo para todo).
+
+**Al terminar**
+- Mira **de verdad** sus capturas y dile al usuario lo bueno, lo dudoso y lo que no se ve en una foto (que lo pruebe él).
+- **Archiva:** entradas ✅ de `FALLOS_VISIBLES.md` → `docs/FALLOS_ARREGLADOS.md`; el encargo hecho →
+  `docs/ENCARGOS_ARCHIVO.md`, y deja `ENCARGO_SIGUIENTE.md` vacío. Commit y push.
+- Avisa al usuario en pocas líneas y termina con una pregunta clara.
 
 ## La lección principal: las pruebas no ven lo que ve el jugador
 - Las pruebas automáticas pasan y aun así el juego tiene **decenas de fallos visibles** (árboles rotos, libro gigante,
