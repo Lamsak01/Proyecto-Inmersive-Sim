@@ -1251,13 +1251,18 @@ func _update_roof_cutaways_and_lighting() -> void:
 		_sky_mat.set_shader_parameter("cloud_coverage", cloud_cov)
 		_sky_mat.set_shader_parameter("star_visibility", star_vis)
 
+	var pl_in_lib_secret: bool = first_person_active and is_finite(pl_pos.x) and Rect2(Vector2(932.0, -468.0), Vector2(44.0, 48.0)).has_point(pl_pos)
 	if is_instance_valid(world_env) and world_env.environment != null:
 		var env: Environment = world_env.environment
 		if first_person_active:
 			env.background_mode = Environment.BG_SKY if _sky_res != null else Environment.BG_COLOR
 			env.background_color = horizon_col
-			env.ambient_light_color = Color(0.22, 0.26, 0.38) if is_night else (Color(0.76, 0.64, 0.54) if is_dusk else Color(0.72, 0.74, 0.76))
-			env.ambient_light_energy = 0.20 if is_night else (0.45 if is_dusk else 0.52)
+			if pl_in_lib_secret:
+				env.ambient_light_color = Color(0.10, 0.08, 0.06)
+				env.ambient_light_energy = 0.03
+			else:
+				env.ambient_light_color = Color(0.22, 0.26, 0.38) if is_night else (Color(0.76, 0.64, 0.54) if is_dusk else Color(0.72, 0.74, 0.76))
+				env.ambient_light_energy = 0.20 if is_night else (0.45 if is_dusk else 0.52)
 			env.fog_enabled = not pl_indoors
 			env.fog_light_color = Color(0.05, 0.07, 0.11) if is_night else horizon_col.lerp(Color(0.46, 0.48, 0.50), 0.35)
 			env.fog_light_energy = 0.72 if not is_night else 0.26
@@ -1278,7 +1283,7 @@ func _update_roof_cutaways_and_lighting() -> void:
 	if is_instance_valid(fp_lantern_light):
 		if first_person_active:
 			var carrying_lantern: bool = is_instance_valid(pl) and pl.get("is_carrying_lantern") == true
-			fp_lantern_light.visible = is_night or is_dusk or carrying_lantern
+			fp_lantern_light.visible = carrying_lantern if pl_in_lib_secret else (is_night or is_dusk or carrying_lantern)
 			fp_lantern_light.light_energy = 1.25 if carrying_lantern else (0.60 if is_night else 0.30)
 			fp_lantern_light.omni_range = 5.6 if carrying_lantern else 3.4
 		else:
@@ -1288,7 +1293,10 @@ func _update_roof_cutaways_and_lighting() -> void:
 		var yaw_deg: float = lerpf(-115.0, -155.0, clampf((hour_f - 6.0) / 13.0, 0.0, 1.0))
 		var pitch_deg: float = -38.0 - 18.0 * sin(sun_ang) if not is_night else -48.0
 		sun_light.rotation_degrees = Vector3(pitch_deg, yaw_deg, 0.0)
-		if is_night:
+		if pl_in_lib_secret:
+			sun_light.light_energy = 0.015
+			sun_light.light_color = Color(0.30, 0.25, 0.20)
+		elif is_night:
 			sun_light.light_energy = 0.22 # noches más oscuras para que destaquen los charcos de luz de farolas y focos
 			sun_light.light_color = Color(0.46, 0.54, 0.76)
 		elif is_dusk or is_dawn_mist:

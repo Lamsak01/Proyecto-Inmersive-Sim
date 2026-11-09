@@ -1765,34 +1765,48 @@ func _build_library_3d(b_root: Node3D, rect: Rect2, door_south: bool, wall_h: fl
 	# 3b. PUNTO 5 (CASO I): SALA OCULTA DE LA BIBLIOTECA (Cuadrante Noreste, `c + Vector2(24..62, -46..-4)`)
 	# ==========================================================================
 	var m_occult_floor := _mat("lib_secret_stone_floor", Color(0.05, 0.05, 0.05), 0.98, 0.02, Color.BLACK, 0.0, "town_textures/floor_stone_grate.png")
+	m_occult_floor.albedo_color = Color(0.08, 0.07, 0.07)
 	var m_secret_wall_stone := _mat("lib_secret_wall_stone", Color(0.07, 0.07, 0.07), 0.98, 0.02, Color.BLACK, 0.0, "town_textures/wall_stone.png", "town_textures/wall_stone_n.png", 0.78)
+	m_secret_wall_stone.albedo_color = Color(0.11, 0.10, 0.10)
 	var m_old_shelf_wood := _mat("lib_secret_old_wood", Color(0.07, 0.05, 0.04), 0.96, 0.02, Color.BLACK, 0.0, "town_textures/rf_planks.png", "town_textures/rf_planks_n.png", 0.85)
+	m_old_shelf_wood.albedo_color = Color(0.18, 0.13, 0.09)
 	var m_old_shelf_dark := _mat("lib_secret_old_wood_dark", Color(0.04, 0.03, 0.02), 0.98, 0.02, Color.BLACK, 0.0, "town_textures/rf_planks.png", "town_textures/rf_planks_n.png", 0.88)
+	m_old_shelf_dark.albedo_color = Color(0.10, 0.07, 0.05)
 	var m_drag_scuff := _mat("lib_floor_drag_scuff", Color(0.14, 0.10, 0.06), 0.96, 0.0)
 	var m_draft_wisp := _mat("lib_draft_air_wisp", Color(0.84, 0.88, 0.94, 0.34), 0.90, 0.0, Color(0.62, 0.68, 0.78), 0.35)
 	(m_draft_wisp as StandardMaterial3D).cull_mode = BaseMaterial3D.CULL_DISABLED
 	var m_dust_mote := _mat("lib_draft_dust_mote", Color(0.86, 0.80, 0.66, 0.72), 0.88, 0.0, Color(0.55, 0.48, 0.35), 0.35)
 	var m_secret_dust := _mat("lib_secret_floor_dust", Color(0.18, 0.16, 0.14, 0.76), 0.98, 0.0, Color.BLACK, 0.0, "town_textures/floor_ground_dirt.png", "", 0.85)
-	var m_cobweb_secret := _mat("lib_secret_cobweb", Color(0.58, 0.56, 0.52, 0.46), 0.95, 0.0)
+	m_secret_dust.albedo_color = Color(0.22, 0.19, 0.16, 0.76)
+	var m_cobweb_secret := _mat("lib_secret_cobweb", Color(0.42, 0.40, 0.36, 0.38), 0.95, 0.0)
 	(m_cobweb_secret as StandardMaterial3D).cull_mode = BaseMaterial3D.CULL_DISABLED
-	var m_cobweb_strand := _mat("lib_secret_cobweb_strand", Color(0.66, 0.64, 0.60, 0.62), 0.94, 0.0)
+	var m_cobweb_strand := _mat("lib_secret_cobweb_strand", Color(0.48, 0.46, 0.42, 0.50), 0.94, 0.0)
 	# Libros gastados de tonos apagados (pardo, negro, granate)
 	var m_tome_brown_1 := _mat("lib_tome_brown_1", Color(0.11, 0.08, 0.05), 0.95, 0.02, Color.BLACK, 0.0, "town_textures/floor_ground_dirt.png", "", 0.85)
+	m_tome_brown_1.albedo_color = Color(0.22, 0.15, 0.10)
 	var m_tome_brown_2 := _mat("lib_tome_brown_2", Color(0.08, 0.06, 0.04), 0.96, 0.02, Color.BLACK, 0.0, "town_textures/floor_ground_dirt.png", "", 0.85)
+	m_tome_brown_2.albedo_color = Color(0.16, 0.11, 0.07)
 	var m_tome_black_1 := _mat("lib_tome_black_1", Color(0.04, 0.04, 0.04), 0.95, 0.03, Color.BLACK, 0.0, "town_textures/floor_ground_dirt.png", "", 0.85)
+	m_tome_black_1.albedo_color = Color(0.09, 0.09, 0.10)
 	var m_tome_black_2 := _mat("lib_tome_black_2", Color(0.07, 0.07, 0.07), 0.96, 0.02, Color.BLACK, 0.0, "town_textures/floor_ground_dirt.png", "", 0.85)
+	m_tome_black_2.albedo_color = Color(0.13, 0.12, 0.12)
 	var m_tome_maroon_1 := _mat("lib_tome_maroon_1", Color(0.13, 0.04, 0.05), 0.94, 0.02, Color.BLACK, 0.0, "town_textures/floor_ground_dirt.png", "", 0.85)
+	m_tome_maroon_1.albedo_color = Color(0.26, 0.08, 0.09)
 	var m_tome_maroon_2 := _mat("lib_tome_maroon_2", Color(0.09, 0.03, 0.04), 0.95, 0.02, Color.BLACK, 0.0, "town_textures/floor_ground_dirt.png", "", 0.85)
+	m_tome_maroon_2.albedo_color = Color(0.19, 0.06, 0.07)
 	var m_book_lever := _mat("lib_book_lever_crimson", Color(0.34, 0.08, 0.08), 0.85, 0.06, Color(0.08, 0.01, 0.01), 0.12)
 	var m_page_paper := _mat("lib_secret_paper", Color(0.56, 0.50, 0.38), 0.94, 0.0, Color.BLACK, 0.0, "town_textures/floor_ground_sand.png", "", 0.85)
+	m_page_paper.albedo_color = Color(0.68, 0.60, 0.46)
 	var m_bundle_paper := _mat("lib_bundle_paper", Color(0.32, 0.26, 0.19), 0.96, 0.0, Color.BLACK, 0.0, "town_textures/floor_ground_sand.png", "", 0.85)
+	m_bundle_paper.albedo_color = Color(0.38, 0.31, 0.22)
 	var m_bundle_twine := _mat("lib_bundle_twine", Color(0.16, 0.12, 0.08), 0.94, 0.0)
 	var m_ink_sig := _mat("lib_secret_ink", Color(0.06, 0.05, 0.05), 0.94, 0.0)
 	var m_torn_stub := _mat("lib_torn_page_stub", Color(0.62, 0.56, 0.44), 0.95, 0.0)
 	var m_carved_tablet := _mat("lib_carved_stone_tablet", Color(0.09, 0.08, 0.08), 0.96, 0.02, Color.BLACK, 0.0, "town_textures/wall_stone.png", "town_textures/wall_stone_n.png", 0.82)
+	m_carved_tablet.albedo_color = Color(0.14, 0.13, 0.12)
 	var m_carved_groove := _mat("lib_carved_stone_groove", Color(0.02, 0.02, 0.02), 0.98, 0.0)
 	var m_candle_wax := _mat("lib_secret_candle_wax", Color(0.82, 0.74, 0.56), 0.72, 0.02)
-	var m_candle_flame := _mat("lib_secret_candle_flame", Color(1.0, 0.78, 0.32), 0.20, 0.0, Color(1.0, 0.64, 0.18), 2.8)
+	var m_candle_flame := _mat("lib_secret_candle_flame", Color(1.0, 0.78, 0.32), 0.20, 0.0, Color(1.0, 0.64, 0.18), 3.2)
 
 	# Pavimento de losa antigua, revestimiento interior de piedra oscura en los muros de la Sala Oculta y techo bajo de madera vieja
 	_add_box_2d(b_root, c + Vector2(43.0, 25.0 * m_dir), Vector2(36.0, 40.0), 2.48, 0.18, m_occult_floor)
@@ -1996,10 +2010,10 @@ func _build_library_3d(b_root: Node3D, rect: Rect2, door_south: bool, wall_h: fl
 	_add_box_2d(b_root, candle_p, Vector2(0.34, 0.34), 12.88, 0.68, m_candle_flame, 15.0)
 	var candle_lt := OmniLight3D.new()
 	candle_lt.name = "LibrarySecretSingleCandleLight"
-	candle_lt.light_color = Color(1.0, 0.72, 0.36)
-	candle_lt.light_energy = 0.38
-	candle_lt.omni_range = 1.05
-	candle_lt.omni_attenuation = 1.65
+	candle_lt.light_color = Color(1.0, 0.66, 0.28)
+	candle_lt.light_energy = 1.65
+	candle_lt.omni_range = 1.25
+	candle_lt.omni_attenuation = 1.85
 	candle_lt.shadow_enabled = false
 	candle_lt.position = to_3d(candle_p, 13.5)
 	b_root.add_child(candle_lt)
