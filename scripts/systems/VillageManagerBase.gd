@@ -41,6 +41,7 @@ const VillageNightJobs = preload("res://scripts/systems/VillageNightJobs.gd")
 const VillageHousing = preload("res://scripts/systems/VillageHousing.gd")
 const VillageUnderworld = preload("res://scripts/systems/VillageUnderworld.gd")
 const VillageFame = preload("res://scripts/systems/VillageFame.gd")
+const VillageCase1 = preload("res://scripts/systems/VillageCase1.gd") # Caso I en el mundo (papeles, diálogos, gabinete, secuestradores)
 const WorldStage3DScript = preload("res://scripts/visuals/WorldStage3D.gd")
 
 ## Gestor Integral de Urbanismo Sólido, Hospital/Morgue Forense, Comisaría/Cárcel, Testigos,

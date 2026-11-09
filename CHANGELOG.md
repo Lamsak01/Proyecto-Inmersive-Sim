@@ -3,6 +3,13 @@
 Cambios del juego, del más nuevo al más antiguo. Añade una entrada al cerrar cada bloque, en lenguaje sencillo.
 El detalle técnico está en `docs/HANDOFF.md` (sección 7) y el historial completo en `git log`. Lo anterior a B0.1 está en `AUDIT_LOG.md` y `SESSION_CONTEXT_LOG.md`.
 
+## 2026-11-09 — Caso I: piezas que faltaban para cerrarlo (Claude Code, sin la acusación)
+- **El boticario, la criada y el familiar hablan del caso:** cuando ya has hecho la autopsia, vaciado el bolsillo del cuerpo o encontrado la hoja arrancada, aparece una opción nueva al hablarles; lo que cuentan se apunta en el cuaderno.
+- **Gabinete forzado en el estudio de la mansión** (cerradura doblada, virutas y el hueco del frasco en el terciopelo) y **hoja arrancada con dosis corregidas** a los pies de la cama del familiar.
+- **Reparto del caso entre vecinos reales** al empezar (boticario, criada de la casa del señor, familiar y el vecino de la lana azul, con manga rota y arañazos). Se guarda en la partida.
+- **Dos secuestradores forasteros escondidos en el molino:** atacan si te acercas sin sigilo, huyen malheridos y se marchan si tardas más de tres días.
+- El vigilante de Antigravity se para solo si a Antigravity se le acaba el cupo.
+
 ## 2026-11-07 — Corrección de los 11 fallos visibles detectados jugando (oficios, callejón nocturno, club de peleas, colisión de muebles, cementerio 2D/3D, campamento 3D, césped, taberna, capilla y herrería)
 - **Cada vecino trabaja en su edificio real:** el cantero pica piedra en la Cantera del Noroeste (ya no delante de la herrería), el granjero y el ganadero trabajan en la Granja y el Rancho del Sur (ya no en la plaza), el leñador, el arreglador y la posadera trabajan en la Serrería, el Taller de Reparaciones y la Posada del Camino (ya no dentro del Parque del Roble), y el cocinero guisa dentro de la cocina de «Il Corvo» (ya no sobre el muelle del lago).
 - **Callejón entre la taberna y la herrería despejado de noche:** corregidas las rutas alrededor de la taberna de 2 pisos para que ningún vecino quede atascado bajo la lluvia de madrugada y todos lleguen a dormir a su cama.

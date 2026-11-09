@@ -23,3 +23,7 @@
 - ❌ **Gabinete con cerradura forzada y criada en la Mansión del Señor del Valle (`Vector2(1315, -412)`):** se llega a pie a la mansión, pero no existe en el mundo el prop interactuable `[E]` del gabinete ni el diálogo `noble_maid_recognize_vial` conectado a la criada.
 - ❌ **Casa de la víctima, página arrancada en casa del familiar y los 3 secuestradores:** `DetectiveCaseData.assign_case_roles()` no se invoca en el mundo, por lo que no se asignan la casa de la víctima ni la del familiar ni los 3 secuestradores (`kidnapper_captured_interrogation`, `relative_confession`).
 - ❌ **Acusación final del Caso I (`Tablero del caso` / Comisaría):** el `Tablero del caso` muestra los 4 sospechosos (`«V.»`, `El boticario`, `El molinero`, `Muchacho de capa parda`) y permite unir pistas con hilos rojos, pero carece de botón/acción para formalizar la acusación, y el Alguacil/Inquisidor en la Comisaría solo procesa crímenes sistémicos del jugador.
+
+## Actualización 2026-11-09 (Claude Code) — partida de prueba: 24 ✅ / 1 ❌
+- ✅ Papeles del caso repartidos, boticario (Bram), criada (Lina), gabinete forzado, hoja arrancada (comprobada colocando al jugador junto a ella: su casa depende del reparto), confesión del familiar, vecino de la lana azul y 2 secuestradores en el molino.
+- ❌ Solo falta la **acusación** (espera a que el autor cierre los finales).

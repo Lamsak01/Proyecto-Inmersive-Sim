@@ -533,6 +533,11 @@ func interact(player: Node2D) -> void:
 		open_business_management_ui(int(best_stall.get("role", -1)))
 		return
 
+	# 0.9. Caso I: gabinete forzado de la mansión y hoja arrancada en casa del familiar (antes que los cofres)
+	var c1_sel: Node = player.get("interaction_selector") if player != null else null
+	var c1_cand: Dictionary = c1_sel.call("selected") if (c1_sel != null and c1_sel.has_method("selected")) else {}
+	if VillageCase1.try_interact(self, player, pos, str(c1_cand.get("station", ""))):
+		return
 	# 1. ¿Está cerca de un Cofre Doméstico (`house_chests`)?
 	for ch in house_chests:
 		var c_pos: Vector2 = ch["pos"]
@@ -781,6 +786,7 @@ func _on_hour_passed(_day: int, new_hour: int = 8) -> void:
 		VillageCulture.on_hour(self, actual_hour) # V5e: mercado de los miércoles
 		VillageMigration.on_hour(self, actual_hour) # V3: los que se marchan siguen su camino
 	VillageNobility.on_hour(self, actual_hour) # V6: los nobles aparecen en la primera hora
+	VillageCase1.sync(self) # Caso I: papeles, gabinete, hoja arrancada y secuestradores del molino
 	if not demo_active:
 		VillageFamily.on_hour(self, actual_hour) # V9: lo que se aprende en la escuela
 	VillageConfession.on_hour(self, actual_hour) # P4: confesiones entre semana en la capilla
@@ -1203,6 +1209,7 @@ func load_economy_save_dict(data: Dictionary) -> void:
 	needs_state = (data["needs_state"] as Dictionary).duplicate(true) if typeof(data.get("needs_state")) == TYPE_DICTIONARY else {}
 	VillageNeeds.drunk_now = (VillageNeeds.state(self)["drunk"] as Dictionary).duplicate()
 	town_state = (data["town_state"] as Dictionary).duplicate(true) if typeof(data.get("town_state")) == TYPE_DICTIONARY else {}
+	(func(): VillageCase1.sync(self)).call_deferred() # Caso I: tras cargar, recoloca hoja y secuestradores según lo guardado
 	sect_state = (data["sect_state"] as Dictionary).duplicate(true) if typeof(data.get("sect_state")) == TYPE_DICTIONARY else {}
 	lots_state = (data["lots_state"] as Dictionary).duplicate(true) if typeof(data.get("lots_state")) == TYPE_DICTIONARY else {}
 	VillageLots.after_load(self)

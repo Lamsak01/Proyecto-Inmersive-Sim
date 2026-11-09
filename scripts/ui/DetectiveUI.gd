@@ -2097,6 +2097,20 @@ func _has_note_with_key(src_key: String) -> bool:
 	return false
 
 
+## Caso I (Claude Code, 2026-11-09): ¿ha hecho ya el jugador este paso? Vale una nota del cuaderno con esa clave, una
+## acción del examen del cuerpo («zona:acción») o una prueba de la morgue terminada («m_<prueba>»).
+func has_case_progress(key: String) -> bool:
+	if key == "":
+		return true
+	if _has_note_with_key(key) or done_actions.get(key) == true:
+		return true
+	if key.begins_with("m_"):
+		var t = morgue_tests_state.get(key.substr(2), {})
+		if t is Dictionary and str((t as Dictionary).get("state", "")) == "done":
+			return true
+	return false
+
+
 func add_notebook_note(title: String, text: String, tag: String = "", source_key: String = "") -> void:
 	if source_key != "" and _has_note_with_key(source_key):
 		return

@@ -114,6 +114,24 @@ func _aim_and_press_e(pl: CharacterBody2D, stage: Node, look_target: Vector2, pi
 		await process_frame
 	return {"ok": used_ok, "label": chosen_lbl}
 
+## Caso I: ¿ofrece el vecino con ese papel la opción del caso en su diálogo? Si la ofrece, la elige (anota en el cuaderno).
+func _case_dialogue(_c1, _vm, npc_name: String, action_id: String) -> Dictionary:
+	var out := {"npc": npc_name, "offered": false}
+	if npc_name == "":
+		return out
+	var npc = null
+	for n in get_nodes_in_group("village_npcs"):
+		if is_instance_valid(n) and str(n.get("npc_name")) == npc_name:
+			npc = n
+			break
+	if npc == null:
+		return out
+	var diag: Dictionary = npc.call("_inject_character_lore_into_dialogue", npc.call("_build_dialogue"))
+	out["offered"] = action_id in str(diag)
+	if bool(out["offered"]):
+		npc.call("on_dialogue_action", action_id)
+	return out
+
 func _save_shot(id_name: String) -> void:
 	if DisplayServer.get_name() == "headless":
 		return
@@ -438,7 +456,15 @@ func _initialize() -> void:
 	_record("D1_morgue_autopsia_y_testigos", walked_hosp_door and walked_morgue_in and bool(e_morgue["ok"]) and morgue_opened and morgue_notes_ok,
 		"walk=%s prompt='%s' autopsia_4_pruebas_y_2_testigos=%s" % [str(walked_morgue_in), str(e_morgue["label"]), str(morgue_notes_ok)])
 
-	# D2: Caminar a la Botica (325, 132; puerta norte en 325, 108) para consultar al boticario sobre el frasco de estómago (alchemist_analyze_flask)
+	# D2–D4 (Claude Code, 2026-11-09): papeles del caso, diálogos, gabinete, hoja arrancada y secuestradores
+	var C1 = load("res://scripts/systems/VillageCase1.gd")
+	var roles_before: bool = not (C1.roles(vm) as Dictionary).is_empty()
+	C1.sync(vm) # lo mismo que hace cada hora del reloj
+	var roles: Dictionary = C1.roles(vm)
+	_record("D1b_papeles_del_caso_repartidos", roles.has("alchemist") and roles.has("apparent_culprit_relative") and roles.has("kidnapper_blue_wool"),
+		"ya_por_la_hora=%s papeles=%s" % [str(roles_before), str(roles)])
+
+	# D2: Botica (325, 132; puerta norte en 325, 108): el boticario analiza el líquido del estómago
 	var path_to_apothecary: Array[Vector2] = [
 		Vector2(745.0, 122.0),
 		Vector2(745.0, 84.0),
@@ -452,16 +478,13 @@ func _initialize() -> void:
 	if not d_apoth.is_empty():
 		vm.call("_set_door_state", d_apoth, true, false, true)
 	var walked_apoth_in: bool = await _walk_to_waypoints(pl, stage, [Vector2(325.0, 130.0)], 4.0)
-	if stage != null:
-		stage.set("fp_yaw", Vector2(0.15, 1.0).angle())
-		stage.set("fp_pitch", -0.10)
-		stage.call("_update_fp_camera_transform")
-	var has_alch_dialogue: bool = _has_note_with_source(det_ui, "alchemist_analyze_flask")
-	await _save_shot("01_fallo_botica_sin_dialogo_caso1")
-	_record("D2_botica_alquimista_belladama", walked_apoth and walked_apoth_in and has_alch_dialogue,
-		"walk=%s dialogo_caso1_conectado=%s (Definido en DetectiveCaseData.custom_dialogues pero no conectado a NPCDialogue)" % [str(walked_apoth_in), str(has_alch_dialogue)])
+	var alch_ok: Dictionary = _case_dialogue(C1, vm, str(roles.get("alchemist", "")), "case1:alchemist_analyze_flask")
+	var note_alch: bool = _has_note_with_source(det_ui, "clue_case1_alchemist_analyze_flask")
+	await _save_shot("01_botica_dialogo_caso1_v2")
+	_record("D2_botica_alquimista_belladama", walked_apoth and walked_apoth_in and bool(alch_ok["offered"]) and note_alch,
+		"walk=%s npc=%s opcion_en_dialogo=%s anotada=%s" % [str(walked_apoth_in), str(alch_ok["npc"]), str(alch_ok["offered"]), str(note_alch)])
 
-	# D3: Caminar hacia la Mansión del Señor del Valle (solar f1: 1315, -440; puerta sur en 1315, -364) para comprobar criada (noble_maid_recognize_vial) y gabinete forzado
+	# D3: Mansión del Señor del Valle (puerta sur 1315, -364): gabinete forzado y criada
 	var path_to_mansion: Array[Vector2] = [
 		Vector2(325.0, 92.0),
 		Vector2(325.0, 50.0),
@@ -474,34 +497,51 @@ func _initialize() -> void:
 	var d_man: Dictionary = vm.call("_find_nearest_door", Vector2(1315.0, -364.0), 25.0)
 	if not d_man.is_empty():
 		vm.call("_set_door_state", d_man, true, false, true)
-	var walked_mansion_in: bool = await _walk_to_waypoints(pl, stage, [Vector2(1315.0, -408.0)], 4.0)
-	if stage != null:
-		stage.set("fp_yaw", Vector2(0.0, -1.0).angle())
-		stage.set("fp_pitch", -0.10)
-		stage.call("_update_fp_camera_transform")
-	var has_cabinet_or_maid: bool = _has_note_with_source(det_ui, "noble_maid_recognize_vial") or _has_note_with_source(det_ui, "clue_noble_cabinet")
-	await _save_shot("02_fallo_mansion_sin_gabinete_ni_criada")
-	_record("D3_mansion_criada_y_gabinete", walked_mansion and walked_mansion_in and has_cabinet_or_maid,
-		"walk=%s gabinete_o_criada_interactuable=%s (Falta prop [E] del gabinete con cerradura forzada y diálogo de la criada)" % [str(walked_mansion_in), str(has_cabinet_or_maid)])
+	var cab: Vector2 = C1.cabinet_pos()
+	var walked_cab: bool = await _walk_to_waypoints(pl, stage, [Vector2(1315.0, -408.0), cab + Vector2(0.0, 26.0)], 5.0)
+	var e_cab: Dictionary = await _aim_and_press_e(pl, stage, cab, -0.20, "gabinete")
+	var note_cab: bool = _has_note_with_source(det_ui, "clue_case1_forced_cabinet")
+	await _save_shot("02_mansion_gabinete_forzado_v2")
+	_record("D3_mansion_gabinete_forzado", walked_mansion and walked_cab and bool(e_cab["ok"]) and note_cab,
+		"walk=%s prompt='%s' anotada=%s" % [str(walked_cab), str(e_cab["label"]), str(note_cab)])
+	var maid_ok: Dictionary = _case_dialogue(C1, vm, str(roles.get("noble_maid", "")), "case1:noble_maid_recognize_vial")
+	_record("D3b_criada_reconoce_frasco", bool(maid_ok["offered"]) and _has_note_with_source(det_ui, "clue_case1_noble_maid_recognize_vial"),
+		"npc=%s opcion_en_dialogo=%s (necesita haber vaciado el bolsillo del cuerpo)" % [str(maid_ok["npc"]), str(maid_ok["offered"])])
 
-	# D4: Comprobar resto de pistas en el mundo (casa de la víctima, página arrancada en casa del familiar, confesión del familiar y 3 secuestradores)
+	# D4: hoja arrancada junto a la cama del familiar (su casa varía según el reparto: se comprueba en el sitio)
+	var pp = C1.state(vm).get("page_pos", null)
+	var page_ok: bool = false
+	var page_label: String = ""
+	if pp is Array and (pp as Array).size() >= 2:
+		var page_pos := Vector2(float(pp[0]), float(pp[1]))
+		var pos_before: Vector2 = pl.global_position
+		pl.global_position = page_pos + Vector2(0.0, 18.0) # (sin ruta a pie fija: la casa depende del reparto)
+		await process_frame
+		var e_page: Dictionary = await _aim_and_press_e(pl, stage, page_pos, -0.25, "hoja")
+		page_label = str(e_page["label"])
+		page_ok = bool(e_page["ok"]) and _has_note_with_source(det_ui, "clue_case1_relative_page")
+		await _save_shot("03_casa_familiar_hoja_arrancada_v2")
+		pl.global_position = pos_before
+		await process_frame
+	_record("D4_hoja_arrancada_casa_familiar", page_ok, "pos=%s prompt='%s' (colocado junto a ella, sin caminar)" % [str(pp), page_label])
+	var rel_ok: Dictionary = _case_dialogue(C1, vm, str(roles.get("apparent_culprit_relative", "")), "case1:relative_confession")
+	_record("D4b_confesion_del_familiar", bool(rel_ok["offered"]), "npc=%s opcion_en_dialogo=%s" % [str(rel_ok["npc"]), str(rel_ok["offered"])])
+	var wool_ok: Dictionary = _case_dialogue(C1, vm, str(roles.get("kidnapper_blue_wool", "")), "case1:blue_wool")
+	_record("D4c_vecino_lana_azul", bool(wool_ok["offered"]) and _has_note_with_source(det_ui, "clue_case1_blue_wool"),
+		"npc=%s opcion_en_dialogo=%s" % [str(wool_ok["npc"]), str(wool_ok["offered"])])
+	var kds: Array = get_nodes_in_group("case1_kidnappers")
+	var near_mill: int = 0
+	for kd in kds:
+		if is_instance_valid(kd) and (kd as Node2D).global_position.distance_to(Vector2(188.0, -1060.0)) < 80.0:
+			near_mill += 1
+	_record("D4d_secuestradores_en_el_molino", near_mill == 2, "forasteros_en_el_molino=%d (el tercero es el vecino de la lana azul)" % near_mill)
 	await _walk_to_waypoints(pl, stage, [
+		Vector2(1315.0, -408.0),
 		Vector2(1315.0, -352.0),
 		Vector2(1315.0, -342.0),
 		Vector2(672.0, -342.0),
 		Vector2(672.0, -195.0),
 	], 5.0)
-	if stage != null:
-		stage.set("fp_yaw", Vector2(0.22, 1.0).angle())
-		stage.set("fp_pitch", -0.05)
-		stage.call("_update_fp_camera_transform")
-	var has_relative_and_kidnappers: bool = (
-		_has_note_with_source(det_ui, "relative_confession")
-		and _has_note_with_source(det_ui, "kidnapper_captured_interrogation")
-	)
-	await _save_shot("03_fallo_pistas_familiar_y_secuestradores")
-	_record("D4_casa_familiar_y_secuestradores", has_relative_and_kidnappers,
-		"roles_asignados_en_mundo=false (assign_case_roles no se invoca; faltan página arrancada en casa del familiar y los 3 secuestradores)")
 
 	# D5: Acusación final (Tablero del Caso en DetectiveUI y diálogo con el Alguacil en la Comisaría)
 	var path_to_accuse: Array[Vector2] = [

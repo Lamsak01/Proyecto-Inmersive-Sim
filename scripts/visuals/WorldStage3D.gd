@@ -1340,3 +1340,48 @@ func _update_roof_cutaways_and_lighting() -> void:
 			f_pool.light_color = Color(0.62, 0.96, 1.0) if grid_on else Color(1.0, 0.88, 0.56)
 			f_pool.light_energy = 2.1 if grid_on else 1.65
 
+
+
+# ==============================================================================
+# CASO I (Claude Code, 2026-11-09): gabinete forzado de la mansión y hoja arrancada junto a la cama del familiar.
+# Van en su propia raíz (hermana de los edificios) para que reconstruir los edificios no los borre.
+# ==============================================================================
+var _case1_props_root_3d: Node3D = null
+var _case1_props_key: String = ""
+
+func sync_case1_props_3d() -> void:
+	if vm == null or not is_instance_valid(buildings_root_3d) or buildings_root_3d.get_parent() == null:
+		return
+	var C1 = load("res://scripts/systems/VillageCase1.gd")
+	var cab: Vector2 = C1.cabinet_pos()
+	var pp = C1.state(vm).get("page_pos", null)
+	var page: Vector2 = Vector2(float(pp[0]), float(pp[1])) if pp is Array and (pp as Array).size() >= 2 else Vector2.INF
+	var key: String = "%s|%s" % [str(cab), str(page)]
+	if key == _case1_props_key and is_instance_valid(_case1_props_root_3d):
+		return
+	_case1_props_key = key
+	if is_instance_valid(_case1_props_root_3d):
+		_case1_props_root_3d.queue_free()
+	_case1_props_root_3d = Node3D.new()
+	_case1_props_root_3d.name = "Case1Props3D"
+	buildings_root_3d.get_parent().add_child(_case1_props_root_3d)
+	var m_walnut := _mat("case1_walnut", Color(0.30, 0.19, 0.11), 0.72, 0.05)
+	var m_brass := _mat("case1_brass", Color(0.74, 0.58, 0.26), 0.35, 0.8)
+	var m_velvet := _mat("case1_velvet", Color(0.36, 0.08, 0.10), 0.95, 0.0)
+	var m_shaving := _mat("case1_shaving", Color(0.62, 0.46, 0.28), 0.9, 0.0)
+	var m_paper := _mat("case1_old_paper", Color(0.88, 0.82, 0.66), 0.95, 0.0)
+	var m_ink := _mat("case1_ink", Color(0.12, 0.10, 0.10), 0.9, 0.0)
+	# Gabinete de nogal con la puerta entreabierta, la placa de la cerradura doblada y virutas en el suelo
+	_add_box_2d(_case1_props_root_3d, cab, Vector2(16.0, 9.0), 2.0, 18.0, m_walnut)
+	_add_box_2d(_case1_props_root_3d, cab + Vector2(0.0, 3.6), Vector2(13.0, 1.6), 11.0, 0.8, m_velvet) # estante de terciopelo
+	var door := _add_box_2d(_case1_props_root_3d, cab + Vector2(5.0, 6.2), Vector2(7.6, 0.9), 3.0, 15.0, m_walnut, 28.0)
+	door.name = "Case1CabinetDoor"
+	_add_box_2d(_case1_props_root_3d, cab + Vector2(1.4, 5.4), Vector2(1.6, 0.6), 9.0, 2.6, m_brass, -18.0) # placa doblada
+	for i in range(5):
+		_add_box_2d(_case1_props_root_3d, cab + Vector2(-3.0 + i * 1.6, 8.0 + float(i % 2) * 1.2), Vector2(0.9, 0.5), 2.0, 0.25, m_shaving, float(i * 37))
+	# Hoja arrancada sobre una mesita junto a la cama del familiar
+	if page != Vector2.INF:
+		_add_box_2d(_case1_props_root_3d, page, Vector2(6.0, 5.0), 2.0, 7.0, m_walnut)
+		_add_box_2d(_case1_props_root_3d, page + Vector2(0.3, -0.2), Vector2(4.2, 3.0), 9.0, 0.2, m_paper, 12.0)
+		for j in range(3):
+			_add_box_2d(_case1_props_root_3d, page + Vector2(-0.4, -1.0 + j * 0.9), Vector2(2.6, 0.18), 9.2, 0.05, m_ink, 12.0)

@@ -25,6 +25,7 @@ const VillageFamilia = preload("res://scripts/systems/VillageFamilia.gd")
 const VillageJustice = preload("res://scripts/systems/VillageJustice.gd")
 const TraitDiscovery = preload("res://scripts/systems/TraitDiscovery.gd")
 const TraitCatalog = preload("res://scripts/data/TraitCatalog.gd")
+const VillageCase1 = preload("res://scripts/systems/VillageCase1.gd") # Caso I: diálogos del caso
 
 ## Menús y acciones de diálogo de los habitantes (tiendas, interrogatorios, lore, acciones de las opciones).
 ## Extraído de VillageNPC.gd. Cada función recibe al NPC como primer parámetro (`npc`); VillageNPC mantiene
@@ -194,6 +195,8 @@ static func _inject_character_lore_into_dialogue(npc: VillageNPC, diag: Dictiona
 				{"label": "🤐 Guardar silencio y concluir el interrogatorio.", "next": "END", "action": "interrog_step:r3_silent"}
 			]
 		}
+	if vm_diag != null:
+		VillageCase1.add_dialogue(vm_diag, npc, diag, ch_arr) # Caso I: boticario, criada, familiar y el de la lana azul
 	_add_neighbor_opinions(npc, diag, ch_arr)
 	if vm_diag != null:
 		VillageQuests.add_quest_dialogue(vm_diag, npc, diag, ch_arr)
@@ -883,6 +886,11 @@ static func _build_dialogue(npc: VillageNPC) -> Dictionary:
 			}}
 
 static func on_dialogue_action(npc: VillageNPC, action_id: String) -> void:
+	if action_id.begins_with("case1:"):
+		var vm_c1 = npc._get_vm()
+		if vm_c1 != null:
+			VillageCase1.on_action(vm_c1, npc, action_id)
+		return
 	var player = npc._get_player()
 	if not player or not ("inventory" in player) or not player.inventory:
 		return

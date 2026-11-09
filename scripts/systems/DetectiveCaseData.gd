@@ -140,16 +140,20 @@ static var CASES: Dictionary = {
 			"alchemist_analyze_flask": {
 				"speaker_role": "alchemist",
 				"requires_note": "m_estomago",
+				"ask_label": "🧪 Enseñarle el líquido del estómago",
 				"line": "«Este líquido verdoso lleva una hierba de embalsamar muy cara: belladama gris. Con ella se hace el sueño de cera, y es muy inestable: a las doce horas empieza a perder fuerza y a los dos días no vale nada. Quien la usó la tenía recién hecha. El padre Anselmo jamás la pide.»"
 			},
 			"noble_maid_recognize_vial": {
 				"speaker_role": "noble_maid",
 				"requires_note": "bolsillos:registrar",
+				"ask_label": "🧴 Enseñarle el frasco vacío",
 				"line": "«Ese frasco sin etiqueta… es del gabinete de los señores. Hace un par de días alguien forzó la cerradura y me mandaron callar. No diga que se lo he contado yo.»"
 			},
 			"relative_confession": {
 				"speaker_role": "apparent_culprit_relative",
 				"requires_note": "m_sangre",
+				"requires_notes": ["m_sangre", "clue_case1_relative_page"], # Claude 2026-11-09: también la hoja de su casa
+				"ask_label": "📃 Enseñarle la hoja arrancada",
 				"line": "«¡No quería matarla! La tenían retenida y copié una receta de un libro viejo de la biblioteca para que pareciera muerta y la sacaran de allí… pero la dosis solo la dejó inmóvil.»"
 			},
 			"kidnapper_captured_interrogation": {
