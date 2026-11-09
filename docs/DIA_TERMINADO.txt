@@ -1,4 +1,0 @@
-2026-11-09 — Encargo terminado (Puntos 1–2: Pistas sin chivatazos y sala oculta de la biblioteca).
-Commits: 6da5be9, 38d389b.
-RECORRIDO PASSED (11/11 paradas, wall_issues=0, console_errs=0).
-Capturas _v2 guardadas en docs/capturas_arreglos/caso1/.
