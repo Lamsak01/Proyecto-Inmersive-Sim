@@ -996,6 +996,30 @@ func _build_river_and_arroyo_3d(
 							_add_cyl_2d(terrain_root_3d, side_r + r_off2, 0.58, reed_h2 - 1.4, 1.3, m_reed_head, 0.52, 6)
 		by_sample += 15.0 if in_town_reach else 26.0
 
+	# 5b. Lenguas de barro, bancos de grava y salientes asimétricos en los meandros del pueblo (y = -310..335)
+	for spit_def in [
+		[ -275.0, false, 14.0, 26.0, 12.0],
+		[ -215.0, true,  15.0, 28.0, -14.0],
+		[ -145.0, false, 16.0, 30.0, 15.0],
+		[  -65.0, true,  14.0, 26.0, -11.0],
+		[  105.0, false, 15.0, 26.0, 14.0],
+		[  168.0, true,  16.0, 30.0, -16.0],
+		[  238.0, false, 14.0, 26.0, 12.0],
+		[  305.0, true,  15.0, 28.0, -13.0],
+	]:
+		var sy: float = float(spit_def[0])
+		var on_left: bool = bool(spit_def[1])
+		var sw: float = float(spit_def[2])
+		var sl: float = float(spit_def[3])
+		var srot: float = float(spit_def[4])
+		var sbanks: Vector2 = FishingSpotScript.river_banks_at(sy)
+		var sx: float = (sbanks.x + sw * 0.32) if on_left else (sbanks.y - sw * 0.32)
+		var sh: float = _river_bank_terrace_height_px(sy)
+		_add_box_2d(terrain_root_3d, Vector2(sx, sy), Vector2(sw, sl), sh - 1.5, 1.35, m_wet_mud, srot, true)
+		_add_box_2d(terrain_root_3d, Vector2(sx + (2.0 if on_left else -2.0), sy), Vector2(sw * 0.65, sl * 0.65), sh - 1.1, 1.1, m_bank_earth, srot * 0.7, true)
+		_add_model_2d(terrain_root_3d, "nature/Rock_2.obj", Vector2(sx + (3.2 if on_left else -3.2), sy - 3.0), 0.05, Vector2.ZERO, 6.8, srot * 3.0)
+		_add_model_2d(terrain_root_3d, "nature/Plant_3.obj", Vector2(sx, sy + 4.0), 0.10, Vector2.ZERO, 7.4, srot * 2.0)
+
 	# 6. Bosque denso y oscuro del norte flanqueando el arroyo, el Claro del Caso I y el Molino Viejo Abandonado
 	# Suelo de humus oscuro, pinocha y musgo sombrío bajo la espesura + penumbra de copas para que el claro se sienta escondido
 	var m_forest_humus := _mat("north_forest_humus", Color(0.14, 0.17, 0.10), 0.96, 0.0, Color.BLACK, 0.0, "town_textures/floor_ground_dirt.png", "", 0.78)

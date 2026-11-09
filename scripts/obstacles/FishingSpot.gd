@@ -51,14 +51,16 @@ const RIVER_WAYPOINTS: Array[Vector2] = [
 	Vector2(182.0, -510.0),
 	Vector2(76.0, -430.0),
 	Vector2(96.0, -351.0),
-	Vector2(144.0, -265.0),
-	Vector2(74.0, -165.0),
-	Vector2(158.0, -65.0),
-	Vector2(132.0, 15.0),
+	Vector2(158.0, -295.0),
+	Vector2(66.0, -218.0),
+	Vector2(164.0, -138.0),
+	Vector2(78.0, -58.0),
+	Vector2(130.0, 15.0),
 	Vector2(126.0, 50.0),
-	Vector2(72.0, 145.0),
-	Vector2(54.0, 225.0),
-	Vector2(88.0, 310.0),
+	Vector2(132.0, 88.0),
+	Vector2(44.0, 165.0),
+	Vector2(96.0, 242.0),
+	Vector2(48.0, 312.0),
 	Vector2(152.0, 372.0),
 	Vector2(158.0, 408.0),
 	Vector2(158.0, 535.0),
@@ -91,32 +93,33 @@ static func river_center_x(y: float) -> float:
 			var t: float = (y - p0.y) / maxf(0.001, p1.y - p0.y)
 			var st: float = t * t * (3.0 - 2.0 * t)
 			var base_x: float = lerpf(p0.x, p1.x, st)
-			# Meandros orgánicos adicionales para evitar cualquier tramo recto (atenuados en pasos estrechos y puentes)
-			var narrow_damp: float = 0.22 if ((y >= -640.0 and y <= -480.0) or (y >= 390.0 and y <= 550.0) or absf(y - 50.0) < 30.0 or absf(y - 372.0) < 24.0 or absf(y - (-1060.0)) < 45.0) else 1.0
-			var meander: float = (sin(y * 0.029 + 0.7) * 5.2 + cos(y * 0.061 - 0.4) * 2.8) * narrow_damp
+			# Meandros orgánicos pronunciados en el pueblo para romper cualquier línea recta (atenuados en pasos estrechos y puentes)
+			var narrow_damp: float = 0.20 if ((y >= -640.0 and y <= -480.0) or (y >= 390.0 and y <= 550.0) or absf(y - 50.0) < 28.0 or absf(y - (-351.0)) < 22.0 or absf(y - 372.0) < 24.0 or absf(y - (-1060.0)) < 45.0) else 1.0
+			var town_meander_boost: float = 1.65 if (y >= -320.0 and y <= 340.0) else 1.0
+			var meander: float = (sin(y * 0.037 + 0.6) * 7.8 + cos(y * 0.073 - 0.5) * 4.4 + sin(y * 0.119 + 1.4) * 2.2) * narrow_damp * town_meander_boost
 			return base_x + meander
 	return 126.0
 
 static func river_half_width(y: float) -> float:
-	# En el pueblo (y = -240..270) es un río caudaloso y ancho (~60..68 px de anchura total).
+	# En el pueblo (y = -240..270) es un río caudaloso con remansos anchos y estrechamientos naturales.
 	# Al subir hacia el norte (y = -240..-820) se estrecha poco a poco hasta ser un arroyo (~18..21 px)
 	# junto al Claro del Caso I (y = -860) y el Molino Viejo Abandonado (y = -1060).
-	var base_hw: float = 31.0
+	var base_hw: float = 29.5
 	if y <= -920.0:
 		base_hw = lerpf(9.2, 10.2, smoothstep(-1150.0, -920.0, y))
 	elif y <= -780.0:
 		base_hw = lerpf(10.2, 12.2, smoothstep(-920.0, -780.0, y))
 	elif y < -210.0:
-		base_hw = lerpf(12.2, 31.2, smoothstep(-780.0, -210.0, y))
+		base_hw = lerpf(12.2, 29.5, smoothstep(-780.0, -210.0, y))
 	elif y <= 255.0:
-		base_hw = 31.2 + sin(y * 0.019 + 0.4) * 2.2
+		base_hw = 29.0 + sin(y * 0.027 + 0.4) * 5.2 + cos(y * 0.063 - 0.8) * 3.4
 	elif y < 395.0:
-		base_hw = lerpf(30.0, 11.4, smoothstep(255.0, 395.0, y))
+		base_hw = lerpf(28.5, 11.4, smoothstep(255.0, 395.0, y))
 	elif y <= 550.0:
 		base_hw = 11.2
 	else:
 		base_hw = lerpf(11.2, 23.5, smoothstep(550.0, 645.0, y))
-	var ripple_w: float = (sin(y * 0.053 + 1.1) * 2.4 + cos(y * 0.097 + 2.0) * 1.5)
+	var ripple_w: float = (sin(y * 0.053 + 1.1) * 3.2 + cos(y * 0.097 + 2.0) * 2.1)
 	if y < -780.0 or (y >= 385.0 and y <= 555.0) or (y >= -635.0 and y <= -485.0):
 		ripple_w *= 0.28
 	return base_hw + ripple_w
@@ -124,22 +127,32 @@ static func river_half_width(y: float) -> float:
 static func river_banks_at(y: float) -> Vector2:
 	var cx: float = river_center_x(y)
 	var hw: float = river_half_width(y)
-	# Orillas izquierda y derecha con entrantes y salientes independientes (nunca paralelas)
+	# Orillas izquierda y derecha claramente desiguales (recodos excavados a un lado y lenguas de barro/grava al otro, nunca paralelas)
 	var irr_scale: float = lerpf(0.24, 1.0, smoothstep(-820.0, -240.0, y))
+	var town_asym: float = 1.85 if (y >= -325.0 and y <= 345.0) else 1.0
 	if (y >= 385.0 and y <= 555.0) or (y >= -635.0 and y <= -485.0):
 		irr_scale *= 0.25
+		town_asym = 1.0
 	elif absf(y - 50.0) < 28.0 or absf(y - (-351.0)) < 22.0 or absf(y - 372.0) < 22.0:
-		irr_scale *= 0.35
-	var left_irr: float = (sin(y * 0.047 + 0.5) * 3.8 + cos(y * 0.103 - 1.2) * 2.3 + sin(y * 0.187 + 2.0) * 1.2) * irr_scale
-	var right_irr: float = (cos(y * 0.043 - 0.9) * 3.8 + sin(y * 0.093 + 1.7) * 2.3 + cos(y * 0.173 - 0.4) * 1.2) * irr_scale
+		irr_scale *= 0.30
+		town_asym = 1.0
+	var left_irr: float = (sin(y * 0.049 + 0.5) * 5.8 + cos(y * 0.089 - 1.1) * 4.2 + sin(y * 0.163 + 2.0) * 2.1) * irr_scale * town_asym
+	var right_irr: float = (cos(y * 0.041 - 0.8) * 6.2 + sin(y * 0.097 + 1.6) * 4.5 + cos(y * 0.157 - 0.4) * 2.2) * irr_scale * town_asym
 	var lb: float = cx - hw + left_irr
 	var rb: float = cx + hw + right_irr
 	if y >= -1115.0 and y <= -1005.0:
 		rb = minf(rb, 123.5)
+	elif y >= -230.0 and y <= 14.0:
+		lb = maxf(lb, 25.0)
+		rb = minf(rb, 194.0)
 	elif y >= 15.0 and y <= 55.0:
 		lb = maxf(lb, 92.0)
 	elif y >= 115.0 and y <= 345.0:
-		rb = minf(rb, 126.0)
+		rb = minf(rb, 125.0)
+	if rb - lb < 18.0:
+		var mid_b: float = (lb + rb) * 0.5
+		lb = mid_b - 9.0
+		rb = mid_b + 9.0
 	return Vector2(lb, rb)
 
 static func is_in_river_crossing(pos: Vector2, margin_y: float = 0.0) -> bool:
