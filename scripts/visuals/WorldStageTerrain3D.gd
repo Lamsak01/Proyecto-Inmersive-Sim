@@ -772,7 +772,7 @@ func _build_river_and_arroyo_3d(
 	# Barro pardo del Claro del Arroyo donde aparece el cuerpo del Caso I
 	var m_brown_mud := _mat("arroyo_brown_mud", Color(0.36, 0.24, 0.14), 0.62, 0.06, Color.BLACK, 0.0, "town_textures/floor_ground_dirt.png", "", 0.72)
 	# Barro rojo / arcilla junto al Molino Viejo Abandonado (arcilla rojiza viva bien diferenciada del barro pardo del claro)
-	var m_red_clay := _mat("mill_red_clay_mud", Color(0.76, 0.23, 0.14), 0.58, 0.05, Color.BLACK, 0.0, "town_textures/floor_ground_dirt.png", "", 0.75)
+	var m_red_clay := _mat("mill_red_clay_mud", Color(0.84, 0.16, 0.08), 0.56, 0.04, Color(0.26, 0.04, 0.02), 1.0, "town_textures/floor_ground_dirt.png", "town_textures/wall_stone_n.png", 0.78)
 	var m_reed_stalk := _mat("river_reed_stalk", Color(0.24, 0.44, 0.18), 0.86, 0.02)
 	var m_reed_head := _mat("river_reed_head", Color(0.30, 0.18, 0.10), 0.92, 0.01)
 	var m_old_bridge_stone := _mat("old_bridge_stone", Color(0.50, 0.49, 0.46), 0.88, 0.04, Color.BLACK, 0.0, "town_textures/wall_stone.png", "town_textures/wall_stone_n.png", 0.72)
