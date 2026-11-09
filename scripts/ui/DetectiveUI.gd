@@ -3360,14 +3360,19 @@ func load_detective_state() -> void:
 		return
 	var st: Dictionary = vm.VillageForensics.state(vm)
 	var db = st.get("detective_board", {})
+	notebook_notes.clear()
+	board_positions.clear()
+	board_links.clear()
 	if not (db is Dictionary) or (db as Dictionary).is_empty():
 		return
 	var saved_notes = db.get("notes", [])
-	if saved_notes is Array and not (saved_notes as Array).is_empty():
-		notebook_notes.clear()
+	if saved_notes is Array:
 		for n in saved_notes:
 			if n is Dictionary:
-				notebook_notes.append((n as Dictionary).duplicate(true))
+				var nd: Dictionary = (n as Dictionary).duplicate(true)
+				if nd.has("day"):
+					nd["day"] = int(nd["day"])
+				notebook_notes.append(nd)
 	var saved_pos = db.get("positions", {})
 	if saved_pos is Dictionary:
 		for k in (saved_pos as Dictionary).keys():

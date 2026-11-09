@@ -82,6 +82,9 @@ func save_game(filepath: String = SAVE_FILE_PATH) -> bool:
 	for camp in get_tree().get_nodes_in_group("campsite"):
 		if is_instance_valid(camp) and camp.has_method("_save_state"):
 			camp.call("_save_state")
+	var det_ui_save := get_tree().root.find_child("DetectiveUI", true, false)
+	if det_ui_save and det_ui_save.has_method("save_detective_state"):
+		det_ui_save.call("save_detective_state")
 	if vm:
 		set_flag("village_crime_state", {
 			"wanted_level": int(vm.get("wanted_level")),
@@ -327,6 +330,9 @@ func load_game(filepath: String = SAVE_FILE_PATH) -> bool:
 				vm.completed_contracts_today[int(str(ck))] = int(saved_c[ck])
 		if c_state.has("economy") and typeof(c_state["economy"]) == TYPE_DICTIONARY and vm.has_method("load_economy_save_dict"):
 			vm.load_economy_save_dict(c_state["economy"])
+		var det_ui_load := get_tree().root.find_child("DetectiveUI", true, false)
+		if det_ui_load and det_ui_load.has_method("load_detective_state"):
+			det_ui_load.call("load_detective_state")
 
 	if player and player.has_method("show_hint"):
 		var time_str := WorldClock.get_formatted_time() if WorldClock else ""
