@@ -470,10 +470,11 @@ func _execute_dynamic_activity(delta: float) -> void:
 			_wander_timer -= delta
 			if _wander_timer <= 0.0:
 				var is_idle_stroller: bool = (trade_role == TradeRole.UNEMPLOYED and not has_meta("day_job_pos"))
+				var is_indoor_authority: bool = trade_role in [TradeRole.PRIEST, TradeRole.DOCTOR, TradeRole.SHERIFF]
 				_wander_timer = randf_range(7.0, 14.0) if is_idle_stroller else randf_range(2.2, 4.6)
-				var radius: float = 34.0 if (trade_role == TradeRole.UNEMPLOYED or trade_role == TradeRole.GUARD) else 11.0
+				var radius: float = 34.0 if (trade_role == TradeRole.UNEMPLOYED or trade_role == TradeRole.GUARD) else (3.5 if is_indoor_authority else 11.0)
 				var base_ang: float = float(absi(npc_name.hash()) % 360) * (TAU / 360.0) + randf_range(-0.85, 0.85)
-				_wander_offset = Vector2.RIGHT.rotated(base_ang) * randf_range(12.0, radius) if is_idle_stroller else Vector2.RIGHT.rotated(base_ang) * randf_range(6.5, radius)
+				_wander_offset = Vector2.RIGHT.rotated(base_ang) * randf_range(12.0, radius) if is_idle_stroller else Vector2.RIGHT.rotated(base_ang) * randf_range(1.5 if is_indoor_authority else 6.5, radius)
 				if is_idle_stroller and randf() < 0.45:
 					set_meta("stroll_anchor", IDLE_STROLL_SPOTS[randi() % IDLE_STROLL_SPOTS.size()])
 				elif is_idle_stroller and has_meta("stroll_anchor") and randf() < 0.30:

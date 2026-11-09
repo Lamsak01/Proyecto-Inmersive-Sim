@@ -187,7 +187,15 @@ static func on_hour(vm, hour: int) -> void:
 		n.set_meta("leisure_place", str(p["id"]))
 		if n.has_meta("leisure_since"):
 			n.remove_meta("leisure_since")
-		n.start_errand("leisure", (p["pos"] as Vector2) + Vector2(randf_range(-18, 18), randf_range(-6, 10)))
+		var dest_l: Vector2 = (p["pos"] as Vector2) + Vector2(randf_range(-18, 18), randf_range(-6, 10))
+		if str(p["id"]) == "library":
+			var lib_chairs: Array[Vector2] = [
+				Vector2(895.0, -436.0), Vector2(925.0, -436.0),
+				Vector2(904.0, -424.0), Vector2(916.0, -424.0),
+				Vector2(946.0, -391.0), Vector2(874.0, -391.0),
+			]
+			dest_l = lib_chairs[absi(n.npc_name.hash() + now) % lib_chairs.size()]
+		n.start_errand("leisure", dest_l)
 
 static func _leave(n) -> void:
 	n.end_errand()

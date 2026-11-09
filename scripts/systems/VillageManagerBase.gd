@@ -129,6 +129,7 @@ var domestic_pets: Array[DomesticPet] = []
 # Registro de Edificios con Paredes Sólidas y Puertas para Navegación y Testigos
 var building_footprints: Array[Dictionary] = []
 var _wall_occluder_rects: Array[Rect2] = []
+var _no_stand_furniture_rects: Array[Rect2] = []
 
 # Paso 1: Hospital de Urgencias, Morgue Forense (Máx. 3 Camillas), Iglesia y Cementerio Parroquial
 @warning_ignore("unused_private_class_variable") # Se usa desde otro script (vm._hospital_center)
@@ -713,6 +714,34 @@ func _route_internal_building_partitions(b_id: String, from_pos: Vector2, target
 				break
 	return target_pos
 
+func register_no_stand_furniture(pos: Vector2, sz: Vector2) -> void:
+	if sz.x <= 0.0 or sz.y <= 0.0:
+		return
+	_no_stand_furniture_rects.append(Rect2(pos - sz * 0.5, sz))
+
+## Impide que ningún vecino (ni sus pies 3D con FOOT_OFFSET_PX = 4.0) quede subido encima de altares, mesas, mostradores o muebles.
+func push_out_of_furniture(pos: Vector2, elev: int = 0) -> Vector2:
+	if elev != 0:
+		return pos
+	var res := pos
+	for f_rect in _no_stand_furniture_rects:
+		var guard := Rect2(f_rect.position - Vector2(2.5, 5.2), f_rect.size + Vector2(5.0, 7.6))
+		if guard.has_point(res):
+			var dl: float = absf(res.x - guard.position.x)
+			var dr: float = absf(guard.end.x - res.x)
+			var dt: float = absf(res.y - guard.position.y)
+			var db: float = absf(guard.end.y - res.y)
+			var md: float = minf(minf(dl, dr), minf(dt, db))
+			if md == dt:
+				res.y = guard.position.y - 0.5
+			elif md == db:
+				res.y = guard.end.y + 0.5
+			elif md == dl:
+				res.x = guard.position.x - 0.5
+			else:
+				res.x = guard.end.x + 0.5
+	return res
+
 func clamp_point_to_building_interior(ref_pos: Vector2, candidate_pos: Vector2) -> Vector2:
 	for b in building_footprints:
 		if str(b.get("id", "")) == "building_abandoned_mill":
@@ -720,11 +749,16 @@ func clamp_point_to_building_interior(ref_pos: Vector2, candidate_pos: Vector2) 
 		var r: Rect2 = b["rect"]
 		if r.has_point(ref_pos):
 			var r_safe: Rect2 = r.grow(-16.0)
-			return Vector2(
+			var clamped := Vector2(
 				clampf(candidate_pos.x, r_safe.position.x, r_safe.end.x),
 				clampf(candidate_pos.y, r_safe.position.y, r_safe.end.y)
 			)
-	return candidate_pos
+			clamped = push_out_of_furniture(clamped, 0)
+			return Vector2(
+				clampf(clamped.x, r_safe.position.x, r_safe.end.x),
+				clampf(clamped.y, r_safe.position.y, r_safe.end.y)
+			)
+	return push_out_of_furniture(candidate_pos, 0)
 
 ## Evita que el paseo aleatorio de un NPC exterior (`UNEMPLOYED` o `GUARD`) caiga por accidente dentro de una casa o sobre su puerta
 
@@ -769,6 +803,11 @@ func sanitize_npc_separation_pos(prev_pos: Vector2, candidate_pos: Vector2, elev
 			var clamped_in := Vector2(
 				clampf(candidate_pos.x, r_safe.position.x, r_safe.end.x),
 				clampf(candidate_pos.y, r_safe.position.y, r_safe.end.y)
+			)
+			clamped_in = push_out_of_furniture(clamped_in, elev)
+			clamped_in = Vector2(
+				clampf(clamped_in.x, r_safe.position.x, r_safe.end.x),
+				clampf(clamped_in.y, r_safe.position.y, r_safe.end.y)
 			)
 			for w_rect in _wall_occluder_rects:
 				if _segment_intersects_rect(prev_pos, clamped_in, w_rect.grow(3.0)):
@@ -1145,6 +1184,8 @@ func _spawn_decor_prop(tex_path: String, pos: Vector2, sc: Vector2 = Vector2.ONE
 			col_sz = Vector2(8.0, 8.0)
 	if col_sz != Vector2.ZERO:
 		_add_prop_collider(pos, col_sz)
+		if fname in ["round_table_0.png", "table_chairs_0.png", "table_chairs_1.png", "big_round_table_chairs_0.png", "piano.png", "drinks_shelf_0.png", "drinks_shelf_1.png", "fireplace_0.png", "stand-1_part5.png"]:
+			register_no_stand_furniture(pos, col_sz)
 
 func _add_station_area(area_name: String, pos: Vector2, radius: float, meta_tag: String) -> Area2D:
 	var area := Area2D.new()

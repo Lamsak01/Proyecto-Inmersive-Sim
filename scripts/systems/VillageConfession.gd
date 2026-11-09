@@ -89,7 +89,7 @@ static func on_hour(vm, hour: int) -> void:
 		if sin_entry.is_empty() or (st["priest_secrets"] as Dictionary).has(n.get_person_key()):
 			continue
 		if randf() < 0.45:
-			n.start_errand("confess", vm._church_altar_pos + Vector2(0, 10))
+			n.start_errand("confess", vm._church_altar_pos + Vector2(-16, -18))
 
 static func on_errand_arrived(vm, npc) -> void:
 	if npc.errand_kind != "confess":

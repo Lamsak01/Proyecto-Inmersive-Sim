@@ -1184,7 +1184,7 @@ func _current_meal_pos() -> Vector2:
 		if _tavern_seat != Vector2.ZERO and _tavern_seat != tavern_social_pos:
 			return _tavern_seat
 		return tavern_social_pos + Vector2.RIGHT.rotated(h_ang) * 9.0
-	var cand_home: Vector2 = home_table_pos + Vector2.RIGHT.rotated(h_ang) * 9.0
+	var cand_home: Vector2 = home_table_pos + Vector2(cos(h_ang) * 14.0, sin(h_ang) * 11.5)
 	var vm = _get_vm()
 	if vm and vm.has_method("clamp_point_to_building_interior"):
 		cand_home = vm.call("clamp_point_to_building_interior", home_table_pos, cand_home)

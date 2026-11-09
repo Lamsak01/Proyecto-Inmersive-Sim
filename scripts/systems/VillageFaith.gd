@@ -162,9 +162,11 @@ static func can_join(npc) -> bool:
 	return npc.need_energy > 15.0 and npc.need_hunger > 30.0
 
 static func _pew_spot(vm, i: int) -> Vector2:
-	var side: float = -36.0 if i % 2 == 0 else 36.0
+	var side: float = -29.0 if i % 2 == 0 else 29.0
 	var row: int = int(float(i) / 2.0) % 4
-	return vm._church_center + Vector2(side + float((int(float(i) / 8.0) % 2) * 8 - 4), -18.0 + float(row) * 8.0)
+	var row_y: float = [-22.5, -7.5, 6.8, 13.5][row]
+	var col_x_off: float = float((int(float(i) / 8.0) % 2) * 12 - 6)
+	return vm._church_center + Vector2(side + col_x_off, row_y)
 
 static func on_hour(vm, hour: int) -> void:
 	if not is_rite_day():
@@ -184,7 +186,7 @@ static func call_to_rite(vm) -> int:
 			continue
 		if not wants_attend(n, week) or not can_join(n):
 			continue
-		var spot: Vector2 = (vm._church_altar_pos + Vector2(0, -12)) if is_priest(n) else _pew_spot(vm, idx)
+		var spot: Vector2 = (vm._church_altar_pos + Vector2(0, -18)) if is_priest(n) else _pew_spot(vm, idx)
 		if not is_priest(n):
 			idx += 1
 		n.join_rite(spot)

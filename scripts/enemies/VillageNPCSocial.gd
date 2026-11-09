@@ -12,10 +12,13 @@ func _finish_frame_movement(delta: float, apply_yield: bool = true) -> void:
 		velocity *= lod_k # V2: un paso de varios fotogramas recorre la distancia de todos ellos
 	var prev_pos: Vector2 = global_position
 	move_and_slide()
-	if not is_sleeping and not is_at_poker_table and _cached_vm != null and _cached_vm.has_method("sanitize_npc_separation_pos"):
+	if not is_sleeping and not is_at_poker_table and _cached_vm != null:
 		var in_door: bool = _cached_vm.has_method("get_doorway_clearance_nudge") and (_cached_vm.call("get_doorway_clearance_nudge", global_position, 22.0) as Vector2).length_squared() > 0.01
-		if not in_door and global_position.distance_squared_to(prev_pos) > 0.001:
-			global_position = _cached_vm.call("sanitize_npc_separation_pos", prev_pos, global_position, int(elevation_level))
+		if not in_door:
+			if global_position.distance_squared_to(prev_pos) > 0.001 and _cached_vm.has_method("sanitize_npc_separation_pos"):
+				global_position = _cached_vm.call("sanitize_npc_separation_pos", prev_pos, global_position, int(elevation_level))
+			elif _cached_vm.has_method("push_out_of_furniture"):
+				global_position = _cached_vm.call("push_out_of_furniture", global_position, int(elevation_level))
 	_enforce_npc_personal_space(delta)
 	if perf_on: _pt = _perf_add("m_move_and_slide", _pt)
 	if lod_k > 1.0:
@@ -1031,7 +1034,7 @@ func _get_social_target_pos() -> Vector2:
 		return cand_p
 	var h_ang_home: float = float(absi(npc_name.hash()) % 360) * (TAU / 360.0)
 	if family_id != "none":
-		var cand_ht: Vector2 = home_table_pos + Vector2.RIGHT.rotated(h_ang_home) * 9.0
+		var cand_ht: Vector2 = home_table_pos + Vector2(cos(h_ang_home) * 14.0, sin(h_ang_home) * 11.5)
 		if vm_s and vm_s.has_method("clamp_point_to_building_interior"):
 			cand_ht = vm_s.call("clamp_point_to_building_interior", home_table_pos, cand_ht)
 		return cand_ht

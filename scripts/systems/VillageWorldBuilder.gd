@@ -179,11 +179,11 @@ static func _spawn_five_family_houses_and_trades(vm: VillageManager) -> void:
 		var kin_work_pos: Vector2 = sc + (Vector2(-24, -6) if shop_door_s else Vector2(-24, 8))
 
 		if is_mixed:
-			work_pos = sc + Vector2(-27, -25)
+			work_pos = sc + Vector2(-27, -28)
 			bed1_pos = sc + Vector2(-42, 26)
 			bed2_pos = sc + Vector2(42, 26)
 			table_pos = sc + Vector2(0, 28)
-			kin_work_pos = sc + Vector2(24, -14)
+			kin_work_pos = sc + Vector2(18, -14)
 			_build_mixed_shop_house_visuals(vm, sc, str(cfg["shop_title"]), tex_bed, tex_stall, bed1_pos, bed2_pos, table_pos, work_pos, fam_id, int(role_key))
 		else:
 			var is_smithy: bool = (role_key == VillageNPC.TradeRole.BLACKSMITH)
@@ -228,9 +228,11 @@ static func _build_enclosed_shop_visuals(vm: VillageManager, sc: Vector2, shop_t
 		floor_p, wall_h_p, wall_v_p, 40.0, 0.0,
 		Color(1.0, 0.88, 0.52) if is_blacksmith else Color(0.95, 0.90, 0.68)
 	)
-	var stall := vm._add_sprite_prop(tex_stall, work_pos + (Vector2(0, -10) if door_on_south else Vector2(0, 10)), Vector2(1.32, 1.32), -1)
+	var stall_pos: Vector2 = work_pos + (Vector2(0, -10) if door_on_south else Vector2(0, 10))
+	var stall := vm._add_sprite_prop(tex_stall, stall_pos, Vector2(1.32, 1.32), -1)
 	if role_id >= 0:
 		vm._register_shop_business_stall(role_id, shop_title, fam_id, stall.global_position, stall)
+	vm.register_no_stand_furniture(stall_pos, Vector2(18.0, 8.5))
 
 	vm._spawn_house_chest(sc + (Vector2(38, -20) if door_on_south else Vector2(38, 20)), "Cofre de " + shop_title, fam_id)
 	if is_blacksmith:
@@ -264,11 +266,16 @@ static func _build_mixed_shop_house_visuals(vm: VillageManager, center: Vector2,
 	vm._add_solid_wall_segment(center + Vector2(-42, 4), Vector2(40, 6), tex_wall_h)
 	vm._add_solid_wall_segment(center + Vector2(42, 4), Vector2(40, 6), tex_wall_h)
 
-	var stall := vm._add_sprite_prop(tex_stall, work_pos + Vector2(0, 8), Vector2(1.3, 1.3), -1)
+	var stall_pos: Vector2 = center + Vector2(-27, -17)
+	var stall := vm._add_sprite_prop(tex_stall, stall_pos, Vector2(1.3, 1.3), -1)
 	if role_id >= 0:
 		vm._register_shop_business_stall(role_id, title, fam_id, stall.global_position, stall)
-	vm._add_prop_collider(work_pos + Vector2(0, 8), Vector2(18.0, 8.5))
-	vm._add_prop_collider(center + Vector2(35, -14), Vector2(11.0, 11.0))
+	vm._add_prop_collider(stall_pos, Vector2(21.0, 9.5))
+	vm.register_no_stand_furniture(stall_pos, Vector2(21.0, 9.5))
+	vm._add_prop_collider(center + Vector2(35, -14), Vector2(12.0, 12.0))
+	vm.register_no_stand_furniture(center + Vector2(35, -14), Vector2(12.0, 12.0))
+	vm._add_prop_collider(center + Vector2(28, -38), Vector2(16.0, 8.5))
+	vm.register_no_stand_furniture(center + Vector2(28, -38), Vector2(16.0, 8.5))
 
 	for b_pos in [bed1_pos, bed2_pos]:
 		vm._add_sprite_prop(tex_bed, b_pos, Vector2(1.12, 1.12), -1)
@@ -294,7 +301,7 @@ static func _spawn_hospital_and_morgue(vm: VillageManager) -> void:
 	var tex_hbed := vm._load_tex("res://assests/world/village/hospital_bed.png")
 	for b_pos in [vm._hospital_bed_pos, Vector2(796, 134)]:
 		vm._add_sprite_prop(tex_hbed, b_pos, Vector2(1.15, 1.15), -1)
-	vm._add_prop_collider(Vector2(796, 134), Vector2(10.0, 14.0))
+		vm._add_prop_collider(b_pos, Vector2(13.5, 19.5))
 
 	vm._add_station_area("HospitalEmergencyBedArea", vm._hospital_bed_pos, 16.0, "hospital_bed")
 	vm._hospital_bed_label = vm._make_station_label(vm._hospital_bed_pos + Vector2(-120, -28), "🏥 Cama de Urgencias [E: Ingresar para Cura Progresiva (-10 Oro)]")
@@ -306,18 +313,21 @@ static func _spawn_hospital_and_morgue(vm: VillageManager) -> void:
 	for m_pos in vm._morgue_table_positions:
 		vm._add_sprite_prop(tex_mtable, m_pos, Vector2(1.15, 1.15), -1)
 		vm._morgue_corpse_sprites.append(vm._add_sprite_prop(tex_corpse, m_pos, Vector2(1.15, 1.15), 0, false))
-		vm._add_prop_collider(m_pos + Vector2(0.0, 4.0), Vector2(8.0, 10.0))
+		vm._add_prop_collider(m_pos, Vector2(13.6, 21.6))
+		vm.register_no_stand_furniture(m_pos, Vector2(13.6, 21.6))
+	vm.register_no_stand_furniture(Vector2(723.5, 189.0), Vector2(11.0, 6.2))
+	vm.register_no_stand_furniture(Vector2(766.5, 189.0), Vector2(7.0, 7.0))
 
 	vm._add_station_area("MorgueAutopsyArea", vm._morgue_table_positions[1], 24.0, "morgue_table")
 	vm._morgue_label = vm._make_station_label(vm._morgue_table_positions[1] + Vector2(-125, -26), "⚰️ Morgue Forense [E: Examinar Autopsias]")
 	vm.entities_root.add_child(vm._morgue_label)
 
-	# Dr. Valen (Médico Cirujano y Forense) — Mesa de comedor propia dentro del Hospital (`Vector2(764, 128)`)
+	# Dr. Valen (Médico Cirujano y Forense) — Mesa de comedor propia dentro del Hospital (`Vector2(768, 124)`)
 	vm._spawn_decor_prop("res://assests/Comprados/Epic RPG World - Village(interiors) V1.3/assets/furniture_and_props_sprites/table_chairs_1.png", Vector2(768, 124), Vector2(0.45, 0.45))
 	vm._register_authority_npc(
 		"NPC_Dr_Valen", "Dr. Valen", "Cirujano y Forense", VillageNPC.TradeRole.DOCTOR,
 		"res://assests/world/village/villager_doctor.png",
-		Vector2(756, 124), Vector2(796, 134), Vector2(768, 124),
+		Vector2(746, 126), Vector2(796, 134), Vector2(768, 124),
 		{"bandage": 4, "surgical_kit": 4, "herbal_poultice": 6},
 		"family_hospital", "Cuerpo Médico del Valle",
 		["Dr. Silvano", "Dra. Valeria", "Dr. Aurelio", "Dra. Caelia", "Dr. Mirko"]
@@ -361,25 +371,28 @@ static func _spawn_police_station_and_jail(vm: VillageManager) -> void:
 		vm._add_sprite_prop(tex_bed, c_bed_pos, Vector2.ONE, -1, true, Color(0.75, 0.78, 0.85, 1.0))
 
 	vm._spawn_decor_prop("res://assests/Comprados/Epic RPG World - Village(interiors) V1.3/assets/furniture_and_props_sprites/table_chairs_1.png", Vector2(870, 126), Vector2(0.45, 0.45))
-	vm._add_prop_collider(Vector2(960, 128), Vector2(20.0, 11.0))
+	vm._add_prop_collider(Vector2(960, 128), Vector2(20.0, 11.5))
+	vm.register_no_stand_furniture(Vector2(960, 128), Vector2(20.0, 11.5))
+	vm.register_no_stand_furniture(Vector2(952, 185), Vector2(7.0, 6.0))
+	vm.register_no_stand_furniture(Vector2(936, 189), Vector2(18.0, 7.0))
 	vm._add_prop_collider(Vector2(870, 182), Vector2(19.0, 11.0))
 	vm._add_prop_collider(Vector2(968, 178), Vector2(14.0, 20.0))
 	vm._add_station_area("PoliceJailCellArea", vm._jail_cell_pos, 22.0, "police_jail")
 	vm._jail_label = vm._make_station_label(vm._jail_cell_pos + Vector2(-120, -28), "🚓 Celda Policial [E: Gestionar Fianza / Condena]")
 	vm.entities_root.add_child(vm._jail_label)
 
-	# Comisario Vane y Guardia Rodric (Con mesa de comedor propia en la Comisaría `Vector2(870, 126)` / `Vector2(878, 126)`)
+	# Comisario Vane y Guardia Rodric (Con mesa de comedor propia en la Comisaría `Vector2(870, 126)`)
 	vm._register_authority_npc(
 		"NPC_Sheriff_Vane", "Comisario Vane", "Alguacil mayor", VillageNPC.TradeRole.SHERIFF,
 		"res://assests/world/village/villager_sheriff.png",
-		Vector2(944, 128), Vector2(968, 178), Vector2(870, 126), {},
+		Vector2(936, 126), Vector2(968, 178), Vector2(870, 126), {},
 		"family_police", "Guardia del Valle",
 		["Alguacil Thorne", "Alguacil Vance", "Alguacil Haldor", "Alguacil Lyra", "Alguacil Rourke"]
 	)
 	vm._register_authority_npc(
 		"NPC_Guard_Rodric", "Guardia Rodric", "Oficial de Patrulla", VillageNPC.TradeRole.GUARD,
 		"res://assests/world/village/villager_guard.png",
-		Vector2(510, 48), Vector2(952, 178), Vector2(878, 126), {},
+		Vector2(510, 48), Vector2(968, 178), Vector2(870, 126), {},
 		"family_police", "Guardia del Valle",
 		["Guardia Kaelen", "Guardia Darian", "Guardia Brenna", "Guardia Tormund", "Guardia Soren"]
 	)
@@ -398,13 +411,19 @@ static func _spawn_church_and_cemetery(vm: VillageManager) -> void:
 	vm._add_rect_poly(vm._church_center + Vector2(0, -4), Vector2(10, 32), Color(0.54, 0.24, 0.20, 0.62), -2)
 
 	for pew_offset in [Vector2(-29, -14), Vector2(-29, 0), Vector2(29, -14), Vector2(29, 0)]:
-		vm._add_rect_poly(vm._church_center + pew_offset, Vector2(12, 4), Color(0.46, 0.30, 0.16, 0.96), -1)
-	for pew_col_x in [-31.0, 31.0]:
-		vm._add_prop_collider(vm._church_center + Vector2(pew_col_x, -4.0), Vector2(18.0, 4.0))
+		var pew_p: Vector2 = vm._church_center + pew_offset
+		vm._add_rect_poly(pew_p, Vector2(12, 4), Color(0.46, 0.30, 0.16, 0.96), -1)
+		vm._add_prop_collider(pew_p, Vector2(23.0, 6.2))
+		vm.register_no_stand_furniture(pew_p, Vector2(23.0, 6.2))
 
 	vm._add_rect_poly(vm._church_altar_pos, Vector2(24, 8), Color(0.82, 0.78, 0.72, 1.0), -1)
 	vm._add_rect_poly(vm._church_altar_pos, Vector2(14, 8), Color(0.88, 0.72, 0.24, 0.95), -1)
-	vm._add_prop_collider(vm._church_altar_pos + Vector2(0, 8), Vector2(18.0, 4.0))
+	vm._add_prop_collider(vm._church_altar_pos, Vector2(29.0, 10.5))
+	vm.register_no_stand_furniture(vm._church_altar_pos, Vector2(29.0, 10.5))
+	vm._add_prop_collider(vm._church_altar_pos + Vector2(-24.0, -2.0), Vector2(8.0, 8.0))
+	vm.register_no_stand_furniture(vm._church_altar_pos + Vector2(-24.0, -2.0), Vector2(8.0, 8.0))
+	vm._add_prop_collider(vm._church_altar_pos + Vector2(24.0, -2.0), Vector2(9.5, 7.0))
+	vm.register_no_stand_furniture(vm._church_altar_pos + Vector2(24.0, -2.0), Vector2(9.5, 7.0))
 
 	vm._add_station_area("ChurchAltarArea", vm._church_altar_pos, 22.0, "church_altar")
 	vm._church_altar_label = vm._make_station_label(vm._church_altar_pos + Vector2(-125, -28), "⛪ Altar y Libro de Difuntos [E: Consultar Sepulturas / Orar]")
@@ -412,11 +431,12 @@ static func _spawn_church_and_cemetery(vm: VillageManager) -> void:
 
 	# G3: el sacerdote vive en la capilla (cama en la esquina noreste y mesa propia en la noroeste)
 	vm._add_sprite_prop(vm._load_tex("res://assests/world/village/tavern_bed.png"), Vector2(796, 280), Vector2.ONE, -1, true, Color(0.92, 0.88, 0.80, 1.0))
+	vm._add_prop_collider(Vector2(796, 280), Vector2(13.0, 18.0))
 	vm._spawn_decor_prop("res://assests/Comprados/Epic RPG World - Village(interiors) V1.3/assets/furniture_and_props_sprites/table_chairs_1.png", Vector2(696, 280), Vector2(0.45, 0.45))
 	vm._register_authority_npc(
 		"NPC_Priest_Anselmo", "Hermano Anselmo", "Sacerdote del Alba", VillageNPC.TradeRole.PRIEST,
 		"res://assests/world/village/villager_traveler.png",
-		vm._church_altar_pos + Vector2(0, -12), Vector2(796, 280), Vector2(696, 280), {},
+		vm._church_altar_pos + Vector2(0, -18), Vector2(796, 280), Vector2(696, 280), {},
 		"family_chapel", "Capilla del Alba",
 		["Hermano Teodoro", "Hermana Clara", "Hermano Bastián", "Hermana Inés", "Hermano Lucio"]
 	)

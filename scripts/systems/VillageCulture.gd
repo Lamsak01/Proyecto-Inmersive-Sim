@@ -1993,11 +1993,16 @@ static func build(vm, id: String, st: Dictionary) -> void:
 				vm._add_rect_poly(c + Vector2(sx, 36 * m), Vector2(11, 4), Color(0.42, 0.26, 0.14, 1.0), -1)
 				vm._add_rect_poly(c + Vector2(sx, 33 * m), Vector2(9, 1.5), Color(0.75, 0.30, 0.25, 1.0), 0)
 				vm._add_prop_collider(c + Vector2(sx, 36 * m), Vector2(18.0, 6.5))
+				vm.register_no_stand_furniture(c + Vector2(sx, 36 * m), Vector2(20.0, 7.0))
 			for side_x in [-53, 53]:
 				vm._add_prop_collider(c + Vector2(side_x, 14 * m), Vector2(6.5, 16.0))
+				vm.register_no_stand_furniture(c + Vector2(side_x, 14 * m), Vector2(7.0, 18.0))
 			vm._add_prop_collider(c + Vector2(-36, -18 * m), Vector2(16.0, 9.0))
+			vm.register_no_stand_furniture(c + Vector2(-36, -18 * m), Vector2(18.0, 9.5))
 			vm._add_prop_collider(c + Vector2(36, -18 * m), Vector2(16.0, 9.0))
+			vm.register_no_stand_furniture(c + Vector2(36, -18 * m), Vector2(18.0, 10.0))
 			vm._spawn_decor_prop(props + "table_chairs_1.png", reading_spot(), Vector2(0.45, 0.45))
+			vm.register_no_stand_furniture(reading_spot(), Vector2(22.0, 12.5))
 			vm._add_station_area("LibraryReadingArea", reading_spot(), 24.0, "library_reading")
 			vm._add_title_label(reading_spot() + Vector2(-50, -22), Vector2(100, 12), "📖 Leer un rato [E]", Color(0.9, 0.95, 1.0), 7)
 		"school":
