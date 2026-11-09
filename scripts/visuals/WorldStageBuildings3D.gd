@@ -33,10 +33,10 @@ func _style_for_building(b_id: String) -> Dictionary:
 	elif b_id == "building_hospital":
 		wall_tex = "town_textures/wall_brick_small_sand.png"
 		roof_tex = "town_textures/roof_clay_grey_center.png"
-		wall_col = Color(0.90, 0.94, 0.96)
-		roof_col = Color(0.28, 0.54, 0.58)
-		floor_col = Color(0.80, 0.86, 0.88)
-		trim_col = Color(0.48, 0.58, 0.62)
+		wall_col = Color(0.76, 0.74, 0.69)
+		roof_col = Color(0.32, 0.35, 0.37)
+		floor_col = Color(0.72, 0.74, 0.72)
+		trim_col = Color(0.30, 0.23, 0.17)
 		wall_h = 30.0
 	elif b_id == "building_police":
 		roof_tex = "town_textures/roof_clay_grey_center.png"
@@ -250,9 +250,9 @@ func rebuild_buildings_3d() -> void:
 					_build_door_leaf_3d(pivot, b_id, leaf_w, leaf_h, m_wood, m_dark_wood, m_iron, m_gold)
 				var lock_badge := MeshInstance3D.new()
 				var lb_bm := BoxMesh.new()
-				lb_bm.size = size_3d(Vector2(3.5, 4.2), 3.5)
+				lb_bm.size = size_3d(Vector2(2.6, 3.2), 2.8)
 				lock_badge.mesh = lb_bm
-				lock_badge.material_override = m_gold
+				lock_badge.material_override = m_iron
 				lock_badge.position = Vector3((leaf_w - 4.0) * WORLD_SCALE, (leaf_h * 0.48 * WORLD_SCALE) / _cos_p, 0.0)
 				pivot.add_child(lock_badge)
 				_door_nodes_3d.append({"entry": d_entry, "pivot": pivot, "lock_badge": lock_badge, "door_south": door_south})
@@ -1289,97 +1289,91 @@ func _build_door_leaf_3d(pivot: Node3D, b_id: String, leaf_w: float, leaf_h: flo
 	var hh: float = leaf_h * 0.5
 	match b_id:
 		"building_police":
-			# Puerta blindada de la Comisaría: acero gris-azulado remachado, marco de hierro, mirilla enrejada y placa de alguacil
-			var m_pol_steel := _mat("door_police_steel", Color(0.24, 0.28, 0.34), 0.48, 0.72)
-			var m_pol_dark := _mat("door_police_frame", Color(0.15, 0.17, 0.21), 0.42, 0.82)
-			var m_pol_win := _mat("door_police_win", Color(0.08, 0.11, 0.14), 0.35, 0.25)
+			# Puerta blindada de la Comisaría: hierro y tablón oscuro remachado, tosco y gastado
+			var m_pol_steel := _mat("door_police_steel", Color(0.22, 0.23, 0.25), 0.78, 0.58, Color.BLACK, 0.0, "town_textures/wall_stone.png", "town_textures/wall_stone_n.png")
+			var m_pol_dark := _mat("door_police_frame", Color(0.14, 0.14, 0.16), 0.82, 0.68, Color.BLACK, 0.0, "town_textures/rf_planks.png")
+			var m_pol_win := _mat("door_police_win", Color(0.08, 0.09, 0.10), 0.85, 0.15)
 			_add_door_part(pivot, hw, hh, 0.0, leaf_w, leaf_h, 2.8, m_pol_steel)
-			# Marco perimetral y travesaños horizontales de acero remachado
 			_add_door_part(pivot, 1.4, hh, 0.0, 2.8, leaf_h, 3.3, m_pol_dark)
 			_add_door_part(pivot, leaf_w - 1.4, hh, 0.0, 2.8, leaf_h, 3.3, m_pol_dark)
 			for ry in [2.2, leaf_h * 0.45, leaf_h - 2.0]:
 				_add_door_part(pivot, hw, ry, 0.0, leaf_w, 2.2, 3.4, m_pol_dark)
-			# Ventanuco de inspección con 4 barrotes verticales en la mitad superior
 			var wy: float = leaf_h * 0.72
-			_add_door_part(pivot, hw, wy, 0.0, leaf_w * 0.48, leaf_h * 0.22, 3.1, m_pol_win)
-			for bx in [-4.8, -1.6, 1.6, 4.8]:
-				_add_door_part(pivot, hw + bx, wy, 0.0, 0.9, leaf_h * 0.24, 3.5, m_iron)
-			# Escudo policial de latón y manilla pesada
-			_add_door_part(pivot, hw, leaf_h * 0.32, 0.0, 4.5, 4.8, 3.5, m_gold)
+			_add_door_part(pivot, hw, wy, 0.0, leaf_w * 0.42, leaf_h * 0.18, 3.1, m_pol_win)
+			for bx in [-4.2, -1.4, 1.4, 4.2]:
+				_add_door_part(pivot, hw + bx, wy, 0.0, 0.9, leaf_h * 0.20, 3.5, m_iron)
 			_add_door_part(pivot, leaf_w - 5.2, leaf_h * 0.45, 0.0, 1.8, 3.6, 4.0, m_iron)
 		"building_hospital":
-			# Puerta clínica de doble hoja en madera clara y verde azulado sanitario con visores esmerilados y cruz médica roja
-			var m_hosp_leaf := _mat("door_hosp_leaf", Color(0.86, 0.90, 0.92), 0.65, 0.05)
-			var m_hosp_trim := _mat("door_hosp_trim", Color(0.26, 0.50, 0.54), 0.55, 0.10)
-			var m_hosp_glass := _mat("door_hosp_glass", Color(0.74, 0.92, 0.96), 0.20, 0.10, Color(0.45, 0.75, 0.82), 0.35)
-			var m_hosp_cross := _mat("door_hosp_cross", Color(0.84, 0.18, 0.18), 0.45, 0.05)
-			_add_door_part(pivot, hw, hh, 0.0, leaf_w, leaf_h, 2.6, m_hosp_leaf)
-			_add_door_part(pivot, 1.3, hh, 0.0, 2.6, leaf_h, 3.1, m_hosp_trim)
-			_add_door_part(pivot, hw, hh, 0.0, 2.2, leaf_h, 3.1, m_hosp_trim)
-			_add_door_part(pivot, leaf_w - 1.3, hh, 0.0, 2.6, leaf_h, 3.1, m_hosp_trim)
-			_add_door_part(pivot, hw, 2.0, 0.0, leaf_w, 3.2, 3.1, m_hosp_trim)
-			_add_door_part(pivot, hw, leaf_h * 0.46, 0.0, leaf_w, 2.0, 3.1, m_hosp_trim)
-			_add_door_part(pivot, hw, leaf_h - 1.5, 0.0, leaf_w, 2.4, 3.1, m_hosp_trim)
-			# Dos visores superiores y emblema de la cruz médica
-			_add_door_part(pivot, leaf_w * 0.27, leaf_h * 0.70, 0.0, leaf_w * 0.26, leaf_h * 0.28, 3.0, m_hosp_glass)
-			_add_door_part(pivot, leaf_w * 0.73, leaf_h * 0.70, 0.0, leaf_w * 0.26, leaf_h * 0.28, 3.0, m_hosp_glass)
-			_add_door_part(pivot, leaf_w * 0.27, leaf_h * 0.25, 0.0, 5.2, 1.6, 3.3, m_hosp_cross)
-			_add_door_part(pivot, leaf_w * 0.27, leaf_h * 0.25, 0.0, 1.6, 5.2, 3.3, m_hosp_cross)
-			_add_door_part(pivot, leaf_w * 0.73, leaf_h * 0.25, 0.0, 5.2, 1.6, 3.3, m_hosp_cross)
-			_add_door_part(pivot, leaf_w * 0.73, leaf_h * 0.25, 0.0, 1.6, 5.2, 3.3, m_hosp_cross)
+			# Portón del Hospital: madera oscura gastada y sucia con herrajes de hierro oxidado y una pequeña cruz pintada desvaída
+			var m_hosp_wood := _mat("door_hosp_worn_wood", Color(0.23, 0.17, 0.13), 0.92, 0.03, Color.BLACK, 0.0, "town_textures/rf_planks.png", "town_textures/rf_planks_n.png")
+			var m_hosp_stile := _mat("door_hosp_dark_stile", Color(0.17, 0.13, 0.10), 0.94, 0.04, Color.BLACK, 0.0, "town_textures/rf_planks.png", "town_textures/rf_planks_n.png")
+			var m_hosp_iron := _mat("door_hosp_worn_iron", Color(0.18, 0.16, 0.15), 0.80, 0.58, Color.BLACK, 0.0, "town_textures/wall_stone.png")
+			var m_hosp_vent := _mat("door_hosp_dark_vent", Color(0.10, 0.10, 0.09), 0.90, 0.10)
+			var m_hosp_cross := _mat("door_hosp_faded_cross", Color(0.42, 0.23, 0.19), 0.92, 0.0, Color.BLACK, 0.0, "town_textures/rf_planks.png")
+			_add_door_part(pivot, hw, hh, 0.0, leaf_w, leaf_h, 2.7, m_hosp_wood)
+			# Montantes verticales de madera oscura y flejes horizontales de hierro gastado
+			_add_door_part(pivot, 1.4, hh, 0.0, 2.8, leaf_h, 3.1, m_hosp_stile)
+			_add_door_part(pivot, hw, hh, 0.0, 2.2, leaf_h, 3.1, m_hosp_stile)
+			_add_door_part(pivot, leaf_w - 1.4, hh, 0.0, 2.8, leaf_h, 3.1, m_hosp_stile)
+			for ry in [2.2, leaf_h * 0.46, leaf_h - 1.8]:
+				_add_door_part(pivot, hw, ry, 0.0, leaf_w, 2.0, 3.3, m_hosp_iron)
+			# Pequeño ventanuco enrejado oscuro y una única cruz pintada pequeña y desvaída
+			var h_wy: float = leaf_h * 0.73
+			_add_door_part(pivot, hw, h_wy, 0.0, leaf_w * 0.28, leaf_h * 0.14, 3.0, m_hosp_vent)
+			for h_bx in [-2.6, 0.0, 2.6]:
+				_add_door_part(pivot, hw + h_bx, h_wy, 0.0, 0.7, leaf_h * 0.15, 3.4, m_hosp_iron)
+			_add_door_part(pivot, hw, leaf_h * 0.58, 0.0, 3.2, 0.95, 3.15, m_hosp_cross)
+			_add_door_part(pivot, hw, leaf_h * 0.58, 0.0, 0.95, 3.2, 3.15, m_hosp_cross)
+			_add_door_part(pivot, leaf_w - 5.0, leaf_h * 0.46, 0.0, 1.8, 3.6, 3.7, m_hosp_iron)
 		"building_tavern":
-			# Portón de roble de la Gran Taberna «El Jabalí Dorado»: madera de roble oscuro con herrajes, ventanuco ámbar y zócalo de latón
+			# Portón de roble de la Gran Taberna «El Jabalí Dorado»: madera de roble oscuro con herrajes, ventanuco ámbar y zócalo de hierro
 			var door_leaf := _make_texture_panel(leaf_w, leaf_h, 2.8, _panel_mat("door_tavern", "town_textures/door_wood_window_lit.png", false))
 			door_leaf.position = Vector3(hw * WORLD_SCALE, (hh * WORLD_SCALE) / _cos_p, 0.0)
 			pivot.add_child(door_leaf)
 			_add_door_part(pivot, 1.4, hh, 0.0, 2.6, leaf_h, 3.2, m_dark_wood)
 			_add_door_part(pivot, leaf_w - 1.4, hh, 0.0, 2.6, leaf_h, 3.2, m_dark_wood)
-			_add_door_part(pivot, hw, 1.8, 0.0, leaf_w - 1.0, 2.8, 3.3, m_gold)
+			_add_door_part(pivot, hw, 1.8, 0.0, leaf_w - 1.0, 2.8, 3.3, m_iron)
 			_add_door_part(pivot, hw, leaf_h * 0.44, 0.0, leaf_w - 1.0, 2.0, 3.3, m_iron)
 			_add_door_part(pivot, hw, leaf_h - 1.5, 0.0, leaf_w - 1.0, 2.2, 3.3, m_iron)
-			_add_door_part(pivot, leaf_w - 5.0, leaf_h * 0.44, 0.0, 2.2, 4.2, 3.8, m_gold)
+			_add_door_part(pivot, leaf_w - 5.0, leaf_h * 0.44, 0.0, 2.0, 4.0, 3.8, m_iron)
 		"building_library":
-			# Puerta noble de nogal y azul pizarra de la Biblioteca con vitrales verticales de lectura y aldaba de latón
-			var m_lib_wood := _mat("door_lib_walnut", Color(0.36, 0.23, 0.14), 0.72, 0.05, Color.BLACK, 0.0, "town_textures/rf_planks.png")
-			var m_lib_slate := _mat("door_lib_slate", Color(0.24, 0.36, 0.52), 0.65, 0.12)
-			var m_lib_glass := _mat("door_lib_glass", Color(0.96, 0.84, 0.54), 0.25, 0.10, Color(0.85, 0.68, 0.34), 0.55)
+			# Puerta de nogal oscuro y hierro forjado de la Biblioteca
+			var m_lib_wood := _mat("door_lib_walnut", Color(0.25, 0.17, 0.12), 0.88, 0.03, Color.BLACK, 0.0, "town_textures/rf_planks.png", "town_textures/rf_planks_n.png")
+			var m_lib_stile := _mat("door_lib_stile", Color(0.18, 0.13, 0.09), 0.92, 0.04, Color.BLACK, 0.0, "town_textures/rf_planks.png", "town_textures/rf_planks_n.png")
 			_add_door_part(pivot, hw, hh, 0.0, leaf_w, leaf_h, 2.7, m_lib_wood)
-			_add_door_part(pivot, 1.4, hh, 0.0, 2.8, leaf_h, 3.2, m_lib_slate)
-			_add_door_part(pivot, hw, hh, 0.0, 2.2, leaf_h, 3.2, m_lib_slate)
-			_add_door_part(pivot, leaf_w - 1.4, hh, 0.0, 2.8, leaf_h, 3.2, m_lib_slate)
-			_add_door_part(pivot, hw, 2.0, 0.0, leaf_w, 3.0, 3.2, m_lib_slate)
-			_add_door_part(pivot, hw, leaf_h - 1.6, 0.0, leaf_w, 2.6, 3.2, m_lib_slate)
-			for gx in [leaf_w * 0.27, leaf_w * 0.73]:
-				_add_door_part(pivot, gx, leaf_h * 0.66, 0.0, leaf_w * 0.22, leaf_h * 0.36, 3.0, m_lib_glass)
-				_add_door_part(pivot, gx, leaf_h * 0.25, 0.0, leaf_w * 0.24, leaf_h * 0.22, 3.1, m_gold)
+			_add_door_part(pivot, 1.4, hh, 0.0, 2.8, leaf_h, 3.2, m_lib_stile)
+			_add_door_part(pivot, hw, hh, 0.0, 2.2, leaf_h, 3.2, m_lib_stile)
+			_add_door_part(pivot, leaf_w - 1.4, hh, 0.0, 2.8, leaf_h, 3.2, m_lib_stile)
+			for ry in [2.0, leaf_h * 0.46, leaf_h - 1.6]:
+				_add_door_part(pivot, hw, ry, 0.0, leaf_w, 2.2, 3.3, m_iron)
+			_add_door_part(pivot, leaf_w - 5.0, leaf_h * 0.46, 0.0, 1.8, 3.6, 3.7, m_iron)
 		"mixed_family_herbalist":
-			# Puerta verde salvia de la Botica «Raíz Verde» con ventanuco de herbario, herrajes de cobre y corona botánica
-			var m_herb_green := _mat("door_herb_green", Color(0.22, 0.42, 0.26), 0.78, 0.04, Color.BLACK, 0.0, "town_textures/rf_planks.png")
-			var m_herb_trim := _mat("door_herb_trim", Color(0.38, 0.25, 0.15), 0.82, 0.03)
-			var m_herb_glass := _mat("door_herb_glass", Color(0.68, 0.92, 0.74), 0.22, 0.08, Color(0.38, 0.76, 0.46), 0.45)
-			var m_wreath := _mat("door_herb_wreath", Color(0.30, 0.62, 0.28), 0.85, 0.0)
-			_add_door_part(pivot, hw, hh, 0.0, leaf_w, leaf_h, 2.6, m_herb_green)
+			# Puerta de la Botica «Raíz Verde»: madera gastada y oscura con herrajes toscos de hierro y postigo oscuro
+			var m_herb_wood := _mat("door_herb_worn_wood", Color(0.22, 0.18, 0.13), 0.92, 0.03, Color.BLACK, 0.0, "town_textures/rf_planks.png", "town_textures/rf_planks_n.png")
+			var m_herb_trim := _mat("door_herb_dark_trim", Color(0.16, 0.13, 0.09), 0.94, 0.03, Color.BLACK, 0.0, "town_textures/rf_planks.png", "town_textures/rf_planks_n.png")
+			var m_herb_iron := _mat("door_herb_worn_iron", Color(0.19, 0.17, 0.15), 0.82, 0.56, Color.BLACK, 0.0, "town_textures/wall_stone.png")
+			var m_herb_shutter := _mat("door_herb_shutter", Color(0.13, 0.11, 0.09), 0.92, 0.05, Color.BLACK, 0.0, "town_textures/rf_planks.png")
+			_add_door_part(pivot, hw, hh, 0.0, leaf_w, leaf_h, 2.6, m_herb_wood)
 			_add_door_part(pivot, 1.4, hh, 0.0, 2.8, leaf_h, 3.1, m_herb_trim)
 			_add_door_part(pivot, leaf_w - 1.4, hh, 0.0, 2.8, leaf_h, 3.1, m_herb_trim)
-			_add_door_part(pivot, hw, 2.0, 0.0, leaf_w, 3.0, 3.1, m_herb_trim)
-			_add_door_part(pivot, hw, leaf_h * 0.46, 0.0, leaf_w, 2.2, 3.1, m_herb_trim)
-			_add_door_part(pivot, hw, leaf_h - 1.6, 0.0, leaf_w, 2.4, 3.1, m_herb_trim)
-			_add_door_part(pivot, hw, leaf_h * 0.72, 0.0, leaf_w * 0.46, leaf_h * 0.24, 3.0, m_herb_glass)
-			_add_door_part(pivot, hw, leaf_h * 0.72, 0.0, 5.2, 5.2, 3.4, m_wreath)
-			_add_door_part(pivot, leaf_w - 5.0, leaf_h * 0.46, 0.0, 2.0, 3.6, 3.6, m_gold)
+			for ry in [2.0, leaf_h * 0.46, leaf_h - 1.6]:
+				_add_door_part(pivot, hw, ry, 0.0, leaf_w, 2.0, 3.2, m_herb_iron)
+			_add_door_part(pivot, hw, leaf_h * 0.70, 0.0, leaf_w * 0.30, leaf_h * 0.15, 3.0, m_herb_shutter)
+			for bx in [-2.2, 2.2]:
+				_add_door_part(pivot, hw + bx, leaf_h * 0.70, 0.0, 0.7, leaf_h * 0.16, 3.3, m_herb_iron)
+			_add_door_part(pivot, leaf_w - 5.0, leaf_h * 0.46, 0.0, 1.8, 3.6, 3.6, m_herb_iron)
 		"building_church":
-			# Portón solemne de nogal oscuro de la Capilla del Alba con tachones de forja y cruz solar dorada en relieve
-			var m_ch_oak := _mat("door_church_oak", Color(0.26, 0.17, 0.11), 0.80, 0.04, Color.BLACK, 0.0, "town_textures/rf_planks.png")
+			# Portón de nogal oscuro de la Capilla del Alba con herrajes de forja y cruz sobria de bronce viejo
+			var m_ch_oak := _mat("door_church_oak", Color(0.22, 0.15, 0.10), 0.88, 0.04, Color.BLACK, 0.0, "town_textures/rf_planks.png", "town_textures/rf_planks_n.png")
+			var m_ch_bronze := _mat("door_church_old_bronze", Color(0.32, 0.25, 0.16), 0.78, 0.35, Color.BLACK, 0.0, "town_textures/rf_planks.png")
 			_add_door_part(pivot, hw, hh, 0.0, leaf_w, leaf_h, 2.9, m_ch_oak)
 			_add_door_part(pivot, 1.5, hh, 0.0, 3.0, leaf_h, 3.4, m_iron)
 			_add_door_part(pivot, hw, hh, 0.0, 2.4, leaf_h, 3.4, m_iron)
 			_add_door_part(pivot, leaf_w - 1.5, hh, 0.0, 3.0, leaf_h, 3.4, m_iron)
 			for ry in [2.4, leaf_h * 0.48, leaf_h - 2.0]:
 				_add_door_part(pivot, hw, ry, 0.0, leaf_w, 2.0, 3.4, m_iron)
-			# Cruz del Alba en latón dorado sobre el portón
-			_add_door_part(pivot, hw, leaf_h * 0.62, 0.0, 2.2, leaf_h * 0.42, 3.6, m_gold)
-			_add_door_part(pivot, hw, leaf_h * 0.68, 0.0, leaf_w * 0.38, 2.2, 3.6, m_gold)
-			_add_door_part(pivot, hw, leaf_h * 0.68, 0.0, 4.4, 4.4, 3.8, m_gold)
+			_add_door_part(pivot, hw, leaf_h * 0.62, 0.0, 1.6, leaf_h * 0.32, 3.5, m_ch_bronze)
+			_add_door_part(pivot, hw, leaf_h * 0.66, 0.0, leaf_w * 0.26, 1.6, 3.5, m_ch_bronze)
 		"building_abandoned_mill":
 			var m_mill_door := _mat("door_abandoned_mill", Color(0.24, 0.17, 0.12), 0.94, 0.02, Color.BLACK, 0.0, "town_textures/rf_planks.png", "town_textures/rf_planks_n.png")
 			var m_rust_iron := _mat("door_rust_iron", Color(0.22, 0.16, 0.13), 0.82, 0.55)
@@ -1536,19 +1530,20 @@ func _build_hospital_and_morgue_3d(b_root: Node3D, _rect: Rect2, wall_h: float, 
 	var ih: float = wall_h - 0.15
 	var m_steel := _mat("hosp_stainless_steel", Color(0.76, 0.82, 0.86), 0.26, 0.82)
 	var m_dark_steel := _mat("hosp_dark_steel", Color(0.38, 0.44, 0.48), 0.36, 0.76)
-	var m_white_enamel := _mat("hosp_white_enamel", Color(0.92, 0.95, 0.94), 0.35, 0.12)
-	var m_teal_trim := _mat("hosp_teal_trim", Color(0.20, 0.52, 0.48), 0.55, 0.08)
-	var m_teal_sheet := _mat("hosp_teal_sheet", Color(0.28, 0.68, 0.66), 0.82, 0.0)
-	var m_screen_cloth := _mat("hosp_screen_cloth", Color(0.66, 0.86, 0.82), 0.88, 0.0)
-	var m_pillow := _mat("hosp_pillow_white", Color(0.95, 0.96, 0.94), 0.85, 0.0)
-	var m_shroud := _mat("hosp_corpse_shroud", Color(0.84, 0.86, 0.80), 0.90, 0.0)
-	var m_morgue_floor := _mat("morgue_floor_blue_tile", Color(0.62, 0.72, 0.78), 0.55, 0.08, Color.BLACK, 0.0, "town_textures/floor_tiles_blue_small.png")
+	var m_white_enamel := _mat("hosp_white_enamel", Color(0.80, 0.82, 0.78), 0.65, 0.08, Color.BLACK, 0.0, "town_textures/wall_brick_small_sand.png")
+	var m_teal_trim := _mat("hosp_teal_trim", Color(0.28, 0.34, 0.33), 0.78, 0.08, Color.BLACK, 0.0, "town_textures/rf_planks.png")
+	var m_hosp_mat := _mat("hosp_entry_worn_mat", Color(0.28, 0.24, 0.20), 0.95, 0.0, Color.BLACK, 0.0, "town_textures/roof_thatch_center.png")
+	var m_teal_sheet := _mat("hosp_teal_sheet", Color(0.32, 0.48, 0.46), 0.88, 0.0, Color.BLACK, 0.0, "town_textures/floor_ground_dirt.png")
+	var m_screen_cloth := _mat("hosp_screen_cloth", Color(0.62, 0.68, 0.64), 0.90, 0.0, Color.BLACK, 0.0, "town_textures/floor_ground_sand.png")
+	var m_pillow := _mat("hosp_pillow_white", Color(0.88, 0.88, 0.84), 0.88, 0.0)
+	var m_shroud := _mat("hosp_corpse_shroud", Color(0.78, 0.78, 0.72), 0.92, 0.0)
+	var m_morgue_floor := _mat("morgue_floor_blue_tile", Color(0.54, 0.60, 0.64), 0.68, 0.06, Color.BLACK, 0.0, "town_textures/floor_tiles_blue_small_damaged.png")
 	var m_glass_jar := _mat("hosp_glass_jar", Color(0.58, 0.88, 0.82), 0.20, 0.10, Color(0.18, 0.55, 0.48), 0.35)
 	var m_lamp_glow := _mat("hosp_surgical_glow", Color(0.88, 0.98, 1.0), 0.15, 0.0, Color(0.78, 0.95, 1.0), 2.4)
 
-	# 1. Pavimento diferenciado de la Morgue Forense (Sur, y = 153..193) y alfombra clínica de entrada
+	# 1. Pavimento diferenciado de la Morgue Forense (Sur, y = 153..193) y felpudo gastado de entrada
 	_add_box_2d(b_root, Vector2(745.0, 173.5), Vector2(130.0, 39.0), 2.5, 0.30, m_morgue_floor)
-	_add_box_2d(b_root, Vector2(745.0, 112.0), Vector2(24.0, 12.0), 2.5, 0.25, m_teal_trim)
+	_add_box_2d(b_root, Vector2(745.0, 112.0), Vector2(24.0, 12.0), 2.5, 0.22, m_hosp_mat)
 
 	# 2. Tabique divisorio entre Urgencias y Morgue en y = 152 (sincronizado al milímetro con colisión 2D: 699,152 [44x6] y 791,152 [44x6]; paso libre x = 721..769)
 	_add_box_2d(b_root, Vector2(699.0, 152.0), Vector2(44.0, 5.4), 2.0, ih, m_wall)
@@ -1678,9 +1673,10 @@ func _build_library_3d(b_root: Node3D, rect: Rect2, door_south: bool, wall_h: fl
 	var c: Vector2 = rect.get_center()
 	var m_dir: float = -1.0 if door_south else 1.0
 	var ih: float = wall_h - 0.15
-	var m_rug_burgundy := _mat("lib_rug_burgundy", Color(0.42, 0.14, 0.16), 0.92, 0.0, Color.BLACK, 0.0, "town_textures/rf_planks.png")
-	var m_rug_border := _mat("lib_rug_border", Color(0.68, 0.54, 0.24), 0.85, 0.08)
-	var m_wainscot := _mat("lib_wainscot_oak", Color(0.34, 0.22, 0.14), 0.80, 0.04, Color.BLACK, 0.0, "town_textures/rf_planks.png")
+	var m_rug_burgundy := _mat("lib_rug_burgundy", Color(0.38, 0.17, 0.16), 0.96, 0.0, Color.BLACK, 0.0, "town_textures/floor_ground_dirt.png", "", 0.85)
+	var m_rug_border := _mat("lib_rug_border", Color(0.20, 0.13, 0.11), 0.98, 0.0, Color.BLACK, 0.0, "town_textures/floor_ground_dirt.png", "", 0.85)
+	var m_wainscot := _mat("lib_wainscot_oak", Color(0.30, 0.20, 0.13), 0.86, 0.04, Color.BLACK, 0.0, "town_textures/rf_planks.png")
+	var m_wainscot_cap := _mat("lib_wainscot_cap", Color(0.22, 0.15, 0.10), 0.88, 0.04, Color.BLACK, 0.0, "town_textures/rf_planks.png")
 	var m_book_red := _mat("lib_book_red", Color(0.62, 0.16, 0.14), 0.78, 0.05)
 	var m_book_blue := _mat("lib_book_blue", Color(0.16, 0.28, 0.48), 0.78, 0.05)
 	var m_book_green := _mat("lib_book_green", Color(0.16, 0.42, 0.24), 0.78, 0.05)
@@ -1688,20 +1684,20 @@ func _build_library_3d(b_root: Node3D, rect: Rect2, door_south: bool, wall_h: fl
 	var m_book_leather := _mat("lib_book_leather", Color(0.40, 0.24, 0.14), 0.82, 0.04)
 	var book_mats: Array[Material] = [m_book_red, m_book_blue, m_book_green, m_book_ochre, m_book_leather]
 
-	# 1. Alfombras nobles de lectura (sala norte y pasillo de entrada) con cenefa dorada
-	_add_box_2d(b_root, c + Vector2(0.0, 15.0 * m_dir), Vector2(82.0, 34.0), 2.5, 0.26, m_rug_border)
-	_add_box_2d(b_root, c + Vector2(0.0, 15.0 * m_dir), Vector2(78.0, 30.0), 2.55, 0.28, m_rug_burgundy)
-	_add_box_2d(b_root, c + Vector2(0.0, -20.0 * m_dir), Vector2(28.0, 30.0), 2.5, 0.26, m_rug_border)
-	_add_box_2d(b_root, c + Vector2(0.0, -20.0 * m_dir), Vector2(25.0, 27.0), 2.55, 0.28, m_rug_burgundy)
+	# 1. Alfombras tejidas gastadas de lectura (sala norte y pasillo de entrada), sin bordes amarillos chillones
+	_add_box_2d(b_root, c + Vector2(0.0, 15.0 * m_dir), Vector2(80.0, 32.0), 2.50, 0.14, m_rug_border)
+	_add_box_2d(b_root, c + Vector2(0.0, 15.0 * m_dir), Vector2(76.0, 28.5), 2.52, 0.15, m_rug_burgundy)
+	_add_box_2d(b_root, c + Vector2(0.0, -20.0 * m_dir), Vector2(27.0, 29.0), 2.50, 0.14, m_rug_border)
+	_add_box_2d(b_root, c + Vector2(0.0, -20.0 * m_dir), Vector2(24.0, 26.0), 2.52, 0.15, m_rug_burgundy)
 
 	# 2. Arcada interior de madera de nogal y friso perimetral que separa el Vestíbulo de Recepción de la Gran Sala de Lectura
 	for side_s in [-1.0, 1.0]:
 		_add_box_2d(b_root, c + Vector2(49.0 * side_s, -2.0 * m_dir), Vector2(22.0, 4.4), 2.0, 11.5, m_wainscot)
-		_add_box_2d(b_root, c + Vector2(49.0 * side_s, -2.0 * m_dir), Vector2(22.4, 4.8), 13.5, 1.2, m_gold)
+		_add_box_2d(b_root, c + Vector2(49.0 * side_s, -2.0 * m_dir), Vector2(22.4, 4.8), 13.5, 1.2, m_wainscot_cap)
 		_add_box_2d(b_root, c + Vector2(38.0 * side_s, -2.0 * m_dir), Vector2(3.4, 5.2), 2.0, ih, m_wainscot)
 		_add_box_2d(b_root, c + Vector2(58.0 * side_s, -2.0 * m_dir), Vector2(3.2, 5.0), 2.0, ih, m_wainscot)
 	_add_box_2d(b_root, c + Vector2(0.0, -2.0 * m_dir), Vector2(120.0, 4.8), 2.0 + ih * 0.78, ih * 0.22, m_wainscot)
-	_add_box_2d(b_root, c + Vector2(0.0, -2.0 * m_dir), Vector2(78.0, 5.2), 2.0 + ih * 0.76, 1.4, m_gold)
+	_add_box_2d(b_root, c + Vector2(0.0, -2.0 * m_dir), Vector2(78.0, 5.2), 2.0 + ih * 0.76, 1.4, m_wainscot_cap)
 
 	# 3. Fondo Antiguo (Muro Norte): 4 grandes librerías de nogal repletas de tomos encuadernados + 2 librerías laterales
 	var north_rot: float = 0.0 if door_south else 180.0
@@ -1777,9 +1773,9 @@ func _build_library_3d(b_root: Node3D, rect: Rect2, door_south: bool, wall_h: fl
 func _build_herbalist_apothecary_3d(b_root: Node3D, rect: Rect2, wall_h: float, m_wall: Material, m_trim: Material, m_wood: Material, m_dark_wood: Material, m_iron: Material, m_gold: Material) -> void:
 	var c: Vector2 = rect.get_center()
 	var ih: float = wall_h - 0.15
-	var m_herb_rug := _mat("herb_sage_rug", Color(0.24, 0.42, 0.28), 0.92, 0.0, Color.BLACK, 0.0, "town_textures/rf_planks.png")
-	var m_warm_rug := _mat("herb_home_rug", Color(0.46, 0.26, 0.18), 0.92, 0.0, Color.BLACK, 0.0, "town_textures/rf_planks.png")
-	var m_rug_trim := _mat("herb_rug_trim", Color(0.66, 0.54, 0.28), 0.86, 0.0)
+	var m_herb_rug := _mat("herb_sage_rug", Color(0.25, 0.29, 0.21), 0.96, 0.0, Color.BLACK, 0.0, "town_textures/floor_ground_dirt.png", "", 0.85)
+	var m_warm_rug := _mat("herb_home_rug", Color(0.36, 0.21, 0.16), 0.96, 0.0, Color.BLACK, 0.0, "town_textures/floor_ground_dirt.png", "", 0.85)
+	var m_rug_trim := _mat("herb_rug_trim", Color(0.18, 0.14, 0.11), 0.98, 0.0, Color.BLACK, 0.0, "town_textures/floor_ground_dirt.png", "", 0.85)
 	var m_hearth_stone := _mat("herb_brazier_stone", Color(0.46, 0.44, 0.40), 0.88, 0.04, Color.BLACK, 0.0, "town_textures/wall_brick_stone_center.png")
 	var m_brew := _mat("herb_emerald_brew", Color(0.22, 0.82, 0.44), 0.25, 0.05, Color(0.14, 0.68, 0.34), 1.35)
 	var m_amber_glass := _mat("herb_amber_alembic", Color(0.88, 0.56, 0.18), 0.22, 0.12, Color(0.62, 0.36, 0.08), 0.45)
@@ -1790,11 +1786,11 @@ func _build_herbalist_apothecary_3d(b_root: Node3D, rect: Rect2, wall_h: float, 
 	var m_pillow := _mat("herb_pillow", Color(0.94, 0.92, 0.86), 0.85, 0.0)
 	var m_plate := _mat("herb_plate", Color(0.90, 0.88, 0.82), 0.45, 0.05)
 
-	# 1. Alfombras de la Botica (pasillo central norte) y de la Vivienda trasera (comedor sur)
-	_add_box_2d(b_root, c + Vector2(0.0, -18.0), Vector2(24.0, 38.0), 2.5, 0.26, m_rug_trim)
-	_add_box_2d(b_root, c + Vector2(0.0, -18.0), Vector2(21.0, 35.0), 2.55, 0.28, m_herb_rug)
-	_add_box_2d(b_root, c + Vector2(0.0, 27.0), Vector2(46.0, 24.0), 2.5, 0.26, m_rug_trim)
-	_add_box_2d(b_root, c + Vector2(0.0, 27.0), Vector2(42.0, 21.0), 2.55, 0.28, m_warm_rug)
+	# 1. Alfombras de arpillera/lana gastadas de la Botica y de la Vivienda trasera, sin franjas amarillas
+	_add_box_2d(b_root, c + Vector2(0.0, -18.0), Vector2(23.0, 37.0), 2.50, 0.14, m_rug_trim)
+	_add_box_2d(b_root, c + Vector2(0.0, -18.0), Vector2(20.5, 34.5), 2.52, 0.15, m_herb_rug)
+	_add_box_2d(b_root, c + Vector2(0.0, 27.0), Vector2(45.0, 23.0), 2.50, 0.14, m_rug_trim)
+	_add_box_2d(b_root, c + Vector2(0.0, 27.0), Vector2(41.5, 20.0), 2.52, 0.15, m_warm_rug)
 
 	# 2. Tabique divisorio entre Botica (Norte) y Trastienda/Vivienda (Sur) en c.y + 4 (colisión 2D: c+(-42,4) [40x6] y c+(42,4) [40x6])
 	_add_box_2d(b_root, c + Vector2(-42.0, 4.0), Vector2(40.0, 5.4), 2.0, ih, m_wall)
@@ -1871,8 +1867,9 @@ func _build_herbalist_apothecary_3d(b_root: Node3D, rect: Rect2, wall_h: float, 
 func _build_church_chapel_3d(b_root: Node3D, rect: Rect2, wall_h: float, _m_wall: Material, m_trim: Material, m_wood: Material, m_dark_wood: Material, _m_iron: Material, m_gold: Material) -> void:
 	var c: Vector2 = rect.get_center()
 	var ih: float = wall_h - 0.15
-	var m_crimson := _mat("chapel_crimson", Color(0.56, 0.12, 0.14), 0.88, 0.02, Color.BLACK, 0.0, "town_textures/rf_planks.png")
-	var m_gold_trim := _mat("chapel_gold_trim", Color(0.76, 0.60, 0.22), 0.55, 0.35)
+	var m_crimson := _mat("chapel_crimson", Color(0.40, 0.16, 0.15), 0.96, 0.0, Color.BLACK, 0.0, "town_textures/floor_ground_dirt.png", "", 0.85)
+	var m_chapel_hem := _mat("chapel_rug_hem", Color(0.20, 0.12, 0.11), 0.98, 0.0, Color.BLACK, 0.0, "town_textures/floor_ground_dirt.png", "", 0.85)
+	var m_gold_trim := _mat("chapel_gold_trim", Color(0.34, 0.24, 0.15), 0.82, 0.18, Color.BLACK, 0.0, "town_textures/rf_planks.png")
 	var m_marble := _mat("chapel_altar_marble", Color(0.86, 0.84, 0.78), 0.38, 0.08, Color.BLACK, 0.0, "town_textures/wall_brick_stone_center.png")
 	var m_stained_sun := _mat("chapel_stained_sun", Color(0.98, 0.78, 0.28), 0.20, 0.10, Color(0.95, 0.68, 0.18), 1.45)
 	var m_stained_ruby := _mat("chapel_stained_ruby", Color(0.86, 0.20, 0.22), 0.25, 0.08, Color(0.72, 0.12, 0.14), 0.95)
@@ -1880,9 +1877,9 @@ func _build_church_chapel_3d(b_root: Node3D, rect: Rect2, wall_h: float, _m_wall
 	var m_monk_linen := _mat("chapel_monk_linen", Color(0.52, 0.36, 0.24), 0.88, 0.0)
 	var m_pillow := _mat("chapel_pillow", Color(0.92, 0.88, 0.80), 0.85, 0.0)
 
-	# 1. Alfombra procesional carmesí con cenefa dorada por el pasillo central y estrado del Presbiterio al Sur
-	_add_box_2d(b_root, c + Vector2(0.0, -6.0), Vector2(22.0, 56.0), 2.5, 0.26, m_gold_trim)
-	_add_box_2d(b_root, c + Vector2(0.0, -6.0), Vector2(18.5, 54.0), 2.55, 0.28, m_crimson)
+	# 1. Alfombra procesional gastada por el pasillo central (sin franjas amarillas) y estrado del Presbiterio al Sur
+	_add_box_2d(b_root, c + Vector2(0.0, -6.0), Vector2(21.0, 55.0), 2.50, 0.14, m_chapel_hem)
+	_add_box_2d(b_root, c + Vector2(0.0, -6.0), Vector2(18.5, 53.0), 2.52, 0.15, m_crimson)
 	# Estrado litúrgico bajo el Altar Mayor (y = 324..352)
 	_add_box_2d(b_root, c + Vector2(0.0, 26.0), Vector2(78.0, 24.0), 2.5, 0.36, m_marble)
 	_add_box_2d(b_root, c + Vector2(0.0, 26.0), Vector2(52.0, 20.0), 2.86, 0.16, m_crimson)
