@@ -327,7 +327,7 @@ static var CASES: Dictionary = {
 		"scene_clues": [
 			{"x": 300.0, "y": 150.0, "r": 16.0, "draw_kind": "drag", "k": "Hojarasca", "t": "Dos surcos paralelos desde el camino hasta el cuerpo: la trajeron a rastras.", "m": 10},
 			{"x": 214.0, "y": 196.0, "r": 14.0, "draw_kind": "prints", "k": "Huellas", "t": "Huellas de botas pequeñas, de una sola persona. Pisada nerviosa, de alguien joven.", "m": 10},
-			{"x": 258.0, "y": 60.0, "r": 16.0, "draw_kind": "wheels", "k": "Camino", "t": "Marcas de rueda de carro que paró aquí de madrugada y se dio la vuelta.", "m": 10},
+			{"x": 258.0, "y": 60.0, "r": 16.0, "draw_kind": "wheels", "k": "Camino", "t": "Marcas de rueda de un carro que llegó de madrugada desde el norte, río abajo, paró aquí y se dio la vuelta hacia el sur. ¿Por qué no volvió por donde vino?", "m": 10},
 			{"x": 330.0, "y": 300.0, "r": 12.0, "draw_kind": "herb", "k": "Junto al cuerpo", "t": "Una ramita seca de una hierba que no crece aquí. Huele igual que el pelo de la víctima.", "m": 5},
 			{"x": 250.0, "y": 400.0, "r": 18.0, "draw_kind": "circle", "k": "Bajo el cuerpo", "t": "Ni una gota de sangre en el suelo. No la mataron de un golpe, y quizá no aquí.", "m": 5},
 			{"x": 200.0, "y": 480.0, "r": 14.0, "draw_kind": "mud", "k": "Orilla del arroyo", "t": "Barro removido en la orilla, como si alguien se hubiera lavado las manos con prisa.", "m": 10}
