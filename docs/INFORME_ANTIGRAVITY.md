@@ -1,5 +1,15 @@
 # Informe de Trabajo — Antigravity (2026-11-08)
 
+## Resumen del ENCARGO DE HOY (2026-11-08, noche 6 — Río, arroyo y molino del Caso I + retoques de puertas y alfombras)
+- **Punto 1 — Río norte-sur, Puente Viejo, Claro del arroyo y Molino Viejo Abandonado (`a82546a`, `RECORRIDO PASSED`):**
+  - **Río y puentes:** cauce N-S (`y = -1180..940`) con curvas orgánicas en `FishingSpot.gd` sin mover ningún edificio existente; agua 3D real no pisable (`StaticBody2D` en capa 1), puesto de pesca ribereño (`Vector2(98, 188)`), **Puente Viejo de piedra/madera** en el centro del pueblo (`Vector2(118, 50)`) y 4 pasos/vados adicionales usados por el jugador y las rutas de los vecinos.
+  - **Claro del arroyo (Caso I):** `default_world_pos = Vector2(138, -860)` en `DetectiveCaseData.gd`, junto al agua y con orilla de **barro pardo**.
+  - **Molino Viejo Abandonado (`Vector2(188, -1060)`, `124×92 px`):** aguas arriba del claro siguiendo el arroyo hacia el norte; orilla de **barro rojo / arcilla** (color ladrillo con textura terrosa), **rueda de molino parada** en el muro oeste e interior en ruinas recorrible en 1.ª persona con **pajar con paja seca**, **hogar viejo con ceniza de carbón**, **cordel de cáñamo encerado** y **mesa con papel** (`«Lista de nombres — texto pendiente del autor»`).
+  - **Recorrido y capturas:** añadidas paradas `09_puente_viejo`, `10_claro_arroyo` y `11_molino_viejo` en `tools/tests/recorrido_fijo.gd` (`11/11` paradas en `126,3 s`, `wall_issues=0`, `console_errs=0`); 6 capturas en 1.ª persona en `docs/capturas_arreglos/rio_molino/`.
+- **Punto 4 — Retoques de puertas y suelos de interiores (`56d81f6`, `RECORRIDO PASSED`):**
+  - **Puertas:** sustituidos los colores chillones y planos (turquesa/blanco con cruces rojas del hospital, verde brillante y dorado de la botica, azul pizarra/dorado de biblioteca y comisaría) por **madera oscura gastada y herrajes de hierro oxidado** (`rf_planks.png` + `rf_planks_n.png`), dejando en el hospital una única cruz pintada pequeña y desvaída.
+  - **Suelos de biblioteca, botica y capilla:** eliminadas las franjas amarillas (`m_rug_border` / `m_rug_trim` / `m_gold_trim`) y convertidas las alfombras en **alfombras gastadas** de tejido oscuro y dobladillo deshilachado. Capturas antes/después en `docs/capturas_arreglos/interiores/` (`01_puerta_hospital_*` a `05_suelo_capilla_*`).
+
 ## Resumen del ENCARGO DE HOY (2026-11-08, noche 5 — Interiores 3D y puertas de los 6 edificios del Caso I)
 - **Objetivo cumplido (`FURNITURE_OVERLAPS=0`, `WALK_TEST_PASSED`, `RECORRIDO PASSED`):** rehechos en 1.ª persona 3D los interiores, colisiones 2D e iluminación de los 6 edificios que pisa el detective en el Caso I, con puertas 3D propias acordes a cada fachada y techos sin parpadeo (`roof_cap` a `2.0 + wall_h + 0.08`, tabiques a `wall_h - 0.15`).
 - **1. Comisaría y calabozo (`9f9e8ea`):** guardia/interrogatorio al N, calabozo al SO con barrotes de hierro oscuro, puerta corredera con cerradura/llave, camastro, cubo y grilletes, cuarto de pruebas al SE y puerta exterior blindada de acero remachado con mirilla.
