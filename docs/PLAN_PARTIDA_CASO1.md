@@ -7,4 +7,6 @@
 5. Bloque D — Resto de pistas del Caso I y Acusación final: recorrer a pie las demás pistas registradas en el Caso I, ejecutar la acusación con el sistema existente, guardar capturas en `docs/capturas_arreglos/caso1/partida/` y documentar el resultado.
 
 ## Estado de pistas comprobadas
-- (Pendiente de iniciar bloque A)
+- ✅ **Inicio en las afueras y Carta de contratación (`Vector2(-1180, 50)`):** el jugador aparece en el camino de las afueras con `HiringLetterPanel` abierto en pantalla y puede cerrarlo con `[E]` / `[Enter]`.
+- ✅ **Orilla del arroyo en el claro (`case1_clearing`, `Vector2(138, -860)`):** se alcanza a pie por el sendero del norte, `[E]` funciona (`Examinar orilla del arroyo`) y se anota en el cuaderno del caso (`clue_case1_clearing`).
+- 🔧 **Cuerpo de la víctima y pistas de la escena del claro (`case_01_forest_woman`, `Vector2(138, -870)`):** `DetectiveUI` y `DetectiveCaseData` tenían listas las 7 zonas del cuerpo y las 6 pistas del claro, pero `setup_village()` no colocaba el cadáver en el claro al iniciar la partida (arreglo pequeño en curso para colocar el cuerpo en el claro al arrancar).
