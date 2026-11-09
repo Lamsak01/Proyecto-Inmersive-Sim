@@ -11,8 +11,8 @@
   se aprietan entre sí · 1.ª persona, de noche. *(Retirado el campamento y huerto del pueblo en modo demo; el jugador empieza en las afueras, en el camino de entrada al valle `Vector2(-920, 50)`, con la pantalla de la carta de contratación al inicio).*
 - [ ] **Todo está demasiado comprimido** (petición grande del usuario): pueblo, campamento, lago, bosque y llanura
   están pegados. Quiere **un mapa unas 3 veces más grande**, con todo más separado y más largo (ver `ENCARGO_SIGUIENTE.md`).
-- [ ] **El bosque parece un parque:** demasiado cerca del pueblo, poca vegetación, y su borde (dónde empieza y acaba)
-  es recto y mecánico; saca de la inmersión · 3D, de día.
+- [x] ✅ (2026-11-09) **El bosque parece un parque:** demasiado cerca del pueblo, poca vegetación, y su borde (dónde empieza y acaba)
+  es recto y mecánico; saca de la inmersión · 3D, de día. *(Añadido bosque denso y oscuro de pinos, sauces y robles con borde irregular, penumbra bajo las copas y sotobosque espeso de arbustos, zarzas, helechos, musgo y troncos caídos alrededor del arroyo y el claro del cuerpo en `WorldStageTerrain3D.gd`).*
 - [ ] **Los animales solo rondan sus nidos/madrigueras** y siempre van todos juntos; no hacen nada más · bosque.
 - [ ] **Enemigos todavía en 2D** (los sapos de la Llanura Salvaje) · de día. **Petición:** mantener los sapos, pero con **modelo 3D basado en su
   sprite** (mismo diseño: sapo verde de pie con ropa roja). *(✅ 2026-11-07: ocultados por defecto los conos de visión de depuración en `VisionCone2D.gd` y `DummyEnemy.gd`)*.

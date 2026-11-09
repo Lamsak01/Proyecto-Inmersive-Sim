@@ -508,22 +508,22 @@ func _build_static_terrain_3d() -> void:
 	# Camino de entrada al valle en las afueras occidentales (x = -1320..-720, y = 50):
 	# pinos, robles, matorrales, mojón de piedra y poste indicador de madera flanqueando la entrada
 	for entry_tree in [
-		[Vector2(-1285.0, 8.0), "nature/Pine_1.obj", 44.0, 25.0],
+		[Vector2(-1285.0, 8.0), "nature/PineTree_1.obj", 44.0, 25.0],
 		[Vector2(-1230.0, 12.0), "nature/CommonTree_1.obj", 38.0, 90.0],
-		[Vector2(-1160.0, 10.0), "nature/Pine_2.obj", 42.0, 145.0],
+		[Vector2(-1160.0, 10.0), "nature/PineTree_2.obj", 42.0, 145.0],
 		[Vector2(-1095.0, 12.0), "nature/BirchTree_1.obj", 36.0, 210.0],
-		[Vector2(-1010.0, 6.0), "nature/Pine_1.obj", 44.0, 15.0],
-		[Vector2(-955.0, 12.0), "nature/Pine_2.obj", 38.0, 110.0],
+		[Vector2(-1010.0, 6.0), "nature/PineTree_1.obj", 44.0, 15.0],
+		[Vector2(-955.0, 12.0), "nature/PineTree_2.obj", 38.0, 110.0],
 		[Vector2(-885.0, 8.0), "nature/CommonTree_1.obj", 36.0, 45.0],
-		[Vector2(-825.0, 10.0), "nature/Pine_3.obj", 42.0, 195.0],
+		[Vector2(-825.0, 10.0), "nature/PineTree_3.obj", 42.0, 195.0],
 		[Vector2(-760.0, 12.0), "nature/BirchTree_1.obj", 34.0, 75.0],
-		[Vector2(-1270.0, 88.0), "nature/Pine_2.obj", 42.0, 170.0],
+		[Vector2(-1270.0, 88.0), "nature/PineTree_2.obj", 42.0, 170.0],
 		[Vector2(-1205.0, 86.0), "nature/CommonTree_2.obj", 38.0, 60.0],
-		[Vector2(-1138.0, 90.0), "nature/Pine_3.obj", 44.0, 130.0],
+		[Vector2(-1138.0, 90.0), "nature/PineTree_3.obj", 44.0, 130.0],
 		[Vector2(-1070.0, 86.0), "nature/CommonTree_1.obj", 38.0, 250.0],
-		[Vector2(-1000.0, 92.0), "nature/Pine_2.obj", 42.0, 160.0],
+		[Vector2(-1000.0, 92.0), "nature/PineTree_2.obj", 42.0, 160.0],
 		[Vector2(-938.0, 86.0), "nature/CommonTree_2.obj", 38.0, 230.0],
-		[Vector2(-872.0, 88.0), "nature/Pine_1.obj", 40.0, 85.0],
+		[Vector2(-872.0, 88.0), "nature/PineTree_1.obj", 40.0, 85.0],
 	]:
 		_add_model_2d(terrain_root_3d, str(entry_tree[1]), entry_tree[0] as Vector2, -0.4, Vector2.ZERO, float(entry_tree[2]), float(entry_tree[3]))
 	for entry_bush in [
@@ -996,23 +996,158 @@ func _build_river_and_arroyo_3d(
 							_add_cyl_2d(terrain_root_3d, side_r + r_off2, 0.58, reed_h2 - 1.4, 1.3, m_reed_head, 0.52, 6)
 		by_sample += 15.0 if in_town_reach else 26.0
 
-	# 6. Bosque denso del norte flanqueando el arroyo, el Claro del Caso I y el Molino Viejo Abandonado
+	# 6. Bosque denso y oscuro del norte flanqueando el arroyo, el Claro del Caso I y el Molino Viejo Abandonado
+	# Suelo de humus oscuro, pinocha y musgo sombrío bajo la espesura + penumbra de copas para que el claro se sienta escondido
+	var m_forest_humus := _mat("north_forest_humus", Color(0.14, 0.17, 0.10), 0.96, 0.0, Color.BLACK, 0.0, "town_textures/floor_ground_dirt.png", "", 0.78)
+	var m_forest_moss := _mat("north_forest_moss", Color(0.12, 0.21, 0.11), 0.95, 0.0, Color.BLACK, 0.0, "town_textures/floor_ground_dirt.png", "", 0.74)
+	var m_dark_canopy := _mat("north_dark_canopy", Color(0.07, 0.17, 0.09), 0.94, 0.0)
+	var m_dark_canopy_top := _mat("north_dark_canopy_top", Color(0.10, 0.22, 0.12), 0.92, 0.0)
+	var m_rotten_log := _mat("north_rotten_log", Color(0.22, 0.15, 0.10), 0.94, 0.0, Color.BLACK, 0.0, "town_textures/rf_planks.png", "", 0.82)
+	for humus_patch in [
+		[Vector2(28.0, -860.0), Vector2(96.0, 220.0), 6.0],
+		[Vector2(-48.0, -920.0), Vector2(110.0, 290.0), -8.0],
+		[Vector2(-118.0, -885.0), Vector2(95.0, 260.0), 11.0],
+		[Vector2(34.0, -1045.0), Vector2(88.0, 190.0), -5.0],
+		[Vector2(212.0, -855.0), Vector2(115.0, 210.0), -7.0],
+		[Vector2(288.0, -915.0), Vector2(125.0, 280.0), 9.0],
+		[Vector2(118.0, -760.0), Vector2(140.0, 74.0), 4.0],
+		[Vector2(116.0, -942.0), Vector2(68.0, 66.0), -6.0],
+	]:
+		_add_box_2d(terrain_root_3d, humus_patch[0] as Vector2, humus_patch[1] as Vector2, -0.32, 0.38, m_forest_humus, float(humus_patch[2]))
+	for moss_patch in [
+		[Vector2(54.0, -835.0), Vector2(36.0, 62.0), 14.0],
+		[Vector2(50.0, -912.0), Vector2(38.0, 68.0), -12.0],
+		[Vector2(174.0, -848.0), Vector2(44.0, 72.0), 9.0],
+		[Vector2(168.0, -918.0), Vector2(42.0, 58.0), -15.0],
+		[Vector2(116.0, -928.0), Vector2(32.0, 38.0), 18.0],
+	]:
+		_add_box_2d(terrain_root_3d, moss_patch[0] as Vector2, moss_patch[1] as Vector2, -0.28, 0.36, m_forest_moss, float(moss_patch[2]))
+
+	# Dosel alto de ramas entrelazadas que proyecta sombra real del sol sobre el arroyo y el claro (sin luces negativas que causen reflejos especulares en GLES3)
+	for canopy_arch in [
+		[Vector2(74.0, -848.0), 19.0, 22.0, 6.5],
+		[Vector2(72.0, -892.0), 20.0, 23.0, 7.0],
+		[Vector2(162.0, -852.0), 19.5, 22.0, 6.5],
+		[Vector2(158.0, -896.0), 20.0, 23.0, 7.0],
+		[Vector2(114.0, -935.0), 21.0, 24.0, 7.5],
+		[Vector2(112.0, -782.0), 19.0, 22.0, 6.5],
+	]:
+		_add_cyl_2d(terrain_root_3d, canopy_arch[0] as Vector2, float(canopy_arch[1]), float(canopy_arch[2]), float(canopy_arch[3]), m_dark_canopy, float(canopy_arch[1]) * 0.65, 9)
+
+	# Árboles densos con borde irregular (entrantes y salientes orgánicos, sin filas rectas) cerrando el horizonte y ocultando el molino desde el claro
 	var north_forest_trees: Array[Vector2] = [
-		Vector2(56.0, -765.0), Vector2(64.0, -808.0), Vector2(58.0, -855.0), Vector2(62.0, -900.0),
-		Vector2(60.0, -950.0), Vector2(66.0, -1005.0), Vector2(62.0, -1060.0), Vector2(68.0, -1115.0),
-		Vector2(18.0, -780.0), Vector2(24.0, -832.0), Vector2(16.0, -882.0), Vector2(22.0, -935.0),
-		Vector2(14.0, -988.0), Vector2(26.0, -1042.0), Vector2(18.0, -1098.0), Vector2(28.0, -1148.0),
-		Vector2(-28.0, -805.0), Vector2(-18.0, -865.0), Vector2(-32.0, -925.0), Vector2(-22.0, -985.0),
-		Vector2(-26.0, -1048.0), Vector2(-16.0, -1110.0), Vector2(-68.0, -840.0), Vector2(-74.0, -940.0),
-		Vector2(-64.0, -1040.0), Vector2(-72.0, -1130.0),
-		Vector2(175.0, -775.0), Vector2(188.0, -812.0), Vector2(194.0, -858.0), Vector2(186.0, -902.0),
-		Vector2(184.0, -948.0), Vector2(268.0, -995.0), Vector2(276.0, -1055.0), Vector2(268.0, -1118.0),
-		Vector2(228.0, -790.0), Vector2(236.0, -845.0), Vector2(232.0, -905.0), Vector2(226.0, -960.0),
-		Vector2(308.0, -830.0), Vector2(314.0, -920.0), Vector2(312.0, -1020.0), Vector2(306.0, -1110.0),
-		Vector2(150.0, -1145.0), Vector2(205.0, -1148.0), Vector2(92.0, -1155.0), Vector2(124.0, -1165.0),
+		# Ribera oeste inmediata del arroyo (x = 46..72): serpenteante y espesa
+		Vector2(68.0, -722.0), Vector2(54.0, -746.0), Vector2(66.0, -768.0), Vector2(58.0, -792.0),
+		Vector2(69.0, -814.0), Vector2(56.0, -836.0), Vector2(67.0, -858.0), Vector2(55.0, -878.0),
+		Vector2(68.0, -898.0), Vector2(57.0, -918.0), Vector2(69.0, -938.0), Vector2(58.0, -962.0),
+		Vector2(66.0, -986.0), Vector2(54.0, -1012.0), Vector2(65.0, -1038.0), Vector2(58.0, -1066.0),
+		Vector2(67.0, -1094.0), Vector2(56.0, -1122.0), Vector2(68.0, -1148.0),
+		# Segundo cinturón oeste (x = 12..44) con claros y salientes irregulares
+		Vector2(38.0, -692.0), Vector2(22.0, -718.0), Vector2(42.0, -738.0), Vector2(16.0, -762.0),
+		Vector2(34.0, -784.0), Vector2(19.0, -808.0), Vector2(39.0, -828.0), Vector2(14.0, -852.0),
+		Vector2(36.0, -872.0), Vector2(21.0, -894.0), Vector2(41.0, -914.0), Vector2(15.0, -938.0),
+		Vector2(33.0, -960.0), Vector2(18.0, -986.0), Vector2(38.0, -1010.0), Vector2(16.0, -1036.0),
+		Vector2(35.0, -1064.0), Vector2(20.0, -1092.0), Vector2(38.0, -1120.0), Vector2(24.0, -1150.0),
+		# Tercer y cuarto cinturón profundo al oeste (x = -165..8) para tapar por completo el horizonte izquierdo
+		Vector2(-8.0, -708.0), Vector2(-28.0, -736.0), Vector2(-12.0, -768.0), Vector2(-36.0, -796.0),
+		Vector2(-16.0, -824.0), Vector2(-38.0, -850.0), Vector2(-14.0, -878.0), Vector2(-34.0, -906.0),
+		Vector2(-18.0, -934.0), Vector2(-42.0, -964.0), Vector2(-20.0, -994.0), Vector2(-36.0, -1026.0),
+		Vector2(-16.0, -1058.0), Vector2(-38.0, -1090.0), Vector2(-18.0, -1124.0),
+		Vector2(-58.0, -748.0), Vector2(-74.0, -782.0), Vector2(-54.0, -816.0), Vector2(-78.0, -848.0),
+		Vector2(-60.0, -882.0), Vector2(-82.0, -916.0), Vector2(-58.0, -950.0), Vector2(-76.0, -986.0),
+		Vector2(-62.0, -1024.0), Vector2(-84.0, -1064.0), Vector2(-64.0, -1108.0),
+		Vector2(-108.0, -790.0), Vector2(-124.0, -835.0), Vector2(-104.0, -878.0), Vector2(-128.0, -922.0),
+		Vector2(-112.0, -968.0), Vector2(-134.0, -1015.0), Vector2(-116.0, -1068.0),
+		Vector2(-156.0, -855.0), Vector2(-168.0, -910.0), Vector2(-152.0, -965.0),
+		# Estrangulamiento forestal al norte del claro (y = -975..-918) entre el claro y el molino para que el claro quede escondido
+		Vector2(76.0, -922.0), Vector2(74.0, -946.0), Vector2(124.0, -942.0), Vector2(128.0, -968.0),
+		Vector2(162.0, -912.0), Vector2(168.0, -930.0), Vector2(160.0, -948.0), Vector2(174.0, -966.0),
+		# Borde sur irregular del claro (y = -818..-705) dejando solo el angosto sendero (x ~ 114..136)
+		Vector2(94.0, -735.0), Vector2(98.0, -764.0), Vector2(94.0, -792.0), Vector2(96.0, -814.0),
+		Vector2(138.0, -718.0), Vector2(148.0, -744.0), Vector2(136.0, -768.0), Vector2(152.0, -792.0),
+		Vector2(162.0, -814.0),
+		# Cinturón este del claro (x = 166..238): curvo y cerrado
+		Vector2(172.0, -732.0), Vector2(186.0, -758.0), Vector2(174.0, -782.0), Vector2(188.0, -806.0),
+		Vector2(174.0, -828.0), Vector2(184.0, -848.0), Vector2(176.0, -868.0), Vector2(186.0, -888.0),
+		Vector2(174.0, -908.0), Vector2(188.0, -932.0), Vector2(182.0, -956.0), Vector2(196.0, -980.0),
+		Vector2(204.0, -748.0), Vector2(218.0, -776.0), Vector2(202.0, -804.0), Vector2(222.0, -830.0),
+		Vector2(206.0, -856.0), Vector2(224.0, -882.0), Vector2(208.0, -908.0), Vector2(226.0, -936.0),
+		Vector2(212.0, -964.0), Vector2(232.0, -988.0),
+		# Cinturón profundo al este (x = 242..365) para tapar por completo el horizonte derecho
+		Vector2(246.0, -765.0), Vector2(262.0, -798.0), Vector2(244.0, -832.0), Vector2(266.0, -864.0),
+		Vector2(248.0, -896.0), Vector2(268.0, -928.0), Vector2(254.0, -962.0), Vector2(272.0, -996.0),
+		Vector2(264.0, -1032.0), Vector2(276.0, -1068.0), Vector2(266.0, -1104.0), Vector2(274.0, -1138.0),
+		Vector2(292.0, -812.0), Vector2(308.0, -848.0), Vector2(288.0, -884.0), Vector2(312.0, -920.0),
+		Vector2(296.0, -958.0), Vector2(316.0, -998.0), Vector2(302.0, -1042.0), Vector2(314.0, -1088.0),
+		Vector2(336.0, -855.0), Vector2(352.0, -905.0), Vector2(338.0, -955.0), Vector2(354.0, -1010.0),
+		# Cierre norte detrás del molino (y = -1135..-1175)
+		Vector2(146.0, -1138.0), Vector2(174.0, -1146.0), Vector2(204.0, -1142.0), Vector2(234.0, -1148.0),
+		Vector2(92.0, -1152.0), Vector2(122.0, -1160.0), Vector2(160.0, -1166.0), Vector2(218.0, -1164.0),
+	]
+	var dark_forest_models: Array[String] = [
+		"nature/PineTree_1.obj", "nature/PineTree_2.obj", "nature/PineTree_3.obj", "nature/PineTree_4.obj",
+		"nature/CommonTree_3.obj", "nature/PineTree_1.obj", "nature/Willow_1.obj", "nature/CommonTree_4.obj",
+		"nature/PineTree_2.obj", "nature/PineTree_3.obj", "nature/Willow_2.obj", "nature/PineTree_4.obj",
 	]
 	for nti in range(north_forest_trees.size()):
-		_build_tree_3d(terrain_root_3d, north_forest_trees[nti], m_dark_wood, m_pine, m_pine_top, 1.15 + float(nti % 3) * 0.14, nti + 3)
+		var t_pos: Vector2 = north_forest_trees[nti]
+		var scale_f: float = 1.05 + float(nti % 5) * 0.13
+		var m_file: String = dark_forest_models[nti % dark_forest_models.size()]
+		_add_model_2d(terrain_root_3d, m_file, t_pos, -0.3, Vector2.ZERO, 38.0 * scale_f, float(nti * 53))
+		# Copas bajas suplementarias de pino oscuro cada 2 árboles para cerrar huecos de visión a media altura
+		if (nti % 2) == 0:
+			_add_cyl_2d(terrain_root_3d, t_pos, 13.5 * scale_f, 5.5, 14.0 * scale_f, m_dark_canopy, 2.5 * scale_f, 8)
+			_add_cyl_2d(terrain_root_3d, t_pos, 9.5 * scale_f, 13.5, 11.0 * scale_f, m_dark_canopy_top, 1.2 * scale_f, 8)
+
+	# Sotobosque denso (arbustos, zarzas con bayas, helechos, troncos caídos musgosos y peñascos) rodeando el arroyo y el claro
+	var undergrowth_bushes: Array[Vector2] = [
+		Vector2(70.0, -755.0), Vector2(64.0, -778.0), Vector2(71.0, -802.0), Vector2(62.0, -824.0),
+		Vector2(69.0, -846.0), Vector2(61.0, -868.0), Vector2(70.0, -888.0), Vector2(63.0, -908.0),
+		Vector2(71.0, -928.0), Vector2(62.0, -948.0), Vector2(70.0, -972.0), Vector2(60.0, -996.0),
+		Vector2(44.0, -798.0), Vector2(46.0, -842.0), Vector2(42.0, -884.0), Vector2(45.0, -926.0),
+		Vector2(28.0, -818.0), Vector2(26.0, -864.0), Vector2(30.0, -906.0), Vector2(24.0, -948.0),
+		Vector2(98.0, -748.0), Vector2(95.0, -778.0), Vector2(98.0, -806.0),
+		Vector2(138.0, -756.0), Vector2(146.0, -780.0), Vector2(156.0, -804.0), Vector2(166.0, -822.0),
+		Vector2(170.0, -838.0), Vector2(168.0, -856.0), Vector2(170.0, -874.0), Vector2(166.0, -892.0),
+		Vector2(162.0, -908.0), Vector2(158.0, -924.0), Vector2(160.0, -940.0), Vector2(164.0, -956.0),
+		Vector2(124.0, -936.0), Vector2(126.0, -954.0), Vector2(130.0, -970.0),
+		Vector2(182.0, -818.0), Vector2(186.0, -862.0), Vector2(180.0, -902.0), Vector2(192.0, -942.0),
+		Vector2(204.0, -840.0), Vector2(210.0, -886.0), Vector2(202.0, -924.0),
+	]
+	var bush_models: Array[String] = [
+		"nature/Bush_1.obj", "nature/Bush_2.obj", "nature/BushBerries_1.obj", "nature/BushBerries_2.obj"
+	]
+	for ubi in range(undergrowth_bushes.size()):
+		var b_pos: Vector2 = undergrowth_bushes[ubi]
+		var b_scale: float = 8.5 + float(ubi % 4) * 1.8
+		_add_model_2d(terrain_root_3d, bush_models[ubi % bush_models.size()], b_pos, -0.2, Vector2.ZERO, b_scale, float(ubi * 41))
+		# Helechos y matas bajas junto a cada arbusto
+		var f_off := Vector2(cos(float(ubi) * 1.7) * 4.5, sin(float(ubi) * 2.3) * 4.5)
+		_add_model_2d(terrain_root_3d, "nature/Plant_2.obj" if (ubi % 2) == 0 else "nature/Plant_3.obj", b_pos + f_off, -0.15, Vector2.ZERO, 7.2 + float(ubi % 3) * 1.3, float(ubi * 67))
+
+	# Troncos caídos cubiertos de musgo y peñascos forestales en los bordes del claro y del arroyo
+	for fallen_log in [
+		[Vector2(62.0, -842.0), 32.0],
+		[Vector2(56.0, -892.0), -24.0],
+		[Vector2(170.0, -846.0), -38.0],
+		[Vector2(166.0, -896.0), 28.0],
+		[Vector2(162.0, -932.0), 14.0],
+		[Vector2(95.0, -798.0), -18.0],
+		[Vector2(154.0, -796.0), 42.0],
+		[Vector2(38.0, -868.0), -12.0],
+	]:
+		var l_pos: Vector2 = fallen_log[0] as Vector2
+		var l_rot: float = float(fallen_log[1])
+		_add_box_2d(terrain_root_3d, l_pos, Vector2(14.0, 3.0), 0.0, 2.6, m_rotten_log, l_rot)
+		_add_box_2d(terrain_root_3d, l_pos + Vector2(0.0, -0.4), Vector2(10.0, 2.2), 2.3, 0.6, m_forest_moss, l_rot)
+	for forest_rock in [
+		[Vector2(68.0, -830.0), "nature/Rock_3.obj", 7.8, 20.0],
+		[Vector2(66.0, -882.0), "nature/Rock_4.obj", 8.5, 85.0],
+		[Vector2(168.0, -832.0), "nature/Rock_5.obj", 8.2, 140.0],
+		[Vector2(166.0, -884.0), "nature/Rock_3.obj", 7.8, 210.0],
+		[Vector2(124.0, -930.0), "nature/Rock_4.obj", 7.4, 55.0],
+	]:
+		_add_model_2d(terrain_root_3d, str(forest_rock[1]), forest_rock[0] as Vector2, -0.15, Vector2.ZERO, float(forest_rock[2]), float(forest_rock[3]))
 
 	# 7. PUENTE VIEJO DE PIEDRA Y MADERA en el centro del pueblo (`OLD_BRIDGE_POS`, Calle Mayor)
 	var ob_pos := FishingSpotScript.OLD_BRIDGE_POS
