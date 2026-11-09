@@ -1,5 +1,18 @@
 # Informe de Trabajo — Antigravity (2026-11-08)
 
+## Resumen del ENCARGO DE HOY (2026-11-08, noche 4 — Estabilidad: recorrido fijo + guardar/cargar largo)
+- **Pruebas nuevas (`EXIT_CODE=0`):** `tools/tests/recorrido_fijo.gd` (`RECORRIDO PASSED` en `85,6 s`) y `tools/tests/guardado_largo.gd` (`GUARDADO LARGO PASSED` en `85,6 s`, 7 días con `demo_mode = true`).
+- **Qué falló al probar:**
+  1. En el recorrido fijo: la vecina `Gertrudis Fenwick` se metía en un muro/tabique en `(-363, 542)` (`_avoid_outdoor_buildings` usaba `grow(4.0)`, `_route_internal_building_partitions` solo cubría la herboristería y `_finish_frame_movement` no saneaba muros tras `move_and_slide()`) y nacían hierbas 3D dentro de suelos de casas y comisaría.
+  2. En guardar/cargar largo: `GameManager.save_game()` y `load_game()` no sincronizaban `DetectiveUI` (notas, pines y vínculos del tablero no se volcaban ni limpiaban al cargar), `VillageNPC` no guardaba `elevation_level` y el paso por JSON convertía a decimal campos enteros de `QuestManager` (`reward_gold`, `offers`) y `suspects.score`.
+- **Qué se arregló (commits separados):**
+  1. `475b218`: rodeo exterior/interior de muros y tabiques en `VillageManagerBase.gd` y `VillageNPCSocial.gd`, y exclusión de `building_footprints` al poblar hierba 3D en `WorldStageTerrain3D.gd`.
+  2. `a1f477d`: sincronización automática de `DetectiveUI` (`save_detective_state` / `load_detective_state`) en `GameManager.gd` y limpieza previa en `DetectiveUI.gd`.
+  3. `03b275b`: guardado de `elevation_level` en `VillageNPC.gd` y normalización de enteros tras JSON en `QuestManager.gd` y `VillageManager.gd`.
+- **Qué queda pendiente:** nada pendiente ni cambios grandes que requieran decisión.
+- **Cifras de memoria (7 días, 0 vecinos ni objetos duplicados):** Día 1: `464,99 MB` (`10853` nodos, `49144` objetos, `80` huérfanos, `48` vecinos vivos) → Día 2: `465,75 MB` (`10856` nodos) → Día 7: `466,70 MB` (`10851` nodos, `49153` objetos, `80` huérfanos, `48` vecinos). Variación Día 2 → Día 7: **`+0,94 MB`**, **`-5` nodos**, **`+0` huérfanos**.
+- **Capturas del recorrido (1.ª persona 3D):** `docs/capturas_arreglos/recorrido/` (`01_entrada_pueblo.png`, `02_plaza.png`, `03_taberna_interior.png`, `04_una_casa.png`, `05_comisaria.png`, `06_cementerio.png`, `07_bosque.png`, `08_borde_lago.png`).
+
 ## Resumen del ENCARGO DE HOY (2026-11-08, noche 3 — Vecinos sin superponerse en todo el pueblo)
 - **Resuelto el solape de vecinos en la plaza y en todo el pueblo (`docs/FALLOS_VISIBLES.md`, `8_vecinos_superpuestos_plaza.png`, martes 12:46):**
   1. **Causas detectadas:** (a) `_move_towards_point` teletransportaba al vecino con `global_position = nav_target` al llegar a `<= 6,5 px` de un hito o destino aunque ya hubiera otro vecino parado allí; (b) `_approach_or_stop` empujaba con `desired_vel` (`44–60 px/s`) contra destinos ya ocupados, venciendo la fuerza de separación (`<= 30 px/s`); (c) al cruzarse de frente o adelantarse por el mismo camino el empuje era colineal sin desvío lateral; (d) `_finish_frame_movement` tenía `apply_yield = false` por defecto y carecía de separación física posicional tras `move_and_slide()`; y (e) varios puntos compartidos (`home_table_pos`, `tavern_social_pos`, `work_position` con offset `0` y `CELL_RECT`) concentraban a varios vecinos en la misma coordenada exacta.

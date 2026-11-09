@@ -58,6 +58,12 @@ timeout 150 flatpak run org.godotengine.Godot --headless --path . -s tools/tests
 
 # Cobertura de diálogos: ejecuta todas las acciones de diálogo de todos los NPC. Debe dar 0 "SCRIPT ERROR".
 timeout 80 flatpak run org.godotengine.Godot --headless --path . -s tools/tests/dialogue_coverage.gd > /tmp/c.log 2>&1; grep 'COVERAGE DONE' /tmp/c.log; grep -c 'SCRIPT ERROR' /tmp/c.log
+
+# Recorrido fijo en 3D y 1.ª persona por 8 sitios del pueblo con capturas y chequeo de muros/vacío (< 5 min; imprime "RECORRIDO PASSED"):
+timeout 300 flatpak run org.godotengine.Godot --path . -s tools/tests/recorrido_fijo.gd
+
+# Guardado y carga durante 7 días comprobando estado completo, no duplicación y memoria (< 10 min; imprime "GUARDADO LARGO PASSED"):
+timeout 540 flatpak run org.godotengine.Godot --headless --path . --fixed-fps 60 -s tools/tests/guardado_largo.gd
 ```
 
 - **Un fallo intermitente conocido** en `verify_all.gd` (sección "reporte de cadáveres", "witness must transition to Phase 2"):

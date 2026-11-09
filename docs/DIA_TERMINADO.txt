@@ -1,0 +1,5 @@
+Día terminado (2026-11-08, noche 4 — Estabilidad: recorrido fijo + guardar/cargar largo):
+- Punto 1 completado: creado tools/tests/recorrido_fijo.gd (RECORRIDO PASSED en 85,6 s) con capturas en 1.ª persona 3D de los 8 sitios en docs/capturas_arreglos/recorrido/.
+- Punto 2 completado: creado tools/tests/guardado_largo.gd (GUARDADO LARGO PASSED en 85,6 s, 7 días simulados con guardado/carga diario, 0 duplicados y memoria estable: +0,94 MB entre Día 2 y Día 7).
+- Punto 3 completado: corregidos en commits independientes el rodeo de muros/tabiques y hierba 3D interior (475b218), la sincronización de DetectiveUI al guardar/cargar (a1f477d) y la conservación de elevation_level de vecinos y tipos enteros en misiones/expediente (03b275b).
+- Punto 4 completado: informe añadido arriba del todo en docs/INFORME_ANTIGRAVITY.md y ambas pruebas añadidas a la sección 3 de docs/HANDOFF.md.
