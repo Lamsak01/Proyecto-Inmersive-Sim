@@ -1071,7 +1071,7 @@ func to_save_dict() -> Dictionary:
 		"last_hit_weapon_name": last_hit_weapon_name, "last_hit_by_player": last_hit_by_player, "murder_witness_name": murder_witness_name,
 		"death_world_pos_x": death_world_pos.x, "death_world_pos_y": death_world_pos.y,
 		"death_day": death_day, "death_hour": death_hour, "death_minute": death_minute, "is_hostile": is_hostile,
-		"pos_x": save_pos.x, "pos_y": save_pos.y, "work_x": work_position.x, "work_y": work_position.y,
+		"pos_x": save_pos.x, "pos_y": save_pos.y, "elevation_level": elevation_level, "work_x": work_position.x, "work_y": work_position.y,
 		"bed_x": bed_position.x, "bed_y": bed_position.y, "table_x": home_table_pos.x, "table_y": home_table_pos.y,
 		"hp": health_comp.current_health if health_comp else 65.0,
 		"shop_stock": shop_stock.duplicate(), "workshop_materials": workshop_materials.duplicate(),
@@ -1208,6 +1208,7 @@ func from_save_dict(data: Dictionary) -> void:
 	need_hygiene = clampf(float(data.get("need_hygiene", need_hygiene)), 0.0, 100.0)
 	current_activity = int(data.get("activity", current_activity)) as ActivityState
 	global_position = _read_vec2(data, "pos_x", "pos_y", global_position)
+	elevation_level = int(data.get("elevation_level", 0))
 	work_position = _read_vec2(data, "work_x", "work_y", work_position)
 	bed_position = _read_vec2(data, "bed_x", "bed_y", bed_position)
 	home_table_pos = _read_vec2(data, "table_x", "table_y", home_table_pos)

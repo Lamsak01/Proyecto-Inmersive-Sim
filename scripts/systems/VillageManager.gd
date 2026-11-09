@@ -1173,8 +1173,18 @@ func load_economy_save_dict(data: Dictionary) -> void:
 				_active_traveling_merchant.from_save_dict(m_data)
 	if data.has("active_sheriff_investigation") and typeof(data["active_sheriff_investigation"]) == TYPE_DICTIONARY:
 		active_sheriff_investigation = (data["active_sheriff_investigation"] as Dictionary).duplicate(true)
+		if typeof(active_sheriff_investigation.get("suspects")) == TYPE_DICTIONARY:
+			var s_dict: Dictionary = active_sheriff_investigation["suspects"]
+			for sk in s_dict.keys():
+				if typeof(s_dict[sk]) == TYPE_DICTIONARY and (s_dict[sk] as Dictionary).has("score"):
+					s_dict[sk]["score"] = int(s_dict[sk]["score"])
 	if data.has("active_royal_investigation") and typeof(data["active_royal_investigation"]) == TYPE_DICTIONARY:
 		active_royal_investigation = (data["active_royal_investigation"] as Dictionary).duplicate(true)
+		if typeof(active_royal_investigation.get("suspects")) == TYPE_DICTIONARY:
+			var r_dict: Dictionary = active_royal_investigation["suspects"]
+			for rk in r_dict.keys():
+				if typeof(r_dict[rk]) == TYPE_DICTIONARY and (r_dict[rk] as Dictionary).has("score"):
+					r_dict[rk]["score"] = int(r_dict[rk]["score"])
 		var inv_data: Dictionary = data.get("royal_investigator_npc", {}) if typeof(data.get("royal_investigator_npc", {})) == TYPE_DICTIONARY else {}
 		if bool(active_royal_investigation.get("active", false)):
 			if not inv_data.is_empty() and not bool(inv_data.get("is_dead", false)):

@@ -123,9 +123,17 @@ func from_save_dict(data: Dictionary) -> void:
 				# JSON guarda los números como decimales
 				for f in ["day_started", "day_ended"]:
 					q[f] = int(q.get(f, -1))
+				if q.has("reward_gold"):
+					q["reward_gold"] = int(q.get("reward_gold", 0))
 				quests[str(k)] = q
 	_next_id = maxi(int(data.get("next_id", 1)), quests.size() + 1)
 	offers = (data.get("offers", {}) as Dictionary).duplicate(true) if typeof(data.get("offers", {})) == TYPE_DICTIONARY else {}
+	for ok in offers.keys():
+		if typeof(offers[ok]) == TYPE_DICTIONARY:
+			var od: Dictionary = offers[ok]
+			for f_off in ["day_offered", "market_day", "role", "reward_gold"]:
+				if od.has(f_off):
+					od[f_off] = int(od[f_off])
 	giver_cooldowns.clear()
 	var cds: Variant = data.get("giver_cooldowns", {})
 	if typeof(cds) == TYPE_DICTIONARY:
