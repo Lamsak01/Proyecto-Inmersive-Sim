@@ -101,6 +101,13 @@ documento de Word de `Documentos/`.
 desde el norte** (río abajo desde el molino) y **dio la vuelta**: un jugador atento ve las dos direcciones y entiende el
 engaño. *Pendiente:* ajustar los textos de la pista de las ruedas y del leñador en el juego.
 
+**La capa parda y la lana azul (decidido por el usuario, 2026-11-09):** son **dos secuestradores distintos**. El
+**joven de la capa parda** es el que estranguló a la víctima y el que vio huir la pastora. La **lana azul oscuro** bajo
+las uñas es de **otro secuestrador que la sujetaba** mientras el joven apretaba: ella le arañó el brazo. Así el jugador
+descubre que **eran varios**, lo que separa el final bueno (acusar al grupo) del perfecto (acusar al joven). La lana
+azul es una pista para encontrar al segundo: alguien con una **prenda azul rota** o **arañazos en el brazo**.
+*Pendiente:* reflejarlo en los textos del caso en el juego.
+
 **Nombres:** la hierba es la **belladama gris** (elegido por el usuario, 2026-11-08: recuerda a la belladona y el «dama» apunta a los ricos). La poción es el **sueño de cera** (elegido por el usuario, 2026-11-08: deja el cuerpo quieto y pálido como de cera).
 
 ## 5b. Acusación y final de la demo (decidido por el usuario, 2026-11-08)
