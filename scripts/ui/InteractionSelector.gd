@@ -39,6 +39,7 @@ const STATION_LABELS: Dictionary = {
 	"library_book_lever": "Accionar libro-palanca de la estantería secreta",
 	"library_secret_ledger": "Examinar cuaderno secreto de firmas",
 	"library_torn_book": "Examinar libro prohibido con página arrancada",
+	"old_bridge_left_shoe": "Examinar zapato izquierdo de la víctima",
 }
 
 var player: Node2D = null
@@ -569,6 +570,9 @@ func get_prompt_card_data() -> Dictionary:
 			"library_torn_book":
 				target_name = "Libro con página arrancada"
 				target_state = "Ocultismo y venenos"
+			"old_bridge_left_shoe":
+				target_name = "Zapato izquierdo"
+				target_state = "Puente Viejo"
 			_:
 				target_name = str(STATION_LABELS.get(tag, "Puesto"))
 				target_state = "Aldea"

@@ -1028,6 +1028,30 @@ func _build_river_and_arroyo_3d(
 				0.0,
 				true
 			)
+	# Punto 6 (Caso I): El zapato izquierdo de la víctima caído junto al pretil norte del Puente Viejo (`Vector2(110, 38)`)
+	var shoe_pos := Vector2(ob_cx - 10.0, ob_pos.y - 12.0)
+	var m_shoe_leather := _mat("victim_left_shoe_leather", Color(0.24, 0.14, 0.09), 0.78, 0.05)
+	var m_shoe_sole := _mat("victim_left_shoe_sole", Color(0.12, 0.08, 0.06), 0.92, 0.0)
+	var m_shoe_buckle := _mat("victim_left_shoe_buckle", Color(0.76, 0.62, 0.28), 0.35, 0.75)
+	var shoe_h: float = ob_base_h + 1.92
+	# Suela, tacón bajo, empeine y caña del zapato izquierdo volcado de costado tras el forcejeo
+	_add_box_2d(terrain_root_3d, shoe_pos, Vector2(4.6, 2.1), shoe_h, 0.42, m_shoe_sole, -24.0, true)
+	_add_box_2d(terrain_root_3d, shoe_pos + Vector2(-1.4, -0.6), Vector2(1.5, 2.0), shoe_h - 0.15, 0.75, m_shoe_sole, -24.0, true)
+	var shoe_upper := _add_box_2d(terrain_root_3d, shoe_pos + Vector2(0.3, 0.1), Vector2(4.2, 1.9), shoe_h + 0.38, 1.45, m_shoe_leather, -24.0, true)
+	shoe_upper.rotation.x = 0.28
+	_add_box_2d(terrain_root_3d, shoe_pos + Vector2(-1.0, 0.4), Vector2(2.1, 1.8), shoe_h + 1.35, 1.35, m_shoe_leather, -24.0, true)
+	_add_box_2d(terrain_root_3d, shoe_pos + Vector2(0.2, 0.9), Vector2(0.85, 0.55), shoe_h + 1.15, 0.55, m_shoe_buckle, -24.0, true)
+	var shoe_lbl := Label3D.new()
+	shoe_lbl.name = "OldBridgeVictimShoeLabel3D"
+	shoe_lbl.text = "👞 Zapato izquierdo de la víctima\n(caído junto al pretil)"
+	shoe_lbl.font_size = 16
+	shoe_lbl.outline_size = 4
+	shoe_lbl.pixel_size = 0.00072
+	shoe_lbl.modulate = Color(0.96, 0.90, 0.74, 0.96)
+	shoe_lbl.outline_modulate = Color(0.08, 0.06, 0.04, 0.98)
+	shoe_lbl.billboard = BaseMaterial3D.BILLBOARD_ENABLED
+	shoe_lbl.position = to_3d(shoe_pos, shoe_h + 5.8)
+	terrain_root_3d.add_child(shoe_lbl)
 
 	# 8. Puentes secundarios (Calle Norte en y = -351 y Senda de los Campos del Sur en y = 372) y vados de piedra
 	for cr in FishingSpotScript.RIVER_CROSSINGS:

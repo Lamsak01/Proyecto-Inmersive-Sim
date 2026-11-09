@@ -680,6 +680,18 @@ func interact(player: Node2D) -> void:
 			Color(0.84, 0.72, 0.54)
 		)
 		return
+	var bridge_shoe_pos := Vector2(FishingSpot.river_center_x(FishingSpot.OLD_BRIDGE_POS.y) - 10.0, FishingSpot.OLD_BRIDGE_POS.y - 12.0)
+	if pos.distance_squared_to(bridge_shoe_pos) <= 26.0 * 26.0:
+		_record_case_clue(
+			player,
+			"👞 Zapato izquierdo de la víctima (Puente Viejo)",
+			"👞 El zapato izquierdo que le faltaba al cadáver, con la hebilla torcida por un forcejeo junto al pretil del Puente Viejo: aquí mismo la secuestraron.",
+			"Puente Viejo: hallado el zapato izquierdo que faltaba en el cuerpo, caído junto al pretil donde la secuestraron.",
+			"Pista: Zapato en el Puente Viejo",
+			"clue_old_bridge_left_shoe",
+			Color(0.92, 0.82, 0.64)
+		)
+		return
 
 	var d_bed: float = pos.distance_squared_to(_tavern_bed_pos)
 	var d_games: float = pos.distance_squared_to(_tavern_games_pos)
