@@ -108,6 +108,15 @@ descubre que **eran varios**, lo que separa el final bueno (acusar al grupo) del
 azul es una pista para encontrar al segundo: alguien con una **prenda azul rota** o **arañazos en el brazo**.
 *Pendiente:* reflejarlo en los textos del caso en el juego.
 
+**Cómo llegó el frasco a la víctima (decidido por el usuario, 2026-11-09):** el familiar **pidió ayuda a la guardia**,
+pero no encontraron nada / no les importó / no tenían interés (los nobles mandan). **Pista:** en la comisaría hay una
+**denuncia de desaparición archivada** sin investigar. Luego la buscó por su cuenta siguiendo el río hasta el molino. La
+tienen **en el sótano del molino**, que da al **canal de la rueda**. Desde el agua llegó a una **reja de hierro** que no
+pudo arrancar (fuera había varios secuestradores armados), pero **entre los barrotes cabía el frasco**: se lo pasó y le
+susurró el plan. **Pistas en el molino:** reja con **marcas de haber intentado forzarla** y un **trozo de tela del
+familiar** enganchado. **El familiar tiene barro rojo en las botas** (estuvo en el molino): le hace aún más sospechoso.
+*Pendiente para el juego:* el molino necesita **sótano con reja al canal de la rueda**; la denuncia archivada en la comisaría.
+
 **Nombres:** la hierba es la **belladama gris** (elegido por el usuario, 2026-11-08: recuerda a la belladona y el «dama» apunta a los ricos). La poción es el **sueño de cera** (elegido por el usuario, 2026-11-08: deja el cuerpo quieto y pálido como de cera).
 
 ## 5b. Acusación y final de la demo (decidido por el usuario, 2026-11-08)
