@@ -377,6 +377,19 @@ static func _spawn_police_station_and_jail(vm: VillageManager) -> void:
 	vm.register_no_stand_furniture(Vector2(936, 189), Vector2(18.0, 7.0))
 	vm._add_prop_collider(Vector2(870, 182), Vector2(19.0, 11.0))
 	vm._add_prop_collider(Vector2(968, 178), Vector2(14.0, 20.0))
+	# Punto 4 (Caso I): Mesa / Archivador de Pruebas con la denuncia de desaparición archivada (`Vector2(934, 180)`)
+	var pol_rep_pos := Vector2(934.0, 180.0)
+	var pol_rep_2d := vm._add_rect_poly(pol_rep_pos, Vector2(16.0, 9.5), Color(0.42, 0.29, 0.18, 0.96), -1)
+	var pol_doc_2d := vm._add_rect_poly(pol_rep_pos + Vector2(1.0, -0.5), Vector2(7.5, 5.2), Color(0.92, 0.88, 0.76, 0.98), -1)
+	for prp in [pol_rep_2d, pol_doc_2d]:
+		if prp != null:
+			prp.add_to_group("ranch_fence_2d")
+	vm._add_prop_collider(pol_rep_pos, Vector2(15.0, 9.0))
+	vm.register_no_stand_furniture(pol_rep_pos, Vector2(16.0, 9.5))
+	vm._add_station_area("PoliceArchivedReportArea", pol_rep_pos, 22.0, "police_archived_report")
+	var pol_rep_lbl := vm._make_station_label(pol_rep_pos + Vector2(-130.0, -24.0), "📋 Denuncia de Desaparición Archivada [E: Examinar]")
+	vm.entities_root.add_child(pol_rep_lbl)
+	vm._extra_station_labels.append([pol_rep_lbl, pol_rep_pos])
 	vm._add_station_area("PoliceJailCellArea", vm._jail_cell_pos, 22.0, "police_jail")
 	vm._jail_label = vm._make_station_label(vm._jail_cell_pos + Vector2(-120, -28), "🚓 Celda Policial [E: Gestionar Fianza / Condena]")
 	vm.entities_root.add_child(vm._jail_label)
@@ -798,6 +811,19 @@ static func _spawn_river_arroyo_and_abandoned_mill(vm: VillageManager) -> void:
 	var paper_lbl := vm._make_station_label(table_pos + Vector2(-135.0, -26.0), "📄 Mesa con Papel: «Lista de nombres — texto pendiente del autor» [E: Leer]")
 	vm.entities_root.add_child(paper_lbl)
 	vm._extra_station_labels.append([paper_lbl, table_pos])
+
+	# (e) Punto 4 (Caso I): Sótano del molino con reja de hierro al canal de la rueda y tela del familiar enganchada (oeste: Vector2(138, -1061))
+	var cellar_pos := Vector2(138.0, -1061.0)
+	var cellar_pit_2d := vm._add_rect_poly(cellar_pos, Vector2(22.0, 20.0), Color(0.14, 0.16, 0.18, 0.96), -1)
+	var cellar_grate_2d := vm._add_rect_poly(Vector2(128.0, -1061.0), Vector2(3.5, 20.0), Color(0.32, 0.24, 0.18, 0.98), 0)
+	var cellar_cloth_2d := vm._add_rect_poly(Vector2(129.5, -1059.0), Vector2(4.0, 3.0), Color(0.24, 0.50, 0.74, 0.98), 0)
+	for clp in [cellar_pit_2d, cellar_grate_2d, cellar_cloth_2d]:
+		if clp != null:
+			clp.add_to_group("ranch_fence_2d")
+	vm._add_station_area("MillCellarGrateArea", cellar_pos, 26.0, "mill_cellar_grate")
+	var grate_lbl := vm._make_station_label(cellar_pos + Vector2(-125.0, -24.0), "🔩 Sótano y Reja al Canal de la Rueda [E: Examinar]")
+	vm.entities_root.add_child(grate_lbl)
+	vm._extra_station_labels.append([grate_lbl, cellar_pos])
 
 # ==============================================================================
 # PASO 5: 📋 TABLÓN DE ENCARGOS EN LA PLAZA CENTRAL (`Vector2(465, 24)`)

@@ -34,6 +34,8 @@ const STATION_LABELS: Dictionary = {
 	"mill_hearth": "Examinar hogar viejo con ceniza de carbón",
 	"mill_hemp_cord": "Examinar cordel de cáñamo encerado",
 	"mill_table_paper": "Leer «Lista de nombres — texto pendiente del autor»",
+	"mill_cellar_grate": "Examinar reja del sótano al canal de la rueda",
+	"police_archived_report": "Examinar denuncia de desaparición archivada",
 }
 
 var player: Node2D = null
@@ -549,6 +551,12 @@ func get_prompt_card_data() -> Dictionary:
 			"mill_table_paper":
 				target_name = "Mesa del molino"
 				target_state = "Lista de nombres"
+			"mill_cellar_grate":
+				target_name = "Reja del sótano al canal"
+				target_state = "Forzada · tela enganchada"
+			"police_archived_report":
+				target_name = "Denuncia archivada"
+				target_state = "Archivo policial"
 			_:
 				target_name = str(STATION_LABELS.get(tag, "Puesto"))
 				target_state = "Aldea"

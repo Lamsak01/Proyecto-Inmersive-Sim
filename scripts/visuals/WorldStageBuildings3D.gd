@@ -200,14 +200,18 @@ func rebuild_buildings_3d() -> void:
 				door_w = float(d_entry.get("width", 40.0))
 				break
 
-		# Muro izquierdo y derecho + pilares de esquina (en el molino viejo abandonado, el muro este y el muro norte tienen boquetes de derrumbe)
-		_add_box_2d(b_root, Vector2(rect.position.x, center.y), Vector2(wall_t, sz.y), 2.0, wall_h, m_wall)
+		# Muro izquierdo y derecho + pilares de esquina (en el molino viejo abandonado, el muro oeste tiene el hueco enrejado del sótano al canal de la rueda y el este/norte tienen boquetes)
 		if b_id == "building_abandoned_mill":
+			# Muro oeste con vano inferior para la reja del sótano que da al canal de la rueda (y = -1072..-1050)
+			_add_box_2d(b_root, Vector2(rect.position.x, rect.position.y + 17.0), Vector2(wall_t, 34.0), 2.0, wall_h, m_wall)
+			_add_box_2d(b_root, Vector2(rect.position.x, rect.end.y - 18.0), Vector2(wall_t, 36.0), 2.0, wall_h, m_wall)
+			_add_box_2d(b_root, Vector2(rect.position.x, center.y - 1.0), Vector2(wall_t, 24.0), 12.8, wall_h - 10.8, m_wall)
 			# Muro este con boquete de piedras derrumbadas en la mitad norte
 			_add_box_2d(b_root, Vector2(rect.end.x, rect.position.y + 14.0), Vector2(wall_t, 28.0), 2.0, wall_h, m_wall)
 			_add_box_2d(b_root, Vector2(rect.end.x, rect.end.y - 22.0), Vector2(wall_t, 44.0), 2.0, wall_h, m_wall)
 			_add_box_2d(b_root, Vector2(rect.end.x, rect.position.y + 38.0), Vector2(wall_t, 20.0), 2.0, 9.5, m_wall)
 		else:
+			_add_box_2d(b_root, Vector2(rect.position.x, center.y), Vector2(wall_t, sz.y), 2.0, wall_h, m_wall)
 			_add_box_2d(b_root, Vector2(rect.end.x, center.y), Vector2(wall_t, sz.y), 2.0, wall_h, m_wall)
 		for c_pt in [rect.position, Vector2(rect.end.x, rect.position.y), rect.end, Vector2(rect.position.x, rect.end.y)]:
 			_add_box_2d(b_root, c_pt, Vector2(wall_t + 2.0, wall_t + 2.0), 2.0, wall_h + 1.0, m_trim)
@@ -1531,6 +1535,34 @@ func _build_police_station_3d(b_root: Node3D, _rect: Rect2, wall_h: float, m_wal
 	_add_model_2d(b_root, "props/Nightstand_Shelf.gltf", Vector2(952.0, 185.0), 2.0, Vector2(7.0, 6.0), 7.5, 180.0)
 	_add_model_2d(b_root, "props/Bookcase_2.gltf", Vector2(936.0, 189.0), 2.0, Vector2(18.0, 7.0), 16.5, 180.0)
 	_add_model_2d(b_root, "props/Crate_Wooden.gltf", Vector2(974.0, 160.0), 2.0, Vector2(8.5, 8.5), 7.5)
+	# Punto 4 (Caso I): Mesa / Archivador de Pruebas con la «Denuncia de desaparición archivada» (`Vector2(934, 180)`)
+	var rep_pos := Vector2(934.0, 180.0)
+	var m_stamp_red := _mat("police_archived_stamp", Color(0.68, 0.14, 0.12), 0.85, 0.0)
+	var m_folder_tan := _mat("police_archived_folder", Color(0.72, 0.58, 0.38), 0.90, 0.0)
+	var m_ink_dark := _mat("police_archived_ink", Color(0.16, 0.14, 0.12), 0.90, 0.0)
+	_register_furniture_rect("PoliceEvidenceDesk", rep_pos, Vector2(16.0, 9.5))
+	_add_box_2d(b_root, rep_pos, Vector2(16.0, 9.5), 2.0, 6.8, m_dark_wood)
+	_add_box_2d(b_root, rep_pos, Vector2(17.0, 10.2), 8.6, 0.7, m_wood)
+	# Cajón de archivo entreabierto y carpeta con el papel de la denuncia archivada
+	_add_box_2d(b_root, rep_pos + Vector2(-4.2, -3.5), Vector2(6.2, 4.5), 5.6, 2.2, m_dark_wood)
+	_add_box_2d(b_root, rep_pos + Vector2(-4.2, -4.2), Vector2(5.4, 3.6), 6.4, 1.6, m_folder_tan)
+	_add_box_2d(b_root, rep_pos + Vector2(1.2, -0.4), Vector2(9.2, 6.8), 9.32, 0.24, m_folder_tan, -8.0)
+	_add_box_2d(b_root, rep_pos + Vector2(1.6, -0.2), Vector2(7.8, 5.8), 9.56, 0.22, m_paper, 5.0)
+	for r_line in [-1.6, -0.5, 0.6, 1.7]:
+		_add_box_2d(b_root, rep_pos + Vector2(1.5, r_line), Vector2(5.8, 0.36), 9.78, 0.08, m_ink_dark, 5.0)
+	# Sello rojo diagonal de «ARCHIVADA» sobre la denuncia
+	_add_box_2d(b_root, rep_pos + Vector2(2.6, 1.1), Vector2(3.6, 1.3), 9.80, 0.10, m_stamp_red, -18.0)
+	var rep_lbl := Label3D.new()
+	rep_lbl.name = "PoliceArchivedReportLabel3D"
+	rep_lbl.text = "📋 Denuncia de desaparición\n(ARCHIVADA)"
+	rep_lbl.font_size = 17
+	rep_lbl.outline_size = 4
+	rep_lbl.pixel_size = 0.00072
+	rep_lbl.modulate = Color(0.96, 0.90, 0.74, 0.96)
+	rep_lbl.outline_modulate = Color(0.08, 0.06, 0.04, 0.98)
+	rep_lbl.billboard = BaseMaterial3D.BILLBOARD_ENABLED
+	rep_lbl.position = to_3d(rep_pos + Vector2(1.0, -0.5), 11.4)
+	b_root.add_child(rep_lbl)
 
 	# 7. Iluminación interior y faroles de fachada
 	for lt_pos in [Vector2(882.0, 124.0), Vector2(952.0, 124.0)]:
@@ -2023,10 +2055,10 @@ func _build_abandoned_mill_3d(
 	var wheel_y: float = c.y
 	var wheel_axle_h: float = 11.5
 	var wheel_r_px: float = 15.0
-	# Canal de piedra del caz bajo la rueda y eje horizontal que atraviesa el muro oeste
+	# Canal de piedra del caz bajo la rueda y eje horizontal que se apoya en el muro oeste exterior
 	_add_box_2d(b_root, Vector2(wheel_x - 3.5, wheel_y), Vector2(3.2, 38.0), -1.2, 5.5, m_mill_stone)
-	_add_box_2d(b_root, Vector2(wheel_x + 4.5, wheel_y), Vector2(18.0, 3.6), wheel_axle_h - 1.8, 3.6, m_rotten_wood)
-	_add_box_2d(b_root, Vector2(wheel_x, wheel_y), Vector2(9.0, 4.4), wheel_axle_h - 2.2, 4.4, m_rust)
+	_add_box_2d(b_root, Vector2(wheel_x + 1.8, wheel_y), Vector2(6.5, 3.2), wheel_axle_h + 1.2, 2.8, m_rotten_wood)
+	_add_box_2d(b_root, Vector2(wheel_x, wheel_y), Vector2(6.0, 3.8), wheel_axle_h + 1.0, 3.2, m_rust)
 	# Tranca / madero caído que bloquea y mantiene parada la rueda del molino + depósitos de arcilla roja junto a la rueda
 	_add_box_2d(b_root, Vector2(wheel_x - 0.5, wheel_y + 11.0), Vector2(6.5, 18.0), 1.5, 2.6, m_rotten_wood, 18.0)
 	for clay_bank_patch in [
@@ -2157,11 +2189,11 @@ func _build_abandoned_mill_3d(
 	for st_leg in [Vector2(-1.8, -1.5), Vector2(1.8, -1.5), Vector2(-1.8, 1.5), Vector2(1.8, 1.5)]:
 		var lg := _add_box_2d(b_root, fallen_stool_p + st_leg + Vector2(1.6, 1.8), Vector2(0.9, 4.6), 2.2, 0.9, m_rotten_wood, 34.0)
 		lg.rotation.x = 0.18
-	# 3. Tonel / barril viejo de harina tumbado y desfondado junto a las muelas (`Vector2(142, -1060)`)
-	var fallen_barrel := _add_cyl_2d(b_root, Vector2(142.0, -1060.0), 4.2, 3.8, 8.5, m_rotten_wood, 3.8, 10)
+	# 3. Tonel / barril viejo de harina tumbado y desfondado junto a las muelas (`Vector2(160, -1076)`)
+	var fallen_barrel := _add_cyl_2d(b_root, Vector2(160.0, -1076.0), 4.2, 3.8, 8.5, m_rotten_wood, 3.8, 10)
 	fallen_barrel.rotation.z = 1.42
 	fallen_barrel.rotation.y = 0.35
-	_add_box_2d(b_root, Vector2(147.5, -1059.0), Vector2(9.0, 7.0), 2.03, 0.12, m_dust_pile, 18.0)
+	_add_box_2d(b_root, Vector2(165.5, -1075.0), Vector2(9.0, 7.0), 2.03, 0.12, m_dust_pile, 18.0)
 
 	# E) MADERAS CAÍDAS Y VIGAS DERRUMBADAS (en el suelo, apoyadas en las paredes y colgando del techo roto)
 	var beam_1 := _add_box_2d(b_root, Vector2(177.0, -1075.0), Vector2(30.0, 2.8), 3.4, 2.2, m_rotten_wood, 26.0)
@@ -2220,10 +2252,76 @@ func _build_abandoned_mill_3d(
 	web_mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 	b_root.add_child(web_mi)
 
-	# Engranaje interior roto y muelas de piedra viejas junto al muro oeste interior (`x = 136, y = -1062`)
-	_add_cyl_2d(b_root, Vector2(rect.position.x + 11.0, c.y - 2.0), 6.5, 2.0, 3.2, m_mill_stone, 6.5, 12)
-	_add_cyl_2d(b_root, Vector2(rect.position.x + 12.5, c.y + 4.0), 6.2, 5.2, 3.0, m_mill_stone, 6.2, 12)
-	_add_box_2d(b_root, Vector2(rect.position.x + 10.0, c.y - 2.0), Vector2(3.2, 3.2), 5.0, 9.5, m_rotten_wood)
+	# ==========================================================================
+	# 0b) PUNTO 4 (CASO I): SÓTANO DEL MOLINO CON REJA DE HIERRO AL CANAL DE LA RUEDA (`Vector2(138, -1061)`)
+	# ==========================================================================
+	# Foso escalonado de piedra húmeda bajo el lado oeste del molino que comunica con el canal de la rueda:
+	# incluye barrotes de hierro con marcas claras de palanca/forcejeo y un trozo de tela del familiar enganchado.
+	var cellar_pos := Vector2(139.0, -1061.0)
+	var m_cellar_water := _mat("mill_cellar_water", Color(0.10, 0.18, 0.22), 0.18, 0.25)
+	var m_pry_mark := _mat("mill_grate_pry_scrape", Color(0.74, 0.77, 0.82), 0.32, 0.88)
+	var m_kin_cloth := _mat("mill_kin_torn_cloth", Color(0.22, 0.46, 0.68), 0.88, 0.0, Color(0.08, 0.18, 0.28), 0.35, "town_textures/roof_thatch_center.png", "", 0.85)
+	# Hueco oscuro del sótano hundido y peldaños de piedra que bajan hacia el canal de la rueda
+	_add_box_2d(b_root, cellar_pos, Vector2(24.0, 22.0), 2.01, 0.14, m_floor_gap)
+	_add_box_2d(b_root, cellar_pos + Vector2(-4.0, 0.0), Vector2(16.0, 19.0), 0.20, 1.85, m_soot_stone)
+	_add_box_2d(b_root, Vector2(rect.position.x - 1.5, cellar_pos.y), Vector2(12.0, 20.0), 2.02, 0.18, m_cellar_water)
+	# Muretes laterales de piedra del foso del sótano y escalones de bajada desde el centro del molino
+	_add_box_2d(b_root, cellar_pos + Vector2(0.0, -11.2), Vector2(24.0, 2.4), 2.0, 3.8, m_mill_stone)
+	_add_box_2d(b_root, cellar_pos + Vector2(0.0, 11.2), Vector2(24.0, 2.4), 2.0, 3.8, m_mill_stone)
+	for st_i in range(3):
+		_add_box_2d(b_root, cellar_pos + Vector2(9.5 - float(st_i) * 3.8, 0.0), Vector2(3.6, 17.5), 2.0, 2.6 - float(st_i) * 0.75, m_mill_stone)
+	# Marco y dintel de piedra del vano del sótano hacia el canal de la rueda (`x = 126.5, y = -1061`)
+	var grate_x: float = rect.position.x + 1.2
+	_add_box_2d(b_root, Vector2(grate_x, cellar_pos.y - 10.8), Vector2(4.6, 3.0), 2.0, 11.2, m_soot_stone)
+	_add_box_2d(b_root, Vector2(grate_x, cellar_pos.y + 10.8), Vector2(4.6, 3.0), 2.0, 11.2, m_soot_stone)
+	_add_box_2d(b_root, Vector2(grate_x, cellar_pos.y), Vector2(4.8, 22.0), 2.0, 1.4, m_mill_stone)
+	_add_box_2d(b_root, Vector2(grate_x, cellar_pos.y), Vector2(4.8, 22.0), 11.8, 1.6, m_mill_stone)
+	# Travesaños horizontales de la reja de hierro (el travesaño central está combado por el intento de forzarla)
+	_add_box_2d(b_root, Vector2(grate_x + 0.4, cellar_pos.y), Vector2(1.4, 20.5), 3.4, 0.9, m_rust)
+	_add_box_2d(b_root, Vector2(grate_x + 0.4, cellar_pos.y), Vector2(1.4, 20.5), 10.8, 0.9, m_rust)
+	var mid_rail := _add_box_2d(b_root, Vector2(grate_x + 0.6, cellar_pos.y), Vector2(1.3, 20.5), 6.8, 0.85, m_rust)
+	mid_rail.rotation.z = 0.08
+	# Barrotes verticales de la reja: los dos centrales (`gy_i == 2` y `gy_i == 3`) están doblados/forzados dejando hueco para un frasco
+	var grate_ys: Array[float] = [-8.2, -5.0, -2.2, 2.4, 5.2, 8.2]
+	for gy_i in range(grate_ys.size()):
+		var gy_off: float = grate_ys[gy_i]
+		var bar_pos := Vector2(grate_x + 0.5, cellar_pos.y + gy_off)
+		var bar_mi := _add_cyl_2d(b_root, bar_pos, 0.62, 2.8, 8.8, m_rust, 0.62, 8)
+		if gy_i == 2:
+			bar_mi.rotation.x = -0.22
+			bar_mi.rotation.z = 0.14
+		elif gy_i == 3:
+			bar_mi.rotation.x = 0.24
+			bar_mi.rotation.z = -0.15
+	# Marcas brillantes de palanca y muescas de hierro forzado en los dos barrotes centrales y en el alféizar de piedra
+	for pry_d in [
+		[Vector2(grate_x + 0.9, cellar_pos.y - 1.6), Vector2(0.45, 0.65), 6.5, 0.9, 18.0],
+		[Vector2(grate_x + 0.9, cellar_pos.y + 1.8), Vector2(0.45, 0.65), 6.3, 0.9, -22.0],
+		[Vector2(grate_x + 1.2, cellar_pos.y - 0.3), Vector2(1.2, 2.0), 3.35, 0.22, 12.0],
+		[Vector2(grate_x + 1.3, cellar_pos.y + 1.0), Vector2(1.1, 1.6), 3.35, 0.22, -19.0],
+	]:
+		_add_box_2d(b_root, pry_d[0], pry_d[1], float(pry_d[2]), float(pry_d[3]), m_pry_mark, float(pry_d[4]))
+	# Trozo de tela azul del familiar enganchado en el barrote forzado (`Vector2(grate_x + 1.1, cellar_pos.y + 1.9)`)
+	var cloth_pos := Vector2(grate_x + 1.1, cellar_pos.y + 1.9)
+	var cloth_1 := _add_box_2d(b_root, cloth_pos, Vector2(2.4, 0.45), 5.6, 2.4, m_kin_cloth, 18.0)
+	cloth_1.rotation.z = 0.28
+	var cloth_2 := _add_box_2d(b_root, cloth_pos + Vector2(0.8, 0.5), Vector2(2.0, 0.38), 4.2, 1.9, m_kin_cloth, -24.0)
+	cloth_2.rotation.x = 0.24
+	_restaurant_light(b_root, Vector2(grate_x + 3.0, cellar_pos.y), 7.8, Color(0.58, 0.72, 0.84), 0.42, 1.8, false)
+	var grate_lbl := Label3D.new()
+	grate_lbl.name = "MillCellarGrateLabel3D"
+	grate_lbl.text = "🔩 Reja del sótano al canal\n(marcas de forcejeo y tela enganchada)"
+	grate_lbl.font_size = 16
+	grate_lbl.outline_size = 4
+	grate_lbl.pixel_size = 0.00072
+	grate_lbl.modulate = Color(0.86, 0.92, 0.98, 0.95)
+	grate_lbl.outline_modulate = Color(0.06, 0.06, 0.08, 0.98)
+	grate_lbl.billboard = BaseMaterial3D.BILLBOARD_ENABLED
+	grate_lbl.position = to_3d(Vector2(grate_x + 4.8, cellar_pos.y), 11.2)
+	b_root.add_child(grate_lbl)
+	# Muelas de piedra viejas desplazadas un poco al norte del foso del sótano (`x = 138, y = -1076`)
+	_add_cyl_2d(b_root, Vector2(rect.position.x + 12.0, c.y - 16.0), 5.8, 2.0, 3.0, m_mill_stone, 5.8, 12)
+	_add_cyl_2d(b_root, Vector2(rect.position.x + 13.5, c.y - 14.0), 5.5, 5.0, 2.8, m_mill_stone, 5.5, 12)
 
 	# ==========================================================================
 	# 1) PAJAR CON PAJA SECA (Esquina Noroeste: `Vector2(152, -1084)`)

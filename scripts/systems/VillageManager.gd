@@ -562,32 +562,89 @@ func interact(player: Node2D) -> void:
 		_use_hospital_emergency_bed(player)
 		return
 
-	# 5. Celda de la Comisaría
+	# 5. Celda de la Comisaría y Archivo de Pruebas (Caso I)
+	if pos.distance_squared_to(Vector2(934.0, 180.0)) <= 26.0 * 26.0 or pos.distance_squared_to(Vector2(856.0, 107.0)) <= 24.0 * 24.0:
+		_record_case_clue(
+			player,
+			"📋 Denuncia de desaparición archivada",
+			"📋 Expediente cerrado sin investigar: el familiar acudió a la guardia pidiendo ayuda cuando desapareció la víctima, pero archivaron la denuncia sin buscarla.",
+			"Comisaría: el familiar denunció la desaparición ante la guardia, pero archivaron el expediente sin investigar nada.",
+			"Pista: Denuncia archivada",
+			"clue_police_archived_report",
+			Color(0.95, 0.88, 0.68)
+		)
+		return
 	if player_in_jail or pos.distance_squared_to(_jail_cell_pos) <= 32.0 * 32.0:
 		_police_confront_cooldown = 0.0
 		trigger_police_confrontation(null)
 		return
 
 	# 5b. Pistas del Caso I en el Molino Viejo Abandonado y Claro del Arroyo
+	if pos.distance_squared_to(Vector2(138.0, -1061.0)) <= 28.0 * 28.0:
+		_record_case_clue(
+			player,
+			"🔩 Reja del sótano al canal de la rueda (con tela enganchada)",
+			"🔩 El sótano da al canal de la rueda. La reja de hierro tiene marcas de haber intentado forzarla desde el agua y un trozo de tela del familiar enganchado: entre los barrotes cabía el frasco.",
+			"Sótano del molino: reja al canal de la rueda con marcas de forcejeo y un trozo de tela del familiar enganchado; entre los barrotes cabía el frasco.",
+			"Pista: Reja y tela en el molino",
+			"clue_mill_cellar_grate",
+			Color(0.76, 0.88, 0.96)
+		)
+		return
 	if pos.distance_squared_to(Vector2(218.0, -1050.0)) <= 28.0 * 28.0:
-		_msg_player(player, "📄 «Lista de nombres — texto pendiente del autor»", Color(0.96, 0.90, 0.72), -42.0)
-		_hint_player("📄 Sobre la mesa del molino abandonado hay una hoja doblada: «Lista de nombres — texto pendiente del autor».", player)
+		_record_case_clue(
+			player,
+			"📄 «Lista de nombres — texto pendiente del autor»",
+			"📄 Sobre la mesa del molino abandonado hay una hoja doblada: «Lista de nombres — texto pendiente del autor».",
+			"Mesa del molino: hoja con una «Lista de nombres — texto pendiente del autor».",
+			"Pista: Lista en el molino",
+			"clue_mill_table_paper",
+			Color(0.96, 0.90, 0.72)
+		)
 		return
 	if pos.distance_squared_to(Vector2(150.0, -1040.0)) <= 26.0 * 26.0:
-		_msg_player(player, "🪢 Cordel de cáñamo encerado", Color(0.90, 0.80, 0.58), -42.0)
-		_hint_player("🪢 Un rollo de cordel de cáñamo encerado con marcas recientes de corte sobre el banco del molino.", player)
+		_record_case_clue(
+			player,
+			"🪢 Cordel de cáñamo encerado",
+			"🪢 Un rollo de cordel de cáñamo encerado con marcas recientes de corte sobre el banco del molino.",
+			"Molino viejo: rollo de cordel de cáñamo encerado recién cortado, idéntico a las fibras de las muñecas.",
+			"Pista: Cordel en el molino",
+			"clue_mill_hemp_cord",
+			Color(0.90, 0.80, 0.58)
+		)
 		return
 	if pos.distance_squared_to(Vector2(224.0, -1086.0)) <= 26.0 * 26.0:
-		_msg_player(player, "🪨 Hogar viejo con ceniza de carbón", Color(0.78, 0.78, 0.82), -42.0)
-		_hint_player("🪨 El hogar de piedra conserva ceniza negra de carbón mineral aún fría y restos de hollín.", player)
+		_record_case_clue(
+			player,
+			"🪨 Hogar viejo con ceniza de carbón",
+			"🪨 El hogar de piedra conserva ceniza negra de carbón mineral aún fría y restos de hollín.",
+			"Molino viejo: hogar de piedra con ceniza de carbón que coincide con el barro de las rodillas.",
+			"Pista: Ceniza en el molino",
+			"clue_mill_hearth",
+			Color(0.78, 0.78, 0.82)
+		)
 		return
 	if pos.distance_squared_to(Vector2(152.0, -1084.0)) <= 26.0 * 26.0:
-		_msg_player(player, "🌾 Pajar con paja seca", Color(0.92, 0.82, 0.45), -42.0)
-		_hint_player("🌾 Paja seca aplastada en el rincón del molino, como si alguien hubiera estado retenido o tendido aquí.", player)
+		_record_case_clue(
+			player,
+			"🌾 Pajar con paja seca",
+			"🌾 Paja seca aplastada en el rincón del molino, como si alguien hubiera estado retenido o tendido aquí.",
+			"Molino viejo: pajar con paja seca aplastada donde tuvieron retenida a la víctima.",
+			"Pista: Pajar del molino",
+			"clue_mill_hayloft",
+			Color(0.92, 0.82, 0.45)
+		)
 		return
 	if pos.distance_squared_to(FishingSpot.CASE1_CLEARING_POS) <= 28.0 * 28.0:
-		_msg_player(player, "🌲 Claro del Arroyo (orilla de barro pardo)", Color(0.84, 0.72, 0.54), -42.0)
-		_hint_player("🌲 El agua del arroyo deposita aquí barro pardo en un recodo tranquilo del bosque norte.", player)
+		_record_case_clue(
+			player,
+			"🌲 Claro del Arroyo (orilla de barro pardo)",
+			"🌲 El agua del arroyo deposita aquí barro pardo en un recodo tranquilo del bosque norte.",
+			"Claro del arroyo: el lodo de esta orilla es pardo, distinto del barro rojo de arcilla de los talones.",
+			"Pista: Barro pardo del claro",
+			"clue_case1_clearing",
+			Color(0.84, 0.72, 0.54)
+		)
 		return
 
 	var d_bed: float = pos.distance_squared_to(_tavern_bed_pos)
@@ -607,6 +664,18 @@ func interact(player: Node2D) -> void:
 		_use_water_well(player)
 	elif d_comp <= 26.0 * 26.0:
 		_use_compost_bin(player)
+
+
+func _record_case_clue(
+	player: Node2D, title: String, hint_txt: String, note_txt: String,
+	tag: String, source_key: String, msg_col: Color
+) -> void:
+	_msg_player(player, title, msg_col, -42.0)
+	_hint_player(hint_txt, player)
+	var ui_root := get_tree().get_first_node_in_group("game_ui")
+	if ui_root and "detective_ui" in ui_root and is_instance_valid(ui_root.detective_ui):
+		if ui_root.detective_ui.has_method("add_notebook_note"):
+			ui_root.detective_ui.add_notebook_note(title, note_txt, tag, source_key)
 
 # ==============================================================================
 # PUERTAS FÍSICAS, VENTANAS FORZABLES Y NIVEL DE SEGURIDAD / DESCONFIANZA DE LA ALDEA
