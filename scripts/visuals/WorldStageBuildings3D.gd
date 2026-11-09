@@ -98,6 +98,17 @@ func _style_for_building(b_id: String) -> Dictionary:
 	elif b_id == "building_school":
 		wall_col = Color(0.86, 0.78, 0.62)
 		roof_col = Color(0.68, 0.36, 0.24)
+	elif b_id == "building_abandoned_mill":
+		wall_tex = "town_textures/wall_stone.png"
+		wall_norm = "town_textures/wall_stone_n.png"
+		roof_tex = "town_textures/rf_planks.png"
+		floor_tex = "town_textures/floor_wood_planks.png"
+		wall_col = Color(0.46, 0.43, 0.39)
+		roof_col = Color(0.30, 0.21, 0.14)
+		floor_col = Color(0.36, 0.25, 0.16)
+		trim_col = Color(0.26, 0.18, 0.11)
+		wall_h = 26.0
+		roof_h = 13.0
 	elif b_id == "shop_family_smith" or b_id == "building_tinker":
 		roof_tex = "town_textures/roof_clay_grey_center.png"
 		wall_col = Color(0.60, 0.58, 0.56)
@@ -320,7 +331,13 @@ func rebuild_buildings_3d() -> void:
 		if absf(sz.x - sz.y) < 12.0:
 			ridge_x = (hv % 2) == 0
 		var roof_base_h: float = 2.0 + wall_h + 2.25
-		if sz.x > 118.0 and not (b_id in ["building_church"]):
+		if b_id == "building_abandoned_mill":
+			# Tejado medio hundido y en ruinas con huecos y cabrios de madera podrida al descubierto
+			_add_prism_2d(roof_cap, center + Vector2(-24.0, 0.0), Vector2(sz.x * 0.56, sz.y + ov * 1.5), roof_base_h, rh * 0.85, m_roof, false)
+			_add_prism_2d(roof_cap, center + Vector2(34.0, -10.0), Vector2(sz.x * 0.36, sz.y * 0.68), roof_base_h, rh * 0.58, m_roof, true)
+			for r_bx in [-46.0, -18.0, 10.0, 38.0]:
+				_add_box_2d(roof_cap, center + Vector2(r_bx, 0.0), Vector2(2.8, sz.y + 4.0), roof_base_h - 0.5, 2.6, m_trim)
+		elif sz.x > 118.0 and not (b_id in ["building_church"]):
 			# Cuerpo principal + ala más baja (rompe la caja: silueta en L vista desde arriba)
 			var main_w: float = sz.x * 0.60
 			var wing_w: float = sz.x - main_w
@@ -339,15 +356,16 @@ func rebuild_buildings_3d() -> void:
 			_add_box_2d(b_root, Vector2(center.x, rect.end.y), Vector2(sz.x + 2.0, 3.0), 2.0 + wall_h + 0.08, 2.5, m_trim)
 		_add_box_2d(b_root, Vector2(center.x, rect.position.y), Vector2(sz.x + 2.0, 3.0), 2.0 + wall_h + 0.08, 2.5, m_trim)
 		# Porche sobre la puerta en tiendas y casas (tejadillo inclinado sobre dos postes)
-		if (hv % 3) != 0 and not (b_id in ["building_church", "building_police", "building_hospital"]):
+		if (hv % 3) != 0 and not (b_id in ["building_church", "building_police", "building_hospital", "building_abandoned_mill"]):
 			var porch_dir: float = 1.0 if door_south else -1.0
 			var porch_c := Vector2(door_pos.x, door_y + porch_dir * 9.0)
 			_add_box_2d(b_root, porch_c, Vector2(door_w + 16.0, 18.0), wall_h * 0.70, 2.5, m_roof)
 			for px in [-1.0, 1.0]:
 				_add_box_2d(b_root, Vector2(door_pos.x + px * (door_w * 0.5 + 6.0), door_y + porch_dir * 16.0), Vector2(2.5, 2.5), 2.0, wall_h * 0.70 - 2.0, m_trim)
 		# Chimenea sobre la cumbrera
-		var ch_off := Vector2(half.x * (0.30 if (hv % 2) == 0 else -0.30), -half.y * 0.15)
-		_add_model_2d(roof_cap, "fantasy_town/chimney.glb", center + ch_off, roof_base_h + rh * 0.35, Vector2(9.0, 9.0), rh * 0.9)
+		if b_id != "building_abandoned_mill":
+			var ch_off := Vector2(half.x * (0.30 if (hv % 2) == 0 else -0.30), -half.y * 0.15)
+			_add_model_2d(roof_cap, "fantasy_town/chimney.glb", center + ch_off, roof_base_h + rh * 0.35, Vector2(9.0, 9.0), rh * 0.9)
 		# Campanario de la iglesia: torre de piedra con chapitel junto a la fachada
 		if b_id == "building_church":
 			var tower_c := Vector2(center.x, (rect.end.y - 16.0) if door_south else (rect.position.y + 16.0))
@@ -499,6 +517,8 @@ func _populate_building_interior_3d(b_root: Node3D, b_id: String, rect: Rect2, d
 			_build_church_chapel_3d(b_root, rect, wall_h, m_wall, m_trim, m_wood, m_dark_wood, m_iron, m_gold)
 		"building_library":
 			_build_library_3d(b_root, rect, door_south, wall_h, m_wall, m_trim, m_wood, m_dark_wood, m_iron, m_gold)
+		"building_abandoned_mill":
+			_build_abandoned_mill_3d(b_root, rect, wall_h, m_wall, m_trim, m_wood, m_dark_wood, m_iron, m_gold)
 		"building_school":
 			var m_dir2: float = -1.0 if door_south else 1.0
 			for p in [Vector2(-30, 6), Vector2(0, 6), Vector2(30, 6), Vector2(-30, 26), Vector2(0, 26), Vector2(30, 26)]:
@@ -1360,6 +1380,14 @@ func _build_door_leaf_3d(pivot: Node3D, b_id: String, leaf_w: float, leaf_h: flo
 			_add_door_part(pivot, hw, leaf_h * 0.62, 0.0, 2.2, leaf_h * 0.42, 3.6, m_gold)
 			_add_door_part(pivot, hw, leaf_h * 0.68, 0.0, leaf_w * 0.38, 2.2, 3.6, m_gold)
 			_add_door_part(pivot, hw, leaf_h * 0.68, 0.0, 4.4, 4.4, 3.8, m_gold)
+		"building_abandoned_mill":
+			var m_mill_door := _mat("door_abandoned_mill", Color(0.24, 0.17, 0.12), 0.94, 0.02, Color.BLACK, 0.0, "town_textures/rf_planks.png", "town_textures/rf_planks_n.png")
+			var m_rust_iron := _mat("door_rust_iron", Color(0.22, 0.16, 0.13), 0.82, 0.55)
+			_add_door_part(pivot, hw, hh, 0.0, leaf_w, leaf_h, 2.8, m_mill_door)
+			for ry in [2.6, leaf_h * 0.48, leaf_h - 2.4]:
+				_add_door_part(pivot, hw, ry, 0.0, leaf_w, 2.0, 3.3, m_rust_iron)
+			_add_door_part(pivot, 1.5, hh, 0.0, 2.6, leaf_h, 3.3, m_rust_iron)
+			_add_door_part(pivot, leaf_w - 1.5, hh, 0.0, 2.6, leaf_h, 3.3, m_rust_iron)
 		_:
 			var door_leaf := _make_texture_panel(leaf_w, leaf_h, 3.0, _panel_mat("door_wood", "town_textures/door_wood.png", false))
 			door_leaf.position = Vector3(hw * WORLD_SCALE, (hh * WORLD_SCALE) / _cos_p, 0.0)
@@ -1939,6 +1967,215 @@ func _build_church_chapel_3d(b_root: Node3D, rect: Rect2, wall_h: float, _m_wall
 	_restaurant_light(b_root, altar_p + Vector2(0.0, -4.0), 15.5, Color(1.0, 0.82, 0.44), 1.15, 2.4, false)
 	_add_model_2d(b_root, "props/Lantern_Wall.gltf", c + Vector2(-24.0, -48.5), wall_h * 0.58, Vector2(4.0, 4.0), 6.0)
 	_add_model_2d(b_root, "props/Lantern_Wall.gltf", c + Vector2(24.0, -48.5), wall_h * 0.58, Vector2(4.0, 4.0), 6.0)
+
+
+## Punto 1 del Encargo (Caso I): Molino Viejo Abandonado río arriba del Claro (`building_abandoned_mill`, centro 188,-1060, tamaño 124x92, puerta al sur).
+## Exterior con rueda de molino parada junto al arroyo y orilla de barro rojo / arcilla;
+## Interior en ruinas caminable en primera persona con:
+##  1) Pajar con paja seca (`Vector2(152, -1084)`),
+##  2) Hogar viejo con ceniza de carbón (`Vector2(224, -1086)`),
+##  3) Cordel de cáñamo encerado (`Vector2(150, -1040)`),
+##  4) Mesa (`Vector2(218, -1050)`) con un papel con el texto provisional «Lista de nombres — texto pendiente del autor».
+func _build_abandoned_mill_3d(
+	b_root: Node3D, rect: Rect2, wall_h: float, _m_wall: Material, m_trim: Material,
+	m_wood: Material, m_dark_wood: Material, m_iron: Material, _m_gold: Material
+) -> void:
+	var c: Vector2 = rect.get_center()
+	var m_rotten_wood := _mat("mill_rotten_wood", Color(0.28, 0.20, 0.13), 0.94, 0.02, Color.BLACK, 0.0, "town_textures/rf_planks.png", "town_textures/rf_planks_n.png", 0.78)
+	var m_moss_wood := _mat("mill_moss_wood", Color(0.26, 0.31, 0.19), 0.92, 0.02, Color.BLACK, 0.0, "town_textures/rf_planks.png", "", 0.78)
+	var m_rust := _mat("mill_rusted_iron", Color(0.25, 0.17, 0.13), 0.80, 0.55)
+	var m_mill_stone := _mat("mill_old_stone", Color(0.42, 0.40, 0.37), 0.92, 0.04, Color.BLACK, 0.0, "town_textures/wall_stone.png", "town_textures/wall_stone_n.png", 0.75)
+	var m_soot_stone := _mat("mill_soot_stone", Color(0.20, 0.19, 0.18), 0.95, 0.02, Color.BLACK, 0.0, "town_textures/wall_stone.png", "", 0.75)
+	var m_coal_ash := _mat("mill_coal_ash", Color(0.14, 0.14, 0.15), 0.98, 0.02, Color.BLACK, 0.0, "town_textures/floor_ground_dirt.png", "", 0.85)
+	var m_coal_chunk := _mat("mill_coal_chunk", Color(0.08, 0.08, 0.09), 0.78, 0.10, Color.BLACK, 0.0, "town_textures/wall_stone.png", "", 0.85)
+	var m_dry_straw := _mat("mill_dry_straw", Color(0.76, 0.62, 0.28), 0.92, 0.0, Color.BLACK, 0.0, "town_textures/roof_thatch_center.png", "", 0.80)
+	var m_straw_dark := _mat("mill_dry_straw_dark", Color(0.62, 0.49, 0.22), 0.94, 0.0, Color.BLACK, 0.0, "town_textures/roof_thatch_center.png", "", 0.80)
+	var m_hemp_cord := _mat("mill_waxed_hemp", Color(0.74, 0.63, 0.39), 0.78, 0.04, Color.BLACK, 0.0, "town_textures/roof_thatch_center.png", "", 0.85)
+	var m_beeswax := _mat("mill_beeswax", Color(0.78, 0.62, 0.26), 0.58, 0.05, Color.BLACK, 0.0, "town_textures/floor_ground_sand.png", "", 0.85)
+	var m_paper := _mat("mill_list_paper", Color(0.90, 0.85, 0.72), 0.88, 0.0, Color.BLACK, 0.0, "town_textures/floor_ground_sand.png", "", 0.85)
+	var m_ink := _mat("mill_list_ink", Color(0.16, 0.13, 0.11), 0.90, 0.0)
+	var m_red_clay_stain := _mat("mill_floor_red_clay", Color(0.66, 0.28, 0.19), 0.78, 0.03, Color.BLACK, 0.0, "town_textures/floor_ground_dirt.png", "", 0.80)
+
+	# 0. EXTERIOR: Rueda de molino parada en el muro oeste (sobre el cauce del arroyo y el barro rojo)
+	var wheel_x: float = rect.position.x - 5.5
+	var wheel_y: float = c.y
+	var wheel_axle_h: float = 11.5
+	var wheel_r_px: float = 15.0
+	# Canal de piedra del caz bajo la rueda y eje horizontal que atraviesa el muro oeste
+	_add_box_2d(b_root, Vector2(wheel_x - 3.5, wheel_y), Vector2(3.2, 38.0), -1.2, 5.5, m_mill_stone)
+	_add_box_2d(b_root, Vector2(wheel_x + 4.5, wheel_y), Vector2(18.0, 3.6), wheel_axle_h - 1.8, 3.6, m_rotten_wood)
+	_add_box_2d(b_root, Vector2(wheel_x, wheel_y), Vector2(9.0, 4.4), wheel_axle_h - 2.2, 4.4, m_rust)
+	# Tranca / madero caído que bloquea y mantiene parada la rueda del molino
+	_add_box_2d(b_root, Vector2(wheel_x - 0.5, wheel_y + 11.0), Vector2(6.5, 18.0), 1.5, 2.6, m_rotten_wood, 18.0)
+
+	# Rueda hidráulica de madera oscura y musgo (8 radios y 8 álabes/paletas, completamente parada)
+	var wheel_root := Node3D.new()
+	wheel_root.name = "StoppedMillWaterwheel3D"
+	wheel_root.position = to_3d(Vector2(wheel_x, wheel_y), wheel_axle_h)
+	b_root.add_child(wheel_root)
+	var n_paddles: int = 10
+	for pi in range(n_paddles):
+		var ang: float = (TAU * float(pi)) / float(n_paddles) + 0.18
+		var sy_p: float = cos(ang) * wheel_r_px
+		var sz_h: float = sin(ang) * wheel_r_px
+		# Dos radios laterales + paleta transversal del álabe + segmentos de llanta circular
+		for rim_x in [-2.4, 2.4]:
+			var spoke_mi := MeshInstance3D.new()
+			var spoke_bm := BoxMesh.new()
+			spoke_bm.size = size_3d(Vector2(1.2, wheel_r_px * 2.0), 1.4)
+			spoke_mi.mesh = spoke_bm
+			spoke_mi.material_override = m_rotten_wood
+			spoke_mi.position = Vector3(rim_x * WORLD_SCALE, 0.0, 0.0)
+			spoke_mi.rotation.x = ang
+			wheel_root.add_child(spoke_mi)
+		var pad_mi := MeshInstance3D.new()
+		var pad_bm := BoxMesh.new()
+		pad_bm.size = size_3d(Vector2(6.2, 3.2), 1.6)
+		pad_mi.mesh = pad_bm
+		pad_mi.material_override = m_moss_wood if (pi % 2 == 0) else m_rotten_wood
+		pad_mi.position = Vector3(0.0, (sz_h * WORLD_SCALE) / _cos_p, (sy_p * WORLD_SCALE) / _sin_p)
+		pad_mi.rotation.x = ang
+		wheel_root.add_child(pad_mi)
+
+		var next_ang: float = (TAU * float(pi + 1)) / float(n_paddles) + 0.18
+		var mid_ang: float = (ang + next_ang) * 0.5
+		var chord_len: float = 2.0 * wheel_r_px * sin(PI / float(n_paddles)) + 1.2
+		for rim_side in [-2.4, 2.4]:
+			var rim_mi := MeshInstance3D.new()
+			var rim_bm := BoxMesh.new()
+			rim_bm.size = size_3d(Vector2(1.3, chord_len), 1.8)
+			rim_mi.mesh = rim_bm
+			rim_mi.material_override = m_rust if (pi % 3 == 0) else m_rotten_wood
+			rim_mi.position = Vector3(
+				rim_side * WORLD_SCALE,
+				(sin(mid_ang) * wheel_r_px * WORLD_SCALE) / _cos_p,
+				(cos(mid_ang) * wheel_r_px * WORLD_SCALE) / _sin_p
+			)
+			rim_mi.rotation.x = mid_ang + PI * 0.5
+			wheel_root.add_child(rim_mi)
+
+	# Engranaje interior roto y muelas de piedra viejas junto al muro oeste interior (`x = 136, y = -1062`)
+	_add_cyl_2d(b_root, Vector2(rect.position.x + 11.0, c.y - 2.0), 6.5, 2.0, 3.2, m_mill_stone, 6.5, 12)
+	_add_cyl_2d(b_root, Vector2(rect.position.x + 12.5, c.y + 4.0), 6.2, 5.2, 3.0, m_mill_stone, 6.2, 12)
+	_add_box_2d(b_root, Vector2(rect.position.x + 10.0, c.y - 2.0), Vector2(3.2, 3.2), 5.0, 9.5, m_rotten_wood)
+
+	# Vigas caídas del techo en ruinas y manchas de barro rojo en la entrada sur (sin estorbar el paso central)
+	_add_box_2d(b_root, Vector2(c.x - 22.0, c.y - 12.0), Vector2(42.0, 2.8), wall_h - 4.0, 2.6, m_rotten_wood, 14.0)
+	_add_box_2d(b_root, Vector2(c.x + 20.0, c.y + 8.0), Vector2(38.0, 2.8), wall_h - 3.5, 2.6, m_rotten_wood, -11.0)
+	_add_box_2d(b_root, Vector2(rect.end.x - 12.0, c.y - 4.0), Vector2(18.0, 2.6), 2.1, 2.2, m_rotten_wood, 32.0)
+	for mud_step in [
+		[Vector2(186.0, -1022.0), Vector2(14.0, 9.0), 8.0],
+		[Vector2(191.0, -1034.0), Vector2(10.0, 7.0), -15.0],
+		[Vector2(204.0, -1046.0), Vector2(8.0, 6.0), 22.0],
+	]:
+		_add_box_2d(b_root, mud_step[0], mud_step[1], 2.02, 0.14, m_red_clay_stain, float(mud_step[2]))
+
+	# ==========================================================================
+	# 1) PAJAR CON PAJA SECA (Esquina Noroeste: `Vector2(152, -1084)`)
+	# ==========================================================================
+	var straw_pos := Vector2(152.0, -1084.0)
+	_register_furniture_rect("MillHayloft", straw_pos, Vector2(28.0, 20.0))
+	# Bordillo de tablas viejas del pajar y montículo abundante de paja seca aplastada
+	_add_box_2d(b_root, straw_pos + Vector2(0.0, 10.5), Vector2(30.0, 2.2), 2.0, 4.5, m_rotten_wood)
+	_add_box_2d(b_root, straw_pos + Vector2(14.5, 0.0), Vector2(2.2, 22.0), 2.0, 4.5, m_rotten_wood)
+	_add_box_2d(b_root, straw_pos, Vector2(27.0, 19.0), 2.0, 3.2, m_straw_dark)
+	_add_box_2d(b_root, straw_pos + Vector2(-4.0, -2.5), Vector2(18.0, 13.0), 5.0, 2.8, m_dry_straw, -8.0)
+	_add_box_2d(b_root, straw_pos + Vector2(6.0, -3.5), Vector2(13.0, 11.0), 4.8, 3.4, m_dry_straw, 14.0)
+	_add_box_2d(b_root, straw_pos + Vector2(-6.5, 4.0), Vector2(14.0, 9.0), 4.6, 2.2, m_dry_straw, 19.0)
+	# Gavillas y hebras sueltas de paja seca alrededor
+	for st_b in [
+		[Vector2(-8.0, -4.0), Vector2(9.0, 3.2), 6.8, 24.0],
+		[Vector2(4.0, -5.0), Vector2(10.0, 3.4), 7.2, -18.0],
+		[Vector2(0.0, 2.5), Vector2(11.0, 3.0), 5.4, 9.0],
+		[Vector2(10.0, 6.0), Vector2(8.0, 2.6), 4.2, -32.0],
+		[Vector2(16.0, 11.0), Vector2(7.5, 2.4), 2.1, 28.0],
+	]:
+		_add_box_2d(b_root, straw_pos + (st_b[0] as Vector2), st_b[1], float(st_b[2]), 1.1, m_dry_straw, float(st_b[3]))
+
+	# ==========================================================================
+	# 2) HOGAR VIEJO CON CENIZA DE CARBÓN (Esquina Noreste: `Vector2(224, -1086)`)
+	# ==========================================================================
+	var hearth_pos := Vector2(224.0, -1086.0)
+	_register_furniture_rect("MillOldHearth", hearth_pos, Vector2(26.0, 16.0))
+	# Base de losa de piedra, jambas laterales ennegrecidas de hollín y campana de piedra contra el muro norte
+	_add_box_2d(b_root, hearth_pos, Vector2(28.0, 18.0), 2.0, 2.2, m_mill_stone)
+	_add_box_2d(b_root, hearth_pos + Vector2(-11.5, -1.0), Vector2(4.5, 15.0), 4.2, 12.5, m_soot_stone)
+	_add_box_2d(b_root, hearth_pos + Vector2(11.5, -1.0), Vector2(4.5, 15.0), 4.2, 12.5, m_soot_stone)
+	_add_box_2d(b_root, hearth_pos + Vector2(0.0, -6.5), Vector2(24.0, 4.0), 4.2, 19.5, m_soot_stone)
+	_add_box_2d(b_root, hearth_pos + Vector2(0.0, -2.0), Vector2(27.0, 10.0), 15.5, 5.5, m_mill_stone)
+	# Montón de ceniza gris/negra de carbón mineral y trozos de hulla apagada en el hogar
+	_add_box_2d(b_root, hearth_pos + Vector2(0.0, 1.0), Vector2(17.0, 10.5), 4.2, 1.4, m_coal_ash)
+	_add_box_2d(b_root, hearth_pos + Vector2(-1.5, 0.5), Vector2(11.5, 7.5), 5.4, 1.3, m_coal_ash, 12.0)
+	for coal_off in [
+		Vector2(-4.2, 0.5), Vector2(-1.0, -1.2), Vector2(2.6, 0.8),
+		Vector2(4.5, -0.6), Vector2(0.5, 2.2), Vector2(-3.0, 2.5)
+	]:
+		_add_box_2d(b_root, hearth_pos + coal_off, Vector2(2.6, 2.2), 6.2, 1.4, m_coal_chunk, float(int(coal_off.x * 19.0) % 45))
+	# Atizador de hierro viejo y cubo de carbón junto al hogar
+	_add_box_2d(b_root, hearth_pos + Vector2(15.5, 2.0), Vector2(1.0, 11.0), 2.2, 1.0, m_rust, -16.0)
+	_add_cyl_2d(b_root, hearth_pos + Vector2(-16.0, 2.5), 3.4, 2.0, 5.2, m_rust, 2.8, 10)
+	_add_cyl_2d(b_root, hearth_pos + Vector2(-16.0, 2.5), 2.9, 6.8, 1.0, m_coal_chunk, 2.9, 10)
+
+	# ==========================================================================
+	# 3) CORDEL DE CÁÑAMO ENCERADO (Suroeste: `Vector2(150, -1040)`)
+	# ==========================================================================
+	var cord_pos := Vector2(150.0, -1040.0)
+	_register_furniture_rect("MillHempCord", cord_pos, Vector2(20.0, 14.0))
+	# Banco rústico / cajón de madera donde está el rollo de cordel de cáñamo encerado y trozos cortados
+	_add_box_2d(b_root, cord_pos, Vector2(22.0, 14.0), 2.0, 6.8, m_wood)
+	_add_box_2d(b_root, cord_pos, Vector2(23.2, 15.2), 8.4, 1.0, m_dark_wood)
+	# Bobina / rollo principal de cordel de cáñamo encerado + segundo rollo tumbado + cabo cortado y taco de cera
+	_add_cyl_2d(b_root, cord_pos + Vector2(-3.5, -1.0), 4.2, 9.4, 3.6, m_hemp_cord, 4.0, 14)
+	_add_cyl_2d(b_root, cord_pos + Vector2(-3.5, -1.0), 1.8, 9.5, 3.8, m_dark_wood, 1.8, 10)
+	_add_cyl_2d(b_root, cord_pos + Vector2(3.8, 1.2), 3.4, 9.4, 2.2, m_hemp_cord, 3.4, 14)
+	_add_box_2d(b_root, cord_pos + Vector2(1.5, -3.6), Vector2(9.5, 1.1), 9.4, 0.9, m_hemp_cord, 22.0)
+	_add_box_2d(b_root, cord_pos + Vector2(5.2, -1.8), Vector2(7.0, 1.0), 9.4, 0.9, m_hemp_cord, -18.0)
+	_add_box_2d(b_root, cord_pos + Vector2(-7.2, 2.8), Vector2(3.2, 2.4), 9.4, 1.8, m_beeswax, 15.0)
+	# Cuchilla vieja de cortar el cáñamo clavada/apoyada junto al rollo
+	_add_box_2d(b_root, cord_pos + Vector2(7.2, 2.5), Vector2(4.2, 1.2), 9.4, 0.6, m_iron, -28.0)
+	_add_box_2d(b_root, cord_pos + Vector2(9.0, 3.4), Vector2(2.4, 1.4), 9.4, 0.8, m_dark_wood, -28.0)
+
+	# ==========================================================================
+	# 4) MESA CON PAPEL («Lista de nombres — texto pendiente del autor») (`Vector2(218, -1050)`)
+	# ==========================================================================
+	var table_pos := Vector2(218.0, -1050.0)
+	if _add_model_2d(b_root, "props/Table_Large.gltf", table_pos, 2.0, Vector2(24.0, 15.0), 7.5) == null:
+		_register_furniture_rect("MillPaperTable", table_pos, Vector2(24.0, 15.0))
+		_add_box_2d(b_root, table_pos, Vector2(24.0, 15.0), 8.2, 1.3, m_wood)
+		for tx in [-10.0, 10.0]:
+			for ty in [-5.8, 5.8]:
+				_add_box_2d(b_root, table_pos + Vector2(tx, ty), Vector2(2.0, 2.0), 2.0, 6.4, m_dark_wood)
+	# Silla vieja apartada junto a la mesa
+	var ch_pos := table_pos + Vector2(-17.0, 1.0)
+	_add_model_2d(b_root, "props/Chair_1.gltf", ch_pos, 2.0, Vector2(5.8, 5.8), 8.2, _chair_rot_y_towards(ch_pos, table_pos))
+	# Papel sobre la mesa con renglones de tinta y texto provisional «Lista de nombres — texto pendiente del autor»
+	var paper_center := table_pos + Vector2(-1.5, -0.5)
+	_add_box_2d(b_root, paper_center, Vector2(11.0, 8.2), 9.52, 0.28, m_paper, -6.0)
+	for line_i in range(-2, 3):
+		var line_w: float = 8.2 if line_i != 2 else 5.4
+		_add_box_2d(b_root, paper_center + Vector2(-0.4, float(line_i) * 1.25), Vector2(line_w, 0.42), 9.80, 0.08, m_ink, -6.0)
+	# Tintero viejo y farol apagado en la esquina de la mesa
+	_add_cyl_2d(b_root, table_pos + Vector2(7.0, -3.2), 1.4, 9.5, 2.0, m_iron, 1.2, 8)
+	_add_model_2d(b_root, "props/CandleStick.gltf", table_pos + Vector2(7.5, 2.8), 9.5, Vector2(2.8, 2.8), 4.2)
+
+	# Cartel 3D discreto sobre el papel de la mesa en primera persona
+	var lbl_3d := Label3D.new()
+	lbl_3d.name = "MillPaperLabel3D"
+	lbl_3d.text = "«Lista de nombres —\ntexto pendiente del autor»"
+	lbl_3d.font_size = 18
+	lbl_3d.outline_size = 4
+	lbl_3d.pixel_size = 0.00075
+	lbl_3d.modulate = Color(0.96, 0.91, 0.76, 0.96)
+	lbl_3d.outline_modulate = Color(0.08, 0.06, 0.04, 0.98)
+	lbl_3d.billboard = BaseMaterial3D.BILLBOARD_ENABLED
+	lbl_3d.no_depth_test = false
+	lbl_3d.position = to_3d(paper_center, 11.2)
+	b_root.add_child(lbl_3d)
+
+	# Luz tenue filtrada desde el techo roto del molino para ver con claridad los 4 elementos en primera persona
+	_restaurant_light(b_root, c + Vector2(0.0, -8.0), wall_h - 3.0, Color(0.94, 0.88, 0.74), 1.05, 3.2, false)
+	_restaurant_light(b_root, table_pos + Vector2(-4.0, -2.0), 17.5, Color(0.98, 0.90, 0.72), 0.85, 2.2, false)
+
 
 
 

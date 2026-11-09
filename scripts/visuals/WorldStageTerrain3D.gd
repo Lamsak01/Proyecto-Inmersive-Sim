@@ -111,6 +111,9 @@ func _add_road_strip_3d(parent: Node3D, rect: Rect2, height_px: float, mat: Mate
 		for ix in range(nx):
 			var x0: float = rect.position.x + float(ix) * dx
 			var x1: float = x0 + dx
+			var mid_p := Vector2((x0 + x1) * 0.5, (y0 + y1) * 0.5)
+			if mid_p.y >= -1180.0 and mid_p.y <= 940.0 and absf(mid_p.x - FishingSpotScript.river_center_x(mid_p.y)) <= FishingSpotScript.river_half_width(mid_p.y) + 6.0:
+				continue
 			var p00 := Vector2(x0, y0)
 			var p10 := Vector2(x1, y0)
 			var p01 := Vector2(x0, y1)
@@ -161,6 +164,10 @@ func _build_ground_foliage_3d() -> void:
 			if Geometry2D.is_point_in_polygon(fp, lake_poly_guard) or Geometry2D.is_point_in_polygon(fp, marsh_poly_guard):
 				continue
 			if fp.distance_to(FishingSpotScript.LAKE_NODE_POS) < 95.0 or terrain_height_px(fp) < -0.8:
+				continue
+			if fp.y >= -1180.0 and fp.y <= 940.0 and absf(fp.x - FishingSpotScript.river_center_x(fp.y)) < FishingSpotScript.river_half_width(fp.y) + 18.0:
+				continue
+			if Rect2(Vector2(85.0, -915.0), Vector2(95.0, 100.0)).has_point(fp) or FishingSpotScript.ABANDONED_MILL_RECT.grow(18.0).has_point(fp):
 				continue
 			if VillageRestaurant.RECT.grow(16.0).has_point(fp) or VillageTavern.RECT.grow(16.0).has_point(fp):
 				continue
@@ -473,9 +480,10 @@ func _build_static_terrain_3d() -> void:
 	var m_iron := _mat("wrought_iron", Color(0.22, 0.24, 0.28), 0.45, 0.75)
 	var m_shingle := _mat("roof_shingle_brown", Color(0.56, 0.30, 0.18), 0.82, 0.04, Color.BLACK, 0.0, "town_textures/roof_clay_red_center.png", "", 0.75)
 
-	# Caminos principales y calles con relieve 3D
+	# Caminos principales y calles con relieve 3D (divididos en el cruce del Puente Viejo en x = 92..144)
 	var road_rects: Array[Rect2] = [
-		Rect2(Vector2(-1950, 36), Vector2(3288, 28)),
+		Rect2(Vector2(-1950, 36), Vector2(2042, 28)),
+		Rect2(Vector2(144, 36), Vector2(1194, 28)),
 		Rect2(Vector2(-688, -88), Vector2(18, 124)),
 		Rect2(Vector2(-688, 64), Vector2(18, 36)),
 		Rect2(Vector2(-1520, -140), Vector2(22, 176)),
@@ -745,6 +753,259 @@ func _build_static_terrain_3d() -> void:
 			_add_box_2d(terrain_root_3d, gp + Vector2(gx, 0.0), Vector2(0.9, 11.5), 2.1, 1.0, m_iron)
 		_add_box_2d(terrain_root_3d, gp, Vector2(11.5, 0.9), 2.1, 1.0, m_iron)
 		_add_cyl_2d(terrain_root_3d, gp + Vector2(4.2, 0.0), 1.4, 2.3, 1.4, m_sewer_brass, 1.4, 8)
+
+	# Río de norte a sur, Puente Viejo en el centro del pueblo, arroyo del bosque norte, Claro (barro pardo) y Molino Viejo (barro rojo / arcilla)
+	_build_river_and_arroyo_3d(m_road, m_wood, m_dark_wood, m_stone, m_iron, m_pine, m_pine_top)
+
+func _build_river_and_arroyo_3d(
+	m_road: Material, m_wood: Material, m_dark_wood: Material,
+	m_stone: Material, m_iron: Material, m_pine: Material, m_pine_top: Material
+) -> void:
+	var m_riv_water := _mat("river_water_3d", Color(0.20, 0.50, 0.78, 0.92), 0.12, 0.16, Color.BLACK, 0.0, "town_textures/floor_ground_water.png", "", 0.62)
+	var m_riv_deep := _mat("river_deep_3d", Color(0.11, 0.30, 0.54, 0.96), 0.10, 0.14, Color.BLACK, 0.0, "town_textures/floor_ground_water.png", "", 0.62)
+	var m_riv_foam := _mat("river_foam_3d", Color(0.76, 0.88, 0.96, 0.72), 0.22, 0.05)
+	for rm in [m_riv_water, m_riv_deep, m_riv_foam]:
+		(rm as StandardMaterial3D).cull_mode = BaseMaterial3D.CULL_DISABLED
+
+	var m_bank_earth := _mat("river_bank_earth", Color(0.42, 0.33, 0.22), 0.94, 0.0, Color.BLACK, 0.0, "town_textures/floor_ground_dirt.png", "", 0.65)
+	# Barro pardo del Claro del Arroyo donde aparece el cuerpo del Caso I
+	var m_brown_mud := _mat("arroyo_brown_mud", Color(0.36, 0.24, 0.14), 0.62, 0.06, Color.BLACK, 0.0, "town_textures/floor_ground_dirt.png", "", 0.72)
+	# Barro rojo / arcilla junto al Molino Viejo Abandonado (el mismo barro rojo de los ladrillos rojos de las casas del pueblo)
+	var m_red_clay := _mat("mill_red_clay_mud", Color(0.66, 0.28, 0.19), 0.76, 0.03, Color.BLACK, 0.0, "town_textures/floor_ground_dirt.png", "", 0.75)
+	var m_old_bridge_stone := _mat("old_bridge_stone", Color(0.50, 0.49, 0.46), 0.88, 0.04, Color.BLACK, 0.0, "town_textures/wall_stone.png", "town_textures/wall_stone_n.png", 0.72)
+	var m_old_bridge_moss := _mat("old_bridge_moss_stone", Color(0.40, 0.45, 0.36), 0.90, 0.03, Color.BLACK, 0.0, "town_textures/wall_stone.png", "", 0.72)
+	var m_old_bridge_planks := _mat("old_bridge_planks", Color(0.38, 0.26, 0.16), 0.88, 0.02, Color.BLACK, 0.0, "town_textures/rf_planks.png", "town_textures/rf_planks_n.png", 0.80)
+
+	# 1. Sendero forestal que sube junto al arroyo hasta el Claro y el Molino Viejo
+	var trail_pts: Array[Vector2] = [
+		Vector2(122.0, -351.0), Vector2(118.0, -455.0), Vector2(182.0, -565.0),
+		Vector2(128.0, -695.0), Vector2(122.0, -785.0), Vector2(138.0, -860.0),
+		Vector2(142.0, -945.0), Vector2(168.0, -996.0), Vector2(188.0, -1014.0),
+	]
+	for ti in range(trail_pts.size() - 1):
+		var pa: Vector2 = trail_pts[ti]
+		var pb: Vector2 = trail_pts[ti + 1]
+		_add_box_2d(terrain_root_3d, (pa + pb) * 0.5, Vector2(pa.distance_to(pb) + 3.0, 14.0), -0.25, 0.45, m_road, -rad_to_deg((pb - pa).angle()))
+
+	# 2. Cinta continua 3D de agua del arroyo y del río (y = -1180..940) + riberas 3D orgánicas
+	var st_water := SurfaceTool.new()
+	st_water.begin(Mesh.PRIMITIVE_TRIANGLES)
+	var st_deep := SurfaceTool.new()
+	st_deep.begin(Mesh.PRIMITIVE_TRIANGLES)
+	var st_banks := SurfaceTool.new()
+	st_banks.begin(Mesh.PRIMITIVE_TRIANGLES)
+	var st_brown_mud := SurfaceTool.new()
+	st_brown_mud.begin(Mesh.PRIMITIVE_TRIANGLES)
+	var st_red_clay := SurfaceTool.new()
+	st_red_clay.begin(Mesh.PRIMITIVE_TRIANGLES)
+
+	var step_y: float = 12.0
+	var y_cur: float = -1180.0
+	while y_cur < 940.0 - 0.01:
+		var y_nxt: float = minf(940.0, y_cur + step_y)
+		var b0: Vector2 = FishingSpotScript.river_banks_at(y_cur)
+		var b1: Vector2 = FishingSpotScript.river_banks_at(y_nxt)
+		var h0: float = _river_bank_terrace_height_px(y_cur) + 0.34
+		var h1: float = _river_bank_terrace_height_px(y_nxt) + 0.34
+		var wl0: Vector3 = to_3d_flat(Vector2(b0.x - 1.5, y_cur), h0)
+		var wr0: Vector3 = to_3d_flat(Vector2(b0.y + 1.5, y_cur), h0)
+		var wl1: Vector3 = to_3d_flat(Vector2(b1.x - 1.5, y_nxt), h1)
+		var wr1: Vector3 = to_3d_flat(Vector2(b1.y + 1.5, y_nxt), h1)
+		st_water.set_normal(Vector3.UP)
+		st_water.add_vertex(wl0); st_water.add_vertex(wr0); st_water.add_vertex(wr1)
+		st_water.add_vertex(wl0); st_water.add_vertex(wr1); st_water.add_vertex(wl1)
+
+		var cx0: float = (b0.x + b0.y) * 0.5
+		var hw0: float = (b0.y - b0.x) * 0.32
+		var cx1: float = (b1.x + b1.y) * 0.5
+		var hw1: float = (b1.y - b1.x) * 0.32
+		var dl0: Vector3 = to_3d_flat(Vector2(cx0 - hw0, y_cur), h0 + 0.04)
+		var dr0: Vector3 = to_3d_flat(Vector2(cx0 + hw0, y_cur), h0 + 0.04)
+		var dl1: Vector3 = to_3d_flat(Vector2(cx1 - hw1, y_nxt), h1 + 0.04)
+		var dr1: Vector3 = to_3d_flat(Vector2(cx1 + hw1, y_nxt), h1 + 0.04)
+		st_deep.set_normal(Vector3.UP)
+		st_deep.add_vertex(dl0); st_deep.add_vertex(dr0); st_deep.add_vertex(dr1)
+		st_deep.add_vertex(dl0); st_deep.add_vertex(dr1); st_deep.add_vertex(dl1)
+
+		# Orillas naturales 3D (con barro rojo en la zona del molino y barro pardo en el claro del Caso I)
+		var w_pad_l0: float = 6.5 + sin(y_cur * 0.067) * 2.2
+		var w_pad_l1: float = 6.5 + sin(y_nxt * 0.067) * 2.2
+		var w_pad_r0: float = 6.5 + cos(y_cur * 0.059) * 2.2
+		var w_pad_r1: float = 6.5 + cos(y_nxt * 0.059) * 2.2
+		var in_mill_zone: bool = (y_cur >= -1140.0 and y_cur <= -978.0)
+		var in_clearing_zone: bool = (y_cur >= -910.0 and y_cur <= -812.0)
+		if in_mill_zone:
+			w_pad_l0 = 11.0 + sin(y_cur * 0.08) * 3.0
+			w_pad_l1 = 11.0 + sin(y_nxt * 0.08) * 3.0
+			var mill_r_reach0: float = 44.0 if y_cur > -1012.0 else 10.5
+			var mill_r_reach1: float = 44.0 if y_nxt > -1012.0 else 10.5
+			w_pad_r0 = mill_r_reach0 + cos(y_cur * 0.07) * 3.5
+			w_pad_r1 = mill_r_reach1 + cos(y_nxt * 0.07) * 3.5
+		elif in_clearing_zone:
+			w_pad_r0 = 30.0 + sin((y_cur + 860.0) * 0.06) * 5.0
+			w_pad_r1 = 30.0 + sin((y_nxt + 860.0) * 0.06) * 5.0
+
+		var st_left_target: SurfaceTool = st_red_clay if in_mill_zone else st_banks
+		var st_right_target: SurfaceTool = st_red_clay if in_mill_zone else (st_brown_mud if in_clearing_zone else st_banks)
+
+		var bl_in0: Vector3 = to_3d_flat(Vector2(b0.x + 0.6, y_cur), h0 - 0.06)
+		var bl_lip0: Vector3 = to_3d_flat(Vector2(b0.x - 1.4, y_cur), h0 + 0.24)
+		var bl_out0: Vector3 = to_3d(Vector2(b0.x - w_pad_l0, y_cur), 0.14)
+		var bl_in1: Vector3 = to_3d_flat(Vector2(b1.x + 0.6, y_nxt), h1 - 0.06)
+		var bl_lip1: Vector3 = to_3d_flat(Vector2(b1.x - 1.4, y_nxt), h1 + 0.24)
+		var bl_out1: Vector3 = to_3d(Vector2(b1.x - w_pad_l1, y_nxt), 0.14)
+		st_left_target.set_normal(Vector3.UP)
+		st_left_target.add_vertex(bl_out0); st_left_target.add_vertex(bl_lip0); st_left_target.add_vertex(bl_lip1)
+		st_left_target.add_vertex(bl_out0); st_left_target.add_vertex(bl_lip1); st_left_target.add_vertex(bl_out1)
+		st_left_target.add_vertex(bl_lip0); st_left_target.add_vertex(bl_in0); st_left_target.add_vertex(bl_in1)
+		st_left_target.add_vertex(bl_lip0); st_left_target.add_vertex(bl_in1); st_left_target.add_vertex(bl_lip1)
+
+		var br_in0: Vector3 = to_3d_flat(Vector2(b0.y - 0.6, y_cur), h0 - 0.06)
+		var br_lip0: Vector3 = to_3d_flat(Vector2(b0.y + 1.4, y_cur), h0 + 0.24)
+		var br_out0: Vector3 = to_3d(Vector2(b0.y + w_pad_r0, y_cur), 0.18)
+		var br_in1: Vector3 = to_3d_flat(Vector2(b1.y - 0.6, y_nxt), h1 - 0.06)
+		var br_lip1: Vector3 = to_3d_flat(Vector2(b1.y + 1.4, y_nxt), h1 + 0.24)
+		var br_out1: Vector3 = to_3d(Vector2(b1.y + w_pad_r1, y_nxt), 0.18)
+		st_right_target.set_normal(Vector3.UP)
+		st_right_target.add_vertex(br_in0); st_right_target.add_vertex(br_lip0); st_right_target.add_vertex(br_lip1)
+		st_right_target.add_vertex(br_in0); st_right_target.add_vertex(br_lip1); st_right_target.add_vertex(br_in1)
+		st_right_target.add_vertex(br_lip0); st_right_target.add_vertex(br_out0); st_right_target.add_vertex(br_out1)
+		st_right_target.add_vertex(br_lip0); st_right_target.add_vertex(br_out1); st_right_target.add_vertex(br_lip1)
+
+		y_cur = y_nxt
+
+	for pair_m in [
+		[st_banks, m_bank_earth],
+		[st_brown_mud, m_brown_mud],
+		[st_red_clay, m_red_clay],
+		[st_water, m_riv_water],
+		[st_deep, m_riv_deep],
+	]:
+		var mi_s := MeshInstance3D.new()
+		mi_s.mesh = (pair_m[0] as SurfaceTool).commit()
+		mi_s.material_override = pair_m[1]
+		mi_s.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+		terrain_root_3d.add_child(mi_s)
+
+	# 5. Piedras ribereñas y juncos orgánicos a lo largo de ambas orillas (evitando puentes y puerta del molino)
+	var bank_i: int = 0
+	var by_sample: float = -1150.0
+	while by_sample <= 910.0:
+		bank_i += 1
+		var b_s: Vector2 = FishingSpotScript.river_banks_at(by_sample)
+		var near_cross: bool = FishingSpotScript.is_in_river_crossing(Vector2((b_s.x + b_s.y) * 0.5, by_sample), 14.0)
+		var near_dock: bool = absf(by_sample - 188.0) < 22.0
+		var near_wheel: bool = absf(by_sample - (-1060.0)) < 28.0
+		if not near_cross and not near_dock:
+			var side_l := Vector2(b_s.x - 2.2 + sin(float(bank_i) * 1.9) * 1.8, by_sample)
+			var side_r := Vector2(b_s.y + 2.2 + cos(float(bank_i) * 1.7) * 1.8, by_sample + 8.0)
+			if (bank_i % 2) == 0:
+				_add_model_2d(terrain_root_3d, "nature/Rock_1.obj" if (bank_i % 4) == 0 else "nature/Rock_2.obj", side_l, 0.2, Vector2.ZERO, 6.2, float(bank_i * 47))
+			else:
+				_add_model_2d(terrain_root_3d, "nature/Plant_1.obj" if (bank_i % 3) == 0 else "nature/Plant_3.obj", side_l, 0.2, Vector2.ZERO, 6.4, float(bank_i * 31))
+			if not near_wheel and absf(by_sample - (-860.0)) > 26.0:
+				if (bank_i % 3) == 0:
+					_add_model_2d(terrain_root_3d, "nature/Rock_2.obj", side_r, 0.2, Vector2.ZERO, 5.8, float(bank_i * 59))
+				else:
+					_add_model_2d(terrain_root_3d, "nature/Plant_3.obj", side_r, 0.2, Vector2.ZERO, 6.0, float(bank_i * 41))
+		by_sample += 34.0
+
+	# 6. Bosque denso del norte flanqueando el arroyo, el Claro del Caso I y el Molino Viejo Abandonado
+	var north_forest_trees: Array[Vector2] = [
+		Vector2(56.0, -765.0), Vector2(64.0, -808.0), Vector2(58.0, -855.0), Vector2(62.0, -900.0),
+		Vector2(60.0, -950.0), Vector2(66.0, -1005.0), Vector2(62.0, -1060.0), Vector2(68.0, -1115.0),
+		Vector2(18.0, -780.0), Vector2(24.0, -832.0), Vector2(16.0, -882.0), Vector2(22.0, -935.0),
+		Vector2(14.0, -988.0), Vector2(26.0, -1042.0), Vector2(18.0, -1098.0), Vector2(28.0, -1148.0),
+		Vector2(-28.0, -805.0), Vector2(-18.0, -865.0), Vector2(-32.0, -925.0), Vector2(-22.0, -985.0),
+		Vector2(-26.0, -1048.0), Vector2(-16.0, -1110.0), Vector2(-68.0, -840.0), Vector2(-74.0, -940.0),
+		Vector2(-64.0, -1040.0), Vector2(-72.0, -1130.0),
+		Vector2(175.0, -775.0), Vector2(188.0, -812.0), Vector2(194.0, -858.0), Vector2(186.0, -902.0),
+		Vector2(184.0, -948.0), Vector2(268.0, -995.0), Vector2(276.0, -1055.0), Vector2(268.0, -1118.0),
+		Vector2(228.0, -790.0), Vector2(236.0, -845.0), Vector2(232.0, -905.0), Vector2(226.0, -960.0),
+		Vector2(308.0, -830.0), Vector2(314.0, -920.0), Vector2(312.0, -1020.0), Vector2(306.0, -1110.0),
+		Vector2(150.0, -1145.0), Vector2(205.0, -1148.0), Vector2(92.0, -1155.0), Vector2(124.0, -1165.0),
+	]
+	for nti in range(north_forest_trees.size()):
+		_build_tree_3d(terrain_root_3d, north_forest_trees[nti], m_dark_wood, m_pine, m_pine_top, 1.15 + float(nti % 3) * 0.14, nti + 3)
+
+	# 7. PUENTE VIEJO DE PIEDRA Y MADERA en el centro del pueblo (`Vector2(118, 50)`, Calle Mayor)
+	var ob_pos := FishingSpotScript.OLD_BRIDGE_POS
+	var ob_banks: Vector2 = FishingSpotScript.river_banks_at(ob_pos.y)
+	var ob_cx: float = (ob_banks.x + ob_banks.y) * 0.5
+	var ob_span: float = (ob_banks.y - ob_banks.x) + 18.0 # ~54 px
+	var ob_w_y: float = 36.0
+	var ob_base_h: float = _river_bank_terrace_height_px(ob_pos.y)
+	# Estribos de piedra vieja en ambas orillas y pilar central con tajamar en el cauce
+	_add_box_2d(terrain_root_3d, Vector2(ob_banks.x - 3.0, ob_pos.y), Vector2(10.0, ob_w_y + 4.0), ob_base_h - 3.2, 4.6, m_old_bridge_stone, 0.0, true)
+	_add_box_2d(terrain_root_3d, Vector2(ob_banks.y + 3.0, ob_pos.y), Vector2(10.0, ob_w_y + 4.0), ob_base_h - 3.2, 4.6, m_old_bridge_stone, 0.0, true)
+	_add_box_2d(terrain_root_3d, Vector2(ob_cx, ob_pos.y), Vector2(7.0, ob_w_y + 6.0), ob_base_h - 3.4, 4.4, m_old_bridge_moss, 0.0, true)
+	# Arcos rebajados de piedra bajo las vigas del puente
+	for arch_x in [lerpf(ob_banks.x, ob_cx, 0.5), lerpf(ob_cx, ob_banks.y, 0.5)]:
+		_add_box_2d(terrain_root_3d, Vector2(arch_x, ob_pos.y - ob_w_y * 0.5 + 1.5), Vector2(ob_span * 0.36, 3.0), ob_base_h - 0.2, 1.6, m_old_bridge_stone, 0.0, true)
+		_add_box_2d(terrain_root_3d, Vector2(arch_x, ob_pos.y + ob_w_y * 0.5 - 1.5), Vector2(ob_span * 0.36, 3.0), ob_base_h - 0.2, 1.6, m_old_bridge_stone, 0.0, true)
+	# Rampas de empedrado viejo en los accesos oeste y este y tablero de tablones gruesos de madera gastada
+	_add_box_2d(terrain_root_3d, Vector2(ob_cx - ob_span * 0.5 - 4.0, ob_pos.y), Vector2(10.0, ob_w_y - 2.0), ob_base_h + 0.1, 0.9, m_old_bridge_stone, 0.0, true)
+	_add_box_2d(terrain_root_3d, Vector2(ob_cx + ob_span * 0.5 + 4.0, ob_pos.y), Vector2(10.0, ob_w_y - 2.0), ob_base_h + 0.1, 0.9, m_old_bridge_stone, 0.0, true)
+	_add_box_2d(terrain_root_3d, Vector2(ob_cx, ob_pos.y), Vector2(ob_span, ob_w_y - 2.0), ob_base_h + 0.8, 0.9, m_old_bridge_planks, 0.0, true)
+	# Traviesas de madera vista sobre el tablero del Puente Viejo
+	var plank_x: float = ob_cx - ob_span * 0.5 + 3.0
+	while plank_x <= ob_cx + ob_span * 0.5 - 3.0:
+		_add_box_2d(terrain_root_3d, Vector2(plank_x, ob_pos.y), Vector2(2.6, ob_w_y - 3.0), ob_base_h + 1.68, 0.22, m_dark_wood, 0.0, true)
+		plank_x += 4.5
+	# Pretiles bajos de mampostería de piedra y barandales de madera vieja a norte y sur del Puente Viejo
+	for side_s in [-1.0, 1.0]:
+		var py_rail: float = ob_pos.y + side_s * (ob_w_y * 0.5 + 0.5)
+		_add_box_2d(terrain_root_3d, Vector2(ob_cx, py_rail), Vector2(ob_span + 4.0, 3.6), ob_base_h + 0.8, 4.2, m_old_bridge_stone, 0.0, true)
+		_add_box_2d(terrain_root_3d, Vector2(ob_cx, py_rail), Vector2(ob_span + 2.0, 2.2), ob_base_h + 6.8, 1.5, m_old_bridge_planks, 0.0, true)
+		for post_t in [-0.46, -0.23, 0.0, 0.23, 0.46]:
+			var px_post: float = ob_cx + post_t * ob_span
+			var is_end: bool = absf(post_t) > 0.40
+			_add_box_2d(
+				terrain_root_3d,
+				Vector2(px_post, py_rail),
+				Vector2(5.2 if is_end else 3.4, 5.2 if is_end else 3.8),
+				ob_base_h + 0.8,
+				8.6 if is_end else 6.8,
+				m_old_bridge_moss if is_end else m_dark_wood,
+				0.0,
+				true
+			)
+
+	# 8. Puentes secundarios (Calle Norte en y = -351 y Senda de los Campos del Sur en y = 372) y vados de piedra
+	for cr in FishingSpotScript.RIVER_CROSSINGS:
+		var cid: String = String(cr["id"])
+		if cid == "old_bridge":
+			continue
+		var cpos: Vector2 = cr["pos"]
+		var chy: float = float(cr["half_y"])
+		var cb: Vector2 = FishingSpotScript.river_banks_at(cpos.y)
+		var ccx: float = (cb.x + cb.y) * 0.5
+		var cspan: float = (cb.y - cb.x) + 16.0
+		var cbase: float = _river_bank_terrace_height_px(cpos.y)
+		if cid == "bridge_north" or cid == "south_fields_bridge":
+			var bw_y: float = chy * 2.0
+			_add_box_2d(terrain_root_3d, Vector2(cb.x - 2.0, cpos.y), Vector2(7.0, bw_y + 2.0), cbase - 2.8, 3.6, m_old_bridge_stone, 0.0, true)
+			_add_box_2d(terrain_root_3d, Vector2(cb.y + 2.0, cpos.y), Vector2(7.0, bw_y + 2.0), cbase - 2.8, 3.6, m_old_bridge_stone, 0.0, true)
+			_add_box_2d(terrain_root_3d, Vector2(ccx, cpos.y), Vector2(cspan, bw_y), cbase + 0.4, 0.8, m_old_bridge_planks, 0.0, true)
+			for s_r in [-1.0, 1.0]:
+				var ry_b: float = cpos.y + s_r * ( chy + 0.4 )
+				_add_box_2d(terrain_root_3d, Vector2(ccx, ry_b), Vector2(cspan, 1.8), cbase + 4.8, 1.2, m_dark_wood, 0.0, true)
+				for pt_b in [-0.42, 0.0, 0.42]:
+					_add_box_2d(terrain_root_3d, Vector2(ccx + pt_b * cspan, ry_b), Vector2(2.4, 2.4), cbase + 0.4, 5.8, m_dark_wood, 0.0, true)
+		else:
+			# Vados de losas de piedra (Claro del Arroyo y Bosque del Sur)
+			for si_f in range(-2, 3):
+				var fx: float = ccx + float(si_f) * 5.8
+				var fy_off: float = float(si_f % 2) * 1.8
+				_add_box_2d(terrain_root_3d, Vector2(fx, cpos.y + fy_off), Vector2(5.0, 8.5), cbase - 0.5, 0.85, m_old_bridge_stone, float(si_f * 9), true)
+
+	# 9. Tarima / Ribera de Pesca del Río en el pueblo (Vector2(116, 188))
+	var r_dock_pos := Vector2(116.0, 188.0)
+	var r_dock_base: float = _river_bank_terrace_height_px(r_dock_pos.y)
+	_add_box_2d(terrain_root_3d, r_dock_pos - Vector2(4.0, 0.0), Vector2(18.0, 12.0), r_dock_base - 0.1, 1.1, m_old_bridge_planks, 0.0, true)
+	for dpx in [-10.0, -2.0]:
+		for dpy in [-5.0, 5.0]:
+			_add_box_2d(terrain_root_3d, r_dock_pos + Vector2(dpx, dpy), Vector2(2.0, 2.0), r_dock_base - 2.6, 4.2, m_dark_wood, 0.0, true)
 
 func _build_tree_3d(parent: Node3D, pos_2d: Vector2, m_trunk: Material, m_leaf1: Material, m_leaf2: Material, scale_f: float = 1.0, variant: int = 0) -> void:
 	var tree_files := [

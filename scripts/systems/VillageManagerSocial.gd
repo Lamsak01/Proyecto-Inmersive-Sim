@@ -499,6 +499,12 @@ func is_position_near_water_source(world_pos: Vector2, max_meters: float = 2.0) 
 	# Lavabo quirúrgico junto a la Cama de Urgencias del Hospital
 	if world_pos.distance_squared_to(_hospital_bed_pos) <= max_well_dist * max_well_dist:
 		return true
+	# Cauce del río de norte a sur y arroyo del bosque norte
+	if world_pos.y >= -1180.0 and world_pos.y <= 940.0:
+		var riv_cx: float = FishingSpot.river_center_x(world_pos.y)
+		var riv_hw: float = FishingSpot.river_half_width(world_pos.y)
+		if absf(world_pos.x - riv_cx) <= riv_hw + max_meters * 16.0:
+			return true
 	return false
 
 # ==============================================================================

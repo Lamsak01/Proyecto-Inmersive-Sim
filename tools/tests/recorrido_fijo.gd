@@ -78,6 +78,30 @@ const SITES: Array[Dictionary] = [
 		"pitch": -0.06,
 		"walk_dir": Vector2(0.0, 1.0),
 	},
+	{
+		"id": "09_puente_viejo",
+		"label": "Puente Viejo en el centro del pueblo",
+		"pos": Vector2(82.0, 26.0),
+		"yaw": 0.52,
+		"pitch": -0.10,
+		"walk_dir": Vector2(0.0, 1.0),
+	},
+	{
+		"id": "10_claro_arroyo",
+		"label": "Claro del arroyo (Caso I)",
+		"pos": Vector2(142.0, -836.0),
+		"yaw": -2.05,
+		"pitch": -0.14,
+		"walk_dir": Vector2(0.0, -1.0),
+	},
+	{
+		"id": "11_molino_viejo",
+		"label": "Molino Viejo Abandonado",
+		"pos": Vector2(188.0, -1022.0),
+		"yaw": -1.57,
+		"pitch": -0.15,
+		"walk_dir": Vector2(0.0, -1.0),
+	},
 ]
 
 class ConsoleErrorTracker extends Logger:
@@ -261,6 +285,8 @@ func _check_point_in_walls(vm: Node, pos: Vector2, elev: int, who: String, is_sl
 			near_door = true
 			break
 	if elev == 0:
+		if vm.has_method("is_point_in_river_water") and bool(vm.call("is_point_in_river_water", pos)):
+			return "%s está metido dentro del agua del río/arroyo en %s" % [who, str(pos.round())]
 		var wall_rects: Array = vm.get("_wall_occluder_rects")
 		for wr in wall_rects:
 			var r: Rect2 = wr as Rect2

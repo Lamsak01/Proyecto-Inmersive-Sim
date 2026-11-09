@@ -512,6 +512,267 @@ static func _spawn_church_and_cemetery(vm: VillageManager) -> void:
 	for c_tp in [Vector2(834.0, 272.0), Vector2(1076.0, 272.0), Vector2(1076.0, 344.0), Vector2(834.0, 416.0), Vector2(968.0, 418.0), Vector2(1076.0, 416.0)]:
 		vm._add_sprite_prop(cem_tree_tex, c_tp, Vector2(0.62, 0.62), 0)
 
+	# Río de norte a sur, arroyo del bosque norte, Claro del Caso I y Molino Viejo Abandonado
+	_spawn_river_arroyo_and_abandoned_mill(vm)
+
+static func _spawn_river_arroyo_and_abandoned_mill(vm: VillageManager) -> void:
+	# 1. Sendero forestal que sube desde la Calle Norte junto al arroyo hasta el Claro y el Molino Viejo
+	var trail_pts: Array[Vector2] = [
+		Vector2(122.0, -351.0),
+		Vector2(118.0, -455.0),
+		Vector2(182.0, -565.0),
+		Vector2(128.0, -695.0),
+		Vector2(122.0, -785.0),
+		Vector2(138.0, -860.0),
+		Vector2(142.0, -945.0),
+		Vector2(168.0, -996.0),
+		Vector2(188.0, -1014.0),
+	]
+	for ti in range(trail_pts.size() - 1):
+		var p_a: Vector2 = trail_pts[ti]
+		var p_b: Vector2 = trail_pts[ti + 1]
+		var dir_t: Vector2 = (p_b - p_a).normalized()
+		var n_t: Vector2 = Vector2(-dir_t.y, dir_t.x) * 9.0
+		var seg_poly := vm._add_poly(PackedVector2Array([
+			p_a - n_t, p_b - n_t, p_b + n_t, p_a + n_t
+		]), Color(0.46, 0.36, 0.24, 0.86), -3)
+		if seg_poly != null:
+			seg_poly.add_to_group("ranch_fence_2d")
+
+	# 2. Orillas naturales, barro rojo del molino, barro pardo del claro y cauce de agua 2D
+	var left_bank_outer := PackedVector2Array()
+	var right_bank_outer := PackedVector2Array()
+	var left_water := PackedVector2Array()
+	var right_water := PackedVector2Array()
+	var left_deep := PackedVector2Array()
+	var right_deep := PackedVector2Array()
+	var sample_y: float = -1180.0
+	while sample_y <= 940.0:
+		var banks: Vector2 = FishingSpot.river_banks_at(sample_y)
+		var bank_pad_l: float = 5.5 + sin(sample_y * 0.043) * 1.4
+		var bank_pad_r: float = 5.5 + cos(sample_y * 0.039) * 1.5
+		left_bank_outer.append(Vector2(banks.x - bank_pad_l, sample_y))
+		right_bank_outer.append(Vector2(banks.y + bank_pad_r, sample_y))
+		left_water.append(Vector2(banks.x, sample_y))
+		right_water.append(Vector2(banks.y, sample_y))
+		var hw_d: float = (banks.y - banks.x) * 0.28
+		var cx_d: float = (banks.x + banks.y) * 0.5
+		left_deep.append(Vector2(cx_d - hw_d, sample_y))
+		right_deep.append(Vector2(cx_d + hw_d, sample_y))
+		sample_y += 20.0
+
+	var bank_poly_pts := PackedVector2Array()
+	for p in left_bank_outer:
+		bank_poly_pts.append(p)
+	for i in range(right_bank_outer.size() - 1, -1, -1):
+		bank_poly_pts.append(right_bank_outer[i])
+	var bank_2d := vm._add_poly(bank_poly_pts, Color(0.44, 0.35, 0.24, 0.90), -3)
+	if bank_2d != null:
+		bank_2d.add_to_group("ranch_fence_2d")
+
+	# Orilla de barro rojo / arcilla junto al Molino Viejo Abandonado (y = -1135..-985)
+	var red_mud_pts := PackedVector2Array([
+		Vector2(96.0, -1135.0), Vector2(156.0, -1132.0), Vector2(166.0, -1085.0),
+		Vector2(172.0, -1012.0), Vector2(154.0, -985.0), Vector2(96.0, -988.0)
+	])
+	var red_mud_2d := vm._add_poly(red_mud_pts, Color(0.68, 0.25, 0.17, 0.94), -2)
+	if red_mud_2d != null:
+		red_mud_2d.add_to_group("ranch_fence_2d")
+
+	# Orilla de barro pardo y claro del bosque donde aparece el cuerpo del Caso I (y = -905..-818)
+	var clearing_grass_pts := PackedVector2Array([
+		Vector2(110.0, -905.0), Vector2(166.0, -900.0), Vector2(176.0, -860.0),
+		Vector2(168.0, -818.0), Vector2(110.0, -820.0)
+	])
+	var clearing_2d := vm._add_poly(clearing_grass_pts, Color(0.34, 0.42, 0.24, 0.88), -3)
+	if clearing_2d != null:
+		clearing_2d.add_to_group("ranch_fence_2d")
+	var brown_mud_pts := PackedVector2Array([
+		Vector2(88.0, -904.0), Vector2(136.0, -900.0), Vector2(142.0, -860.0),
+		Vector2(135.0, -820.0), Vector2(88.0, -822.0)
+	])
+	var brown_mud_2d := vm._add_poly(brown_mud_pts, Color(0.38, 0.26, 0.16, 0.94), -2)
+	if brown_mud_2d != null:
+		brown_mud_2d.add_to_group("ranch_fence_2d")
+
+	var water_poly_pts := PackedVector2Array()
+	for p in left_water:
+		water_poly_pts.append(p)
+	for i in range(right_water.size() - 1, -1, -1):
+		water_poly_pts.append(right_water[i])
+	var water_2d := vm._add_poly(water_poly_pts, Color(0.14, 0.42, 0.66, 0.95), -2)
+	if water_2d != null:
+		water_2d.add_to_group("ranch_fence_2d")
+
+	var deep_poly_pts := PackedVector2Array()
+	for p in left_deep:
+		deep_poly_pts.append(p)
+	for i in range(right_deep.size() - 1, -1, -1):
+		deep_poly_pts.append(right_deep[i])
+	var deep_2d := vm._add_poly(deep_poly_pts, Color(0.08, 0.26, 0.46, 0.88), -2)
+	if deep_2d != null:
+		deep_2d.add_to_group("ranch_fence_2d")
+
+	# 3. Colisión física real del agua del río y arroyo (StaticBody2D, collision_layer = 1)
+	# Dividida en los 6 tramos húmedos entre los 5 puentes y vados para que solo se cruce por ellos
+	var wet_segments: Array[Vector2] = [
+		Vector2(-1180.0, -877.0),
+		Vector2(-843.0, -368.0),
+		Vector2(-334.0, 29.0),
+		Vector2(71.0, 355.0),
+		Vector2(389.0, 753.0),
+		Vector2(791.0, 940.0),
+	]
+	var river_col_body := StaticBody2D.new()
+	river_col_body.name = "RiverWaterCollisionBody"
+	river_col_body.collision_layer = 1
+	river_col_body.collision_mask = 0
+	for seg in wet_segments:
+		var seg_l := PackedVector2Array()
+		var seg_r := PackedVector2Array()
+		var sy: float = seg.x
+		while sy <= seg.y + 0.01:
+			var b: Vector2 = FishingSpot.river_banks_at(sy)
+			seg_l.append(Vector2(b.x + 1.2, sy))
+			seg_r.append(Vector2(b.y - 1.2, sy))
+			if sy >= seg.y:
+				break
+			sy = minf(sy + 24.0, seg.y)
+		var c_pts := PackedVector2Array()
+		for lp in seg_l:
+			c_pts.append(lp)
+		for ri in range(seg_r.size() - 1, -1, -1):
+			c_pts.append(seg_r[ri])
+		var c_poly := CollisionPolygon2D.new()
+		c_poly.polygon = c_pts
+		river_col_body.add_child(c_poly)
+	vm.entities_root.add_child(river_col_body)
+
+	# 4. Puentes y vados en 2D + pretiles de colisión para no caer al agua desde los bordes del puente
+	for cr in FishingSpot.RIVER_CROSSINGS:
+		var c_pos: Vector2 = cr["pos"]
+		var c_hy: float = float(cr["half_y"])
+		var b_at: Vector2 = FishingSpot.river_banks_at(c_pos.y)
+		var deck_w: float = (b_at.y - b_at.x) + 18.0
+		var deck_cx: float = (b_at.x + b_at.y) * 0.5
+		var c_id: String = String(cr["id"])
+		if c_id == "old_bridge":
+			# Puente Viejo de piedra y madera en el centro del pueblo (Calle Mayor)
+			var arch_p := vm._add_rect_poly(Vector2(deck_cx, c_pos.y), Vector2(deck_w + 6.0, c_hy * 2.0 + 4.0), Color(0.46, 0.45, 0.43, 0.98), -1)
+			var deck_p := vm._add_rect_poly(Vector2(deck_cx, c_pos.y), Vector2(deck_w, c_hy * 2.0 - 2.0), Color(0.42, 0.30, 0.19, 0.98), -1)
+			var rail_n := vm._add_rect_poly(Vector2(deck_cx, c_pos.y - c_hy), Vector2(deck_w + 4.0, 4.0), Color(0.56, 0.54, 0.50, 0.98), 0)
+			var rail_s := vm._add_rect_poly(Vector2(deck_cx, c_pos.y + c_hy), Vector2(deck_w + 4.0, 4.0), Color(0.56, 0.54, 0.50, 0.98), 0)
+			for bp in [arch_p, deck_p, rail_n, rail_s]:
+				if bp != null:
+					bp.add_to_group("ranch_fence_2d")
+			vm._add_prop_collider(Vector2(deck_cx, c_pos.y - c_hy - 1.5), Vector2(deck_w - 4.0, 3.0))
+			vm._add_prop_collider(Vector2(deck_cx, c_pos.y + c_hy + 1.5), Vector2(deck_w - 4.0, 3.0))
+			vm._add_title_label(Vector2(deck_cx - 72.0, c_pos.y - 34.0), Vector2(144.0, 16.0), "🌉 Puente Viejo", Color(0.95, 0.88, 0.72), 8)
+		elif c_id == "bridge_north" or c_id == "south_fields_bridge":
+			var b_deck := vm._add_rect_poly(Vector2(deck_cx, c_pos.y), Vector2(deck_w, c_hy * 2.0), Color(0.46, 0.33, 0.20, 0.96), -1)
+			var b_rn := vm._add_rect_poly(Vector2(deck_cx, c_pos.y - c_hy), Vector2(deck_w, 3.0), Color(0.32, 0.22, 0.13, 0.98), 0)
+			var b_rs := vm._add_rect_poly(Vector2(deck_cx, c_pos.y + c_hy), Vector2(deck_w, 3.0), Color(0.32, 0.22, 0.13, 0.98), 0)
+			for bp in [b_deck, b_rn, b_rs]:
+				if bp != null:
+					bp.add_to_group("ranch_fence_2d")
+			vm._add_prop_collider(Vector2(deck_cx, c_pos.y - c_hy - 1.5), Vector2(deck_w - 6.0, 3.0))
+			vm._add_prop_collider(Vector2(deck_cx, c_pos.y + c_hy + 1.5), Vector2(deck_w - 6.0, 3.0))
+		else:
+			# Vados de piedras planas (Claro del Arroyo y Bosque del Sur)
+			for st_i in range(-2, 3):
+				var st_x: float = deck_cx + float(st_i) * 5.8
+				var st_p := vm._add_rect_poly(Vector2(st_x, c_pos.y + float(st_i % 2) * 2.0), Vector2(5.2, 7.5), Color(0.55, 0.54, 0.50, 0.95), -1)
+				if st_p != null:
+					st_p.add_to_group("ranch_fence_2d")
+
+	# 5. Punto de pesca en la orilla del río dentro del pueblo (y = 188)
+	var river_fish_spot := FishingSpot.new()
+	river_fish_spot.name = "RiverFishingSpot"
+	river_fish_spot.is_river_spot = true
+	river_fish_spot.spot_title = "🎣 Ribera de Pesca del Río"
+	river_fish_spot.dock_pos = Vector2(18.0, 0.0)
+	river_fish_spot.position = Vector2(98.0, 188.0)
+	vm.entities_root.add_child(river_fish_spot)
+
+	# 6. Claro del Arroyo (Caso I) — etiqueta y área de inspección del lugar
+	vm._add_title_label(Vector2(68.0, -902.0), Vector2(160.0, 16.0), "🌲 Claro del Arroyo", Color(0.84, 0.92, 0.78), 8)
+	vm._add_station_area("Case1ClearingArea", FishingSpot.CASE1_CLEARING_POS, 22.0, "case1_clearing")
+	var clearing_lbl := vm._make_station_label(FishingSpot.CASE1_CLEARING_POS + Vector2(-120.0, -26.0), "🌲 Orilla de Barro Pardo del Arroyo [E: Examinar Claro]")
+	vm.entities_root.add_child(clearing_lbl)
+	vm._extra_station_labels.append([clearing_lbl, FishingSpot.CASE1_CLEARING_POS])
+
+	# 7. Molino Viejo Abandonado río arriba del claro (`Vector2(188, -1060)`, tamaño `Vector2(124, 92)`)
+	var mill_center: Vector2 = FishingSpot.ABANDONED_MILL_CENTER
+	var mill_size: Vector2 = FishingSpot.ABANDONED_MILL_SIZE
+	vm._construct_solid_building(
+		"building_abandoned_mill",
+		"🏚️ Molino Viejo Abandonado",
+		mill_center,
+		mill_size,
+		true,
+		"res://assests/world/village/floor_wood_planks.png",
+		"res://assests/world/village/wall_stone_h.png",
+		"res://assests/world/village/wall_stone_v.png",
+		42.0,
+		0.0,
+		Color(0.82, 0.66, 0.52)
+	)
+	# Rueda de molino parada en el exterior oeste (sobre el cauce del arroyo) en 2D
+	var wheel_2d := vm._add_rect_poly(Vector2(mill_center.x - mill_size.x * 0.5 - 5.0, mill_center.y), Vector2(8.0, 34.0), Color(0.28, 0.19, 0.12, 0.98), 0)
+	if wheel_2d != null:
+		wheel_2d.add_to_group("ranch_fence_2d")
+
+	# Interior del Molino Viejo Abandonado (4 pistas/elementos del Caso I, dejando libre el pasillo central):
+	# (a) Pajar con paja seca (esquina noroeste: Vector2(152, -1084))
+	var straw_pos := Vector2(152.0, -1084.0)
+	var straw_2d := vm._add_rect_poly(straw_pos, Vector2(30.0, 22.0), Color(0.76, 0.64, 0.28, 0.95), -1)
+	if straw_2d != null:
+		straw_2d.add_to_group("ranch_fence_2d")
+	vm._add_prop_collider(straw_pos, Vector2(24.0, 16.0))
+	vm._add_station_area("MillHayloftArea", straw_pos, 22.0, "mill_hayloft")
+	var straw_lbl := vm._make_station_label(straw_pos + Vector2(-105.0, -24.0), "🌾 Pajar con Paja Seca [E: Examinar]")
+	vm.entities_root.add_child(straw_lbl)
+	vm._extra_station_labels.append([straw_lbl, straw_pos])
+
+	# (b) Hogar viejo con ceniza de carbón (esquina noreste: Vector2(224, -1086))
+	var hearth_pos := Vector2(224.0, -1086.0)
+	var hearth_2d := vm._add_rect_poly(hearth_pos, Vector2(28.0, 18.0), Color(0.32, 0.31, 0.30, 0.98), -1)
+	var ash_2d := vm._add_rect_poly(hearth_pos + Vector2(0.0, 2.0), Vector2(16.0, 10.0), Color(0.14, 0.14, 0.15, 0.98), -1)
+	for hp in [hearth_2d, ash_2d]:
+		if hp != null:
+			hp.add_to_group("ranch_fence_2d")
+	vm._add_prop_collider(hearth_pos, Vector2(24.0, 14.0))
+	vm._add_station_area("MillHearthArea", hearth_pos, 22.0, "mill_hearth")
+	var hearth_lbl := vm._make_station_label(hearth_pos + Vector2(-115.0, -24.0), "🪨 Hogar Viejo con Ceniza de Carbón [E: Examinar]")
+	vm.entities_root.add_child(hearth_lbl)
+	vm._extra_station_labels.append([hearth_lbl, hearth_pos])
+
+	# (c) Cordel de cáñamo encerado (esquina suroeste: Vector2(150, -1040))
+	var cord_pos := Vector2(150.0, -1040.0)
+	var cord_bench_2d := vm._add_rect_poly(cord_pos, Vector2(22.0, 16.0), Color(0.42, 0.29, 0.18, 0.96), -1)
+	var cord_coil_2d := vm._add_rect_poly(cord_pos, Vector2(9.0, 9.0), Color(0.68, 0.58, 0.36, 0.98), -1)
+	for cp in [cord_bench_2d, cord_coil_2d]:
+		if cp != null:
+			cp.add_to_group("ranch_fence_2d")
+	vm._add_prop_collider(cord_pos, Vector2(18.0, 12.0))
+	vm._add_station_area("MillHempCordArea", cord_pos, 22.0, "mill_hemp_cord")
+	var cord_lbl := vm._make_station_label(cord_pos + Vector2(-110.0, -24.0), "🪢 Cordel de Cáñamo Encerado [E: Examinar]")
+	vm.entities_root.add_child(cord_lbl)
+	vm._extra_station_labels.append([cord_lbl, cord_pos])
+
+	# (d) Mesa con papel («Lista de nombres — texto pendiente del autor») (sureste: Vector2(218, -1050))
+	var table_pos := Vector2(218.0, -1050.0)
+	var table_2d := vm._add_rect_poly(table_pos, Vector2(26.0, 18.0), Color(0.45, 0.31, 0.19, 0.98), -1)
+	var paper_2d := vm._add_rect_poly(table_pos + Vector2(-2.0, -1.0), Vector2(10.0, 7.0), Color(0.90, 0.85, 0.72, 0.98), -1)
+	for tp in [table_2d, paper_2d]:
+		if tp != null:
+			tp.add_to_group("ranch_fence_2d")
+	vm._add_prop_collider(table_pos, Vector2(22.0, 14.0))
+	vm._add_station_area("MillPaperTableArea", table_pos, 24.0, "mill_table_paper")
+	var paper_lbl := vm._make_station_label(table_pos + Vector2(-135.0, -26.0), "📄 Mesa con Papel: «Lista de nombres — texto pendiente del autor» [E: Leer]")
+	vm.entities_root.add_child(paper_lbl)
+	vm._extra_station_labels.append([paper_lbl, table_pos])
+
 # ==============================================================================
 # PASO 5: 📋 TABLÓN DE ENCARGOS EN LA PLAZA CENTRAL (`Vector2(465, 24)`)
 # ==============================================================================

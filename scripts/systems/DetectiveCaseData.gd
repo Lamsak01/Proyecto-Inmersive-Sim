@@ -24,7 +24,7 @@ static var CASES: Dictionary = {
 		"title": "Caso I · «La mujer del bosque»",
 		"subtitle": "Caso I · «La mujer del bosque» — hallada al alba junto al arroyo del norte",
 		"victim_gender": "F",
-		"default_world_pos": Vector2(465, -480),
+		"default_world_pos": Vector2(138, -860),
 		"corner_left": "CADÁVER EN EL SUELO · NO MOVIDO",
 		"corner_right": "TEMPERATURA AMBIENTE · FRÍO DE MADRUGADA",
 		"scene_ground_label": "CLARO JUNTO AL ARROYO · CAMINO DEL NORTE ARRIBA",

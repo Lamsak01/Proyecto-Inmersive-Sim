@@ -48,6 +48,8 @@ func _apply_hourly_door_security_schedule(hour: int) -> void:
 		# el horario y el nivel de seguridad determinan si además están cerradas con llave (`is_locked = true`).
 		if b_id == "building_hospital" or b_id == "building_police" or b_id == "building_church":
 			_set_door_state(d_entry, false, false, false)
+		elif b_id == "building_abandoned_mill":
+			_set_door_state(d_entry, true, false, false)
 		elif b_id == "building_tavern":
 			var tav_close_h: int = 21 if sec_lvl >= 3 else 23
 			var lock_tav: bool = (hour >= tav_close_h or hour < 6) and sec_lvl >= 2

@@ -30,6 +30,124 @@ var _catch_progress: float = 0.35
 var _is_fish_inside: bool = false
 
 var dock_pos: Vector2 = Vector2(36, 0)
+var is_river_spot: bool = false
+var spot_title: String = "🎣 Lago del Oeste"
+
+## Río y arroyo que cruza el pueblo de norte a sur (Caso I: molino viejo abandonado, claro del arroyo y puente viejo).
+const ABANDONED_MILL_CENTER := Vector2(188.0, -1060.0)
+const ABANDONED_MILL_SIZE := Vector2(124.0, 92.0)
+const ABANDONED_MILL_RECT := Rect2(Vector2(126.0, -1106.0), Vector2(124.0, 92.0))
+const CASE1_CLEARING_POS := Vector2(138.0, -860.0)
+const OLD_BRIDGE_POS := Vector2(118.0, 50.0)
+
+const RIVER_WAYPOINTS: Array[Vector2] = [
+	Vector2(108.0, -1180.0),
+	Vector2(114.0, -1060.0),
+	Vector2(108.0, -960.0),
+	Vector2(102.0, -860.0),
+	Vector2(90.0, -785.0),
+	Vector2(88.0, -690.0),
+	Vector2(162.0, -625.0),
+	Vector2(166.0, -505.0),
+	Vector2(92.0, -460.0),
+	Vector2(98.0, -351.0),
+	Vector2(104.0, -290.0),
+	Vector2(118.0, -210.0),
+	Vector2(132.0, -110.0),
+	Vector2(124.0, -30.0),
+	Vector2(118.0, 50.0),
+	Vector2(96.0, 145.0),
+	Vector2(88.0, 250.0),
+	Vector2(114.0, 330.0),
+	Vector2(152.0, 372.0),
+	Vector2(156.0, 405.0),
+	Vector2(156.0, 535.0),
+	Vector2(140.0, 600.0),
+	Vector2(118.0, 690.0),
+	Vector2(112.0, 772.0),
+	Vector2(115.0, 845.0),
+	Vector2(105.0, 940.0),
+]
+
+## Puentes y vados por los que cruzan vecinos y jugador (el resto del cauce es agua profunda bloqueada).
+const RIVER_CROSSINGS: Array[Dictionary] = [
+	{"id": "ford_clearing", "label": "Vado del Claro", "pos": Vector2(102.0, -860.0), "half_h": 18.0, "half_y": 18.0, "half_w": 26.0, "kind": "ford", "arch_h": 0.35},
+	{"id": "bridge_north", "label": "Pasarela del Arroyo Norte", "pos": Vector2(98.0, -351.0), "half_h": 16.0, "half_y": 16.0, "half_w": 28.0, "kind": "wood_bridge", "arch_h": 1.1},
+	{"id": "old_bridge", "label": "Puente Viejo", "pos": Vector2(118.0, 50.0), "half_h": 21.0, "half_y": 21.0, "half_w": 34.0, "kind": "stone_wood_bridge", "arch_h": 2.4},
+	{"id": "south_fields_bridge", "label": "Puente de los Campos", "pos": Vector2(152.0, 372.0), "half_h": 17.0, "half_y": 17.0, "half_w": 28.0, "kind": "wood_bridge", "arch_h": 1.2},
+	{"id": "forest_ford", "label": "Vado del Bosque", "pos": Vector2(112.0, 772.0), "half_h": 19.0, "half_y": 19.0, "half_w": 28.0, "kind": "ford", "arch_h": 0.35},
+]
+
+static func river_center_x(y: float) -> float:
+	if y <= RIVER_WAYPOINTS[0].y:
+		return RIVER_WAYPOINTS[0].x
+	var last_idx: int = RIVER_WAYPOINTS.size() - 1
+	if y >= RIVER_WAYPOINTS[last_idx].y:
+		return RIVER_WAYPOINTS[last_idx].x
+	for i in range(last_idx):
+		var p0: Vector2 = RIVER_WAYPOINTS[i]
+		var p1: Vector2 = RIVER_WAYPOINTS[i + 1]
+		if y >= p0.y and y <= p1.y:
+			var t: float = (y - p0.y) / maxf(0.001, p1.y - p0.y)
+			var base_x: float = lerpf(p0.x, p1.x, t)
+			# Ondulación natural suave para evitar tramos rectos artificiales (se atenúa en los pasos estrechos)
+			var narrow_damp: float = 0.25 if ((y >= -650.0 and y <= -460.0) or (y >= 390.0 and y <= 550.0) or absf(y - 50.0) < 28.0 or absf(y - 372.0) < 24.0) else 1.0
+			var meander: float = (sin(y * 0.031 + 0.7) * 2.4 + cos(y * 0.067 - 0.4) * 1.3) * narrow_damp
+			return base_x + meander
+	return 118.0
+
+static func river_half_width(y: float) -> float:
+	# El arroyo del norte es más estrecho (10.5..12.5 px de semiancho); al cruzar el pueblo se ensancha como río (13.5..16.0 px),
+	# estrechándose ligeramente entre la granja s2 y el rancho s3 (11.0 px).
+	var base_hw: float = 14.0
+	if y < -780.0:
+		base_hw = 11.2
+	elif y < -380.0:
+		base_hw = 11.6
+	elif y >= 392.0 and y <= 550.0:
+		base_hw = 11.0
+	var ripple_w: float = (sin(y * 0.053 + 1.1) * 1.35 + cos(y * 0.089 + 2.0) * 0.85)
+	if (y >= 392.0 and y <= 550.0) or (y >= -640.0 and y <= -465.0):
+		ripple_w *= 0.25
+	return base_hw + ripple_w
+
+static func river_banks_at(y: float) -> Vector2:
+	var cx: float = river_center_x(y)
+	var hw: float = river_half_width(y)
+	var asym: float = sin(y * 0.043 - 0.5) * 1.1
+	if (y >= 392.0 and y <= 550.0) or (y >= -640.0 and y <= -465.0):
+		asym *= 0.2
+	return Vector2(cx - hw + asym, cx + hw + asym)
+
+static func is_in_river_crossing(pos: Vector2, margin_y: float = 0.0) -> bool:
+	for cr in RIVER_CROSSINGS:
+		var cpos: Vector2 = cr["pos"]
+		var hh: float = float(cr["half_h"]) + margin_y
+		var hw: float = float(cr["half_w"]) + 10.0
+		if absf(pos.y - cpos.y) <= hh and absf(pos.x - cpos.x) <= hw:
+			return true
+	return false
+
+static func is_point_in_river_water(pos: Vector2, extra_margin: float = 0.0) -> bool:
+	if pos.y < -1185.0 or pos.y > 945.0:
+		return false
+	if is_in_river_crossing(pos, -1.0):
+		return false
+	var banks: Vector2 = river_banks_at(pos.y)
+	return pos.x >= (banks.x - extra_margin) and pos.x <= (banks.y + extra_margin)
+
+static func nearest_river_crossing(from_pos: Vector2, to_pos: Vector2) -> Dictionary:
+	var best: Dictionary = RIVER_CROSSINGS[2] # Por defecto, Puente Viejo
+	var best_cost: float = INF
+	for cr in RIVER_CROSSINGS:
+		var cpos: Vector2 = cr["pos"]
+		var cost: float = from_pos.distance_to(cpos) + cpos.distance_to(to_pos)
+		if str(cr["id"]) == "old_bridge":
+			cost -= 18.0 # Ligera preferencia natural por el Puente Viejo en el centro del pueblo
+		if cost < best_cost:
+			best_cost = cost
+			best = cr
+	return best
 
 ## Orilla del agua del Lago del Oeste en coordenadas del MAPA (2026-11-05: unas tres veces más grande, hacia el oeste y el sur).
 ## Orilla del agua del Lago del Oeste en coordenadas del MAPA (Paso 2: alejado al oeste junto al campamento inicial, un solo muelle al este).
@@ -94,36 +212,46 @@ func _make_lbl(txt: String, pos: Vector2, min_sz: Vector2, col: Color, z: int = 
 	return l
 
 func _build_lake_visuals() -> void:
-	var to_local_pts := func(pts: PackedVector2Array) -> Array[Vector2]:
-		var arr: Array[Vector2] = []
-		for v in pts:
-			arr.append(v - LAKE_NODE_POS)
-		return arr
-	var p_sand := _add_poly(to_local_pts.call(lake_scaled(1.0, 9.0)), Color(0.56, 0.48, 0.34, 0.88), -3)
-	var p_water := _add_poly(to_local_pts.call(lake_scaled(1.0, 0.0)), Color(0.14, 0.42, 0.68, 0.94), -2)
-	var p_deep := _add_poly(to_local_pts.call(lake_scaled(0.62, 0.0)), Color(0.09, 0.30, 0.54, 0.92), -2)
-	var p_dock := _add_poly([Vector2(14, -9), Vector2(50, -9), Vector2(50, 9), Vector2(14, 9)], Color(0.46, 0.30, 0.16, 1.0), -1)
+	if is_river_spot:
+		var p_dock_r := _add_poly([Vector2(0, -6), Vector2(18, -6), Vector2(18, 6), Vector2(0, 6)], Color(0.46, 0.30, 0.16, 1.0), -1)
+		if p_dock_r != null:
+			p_dock_r.add_to_group("ranch_fence_2d")
+		_make_lbl(spot_title, Vector2(-60, -24), Vector2(140, 16), Color(0.65, 0.92, 1.0))
+	else:
+		var to_local_pts := func(pts: PackedVector2Array) -> Array[Vector2]:
+			var arr: Array[Vector2] = []
+			for v in pts:
+				arr.append(v - LAKE_NODE_POS)
+			return arr
+		var p_sand := _add_poly(to_local_pts.call(lake_scaled(1.0, 9.0)), Color(0.56, 0.48, 0.34, 0.88), -3)
+		var p_water := _add_poly(to_local_pts.call(lake_scaled(1.0, 0.0)), Color(0.14, 0.42, 0.68, 0.94), -2)
+		var p_deep := _add_poly(to_local_pts.call(lake_scaled(0.62, 0.0)), Color(0.09, 0.30, 0.54, 0.92), -2)
+		var p_dock := _add_poly([Vector2(14, -9), Vector2(50, -9), Vector2(50, 9), Vector2(14, 9)], Color(0.46, 0.30, 0.16, 1.0), -1)
 
-	var dock_border := Line2D.new()
-	dock_border.width = 2.0
-	dock_border.default_color = Color(0.28, 0.18, 0.09, 1.0)
-	dock_border.points = PackedVector2Array([Vector2(14, -9), Vector2(50, -9), Vector2(50, 9), Vector2(14, 9), Vector2(14, -9)])
-	dock_border.z_index = -1
-	add_child(dock_border)
-	for ci_2d in [p_sand, p_water, p_deep, p_dock, dock_border]:
-		if ci_2d != null:
-			ci_2d.add_to_group("ranch_fence_2d")
+		var dock_border := Line2D.new()
+		dock_border.width = 2.0
+		dock_border.default_color = Color(0.28, 0.18, 0.09, 1.0)
+		dock_border.points = PackedVector2Array([Vector2(14, -9), Vector2(50, -9), Vector2(50, 9), Vector2(14, 9), Vector2(14, -9)])
+		dock_border.z_index = -1
+		add_child(dock_border)
+		for ci_2d in [p_sand, p_water, p_deep, p_dock, dock_border]:
+			if ci_2d != null:
+				ci_2d.add_to_group("ranch_fence_2d")
 
-	_make_lbl("🎣 Lago del Oeste", Vector2(-265, 57), Vector2(160, 18), Color(0.65, 0.92, 1.0))
+		_make_lbl("🎣 Lago del Oeste", Vector2(-265, 57), Vector2(160, 18), Color(0.65, 0.92, 1.0))
 
 	# 6. Ondas y sombras de peces animadas
 	var tex_ripples := _load_tex("res://assests/world/fishing/fish_spot_ripples.png")
-	ripple_base_positions = [Vector2(-12, -10), Vector2(-26, 10), Vector2(2, 14)]
+	ripple_base_positions.clear()
+	if is_river_spot:
+		ripple_base_positions.append_array([Vector2(-8, -6), Vector2(-12, 6)])
+	else:
+		ripple_base_positions.append_array([Vector2(-12, -10), Vector2(-26, 10), Vector2(2, 14)])
 	for pos in ripple_base_positions:
 		var spr := Sprite2D.new()
 		spr.texture = tex_ripples
 		spr.position = pos
-		spr.scale = Vector2(1.15, 1.15)
+		spr.scale = Vector2(0.85, 0.85) if is_river_spot else Vector2(1.15, 1.15)
 		spr.z_index = -1
 		spr.add_to_group("ranch_fence_2d")
 		add_child(spr)
@@ -142,6 +270,8 @@ func _build_lake_visuals() -> void:
 	bobber_poly.visible = false
 
 func _build_water_collision() -> void:
+	if is_river_spot:
+		return
 	var body := StaticBody2D.new()
 	body.name = "LakeWaterBody"
 	body.collision_layer = 1
@@ -247,11 +377,15 @@ func _update_status_label(player: Node2D, dock_world: Vector2) -> void:
 
 	if near_player or near_mouse:
 		var is_stained: bool = player != null and player.has_method("is_bloodstained") and bool(player.call("is_bloodstained"))
-		var time_hint := "Noche: Siluro/Carpa" if (WorldClock and (WorldClock.current_hour >= 18 or WorldClock.current_hour < 6)) else "Día: Trucha/Carpa"
+		var wc := get_node_or_null("/root/WorldClock")
+		var cur_h: int = int(wc.get("current_hour")) if wc != null else 12
+		var time_hint := "Noche: Siluro/Carpa" if (cur_h >= 18 or cur_h < 6) else "Día: Trucha/Carpa"
+		var place_lbl: String = "Ribera del Río" if is_river_spot else "Lago del Oeste"
+		var dock_lbl: String = "Ribera de Pesca del Río" if is_river_spot else "Muelle de Pesca"
 		if is_stained:
-			_set_status("🩸🌊 Lago del Oeste [E: Lavarse la Sangre y Llenar Regadera]", Color(1.0, 0.58, 0.58))
+			_set_status("🩸🌊 %s [E: Lavarse la Sangre y Llenar Regadera]" % place_lbl, Color(1.0, 0.58, 0.58))
 		else:
-			_set_status("🎣 Muelle de Pesca [%s | E: Pescar / Llenar Regadera]" % time_hint, Color(0.85, 0.95, 1.0))
+			_set_status("🎣 %s [%s | E: Pescar / Llenar Regadera]" % [dock_lbl, time_hint], Color(0.85, 0.95, 1.0))
 	else:
 		status_label.visible = false
 
@@ -306,7 +440,9 @@ func _start_minigame(player: Node2D) -> void:
 	state = FishState.MINIGAME
 	_active_fisher = player
 
-	var is_night_fish := WorldClock != null and (WorldClock.current_hour >= 18 or WorldClock.current_hour < 6)
+	var wc_m := get_node_or_null("/root/WorldClock")
+	var cur_h_m: int = int(wc_m.get("current_hour")) if wc_m != null else 12
+	var is_night_fish := (cur_h_m >= 18 or cur_h_m < 6)
 	var roll := randf()
 	if is_night_fish:
 		_hooked_fish_id = "night_catfish" if roll < 0.70 else "golden_carp"

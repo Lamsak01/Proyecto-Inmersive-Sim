@@ -29,6 +29,11 @@ const STATION_LABELS: Dictionary = {
 	"building_window": "Abrir o cerrar el postigo",
 	"house_chest": "Abrir el cofre",
 	"shop_business_stall": "Gestionar el negocio",
+	"case1_clearing": "Examinar orilla de barro pardo del claro",
+	"mill_hayloft": "Examinar pajar con paja seca",
+	"mill_hearth": "Examinar hogar viejo con ceniza de carbón",
+	"mill_hemp_cord": "Examinar cordel de cáñamo encerado",
+	"mill_table_paper": "Leer «Lista de nombres — texto pendiente del autor»",
 }
 
 var player: Node2D = null
@@ -529,6 +534,21 @@ func get_prompt_card_data() -> Dictionary:
 			"compost":
 				target_name = "Compostador"
 				target_state = "Huerto"
+			"case1_clearing":
+				target_name = "Claro del arroyo"
+				target_state = "Barro pardo"
+			"mill_hayloft":
+				target_name = "Pajar con paja seca"
+				target_state = "Molino viejo"
+			"mill_hearth":
+				target_name = "Hogar viejo"
+				target_state = "Ceniza de carbón"
+			"mill_hemp_cord":
+				target_name = "Cordel de cáñamo encerado"
+				target_state = "Molino viejo"
+			"mill_table_paper":
+				target_name = "Mesa del molino"
+				target_state = "Lista de nombres"
 			_:
 				target_name = str(STATION_LABELS.get(tag, "Puesto"))
 				target_state = "Aldea"

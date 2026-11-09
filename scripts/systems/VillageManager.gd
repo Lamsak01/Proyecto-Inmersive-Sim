@@ -568,6 +568,28 @@ func interact(player: Node2D) -> void:
 		trigger_police_confrontation(null)
 		return
 
+	# 5b. Pistas del Caso I en el Molino Viejo Abandonado y Claro del Arroyo
+	if pos.distance_squared_to(Vector2(218.0, -1050.0)) <= 28.0 * 28.0:
+		_msg_player(player, "📄 «Lista de nombres — texto pendiente del autor»", Color(0.96, 0.90, 0.72), -42.0)
+		_hint_player("📄 Sobre la mesa del molino abandonado hay una hoja doblada: «Lista de nombres — texto pendiente del autor».", player)
+		return
+	if pos.distance_squared_to(Vector2(150.0, -1040.0)) <= 26.0 * 26.0:
+		_msg_player(player, "🪢 Cordel de cáñamo encerado", Color(0.90, 0.80, 0.58), -42.0)
+		_hint_player("🪢 Un rollo de cordel de cáñamo encerado con marcas recientes de corte sobre el banco del molino.", player)
+		return
+	if pos.distance_squared_to(Vector2(224.0, -1086.0)) <= 26.0 * 26.0:
+		_msg_player(player, "🪨 Hogar viejo con ceniza de carbón", Color(0.78, 0.78, 0.82), -42.0)
+		_hint_player("🪨 El hogar de piedra conserva ceniza negra de carbón mineral aún fría y restos de hollín.", player)
+		return
+	if pos.distance_squared_to(Vector2(152.0, -1084.0)) <= 26.0 * 26.0:
+		_msg_player(player, "🌾 Pajar con paja seca", Color(0.92, 0.82, 0.45), -42.0)
+		_hint_player("🌾 Paja seca aplastada en el rincón del molino, como si alguien hubiera estado retenido o tendido aquí.", player)
+		return
+	if pos.distance_squared_to(FishingSpot.CASE1_CLEARING_POS) <= 28.0 * 28.0:
+		_msg_player(player, "🌲 Claro del Arroyo (orilla de barro pardo)", Color(0.84, 0.72, 0.54), -42.0)
+		_hint_player("🌲 El agua del arroyo deposita aquí barro pardo en un recodo tranquilo del bosque norte.", player)
+		return
+
 	var d_bed: float = pos.distance_squared_to(_tavern_bed_pos)
 	var d_games: float = pos.distance_squared_to(_tavern_games_pos)
 	var d_pool: float = pos.distance_squared_to(_tavern_pool_pos)

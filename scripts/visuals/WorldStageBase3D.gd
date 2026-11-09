@@ -477,7 +477,17 @@ static func _village_terrace_height_px(pos_2d: Vector2) -> float:
 	return north_h + east_h + plaza_h + south_h
 
 
+static func _river_bank_terrace_height_px(y: float) -> float:
+	var sample_x: float = FishingSpotScript.river_center_x(y) + FishingSpotScript.river_half_width(y) + 18.0
+	return _village_terrace_height_px(Vector2(sample_x, clampf(y, -825.0, 650.0)))
+
+
 static func surface_elevation_offset_px(pos_2d: Vector2) -> float:
+	if FishingSpotScript.is_in_river_crossing(pos_2d, 3.0):
+		var bank_h: float = _river_bank_terrace_height_px(pos_2d.y)
+		var base_t: float = terrain_height_px(pos_2d)
+		var cr_boost: float = 1.6 if absf(pos_2d.y - 50.0) <= 24.0 else 0.9
+		return maxf(0.45, (bank_h - base_t) + cr_boost)
 	if Rect2(Vector2(384.0, 8.0), Vector2(162.0, 80.0)).has_point(pos_2d):
 		return 0.48
 	if _road_flat_mask(pos_2d) < 0.85:
@@ -488,6 +498,15 @@ static func surface_elevation_offset_px(pos_2d: Vector2) -> float:
 static func terrain_height_px(pos_2d: Vector2) -> float:
 	var x: float = pos_2d.x
 	var y: float = pos_2d.y
+
+	# 0. Cuenca suave del Río y del Arroyo del Bosque Norte (y = -1180..940)
+	var river_cut_h: float = 0.0
+	if y >= -1180.0 and y <= 940.0 and not FishingSpotScript.ABANDONED_MILL_RECT.grow(4.0).has_point(pos_2d):
+		var riv_cx: float = FishingSpotScript.river_center_x(y)
+		var riv_hw: float = FishingSpotScript.river_half_width(y)
+		var d_riv: float = absf(x - riv_cx)
+		if d_riv < riv_hw + 20.0:
+			river_cut_h = -1.8 * (1.0 - smoothstep(riv_hw * 0.5, riv_hw + 20.0, d_riv))
 
 	# 1. Cuenca baja y de orillas suaves del Lago del Oeste (x ~ -1080..-665, y ~ 75..245)
 	var lake_h: float = 0.0
@@ -516,8 +535,9 @@ static func terrain_height_px(pos_2d: Vector2) -> float:
 			marsh_h = m_basin + m_bank
 
 	# 3. Relieve Fase B (pueblo): desniveles suaves por terrazas (calle norte y cívico ligeramente más altos, plaza en plataforma con escalones/rampas, campos del sur algo más bajos), mientras CADA edificio se asienta en un solar/zócalo completamente llano.
+	var north_lim_y: float = -1155.0 if (x > 25.0 and x < 310.0) else -825.0
 	var dx_v: float = (-665.0 - x) if x < -665.0 else ((x - 1785.0) if x > 1785.0 else 0.0)
-	var dy_v: float = (-825.0 - y) if y < -825.0 else ((y - 650.0) if y > 650.0 else 0.0)
+	var dy_v: float = (north_lim_y - y) if y < north_lim_y else ((y - 650.0) if y > 650.0 else 0.0)
 	var d_village: float = sqrt(dx_v * dx_v + dy_v * dy_v)
 
 	# Claro llano del campamento inicial, huerto 3x3 y gallinero (x in -935..-640, y in -215..72)
@@ -535,15 +555,15 @@ static func terrain_height_px(pos_2d: Vector2) -> float:
 
 	# Relieve suave dentro del casco del pueblo y sus terrazas (Fase B):
 	if d_village <= 0.001 and absf(lake_h) < 0.001:
-		return _village_terrace_height_px(pos_2d)
+		return _village_terrace_height_px(pos_2d) + river_cut_h
 
 	var d_out: float = minf(d_village, minf(d_camp, d_cas))
-	var village_edge_h: float = _village_terrace_height_px(Vector2(clampf(x, -665.0, 1785.0), clampf(y, -825.0, 650.0))) * (1.0 - smoothstep(0.0, 160.0, d_village))
+	var village_edge_h: float = _village_terrace_height_px(Vector2(clampf(x, -665.0, 1785.0), clampf(y, north_lim_y, 650.0))) * (1.0 - smoothstep(0.0, 160.0, d_village))
 	var outer_mask: float = smoothstep(0.0, 175.0, d_out) * _road_flat_mask(pos_2d)
 
 	# 4. Lomas anchas y suaves en la Llanura Salvaje y borde exterior (sin montículos aislados; pendiente < 10°)
 	var plains_h: float = 0.0
-	if x < -665.0 or y < -825.0 or x > 1785.0:
+	if x < -665.0 or y < north_lim_y or x > 1785.0:
 		var w1: float = sin(x * 0.0024 + 0.5) * cos(y * 0.0028 - 0.3)
 		var w2: float = sin((x * 0.0036 - y * 0.0030) + 1.4) * 0.55
 		var swell: float = maxf(0.0, w1 + w2 * 0.70 + 0.35)
@@ -553,7 +573,7 @@ static func terrain_height_px(pos_2d: Vector2) -> float:
 		var rim_n: float = smoothstep(-950.0, -1450.0, y) * 12.0
 		var rim_e: float = smoothstep(1900.0, 2500.0, x) * 12.0
 		plains_h += rim_w + rim_n + rim_e
-		var near_water: float = clampf(absf(lake_h + marsh_h) / 2.2, 0.0, 1.0)
+		var near_water: float = clampf(absf(lake_h + marsh_h + river_cut_h) / 2.2, 0.0, 1.0)
 		plains_h *= (1.0 - near_water * 0.90)
 
 	# 5. Ondulaciones anchas y bajas en el Bosque Profundo (sur, y > 650)
@@ -565,7 +585,7 @@ static func terrain_height_px(pos_2d: Vector2) -> float:
 		var rim_s: float = smoothstep(2050.0, 2650.0, y) * 14.0
 		forest_h = ((fw1 * 11.0 + fw2 * 7.5 + 5.5) + rim_s) * fy
 
-	return (plains_h + forest_h) * outer_mask + village_edge_h + lake_h + marsh_h
+	return (plains_h + forest_h) * outer_mask + village_edge_h + lake_h + marsh_h + river_cut_h
 
 
 func to_3d_flat(pos_2d: Vector2, h_px: float = 0.0) -> Vector3:
@@ -600,9 +620,15 @@ func _terrain_biome_color(pos_2d: Vector2, normal_3d: Vector3) -> Color:
 	var x: float = pos_2d.x
 	var y: float = pos_2d.y
 	var edge_wave: float = sin(x * 0.009 + 1.2) * 32.0 + cos(x * 0.021 - 0.5) * 16.0
-	var w_forest: float = smoothstep(665.0 + edge_wave, 775.0 + edge_wave, y)
+	var w_forest: float = maxf(smoothstep(665.0 + edge_wave, 775.0 + edge_wave, y), smoothstep(-735.0, -830.0, y))
 	var w_plains: float = smoothstep(-940.0, -1180.0, x) * smoothstep(20.0, -90.0, y)
 	var w_mud: float = 0.0
+	if y >= -1180.0 and y <= 940.0:
+		var riv_cx: float = FishingSpotScript.river_center_x(y)
+		var riv_hw: float = FishingSpotScript.river_half_width(y)
+		var d_riv: float = absf(x - riv_cx)
+		if d_riv < riv_hw + 9.0:
+			w_mud = maxf(w_mud, (1.0 - smoothstep(riv_hw * 0.65, riv_hw + 9.0, d_riv)) * 0.62)
 	# Lecho húmedo solo bajo el agua del Lago del Oeste (la orilla exterior queda de hierba verde)
 	var lc := Vector2(-875.0, 152.0)
 	var lr: float = Vector2((x - lc.x) / 195.0, (y - lc.y) / 76.0).length()
@@ -757,13 +783,14 @@ func _add_model_2d(parent: Node3D, rel_path: String, center_2d: Vector2, bottom_
 	parent.add_child(inst)
 	return inst
 
-func _add_box_2d(parent: Node3D, center_2d: Vector2, sz_2d: Vector2, bottom_h_px: float, height_px: float, mat: Material, rot_y_deg: float = 0.0) -> MeshInstance3D:
+func _add_box_2d(parent: Node3D, center_2d: Vector2, sz_2d: Vector2, bottom_h_px: float, height_px: float, mat: Material, rot_y_deg: float = 0.0, absolute_h: bool = false) -> MeshInstance3D:
 	var mi := MeshInstance3D.new()
 	var bm := BoxMesh.new()
 	bm.size = size_3d(sz_2d, height_px)
 	mi.mesh = bm
 	mi.material_override = mat
-	mi.position = to_3d(center_2d, bottom_h_px + height_px * 0.5)
+	var h_mid: float = bottom_h_px + height_px * 0.5
+	mi.position = to_3d_flat(center_2d, h_mid) if absolute_h else to_3d(center_2d, h_mid)
 	if absf(rot_y_deg) > 0.01:
 		mi.rotation_degrees.y = rot_y_deg
 	parent.add_child(mi)

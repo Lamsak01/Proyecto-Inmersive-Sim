@@ -401,10 +401,18 @@ func _draw_valley_cartography(canvas: Control, detailed: bool) -> void:
 	canvas.draw_rect(plaza_r, Color(0.67, 0.62, 0.52, 0.95), true)
 	canvas.draw_rect(plaza_r, Color(0.227, 0.196, 0.157, 0.70), false, 1.0)
 
-	# 5. Lago del Oeste, Campamento del Jugador y (si ya se han construido) Gallinero y Huerto
+	# 5. Lago del Oeste, Río de Norte a Sur, Puente Viejo, Campamento del Jugador y Gallinero/Huerto
 	var lake_r := _world_rect_to_map(Rect2(Vector2(-1082, 76), Vector2(418, 166)), csize)
 	canvas.draw_rect(lake_r, Color(0.498, 0.639, 0.678, 0.94), true)
 	canvas.draw_rect(lake_r, Color(0.24, 0.35, 0.39, 0.90), false, 1.2)
+
+	var riv_pts := PackedVector2Array()
+	for wp in FishingSpot.RIVER_WAYPOINTS:
+		riv_pts.append(_world_to_map(wp, csize))
+	if riv_pts.size() >= 2:
+		canvas.draw_polyline(riv_pts, Color(0.32, 0.54, 0.68, 0.92), 4.0)
+	var ob_map_r := _world_rect_to_map(Rect2(Vector2(92, 32), Vector2(52, 36)), csize)
+	canvas.draw_rect(ob_map_r, Color(0.56, 0.44, 0.30, 0.96), true)
 
 	var camp_r := _world_rect_to_map(Rect2(Vector2(-782, -124), Vector2(88, 46)), csize)
 	canvas.draw_rect(camp_r, Color(0.66, 0.54, 0.36, 0.90), true)
@@ -436,7 +444,8 @@ func _draw_valley_cartography(canvas: Control, detailed: bool) -> void:
 		{"rect": Rect2(Vector2(676, 100), Vector2(138, 96)), "col": Color(0.44, 0.56, 0.52), "label": "Hospital"},
 		{"rect": Rect2(Vector2(844, 100), Vector2(142, 96)), "col": Color(0.42, 0.48, 0.58), "label": "Comisaría"},
 		{"rect": Rect2(Vector2(679, 266), Vector2(132, 92)), "col": Color(0.56, 0.46, 0.54), "label": "Capilla"},
-		{"rect": Rect2(Vector2(822, 260), Vector2(268, 168)), "col": Color(0.48, 0.52, 0.46), "label": "Cementerio"}
+		{"rect": Rect2(Vector2(822, 260), Vector2(268, 168)), "col": Color(0.48, 0.52, 0.46), "label": "Cementerio"},
+		{"rect": Rect2(Vector2(126, -1106), Vector2(124, 92)), "col": Color(0.46, 0.36, 0.28), "label": "Molino Viejo"}
 	]
 	var vm_lots = get_tree().get_first_node_in_group("village_manager")
 	if vm_lots and "lots_state" in vm_lots:

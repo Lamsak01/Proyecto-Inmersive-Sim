@@ -929,6 +929,8 @@ func _update_fp_camera_transform() -> void:
 	var pl := get_tree().get_first_node_in_group("player") as Node2D if is_inside_tree() else null
 	var pl_pos: Vector2 = pl.global_position if is_instance_valid(pl) else Vector2(465, 48)
 	var eye_h: float = FP_EYE_HEIGHT_PX
+	if FishingSpotScript.is_in_river_crossing(pl_pos, 3.0):
+		eye_h += surface_elevation_offset_px(pl_pos)
 	if is_instance_valid(pl):
 		if pl.get("is_mounted") == true:
 			eye_h += 6.0

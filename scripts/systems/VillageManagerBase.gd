@@ -715,6 +715,8 @@ func _route_internal_building_partitions(b_id: String, from_pos: Vector2, target
 
 func clamp_point_to_building_interior(ref_pos: Vector2, candidate_pos: Vector2) -> Vector2:
 	for b in building_footprints:
+		if str(b.get("id", "")) == "building_abandoned_mill":
+			continue
 		var r: Rect2 = b["rect"]
 		if r.has_point(ref_pos):
 			var r_safe: Rect2 = r.grow(-16.0)
@@ -726,10 +728,15 @@ func clamp_point_to_building_interior(ref_pos: Vector2, candidate_pos: Vector2) 
 
 ## Evita que el paseo aleatorio de un NPC exterior (`UNEMPLOYED` o `GUARD`) caiga por accidente dentro de una casa o sobre su puerta
 
+func is_point_in_river_water(pos: Vector2) -> bool:
+	return FishingSpot.is_point_in_river_water(pos, 1.5)
+
 func clamp_point_outside_buildings(ref_pos: Vector2, candidate_pos: Vector2) -> Vector2:
+	if FishingSpot.is_point_in_river_water(candidate_pos, 5.0):
+		return ref_pos
 	for b in building_footprints:
 		var r_ref: Rect2 = b["rect"]
-		if r_ref.has_point(ref_pos):
+		if r_ref.has_point(ref_pos) and str(b.get("id", "")) != "building_abandoned_mill":
 			return candidate_pos
 	for b in building_footprints:
 		var r_avoid: Rect2 = b["rect"].grow(14.0)
@@ -747,7 +754,15 @@ func sanitize_npc_separation_pos(prev_pos: Vector2, candidate_pos: Vector2, elev
 		)
 	if elev != 0:
 		return candidate_pos
+	if FishingSpot.is_point_in_river_water(candidate_pos, 4.0):
+		if not FishingSpot.is_point_in_river_water(prev_pos, 2.0):
+			return prev_pos
+		var b_riv: Vector2 = FishingSpot.river_banks_at(candidate_pos.y)
+		var cx_riv: float = (b_riv.x + b_riv.y) * 0.5
+		return Vector2(b_riv.x - 5.0 if candidate_pos.x < cx_riv else b_riv.y + 5.0, candidate_pos.y)
 	for b in building_footprints:
+		if str(b.get("id", "")) == "building_abandoned_mill":
+			continue
 		var r: Rect2 = b["rect"]
 		if r.has_point(prev_pos):
 			var r_safe: Rect2 = r.grow(-12.5)
@@ -899,6 +914,30 @@ func check_all_building_doors_and_lanes() -> Array:
 
 func _avoid_outdoor_buildings(from_pos: Vector2, target_pos: Vector2, ignore_b_id: String) -> Vector2:
 	var cur_target: Vector2 = target_pos
+	# 0. Si el trayecto cruza el río o toca el agua fuera de los puentes/vados, redirigir al puente/vado más cercano
+	var side_from: float = from_pos.x - FishingSpot.river_center_x(from_pos.y)
+	var side_to: float = cur_target.x - FishingSpot.river_center_x(cur_target.y)
+	if side_from * side_to < 0.0:
+		var cr: Dictionary = FishingSpot.nearest_river_crossing(from_pos, cur_target)
+		var cr_pos: Vector2 = cr["pos"]
+		var cr_hy: float = maxf(6.0, float(cr["half_y"]) - 4.0)
+		var b_cr: Vector2 = FishingSpot.river_banks_at(cr_pos.y)
+		if absf(from_pos.y - cr_pos.y) > cr_hy:
+			var approach_x: float = (b_cr.x - 10.0) if side_from < 0.0 else (b_cr.y + 10.0)
+			cur_target = Vector2(approach_x, cr_pos.y)
+		else:
+			var exit_x: float = (b_cr.y + 10.0) if side_to > 0.0 else (b_cr.x - 10.0)
+			cur_target = Vector2(exit_x, cr_pos.y)
+	else:
+		for s_i in range(1, 8):
+			var t_s: float = float(s_i) / 8.0
+			var p_s: Vector2 = from_pos.lerp(cur_target, t_s)
+			if FishingSpot.is_point_in_river_water(p_s, 5.0):
+				var b_s: Vector2 = FishingSpot.river_banks_at(p_s.y)
+				var safe_x: float = (b_s.x - 11.0) if side_from < 0.0 else (b_s.y + 11.0)
+				cur_target = Vector2(safe_x, p_s.y)
+				break
+
 	for _step in range(3):
 		var blocking_b: Dictionary = {}
 		var closest_d: float = INF
