@@ -411,7 +411,7 @@ func _draw_valley_cartography(canvas: Control, detailed: bool) -> void:
 		riv_pts.append(_world_to_map(wp, csize))
 	if riv_pts.size() >= 2:
 		canvas.draw_polyline(riv_pts, Color(0.32, 0.54, 0.68, 0.92), 4.0)
-	var ob_map_r := _world_rect_to_map(Rect2(Vector2(92, 32), Vector2(52, 36)), csize)
+	var ob_map_r := _world_rect_to_map(Rect2(Vector2(82, 32), Vector2(88, 36)), csize)
 	canvas.draw_rect(ob_map_r, Color(0.56, 0.44, 0.30, 0.96), true)
 
 	var camp_r := _world_rect_to_map(Rect2(Vector2(-782, -124), Vector2(88, 46)), csize)

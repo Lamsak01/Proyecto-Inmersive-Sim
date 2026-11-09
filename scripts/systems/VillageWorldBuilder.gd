@@ -518,11 +518,11 @@ static func _spawn_church_and_cemetery(vm: VillageManager) -> void:
 static func _spawn_river_arroyo_and_abandoned_mill(vm: VillageManager) -> void:
 	# 1. Sendero forestal que sube desde la Calle Norte junto al arroyo hasta el Claro y el Molino Viejo
 	var trail_pts: Array[Vector2] = [
-		Vector2(122.0, -351.0),
-		Vector2(118.0, -455.0),
-		Vector2(182.0, -565.0),
-		Vector2(128.0, -695.0),
-		Vector2(122.0, -785.0),
+		Vector2(138.0, -351.0),
+		Vector2(126.0, -435.0),
+		Vector2(218.0, -545.0),
+		Vector2(118.0, -695.0),
+		Vector2(114.0, -785.0),
 		Vector2(138.0, -860.0),
 		Vector2(142.0, -945.0),
 		Vector2(168.0, -996.0),
@@ -539,7 +539,7 @@ static func _spawn_river_arroyo_and_abandoned_mill(vm: VillageManager) -> void:
 		if seg_poly != null:
 			seg_poly.add_to_group("ranch_fence_2d")
 
-	# 2. Orillas naturales, barro rojo del molino, barro pardo del claro y cauce de agua 2D
+	# 2. Orillas naturales irregulares, barro rojo del molino, barro pardo del claro y cauce de agua 2D
 	var left_bank_outer := PackedVector2Array()
 	var right_bank_outer := PackedVector2Array()
 	var left_water := PackedVector2Array()
@@ -549,17 +549,18 @@ static func _spawn_river_arroyo_and_abandoned_mill(vm: VillageManager) -> void:
 	var sample_y: float = -1180.0
 	while sample_y <= 940.0:
 		var banks: Vector2 = FishingSpot.river_banks_at(sample_y)
-		var bank_pad_l: float = 5.5 + sin(sample_y * 0.043) * 1.4
-		var bank_pad_r: float = 5.5 + cos(sample_y * 0.039) * 1.5
+		var town_bank_boost: float = lerpf(1.0, 2.2, smoothstep(-520.0, -180.0, sample_y) * (1.0 - smoothstep(260.0, 390.0, sample_y)))
+		var bank_pad_l: float = (5.5 + sin(sample_y * 0.043) * 2.2 + cos(sample_y * 0.089) * 1.4) * town_bank_boost
+		var bank_pad_r: float = (5.5 + cos(sample_y * 0.039) * 2.2 + sin(sample_y * 0.083) * 1.4) * town_bank_boost
 		left_bank_outer.append(Vector2(banks.x - bank_pad_l, sample_y))
 		right_bank_outer.append(Vector2(banks.y + bank_pad_r, sample_y))
 		left_water.append(Vector2(banks.x, sample_y))
 		right_water.append(Vector2(banks.y, sample_y))
-		var hw_d: float = (banks.y - banks.x) * 0.28
+		var hw_d: float = (banks.y - banks.x) * 0.30
 		var cx_d: float = (banks.x + banks.y) * 0.5
 		left_deep.append(Vector2(cx_d - hw_d, sample_y))
 		right_deep.append(Vector2(cx_d + hw_d, sample_y))
-		sample_y += 20.0
+		sample_y += 12.0
 
 	var bank_poly_pts := PackedVector2Array()
 	for p in left_bank_outer:
@@ -572,10 +573,10 @@ static func _spawn_river_arroyo_and_abandoned_mill(vm: VillageManager) -> void:
 
 	# Orilla de barro rojo / arcilla junto al Molino Viejo Abandonado (y = -1135..-985)
 	var red_mud_pts := PackedVector2Array([
-		Vector2(96.0, -1135.0), Vector2(156.0, -1132.0), Vector2(166.0, -1085.0),
-		Vector2(172.0, -1012.0), Vector2(154.0, -985.0), Vector2(96.0, -988.0)
+		Vector2(94.0, -1135.0), Vector2(158.0, -1132.0), Vector2(168.0, -1085.0),
+		Vector2(174.0, -1012.0), Vector2(156.0, -985.0), Vector2(94.0, -988.0)
 	])
-	var red_mud_2d := vm._add_poly(red_mud_pts, Color(0.68, 0.25, 0.17, 0.94), -2)
+	var red_mud_2d := vm._add_poly(red_mud_pts, Color(0.76, 0.22, 0.14, 0.96), -2)
 	if red_mud_2d != null:
 		red_mud_2d.add_to_group("ranch_fence_2d")
 
@@ -637,7 +638,7 @@ static func _spawn_river_arroyo_and_abandoned_mill(vm: VillageManager) -> void:
 			seg_r.append(Vector2(b.y - 1.2, sy))
 			if sy >= seg.y:
 				break
-			sy = minf(sy + 24.0, seg.y)
+			sy = minf(sy + 14.0, seg.y)
 		var c_pts := PackedVector2Array()
 		for lp in seg_l:
 			c_pts.append(lp)
@@ -648,12 +649,13 @@ static func _spawn_river_arroyo_and_abandoned_mill(vm: VillageManager) -> void:
 		river_col_body.add_child(c_poly)
 	vm.entities_root.add_child(river_col_body)
 
-	# 4. Puentes y vados en 2D + pretiles de colisión para no caer al agua desde los bordes del puente
+	# 4. Puentes y vados en 2D + pretiles de colisión sobre el tramo de agua para no caer al río
 	for cr in FishingSpot.RIVER_CROSSINGS:
 		var c_pos: Vector2 = cr["pos"]
 		var c_hy: float = float(cr["half_y"])
 		var b_at: Vector2 = FishingSpot.river_banks_at(c_pos.y)
-		var deck_w: float = (b_at.y - b_at.x) + 18.0
+		var water_span: float = maxf(18.0, b_at.y - b_at.x)
+		var deck_w: float = water_span + 18.0
 		var deck_cx: float = (b_at.x + b_at.y) * 0.5
 		var c_id: String = String(cr["id"])
 		if c_id == "old_bridge":
@@ -665,8 +667,8 @@ static func _spawn_river_arroyo_and_abandoned_mill(vm: VillageManager) -> void:
 			for bp in [arch_p, deck_p, rail_n, rail_s]:
 				if bp != null:
 					bp.add_to_group("ranch_fence_2d")
-			vm._add_prop_collider(Vector2(deck_cx, c_pos.y - c_hy - 1.5), Vector2(deck_w - 4.0, 3.0))
-			vm._add_prop_collider(Vector2(deck_cx, c_pos.y + c_hy + 1.5), Vector2(deck_w - 4.0, 3.0))
+			vm._add_prop_collider(Vector2(deck_cx, c_pos.y - c_hy - 1.5), Vector2(water_span, 3.0))
+			vm._add_prop_collider(Vector2(deck_cx, c_pos.y + c_hy + 1.5), Vector2(water_span, 3.0))
 			vm._add_title_label(Vector2(deck_cx - 72.0, c_pos.y - 34.0), Vector2(144.0, 16.0), "🌉 Puente Viejo", Color(0.95, 0.88, 0.72), 8)
 		elif c_id == "bridge_north" or c_id == "south_fields_bridge":
 			var b_deck := vm._add_rect_poly(Vector2(deck_cx, c_pos.y), Vector2(deck_w, c_hy * 2.0), Color(0.46, 0.33, 0.20, 0.96), -1)
@@ -675,23 +677,27 @@ static func _spawn_river_arroyo_and_abandoned_mill(vm: VillageManager) -> void:
 			for bp in [b_deck, b_rn, b_rs]:
 				if bp != null:
 					bp.add_to_group("ranch_fence_2d")
-			vm._add_prop_collider(Vector2(deck_cx, c_pos.y - c_hy - 1.5), Vector2(deck_w - 6.0, 3.0))
-			vm._add_prop_collider(Vector2(deck_cx, c_pos.y + c_hy + 1.5), Vector2(deck_w - 6.0, 3.0))
+			vm._add_prop_collider(Vector2(deck_cx, c_pos.y - c_hy - 1.5), Vector2(water_span, 3.0))
+			vm._add_prop_collider(Vector2(deck_cx, c_pos.y + c_hy + 1.5), Vector2(water_span, 3.0))
 		else:
 			# Vados de piedras planas (Claro del Arroyo y Bosque del Sur)
-			for st_i in range(-2, 3):
-				var st_x: float = deck_cx + float(st_i) * 5.8
-				var st_p := vm._add_rect_poly(Vector2(st_x, c_pos.y + float(st_i % 2) * 2.0), Vector2(5.2, 7.5), Color(0.55, 0.54, 0.50, 0.95), -1)
+			var st_x: float = b_at.x + 3.0
+			var st_idx: int = 0
+			while st_x <= b_at.y - 2.0:
+				var st_p := vm._add_rect_poly(Vector2(st_x, c_pos.y + float(st_idx % 2) * 2.0), Vector2(5.2, 7.5), Color(0.55, 0.54, 0.50, 0.95), -1)
 				if st_p != null:
 					st_p.add_to_group("ranch_fence_2d")
+				st_x += 6.2
+				st_idx += 1
 
-	# 5. Punto de pesca en la orilla del río dentro del pueblo (y = 188)
+	# 5. Punto de pesca en la orilla este del río dentro del pueblo (y = 188)
+	var fish_banks: Vector2 = FishingSpot.river_banks_at(188.0)
 	var river_fish_spot := FishingSpot.new()
 	river_fish_spot.name = "RiverFishingSpot"
 	river_fish_spot.is_river_spot = true
 	river_fish_spot.spot_title = "🎣 Ribera de Pesca del Río"
 	river_fish_spot.dock_pos = Vector2(18.0, 0.0)
-	river_fish_spot.position = Vector2(98.0, 188.0)
+	river_fish_spot.position = Vector2(fish_banks.y - 10.0, 188.0)
 	vm.entities_root.add_child(river_fish_spot)
 
 	# 6. Claro del Arroyo (Caso I) — etiqueta y área de inspección del lugar

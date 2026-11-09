@@ -38,44 +38,44 @@ const ABANDONED_MILL_CENTER := Vector2(188.0, -1060.0)
 const ABANDONED_MILL_SIZE := Vector2(124.0, 92.0)
 const ABANDONED_MILL_RECT := Rect2(Vector2(126.0, -1106.0), Vector2(124.0, 92.0))
 const CASE1_CLEARING_POS := Vector2(138.0, -860.0)
-const OLD_BRIDGE_POS := Vector2(118.0, 50.0)
+const OLD_BRIDGE_POS := Vector2(126.0, 50.0)
 
 const RIVER_WAYPOINTS: Array[Vector2] = [
 	Vector2(108.0, -1180.0),
 	Vector2(114.0, -1060.0),
-	Vector2(108.0, -960.0),
+	Vector2(106.0, -960.0),
 	Vector2(102.0, -860.0),
-	Vector2(90.0, -785.0),
-	Vector2(88.0, -690.0),
-	Vector2(162.0, -625.0),
-	Vector2(166.0, -505.0),
-	Vector2(92.0, -460.0),
-	Vector2(98.0, -351.0),
-	Vector2(104.0, -290.0),
-	Vector2(118.0, -210.0),
-	Vector2(132.0, -110.0),
-	Vector2(124.0, -30.0),
-	Vector2(118.0, 50.0),
-	Vector2(96.0, 145.0),
-	Vector2(88.0, 250.0),
-	Vector2(114.0, 330.0),
+	Vector2(82.0, -785.0),
+	Vector2(88.0, -700.0),
+	Vector2(174.0, -615.0),
+	Vector2(182.0, -510.0),
+	Vector2(76.0, -430.0),
+	Vector2(96.0, -351.0),
+	Vector2(144.0, -265.0),
+	Vector2(74.0, -165.0),
+	Vector2(158.0, -65.0),
+	Vector2(132.0, 15.0),
+	Vector2(126.0, 50.0),
+	Vector2(72.0, 145.0),
+	Vector2(54.0, 225.0),
+	Vector2(88.0, 310.0),
 	Vector2(152.0, 372.0),
-	Vector2(156.0, 405.0),
-	Vector2(156.0, 535.0),
-	Vector2(140.0, 600.0),
-	Vector2(118.0, 690.0),
+	Vector2(158.0, 408.0),
+	Vector2(158.0, 535.0),
+	Vector2(132.0, 610.0),
+	Vector2(88.0, 695.0),
 	Vector2(112.0, 772.0),
-	Vector2(115.0, 845.0),
-	Vector2(105.0, 940.0),
+	Vector2(138.0, 855.0),
+	Vector2(96.0, 940.0),
 ]
 
 ## Puentes y vados por los que cruzan vecinos y jugador (el resto del cauce es agua profunda bloqueada).
 const RIVER_CROSSINGS: Array[Dictionary] = [
 	{"id": "ford_clearing", "label": "Vado del Claro", "pos": Vector2(102.0, -860.0), "half_h": 18.0, "half_y": 18.0, "half_w": 26.0, "kind": "ford", "arch_h": 0.35},
-	{"id": "bridge_north", "label": "Pasarela del Arroyo Norte", "pos": Vector2(98.0, -351.0), "half_h": 16.0, "half_y": 16.0, "half_w": 28.0, "kind": "wood_bridge", "arch_h": 1.1},
-	{"id": "old_bridge", "label": "Puente Viejo", "pos": Vector2(118.0, 50.0), "half_h": 21.0, "half_y": 21.0, "half_w": 34.0, "kind": "stone_wood_bridge", "arch_h": 2.4},
-	{"id": "south_fields_bridge", "label": "Puente de los Campos", "pos": Vector2(152.0, 372.0), "half_h": 17.0, "half_y": 17.0, "half_w": 28.0, "kind": "wood_bridge", "arch_h": 1.2},
-	{"id": "forest_ford", "label": "Vado del Bosque", "pos": Vector2(112.0, 772.0), "half_h": 19.0, "half_y": 19.0, "half_w": 28.0, "kind": "ford", "arch_h": 0.35},
+	{"id": "bridge_north", "label": "Pasarela del Arroyo Norte", "pos": Vector2(96.0, -351.0), "half_h": 16.0, "half_y": 16.0, "half_w": 42.0, "kind": "wood_bridge", "arch_h": 1.1},
+	{"id": "old_bridge", "label": "Puente Viejo", "pos": Vector2(126.0, 50.0), "half_h": 21.0, "half_y": 21.0, "half_w": 52.0, "kind": "stone_wood_bridge", "arch_h": 2.4},
+	{"id": "south_fields_bridge", "label": "Puente de los Campos", "pos": Vector2(152.0, 372.0), "half_h": 17.0, "half_y": 17.0, "half_w": 36.0, "kind": "wood_bridge", "arch_h": 1.2},
+	{"id": "forest_ford", "label": "Vado del Bosque", "pos": Vector2(112.0, 772.0), "half_h": 19.0, "half_y": 19.0, "half_w": 38.0, "kind": "ford", "arch_h": 0.35},
 ]
 
 static func river_center_x(y: float) -> float:
@@ -89,35 +89,58 @@ static func river_center_x(y: float) -> float:
 		var p1: Vector2 = RIVER_WAYPOINTS[i + 1]
 		if y >= p0.y and y <= p1.y:
 			var t: float = (y - p0.y) / maxf(0.001, p1.y - p0.y)
-			var base_x: float = lerpf(p0.x, p1.x, t)
-			# Ondulación natural suave para evitar tramos rectos artificiales (se atenúa en los pasos estrechos)
-			var narrow_damp: float = 0.25 if ((y >= -650.0 and y <= -460.0) or (y >= 390.0 and y <= 550.0) or absf(y - 50.0) < 28.0 or absf(y - 372.0) < 24.0) else 1.0
-			var meander: float = (sin(y * 0.031 + 0.7) * 2.4 + cos(y * 0.067 - 0.4) * 1.3) * narrow_damp
+			var st: float = t * t * (3.0 - 2.0 * t)
+			var base_x: float = lerpf(p0.x, p1.x, st)
+			# Meandros orgánicos adicionales para evitar cualquier tramo recto (atenuados en pasos estrechos y puentes)
+			var narrow_damp: float = 0.22 if ((y >= -640.0 and y <= -480.0) or (y >= 390.0 and y <= 550.0) or absf(y - 50.0) < 30.0 or absf(y - 372.0) < 24.0 or absf(y - (-1060.0)) < 45.0) else 1.0
+			var meander: float = (sin(y * 0.029 + 0.7) * 5.2 + cos(y * 0.061 - 0.4) * 2.8) * narrow_damp
 			return base_x + meander
-	return 118.0
+	return 126.0
 
 static func river_half_width(y: float) -> float:
-	# El arroyo del norte es más estrecho (10.5..12.5 px de semiancho); al cruzar el pueblo se ensancha como río (13.5..16.0 px),
-	# estrechándose ligeramente entre la granja s2 y el rancho s3 (11.0 px).
-	var base_hw: float = 14.0
-	if y < -780.0:
+	# En el pueblo (y = -240..270) es un río caudaloso y ancho (~60..68 px de anchura total).
+	# Al subir hacia el norte (y = -240..-820) se estrecha poco a poco hasta ser un arroyo (~18..21 px)
+	# junto al Claro del Caso I (y = -860) y el Molino Viejo Abandonado (y = -1060).
+	var base_hw: float = 31.0
+	if y <= -920.0:
+		base_hw = lerpf(9.2, 10.2, smoothstep(-1150.0, -920.0, y))
+	elif y <= -780.0:
+		base_hw = lerpf(10.2, 12.2, smoothstep(-920.0, -780.0, y))
+	elif y < -210.0:
+		base_hw = lerpf(12.2, 31.2, smoothstep(-780.0, -210.0, y))
+	elif y <= 255.0:
+		base_hw = 31.2 + sin(y * 0.019 + 0.4) * 2.2
+	elif y < 395.0:
+		base_hw = lerpf(30.0, 11.4, smoothstep(255.0, 395.0, y))
+	elif y <= 550.0:
 		base_hw = 11.2
-	elif y < -380.0:
-		base_hw = 11.6
-	elif y >= 392.0 and y <= 550.0:
-		base_hw = 11.0
-	var ripple_w: float = (sin(y * 0.053 + 1.1) * 1.35 + cos(y * 0.089 + 2.0) * 0.85)
-	if (y >= 392.0 and y <= 550.0) or (y >= -640.0 and y <= -465.0):
-		ripple_w *= 0.25
+	else:
+		base_hw = lerpf(11.2, 23.5, smoothstep(550.0, 645.0, y))
+	var ripple_w: float = (sin(y * 0.053 + 1.1) * 2.4 + cos(y * 0.097 + 2.0) * 1.5)
+	if y < -780.0 or (y >= 385.0 and y <= 555.0) or (y >= -635.0 and y <= -485.0):
+		ripple_w *= 0.28
 	return base_hw + ripple_w
 
 static func river_banks_at(y: float) -> Vector2:
 	var cx: float = river_center_x(y)
 	var hw: float = river_half_width(y)
-	var asym: float = sin(y * 0.043 - 0.5) * 1.1
-	if (y >= 392.0 and y <= 550.0) or (y >= -640.0 and y <= -465.0):
-		asym *= 0.2
-	return Vector2(cx - hw + asym, cx + hw + asym)
+	# Orillas izquierda y derecha con entrantes y salientes independientes (nunca paralelas)
+	var irr_scale: float = lerpf(0.24, 1.0, smoothstep(-820.0, -240.0, y))
+	if (y >= 385.0 and y <= 555.0) or (y >= -635.0 and y <= -485.0):
+		irr_scale *= 0.25
+	elif absf(y - 50.0) < 28.0 or absf(y - (-351.0)) < 22.0 or absf(y - 372.0) < 22.0:
+		irr_scale *= 0.35
+	var left_irr: float = (sin(y * 0.047 + 0.5) * 3.8 + cos(y * 0.103 - 1.2) * 2.3 + sin(y * 0.187 + 2.0) * 1.2) * irr_scale
+	var right_irr: float = (cos(y * 0.043 - 0.9) * 3.8 + sin(y * 0.093 + 1.7) * 2.3 + cos(y * 0.173 - 0.4) * 1.2) * irr_scale
+	var lb: float = cx - hw + left_irr
+	var rb: float = cx + hw + right_irr
+	if y >= -1115.0 and y <= -1005.0:
+		rb = minf(rb, 123.5)
+	elif y >= 15.0 and y <= 55.0:
+		lb = maxf(lb, 92.0)
+	elif y >= 115.0 and y <= 345.0:
+		rb = minf(rb, 126.0)
+	return Vector2(lb, rb)
 
 static func is_in_river_crossing(pos: Vector2, margin_y: float = 0.0) -> bool:
 	for cr in RIVER_CROSSINGS:
