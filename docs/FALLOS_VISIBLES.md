@@ -20,8 +20,8 @@
   (p. ej. la comisaría: rejas verdes gigantes, cajón suelto, cepo). **Petición del usuario:** que TODOS los edificios
   tengan el nivel de detalle de la trattoria (varias salas con sentido, muebles 3D colocados, luces). Es un proyecto
   grande: hacerlo edificio a edificio, empezando por los que pisa el detective (comisaría, morgue/hospital, capilla,
-  taberna, biblioteca).
-- [ ] **Todas las casas comparten la misma puerta**, que a veces no pega con la fachada · 1.ª persona.
+  taberna, biblioteca). *(✅ 2026-11-08: rehechos en 3D y 1.ª persona los 6 edificios del Caso I — comisaría y calabozo, morgue/hospital, taberna, biblioteca, botica del alquimista y capilla — con salas separadas coherentes, mobiliario 3D sin solapes ni objetos flotantes, iluminación interior y techos sin Z-fighting; capturas antes/después en `docs/capturas_arreglos/interiores/`)*.
+- [ ] **Todas las casas comparten la misma puerta**, que a veces no pega con la fachada · 1.ª persona. *(✅ 2026-11-08: puertas 3D propias acordes a cada fachada en los 6 edificios del Caso I: puerta blindada de acero remachado con mirilla en comisaría, doble hoja clínica blanca con cruces rojas en hospital/morgue, portón de roble y forja con ventanuco en taberna, puerta azul pizarra y nogal con herrajes de latón en biblioteca, puerta verde salvia con ventanuco y corona botánica en botica, y portón solemne de nogal con Cruz Solar dorada en capilla)*.
 - [ ] **Alcantarillas vacías** (2026-11-07): son un pasillo con 3 cofres sueltos; no se ve el sitio de las peleas clandestinas que se supone que está ahí.
 - [ ] **(BAJA PRIORIDAD: el usuario lo tolera por ahora) Césped con dibujo repetido** (2026-11-07 21:13, captura, 3D):
   la cuadrícula pasó a ser un dibujo de rombos que se repite por todo el suelo; no es natural y no le gusta. Arreglarlo

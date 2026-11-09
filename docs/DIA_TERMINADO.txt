@@ -1,0 +1,10 @@
+ENCARGO DE HOY COMPLETADO (2026-11-08, noche 5):
+- Rehechos los interiores 3D en 1.ª persona y puertas propias de los 6 edificios del Caso I:
+  1. Comisaría y calabozo (9f9e8ea)
+  2. Morgue y hospital (4c42477)
+  3. Taberna (5fcdf7b)
+  4. Biblioteca (6b6f9f3)
+  5. Botica del alquimista (0b76c78)
+  6. Capilla del Alba (c00beb7)
+- Capturas antes/después en docs/capturas_arreglos/interiores/
+- FURNITURE_OVERLAPS=0, WALK_TEST_PASSED en los 6 edificios y RECORRIDO PASSED (88.92s).

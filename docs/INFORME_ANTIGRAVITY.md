@@ -1,5 +1,16 @@
 # Informe de Trabajo — Antigravity (2026-11-08)
 
+## Resumen del ENCARGO DE HOY (2026-11-08, noche 5 — Interiores 3D y puertas de los 6 edificios del Caso I)
+- **Objetivo cumplido (`FURNITURE_OVERLAPS=0`, `WALK_TEST_PASSED`, `RECORRIDO PASSED`):** rehechos en 1.ª persona 3D los interiores, colisiones 2D e iluminación de los 6 edificios que pisa el detective en el Caso I, con puertas 3D propias acordes a cada fachada y techos sin parpadeo (`roof_cap` a `2.0 + wall_h + 0.08`, tabiques a `wall_h - 0.15`).
+- **1. Comisaría y calabozo (`9f9e8ea`):** guardia/interrogatorio al N, calabozo al SO con barrotes de hierro oscuro, puerta corredera con cerradura/llave, camastro, cubo y grilletes, cuarto de pruebas al SE y puerta exterior blindada de acero remachado con mirilla.
+- **2. Morgue/hospital (`4c42477`):** urgencias y consulta del Dr. Valen al N (camas clínicas, biombo, gotero, lavabo, botiquines) separadas por tabique esmaltado de la morgue forense al S (suelo embaldosado, 3 mesas de autopsia de acero con desagüe, lámparas quirúrgicas, cámaras frigoríficas y atril) y doble hoja clínica con cruces rojas.
+- **3. Taberna (`5fcdf7b`):** eliminada la mancha naranja gigante del suelo (`m_hall_rug`), sustituida la franja amarilla de la chimenea por hogar de piedra ahumada con morillos, leños, brasas y caldero, corregido Z-fighting del tabique y puerta de roble y forja.
+- **4. Biblioteca (`6b6f9f3`):** corregidos muros negros por textura transparente, arcada de nogal, 6 librerías orientadas a la sala y llenas de tomos 3D, gran mesa de lectura con candelabro y códices, mostradores de préstamo y crónicas, y puerta azul pizarra y nogal.
+- **5. Botica del alquimista (`0b76c78`):** despejado el pasillo central (mostrador de botica y estanterías al O; hornillo con caldero esmeralda, mesa de alambiques y secadero de hierbas al E), tabique con puerta hacia la vivienda familiar trasera (comedor y 2 camas) y puerta verde salvia con corona botánica.
+- **6. Capilla del Alba (`c00beb7`):** nave con alfombra carmesí/oro y bancos orientados al sur, presbiterio con altar de mármol/carmesí, cáliz, candelabros, misal, atril de difuntos y retablo vitral con Cruz Solar, sacristía NO y celda NE tras celosías de madera, y portón de nogal con Cruz Solar dorada.
+- **Nota de proporción para el supervisor:** la **Capilla (`132×92 px`)** y la **Comisaría (`138×96 px`)** funcionan bien con las estancias actuales, pero si en el futuro se quisiera añadir confesionario cerrado independiente o más celdas convendría ampliar ligeramente su huella (no tocada aquí por restricción del encargo).
+- **Capturas antes/después (1.ª persona):** 32 capturas en `docs/capturas_arreglos/interiores/` (`01_comisaria_*` a `06_capilla_*`).
+
 ## Resumen del ENCARGO DE HOY (2026-11-08, noche 4 — Estabilidad: recorrido fijo + guardar/cargar largo)
 - **Pruebas nuevas (`EXIT_CODE=0`):** `tools/tests/recorrido_fijo.gd` (`RECORRIDO PASSED` en `85,6 s`) y `tools/tests/guardado_largo.gd` (`GUARDADO LARGO PASSED` en `85,6 s`, 7 días con `demo_mode = true`).
 - **Qué falló al probar:**
