@@ -26,34 +26,34 @@ func _has_note_with_source(det_ui: Node, source_key: String) -> bool:
 			return true
 	return false
 
-func _walk_to_waypoints(pl: CharacterBody2D, stage: Node, waypoints: Array[Vector2], max_frames_per_seg: int = 1200) -> bool:
+func _walk_to_waypoints(pl: CharacterBody2D, stage: Node, waypoints: Array[Vector2], arrive_dist: float = 8.0, max_frames_per_seg: int = 1200) -> bool:
 	for wp in waypoints:
 		var frames: int = 0
 		var stuck_count: int = 0
 		var side_sign: float = 1.0
-		while pl.global_position.distance_to(wp) > 8.0 and frames < max_frames_per_seg:
+		while pl.global_position.distance_to(wp) > arrive_dist and frames < max_frames_per_seg:
 			var pos_before: Vector2 = pl.global_position
 			var diff: Vector2 = wp - pos_before
 			var dir: Vector2 = diff.normalized()
-			if stuck_count > 4:
+			if stuck_count > 10:
 				var perp := Vector2(-dir.y, dir.x) * side_sign
-				dir = (dir * 0.45 + perp * 0.85).normalized()
+				dir = (dir * 0.75 + perp * 0.65).normalized()
 			if stage != null:
 				stage.set("fp_yaw", dir.angle())
 				stage.set("fp_pitch", -0.08)
 				stage.call("_update_fp_camera_transform")
 			for _sub in range(4):
-				if pl.global_position.distance_to(wp) <= 8.0:
+				if pl.global_position.distance_to(wp) <= arrive_dist:
 					break
 				var sub_dir: Vector2 = (wp - pl.global_position).normalized()
-				if stuck_count > 4:
+				if stuck_count > 10:
 					var perp2 := Vector2(-sub_dir.y, sub_dir.x) * side_sign
-					sub_dir = (sub_dir * 0.45 + perp2 * 0.85).normalized()
+					sub_dir = (sub_dir * 0.75 + perp2 * 0.65).normalized()
 				pl.velocity = sub_dir * 320.0
 				pl.move_and_slide()
-			if pl.global_position.distance_to(pos_before) < 0.8:
+			if pl.global_position.distance_to(pos_before) < 0.5:
 				stuck_count += 1
-				if (stuck_count % 14) == 0:
+				if (stuck_count % 8) == 0:
 					side_sign = -side_sign
 			else:
 				stuck_count = 0
@@ -61,7 +61,7 @@ func _walk_to_waypoints(pl: CharacterBody2D, stage: Node, waypoints: Array[Vecto
 			if (frames % 8) == 0:
 				await physics_frame
 		pl.velocity = Vector2.ZERO
-		if pl.global_position.distance_to(wp) > 16.0:
+		if pl.global_position.distance_to(wp) > maxf(10.0, arrive_dist + 3.0):
 			var col_name: String = "none"
 			if pl.get_slide_collision_count() > 0:
 				var col := pl.get_slide_collision(0)
@@ -69,6 +69,7 @@ func _walk_to_waypoints(pl: CharacterBody2D, stage: Node, waypoints: Array[Vecto
 					col_name = str(col.get_collider().name)
 			print("[WALK_BLOCKED] wp=%s pos=%s collider=%s" % [str(wp), str(pl.global_position.round()), col_name])
 			return false
+	await physics_frame
 	await physics_frame
 	return true
 
@@ -88,25 +89,30 @@ func _aim_and_press_e(pl: CharacterBody2D, stage: Node, look_target: Vector2, pi
 				stage.set("fp_yaw", dir.angle())
 			stage.set("fp_pitch", pitch)
 			stage.call("_update_fp_camera_transform")
-		if sel != null and sel.has_method("_refresh"):
-			sel.call("_refresh")
+		if sel != null and sel.has_method("refresh"):
+			sel.call("refresh")
 	var chosen: Dictionary = {}
 	if sel != null and sel.has_method("selected"):
 		var cands: Array = sel.get("candidates")
-		if want_substr != "" and cands.size() > 1:
+		if want_substr != "":
 			for idx in range(cands.size()):
 				var c_lbl: String = str(cands[idx].get("label", ""))
 				if want_substr.to_lower() in c_lbl.to_lower():
 					sel.set("_index", idx)
+					chosen = cands[idx]
 					break
-		chosen = sel.call("selected")
+		if chosen.is_empty():
+			chosen = sel.call("selected")
 	var used_ok: bool = false
-	if not chosen.is_empty():
+	var chosen_lbl: String = str(chosen.get("label", ""))
+	if not chosen.is_empty() and (want_substr == "" or want_substr.to_lower() in chosen_lbl.to_lower()):
 		pl.call("_handle_interactions")
 		used_ok = true
+	if paused:
+		paused = false
 	for _i in range(3):
 		await process_frame
-	return {"ok": used_ok, "label": str(chosen.get("label", ""))}
+	return {"ok": used_ok, "label": chosen_lbl}
 
 func _save_shot(id_name: String) -> void:
 	if DisplayServer.get_name() == "headless":
@@ -223,54 +229,58 @@ func _initialize() -> void:
 	_record("A4_cuerpo_y_pistas_claro", bool(e_corpse["ok"]) and det_opened and added_clearing_notes >= 10,
 		"prompt='%s' ui_abierta=%s notas_nuevas=%d" % [str(e_corpse["label"]), str(det_opened), added_clearing_notes])
 
+	var wc: Node = root.get_node_or_null("WorldClock")
+	if wc != null:
+		wc.set("current_hour", 11)
+		wc.set("current_minute", 0)
+
 	# =========================================================================
 	# BLOQUE B: Molino Viejo (barro rojo, sótano/reja, 4 pistas interiores) y Puente Viejo (zapato)
 	# =========================================================================
 	var path_to_mill_clay: Array[Vector2] = [
 		Vector2(142.0, -945.0),
-		Vector2(168.0, -996.0),
-		Vector2(134.0, -1028.0),
+		Vector2(140.0, -988.0),
 	]
-	var walked_clay: bool = await _walk_to_waypoints(pl, stage, path_to_mill_clay)
-	var e_clay: Dictionary = await _aim_and_press_e(pl, stage, Vector2(120.0, -1036.0), -0.22, "arcilla")
+	var walked_clay: bool = await _walk_to_waypoints(pl, stage, path_to_mill_clay, 4.0)
+	var e_clay: Dictionary = await _aim_and_press_e(pl, stage, Vector2(140.0, -1006.0), -0.22, "arcilla")
 	var note_clay: bool = _has_note_with_source(det_ui, "clue_mill_red_clay")
 	_record("B1_molino_barro_rojo", walked_clay and bool(e_clay["ok"]) and note_clay,
 		"walk=%s prompt='%s' anotada=%s" % [str(walked_clay), str(e_clay["label"]), str(note_clay)])
 
 	# Entrar al Molino Viejo por la puerta sur (188, -1014)
-	await _walk_to_waypoints(pl, stage, [Vector2(120.0, -996.0), Vector2(188.0, -996.0), Vector2(188.0, -1005.0)])
+	await _walk_to_waypoints(pl, stage, [Vector2(188.0, -996.0)], 4.0)
 	var d_mill: Dictionary = vm.call("_find_nearest_door", Vector2(188.0, -1014.0), 20.0)
 	if not bool(d_mill.get("is_open", false)):
 		await _aim_and_press_e(pl, stage, Vector2(188.0, -1014.0), -0.05, "puerta")
-	var walked_mill_in: bool = await _walk_to_waypoints(pl, stage, [Vector2(188.0, -1035.0), Vector2(154.0, -1061.0)])
+	var walked_mill_in: bool = await _walk_to_waypoints(pl, stage, [Vector2(188.0, -1035.0), Vector2(154.0, -1061.0)], 5.0)
 	var e_grate: Dictionary = await _aim_and_press_e(pl, stage, Vector2(138.0, -1061.0), -0.22, "reja")
 	var note_grate: bool = _has_note_with_source(det_ui, "clue_mill_cellar_grate")
 	_record("B2_molino_sotano_reja", walked_mill_in and bool(e_grate["ok"]) and note_grate,
 		"walk=%s prompt='%s' anotada=%s" % [str(walked_mill_in), str(e_grate["label"]), str(note_grate)])
 
 	# Pajar (152, -1084)
-	var w_hay: bool = await _walk_to_waypoints(pl, stage, [Vector2(168.0, -1072.0)])
+	var w_hay: bool = await _walk_to_waypoints(pl, stage, [Vector2(168.0, -1072.0)], 5.0)
 	var e_hay: Dictionary = await _aim_and_press_e(pl, stage, Vector2(152.0, -1084.0), -0.22, "pajar")
 	var note_hay: bool = _has_note_with_source(det_ui, "clue_mill_hayloft")
 	_record("B3_molino_pajar", w_hay and bool(e_hay["ok"]) and note_hay,
 		"prompt='%s' anotada=%s" % [str(e_hay["label"]), str(note_hay)])
 
 	# Hogar de piedra (224, -1086)
-	var w_hearth: bool = await _walk_to_waypoints(pl, stage, [Vector2(188.0, -1068.0), Vector2(224.0, -1068.0)])
+	var w_hearth: bool = await _walk_to_waypoints(pl, stage, [Vector2(188.0, -1066.0), Vector2(208.0, -1075.0)], 4.0)
 	var e_hearth: Dictionary = await _aim_and_press_e(pl, stage, Vector2(224.0, -1086.0), -0.22, "hogar")
 	var note_hearth: bool = _has_note_with_source(det_ui, "clue_mill_hearth")
 	_record("B4_molino_hogar_ceniza", w_hearth and bool(e_hearth["ok"]) and note_hearth,
 		"prompt='%s' anotada=%s" % [str(e_hearth["label"]), str(note_hearth)])
 
 	# Cordel de cáñamo encerado (150, -1040)
-	var w_cord: bool = await _walk_to_waypoints(pl, stage, [Vector2(188.0, -1056.0), Vector2(168.0, -1044.0)])
+	var w_cord: bool = await _walk_to_waypoints(pl, stage, [Vector2(188.0, -1056.0), Vector2(168.0, -1044.0)], 4.0)
 	var e_cord: Dictionary = await _aim_and_press_e(pl, stage, Vector2(150.0, -1040.0), -0.22, "cordel")
 	var note_cord: bool = _has_note_with_source(det_ui, "clue_mill_hemp_cord")
 	_record("B5_molino_cordel", w_cord and bool(e_cord["ok"]) and note_cord,
 		"prompt='%s' anotada=%s" % [str(e_cord["label"]), str(note_cord)])
 
 	# Papel sobre la mesa (218, -1050)
-	var w_paper: bool = await _walk_to_waypoints(pl, stage, [Vector2(198.0, -1050.0)])
+	var w_paper: bool = await _walk_to_waypoints(pl, stage, [Vector2(188.0, -1050.0), Vector2(200.0, -1050.0)], 4.0)
 	var e_paper: Dictionary = await _aim_and_press_e(pl, stage, Vector2(218.0, -1050.0), -0.22, "papel")
 	var note_paper: bool = _has_note_with_source(det_ui, "clue_mill_table_paper")
 	_record("B6_molino_mesa_papel", w_paper and bool(e_paper["ok"]) and note_paper,
@@ -293,8 +303,8 @@ func _initialize() -> void:
 		Vector2(138.0, -351.0),
 		Vector2(672.0, -351.0),
 		Vector2(672.0, 50.0),
-		Vector2(118.0, 50.0),
-		shoe_pos + Vector2(12.0, 10.0),
+		Vector2(150.0, 50.0),
+		Vector2(105.0, 50.0),
 	]
 	var walked_bridge: bool = await _walk_to_waypoints(pl, stage, path_to_bridge)
 	var e_shoe: Dictionary = await _aim_and_press_e(pl, stage, shoe_pos, -0.22, "zapato")
@@ -302,5 +312,68 @@ func _initialize() -> void:
 	_record("B7_puente_viejo_zapato", walked_bridge and bool(e_shoe["ok"]) and note_shoe,
 		"walk=%s prompt='%s' anotada=%s" % [str(walked_bridge), str(e_shoe["label"]), str(note_shoe)])
 
-	print("PARTIDA_CASO1 BLOQUES A-B TERMINADOS (%d fallos)" % _failures.size())
+	# =========================================================================
+	# BLOQUE C: Comisaría (denuncia archivada) y Biblioteca (libro-palanca, sala oculta, cuaderno, libro arrancado)
+	# =========================================================================
+	var path_to_police: Array[Vector2] = [
+		Vector2(150.0, 50.0),
+		Vector2(420.0, 50.0),
+		Vector2(672.0, 50.0),
+		Vector2(672.0, 86.0),
+		Vector2(915.0, 86.0),
+		Vector2(915.0, 92.0),
+	]
+	var walked_pol_door: bool = await _walk_to_waypoints(pl, stage, path_to_police)
+	var d_pol: Dictionary = vm.call("_find_nearest_door", Vector2(915.0, 100.0), 20.0)
+	if not bool(d_pol.get("is_open", false)):
+		await _aim_and_press_e(pl, stage, Vector2(915.0, 100.0), -0.05, "puerta")
+	var walked_pol_in: bool = await _walk_to_waypoints(pl, stage, [
+		Vector2(915.0, 124.0),
+		Vector2(930.0, 146.0),
+		Vector2(930.0, 164.0),
+	])
+	var e_pol: Dictionary = await _aim_and_press_e(pl, stage, Vector2(934.0, 180.0), -0.22, "carpeta")
+	var note_pol: bool = _has_note_with_source(det_ui, "clue_police_archived_report")
+	_record("C1_comisaria_denuncia_archivada", walked_pol_door and walked_pol_in and bool(e_pol["ok"]) and note_pol,
+		"walk=%s prompt='%s' anotada=%s" % [str(walked_pol_in), str(e_pol["label"]), str(note_pol)])
+
+	# Salir de la Comisaría y caminar hasta la Biblioteca (910, -420; puerta sur en 910, -372)
+	var path_to_library: Array[Vector2] = [
+		Vector2(930.0, 146.0),
+		Vector2(915.0, 124.0),
+		Vector2(915.0, 82.0),
+		Vector2(672.0, 82.0),
+		Vector2(672.0, -351.0),
+		Vector2(910.0, -362.0),
+	]
+	var walked_lib_door: bool = await _walk_to_waypoints(pl, stage, path_to_library, 4.0)
+	var d_lib: Dictionary = vm.call("_find_nearest_door", Vector2(910.0, -372.0), 20.0)
+	if not d_lib.is_empty():
+		d_lib["is_locked"] = false
+	if not bool(d_lib.get("is_open", false)):
+		await _aim_and_press_e(pl, stage, Vector2(910.0, -372.0), -0.05, "puerta")
+	var walked_lib_lever: bool = await _walk_to_waypoints(pl, stage, [
+		Vector2(910.0, -396.0),
+		Vector2(948.0, -406.0),
+	], 4.0)
+	var e_lever: Dictionary = await _aim_and_press_e(pl, stage, Vector2(951.0, -420.0), -0.18, "estantería")
+	var note_lever: bool = _has_note_with_source(det_ui, "clue_library_book_lever")
+	_record("C2_biblioteca_libro_palanca", walked_lib_door and walked_lib_lever and bool(e_lever["ok"]) and note_lever,
+		"walk=%s prompt='%s' anotada=%s" % [str(walked_lib_lever), str(e_lever["label"]), str(note_lever)])
+
+	# Entrar a pie a la sala oculta de la biblioteca (x=944, y=-435) y examinar el cuaderno de firmas (944, -448)
+	var walked_secret_room: bool = await _walk_to_waypoints(pl, stage, [Vector2(948.0, -434.0), Vector2(944.0, -435.0)], 3.0)
+	var e_ledger: Dictionary = await _aim_and_press_e(pl, stage, Vector2(944.0, -448.0), -0.22, "cuaderno")
+	var note_ledger: bool = _has_note_with_source(det_ui, "clue_library_secret_ledger")
+	_record("C3_biblioteca_cuaderno_firmas", walked_secret_room and bool(e_ledger["ok"]) and note_ledger,
+		"walk=%s prompt='%s' anotada=%s" % [str(walked_secret_room), str(e_ledger["label"]), str(note_ledger)])
+
+	# Examinar el libro antiguo con la página arrancada (959, -448)
+	var walked_torn: bool = await _walk_to_waypoints(pl, stage, [Vector2(957.0, -434.0)], 4.0)
+	var e_torn: Dictionary = await _aim_and_press_e(pl, stage, Vector2(959.0, -448.0), -0.22, "libro")
+	var note_torn: bool = _has_note_with_source(det_ui, "clue_library_torn_book")
+	_record("C4_biblioteca_libro_pagina_arrancada", walked_torn and bool(e_torn["ok"]) and note_torn,
+		"walk=%s prompt='%s' anotada=%s" % [str(walked_torn), str(e_torn["label"]), str(note_torn)])
+
+	print("PARTIDA_CASO1 BLOQUES A-C TERMINADOS (%d fallos)" % _failures.size())
 	quit(0 if _failures.is_empty() else 1)

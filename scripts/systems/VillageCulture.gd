@@ -1999,21 +1999,20 @@ static func build(vm, id: String, st: Dictionary) -> void:
 				vm.register_no_stand_furniture(c + Vector2(side_x, 14 * m), Vector2(7.0, 18.0))
 			# Punto 5 (Caso I): Sala oculta tras estantería con libro-palanca en el cuadrante noreste (`c + Vector2(24..62, -46..-4)`)
 			vm._add_rect_poly(c + Vector2(43, 25 * m), Vector2(36, 40), Color(0.18, 0.14, 0.16, 0.96), -2)
-			vm._add_prop_collider(c + Vector2(24, 25 * m), Vector2(4.0, 40.0)) # Tabique oeste de la sala oculta
-			vm._add_prop_collider(c + Vector2(56, 4 * m), Vector2(12.0, 4.0)) # Muro junto a la estantería secreta
-			vm._add_prop_collider(c + Vector2(42, 31 * m), Vector2(24.0, 9.0)) # Mesa y estantería interior prohibida
+			vm._add_prop_collider(c + Vector2(24, 34 * m), Vector2(4.0, 20.0)) # Tabique oeste de la sala oculta
+			vm._add_prop_collider(c + Vector2(46, 40 * m), Vector2(24.0, 4.0)) # Mesa y estantería interior prohibida
 			vm.register_no_stand_furniture(c + Vector2(42, 28 * m), Vector2(25.0, 10.5))
 			vm.register_no_stand_furniture(c + Vector2(43.5, 40.5 * m), Vector2(24.0, 7.0))
 			var lever_pos: Vector2 = c + Vector2(41.0, 0.0) # Vector2(951, -420)
 			var ledger_pos: Vector2 = c + Vector2(34.0, 28.0 * m) # Vector2(944, -448)
 			var torn_book_pos: Vector2 = c + Vector2(49.0, 28.0 * m) # Vector2(959, -448)
-			vm._add_station_area("LibraryBookLeverArea", lever_pos, 22.0, "library_book_lever")
-			vm._add_station_area("LibrarySecretLedgerArea", ledger_pos, 20.0, "library_secret_ledger")
-			vm._add_station_area("LibraryTornBookArea", torn_book_pos, 20.0, "library_torn_book")
+			vm._add_station_area("LibraryBookLeverArea", lever_pos, 26.0, "library_book_lever")
+			vm._add_station_area("LibrarySecretLedgerArea", ledger_pos, 26.0, "library_secret_ledger")
+			vm._add_station_area("LibraryTornBookArea", torn_book_pos, 26.0, "library_torn_book")
 			vm._add_prop_collider(c + Vector2(-36, -18 * m), Vector2(16.0, 9.0))
 			vm.register_no_stand_furniture(c + Vector2(-36, -18 * m), Vector2(18.0, 9.5))
-			vm._add_prop_collider(c + Vector2(36, -18 * m), Vector2(16.0, 9.0))
-			vm.register_no_stand_furniture(c + Vector2(36, -18 * m), Vector2(18.0, 10.0))
+			vm._add_prop_collider(c + Vector2(42, -38 * m), Vector2(14.0, 6.0))
+			vm.register_no_stand_furniture(c + Vector2(36, -22 * m), Vector2(16.0, 9.0))
 			vm._spawn_decor_prop(props + "table_chairs_1.png", reading_spot(), Vector2(0.45, 0.45))
 			vm.register_no_stand_furniture(reading_spot(), Vector2(22.0, 12.5))
 			vm._add_station_area("LibraryReadingArea", reading_spot(), 24.0, "library_reading")

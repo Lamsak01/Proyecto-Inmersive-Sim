@@ -532,28 +532,33 @@ func interact(player: Node2D) -> void:
 			_interact_house_chest(player, ch)
 			return
 	# 1b. Punto 5 (Caso I): Sala oculta de la Biblioteca (libro-palanca, cuaderno de firmas y libro con página arrancada)
-	if pos.distance_squared_to(Vector2(944.0, -448.0)) <= 22.0 * 22.0:
-		_record_case_clue(
-			player,
-			"🖋️ Cuaderno",
-			"🖋️ Varias firmas de quienes han entrado en esta sala; una se parece a la del billete de «V.», aunque la presión y el rasgo final son distintos.",
-			"Biblioteca (sala oculta): cuaderno con varias firmas; una se parece a la del billete de «V.», pero el trazo no coincide.",
-			"Pista: Cuaderno de firmas",
-			"clue_library_secret_ledger",
-			Color(0.95, 0.88, 0.68)
-		)
-		return
-	if pos.distance_squared_to(Vector2(959.0, -448.0)) <= 22.0 * 22.0:
-		_record_case_clue(
-			player,
-			"📖 Libro antiguo",
-			"📖 Un viejo tomo de herboristería y venenos. En el índice figura un capítulo sobre la belladama gris y las mezclas que apagan el pulso, pero falta esa hoja: solo queda el borde de papel rasgado junto al lomo.",
-			"Biblioteca (sala oculta): tomo antiguo de venenos al que han arrancado la página del capítulo sobre la belladama gris.",
-			"Pista: Página arrancada",
-			"clue_library_torn_book",
-			Color(0.88, 0.78, 0.96)
-		)
-		return
+	var sel_node: Node = player.get("interaction_selector") if player != null else null
+	var sel_cand: Dictionary = sel_node.call("selected") if (sel_node != null and sel_node.has_method("selected")) else {}
+	var sel_kind: String = str(sel_cand.get("station", ""))
+	if sel_kind == "library_secret_ledger" or (sel_kind != "library_torn_book" and pos.distance_squared_to(Vector2(944.0, -448.0)) <= 22.0 * 22.0 and pos.distance_squared_to(Vector2(944.0, -448.0)) <= pos.distance_squared_to(Vector2(959.0, -448.0))):
+		if pos.distance_squared_to(Vector2(944.0, -448.0)) <= 26.0 * 26.0:
+			_record_case_clue(
+				player,
+				"🖋️ Cuaderno",
+				"🖋️ Varias firmas de quienes han entrado en esta sala; una se parece a la del billete de «V.», aunque la presión y el rasgo final son distintos.",
+				"Biblioteca (sala oculta): cuaderno con varias firmas; una se parece a la del billete de «V.», pero el trazo no coincide.",
+				"Pista: Cuaderno de firmas",
+				"clue_library_secret_ledger",
+				Color(0.95, 0.88, 0.68)
+			)
+			return
+	if sel_kind == "library_torn_book" or pos.distance_squared_to(Vector2(959.0, -448.0)) <= 22.0 * 22.0:
+		if pos.distance_squared_to(Vector2(959.0, -448.0)) <= 26.0 * 26.0:
+			_record_case_clue(
+				player,
+				"📖 Libro antiguo",
+				"📖 Un viejo tomo de herboristería y venenos. En el índice figura un capítulo sobre la belladama gris y las mezclas que apagan el pulso, pero falta esa hoja: solo queda el borde de papel rasgado junto al lomo.",
+				"Biblioteca (sala oculta): tomo antiguo de venenos al que han arrancado la página del capítulo sobre la belladama gris.",
+				"Pista: Página arrancada",
+				"clue_library_torn_book",
+				Color(0.88, 0.78, 0.96)
+			)
+			return
 	if pos.distance_squared_to(Vector2(951.0, -420.0)) <= 24.0 * 24.0:
 		_record_case_clue(
 			player,
@@ -615,7 +620,7 @@ func interact(player: Node2D) -> void:
 		return
 
 	# 5b. Pistas del Caso I en el Molino Viejo Abandonado y Claro del Arroyo
-	if pos.distance_squared_to(Vector2(120.0, -1036.0)) <= 28.0 * 28.0:
+	if pos.distance_squared_to(Vector2(140.0, -1006.0)) <= 30.0 * 30.0:
 		_record_case_clue(
 			player,
 			"🧱 Orilla de arcilla",
@@ -637,7 +642,7 @@ func interact(player: Node2D) -> void:
 			Color(0.76, 0.88, 0.96)
 		)
 		return
-	if pos.distance_squared_to(Vector2(218.0, -1050.0)) <= 28.0 * 28.0:
+	if pos.distance_squared_to(Vector2(218.0, -1050.0)) <= 28.0 * 28.0 and pos.distance_squared_to(Vector2(218.0, -1050.0)) <= pos.distance_squared_to(Vector2(224.0, -1086.0)):
 		_record_case_clue(
 			player,
 			"📄 Papel sobre la mesa",

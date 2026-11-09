@@ -479,7 +479,7 @@ func _spawn_building_door_and_window(
 	var spr_closed := _add_sprite_prop(tex_door_closed, door_pos, Vector2(door_width / 42.0, 1.0), 3, true)
 	var spr_open := _add_sprite_prop(tex_door_open, door_pos + Vector2(-door_width * 0.5 + 4.0, -15.0 if door_on_south else 15.0), Vector2.ONE, 2, false)
 
-	_add_station_area("DoorArea_" + b_id, door_pos, 14.0, "building_door")
+	_add_station_area("DoorArea_" + b_id, door_pos, 20.0, "building_door")
 	var d_lbl := _make_station_label(door_pos + Vector2(-125, -26), "🚪 Puerta de %s" % b_title)
 	entities_root.add_child(d_lbl)
 

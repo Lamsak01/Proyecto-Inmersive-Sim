@@ -132,7 +132,8 @@ func refresh() -> void:
 				fp_sc = _fp_crosshair_score(a as Area2D, tgt, c_pos, pp)
 				if fp_sc < 0.0:
 					continue
-			out.append({"key": str(a.get_instance_id()), "area": a, "target": tgt, "pos": c_pos, "label": lbl, "fp_score": fp_sc})
+			var st_tag: String = str(a.get_meta("village_station")) if a.has_meta("village_station") else ""
+			out.append({"key": str(a.get_instance_id()), "area": a, "target": tgt, "pos": c_pos, "label": lbl, "fp_score": fp_sc, "station": st_tag})
 	# Montado, «bajar del caballo» va la última: así puedes hablar o abrir puertas sin bajarte.
 	var rank := func(c: Dictionary) -> float:
 		if WorldStage3DScript.first_person_active:
@@ -206,7 +207,7 @@ func _fp_crosshair_score(a: Area2D, tgt: Node, c_pos: Vector2, pp: Vector2) -> f
 				is_low_obj = true
 				max_reach_px = 25.0
 				max_lat_px = 7.5
-			"tavern_games", "tavern_pool", "morgue_table", "shop_business_stall", "library_reading", "mill_cellar_grate", "mill_red_clay", "old_bridge_left_shoe", "library_secret_ledger", "library_torn_book", "police_archived_report", "mill_table_paper", "mill_hemp_cord", "mill_hearth", "mill_hayloft", "case1_clearing":
+			"tavern_games", "tavern_pool", "morgue_table", "shop_business_stall", "library_reading", "mill_cellar_grate", "mill_red_clay", "old_bridge_left_shoe", "library_book_lever", "library_secret_ledger", "library_torn_book", "police_archived_report", "mill_table_paper", "mill_hemp_cord", "mill_hearth", "mill_hayloft", "case1_clearing":
 				is_low_obj = true
 				max_reach_px = 27.0
 				max_lat_px = 8.5
@@ -285,7 +286,10 @@ func selected() -> Dictionary:
 
 ## Usa la opción elegida. Devuelve false si no había ninguna.
 func use_selected() -> bool:
+	var saved_idx: int = _index
 	refresh()
+	if saved_idx > 0 and saved_idx < candidates.size():
+		_index = saved_idx
 	var c: Dictionary = selected()
 	if c.is_empty() or not is_instance_valid(c["target"]):
 		return false

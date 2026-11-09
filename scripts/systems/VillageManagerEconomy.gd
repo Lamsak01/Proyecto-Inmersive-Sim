@@ -46,7 +46,7 @@ func _apply_hourly_door_security_schedule(hour: int) -> void:
 
 		# Las puertas permanecen físicamente cerradas (`is_open = false`) salvo cuando alguien las cruza o las abre;
 		# el horario y el nivel de seguridad determinan si además están cerradas con llave (`is_locked = true`).
-		if b_id == "building_hospital" or b_id == "building_police" or b_id == "building_church":
+		if b_id == "building_hospital" or b_id == "building_police" or b_id == "building_church" or b_id == "building_library" or b_id == "building_school":
 			_set_door_state(d_entry, false, false, false)
 		elif b_id == "building_abandoned_mill":
 			_set_door_state(d_entry, true, false, false)

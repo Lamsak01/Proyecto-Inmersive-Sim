@@ -767,7 +767,7 @@ static func _spawn_river_arroyo_and_abandoned_mill(vm: VillageManager) -> void:
 	if straw_2d != null:
 		straw_2d.add_to_group("ranch_fence_2d")
 	vm._add_prop_collider(straw_pos, Vector2(24.0, 16.0))
-	vm._add_station_area("MillHayloftArea", straw_pos, 22.0, "mill_hayloft")
+	vm._add_station_area("MillHayloftArea", straw_pos, 26.0, "mill_hayloft")
 
 	# (b) Hogar viejo con ceniza de carbón (esquina noreste: Vector2(224, -1086))
 	var hearth_pos := Vector2(224.0, -1086.0)
@@ -777,7 +777,7 @@ static func _spawn_river_arroyo_and_abandoned_mill(vm: VillageManager) -> void:
 		if hp != null:
 			hp.add_to_group("ranch_fence_2d")
 	vm._add_prop_collider(hearth_pos, Vector2(24.0, 14.0))
-	vm._add_station_area("MillHearthArea", hearth_pos, 22.0, "mill_hearth")
+	vm._add_station_area("MillHearthArea", hearth_pos, 28.0, "mill_hearth")
 
 	# (c) Cordel de cáñamo encerado (esquina suroeste: Vector2(150, -1040))
 	var cord_pos := Vector2(150.0, -1040.0)
@@ -787,7 +787,7 @@ static func _spawn_river_arroyo_and_abandoned_mill(vm: VillageManager) -> void:
 		if cp != null:
 			cp.add_to_group("ranch_fence_2d")
 	vm._add_prop_collider(cord_pos, Vector2(18.0, 12.0))
-	vm._add_station_area("MillHempCordArea", cord_pos, 22.0, "mill_hemp_cord")
+	vm._add_station_area("MillHempCordArea", cord_pos, 26.0, "mill_hemp_cord")
 
 	# (d) Mesa con papel («Lista de nombres — texto pendiente del autor») (sureste: Vector2(218, -1050))
 	var table_pos := Vector2(218.0, -1050.0)
@@ -797,7 +797,7 @@ static func _spawn_river_arroyo_and_abandoned_mill(vm: VillageManager) -> void:
 		if tp != null:
 			tp.add_to_group("ranch_fence_2d")
 	vm._add_prop_collider(table_pos, Vector2(22.0, 14.0))
-	vm._add_station_area("MillPaperTableArea", table_pos, 24.0, "mill_table_paper")
+	vm._add_station_area("MillPaperTableArea", table_pos, 26.0, "mill_table_paper")
 
 	# (e) Punto 4 (Caso I): Sótano del molino con reja de hierro al canal de la rueda (oeste: Vector2(138, -1061))
 	var cellar_pos := Vector2(138.0, -1061.0)
@@ -808,7 +808,7 @@ static func _spawn_river_arroyo_and_abandoned_mill(vm: VillageManager) -> void:
 		if clp != null:
 			clp.add_to_group("ranch_fence_2d")
 	vm._add_station_area("MillCellarGrateArea", cellar_pos, 26.0, "mill_cellar_grate")
-	vm._add_station_area("MillRedClayArea", Vector2(120.0, -1036.0), 26.0, "mill_red_clay")
+	vm._add_station_area("MillRedClayArea", Vector2(140.0, -1006.0), 28.0, "mill_red_clay")
 
 # ==============================================================================
 # PASO 5: 📋 TABLÓN DE ENCARGOS EN LA PLAZA CENTRAL (`Vector2(465, 24)`)
