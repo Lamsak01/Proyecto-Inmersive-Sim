@@ -146,6 +146,13 @@ libro que no sale porque es la palanca) o **presionando al bibliotecario** cuand
 antes del reinado actual**; **está en contra**, pero **sabe que no puede hacer nada**. Guardar la sala y ayudar en
 silencio es lo único que le queda. (Su secreto puede costarle la cárcel: el jugador podría delatarle o protegerle.)
 
+**Si el jugador no acusa o tarda demasiado (decidido por el usuario, 2026-11-09):** (1) pasados unos días **los
+forasteros se van del molino** (se pierden sus pistas y no se les puede capturar); (2) **los nobles presionan** al
+detective para cerrar el caso, primero con cortesía y luego con amenazas veladas; (3) si aun así no acusa, **la guardia
+detiene al familiar** por su cuenta (culpable fácil: barro rojo y firma «V.») = **final malo** sin que el jugador lo
+elija; (4) después llega igualmente el **final común** (fiesta, preso «muerto», tumba vacía). La demo nunca se queda
+colgada.
+
 **Nombres:** la hierba es la **belladama gris** (elegido por el usuario, 2026-11-08: recuerda a la belladona y el «dama» apunta a los ricos). La poción es el **sueño de cera** (elegido por el usuario, 2026-11-08: deja el cuerpo quieto y pálido como de cera).
 
 ## 5b. Acusación y final de la demo (decidido por el usuario, 2026-11-08)
