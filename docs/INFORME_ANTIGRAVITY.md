@@ -1,4 +1,9 @@
-# Informe de Trabajo — Antigravity (2026-11-08)
+# Informe de Trabajo — Antigravity (2026-11-09)
+
+## Resumen del ENCARGO DE HOY (2026-11-09, noche 7 — Río, molino, capilla y pistas del Caso I, Puntos 1–9)
+- **Puntos 1–3 (`ded5cf8`, `4a17650`, `76c20fd`):** Río ensanchado con curvas, piedras, juncos y barro en el pueblo estrechándose hacia el arroyo norte; interior del Molino Viejo deteriorado (tablas rotas/levantadas, polvo, telarañas, muebles volcados, boquetes y penumbra) con arcilla roja viva en su orilla; corregido el párroco sobre el altar de la capilla y bloqueo `register_no_stand_furniture` en los edificios del Caso I. Capturas `_v2` en `docs/capturas_arreglos/rio_molino/`.
+- **Puntos 4–6 (`d8cc1fa`, `3eeeb91`, `e613549`):** Sótano del molino bajo el canal de la rueda con reja de hierro forzada y trozo de tela azul enganchado (`mill_cellar_grate`) + denuncia de desaparición archivada en el cuarto de pruebas de la Comisaría (`police_archived_report`); sala oculta de la Biblioteca tras librería giratoria con libro-palanca (`library_book_lever`), corriente de polvo, marcas de arrastre, libros prohibidos, cuaderno de firmas (`library_secret_ledger`) y libro con página arrancada (`library_torn_book`); zapato izquierdo de la víctima en el Puente Viejo (`old_bridge_left_shoe`). Todas examinables con `[E]` y anotadas en el cuaderno del caso.
+- **Puntos 7–9 (`1ee21ec`, `3b95a9f`, `9a94fef`, `RECORRIDO PASSED`):** Inicio en las afueras en el camino de entrada al valle (`Vector2(-1180, 50)`) sin campamento en el pueblo y con pantalla inicial de la carta de contratación (`«Carta de contratación — texto pendiente del autor»`); bosque denso y oscuro con sotobosque y borde irregular alrededor del claro del cuerpo; meandros más pronunciados y orillas desiguales con lenguas de barro/grava en el río del pueblo. Capturas en `docs/capturas_arreglos/caso1/`.
 
 ## Resumen del ENCARGO DE HOY (2026-11-08, noche 6 — Río, arroyo y molino del Caso I + retoques de puertas y alfombras)
 - **Punto 1 — Río norte-sur, Puente Viejo, Claro del arroyo y Molino Viejo Abandonado (`a82546a`, `RECORRIDO PASSED`):**
