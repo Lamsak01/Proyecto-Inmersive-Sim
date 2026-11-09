@@ -195,6 +195,32 @@ convenía), pero resultó tener talento para resolver crímenes y se volvió una
   escrita como si fueras el verdadero detective (Jean Porterre). **El giro (eres un impostor) se guarda para el final de
   la demo**: nada antes debe delatarlo.
 
+## 5c. Varios finales de la demo — BORRADOR del usuario (2026-11-09, pendiente de revisar con él)
+**No implementar todavía.** Texto del usuario, sin cambios:
+- **Estándar:** capturas a un secuestrador vivo y lo llevas al pueblo. Es apresado y a los 2 días aparece muerto; no le
+  hacen autopsia y la celda huele a belladona. Si vas al cementerio y abres la tumba, solo hay una carta con tu nombre
+  real. Te noquean y termina la demo.
+- **Malo:** acusas al familiar; los secuestradores quedan impunes y vuelven al pueblo pasados los días. El resto, igual
+  que el estándar.
+- **Aggro:** matas a todos los bandidos y los entregas a la guardia con pruebas de su culpa. En los dos días siguientes
+  alguien desaparece; le sigues la pista fácilmente hasta donde lo retienen, pero es una trampa y te capturan.
+- **Pacifista:** capturas a todos sin matarlos; solo uno es condenado y los demás quedan impunes. Puedes encontrarlos en
+  el pueblo y hablar con ellos para sacar más información. El resto progresa igual que el estándar.
+- **Ausente:** ignoras la misión (solo X pasos) y haces otras cosas. Como el malo, pero cambia el desenlace: el familiar
+  es apresado y «muere»; luego los secuestradores te encuentran y te dicen que abandones el pueblo. **A:** aceptas y te
+  vas (final no canon). **B:** te niegas y peleas: si ganas te apresa la guardia; si pierdes te capturan ellos. Ambas
+  terminan la demo.
+- **Incompetente:** avanzas más que en «Ausente» pero no resuelves a tiempo → desenlace del final malo, sin
+  represalias: el sargento te dice que no todos los casos se resuelven y te dan una casa en el pueblo (quieren a alguien
+  inútil en el puesto).
+
+**Dudas abiertas (Claude, para hablar con el usuario en casa):** (1) «Ausente» choca con que la secta *quiere* un
+detective inútil: ¿por qué amenazarle? Falta un motivo. (2) ¿Sustituyen a la acusación por niveles (familiar / grupo /
+joven = malo / bueno / perfecto) o conviven? (3) «Aggro» no pasa por la tumba ni revela el nombre real: ¿a propósito?
+(4) «Belladona» → ¿«belladama gris»? (5) Definir «X pasos» y el plazo de «a tiempo». **Coste:** estándar, malo e
+incompetente casi con lo que hay; aggro, pacifista y ausente necesitan mecánicas nuevas (captura sin matar, trampa,
+pelea final).
+
 ## 6. Herramientas del detective (decidido por el usuario, 2026-11-07)
 Eje central del bucle jugable; tiene que quedar «perfecto». Boceto aprobado por el usuario («me encanta»):
 `docs/bocetos/examen_cuerpo.html` (ábrelo en el navegador; también publicado en claude.ai/artifact/NMDw1NPEkcWCQrkGAttkFk).
