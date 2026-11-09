@@ -496,13 +496,7 @@ func _populate_building_interior_3d(b_root: Node3D, b_id: String, rect: Rect2, d
 		"building_police":
 			_build_police_station_3d(b_root, rect, wall_h, m_wall, m_trim, m_wood, m_dark_wood, m_iron, m_gold)
 		"building_church":
-			# Altar mayor con velas y bancos de madera 3D
-			_add_model_2d(b_root, "graveyard/altar-stone.glb", vm._church_altar_pos, 2.0, Vector2(32.0, 14.0), 11.0)
-			_add_model_2d(b_root, "props/CandleStick_Triple.gltf", vm._church_altar_pos + Vector2(-10, 0), 12.0, Vector2(5.0, 5.0), 6.0)
-			_add_model_2d(b_root, "props/CandleStick_Triple.gltf", vm._church_altar_pos + Vector2(10, 0), 12.0, Vector2(5.0, 5.0), 6.0)
-			for py in [-12.0, 4.0]:
-				for px in [-26.0, 26.0]:
-					_add_model_2d(b_root, "props/Bench.gltf", c + Vector2(px, py), 2.0, Vector2(26.0, 7.0), 6.5)
+			_build_church_chapel_3d(b_root, rect, wall_h, m_wall, m_trim, m_wood, m_dark_wood, m_iron, m_gold)
 		"building_library":
 			_build_library_3d(b_root, rect, door_south, wall_h, m_wall, m_trim, m_wood, m_dark_wood, m_iron, m_gold)
 		"building_school":
@@ -1840,6 +1834,112 @@ func _build_herbalist_apothecary_3d(b_root: Node3D, rect: Rect2, wall_h: float, 
 	_restaurant_light(b_root, c + Vector2(0.0, 24.0), ih - 4.5, Color(1.0, 0.86, 0.58), 0.95, 2.4, false)
 	_add_model_2d(b_root, "props/Lantern_Wall.gltf", c + Vector2(-24.0, -50.5), wall_h * 0.58, Vector2(4.0, 4.0), 6.0)
 	_add_model_2d(b_root, "props/Lantern_Wall.gltf", c + Vector2(24.0, -50.5), wall_h * 0.58, Vector2(4.0, 4.0), 6.0)
+
+## Punto 6 del Caso I: Capilla del Alba (`building_church`, centro 745,312, tamaño 132x92, puerta al norte).
+## Espacios coherentes en 1.ª persona y sincronizados con las colisiones 2D:
+##  1) Nave Central y Bancos de Roble (`c + (±28, -10)` y `c + (±28, 6)`): alfombra litúrgica carmesí y oro desde el pórtico norte hasta el presbiterio, 4 bancos tallados mirando al sur y pilastras con arcos de madera.
+##  2) Presbiterio y Altar Mayor del Alba (`vm._church_altar_pos = 745,336`): tarima sagrada, altar con frontal carmesí/oro, cáliz sagrado, candelabros triples, misal, atril del Libro de Difuntos, mesa votiva y gran retablo con rosetón vitral y Cruz Solar en el muro sur.
+##  3) Sacristía de Estudio y Confesionario al Noroeste (`696,280`) y Celda Monástica del Hermano Anselmo al Noreste (`796,280`), delimitadas por celosías de madera para no invadir la nave.
+func _build_church_chapel_3d(b_root: Node3D, rect: Rect2, wall_h: float, _m_wall: Material, m_trim: Material, m_wood: Material, m_dark_wood: Material, _m_iron: Material, m_gold: Material) -> void:
+	var c: Vector2 = rect.get_center()
+	var ih: float = wall_h - 0.15
+	var m_crimson := _mat("chapel_crimson", Color(0.56, 0.12, 0.14), 0.88, 0.02, Color.BLACK, 0.0, "town_textures/rf_planks.png")
+	var m_gold_trim := _mat("chapel_gold_trim", Color(0.76, 0.60, 0.22), 0.55, 0.35)
+	var m_marble := _mat("chapel_altar_marble", Color(0.86, 0.84, 0.78), 0.38, 0.08, Color.BLACK, 0.0, "town_textures/wall_brick_stone_center.png")
+	var m_stained_sun := _mat("chapel_stained_sun", Color(0.98, 0.78, 0.28), 0.20, 0.10, Color(0.95, 0.68, 0.18), 1.45)
+	var m_stained_ruby := _mat("chapel_stained_ruby", Color(0.86, 0.20, 0.22), 0.25, 0.08, Color(0.72, 0.12, 0.14), 0.95)
+	var m_stained_azure := _mat("chapel_stained_azure", Color(0.24, 0.52, 0.88), 0.25, 0.08, Color(0.16, 0.40, 0.76), 0.85)
+	var m_monk_linen := _mat("chapel_monk_linen", Color(0.52, 0.36, 0.24), 0.88, 0.0)
+	var m_pillow := _mat("chapel_pillow", Color(0.92, 0.88, 0.80), 0.85, 0.0)
+
+	# 1. Alfombra procesional carmesí con cenefa dorada por el pasillo central y estrado del Presbiterio al Sur
+	_add_box_2d(b_root, c + Vector2(0.0, -6.0), Vector2(22.0, 56.0), 2.5, 0.26, m_gold_trim)
+	_add_box_2d(b_root, c + Vector2(0.0, -6.0), Vector2(18.5, 54.0), 2.55, 0.28, m_crimson)
+	# Estrado litúrgico bajo el Altar Mayor (y = 324..352)
+	_add_box_2d(b_root, c + Vector2(0.0, 26.0), Vector2(78.0, 24.0), 2.5, 0.36, m_marble)
+	_add_box_2d(b_root, c + Vector2(0.0, 26.0), Vector2(52.0, 20.0), 2.86, 0.16, m_crimson)
+
+	# 2. Celosías de madera tallada que enmarcan la Sacristía Noroeste y la Celda Noreste sin bloquear el paso
+	for side_s in [-1.0, 1.0]:
+		_add_box_2d(b_root, c + Vector2(36.0 * side_s, -22.0), Vector2(2.8, 3.2), 2.0, ih, m_dark_wood)
+		_add_box_2d(b_root, c + Vector2(49.0 * side_s, -22.0), Vector2(24.0, 2.2), 2.0, 9.5, m_dark_wood)
+		_add_box_2d(b_root, c + Vector2(49.0 * side_s, -22.0), Vector2(24.6, 2.8), 11.5, 1.0, m_gold_trim)
+		_add_box_2d(b_root, c + Vector2(49.0 * side_s, -22.0), Vector2(26.0, 2.8), 2.0 + ih * 0.78, ih * 0.22, m_dark_wood)
+		# Pilastras murales a lo largo de la nave y vigas tirantes bajo el techo (sin tocar 2.0 + wall_h)
+		for py_pil in [-10.0, 12.0, 32.0]:
+			_add_box_2d(b_root, c + Vector2(61.5 * side_s, py_pil), Vector2(3.0, 4.0), 2.0, ih, m_trim)
+	for by_beam in [-22.0, 0.0, 22.0]:
+		_add_box_2d(b_root, c + Vector2(0.0, by_beam), Vector2(122.0, 3.2), ih - 2.2, 2.0, m_dark_wood)
+
+	# 3. Bancos de roble de la Nave Central (`c + (±29, -14)` y `c + (±29, 0)`), orientados hacia el Altar Sur
+	for py in [-14.0, 0.0]:
+		for px in [-29.0, 29.0]:
+			var pew_p: Vector2 = c + Vector2(px, py)
+			if _add_model_2d(b_root, "props/Bench.gltf", pew_p, 2.0, Vector2(23.0, 6.2), 6.8, 180.0) == null:
+				_add_box_2d(b_root, pew_p, Vector2(23.0, 6.2), 2.0, 6.0, m_wood)
+			# Respaldo litúrgico de roble oscuro en el borde norte de cada banco para mirar al Altar Sur
+			_add_box_2d(b_root, pew_p + Vector2(0.0, -2.7), Vector2(22.5, 1.1), 5.2, 4.2, m_dark_wood)
+
+	# 4. Presbiterio Sur: Altar Mayor (`vm._church_altar_pos`), Retablo del Alba, Atril de Difuntos y Mesa Votiva
+	var altar_p: Vector2 = vm._church_altar_pos
+	_add_model_2d(b_root, "graveyard/altar-stone.glb", altar_p, 2.0, Vector2(28.0, 9.5), 8.2)
+	# Mensa de mármol y frontal carmesí/oro con cota exacta (top = 9.8 px) para que nada flote sobre el altar
+	_add_box_2d(b_root, altar_p, Vector2(27.0, 9.0), 2.8, 6.2, m_marble)
+	_add_box_2d(b_root, altar_p, Vector2(28.6, 9.8), 9.0, 0.8, m_marble)
+	_add_box_2d(b_root, altar_p + Vector2(0.0, -4.6), Vector2(16.0, 0.6), 3.0, 6.0, m_crimson)
+	_add_box_2d(b_root, altar_p + Vector2(0.0, -4.8), Vector2(1.4, 0.5), 4.2, 3.8, m_gold)
+	_add_box_2d(b_root, altar_p + Vector2(0.0, -4.8), Vector2(3.6, 0.5), 5.6, 1.2, m_gold)
+	_add_model_2d(b_root, "props/CandleStick_Triple.gltf", altar_p + Vector2(-10.0, 0.0), 9.8, Vector2(4.2, 4.2), 5.6)
+	_add_model_2d(b_root, "props/CandleStick_Triple.gltf", altar_p + Vector2(10.0, 0.0), 9.8, Vector2(4.2, 4.2), 5.6)
+	_add_model_2d(b_root, "props/Chalice.gltf", altar_p + Vector2(0.0, -0.8), 9.8, Vector2(2.8, 2.8), 3.6)
+	_add_model_2d(b_root, "props/Book_5.gltf", altar_p + Vector2(-4.5, -1.0), 9.8, Vector2(4.2, 3.2), 1.8)
+	# Atril del Libro de Difuntos al oeste del altar y Mesa de Velas Votivas al este
+	_add_model_2d(b_root, "props/BookStand.gltf", altar_p + Vector2(-24.0, -2.0), 2.8, Vector2(7.5, 7.5), 11.0, 160.0)
+	var votive_p: Vector2 = altar_p + Vector2(24.0, -2.0)
+	_add_model_2d(b_root, "props/Nightstand_Shelf.gltf", votive_p, 2.8, Vector2(9.0, 6.5), 7.4, 180.0)
+	_add_model_2d(b_root, "props/CandleStick.gltf", votive_p + Vector2(-2.2, 0.0), 10.2, Vector2(2.8, 2.8), 4.2)
+	_add_model_2d(b_root, "props/CandleStick.gltf", votive_p + Vector2(2.2, 0.0), 10.2, Vector2(2.8, 2.8), 4.2)
+
+	# 5. Gran Retablo del Alba y Rosetón Vitral en el Muro Sur (detrás del Altar Mayor, c.y + 42.2)
+	var ret_p: Vector2 = c + Vector2(0.0, 42.2)
+	_add_box_2d(b_root, ret_p, Vector2(40.0, 2.2), 2.8, ih - 3.5, m_dark_wood)
+	_add_box_2d(b_root, ret_p + Vector2(-18.5, -0.4), Vector2(2.6, 2.8), 2.8, ih - 3.0, m_gold_trim)
+	_add_box_2d(b_root, ret_p + Vector2(18.5, -0.4), Vector2(2.6, 2.8), 2.8, ih - 3.0, m_gold_trim)
+	# Vitral tripartito luminoso (azul celeste, rubí y sol del Alba en el centro) + Gran Cruz Solar dorada
+	_add_box_2d(b_root, ret_p + Vector2(-11.0, -0.8), Vector2(8.0, 1.2), 8.0, 15.0, m_stained_azure)
+	_add_box_2d(b_root, ret_p + Vector2(11.0, -0.8), Vector2(8.0, 1.2), 8.0, 15.0, m_stained_azure)
+	_add_box_2d(b_root, ret_p + Vector2(0.0, -0.8), Vector2(11.0, 1.2), 7.0, 18.0, m_stained_ruby)
+	_add_box_2d(b_root, ret_p + Vector2(0.0, -1.1), Vector2(7.2, 1.2), 11.5, 9.0, m_stained_sun)
+	_add_box_2d(b_root, ret_p + Vector2(0.0, -1.4), Vector2(2.0, 1.4), 8.0, 15.5, m_gold)
+	_add_box_2d(b_root, ret_p + Vector2(0.0, -1.4), Vector2(9.5, 1.4), 15.0, 2.0, m_gold)
+	# Estandartes litúrgicos laterales en el muro sur
+	for ban_s in [-1.0, 1.0]:
+		_add_box_2d(b_root, c + Vector2(32.0 * ban_s, 42.4), Vector2(8.0, 1.0), 7.5, 16.0, m_crimson)
+		_add_box_2d(b_root, c + Vector2(32.0 * ban_s, 42.2), Vector2(9.2, 1.2), 23.2, 1.0, m_gold)
+
+	# 6. Sacristía de Estudio al Noroeste (`Vector2(696, 280)`) y Celda del Hermano Anselmo al Noreste (`Vector2(796, 280)`)
+	var study_p := Vector2(696.0, 280.0)
+	if _add_model_2d(b_root, "props/Table_Large.gltf", study_p, 2.0, Vector2(14.0, 9.0), 7.4) == null:
+		_add_box_2d(b_root, study_p, Vector2(14.0, 9.0), 2.0, 7.4, m_wood)
+	var pr_ch := study_p + Vector2(0.0, -8.0)
+	_add_model_2d(b_root, "props/Chair_1.gltf", pr_ch, 2.0, Vector2(5.5, 5.5), 8.2, _chair_rot_y_towards(pr_ch, study_p))
+	_add_model_2d(b_root, "props/Book_Stack_1.gltf", study_p + Vector2(-3.2, 0.0), 9.4, Vector2(4.0, 4.0), 3.4)
+	_add_model_2d(b_root, "props/CandleStick.gltf", study_p + Vector2(3.5, 0.0), 9.4, Vector2(2.8, 2.8), 4.2)
+	_add_model_2d(b_root, "props/Cabinet.gltf", c + Vector2(-55.0, -10.0), 2.0, Vector2(11.0, 6.0), 13.0, 90.0)
+
+	# Celda Monástica Noreste (`Vector2(796, 280)`)
+	_build_bed_3d(b_root, Vector2(796.0, 280.0), m_dark_wood, m_monk_linen, m_pillow)
+	_add_model_2d(b_root, "props/Bookcase_2.gltf", c + Vector2(55.0, -10.0), 2.0, Vector2(12.0, 6.0), 15.5, -90.0)
+
+	# 7. Arañas de techo sobre la nave, luz dorada en el Altar Mayor y faroles de fachada
+	for ch_y in [-14.0, 8.0]:
+		var ch_p: Vector2 = c + Vector2(0.0, ch_y)
+		_add_model_2d(b_root, "props/Chandelier.gltf", ch_p, ih - 6.5, Vector2(10.5, 10.5), 6.0)
+		_restaurant_light(b_root, ch_p, ih - 5.0, Color(1.0, 0.86, 0.58), 1.05, 2.5, false)
+	_restaurant_light(b_root, altar_p + Vector2(0.0, -4.0), 15.5, Color(1.0, 0.82, 0.44), 1.15, 2.4, false)
+	_add_model_2d(b_root, "props/Lantern_Wall.gltf", c + Vector2(-24.0, -48.5), wall_h * 0.58, Vector2(4.0, 4.0), 6.0)
+	_add_model_2d(b_root, "props/Lantern_Wall.gltf", c + Vector2(24.0, -48.5), wall_h * 0.58, Vector2(4.0, 4.0), 6.0)
+
 
 
 

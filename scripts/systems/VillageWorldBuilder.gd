@@ -397,12 +397,14 @@ static func _spawn_church_and_cemetery(vm: VillageManager) -> void:
 	# Alfombra central sobria bajo el pasillo de bancos (con posición centrada y z_index = -2 para no montar sobre el tejado)
 	vm._add_rect_poly(vm._church_center + Vector2(0, -4), Vector2(10, 32), Color(0.54, 0.24, 0.20, 0.62), -2)
 
-	for pew_offset in [Vector2(-36, -16), Vector2(-36, 6), Vector2(36, -16), Vector2(36, 6)]:
-		vm._add_rect_poly(vm._church_center + pew_offset, Vector2(18, 5), Color(0.46, 0.30, 0.16, 0.96), -1)
-		vm._add_prop_collider(vm._church_center + pew_offset, Vector2(34.0, 8.0))
+	for pew_offset in [Vector2(-29, -14), Vector2(-29, 0), Vector2(29, -14), Vector2(29, 0)]:
+		vm._add_rect_poly(vm._church_center + pew_offset, Vector2(12, 4), Color(0.46, 0.30, 0.16, 0.96), -1)
+	for pew_col_x in [-31.0, 31.0]:
+		vm._add_prop_collider(vm._church_center + Vector2(pew_col_x, -4.0), Vector2(18.0, 4.0))
 
 	vm._add_rect_poly(vm._church_altar_pos, Vector2(24, 8), Color(0.82, 0.78, 0.72, 1.0), -1)
 	vm._add_rect_poly(vm._church_altar_pos, Vector2(14, 8), Color(0.88, 0.72, 0.24, 0.95), -1)
+	vm._add_prop_collider(vm._church_altar_pos + Vector2(0, 8), Vector2(18.0, 4.0))
 
 	vm._add_station_area("ChurchAltarArea", vm._church_altar_pos, 22.0, "church_altar")
 	vm._church_altar_label = vm._make_station_label(vm._church_altar_pos + Vector2(-125, -28), "⛪ Altar y Libro de Difuntos [E: Consultar Sepulturas / Orar]")
