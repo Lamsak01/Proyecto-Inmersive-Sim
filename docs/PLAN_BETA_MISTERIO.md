@@ -85,6 +85,16 @@
    **Regla:** si sobrevive un secuestrador se le puede interrogar, pero **no tiene por qué sobrevivir**: el caso debe poder
    resolverse sin capturarlo (lo que contaría él tiene que poder deducirse por otras pistas).
 
+**La nota «V.» (decidido por el usuario, 2026-11-08, noche):** la nota del bolsillo («…después del toque de queda en el
+puente viejo — V.») **fue un cebo para secuestrarla**: el culto la citó en el **puente viejo** y allí se la llevaron. La
+firma **imita la inicial del familiar** (sabían a quién quería ella), por eso acudió sola de noche. Consecuencias:
+(a) el familiar parece culpable desde el principio (su papel de culpable aparente) y carga con la culpa de que usaran su
+nombre; (b) el puente viejo es el **lugar del secuestro** (posibles testigos o rastros); (c) **comparando la letra** de la
+nota con la del familiar (carta, recibo) se ve que es una **falsificación**, lo que empieza a limpiarle; (d) el **frasco
+vacío** del mismo bolsillo es otra historia (el plan del familiar): el jugador debe separar los dos objetos. El parecido
+de «V.» con el Dr. **Valen** queda como sospecha falsa. *Pendiente:* pasar esto a los textos del caso en el juego y al
+documento de Word de `Documentos/`.
+
 **Nombres:** la hierba es la **belladama gris** (elegido por el usuario, 2026-11-08: recuerda a la belladona y el «dama» apunta a los ricos). La poción es el **sueño de cera** (elegido por el usuario, 2026-11-08: deja el cuerpo quieto y pálido como de cera).
 
 ## 5b. Acusación y final de la demo (decidido por el usuario, 2026-11-08)
