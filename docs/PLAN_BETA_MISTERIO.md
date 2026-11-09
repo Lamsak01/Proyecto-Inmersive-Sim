@@ -125,6 +125,13 @@ que pregunta por ella; (3) **su zapato izquierdo** (el que falta en el cuerpo) *
 secuestraron: la pista lleva al lugar del secuestro. **Por qué el culto la eligió: abierto a propósito** (lore del
 usuario); se sabrá después de la demo. No inventarlo.
 
+**Los secuestradores (decidido por el usuario, 2026-11-09):** son **tres**. (1) **El joven de la capa parda**
+(forastero; la estranguló; la pastora lo vio huir). (2) **El de la lana azul** (**vecino del pueblo con doble vida**; la
+sujetaba y ella le arañó): el jugador debe encontrarlo entre los vecinos por la **prenda azul rota** o los **arañazos en
+el brazo**. (3) **El del carro**, forastero, que **conduce y manda** en el grupo. Cuando llega el jugador, los forasteros
+están **escondidos en el molino unos días esperando órdenes**; **si el jugador tarda demasiado, se van**. Se puede pelear
+o escabullirse; que uno sobreviva para el interrogatorio es opcional.
+
 **Nombres:** la hierba es la **belladama gris** (elegido por el usuario, 2026-11-08: recuerda a la belladona y el «dama» apunta a los ricos). La poción es el **sueño de cera** (elegido por el usuario, 2026-11-08: deja el cuerpo quieto y pálido como de cera).
 
 ## 5b. Acusación y final de la demo (decidido por el usuario, 2026-11-08)
