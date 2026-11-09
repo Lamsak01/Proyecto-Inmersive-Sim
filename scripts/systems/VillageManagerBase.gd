@@ -694,6 +694,18 @@ func _route_internal_building_partitions(b_id: String, from_pos: Vector2, target
 				return Vector2(902.0, 138.0 if absf(from_pos.x - 902.0) > 9.0 else 165.0)
 			elif from_pos.y > 155.0 and target_pos.y < 149.0:
 				return Vector2(902.0, 165.0 if absf(from_pos.x - 902.0) > 9.0 else 138.0)
+	if b_id.begins_with("mixed_"):
+		for b in building_footprints:
+			if str(b.get("id", "")) == b_id:
+				var br: Rect2 = b["rect"]
+				var c: Vector2 = br.get_center()
+				var d_south: bool = bool(b.get("door_south", false))
+				var y_wall: float = c.y + (-4.0 if d_south else 4.0)
+				if from_pos.y < y_wall - 2.0 and target_pos.y > y_wall + 2.0:
+					return Vector2(c.x, (y_wall - 11.0) if absf(from_pos.x - c.x) > 9.0 else (y_wall + 12.0))
+				elif from_pos.y > y_wall + 2.0 and target_pos.y < y_wall - 2.0:
+					return Vector2(c.x, (y_wall + 11.0) if absf(from_pos.x - c.x) > 9.0 else (y_wall - 12.0))
+				break
 	return target_pos
 
 func clamp_point_to_building_interior(ref_pos: Vector2, candidate_pos: Vector2) -> Vector2:
@@ -745,6 +757,24 @@ func sanitize_npc_separation_pos(prev_pos: Vector2, candidate_pos: Vector2, elev
 	for b in building_footprints:
 		var r_avoid: Rect2 = (b["rect"] as Rect2).grow(9.5)
 		if r_avoid.has_point(candidate_pos):
+			if not r_avoid.has_point(prev_pos):
+				return prev_pos
+			var br_out: Rect2 = (b["rect"] as Rect2).grow(10.0)
+			var dl: float = absf(candidate_pos.x - br_out.position.x)
+			var dr: float = absf(br_out.end.x - candidate_pos.x)
+			var dt: float = absf(candidate_pos.y - br_out.position.y)
+			var db: float = absf(br_out.end.y - candidate_pos.y)
+			var md: float = minf(minf(dl, dr), minf(dt, db))
+			if md == dl:
+				return Vector2(br_out.position.x, candidate_pos.y)
+			elif md == dr:
+				return Vector2(br_out.end.x, candidate_pos.y)
+			elif md == dt:
+				return Vector2(candidate_pos.x, br_out.position.y)
+			else:
+				return Vector2(candidate_pos.x, br_out.end.y)
+	for w_rect in _wall_occluder_rects:
+		if w_rect.grow(2.5).has_point(candidate_pos):
 			return prev_pos
 	for w_pos in [_plaza_well_pos, _well_pos, _tavern_well_pos]:
 		if w_pos != Vector2.ZERO and candidate_pos.distance_squared_to(w_pos) < 18.0 * 18.0:
@@ -871,7 +901,7 @@ func _avoid_outdoor_buildings(from_pos: Vector2, target_pos: Vector2, ignore_b_i
 			var b_id: String = str(b.get("id", ""))
 			if b_id == ignore_b_id:
 				continue
-			var r_core: Rect2 = b["rect"].grow(4.0)
+			var r_core: Rect2 = b["rect"].grow(-2.5)
 			var r_avoid: Rect2 = b["rect"].grow(8.5)
 			if r_core.has_point(from_pos) or r_core.has_point(cur_target):
 				continue

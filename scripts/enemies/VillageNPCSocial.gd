@@ -10,7 +10,12 @@ func _finish_frame_movement(delta: float, apply_yield: bool = true) -> void:
 	var lod_k: float = _lod_k # V2: solo en los pasos simplificados de quien está lejos
 	if lod_k > 1.0:
 		velocity *= lod_k # V2: un paso de varios fotogramas recorre la distancia de todos ellos
+	var prev_pos: Vector2 = global_position
 	move_and_slide()
+	if not is_sleeping and not is_at_poker_table and _cached_vm != null and _cached_vm.has_method("sanitize_npc_separation_pos"):
+		var in_door: bool = _cached_vm.has_method("get_doorway_clearance_nudge") and (_cached_vm.call("get_doorway_clearance_nudge", global_position, 22.0) as Vector2).length_squared() > 0.01
+		if not in_door and global_position.distance_squared_to(prev_pos) > 0.001:
+			global_position = _cached_vm.call("sanitize_npc_separation_pos", prev_pos, global_position, int(elevation_level))
 	_enforce_npc_personal_space(delta)
 	if perf_on: _pt = _perf_add("m_move_and_slide", _pt)
 	if lod_k > 1.0:
@@ -856,10 +861,11 @@ func _move_towards_point(target_pos: Vector2, speed: float, delta: float = 0.016
 	var diff: Vector2 = nav_target - global_position
 	var step_snap: float = maxf(4.5, eff_speed * delta * 0.85)
 	if diff.length() <= step_snap:
-		if diff.length() <= 6.5 and (in_doorway_now or is_seat_target or not _has_nearby_standing_npc(nav_target, 16.5)):
+		var is_intermediate_wp: bool = nav_target.distance_squared_to(target_pos) > 9.0
+		if is_intermediate_wp or (diff.length() <= 6.5 and (in_doorway_now or is_seat_target or not _has_nearby_standing_npc(nav_target, 16.5))):
 			global_position = nav_target
-		if nav_target.distance_squared_to(target_pos) > 9.0 and vm and vm.has_method("get_navigation_waypoint"):
-			_cached_nav_waypoint = vm.call("get_navigation_waypoint", nav_target, target_pos, self)
+		if is_intermediate_wp and vm and vm.has_method("get_navigation_waypoint"):
+			_cached_nav_waypoint = vm.call("get_navigation_waypoint", global_position, target_pos, self)
 			nav_target = _cached_nav_waypoint
 			diff = nav_target - global_position
 		if diff.length() <= step_snap:

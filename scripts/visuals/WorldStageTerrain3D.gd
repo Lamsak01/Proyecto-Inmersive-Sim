@@ -164,6 +164,16 @@ func _build_ground_foliage_3d() -> void:
 				continue
 			if VillageRestaurant.RECT.grow(16.0).has_point(fp) or VillageTavern.RECT.grow(16.0).has_point(fp):
 				continue
+			if Rect2(Vector2(822.0, 260.0), Vector2(268.0, 168.0)).grow(10.0).has_point(fp):
+				continue
+			if vm != null and "building_footprints" in vm:
+				var inside_b: bool = false
+				for b_fp in vm.building_footprints:
+					if (b_fp["rect"] as Rect2).grow(12.0).has_point(fp):
+						inside_b = true
+						break
+				if inside_b:
+					continue
 			if fp.x > 160.0 and fp.x < 1380.0 and fp.y > -480.0 and fp.y < 360.0 and ((idx % 3) != 0):
 				continue
 			var mdl: String = foliage_models[idx % foliage_models.size()]
