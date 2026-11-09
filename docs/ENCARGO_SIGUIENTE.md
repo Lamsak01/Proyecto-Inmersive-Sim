@@ -22,3 +22,7 @@ Commit y push por punto. Al final, `RECORRIDO PASSED`. Informe arriba de `docs/I
 y `DIA_TERMINADO.txt`. Godot siempre en primer plano con `timeout`.
 
 ## Notas del supervisor
+**(12:40)** Te han reiniciado 2 veces en el punto 1 por pasar >25 min sin guardar nada (sigue en «Pendiente de iniciar
+bloque A»). Hazlo **en trozos pequeños**: crea ya `tools/tests/partida_caso1.gd` solo con el **bloque A** (inicio +
+claro), guárdalo en disco aunque no esté terminado, pásalo, apunta el resultado en `PLAN_PARTIDA_CASO1.md` y commit.
+Después B, C y D igual. Guarda el archivo en disco al menos cada 10 min.
