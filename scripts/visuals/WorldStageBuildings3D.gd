@@ -489,21 +489,7 @@ func _populate_building_interior_3d(b_root: Node3D, b_id: String, rect: Rect2, d
 		"building_tavern":
 			_build_tavern_floor_0_3d(b_root, wall_h, m_wall, m_trim, m_wood, m_dark_wood, m_iron, m_gold)
 		"building_hospital":
-			# Tabique entre Urgencias y Morgue Forense
-			_add_box_2d(b_root, Vector2(704, 152), Vector2(56, 5.5), 2.0, wall_h * 0.85, m_wall)
-			_add_box_2d(b_root, Vector2(786, 152), Vector2(56, 5.5), 2.0, wall_h * 0.85, m_wall)
-			_build_bed_3d(b_root, vm._hospital_bed_pos, m_steel, _mat("hosp_sheet", Color(0.32, 0.72, 0.78), 0.8, 0.0), m_pillow)
-			_add_model_2d(b_root, "props/Shelf_Small_Bottles.gltf", vm._hospital_bed_pos + Vector2(-18, -10), 2.0, Vector2(12.0, 6.0), 13.0)
-			# 3 Camillas de acero inoxidable de la Morgue + cuerpos cubiertos
-			for mp in vm._morgue_table_positions:
-				_register_furniture_rect("MorgueTable", mp, Vector2(14.0, 22.0))
-				_add_box_2d(b_root, mp, Vector2(14.0, 22.0), 2.0, 7.5, m_steel)
-				var body_n := Node3D.new()
-				body_n.visible = false
-				b_root.add_child(body_n)
-				_add_box_2d(body_n, mp, Vector2(9.0, 17.0), 9.5, 4.2, m_shroud)
-				_add_box_2d(body_n, mp + Vector2(0, -6.0), Vector2(5.5, 5.5), 13.5, 3.0, m_shroud)
-				_morgue_body_nodes_3d.append(body_n)
+			_build_hospital_and_morgue_3d(b_root, rect, wall_h, m_wall, m_trim, m_wood, m_dark_wood, m_iron, m_gold)
 		"building_police":
 			_build_police_station_3d(b_root, rect, wall_h, m_wall, m_trim, m_wood, m_dark_wood, m_iron, m_gold)
 		"building_church":
@@ -1498,5 +1484,147 @@ func _build_police_station_3d(b_root: Node3D, _rect: Rect2, wall_h: float, m_wal
 	_restaurant_light(b_root, Vector2(954.0, 174.0), ih - 4.5, Color(0.96, 0.84, 0.62), 0.85, 2.1, false) # Luz del cuarto de guardia
 	_add_model_2d(b_root, "props/Lantern_Wall.gltf", Vector2(890.0, 97.5), wall_h * 0.58, Vector2(4.0, 4.0), 6.0)
 	_add_model_2d(b_root, "props/Lantern_Wall.gltf", Vector2(940.0, 97.5), wall_h * 0.58, Vector2(4.0, 4.0), 6.0)
+
+## Punto 2 del Caso I: Hospital de Urgencias y Morgue Forense (`building_hospital`, rect x=676..814, y=100..196).
+## Dos estancias diferenciadas y sincronizadas con las colisiones 2D:
+##  1) Sala Norte (y=100..152): Box de Urgencias con cama clínica, suero, biombo, lavamanos y botiquín (Oeste) + Consulta del Dr. Valen y cama de guardia (Este).
+##  2) Sala Sur / Morgue Forense (y=152..196): pavimento frío de loseta azulada, 3 mesas de autopsia de acero inoxidable con drenaje, lámparas quirúrgicas, cámaras frigoríficas murales y carro de instrumental.
+func _build_hospital_and_morgue_3d(b_root: Node3D, _rect: Rect2, wall_h: float, m_wall: Material, m_trim: Material, m_wood: Material, m_dark_wood: Material, m_iron: Material, m_gold: Material) -> void:
+	var ih: float = wall_h - 0.15
+	var m_steel := _mat("hosp_stainless_steel", Color(0.76, 0.82, 0.86), 0.26, 0.82)
+	var m_dark_steel := _mat("hosp_dark_steel", Color(0.38, 0.44, 0.48), 0.36, 0.76)
+	var m_white_enamel := _mat("hosp_white_enamel", Color(0.92, 0.95, 0.94), 0.35, 0.12)
+	var m_teal_trim := _mat("hosp_teal_trim", Color(0.20, 0.52, 0.48), 0.55, 0.08)
+	var m_teal_sheet := _mat("hosp_teal_sheet", Color(0.28, 0.68, 0.66), 0.82, 0.0)
+	var m_screen_cloth := _mat("hosp_screen_cloth", Color(0.66, 0.86, 0.82), 0.88, 0.0)
+	var m_pillow := _mat("hosp_pillow_white", Color(0.95, 0.96, 0.94), 0.85, 0.0)
+	var m_shroud := _mat("hosp_corpse_shroud", Color(0.84, 0.86, 0.80), 0.90, 0.0)
+	var m_morgue_floor := _mat("morgue_floor_blue_tile", Color(0.62, 0.72, 0.78), 0.55, 0.08, Color.BLACK, 0.0, "town_textures/floor_tiles_blue_small.png")
+	var m_glass_jar := _mat("hosp_glass_jar", Color(0.58, 0.88, 0.82), 0.20, 0.10, Color(0.18, 0.55, 0.48), 0.35)
+	var m_lamp_glow := _mat("hosp_surgical_glow", Color(0.88, 0.98, 1.0), 0.15, 0.0, Color(0.78, 0.95, 1.0), 2.4)
+
+	# 1. Pavimento diferenciado de la Morgue Forense (Sur, y = 153..193) y alfombra clínica de entrada
+	_add_box_2d(b_root, Vector2(745.0, 173.5), Vector2(130.0, 39.0), 2.5, 0.30, m_morgue_floor)
+	_add_box_2d(b_root, Vector2(745.0, 112.0), Vector2(24.0, 12.0), 2.5, 0.25, m_teal_trim)
+
+	# 2. Tabique divisorio entre Urgencias y Morgue en y = 152 (sincronizado al milímetro con colisión 2D: 699,152 [44x6] y 791,152 [44x6]; paso libre x = 721..769)
+	_add_box_2d(b_root, Vector2(699.0, 152.0), Vector2(44.0, 5.4), 2.0, ih, m_wall)
+	_add_box_2d(b_root, Vector2(791.0, 152.0), Vector2(44.0, 5.4), 2.0, ih, m_wall)
+	# Zócalo sanitario esmaltado a media altura en el tabique
+	_add_box_2d(b_root, Vector2(699.0, 152.0), Vector2(44.2, 5.8), 2.0, 11.5, m_white_enamel)
+	_add_box_2d(b_root, Vector2(791.0, 152.0), Vector2(44.2, 5.8), 2.0, 11.5, m_white_enamel)
+	_add_box_2d(b_root, Vector2(699.0, 152.0), Vector2(44.4, 6.0), 13.5, 1.2, m_teal_trim)
+	_add_box_2d(b_root, Vector2(791.0, 152.0), Vector2(44.4, 6.0), 13.5, 1.2, m_teal_trim)
+	# Marco clínico, dintel superior y placa «MORGUE» sobre el paso central (x = 721..769, y = 152)
+	_add_box_2d(b_root, Vector2(721.5, 152.0), Vector2(2.8, 6.2), 2.0, ih, m_teal_trim)
+	_add_box_2d(b_root, Vector2(768.5, 152.0), Vector2(2.8, 6.2), 2.0, ih, m_teal_trim)
+	_add_box_2d(b_root, Vector2(745.0, 152.0), Vector2(48.0, 5.8), 2.0 + ih * 0.76, ih * 0.24, m_wall)
+	_add_box_2d(b_root, Vector2(745.0, 152.0), Vector2(48.0, 6.2), 2.0 + ih * 0.74, 1.8, m_teal_trim)
+	_add_box_2d(b_root, Vector2(745.0, 148.8), Vector2(18.0, 0.8), 2.0 + ih * 0.79, 4.2, m_white_enamel)
+	_add_box_2d(b_root, Vector2(745.0, 148.6), Vector2(15.6, 0.8), 2.0 + ih * 0.82, 1.4, m_teal_trim)
+
+	# 3. Sala Norte — Ala Oeste: Box de Urgencias y Botiquín Clínico (x = 680..726, y = 104..146)
+	_build_hospital_bed_3d(b_root, vm._hospital_bed_pos, m_white_enamel, m_teal_sheet, m_pillow)
+	# Soporte de suero intravenoso de acero inoxidable junto a la cabecera de urgencias (Vector2(700, 121))
+	_add_cyl_2d(b_root, Vector2(700.0, 121.0), 2.2, 2.0, 0.8, m_steel, 2.2, 8)
+	_add_cyl_2d(b_root, Vector2(700.0, 121.0), 0.45, 2.8, 16.5, m_steel, 0.45, 8)
+	_add_box_2d(b_root, Vector2(700.0, 121.0), Vector2(3.6, 0.6), 19.0, 0.6, m_steel)
+	_add_cyl_2d(b_root, Vector2(701.2, 121.0), 0.9, 16.2, 2.6, m_glass_jar, 0.9, 8)
+	# Biombo médico plegable de 2 hojas junto al box de urgencias (Vector2(692, 133))
+	_add_box_2d(b_root, Vector2(692.0, 133.0), Vector2(1.4, 17.0), 2.0, 14.5, m_white_enamel)
+	_add_box_2d(b_root, Vector2(692.0, 133.0), Vector2(1.8, 15.2), 3.6, 11.8, m_screen_cloth)
+	# Estantería de frascos medicinales, vitrina farmacéutica y lavamanos quirúrgico
+	_add_model_2d(b_root, "props/Shelf_Small_Bottles.gltf", Vector2(691.0, 106.5), 2.0, Vector2(12.0, 5.5), 13.5)
+	_add_model_2d(b_root, "props/Cabinet.gltf", Vector2(711.0, 106.8), 2.0, Vector2(13.0, 6.5), 13.5)
+	_add_box_2d(b_root, Vector2(682.5, 118.0), Vector2(5.2, 7.5), 2.0, 7.8, m_white_enamel) # Pedestal lavamanos
+	_add_box_2d(b_root, Vector2(683.2, 118.0), Vector2(6.5, 8.8), 9.4, 2.0, m_white_enamel) # Pileta porcelana
+	_add_box_2d(b_root, Vector2(681.2, 118.0), Vector2(1.6, 1.6), 11.4, 2.4, m_gold) # Grifo de latón
+
+	# 4. Sala Norte — Ala Este: Consulta del Dr. Valen y Cama de Guardia (x = 758..808, y = 104..146)
+	var doc_desk := Vector2(768.0, 124.0)
+	if _add_model_2d(b_root, "props/Table_Large.gltf", doc_desk, 2.0, Vector2(18.0, 11.0), 7.6) == null:
+		_add_box_2d(b_root, doc_desk, Vector2(18.0, 11.0), 2.0, 7.6, m_dark_wood)
+	for ch_p in [doc_desk + Vector2(0.0, -11.5), doc_desk + Vector2(0.0, 11.5)]:
+		_add_model_2d(b_root, "props/Chair_1.gltf", ch_p, 2.0, Vector2(6.0, 6.0), 8.5, _chair_rot_y_towards(ch_p, doc_desk))
+	_add_model_2d(b_root, "props/Book_5.gltf", doc_desk + Vector2(-4.0, -1.0), 9.6, Vector2(4.5, 3.5), 2.0)
+	_add_model_2d(b_root, "props/Bottle_1.gltf", doc_desk + Vector2(4.2, -2.0), 9.6, Vector2(2.6, 2.6), 3.8)
+	_add_model_2d(b_root, "props/CandleStick.gltf", doc_desk + Vector2(2.0, 2.0), 9.6, Vector2(3.0, 3.0), 4.8)
+	# Segunda cama clínica (guardia/observación) junto al muro este (Vector2(796, 134)) y mesilla
+	_build_hospital_bed_3d(b_root, Vector2(796.0, 134.0), m_white_enamel, m_teal_sheet, m_pillow)
+	_add_model_2d(b_root, "props/Nightstand_Shelf.gltf", Vector2(796.0, 107.0), 2.0, Vector2(7.0, 6.0), 7.8)
+
+	# 5. Sala Sur — Morgue Forense (x = 679..811, y = 155..193)
+	# 3 Mesas de autopsia de acero inoxidable con pedestal hidráulico, bandeja acanalada, reposacabezas y desagüe
+	for mp in vm._morgue_table_positions:
+		_register_furniture_rect("MorgueTable", mp, Vector2(13.6, 21.6))
+		_add_box_2d(b_root, mp, Vector2(8.6, 13.0), 2.0, 1.0, m_dark_steel) # Placa base de anclaje
+		_add_cyl_2d(b_root, mp, 2.8, 3.0, 4.4, m_steel, 2.8, 8) # Columna hidráulica central
+		for lx in [-5.4, 5.4]:
+			for ly in [-9.0, 9.0]:
+				_add_cyl_2d(b_root, mp + Vector2(lx, ly), 0.55, 2.0, 5.4, m_dark_steel, 0.55, 8)
+		# Bandeja superior de disección de acero inoxidable con rebordes perimetrales y canal de drenaje
+		_add_box_2d(b_root, mp, Vector2(13.6, 21.6), 7.4, 1.1, m_steel)
+		_add_box_2d(b_root, mp + Vector2(-6.4, 0.0), Vector2(0.8, 21.6), 8.5, 0.55, m_dark_steel)
+		_add_box_2d(b_root, mp + Vector2(6.4, 0.0), Vector2(0.8, 21.6), 8.5, 0.55, m_dark_steel)
+		_add_box_2d(b_root, mp + Vector2(0.0, -10.4), Vector2(13.6, 0.8), 8.5, 0.55, m_dark_steel)
+		_add_box_2d(b_root, mp + Vector2(0.0, 10.4), Vector2(13.6, 0.8), 8.5, 0.55, m_dark_steel)
+		_add_box_2d(b_root, mp + Vector2(0.0, -7.2), Vector2(5.8, 2.4), 8.5, 1.1, m_dark_steel) # Bloque occipucio / reposacabezas
+		for gx in [-2.8, 0.0, 2.8]:
+			_add_box_2d(b_root, mp + Vector2(gx, 1.5), Vector2(0.4, 13.5), 8.5, 0.18, m_dark_steel) # Estrías de evacuación
+		# Tubo de desagüe y cubo colector bajo el extremo sur de la mesa
+		_add_cyl_2d(b_root, mp + Vector2(0.0, 8.2), 0.5, 4.2, 3.2, m_dark_steel, 0.5, 8)
+		_add_cyl_2d(b_root, mp + Vector2(0.0, 8.2), 2.1, 2.0, 2.6, m_steel, 1.7, 8)
+		# Lámpara quirúrgica suspendida sobre cada mesa de autopsia
+		_add_cyl_2d(b_root, mp, 0.45, ih - 5.5, 5.5, m_dark_steel, 0.45, 8)
+		_add_box_2d(b_root, mp, Vector2(9.5, 5.2), ih - 6.8, 1.4, m_steel)
+		_add_box_2d(b_root, mp, Vector2(8.2, 3.8), ih - 7.1, 0.4, m_lamp_glow)
+		# Nodo de cadáver cubierto con sábana forense (sincronizado con vm.morgue_active_corpses)
+		var body_n := Node3D.new()
+		body_n.visible = false
+		b_root.add_child(body_n)
+		_add_box_2d(body_n, mp + Vector2(0.0, 0.8), Vector2(9.2, 16.8), 8.5, 3.6, m_shroud)
+		_add_box_2d(body_n, mp + Vector2(0.0, -6.2), Vector2(5.2, 5.0), 8.5, 4.4, m_shroud)
+		_add_box_2d(body_n, mp + Vector2(0.0, 7.8), Vector2(6.6, 2.4), 8.5, 4.2, m_shroud)
+		_morgue_body_nodes_3d.append(body_n)
+
+	# 6. Equipamiento forense perimetral de la Morgue (sin invadir los pasillos de paso x=723.5 y x=766.5)
+	# Cámaras frigoríficas mortuorias de acero empotradas en el muro oeste (x = 681, y = 174)
+	_add_box_2d(b_root, Vector2(681.2, 174.0), Vector2(4.2, 26.0), 2.0, 18.5, m_dark_steel)
+	for cy_l in [-7.5, 0.0, 7.5]:
+		for cz_h in [4.5, 12.0]:
+			_add_box_2d(b_root, Vector2(683.4, 174.0 + cy_l), Vector2(0.6, 7.2), cz_h, 6.2, m_steel)
+			_add_box_2d(b_root, Vector2(683.9, 174.0 + cy_l), Vector2(0.6, 1.8), cz_h + 2.6, 0.9, m_gold)
+	# Carrito quirúrgico de acero inoxidable con frascos de muestras e instrumental (Vector2(723.5, 189.0))
+	var tr_p := Vector2(723.5, 189.0)
+	_add_box_2d(b_root, tr_p, Vector2(11.0, 6.2), 2.4, 0.6, m_steel)
+	_add_box_2d(b_root, tr_p, Vector2(11.0, 6.2), 8.2, 0.7, m_steel)
+	for tx in [-4.8, 4.8]:
+		for ty in [-2.6, 2.6]:
+			_add_cyl_2d(b_root, tr_p + Vector2(tx, ty), 0.4, 2.0, 7.0, m_dark_steel, 0.4, 6)
+	_add_cyl_2d(b_root, tr_p + Vector2(-2.8, 0.0), 1.3, 8.9, 3.0, m_glass_jar, 1.3, 8)
+	_add_box_2d(b_root, tr_p + Vector2(2.2, 0.0), Vector2(4.2, 3.2), 8.9, 0.5, m_dark_steel)
+	# Atril de registro de autopsias y vitrina de muestras en el lado este de la morgue
+	_add_model_2d(b_root, "props/BookStand.gltf", Vector2(766.5, 189.0), 2.0, Vector2(7.0, 7.0), 10.8, 180.0)
+	_add_model_2d(b_root, "props/Shelf_Small_Bottles.gltf", Vector2(805.5, 174.0), 2.0, Vector2(6.0, 14.0), 14.0, -90.0)
+
+	# 7. Iluminación clínica (cálida-blanca en Urgencias, blanca-fría quirúrgica en la Morgue) y faroles de fachada
+	_restaurant_light(b_root, Vector2(712.0, 126.0), ih - 4.5, Color(0.94, 0.98, 0.96), 0.95, 2.4, false)
+	_restaurant_light(b_root, Vector2(778.0, 126.0), ih - 4.5, Color(0.96, 0.94, 0.86), 0.92, 2.4, false)
+	_restaurant_light(b_root, Vector2(715.0, 176.0), ih - 5.0, Color(0.76, 0.92, 1.0), 0.95, 2.3, false)
+	_restaurant_light(b_root, Vector2(775.0, 176.0), ih - 5.0, Color(0.76, 0.92, 1.0), 0.95, 2.3, false)
+	_add_model_2d(b_root, "props/Lantern_Wall.gltf", Vector2(720.0, 97.5), wall_h * 0.58, Vector2(4.0, 4.0), 6.0)
+	_add_model_2d(b_root, "props/Lantern_Wall.gltf", Vector2(770.0, 97.5), wall_h * 0.58, Vector2(4.0, 4.0), 6.0)
+
+func _build_hospital_bed_3d(parent: Node3D, pos_2d: Vector2, m_frame: Material, m_sheet: Material, m_pillow: Material) -> void:
+	_register_furniture_rect("HospitalBed", pos_2d, Vector2(13.5, 19.5))
+	# Cabecero y piecero tubulares de acero esmaltado blanco + bastidor elevado sobre 4 patas
+	_add_box_2d(parent, pos_2d + Vector2(0.0, -9.2), Vector2(13.5, 1.2), 2.0, 8.8, m_frame)
+	_add_box_2d(parent, pos_2d + Vector2(0.0, 9.2), Vector2(13.5, 1.2), 2.0, 6.8, m_frame)
+	_add_box_2d(parent, pos_2d, Vector2(13.5, 18.0), 4.2, 1.2, m_frame)
+	# Colchón clínico blanco, manta verde agua y almohada
+	_add_box_2d(parent, pos_2d, Vector2(12.4, 17.4), 5.4, 1.6, m_pillow)
+	_add_box_2d(parent, pos_2d + Vector2(0.0, 2.4), Vector2(12.6, 12.2), 7.0, 0.8, m_sheet)
+	_add_box_2d(parent, pos_2d + Vector2(0.0, -5.8), Vector2(9.4, 3.8), 7.0, 1.3, m_pillow)
+
 
 

@@ -289,8 +289,9 @@ static func _spawn_hospital_and_morgue(vm: VillageManager) -> void:
 	vm._add_solid_wall_segment(vm._hospital_center + Vector2(46, 4), Vector2(44, 6), tex_wall_h)
 
 	var tex_hbed := vm._load_tex("res://assests/world/village/hospital_bed.png")
-	for b_pos in [vm._hospital_bed_pos, Vector2(780, 132)]:
+	for b_pos in [vm._hospital_bed_pos, Vector2(796, 134)]:
 		vm._add_sprite_prop(tex_hbed, b_pos, Vector2(1.15, 1.15), -1)
+	vm._add_prop_collider(Vector2(796, 134), Vector2(10.0, 14.0))
 
 	vm._add_station_area("HospitalEmergencyBedArea", vm._hospital_bed_pos, 16.0, "hospital_bed")
 	vm._hospital_bed_label = vm._make_station_label(vm._hospital_bed_pos + Vector2(-120, -28), "🏥 Cama de Urgencias [E: Ingresar para Cura Progresiva (-10 Oro)]")
@@ -302,17 +303,18 @@ static func _spawn_hospital_and_morgue(vm: VillageManager) -> void:
 	for m_pos in vm._morgue_table_positions:
 		vm._add_sprite_prop(tex_mtable, m_pos, Vector2(1.15, 1.15), -1)
 		vm._morgue_corpse_sprites.append(vm._add_sprite_prop(tex_corpse, m_pos, Vector2(1.15, 1.15), 0, false))
+		vm._add_prop_collider(m_pos + Vector2(0.0, 4.0), Vector2(8.0, 10.0))
 
 	vm._add_station_area("MorgueAutopsyArea", vm._morgue_table_positions[1], 24.0, "morgue_table")
 	vm._morgue_label = vm._make_station_label(vm._morgue_table_positions[1] + Vector2(-125, -26), "⚰️ Morgue Forense [E: Examinar Autopsias]")
 	vm.entities_root.add_child(vm._morgue_label)
 
 	# Dr. Valen (Médico Cirujano y Forense) — Mesa de comedor propia dentro del Hospital (`Vector2(764, 128)`)
-	vm._spawn_decor_prop("res://assests/Comprados/Epic RPG World - Village(interiors) V1.3/assets/furniture_and_props_sprites/table_chairs_1.png", Vector2(764, 128), Vector2(0.45, 0.45))
+	vm._spawn_decor_prop("res://assests/Comprados/Epic RPG World - Village(interiors) V1.3/assets/furniture_and_props_sprites/table_chairs_1.png", Vector2(768, 124), Vector2(0.45, 0.45))
 	vm._register_authority_npc(
 		"NPC_Dr_Valen", "Dr. Valen", "Cirujano y Forense", VillageNPC.TradeRole.DOCTOR,
 		"res://assests/world/village/villager_doctor.png",
-		Vector2(745, 128), Vector2(780, 132), Vector2(764, 128),
+		Vector2(756, 124), Vector2(796, 134), Vector2(768, 124),
 		{"bandage": 4, "surgical_kit": 4, "herbal_poultice": 6},
 		"family_hospital", "Cuerpo Médico del Valle",
 		["Dr. Silvano", "Dra. Valeria", "Dr. Aurelio", "Dra. Caelia", "Dr. Mirko"]

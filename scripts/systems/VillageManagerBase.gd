@@ -684,9 +684,9 @@ func _route_internal_building_partitions(b_id: String, from_pos: Vector2, target
 				return Vector2(325.0, 145.0 if absf(from_pos.x - 325.0) > 9.0 else 171.0)
 		"building_hospital":
 			if from_pos.y < 149.0 and target_pos.y > 155.0:
-				return Vector2(745.0, 138.0 if absf(from_pos.x - 745.0) > 10.0 else 165.0)
+				return Vector2(745.0, 138.0 if absf(from_pos.x - 745.0) > 16.0 else 163.0)
 			elif from_pos.y > 155.0 and target_pos.y < 149.0:
-				return Vector2(745.0, 165.0 if absf(from_pos.x - 745.0) > 10.0 else 138.0)
+				return Vector2(745.0, 163.0 if absf(from_pos.x - 745.0) > 16.0 else 138.0)
 		"building_restaurant": # R1: varias salas; cruza por los pasos (ver VillageRestaurant.OPENINGS)
 			return VillageRestaurant.route(from_pos, target_pos)
 		"building_police":
