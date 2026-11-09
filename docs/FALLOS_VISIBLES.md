@@ -5,6 +5,12 @@
 > Formato: `- [ ] Qué se ve mal · dónde · cuándo (hora del juego, 2D/3D/primera persona)`.
 
 ## Pendientes
+- [ ] **(PRIORIDAD 1) Rendimiento terrible**, incluso en el PC de escritorio con gráfica de última generación · 1.ª persona (usuario, 2026-11-09).
+- [ ] **Vecinos atascados por todas partes** desde que se añadió el río nuevo: la IA no sabe rodearlo · pueblo (2026-11-09).
+- [ ] **El molino está a 2 metros del cuerpo de la víctima**, y el bosque tiene árboles metidos unos dentro de otros · 3D (2026-11-09).
+- [ ] **Controles que se pisan** (varias acciones en la misma tecla) · (2026-11-09).
+- [ ] **El Caso I empieza a la vez que llega el jugador**: no hay tiempo para entender qué pasa ni adónde ir · inicio de la demo (2026-11-09).
+- [x] ✅ (2026-11-09) **El día pasaba demasiado deprisa** · ahora un día de juego dura 18 min reales (antes 6).
 - [ ] *(No prioritario, más adelante)* **Cuartos de la posada sin puertas ni muebles** y **camas demasiado pequeñas** · 18:54
   (`docs/capturas_usuario/2026-11-08/4_cuartos_sin_puertas.png`).
 - [x] ✅ (2026-11-09) **El campamento inicial está en medio del pueblo** (tienda, hoguera y tronco pegados a las casas); las texturas

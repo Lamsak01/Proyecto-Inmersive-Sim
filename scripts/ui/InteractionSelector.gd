@@ -43,6 +43,7 @@ const STATION_LABELS: Dictionary = {
 	"old_bridge_left_shoe": "Examinar zapato",
 	"case1_forced_cabinet": "Examinar gabinete",
 	"case1_relative_page": "Examinar hoja suelta",
+	"case1_report_desk": "Entregar informe del caso",
 }
 
 var player: Node2D = null
@@ -209,7 +210,7 @@ func _fp_crosshair_score(a: Area2D, tgt: Node, c_pos: Vector2, pp: Vector2) -> f
 				is_low_obj = true
 				max_reach_px = 25.0
 				max_lat_px = 7.5
-			"tavern_games", "tavern_pool", "morgue_table", "shop_business_stall", "library_reading", "mill_cellar_grate", "mill_red_clay", "old_bridge_left_shoe", "library_book_lever", "library_secret_ledger", "library_torn_book", "police_archived_report", "mill_table_paper", "mill_hemp_cord", "mill_hearth", "mill_hayloft", "case1_clearing", "case1_forced_cabinet", "case1_relative_page":
+			"tavern_games", "tavern_pool", "morgue_table", "shop_business_stall", "library_reading", "mill_cellar_grate", "mill_red_clay", "old_bridge_left_shoe", "library_book_lever", "library_secret_ledger", "library_torn_book", "police_archived_report", "mill_table_paper", "mill_hemp_cord", "mill_hearth", "mill_hayloft", "case1_clearing", "case1_forced_cabinet", "case1_relative_page", "case1_report_desk":
 				is_low_obj = true
 				max_reach_px = 27.0
 				max_lat_px = 8.5
@@ -580,6 +581,9 @@ func get_prompt_card_data() -> Dictionary:
 				target_state = ""
 			"case1_relative_page":
 				target_name = "Hoja suelta"
+				target_state = ""
+			"case1_report_desk":
+				target_name = "Bandeja de informes"
 				target_state = ""
 			_:
 				target_name = str(STATION_LABELS.get(tag, "Puesto"))

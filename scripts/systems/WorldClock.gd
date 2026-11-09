@@ -24,7 +24,7 @@ enum WeatherType {
 	FOG    # 🌫️ Niebla Densa (reduce el rango visual de NPCs, guardias y fauna un 35%)
 }
 
-@export var real_seconds_per_game_hour: float = 15.0 ## 15s reales = 1 hora de juego (6 min por día completo, ritmo ágil)
+@export var real_seconds_per_game_hour: float = 45.0 ## 45s reales = 1 hora de juego (18 min por día completo; orden del usuario 2026-11-09)
 @export var allow_debug_time_skip: bool = true       ## Tecla [T] avanza +2 horas para probar ciclos
 
 var current_day: int = 1

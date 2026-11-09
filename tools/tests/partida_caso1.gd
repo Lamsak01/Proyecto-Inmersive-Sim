@@ -543,26 +543,26 @@ func _initialize() -> void:
 		Vector2(672.0, -195.0),
 	], 5.0)
 
-	# D5: Acusación final (Tablero del Caso en DetectiveUI y diálogo con el Alguacil en la Comisaría)
+	# D5: Informe del caso en la comisaría (bandeja del alguacil): eliges culpable y queda guardado para el final
 	var path_to_accuse: Array[Vector2] = [
 		Vector2(672.0, 84.0),
 		Vector2(915.0, 84.0),
-		Vector2(915.0, 124.0),
+		Vector2(915.0, 118.0),
+		Vector2(958.0, 118.0),
 	]
 	var walked_accuse: bool = await _walk_to_waypoints(pl, stage, path_to_accuse, 5.0)
-	var board_can_accuse: bool = false
-	if det_ui != null:
-		det_ui.call("open_for_corpse", det_ui.get("current_corpse"), "board")
-		det_ui.call("click_board_pin", "s_boy")
-		det_ui.call("click_board_pin", "m_cuello")
-		det_ui.call("click_board_pin", "s_v")
-		det_ui.call("click_board_pin", "clue_library_secret_ledger")
-		board_can_accuse = det_ui.has_method("accuse_suspect") or det_ui.has_method("submit_accusation")
-		await _save_shot("04_acusacion_final_tablero_caso1")
-		det_ui.call("close_panel")
-	await _save_shot("05_acusacion_final_comisaria_1p")
-	_record("D5_acusacion_final_caso1", walked_accuse and board_can_accuse,
-		"walk=%s tablero_con_4_sospechosos_e_hilos=true boton_o_dialogo_acusar=%s (El Tablero une pistas con hilos pero no tiene botón de acusar, y el Alguacil/Inquisidor solo juzga crímenes sistémicos)" % [str(walked_accuse), str(board_can_accuse)])
+	var rep_e: Dictionary = await _aim_and_press_e(pl, stage, C1.REPORT_POS, -0.30, "informe")
+	var dm = root.find_child("dialogue_manager", true, false)
+	var form_open: bool = dm != null and bool(dm.call("is_active")) and (dm.get("graph") as Dictionary).has("confirm_young")
+	await _save_shot("05_informe_caso_comisaria_1p")
+	if dm != null and bool(dm.call("is_active")):
+		dm.call("end_dialogue")
+	C1.on_report_action(vm, "case1_report:young")
+	var rep = C1.state(vm).get("report", null)
+	var rep_ok: bool = rep is Dictionary and str(rep.get("verdict", "")) == "perfect"
+	var locked: bool = not C1.submit_report(vm, "relative") and str(C1.state(vm)["report"].get("culprit", "")) == "young"
+	_record("D5_informe_caso1", walked_accuse and bool(rep_e.get("ok", false)) and form_open and rep_ok and locked,
+		"walk=%s E=%s(%s) formulario=%s informe_guardado=%s no_se_cambia=%s pruebas=%s" % [str(walked_accuse), str(rep_e.get("ok", false)), str(rep_e.get("label", "")), str(form_open), str(rep_ok), str(locked), str(rep.get("evidence", []).size() if rep is Dictionary else 0)])
 
 	print("PARTIDA_CASO1 COMPLETA TERMINADA (%d pasos comprobados, %d pendientes de sistemas nuevos)" % [_results.size(), _failures.size()])
 	quit(0)
