@@ -24,19 +24,18 @@
   **menos de ~5.000 letras**. Si crece, archiva.
 - Borra `docs/DIA_TERMINADO.txt` si existe, haz commit y push del encargo, y comprueba que **Godot está cerrado**.
 
-**Lanzarlo y confirmar**
-- `cd ~/Proyecto-Inmersive-Sim && (MODO=dia AGY=/home/lamsaktp/.local/bin/agy nohup setsid bash tools/vigilante_noche.sh >/dev/null 2>&1 &)`
-- A los ~15 s mira `tail ~/vigilante_noche.log` y que haya un proceso `agy -p`; dile al usuario si arrancó **de verdad**.
-- Deja una espera en segundo plano hasta que acabe el vigilante (`while kill -0 <pid>; do sleep 60; done` + resumen) para
-  avisar al usuario al terminar.
+**Lanzarlo: lo hace el usuario, no tú (orden del usuario, 2026-11-09)**
+- **Nunca lances, relances ni pares a Antigravity tú mismo**, ni con el vigilante ni a mano. El vigilante
+  (`tools/vigilante_noche.sh`) está **desactivado**: entre el 8 y el 9 de nov. lanzó 33 Antigravity sin memoria (cada
+  uno releía todo) y agotó en 3 días el plan Ultra del usuario (100 $/mes). No lo reactives ni propongas reactivarlo.
+- El usuario habla con Antigravity directamente. Tú solo **preparas el encargo** (si te lo pide) y **revisas** lo que
+  suba (si te lo pide). Si Antigravity se queda sin cupo y hay que avanzar, ofrécete a hacerlo tú.
 
 **Mientras trabaja**
 - **No edites archivos que él pueda estar tocando** (código, `FALLOS_VISIBLES.md`, informe). Si tienes que cambiar algo,
   commit **solo de tus archivos** (`git commit -- <archivo>`) y push.
 - **Nunca `pkill`/`pgrep -f` con un patrón que aparezca en tu propio comando** (te matas a ti mismo): para por número de proceso.
-- **Atascos:** el vigilante lo reinicia solo si lleva 25 min sin tocar nada. Si en su registro (`~/vigilante_agy_*.log`)
-  dice que «espera» una simulación y no hay ningún Godot en marcha, está atascado: añade una nota en el encargo que
-  corrija la causa, páralo por número de proceso y relanza (si no corriges la causa, vuelve a caer).
+- **Atascos:** no los resuelvas tú. Si ves que Antigravity está parado o atascado, díselo al usuario y que decida él.
 - El portátil debe estar **enchufado y con la tapa abierta** (el reposo lo para todo).
 
 **Al terminar**
@@ -88,10 +87,8 @@ y coste; máximo 10–12 líneas; una sola pregunta al final.
 - **Noches:** antes de que el usuario duerma, deja un «MODO NOCHE» al principio de `docs/ENCARGO_SIGUIENTE.md` (sin
   paradas; dudas a preguntas pendientes; lo que falle dos veces se deshace; commit tras cada paso; al acabar,
   `docs/NOCHE_TERMINADA.txt`). Recuérdale quitar la suspensión del ordenador. No prometas que saldrá bien.
-  El vigilante `tools/vigilante_noche.sh` relanza a Antigravity si se para (se para solo al ver `NOCHE_TERMINADA.txt`,
-  a las 9:00 o con `touch ~/PARAR_VIGILANTE`; registro en `~/vigilante_noche.log`). Borra `NOCHE_TERMINADA.txt` antes
-  de una noche nueva.
-- **Cómo lanzar a Antigravity sin permisos:** ver `docs/COMO_LANZAR_ANTIGRAVITY.md`.
+  Nada de vigilante ni relanzamientos automáticos (desactivado el 2026-11-09).
+- **Cómo lanza el usuario a Antigravity:** ver `docs/COMO_LANZAR_ANTIGRAVITY.md` (una sola vez, sin vigilante).
 
 ## Al cambiar de ordenador
 1. `git pull` antes de nada. 2. Lee esto, `docs/FALLOS_VISIBLES.md`, el encargo actual y la cola.

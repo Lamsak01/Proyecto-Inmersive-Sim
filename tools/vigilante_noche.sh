@@ -6,6 +6,10 @@
 # Uso:   nohup bash tools/vigilante_noche.sh >/dev/null 2>&1 &
 # Parar: touch ~/PARAR_VIGILANTE      Registro: ~/vigilante_noche.log
 
+# ⛔ DESACTIVADO por orden del usuario (2026-11-09): relanzaba a Antigravity sin memoria una y otra vez y agotó su cupo.
+echo "$(date '+%Y-%m-%d %H:%M') Vigilante desactivado (orden del usuario, 2026-11-09). No hago nada." >> "$HOME/vigilante_noche.log"
+exit 0
+
 REPO="${REPO:-$(cd "$(dirname "$0")/.." && pwd)}"
 AGY="${AGY:-$(command -v agy || echo "$HOME/AntigravityTerminal/agy")}"
 LOG="$HOME/vigilante_noche.log"

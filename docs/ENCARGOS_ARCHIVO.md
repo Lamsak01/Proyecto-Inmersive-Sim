@@ -315,3 +315,6 @@ y `DIA_TERMINADO.txt`. Godot siempre en primer plano con `timeout`.
 bloque A»). Hazlo **en trozos pequeños**: crea ya `tools/tests/partida_caso1.gd` solo con el **bloque A** (inicio +
 claro), guárdalo en disco aunque no esté terminado, pásalo, apunta el resultado en `PLAN_PARTIDA_CASO1.md` y commit.
 Después B, C y D igual. Guarda el archivo en disco al menos cada 10 min.
+
+## 2026-11-09 — Piezas del Caso I (sin acusación)
+Diálogos del boticario y la criada, gabinete forzado, roles del caso (casa del familiar con la página arrancada), secuestradores del molino que se van a los 3 días. Hecho por Claude Code (Antigravity sin cupo).

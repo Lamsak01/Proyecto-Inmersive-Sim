@@ -6,6 +6,7 @@ Immersive sim 2D en pixel art hecho con Godot 4.7.2 (GDScript). El usuario no pr
 
 - **Antigravity escribe el código**; **Claude Code supervisa**: prepara el encargo en `docs/ENCARGO_SIGUIENTE.md` (cómo supervisar: `docs/DIRECTIVAS_CLAUDE.md`, «Cómo supervisar a Antigravity»),
   revisa lo que Antigravity suba (y su informe en `docs/INFORME_ANTIGRAVITY.md`) y le dice al usuario si está bien.
+- **Desde 2026-11-09 el usuario lanza y habla con Antigravity él mismo.** Claude Code nunca lo lanza ni relanza; el vigilante automático está desactivado.
 
 ## Antes de trabajar
 
