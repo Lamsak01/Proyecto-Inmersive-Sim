@@ -1736,27 +1736,27 @@ func _build_library_3d(b_root: Node3D, rect: Rect2, door_south: bool, wall_h: fl
 	var book_mats: Array[Material] = [m_book_red, m_book_blue, m_book_green, m_book_ochre, m_book_leather]
 
 	# 1. Alfombras tejidas gastadas de lectura (sala norte y pasillo de entrada), sin bordes amarillos chillones
-	_add_box_2d(b_root, c + Vector2(0.0, 15.0 * m_dir), Vector2(80.0, 32.0), 2.50, 0.14, m_rug_border)
-	_add_box_2d(b_root, c + Vector2(0.0, 15.0 * m_dir), Vector2(76.0, 28.5), 2.52, 0.15, m_rug_burgundy)
+	_add_box_2d(b_root, c + Vector2(-10.0, 15.0 * m_dir), Vector2(62.0, 32.0), 2.50, 0.14, m_rug_border)
+	_add_box_2d(b_root, c + Vector2(-10.0, 15.0 * m_dir), Vector2(58.0, 28.5), 2.52, 0.15, m_rug_burgundy)
 	_add_box_2d(b_root, c + Vector2(0.0, -20.0 * m_dir), Vector2(27.0, 29.0), 2.50, 0.14, m_rug_border)
 	_add_box_2d(b_root, c + Vector2(0.0, -20.0 * m_dir), Vector2(24.0, 26.0), 2.52, 0.15, m_rug_burgundy)
 
 	# 2. Arcada interior de madera de nogal y friso perimetral que separa el Vestíbulo de Recepción de la Gran Sala de Lectura
-	for side_s in [-1.0, 1.0]:
-		_add_box_2d(b_root, c + Vector2(49.0 * side_s, -2.0 * m_dir), Vector2(22.0, 4.4), 2.0, 11.5, m_wainscot)
-		_add_box_2d(b_root, c + Vector2(49.0 * side_s, -2.0 * m_dir), Vector2(22.4, 4.8), 13.5, 1.2, m_wainscot_cap)
-		_add_box_2d(b_root, c + Vector2(38.0 * side_s, -2.0 * m_dir), Vector2(3.4, 5.2), 2.0, ih, m_wainscot)
-		_add_box_2d(b_root, c + Vector2(58.0 * side_s, -2.0 * m_dir), Vector2(3.2, 5.0), 2.0, ih, m_wainscot)
+	_add_box_2d(b_root, c + Vector2(-49.0, -2.0 * m_dir), Vector2(22.0, 4.4), 2.0, 11.5, m_wainscot)
+	_add_box_2d(b_root, c + Vector2(-49.0, -2.0 * m_dir), Vector2(22.4, 4.8), 13.5, 1.2, m_wainscot_cap)
+	_add_box_2d(b_root, c + Vector2(-38.0, -2.0 * m_dir), Vector2(3.4, 5.2), 2.0, ih, m_wainscot)
+	_add_box_2d(b_root, c + Vector2(-58.0, -2.0 * m_dir), Vector2(3.2, 5.0), 2.0, ih, m_wainscot)
+	_add_box_2d(b_root, c + Vector2(24.0, -2.0 * m_dir), Vector2(3.4, 5.2), 2.0, ih, m_wainscot)
+	_add_box_2d(b_root, c + Vector2(58.0, -2.0 * m_dir), Vector2(3.2, 5.0), 2.0, ih, m_wainscot)
 	_add_box_2d(b_root, c + Vector2(0.0, -2.0 * m_dir), Vector2(120.0, 4.8), 2.0 + ih * 0.78, ih * 0.22, m_wainscot)
 	_add_box_2d(b_root, c + Vector2(0.0, -2.0 * m_dir), Vector2(78.0, 5.2), 2.0 + ih * 0.76, 1.4, m_wainscot_cap)
 
-	# 3. Fondo Antiguo (Muro Norte): 4 grandes librerías de nogal repletas de tomos encuadernados + 2 librerías laterales
+	# 3. Fondo Antiguo (Muro Norte): 3 grandes librerías de nogal en la sala pública + librería lateral oeste
 	var north_rot: float = 0.0 if door_south else 180.0
-	for bi in range(4):
-		var sx: float = [-42.0, -14.0, 14.0, 42.0][bi]
+	for bi in range(3):
+		var sx: float = [-44.0, -18.0, 8.0][bi]
 		var bc_pos: Vector2 = c + Vector2(sx, 36.0 * m_dir)
 		_add_model_2d(b_root, "props/Bookcase_2.gltf", bc_pos, 2.0, Vector2(20.0, 7.0), 21.5, north_rot)
-		# Hileras de libros encuadernados en las 3 baldas de cada librería (sin verse vacías)
 		for shelf_i in range(3):
 			var sh_h: float = 8.4 + float(shelf_i) * 4.2
 			for bk_i in range(7):
@@ -1764,16 +1764,157 @@ func _build_library_3d(b_root: Node3D, rect: Rect2, door_south: bool, wall_h: fl
 				var b_h: float = 2.7 + float((bi + shelf_i + bk_i) % 3) * 0.45
 				var b_mat: Material = book_mats[(bi * 3 + shelf_i * 2 + bk_i) % book_mats.size()]
 				_add_box_2d(b_root, bc_pos + Vector2(bx_off, -0.4 * m_dir), Vector2(1.9, 3.6), sh_h, b_h, b_mat)
-	# 2 Librerías laterales en la Sala de Lectura (Oeste mirando al Este y Este mirando al Oeste)
 	_add_model_2d(b_root, "props/Bookcase_2.gltf", c + Vector2(-53.0, 14.0 * m_dir), 2.0, Vector2(18.0, 7.0), 20.0, 90.0)
-	_add_model_2d(b_root, "props/Bookcase_2.gltf", c + Vector2(53.0, 14.0 * m_dir), 2.0, Vector2(18.0, 7.0), 20.0, -90.0)
-	for side_bc_x in [-53.0, 53.0]:
-		for shelf_j in range(3):
-			var sh_h2: float = 8.0 + float(shelf_j) * 3.9
-			for bk_j in range(6):
-				var by_off: float = -6.0 + float(bk_j) * 2.4
-				var b_mat2: Material = book_mats[(shelf_j + bk_j) % book_mats.size()]
-				_add_box_2d(b_root, c + Vector2(side_bc_x - signf(side_bc_x) * 0.4, 14.0 * m_dir + by_off), Vector2(3.4, 2.0), sh_h2, 2.8, b_mat2)
+	for shelf_j in range(3):
+		var sh_h2: float = 8.0 + float(shelf_j) * 3.9
+		for bk_j in range(6):
+			var by_off: float = -6.0 + float(bk_j) * 2.4
+			var b_mat2: Material = book_mats[(shelf_j + bk_j) % book_mats.size()]
+			_add_box_2d(b_root, c + Vector2(-52.6, 14.0 * m_dir + by_off), Vector2(3.4, 2.0), sh_h2, 2.8, b_mat2)
+
+	# ==========================================================================
+	# 3b. PUNTO 5 (CASO I): SALA OCULTA DE LA BIBLIOTECA (Cuadrante Noreste, `c + Vector2(24..62, -46..-4)`)
+	# ==========================================================================
+	var m_occult_floor := _mat("lib_secret_stone_floor", Color(0.18, 0.16, 0.20), 0.94, 0.04, Color.BLACK, 0.0, "town_textures/floor_stone_grate.png")
+	var m_drag_scuff := _mat("lib_floor_drag_scuff", Color(0.16, 0.11, 0.07), 0.96, 0.0)
+	var m_draft_wisp := _mat("lib_draft_air_wisp", Color(0.84, 0.88, 0.94, 0.34), 0.90, 0.0, Color(0.62, 0.68, 0.78), 0.35)
+	(m_draft_wisp as StandardMaterial3D).cull_mode = BaseMaterial3D.CULL_DISABLED
+	var m_dust_mote := _mat("lib_draft_dust_mote", Color(0.92, 0.88, 0.74, 0.78), 0.85, 0.0, Color(0.75, 0.68, 0.50), 0.55)
+	var m_book_occult := _mat("lib_book_occult", Color(0.28, 0.12, 0.36), 0.78, 0.08)
+	var m_book_poison := _mat("lib_book_poison", Color(0.12, 0.34, 0.22), 0.76, 0.08)
+	var m_book_oldfaith := _mat("lib_book_oldfaith", Color(0.58, 0.42, 0.14), 0.68, 0.25)
+	var m_book_lever := _mat("lib_book_lever_crimson", Color(0.78, 0.14, 0.12), 0.65, 0.12, Color(0.32, 0.04, 0.02), 0.45)
+	var m_page_paper := _mat("lib_secret_paper", Color(0.90, 0.85, 0.72), 0.88, 0.0)
+	var m_ink_sig := _mat("lib_secret_ink", Color(0.14, 0.11, 0.10), 0.90, 0.0)
+	var m_torn_stub := _mat("lib_torn_page_stub", Color(0.96, 0.92, 0.80), 0.92, 0.0)
+
+	# Pavimento oscuro y muros de cierre de la Sala Oculta (tabique oeste en x = c.x + 24 y frente sur con hueco secreto)
+	_add_box_2d(b_root, c + Vector2(43.0, 25.0 * m_dir), Vector2(36.0, 40.0), 2.48, 0.18, m_occult_floor)
+	_add_box_2d(b_root, c + Vector2(24.0, 25.0 * m_dir), Vector2(3.8, 42.0), 2.0, ih, m_wainscot)
+	_add_box_2d(b_root, c + Vector2(56.5, 4.0 * m_dir), Vector2(11.0, 3.8), 2.0, ih, m_wainscot)
+	_add_box_2d(b_root, c + Vector2(37.5, 4.0 * m_dir), Vector2(27.0, 3.8), 2.0 + ih * 0.78, ih * 0.22, m_wainscot)
+
+	# A) MARCAS DE ARRASTRE EN EL SUELO (`c + Vector2(38, -1.5)`) producidas al girar la estantería secreta
+	var lever_area_pos: Vector2 = c + Vector2(39.0, 1.5 * m_dir)
+	for arc_i in range(6):
+		var ang_sc: float = -12.0 + float(arc_i) * 11.0
+		var r_off := Vector2(-8.5 + float(arc_i) * 2.4, -3.5 + float(arc_i % 2) * 1.6)
+		_add_box_2d(b_root, lever_area_pos + r_off, Vector2(4.8, 0.65), 2.55, 0.09, m_drag_scuff, ang_sc)
+		_add_box_2d(b_root, lever_area_pos + r_off + Vector2(0.8, 2.2), Vector2(4.2, 0.55), 2.55, 0.09, m_drag_scuff, ang_sc + 6.0)
+
+	# B) CORRIENTE DE AIRE (POLVO QUE SE MUEVE) saliendo por la rendija de la estantería secreta
+	for wisp_d in [
+		[lever_area_pos + Vector2(-5.5, -1.0), Vector2(1.4, 8.5), 4.2, 0.18, -16.0],
+		[lever_area_pos + Vector2(-2.0, 0.5), Vector2(1.2, 9.5), 6.8, 0.16, -22.0],
+		[lever_area_pos + Vector2(1.5, -0.5), Vector2(1.3, 8.0), 9.4, 0.16, -14.0],
+	]:
+		_add_box_2d(b_root, wisp_d[0], wisp_d[1], float(wisp_d[2]), float(wisp_d[3]), m_draft_wisp, float(wisp_d[4]))
+	for mote_i in range(10):
+		var mp: Vector2 = lever_area_pos + Vector2(-6.0 + float(mote_i % 5) * 2.6, -3.0 + float(mote_i / 2) * 1.8)
+		var mh: float = 3.8 + float((mote_i * 3) % 7) * 1.3
+		_add_box_2d(b_root, mp, Vector2(0.28, 0.28), mh, 0.28, m_dust_mote, float(mote_i * 19))
+	var draft_particles := CPUParticles3D.new()
+	draft_particles.name = "LibrarySecretDraftParticles"
+	draft_particles.amount = 24
+	draft_particles.lifetime = 2.6
+	draft_particles.preprocess = 1.5
+	var pm_mote := BoxMesh.new()
+	pm_mote.size = Vector3(0.008, 0.008, 0.008)
+	pm_mote.material = m_dust_mote
+	draft_particles.mesh = pm_mote
+	draft_particles.emission_shape = CPUParticles3D.EMISSION_SHAPE_BOX
+	draft_particles.emission_box_extents = Vector3(0.24, 0.30, 0.16)
+	draft_particles.direction = Vector3(-0.35, 0.15, 1.0).normalized()
+	draft_particles.spread = 24.0
+	draft_particles.gravity = Vector3(0.0, 0.02, 0.04)
+	draft_particles.initial_velocity_min = 0.06
+	draft_particles.initial_velocity_max = 0.14
+	draft_particles.position = to_3d(lever_area_pos + Vector2(-2.0, 0.0), 7.5)
+	b_root.add_child(draft_particles)
+
+	# C) ESTANTERÍA SECRETA ENTREABIERTA CON EL LIBRO-PALANCA (`c + Vector2(46.5, 5.5 * m_dir)`)
+	var sec_bc_pos: Vector2 = c + Vector2(46.5, 5.5 * m_dir)
+	var sec_bc_rot: float = 32.0
+	_add_box_2d(b_root, sec_bc_pos, Vector2(16.5, 4.6), 2.0, 19.5, m_wainscot, sec_bc_rot)
+	_add_box_2d(b_root, sec_bc_pos, Vector2(17.2, 5.2), 21.2, 1.1, m_wainscot_cap, sec_bc_rot)
+	for s_sh in [7.2, 11.6, 16.0]:
+		_add_box_2d(b_root, sec_bc_pos, Vector2(15.2, 4.8), s_sh, 0.65, m_dark_wood, sec_bc_rot)
+	for sb_i in [-5.2, -3.0, 1.6, 3.8, 5.8]:
+		_add_box_2d(b_root, sec_bc_pos + Vector2(sb_i, 0.6), Vector2(1.7, 3.2), 7.9, 2.9, book_mats[absi(int(sb_i * 3.0)) % book_mats.size()], sec_bc_rot)
+		_add_box_2d(b_root, sec_bc_pos + Vector2(sb_i, 0.6), Vector2(1.7, 3.2), 16.7, 2.8, book_mats[absi(int(sb_i * 5.0)) % book_mats.size()], sec_bc_rot)
+	# El LIBRO-PALANCA: tomo carmesí con canto dorado que sobresale inclinado en la balda central y acciona el pestillo
+	var lever_book_p: Vector2 = sec_bc_pos + Vector2(-1.4, 2.2)
+	var lb_mi := _add_box_2d(b_root, lever_book_p, Vector2(2.2, 4.8), 12.2, 3.4, m_book_lever, sec_bc_rot)
+	lb_mi.rotation.x = 0.38
+	_add_box_2d(b_root, lever_book_p + Vector2(0.0, 0.4), Vector2(2.3, 1.2), 13.2, 2.8, m_gold, sec_bc_rot)
+	var lever_lbl := Label3D.new()
+	lever_lbl.name = "LibraryBookLeverLabel3D"
+	lever_lbl.text = "📕 Libro-palanca y estantería móvil\n(corriente de aire y marcas de arrastre)"
+	lever_lbl.font_size = 15
+	lever_lbl.outline_size = 4
+	lever_lbl.pixel_size = 0.00068
+	lever_lbl.modulate = Color(0.98, 0.88, 0.72, 0.96)
+	lever_lbl.outline_modulate = Color(0.08, 0.06, 0.04, 0.98)
+	lever_lbl.billboard = BaseMaterial3D.BILLBOARD_ENABLED
+	lever_lbl.position = to_3d(sec_bc_pos + Vector2(-1.0, 2.0), 22.8)
+	b_root.add_child(lever_lbl)
+
+	# D) INTERIOR DE LA SALA OCULTA: Libros de ocultismo, venenos y la antigua fe + Cuaderno de firmas + Libro con página arrancada
+	var occ_bc_pos: Vector2 = c + Vector2(43.5, 40.5 * m_dir)
+	_add_model_2d(b_root, "props/Bookcase_2.gltf", occ_bc_pos, 2.0, Vector2(24.0, 6.8), 21.0, north_rot)
+	var occ_mats: Array[Material] = [m_book_occult, m_book_poison, m_book_oldfaith]
+	for o_sh in range(3):
+		var o_h: float = 8.2 + float(o_sh) * 4.2
+		for o_bk in range(8):
+			var ox_off: float = -8.4 + float(o_bk) * 2.4
+			var o_mat: Material = occ_mats[(o_sh + o_bk) % occ_mats.size()]
+			_add_box_2d(b_root, occ_bc_pos + Vector2(ox_off, -0.5 * m_dir), Vector2(2.0, 3.8), o_h, 3.0, o_mat)
+	# Símbolo solar antiguo de la Antigua Fe en el muro de la Sala Oculta y frascos de veneno prohibidos
+	_add_cyl_2d(b_root, occ_bc_pos + Vector2(0.0, -2.2 * m_dir), 3.2, 22.0, 0.8, m_gold, 3.2, 12)
+	_add_cyl_2d(b_root, c + Vector2(56.0, 32.0 * m_dir), 1.4, 9.5, 2.6, m_book_poison, 1.1, 10)
+
+	# Mesa prohibida interior (`c + Vector2(42, 28 * m_dir)`) con las 2 pistas clave del Caso I:
+	var sec_tbl: Vector2 = c + Vector2(42.0, 28.0 * m_dir)
+	_add_box_2d(b_root, sec_tbl, Vector2(25.0, 10.5), 2.0, 7.6, m_dark_wood)
+	_add_box_2d(b_root, sec_tbl, Vector2(26.2, 11.4), 9.2, 0.8, m_wainscot)
+	# (1) Cuaderno secreto de firmas (`c + Vector2(35, 28 * m_dir)`): muestra caligráfica auténtica del familiar
+	var ledger_p: Vector2 = sec_tbl + Vector2(-6.5, 0.0)
+	_add_box_2d(b_root, ledger_p, Vector2(7.8, 5.8), 10.0, 0.55, m_book_leather, -8.0)
+	_add_box_2d(b_root, ledger_p + Vector2(-1.7, 0.0), Vector2(3.4, 5.0), 10.56, 0.18, m_page_paper, -8.0)
+	_add_box_2d(b_root, ledger_p + Vector2(1.7, 0.0), Vector2(3.4, 5.0), 10.56, 0.18, m_page_paper, -8.0)
+	for sig_y in [-1.4, -0.2, 1.0]:
+		_add_box_2d(b_root, ledger_p + Vector2(1.6, sig_y), Vector2(2.4, 0.32), 10.76, 0.08, m_ink_sig, -8.0)
+	var ledger_lbl := Label3D.new()
+	ledger_lbl.name = "LibrarySecretLedgerLabel3D"
+	ledger_lbl.text = "🖋️ Cuaderno secreto de firmas\n(firma del familiar)"
+	ledger_lbl.font_size = 15
+	ledger_lbl.outline_size = 4
+	ledger_lbl.pixel_size = 0.00068
+	ledger_lbl.modulate = Color(0.95, 0.90, 0.74, 0.96)
+	ledger_lbl.outline_modulate = Color(0.06, 0.05, 0.04, 0.98)
+	ledger_lbl.billboard = BaseMaterial3D.BILLBOARD_ENABLED
+	ledger_lbl.position = to_3d(ledger_p + Vector2(-1.5, 0.0), 12.6)
+	b_root.add_child(ledger_lbl)
+
+	# (2) Libro antiguo de venenos y la antigua fe con una PÁGINA ARRANCADA (`sec_tbl + Vector2(6.5, 0.0)`)
+	var torn_p: Vector2 = sec_tbl + Vector2(6.5, 0.0)
+	_add_box_2d(b_root, torn_p, Vector2(8.6, 6.4), 10.0, 0.85, m_book_occult, 10.0)
+	_add_box_2d(b_root, torn_p + Vector2(-1.9, 0.0), Vector2(3.6, 5.6), 10.86, 0.25, m_page_paper, 10.0)
+	# Muñón dentado de la página arrancada en el lado derecho del códice
+	_add_box_2d(b_root, torn_p + Vector2(0.6, -0.4), Vector2(1.1, 5.2), 10.92, 0.28, m_torn_stub, 16.0)
+	_add_box_2d(b_root, torn_p + Vector2(2.2, 0.2), Vector2(2.6, 5.4), 10.72, 0.18, m_page_paper, 10.0)
+	var torn_lbl := Label3D.new()
+	torn_lbl.name = "LibraryTornBookLabel3D"
+	torn_lbl.text = "📖 Códice prohibido de venenos\n(falta una página arrancada)"
+	torn_lbl.font_size = 15
+	torn_lbl.outline_size = 4
+	torn_lbl.pixel_size = 0.00068
+	torn_lbl.modulate = Color(0.92, 0.84, 0.98, 0.96)
+	torn_lbl.outline_modulate = Color(0.06, 0.04, 0.08, 0.98)
+	torn_lbl.billboard = BaseMaterial3D.BILLBOARD_ENABLED
+	torn_lbl.position = to_3d(torn_p + Vector2(1.5, -1.5), 14.2)
+	b_root.add_child(torn_lbl)
+	_restaurant_light(b_root, sec_tbl + Vector2(0.0, 2.0 * m_dir), 16.5, Color(0.96, 0.76, 0.46), 0.78, 2.1, false)
 
 	# 4. Gran Mesa Central de Lectura (`VillageCulture.reading_spot()`) con sillas, códices abiertos, candelabro y atril
 	var read_p: Vector2 = VillageCulture.reading_spot()

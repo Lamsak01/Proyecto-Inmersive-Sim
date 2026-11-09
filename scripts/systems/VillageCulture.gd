@@ -1914,7 +1914,7 @@ static func library_pos() -> Vector2:
 	return VillageLots.building_center(LIBRARY_LOT)
 
 static func reading_spot() -> Vector2:
-	return library_pos() + Vector2(0, -16 if bool(VillageLots.lot_def(LIBRARY_LOT)["door_south"]) else 16)
+	return library_pos() + Vector2(-8, -16 if bool(VillageLots.lot_def(LIBRARY_LOT)["door_south"]) else 16)
 
 # ---------------------------------------------------------------- mapa
 static func ensure_lots(vm) -> void:
@@ -1989,14 +1989,27 @@ static func build(vm, id: String, st: Dictionary) -> void:
 		"res://assests/world/village/wall_timber_v.png", 42.0, 0.0, Color(0.86, 0.92, 1.0))
 	match str(st["kind"]):
 		"library":
-			for sx in [-42, -14, 14, 42]: # Estanterías del fondo
+			for sx in [-44, -18, 8]: # Estanterías del fondo (dejando el cuadrante NE para la Sala Oculta)
 				vm._add_rect_poly(c + Vector2(sx, 36 * m), Vector2(11, 4), Color(0.42, 0.26, 0.14, 1.0), -1)
 				vm._add_rect_poly(c + Vector2(sx, 33 * m), Vector2(9, 1.5), Color(0.75, 0.30, 0.25, 1.0), 0)
 				vm._add_prop_collider(c + Vector2(sx, 36 * m), Vector2(18.0, 6.5))
 				vm.register_no_stand_furniture(c + Vector2(sx, 36 * m), Vector2(20.0, 7.0))
-			for side_x in [-53, 53]:
+			for side_x in [-53]:
 				vm._add_prop_collider(c + Vector2(side_x, 14 * m), Vector2(6.5, 16.0))
 				vm.register_no_stand_furniture(c + Vector2(side_x, 14 * m), Vector2(7.0, 18.0))
+			# Punto 5 (Caso I): Sala oculta tras estantería con libro-palanca en el cuadrante noreste (`c + Vector2(24..62, -46..-4)`)
+			vm._add_rect_poly(c + Vector2(43, 25 * m), Vector2(36, 40), Color(0.18, 0.14, 0.16, 0.96), -2)
+			vm._add_prop_collider(c + Vector2(24, 25 * m), Vector2(4.0, 40.0)) # Tabique oeste de la sala oculta
+			vm._add_prop_collider(c + Vector2(56, 4 * m), Vector2(12.0, 4.0)) # Muro junto a la estantería secreta
+			vm._add_prop_collider(c + Vector2(42, 31 * m), Vector2(24.0, 9.0)) # Mesa y estantería interior prohibida
+			vm.register_no_stand_furniture(c + Vector2(42, 28 * m), Vector2(25.0, 10.5))
+			vm.register_no_stand_furniture(c + Vector2(43.5, 40.5 * m), Vector2(24.0, 7.0))
+			var lever_pos: Vector2 = c + Vector2(41.0, 0.0) # Vector2(951, -420)
+			var ledger_pos: Vector2 = c + Vector2(34.0, 28.0 * m) # Vector2(944, -448)
+			var torn_book_pos: Vector2 = c + Vector2(49.0, 28.0 * m) # Vector2(959, -448)
+			vm._add_station_area("LibraryBookLeverArea", lever_pos, 22.0, "library_book_lever")
+			vm._add_station_area("LibrarySecretLedgerArea", ledger_pos, 20.0, "library_secret_ledger")
+			vm._add_station_area("LibraryTornBookArea", torn_book_pos, 20.0, "library_torn_book")
 			vm._add_prop_collider(c + Vector2(-36, -18 * m), Vector2(16.0, 9.0))
 			vm.register_no_stand_furniture(c + Vector2(-36, -18 * m), Vector2(18.0, 9.5))
 			vm._add_prop_collider(c + Vector2(36, -18 * m), Vector2(16.0, 9.0))

@@ -530,6 +530,40 @@ func interact(player: Node2D) -> void:
 		if pos.distance_squared_to(c_pos) <= 22.0 * 22.0:
 			_interact_house_chest(player, ch)
 			return
+	# 1b. Punto 5 (Caso I): Sala oculta de la Biblioteca (libro-palanca, cuaderno secreto de firmas y libro con página arrancada)
+	if pos.distance_squared_to(Vector2(944.0, -448.0)) <= 22.0 * 22.0:
+		_record_case_clue(
+			player,
+			"🖋️ Cuaderno secreto de firmas (Sala oculta)",
+			"🖋️ Quien consulta los tomos prohibidos firma en este registro secreto. Aquí figura la firma auténtica del familiar: su letra demuestra que la nota firmada «V.» es falsa.",
+			"Biblioteca (sala oculta): cuaderno secreto de consultas con la firma auténtica del familiar (muestra de letra que desmiente la nota «V.»).",
+			"Pista: Firma en cuaderno secreto",
+			"clue_library_secret_ledger",
+			Color(0.95, 0.88, 0.68)
+		)
+		return
+	if pos.distance_squared_to(Vector2(959.0, -448.0)) <= 22.0 * 22.0:
+		_record_case_clue(
+			player,
+			"📖 Libro prohibido con una página arrancada",
+			"📖 Un códice vetado sobre ocultismo, venenos y la antigua fe. En el índice figura el capítulo «Del sueño que imita la muerte (belladama gris)», pero esa página ha sido arrancada.",
+			"Biblioteca (sala oculta): al libro antiguo de venenos y la antigua fe le han arrancado la página de la receta («Del sueño que imita la muerte»).",
+			"Pista: Página arrancada en biblioteca",
+			"clue_library_torn_book",
+			Color(0.88, 0.78, 0.96)
+		)
+		return
+	if pos.distance_squared_to(Vector2(951.0, -420.0)) <= 24.0 * 24.0:
+		_record_case_clue(
+			player,
+			"📕 Libro-palanca, corriente de aire y marcas de arrastre",
+			"📕 Marcas de arrastre en la madera y una corriente de aire que mueve el polvo delatan esta estantería: un libro que no sale actúa como palanca y abre la sala oculta de tomos prohibidos.",
+			"Biblioteca: marcas de arrastre en el suelo, polvo movido por una corriente de aire y un libro-palanca descubren la sala oculta del bibliotecario.",
+			"Pista: Sala oculta de la biblioteca",
+			"clue_library_book_lever",
+			Color(0.96, 0.84, 0.64)
+		)
+		return
 	if VillageCulture.try_interact(self, player, pos): # V5e: leer en la biblioteca
 		return
 	if not is_demo_mode():

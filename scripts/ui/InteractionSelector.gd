@@ -36,6 +36,9 @@ const STATION_LABELS: Dictionary = {
 	"mill_table_paper": "Leer «Lista de nombres — texto pendiente del autor»",
 	"mill_cellar_grate": "Examinar reja del sótano al canal de la rueda",
 	"police_archived_report": "Examinar denuncia de desaparición archivada",
+	"library_book_lever": "Accionar libro-palanca de la estantería secreta",
+	"library_secret_ledger": "Examinar cuaderno secreto de firmas",
+	"library_torn_book": "Examinar libro prohibido con página arrancada",
 }
 
 var player: Node2D = null
@@ -557,6 +560,15 @@ func get_prompt_card_data() -> Dictionary:
 			"police_archived_report":
 				target_name = "Denuncia archivada"
 				target_state = "Archivo policial"
+			"library_book_lever":
+				target_name = "Libro-palanca"
+				target_state = "Corriente de aire · Marcas de arrastre"
+			"library_secret_ledger":
+				target_name = "Cuaderno secreto de firmas"
+				target_state = "Sala oculta"
+			"library_torn_book":
+				target_name = "Libro con página arrancada"
+				target_state = "Ocultismo y venenos"
 			_:
 				target_name = str(STATION_LABELS.get(tag, "Puesto"))
 				target_state = "Aldea"
