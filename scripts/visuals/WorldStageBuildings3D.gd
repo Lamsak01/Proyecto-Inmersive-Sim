@@ -88,10 +88,13 @@ func _style_for_building(b_id: String) -> Dictionary:
 		wall_norm = ""
 		wall_h = 32.0
 	elif b_id == "building_library":
-		wall_tex = "town_textures/timber_square_frame.png"
+		wall_tex = "town_textures/wall_brick_sand_center.png"
 		roof_tex = "town_textures/roof_clay_grey_center.png"
-		wall_col = Color(0.80, 0.70, 0.56)
+		wall_col = Color(0.88, 0.82, 0.72)
 		roof_col = Color(0.30, 0.44, 0.64)
+		trim_col = Color(0.28, 0.36, 0.48)
+		wall_h = 32.0
+		roof_h = 16.0
 	elif b_id == "building_school":
 		wall_col = Color(0.86, 0.78, 0.62)
 		roof_col = Color(0.68, 0.36, 0.24)
@@ -501,11 +504,7 @@ func _populate_building_interior_3d(b_root: Node3D, b_id: String, rect: Rect2, d
 				for px in [-26.0, 26.0]:
 					_add_model_2d(b_root, "props/Bench.gltf", c + Vector2(px, py), 2.0, Vector2(26.0, 7.0), 6.5)
 		"building_library":
-			var m_dir: float = -1.0 if door_south else 1.0
-			for sx in [-40.0, -14.0, 14.0, 40.0]:
-				_add_model_2d(b_root, "props/Bookcase_2.gltf", c + Vector2(sx, 34.0 * m_dir), 2.0, Vector2(22.0, 8.0), 22.0)
-			_add_model_2d(b_root, "props/Table_Large.gltf", VillageCulture.reading_spot(), 2.0, Vector2(22.0, 13.0), 7.5)
-			_add_model_2d(b_root, "props/BookStand.gltf", VillageCulture.reading_spot() + Vector2(-19, -8), 2.0, Vector2(8.0, 8.0), 11.0)
+			_build_library_3d(b_root, rect, door_south, wall_h, m_wall, m_trim, m_wood, m_dark_wood, m_iron, m_gold)
 		"building_school":
 			var m_dir2: float = -1.0 if door_south else 1.0
 			for p in [Vector2(-30, 6), Vector2(0, 6), Vector2(30, 6), Vector2(-30, 26), Vector2(0, 26), Vector2(30, 26)]:
@@ -1654,6 +1653,108 @@ func _build_hospital_bed_3d(parent: Node3D, pos_2d: Vector2, m_frame: Material, 
 	_add_box_2d(parent, pos_2d, Vector2(12.4, 17.4), 5.4, 1.6, m_pillow)
 	_add_box_2d(parent, pos_2d + Vector2(0.0, 2.4), Vector2(12.6, 12.2), 7.0, 0.8, m_sheet)
 	_add_box_2d(parent, pos_2d + Vector2(0.0, -5.8), Vector2(9.4, 3.8), 7.0, 1.3, m_pillow)
+
+## Punto 4 del Caso I: Biblioteca Municipal y Archivo del Valle (`building_library`, solar n5, tamaño 128x96, puerta al sur).
+## Tres zonas diferenciadas con arcada interior de nogal, alfombras de lectura y estanterías llenas de volúmenes:
+##  1) Mostrador de Catalogación y Préstamo (Suroeste): escritorio de bibliotecario, fichero y libros de registro.
+##  2) Rincón de Crónicas del Valle y Mapas (Sureste): mesa de consulta, pergaminos y estantería lateral.
+##  3) Gran Sala de Lectura y Fondo Antiguo (Norte): gran mesa central con 4 sillas y candelabros, atril de crónicas y 6 grandes librerías repletas de tomos.
+func _build_library_3d(b_root: Node3D, rect: Rect2, door_south: bool, wall_h: float, m_wall: Material, m_trim: Material, m_wood: Material, m_dark_wood: Material, _m_iron: Material, m_gold: Material) -> void:
+	var c: Vector2 = rect.get_center()
+	var m_dir: float = -1.0 if door_south else 1.0
+	var ih: float = wall_h - 0.15
+	var m_rug_burgundy := _mat("lib_rug_burgundy", Color(0.42, 0.14, 0.16), 0.92, 0.0, Color.BLACK, 0.0, "town_textures/rf_planks.png")
+	var m_rug_border := _mat("lib_rug_border", Color(0.68, 0.54, 0.24), 0.85, 0.08)
+	var m_wainscot := _mat("lib_wainscot_oak", Color(0.34, 0.22, 0.14), 0.80, 0.04, Color.BLACK, 0.0, "town_textures/rf_planks.png")
+	var m_book_red := _mat("lib_book_red", Color(0.62, 0.16, 0.14), 0.78, 0.05)
+	var m_book_blue := _mat("lib_book_blue", Color(0.16, 0.28, 0.48), 0.78, 0.05)
+	var m_book_green := _mat("lib_book_green", Color(0.16, 0.42, 0.24), 0.78, 0.05)
+	var m_book_ochre := _mat("lib_book_ochre", Color(0.66, 0.48, 0.18), 0.78, 0.05)
+	var m_book_leather := _mat("lib_book_leather", Color(0.40, 0.24, 0.14), 0.82, 0.04)
+	var book_mats: Array[Material] = [m_book_red, m_book_blue, m_book_green, m_book_ochre, m_book_leather]
+
+	# 1. Alfombras nobles de lectura (sala norte y pasillo de entrada) con cenefa dorada
+	_add_box_2d(b_root, c + Vector2(0.0, 15.0 * m_dir), Vector2(82.0, 34.0), 2.5, 0.26, m_rug_border)
+	_add_box_2d(b_root, c + Vector2(0.0, 15.0 * m_dir), Vector2(78.0, 30.0), 2.55, 0.28, m_rug_burgundy)
+	_add_box_2d(b_root, c + Vector2(0.0, -20.0 * m_dir), Vector2(28.0, 30.0), 2.5, 0.26, m_rug_border)
+	_add_box_2d(b_root, c + Vector2(0.0, -20.0 * m_dir), Vector2(25.0, 27.0), 2.55, 0.28, m_rug_burgundy)
+
+	# 2. Arcada interior de madera de nogal y friso perimetral que separa el Vestíbulo de Recepción de la Gran Sala de Lectura
+	for side_s in [-1.0, 1.0]:
+		_add_box_2d(b_root, c + Vector2(49.0 * side_s, -2.0 * m_dir), Vector2(22.0, 4.4), 2.0, 11.5, m_wainscot)
+		_add_box_2d(b_root, c + Vector2(49.0 * side_s, -2.0 * m_dir), Vector2(22.4, 4.8), 13.5, 1.2, m_gold)
+		_add_box_2d(b_root, c + Vector2(38.0 * side_s, -2.0 * m_dir), Vector2(3.4, 5.2), 2.0, ih, m_wainscot)
+		_add_box_2d(b_root, c + Vector2(58.0 * side_s, -2.0 * m_dir), Vector2(3.2, 5.0), 2.0, ih, m_wainscot)
+	_add_box_2d(b_root, c + Vector2(0.0, -2.0 * m_dir), Vector2(120.0, 4.8), 2.0 + ih * 0.78, ih * 0.22, m_wainscot)
+	_add_box_2d(b_root, c + Vector2(0.0, -2.0 * m_dir), Vector2(78.0, 5.2), 2.0 + ih * 0.76, 1.4, m_gold)
+
+	# 3. Fondo Antiguo (Muro Norte): 4 grandes librerías de nogal repletas de tomos encuadernados + 2 librerías laterales
+	var north_rot: float = 0.0 if door_south else 180.0
+	for bi in range(4):
+		var sx: float = [-42.0, -14.0, 14.0, 42.0][bi]
+		var bc_pos: Vector2 = c + Vector2(sx, 36.0 * m_dir)
+		_add_model_2d(b_root, "props/Bookcase_2.gltf", bc_pos, 2.0, Vector2(20.0, 7.0), 21.5, north_rot)
+		# Hileras de libros encuadernados en las 3 baldas de cada librería (sin verse vacías)
+		for shelf_i in range(3):
+			var sh_h: float = 8.4 + float(shelf_i) * 4.2
+			for bk_i in range(7):
+				var bx_off: float = -7.2 + float(bk_i) * 2.4
+				var b_h: float = 2.7 + float((bi + shelf_i + bk_i) % 3) * 0.45
+				var b_mat: Material = book_mats[(bi * 3 + shelf_i * 2 + bk_i) % book_mats.size()]
+				_add_box_2d(b_root, bc_pos + Vector2(bx_off, -0.4 * m_dir), Vector2(1.9, 3.6), sh_h, b_h, b_mat)
+	# 2 Librerías laterales en la Sala de Lectura (Oeste mirando al Este y Este mirando al Oeste)
+	_add_model_2d(b_root, "props/Bookcase_2.gltf", c + Vector2(-53.0, 14.0 * m_dir), 2.0, Vector2(18.0, 7.0), 20.0, 90.0)
+	_add_model_2d(b_root, "props/Bookcase_2.gltf", c + Vector2(53.0, 14.0 * m_dir), 2.0, Vector2(18.0, 7.0), 20.0, -90.0)
+	for side_bc_x in [-53.0, 53.0]:
+		for shelf_j in range(3):
+			var sh_h2: float = 8.0 + float(shelf_j) * 3.9
+			for bk_j in range(6):
+				var by_off: float = -6.0 + float(bk_j) * 2.4
+				var b_mat2: Material = book_mats[(shelf_j + bk_j) % book_mats.size()]
+				_add_box_2d(b_root, c + Vector2(side_bc_x - signf(side_bc_x) * 0.4, 14.0 * m_dir + by_off), Vector2(3.4, 2.0), sh_h2, 2.8, b_mat2)
+
+	# 4. Gran Mesa Central de Lectura (`VillageCulture.reading_spot()`) con sillas, códices abiertos, candelabro y atril
+	var read_p: Vector2 = VillageCulture.reading_spot()
+	if _add_model_2d(b_root, "props/Table_Large.gltf", read_p, 2.0, Vector2(22.0, 12.5), 7.6) == null:
+		_add_box_2d(b_root, read_p, Vector2(22.0, 12.5), 2.0, 7.6, m_dark_wood)
+	for r_ch in [read_p + Vector2(-15.0, 0.0), read_p + Vector2(15.0, 0.0), read_p + Vector2(-5.5, -10.5 * m_dir), read_p + Vector2(5.5, -10.5 * m_dir)]:
+		_add_model_2d(b_root, "props/Chair_1.gltf", r_ch, 2.0, Vector2(6.0, 6.0), 8.5, _chair_rot_y_towards(r_ch, read_p))
+	_add_model_2d(b_root, "props/CandleStick_Triple.gltf", read_p + Vector2(0.0, 1.5 * m_dir), 9.6, Vector2(3.8, 3.8), 5.2)
+	_add_model_2d(b_root, "props/Book_5.gltf", read_p + Vector2(-5.5, -1.5 * m_dir), 9.6, Vector2(4.5, 3.5), 2.0)
+	_add_model_2d(b_root, "props/Book_7.gltf", read_p + Vector2(5.5, -1.5 * m_dir), 9.6, Vector2(4.5, 3.5), 2.0)
+	_add_model_2d(b_root, "props/Book_Stack_1.gltf", read_p + Vector2(-6.5, 2.2 * m_dir), 9.6, Vector2(4.5, 4.5), 3.6)
+	_add_model_2d(b_root, "props/Scroll_2.gltf", read_p + Vector2(6.2, 2.2 * m_dir), 9.6, Vector2(4.0, 3.5), 2.2)
+	_add_model_2d(b_root, "props/BookStand.gltf", read_p + Vector2(-22.5, 5.0 * m_dir), 2.0, Vector2(7.5, 7.5), 11.0, 20.0)
+
+	# 5. Vestíbulo Suroeste: Mostrador de Catalogación y Préstamo (c + Vector2(-36, -18 * m_dir))
+	var rec_desk: Vector2 = c + Vector2(-36.0, -18.0 * m_dir)
+	if _add_model_2d(b_root, "props/Workbench.gltf", rec_desk, 2.0, Vector2(18.0, 9.5), 8.2) == null:
+		_add_box_2d(b_root, rec_desk, Vector2(18.0, 9.5), 2.0, 8.2, m_dark_wood)
+	var rec_ch: Vector2 = rec_desk + Vector2(0.0, -10.0 * m_dir)
+	_add_model_2d(b_root, "props/Chair_1.gltf", rec_ch, 2.0, Vector2(6.0, 6.0), 8.5, _chair_rot_y_towards(rec_ch, rec_desk))
+	_add_model_2d(b_root, "props/Book_Stack_2.gltf", rec_desk + Vector2(-4.5, 0.0), 10.2, Vector2(4.5, 4.5), 3.8)
+	_add_model_2d(b_root, "props/CandleStick.gltf", rec_desk + Vector2(4.5, 0.0), 10.2, Vector2(3.0, 3.0), 4.6)
+	_add_model_2d(b_root, "props/Cabinet.gltf", c + Vector2(-53.0, -30.0 * m_dir), 2.0, Vector2(13.0, 7.5), 13.5, 90.0)
+
+	# 6. Vestíbulo Sureste: Mesa de Consulta de Crónicas y Mapas del Valle (c + Vector2(36, -18 * m_dir))
+	var study_desk: Vector2 = c + Vector2(36.0, -18.0 * m_dir)
+	if _add_model_2d(b_root, "props/Table_Large.gltf", study_desk, 2.0, Vector2(18.0, 10.0), 7.5) == null:
+		_add_box_2d(b_root, study_desk, Vector2(18.0, 10.0), 2.0, 7.5, m_wood)
+	var st_ch: Vector2 = study_desk + Vector2(0.0, -10.5 * m_dir)
+	_add_model_2d(b_root, "props/Chair_1.gltf", st_ch, 2.0, Vector2(6.0, 6.0), 8.5, _chair_rot_y_towards(st_ch, study_desk))
+	_add_model_2d(b_root, "props/Scroll_1.gltf", study_desk + Vector2(-3.5, 0.0), 9.5, Vector2(4.2, 4.2), 2.4)
+	_add_model_2d(b_root, "props/Book_5.gltf", study_desk + Vector2(3.5, 0.0), 9.5, Vector2(4.5, 3.5), 2.0)
+	_add_model_2d(b_root, "props/Nightstand_Shelf.gltf", c + Vector2(53.0, -30.0 * m_dir), 2.0, Vector2(8.0, 6.5), 8.5, -90.0)
+
+	# 7. Arañas de techo con luz cálida de lectura y faroles de fachada
+	for lt_x in [-28.0, 28.0]:
+		var lt_p: Vector2 = c + Vector2(lt_x, 8.0 * m_dir)
+		_add_model_2d(b_root, "props/Chandelier.gltf", lt_p, ih - 6.5, Vector2(11.0, 11.0), 6.2)
+		_restaurant_light(b_root, lt_p, ih - 5.0, Color(1.0, 0.86, 0.58), 1.15, 2.7, false)
+	_restaurant_light(b_root, c + Vector2(0.0, -20.0 * m_dir), ih - 4.5, Color(0.98, 0.84, 0.56), 0.90, 2.2, false)
+	_add_model_2d(b_root, "props/Lantern_Wall.gltf", c + Vector2(-26.0, -50.5 * m_dir), wall_h * 0.58, Vector2(4.0, 4.0), 6.0)
+	_add_model_2d(b_root, "props/Lantern_Wall.gltf", c + Vector2(26.0, -50.5 * m_dir), wall_h * 0.58, Vector2(4.0, 4.0), 6.0)
+
 
 
 
