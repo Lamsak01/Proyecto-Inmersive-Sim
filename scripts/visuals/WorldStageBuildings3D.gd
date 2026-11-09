@@ -1764,24 +1764,55 @@ func _build_library_3d(b_root: Node3D, rect: Rect2, door_south: bool, wall_h: fl
 	# ==========================================================================
 	# 3b. PUNTO 5 (CASO I): SALA OCULTA DE LA BIBLIOTECA (Cuadrante Noreste, `c + Vector2(24..62, -46..-4)`)
 	# ==========================================================================
-	var m_occult_floor := _mat("lib_secret_stone_floor", Color(0.18, 0.16, 0.20), 0.94, 0.04, Color.BLACK, 0.0, "town_textures/floor_stone_grate.png")
-	var m_drag_scuff := _mat("lib_floor_drag_scuff", Color(0.16, 0.11, 0.07), 0.96, 0.0)
+	var m_occult_floor := _mat("lib_secret_stone_floor", Color(0.05, 0.05, 0.05), 0.98, 0.02, Color.BLACK, 0.0, "town_textures/floor_stone_grate.png")
+	var m_secret_wall_stone := _mat("lib_secret_wall_stone", Color(0.07, 0.07, 0.07), 0.98, 0.02, Color.BLACK, 0.0, "town_textures/wall_stone.png", "town_textures/wall_stone_n.png", 0.78)
+	var m_old_shelf_wood := _mat("lib_secret_old_wood", Color(0.07, 0.05, 0.04), 0.96, 0.02, Color.BLACK, 0.0, "town_textures/rf_planks.png", "town_textures/rf_planks_n.png", 0.85)
+	var m_old_shelf_dark := _mat("lib_secret_old_wood_dark", Color(0.04, 0.03, 0.02), 0.98, 0.02, Color.BLACK, 0.0, "town_textures/rf_planks.png", "town_textures/rf_planks_n.png", 0.88)
+	var m_drag_scuff := _mat("lib_floor_drag_scuff", Color(0.14, 0.10, 0.06), 0.96, 0.0)
 	var m_draft_wisp := _mat("lib_draft_air_wisp", Color(0.84, 0.88, 0.94, 0.34), 0.90, 0.0, Color(0.62, 0.68, 0.78), 0.35)
 	(m_draft_wisp as StandardMaterial3D).cull_mode = BaseMaterial3D.CULL_DISABLED
-	var m_dust_mote := _mat("lib_draft_dust_mote", Color(0.92, 0.88, 0.74, 0.78), 0.85, 0.0, Color(0.75, 0.68, 0.50), 0.55)
-	var m_book_occult := _mat("lib_book_occult", Color(0.28, 0.12, 0.36), 0.78, 0.08)
-	var m_book_poison := _mat("lib_book_poison", Color(0.12, 0.34, 0.22), 0.76, 0.08)
-	var m_book_oldfaith := _mat("lib_book_oldfaith", Color(0.58, 0.42, 0.14), 0.68, 0.25)
-	var m_book_lever := _mat("lib_book_lever_crimson", Color(0.78, 0.14, 0.12), 0.65, 0.12, Color(0.32, 0.04, 0.02), 0.45)
-	var m_page_paper := _mat("lib_secret_paper", Color(0.90, 0.85, 0.72), 0.88, 0.0)
-	var m_ink_sig := _mat("lib_secret_ink", Color(0.14, 0.11, 0.10), 0.90, 0.0)
-	var m_torn_stub := _mat("lib_torn_page_stub", Color(0.96, 0.92, 0.80), 0.92, 0.0)
+	var m_dust_mote := _mat("lib_draft_dust_mote", Color(0.86, 0.80, 0.66, 0.72), 0.88, 0.0, Color(0.55, 0.48, 0.35), 0.35)
+	var m_secret_dust := _mat("lib_secret_floor_dust", Color(0.18, 0.16, 0.14, 0.76), 0.98, 0.0, Color.BLACK, 0.0, "town_textures/floor_ground_dirt.png", "", 0.85)
+	var m_cobweb_secret := _mat("lib_secret_cobweb", Color(0.58, 0.56, 0.52, 0.46), 0.95, 0.0)
+	(m_cobweb_secret as StandardMaterial3D).cull_mode = BaseMaterial3D.CULL_DISABLED
+	var m_cobweb_strand := _mat("lib_secret_cobweb_strand", Color(0.66, 0.64, 0.60, 0.62), 0.94, 0.0)
+	# Libros gastados de tonos apagados (pardo, negro, granate)
+	var m_tome_brown_1 := _mat("lib_tome_brown_1", Color(0.11, 0.08, 0.05), 0.95, 0.02, Color.BLACK, 0.0, "town_textures/floor_ground_dirt.png", "", 0.85)
+	var m_tome_brown_2 := _mat("lib_tome_brown_2", Color(0.08, 0.06, 0.04), 0.96, 0.02, Color.BLACK, 0.0, "town_textures/floor_ground_dirt.png", "", 0.85)
+	var m_tome_black_1 := _mat("lib_tome_black_1", Color(0.04, 0.04, 0.04), 0.95, 0.03, Color.BLACK, 0.0, "town_textures/floor_ground_dirt.png", "", 0.85)
+	var m_tome_black_2 := _mat("lib_tome_black_2", Color(0.07, 0.07, 0.07), 0.96, 0.02, Color.BLACK, 0.0, "town_textures/floor_ground_dirt.png", "", 0.85)
+	var m_tome_maroon_1 := _mat("lib_tome_maroon_1", Color(0.13, 0.04, 0.05), 0.94, 0.02, Color.BLACK, 0.0, "town_textures/floor_ground_dirt.png", "", 0.85)
+	var m_tome_maroon_2 := _mat("lib_tome_maroon_2", Color(0.09, 0.03, 0.04), 0.95, 0.02, Color.BLACK, 0.0, "town_textures/floor_ground_dirt.png", "", 0.85)
+	var m_book_lever := _mat("lib_book_lever_crimson", Color(0.34, 0.08, 0.08), 0.85, 0.06, Color(0.08, 0.01, 0.01), 0.12)
+	var m_page_paper := _mat("lib_secret_paper", Color(0.56, 0.50, 0.38), 0.94, 0.0, Color.BLACK, 0.0, "town_textures/floor_ground_sand.png", "", 0.85)
+	var m_bundle_paper := _mat("lib_bundle_paper", Color(0.32, 0.26, 0.19), 0.96, 0.0, Color.BLACK, 0.0, "town_textures/floor_ground_sand.png", "", 0.85)
+	var m_bundle_twine := _mat("lib_bundle_twine", Color(0.16, 0.12, 0.08), 0.94, 0.0)
+	var m_ink_sig := _mat("lib_secret_ink", Color(0.06, 0.05, 0.05), 0.94, 0.0)
+	var m_torn_stub := _mat("lib_torn_page_stub", Color(0.62, 0.56, 0.44), 0.95, 0.0)
+	var m_carved_tablet := _mat("lib_carved_stone_tablet", Color(0.09, 0.08, 0.08), 0.96, 0.02, Color.BLACK, 0.0, "town_textures/wall_stone.png", "town_textures/wall_stone_n.png", 0.82)
+	var m_carved_groove := _mat("lib_carved_stone_groove", Color(0.02, 0.02, 0.02), 0.98, 0.0)
+	var m_candle_wax := _mat("lib_secret_candle_wax", Color(0.82, 0.74, 0.56), 0.72, 0.02)
+	var m_candle_flame := _mat("lib_secret_candle_flame", Color(1.0, 0.78, 0.32), 0.20, 0.0, Color(1.0, 0.64, 0.18), 2.8)
 
-	# Pavimento oscuro y muros de cierre de la Sala Oculta (tabique oeste en x = c.x + 24 y frente sur con hueco secreto)
+	# Pavimento de losa antigua, revestimiento interior de piedra oscura en los muros de la Sala Oculta y techo bajo de madera vieja
 	_add_box_2d(b_root, c + Vector2(43.0, 25.0 * m_dir), Vector2(36.0, 40.0), 2.48, 0.18, m_occult_floor)
+	_add_box_2d(b_root, c + Vector2(43.0, 25.0 * m_dir), Vector2(37.0, 41.0), 2.0 + ih - 0.8, 0.8, m_old_shelf_dark)
 	_add_box_2d(b_root, c + Vector2(24.0, 25.0 * m_dir), Vector2(3.8, 42.0), 2.0, ih, m_wainscot)
+	_add_box_2d(b_root, c + Vector2(25.6, 25.0 * m_dir), Vector2(1.4, 41.2), 2.0, ih, m_secret_wall_stone)
+	_add_box_2d(b_root, c + Vector2(43.0, 44.6 * m_dir), Vector2(36.5, 2.2), 2.0, ih, m_secret_wall_stone)
+	_add_box_2d(b_root, c + Vector2(60.0, 25.0 * m_dir), Vector2(2.2, 41.2), 2.0, ih, m_secret_wall_stone)
 	_add_box_2d(b_root, c + Vector2(56.5, 4.0 * m_dir), Vector2(11.0, 3.8), 2.0, ih, m_wainscot)
+	_add_box_2d(b_root, c + Vector2(56.5, 5.4 * m_dir), Vector2(10.8, 1.4), 2.0, ih, m_secret_wall_stone)
 	_add_box_2d(b_root, c + Vector2(37.5, 4.0 * m_dir), Vector2(27.0, 3.8), 2.0 + ih * 0.78, ih * 0.22, m_wainscot)
+	_add_box_2d(b_root, c + Vector2(37.5, 5.4 * m_dir), Vector2(26.8, 1.4), 2.0 + ih * 0.78, ih * 0.22, m_secret_wall_stone)
+	# Vigas y pilares de madera oscura vieja en las esquinas de la Sala Oculta
+	for pil_p in [
+		c + Vector2(26.8, 43.2 * m_dir),
+		c + Vector2(58.8, 43.2 * m_dir),
+		c + Vector2(26.8, 6.8 * m_dir),
+		c + Vector2(58.8, 6.8 * m_dir),
+	]:
+		_add_box_2d(b_root, pil_p, Vector2(2.4, 2.4), 2.0, ih, m_old_shelf_dark)
 
 	# A) MARCAS DE ARRASTRE EN EL SUELO (`c + Vector2(38, -1.5)`) producidas al girar la estantería secreta
 	var lever_area_pos: Vector2 = c + Vector2(39.0, 1.5 * m_dir)
@@ -1824,53 +1855,154 @@ func _build_library_3d(b_root: Node3D, rect: Rect2, door_south: bool, wall_h: fl
 	# C) ESTANTERÍA SECRETA ENTREABIERTA CON EL LIBRO-PALANCA (`c + Vector2(46.5, 5.5 * m_dir)`)
 	var sec_bc_pos: Vector2 = c + Vector2(46.5, 5.5 * m_dir)
 	var sec_bc_rot: float = 32.0
-	_add_box_2d(b_root, sec_bc_pos, Vector2(16.5, 4.6), 2.0, 19.5, m_wainscot, sec_bc_rot)
-	_add_box_2d(b_root, sec_bc_pos, Vector2(17.2, 5.2), 21.2, 1.1, m_wainscot_cap, sec_bc_rot)
+	var occ_mats: Array[Material] = [
+		m_tome_brown_1, m_tome_black_1, m_tome_maroon_1,
+		m_tome_brown_2, m_tome_black_2, m_tome_maroon_2
+	]
+	_add_box_2d(b_root, sec_bc_pos, Vector2(16.5, 4.6), 2.0, 19.5, m_old_shelf_wood, sec_bc_rot)
+	_add_box_2d(b_root, sec_bc_pos, Vector2(17.2, 5.2), 21.2, 1.1, m_old_shelf_dark, sec_bc_rot)
 	for s_sh in [7.2, 11.6, 16.0]:
-		_add_box_2d(b_root, sec_bc_pos, Vector2(15.2, 4.8), s_sh, 0.65, m_dark_wood, sec_bc_rot)
+		_add_box_2d(b_root, sec_bc_pos, Vector2(15.2, 4.8), s_sh, 0.65, m_old_shelf_dark, sec_bc_rot)
 	for sb_i in [-5.2, -3.0, 1.6, 3.8, 5.8]:
-		_add_box_2d(b_root, sec_bc_pos + Vector2(sb_i, 0.6), Vector2(1.7, 3.2), 7.9, 2.9, book_mats[absi(int(sb_i * 3.0)) % book_mats.size()], sec_bc_rot)
-		_add_box_2d(b_root, sec_bc_pos + Vector2(sb_i, 0.6), Vector2(1.7, 3.2), 16.7, 2.8, book_mats[absi(int(sb_i * 5.0)) % book_mats.size()], sec_bc_rot)
-	# El LIBRO-PALANCA: tomo carmesí con canto dorado que sobresale inclinado en la balda central y acciona el pestillo
+		_add_box_2d(b_root, sec_bc_pos + Vector2(sb_i, 0.6), Vector2(1.7, 3.2), 7.9, 2.9, occ_mats[absi(int(sb_i * 3.0)) % occ_mats.size()], sec_bc_rot)
+		_add_box_2d(b_root, sec_bc_pos + Vector2(sb_i, 0.6), Vector2(1.7, 3.2), 16.7, 2.8, occ_mats[absi(int(sb_i * 5.0)) % occ_mats.size()], sec_bc_rot)
+	# El LIBRO-PALANCA: tomo granate gastado que sobresale inclinado en la balda central y acciona el pestillo
 	var lever_book_p: Vector2 = sec_bc_pos + Vector2(-1.4, 2.2)
 	var lb_mi := _add_box_2d(b_root, lever_book_p, Vector2(2.2, 4.8), 12.2, 3.4, m_book_lever, sec_bc_rot)
 	lb_mi.rotation.x = 0.38
-	_add_box_2d(b_root, lever_book_p + Vector2(0.0, 0.4), Vector2(2.3, 1.2), 13.2, 2.8, m_gold, sec_bc_rot)
+	_add_box_2d(b_root, lever_book_p + Vector2(0.0, 0.4), Vector2(2.3, 1.2), 13.2, 2.8, m_bundle_paper, sec_bc_rot)
 
-	# D) INTERIOR DE LA SALA OCULTA: Libros de ocultismo, venenos y la antigua fe + Cuaderno de firmas + Libro con página arrancada
-	var occ_bc_pos: Vector2 = c + Vector2(43.5, 40.5 * m_dir)
-	_add_model_2d(b_root, "props/Bookcase_2.gltf", occ_bc_pos, 2.0, Vector2(24.0, 6.8), 21.0, north_rot)
-	var occ_mats: Array[Material] = [m_book_occult, m_book_poison, m_book_oldfaith]
-	for o_sh in range(3):
-		var o_h: float = 8.2 + float(o_sh) * 4.2
-		for o_bk in range(8):
-			var ox_off: float = -8.4 + float(o_bk) * 2.4
-			var o_mat: Material = occ_mats[(o_sh + o_bk) % occ_mats.size()]
-			_add_box_2d(b_root, occ_bc_pos + Vector2(ox_off, -0.5 * m_dir), Vector2(2.0, 3.8), o_h, 3.0, o_mat)
-	# Símbolo solar antiguo de la Antigua Fe en el muro de la Sala Oculta y frascos de veneno prohibidos
-	_add_cyl_2d(b_root, occ_bc_pos + Vector2(0.0, -2.2 * m_dir), 3.2, 22.0, 0.8, m_gold, 3.2, 12)
-	_add_cyl_2d(b_root, c + Vector2(56.0, 32.0 * m_dir), 1.4, 9.5, 2.6, m_book_poison, 1.1, 10)
+	# D) INTERIOR DE LA SALA OCULTA: Estantes de madera oscura y vieja, libros gastados (pardo, negro, granate),
+	#    legajos atados, polvo, telarañas, símbolo grabado en piedra sin significado concreto y una sola vela
+	var occ_bc_pos: Vector2 = c + Vector2(43.0, 41.2 * m_dir)
+	# Estructura de estantería antigua de madera oscura y pesada (sin mueble naranja)
+	_add_box_2d(b_root, occ_bc_pos + Vector2(0.0, 2.2 * m_dir), Vector2(26.0, 1.4), 2.0, 19.2, m_old_shelf_dark)
+	for up_x in [-12.4, -4.2, 4.2, 12.4]:
+		_add_box_2d(b_root, occ_bc_pos + Vector2(up_x, 0.0), Vector2(1.5, 5.8), 2.0, 19.2, m_old_shelf_wood)
+	_add_box_2d(b_root, occ_bc_pos, Vector2(27.2, 6.4), 20.8, 1.2, m_old_shelf_dark)
+	for o_sh in range(4):
+		var sh_y_3d: float = 5.2 + float(o_sh) * 4.2
+		_add_box_2d(b_root, occ_bc_pos, Vector2(25.6, 5.6), sh_y_3d, 0.72, m_old_shelf_dark)
+		# Capa de polvo viejo sobre cada balda
+		_add_box_2d(b_root, occ_bc_pos + Vector2(0.0, -1.6 * m_dir), Vector2(24.4, 1.8), sh_y_3d + 0.72, 0.05, m_secret_dust)
+		if o_sh < 3:
+			var o_h: float = sh_y_3d + 0.74
+			for o_bk in range(9):
+				if o_sh == 1 and (o_bk == 3 or o_bk == 4):
+					continue # Hueco para un legajo atado en la segunda balda
+				var ox_off: float = -10.4 + float(o_bk) * 2.55
+				if absf(ox_off - (-4.2)) < 0.7 or absf(ox_off - 4.2) < 0.7:
+					continue
+				var o_mat: Material = occ_mats[(o_sh * 3 + o_bk * 2) % occ_mats.size()]
+				var bk_h: float = 2.6 + float((o_sh + o_bk) % 3) * 0.42
+				var bk_w: float = 1.65 + float((o_sh * 2 + o_bk) % 2) * 0.35
+				var bk_mi := _add_box_2d(b_root, occ_bc_pos + Vector2(ox_off, -0.4 * m_dir), Vector2(bk_w, 3.8), o_h, bk_h, o_mat)
+				if (o_sh + o_bk) % 4 == 0:
+					bk_mi.rotation.z = 0.14 if (o_bk % 2 == 0) else -0.12
+	# Legajos atados con cordel en la estantería del fondo y en la balda superior
+	for bdl_def in [
+		[occ_bc_pos + Vector2(-1.4, -0.3 * m_dir), 10.15, 8.0],
+		[occ_bc_pos + Vector2(-8.2, -0.2 * m_dir), 18.55, -6.0],
+		[occ_bc_pos + Vector2(8.0, -0.3 * m_dir), 18.55, 11.0],
+	]:
+		var bp_pos: Vector2 = bdl_def[0]
+		var bp_h: float = float(bdl_def[1])
+		var bp_rot: float = float(bdl_def[2])
+		_add_box_2d(b_root, bp_pos, Vector2(4.4, 3.4), bp_h, 1.15, m_bundle_paper, bp_rot)
+		_add_box_2d(b_root, bp_pos + Vector2(0.1, -0.1), Vector2(4.2, 3.2), bp_h + 1.15, 0.75, m_page_paper, bp_rot - 4.0)
+		_add_box_2d(b_root, bp_pos, Vector2(4.6, 0.45), bp_h + 0.05, 1.92, m_bundle_twine, bp_rot)
+		_add_box_2d(b_root, bp_pos, Vector2(0.45, 3.6), bp_h + 0.05, 1.92, m_bundle_twine, bp_rot)
 
-	# Mesa prohibida interior (`c + Vector2(42, 28 * m_dir)`) con las 2 pistas clave del Caso I:
+	# Estante auxiliar estrecho de madera vieja en el muro este (`c + Vector2(57.2, 26.0 * m_dir)`) con legajos y tomos apilados
+	var east_rack_p: Vector2 = c + Vector2(57.2, 26.0 * m_dir)
+	_add_box_2d(b_root, east_rack_p, Vector2(3.8, 14.0), 2.0, 16.5, m_old_shelf_dark)
+	for er_h in [6.0, 10.6, 15.2]:
+		_add_box_2d(b_root, east_rack_p, Vector2(4.2, 13.4), er_h, 0.65, m_old_shelf_wood)
+	_add_box_2d(b_root, east_rack_p + Vector2(-0.2, -2.5 * m_dir), Vector2(3.2, 4.4), 6.65, 1.2, m_tome_black_1, 6.0)
+	_add_box_2d(b_root, east_rack_p + Vector2(-0.2, 2.2 * m_dir), Vector2(3.2, 4.2), 11.25, 1.4, m_bundle_paper, -8.0)
+	_add_box_2d(b_root, east_rack_p + Vector2(-0.2, 2.2 * m_dir), Vector2(3.4, 0.42), 11.25, 1.48, m_bundle_twine, -8.0)
+
+	# Símbolo geométrico abstracto grabado en la piedra sobre la estantería (sin oro ni lore de la antigua fe)
+	var sym_pos: Vector2 = occ_bc_pos + Vector2(0.0, 1.8 * m_dir)
+	_add_box_2d(b_root, sym_pos, Vector2(7.6, 0.8), 22.2, 4.6, m_carved_tablet)
+	for gr_d in [
+		[Vector2(-1.6, -0.35 * m_dir), Vector2(2.8, 0.25), 24.4, 0.32, 38.0],
+		[Vector2(1.6, -0.35 * m_dir), Vector2(2.8, 0.25), 24.4, 0.32, -38.0],
+		[Vector2(-1.6, -0.35 * m_dir), Vector2(2.8, 0.25), 23.1, 0.32, -38.0],
+		[Vector2(1.6, -0.35 * m_dir), Vector2(2.8, 0.25), 23.1, 0.32, 38.0],
+		[Vector2(0.0, -0.36 * m_dir), Vector2(0.32, 0.26), 22.6, 3.6, 0.0],
+		[Vector2(0.0, -0.36 * m_dir), Vector2(4.2, 0.26), 24.25, 0.30, 0.0],
+	]:
+		var gr_mi := _add_box_2d(b_root, sym_pos + (gr_d[0] as Vector2), gr_d[1], float(gr_d[2]), float(gr_d[3]), m_carved_groove)
+		gr_mi.rotation.z = deg_to_rad(float(gr_d[4]))
+
+	# Manchas de polvo acumulado en el suelo y telarañas en los rincones y estantes de la Sala Oculta
+	for dst_d in [
+		[c + Vector2(32.0, 36.5 * m_dir), Vector2(11.0, 8.5), 14.0],
+		[c + Vector2(52.5, 35.0 * m_dir), Vector2(10.5, 9.0), -18.0],
+		[c + Vector2(42.0, 28.0 * m_dir), Vector2(22.0, 9.5), 4.0],
+		[c + Vector2(31.0, 15.5 * m_dir), Vector2(8.5, 7.0), -22.0],
+	]:
+		_add_box_2d(b_root, dst_d[0], dst_d[1], 2.66, 0.05, m_secret_dust, float(dst_d[2]))
+	for web_d in [
+		[c + Vector2(28.5, 41.5 * m_dir), Vector2(6.5, 5.5), 19.2, 2.8, 32.0, 0.35],
+		[c + Vector2(56.2, 41.5 * m_dir), Vector2(6.5, 5.5), 19.2, 2.8, -32.0, -0.35],
+		[c + Vector2(56.5, 11.0 * m_dir), Vector2(5.8, 5.0), 19.5, 2.6, 28.0, 0.30],
+		[c + Vector2(31.5, 28.0 * m_dir), Vector2(4.8, 4.2), 6.2, 2.2, -18.0, 0.25],
+	]:
+		var wb_mi := _add_box_2d(b_root, web_d[0], web_d[1], float(web_d[2]), float(web_d[3]), m_cobweb_secret, float(web_d[4]))
+		wb_mi.rotation.x = float(web_d[5])
+	for str_d in [
+		[c + Vector2(29.2, 39.8 * m_dir), Vector2(8.2, 0.16), 20.4, 0.16, 36.0, 0.42],
+		[c + Vector2(55.4, 39.8 * m_dir), Vector2(8.2, 0.16), 20.4, 0.16, -36.0, -0.42],
+		[occ_bc_pos + Vector2(-9.5, -1.8 * m_dir), Vector2(5.5, 0.14), 17.8, 0.14, 22.0, 0.38],
+		[occ_bc_pos + Vector2(9.5, -1.8 * m_dir), Vector2(5.5, 0.14), 13.6, 0.14, -24.0, -0.35],
+	]:
+		var st_mi := _add_box_2d(b_root, str_d[0], str_d[1], float(str_d[2]), float(str_d[3]), m_cobweb_strand, float(str_d[4]))
+		st_mi.rotation.z = float(str_d[5])
+
+	# Mesa prohibida interior de madera oscura y vieja (`c + Vector2(42, 28 * m_dir)`) con las 2 pistas clave del Caso I:
 	var sec_tbl: Vector2 = c + Vector2(42.0, 28.0 * m_dir)
-	_add_box_2d(b_root, sec_tbl, Vector2(25.0, 10.5), 2.0, 7.6, m_dark_wood)
-	_add_box_2d(b_root, sec_tbl, Vector2(26.2, 11.4), 9.2, 0.8, m_wainscot)
+	_add_box_2d(b_root, sec_tbl, Vector2(25.0, 10.5), 2.0, 7.6, m_old_shelf_dark)
+	_add_box_2d(b_root, sec_tbl, Vector2(26.2, 11.4), 9.2, 0.8, m_old_shelf_wood)
+	_add_box_2d(b_root, sec_tbl + Vector2(-9.2, 2.8 * m_dir), Vector2(5.2, 3.8), 10.02, 0.04, m_secret_dust, -12.0)
+	# Legajo atado en la esquina de la mesa
+	var tbl_bdl_p: Vector2 = sec_tbl + Vector2(-10.2, 2.6 * m_dir)
+	_add_box_2d(b_root, tbl_bdl_p, Vector2(4.0, 3.0), 10.0, 0.95, m_bundle_paper, 14.0)
+	_add_box_2d(b_root, tbl_bdl_p, Vector2(4.2, 0.40), 10.02, 1.0, m_bundle_twine, 14.0)
+	_add_box_2d(b_root, tbl_bdl_p, Vector2(0.40, 3.2), 10.02, 1.0, m_bundle_twine, 14.0)
+
 	# (1) Cuaderno de firmas (`c + Vector2(35, 28 * m_dir)`)
-	var ledger_p: Vector2 = sec_tbl + Vector2(-6.5, 0.0)
-	_add_box_2d(b_root, ledger_p, Vector2(7.8, 5.8), 10.0, 0.55, m_book_leather, -8.0)
+	var ledger_p: Vector2 = sec_tbl + Vector2(-6.5, -0.4 * m_dir)
+	_add_box_2d(b_root, ledger_p, Vector2(7.8, 5.8), 10.0, 0.55, m_tome_brown_2, -8.0)
 	_add_box_2d(b_root, ledger_p + Vector2(-1.7, 0.0), Vector2(3.4, 5.0), 10.56, 0.18, m_page_paper, -8.0)
 	_add_box_2d(b_root, ledger_p + Vector2(1.7, 0.0), Vector2(3.4, 5.0), 10.56, 0.18, m_page_paper, -8.0)
 	for sig_y in [-1.4, -0.2, 1.0]:
 		_add_box_2d(b_root, ledger_p + Vector2(1.6, sig_y), Vector2(2.4, 0.32), 10.76, 0.08, m_ink_sig, -8.0)
 
-	# (2) Libro antiguo con una PÁGINA ARRANCADA (`sec_tbl + Vector2(6.5, 0.0)`)
-	var torn_p: Vector2 = sec_tbl + Vector2(6.5, 0.0)
-	_add_box_2d(b_root, torn_p, Vector2(8.6, 6.4), 10.0, 0.85, m_book_occult, 10.0)
+	# (2) Libro antiguo con una PÁGINA ARRANCADA (`sec_tbl + Vector2(6.5, 0.0)`) en cuero granate/negro gastado
+	var torn_p: Vector2 = sec_tbl + Vector2(6.5, -0.4 * m_dir)
+	_add_box_2d(b_root, torn_p, Vector2(8.6, 6.4), 10.0, 0.85, m_tome_maroon_2, 10.0)
 	_add_box_2d(b_root, torn_p + Vector2(-1.9, 0.0), Vector2(3.6, 5.6), 10.86, 0.25, m_page_paper, 10.0)
 	# Muñón dentado de la página arrancada en el lado derecho del códice
 	_add_box_2d(b_root, torn_p + Vector2(0.6, -0.4), Vector2(1.1, 5.2), 10.92, 0.28, m_torn_stub, 16.0)
 	_add_box_2d(b_root, torn_p + Vector2(2.2, 0.2), Vector2(2.6, 5.4), 10.72, 0.18, m_page_paper, 10.0)
-	_restaurant_light(b_root, sec_tbl + Vector2(0.0, 2.0 * m_dir), 16.5, Color(0.96, 0.76, 0.46), 0.78, 2.1, false)
+
+	# E) MUY POCA LUZ (UNA SOLA VELA): una única vela de sebo sobre la mesa con alcance corto
+	var candle_p: Vector2 = sec_tbl + Vector2(-0.2, 0.8 * m_dir)
+	_add_cyl_2d(b_root, candle_p, 1.55, 10.0, 0.32, m_tome_black_1, 1.7, 10)
+	_add_cyl_2d(b_root, candle_p + Vector2(0.25, -0.2), 0.95, 10.28, 0.35, m_candle_wax, 1.1, 8)
+	_add_cyl_2d(b_root, candle_p, 0.68, 10.30, 2.55, m_candle_wax, 0.76, 10)
+	_add_box_2d(b_root, candle_p, Vector2(0.34, 0.34), 12.88, 0.68, m_candle_flame, 15.0)
+	var candle_lt := OmniLight3D.new()
+	candle_lt.name = "LibrarySecretSingleCandleLight"
+	candle_lt.light_color = Color(1.0, 0.72, 0.36)
+	candle_lt.light_energy = 0.38
+	candle_lt.omni_range = 1.05
+	candle_lt.omni_attenuation = 1.65
+	candle_lt.shadow_enabled = false
+	candle_lt.position = to_3d(candle_p, 13.5)
+	b_root.add_child(candle_lt)
 
 	# 4. Gran Mesa Central de Lectura (`VillageCulture.reading_spot()`) con sillas, códices abiertos, candelabro y atril
 	var read_p: Vector2 = VillageCulture.reading_spot()
@@ -1905,8 +2037,8 @@ func _build_library_3d(b_root: Node3D, rect: Rect2, door_south: bool, wall_h: fl
 	_add_model_2d(b_root, "props/Book_5.gltf", study_desk + Vector2(3.5, 0.0), 9.5, Vector2(4.5, 3.5), 2.0)
 	_add_model_2d(b_root, "props/Nightstand_Shelf.gltf", c + Vector2(53.0, -30.0 * m_dir), 2.0, Vector2(8.0, 6.5), 8.5, -90.0)
 
-	# 7. Arañas de techo con luz cálida de lectura y faroles de fachada
-	for lt_x in [-28.0, 28.0]:
+	# 7. Arañas de techo con luz cálida de lectura (en la sala pública, sin iluminar la Sala Oculta) y faroles de fachada
+	for lt_x in [-30.0, 4.0]:
 		var lt_p: Vector2 = c + Vector2(lt_x, 8.0 * m_dir)
 		_add_model_2d(b_root, "props/Chandelier.gltf", lt_p, ih - 6.5, Vector2(11.0, 11.0), 6.2)
 		_restaurant_light(b_root, lt_p, ih - 5.0, Color(1.0, 0.86, 0.58), 1.15, 2.7, false)
