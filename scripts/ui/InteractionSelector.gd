@@ -35,6 +35,7 @@ const STATION_LABELS: Dictionary = {
 	"mill_hemp_cord": "Examinar rollo de cordel",
 	"mill_table_paper": "Examinar papel sobre la mesa",
 	"mill_cellar_grate": "Examinar reja de hierro",
+	"mill_red_clay": "Examinar orilla de arcilla",
 	"police_archived_report": "Examinar carpeta de archivo",
 	"library_book_lever": "Examinar estantería",
 	"library_secret_ledger": "Examinar cuaderno",
@@ -205,7 +206,7 @@ func _fp_crosshair_score(a: Area2D, tgt: Node, c_pos: Vector2, pp: Vector2) -> f
 				is_low_obj = true
 				max_reach_px = 25.0
 				max_lat_px = 7.5
-			"tavern_games", "tavern_pool", "morgue_table", "shop_business_stall", "library_reading", "mill_cellar_grate", "old_bridge_left_shoe", "library_secret_ledger", "library_torn_book", "police_archived_report", "mill_table_paper", "mill_hemp_cord", "mill_hearth", "mill_hayloft", "case1_clearing":
+			"tavern_games", "tavern_pool", "morgue_table", "shop_business_stall", "library_reading", "mill_cellar_grate", "mill_red_clay", "old_bridge_left_shoe", "library_secret_ledger", "library_torn_book", "police_archived_report", "mill_table_paper", "mill_hemp_cord", "mill_hearth", "mill_hayloft", "case1_clearing":
 				is_low_obj = true
 				max_reach_px = 27.0
 				max_lat_px = 8.5
@@ -549,6 +550,9 @@ func get_prompt_card_data() -> Dictionary:
 				target_state = ""
 			"mill_cellar_grate":
 				target_name = "Reja de hierro"
+				target_state = ""
+			"mill_red_clay":
+				target_name = "Orilla de arcilla"
 				target_state = ""
 			"police_archived_report":
 				target_name = "Carpeta de archivo"

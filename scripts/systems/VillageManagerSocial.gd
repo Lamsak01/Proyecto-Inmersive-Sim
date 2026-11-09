@@ -410,6 +410,39 @@ func _spawn_unemployed_tavern_guests() -> void:
 		npc.setup_npc(tex_traveler, g["day_pos"], g["bed_pos"], {}, _tavern_social_pos, "none", "Huésped de Posada")
 		unemployed_npcs.append(npc)
 
+func _spawn_case1_clearing_corpse() -> void:
+	var victim_pos := Vector2(138.0, -870.0)
+	var tex_victim := _load_tex("res://assests/world/village/villager_traveler.png")
+	var npc := VillageNPC.new()
+	npc.name = "NPC_Case1_Victim"
+	npc.npc_name = "Clara"
+	npc.npc_role = "Lavandera"
+	npc.trade_role = VillageNPC.TradeRole.UNEMPLOYED
+	npc.tavern_social_pos = _tavern_social_pos
+	npc.set_meta("scripted_case_id", DetectiveCaseData.CASE_01_ID)
+	npc.set_meta("scripted_case_zones", true)
+	entities_root.add_child(npc)
+	npc.setup_npc(tex_victim, victim_pos, victim_pos, {}, _tavern_social_pos, "none", "Vecina del Valle")
+	if npc.person_profile != null:
+		npc.person_profile.gender = "F"
+		npc.person_profile.age = 26
+	npc.global_position = victim_pos
+	npc.death_world_pos = victim_pos
+	npc.is_dead = true
+	npc.corpse_on_ground = true
+	npc.corpse_discovered = false
+	npc.corpse_reported = false
+	npc.corpse_in_morgue = false
+	npc.corpse_buried = false
+	npc.corpse_rot_hours = 1.8
+	npc.last_hit_weapon_name = "Estrangulamiento"
+	npc._set_area_col_disabled(npc.hurtbox, true)
+	npc._set_area_col_disabled(npc.interact_area, false)
+	if npc.sprite:
+		npc._set_sprite_pose(90.0, Color(0.68, 0.54, 0.54, 0.96))
+		npc.sprite.z_index = -1
+		npc.sprite.visible = true
+
 func _spawn_domestic_pets() -> void:
 	var is_demo: bool = (GameManager == null) or (GameManager.has_method("is_demo_mode") and bool(GameManager.call("is_demo_mode")))
 	var pet_defs: Array[Dictionary] = [

@@ -36,6 +36,7 @@ func setup_village(target_entities_root: Node) -> void:
 	VillageWorldBuilder._spawn_notice_board_in_plaza(self)
 	VillageWorldBuilder._spawn_electric_streetlights(self)
 	_spawn_unemployed_tavern_guests()
+	_spawn_case1_clearing_corpse()
 	VillageWorldBuilder._spawn_farm_well_and_compost(self)
 	VillageLots.reset_layout() # Bloque AB: solares en su sitio desplazado antes de que nadie los use
 	VillageTrades.setup_world(self) # V5: panadería y sastrería (puestos vacantes al empezar)
@@ -614,6 +615,17 @@ func interact(player: Node2D) -> void:
 		return
 
 	# 5b. Pistas del Caso I en el Molino Viejo Abandonado y Claro del Arroyo
+	if pos.distance_squared_to(Vector2(120.0, -1036.0)) <= 28.0 * 28.0:
+		_record_case_clue(
+			player,
+			"🧱 Orilla de arcilla",
+			"🧱 La ribera junto al molino es de barro rojo vivo y arcilla plástica, con pisadas recientes hundidas en el fango.",
+			"Exterior del molino: la orilla del arroyo junto al molino es de barro rojo de arcilla con pisadas hundidas.",
+			"Pista: Barro rojo del molino",
+			"clue_mill_red_clay",
+			Color(0.92, 0.52, 0.42)
+		)
+		return
 	if pos.distance_squared_to(Vector2(138.0, -1061.0)) <= 28.0 * 28.0:
 		_record_case_clue(
 			player,

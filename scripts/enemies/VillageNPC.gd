@@ -928,6 +928,8 @@ func interact(player: Node) -> void:
 		var ui_root = cs_ui.get_node_or_null("UI/UIRoot") if cs_ui else null
 		if ui_root == null and cs_ui != null:
 			ui_root = cs_ui.get_node_or_null("UIRoot")
+		if ui_root == null and is_inside_tree():
+			ui_root = get_tree().get_first_node_in_group("game_ui")
 		if ui_root != null and ui_root.has_method("open_detective_ui"):
 			ui_root.call("open_detective_ui", self, "morgue" if corpse_in_morgue else "body")
 			return

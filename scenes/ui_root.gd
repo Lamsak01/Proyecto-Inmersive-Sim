@@ -63,6 +63,7 @@ var showcase_3d_panel: Control = null
 var detective_ui: Control = null
 
 func _ready() -> void:
+	add_to_group("game_ui")
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
 	# 1. Find Player if not assigned
 	if not player:

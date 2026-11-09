@@ -808,6 +808,7 @@ static func _spawn_river_arroyo_and_abandoned_mill(vm: VillageManager) -> void:
 		if clp != null:
 			clp.add_to_group("ranch_fence_2d")
 	vm._add_station_area("MillCellarGrateArea", cellar_pos, 26.0, "mill_cellar_grate")
+	vm._add_station_area("MillRedClayArea", Vector2(120.0, -1036.0), 26.0, "mill_red_clay")
 
 # ==============================================================================
 # PASO 5: 📋 TABLÓN DE ENCARGOS EN LA PLAZA CENTRAL (`Vector2(465, 24)`)

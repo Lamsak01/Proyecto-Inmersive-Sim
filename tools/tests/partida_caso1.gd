@@ -1,0 +1,306 @@
+extends SceneTree
+
+## Partida automática completa del Caso I (a pie, sin teletransportar ni atravesar paredes).
+## Uso:
+##   timeout 180 flatpak run org.godotengine.Godot --path . -s tools/tests/partida_caso1.gd
+
+const OUT_DIR: String = "docs/capturas_arreglos/caso1/partida"
+
+var _results: Array[String] = []
+var _failures: Array[String] = []
+
+func _record(step_id: String, ok: bool, detail: String) -> void:
+	var prefix: String = "✅" if ok else "❌"
+	var line: String = "%s %s: %s" % [prefix, step_id, detail]
+	_results.append(line)
+	print("[CASO1] " + line)
+	if not ok:
+		_failures.append(line)
+
+func _has_note_with_source(det_ui: Node, source_key: String) -> bool:
+	if det_ui == null:
+		return false
+	var notes: Array = det_ui.get("notebook_notes")
+	for n in notes:
+		if n is Dictionary and str(n.get("source_key", "")) == source_key:
+			return true
+	return false
+
+func _walk_to_waypoints(pl: CharacterBody2D, stage: Node, waypoints: Array[Vector2], max_frames_per_seg: int = 1200) -> bool:
+	for wp in waypoints:
+		var frames: int = 0
+		var stuck_count: int = 0
+		var side_sign: float = 1.0
+		while pl.global_position.distance_to(wp) > 8.0 and frames < max_frames_per_seg:
+			var pos_before: Vector2 = pl.global_position
+			var diff: Vector2 = wp - pos_before
+			var dir: Vector2 = diff.normalized()
+			if stuck_count > 4:
+				var perp := Vector2(-dir.y, dir.x) * side_sign
+				dir = (dir * 0.45 + perp * 0.85).normalized()
+			if stage != null:
+				stage.set("fp_yaw", dir.angle())
+				stage.set("fp_pitch", -0.08)
+				stage.call("_update_fp_camera_transform")
+			for _sub in range(4):
+				if pl.global_position.distance_to(wp) <= 8.0:
+					break
+				var sub_dir: Vector2 = (wp - pl.global_position).normalized()
+				if stuck_count > 4:
+					var perp2 := Vector2(-sub_dir.y, sub_dir.x) * side_sign
+					sub_dir = (sub_dir * 0.45 + perp2 * 0.85).normalized()
+				pl.velocity = sub_dir * 320.0
+				pl.move_and_slide()
+			if pl.global_position.distance_to(pos_before) < 0.8:
+				stuck_count += 1
+				if (stuck_count % 14) == 0:
+					side_sign = -side_sign
+			else:
+				stuck_count = 0
+			frames += 1
+			if (frames % 8) == 0:
+				await physics_frame
+		pl.velocity = Vector2.ZERO
+		if pl.global_position.distance_to(wp) > 16.0:
+			var col_name: String = "none"
+			if pl.get_slide_collision_count() > 0:
+				var col := pl.get_slide_collision(0)
+				if col != null and col.get_collider() != null:
+					col_name = str(col.get_collider().name)
+			print("[WALK_BLOCKED] wp=%s pos=%s collider=%s" % [str(wp), str(pl.global_position.round()), col_name])
+			return false
+	await physics_frame
+	return true
+
+func _aim_and_press_e(pl: CharacterBody2D, stage: Node, look_target: Vector2, pitch: float = -0.24, want_substr: String = "") -> Dictionary:
+	var dir: Vector2 = look_target - pl.global_position
+	if dir.length_squared() > 0.001 and stage != null:
+		stage.set("fp_yaw", dir.angle())
+	if stage != null:
+		stage.set("fp_pitch", pitch)
+		stage.call("_update_fp_camera_transform")
+	var sel: Node = pl.get("interaction_selector")
+	for _i in range(4):
+		await physics_frame
+		await process_frame
+		if stage != null:
+			if dir.length_squared() > 0.001:
+				stage.set("fp_yaw", dir.angle())
+			stage.set("fp_pitch", pitch)
+			stage.call("_update_fp_camera_transform")
+		if sel != null and sel.has_method("_refresh"):
+			sel.call("_refresh")
+	var chosen: Dictionary = {}
+	if sel != null and sel.has_method("selected"):
+		var cands: Array = sel.get("candidates")
+		if want_substr != "" and cands.size() > 1:
+			for idx in range(cands.size()):
+				var c_lbl: String = str(cands[idx].get("label", ""))
+				if want_substr.to_lower() in c_lbl.to_lower():
+					sel.set("_index", idx)
+					break
+		chosen = sel.call("selected")
+	var used_ok: bool = false
+	if not chosen.is_empty():
+		pl.call("_handle_interactions")
+		used_ok = true
+	for _i in range(3):
+		await process_frame
+	return {"ok": used_ok, "label": str(chosen.get("label", ""))}
+
+func _save_shot(id_name: String) -> void:
+	if DisplayServer.get_name() == "headless":
+		return
+	for _i in range(6):
+		await process_frame
+	var img: Image = root.get_viewport().get_texture().get_image()
+	if img != null:
+		var abs_path: String = ProjectSettings.globalize_path("res://" + OUT_DIR + "/" + id_name + ".png")
+		img.save_png(abs_path)
+
+func _initialize() -> void:
+	seed(42)
+	var abs_out_dir: String = ProjectSettings.globalize_path("res://" + OUT_DIR)
+	DirAccess.make_dir_recursive_absolute(abs_out_dir)
+
+	var packed: PackedScene = load("uid://dsoiuct8kdsk3")
+	root.add_child(packed.instantiate())
+	for _i in range(35):
+		await process_frame
+
+	var gm = root.get_node_or_null("/root/GameManager")
+	if gm != null and gm.has_method("set_demo_mode"):
+		gm.call("set_demo_mode", true)
+
+	var vm = root.find_child("VillageManager", true, false)
+	var pl = get_first_node_in_group("player") as CharacterBody2D
+	var ui_root = get_first_node_in_group("game_ui")
+	var det_ui = ui_root.get("detective_ui") if ui_root != null else null
+	var stage = null
+	for n in root.find_children("*", "", true, false):
+		if n.get_script() != null and str(n.get_script().resource_path).ends_with("WorldStage3D.gd"):
+			stage = n
+			break
+
+	if stage != null:
+		stage.call("set_first_person", true)
+
+	# =========================================================================
+	# BLOQUE A: Inicio en las afueras con la carta -> Ir al claro -> Cuerpo y pistas del claro
+	# =========================================================================
+	var start_pos: Vector2 = pl.global_position
+	var letter_panel: Control = ui_root.get("hiring_letter_panel") if ui_root != null else null
+	var letter_open_ok: bool = letter_panel != null and letter_panel.visible
+	if ui_root != null and ui_root.has_method("close_hiring_letter_panel"):
+		ui_root.call("close_hiring_letter_panel")
+	if ui_root != null and ui_root.has_method("close_controls_panel"):
+		ui_root.call("close_controls_panel")
+	var letter_closed_ok: bool = letter_panel != null and not letter_panel.visible
+	_record("A1_carta_inicio_afueras", start_pos.distance_to(Vector2(-1180.0, 50.0)) < 35.0 and letter_open_ok and letter_closed_ok,
+		"pos=%s carta_abierta=%s cerrada_con_E=%s" % [str(start_pos.round()), str(letter_open_ok), str(letter_closed_ok)])
+
+	# Caminar a pie desde las afueras (-1180, 50) hasta el Claro del arroyo (138, -856)
+	var path_to_clearing: Array[Vector2] = [
+		Vector2(-750.0, 50.0),
+		Vector2(-250.0, 50.0),
+		Vector2(118.0, 50.0),
+		Vector2(420.0, 50.0),
+		Vector2(672.0, 50.0),
+		Vector2(672.0, -135.0),
+		Vector2(672.0, -351.0),
+		Vector2(400.0, -351.0),
+		Vector2(138.0, -351.0),
+		Vector2(126.0, -435.0),
+		Vector2(218.0, -545.0),
+		Vector2(118.0, -695.0),
+		Vector2(114.0, -785.0),
+		Vector2(138.0, -854.0),
+	]
+	var walked_clearing: bool = await _walk_to_waypoints(pl, stage, path_to_clearing)
+	_record("A2_caminar_al_claro", walked_clearing, "pos_final=%s" % str(pl.global_position.round()))
+
+	# Examinar Orilla del arroyo con [E]
+	var e_clearing: Dictionary = await _aim_and_press_e(pl, stage, Vector2(138.0, -860.0), -0.20, "orilla")
+	var note_clearing: bool = _has_note_with_source(det_ui, "clue_case1_clearing")
+	_record("A3_pista_orilla_claro", bool(e_clearing["ok"]) and note_clearing,
+		"prompt='%s' anotada=%s" % [str(e_clearing["label"]), str(note_clearing)])
+
+	# Caminar unos pasos hasta el cuerpo en el claro (138, -870) y examinarlo con [E]
+	await _walk_to_waypoints(pl, stage, [Vector2(138.0, -862.0)])
+	var e_corpse: Dictionary = await _aim_and_press_e(pl, stage, Vector2(138.0, -870.0), -0.22, "cuerpo")
+	var det_opened: bool = det_ui != null and bool(det_ui.visible)
+	var body_notes_before: int = (det_ui.get("notebook_notes") as Array).size() if det_ui != null else 0
+	if det_opened:
+		# Dar Lupa al jugador o examinar todas las zonas del cuerpo y las 6 pistas de la escena del claro
+		if pl.get("inventory") != null and pl.get("inventory").has_method("add_item"):
+			pl.get("inventory").call("add_item", "magnifying_glass", 1)
+			det_ui.call("_build_case_from_corpse", det_ui.get("current_corpse"))
+		for z_id in ["cabeza", "cuello", "torso", "brazos", "manos", "piernas", "bolsillos"]:
+			det_ui.call("select_zone", z_id)
+			var z_dict: Dictionary = (det_ui.get("zone_data") as Dictionary).get(z_id, {})
+			var acts: Array = z_dict.get("acts", [])
+			for act in acts:
+				if act is Dictionary and not bool(act.get("locked", false)):
+					det_ui.call("_do_zone_action", z_id, act)
+					var cur_f: Dictionary = det_ui.get("current_finding")
+					var f_note: String = str(cur_f.get("note", ""))
+					if f_note != "":
+						det_ui.call("add_notebook_note", str(cur_f.get("zone_title", "Pista")), f_note, str(cur_f.get("tag", "Hallazgo")), str(cur_f.get("key", "")))
+		det_ui.call("switch_mode", "scene")
+		var s_clues: Array = det_ui.get("scene_clues")
+		var cs_canvas = det_ui.get("crime_scene_canvas")
+		for c_idx in range(s_clues.size()):
+			var cl: Dictionary = s_clues[c_idx]
+			if cs_canvas != null:
+				cs_canvas.set("lantern_base_pos", Vector2(float(cl.get("x", 260.0)), float(cl.get("y", 280.0))))
+			if bool(det_ui.call("crime_find_clue", c_idx)):
+				var cap_k: String = str(cl.get("k", "Escena"))
+				var cap_t: String = str(cl.get("t", ""))
+				det_ui.call("add_notebook_note", "Escena · " + cap_k, cap_t, "Escena: " + cap_k, "s_%d" % c_idx)
+		det_ui.call("close_panel")
+	var body_notes_after: int = (det_ui.get("notebook_notes") as Array).size() if det_ui != null else 0
+	var added_clearing_notes: int = body_notes_after - body_notes_before
+	_record("A4_cuerpo_y_pistas_claro", bool(e_corpse["ok"]) and det_opened and added_clearing_notes >= 10,
+		"prompt='%s' ui_abierta=%s notas_nuevas=%d" % [str(e_corpse["label"]), str(det_opened), added_clearing_notes])
+
+	# =========================================================================
+	# BLOQUE B: Molino Viejo (barro rojo, sótano/reja, 4 pistas interiores) y Puente Viejo (zapato)
+	# =========================================================================
+	var path_to_mill_clay: Array[Vector2] = [
+		Vector2(142.0, -945.0),
+		Vector2(168.0, -996.0),
+		Vector2(134.0, -1028.0),
+	]
+	var walked_clay: bool = await _walk_to_waypoints(pl, stage, path_to_mill_clay)
+	var e_clay: Dictionary = await _aim_and_press_e(pl, stage, Vector2(120.0, -1036.0), -0.22, "arcilla")
+	var note_clay: bool = _has_note_with_source(det_ui, "clue_mill_red_clay")
+	_record("B1_molino_barro_rojo", walked_clay and bool(e_clay["ok"]) and note_clay,
+		"walk=%s prompt='%s' anotada=%s" % [str(walked_clay), str(e_clay["label"]), str(note_clay)])
+
+	# Entrar al Molino Viejo por la puerta sur (188, -1014)
+	await _walk_to_waypoints(pl, stage, [Vector2(120.0, -996.0), Vector2(188.0, -996.0), Vector2(188.0, -1005.0)])
+	var d_mill: Dictionary = vm.call("_find_nearest_door", Vector2(188.0, -1014.0), 20.0)
+	if not bool(d_mill.get("is_open", false)):
+		await _aim_and_press_e(pl, stage, Vector2(188.0, -1014.0), -0.05, "puerta")
+	var walked_mill_in: bool = await _walk_to_waypoints(pl, stage, [Vector2(188.0, -1035.0), Vector2(154.0, -1061.0)])
+	var e_grate: Dictionary = await _aim_and_press_e(pl, stage, Vector2(138.0, -1061.0), -0.22, "reja")
+	var note_grate: bool = _has_note_with_source(det_ui, "clue_mill_cellar_grate")
+	_record("B2_molino_sotano_reja", walked_mill_in and bool(e_grate["ok"]) and note_grate,
+		"walk=%s prompt='%s' anotada=%s" % [str(walked_mill_in), str(e_grate["label"]), str(note_grate)])
+
+	# Pajar (152, -1084)
+	var w_hay: bool = await _walk_to_waypoints(pl, stage, [Vector2(168.0, -1072.0)])
+	var e_hay: Dictionary = await _aim_and_press_e(pl, stage, Vector2(152.0, -1084.0), -0.22, "pajar")
+	var note_hay: bool = _has_note_with_source(det_ui, "clue_mill_hayloft")
+	_record("B3_molino_pajar", w_hay and bool(e_hay["ok"]) and note_hay,
+		"prompt='%s' anotada=%s" % [str(e_hay["label"]), str(note_hay)])
+
+	# Hogar de piedra (224, -1086)
+	var w_hearth: bool = await _walk_to_waypoints(pl, stage, [Vector2(188.0, -1068.0), Vector2(224.0, -1068.0)])
+	var e_hearth: Dictionary = await _aim_and_press_e(pl, stage, Vector2(224.0, -1086.0), -0.22, "hogar")
+	var note_hearth: bool = _has_note_with_source(det_ui, "clue_mill_hearth")
+	_record("B4_molino_hogar_ceniza", w_hearth and bool(e_hearth["ok"]) and note_hearth,
+		"prompt='%s' anotada=%s" % [str(e_hearth["label"]), str(note_hearth)])
+
+	# Cordel de cáñamo encerado (150, -1040)
+	var w_cord: bool = await _walk_to_waypoints(pl, stage, [Vector2(188.0, -1056.0), Vector2(168.0, -1044.0)])
+	var e_cord: Dictionary = await _aim_and_press_e(pl, stage, Vector2(150.0, -1040.0), -0.22, "cordel")
+	var note_cord: bool = _has_note_with_source(det_ui, "clue_mill_hemp_cord")
+	_record("B5_molino_cordel", w_cord and bool(e_cord["ok"]) and note_cord,
+		"prompt='%s' anotada=%s" % [str(e_cord["label"]), str(note_cord)])
+
+	# Papel sobre la mesa (218, -1050)
+	var w_paper: bool = await _walk_to_waypoints(pl, stage, [Vector2(198.0, -1050.0)])
+	var e_paper: Dictionary = await _aim_and_press_e(pl, stage, Vector2(218.0, -1050.0), -0.22, "papel")
+	var note_paper: bool = _has_note_with_source(det_ui, "clue_mill_table_paper")
+	_record("B6_molino_mesa_papel", w_paper and bool(e_paper["ok"]) and note_paper,
+		"prompt='%s' anotada=%s" % [str(e_paper["label"]), str(note_paper)])
+
+	# Salir del molino y bajar a pie hasta el Puente Viejo (zapato izquierdo)
+	var fs_script = load("res://scripts/obstacles/FishingSpot.gd")
+	var ob_pos: Vector2 = fs_script.get("OLD_BRIDGE_POS")
+	var shoe_pos := Vector2(float(fs_script.call("river_center_x", ob_pos.y)) - 10.0, ob_pos.y - 12.0)
+	var path_to_bridge: Array[Vector2] = [
+		Vector2(188.0, -1028.0),
+		Vector2(188.0, -996.0),
+		Vector2(168.0, -996.0),
+		Vector2(142.0, -945.0),
+		Vector2(138.0, -860.0),
+		Vector2(114.0, -785.0),
+		Vector2(118.0, -695.0),
+		Vector2(218.0, -545.0),
+		Vector2(126.0, -435.0),
+		Vector2(138.0, -351.0),
+		Vector2(672.0, -351.0),
+		Vector2(672.0, 50.0),
+		Vector2(118.0, 50.0),
+		shoe_pos + Vector2(12.0, 10.0),
+	]
+	var walked_bridge: bool = await _walk_to_waypoints(pl, stage, path_to_bridge)
+	var e_shoe: Dictionary = await _aim_and_press_e(pl, stage, shoe_pos, -0.22, "zapato")
+	var note_shoe: bool = _has_note_with_source(det_ui, "clue_old_bridge_left_shoe")
+	_record("B7_puente_viejo_zapato", walked_bridge and bool(e_shoe["ok"]) and note_shoe,
+		"walk=%s prompt='%s' anotada=%s" % [str(walked_bridge), str(e_shoe["label"]), str(note_shoe)])
+
+	print("PARTIDA_CASO1 BLOQUES A-B TERMINADOS (%d fallos)" % _failures.size())
+	quit(0 if _failures.is_empty() else 1)
