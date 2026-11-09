@@ -132,6 +132,18 @@ el brazo**. (3) **El del carro**, forastero, que **conduce y manda** en el grupo
 están **escondidos en el molino unos días esperando órdenes**; **si el jugador tarda demasiado, se van**. Se puede pelear
 o escabullirse; que uno sobreviva para el interrogatorio es opcional.
 
+**El libro y la sala oculta de la biblioteca (decidido por el usuario, 2026-11-09):** el libro antiguo de la receta es
+**secreto y vetado por la Iglesia y la ley**; solo el **bibliotecario** sabe que existe. Está en una **habitación oculta
+dentro de la biblioteca** con libros de **ocultismo, venenos y la antigua fe** que el nuevo gobierno intentó erradicar
+para imponer la suya (lore del usuario: no ampliar sin preguntar). El familiar llegó al libro **gracias al
+bibliotecario**. Cadena de pistas: (1) en la sala oculta hay un **cuaderno secreto** donde firma quien consulta los
+libros prohibidos: la **firma del familiar** es la muestra de letra para ver que la nota «V.» es falsa; (2) al libro le
+falta **una página arrancada** (en el índice se lee el capítulo, p. ej. «Del sueño que imita la muerte»); (3) la página
+está **en casa del familiar** con **dosis tachadas y corregidas** de su puño y letra (por eso salió mal). **Cómo se
+encuentra la sala:** las dos vías: **por observación** (corriente de aire, marcas de arrastre junto a una estantería, un
+libro que no sale porque es la palanca) o **presionando al bibliotecario** cuando ya hay pruebas contra el familiar.
+**Por qué le ayudó el bibliotecario: pendiente de decidir por el usuario** (no inventarlo).
+
 **Nombres:** la hierba es la **belladama gris** (elegido por el usuario, 2026-11-08: recuerda a la belladona y el «dama» apunta a los ricos). La poción es el **sueño de cera** (elegido por el usuario, 2026-11-08: deja el cuerpo quieto y pálido como de cera).
 
 ## 5b. Acusación y final de la demo (decidido por el usuario, 2026-11-08)
