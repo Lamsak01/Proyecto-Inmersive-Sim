@@ -438,24 +438,22 @@ func _initialize() -> void:
 	_record("D1_morgue_autopsia_y_testigos", walked_hosp_door and walked_morgue_in and bool(e_morgue["ok"]) and morgue_opened and morgue_notes_ok,
 		"walk=%s prompt='%s' autopsia_4_pruebas_y_2_testigos=%s" % [str(walked_morgue_in), str(e_morgue["label"]), str(morgue_notes_ok)])
 
-	# D2: Caminar a la Botica (305, 118; puerta norte en 305, 105) para consultar al boticario sobre el frasco de estómago (alchemist_analyze_flask)
+	# D2: Caminar a la Botica (325, 132; puerta norte en 325, 108) para consultar al boticario sobre el frasco de estómago (alchemist_analyze_flask)
 	var path_to_apothecary: Array[Vector2] = [
 		Vector2(745.0, 122.0),
 		Vector2(745.0, 84.0),
 		Vector2(672.0, 84.0),
 		Vector2(672.0, 50.0),
-		Vector2(305.0, 50.0),
-		Vector2(305.0, 92.0),
+		Vector2(325.0, 50.0),
+		Vector2(325.0, 92.0),
 	]
 	var walked_apoth: bool = await _walk_to_waypoints(pl, stage, path_to_apothecary, 4.0)
-	var d_apoth: Dictionary = vm.call("_find_nearest_door", Vector2(305.0, 105.0), 25.0)
+	var d_apoth: Dictionary = vm.call("_find_nearest_door", Vector2(325.0, 108.0), 25.0)
 	if not d_apoth.is_empty():
-		d_apoth["is_locked"] = false
-		if not bool(d_apoth.get("is_open", false)):
-			vm.call("_set_door_open", str(d_apoth.get("id", "")), true)
-	var walked_apoth_in: bool = await _walk_to_waypoints(pl, stage, [Vector2(305.0, 122.0)], 4.0)
+		vm.call("_set_door_state", d_apoth, true, false, true)
+	var walked_apoth_in: bool = await _walk_to_waypoints(pl, stage, [Vector2(325.0, 130.0)], 4.0)
 	if stage != null:
-		stage.set("fp_yaw", Vector2(0.0, 1.0).angle())
+		stage.set("fp_yaw", Vector2(0.15, 1.0).angle())
 		stage.set("fp_pitch", -0.10)
 		stage.call("_update_fp_camera_transform")
 	var has_alch_dialogue: bool = _has_note_with_source(det_ui, "alchemist_analyze_flask")
@@ -465,19 +463,17 @@ func _initialize() -> void:
 
 	# D3: Caminar hacia la Mansión del Señor del Valle (solar f1: 1315, -440; puerta sur en 1315, -364) para comprobar criada (noble_maid_recognize_vial) y gabinete forzado
 	var path_to_mansion: Array[Vector2] = [
-		Vector2(305.0, 92.0),
-		Vector2(305.0, 50.0),
-		Vector2(682.0, 50.0),
-		Vector2(682.0, -342.0),
+		Vector2(325.0, 92.0),
+		Vector2(325.0, 50.0),
+		Vector2(672.0, 50.0),
+		Vector2(672.0, -342.0),
 		Vector2(1315.0, -342.0),
 		Vector2(1315.0, -352.0),
 	]
 	var walked_mansion: bool = await _walk_to_waypoints(pl, stage, path_to_mansion, 5.0)
 	var d_man: Dictionary = vm.call("_find_nearest_door", Vector2(1315.0, -364.0), 25.0)
 	if not d_man.is_empty():
-		d_man["is_locked"] = false
-		if not bool(d_man.get("is_open", false)):
-			vm.call("_set_door_open", str(d_man.get("id", "")), true)
+		vm.call("_set_door_state", d_man, true, false, true)
 	var walked_mansion_in: bool = await _walk_to_waypoints(pl, stage, [Vector2(1315.0, -408.0)], 4.0)
 	if stage != null:
 		stage.set("fp_yaw", Vector2(0.0, -1.0).angle())
@@ -489,6 +485,16 @@ func _initialize() -> void:
 		"walk=%s gabinete_o_criada_interactuable=%s (Falta prop [E] del gabinete con cerradura forzada y diálogo de la criada)" % [str(walked_mansion_in), str(has_cabinet_or_maid)])
 
 	# D4: Comprobar resto de pistas en el mundo (casa de la víctima, página arrancada en casa del familiar, confesión del familiar y 3 secuestradores)
+	await _walk_to_waypoints(pl, stage, [
+		Vector2(1315.0, -352.0),
+		Vector2(1315.0, -342.0),
+		Vector2(672.0, -342.0),
+		Vector2(672.0, -195.0),
+	], 5.0)
+	if stage != null:
+		stage.set("fp_yaw", Vector2(0.22, 1.0).angle())
+		stage.set("fp_pitch", -0.05)
+		stage.call("_update_fp_camera_transform")
 	var has_relative_and_kidnappers: bool = (
 		_has_note_with_source(det_ui, "relative_confession")
 		and _has_note_with_source(det_ui, "kidnapper_captured_interrogation")
@@ -499,10 +505,7 @@ func _initialize() -> void:
 
 	# D5: Acusación final (Tablero del Caso en DetectiveUI y diálogo con el Alguacil en la Comisaría)
 	var path_to_accuse: Array[Vector2] = [
-		Vector2(1315.0, -352.0),
-		Vector2(1315.0, -342.0),
-		Vector2(682.0, -342.0),
-		Vector2(682.0, 84.0),
+		Vector2(672.0, 84.0),
 		Vector2(915.0, 84.0),
 		Vector2(915.0, 124.0),
 	]
