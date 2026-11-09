@@ -36,6 +36,7 @@ var hud_gold_label: Label = null
 
 var inv_panel: PanelContainer = null
 var controls_panel: PanelContainer = null
+var hiring_letter_panel: Control = null
 var inv_gold_label: Label = null
 var inv_armor_stats_label: Label = null
 var inv_armor_slots_box: HBoxContainer = null
@@ -151,6 +152,7 @@ func _ready() -> void:
 	detective_ui.set("player", player)
 	add_child(detective_ui)
 	_setup_controls_panel_ui()
+	_setup_hiring_letter_panel_ui()
 	if GameManager and not GameManager.game_loaded.is_connected(_on_game_loaded):
 		GameManager.game_loaded.connect(_on_game_loaded)
 	_init_default_objectives()
@@ -218,6 +220,16 @@ func _input(event: InputEvent) -> void:
 			player.call("toggle_test_mode")
 			get_viewport().set_input_as_handled()
 			return
+	if hiring_letter_panel and hiring_letter_panel.visible:
+		if event is InputEventKey and event.pressed and not event.echo:
+			if event.keycode in [KEY_ESCAPE, KEY_ENTER, KEY_KP_ENTER, KEY_SPACE, KEY_E] or event.physical_keycode in [KEY_ESCAPE, KEY_ENTER, KEY_KP_ENTER, KEY_SPACE, KEY_E]:
+				close_hiring_letter_panel()
+				get_viewport().set_input_as_handled()
+				return
+		elif event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
+			close_hiring_letter_panel()
+			get_viewport().set_input_as_handled()
+			return
 	if controls_panel and controls_panel.visible:
 		if event is InputEventKey and event.pressed and not event.echo:
 			if event.keycode in [KEY_ESCAPE, KEY_ENTER, KEY_KP_ENTER, KEY_H] or event.physical_keycode in [KEY_ESCAPE, KEY_ENTER, KEY_KP_ENTER, KEY_H]:
@@ -228,7 +240,7 @@ func _input(event: InputEvent) -> void:
 			get_viewport().set_input_as_handled()
 
 func _unhandled_input(event: InputEvent) -> void:
-	if controls_panel and controls_panel.visible:
+	if (hiring_letter_panel and hiring_letter_panel.visible) or (controls_panel and controls_panel.visible):
 		return
 	var dm = player.get("dialogue_manager") if player else null
 	if (dm and dm.has_method("is_active") and bool(dm.call("is_active"))) or (tavern_games and tavern_games.visible) or _is_external_world_modal_open():
@@ -739,14 +751,88 @@ func open_controls_panel() -> void:
 		WorldClock.set_activity_pause(true)
 
 func close_controls_panel() -> void:
+	if hiring_letter_panel and hiring_letter_panel.visible:
+		hiring_letter_panel.visible = false
 	if not controls_panel or not controls_panel.visible:
 		return
 	controls_panel.visible = false
 	if WorldClock and WorldClock.has_method("set_activity_pause"):
 		WorldClock.set_activity_pause(false)
 
+func _setup_hiring_letter_panel_ui() -> void:
+	var backdrop := ColorRect.new()
+	backdrop.name = "HiringLetterPanel"
+	var show_at_start: bool = (GameManager == null) or (GameManager.has_method("is_demo_mode") and bool(GameManager.call("is_demo_mode")))
+	backdrop.visible = show_at_start
+	backdrop.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	backdrop.color = Color(0.05, 0.04, 0.03, 0.72)
+	backdrop.mouse_filter = Control.MOUSE_FILTER_STOP
+	hiring_letter_panel = backdrop
+
+	var card := PanelContainer.new()
+	card.name = "LetterSheet"
+	card.set_anchors_and_offsets_preset(Control.PRESET_CENTER)
+	card.offset_left = -280.0
+	card.offset_top = -140.0
+	card.offset_right = 280.0
+	card.offset_bottom = 140.0
+	var sheet_style := _make_style(Color(0.945, 0.910, 0.831, 0.99), Color(0.227, 0.196, 0.157, 1.0), 2, 2, 32, 28)
+	sheet_style.shadow_color = Color(0.0, 0.0, 0.0, 0.65)
+	sheet_style.shadow_size = 8
+	sheet_style.shadow_offset = Vector2(6, 6)
+	card.add_theme_stylebox_override("panel", sheet_style)
+	backdrop.add_child(card)
+
+	var vbox := VBoxContainer.new()
+	vbox.alignment = BoxContainer.ALIGNMENT_CENTER
+	vbox.add_theme_constant_override("separation", 18)
+	card.add_child(vbox)
+
+	var top_rule := ColorRect.new()
+	top_rule.custom_minimum_size = Vector2(0, 1)
+	top_rule.color = Color(0.227, 0.196, 0.157, 0.55)
+	vbox.add_child(top_rule)
+
+	var body_lbl := _make_lbl(
+		vbox,
+		"«Carta de contratación — texto pendiente del autor»",
+		18,
+		Color(0.149, 0.129, 0.106, 1.0),
+		true,
+		HORIZONTAL_ALIGNMENT_CENTER
+	)
+	body_lbl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	body_lbl.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	body_lbl.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+
+	var bot_rule := ColorRect.new()
+	bot_rule.custom_minimum_size = Vector2(0, 1)
+	bot_rule.color = Color(0.227, 0.196, 0.157, 0.55)
+	vbox.add_child(bot_rule)
+
+	var hint_lbl := _make_lbl(
+		vbox,
+		"[E / Enter / Esc / Clic] Continuar hacia el valle",
+		11,
+		Color(0.353, 0.314, 0.259, 1.0),
+		false,
+		HORIZONTAL_ALIGNMENT_CENTER
+	)
+	hint_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+
+	add_child(backdrop)
+
+func open_hiring_letter_panel() -> void:
+	if hiring_letter_panel:
+		hiring_letter_panel.visible = true
+
+func close_hiring_letter_panel() -> void:
+	if hiring_letter_panel:
+		hiring_letter_panel.visible = false
+
 func _on_game_loaded(_filepath: String) -> void:
 	close_controls_panel()
+	close_hiring_letter_panel()
 
 func _refresh_inventory_list() -> void:
 	if not inv_items_box or not player or not ("inventory" in player) or not player.inventory:

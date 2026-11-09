@@ -411,8 +411,9 @@ func _spawn_unemployed_tavern_guests() -> void:
 		unemployed_npcs.append(npc)
 
 func _spawn_domestic_pets() -> void:
+	var is_demo: bool = (GameManager == null) or (GameManager.has_method("is_demo_mode") and bool(GameManager.call("is_demo_mode")))
 	var pet_defs: Array[Dictionary] = [
-		{"type": DomesticPet.PetType.DOG, "name": "Toby", "owner": "Granja del Jugador", "fam": "player_farm", "pos": Vector2(-685, -52), "guard": true, "tint": Color(1.0, 0.96, 0.90)},
+		{"type": DomesticPet.PetType.DOG, "name": "Toby", "owner": "Granja del Jugador", "fam": "player_farm", "pos": Vector2(-1825, -82), "guard": true, "tint": Color(1.0, 0.96, 0.90)},
 		{"type": DomesticPet.PetType.DOG, "name": "Sultán", "owner": "Herrería Yunque Gris", "fam": "family_smith", "pos": Vector2(365, 16), "guard": false, "tint": Color(0.88, 0.82, 0.78)},
 		{"type": DomesticPet.PetType.DOG, "name": "Canela", "owner": "Barrio Residencial", "fam": "family_carpenter", "pos": Vector2(745, -135), "guard": false, "tint": Color(1.0, 0.85, 0.72)},
 		{"type": DomesticPet.PetType.CAT, "name": "Michi", "owner": "Posada El Jabalí Dorado", "fam": "family_tavern", "pos": Vector2(226, -212), "guard": false, "tint": Color(1.0, 0.92, 0.82)},
@@ -420,6 +421,8 @@ func _spawn_domestic_pets() -> void:
 		{"type": DomesticPet.PetType.CAT, "name": "Sombra", "owner": "Pescadería Aguas Claras", "fam": "family_fishmonger", "pos": Vector2(465, 96), "guard": false, "tint": Color(0.75, 0.78, 0.85)}
 	]
 	for pdef in pet_defs:
+		if is_demo and str(pdef["fam"]) == "player_farm":
+			continue
 		var p_pos: Vector2 = pdef["pos"]
 		_spawn_pet_bed_and_bowl(p_pos, pdef["type"], str(pdef["name"]))
 		var pet := DomesticPet.new()

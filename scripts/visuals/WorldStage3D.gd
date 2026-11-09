@@ -30,7 +30,7 @@ func setup_stage(village_manager: Node2D) -> void:
 	_active_stage_instance = self
 	_is_headless = DisplayServer.get_name() == "headless" or Engine.is_editor_hint()
 	first_person_active = false
-	fp_yaw = PI * 0.5
+	fp_yaw = 0.0
 	fp_pitch = 0.0
 
 	stage_root_3d = Node3D.new()

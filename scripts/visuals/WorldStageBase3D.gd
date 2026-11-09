@@ -287,7 +287,7 @@ void fragment() {
 
 ## B7: Prototipo de vista en primera persona ([F6] o [F8]).
 static var first_person_active: bool = false
-static var fp_yaw: float = PI * 0.5 # ángulo horizontal en el plano 2D (0 = Este, PI/2 = Sur, -PI/2 = Norte)
+static var fp_yaw: float = 0.0      # ángulo horizontal en el plano 2D (0 = Este hacia el valle, PI/2 = Sur, -PI/2 = Norte)
 static var fp_pitch: float = 0.0    # ángulo vertical en radianes (positivo = mirar arriba, negativo = abajo)
 const FP_EYE_HEIGHT_PX: float = 15.5
 const FP_MOUSE_SENS: float = 0.0032

@@ -29791,13 +29791,13 @@ persistence_id = "weak_wall_tutorial_01"
 [node name="Items" type="Node2D" parent="." unique_id=643454969]
 
 [node name="WeaponPickup" parent="Items" unique_id=2027530117 instance=ExtResource("24_yncth")]
-position = Vector2(-706, -112)
+position = Vector2(-1844, -126)
 
 [node name="Entities" type="Node2D" parent="." unique_id=1825073484]
 y_sort_enabled = true
 
 [node name="PlayerGood" type="CharacterBody2D" parent="Entities" unique_id=2143824581 node_paths=PackedStringArray("dialogue_manager", "hint_label")]
-position = Vector2(-679, -56)
+position = Vector2(-1180, 50)
 collision_layer = 2
 collision_mask = 5
 script = ExtResource("2_d1c63")
@@ -29851,7 +29851,7 @@ position = Vector2(1, -13)
 shape = SubResource("CapsuleShape2D_rvslj")
 
 [node name="Guia" type="CharacterBody2D" parent="Entities" unique_id=909967902 node_paths=PackedStringArray("dialogue_manager", "enemy_ai") groups=["interactable"]]
-position = Vector2(-668, 12)
+position = Vector2(-1808, 12)
 script = ExtResource("13_i4b1j")
 dialogue_manager = NodePath("../../Systems/dialogue_manager")
 enemy_ai = NodePath("EnemyAI")

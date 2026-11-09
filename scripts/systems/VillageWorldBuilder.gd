@@ -10,9 +10,8 @@ extends RefCounted
 static func _spawn_village_roads_and_plaza(vm: VillageManager) -> void:
 	var dirt_col := Color(0.46, 0.36, 0.24, 0.65)
 
-	# 1. Camino Largo Oeste-Este desde las tierras salvajes (-1950, 36) pasando por el Campamento/Lago (-715) hasta el Borde Este (1010)
+	# 1. Camino Largo Oeste-Este desde las tierras salvajes (-1950, 36) pasando por el Lago (-715) hasta el Borde Este (1010)
 	_add_road_rect(vm, Rect2(Vector2(-1950, 36), Vector2(2960, 28)), dirt_col)
-	_add_road_rect(vm, Rect2(Vector2(-688, -88), Vector2(18, 124)), dirt_col)
 	_add_road_rect(vm, Rect2(Vector2(-688, 64), Vector2(18, 36)), dirt_col)
 	_add_road_rect(vm, Rect2(Vector2(-1520, -140), Vector2(22, 176)), dirt_col)
 	_add_road_rect(vm, Rect2(Vector2(-1520, 64), Vector2(22, 120)), dirt_col)

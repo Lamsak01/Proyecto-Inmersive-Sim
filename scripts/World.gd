@@ -202,8 +202,9 @@ func _draw_weather_overlay() -> void:
 		_weather_canvas.draw_rect(Rect2(Vector2.ZERO, sz), Color(0.76, 0.82, 0.86, 0.07), true)
 
 func _spawn_player_garden(entities_root: Node) -> void:
-	# A. Huerto de 3x3 parcelas (en el claro oeste bien alejado de la Trattoria y del pueblo, frente al lago)
-	var start_pos := Vector2(-775, -45)
+	var is_demo: bool = (GameManager == null) or (GameManager.has_method("is_demo_mode") and bool(GameManager.call("is_demo_mode")))
+	# A. Huerto de 3x3 parcelas (retirado a las afueras lejanas; oculto en modo demo)
+	var start_pos := Vector2(-1915, -60)
 	var spacing := 24.0
 	var idx := 0
 	for row in range(3):
@@ -213,22 +214,36 @@ func _spawn_player_garden(entities_root: Node) -> void:
 			entities_root.add_child(plot)
 			plot.global_position = start_pos + Vector2(col * spacing, row * spacing)
 			plot.set_plot_enabled(false)
+			if is_demo:
+				plot.visible = false
 			idx += 1
 
-	# B. Campamento (Hoguera con Cacerola para cocinar + Tronco para sentarse + Tienda de Campaña + Tendedero)
+	# B. Campamento (retirado fuera del pueblo; oculto en modo demo porque el jugador empieza en el camino de entrada al valle)
 	var camp := CampSite.new()
 	camp.name = "PlayerCampSite"
 	entities_root.add_child(camp)
-	camp.global_position = Vector2(-722, -96)
+	camp.global_position = Vector2(-1860, -110)
+	if is_demo:
+		camp.visible = false
+		if camp.tent_body:
+			camp.tent_body.collision_layer = 0
+			camp.tent_body.collision_mask = 0
 
-	# C. Gallinero Cuadrado (Comedero de 2 toques, Nido de Huevos y defensa contra Zorros nocturnos)
+	# C. Gallinero Cuadrado (retirado fuera del pueblo; oculto en modo demo)
 	var coop := ChickenCoop.new()
 	coop.name = "PlayerChickenCoop"
 	entities_root.add_child(coop)
-	coop.global_position = Vector2(-848, -21)
+	coop.global_position = Vector2(-1988, -36)
 	coop.set_coop_built(false)
+	if is_demo:
+		coop.visible = false
 
-	# D. Lago y Muelle de Pesca al Sur del Campamento
+	if is_demo:
+		var wp := get_node_or_null("Items/WeaponPickup") as CanvasItem
+		if wp:
+			wp.visible = false
+
+	# D. Lago y Muelle de Pesca al Sur del Camino de Entrada
 	var lake := FishingSpot.new()
 	lake.name = "WestFishingLake"
 	entities_root.add_child(lake)

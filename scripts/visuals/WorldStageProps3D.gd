@@ -734,6 +734,8 @@ func _scan_props_sources() -> void:
 		return
 	for c in vm.entities_root.get_children():
 		if c is ChickenCoop:
+			if not c.visible:
+				continue
 			_coop_node = c
 			for sub in c.get_children():
 				if sub is Sprite2D and (sub.name == "FeederSprite" or sub.name == "NestSprite"):
@@ -744,10 +746,14 @@ func _scan_props_sources() -> void:
 		if c is Sprite2D:
 			_add_prop_source(c as Sprite2D)
 		elif c is FarmPlot:
+			if not c.visible:
+				continue
 			for sub in c.get_children():
 				if sub is Sprite2D:
 					_add_prop_source(sub as Sprite2D, true)
 		elif c is CampSite:
+			if not c.visible:
+				continue
 			_camp_node = c
 			_collect_camp_sprites(c)
 			var hr: Node = c.get_node_or_null("PlayerHouseRoot")

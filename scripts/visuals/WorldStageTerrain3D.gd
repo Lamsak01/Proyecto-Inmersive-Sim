@@ -484,7 +484,6 @@ func _build_static_terrain_3d() -> void:
 	var road_rects: Array[Rect2] = [
 		Rect2(Vector2(-1950, 36), Vector2(2042, 28)),
 		Rect2(Vector2(144, 36), Vector2(1194, 28)),
-		Rect2(Vector2(-688, -88), Vector2(18, 124)),
 		Rect2(Vector2(-688, 64), Vector2(18, 36)),
 		Rect2(Vector2(-1520, -140), Vector2(22, 176)),
 		Rect2(Vector2(-1520, 64), Vector2(22, 120)),
@@ -506,6 +505,38 @@ func _build_static_terrain_3d() -> void:
 		if lr is Rect2:
 			_add_road_strip_3d(terrain_root_3d, lr as Rect2, 0.25, m_road)
 	_build_barrios_3d(m_wood)
+	# Camino de entrada al valle en las afueras occidentales (x = -1320..-720, y = 50):
+	# pinos, robles, matorrales, mojón de piedra y poste indicador de madera flanqueando la entrada
+	for entry_tree in [
+		[Vector2(-1285.0, 8.0), "nature/Pine_1.obj", 44.0, 25.0],
+		[Vector2(-1230.0, 12.0), "nature/CommonTree_1.obj", 38.0, 90.0],
+		[Vector2(-1160.0, 10.0), "nature/Pine_2.obj", 42.0, 145.0],
+		[Vector2(-1095.0, 12.0), "nature/BirchTree_1.obj", 36.0, 210.0],
+		[Vector2(-1010.0, 6.0), "nature/Pine_1.obj", 44.0, 15.0],
+		[Vector2(-955.0, 12.0), "nature/Pine_2.obj", 38.0, 110.0],
+		[Vector2(-885.0, 8.0), "nature/CommonTree_1.obj", 36.0, 45.0],
+		[Vector2(-825.0, 10.0), "nature/Pine_3.obj", 42.0, 195.0],
+		[Vector2(-760.0, 12.0), "nature/BirchTree_1.obj", 34.0, 75.0],
+		[Vector2(-1270.0, 88.0), "nature/Pine_2.obj", 42.0, 170.0],
+		[Vector2(-1205.0, 86.0), "nature/CommonTree_2.obj", 38.0, 60.0],
+		[Vector2(-1138.0, 90.0), "nature/Pine_3.obj", 44.0, 130.0],
+		[Vector2(-1070.0, 86.0), "nature/CommonTree_1.obj", 38.0, 250.0],
+		[Vector2(-1000.0, 92.0), "nature/Pine_2.obj", 42.0, 160.0],
+		[Vector2(-938.0, 86.0), "nature/CommonTree_2.obj", 38.0, 230.0],
+		[Vector2(-872.0, 88.0), "nature/Pine_1.obj", 40.0, 85.0],
+	]:
+		_add_model_2d(terrain_root_3d, str(entry_tree[1]), entry_tree[0] as Vector2, -0.4, Vector2.ZERO, float(entry_tree[2]), float(entry_tree[3]))
+	for entry_bush in [
+		Vector2(-1210.0, 24.0), Vector2(-1145.0, 25.0), Vector2(-1080.0, 24.0),
+		Vector2(-1200.0, 76.0), Vector2(-1135.0, 75.0), Vector2(-1065.0, 75.0),
+		Vector2(-945.0, 24.0), Vector2(-898.0, 25.0), Vector2(-848.0, 23.0),
+		Vector2(-950.0, 76.0), Vector2(-890.0, 75.0), Vector2(-835.0, 74.0),
+	]:
+		_add_model_2d(terrain_root_3d, "nature/Bush_1.obj", entry_bush, -0.2, Vector2.ZERO, 8.5, fmod(absf(entry_bush.x) * 19.0, 360.0))
+	# Mojón de piedra e indicador de madera a la vera del camino de entrada (x = -1152, y = 30)
+	_add_box_2d(terrain_root_3d, Vector2(-1152.0, 30.0), Vector2(4.5, 4.5), 0.0, 7.5, m_stone)
+	_add_cyl_2d(terrain_root_3d, Vector2(-1146.0, 30.0), 1.0, 0.0, 14.0, m_dark_wood, 1.0, 6)
+	_add_box_2d(terrain_root_3d, Vector2(-1143.5, 30.0), Vector2(8.0, 1.4), 10.5, 3.0, m_wood, -8.0)
 	# Callejas curvas del norte: un tramo de camino por segmento, girado, con una losa en cada codo
 	for cr in VillageLots.CURVED_ROADS:
 		var cpts: PackedVector2Array = VillageLots.curved_road_points(cr)
