@@ -157,6 +157,24 @@ func _attach_to_stage() -> bool:
 	return true
 
 
+## Vecinos lejanos (2026-11-09): con la simulación simplificada se mueven a saltos de 4 pasos; el muñeco 3D los sigue
+## suavizado para que no se vea a tirones. El jugador y los saltos grandes (teletransporte, cambio de piso) van directos.
+var _smooth_pos: Vector2 = Vector2.INF
+var _smooth_usec: int = 0
+
+func _smoothed_entity_pos() -> Vector2:
+	var real: Vector2 = target_entity.global_position
+	if is_player_avatar:
+		return real
+	var now: int = Time.get_ticks_usec()
+	var dt: float = clampf(float(now - _smooth_usec) / 1000000.0, 0.0, 0.1)
+	_smooth_usec = now
+	if _smooth_pos == Vector2.INF or _smooth_pos.distance_squared_to(real) > 30.0 * 30.0:
+		_smooth_pos = real
+	else:
+		_smooth_pos = _smooth_pos.lerp(real, 1.0 - exp(-dt * 18.0))
+	return _smooth_pos
+
 func _sync_holder_position() -> void:
 	if _holder == null or not is_instance_valid(target_entity) or _stage == null:
 		return
@@ -169,7 +187,7 @@ func _sync_holder_position() -> void:
 			elev_lvl = int(vm_node.player_elevation_level)
 	elif "elevation_level" in target_entity:
 		elev_lvl = int(target_entity.get("elevation_level"))
-	var pos_2d: Vector2 = target_entity.global_position
+	var pos_2d: Vector2 = _smoothed_entity_pos()
 	var tav_gd = preload("res://scripts/systems/VillageTavern.gd")
 	var rest_gd = preload("res://scripts/systems/VillageRestaurant.gd")
 	var tav_h: float = tav_gd.elevation_height_for(pos_2d, elev_lvl)

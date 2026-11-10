@@ -442,7 +442,7 @@ var _lod_tick: int = 0
 var _lod_k: float = 1.0
 ## B3 (orden del usuario, 2026-11-06): apagado. Los vecinos lejanos viven siempre al detalle; medido: cuesta ~1 fps.
 ## Queda como opción por si algún día hace falta.
-static var lod_enabled: bool = false
+static var lod_enabled: bool = true # Activado por el usuario (2026-11-09): vecinos lejanos (>360 px) piensan 1 de cada 4 pasos
 
 static var perf_on: bool = false
 static var perf_usec: Dictionary = {}

@@ -5,7 +5,7 @@ El detalle técnico está en `docs/HANDOFF.md` (sección 7) y el historial compl
 
 
 ## 2026-11-09 (tarde) — Rendimiento, vecinos atascados e informe del Caso I (Claude Code)
-- **Rendimiento:** el juego iba lento por el procesador, no por la gráfica. Los vecinos hacían comprobaciones caras (puertas, muros, edificios) contra todos los demás en cada instante, y el motor encadenaba hasta 8 pasos por fotograma para ponerse al día. Ahora lo barato va primero, las huellas de edificios están en caché y hay un tope de 3 pasos a velocidad normal. Portátil: de 3–4 a 12–17 fps. Luego: rejilla de vecinos por paso (cada uno mira solo su zona) y terreno quieto juntado por zonas → 14–21 fps; afueras de 8.400 a 5.300 llamadas de dibujo.
+- **Rendimiento:** el juego iba lento por el procesador, no por la gráfica. Los vecinos hacían comprobaciones caras (puertas, muros, edificios) contra todos los demás en cada instante, y el motor encadenaba hasta 8 pasos por fotograma para ponerse al día. Ahora lo barato va primero, las huellas de edificios están en caché y hay un tope de 3 pasos a velocidad normal. Portátil: de 3–4 a 12–17 fps. Luego: rejilla de vecinos por paso (cada uno mira solo su zona) y terreno quieto juntado por zonas → 14–21 fps; afueras de 8.400 a 5.300 llamadas de dibujo. Por último, vecinos lejanos simplificados (activado por el usuario) con el muñeco 3D suavizado: 22–45 fps según la zona.
 - **Vecinos atascados:** se deslizan por el borde de edificios y orillas en vez de congelarse; 9 → 2 atascos en 4 h de juego.
 - **Día de 18 minutos** (antes 6).
 - **Informe del Caso I** en la comisaría (bandeja junto a la entrada): pruebas del cuaderno + a quién culpas; queda guardado para el final. Las pistas del caso a las que apuntas ganan a una puerta cercana.

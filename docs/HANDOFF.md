@@ -272,7 +272,7 @@ Otros documentos antiguos en la raíz: `ROADMAP_PROYECTO.md`, `AUDIT_LOG.md`, `S
   (talar/roca agotada escala la copia a cero). `seed_start_population`: una de cada dos casas con `remote = true`.)
   Medido en Intel UHD 620 a 3072×1728: 2.317 mallas 3D, de ellas Buildings3D 1.481, Characters3D 362, Nature3D 199,
   Terrain3D 157 → el siguiente candidato es juntar piezas quietas de los edificios (muebles, muros, suelos). El usuario
-  NO quiere que los vecinos lejanos se simulen a ratos.
+  NO quiere que los vecinos lejanos se simulen a ratos. **Cambiado por el usuario el 2026-11-09: activada (`lod_enabled = true`), con el muñeco 3D suavizado (`CharacterAvatar3D._smoothed_entity_pos`).**
 
 - [x] **Arranque con 40 vecinos, PROVISIONAL (Claude Code, 2026-11-06)** (`VillageMigration.gd`: `START_POPULATION = 40`
   (0 = arranque normal), `seed_start_population` levanta casas al instante con `VillageLots.build_instant_house` cuando
