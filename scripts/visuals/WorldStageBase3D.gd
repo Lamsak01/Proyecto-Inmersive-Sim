@@ -491,7 +491,8 @@ static func _river_bank_terrace_height_px(y: float) -> float:
 	for off in [-18.0, -30.0, 30.0]:
 		var sx: float = cx + (hw + absf(off)) * signf(off)
 		h_min = minf(h_min, terrain_height_px(Vector2(sx, y)) - _river_cut_px(Vector2(sx, y)))
-	return h_min
+	# …pero nunca por debajo del lecho (escalones del terreno junto al pueblo dejaban el agua tapada)
+	return maxf(h_min, terrain_height_px(Vector2(cx, y)) + 1.4)
 
 
 ## Parte del hundimiento del cauce en un punto (para no contarla al medir la orilla).
