@@ -315,7 +315,7 @@ static func make_teacher(vm, n) -> void:
 	n.trade_role = VillageNPC.TradeRole.TEACHER
 	n.linked_trade = VillageNPC.TradeRole.TEACHER
 	n.npc_role = "Maestra de la Escuela" if n.person_profile != null and str(n.person_profile.gender) == "F" else "Maestro de la Escuela"
-	n.work_position = teacher_pos()
+	n.work_position = vm.sitio(teacher_pos())
 	vm.unemployed_npcs.erase(n)
 	state(vm)["teacher"] = n.get_person_key()
 	n.add_thought("Me han dado la escuela (+10)", 10.0)
@@ -356,8 +356,8 @@ static func update_school(vm, pay: bool = true) -> void:
 			continue
 		var goes: bool = t != null and n.person_profile != null and int(n.person_profile.age) >= SCHOOL_AGE
 		if goes:
-			n.set_meta("school_pos", desk_pos(i))
-			n.work_position = desk_pos(i)
+			n.set_meta("school_pos", vm.sitio(desk_pos(i)))
+			n.work_position = vm.sitio(desk_pos(i))
 			i += 1
 		else:
 			if n.has_meta("school_pos"):
@@ -385,7 +385,7 @@ static func on_hour(vm, hour: int) -> void:
 	var st: Dictionary = state(vm)
 	var cur_d: int = today()
 	var line_idx: int = 0
-	var school_door: Vector2 = VillageLots.site_work_pos("e3")
+	var school_door: Vector2 = vm.sitio(VillageLots.site_work_pos("e3"))
 	for n in pupils(vm):
 		if not n.has_meta("school_pos") or n.is_dead or n.is_downed:
 			continue

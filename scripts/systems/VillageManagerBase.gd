@@ -3,6 +3,18 @@ extends Node2D
 const EdificioEditor = preload("res://mapa/edificio.gd")
 const Anclas = preload("res://mapa/anclas.gd")
 
+## Plan de sitios (docs/PLAN_SITIOS.md): traduce un punto escrito en coordenadas del mapa ORIGINAL a su sitio actual
+## (edificio, mueble u objeto movido en el editor del mapa 3D). Úsalo una sola vez, donde se escribe el número fijo.
+func sitio(p: Vector2) -> Vector2:
+	return p if p == Vector2.ZERO else Anclas.mover(p)
+
+## Lo mismo para una lista de puntos originales (para comparar con sitios ya traducidos de los vecinos).
+func sitios(lista: Array) -> Array:
+	var out: Array = []
+	for q in lista:
+		out.append(sitio(q))
+	return out
+
 var VillageJustice = load("res://scripts/systems/VillageJustice.gd")
 
 var VillageSocialLife = load("res://scripts/systems/VillageSocialLife.gd")

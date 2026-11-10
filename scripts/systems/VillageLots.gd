@@ -514,7 +514,7 @@ static func on_hour(vm, _hour: int) -> void:
 	var carp = _carpenter(vm)
 	if id == "" or carp == null:
 		return
-	var wp: Vector2 = site_work_pos(id)
+	var wp: Vector2 = vm.sitio(site_work_pos(id))
 	if carp.work_position != wp:
 		carp.work_position = wp
 	if carp.is_downed or carp.is_sleeping or int(carp.current_activity) != WORK_STATE or carp.global_position.distance_to(wp) > SITE_RADIUS:

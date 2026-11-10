@@ -4,6 +4,10 @@ Cambios del juego, del más nuevo al más antiguo. Añade una entrada al cerrar 
 El detalle técnico está en `docs/HANDOFF.md` (sección 7) y el historial completo en `git log`. Lo anterior a B0.1 está en `AUDIT_LOG.md` y `SESSION_CONTEXT_LOG.md`.
 
 
+## 2026-11-10 — Los vecinos siguen a sus casas movidas (Claude Code, portátil)
+- Si mueves o giras una casa, una tienda o sus muebles en el editor del mapa 3D, sus vecinos duermen, comen y trabajan en el sitio nuevo (antes iban al hueco viejo). Prueba: 54 de 60 sitios siguen al edificio; los 6 restantes están al aire libre y van en el siguiente paso. Plan y registro: `docs/PLAN_SITIOS.md`.
+- Aviso: la partida de prueba del Caso I falla desde antes de este cambio (el jugador no llega al claro); queda apuntado.
+
 ## 2026-11-10 — Pincel del mapa (Claude Code, portátil)
 - Nuevo panel **Pincel** en el editor del mapa 3D: pinta bosques, rocas, hierba, matorrales o troncos arrastrando el ratón, o copias de tus propios modelos. Goma para borrar, tamaño y «apretado». No siembra en el río, el lago, los edificios ni los caminos. Cada cosa pintada se puede mover luego una a una. Guía: `docs/PINCEL_MAPA_GUIA.md`.
 

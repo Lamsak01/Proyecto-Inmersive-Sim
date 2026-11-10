@@ -94,22 +94,24 @@ static func free_house_beds(vm) -> int:
 
 static func free_tavern_bed(vm):
 	var used: Array = []
+	var camas: Array = vm.sitios(TAVERN_GUEST_BEDS) # plan de sitios: camas en su sitio actual
 	for n in residents(vm):
 		# E3: cuenta cualquier vecino que duerma ahí (también un maestro que ya tiene oficio), no solo los parados
-		if house_of(n) == "" and n.bed_position in TAVERN_GUEST_BEDS:
+		if house_of(n) == "" and n.bed_position in camas:
 			used.append(n.bed_position)
-	for b in TAVERN_GUEST_BEDS:
+	for b in camas:
 		if not b in used:
 			return b
 	return null
 
 static func free_tavern_beds_count(vm) -> int:
 	var used: Array = []
+	var camas: Array = vm.sitios(TAVERN_GUEST_BEDS)
 	for n in residents(vm):
-		if house_of(n) == "" and n.bed_position in TAVERN_GUEST_BEDS:
+		if house_of(n) == "" and n.bed_position in camas:
 			used.append(n.bed_position)
 	var c: int = 0
-	for b in TAVERN_GUEST_BEDS:
+	for b in camas:
 		if not b in used:
 			c += 1
 	return c
@@ -141,8 +143,8 @@ static func move_into_house(vm, n, id: String = "") -> bool:
 	var lid: String = str(b["lot"])
 	var res_idx: int = (VillageLots.lot(vm, lid).get("residents", []) as Array).size()
 	VillageLots.add_resident(vm, lid, n.get_person_key())
-	n.bed_position = b["bed"]
-	n.home_table_pos = b["table"]
+	n.bed_position = vm.sitio(b["bed"])
+	n.home_table_pos = vm.sitio(b["table"])
 	if is_unemployed(n):
 		var door_street: Vector2 = VillageLots.site_work_pos(lid)
 		n.work_position = door_street + Vector2(float((res_idx % 3) - 1) * 18.0 + float((absi(n.npc_name.hash()) % 9) - 4) * 2.0, float(res_idx % 2) * 8.0)

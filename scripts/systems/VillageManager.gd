@@ -1523,8 +1523,40 @@ func reconcile_npc_registries_after_load() -> void:
 ## Editor del mapa 3D (2026-11-10): los objetos que el juego crea sin pasar por las funciones _add_* (huertos, gallinero,
 ## animales de granja con su corral, campamento, muro débil, cajas y carteles con uso, carro y caballo) también siguen
 ## a las anclas del editor (mapa/anclas.gd).
+## Plan de sitios, paso 1 (docs/PLAN_SITIOS.md, 2026-11-10): cama, mesa y puesto de trabajo de los vecinos y de los
+## oficios (trade_configs) se escriben en coordenadas del mapa original; aquí se traducen UNA vez a su sitio actual
+## (edificio movido o girado, mueble movido). Las marcas evitan traducir dos veces.
+const SITIOS_CAMPOS_CFG: Array[String] = ["work_pos", "kin_work_pos", "bed1_pos", "bed2_pos", "table_pos", "stall_pos"]
+const SITIOS_CAMPOS_NPC: Array[String] = ["bed_position", "home_table_pos", "work_position", "tavern_social_pos"]
+
+func _sitios_repaso(AN) -> void:
+	for k in trade_configs.keys():
+		var cfg: Dictionary = trade_configs[k]
+		if cfg.get("_sitios", false):
+			continue
+		cfg["_sitios"] = true
+		for campo in SITIOS_CAMPOS_CFG:
+			if cfg.get(campo) is Vector2 and cfg[campo] != Vector2.ZERO:
+				cfg[campo] = AN.mover(cfg[campo])
+	for n in get_tree().get_nodes_in_group("village_npcs"):
+		sitios_traducir_npc(n)
+
+
+## Traduce una vez los sitios de un vecino creado con coordenadas del mapa original.
+func sitios_traducir_npc(n: Node) -> void:
+	if n == null or n.has_meta("sitios_ok"):
+		return
+	n.set_meta("sitios_ok", true)
+	var AN = load("res://mapa/anclas.gd")
+	for campo in SITIOS_CAMPOS_NPC:
+		var v = n.get(campo)
+		if v is Vector2 and v != Vector2.ZERO:
+			n.set(campo, AN.mover(v))
+
+
 func _anclas_repaso_final() -> void:
 	var AN = load("res://mapa/anclas.gd")
+	_sitios_repaso(AN)
 	var clases := ["FarmPlot.gd", "ChickenCoop.gd", "CampSite.gd", "LivestockAnimal.gd", "DestructibleObject.gd", "WorldInteractableProp.gd", "PlayerCart.gd", "PlayerHorse.gd"]
 	for c in entities_root.get_children():
 		if not (c is Node2D) or c is HarvestableNode or c.get_script() == null:

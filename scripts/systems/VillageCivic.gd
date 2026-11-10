@@ -245,7 +245,7 @@ static func try_shelter(vm, npc) -> bool:
 	npc.is_vagrant_camper = true
 	npc.in_shelter = true
 	npc.lodging = ""
-	npc.bed_position = b
+	npc.bed_position = vm.sitio(b)
 	if vm.vagrant_camp_nodes.has(npc.npc_name) and is_instance_valid(vm.vagrant_camp_nodes[npc.npc_name]):
 		vm.vagrant_camp_nodes[npc.npc_name].visible = false
 	npc.add_thought("Sin dinero, pero con techo en el Albergue del Alba (-3)", -3.0)
@@ -290,7 +290,7 @@ static func nightly_guest(vm, guest, tavern_rent: int) -> bool:
 	guest.personal_gold -= INN_RENT
 	keeper.personal_gold = maxi(0, keeper.personal_gold) + INN_RENT
 	guest.lodging = "candil"
-	guest.bed_position = b
+	guest.bed_position = vm.sitio(b)
 	guest.add_thought("No llega para El Jabalí; duerme en El Candil (-2)", -2.0)
 	guest._spawn_floating_text("🕯️ Se aloja en El Candil (-%d Oro)" % INN_RENT, Color(1.0, 0.85, 0.5), -34.0)
 	return true

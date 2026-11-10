@@ -36,3 +36,8 @@
   más adelante con una hierba sin patrón visible (manchas irregulares, variación de tono).
 
 > Los arreglados están en `docs/FALLOS_ARREGLADOS.md` (no hace falta leerlos). Al arreglar uno, márcalo con ✅ aquí; el supervisor lo archiva.
+
+## 2026-11-10 — Partida del Caso I: el jugador no llega al claro (detectado por Claude Code)
+- `tools/tests/partida_caso1.gd` pasa de 25/25 (2026-11-09) a 7/25. El paseo al claro se queda en (213, -796) y todo lo
+  que va detrás falla. Pasa igual sin los cambios del plan de sitios: viene de los cambios del mapa (río redibujado,
+  árboles y troncos sólidos del editor 3D). Mirar qué tapa el camino al claro.

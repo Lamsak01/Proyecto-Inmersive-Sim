@@ -877,8 +877,8 @@ static func move_into_player_home(vm, npc, bed_i: int) -> bool:
 	npc.lodging = "house:" + p_lot
 	var beds: Array = VillageLots._house_beds(p_lot)
 	if not beds.is_empty():
-		npc.bed_position = beds[clampi(bed_i, 0, beds.size() - 1)]
-	npc.home_table_pos = VillageLots.lot_def(p_lot)["center"] + Vector2(0, -2)
+		npc.bed_position = vm.sitio(beds[clampi(bed_i, 0, beds.size() - 1)])
+	npc.home_table_pos = vm.sitio(VillageLots.lot_def(p_lot)["center"] + Vector2(0, -2))
 	VillageLots.add_resident(vm, p_lot, key)
 	return true
 
