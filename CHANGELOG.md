@@ -4,6 +4,12 @@ Cambios del juego, del más nuevo al más antiguo. Añade una entrada al cerrar 
 El detalle técnico está en `docs/HANDOFF.md` (sección 7) y el historial completo en `git log`. Lo anterior a B0.1 está en `AUDIT_LOG.md` y `SESSION_CONTEXT_LOG.md`.
 
 
+## 2026-11-10 — Controles sin choques (Claude Code, portátil; aprobado por el usuario)
+- Los trucos de prueba piden Ctrl para no saltar en una partida normal: Ctrl+T adelanta 2 horas, Ctrl+F1–F4 cambian la velocidad del reloj, Ctrl+F7 el tiempo atmosférico y Ctrl+º el modo pruebas. Ya no salen en la ayuda (H).
+- + y − solo hacen zoom (antes también cambiaban la velocidad del reloj).
+- Fuera las teclas repetidas: F6 (era igual que P), F8 (igual que º) y F10 (igual que F9). Lista completa en `docs/CONTROLES.md`.
+- Dos comprobaciones de la prueba general que fallaban a veces, según cómo fuera la partida de prueba, ahora ponen al vecino en un estado neutro antes de comprobar.
+
 ## 2026-11-10 — Menos vecinos atascados y arranque más limpio (Claude Code, portátil)
 - Los vecinos ya no se meten en el hueco estrecho entre la herboristería y la pescadería (ni en el del albergue con el hojalatero): rodean la manzana.
 - Antes de la pasarela del norte del río siguen la orilla en vez de meterse en el agua donde el río hace curva.

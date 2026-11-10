@@ -1,6 +1,6 @@
 # Controles del juego (lista completa)
 
-Revisada a mano en el código el 2026-11-09. **Antes de asignar una tecla nueva, mira aquí que esté libre y apúntala.**
+Revisada a mano en el código el 2026-11-09; cambios aprobados por el usuario el 2026-11-10 (trucos con Ctrl, sin teclas repetidas). **Antes de asignar una tecla nueva, mira aquí que esté libre y apúntala.**
 El código de las teclas está repartido en `scripts/` **y** en `scenes/` (los paneles están en `scenes/ui_root.gd`):
 si buscas en el código, busca en todo el proyecto.
 
@@ -36,25 +36,30 @@ si buscas en el código, busca en todo el proyecto.
 | K | Habilidades |
 | L | Diario de encargos |
 | O | Crónica del pueblo |
-| P / F6 | Vista en primera persona |
-| T | Adelantar el tiempo (unas 2 horas) |
-| + / − (y RePág / AvPág) | Zoom de la cámara **y** velocidad del reloj a la vez (se pisan, fallo conocido) |
+| P | Vista en primera persona |
+| + / − (y RePág / AvPág) | Zoom de la cámara |
 | Alt (mirando a un vecino) | Más detalles del vecino |
 | Esc | Cerrar el panel abierto |
 
 ## Teclas F
 | Tecla | Qué hace |
 |---|---|
-| F1–F4 | Velocidad del reloj ×1, ×2, ×4 y ×8 (en la taberna: elegir juego) |
 | F5 / F12 | Guardar / cargar partida |
-| F7 | Cambiar el tiempo (despejado, lluvia…) |
 | F9 | Cámara 2D / 3D (con Mayús: visor de personajes 3D) |
-| F10 | Igual que F9 |
 | F11 | Pantalla completa |
-| **º** (a la izquierda del 1) o F8 | **Modo pruebas**: energía, salud, hambre y oro infinitos |
+
+## Trucos para probar (con Ctrl, para que no salten en una partida normal)
+| Tecla | Qué hace |
+|---|---|
+| Ctrl+T | Adelantar el tiempo (unas 2 horas) |
+| Ctrl+F1–F4 | Velocidad del reloj ×1, ×2, ×4 y ×8 |
+| Ctrl+F7 | Cambiar el tiempo (despejado, lluvia…) |
+| Ctrl+º (a la izquierda del 1) | **Modo pruebas**: energía, salud, hambre y oro infinitos |
+
+No salen en la ayuda del juego (H). En la taberna, F1–F4 sin Ctrl siguen eligiendo juego.
 
 **Ojo, dentro del editor de Godot:** F5 arranca el juego, F6 arranca la escena abierta, F7 lo pausa y F8 lo
-detiene. Ahí esas teclas las coge Godot, no el juego: para el modo pruebas usa **º**, y para la primera persona, **P**.
+detiene. Ahí esas teclas las coge Godot, no el juego; por eso el juego ya no usa F6 ni F8.
 
 ## Solo dentro de un menú (no chocan fuera de él)
 - Diálogos: 1–9, W/S o flechas, Intro/Espacio, Esc.
@@ -64,5 +69,5 @@ detiene. Ahí esas teclas las coge Godot, no el juego: para el modo pruebas usa 
 - Rueda de herramientas: W/A/S/D o flechas, Espacio/Intro.
 
 ## Teclas libres (a 2026-11-09)
-Ninguna letra queda libre del todo. Libres: **Y, Z** (solo se usan dentro de menús), F10 (repite F9), las teclas de
-puntuación y el teclado numérico (salvo + y −).
+Libres (2026-11-10): **T, Y, Z** (Y y Z solo se usan dentro de menús), F1–F4 y F7 sin Ctrl (salvo en la taberna),
+F6, F8, F10, º sin Ctrl, las teclas de puntuación y el teclado numérico (salvo + y −).

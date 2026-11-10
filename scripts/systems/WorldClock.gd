@@ -88,7 +88,9 @@ func _unhandled_input(event: InputEvent) -> void:
 				return
 	if not allow_debug_time_skip:
 		return
-	if event is InputEventKey and event.pressed and not event.echo:
+	# Controles (2026-11-10, aprobado por el usuario): los trucos de tiempo piden Ctrl para no saltar en una partida
+	# normal (Ctrl+T, Ctrl+F7, Ctrl+F1–F4). + y − ya no tocan el reloj: solo el zoom de la cámara.
+	if event is InputEventKey and event.pressed and not event.echo and event.ctrl_pressed:
 		if event.physical_keycode == KEY_T:
 			var vm = get_tree().get_first_node_in_group("village_manager")
 			if not is_fast_forwarding and (vm == null or (not bool(vm.get("player_in_jail")) and not bool(vm.get("player_being_escorted_to_jail")))):
@@ -104,10 +106,6 @@ func _unhandled_input(event: InputEvent) -> void:
 				set_persistent_time_scale(4.0)
 			elif event.physical_keycode == KEY_F4:
 				set_persistent_time_scale(8.0)
-			elif event.physical_keycode in [KEY_MINUS, KEY_KP_SUBTRACT] or event.keycode in [KEY_MINUS, KEY_KP_SUBTRACT]:
-				cycle_persistent_time_scale(-1)
-			elif event.physical_keycode in [KEY_EQUAL, KEY_PLUS, KEY_KP_ADD] or event.keycode in [KEY_EQUAL, KEY_PLUS, KEY_KP_ADD]:
-				cycle_persistent_time_scale(1)
 
 func cycle_weather() -> void:
 	var next_w: int = (int(current_weather) + 1) % 3

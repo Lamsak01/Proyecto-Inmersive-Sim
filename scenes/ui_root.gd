@@ -216,7 +216,7 @@ func _is_external_world_modal_open() -> bool:
 	return false
 
 func _input(event: InputEvent) -> void:
-	if event is InputEventKey and event.pressed and not event.echo and (event.keycode == KEY_F8 or event.physical_keycode == KEY_F8 or event.physical_keycode == KEY_QUOTELEFT):
+	if event is InputEventKey and event.pressed and not event.echo and event.ctrl_pressed and event.physical_keycode == KEY_QUOTELEFT: # modo pruebas: Ctrl+º
 		if player and player.has_method("toggle_test_mode"):
 			player.call("toggle_test_mode")
 			get_viewport().set_input_as_handled()
@@ -722,9 +722,8 @@ func _setup_controls_panel_ui() -> void:
 		["Vecinos / Caso", "J / N"],
 		["Salud / heridas", "U"],
 		["Cámara 2D / 3D", "F9"],
-		["Vista en 1.ª persona", "P / F6"],
-		["Velocidad del reloj", "F1–F4"],
-		["Modo pruebas", "º / F8"],
+		["Vista en 1.ª persona", "P"],
+		["Zoom de la cámara", "+ / −"],
 		["Guardar / cargar", "F5 / F12"],
 		["Ver esta ayuda", "H"],
 	]

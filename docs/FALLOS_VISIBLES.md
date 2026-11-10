@@ -10,7 +10,7 @@
 - [ ] **El molino está a 2 metros del cuerpo de la víctima**, y el bosque tiene árboles metidos unos dentro de otros · 3D (2026-11-09).
 - [x] ✅ (2026-11-10) **Setas y plantas del bosque sin modelo 3D:** las setas (y hierbas) que se recogen se ven como dibujos 2D planos dentro del mundo 3D; faltan modelos 3D para ellas y para las plantas del bosque · 1.ª persona y 3D (usuario, 2026-11-09). *(Setas de Kenney Nature Kit; hierbas, helechos, hierba, tocones y troncos con musgo del mismo pack Quaternius que los árboles. Créditos en `docs/CREDITOS_RECURSOS.md`.)*
 - [x] ✅ (2026-11-09) **Árboles, arbustos, troncos y setas dentro del río** al redibujarlo en el editor del mapa · ya no se colocan en el agua; el tronco caído del bosque del sur es ahora un puente natural por el que se camina.
-- [ ] **Controles que se pisan** (varias acciones en la misma tecla) · (2026-11-09).
+- [x] ✅ (2026-11-10) **Controles que se pisan** (varias acciones en la misma tecla) · (2026-11-09). *(Plan aprobado por el usuario: los trucos de tiempo y el modo pruebas piden Ctrl (Ctrl+T, Ctrl+F1–F4, Ctrl+F7, Ctrl+º) y no salen en la ayuda; + y − solo hacen zoom; fuera F6, F8 y F10 repetidas. Ver `docs/CONTROLES.md`.)*
 - [ ] **El Caso I empieza a la vez que llega el jugador**: no hay tiempo para entender qué pasa ni adónde ir · inicio de la demo (2026-11-09).
 - [x] ✅ (2026-11-09) **El día pasaba demasiado deprisa** · ahora un día de juego dura 18 min reales (antes 6).
 - [ ] *(No prioritario, más adelante)* **Cuartos de la posada sin puertas ni muebles** y **camas demasiado pequeñas** · 18:54

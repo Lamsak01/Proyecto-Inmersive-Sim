@@ -218,10 +218,10 @@ func _ready() -> void:
 
 func _unhandled_input(event: InputEvent) -> void:
 	if event is InputEventKey and event.pressed and not event.echo:
-		if (event.keycode == KEY_F9 or event.keycode == KEY_F10) and event.shift_pressed:
+		if event.keycode == KEY_F9 and event.shift_pressed:
 			toggle_panel()
 			get_viewport().set_input_as_handled()
-		elif (event.keycode == KEY_F9 or event.keycode == KEY_F10) and not event.shift_pressed:
+		elif event.keycode == KEY_F9 and not event.shift_pressed:
 			var vm = get_tree().get_first_node_in_group("village_manager")
 			var st3d = vm.get("world_stage_3d") if vm != null else null
 			if st3d != null and st3d.get("first_person_active") == true:
@@ -230,7 +230,7 @@ func _unhandled_input(event: InputEvent) -> void:
 			var p = get_tree().get_first_node_in_group("player")
 			if p and p.has_method("show_hint"):
 				var mode_txt := "Mundo, Edificios y Personajes 3D ACTIVADOS" if CharacterAvatar3DScript.use_3d_characters else "Mapa y Sprites 2D Clásicos ACTIVADOS"
-				p.call("show_hint", "🎥 [F9] %s ([P]/[F6] 1.ª Persona · [Mayús+F9] Visor 3D)" % mode_txt)
+				p.call("show_hint", "🎥 [F9] %s ([P] 1.ª Persona · [Mayús+F9] Visor 3D)" % mode_txt)
 			_update_status_text()
 			get_viewport().set_input_as_handled()
 		elif visible and event.keycode == KEY_ESCAPE:
@@ -282,7 +282,7 @@ func _build_ui() -> void:
 	header.add_child(title_lbl)
 
 	var toggle_live_btn := Button.new()
-	toggle_live_btn.text = "🎥 Alternar 3D/2D en Partida [F10]"
+	toggle_live_btn.text = "🎥 Alternar 3D/2D en Partida [F9]"
 	toggle_live_btn.pressed.connect(func():
 		CharacterAvatar3DScript.use_3d_characters = not CharacterAvatar3DScript.use_3d_characters
 		_update_status_text()
@@ -290,7 +290,7 @@ func _build_ui() -> void:
 	header.add_child(toggle_live_btn)
 
 	var close_btn := Button.new()
-	close_btn.text = "✖ Cerrar [F8 / Esc]"
+	close_btn.text = "✖ Cerrar [Esc]"
 	close_btn.pressed.connect(func(): toggle_panel())
 	header.add_child(close_btn)
 
@@ -566,7 +566,7 @@ func _update_status_text() -> void:
 	if not status_lbl:
 		return
 	var preset_title: String = str(ARCHETYPE_PRESETS[_current_preset_idx]["title"])
-	var mode_str: String = "ACTIVO en el mapa (pulsa [F10] para volver a Sprites 2D)" if CharacterAvatar3DScript.use_3d_characters else "PAUSADO en el mapa (mostrando Sprites 2D originales; pulsa [F10] para activar 3D)"
+	var mode_str: String = "ACTIVO en el mapa (pulsa [F9] para volver a Sprites 2D)" if CharacterAvatar3DScript.use_3d_characters else "PAUSADO en el mapa (mostrando Sprites 2D originales; pulsa [F10] para activar 3D)"
 	status_lbl.text = "Arquetipo: %s | Arma: %s | Animación: %s | Estado en partida: %s" % [
 		preset_title,
 		str(_custom_cfg.get("weapon", "none")),

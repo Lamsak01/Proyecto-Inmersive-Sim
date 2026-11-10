@@ -1894,12 +1894,22 @@ func _initialize() -> void:
 			break
 	if g_w != null:
 		wclock.current_hour = 15
+		# 2026-11-10: estado neutro (si estaba de ocio en la taberna, enfermo o en un rito, no trabaja y el test fallaba a veces)
+		var g_w_ek: String = g_w.errand_kind
+		var g_w_rite: Vector2 = g_w.rite_pos
+		var g_w_sick: int = g_w.sick_level
+		g_w.errand_kind = ""
+		g_w.rite_pos = Vector2.ZERO
+		g_w.sick_level = 0
 		if not g_w._is_morning_expedition_hours():
 			assert(not g_w._is_mandatory_work_hours(), "G2: Craftsmen rest on Sunday")
 			wclock.current_day = 6
 			assert(not g_w._is_mandatory_work_hours(), "G2: On Saturday they only work in the morning")
 			wclock.current_day = 3
 			assert(g_w._is_mandatory_work_hours(), "G2: On weekdays they work as usual")
+		g_w.errand_kind = g_w_ek
+		g_w.rite_pos = g_w_rite
+		g_w.sick_level = g_w_sick
 		wclock.current_day = 7
 	# G2: el Oficio
 	for gp in [g_a, g_b, g_sk, g_priest]:
@@ -6784,7 +6794,10 @@ func _initialize() -> void:
 	b2_culprit.global_position = b2_vj.CELL_POS
 	assert(b2_vj.process_npc_jail_step(vm, b2_culprit, 0.1), "B2.3: Jail step takes control of the inmate's routine")
 	assert(str(b2_vj.get_inmate_record(vm, b2_culprit).get("status", "")) == "jailed", "B2.4: Reaching the cell transitions inmate to jailed status")
+	var b2_aff_diag: int = b2_culprit.affinity
+	b2_culprit.affinity = 0 # 2026-11-10: si te tenía rencor (otros tests), el diálogo era el de «familia agraviada» y fallaba a veces
 	var b2_diag_inmate: Dictionary = b2_culprit._inject_character_lore_into_dialogue(b2_culprit._build_dialogue())
+	b2_culprit.affinity = b2_aff_diag
 	assert(b2_diag_inmate.has("jail_escape_confirm") and "calabozo" in str(b2_diag_inmate.get("start", {}).get("text", "")), "B2.5: Talking to an inmate through the bars injects jail_escape_confirm dialogue node")
 	# 3. Las horas descuentan condena y al llegar a 0 sale libre
 	b2_vj.get_inmate_record(vm, b2_culprit)["hours_left"] = 1

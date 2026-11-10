@@ -321,7 +321,7 @@ func set_first_person(enable: bool) -> void:
 			if not _is_ui_blocking_fp():
 				Input.set_mouse_mode(Input.MOUSE_MODE_CAPTURED)
 		if is_instance_valid(pl) and pl.has_method("show_hint"):
-			pl.call("show_hint", "👁️ Vista en 1.ª persona activada ([P] o [F6] para salir)")
+			pl.call("show_hint", "👁️ Vista en 1.ª persona activada ([P] para salir)")
 	else:
 		first_person_active = false
 		fp_pitch = 0.0
@@ -350,7 +350,7 @@ func set_first_person(enable: bool) -> void:
 		_update_roof_cutaways_and_lighting()
 		var pl2 := get_tree().get_first_node_in_group("player") as Node2D if is_inside_tree() else null
 		if is_instance_valid(pl2) and pl2.has_method("show_hint"):
-			pl2.call("show_hint", "🎥 [P/F6] Vista superior 2.5D restaurada ([F9] alterna 3D/2D)")
+			pl2.call("show_hint", "🎥 [P] Vista superior 2.5D restaurada ([F9] alterna 3D/2D)")
 
 func rotate_first_person_view(delta_x_px: float, delta_y_px: float = 0.0) -> void:
 	fp_yaw = wrapf(fp_yaw + delta_x_px * FP_MOUSE_SENS, -PI, PI)
@@ -986,7 +986,7 @@ func _update_fp_camera_transform() -> void:
 
 func _unhandled_input(event: InputEvent) -> void:
 	if event is InputEventKey and event.pressed and not event.echo:
-		if event.keycode == KEY_F6 or event.physical_keycode == KEY_F6 or ((event.keycode == KEY_P or event.physical_keycode == KEY_P) and not _is_ui_blocking_fp()):
+		if (event.keycode == KEY_P or event.physical_keycode == KEY_P) and not _is_ui_blocking_fp(): # sin F6, que en el editor de Godot lanza la escena
 			toggle_first_person()
 			get_viewport().set_input_as_handled()
 
