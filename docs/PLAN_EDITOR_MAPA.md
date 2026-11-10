@@ -22,9 +22,16 @@ ordenador principal**: pregúntale cuáles antes de las piezas nuevas (árboles,
    (aprender Godot, paso 1). Mirar que los vecinos ya no se atascan en el río nuevo.
 2. Edificios movibles desde el editor (hoy están escritos en el código: VillageManagerBase/VillageWorldBuilder).
    Arreglaría «el molino a 2 m del cuerpo».
-3. Zonas pintadas (bosque, campos, caminos) y árboles colocables, con los assets del usuario. Arreglaría
+3. **Ríos nuevos y arroyos (pedido del usuario, 2026-11-09):** el lago del pueblo debe recibir agua del río principal,
+   de forma realista: un arroyo de entrada que sale del río aguas arriba (al norte) y baja al lago, y uno de salida que
+   vuelve al río más al sur, con vados o puentecillos. Requiere varios ríos o ramas y quitar la limitación de que el
+   río solo vaya de norte a sur (hoy los puntos se ordenan por altura en el mapa; los arroyos irían de este a oeste).
+   El usuario quiere dibujarlos él mismo, igual que el río.
+4. Zonas pintadas (bosque, campos, caminos) y árboles colocables, con los assets del usuario. Arreglaría
    «árboles que se solapan en el bosque».
-4. Lo que queda escrito a mano para el río original (el molino, el puente viejo, el zapato del Caso I junto al puente)
+5. Después (deseo del usuario, 2026-11-09: «editarlo todo a mano, sin programar»): calles, sitios donde salen los
+   recursos, tamaño y reparto de los objetos del mundo, e interiores de cada edificio decorados a su gusto.
+6. Lo que queda escrito a mano para el río original (el molino, el puente viejo, el zapato del Caso I junto al puente)
    sigue sus posiciones fijas: si el usuario mueve mucho el río, revisar el Caso I.
 
 ## Cómo explicárselo al usuario (OBLIGATORIO, pedido por él el 2026-11-09)
