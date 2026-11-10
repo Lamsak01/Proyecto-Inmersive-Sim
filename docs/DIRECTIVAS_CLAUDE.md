@@ -14,6 +14,7 @@
 
 ## Cómo supervisar a Antigravity (orden del usuario, 2026-11-08) — no hay que volver a pensarlo
 **Antes de lanzarlo**
+- **(2026-11-10) Demo en pausa:** foco en arte, mapa, interiores e historia (ver cabecera de `docs/VISION_Y_FUTURO.md`). Lo de abajo vuelve cuando el usuario retome la demo.
 - **Foco:** el proyecto está **congelado hasta que el Caso I sea jugable** (`docs/VISION_Y_FUTURO.md`, cabecera). No
   prepares encargos de sistemas nuevos; solo cimientos de la demo, el Caso I y fallos visibles. **Rendimiento aparcado:**
   el portátil del usuario es viejo (gráfica integrada); la referencia es su PC de escritorio.

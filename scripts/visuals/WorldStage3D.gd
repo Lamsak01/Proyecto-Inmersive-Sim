@@ -164,6 +164,7 @@ func setup_stage(village_manager: Node2D) -> void:
 
 	_build_static_terrain_3d()
 	_merge_terrain_by_chunks()
+	_cargar_decoracion_editor()
 	_build_sewers_3d()
 	_build_streetlights_3d()
 	rebuild_all_3d()

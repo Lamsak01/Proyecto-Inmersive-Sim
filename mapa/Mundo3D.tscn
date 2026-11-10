@@ -1,0 +1,8 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://mapa/mundo3d.gd" id="1_m3d"]
+
+[node name="Mundo3D" type="Node3D"]
+script = ExtResource("1_m3d")
+
+[node name="Decoracion" type="Node3D" parent="."]

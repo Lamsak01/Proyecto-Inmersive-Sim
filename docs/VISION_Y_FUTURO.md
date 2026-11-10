@@ -1,5 +1,7 @@
 # Visión a largo plazo y banco de ideas
 
+> **PAUSA DE LA DEMO (decisión del usuario, 2026-11-10):** Antigravity se quedó sin cupo y la cuota de Claude Code es escasa. Hasta nuevo aviso, el trabajo es **acabado artístico, reparto del mapa, decoración de interiores y planificación de la historia**, con el editor del mapa 3D (`docs/PLAN_EDITOR_MAPA.md`). La congelación por el Caso I queda en pausa mientras tanto.
+
 > **DECISIÓN DEL USUARIO (2026-11-07): el bucle principal del juego es el DETECTIVE.** Llega un caso, investigas
 > (cuerpo, pistas en el mundo, testigos, chismes), acusas y el pueblo cambia según aciertes o falles; luego llega otro.
 > Subir en el crimen (la Familia) y echar raíces (casa, negocio) quedan como caminos secundarios que alimentan los casos.

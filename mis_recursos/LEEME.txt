@@ -1,0 +1,3 @@
+Copia aquí los modelos 3D que compres o descargues (.glb, .gltf, .obj o .fbx, con sus texturas al lado).
+Godot los importa solo. Luego aparecen en el panel del complemento «Asset Placer» para colocarlos en mapa/Mundo3D.tscn.
+Apunta de dónde salió cada uno en docs/CREDITOS_RECURSOS.md.

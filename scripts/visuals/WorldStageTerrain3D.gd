@@ -1369,6 +1369,51 @@ func _build_river_and_arroyo_3d(
 		for dpy in [-5.0, 5.0]:
 			_add_box_2d(terrain_root_3d, r_dock_pos + Vector2(dpx, dpy), Vector2(2.0, 2.0), r_dock_base - 2.6, 4.2, m_dark_wood, 0.0, true)
 
+## Editor del mapa 3D (2026-11-10): carga lo que el usuario colocó en mapa/Mundo3D.tscn → «Decoracion» y lo hace sólido en
+## el mapa 2D (rectángulo que ocupa, visto desde arriba). Metadata «atravesable» = true para que no choque.
+const ESCENA_MUNDO_3D := "res://mapa/Mundo3D.tscn"
+
+func _cargar_decoracion_editor() -> void:
+	if not ResourceLoader.exists(ESCENA_MUNDO_3D) or terrain_root_3d == null:
+		return
+	var ps = load(ESCENA_MUNDO_3D)
+	if not (ps is PackedScene):
+		return
+	var mundo: Node = (ps as PackedScene).instantiate()
+	var deco: Node = mundo.get_node_or_null("Decoracion")
+	if deco == null or deco.get_child_count() == 0:
+		mundo.free()
+		return
+	var destino := Node3D.new()
+	destino.name = "DecoracionEditor"
+	terrain_root_3d.get_parent().add_child(destino)
+	destino.transform = terrain_root_3d.transform
+	for c in deco.get_children():
+		if not (c is Node3D):
+			continue
+		deco.remove_child(c)
+		destino.add_child(c)
+		if bool(c.get_meta("atravesable", false)):
+			continue
+		var caja := AABB()
+		var primera := true
+		for mi in (c as Node3D).find_children("*", "VisualInstance3D", true, false):
+			var bb: AABB = (mi as VisualInstance3D).global_transform * (mi as VisualInstance3D).get_aabb()
+			caja = bb if primera else caja.merge(bb)
+			primera = false
+		if primera and c is VisualInstance3D:
+			caja = (c as VisualInstance3D).global_transform * (c as VisualInstance3D).get_aabb()
+			primera = false
+		if primera:
+			continue
+		# De 3D al mapa 2D: x = X / escala; y = Z · sen(inclinación) / escala
+		var p0 := Vector2(caja.position.x / WORLD_SCALE, caja.position.z * _sin_p / WORLD_SCALE)
+		var tam := Vector2(caja.size.x / WORLD_SCALE, caja.size.z * _sin_p / WORLD_SCALE)
+		if tam.x >= 4.0 and tam.y >= 4.0 and vm != null and vm.has_method("_add_prop_collider"):
+			vm.call("_add_prop_collider", p0 + tam * 0.5, tam)
+	mundo.free()
+
+
 ## Troncos y tocones del bosque sólidos en el mapa 2D (antes solo eran adorno 3D y se atravesaban).
 ## rot_3d_deg es el giro del modelo 3D; en el mapa 2D el giro equivalente va al revés.
 func _colision_solida(pos_2d: Vector2, sz_2d: Vector2, rot_3d_deg: float) -> void:

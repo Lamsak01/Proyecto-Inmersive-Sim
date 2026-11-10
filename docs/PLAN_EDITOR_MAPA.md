@@ -17,6 +17,17 @@ ordenador principal**: pregúntale cuáles antes de las piezas nuevas (árboles,
   (`-- mover` prueba un río cambiado), `tools/tests/captura_editor_mapa.gd` (fotos del editor).
 - Guía para el usuario: `docs/EDITOR_MAPA_GUIA.md`.
 
+## Hecho (paso 2, 2026-11-10: editor 3D y recursos propios)
+- `mapa/Mundo3D.tscn` (script `mapa/mundo3d.gd`): al abrirla en Godot construye una **maqueta 3D** del mundo («Vista»: suelo
+  con relieve y choque, río, lago, caminos, edificios con nombre, árboles y rocas de `referencia_mapa.json`). No se guarda.
+  La casilla «Regenerar» del Inspector la rehace. Lo que se pone en **«Decoracion»** sale en el juego en el mismo sitio y es
+  sólido (rectángulo visto desde arriba; metadata `atravesable = true` para que no choque). Lo carga
+  `WorldStageTerrain3D._cargar_decoracion_editor()`. Probado: una caja puesta ahí aparece en el juego y bloquea el paso.
+- Carpeta `mis_recursos/`: el usuario copia ahí los modelos que compre o descargue; Godot los importa solo.
+- Complemento **Godot Asset Placer** 1.6.0 (MIT, levinzonr) en `addons/asset_placer/`: panel con miniaturas para colocar
+  modelos con clic. Se activa en Proyecto → Configuración del proyecto → Complementos (Plugins).
+- Para repartir bosques pintando, más adelante: World Brush o Proton Scatter (gratis). Terreno: Terrain3D (no compensa ahora).
+
 ## Pendiente (en este orden, cada paso con permiso del usuario)
 1. En el ordenador principal: `git pull`, abrir `mapa/EditorMapa.tscn` con el usuario y que mueva un punto del río
    (aprender Godot, paso 1). Mirar que los vecinos ya no se atascan en el río nuevo.
