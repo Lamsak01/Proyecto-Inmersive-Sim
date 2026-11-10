@@ -177,7 +177,9 @@ func _spawn_distant_forest() -> void:
 		Vector2(860, 1580), Vector2(1140, 1680), Vector2(1420, 1760),
 		Vector2(980, 1980), Vector2(1280, 2060)
 	]
-	_spawn_harvest_batch("ForestTree", tree_positions, HarvestableNode.HarvestType.LOGGING, "Pino del Valle", "wood", 3, "crop_seeds", 1, 30.0, 2, 0, tex_tree, tex_stump, Vector2(0.85, 0.85), 12.0)
+	# Editor del mapa 3D (2026-11-10): si los árboles están en mapa/Mundo3D.tscn, salen de ahí (todos talables)
+	if not arboles_en_escena():
+		_spawn_harvest_batch("ForestTree", tree_positions, HarvestableNode.HarvestType.LOGGING, "Pino del Valle", "wood", 3, "crop_seeds", 1, 30.0, 2, 0, tex_tree, tex_stump, Vector2(0.85, 0.85), 12.0)
 
 	var rock_positions: Array[Vector2] = [
 		Vector2(740, 860), Vector2(880, 880), Vector2(1040, 860), Vector2(1180, 910),
@@ -231,6 +233,47 @@ func _spawn_harvest_batch(prefix: String, positions: Array[Vector2], h_type: Har
 			node.max_animal_bites = bites
 		entities_root.add_child(node)
 		node.setup_visuals(tex_main, tex_dep, Color.WHITE, sc, rad)
+
+## Editor del mapa 3D (2026-11-10): ¿hay árboles en mapa/Mundo3D.tscn → Vegetacion/Arboles? Entonces los talables salen
+## de la escena (WorldStageTerrain3D los hace talables con crear_arbol_talable) y no de la lista de este archivo.
+static var ignorar_escena: bool = false # lo usa el horneado para ver los árboles de la lista
+static var _arboles_escena: int = -1
+static func arboles_en_escena() -> bool:
+	if ignorar_escena:
+		return false
+	if _arboles_escena == -1:
+		_arboles_escena = 0
+		if ResourceLoader.exists("res://mapa/Mundo3D.tscn"):
+			var st: SceneState = (load("res://mapa/Mundo3D.tscn") as PackedScene).get_state()
+			for i in range(st.get_node_count()):
+				if str(st.get_node_path(i)).begins_with("./Vegetacion/Arboles/"):
+					_arboles_escena = 1
+					break
+	return _arboles_escena == 1
+
+
+## Un árbol talable (mismos valores que los «Pino del Valle» de siempre) en un punto del mapa 2D.
+func crear_arbol_talable(pos: Vector2, nombre: String) -> Node2D:
+	if entities_root == null or not is_instance_valid(entities_root):
+		return null
+	var tex_tree: Texture2D = _load_tex("res://assests/Comprados/Epic RPG World - The Village V2.1/tilesets and props/props-sprites/pine-tree_0.png")
+	if tex_tree == null:
+		tex_tree = _load_tex("res://assests/world/tree.png")
+	var tex_stump: Texture2D = _load_tex("res://assests/Comprados/Epic RPG World - The Village V2.1/tilesets and props/props-sprites/logs_0.png")
+	var node := HarvestableNode.new()
+	node.name = nombre
+	node.global_position = pos
+	node.harvest_type = HarvestableNode.HarvestType.LOGGING
+	node.node_title = "Árbol del Valle"
+	node.primary_item_id = "wood"
+	node.primary_amount = 3
+	node.bonus_item_id = "crop_seeds"
+	node.bonus_amount = 1
+	node.max_hp = 30.0
+	node.respawn_days = 2
+	entities_root.add_child(node)
+	node.setup_visuals(tex_tree, tex_stump, Color.WHITE, Vector2(0.85, 0.85), 7.0)
+	return node
 
 static func _en_cauce_del_rio(p: Vector2) -> bool:
 	if p.y < FishingSpot.river_y_start() - 5.0 or p.y > FishingSpot.river_y_end() + 5.0:

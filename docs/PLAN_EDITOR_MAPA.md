@@ -36,8 +36,13 @@ ordenador principal**: pregúntale cuáles antes de las piezas nuevas (árboles,
   pieza: árboles solo el tronco (7×7), rocas, troncos y tocones lo que ocupan, plantas nada. **Antes los árboles de adorno no
   eran sólidos; ahora sí.**
 - Se hizo con `tools/hornear_vegetacion.gd` (una vez; no rehace si ya hay piezas salvo `-- forzar`, que pisaría cambios a mano).
-- Siguen en código: árboles talables y vetas (EcosystemManager), setas y hierbas, puentes, el tronco-puente, los troncos de caja
-  del claro y todo lo de los edificios. Siguiente: que los árboles de la escena se puedan talar (sustituir los talables de código).
+- **Todos los árboles de la escena son talables** (2026-11-10): `WorldStageTerrain3D._crear_talables_pendientes()` crea un
+  HarvestableNode «Árbol del Valle» (3 de madera + semillas, vuelve en 2 días) por cada pieza con choque «tronco» y usa su
+  modelo como dibujo (se oculta al talarlo y sale el tocón). Los 65 talables de EcosystemManager se hornearon a la escena
+  (`hornear_vegetacion.gd -- talables`, nodos `Talable_*`) y EcosystemManager ya no los crea si hay árboles en la escena.
+  Probado: 252 talables, ninguno duplicado; talar uno oculta el árbol y muestra el tocón.
+- Siguen en código: vetas de mineral (EcosystemManager), setas y hierbas, puentes, el tronco-puente, los troncos de caja
+  del claro y todo lo de los edificios.
 
 ## Pendiente (en este orden, cada paso con permiso del usuario)
 1. En el ordenador principal: `git pull`, abrir `mapa/EditorMapa.tscn` con el usuario y que mueva un punto del río

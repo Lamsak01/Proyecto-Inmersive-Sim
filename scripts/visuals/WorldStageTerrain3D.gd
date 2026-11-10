@@ -1399,9 +1399,58 @@ func _cargar_decoracion_editor() -> void:
 		terrain_root_3d.add_child(g)
 		_juntar_piezas(g, piezas)
 	for c in piezas:
-		_choque_de_pieza(c as Node3D)
+		if c.has_method("tipo_choque") and String(c.call("tipo_choque")) == "tronco" and nature_root_3d != null:
+			# Árbol: sale del terreno antes de juntarlo por zonas (tiene que poder ocultarse al talarlo)
+			var xf := (c as Node3D).global_transform
+			c.get_parent().remove_child(c)
+			nature_root_3d.add_child(c)
+			(c as Node3D).global_transform = xf
+			_talables_pendientes.append(c)
+		else:
+			_choque_de_pieza(c as Node3D)
 	_mundo_editor.free()
+	# El bosque (EcosystemManager) se crea después que el escenario 3D: los talables se crean cuando ya existe
+	if not _talables_pendientes.is_empty():
+		call_deferred("_crear_talables_pendientes")
+
+
+var _talables_pendientes: Array = []
+
+func _crear_talables_pendientes() -> void:
+	var eco: Node = get_tree().get_first_node_in_group("ecosystem_manager")
+	if eco == null or not eco.has_method("crear_arbol_talable") or eco.get("entities_root") == null:
+		for _i in range(300):
+			await get_tree().process_frame
+			eco = get_tree().get_first_node_in_group("ecosystem_manager")
+			if eco != null and eco.get("entities_root") != null:
+				break
+	var n := 0
+	for c in _talables_pendientes:
+		if not is_instance_valid(c):
+			continue
+		n += 1
+		if eco != null and eco.has_method("crear_arbol_talable"):
+			_hacer_talable(c as Node3D, eco, "ArbolEscena_%d" % n)
+		else:
+			_choque_de_pieza(c as Node3D)
+	_talables_pendientes.clear()
 	_mundo_editor = null
+
+
+## Árbol de la escena → árbol talable del juego (choque, madera, tocón al talarlo y vuelve a crecer). El modelo de la pieza
+## pasa a la naturaleza 3D y se registra como su dibujo, para que se oculte al talarlo.
+func _hacer_talable(pieza: Node3D, eco: Node, nombre: String) -> void:
+	var p2 := _a_mapa_2d(pieza.global_position)
+	var h = eco.call("crear_arbol_talable", p2, nombre)
+	if not (h is Node2D) or nature_root_3d == null:
+		_choque_de_pieza(pieza)
+		return
+	var stump := _add_cyl_2d(nature_root_3d, p2, 5.0, -1.2, 6.2, _mat("tree_stump", Color(0.45, 0.32, 0.20), 0.9, 0.0, Color.BLACK, 0.0, "town_textures/rf_planks.png", "", 0.78), 4.5, 8)
+	stump.visible = false
+	var rec := {"tree": pieza, "stump": stump}
+	for k in ["tree", "stump"]:
+		_absorb_into_batches(rec[k], p2)
+	_nature_nodes[(h as Node2D).get_instance_id()] = rec
 
 
 ## Piezas = nodos 3D colocados (las carpetas de agrupar sin modelo propio se recorren por dentro).
