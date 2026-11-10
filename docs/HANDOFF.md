@@ -1142,6 +1142,7 @@ Cada fase se dividirá en bloques pequeños cuando se llegue a ella (detalle en 
 
 ## 8. Decisiones de diseño ya tomadas (no volver a preguntarlas)
 
+- **Mundo 3D de verdad** (usuario, 2026-11-10): el tablero 2D pasa a física 3D (alturas, pisos reales, cuevas, nadar y bucear). Hacerlo ya, por pasos, en la rama `mundo-3d`. Plan y registro: `docs/PLAN_MUNDO_3D.md`. No proponer quedarse en 2D.
 - **Época DEFINITIVA** (usuario, 2026-11-08, «100 % seguro»): **tecnofeudal / medieval-balística**. Sociedad y arquitectura feudales con tecnología analógica de los 70/80 y armas de fuego militares (fusiles de asalto, radios, focos, tractores diésel, alambre de espino, sacos terreros), todo tosco: hierro, piedra, madera, hormigón, baquelita, cables gruesos. Guardias con cota de malla, coraza (como chaleco antibalas) y correas de lona. Nada de pantallas planas, móviles, coches modernos ni engranajes dorados victorianos. Sustituye a la época del 2026-11-07. Referencias `docs/referencias_personajes/07–09_DEFINITIVA_*`; detalle en `docs/VISION_Y_FUTURO.md` (Jugador).
 - **Historia principal: la premisa actual queda DESCARTADA** (usuario, 2026-11-08): el «experimento social vigilado desde fuera» y sus 4 capítulos los inventó Gemini con libertad total. No construir encima. La historia nueva se diseñará con el usuario (probablemente ligada a la resistencia contra los gobernantes).
 - **Escaleras sin botón** (usuario, 2026-11-07): los pisos se suben y bajan andando por los peldaños, nunca con [E]. Barandillas sólidas; nadie flota en el aire.
