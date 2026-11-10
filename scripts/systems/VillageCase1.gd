@@ -18,8 +18,9 @@ const MILL_KIDNAPPERS: Dictionary = {
 	"young": {"label": "Muchacho de capa parda", "pos": Vector2(206.0, -1078.0)},
 	"driver": {"label": "Carretero forastero", "pos": Vector2(176.0, -1084.0)},
 }
-## Bandeja de informes en la comisaría (rincón noreste del despacho, fuera del paso de la puerta norte).
-const REPORT_POS: Vector2 = Vector2(975.0, 112.0)
+## Bandeja de informes en la comisaría: junto a la entrada, a la izquierda del armero y frente al sitio del alguacil
+## (el rincón noreste quedaba encerrado por el armero y la mesa).
+const REPORT_POS: Vector2 = Vector2(946.0, 111.0)
 const ReportDeskScript = preload("res://scripts/systems/Case1ReportDesk.gd")
 ## Pruebas que se pueden adjuntar al informe (clave del cuaderno → nombre corto).
 const REPORT_EVIDENCE: Dictionary = {
@@ -353,8 +354,9 @@ static func build_report_graph(vm) -> Dictionary:
 	var ev: Array = report_evidence(vm)
 	var ev_lines: Array = []
 	for key in ev:
-		ev_lines.append("✔ " + str(REPORT_EVIDENCE[key]))
-	var ev_txt: String = "\n".join(ev_lines) if not ev_lines.is_empty() else "(Tu cuaderno no tiene aún nada que adjuntar.)"
+		ev_lines.append(str(REPORT_EVIDENCE[key]))
+	# En un solo párrafo: la ventana de diálogo muestra unas 6 líneas
+	var ev_txt: String = " · ".join(ev_lines) if not ev_lines.is_empty() else "(Tu cuaderno no tiene aún nada que adjuntar.)"
 	var graph := {"start": {
 		"text": "📜 INFORME DEL CASO I — La mujer del bosque\nPruebas que adjuntas (%d):\n%s\n\n¿A quién señalas como culpable? Una vez firmado, no se puede cambiar." % [ev.size(), ev_txt],
 		"choices": []}}

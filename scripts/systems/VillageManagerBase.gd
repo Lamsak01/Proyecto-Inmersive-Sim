@@ -798,8 +798,26 @@ func _refresh_fp_cache() -> void:
 		_fp_rects.append(b["rect"])
 		_fp_skip_mill.append(str(b.get("id", "")) == "building_abandoned_mill")
 
+## Vecinos atascados (2026-11-09): al chocar con el margen de un edificio o con el agua del río, en vez de quedarse
+## congelado (la ruta pasa rozando las esquinas y el empuje lateral también choca), el vecino se desliza por el borde
+## moviéndose solo en horizontal o solo en vertical, como haría un cuerpo físico contra una pared.
+func _slide_or_stay(prev_pos: Vector2, candidate_pos: Vector2, elev: int, allow_slide: bool) -> Vector2:
+	if not allow_slide:
+		return prev_pos
+	var d: Vector2 = candidate_pos - prev_pos
+	var options: Array[Vector2] = [Vector2(candidate_pos.x, prev_pos.y), Vector2(prev_pos.x, candidate_pos.y)]
+	if absf(d.y) > absf(d.x):
+		options.reverse()
+	for o in options:
+		if o.distance_squared_to(prev_pos) < 0.0001:
+			continue
+		var res: Vector2 = sanitize_npc_separation_pos(prev_pos, o, elev, false)
+		if res.distance_squared_to(o) < 0.0001:
+			return o
+	return prev_pos
+
 ## Garantiza que el empuje de separación entre vecinos nunca meta a nadie dentro de un muro, edificio o pozo.
-func sanitize_npc_separation_pos(prev_pos: Vector2, candidate_pos: Vector2, elev: int = 0) -> Vector2:
+func sanitize_npc_separation_pos(prev_pos: Vector2, candidate_pos: Vector2, elev: int = 0, allow_slide: bool = true) -> Vector2:
 	if elev == 1:
 		var r_up: Rect2 = VillageTavern.RECT.grow(-13.0)
 		return Vector2(
@@ -810,7 +828,7 @@ func sanitize_npc_separation_pos(prev_pos: Vector2, candidate_pos: Vector2, elev
 		return candidate_pos
 	if FishingSpot.is_point_in_river_water(candidate_pos, 4.0):
 		if not FishingSpot.is_point_in_river_water(prev_pos, 2.0):
-			return prev_pos
+			return _slide_or_stay(prev_pos, candidate_pos, elev, allow_slide)
 		var b_riv: Vector2 = FishingSpot.river_banks_at(candidate_pos.y)
 		var cx_riv: float = (b_riv.x + b_riv.y) * 0.5
 		return Vector2(b_riv.x - 5.0 if candidate_pos.x < cx_riv else b_riv.y + 5.0, candidate_pos.y)
@@ -841,7 +859,7 @@ func sanitize_npc_separation_pos(prev_pos: Vector2, candidate_pos: Vector2, elev
 		var r_avoid: Rect2 = _fp_rects[fi2].grow(9.5)
 		if r_avoid.has_point(candidate_pos):
 			if not r_avoid.has_point(prev_pos):
-				return prev_pos
+				return _slide_or_stay(prev_pos, candidate_pos, elev, allow_slide)
 			var br_out: Rect2 = _fp_rects[fi2].grow(10.0)
 			var dl: float = absf(candidate_pos.x - br_out.position.x)
 			var dr: float = absf(br_out.end.x - candidate_pos.x)
@@ -1010,7 +1028,7 @@ func _avoid_outdoor_buildings(from_pos: Vector2, target_pos: Vector2, ignore_b_i
 			if b_id == ignore_b_id:
 				continue
 			var r_core: Rect2 = b["rect"].grow(-2.5)
-			var r_avoid: Rect2 = b["rect"].grow(8.5)
+			var r_avoid: Rect2 = b["rect"].grow(10.5) # > 9.5 de sanitize_npc_separation_pos: la ruta no roza el margen que frena (2026-11-09)
 			if r_core.has_point(from_pos) or r_core.has_point(cur_target):
 				continue
 			if _segment_intersects_rect(from_pos, cur_target, r_avoid):

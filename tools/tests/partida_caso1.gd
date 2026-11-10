@@ -545,12 +545,18 @@ func _initialize() -> void:
 
 	# D5: Informe del caso en la comisaría (bandeja del alguacil): eliges culpable y queda guardado para el final
 	var path_to_accuse: Array[Vector2] = [
-		Vector2(672.0, 84.0),
-		Vector2(915.0, 84.0),
-		Vector2(915.0, 118.0),
-		Vector2(958.0, 118.0),
+		Vector2(672.0, 86.0),
+		Vector2(915.0, 86.0),
+		Vector2(915.0, 92.0),
 	]
 	var walked_accuse: bool = await _walk_to_waypoints(pl, stage, path_to_accuse, 5.0)
+	print("[CASO1] D5 tras llegar a la puerta: pos=%s ok=%s" % [str(pl.global_position.round()), str(walked_accuse)])
+	var d_pol2: Dictionary = vm.call("_find_nearest_door", Vector2(915.0, 100.0), 20.0)
+	if not d_pol2.is_empty():
+		vm.call("_set_door_state", d_pol2, true, false, true)
+	var walked_in2: bool = await _walk_to_waypoints(pl, stage, [Vector2(915.0, 120.0), Vector2(942.0, 124.0)], 5.0)
+	print("[CASO1] D5 dentro: pos=%s ok=%s puerta=%s" % [str(pl.global_position.round()), str(walked_in2), str(not d_pol2.is_empty())])
+	walked_accuse = walked_accuse and walked_in2
 	var rep_e: Dictionary = await _aim_and_press_e(pl, stage, C1.REPORT_POS, -0.30, "informe")
 	var dm = root.find_child("dialogue_manager", true, false)
 	var form_open: bool = dm != null and bool(dm.call("is_active")) and (dm.get("graph") as Dictionary).has("confirm_young")

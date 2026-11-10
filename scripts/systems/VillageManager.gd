@@ -516,6 +516,12 @@ func interact(player: Node2D) -> void:
 		return
 	var pos := player.global_position
 
+	# Caso I: si el jugador apunta a una pista o a la bandeja del caso, manda eso aunque haya una puerta o ventana cerca
+	var c1_sel0: Node = player.get("interaction_selector")
+	var c1_cand0: Dictionary = c1_sel0.call("selected") if (c1_sel0 != null and c1_sel0.has_method("selected")) else {}
+	if str(c1_cand0.get("station", "")).begins_with("case1_") and VillageCase1.try_interact(self, player, pos, str(c1_cand0.get("station", ""))):
+		return
+
 	# 0. ¿Está cerca de una Puerta (`building_doors`) o Ventana (`building_windows`)?
 	var best_door: Dictionary = _find_nearest_door(pos, 24.0)
 	if not best_door.is_empty():
