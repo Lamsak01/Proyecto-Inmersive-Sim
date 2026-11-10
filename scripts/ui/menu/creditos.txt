@@ -1,0 +1,27 @@
+# Créditos provisionales del menú principal. Edita este archivo a mano: cada línea es una línea en pantalla.
+# Las líneas que empiezan por «#» no se ven; las que empiezan por «==» salen como título.
+== La Placa de Petri
+Un juego de Lamsak01
+
+== Modelos 3D
+Quaternius (quaternius.com) — Stylized Nature, Universal Base Characters, Modular Character Outfits Fantasy, Medieval Village MegaKit, Fantasy Props MegaKit · CC0
+Kenney (kenney.nl) — Nature Kit, Retro Textures Fantasy, Fantasy Town, Graveyard Kit, Retro Fantasy Kit · CC0
+Lote de animales (ardilla, ciervo, corzo, zorro, lobo y pájaro) — comprado; autor por confirmar
+
+== Animaciones
+Quaternius — Universal Animation Library 1 y 2 · CC0
+
+== Dibujos 2D
+Epic RPG World — The Village y Village (interiors) — comprado; autor por confirmar
+Kenney Vleugels, con Lynn Evers — Roguelike RPG Pack · CC0
+pixel_16_woods (versión gratuita) — autor por confirmar
+
+== Sonido
+Efectos de sonido — origen por confirmar
+
+== Herramientas
+Godot Engine (godotengine.org) · MIT
+Godot Asset Placer — Roman Levinzon · MIT
+
+== Gracias
+A los amigos que prueban el juego.

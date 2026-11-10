@@ -49,6 +49,8 @@ recomendaciones. Pégalo entero como primer mensaje al cambiar de agente.
 ```bash
 # Test completo (debe imprimir "...TESTS PASSED!" y salir con código 0). Hoy tarda varios minutos: usa timeout 900.
 timeout 900 flatpak run org.godotengine.Godot --headless --path . -s tools/tests/verify_all.gd > /tmp/t.log 2>&1; grep -c 'TESTS PASSED' /tmp/t.log
+# Menú principal, ajustes, teclas, huecos de guardado y pausa (~2 min): termina en «MENU PROBE: PASSED»
+timeout 300 flatpak run org.godotengine.Godot --headless --path . -s tools/tests/menu_probe.gd > /tmp/m.log 2>&1; grep 'MENU PROBE' /tmp/m.log
 
 # Test de nombres (rápido, ~2 s; debe imprimir "NAMES CHECK PASSED"):
 timeout 60 flatpak run org.godotengine.Godot --headless --path . -s tools/tests/names_check.gd 2>&1 | tail -3
@@ -1115,6 +1117,20 @@ Cada fase se dividirá en bloques pequeños cuando se llegue a ella (detalle en 
   la izquierda, barras finas con relleno de color y texto blanco (antes `modulate` teñía también el texto). Se ven
   Resistencia, ⚡ Aguante, Hambre y Sueño. Sangre (BLD) y aturdimiento (STN) ocultas por petición del usuario (siguen
   existiendo y actualizándose por dentro).
+
+- [x] **MENU1 Menú principal, pausa, ajustes y créditos** (Claude Code, 2026-11-10; pedido por el usuario):
+  - Escena inicial `scenes/MenuPrincipal.tscn` (`run/main_scene`); el pueblo `scenes/World.tscn` se carga al elegir partida.
+    Paneles hechos por código en `scripts/ui/menu/` (`EstiloMenu`, `PanelAjustes`, `PanelPartidas`, `PanelCreditos`, `MenuPausa`).
+  - Autoloads nuevos al principio de la lista: `Ajustes` (`user://ajustes.cfg`, señal `cambiados`; F11 global) y `Teclas`
+    (`user://teclas.cfg`; `Teclas.es(event, id)` sustituye a las comparaciones de teclas fijas en todo el juego).
+    `WorldStage3D._aplicar_ajustes_graficos` aplica sombras, nitidez (`scaling_3d_scale`) y suavizado (`msaa_3d`); la 1.ª persona lee
+    sensibilidad, invertir Y y campo de visión.
+  - `GameManager.RANURAS` (auto, rápida, 1–3) con ficha `*.info.json`; autoguardado en `day_passed` (no en headless, espera a que
+    se pueda guardar); `carga_pendiente` + `al_entrar_en_el_mundo()` (lo llama `World._ready`) para cargar desde el menú.
+  - Pausa: `ui_root` abre `MenuPausa` con Esc si no hay panel abierto; usa `get_tree().paused`. «Salir al menú» reinicia el
+    proceso (`OS.set_restart_on_exit`), porque hay más de 70 `static var` que no se limpian al cambiar de escena.
+  - Créditos en `scripts/ui/menu/creditos.txt` (editable). Prueba: `tools/tests/menu_probe.gd` (~2 min; no toca los ajustes ni las partidas del jugador).
+  - Pendiente: no hay música todavía (el bus Music existe); `creditos.txt` va incluido en la exportación (filtro de recursos de `export_presets.cfg`).
 
 ## 8. Decisiones de diseño ya tomadas (no volver a preguntarlas)
 

@@ -11,12 +11,14 @@ config_version=5
 [application]
 
 config/name="La Placa de Petri"
-run/main_scene="uid://dsoiuct8kdsk3"
+run/main_scene="res://scenes/MenuPrincipal.tscn"
 config/features=PackedStringArray("4.7", "GL Compatibility")
 config/icon="res://icon.svg"
 
 [autoload]
 
+Ajustes="*res://scripts/systems/Ajustes.gd"
+Teclas="*res://scripts/systems/Teclas.gd"
 AudioManager="*res://scripts/systems/AudioManager.gd"
 GameManager="*res://scripts/systems/GameManager.gd"
 ObjectiveManager="*res://scripts/systems/game_objectives/ObjectiveManager.gd"

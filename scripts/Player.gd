@@ -772,7 +772,7 @@ func _unhandled_input(event: InputEvent) -> void:
 			equip_tool_by_index(int(event.keycode - KEY_1))
 		elif event.keycode == KEY_0:
 			equip_tool_by_index(9)
-		elif event.keycode == KEY_R:
+		elif Teclas.es(event, "recargar"):
 			if not combat_ctrl:
 				combat_ctrl = get_node_or_null("PlayerCombatController")
 			if combat_ctrl and combat_ctrl.has_method("is_firearm_equipped") and bool(combat_ctrl.call("is_firearm_equipped")):

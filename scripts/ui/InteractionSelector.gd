@@ -92,7 +92,7 @@ func _unhandled_input(event: InputEvent) -> void:
 			step = 1
 		elif event.button_index == MOUSE_BUTTON_WHEEL_UP:
 			step = -1
-	elif event is InputEventKey and event.pressed and not event.echo and event.keycode == KEY_G:
+	elif event is InputEventKey and event.pressed and not event.echo and Teclas.es(event, "otra_accion"):
 		step = 1
 	if step != 0:
 		_index = posmod(_index + step, candidates.size())

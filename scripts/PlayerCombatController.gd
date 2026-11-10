@@ -310,7 +310,7 @@ var block_key_override: int = -1 ## solo pruebas: 1 = Q pulsada, 0 = suelta, -1 
 func _block_key_held() -> bool:
 	if block_key_override >= 0:
 		return block_key_override == 1
-	return Input.is_physical_key_pressed(KEY_Q)
+	return Input.is_physical_key_pressed(Teclas.tecla("bloquear") as Key)
 
 func end_block() -> void:
 	if not is_blocking:
@@ -422,7 +422,7 @@ func resolve_parry_hit(attacker: Node) -> void:
 func _is_attack_key(event: InputEvent) -> bool:
 	if not event.is_action("ui_accept"):
 		return false
-	if event is InputEventKey and ((event as InputEventKey).keycode == KEY_SPACE or (event as InputEventKey).physical_keycode == KEY_SPACE):
+	if event is InputEventKey and ((event as InputEventKey).keycode == KEY_SPACE or (event as InputEventKey).physical_keycode == KEY_SPACE or Teclas.es(event, "saltar") or Teclas.es(event, "rodar")):
 		return false
 	return true
 
@@ -452,8 +452,8 @@ func _unhandled_input(event: InputEvent) -> void:
 			if bool(vm.call("try_priority_door_or_corpse_interaction", player, prio_pt)):
 				get_viewport().set_input_as_handled()
 				return
-		var is_non_lethal_key: bool = event.is_action_pressed("Interact") or (event is InputEventKey and event.pressed and not event.echo and (event.physical_keycode == KEY_Q or event.keycode == KEY_Q))
-		var is_lethal_key: bool = (_is_attack_key(event) and event.is_pressed() and not event.is_echo()) or (event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT) or (event is InputEventKey and event.pressed and not event.echo and (event.physical_keycode == KEY_V or event.keycode == KEY_V))
+		var is_non_lethal_key: bool = event.is_action_pressed("Interact") or (event is InputEventKey and event.pressed and not event.echo and Teclas.es(event, "bloquear"))
+		var is_lethal_key: bool = (_is_attack_key(event) and event.is_pressed() and not event.is_echo()) or (event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT) or (event is InputEventKey and event.pressed and not event.echo and Teclas.es(event, "rodar"))
 		if is_non_lethal_key:
 			_execute_stealth_takedown(current_prompt_target, false)
 			get_viewport().set_input_as_handled()
@@ -463,11 +463,11 @@ func _unhandled_input(event: InputEvent) -> void:
 			get_viewport().set_input_as_handled()
 			return
 
-	if event is InputEventKey and event.pressed and not event.echo and (event.keycode == KEY_Q or event.physical_keycode == KEY_Q):
+	if event is InputEventKey and event.pressed and not event.echo and Teclas.es(event, "bloquear"):
 		if start_parry():
 			get_viewport().set_input_as_handled()
 		return
-	if event is InputEventKey and event.pressed and not event.echo and (event.keycode == KEY_X or event.physical_keycode == KEY_X):
+	if event is InputEventKey and event.pressed and not event.echo and Teclas.es(event, "empujar"):
 		if shove():
 			get_viewport().set_input_as_handled()
 		return

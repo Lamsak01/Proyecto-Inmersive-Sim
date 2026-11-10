@@ -4,6 +4,15 @@ Cambios del juego, del más nuevo al más antiguo. Añade una entrada al cerrar 
 El detalle técnico está en `docs/HANDOFF.md` (sección 7) y el historial completo en `git log`. Lo anterior a B0.1 está en `AUDIT_LOG.md` y `SESSION_CONTEXT_LOG.md`.
 
 
+## 2026-11-10 — Menú principal, pausa, ajustes y créditos (Claude Code, portátil; pedido por el usuario)
+- El juego arranca en un menú principal: Nueva partida, Continuar (la última guardada), Cargar, Ajustes, Créditos y Salir.
+- Esc en la partida (sin nada abierto) abre la pausa: seguir, guardar, cargar, ajustes y salir al menú. El pueblo se para mientras está abierta.
+- Tres huecos de partida, más el guardado rápido (F5) y un autoguardado al empezar cada día de juego. Cada hueco enseña el día, la hora del juego y la fecha real en que se guardó.
+- Ajustes que se recuerdan entre sesiones: pantalla completa o ventana, sincronización vertical, límite de fotogramas, sombras (no / bajas / altas), nitidez de la imagen 3D, suavizado de bordes, sensibilidad del ratón, campo de visión, invertir el ratón y volumen general, de música y de efectos.
+- Todas las teclas de juego se pueden cambiar; si eliges una que ya se usaba, las dos se intercambian.
+- Créditos provisionales con los autores de los recursos (Quaternius, Kenney, packs comprados, sonidos y Godot). Los autores que no se saben van marcados «por confirmar».
+- Salir al menú reinicia el juego para que el pueblo siguiente empiece limpio.
+
 ## 2026-11-10 — Controles sin choques (Claude Code, portátil; aprobado por el usuario)
 - Los trucos de prueba piden Ctrl para no saltar en una partida normal: Ctrl+T adelanta 2 horas, Ctrl+F1–F4 cambian la velocidad del reloj, Ctrl+F7 el tiempo atmosférico y Ctrl+º el modo pruebas. Ya no salen en la ayuda (H).
 - + y − solo hacen zoom (antes también cambiaban la velocidad del reloj).

@@ -144,6 +144,9 @@ void fragment() {
 		set_process(true)
 		_setup_weather_overlay()
 		_setup_retro_post_fx()
+		# Menú principal → «Cargar» / «Continuar»: cargar la partida elegida en cuanto el pueblo esté listo.
+		if GameManager:
+			GameManager.al_entrar_en_el_mundo.call_deferred()
 
 ## Etalonaje retro (día nostálgico / noche inquietante con charcos de luz). Solo con ventana real.
 func _setup_retro_post_fx() -> void:
@@ -253,15 +256,7 @@ func _unhandled_input(event: InputEvent) -> void:
 	var player := get_node_or_null("Entities/PlayerGood")
 	var modal_open: bool = player != null and player.has_method("is_any_ui_modal_open") and bool(player.call("is_any_ui_modal_open"))
 	if event is InputEventKey and event.pressed and not event.echo:
-		if event.keycode == KEY_F11:
-			var win := get_window()
-			if win:
-				if win.mode == Window.MODE_FULLSCREEN or win.mode == Window.MODE_EXCLUSIVE_FULLSCREEN:
-					win.mode = Window.MODE_WINDOWED
-				else:
-					win.mode = Window.MODE_FULLSCREEN
-			get_viewport().set_input_as_handled()
-		elif not modal_open and (event.keycode == KEY_PLUS or event.keycode == KEY_EQUAL or event.keycode == KEY_KP_ADD or event.keycode == KEY_PAGEUP):
+		if not modal_open and (event.keycode == KEY_PLUS or event.keycode == KEY_EQUAL or event.keycode == KEY_KP_ADD or event.keycode == KEY_PAGEUP):
 			_adjust_camera_zoom(0.20)
 			get_viewport().set_input_as_handled()
 		elif not modal_open and (event.keycode == KEY_MINUS or event.keycode == KEY_KP_SUBTRACT or event.keycode == KEY_PAGEDOWN):

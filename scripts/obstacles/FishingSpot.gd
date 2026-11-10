@@ -571,7 +571,7 @@ func _start_minigame(player: Node2D) -> void:
 
 func _update_minigame(delta: float) -> void:
 	# 1. Control de la Barra Verde por el jugador (Mantener [E], [Espacio] o Clic Izquierdo)
-	var thrust_pressed: bool = Input.is_key_pressed(KEY_E) or Input.is_key_pressed(KEY_SPACE) or Input.is_mouse_button_pressed(MOUSE_BUTTON_LEFT)
+	var thrust_pressed: bool = Input.is_physical_key_pressed(Teclas.tecla("accion") as Key) or Input.is_key_pressed(KEY_SPACE) or Input.is_mouse_button_pressed(MOUSE_BUTTON_LEFT)
 	var accel: float = 1.85 if thrust_pressed else -1.55
 	_bar_vel = clampf(_bar_vel + accel * delta, -1.15, 1.15)
 	_bar_pos += _bar_vel * delta

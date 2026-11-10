@@ -218,10 +218,10 @@ func _ready() -> void:
 
 func _unhandled_input(event: InputEvent) -> void:
 	if event is InputEventKey and event.pressed and not event.echo:
-		if event.keycode == KEY_F9 and event.shift_pressed:
+		if Teclas.es(event, "camara") and event.shift_pressed:
 			toggle_panel()
 			get_viewport().set_input_as_handled()
-		elif event.keycode == KEY_F9 and not event.shift_pressed:
+		elif Teclas.es(event, "camara") and not event.shift_pressed:
 			var vm = get_tree().get_first_node_in_group("village_manager")
 			var st3d = vm.get("world_stage_3d") if vm != null else null
 			if st3d != null and st3d.get("first_person_active") == true:

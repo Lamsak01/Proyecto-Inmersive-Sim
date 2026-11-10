@@ -4,6 +4,11 @@ Revisada a mano en el código el 2026-11-09; cambios aprobados por el usuario el
 El código de las teclas está repartido en `scripts/` **y** en `scenes/` (los paneles están en `scenes/ui_root.gd`):
 si buscas en el código, busca en todo el proyecto.
 
+**Desde el 2026-11-10 el jugador puede cambiar las teclas** (Ajustes → Controles; se guardan en `user://teclas.cfg`).
+Las de esta lista son las de por defecto. En el código no se pregunta por una tecla fija sino por la acción:
+`Teclas.es(event, "mochila")` (lista de acciones en `scripts/systems/Teclas.gd`). Si añades una tecla nueva de juego, añádela
+allí también. Esc, F11, Ctrl, Alt e Intro son fijas y no se pueden asignar.
+
 ## Moverse y pelear
 | Tecla | Qué hace |
 |---|---|
@@ -39,14 +44,14 @@ si buscas en el código, busca en todo el proyecto.
 | P | Vista en primera persona |
 | + / − (y RePág / AvPág) | Zoom de la cámara |
 | Alt (mirando a un vecino) | Más detalles del vecino |
-| Esc | Cerrar el panel abierto |
+| Esc | Cerrar el panel abierto; si no hay ninguno, menú de pausa (guardar, cargar, ajustes, salir al menú) |
 
 ## Teclas F
 | Tecla | Qué hace |
 |---|---|
 | F5 / F12 | Guardar / cargar partida |
 | F9 | Cámara 2D / 3D (con Mayús: visor de personajes 3D) |
-| F11 | Pantalla completa |
+| F11 | Pantalla completa (también en el menú principal; se recuerda) |
 
 ## Trucos para probar (con Ctrl, para que no salten en una partida normal)
 | Tecla | Qué hace |

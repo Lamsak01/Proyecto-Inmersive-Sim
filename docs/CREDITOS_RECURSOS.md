@@ -1,6 +1,7 @@
 # Créditos de recursos descargados
 
 Proyecto privado (usuario y amigos). Apunta aquí cada recurso que se añada al juego: pack, autor, licencia y qué se usa.
+**Al añadir un recurso, apúntalo también en `scripts/ui/menu/creditos.txt`**: es lo que sale en la pantalla de Créditos del menú principal (2026-11-10).
 Los zips originales están en `assests/Assets 3d/` (no se suben a git).
 
 | Pack | Autor | Licencia | Qué se usa |

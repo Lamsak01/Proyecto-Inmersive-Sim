@@ -272,15 +272,15 @@ func _unhandled_input(event: InputEvent) -> void:
 	if (player.has_method("is_stunned") and player.is_stunned()) or (player.has_method("is_any_ui_modal_open") and bool(player.call("is_any_ui_modal_open"))) or (vm != null and bool(vm.get("player_being_escorted_to_jail"))):
 		return
 	if event is InputEventKey and event.pressed and not event.echo:
-		if event.keycode == KEY_SPACE or event.physical_keycode == KEY_SPACE:
+		if Teclas.es(event, "saltar"): # tecla cambiable (Ajustes → Controles)
 			if start_jump():
 				get_viewport().set_input_as_handled()
 			return
-		if (event.keycode == KEY_V or event.physical_keycode == KEY_V) and not event.alt_pressed:
+		if Teclas.es(event, "rodar") and not event.alt_pressed:
 			if start_roll():
 				get_viewport().set_input_as_handled()
 			return
-		if event.keycode == KEY_C:
+		if Teclas.es(event, "sigilo"):
 			if bool(player.get("is_mounted")):
 				if player.has_method("show_hint"):
 					player.show_hint("🐎 A caballo no puedes ir en sigilo: baja con [E]")

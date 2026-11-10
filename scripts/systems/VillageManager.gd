@@ -256,15 +256,15 @@ func _unhandled_input(event: InputEvent) -> void:
 		return
 
 	# Tecla [B]: Echar o quitar el cerrojo / bloquear la puerta más cercana
-	if event is InputEventKey and event.pressed and not event.echo and event.keycode in [KEY_B, KEY_F]:
+	if event is InputEventKey and event.pressed and not event.echo and (Teclas.es(event, "atrancar") or Teclas.es(event, "forzar")):
 		var player = get_tree().get_first_node_in_group("player") as Node2D
 		if not is_instance_valid(player) or player_being_escorted_to_jail:
 			return
 		if (player.has_method("is_stunned") and bool(player.call("is_stunned"))) or (player.has_method("is_any_ui_modal_open") and bool(player.call("is_any_ui_modal_open"))):
 			return
-		if event.keycode == KEY_B and toggle_bar_door_by_player(player):
+		if Teclas.es(event, "atrancar") and toggle_bar_door_by_player(player):
 			get_viewport().set_input_as_handled()
-		elif event.keycode == KEY_F and force_lock_or_shutter_by_player(player):
+		elif Teclas.es(event, "forzar") and force_lock_or_shutter_by_player(player):
 			get_viewport().set_input_as_handled()
 
 # CONSTRUCCIÓN SÓLIDA DE EDIFICIOS CON TEXTURAS Y COLISIÓN (`StaticBody2D`)

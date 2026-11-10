@@ -233,7 +233,7 @@ func _input(event: InputEvent) -> void:
 			return
 	if controls_panel and controls_panel.visible:
 		if event is InputEventKey and event.pressed and not event.echo:
-			if event.keycode in [KEY_ESCAPE, KEY_ENTER, KEY_KP_ENTER, KEY_H] or event.physical_keycode in [KEY_ESCAPE, KEY_ENTER, KEY_KP_ENTER, KEY_H]:
+			if event.keycode in [KEY_ESCAPE, KEY_ENTER, KEY_KP_ENTER] or event.physical_keycode in [KEY_ESCAPE, KEY_ENTER, KEY_KP_ENTER] or Teclas.es(event, "ayuda"):
 				close_controls_panel()
 				get_viewport().set_input_as_handled()
 		elif event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
@@ -247,7 +247,7 @@ func _unhandled_input(event: InputEvent) -> void:
 	if (dm and dm.has_method("is_active") and bool(dm.call("is_active"))) or (tavern_games and tavern_games.visible) or _is_external_world_modal_open():
 		return
 	if event is InputEventKey and not event.echo:
-		if event.keycode == KEY_TAB:
+		if Teclas.es(event, "rueda"):
 			if event.pressed:
 				if tool_wheel and tool_wheel.visible:
 					tool_wheel.close_wheel(true)
@@ -269,7 +269,7 @@ func _unhandled_input(event: InputEvent) -> void:
 			return
 
 		if event.pressed:
-			if event.physical_keycode == KEY_I:
+			if Teclas.es(event, "mochila"):
 				_close_skills_panel()
 				if tool_wheel and tool_wheel.visible:
 					tool_wheel.close_wheel(false)
@@ -281,7 +281,7 @@ func _unhandled_input(event: InputEvent) -> void:
 					valley_map.call("close_full_map")
 				_toggle_inventory()
 				get_viewport().set_input_as_handled()
-			elif event.physical_keycode == KEY_H:
+			elif Teclas.es(event, "ayuda"):
 				_close_skills_panel()
 				if tool_wheel and tool_wheel.visible:
 					tool_wheel.close_wheel(false)
@@ -298,7 +298,7 @@ func _unhandled_input(event: InputEvent) -> void:
 				else:
 					open_controls_panel()
 				get_viewport().set_input_as_handled()
-			elif event.physical_keycode == KEY_U:
+			elif Teclas.es(event, "salud"):
 				_close_skills_panel()
 				if tool_wheel and tool_wheel.visible:
 					tool_wheel.close_wheel(false)
@@ -311,7 +311,7 @@ func _unhandled_input(event: InputEvent) -> void:
 				if medical_panel and medical_panel.has_method("toggle_panel"):
 					medical_panel.call("toggle_panel")
 				get_viewport().set_input_as_handled()
-			elif event.physical_keycode == KEY_M:
+			elif Teclas.es(event, "mapa"):
 				_close_skills_panel()
 				if tool_wheel and tool_wheel.visible:
 					tool_wheel.close_wheel(false)
@@ -324,7 +324,7 @@ func _unhandled_input(event: InputEvent) -> void:
 				if valley_map and valley_map.has_method("toggle_full_map"):
 					valley_map.call("toggle_full_map")
 				get_viewport().set_input_as_handled()
-			elif event.physical_keycode == KEY_J:
+			elif Teclas.es(event, "vecinos"):
 				_close_skills_panel()
 				if tool_wheel and tool_wheel.visible:
 					tool_wheel.close_wheel(false)
@@ -337,7 +337,7 @@ func _unhandled_input(event: InputEvent) -> void:
 				if social_glossary and social_glossary.has_method("toggle_panel"):
 					social_glossary.call("toggle_panel")
 				get_viewport().set_input_as_handled()
-			elif event.physical_keycode == KEY_K:
+			elif Teclas.es(event, "habilidades"):
 				_close_quest_log()
 				if tool_wheel and tool_wheel.visible:
 					tool_wheel.close_wheel(false)
@@ -352,7 +352,7 @@ func _unhandled_input(event: InputEvent) -> void:
 				if skills_panel and skills_panel.has_method("toggle_panel"):
 					skills_panel.call("toggle_panel")
 				get_viewport().set_input_as_handled()
-			elif event.physical_keycode == KEY_L:
+			elif Teclas.es(event, "encargos"):
 				var was_open: bool = quest_log != null and quest_log.visible
 				_close_skills_panel()
 				if tool_wheel and tool_wheel.visible:
@@ -368,7 +368,7 @@ func _unhandled_input(event: InputEvent) -> void:
 				if quest_log and not was_open:
 					quest_log.call("open_panel")
 				get_viewport().set_input_as_handled()
-			elif event.physical_keycode == KEY_O:
+			elif Teclas.es(event, "cronica"):
 				var chron_open: bool = chronicle_panel != null and chronicle_panel.visible
 				_close_skills_panel()
 				if tool_wheel and tool_wheel.visible:
@@ -384,7 +384,7 @@ func _unhandled_input(event: InputEvent) -> void:
 				if chronicle_panel and not chron_open:
 					chronicle_panel.call("open_panel")
 				get_viewport().set_input_as_handled()
-			elif event.physical_keycode == KEY_N or event.keycode == KEY_N:
+			elif Teclas.es(event, "caso"):
 				if detective_ui and detective_ui.visible:
 					if str(detective_ui.get("current_mode")) == "board":
 						detective_ui.call("close_panel")
@@ -426,6 +426,17 @@ func _unhandled_input(event: InputEvent) -> void:
 				elif inv_panel and inv_panel.visible:
 					inv_panel.visible = false
 					get_viewport().set_input_as_handled()
+				elif event.pressed and not WorldClock.is_fast_forwarding:
+					# Nada abierto: menú de pausa (menú principal, 2026-11-10).
+					abrir_menu_pausa()
+					get_viewport().set_input_as_handled()
+
+func abrir_menu_pausa() -> void:
+	if get_tree().root.get_node_or_null("MenuPausa") != null:
+		return
+	var m: CanvasLayer = load("res://scripts/ui/menu/MenuPausa.gd").new()
+	m.name = "MenuPausa"
+	get_tree().root.add_child(m)
 
 func _setup_skills_panel_ui() -> void:
 	skills_panel = SkillsPanelUIScript.new()

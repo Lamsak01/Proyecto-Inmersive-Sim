@@ -111,6 +111,9 @@ func setup_stage(village_manager: Node2D) -> void:
 		sun_light.shadow_normal_bias = 1.0
 		sun_light.shadow_opacity = 0.78
 		stage_root_3d.add_child(sun_light)
+		if not Ajustes.cambiados.is_connected(_aplicar_ajustes_graficos):
+			Ajustes.cambiados.connect(_aplicar_ajustes_graficos)
+		_aplicar_ajustes_graficos.call_deferred()
 
 		fill_light = DirectionalLight3D.new()
 		fill_light.name = "FillLight3D"
@@ -353,8 +356,10 @@ func set_first_person(enable: bool) -> void:
 			pl2.call("show_hint", "🎥 [P] Vista superior 2.5D restaurada ([F9] alterna 3D/2D)")
 
 func rotate_first_person_view(delta_x_px: float, delta_y_px: float = 0.0) -> void:
-	fp_yaw = wrapf(fp_yaw + delta_x_px * FP_MOUSE_SENS, -PI, PI)
-	fp_pitch = clampf(fp_pitch - delta_y_px * FP_MOUSE_SENS, -FP_MAX_PITCH, FP_MAX_PITCH)
+	var sens: float = FP_MOUSE_SENS * float(Ajustes.get_valor("sensibilidad")) # Ajustes → Juego
+	var inv_y: float = -1.0 if bool(Ajustes.get_valor("invertir_y")) else 1.0
+	fp_yaw = wrapf(fp_yaw + delta_x_px * sens, -PI, PI)
+	fp_pitch = clampf(fp_pitch - delta_y_px * sens * inv_y, -FP_MAX_PITCH, FP_MAX_PITCH)
 	_sync_player_aim_from_fp()
 	_update_fp_camera_transform()
 
@@ -972,7 +977,8 @@ func _update_fp_camera_transform() -> void:
 		var c_ctrl_f = pl.get_node_or_null("PlayerCombatController")
 		if c_ctrl_f != null and "aim_down_sights_blend" in c_ctrl_f:
 			ads_fov_blend = clampf(float(c_ctrl_f.get("aim_down_sights_blend")), 0.0, 1.0)
-	cam_3d.fov = lerpf(70.0, 55.0, ads_fov_blend)
+	var fov_base: float = float(Ajustes.get_valor("campo_vision")) # Ajustes → Juego (70 por defecto)
+	cam_3d.fov = lerpf(fov_base, fov_base * 0.786, ads_fov_blend)
 	cam_3d.near = 0.03
 	cam_3d.far = 250.0
 	cam_3d.global_position = eye_3d
@@ -986,7 +992,7 @@ func _update_fp_camera_transform() -> void:
 
 func _unhandled_input(event: InputEvent) -> void:
 	if event is InputEventKey and event.pressed and not event.echo:
-		if (event.keycode == KEY_P or event.physical_keycode == KEY_P) and not _is_ui_blocking_fp(): # sin F6, que en el editor de Godot lanza la escena
+		if Teclas.es(event, "primera_persona") and not _is_ui_blocking_fp(): # sin F6, que en el editor de Godot lanza la escena
 			toggle_first_person()
 			get_viewport().set_input_as_handled()
 
@@ -1398,3 +1404,18 @@ func sync_case1_props_3d() -> void:
 	_add_box_2d(_case1_props_root_3d, rp, Vector2(6.0, 4.2), 11.0, 0.8, m_brass)
 	for j2 in range(3):
 		_add_box_2d(_case1_props_root_3d, rp + Vector2(0.2 * j2, -0.1 * j2), Vector2(4.4, 3.2), 11.8 + 0.2 * j2, 0.15, m_paper, float(j2 * 6 - 4))
+
+
+## Ajustes → Gráficos (2026-11-10): sombras del sol, nitidez de la imagen 3D y suavizado de bordes.
+## Las sombras del sol son lo que más pesa (duplican el dibujo).
+func _aplicar_ajustes_graficos() -> void:
+	if is_instance_valid(sun_light):
+		var q: int = int(Ajustes.get_valor("sombras"))
+		sun_light.shadow_enabled = q > 0
+		sun_light.directional_shadow_max_distance = 140.0 if q >= 2 else 70.0
+		RenderingServer.directional_shadow_atlas_set_size(4096 if q >= 2 else 2048, true)
+	if is_instance_valid(sub_viewport):
+		sub_viewport.scaling_3d_mode = Viewport.SCALING_3D_MODE_BILINEAR
+		sub_viewport.scaling_3d_scale = clampf(float(Ajustes.get_valor("nitidez")), 0.5, 1.0)
+		var msaa: int = int(Ajustes.get_valor("suavizado"))
+		sub_viewport.msaa_3d = [Viewport.MSAA_DISABLED, Viewport.MSAA_2X, Viewport.MSAA_4X][clampi(msaa, 0, 2)]

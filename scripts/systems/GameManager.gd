@@ -37,11 +37,117 @@ func set_demo_mode(enabled: bool) -> void:
 var game_data: Dictionary = {}
 var workplaces_data: Dictionary = {} # Listo para Paso 2.3 (Puestos de Trabajo y Sucesión)
 
+## Huecos de guardado (menú principal, 2026-11-10). «rapida» es la de F5/F12; «auto» se guarda sola al empezar
+## cada día de juego. Junto a cada partida se escribe un «.info.json» pequeño (día, hora, fecha real) para el menú.
+const RANURAS: Dictionary = {
+	"auto": "user://partida_auto.json",
+	"rapida": SAVE_FILE_PATH,
+	"1": "user://partida_1.json",
+	"2": "user://partida_2.json",
+	"3": "user://partida_3.json",
+}
+const NOMBRE_RANURA: Dictionary = {"auto": "Autoguardado", "rapida": "Guardado rápido", "1": "Partida 1", "2": "Partida 2", "3": "Partida 3"}
+## Partida que hay que cargar en cuanto el pueblo termine de montarse (la pide el menú principal).
+var carga_pendiente: String = ""
+var _autoguardado_pendiente: bool = false
+var _espera_autoguardado: float = 0.0
+
+func _ready() -> void:
+	process_mode = Node.PROCESS_MODE_ALWAYS
+	if WorldClock and not WorldClock.day_passed.is_connected(_on_dia_nuevo):
+		WorldClock.day_passed.connect(_on_dia_nuevo)
+
+func _on_dia_nuevo(_dia: int) -> void:
+	# Las pruebas automáticas no deben pisar el autoguardado del jugador.
+	if DisplayServer.get_name() != "headless":
+		_autoguardado_pendiente = true
+
+func _process(delta: float) -> void:
+	if not _autoguardado_pendiente or get_tree().paused:
+		return
+	_espera_autoguardado -= delta
+	if _espera_autoguardado > 0.0:
+		return
+	_espera_autoguardado = 2.0
+	if _se_puede_guardar_ahora() and get_tree().get_first_node_in_group("player") != null:
+		_autoguardado_pendiente = false
+		save_game(RANURAS["auto"], "💾 Autoguardado")
+
+func _se_puede_guardar_ahora() -> bool:
+	var vm = get_tree().get_first_node_in_group("village_manager")
+	if WorldClock and bool(WorldClock.get("is_fast_forwarding")):
+		return false
+	if vm and bool(vm.get("player_being_escorted_to_jail")):
+		return false
+	var player = get_tree().get_first_node_in_group("player")
+	var dm = player.get("dialogue_manager") if player else null
+	if dm and dm.has_method("is_active") and bool(dm.call("is_active")):
+		return false
+	return true
+
+func ruta_info(filepath: String) -> String:
+	return filepath.get_basename() + ".info.json"
+
+## {existe, dia, hora, fecha} de un hueco. Si falta el «.info.json» (partidas antiguas) se lee la partida entera.
+func info_ranura(id: String) -> Dictionary:
+	var ruta: String = str(RANURAS.get(id, ""))
+	var info: Dictionary = {"existe": false, "dia": 0, "hora": "", "fecha": "", "ruta": ruta, "nombre": str(NOMBRE_RANURA.get(id, id))}
+	if ruta == "" or not FileAccess.file_exists(ruta):
+		return info
+	info["existe"] = true
+	var datos: Variant = null
+	if FileAccess.file_exists(ruta_info(ruta)):
+		datos = JSON.parse_string(FileAccess.get_file_as_string(ruta_info(ruta)))
+	if typeof(datos) == TYPE_DICTIONARY:
+		info["dia"] = int(datos.get("dia", 0))
+		info["hora"] = str(datos.get("hora", ""))
+		info["fecha"] = str(datos.get("fecha", ""))
+	else:
+		var todo: Variant = JSON.parse_string(FileAccess.get_file_as_string(ruta))
+		if typeof(todo) == TYPE_DICTIONARY:
+			var wc: Dictionary = todo.get("world_clock", {})
+			info["dia"] = int(wc.get("day", 0))
+			info["hora"] = "%02d:%02d" % [int(wc.get("hour", 0)), int(wc.get("minute", 0))]
+			info["fecha"] = str(todo.get("saved_at", ""))
+	info["fecha"] = str(info["fecha"]).replace("T", " ").left(16)
+	info["mtime"] = FileAccess.get_modified_time(ruta)
+	return info
+
+## El hueco guardado más reciente (para «Continuar»), o "" si no hay ninguno.
+func ranura_mas_reciente() -> String:
+	var mejor: String = ""
+	var t_mejor: int = -1
+	for id in RANURAS.keys():
+		var ruta: String = RANURAS[id]
+		if FileAccess.file_exists(ruta):
+			var t: int = FileAccess.get_modified_time(ruta)
+			if t > t_mejor:
+				t_mejor = t
+				mejor = id
+	return mejor
+
+func borrar_ranura(id: String) -> void:
+	var ruta: String = str(RANURAS.get(id, ""))
+	for r in [ruta, ruta_info(ruta)]:
+		if r != "" and FileAccess.file_exists(r):
+			DirAccess.remove_absolute(ProjectSettings.globalize_path(r))
+
+## Lo llama el pueblo al terminar de montarse: si el menú pidió cargar una partida, se carga ahora.
+func al_entrar_en_el_mundo() -> void:
+	if carga_pendiente == "":
+		return
+	var ruta: String = carga_pendiente
+	carga_pendiente = ""
+	for _i in range(30):
+		await get_tree().physics_frame
+		await get_tree().process_frame
+	load_game(ruta)
+
 func _unhandled_input(event: InputEvent) -> void:
 	if event is InputEventKey and event.pressed and not event.echo:
-		if event.keycode == KEY_F5:
+		if Teclas.es(event, "guardado_rapido"):
 			save_game()
-		elif event.keycode == KEY_F12:
+		elif Teclas.es(event, "carga_rapida"):
 			load_game()
 
 func set_flag(id: String, value: Variant) -> void:
@@ -57,7 +163,7 @@ func reset_save() -> void:
 func has_save_file(filepath: String = SAVE_FILE_PATH) -> bool:
 	return FileAccess.file_exists(filepath)
 
-func save_game(filepath: String = SAVE_FILE_PATH) -> bool:
+func save_game(filepath: String = SAVE_FILE_PATH, aviso: String = "") -> bool:
 	var player = get_tree().get_first_node_in_group("player")
 	var vm = get_tree().get_first_node_in_group("village_manager")
 	if (WorldClock and bool(WorldClock.get("is_fast_forwarding"))) or (vm and bool(vm.get("player_being_escorted_to_jail"))):
@@ -141,10 +247,19 @@ func save_game(filepath: String = SAVE_FILE_PATH) -> bool:
 
 	file.store_string(JSON.stringify(payload, "\t"))
 	file.close()
+	var wc_d: Dictionary = payload["world_clock"]
+	var info_f := FileAccess.open(ruta_info(filepath), FileAccess.WRITE)
+	if info_f:
+		info_f.store_string(JSON.stringify({
+			"dia": int(wc_d.get("day", 0)),
+			"hora": "%02d:%02d" % [int(wc_d.get("hour", 0)), int(wc_d.get("minute", 0))],
+			"fecha": str(payload["saved_at"]),
+		}))
+		info_f.close()
 
 	if player and player.has_method("show_hint"):
 		var time_str := WorldClock.get_formatted_time() if WorldClock else ""
-		player.show_hint("💾 Partida Guardada — %s" % time_str)
+		player.show_hint("%s — %s" % [aviso if aviso != "" else "💾 Partida Guardada", time_str])
 
 	game_saved.emit(filepath)
 	return true
