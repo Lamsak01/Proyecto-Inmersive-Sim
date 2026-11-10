@@ -52,7 +52,9 @@ func _construir() -> void:
 	_poligonos(vista, ref.get("caminos", []), Color(0.62, 0.52, 0.38), 0.35)
 	if ref.get("lago", []) is Array and (ref["lago"] as Array).size() > 2:
 		_poligonos(vista, [ref["lago"]], Color(0.20, 0.45, 0.75), 0.6, true)
-	_edificios(vista, ref.get("edificios", []))
+	var ed := get_node_or_null("Edificios")
+	if ed == null or ed.get_child_count() == 0:
+		_edificios(vista, ref.get("edificios", [])) # cajas, solo hasta que existan las fotos de los edificios
 	for t in ref.get("arboles", []):
 		_cono(vista, Vector2(t[0], t[1]), 9.0, 46.0, Color(0.18, 0.45, 0.20))
 	for r in ref.get("rocas", []):

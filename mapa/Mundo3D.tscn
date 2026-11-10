@@ -2,6 +2,7 @@
 
 [ext_resource type="Script" path="res://mapa/mundo3d.gd" id="1_m3d"]
 [ext_resource type="Script" path="res://mapa/pieza.gd" id="2_rotgg"]
+[ext_resource type="Script" path="res://mapa/edificio.gd" id="3_jgq7j"]
 
 [node name="Mundo3D" type="Node3D" unique_id=1754351310]
 script = ExtResource("1_m3d")
@@ -4027,3 +4028,271 @@ transform = Transform3D(-0.17364813, 0, -0.9848078, 0, 1, 0, 0.9848078, 0, -0.17
 script = ExtResource("2_rotgg")
 modelo = "nature/Rock_1.obj"
 alto = 16.0
+
+[node name="Edificios" type="Node3D" parent="." unique_id=992098941]
+
+[node name="building_tavern" type="Node3D" parent="Edificios" unique_id=1811098656]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 8.68, 0, -5.282719)
+script = ExtResource("3_jgq7j")
+id_edificio = "building_tavern"
+centro_original = Vector2(434, -224)
+origen_3d = Vector3(8.68, 0, -5.282719)
+
+[node name="shop_family_smith" type="Node3D" parent="Edificios" unique_id=1272011273]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 6.7, 0, -0.84900844)
+script = ExtResource("3_jgq7j")
+id_edificio = "shop_family_smith"
+centro_original = Vector2(335, -36)
+origen_3d = Vector3(6.7, 0, -0.84900844)
+
+[node name="house_family_smith" type="Node3D" parent="Edificios" unique_id=81013345]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 14.9, 0.120773114, -4.598796)
+script = ExtResource("3_jgq7j")
+id_edificio = "house_family_smith"
+centro_original = Vector2(745, -195)
+origen_3d = Vector3(14.9, 0.120773114, -4.598796)
+
+[node name="shop_family_butcher" type="Node3D" parent="Edificios" unique_id=2043500346]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 11.7, 0, -0.84900844)
+script = ExtResource("3_jgq7j")
+id_edificio = "shop_family_butcher"
+centro_original = Vector2(585, -36)
+origen_3d = Vector3(11.7, 0, -0.84900844)
+
+[node name="house_family_butcher" type="Node3D" parent="Edificios" unique_id=577323179]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 18.1, 0.120773114, -4.598796)
+script = ExtResource("3_jgq7j")
+id_edificio = "house_family_butcher"
+centro_original = Vector2(905, -195)
+origen_3d = Vector3(18.1, 0.120773114, -4.598796)
+
+[node name="shop_family_carpenter" type="Node3D" parent="Edificios" unique_id=1248438589]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 11.7, 0, 3.4903681)
+script = ExtResource("3_jgq7j")
+id_edificio = "shop_family_carpenter"
+centro_original = Vector2(585, 148)
+origen_3d = Vector3(11.7, 0, 3.4903681)
+
+[node name="house_family_carpenter" type="Node3D" parent="Edificios" unique_id=814009692]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 14.9, 0.120773114, -0.84900844)
+script = ExtResource("3_jgq7j")
+id_edificio = "house_family_carpenter"
+centro_original = Vector2(745, -36)
+origen_3d = Vector3(14.9, 0.120773114, -0.84900844)
+
+[node name="shop_family_fishmonger" type="Node3D" parent="Edificios" unique_id=682534694]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 9.3, 0, 3.4903681)
+script = ExtResource("3_jgq7j")
+id_edificio = "shop_family_fishmonger"
+centro_original = Vector2(465, 148)
+origen_3d = Vector3(9.3, 0, 3.4903681)
+
+[node name="house_family_fishmonger" type="Node3D" parent="Edificios" unique_id=1773978786]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 18.1, 0.120773114, -0.84900844)
+script = ExtResource("3_jgq7j")
+id_edificio = "house_family_fishmonger"
+centro_original = Vector2(905, -36)
+origen_3d = Vector3(18.1, 0.120773114, -0.84900844)
+
+[node name="mixed_family_herbalist" type="Node3D" parent="Edificios" unique_id=19379466]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 6.5, 0, 3.655453)
+script = ExtResource("3_jgq7j")
+id_edificio = "mixed_family_herbalist"
+centro_original = Vector2(325, 155)
+origen_3d = Vector3(6.5, 0, 3.655453)
+
+[node name="building_hospital" type="Node3D" parent="Edificios" unique_id=711195583]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 14.9, 0.120773114, 3.4903681)
+script = ExtResource("3_jgq7j")
+id_edificio = "building_hospital"
+centro_original = Vector2(745, 148)
+origen_3d = Vector3(14.9, 0.120773114, 3.4903681)
+
+[node name="building_police" type="Node3D" parent="Edificios" unique_id=552603709]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 18.3, 0.120773114, 3.4903681)
+script = ExtResource("3_jgq7j")
+id_edificio = "building_police"
+centro_original = Vector2(915, 148)
+origen_3d = Vector3(18.3, 0.120773114, 3.4903681)
+
+[node name="building_church" type="Node3D" parent="Edificios" unique_id=817748534]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 14.9, 0.120773114, 7.358073)
+script = ExtResource("3_jgq7j")
+id_edificio = "building_church"
+centro_original = Vector2(745, 312)
+origen_3d = Vector3(14.9, 0.120773114, 7.358073)
+
+[node name="building_abandoned_mill" type="Node3D" parent="Edificios" unique_id=249096072]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 3.76, 0.35477102, -24.998583)
+script = ExtResource("3_jgq7j")
+id_edificio = "building_abandoned_mill"
+centro_original = Vector2(188, -1060)
+origen_3d = Vector3(3.76, 0.35477102, -24.998583)
+
+[node name="building_restaurant" type="Node3D" parent="Edificios" unique_id=50935613]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2.35, 0, -2.6177762)
+script = ExtResource("3_jgq7j")
+id_edificio = "building_restaurant"
+centro_original = Vector2(-117.5, -111)
+origen_3d = Vector3(-2.35, 0, -2.6177762)
+
+[node name="mixed_family_baker" type="Node3D" parent="Edificios" unique_id=762917573]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 9.48, 0.15851471, -10.023016)
+script = ExtResource("3_jgq7j")
+id_edificio = "mixed_family_baker"
+centro_original = Vector2(474, -425)
+origen_3d = Vector3(9.48, 0.15851471, -10.023016)
+
+[node name="mixed_family_tailor" type="Node3D" parent="Edificios" unique_id=1690385396]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 12.12, 0.15851471, -10.140934)
+script = ExtResource("3_jgq7j")
+id_edificio = "mixed_family_tailor"
+centro_original = Vector2(606, -430)
+origen_3d = Vector3(12.12, 0.15851471, -10.140934)
+
+[node name="building_town_hall" type="Node3D" parent="Edificios" unique_id=1562895561]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 15.2, 0.15851471, -10.140934)
+script = ExtResource("3_jgq7j")
+id_edificio = "building_town_hall"
+centro_original = Vector2(760, -430)
+origen_3d = Vector3(15.2, 0.15851471, -10.140934)
+
+[node name="building_library" type="Node3D" parent="Edificios" unique_id=515911197]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 18.28, 0.15851471, -10.140934)
+script = ExtResource("3_jgq7j")
+id_edificio = "building_library"
+centro_original = Vector2(914, -430)
+origen_3d = Vector3(18.28, 0.15851471, -10.140934)
+
+[node name="mixed_family_candil" type="Node3D" parent="Edificios" unique_id=719539889]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 24.6, 0.19625631, -0.84900844)
+script = ExtResource("3_jgq7j")
+id_edificio = "mixed_family_candil"
+centro_original = Vector2(1230, -36)
+origen_3d = Vector3(24.6, 0.19625631, -0.84900844)
+
+[node name="building_school" type="Node3D" parent="Edificios" unique_id=32608064]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 28, 0.19625631, -0.84900844)
+script = ExtResource("3_jgq7j")
+id_edificio = "building_school"
+centro_original = Vector2(1400, -36)
+origen_3d = Vector3(28, 0.19625631, -0.84900844)
+
+[node name="building_shelter" type="Node3D" parent="Edificios" unique_id=1672323965]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 21.8, 0.19625631, 3.3016996)
+script = ExtResource("3_jgq7j")
+id_edificio = "building_shelter"
+centro_original = Vector2(1090, 140)
+origen_3d = Vector3(21.8, 0.19625631, 3.3016996)
+
+[node name="mixed_family_tinker" type="Node3D" parent="Edificios" unique_id=2129730660]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 24.6, 0.19625631, 3.3016996)
+script = ExtResource("3_jgq7j")
+id_edificio = "mixed_family_tinker"
+centro_original = Vector2(1230, 140)
+origen_3d = Vector3(24.6, 0.19625631, 3.3016996)
+
+[node name="mixed_family_farm" type="Node3D" parent="Edificios" unique_id=1520133491]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -5.4, -0.06793488, 11.084277)
+script = ExtResource("3_jgq7j")
+id_edificio = "mixed_family_farm"
+centro_original = Vector2(-270, 470)
+origen_3d = Vector3(-5.4, -0.06793488, 11.084277)
+
+[node name="mixed_family_ranch" type="Node3D" parent="Edificios" unique_id=1462976219]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 4.8, -0.06793488, 11.084277)
+script = ExtResource("3_jgq7j")
+id_edificio = "mixed_family_ranch"
+centro_original = Vector2(240, 470)
+origen_3d = Vector3(4.8, -0.06793488, 11.084277)
+
+[node name="mixed_family_quarry" type="Node3D" parent="Edificios" unique_id=1396251874]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -5.6, 0.13209559, -7.7825775)
+script = ExtResource("3_jgq7j")
+id_edificio = "mixed_family_quarry"
+centro_original = Vector2(-280, -330)
+origen_3d = Vector3(-5.6, 0.13209559, -7.7825775)
+
+[node name="mixed_family_woodcutter" type="Node3D" parent="Edificios" unique_id=147919480]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -8.6, -0.06793488, 13.112464)
+script = ExtResource("3_jgq7j")
+id_edificio = "mixed_family_woodcutter"
+centro_original = Vector2(-430, 556)
+origen_3d = Vector3(-8.6, -0.06793488, 13.112464)
+
+[node name="building_mansion" type="Node3D" parent="Edificios" unique_id=216072753]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 26.3, 0.15851471, -10.37677)
+script = ExtResource("3_jgq7j")
+id_edificio = "building_mansion"
+centro_original = Vector2(1315, -440)
+origen_3d = Vector3(26.3, 0.15851471, -10.37677)
+
+[node name="building_manor" type="Node3D" parent="Edificios" unique_id=1264783351]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.8, 0.26419118, -13.206799)
+script = ExtResource("3_jgq7j")
+id_edificio = "building_manor"
+centro_original = Vector2(40, -560)
+origen_3d = Vector3(0.8, 0.26419118, -13.206799)
+
+[node name="house_family_lot_n0" type="Node3D" parent="Edificios" unique_id=899665738]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 3.72, 0.15851471, -10.023016)
+script = ExtResource("3_jgq7j")
+id_edificio = "house_family_lot_n0"
+centro_original = Vector2(186, -425)
+origen_3d = Vector3(3.72, 0.15851471, -10.023016)
+
+[node name="house_family_lot_l2" type="Node3D" parent="Edificios" unique_id=1199042832]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -5.6, -0.06793488, 7.263739)
+script = ExtResource("3_jgq7j")
+id_edificio = "house_family_lot_l2"
+centro_original = Vector2(-280, 308)
+origen_3d = Vector3(-5.6, -0.06793488, 7.263739)
+
+[node name="house_family_lot_n1" type="Node3D" parent="Edificios" unique_id=430223884]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 6.6, 0.15851471, -10.023016)
+script = ExtResource("3_jgq7j")
+id_edificio = "house_family_lot_n1"
+centro_original = Vector2(330, -425)
+origen_3d = Vector3(6.6, 0.15851471, -10.023016)
+
+[node name="house_family_lot_c2" type="Node3D" parent="Edificios" unique_id=156092269]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -12, 0, 18.866854)
+script = ExtResource("3_jgq7j")
+id_edificio = "house_family_lot_c2"
+centro_original = Vector2(-600, 800)
+origen_3d = Vector3(-12, 0, 18.866854)
+
+[node name="house_family_lot_m1" type="Node3D" parent="Edificios" unique_id=948078407]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 6.6, 0.26419118, -13.585065)
+script = ExtResource("3_jgq7j")
+id_edificio = "house_family_lot_m1"
+centro_original = Vector2(330, -576.0394)
+origen_3d = Vector3(6.6, 0.26419118, -13.585065)
+
+[node name="house_family_lot_o2" type="Node3D" parent="Edificios" unique_id=1535187995]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 33.8, 0.19625631, 5.660056)
+script = ExtResource("3_jgq7j")
+id_edificio = "house_family_lot_o2"
+centro_original = Vector2(1690, 240)
+origen_3d = Vector3(33.8, 0.19625631, 5.660056)
+
+[node name="house_family_lot_m3" type="Node3D" parent="Edificios" unique_id=539601193]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 12.12, 0.26419118, -13.523626)
+script = ExtResource("3_jgq7j")
+id_edificio = "house_family_lot_m3"
+centro_original = Vector2(606, -573.43427)
+origen_3d = Vector3(12.12, 0.26419118, -13.523626)
+
+[node name="house_family_lot_l1" type="Node3D" parent="Edificios" unique_id=925811527]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -7.8, -0.06793488, 7.0750704)
+script = ExtResource("3_jgq7j")
+id_edificio = "house_family_lot_l1"
+centro_original = Vector2(-390, 300)
+origen_3d = Vector3(-7.8, -0.06793488, 7.0750704)
+
+[node name="house_family_lot_m4" type="Node3D" parent="Edificios" unique_id=16238635]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 15.2, 0.26419118, -13.714663)
+script = ExtResource("3_jgq7j")
+id_edificio = "house_family_lot_m4"
+centro_original = Vector2(760, -581.53467)
+origen_3d = Vector3(15.2, 0.26419118, -13.714663)

@@ -46,6 +46,17 @@ ordenador principal**: pregúntale cuáles antes de las piezas nuevas (árboles,
 - Siguen en código: setas y hierbas, puentes, el tronco-puente, los troncos de caja
   del claro y todo lo de los edificios.
 
+## Hecho (paso 4, 2026-11-10: edificios en el editor 3D — mover)
+- `mapa/Mundo3D.tscn` → «Edificios»: una pieza por edificio (`mapa/edificio.gd`) que en Godot enseña la **foto 3D** del
+  edificio tal como lo construye el juego (`mapa/edificios_vista/<id>.scn`; texturas y mallas compartidas en `comun/`, 30 MB).
+- Moverla mueve el edificio en el juego: `VillageManagerBase._construct_solid_building` suma `EdificioEditor.desplazamiento(id)`
+  (posición de la pieza − `centro_original`). Muros, puerta, suelo, tejado y huella se construyen en el sitio nuevo. Probado
+  moviendo una casa 100 px.
+- **Pendiente («arreglar la lógica», decisión del usuario):** girar no se aplica en el juego; lo que el código pone en
+  coordenadas fijas (muebles de interiores especiales, pistas del Caso I, sala secreta de la biblioteca, taberna con
+  `VillageTavern.RECT`, rutas y puestos de vecinos) no sigue al edificio movido.
+- Fotos: `tools/hornear_edificios.gd` (con ventana). Rehacerlas si cambia el aspecto de un edificio; no toca las piezas.
+
 ## Pendiente (en este orden, cada paso con permiso del usuario)
 1. En el ordenador principal: `git pull`, abrir `mapa/EditorMapa.tscn` con el usuario y que mueva un punto del río
    (aprender Godot, paso 1). Mirar que los vecinos ya no se atascan en el río nuevo.

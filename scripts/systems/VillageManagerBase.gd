@@ -1,5 +1,6 @@
 @tool
 extends Node2D
+const EdificioEditor = preload("res://mapa/edificio.gd")
 
 var VillageJustice = load("res://scripts/systems/VillageJustice.gd")
 
@@ -376,6 +377,8 @@ func _construct_solid_building(
 	floor_tex_path: String, wall_h_path: String, wall_v_path: String,
 	door_width: float = 42.0, door_offset_x: float = 0.0, title_color: Color = Color(0.96, 0.90, 0.68)
 ) -> void:
+	# Editor del mapa 3D (2026-11-10): si el usuario movió el edificio en mapa/Mundo3D.tscn, se construye en el sitio nuevo
+	center += EdificioEditor.desplazamiento(b_id)
 	var half := size * 0.5
 	var rect := Rect2(center - half, size)
 	var door_dir: String = "south"
