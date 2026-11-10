@@ -319,6 +319,8 @@ func set_first_person(enable: bool) -> void:
 				sub_viewport.transparent_bg = false
 			if is_instance_valid(stage_sprite):
 				stage_sprite.z_index = 120
+			_ocultar_2d_tapado(true)
+			_alcance_objetos_pequenos(true)
 			if is_instance_valid(fp_hud_layer):
 				fp_hud_layer.visible = true
 			if not _is_ui_blocking_fp():
@@ -343,6 +345,8 @@ func set_first_person(enable: bool) -> void:
 				world_env.environment.fog_enabled = false
 			if is_instance_valid(stage_sprite):
 				stage_sprite.z_index = -2
+			_ocultar_2d_tapado(false)
+			_alcance_objetos_pequenos(false)
 			if is_instance_valid(fp_hud_layer):
 				fp_hud_layer.visible = false
 			if is_instance_valid(fp_lantern_light):
@@ -1419,3 +1423,62 @@ func _aplicar_ajustes_graficos() -> void:
 		sub_viewport.scaling_3d_scale = clampf(float(Ajustes.get_valor("nitidez")), 0.5, 1.0)
 		var msaa: int = int(Ajustes.get_valor("suavizado"))
 		sub_viewport.msaa_3d = [Viewport.MSAA_DISABLED, Viewport.MSAA_2X, Viewport.MSAA_4X][clampi(msaa, 0, 2)]
+
+
+## Rendimiento (2026-11-10): en 1.ª persona la imagen 3D tapa por completo el pueblo 2D (suelo, casas y vecinos planos),
+## pero se seguía dibujando a la resolución de la pantalla (en el portátil, 3072×1728: unos 15 ms por fotograma).
+## Se deja de dibujar con una «capa de visibilidad»: solo cambia lo que se pinta, no la lógica ni las colisiones.
+## La interfaz va en sus propias capas y no se toca.
+const CAPA_2D_TAPADO: int = 1 << 19
+
+func _ocultar_2d_tapado(ocultar: bool) -> void:
+	if not is_inside_tree():
+		return
+	var vm_n := get_parent()
+	var mundo: Node = vm_n.get_parent() if vm_n != null else null
+	if mundo == null:
+		return
+	if ocultar:
+		for c in mundo.get_children():
+			if c is CanvasItem and c != vm_n:
+				(c as CanvasItem).visibility_layer = CAPA_2D_TAPADO
+		for c in vm_n.get_children():
+			if c is CanvasItem and c != self:
+				(c as CanvasItem).visibility_layer = CAPA_2D_TAPADO
+	get_viewport().canvas_cull_mask = (0xFFFFFFFF & ~CAPA_2D_TAPADO) if ocultar else 0xFFFFFFFF
+
+
+## Rendimiento (2026-11-10): en 1.ª persona los objetos pequeños (menos de 1 m: platos, libros, herramientas…) dejan de
+## dibujarse a más de 25 m y los medianos (1–3 m: muebles, barriles, carros) a más de 50 m. A esa distancia ocupan unos
+## pocos puntos de la pantalla. Medido en el portátil: unas 500–1.200 llamadas de dibujo menos y ~4 ms por fotograma
+## en la plaza y las afueras. Con la cámara de arriba (muy alta) no se aplica: haría desaparecer cosas.
+const ALCANCE_PEQUENO: float = 5.0   # unidades 3D (1 u = 5 m) → 25 m
+const ALCANCE_MEDIANO: float = 10.0  # → 50 m
+var _con_alcance: Array = []
+
+func _alcance_objetos_pequenos(activar: bool) -> void:
+	for g in _con_alcance:
+		if is_instance_valid(g):
+			(g as GeometryInstance3D).visibility_range_end = 0.0
+	_con_alcance.clear()
+	if not activar or not is_instance_valid(stage_root_3d):
+		return
+	var pila: Array = [stage_root_3d]
+	while not pila.is_empty():
+		var n: Node = pila.pop_back()
+		if n.name == &"Characters3D" or n == cam_3d:
+			continue
+		if n is GeometryInstance3D:
+			var g := n as GeometryInstance3D
+			if g.visibility_range_end <= 0.0:
+				var ab: AABB = g.get_aabb()
+				var t: Vector3 = ab.size * g.global_transform.basis.get_scale().abs()
+				var e: float = maxf(t.x, maxf(t.y, t.z))
+				if e < 0.2:
+					g.visibility_range_end = ALCANCE_PEQUENO
+					_con_alcance.append(g)
+				elif e < 0.6:
+					g.visibility_range_end = ALCANCE_MEDIANO
+					_con_alcance.append(g)
+		for c in n.get_children():
+			pila.append(c)

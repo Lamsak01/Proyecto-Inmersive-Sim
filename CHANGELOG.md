@@ -4,6 +4,13 @@ Cambios del juego, del más nuevo al más antiguo. Añade una entrada al cerrar 
 El detalle técnico está en `docs/HANDOFF.md` (sección 7) y el historial completo en `git log`. Lo anterior a B0.1 está en `AUDIT_LOG.md` y `SESSION_CONTEXT_LOG.md`.
 
 
+## 2026-11-10 — Más fluido en 1.ª persona (Claude Code, portátil; pedido por el usuario)
+- El pueblo dibujado en plano se seguía pintando detrás de la vista en primera persona, a la resolución de la pantalla, aunque no se viera. Ya no.
+- Los vecinos a media distancia (unos 14–36 m) piensan y se mueven la mitad de veces, recorriendo lo mismo; los cercanos siguen al detalle.
+- En primera persona, los objetos pequeños dejan de dibujarse a más de 25 m y los muebles a más de 50 m (a esa distancia son unos pocos puntos).
+- Medido en el portátil (imágenes por segundo): afueras 27→33, plaza 22→29, río 18→23, bosque 27→38, molino 32→40, mansión 35→43.
+- Si aún va justo: Ajustes → Gráficos → Sombras «Sin sombras» quita unos 4 ms más por imagen.
+
 ## 2026-11-10 — Menú principal, pausa, ajustes y créditos (Claude Code, portátil; pedido por el usuario)
 - El juego arranca en un menú principal: Nueva partida, Continuar (la última guardada), Cargar, Ajustes, Créditos y Salir.
 - Esc en la partida (sin nada abierto) abre la pausa: seguir, guardar, cargar, ajustes y salir al menú. El pueblo se para mientras está abierta.

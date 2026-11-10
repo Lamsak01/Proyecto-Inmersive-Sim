@@ -1132,6 +1132,14 @@ Cada fase se dividirá en bloques pequeños cuando se llegue a ella (detalle en 
   - Créditos en `scripts/ui/menu/creditos.txt` (editable). Prueba: `tools/tests/menu_probe.gd` (~2 min; no toca los ajustes ni las partidas del jugador).
   - Pendiente: no hay música todavía (el bus Music existe); `creditos.txt` va incluido en la exportación (filtro de recursos de `export_presets.cfg`).
 
+- [x] **PERF4 Rendimiento en 1.ª persona** (Claude Code, 2026-11-10; pedido por el usuario):
+  - `WorldStage3D._ocultar_2d_tapado`: en 1.ª persona los hijos 2D del pueblo pasan a la capa de visibilidad 20 y el viewport
+    principal la excluye (`canvas_cull_mask`); no toca `visible`, ni lógica ni colisiones. Ventana: 16,8 → 1,6 ms de tarjeta.
+  - `VillageNPCBase.LOD_DIST_MEDIO = 140`: entre 140 y 360 px el vecino hace 1 de cada 2 pasos (mismo mecanismo `_lod_k`).
+  - `WorldStage3D._alcance_objetos_pequenos`: en 1.ª persona, `visibility_range_end` 25 m (<1 m) y 50 m (1–3 m); se quita al salir.
+  - Medido (`perf_zonas.gd`): afueras 27→33, plaza 22→29, río 18→23, bosque 27→38, molino 32→40, mansión 35→43 fps.
+    Ahora frena la parte 3D (13–25 ms de tarjeta, 2.000–3.800 llamadas de dibujo) y los vecinos (~7 ms por paso de física).
+
 ## 8. Decisiones de diseño ya tomadas (no volver a preguntarlas)
 
 - **Época DEFINITIVA** (usuario, 2026-11-08, «100 % seguro»): **tecnofeudal / medieval-balística**. Sociedad y arquitectura feudales con tecnología analógica de los 70/80 y armas de fuego militares (fusiles de asalto, radios, focos, tractores diésel, alambre de espino, sacos terreros), todo tosco: hierro, piedra, madera, hormigón, baquelita, cables gruesos. Guardias con cota de malla, coraza (como chaleco antibalas) y correas de lona. Nada de pantallas planas, móviles, coches modernos ni engranajes dorados victorianos. Sustituye a la época del 2026-11-07. Referencias `docs/referencias_personajes/07–09_DEFINITIVA_*`; detalle en `docs/VISION_Y_FUTURO.md` (Jugador).

@@ -436,6 +436,9 @@ var _pre_poker_pos: Vector2 = Vector2.ZERO
 
 const LOD_DIST: float = 360.0 # La cámara (zoom 3, 1280x720) ve unos 430x240; con margen
 const LOD_STEP: int = 4
+## Rendimiento (2026-11-10): a media distancia (~14–36 m en 1.ª persona) el vecino piensa 1 de cada 2 pasos de física y
+## recorre en ese paso la distancia de los dos (como los lejanos). Medido en el portátil: los vecinos costaban ~19 ms por fotograma.
+const LOD_DIST_MEDIO: float = 140.0
 var _lod_acc: float = 0.0
 var _lod_phase: int = -1
 var _lod_tick: int = 0
@@ -996,15 +999,18 @@ func _lod_far() -> bool:
 	if is_instance_valid(_cached_vm) and "player_elevation_level" in _cached_vm and int(_cached_vm.player_elevation_level) != elevation_level:
 		return true # Bloque PQ: En otro piso o en el subsuelo respecto al jugador se simula en modo simplificado
 	var pl: Node2D = _get_player()
-	return pl != null and global_position.distance_squared_to(pl.global_position) > LOD_DIST * LOD_DIST
+	return pl != null and global_position.distance_squared_to(pl.global_position) > LOD_DIST_MEDIO * LOD_DIST_MEDIO
 
 func _lod_step_for_npc() -> int:
 	if is_instance_valid(_cached_vm) and "player_elevation_level" in _cached_vm and int(_cached_vm.player_elevation_level) != elevation_level:
 		return LOD_STEP * 2
 	var pl: Node2D = _get_player()
-	if pl != null and global_position.distance_squared_to(pl.global_position) > (LOD_DIST * 2.0) * (LOD_DIST * 2.0):
+	var d2: float = global_position.distance_squared_to(pl.global_position) if pl != null else INF
+	if d2 > (LOD_DIST * 2.0) * (LOD_DIST * 2.0):
 		return LOD_STEP * 2
-	return LOD_STEP
+	if d2 > LOD_DIST * LOD_DIST:
+		return LOD_STEP
+	return 2 # franja intermedia (LOD_DIST_MEDIO..LOD_DIST): 1 de cada 2 pasos
 
 static func _perf_add(part: String, since: int) -> int:
 	var now: int = Time.get_ticks_usec()

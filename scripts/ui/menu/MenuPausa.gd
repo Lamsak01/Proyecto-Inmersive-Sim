@@ -33,7 +33,7 @@ func _ready() -> void:
 	_botones.add_theme_constant_override("separation", 10)
 	marco.add_child(_botones)
 	_botones.add_child(EstiloMenu.titulo("Pausa"))
-	var hora := EstiloMenu.etiqueta("Día %d · %s" % [WorldClock.current_day, WorldClock.get_formatted_time()] if WorldClock else "", true, 18)
+	var hora := EstiloMenu.etiqueta(WorldClock.get_formatted_time() if WorldClock else "", true, 18)
 	hora.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	_botones.add_child(hora)
 	var b_seguir := _boton("Seguir jugando", cerrar)
