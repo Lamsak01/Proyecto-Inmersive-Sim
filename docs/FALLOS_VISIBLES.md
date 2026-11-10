@@ -42,9 +42,18 @@
   que va detrás falla. Pasa igual sin los cambios del plan de sitios: viene de los cambios del mapa (río redibujado,
   árboles y troncos sólidos del editor 3D). Mirar qué tapa el camino al claro.
 
-## 2026-11-10 — Atasco en la plaza cerca de (399, 100) (detectado por Claude Code)
+## ✅ (2026-11-10, arreglado) Atasco en la plaza cerca de (399, 100) (detectado por Claude Code)
 - En `atascos_vecinos.gd`, Dr. Valen, Elena o Aldric se quedan trabados unos segundos en un paso estrecho de la plaza
   cerca de (399, 100), y otros en los cruces del río (Wolfgang, Albrecht en (185, -255) y (44, -448)). Salen o no
   según la velocidad del ordenador, porque la elección de asiento usa el reloj real. Ya pasaba antes del plan de sitios.
   Mirar qué estrecha ese paso (pozo de la plaza, bancos o algo pintado con el editor).
+- **Arreglado (2026-11-10):**
+  - **Hueco estrecho:** entre la herboristería y la pescadería quedan 18 px, y 20 px entre el albergue y el
+    hojalatero. Ahí no cabe un vecino, por el margen de 9,5 px que frena junto a cada muro. Ahora las rutas tratan como
+    una sola manzana los edificios separados menos de 24 px (antes, menos de 18 px) y la rodean.
+  - **Río:** antes de la pasarela del norte, el río hace una curva. Quien iba hacia la pasarela cortaba en línea recta
+    por el agua; ahora sigue la orilla.
+  - **Prueba repetible:** el asiento de la taberna y del restaurante se elige con la hora del juego, no con el reloj
+    real, así que la misma prueba da el mismo resultado.
+  - **Medida** (`atascos_vecinos.gd -- 6`): de 1–5 atascos a 0, sin errores.
 

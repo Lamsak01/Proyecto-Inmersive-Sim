@@ -4,6 +4,12 @@ Cambios del juego, del más nuevo al más antiguo. Añade una entrada al cerrar 
 El detalle técnico está en `docs/HANDOFF.md` (sección 7) y el historial completo en `git log`. Lo anterior a B0.1 está en `AUDIT_LOG.md` y `SESSION_CONTEXT_LOG.md`.
 
 
+## 2026-11-10 — Menos vecinos atascados y arranque más limpio (Claude Code, portátil)
+- Los vecinos ya no se meten en el hueco estrecho entre la herboristería y la pescadería (ni en el del albergue con el hojalatero): rodean la manzana.
+- Antes de la pasarela del norte del río siguen la orilla en vez de meterse en el agua donde el río hace curva.
+- Prueba de 6 horas de juego: de 1–5 vecinos atascados a 0, sin errores. La prueba ahora da siempre el mismo resultado (antes dependía de la velocidad del ordenador).
+- Quitados tres avisos que salían al arrancar el juego, y arreglada la herramienta que pasa el decorado al editor del mapa (no arrancaba).
+
 ## 2026-11-10 — Los trabajos al aire libre siguen a lo movido (Claude Code, portátil)
 - Si mueves en el editor del mapa 3D el lavadero, los campos, el rancho, la cantera, el mercado, el mirador, el campamento del contrabandista u otras piezas del exterior, los vecinos van a trabajar, lavar, pasear o comerciar al sitio nuevo. También la cama de urgencias y la morgue del hospital.
 

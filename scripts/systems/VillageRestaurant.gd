@@ -366,7 +366,7 @@ static func pick_terrace_seat_for(vm, npc) -> Vector2:
 			free.append(s)
 	if free.is_empty():
 		return Vector2.ZERO
-	return free[absi(npc.npc_name.hash() + int(Time.get_ticks_msec() / 1000)) % free.size()]
+	return free[absi(npc.npc_name.hash() + VillageNeeds.total_hours()) % free.size()] # hora del juego, no reloj real
 
 static func pick_indoor_seat_for(vm, npc) -> Vector2:
 	var free: Array[Vector2] = []
@@ -375,7 +375,7 @@ static func pick_indoor_seat_for(vm, npc) -> Vector2:
 			free.append(s)
 	if free.is_empty():
 		return Vector2.ZERO
-	return free[absi(npc.npc_name.hash() + int(Time.get_ticks_msec() / 1000)) % free.size()]
+	return free[absi(npc.npc_name.hash() + VillageNeeds.total_hours()) % free.size()] # hora del juego, no reloj real
 
 ## ¿Sale este vecino a comer al restaurante? Devuelve el sitio donde se sienta, o Vector2.ZERO si no.
 static func pick_seat_for(vm, npc, force: bool = false) -> Vector2:

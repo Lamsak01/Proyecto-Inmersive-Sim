@@ -136,10 +136,10 @@ func _ext(r: Resource, tipo: String) -> void:
 func _huella(r: Resource) -> String:
 	if r is ImageTexture:
 		var img: Image = (r as ImageTexture).get_image()
-		return "%x" % hash([img.get_size(), img.get_format(), img.get_data().hash()])
+		return "%x" % hash([img.get_size(), img.get_format(), hash(img.get_data())])
 	if r is ArrayMesh:
 		var partes: Array = []
 		for i in range((r as ArrayMesh).get_surface_count()):
-			partes.append(var_to_bytes((r as ArrayMesh).surface_get_arrays(i)).hash())
+			partes.append(hash(var_to_bytes((r as ArrayMesh).surface_get_arrays(i))))
 		return "%x" % hash(partes)
 	return "%x" % r.get_instance_id()

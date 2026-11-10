@@ -359,7 +359,7 @@ static func pick_seat_for(vm, npc) -> Vector2:
 			free.append(s)
 	if free.is_empty():
 		return _AN_SITIOS.mover(SOCIAL_POS)
-	return free[absi(npc.npc_name.hash() + int(Time.get_ticks_msec() / 1000)) % free.size()]
+	return free[absi(npc.npc_name.hash() + (vm.VillageNeeds.total_hours() if vm != null else 0)) % free.size()] # hora del juego, no reloj real: misma partida, mismo resultado
 
 static func pick_poker_seat_for(vm, npc) -> Vector2:
 	var free: Array = []

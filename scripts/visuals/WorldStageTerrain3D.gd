@@ -1418,6 +1418,7 @@ func _cargar_decoracion_editor() -> void:
 	if dec != null and decorado_en_escena:
 		# Sin choques nuevos: los obstáculos del decorado ya los pone el mapa 2D (se recolocarán con «la lógica»)
 		_mundo_editor.remove_child(dec)
+		dec.owner = null # sin el aviso «owner inconsistent» al arrancar
 		terrain_root_3d.add_child(dec)
 	var piezas: Array = []
 	for grupo in ["Vegetacion", "Decoracion"]:
@@ -1425,6 +1426,7 @@ func _cargar_decoracion_editor() -> void:
 		if g == null:
 			continue
 		_mundo_editor.remove_child(g)
+		g.owner = null
 		terrain_root_3d.add_child(g)
 		_juntar_piezas(g, piezas)
 	for c in piezas:

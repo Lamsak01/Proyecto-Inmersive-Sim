@@ -1096,7 +1096,9 @@ func _avoid_outdoor_buildings(from_pos: Vector2, target_pos: Vector2, ignore_b_i
 		else:
 			var exit_x: float = (b_cr.y + 10.0) if side_to > 0.0 else (b_cr.x - 10.0)
 			cur_target = Vector2(exit_x, cr_pos.y)
-	else:
+	# Mientras el destino (o el punto de llegada al puente) quede en esta orilla, no cortar por el agua: si el río hace
+	# una curva por medio, ir antes a la orilla (2026-11-10: se metían en el agua yendo a la pasarela del norte).
+	if side_from * (cur_target.x - FishingSpot.river_center_x(cur_target.y)) > 0.0:
 		for s_i in range(1, 8):
 			var t_s: float = float(s_i) / 8.0
 			var p_s: Vector2 = from_pos.lerp(cur_target, t_s)
@@ -1130,15 +1132,17 @@ func _avoid_outdoor_buildings(from_pos: Vector2, target_pos: Vector2, ignore_b_i
 		if blocking_b.is_empty():
 			break
 
-		# Si hay edificios contiguos con una separación estrecha (< 18 px) por donde no cabe un NPC,
+		# Si hay edificios contiguos con una separación estrecha (< 24 px) por donde no cabe un NPC,
 		# fusionar sus huellas en un único bloque de esquiva para rodear la manzana por las calles exteriores.
+		# (2026-11-10: antes < 18 px; pero el margen que frena junto a un muro es 9,5 px por lado y la ruta se aparta
+		# 10,5 px, así que por un hueco de 18–23 px, como el de la herboristería y la pescadería, no se pasa y se atascaban.)
 		var merged_rect: Rect2 = blocking_b["rect"]
 		var merged_changed := true
 		while merged_changed:
 			merged_changed = false
 			for b_other in building_footprints:
 				var r_o: Rect2 = b_other["rect"]
-				if not merged_rect.encloses(r_o) and merged_rect.grow(9.0).intersects(r_o.grow(9.0)):
+				if not merged_rect.encloses(r_o) and merged_rect.grow(12.0).intersects(r_o.grow(12.0)):
 					merged_rect = merged_rect.merge(r_o)
 					merged_changed = true
 
