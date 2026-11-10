@@ -5,8 +5,8 @@ cosas una a una. Todo lo que pintas son piezas normales: después puedes mover, 
 
 ## Empezar
 1. Abre el mapa 3D: carpeta «mapa», doble clic en **Mundo3D**, y pulsa **3D** arriba.
-2. A la derecha verás un panel llamado **Pincel**. (Si no está: Proyecto → Configuración del proyecto → pestaña
-   Complementos/Plugins → marca «Pincel del mapa».)
+2. Abajo, junto a «Output», se abre la pestaña **Pincel del mapa**. (Si no está: Proyecto → Configuración del
+   proyecto → pestaña Complementos/Plugins → marca «Pincel del mapa».)
 3. Marca **Pincel encendido**. Al pasar el ratón por el suelo verás un **círculo amarillo**: es el pincel.
 
 ## Pintar
@@ -31,4 +31,5 @@ cosas una a una. Todo lo que pintas son piezas normales: después puedes mover, 
 - **Ctrl+S** guarda; luego ▶ para verlo en el juego. Los árboles pintados se pueden talar y los matorrales cortar.
 - Apaga el pincel (desmarca «Pincel encendido») para volver a seleccionar y mover cosas con el ratón.
 
+Ojo: el pincel puede sembrar sobre suelos de adorno (por ejemplo, la terraza empedrada de una casa). Si pasa, bórralo con la goma.
 Ojo: miles de piezas pueden hacer el juego más lento. El panel dice cuántas hay.

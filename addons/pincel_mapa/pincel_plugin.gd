@@ -14,7 +14,10 @@ const FS = preload("res://scripts/obstacles/FishingSpot.gd")
 const PIEZA = preload("res://mapa/pieza.gd")
 const Nucleo = preload("res://mapa/pincel_nucleo.gd")
 
-var _panel: VBoxContainer
+var _panel: HBoxContainer
+var _c1: VBoxContainer
+var _c2: VBoxContainer
+var _c3: VBoxContainer
 var _activo: CheckButton
 var _lista: OptionButton
 var _modo: OptionButton
@@ -37,15 +40,27 @@ var _cos_p: float = cos(deg_to_rad(WB.PITCH_DEG))
 func _enter_tree() -> void:
 	_nucleo = Nucleo.new()
 	_crear_panel()
-	add_control_to_dock(DOCK_SLOT_RIGHT_UL, _panel)
+	add_control_to_bottom_panel(_panel, "Pincel del mapa")
+	scene_changed.connect(_al_cambiar_escena)
 	set_input_event_forwarding_always_enabled()
+	if OS.get_environment("PINCEL_PRUEBA") == "1":
+		_prueba.call_deferred()
 
 
 func _exit_tree() -> void:
 	_quitar_anillo()
 	if _panel != null:
-		remove_control_from_docks(_panel)
+		remove_control_from_bottom_panel(_panel)
 		_panel.queue_free()
+
+
+## Al abrir Mundo3D se enseña el panel del pincel abajo (pestaña «Pincel del mapa», junto a «Output»).
+func _al_cambiar_escena(_raiz: Node) -> void:
+	if _mundo() != null:
+		make_bottom_panel_item_visible(_panel)
+	elif _activo != null:
+		_activo.button_pressed = false
+	_actualizar_info()
 
 
 func _handles(_object: Object) -> bool:
@@ -55,69 +70,77 @@ func _handles(_object: Object) -> bool:
 # ---------------------------------------------------------------- panel
 
 func _crear_panel() -> void:
-	_panel = VBoxContainer.new()
+	_panel = HBoxContainer.new()
 	_panel.name = "Pincel"
+	_panel.custom_minimum_size = Vector2(0, 220)
+	_panel.add_theme_constant_override("separation", 24)
+	_c1 = VBoxContainer.new()
+	_c2 = VBoxContainer.new()
+	_c3 = VBoxContainer.new()
+	for c in [_c1, _c2, _c3]:
+		c.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		_panel.add_child(c)
 	var titulo := Label.new()
 	titulo.text = "Pincel del mapa"
 	titulo.add_theme_font_size_override("font_size", 18)
-	_panel.add_child(titulo)
+	_c1.add_child(titulo)
 	var ayuda := Label.new()
 	ayuda.text = "Abre Mundo3D, marca «Pincel encendido» y arrastra con el botón izquierdo sobre el suelo."
 	ayuda.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	_panel.add_child(ayuda)
+	_c1.add_child(ayuda)
 	_activo = CheckButton.new()
 	_activo.text = "Pincel encendido"
 	_activo.toggled.connect(func(on: bool):
 		if not on:
 			_quitar_anillo()
 		_actualizar_info())
-	_panel.add_child(_activo)
+	_c1.add_child(_activo)
 
-	_panel.add_child(_etiqueta("Qué pintar"))
+	_c2.add_child(_etiqueta("Qué pintar"))
 	_lista = OptionButton.new()
 	for i in range(Mezclas.MEZCLAS.size()):
 		_lista.add_item(str(Mezclas.MEZCLAS[i]["nombre"]), i)
 	_lista.add_item("Lo seleccionado (tus modelos)", 1000)
 	_lista.item_selected.connect(func(_i): _actualizar_info())
-	_panel.add_child(_lista)
+	_c2.add_child(_lista)
 	var b_sel := Button.new()
 	b_sel.text = "Usar lo seleccionado"
 	b_sel.tooltip_text = "Elige en la escena uno o varios objetos (por ejemplo, un modelo tuyo de mis_recursos) y pulsa aquí: el pincel sembrará copias de ellos."
 	b_sel.pressed.connect(_usar_seleccion)
-	_panel.add_child(b_sel)
+	_c2.add_child(b_sel)
 	_lbl_sel = Label.new()
 	_lbl_sel.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	_panel.add_child(_lbl_sel)
+	_c2.add_child(_lbl_sel)
 
-	_panel.add_child(_etiqueta("Herramienta"))
+	_c2.add_child(_etiqueta("Herramienta"))
 	_modo = OptionButton.new()
 	_modo.add_item("Pintar", 0)
 	_modo.add_item("Borrar (goma)", 1)
-	_panel.add_child(_modo)
+	_c2.add_child(_modo)
 
 	_lbl_radio = _etiqueta("")
-	_panel.add_child(_lbl_radio)
+	_c3.add_child(_lbl_radio)
 	_radio = HSlider.new()
 	_radio.min_value = 20.0
 	_radio.max_value = 400.0
 	_radio.step = 10.0
 	_radio.value = 120.0
 	_radio.value_changed.connect(func(_v): _actualizar_info())
-	_panel.add_child(_radio)
+	_c3.add_child(_radio)
 
 	_lbl_densidad = _etiqueta("")
-	_panel.add_child(_lbl_densidad)
+	_c3.add_child(_lbl_densidad)
 	_densidad = HSlider.new()
 	_densidad.min_value = 0.1
 	_densidad.max_value = 1.0
 	_densidad.step = 0.05
 	_densidad.value = 0.5
 	_densidad.value_changed.connect(func(_v): _actualizar_info())
-	_panel.add_child(_densidad)
+	_c3.add_child(_densidad)
 
 	_lbl_info = Label.new()
 	_lbl_info.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	_panel.add_child(_lbl_info)
+	_c1.add_child(_lbl_info)
 	_actualizar_info()
 
 
@@ -337,3 +360,125 @@ func _quitar_anillo() -> void:
 	if _anillo != null and is_instance_valid(_anillo):
 		_anillo.queue_free()
 	_anillo = null
+
+
+# ---------------------------------------------------------------- prueba dentro del editor
+## Solo con la variable PINCEL_PRUEBA=1 (Claude Code): abre Mundo3D, pinta con el ratón de verdad, deshace, saca una
+## foto y cierra el editor SIN guardar. Resultado en el archivo que diga PINCEL_SALIDA.
+func _prueba() -> void:
+	var out: Array[String] = []
+	var ei := get_editor_interface()
+	for _i in range(30):
+		await get_tree().process_frame
+	ei.open_scene_from_path("res://mapa/Mundo3D.tscn")
+	var t0 := Time.get_ticks_msec()
+	while _mundo() == null and Time.get_ticks_msec() - t0 < 90000:
+		await get_tree().process_frame
+	for _i in range(60):
+		await get_tree().process_frame
+	ei.set_main_screen_editor("3D")
+	for _i in range(60):
+		await get_tree().process_frame
+	var raiz := _mundo()
+	out.append("mundo_abierto=%s (%d ms)" % [str(raiz != null), Time.get_ticks_msec() - t0])
+	if raiz == null:
+		var r0 := ei.get_edited_scene_root()
+		out.append("escena_editada=%s" % (str(r0.name) if r0 != null else "ninguna"))
+		var f0 := FileAccess.open(OS.get_environment("PINCEL_SALIDA"), FileAccess.WRITE)
+		f0.store_string("\n".join(out))
+		f0.close()
+		get_tree().quit()
+		return
+	var vp: SubViewport = ei.get_editor_viewport_3d(0)
+	var cam: Camera3D = vp.get_camera_3d()
+	# Busca un punto de la pantalla que caiga en suelo donde se pueda sembrar
+	_activo.button_pressed = true
+	_lista.select(4) # Hierba y plantas
+	_radio.value = 60.0
+	_densidad.value = 1.0
+	var nucleo_prueba = Nucleo.new()
+	nucleo_prueba.raiz = raiz
+	var punto := Vector2(-1, -1)
+	var sz: Vector2 = Vector2(vp.size)
+	for fy in [0.5, 0.6, 0.4, 0.7, 0.3]:
+		for fx in [0.5, 0.4, 0.6, 0.3, 0.7]:
+			var sp := Vector2(sz.x * fx, sz.y * fy)
+			var hit = _tocar_suelo(cam, sp)
+			if hit != null and not nucleo_prueba._prohibido(_a_2d(hit)):
+				punto = sp
+				break
+		if punto.x >= 0.0:
+			break
+	out.append("punto_pantalla=%s camara=%s" % [str(punto), str(cam.global_position)])
+	var veg := raiz.get_node("Vegetacion")
+	var n0: int = _contar(veg)
+	# 1) Llamada directa al manejador del ratón
+	_simular(cam, punto, false)
+	var n1: int = _contar(veg)
+	out.append("directo: %d -> %d" % [n0, n1])
+	# 2) Ratón de verdad por el editor (como el usuario)
+	var cont: Control = vp.get_parent() as Control
+	var base: Vector2 = cont.get_global_rect().position
+	_simular(cam, punto + Vector2(140, 0), true, base)
+	for _i in range(10):
+		await get_tree().process_frame
+	var n2: int = _contar(veg)
+	out.append("raton_real: %d -> %d" % [n1, n2])
+	# Foto con el anillo a la vista
+	_mover_anillo(_tocar_suelo(cam, punto + Vector2(140, 0)))
+	for _i in range(10):
+		await get_tree().process_frame
+	var img := ei.get_base_control().get_viewport().get_texture().get_image()
+	img.save_png(OS.get_environment("PINCEL_FOTO"))
+	# Goma
+	_modo.select(1)
+	_simular(cam, punto, false)
+	var n3: int = _contar(veg)
+	out.append("goma: %d -> %d" % [n2, n3])
+	_modo.select(0)
+	# Deshacer todo (3 trazos)
+	var urm := get_undo_redo()
+	var hist: UndoRedo = urm.get_history_undo_redo(urm.get_object_history_id(raiz))
+	for _i in range(3):
+		hist.undo()
+	var n4: int = _contar(veg)
+	out.append("deshacer: %d -> %d (inicio %d)" % [n3, n4, n0])
+	var anc: Node = _panel
+	var cadena: Array[String] = []
+	while anc != null and cadena.size() < 6:
+		cadena.append("%s(%s,%s)" % [anc.get_class(), str(anc.visible) if anc is CanvasItem else "-", str(anc.get_global_rect()) if anc is Control else "-"])
+		anc = anc.get_parent()
+	out.append("panel: " + " < ".join(cadena))
+	out.append("RESULTADO " + ("OK" if n1 > n0 and n2 > n1 and n3 < n2 and n4 == n0 else "FALLO"))
+	var f := FileAccess.open(OS.get_environment("PINCEL_SALIDA"), FileAccess.WRITE)
+	f.store_string("\n".join(out))
+	f.close()
+	get_tree().quit()
+
+
+func _simular(cam: Camera3D, p: Vector2, real: bool, base: Vector2 = Vector2.ZERO) -> void:
+	var evs: Array[InputEvent] = []
+	var b := InputEventMouseButton.new()
+	b.button_index = MOUSE_BUTTON_LEFT
+	b.pressed = true
+	b.position = p + base
+	b.global_position = p + base
+	evs.append(b)
+	for k in range(1, 6):
+		var m := InputEventMouseMotion.new()
+		m.position = p + base + Vector2(k * 12.0, k * 6.0)
+		m.global_position = m.position
+		m.button_mask = MOUSE_BUTTON_MASK_LEFT
+		evs.append(m)
+	var u := InputEventMouseButton.new()
+	u.button_index = MOUSE_BUTTON_LEFT
+	u.pressed = false
+	u.position = p + base + Vector2(60, 30)
+	u.global_position = u.position
+	evs.append(u)
+	for e in evs:
+		if real:
+			Input.parse_input_event(e)
+		else:
+			var loc: InputEventMouse = e.duplicate()
+			_forward_3d_gui_input(cam, loc)

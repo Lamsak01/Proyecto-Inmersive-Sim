@@ -80,8 +80,12 @@ mover una pista del claro y el molino mueve sus zonas de uso y el interior 3D de
   seleccionado» (copias de modelos del usuario). Pintar/goma, tamaño y «apretado»; no siembra en río, lago, edificios
   (movidos incluidos) ni caminos; separación mínima entre piezas; Ctrl+Z deshace el trazo. Núcleo en
   `mapa/pincel_nucleo.gd`; prueba sin editor `tools/tests/pincel_mapa.gd` (8/8). Guía: `docs/PINCEL_MAPA_GUIA.md`.
-- **No probado aún con el ratón dentro del editor** (el portátil tenía el editor del usuario abierto): la primera vez en
-  el ordenador principal, comprobar con el usuario que el círculo sigue al ratón y que pinta/borra/deshace.
+- **Probado dentro del editor de Godot** (portátil, 2026-11-10) con ratón simulado: pinta, borra, Ctrl+Z deshace los
+  trazos y la escena no se guarda sola. Prueba: `PINCEL_PRUEBA=1` (ver final de `pincel_plugin.gd`). El panel va en la
+  barra de abajo («Pincel del mapa», junto a Output) y se abre solo al abrir Mundo3D. Pendiente menor: no evita suelos
+  de adorno del Decorado (terrazas empedradas).
+- Aviso aparte: `tools/hornear_decorado.gd` da error al cargar en Godot 4.7.2 del portátil (`PackedByteArray.hash()` no
+  existe); solo afecta a esa herramienta.
 - Para sumar los modelos del usuario a las mezclas fijas: añadirlos a `pincel_mezclas.gd` (ruta «res://mis_recursos/…»).
 
 ## Lo que falta (en orden)
