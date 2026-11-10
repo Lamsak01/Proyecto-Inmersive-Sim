@@ -15,17 +15,13 @@ Así nunca se mezclan los dos ordenadores.
 
 Antes: guarda todo en Godot (Ctrl+S) y CIERRA Godot.
 
-En Linux (el portátil):
-  1. Abre la Terminal (busca "Terminal" en el menú de aplicaciones).
-  2. Escribe esto y pulsa Enter:
+Los dos ordenadores son Linux (el portátil Fedora y el principal Ubuntu): se hace igual en los dos.
+  1. Abre la Terminal: pulsa Ctrl + Alt + T a la vez
+     (o busca "Terminal" en el menú de aplicaciones).
+  2. Escribe esto y pulsa Enter (te mete en la carpeta del juego):
          cd ~/Proyecto-Inmersive-Sim
-  3. Escribe esto y pulsa Enter:
-         git pull
-
-En Windows (si el otro ordenador es Windows):
-  1. Abre la carpeta del juego en el Explorador de archivos.
-  2. Clic derecho en un hueco vacío de la carpeta -> "Open Git Bash here"
-     (o "Mostrar más opciones" -> "Open Git Bash here").
+     Si en el ordenador principal la carpeta está en otro sitio, escribe "cd " (con espacio),
+     arrastra la carpeta del juego a la Terminal y pulsa Enter.
   3. Escribe esto y pulsa Enter:
          git pull
 
@@ -41,7 +37,7 @@ Después: abre Godot otra vez.
 =====================================================================
 
 Antes: guarda todo en Godot (Ctrl+S) y CIERRA Godot.
-En la misma Terminal / Git Bash, dentro de la carpeta del juego, escribe una línea cada vez y pulsa Enter:
+En la misma Terminal, dentro de la carpeta del juego, escribe una línea cada vez y pulsa Enter:
 
          git add -A
          git commit -m "Cambios en el mapa"
