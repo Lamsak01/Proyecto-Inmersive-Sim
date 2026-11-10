@@ -51,8 +51,10 @@ recomendaciones. Pégalo entero como primer mensaje al cambiar de agente.
 timeout 900 flatpak run org.godotengine.Godot --headless --path . -s tools/tests/verify_all.gd > /tmp/t.log 2>&1; grep -c 'TESTS PASSED' /tmp/t.log
 # Paso a 3D (docs/PLAN_MUNDO_3D.md), ~1 min: termina en «FISICA 3D: PASSED»
 timeout 300 flatpak run org.godotengine.Godot --headless --path . -s tools/tests/fisica_3d.gd > /tmp/f.log 2>&1; grep 'FISICA 3D' /tmp/f.log
+# Paso a 3D: el protagonista entra y sale por todas las puertas (~2 min): termina en «PUERTAS 3D: PASSED»
+timeout 600 flatpak run org.godotengine.Godot --headless --path . -s tools/tests/puertas_3d.gd > /tmp/p.log 2>&1; grep 'PUERTAS 3D' /tmp/p.log
 # Fotos fijas con ventana (~2 min) comparadas con la referencia: «CAPTURAS_FIN peor=…%» (ruido normal < 1 %)
-#   flatpak run org.godotengine.Godot --path . -s tools/tests/capturas_fijas.gd -- /tmp/fotos docs/capturas_mundo3d/referencia_paso0
+#   flatpak run org.godotengine.Godot --path . -s tools/tests/capturas_fijas.gd -- /tmp/fotos docs/capturas_mundo3d/referencia_paso1
 # Menú principal, ajustes, teclas, huecos de guardado y pausa (~2 min): termina en «MENU PROBE: PASSED»
 timeout 300 flatpak run org.godotengine.Godot --headless --path . -s tools/tests/menu_probe.gd > /tmp/m.log 2>&1; grep 'MENU PROBE' /tmp/m.log
 

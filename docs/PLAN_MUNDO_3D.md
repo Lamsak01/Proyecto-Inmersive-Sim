@@ -4,9 +4,9 @@
 > profundidades, cuevas, lagos y **nadar y bucear** (habrá casos con pistas en el río y el lago). Quiere hacerlo **ya**,
 > antes de que el juego crezca. No volver a proponer quedarse en 2D ni «trucos de capas» como solución final.
 >
-> **Estado (2026-11-10):** plan aprobado por el usuario. **Pasos 0 y 0b hechos** en la rama `mundo-3d` (mundo 3D uniforme y
-> en metros, opción B del usuario). Siguiente: paso 1 (el protagonista en 3D), pendiente de que el usuario dé el visto
-> bueno a las fotos nuevas (`docs/capturas_mundo3d/referencia_paso0b/`).
+> **Estado (2026-11-10):** plan aprobado por el usuario. **Pasos 0, 0b y 1 hechos** en la rama `mundo-3d` (mundo 3D uniforme
+> y en metros, opción B del usuario; el protagonista anda con cuerpo 3D). Falta que el usuario juegue un rato con el
+> protagonista nuevo antes del paso 2 (alturas de verdad).
 > Autor: Claude Code (portátil). Cualquier agente que siga: lee este documento entero antes de tocar nada y apunta
 > cada paso en el **Registro** (§10).
 
@@ -154,6 +154,9 @@ para metros (gravedad 9,8, márgenes de choque) y hoy una persona mide menos de 
 - **Terminado cuando:** puedes recorrer todo el pueblo, entrar en casas, cruzar puentes y saltar sin atravesar nada ni
   quedarte atascado; los vecinos te siguen viendo y hablando igual; `verify_all` en verde; rendimiento no peor que la referencia.
 - **Riesgo:** atascarse en esquinas o puertas estrechas. Se prueba con un recorrido automático por todas las puertas.
+- **Cómo se hizo (2026-11-10):** en vez de generar los choques desde el dibujo 3D, se copian en 3D los choques del mapa
+  que hay cerca del cuerpo (ya estaban ajustados: huecos de puerta, muebles, puertas que se abren…). El suelo, hasta el
+  paso 2, es una losa invisible a la altura de siempre. Detalle en `docs/MANUSCRITO_MUNDO_3D.md` (pasos 1a y 1b).
 
 ### Paso 2 — Alturas de verdad: pisos, sótanos y caídas
 - Escaleras de verdad en lugar de «capas de botón»; pisos altos y sótanos con suelo físico.
@@ -255,8 +258,8 @@ Es una estimación: se apuntará el gasto real de cada paso en el Registro para 
 | 2026-11-10 | Claude Code (portátil) | Paso 0 | Etiqueta `antes-de-mundo-3d`, rama `mundo-3d`; `scripts/fisica/Mapa3D.gd` (conversión única; ~20 copias fuera); pruebas `fisica_3d.gd` y `capturas_fijas.gd`; fotos de referencia; `MAPA_DEL_CODIGO.md` y `MANUSCRITO_MUNDO_3D.md`; arregladas 3 cosas que ya fallaban antes (`hornear_edificios.gd` no compilaba; pruebas `rio_editor_juego` y `pincel_mapa` anticuadas) | fisica_3d ✅ 7/7 · capturas iguales (peor 0,38 %, ruido 0,8 %) · verify_all ✅ · guardado_largo ✅ · sondeo edificios 29/29 ✅ · río ✅ · pincel ✅ | (este commit) |
 | 2026-11-10 | Claude Code (portátil) | Paso 0b | Escala uniforme en metros: `Mapa3D` (ESCALA 0,056, ALTO, K = 2,8, vista de arriba a 62,08° con imagen estirada); escenario, luces, niebla, texturas, partículas y muñecos ajustados; mapa del usuario convertido (`tools/convertir_escala_0b.py`, copia `mapa/Mundo3D.antes-3d.tscn`); fotos de edificios rehechas; arreglo de vecinos encimados en las puertas | fisica_3d ✅ 12/12 (vista de arriba cuadra: 0,14 px) · sondeo 29/29 ✅ · río ✅ · pincel ✅ · verify_all ✅ (falló 2 veces por la puerta; tras el arreglo ✅) · atascos 0 en 6 h ✅ · fps igual que la versión anterior medida a la vez · fotos nuevas en `referencia_paso0b` (desde arriba: 9,9 % distinto, casi igual) | (este commit) |
 | 2026-11-10 | Claude Code (portátil) | Paso 1a | Cuerpo 3D del protagonista: `fisica/Cuerpo3D.gd` (cápsula 1,74 m, gravedad, salto), `fisica/ChoquesCercanos3D.gd` (copias 3D de los choques del mapa cercanos), `fisica/Suelo.gd` (altura del suelo, sacada de `CharacterAvatar3D`); el mando del jugador mueve el cuerpo 3D; salto viejo en píxeles fuera. Etiqueta `antes-paso-1` | fisica_3d ✅ (puerta de la taberna, muro, salto 1,14 m, aterrizaje, cambio de sitio) · verify_all ✅ | (este commit) |
-
-### Medidas de referencia (antes del paso 1, portátil, 2026-11-10)
+| 2026-11-10 | Claude Code (portátil) | Paso 1b | Prueba nueva `tools/tests/puertas_3d.gd` (entrar y salir andando por todas las puertas); `capturas_fijas` dice dónde queda el protagonista; fotos `referencia_paso1` | puertas_3d ✅ 29/29 · atascos 0 en 6 h ✅ · fps igual que en el paso 0b (portátil aún lento: 8/5/5/7/8/8) · el cuerpo cuesta ~1 ms por paso · fotos: 5 de 7 iguales (≤ 1 %); plaza distinta porque el protagonista ya no se queda metido 4 px en un puesto | (este commit) |
+, portátil, 2026-11-10)
 - **fps en 1.ª persona** (`perf_zonas.gd`): afueras 33, plaza 29, río 23, bosque 38, molino 40, mansión 43.
 - **Vecinos atascados** (`atascos_vecinos.gd -- 6`): 0 en 6 h. **Guardado largo:** PASSED, +1,6 MB del día 2 al 7.
 - **Edificios movidos** (`sondeo_edificios_movidos.gd -- movido`): 29/29; sitios de vecinos 54 bien, 0 viejos, 6 al aire libre.

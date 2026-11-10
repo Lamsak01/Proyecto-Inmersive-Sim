@@ -91,7 +91,7 @@
 `scenes/ui_root.gd` [1.580] ⚠ — reparte las teclas de los paneles y abre la pausa.
 
 ## Pruebas — `tools/tests/`
-`verify_all.gd` (todo el juego, ~15 min), `fisica_3d.gd` (paso a 3D), `capturas_fijas.gd` (fotos para comparar, también
+`verify_all.gd` (todo el juego, ~15 min), `fisica_3d.gd` (paso a 3D), `puertas_3d.gd` (entrar y salir por todas las puertas), `capturas_fijas.gd` (fotos para comparar, también
 desde arriba),
 `menu_probe.gd`, `atascos_vecinos.gd`, `guardado_largo.gd`, `social_sim.gd`, `names_check.gd`, `dialogue_coverage.gd`,
 `perf_*.gd` (rendimiento). Cómo lanzarlas: `docs/HANDOFF.md` §3 y `docs/PLAN_MUNDO_3D.md` §6.

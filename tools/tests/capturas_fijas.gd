@@ -54,7 +54,7 @@ func _initialize() -> void:
 		if ref != "" and FileAccess.file_exists(ref + "/" + str(s[0]) + ".png"):
 			var d: float = _distinto(img, Image.load_from_file(ref + "/" + str(s[0]) + ".png"))
 			total_dist = maxf(total_dist, d)
-			print("CAPTURA %s distinto=%.2f%%" % [s[0], d])
+			print("CAPTURA %s distinto=%.2f%% (protagonista en %s)" % [s[0], d, str(pl.global_position.round())])
 		else:
 			print("CAPTURA %s guardada" % s[0])
 	# Vista desde arriba (paso 0b): el 3D debe cuadrar con el mapa del pueblo (casas, caminos, letreros)

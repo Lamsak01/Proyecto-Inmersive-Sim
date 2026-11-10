@@ -6,7 +6,28 @@
 
 ---
 
-## Paso 1a — El protagonista tiene cuerpo 3D (2026-11-10, Claude Code, portátil)
+## Paso 1b — Recorrido por todas las puertas y cierre del paso 1 (2026-11-10, Claude Code, portátil)
+
+**Qué cambia en el juego:** nada; son comprobaciones.
+
+**Archivos:**
+- Nuevo `tools/tests/puertas_3d.gd`: el protagonista entra y sale andando, recto y a paso normal, por las 29 puertas de
+  edificio del pueblo (abiertas). Falla si no llega 10 px más allá de la puerta.
+- `tools/tests/capturas_fijas.gd`: cada foto dice dónde quedó el protagonista (para entender diferencias).
+- Fotos nuevas de referencia: `docs/capturas_mundo3d/referencia_paso1/`.
+
+**Resultados:**
+- Puertas: 29/29 entra y sale. Vecinos atascados: 0 en 6 h.
+- Fluidez: igual que en el paso 0b medida con el portátil igual de lento (afueras 8, plaza 5, río 5, bosque 7, molino 8,
+  mansión 8). El cuerpo 3D cuesta ~1 ms por paso de física (10–16 choques copiados alrededor).
+- Fotos: río, bosque, molino, mansión y dentro de la taberna iguales (≤ 1 %). La plaza cambia: el sitio de la foto
+  toca un puesto y el cuerpo 3D empuja al protagonista 4 px fuera (antes se quedaba metido); desde tan cerca, eso
+  cambia media imagen. La foto desde arriba cambia por lo mismo.
+
+**Pendiente para más adelante:** si en el portátil bueno el cuerpo pesa, preguntar al mapa por los choques cada pocos
+pasos en vez de en cada uno.
+
+ El protagonista tiene cuerpo 3D (2026-11-10, Claude Code, portátil)
 
 **Qué cambia en el juego:** casi nada a la vista. El protagonista ya no choca, cae ni salta en el mapa plano: lo hace un
 cuerpo 3D de verdad (cápsula de 1,74 m) que anda por el mundo 3D y después escribe su sitio en el mapa, así el resto del
