@@ -271,6 +271,9 @@ func _scan_nature_sources() -> void:
 		var ht: int = int(n.get("harvest_type"))
 		var kind := ""
 		if ht == 1:
+			if en_cauce_del_rio((n as Node2D).global_position, 2.0):
+				(n as Node2D).visible = false # árbol talable que quedó dentro del río redibujado
+				continue
 			kind = "pine"
 			tree_positions_seen.append((n as Node2D).global_position)
 		elif ht == 2:
@@ -286,8 +289,8 @@ func _scan_nature_sources() -> void:
 			if c is Sprite2D and _is_pine_texture((c as Sprite2D).texture):
 				var tp: Vector2 = (c as Sprite2D).global_position
 				# Evitar que árboles decorativos se solapen con muros de edificios, bancos del parque u otros árboles
-				var overlaps := false
-				if "building_footprints" in vm:
+				var overlaps := en_cauce_del_rio(tp, 2.0)
+				if not overlaps and "building_footprints" in vm:
 					for b_fp in vm.building_footprints:
 						if (b_fp["rect"] as Rect2).grow(12.0).has_point(tp):
 							overlaps = true
@@ -1290,6 +1293,14 @@ func _build_river_and_arroyo_3d(
 		var ccx: float = (cb.x + cb.y) * 0.5
 		var cspan: float = (cb.y - cb.x) + 16.0
 		var cbase: float = _river_bank_terrace_height_px(cpos.y)
+		if String(cr.get("kind", "")) == "log":
+			# Tronco caído de orilla a orilla: puente natural (el modelo es largo en su eje norte-sur; se gira 90°)
+			_permitir_en_rio = true
+			var lg: Node3D = _add_model_2d(terrain_root_3d, "nature/WoodLog.obj", Vector2(ccx, cpos.y), 0.0, Vector2(9.0, cspan + 6.0), 4.6, 90.0)
+			_permitir_en_rio = false
+			if lg != null:
+				lg.position = to_3d_flat(Vector2(ccx, cpos.y), cbase - 2.2)
+			continue
 		if cid == "bridge_north" or cid == "south_fields_bridge":
 			var bw_y: float = chy * 2.0
 			_add_box_2d(terrain_root_3d, Vector2(cb.x - 2.0, cpos.y), Vector2(7.0, bw_y + 2.0), cbase - 2.8, 3.6, m_old_bridge_stone, 0.0, true)
@@ -1326,6 +1337,8 @@ func _build_tree_3d(parent: Node3D, pos_2d: Vector2, m_trunk: Material, m_leaf1:
 		"nature/PineTree_1.obj", "nature/BirchTree_3.obj",
 	]
 	var t_file: String = tree_files[posmod(variant, tree_files.size())]
+	if es_vegetacion_en_rio(t_file, pos_2d):
+		return
 	if _add_model_2d(parent, t_file, pos_2d, 0.0, Vector2.ZERO, 36.0 * scale_f, float(variant * 67)) != null:
 		return
 	_add_cyl_2d(parent, pos_2d, 3.2 * scale_f, 0.0, 11.0 * scale_f, m_trunk, 2.4 * scale_f, 8)

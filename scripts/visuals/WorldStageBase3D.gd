@@ -29,6 +29,8 @@ const RETRO_TRIPLANAR_SCALE: float = 0.78
 
 var vm: Node2D = null
 var _is_headless: bool = false
+## Editor del mapa (2026-11-09): árboles, arbustos y troncos no se colocan dentro del agua del río (salvo el tronco-puente)
+var _permitir_en_rio: bool = false
 var _sin_p: float = sin(deg_to_rad(PITCH_DEG))
 var _cos_p: float = cos(deg_to_rad(PITCH_DEG))
 
@@ -507,11 +509,32 @@ static func _river_cut_px(pos_2d: Vector2) -> float:
 	return -1.8 * (1.0 - smoothstep(riv_hw * 0.5, riv_hw + 20.0, d_riv))
 
 
+## Árbol, arbusto o tronco cuyo centro cae dentro del agua del río (que el usuario puede redibujar en el editor del mapa).
+static func es_vegetacion_en_rio(rel_path: String, center_2d: Vector2) -> bool:
+	if not rel_path.begins_with("nature/"):
+		return false
+	var f: String = rel_path.get_file()
+	if not ("Tree" in f or "Willow" in f or "Bush" in f or "WoodLog" in f):
+		return false
+	return en_cauce_del_rio(center_2d, 2.0)
+
+
+## Dentro del cauce del río, haya o no puente o vado encima.
+static func en_cauce_del_rio(p: Vector2, margen: float = 0.0) -> bool:
+	if p.y < FishingSpotScript.river_y_start() - 5.0 or p.y > FishingSpotScript.river_y_end() + 5.0:
+		return false
+	var b: Vector2 = FishingSpotScript.river_banks_at(p.y)
+	return p.x >= b.x - margen and p.x <= b.y + margen
+
+
 static func surface_elevation_offset_px(pos_2d: Vector2) -> float:
 	if FishingSpotScript.is_in_river_crossing(pos_2d, 3.0):
 		var bank_h: float = _river_bank_terrace_height_px(pos_2d.y)
 		var base_t: float = terrain_height_px(pos_2d)
 		var cr_boost: float = 1.6 if absf(pos_2d.y - 50.0) <= 24.0 else 0.9
+		for cr in FishingSpotScript.river_crossings():
+			if String(cr.get("kind", "")) == "log" and absf(pos_2d.y - float(cr["pos"].y)) <= float(cr["half_h"]) + 3.0:
+				cr_boost = 2.4 # se camina por encima del tronco caído
 		return maxf(0.45, (bank_h - base_t) + cr_boost)
 	if Rect2(Vector2(384.0, 8.0), Vector2(162.0, 80.0)).has_point(pos_2d):
 		return 0.48
@@ -790,6 +813,8 @@ func check_furniture_overlaps(warn_on_overlap: bool = true) -> Array[String]:
 	return overlaps
 
 func _add_model_2d(parent: Node3D, rel_path: String, center_2d: Vector2, bottom_h_px: float, sz_2d: Vector2 = Vector2.ZERO, height_px: float = 24.0, rot_y_deg: float = 0.0) -> Node3D:
+	if not _permitir_en_rio and es_vegetacion_en_rio(rel_path, center_2d):
+		return null
 	if _current_building_id != "" and sz_2d != Vector2.ZERO and height_px >= 2.0 and not rel_path.begins_with("graveyard/iron-fence"):
 		var floor_base_h: float = 2.0 if _current_building_floor == 0 else VillageTavern.FLOOR_1_H
 		if absf(bottom_h_px - floor_base_h) <= 2.5:

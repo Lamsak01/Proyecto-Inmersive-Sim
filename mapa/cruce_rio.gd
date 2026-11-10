@@ -4,7 +4,7 @@ extends Marker2D
 ## Un puente o vado: por aquí cruzan el río los vecinos y el jugador (en el resto del cauce el agua no deja pasar).
 ## Arrástralo encima del río. Para uno nuevo: duplica otro (Ctrl+D) y cámbiale el nombre.
 
-enum Tipo { VADO, PASARELA_DE_MADERA, PUENTE_DE_PIEDRA }
+enum Tipo { VADO, PASARELA_DE_MADERA, PUENTE_DE_PIEDRA, TRONCO_CAIDO }
 
 @export var nombre: String = "Puente nuevo":
 	set(v):

@@ -6,7 +6,7 @@ extends RefCounted
 ## (FishingSpot), así lo que ves en el editor es lo que hay en el juego: agua, orillas, choque y río 3D.
 ## «datos» es un diccionario: {"pts": Array[Vector2], "hw": Array[float] (medio ancho), "natural": float, "cruces": Array[Dictionary]}
 
-const TIPOS_CRUCE: Array[String] = ["ford", "wood_bridge", "stone_wood_bridge"]
+const TIPOS_CRUCE: Array[String] = ["ford", "wood_bridge", "stone_wood_bridge", "log"]
 
 
 ## Lee la escena del editor del mapa sin meterla en el juego. Devuelve {} si no existe o está vacía.
