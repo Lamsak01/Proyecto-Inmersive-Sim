@@ -106,7 +106,7 @@ func setup_stage(village_manager: Node2D) -> void:
 		sun_light.light_color = Color(1.0, 0.95, 0.86)
 		sun_light.shadow_enabled = true
 		sun_light.directional_shadow_mode = DirectionalLight3D.SHADOW_ORTHOGONAL
-		sun_light.directional_shadow_max_distance = 140.0
+		sun_light.directional_shadow_max_distance = 140.0 * Mapa3D.K
 		sun_light.shadow_bias = 0.03
 		sun_light.shadow_normal_bias = 1.0
 		sun_light.shadow_opacity = 0.78
@@ -127,9 +127,9 @@ func setup_stage(village_manager: Node2D) -> void:
 		cam_3d.name = "WorldCamera3D"
 		cam_3d.projection = Camera3D.PROJECTION_ORTHOGONAL
 		cam_3d.rotation_degrees = Vector3(-PITCH_DEG, 0.0, 0.0)
-		cam_3d.near = 0.1
-		cam_3d.far = 250.0
-		cam_3d.size = 12.0
+		cam_3d.near = 0.1 * Mapa3D.K
+		cam_3d.far = 250.0 * Mapa3D.K
+		cam_3d.size = 12.0 * Mapa3D.K
 		cam_3d.current = true
 		stage_root_3d.add_child(cam_3d)
 
@@ -137,7 +137,7 @@ func setup_stage(village_manager: Node2D) -> void:
 		fp_lantern_light.name = "FPLanternLight3D"
 		fp_lantern_light.light_color = Color(1.0, 0.84, 0.56)
 		fp_lantern_light.light_energy = 0.0
-		fp_lantern_light.omni_range = 4.2
+		fp_lantern_light.omni_range = 4.2 * Mapa3D.K
 		fp_lantern_light.visible = false
 		cam_3d.add_child(fp_lantern_light)
 		_setup_fp_viewmodel()
@@ -160,9 +160,9 @@ func setup_stage(village_manager: Node2D) -> void:
 		cam_3d.name = "WorldCamera3D"
 		cam_3d.projection = Camera3D.PROJECTION_ORTHOGONAL
 		cam_3d.rotation_degrees = Vector3(-PITCH_DEG, 0.0, 0.0)
-		cam_3d.near = 0.1
-		cam_3d.far = 250.0
-		cam_3d.size = 12.0
+		cam_3d.near = 0.1 * Mapa3D.K
+		cam_3d.far = 250.0 * Mapa3D.K
+		cam_3d.size = 12.0 * Mapa3D.K
 		stage_root_3d.add_child(cam_3d)
 		add_child(stage_root_3d)
 
@@ -335,8 +335,8 @@ func set_first_person(enable: bool) -> void:
 		if cam_3d != null:
 			cam_3d.projection = Camera3D.PROJECTION_ORTHOGONAL
 			cam_3d.rotation_degrees = Vector3(-PITCH_DEG, 0.0, 0.0)
-			cam_3d.near = 0.1
-			cam_3d.far = 250.0
+			cam_3d.near = 0.1 * Mapa3D.K
+			cam_3d.far = 250.0 * Mapa3D.K
 		if not _is_headless:
 			if is_instance_valid(sub_viewport):
 				sub_viewport.transparent_bg = true
@@ -686,7 +686,7 @@ func _setup_fp_viewmodel() -> void:
 	_fp_muzzle_light = OmniLight3D.new()
 	_fp_muzzle_light.light_color = Color(1.0, 0.82, 0.38)
 	_fp_muzzle_light.light_energy = 1.25
-	_fp_muzzle_light.omni_range = 3.2
+	_fp_muzzle_light.omni_range = 3.2 * Mapa3D.K
 	_fp_muzzle_light.position = Vector3(0.0, 0.08, -0.45)
 	_fp_muzzle_light.visible = false
 	_fp_weapon_mount.add_child(_fp_muzzle_light)
@@ -706,12 +706,13 @@ func _spawn_3d_hit_effect(pos_2d: Vector2, dir_2d: Vector2, power: float = 1.0) 
 	var fx_root := Node3D.new()
 	fx_root.name = "HitSpark3D"
 	fx_root.position = hit_3d
+	fx_root.scale = Vector3.ONE * Mapa3D.K # chispas medidas en la escala vieja (paso 0b)
 	stage_root_3d.add_child(fx_root)
 
 	var flash := OmniLight3D.new()
 	flash.light_color = Color(1.0, 0.86, 0.44)
 	flash.light_energy = 0.85 * clampf(power, 0.9, 1.4)
-	flash.omni_range = 1.1
+	flash.omni_range = 1.1 * Mapa3D.K
 	fx_root.add_child(flash)
 
 	var spark_mat := StandardMaterial3D.new()
@@ -972,7 +973,7 @@ func _update_fp_camera_transform() -> void:
 			randf_range(-_fp_shake_amp, _fp_shake_amp)
 		)
 	var dir_2d: Vector2 = get_fp_forward_2d()
-	var horiz_3d: Vector3 = Vector3(dir_2d.x, 0.0, dir_2d.y / maxf(0.1, _sin_p)).normalized()
+	var horiz_3d: Vector3 = Mapa3D.dir_a_3d(dir_2d).normalized()
 	var eff_pitch: float = clampf(fp_pitch + _fp_camera_punch_pitch, -FP_MAX_PITCH, FP_MAX_PITCH)
 	var look_dir_3d: Vector3 = (horiz_3d * cos(eff_pitch) + Vector3(0.0, sin(eff_pitch), 0.0)).normalized()
 	cam_3d.projection = Camera3D.PROJECTION_PERSPECTIVE
@@ -984,7 +985,7 @@ func _update_fp_camera_transform() -> void:
 	var fov_base: float = float(Ajustes.get_valor("campo_vision")) # Ajustes → Juego (70 por defecto)
 	cam_3d.fov = lerpf(fov_base, fov_base * 0.786, ads_fov_blend)
 	cam_3d.near = 0.03
-	cam_3d.far = 250.0
+	cam_3d.far = 250.0 * Mapa3D.K
 	cam_3d.global_position = eye_3d
 	if cam_3d.is_inside_tree():
 		cam_3d.look_at(eye_3d + look_dir_3d * 10.0, Vector3.UP)
@@ -1128,17 +1129,18 @@ func _process(delta: float) -> void:
 func _sync_camera_with_2d() -> void:
 	if cam_3d == null:
 		return
+	_ajustar_alto_imagen_3d()
 	if detective_topdown_active:
 		if is_instance_valid(_fp_viewmodel_root):
 			_fp_viewmodel_root.visible = false
 		cam_3d.projection = Camera3D.PROJECTION_ORTHOGONAL
 		cam_3d.rotation_degrees = Vector3(-86.0, 0.0, 0.0)
-		cam_3d.near = 0.1
-		cam_3d.far = 250.0
-		cam_3d.size = maxf(1.5, detective_topdown_size)
+		cam_3d.near = 0.1 * Mapa3D.K
+		cam_3d.far = 250.0 * Mapa3D.K
+		cam_3d.size = maxf(1.5, detective_topdown_size) * Mapa3D.K
 		var target_top_3d: Vector3 = to_3d(detective_topdown_pos, 0.0)
 		var fwd_top: Vector3 = -cam_3d.global_transform.basis.z.normalized()
-		cam_3d.global_position = target_top_3d - fwd_top * 65.0
+		cam_3d.global_position = target_top_3d - fwd_top * 65.0 * Mapa3D.K
 		return
 	if first_person_active:
 		_update_fp_camera_transform()
@@ -1158,20 +1160,31 @@ func _sync_camera_with_2d() -> void:
 		if cam_3d.projection != Camera3D.PROJECTION_ORTHOGONAL or not is_equal_approx(cam_3d.rotation_degrees.x, -PITCH_DEG):
 			cam_3d.projection = Camera3D.PROJECTION_ORTHOGONAL
 			cam_3d.rotation_degrees = Vector3(-PITCH_DEG, 0.0, 0.0)
-			cam_3d.near = 0.1
-			cam_3d.far = 250.0
+			cam_3d.near = 0.1 * Mapa3D.K
+			cam_3d.far = 250.0 * Mapa3D.K
 		var world_vis_h: float = vp_rect.size.y / maxf(0.1, zoom_2d.y)
-		cam_3d.size = maxf(1.0, world_vis_h * WORLD_SCALE)
+		cam_3d.size = maxf(1.0, world_vis_h * WORLD_SCALE / Mapa3D.ESTIRA_VERTICAL)
 
 		var target_3d: Vector3 = to_3d(center_2d, 0.0)
 		var forward_vec: Vector3 = -cam_3d.global_transform.basis.z.normalized()
-		cam_3d.global_position = target_3d - forward_vec * 65.0
+		cam_3d.global_position = target_3d - forward_vec * 65.0 * Mapa3D.K
 
 	stage_sprite.global_position = center_2d
 	stage_sprite.scale = Vector2(
 		(vp_rect.size.x / maxf(0.1, zoom_2d.x)) / float(VIEWPORT_W),
-		(vp_rect.size.y / maxf(0.1, zoom_2d.y)) / float(VIEWPORT_H)
+		(vp_rect.size.y / maxf(0.1, zoom_2d.y)) / float(sub_viewport.size.y)
 	)
+
+
+## Vista desde arriba (paso 0b): el mundo ya no está estirado de norte a sur, así que la imagen 3D se dibuja más baja
+## (alto / ESTIRA_VERTICAL) y se estira al pegarla encima del mapa; con la cámara a INCLINACION_GRADOS el suelo y las
+## alturas caen justo donde el mapa del pueblo. En 1.ª persona y en la vista del detective la imagen es normal.
+func _ajustar_alto_imagen_3d() -> void:
+	if sub_viewport == null:
+		return
+	var alto := VIEWPORT_H if (first_person_active or detective_topdown_active) else int(round(VIEWPORT_H / Mapa3D.ESTIRA_VERTICAL))
+	if sub_viewport.size.y != alto:
+		sub_viewport.size = Vector2i(VIEWPORT_W, alto)
 
 
 func _update_roof_cutaways_and_lighting() -> void:
@@ -1285,7 +1298,7 @@ func _update_roof_cutaways_and_lighting() -> void:
 			env.fog_light_energy = 0.72 if not is_night else 0.26
 			env.fog_sun_scatter = 0.18 if (is_dusk or is_dawn_mist) else 0.06
 			env.fog_sky_affect = 0.62
-			var base_fog: float = 0.022 if is_night else (0.0135 if (is_dusk or is_dawn_mist) else 0.0095)
+			var base_fog: float = (0.022 if is_night else (0.0135 if (is_dusk or is_dawn_mist) else 0.0095)) / Mapa3D.K
 			if is_foggy_weather:
 				base_fog *= 2.1
 			env.fog_density = base_fog
@@ -1295,14 +1308,14 @@ func _update_roof_cutaways_and_lighting() -> void:
 			env.ambient_light_energy = 0.52
 			env.fog_enabled = (is_foggy_weather or is_dawn_mist) and not pl_indoors
 			env.fog_light_color = horizon_col
-			env.fog_density = 0.0055 if is_foggy_weather else 0.0028
+			env.fog_density = (0.0055 if is_foggy_weather else 0.0028) / Mapa3D.K
 
 	if is_instance_valid(fp_lantern_light):
 		if first_person_active:
 			var carrying_lantern: bool = is_instance_valid(pl) and pl.get("is_carrying_lantern") == true
 			fp_lantern_light.visible = carrying_lantern if pl_in_lib_secret else (is_night or is_dusk or carrying_lantern)
 			fp_lantern_light.light_energy = 1.25 if carrying_lantern else (0.60 if is_night else 0.30)
-			fp_lantern_light.omni_range = 5.6 if carrying_lantern else 3.4
+			fp_lantern_light.omni_range = (5.6 if carrying_lantern else 3.4) * Mapa3D.K
 		else:
 			fp_lantern_light.visible = false
 
@@ -1416,7 +1429,7 @@ func _aplicar_ajustes_graficos() -> void:
 	if is_instance_valid(sun_light):
 		var q: int = int(Ajustes.get_valor("sombras"))
 		sun_light.shadow_enabled = q > 0
-		sun_light.directional_shadow_max_distance = 140.0 if q >= 2 else 70.0
+		sun_light.directional_shadow_max_distance = (140.0 if q >= 2 else 70.0) * Mapa3D.K
 		RenderingServer.directional_shadow_atlas_set_size(4096 if q >= 2 else 2048, true)
 	if is_instance_valid(sub_viewport):
 		sub_viewport.scaling_3d_mode = Viewport.SCALING_3D_MODE_BILINEAR
@@ -1448,12 +1461,15 @@ func _ocultar_2d_tapado(ocultar: bool) -> void:
 	get_viewport().canvas_cull_mask = (0xFFFFFFFF & ~CAPA_2D_TAPADO) if ocultar else 0xFFFFFFFF
 
 
-## Rendimiento (2026-11-10): en 1.ª persona los objetos pequeños (menos de 1 m: platos, libros, herramientas…) dejan de
-## dibujarse a más de 25 m y los medianos (1–3 m: muebles, barriles, carros) a más de 50 m. A esa distancia ocupan unos
-## pocos puntos de la pantalla. Medido en el portátil: unas 500–1.200 llamadas de dibujo menos y ~4 ms por fotograma
-## en la plaza y las afueras. Con la cámara de arriba (muy alta) no se aplica: haría desaparecer cosas.
-const ALCANCE_PEQUENO: float = 5.0   # unidades 3D (1 u = 5 m) → 25 m
-const ALCANCE_MEDIANO: float = 10.0  # → 50 m
+## Rendimiento (2026-11-10): en 1.ª persona los objetos pequeños (menos de ~0,6 m: platos, libros, herramientas…) dejan
+## de dibujarse a más de 14 m y los medianos (hasta ~1,7 m: muebles, barriles, carros) a más de 28 m. A esa distancia
+## ocupan unos pocos puntos de la pantalla. Medido en el portátil: unas 500–1.200 llamadas de dibujo menos y ~4 ms por
+## fotograma en la plaza y las afueras. Con la cámara de arriba (muy alta) no se aplica: haría desaparecer cosas.
+## Medidas en metros desde el paso 0b (antes 5 y 10 unidades de la escala vieja: lo mismo).
+const TAM_PEQUENO: float = 0.56
+const TAM_MEDIANO: float = 1.68
+const ALCANCE_PEQUENO: float = 14.0
+const ALCANCE_MEDIANO: float = 28.0
 var _con_alcance: Array = []
 
 func _alcance_objetos_pequenos(activar: bool) -> void:
@@ -1474,10 +1490,10 @@ func _alcance_objetos_pequenos(activar: bool) -> void:
 				var ab: AABB = g.get_aabb()
 				var t: Vector3 = ab.size * g.global_transform.basis.get_scale().abs()
 				var e: float = maxf(t.x, maxf(t.y, t.z))
-				if e < 0.2:
+				if e < TAM_PEQUENO:
 					g.visibility_range_end = ALCANCE_PEQUENO
 					_con_alcance.append(g)
-				elif e < 0.6:
+				elif e < TAM_MEDIANO:
 					g.visibility_range_end = ALCANCE_MEDIANO
 					_con_alcance.append(g)
 		for c in n.get_children():

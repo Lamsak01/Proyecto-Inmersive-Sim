@@ -4,8 +4,9 @@
 > profundidades, cuevas, lagos y **nadar y bucear** (habrá casos con pistas en el río y el lago). Quiere hacerlo **ya**,
 > antes de que el juego crezca. No volver a proponer quedarse en 2D ni «trucos de capas» como solución final.
 >
-> **Estado (2026-11-10):** plan aprobado por el usuario. **Paso 0 hecho** en la rama `mundo-3d`. **Escala: el usuario eligió
-> la opción B (uniforme).** Siguiente: paso 0b (§5), antes del paso 1.
+> **Estado (2026-11-10):** plan aprobado por el usuario. **Pasos 0 y 0b hechos** en la rama `mundo-3d` (mundo 3D uniforme y
+> en metros, opción B del usuario). Siguiente: paso 1 (el protagonista en 3D), pendiente de que el usuario dé el visto
+> bueno a las fotos nuevas (`docs/capturas_mundo3d/referencia_paso0b/`).
 > Autor: Claude Code (portátil). Cualquier agente que siga: lee este documento entero antes de tocar nada y apunta
 > cada paso en el **Registro** (§10).
 
@@ -252,10 +253,14 @@ Es una estimación: se apuntará el gasto real de cada paso en el Registro para 
 |---|---|---|---|---|---|
 | 2026-11-10 | Claude Code (portátil) | Plan | Inventario y plan escritos; aprobados por el usuario | — | 031f68a |
 | 2026-11-10 | Claude Code (portátil) | Paso 0 | Etiqueta `antes-de-mundo-3d`, rama `mundo-3d`; `scripts/fisica/Mapa3D.gd` (conversión única; ~20 copias fuera); pruebas `fisica_3d.gd` y `capturas_fijas.gd`; fotos de referencia; `MAPA_DEL_CODIGO.md` y `MANUSCRITO_MUNDO_3D.md`; arregladas 3 cosas que ya fallaban antes (`hornear_edificios.gd` no compilaba; pruebas `rio_editor_juego` y `pincel_mapa` anticuadas) | fisica_3d ✅ 7/7 · capturas iguales (peor 0,38 %, ruido 0,8 %) · verify_all ✅ · guardado_largo ✅ · sondeo edificios 29/29 ✅ · río ✅ · pincel ✅ | (este commit) |
+| 2026-11-10 | Claude Code (portátil) | Paso 0b | Escala uniforme en metros: `Mapa3D` (ESCALA 0,056, ALTO, K = 2,8, vista de arriba a 62,08° con imagen estirada); escenario, luces, niebla, texturas, partículas y muñecos ajustados; mapa del usuario convertido (`tools/convertir_escala_0b.py`, copia `mapa/Mundo3D.antes-3d.tscn`); fotos de edificios rehechas; arreglo de vecinos encimados en las puertas | fisica_3d ✅ 12/12 (vista de arriba cuadra: 0,14 px) · sondeo 29/29 ✅ · río ✅ · pincel ✅ · verify_all ✅ (falló 2 veces por la puerta; tras el arreglo ✅) · atascos 0 en 6 h ✅ · fps igual que la versión anterior medida a la vez · fotos nuevas en `referencia_paso0b` (desde arriba: 9,9 % distinto, casi igual) | (este commit) |
 
 ### Medidas de referencia (antes del paso 1, portátil, 2026-11-10)
 - **fps en 1.ª persona** (`perf_zonas.gd`): afueras 33, plaza 29, río 23, bosque 38, molino 40, mansión 43.
 - **Vecinos atascados** (`atascos_vecinos.gd -- 6`): 0 en 6 h. **Guardado largo:** PASSED, +1,6 MB del día 2 al 7.
 - **Edificios movidos** (`sondeo_edificios_movidos.gd -- movido`): 29/29; sitios de vecinos 54 bien, 0 viejos, 6 al aire libre.
 - **Fotos:** `docs/capturas_mundo3d/referencia_paso0/` (3072×1728; ruido normal entre dos tandas iguales: hasta 0,8 %).
+- **Fluidez tras el paso 0b (2026-11-10, portátil en un mal momento: la versión de antes medida a la vez daba lo
+  mismo):** afueras 8/8, plaza 5/5, río 5/5, bosque 8/8, molino 8/9, mansión 8/9 (nuevo/anterior). Repetir las medidas
+  de referencia con el portátil en buen estado antes del paso 1.
 - **Tokens del paso 0:** no se pueden medir desde dentro de la sesión; estimado ~8–12 millones leídos (dentro de lo previsto).

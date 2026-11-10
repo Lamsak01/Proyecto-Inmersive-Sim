@@ -24,7 +24,7 @@
 | `scenes/` | La escena del pueblo (`World.tscn`), el menú principal y la interfaz de la partida (`ui_root.gd`) | 7, ~2.500 |
 | `mapa/` | El editor del mapa 3D (`Mundo3D.tscn`) y sus piezas; el editor 2D del río | 15, ~1.400 |
 | `addons/` | Complementos del editor de Godot: pincel del mapa (nuestro) y Asset Placer (de otro autor, no tocar) | — |
-| `tools/` | Herramientas y pruebas automáticas (`tools/tests/`) | — |
+| `tools/` | Herramientas y pruebas automáticas (`tools/tests/`). `convertir_escala_0b.py`: conversión de un solo uso del mapa a metros | — |
 
 ## El protagonista — `scripts/`
 - `Player.gd` [1.143] ⚠ — el jugador: vida, inventario, caballo, interacción, guardar su estado.
@@ -33,8 +33,8 @@
 - `World.gd` [279] — monta el pueblo al empezar la partida, zoom, filtro de color retro.
 
 ## Física y mundo 3D — `scripts/fisica/` (nuevo)
-- `Mapa3D.gd` [39] — **el único sitio** que pasa una posición del mapa a 3D y al revés. Lo usan el juego, el editor
-  del mapa y las herramientas (antes había ~20 copias de la misma fórmula).
+- `Mapa3D.gd` [~55] — **el único sitio** que pasa una posición del mapa a 3D y al revés, en metros (1 unidad = 1 m,
+  igual en todas direcciones desde el paso 0b). Lo usan el juego, el editor del mapa y las herramientas.
 
 ## Lo que se ve en 3D — `scripts/visuals/`
 - `WorldStageBase3D.gd` [~1.000] ⚠ — base del escenario: relieve del suelo, materiales, cajas y cilindros 3D.
@@ -88,6 +88,7 @@
 `scenes/ui_root.gd` [1.580] ⚠ — reparte las teclas de los paneles y abre la pausa.
 
 ## Pruebas — `tools/tests/`
-`verify_all.gd` (todo el juego, ~15 min), `fisica_3d.gd` (paso a 3D), `capturas_fijas.gd` (fotos para comparar),
+`verify_all.gd` (todo el juego, ~15 min), `fisica_3d.gd` (paso a 3D), `capturas_fijas.gd` (fotos para comparar, también
+desde arriba),
 `menu_probe.gd`, `atascos_vecinos.gd`, `guardado_largo.gd`, `social_sim.gd`, `names_check.gd`, `dialogue_coverage.gd`,
 `perf_*.gd` (rendimiento). Cómo lanzarlas: `docs/HANDOFF.md` §3 y `docs/PLAN_MUNDO_3D.md` §6.

@@ -173,7 +173,7 @@ func _edificios(vista: Node3D, lista: Array) -> void:
 		var nombre := Label3D.new()
 		nombre.text = String(e.get("nombre", ""))
 		nombre.billboard = BaseMaterial3D.BILLBOARD_ENABLED
-		nombre.pixel_size = 0.004
+		nombre.pixel_size = 0.004 * Mapa3D.K
 		nombre.position = a_3d(centro, base + alto + 8.0)
 		vista.add_child(nombre)
 

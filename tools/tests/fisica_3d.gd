@@ -16,28 +16,70 @@ func _ok(c: bool, txt: String) -> void:
 
 func _initialize() -> void:
 	_paso0_conversion()
+	await _paso0b_vista_de_arriba()
 	await _paso0_escenario()
 	print("FISICA 3D: %s (%d fallos)" % ["PASSED" if _fallos == 0 else "FAILED", _fallos])
 	quit(1 if _fallos > 0 else 0)
 
 
-## Paso 0: la conversión única da los mismos números que la fórmula antigua y va y vuelve sin perder nada.
+## Paso 0 y 0b: la conversión única va y vuelve sin perder nada, y el mundo es uniforme y en metros.
 func _paso0_conversion() -> void:
-	var s: float = sin(deg_to_rad(58.0))
-	var c: float = cos(deg_to_rad(58.0))
-	var peor: float = 0.0
 	var peor_vuelta: float = 0.0
 	var rng := RandomNumberGenerator.new()
 	rng.seed = 58
 	for _i in range(2000):
 		var p := Vector2(rng.randf_range(-2000, 2000), rng.randf_range(-1500, 1500))
 		var h: float = rng.randf_range(-80, 200)
-		var antigua := Vector3(p.x * 0.02, (h * 0.02) / c, (p.y * 0.02) / s)
-		peor = maxf(peor, (Mapa3D.a_3d(p, h) - antigua).length())
 		peor_vuelta = maxf(peor_vuelta, (Mapa3D.a_mapa(Mapa3D.a_3d(p, h)) - p).length())
 		peor_vuelta = maxf(peor_vuelta, absf(Mapa3D.alto_a_px(Mapa3D.alto_a_3d(h)) - h))
-	_ok(peor < 1e-4, "Mapa3D.a_3d = fórmula antigua (peor diferencia " + str(peor) + " unidades)")
 	_ok(peor_vuelta < 1e-3, "mapa → 3D → mapa sin perder posición (peor " + str(peor_vuelta) + " px)")
+	var caja := Mapa3D.tam_a_3d(Vector2(10, 10), 0.0)
+	_ok(is_equal_approx(caja.x, caja.z), "0b: una caja de 10×10 px es cuadrada en 3D (" + str(caja) + ")")
+	var d_ns := Mapa3D.a_3d(Vector2(0, 100)).length()
+	var d_eo := Mapa3D.a_3d(Vector2(100, 0)).length()
+	_ok(is_equal_approx(d_ns, d_eo), "0b: 100 px norte-sur = 100 px este-oeste en 3D")
+	var g := Mapa3D.dir_a_3d(Vector2(1, 1)).normalized()
+	_ok(is_equal_approx(rad_to_deg(atan2(g.z, g.x)), 45.0), "0b: la diagonal del mapa es de 45° en 3D")
+	# Persona: el muñeco mide ~1,55 en su esqueleto (CharacterRig3D) por la escala del escenario
+	var CA = load("res://scripts/visuals/CharacterAvatar3D.gd")
+	var alto_persona: float = 1.55 * float(CA.STAGE_K)
+	_ok(absf(alto_persona - 1.75) < 0.05, "0b: una persona mide %.2f m (1,75 esperado)" % alto_persona)
+	var ojos := Mapa3D.alto_a_3d(load("res://scripts/visuals/WorldStageBase3D.gd").FP_EYE_HEIGHT_PX)
+	_ok(ojos > 1.5 and ojos < 1.7, "0b: los ojos en 1.ª persona a %.2f m" % ojos)
+
+
+## Paso 0b: la vista desde arriba sigue cuadrando con el mapa del pueblo. Una cámara como la del juego (inclinada
+## INCLINACION_GRADOS, imagen más baja y luego estirada) debe pintar un punto del mapa (x, y) a altura h justo donde el
+## mapa 2D pinta (x, y − h): así se veía antes del paso 0b.
+func _paso0b_vista_de_arriba() -> void:
+	var W := 1280
+	var H := int(round(720 / Mapa3D.ESTIRA_VERTICAL))
+	var vp := SubViewport.new()
+	vp.size = Vector2i(W, H)
+	vp.own_world_3d = true
+	root.add_child(vp)
+	var cam := Camera3D.new()
+	cam.projection = Camera3D.PROJECTION_ORTHOGONAL
+	cam.near = 0.1 * Mapa3D.K
+	cam.far = 250.0 * Mapa3D.K
+	var vis_h := 400.0 # píxeles del mapa que caben de alto en la pantalla
+	cam.size = vis_h * Mapa3D.ESCALA / Mapa3D.ESTIRA_VERTICAL
+	vp.add_child(cam)
+	var centro := Vector2(412, 54)
+	var giro := Basis.from_euler(Vector3(deg_to_rad(-Mapa3D.INCLINACION_GRADOS), 0.0, 0.0))
+	cam.transform = Transform3D(giro, Mapa3D.a_3d(centro) + giro.z * 65.0 * Mapa3D.K)
+	await process_frame
+	var px_por_mapa := 720.0 / vis_h # píxeles de imagen (ya estirada a 720 de alto) por píxel del mapa
+	var peor := 0.0
+	for q in [[Vector2(412, 54), 0.0], [Vector2(500, 120), 30.0], [Vector2(330, -20), 60.0], [Vector2(450, 0), 12.0]]:
+		var p: Vector2 = q[0]
+		var h: float = q[1]
+		var en_imagen := cam.unproject_position(Mapa3D.a_3d(p, h))
+		var en_pantalla := Vector2(en_imagen.x, en_imagen.y * Mapa3D.ESTIRA_VERTICAL)
+		var esperado := Vector2(W, 720) * 0.5 + (p - Vector2(0, h) - centro) * px_por_mapa
+		peor = maxf(peor, en_pantalla.distance_to(esperado))
+	vp.queue_free()
+	_ok(peor < 1.0, "0b: vista desde arriba cuadra con el mapa (peor %.2f píxeles de pantalla)" % peor)
 
 
 ## Paso 0: el escenario del juego usa la conversión única (to_3d / to_3d_flat / tamaños).

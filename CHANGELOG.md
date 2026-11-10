@@ -4,6 +4,13 @@ Cambios del juego, del más nuevo al más antiguo. Añade una entrada al cerrar 
 El detalle técnico está en `docs/HANDOFF.md` (sección 7) y el historial completo en `git log`. Lo anterior a B0.1 está en `AUDIT_LOG.md` y `SESSION_CONTEXT_LOG.md`.
 
 
+## 2026-11-10 — Paso a 3D de verdad: paso 0b, mundo en metros (Claude Code, portátil; rama `mundo-3d`)
+- Decisión del usuario: escala uniforme. El mundo 3D mide en metros (una persona, 1,74 m) y tiene las mismas proporciones
+  en todas direcciones; en 3D el pueblo es un 15 % más corto de norte a sur. En el mapa del pueblo no se mueve nada.
+- Mapa editado por el usuario convertido (copia en `mapa/Mundo3D.antes-3d.tscn`); fotos de edificios rehechas.
+- La vista desde arriba sigue cuadrando con el mapa (cámara a 62°, imagen estirada).
+- Arreglado: dos vecinos podían quedarse encimados en una puerta (ahora guardan un mínimo de distancia).
+
 ## 2026-11-10 — Paso a 3D de verdad: paso 0, preparación (Claude Code, portátil; rama `mundo-3d`)
 - Nada cambia al jugar. Copia de seguridad del juego (etiqueta `antes-de-mundo-3d`) y trabajo en una rama aparte.
 - La fórmula que pasa del mapa al 3D estaba copiada en unos 20 sitios; ahora hay una sola (`scripts/fisica/Mapa3D.gd`). Fotos antes y después: iguales.

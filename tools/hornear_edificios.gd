@@ -35,6 +35,7 @@ func _initialize() -> void:
 			continue
 		var id := String(b.name).substr(4)
 		var copia: Node = b.duplicate()
+		(copia as Node3D).transform = Transform3D.IDENTITY # sin el movimiento/giro del usuario: ya lo lleva la pieza
 		_poner_dueno(copia, copia)
 		_texturas_por_ruta(copia)
 		var ps := PackedScene.new()

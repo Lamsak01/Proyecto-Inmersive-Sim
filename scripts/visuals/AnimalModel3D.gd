@@ -122,7 +122,7 @@ func _attach_to_stage() -> bool:
 		omni.name = "DimLanternLight3D"
 		omni.light_color = Color(1.0, 0.68, 0.32)
 		omni.light_energy = 0.16
-		omni.omni_range = 1.2
+		omni.omni_range = 1.2 * Mapa3D.K
 		omni.position = Vector3(0.0, fit_h * 0.65, 0.0)
 		_holder.add_child(omni)
 	chars.add_child(_holder)

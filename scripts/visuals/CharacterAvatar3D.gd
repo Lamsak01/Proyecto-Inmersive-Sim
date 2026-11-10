@@ -10,6 +10,7 @@ const CharacterRig3DScript = preload("res://scripts/visuals/CharacterRig3D.gd")
 
 static var use_3d_characters: bool = true
 const AVATAR_RES: int = 64
+const Mapa3D = preload("res://scripts/fisica/Mapa3D.gd")
 const OUTLINE_SHADER := preload("res://shaders/pixel_outline.gdshader")
 
 var is_player_avatar: bool = false
@@ -27,7 +28,7 @@ var _last_was_3d: bool = true
 # --- Modo «dentro del escenario» (2026-11-05): el muñeco 3D vive en el mismo mundo 3D que los edificios ---
 # Así le tapan las paredes, proyecta sombra y le ilumina el sol y las farolas, en vez de pegarse encima como una pegatina.
 ## Escala del muñeco en el escenario (1 unidad del muñeco ≈ 20 px del mapa).
-const STAGE_K: float = 0.40
+const STAGE_K: float = 0.40 * Mapa3D.K ## escala del muñeco en el escenario: una persona mide ~1,75 m (paso 0b)
 ## Los pies del muñeco quedan unos píxeles por debajo del origen de la entidad (donde estaba la sombra 2D).
 const FOOT_OFFSET_PX: float = 4.0
 ## Altura del asiento sobre el lomo del caballo (px del mapa).
@@ -215,7 +216,7 @@ func _sync_holder_position() -> void:
 		if rem_ms > 0:
 			var k_rec: float = sin(clampf(float(rem_ms) / float(dur_ms), 0.0, 1.0) * PI)
 			var r_dir: Vector2 = target_entity.get_meta("hit_recoil_3d_dir", Vector2.RIGHT)
-			base_pos_3d += Vector3(r_dir.x, 0.0, r_dir.y) * (0.14 * k_rec)
+			base_pos_3d += Vector3(r_dir.x, 0.0, r_dir.y) * (0.14 * k_rec * Mapa3D.K)
 			rec_rot = Vector3(r_dir.y * 0.36 * k_rec, 0.0, -r_dir.x * 0.36 * k_rec)
 	_holder.position = base_pos_3d
 	_holder.rotation = rec_rot

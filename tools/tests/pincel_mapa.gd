@@ -4,6 +4,7 @@ extends SceneTree
 ##   timeout 120 flatpak run org.godotengine.Godot --headless --path . -s tools/tests/pincel_mapa.gd
 ## Pinta pinos en un prado, intenta pintar sobre el río y la posada, borra con la goma y siembra copias de lo seleccionado.
 
+const Mapa3D = preload("res://scripts/fisica/Mapa3D.gd")
 ## Se cargan al arrancar (no con preload): dependen de scripts que usan los autoloads, que aún no existen al compilar.
 var Nucleo
 var Mezclas
@@ -42,7 +43,7 @@ func _initialize() -> void:
 	var min_d := INF
 	for i in range(nu.nuevos.size()):
 		for j in range(i + 1, nu.nuevos.size()):
-			min_d = minf(min_d, nu.nuevos[i].global_position.distance_to(nu.nuevos[j].global_position) / 0.02)
+			min_d = minf(min_d, nu.nuevos[i].global_position.distance_to(nu.nuevos[j].global_position) / Mapa3D.ESCALA)
 	_ok(min_d > 15.0, "separados entre sí (mínimo ~%d)" % int(min_d))
 	# Río y edificio
 	nu.empezar()
@@ -52,7 +53,7 @@ func _initialize() -> void:
 	for y in range(-300, 300, 30):
 		nu.pintar(Vector2(FS.river_center_x(float(y)), float(y)))
 	for n in nu.nuevos:
-		var p := Vector2(n.global_position.x / 0.02, n.global_position.z * sin(deg_to_rad(58.0)) / 0.02)
+		var p := Mapa3D.a_mapa(n.global_position)
 		if FS.is_point_in_river_water(p, 0.0):
 			en_agua += 1
 	_ok(en_agua == 0, "nada dentro del río (%d intentos sembraron %d en la orilla)" % [20, nu.nuevos.size()])

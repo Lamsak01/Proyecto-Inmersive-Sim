@@ -769,26 +769,31 @@ func _is_target_occupied_by_closer_npc(target_pos: Vector2) -> bool:
 					return true
 	return false
 
+const SEP_EN_PUERTA: float = 10.0 ## distancia mínima entre vecinos en el umbral de una puerta (píxeles del mapa)
+
+
 func _enforce_npc_personal_space(delta: float) -> void:
 	if not is_conscious() or is_sleeping or is_at_poker_table or _is_seated_on_furniture(global_position):
 		return
 	var vm = _get_vm()
-	if vm != null and vm.has_method("get_doorway_clearance_nudge") and (vm.call("get_doorway_clearance_nudge", global_position, 22.0) as Vector2).length_squared() > 0.01:
-		return
-	var min_sep: float = 15.0
-	var min_sep_sq: float = min_sep * min_sep
+	var tiene_puertas: bool = vm != null and vm.has_method("get_doorway_clearance_nudge")
+	# En el umbral de una puerta la distancia baja a SEP_EN_PUERTA (caben dos de frente) en vez de desaparecer: antes dos
+	# vecinos podían quedarse encimados en la puerta (2026-11-10, salió al pasar el mundo a metros, paso 0b).
+	var en_puerta: bool = tiene_puertas and (vm.call("get_doorway_clearance_nudge", global_position, 22.0) as Vector2).length_squared() > 0.01
+	var min_sep: float = SEP_EN_PUERTA if en_puerta else 15.0
 	for n in _near_npcs(global_position, 15.0):
 		if n is VillageNPCBase and n != self:
 			var other := n as VillageNPCBase
 			var diff_o: Vector2 = global_position - other.global_position
 			var d_sq: float = diff_o.length_squared()
-			if d_sq >= min_sep_sq:
+			if d_sq >= min_sep * min_sep:
 				continue # Rendimiento (2026-11-09): lo barato primero; el resto de comprobaciones solo para los cercanos
 			if not other.is_conscious() or other.is_sleeping or other.is_at_poker_table or int(other.elevation_level) != int(elevation_level):
 				continue
-			if vm != null and vm.has_method("get_doorway_clearance_nudge") and (vm.call("get_doorway_clearance_nudge", other.global_position, 20.0) as Vector2).length_squared() > 0.01:
-				continue
-			if d_sq < min_sep_sq:
+			var sep_par: float = min_sep
+			if not en_puerta and tiene_puertas and (vm.call("get_doorway_clearance_nudge", other.global_position, 20.0) as Vector2).length_squared() > 0.01:
+				sep_par = SEP_EN_PUERTA
+			if d_sq < sep_par * sep_par:
 				var d_o: float = sqrt(d_sq)
 				var push_dir: Vector2
 				if d_o > 0.05:
@@ -797,7 +802,7 @@ func _enforce_npc_personal_space(delta: float) -> void:
 					var ang: float = float((absi(npc_name.hash()) + absi(other.npc_name.hash())) % 180) * (TAU / 360.0)
 					var dir_base := Vector2.RIGHT.rotated(ang)
 					push_dir = dir_base if get_instance_id() > other.get_instance_id() else -dir_base
-				var overlap: float = min_sep - d_o
+				var overlap: float = sep_par - d_o
 				var other_fixed: bool = _is_seated_on_furniture(other.global_position) or other.velocity.length_squared() < 4.0
 				var step_push: float = minf(overlap * (0.85 if other_fixed else 0.58), maxf(2.2, 56.0 * delta))
 				var cand_pos: Vector2 = global_position + push_dir * step_push

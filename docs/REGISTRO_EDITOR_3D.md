@@ -35,7 +35,8 @@ mover una pista del claro y el molino mueve sus zonas de uso y el interior 3D de
   (`mapa/anclas.gd`: `matriz`, `aplicar`, `girar_choque`, `rect_con`). Las paredes invisibles giran (aproximadas).
 - **Objetos con nombre** (pozos, tablón, farolas): un «ancla de solo giro» en su sitio nuevo gira su dibujo 3D y su pared.
 - Vegetación y Decorado ya giraban solos en 3D (la escena guarda el giro); su choque de «forma» sale ya girado.
-- El giro en 3D se ve «aplastado» en el mapa 2D por la inclinación de la cámara (58°): `Anclas.matriz(g)` lo traduce.
+- ~~El giro en 3D se ve «aplastado» en el mapa 2D por la inclinación de la cámara (58°)~~. Desde el paso 0b
+  (2026-11-10, `docs/PLAN_MUNDO_3D.md`) el 3D es uniforme y en metros: un giro en el editor es el mismo giro en el mapa.
 
 ## Muebles uno a uno (hecho el 2026-11-10, sesión 2)
 - Cada edificio de «Edificios» tiene una carpeta **«Muebles»** con una pieza por mueble 3D (290; `mapa/mueble.gd`). Se
@@ -98,3 +99,8 @@ mover una pista del claro y el molino mueve sus zonas de uso y el interior 3D de
    aplanado (los caminos 3D se mueven pero el minimapa no), pistas del Caso I que el código busca por coordenadas fijas
    (p. ej. distancia al claro en VillageManager), recolocar el Caso I tras mover edificios.
 5. Suelo, agua del río y del lago y orillas siguen en código a propósito (el río se edita con `mapa/EditorMapa.tscn`).
+
+## Escala uniforme en metros (paso 0b del paso a 3D, 2026-11-10)
+- `mapa/Mundo3D.tscn` se convirtió con `tools/convertir_escala_0b.py` (copia: `mapa/Mundo3D.antes-3d.tscn`). Todo sigue
+  en el mismo sitio del pueblo; en 3D el pueblo es ~15 % más corto de norte a sur y todo es ×2,8 más grande (metros).
+- Si Godot tenía Mundo3D abierto: cerrar la pestaña **sin guardar** y volver a abrirla.

@@ -1,6 +1,6 @@
 extends SceneTree
 
-## Fotos fijas del mundo en 1.ª persona para comparar antes y después de un cambio (Claude Code, 2026-11-10;
+## Fotos fijas del mundo en 1.ª persona (y una desde arriba, «arriba_plaza») para comparar antes y después de un cambio (Claude Code, 2026-11-10;
 ## paso del mundo a 3D, docs/PLAN_MUNDO_3D.md). Con ventana, ~2 min. Siempre los mismos sitios, mediodía, cielo
 ## despejado y SIN personajes (se mueven y estropearían la comparación).
 ## Uso: flatpak run org.godotengine.Godot --path . -s tools/tests/capturas_fijas.gd -- <carpeta> [carpeta_referencia]
@@ -57,6 +57,19 @@ func _initialize() -> void:
 			print("CAPTURA %s distinto=%.2f%%" % [s[0], d])
 		else:
 			print("CAPTURA %s guardada" % s[0])
+	# Vista desde arriba (paso 0b): el 3D debe cuadrar con el mapa del pueblo (casas, caminos, letreros)
+	stage.call("set_first_person", false)
+	pl.global_position = SITIOS[0][1]
+	for _i in range(40):
+		await process_frame
+	var img_arriba: Image = root.get_texture().get_image()
+	img_arriba.save_png(out + "/arriba_plaza.png")
+	if ref != "" and FileAccess.file_exists(ref + "/arriba_plaza.png"):
+		var d2: float = _distinto(img_arriba, Image.load_from_file(ref + "/arriba_plaza.png"))
+		total_dist = maxf(total_dist, d2)
+		print("CAPTURA arriba_plaza distinto=%.2f%%" % d2)
+	else:
+		print("CAPTURA arriba_plaza guardada")
 	print("CAPTURAS_FIN peor=%.2f%%" % total_dist)
 	quit(0)
 

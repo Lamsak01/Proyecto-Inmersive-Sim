@@ -55,7 +55,7 @@ func rebuild_outpost_3d() -> void:
 		fire_lt.position = to_3d(c + Vector2(-18, 0), 12.0)
 		fire_lt.light_color = Color(1.0, 0.65, 0.25)
 		fire_lt.light_energy = 1.6
-		fire_lt.omni_range = 3.2
+		fire_lt.omni_range = 3.2 * Mapa3D.K
 		outpost_root_3d.add_child(fire_lt)
 
 	# Mejora 1: Aserradero Fronterizo
@@ -116,7 +116,7 @@ func _build_sewers_3d() -> void:
 	_add_box_2d(sewers_root_3d, Vector2(420.0, sy), Vector2(720.0, 320.0), 1.2, 0.8, m_bedrock)
 	# Editor del mapa 3D: la red entera se desplaza lo que el usuario la movió (VillageUnderworld.desp_red)
 	var d_red: Vector2 = VillageUnderworldScript.desp_red
-	sewers_root_3d.position = Vector3(d_red.x * WORLD_SCALE, 0.0, (d_red.y * WORLD_SCALE) / _sin_p)
+	sewers_root_3d.position = Mapa3D.a_3d(d_red)
 
 	# 3 cámaras conectadas bajo el centro del pueblo: Bóveda Inundada (260, SEWER_Y), Pasadizo del Contrabandista (420, SEWER_Y) y Cisterna (580, SEWER_Y)
 	for loc_id in ["flooded_vault", "smuggler_tunnel", "cistern"]:
@@ -149,7 +149,7 @@ func _build_sewers_3d() -> void:
 			t_light.position = to_3d(lad_p + Vector2(12.0, -8.0), 19.0)
 			t_light.light_color = Color(1.0, 0.78, 0.42)
 			t_light.light_energy = 1.35
-			t_light.omni_range = 3.2
+			t_light.omni_range = 3.2 * Mapa3D.K
 			sewers_root_3d.add_child(t_light)
 
 		# Cofre de contrabando 3D sobre losa de piedra + barriles y cajas de alijo
@@ -195,7 +195,7 @@ func _add_green_crt_terminal_3d(parent: Node3D, pos_2d: Vector2, base_h: float, 
 		crt_lt.position = to_3d(pos_2d + Vector2(0, 3.2 * dir_y), base_h + 3.6)
 		crt_lt.light_color = Color(0.16, 0.96, 0.38)
 		crt_lt.light_energy = 0.75
-		crt_lt.omni_range = 1.8
+		crt_lt.omni_range = 1.8 * Mapa3D.K
 		parent.add_child(crt_lt)
 
 func _add_sandbag_wire_barrier_3d(parent: Node3D, pos_2d: Vector2) -> void:
@@ -235,7 +235,7 @@ func _add_floodlight_tower_3d(parent: Node3D, pos_2d: Vector2, target_2d: Vector
 		spot = SpotLight3D.new()
 		spot.position = to_3d(head_2d, 34.5)
 		var tgt_3d: Vector3 = to_3d(target_2d, 0.5)
-		spot.spot_range = 9.5
+		spot.spot_range = 9.5 * Mapa3D.K
 		spot.spot_angle = 42.0
 		spot.light_energy = 2.8
 		spot.light_color = Color(1.0, 0.90, 0.62)
@@ -244,7 +244,7 @@ func _add_floodlight_tower_3d(parent: Node3D, pos_2d: Vector2, target_2d: Vector
 			spot.look_at_from_position(spot.position, tgt_3d, Vector3.UP)
 		pool = OmniLight3D.new()
 		pool.position = to_3d(pos_2d.lerp(target_2d, 0.55), 10.0)
-		pool.omni_range = 5.4
+		pool.omni_range = 5.4 * Mapa3D.K
 		pool.light_energy = 1.65
 		pool.light_color = Color(1.0, 0.88, 0.56)
 		parent.add_child(pool)
@@ -330,7 +330,7 @@ func _build_streetlights_3d() -> void:
 		if not _is_headless:
 			omni = OmniLight3D.new()
 			omni.position = to_3d(pos + Vector2(3.5, 0), 24.0)
-			omni.omni_range = 4.8
+			omni.omni_range = 4.8 * Mapa3D.K
 			omni.light_energy = 1.65
 			omni.light_color = Color(1.0, 0.86, 0.52)
 			streetlights_root_3d.add_child(omni)
@@ -556,7 +556,7 @@ func _sync_club_3d() -> void:
 				lt.position = to_3d(tp, 16.0)
 				lt.light_color = Color(1.0, 0.78, 0.42)
 				lt.light_energy = 1.2
-				lt.omni_range = 3.4
+				lt.omni_range = 3.4 * Mapa3D.K
 				_club_root_3d.add_child(lt)
 		# Trampilla en la sala trasera de escalera/bodega de la taberna (sobre la losa del suelo en h = 2.5)
 		var trap := Node3D.new()
@@ -588,7 +588,7 @@ func _sync_club_3d() -> void:
 			t_lt.position = to_3d(Club.TRAPDOOR_POS, 5.5)
 			t_lt.light_color = Color(1.0, 0.72, 0.28)
 			t_lt.light_energy = 1.35
-			t_lt.omni_range = 1.8
+			t_lt.omni_range = 1.8 * Mapa3D.K
 			open_hatch.add_child(t_lt)
 	var in_club_now: bool = Club.is_player_in_club(vm)
 	var open_now: bool = Club.is_open_now(vm)
@@ -939,7 +939,7 @@ func _build_prop_3d(root: Node3D, kind: String, spr: Sprite2D) -> void:
 				lt.position = to_3d(pos, 10.0)
 				lt.light_color = Color(1.0, 0.62, 0.28)
 				lt.light_energy = 1.35
-				lt.omni_range = 2.8
+				lt.omni_range = 2.8 * Mapa3D.K
 				root.add_child(lt)
 		"log_seat":
 			# Tronco tumbado 3D con corteza, anillos de madera en los extremos y calzos de apoyo
@@ -1119,7 +1119,7 @@ func _sync_player_house_3d() -> void:
 		lt.position = to_3d(c, wall_h * 0.7)
 		lt.light_color = Color(1.0, 0.80, 0.55)
 		lt.light_energy = 0.6
-		lt.omni_range = 2.0
+		lt.omni_range = 2.0 * Mapa3D.K
 		roof.add_child(lt)
 
 
@@ -1268,6 +1268,7 @@ func _sync_sabotage_fx_3d() -> void:
 			smoke3.initial_velocity_max = 0.95
 			smoke3.gravity = Vector3(0.0, 0.35, 0.0)
 			smoke3.emitting = true
+			_particulas_a_metros(smoke3)
 			node3d.add_child(smoke3)
 			var sparks3 := CPUParticles3D.new()
 			sparks3.name = "Sparks3D"
@@ -1284,6 +1285,7 @@ func _sync_sabotage_fx_3d() -> void:
 			sparks3.initial_velocity_max = 1.6
 			sparks3.gravity = Vector3(0.0, -3.2, 0.0)
 			sparks3.emitting = true
+			_particulas_a_metros(sparks3)
 			node3d.add_child(sparks3)
 			var fire3 := CPUParticles3D.new()
 			fire3.name = "Fire3D"
@@ -1300,13 +1302,14 @@ func _sync_sabotage_fx_3d() -> void:
 			fire3.initial_velocity_max = 0.75
 			fire3.gravity = Vector3(0.0, 0.6, 0.0)
 			fire3.emitting = has_fire
+			_particulas_a_metros(fire3)
 			node3d.add_child(fire3)
 			if not _is_headless:
 				var lt := OmniLight3D.new()
 				lt.name = "FireLight3D"
 				lt.light_color = Color(1.0, 0.58, 0.20)
 				lt.light_energy = 1.15 if has_fire else 0.35
-				lt.omni_range = 2.4
+				lt.omni_range = 2.4 * Mapa3D.K
 				node3d.add_child(lt)
 			nature_root_3d.add_child(node3d)
 			_sabotage_fx_3d[role_int] = node3d

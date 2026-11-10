@@ -50,8 +50,9 @@ static var grabar_muebles: bool = false
 var muebles_grabados: Array = []
 var _muebles_activos: bool = false # solo mientras se amuebla un edificio (no los cofres, que ya van por anclas)
 var _muebles_claves: Dictionary = {}
-var _sin_p: float = Mapa3D.SIN
-var _cos_p: float = Mapa3D.COS
+## Cuánto más «bajo» cuenta un píxel de altura que uno de suelo (≈ 0,53). Los muñecos se estiran 1/_cos_p en vertical
+## en la vista desde arriba para cuadrar con las casas; en 1.ª persona no (paso 0b).
+var _cos_p: float = Mapa3D.ESCALA / Mapa3D.ALTO
 
 var sub_viewport: SubViewport = null
 var stage_sprite: Sprite2D = null
@@ -214,6 +215,7 @@ uniform vec3 tint_secondary : source_color = vec3(0.24, 0.39, 0.18);
 uniform vec3 tint_earth : source_color = vec3(0.44, 0.35, 0.24);
 uniform float dirt_blend : hint_range(0.0, 1.0) = 0.16;
 uniform float use_vertex_biomes : hint_range(0.0, 1.0) = 0.0;
+uniform float escala_mundo = 1.0; // Mapa3D.K: el dibujo del suelo se pensó en la escala vieja (paso 0b)
 
 varying vec3 v_world_pos;
 varying vec4 v_biome;
@@ -247,7 +249,7 @@ void vertex() {
 }
 
 void fragment() {
-	vec2 w_uv = v_world_pos.xz;
+	vec2 w_uv = v_world_pos.xz / escala_mundo;
 	// Deformación orgánica y mezcla de 2 proyecciones rotadas para eliminar por completo la cuadrícula de baldosas
 	vec2 warp = vec2(
 		g_noise(w_uv * 0.38 + vec2(3.1, 7.4)) - 0.5,
@@ -344,7 +346,7 @@ static var _fp_muzzle_flash_timer: float = 0.0
 static var _active_stage_instance: Node = null
 
 static func trigger_fp_camera_shake(amp: float = 4.0) -> void:
-	_fp_shake_amp = maxf(_fp_shake_amp, clampf(amp * 0.012, 0.015, 0.095))
+	_fp_shake_amp = maxf(_fp_shake_amp, clampf(amp * 0.012, 0.015, 0.095) * Mapa3D.K)
 	_fp_shake_timer = maxf(_fp_shake_timer, 0.14)
 
 static func notify_fp_firearm_shot(_player: Node2D, is_rifle: bool = false, ads_blend: float = 0.0) -> void:
@@ -704,7 +706,7 @@ func _terrain_biome_color(pos_2d: Vector2, normal_3d: Vector3) -> Color:
 	return Color(w_forest, w_plains, w_mud, w_slope)
 
 func size_3d(sz_2d: Vector2, h_px: float) -> Vector3:
-	return Mapa3D.tam_a_3d(sz_2d, h_px).max(Vector3(0.02, 0.01, 0.02))
+	return Mapa3D.tam_a_3d(sz_2d, h_px).max(Vector3(0.02, 0.01, 0.02) * Mapa3D.K)
 
 func _mat(key: String, col: Color, rough: float = 0.82, metal: float = 0.05, emit_col: Color = Color(0, 0, 0, 0), emit_energy: float = 0.0, tex_rel: String = "", norm_rel: String = "", triplanar_scale: float = 0.65) -> StandardMaterial3D:
 	if _mat_cache.has(key):
@@ -722,7 +724,8 @@ func _mat(key: String, col: Color, rough: float = 0.82, metal: float = 0.05, emi
 			m.albedo_color = col.lerp(Color.WHITE, 0.55)
 			m.uv1_triplanar = true
 			# Texturas de 64 px: una repetición cada ~64 px del mapa 2D (densidad parecida al pixel art).
-			var ts := RETRO_TRIPLANAR_SCALE if tex_rel.begins_with("town_textures/") else triplanar_scale
+			# La medida es de la escala vieja: / K desde el paso 0b para que se repitan igual.
+			var ts := (RETRO_TRIPLANAR_SCALE if tex_rel.begins_with("town_textures/") else triplanar_scale) / Mapa3D.K
 			m.uv1_scale = Vector3(ts, ts, ts)
 		if not norm_rel.is_empty():
 			var ntex := AssetLib.load_texture(norm_rel)
@@ -849,7 +852,7 @@ func _add_model_2d(parent: Node3D, rel_path: String, center_2d: Vector2, bottom_
 	if sz_2d != Vector2.ZERO:
 		target_sz = size_3d(sz_2d, height_px)
 	else:
-		fit_h = maxf(0.05, (height_px * WORLD_SCALE) / _cos_p)
+		fit_h = maxf(0.05, Mapa3D.alto_a_3d(height_px))
 	var inst := AssetLib.instantiate_model(rel_path, target_sz, fit_h, true, true)
 	if inst == null:
 		return null
@@ -858,6 +861,19 @@ func _add_model_2d(parent: Node3D, rel_path: String, center_2d: Vector2, bottom_
 		inst.rotation_degrees.y = rot_y_deg
 	parent.add_child(inst)
 	return inst
+
+## Partículas (humo, chispas, fuego, polvo) escritas en la escala vieja: tamaño, velocidad, gravedad y zona de salida
+## por K (paso 0b). El tamaño se agranda con la escala de cada partícula.
+func _particulas_a_metros(p: CPUParticles3D) -> void:
+	var k := Mapa3D.K
+	p.initial_velocity_min *= k
+	p.initial_velocity_max *= k
+	p.gravity *= k
+	p.emission_box_extents *= k
+	p.emission_sphere_radius *= k
+	p.scale_amount_min *= k
+	p.scale_amount_max *= k
+
 
 func _add_box_2d(parent: Node3D, center_2d: Vector2, sz_2d: Vector2, bottom_h_px: float, height_px: float, mat: Material, rot_y_deg: float = 0.0, absolute_h: bool = false) -> MeshInstance3D:
 	var mi := MeshInstance3D.new()
@@ -877,7 +893,7 @@ func _add_cyl_2d(parent: Node3D, center_2d: Vector2, radius_px: float, bottom_h_
 	var cm := CylinderMesh.new()
 	cm.bottom_radius = maxf(0.01, radius_px * WORLD_SCALE)
 	cm.top_radius = maxf(0.0, (radius_px if top_radius_px < 0.0 else top_radius_px) * WORLD_SCALE)
-	cm.height = maxf(0.01, (height_px * WORLD_SCALE) / _cos_p)
+	cm.height = maxf(0.01, Mapa3D.alto_a_3d(height_px))
 	cm.radial_segments = radial_segs
 	mi.mesh = cm
 	mi.material_override = mat

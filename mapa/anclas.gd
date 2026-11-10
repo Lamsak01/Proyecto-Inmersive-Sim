@@ -64,12 +64,11 @@ static func registrar_edificio(rect_original: Rect2, d: Vector2, g: float = 0.0)
 		_anclas.append({"rect": rect_original.grow(3.0), "c": rect_original.get_center(), "d": d, "g": g, "m": matriz(g)})
 
 
-## Giro 3D (grados, eje vertical) → cómo se transforma un vector del mapa 2D (y del mapa = z 3D · seno de la inclinación).
+## Giro 3D (grados, eje vertical) → el mismo giro en el mapa 2D (desde el paso 0b el 3D no está estirado: es un giro normal).
 static func matriz(g: float) -> Transform2D:
-	var s := Mapa3D.SIN
 	var c := cos(deg_to_rad(g))
 	var n := sin(deg_to_rad(g))
-	return Transform2D(Vector2(c, -s * n), Vector2(n / s, c), Vector2.ZERO)
+	return Transform2D(Vector2(c, -n), Vector2(n, c), Vector2.ZERO)
 
 
 ## El ancla que mueve el punto p (o {} si ninguna).

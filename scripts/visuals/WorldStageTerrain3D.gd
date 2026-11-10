@@ -15,6 +15,7 @@ func _make_ground_shader_mat(key: String, c_prim: Color, c_sec: Color, c_earth: 
 	sh.code = GROUND_TERRAIN_SHADER_CODE
 	var sm := ShaderMaterial.new()
 	sm.shader = sh
+	sm.set_shader_parameter("escala_mundo", Mapa3D.K)
 	var t_grass := AssetLib.load_texture("town_textures/floor_ground_grass.png")
 	var t_over := AssetLib.load_texture("town_textures/floor_ground_grass_overlay.png")
 	var t_dirt := AssetLib.load_texture("town_textures/floor_ground_dirt.png")
@@ -637,7 +638,7 @@ func _build_static_terrain_3d() -> void:
 	var hdr_lbl := Label3D.new()
 	hdr_lbl.text = "ENCARGOS DEL VALLE"
 	hdr_lbl.font_size = 22
-	hdr_lbl.pixel_size = 0.00075
+	hdr_lbl.pixel_size = 0.00075 * Mapa3D.K
 	hdr_lbl.modulate = Color(0.96, 0.88, 0.62)
 	hdr_lbl.outline_size = 2
 	hdr_lbl.outline_modulate = Color(0.14, 0.10, 0.06)
@@ -660,7 +661,7 @@ func _build_static_terrain_3d() -> void:
 		s_lbl.text = str(s_def[1])
 		s_lbl.font_size = 20
 		s_lbl.line_spacing = -2.0
-		s_lbl.pixel_size = 0.00060
+		s_lbl.pixel_size = 0.00060 * Mapa3D.K
 		s_lbl.modulate = Color(0.16, 0.11, 0.06)
 		s_lbl.outline_size = 1
 		s_lbl.outline_modulate = Color(0.95, 0.90, 0.76)
@@ -784,7 +785,7 @@ func _build_static_terrain_3d() -> void:
 		_add_model_2d(terrain_root_3d, "nature/WoodLog_Moss.obj" if li % 2 == 0 else "nature/WoodLog.obj", fallen_logs[li], -0.8, Vector2.ZERO, 16.0, float((li * 63) % 360))
 		_add_model_2d(terrain_root_3d, "nature/TreeStump_Moss.obj", fallen_logs[li] + Vector2(34, -22), -0.5, Vector2.ZERO, 9.0, float(li * 51))
 		# Que no se atraviesen (2026-11-10): WoodLog.obj mide 0.63 × 0.75 × 2.67 (largo en su eje Z = «y» del mapa)
-		_colision_solida(fallen_logs[li], Vector2(16.0 * 0.84 / _cos_p, 16.0 * 3.56 * tan(deg_to_rad(PITCH_DEG))), float((li * 63) % 360))
+		_colision_solida(fallen_logs[li], Vector2(16.0 * 0.84 / _cos_p, 16.0 * 3.56 / _cos_p), float((li * 63) % 360))
 		_colision_solida(fallen_logs[li] + Vector2(34, -22), Vector2(9.0, 9.0), 0.0)
 	# Plantas del bosque (2026-11-10, mismo pack que los árboles): helechos y hierba alrededor de cada mata
 	var forest_plants := ["nature/Plant_4.obj", "nature/Plant_5.obj", "nature/Plant_1.obj", "nature/Grass.obj", "nature/Grass_Short.obj"]
@@ -1331,7 +1332,7 @@ func _build_river_and_arroyo_3d(
 			var lg: Node3D = _add_model_2d(terrain_root_3d, "nature/WoodLog.obj", Vector2(ccx, cpos.y), 0.0, Vector2.ZERO, grosor_px, 90.0)
 			_permitir_en_rio = false
 			if lg != null:
-				var largo_modelo: float = ((grosor_px * WORLD_SCALE) / _cos_p) * (2.67 / 0.75) # WoodLog.obj: largo 2.67, alto 0.75
+				var largo_modelo: float = Mapa3D.alto_a_3d(grosor_px) * (2.67 / 0.75) # WoodLog.obj: largo 2.67, alto 0.75
 				lg.scale.z *= ((cspan + 10.0) * WORLD_SCALE) / maxf(0.01, largo_modelo)
 				lg.position = to_3d_flat(Vector2(ccx, cpos.y), cbase - 3.0)
 			continue

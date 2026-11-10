@@ -198,9 +198,9 @@ func rebuild_buildings_3d() -> void:
 		var b_root := Node3D.new()
 		b_root.name = "B3D_" + b_id
 		buildings_root_3d.add_child(b_root)
-		b_root.position = Vector3(d_edif.x * WORLD_SCALE, 0.0, (d_edif.y * WORLD_SCALE) / _sin_p)
+		b_root.position = Mapa3D.a_3d(d_edif)
 		if g_edif > 0.5:
-			var piv := Vector3(center.x * WORLD_SCALE, 0.0, (center.y * WORLD_SCALE) / _sin_p)
+			var piv := Mapa3D.a_3d(center)
 			var giro_b := Basis(Vector3.UP, deg_to_rad(g_edif))
 			b_root.transform = Transform3D(giro_b, b_root.position + piv - giro_b * piv)
 
@@ -287,7 +287,7 @@ func rebuild_buildings_3d() -> void:
 				lb_bm.size = size_3d(Vector2(2.6, 3.2), 2.8)
 				lock_badge.mesh = lb_bm
 				lock_badge.material_override = m_iron
-				lock_badge.position = Vector3((leaf_w - 4.0) * WORLD_SCALE, (leaf_h * 0.48 * WORLD_SCALE) / _cos_p, 0.0)
+				lock_badge.position = Vector3((leaf_w - 4.0) * WORLD_SCALE, Mapa3D.alto_a_3d(leaf_h * 0.48), 0.0)
 				pivot.add_child(lock_badge)
 				_door_nodes_3d.append({"entry": d_entry, "pivot": pivot, "lock_badge": lock_badge, "door_south": door_south})
 				break
@@ -627,7 +627,7 @@ func _populate_building_interior_3d(b_root: Node3D, b_id: String, rect: Rect2, d
 				term_lt.position = to_3d(t_pos + Vector2(0, 2.0), 18.0)
 				term_lt.light_color = Color(0.16, 0.96, 0.36)
 				term_lt.light_energy = 1.05
-				term_lt.omni_range = 2.0
+				term_lt.omni_range = 2.0 * Mapa3D.K
 				b_root.add_child(term_lt)
 			# Bloque FIS2 (§2.2): Cuadro Eléctrico físico en la pared exterior norte del taller (TINKER_GRID_PANEL_POS)
 			var gp_pos: Vector2 = VillageCulture.TINKER_GRID_PANEL_POS
@@ -722,7 +722,7 @@ func _checker_cloth_mat() -> StandardMaterial3D:
 		m.albedo_texture = ImageTexture.create_from_image(img)
 		m.texture_filter = BaseMaterial3D.TEXTURE_FILTER_NEAREST
 		m.uv1_triplanar = true
-		m.uv1_scale = Vector3(5.0, 5.0, 5.0)
+		m.uv1_scale = Vector3.ONE * 5.0 / Mapa3D.K
 	else:
 		m.albedo_color = Color(0.48, 0.39, 0.30)
 	_mat_cache["checker_cloth"] = m
@@ -735,7 +735,7 @@ func _restaurant_light(parent: Node3D, pos_2d: Vector2, h_px: float, col: Color,
 	lt.position = to_3d(pos_2d, h_px)
 	lt.light_color = col
 	lt.light_energy = energy
-	lt.omni_range = rng
+	lt.omni_range = rng * Mapa3D.K
 	lt.shadow_enabled = false
 	parent.add_child(lt)
 	if night_only:
@@ -1148,7 +1148,7 @@ func _build_tavern_floor_0_3d(b_root: Node3D, _wall_h: float, m_wall: Material, 
 		var p1_3d: Vector3 = to_3d(Vector2(stair_x + rail_side, y_top - 0.5 * step_dy), T.FLOOR_1_H + 7.0)
 		var rail_mi := MeshInstance3D.new()
 		var rail_bm := BoxMesh.new()
-		rail_bm.size = Vector3(1.9 * WORLD_SCALE, (1.2 * WORLD_SCALE) / _cos_p, p0_3d.distance_to(p1_3d) + 0.04)
+		rail_bm.size = Vector3(1.9 * WORLD_SCALE, Mapa3D.alto_a_3d(1.2), p0_3d.distance_to(p1_3d) + 0.04 * Mapa3D.K)
 		rail_mi.mesh = rail_bm
 		rail_mi.material_override = m_trim
 		rail_mi.position = (p0_3d + p1_3d) * 0.5
@@ -1328,7 +1328,7 @@ func _add_door_part(pivot: Node3D, cx_px: float, cy_px: float, cz_px: float, sx_
 	bm.size = size_3d(Vector2(sx_px, sz_px), sy_px)
 	mi.mesh = bm
 	mi.material_override = mat
-	mi.position = Vector3(cx_px * WORLD_SCALE, (cy_px * WORLD_SCALE) / _cos_p, (cz_px * WORLD_SCALE) / _sin_p)
+	mi.position = Mapa3D.a_3d(Vector2(cx_px, cz_px), cy_px)
 	pivot.add_child(mi)
 	return mi
 
@@ -1376,7 +1376,7 @@ func _build_door_leaf_3d(pivot: Node3D, b_id: String, leaf_w: float, leaf_h: flo
 		"building_tavern":
 			# Portón de roble de la Gran Taberna «El Jabalí Dorado»: madera de roble oscuro con herrajes, ventanuco ámbar y zócalo de hierro
 			var door_leaf := _make_texture_panel(leaf_w, leaf_h, 2.8, _panel_mat("door_tavern", "town_textures/door_wood_window_lit.png", false))
-			door_leaf.position = Vector3(hw * WORLD_SCALE, (hh * WORLD_SCALE) / _cos_p, 0.0)
+			door_leaf.position = Vector3(hw * WORLD_SCALE, Mapa3D.alto_a_3d(hh), 0.0)
 			pivot.add_child(door_leaf)
 			_add_door_part(pivot, 1.4, hh, 0.0, 2.6, leaf_h, 3.2, m_dark_wood)
 			_add_door_part(pivot, leaf_w - 1.4, hh, 0.0, 2.6, leaf_h, 3.2, m_dark_wood)
@@ -1432,7 +1432,7 @@ func _build_door_leaf_3d(pivot: Node3D, b_id: String, leaf_w: float, leaf_h: flo
 			_add_door_part(pivot, leaf_w - 1.5, hh, 0.0, 2.6, leaf_h, 3.3, m_rust_iron)
 		_:
 			var door_leaf := _make_texture_panel(leaf_w, leaf_h, 3.0, _panel_mat("door_wood", "town_textures/door_wood.png", false))
-			door_leaf.position = Vector3(hw * WORLD_SCALE, (hh * WORLD_SCALE) / _cos_p, 0.0)
+			door_leaf.position = Vector3(hw * WORLD_SCALE, Mapa3D.alto_a_3d(hh), 0.0)
 			pivot.add_child(door_leaf)
 
 ## Punto 1 del Caso I: Comisaría de Policía y Calabozo Municipal (`building_police`, rect x=844..986, y=100..196).
@@ -1889,6 +1889,7 @@ func _build_library_3d(b_root: Node3D, rect: Rect2, door_south: bool, wall_h: fl
 	draft_particles.initial_velocity_min = 0.06
 	draft_particles.initial_velocity_max = 0.14
 	draft_particles.position = to_3d(lever_area_pos + Vector2(-2.0, 0.0), 7.5)
+	_particulas_a_metros(draft_particles)
 	b_root.add_child(draft_particles)
 
 	# C) ESTANTERÍA SECRETA ENTREABIERTA CON EL LIBRO-PALANCA (`c + Vector2(46.5, 5.5 * m_dir)`)
@@ -2037,7 +2038,7 @@ func _build_library_3d(b_root: Node3D, rect: Rect2, door_south: bool, wall_h: fl
 	candle_lt.name = "LibrarySecretSingleCandleLight"
 	candle_lt.light_color = Color(1.0, 0.66, 0.28)
 	candle_lt.light_energy = 1.65
-	candle_lt.omni_range = 1.25
+	candle_lt.omni_range = 1.25 * Mapa3D.K
 	candle_lt.omni_attenuation = 1.85
 	candle_lt.shadow_enabled = false
 	candle_lt.position = to_3d(candle_p, 13.5)
@@ -2361,7 +2362,7 @@ func _build_abandoned_mill_3d(
 		pad_bm.size = size_3d(Vector2(6.2, 3.2), 1.6)
 		pad_mi.mesh = pad_bm
 		pad_mi.material_override = m_moss_wood if (pi % 2 == 0) else m_rotten_wood
-		pad_mi.position = Vector3(0.0, (sz_h * WORLD_SCALE) / _cos_p, (sy_p * WORLD_SCALE) / _sin_p)
+		pad_mi.position = Mapa3D.a_3d(Vector2(0.0, sy_p), sz_h)
 		pad_mi.rotation.x = ang
 		wheel_root.add_child(pad_mi)
 
@@ -2376,8 +2377,8 @@ func _build_abandoned_mill_3d(
 			rim_mi.material_override = m_rust if (pi % 3 == 0) else m_rotten_wood
 			rim_mi.position = Vector3(
 				rim_side * WORLD_SCALE,
-				(sin(mid_ang) * wheel_r_px * WORLD_SCALE) / _cos_p,
-				(cos(mid_ang) * wheel_r_px * WORLD_SCALE) / _sin_p
+				Mapa3D.alto_a_3d(sin(mid_ang) * wheel_r_px),
+				cos(mid_ang) * wheel_r_px * WORLD_SCALE
 			)
 			rim_mi.rotation.x = mid_ang + PI * 0.5
 			wheel_root.add_child(rim_mi)
@@ -2673,7 +2674,7 @@ func _build_abandoned_mill_3d(
 	gloom_light.light_negative = true
 	gloom_light.light_color = Color(0.55, 0.56, 0.58)
 	gloom_light.light_energy = 0.58
-	gloom_light.omni_range = 4.6
+	gloom_light.omni_range = 4.6 * Mapa3D.K
 	gloom_light.omni_attenuation = 0.85
 	gloom_light.position = to_3d(c + Vector2(0.0, -4.0), 14.0)
 	b_root.add_child(gloom_light)
