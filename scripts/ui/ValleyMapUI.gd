@@ -204,11 +204,22 @@ func _draw_round_paper_minimap(canvas: Control) -> void:
 		Rect2(Vector2(660, -135), Vector2(280, 24)),
 		Rect2(Vector2(660, -135), Vector2(24, 185)),
 		Rect2(Vector2(395, 10), Vector2(140, 78))
-	] + VillageLots.ROADS:
+	] + VillageLots.ROADS if _tramos_ed().is_empty() else [Rect2(Vector2(395, 10), Vector2(140, 78))]:
 		var mr2 := Rect2(to_mini.call(r_rect.position), r_rect.size * scale_px)
 		var cr2 := _clip_rect_to_circle(mr2, center, rad - 3.0)
 		if cr2.size.x > 0.5:
 			canvas.draw_rect(cr2, road_col, true)
+
+	# Editor del mapa 3D (2026-11-10): tramos de «Caminos», recortados al círculo a trocitos
+	for t in _tramos_ed():
+		var ta: Vector2 = t["a"]
+		var tb: Vector2 = t["b"]
+		var n_tr: int = maxi(1, int(ceil(ta.distance_to(tb) / 12.0)))
+		for k in range(n_tr):
+			var q0: Vector2 = to_mini.call(ta.lerp(tb, float(k) / n_tr))
+			var q1: Vector2 = to_mini.call(ta.lerp(tb, float(k + 1) / n_tr))
+			if q0.distance_to(center) < rad - 3.0 and q1.distance_to(center) < rad - 3.0:
+				canvas.draw_line(q0, q1, road_col, maxf(1.0, float(t["ancho"]) * scale_px))
 
 	# Edificios (#8a7356 con borde de tinta #3a3228)
 	var b_rects: Array[Rect2] = [
@@ -228,6 +239,8 @@ func _draw_round_paper_minimap(canvas: Control) -> void:
 		Rect2(Vector2(679, 266), Vector2(132, 92)),
 		Rect2(Vector2(822, 260), Vector2(268, 168))
 	]
+	for bi in range(b_rects.size()): # siguen al edificio si el usuario lo movió en el editor 3D
+		b_rects[bi] = _a_sitio_nuevo(b_rects[bi])
 	for br_w in b_rects:
 		var mr3 := Rect2(to_mini.call(br_w.position), br_w.size * scale_px)
 		var cr3 := _clip_rect_to_circle(mr3, center, rad - 4.0)
@@ -388,8 +401,11 @@ func _draw_valley_cartography(canvas: Control, detailed: bool) -> void:
 		Rect2(Vector2(130, 780), Vector2(26, 260)),
 		Rect2(Vector2(660, -135), Vector2(280, 24)),
 		Rect2(Vector2(660, -135), Vector2(24, 185))
-	] + VillageLots.ROADS:
+	] + VillageLots.ROADS if _tramos_ed().is_empty() else []:
 		canvas.draw_rect(_world_rect_to_map(r_rect, csize), road_col, true)
+	for t in _tramos_ed():
+		var tw2: float = _world_rect_to_map(Rect2(Vector2.ZERO, Vector2(float(t["ancho"]), float(t["ancho"]))), csize).size.x
+		canvas.draw_line(_world_rect_to_map(Rect2(t["a"], Vector2.ZERO), csize).position, _world_rect_to_map(Rect2(t["b"], Vector2.ZERO), csize).position, road_col, maxf(1.0, tw2))
 	for cr in VillageLots.CURVED_ROADS: # Bloque AB: callejas curvas del norte
 		var cpts := PackedVector2Array()
 		for p in VillageLots.curved_road_points(cr):
@@ -465,6 +481,8 @@ func _draw_valley_cartography(canvas: Control, detailed: bool) -> void:
 				_:
 					canvas.draw_rect(_world_rect_to_map(Rect2(lc - lsz * 0.5, lsz), csize), Color(0.35, 0.30, 0.24, 0.32), false, 1.0)
 	var font: Font = ThemeDB.fallback_font
+	for b in buildings: # siguen al edificio si el usuario lo movió en el editor 3D
+		b["rect"] = _a_sitio_nuevo(b["rect"])
 	for b in buildings:
 		var br := _world_rect_to_map(b["rect"], csize)
 		canvas.draw_rect(br, b["col"], true)
@@ -641,3 +659,13 @@ func _update_census_and_hover() -> void:
 				]
 
 	hover_info_label.text = best_txt
+
+
+## Editor del mapa 3D (2026-11-10): rectángulo de un edificio en su sitio nuevo (anclas) y tramos de «Caminos».
+func _a_sitio_nuevo(r: Rect2) -> Rect2:
+	var AN = load("res://mapa/anclas.gd")
+	return AN.rect_con(AN.buscar(r.get_center()), r)
+
+
+func _tramos_ed() -> Array:
+	return load("res://mapa/camino.gd").tramos()

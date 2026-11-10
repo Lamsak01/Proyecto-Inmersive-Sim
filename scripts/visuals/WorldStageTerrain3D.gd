@@ -549,27 +549,16 @@ func _build_static_terrain_3d() -> void:
 	var m_shingle := _mat("roof_shingle_brown", Color(0.56, 0.30, 0.18), 0.82, 0.04, Color.BLACK, 0.0, "town_textures/roof_clay_red_center.png", "", 0.75)
 
 	# Caminos principales y calles con relieve 3D (divididos en el cruce del Puente Viejo en x = 92..144)
-	var road_rects: Array[Rect2] = [
-		Rect2(Vector2(-1950, 36), Vector2(2042, 28)),
-		Rect2(Vector2(144, 36), Vector2(1194, 28)),
-		Rect2(Vector2(-688, 64), Vector2(18, 36)),
-		Rect2(Vector2(-1520, -140), Vector2(22, 176)),
-		Rect2(Vector2(-1520, 64), Vector2(22, 120)),
-		Rect2(Vector2(452, -132), Vector2(26, 172)),
-		Rect2(Vector2(452, 62), Vector2(26, 700)),
-		Rect2(Vector2(-380, 760), Vector2(1040, 24)),
-		Rect2(Vector2(130, 780), Vector2(26, 260)),
-		Rect2(Vector2(140, 130), Vector2(24, 248)),
-		Rect2(Vector2(140, 356), Vector2(312, 22)),
-		Rect2(Vector2(822, -230), Vector2(24, 466)),
-		Rect2(Vector2(215, -310), Vector2(20, 515)),
-		Rect2(Vector2(1078, -230), Vector2(20, 480)),
-		Rect2(Vector2(1318, -230), Vector2(20, 480)),
-		Rect2(Vector2(452, 232), Vector2(885, 20)),
-	]
+	var road_rects: Array = CALLES_PRINCIPALES
+	# Editor del mapa 3D (2026-11-10): si mapa/Mundo3D.tscn tiene «Caminos», esos tramos sustituyen a las calles rectas
+	var tramos_ed: Array = load("res://mapa/camino.gd").tramos()
+	if not tramos_ed.is_empty():
+		road_rects = []
+		for t in tramos_ed:
+			_add_tramo_3d(terrain_root_3d, t["a"], t["b"], float(t["ancho"]), 0.25, m_road)
 	for rr in road_rects:
 		_add_road_strip_3d(terrain_root_3d, rr, 0.25, m_road)
-	for lr in VillageLots.ROADS:
+	for lr in (VillageLots.ROADS if tramos_ed.is_empty() else []):
 		if lr is Rect2:
 			_add_road_strip_3d(terrain_root_3d, lr as Rect2, 0.25, m_road)
 	_build_barrios_3d(m_wood)
@@ -1615,3 +1604,58 @@ func _build_bench_3d(parent: Node3D, pos_2d: Vector2, m_wood: Material, m_iron: 
 	_add_box_2d(parent, pos_2d + Vector2(-7, 0), Vector2(2.0, 6.0), z_off, 3.0, m_iron)
 	_add_box_2d(parent, pos_2d + Vector2(7, 0), Vector2(2.0, 6.0), z_off, 3.0, m_iron)
 
+
+
+## Calles rectas de siempre (las usa tools/hornear_caminos.gd para crear los tramos del editor).
+const CALLES_PRINCIPALES: Array = [
+		Rect2(Vector2(-1950, 36), Vector2(2042, 28)),
+		Rect2(Vector2(144, 36), Vector2(1194, 28)),
+		Rect2(Vector2(-688, 64), Vector2(18, 36)),
+		Rect2(Vector2(-1520, -140), Vector2(22, 176)),
+		Rect2(Vector2(-1520, 64), Vector2(22, 120)),
+		Rect2(Vector2(452, -132), Vector2(26, 172)),
+		Rect2(Vector2(452, 62), Vector2(26, 700)),
+		Rect2(Vector2(-380, 760), Vector2(1040, 24)),
+		Rect2(Vector2(130, 780), Vector2(26, 260)),
+		Rect2(Vector2(140, 130), Vector2(24, 248)),
+		Rect2(Vector2(140, 356), Vector2(312, 22)),
+		Rect2(Vector2(822, -230), Vector2(24, 466)),
+		Rect2(Vector2(215, -310), Vector2(20, 515)),
+		Rect2(Vector2(1078, -230), Vector2(20, 480)),
+		Rect2(Vector2(1318, -230), Vector2(20, 480)),
+		Rect2(Vector2(452, 232), Vector2(885, 20)),
+]
+
+
+## Tramo de camino de a a b (cualquier dirección), pegado al terreno como _add_road_strip_3d.
+func _add_tramo_3d(parent: Node3D, a: Vector2, b: Vector2, ancho: float, height_px: float, mat: Material) -> MeshInstance3D:
+	var largo: float = a.distance_to(b)
+	if largo < 1.0:
+		return null
+	var dir: Vector2 = (b - a) / largo
+	var nrm: Vector2 = -dir.orthogonal() * (ancho * 0.5) # como en _add_road_strip_3d: caras hacia arriba
+	var n_l: int = maxi(1, int(ceil(largo / 20.0)))
+	var n_w: int = maxi(1, int(ceil(ancho / 20.0)))
+	var st := SurfaceTool.new()
+	st.begin(Mesh.PRIMITIVE_TRIANGLES)
+	for il in range(n_l):
+		for iw in range(n_w):
+			var l0: Vector2 = a + dir * (largo * float(il) / float(n_l))
+			var l1: Vector2 = a + dir * (largo * float(il + 1) / float(n_l))
+			var w0: Vector2 = nrm * (2.0 * float(iw) / float(n_w) - 1.0)
+			var w1: Vector2 = nrm * (2.0 * float(iw + 1) / float(n_w) - 1.0)
+			var p00: Vector2 = l0 + w0
+			var p10: Vector2 = l1 + w0
+			var p01: Vector2 = l0 + w1
+			var p11: Vector2 = l1 + w1
+			var mid_p: Vector2 = (p00 + p11) * 0.5
+			if mid_p.y >= FishingSpotScript.river_y_start() and mid_p.y <= FishingSpotScript.river_y_end() and absf(mid_p.x - FishingSpotScript.river_center_x(mid_p.y)) <= FishingSpotScript.river_half_width(mid_p.y) + 6.0:
+				continue
+			for p in [p00, p10, p11, p00, p11, p01]:
+				st.set_normal(terrain_normal_3d(p, 12.0))
+				st.add_vertex(to_3d(p, height_px))
+	var mi := MeshInstance3D.new()
+	mi.mesh = st.commit()
+	mi.material_override = mat
+	parent.add_child(mi)
+	return mi

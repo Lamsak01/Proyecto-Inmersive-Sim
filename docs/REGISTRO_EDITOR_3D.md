@@ -65,6 +65,15 @@ mover una pista del claro y el molino mueve sus zonas de uso y el interior 3D de
   texturas cruzadas hasta reiniciarlo (Proyecto → Recargar proyecto actual). La foto de `house_family_lot_m4` es de la
   primera tanda (ese solar no se construyó al rehacerlas) y puede salir con texturas cambiadas.
 
+## Caminos y mapa pequeño (hecho el 2026-11-10, sesión 2)
+- Carpeta **«Caminos»** en Mundo3D: 32 tramos (`mapa/camino.gd`, `tools/hornear_caminos.gd`) de las calles rectas de
+  siempre (`WorldStageTerrain3D.CALLES_PRINCIPALES` + `VillageLots.ROADS`). Se mueven, giran y estiran con la
+  herramienta de escalar (X = largo, Z = ancho). Si hay tramos, el juego deja de dibujar las calles rectas y dibuja los
+  tramos pegados al terreno (`_add_tramo_3d`), también en diagonal. Para añadir una calle: duplicar un tramo (Ctrl+D).
+- Las callejas curvas del norte y la plaza siguen como estaban (las curvas están en «Decorado» a trozos).
+- Mapa pequeño y mapa grande (`ValleyMapUI`): dibujan los tramos y ponen los edificios en su sitio nuevo (anclas).
+- Lo que no sigue a los caminos: los dibujos 2D de tierra (ocultos en 3D) y el relieve (no se aplana bajo las calles).
+
 ## Lo que falta (en orden)
 1. ~~Girar~~ (hecho, arriba). Pendiente menor: los muebles 2D sueltos que no pasan por `_add_*` no giran su colisión.
 2. ~~Interiores pieza a pieza~~ (hecho, arriba).
