@@ -10,6 +10,7 @@ Immersive sim 2D en pixel art hecho con Godot 4.7.2 (GDScript). El usuario no pr
 
 ## Antes de trabajar
 
+- **Lógica que sigue al mapa (2026-11-10):** plan y registro en `docs/PLAN_SITIOS.md`; actualízalo al cerrar cada paso.
 - **Claude Code en otro ordenador:** lee primero `docs/CONTEXTO_PARA_OTRA_PC.md` (todo lo hablado con el usuario hasta el 2026-11-09).
 - **Controles (2026-11-09):** todas las teclas están en `docs/CONTROLES.md`. Mírala antes de asignar o recomendar una tecla y actualízala si cambias alguna.
 - **Editor del mapa 3D (2026-11-10):** el mundo se edita en `mapa/Mundo3D.tscn`. Lee `docs/REGISTRO_EDITOR_3D.md` (qué se hizo, qué decidió el usuario, qué falta) antes de tocar el mapa.
