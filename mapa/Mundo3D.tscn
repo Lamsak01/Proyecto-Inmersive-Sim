@@ -1,8 +1,8 @@
-[gd_scene format=3]
+[gd_scene format=3 uid="uid://dawcgh672qjos"]
 
-[ext_resource type="Script" path="res://mapa/mundo3d.gd" id="1_m3d"]
-[ext_resource type="Script" path="res://mapa/pieza.gd" id="2_rotgg"]
-[ext_resource type="Script" path="res://mapa/edificio.gd" id="3_jgq7j"]
+[ext_resource type="Script" uid="uid://cto0ulq4pqtib" path="res://mapa/mundo3d.gd" id="1_m3d"]
+[ext_resource type="Script" uid="uid://b7ufcyxnhx5j5" path="res://mapa/pieza.gd" id="2_rotgg"]
+[ext_resource type="Script" uid="uid://c8j4dytgmuj32" path="res://mapa/edificio.gd" id="3_jgq7j"]
 
 [node name="Mundo3D" type="Node3D" unique_id=1754351310]
 script = ExtResource("1_m3d")
@@ -4200,7 +4200,7 @@ centro_original = Vector2(-270, 470)
 origen_3d = Vector3(-5.4, -0.06793488, 11.084277)
 
 [node name="mixed_family_ranch" type="Node3D" parent="Edificios" unique_id=1462976219]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 4.8, -0.06793488, 11.084277)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 5.959222, -0.06793488, 11.084277)
 script = ExtResource("3_jgq7j")
 id_edificio = "mixed_family_ranch"
 centro_original = Vector2(240, 470)
