@@ -12,6 +12,10 @@ Recursos **de pago** que encajan con la estética del juego («parece retro pero
 Mouthwashing, Gloomwood, Signalis, Abiotic Factor y Blood West). No se ha comprado ni descargado ninguno. Esta lista
 es para que decidas tú. Los precios y licencias se comprobaron en la web el **2026-11-05**; pueden cambiar.
 
+> [!note] Comprado por el usuario
+> Un lote de animales low-poly (ardilla, ciervo, corzo, zorro, lobo y pájaro), con texturas y esqueleto pero **sin animaciones**.
+> El juego usa la ardilla en lugar del conejo (2026-11-10). Créditos en `docs/CREDITOS_RECURSOS.md`.
+
 > [!tip] Lo que ya usa el juego es gratis (CC0)
 > Animaciones: Quaternius Universal Animation Library 1 y 2. Texturas: Kenney Retro Textures Fantasy.
 > Personajes: Quaternius Universal Base Characters + Modular Outfits. Ver [[Estética Retro 3D]].
