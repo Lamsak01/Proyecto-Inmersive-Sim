@@ -4,6 +4,18 @@ Escrito por Claude Code en el portátil el 2026-11-09, a petición del usuario: 
 ahora». La memoria personal de Claude no viaja entre ordenadores, así que aquí va lo esencial. Léelo entero antes de
 hablar con él y guarda en tu memoria lo que te sirva.
 
+## Prioridades desde el 2026-11-10 (Antigravity sin cupo)
+Hasta que Antigravity vuelva a tener cupo, el usuario quiere dedicarse a esto:
+1. **Cambiar el mapa a su gusto** con el editor.
+2. **Profundizar en la historia.** La escribe él: ayúdale a ordenarla, pero nunca inventes lore de la secta.
+3. **Planificar a futuro.**
+
+Los sistemas grandes de código (las partes 2–5 del Caso I) esperan, salvo que él pida que los programes tú.
+
+**Aviso:** el 2026-11-10 se enteró de que la lógica del juego va sobre un tablero plano en 2D, con el 3D dibujado
+encima. No lo sabía y le sorprendió. Explícaselo así si vuelve a salir: «tablero de juego de mesa con títeres 3D
+encima».
+
 ## Quién es el usuario y cómo hablarle
 - Habla español. **No programa y no conoce Godot.** Es narrador: escribe la historia y decide el diseño.
 - Respuestas **cortas** (10–12 líneas como mucho), sin código ni nombres de archivo salvo que los pida, sin jerga.
