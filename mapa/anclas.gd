@@ -16,8 +16,15 @@ static var grabar: bool = false # tools/hornear_objetos.gd: anota lo que se crea
 static var grabado: Array = [] # [tipo, nombre, pos]
 
 
+static var _muebles: Array = [] # muebles movidos dentro de su edificio (mapa/mueble.gd), en coordenadas originales
+
+
 static func _leer() -> void:
 	_leidas = true
+	for a in load("res://mapa/mueble.gd").anclas():
+		var am: Dictionary = (a as Dictionary).duplicate()
+		am["m"] = matriz(float(am["g"]))
+		_muebles.append(am)
 	if not ResourceLoader.exists(ESCENA):
 		return
 	var st: SceneState = (load(ESCENA) as PackedScene).get_state()
@@ -73,13 +80,28 @@ static func buscar(p: Vector2) -> Dictionary:
 		_leer()
 	if pausa > 0:
 		return {}
+	var f: Dictionary = {}
+	for am in _muebles:
+		if p.distance_to(am["centro"]) <= float(am["radio"]):
+			f = am
+			break
 	for a in _anclas:
 		if a.has("rect"):
 			if (a["rect"] as Rect2).has_point(p):
-				return a
+				return _componer(a, f)
 		elif p.distance_to(a["centro"]) <= float(a["radio"]):
-			return a
-	return {}
+			return _componer(a, f)
+	return f
+
+
+## Primero el mueble dentro de su edificio (f), luego el edificio (a).
+static func _componer(a: Dictionary, f: Dictionary) -> Dictionary:
+	if f.is_empty():
+		return a
+	var ma: Transform2D = a["m"]
+	var cf: Vector2 = f["c"]
+	var ca: Vector2 = a["c"]
+	return {"c": cf, "d": ca + a["d"] + ma.basis_xform(cf + f["d"] - ca) - cf, "g": float(a["g"]) + float(f["g"]), "m": ma * (f["m"] as Transform2D)}
 
 
 static func aplicar(a: Dictionary, p: Vector2) -> Vector2:

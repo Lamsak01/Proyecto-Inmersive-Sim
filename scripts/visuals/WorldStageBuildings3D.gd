@@ -148,6 +148,8 @@ func rebuild_buildings_3d() -> void:
 	_clear_children(buildings_root_3d)
 	_building_records_3d.clear()
 	_building_furniture_rects.clear()
+	_muebles_claves.clear()
+	muebles_grabados.clear()
 	_current_building_id = ""
 	_current_building_floor = 0
 	_door_nodes_3d.clear()
@@ -337,6 +339,7 @@ func rebuild_buildings_3d() -> void:
 		# 5. Mobiliario interior 3D específico de cada edificio
 		_current_building_id = b_id
 		_current_building_floor = 0
+		_muebles_activos = true
 		_populate_building_interior_3d(b_root, b_id, rect, door_south, wall_h, m_wall, m_trim, m_wood, m_dark_wood, m_iron, m_gold)
 
 		# 6. Altillo / Primer Piso (+1) 3D (exclusivo de la taberna de 2 plantas)
@@ -347,6 +350,7 @@ func rebuild_buildings_3d() -> void:
 		_current_building_floor = 1
 		if b_id == "building_tavern":
 			_build_tavern_floor_1_3d(loft_root, wall_h, m_wall, m_trim, m_wood, m_dark_wood, m_iron, m_gold)
+		_muebles_activos = false
 		_current_building_id = ""
 		_current_building_floor = 0
 

@@ -5,6 +5,8 @@ extends SceneTree
 ## Necesita ventana (sin ella no se dibujan los modelos):
 ##   flatpak run org.godotengine.Godot --path . -s tools/hornear_edificios.gd
 ## Si ya hay piezas en «Edificios», solo rehace las fotos (no mueve las piezas que el usuario haya colocado).
+## Muebles (2026-11-10): las fotos salen sin muebles y cada edificio recibe una carpeta «Muebles» con una pieza movible por
+## mueble (mapa/mueble.gd). Solo se crea en los edificios que aún no la tengan.
 
 const ESCENA := "res://mapa/Mundo3D.tscn"
 const VISTA_DIR := "res://mapa/edificios_vista/"
@@ -12,6 +14,7 @@ const VISTA_DIR := "res://mapa/edificios_vista/"
 
 func _initialize() -> void:
 	var WB = load("res://scripts/visuals/WorldStageBase3D.gd")
+	WB.grabar_muebles = true
 	root.add_child(load("uid://dsoiuct8kdsk3").instantiate())
 	for _i in range(60):
 		await process_frame
@@ -42,8 +45,9 @@ func _initialize() -> void:
 	var actual: Node = (load(ESCENA) as PackedScene).instantiate()
 	var eds: Node = actual.get_node_or_null("Edificios")
 	if eds != null and eds.get_child_count() > 0:
-		print("HORNEAR_ED: ya hay piezas en «Edificios»; no se tocan")
-		actual.free(); quit(0); return
+		print("HORNEAR_ED: ya hay piezas en «Edificios»; no se mueven")
+		_muebles(actual, eds, stage.get("muebles_grabados"))
+		return
 	if eds == null:
 		eds = Node3D.new()
 		eds.name = "Edificios"
@@ -70,11 +74,43 @@ func _initialize() -> void:
 		eds.add_child(e)
 		e.owner = actual
 		n += 1
+	print("HORNEAR_ED: %d piezas de edificio" % n)
+	_muebles(actual, eds, stage.get("muebles_grabados"))
+
+
+func _muebles(actual: Node, eds: Node, lista: Array) -> void:
+	var script_m = load("res://mapa/mueble.gd")
+	var n := 0
+	for e in eds.get_children():
+		if e.get_node_or_null("Muebles") != null:
+			continue
+		var carpeta := Node3D.new()
+		carpeta.name = "Muebles"
+		e.add_child(carpeta)
+		carpeta.owner = actual
+		var o3: Vector3 = e.get("origen_3d")
+		for r in lista:
+			if String(r["id"]) != String(e.get("id_edificio")):
+				continue
+			var m := Node3D.new()
+			m.set_script(script_m)
+			m.name = ("%s_%s" % [String(r["modelo"]).get_file().get_basename(), "piso1" if int(r["piso"]) == 1 else ""]).trim_suffix("_").validate_node_name()
+			m.set("clave", r["clave"])
+			m.set("pos_original", r["pos"])
+			m.set("local_original", (r["p3"] as Vector3) - o3)
+			m.set("giro_original", float(r["giro"]))
+			m.set("modelo", r["modelo"])
+			m.set("tam3", r["tam3"])
+			m.position = (r["p3"] as Vector3) - o3
+			m.rotation_degrees.y = float(r["giro"])
+			carpeta.add_child(m, true)
+			m.owner = actual
+			n += 1
 	var ps2 := PackedScene.new()
 	var err := ps2.pack(actual)
 	if err == OK:
 		err = ResourceSaver.save(ps2, ESCENA)
-	print("HORNEAR_ED: %d piezas de edificio (error %d)" % [n, err])
+	print("HORNEAR_ED: %d muebles de %d anotados (error %d)" % [n, lista.size(), err])
 	quit(0 if err == OK else 1)
 
 

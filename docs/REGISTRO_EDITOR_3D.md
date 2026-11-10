@@ -37,9 +37,22 @@ mover una pista del claro y el molino mueve sus zonas de uso y el interior 3D de
 - Vegetación y Decorado ya giraban solos en 3D (la escena guarda el giro); su choque de «forma» sale ya girado.
 - El giro en 3D se ve «aplastado» en el mapa 2D por la inclinación de la cámara (58°): `Anclas.matriz(g)` lo traduce.
 
+## Muebles uno a uno (hecho el 2026-11-10, sesión 2)
+- Cada edificio de «Edificios» tiene una carpeta **«Muebles»** con una pieza por mueble 3D (290; `mapa/mueble.gd`). Se
+  mueven y giran a mano; si se mueve el edificio, van con él (son hijos suyos).
+- Las fotos de los edificios (`mapa/edificios_vista/`) se rehicieron **sin muebles** (`tools/hornear_edificios.gd` con
+  `WorldStageBase3D.grabar_muebles`), para no verlos dos veces.
+- En el juego: `_add_model_2d` reconoce cada mueble por su clave (edificio#piso|modelo|x|y, en coordenadas originales) y
+  aplica el cambio; `Anclas.buscar` compone el mueble con su edificio, así su pared invisible y su zona de uso le siguen.
+- Probado: una cama de la familia Yunque Gris movida 60 px y girada 90° sale ahí en el juego con su pared girada.
+- No son piezas: los cofres (ya siguen a sus anclas) y los detalles hechos con cajas (no modelos), que van en la foto.
+- La taberna muestra juntos los muebles de las dos plantas (los del piso 1 llevan «piso1» en el nombre).
+- Si se cambia el código de un interior, las claves pueden cambiar: volver a ejecutar la herramienta (solo añade
+  carpetas «Muebles» que falten; para rehacer una, bórrala antes en Godot).
+
 ## Lo que falta (en orden)
 1. ~~Girar~~ (hecho, arriba). Pendiente menor: los muebles 2D sueltos que no pasan por `_add_*` no giran su colisión.
-2. **Interiores pieza a pieza**: los muebles se mueven con su edificio, pero no uno a uno.
+2. ~~Interiores pieza a pieza~~ (hecho, arriba).
 3. **Bajo tierra**: las trampillas siguen a sus anclas, pero los túneles 3D de las alcantarillas y el club clandestino
    se dibujan desde datos fijos y no se mueven. Tampoco las mascotas de casa (van con su dueño).
    (Hecho el 2026-11-10: huertos, gallinero, animales de granja con su corral, campamento, muro débil, cajas, carro y

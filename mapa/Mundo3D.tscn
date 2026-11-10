@@ -4,6 +4,7 @@
 [ext_resource type="Script" path="res://mapa/pieza.gd" id="2_rotgg"]
 [ext_resource type="Script" path="res://mapa/edificio.gd" id="3_jgq7j"]
 [ext_resource type="ArrayMesh" path="res://mapa/decorado_comun/malla_1.res" id="4_0emcy"]
+[ext_resource type="Script" path="res://mapa/mueble.gd" id="4_l6ly0"]
 [ext_resource type="Texture2D" path="res://mapa/decorado_comun/tex_2.res" id="5_bojho"]
 [ext_resource type="Texture2D" path="res://mapa/decorado_comun/tex_3.res" id="6_l6ly0"]
 [ext_resource type="Texture2D" path="res://mapa/decorado_comun/tex_4.res" id="7_cyb43"]
@@ -9393,12 +9394,463 @@ id_edificio = "building_tavern"
 centro_original = Vector2(434, -224)
 origen_3d = Vector3(8.68, 0, -5.282719)
 
+[node name="Muebles" type="Node3D" parent="Edificios/building_tavern" unique_id=1296840655]
+
+[node name="Table_Large" type="Node3D" parent="Edificios/building_tavern/Muebles" unique_id=147385186]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2.7200003, 0.075483195, 0.5188384)
+script = ExtResource("4_l6ly0")
+clave = "building_tavern#0|Table_Large|298|-202"
+pos_original = Vector2(298, -202)
+local_original = Vector3(-2.7200003, 0.075483195, 0.5188384)
+modelo = "props/Table_Large.gltf"
+tam3 = Vector3(0.38, 0.2717395, 0.2947946)
+
+[node name="Chair_1" type="Node3D" parent="Edificios/building_tavern/Muebles" unique_id=2110801946]
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, -3.0200005, 0.075483195, 0.5188384)
+script = ExtResource("4_l6ly0")
+clave = "building_tavern#0|Chair_1|283|-202"
+pos_original = Vector2(283, -202)
+local_original = Vector3(-3.0200005, 0.075483195, 0.5188384)
+giro_original = 90.0
+modelo = "props/Chair_1.gltf"
+tam3 = Vector3(0.12, 0.32080358, 0.14150141)
+
+[node name="Chair_2" type="Node3D" parent="Edificios/building_tavern/Muebles" unique_id=1242942207]
+transform = Transform3D(-4.371139e-08, 0, -1, 0, 1, 0, 1, 0, -4.371139e-08, -2.42, 0.075483195, 0.5188384)
+script = ExtResource("4_l6ly0")
+clave = "building_tavern#0|Chair_1|313|-202"
+pos_original = Vector2(313, -202)
+local_original = Vector3(-2.42, 0.075483195, 0.5188384)
+giro_original = -90.0
+modelo = "props/Chair_1.gltf"
+tam3 = Vector3(0.12, 0.32080358, 0.14150141)
+
+[node name="Table_Large2" type="Node3D" parent="Edificios/building_tavern/Muebles" unique_id=630406865]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.5200005, 0.075483195, 0.5188384)
+script = ExtResource("4_l6ly0")
+clave = "building_tavern#0|Table_Large|358|-202"
+pos_original = Vector2(358, -202)
+local_original = Vector3(-1.5200005, 0.075483195, 0.5188384)
+modelo = "props/Table_Large.gltf"
+tam3 = Vector3(0.38, 0.2717395, 0.2947946)
+
+[node name="Chair_3" type="Node3D" parent="Edificios/building_tavern/Muebles" unique_id=726986062]
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, -1.8200002, 0.075483195, 0.5188384)
+script = ExtResource("4_l6ly0")
+clave = "building_tavern#0|Chair_1|343|-202"
+pos_original = Vector2(343, -202)
+local_original = Vector3(-1.8200002, 0.075483195, 0.5188384)
+giro_original = 90.0
+modelo = "props/Chair_1.gltf"
+tam3 = Vector3(0.12, 0.32080358, 0.14150141)
+
+[node name="Chair_4" type="Node3D" parent="Edificios/building_tavern/Muebles" unique_id=558869338]
+transform = Transform3D(-4.371139e-08, 0, -1, 0, 1, 0, 1, 0, -4.371139e-08, -1.2200003, 0.075483195, 0.5188384)
+script = ExtResource("4_l6ly0")
+clave = "building_tavern#0|Chair_1|373|-202"
+pos_original = Vector2(373, -202)
+local_original = Vector3(-1.2200003, 0.075483195, 0.5188384)
+giro_original = -90.0
+modelo = "props/Chair_1.gltf"
+tam3 = Vector3(0.12, 0.32080358, 0.14150141)
+
+[node name="Table_Large3" type="Node3D" parent="Edificios/building_tavern/Muebles" unique_id=1313658734]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2.7200003, 0.075483195, 1.3206797)
+script = ExtResource("4_l6ly0")
+clave = "building_tavern#0|Table_Large|298|-168"
+pos_original = Vector2(298, -168)
+local_original = Vector3(-2.7200003, 0.075483195, 1.3206797)
+modelo = "props/Table_Large.gltf"
+tam3 = Vector3(0.38, 0.2717395, 0.2947946)
+
+[node name="Chair_5" type="Node3D" parent="Edificios/building_tavern/Muebles" unique_id=882665443]
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, -3.0200005, 0.075483195, 1.3206797)
+script = ExtResource("4_l6ly0")
+clave = "building_tavern#0|Chair_1|283|-168"
+pos_original = Vector2(283, -168)
+local_original = Vector3(-3.0200005, 0.075483195, 1.3206797)
+giro_original = 90.0
+modelo = "props/Chair_1.gltf"
+tam3 = Vector3(0.12, 0.32080358, 0.14150141)
+
+[node name="Chair_6" type="Node3D" parent="Edificios/building_tavern/Muebles" unique_id=356920319]
+transform = Transform3D(-4.371139e-08, 0, -1, 0, 1, 0, 1, 0, -4.371139e-08, -2.42, 0.075483195, 1.3206797)
+script = ExtResource("4_l6ly0")
+clave = "building_tavern#0|Chair_1|313|-168"
+pos_original = Vector2(313, -168)
+local_original = Vector3(-2.42, 0.075483195, 1.3206797)
+giro_original = -90.0
+modelo = "props/Chair_1.gltf"
+tam3 = Vector3(0.12, 0.32080358, 0.14150141)
+
+[node name="Table_Large4" type="Node3D" parent="Edificios/building_tavern/Muebles" unique_id=1059717491]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.5200005, 0.075483195, 1.3206797)
+script = ExtResource("4_l6ly0")
+clave = "building_tavern#0|Table_Large|358|-168"
+pos_original = Vector2(358, -168)
+local_original = Vector3(-1.5200005, 0.075483195, 1.3206797)
+modelo = "props/Table_Large.gltf"
+tam3 = Vector3(0.38, 0.2717395, 0.2947946)
+
+[node name="Chair_7" type="Node3D" parent="Edificios/building_tavern/Muebles" unique_id=1253942217]
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, -1.8200002, 0.075483195, 1.3206797)
+script = ExtResource("4_l6ly0")
+clave = "building_tavern#0|Chair_1|343|-168"
+pos_original = Vector2(343, -168)
+local_original = Vector3(-1.8200002, 0.075483195, 1.3206797)
+giro_original = 90.0
+modelo = "props/Chair_1.gltf"
+tam3 = Vector3(0.12, 0.32080358, 0.14150141)
+
+[node name="Chair_8" type="Node3D" parent="Edificios/building_tavern/Muebles" unique_id=1141762867]
+transform = Transform3D(-4.371139e-08, 0, -1, 0, 1, 0, 1, 0, -4.371139e-08, -1.2200003, 0.075483195, 1.3206797)
+script = ExtResource("4_l6ly0")
+clave = "building_tavern#0|Chair_1|373|-168"
+pos_original = Vector2(373, -168)
+local_original = Vector3(-1.2200003, 0.075483195, 1.3206797)
+giro_original = -90.0
+modelo = "props/Chair_1.gltf"
+tam3 = Vector3(0.12, 0.32080358, 0.14150141)
+
+[node name="Table_Large5" type="Node3D" parent="Edificios/building_tavern/Muebles" unique_id=1018857640]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.32000065, 0.075483195, 1.3206797)
+script = ExtResource("4_l6ly0")
+clave = "building_tavern#0|Table_Large|418|-168"
+pos_original = Vector2(418, -168)
+local_original = Vector3(-0.32000065, 0.075483195, 1.3206797)
+modelo = "props/Table_Large.gltf"
+tam3 = Vector3(0.38, 0.2717395, 0.2947946)
+
+[node name="Chair_9" type="Node3D" parent="Edificios/building_tavern/Muebles" unique_id=1261770420]
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, -0.6199999, 0.075483195, 1.3206797)
+script = ExtResource("4_l6ly0")
+clave = "building_tavern#0|Chair_1|403|-168"
+pos_original = Vector2(403, -168)
+local_original = Vector3(-0.6199999, 0.075483195, 1.3206797)
+giro_original = 90.0
+modelo = "props/Chair_1.gltf"
+tam3 = Vector3(0.12, 0.32080358, 0.14150141)
+
+[node name="Chair_10" type="Node3D" parent="Edificios/building_tavern/Muebles" unique_id=1720962267]
+transform = Transform3D(-4.371139e-08, 0, -1, 0, 1, 0, 1, 0, -4.371139e-08, -0.020000458, 0.075483195, 1.3206797)
+script = ExtResource("4_l6ly0")
+clave = "building_tavern#0|Chair_1|433|-168"
+pos_original = Vector2(433, -168)
+local_original = Vector3(-0.020000458, 0.075483195, 1.3206797)
+giro_original = -90.0
+modelo = "props/Chair_1.gltf"
+tam3 = Vector3(0.12, 0.32080358, 0.14150141)
+
+[node name="Table_Large6" type="Node3D" parent="Edificios/building_tavern/Muebles" unique_id=1614350553]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.39999962, 0.075483195, 0.42450428)
+script = ExtResource("4_l6ly0")
+clave = "building_tavern#0|Table_Large|454|-206"
+pos_original = Vector2(454, -206)
+local_original = Vector3(0.39999962, 0.075483195, 0.42450428)
+modelo = "props/Table_Large.gltf"
+tam3 = Vector3(0.38, 0.2717395, 0.2947946)
+
+[node name="Chair_11" type="Node3D" parent="Edificios/building_tavern/Muebles" unique_id=1211698850]
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, 0.09999943, 0.075483195, 0.42450428)
+script = ExtResource("4_l6ly0")
+clave = "building_tavern#0|Chair_1|439|-206"
+pos_original = Vector2(439, -206)
+local_original = Vector3(0.09999943, 0.075483195, 0.42450428)
+giro_original = 90.0
+modelo = "props/Chair_1.gltf"
+tam3 = Vector3(0.12, 0.32080358, 0.14150141)
+
+[node name="Chair_12" type="Node3D" parent="Edificios/building_tavern/Muebles" unique_id=1593030245]
+transform = Transform3D(-4.371139e-08, 0, -1, 0, 1, 0, 1, 0, -4.371139e-08, 0.6999998, 0.075483195, 0.42450428)
+script = ExtResource("4_l6ly0")
+clave = "building_tavern#0|Chair_1|469|-206"
+pos_original = Vector2(469, -206)
+local_original = Vector3(0.6999998, 0.075483195, 0.42450428)
+giro_original = -90.0
+modelo = "props/Chair_1.gltf"
+tam3 = Vector3(0.12, 0.32080358, 0.14150141)
+
+[node name="Shelf_Small_Bottles" type="Node3D" parent="Edificios/building_tavern/Muebles" unique_id=668083416]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.7600002, 0.18036574, -2.0046034)
+script = ExtResource("4_l6ly0")
+clave = "building_tavern#0|Shelf_Small_Bottles|346|-309"
+pos_original = Vector2(346, -309)
+local_original = Vector3(-1.7600002, 0.18036574, -2.0046034)
+modelo = "props/Shelf_Small_Bottles.gltf"
+tam3 = Vector3(0.48, 0.64160717, 0.11791784)
+
+[node name="Barrel" type="Node3D" parent="Edificios/building_tavern/Muebles" unique_id=614614255]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.64000034, 0.16938457, -1.8866854)
+script = ExtResource("4_l6ly0")
+clave = "building_tavern#0|Barrel|402|-304"
+pos_original = Vector2(402, -304)
+local_original = Vector3(-0.64000034, 0.16938457, -1.8866854)
+modelo = "props/Barrel.gltf"
+tam3 = Vector3(0.2, 0.4151576, 0.23583569)
+
+[node name="Barrel2" type="Node3D" parent="Edificios/building_tavern/Muebles" unique_id=585762709]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.32000065, 0.16938457, -1.8866854)
+script = ExtResource("4_l6ly0")
+clave = "building_tavern#0|Barrel|418|-304"
+pos_original = Vector2(418, -304)
+local_original = Vector3(-0.32000065, 0.16938457, -1.8866854)
+modelo = "props/Barrel.gltf"
+tam3 = Vector3(0.2, 0.4151576, 0.23583569)
+
+[node name="Barrel3" type="Node3D" parent="Edificios/building_tavern/Muebles" unique_id=1730991241]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.16938457, -1.8866854)
+script = ExtResource("4_l6ly0")
+clave = "building_tavern#0|Barrel|434|-304"
+pos_original = Vector2(434, -304)
+local_original = Vector3(0, 0.16938457, -1.8866854)
+modelo = "props/Barrel.gltf"
+tam3 = Vector3(0.2, 0.4151576, 0.23583569)
+
+[node name="Barrel4" type="Node3D" parent="Edificios/building_tavern/Muebles" unique_id=1424778139]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.3199997, 0.16938457, -1.8866854)
+script = ExtResource("4_l6ly0")
+clave = "building_tavern#0|Barrel|450|-304"
+pos_original = Vector2(450, -304)
+local_original = Vector3(0.3199997, 0.16938457, -1.8866854)
+modelo = "props/Barrel.gltf"
+tam3 = Vector3(0.2, 0.4151576, 0.23583569)
+
+[node name="Workbench" type="Node3D" parent="Edificios/building_tavern/Muebles" unique_id=274127950]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.7600002, 0.15134473, -1.6980171)
+script = ExtResource("4_l6ly0")
+clave = "building_tavern#0|Workbench|346|-296"
+pos_original = Vector2(346, -296)
+local_original = Vector3(-1.7600002, 0.15134473, -1.6980171)
+modelo = "props/Workbench.gltf"
+tam3 = Vector3(0.48, 0.35854518, 0.22404389)
+
+[node name="Chair_13" type="Node3D" parent="Edificios/building_tavern/Muebles" unique_id=727690586]
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, 1.3499994, 0.075483195, 1.0848441)
+script = ExtResource("4_l6ly0")
+clave = "building_tavern#0|Chair_1|502|-178"
+pos_original = Vector2(501.5, -178)
+local_original = Vector3(1.3499994, 0.075483195, 1.0848441)
+giro_original = 90.0
+modelo = "props/Chair_1.gltf"
+tam3 = Vector3(0.12, 0.32080358, 0.14150141)
+
+[node name="Chair_14" type="Node3D" parent="Edificios/building_tavern/Muebles" unique_id=954639580]
+transform = Transform3D(-4.371139e-08, 0, -1, 0, 1, 0, 1, 0, -4.371139e-08, 2.0099993, 0.075483195, 1.0848441)
+script = ExtResource("4_l6ly0")
+clave = "building_tavern#0|Chair_1|535|-178"
+pos_original = Vector2(534.5, -178)
+local_original = Vector3(2.0099993, 0.075483195, 1.0848441)
+giro_original = -90.0
+modelo = "props/Chair_1.gltf"
+tam3 = Vector3(0.12, 0.32080358, 0.14150141)
+
+[node name="Chair_15" type="Node3D" parent="Edificios/building_tavern/Muebles" unique_id=71345671]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.6799994, 0.075483195, 0.70750713)
+script = ExtResource("4_l6ly0")
+clave = "building_tavern#0|Chair_1|518|-194"
+pos_original = Vector2(518, -194)
+local_original = Vector3(1.6799994, 0.075483195, 0.70750713)
+modelo = "props/Chair_1.gltf"
+tam3 = Vector3(0.12, 0.32080358, 0.14150141)
+
+[node name="Chair_16" type="Node3D" parent="Edificios/building_tavern/Muebles" unique_id=321148706]
+transform = Transform3D(-1, 0, -8.742278e-08, 0, 1, 0, 8.742278e-08, 0, -1, 1.6799994, 0.075483195, 1.4621811)
+script = ExtResource("4_l6ly0")
+clave = "building_tavern#0|Chair_1|518|-162"
+pos_original = Vector2(518, -162)
+local_original = Vector3(1.6799994, 0.075483195, 1.4621811)
+giro_original = 180.0
+modelo = "props/Chair_1.gltf"
+tam3 = Vector3(0.12, 0.32080358, 0.14150141)
+
+[node name="Barrel5" type="Node3D" parent="Edificios/building_tavern/Muebles" unique_id=1840603250]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.2799997, 0.16490583, -1.8395185)
+script = ExtResource("4_l6ly0")
+clave = "building_tavern#0|Barrel|498|-302"
+pos_original = Vector2(498, -302)
+local_original = Vector3(1.2799997, 0.16490583, -1.8395185)
+modelo = "props/Barrel.gltf"
+tam3 = Vector3(0.19, 0.3962868, 0.22404389)
+
+[node name="Barrel6" type="Node3D" parent="Edificios/building_tavern/Muebles" unique_id=940867352]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2, 0.16490583, -1.8395185)
+script = ExtResource("4_l6ly0")
+clave = "building_tavern#0|Barrel|534|-302"
+pos_original = Vector2(534, -302)
+local_original = Vector3(2, 0.16490583, -1.8395185)
+modelo = "props/Barrel.gltf"
+tam3 = Vector3(0.19, 0.3962868, 0.22404389)
+
+[node name="Crate_Wooden" type="Node3D" parent="Edificios/building_tavern/Muebles" unique_id=1580325680]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.2799997, 0.09496861, -1.0376773)
+script = ExtResource("4_l6ly0")
+clave = "building_tavern#0|Crate_Wooden|498|-268"
+pos_original = Vector2(498, -268)
+local_original = Vector3(1.2799997, 0.09496861, -1.0376773)
+modelo = "props/Crate_Wooden.gltf"
+tam3 = Vector3(0.18, 0.30193278, 0.21225211)
+
+[node name="Bed_Twin1_piso1" type="Node3D" parent="Edificios/building_tavern/Muebles" unique_id=3643627]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.8400002, 1.285234, -0.66033983)
+script = ExtResource("4_l6ly0")
+clave = "building_tavern#1|Bed_Twin1|342|-252"
+pos_original = Vector2(342, -252)
+local_original = Vector3(-1.8400002, 1.285234, -0.66033983)
+modelo = "props/Bed_Twin1.gltf"
+tam3 = Vector3(0.3, 0.32080358, 0.49525493)
+
+[node name="Nightstand_Shelf_piso1" type="Node3D" parent="Edificios/building_tavern/Muebles" unique_id=1295730151]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.8400002, 1.3026998, -1.0376773)
+script = ExtResource("4_l6ly0")
+clave = "building_tavern#1|Nightstand_Shelf|342|-268"
+pos_original = Vector2(342, -268)
+local_original = Vector3(-1.8400002, 1.3026998, -1.0376773)
+modelo = "props/Nightstand_Shelf.gltf"
+tam3 = Vector3(0.14, 0.28306198, 0.14150141)
+
+[node name="Bed_Twin1_piso2" type="Node3D" parent="Edificios/building_tavern/Muebles" unique_id=360427295]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.6800003, 1.285234, -0.66033983)
+script = ExtResource("4_l6ly0")
+clave = "building_tavern#1|Bed_Twin1|400|-252"
+pos_original = Vector2(400, -252)
+local_original = Vector3(-0.6800003, 1.285234, -0.66033983)
+modelo = "props/Bed_Twin1.gltf"
+tam3 = Vector3(0.3, 0.32080358, 0.49525493)
+
+[node name="Nightstand_Shelf_piso2" type="Node3D" parent="Edificios/building_tavern/Muebles" unique_id=1551498901]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.6800003, 1.3026998, -1.0376773)
+script = ExtResource("4_l6ly0")
+clave = "building_tavern#1|Nightstand_Shelf|400|-268"
+pos_original = Vector2(400, -268)
+local_original = Vector3(-0.6800003, 1.3026998, -1.0376773)
+modelo = "props/Nightstand_Shelf.gltf"
+tam3 = Vector3(0.14, 0.28306198, 0.14150141)
+
+[node name="Bed_Twin1_piso3" type="Node3D" parent="Edificios/building_tavern/Muebles" unique_id=1990059919]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.019999504, 1.285234, -0.66033983)
+script = ExtResource("4_l6ly0")
+clave = "building_tavern#1|Bed_Twin1|435|-252"
+pos_original = Vector2(435, -252)
+local_original = Vector3(0.019999504, 1.285234, -0.66033983)
+modelo = "props/Bed_Twin1.gltf"
+tam3 = Vector3(0.3, 0.32080358, 0.49525493)
+
+[node name="Nightstand_Shelf_piso3" type="Node3D" parent="Edificios/building_tavern/Muebles" unique_id=1618400313]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.019999504, 1.3026998, -1.0376773)
+script = ExtResource("4_l6ly0")
+clave = "building_tavern#1|Nightstand_Shelf|435|-268"
+pos_original = Vector2(435, -268)
+local_original = Vector3(0.019999504, 1.3026998, -1.0376773)
+modelo = "props/Nightstand_Shelf.gltf"
+tam3 = Vector3(0.14, 0.28306198, 0.14150141)
+
+[node name="Bed_Twin1_piso4" type="Node3D" parent="Edificios/building_tavern/Muebles" unique_id=553052842]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.67999935, 1.285234, -0.66033983)
+script = ExtResource("4_l6ly0")
+clave = "building_tavern#1|Bed_Twin1|468|-252"
+pos_original = Vector2(468, -252)
+local_original = Vector3(0.67999935, 1.285234, -0.66033983)
+modelo = "props/Bed_Twin1.gltf"
+tam3 = Vector3(0.3, 0.32080358, 0.49525493)
+
+[node name="Nightstand_Shelf_piso4" type="Node3D" parent="Edificios/building_tavern/Muebles" unique_id=1513251065]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.67999935, 1.3026998, -1.0376773)
+script = ExtResource("4_l6ly0")
+clave = "building_tavern#1|Nightstand_Shelf|468|-268"
+pos_original = Vector2(468, -268)
+local_original = Vector3(0.67999935, 1.3026998, -1.0376773)
+modelo = "props/Nightstand_Shelf.gltf"
+tam3 = Vector3(0.14, 0.28306198, 0.14150141)
+
+[node name="Bed_Twin1_piso5" type="Node3D" parent="Edificios/building_tavern/Muebles" unique_id=1565894458]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.3599997, 1.285234, -0.66033983)
+script = ExtResource("4_l6ly0")
+clave = "building_tavern#1|Bed_Twin1|502|-252"
+pos_original = Vector2(502, -252)
+local_original = Vector3(1.3599997, 1.285234, -0.66033983)
+modelo = "props/Bed_Twin1.gltf"
+tam3 = Vector3(0.3, 0.32080358, 0.49525493)
+
+[node name="Nightstand_Shelf_piso5" type="Node3D" parent="Edificios/building_tavern/Muebles" unique_id=1281979586]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.3599997, 1.3026998, -1.0376773)
+script = ExtResource("4_l6ly0")
+clave = "building_tavern#1|Nightstand_Shelf|502|-268"
+pos_original = Vector2(502, -268)
+local_original = Vector3(1.3599997, 1.3026998, -1.0376773)
+modelo = "props/Nightstand_Shelf.gltf"
+tam3 = Vector3(0.14, 0.28306198, 0.14150141)
+
+[node name="Bed_Twin1_piso6" type="Node3D" parent="Edificios/building_tavern/Muebles" unique_id=207743199]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.08, 1.285234, -0.66033983)
+script = ExtResource("4_l6ly0")
+clave = "building_tavern#1|Bed_Twin1|538|-252"
+pos_original = Vector2(538, -252)
+local_original = Vector3(2.08, 1.285234, -0.66033983)
+modelo = "props/Bed_Twin1.gltf"
+tam3 = Vector3(0.3, 0.32080358, 0.49525493)
+
+[node name="Nightstand_Shelf_piso6" type="Node3D" parent="Edificios/building_tavern/Muebles" unique_id=890685047]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.08, 1.3026998, -1.0376773)
+script = ExtResource("4_l6ly0")
+clave = "building_tavern#1|Nightstand_Shelf|538|-268"
+pos_original = Vector2(538, -268)
+local_original = Vector3(2.08, 1.3026998, -1.0376773)
+modelo = "props/Nightstand_Shelf.gltf"
+tam3 = Vector3(0.14, 0.28306198, 0.14150141)
+
+[node name="Chest_Wood_piso1" type="Node3D" parent="Edificios/building_tavern/Muebles" unique_id=111205948]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.7199993, 1.3411938, -1.5093484)
+script = ExtResource("4_l6ly0")
+clave = "building_tavern#1|Chest_Wood|520|-288"
+pos_original = Vector2(520, -288)
+local_original = Vector3(1.7199993, 1.3411938, -1.5093484)
+modelo = "props/Chest_Wood.gltf"
+tam3 = Vector3(0.24, 0.25664288, 0.18866855)
+
 [node name="shop_family_smith" type="Node3D" parent="Edificios" unique_id=1272011273]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 6.7, 0, -0.84900844)
 script = ExtResource("3_jgq7j")
 id_edificio = "shop_family_smith"
 centro_original = Vector2(335, -36)
 origen_3d = Vector3(6.7, 0, -0.84900844)
+
+[node name="Muebles" type="Node3D" parent="Edificios/shop_family_smith" unique_id=1205889318]
+
+[node name="Anvil_Log" type="Node3D" parent="Edificios/shop_family_smith/Muebles" unique_id=2048765263]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.35999966, 0.075483195, 0.18866855)
+script = ExtResource("4_l6ly0")
+clave = "shop_family_smith#0|Anvil_Log|317|-28"
+pos_original = Vector2(317, -28)
+local_original = Vector3(-0.35999966, 0.075483195, 0.18866855)
+modelo = "props/Anvil_Log.gltf"
+tam3 = Vector3(0.22, 0.33967438, 0.21225211)
+
+[node name="Whetstone" type="Node3D" parent="Edificios/shop_family_smith/Muebles" unique_id=2018869383]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.48000002, 0.075483195, -0.33016992)
+script = ExtResource("4_l6ly0")
+clave = "shop_family_smith#0|Whetstone|359|-50"
+pos_original = Vector2(359, -50)
+local_original = Vector3(0.48000002, 0.075483195, -0.33016992)
+modelo = "props/Whetstone.gltf"
+tam3 = Vector3(0.18, 0.35854518, 0.17687675)
+
+[node name="WeaponStand" type="Node3D" parent="Edificios/shop_family_smith/Muebles" unique_id=470821013]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.6800003, 0.075483195, 0.2830028)
+script = ExtResource("4_l6ly0")
+clave = "shop_family_smith#0|WeaponStand|369|-24"
+pos_original = Vector2(369, -24)
+local_original = Vector3(0.6800003, 0.075483195, 0.2830028)
+modelo = "props/WeaponStand.gltf"
+tam3 = Vector3(0.32, 0.4528992, 0.18866855)
+
+[node name="Workbench" type="Node3D" parent="Edificios/shop_family_smith/Muebles" unique_id=868981648]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.03999996, 0.075483195, -0.3773371)
+script = ExtResource("4_l6ly0")
+clave = "shop_family_smith#0|Workbench|337|-52"
+pos_original = Vector2(337, -52)
+local_original = Vector3(0.03999996, 0.075483195, -0.3773371)
+modelo = "props/Workbench.gltf"
+tam3 = Vector3(0.48, 0.32080358, 0.24762747)
 
 [node name="house_family_smith" type="Node3D" parent="Edificios" unique_id=81013345]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 14.9, 0.120773114, -4.598796)
@@ -9407,12 +9859,89 @@ id_edificio = "house_family_smith"
 centro_original = Vector2(745, -195)
 origen_3d = Vector3(14.9, 0.120773114, -4.598796)
 
+[node name="Muebles" type="Node3D" parent="Edificios/house_family_smith" unique_id=74641303]
+
+[node name="Bed_Twin1" type="Node3D" parent="Edificios/house_family_smith/Muebles" unique_id=1258920237]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.5999994, 0.075483195, -0.42450428)
+script = ExtResource("4_l6ly0")
+clave = "house_family_smith#0|Bed_Twin1|715|-213"
+pos_original = Vector2(715, -213)
+local_original = Vector3(-0.5999994, 0.075483195, -0.42450428)
+modelo = "props/Bed_Twin1.gltf"
+tam3 = Vector3(0.3, 0.32080358, 0.49525493)
+
+[node name="Bed_Twin2" type="Node3D" parent="Edificios/house_family_smith/Muebles" unique_id=24354419]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.6000004, 0.075483195, -0.42450428)
+script = ExtResource("4_l6ly0")
+clave = "house_family_smith#0|Bed_Twin1|775|-213"
+pos_original = Vector2(775, -213)
+local_original = Vector3(0.6000004, 0.075483195, -0.42450428)
+modelo = "props/Bed_Twin1.gltf"
+tam3 = Vector3(0.3, 0.32080358, 0.49525493)
+
+[node name="Table_Large" type="Node3D" parent="Edificios/house_family_smith/Muebles" unique_id=749581309]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.03999996, 0.075483195, 0.0471673)
+script = ExtResource("4_l6ly0")
+clave = "house_family_smith#0|Table_Large|747|-193"
+pos_original = Vector2(747, -193)
+local_original = Vector3(0.03999996, 0.075483195, 0.0471673)
+modelo = "props/Table_Large.gltf"
+tam3 = Vector3(0.34, 0.26419118, 0.25941926)
+
+[node name="Chair_1" type="Node3D" parent="Edificios/house_family_smith/Muebles" unique_id=787523729]
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, -0.23999977, 0.075483195, 0.0471673)
+script = ExtResource("4_l6ly0")
+clave = "house_family_smith#0|Chair_1|733|-193"
+pos_original = Vector2(733, -193)
+local_original = Vector3(-0.23999977, 0.075483195, 0.0471673)
+giro_original = 90.0
+modelo = "props/Chair_1.gltf"
+tam3 = Vector3(0.12, 0.32080358, 0.14150141)
+
+[node name="Bookcase_2" type="Node3D" parent="Edificios/house_family_smith/Muebles" unique_id=841769966]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.6000004, 0.075483195, 0.37733698)
+script = ExtResource("4_l6ly0")
+clave = "house_family_smith#0|Bookcase_2|775|-179"
+pos_original = Vector2(775, -179)
+local_original = Vector3(0.6000004, 0.075483195, 0.37733698)
+modelo = "props/Bookcase_2.gltf"
+tam3 = Vector3(0.28, 0.60386556, 0.14150141)
+
 [node name="shop_family_butcher" type="Node3D" parent="Edificios" unique_id=2043500346]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 11.7, 0, -0.84900844)
 script = ExtResource("3_jgq7j")
 id_edificio = "shop_family_butcher"
 centro_original = Vector2(585, -36)
 origen_3d = Vector3(11.7, 0, -0.84900844)
+
+[node name="Muebles" type="Node3D" parent="Edificios/shop_family_butcher" unique_id=2068544746]
+
+[node name="Workbench" type="Node3D" parent="Edificios/shop_family_butcher/Muebles" unique_id=2096333937]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.075483195, -0.33016992)
+script = ExtResource("4_l6ly0")
+clave = "shop_family_butcher#0|Workbench|585|-50"
+pos_original = Vector2(585, -50)
+local_original = Vector3(0, 0.075483195, -0.33016992)
+modelo = "props/Workbench.gltf"
+tam3 = Vector3(0.48, 0.32080358, 0.24762747)
+
+[node name="Cabinet" type="Node3D" parent="Edificios/shop_family_butcher/Muebles" unique_id=1886013821]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.55999947, 0.075483195, -0.33016992)
+script = ExtResource("4_l6ly0")
+clave = "shop_family_butcher#0|Cabinet|557|-50"
+pos_original = Vector2(557, -50)
+local_original = Vector3(-0.55999947, 0.075483195, -0.33016992)
+modelo = "props/Cabinet.gltf"
+tam3 = Vector3(0.28, 0.4906408, 0.23583569)
+
+[node name="Barrel_Apples" type="Node3D" parent="Edificios/shop_family_butcher/Muebles" unique_id=1873118843]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.44000053, 0.075483195, -0.33016992)
+script = ExtResource("4_l6ly0")
+clave = "shop_family_butcher#0|Barrel_Apples|607|-50"
+pos_original = Vector2(607, -50)
+local_original = Vector3(0.44000053, 0.075483195, -0.33016992)
+modelo = "props/Barrel_Apples.gltf"
+tam3 = Vector3(0.18, 0.35854518, 0.21225211)
 
 [node name="house_family_butcher" type="Node3D" parent="Edificios" unique_id=577323179]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 18.1, 0.120773114, -4.598796)
@@ -9421,12 +9950,89 @@ id_edificio = "house_family_butcher"
 centro_original = Vector2(905, -195)
 origen_3d = Vector3(18.1, 0.120773114, -4.598796)
 
+[node name="Muebles" type="Node3D" parent="Edificios/house_family_butcher" unique_id=641523464]
+
+[node name="Bed_Twin1" type="Node3D" parent="Edificios/house_family_butcher/Muebles" unique_id=708521168]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.6000004, 0.075483195, -0.42450428)
+script = ExtResource("4_l6ly0")
+clave = "house_family_butcher#0|Bed_Twin1|875|-213"
+pos_original = Vector2(875, -213)
+local_original = Vector3(-0.6000004, 0.075483195, -0.42450428)
+modelo = "props/Bed_Twin1.gltf"
+tam3 = Vector3(0.3, 0.32080358, 0.49525493)
+
+[node name="Bed_Twin2" type="Node3D" parent="Edificios/house_family_butcher/Muebles" unique_id=1184721790]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.6000004, 0.075483195, -0.42450428)
+script = ExtResource("4_l6ly0")
+clave = "house_family_butcher#0|Bed_Twin1|935|-213"
+pos_original = Vector2(935, -213)
+local_original = Vector3(0.6000004, 0.075483195, -0.42450428)
+modelo = "props/Bed_Twin1.gltf"
+tam3 = Vector3(0.3, 0.32080358, 0.49525493)
+
+[node name="Table_Large" type="Node3D" parent="Edificios/house_family_butcher/Muebles" unique_id=395279805]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.03999901, 0.075483195, 0.0471673)
+script = ExtResource("4_l6ly0")
+clave = "house_family_butcher#0|Table_Large|907|-193"
+pos_original = Vector2(907, -193)
+local_original = Vector3(0.03999901, 0.075483195, 0.0471673)
+modelo = "props/Table_Large.gltf"
+tam3 = Vector3(0.34, 0.26419118, 0.25941926)
+
+[node name="Chair_1" type="Node3D" parent="Edificios/house_family_butcher/Muebles" unique_id=2140389771]
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, -0.23999977, 0.075483195, 0.0471673)
+script = ExtResource("4_l6ly0")
+clave = "house_family_butcher#0|Chair_1|893|-193"
+pos_original = Vector2(893, -193)
+local_original = Vector3(-0.23999977, 0.075483195, 0.0471673)
+giro_original = 90.0
+modelo = "props/Chair_1.gltf"
+tam3 = Vector3(0.12, 0.32080358, 0.14150141)
+
+[node name="Bookcase_2" type="Node3D" parent="Edificios/house_family_butcher/Muebles" unique_id=1635779970]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.6000004, 0.075483195, 0.37733698)
+script = ExtResource("4_l6ly0")
+clave = "house_family_butcher#0|Bookcase_2|935|-179"
+pos_original = Vector2(935, -179)
+local_original = Vector3(0.6000004, 0.075483195, 0.37733698)
+modelo = "props/Bookcase_2.gltf"
+tam3 = Vector3(0.28, 0.60386556, 0.14150141)
+
 [node name="shop_family_carpenter" type="Node3D" parent="Edificios" unique_id=1248438589]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 11.7, 0, 3.4903681)
 script = ExtResource("3_jgq7j")
 id_edificio = "shop_family_carpenter"
 centro_original = Vector2(585, 148)
 origen_3d = Vector3(11.7, 0, 3.4903681)
+
+[node name="Muebles" type="Node3D" parent="Edificios/shop_family_carpenter" unique_id=1732429358]
+
+[node name="Workbench" type="Node3D" parent="Edificios/shop_family_carpenter/Muebles" unique_id=27099546]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.075483195, 0.33016992)
+script = ExtResource("4_l6ly0")
+clave = "shop_family_carpenter#0|Workbench|585|162"
+pos_original = Vector2(585, 162)
+local_original = Vector3(0, 0.075483195, 0.33016992)
+modelo = "props/Workbench.gltf"
+tam3 = Vector3(0.48, 0.32080358, 0.24762747)
+
+[node name="Cabinet" type="Node3D" parent="Edificios/shop_family_carpenter/Muebles" unique_id=1718889709]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.55999947, 0.075483195, 0.33016992)
+script = ExtResource("4_l6ly0")
+clave = "shop_family_carpenter#0|Cabinet|557|162"
+pos_original = Vector2(557, 162)
+local_original = Vector3(-0.55999947, 0.075483195, 0.33016992)
+modelo = "props/Cabinet.gltf"
+tam3 = Vector3(0.28, 0.4906408, 0.23583569)
+
+[node name="Barrel_Apples" type="Node3D" parent="Edificios/shop_family_carpenter/Muebles" unique_id=1919734801]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.44000053, 0.075483195, 0.33016992)
+script = ExtResource("4_l6ly0")
+clave = "shop_family_carpenter#0|Barrel_Apples|607|162"
+pos_original = Vector2(607, 162)
+local_original = Vector3(0.44000053, 0.075483195, 0.33016992)
+modelo = "props/Barrel_Apples.gltf"
+tam3 = Vector3(0.18, 0.35854518, 0.21225211)
 
 [node name="house_family_carpenter" type="Node3D" parent="Edificios" unique_id=814009692]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 14.9, 0.120773114, -0.84900844)
@@ -9435,12 +10041,89 @@ id_edificio = "house_family_carpenter"
 centro_original = Vector2(745, -36)
 origen_3d = Vector3(14.9, 0.120773114, -0.84900844)
 
+[node name="Muebles" type="Node3D" parent="Edificios/house_family_carpenter" unique_id=368162954]
+
+[node name="Bed_Twin1" type="Node3D" parent="Edificios/house_family_carpenter/Muebles" unique_id=2141432762]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.5999994, 0.075483195, -0.42450428)
+script = ExtResource("4_l6ly0")
+clave = "house_family_carpenter#0|Bed_Twin1|715|-54"
+pos_original = Vector2(715, -54)
+local_original = Vector3(-0.5999994, 0.075483195, -0.42450428)
+modelo = "props/Bed_Twin1.gltf"
+tam3 = Vector3(0.3, 0.32080358, 0.49525493)
+
+[node name="Bed_Twin2" type="Node3D" parent="Edificios/house_family_carpenter/Muebles" unique_id=588000578]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.6000004, 0.075483195, -0.42450428)
+script = ExtResource("4_l6ly0")
+clave = "house_family_carpenter#0|Bed_Twin1|775|-54"
+pos_original = Vector2(775, -54)
+local_original = Vector3(0.6000004, 0.075483195, -0.42450428)
+modelo = "props/Bed_Twin1.gltf"
+tam3 = Vector3(0.3, 0.32080358, 0.49525493)
+
+[node name="Table_Large" type="Node3D" parent="Edificios/house_family_carpenter/Muebles" unique_id=309765271]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.03999996, 0.075483195, 0.047167122)
+script = ExtResource("4_l6ly0")
+clave = "house_family_carpenter#0|Table_Large|747|-34"
+pos_original = Vector2(747, -34)
+local_original = Vector3(0.03999996, 0.075483195, 0.047167122)
+modelo = "props/Table_Large.gltf"
+tam3 = Vector3(0.34, 0.26419118, 0.25941926)
+
+[node name="Chair_1" type="Node3D" parent="Edificios/house_family_carpenter/Muebles" unique_id=1743628636]
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, -0.23999977, 0.075483195, 0.047167122)
+script = ExtResource("4_l6ly0")
+clave = "house_family_carpenter#0|Chair_1|733|-34"
+pos_original = Vector2(733, -34)
+local_original = Vector3(-0.23999977, 0.075483195, 0.047167122)
+giro_original = 90.0
+modelo = "props/Chair_1.gltf"
+tam3 = Vector3(0.12, 0.32080358, 0.14150141)
+
+[node name="Bookcase_2" type="Node3D" parent="Edificios/house_family_carpenter/Muebles" unique_id=1919404855]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.6000004, 0.075483195, 0.37733707)
+script = ExtResource("4_l6ly0")
+clave = "house_family_carpenter#0|Bookcase_2|775|-20"
+pos_original = Vector2(775, -20)
+local_original = Vector3(0.6000004, 0.075483195, 0.37733707)
+modelo = "props/Bookcase_2.gltf"
+tam3 = Vector3(0.28, 0.60386556, 0.14150141)
+
 [node name="shop_family_fishmonger" type="Node3D" parent="Edificios" unique_id=682534694]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 9.3, 0, 3.4903681)
 script = ExtResource("3_jgq7j")
 id_edificio = "shop_family_fishmonger"
 centro_original = Vector2(465, 148)
 origen_3d = Vector3(9.3, 0, 3.4903681)
+
+[node name="Muebles" type="Node3D" parent="Edificios/shop_family_fishmonger" unique_id=700269145]
+
+[node name="Workbench" type="Node3D" parent="Edificios/shop_family_fishmonger/Muebles" unique_id=793959847]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.075483195, 0.33016992)
+script = ExtResource("4_l6ly0")
+clave = "shop_family_fishmonger#0|Workbench|465|162"
+pos_original = Vector2(465, 162)
+local_original = Vector3(0, 0.075483195, 0.33016992)
+modelo = "props/Workbench.gltf"
+tam3 = Vector3(0.48, 0.32080358, 0.24762747)
+
+[node name="Cabinet" type="Node3D" parent="Edificios/shop_family_fishmonger/Muebles" unique_id=886615821]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.5600004, 0.075483195, 0.33016992)
+script = ExtResource("4_l6ly0")
+clave = "shop_family_fishmonger#0|Cabinet|437|162"
+pos_original = Vector2(437, 162)
+local_original = Vector3(-0.5600004, 0.075483195, 0.33016992)
+modelo = "props/Cabinet.gltf"
+tam3 = Vector3(0.28, 0.4906408, 0.23583569)
+
+[node name="Barrel_Apples" type="Node3D" parent="Edificios/shop_family_fishmonger/Muebles" unique_id=2132096815]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.43999958, 0.075483195, 0.33016992)
+script = ExtResource("4_l6ly0")
+clave = "shop_family_fishmonger#0|Barrel_Apples|487|162"
+pos_original = Vector2(487, 162)
+local_original = Vector3(0.43999958, 0.075483195, 0.33016992)
+modelo = "props/Barrel_Apples.gltf"
+tam3 = Vector3(0.18, 0.35854518, 0.21225211)
 
 [node name="house_family_fishmonger" type="Node3D" parent="Edificios" unique_id=1773978786]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 18.1, 0.120773114, -0.84900844)
@@ -9449,12 +10132,157 @@ id_edificio = "house_family_fishmonger"
 centro_original = Vector2(905, -36)
 origen_3d = Vector3(18.1, 0.120773114, -0.84900844)
 
+[node name="Muebles" type="Node3D" parent="Edificios/house_family_fishmonger" unique_id=170610377]
+
+[node name="Bed_Twin1" type="Node3D" parent="Edificios/house_family_fishmonger/Muebles" unique_id=450714269]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.6000004, 0.075483195, -0.42450428)
+script = ExtResource("4_l6ly0")
+clave = "house_family_fishmonger#0|Bed_Twin1|875|-54"
+pos_original = Vector2(875, -54)
+local_original = Vector3(-0.6000004, 0.075483195, -0.42450428)
+modelo = "props/Bed_Twin1.gltf"
+tam3 = Vector3(0.3, 0.32080358, 0.49525493)
+
+[node name="Bed_Twin2" type="Node3D" parent="Edificios/house_family_fishmonger/Muebles" unique_id=212694102]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.6000004, 0.075483195, -0.42450428)
+script = ExtResource("4_l6ly0")
+clave = "house_family_fishmonger#0|Bed_Twin1|935|-54"
+pos_original = Vector2(935, -54)
+local_original = Vector3(0.6000004, 0.075483195, -0.42450428)
+modelo = "props/Bed_Twin1.gltf"
+tam3 = Vector3(0.3, 0.32080358, 0.49525493)
+
+[node name="Table_Large" type="Node3D" parent="Edificios/house_family_fishmonger/Muebles" unique_id=1677858709]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.03999901, 0.075483195, 0.047167122)
+script = ExtResource("4_l6ly0")
+clave = "house_family_fishmonger#0|Table_Large|907|-34"
+pos_original = Vector2(907, -34)
+local_original = Vector3(0.03999901, 0.075483195, 0.047167122)
+modelo = "props/Table_Large.gltf"
+tam3 = Vector3(0.34, 0.26419118, 0.25941926)
+
+[node name="Chair_1" type="Node3D" parent="Edificios/house_family_fishmonger/Muebles" unique_id=1030259709]
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, -0.23999977, 0.075483195, 0.047167122)
+script = ExtResource("4_l6ly0")
+clave = "house_family_fishmonger#0|Chair_1|893|-34"
+pos_original = Vector2(893, -34)
+local_original = Vector3(-0.23999977, 0.075483195, 0.047167122)
+giro_original = 90.0
+modelo = "props/Chair_1.gltf"
+tam3 = Vector3(0.12, 0.32080358, 0.14150141)
+
+[node name="Bookcase_2" type="Node3D" parent="Edificios/house_family_fishmonger/Muebles" unique_id=1203771131]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.6000004, 0.075483195, 0.37733707)
+script = ExtResource("4_l6ly0")
+clave = "house_family_fishmonger#0|Bookcase_2|935|-20"
+pos_original = Vector2(935, -20)
+local_original = Vector3(0.6000004, 0.075483195, 0.37733707)
+modelo = "props/Bookcase_2.gltf"
+tam3 = Vector3(0.28, 0.60386556, 0.14150141)
+
 [node name="mixed_family_herbalist" type="Node3D" parent="Edificios" unique_id=19379466]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 6.5, 0, 3.655453)
 script = ExtResource("3_jgq7j")
 id_edificio = "mixed_family_herbalist"
 centro_original = Vector2(325, 155)
 origen_3d = Vector3(6.5, 0, 3.655453)
+
+[node name="Muebles" type="Node3D" parent="Edificios/mixed_family_herbalist" unique_id=1322593894]
+
+[node name="Shelf_Small_Bottles" type="Node3D" parent="Edificios/mixed_family_herbalist/Muebles" unique_id=316825829]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.6799998, 0.075483195, -0.9551344)
+script = ExtResource("4_l6ly0")
+clave = "mixed_family_herbalist#0|Shelf_Small_Bottles|291|115"
+pos_original = Vector2(291, 114.5)
+local_original = Vector3(-0.6799998, 0.075483195, -0.9551344)
+modelo = "props/Shelf_Small_Bottles.gltf"
+tam3 = Vector3(0.3, 0.52838236, 0.12970963)
+
+[node name="Cabinet" type="Node3D" parent="Edificios/mixed_family_herbalist/Muebles" unique_id=1219555785]
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, -1.06, 0.075483195, -0.56600547)
+script = ExtResource("4_l6ly0")
+clave = "mixed_family_herbalist#0|Cabinet|272|131"
+pos_original = Vector2(272, 131)
+local_original = Vector3(-1.06, 0.075483195, -0.56600547)
+giro_original = 90.0
+modelo = "props/Cabinet.gltf"
+tam3 = Vector3(0.24, 0.5095116, 0.15329319)
+
+[node name="Table_Large" type="Node3D" parent="Edificios/mixed_family_herbalist/Muebles" unique_id=143438246]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.55999994, 0.075483195, -0.8961754)
+script = ExtResource("4_l6ly0")
+clave = "mixed_family_herbalist#0|Table_Large|353|117"
+pos_original = Vector2(353, 117)
+local_original = Vector3(0.55999994, 0.075483195, -0.8961754)
+modelo = "props/Table_Large.gltf"
+tam3 = Vector3(0.32, 0.28683615, 0.20046033)
+
+[node name="Bed_Twin1" type="Node3D" parent="Edificios/mixed_family_herbalist/Muebles" unique_id=1746704684]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.84000015, 0.075483195, 0.61317277)
+script = ExtResource("4_l6ly0")
+clave = "mixed_family_herbalist#0|Bed_Twin1|283|181"
+pos_original = Vector2(283, 181)
+local_original = Vector3(-0.84000015, 0.075483195, 0.61317277)
+modelo = "props/Bed_Twin1.gltf"
+tam3 = Vector3(0.3, 0.32080358, 0.49525493)
+
+[node name="Bed_Twin2" type="Node3D" parent="Edificios/mixed_family_herbalist/Muebles" unique_id=2103511560]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.84000015, 0.075483195, 0.61317277)
+script = ExtResource("4_l6ly0")
+clave = "mixed_family_herbalist#0|Bed_Twin1|367|181"
+pos_original = Vector2(367, 181)
+local_original = Vector3(0.84000015, 0.075483195, 0.61317277)
+modelo = "props/Bed_Twin1.gltf"
+tam3 = Vector3(0.3, 0.32080358, 0.49525493)
+
+[node name="Nightstand_Shelf" type="Node3D" parent="Edificios/mixed_family_herbalist/Muebles" unique_id=206576216]
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, -1.06, 0.075483195, 0.33017015)
+script = ExtResource("4_l6ly0")
+clave = "mixed_family_herbalist#0|Nightstand_Shelf|272|169"
+pos_original = Vector2(272, 169)
+local_original = Vector3(-1.06, 0.075483195, 0.33017015)
+giro_original = 90.0
+modelo = "props/Nightstand_Shelf.gltf"
+tam3 = Vector3(0.14, 0.29438448, 0.14150141)
+
+[node name="Bookcase_2" type="Node3D" parent="Edificios/mixed_family_herbalist/Muebles" unique_id=1192720751]
+transform = Transform3D(-4.371139e-08, 0, -1, 0, 1, 0, 1, 0, -4.371139e-08, 1.06, 0.075483195, 0.33017015)
+script = ExtResource("4_l6ly0")
+clave = "mixed_family_herbalist#0|Bookcase_2|378|169"
+pos_original = Vector2(378, 169)
+local_original = Vector3(1.06, 0.075483195, 0.33017015)
+giro_original = -90.0
+modelo = "props/Bookcase_2.gltf"
+tam3 = Vector3(0.28, 0.6227364, 0.14150141)
+
+[node name="Table_Large2" type="Node3D" parent="Edificios/mixed_family_herbalist/Muebles" unique_id=2031234645]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.075483195, 0.6603401)
+script = ExtResource("4_l6ly0")
+clave = "mixed_family_herbalist#0|Table_Large|325|183"
+pos_original = Vector2(325, 183)
+local_original = Vector3(0, 0.075483195, 0.6603401)
+modelo = "props/Table_Large.gltf"
+tam3 = Vector3(0.34, 0.27928782, 0.25941926)
+
+[node name="Chair_1" type="Node3D" parent="Edificios/mixed_family_herbalist/Muebles" unique_id=91112944]
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, -0.26000023, 0.075483195, 0.6603401)
+script = ExtResource("4_l6ly0")
+clave = "mixed_family_herbalist#0|Chair_1|312|183"
+pos_original = Vector2(312, 183)
+local_original = Vector3(-0.26000023, 0.075483195, 0.6603401)
+giro_original = 90.0
+modelo = "props/Chair_1.gltf"
+tam3 = Vector3(0.12, 0.32080358, 0.14150141)
+
+[node name="Chair_2" type="Node3D" parent="Edificios/mixed_family_herbalist/Muebles" unique_id=1255004035]
+transform = Transform3D(-4.371139e-08, 0, -1, 0, 1, 0, 1, 0, -4.371139e-08, 0.26000023, 0.075483195, 0.6603401)
+script = ExtResource("4_l6ly0")
+clave = "mixed_family_herbalist#0|Chair_1|338|183"
+pos_original = Vector2(338, 183)
+local_original = Vector3(0.26000023, 0.075483195, 0.6603401)
+giro_original = -90.0
+modelo = "props/Chair_1.gltf"
+tam3 = Vector3(0.12, 0.32080358, 0.14150141)
 
 [node name="building_hospital" type="Node3D" parent="Edificios" unique_id=711195583]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 14.9, 0.120773114, 3.4903681)
@@ -9463,12 +10291,221 @@ id_edificio = "building_hospital"
 centro_original = Vector2(745, 148)
 origen_3d = Vector3(14.9, 0.120773114, 3.4903681)
 
+[node name="Muebles" type="Node3D" parent="Edificios/building_hospital" unique_id=2076181566]
+
+[node name="Shelf_Small_Bottles" type="Node3D" parent="Edificios/building_hospital/Muebles" unique_id=1647662773]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.0799999, 0.075483195, -0.97871804)
+script = ExtResource("4_l6ly0")
+clave = "building_hospital#0|Shelf_Small_Bottles|691|107"
+pos_original = Vector2(691, 106.5)
+local_original = Vector3(-1.0799999, 0.075483195, -0.97871804)
+modelo = "props/Shelf_Small_Bottles.gltf"
+tam3 = Vector3(0.24, 0.5095116, 0.12970963)
+
+[node name="Cabinet" type="Node3D" parent="Edificios/building_hospital/Muebles" unique_id=1010825055]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.67999935, 0.075483195, -0.971643)
+script = ExtResource("4_l6ly0")
+clave = "building_hospital#0|Cabinet|711|107"
+pos_original = Vector2(711, 106.8)
+local_original = Vector3(-0.67999935, 0.075483195, -0.971643)
+modelo = "props/Cabinet.gltf"
+tam3 = Vector3(0.26, 0.5095116, 0.15329319)
+
+[node name="Table_Large" type="Node3D" parent="Edificios/building_hospital/Muebles" unique_id=390941350]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.46000004, 0.075483195, -0.5660057)
+script = ExtResource("4_l6ly0")
+clave = "building_hospital#0|Table_Large|768|124"
+pos_original = Vector2(768, 124)
+local_original = Vector3(0.46000004, 0.075483195, -0.5660057)
+modelo = "props/Table_Large.gltf"
+tam3 = Vector3(0.36, 0.28683615, 0.25941926)
+
+[node name="Chair_1" type="Node3D" parent="Edificios/building_hospital/Muebles" unique_id=933294618]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.46000004, 0.075483195, -0.8372166)
+script = ExtResource("4_l6ly0")
+clave = "building_hospital#0|Chair_1|768|113"
+pos_original = Vector2(768, 112.5)
+local_original = Vector3(0.46000004, 0.075483195, -0.8372166)
+modelo = "props/Chair_1.gltf"
+tam3 = Vector3(0.12, 0.32080358, 0.14150141)
+
+[node name="Chair_2" type="Node3D" parent="Edificios/building_hospital/Muebles" unique_id=2068377702]
+transform = Transform3D(-1, 0, -8.742278e-08, 0, 1, 0, 8.742278e-08, 0, -1, 0.46000004, 0.075483195, -0.29479456)
+script = ExtResource("4_l6ly0")
+clave = "building_hospital#0|Chair_1|768|136"
+pos_original = Vector2(768, 135.5)
+local_original = Vector3(0.46000004, 0.075483195, -0.29479456)
+giro_original = 180.0
+modelo = "props/Chair_1.gltf"
+tam3 = Vector3(0.12, 0.32080358, 0.14150141)
+
+[node name="Nightstand_Shelf" type="Node3D" parent="Edificios/building_hospital/Muebles" unique_id=1126337170]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.0200005, 0.075483195, -0.96692634)
+script = ExtResource("4_l6ly0")
+clave = "building_hospital#0|Nightstand_Shelf|796|107"
+pos_original = Vector2(796, 107)
+local_original = Vector3(1.0200005, 0.075483195, -0.96692634)
+modelo = "props/Nightstand_Shelf.gltf"
+tam3 = Vector3(0.14, 0.29438448, 0.14150141)
+
+[node name="BookStand" type="Node3D" parent="Edificios/building_hospital/Muebles" unique_id=512900083]
+transform = Transform3D(-1, 0, -8.742278e-08, 0, 1, 0, 8.742278e-08, 0, -1, 0.4300003, 0.075483195, 0.96692634)
+script = ExtResource("4_l6ly0")
+clave = "building_hospital#0|BookStand|767|189"
+pos_original = Vector2(766.5, 189)
+local_original = Vector3(0.4300003, 0.075483195, 0.96692634)
+giro_original = 180.0
+modelo = "props/BookStand.gltf"
+tam3 = Vector3(0.14, 0.40760925, 0.16508497)
+
+[node name="Shelf_Small_Bottles2" type="Node3D" parent="Edificios/building_hospital/Muebles" unique_id=1758905125]
+transform = Transform3D(-4.371139e-08, 0, -1, 0, 1, 0, 1, 0, -4.371139e-08, 1.210001, 0.075483195, 0.61317277)
+script = ExtResource("4_l6ly0")
+clave = "building_hospital#0|Shelf_Small_Bottles|806|174"
+pos_original = Vector2(805.5, 174)
+local_original = Vector3(1.210001, 0.075483195, 0.61317277)
+giro_original = -90.0
+modelo = "props/Shelf_Small_Bottles.gltf"
+tam3 = Vector3(0.12, 0.52838236, 0.33016995)
+
 [node name="building_police" type="Node3D" parent="Edificios" unique_id=552603709]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 18.3, 0.120773114, 3.4903681)
 script = ExtResource("3_jgq7j")
 id_edificio = "building_police"
 centro_original = Vector2(915, 148)
 origen_3d = Vector3(18.3, 0.120773114, 3.4903681)
+
+[node name="Muebles" type="Node3D" parent="Edificios/building_police" unique_id=252308761]
+
+[node name="Bucket_Wooden_1" type="Node3D" parent="Edificios/building_police/Muebles" unique_id=567818648]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.37999916, 0.075483195, 0.8254249)
+script = ExtResource("4_l6ly0")
+clave = "building_police#0|Bucket_Wooden_1|896|183"
+pos_original = Vector2(896, 183)
+local_original = Vector3(-0.37999916, 0.075483195, 0.8254249)
+modelo = "props/Bucket_Wooden_1.gltf"
+tam3 = Vector3(0.11, 0.2075788, 0.12970963)
+
+[node name="Stool" type="Node3D" parent="Edificios/building_police/Muebles" unique_id=691759989]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.1999989, 0.075483195, 0.40092063)
+script = ExtResource("4_l6ly0")
+clave = "building_police#0|Stool|855|165"
+pos_original = Vector2(855, 165)
+local_original = Vector3(-1.1999989, 0.075483195, 0.40092063)
+modelo = "props/Stool.gltf"
+tam3 = Vector3(0.11, 0.19625631, 0.12970963)
+
+[node name="Table_Large" type="Node3D" parent="Edificios/building_police/Muebles" unique_id=627975118]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.8999996, 0.075483195, -0.51883864)
+script = ExtResource("4_l6ly0")
+clave = "building_police#0|Table_Large|870|126"
+pos_original = Vector2(870, 126)
+local_original = Vector3(-0.8999996, 0.075483195, -0.51883864)
+modelo = "props/Table_Large.gltf"
+tam3 = Vector3(0.36, 0.27928782, 0.25941926)
+
+[node name="Chair_1" type="Node3D" parent="Edificios/building_police/Muebles" unique_id=346934159]
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, -1.1700001, 0.075483195, -0.51883864)
+script = ExtResource("4_l6ly0")
+clave = "building_police#0|Chair_1|857|126"
+pos_original = Vector2(856.5, 126)
+local_original = Vector3(-1.1700001, 0.075483195, -0.51883864)
+giro_original = 90.0
+modelo = "props/Chair_1.gltf"
+tam3 = Vector3(0.12, 0.32080358, 0.14150141)
+
+[node name="Chair_2" type="Node3D" parent="Edificios/building_police/Muebles" unique_id=278081612]
+transform = Transform3D(-4.371139e-08, 0, -1, 0, 1, 0, 1, 0, -4.371139e-08, -0.62999916, 0.075483195, -0.51883864)
+script = ExtResource("4_l6ly0")
+clave = "building_police#0|Chair_1|884|126"
+pos_original = Vector2(883.5, 126)
+local_original = Vector3(-0.62999916, 0.075483195, -0.51883864)
+giro_original = -90.0
+modelo = "props/Chair_1.gltf"
+tam3 = Vector3(0.12, 0.32080358, 0.14150141)
+
+[node name="Cabinet" type="Node3D" parent="Edificios/building_police/Muebles" unique_id=313549545]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.1799984, 0.075483195, -0.96692634)
+script = ExtResource("4_l6ly0")
+clave = "building_police#0|Cabinet|856|107"
+pos_original = Vector2(856, 107)
+local_original = Vector3(-1.1799984, 0.075483195, -0.96692634)
+modelo = "props/Cabinet.gltf"
+tam3 = Vector3(0.28, 0.5095116, 0.18866855)
+
+[node name="Shelf_Simple" type="Node3D" parent="Edificios/building_police/Muebles" unique_id=1509482504]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.7799988, 0.075483195, -0.97871804)
+script = ExtResource("4_l6ly0")
+clave = "building_police#0|Shelf_Simple|876|107"
+pos_original = Vector2(876, 106.5)
+local_original = Vector3(-0.7799988, 0.075483195, -0.97871804)
+modelo = "props/Shelf_Simple.gltf"
+tam3 = Vector3(0.32, 0.6227364, 0.14150141)
+
+[node name="Table_Large2" type="Node3D" parent="Edificios/building_police/Muebles" unique_id=373466288]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.9000015, 0.075483195, -0.47167134)
+script = ExtResource("4_l6ly0")
+clave = "building_police#0|Table_Large|960|128"
+pos_original = Vector2(960, 128)
+local_original = Vector3(0.9000015, 0.075483195, -0.47167134)
+modelo = "props/Table_Large.gltf"
+tam3 = Vector3(0.4, 0.29438448, 0.27121103)
+
+[node name="Chair_3" type="Node3D" parent="Edificios/building_police/Muebles" unique_id=1808572417]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.9000015, 0.075483195, -0.7428825)
+script = ExtResource("4_l6ly0")
+clave = "building_police#0|Chair_1|960|117"
+pos_original = Vector2(960, 116.5)
+local_original = Vector3(0.9000015, 0.075483195, -0.7428825)
+modelo = "props/Chair_1.gltf"
+tam3 = Vector3(0.12, 0.32080358, 0.14150141)
+
+[node name="WeaponStand" type="Node3D" parent="Edificios/building_police/Muebles" unique_id=352906413]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.9000015, 0.075483195, -0.97871804)
+script = ExtResource("4_l6ly0")
+clave = "building_police#0|WeaponStand|960|107"
+pos_original = Vector2(960, 106.5)
+local_original = Vector3(0.9000015, 0.075483195, -0.97871804)
+modelo = "props/WeaponStand.gltf"
+tam3 = Vector3(0.28, 0.4340284, 0.15329319)
+
+[node name="Bed_Twin1" type="Node3D" parent="Edificios/building_police/Muebles" unique_id=500698830]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.0600014, 0.075483195, 0.7075069)
+script = ExtResource("4_l6ly0")
+clave = "building_police#0|Bed_Twin1|968|178"
+pos_original = Vector2(968, 178)
+local_original = Vector3(1.0600014, 0.075483195, 0.7075069)
+modelo = "props/Bed_Twin1.gltf"
+tam3 = Vector3(0.3, 0.32080358, 0.49525493)
+
+[node name="Nightstand_Shelf" type="Node3D" parent="Edificios/building_police/Muebles" unique_id=104511061]
+transform = Transform3D(-1, 0, -8.742278e-08, 0, 1, 0, 8.742278e-08, 0, -1, 0.7400017, 0.075483195, 0.87259173)
+script = ExtResource("4_l6ly0")
+clave = "building_police#0|Nightstand_Shelf|952|185"
+pos_original = Vector2(952, 185)
+local_original = Vector3(0.7400017, 0.075483195, 0.87259173)
+giro_original = 180.0
+modelo = "props/Nightstand_Shelf.gltf"
+tam3 = Vector3(0.14, 0.28306198, 0.14150141)
+
+[node name="Bookcase_2" type="Node3D" parent="Edificios/building_police/Muebles" unique_id=2119313623]
+transform = Transform3D(-1, 0, -8.742278e-08, 0, 1, 0, 8.742278e-08, 0, -1, 0.42000008, 0.075483195, 0.96692634)
+script = ExtResource("4_l6ly0")
+clave = "building_police#0|Bookcase_2|936|189"
+pos_original = Vector2(936, 189)
+local_original = Vector3(0.42000008, 0.075483195, 0.96692634)
+giro_original = 180.0
+modelo = "props/Bookcase_2.gltf"
+tam3 = Vector3(0.36, 0.6227364, 0.16508497)
+
+[node name="Crate_Wooden" type="Node3D" parent="Edificios/building_police/Muebles" unique_id=776904115]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.1800003, 0.075483195, 0.28300285)
+script = ExtResource("4_l6ly0")
+clave = "building_police#0|Crate_Wooden|974|160"
+pos_original = Vector2(974, 160)
+local_original = Vector3(1.1800003, 0.075483195, 0.28300285)
+modelo = "props/Crate_Wooden.gltf"
+tam3 = Vector3(0.17, 0.28306198, 0.20046033)
 
 [node name="building_church" type="Node3D" parent="Edificios" unique_id=817748534]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 14.9, 0.120773114, 7.358073)
@@ -9477,12 +10514,132 @@ id_edificio = "building_church"
 centro_original = Vector2(745, 312)
 origen_3d = Vector3(14.9, 0.120773114, 7.358073)
 
+[node name="Muebles" type="Node3D" parent="Edificios/building_church" unique_id=95797217]
+
+[node name="Bench" type="Node3D" parent="Edificios/building_church/Muebles" unique_id=1467760981]
+transform = Transform3D(-1, 0, -8.742278e-08, 0, 1, 0, 8.742278e-08, 0, -1, -0.5799999, 0.075483195, -0.33017015)
+script = ExtResource("4_l6ly0")
+clave = "building_church#0|Bench|716|298"
+pos_original = Vector2(716, 298)
+local_original = Vector3(-0.5799999, 0.075483195, -0.33017015)
+giro_original = 180.0
+modelo = "props/Bench.gltf"
+tam3 = Vector3(0.46, 0.25664288, 0.14621812)
+
+[node name="Bench2" type="Node3D" parent="Edificios/building_church/Muebles" unique_id=668398033]
+transform = Transform3D(-1, 0, -8.742278e-08, 0, 1, 0, 8.742278e-08, 0, -1, 0.5799999, 0.075483195, -0.33017015)
+script = ExtResource("4_l6ly0")
+clave = "building_church#0|Bench|774|298"
+pos_original = Vector2(774, 298)
+local_original = Vector3(0.5799999, 0.075483195, -0.33017015)
+giro_original = 180.0
+modelo = "props/Bench.gltf"
+tam3 = Vector3(0.46, 0.25664288, 0.14621812)
+
+[node name="Bench3" type="Node3D" parent="Edificios/building_church/Muebles" unique_id=1551345660]
+transform = Transform3D(-1, 0, -8.742278e-08, 0, 1, 0, 8.742278e-08, 0, -1, -0.5799999, 0.075483195, 0)
+script = ExtResource("4_l6ly0")
+clave = "building_church#0|Bench|716|312"
+pos_original = Vector2(716, 312)
+local_original = Vector3(-0.5799999, 0.075483195, 0)
+giro_original = 180.0
+modelo = "props/Bench.gltf"
+tam3 = Vector3(0.46, 0.25664288, 0.14621812)
+
+[node name="Bench4" type="Node3D" parent="Edificios/building_church/Muebles" unique_id=1665050346]
+transform = Transform3D(-1, 0, -8.742278e-08, 0, 1, 0, 8.742278e-08, 0, -1, 0.5799999, 0.075483195, 0)
+script = ExtResource("4_l6ly0")
+clave = "building_church#0|Bench|774|312"
+pos_original = Vector2(774, 312)
+local_original = Vector3(0.5799999, 0.075483195, 0)
+giro_original = 180.0
+modelo = "props/Bench.gltf"
+tam3 = Vector3(0.46, 0.25664288, 0.14621812)
+
+[node name="altar-stone" type="Node3D" parent="Edificios/building_church/Muebles" unique_id=1497116700]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.075483195, 0.5660057)
+script = ExtResource("4_l6ly0")
+clave = "building_church#0|altar-stone|745|336"
+pos_original = Vector2(745, 336)
+local_original = Vector3(0, 0.075483195, 0.5660057)
+modelo = "graveyard/altar-stone.glb"
+tam3 = Vector3(0.56, 0.3094811, 0.22404389)
+
+[node name="BookStand" type="Node3D" parent="Edificios/building_church/Muebles" unique_id=837408994]
+transform = Transform3D(-0.9396926, 0, 0.3420202, 0, 1, 0, -0.3420202, 0, -0.9396926, -0.47999954, 0.10567648, 0.5188384)
+script = ExtResource("4_l6ly0")
+clave = "building_church#0|BookStand|721|334"
+pos_original = Vector2(721, 334)
+local_original = Vector3(-0.47999954, 0.10567648, 0.5188384)
+giro_original = 160.0
+modelo = "props/BookStand.gltf"
+tam3 = Vector3(0.15, 0.4151576, 0.17687675)
+
+[node name="Nightstand_Shelf" type="Node3D" parent="Edificios/building_church/Muebles" unique_id=1869554492]
+transform = Transform3D(-1, 0, -8.742278e-08, 0, 1, 0, 8.742278e-08, 0, -1, 0.4800005, 0.10567648, 0.5188384)
+script = ExtResource("4_l6ly0")
+clave = "building_church#0|Nightstand_Shelf|769|334"
+pos_original = Vector2(769, 334)
+local_original = Vector3(0.4800005, 0.10567648, 0.5188384)
+giro_original = 180.0
+modelo = "props/Nightstand_Shelf.gltf"
+tam3 = Vector3(0.18, 0.27928782, 0.15329319)
+
+[node name="Table_Large" type="Node3D" parent="Edificios/building_church/Muebles" unique_id=1398648999]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.97999954, 0.075483195, -0.75467396)
+script = ExtResource("4_l6ly0")
+clave = "building_church#0|Table_Large|696|280"
+pos_original = Vector2(696, 280)
+local_original = Vector3(-0.97999954, 0.075483195, -0.75467396)
+modelo = "props/Table_Large.gltf"
+tam3 = Vector3(0.28, 0.27928782, 0.21225211)
+
+[node name="Chair_1" type="Node3D" parent="Edificios/building_church/Muebles" unique_id=69158360]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.97999954, 0.075483195, -0.9433427)
+script = ExtResource("4_l6ly0")
+clave = "building_church#0|Chair_1|696|272"
+pos_original = Vector2(696, 272)
+local_original = Vector3(-0.97999954, 0.075483195, -0.9433427)
+modelo = "props/Chair_1.gltf"
+tam3 = Vector3(0.11, 0.3094811, 0.12970963)
+
+[node name="Cabinet" type="Node3D" parent="Edificios/building_church/Muebles" unique_id=2007925499]
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, -1.0999994, 0.075483195, -0.23583555)
+script = ExtResource("4_l6ly0")
+clave = "building_church#0|Cabinet|690|302"
+pos_original = Vector2(690, 302)
+local_original = Vector3(-1.0999994, 0.075483195, -0.23583555)
+giro_original = 90.0
+modelo = "props/Cabinet.gltf"
+tam3 = Vector3(0.22, 0.4906408, 0.14150141)
+
+[node name="Bed_Twin1" type="Node3D" parent="Edificios/building_church/Muebles" unique_id=1135373093]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.0200005, 0.075483195, -0.75467396)
+script = ExtResource("4_l6ly0")
+clave = "building_church#0|Bed_Twin1|796|280"
+pos_original = Vector2(796, 280)
+local_original = Vector3(1.0200005, 0.075483195, -0.75467396)
+modelo = "props/Bed_Twin1.gltf"
+tam3 = Vector3(0.3, 0.32080358, 0.49525493)
+
+[node name="Bookcase_2" type="Node3D" parent="Edificios/building_church/Muebles" unique_id=2086236920]
+transform = Transform3D(-4.371139e-08, 0, -1, 0, 1, 0, 1, 0, -4.371139e-08, 1.1000004, 0.075483195, -0.23583555)
+script = ExtResource("4_l6ly0")
+clave = "building_church#0|Bookcase_2|800|302"
+pos_original = Vector2(800, 302)
+local_original = Vector3(1.1000004, 0.075483195, -0.23583555)
+giro_original = -90.0
+modelo = "props/Bookcase_2.gltf"
+tam3 = Vector3(0.24, 0.5849948, 0.14150141)
+
 [node name="building_abandoned_mill" type="Node3D" parent="Edificios" unique_id=249096072]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 3.76, 0.35477102, -24.998583)
 script = ExtResource("3_jgq7j")
 id_edificio = "building_abandoned_mill"
 centro_original = Vector2(188, -1060)
 origen_3d = Vector3(3.76, 0.35477102, -24.998583)
+
+[node name="Muebles" type="Node3D" parent="Edificios/building_abandoned_mill" unique_id=901757753]
 
 [node name="building_restaurant" type="Node3D" parent="Edificios" unique_id=50935613]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2.35, 0, -2.6177762)
@@ -9491,12 +10648,501 @@ id_edificio = "building_restaurant"
 centro_original = Vector2(-117.5, -111)
 origen_3d = Vector3(-2.35, 0, -2.6177762)
 
+[node name="Muebles" type="Node3D" parent="Edificios/building_restaurant" unique_id=1457621799]
+
+[node name="Table_Large" type="Node3D" parent="Edificios/building_restaurant/Muebles" unique_id=1027023245]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2.27, 0.075483195, 0.25941944)
+script = ExtResource("4_l6ly0")
+clave = "building_restaurant#0|Table_Large|-231|-100"
+pos_original = Vector2(-231, -100)
+local_original = Vector3(-2.27, 0.075483195, 0.25941944)
+modelo = "props/Table_Large.gltf"
+tam3 = Vector3(0.36, 0.25664288, 0.28300282)
+
+[node name="Chair_1" type="Node3D" parent="Edificios/building_restaurant/Muebles" unique_id=1823306752]
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, -2.56, 0.075483195, 0.25941944)
+script = ExtResource("4_l6ly0")
+clave = "building_restaurant#0|Chair_1|-246|-100"
+pos_original = Vector2(-245.5, -100)
+local_original = Vector3(-2.56, 0.075483195, 0.25941944)
+giro_original = 90.0
+modelo = "props/Chair_1.gltf"
+tam3 = Vector3(0.12, 0.32080358, 0.14150141)
+
+[node name="Chair_2" type="Node3D" parent="Edificios/building_restaurant/Muebles" unique_id=13155874]
+transform = Transform3D(-4.371139e-08, 0, -1, 0, 1, 0, 1, 0, -4.371139e-08, -1.98, 0.075483195, 0.25941944)
+script = ExtResource("4_l6ly0")
+clave = "building_restaurant#0|Chair_1|-217|-100"
+pos_original = Vector2(-216.5, -100)
+local_original = Vector3(-1.98, 0.075483195, 0.25941944)
+giro_original = -90.0
+modelo = "props/Chair_1.gltf"
+tam3 = Vector3(0.12, 0.32080358, 0.14150141)
+
+[node name="Table_Large2" type="Node3D" parent="Edificios/building_restaurant/Muebles" unique_id=1587880191]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.3100002, 0.075483195, 0.25941944)
+script = ExtResource("4_l6ly0")
+clave = "building_restaurant#0|Table_Large|-183|-100"
+pos_original = Vector2(-183, -100)
+local_original = Vector3(-1.3100002, 0.075483195, 0.25941944)
+modelo = "props/Table_Large.gltf"
+tam3 = Vector3(0.36, 0.25664288, 0.28300282)
+
+[node name="Chair_3" type="Node3D" parent="Edificios/building_restaurant/Muebles" unique_id=1287254559]
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, -1.6000001, 0.075483195, 0.25941944)
+script = ExtResource("4_l6ly0")
+clave = "building_restaurant#0|Chair_1|-198|-100"
+pos_original = Vector2(-197.5, -100)
+local_original = Vector3(-1.6000001, 0.075483195, 0.25941944)
+giro_original = 90.0
+modelo = "props/Chair_1.gltf"
+tam3 = Vector3(0.12, 0.32080358, 0.14150141)
+
+[node name="Chair_4" type="Node3D" parent="Edificios/building_restaurant/Muebles" unique_id=320179544]
+transform = Transform3D(-4.371139e-08, 0, -1, 0, 1, 0, 1, 0, -4.371139e-08, -1.02, 0.075483195, 0.25941944)
+script = ExtResource("4_l6ly0")
+clave = "building_restaurant#0|Chair_1|-169|-100"
+pos_original = Vector2(-168.5, -100)
+local_original = Vector3(-1.02, 0.075483195, 0.25941944)
+giro_original = -90.0
+modelo = "props/Chair_1.gltf"
+tam3 = Vector3(0.12, 0.32080358, 0.14150141)
+
+[node name="Table_Large3" type="Node3D" parent="Edificios/building_restaurant/Muebles" unique_id=2147087607]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.1500001, 0.075483195, 0.25941944)
+script = ExtResource("4_l6ly0")
+clave = "building_restaurant#0|Table_Large|-125|-100"
+pos_original = Vector2(-125, -100)
+local_original = Vector3(-0.1500001, 0.075483195, 0.25941944)
+modelo = "props/Table_Large.gltf"
+tam3 = Vector3(0.36, 0.25664288, 0.28300282)
+
+[node name="Chair_5" type="Node3D" parent="Edificios/building_restaurant/Muebles" unique_id=1176791118]
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, -0.44000006, 0.075483195, 0.25941944)
+script = ExtResource("4_l6ly0")
+clave = "building_restaurant#0|Chair_1|-140|-100"
+pos_original = Vector2(-139.5, -100)
+local_original = Vector3(-0.44000006, 0.075483195, 0.25941944)
+giro_original = 90.0
+modelo = "props/Chair_1.gltf"
+tam3 = Vector3(0.12, 0.32080358, 0.14150141)
+
+[node name="Chair_6" type="Node3D" parent="Edificios/building_restaurant/Muebles" unique_id=284840709]
+transform = Transform3D(-4.371139e-08, 0, -1, 0, 1, 0, 1, 0, -4.371139e-08, 0.13999987, 0.075483195, 0.25941944)
+script = ExtResource("4_l6ly0")
+clave = "building_restaurant#0|Chair_1|-111|-100"
+pos_original = Vector2(-110.5, -100)
+local_original = Vector3(0.13999987, 0.075483195, 0.25941944)
+giro_original = -90.0
+modelo = "props/Chair_1.gltf"
+tam3 = Vector3(0.12, 0.32080358, 0.14150141)
+
+[node name="Table_Large4" type="Node3D" parent="Edificios/building_restaurant/Muebles" unique_id=1561981086]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2.27, 0.075483195, 1.3442634)
+script = ExtResource("4_l6ly0")
+clave = "building_restaurant#0|Table_Large|-231|-54"
+pos_original = Vector2(-231, -54)
+local_original = Vector3(-2.27, 0.075483195, 1.3442634)
+modelo = "props/Table_Large.gltf"
+tam3 = Vector3(0.36, 0.25664288, 0.28300282)
+
+[node name="Chair_7" type="Node3D" parent="Edificios/building_restaurant/Muebles" unique_id=112971862]
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, -2.56, 0.075483195, 1.3442634)
+script = ExtResource("4_l6ly0")
+clave = "building_restaurant#0|Chair_1|-246|-54"
+pos_original = Vector2(-245.5, -54)
+local_original = Vector3(-2.56, 0.075483195, 1.3442634)
+giro_original = 90.0
+modelo = "props/Chair_1.gltf"
+tam3 = Vector3(0.12, 0.32080358, 0.14150141)
+
+[node name="Chair_8" type="Node3D" parent="Edificios/building_restaurant/Muebles" unique_id=941599489]
+transform = Transform3D(-4.371139e-08, 0, -1, 0, 1, 0, 1, 0, -4.371139e-08, -1.98, 0.075483195, 1.3442634)
+script = ExtResource("4_l6ly0")
+clave = "building_restaurant#0|Chair_1|-217|-54"
+pos_original = Vector2(-216.5, -54)
+local_original = Vector3(-1.98, 0.075483195, 1.3442634)
+giro_original = -90.0
+modelo = "props/Chair_1.gltf"
+tam3 = Vector3(0.12, 0.32080358, 0.14150141)
+
+[node name="Table_Large5" type="Node3D" parent="Edificios/building_restaurant/Muebles" unique_id=1472009304]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.049999952, 0.075483195, 1.3914306)
+script = ExtResource("4_l6ly0")
+clave = "building_restaurant#0|Table_Large|-115|-52"
+pos_original = Vector2(-115, -52)
+local_original = Vector3(0.049999952, 0.075483195, 1.3914306)
+modelo = "props/Table_Large.gltf"
+tam3 = Vector3(0.36, 0.25664288, 0.28300282)
+
+[node name="Chair_9" type="Node3D" parent="Edificios/building_restaurant/Muebles" unique_id=1149127851]
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, -0.24000001, 0.075483195, 1.3914306)
+script = ExtResource("4_l6ly0")
+clave = "building_restaurant#0|Chair_1|-130|-52"
+pos_original = Vector2(-129.5, -52)
+local_original = Vector3(-0.24000001, 0.075483195, 1.3914306)
+giro_original = 90.0
+modelo = "props/Chair_1.gltf"
+tam3 = Vector3(0.12, 0.32080358, 0.14150141)
+
+[node name="Chair_10" type="Node3D" parent="Edificios/building_restaurant/Muebles" unique_id=1232356101]
+transform = Transform3D(-4.371139e-08, 0, -1, 0, 1, 0, 1, 0, -4.371139e-08, 0.3399999, 0.075483195, 1.3914306)
+script = ExtResource("4_l6ly0")
+clave = "building_restaurant#0|Chair_1|-101|-52"
+pos_original = Vector2(-100.5, -52)
+local_original = Vector3(0.3399999, 0.075483195, 1.3914306)
+giro_original = -90.0
+modelo = "props/Chair_1.gltf"
+tam3 = Vector3(0.12, 0.32080358, 0.14150141)
+
+[node name="Shelf_Small_Bottles" type="Node3D" parent="Edificios/building_restaurant/Muebles" unique_id=1877193008]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.76999986, 0.075483195, 2.1461048)
+script = ExtResource("4_l6ly0")
+clave = "building_restaurant#0|Shelf_Small_Bottles|-79|-20"
+pos_original = Vector2(-79, -20)
+local_original = Vector3(0.76999986, 0.075483195, 2.1461048)
+modelo = "props/Shelf_Small_Bottles.gltf"
+tam3 = Vector3(0.36, 0.60386556, 0.11791784)
+
+[node name="Workbench" type="Node3D" parent="Edificios/building_restaurant/Muebles" unique_id=633019965]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.9499999, 0.075483195, 1.9574363)
+script = ExtResource("4_l6ly0")
+clave = "building_restaurant#0|Workbench|-20|-28"
+pos_original = Vector2(-20, -28)
+local_original = Vector3(1.9499999, 0.075483195, 1.9574363)
+modelo = "props/Workbench.gltf"
+tam3 = Vector3(0.56, 0.37741598, 0.23583569)
+
+[node name="Bucket_Metal" type="Node3D" parent="Edificios/building_restaurant/Muebles" unique_id=1256352327]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.4499999, 0.075483195, 0.825425)
+script = ExtResource("4_l6ly0")
+clave = "building_restaurant#0|Bucket_Metal|-45|-76"
+pos_original = Vector2(-45, -76)
+local_original = Vector3(1.4499999, 0.075483195, 0.825425)
+modelo = "props/Bucket_Metal.gltf"
+tam3 = Vector3(0.1, 0.18870799, 0.11791784)
+
+[node name="FarmCrate_Carrot" type="Node3D" parent="Edificios/building_restaurant/Muebles" unique_id=1188449974]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.57, 0.075483195, 1.2499292)
+script = ExtResource("4_l6ly0")
+clave = "building_restaurant#0|FarmCrate_Carrot|11|-58"
+pos_original = Vector2(11, -58)
+local_original = Vector3(2.57, 0.075483195, 1.2499292)
+modelo = "props/FarmCrate_Carrot.gltf"
+tam3 = Vector3(0.18, 0.2264496, 0.16508497)
+
+[node name="FarmCrate_Apple" type="Node3D" parent="Edificios/building_restaurant/Muebles" unique_id=1320193268]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.57, 0.075483195, 1.5800991)
+script = ExtResource("4_l6ly0")
+clave = "building_restaurant#0|FarmCrate_Apple|11|-44"
+pos_original = Vector2(11, -44)
+local_original = Vector3(2.57, 0.075483195, 1.5800991)
+modelo = "props/FarmCrate_Apple.gltf"
+tam3 = Vector3(0.18, 0.2264496, 0.16508497)
+
+[node name="Barrel_Apples" type="Node3D" parent="Edificios/building_restaurant/Muebles" unique_id=869691521]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.4499999, 0.075483195, 1.9574363)
+script = ExtResource("4_l6ly0")
+clave = "building_restaurant#0|Barrel_Apples|-45|-28"
+pos_original = Vector2(-45, -28)
+local_original = Vector3(1.4499999, 0.075483195, 1.9574363)
+modelo = "props/Barrel_Apples.gltf"
+tam3 = Vector3(0.16, 0.33967438, 0.18866855)
+
+[node name="Crate_Metal" type="Node3D" parent="Edificios/building_restaurant/Muebles" unique_id=1790466192]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.53, 0.075483195, -0.91975904)
+script = ExtResource("4_l6ly0")
+clave = "building_restaurant#0|Crate_Metal|9|-150"
+pos_original = Vector2(9, -150)
+local_original = Vector3(2.53, 0.075483195, -0.91975904)
+modelo = "props/Crate_Metal.gltf"
+tam3 = Vector3(0.2, 0.30193278, 0.23583569)
+
+[node name="Barrel" type="Node3D" parent="Edificios/building_restaurant/Muebles" unique_id=781667187]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.83000016, 0.075483195, -1.1084275)
+script = ExtResource("4_l6ly0")
+clave = "building_restaurant#0|Barrel|-159|-158"
+pos_original = Vector2(-159, -158)
+local_original = Vector3(-0.83000016, 0.075483195, -1.1084275)
+modelo = "props/Barrel.gltf"
+tam3 = Vector3(0.2, 0.4151576, 0.23583569)
+
+[node name="Barrel2" type="Node3D" parent="Edificios/building_restaurant/Muebles" unique_id=197176564]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.83000016, 0.075483195, -0.7782576)
+script = ExtResource("4_l6ly0")
+clave = "building_restaurant#0|Barrel|-159|-144"
+pos_original = Vector2(-159, -144)
+local_original = Vector3(-0.83000016, 0.075483195, -0.7782576)
+modelo = "props/Barrel.gltf"
+tam3 = Vector3(0.2, 0.4151576, 0.23583569)
+
+[node name="Barrel3" type="Node3D" parent="Edificios/building_restaurant/Muebles" unique_id=74624418]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.1500001, 0.075483195, -1.1084275)
+script = ExtResource("4_l6ly0")
+clave = "building_restaurant#0|Barrel|-125|-158"
+pos_original = Vector2(-125, -158)
+local_original = Vector3(-0.1500001, 0.075483195, -1.1084275)
+modelo = "props/Barrel.gltf"
+tam3 = Vector3(0.2, 0.4151576, 0.23583569)
+
+[node name="Shelf_Simple" type="Node3D" parent="Edificios/building_restaurant/Muebles" unique_id=1855312906]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.51, 0.075483195, -2.0046031)
+script = ExtResource("4_l6ly0")
+clave = "building_restaurant#0|Shelf_Simple|-143|-196"
+pos_original = Vector2(-143, -196)
+local_original = Vector3(-0.51, 0.075483195, -2.0046031)
+modelo = "props/Shelf_Simple.gltf"
+tam3 = Vector3(0.6, 0.75483197, 0.14150141)
+
+[node name="Workbench2" type="Node3D" parent="Edificios/building_restaurant/Muebles" unique_id=1514357484]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.44999993, 0.075483195, -1.5800989)
+script = ExtResource("4_l6ly0")
+clave = "building_restaurant#0|Workbench|-95|-178"
+pos_original = Vector2(-95, -178)
+local_original = Vector3(0.44999993, 0.075483195, -1.5800989)
+modelo = "props/Workbench.gltf"
+tam3 = Vector3(0.36, 0.33967438, 0.23583569)
+
+[node name="Chair_11" type="Node3D" parent="Edificios/building_restaurant/Muebles" unique_id=237898594]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.44999993, 0.075483195, -1.8395183)
+script = ExtResource("4_l6ly0")
+clave = "building_restaurant#0|Chair_1|-95|-189"
+pos_original = Vector2(-95, -189)
+local_original = Vector3(0.44999993, 0.075483195, -1.8395183)
+modelo = "props/Chair_1.gltf"
+tam3 = Vector3(0.12, 0.32080358, 0.14150141)
+
+[node name="Chair_12" type="Node3D" parent="Edificios/building_restaurant/Muebles" unique_id=1836856745]
+transform = Transform3D(-1, 0, -8.742278e-08, 0, 1, 0, 8.742278e-08, 0, -1, 0.44999993, 0.075483195, -1.367847)
+script = ExtResource("4_l6ly0")
+clave = "building_restaurant#0|Chair_1|-95|-169"
+pos_original = Vector2(-95, -169)
+local_original = Vector3(0.44999993, 0.075483195, -1.367847)
+giro_original = 180.0
+modelo = "props/Chair_1.gltf"
+tam3 = Vector3(0.12, 0.32080358, 0.14150141)
+
+[node name="Shelf_Simple2" type="Node3D" parent="Edificios/building_restaurant/Muebles" unique_id=401670979]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.2099998, 0.075483195, -2.0517704)
+script = ExtResource("4_l6ly0")
+clave = "building_restaurant#0|Shelf_Simple|-107|-198"
+pos_original = Vector2(-107, -198)
+local_original = Vector3(0.2099998, 0.075483195, -2.0517704)
+modelo = "props/Shelf_Simple.gltf"
+tam3 = Vector3(0.24, 0.67934877, 0.11791784)
+
+[node name="Nightstand_Shelf" type="Node3D" parent="Edificios/building_restaurant/Muebles" unique_id=1901321007]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.2099998, 0.075483195, -1.1555948)
+script = ExtResource("4_l6ly0")
+clave = "building_restaurant#0|Nightstand_Shelf|-107|-160"
+pos_original = Vector2(-107, -160)
+local_original = Vector3(0.2099998, 0.075483195, -1.1555948)
+modelo = "props/Nightstand_Shelf.gltf"
+tam3 = Vector3(0.14, 0.30193278, 0.14150141)
+
+[node name="Chair_13" type="Node3D" parent="Edificios/building_restaurant/Muebles" unique_id=1989708442]
+transform = Transform3D(-1, 0, -8.742278e-08, 0, 1, 0, 8.742278e-08, 0, -1, -1.9100003, 0.075483195, -0.93155074)
+script = ExtResource("4_l6ly0")
+clave = "building_restaurant#0|Chair_1|-213|-151"
+pos_original = Vector2(-213, -150.5)
+local_original = Vector3(-1.9100003, 0.075483195, -0.93155074)
+giro_original = 180.0
+modelo = "props/Chair_1.gltf"
+tam3 = Vector3(0.12, 0.32080358, 0.14150141)
+
+[node name="Chair_14" type="Node3D" parent="Edificios/building_restaurant/Muebles" unique_id=452676625]
+transform = Transform3D(-0.3090166, 0, 0.95105666, 0, 1, 0, -0.95105666, 0, -0.3090166, -2.3189545, 0.075483195, -1.2819116)
+script = ExtResource("4_l6ly0")
+clave = "building_restaurant#0|Chair_1|-233|-165"
+pos_original = Vector2(-233.44772, -165.35614)
+local_original = Vector3(-2.3189545, 0.075483195, -1.2819116)
+giro_original = 107.99997919483651
+modelo = "props/Chair_1.gltf"
+tam3 = Vector3(0.12, 0.32080358, 0.14150141)
+
+[node name="Chair_15" type="Node3D" parent="Edificios/building_restaurant/Muebles" unique_id=1889762596]
+transform = Transform3D(0.80901676, 0, 0.58778554, 0, 1, 0, -0.58778554, 0, 0.80901676, -2.1627479, 0.075483195, -1.8488066)
+script = ExtResource("4_l6ly0")
+clave = "building_restaurant#0|Chair_1|-226|-189"
+pos_original = Vector2(-225.63739, -189.39386)
+local_original = Vector3(-2.1627479, 0.075483195, -1.8488066)
+giro_original = 36.00002418967374
+modelo = "props/Chair_1.gltf"
+tam3 = Vector3(0.12, 0.32080358, 0.14150141)
+
+[node name="Chair_16" type="Node3D" parent="Edificios/building_restaurant/Muebles" unique_id=231594810]
+transform = Transform3D(0.80901676, 0, -0.58778554, 0, 1, 0, 0.58778554, 0, 0.80901676, -1.6572523, 0.075483195, -1.8488066)
+script = ExtResource("4_l6ly0")
+clave = "building_restaurant#0|Chair_1|-200|-189"
+pos_original = Vector2(-200.36261, -189.39386)
+local_original = Vector3(-1.6572523, 0.075483195, -1.8488066)
+giro_original = -36.00002418967374
+modelo = "props/Chair_1.gltf"
+tam3 = Vector3(0.12, 0.32080358, 0.14150141)
+
+[node name="Chair_17" type="Node3D" parent="Edificios/building_restaurant/Muebles" unique_id=411384588]
+transform = Transform3D(-0.3090166, 0, -0.95105666, 0, 1, 0, 0.95105666, 0, -0.3090166, -1.5010457, 0.075483195, -1.2819116)
+script = ExtResource("4_l6ly0")
+clave = "building_restaurant#0|Chair_1|-193|-165"
+pos_original = Vector2(-192.55228, -165.35614)
+local_original = Vector3(-1.5010457, 0.075483195, -1.2819116)
+giro_original = -107.99997919483651
+modelo = "props/Chair_1.gltf"
+tam3 = Vector3(0.12, 0.32080358, 0.14150141)
+
+[node name="Chair_18" type="Node3D" parent="Edificios/building_restaurant/Muebles" unique_id=957957373]
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, -2.56, 0.075483195, 2.853612)
+script = ExtResource("4_l6ly0")
+clave = "building_restaurant#0|Chair_1|-246|10"
+pos_original = Vector2(-245.5, 10)
+local_original = Vector3(-2.56, 0.075483195, 2.853612)
+giro_original = 90.0
+modelo = "props/Chair_1.gltf"
+tam3 = Vector3(0.12, 0.32080358, 0.14150141)
+
+[node name="Chair_19" type="Node3D" parent="Edificios/building_restaurant/Muebles" unique_id=354082377]
+transform = Transform3D(-4.371139e-08, 0, -1, 0, 1, 0, 1, 0, -4.371139e-08, -2.06, 0.075483195, 2.853612)
+script = ExtResource("4_l6ly0")
+clave = "building_restaurant#0|Chair_1|-221|10"
+pos_original = Vector2(-220.5, 10)
+local_original = Vector3(-2.06, 0.075483195, 2.853612)
+giro_original = -90.0
+modelo = "props/Chair_1.gltf"
+tam3 = Vector3(0.12, 0.32080358, 0.14150141)
+
+[node name="Chair_20" type="Node3D" parent="Edificios/building_restaurant/Muebles" unique_id=1197258070]
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, -1.8000002, 0.075483195, 2.853612)
+script = ExtResource("4_l6ly0")
+clave = "building_restaurant#0|Chair_1|-208|10"
+pos_original = Vector2(-207.5, 10)
+local_original = Vector3(-1.8000002, 0.075483195, 2.853612)
+giro_original = 90.0
+modelo = "props/Chair_1.gltf"
+tam3 = Vector3(0.12, 0.32080358, 0.14150141)
+
+[node name="Chair_21" type="Node3D" parent="Edificios/building_restaurant/Muebles" unique_id=93940106]
+transform = Transform3D(-4.371139e-08, 0, -1, 0, 1, 0, 1, 0, -4.371139e-08, -1.3000002, 0.075483195, 2.853612)
+script = ExtResource("4_l6ly0")
+clave = "building_restaurant#0|Chair_1|-183|10"
+pos_original = Vector2(-182.5, 10)
+local_original = Vector3(-1.3000002, 0.075483195, 2.853612)
+giro_original = -90.0
+modelo = "props/Chair_1.gltf"
+tam3 = Vector3(0.12, 0.32080358, 0.14150141)
+
+[node name="Chair_22" type="Node3D" parent="Edificios/building_restaurant/Muebles" unique_id=1635484287]
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, -0.10000014, 0.075483195, 2.853612)
+script = ExtResource("4_l6ly0")
+clave = "building_restaurant#0|Chair_1|-123|10"
+pos_original = Vector2(-122.5, 10)
+local_original = Vector3(-0.10000014, 0.075483195, 2.853612)
+giro_original = 90.0
+modelo = "props/Chair_1.gltf"
+tam3 = Vector3(0.12, 0.32080358, 0.14150141)
+
+[node name="Chair_23" type="Node3D" parent="Edificios/building_restaurant/Muebles" unique_id=328453588]
+transform = Transform3D(-4.371139e-08, 0, -1, 0, 1, 0, 1, 0, -4.371139e-08, 0.39999986, 0.075483195, 2.853612)
+script = ExtResource("4_l6ly0")
+clave = "building_restaurant#0|Chair_1|-98|10"
+pos_original = Vector2(-97.5, 10)
+local_original = Vector3(0.39999986, 0.075483195, 2.853612)
+giro_original = -90.0
+modelo = "props/Chair_1.gltf"
+tam3 = Vector3(0.12, 0.32080358, 0.14150141)
+
+[node name="Chair_24" type="Node3D" parent="Edificios/building_restaurant/Muebles" unique_id=1384467965]
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, 0.6999999, 0.075483195, 2.853612)
+script = ExtResource("4_l6ly0")
+clave = "building_restaurant#0|Chair_1|-83|10"
+pos_original = Vector2(-82.5, 10)
+local_original = Vector3(0.6999999, 0.075483195, 2.853612)
+giro_original = 90.0
+modelo = "props/Chair_1.gltf"
+tam3 = Vector3(0.12, 0.32080358, 0.14150141)
+
+[node name="Chair_25" type="Node3D" parent="Edificios/building_restaurant/Muebles" unique_id=2072212930]
+transform = Transform3D(-4.371139e-08, 0, -1, 0, 1, 0, 1, 0, -4.371139e-08, 1.1999999, 0.075483195, 2.853612)
+script = ExtResource("4_l6ly0")
+clave = "building_restaurant#0|Chair_1|-58|10"
+pos_original = Vector2(-57.5, 10)
+local_original = Vector3(1.1999999, 0.075483195, 2.853612)
+giro_original = -90.0
+modelo = "props/Chair_1.gltf"
+tam3 = Vector3(0.12, 0.32080358, 0.14150141)
+
+[node name="Chair_26" type="Node3D" parent="Edificios/building_restaurant/Muebles" unique_id=516829807]
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, 1.5999999, 0.075483195, 2.853612)
+script = ExtResource("4_l6ly0")
+clave = "building_restaurant#0|Chair_1|-38|10"
+pos_original = Vector2(-37.5, 10)
+local_original = Vector3(1.5999999, 0.075483195, 2.853612)
+giro_original = 90.0
+modelo = "props/Chair_1.gltf"
+tam3 = Vector3(0.12, 0.32080358, 0.14150141)
+
+[node name="Chair_27" type="Node3D" parent="Edificios/building_restaurant/Muebles" unique_id=1461220597]
+transform = Transform3D(-4.371139e-08, 0, -1, 0, 1, 0, 1, 0, -4.371139e-08, 2.1, 0.075483195, 2.853612)
+script = ExtResource("4_l6ly0")
+clave = "building_restaurant#0|Chair_1|-13|10"
+pos_original = Vector2(-12.5, 10)
+local_original = Vector3(2.1, 0.075483195, 2.853612)
+giro_original = -90.0
+modelo = "props/Chair_1.gltf"
+tam3 = Vector3(0.12, 0.32080358, 0.14150141)
+
 [node name="mixed_family_baker" type="Node3D" parent="Edificios" unique_id=762917573]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 9.48, 0.15851471, -10.023016)
 script = ExtResource("3_jgq7j")
 id_edificio = "mixed_family_baker"
 centro_original = Vector2(474, -425)
 origen_3d = Vector3(9.48, 0.15851471, -10.023016)
+
+[node name="Muebles" type="Node3D" parent="Edificios/mixed_family_baker" unique_id=269531259]
+
+[node name="Workbench" type="Node3D" parent="Edificios/mixed_family_baker/Muebles" unique_id=1623001524]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.0754832, 0.23583508)
+script = ExtResource("4_l6ly0")
+clave = "mixed_family_baker#0|Workbench|474|-415"
+pos_original = Vector2(474, -415)
+local_original = Vector3(0, 0.0754832, 0.23583508)
+modelo = "props/Workbench.gltf"
+tam3 = Vector3(0.48, 0.32080358, 0.24762747)
+
+[node name="Cabinet" type="Node3D" parent="Edificios/mixed_family_baker/Muebles" unique_id=153412269]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.5199995, 0.0754832, 0.3773365)
+script = ExtResource("4_l6ly0")
+clave = "mixed_family_baker#0|Cabinet|448|-409"
+pos_original = Vector2(448, -409)
+local_original = Vector3(-0.5199995, 0.0754832, 0.3773365)
+modelo = "props/Cabinet.gltf"
+tam3 = Vector3(0.28, 0.4906408, 0.21225211)
+
+[node name="Bed_Twin1" type="Node3D" parent="Edificios/mixed_family_baker/Muebles" unique_id=1368237455]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.7199993, 0.0754832, -0.6131735)
+script = ExtResource("4_l6ly0")
+clave = "mixed_family_baker#0|Bed_Twin1|438|-451"
+pos_original = Vector2(438, -451)
+local_original = Vector3(-0.7199993, 0.0754832, -0.6131735)
+modelo = "props/Bed_Twin1.gltf"
+tam3 = Vector3(0.3, 0.32080358, 0.49525493)
+
+[node name="Bed_Twin2" type="Node3D" parent="Edificios/mixed_family_baker/Muebles" unique_id=486053369]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.72000027, 0.0754832, -0.6131735)
+script = ExtResource("4_l6ly0")
+clave = "mixed_family_baker#0|Bed_Twin1|510|-451"
+pos_original = Vector2(510, -451)
+local_original = Vector3(0.72000027, 0.0754832, -0.6131735)
+modelo = "props/Bed_Twin1.gltf"
+tam3 = Vector3(0.3, 0.32080358, 0.49525493)
+
+[node name="Table_Large" type="Node3D" parent="Edificios/mixed_family_baker/Muebles" unique_id=1307676545]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.0754832, -0.5660057)
+script = ExtResource("4_l6ly0")
+clave = "mixed_family_baker#0|Table_Large|474|-449"
+pos_original = Vector2(474, -449)
+local_original = Vector3(0, 0.0754832, -0.5660057)
+modelo = "props/Table_Large.gltf"
+tam3 = Vector3(0.36, 0.26419118, 0.28300282)
 
 [node name="mixed_family_tailor" type="Node3D" parent="Edificios" unique_id=1690385396]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 12.12, 0.15851471, -10.140934)
@@ -9505,12 +11151,97 @@ id_edificio = "mixed_family_tailor"
 centro_original = Vector2(606, -430)
 origen_3d = Vector3(12.12, 0.15851471, -10.140934)
 
+[node name="Muebles" type="Node3D" parent="Edificios/mixed_family_tailor" unique_id=1185370298]
+
+[node name="Workbench" type="Node3D" parent="Edificios/mixed_family_tailor/Muebles" unique_id=1933496738]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.0754832, 0.23583508)
+script = ExtResource("4_l6ly0")
+clave = "mixed_family_tailor#0|Workbench|606|-420"
+pos_original = Vector2(606, -420)
+local_original = Vector3(0, 0.0754832, 0.23583508)
+modelo = "props/Workbench.gltf"
+tam3 = Vector3(0.48, 0.32080358, 0.24762747)
+
+[node name="Cabinet" type="Node3D" parent="Edificios/mixed_family_tailor/Muebles" unique_id=363387708]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.5199995, 0.0754832, 0.3773365)
+script = ExtResource("4_l6ly0")
+clave = "mixed_family_tailor#0|Cabinet|580|-414"
+pos_original = Vector2(580, -414)
+local_original = Vector3(-0.5199995, 0.0754832, 0.3773365)
+modelo = "props/Cabinet.gltf"
+tam3 = Vector3(0.28, 0.4906408, 0.21225211)
+
+[node name="Bed_Twin1" type="Node3D" parent="Edificios/mixed_family_tailor/Muebles" unique_id=1917843240]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.72000027, 0.0754832, -0.6131735)
+script = ExtResource("4_l6ly0")
+clave = "mixed_family_tailor#0|Bed_Twin1|570|-456"
+pos_original = Vector2(570, -456)
+local_original = Vector3(-0.72000027, 0.0754832, -0.6131735)
+modelo = "props/Bed_Twin1.gltf"
+tam3 = Vector3(0.3, 0.32080358, 0.49525493)
+
+[node name="Bed_Twin2" type="Node3D" parent="Edificios/mixed_family_tailor/Muebles" unique_id=1717071619]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.72000027, 0.0754832, -0.6131735)
+script = ExtResource("4_l6ly0")
+clave = "mixed_family_tailor#0|Bed_Twin1|642|-456"
+pos_original = Vector2(642, -456)
+local_original = Vector3(0.72000027, 0.0754832, -0.6131735)
+modelo = "props/Bed_Twin1.gltf"
+tam3 = Vector3(0.3, 0.32080358, 0.49525493)
+
+[node name="Table_Large" type="Node3D" parent="Edificios/mixed_family_tailor/Muebles" unique_id=1961572540]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.0754832, -0.5660057)
+script = ExtResource("4_l6ly0")
+clave = "mixed_family_tailor#0|Table_Large|606|-454"
+pos_original = Vector2(606, -454)
+local_original = Vector3(0, 0.0754832, -0.5660057)
+modelo = "props/Table_Large.gltf"
+tam3 = Vector3(0.36, 0.26419118, 0.28300282)
+
 [node name="building_town_hall" type="Node3D" parent="Edificios" unique_id=1562895561]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 15.2, 0.15851471, -10.140934)
 script = ExtResource("3_jgq7j")
 id_edificio = "building_town_hall"
 centro_original = Vector2(760, -430)
 origen_3d = Vector3(15.2, 0.15851471, -10.140934)
+
+[node name="Muebles" type="Node3D" parent="Edificios/building_town_hall" unique_id=480665501]
+
+[node name="Table_Large" type="Node3D" parent="Edificios/building_town_hall/Muebles" unique_id=1575089788]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.0754832, -0.5660057)
+script = ExtResource("4_l6ly0")
+clave = "building_town_hall#0|Table_Large|760|-454"
+pos_original = Vector2(760, -454)
+local_original = Vector3(0, 0.0754832, -0.5660057)
+modelo = "props/Table_Large.gltf"
+tam3 = Vector3(0.52, 0.3094811, 0.30658638)
+
+[node name="Cabinet" type="Node3D" parent="Edificios/building_town_hall/Muebles" unique_id=2021483081]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.84000015, 0.0754832, 0.14150143)
+script = ExtResource("4_l6ly0")
+clave = "building_town_hall#0|Cabinet|718|-424"
+pos_original = Vector2(718, -424)
+local_original = Vector3(-0.84000015, 0.0754832, 0.14150143)
+modelo = "props/Cabinet.gltf"
+tam3 = Vector3(0.32, 0.4528992, 0.23583569)
+
+[node name="Bookcase_2" type="Node3D" parent="Edificios/building_town_hall/Muebles" unique_id=879927746]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.72000027, 0.0754832, 0.14150143)
+script = ExtResource("4_l6ly0")
+clave = "building_town_hall#0|Bookcase_2|796|-424"
+pos_original = Vector2(796, -424)
+local_original = Vector3(0.72000027, 0.0754832, 0.14150143)
+modelo = "props/Bookcase_2.gltf"
+tam3 = Vector3(0.36, 0.56612396, 0.21225211)
+
+[node name="Table_Large2" type="Node3D" parent="Edificios/building_town_hall/Muebles" unique_id=520250397]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.84000015, 0.0754832, -0.28300285)
+script = ExtResource("4_l6ly0")
+clave = "building_town_hall#0|Table_Large|718|-442"
+pos_original = Vector2(718, -442)
+local_original = Vector3(-0.84000015, 0.0754832, -0.28300285)
+modelo = "props/Table_Large.gltf"
+tam3 = Vector3(0.4, 0.30193278, 0.28300282)
 
 [node name="building_library" type="Node3D" parent="Edificios" unique_id=515911197]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 18.28, 0.15851471, -10.140934)
@@ -9519,12 +11250,215 @@ id_edificio = "building_library"
 centro_original = Vector2(914, -430)
 origen_3d = Vector3(18.28, 0.15851471, -10.140934)
 
+[node name="Muebles" type="Node3D" parent="Edificios/building_library" unique_id=1822076048]
+
+[node name="Bookcase_2" type="Node3D" parent="Edificios/building_library/Muebles" unique_id=687747773]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.88000107, 0.0754832, -0.84900856)
+script = ExtResource("4_l6ly0")
+clave = "building_library#0|Bookcase_2|870|-466"
+pos_original = Vector2(870, -466)
+local_original = Vector3(-0.88000107, 0.0754832, -0.84900856)
+modelo = "props/Bookcase_2.gltf"
+tam3 = Vector3(0.4, 0.81144434, 0.16508497)
+
+[node name="Bookcase_3" type="Node3D" parent="Edificios/building_library/Muebles" unique_id=241947235]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.3600006, 0.0754832, -0.84900856)
+script = ExtResource("4_l6ly0")
+clave = "building_library#0|Bookcase_2|896|-466"
+pos_original = Vector2(896, -466)
+local_original = Vector3(-0.3600006, 0.0754832, -0.84900856)
+modelo = "props/Bookcase_2.gltf"
+tam3 = Vector3(0.4, 0.81144434, 0.16508497)
+
+[node name="Bookcase_4" type="Node3D" parent="Edificios/building_library/Muebles" unique_id=2031762952]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.15999985, 0.0754832, -0.84900856)
+script = ExtResource("4_l6ly0")
+clave = "building_library#0|Bookcase_2|922|-466"
+pos_original = Vector2(922, -466)
+local_original = Vector3(0.15999985, 0.0754832, -0.84900856)
+modelo = "props/Bookcase_2.gltf"
+tam3 = Vector3(0.4, 0.81144434, 0.16508497)
+
+[node name="Bookcase_5" type="Node3D" parent="Edificios/building_library/Muebles" unique_id=156437963]
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, -1.0600014, 0.0754832, -0.33017063)
+script = ExtResource("4_l6ly0")
+clave = "building_library#0|Bookcase_2|861|-444"
+pos_original = Vector2(861, -444)
+local_original = Vector3(-1.0600014, 0.0754832, -0.33017063)
+giro_original = 90.0
+modelo = "props/Bookcase_2.gltf"
+tam3 = Vector3(0.36, 0.75483197, 0.16508497)
+
+[node name="Table_Large" type="Node3D" parent="Edificios/building_library/Muebles" unique_id=667393119]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.15999985, 0.0754832, -0.37733746)
+script = ExtResource("4_l6ly0")
+clave = "building_library#0|Table_Large|906|-446"
+pos_original = Vector2(906, -446)
+local_original = Vector3(-0.15999985, 0.0754832, -0.37733746)
+modelo = "props/Table_Large.gltf"
+tam3 = Vector3(0.44, 0.28683615, 0.2947946)
+
+[node name="Chair_1" type="Node3D" parent="Edificios/building_library/Muebles" unique_id=88176120]
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, -0.460001, 0.0754832, -0.37733746)
+script = ExtResource("4_l6ly0")
+clave = "building_library#0|Chair_1|891|-446"
+pos_original = Vector2(891, -446)
+local_original = Vector3(-0.460001, 0.0754832, -0.37733746)
+giro_original = 90.0
+modelo = "props/Chair_1.gltf"
+tam3 = Vector3(0.12, 0.32080358, 0.14150141)
+
+[node name="Chair_2" type="Node3D" parent="Edificios/building_library/Muebles" unique_id=1215403169]
+transform = Transform3D(-4.371139e-08, 0, -1, 0, 1, 0, 1, 0, -4.371139e-08, 0.13999939, 0.0754832, -0.37733746)
+script = ExtResource("4_l6ly0")
+clave = "building_library#0|Chair_1|921|-446"
+pos_original = Vector2(921, -446)
+local_original = Vector3(0.13999939, 0.0754832, -0.37733746)
+giro_original = -90.0
+modelo = "props/Chair_1.gltf"
+tam3 = Vector3(0.12, 0.32080358, 0.14150141)
+
+[node name="Chair_3" type="Node3D" parent="Edificios/building_library/Muebles" unique_id=401607897]
+transform = Transform3D(-0.88583153, 0, 0.46400702, 0, 1, 0, -0.46400702, 0, -0.88583153, -0.27000046, 0.0754832, -0.1297102)
+script = ExtResource("4_l6ly0")
+clave = "building_library#0|Chair_1|901|-436"
+pos_original = Vector2(900.5, -435.5)
+local_original = Vector3(-0.27000046, 0.0754832, -0.1297102)
+giro_original = 152.35402463626133
+modelo = "props/Chair_1.gltf"
+tam3 = Vector3(0.12, 0.32080358, 0.14150141)
+
+[node name="Chair_4" type="Node3D" parent="Edificios/building_library/Muebles" unique_id=646047242]
+transform = Transform3D(-0.88583153, 0, -0.46400702, 0, 1, 0, 0.46400702, 0, -0.88583153, -0.050001144, 0.0754832, -0.1297102)
+script = ExtResource("4_l6ly0")
+clave = "building_library#0|Chair_1|912|-436"
+pos_original = Vector2(911.5, -435.5)
+local_original = Vector3(-0.050001144, 0.0754832, -0.1297102)
+giro_original = -152.35402463626133
+modelo = "props/Chair_1.gltf"
+tam3 = Vector3(0.12, 0.32080358, 0.14150141)
+
+[node name="BookStand" type="Node3D" parent="Edificios/building_library/Muebles" unique_id=178614365]
+transform = Transform3D(0.9396926, 0, 0.34202012, 0, 1, 0, -0.34202012, 0, 0.9396926, -0.6100006, 0.0754832, -0.49525547)
+script = ExtResource("4_l6ly0")
+clave = "building_library#0|BookStand|884|-451"
+pos_original = Vector2(883.5, -451)
+local_original = Vector3(-0.6100006, 0.0754832, -0.49525547)
+giro_original = 20.0
+modelo = "props/BookStand.gltf"
+tam3 = Vector3(0.15, 0.4151576, 0.17687675)
+
+[node name="Workbench" type="Node3D" parent="Edificios/building_library/Muebles" unique_id=1179705751]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.7200012, 0.0754832, 0.42450428)
+script = ExtResource("4_l6ly0")
+clave = "building_library#0|Workbench|878|-412"
+pos_original = Vector2(878, -412)
+local_original = Vector3(-0.7200012, 0.0754832, 0.42450428)
+modelo = "props/Workbench.gltf"
+tam3 = Vector3(0.36, 0.3094811, 0.22404389)
+
+[node name="Chair_5" type="Node3D" parent="Edificios/building_library/Muebles" unique_id=819955817]
+transform = Transform3D(-1, 0, -8.742278e-08, 0, 1, 0, 8.742278e-08, 0, -1, -0.7200012, 0.0754832, 0.66033936)
+script = ExtResource("4_l6ly0")
+clave = "building_library#0|Chair_1|878|-402"
+pos_original = Vector2(878, -402)
+local_original = Vector3(-0.7200012, 0.0754832, 0.66033936)
+giro_original = 180.0
+modelo = "props/Chair_1.gltf"
+tam3 = Vector3(0.12, 0.32080358, 0.14150141)
+
+[node name="Cabinet" type="Node3D" parent="Edificios/building_library/Muebles" unique_id=1851880514]
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, -1.0600014, 0.0754832, 0.70750713)
+script = ExtResource("4_l6ly0")
+clave = "building_library#0|Cabinet|861|-400"
+pos_original = Vector2(861, -400)
+local_original = Vector3(-1.0600014, 0.0754832, 0.70750713)
+giro_original = 90.0
+modelo = "props/Cabinet.gltf"
+tam3 = Vector3(0.26, 0.5095116, 0.17687675)
+
+[node name="Table_Large2" type="Node3D" parent="Edificios/building_library/Muebles" unique_id=912622941]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.7199993, 0.0754832, 0.42450428)
+script = ExtResource("4_l6ly0")
+clave = "building_library#0|Table_Large|950|-412"
+pos_original = Vector2(950, -412)
+local_original = Vector3(0.7199993, 0.0754832, 0.42450428)
+modelo = "props/Table_Large.gltf"
+tam3 = Vector3(0.36, 0.28306198, 0.23583569)
+
+[node name="Chair_6" type="Node3D" parent="Edificios/building_library/Muebles" unique_id=1175335566]
+transform = Transform3D(-1, 0, -8.742278e-08, 0, 1, 0, 8.742278e-08, 0, -1, 0.7199993, 0.0754832, 0.67213154)
+script = ExtResource("4_l6ly0")
+clave = "building_library#0|Chair_1|950|-402"
+pos_original = Vector2(950, -401.5)
+local_original = Vector3(0.7199993, 0.0754832, 0.67213154)
+giro_original = 180.0
+modelo = "props/Chair_1.gltf"
+tam3 = Vector3(0.12, 0.32080358, 0.14150141)
+
+[node name="Nightstand_Shelf" type="Node3D" parent="Edificios/building_library/Muebles" unique_id=1334659892]
+transform = Transform3D(-4.371139e-08, 0, -1, 0, 1, 0, 1, 0, -4.371139e-08, 1.0599995, 0.0754832, 0.70750713)
+script = ExtResource("4_l6ly0")
+clave = "building_library#0|Nightstand_Shelf|967|-400"
+pos_original = Vector2(967, -400)
+local_original = Vector3(1.0599995, 0.0754832, 0.70750713)
+giro_original = -90.0
+modelo = "props/Nightstand_Shelf.gltf"
+tam3 = Vector3(0.16, 0.32080358, 0.15329319)
+
 [node name="mixed_family_candil" type="Node3D" parent="Edificios" unique_id=719539889]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 24.6, 0.19625631, -0.84900844)
 script = ExtResource("3_jgq7j")
 id_edificio = "mixed_family_candil"
 centro_original = Vector2(1230, -36)
 origen_3d = Vector3(24.6, 0.19625631, -0.84900844)
+
+[node name="Muebles" type="Node3D" parent="Edificios/mixed_family_candil" unique_id=1173498349]
+
+[node name="Workbench" type="Node3D" parent="Edificios/mixed_family_candil/Muebles" unique_id=504855354]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.0754832, 0.23583567)
+script = ExtResource("4_l6ly0")
+clave = "mixed_family_candil#0|Workbench|1230|-26"
+pos_original = Vector2(1230, -26)
+local_original = Vector3(0, 0.0754832, 0.23583567)
+modelo = "props/Workbench.gltf"
+tam3 = Vector3(0.48, 0.32080358, 0.24762747)
+
+[node name="Cabinet" type="Node3D" parent="Edificios/mixed_family_candil/Muebles" unique_id=314620079]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.52000046, 0.0754832, 0.37733707)
+script = ExtResource("4_l6ly0")
+clave = "mixed_family_candil#0|Cabinet|1204|-20"
+pos_original = Vector2(1204, -20)
+local_original = Vector3(-0.52000046, 0.0754832, 0.37733707)
+modelo = "props/Cabinet.gltf"
+tam3 = Vector3(0.28, 0.4906408, 0.21225211)
+
+[node name="Bed_Twin1" type="Node3D" parent="Edificios/mixed_family_candil/Muebles" unique_id=1918447999]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.7200012, 0.0754832, -0.61317277)
+script = ExtResource("4_l6ly0")
+clave = "mixed_family_candil#0|Bed_Twin1|1194|-62"
+pos_original = Vector2(1194, -62)
+local_original = Vector3(-0.7200012, 0.0754832, -0.61317277)
+modelo = "props/Bed_Twin1.gltf"
+tam3 = Vector3(0.3, 0.32080358, 0.49525493)
+
+[node name="Bed_Twin2" type="Node3D" parent="Edificios/mixed_family_candil/Muebles" unique_id=1982748280]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.7199993, 0.0754832, -0.61317277)
+script = ExtResource("4_l6ly0")
+clave = "mixed_family_candil#0|Bed_Twin1|1266|-62"
+pos_original = Vector2(1266, -62)
+local_original = Vector3(0.7199993, 0.0754832, -0.61317277)
+modelo = "props/Bed_Twin1.gltf"
+tam3 = Vector3(0.3, 0.32080358, 0.49525493)
+
+[node name="Table_Large" type="Node3D" parent="Edificios/mixed_family_candil/Muebles" unique_id=1775353982]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.0754832, -0.5660056)
+script = ExtResource("4_l6ly0")
+clave = "mixed_family_candil#0|Table_Large|1230|-60"
+pos_original = Vector2(1230, -60)
+local_original = Vector3(0, 0.0754832, -0.5660056)
+modelo = "props/Table_Large.gltf"
+tam3 = Vector3(0.36, 0.26419118, 0.28300282)
 
 [node name="building_school" type="Node3D" parent="Edificios" unique_id=32608064]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 28, 0.19625631, -0.84900844)
@@ -9533,12 +11467,106 @@ id_edificio = "building_school"
 centro_original = Vector2(1400, -36)
 origen_3d = Vector3(28, 0.19625631, -0.84900844)
 
+[node name="Muebles" type="Node3D" parent="Edificios/building_school" unique_id=1924103533]
+
+[node name="Bench" type="Node3D" parent="Edificios/building_school/Muebles" unique_id=1869641711]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.6000004, 0.0754832, -0.14150143)
+script = ExtResource("4_l6ly0")
+clave = "building_school#0|Bench|1370|-42"
+pos_original = Vector2(1370, -42)
+local_original = Vector3(-0.6000004, 0.0754832, -0.14150143)
+modelo = "props/Bench.gltf"
+tam3 = Vector3(0.32, 0.2453204, 0.21225211)
+
+[node name="Bench2" type="Node3D" parent="Edificios/building_school/Muebles" unique_id=874035192]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.0754832, -0.14150143)
+script = ExtResource("4_l6ly0")
+clave = "building_school#0|Bench|1400|-42"
+pos_original = Vector2(1400, -42)
+local_original = Vector3(0, 0.0754832, -0.14150143)
+modelo = "props/Bench.gltf"
+tam3 = Vector3(0.32, 0.2453204, 0.21225211)
+
+[node name="Bench3" type="Node3D" parent="Edificios/building_school/Muebles" unique_id=2096955605]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.6000004, 0.0754832, -0.14150143)
+script = ExtResource("4_l6ly0")
+clave = "building_school#0|Bench|1430|-42"
+pos_original = Vector2(1430, -42)
+local_original = Vector3(0.6000004, 0.0754832, -0.14150143)
+modelo = "props/Bench.gltf"
+tam3 = Vector3(0.32, 0.2453204, 0.21225211)
+
+[node name="Bench4" type="Node3D" parent="Edificios/building_school/Muebles" unique_id=1134351901]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.6000004, 0.0754832, -0.61317277)
+script = ExtResource("4_l6ly0")
+clave = "building_school#0|Bench|1370|-62"
+pos_original = Vector2(1370, -62)
+local_original = Vector3(-0.6000004, 0.0754832, -0.61317277)
+modelo = "props/Bench.gltf"
+tam3 = Vector3(0.32, 0.2453204, 0.21225211)
+
+[node name="Bench5" type="Node3D" parent="Edificios/building_school/Muebles" unique_id=1808538669]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.0754832, -0.61317277)
+script = ExtResource("4_l6ly0")
+clave = "building_school#0|Bench|1400|-62"
+pos_original = Vector2(1400, -62)
+local_original = Vector3(0, 0.0754832, -0.61317277)
+modelo = "props/Bench.gltf"
+tam3 = Vector3(0.32, 0.2453204, 0.21225211)
+
+[node name="Bench6" type="Node3D" parent="Edificios/building_school/Muebles" unique_id=412157705]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.6000004, 0.0754832, -0.61317277)
+script = ExtResource("4_l6ly0")
+clave = "building_school#0|Bench|1430|-62"
+pos_original = Vector2(1430, -62)
+local_original = Vector3(0.6000004, 0.0754832, -0.61317277)
+modelo = "props/Bench.gltf"
+tam3 = Vector3(0.32, 0.2453204, 0.21225211)
+
 [node name="building_shelter" type="Node3D" parent="Edificios" unique_id=1672323965]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 21.8, 0.19625631, 3.3016996)
 script = ExtResource("3_jgq7j")
 id_edificio = "building_shelter"
 centro_original = Vector2(1090, 140)
 origen_3d = Vector3(21.8, 0.19625631, 3.3016996)
+
+[node name="Muebles" type="Node3D" parent="Edificios/building_shelter" unique_id=385244337]
+
+[node name="Bed_Twin1" type="Node3D" parent="Edificios/building_shelter/Muebles" unique_id=616484643]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.84000015, 0.04660611, 0.47167134)
+script = ExtResource("4_l6ly0")
+clave = "building_shelter#0|Bed_Twin1|1048|160"
+pos_original = Vector2(1048, 160)
+local_original = Vector3(-0.84000015, 0.04660611, 0.47167134)
+modelo = "props/Bed_Twin1.gltf"
+tam3 = Vector3(0.3, 0.32080358, 0.49525493)
+
+[node name="Bed_Twin2" type="Node3D" parent="Edificios/building_shelter/Muebles" unique_id=2069054863]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.27999878, 0.0754832, 0.47167134)
+script = ExtResource("4_l6ly0")
+clave = "building_shelter#0|Bed_Twin1|1076|160"
+pos_original = Vector2(1076, 160)
+local_original = Vector3(-0.27999878, 0.0754832, 0.47167134)
+modelo = "props/Bed_Twin1.gltf"
+tam3 = Vector3(0.3, 0.32080358, 0.49525493)
+
+[node name="Bed_Twin3" type="Node3D" parent="Edificios/building_shelter/Muebles" unique_id=1460490730]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.2800007, 0.0754832, 0.47167134)
+script = ExtResource("4_l6ly0")
+clave = "building_shelter#0|Bed_Twin1|1104|160"
+pos_original = Vector2(1104, 160)
+local_original = Vector3(0.2800007, 0.0754832, 0.47167134)
+modelo = "props/Bed_Twin1.gltf"
+tam3 = Vector3(0.3, 0.32080358, 0.49525493)
+
+[node name="Bed_Twin4" type="Node3D" parent="Edificios/building_shelter/Muebles" unique_id=645947714]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.84000015, 0.0754832, 0.47167134)
+script = ExtResource("4_l6ly0")
+clave = "building_shelter#0|Bed_Twin1|1132|160"
+pos_original = Vector2(1132, 160)
+local_original = Vector3(0.84000015, 0.0754832, 0.47167134)
+modelo = "props/Bed_Twin1.gltf"
+tam3 = Vector3(0.3, 0.32080358, 0.49525493)
 
 [node name="mixed_family_tinker" type="Node3D" parent="Edificios" unique_id=2129730660]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 24.6, 0.19625631, 3.3016996)
@@ -9547,12 +11575,115 @@ id_edificio = "mixed_family_tinker"
 centro_original = Vector2(1230, 140)
 origen_3d = Vector3(24.6, 0.19625631, 3.3016996)
 
+[node name="Muebles" type="Node3D" parent="Edificios/mixed_family_tinker" unique_id=1847192260]
+
+[node name="Workbench" type="Node3D" parent="Edificios/mixed_family_tinker/Muebles" unique_id=320558398]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.0754832, -0.23583579)
+script = ExtResource("4_l6ly0")
+clave = "mixed_family_tinker#0|Workbench|1230|130"
+pos_original = Vector2(1230, 130)
+local_original = Vector3(0, 0.0754832, -0.23583579)
+modelo = "props/Workbench.gltf"
+tam3 = Vector3(0.48, 0.32080358, 0.24762747)
+
+[node name="Anvil" type="Node3D" parent="Edificios/mixed_family_tinker/Muebles" unique_id=1600953235]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.44000053, 0.0754832, -0.37733722)
+script = ExtResource("4_l6ly0")
+clave = "mixed_family_tinker#0|Anvil|1252|124"
+pos_original = Vector2(1252, 124)
+local_original = Vector3(0.44000053, 0.0754832, -0.37733722)
+modelo = "props/Anvil.gltf"
+tam3 = Vector3(0.18, 0.28306198, 0.16508497)
+
+[node name="Bed_Twin1" type="Node3D" parent="Edificios/mixed_family_tinker/Muebles" unique_id=1736527126]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.7200012, 0.0754832, 0.61317277)
+script = ExtResource("4_l6ly0")
+clave = "mixed_family_tinker#0|Bed_Twin1|1194|166"
+pos_original = Vector2(1194, 166)
+local_original = Vector3(-0.7200012, 0.0754832, 0.61317277)
+modelo = "props/Bed_Twin1.gltf"
+tam3 = Vector3(0.3, 0.32080358, 0.49525493)
+
+[node name="Bed_Twin2" type="Node3D" parent="Edificios/mixed_family_tinker/Muebles" unique_id=1708436725]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.7199993, 0.0754832, 0.61317277)
+script = ExtResource("4_l6ly0")
+clave = "mixed_family_tinker#0|Bed_Twin1|1266|166"
+pos_original = Vector2(1266, 166)
+local_original = Vector3(0.7199993, 0.0754832, 0.61317277)
+modelo = "props/Bed_Twin1.gltf"
+tam3 = Vector3(0.3, 0.32080358, 0.49525493)
+
+[node name="Table_Large" type="Node3D" parent="Edificios/mixed_family_tinker/Muebles" unique_id=1652002078]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.0754832, 0.56600547)
+script = ExtResource("4_l6ly0")
+clave = "mixed_family_tinker#0|Table_Large|1230|164"
+pos_original = Vector2(1230, 164)
+local_original = Vector3(0, 0.0754832, 0.56600547)
+modelo = "props/Table_Large.gltf"
+tam3 = Vector3(0.36, 0.26419118, 0.28300282)
+
+[node name="Table_Large2" type="Node3D" parent="Edificios/mixed_family_tinker/Muebles" unique_id=1535368600]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.84000015, 0.0754832, -0.42450428)
+script = ExtResource("4_l6ly0")
+clave = "mixed_family_tinker#0|Table_Large|1188|122"
+pos_original = Vector2(1188, 122)
+local_original = Vector3(-0.84000015, 0.0754832, -0.42450428)
+modelo = "props/Table_Large.gltf"
+tam3 = Vector3(0.44, 0.30193278, 0.33016995)
+
 [node name="mixed_family_farm" type="Node3D" parent="Edificios" unique_id=1520133491]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -5.4, -0.06793488, 11.084277)
 script = ExtResource("3_jgq7j")
 id_edificio = "mixed_family_farm"
 centro_original = Vector2(-270, 470)
 origen_3d = Vector3(-5.4, -0.06793488, 11.084277)
+
+[node name="Muebles" type="Node3D" parent="Edificios/mixed_family_farm" unique_id=1322205105]
+
+[node name="Workbench" type="Node3D" parent="Edificios/mixed_family_farm/Muebles" unique_id=1589492032]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.075483195, -0.23583603)
+script = ExtResource("4_l6ly0")
+clave = "mixed_family_farm#0|Workbench|-270|460"
+pos_original = Vector2(-270, 460)
+local_original = Vector3(0, 0.075483195, -0.23583603)
+modelo = "props/Workbench.gltf"
+tam3 = Vector3(0.48, 0.32080358, 0.24762747)
+
+[node name="Cabinet" type="Node3D" parent="Edificios/mixed_family_farm/Muebles" unique_id=1353505750]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.52, 0.075483195, -0.37733746)
+script = ExtResource("4_l6ly0")
+clave = "mixed_family_farm#0|Cabinet|-296|454"
+pos_original = Vector2(-296, 454)
+local_original = Vector3(-0.52, 0.075483195, -0.37733746)
+modelo = "props/Cabinet.gltf"
+tam3 = Vector3(0.28, 0.4906408, 0.21225211)
+
+[node name="Bed_Twin1" type="Node3D" parent="Edificios/mixed_family_farm/Muebles" unique_id=1594984593]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.7199998, 0.075483195, 0.61317253)
+script = ExtResource("4_l6ly0")
+clave = "mixed_family_farm#0|Bed_Twin1|-306|496"
+pos_original = Vector2(-306, 496)
+local_original = Vector3(-0.7199998, 0.075483195, 0.61317253)
+modelo = "props/Bed_Twin1.gltf"
+tam3 = Vector3(0.3, 0.32080358, 0.49525493)
+
+[node name="Bed_Twin2" type="Node3D" parent="Edificios/mixed_family_farm/Muebles" unique_id=1362313526]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.72000027, 0.075483195, 0.61317253)
+script = ExtResource("4_l6ly0")
+clave = "mixed_family_farm#0|Bed_Twin1|-234|496"
+pos_original = Vector2(-234, 496)
+local_original = Vector3(0.72000027, 0.075483195, 0.61317253)
+modelo = "props/Bed_Twin1.gltf"
+tam3 = Vector3(0.3, 0.32080358, 0.49525493)
+
+[node name="Table_Large" type="Node3D" parent="Edificios/mixed_family_farm/Muebles" unique_id=1659298090]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.075483195, 0.5660057)
+script = ExtResource("4_l6ly0")
+clave = "mixed_family_farm#0|Table_Large|-270|494"
+pos_original = Vector2(-270, 494)
+local_original = Vector3(0, 0.075483195, 0.5660057)
+modelo = "props/Table_Large.gltf"
+tam3 = Vector3(0.36, 0.26419118, 0.28300282)
 
 [node name="mixed_family_ranch" type="Node3D" parent="Edificios" unique_id=1462976219]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 5.959222, -0.06793488, 11.084277)
@@ -9561,12 +11692,106 @@ id_edificio = "mixed_family_ranch"
 centro_original = Vector2(240, 470)
 origen_3d = Vector3(4.8, -0.06793488, 11.084277)
 
+[node name="Muebles" type="Node3D" parent="Edificios/mixed_family_ranch" unique_id=1620351593]
+
+[node name="Workbench" type="Node3D" parent="Edificios/mixed_family_ranch/Muebles" unique_id=97308616]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.075483195, -0.23583603)
+script = ExtResource("4_l6ly0")
+clave = "mixed_family_ranch#0|Workbench|240|460"
+pos_original = Vector2(240, 460)
+local_original = Vector3(0, 0.075483195, -0.23583603)
+modelo = "props/Workbench.gltf"
+tam3 = Vector3(0.48, 0.32080358, 0.24762747)
+
+[node name="Cabinet" type="Node3D" parent="Edificios/mixed_family_ranch/Muebles" unique_id=1248839609]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.52, 0.075483195, -0.37733746)
+script = ExtResource("4_l6ly0")
+clave = "mixed_family_ranch#0|Cabinet|214|454"
+pos_original = Vector2(214, 454)
+local_original = Vector3(-0.52, 0.075483195, -0.37733746)
+modelo = "props/Cabinet.gltf"
+tam3 = Vector3(0.28, 0.4906408, 0.21225211)
+
+[node name="Bed_Twin1" type="Node3D" parent="Edificios/mixed_family_ranch/Muebles" unique_id=136187222]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.72000027, 0.075483195, 0.61317253)
+script = ExtResource("4_l6ly0")
+clave = "mixed_family_ranch#0|Bed_Twin1|204|496"
+pos_original = Vector2(204, 496)
+local_original = Vector3(-0.72000027, 0.075483195, 0.61317253)
+modelo = "props/Bed_Twin1.gltf"
+tam3 = Vector3(0.3, 0.32080358, 0.49525493)
+
+[node name="Bed_Twin2" type="Node3D" parent="Edificios/mixed_family_ranch/Muebles" unique_id=584315]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.7199998, 0.075483195, 0.61317253)
+script = ExtResource("4_l6ly0")
+clave = "mixed_family_ranch#0|Bed_Twin1|276|496"
+pos_original = Vector2(276, 496)
+local_original = Vector3(0.7199998, 0.075483195, 0.61317253)
+modelo = "props/Bed_Twin1.gltf"
+tam3 = Vector3(0.3, 0.32080358, 0.49525493)
+
+[node name="Table_Large" type="Node3D" parent="Edificios/mixed_family_ranch/Muebles" unique_id=368396749]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.075483195, 0.5660057)
+script = ExtResource("4_l6ly0")
+clave = "mixed_family_ranch#0|Table_Large|240|494"
+pos_original = Vector2(240, 494)
+local_original = Vector3(0, 0.075483195, 0.5660057)
+modelo = "props/Table_Large.gltf"
+tam3 = Vector3(0.36, 0.26419118, 0.28300282)
+
 [node name="mixed_family_quarry" type="Node3D" parent="Edificios" unique_id=1396251874]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -5.6, 0.13209559, -7.7825775)
 script = ExtResource("3_jgq7j")
 id_edificio = "mixed_family_quarry"
 centro_original = Vector2(-280, -330)
 origen_3d = Vector3(-5.6, 0.13209559, -7.7825775)
+
+[node name="Muebles" type="Node3D" parent="Edificios/mixed_family_quarry" unique_id=728731106]
+
+[node name="Workbench" type="Node3D" parent="Edificios/mixed_family_quarry/Muebles" unique_id=1134515715]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.0754832, 0.23583555)
+script = ExtResource("4_l6ly0")
+clave = "mixed_family_quarry#0|Workbench|-280|-320"
+pos_original = Vector2(-280, -320)
+local_original = Vector3(0, 0.0754832, 0.23583555)
+modelo = "props/Workbench.gltf"
+tam3 = Vector3(0.48, 0.32080358, 0.24762747)
+
+[node name="Cabinet" type="Node3D" parent="Edificios/mixed_family_quarry/Muebles" unique_id=1046022979]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.52, 0.0754832, 0.37733698)
+script = ExtResource("4_l6ly0")
+clave = "mixed_family_quarry#0|Cabinet|-306|-314"
+pos_original = Vector2(-306, -314)
+local_original = Vector3(-0.52, 0.0754832, 0.37733698)
+modelo = "props/Cabinet.gltf"
+tam3 = Vector3(0.28, 0.4906408, 0.21225211)
+
+[node name="Bed_Twin1" type="Node3D" parent="Edificios/mixed_family_quarry/Muebles" unique_id=369904361]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.72000027, 0.0754832, -0.61317253)
+script = ExtResource("4_l6ly0")
+clave = "mixed_family_quarry#0|Bed_Twin1|-316|-356"
+pos_original = Vector2(-316, -356)
+local_original = Vector3(-0.72000027, 0.0754832, -0.61317253)
+modelo = "props/Bed_Twin1.gltf"
+tam3 = Vector3(0.3, 0.32080358, 0.49525493)
+
+[node name="Bed_Twin2" type="Node3D" parent="Edificios/mixed_family_quarry/Muebles" unique_id=1950866816]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.7199998, 0.0754832, -0.61317253)
+script = ExtResource("4_l6ly0")
+clave = "mixed_family_quarry#0|Bed_Twin1|-244|-356"
+pos_original = Vector2(-244, -356)
+local_original = Vector3(0.7199998, 0.0754832, -0.61317253)
+modelo = "props/Bed_Twin1.gltf"
+tam3 = Vector3(0.3, 0.32080358, 0.49525493)
+
+[node name="Table_Large" type="Node3D" parent="Edificios/mixed_family_quarry/Muebles" unique_id=1694365479]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.0754832, -0.5660057)
+script = ExtResource("4_l6ly0")
+clave = "mixed_family_quarry#0|Table_Large|-280|-354"
+pos_original = Vector2(-280, -354)
+local_original = Vector3(0, 0.0754832, -0.5660057)
+modelo = "props/Table_Large.gltf"
+tam3 = Vector3(0.36, 0.26419118, 0.28300282)
 
 [node name="mixed_family_woodcutter" type="Node3D" parent="Edificios" unique_id=147919480]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -8.6, -0.06793488, 13.112464)
@@ -9575,12 +11800,115 @@ id_edificio = "mixed_family_woodcutter"
 centro_original = Vector2(-430, 556)
 origen_3d = Vector3(-8.6, -0.06793488, 13.112464)
 
+[node name="Muebles" type="Node3D" parent="Edificios/mixed_family_woodcutter" unique_id=1572232211]
+
+[node name="Workbench" type="Node3D" parent="Edificios/mixed_family_woodcutter/Muebles" unique_id=806702678]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.075483195, 0.23583603)
+script = ExtResource("4_l6ly0")
+clave = "mixed_family_woodcutter#0|Workbench|-430|566"
+pos_original = Vector2(-430, 566)
+local_original = Vector3(0, 0.075483195, 0.23583603)
+modelo = "props/Workbench.gltf"
+tam3 = Vector3(0.48, 0.32080358, 0.24762747)
+
+[node name="Cabinet" type="Node3D" parent="Edificios/mixed_family_woodcutter/Muebles" unique_id=1606872159]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.5199995, 0.09234591, 0.37733746)
+script = ExtResource("4_l6ly0")
+clave = "mixed_family_woodcutter#0|Cabinet|-456|572"
+pos_original = Vector2(-456, 572)
+local_original = Vector3(-0.5199995, 0.09234591, 0.37733746)
+modelo = "props/Cabinet.gltf"
+tam3 = Vector3(0.28, 0.4906408, 0.21225211)
+
+[node name="Bed_Twin1" type="Node3D" parent="Edificios/mixed_family_woodcutter/Muebles" unique_id=1787534381]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.7199993, 0.1043725, -0.61317253)
+script = ExtResource("4_l6ly0")
+clave = "mixed_family_woodcutter#0|Bed_Twin1|-466|530"
+pos_original = Vector2(-466, 530)
+local_original = Vector3(-0.7199993, 0.1043725, -0.61317253)
+modelo = "props/Bed_Twin1.gltf"
+tam3 = Vector3(0.3, 0.32080358, 0.49525493)
+
+[node name="Bed_Twin2" type="Node3D" parent="Edificios/mixed_family_woodcutter/Muebles" unique_id=1513927297]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.72000027, 0.075483195, -0.61317253)
+script = ExtResource("4_l6ly0")
+clave = "mixed_family_woodcutter#0|Bed_Twin1|-394|530"
+pos_original = Vector2(-394, 530)
+local_original = Vector3(0.72000027, 0.075483195, -0.61317253)
+modelo = "props/Bed_Twin1.gltf"
+tam3 = Vector3(0.3, 0.32080358, 0.49525493)
+
+[node name="Table_Large" type="Node3D" parent="Edificios/mixed_family_woodcutter/Muebles" unique_id=1377074265]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.075483195, -0.5660057)
+script = ExtResource("4_l6ly0")
+clave = "mixed_family_woodcutter#0|Table_Large|-430|532"
+pos_original = Vector2(-430, 532)
+local_original = Vector3(0, 0.075483195, -0.5660057)
+modelo = "props/Table_Large.gltf"
+tam3 = Vector3(0.36, 0.26419118, 0.28300282)
+
 [node name="building_mansion" type="Node3D" parent="Edificios" unique_id=216072753]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 26.3, 0.15851471, -10.37677)
 script = ExtResource("3_jgq7j")
 id_edificio = "building_mansion"
 centro_original = Vector2(1315, -440)
 origen_3d = Vector3(26.3, 0.15851471, -10.37677)
+
+[node name="Muebles" type="Node3D" parent="Edificios/building_mansion" unique_id=821777026]
+
+[node name="Workbench" type="Node3D" parent="Edificios/building_mansion/Muebles" unique_id=31884700]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.79999924, 0.0754832, -0.0943346)
+script = ExtResource("4_l6ly0")
+clave = "building_mansion#0|Workbench|1275|-444"
+pos_original = Vector2(1275, -444)
+local_original = Vector3(-0.79999924, 0.0754832, -0.0943346)
+modelo = "props/Workbench.gltf"
+tam3 = Vector3(0.44, 0.3094811, 0.25941926)
+
+[node name="Chair_1" type="Node3D" parent="Edificios/building_mansion/Muebles" unique_id=803525534]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.79999924, 0.0754832, -0.36554527)
+script = ExtResource("4_l6ly0")
+clave = "building_mansion#0|Chair_1|1275|-456"
+pos_original = Vector2(1275, -455.5)
+local_original = Vector3(-0.79999924, 0.0754832, -0.36554527)
+modelo = "props/Chair_1.gltf"
+tam3 = Vector3(0.12, 0.32080358, 0.14150141)
+
+[node name="Table_Large" type="Node3D" parent="Edificios/building_mansion/Muebles" unique_id=2138114033]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.0754832, -0.18866825)
+script = ExtResource("4_l6ly0")
+clave = "building_mansion#0|Table_Large|1315|-448"
+pos_original = Vector2(1315, -448)
+local_original = Vector3(0, 0.0754832, -0.18866825)
+modelo = "props/Table_Large.gltf"
+tam3 = Vector3(0.52, 0.28306198, 0.30658638)
+
+[node name="Bookcase_2" type="Node3D" parent="Edificios/building_mansion/Muebles" unique_id=248076905]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.7199993, 0.0754832, -0.8961754)
+script = ExtResource("4_l6ly0")
+clave = "building_mansion#0|Bookcase_2|1279|-478"
+pos_original = Vector2(1279, -478)
+local_original = Vector3(-0.7199993, 0.0754832, -0.8961754)
+modelo = "props/Bookcase_2.gltf"
+tam3 = Vector3(0.4, 0.60386556, 0.21225211)
+
+[node name="Bed_Twin1" type="Node3D" parent="Edificios/building_mansion/Muebles" unique_id=853420007]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.1200008, 0.0754832, -0.5660057)
+script = ExtResource("4_l6ly0")
+clave = "building_mansion#0|Bed_Twin1|1371|-464"
+pos_original = Vector2(1371, -464)
+local_original = Vector3(1.1200008, 0.0754832, -0.5660057)
+modelo = "props/Bed_Twin1.gltf"
+tam3 = Vector3(0.3, 0.32080358, 0.49525493)
+
+[node name="Bed_Twin2" type="Node3D" parent="Edificios/building_mansion/Muebles" unique_id=9272392]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.1200008, 0.0754832, 0.5188389)
+script = ExtResource("4_l6ly0")
+clave = "building_mansion#0|Bed_Twin1|1371|-418"
+pos_original = Vector2(1371, -418)
+local_original = Vector3(1.1200008, 0.0754832, 0.5188389)
+modelo = "props/Bed_Twin1.gltf"
+tam3 = Vector3(0.3, 0.32080358, 0.49525493)
 
 [node name="building_manor" type="Node3D" parent="Edificios" unique_id=1264783351]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.8, 0.26419118, -13.206799)
@@ -9589,12 +11917,116 @@ id_edificio = "building_manor"
 centro_original = Vector2(40, -560)
 origen_3d = Vector3(0.8, 0.26419118, -13.206799)
 
+[node name="Muebles" type="Node3D" parent="Edificios/building_manor" unique_id=1773138589]
+
+[node name="Workbench" type="Node3D" parent="Edificios/building_manor/Muebles" unique_id=40965483]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.8, 0.0754832, -0.09433365)
+script = ExtResource("4_l6ly0")
+clave = "building_manor#0|Workbench|0|-564"
+pos_original = Vector2(0, -564)
+local_original = Vector3(-0.8, 0.0754832, -0.09433365)
+modelo = "props/Workbench.gltf"
+tam3 = Vector3(0.44, 0.3094811, 0.25941926)
+
+[node name="Chair_1" type="Node3D" parent="Edificios/building_manor/Muebles" unique_id=2132060149]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.8, 0.0754832, -0.36554527)
+script = ExtResource("4_l6ly0")
+clave = "building_manor#0|Chair_1|0|-576"
+pos_original = Vector2(0, -575.5)
+local_original = Vector3(-0.8, 0.0754832, -0.36554527)
+modelo = "props/Chair_1.gltf"
+tam3 = Vector3(0.12, 0.32080358, 0.14150141)
+
+[node name="Table_Large" type="Node3D" parent="Edificios/building_manor/Muebles" unique_id=103723754]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.0754832, -0.18866825)
+script = ExtResource("4_l6ly0")
+clave = "building_manor#0|Table_Large|40|-568"
+pos_original = Vector2(40, -568)
+local_original = Vector3(0, 0.0754832, -0.18866825)
+modelo = "props/Table_Large.gltf"
+tam3 = Vector3(0.52, 0.28306198, 0.30658638)
+
+[node name="Bookcase_2" type="Node3D" parent="Edificios/building_manor/Muebles" unique_id=528318797]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.72, 0.0754832, -0.8961754)
+script = ExtResource("4_l6ly0")
+clave = "building_manor#0|Bookcase_2|4|-598"
+pos_original = Vector2(4, -598)
+local_original = Vector3(-0.72, 0.0754832, -0.8961754)
+modelo = "props/Bookcase_2.gltf"
+tam3 = Vector3(0.4, 0.60386556, 0.21225211)
+
+[node name="Bed_Twin1" type="Node3D" parent="Edificios/building_manor/Muebles" unique_id=786218011]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.1199999, 0.0754832, -0.56600475)
+script = ExtResource("4_l6ly0")
+clave = "building_manor#0|Bed_Twin1|96|-584"
+pos_original = Vector2(96, -584)
+local_original = Vector3(1.1199999, 0.0754832, -0.56600475)
+modelo = "props/Bed_Twin1.gltf"
+tam3 = Vector3(0.3, 0.32080358, 0.49525493)
+
+[node name="Bed_Twin2" type="Node3D" parent="Edificios/building_manor/Muebles" unique_id=1652439011]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.1199999, 0.0754832, 0.5188389)
+script = ExtResource("4_l6ly0")
+clave = "building_manor#0|Bed_Twin1|96|-538"
+pos_original = Vector2(96, -538)
+local_original = Vector3(1.1199999, 0.0754832, 0.5188389)
+modelo = "props/Bed_Twin1.gltf"
+tam3 = Vector3(0.3, 0.32080358, 0.49525493)
+
 [node name="house_family_lot_n0" type="Node3D" parent="Edificios" unique_id=899665738]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 3.72, 0.15851471, -10.023016)
 script = ExtResource("3_jgq7j")
 id_edificio = "house_family_lot_n0"
 centro_original = Vector2(186, -425)
 origen_3d = Vector3(3.72, 0.15851471, -10.023016)
+
+[node name="Muebles" type="Node3D" parent="Edificios/house_family_lot_n0" unique_id=1085045826]
+
+[node name="Bed_Twin1" type="Node3D" parent="Edificios/house_family_lot_n0/Muebles" unique_id=1546994233]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.52, 0.0754832, -0.28300285)
+script = ExtResource("4_l6ly0")
+clave = "house_family_lot_n0#0|Bed_Twin1|160|-437"
+pos_original = Vector2(160, -437)
+local_original = Vector3(-0.52, 0.0754832, -0.28300285)
+modelo = "props/Bed_Twin1.gltf"
+tam3 = Vector3(0.3, 0.32080358, 0.49525493)
+
+[node name="Bed_Twin2" type="Node3D" parent="Edificios/house_family_lot_n0/Muebles" unique_id=209309247]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.51999974, 0.0754832, -0.28300285)
+script = ExtResource("4_l6ly0")
+clave = "house_family_lot_n0#0|Bed_Twin1|212|-437"
+pos_original = Vector2(212, -437)
+local_original = Vector3(0.51999974, 0.0754832, -0.28300285)
+modelo = "props/Bed_Twin1.gltf"
+tam3 = Vector3(0.3, 0.32080358, 0.49525493)
+
+[node name="Table_Large" type="Node3D" parent="Edificios/house_family_lot_n0/Muebles" unique_id=12750721]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.03999996, 0.0754832, 0.047166824)
+script = ExtResource("4_l6ly0")
+clave = "house_family_lot_n0#0|Table_Large|188|-423"
+pos_original = Vector2(188, -423)
+local_original = Vector3(0.03999996, 0.0754832, 0.047166824)
+modelo = "props/Table_Large.gltf"
+tam3 = Vector3(0.34, 0.26419118, 0.25941926)
+
+[node name="Chair_1" type="Node3D" parent="Edificios/house_family_lot_n0/Muebles" unique_id=468364997]
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, -0.24000001, 0.0754832, 0.047166824)
+script = ExtResource("4_l6ly0")
+clave = "house_family_lot_n0#0|Chair_1|174|-423"
+pos_original = Vector2(174, -423)
+local_original = Vector3(-0.24000001, 0.0754832, 0.047166824)
+giro_original = 90.0
+modelo = "props/Chair_1.gltf"
+tam3 = Vector3(0.12, 0.32080358, 0.14150141)
+
+[node name="Bookcase_2" type="Node3D" parent="Edificios/house_family_lot_n0/Muebles" unique_id=95141927]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.51999974, 0.0754832, 0.3773365)
+script = ExtResource("4_l6ly0")
+clave = "house_family_lot_n0#0|Bookcase_2|212|-409"
+pos_original = Vector2(212, -409)
+local_original = Vector3(0.51999974, 0.0754832, 0.3773365)
+modelo = "props/Bookcase_2.gltf"
+tam3 = Vector3(0.28, 0.60386556, 0.14150141)
 
 [node name="house_family_lot_l2" type="Node3D" parent="Edificios" unique_id=1199042832]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -5.6, -0.06793488, 7.263739)
@@ -9603,12 +12035,108 @@ id_edificio = "house_family_lot_l2"
 centro_original = Vector2(-280, 308)
 origen_3d = Vector3(-5.6, -0.06793488, 7.263739)
 
+[node name="Muebles" type="Node3D" parent="Edificios/house_family_lot_l2" unique_id=210823509]
+
+[node name="Bed_Twin1" type="Node3D" parent="Edificios/house_family_lot_l2/Muebles" unique_id=510640172]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.5999999, 0.075483195, -0.42450428)
+script = ExtResource("4_l6ly0")
+clave = "house_family_lot_l2#0|Bed_Twin1|-310|290"
+pos_original = Vector2(-310, 290)
+local_original = Vector3(-0.5999999, 0.075483195, -0.42450428)
+modelo = "props/Bed_Twin1.gltf"
+tam3 = Vector3(0.3, 0.32080358, 0.49525493)
+
+[node name="Bed_Twin2" type="Node3D" parent="Edificios/house_family_lot_l2/Muebles" unique_id=249911353]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.5999999, 0.075483195, -0.42450428)
+script = ExtResource("4_l6ly0")
+clave = "house_family_lot_l2#0|Bed_Twin1|-250|290"
+pos_original = Vector2(-250, 290)
+local_original = Vector3(0.5999999, 0.075483195, -0.42450428)
+modelo = "props/Bed_Twin1.gltf"
+tam3 = Vector3(0.3, 0.32080358, 0.49525493)
+
+[node name="Table_Large" type="Node3D" parent="Edificios/house_family_lot_l2/Muebles" unique_id=210554045]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.03999996, 0.075483195, 0.047166824)
+script = ExtResource("4_l6ly0")
+clave = "house_family_lot_l2#0|Table_Large|-278|310"
+pos_original = Vector2(-278, 310)
+local_original = Vector3(0.03999996, 0.075483195, 0.047166824)
+modelo = "props/Table_Large.gltf"
+tam3 = Vector3(0.34, 0.26419118, 0.25941926)
+
+[node name="Chair_1" type="Node3D" parent="Edificios/house_family_lot_l2/Muebles" unique_id=1657562572]
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, -0.24000025, 0.075483195, 0.047166824)
+script = ExtResource("4_l6ly0")
+clave = "house_family_lot_l2#0|Chair_1|-292|310"
+pos_original = Vector2(-292, 310)
+local_original = Vector3(-0.24000025, 0.075483195, 0.047166824)
+giro_original = 90.0
+modelo = "props/Chair_1.gltf"
+tam3 = Vector3(0.12, 0.32080358, 0.14150141)
+
+[node name="Bookcase_2" type="Node3D" parent="Edificios/house_family_lot_l2/Muebles" unique_id=1734322882]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.5999999, 0.075483195, 0.37733698)
+script = ExtResource("4_l6ly0")
+clave = "house_family_lot_l2#0|Bookcase_2|-250|324"
+pos_original = Vector2(-250, 324)
+local_original = Vector3(0.5999999, 0.075483195, 0.37733698)
+modelo = "props/Bookcase_2.gltf"
+tam3 = Vector3(0.28, 0.60386556, 0.14150141)
+
 [node name="house_family_lot_n1" type="Node3D" parent="Edificios" unique_id=430223884]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 6.6, 0.15851471, -10.023016)
 script = ExtResource("3_jgq7j")
 id_edificio = "house_family_lot_n1"
 centro_original = Vector2(330, -425)
 origen_3d = Vector3(6.6, 0.15851471, -10.023016)
+
+[node name="Muebles" type="Node3D" parent="Edificios/house_family_lot_n1" unique_id=1012512244]
+
+[node name="Bed_Twin1" type="Node3D" parent="Edificios/house_family_lot_n1/Muebles" unique_id=849162326]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.5999999, 0.0754832, -0.42450428)
+script = ExtResource("4_l6ly0")
+clave = "house_family_lot_n1#0|Bed_Twin1|300|-443"
+pos_original = Vector2(300, -443)
+local_original = Vector3(-0.5999999, 0.0754832, -0.42450428)
+modelo = "props/Bed_Twin1.gltf"
+tam3 = Vector3(0.3, 0.32080358, 0.49525493)
+
+[node name="Bed_Twin2" type="Node3D" parent="Edificios/house_family_lot_n1/Muebles" unique_id=1499418582]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.5999999, 0.0754832, -0.42450428)
+script = ExtResource("4_l6ly0")
+clave = "house_family_lot_n1#0|Bed_Twin1|360|-443"
+pos_original = Vector2(360, -443)
+local_original = Vector3(0.5999999, 0.0754832, -0.42450428)
+modelo = "props/Bed_Twin1.gltf"
+tam3 = Vector3(0.3, 0.32080358, 0.49525493)
+
+[node name="Table_Large" type="Node3D" parent="Edificios/house_family_lot_n1/Muebles" unique_id=1419924446]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.03999996, 0.0754832, 0.047166824)
+script = ExtResource("4_l6ly0")
+clave = "house_family_lot_n1#0|Table_Large|332|-423"
+pos_original = Vector2(332, -423)
+local_original = Vector3(0.03999996, 0.0754832, 0.047166824)
+modelo = "props/Table_Large.gltf"
+tam3 = Vector3(0.34, 0.26419118, 0.25941926)
+
+[node name="Chair_1" type="Node3D" parent="Edificios/house_family_lot_n1/Muebles" unique_id=1799812450]
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, -0.23999977, 0.0754832, 0.047166824)
+script = ExtResource("4_l6ly0")
+clave = "house_family_lot_n1#0|Chair_1|318|-423"
+pos_original = Vector2(318, -423)
+local_original = Vector3(-0.23999977, 0.0754832, 0.047166824)
+giro_original = 90.0
+modelo = "props/Chair_1.gltf"
+tam3 = Vector3(0.12, 0.32080358, 0.14150141)
+
+[node name="Bookcase_2" type="Node3D" parent="Edificios/house_family_lot_n1/Muebles" unique_id=592124490]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.5999999, 0.0754832, 0.3773365)
+script = ExtResource("4_l6ly0")
+clave = "house_family_lot_n1#0|Bookcase_2|360|-409"
+pos_original = Vector2(360, -409)
+local_original = Vector3(0.5999999, 0.0754832, 0.3773365)
+modelo = "props/Bookcase_2.gltf"
+tam3 = Vector3(0.28, 0.60386556, 0.14150141)
 
 [node name="house_family_lot_c2" type="Node3D" parent="Edificios" unique_id=156092269]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -12, 0, 18.866854)
@@ -9617,12 +12145,108 @@ id_edificio = "house_family_lot_c2"
 centro_original = Vector2(-600, 800)
 origen_3d = Vector3(-12, 0, 18.866854)
 
+[node name="Muebles" type="Node3D" parent="Edificios/house_family_lot_c2" unique_id=1095531929]
+
+[node name="Bed_Twin1" type="Node3D" parent="Edificios/house_family_lot_c2/Muebles" unique_id=577998472]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.6000004, 0.075483195, 0.42450523)
+script = ExtResource("4_l6ly0")
+clave = "house_family_lot_c2#0|Bed_Twin1|-630|818"
+pos_original = Vector2(-630, 818)
+local_original = Vector3(-0.6000004, 0.075483195, 0.42450523)
+modelo = "props/Bed_Twin1.gltf"
+tam3 = Vector3(0.3, 0.32080358, 0.49525493)
+
+[node name="Bed_Twin2" type="Node3D" parent="Edificios/house_family_lot_c2/Muebles" unique_id=364278729]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.6000004, 0.075483195, 0.42450523)
+script = ExtResource("4_l6ly0")
+clave = "house_family_lot_c2#0|Bed_Twin1|-570|818"
+pos_original = Vector2(-570, 818)
+local_original = Vector3(0.6000004, 0.075483195, 0.42450523)
+modelo = "props/Bed_Twin1.gltf"
+tam3 = Vector3(0.3, 0.32080358, 0.49525493)
+
+[node name="Table_Large" type="Node3D" parent="Edificios/house_family_lot_c2/Muebles" unique_id=126282435]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.03999996, 0.075483195, -0.047166824)
+script = ExtResource("4_l6ly0")
+clave = "house_family_lot_c2#0|Table_Large|-598|798"
+pos_original = Vector2(-598, 798)
+local_original = Vector3(0.03999996, 0.075483195, -0.047166824)
+modelo = "props/Table_Large.gltf"
+tam3 = Vector3(0.34, 0.26419118, 0.25941926)
+
+[node name="Chair_1" type="Node3D" parent="Edificios/house_family_lot_c2/Muebles" unique_id=268525549]
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, -0.23999977, 0.075483195, -0.047166824)
+script = ExtResource("4_l6ly0")
+clave = "house_family_lot_c2#0|Chair_1|-612|798"
+pos_original = Vector2(-612, 798)
+local_original = Vector3(-0.23999977, 0.075483195, -0.047166824)
+giro_original = 90.0
+modelo = "props/Chair_1.gltf"
+tam3 = Vector3(0.12, 0.32080358, 0.14150141)
+
+[node name="Bookcase_2" type="Node3D" parent="Edificios/house_family_lot_c2/Muebles" unique_id=1618238067]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.6000004, 0.075483195, -0.3773365)
+script = ExtResource("4_l6ly0")
+clave = "house_family_lot_c2#0|Bookcase_2|-570|784"
+pos_original = Vector2(-570, 784)
+local_original = Vector3(0.6000004, 0.075483195, -0.3773365)
+modelo = "props/Bookcase_2.gltf"
+tam3 = Vector3(0.28, 0.60386556, 0.14150141)
+
 [node name="house_family_lot_m1" type="Node3D" parent="Edificios" unique_id=948078407]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 6.6, 0.26419118, -13.585065)
 script = ExtResource("3_jgq7j")
 id_edificio = "house_family_lot_m1"
 centro_original = Vector2(330, -576.0394)
 origen_3d = Vector3(6.6, 0.26419118, -13.585065)
+
+[node name="Muebles" type="Node3D" parent="Edificios/house_family_lot_m1" unique_id=916338216]
+
+[node name="Bed_Twin1" type="Node3D" parent="Edificios/house_family_lot_m1/Muebles" unique_id=1664930339]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.52, 0.0754832, -0.28300285)
+script = ExtResource("4_l6ly0")
+clave = "house_family_lot_m1#0|Bed_Twin1|304|-588"
+pos_original = Vector2(304, -588.0394)
+local_original = Vector3(-0.52, 0.0754832, -0.28300285)
+modelo = "props/Bed_Twin1.gltf"
+tam3 = Vector3(0.3, 0.32080358, 0.49525493)
+
+[node name="Bed_Twin2" type="Node3D" parent="Edificios/house_family_lot_m1/Muebles" unique_id=248310089]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.52, 0.0754832, -0.28300285)
+script = ExtResource("4_l6ly0")
+clave = "house_family_lot_m1#0|Bed_Twin1|356|-588"
+pos_original = Vector2(356, -588.0394)
+local_original = Vector3(0.52, 0.0754832, -0.28300285)
+modelo = "props/Bed_Twin1.gltf"
+tam3 = Vector3(0.3, 0.32080358, 0.49525493)
+
+[node name="Table_Large" type="Node3D" parent="Edificios/house_family_lot_m1/Muebles" unique_id=382436659]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.03999996, 0.0754832, 0.047166824)
+script = ExtResource("4_l6ly0")
+clave = "house_family_lot_m1#0|Table_Large|332|-574"
+pos_original = Vector2(332, -574.0394)
+local_original = Vector3(0.03999996, 0.0754832, 0.047166824)
+modelo = "props/Table_Large.gltf"
+tam3 = Vector3(0.34, 0.26419118, 0.25941926)
+
+[node name="Chair_1" type="Node3D" parent="Edificios/house_family_lot_m1/Muebles" unique_id=603214574]
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, -0.23999977, 0.0754832, 0.047166824)
+script = ExtResource("4_l6ly0")
+clave = "house_family_lot_m1#0|Chair_1|318|-574"
+pos_original = Vector2(318, -574.0394)
+local_original = Vector3(-0.23999977, 0.0754832, 0.047166824)
+giro_original = 90.0
+modelo = "props/Chair_1.gltf"
+tam3 = Vector3(0.12, 0.32080358, 0.14150141)
+
+[node name="Bookcase_2" type="Node3D" parent="Edificios/house_family_lot_m1/Muebles" unique_id=1723313720]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.52, 0.0754832, 0.3773365)
+script = ExtResource("4_l6ly0")
+clave = "house_family_lot_m1#0|Bookcase_2|356|-560"
+pos_original = Vector2(356, -560.0394)
+local_original = Vector3(0.52, 0.0754832, 0.3773365)
+modelo = "props/Bookcase_2.gltf"
+tam3 = Vector3(0.28, 0.60386556, 0.14150141)
 
 [node name="house_family_lot_o2" type="Node3D" parent="Edificios" unique_id=1535187995]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 33.8, 0.19625631, 5.660056)
@@ -9631,12 +12255,108 @@ id_edificio = "house_family_lot_o2"
 centro_original = Vector2(1690, 240)
 origen_3d = Vector3(33.8, 0.19625631, 5.660056)
 
+[node name="Muebles" type="Node3D" parent="Edificios/house_family_lot_o2" unique_id=1368258632]
+
+[node name="Bed_Twin1" type="Node3D" parent="Edificios/house_family_lot_o2/Muebles" unique_id=1894472200]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.5999985, 0.0754832, 0.42450428)
+script = ExtResource("4_l6ly0")
+clave = "house_family_lot_o2#0|Bed_Twin1|1660|258"
+pos_original = Vector2(1660, 258)
+local_original = Vector3(-0.5999985, 0.0754832, 0.42450428)
+modelo = "props/Bed_Twin1.gltf"
+tam3 = Vector3(0.3, 0.32080358, 0.49525493)
+
+[node name="Bed_Twin2" type="Node3D" parent="Edificios/house_family_lot_o2/Muebles" unique_id=916898501]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.6000023, 0.0754832, 0.42450428)
+script = ExtResource("4_l6ly0")
+clave = "house_family_lot_o2#0|Bed_Twin1|1720|258"
+pos_original = Vector2(1720, 258)
+local_original = Vector3(0.6000023, 0.0754832, 0.42450428)
+modelo = "props/Bed_Twin1.gltf"
+tam3 = Vector3(0.3, 0.32080358, 0.49525493)
+
+[node name="Table_Large" type="Node3D" parent="Edificios/house_family_lot_o2/Muebles" unique_id=1578664679]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.040000916, 0.0754832, -0.047166824)
+script = ExtResource("4_l6ly0")
+clave = "house_family_lot_o2#0|Table_Large|1692|238"
+pos_original = Vector2(1692, 238)
+local_original = Vector3(0.040000916, 0.0754832, -0.047166824)
+modelo = "props/Table_Large.gltf"
+tam3 = Vector3(0.34, 0.26419118, 0.25941926)
+
+[node name="Chair_1" type="Node3D" parent="Edificios/house_family_lot_o2/Muebles" unique_id=26419882]
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, -0.23999786, 0.0754832, -0.047166824)
+script = ExtResource("4_l6ly0")
+clave = "house_family_lot_o2#0|Chair_1|1678|238"
+pos_original = Vector2(1678, 238)
+local_original = Vector3(-0.23999786, 0.0754832, -0.047166824)
+giro_original = 90.0
+modelo = "props/Chair_1.gltf"
+tam3 = Vector3(0.12, 0.32080358, 0.14150141)
+
+[node name="Bookcase_2" type="Node3D" parent="Edificios/house_family_lot_o2/Muebles" unique_id=1877389872]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.6000023, 0.0754832, -0.37733698)
+script = ExtResource("4_l6ly0")
+clave = "house_family_lot_o2#0|Bookcase_2|1720|224"
+pos_original = Vector2(1720, 224)
+local_original = Vector3(0.6000023, 0.0754832, -0.37733698)
+modelo = "props/Bookcase_2.gltf"
+tam3 = Vector3(0.28, 0.60386556, 0.14150141)
+
 [node name="house_family_lot_m3" type="Node3D" parent="Edificios" unique_id=539601193]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 12.12, 0.26419118, -13.523626)
 script = ExtResource("3_jgq7j")
 id_edificio = "house_family_lot_m3"
 centro_original = Vector2(606, -573.43427)
 origen_3d = Vector3(12.12, 0.26419118, -13.523626)
+
+[node name="Muebles" type="Node3D" parent="Edificios/house_family_lot_m3" unique_id=1270766326]
+
+[node name="Bed_Twin1" type="Node3D" parent="Edificios/house_family_lot_m3/Muebles" unique_id=1730473040]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.5999994, 0.0754832, -0.42450428)
+script = ExtResource("4_l6ly0")
+clave = "house_family_lot_m3#0|Bed_Twin1|576|-591"
+pos_original = Vector2(576, -591.43427)
+local_original = Vector3(-0.5999994, 0.0754832, -0.42450428)
+modelo = "props/Bed_Twin1.gltf"
+tam3 = Vector3(0.3, 0.32080358, 0.49525493)
+
+[node name="Bed_Twin2" type="Node3D" parent="Edificios/house_family_lot_m3/Muebles" unique_id=438142494]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.6000004, 0.0754832, -0.42450428)
+script = ExtResource("4_l6ly0")
+clave = "house_family_lot_m3#0|Bed_Twin1|636|-591"
+pos_original = Vector2(636, -591.43427)
+local_original = Vector3(0.6000004, 0.0754832, -0.42450428)
+modelo = "props/Bed_Twin1.gltf"
+tam3 = Vector3(0.3, 0.32080358, 0.49525493)
+
+[node name="Table_Large" type="Node3D" parent="Edificios/house_family_lot_m3/Muebles" unique_id=25431438]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.03999996, 0.0754832, 0.047167778)
+script = ExtResource("4_l6ly0")
+clave = "house_family_lot_m3#0|Table_Large|608|-571"
+pos_original = Vector2(608, -571.43427)
+local_original = Vector3(0.03999996, 0.0754832, 0.047167778)
+modelo = "props/Table_Large.gltf"
+tam3 = Vector3(0.34, 0.26419118, 0.25941926)
+
+[node name="Chair_1" type="Node3D" parent="Edificios/house_family_lot_m3/Muebles" unique_id=120821590]
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, -0.23999977, 0.0754832, 0.047167778)
+script = ExtResource("4_l6ly0")
+clave = "house_family_lot_m3#0|Chair_1|594|-571"
+pos_original = Vector2(594, -571.43427)
+local_original = Vector3(-0.23999977, 0.0754832, 0.047167778)
+giro_original = 90.0
+modelo = "props/Chair_1.gltf"
+tam3 = Vector3(0.12, 0.32080358, 0.14150141)
+
+[node name="Bookcase_2" type="Node3D" parent="Edificios/house_family_lot_m3/Muebles" unique_id=1230804534]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.6000004, 0.0754832, 0.37733746)
+script = ExtResource("4_l6ly0")
+clave = "house_family_lot_m3#0|Bookcase_2|636|-557"
+pos_original = Vector2(636, -557.43427)
+local_original = Vector3(0.6000004, 0.0754832, 0.37733746)
+modelo = "props/Bookcase_2.gltf"
+tam3 = Vector3(0.28, 0.60386556, 0.14150141)
 
 [node name="house_family_lot_l1" type="Node3D" parent="Edificios" unique_id=925811527]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -7.8, -0.06793488, 7.0750704)
@@ -9645,12 +12365,62 @@ id_edificio = "house_family_lot_l1"
 centro_original = Vector2(-390, 300)
 origen_3d = Vector3(-7.8, -0.06793488, 7.0750704)
 
+[node name="Muebles" type="Node3D" parent="Edificios/house_family_lot_l1" unique_id=1157034428]
+
+[node name="Bed_Twin1" type="Node3D" parent="Edificios/house_family_lot_l1/Muebles" unique_id=2127096587]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.5199995, 0.075483195, -0.28300285)
+script = ExtResource("4_l6ly0")
+clave = "house_family_lot_l1#0|Bed_Twin1|-416|288"
+pos_original = Vector2(-416, 288)
+local_original = Vector3(-0.5199995, 0.075483195, -0.28300285)
+modelo = "props/Bed_Twin1.gltf"
+tam3 = Vector3(0.3, 0.32080358, 0.49525493)
+
+[node name="Bed_Twin2" type="Node3D" parent="Edificios/house_family_lot_l1/Muebles" unique_id=865177693]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.52, 0.075483195, -0.28300285)
+script = ExtResource("4_l6ly0")
+clave = "house_family_lot_l1#0|Bed_Twin1|-364|288"
+pos_original = Vector2(-364, 288)
+local_original = Vector3(0.52, 0.075483195, -0.28300285)
+modelo = "props/Bed_Twin1.gltf"
+tam3 = Vector3(0.3, 0.32080358, 0.49525493)
+
+[node name="Table_Large" type="Node3D" parent="Edificios/house_family_lot_l1/Muebles" unique_id=651232707]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.03999996, 0.075483195, 0.0471673)
+script = ExtResource("4_l6ly0")
+clave = "house_family_lot_l1#0|Table_Large|-388|302"
+pos_original = Vector2(-388, 302)
+local_original = Vector3(0.03999996, 0.075483195, 0.0471673)
+modelo = "props/Table_Large.gltf"
+tam3 = Vector3(0.34, 0.26419118, 0.25941926)
+
+[node name="Chair_1" type="Node3D" parent="Edificios/house_family_lot_l1/Muebles" unique_id=613258528]
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, -0.23999977, 0.075483195, 0.0471673)
+script = ExtResource("4_l6ly0")
+clave = "house_family_lot_l1#0|Chair_1|-402|302"
+pos_original = Vector2(-402, 302)
+local_original = Vector3(-0.23999977, 0.075483195, 0.0471673)
+giro_original = 90.0
+modelo = "props/Chair_1.gltf"
+tam3 = Vector3(0.12, 0.32080358, 0.14150141)
+
+[node name="Bookcase_2" type="Node3D" parent="Edificios/house_family_lot_l1/Muebles" unique_id=2086267387]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.52, 0.075483195, 0.37733698)
+script = ExtResource("4_l6ly0")
+clave = "house_family_lot_l1#0|Bookcase_2|-364|316"
+pos_original = Vector2(-364, 316)
+local_original = Vector3(0.52, 0.075483195, 0.37733698)
+modelo = "props/Bookcase_2.gltf"
+tam3 = Vector3(0.28, 0.60386556, 0.14150141)
+
 [node name="house_family_lot_m4" type="Node3D" parent="Edificios" unique_id=16238635]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 15.2, 0.26419118, -13.714663)
 script = ExtResource("3_jgq7j")
 id_edificio = "house_family_lot_m4"
 centro_original = Vector2(760, -581.53467)
 origen_3d = Vector3(15.2, 0.26419118, -13.714663)
+
+[node name="Muebles" type="Node3D" parent="Edificios/house_family_lot_m4" unique_id=1756605935]
 
 [node name="Decorado" type="Node3D" parent="." unique_id=384341441]
 
