@@ -1,4 +1,5 @@
 extends SceneTree
+const Mapa3D = preload("res://scripts/fisica/Mapa3D.gd")
 
 ## Editor del mapa 3D (Claude Code, 2026-11-10): pasa a mapa/Mundo3D.tscn → «Vegetacion» los árboles, rocas, plantas y
 ## troncos que hasta ahora colocaba el código del terreno. Se ejecuta UNA vez (luego se editan a mano en Godot):
@@ -34,8 +35,6 @@ func _initialize() -> void:
 	WB.grabar_vegetacion = false
 	print("HORNEAR: %d piezas anotadas" % lista.size())
 
-	var sin_p: float = sin(deg_to_rad(WB.PITCH_DEG))
-	var cos_p: float = cos(deg_to_rad(WB.PITCH_DEG))
 	var pieza_script = load("res://mapa/pieza.gd")
 	var veg := Node3D.new()
 	veg.name = "Vegetacion"
@@ -63,7 +62,7 @@ func _initialize() -> void:
 		n.set_script(pieza_script)
 		cuenta[f] = int(cuenta.get(f, 0)) + 1
 		n.name = "%s_%d" % [f, cuenta[f]]
-		n.position = Vector3(p.x * WB.WORLD_SCALE, (h * WB.WORLD_SCALE) / cos_p, (p.y * WB.WORLD_SCALE) / sin_p)
+		n.position = Mapa3D.a_3d(p, h)
 		n.rotation_degrees.y = float(r["giro"])
 		n.set("alto", float(r["alto"]))
 		n.set("tam", r["tam"])
@@ -107,8 +106,6 @@ func _anadir_talables() -> void:
 		await process_frame
 	var village := ["nature/CommonTree_1.obj", "nature/CommonTree_2.obj", "nature/BirchTree_1.obj", "nature/CommonTree_3.obj", "nature/BirchTree_2.obj", "nature/PineTree_1.obj", "nature/CommonTree_4.obj", "nature/BirchTree_3.obj", "nature/PineTree_2.obj"]
 	var forest := ["nature/PineTree_1.obj", "nature/CommonTree_1.obj", "nature/PineTree_2.obj", "nature/BirchTree_1.obj", "nature/PineTree_3.obj", "nature/CommonTree_2.obj", "nature/PineTree_4.obj", "nature/CommonTree_3.obj", "nature/BirchTree_2.obj", "nature/CommonTree_4.obj", "nature/BirchTree_3.obj"]
-	var sin_p: float = sin(deg_to_rad(WB.PITCH_DEG))
-	var cos_p: float = cos(deg_to_rad(WB.PITCH_DEG))
 	var pieza_script = load("res://mapa/pieza.gd")
 	var n := 0
 	for t in get_nodes_in_group("destructible"):
@@ -122,7 +119,7 @@ func _anadir_talables() -> void:
 		n += 1
 		pz.name = "Talable_%d" % n
 		var h: float = WB.terrain_height_px(pos) - 1.4
-		pz.position = Vector3(pos.x * WB.WORLD_SCALE, (h * WB.WORLD_SCALE) / cos_p, (pos.y * WB.WORLD_SCALE) / sin_p)
+		pz.position = Mapa3D.a_3d(pos, h)
 		pz.rotation_degrees.y = float(hv % 360)
 		pz.set("alto", 52.0 + float(hv % 6) * 6.0)
 		pz.set("modelo", String(files[hv % files.size()]))
@@ -152,8 +149,6 @@ func _anadir_vetas() -> void:
 	veg.add_child(vetas)
 	vetas.owner = actual
 	var rfiles := ["nature/Rock_1.obj", "nature/Rock_2.obj", "nature/Rock_3.obj", "nature/Rock_4.obj", "nature/Rock_5.obj"]
-	var sin_p: float = sin(deg_to_rad(WB.PITCH_DEG))
-	var cos_p: float = cos(deg_to_rad(WB.PITCH_DEG))
 	var pieza_script = load("res://mapa/pieza.gd")
 	var n := 0
 	for t in get_nodes_in_group("destructible"):
@@ -166,7 +161,7 @@ func _anadir_vetas() -> void:
 		n += 1
 		pz.name = "Veta_%d" % n
 		var h: float = WB.terrain_height_px(pos) - 1.4
-		pz.position = Vector3(pos.x * WB.WORLD_SCALE, (h * WB.WORLD_SCALE) / cos_p, (pos.y * WB.WORLD_SCALE) / sin_p)
+		pz.position = Mapa3D.a_3d(pos, h)
 		pz.rotation_degrees.y = float(hv % 360)
 		pz.set("alto", 16.0)
 		pz.set("modelo", String(rfiles[hv % rfiles.size()]))

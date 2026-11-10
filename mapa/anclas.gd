@@ -1,4 +1,5 @@
 extends RefCounted
+const Mapa3D = preload("res://scripts/fisica/Mapa3D.gd")
 
 ## Anclas del editor del mapa 3D (Claude Code, 2026-11-10). Cuando el usuario mueve en mapa/Mundo3D.tscn un edificio, un
 ## objeto de «Objetos» marcado como ancla o un objeto de «Decorado», todo lo que el juego crea en el mapa 2D dentro de su
@@ -6,8 +7,6 @@ extends RefCounted
 ## lógica sigue a lo que se ve sin tocar cada sitio del código. Lo usan las funciones _add_* de VillageManagerBase.
 
 const ESCENA := "res://mapa/Mundo3D.tscn"
-const WORLD_SCALE: float = 0.02
-const PITCH_DEG: float = 58.0
 
 static var _anclas: Array = [] # {"rect": Rect2} o {"centro": Vector2, "radio": float}, con "c", "d": Vector2, "g": grados, "m": Transform2D
 static var _leidas: bool = false
@@ -28,7 +27,6 @@ static func _leer() -> void:
 	if not ResourceLoader.exists(ESCENA):
 		return
 	var st: SceneState = (load(ESCENA) as PackedScene).get_state()
-	var sin_p: float = sin(deg_to_rad(PITCH_DEG))
 	for i in range(st.get_node_count()):
 		var ruta := str(st.get_node_path(i))
 		var es_obj := ruta.begins_with("./Objetos/")
@@ -49,7 +47,7 @@ static func _leer() -> void:
 				"es_ancla": ancla = bool(v)
 		if orig == Vector2.INF:
 			continue
-		var d := Vector2(xf.origin.x / WORLD_SCALE, xf.origin.z * sin_p / WORLD_SCALE) - orig
+		var d := Mapa3D.a_mapa(xf.origin) - orig
 		var g := rad_to_deg(xf.basis.orthonormalized().get_euler().y)
 		if es_obj and not ancla:
 			# Objeto con nombre (pozo, tablón, farola…): el juego ya lo pone en su sitio nuevo; aquí solo se gira lo suyo
@@ -68,7 +66,7 @@ static func registrar_edificio(rect_original: Rect2, d: Vector2, g: float = 0.0)
 
 ## Giro 3D (grados, eje vertical) → cómo se transforma un vector del mapa 2D (y del mapa = z 3D · seno de la inclinación).
 static func matriz(g: float) -> Transform2D:
-	var s := sin(deg_to_rad(PITCH_DEG))
+	var s := Mapa3D.SIN
 	var c := cos(deg_to_rad(g))
 	var n := sin(deg_to_rad(g))
 	return Transform2D(Vector2(c, -s * n), Vector2(n / s, c), Vector2.ZERO)

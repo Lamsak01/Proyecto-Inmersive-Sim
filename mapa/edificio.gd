@@ -1,5 +1,6 @@
 @tool
 extends Node3D
+const Mapa3D = preload("res://scripts/fisica/Mapa3D.gd")
 
 ## Edificio en el editor del mapa 3D (mapa/Mundo3D.tscn → «Edificios»), 2026-11-10.
 ## En Godot enseña el edificio tal como lo construye el juego (una «foto» guardada en mapa/edificios_vista/).
@@ -9,8 +10,6 @@ extends Node3D
 
 const VISTA_DIR := "res://mapa/edificios_vista/"
 const ESCENA := "res://mapa/Mundo3D.tscn"
-const WORLD_SCALE: float = 0.02
-const PITCH_DEG: float = 58.0
 
 ## Nombre interno del edificio en el juego (no lo cambies).
 @export var id_edificio: String = ""
@@ -60,7 +59,6 @@ static func _leer_escena() -> Dictionary:
 	if not ResourceLoader.exists(ESCENA):
 		return out
 	var st: SceneState = (load(ESCENA) as PackedScene).get_state()
-	var sin_p: float = sin(deg_to_rad(PITCH_DEG))
 	for i in range(st.get_node_count()):
 		var ruta := str(st.get_node_path(i))
 		if not ((ruta.begins_with("./Edificios/") or ruta.begins_with("./BajoTierra/")) and ruta.count("/") == 2):
@@ -75,7 +73,7 @@ static func _leer_escena() -> Dictionary:
 				"transform": xf = st.get_node_property_value(i, k)
 		if id.is_empty():
 			continue
-		var ahora := Vector2(xf.origin.x / WORLD_SCALE, xf.origin.z * sin_p / WORLD_SCALE)
+		var ahora := Mapa3D.a_mapa(xf.origin)
 		var d := ahora - centro
 		var g := fposmod(roundf(rad_to_deg(xf.basis.orthonormalized().get_euler().y) / 90.0) * 90.0, 360.0)
 		if d.length() > 0.5 or g > 0.5:

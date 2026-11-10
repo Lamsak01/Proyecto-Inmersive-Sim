@@ -1,4 +1,5 @@
 extends SceneTree
+const Mapa3D = preload("res://scripts/fisica/Mapa3D.gd")
 
 ## Editor del mapa 3D (Claude Code, 2026-11-10): guarda una «foto» 3D de cada edificio tal como lo construye el juego
 ## (mapa/edificios_vista/<id>.scn) y crea en mapa/Mundo3D.tscn → «Edificios» una pieza movible por edificio.
@@ -53,8 +54,6 @@ func _initialize() -> void:
 		eds.name = "Edificios"
 		actual.add_child(eds)
 		eds.owner = actual
-	var sin_p: float = sin(deg_to_rad(WB.PITCH_DEG))
-	var cos_p: float = cos(deg_to_rad(WB.PITCH_DEG))
 	var script_ed = load("res://mapa/edificio.gd")
 	var n := 0
 	for fp in vm.get("building_footprints"):
@@ -63,7 +62,7 @@ func _initialize() -> void:
 			continue
 		var c2: Vector2 = (fp["rect"] as Rect2).get_center()
 		var h: float = WB.terrain_height_px(c2)
-		var p3 := Vector3(c2.x * WB.WORLD_SCALE, (h * WB.WORLD_SCALE) / cos_p, (c2.y * WB.WORLD_SCALE) / sin_p)
+		var p3 := Mapa3D.a_3d(c2, h)
 		var e := Node3D.new()
 		e.set_script(script_ed)
 		e.name = id
@@ -164,10 +163,10 @@ func _externo(r: Resource, tipo: String) -> void:
 func _huella(r: Resource) -> String:
 	if r is ImageTexture:
 		var img: Image = (r as ImageTexture).get_image()
-		return "%x" % hash([img.get_size(), img.get_format(), img.get_data().hash()])
+		return "%x" % hash([img.get_size(), img.get_format(), hash(img.get_data())])
 	if r is ArrayMesh:
 		var partes: Array = []
 		for i in range((r as ArrayMesh).get_surface_count()):
-			partes.append(var_to_bytes((r as ArrayMesh).surface_get_arrays(i)).hash())
+			partes.append(hash(var_to_bytes((r as ArrayMesh).surface_get_arrays(i))))
 		return "%x" % hash(partes)
 	return "%x" % r.get_instance_id()

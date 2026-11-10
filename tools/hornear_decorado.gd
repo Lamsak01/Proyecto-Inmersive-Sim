@@ -1,4 +1,5 @@
 extends SceneTree
+const Mapa3D = preload("res://scripts/fisica/Mapa3D.gd")
 
 ## Editor del mapa 3D (Claude Code, 2026-11-10): pasa a mapa/Mundo3D.tscn → «Decorado» todo lo que el código del terreno
 ## colocaba aparte del suelo, el agua y las orillas: puentes, pozos, muelle, vallas, corrales, caminos, bancos, plantas y
@@ -35,7 +36,6 @@ func _initialize() -> void:
 	print("HORNEAR_DEC: %d piezas sueltas" % lista.size())
 	DirAccess.make_dir_recursive_absolute(ProjectSettings.globalize_path(COMUN))
 
-	var sin_p: float = sin(deg_to_rad(WB.PITCH_DEG))
 	var dec := Node3D.new()
 	dec.name = "Decorado"
 	var zonas := {}
@@ -47,7 +47,7 @@ func _initialize() -> void:
 			continue
 		var n3 := c as Node3D
 		var gxf: Transform3D = n3.global_transform
-		var p2 := Vector2(gxf.origin.x / WB.WORLD_SCALE, gxf.origin.z * sin_p / WB.WORLD_SCALE)
+		var p2 := Mapa3D.a_mapa(gxf.origin)
 		if objeto == null or p2.distance_to(ancla) > RADIO_OBJETO or objeto.get_child_count() >= 40:
 			var zk := Vector2i(floori(p2.x / ZONA), floori(p2.y / ZONA))
 			if not zonas.has(zk):

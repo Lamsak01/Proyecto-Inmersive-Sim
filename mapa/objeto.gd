@@ -1,5 +1,6 @@
 @tool
 extends Node3D
+const Mapa3D = preload("res://scripts/fisica/Mapa3D.gd")
 
 ## Objeto con uso en el juego (farola, pozo, tablón…) en el editor del mapa 3D (mapa/Mundo3D.tscn → «Objetos»), 2026-11-10.
 ## Muévelo con el ratón: el juego crea el objeto en el sitio nuevo con todo lo suyo (luz, sacar agua, misiones…).
@@ -7,8 +8,6 @@ extends Node3D
 
 const AssetLib = preload("res://scripts/visuals/AssetLibrary3D.gd")
 const ESCENA := "res://mapa/Mundo3D.tscn"
-const WORLD_SCALE: float = 0.02
-const PITCH_DEG: float = 58.0
 
 ## Nombre interno del objeto en el juego (no lo cambies).
 @export var clave: String = ""
@@ -29,9 +28,8 @@ func _ready() -> void:
 	for c in get_children():
 		if c.has_meta("vista_objeto"):
 			c.queue_free()
-	var cos_p: float = cos(deg_to_rad(PITCH_DEG))
 	if not modelo.is_empty():
-		var m: Node3D = AssetLib.instantiate_model(modelo, Vector3.ZERO, (alto * WORLD_SCALE) / cos_p, true, true)
+		var m: Node3D = AssetLib.instantiate_model(modelo, Vector3.ZERO, Mapa3D.alto_a_3d(alto), true, true)
 		if m != null:
 			m.set_meta("vista_objeto", true)
 			add_child(m)
@@ -49,7 +47,7 @@ func _ready() -> void:
 	l.text = nombre_visible if not nombre_visible.is_empty() else clave
 	l.billboard = BaseMaterial3D.BILLBOARD_ENABLED
 	l.pixel_size = 0.003
-	l.position = Vector3(0, ((alto + 6.0) * WORLD_SCALE) / cos_p, 0)
+	l.position = Vector3(0, Mapa3D.alto_a_3d(alto + 6.0), 0)
 	add_child(l)
 
 
@@ -71,7 +69,6 @@ static func _leer() -> Dictionary:
 	if not ResourceLoader.exists(ESCENA):
 		return out
 	var st: SceneState = (load(ESCENA) as PackedScene).get_state()
-	var sin_p: float = sin(deg_to_rad(PITCH_DEG))
 	for i in range(st.get_node_count()):
 		if not str(st.get_node_path(i)).begins_with("./Objetos/"):
 			continue
@@ -85,7 +82,7 @@ static func _leer() -> Dictionary:
 				"transform": xf = st.get_node_property_value(i, j)
 		if k.is_empty():
 			continue
-		var d := Vector2(xf.origin.x / WORLD_SCALE, xf.origin.z * sin_p / WORLD_SCALE) - orig
+		var d := Mapa3D.a_mapa(xf.origin) - orig
 		if d.length() > 0.5:
 			out[k] = d
 	return out

@@ -1565,7 +1565,7 @@ func _choque_de_pieza(c: Node3D) -> void:
 
 
 func _a_mapa_2d(v: Vector3) -> Vector2:
-	return Vector2(v.x / WORLD_SCALE, v.z * _sin_p / WORLD_SCALE)
+	return Mapa3D.a_mapa(v)
 
 
 ## Troncos y tocones del bosque sólidos en el mapa 2D (antes solo eran adorno 3D y se atravesaban).

@@ -4,8 +4,9 @@ extends SceneTree
 ##   timeout 120 flatpak run org.godotengine.Godot --headless --path . -s tools/tests/pincel_mapa.gd
 ## Pinta pinos en un prado, intenta pintar sobre el río y la posada, borra con la goma y siembra copias de lo seleccionado.
 
-const Nucleo = preload("res://mapa/pincel_nucleo.gd")
-const Mezclas = preload("res://mapa/pincel_mezclas.gd")
+## Se cargan al arrancar (no con preload): dependen de scripts que usan los autoloads, que aún no existen al compilar.
+var Nucleo
+var Mezclas
 
 var fallos: int = 0
 
@@ -16,6 +17,10 @@ func _ok(c: bool, txt: String) -> void:
 
 
 func _initialize() -> void:
+	for _i in range(3): # los autoloads (WorldClock…) aún no existen en el primer instante y FishingSpot no compilaría
+		await process_frame
+	Nucleo = load("res://mapa/pincel_nucleo.gd")
+	Mezclas = load("res://mapa/pincel_mezclas.gd")
 	var mundo: Node3D = load("res://mapa/Mundo3D.tscn").instantiate()
 	root.add_child(mundo)
 	await process_frame

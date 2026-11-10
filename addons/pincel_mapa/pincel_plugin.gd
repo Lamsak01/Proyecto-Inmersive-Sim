@@ -1,5 +1,6 @@
 @tool
 extends EditorPlugin
+const Mapa3D = preload("res://scripts/fisica/Mapa3D.gd")
 
 ## PINCEL DEL MAPA (Claude Code, 2026-11-10) para mapa/Mundo3D.tscn.
 ## Panel «Pincel» (a la derecha): eliges una mezcla (bosque de pinos, rocas, hierba…) o «lo seleccionado», el tamaño y lo
@@ -33,8 +34,6 @@ var _anillo: MeshInstance3D = null
 var _pintando: bool = false
 var _ultimo: Vector2 = Vector2.INF
 var _nucleo = null
-var _sin_p: float = sin(deg_to_rad(WB.PITCH_DEG))
-var _cos_p: float = cos(deg_to_rad(WB.PITCH_DEG))
 
 
 func _enter_tree() -> void:
@@ -241,15 +240,15 @@ func _tocar_suelo(cam: Camera3D, pos: Vector2):
 
 func _sobre_suelo(p: Vector3) -> bool:
 	var p2: Vector2 = _a_2d(p)
-	return p.y > (WB.terrain_height_px(p2) * WB.WORLD_SCALE) / _cos_p
+	return p.y > Mapa3D.alto_a_3d(WB.terrain_height_px(p2))
 
 
 func _a_2d(p: Vector3) -> Vector2:
-	return Vector2(p.x / WB.WORLD_SCALE, p.z * _sin_p / WB.WORLD_SCALE)
+	return Mapa3D.a_mapa(p)
 
 
 func _a_3d(p: Vector2, h: float) -> Vector3:
-	return Vector3(p.x * WB.WORLD_SCALE, (h * WB.WORLD_SCALE) / _cos_p, (p.y * WB.WORLD_SCALE) / _sin_p)
+	return Mapa3D.a_3d(p, h)
 
 
 # ---------------------------------------------------------------- trazo

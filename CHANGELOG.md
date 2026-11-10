@@ -4,6 +4,12 @@ Cambios del juego, del más nuevo al más antiguo. Añade una entrada al cerrar 
 El detalle técnico está en `docs/HANDOFF.md` (sección 7) y el historial completo en `git log`. Lo anterior a B0.1 está en `AUDIT_LOG.md` y `SESSION_CONTEXT_LOG.md`.
 
 
+## 2026-11-10 — Paso a 3D de verdad: paso 0, preparación (Claude Code, portátil; rama `mundo-3d`)
+- Nada cambia al jugar. Copia de seguridad del juego (etiqueta `antes-de-mundo-3d`) y trabajo en una rama aparte.
+- La fórmula que pasa del mapa al 3D estaba copiada en unos 20 sitios; ahora hay una sola (`scripts/fisica/Mapa3D.gd`). Fotos antes y después: iguales.
+- Nuevas: prueba del paso a 3D, fotos fijas para comparar, mapa del código (`docs/MAPA_DEL_CODIGO.md`) y manuscrito de cambios (`docs/MANUSCRITO_MUNDO_3D.md`).
+- Arreglado de paso: una herramienta del editor que no arrancaba y dos pruebas del editor que se quedaron anticuadas cuando el usuario editó el río.
+
 ## 2026-11-10 — Más fluido en 1.ª persona (Claude Code, portátil; pedido por el usuario)
 - El pueblo dibujado en plano se seguía pintando detrás de la vista en primera persona, a la resolución de la pantalla, aunque no se viera. Ya no.
 - Los vecinos a media distancia (unos 14–36 m) piensan y se mueven la mitad de veces, recorriendo lo mismo; los cercanos siguen al detalle.

@@ -1,5 +1,6 @@
 @tool
 extends Node3D
+const Mapa3D = preload("res://scripts/fisica/Mapa3D.gd")
 
 ## Mueble de un edificio en el editor del mapa 3D (mapa/Mundo3D.tscn → «Edificios» → <edificio> → «Muebles»), 2026-11-10.
 ## Muévelo o gíralo (eje vertical) con el ratón: el juego lo pone ahí, y lo que el juego crea donde estaba (su pared
@@ -7,8 +8,6 @@ extends Node3D
 
 const AssetLib = preload("res://scripts/visuals/AssetLibrary3D.gd")
 const ESCENA := "res://mapa/Mundo3D.tscn"
-const WORLD_SCALE: float = 0.02
-const PITCH_DEG: float = 58.0
 
 ## Nombre interno del mueble en el juego (no lo cambies).
 @export var clave: String = ""
@@ -58,7 +57,6 @@ static func _leer() -> void:
 	if not ResourceLoader.exists(ESCENA):
 		return
 	var st: SceneState = (load(ESCENA) as PackedScene).get_state()
-	var sin_p: float = sin(deg_to_rad(PITCH_DEG))
 	for i in range(st.get_node_count()):
 		var ruta := str(st.get_node_path(i))
 		if not (ruta.begins_with("./Edificios/") and "/Muebles" in ruta):
@@ -81,9 +79,10 @@ static func _leer() -> void:
 		if k.is_empty():
 			continue
 		var dl := xf.origin - loc
-		var d := Vector2(dl.x / WORLD_SCALE, dl.z * sin_p / WORLD_SCALE)
+		var d := Mapa3D.a_mapa(dl)
 		var g := wrapf(rad_to_deg(xf.basis.orthonormalized().get_euler().y) - g0, -180.0, 180.0)
 		if d.length() > 0.5 or absf(g) > 0.5:
 			_cache[k] = [d, g]
-			var r := maxf(t3.x / WORLD_SCALE, t3.z * sin_p / WORLD_SCALE) * 0.5 + 2.0
+			var tm := Mapa3D.a_mapa(t3)
+			var r := maxf(tm.x, tm.y) * 0.5 + 2.0
 			_anclas.append({"centro": orig, "radio": clampf(r, 4.0, 40.0), "c": orig, "d": d, "g": g})

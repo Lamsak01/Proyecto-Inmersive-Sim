@@ -4,7 +4,8 @@
 > profundidades, cuevas, lagos y **nadar y bucear** (habrá casos con pistas en el río y el lago). Quiere hacerlo **ya**,
 > antes de que el juego crezca. No volver a proponer quedarse en 2D ni «trucos de capas» como solución final.
 >
-> **Estado:** plan escrito, **pendiente de aprobación del usuario**. No se ha tocado código de la transición.
+> **Estado (2026-11-10):** plan aprobado por el usuario. **Paso 0 hecho** en la rama `mundo-3d` salvo una decisión:
+> la escala (§5, paso 0), que se pregunta al usuario. Siguiente: paso 1.
 > Autor: Claude Code (portátil). Cualquier agente que siga: lee este documento entero antes de tocar nada y apunta
 > cada paso en el **Registro** (§10).
 
@@ -230,4 +231,12 @@ Es una estimación: se apuntará el gasto real de cada paso en el Registro para 
 
 | Fecha | Agente | Paso / bloque | Qué se hizo | Pruebas | Commit |
 |---|---|---|---|---|---|
-| 2026-11-10 | Claude Code (portátil) | Plan | Inventario y plan escritos; pendiente de aprobación | — | — |
+| 2026-11-10 | Claude Code (portátil) | Plan | Inventario y plan escritos; aprobados por el usuario | — | 031f68a |
+| 2026-11-10 | Claude Code (portátil) | Paso 0 | Etiqueta `antes-de-mundo-3d`, rama `mundo-3d`; `scripts/fisica/Mapa3D.gd` (conversión única; ~20 copias fuera); pruebas `fisica_3d.gd` y `capturas_fijas.gd`; fotos de referencia; `MAPA_DEL_CODIGO.md` y `MANUSCRITO_MUNDO_3D.md`; arregladas 3 cosas que ya fallaban antes (`hornear_edificios.gd` no compilaba; pruebas `rio_editor_juego` y `pincel_mapa` anticuadas) | fisica_3d ✅ 7/7 · capturas iguales (peor 0,38 %, ruido 0,8 %) · verify_all ✅ · guardado_largo ✅ · sondeo edificios 29/29 ✅ · río ✅ · pincel ✅ | (este commit) |
+
+### Medidas de referencia (antes del paso 1, portátil, 2026-11-10)
+- **fps en 1.ª persona** (`perf_zonas.gd`): afueras 33, plaza 29, río 23, bosque 38, molino 40, mansión 43.
+- **Vecinos atascados** (`atascos_vecinos.gd -- 6`): 0 en 6 h. **Guardado largo:** PASSED, +1,6 MB del día 2 al 7.
+- **Edificios movidos** (`sondeo_edificios_movidos.gd -- movido`): 29/29; sitios de vecinos 54 bien, 0 viejos, 6 al aire libre.
+- **Fotos:** `docs/capturas_mundo3d/referencia_paso0/` (3072×1728; ruido normal entre dos tandas iguales: hasta 0,8 %).
+- **Tokens del paso 0:** no se pueden medir desde dentro de la sesión; estimado ~8–12 millones leídos (dentro de lo previsto).

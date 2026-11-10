@@ -1,5 +1,6 @@
 @tool
 extends Node3D
+const Mapa3D = preload("res://scripts/fisica/Mapa3D.gd")
 
 ## Editor del mapa en 3D (Claude Code, 2026-11-10). Ábrelo en Godot (mapa/Mundo3D.tscn) y pulsa «3D» arriba.
 ## - «Vista» es una maqueta del mundo para orientarse (suelo con relieve, río, lago, caminos, edificios, árboles):
@@ -20,8 +21,6 @@ const PASO_SUELO: float = 40.0
 		if v and is_inside_tree():
 			_construir()
 
-var _sin_p: float = sin(deg_to_rad(WB.PITCH_DEG))
-var _cos_p: float = cos(deg_to_rad(WB.PITCH_DEG))
 
 
 func _ready() -> void:
@@ -31,7 +30,7 @@ func _ready() -> void:
 
 ## Posición 3D de un punto del mapa 2D a una altura h (en las mismas unidades que el juego).
 func a_3d(p: Vector2, h: float) -> Vector3:
-	return Vector3(p.x * WB.WORLD_SCALE, (h * WB.WORLD_SCALE) / _cos_p, (p.y * WB.WORLD_SCALE) / _sin_p)
+	return Mapa3D.a_3d(p, h)
 
 
 func _construir() -> void:
@@ -166,7 +165,7 @@ func _edificios(vista: Node3D, lista: Array) -> void:
 		var base := WB.terrain_height_px(centro)
 		var caja := MeshInstance3D.new()
 		var bm := BoxMesh.new()
-		bm.size = Vector3(r[2] * WB.WORLD_SCALE, (alto * WB.WORLD_SCALE) / _cos_p, (r[3] * WB.WORLD_SCALE) / _sin_p)
+		bm.size = Mapa3D.tam_a_3d(Vector2(r[2], r[3]), alto)
 		caja.mesh = bm
 		caja.material_override = _mat(Color(0.55, 0.36, 0.26, 0.85))
 		caja.position = a_3d(centro, base + alto * 0.5)
@@ -184,7 +183,7 @@ func _cono(vista: Node3D, p: Vector2, radio: float, alto: float, col: Color) -> 
 	var cm := CylinderMesh.new()
 	cm.top_radius = 0.0
 	cm.bottom_radius = radio * WB.WORLD_SCALE
-	cm.height = (alto * WB.WORLD_SCALE) / _cos_p
+	cm.height = Mapa3D.alto_a_3d(alto)
 	cm.radial_segments = 6
 	mi.mesh = cm
 	mi.material_override = _mat(col)

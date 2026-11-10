@@ -1,4 +1,5 @@
 extends SceneTree
+const Mapa3D = preload("res://scripts/fisica/Mapa3D.gd")
 
 ## Editor del mapa 3D (Claude Code, 2026-11-10): crea en mapa/Mundo3D.tscn la carpeta «BajoTierra» (oculta; se enseña
 ## con el ojo) con la pieza «Alcantarillas»: una foto 3D de los túneles que se mueve entera (mapa/edificio.gd, id
@@ -43,7 +44,7 @@ func _initialize() -> void:
 		bt.owner = actual
 	if bt.get_node_or_null("Alcantarillas") == null:
 		var h: float = WB.terrain_height_px(CENTRO)
-		var p3 := Vector3(CENTRO.x * WB.WORLD_SCALE, (h * WB.WORLD_SCALE) / cos(deg_to_rad(WB.PITCH_DEG)), (CENTRO.y * WB.WORLD_SCALE) / sin(deg_to_rad(WB.PITCH_DEG)))
+		var p3 := Mapa3D.a_3d(CENTRO, h)
 		var e := Node3D.new()
 		e.set_script(load("res://mapa/edificio.gd"))
 		e.name = "Alcantarillas"

@@ -6,8 +6,8 @@ extends Node2D
 ##   cementerio parroquial, farolas con luz real, todos los edificios y solares, interiores 3D,
 ##   puertas abatibles, postigos de ventanas, tejados con apertura automática (Cutaway),
 ##   altillos (+1), alcantarillas (-1) y el asentamiento fronterizo «Puesto del Paso».
-## - Se sincroniza 1:1 con las coordenadas 2D de colisión y navegación, permitiendo alternar
-##   en vivo entre 2D y 3D con la tecla [F10] sin alterar ni una sola regla ni test del juego.
+## - Se sincroniza 1:1 con las coordenadas del mapa. Toda conversión mapa ↔ 3D pasa por scripts/fisica/Mapa3D.gd
+##   (paso del mundo a 3D, docs/PLAN_MUNDO_3D.md).
 
 const CharacterAvatar3DScript = preload("res://scripts/visuals/CharacterAvatar3D.gd")
 const AssetLib = preload("res://scripts/visuals/AssetLibrary3D.gd")
@@ -19,9 +19,10 @@ const VillageWorkScript = preload("res://scripts/systems/VillageWork.gd")
 const VillageUnderworldScript = preload("res://scripts/systems/VillageUnderworld.gd")
 const VillageHousingScript = preload("res://scripts/systems/VillageHousing.gd")
 const FishingSpotScript = preload("res://scripts/obstacles/FishingSpot.gd")
+const Mapa3D = preload("res://scripts/fisica/Mapa3D.gd")
 
-const WORLD_SCALE: float = 0.02
-const PITCH_DEG: float = 58.0
+const WORLD_SCALE: float = Mapa3D.ESCALA
+const PITCH_DEG: float = Mapa3D.INCLINACION_GRADOS
 ## Resolución interna: suficiente para que el 3D se lea como 3D (aristas, sombras); las texturas siguen pixeladas.
 const VIEWPORT_W: int = 1280
 const VIEWPORT_H: int = 720
@@ -49,8 +50,8 @@ static var grabar_muebles: bool = false
 var muebles_grabados: Array = []
 var _muebles_activos: bool = false # solo mientras se amuebla un edificio (no los cofres, que ya van por anclas)
 var _muebles_claves: Dictionary = {}
-var _sin_p: float = sin(deg_to_rad(PITCH_DEG))
-var _cos_p: float = cos(deg_to_rad(PITCH_DEG))
+var _sin_p: float = Mapa3D.SIN
+var _cos_p: float = Mapa3D.COS
 
 var sub_viewport: SubViewport = null
 var stage_sprite: Sprite2D = null
@@ -657,23 +658,14 @@ static func terrain_height_px(pos_2d: Vector2) -> float:
 	return (plains_h + forest_h) * outer_mask * (1.0 - river_flat) + village_edge_h + lake_h + marsh_h + river_cut_h
 
 
+## Mapa → 3D sin relieve del suelo.
 func to_3d_flat(pos_2d: Vector2, h_px: float = 0.0) -> Vector3:
-	return Vector3(
-		pos_2d.x * WORLD_SCALE,
-		(h_px * WORLD_SCALE) / _cos_p,
-		(pos_2d.y * WORLD_SCALE) / _sin_p
-	)
+	return Mapa3D.a_3d(pos_2d, h_px)
 
 
+## Mapa → 3D sobre el relieve del suelo (por debajo de −40 px se entiende «bajo tierra» y no se suma el relieve).
 func to_3d(pos_2d: Vector2, h_px: float = 0.0) -> Vector3:
-	var eff_h: float = h_px
-	if h_px > -40.0:
-		eff_h += terrain_height_px(pos_2d)
-	return Vector3(
-		pos_2d.x * WORLD_SCALE,
-		(eff_h * WORLD_SCALE) / _cos_p,
-		(pos_2d.y * WORLD_SCALE) / _sin_p
-	)
+	return Mapa3D.a_3d(pos_2d, h_px + (terrain_height_px(pos_2d) if h_px > -40.0 else 0.0))
 
 
 func terrain_normal_3d(pos_2d: Vector2, step_px: float = 10.0) -> Vector3:
@@ -712,11 +704,7 @@ func _terrain_biome_color(pos_2d: Vector2, normal_3d: Vector3) -> Color:
 	return Color(w_forest, w_plains, w_mud, w_slope)
 
 func size_3d(sz_2d: Vector2, h_px: float) -> Vector3:
-	return Vector3(
-		maxf(0.02, sz_2d.x * WORLD_SCALE),
-		maxf(0.01, (h_px * WORLD_SCALE) / _cos_p),
-		maxf(0.02, (sz_2d.y * WORLD_SCALE) / _sin_p)
-	)
+	return Mapa3D.tam_a_3d(sz_2d, h_px).max(Vector3(0.02, 0.01, 0.02))
 
 func _mat(key: String, col: Color, rough: float = 0.82, metal: float = 0.05, emit_col: Color = Color(0, 0, 0, 0), emit_energy: float = 0.0, tex_rel: String = "", norm_rel: String = "", triplanar_scale: float = 0.65) -> StandardMaterial3D:
 	if _mat_cache.has(key):

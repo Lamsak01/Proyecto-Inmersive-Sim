@@ -1,13 +1,12 @@
 @tool
 extends Node3D
+const Mapa3D = preload("res://scripts/fisica/Mapa3D.gd")
 
 ## Tramo de camino en el editor del mapa 3D (mapa/Mundo3D.tscn → «Caminos»), 2026-11-10.
 ## Muévelo, gíralo (eje vertical) o estíralo con la herramienta de escalar: X = largo, Z = ancho. El juego dibuja el
 ## camino ahí (en 3D y en el mapa pequeño). Si «Caminos» tiene tramos, el juego deja de dibujar los caminos de siempre.
 
 const ESCENA := "res://mapa/Mundo3D.tscn"
-const WORLD_SCALE: float = 0.02
-const PITCH_DEG: float = 58.0
 
 
 func _ready() -> void:
@@ -40,8 +39,7 @@ static func tramos() -> Array:
 	if not ResourceLoader.exists(ESCENA):
 		return _tramos
 	var st: SceneState = (load(ESCENA) as PackedScene).get_state()
-	var s: float = sin(deg_to_rad(PITCH_DEG))
-	var a2 := func(v: Vector3) -> Vector2: return Vector2(v.x / WORLD_SCALE, v.z * s / WORLD_SCALE)
+	var a2 := func(v: Vector3) -> Vector2: return Mapa3D.a_mapa(v)
 	for i in range(st.get_node_count()):
 		if not str(st.get_node_path(i)).begins_with("./Caminos/"):
 			continue

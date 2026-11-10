@@ -1,5 +1,6 @@
 @tool
 extends Node3D
+const Mapa3D = preload("res://scripts/fisica/Mapa3D.gd")
 
 ## Pieza del mundo (árbol, roca, planta, tronco…) en el editor del mapa 3D (mapa/Mundo3D.tscn), 2026-11-10.
 ## Dibuja su modelo con el mismo lector que el juego (AssetLibrary3D), así se ve igual en Godot y jugando.
@@ -40,14 +41,12 @@ func _rehacer() -> void:
 			c.queue_free()
 	if modelo.is_empty() or not AssetLib.has_curated_assets():
 		return
-	var cos_p: float = cos(deg_to_rad(WB.PITCH_DEG))
 	var target := Vector3.ZERO
 	var fit_h := -1.0
 	if tam != Vector2.ZERO:
-		var sin_p: float = sin(deg_to_rad(WB.PITCH_DEG))
-		target = Vector3(tam.x * WB.WORLD_SCALE, (alto * WB.WORLD_SCALE) / cos_p, (tam.y * WB.WORLD_SCALE) / sin_p)
+		target = Mapa3D.tam_a_3d(tam, alto)
 	else:
-		fit_h = maxf(0.05, (alto * WB.WORLD_SCALE) / cos_p)
+		fit_h = maxf(0.05, Mapa3D.alto_a_3d(alto))
 	var inst: Node3D = AssetLib.instantiate_model(modelo, target, fit_h, true, true)
 	if inst == null:
 		return

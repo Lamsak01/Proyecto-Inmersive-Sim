@@ -1,4 +1,5 @@
 extends SceneTree
+const Mapa3D = preload("res://scripts/fisica/Mapa3D.gd")
 
 ## Editor del mapa 3D (Claude Code, 2026-11-10): añade a mapa/Mundo3D.tscn → «Objetos» una pieza por cada objeto con uso
 ## que el juego ya sabe colocar donde diga el editor (mapa/objeto.gd: ObjetoEditor.pos). Solo añade las claves que falten,
@@ -84,7 +85,6 @@ func _initialize() -> void:
 
 	var actual: Node = (load(ESCENA) as PackedScene).instantiate()
 	# Decorado: cada objeto guarda su sitio original y su tamaño, para que las paredes invisibles y lo demás lo sigan
-	var sin_p0: float = sin(deg_to_rad(WB.PITCH_DEG))
 	var dec: Node = actual.get_node_or_null("Decorado")
 	if dec != null:
 		for z in dec.get_children():
@@ -92,11 +92,11 @@ func _initialize() -> void:
 				if o.has_meta("pos_original"):
 					continue
 				var o3 := o as Node3D
-				var p2 := Vector2(o3.position.x / WB.WORLD_SCALE, o3.position.z * sin_p0 / WB.WORLD_SCALE)
+				var p2 := Mapa3D.a_mapa(o3.position)
 				var rad := 8.0
 				for ch in o3.get_children():
 					if ch is Node3D:
-						var q := Vector2((ch as Node3D).position.x / WB.WORLD_SCALE, (ch as Node3D).position.z * sin_p0 / WB.WORLD_SCALE)
+						var q := Mapa3D.a_mapa((ch as Node3D).position)
 						rad = maxf(rad, q.length() + 8.0)
 				o.set_meta("pos_original", p2)
 				o.set_meta("radio", minf(rad, 60.0))
@@ -109,8 +109,6 @@ func _initialize() -> void:
 	var ya := {}
 	for c in objs.get_children():
 		ya[String(c.get("clave"))] = true
-	var sin_p: float = sin(deg_to_rad(WB.PITCH_DEG))
-	var cos_p: float = cos(deg_to_rad(WB.PITCH_DEG))
 	var script_o = load("res://mapa/objeto.gd")
 	var n := 0
 	for e in lista:
@@ -129,7 +127,7 @@ func _initialize() -> void:
 		if e.size() > 6:
 			o.set("es_ancla", true)
 			o.set("radio_ancla", e[6])
-		o.position = Vector3(p.x * WB.WORLD_SCALE, (h * WB.WORLD_SCALE) / cos_p, (p.y * WB.WORLD_SCALE) / sin_p)
+		o.position = Mapa3D.a_3d(p, h)
 		objs.add_child(o)
 		o.owner = actual
 		n += 1

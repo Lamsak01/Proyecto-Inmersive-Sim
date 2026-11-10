@@ -2,7 +2,8 @@ extends SceneTree
 
 ## Editor del mapa (Claude Code, 2026-11-09): comprueba que el juego arranca con el río del editor (~30 s, sin ventana).
 ##   timeout 120 flatpak run org.godotengine.Godot --headless --path . -s tools/tests/rio_editor_juego.gd -- [mover]
-## Sin «mover»: el río debe ser idéntico al original. Con «mover»: un punto desplazado y el juego usa el río nuevo.
+## Sin «mover»: el juego usa el río guardado en el editor (desde 2026-11-10 el usuario ya lo editó: no es el original).
+## Con «mover»: un punto desplazado y el juego usa el río nuevo.
 
 func _initialize() -> void:
 	var FS = load("res://scripts/obstacles/FishingSpot.gd")
@@ -20,19 +21,17 @@ func _initialize() -> void:
 		print("RIOJ banks(-58)=%s" % str(b))
 		ok = ok and b.x > 150.0
 	else:
-		var maxd := 0.0
-		var y := -1180.0
-		while y <= 940.0:
-			maxd = maxf(maxd, FS.river_banks_at(y).distance_to(FS._antiguo_banks_at(y)))
-			y += 3.0
-		print("RIOJ propio=%s diferencia_max=%.4f cruces=%d" % [str(FS._rio_propio), maxd, FS.river_crossings().size()])
-		ok = ok and maxd < 0.001 and not FS._rio_propio and FS.river_crossings().size() == 5
+		var RF = load("res://mapa/rio_forma.gd")
+		var d: Dictionary = RF.leer_escena(FS.MAPA_ESCENA)
+		FS.river_banks_at(0.0) # fuerza la lectura del río del editor
+		print("RIOJ propio=%s cruces=%d (editor: %d)" % [str(FS._rio_propio), FS.river_crossings().size(), d["cruces"].size()])
+		ok = ok and FS._rio_propio and FS.river_crossings().size() == d["cruces"].size()
 	root.add_child(load("uid://dsoiuct8kdsk3").instantiate())
 	for _i in range(90):
 		await physics_frame
 	var body = root.find_child("RiverWaterCollisionBody", true, false)
 	var segs: int = body.get_child_count() if body != null else -1
 	print("RIOJ tramos_agua=%d vecinos=%d" % [segs, get_nodes_in_group("village_npcs").size()])
-	ok = ok and segs == 6
+	ok = ok and segs == FS.river_crossings().size() + 1 # un tramo de agua entre cada dos cruces
 	print("RIOJ " + ("OK" if ok else "FALLO"))
 	quit(0)

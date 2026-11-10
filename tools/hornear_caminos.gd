@@ -1,4 +1,5 @@
 extends SceneTree
+const Mapa3D = preload("res://scripts/fisica/Mapa3D.gd")
 
 ## Editor del mapa 3D (Claude Code, 2026-11-10): crea en mapa/Mundo3D.tscn la carpeta «Caminos» con un tramo movible
 ## (mapa/camino.gd) por cada calle recta de siempre. Las callejas curvas del norte ya están en «Decorado».
@@ -19,9 +20,6 @@ func _initialize() -> void:
 	cam.name = "Caminos"
 	actual.add_child(cam)
 	cam.owner = actual
-	var ws: float = WB.WORLD_SCALE
-	var s: float = sin(deg_to_rad(WB.PITCH_DEG))
-	var c: float = cos(deg_to_rad(WB.PITCH_DEG))
 	var n := 0
 	for r in T3.CALLES_PRINCIPALES + lots.ROADS:
 		if not (r is Rect2):
@@ -32,12 +30,13 @@ func _initialize() -> void:
 		t.set_script(load("res://mapa/camino.gd"))
 		n += 1
 		t.name = "Tramo_%d" % n
-		t.position = Vector3(cen.x * ws, (WB.terrain_height_px(cen) * ws) / c, (cen.y * ws) / s)
+		t.position = Mapa3D.a_3d(cen, WB.terrain_height_px(cen))
 		if rr.size.x >= rr.size.y:
-			t.scale = Vector3(rr.size.x * ws, 1.0, rr.size.y * ws / s)
+			t.scale = Mapa3D.tam_a_3d(rr.size, 0.0) + Vector3(0, 1, 0)
 		else:
 			t.rotation_degrees.y = 90.0
-			t.scale = Vector3(rr.size.y * ws / s, 1.0, rr.size.x * ws)
+			var tz := Mapa3D.tam_a_3d(rr.size, 0.0)
+			t.scale = Vector3(tz.z, 1.0, tz.x)
 		cam.add_child(t)
 		t.owner = actual
 	var ps := PackedScene.new()

@@ -11,7 +11,8 @@ const CharacterAvatar3DScript = preload("res://scripts/visuals/CharacterAvatar3D
 const AssetLib = preload("res://scripts/visuals/AssetLibrary3D.gd")
 
 ## Igual que en el escenario 3D: 1 px del mapa = 0,02 unidades 3D.
-const WORLD_SCALE: float = 0.02
+const Mapa3D = preload("res://scripts/fisica/Mapa3D.gd")
+const WORLD_SCALE: float = Mapa3D.ESCALA
 
 var model_rel: String = ""
 var height_px: float = 12.0

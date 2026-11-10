@@ -1,5 +1,6 @@
 @tool
 extends RefCounted
+const Mapa3D = preload("res://scripts/fisica/Mapa3D.gd")
 
 ## Núcleo del pincel del mapa (Claude Code, 2026-11-10): siembra y borra piezas en mapa/Mundo3D.tscn. Lo usa el panel
 ## del pincel (addons/pincel_mapa) y la prueba tools/tests/pincel_mapa.gd (sin editor).
@@ -21,8 +22,6 @@ var aviso: String = ""
 var _ocupados: Dictionary = {}
 var _celda: float = 32.0
 var _edificios_ref: Dictionary = {}
-var _sin_p: float = sin(deg_to_rad(WB.PITCH_DEG))
-var _cos_p: float = cos(deg_to_rad(WB.PITCH_DEG))
 var _rng := RandomNumberGenerator.new()
 
 
@@ -221,11 +220,11 @@ func _ocupado(p: Vector2, sep: float) -> bool:
 
 
 func _a_2d(p: Vector3) -> Vector2:
-	return Vector2(p.x / WB.WORLD_SCALE, p.z * _sin_p / WB.WORLD_SCALE)
+	return Mapa3D.a_mapa(p)
 
 
 func _a_3d(p: Vector2, h: float) -> Vector3:
-	return Vector3(p.x * WB.WORLD_SCALE, (h * WB.WORLD_SCALE) / _cos_p, (p.y * WB.WORLD_SCALE) / _sin_p)
+	return Mapa3D.a_3d(p, h)
 
 
 
