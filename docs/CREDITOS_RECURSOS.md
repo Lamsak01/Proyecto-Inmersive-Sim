@@ -7,4 +7,5 @@ Los zips originales están en `assests/Assets 3d/` (no se suben a git).
 |---|---|---|---|
 | Stylized Nature (zip `drive-download-20261105T032726Z…`) | Quaternius (quaternius.com) | CC0 | Árboles, arbustos, rocas, plantas, hierba, tocones y troncos (`assests/curated_3d/nature/`) |
 | Nature Kit 2.1 | Kenney (kenney.nl) | CC0 | Setas 3D de las que se recogen (`assests/curated_3d/nature/kenney/`), 2026-11-10 |
+| Squirrel (zip `Squirrel.zip` en Descargas, mismo lote que Bird/Deer/Fox/Roe/Wolf) | Desconocido (descargado por el usuario) | **Sin licencia en el zip: averiguar el origen** | Ardilla que sustituye al conejo (`assests/curated_3d/animals/Squirrel.glb`, convertida con Blender), 2026-11-10 |
 | Otros packs de Kenney y Quaternius ya usados | Kenney / Quaternius | CC0 | Ver `docs/REGISTRO_ESTETICA_3D.md` |

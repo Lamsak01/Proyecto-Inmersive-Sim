@@ -794,6 +794,9 @@ func _build_static_terrain_3d() -> void:
 	for li in range(fallen_logs.size()):
 		_add_model_2d(terrain_root_3d, "nature/WoodLog_Moss.obj" if li % 2 == 0 else "nature/WoodLog.obj", fallen_logs[li], -0.8, Vector2.ZERO, 16.0, float((li * 63) % 360))
 		_add_model_2d(terrain_root_3d, "nature/TreeStump_Moss.obj", fallen_logs[li] + Vector2(34, -22), -0.5, Vector2.ZERO, 9.0, float(li * 51))
+		# Que no se atraviesen (2026-11-10): WoodLog.obj mide 0.63 × 0.75 × 2.67 (largo en su eje Z = «y» del mapa)
+		_colision_solida(fallen_logs[li], Vector2(16.0 * 0.84 / _cos_p, 16.0 * 3.56 * tan(deg_to_rad(PITCH_DEG))), float((li * 63) % 360))
+		_colision_solida(fallen_logs[li] + Vector2(34, -22), Vector2(9.0, 9.0), 0.0)
 	# Plantas del bosque (2026-11-10, mismo pack que los árboles): helechos y hierba alrededor de cada mata
 	var forest_plants := ["nature/Plant_4.obj", "nature/Plant_5.obj", "nature/Plant_1.obj", "nature/Grass.obj", "nature/Grass_Short.obj"]
 	for bi in range(forest_bushes.size()):
@@ -1244,6 +1247,7 @@ func _build_river_and_arroyo_3d(
 		var l_pos: Vector2 = fallen_log[0] as Vector2
 		var l_rot: float = float(fallen_log[1])
 		_add_box_2d(terrain_root_3d, l_pos, Vector2(14.0, 3.0), 0.0, 2.6, m_rotten_log, l_rot)
+		_colision_solida(l_pos, Vector2(14.0, 4.0), l_rot)
 		_add_box_2d(terrain_root_3d, l_pos + Vector2(0.0, -0.4), Vector2(10.0, 2.2), 2.3, 0.6, m_forest_moss, l_rot)
 	for forest_rock in [
 		[Vector2(68.0, -830.0), "nature/Rock_3.obj", 7.8, 20.0],
@@ -1364,6 +1368,16 @@ func _build_river_and_arroyo_3d(
 	for dpx in [-10.0, -2.0]:
 		for dpy in [-5.0, 5.0]:
 			_add_box_2d(terrain_root_3d, r_dock_pos + Vector2(dpx, dpy), Vector2(2.0, 2.0), r_dock_base - 2.6, 4.2, m_dark_wood, 0.0, true)
+
+## Troncos y tocones del bosque sólidos en el mapa 2D (antes solo eran adorno 3D y se atravesaban).
+## rot_3d_deg es el giro del modelo 3D; en el mapa 2D el giro equivalente va al revés.
+func _colision_solida(pos_2d: Vector2, sz_2d: Vector2, rot_3d_deg: float) -> void:
+	if vm == null or not vm.has_method("_add_prop_collider") or en_cauce_del_rio(pos_2d, 2.0):
+		return
+	var sb = vm.call("_add_prop_collider", pos_2d, sz_2d)
+	if sb is Node2D:
+		(sb as Node2D).rotation = -deg_to_rad(rot_3d_deg)
+
 
 func _build_tree_3d(parent: Node3D, pos_2d: Vector2, m_trunk: Material, m_leaf1: Material, m_leaf2: Material, scale_f: float = 1.0, variant: int = 0) -> void:
 	var tree_files := [
