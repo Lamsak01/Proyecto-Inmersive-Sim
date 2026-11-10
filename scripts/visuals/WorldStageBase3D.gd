@@ -514,7 +514,7 @@ static func es_vegetacion_en_rio(rel_path: String, center_2d: Vector2) -> bool:
 	if not rel_path.begins_with("nature/"):
 		return false
 	var f: String = rel_path.get_file()
-	if not ("Tree" in f or "Willow" in f or "Bush" in f or "WoodLog" in f):
+	if not ("Tree" in f or "Willow" in f or "Bush" in f or "WoodLog" in f or "Stump" in f or "Plant" in f or "Grass" in f or "mushroom" in f):
 		return false
 	return en_cauce_del_rio(center_2d, 2.0)
 

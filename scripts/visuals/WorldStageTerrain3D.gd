@@ -278,6 +278,9 @@ func _scan_nature_sources() -> void:
 			tree_positions_seen.append((n as Node2D).global_position)
 		elif ht == 2:
 			kind = "rock"
+		elif ht == 0:
+			# Setas y hierbas que se recogen (2026-11-10): modelos 3D en vez del dibujo 2D
+			kind = "forage_mushroom" if String(n.get("primary_item_id")) == "mushroom" else "forage_herb"
 		if kind.is_empty():
 			continue
 		_nature_sources.append({"node": n, "kind": kind, "sprite": n.get("sprite")})
@@ -451,6 +454,17 @@ func _make_nature_3d(n: Node2D, kind: String) -> Dictionary:
 			stump = _add_cyl_2d(nature_root_3d, pos, 5.0, -1.2, 6.2, _mat("tree_stump", Color(0.45, 0.32, 0.20), 0.9, 0.0, Color.BLACK, 0.0, "town_textures/rf_planks.png", "", 0.78), 4.5, 8)
 			stump.visible = false
 		return {"tree": t, "stump": stump}
+	if kind == "forage_mushroom":
+		# Kenney Nature Kit (CC0): seta roja o parda, sola, alta o en grupo
+		var mfiles := ["nature/kenney/mushroom_redGroup.glb", "nature/kenney/mushroom_tan.glb", "nature/kenney/mushroom_red.glb",
+			"nature/kenney/mushroom_tanGroup.glb", "nature/kenney/mushroom_redTall.glb", "nature/kenney/mushroom_tanTall.glb"]
+		var mf: String = mfiles[hv % mfiles.size()]
+		var m := _add_model_2d(nature_root_3d, mf, pos, -0.3, Vector2.ZERO, 7.5 if "Tall" in mf else 5.5, rot)
+		return {"tree": m, "stump": null}
+	if kind == "forage_herb":
+		var hfiles := ["nature/Plant_4.obj", "nature/Plant_5.obj"]
+		var hb := _add_model_2d(nature_root_3d, hfiles[hv % hfiles.size()], pos, -0.3, Vector2.ZERO, 8.5, rot)
+		return {"tree": hb, "stump": null}
 	if kind == "rock":
 		var rfiles := ["nature/Rock_1.obj", "nature/Rock_2.obj", "nature/Rock_3.obj", "nature/Rock_4.obj", "nature/Rock_5.obj"]
 		var r := _add_model_2d(nature_root_3d, rfiles[hv % rfiles.size()], pos, -1.4, Vector2.ZERO, 16.0, rot)
@@ -773,7 +787,16 @@ func _build_static_terrain_3d() -> void:
 		Vector2(180, 2040), Vector2(890, 1180), Vector2(1080, 1490), Vector2(1120, 1920)
 	]
 	for li in range(fallen_logs.size()):
-		_add_model_2d(terrain_root_3d, "nature/WoodLog.obj", fallen_logs[li], -0.8, Vector2.ZERO, 16.0, float((li * 63) % 360))
+		_add_model_2d(terrain_root_3d, "nature/WoodLog_Moss.obj" if li % 2 == 0 else "nature/WoodLog.obj", fallen_logs[li], -0.8, Vector2.ZERO, 16.0, float((li * 63) % 360))
+		_add_model_2d(terrain_root_3d, "nature/TreeStump_Moss.obj", fallen_logs[li] + Vector2(34, -22), -0.5, Vector2.ZERO, 9.0, float(li * 51))
+	# Plantas del bosque (2026-11-10, mismo pack que los árboles): helechos y hierba alrededor de cada mata
+	var forest_plants := ["nature/Plant_4.obj", "nature/Plant_5.obj", "nature/Plant_1.obj", "nature/Grass.obj", "nature/Grass_Short.obj"]
+	for bi in range(forest_bushes.size()):
+		for k in range(3):
+			var ang: float = float(bi * 3 + k) * 2.39
+			var fp: Vector2 = forest_bushes[bi] + Vector2(cos(ang), sin(ang)) * (14.0 + float(k) * 9.0)
+			var pf: String = forest_plants[(bi + k * 2) % forest_plants.size()]
+			_add_model_2d(terrain_root_3d, pf, fp, -0.2, Vector2.ZERO, 5.0 if "Grass" in pf else 8.0, float((bi * 37 + k * 91) % 360))
 
 	# Cercado del Cementerio Parroquial ampliado (Rect2(Vector2(822, 260), Vector2(268, 168))) con caminos en cruz, verja de hierro y piedra y 24 tumbas en filas
 	var cem_r := Rect2(Vector2(822.0, 260.0), Vector2(268.0, 168.0))
@@ -1197,7 +1220,10 @@ func _build_river_and_arroyo_3d(
 		_add_model_2d(terrain_root_3d, bush_models[ubi % bush_models.size()], b_pos, -0.2, Vector2.ZERO, b_scale, float(ubi * 41))
 		# Helechos y matas bajas junto a cada arbusto
 		var f_off := Vector2(cos(float(ubi) * 1.7) * 4.5, sin(float(ubi) * 2.3) * 4.5)
-		_add_model_2d(terrain_root_3d, "nature/Plant_2.obj" if (ubi % 2) == 0 else "nature/Plant_3.obj", b_pos + f_off, -0.15, Vector2.ZERO, 7.2 + float(ubi % 3) * 1.3, float(ubi * 67))
+		var ferns := ["nature/Plant_2.obj", "nature/Plant_3.obj", "nature/Plant_4.obj", "nature/Plant_5.obj"]
+		_add_model_2d(terrain_root_3d, ferns[ubi % ferns.size()], b_pos + f_off, -0.15, Vector2.ZERO, 7.2 + float(ubi % 3) * 1.3, float(ubi * 67))
+		if ubi % 3 == 0:
+			_add_model_2d(terrain_root_3d, "nature/Grass_2.obj", b_pos - f_off * 1.3, -0.1, Vector2.ZERO, 4.5, float(ubi * 29))
 
 	# Troncos caídos cubiertos de musgo y peñascos forestales en los bordes del claro y del arroyo
 	for fallen_log in [
