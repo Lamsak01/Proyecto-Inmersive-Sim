@@ -4,8 +4,8 @@
 > profundidades, cuevas, lagos y **nadar y bucear** (habrá casos con pistas en el río y el lago). Quiere hacerlo **ya**,
 > antes de que el juego crezca. No volver a proponer quedarse en 2D ni «trucos de capas» como solución final.
 >
-> **Estado (2026-11-10):** plan aprobado por el usuario. **Paso 0 hecho** en la rama `mundo-3d` salvo una decisión:
-> la escala (§5, paso 0), que se pregunta al usuario. Siguiente: paso 1.
+> **Estado (2026-11-10):** plan aprobado por el usuario. **Paso 0 hecho** en la rama `mundo-3d`. **Escala: el usuario eligió
+> la opción B (uniforme).** Siguiente: paso 0b (§5), antes del paso 1.
 > Autor: Claude Code (portátil). Cualquier agente que siga: lee este documento entero antes de tocar nada y apunta
 > cada paso en el **Registro** (§10).
 
@@ -125,6 +125,25 @@ Cada paso: qué se hace, cuándo está terminado y cómo volver atrás. «Volver
 - Prueba nueva `tools/tests/fisica_3d.gd` (vacía al principio; cada paso le añade lo suyo).
 - **Terminado cuando:** juego idéntico (capturas iguales), `verify_all` en verde y medidas guardadas.
 
+### Paso 0b — Escala uniforme (decisión del usuario 2026-11-10: opción B)
+Objetivo: un mundo 3D con las mismas proporciones en los tres ejes y **1 unidad = 1 metro**. El motor de física está pensado
+para metros (gravedad 9,8, márgenes de choque) y hoy una persona mide menos de una unidad, demasiado pequeña para chocar bien.
+- **Medida de partida:** la altura de una persona (muñeco actual, ojos a `FP_EYE_HEIGHT_PX`) = 1,75 m. De ahí sale el nuevo
+  `Mapa3D.ESCALA` (unidades por píxel). Medir antes de cambiar nada y apuntarlo aquí.
+- **Ejes:** z deja de dividirse por sin 58° (el norte-sur se acorta ~15 % y lo redondo queda redondo). Las alturas en
+  píxeles se conservan como se ven hoy: su factor queda en `Mapa3D` con nombre propio (una casa no se aplasta).
+- **Lo que pasa por `Mapa3D` se ajusta solo.** El resto de números 3D escritos a mano (cámara, brazos, muñecos `STAGE_K`,
+  niebla, luces, alcances de vista, sombras, distancias de LOD) se multiplican por el mismo factor, uno a uno, apuntados
+  en el manuscrito.
+- **Mapa del usuario (`mapa/Mundo3D.tscn`):** copia `mapa/Mundo3D.antes-3d.tscn` y herramienta que convierte cada posición;
+  comprobación: cada pieza cae en el **mismo sitio del mapa del pueblo** que antes (las anclas dan las mismas x, y).
+- Volver a hornear lo horneado (`tools/hornear_*.gd`).
+- **El cerebro no cambia:** posiciones de mapa, guardado y vecinos iguales; el guardado no sube de versión.
+- **Terminado cuando:** `fisica_3d` comprueba proporciones (una caja de 10×10 px es cuadrada; una persona mide 1,75 u),
+  sondeo de edificios 29/29, `verify_all` verde, fps no peor que la referencia y fotos nuevas revisadas por el usuario
+  (ya no serán iguales: se guardan como `referencia_paso0b`).
+- Coste estimado: 1–2 sesiones más. Volver atrás: etiqueta `antes-paso-0b`.
+
 ### Paso 1 — El protagonista en 3D
 - `Cuerpo3D.gd` para el jugador: cápsula 3D, gravedad, saltar de verdad, caer, subir peldaños y rampas.
 - **Mundo sólido en 3D:** cajas de choque para paredes, puertas (abiertas/cerradas/atrancadas), muebles, árboles, rocas y
@@ -188,7 +207,7 @@ Cada paso: qué se hace, cuándo está terminado y cómo volver atrás. «Volver
 
 ## 7. Decisiones que tiene que tomar el usuario (preguntar en su paso, no antes)
 
-1. **Escala** (paso 0): opción A (como se ve hoy, recomendada) o B (uniforme).
+1. **Escala** (paso 0): ~~A o B~~ → **B, uniforme** (usuario, 2026-11-10). Ver paso 0b.
 2. **Vista desde arriba** (paso 6): ¿se mantiene la cámara cenital 3D (F9) o el juego es solo en 1.ª persona?
 3. **Daño por caída** (paso 2): cuánto y desde qué altura.
 4. **Aire bajo el agua** (paso 3): cuánto dura y qué pasa al ahogarse (desmayo o muerte).
