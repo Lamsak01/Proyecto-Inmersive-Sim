@@ -1295,11 +1295,15 @@ func _build_river_and_arroyo_3d(
 		var cbase: float = _river_bank_terrace_height_px(cpos.y)
 		if String(cr.get("kind", "")) == "log":
 			# Tronco caído de orilla a orilla: puente natural (el modelo es largo en su eje norte-sur; se gira 90°)
+			# Se escala por el grosor (proporciones reales) y luego solo se alarga hasta apoyar en las dos orillas
+			var grosor_px: float = 8.0
 			_permitir_en_rio = true
-			var lg: Node3D = _add_model_2d(terrain_root_3d, "nature/WoodLog.obj", Vector2(ccx, cpos.y), 0.0, Vector2(9.0, cspan + 6.0), 4.6, 90.0)
+			var lg: Node3D = _add_model_2d(terrain_root_3d, "nature/WoodLog.obj", Vector2(ccx, cpos.y), 0.0, Vector2.ZERO, grosor_px, 90.0)
 			_permitir_en_rio = false
 			if lg != null:
-				lg.position = to_3d_flat(Vector2(ccx, cpos.y), cbase - 2.2)
+				var largo_modelo: float = ((grosor_px * WORLD_SCALE) / _cos_p) * (2.67 / 0.75) # WoodLog.obj: largo 2.67, alto 0.75
+				lg.scale.z *= ((cspan + 10.0) * WORLD_SCALE) / maxf(0.01, largo_modelo)
+				lg.position = to_3d_flat(Vector2(ccx, cpos.y), cbase - 3.0)
 			continue
 		if cid == "bridge_north" or cid == "south_fields_bridge":
 			var bw_y: float = chy * 2.0

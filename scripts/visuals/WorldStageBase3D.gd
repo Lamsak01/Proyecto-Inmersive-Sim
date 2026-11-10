@@ -534,7 +534,7 @@ static func surface_elevation_offset_px(pos_2d: Vector2) -> float:
 		var cr_boost: float = 1.6 if absf(pos_2d.y - 50.0) <= 24.0 else 0.9
 		for cr in FishingSpotScript.river_crossings():
 			if String(cr.get("kind", "")) == "log" and absf(pos_2d.y - float(cr["pos"].y)) <= float(cr["half_h"]) + 3.0:
-				cr_boost = 2.4 # se camina por encima del tronco caído
+				cr_boost = 4.6 # se camina por encima del tronco caído (8 de grosor, apoyado 3 por debajo de la orilla)
 		return maxf(0.45, (bank_h - base_t) + cr_boost)
 	if Rect2(Vector2(384.0, 8.0), Vector2(162.0, 80.0)).has_point(pos_2d):
 		return 0.48
