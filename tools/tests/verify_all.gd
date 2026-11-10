@@ -190,8 +190,15 @@ func _initialize() -> void:
 	assert(p_inv.get_count("clean_water") == water_before, "Washing within <=2m of a water source must NOT consume inventory clean_water!")
 
 	# Now move player far from any water source (`Vector2(100, -250)`) and dirty the wound again
-	player.global_position = Vector2(100, -250)
-	assert(not player.is_near_water_source(2.0), "Player at (100, -250) must be >2m from any water source")
+	# 2026-11-10: el usuario redibujó el río y (100, -250) quedó junto a la orilla: se busca un sitio seco de verdad.
+	var dry_pos := Vector2(100, -250)
+	for cand in [Vector2(100, -250), Vector2(-300, -250), Vector2(600, -400), Vector2(-600, 300), Vector2(900, 500)]:
+		player.global_position = cand
+		if not player.is_near_water_source(2.0):
+			dry_pos = cand
+			break
+	player.global_position = dry_pos
+	assert(not player.is_near_water_source(2.0), "Player at %s must be >2m from any water source" % str(dry_pos))
 	p_hc_w.wounds[0]["clean"] = false
 	var empty_before: int = p_inv.get_count("empty_flask")
 	med_ui._apply_treatment(p_hc_w, pw_id, "wash")
@@ -6375,14 +6382,26 @@ func _initialize() -> void:
 		c72_n.is_sleeping = false
 		c75_guard.elevation_level = 0
 		c72_n.elevation_level = 0
-		c75_guard.global_position = Vector2(360, 420)
-		c72_n.global_position = Vector2(380, 420)
+		# 2026-11-10: el usuario movió una casa junto a (330, 420) en el editor 3D; se busca un llano sin edificios cerca.
+		var b1_base := Vector2(330, 420)
+		for b1_c in [Vector2(330, 420), Vector2(-300, 250), Vector2(600, 600), Vector2(-700, -300), Vector2(1200, 300)]:
+			var b1_zone := Rect2(b1_c - Vector2(70, 40), Vector2(140, 80))
+			var b1_free := true
+			for b1_b in vm.building_footprints:
+				if (b1_b["rect"] as Rect2).grow(12.0).intersects(b1_zone):
+					b1_free = false
+					break
+			if b1_free and not load("res://scripts/obstacles/FishingSpot.gd").is_point_in_river_water(b1_c, 60.0):
+				b1_base = b1_c
+				break
+		c75_guard.global_position = b1_base + Vector2(30, 0)
+		c72_n.global_position = b1_base + Vector2(50, 0)
 		if c72_n.person_profile != null:
 			c72_n.person_profile.personality.clear()
 			c72_n.person_profile.personality.append("Cobarde")
 		var b1_am = root.get_node_or_null("AudioManager")
 		var b1_sight0: int = vm.sighting_log.size()
-		b1_am.emit_noise(Vector2(330, 420), 180.0, 0, "heavy_hit")
+		b1_am.emit_noise(b1_base, 180.0, 0, "heavy_hit")
 		assert(c75_guard._noise_react_mode == "guard_investigate" and c75_guard._noise_react_timer > 0.0, "C7.33: Awake guard within radius reacts to combat noise and investigates")
 		assert(c72_n._noise_react_mode == "civilian_flee" and c72_n._noise_react_timer > 0.0, "C7.34: Peaceful/cowardly civilian flees from combat noise")
 		assert(vm.sighting_log.size() > b1_sight0, "C7.35: Witness on the same floor with line of sight is logged in sighting_log")
@@ -6391,8 +6410,8 @@ func _initialize() -> void:
 		c72_n._noise_witness_logged = false
 		c72_n.elevation_level = -1
 		var b1_sight1: int = vm.sighting_log.size()
-		b1_am.emit_noise(Vector2(330, 420), 180.0, 0, "gunshot")
-		assert(c72_n._noise_react_timer == 0.0 and not c72_n.can_witness_combat_at(Vector2(330, 420), 0), "C7.36: Neighbor on another floor does not count as a witness")
+		b1_am.emit_noise(b1_base, 180.0, 0, "gunshot")
+		assert(c72_n._noise_react_timer == 0.0 and not c72_n.can_witness_combat_at(b1_base, 0), "C7.36: Neighbor on another floor does not count as a witness")
 		c75_guard._noise_react_timer = 0.0
 		c72_n._noise_react_timer = 0.0
 		c75_guard.global_position = b1_gpos0
@@ -6817,6 +6836,22 @@ func _initialize() -> void:
 	var b3_prev_toby_lot: String = str(b3_hs.get("toby_lot", ""))
 	var b3_prev_coop_lot: String = str(b3_hs.get("coop_lot", ""))
 	var b3_prev_animals: Array = (b3_hs.get("player_animals", []) as Array).duplicate(true)
+	# 2026-11-10: desde el inicio en las afueras (2026-11-09) Toby no aparece en el modo demo con el que arranca la prueba;
+	# se crea aquí igual que en VillageManagerSocial._spawn_domestic_pets para poder probar el traslado.
+	if b3_vh.find_toby(vm) == null:
+		var b3_pet_s = load("res://scripts/enemies/DomesticPet.gd")
+		vm._spawn_pet_bed_and_bowl(Vector2(-1825, -82), b3_pet_s.PetType.DOG, "Toby")
+		var b3_new_toby = b3_pet_s.new()
+		b3_new_toby.name = "Pet_Toby"
+		b3_new_toby.pet_type = b3_pet_s.PetType.DOG
+		b3_new_toby.pet_name = "Toby"
+		b3_new_toby.owner_label = "Granja del Jugador"
+		b3_new_toby.family_id = "player_farm"
+		b3_new_toby.home_position = Vector2(-1825, -82)
+		b3_new_toby.global_position = Vector2(-1825, -82)
+		b3_new_toby.is_guard_dog = true
+		vm.entities_root.add_child(b3_new_toby)
+		vm.domestic_pets.append(b3_new_toby)
 	var b3_toby = b3_vh.find_toby(vm)
 	var b3_bed: Node2D = vm.entities_root.get_node_or_null("PetBed_Toby") as Node2D
 	var b3_coop: Node2D = get_first_node_in_group("chicken_coop") as Node2D
