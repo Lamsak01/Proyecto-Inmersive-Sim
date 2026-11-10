@@ -3941,3 +3941,89 @@ transform = Transform3D(0.37460798, 0, 0.9271833, 0, 1, 0, -0.9271833, 0, 0.3746
 script = ExtResource("2_rotgg")
 modelo = "nature/Plant_2.obj"
 alto = 9.8
+
+[node name="Vetas" type="Node3D" parent="Vegetacion" unique_id=411005174]
+
+[node name="Veta_1" type="Node3D" parent="Vegetacion/Vetas" unique_id=82431994]
+transform = Transform3D(-0.9396926, 0, 0.3420202, 0, 1, 0, -0.3420202, 0, -0.9396926, 14.8, 0.3599646, 20.281868)
+script = ExtResource("2_rotgg")
+modelo = "nature/Rock_1.obj"
+alto = 16.0
+
+[node name="Veta_2" type="Node3D" parent="Vegetacion/Vetas" unique_id=1544355324]
+transform = Transform3D(0.7660443, 0, -0.64278775, 0, 1, 0, 0.64278775, 0, 0.7660443, 17.6, 0.5364899, 20.75354)
+script = ExtResource("2_rotgg")
+modelo = "nature/Rock_1.obj"
+alto = 16.0
+
+[node name="Veta_3" type="Node3D" parent="Vegetacion/Vetas" unique_id=1215299573]
+transform = Transform3D(-0.1736482, 0, 0.9848077, 0, 1, 0, -0.9848077, 0, -0.1736482, 20.8, 0.3896158, 20.281868)
+script = ExtResource("2_rotgg")
+modelo = "nature/Rock_1.obj"
+alto = 16.0
+
+[node name="Veta_4" type="Node3D" parent="Vegetacion/Vetas" unique_id=649755241]
+transform = Transform3D(-0.34202012, 0, 0.9396926, 0, 1, 0, -0.9396926, 0, -0.34202012, 23.6, 0.26064765, 21.461046)
+script = ExtResource("2_rotgg")
+modelo = "nature/Rock_1.obj"
+alto = 16.0
+
+[node name="Veta_5" type="Node3D" parent="Vegetacion/Vetas" unique_id=972742512]
+transform = Transform3D(1.1924881e-08, 0, -1, 0, 1, 0, 1, 0, 1.1924881e-08, 15.8, 0.5723652, 24.52691)
+script = ExtResource("2_rotgg")
+modelo = "nature/Rock_1.obj"
+alto = 16.0
+
+[node name="Veta_6" type="Node3D" parent="Vegetacion/Vetas" unique_id=107317255]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 19.6, 0.44142446, 24.998583)
+script = ExtResource("2_rotgg")
+modelo = "nature/Rock_1.obj"
+alto = 16.0
+
+[node name="Veta_7" type="Node3D" parent="Vegetacion/Vetas" unique_id=1464976212]
+transform = Transform3D(0.8660254, 0, 0.5, 0, 1, 0, -0.5, 0, 0.8660254, 23.2, 0.28866932, 25.706089)
+script = ExtResource("2_rotgg")
+modelo = "nature/Rock_1.obj"
+alto = 16.0
+
+[node name="Veta_8" type="Node3D" parent="Vegetacion/Vetas" unique_id=861380676]
+transform = Transform3D(0.8660253, 0, -0.5000002, 0, 1, 0, 0.5000002, 0, 0.8660253, 26.2, 0.16831644, 24.998583)
+script = ExtResource("2_rotgg")
+modelo = "nature/Rock_1.obj"
+alto = 16.0
+
+[node name="Veta_9" type="Node3D" parent="Vegetacion/Vetas" unique_id=132888721]
+transform = Transform3D(0.4999999, 0, -0.86602545, 0, 1, 0, 0.86602545, 0, 0.4999999, 16.8, 0.40961757, 29.715296)
+script = ExtResource("2_rotgg")
+modelo = "nature/Rock_1.obj"
+alto = 16.0
+
+[node name="Veta_10" type="Node3D" parent="Vegetacion/Vetas" unique_id=1371982282]
+transform = Transform3D(-0.8660254, 0, -0.49999997, 0, 1, 0, 0.49999997, 0, -0.8660254, 21.2, 0.32381132, 29.47946)
+script = ExtResource("2_rotgg")
+modelo = "nature/Rock_1.obj"
+alto = 16.0
+
+[node name="Veta_11" type="Node3D" parent="Vegetacion/Vetas" unique_id=559867387]
+transform = Transform3D(0.6427875, 0, -0.7660445, 0, 1, 0, 0.7660445, 0, 0.6427875, 24.8, 0.25250235, 30.422802)
+script = ExtResource("2_rotgg")
+modelo = "nature/Rock_1.obj"
+alto = 16.0
+
+[node name="Veta_12" type="Node3D" parent="Vegetacion/Vetas" unique_id=1673339357]
+transform = Transform3D(-0.7660445, 0, -0.6427876, 0, 1, 0, 0.6427876, 0, -0.7660445, 18.4, 0.21936068, 34.43201)
+script = ExtResource("2_rotgg")
+modelo = "nature/Rock_1.obj"
+alto = 16.0
+
+[node name="Veta_13" type="Node3D" parent="Vegetacion/Vetas" unique_id=1424738272]
+transform = Transform3D(0.93969256, 0, -0.34202036, 0, 1, 0, 0.34202036, 0, 0.93969256, 22.8, 0.24110813, 34.90368)
+script = ExtResource("2_rotgg")
+modelo = "nature/Rock_1.obj"
+alto = 16.0
+
+[node name="Veta_14" type="Node3D" parent="Vegetacion/Vetas" unique_id=1705617583]
+transform = Transform3D(-0.17364813, 0, -0.9848078, 0, 1, 0, 0.9848078, 0, -0.17364813, 26.8, 0.27758652, 36.790367)
+script = ExtResource("2_rotgg")
+modelo = "nature/Rock_1.obj"
+alto = 16.0

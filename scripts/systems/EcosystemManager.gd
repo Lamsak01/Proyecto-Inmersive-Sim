@@ -187,7 +187,9 @@ func _spawn_distant_forest() -> void:
 		Vector2(840, 1260), Vector2(1060, 1250), Vector2(1240, 1290),
 		Vector2(920, 1460), Vector2(1140, 1480), Vector2(1340, 1560)
 	]
-	_spawn_harvest_batch("OreVein", rock_positions, HarvestableNode.HarvestType.MINING, "Veta de Hierro y Piedra", "stone", 2, "iron_ore", 2, 35.0, 2, 0, tex_rock, tex_rock_depleted, Vector2(1.15, 1.15), 12.0)
+	# Editor del mapa 3D (2026-11-10): si hay vetas en mapa/Mundo3D.tscn → Vegetacion/Vetas, salen de ahí
+	if not vetas_en_escena():
+		_spawn_harvest_batch("OreVein", rock_positions, HarvestableNode.HarvestType.MINING, "Veta de Hierro y Piedra", "stone", 2, "iron_ore", 2, 35.0, 2, 0, tex_rock, tex_rock_depleted, Vector2(1.15, 1.15), 12.0)
 
 	var herb_positions: Array[Vector2] = [
 		Vector2(-980, 860), Vector2(-780, 840), Vector2(-580, 870), Vector2(-410, 850),
@@ -238,6 +240,20 @@ func _spawn_harvest_batch(prefix: String, positions: Array[Vector2], h_type: Har
 ## de la escena (WorldStageTerrain3D los hace talables con crear_arbol_talable) y no de la lista de este archivo.
 static var ignorar_escena: bool = false # lo usa el horneado para ver los árboles de la lista
 static var _arboles_escena: int = -1
+static var _vetas_escena: int = -1
+static func vetas_en_escena() -> bool:
+	if ignorar_escena:
+		return false
+	if _vetas_escena == -1:
+		_vetas_escena = 0
+		if ResourceLoader.exists("res://mapa/Mundo3D.tscn"):
+			var st: SceneState = (load("res://mapa/Mundo3D.tscn") as PackedScene).get_state()
+			for i in range(st.get_node_count()):
+				if str(st.get_node_path(i)).begins_with("./Vegetacion/Vetas/"):
+					_vetas_escena = 1
+					break
+	return _vetas_escena == 1
+
 static func arboles_en_escena() -> bool:
 	if ignorar_escena:
 		return false
@@ -273,6 +289,25 @@ func crear_arbol_talable(pos: Vector2, nombre: String) -> Node2D:
 	node.respawn_days = 2
 	entities_root.add_child(node)
 	node.setup_visuals(tex_tree, tex_stump, Color.WHITE, Vector2(0.85, 0.85), 7.0)
+	return node
+
+## Una veta de hierro y piedra (mismos valores que las de siempre) en un punto del mapa 2D.
+func crear_veta(pos: Vector2, nombre: String) -> Node2D:
+	if entities_root == null or not is_instance_valid(entities_root):
+		return null
+	var node := HarvestableNode.new()
+	node.name = nombre
+	node.global_position = pos
+	node.harvest_type = HarvestableNode.HarvestType.MINING
+	node.node_title = "Veta de Hierro y Piedra"
+	node.primary_item_id = "stone"
+	node.primary_amount = 2
+	node.bonus_item_id = "iron_ore"
+	node.bonus_amount = 2
+	node.max_hp = 35.0
+	node.respawn_days = 2
+	entities_root.add_child(node)
+	node.setup_visuals(_load_tex("res://assests/world/harvest/rock_iron_vein.png"), _load_tex("res://assests/world/harvest/rock_depleted.png"), Color.WHITE, Vector2(1.15, 1.15), 12.0)
 	return node
 
 ## Un matorral destructible (2026-11-10, orden del usuario): se corta con arma u hacha y da ramas; vuelve a crecer.

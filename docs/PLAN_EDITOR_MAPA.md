@@ -42,7 +42,8 @@ ordenador principal**: pregúntale cuáles antes de las piezas nuevas (árboles,
   (`hornear_vegetacion.gd -- talables`, nodos `Talable_*`) y EcosystemManager ya no los crea si hay árboles en la escena.
   Probado: 252 talables, ninguno duplicado; talar uno oculta el árbol y muestra el tocón.
 - **Matorrales destructibles** (2026-11-10, usuario): cada pieza «Bush…» de la escena es un «Matorral» (HarvestableNode, 8 de vida, da 2 «Ramas», vuelve en 3 días). Objeto nuevo «branches» (Ramas) sin uso todavía: el usuario decidirá para qué sirve.
-- Siguen en código: vetas de mineral (EcosystemManager), setas y hierbas, puentes, el tronco-puente, los troncos de caja
+- **Vetas de mineral** (2026-11-10): toda roca dentro de `Vegetacion/Vetas` se pica (HarvestableNode «Veta de Hierro y Piedra»: 2 piedra + 2 mineral de hierro, vuelve en 2 días; al agotarse queda una roca pequeña). Las 14 de EcosystemManager se hornearon ahí (`hornear_vegetacion.gd -- vetas`) y ya no se crean por código. Las rocas de `Rocas` siguen siendo adorno sólido.
+- Siguen en código: setas y hierbas, puentes, el tronco-puente, los troncos de caja
   del claro y todo lo de los edificios.
 
 ## Pendiente (en este orden, cada paso con permiso del usuario)

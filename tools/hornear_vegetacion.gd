@@ -12,6 +12,9 @@ const ESCENA := "res://mapa/Mundo3D.tscn"
 
 func _initialize() -> void:
 	WB = load("res://scripts/visuals/WorldStageBase3D.gd")
+	if "vetas" in OS.get_cmdline_user_args():
+		await _anadir_vetas()
+		return
 	if "talables" in OS.get_cmdline_user_args():
 		await _anadir_talables()
 		return
@@ -130,4 +133,48 @@ func _anadir_talables() -> void:
 	if err == OK:
 		err = ResourceSaver.save(ps, ESCENA)
 	print("HORNEAR: %d árboles talables añadidos (error %d)" % [n, err])
+	quit(0 if err == OK else 1)
+
+
+## «-- vetas»: crea Vegetacion/Vetas con las vetas de mineral de EcosystemManager (mismo modelo, altura y giro).
+func _anadir_vetas() -> void:
+	var EM = load("res://scripts/systems/EcosystemManager.gd")
+	EM.ignorar_escena = true
+	var actual: Node = (load(ESCENA) as PackedScene).instantiate()
+	var veg: Node = actual.get_node_or_null("Vegetacion")
+	if veg == null or veg.get_node_or_null("Vetas") != null:
+		print("HORNEAR: falta Vegetacion o ya hay Vetas"); quit(1); return
+	root.add_child(load("uid://dsoiuct8kdsk3").instantiate())
+	for _i in range(20):
+		await process_frame
+	var vetas := Node3D.new()
+	vetas.name = "Vetas"
+	veg.add_child(vetas)
+	vetas.owner = actual
+	var rfiles := ["nature/Rock_1.obj", "nature/Rock_2.obj", "nature/Rock_3.obj", "nature/Rock_4.obj", "nature/Rock_5.obj"]
+	var sin_p: float = sin(deg_to_rad(WB.PITCH_DEG))
+	var cos_p: float = cos(deg_to_rad(WB.PITCH_DEG))
+	var pieza_script = load("res://mapa/pieza.gd")
+	var n := 0
+	for t in get_nodes_in_group("destructible"):
+		if not String(t.name).begins_with("OreVein_"):
+			continue
+		var pos: Vector2 = (t as Node2D).global_position
+		var hv: int = absi(int(pos.x * 13.0 + pos.y * 7.0))
+		var pz := Node3D.new()
+		pz.set_script(pieza_script)
+		n += 1
+		pz.name = "Veta_%d" % n
+		var h: float = WB.terrain_height_px(pos) - 1.4
+		pz.position = Vector3(pos.x * WB.WORLD_SCALE, (h * WB.WORLD_SCALE) / cos_p, (pos.y * WB.WORLD_SCALE) / sin_p)
+		pz.rotation_degrees.y = float(hv % 360)
+		pz.set("alto", 16.0)
+		pz.set("modelo", String(rfiles[hv % rfiles.size()]))
+		vetas.add_child(pz)
+		pz.owner = actual
+	var ps := PackedScene.new()
+	var err := ps.pack(actual)
+	if err == OK:
+		err = ResourceSaver.save(ps, ESCENA)
+	print("HORNEAR: %d vetas añadidas (error %d)" % [n, err])
 	quit(0 if err == OK else 1)

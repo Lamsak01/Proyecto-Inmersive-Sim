@@ -1406,7 +1406,10 @@ func _cargar_decoracion_editor() -> void:
 		_juntar_piezas(g, piezas)
 	for c in piezas:
 		var es_mata: bool = c.has_method("tipo_choque") and "Bush" in String(c.get("modelo")).get_file()
-		if c.has_method("tipo_choque") and (String(c.call("tipo_choque")) == "tronco" or es_mata) and nature_root_3d != null:
+		var es_veta: bool = c.get_parent() != null and String(c.get_parent().name) == "Vetas"
+		if c.has_method("tipo_choque") and (String(c.call("tipo_choque")) == "tronco" or es_mata or es_veta) and nature_root_3d != null:
+			if es_veta:
+				c.set_meta("es_veta", true)
 			# Árbol: sale del terreno antes de juntarlo por zonas (tiene que poder ocultarse al talarlo)
 			var xf := (c as Node3D).global_transform
 			c.get_parent().remove_child(c)
@@ -1437,7 +1440,9 @@ func _crear_talables_pendientes() -> void:
 			continue
 		n += 1
 		if eco != null and eco.has_method("crear_arbol_talable"):
-			if "Bush" in String(c.get("modelo")).get_file():
+			if bool(c.get_meta("es_veta", false)):
+				_hacer_veta(c as Node3D, eco, "VetaEscena_%d" % n)
+			elif "Bush" in String(c.get("modelo")).get_file():
 				_hacer_talable(c as Node3D, eco, "MatorralEscena_%d" % n, true)
 			else:
 				_hacer_talable(c as Node3D, eco, "ArbolEscena_%d" % n)
@@ -1465,6 +1470,25 @@ func _hacer_talable(pieza: Node3D, eco: Node, nombre: String, matorral: bool = f
 	var rec := {"tree": pieza, "stump": stump}
 	for k in ["tree", "stump"]:
 		_absorb_into_batches(rec[k], p2)
+	_nature_nodes[(h as Node2D).get_instance_id()] = rec
+
+
+## Roca de la carpeta «Vetas» → veta que se pica (piedra y mineral de hierro). Al agotarse queda una roca pequeña.
+func _hacer_veta(pieza: Node3D, eco: Node, nombre: String) -> void:
+	var p2 := _a_mapa_2d(pieza.global_position)
+	var h = eco.call("crear_veta", p2, nombre)
+	if not (h is Node2D):
+		_choque_de_pieza(pieza)
+		return
+	var hv: int = absi(int(p2.x * 13.0 + p2.y * 7.0))
+	var rfiles := ["nature/Rock_1.obj", "nature/Rock_2.obj", "nature/Rock_3.obj", "nature/Rock_4.obj", "nature/Rock_5.obj"]
+	var low := _add_model_2d(nature_root_3d, rfiles[(hv + 2) % rfiles.size()], p2, -1.2, Vector2.ZERO, 6.0, float(hv % 360) + 40.0)
+	if low != null:
+		low.visible = false
+	var rec := {"tree": pieza, "stump": low}
+	for k in ["tree", "stump"]:
+		if rec[k] != null:
+			_absorb_into_batches(rec[k], p2)
 	_nature_nodes[(h as Node2D).get_instance_id()] = rec
 
 
