@@ -275,6 +275,23 @@ func crear_arbol_talable(pos: Vector2, nombre: String) -> Node2D:
 	node.setup_visuals(tex_tree, tex_stump, Color.WHITE, Vector2(0.85, 0.85), 7.0)
 	return node
 
+## Un matorral destructible (2026-11-10, orden del usuario): se corta con arma u hacha y da ramas; vuelve a crecer.
+func crear_matorral(pos: Vector2, nombre: String) -> Node2D:
+	if entities_root == null or not is_instance_valid(entities_root):
+		return null
+	var node := HarvestableNode.new()
+	node.name = nombre
+	node.global_position = pos
+	node.harvest_type = HarvestableNode.HarvestType.LOGGING
+	node.node_title = "Matorral"
+	node.primary_item_id = "branches"
+	node.primary_amount = 2
+	node.max_hp = 8.0
+	node.respawn_days = 3
+	entities_root.add_child(node)
+	node.setup_visuals(_load_tex("res://assests/world/tree.png"), null, Color(0.55, 0.8, 0.5), Vector2(0.45, 0.45), 6.0)
+	return node
+
 static func _en_cauce_del_rio(p: Vector2) -> bool:
 	if p.y < FishingSpot.river_y_start() - 5.0 or p.y > FishingSpot.river_y_end() + 5.0:
 		return false

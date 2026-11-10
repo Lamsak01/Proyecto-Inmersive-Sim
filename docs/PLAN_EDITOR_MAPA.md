@@ -41,6 +41,7 @@ ordenador principal**: pregúntale cuáles antes de las piezas nuevas (árboles,
   modelo como dibujo (se oculta al talarlo y sale el tocón). Los 65 talables de EcosystemManager se hornearon a la escena
   (`hornear_vegetacion.gd -- talables`, nodos `Talable_*`) y EcosystemManager ya no los crea si hay árboles en la escena.
   Probado: 252 talables, ninguno duplicado; talar uno oculta el árbol y muestra el tocón.
+- **Matorrales destructibles** (2026-11-10, usuario): cada pieza «Bush…» de la escena es un «Matorral» (HarvestableNode, 8 de vida, da 2 «Ramas», vuelve en 3 días). Objeto nuevo «branches» (Ramas) sin uso todavía: el usuario decidirá para qué sirve.
 - Siguen en código: vetas de mineral (EcosystemManager), setas y hierbas, puentes, el tronco-puente, los troncos de caja
   del claro y todo lo de los edificios.
 

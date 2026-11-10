@@ -17,6 +17,7 @@ const ARMOR_SLOTS: Array[String] = ["HEAD", "CHEST", "LEGS", "BOOTS"]
 const ARMOR_SLOT_NAMES: Dictionary = {"HEAD": "Casco", "CHEST": "Pecho", "LEGS": "Piernas", "BOOTS": "Botas"}
 
 const CATALOG: Dictionary = {
+	"branches": {"name": "Ramas", "category": "Material", "desc": "Ramas de los matorrales del bosque, cortadas con un arma o el hacha. De momento no tienen uso (el usuario decidirá para qué sirven).", "usable": false},
 	"wood": {"name": "Madera", "category": "Material", "desc": "Troncos obtenidos talando árboles ([3] Hacha). Útil para leña, mejoras y construcción.", "usable": false},
 	"stone": {"name": "Piedra", "category": "Material", "desc": "Roca firme extraída con herramientas de minería ([4] Pico).", "usable": false},
 	"iron_ore": {"name": "Mineral de Hierro", "category": "Material", "desc": "Mineral bruto extraído de vetas rocosas. Esencial en la Herrería para forjar y mejorar herramientas.", "usable": false},

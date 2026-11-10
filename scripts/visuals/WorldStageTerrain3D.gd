@@ -1405,7 +1405,8 @@ func _cargar_decoracion_editor() -> void:
 		terrain_root_3d.add_child(g)
 		_juntar_piezas(g, piezas)
 	for c in piezas:
-		if c.has_method("tipo_choque") and String(c.call("tipo_choque")) == "tronco" and nature_root_3d != null:
+		var es_mata: bool = c.has_method("tipo_choque") and "Bush" in String(c.get("modelo")).get_file()
+		if c.has_method("tipo_choque") and (String(c.call("tipo_choque")) == "tronco" or es_mata) and nature_root_3d != null:
 			# Árbol: sale del terreno antes de juntarlo por zonas (tiene que poder ocultarse al talarlo)
 			var xf := (c as Node3D).global_transform
 			c.get_parent().remove_child(c)
@@ -1436,7 +1437,10 @@ func _crear_talables_pendientes() -> void:
 			continue
 		n += 1
 		if eco != null and eco.has_method("crear_arbol_talable"):
-			_hacer_talable(c as Node3D, eco, "ArbolEscena_%d" % n)
+			if "Bush" in String(c.get("modelo")).get_file():
+				_hacer_talable(c as Node3D, eco, "MatorralEscena_%d" % n, true)
+			else:
+				_hacer_talable(c as Node3D, eco, "ArbolEscena_%d" % n)
 		else:
 			_choque_de_pieza(c as Node3D)
 	_talables_pendientes.clear()
@@ -1445,11 +1449,16 @@ func _crear_talables_pendientes() -> void:
 
 ## Árbol de la escena → árbol talable del juego (choque, madera, tocón al talarlo y vuelve a crecer). El modelo de la pieza
 ## pasa a la naturaleza 3D y se registra como su dibujo, para que se oculte al talarlo.
-func _hacer_talable(pieza: Node3D, eco: Node, nombre: String) -> void:
+func _hacer_talable(pieza: Node3D, eco: Node, nombre: String, matorral: bool = false) -> void:
 	var p2 := _a_mapa_2d(pieza.global_position)
-	var h = eco.call("crear_arbol_talable", p2, nombre)
+	var h = eco.call("crear_matorral" if matorral else "crear_arbol_talable", p2, nombre)
 	if not (h is Node2D) or nature_root_3d == null:
 		_choque_de_pieza(pieza)
+		return
+	if matorral:
+		var rec_m := {"tree": pieza, "stump": null}
+		_absorb_into_batches(pieza, p2)
+		_nature_nodes[(h as Node2D).get_instance_id()] = rec_m
 		return
 	var stump := _add_cyl_2d(nature_root_3d, p2, 5.0, -1.2, 6.2, _mat("tree_stump", Color(0.45, 0.32, 0.20), 0.9, 0.0, Color.BLACK, 0.0, "town_textures/rf_planks.png", "", 0.78), 4.5, 8)
 	stump.visible = false
