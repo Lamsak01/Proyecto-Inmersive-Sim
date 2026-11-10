@@ -459,6 +459,52 @@ func _make_nature_3d(n: Node2D, kind: String) -> Dictionary:
 
 
 
+## Rendimiento (Claude Code, 2026-11-09): las piezas quietas del terreno (sotobosque, rocas, barro y grava de las orillas,
+## bancos, vallas…) se juntan por zonas de 256 px: muchas menos llamadas de dibujo y las zonas fuera de cámara siguen sin
+## dibujarse. No se tocan las piezas grandes (suelo, caminos, agua), las de shader propio ni las que miran a cámara.
+const TERRAIN_MERGE_CHUNK_PX: float = 256.0
+
+func _merge_terrain_by_chunks() -> void:
+	if _is_headless or terrain_root_3d == null:
+		return
+	var found: Array = []
+	_collect_merge_meshes(terrain_root_3d, terrain_root_3d, {}, found)
+	var chunk: float = TERRAIN_MERGE_CHUNK_PX * WORLD_SCALE
+	var groups: Dictionary = {}
+	for mi in found:
+		if not _plain_static_materials(mi):
+			continue
+		var aabb: AABB = mi.global_transform * mi.mesh.get_aabb()
+		if aabb.size.x > chunk * 0.5 or aabb.size.z > chunk * 0.5:
+			continue
+		var c3: Vector3 = aabb.get_center()
+		var key := Vector2i(floori(c3.x / chunk), floori(c3.z / chunk))
+		if not groups.has(key):
+			groups[key] = []
+		groups[key].append(mi)
+	for key in groups.keys():
+		if (groups[key] as Array).size() < 2:
+			continue
+		var holder := Node3D.new()
+		holder.name = "TerrenoJuntado_%d_%d" % [key.x, key.y]
+		terrain_root_3d.add_child(holder)
+		_merge_mesh_list(holder, groups[key])
+
+func _plain_static_materials(mi: MeshInstance3D) -> bool:
+	for si in range(mi.mesh.get_surface_count()):
+		var mat: Material = mi.material_override
+		if mat == null:
+			mat = mi.get_surface_override_material(si)
+		if mat == null:
+			mat = mi.mesh.surface_get_material(si)
+		if mat == null:
+			continue
+		if not (mat is BaseMaterial3D):
+			return false
+		if (mat as BaseMaterial3D).billboard_mode != BaseMaterial3D.BILLBOARD_DISABLED:
+			return false
+	return true
+
 # ==============================================================================
 # 1. TERRENO, CAMINOS, PLAZA, POZOS, PARQUE, LAGO, CIÉNAGA Y CEMENTERIO 3D
 # ==============================================================================

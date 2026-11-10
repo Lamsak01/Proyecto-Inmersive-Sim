@@ -788,6 +788,39 @@ func clamp_point_outside_buildings(ref_pos: Vector2, candidate_pos: Vector2) -> 
 			return ref_pos
 	return candidate_pos
 
+## Rendimiento (2026-11-09): rejilla de vecinos rehecha una vez por paso de física. Cada vecino pregunta solo por los
+## de su zona en vez de recorrer a todo el pueblo varias veces por paso. Devuelve candidatos con margen (+6 px): quien
+## llama sigue comprobando la distancia exacta con la posición actual, así que el resultado es el mismo.
+const NPC_GRID_CELL: float = 32.0
+var _npc_grid: Dictionary = {}
+var _npc_grid_frame: int = -1
+
+func npcs_near(pos: Vector2, radius: float) -> Array[Node]:
+	if not Engine.is_in_physics_frame():
+		return get_tree().get_nodes_in_group("village_npcs") # llamadas a mano (pruebas, saltos): sin rejilla
+	var frame: int = Engine.get_physics_frames()
+	if frame != _npc_grid_frame:
+		_npc_grid_frame = frame
+		_npc_grid.clear()
+		for n in get_tree().get_nodes_in_group("village_npcs"):
+			if is_instance_valid(n):
+				var c := Vector2i(floori(n.global_position.x / NPC_GRID_CELL), floori(n.global_position.y / NPC_GRID_CELL))
+				if not _npc_grid.has(c):
+					_npc_grid[c] = []
+				_npc_grid[c].append(n)
+	var out: Array[Node] = []
+	var r: float = radius + 6.0
+	var c0 := Vector2i(floori((pos.x - r) / NPC_GRID_CELL), floori((pos.y - r) / NPC_GRID_CELL))
+	var c1 := Vector2i(floori((pos.x + r) / NPC_GRID_CELL), floori((pos.y + r) / NPC_GRID_CELL))
+	for cx in range(c0.x, c1.x + 1):
+		for cy in range(c0.y, c1.y + 1):
+			var cell = _npc_grid.get(Vector2i(cx, cy), null)
+			if cell != null:
+				for n in cell:
+					if is_instance_valid(n):
+						out.append(n)
+	return out
+
 func _refresh_fp_cache() -> void:
 	if _fp_cache_n == building_footprints.size():
 		return

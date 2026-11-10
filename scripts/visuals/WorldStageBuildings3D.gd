@@ -463,6 +463,10 @@ func _merge_building_meshes() -> void:
 func _merge_meshes_under(root: Node3D, excl: Dictionary) -> void:
 	var found: Array = []
 	_collect_merge_meshes(root, root, excl, found)
+	_merge_mesh_list(root, found)
+
+## Junta en `root` las mallas de `found` (una malla por sombra, una superficie por material). Las originales dejan de dibujarse.
+func _merge_mesh_list(root: Node3D, found: Array) -> void:
 	if found.size() < 2:
 		return
 	var inv: Transform3D = root.global_transform.affine_inverse()

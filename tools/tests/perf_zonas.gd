@@ -71,7 +71,10 @@ func _initialize() -> void:
 		print("PERFZ_FIN")
 		quit(0)
 		return
-	# Desglose en la peor zona
+	# Desglose en la peor zona (o en la que se pida con «-- capas=<zona>»)
+	for a in OS.get_cmdline_user_args():
+		if str(a).begins_with("capas="):
+			worst = str(a).trim_prefix("capas=")
 	for z in zones:
 		if str(z[0]) == worst:
 			await _go(z[1], z[2])

@@ -737,9 +737,16 @@ func _process_unconscious_neighbor_reaction(delta: float) -> bool:
 func _is_seated_on_furniture(pos: Vector2) -> bool:
 	return _VillageTavern.is_at_seat(pos) or _VillageRestaurant.is_at_seat(pos)
 
+## Rendimiento (2026-11-09): vecinos de la zona (rejilla del pueblo, rehecha una vez por paso); sin pueblo, todos.
+func _near_npcs(center: Vector2, radius: float) -> Array[Node]:
+	var vm_g = _cached_vm if is_instance_valid(_cached_vm) else _get_vm()
+	if vm_g != null and vm_g.has_method("npcs_near"):
+		return vm_g.npcs_near(center, radius)
+	return get_tree().get_nodes_in_group("village_npcs")
+
 func _has_nearby_standing_npc(pt: Vector2, radius: float = 16.0) -> bool:
 	var r_sq: float = radius * radius
-	for n in get_tree().get_nodes_in_group("village_npcs"):
+	for n in _near_npcs(pt, radius):
 		if n is VillageNPCBase and n != self:
 			var other := n as VillageNPCBase
 			if other.global_position.distance_squared_to(pt) < r_sq: # lo barato primero (rendimiento, 2026-11-09)
@@ -751,7 +758,7 @@ func _is_target_occupied_by_closer_npc(target_pos: Vector2) -> bool:
 	var my_d: float = global_position.distance_to(target_pos)
 	if my_d > 21.0:
 		return false
-	for n in get_tree().get_nodes_in_group("village_npcs"):
+	for n in _near_npcs(global_position, 17.5):
 		if n is VillageNPCBase and n != self:
 			var other := n as VillageNPCBase
 			var d_pair_sq: float = global_position.distance_squared_to(other.global_position)
@@ -769,7 +776,7 @@ func _enforce_npc_personal_space(delta: float) -> void:
 		return
 	var min_sep: float = 15.0
 	var min_sep_sq: float = min_sep * min_sep
-	for n in get_tree().get_nodes_in_group("village_npcs"):
+	for n in _near_npcs(global_position, 15.0):
 		if n is VillageNPCBase and n != self:
 			var other := n as VillageNPCBase
 			var diff_o: Vector2 = global_position - other.global_position
@@ -826,7 +833,7 @@ func _apply_player_and_doorway_yield(delta: float) -> void:
 				if nudge.length_squared() > 0.1:
 					velocity = nudge * 28.0
 			var idle_sep := Vector2.ZERO
-			for n in get_tree().get_nodes_in_group("village_npcs"):
+			for n in _near_npcs(global_position, 18.0):
 				if n is VillageNPCBase and n != self:
 					var other := n
 					if not other.is_dead and not other.is_downed and not other.is_sleeping and int(other.elevation_level) == int(elevation_level):
@@ -902,7 +909,9 @@ func _move_towards_point(target_pos: Vector2, speed: float, delta: float = 0.016
 					global_position += diff.normalized() * minf(6.0, diff.length())
 					_stuck_timer = 0.0
 			else:
-				var perp := Vector2(-diff.y, diff.x).normalized() if (abs(npc_name.hash()) % 2 == 0) else Vector2(diff.y, -diff.x).normalized()
+				# Atascos (2026-11-09): si tras 1,2 s sigue sin salir, prueba por el otro lado (y así sucesivamente)
+				var side_left: bool = (abs(npc_name.hash()) % 2 == 0) != (int(_stuck_timer / 1.2) % 2 == 1)
+				var perp := Vector2(-diff.y, diff.x).normalized() if side_left else Vector2(diff.y, -diff.x).normalized()
 				desired_vel = (diff.normalized() * 0.55 + perp * 0.75).normalized() * eff_speed
 	else:
 		_stuck_timer = 0.0
@@ -913,7 +922,7 @@ func _move_towards_point(target_pos: Vector2, speed: float, delta: float = 0.016
 		_sep_timer = 0.04
 		var sep_vec := Vector2.ZERO
 		if not in_doorway_now:
-			for n in get_tree().get_nodes_in_group("village_npcs"):
+			for n in _near_npcs(global_position, 22.0):
 				if n is VillageNPCBase and n != self:
 					var other := n
 					if not other.is_dead and not other.is_downed and not other.is_sleeping and int(other.elevation_level) == int(elevation_level):
@@ -926,7 +935,7 @@ func _move_towards_point(target_pos: Vector2, speed: float, delta: float = 0.016
 							sep_vec += steer_dir * ((22.0 - d_other) / 22.0) * 52.0
 		_cached_sep_vec = sep_vec
 	if not in_doorway_now and not is_escorting_player:
-		for n in get_tree().get_nodes_in_group("village_npcs"):
+		for n in _near_npcs(global_position, 16.0):
 			if n is VillageNPCBase and n != self:
 				var other := n as VillageNPCBase
 				if not other.is_dead and not other.is_downed and not other.is_sleeping and int(other.elevation_level) == int(elevation_level):
