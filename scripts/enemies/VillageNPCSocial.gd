@@ -742,8 +742,8 @@ func _has_nearby_standing_npc(pt: Vector2, radius: float = 16.0) -> bool:
 	for n in get_tree().get_nodes_in_group("village_npcs"):
 		if n is VillageNPCBase and n != self:
 			var other := n as VillageNPCBase
-			if other.is_conscious() and not other.is_sleeping and not other.is_at_poker_table and int(other.elevation_level) == int(elevation_level):
-				if other.global_position.distance_squared_to(pt) < r_sq:
+			if other.global_position.distance_squared_to(pt) < r_sq: # lo barato primero (rendimiento, 2026-11-09)
+				if other.is_conscious() and not other.is_sleeping and not other.is_at_poker_table and int(other.elevation_level) == int(elevation_level):
 					return true
 	return false
 
@@ -754,12 +754,11 @@ func _is_target_occupied_by_closer_npc(target_pos: Vector2) -> bool:
 	for n in get_tree().get_nodes_in_group("village_npcs"):
 		if n is VillageNPCBase and n != self:
 			var other := n as VillageNPCBase
-			if other.is_conscious() and not other.is_sleeping and not other.is_at_poker_table and int(other.elevation_level) == int(elevation_level):
-				var d_pair_sq: float = global_position.distance_squared_to(other.global_position)
-				if d_pair_sq <= 17.5 * 17.5:
-					var ot_d: float = other.global_position.distance_to(target_pos)
-					if ot_d <= 14.5 or ot_d + 1.0 < my_d:
-						return true
+			var d_pair_sq: float = global_position.distance_squared_to(other.global_position)
+			if d_pair_sq <= 17.5 * 17.5 and other.is_conscious() and not other.is_sleeping and not other.is_at_poker_table and int(other.elevation_level) == int(elevation_level):
+				var ot_d: float = other.global_position.distance_to(target_pos)
+				if ot_d <= 14.5 or ot_d + 1.0 < my_d:
+					return true
 	return false
 
 func _enforce_npc_personal_space(delta: float) -> void:
@@ -773,12 +772,14 @@ func _enforce_npc_personal_space(delta: float) -> void:
 	for n in get_tree().get_nodes_in_group("village_npcs"):
 		if n is VillageNPCBase and n != self:
 			var other := n as VillageNPCBase
+			var diff_o: Vector2 = global_position - other.global_position
+			var d_sq: float = diff_o.length_squared()
+			if d_sq >= min_sep_sq:
+				continue # Rendimiento (2026-11-09): lo barato primero; el resto de comprobaciones solo para los cercanos
 			if not other.is_conscious() or other.is_sleeping or other.is_at_poker_table or int(other.elevation_level) != int(elevation_level):
 				continue
 			if vm != null and vm.has_method("get_doorway_clearance_nudge") and (vm.call("get_doorway_clearance_nudge", other.global_position, 20.0) as Vector2).length_squared() > 0.01:
 				continue
-			var diff_o: Vector2 = global_position - other.global_position
-			var d_sq: float = diff_o.length_squared()
 			if d_sq < min_sep_sq:
 				var d_o: float = sqrt(d_sq)
 				var push_dir: Vector2

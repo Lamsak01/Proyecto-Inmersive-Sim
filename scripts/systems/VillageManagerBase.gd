@@ -131,6 +131,11 @@ var domestic_pets: Array[DomesticPet] = []
 var building_footprints: Array[Dictionary] = []
 var _wall_occluder_rects: Array[Rect2] = []
 var _no_stand_furniture_rects: Array[Rect2] = []
+## Rendimiento (2026-11-09): copia plana de las huellas de edificios para las comprobaciones de cada vecino en cada
+## instante (evita leer diccionarios y comparar textos 60 veces por vecino). Se rehace si cambia el número de huellas.
+var _fp_cache_n: int = -1
+var _fp_rects: Array[Rect2] = []
+var _fp_skip_mill: Array[bool] = []
 
 # Paso 1: Hospital de Urgencias, Morgue Forense (Máx. 3 Camillas), Iglesia y Cementerio Parroquial
 @warning_ignore("unused_private_class_variable") # Se usa desde otro script (vm._hospital_center)
@@ -608,6 +613,10 @@ func get_navigation_waypoint(from_pos: Vector2, to_pos: Vector2, agent: Node2D =
 		var r_building_check: Rect2 = b["rect"].grow(2.5)
 		var r_interior: Rect2 = b["rect"].grow(1.5)
 		var d_pos: Vector2 = b["door_pos"]
+		# Rendimiento (2026-11-09): descarte barato antes de calcular los carriles de la puerta. El umbral de la puerta
+		# cabe en ±20 px alrededor de ella (<= 25,6 px), así que lejos del edificio y de su puerta nunca se cumple.
+		if r_building_check.has_point(to_pos) or (not r_interior.has_point(from_pos) and from_pos.distance_squared_to(d_pos) > 900.0):
+			continue
 		var lanes: Dictionary = get_door_lanes(b, lane_shift)
 		var out_dir: Vector2 = lanes["out_dir"]
 		var exit_side: Vector2 = lanes["exit_side"]
@@ -744,10 +753,11 @@ func push_out_of_furniture(pos: Vector2, elev: int = 0) -> Vector2:
 	return res
 
 func clamp_point_to_building_interior(ref_pos: Vector2, candidate_pos: Vector2) -> Vector2:
-	for b in building_footprints:
-		if str(b.get("id", "")) == "building_abandoned_mill":
+	_refresh_fp_cache()
+	for fi in range(_fp_rects.size()):
+		if _fp_skip_mill[fi]:
 			continue
-		var r: Rect2 = b["rect"]
+		var r: Rect2 = _fp_rects[fi]
 		if r.has_point(ref_pos):
 			var r_safe: Rect2 = r.grow(-16.0)
 			var clamped := Vector2(
@@ -769,15 +779,24 @@ func is_point_in_river_water(pos: Vector2) -> bool:
 func clamp_point_outside_buildings(ref_pos: Vector2, candidate_pos: Vector2) -> Vector2:
 	if FishingSpot.is_point_in_river_water(candidate_pos, 5.0):
 		return ref_pos
-	for b in building_footprints:
-		var r_ref: Rect2 = b["rect"]
-		if r_ref.has_point(ref_pos) and str(b.get("id", "")) != "building_abandoned_mill":
+	_refresh_fp_cache()
+	for fi in range(_fp_rects.size()):
+		if _fp_rects[fi].has_point(ref_pos) and not _fp_skip_mill[fi]:
 			return candidate_pos
-	for b in building_footprints:
-		var r_avoid: Rect2 = b["rect"].grow(14.0)
-		if r_avoid.has_point(candidate_pos):
+	for fi2 in range(_fp_rects.size()):
+		if _fp_rects[fi2].grow(14.0).has_point(candidate_pos):
 			return ref_pos
 	return candidate_pos
+
+func _refresh_fp_cache() -> void:
+	if _fp_cache_n == building_footprints.size():
+		return
+	_fp_cache_n = building_footprints.size()
+	_fp_rects.clear()
+	_fp_skip_mill.clear()
+	for b in building_footprints:
+		_fp_rects.append(b["rect"])
+		_fp_skip_mill.append(str(b.get("id", "")) == "building_abandoned_mill")
 
 ## Garantiza que el empuje de separación entre vecinos nunca meta a nadie dentro de un muro, edificio o pozo.
 func sanitize_npc_separation_pos(prev_pos: Vector2, candidate_pos: Vector2, elev: int = 0) -> Vector2:
@@ -795,10 +814,11 @@ func sanitize_npc_separation_pos(prev_pos: Vector2, candidate_pos: Vector2, elev
 		var b_riv: Vector2 = FishingSpot.river_banks_at(candidate_pos.y)
 		var cx_riv: float = (b_riv.x + b_riv.y) * 0.5
 		return Vector2(b_riv.x - 5.0 if candidate_pos.x < cx_riv else b_riv.y + 5.0, candidate_pos.y)
-	for b in building_footprints:
-		if str(b.get("id", "")) == "building_abandoned_mill":
+	_refresh_fp_cache()
+	for fi in range(_fp_rects.size()):
+		if _fp_skip_mill[fi]:
 			continue
-		var r: Rect2 = b["rect"]
+		var r: Rect2 = _fp_rects[fi]
 		if r.has_point(prev_pos):
 			var r_safe: Rect2 = r.grow(-12.5)
 			var clamped_in := Vector2(
@@ -810,16 +830,19 @@ func sanitize_npc_separation_pos(prev_pos: Vector2, candidate_pos: Vector2, elev
 				clampf(clamped_in.x, r_safe.position.x, r_safe.end.x),
 				clampf(clamped_in.y, r_safe.position.y, r_safe.end.y)
 			)
+			var seg_box := Rect2(prev_pos, Vector2.ZERO).expand(clamped_in)
 			for w_rect in _wall_occluder_rects:
-				if _segment_intersects_rect(prev_pos, clamped_in, w_rect.grow(3.0)):
+				var w_g: Rect2 = w_rect.grow(3.0)
+				# Rendimiento (2026-11-09): si las cajas no se tocan, el segmento no puede cruzar el muro
+				if w_g.intersects(seg_box, true) and _segment_intersects_rect(prev_pos, clamped_in, w_g):
 					return prev_pos
 			return clamped_in
-	for b in building_footprints:
-		var r_avoid: Rect2 = (b["rect"] as Rect2).grow(9.5)
+	for fi2 in range(_fp_rects.size()):
+		var r_avoid: Rect2 = _fp_rects[fi2].grow(9.5)
 		if r_avoid.has_point(candidate_pos):
 			if not r_avoid.has_point(prev_pos):
 				return prev_pos
-			var br_out: Rect2 = (b["rect"] as Rect2).grow(10.0)
+			var br_out: Rect2 = _fp_rects[fi2].grow(10.0)
 			var dl: float = absf(candidate_pos.x - br_out.position.x)
 			var dr: float = absf(br_out.end.x - candidate_pos.x)
 			var dt: float = absf(candidate_pos.y - br_out.position.y)
@@ -879,9 +902,10 @@ func check_npc_overlaps(min_dist: float = 11.5) -> Array:
 ## Si un NPC está parado justo en el umbral de una puerta (`<= radius`), devuelve un vector hacia adentro/afuera para despejar el paso
 
 func get_doorway_clearance_nudge(pos: Vector2, radius: float = 18.0) -> Vector2:
+	var r_sq: float = radius * radius
 	for d_entry in building_doors:
 		var d_pos: Vector2 = d_entry.get("pos", Vector2.ZERO)
-		if pos.distance_to(d_pos) <= radius:
+		if pos.distance_squared_to(d_pos) <= r_sq:
 			var b_rect: Rect2 = d_entry.get("building_rect", Rect2())
 			var out_dir: Vector2 = get_door_outward_dir(d_entry)
 			var is_inside: bool = b_rect.has_point(pos)

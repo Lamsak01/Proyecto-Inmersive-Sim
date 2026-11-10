@@ -49,8 +49,16 @@ var _on_fast_forward_complete: Callable = Callable()
 const PERSISTENT_SPEED_STEPS: Array[float] = [1.0, 2.0, 4.0, 8.0]
 var persistent_time_scale: float = 1.0
 
+## Rendimiento (Claude Code, 2026-11-09): a velocidad normal, como mucho 3 pasos de física por fotograma. Con 8 (el valor
+## de Godot), si un fotograma tarda, el motor encadena hasta 8 pasos de vecinos para ponerse al día, ese fotograma tarda
+## aún más y el juego se hunde (medido: 6 pasos por fotograma, 77 de 103 ms). Con 3, en un equipo que no llega el mundo va
+## un poco más lento en vez de congelarse. El avance rápido (dormir, [T], x2–x8) sigue con 8.
+const NORMAL_MAX_PHYSICS_STEPS: int = 3
+const FAST_MAX_PHYSICS_STEPS: int = 8
+
 func _ready() -> void:
 	_current_phase = get_day_phase(current_hour)
+	Engine.max_physics_steps_per_frame = NORMAL_MAX_PHYSICS_STEPS
 
 func set_activity_pause(paused: bool) -> void:
 	is_paused_by_activity = paused
@@ -172,6 +180,7 @@ func start_organic_fast_forward(target_hour: int = 6, speed_mult: float = 26.0, 
 	_fast_forward_target_minutes = 0
 	_on_fast_forward_complete = on_complete
 	Engine.physics_ticks_per_second = 240
+	Engine.max_physics_steps_per_frame = FAST_MAX_PHYSICS_STEPS
 	Engine.time_scale = fast_forward_speed
 
 func start_organic_fast_forward_duration(minutes_to_advance: int, speed_mult: float = 26.0, on_complete: Callable = Callable()) -> void:
@@ -181,6 +190,7 @@ func start_organic_fast_forward_duration(minutes_to_advance: int, speed_mult: fl
 	_fast_forward_target_minutes = maxi(1, minutes_to_advance)
 	_on_fast_forward_complete = on_complete
 	Engine.physics_ticks_per_second = 240
+	Engine.max_physics_steps_per_frame = FAST_MAX_PHYSICS_STEPS
 	Engine.time_scale = fast_forward_speed
 
 func stop_organic_fast_forward(completed_target: bool = true) -> void:
@@ -200,9 +210,11 @@ func get_active_time_scale() -> float:
 func _apply_persistent_engine_scale() -> void:
 	if is_fast_forwarding:
 		Engine.physics_ticks_per_second = 240
+		Engine.max_physics_steps_per_frame = FAST_MAX_PHYSICS_STEPS
 		Engine.time_scale = fast_forward_speed
 		return
 	Engine.time_scale = persistent_time_scale
+	Engine.max_physics_steps_per_frame = NORMAL_MAX_PHYSICS_STEPS if persistent_time_scale <= 1.01 else FAST_MAX_PHYSICS_STEPS
 	if persistent_time_scale <= 1.01:
 		Engine.physics_ticks_per_second = 60
 	elif persistent_time_scale <= 2.01:
