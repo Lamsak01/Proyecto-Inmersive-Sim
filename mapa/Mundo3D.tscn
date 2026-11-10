@@ -28,6 +28,7 @@
 [ext_resource type="ArrayMesh" path="res://mapa/decorado_comun/malla_23.res" id="26_0wh8g"]
 [ext_resource type="ArrayMesh" path="res://mapa/decorado_comun/malla_24.res" id="27_q7wve"]
 [ext_resource type="ArrayMesh" path="res://mapa/decorado_comun/malla_25.res" id="28_d8qjm"]
+[ext_resource type="Script" path="res://mapa/objeto.gd" id="29_bojho"]
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_1p8rd"]
 albedo_color = Color(0.793, 0.712, 0.64000005, 1)
@@ -16241,3 +16242,91 @@ transform = Transform3D(-4.371139e-08, 0, 1.3732549, 0, 1, 0, -1, 0, -6.002688e-
 [node name="Mesh" type="MeshInstance3D" parent="Decorado/Zona_0_5/WoodLog_407/WoodLog" unique_id=1972098314]
 transform = Transform3D(0.40346467, 0, 0, 0, 0.40346467, 0, 0, 0, 0.40346467, -0.0056065526, 0.0005575882, 0.06578513)
 mesh = ExtResource("28_d8qjm")
+
+[node name="Objetos" type="Node3D" parent="." unique_id=233252380]
+
+[node name="Farola_1" type="Node3D" parent="Objetos" unique_id=1873179203]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 4.3, 0, 0.84900844)
+script = ExtResource("29_bojho")
+clave = "farola_0"
+pos_original = Vector2(215, 36)
+modelo = "graveyard/lightpost-single.glb"
+alto = 29.0
+nombre_visible = "Farola 1"
+
+[node name="Farola_2" type="Node3D" parent="Objetos" unique_id=450103888]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 7.84, 0.09057984, 0.23583569)
+script = ExtResource("29_bojho")
+clave = "farola_1"
+pos_original = Vector2(392, 10)
+modelo = "graveyard/lightpost-single.glb"
+alto = 29.0
+nombre_visible = "Farola 2"
+
+[node name="Farola_3" type="Node3D" parent="Objetos" unique_id=607416102]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 10.68, 0.09057984, 0.23583569)
+script = ExtResource("29_bojho")
+clave = "farola_2"
+pos_original = Vector2(534, 10)
+modelo = "graveyard/lightpost-single.glb"
+alto = 29.0
+nombre_visible = "Farola 3"
+
+[node name="Farola_4" type="Node3D" parent="Objetos" unique_id=1843167280]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 7.92, 0, -2.782861)
+script = ExtResource("29_bojho")
+clave = "farola_3"
+pos_original = Vector2(396, -118)
+modelo = "graveyard/lightpost-single.glb"
+alto = 29.0
+nombre_visible = "Farola 4"
+
+[node name="Farola_5" type="Node3D" parent="Objetos" unique_id=820692394]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 13.84, 0.120773114, 2.075354)
+script = ExtResource("29_bojho")
+clave = "farola_4"
+pos_original = Vector2(692, 88)
+modelo = "graveyard/lightpost-single.glb"
+alto = 29.0
+nombre_visible = "Farola 5"
+
+[node name="Farola_6" type="Node3D" parent="Objetos" unique_id=1626619899]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 17.24, 0.120773114, 2.075354)
+script = ExtResource("29_bojho")
+clave = "farola_5"
+pos_original = Vector2(862, 88)
+modelo = "graveyard/lightpost-single.glb"
+alto = 29.0
+nombre_visible = "Farola 6"
+
+[node name="Pozo_de_la_granja" type="Node3D" parent="Objetos" unique_id=965552689]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 3.68, 0, 1.9338526)
+script = ExtResource("29_bojho")
+clave = "pozo_granja"
+pos_original = Vector2(184, 82)
+modelo = "exterior/Well.obj"
+nombre_visible = "Pozo de la granja"
+
+[node name="Pozo_de_la_taberna" type="Node3D" parent="Objetos" unique_id=1360253058]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 4.56, 0, -5.4242206)
+script = ExtResource("29_bojho")
+clave = "pozo_taberna"
+pos_original = Vector2(228, -230)
+modelo = "exterior/Well.obj"
+nombre_visible = "Pozo de la taberna"
+
+[node name="Pozo_de_la_plaza" type="Node3D" parent="Objetos" unique_id=1085376257]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 8.32, 0.09057984, 1.4621812)
+script = ExtResource("29_bojho")
+clave = "pozo_plaza"
+pos_original = Vector2(416, 62)
+modelo = "exterior/Well.obj"
+nombre_visible = "Pozo de la plaza"
+
+[node name="Tablón_de_encargos" type="Node3D" parent="Objetos" unique_id=1219725082]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 9.52, 0.09057984, 0.33016995)
+script = ExtResource("29_bojho")
+clave = "tablon_plaza"
+pos_original = Vector2(476, 14)
+alto = 14.0
+nombre_visible = "Tablón de encargos"

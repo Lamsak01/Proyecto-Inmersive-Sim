@@ -1,6 +1,7 @@
 @tool
 extends "res://scripts/systems/VillageManagerEconomy.gd"
 class_name VillageManager
+const ObjetoEditor = preload("res://mapa/objeto.gd")
 
 
 func setup_village(target_entities_root: Node) -> void:
@@ -26,6 +27,11 @@ func setup_village(target_entities_root: Node) -> void:
 		"family_herbalist": 4, "family_hospital": 3, "family_police": 4, "family_tavern": 5
 	}
 
+	# Editor del mapa 3D (2026-11-10): objetos con uso que el usuario puede mover en mapa/Mundo3D.tscn → «Objetos»
+	_notice_board_pos = ObjetoEditor.pos("tablon_plaza", _notice_board_pos)
+	_well_pos = ObjetoEditor.pos("pozo_granja", _well_pos)
+	_tavern_well_pos = ObjetoEditor.pos("pozo_taberna", _tavern_well_pos)
+	_plaza_well_pos = ObjetoEditor.pos("pozo_plaza", _plaza_well_pos)
 	VillageWorldBuilder._spawn_village_roads_and_plaza(self)
 	VillageWorldBuilder._spawn_western_plains_and_frog_marsh(self)
 	VillageWorldBuilder._spawn_tavern_and_rooms(self)

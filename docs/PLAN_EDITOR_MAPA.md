@@ -66,6 +66,15 @@ ordenador principal**: pregúntale cuáles antes de las piezas nuevas (árboles,
 - Siguen en código (moverlos toca lógica): farolas (`_build_streetlights_3d`, se encienden de noche), objetos con uso en el
   mapa 2D (pozos para sacar agua, cofres, campamento, puestos…: `WorldStageProps3D` los copia del 2D), alcantarillas.
 
+## Hecho (paso 6, 2026-11-10: objetos con uso — primera tanda)
+- `Mundo3D.tscn` → «Objetos»: piezas `mapa/objeto.gd` (clave, pos_original, modelo de muestra). En el código, cada objeto pide
+  su sitio con `ObjetoEditor.pos(clave, posición_de_siempre)` y se crea donde esté la pieza, con todo su uso: así se movió
+  el objeto de verdad (2D + 3D), no solo su dibujo. Probado moviendo una farola y un pozo 100 px.
+- Pasados: 6 farolas (`farola_0..5`), pozos de la granja, taberna y plaza, tablón de encargos de la plaza.
+- Para pasar más: usar `ObjetoEditor.pos()` donde se crea el objeto y añadir su clave a `tools/hornear_objetos.gd`
+  (solo añade las que falten; luego ejecutarlo).
+- Quedan por pasar: el pozo de las afueras (610, -735), cofres, puestos, campamento, compostador, objetos de los barrios, alcantarillas.
+
 ## Pendiente (en este orden, cada paso con permiso del usuario)
 1. En el ordenador principal: `git pull`, abrir `mapa/EditorMapa.tscn` con el usuario y que mueva un punto del río
    (aprender Godot, paso 1). Mirar que los vecinos ya no se atascan en el río nuevo.
