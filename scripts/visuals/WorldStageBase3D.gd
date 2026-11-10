@@ -38,6 +38,11 @@ static var grabar_vegetacion: bool = false
 static var vegetacion_grabada: Array = []
 static var vegetacion_en_escena: bool = false
 var _construyendo_estatico: bool = false
+## Decorado del terreno (puentes, pozos, muelle, vallas, caminos, adornos…) en mapa/Mundo3D.tscn → «Decorado» (2026-11-10).
+## Solo el suelo, el agua y las orillas (mallas hechas a mano por código) siguen saliendo del código.
+static var grabar_decorado: bool = false
+static var decorado_en_escena: bool = false
+var decorado_grabado: Array = []
 var _sin_p: float = sin(deg_to_rad(PITCH_DEG))
 var _cos_p: float = cos(deg_to_rad(PITCH_DEG))
 

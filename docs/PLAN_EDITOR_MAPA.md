@@ -57,6 +57,15 @@ ordenador principal**: pregúntale cuáles antes de las piezas nuevas (árboles,
   `VillageTavern.RECT`, rutas y puestos de vecinos) no sigue al edificio movido.
 - Fotos: `tools/hornear_edificios.gd` (con ventana). Rehacerlas si cambia el aspecto de un edificio; no toca las piezas.
 
+## Hecho (paso 5, 2026-11-10: decorado del terreno a la escena)
+- Todo lo que `_build_static_terrain_3d` ponía aparte del suelo, el agua y las orillas (mallas `ArrayMesh` hechas por código)
+  está en `Mundo3D.tscn` → «Decorado» → «Zona_x_y» (384 px) → objetos (piezas creadas seguidas a < 22 px = un objeto: un pozo,
+  un puente, un banco…). 1077 piezas en 408 objetos. Lo hizo `tools/hornear_decorado.gd` (con ventana; no rehace si ya hay).
+  Con «Decorado» en la escena, `_separar_decorado()` quita esas piezas del código y `_cargar_decoracion_editor()` mete las de
+  la escena (sin choques nuevos: los obstáculos siguen en el mapa 2D → «lógica»). Comparado con captura: idéntico.
+- Siguen en código (moverlos toca lógica): farolas (`_build_streetlights_3d`, se encienden de noche), objetos con uso en el
+  mapa 2D (pozos para sacar agua, cofres, campamento, puestos…: `WorldStageProps3D` los copia del 2D), alcantarillas.
+
 ## Pendiente (en este orden, cada paso con permiso del usuario)
 1. En el ordenador principal: `git pull`, abrir `mapa/EditorMapa.tscn` con el usuario y que mueva un punto del río
    (aprender Godot, paso 1). Mirar que los vecinos ya no se atascan en el río nuevo.

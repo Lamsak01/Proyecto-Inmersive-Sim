@@ -1383,6 +1383,7 @@ var _mundo_editor: Node = null
 
 func _preparar_escena_editor() -> void:
 	vegetacion_en_escena = false
+	decorado_en_escena = false
 	if grabar_vegetacion or not ResourceLoader.exists(ESCENA_MUNDO_3D):
 		return
 	var ps = load(ESCENA_MUNDO_3D)
@@ -1391,11 +1392,44 @@ func _preparar_escena_editor() -> void:
 	_mundo_editor = (ps as PackedScene).instantiate()
 	var veg: Node = _mundo_editor.get_node_or_null("Vegetacion")
 	vegetacion_en_escena = veg != null and veg.get_child_count() > 0
+	var dec: Node = _mundo_editor.get_node_or_null("Decorado")
+	decorado_en_escena = not grabar_decorado and dec != null and dec.get_child_count() > 0
+
+
+## Separa el decorado del terreno: suelo, agua y orillas (mallas hechas por código) se quedan; lo demás o se graba para la
+## escena (tools/hornear_decorado.gd) o se quita porque ya viene de la escena.
+func _separar_decorado() -> void:
+	if terrain_root_3d == null or not (grabar_decorado or decorado_en_escena):
+		return
+	var cand: Array = []
+	for c in terrain_root_3d.get_children():
+		if c is MeshInstance3D and (c as MeshInstance3D).mesh is ArrayMesh:
+			continue
+		cand.append(c)
+	if grabar_decorado:
+		# Se apartan del terreno para que no se junten por zonas (eso les quita la malla) antes de guardarlos
+		var aparte := Node3D.new()
+		aparte.name = "DecoradoGrabado"
+		terrain_root_3d.get_parent().add_child(aparte)
+		aparte.transform = terrain_root_3d.transform
+		for c in cand:
+			terrain_root_3d.remove_child(c)
+			aparte.add_child(c)
+		decorado_grabado = cand
+		return
+	for c in cand:
+		terrain_root_3d.remove_child(c)
+		c.free()
 
 
 func _cargar_decoracion_editor() -> void:
 	if _mundo_editor == null or terrain_root_3d == null:
 		return
+	var dec: Node = _mundo_editor.get_node_or_null("Decorado")
+	if dec != null and decorado_en_escena:
+		# Sin choques nuevos: los obstáculos del decorado ya los pone el mapa 2D (se recolocarán con «la lógica»)
+		_mundo_editor.remove_child(dec)
+		terrain_root_3d.add_child(dec)
 	var piezas: Array = []
 	for grupo in ["Vegetacion", "Decoracion"]:
 		var g: Node = _mundo_editor.get_node_or_null(grupo)

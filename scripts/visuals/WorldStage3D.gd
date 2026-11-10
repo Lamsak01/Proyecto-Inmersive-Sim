@@ -166,6 +166,7 @@ func setup_stage(village_manager: Node2D) -> void:
 	_construyendo_estatico = true
 	_build_static_terrain_3d()
 	_construyendo_estatico = false
+	_separar_decorado()
 	_cargar_decoracion_editor()
 	_merge_terrain_by_chunks()
 	_build_sewers_3d()
