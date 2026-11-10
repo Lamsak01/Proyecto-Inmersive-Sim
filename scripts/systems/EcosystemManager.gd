@@ -213,6 +213,9 @@ func _spawn_distant_forest() -> void:
 
 func _spawn_harvest_batch(prefix: String, positions: Array[Vector2], h_type: HarvestableNode.HarvestType, title: String, p_id: String, p_amt: int, b_id: String, b_amt: int, hp: float, r_days: int, bites: int, tex_main: Texture2D, tex_dep: Texture2D, sc: Vector2, rad: float) -> void:
 	for i in range(positions.size()):
+		# Editor del mapa (2026-11-09): nada de setas, hierbas ni árboles dentro del agua del río redibujado
+		if h_type != HarvestableNode.HarvestType.MINING and _en_cauce_del_rio(positions[i]):
+			continue
 		var node := HarvestableNode.new()
 		node.name = "%s_%d" % [prefix, i]
 		node.global_position = positions[i]
@@ -228,6 +231,12 @@ func _spawn_harvest_batch(prefix: String, positions: Array[Vector2], h_type: Har
 			node.max_animal_bites = bites
 		entities_root.add_child(node)
 		node.setup_visuals(tex_main, tex_dep, Color.WHITE, sc, rad)
+
+static func _en_cauce_del_rio(p: Vector2) -> bool:
+	if p.y < FishingSpot.river_y_start() - 5.0 or p.y > FishingSpot.river_y_end() + 5.0:
+		return false
+	var b: Vector2 = FishingSpot.river_banks_at(p.y)
+	return p.x >= b.x - 4.0 and p.x <= b.y + 4.0
 
 func _spawn_animal_pool(pool: Array[WildAnimal], prefix: String, sp: WildAnimal.SpeciesType, a_name: String, max_cnt: int, init_cnt: int, homes: Array[Vector2], r_min: float, r_max: float, hp: float, max_hit: float, g_spd: float, f_spd: float, alert_r: float, drops: Array, tex: Texture2D, sc: Vector2, rad: float) -> void:
 	for i in range(max_cnt):
