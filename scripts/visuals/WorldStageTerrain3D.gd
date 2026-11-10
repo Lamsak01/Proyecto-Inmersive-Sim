@@ -112,7 +112,7 @@ func _add_road_strip_3d(parent: Node3D, rect: Rect2, height_px: float, mat: Mate
 			var x0: float = rect.position.x + float(ix) * dx
 			var x1: float = x0 + dx
 			var mid_p := Vector2((x0 + x1) * 0.5, (y0 + y1) * 0.5)
-			if mid_p.y >= -1180.0 and mid_p.y <= 940.0 and absf(mid_p.x - FishingSpotScript.river_center_x(mid_p.y)) <= FishingSpotScript.river_half_width(mid_p.y) + 6.0:
+			if mid_p.y >= FishingSpotScript.river_y_start() and mid_p.y <= FishingSpotScript.river_y_end() and absf(mid_p.x - FishingSpotScript.river_center_x(mid_p.y)) <= FishingSpotScript.river_half_width(mid_p.y) + 6.0:
 				continue
 			var p00 := Vector2(x0, y0)
 			var p10 := Vector2(x1, y0)
@@ -165,7 +165,7 @@ func _build_ground_foliage_3d() -> void:
 				continue
 			if fp.distance_to(FishingSpotScript.LAKE_NODE_POS) < 95.0 or terrain_height_px(fp) < -0.8:
 				continue
-			if fp.y >= -1180.0 and fp.y <= 940.0 and absf(fp.x - FishingSpotScript.river_center_x(fp.y)) < FishingSpotScript.river_half_width(fp.y) + 18.0:
+			if fp.y >= FishingSpotScript.river_y_start() and fp.y <= FishingSpotScript.river_y_end() and absf(fp.x - FishingSpotScript.river_center_x(fp.y)) < FishingSpotScript.river_half_width(fp.y) + 18.0:
 				continue
 			if Rect2(Vector2(85.0, -915.0), Vector2(95.0, 100.0)).has_point(fp) or FishingSpotScript.ABANDONED_MILL_RECT.grow(18.0).has_point(fp):
 				continue
@@ -882,9 +882,10 @@ func _build_river_and_arroyo_3d(
 	st_red_clay.begin(Mesh.PRIMITIVE_TRIANGLES)
 
 	var step_y: float = 6.0
-	var y_cur: float = -1180.0
-	while y_cur < 940.0 - 0.01:
-		var y_nxt: float = minf(940.0, y_cur + step_y)
+	var y_cur: float = FishingSpotScript.river_y_start()
+	var y_end_riv: float = FishingSpotScript.river_y_end()
+	while y_cur < y_end_riv - 0.01:
+		var y_nxt: float = minf(y_end_riv, y_cur + step_y)
 		var b0: Vector2 = FishingSpotScript.river_banks_at(y_cur)
 		var b1: Vector2 = FishingSpotScript.river_banks_at(y_nxt)
 		var h0: float = _river_bank_terrace_height_px(y_cur) + 0.34
@@ -1279,7 +1280,7 @@ func _build_river_and_arroyo_3d(
 	_add_box_2d(terrain_root_3d, shoe_pos + Vector2(0.2, 0.9), Vector2(0.85, 0.55), shoe_h + 1.15, 0.55, m_shoe_buckle, -24.0, true)
 
 	# 8. Puentes secundarios (Calle Norte en y = -351 y Senda de los Campos del Sur en y = 372) y vados de piedra
-	for cr in FishingSpotScript.RIVER_CROSSINGS:
+	for cr in FishingSpotScript.river_crossings():
 		var cid: String = String(cr["id"])
 		if cid == "old_bridge":
 			continue

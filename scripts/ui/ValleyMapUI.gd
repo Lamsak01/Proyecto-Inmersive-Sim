@@ -407,7 +407,7 @@ func _draw_valley_cartography(canvas: Control, detailed: bool) -> void:
 	canvas.draw_rect(lake_r, Color(0.24, 0.35, 0.39, 0.90), false, 1.2)
 
 	var riv_pts := PackedVector2Array()
-	for wp in FishingSpot.RIVER_WAYPOINTS:
+	for wp in FishingSpot.river_waypoints():
 		riv_pts.append(_world_to_map(wp, csize))
 	if riv_pts.size() >= 2:
 		canvas.draw_polyline(riv_pts, Color(0.32, 0.54, 0.68, 0.92), 4.0)

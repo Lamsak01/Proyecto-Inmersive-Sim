@@ -575,8 +575,8 @@ static func _spawn_river_arroyo_and_abandoned_mill(vm: VillageManager) -> void:
 	var right_water := PackedVector2Array()
 	var left_deep := PackedVector2Array()
 	var right_deep := PackedVector2Array()
-	var sample_y: float = -1180.0
-	while sample_y <= 940.0:
+	var sample_y: float = FishingSpot.river_y_start()
+	while sample_y <= FishingSpot.river_y_end():
 		var banks: Vector2 = FishingSpot.river_banks_at(sample_y)
 		var town_bank_boost: float = lerpf(1.0, 2.2, smoothstep(-520.0, -180.0, sample_y) * (1.0 - smoothstep(260.0, 390.0, sample_y)))
 		var bank_pad_l: float = (5.5 + sin(sample_y * 0.043) * 2.2 + cos(sample_y * 0.089) * 1.4) * town_bank_boost
@@ -645,14 +645,17 @@ static func _spawn_river_arroyo_and_abandoned_mill(vm: VillageManager) -> void:
 
 	# 3. Colisión física real del agua del río y arroyo (StaticBody2D, collision_layer = 1)
 	# Dividida en los 6 tramos húmedos entre los 5 puentes y vados para que solo se cruce por ellos
-	var wet_segments: Array[Vector2] = [
-		Vector2(-1180.0, -877.0),
-		Vector2(-843.0, -368.0),
-		Vector2(-334.0, 29.0),
-		Vector2(71.0, 355.0),
-		Vector2(389.0, 753.0),
-		Vector2(791.0, 940.0),
-	]
+	# (Editor del mapa, 2026-11-09: los tramos salen de los puentes y vados; con el mapa original dan los mismos 6 de antes)
+	var wet_segments: Array[Vector2] = []
+	var seg_from: float = FishingSpot.river_y_start()
+	for cr_w in FishingSpot.river_crossings():
+		var cy: float = float(cr_w["pos"].y)
+		var gap: float = float(cr_w["half_y"]) - 1.0
+		if cy - gap > seg_from:
+			wet_segments.append(Vector2(seg_from, cy - gap))
+		seg_from = maxf(seg_from, cy + gap)
+	if FishingSpot.river_y_end() > seg_from:
+		wet_segments.append(Vector2(seg_from, FishingSpot.river_y_end()))
 	var river_col_body := StaticBody2D.new()
 	river_col_body.name = "RiverWaterCollisionBody"
 	river_col_body.collision_layer = 1
@@ -679,7 +682,7 @@ static func _spawn_river_arroyo_and_abandoned_mill(vm: VillageManager) -> void:
 	vm.entities_root.add_child(river_col_body)
 
 	# 4. Puentes y vados en 2D + pretiles de colisión sobre el tramo de agua para no caer al río
-	for cr in FishingSpot.RIVER_CROSSINGS:
+	for cr in FishingSpot.river_crossings():
 		var c_pos: Vector2 = cr["pos"]
 		var c_hy: float = float(cr["half_y"])
 		var b_at: Vector2 = FishingSpot.river_banks_at(c_pos.y)

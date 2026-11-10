@@ -80,7 +80,77 @@ const RIVER_CROSSINGS: Array[Dictionary] = [
 	{"id": "forest_ford", "label": "Vado del Bosque", "pos": Vector2(112.0, 772.0), "half_h": 19.0, "half_y": 19.0, "half_w": 38.0, "kind": "ford", "arch_h": 0.35},
 ]
 
+## Editor del mapa (Claude Code, 2026-11-09): el río y sus puentes se leen de res://mapa/EditorMapa.tscn.
+## Mientras los puntos del río sigan como el mapa original, se usa la forma antigua de siempre (con sus ajustes
+## a mano junto a edificios); en cuanto el usuario mueve, añade o quita un punto, manda lo dibujado en el editor.
+const MAPA_ESCENA := "res://mapa/EditorMapa.tscn"
+const RioForma = preload("res://mapa/rio_forma.gd")
+static var _mapa_cargado: bool = false
+static var _rio_propio: bool = false
+static var _rio: Dictionary = {}
+static var _cruces: Array[Dictionary] = []
+
+static func _cargar_mapa() -> void:
+	if _mapa_cargado:
+		return
+	_mapa_cargado = true
+	_cruces = RIVER_CROSSINGS.duplicate(true)
+	var d: Dictionary = RioForma.leer_escena(MAPA_ESCENA)
+	if d.is_empty() or (d["pts"] as Array).size() < 2:
+		return
+	_rio = d
+	if not (d["cruces"] as Array).is_empty():
+		_cruces.assign(d["cruces"])
+	_rio_propio = not es_rio_original(d)
+
+static func es_rio_original(d: Dictionary) -> bool:
+	var pts: Array = d["pts"]
+	if pts.size() != RIVER_WAYPOINTS.size() or absf(float(d["natural"]) - 1.0) > 0.01:
+		return false
+	for i in range(pts.size()):
+		if pts[i].distance_to(RIVER_WAYPOINTS[i]) > 0.5:
+			return false
+		if absf(float(d["hw"][i]) - ancho_original(RIVER_WAYPOINTS[i].y) * 0.5) > 0.3:
+			return false
+	return true
+
+## Ancho (de orilla a orilla) que tenía el río original en esa altura, redondeado como lo guarda el editor.
+static func ancho_original(y: float) -> float:
+	return roundf(_antiguo_half_width(y) * 4.0) * 0.5
+
+## Puntos del río de norte a sur (los del editor si existen).
+static func river_waypoints() -> Array[Vector2]:
+	_cargar_mapa()
+	if _rio_propio:
+		var out: Array[Vector2] = []
+		out.assign(_rio["pts"])
+		return out
+	return RIVER_WAYPOINTS
+
+static func river_crossings() -> Array[Dictionary]:
+	_cargar_mapa()
+	return _cruces
+
+static func river_y_start() -> float:
+	return river_waypoints()[0].y
+
+static func river_y_end() -> float:
+	var w: Array[Vector2] = river_waypoints()
+	return w[w.size() - 1].y
+
 static func river_center_x(y: float) -> float:
+	_cargar_mapa()
+	return RioForma.center_x(_rio, y) if _rio_propio else _antiguo_center_x(y)
+
+static func river_half_width(y: float) -> float:
+	_cargar_mapa()
+	return RioForma.half_width(_rio, y) if _rio_propio else _antiguo_half_width(y)
+
+static func river_banks_at(y: float) -> Vector2:
+	_cargar_mapa()
+	return RioForma.banks_at(_rio, y) if _rio_propio else _antiguo_banks_at(y)
+
+static func _antiguo_center_x(y: float) -> float:
 	if y <= RIVER_WAYPOINTS[0].y:
 		return RIVER_WAYPOINTS[0].x
 	var last_idx: int = RIVER_WAYPOINTS.size() - 1
@@ -100,7 +170,7 @@ static func river_center_x(y: float) -> float:
 			return base_x + meander
 	return 126.0
 
-static func river_half_width(y: float) -> float:
+static func _antiguo_half_width(y: float) -> float:
 	# En el pueblo (y = -240..270) es un río caudaloso con remansos anchos y estrechamientos naturales.
 	# Al subir hacia el norte (y = -240..-820) se estrecha poco a poco hasta ser un arroyo (~18..21 px)
 	# junto al Claro del Caso I (y = -860) y el Molino Viejo Abandonado (y = -1060).
@@ -124,9 +194,9 @@ static func river_half_width(y: float) -> float:
 		ripple_w *= 0.28
 	return base_hw + ripple_w
 
-static func river_banks_at(y: float) -> Vector2:
-	var cx: float = river_center_x(y)
-	var hw: float = river_half_width(y)
+static func _antiguo_banks_at(y: float) -> Vector2:
+	var cx: float = _antiguo_center_x(y)
+	var hw: float = _antiguo_half_width(y)
 	# Orillas izquierda y derecha claramente desiguales (recodos excavados a un lado y lenguas de barro/grava al otro, nunca paralelas)
 	var irr_scale: float = lerpf(0.24, 1.0, smoothstep(-820.0, -240.0, y))
 	var town_asym: float = 1.85 if (y >= -325.0 and y <= 345.0) else 1.0
@@ -156,7 +226,7 @@ static func river_banks_at(y: float) -> Vector2:
 	return Vector2(lb, rb)
 
 static func is_in_river_crossing(pos: Vector2, margin_y: float = 0.0) -> bool:
-	for cr in RIVER_CROSSINGS:
+	for cr in river_crossings():
 		var cpos: Vector2 = cr["pos"]
 		var hh: float = float(cr["half_h"]) + margin_y
 		var hw: float = float(cr["half_w"]) + 10.0
@@ -165,7 +235,7 @@ static func is_in_river_crossing(pos: Vector2, margin_y: float = 0.0) -> bool:
 	return false
 
 static func is_point_in_river_water(pos: Vector2, extra_margin: float = 0.0) -> bool:
-	if pos.y < -1185.0 or pos.y > 945.0:
+	if pos.y < river_y_start() - 5.0 or pos.y > river_y_end() + 5.0:
 		return false
 	if is_in_river_crossing(pos, -1.0):
 		return false
@@ -173,9 +243,10 @@ static func is_point_in_river_water(pos: Vector2, extra_margin: float = 0.0) -> 
 	return pos.x >= (banks.x - extra_margin) and pos.x <= (banks.y + extra_margin)
 
 static func nearest_river_crossing(from_pos: Vector2, to_pos: Vector2) -> Dictionary:
-	var best: Dictionary = RIVER_CROSSINGS[2] # Por defecto, Puente Viejo
+	var crs: Array[Dictionary] = river_crossings()
+	var best: Dictionary = crs[0] if not crs.is_empty() else RIVER_CROSSINGS[2]
 	var best_cost: float = INF
-	for cr in RIVER_CROSSINGS:
+	for cr in crs:
 		var cpos: Vector2 = cr["pos"]
 		var cost: float = from_pos.distance_to(cpos) + cpos.distance_to(to_pos)
 		if str(cr["id"]) == "old_bridge":

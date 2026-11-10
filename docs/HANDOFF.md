@@ -617,6 +617,8 @@ Cada fase se dividirá en bloques pequeños cuando se llegue a ella (detalle en 
   clave antigua por nombre. Ahora el cambio de día cuesta 80 ms con 50 y 157 ms con 70; el primero tras una llegada masiva
   de gente, ~0,5 s (inicializa sus relaciones). Por fotograma: vecinos 0,9 ms (18), 2,6–3 ms (50), 6,3 ms (70); la hora,
   ~1 ms. Lo más caro del día con 50: bandos de Fe (26 ms), secta (21 ms) y misiones (16 ms).
+- [x] **Editor del mapa, paso 1** (2026-11-09): río y cruces editables en `mapa/EditorMapa.tscn`; `FishingSpot` los lee
+  (con los puntos originales, forma antigua exacta). Detalle y siguientes pasos: `docs/PLAN_EDITOR_MAPA.md`.
 - [x] **V2** Simulación simplificada (`VillageNPC._lod_far`, `LOD_DIST` 360, `LOD_STEP` 4): el vecino a más de 360 px del
   jugador (fuera de pantalla con margen) solo ejecuta `_physics_process` 1 de cada 4 fotogramas, con el tiempo acumulado
   (contador propio `_lod_tick`, no el del motor, porque los tests llaman a `_physics_process` a mano). En ese paso

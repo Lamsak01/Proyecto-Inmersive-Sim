@@ -501,7 +501,7 @@ static func terrain_height_px(pos_2d: Vector2) -> float:
 
 	# 0. Cuenca suave del Río y del Arroyo del Bosque Norte (y = -1180..940)
 	var river_cut_h: float = 0.0
-	if y >= -1180.0 and y <= 940.0 and not FishingSpotScript.ABANDONED_MILL_RECT.grow(4.0).has_point(pos_2d):
+	if y >= FishingSpotScript.river_y_start() and y <= FishingSpotScript.river_y_end() and not FishingSpotScript.ABANDONED_MILL_RECT.grow(4.0).has_point(pos_2d):
 		var riv_cx: float = FishingSpotScript.river_center_x(y)
 		var riv_hw: float = FishingSpotScript.river_half_width(y)
 		var d_riv: float = absf(x - riv_cx)
@@ -623,7 +623,7 @@ func _terrain_biome_color(pos_2d: Vector2, normal_3d: Vector3) -> Color:
 	var w_forest: float = maxf(smoothstep(665.0 + edge_wave, 775.0 + edge_wave, y), smoothstep(-735.0, -830.0, y))
 	var w_plains: float = smoothstep(-940.0, -1180.0, x) * smoothstep(20.0, -90.0, y)
 	var w_mud: float = 0.0
-	if y >= -1180.0 and y <= 940.0:
+	if y >= FishingSpotScript.river_y_start() and y <= FishingSpotScript.river_y_end():
 		var riv_cx: float = FishingSpotScript.river_center_x(y)
 		var riv_hw: float = FishingSpotScript.river_half_width(y)
 		var d_riv: float = absf(x - riv_cx)
