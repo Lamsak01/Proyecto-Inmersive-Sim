@@ -3,7 +3,7 @@ extends Node3D
 
 ## Objeto con uso en el juego (farola, pozo, tablón…) en el editor del mapa 3D (mapa/Mundo3D.tscn → «Objetos»), 2026-11-10.
 ## Muévelo con el ratón: el juego crea el objeto en el sitio nuevo con todo lo suyo (luz, sacar agua, misiones…).
-## Girarlo aquí no lo gira en el juego.
+## Girarlo (eje vertical) también lo gira en el juego, con sus paredes invisibles y lo que le sigue.
 
 const AssetLib = preload("res://scripts/visuals/AssetLibrary3D.gd")
 const ESCENA := "res://mapa/Mundo3D.tscn"

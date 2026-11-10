@@ -3,8 +3,8 @@ extends Node3D
 
 ## Edificio en el editor del mapa 3D (mapa/Mundo3D.tscn → «Edificios»), 2026-11-10.
 ## En Godot enseña el edificio tal como lo construye el juego (una «foto» guardada en mapa/edificios_vista/).
-## Muévelo con el ratón: el juego construirá ahí el edificio (muros, puerta, suelo y tejado). De momento solo se mueve:
-## girarlo aquí no lo gira en el juego. Lo que el código pone en sitios fijos del mapa (algunos muebles, pistas del Caso I,
+## Muévelo con el ratón: el juego construirá ahí el edificio (muros, puerta, suelo y tejado). Girarlo (eje vertical) lo
+## gira en el juego de 90 en 90 grados (se redondea al más cercano: las paredes del mapa 2D son rectángulos rectos). Lo que el código pone en sitios fijos del mapa (algunos muebles, pistas del Caso I,
 ## rutas de vecinos) habrá que recolocarlo después; eso es «arreglar la lógica» (decisión del usuario, 2026-11-10).
 
 const VISTA_DIR := "res://mapa/edificios_vista/"
@@ -46,7 +46,13 @@ static func desplazamiento(id: String) -> Vector2:
 	if not _leido:
 		_leido = true
 		_cache = _leer_escena()
-	return _cache.get(id, Vector2.ZERO)
+	return (_cache.get(id, [Vector2.ZERO, 0.0]) as Array)[0]
+
+
+## Giro del edificio en el juego: 0, 90, 180 o 270 grados (el del editor redondeado).
+static func giro(id: String) -> float:
+	desplazamiento(id)
+	return (_cache.get(id, [Vector2.ZERO, 0.0]) as Array)[1]
 
 
 static func _leer_escena() -> Dictionary:
@@ -70,6 +76,7 @@ static func _leer_escena() -> Dictionary:
 			continue
 		var ahora := Vector2(xf.origin.x / WORLD_SCALE, xf.origin.z * sin_p / WORLD_SCALE)
 		var d := ahora - centro
-		if d.length() > 0.5:
-			out[id] = d
+		var g := fposmod(roundf(rad_to_deg(xf.basis.orthonormalized().get_euler().y) / 90.0) * 90.0, 360.0)
+		if d.length() > 0.5 or g > 0.5:
+			out[id] = [d, g]
 	return out

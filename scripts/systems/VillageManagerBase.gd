@@ -380,7 +380,9 @@ func _construct_solid_building(
 ) -> void:
 	# Editor del mapa 3D (2026-11-10): si el usuario movió el edificio en mapa/Mundo3D.tscn, se construye en el sitio nuevo
 	var d_edif: Vector2 = EdificioEditor.desplazamiento(b_id)
-	Anclas.registrar_edificio(Rect2(center - size * 0.5, size), d_edif)
+	var g_edif: float = EdificioEditor.giro(b_id)
+	Anclas.registrar_edificio(Rect2(center - size * 0.5, size), d_edif, g_edif)
+	var orig_info := {"rect_orig": Rect2(center - size * 0.5, size)}
 	center += d_edif
 	Anclas.pausa += 1 # sus muros ya van desplazados; que las anclas no los muevan otra vez
 	var half := size * 0.5
@@ -392,6 +394,22 @@ func _construct_solid_building(
 			door_dir = dd_s
 	else:
 		door_dir = "south" if bool(door_on_south) else "north"
+	if g_edif > 0.5:
+		# Girado en el editor (de 90 en 90): se gira la planta, la puerta y su sitio; el resto del código no cambia
+		var m_g: Transform2D = Anclas.matriz(g_edif)
+		var horiz0: bool = door_dir in ["south", "north"]
+		var v_door: Vector2 = Vector2(door_offset_x, half.y if door_dir == "south" else -half.y) if horiz0 else Vector2(half.x if door_dir == "east" else -half.x, door_offset_x)
+		orig_info["door_pos_orig"] = center - d_edif + v_door
+		orig_info["door_south_orig"] = door_dir == "south"
+		orig_info["giro"] = g_edif
+		var v2: Vector2 = m_g.basis_xform(v_door)
+		door_width *= m_g.basis_xform(Vector2(1, 0) if horiz0 else Vector2(0, 1)).length()
+		size = Vector2(absf(m_g.x.x) * size.x + absf(m_g.y.x) * size.y, absf(m_g.x.y) * size.x + absf(m_g.y.y) * size.y)
+		half = size * 0.5
+		rect = Rect2(center - half, size)
+		var giros: Array = ["south", "east", "north", "west"]
+		door_dir = giros[(giros.find(door_dir) + int(roundf(g_edif / 90.0))) % 4]
+		door_offset_x = v2.x if door_dir in ["south", "north"] else v2.y
 	var is_south: bool = (door_dir == "south")
 	var is_horiz_door: bool = (door_dir in ["south", "north"])
 	var door_pos: Vector2
@@ -407,6 +425,8 @@ func _construct_solid_building(
 		"id": b_id, "title": b_title, "rect": rect, "door_pos": door_pos,
 		"door_south": is_south, "door_dir": door_dir, "door_width": door_width
 	})
+	if orig_info.has("giro"):
+		(building_footprints[-1] as Dictionary).merge(orig_info)
 
 	var floor_tex := _load_tex(floor_tex_path)
 	if floor_tex:
@@ -1202,7 +1222,8 @@ func _prune_door_blocking_prop_colliders() -> void:
 				sb.queue_free()
 
 func _add_prop_collider(pos: Vector2, sz: Vector2, group_tag: String = "") -> StaticBody2D:
-	pos = Anclas.mover(pos)
+	var ancla: Dictionary = Anclas.buscar(pos)
+	pos = Anclas.aplicar(ancla, pos)
 	if not is_instance_valid(entities_root) or sz.x <= 0.0 or sz.y <= 0.0:
 		return null
 	if group_tag != "tavern_upper_walls" and _is_prop_collider_blocking_passage(pos, sz):
@@ -1223,6 +1244,7 @@ func _add_prop_collider(pos: Vector2, sz: Vector2, group_tag: String = "") -> St
 	rect.size = sz
 	col.shape = rect
 	sb.add_child(col)
+	Anclas.girar_choque(ancla, sb, sz)
 	entities_root.add_child(sb)
 	return sb
 
@@ -1690,6 +1712,8 @@ func _add_rect_poly(pos: Vector2, half_sz: Vector2, col: Color, z_idx: int = -1,
 	return _add_poly(pts, col, z_idx, pos, parent_node)
 
 func _add_sprite_prop(tex: Texture2D, pos: Vector2, sc: Vector2 = Vector2.ONE, z_idx: int = -1, vis: bool = true, mod: Color = Color.WHITE) -> Sprite2D:
+	var p0 := pos # las paredes invisibles de abajo siguen al ancla por su cuenta (y giran con ella)
+	var g_ancla: float = Anclas.giro(pos)
 	pos = Anclas.mover(pos, "dibujo", (tex.resource_path if tex.resource_path != "" else str(tex.get_meta("src_path", ""))).get_file().get_basename() if tex != null else "")
 	var s := Sprite2D.new()
 	s.texture = tex
@@ -1699,25 +1723,27 @@ func _add_sprite_prop(tex: Texture2D, pos: Vector2, sc: Vector2 = Vector2.ONE, z
 	s.visible = vis
 	if mod != Color.WHITE:
 		s.modulate = mod
+	if absf(g_ancla) > 0.5:
+		s.set_meta("giro_3d", g_ancla) # el dibujo 3D gira con su ancla (WorldStageProps3D)
 	entities_root.add_child(s)
 	if tex != null and tex.has_meta("src_path"):
 		var fname: String = str(tex.get_meta("src_path")).get_file()
 		match fname:
 			"work_stall.png", "storage_countertop_0.png":
-				_add_prop_collider(pos, Vector2(16.0, 9.0))
+				_add_prop_collider(p0, Vector2(16.0, 9.0))
 			"water_well.png":
-				_add_prop_collider(pos, Vector2(14.0, 14.0))
+				_add_prop_collider(p0, Vector2(14.0, 14.0))
 			"compost_bin.png":
-				_add_prop_collider(pos, Vector2(10.0, 9.0))
+				_add_prop_collider(p0, Vector2(10.0, 9.0))
 			"pine-tree_0.png":
-				_add_prop_collider(pos, Vector2(10.0, 10.0))
+				_add_prop_collider(p0, Vector2(10.0, 10.0))
 			"questboard_1.png", "sign_1.png", "lamp-post1.png":
-				_add_prop_collider(pos, Vector2(7.0, 6.0))
+				_add_prop_collider(p0, Vector2(7.0, 6.0))
 			"morgue_table.png":
-				_add_prop_collider(pos, Vector2(10.0, 14.0))
+				_add_prop_collider(p0, Vector2(10.0, 14.0))
 			"tavern_bed.png", "hospital_bed.png":
 				var b_tag: String = "tavern_upper_walls" if VillageTavern.RECT.has_point(pos) else ""
-				_add_prop_collider(pos, Vector2(10.0, 14.0), b_tag)
+				_add_prop_collider(p0, Vector2(10.0, 14.0), b_tag)
 	return s
 
 func _add_title_label(pos: Vector2, min_sz: Vector2, txt: String, col: Color, f_sz: int = 7, parent_node: Node = null) -> Label:

@@ -173,12 +173,17 @@ func rebuild_buildings_3d() -> void:
 		# Editor del mapa 3D (2026-11-10): un edificio movido se construye en su sitio original (sus muebles y detalles están
 		# escritos con coordenadas fijas) y luego se traslada entero, para que todo lo de dentro vaya con él.
 		var d_edif: Vector2 = load("res://mapa/edificio.gd").desplazamiento(b_id)
+		var g_edif: float = float(b.get("giro", 0.0)) # girado de 90 en 90: se construye sin girar y luego se gira entero
+		var rect_real: Rect2 = rect
 		rect.position -= d_edif
 		door_pos -= d_edif
+		if g_edif > 0.5:
+			rect = b["rect_orig"]
+			door_pos = b["door_pos_orig"]
 		var center: Vector2 = rect.get_center()
 		var sz: Vector2 = rect.size
 		var half: Vector2 = sz * 0.5
-		var door_south: bool = bool(b["door_south"])
+		var door_south: bool = bool(b.get("door_south_orig", b["door_south"]))
 		var style: Dictionary = _style_for_building(b_id)
 		# Altura de muro algo mayor y distinta en cada edificio (+0..10 px), salvo la taberna de 2 plantas (44 px exactos: 22 px por planta).
 		var wall_h: float = float(style["wall_h"]) if b_id == "building_tavern" else (float(style["wall_h"]) + 4.0 + float(absi(b_id.hash()) % 6) * 2.0)
@@ -192,6 +197,10 @@ func rebuild_buildings_3d() -> void:
 		b_root.name = "B3D_" + b_id
 		buildings_root_3d.add_child(b_root)
 		b_root.position = Vector3(d_edif.x * WORLD_SCALE, 0.0, (d_edif.y * WORLD_SCALE) / _sin_p)
+		if g_edif > 0.5:
+			var piv := Vector3(center.x * WORLD_SCALE, 0.0, (center.y * WORLD_SCALE) / _sin_p)
+			var giro_b := Basis(Vector3.UP, deg_to_rad(g_edif))
+			b_root.transform = Transform3D(giro_b, b_root.position + piv - giro_b * piv)
 
 		# 1. Zócalo de piedra enterrado (cimentación contra posibles microdesniveles) + losa de suelo 3D y zócalo exterior
 		_add_box_2d(b_root, center, sz + Vector2(6, 6), -2.5, 2.5, m_plinth)
@@ -287,6 +296,8 @@ func rebuild_buildings_3d() -> void:
 				if b_id in ["building_police", "building_town_hall"]:
 					break
 				var w_pos: Vector2 = w_entry.get("pos", Vector2.ZERO) - d_edif # la ventana ya viene en el sitio nuevo; el edificio se traslada entero
+				if g_edif > 0.5:
+					w_pos = center + load("res://mapa/anclas.gd").matriz(g_edif).affine_inverse().basis_xform(w_entry.get("pos", Vector2.ZERO) - rect_real.get_center())
 				var pane: Node3D = null
 				if not _is_headless:
 					var win_tex: String = "town_textures/window_square_divided.png"
@@ -403,7 +414,7 @@ func rebuild_buildings_3d() -> void:
 
 		_building_records_3d.append({
 			"id": b_id,
-			"rect": Rect2(rect.position + d_edif, rect.size), # dónde está de verdad (para abrir el tejado al entrar)
+			"rect": rect_real, # dónde está de verdad (para abrir el tejado al entrar)
 			"root": b_root,
 			"roof_cap": roof_cap,
 			"loft_root": loft_root,

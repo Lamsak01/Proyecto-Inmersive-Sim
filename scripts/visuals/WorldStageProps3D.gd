@@ -850,6 +850,10 @@ func _sync_props_3d(only_update: bool) -> void:
 			root.name = "Prop3D_" + kind
 			nature_root_3d.add_child(root)
 			_build_prop_3d(root, kind, spr)
+			if spr.has_meta("giro_3d"): # su ancla se giró en el editor del mapa 3D
+				var piv: Vector3 = to_3d(spr.global_position, 0.0)
+				var gb := Basis(Vector3.UP, deg_to_rad(float(spr.get_meta("giro_3d"))))
+				root.transform = Transform3D(gb, piv - gb * piv)
 			rec = {"root": root, "variant": variant, "pos": spr.global_position}
 			_prop_nodes[id] = rec
 		var r3 = rec.get("root")

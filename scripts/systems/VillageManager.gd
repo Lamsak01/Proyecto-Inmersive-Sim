@@ -1533,10 +1533,11 @@ func _anclas_repaso_final() -> void:
 		if not (f in clases):
 			continue
 		var p0: Vector2 = (c as Node2D).global_position
+		var a_obj: Dictionary = AN.buscar(p0)
 		var p1: Vector2 = AN.mover(p0, "objeto", f.get_basename() + ":" + String(c.name))
 		var d := p1 - p0
 		if d == Vector2.ZERO:
 			continue
 		(c as Node2D).global_position = p1
 		if c.get("pen_rect") is Rect2 and (c.get("pen_rect") as Rect2).has_area():
-			c.set("pen_rect", Rect2((c.get("pen_rect") as Rect2).position + d, (c.get("pen_rect") as Rect2).size))
+			c.set("pen_rect", AN.rect_con(a_obj, c.get("pen_rect") as Rect2))

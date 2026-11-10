@@ -26,8 +26,19 @@ Todo lo que el juego crea en el mapa 2D (dibujos, zonas de uso, paredes invisibl
 original de un edificio, objeto-ancla u objeto de Decorado que el usuario movió, se crea desplazado lo mismo. Probado:
 mover una pista del claro y el molino mueve sus zonas de uso y el interior 3D del molino.
 
+## Giros (hecho el 2026-11-10, sesión 2)
+- Girar en el editor (eje vertical; en el Inspector, Transform → Rotation → Y) ahora gira en el juego.
+- **Edificios**: de 90 en 90 grados (se redondea al más cercano), porque las paredes del mapa 2D son rectángulos rectos.
+  El juego gira la planta, la puerta (sur→este→norte→oeste) y su sitio; el 3D se construye sin girar y se gira entero, con
+  el interior dentro. Probado con la casa de la familia Yunque Gris a 90°: puerta al este y muebles girados (captura).
+- **Objetos-ancla y Decorado**: cualquier ángulo; lo que les sigue gira alrededor de su sitio original
+  (`mapa/anclas.gd`: `matriz`, `aplicar`, `girar_choque`, `rect_con`). Las paredes invisibles giran (aproximadas).
+- **Objetos con nombre** (pozos, tablón, farolas): un «ancla de solo giro» en su sitio nuevo gira su dibujo 3D y su pared.
+- Vegetación y Decorado ya giraban solos en 3D (la escena guarda el giro); su choque de «forma» sale ya girado.
+- El giro en 3D se ve «aplastado» en el mapa 2D por la inclinación de la cámara (58°): `Anclas.matriz(g)` lo traduce.
+
 ## Lo que falta (en orden)
-1. **Girar** edificios y objetos: girar en el editor todavía no gira en el juego (solo se mueve).
+1. ~~Girar~~ (hecho, arriba). Pendiente menor: los muebles 2D sueltos que no pasan por `_add_*` no giran su colisión.
 2. **Interiores pieza a pieza**: los muebles se mueven con su edificio, pero no uno a uno.
 3. **Bajo tierra**: las trampillas siguen a sus anclas, pero los túneles 3D de las alcantarillas y el club clandestino
    se dibujan desde datos fijos y no se mueven. Tampoco las mascotas de casa (van con su dueño).
