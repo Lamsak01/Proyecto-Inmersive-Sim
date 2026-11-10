@@ -11,6 +11,7 @@ Immersive sim 2D en pixel art hecho con Godot 4.7.2 (GDScript). El usuario no pr
 ## Antes de trabajar
 
 - **Claude Code en otro ordenador:** lee primero `docs/CONTEXTO_PARA_OTRA_PC.md` (todo lo hablado con el usuario hasta el 2026-11-09).
+- **Controles (2026-11-09):** todas las teclas están en `docs/CONTROLES.md`. Mírala antes de asignar o recomendar una tecla y actualízala si cambias alguna.
 - **Editor del mapa (2026-11-09):** si el usuario quiere editar el mapa, lee antes `docs/PLAN_EDITOR_MAPA.md`, sobre todo «Cómo explicárselo al usuario»: no conoce Godot, guíale paso a paso.
 
 **Directivas por papel (valen en cualquier ordenador):** Claude Code lee `docs/DIRECTIVAS_CLAUDE.md`; Antigravity lee `docs/DIRECTIVAS_ANTIGRAVITY.md`. Las pruebas automáticas no ven los fallos visibles: mira capturas y `docs/FALLOS_VISIBLES.md`.

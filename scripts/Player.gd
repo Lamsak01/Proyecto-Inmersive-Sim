@@ -81,7 +81,7 @@ var last_damage_source: Node = null
 var _last_damage_timestamp: float = -999.0
 var _hit_flash_timer: float = 0.0
 
-## Modo pruebas del jugador (F8 o K; en el editor de Godot F8 detiene el juego): empieza apagado y no se guarda en la partida.
+## Modo pruebas del jugador (F8 o º; en el editor de Godot F8 detiene el juego): empieza apagado y no se guarda en la partida.
 signal test_mode_changed(active: bool)
 var test_mode_active: bool = false
 
@@ -762,8 +762,8 @@ func _unhandled_input(event: InputEvent) -> void:
 		return
 
 	if event is InputEventKey and event.pressed and not event.echo:
-		# F8 o K: dentro del editor de Godot, F8 detiene el juego, así que el usuario usa K (2026-11-09)
-		if event.keycode == KEY_F8 or event.physical_keycode == KEY_K:
+		# F8 o º (tecla a la izquierda del 1): dentro del editor de Godot, F8 detiene el juego (2026-11-09)
+		if event.keycode == KEY_F8 or event.physical_keycode == KEY_QUOTELEFT:
 			toggle_test_mode()
 			get_viewport().set_input_as_handled()
 			return
