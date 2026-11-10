@@ -31,6 +31,13 @@ var vm: Node2D = null
 var _is_headless: bool = false
 ## Editor del mapa (2026-11-09): árboles, arbustos y troncos no se colocan dentro del agua del río (salvo el tronco-puente)
 var _permitir_en_rio: bool = false
+## Editor del mapa 3D (2026-11-10): la vegetación y rocas del terreno viven en mapa/Mundo3D.tscn → «Vegetacion».
+## grabar_vegetacion: el horneado (tools/hornear_vegetacion.gd) anota lo que el código colocaría, sin dibujarlo.
+## vegetacion_en_escena: la escena ya la tiene, así que el código deja de colocarla.
+static var grabar_vegetacion: bool = false
+static var vegetacion_grabada: Array = []
+static var vegetacion_en_escena: bool = false
+var _construyendo_estatico: bool = false
 var _sin_p: float = sin(deg_to_rad(PITCH_DEG))
 var _cos_p: float = cos(deg_to_rad(PITCH_DEG))
 
@@ -814,6 +821,10 @@ func check_furniture_overlaps(warn_on_overlap: bool = true) -> Array[String]:
 
 func _add_model_2d(parent: Node3D, rel_path: String, center_2d: Vector2, bottom_h_px: float, sz_2d: Vector2 = Vector2.ZERO, height_px: float = 24.0, rot_y_deg: float = 0.0) -> Node3D:
 	if not _permitir_en_rio and es_vegetacion_en_rio(rel_path, center_2d):
+		return null
+	if _construyendo_estatico and not _permitir_en_rio and rel_path.begins_with("nature/") and (grabar_vegetacion or vegetacion_en_escena):
+		if grabar_vegetacion:
+			vegetacion_grabada.append({"modelo": rel_path, "pos": center_2d, "base": bottom_h_px, "tam": sz_2d, "alto": height_px, "giro": rot_y_deg})
 		return null
 	if _current_building_id != "" and sz_2d != Vector2.ZERO and height_px >= 2.0 and not rel_path.begins_with("graveyard/iron-fence"):
 		var floor_base_h: float = 2.0 if _current_building_floor == 0 else VillageTavern.FLOOR_1_H

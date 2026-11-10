@@ -162,9 +162,12 @@ func setup_stage(village_manager: Node2D) -> void:
 		stage_root_3d.add_child(cam_3d)
 		add_child(stage_root_3d)
 
+	_preparar_escena_editor()
+	_construyendo_estatico = true
 	_build_static_terrain_3d()
-	_merge_terrain_by_chunks()
+	_construyendo_estatico = false
 	_cargar_decoracion_editor()
+	_merge_terrain_by_chunks()
 	_build_sewers_3d()
 	_build_streetlights_3d()
 	rebuild_all_3d()

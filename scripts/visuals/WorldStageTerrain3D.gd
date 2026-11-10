@@ -1247,7 +1247,7 @@ func _build_river_and_arroyo_3d(
 		var l_pos: Vector2 = fallen_log[0] as Vector2
 		var l_rot: float = float(fallen_log[1])
 		_add_box_2d(terrain_root_3d, l_pos, Vector2(14.0, 3.0), 0.0, 2.6, m_rotten_log, l_rot)
-		_colision_solida(l_pos, Vector2(14.0, 4.0), l_rot)
+		_colision_solida(l_pos, Vector2(14.0, 4.0), l_rot, false)
 		_add_box_2d(terrain_root_3d, l_pos + Vector2(0.0, -0.4), Vector2(10.0, 2.2), 2.3, 0.6, m_forest_moss, l_rot)
 	for forest_rock in [
 		[Vector2(68.0, -830.0), "nature/Rock_3.obj", 7.8, 20.0],
@@ -1369,54 +1369,97 @@ func _build_river_and_arroyo_3d(
 		for dpy in [-5.0, 5.0]:
 			_add_box_2d(terrain_root_3d, r_dock_pos + Vector2(dpx, dpy), Vector2(2.0, 2.0), r_dock_base - 2.6, 4.2, m_dark_wood, 0.0, true)
 
-## Editor del mapa 3D (2026-11-10): carga lo que el usuario colocó en mapa/Mundo3D.tscn → «Decoracion» y lo hace sólido en
-## el mapa 2D (rectángulo que ocupa, visto desde arriba). Metadata «atravesable» = true para que no choque.
+## Editor del mapa 3D (2026-11-10): mapa/Mundo3D.tscn. «Vegetacion» (árboles, rocas, plantas y troncos horneados del
+## código, editables a mano) y «Decoracion» (lo que coloque el usuario) se meten en el terreno antes de juntarlo por zonas
+## (rendimiento) y se hacen sólidos en el mapa 2D según su tipo de choque.
 const ESCENA_MUNDO_3D := "res://mapa/Mundo3D.tscn"
+var _mundo_editor: Node = null
 
-func _cargar_decoracion_editor() -> void:
-	if not ResourceLoader.exists(ESCENA_MUNDO_3D) or terrain_root_3d == null:
+func _preparar_escena_editor() -> void:
+	vegetacion_en_escena = false
+	if grabar_vegetacion or not ResourceLoader.exists(ESCENA_MUNDO_3D):
 		return
 	var ps = load(ESCENA_MUNDO_3D)
 	if not (ps is PackedScene):
 		return
-	var mundo: Node = (ps as PackedScene).instantiate()
-	var deco: Node = mundo.get_node_or_null("Decoracion")
-	if deco == null or deco.get_child_count() == 0:
-		mundo.free()
+	_mundo_editor = (ps as PackedScene).instantiate()
+	var veg: Node = _mundo_editor.get_node_or_null("Vegetacion")
+	vegetacion_en_escena = veg != null and veg.get_child_count() > 0
+
+
+func _cargar_decoracion_editor() -> void:
+	if _mundo_editor == null or terrain_root_3d == null:
 		return
-	var destino := Node3D.new()
-	destino.name = "DecoracionEditor"
-	terrain_root_3d.get_parent().add_child(destino)
-	destino.transform = terrain_root_3d.transform
-	for c in deco.get_children():
+	var piezas: Array = []
+	for grupo in ["Vegetacion", "Decoracion"]:
+		var g: Node = _mundo_editor.get_node_or_null(grupo)
+		if g == null:
+			continue
+		_mundo_editor.remove_child(g)
+		terrain_root_3d.add_child(g)
+		_juntar_piezas(g, piezas)
+	for c in piezas:
+		_choque_de_pieza(c as Node3D)
+	_mundo_editor.free()
+	_mundo_editor = null
+
+
+## Piezas = nodos 3D colocados (las carpetas de agrupar sin modelo propio se recorren por dentro).
+func _juntar_piezas(n: Node, out: Array) -> void:
+	for c in n.get_children():
 		if not (c is Node3D):
 			continue
-		deco.remove_child(c)
-		destino.add_child(c)
-		if bool(c.get_meta("atravesable", false)):
-			continue
-		var caja := AABB()
-		var primera := true
-		for mi in (c as Node3D).find_children("*", "VisualInstance3D", true, false):
-			var bb: AABB = (mi as VisualInstance3D).global_transform * (mi as VisualInstance3D).get_aabb()
-			caja = bb if primera else caja.merge(bb)
-			primera = false
-		if primera and c is VisualInstance3D:
-			caja = (c as VisualInstance3D).global_transform * (c as VisualInstance3D).get_aabb()
-			primera = false
-		if primera:
-			continue
-		# De 3D al mapa 2D: x = X / escala; y = Z · sen(inclinación) / escala
-		var p0 := Vector2(caja.position.x / WORLD_SCALE, caja.position.z * _sin_p / WORLD_SCALE)
-		var tam := Vector2(caja.size.x / WORLD_SCALE, caja.size.z * _sin_p / WORLD_SCALE)
-		if tam.x >= 4.0 and tam.y >= 4.0 and vm != null and vm.has_method("_add_prop_collider"):
-			vm.call("_add_prop_collider", p0 + tam * 0.5, tam)
-	mundo.free()
+		if c.has_method("tipo_choque") or c is VisualInstance3D or c.scene_file_path != "":
+			out.append(c)
+		else:
+			_juntar_piezas(c, out)
+
+
+func _choque_de_pieza(c: Node3D) -> void:
+	if vm == null or not ("entities_root" in vm) or not is_instance_valid(vm.entities_root):
+		return
+	var tipo: String = String(c.call("tipo_choque")) if c.has_method("tipo_choque") else ("ninguno" if bool(c.get_meta("atravesable", false)) else "forma")
+	if tipo == "ninguno":
+		return
+	var p2 := _a_mapa_2d(c.global_position)
+	if tipo == "tronco":
+		vm.call("_add_prop_collider", p2, Vector2(7.0, 7.0))
+		return
+	# «forma»: lo que ocupa visto desde arriba (esquinas de sus mallas, ya giradas)
+	var pts := PackedVector2Array()
+	var mallas: Array = c.find_children("*", "VisualInstance3D", true, false)
+	if c is VisualInstance3D:
+		mallas.append(c)
+	for mi in mallas:
+		var bb: AABB = (mi as VisualInstance3D).get_aabb()
+		var xf: Transform3D = (mi as VisualInstance3D).global_transform
+		for k in range(8):
+			pts.append(_a_mapa_2d(xf * bb.get_endpoint(k)))
+	if pts.size() < 3:
+		return
+	var casco := Geometry2D.convex_hull(pts)
+	if casco.size() < 4:
+		return
+	var sb := StaticBody2D.new()
+	sb.name = "PiezaEditorCollider"
+	sb.collision_layer = 1
+	sb.collision_mask = 0
+	sb.add_to_group("prop_collider")
+	var cp := CollisionPolygon2D.new()
+	cp.polygon = casco
+	sb.add_child(cp)
+	vm.entities_root.add_child(sb)
+
+
+func _a_mapa_2d(v: Vector3) -> Vector2:
+	return Vector2(v.x / WORLD_SCALE, v.z * _sin_p / WORLD_SCALE)
 
 
 ## Troncos y tocones del bosque sólidos en el mapa 2D (antes solo eran adorno 3D y se atravesaban).
 ## rot_3d_deg es el giro del modelo 3D; en el mapa 2D el giro equivalente va al revés.
-func _colision_solida(pos_2d: Vector2, sz_2d: Vector2, rot_3d_deg: float) -> void:
+func _colision_solida(pos_2d: Vector2, sz_2d: Vector2, rot_3d_deg: float, de_modelo: bool = true) -> void:
+	if de_modelo and (grabar_vegetacion or vegetacion_en_escena):
+		return # el choque sale de la pieza de la escena del editor 3D
 	if vm == null or not vm.has_method("_add_prop_collider") or en_cauce_del_rio(pos_2d, 2.0):
 		return
 	var sb = vm.call("_add_prop_collider", pos_2d, sz_2d)
@@ -1435,6 +1478,8 @@ func _build_tree_3d(parent: Node3D, pos_2d: Vector2, m_trunk: Material, m_leaf1:
 		return
 	if _add_model_2d(parent, t_file, pos_2d, 0.0, Vector2.ZERO, 36.0 * scale_f, float(variant * 67)) != null:
 		return
+	if _construyendo_estatico and (grabar_vegetacion or vegetacion_en_escena):
+		return # el árbol está (o va a estar) en la escena del editor 3D
 	_add_cyl_2d(parent, pos_2d, 3.2 * scale_f, 0.0, 11.0 * scale_f, m_trunk, 2.4 * scale_f, 8)
 	_add_cyl_2d(parent, pos_2d, 12.0 * scale_f, 8.0 * scale_f, 14.0 * scale_f, m_leaf1, 2.0 * scale_f, 9)
 	_add_cyl_2d(parent, pos_2d, 9.0 * scale_f, 16.0 * scale_f, 12.0 * scale_f, m_leaf2, 0.8 * scale_f, 9)

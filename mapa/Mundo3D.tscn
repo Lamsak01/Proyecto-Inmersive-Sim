@@ -1,8 +1,3553 @@
 [gd_scene format=3]
 
 [ext_resource type="Script" path="res://mapa/mundo3d.gd" id="1_m3d"]
+[ext_resource type="Script" path="res://mapa/pieza.gd" id="2_rotgg"]
 
-[node name="Mundo3D" type="Node3D"]
+[node name="Mundo3D" type="Node3D" unique_id=1754351310]
 script = ExtResource("1_m3d")
 
-[node name="Decoracion" type="Node3D" parent="."]
+[node name="Decoracion" type="Node3D" parent="." unique_id=1328483365]
+
+[node name="Vegetacion" type="Node3D" parent="." unique_id=1030498710]
+
+[node name="Arboles" type="Node3D" parent="Vegetacion" unique_id=1981286966]
+
+[node name="PineTree_1_1" type="Node3D" parent="Vegetacion/Arboles" unique_id=602928825]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -43.6, 0.26031893, -16.036827)
+script = ExtResource("2_rotgg")
+modelo = "nature/PineTree_1.obj"
+alto = 54.0
+
+[node name="CommonTree_2_1" type="Node3D" parent="Vegetacion/Arboles" unique_id=1281201308]
+transform = Transform3D(0.6819984, 0, 0.7313537, 0, 1, 0, -0.7313537, 0, 0.6819984, -45.2, 0.591759, -11.320112)
+script = ExtResource("2_rotgg")
+modelo = "nature/CommonTree_2.obj"
+alto = 60.0
+
+[node name="PineTree_1_2" type="Node3D" parent="Vegetacion/Arboles" unique_id=1715285386]
+transform = Transform3D(-0.06975648, 0, 0.9975641, 0, 1, 0, -0.9975641, 0, -0.06975648, -46.4, 0.79625475, -6.1317277)
+script = ExtResource("2_rotgg")
+modelo = "nature/PineTree_1.obj"
+alto = 66.0
+
+[node name="CommonTree_2_2" type="Node3D" parent="Vegetacion/Arboles" unique_id=608064587]
+transform = Transform3D(-0.77714586, 0, 0.6293205, 0, 1, 0, -0.6293205, 0, -0.77714586, -45.6, 0.85748, -1.8866855)
+script = ExtResource("2_rotgg")
+modelo = "nature/CommonTree_2.obj"
+alto = 72.0
+
+[node name="PineTree_1_3" type="Node3D" parent="Vegetacion/Arboles" unique_id=1753596032]
+transform = Transform3D(-0.99026805, 0, -0.13917312, 0, 1, 0, 0.13917312, 0, -0.99026805, -46.8, 0.84066564, 2.830028)
+script = ExtResource("2_rotgg")
+modelo = "nature/PineTree_1.obj"
+alto = 54.0
+
+[node name="CommonTree_2_3" type="Node3D" parent="Vegetacion/Arboles" unique_id=2101673778]
+transform = Transform3D(-0.57357633, 0, -0.8191521, 0, 1, 0, 0.8191521, 0, -0.57357633, -45.8, 0.68955183, 8.018414)
+script = ExtResource("2_rotgg")
+modelo = "nature/CommonTree_2.obj"
+alto = 60.0
+
+[node name="PineTree_1_4" type="Node3D" parent="Vegetacion/Arboles" unique_id=2136560515]
+transform = Transform3D(0.20791148, 0, -0.9781476, 0, 1, 0, 0.9781476, 0, 0.20791148, -44.4, 0.39149645, 13.206799)
+script = ExtResource("2_rotgg")
+modelo = "nature/PineTree_1.obj"
+alto = 66.0
+
+[node name="CommonTree_2_4" type="Node3D" parent="Vegetacion/Arboles" unique_id=554252996]
+transform = Transform3D(0.85716724, 0, -0.51503813, 0, 1, 0, 0.51503813, 0, 0.85716724, -39.6, 0.002612643, -19.338526)
+script = ExtResource("2_rotgg")
+modelo = "nature/CommonTree_2.obj"
+alto = 72.0
+
+[node name="PineTree_1_5" type="Node3D" parent="Vegetacion/Arboles" unique_id=2078016138]
+transform = Transform3D(0.9612617, 0, 0.2756374, 0, 1, 0, -0.2756374, 0, 0.9612617, -34.4, -0.04528992, -20.989376)
+script = ExtResource("2_rotgg")
+modelo = "nature/PineTree_1.obj"
+alto = 54.0
+
+[node name="CommonTree_2_5" type="Node3D" parent="Vegetacion/Arboles" unique_id=1891137950]
+transform = Transform3D(0.45399037, 0, 0.8910066, 0, 1, 0, -0.8910066, 0, 0.45399037, -29.2, 0.026009185, -21.696882)
+script = ExtResource("2_rotgg")
+modelo = "nature/CommonTree_2.obj"
+alto = 60.0
+
+[node name="PineTree_1_6" type="Node3D" parent="Vegetacion/Arboles" unique_id=1398322757]
+transform = Transform3D(-0.3420204, 0, 0.93969256, 0, 1, 0, -0.93969256, 0, -0.3420204, -23.6, 0.488364, -22.168554)
+script = ExtResource("2_rotgg")
+modelo = "nature/PineTree_1.obj"
+alto = 66.0
+
+[node name="CommonTree_2_6" type="Node3D" parent="Vegetacion/Arboles" unique_id=548573109]
+transform = Transform3D(-0.920505, 0, 0.39073077, 0, 1, 0, -0.39073077, 0, -0.920505, -17.6, 0.8125376, -22.640224)
+script = ExtResource("2_rotgg")
+modelo = "nature/CommonTree_2.obj"
+alto = 72.0
+
+[node name="PineTree_1_7" type="Node3D" parent="Vegetacion/Arboles" unique_id=399200672]
+transform = Transform3D(0.90630776, 0, 0.42261827, 0, 1, 0, -0.42261827, 0, 0.90630776, -25.7, -0.015096639, 0.18866855)
+script = ExtResource("2_rotgg")
+modelo = "nature/PineTree_1.obj"
+alto = 44.0
+
+[node name="CommonTree_1_1" type="Node3D" parent="Vegetacion/Arboles" unique_id=923474468]
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, -24.6, -0.015096639, 0.28300282)
+script = ExtResource("2_rotgg")
+modelo = "nature/CommonTree_1.obj"
+alto = 38.0
+
+[node name="PineTree_2_1" type="Node3D" parent="Vegetacion/Arboles" unique_id=1336914503]
+transform = Transform3D(-0.81915206, 0, 0.57357645, 0, 1, 0, -0.57357645, 0, -0.81915206, -23.2, -0.015096639, 0.23583569)
+script = ExtResource("2_rotgg")
+modelo = "nature/PineTree_2.obj"
+alto = 42.0
+
+[node name="BirchTree_1_1" type="Node3D" parent="Vegetacion/Arboles" unique_id=1225259948]
+transform = Transform3D(-0.8660254, 0, -0.49999997, 0, 1, 0, 0.49999997, 0, -0.8660254, -21.9, -0.015096639, 0.28300282)
+script = ExtResource("2_rotgg")
+modelo = "nature/BirchTree_1.obj"
+alto = 36.0
+
+[node name="PineTree_1_8" type="Node3D" parent="Vegetacion/Arboles" unique_id=728838378]
+transform = Transform3D(0.9659258, 0, 0.25881904, 0, 1, 0, -0.25881904, 0, 0.9659258, -20.2, -0.015096639, 0.14150141)
+script = ExtResource("2_rotgg")
+modelo = "nature/PineTree_1.obj"
+alto = 44.0
+
+[node name="PineTree_2_2" type="Node3D" parent="Vegetacion/Arboles" unique_id=1582615791]
+transform = Transform3D(-0.34202012, 0, 0.9396926, 0, 1, 0, -0.9396926, 0, -0.34202012, -19.1, -0.015096639, 0.28300282)
+script = ExtResource("2_rotgg")
+modelo = "nature/PineTree_2.obj"
+alto = 38.0
+
+[node name="CommonTree_1_2" type="Node3D" parent="Vegetacion/Arboles" unique_id=839581826]
+transform = Transform3D(0.70710677, 0, 0.70710677, 0, 1, 0, -0.70710677, 0, 0.70710677, -17.7, -0.015096639, 0.18866855)
+script = ExtResource("2_rotgg")
+modelo = "nature/CommonTree_1.obj"
+alto = 36.0
+
+[node name="PineTree_3_1" type="Node3D" parent="Vegetacion/Arboles" unique_id=1967478856]
+transform = Transform3D(-0.9659258, 0, -0.25881907, 0, 1, 0, 0.25881907, 0, -0.9659258, -16.5, -0.015096639, 0.23583569)
+script = ExtResource("2_rotgg")
+modelo = "nature/PineTree_3.obj"
+alto = 42.0
+
+[node name="BirchTree_1_2" type="Node3D" parent="Vegetacion/Arboles" unique_id=1192384653]
+transform = Transform3D(0.25881907, 0, 0.9659258, 0, 1, 0, -0.9659258, 0, 0.25881907, -15.2, -0.015096639, 0.28300282)
+script = ExtResource("2_rotgg")
+modelo = "nature/BirchTree_1.obj"
+alto = 34.0
+
+[node name="PineTree_2_3" type="Node3D" parent="Vegetacion/Arboles" unique_id=1072276213]
+transform = Transform3D(-0.9848077, 0, 0.1736483, 0, 1, 0, -0.1736483, 0, -0.9848077, -25.4, -0.015096639, 2.075354)
+script = ExtResource("2_rotgg")
+modelo = "nature/PineTree_2.obj"
+alto = 42.0
+
+[node name="CommonTree_2_7" type="Node3D" parent="Vegetacion/Arboles" unique_id=901967492]
+transform = Transform3D(0.49999997, 0, 0.86602545, 0, 1, 0, -0.86602545, 0, 0.49999997, -24.1, -0.015096639, 2.0281868)
+script = ExtResource("2_rotgg")
+modelo = "nature/CommonTree_2.obj"
+alto = 38.0
+
+[node name="PineTree_3_2" type="Node3D" parent="Vegetacion/Arboles" unique_id=1908919278]
+transform = Transform3D(-0.64278764, 0, 0.76604444, 0, 1, 0, -0.76604444, 0, -0.64278764, -22.76, -0.015096639, 2.1225212)
+script = ExtResource("2_rotgg")
+modelo = "nature/PineTree_3.obj"
+alto = 44.0
+
+[node name="CommonTree_1_3" type="Node3D" parent="Vegetacion/Arboles" unique_id=1417907773]
+transform = Transform3D(-0.34202006, 0, -0.9396927, 0, 1, 0, 0.9396927, 0, -0.34202006, -21.4, -0.077079244, 2.0281868)
+script = ExtResource("2_rotgg")
+modelo = "nature/CommonTree_1.obj"
+alto = 38.0
+
+[node name="PineTree_2_4" type="Node3D" parent="Vegetacion/Arboles" unique_id=1292268876]
+transform = Transform3D(-0.9396926, 0, 0.3420202, 0, 1, 0, -0.3420202, 0, -0.9396926, -20, -0.22804075, 2.1696882)
+script = ExtResource("2_rotgg")
+modelo = "nature/PineTree_2.obj"
+alto = 42.0
+
+[node name="CommonTree_2_8" type="Node3D" parent="Vegetacion/Arboles" unique_id=1022646770]
+transform = Transform3D(-0.6427875, 0, -0.76604456, 0, 1, 0, 0.76604456, 0, -0.6427875, -18.76, -0.23399791, 2.0281868)
+script = ExtResource("2_rotgg")
+modelo = "nature/CommonTree_2.obj"
+alto = 38.0
+
+[node name="PineTree_1_9" type="Node3D" parent="Vegetacion/Arboles" unique_id=1815241108]
+transform = Transform3D(0.087155804, 0, 0.9961947, 0, 1, 0, -0.9961947, 0, 0.087155804, -17.44, -0.23399791, 2.075354)
+script = ExtResource("2_rotgg")
+modelo = "nature/PineTree_1.obj"
+alto = 40.0
+
+[node name="CommonTree_1_4" type="Node3D" parent="Vegetacion/Arboles" unique_id=1794418637]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 3.76, 0.02264496, 5.282719)
+script = ExtResource("2_rotgg")
+modelo = "nature/CommonTree_1.obj"
+alto = 34.199999999999996
+
+[node name="CommonTree_2_9" type="Node3D" parent="Vegetacion/Arboles" unique_id=780513639]
+transform = Transform3D(0.3907312, 0, 0.9205048, 0, 1, 0, -0.9205048, 0, 0.3907312, 8.4, 0.02264496, 5.282719)
+script = ExtResource("2_rotgg")
+modelo = "nature/CommonTree_2.obj"
+alto = 34.199999999999996
+
+[node name="BirchTree_1_3" type="Node3D" parent="Vegetacion/Arboles" unique_id=186413261]
+transform = Transform3D(-0.6946583, 0, 0.7193399, 0, 1, 0, -0.7193399, 0, -0.6946583, 3.76, 0.01639992, 7.9712462)
+script = ExtResource("2_rotgg")
+modelo = "nature/BirchTree_1.obj"
+alto = 34.199999999999996
+
+[node name="CommonTree_3_1" type="Node3D" parent="Vegetacion/Arboles" unique_id=1891259992]
+transform = Transform3D(-0.93358046, 0, -0.35836786, 0, 1, 0, 0.35836786, 0, -0.93358046, 8.4, 0.02264496, 7.9712462)
+script = ExtResource("2_rotgg")
+modelo = "nature/CommonTree_3.obj"
+alto = 34.199999999999996
+
+[node name="BirchTree_2_1" type="Node3D" parent="Vegetacion/Arboles" unique_id=1741751874]
+transform = Transform3D(-0.034899764, 0, -0.99939084, 0, 1, 0, 0.99939084, 0, -0.034899764, 6.08, 0.02264496, 5.3770537)
+script = ExtResource("2_rotgg")
+modelo = "nature/BirchTree_2.obj"
+alto = 43.92
+
+[node name="Willow_1_1" type="Node3D" parent="Vegetacion/Arboles" unique_id=1532153760]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -19.1, -0.17701018, 1.6980169)
+script = ExtResource("2_rotgg")
+modelo = "nature/Willow_1.obj"
+alto = 40.0
+
+[node name="Willow_2_1" type="Node3D" parent="Vegetacion/Arboles" unique_id=406998731]
+transform = Transform3D(0.34202015, 0, 0.9396926, 0, 1, 0, -0.9396926, 0, 0.34202015, -22.1, -0.093691714, 4.598796)
+script = ExtResource("2_rotgg")
+modelo = "nature/Willow_2.obj"
+alto = 38.0
+
+[node name="Willow_1_2" type="Node3D" parent="Vegetacion/Arboles" unique_id=1396358124]
+transform = Transform3D(-0.76604444, 0, 0.64278764, 0, 1, 0, -0.64278764, 0, -0.76604444, -16.8, -0.02264496, 5.6128893)
+script = ExtResource("2_rotgg")
+modelo = "nature/Willow_1.obj"
+alto = 34.0
+
+[node name="Willow_2_2" type="Node3D" parent="Vegetacion/Arboles" unique_id=1911904149]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -37.9, 0.1222442, 4.8346314)
+script = ExtResource("2_rotgg")
+modelo = "nature/Willow_2.obj"
+alto = 36.0
+
+[node name="Willow_1_3" type="Node3D" parent="Vegetacion/Arboles" unique_id=1481221925]
+transform = Transform3D(-0.34202012, 0, 0.9396926, 0, 1, 0, -0.9396926, 0, -0.34202012, -23.9, 0.00933507, 9.31551)
+script = ExtResource("2_rotgg")
+modelo = "nature/Willow_1.obj"
+alto = 34.0
+
+[node name="TreeStump_Moss_1" type="Node3D" parent="Vegetacion/Arboles" unique_id=928887075]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -16.52, 0.5280671, 24.008072)
+script = ExtResource("2_rotgg")
+modelo = "nature/TreeStump_Moss.obj"
+alto = 9.0
+
+[node name="TreeStump_Moss_2" type="Node3D" parent="Vegetacion/Arboles" unique_id=1315406144]
+transform = Transform3D(0.62932044, 0, 0.7771459, 0, 1, 0, -0.7771459, 0, 0.62932044, -9.12, -0.32422298, 28.724787)
+script = ExtResource("2_rotgg")
+modelo = "nature/TreeStump_Moss.obj"
+alto = 9.0
+
+[node name="TreeStump_Moss_3" type="Node3D" parent="Vegetacion/Arboles" unique_id=1343050218]
+transform = Transform3D(-0.20791163, 0, 0.9781476, 0, 1, 0, -0.9781476, 0, -0.20791163, -14.12, 0.5625797, 36.271526)
+script = ExtResource("2_rotgg")
+modelo = "nature/TreeStump_Moss.obj"
+alto = 9.0
+
+[node name="TreeStump_Moss_4" type="Node3D" parent="Vegetacion/Arboles" unique_id=1411178870]
+transform = Transform3D(-0.89100647, 0, 0.45399058, 0, 1, 0, -0.45399058, 0, -0.89100647, -10.52, 0.40400314, 42.403255)
+script = ExtResource("2_rotgg")
+modelo = "nature/TreeStump_Moss.obj"
+alto = 9.0
+
+[node name="TreeStump_Moss_5" type="Node3D" parent="Vegetacion/Arboles" unique_id=59052080]
+transform = Transform3D(-0.9135455, 0, -0.40673652, 0, 1, 0, 0.40673652, 0, -0.9135455, 0.28, -0.019509528, 25.18725)
+script = ExtResource("2_rotgg")
+modelo = "nature/TreeStump_Moss.obj"
+alto = 9.0
+
+[node name="TreeStump_Moss_6" type="Node3D" parent="Vegetacion/Arboles" unique_id=222103562]
+transform = Transform3D(-0.25881898, 0, -0.9659259, 0, 1, 0, 0.9659259, 0, -0.25881898, 6.48, 0.3970451, 30.375635)
+script = ExtResource("2_rotgg")
+modelo = "nature/TreeStump_Moss.obj"
+alto = 9.0
+
+[node name="TreeStump_Moss_7" type="Node3D" parent="Vegetacion/Arboles" unique_id=1268375462]
+transform = Transform3D(0.58778507, 0, -0.8090171, 0, 1, 0, 0.8090171, 0, 0.58778507, 2.28, 0.27414328, 36.7432)
+script = ExtResource("2_rotgg")
+modelo = "nature/TreeStump_Moss.obj"
+alto = 9.0
+
+[node name="TreeStump_Moss_8" type="Node3D" parent="Vegetacion/Arboles" unique_id=1827332470]
+transform = Transform3D(0.9986295, 0, -0.052335963, 0, 1, 0, 0.052335963, 0, 0.9986295, 8.28, -0.003910329, 42.16742)
+script = ExtResource("2_rotgg")
+modelo = "nature/TreeStump_Moss.obj"
+alto = 9.0
+
+[node name="TreeStump_Moss_9" type="Node3D" parent="Vegetacion/Arboles" unique_id=628870034]
+transform = Transform3D(-0.15643486, 0, 0.9876883, 0, 1, 0, -0.9876883, 0, -0.15643486, 18.48, 0.47475505, 27.309772)
+script = ExtResource("2_rotgg")
+modelo = "nature/TreeStump_Moss.obj"
+alto = 9.0
+
+[node name="TreeStump_Moss_10" type="Node3D" parent="Vegetacion/Arboles" unique_id=641332209]
+transform = Transform3D(-0.86602545, 0, 0.49999988, 0, 1, 0, -0.49999988, 0, -0.86602545, 22.28, 0.27384737, 34.620678)
+script = ExtResource("2_rotgg")
+modelo = "nature/TreeStump_Moss.obj"
+alto = 9.0
+
+[node name="TreeStump_Moss_11" type="Node3D" parent="Vegetacion/Arboles" unique_id=1429105892]
+transform = Transform3D(-0.93358046, 0, -0.3583678, 0, 1, 0, 0.3583678, 0, -0.93358046, 23.08, 0.13591628, 44.761612)
+script = ExtResource("2_rotgg")
+modelo = "nature/TreeStump_Moss.obj"
+alto = 9.0
+
+[node name="PineTree_2_5" type="Node3D" parent="Vegetacion/Arboles" unique_id=577679125]
+transform = Transform3D(0.60181504, 0, 0.79863554, 0, 1, 0, -0.79863554, 0, 0.60181504, 1.08, 0.31948346, -17.593342)
+script = ExtResource("2_rotgg")
+modelo = "nature/PineTree_2.obj"
+alto = 44.84
+
+[node name="PineTree_3_3" type="Node3D" parent="Vegetacion/Arboles" unique_id=684770778]
+transform = Transform3D(-0.27563736, 0, 0.9612617, 0, 1, 0, -0.9612617, 0, -0.27563736, 1.32, 0.300669, -18.11218)
+script = ExtResource("2_rotgg")
+modelo = "nature/PineTree_3.obj"
+alto = 49.78
+
+[node name="PineTree_4_1" type="Node3D" parent="Vegetacion/Arboles" unique_id=1059348318]
+transform = Transform3D(-0.93358046, 0, 0.35836792, 0, 1, 0, -0.35836792, 0, -0.93358046, 1.16, 0.33868605, -18.678186)
+script = ExtResource("2_rotgg")
+modelo = "nature/PineTree_4.obj"
+alto = 54.72
+
+[node name="PineTree_1_10" type="Node3D" parent="Vegetacion/Arboles" unique_id=1890676411]
+transform = Transform3D(-0.087155715, 0, -0.9961947, 0, 1, 0, 0.9961947, 0, -0.087155715, 1.12, 0.34344855, -19.715862)
+script = ExtResource("2_rotgg")
+modelo = "nature/PineTree_1.obj"
+alto = 39.9
+
+[node name="Willow_1_4" type="Node3D" parent="Vegetacion/Arboles" unique_id=1461523343]
+transform = Transform3D(0.74314487, 0, -0.66913056, 0, 1, 0, 0.66913056, 0, 0.74314487, 1.34, 0.31954753, -20.234701)
+script = ExtResource("2_rotgg")
+modelo = "nature/Willow_1.obj"
+alto = 44.84
+
+[node name="CommonTree_4_1" type="Node3D" parent="Vegetacion/Arboles" unique_id=1859697378]
+transform = Transform3D(0.98162717, 0, 0.19080904, 0, 1, 0, -0.19080904, 0, 0.98162717, 1.1, 0.34344855, -20.706373)
+script = ExtResource("2_rotgg")
+modelo = "nature/CommonTree_4.obj"
+alto = 49.78
+
+[node name="PineTree_2_6" type="Node3D" parent="Vegetacion/Arboles" unique_id=79459008]
+transform = Transform3D(0.4383711, 0, 0.89879405, 0, 1, 0, -0.89879405, 0, 0.4383711, 1.36, 0.32002023, -21.178043)
+script = ExtResource("2_rotgg")
+modelo = "nature/PineTree_2.obj"
+alto = 54.72
+
+[node name="PineTree_3_4" type="Node3D" parent="Vegetacion/Arboles" unique_id=2059175072]
+transform = Transform3D(-0.45399013, 0, 0.8910067, 0, 1, 0, -0.8910067, 0, -0.45399013, 1.14, 0.33276024, -21.649715)
+script = ExtResource("2_rotgg")
+modelo = "nature/PineTree_3.obj"
+alto = 59.660000000000004
+
+[node name="Willow_2_3" type="Node3D" parent="Vegetacion/Arboles" unique_id=2009213932]
+transform = Transform3D(-0.9848078, 0, 0.17364812, 0, 1, 0, -0.17364812, 0, -0.9848078, 1.38, 0.3298155, -22.121387)
+script = ExtResource("2_rotgg")
+modelo = "nature/Willow_2.obj"
+alto = 39.9
+
+[node name="PineTree_4_2" type="Node3D" parent="Vegetacion/Arboles" unique_id=326952379]
+transform = Transform3D(-0.731354, 0, -0.6819981, 0, 1, 0, 0.6819981, 0, -0.731354, 1.16, 0.34344855, -22.687393)
+script = ExtResource("2_rotgg")
+modelo = "nature/PineTree_4.obj"
+alto = 44.84
+
+[node name="PineTree_1_11" type="Node3D" parent="Vegetacion/Arboles" unique_id=1021169534]
+transform = Transform3D(0.10452853, 0, -0.9945219, 0, 1, 0, 0.9945219, 0, 0.10452853, 1.32, 0.3429986, -23.253399)
+script = ExtResource("2_rotgg")
+modelo = "nature/PineTree_1.obj"
+alto = 49.78
+
+[node name="PineTree_2_7" type="Node3D" parent="Vegetacion/Arboles" unique_id=1936213689]
+transform = Transform3D(0.85716707, 0, -0.51503843, 0, 1, 0, 0.51503843, 0, 0.85716707, 1.08, 0.34344855, -23.866571)
+script = ExtResource("2_rotgg")
+modelo = "nature/PineTree_2.obj"
+alto = 54.72
+
+[node name="PineTree_3_5" type="Node3D" parent="Vegetacion/Arboles" unique_id=1276741664]
+transform = Transform3D(0.9271838, 0, 0.37460667, 0, 1, 0, -0.37460667, 0, 0.9271838, 1.3, 0.3382706, -24.479744)
+script = ExtResource("2_rotgg")
+modelo = "nature/PineTree_3.obj"
+alto = 59.660000000000004
+
+[node name="CommonTree_3_2" type="Node3D" parent="Vegetacion/Arboles" unique_id=1434836526]
+transform = Transform3D(-0.61566156, 0, 0.7880107, 0, 1, 0, -0.7880107, 0, -0.61566156, 1.34, 0.3158337, -25.800423)
+script = ExtResource("2_rotgg")
+modelo = "nature/CommonTree_3.obj"
+alto = 44.84
+
+[node name="PineTree_1_12" type="Node3D" parent="Vegetacion/Arboles" unique_id=1533990982]
+transform = Transform3D(-0.9998477, 0, -0.01745203, 0, 1, 0, 0.01745203, 0, -0.9998477, 1.12, 0.34344855, -26.460764)
+script = ExtResource("2_rotgg")
+modelo = "nature/PineTree_1.obj"
+alto = 49.78
+
+[node name="Willow_1_5" type="Node3D" parent="Vegetacion/Arboles" unique_id=791251758]
+transform = Transform3D(-0.58778596, 0, -0.8090165, 0, 1, 0, 0.8090165, 0, -0.58778596, 1.36, 0.3309166, -27.073936)
+script = ExtResource("2_rotgg")
+modelo = "nature/Willow_1.obj"
+alto = 54.72
+
+[node name="CommonTree_4_2" type="Node3D" parent="Vegetacion/Arboles" unique_id=1531813728]
+transform = Transform3D(0.29237226, 0, -0.9563046, 0, 1, 0, 0.9563046, 0, 0.29237226, 0.76, 0.34344855, -16.31983)
+script = ExtResource("2_rotgg")
+modelo = "nature/CommonTree_4.obj"
+alto = 59.660000000000004
+
+[node name="PineTree_2_8" type="Node3D" parent="Vegetacion/Arboles" unique_id=685860165]
+transform = Transform3D(0.9396927, 0, -0.34202003, 0, 1, 0, 0.34202003, 0, 0.9396927, 0.44, 0.34344855, -16.933002)
+script = ExtResource("2_rotgg")
+modelo = "nature/PineTree_2.obj"
+alto = 39.9
+
+[node name="PineTree_3_6" type="Node3D" parent="Vegetacion/Arboles" unique_id=36745741]
+transform = Transform3D(0.8386708, 0, 0.54463875, 0, 1, 0, -0.54463875, 0, 0.8386708, 0.84, 0.34139115, -17.404673)
+script = ExtResource("2_rotgg")
+modelo = "nature/PineTree_3.obj"
+alto = 44.84
+
+[node name="Willow_2_4" type="Node3D" parent="Vegetacion/Arboles" unique_id=657526244]
+transform = Transform3D(0.0697573, 0, 0.997564, 0, 1, 0, -0.997564, 0, 0.0697573, 0.32, 0.34344855, -17.970678)
+script = ExtResource("2_rotgg")
+modelo = "nature/Willow_2.obj"
+alto = 49.78
+
+[node name="PineTree_4_3" type="Node3D" parent="Vegetacion/Arboles" unique_id=1215119232]
+transform = Transform3D(-0.75470996, 0, 0.65605855, 0, 1, 0, -0.65605855, 0, -0.75470996, 0.68, 0.34344855, -18.489517)
+script = ExtResource("2_rotgg")
+modelo = "nature/PineTree_4.obj"
+alto = 54.72
+
+[node name="PineTree_1_13" type="Node3D" parent="Vegetacion/Arboles" unique_id=1852338135]
+transform = Transform3D(-0.97814757, 0, -0.20791183, 0, 1, 0, 0.20791183, 0, -0.97814757, 0.38, 0.34344855, -19.055523)
+script = ExtResource("2_rotgg")
+modelo = "nature/PineTree_1.obj"
+alto = 59.660000000000004
+
+[node name="PineTree_2_9" type="Node3D" parent="Vegetacion/Arboles" unique_id=1519183448]
+transform = Transform3D(-0.42261857, 0, -0.90630764, 0, 1, 0, 0.90630764, 0, -0.42261857, 0.78, 0.34344855, -19.527195)
+script = ExtResource("2_rotgg")
+modelo = "nature/PineTree_2.obj"
+alto = 39.9
+
+[node name="PineTree_3_7" type="Node3D" parent="Vegetacion/Arboles" unique_id=149615147]
+transform = Transform3D(0.46947086, 0, -0.882948, 0, 1, 0, 0.882948, 0, 0.46947086, 0.28, 0.31655023, -20.0932)
+script = ExtResource("2_rotgg")
+modelo = "nature/PineTree_3.obj"
+alto = 44.84
+
+[node name="PineTree_4_4" type="Node3D" parent="Vegetacion/Arboles" unique_id=600534189]
+transform = Transform3D(0.9876884, 0, -0.15643384, 0, 1, 0, 0.15643384, 0, 0.9876884, 0.72, 0.34344855, -20.56487)
+script = ExtResource("2_rotgg")
+modelo = "nature/PineTree_4.obj"
+alto = 49.78
+
+[node name="CommonTree_3_3" type="Node3D" parent="Vegetacion/Arboles" unique_id=1811212274]
+transform = Transform3D(0.71933967, 0, 0.6946585, 0, 1, 0, -0.6946585, 0, 0.71933967, 0.42, 0.20241822, -21.08371)
+script = ExtResource("2_rotgg")
+modelo = "nature/CommonTree_3.obj"
+alto = 54.72
+
+[node name="PineTree_1_14" type="Node3D" parent="Vegetacion/Arboles" unique_id=1084558872]
+transform = Transform3D(-0.12186904, 0, 0.9925462, 0, 1, 0, -0.9925462, 0, -0.12186904, 0.82, 0.34344855, -21.555382)
+script = ExtResource("2_rotgg")
+modelo = "nature/PineTree_1.obj"
+alto = 59.660000000000004
+
+[node name="Willow_1_6" type="Node3D" parent="Vegetacion/Arboles" unique_id=1947972733]
+transform = Transform3D(-0.86602503, 0, 0.50000066, 0, 1, 0, -0.50000066, 0, -0.86602503, 0.3, 0.06253105, -22.121387)
+script = ExtResource("2_rotgg")
+modelo = "nature/Willow_1.obj"
+alto = 39.9
+
+[node name="CommonTree_4_3" type="Node3D" parent="Vegetacion/Arboles" unique_id=1908694406]
+transform = Transform3D(-0.92050457, 0, -0.39073172, 0, 1, 0, 0.39073172, 0, -0.92050457, 0.66, 0.34344855, -22.640224)
+script = ExtResource("2_rotgg")
+modelo = "nature/CommonTree_4.obj"
+alto = 44.84
+
+[node name="PineTree_2_10" type="Node3D" parent="Vegetacion/Arboles" unique_id=1302301916]
+transform = Transform3D(-0.24192171, 0, -0.9702958, 0, 1, 0, 0.9702958, 0, -0.24192171, 0.36, -0.006154331, -23.253399)
+script = ExtResource("2_rotgg")
+modelo = "nature/PineTree_2.obj"
+alto = 49.78
+
+[node name="PineTree_3_8" type="Node3D" parent="Vegetacion/Arboles" unique_id=596972663]
+transform = Transform3D(0.62932014, 0, -0.77714616, 0, 1, 0, 0.77714616, 0, 0.62932014, 0.76, 0.34344855, -23.819405)
+script = ExtResource("2_rotgg")
+modelo = "nature/PineTree_3.obj"
+alto = 54.72
+
+[node name="Willow_2_5" type="Node3D" parent="Vegetacion/Arboles" unique_id=1620045474]
+transform = Transform3D(0.99939084, 0, 0.034898743, 0, 1, 0, -0.034898743, 0, 0.99939084, 0.32, 0.015734851, -24.432577)
+script = ExtResource("2_rotgg")
+modelo = "nature/Willow_2.obj"
+alto = 59.660000000000004
+
+[node name="PineTree_4_5" type="Node3D" parent="Vegetacion/Arboles" unique_id=616450674]
+transform = Transform3D(0.57357585, 0, 0.8191524, 0, 1, 0, -0.8191524, 0, 0.57357585, 0.7, 0.34344855, -25.092916)
+script = ExtResource("2_rotgg")
+modelo = "nature/PineTree_4.obj"
+alto = 39.9
+
+[node name="PineTree_1_15" type="Node3D" parent="Vegetacion/Arboles" unique_id=638359364]
+transform = Transform3D(-0.3090154, 0, 0.951057, 0, 1, 0, -0.951057, 0, -0.3090154, 0.4, 0.035652127, -25.753256)
+script = ExtResource("2_rotgg")
+modelo = "nature/PineTree_1.obj"
+alto = 44.84
+
+[node name="PineTree_2_11" type="Node3D" parent="Vegetacion/Arboles" unique_id=559502749]
+transform = Transform3D(-0.9455185, 0, 0.3255684, 0, 1, 0, -0.3255684, 0, -0.9455185, 0.76, 0.34344855, -26.413597)
+script = ExtResource("2_rotgg")
+modelo = "nature/PineTree_2.obj"
+alto = 49.78
+
+[node name="PineTree_3_9" type="Node3D" parent="Vegetacion/Arboles" unique_id=133464438]
+transform = Transform3D(-0.8290369, 0, -0.55919385, 0, 1, 0, 0.55919385, 0, -0.8290369, 0.48, 0.08279588, -27.121103)
+script = ExtResource("2_rotgg")
+modelo = "nature/PineTree_3.obj"
+alto = 54.72
+
+[node name="PineTree_4_6" type="Node3D" parent="Vegetacion/Arboles" unique_id=1342443435]
+transform = Transform3D(-0.052337155, 0, -0.99862945, 0, 1, 0, 0.99862945, 0, -0.052337155, -0.16, 0.34344855, -16.697166)
+script = ExtResource("2_rotgg")
+modelo = "nature/PineTree_4.obj"
+alto = 59.660000000000004
+
+[node name="CommonTree_3_4" type="Node3D" parent="Vegetacion/Arboles" unique_id=1467680888]
+transform = Transform3D(0.7660446, 0, -0.64278746, 0, 1, 0, 0.64278746, 0, 0.7660446, -0.56, 0.34344855, -17.357506)
+script = ExtResource("2_rotgg")
+modelo = "nature/CommonTree_3.obj"
+alto = 39.9
+
+[node name="PineTree_1_16" type="Node3D" parent="Vegetacion/Arboles" unique_id=173534434]
+transform = Transform3D(0.97437054, 0, 0.22494897, 0, 1, 0, -0.22494897, 0, 0.97437054, -0.24, 0.34344855, -18.11218)
+script = ExtResource("2_rotgg")
+modelo = "nature/PineTree_1.obj"
+alto = 44.84
+
+[node name="Willow_1_7" type="Node3D" parent="Vegetacion/Arboles" unique_id=1720244878]
+transform = Transform3D(0.4067373, 0, 0.9135452, 0, 1, 0, -0.9135452, 0, 0.4067373, -0.72, 0.34344855, -18.77252)
+script = ExtResource("2_rotgg")
+modelo = "nature/Willow_1.obj"
+alto = 49.78
+
+[node name="CommonTree_4_4" type="Node3D" parent="Vegetacion/Arboles" unique_id=1433977004]
+transform = Transform3D(-0.48481026, 0, 0.87461936, 0, 1, 0, -0.87461936, 0, -0.48481026, -0.32, 0.34344855, -19.43286)
+script = ExtResource("2_rotgg")
+modelo = "nature/CommonTree_4.obj"
+alto = 54.72
+
+[node name="PineTree_2_12" type="Node3D" parent="Vegetacion/Arboles" unique_id=712709060]
+transform = Transform3D(-0.9902678, 0, 0.13917473, 0, 1, 0, -0.13917473, 0, -0.9902678, -0.76, 0.32017103, -20.046032)
+script = ExtResource("2_rotgg")
+modelo = "nature/PineTree_2.obj"
+alto = 59.660000000000004
+
+[node name="PineTree_3_10" type="Node3D" parent="Vegetacion/Arboles" unique_id=1295841241]
+transform = Transform3D(-0.70710695, 0, -0.70710665, 0, 1, 0, 0.70710665, 0, -0.70710695, -0.28, 0.2524548, -20.706373)
+script = ExtResource("2_rotgg")
+modelo = "nature/PineTree_3.obj"
+alto = 39.9
+
+[node name="Willow_2_6" type="Node3D" parent="Vegetacion/Arboles" unique_id=1612794877]
+transform = Transform3D(0.13917431, 0, -0.9902679, 0, 1, 0, 0.9902679, 0, 0.13917431, -0.68, 0.16273722, -21.366713)
+script = ExtResource("2_rotgg")
+modelo = "nature/Willow_2.obj"
+alto = 44.84
+
+[node name="PineTree_4_7" type="Node3D" parent="Vegetacion/Arboles" unique_id=1443601754]
+transform = Transform3D(0.8746191, 0, -0.48481062, 0, 1, 0, 0.48481062, 0, 0.8746191, -0.36, 0.073834516, -22.027052)
+script = ExtResource("2_rotgg")
+modelo = "nature/PineTree_4.obj"
+alto = 49.78
+
+[node name="PineTree_1_17" type="Node3D" parent="Vegetacion/Arboles" unique_id=1174902919]
+transform = Transform3D(0.91354537, 0, 0.4067369, 0, 1, 0, -0.4067369, 0, 0.91354537, -0.84, 0.006338536, -22.73456)
+script = ExtResource("2_rotgg")
+modelo = "nature/PineTree_1.obj"
+alto = 54.72
+
+[node name="PineTree_2_13" type="Node3D" parent="Vegetacion/Arboles" unique_id=2126746740]
+transform = Transform3D(0.2249531, 0, 0.9743696, 0, 1, 0, -0.9743696, 0, 0.2249531, -0.4, -0.001452132, -23.442066)
+script = ExtResource("2_rotgg")
+modelo = "nature/PineTree_2.obj"
+alto = 59.660000000000004
+
+[node name="PineTree_3_11" type="Node3D" parent="Vegetacion/Arboles" unique_id=753703923]
+transform = Transform3D(-0.6427871, 0, 0.76604486, 0, 1, 0, -0.76604486, 0, -0.6427871, -0.72, 0.016887879, -24.196741)
+script = ExtResource("2_rotgg")
+modelo = "nature/PineTree_3.obj"
+alto = 39.9
+
+[node name="PineTree_4_8" type="Node3D" parent="Vegetacion/Arboles" unique_id=1289745221]
+transform = Transform3D(-0.9986295, 0, -0.05233673, 0, 1, 0, 0.05233673, 0, -0.9986295, -0.32, 0.041882943, -24.951414)
+script = ExtResource("2_rotgg")
+modelo = "nature/PineTree_4.obj"
+alto = 44.84
+
+[node name="CommonTree_3_5" type="Node3D" parent="Vegetacion/Arboles" unique_id=828739838]
+transform = Transform3D(-0.5591942, 0, -0.82903665, 0, 1, 0, 0.82903665, 0, -0.5591942, -0.76, 0.07531532, -25.706089)
+script = ExtResource("2_rotgg")
+modelo = "nature/CommonTree_3.obj"
+alto = 49.78
+
+[node name="PineTree_1_18" type="Node3D" parent="Vegetacion/Arboles" unique_id=1754351263]
+transform = Transform3D(0.325568, 0, -0.9455186, 0, 1, 0, 0.9455186, 0, 0.325568, -0.36, 0.11504709, -26.50793)
+script = ExtResource("2_rotgg")
+modelo = "nature/PineTree_1.obj"
+alto = 54.72
+
+[node name="Willow_1_8" type="Node3D" parent="Vegetacion/Arboles" unique_id=888790656]
+transform = Transform3D(0.9510569, 0, -0.30901578, 0, 1, 0, 0.30901578, 0, 0.9510569, -1.16, 0.34344855, -17.640509)
+script = ExtResource("2_rotgg")
+modelo = "nature/Willow_1.obj"
+alto = 59.660000000000004
+
+[node name="CommonTree_4_5" type="Node3D" parent="Vegetacion/Arboles" unique_id=673069498]
+transform = Transform3D(0.81915265, 0, 0.57357556, 0, 1, 0, -0.57357556, 0, 0.81915265, -1.48, 0.34344855, -18.44235)
+script = ExtResource("2_rotgg")
+modelo = "nature/CommonTree_4.obj"
+alto = 39.9
+
+[node name="PineTree_2_14" type="Node3D" parent="Vegetacion/Arboles" unique_id=461658075]
+transform = Transform3D(0.034899168, 0, 0.99939084, 0, 1, 0, -0.99939084, 0, 0.034899168, -1.08, 0.34344855, -19.244192)
+script = ExtResource("2_rotgg")
+modelo = "nature/PineTree_2.obj"
+alto = 44.84
+
+[node name="PineTree_3_12" type="Node3D" parent="Vegetacion/Arboles" unique_id=1694911072]
+transform = Transform3D(-0.7771447, 0, 0.629322, 0, 1, 0, -0.629322, 0, -0.7771447, -1.56, 0.3235632, -19.998865)
+script = ExtResource("2_rotgg")
+modelo = "nature/PineTree_3.obj"
+alto = 49.78
+
+[node name="Willow_2_7" type="Node3D" parent="Vegetacion/Arboles" unique_id=298999492]
+transform = Transform3D(-0.97029585, 0, -0.2419213, 0, 1, 0, 0.2419213, 0, -0.97029585, -1.2, 0.24045287, -20.800707)
+script = ExtResource("2_rotgg")
+modelo = "nature/Willow_2.obj"
+alto = 54.72
+
+[node name="PineTree_4_9" type="Node3D" parent="Vegetacion/Arboles" unique_id=1810398577]
+transform = Transform3D(-0.39073038, 0, -0.92050517, 0, 1, 0, 0.92050517, 0, -0.39073038, -1.64, 0.12970784, -21.602549)
+script = ExtResource("2_rotgg")
+modelo = "nature/PineTree_4.obj"
+alto = 59.660000000000004
+
+[node name="PineTree_1_19" type="Node3D" parent="Vegetacion/Arboles" unique_id=896679039]
+transform = Transform3D(0.49999866, 0, -0.86602616, 0, 1, 0, 0.86602616, 0, 0.49999866, -1.16, 0.03217941, -22.40439)
+script = ExtResource("2_rotgg")
+modelo = "nature/PineTree_1.obj"
+alto = 39.9
+
+[node name="PineTree_2_15" type="Node3D" parent="Vegetacion/Arboles" unique_id=1499215280]
+transform = Transform3D(0.99254614, 0, -0.12186946, 0, 1, 0, 0.12186946, 0, 0.99254614, -1.52, -0.004738956, -23.253399)
+script = ExtResource("2_rotgg")
+modelo = "nature/PineTree_2.obj"
+alto = 44.84
+
+[node name="PineTree_3_13" type="Node3D" parent="Vegetacion/Arboles" unique_id=322135017]
+transform = Transform3D(0.69465744, 0, 0.71934074, 0, 1, 0, -0.71934074, 0, 0.69465744, -1.24, 0.015502022, -24.149574)
+script = ExtResource("2_rotgg")
+modelo = "nature/PineTree_3.obj"
+alto = 49.78
+
+[node name="PineTree_4_10" type="Node3D" parent="Vegetacion/Arboles" unique_id=1736034142]
+transform = Transform3D(-0.15643342, 0, 0.9876885, 0, 1, 0, -0.9876885, 0, -0.15643342, -1.68, 0.048572212, -25.092916)
+script = ExtResource("2_rotgg")
+modelo = "nature/PineTree_4.obj"
+alto = 54.72
+
+[node name="CommonTree_3_6" type="Node3D" parent="Vegetacion/Arboles" unique_id=860226200]
+transform = Transform3D(-0.88294774, 0, 0.46947122, 0, 1, 0, -0.46947122, 0, -0.88294774, -1.28, 0.095769614, -26.130594)
+script = ExtResource("2_rotgg")
+modelo = "nature/CommonTree_3.obj"
+alto = 59.660000000000004
+
+[node name="PineTree_1_20" type="Node3D" parent="Vegetacion/Arboles" unique_id=135371549]
+transform = Transform3D(-0.90630865, 0, -0.42261645, 0, 1, 0, 0.42261645, 0, -0.90630865, -2.16, 0.34344855, -18.63102)
+script = ExtResource("2_rotgg")
+modelo = "nature/PineTree_1.obj"
+alto = 39.9
+
+[node name="Willow_1_9" type="Node3D" parent="Vegetacion/Arboles" unique_id=1026024669]
+transform = Transform3D(-0.20791225, 0, -0.9781475, 0, 1, 0, 0.9781475, 0, -0.20791225, -2.48, 0.33972317, -19.69228)
+script = ExtResource("2_rotgg")
+modelo = "nature/Willow_1.obj"
+alto = 44.84
+
+[node name="CommonTree_4_6" type="Node3D" parent="Vegetacion/Arboles" unique_id=608359303]
+transform = Transform3D(0.6560597, 0, -0.754709, 0, 1, 0, 0.754709, 0, 0.6560597, -2.08, 0.2524548, -20.706373)
+script = ExtResource("2_rotgg")
+modelo = "nature/CommonTree_4.obj"
+alto = 49.78
+
+[node name="PineTree_2_16" type="Node3D" parent="Vegetacion/Arboles" unique_id=1454164984]
+transform = Transform3D(0.99756414, 0, 0.06975497, 0, 1, 0, -0.06975497, 0, 0.99756414, -2.56, 0.11037247, -21.74405)
+script = ExtResource("2_rotgg")
+modelo = "nature/PineTree_2.obj"
+alto = 54.72
+
+[node name="PineTree_3_14" type="Node3D" parent="Vegetacion/Arboles" unique_id=432882183]
+transform = Transform3D(0.5446391, 0, 0.83867055, 0, 1, 0, -0.83867055, 0, 0.5446391, -2.24, 0.0014087805, -22.828894)
+script = ExtResource("2_rotgg")
+modelo = "nature/PineTree_3.obj"
+alto = 59.660000000000004
+
+[node name="Willow_2_8" type="Node3D" parent="Vegetacion/Arboles" unique_id=1707003946]
+transform = Transform3D(-0.34202144, 0, 0.93969214, 0, 1, 0, -0.93969214, 0, -0.34202144, -2.68, 0.0096494695, -23.93732)
+script = ExtResource("2_rotgg")
+modelo = "nature/Willow_2.obj"
+alto = 39.9
+
+[node name="PineTree_4_11" type="Node3D" parent="Vegetacion/Arboles" unique_id=1463411577]
+transform = Transform3D(-0.95630556, 0, 0.29236904, 0, 1, 0, -0.29236904, 0, -0.95630556, -2.32, 0.052445494, -25.18725)
+script = ExtResource("2_rotgg")
+modelo = "nature/PineTree_4.obj"
+alto = 44.84
+
+[node name="PineTree_1_21" type="Node3D" parent="Vegetacion/Arboles" unique_id=1284105603]
+transform = Transform3D(-0.80901897, 0, -0.5877825, 0, 1, 0, 0.5877825, 0, -0.80901897, -3.12, 0.3123877, -20.16395)
+script = ExtResource("2_rotgg")
+modelo = "nature/PineTree_1.obj"
+alto = 49.78
+
+[node name="PineTree_2_17" type="Node3D" parent="Vegetacion/Arboles" unique_id=2011975067]
+transform = Transform3D(-0.017454362, 0, -0.99984765, 0, 1, 0, 0.99984765, 0, -0.017454362, -3.36, 0.17150612, -21.461046)
+script = ExtResource("2_rotgg")
+modelo = "nature/PineTree_2.obj"
+alto = 54.72
+
+[node name="PineTree_3_15" type="Node3D" parent="Vegetacion/Arboles" unique_id=1458765116]
+transform = Transform3D(0.7880104, 0, -0.61566186, 0, 1, 0, 0.61566186, 0, 0.7880104, -3.04, 0.004893333, -22.758142)
+script = ExtResource("2_rotgg")
+modelo = "nature/PineTree_3.obj"
+alto = 59.660000000000004
+
+[node name="CommonTree_3_7" type="Node3D" parent="Vegetacion/Arboles" unique_id=1949363144]
+transform = Transform3D(0.3746044, 0, 0.92718476, 0, 1, 0, -0.92718476, 0, 0.3746044, 1.48, 0.32818544, -22.310055)
+script = ExtResource("2_rotgg")
+modelo = "nature/CommonTree_3.obj"
+alto = 44.84
+
+[node name="PineTree_1_22" type="Node3D" parent="Vegetacion/Arboles" unique_id=2125572985]
+transform = Transform3D(-0.5150348, 0, 0.8571693, 0, 1, 0, -0.8571693, 0, -0.5150348, 2.48, 0.30601975, -22.215721)
+script = ExtResource("2_rotgg")
+modelo = "nature/PineTree_1.obj"
+alto = 49.78
+
+[node name="Willow_1_10" type="Node3D" parent="Vegetacion/Arboles" unique_id=1896441028]
+transform = Transform3D(-0.9945216, 0, 0.104530856, 0, 1, 0, -0.104530856, 0, -0.9945216, 2.56, 0.33355498, -22.828894)
+script = ExtResource("2_rotgg")
+modelo = "nature/Willow_1.obj"
+alto = 54.72
+
+[node name="CommonTree_4_7" type="Node3D" parent="Vegetacion/Arboles" unique_id=738862681]
+transform = Transform3D(-0.6819991, 0, -0.73135304, 0, 1, 0, 0.73135304, 0, -0.6819991, 3.24, 0.34344855, -21.508215)
+script = ExtResource("2_rotgg")
+modelo = "nature/CommonTree_4.obj"
+alto = 59.660000000000004
+
+[node name="PineTree_2_18" type="Node3D" parent="Vegetacion/Arboles" unique_id=2016550575]
+transform = Transform3D(0.17364864, 0, -0.98480767, 0, 1, 0, 0.98480767, 0, 0.17364864, 3.36, 0.34344855, -21.932718)
+script = ExtResource("2_rotgg")
+modelo = "nature/PineTree_2.obj"
+alto = 39.9
+
+[node name="PineTree_3_16" type="Node3D" parent="Vegetacion/Arboles" unique_id=836155530]
+transform = Transform3D(0.89100736, 0, -0.4539888, 0, 1, 0, 0.4539888, 0, 0.89100736, 3.2, 0.34344855, -22.357222)
+script = ExtResource("2_rotgg")
+modelo = "nature/PineTree_3.obj"
+alto = 44.84
+
+[node name="Willow_2_9" type="Node3D" parent="Vegetacion/Arboles" unique_id=1146486152]
+transform = Transform3D(0.8987959, 0, 0.4383673, 0, 1, 0, -0.4383673, 0, 0.8987959, 3.48, 0.34344855, -22.781727)
+script = ExtResource("2_rotgg")
+modelo = "nature/Willow_2.obj"
+alto = 49.78
+
+[node name="PineTree_1_23" type="Node3D" parent="Vegetacion/Arboles" unique_id=848010252]
+transform = Transform3D(-0.66912955, 0, 0.74314576, 0, 1, 0, -0.74314576, 0, -0.66912955, 1.96, 0.30738765, -18.017845)
+script = ExtResource("2_rotgg")
+modelo = "nature/PineTree_1.obj"
+alto = 59.660000000000004
+
+[node name="PineTree_3_17" type="Node3D" parent="Vegetacion/Arboles" unique_id=470421105]
+transform = Transform3D(-0.529918, 0, -0.84804887, 0, 1, 0, 0.84804887, 0, -0.529918, 1.92, 0.2811859, -19.197025)
+script = ExtResource("2_rotgg")
+modelo = "nature/PineTree_3.obj"
+alto = 44.84
+
+[node name="PineTree_4_12" type="Node3D" parent="Vegetacion/Arboles" unique_id=82412477]
+transform = Transform3D(0.35837066, 0, -0.9335794, 0, 1, 0, 0.9335794, 0, 0.35837066, 2.76, 0.34344855, -16.933002)
+script = ExtResource("2_rotgg")
+modelo = "nature/PineTree_4.obj"
+alto = 49.78
+
+[node name="CommonTree_3_8" type="Node3D" parent="Vegetacion/Arboles" unique_id=218822415]
+transform = Transform3D(0.9612608, 0, -0.27564052, 0, 1, 0, 0.27564052, 0, 0.9612608, 2.96, 0.34344855, -17.546175)
+script = ExtResource("2_rotgg")
+modelo = "nature/CommonTree_3.obj"
+alto = 54.72
+
+[node name="PineTree_1_24" type="Node3D" parent="Vegetacion/Arboles" unique_id=1420849183]
+transform = Transform3D(0.7986366, 0, 0.60181355, 0, 1, 0, -0.60181355, 0, 0.7986366, 2.72, 0.34344855, -18.11218)
+script = ExtResource("2_rotgg")
+modelo = "nature/PineTree_1.obj"
+alto = 59.660000000000004
+
+[node name="Willow_1_11" type="Node3D" parent="Vegetacion/Arboles" unique_id=1725088038]
+transform = Transform3D(4.2511e-07, 0, 1, 0, 1, 0, -1, 0, 4.2511e-07, 3.04, 0.34344855, -18.678186)
+script = ExtResource("2_rotgg")
+modelo = "nature/Willow_1.obj"
+alto = 39.9
+
+[node name="CommonTree_4_8" type="Node3D" parent="Vegetacion/Arboles" unique_id=278106283]
+transform = Transform3D(-0.79863614, 0, 0.6018142, 0, 1, 0, -0.6018142, 0, -0.79863614, 3.24, 0.34344855, -19.197025)
+script = ExtResource("2_rotgg")
+modelo = "nature/CommonTree_4.obj"
+alto = 44.84
+
+[node name="PineTree_2_19" type="Node3D" parent="Vegetacion/Arboles" unique_id=875640445]
+transform = Transform3D(-0.96126103, 0, -0.2756397, 0, 1, 0, 0.2756397, 0, -0.96126103, 3.44, 0.34344855, -17.263172)
+script = ExtResource("2_rotgg")
+modelo = "nature/PineTree_2.obj"
+alto = 49.78
+
+[node name="PineTree_3_18" type="Node3D" parent="Vegetacion/Arboles" unique_id=836631295]
+transform = Transform3D(-0.35837144, 0, -0.9335791, 0, 1, 0, 0.9335791, 0, -0.35837144, 3.72, 0.34344855, -17.876345)
+script = ExtResource("2_rotgg")
+modelo = "nature/PineTree_3.obj"
+alto = 54.72
+
+[node name="Willow_2_10" type="Node3D" parent="Vegetacion/Arboles" unique_id=1241338401]
+transform = Transform3D(0.5299173, 0, -0.84804934, 0, 1, 0, 0.84804934, 0, 0.5299173, 3.48, 0.34344855, -18.44235)
+script = ExtResource("2_rotgg")
+modelo = "nature/Willow_2.obj"
+alto = 59.660000000000004
+
+[node name="PineTree_4_13" type="Node3D" parent="Vegetacion/Arboles" unique_id=1173096299]
+transform = Transform3D(0.9961946, 0, -0.08715661, 0, 1, 0, 0.08715661, 0, 0.9961946, 3.76, 0.34344855, -19.008356)
+script = ExtResource("2_rotgg")
+modelo = "nature/PineTree_4.obj"
+alto = 39.9
+
+[node name="PineTree_1_25" type="Node3D" parent="Vegetacion/Arboles" unique_id=87323110]
+transform = Transform3D(0.6691302, 0, 0.7431452, 0, 1, 0, -0.7431452, 0, 0.6691302, 3.48, 0.34344855, -19.527195)
+script = ExtResource("2_rotgg")
+modelo = "nature/PineTree_1.obj"
+alto = 44.84
+
+[node name="PineTree_2_20" type="Node3D" parent="Vegetacion/Arboles" unique_id=1913375851]
+transform = Transform3D(-0.19081096, 0, 0.9816268, 0, 1, 0, -0.9816268, 0, -0.19081096, 3.68, 0.34344855, -19.998865)
+script = ExtResource("2_rotgg")
+modelo = "nature/PineTree_2.obj"
+alto = 49.78
+
+[node name="PineTree_3_19" type="Node3D" parent="Vegetacion/Arboles" unique_id=2091823278]
+transform = Transform3D(-0.8987922, 0, 0.4383749, 0, 1, 0, -0.4383749, 0, -0.8987922, 3.52, 0.34344855, -20.470537)
+script = ExtResource("2_rotgg")
+modelo = "nature/PineTree_3.obj"
+alto = 54.72
+
+[node name="PineTree_4_14" type="Node3D" parent="Vegetacion/Arboles" unique_id=1346525190]
+transform = Transform3D(-0.8910078, 0, -0.45398805, 0, 1, 0, 0.45398805, 0, -0.8910078, 3.72, 0.34344855, -20.94221)
+script = ExtResource("2_rotgg")
+modelo = "nature/PineTree_4.obj"
+alto = 59.660000000000004
+
+[node name="CommonTree_3_9" type="Node3D" parent="Vegetacion/Arboles" unique_id=1210194108]
+transform = Transform3D(-0.17364947, 0, -0.98480755, 0, 1, 0, 0.98480755, 0, -0.17364947, 3.48, 0.34344855, -21.41388)
+script = ExtResource("2_rotgg")
+modelo = "nature/CommonTree_3.obj"
+alto = 39.9
+
+[node name="PineTree_1_26" type="Node3D" parent="Vegetacion/Arboles" unique_id=440521904]
+transform = Transform3D(0.68199843, 0, -0.73135364, 0, 1, 0, 0.73135364, 0, 0.68199843, 3.76, 0.34344855, -21.979885)
+script = ExtResource("2_rotgg")
+modelo = "nature/PineTree_1.obj"
+alto = 44.84
+
+[node name="Willow_1_12" type="Node3D" parent="Vegetacion/Arboles" unique_id=362946339]
+transform = Transform3D(0.99452174, 0, 0.10453001, 0, 1, 0, -0.10453001, 0, 0.99452174, 3.64, 0.34344855, -22.54589)
+script = ExtResource("2_rotgg")
+modelo = "nature/Willow_1.obj"
+alto = 49.78
+
+[node name="CommonTree_4_9" type="Node3D" parent="Vegetacion/Arboles" unique_id=213354047]
+transform = Transform3D(0.5150355, 0, 0.85716885, 0, 1, 0, -0.85716885, 0, 0.5150355, 3.92, 0.34344855, -23.111897)
+script = ExtResource("2_rotgg")
+modelo = "nature/CommonTree_4.obj"
+alto = 54.72
+
+[node name="PineTree_2_21" type="Node3D" parent="Vegetacion/Arboles" unique_id=1694888102]
+transform = Transform3D(-0.37460363, 0, 0.92718506, 0, 1, 0, -0.92718506, 0, -0.37460363, 4.08, 0.34344855, -17.640509)
+script = ExtResource("2_rotgg")
+modelo = "nature/PineTree_2.obj"
+alto = 59.660000000000004
+
+[node name="PineTree_3_20" type="Node3D" parent="Vegetacion/Arboles" unique_id=938124653]
+transform = Transform3D(-0.9659254, 0, 0.25882074, 0, 1, 0, -0.25882074, 0, -0.9659254, 4.36, 0.34344855, -18.300848)
+script = ExtResource("2_rotgg")
+modelo = "nature/PineTree_3.obj"
+alto = 39.9
+
+[node name="Willow_2_11" type="Node3D" parent="Vegetacion/Arboles" unique_id=767110984]
+transform = Transform3D(-0.78801095, 0, -0.6156612, 0, 1, 0, 0.6156612, 0, -0.78801095, 4.04, 0.34344855, -18.96119)
+script = ExtResource("2_rotgg")
+modelo = "nature/Willow_2.obj"
+alto = 44.84
+
+[node name="PineTree_4_15" type="Node3D" parent="Vegetacion/Arboles" unique_id=662942421]
+transform = Transform3D(0.017453512, 0, -0.99984765, 0, 1, 0, 0.99984765, 0, 0.017453512, 4.44, 0.34344855, -19.574362)
+script = ExtResource("2_rotgg")
+modelo = "nature/PineTree_4.obj"
+alto = 49.78
+
+[node name="PineTree_1_27" type="Node3D" parent="Vegetacion/Arboles" unique_id=261878491]
+transform = Transform3D(0.8090185, 0, -0.5877832, 0, 1, 0, 0.5877832, 0, 0.8090185, 4.12, 0.34344855, -20.187534)
+script = ExtResource("2_rotgg")
+modelo = "nature/PineTree_1.obj"
+alto = 54.72
+
+[node name="PineTree_2_22" type="Node3D" parent="Vegetacion/Arboles" unique_id=316313640]
+transform = Transform3D(0.9563058, 0, 0.2923682, 0, 1, 0, -0.2923682, 0, 0.9563058, 4.48, 0.34344855, -20.800707)
+script = ExtResource("2_rotgg")
+modelo = "nature/PineTree_2.obj"
+alto = 59.660000000000004
+
+[node name="PineTree_3_21" type="Node3D" parent="Vegetacion/Arboles" unique_id=2088338341]
+transform = Transform3D(0.34202224, 0, 0.93969184, 0, 1, 0, -0.93969184, 0, 0.34202224, 4.16, 0.34344855, -21.41388)
+script = ExtResource("2_rotgg")
+modelo = "nature/PineTree_3.obj"
+alto = 39.9
+
+[node name="PineTree_4_16" type="Node3D" parent="Vegetacion/Arboles" unique_id=917042954]
+transform = Transform3D(-0.5446384, 0, 0.83867097, 0, 1, 0, -0.83867097, 0, -0.5446384, 4.52, 0.34344855, -22.07422)
+script = ExtResource("2_rotgg")
+modelo = "nature/PineTree_4.obj"
+alto = 44.84
+
+[node name="CommonTree_3_10" type="Node3D" parent="Vegetacion/Arboles" unique_id=1514548730]
+transform = Transform3D(-0.9975641, 0, 0.069755815, 0, 1, 0, -0.069755815, 0, -0.9975641, 4.24, 0.34344855, -22.73456)
+script = ExtResource("2_rotgg")
+modelo = "nature/CommonTree_3.obj"
+alto = 49.78
+
+[node name="PineTree_1_28" type="Node3D" parent="Vegetacion/Arboles" unique_id=1017618200]
+transform = Transform3D(-0.6560575, 0, -0.754711, 0, 1, 0, 0.754711, 0, -0.6560575, 4.64, 0.34344855, -23.300566)
+script = ExtResource("2_rotgg")
+modelo = "nature/PineTree_1.obj"
+alto = 54.72
+
+[node name="Willow_1_13" type="Node3D" parent="Vegetacion/Arboles" unique_id=977023241]
+transform = Transform3D(0.20790768, 0, -0.97814846, 0, 1, 0, 0.97814846, 0, 0.20790768, 4.92, 0.34344855, -18.04143)
+script = ExtResource("2_rotgg")
+modelo = "nature/Willow_1.obj"
+alto = 59.660000000000004
+
+[node name="CommonTree_4_10" type="Node3D" parent="Vegetacion/Arboles" unique_id=1847000444]
+transform = Transform3D(0.9063067, 0, -0.42262068, 0, 1, 0, 0.42262068, 0, 0.9063067, 5.24, 0.34344855, -18.819687)
+script = ExtResource("2_rotgg")
+modelo = "nature/CommonTree_4.obj"
+alto = 39.9
+
+[node name="PineTree_2_23" type="Node3D" parent="Vegetacion/Arboles" unique_id=998147349]
+transform = Transform3D(0.88294816, 0, 0.46947047, 0, 1, 0, -0.46947047, 0, 0.88294816, 4.88, 0.34344855, -19.621529)
+script = ExtResource("2_rotgg")
+modelo = "nature/PineTree_2.obj"
+alto = 44.84
+
+[node name="PineTree_3_22" type="Node3D" parent="Vegetacion/Arboles" unique_id=1483635880]
+transform = Transform3D(0.15643425, 0, 0.98768836, 0, 1, 0, -0.98768836, 0, 0.15643425, 5.32, 0.34344855, -20.376204)
+script = ExtResource("2_rotgg")
+modelo = "nature/PineTree_3.obj"
+alto = 49.78
+
+[node name="Willow_2_12" type="Node3D" parent="Vegetacion/Arboles" unique_id=720975685]
+transform = Transform3D(-0.69465953, 0, 0.71933866, 0, 1, 0, -0.71933866, 0, -0.69465953, 4.96, 0.34344855, -21.130877)
+script = ExtResource("2_rotgg")
+modelo = "nature/Willow_2.obj"
+alto = 54.72
+
+[node name="PineTree_4_17" type="Node3D" parent="Vegetacion/Arboles" unique_id=333243396]
+transform = Transform3D(-0.9925467, 0, -0.12186483, 0, 1, 0, 0.12186483, 0, -0.9925467, 5.36, 0.34344855, -21.885551)
+script = ExtResource("2_rotgg")
+modelo = "nature/PineTree_4.obj"
+alto = 59.660000000000004
+
+[node name="PineTree_1_29" type="Node3D" parent="Vegetacion/Arboles" unique_id=1600360686]
+transform = Transform3D(-0.5000027, 0, -0.86602384, 0, 1, 0, 0.86602384, 0, -0.5000027, 5.08, 0.34344855, -22.687393)
+script = ExtResource("2_rotgg")
+modelo = "nature/PineTree_1.obj"
+alto = 39.9
+
+[node name="PineTree_2_24" type="Node3D" parent="Vegetacion/Arboles" unique_id=1571376239]
+transform = Transform3D(0.39072958, 0, -0.9205055, 0, 1, 0, 0.9205055, 0, 0.39072958, 5.44, 0.34344855, -23.489233)
+script = ExtResource("2_rotgg")
+modelo = "nature/PineTree_2.obj"
+alto = 44.84
+
+[node name="PineTree_3_23" type="Node3D" parent="Vegetacion/Arboles" unique_id=129916883]
+transform = Transform3D(0.97029567, 0, -0.24192213, 0, 1, 0, 0.24192213, 0, 0.97029567, 5.28, 0.34344855, -24.338242)
+script = ExtResource("2_rotgg")
+modelo = "nature/PineTree_3.obj"
+alto = 49.78
+
+[node name="PineTree_4_18" type="Node3D" parent="Vegetacion/Arboles" unique_id=1233126814]
+transform = Transform3D(0.7771452, 0, 0.62932134, 0, 1, 0, -0.62932134, 0, 0.7771452, 5.52, 0.34344855, -25.18725)
+script = ExtResource("2_rotgg")
+modelo = "nature/PineTree_4.obj"
+alto = 54.72
+
+[node name="CommonTree_3_11" type="Node3D" parent="Vegetacion/Arboles" unique_id=1858733520]
+transform = Transform3D(-0.03490213, 0, 0.9993907, 0, 1, 0, -0.9993907, 0, -0.03490213, 5.32, 0.34344855, -26.036259)
+script = ExtResource("2_rotgg")
+modelo = "nature/CommonTree_3.obj"
+alto = 59.660000000000004
+
+[node name="PineTree_1_30" type="Node3D" parent="Vegetacion/Arboles" unique_id=694722555]
+transform = Transform3D(-0.81915003, 0, 0.5735794, 0, 1, 0, -0.5735794, 0, -0.81915003, 5.48, 0.34344855, -26.8381)
+script = ExtResource("2_rotgg")
+modelo = "nature/PineTree_1.obj"
+alto = 39.9
+
+[node name="Willow_1_14" type="Node3D" parent="Vegetacion/Arboles" unique_id=1314712506]
+transform = Transform3D(-0.9510572, 0, -0.30901498, 0, 1, 0, 0.30901498, 0, -0.9510572, 5.84, 0.34344855, -19.149857)
+script = ExtResource("2_rotgg")
+modelo = "nature/Willow_1.obj"
+alto = 44.84
+
+[node name="CommonTree_4_11" type="Node3D" parent="Vegetacion/Arboles" unique_id=1662221433]
+transform = Transform3D(-0.3255688, 0, -0.9455184, 0, 1, 0, 0.9455184, 0, -0.3255688, 6.16, 0.34344855, -19.998865)
+script = ExtResource("2_rotgg")
+modelo = "nature/CommonTree_4.obj"
+alto = 49.78
+
+[node name="PineTree_2_25" type="Node3D" parent="Vegetacion/Arboles" unique_id=899080288]
+transform = Transform3D(0.55919355, 0, -0.82903713, 0, 1, 0, 0.82903713, 0, 0.55919355, 5.76, 0.34344855, -20.847874)
+script = ExtResource("2_rotgg")
+modelo = "nature/PineTree_2.obj"
+alto = 54.72
+
+[node name="PineTree_3_24" type="Node3D" parent="Vegetacion/Arboles" unique_id=551857735]
+transform = Transform3D(0.9986296, 0, -0.052333772, 0, 1, 0, 0.052333772, 0, 0.9986296, 6.24, 0.116758004, -21.696882)
+script = ExtResource("2_rotgg")
+modelo = "nature/PineTree_3.obj"
+alto = 59.660000000000004
+
+[node name="Willow_2_13" type="Node3D" parent="Vegetacion/Arboles" unique_id=2110660986]
+transform = Transform3D(0.6427907, 0, 0.7660419, 0, 1, 0, -0.7660419, 0, 0.6427907, 5.92, 0.34344855, -22.593058)
+script = ExtResource("2_rotgg")
+modelo = "nature/Willow_2.obj"
+alto = 39.9
+
+[node name="PineTree_4_19" type="Node3D" parent="Vegetacion/Arboles" unique_id=84028539]
+transform = Transform3D(-0.22494856, 0, 0.97437066, 0, 1, 0, -0.97437066, 0, -0.22494856, 6.32, 0.00039332712, -23.536402)
+script = ExtResource("2_rotgg")
+modelo = "nature/PineTree_4.obj"
+alto = 44.84
+
+[node name="PineTree_1_31" type="Node3D" parent="Vegetacion/Arboles" unique_id=1871411154]
+transform = Transform3D(-0.913545, 0, 0.4067377, 0, 1, 0, -0.4067377, 0, -0.913545, 6.04, 0.34344855, -24.574078)
+script = ExtResource("2_rotgg")
+modelo = "nature/PineTree_1.obj"
+alto = 49.78
+
+[node name="PineTree_2_26" type="Node3D" parent="Vegetacion/Arboles" unique_id=2115255660]
+transform = Transform3D(-0.87461954, 0, -0.48480988, 0, 1, 0, 0.48480988, 0, -0.87461954, 6.28, 0.07313364, -25.658922)
+script = ExtResource("2_rotgg")
+modelo = "nature/PineTree_2.obj"
+alto = 54.72
+
+[node name="PineTree_3_25" type="Node3D" parent="Vegetacion/Arboles" unique_id=994806976]
+transform = Transform3D(-0.13917138, 0, -0.9902683, 0, 1, 0, 0.9902683, 0, -0.13917138, 6.72, 0.31070843, -20.16395)
+script = ExtResource("2_rotgg")
+modelo = "nature/PineTree_3.obj"
+alto = 59.660000000000004
+
+[node name="PineTree_4_20" type="Node3D" parent="Vegetacion/Arboles" unique_id=1758726276]
+transform = Transform3D(0.7071036, 0, -0.7071099, 0, 1, 0, 0.7071099, 0, 0.7071036, 7.04, 0.16606303, -21.343128)
+script = ExtResource("2_rotgg")
+modelo = "nature/PineTree_4.obj"
+alto = 39.9
+
+[node name="CommonTree_3_12" type="Node3D" parent="Vegetacion/Arboles" unique_id=2139588911]
+transform = Transform3D(0.99026847, 0, 0.13917011, 0, 1, 0, -0.13917011, 0, 0.99026847, 6.76, 0.021530401, -22.522308)
+script = ExtResource("2_rotgg")
+modelo = "nature/CommonTree_3.obj"
+alto = 44.84
+
+[node name="PineTree_1_32" type="Node3D" parent="Vegetacion/Arboles" unique_id=319765094]
+transform = Transform3D(0.484811, 0, 0.87461895, 0, 1, 0, -0.87461895, 0, 0.484811, 7.08, 0.0066775456, -23.819405)
+script = ExtResource("2_rotgg")
+modelo = "nature/PineTree_1.obj"
+alto = 49.78
+
+[node name="Willow_1_15" type="Node3D" parent="Vegetacion/Arboles" unique_id=1917925665]
+transform = Transform3D(-0.40673652, 0, 0.9135455, 0, 1, 0, -0.9135455, 0, -0.40673652, 2.92, 0.34344855, -26.8381)
+script = ExtResource("2_rotgg")
+modelo = "nature/Willow_1.obj"
+alto = 54.72
+
+[node name="CommonTree_4_12" type="Node3D" parent="Vegetacion/Arboles" unique_id=1018627724]
+transform = Transform3D(-0.97436863, 0, 0.22495723, 0, 1, 0, -0.22495723, 0, -0.97436863, 3.48, 0.34344855, -27.02677)
+script = ExtResource("2_rotgg")
+modelo = "nature/CommonTree_4.obj"
+alto = 59.660000000000004
+
+[node name="PineTree_2_27" type="Node3D" parent="Vegetacion/Arboles" unique_id=1919264254]
+transform = Transform3D(-0.7660427, 0, -0.6427897, 0, 1, 0, 0.6427897, 0, -0.7660427, 4.08, 0.34344855, -26.932434)
+script = ExtResource("2_rotgg")
+modelo = "nature/PineTree_2.obj"
+alto = 39.9
+
+[node name="PineTree_3_26" type="Node3D" parent="Vegetacion/Arboles" unique_id=441146523]
+transform = Transform3D(0.052332498, 0, -0.9986297, 0, 1, 0, 0.9986297, 0, 0.052332498, 4.68, 0.34344855, -27.073936)
+script = ExtResource("2_rotgg")
+modelo = "nature/PineTree_3.obj"
+alto = 44.84
+
+[node name="PineTree_1_33" type="Node3D" parent="Vegetacion/Arboles" unique_id=156911019]
+transform = Transform3D(0.30902344, 0, 0.9510544, 0, 1, 0, -0.9510544, 0, 0.30902344, 3.2, 0.33887833, -27.49844)
+script = ExtResource("2_rotgg")
+modelo = "nature/PineTree_1.obj"
+alto = 59.660000000000004
+
+[node name="PineTree_2_28" type="Node3D" parent="Vegetacion/Arboles" unique_id=1663027061]
+transform = Transform3D(-0.5735783, 0, 0.81915075, 0, 1, 0, -0.81915075, 0, -0.5735783, 4.36, 0.34156403, -27.451273)
+script = ExtResource("2_rotgg")
+modelo = "nature/PineTree_2.obj"
+alto = 39.9
+
+[node name="Rocas" type="Node3D" parent="Vegetacion" unique_id=318713408]
+
+[node name="Rock_1_1" type="Node3D" parent="Vegetacion/Rocas" unique_id=1153011927]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -13.612096, -0.02264496, 1.4931834)
+script = ExtResource("2_rotgg")
+modelo = "nature/Rock_1.obj"
+alto = 7.5
+
+[node name="Rock_2_1" type="Node3D" parent="Vegetacion/Rocas" unique_id=1104715453]
+transform = Transform3D(-0.93358046, 0, 0.35836792, 0, 1, 0, -0.35836792, 0, -0.93358046, -12.794016, -0.02264496, 3.3605876)
+script = ExtResource("2_rotgg")
+modelo = "nature/Rock_2.obj"
+alto = 7.5
+
+[node name="Rock_1_2" type="Node3D" parent="Vegetacion/Rocas" unique_id=1565066232]
+transform = Transform3D(0.74314487, 0, -0.66913056, 0, 1, 0, 0.66913056, 0, 0.74314487, -17.08971, -0.02264496, 5.4992514)
+script = ExtResource("2_rotgg")
+modelo = "nature/Rock_1.obj"
+alto = 7.5
+
+[node name="Rock_2_2" type="Node3D" parent="Vegetacion/Rocas" unique_id=74399156]
+transform = Transform3D(-0.45399013, 0, 0.8910067, 0, 1, 0, -0.8910067, 0, -0.45399013, -22.076387, -0.0044401493, 5.151186)
+script = ExtResource("2_rotgg")
+modelo = "nature/Rock_2.obj"
+alto = 7.5
+
+[node name="Rock_1_3" type="Node3D" parent="Vegetacion/Rocas" unique_id=1155506336]
+transform = Transform3D(0.10452853, 0, -0.9945219, 0, 1, 0, 0.9945219, 0, 0.10452853, -20.345888, -0.08275561, 1.6558642)
+script = ExtResource("2_rotgg")
+modelo = "nature/Rock_1.obj"
+alto = 7.5
+
+[node name="Rock_2_3" type="Node3D" parent="Vegetacion/Rocas" unique_id=1825134218]
+transform = Transform3D(0.25881943, 0, 0.96592575, 0, 1, 0, -0.96592575, 0, 0.25881943, -14.772575, -0.02264496, 1.5778493)
+script = ExtResource("2_rotgg")
+modelo = "nature/Rock_2.obj"
+alto = 7.5
+
+[node name="Rock_2_4" type="Node3D" parent="Vegetacion/Rocas" unique_id=1830465021]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -27.2, 0.075585015, 3.820538)
+script = ExtResource("2_rotgg")
+modelo = "nature/Rock_2.obj"
+alto = 13.0
+
+[node name="Rock_2_5" type="Node3D" parent="Vegetacion/Rocas" unique_id=475574855]
+transform = Transform3D(-0.06975648, 0, 0.9975641, 0, 1, 0, -0.9975641, 0, -0.06975648, 1.6828644, 0.30027467, -26.50793)
+script = ExtResource("2_rotgg")
+modelo = "nature/Rock_2.obj"
+alto = 5.8
+
+[node name="Rock_1_4" type="Node3D" parent="Vegetacion/Rocas" unique_id=1318884024]
+transform = Transform3D(-0.9986295, 0, 0.05233605, 0, 1, 0, -0.05233605, 0, -0.9986295, 2.3736098, 0.33201662, -25.77684)
+script = ExtResource("2_rotgg")
+modelo = "nature/Rock_1.obj"
+alto = 5.6
+
+[node name="Rock_1_5" type="Node3D" parent="Vegetacion/Rocas" unique_id=1764732260]
+transform = Transform3D(-0.99026805, 0, -0.13917312, 0, 1, 0, 0.13917312, 0, -0.99026805, 1.1383374, 0.331402, -25.281586)
+script = ExtResource("2_rotgg")
+modelo = "nature/Rock_1.obj"
+alto = 5.8
+
+[node name="Rock_2_6" type="Node3D" parent="Vegetacion/Rocas" unique_id=1233798900]
+transform = Transform3D(0.20791148, 0, -0.9781476, 0, 1, 0, 0.9781476, 0, 0.20791148, 1.7024128, 0.3204301, -24.055239)
+script = ExtResource("2_rotgg")
+modelo = "nature/Rock_2.obj"
+alto = 5.8
+
+[node name="Rock_2_7" type="Node3D" parent="Vegetacion/Rocas" unique_id=1539698272]
+transform = Transform3D(0.99452186, 0, -0.10452865, 0, 1, 0, 0.10452865, 0, 0.99452186, 2.3997035, 0.30034846, -23.93732)
+script = ExtResource("2_rotgg")
+modelo = "nature/Rock_2.obj"
+alto = 5.6
+
+[node name="Rock_1_6" type="Node3D" parent="Vegetacion/Rocas" unique_id=1401163612]
+transform = Transform3D(0.9612617, 0, 0.2756374, 0, 1, 0, -0.2756374, 0, 0.9612617, 1.7129314, 0.30085927, -22.828894)
+script = ExtResource("2_rotgg")
+modelo = "nature/Rock_1.obj"
+alto = 5.8
+
+[node name="Rock_1_7" type="Node3D" parent="Vegetacion/Rocas" unique_id=715962922]
+transform = Transform3D(-0.98768836, 0, 0.1564345, 0, 1, 0, -0.1564345, 0, -0.98768836, 2.2917368, 0.30130565, -22.097803)
+script = ExtResource("2_rotgg")
+modelo = "nature/Rock_1.obj"
+alto = 5.6
+
+[node name="Rock_2_8" type="Node3D" parent="Vegetacion/Rocas" unique_id=1097949775]
+transform = Transform3D(-0.3420204, 0, 0.93969256, 0, 1, 0, -0.93969256, 0, -0.3420204, 1.3576638, 0.31209505, -21.602549)
+script = ExtResource("2_rotgg")
+modelo = "nature/Rock_2.obj"
+alto = 5.8
+
+[node name="Rock_2_9" type="Node3D" parent="Vegetacion/Rocas" unique_id=304986189]
+transform = Transform3D(0.4694714, 0, -0.8829477, 0, 1, 0, 0.8829477, 0, 0.4694714, 1.3673911, 0.30942383, -19.149857)
+script = ExtResource("2_rotgg")
+modelo = "nature/Rock_2.obj"
+alto = 5.8
+
+[node name="Rock_1_8" type="Node3D" parent="Vegetacion/Rocas" unique_id=557326551]
+transform = Transform3D(-0.9659259, 0, 0.2588188, 0, 1, 0, -0.2588188, 0, -0.9659259, 2.072978, 0.32491747, -18.418766)
+script = ExtResource("2_rotgg")
+modelo = "nature/Rock_1.obj"
+alto = 5.6
+
+[node name="Rock_1_9" type="Node3D" parent="Vegetacion/Rocas" unique_id=396081023]
+transform = Transform3D(0.8480481, 0, 0.5299193, 0, 1, 0, -0.5299193, 0, 0.8480481, 1.3445255, 0.3043601, -17.923512)
+script = ExtResource("2_rotgg")
+modelo = "nature/Rock_1.obj"
+alto = 5.8
+
+[node name="Rock_2_10" type="Node3D" parent="Vegetacion/Rocas" unique_id=1937453235]
+transform = Transform3D(-0.5877855, 0, 0.8090168, 0, 1, 0, -0.8090168, 0, -0.5877855, 1.1151278, 0.31945425, -16.697166)
+script = ExtResource("2_rotgg")
+modelo = "nature/Rock_2.obj"
+alto = 5.8
+
+[node name="Rock_2_11" type="Node3D" parent="Vegetacion/Rocas" unique_id=212621229]
+transform = Transform3D(0.9510565, 0, -0.30901706, 0, 1, 0, 0.30901706, 0, 0.9510565, 2.2108412, 0.32194233, -16.579248)
+script = ExtResource("2_rotgg")
+modelo = "nature/Rock_2.obj"
+alto = 5.6
+
+[node name="Rock_1_10" type="Node3D" parent="Vegetacion/Rocas" unique_id=1391767368]
+transform = Transform3D(-0.7660441, 0, -0.642788, 0, 1, 0, 0.642788, 0, -0.7660441, 2.3398657, 0.25316498, -15.47082)
+script = ExtResource("2_rotgg")
+modelo = "nature/Rock_1.obj"
+alto = 5.8
+
+[node name="Rock_1_11" type="Node3D" parent="Vegetacion/Rocas" unique_id=2134494966]
+transform = Transform3D(-0.93358064, 0, 0.35836744, 0, 1, 0, -0.35836744, 0, -0.93358064, 3.7050674, 0.20651366, -14.73973)
+script = ExtResource("2_rotgg")
+modelo = "nature/Rock_1.obj"
+alto = 5.6
+
+[node name="Rock_2_12" type="Node3D" parent="Vegetacion/Rocas" unique_id=1963918812]
+transform = Transform3D(0.69465894, 0, -0.71933925, 0, 1, 0, 0.71933925, 0, 0.69465894, 3.0455365, 0.22681683, -14.244475)
+script = ExtResource("2_rotgg")
+modelo = "nature/Rock_2.obj"
+alto = 5.8
+
+[node name="Rock_1_12" type="Node3D" parent="Vegetacion/Rocas" unique_id=554684055]
+transform = Transform3D(0.6691313, 0, 0.7431442, 0, 1, 0, -0.7431442, 0, 0.6691313, 2.7653048, 0.22821997, -13.018129)
+script = ExtResource("2_rotgg")
+modelo = "nature/Rock_1.obj"
+alto = 5.8
+
+[node name="Rock_2_13" type="Node3D" parent="Vegetacion/Rocas" unique_id=896216870]
+transform = Transform3D(0.91354513, 0, -0.40673733, 0, 1, 0, 0.40673733, 0, 0.91354513, 3.7796602, 0.20796119, -12.900211)
+script = ExtResource("2_rotgg")
+modelo = "nature/Rock_2.obj"
+alto = 5.6
+
+[node name="Rock_2_14" type="Node3D" parent="Vegetacion/Rocas" unique_id=2053771786]
+transform = Transform3D(-0.78801036, 0, 0.615662, 0, 1, 0, -0.615662, 0, -0.78801036, 3.1524017, 0.15908621, -11.791784)
+script = ExtResource("2_rotgg")
+modelo = "nature/Rock_2.obj"
+alto = 5.8
+
+[node name="Rock_1_13" type="Node3D" parent="Vegetacion/Rocas" unique_id=808673932]
+transform = Transform3D(-0.89100647, 0, 0.4539906, 0, 1, 0, -0.4539906, 0, -0.89100647, 3.633567, 0.15944512, -11.060694)
+script = ExtResource("2_rotgg")
+modelo = "nature/Rock_1.obj"
+alto = 5.6
+
+[node name="Rock_1_14" type="Node3D" parent="Vegetacion/Rocas" unique_id=2014415860]
+transform = Transform3D(-0.55919325, 0, -0.82903737, 0, 1, 0, 0.82903737, 0, -0.55919325, 0.94770724, 0.15188092, -10.565438)
+script = ExtResource("2_rotgg")
+modelo = "nature/Rock_1.obj"
+alto = 5.8
+
+[node name="Rock_2_15" type="Node3D" parent="Vegetacion/Rocas" unique_id=416201042]
+transform = Transform3D(0.8660253, 0, -0.5000001, 0, 1, 0, 0.5000001, 0, 0.8660253, 0.8784035, 0.12052468, -9.339093)
+script = ExtResource("2_rotgg")
+modelo = "nature/Rock_2.obj"
+alto = 5.8
+
+[node name="Rock_2_16" type="Node3D" parent="Vegetacion/Rocas" unique_id=176559566]
+transform = Transform3D(0.8660256, 0, -0.49999955, 0, 1, 0, 0.49999955, 0, 0.8660256, 2.1707227, 0.14238036, -9.221175)
+script = ExtResource("2_rotgg")
+modelo = "nature/Rock_2.obj"
+alto = 5.6
+
+[node name="Rock_1_15" type="Node3D" parent="Vegetacion/Rocas" unique_id=2135941542]
+transform = Transform3D(-0.83867013, 0, 0.5446397, 0, 1, 0, -0.5446397, 0, -0.83867013, 3.660993, 0.09394617, -7.3816566)
+script = ExtResource("2_rotgg")
+modelo = "nature/Rock_1.obj"
+alto = 6.6
+
+[node name="Rock_2_17" type="Node3D" parent="Vegetacion/Rocas" unique_id=2052855480]
+transform = Transform3D(-0.927184, 0, 0.37460628, 0, 1, 0, -0.37460628, 0, -0.927184, 2.5913613, 0.06970206, -7.145821)
+script = ExtResource("2_rotgg")
+modelo = "nature/Rock_2.obj"
+alto = 6.8
+
+[node name="Rock_1_16" type="Node3D" parent="Vegetacion/Rocas" unique_id=1149248898]
+transform = Transform3D(-0.30901644, 0, -0.9510567, 0, 1, 0, 0.9510567, 0, -0.30901644, 2.57015, -0.011819528, -6.438314)
+script = ExtResource("2_rotgg")
+modelo = "nature/Rock_1.obj"
+alto = 6.8
+
+[node name="Rock_2_18" type="Node3D" parent="Vegetacion/Rocas" unique_id=820928700]
+transform = Transform3D(0.8090169, 0, -0.58778536, 0, 1, 0, 0.58778536, 0, 0.8090169, 3.8091564, 0.008211237, -6.3203964)
+script = ExtResource("2_rotgg")
+modelo = "nature/Rock_2.obj"
+alto = 6.6
+
+[node name="Rock_2_19" type="Node3D" parent="Vegetacion/Rocas" unique_id=452808135]
+transform = Transform3D(0.9702955, 0, -0.24192294, 0, 1, 0, 0.24192294, 0, 0.9702955, 2.093946, -0.03568492, -5.730807)
+script = ExtResource("2_rotgg")
+modelo = "nature/Rock_2.obj"
+alto = 6.8
+
+[node name="Rock_1_17" type="Node3D" parent="Vegetacion/Rocas" unique_id=1587208712]
+transform = Transform3D(-0.7771463, 0, 0.62932, 0, 1, 0, -0.62932, 0, -0.7771463, 3.0918183, -0.05206612, -5.2591357)
+script = ExtResource("2_rotgg")
+modelo = "nature/Rock_1.obj"
+alto = 6.6
+
+[node name="Rock_1_18" type="Node3D" parent="Vegetacion/Rocas" unique_id=833454150]
+transform = Transform3D(0.17364712, 0, 0.98480797, 0, 1, 0, -0.98480797, 0, 0.17364712, 1.8011745, -0.03441285, -5.0233)
+script = ExtResource("2_rotgg")
+modelo = "nature/Rock_1.obj"
+alto = 6.8
+
+[node name="Rock_2_20" type="Node3D" parent="Vegetacion/Rocas" unique_id=74546166]
+transform = Transform3D(-0.99452204, 0, 0.10452715, 0, 1, 0, -0.10452715, 0, -0.99452204, 2.2039475, -0.011308225, -4.315793)
+script = ExtResource("2_rotgg")
+modelo = "nature/Rock_2.obj"
+alto = 6.8
+
+[node name="Rock_2_21" type="Node3D" parent="Vegetacion/Rocas" unique_id=237688894]
+transform = Transform3D(0.7431455, 0, -0.6691298, 0, 1, 0, 0.6691298, 0, 0.7431455, 3.431418, -0.05622338, -4.197875)
+script = ExtResource("2_rotgg")
+modelo = "nature/Rock_2.obj"
+alto = 6.6
+
+[node name="Rock_1_19" type="Node3D" parent="Vegetacion/Rocas" unique_id=2139740426]
+transform = Transform3D(-0.03489794, 0, -0.9993909, 0, 1, 0, 0.9993909, 0, -0.03489794, 2.8345947, -0.026691517, -3.608286)
+script = ExtResource("2_rotgg")
+modelo = "nature/Rock_1.obj"
+alto = 6.8
+
+[node name="Rock_1_20" type="Node3D" parent="Vegetacion/Rocas" unique_id=1681828214]
+transform = Transform3D(-0.7071053, 0, 0.70710826, 0, 1, 0, -0.70710826, 0, -0.7071053, 4.135575, -0.0025904467, -3.1366146)
+script = ExtResource("2_rotgg")
+modelo = "nature/Rock_1.obj"
+alto = 6.6
+
+[node name="Rock_2_22" type="Node3D" parent="Vegetacion/Rocas" unique_id=1989824086]
+transform = Transform3D(0.9993909, 0, 0.034897488, 0, 1, 0, -0.034897488, 0, 0.9993909, 2.7956176, -0.05154696, -2.9007788)
+script = ExtResource("2_rotgg")
+modelo = "nature/Rock_2.obj"
+alto = 6.8
+
+[node name="Rock_1_21" type="Node3D" parent="Vegetacion/Rocas" unique_id=1530300252]
+transform = Transform3D(-0.104526706, 0, 0.9945221, 0, 1, 0, -0.9945221, 0, -0.104526706, 2.4058824, -0.025235621, -2.1932719)
+script = ExtResource("2_rotgg")
+modelo = "nature/Rock_1.obj"
+alto = 6.8
+
+[node name="Rock_2_23" type="Node3D" parent="Vegetacion/Rocas" unique_id=108960547]
+transform = Transform3D(0.6691295, 0, -0.7431458, 0, 1, 0, 0.7431458, 0, 0.6691295, 3.7489567, -0.03118768, -2.075354)
+script = ExtResource("2_rotgg")
+modelo = "nature/Rock_2.obj"
+alto = 6.6
+
+[node name="Rock_2_24" type="Node3D" parent="Vegetacion/Rocas" unique_id=1911529276]
+transform = Transform3D(-0.984808, 0, -0.17364667, 0, 1, 0, 0.17364667, 0, -0.984808, 2.3235729, -0.034638707, -1.4857647)
+script = ExtResource("2_rotgg")
+modelo = "nature/Rock_2.obj"
+alto = 6.8
+
+[node name="Rock_1_22" type="Node3D" parent="Vegetacion/Rocas" unique_id=657858475]
+transform = Transform3D(-0.6293197, 0, 0.7771465, 0, 1, 0, -0.7771465, 0, -0.6293197, 3.2832968, -0.043251496, -1.0140934)
+script = ExtResource("2_rotgg")
+modelo = "nature/Rock_1.obj"
+alto = 6.6
+
+[node name="Rock_1_23" type="Node3D" parent="Vegetacion/Rocas" unique_id=2107013852]
+transform = Transform3D(0.24192066, 0, -0.970296, 0, 1, 0, 0.970296, 0, 0.24192066, 1.8249508, -0.0035950616, -0.7782577)
+script = ExtResource("2_rotgg")
+modelo = "nature/Rock_1.obj"
+alto = 6.8
+
+[node name="Rock_2_25" type="Node3D" parent="Vegetacion/Rocas" unique_id=236055047]
+transform = Transform3D(0.95105684, 0, 0.30901602, 0, 1, 0, -0.30901602, 0, 0.95105684, 2.1752985, -0.042878214, -0.070750706)
+script = ExtResource("2_rotgg")
+modelo = "nature/Rock_2.obj"
+alto = 6.8
+
+[node name="Rock_2_26" type="Node3D" parent="Vegetacion/Rocas" unique_id=1450816067]
+transform = Transform3D(0.58778507, 0, -0.8090171, 0, 1, 0, 0.8090171, 0, 0.58778507, 3.796478, -0.0084914435, 0.047167137)
+script = ExtResource("2_rotgg")
+modelo = "nature/Rock_2.obj"
+alto = 6.6
+
+[node name="Rock_1_24" type="Node3D" parent="Vegetacion/Rocas" unique_id=1494871746]
+transform = Transform3D(0.49999973, 0, -0.86602557, 0, 1, 0, 0.86602557, 0, 0.49999973, 1.5408455, -0.02673568, 2.0517704)
+script = ExtResource("2_rotgg")
+modelo = "nature/Rock_1.obj"
+alto = 6.8
+
+[node name="Rock_2_27" type="Node3D" parent="Vegetacion/Rocas" unique_id=1440210050]
+transform = Transform3D(0.5000009, 0, -0.8660249, 0, 1, 0, 0.8660249, 0, 0.5000009, 2.776581, -0.045898024, 2.1696882)
+script = ExtResource("2_rotgg")
+modelo = "nature/Rock_2.obj"
+alto = 6.6
+
+[node name="Rock_2_28" type="Node3D" parent="Vegetacion/Rocas" unique_id=1955811064]
+transform = Transform3D(0.8290376, 0, 0.55919284, 0, 1, 0, -0.55919284, 0, 0.8290376, 1.0808558, -0.011637731, 2.7592776)
+script = ExtResource("2_rotgg")
+modelo = "nature/Rock_2.obj"
+alto = 6.8
+
+[node name="Rock_1_25" type="Node3D" parent="Vegetacion/Rocas" unique_id=75146525]
+transform = Transform3D(-0.45398855, 0, 0.89100754, 0, 1, 0, -0.89100754, 0, -0.45398855, 2.4550974, 0.00037305386, 3.230949)
+script = ExtResource("2_rotgg")
+modelo = "nature/Rock_1.obj"
+alto = 6.6
+
+[node name="Rock_1_26" type="Node3D" parent="Vegetacion/Rocas" unique_id=379139118]
+transform = Transform3D(-0.6156616, 0, 0.78801066, 0, 1, 0, -0.78801066, 0, -0.6156616, 1.2488971, -0.06062301, 3.4667845)
+script = ExtResource("2_rotgg")
+modelo = "nature/Rock_1.obj"
+alto = 6.8
+
+[node name="Rock_1_27" type="Node3D" parent="Vegetacion/Rocas" unique_id=1695510839]
+transform = Transform3D(-0.35836706, 0, 0.93358076, 0, 1, 0, -0.93358076, 0, -0.35836706, 2.368515, -0.05552332, 5.35347)
+script = ExtResource("2_rotgg")
+modelo = "nature/Rock_1.obj"
+alto = 6.6
+
+[node name="Rock_2_29" type="Node3D" parent="Vegetacion/Rocas" unique_id=1916963075]
+transform = Transform3D(0.6427869, 0, 0.76604503, 0, 1, 0, -0.76604503, 0, 0.6427869, 1.0217917, -0.03501049, 5.5893054)
+script = ExtResource("2_rotgg")
+modelo = "nature/Rock_2.obj"
+alto = 6.8
+
+[node name="Rock_1_28" type="Node3D" parent="Vegetacion/Rocas" unique_id=351051849]
+transform = Transform3D(-0.80901766, 0, 0.5877843, 0, 1, 0, -0.5877843, 0, -0.80901766, 1.6169342, -0.087214775, 6.2968125)
+script = ExtResource("2_rotgg")
+modelo = "nature/Rock_1.obj"
+alto = 6.8
+
+[node name="Rock_2_30" type="Node3D" parent="Vegetacion/Rocas" unique_id=581991114]
+transform = Transform3D(0.3090167, 0, -0.9510566, 0, 1, 0, 0.9510566, 0, 0.3090167, 2.738334, -0.109986044, 6.4147305)
+script = ExtResource("2_rotgg")
+modelo = "nature/Rock_2.obj"
+alto = 6.6
+
+[node name="Rock_2_31" type="Node3D" parent="Vegetacion/Rocas" unique_id=1034771457]
+transform = Transform3D(-0.5299181, 0, -0.84804887, 0, 1, 0, 0.84804887, 0, -0.5299181, 2.1920605, -0.12592393, 7.0043197)
+script = ExtResource("2_rotgg")
+modelo = "nature/Rock_2.obj"
+alto = 6.8
+
+[node name="Rock_1_29" type="Node3D" parent="Vegetacion/Rocas" unique_id=1875195413]
+transform = Transform3D(-0.25881934, 0, 0.96592575, 0, 1, 0, -0.96592575, 0, -0.25881934, 3.1412318, -0.102558136, 7.4759912)
+script = ExtResource("2_rotgg")
+modelo = "nature/Rock_1.obj"
+alto = 6.6
+
+[node name="Rock_1_30" type="Node3D" parent="Vegetacion/Rocas" unique_id=603108853]
+transform = Transform3D(0.88294655, 0, -0.46947348, 0, 1, 0, 0.46947348, 0, 0.88294655, 2.2296093, -0.080855876, 7.711827)
+script = ExtResource("2_rotgg")
+modelo = "nature/Rock_1.obj"
+alto = 6.8
+
+[node name="Rock_1_31" type="Node3D" parent="Vegetacion/Rocas" unique_id=1722582433]
+transform = Transform3D(-0.93969333, 0, 0.34201813, 0, 1, 0, -0.34201813, 0, -0.93969333, 2.7084208, -0.115657024, 9.645679)
+script = ExtResource("2_rotgg")
+modelo = "nature/Rock_1.obj"
+alto = 5.8
+
+[node name="Rock_1_32" type="Node3D" parent="Vegetacion/Rocas" unique_id=637005668]
+transform = Transform3D(-0.156436, 0, 0.9876881, 0, 1, 0, -0.9876881, 0, -0.156436, 3.763323, -0.096996754, 10.37677)
+script = ExtResource("2_rotgg")
+modelo = "nature/Rock_1.obj"
+alto = 5.6
+
+[node name="Rock_2_32" type="Node3D" parent="Vegetacion/Rocas" unique_id=956626554]
+transform = Transform3D(-0.27563506, 0, -0.96126235, 0, 1, 0, 0.96126235, 0, -0.27563506, 2.5835578, -0.0851069, 10.872025)
+script = ExtResource("2_rotgg")
+modelo = "nature/Rock_2.obj"
+alto = 5.8
+
+[node name="Rock_1_33" type="Node3D" parent="Vegetacion/Rocas" unique_id=704678956]
+transform = Transform3D(0.97814816, 0, -0.20790912, 0, 1, 0, 0.20790912, 0, 0.97814816, 2.8294744, -0.1188801, 12.098371)
+script = ExtResource("2_rotgg")
+modelo = "nature/Rock_1.obj"
+alto = 5.8
+
+[node name="Rock_2_33" type="Node3D" parent="Vegetacion/Rocas" unique_id=1319389292]
+transform = Transform3D(0.10453062, 0, -0.9945217, 0, 1, 0, 0.9945217, 0, 0.10453062, 3.8177166, -0.09255914, 12.216289)
+script = ExtResource("2_rotgg")
+modelo = "nature/Rock_2.obj"
+alto = 5.6
+
+[node name="Rock_2_34" type="Node3D" parent="Vegetacion/Rocas" unique_id=908356655]
+transform = Transform3D(0.13917026, 0, 0.99026847, 0, 1, 0, -0.99026847, 0, 0.13917026, 2.2172446, -0.10664198, 13.324716)
+script = ExtResource("2_rotgg")
+modelo = "nature/Rock_2.obj"
+alto = 5.8
+
+[node name="Rock_1_34" type="Node3D" parent="Vegetacion/Rocas" unique_id=388088122]
+transform = Transform3D(-0.05233874, 0, 0.9986294, 0, 1, 0, -0.9986294, 0, -0.05233874, 3.2953997, -0.099968575, 14.055806)
+script = ExtResource("2_rotgg")
+modelo = "nature/Rock_1.obj"
+alto = 5.6
+
+[node name="Rock_1_35" type="Node3D" parent="Vegetacion/Rocas" unique_id=938967920]
+transform = Transform3D(-0.99756426, 0, 0.06975336, 0, 1, 0, -0.06975336, 0, -0.99756426, 1.833803, -0.050028533, 14.551062)
+script = ExtResource("2_rotgg")
+modelo = "nature/Rock_1.obj"
+alto = 5.8
+
+[node name="Rock_2_35" type="Node3D" parent="Vegetacion/Rocas" unique_id=460110630]
+transform = Transform3D(-4.263657e-06, 0, -1, 0, 1, 0, 1, 0, -4.263657e-06, 2.1124887, -0.04986989, 15.777407)
+script = ExtResource("2_rotgg")
+modelo = "nature/Rock_2.obj"
+alto = 5.8
+
+[node name="Rock_2_36" type="Node3D" parent="Vegetacion/Rocas" unique_id=670100561]
+transform = Transform3D(-4.2159577e-06, 0, -1, 0, 1, 0, 1, 0, -4.2159577e-06, 2.8966382, -0.05697519, 15.895325)
+script = ExtResource("2_rotgg")
+modelo = "nature/Rock_2.obj"
+alto = 5.6
+
+[node name="Rock_1_36" type="Node3D" parent="Vegetacion/Rocas" unique_id=584287672]
+transform = Transform3D(0.9975643, 0, 0.06975246, 0, 1, 0, -0.06975246, 0, 0.9975643, 1.6707393, -0.022906529, 17.003752)
+script = ExtResource("2_rotgg")
+modelo = "nature/Rock_1.obj"
+alto = 5.8
+
+[node name="Rock_1_37" type="Node3D" parent="Vegetacion/Rocas" unique_id=76222120]
+transform = Transform3D(-0.97814834, 0, -0.20790824, 0, 1, 0, 0.20790824, 0, -0.97814834, 0.7376164, -0.015421978, 19.456444)
+script = ExtResource("2_rotgg")
+modelo = "nature/Rock_1.obj"
+alto = 5.8
+
+[node name="Rock_2_37" type="Node3D" parent="Vegetacion/Rocas" unique_id=231524301]
+transform = Transform3D(-0.104531415, 0, -0.99452156, 0, 1, 0, 0.99452156, 0, -0.104531415, 2.0173414, -0.03636097, 19.574362)
+script = ExtResource("2_rotgg")
+modelo = "nature/Rock_2.obj"
+alto = 5.6
+
+[node name="Rock_2_38" type="Node3D" parent="Vegetacion/Rocas" unique_id=1942271995]
+transform = Transform3D(0.2756342, 0, -0.9612626, 0, 1, 0, 0.9612626, 0, 0.2756342, 1.0451871, -0.02569326, 20.682789)
+script = ExtResource("2_rotgg")
+modelo = "nature/Rock_2.obj"
+alto = 5.8
+
+[node name="Rock_1_38" type="Node3D" parent="Vegetacion/Rocas" unique_id=681544128]
+transform = Transform3D(0.15643679, 0, 0.98768795, 0, 1, 0, -0.98768795, 0, 0.15643679, 1.9008709, -0.020556504, 21.41388)
+script = ExtResource("2_rotgg")
+modelo = "nature/Rock_1.obj"
+alto = 5.6
+
+[node name="Rock_2_39" type="Node3D" parent="Vegetacion/Rocas" unique_id=830035645]
+transform = Transform3D(0.809017, 0, 0.58778524, 0, 1, 0, -0.58778524, 0, 0.809017, 3.6141365, -0.0066468003, -6.556232)
+script = ExtResource("2_rotgg")
+modelo = "nature/Rock_2.obj"
+alto = 6.8
+
+[node name="Rock_2_40" type="Node3D" parent="Vegetacion/Rocas" unique_id=1844839209]
+transform = Transform3D(0.7431448, 0, -0.6691306, 0, 1, 0, 0.6691306, 0, 0.7431448, 1.9464374, -0.05734775, -5.1412177)
+script = ExtResource("2_rotgg")
+modelo = "nature/Rock_2.obj"
+alto = 6.8
+
+[node name="Rock_2_41" type="Node3D" parent="Vegetacion/Rocas" unique_id=1752557736]
+transform = Transform3D(0.70710677, 0, 0.70710677, 0, 1, 0, -0.70710677, 0, 0.70710677, 3.9413855, -0.051936805, -3.4903681)
+script = ExtResource("2_rotgg")
+modelo = "nature/Rock_2.obj"
+alto = 6.8
+
+[node name="Rock_2_42" type="Node3D" parent="Vegetacion/Rocas" unique_id=155935145]
+transform = Transform3D(0.83867055, 0, -0.54463905, 0, 1, 0, 0.54463905, 0, 0.83867055, 2.4820871, -0.058855567, -1.6036826)
+script = ExtResource("2_rotgg")
+modelo = "nature/Rock_2.obj"
+alto = 6.8
+
+[node name="Rock_2_43" type="Node3D" parent="Vegetacion/Rocas" unique_id=693432914]
+transform = Transform3D(0.7431448, 0, 0.6691306, 0, 1, 0, -0.6691306, 0, 0.7431448, 2.5243134, -0.066047795, 2.405524)
+script = ExtResource("2_rotgg")
+modelo = "nature/Rock_2.obj"
+alto = 6.8
+
+[node name="Rock_2_44" type="Node3D" parent="Vegetacion/Rocas" unique_id=2057219998]
+transform = Transform3D(0.66913056, 0, -0.74314487, 0, 1, 0, 0.74314487, 0, 0.66913056, 1.4032353, -0.066047795, 3.8912888)
+script = ExtResource("2_rotgg")
+modelo = "nature/Rock_2.obj"
+alto = 6.8
+
+[node name="Rock_2_45" type="Node3D" parent="Vegetacion/Rocas" unique_id=102972523]
+transform = Transform3D(0.809017, 0, 0.58778524, 0, 1, 0, -0.58778524, 0, 0.809017, 2.3924966, -0.06487076, 5.5421386)
+script = ExtResource("2_rotgg")
+modelo = "nature/Rock_2.obj"
+alto = 6.8
+
+[node name="Rock_2_46" type="Node3D" parent="Vegetacion/Rocas" unique_id=794887821]
+transform = Transform3D(0.7771459, 0, -0.6293204, 0, 1, 0, 0.6293204, 0, 0.7771459, 2.3838775, -0.13398267, 7.1222377)
+script = ExtResource("2_rotgg")
+modelo = "nature/Rock_2.obj"
+alto = 6.8
+
+[node name="Rock_3_1" type="Node3D" parent="Vegetacion/Rocas" unique_id=2079461385]
+transform = Transform3D(0.9396926, 0, 0.34202012, 0, 1, 0, -0.34202012, 0, 0.9396926, 1.36, 0.3292484, -19.574362)
+script = ExtResource("2_rotgg")
+modelo = "nature/Rock_3.obj"
+alto = 7.8
+
+[node name="Rock_4_1" type="Node3D" parent="Vegetacion/Rocas" unique_id=292841588]
+transform = Transform3D(0.087155804, 0, 0.9961947, 0, 1, 0, -0.9961947, 0, 0.087155804, 1.32, 0.32902664, -20.800707)
+script = ExtResource("2_rotgg")
+modelo = "nature/Rock_4.obj"
+alto = 8.5
+
+[node name="Rock_5_1" type="Node3D" parent="Vegetacion/Rocas" unique_id=688429790]
+transform = Transform3D(-0.76604444, 0, 0.64278764, 0, 1, 0, -0.64278764, 0, -0.76604444, 3.36, 0.3491098, -19.621529)
+script = ExtResource("2_rotgg")
+modelo = "nature/Rock_5.obj"
+alto = 8.2
+
+[node name="Rock_3_2" type="Node3D" parent="Vegetacion/Rocas" unique_id=83802427]
+transform = Transform3D(-0.8660254, 0, -0.49999997, 0, 1, 0, 0.49999997, 0, -0.8660254, 3.32, 0.3491098, -20.847874)
+script = ExtResource("2_rotgg")
+modelo = "nature/Rock_3.obj"
+alto = 7.8
+
+[node name="Rock_4_2" type="Node3D" parent="Vegetacion/Rocas" unique_id=392984254]
+transform = Transform3D(0.57357645, 0, 0.81915206, 0, 1, 0, -0.81915206, 0, 0.57357645, 2.48, 0.3347924, -21.932718)
+script = ExtResource("2_rotgg")
+modelo = "nature/Rock_4.obj"
+alto = 7.4
+
+[node name="Troncos" type="Node3D" parent="Vegetacion" unique_id=604265374]
+
+[node name="WoodLog_Moss_1" type="Node3D" parent="Vegetacion/Troncos" unique_id=2017036388]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -17.2, 0.7923072, 24.52691)
+script = ExtResource("2_rotgg")
+modelo = "nature/WoodLog_Moss.obj"
+alto = 16.0
+
+[node name="WoodLog_1" type="Node3D" parent="Vegetacion/Troncos" unique_id=914491838]
+transform = Transform3D(0.45399052, 0, 0.8910065, 0, 1, 0, -0.8910065, 0, 0.45399052, -9.8, -0.3191822, 29.243624)
+script = ExtResource("2_rotgg")
+modelo = "nature/WoodLog.obj"
+alto = 16.0
+
+[node name="WoodLog_Moss_2" type="Node3D" parent="Vegetacion/Troncos" unique_id=585010938]
+transform = Transform3D(-0.5877852, 0, 0.809017, 0, 1, 0, -0.809017, 0, -0.5877852, -14.8, 0.52309006, 36.790367)
+script = ExtResource("2_rotgg")
+modelo = "nature/WoodLog_Moss.obj"
+alto = 16.0
+
+[node name="WoodLog_2" type="Node3D" parent="Vegetacion/Troncos" unique_id=1345393660]
+transform = Transform3D(-0.98768836, 0, -0.15643437, 0, 1, 0, 0.15643437, 0, -0.98768836, -11.2, 0.39825732, 42.922092)
+script = ExtResource("2_rotgg")
+modelo = "nature/WoodLog.obj"
+alto = 16.0
+
+[node name="WoodLog_Moss_3" type="Node3D" parent="Vegetacion/Troncos" unique_id=1449426242]
+transform = Transform3D(-0.3090171, 0, -0.9510565, 0, 1, 0, 0.9510565, 0, -0.3090171, -0.4, -0.05824662, 25.706089)
+script = ExtResource("2_rotgg")
+modelo = "nature/WoodLog_Moss.obj"
+alto = 16.0
+
+[node name="WoodLog_3" type="Node3D" parent="Vegetacion/Troncos" unique_id=549323968]
+transform = Transform3D(0.70710665, 0, -0.7071069, 0, 1, 0, 0.7071069, 0, 0.70710665, 5.8, 0.35716933, 30.894474)
+script = ExtResource("2_rotgg")
+modelo = "nature/WoodLog.obj"
+alto = 16.0
+
+[node name="WoodLog_Moss_4" type="Node3D" parent="Vegetacion/Troncos" unique_id=1866277255]
+transform = Transform3D(0.95105654, 0, 0.309017, 0, 1, 0, -0.309017, 0, 0.95105654, 1.6, 0.20815457, 37.26204)
+script = ExtResource("2_rotgg")
+modelo = "nature/WoodLog_Moss.obj"
+alto = 16.0
+
+[node name="WoodLog_4" type="Node3D" parent="Vegetacion/Troncos" unique_id=2078380558]
+transform = Transform3D(0.15643449, 0, 0.98768836, 0, 1, 0, -0.98768836, 0, 0.15643449, 7.6, -0.005849551, 42.686256)
+script = ExtResource("2_rotgg")
+modelo = "nature/WoodLog.obj"
+alto = 16.0
+
+[node name="WoodLog_5" type="Node3D" parent="Vegetacion/Troncos" unique_id=1633675214]
+transform = Transform3D(-0.8910065, 0, -0.45399055, 0, 1, 0, 0.45399055, 0, -0.8910065, 17.8, 0.46976525, 27.82861)
+script = ExtResource("2_rotgg")
+modelo = "nature/WoodLog.obj"
+alto = 16.0
+
+[node name="WoodLog_Moss_5" type="Node3D" parent="Vegetacion/Troncos" unique_id=646389765]
+transform = Transform3D(1.1924881e-08, 0, -1, 0, 1, 0, 1, 0, 1.1924881e-08, 21.6, 0.24732716, 35.139515)
+script = ExtResource("2_rotgg")
+modelo = "nature/WoodLog_Moss.obj"
+alto = 16.0
+
+[node name="WoodLog_6" type="Node3D" parent="Vegetacion/Troncos" unique_id=1709490454]
+transform = Transform3D(0.8910065, 0, -0.45399052, 0, 1, 0, 0.45399052, 0, 0.8910065, 22.4, 0.09015302, 45.28045)
+script = ExtResource("2_rotgg")
+modelo = "nature/WoodLog.obj"
+alto = 16.0
+
+[node name="Plantas" type="Node3D" parent="Vegetacion" unique_id=768312391]
+
+[node name="Bush_1_1" type="Node3D" parent="Vegetacion/Plantas" unique_id=1494438047]
+transform = Transform3D(0.6427875, 0, -0.7660445, 0, 1, 0, 0.7660445, 0, 0.6427875, -24.2, -0.0075483196, 0.56600565)
+script = ExtResource("2_rotgg")
+modelo = "nature/Bush_1.obj"
+alto = 8.5
+
+[node name="Bush_1_2" type="Node3D" parent="Vegetacion/Plantas" unique_id=1110685400]
+transform = Transform3D(-0.90630776, 0, 0.42261833, 0, 1, 0, -0.42261833, 0, -0.90630776, -22.9, -0.0075483196, 0.5895892)
+script = ExtResource("2_rotgg")
+modelo = "nature/Bush_1.obj"
+alto = 8.5
+
+[node name="Bush_1_3" type="Node3D" parent="Vegetacion/Plantas" unique_id=1382138526]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -21.6, -0.0075483196, 0.56600565)
+script = ExtResource("2_rotgg")
+modelo = "nature/Bush_1.obj"
+alto = 8.5
+
+[node name="Bush_1_4" type="Node3D" parent="Vegetacion/Plantas" unique_id=279861442]
+transform = Transform3D(-0.50000006, 0, 0.8660254, 0, 1, 0, -0.8660254, 0, -0.50000006, -24, -0.0075483196, 1.7923511)
+script = ExtResource("2_rotgg")
+modelo = "nature/Bush_1.obj"
+alto = 8.5
+
+[node name="Bush_1_5" type="Node3D" parent="Vegetacion/Plantas" unique_id=147061101]
+transform = Transform3D(0.81915194, 0, -0.57357657, 0, 1, 0, 0.57357657, 0, 0.81915194, -22.7, -0.0075483196, 1.7687676)
+script = ExtResource("2_rotgg")
+modelo = "nature/Bush_1.obj"
+alto = 8.5
+
+[node name="Bush_1_6" type="Node3D" parent="Vegetacion/Plantas" unique_id=1016334076]
+transform = Transform3D(0.25881907, 0, 0.9659258, 0, 1, 0, -0.9659258, 0, 0.25881907, -21.3, -0.03135305, 1.7687676)
+script = ExtResource("2_rotgg")
+modelo = "nature/Bush_1.obj"
+alto = 8.5
+
+[node name="Bush_1_7" type="Node3D" parent="Vegetacion/Plantas" unique_id=2086379322]
+transform = Transform3D(0.70710665, 0, -0.7071069, 0, 1, 0, 0.7071069, 0, 0.70710665, -18.9, -0.0075483196, 0.56600565)
+script = ExtResource("2_rotgg")
+modelo = "nature/Bush_1.obj"
+alto = 8.5
+
+[node name="Bush_1_8" type="Node3D" parent="Vegetacion/Plantas" unique_id=1311603438]
+transform = Transform3D(-0.7880108, 0, 0.61566144, 0, 1, 0, -0.61566144, 0, -0.7880108, -17.96, -0.0075483196, 0.5895892)
+script = ExtResource("2_rotgg")
+modelo = "nature/Bush_1.obj"
+alto = 8.5
+
+[node name="Bush_1_9" type="Node3D" parent="Vegetacion/Plantas" unique_id=1307260803]
+transform = Transform3D(0.03489931, 0, -0.99939084, 0, 1, 0, 0.99939084, 0, 0.03489931, -16.96, -0.0075483196, 0.54242206)
+script = ExtResource("2_rotgg")
+modelo = "nature/Bush_1.obj"
+alto = 8.5
+
+[node name="Bush_1_10" type="Node3D" parent="Vegetacion/Plantas" unique_id=886357180]
+transform = Transform3D(0.64278764, 0, 0.76604444, 0, 1, 0, -0.76604444, 0, 0.64278764, -19, -0.20516106, 1.7923511)
+script = ExtResource("2_rotgg")
+modelo = "nature/Bush_1.obj"
+alto = 8.5
+
+[node name="Bush_1_11" type="Node3D" parent="Vegetacion/Plantas" unique_id=1384908066]
+transform = Transform3D(0.9848077, 0, -0.17364845, 0, 1, 0, 0.17364845, 0, 0.9848077, -17.8, -0.2214836, 1.7687676)
+script = ExtResource("2_rotgg")
+modelo = "nature/Bush_1.obj"
+alto = 8.5
+
+[node name="Bush_1_12" type="Node3D" parent="Vegetacion/Plantas" unique_id=1503234168]
+transform = Transform3D(0.90630776, 0, 0.42261827, 0, 1, 0, -0.42261827, 0, 0.90630776, -16.7, -0.21618854, 1.7451841)
+script = ExtResource("2_rotgg")
+modelo = "nature/Bush_1.obj"
+alto = 8.5
+
+[node name="Plant_1_1" type="Node3D" parent="Vegetacion/Plantas" unique_id=1293385306]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -13.552096, -0.018870799, 1.4460162)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_1.obj"
+alto = 7.2
+
+[node name="Plant_3_1" type="Node3D" parent="Vegetacion/Plantas" unique_id=1278532216]
+transform = Transform3D(0.79863554, 0, 0.601815, 0, 1, 0, -0.601815, 0, 0.79863554, -12.6721945, -0.018870799, 1.6275561)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_3.obj"
+alto = 7.2
+
+[node name="Plant_1_2" type="Node3D" parent="Vegetacion/Plantas" unique_id=294370333]
+transform = Transform3D(0.2756374, 0, 0.9612617, 0, 1, 0, -0.9612617, 0, 0.2756374, -12.506514, -0.018870799, 2.2739754)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_1.obj"
+alto = 7.2
+
+[node name="Plant_3_2" type="Node3D" parent="Vegetacion/Plantas" unique_id=1655513277]
+transform = Transform3D(-0.35836795, 0, 0.93358046, 0, 1, 0, -0.93358046, 0, -0.35836795, -12.734016, -0.018870799, 3.3134205)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_3.obj"
+alto = 7.2
+
+[node name="Plant_1_3" type="Node3D" parent="Vegetacion/Plantas" unique_id=1855436093]
+transform = Transform3D(-0.84804803, 0, 0.5299193, 0, 1, 0, -0.5299193, 0, -0.84804803, -13.771511, -0.018870799, 3.9407237)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_1.obj"
+alto = 7.2
+
+[node name="Plant_3_3" type="Node3D" parent="Vegetacion/Plantas" unique_id=1665096126]
+transform = Transform3D(-0.9961947, 0, -0.08715581, 0, 1, 0, 0.08715581, 0, -0.9961947, -15.289647, -0.018870799, 4.6065474)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_3.obj"
+alto = 7.2
+
+[node name="Plant_1_4" type="Node3D" parent="Vegetacion/Plantas" unique_id=1993723631]
+transform = Transform3D(-0.7431448, 0, -0.6691306, 0, 1, 0, 0.6691306, 0, -0.7431448, -17.02971, -0.018870799, 5.4520845)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_1.obj"
+alto = 7.2
+
+[node name="Plant_3_4" type="Node3D" parent="Vegetacion/Plantas" unique_id=104859961]
+transform = Transform3D(-0.19080885, 0, -0.9816272, 0, 1, 0, 0.9816272, 0, -0.19080885, -18.734861, -0.0372889, 6.0696855)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_3.obj"
+alto = 7.2
+
+[node name="Plant_1_5" type="Node3D" parent="Vegetacion/Plantas" unique_id=1850205813]
+transform = Transform3D(0.438371, 0, -0.8987941, 0, 1, 0, 0.8987941, 0, 0.438371, -20.615507, -0.018870799, 6.1303377)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_1.obj"
+alto = 7.2
+
+[node name="Plant_3_5" type="Node3D" parent="Vegetacion/Plantas" unique_id=1331792150]
+transform = Transform3D(0.8910065, 0, -0.45399052, 0, 1, 0, 0.45399052, 0, 0.8910065, -22.016386, -0.016254306, 5.1040187)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_3.obj"
+alto = 7.2
+
+[node name="Plant_1_6" type="Node3D" parent="Vegetacion/Plantas" unique_id=222018778]
+transform = Transform3D(0.9848077, 0, 0.17364831, 0, 1, 0, -0.17364831, 0, 0.9848077, -22.414824, -0.117369086, 3.5365806)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_1.obj"
+alto = 7.2
+
+[node name="Plant_3_6" type="Node3D" parent="Vegetacion/Plantas" unique_id=1752008828]
+transform = Transform3D(0.6819985, 0, 0.7313536, 0, 1, 0, -0.7313536, 0, 0.6819985, -21.860296, -0.061989497, 2.1913738)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_3.obj"
+alto = 7.2
+
+[node name="Plant_1_7" type="Node3D" parent="Vegetacion/Plantas" unique_id=640762384]
+transform = Transform3D(0.10452849, 0, 0.9945219, 0, 1, 0, -0.9945219, 0, 0.10452849, -20.285887, -0.06394693, 1.608697)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_1.obj"
+alto = 7.2
+
+[node name="Plant_3_7" type="Node3D" parent="Vegetacion/Plantas" unique_id=950318819]
+transform = Transform3D(-0.5150382, 0, 0.85716724, 0, 1, 0, -0.85716724, 0, -0.5150382, -18.405485, -0.018870799, 1.4884396)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_3.obj"
+alto = 7.2
+
+[node name="Plant_1_8" type="Node3D" parent="Vegetacion/Plantas" unique_id=1787279572]
+transform = Transform3D(-0.927184, 0, 0.3746063, 0, 1, 0, -0.3746063, 0, -0.927184, -16.516771, -0.018870799, 1.5073116)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_1.obj"
+alto = 7.2
+
+[node name="Plant_3_8" type="Node3D" parent="Vegetacion/Plantas" unique_id=806859957]
+transform = Transform3D(-0.96592593, 0, -0.25881857, 0, 1, 0, 0.25881857, 0, -0.96592593, -14.712576, -0.018870799, 1.5306821)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_3.obj"
+alto = 7.2
+
+[node name="Bush_1_13" type="Node3D" parent="Vegetacion/Plantas" unique_id=207376793]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -37.6, 0.12559243, 4.6695466)
+script = ExtResource("2_rotgg")
+modelo = "nature/Bush_1.obj"
+alto = 12.0
+
+[node name="Bush_1_14" type="Node3D" parent="Vegetacion/Plantas" unique_id=556909428]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -34.2, 0.16619526, 3.5847023)
+script = ExtResource("2_rotgg")
+modelo = "nature/Bush_1.obj"
+alto = 12.0
+
+[node name="Bush_1_15" type="Node3D" parent="Vegetacion/Plantas" unique_id=233636559]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -29.6, -0.038835194, 3.655453)
+script = ExtResource("2_rotgg")
+modelo = "nature/Bush_1.obj"
+alto = 12.0
+
+[node name="Bush_1_16" type="Node3D" parent="Vegetacion/Plantas" unique_id=972421272]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -26.2, 0.054221477, 3.9148724)
+script = ExtResource("2_rotgg")
+modelo = "nature/Bush_1.obj"
+alto = 12.0
+
+[node name="Bush_1_17" type="Node3D" parent="Vegetacion/Plantas" unique_id=1507033052]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -23.7, -0.030829165, 6.0138097)
+script = ExtResource("2_rotgg")
+modelo = "nature/Bush_1.obj"
+alto = 12.0
+
+[node name="Bush_1_18" type="Node3D" parent="Vegetacion/Plantas" unique_id=1597158695]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -24.1, 0.060430847, 9.787181)
+script = ExtResource("2_rotgg")
+modelo = "nature/Bush_1.obj"
+alto = 12.0
+
+[node name="Bush_1_19" type="Node3D" parent="Vegetacion/Plantas" unique_id=1573374630]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -31.2, 0.17423625, 11.791784)
+script = ExtResource("2_rotgg")
+modelo = "nature/Bush_1.obj"
+alto = 12.0
+
+[node name="Bush_1_20" type="Node3D" parent="Vegetacion/Plantas" unique_id=880869024]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -37.3, 0.25378692, 10.258852)
+script = ExtResource("2_rotgg")
+modelo = "nature/Bush_1.obj"
+alto = 12.0
+
+[node name="Bush_1_21" type="Node3D" parent="Vegetacion/Plantas" unique_id=1083500561]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -19.2, 0.9704193, 21.461046)
+script = ExtResource("2_rotgg")
+modelo = "nature/Bush_1.obj"
+alto = 12.5
+
+[node name="Bush_2_1" type="Node3D" parent="Vegetacion/Plantas" unique_id=1294624636]
+transform = Transform3D(0.6819984, 0, 0.7313537, 0, 1, 0, -0.7313537, 0, 0.6819984, -13.6, -0.037741598, 21.696882)
+script = ExtResource("2_rotgg")
+modelo = "nature/Bush_2.obj"
+alto = 12.5
+
+[node name="BushBerries_1_1" type="Node3D" parent="Vegetacion/Plantas" unique_id=577026142]
+transform = Transform3D(-0.06975648, 0, 0.9975641, 0, 1, 0, -0.9975641, 0, -0.06975648, -9.2, -0.057051055, 20.517704)
+script = ExtResource("2_rotgg")
+modelo = "nature/BushBerries_1.obj"
+alto = 12.5
+
+[node name="BushBerries_2_1" type="Node3D" parent="Vegetacion/Plantas" unique_id=1051406528]
+transform = Transform3D(-0.77714586, 0, 0.6293205, 0, 1, 0, -0.6293205, 0, -0.77714586, -16.4, 0.5115586, 25.470253)
+script = ExtResource("2_rotgg")
+modelo = "nature/BushBerries_2.obj"
+alto = 12.5
+
+[node name="Bush_1_22" type="Node3D" parent="Vegetacion/Plantas" unique_id=182796971]
+transform = Transform3D(-0.99026805, 0, -0.13917312, 0, 1, 0, 0.13917312, 0, -0.99026805, -10.4, -0.21265839, 26.885267)
+script = ExtResource("2_rotgg")
+modelo = "nature/Bush_1.obj"
+alto = 12.5
+
+[node name="Bush_2_2" type="Node3D" parent="Vegetacion/Plantas" unique_id=795867303]
+transform = Transform3D(-0.57357633, 0, -0.8191521, 0, 1, 0, 0.8191521, 0, -0.57357633, -18.8, 0.74585176, 32.545322)
+script = ExtResource("2_rotgg")
+modelo = "nature/Bush_2.obj"
+alto = 12.5
+
+[node name="BushBerries_1_2" type="Node3D" parent="Vegetacion/Plantas" unique_id=1275991370]
+transform = Transform3D(0.20791148, 0, -0.9781476, 0, 1, 0, 0.9781476, 0, 0.20791148, -12.8, -0.15508044, 33.488667)
+script = ExtResource("2_rotgg")
+modelo = "nature/BushBerries_1.obj"
+alto = 12.5
+
+[node name="BushBerries_2_2" type="Node3D" parent="Vegetacion/Plantas" unique_id=654477431]
+transform = Transform3D(0.85716724, 0, -0.51503813, 0, 1, 0, 0.51503813, 0, 0.85716724, -7.6, -0.16965182, 32.545322)
+script = ExtResource("2_rotgg")
+modelo = "nature/BushBerries_2.obj"
+alto = 12.5
+
+[node name="Bush_1_23" type="Node3D" parent="Vegetacion/Plantas" unique_id=1732544453]
+transform = Transform3D(0.9612617, 0, 0.27563736, 0, 1, 0, -0.27563736, 0, 0.9612617, -16.4, 0.37962818, 38.67705)
+script = ExtResource("2_rotgg")
+modelo = "nature/Bush_1.obj"
+alto = 12.5
+
+[node name="Bush_2_3" type="Node3D" parent="Vegetacion/Plantas" unique_id=49060593]
+transform = Transform3D(0.45399052, 0, 0.8910065, 0, 1, 0, -0.8910065, 0, 0.45399052, -9.6, 0.20412505, 39.148724)
+script = ExtResource("2_rotgg")
+modelo = "nature/Bush_2.obj"
+alto = 12.5
+
+[node name="BushBerries_1_3" type="Node3D" parent="Vegetacion/Plantas" unique_id=1472101992]
+transform = Transform3D(-0.34202012, 0, 0.9396926, 0, 1, 0, -0.9396926, 0, -0.34202012, -14.4, 0.35506603, 45.28045)
+script = ExtResource("2_rotgg")
+modelo = "nature/BushBerries_1.obj"
+alto = 12.5
+
+[node name="BushBerries_2_3" type="Node3D" parent="Vegetacion/Plantas" unique_id=700068184]
+transform = Transform3D(-0.92050487, 0, 0.39073116, 0, 1, 0, -0.39073116, 0, -0.92050487, -7.6, 0.68706393, 48.58215)
+script = ExtResource("2_rotgg")
+modelo = "nature/BushBerries_2.obj"
+alto = 12.5
+
+[node name="Bush_1_24" type="Node3D" parent="Vegetacion/Plantas" unique_id=203794891]
+transform = Transform3D(-0.9135455, 0, -0.40673652, 0, 1, 0, 0.40673652, 0, -0.9135455, -2.4, -0.23946367, 21.696882)
+script = ExtResource("2_rotgg")
+modelo = "nature/Bush_1.obj"
+alto = 12.5
+
+[node name="Bush_2_4" type="Node3D" parent="Vegetacion/Plantas" unique_id=969104592]
+transform = Transform3D(-0.32556817, 0, -0.94551855, 0, 1, 0, 0.94551855, 0, -0.32556817, 3.6, -0.036837168, 21.461046)
+script = ExtResource("2_rotgg")
+modelo = "nature/Bush_2.obj"
+alto = 12.5
+
+[node name="BushBerries_1_4" type="Node3D" parent="Vegetacion/Plantas" unique_id=1086291617]
+transform = Transform3D(0.46947166, 0, -0.88294756, 0, 1, 0, 0.88294756, 0, 0.46947166, 8.4, 0.47551087, 21.932718)
+script = ExtResource("2_rotgg")
+modelo = "nature/BushBerries_1.obj"
+alto = 12.5
+
+[node name="BushBerries_2_4" type="Node3D" parent="Vegetacion/Plantas" unique_id=1593906054]
+transform = Transform3D(0.96592575, 0, -0.25881928, 0, 1, 0, 0.25881928, 0, 0.96592575, 0.8, -0.070513144, 26.885267)
+script = ExtResource("2_rotgg")
+modelo = "nature/BushBerries_2.obj"
+alto = 12.5
+
+[node name="Bush_1_25" type="Node3D" parent="Vegetacion/Plantas" unique_id=250031521]
+transform = Transform3D(0.8480481, 0, 0.52991927, 0, 1, 0, -0.52991927, 0, 0.8480481, 6.8, 0.42598882, 26.885267)
+script = ExtResource("2_rotgg")
+modelo = "nature/Bush_1.obj"
+alto = 12.5
+
+[node name="Bush_2_5" type="Node3D" parent="Vegetacion/Plantas" unique_id=24975793]
+transform = Transform3D(0.19080906, 0, 0.98162717, 0, 1, 0, -0.98162717, 0, 0.19080906, -0.8, 0.10168982, 32.545322)
+script = ExtResource("2_rotgg")
+modelo = "nature/Bush_2.obj"
+alto = 12.5
+
+[node name="BushBerries_1_5" type="Node3D" parent="Vegetacion/Plantas" unique_id=879921397]
+transform = Transform3D(-0.5877852, 0, 0.809017, 0, 1, 0, -0.809017, 0, -0.5877852, 5.2, 0.3177922, 32.073654)
+script = ExtResource("2_rotgg")
+modelo = "nature/BushBerries_1.obj"
+alto = 12.5
+
+[node name="BushBerries_2_5" type="Node3D" parent="Vegetacion/Plantas" unique_id=499793106]
+transform = Transform3D(-0.99254614, 0, 0.12186928, 0, 1, 0, -0.12186928, 0, -0.99254614, 10.8, 0.34599337, 32.78116)
+script = ExtResource("2_rotgg")
+modelo = "nature/BushBerries_2.obj"
+alto = 12.5
+
+[node name="Bush_1_26" type="Node3D" parent="Vegetacion/Plantas" unique_id=1096201422]
+transform = Transform3D(-0.7660445, 0, -0.6427876, 0, 1, 0, 0.6427876, 0, -0.7660445, 2.8, 0.25312504, 38.20538)
+script = ExtResource("2_rotgg")
+modelo = "nature/Bush_1.obj"
+alto = 12.5
+
+[node name="Bush_2_6" type="Node3D" parent="Vegetacion/Plantas" unique_id=1643887494]
+transform = Transform3D(-0.052336123, 0, -0.9986295, 0, 1, 0, 0.9986295, 0, -0.052336123, 8.8, 0.094097175, 38.67705)
+script = ExtResource("2_rotgg")
+modelo = "nature/Bush_2.obj"
+alto = 12.5
+
+[node name="BushBerries_1_6" type="Node3D" parent="Vegetacion/Plantas" unique_id=1601435820]
+transform = Transform3D(0.69465834, 0, -0.71933985, 0, 1, 0, 0.71933985, 0, 0.69465834, -1.6, 0.43735254, 43.865437)
+script = ExtResource("2_rotgg")
+modelo = "nature/BushBerries_1.obj"
+alto = 12.5
+
+[node name="BushBerries_2_6" type="Node3D" parent="Vegetacion/Plantas" unique_id=1614651426]
+transform = Transform3D(0.9998477, 0, 0.017452406, 0, 1, 0, -0.017452406, 0, 0.9998477, 5.6, 0.039944008, 44.33711)
+script = ExtResource("2_rotgg")
+modelo = "nature/BushBerries_2.obj"
+alto = 12.5
+
+[node name="Bush_1_27" type="Node3D" parent="Vegetacion/Plantas" unique_id=1507468433]
+transform = Transform3D(0.66913056, 0, 0.74314487, 0, 1, 0, -0.74314487, 0, 0.66913056, 2.4, 0.14326958, 49.997166)
+script = ExtResource("2_rotgg")
+modelo = "nature/Bush_1.obj"
+alto = 12.5
+
+[node name="Bush_2_7" type="Node3D" parent="Vegetacion/Plantas" unique_id=680588307]
+transform = Transform3D(-0.08715577, 0, 0.9961947, 0, 1, 0, -0.9961947, 0, -0.08715577, 9.2, -0.14953882, 49.76133)
+script = ExtResource("2_rotgg")
+modelo = "nature/Bush_2.obj"
+alto = 12.5
+
+[node name="BushBerries_1_7" type="Node3D" parent="Vegetacion/Plantas" unique_id=1551676400]
+transform = Transform3D(-0.7880108, 0, 0.61566144, 0, 1, 0, -0.61566144, 0, -0.7880108, 16.4, 0.590047, 22.640224)
+script = ExtResource("2_rotgg")
+modelo = "nature/BushBerries_1.obj"
+alto = 12.5
+
+[node name="BushBerries_2_7" type="Node3D" parent="Vegetacion/Plantas" unique_id=2068069592]
+transform = Transform3D(-0.98768836, 0, -0.15643437, 0, 1, 0, 0.15643437, 0, -0.98768836, 22.4, 0.33908507, 24.52691)
+script = ExtResource("2_rotgg")
+modelo = "nature/BushBerries_2.obj"
+alto = 12.5
+
+[node name="Bush_1_28" type="Node3D" parent="Vegetacion/Plantas" unique_id=1666541778]
+transform = Transform3D(-0.5591929, 0, -0.8290376, 0, 1, 0, 0.8290376, 0, -0.5591929, 18.8, 0.41088787, 28.771954)
+script = ExtResource("2_rotgg")
+modelo = "nature/Bush_1.obj"
+alto = 12.5
+
+[node name="Bush_2_8" type="Node3D" parent="Vegetacion/Plantas" unique_id=1250747530]
+transform = Transform3D(0.22495121, 0, -0.97437, 0, 1, 0, 0.97437, 0, 0.22495121, 24.4, 0.2754288, 32.073654)
+script = ExtResource("2_rotgg")
+modelo = "nature/Bush_2.obj"
+alto = 12.5
+
+[node name="BushBerries_1_8" type="Node3D" parent="Vegetacion/Plantas" unique_id=1012972056]
+transform = Transform3D(0.8660253, 0, -0.5000002, 0, 1, 0, 0.5000002, 0, 0.8660253, 19.6, 0.11848036, 38.67705)
+script = ExtResource("2_rotgg")
+modelo = "nature/BushBerries_1.obj"
+alto = 12.5
+
+[node name="BushBerries_2_8" type="Node3D" parent="Vegetacion/Plantas" unique_id=1065573872]
+transform = Transform3D(0.9563048, 0, 0.2923717, 0, 1, 0, -0.2923717, 0, 0.9563048, 23.6, 0.15923738, 43.393764)
+script = ExtResource("2_rotgg")
+modelo = "nature/BushBerries_2.obj"
+alto = 12.5
+
+[node name="Plant_4_1" type="Node3D" parent="Vegetacion/Plantas" unique_id=65017999]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -18.92, 0.98708355, 21.461046)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_4.obj"
+alto = 8.0
+
+[node name="Plant_1_9" type="Node3D" parent="Vegetacion/Plantas" unique_id=1068376155]
+transform = Transform3D(-0.017452352, 0, 0.9998477, 0, 1, 0, -0.9998477, 0, -0.017452352, -19.536077, 1.0279222, 21.831415)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_1.obj"
+alto = 8.0
+
+[node name="Grass_Short_1" type="Node3D" parent="Vegetacion/Plantas" unique_id=1995063770]
+transform = Transform3D(-0.99939084, 0, -0.034899388, 0, 1, 0, 0.034899388, 0, -0.99939084, -19.156761, 0.96871513, 20.708097)
+script = ExtResource("2_rotgg")
+modelo = "nature/Grass_Short.obj"
+alto = 5.0
+
+[node name="Plant_5_1" type="Node3D" parent="Vegetacion/Plantas" unique_id=613789777]
+transform = Transform3D(0.79863554, 0, 0.601815, 0, 1, 0, -0.601815, 0, 0.79863554, -13.423073, -0.0075483196, 21.952785)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_5.obj"
+alto = 8.0
+
+[node name="Grass_1" type="Node3D" parent="Vegetacion/Plantas" unique_id=1373895306]
+transform = Transform3D(-0.61566144, 0, 0.7880108, 0, 1, 0, -0.7880108, 0, -0.61566144, -14.0558, -0.0075483196, 21.623758)
+script = ExtResource("2_rotgg")
+modelo = "nature/Grass.obj"
+alto = 5.0
+
+[node name="Plant_4_2" type="Node3D" parent="Vegetacion/Plantas" unique_id=301474990]
+transform = Transform3D(-0.7771459, 0, -0.62932044, 0, 1, 0, 0.62932044, 0, -0.7771459, -13.077771, -0.0075483196, 21.260622)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_4.obj"
+alto = 8.0
+
+[node name="Plant_1_10" type="Node3D" parent="Vegetacion/Plantas" unique_id=579282294]
+transform = Transform3D(0.2756374, 0, 0.9612617, 0, 1, 0, -0.9612617, 0, 0.2756374, -9.256405, -0.03107412, 20.841106)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_1.obj"
+alto = 8.0
+
+[node name="Grass_Short_2" type="Node3D" parent="Vegetacion/Plantas" unique_id=1235386668]
+transform = Transform3D(-0.9659258, 0, 0.25881913, 0, 1, 0, -0.25881913, 0, -0.9659258, -9.439949, -0.012780119, 20.054924)
+script = ExtResource("2_rotgg")
+modelo = "nature/Grass_Short.obj"
+alto = 5.0
+
+[node name="Plant_5_2" type="Node3D" parent="Vegetacion/Plantas" unique_id=1789883920]
+transform = Transform3D(-0.24192193, 0, -0.9702957, 0, 1, 0, 0.9702957, 0, -0.24192193, -8.583262, -0.0705744, 20.719322)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_5.obj"
+alto = 8.0
+
+[node name="Grass_2" type="Node3D" parent="Vegetacion/Plantas" unique_id=2126377361]
+transform = Transform3D(-0.35836795, 0, 0.93358046, 0, 1, 0, -0.93358046, 0, -0.35836795, -16.64821, 0.65608644, 25.623055)
+script = ExtResource("2_rotgg")
+modelo = "nature/Grass.obj"
+alto = 5.0
+
+[node name="Plant_4_3" type="Node3D" parent="Vegetacion/Plantas" unique_id=756603876]
+transform = Transform3D(-0.9271838, 0, -0.37460664, 0, 1, 0, 0.37460664, 0, -0.9271838, -16.24744, 0.43696797, 24.958532)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_4.obj"
+alto = 8.0
+
+[node name="Plant_1_11" type="Node3D" parent="Vegetacion/Plantas" unique_id=561270130]
+transform = Transform3D(0.39073125, 0, -0.9205048, 0, 1, 0, 0.9205048, 0, 0.39073125, -16.142815, 0.5511513, 26.161314)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_1.obj"
+alto = 8.0
+
+[node name="Grass_Short_3" type="Node3D" parent="Vegetacion/Plantas" unique_id=1908331191]
+transform = Transform3D(-0.84804803, 0, 0.5299193, 0, 1, 0, -0.5299193, 0, -0.84804803, -10.657275, -0.16412571, 26.754974)
+script = ExtResource("2_rotgg")
+modelo = "nature/Grass_Short.obj"
+alto = 5.0
+
+[node name="Plant_5_3" type="Node3D" parent="Vegetacion/Plantas" unique_id=2105755146]
+transform = Transform3D(-0.5150383, 0, -0.8571672, 0, 1, 0, 0.8571672, 0, -0.5150383, -9.96725, -0.16799049, 26.70135)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_5.obj"
+alto = 8.0
+
+[node name="Grass_3" type="Node3D" parent="Vegetacion/Plantas" unique_id=1198218048]
+transform = Transform3D(0.8660253, 0, -0.5000002, 0, 1, 0, 0.5000002, 0, 0.8660253, -10.691715, -0.24422315, 27.556988)
+script = ExtResource("2_rotgg")
+modelo = "nature/Grass.obj"
+alto = 5.0
+
+[node name="Plant_4_4" type="Node3D" parent="Vegetacion/Plantas" unique_id=1272141591]
+transform = Transform3D(-0.9961947, 0, -0.08715581, 0, 1, 0, 0.08715581, 0, -0.9961947, -18.876926, 0.7974111, 32.22786)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_4.obj"
+alto = 8.0
+
+[node name="Plant_1_12" type="Node3D" parent="Vegetacion/Plantas" unique_id=1242163561]
+transform = Transform3D(0.10452836, 0, -0.9945219, 0, 1, 0, 0.9945219, 0, 0.10452836, -18.405664, 0.75202876, 32.824615)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_1.obj"
+alto = 8.0
+
+[node name="Grass_Short_4" type="Node3D" parent="Vegetacion/Plantas" unique_id=1467476856]
+transform = Transform3D(0.99254614, 0, 0.12186935, 0, 1, 0, -0.12186935, 0, 0.99254614, -19.425846, 0.7746241, 32.703163)
+script = ExtResource("2_rotgg")
+modelo = "nature/Grass_Short.obj"
+alto = 5.0
+
+[node name="Plant_5_4" type="Node3D" parent="Vegetacion/Plantas" unique_id=2137537956]
+transform = Transform3D(-0.7431448, 0, -0.6691306, 0, 1, 0, 0.6691306, 0, -0.7431448, -12.639941, -0.13666749, 33.217762)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_5.obj"
+alto = 8.0
+
+[node name="Grass_4" type="Node3D" parent="Vegetacion/Plantas" unique_id=858725839]
+transform = Transform3D(0.6819984, 0, -0.73135364, 0, 1, 0, 0.73135364, 0, 0.6819984, -12.734402, -0.105780676, 34.025543)
+script = ExtResource("2_rotgg")
+modelo = "nature/Grass.obj"
+alto = 5.0
+
+[node name="Plant_4_5" type="Node3D" parent="Vegetacion/Plantas" unique_id=1026761236]
+transform = Transform3D(0.7193398, 0, 0.6946584, 0, 1, 0, -0.6946584, 0, 0.7193398, -13.299208, -0.13120602, 33.01642)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_4.obj"
+alto = 8.0
+
+[node name="Plant_1_13" type="Node3D" parent="Vegetacion/Plantas" unique_id=942921623]
+transform = Transform3D(-0.19080885, 0, -0.9816272, 0, 1, 0, 0.9816272, 0, -0.19080885, -7.320797, -0.13358706, 32.520424)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_1.obj"
+alto = 8.0
+
+[node name="Grass_Short_5" type="Node3D" parent="Vegetacion/Plantas" unique_id=1727110467]
+transform = Transform3D(0.9848077, 0, -0.17364845, 0, 1, 0, 0.17364845, 0, 0.9848077, -7.911434, -0.124795094, 32.944523)
+script = ExtResource("2_rotgg")
+modelo = "nature/Grass_Short.obj"
+alto = 5.0
+
+[node name="Plant_5_5" type="Node3D" parent="Vegetacion/Plantas" unique_id=1404797412]
+transform = Transform3D(0.15643449, 0, 0.98768836, 0, 1, 0, -0.98768836, 0, 0.15643449, -7.6050377, -0.17948982, 31.790672)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_5.obj"
+alto = 8.0
+
+[node name="Grass_5" type="Node3D" parent="Vegetacion/Plantas" unique_id=1806605904]
+transform = Transform3D(0.438371, 0, -0.8987941, 0, 1, 0, 0.8987941, 0, 0.438371, -16.20721, 0.40473518, 38.916492)
+script = ExtResource("2_rotgg")
+modelo = "nature/Grass.obj"
+alto = 5.0
+
+[node name="Plant_4_6" type="Node3D" parent="Vegetacion/Plantas" unique_id=1333049177]
+transform = Transform3D(0.8910065, 0, 0.4539905, 0, 1, 0, -0.4539905, 0, 0.8910065, -16.85918, 0.39434406, 38.64467)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_4.obj"
+alto = 8.0
+
+[node name="Plant_1_14" type="Node3D" parent="Vegetacion/Plantas" unique_id=554134635]
+transform = Transform3D(-0.46947157, 0, 0.88294756, 0, 1, 0, -0.88294756, 0, -0.46947157, -15.907158, 0.4533384, 38.195595)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_1.obj"
+alto = 8.0
+
+[node name="Grass_Short_6" type="Node3D" parent="Vegetacion/Plantas" unique_id=450870467]
+transform = Transform3D(0.8910065, 0, -0.45399052, 0, 1, 0, 0.45399052, 0, 0.8910065, -9.635562, 0.25539088, 39.47622)
+script = ExtResource("2_rotgg")
+modelo = "nature/Grass_Short.obj"
+alto = 5.0
+
+[node name="Plant_5_6" type="Node3D" parent="Vegetacion/Plantas" unique_id=1817907441]
+transform = Transform3D(0.43837115, 0, 0.89879405, 0, 1, 0, -0.89879405, 0, 0.43837115, -9.868862, 0.19692582, 38.7086)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_5.obj"
+alto = 8.0
+
+[node name="Grass_6" type="Node3D" parent="Vegetacion/Plantas" unique_id=1409482039]
+transform = Transform3D(-0.90630776, 0, 0.42261833, 0, 1, 0, -0.42261833, 0, -0.90630776, -8.972125, 0.26212826, 39.294926)
+script = ExtResource("2_rotgg")
+modelo = "nature/Grass.obj"
+alto = 5.0
+
+[node name="Plant_4_7" type="Node3D" parent="Vegetacion/Plantas" unique_id=559763184]
+transform = Transform3D(0.9848077, 0, 0.17364818, 0, 1, 0, -0.17364818, 0, 0.9848077, -14.637731, 0.37859717, 45.454887)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_4.obj"
+alto = 8.0
+
+[node name="Plant_1_15" type="Node3D" parent="Vegetacion/Plantas" unique_id=1783250796]
+transform = Transform3D(-0.19080903, 0, 0.98162717, 0, 1, 0, -0.98162717, 0, -0.19080903, -14.2806, 0.36943686, 44.75662)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_1.obj"
+alto = 8.0
+
+[node name="Grass_Short_7" type="Node3D" parent="Vegetacion/Plantas" unique_id=1348475869]
+transform = Transform3D(-0.97814757, 0, -0.20791179, 0, 1, 0, 0.20791179, 0, -0.97814757, -14.099353, 0.4306259, 45.94667)
+script = ExtResource("2_rotgg")
+modelo = "nature/Grass_Short.obj"
+alto = 5.0
+
+[node name="Plant_5_7" type="Node3D" parent="Vegetacion/Plantas" unique_id=1594735053]
+transform = Transform3D(0.6819984, 0, 0.7313537, 0, 1, 0, -0.7313537, 0, 0.6819984, -7.8648753, 0.71694636, 48.4751)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_5.obj"
+alto = 8.0
+
+[node name="Grass_7" type="Node3D" parent="Vegetacion/Plantas" unique_id=264989866]
+transform = Transform3D(-0.7431448, 0, 0.6691306, 0, 1, 0, -0.6691306, 0, -0.7431448, -7.1802435, 0.70982105, 48.360275)
+script = ExtResource("2_rotgg")
+modelo = "nature/Grass.obj"
+alto = 5.0
+
+[node name="Plant_4_8" type="Node3D" parent="Vegetacion/Plantas" unique_id=1453574700]
+transform = Transform3D(-0.656059, 0, -0.7547096, 0, 1, 0, 0.7547096, 0, -0.656059, -7.847927, 0.7328427, 49.2779)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_4.obj"
+alto = 8.0
+
+[node name="Plant_1_16" type="Node3D" parent="Vegetacion/Plantas" unique_id=1522016686]
+transform = Transform3D(0.10452842, 0, 0.9945219, 0, 1, 0, -0.9945219, 0, 0.10452842, -2.4970095, -0.19866012, 21.387163)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_1.obj"
+alto = 8.0
+
+[node name="Grass_Short_8" type="Node3D" parent="Vegetacion/Plantas" unique_id=1601860216]
+transform = Transform3D(-0.99619466, 0, 0.08715588, 0, 1, 0, -0.08715588, 0, -0.99619466, -1.9889258, -0.19218886, 21.940313)
+script = ExtResource("2_rotgg")
+modelo = "nature/Grass_Short.obj"
+alto = 5.0
+
+[node name="Plant_5_8" type="Node3D" parent="Vegetacion/Plantas" unique_id=283197197]
+transform = Transform3D(-0.069756545, 0, -0.997564, 0, 1, 0, 0.997564, 0, -0.069756545, -3.0139694, -0.23912343, 21.909925)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_5.obj"
+alto = 8.0
+
+[node name="Grass_8" type="Node3D" parent="Vegetacion/Plantas" unique_id=519090443]
+transform = Transform3D(-0.515038, 0, 0.8571673, 0, 1, 0, -0.8571673, 0, -0.515038, 3.7422776, -0.0022929958, 21.176678)
+script = ExtResource("2_rotgg")
+modelo = "nature/Grass.obj"
+alto = 5.0
+
+[node name="Plant_4_9" type="Node3D" parent="Vegetacion/Plantas" unique_id=419202966]
+transform = Transform3D(-0.8480481, 0, -0.52991927, 0, 1, 0, 0.52991927, 0, -0.8480481, 3.6997461, -0.0037298743, 21.990562)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_4.obj"
+alto = 8.0
+
+[node name="Plant_1_17" type="Node3D" parent="Vegetacion/Plantas" unique_id=1700974994]
+transform = Transform3D(0.5446391, 0, -0.8386705, 0, 1, 0, 0.8386705, 0, 0.5446391, 3.072012, -0.0075483196, 21.034534)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_1.obj"
+alto = 8.0
+
+[node name="Grass_Short_9" type="Node3D" parent="Vegetacion/Plantas" unique_id=454907612]
+transform = Transform3D(-0.9271838, 0, 0.3746067, 0, 1, 0, -0.3746067, 0, -0.9271838, 8.676815, 0.507229, 21.883064)
+script = ExtResource("2_rotgg")
+modelo = "nature/Grass_Short.obj"
+alto = 5.0
+
+[node name="Plant_5_9" type="Node3D" parent="Vegetacion/Plantas" unique_id=1900758056]
+transform = Transform3D(-0.35836777, 0, -0.9335805, 0, 1, 0, 0.9335805, 0, -0.35836777, 8.114982, 0.5032752, 22.358473)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_5.obj"
+alto = 8.0
+
+[node name="Grass_9" type="Node3D" parent="Vegetacion/Plantas" unique_id=1151186357]
+transform = Transform3D(0.93969256, 0, -0.34202036, 0, 1, 0, 0.34202036, 0, 0.93969256, 8.346715, 0.3868722, 21.180664)
+script = ExtResource("2_rotgg")
+modelo = "nature/Grass.obj"
+alto = 5.0
+
+[node name="Plant_1_18" type="Node3D" parent="Vegetacion/Plantas" unique_id=400827794]
+transform = Transform3D(0.2756372, 0, -0.96126175, 0, 1, 0, 0.96126175, 0, 0.2756372, 0.340057, -0.0038488037, 26.893806)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_1.obj"
+alto = 8.0
+
+[node name="Plant_5_10" type="Node3D" parent="Vegetacion/Plantas" unique_id=169306153]
+transform = Transform3D(-0.6156615, 0, -0.7880107, 0, 1, 0, 0.7880107, 0, -0.6156615, 6.7854834, 0.45415205, 27.214994)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_5.obj"
+alto = 8.0
+
+[node name="Grass_10" type="Node3D" parent="Vegetacion/Plantas" unique_id=1205738860]
+transform = Transform3D(0.79863554, 0, -0.601815, 0, 1, 0, 0.601815, 0, 0.79863554, 6.5037565, 0.44151524, 26.470304)
+script = ExtResource("2_rotgg")
+modelo = "nature/Grass.obj"
+alto = 5.0
+
+[node name="Plant_4_10" type="Node3D" parent="Vegetacion/Plantas" unique_id=1268167941]
+transform = Transform3D(0.5877853, 0, 0.809017, 0, 1, 0, -0.809017, 0, 0.5877853, 7.4354377, 0.48555753, 26.97522)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_4.obj"
+alto = 8.0
+
+[node name="Plant_1_19" type="Node3D" parent="Vegetacion/Plantas" unique_id=2109216770]
+transform = Transform3D(-0.017452296, 0, -0.9998477, 0, 1, 0, 0.9998477, 0, -0.017452296, -1.0258986, 0.12904596, 32.740406)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_1.obj"
+alto = 8.0
+
+[node name="Grass_Short_10" type="Node3D" parent="Vegetacion/Plantas" unique_id=422943146]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.7144397, 0.11688696, 32.012367)
+script = ExtResource("2_rotgg")
+modelo = "nature/Grass_Short.obj"
+alto = 5.0
+
+[node name="Plant_5_11" type="Node3D" parent="Vegetacion/Plantas" unique_id=2068712506]
+transform = Transform3D(-0.017452352, 0, 0.9998477, 0, 1, 0, -0.9998477, 0, -0.017452352, -0.45760286, 0.13384174, 33.182915)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_5.obj"
+alto = 8.0
+
+[node name="Grass_11" type="Node3D" parent="Vegetacion/Plantas" unique_id=770912971]
+transform = Transform3D(0.58778507, 0, -0.8090171, 0, 1, 0, 0.8090171, 0, 0.58778507, 4.9290333, 0.3417497, 31.990465)
+script = ExtResource("2_rotgg")
+modelo = "nature/Grass.obj"
+alto = 5.0
+
+[node name="Plant_4_11" type="Node3D" parent="Vegetacion/Plantas" unique_id=400723832]
+transform = Transform3D(0.79863554, 0, 0.601815, 0, 1, 0, -0.601815, 0, 0.79863554, 5.6043715, 0.36161613, 31.815083)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_4.obj"
+alto = 8.0
+
+[node name="Plant_1_20" type="Node3D" parent="Vegetacion/Plantas" unique_id=1402595325]
+transform = Transform3D(-0.61566144, 0, 0.7880108, 0, 1, 0, -0.7880108, 0, -0.61566144, 4.9972734, 0.3345773, 32.789467)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_1.obj"
+alto = 8.0
+
+[node name="Grass_Short_11" type="Node3D" parent="Vegetacion/Plantas" unique_id=858660106]
+transform = Transform3D(0.9563047, 0, -0.29237175, 0, 1, 0, 0.29237175, 0, 0.9563047, 10.683459, 0.3905396, 32.480946)
+script = ExtResource("2_rotgg")
+modelo = "nature/Grass_Short.obj"
+alto = 5.0
+
+[node name="Plant_5_12" type="Node3D" parent="Vegetacion/Plantas" unique_id=912890613]
+transform = Transform3D(0.2756374, 0, 0.9612617, 0, 1, 0, -0.9612617, 0, 0.2756374, 11.2254715, 0.3644126, 32.987343)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_5.obj"
+alto = 8.0
+
+[node name="Grass_12" type="Node3D" parent="Vegetacion/Plantas" unique_id=897668050]
+transform = Transform3D(-0.9659258, 0, 0.25881913, 0, 1, 0, -0.25881913, 0, -0.9659258, 10.201404, 0.3657326, 33.04819)
+script = ExtResource("2_rotgg")
+modelo = "nature/Grass.obj"
+alto = 5.0
+
+[node name="Plant_4_12" type="Node3D" parent="Vegetacion/Plantas" unique_id=1527656018]
+transform = Transform3D(0.9396926, 0, 0.34202012, 0, 1, 0, -0.34202012, 0, 0.9396926, 2.9236865, 0.28252372, 37.90917)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_4.obj"
+alto = 8.0
+
+[node name="Plant_1_21" type="Node3D" parent="Vegetacion/Plantas" unique_id=749993973]
+transform = Transform3D(-0.35836795, 0, 0.93358046, 0, 1, 0, -0.93358046, 0, -0.35836795, 2.9333258, 0.27776527, 38.724518)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_1.obj"
+alto = 8.0
+
+[node name="Grass_Short_12" type="Node3D" parent="Vegetacion/Plantas" unique_id=802622310]
+transform = Transform3D(-0.9271838, 0, -0.37460664, 0, 1, 0, 0.37460664, 0, -0.9271838, 2.2462394, 0.2925994, 37.827034)
+script = ExtResource("2_rotgg")
+modelo = "nature/Grass_Short.obj"
+alto = 5.0
+
+[node name="Plant_5_13" type="Node3D" parent="Vegetacion/Plantas" unique_id=211297237]
+transform = Transform3D(0.54463905, 0, 0.83867055, 0, 1, 0, -0.83867055, 0, 0.54463905, 9.072851, 0.12129882, 38.602924)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_5.obj"
+alto = 8.0
+
+[node name="Grass_13" type="Node3D" parent="Vegetacion/Plantas" unique_id=663478848]
+transform = Transform3D(-0.84804803, 0, 0.5299193, 0, 1, 0, -0.5299193, 0, -0.84804803, 8.543021, 0.11175684, 39.126938)
+script = ExtResource("2_rotgg")
+modelo = "nature/Grass.obj"
+alto = 5.0
+
+[node name="Plant_4_13" type="Node3D" parent="Vegetacion/Plantas" unique_id=1544397149]
+transform = Transform3D(-0.5150383, 0, -0.8571672, 0, 1, 0, 0.8571672, 0, -0.5150383, 8.698771, 0.15849449, 37.931877)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_4.obj"
+alto = 8.0
+
+[node name="Plant_1_22" type="Node3D" parent="Vegetacion/Plantas" unique_id=921805642]
+transform = Transform3D(-0.06975648, 0, 0.9975641, 0, 1, 0, -0.9975641, 0, -0.06975648, -1.3788652, 0.46063504, 44.067963)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_1.obj"
+alto = 8.0
+
+[node name="Grass_Short_13" type="Node3D" parent="Vegetacion/Plantas" unique_id=1079300235]
+transform = Transform3D(-0.9961947, 0, -0.08715581, 0, 1, 0, 0.08715581, 0, -0.9961947, -2.0580873, 0.48689127, 43.91485)
+script = ExtResource("2_rotgg")
+modelo = "nature/Grass_Short.obj"
+alto = 5.0
+
+[node name="Plant_5_14" type="Node3D" parent="Vegetacion/Plantas" unique_id=1315950793]
+transform = Transform3D(0.10452836, 0, -0.9945219, 0, 1, 0, 0.9945219, 0, 0.10452836, -1.1741685, 0.4418814, 43.302055)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_5.obj"
+alto = 8.0
+
+[node name="Grass_14" type="Node3D" parent="Vegetacion/Plantas" unique_id=1674798692]
+transform = Transform3D(-0.65605897, 0, 0.7547096, 0, 1, 0, -0.7547096, 0, -0.65605897, 5.6066113, 0.06338821, 44.667187)
+script = ExtResource("2_rotgg")
+modelo = "nature/Grass.obj"
+alto = 5.0
+
+[node name="Plant_4_14" type="Node3D" parent="Vegetacion/Plantas" unique_id=268373182]
+transform = Transform3D(-0.7431448, 0, -0.6691306, 0, 1, 0, 0.6691306, 0, -0.7431448, 5.278063, 0.095111154, 43.94967)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_4.obj"
+alto = 8.0
+
+[node name="Plant_1_23" type="Node3D" parent="Vegetacion/Plantas" unique_id=1345999300]
+transform = Transform3D(0.6819984, 0, -0.73135364, 0, 1, 0, 0.73135364, 0, 0.6819984, 6.2393804, 0.03621491, 44.3703)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_1.obj"
+alto = 8.0
+
+[node name="Grass_Short_14" type="Node3D" parent="Vegetacion/Plantas" unique_id=291821067]
+transform = Transform3D(-0.9781476, 0, 0.20791161, 0, 1, 0, -0.20791161, 0, -0.9781476, 2.1872206, 0.21494135, 50.211777)
+script = ExtResource("2_rotgg")
+modelo = "nature/Grass_Short.obj"
+alto = 5.0
+
+[node name="Plant_5_15" type="Node3D" parent="Vegetacion/Plantas" unique_id=29212196]
+transform = Transform3D(-0.19080885, 0, -0.9816272, 0, 1, 0, 0.9816272, 0, -0.19080885, 2.4512331, 0.1957119, 49.458115)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_5.obj"
+alto = 8.0
+
+[node name="Grass_15" type="Node3D" parent="Vegetacion/Plantas" unique_id=1102059208]
+transform = Transform3D(0.9848077, 0, -0.17364845, 0, 1, 0, 0.17364845, 0, 0.9848077, 2.7821972, 0.09081762, 50.60249)
+script = ExtResource("2_rotgg")
+modelo = "nature/Grass.obj"
+alto = 5.0
+
+[node name="Plant_4_15" type="Node3D" parent="Vegetacion/Plantas" unique_id=532025266]
+transform = Transform3D(-0.9063078, 0, -0.42261827, 0, 1, 0, 0.42261827, 0, -0.9063078, 8.924485, -0.11358084, 49.702473)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_4.obj"
+alto = 8.0
+
+[node name="Plant_1_24" type="Node3D" parent="Vegetacion/Plantas" unique_id=1080571682]
+transform = Transform3D(0.438371, 0, -0.8987941, 0, 1, 0, 0.8987941, 0, 0.438371, 9.586684, -0.13545369, 49.467537)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_1.obj"
+alto = 8.0
+
+[node name="Grass_Short_15" type="Node3D" parent="Vegetacion/Plantas" unique_id=1975537930]
+transform = Transform3D(0.8910065, 0, 0.4539905, 0, 1, 0, -0.4539905, 0, 0.8910065, 9.043628, -0.09188275, 50.493126)
+script = ExtResource("2_rotgg")
+modelo = "nature/Grass_Short.obj"
+alto = 5.0
+
+[node name="Plant_5_16" type="Node3D" parent="Vegetacion/Plantas" unique_id=2048568010]
+transform = Transform3D(-0.46947163, 0, -0.88294756, 0, 1, 0, 0.88294756, 0, -0.46947163, 16.264593, 0.6243424, 22.351233)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_5.obj"
+alto = 8.0
+
+[node name="Grass_16" type="Node3D" parent="Vegetacion/Plantas" unique_id=1133667068]
+transform = Transform3D(0.8910065, 0, -0.45399052, 0, 1, 0, 0.45399052, 0, 0.8910065, 16.837446, 0.60756195, 22.807987)
+script = ExtResource("2_rotgg")
+modelo = "nature/Grass.obj"
+alto = 5.0
+
+[node name="Plant_4_16" type="Node3D" parent="Vegetacion/Plantas" unique_id=1753351023]
+transform = Transform3D(0.43837115, 0, 0.89879405, 0, 1, 0, -0.89879405, 0, 0.43837115, 15.820185, 0.632563, 22.959724)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_4.obj"
+alto = 8.0
+
+[node name="Plant_1_25" type="Node3D" parent="Vegetacion/Plantas" unique_id=1411242689]
+transform = Transform3D(0.15643454, 0, -0.9876883, 0, 1, 0, 0.9876883, 0, 0.15643454, 22.504393, 0.36500943, 24.220547)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_1.obj"
+alto = 8.0
+
+[node name="Grass_Short_16" type="Node3D" parent="Vegetacion/Plantas" unique_id=1620936932]
+transform = Transform3D(0.9848077, 0, 0.17364818, 0, 1, 0, -0.17364818, 0, 0.9848077, 22.566145, 0.3609958, 25.032717)
+script = ExtResource("2_rotgg")
+modelo = "nature/Grass_Short.obj"
+alto = 5.0
+
+[node name="Plant_5_17" type="Node3D" parent="Vegetacion/Plantas" unique_id=570891095]
+transform = Transform3D(-0.19080903, 0, 0.98162717, 0, 1, 0, -0.98162717, 0, -0.19080903, 21.82362, 0.39624798, 24.198883)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_5.obj"
+alto = 8.0
+
+[node name="Grass_17" type="Node3D" parent="Vegetacion/Plantas" unique_id=850424505]
+transform = Transform3D(0.7193396, 0, -0.6946585, 0, 1, 0, 0.6946585, 0, 0.7193396, 19.067333, 0.43680656, 28.673773)
+script = ExtResource("2_rotgg")
+modelo = "nature/Grass.obj"
+alto = 5.0
+
+[node name="Plant_4_17" type="Node3D" parent="Vegetacion/Plantas" unique_id=1812449876]
+transform = Transform3D(0.6819984, 0, 0.7313537, 0, 1, 0, -0.7313537, 0, 0.6819984, 18.572525, 0.43367946, 29.243412)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_4.obj"
+alto = 8.0
+
+[node name="Plant_1_26" type="Node3D" parent="Vegetacion/Plantas" unique_id=1833439525]
+transform = Transform3D(-0.7431448, 0, 0.6691306, 0, 1, 0, -0.6691306, 0, -0.7431448, 18.651405, 0.46367577, 28.037903)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_1.obj"
+alto = 8.0
+
+[node name="Grass_Short_17" type="Node3D" parent="Vegetacion/Plantas" unique_id=1191735151]
+transform = Transform3D(0.99254614, 0, -0.12186943, 0, 1, 0, 0.12186943, 0, 0.99254614, 24.633457, 0.30439615, 32.255943)
+script = ExtResource("2_rotgg")
+modelo = "nature/Grass_Short.obj"
+alto = 5.0
+
+[node name="Plant_5_18" type="Node3D" parent="Vegetacion/Plantas" unique_id=1102861694]
+transform = Transform3D(0.10452842, 0, 0.9945219, 0, 1, 0, -0.9945219, 0, 0.10452842, 23.946377, 0.30819675, 32.16366)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_5.obj"
+alto = 8.0
+
+[node name="Grass_18" type="Node3D" parent="Vegetacion/Plantas" unique_id=864484434]
+transform = Transform3D(-0.99619466, 0, 0.08715588, 0, 1, 0, -0.08715588, 0, -0.99619466, 24.78859, 0.3015953, 31.47401)
+script = ExtResource("2_rotgg")
+modelo = "nature/Grass.obj"
+alto = 5.0
+
+[node name="Plant_4_18" type="Node3D" parent="Vegetacion/Plantas" unique_id=32688425]
+transform = Transform3D(0.8660254, 0, 0.5, 0, 1, 0, -0.5, 0, 0.8660254, 19.6277, 0.1406077, 39.0056)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_4.obj"
+alto = 8.0
+
+[node name="Plant_1_27" type="Node3D" parent="Vegetacion/Plantas" unique_id=539859112]
+transform = Transform3D(-0.515038, 0, 0.8571673, 0, 1, 0, -0.8571673, 0, -0.515038, 19.254202, 0.15009193, 38.319344)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_1.obj"
+alto = 8.0
+
+[node name="Grass_Short_18" type="Node3D" parent="Vegetacion/Plantas" unique_id=776559886]
+transform = Transform3D(-0.8480481, 0, -0.52991927, 0, 1, 0, 0.52991927, 0, -0.8480481, 20.239683, 0.16620642, 38.653294)
+script = ExtResource("2_rotgg")
+modelo = "nature/Grass_Short.obj"
+alto = 5.0
+
+[node name="Plant_5_19" type="Node3D" parent="Vegetacion/Plantas" unique_id=507418084]
+transform = Transform3D(0.3907312, 0, 0.9205048, 0, 1, 0, -0.9205048, 0, 0.3907312, 23.40155, 0.17844324, 43.626686)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_5.obj"
+alto = 8.0
+
+[node name="Grass_19" type="Node3D" parent="Vegetacion/Plantas" unique_id=1582464779]
+transform = Transform3D(-0.9271838, 0, 0.3746067, 0, 1, 0, -0.3746067, 0, -0.9271838, 23.616613, 0.19890226, 42.851696)
+script = ExtResource("2_rotgg")
+modelo = "nature/Grass.obj"
+alto = 5.0
+
+[node name="Plant_4_19" type="Node3D" parent="Vegetacion/Plantas" unique_id=1406600881]
+transform = Transform3D(-0.35836777, 0, -0.9335805, 0, 1, 0, 0.9335805, 0, -0.35836777, 24.019821, 0.19460526, 43.963383)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_4.obj"
+alto = 8.0
+
+[node name="Plant_1_28" type="Node3D" parent="Vegetacion/Plantas" unique_id=464434013]
+transform = Transform3D(0.7547096, 0, 0.656059, 0, 1, 0, -0.656059, 0, 0.7547096, 2.4839785, 0.31346673, -27.003185)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_1.obj"
+alto = 6.0
+
+[node name="Plant_1_29" type="Node3D" parent="Vegetacion/Plantas" unique_id=518416705]
+transform = Transform3D(-0.05233594, 0, 0.9986295, 0, 1, 0, -0.9986295, 0, -0.05233594, 1.4341114, 0.3266062, -25.894758)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_1.obj"
+alto = 6.2
+
+[node name="Plant_1_30" type="Node3D" parent="Vegetacion/Plantas" unique_id=2127070441]
+transform = Transform3D(0.29237148, 0, -0.95630485, 0, 1, 0, 0.95630485, 0, 0.29237148, 2.42338, 0.31633857, -23.324148)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_1.obj"
+alto = 6.0
+
+[node name="Plant_1_31" type="Node3D" parent="Vegetacion/Plantas" unique_id=1147670825]
+transform = Transform3D(0.15643454, 0, -0.9876883, 0, 1, 0, 0.9876883, 0, 0.15643454, 1.4353529, 0.34606192, -22.215721)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_1.obj"
+alto = 6.2
+
+[node name="Plant_3_9" type="Node3D" parent="Vegetacion/Plantas" unique_id=695738236]
+transform = Transform3D(0.64278764, 0, 0.76604444, 0, 1, 0, -0.76604444, 0, 0.64278764, 2.1955662, 0.33740786, -21.48463)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_3.obj"
+alto = 6.0
+
+[node name="Plant_3_10" type="Node3D" parent="Vegetacion/Plantas" unique_id=896743562]
+transform = Transform3D(0.7313539, 0, 0.6819982, 0, 1, 0, -0.6819982, 0, 0.7313539, 1.6104218, 0.31002206, -19.76303)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_3.obj"
+alto = 6.2
+
+[node name="Plant_1_32" type="Node3D" parent="Vegetacion/Plantas" unique_id=93172638]
+transform = Transform3D(-0.25881886, 0, 0.9659259, 0, 1, 0, -0.9659259, 0, -0.25881886, 1.4093715, 0.31525877, -18.536684)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_1.obj"
+alto = 6.2
+
+[node name="Plant_3_11" type="Node3D" parent="Vegetacion/Plantas" unique_id=1871760897]
+transform = Transform3D(-0.6560591, 0, -0.75470954, 0, 1, 0, 0.75470954, 0, -0.6560591, 1.5340236, 0.33844873, -16.083994)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_3.obj"
+alto = 6.2
+
+[node name="Plant_3_12" type="Node3D" parent="Vegetacion/Plantas" unique_id=1877351472]
+transform = Transform3D(0.99254614, 0, -0.12186926, 0, 1, 0, 0.12186926, 0, 0.99254614, 2.9069495, 0.23767671, -13.631302)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_3.obj"
+alto = 6.2
+
+[node name="Plant_1_33" type="Node3D" parent="Vegetacion/Plantas" unique_id=699026854]
+transform = Transform3D(-0.7313542, 0, -0.68199784, 0, 1, 0, 0.68199784, 0, -0.7313542, 4.0328684, 0.24975997, -13.513385)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_1.obj"
+alto = 6.0
+
+[node name="Plant_3_13" type="Node3D" parent="Vegetacion/Plantas" unique_id=1313792821]
+transform = Transform3D(0.5735767, 0, 0.8191519, 0, 1, 0, -0.8191519, 0, 0.5735767, 2.9481397, 0.2520808, -12.404957)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_3.obj"
+alto = 6.2
+
+[node name="Plant_3_14" type="Node3D" parent="Vegetacion/Plantas" unique_id=728794897]
+transform = Transform3D(0.9702956, 0, -0.24192236, 0, 1, 0, 0.24192236, 0, 0.9702956, 4.235841, 0.15283686, -11.673866)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_3.obj"
+alto = 6.0
+
+[node name="Plant_3_15" type="Node3D" parent="Vegetacion/Plantas" unique_id=1669183510]
+transform = Transform3D(0.37460747, 0, 0.9271835, 0, 1, 0, -0.9271835, 0, 0.37460747, 2.5706394, 0.16179124, -10.44752)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_3.obj"
+alto = 6.0
+
+[node name="Plant_3_16" type="Node3D" parent="Vegetacion/Plantas" unique_id=2008819965]
+transform = Transform3D(-0.9998477, 0, 0.017452586, 0, 1, 0, -0.017452586, 0, -0.9998477, 0.86483145, 0.13972135, -9.952266)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_3.obj"
+alto = 6.2
+
+[node name="Plant_1_34" type="Node3D" parent="Vegetacion/Plantas" unique_id=1845635106]
+transform = Transform3D(-0.32556793, 0, 0.9455187, 0, 1, 0, -0.9455187, 0, -0.32556793, 2.1733172, 0.12855564, -9.834348)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_1.obj"
+alto = 6.0
+
+[node name="Plant_1_35" type="Node3D" parent="Vegetacion/Plantas" unique_id=370752106]
+transform = Transform3D(0.5446382, 0, -0.8386711, 0, 1, 0, 0.8386711, 0, 0.5446382, 2.2665238, 0.10288596, -7.4995747)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_1.obj"
+alto = 7.2
+
+[node name="Plant_3_17" type="Node3D" parent="Vegetacion/Plantas" unique_id=1007472176]
+transform = Transform3D(0.69465804, 0, -0.71934015, 0, 1, 0, 0.71934015, 0, 0.69465804, 3.693672, 0.04860519, -7.027903)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_3.obj"
+alto = 7.0
+
+[node name="Plant_3_18" type="Node3D" parent="Vegetacion/Plantas" unique_id=235695998]
+transform = Transform3D(0.99619466, 0, 0.08715625, 0, 1, 0, -0.08715625, 0, 0.99619466, 2.4605818, 0.044414427, -6.7920675)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_3.obj"
+alto = 7.2
+
+[node name="Plant_1_36" type="Node3D" parent="Vegetacion/Plantas" unique_id=1082003943]
+transform = Transform3D(0.22495128, 0, 0.97437, 0, 1, 0, -0.97437, 0, 0.22495128, 3.739433, -0.001284636, -5.966643)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_1.obj"
+alto = 7.0
+
+[node name="Plant_3_19" type="Node3D" parent="Vegetacion/Plantas" unique_id=140101518]
+transform = Transform3D(-0.469472, 0, 0.8829474, 0, 1, 0, -0.8829474, 0, -0.469472, 3.3994021, -0.022275196, -5.6128893)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_3.obj"
+alto = 7.0
+
+[node name="Plant_1_37" type="Node3D" parent="Vegetacion/Plantas" unique_id=688890169]
+transform = Transform3D(-0.62932014, 0, 0.77714616, 0, 1, 0, -0.77714616, 0, -0.62932014, 1.7583282, -0.027042517, -5.3770537)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_1.obj"
+alto = 7.2
+
+[node name="Plant_1_38" type="Node3D" parent="Vegetacion/Plantas" unique_id=734468063]
+transform = Transform3D(-0.48480898, 0, -0.8746201, 0, 1, 0, 0.8746201, 0, -0.48480898, 3.4213593, -0.024155328, -4.5516286)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_1.obj"
+alto = 7.0
+
+[node name="Plant_3_20" type="Node3D" parent="Vegetacion/Plantas" unique_id=1226957081]
+transform = Transform3D(0.99756414, 0, 0.069755524, 0, 1, 0, -0.069755524, 0, 0.99756414, 4.16677, -0.016048335, -3.4903681)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_3.obj"
+alto = 7.0
+
+[node name="Plant_1_39" type="Node3D" parent="Vegetacion/Plantas" unique_id=472915088]
+transform = Transform3D(0.70710707, 0, -0.70710653, 0, 1, 0, 0.70710653, 0, 0.70710707, 2.747368, -0.029252723, -3.2545323)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_1.obj"
+alto = 7.2
+
+[node name="Plant_1_40" type="Node3D" parent="Vegetacion/Plantas" unique_id=155438448]
+transform = Transform3D(-0.601816, 0, 0.79863477, 0, 1, 0, -0.79863477, 0, -0.601816, 3.879817, -0.02842322, -2.4291074)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_1.obj"
+alto = 7.0
+
+[node name="Plant_3_21" type="Node3D" parent="Vegetacion/Plantas" unique_id=1494489693]
+transform = Transform3D(0.19080943, 0, 0.9816271, 0, 1, 0, -0.9816271, 0, 0.19080943, 2.2978432, -0.028815322, -1.8395183)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_3.obj"
+alto = 7.2
+
+[node name="Plant_1_41" type="Node3D" parent="Vegetacion/Plantas" unique_id=107352792]
+transform = Transform3D(-0.87462026, 0, -0.48480856, 0, 1, 0, 0.48480856, 0, -0.87462026, 3.6276946, -0.022467317, -1.7216004)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_1.obj"
+alto = 7.0
+
+[node name="Plant_3_22" type="Node3D" parent="Vegetacion/Plantas" unique_id=170257783]
+transform = Transform3D(-0.34201878, 0, -0.9396931, 0, 1, 0, 0.9396931, 0, -0.34201878, 3.3643818, -0.043999486, -1.367847)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_3.obj"
+alto = 7.0
+
+[node name="Plant_3_23" type="Node3D" parent="Vegetacion/Plantas" unique_id=2095494556]
+transform = Transform3D(0.88294715, 0, -0.4694724, 0, 1, 0, 0.4694724, 0, 0.88294715, 3.2786584, -0.04175494, -0.6603399)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_3.obj"
+alto = 7.0
+
+[node name="Plant_3_24" type="Node3D" parent="Vegetacion/Plantas" unique_id=1560974798]
+transform = Transform3D(-0.08715549, 0, -0.9961947, 0, 1, 0, 0.9961947, 0, -0.08715549, 2.1485915, -0.039876238, 0.28300282)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_3.obj"
+alto = 7.2
+
+[node name="Plant_1_42" type="Node3D" parent="Vegetacion/Plantas" unique_id=1434294457]
+transform = Transform3D(-0.08715503, 0, 0.9961948, 0, 1, 0, -0.9961948, 0, -0.08715503, 3.8270566, 8.482188e-05, 0.40092066)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_1.obj"
+alto = 7.0
+
+[node name="Plant_3_25" type="Node3D" parent="Vegetacion/Plantas" unique_id=1241820333]
+transform = Transform3D(0.9271844, 0, 0.37460527, 0, 1, 0, -0.37460527, 0, 0.9271844, 2.7550085, -0.009587767, 2.8771954)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_3.obj"
+alto = 7.0
+
+[node name="Plant_3_26" type="Node3D" parent="Vegetacion/Plantas" unique_id=1616401171]
+transform = Transform3D(-0.819152, 0, -0.5735765, 0, 1, 0, 0.5735765, 0, -0.819152, 1.1932714, -0.047946595, 3.820538)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_3.obj"
+alto = 7.2
+
+[node name="Plant_1_43" type="Node3D" parent="Vegetacion/Plantas" unique_id=289128764]
+transform = Transform3D(0.93358016, 0, -0.3583686, 0, 1, 0, 0.3583686, 0, 0.93358016, 1.0873044, -0.021262065, 5.2355523)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_1.obj"
+alto = 7.2
+
+[node name="Plant_1_44" type="Node3D" parent="Vegetacion/Plantas" unique_id=2099503800]
+transform = Transform3D(-0.96592534, 0, 0.2588209, 0, 1, 0, -0.2588209, 0, -0.96592534, 2.1519852, -0.10090869, 7.358073)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_1.obj"
+alto = 7.2
+
+[node name="Plant_3_27" type="Node3D" parent="Vegetacion/Plantas" unique_id=1581325577]
+transform = Transform3D(-0.52992046, 0, 0.8480473, 0, 1, 0, -0.8480473, 0, -0.52992046, 3.7041693, -0.09102959, 10.989943)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_3.obj"
+alto = 6.0
+
+[node name="Plant_3_28" type="Node3D" parent="Vegetacion/Plantas" unique_id=523689314]
+transform = Transform3D(-0.42261815, 0, 0.9063078, 0, 1, 0, -0.9063078, 0, -0.42261815, 2.6739218, -0.106367916, 12.711543)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_3.obj"
+alto = 6.2
+
+[node name="Plant_1_45" type="Node3D" parent="Vegetacion/Plantas" unique_id=10915627]
+transform = Transform3D(-0.4226202, 0, -0.90630686, 0, 1, 0, 0.90630686, 0, -0.4226202, 3.5046158, -0.105365664, 12.829461)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_1.obj"
+alto = 6.0
+
+[node name="Plant_3_29" type="Node3D" parent="Vegetacion/Plantas" unique_id=1015920321]
+transform = Transform3D(0.99026835, 0, 0.13917121, 0, 1, 0, -0.13917121, 0, 0.99026835, 3.255263, -0.05809044, 14.66898)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_3.obj"
+alto = 6.0
+
+[node name="Plant_3_30" type="Node3D" parent="Vegetacion/Plantas" unique_id=449021167]
+transform = Transform3D(-0.5150389, 0, -0.8571668, 0, 1, 0, 0.8571668, 0, -0.5150389, 2.0537522, -0.04824441, 15.164234)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_3.obj"
+alto = 6.2
+
+[node name="Plant_1_46" type="Node3D" parent="Vegetacion/Plantas" unique_id=991575631]
+transform = Transform3D(0.6560585, 0, 0.7547101, 0, 1, 0, -0.7547101, 0, 0.6560585, 3.2626145, 0.0044471463, 15.282152)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_1.obj"
+alto = 6.0
+
+[node name="Plant_3_31" type="Node3D" parent="Vegetacion/Plantas" unique_id=2057493046]
+transform = Transform3D(0.51503694, 0, -0.857168, 0, 1, 0, 0.857168, 0, 0.51503694, 2.0297446, -0.029875226, 16.39058)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_3.obj"
+alto = 6.2
+
+[node name="Plant_3_32" type="Node3D" parent="Vegetacion/Plantas" unique_id=947908378]
+transform = Transform3D(-0.9902677, 0, 0.13917594, 0, 1, 0, -0.13917594, 0, -0.9902677, 2.8958824, -0.019137291, 17.12167)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_3.obj"
+alto = 6.0
+
+[node name="Plant_1_47" type="Node3D" parent="Vegetacion/Plantas" unique_id=336473961]
+transform = Transform3D(0.9563051, 0, 0.29237056, 0, 1, 0, -0.29237056, 0, 0.9563051, 2.1270907, -0.040937483, 20.187534)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_1.obj"
+alto = 6.0
+
+[node name="Plant_1_48" type="Node3D" parent="Vegetacion/Plantas" unique_id=889597020]
+transform = Transform3D(-0.9876882, 0, -0.1564353, 0, 1, 0, 0.1564353, 0, -0.9876882, 0.96147156, -0.033356678, 21.295961)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_1.obj"
+alto = 6.2
+
+[node name="Grass_2_1" type="Node3D" parent="Vegetacion/Plantas" unique_id=2074883609]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.283, 0.30040196, -17.805593)
+script = ExtResource("2_rotgg")
+modelo = "nature/Grass_2.obj"
+alto = 4.5
+
+[node name="Bush_2_9" type="Node3D" parent="Vegetacion/Plantas" unique_id=1053582631]
+transform = Transform3D(0.7547096, 0, 0.656059, 0, 1, 0, -0.656059, 0, 0.7547096, 1.28, 0.32397708, -18.348017)
+script = ExtResource("2_rotgg")
+modelo = "nature/Bush_2.obj"
+alto = 10.3
+
+[node name="Plant_3_33" type="Node3D" parent="Vegetacion/Plantas" unique_id=1239648635]
+transform = Transform3D(0.3907312, 0, 0.9205048, 0, 1, 0, -0.9205048, 0, 0.3907312, 1.268404, 0.32491, -18.268877)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_3.obj"
+alto = 8.5
+
+[node name="BushBerries_2_9" type="Node3D" parent="Vegetacion/Plantas" unique_id=1844489831]
+transform = Transform3D(-0.54463905, 0, 0.83867055, 0, 1, 0, -0.83867055, 0, -0.54463905, 1.24, 0.3348277, -19.43286)
+script = ExtResource("2_rotgg")
+modelo = "nature/BushBerries_2.obj"
+alto = 13.9
+
+[node name="Plant_5_20" type="Node3D" parent="Vegetacion/Plantas" unique_id=168507459]
+transform = Transform3D(-0.93358046, 0, -0.35836786, 0, 1, 0, 0.35836786, 0, -0.93358046, 1.274018, 0.32614183, -19.371473)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_5.obj"
+alto = 7.2
+
+[node name="Grass_2_2" type="Node3D" parent="Vegetacion/Plantas" unique_id=557158360]
+transform = Transform3D(0.052335974, 0, 0.9986295, 0, 1, 0, -0.9986295, 0, 0.052335974, 1.1957766, 0.34866956, -19.512663)
+script = ExtResource("2_rotgg")
+modelo = "nature/Grass_2.obj"
+alto = 4.5
+
+[node name="Bush_1_29" type="Node3D" parent="Vegetacion/Plantas" unique_id=73456613]
+transform = Transform3D(-0.9612617, 0, 0.27563736, 0, 1, 0, -0.27563736, 0, -0.9612617, 1.38, 0.3413998, -19.951698)
+script = ExtResource("2_rotgg")
+modelo = "nature/Bush_1.obj"
+alto = 8.5
+
+[node name="Plant_2_1" type="Node3D" parent="Vegetacion/Plantas" unique_id=1728804220]
+transform = Transform3D(-0.034899764, 0, -0.99939084, 0, 1, 0, 0.99939084, 0, -0.034899764, 1.4582459, 0.3321644, -19.928045)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_2.obj"
+alto = 8.5
+
+[node name="Bush_2_10" type="Node3D" parent="Vegetacion/Plantas" unique_id=319999373]
+transform = Transform3D(-0.9063078, 0, -0.42261827, 0, 1, 0, 0.42261827, 0, -0.9063078, 1.22, 0.3407907, -20.470537)
+script = ExtResource("2_rotgg")
+modelo = "nature/Bush_2.obj"
+alto = 10.3
+
+[node name="Plant_3_34" type="Node3D" parent="Vegetacion/Plantas" unique_id=188989625]
+transform = Transform3D(0.9063077, 0, -0.42261845, 0, 1, 0, 0.42261845, 0, 0.9063077, 1.1658189, 0.34755287, -20.563444)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_3.obj"
+alto = 9.8
+
+[node name="BushBerries_1_9" type="Node3D" parent="Vegetacion/Plantas" unique_id=372626548]
+transform = Transform3D(-0.40673664, 0, -0.9135454, 0, 1, 0, 0.9135454, 0, -0.40673664, 1.4, 0.31408396, -20.94221)
+script = ExtResource("2_rotgg")
+modelo = "nature/BushBerries_1.obj"
+alto = 12.1
+
+[node name="Plant_4_20" type="Node3D" parent="Vegetacion/Plantas" unique_id=990042052]
+transform = Transform3D(0.7431449, 0, 0.6691305, 0, 1, 0, -0.6691305, 0, 0.7431449, 1.3357161, 0.32669163, -20.842058)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_4.obj"
+alto = 7.2
+
+[node name="Grass_2_3" type="Node3D" parent="Vegetacion/Plantas" unique_id=1753595100]
+transform = Transform3D(-0.9945219, 0, 0.104528494, 0, 1, 0, -0.104528494, 0, -0.9945219, 1.483569, 0.30391517, -21.072405)
+script = ExtResource("2_rotgg")
+modelo = "nature/Grass_2.obj"
+alto = 4.5
+
+[node name="BushBerries_2_10" type="Node3D" parent="Vegetacion/Plantas" unique_id=1744764930]
+transform = Transform3D(0.29237148, 0, -0.95630485, 0, 1, 0, 0.95630485, 0, 0.29237148, 1.26, 0.31600806, -21.41388)
+script = ExtResource("2_rotgg")
+modelo = "nature/BushBerries_2.obj"
+alto = 13.9
+
+[node name="Plant_5_21" type="Node3D" parent="Vegetacion/Plantas" unique_id=1401432488]
+transform = Transform3D(-0.3255685, 0, 0.94551843, 0, 1, 0, -0.94551843, 0, -0.3255685, 1.3307463, 0.3044479, -21.454428)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_5.obj"
+alto = 8.5
+
+[node name="Bush_2_11" type="Node3D" parent="Vegetacion/Plantas" unique_id=1785504672]
+transform = Transform3D(0.98768836, 0, 0.15643422, 0, 1, 0, -0.15643422, 0, 0.98768836, 1.24, 0.34722272, -22.357222)
+script = ExtResource("2_rotgg")
+modelo = "nature/Bush_2.obj"
+alto = 10.3
+
+[node name="Plant_3_35" type="Node3D" parent="Vegetacion/Plantas" unique_id=1180574961]
+transform = Transform3D(-0.45399094, 0, -0.8910063, 0, 1, 0, 0.8910063, 0, -0.45399094, 1.1573863, 0.3491098, -22.255219)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_3.obj"
+alto = 7.2
+
+[node name="Grass_2_4" type="Node3D" parent="Vegetacion/Plantas" unique_id=2059988463]
+transform = Transform3D(-0.15643452, 0, -0.9876883, 0, 1, 0, 0.9876883, 0, -0.15643452, 1.3473979, 0.3509248, -22.489826)
+script = ExtResource("2_rotgg")
+modelo = "nature/Grass_2.obj"
+alto = 4.5
+
+[node name="BushBerries_1_10" type="Node3D" parent="Vegetacion/Plantas" unique_id=90908512]
+transform = Transform3D(0.64278764, 0, 0.76604444, 0, 1, 0, -0.76604444, 0, 0.64278764, 1.4, 0.33695662, -22.923227)
+script = ExtResource("2_rotgg")
+modelo = "nature/BushBerries_1.obj"
+alto = 12.1
+
+[node name="Plant_4_21" type="Node3D" parent="Vegetacion/Plantas" unique_id=593834280]
+transform = Transform3D(0.6427873, 0, -0.76604474, 0, 1, 0, 0.76604474, 0, 0.6427873, 1.3752353, 0.34116068, -23.013035)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_4.obj"
+alto = 8.5
+
+[node name="BushBerries_2_11" type="Node3D" parent="Vegetacion/Plantas" unique_id=1220229200]
+transform = Transform3D(-0.01745217, 0, 0.9998477, 0, 1, 0, -0.9998477, 0, -0.01745217, 1.2, 0.34722272, -23.489233)
+script = ExtResource("2_rotgg")
+modelo = "nature/BushBerries_2.obj"
+alto = 13.9
+
+[node name="Plant_5_22" type="Node3D" parent="Vegetacion/Plantas" unique_id=1462826353]
+transform = Transform3D(0.95630485, 0, 0.29237133, 0, 1, 0, -0.29237133, 0, 0.95630485, 1.2889954, 0.3491098, -23.471567)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_5.obj"
+alto = 9.8
+
+[node name="Bush_1_30" type="Node3D" parent="Vegetacion/Plantas" unique_id=218421908]
+transform = Transform3D(-0.6691306, 0, 0.7431448, 0, 1, 0, -0.7431448, 0, -0.6691306, 0.88, 0.34722272, -18.819687)
+script = ExtResource("2_rotgg")
+modelo = "nature/Bush_1.obj"
+alto = 8.5
+
+[node name="Plant_2_2" type="Node3D" parent="Vegetacion/Plantas" unique_id=1373649508]
+transform = Transform3D(0.104528785, 0, 0.99452186, 0, 1, 0, -0.99452186, 0, 0.104528785, 0.8818316, 0.3491098, -18.753426)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_2.obj"
+alto = 7.2
+
+[node name="Grass_2_5" type="Node3D" parent="Vegetacion/Plantas" unique_id=880822014]
+transform = Transform3D(0.97814757, 0, -0.20791176, 0, 1, 0, 0.20791176, 0, 0.97814757, 0.87761897, 0.35099685, -18.905828)
+script = ExtResource("2_rotgg")
+modelo = "nature/Grass_2.obj"
+alto = 4.5
+
+[node name="Bush_2_12" type="Node3D" parent="Vegetacion/Plantas" unique_id=49212960]
+transform = Transform3D(-0.99254614, 0, 0.12186958, 0, 1, 0, -0.12186958, 0, -0.99254614, 0.92, 0.34722272, -19.857365)
+script = ExtResource("2_rotgg")
+modelo = "nature/Bush_2.obj"
+alto = 10.3
+
+[node name="Plant_3_36" type="Node3D" parent="Vegetacion/Plantas" unique_id=642559194]
+transform = Transform3D(-0.8746196, 0, 0.48480985, 0, 1, 0, -0.48480985, 0, -0.8746196, 0.83053267, 0.3491098, -19.963331)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_3.obj"
+alto = 8.5
+
+[node name="BushBerries_1_11" type="Node3D" parent="Vegetacion/Plantas" unique_id=228650702]
+transform = Transform3D(-0.82903785, 0, -0.5591925, 0, 1, 0, 0.5591925, 0, -0.82903785, 0.84, 0.34722272, -20.847874)
+script = ExtResource("2_rotgg")
+modelo = "nature/BushBerries_1.obj"
+alto = 12.1
+
+[node name="Plant_4_22" type="Node3D" parent="Vegetacion/Plantas" unique_id=914347611]
+transform = Transform3D(-0.7880103, 0, -0.61566204, 0, 1, 0, 0.61566204, 0, -0.7880103, 0.86122316, 0.3491098, -20.772932)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_4.obj"
+alto = 9.8
+
+[node name="BushBerries_2_12" type="Node3D" parent="Vegetacion/Plantas" unique_id=31274845]
+transform = Transform3D(-0.2588188, 0, -0.9659259, 0, 1, 0, 0.9659259, 0, -0.2588188, 0.9, 0.34722272, -21.838385)
+script = ExtResource("2_rotgg")
+modelo = "nature/BushBerries_2.obj"
+alto = 13.9
+
+[node name="Plant_5_23" type="Node3D" parent="Vegetacion/Plantas" unique_id=1940282257]
+transform = Transform3D(0.25881982, 0, -0.96592563, 0, 1, 0, 0.96592563, 0, 0.25881982, 0.98399836, 0.3491098, -21.832283)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_5.obj"
+alto = 7.2
+
+[node name="Grass_2_6" type="Node3D" parent="Vegetacion/Plantas" unique_id=467897440]
+transform = Transform3D(0.25881913, 0, 0.9659258, 0, 1, 0, -0.9659258, 0, 0.25881913, 0.7908022, 0.35099685, -21.846315)
+script = ExtResource("2_rotgg")
+modelo = "nature/Grass_2.obj"
+alto = 4.5
+
+[node name="Bush_1_31" type="Node3D" parent="Vegetacion/Plantas" unique_id=676174147]
+transform = Transform3D(0.43837115, 0, -0.89879405, 0, 1, 0, 0.89879405, 0, 0.43837115, 0.56, 0.34722272, -19.291359)
+script = ExtResource("2_rotgg")
+modelo = "nature/Bush_1.obj"
+alto = 8.5
+
+[node name="Plant_2_3" type="Node3D" parent="Vegetacion/Plantas" unique_id=1287296300]
+transform = Transform3D(0.99026793, 0, -0.13917416, 0, 1, 0, 0.13917416, 0, 0.99026793, 0.5171314, 0.3491098, -19.374432)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_2.obj"
+alto = 8.5
+
+[node name="Bush_2_13" type="Node3D" parent="Vegetacion/Plantas" unique_id=1241889608]
+transform = Transform3D(0.92050475, 0, -0.39073133, 0, 1, 0, 0.39073133, 0, 0.92050475, 0.52, 0.34722272, -20.376204)
+script = ExtResource("2_rotgg")
+modelo = "nature/Bush_2.obj"
+alto = 10.3
+
+[node name="Plant_3_37" type="Node3D" parent="Vegetacion/Plantas" unique_id=856630876]
+transform = Transform3D(0.51503897, 0, 0.85716677, 0, 1, 0, -0.85716677, 0, 0.51503897, 0.44704843, 0.30659288, -20.271605)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_3.obj"
+alto = 9.8
+
+[node name="BushBerries_1_12" type="Node3D" parent="Vegetacion/Plantas" unique_id=665139850]
+transform = Transform3D(0.95105666, 0, 0.30901656, 0, 1, 0, -0.30901656, 0, 0.95105666, 0.6, 0.34722272, -21.366713)
+script = ExtResource("2_rotgg")
+modelo = "nature/BushBerries_1.obj"
+alto = 12.1
+
+[node name="Plant_4_23" type="Node3D" parent="Vegetacion/Plantas" unique_id=156505201]
+transform = Transform3D(-0.58778447, 0, 0.80901754, 0, 1, 0, -0.80901754, 0, -0.58778447, 0.66166747, 0.3491098, -21.423021)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_4.obj"
+alto = 7.2
+
+[node name="Grass_2_7" type="Node3D" parent="Vegetacion/Plantas" unique_id=990705128]
+transform = Transform3D(-0.9510565, 0, 0.3090171, 0, 1, 0, -0.3090171, 0, -0.9510565, 0.5198323, 0.35099685, -21.29351)
+script = ExtResource("2_rotgg")
+modelo = "nature/Grass_2.obj"
+alto = 4.5
+
+[node name="BushBerries_2_13" type="Node3D" parent="Vegetacion/Plantas" unique_id=19721622]
+transform = Transform3D(0.5150379, 0, 0.8571674, 0, 1, 0, -0.8571674, 0, 0.5150379, 0.48, 0.040592965, -22.357222)
+script = ExtResource("2_rotgg")
+modelo = "nature/BushBerries_2.obj"
+alto = 13.9
+
+[node name="Plant_5_24" type="Node3D" parent="Vegetacion/Plantas" unique_id=410277057]
+transform = Transform3D(-0.97437024, 0, -0.22495016, 0, 1, 0, 0.22495016, 0, -0.97437024, 0.53706056, 0.3491098, -22.386786)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_5.obj"
+alto = 8.5
+
+[node name="Bush_1_32" type="Node3D" parent="Vegetacion/Plantas" unique_id=1093253570]
+transform = Transform3D(-0.17364818, 0, 0.9848077, 0, 1, 0, -0.9848077, 0, -0.17364818, 1.96, 0.3077799, -17.640509)
+script = ExtResource("2_rotgg")
+modelo = "nature/Bush_1.obj"
+alto = 8.5
+
+[node name="BushBerries_1_13" type="Node3D" parent="Vegetacion/Plantas" unique_id=1257455806]
+transform = Transform3D(-0.99939084, 0, -0.034899022, 0, 1, 0, 0.034899022, 0, -0.99939084, 1.96, 0.28971875, -19.008356)
+script = ExtResource("2_rotgg")
+modelo = "nature/BushBerries_1.obj"
+alto = 12.1
+
+[node name="Plant_4_24" type="Node3D" parent="Vegetacion/Plantas" unique_id=660296622]
+transform = Transform3D(0.829038, 0, 0.5591923, 0, 1, 0, -0.5591923, 0, 0.829038, 2.0460038, 0.30501994, -18.973513)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_4.obj"
+alto = 8.5
+
+[node name="BushBerries_2_14" type="Node3D" parent="Vegetacion/Plantas" unique_id=366503382]
+transform = Transform3D(-0.7313542, 0, -0.68199784, 0, 1, 0, 0.68199784, 0, -0.7313542, 2.76, 0.34722272, -17.829178)
+script = ExtResource("2_rotgg")
+modelo = "nature/BushBerries_2.obj"
+alto = 13.9
+
+[node name="Plant_5_25" type="Node3D" parent="Vegetacion/Plantas" unique_id=1738674253]
+transform = Transform3D(-0.19080831, 0, 0.98162735, 0, 1, 0, -0.98162735, 0, -0.19080831, 2.7752182, 0.3491098, -17.77764)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_5.obj"
+alto = 9.8
+
+[node name="Bush_1_33" type="Node3D" parent="Vegetacion/Plantas" unique_id=1966568881]
+transform = Transform3D(-0.104528464, 0, -0.9945219, 0, 1, 0, 0.9945219, 0, -0.104528464, 2.92, 0.34722272, -18.395184)
+script = ExtResource("2_rotgg")
+modelo = "nature/Bush_1.obj"
+alto = 8.5
+
+[node name="Plant_2_4" type="Node3D" parent="Vegetacion/Plantas" unique_id=850441318]
+transform = Transform3D(-0.97814745, 0, 0.20791233, 0, 1, 0, -0.20791233, 0, -0.97814745, 2.8300745, 0.3491098, -18.498703)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_2.obj"
+alto = 7.2
+
+[node name="Grass_2_8" type="Node3D" parent="Vegetacion/Plantas" unique_id=1297699691]
+transform = Transform3D(0.9135454, 0, -0.40673676, 0, 1, 0, 0.40673676, 0, 0.9135454, 3.0369031, 0.35099685, -18.260609)
+script = ExtResource("2_rotgg")
+modelo = "nature/Grass_2.obj"
+alto = 4.5
+
+[node name="Bush_2_14" type="Node3D" parent="Vegetacion/Plantas" unique_id=1309881095]
+transform = Transform3D(0.57357705, 0, -0.81915164, 0, 1, 0, 0.81915164, 0, 0.57357705, 3.12, 0.34722272, -18.96119)
+script = ExtResource("2_rotgg")
+modelo = "nature/Bush_2.obj"
+alto = 10.3
+
+[node name="Plant_3_38" type="Node3D" parent="Vegetacion/Plantas" unique_id=296759425]
+transform = Transform3D(-0.5735769, 0, -0.8191517, 0, 1, 0, 0.8191517, 0, -0.5735769, 3.1279545, 0.3491098, -18.87478)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_3.obj"
+alto = 8.5
+
+[node name="BushBerries_1_14" type="Node3D" parent="Vegetacion/Plantas" unique_id=1149503824]
+transform = Transform3D(0.9702956, 0, -0.24192236, 0, 1, 0, 0.24192236, 0, 0.9702956, 3.32, 0.34722272, -19.385693)
+script = ExtResource("2_rotgg")
+modelo = "nature/BushBerries_1.obj"
+alto = 12.1
+
+[node name="Plant_4_25" type="Node3D" parent="Vegetacion/Plantas" unique_id=1540593697]
+transform = Transform3D(0.5299188, 0, -0.8480484, 0, 1, 0, 0.8480484, 0, 0.5299188, 3.4078758, 0.3491098, -19.397316)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_4.obj"
+alto = 9.8
+
+[node name="BushBerries_2_15" type="Node3D" parent="Vegetacion/Plantas" unique_id=1486284310]
+transform = Transform3D(0.8910064, 0, 0.4539907, 0, 1, 0, -0.4539907, 0, 0.8910064, 3.4, 0.34722272, -19.76303)
+script = ExtResource("2_rotgg")
+modelo = "nature/BushBerries_2.obj"
+alto = 13.9
+
+[node name="Plant_5_26" type="Node3D" parent="Vegetacion/Plantas" unique_id=1609970760]
+transform = Transform3D(0.9876884, 0, 0.15643398, 0, 1, 0, -0.15643398, 0, 0.9876884, 3.369401, 0.3491098, -19.83395)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_5.obj"
+alto = 7.2
+
+[node name="Grass_2_9" type="Node3D" parent="Vegetacion/Plantas" unique_id=50767622]
+transform = Transform3D(0.45399064, 0, 0.89100647, 0, 1, 0, -0.89100647, 0, 0.45399064, 3.4397788, 0.35099685, -19.670835)
+script = ExtResource("2_rotgg")
+modelo = "nature/Grass_2.obj"
+alto = 4.5
+
+[node name="Bush_1_34" type="Node3D" parent="Vegetacion/Plantas" unique_id=334990076]
+transform = Transform3D(0.37460747, 0, 0.9271835, 0, 1, 0, -0.9271835, 0, 0.37460747, 3.36, 0.34722272, -20.187534)
+script = ExtResource("2_rotgg")
+modelo = "nature/Bush_1.obj"
+alto = 8.5
+
+[node name="Plant_2_5" type="Node3D" parent="Vegetacion/Plantas" unique_id=490797050]
+transform = Transform3D(0.24192047, 0, 0.9702961, 0, 1, 0, -0.9702961, 0, 0.24192047, 3.2800095, 0.3491098, -20.081408)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_2.obj"
+alto = 8.5
+
+[node name="Bush_2_15" type="Node3D" parent="Vegetacion/Plantas" unique_id=1348044033]
+transform = Transform3D(-0.32556793, 0, 0.9455187, 0, 1, 0, -0.9455187, 0, -0.32556793, 3.4, 0.34722272, -20.612038)
+script = ExtResource("2_rotgg")
+modelo = "nature/Bush_2.obj"
+alto = 10.3
+
+[node name="Plant_3_39" type="Node3D" parent="Vegetacion/Plantas" unique_id=1675286651]
+transform = Transform3D(-0.7986353, 0, 0.60181534, 0, 1, 0, -0.60181534, 0, -0.7986353, 3.451212, 0.3491098, -20.682537)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_3.obj"
+alto = 9.8
+
+[node name="BushBerries_1_15" type="Node3D" parent="Vegetacion/Plantas" unique_id=1164955321]
+transform = Transform3D(-0.8660256, 0, 0.49999958, 0, 1, 0, -0.49999958, 0, -0.8660256, 3.32, 0.34722272, -21.036543)
+script = ExtResource("2_rotgg")
+modelo = "nature/BushBerries_1.obj"
+alto = 12.1
+
+[node name="Plant_4_26" type="Node3D" parent="Vegetacion/Plantas" unique_id=39331160]
+transform = Transform3D(-0.8660246, 0, -0.5000014, 0, 1, 0, 0.5000014, 0, -0.8660246, 3.3867939, 0.3491098, -21.048725)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_4.obj"
+alto = 7.2
+
+[node name="Grass_2_10" type="Node3D" parent="Vegetacion/Plantas" unique_id=970377443]
+transform = Transform3D(-0.8660253, 0, 0.5000001, 0, 1, 0, -0.5000001, 0, -0.8660253, 3.2331681, 0.35099685, -21.020706)
+script = ExtResource("2_rotgg")
+modelo = "nature/Grass_2.obj"
+alto = 4.5
+
+[node name="BushBerries_2_16" type="Node3D" parent="Vegetacion/Plantas" unique_id=312695814]
+transform = Transform3D(-0.98162735, 0, -0.1908083, 0, 1, 0, 0.1908083, 0, -0.98162735, 3.24, 0.34722272, -21.41388)
+script = ExtResource("2_rotgg")
+modelo = "nature/BushBerries_2.obj"
+alto = 13.9
+
+[node name="Plant_5_27" type="Node3D" parent="Vegetacion/Plantas" unique_id=1742697081]
+transform = Transform3D(0.121869065, 0, -0.9925462, 0, 1, 0, 0.9925462, 0, 0.121869065, 3.1715763, 0.3491098, -21.327147)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_5.obj"
+alto = 8.5
+
+[node name="Bush_1_35" type="Node3D" parent="Vegetacion/Plantas" unique_id=1238311260]
+transform = Transform3D(-0.6156615, 0, -0.7880108, 0, 1, 0, 0.7880108, 0, -0.6156615, 3.16, 0.34722272, -21.791218)
+script = ExtResource("2_rotgg")
+modelo = "nature/Bush_1.obj"
+alto = 8.5
+
+[node name="Plant_2_6" type="Node3D" parent="Vegetacion/Plantas" unique_id=1216794858]
+transform = Transform3D(0.9612611, 0, -0.2756394, 0, 1, 0, 0.2756394, 0, 0.9612611, 3.1108384, 0.3491098, -21.89461)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_2.obj"
+alto = 9.8
+
+[node name="Bush_2_16" type="Node3D" parent="Vegetacion/Plantas" unique_id=2029981726]
+transform = Transform3D(0.05233667, 0, -0.9986295, 0, 1, 0, 0.9986295, 0, 0.05233667, 3.2, 0.34722272, -22.168554)
+script = ExtResource("2_rotgg")
+modelo = "nature/Bush_2.obj"
+alto = 10.3
+
+[node name="Plant_3_40" type="Node3D" parent="Vegetacion/Plantas" unique_id=1013513795]
+transform = Transform3D(0.6293205, 0, 0.77714586, 0, 1, 0, -0.77714586, 0, 0.6293205, 3.2810922, 0.3491098, -22.11751)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_3.obj"
+alto = 7.2
+
+[node name="Grass_2_11" type="Node3D" parent="Vegetacion/Plantas" unique_id=268150168]
+transform = Transform3D(-0.54463917, 0, -0.8386705, 0, 1, 0, 0.8386705, 0, -0.54463917, 3.0945802, 0.35099685, -22.234913)
+script = ExtResource("2_rotgg")
+modelo = "nature/Grass_2.obj"
+alto = 4.5
+
+[node name="BushBerries_1_16" type="Node3D" parent="Vegetacion/Plantas" unique_id=1050170583]
+transform = Transform3D(0.69465804, 0, -0.71934015, 0, 1, 0, 0.71934015, 0, 0.69465804, 3.28, 0.34722272, -22.54589)
+script = ExtResource("2_rotgg")
+modelo = "nature/BushBerries_1.obj"
+alto = 12.1
+
+[node name="Plant_4_27" type="Node3D" parent="Vegetacion/Plantas" unique_id=265472477]
+transform = Transform3D(-0.46946976, 0, 0.8829485, 0, 1, 0, -0.8829485, 0, -0.46946976, 3.308265, 0.3491098, -22.510517)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_4.obj"
+alto = 8.5
+
+[node name="BushBerries_2_17" type="Node3D" parent="Vegetacion/Plantas" unique_id=20545879]
+transform = Transform3D(0.9961947, 0, -0.087155506, 0, 1, 0, 0.087155506, 0, 0.9961947, 2.48, 0.31995142, -22.07422)
+script = ExtResource("2_rotgg")
+modelo = "nature/BushBerries_2.obj"
+alto = 13.9
+
+[node name="Plant_5_28" type="Node3D" parent="Vegetacion/Plantas" unique_id=273369879]
+transform = Transform3D(-0.9961947, 0, -0.08715567, 0, 1, 0, 0.08715567, 0, -0.9961947, 2.391624, 0.299382, -22.172401)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_5.obj"
+alto = 9.8
+
+[node name="Bush_1_36" type="Node3D" parent="Vegetacion/Plantas" unique_id=1219800759]
+transform = Transform3D(0.80901754, 0, 0.58778447, 0, 1, 0, -0.58778447, 0, 0.80901754, 2.52, 0.31526938, -22.498724)
+script = ExtResource("2_rotgg")
+modelo = "nature/Bush_1.obj"
+alto = 8.5
+
+[node name="Plant_2_7" type="Node3D" parent="Vegetacion/Plantas" unique_id=1148084891]
+transform = Transform3D(-0.30901882, 0, -0.95105594, 0, 1, 0, 0.95105594, 0, -0.30901882, 2.5145082, 0.3137741, -22.403265)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_2.obj"
+alto = 7.2
+
+[node name="Grass_2_12" type="Node3D" parent="Vegetacion/Plantas" unique_id=1175547323]
+transform = Transform3D(0.8090169, 0, -0.5877854, 0, 1, 0, 0.5877854, 0, 0.8090169, 2.5271392, 0.32629853, -22.62282)
+script = ExtResource("2_rotgg")
+modelo = "nature/Grass_2.obj"
+alto = 4.5
+
+[node name="Bush_2_17" type="Node3D" parent="Vegetacion/Plantas" unique_id=758583433]
+transform = Transform3D(0.22495128, 0, 0.97437, 0, 1, 0, -0.97437, 0, 0.22495128, 2.6, 0.34299293, -22.87606)
+script = ExtResource("2_rotgg")
+modelo = "nature/Bush_2.obj"
+alto = 10.3
+
+[node name="Plant_3_41" type="Node3D" parent="Vegetacion/Plantas" unique_id=872759928]
+transform = Transform3D(0.7547096, 0, -0.656059, 0, 1, 0, 0.656059, 0, 0.7547096, 2.689791, 0.3491098, -22.905083)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_3.obj"
+alto = 8.5
+
+[node name="BushBerries_1_17" type="Node3D" parent="Vegetacion/Plantas" unique_id=651520488]
+transform = Transform3D(-0.469472, 0, 0.8829474, 0, 1, 0, -0.8829474, 0, -0.469472, 3.64, 0.34722272, -19.291359)
+script = ExtResource("2_rotgg")
+modelo = "nature/BushBerries_1.obj"
+alto = 12.1
+
+[node name="Plant_4_28" type="Node3D" parent="Vegetacion/Plantas" unique_id=423333801]
+transform = Transform3D(0.89879483, 0, 0.4383695, 0, 1, 0, -0.4383695, 0, 0.89879483, 3.6223536, 0.3491098, -19.348145)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_4.obj"
+alto = 9.8
+
+[node name="BushBerries_2_18" type="Node3D" parent="Vegetacion/Plantas" unique_id=125568918]
+transform = Transform3D(-0.93358016, 0, 0.3583686, 0, 1, 0, -0.3583686, 0, -0.93358016, 3.72, 0.34722272, -20.329035)
+script = ExtResource("2_rotgg")
+modelo = "nature/BushBerries_2.obj"
+alto = 13.9
+
+[node name="Plant_5_29" type="Node3D" parent="Vegetacion/Plantas" unique_id=1743154241]
+transform = Transform3D(-0.052336093, 0, 0.9986295, 0, 1, 0, -0.9986295, 0, -0.052336093, 3.634756, 0.3491098, -20.224344)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_5.obj"
+alto = 7.2
+
+[node name="Grass_2_13" type="Node3D" parent="Vegetacion/Plantas" unique_id=2142256426]
+transform = Transform3D(0.62932056, 0, 0.7771458, 0, 1, 0, -0.7771458, 0, 0.62932056, 3.830817, 0.35099685, -20.465136)
+script = ExtResource("2_rotgg")
+modelo = "nature/Grass_2.obj"
+alto = 4.5
+
+[node name="Bush_1_37" type="Node3D" parent="Vegetacion/Plantas" unique_id=1820687217]
+transform = Transform3D(-0.9396926, 0, -0.34202015, 0, 1, 0, 0.34202015, 0, -0.9396926, 3.6, 0.34722272, -21.272379)
+script = ExtResource("2_rotgg")
+modelo = "nature/Bush_1.obj"
+alto = 8.5
+
+[node name="Plant_2_8" type="Node3D" parent="Vegetacion/Plantas" unique_id=1506498970]
+transform = Transform3D(-0.939692, 0, 0.34202176, 0, 1, 0, -0.34202176, 0, -0.939692, 3.6396127, 0.3491098, -21.355099)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_2.obj"
+alto = 8.5
+
+[node name="Bush_2_18" type="Node3D" parent="Vegetacion/Plantas" unique_id=663918095]
+transform = Transform3D(-0.48480898, 0, -0.8746201, 0, 1, 0, 0.8746201, 0, -0.48480898, 3.84, 0.34722272, -22.215721)
+script = ExtResource("2_rotgg")
+modelo = "nature/Bush_2.obj"
+alto = 10.3
+
+[node name="Plant_3_42" type="Node3D" parent="Vegetacion/Plantas" unique_id=625925865]
+transform = Transform3D(-0.6819982, 0, -0.7313539, 0, 1, 0, 0.7313539, 0, -0.6819982, 3.915036, 0.3491098, -22.210182)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_3.obj"
+alto = 9.8
+
+[node name="BushBerries_1_18" type="Node3D" parent="Vegetacion/Plantas" unique_id=370294717]
+transform = Transform3D(0.20791122, 0, -0.9781477, 0, 1, 0, 0.9781477, 0, 0.20791122, 4.08, 0.34722272, -19.810198)
+script = ExtResource("2_rotgg")
+modelo = "nature/BushBerries_1.obj"
+alto = 12.1
+
+[node name="Plant_4_29" type="Node3D" parent="Vegetacion/Plantas" unique_id=1177382658]
+transform = Transform3D(0.40673518, 0, -0.9135461, 0, 1, 0, 0.9135461, 0, 0.40673518, 4.021051, 0.3491098, -19.734858)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_4.obj"
+alto = 7.2
+
+[node name="Grass_2_14" type="Node3D" parent="Vegetacion/Plantas" unique_id=262257014]
+transform = Transform3D(-0.7431447, 0, 0.6691308, 0, 1, 0, -0.6691308, 0, -0.7431447, 4.1566334, 0.35099685, -19.908138)
+script = ExtResource("2_rotgg")
+modelo = "nature/Grass_2.obj"
+alto = 4.5
+
+[node name="BushBerries_2_19" type="Node3D" parent="Vegetacion/Plantas" unique_id=2021701026]
+transform = Transform3D(0.79863566, 0, -0.6018148, 0, 1, 0, 0.6018148, 0, 0.79863566, 4.2, 0.34722272, -20.89504)
+script = ExtResource("2_rotgg")
+modelo = "nature/BushBerries_2.obj"
+alto = 13.9
+
+[node name="Plant_5_30" type="Node3D" parent="Vegetacion/Plantas" unique_id=1286807143]
+transform = Transform3D(0.9998477, 0, 0.017452752, 0, 1, 0, -0.017452752, 0, 0.9998477, 4.1401544, 0.3491098, -21.000977)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_5.obj"
+alto = 8.5
+
+[node name="Bush_1_38" type="Node3D" parent="Vegetacion/Plantas" unique_id=690095190]
+transform = Transform3D(0.99756414, 0, 0.069755524, 0, 1, 0, -0.069755524, 0, 0.99756414, 4.04, 0.34722272, -21.791218)
+script = ExtResource("2_rotgg")
+modelo = "nature/Bush_1.obj"
+alto = 8.5
+
+[node name="Plant_2_9" type="Node3D" parent="Vegetacion/Plantas" unique_id=230926420]
+transform = Transform3D(0.37460798, 0, 0.9271833, 0, 1, 0, -0.9271833, 0, 0.37460798, 4.1143703, 0.3491098, -21.725395)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_2.obj"
+alto = 9.8

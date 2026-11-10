@@ -28,6 +28,17 @@ ordenador principal**: pregúntale cuáles antes de las piezas nuevas (árboles,
   modelos con clic. Se activa en Proyecto → Configuración del proyecto → Complementos (Plugins).
 - Para repartir bosques pintando, más adelante: World Brush o Proton Scatter (gratis). Terreno: Terrain3D (no compensa ahora).
 
+## Hecho (paso 3, 2026-11-10: el mundo pasa a escena, parte 1 — vegetación)
+- Los 589 árboles, rocas, plantas, matas y troncos que colocaba el código del terreno están ahora en `mapa/Mundo3D.tscn` →
+  «Vegetacion» (Arboles, Rocas, Troncos, Plantas). Cada uno es una **pieza** (`mapa/pieza.gd`: modelo, alto, tam, choque)
+  que dibuja su modelo con el mismo lector del juego. Se mueven, giran, duplican o borran a mano en Godot.
+- Con piezas en «Vegetacion», el código deja de colocar esos modelos (`vegetacion_en_escena`). Choque en el juego según la
+  pieza: árboles solo el tronco (7×7), rocas, troncos y tocones lo que ocupan, plantas nada. **Antes los árboles de adorno no
+  eran sólidos; ahora sí.**
+- Se hizo con `tools/hornear_vegetacion.gd` (una vez; no rehace si ya hay piezas salvo `-- forzar`, que pisaría cambios a mano).
+- Siguen en código: árboles talables y vetas (EcosystemManager), setas y hierbas, puentes, el tronco-puente, los troncos de caja
+  del claro y todo lo de los edificios. Siguiente: que los árboles de la escena se puedan talar (sustituir los talables de código).
+
 ## Pendiente (en este orden, cada paso con permiso del usuario)
 1. En el ordenador principal: `git pull`, abrir `mapa/EditorMapa.tscn` con el usuario y que mueva un punto del río
    (aprender Godot, paso 1). Mirar que los vecinos ya no se atascan en el río nuevo.
