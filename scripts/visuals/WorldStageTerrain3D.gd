@@ -1118,6 +1118,8 @@ func _build_river_and_arroyo_3d(
 		[Vector2(118.0, -760.0), Vector2(140.0, 74.0), 4.0],
 		[Vector2(116.0, -942.0), Vector2(68.0, 66.0), -6.0],
 	]:
+		if vegetacion_en_escena:
+			break # placas de tierra encima del suelo: en terreno irregular se veían como un «doble suelo» (usuario, 2026-11-10)
 		_add_box_2d(terrain_root_3d, humus_patch[0] as Vector2, humus_patch[1] as Vector2, -0.32, 0.38, m_forest_humus, float(humus_patch[2]))
 	for moss_patch in [
 		[Vector2(54.0, -835.0), Vector2(36.0, 62.0), 14.0],
@@ -1126,6 +1128,8 @@ func _build_river_and_arroyo_3d(
 		[Vector2(168.0, -918.0), Vector2(42.0, 58.0), -15.0],
 		[Vector2(116.0, -928.0), Vector2(32.0, 38.0), 18.0],
 	]:
+		if vegetacion_en_escena:
+			break
 		_add_box_2d(terrain_root_3d, moss_patch[0] as Vector2, moss_patch[1] as Vector2, -0.28, 0.36, m_forest_moss, float(moss_patch[2]))
 
 	# Dosel alto de ramas entrelazadas que proyecta sombra real del sol sobre el arroyo y el claro (sin luces negativas que causen reflejos especulares en GLES3)
@@ -1137,6 +1141,8 @@ func _build_river_and_arroyo_3d(
 		[Vector2(114.0, -935.0), 21.0, 24.0, 7.5],
 		[Vector2(112.0, -782.0), 19.0, 22.0, 6.5],
 	]:
+		if vegetacion_en_escena:
+			break # discos de copa flotando sobre el claro; la sombra la dan ya los árboles de la escena
 		_add_cyl_2d(terrain_root_3d, canopy_arch[0] as Vector2, float(canopy_arch[1]), float(canopy_arch[2]), float(canopy_arch[3]), m_dark_canopy, float(canopy_arch[1]) * 0.65, 9)
 
 	# Árboles densos con borde irregular (entrantes y salientes orgánicos, sin filas rectas) cerrando el horizonte y ocultando el molino desde el claro
@@ -1200,7 +1206,7 @@ func _build_river_and_arroyo_3d(
 		var m_file: String = dark_forest_models[nti % dark_forest_models.size()]
 		_add_model_2d(terrain_root_3d, m_file, t_pos, -0.3, Vector2.ZERO, 38.0 * scale_f, float(nti * 53))
 		# Copas bajas suplementarias de pino oscuro cada 2 árboles para cerrar huecos de visión a media altura
-		if (nti % 2) == 0:
+		if (nti % 2) == 0 and not vegetacion_en_escena: # con los árboles en la escena del editor, este relleno quedaría suelto
 			_add_cyl_2d(terrain_root_3d, t_pos, 13.5 * scale_f, 5.5, 14.0 * scale_f, m_dark_canopy, 2.5 * scale_f, 8)
 			_add_cyl_2d(terrain_root_3d, t_pos, 9.5 * scale_f, 13.5, 11.0 * scale_f, m_dark_canopy_top, 1.2 * scale_f, 8)
 

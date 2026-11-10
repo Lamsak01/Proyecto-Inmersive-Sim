@@ -62,6 +62,6 @@ func tipo_choque() -> String:
 	var f := modelo.get_file()
 	if "Tree" in f or "Willow" in f:
 		return "tronco"
-	if "Rock" in f or "WoodLog" in f or "Stump" in f:
+	if "Rock" in f or "WoodLog" in f or "Stump" in f or "Bush" in f:
 		return "forma"
 	return "ninguno"
