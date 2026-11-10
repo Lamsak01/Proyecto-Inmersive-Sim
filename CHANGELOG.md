@@ -4,6 +4,11 @@ Cambios del juego, del más nuevo al más antiguo. Añade una entrada al cerrar 
 El detalle técnico está en `docs/HANDOFF.md` (sección 7) y el historial completo en `git log`. Lo anterior a B0.1 está en `AUDIT_LOG.md` y `SESSION_CONTEXT_LOG.md`.
 
 
+## 2026-11-10 — Paso a 3D de verdad: paso 1a, el protagonista tiene cuerpo 3D (Claude Code, portátil; rama `mundo-3d`)
+- El protagonista anda, choca, cae y salta con un cuerpo 3D de verdad; el resto del juego sigue viéndolo en el mapa como siempre.
+- Las paredes del pueblo no se rehacen: se copian en 3D las que hay cerca. El salto usa gravedad 3D (~1,1 m).
+- Falta (paso 1b): recorrido automático por todas las puertas y medir fluidez.
+
 ## 2026-11-10 — Paso a 3D de verdad: paso 0b, mundo en metros (Claude Code, portátil; rama `mundo-3d`)
 - Decisión del usuario: escala uniforme. El mundo 3D mide en metros (una persona, 1,74 m) y tiene las mismas proporciones
   en todas direcciones; en 3D el pueblo es un 15 % más corto de norte a sur. En el mapa del pueblo no se mueve nada.

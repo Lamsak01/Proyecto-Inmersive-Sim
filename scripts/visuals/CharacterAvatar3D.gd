@@ -11,6 +11,7 @@ const CharacterRig3DScript = preload("res://scripts/visuals/CharacterRig3D.gd")
 static var use_3d_characters: bool = true
 const AVATAR_RES: int = 64
 const Mapa3D = preload("res://scripts/fisica/Mapa3D.gd")
+const Suelo = preload("res://scripts/fisica/Suelo.gd")
 const OUTLINE_SHADER := preload("res://shaders/pixel_outline.gdshader")
 
 var is_player_avatar: bool = false
@@ -192,15 +193,7 @@ func _sync_holder_position() -> void:
 	var pos_2d: Vector2 = _smoothed_entity_pos()
 	var tav_gd = preload("res://scripts/systems/VillageTavern.gd")
 	var rest_gd = preload("res://scripts/systems/VillageRestaurant.gd")
-	var tav_h: float = tav_gd.elevation_height_for(pos_2d, elev_lvl)
-	if tav_h > 0.0:
-		seat_h += tav_h
-	elif elev_lvl == 0 and vm_node != null and vm_node.has_method("_is_pos_inside_any_building") and bool(vm_node.call("_is_pos_inside_any_building", pos_2d)):
-		seat_h += 2.65
-	elif elev_lvl == 0 and rest_gd.TERRACE.grow(6.0).has_point(pos_2d):
-		seat_h += 1.8
-	elif elev_lvl == 0 and _stage != null and _stage.has_method("surface_elevation_offset_px"):
-		seat_h += float(_stage.call("surface_elevation_offset_px", pos_2d))
+	seat_h += Suelo.altura_px(pos_2d, elev_lvl, vm_node) # misma regla que el cuerpo 3D (scripts/fisica/Suelo.gd)
 	var foot_off := Vector2(0.0, FOOT_OFFSET_PX)
 	if not is_player_avatar and (tav_gd.is_at_seat(pos_2d) or rest_gd.is_at_seat(pos_2d)):
 		var v_chk: Vector2 = target_entity.get("velocity") if "velocity" in target_entity else Vector2.ZERO

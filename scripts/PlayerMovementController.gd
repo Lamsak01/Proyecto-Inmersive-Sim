@@ -2,6 +2,8 @@ extends Node
 class_name PlayerMovementController
 
 const WorldStage3DScript = preload("res://scripts/visuals/WorldStage3D.gd")
+const Cuerpo3D = preload("res://scripts/fisica/Cuerpo3D.gd")
+const Mapa3D = preload("res://scripts/fisica/Mapa3D.gd")
 
 @export var max_walk_speed: float = 120.0
 ## Velocidad extra yendo a caballo y freno al tirar de la carreta (a mano o con caballo).
@@ -24,18 +26,17 @@ const ROLL_DISTANCE: float = 50.0
 const ROLL_COOLDOWN: float = 0.60
 const ROLL_STAMINA_COST: float = 18.0
 
-## Saltar con Espacio: impulso vertical con gravedad suave en 3D y 1.ª persona (~11.5 px al aire libre; tope bajo en interiores para no dar con techos ni vigas).
+## Saltar: el cuerpo 3D salta de verdad (Cuerpo3D, paso 1 del paso a 3D). Impulso en píxeles de altura por segundo
+## (~1,2 m al aire libre); bajo techo, más corto para no dar con vigas.
 const JUMP_INITIAL_VEL_Z: float = 56.0
-const JUMP_GRAVITY_Z: float = 140.0
+const JUMP_INDOOR_MULT: float = 0.62
 const JUMP_STAMINA_COST: float = 8.0
-const MAX_INDOOR_JUMP_Z: float = 4.8
 
 var roll_timer: float = 0.0
 var roll_invuln_timer: float = 0.0
 var roll_cooldown_timer: float = 0.0
 var roll_direction: Vector2 = Vector2.DOWN
-var jump_z: float = 0.0
-var jump_vel_z: float = 0.0
+var _cuerpo: CharacterBody3D = null
 
 @onready var player: CharacterBody2D = get_parent()
 @onready var anim: AnimatedSprite2D = $"../Animations"
@@ -60,10 +61,32 @@ func get_roll_progress() -> float:
 	return clampf(1.0 - (roll_timer / ROLL_DURATION), 0.0, 1.0)
 
 func is_jumping() -> bool:
-	return jump_z > 0.001 or jump_vel_z > 0.001
+	return is_instance_valid(_cuerpo) and _cuerpo.esta_en_el_aire()
 
 func get_jump_height() -> float:
-	return maxf(0.0, jump_z)
+	return _cuerpo.altura_sobre_suelo_px() if is_instance_valid(_cuerpo) else 0.0
+
+## Corta un salto en curso y deja al protagonista en el suelo (pruebas, cinemáticas).
+func parar_salto() -> void:
+	if is_instance_valid(_cuerpo):
+		_cuerpo.aterrizar()
+
+## El cuerpo 3D del protagonista (se crea la primera vez, dentro del escenario 3D si existe).
+func cuerpo() -> CharacterBody3D:
+	if not is_instance_valid(_cuerpo) and is_instance_valid(player) and player.is_inside_tree():
+		var vm = get_tree().get_first_node_in_group("village_manager")
+		var stage = vm.get("world_stage_3d") if vm != null else null
+		var padre: Node = player
+		if stage != null and is_instance_valid(stage.get("stage_root_3d")) and (stage.get("stage_root_3d") as Node).is_inside_tree():
+			padre = stage.get("stage_root_3d")
+		_cuerpo = Cuerpo3D.crear(player, padre)
+	return _cuerpo
+
+## Un paso de movimiento con la velocidad actual del protagonista (en el mapa): lo hace su cuerpo 3D.
+func _mover() -> void:
+	var c := cuerpo()
+	if c != null:
+		c.mover(player.velocity, get_physics_process_delta_time())
 
 func _is_player_indoors(vm_ref: Node = null) -> bool:
 	if not is_instance_valid(player):
@@ -98,10 +121,8 @@ func start_jump() -> bool:
 		return false
 	if is_instance_valid(stamina_comp) and stamina_comp.current_stamina >= JUMP_STAMINA_COST:
 		stamina_comp.use_stamina(JUMP_STAMINA_COST)
-	var indoors: bool = _is_player_indoors(vm)
-	jump_vel_z = JUMP_INITIAL_VEL_Z * (0.62 if indoors else 1.0)
-	jump_z = 0.08
-	return true
+	var impulso: float = Mapa3D.alto_a_3d(JUMP_INITIAL_VEL_Z) * (JUMP_INDOOR_MULT if _is_player_indoors(vm) else 1.0)
+	return cuerpo() != null and cuerpo().saltar(impulso)
 
 func start_roll(dir_override: Vector2 = Vector2.ZERO) -> bool:
 	if not is_instance_valid(player):
@@ -173,17 +194,6 @@ func _physics_process(delta: float) -> void:
 		roll_cooldown_timer = maxf(0.0, roll_cooldown_timer - delta)
 	if roll_invuln_timer > 0.0:
 		roll_invuln_timer = maxf(0.0, roll_invuln_timer - delta)
-	if jump_z > 0.0 or jump_vel_z != 0.0:
-		jump_z += jump_vel_z * delta
-		jump_vel_z -= JUMP_GRAVITY_Z * delta
-		if _is_player_indoors() and jump_z > MAX_INDOOR_JUMP_Z:
-			jump_z = MAX_INDOOR_JUMP_Z
-			if jump_vel_z > 0.0:
-				jump_vel_z = 0.0
-		if jump_z <= 0.0:
-			jump_z = 0.0
-			jump_vel_z = 0.0
-
 	# Block movement if dialogue active, modal open, tavern minigame time freeze, sitting on camp log, in fishing minigame, or handcuffed in police escort
 	var lake = get_tree().current_scene.find_child("WestFishingLake", true, false) if get_tree().current_scene else null
 	var in_fishing_minigame: bool = lake != null and int(lake.get("state")) == 3
@@ -203,7 +213,7 @@ func _physics_process(delta: float) -> void:
 		player.velocity = Vector2.ZERO
 		_play_idle()
 		if not being_escorted:
-			player.move_and_slide()
+			_mover()
 		return
 
 	# Block movement if stunned
@@ -214,7 +224,7 @@ func _physics_process(delta: float) -> void:
 		roll_invuln_timer = 0.0
 		anim.rotation = 0.0
 		player.velocity = Vector2.ZERO
-		player.move_and_slide()
+		_mover()
 		_update_visual_state()
 		return
 
@@ -223,7 +233,7 @@ func _physics_process(delta: float) -> void:
 		if is_instance_valid(stamina_comp):
 			stamina_comp.is_input_blocking = true
 		player.velocity = roll_direction * (ROLL_DISTANCE / ROLL_DURATION)
-		player.move_and_slide()
+		_mover()
 		_update_aim_and_camera(delta)
 		_update_visual_state()
 		if roll_timer > 0.0:
@@ -237,7 +247,7 @@ func _physics_process(delta: float) -> void:
 
 	_update_aim_and_camera(delta)
 	_handle_input(delta)
-	player.move_and_slide()
+	_mover()
 	_update_visual_state()
 
 func _update_aim_and_camera(delta: float) -> void:

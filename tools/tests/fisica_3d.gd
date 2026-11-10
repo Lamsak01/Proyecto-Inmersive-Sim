@@ -18,6 +18,7 @@ func _initialize() -> void:
 	_paso0_conversion()
 	await _paso0b_vista_de_arriba()
 	await _paso0_escenario()
+	await _paso1_cuerpo()
 	print("FISICA 3D: %s (%d fallos)" % ["PASSED" if _fallos == 0 else "FAILED", _fallos])
 	quit(1 if _fallos > 0 else 0)
 
@@ -102,3 +103,62 @@ func _paso0_escenario() -> void:
 	_ok((stage.to_3d(p, 10.0) - Mapa3D.a_3d(p, 10.0 + hs)).length() < 1e-5, "to_3d suma el relieve y usa Mapa3D")
 	_ok((stage.to_3d(p, -60.0) - Mapa3D.a_3d(p, -60.0)).length() < 1e-5, "bajo tierra (< −40 px) no suma relieve")
 	_ok((stage.size_3d(Vector2(30, 20), 40.0) - Mapa3D.tam_a_3d(Vector2(30, 20), 40.0)).length() < 1e-5, "tamaños 3D usan Mapa3D")
+
+
+## Paso 1: el protagonista anda con su cuerpo 3D: choca con los muros, cruza puertas, salta y aterriza, y sigue los
+## cambios de sitio hechos a mano.
+func _paso1_cuerpo() -> void:
+	var pl = get_first_node_in_group("player")
+	var vm = get_first_node_in_group("village_manager")
+	var mc = pl.get_node("PlayerMovementController")
+	mc.set_physics_process(false) # lo movemos nosotros, paso a paso
+	var c: CharacterBody3D = mc.cuerpo()
+	_ok(c != null, "1: el protagonista tiene cuerpo 3D")
+	if c == null:
+		return
+	_ok(pl.collision_mask == 0, "1: el protagonista ya no choca en el mapa (choca su cuerpo 3D)")
+	# Puerta de la taberna: fuera, andar hacia dentro (las puertas se abren al llegar)
+	var puerta: Dictionary = {}
+	for d in vm.building_doors:
+		if String(d.get("building_id", "")) == "building_tavern":
+			puerta = d
+	_ok(not puerta.is_empty(), "1: hay puerta de la taberna")
+	if puerta.is_empty():
+		return
+	var fuera: Vector2 = vm.get_door_outward_dir(puerta)
+	var rect: Rect2 = puerta["building_rect"]
+	pl.global_position = puerta["pos"] + fuera * 30.0
+	await _andar(pl, mc, -fuera, 120.0, 1.6)
+	_ok(rect.has_point(pl.global_position), "1: cruza la puerta de la taberna y entra (" + str(pl.global_position.round()) + ")")
+	_ok(c.choques_copiados() > 0, "1: hay %d choques copiados en 3D alrededor" % c.choques_copiados())
+	# Muro: desde dentro, andar hacia un muro lateral sin puerta → se queda dentro
+	var lado := Vector2(fuera.y, -fuera.x)
+	pl.global_position = rect.get_center()
+	await _andar(pl, mc, lado, 120.0, 4.0)
+	_ok(rect.grow(-1.0).has_point(pl.global_position), "1: el muro para al protagonista (" + str(pl.global_position.round()) + ")")
+	# Salto al aire libre: sube ~1,2 m y vuelve al suelo
+	pl.global_position = puerta["pos"] + fuera * 60.0
+	await _andar(pl, mc, Vector2.ZERO, 0.0, 0.3)
+	var y0: float = c.global_position.y
+	_ok(pl.start_jump(), "1: salta")
+	var cima: float = 0.0
+	for _i in range(90):
+		pl.velocity = Vector2.ZERO
+		mc._mover()
+		await physics_frame
+		cima = maxf(cima, c.global_position.y - y0)
+	_ok(cima > 0.9 and cima < 1.5, "1: el salto sube %.2f m (≈1,2 esperado)" % cima)
+	_ok(not pl.is_jumping() and absf(c.global_position.y - y0) < 0.05, "1: y aterriza")
+	# Cambio de sitio a mano (cama, escalera, cargar partida…)
+	var lejos: Vector2 = puerta["pos"] + fuera * 200.0
+	pl.global_position = lejos
+	await _andar(pl, mc, Vector2.ZERO, 0.0, 0.1)
+	_ok(Mapa3D.a_mapa(c.global_position).distance_to(lejos) < 1.0, "1: el cuerpo sigue al protagonista cuando lo cambian de sitio")
+	mc.set_physics_process(true)
+
+
+func _andar(pl, mc, dir: Vector2, vel: float, segundos: float) -> void:
+	for _i in range(int(segundos * 60.0)):
+		pl.velocity = dir * vel
+		mc._mover()
+		await physics_frame

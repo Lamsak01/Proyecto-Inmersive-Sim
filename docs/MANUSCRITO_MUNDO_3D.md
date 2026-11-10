@@ -6,6 +6,39 @@
 
 ---
 
+## Paso 1a — El protagonista tiene cuerpo 3D (2026-11-10, Claude Code, portátil)
+
+**Qué cambia en el juego:** casi nada a la vista. El protagonista ya no choca, cae ni salta en el mapa plano: lo hace un
+cuerpo 3D de verdad (cápsula de 1,74 m) que anda por el mundo 3D y después escribe su sitio en el mapa, así el resto del
+juego (vecinos, misiones, guardado, cámara) sigue igual. El salto es ahora un salto con gravedad 3D (~1,1–1,2 m).
+
+**Por qué:** es la primera pieza de «cuerpo en 3D, cerebro en el mapa» (plan §4, paso 1). Sin esto no hay cuevas,
+escaleras de verdad ni nadar.
+
+**Cómo funciona (para personas):**
+- El mando del jugador sigue calculando a qué velocidad quiere ir en el mapa; en vez de moverse él, se lo pasa al cuerpo 3D.
+- Las paredes no se rehacen: cada paso se pregunta al mapa qué choques hay a 110 px (unos 6 m) y se mantiene una copia
+  3D de cada uno, levantada 4 m como un muro. Puertas que se abren, vecinos que se mueven o muros solo de planta alta se
+  copian solos.
+- Hasta el paso 2 el suelo es una losa invisible que va bajo los pies a la altura de siempre (tarima de edificios,
+  plaza, puentes, planta alta de la taberna).
+- Si el juego cambia al protagonista de sitio a mano (cama, escaleras, cárcel, cargar partida), el cuerpo salta ahí.
+- El protagonista sigue en el mapa como obstáculo para los vecinos; solo deja de chocar él en el mapa.
+
+**Archivos:**
+- Nuevos en `scripts/fisica/`: `Cuerpo3D.gd` (el cuerpo), `ChoquesCercanos3D.gd` (copias 3D de los choques del mapa),
+  `Suelo.gd` (a qué altura está el suelo; antes este cálculo estaba dentro de `CharacterAvatar3D.gd`, ahora lo comparten
+  el cuerpo y los muñecos).
+- `PlayerMovementController.gd`: fuera el salto «de mentira» (altura y gravedad en píxeles y su bucle); cada
+  `move_and_slide` pasa por `_mover()` → cuerpo 3D. Nuevo `parar_salto()`.
+- `CharacterAvatar3D.gd`: usa `Suelo.altura_px`.
+- Pruebas: `fisica_3d.gd` (paso 1: tiene cuerpo, cruza la puerta de la taberna, un muro lo para, salta ~1,1 m, aterriza,
+  sigue un cambio de sitio); `verify_all.gd` (la prueba del salto ya no mira la altura vieja en píxeles).
+
+**Cómo se probó:** fisica_3d ✅ (20 choques copiados junto a la taberna, salto 1,14 m) · verify_all ✅.
+
+**Cómo deshacerlo:** `git revert` de este commit, o volver a la etiqueta `antes-paso-1`.
+
 ## Paso 0b — Escala uniforme en metros (2026-11-10, Claude Code, portátil)
 
 **Qué cambia en el juego:** el mundo 3D tiene las mismas proporciones en todas direcciones y se mide en metros
