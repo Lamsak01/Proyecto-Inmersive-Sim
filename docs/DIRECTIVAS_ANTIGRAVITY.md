@@ -5,6 +5,14 @@
 
 > Escritas el 2026-11-07 a petición del usuario. Valen en **cualquier ordenador**: léelas al empezar cada encargo.
 
+## ⚠ Mientras dure el paso del mundo a 3D (desde 2026-11-10)
+- Plan en `docs/PLAN_MUNDO_3D.md`. **No toques** movimiento, física, choques, pisos/escaleras, agua, vista/oído de los
+  vecinos, combate ni el editor del mapa: se están rehaciendo en 3D en la rama `mundo-3d` y tus cambios se perderían o
+  chocarían al juntarlo. Puedes trabajar en diálogos, textos, contenido de casos, paneles y economía.
+- **Código ordenado y reducido (orden permanente del usuario):** lo que toques, ordénalo por lo que hace (archivos de menos
+  de ~600 líneas, una función = una tarea, cabecera en español sencillo), sin código muerto ni repetido, y explica cada
+  cambio en `docs/MANUSCRITO_MUNDO_3D.md`.
+
 ## Tu papel
 - Escribes el código. Claude Code planifica y revisa. El usuario no programa: háblale en español, corto y sin jerga.
 - Tu encargo está en `docs/ENCARGO_ANTIGRAVITY.md` (y la cola en `docs/ENCARGO_SIGUIENTE.md`). Al terminar, deja tu

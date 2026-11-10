@@ -11,6 +11,7 @@ Immersive sim 2D en pixel art hecho con Godot 4.7.2 (GDScript). El usuario no pr
 ## Antes de trabajar
 
 - **⚠ Paso del mundo a 3D de verdad (2026-11-10, decisión del usuario):** plan, inventario, reglas y registro en `docs/PLAN_MUNDO_3D.md`. Léelo entero antes de tocar movimiento, física, choques, pisos, agua o el mapa, y apunta cada bloque en su Registro.
+- **Código ordenado y reducido (orden permanente del usuario, 2026-11-10):** todo archivo que toques se deja ordenado por lo que hace (carpetas por tema, archivos de menos de ~600 líneas, una función = una tarea, cabecera en español sencillo), sin código muerto ni repetido. Explica cada cambio en `docs/MANUSCRITO_MUNDO_3D.md` y mantén `docs/MAPA_DEL_CODIGO.md`. El usuario no tiene que recordarlo en cada mensaje.
 - **Lógica que sigue al mapa (2026-11-10):** plan y registro en `docs/PLAN_SITIOS.md`; actualízalo al cerrar cada paso.
 - **Claude Code en otro ordenador:** lee primero `docs/CONTEXTO_PARA_OTRA_PC.md` (todo lo hablado con el usuario hasta el 2026-11-09).
 - **Controles (2026-11-09):** todas las teclas están en `docs/CONTROLES.md`. Mírala antes de asignar o recomendar una tecla y actualízala si cambias alguna.

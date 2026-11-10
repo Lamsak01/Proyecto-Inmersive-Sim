@@ -91,7 +91,17 @@ Marca ☑ cuando esté pasado a 3D y probado. Archivos comprobados con `grep` el
    `load_game` convierte las partidas viejas.
 7. **El mapa editado por el usuario no se pierde:** cualquier cambio de escala convierte `mapa/Mundo3D.tscn` con una
    herramienta y hace copia antes (`mapa/Mundo3D.antes-3d.tscn`).
-8. **Al cerrar cada paso:** pruebas de §6, capturas, entrada en el Registro (§10), `CHANGELOG.md`, `docs/HANDOFF.md`,
+8. **Ordenar mientras se pasa a 3D (petición del usuario, 2026-11-10):** cada archivo que se toque en la transición se deja
+   ordenado **por lo que hace**: carpetas por tema (`scripts/fisica/`, `scripts/vecinos/`…), archivos de menos de ~600
+   líneas, una función = una tarea, y al principio de cada archivo dos o tres líneas en español sencillo que digan para qué
+   sirve. Se borra el código muerto y lo repetido. **Solo lo que se toca en cada paso** (reordenar todo de golpe rompería
+   el juego); lo demás se ordena cuando le toque. Cada reorganización deja el juego igual y pasa las pruebas antes de seguir.
+9. **Mapa del código:** `docs/MAPA_DEL_CODIGO.md` (se crea en el paso 0) explica en español sencillo qué hace cada carpeta y
+   cada archivo, para que el usuario sepa dónde está lo que quiere arreglar. Se actualiza en cada bloque que mueva archivos.
+10. **Manuscrito de cada cambio:** `docs/MANUSCRITO_MUNDO_3D.md`, una entrada por bloque, para personas: qué cambió en el
+    juego, por qué, qué archivos (y de dónde a dónde se movió cada cosa), cómo se probó y cómo deshacerlo. El Registro (§10)
+    es el resumen de una línea; el manuscrito es el detalle.
+11. **Al cerrar cada paso:** pruebas de §6, capturas, entrada en el Registro (§10) y en el manuscrito, `CHANGELOG.md`, `docs/HANDOFF.md`,
    diario de `GameVault/06_Diario/` y commit.
 
 ## 5. Pasos
@@ -100,6 +110,7 @@ Cada paso: qué se hace, cuándo está terminado y cómo volver atrás. «Volver
 (`git checkout antes-paso-N`), porque cada paso empieza con su etiqueta.
 
 ### Paso 0 — Preparación (sin cambios visibles)
+- Crear `docs/MAPA_DEL_CODIGO.md` y `docs/MANUSCRITO_MUNDO_3D.md` (§4, reglas 9 y 10).
 - Rama `mundo-3d` y etiqueta `antes-de-mundo-3d`.
 - **Medidas de referencia** guardadas en el Registro: `perf_zonas.gd`, `verify_all.gd`, `atascos_vecinos.gd -- 6`,
   `guardado_largo.gd` y capturas fijas de 6 sitios en 1.ª persona (plaza, río, bosque, molino, mansión, interior con piso alto).
