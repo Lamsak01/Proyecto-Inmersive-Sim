@@ -284,6 +284,11 @@ func _scan_nature_sources() -> void:
 		if kind.is_empty():
 			continue
 		_nature_sources.append({"node": n, "kind": kind, "sprite": n.get("sprite")})
+	# Setas y hierbas que se recogen (grupo «wild_flora», no «destructible»)
+	for n in get_tree().get_nodes_in_group("wild_flora"):
+		if n is Node2D and n.get("harvest_type") != null and int(n.get("harvest_type")) == 0:
+			var fk: String = "forage_mushroom" if String(n.get("primary_item_id")) == "mushroom" else "forage_herb"
+			_nature_sources.append({"node": n, "kind": fk, "sprite": n.get("sprite")})
 	var parents: Array = [vm.entities_root]
 	for eco in get_tree().get_nodes_in_group("ecosystem_manager"):
 		parents.append(eco)
