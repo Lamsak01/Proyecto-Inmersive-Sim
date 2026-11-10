@@ -1,0 +1,84 @@
+CÓMO BAJAR Y SUBIR EL JUEGO DE GITHUB TÚ MISMO
+(escrito por Claude Code, 2026-11-10)
+
+GitHub es la "nube" donde vive la copia buena del juego.
+- BAJAR (pull) = traer a este ordenador lo último que se hizo en el otro.
+- SUBIR (push) = mandar a la nube lo que hiciste aquí, para que el otro ordenador lo pueda bajar.
+
+Regla de oro: al EMPEZAR a trabajar en un ordenador, BAJA. Al TERMINAR, SUBE.
+Así nunca se mezclan los dos ordenadores.
+
+
+=====================================================================
+1. BAJAR LO ÚLTIMO (pull)
+=====================================================================
+
+Antes: guarda todo en Godot (Ctrl+S) y CIERRA Godot.
+
+En Linux (el portátil):
+  1. Abre la Terminal (busca "Terminal" en el menú de aplicaciones).
+  2. Escribe esto y pulsa Enter:
+         cd ~/Proyecto-Inmersive-Sim
+  3. Escribe esto y pulsa Enter:
+         git pull
+
+En Windows (si el otro ordenador es Windows):
+  1. Abre la carpeta del juego en el Explorador de archivos.
+  2. Clic derecho en un hueco vacío de la carpeta -> "Open Git Bash here"
+     (o "Mostrar más opciones" -> "Open Git Bash here").
+  3. Escribe esto y pulsa Enter:
+         git pull
+
+Qué verás:
+  - "Already up to date."  -> ya tenías lo último. No hay nada que hacer.
+  - Una lista de archivos con + y -  -> se ha bajado lo nuevo. Listo.
+
+Después: abre Godot otra vez.
+
+
+=====================================================================
+2. SUBIR LO QUE HICISTE (push)
+=====================================================================
+
+Antes: guarda todo en Godot (Ctrl+S) y CIERRA Godot.
+En la misma Terminal / Git Bash, dentro de la carpeta del juego, escribe una línea cada vez y pulsa Enter:
+
+         git add -A
+         git commit -m "Cambios en el mapa"
+         git push
+
+(Entre las comillas pon una frase corta que diga qué hiciste.)
+
+Qué verás:
+  - Al final algo como "main -> main"  -> subido. Listo.
+
+
+=====================================================================
+3. SI SALE UN ERROR (no te asustes: no se pierde nada)
+=====================================================================
+
+"Your local changes ... would be overwritten"  (al bajar)
+  Tienes cambios en este ordenador sin subir. Primero haz el paso 2 (subir) y luego vuelve a bajar.
+
+"rejected" o "fetch first"  (al subir)
+  El otro ordenador subió algo antes. Escribe:
+         git pull
+  y después otra vez:
+         git push
+
+"CONFLICT"  (conflicto)
+  Los dos ordenadores cambiaron lo mismo. NO toques nada más.
+  Escribe esto para dejarlo todo como estaba:
+         git merge --abort
+  y pídele ayuda a Claude cuando vuelva a tener tokens.
+
+Pide usuario y contraseña
+  Usa tu cuenta de GitHub. Si no acepta la contraseña, GitHub pide un "token" en su lugar:
+  github.com -> tu foto -> Settings -> Developer settings -> Personal access tokens.
+
+
+=====================================================================
+RESUMEN DE BOLSILLO
+=====================================================================
+  Empezar:   cd ~/Proyecto-Inmersive-Sim   ->   git pull
+  Terminar:  git add -A   ->   git commit -m "qué hice"   ->   git push
