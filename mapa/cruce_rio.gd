@@ -14,7 +14,7 @@ enum Tipo { VADO, PASARELA_DE_MADERA, PUENTE_DE_PIEDRA, TRONCO_CAIDO }
 	set(v):
 		tipo = v
 		_avisar()
-## Ancho del paso (lo que ocupa a lo largo del río).
+## Ancho del paso (lo que ocupa a lo largo del río). Menos de 32 y el jugador no cabe (mide 28 de norte a sur).
 @export_range(12.0, 80.0, 1.0) var ancho: float = 32.0:
 	set(v):
 		ancho = v
