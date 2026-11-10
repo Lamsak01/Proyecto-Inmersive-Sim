@@ -4,6 +4,9 @@ Cambios del juego, del más nuevo al más antiguo. Añade una entrada al cerrar 
 El detalle técnico está en `docs/HANDOFF.md` (sección 7) y el historial completo en `git log`. Lo anterior a B0.1 está en `AUDIT_LOG.md` y `SESSION_CONTEXT_LOG.md`.
 
 
+## 2026-11-10 — Pincel del mapa (Claude Code, portátil)
+- Nuevo panel **Pincel** en el editor del mapa 3D: pinta bosques, rocas, hierba, matorrales o troncos arrastrando el ratón, o copias de tus propios modelos. Goma para borrar, tamaño y «apretado». No siembra en el río, el lago, los edificios ni los caminos. Cada cosa pintada se puede mover luego una a una. Guía: `docs/PINCEL_MAPA_GUIA.md`.
+
 ## 2026-11-09 (noche) — Editor del mapa, paso 1: el río y sus puentes (Claude Code)
 - Nueva escena **mapa/EditorMapa** para Godot: el valle visto desde arriba con edificios, caminos y árboles de guía. El río se mueve arrastrando sus puntos (y se ensancha en el Inspector); los puentes y vados también. Avisa en rojo si el agua pisa un edificio o un puente no llega de orilla a orilla. El juego usa lo que haya ahí (agua, orillas, choque, vecinos y río 3D). Con los puntos originales el río es idéntico al de antes. Guía: `docs/EDITOR_MAPA_GUIA.md`; plan: `docs/PLAN_EDITOR_MAPA.md`.
 

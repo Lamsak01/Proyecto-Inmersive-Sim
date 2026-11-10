@@ -74,6 +74,16 @@ mover una pista del claro y el molino mueve sus zonas de uso y el interior 3D de
 - Mapa pequeño y mapa grande (`ValleyMapUI`): dibujan los tramos y ponen los edificios en su sitio nuevo (anclas).
 - Lo que no sigue a los caminos: los dibujos 2D de tierra (ocultos en 3D) y el relieve (no se aplana bajo las calles).
 
+## Pincel para pintar zonas (hecho el 2026-11-10, en el portátil)
+- Complemento propio **«Pincel del mapa»** (`addons/pincel_mapa/`, activado en project.godot): panel «Pincel» a la
+  derecha. Mezclas en `mapa/pincel_mezclas.gd` (pinos, mixto, sauces, matorrales, hierba, rocas, troncos) o «lo
+  seleccionado» (copias de modelos del usuario). Pintar/goma, tamaño y «apretado»; no siembra en río, lago, edificios
+  (movidos incluidos) ni caminos; separación mínima entre piezas; Ctrl+Z deshace el trazo. Núcleo en
+  `mapa/pincel_nucleo.gd`; prueba sin editor `tools/tests/pincel_mapa.gd` (8/8). Guía: `docs/PINCEL_MAPA_GUIA.md`.
+- **No probado aún con el ratón dentro del editor** (el portátil tenía el editor del usuario abierto): la primera vez en
+  el ordenador principal, comprobar con el usuario que el círculo sigue al ratón y que pinta/borra/deshace.
+- Para sumar los modelos del usuario a las mezclas fijas: añadirlos a `pincel_mezclas.gd` (ruta «res://mis_recursos/…»).
+
 ## Lo que falta (en orden)
 1. ~~Girar~~ (hecho, arriba). Pendiente menor: los muebles 2D sueltos que no pasan por `_add_*` no giran su colisión.
 2. ~~Interiores pieza a pieza~~ (hecho, arriba).
