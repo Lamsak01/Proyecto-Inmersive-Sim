@@ -501,12 +501,15 @@ static func terrain_height_px(pos_2d: Vector2) -> float:
 
 	# 0. Cuenca suave del Río y del Arroyo del Bosque Norte (y = -1180..940)
 	var river_cut_h: float = 0.0
+	# Editor del mapa (2026-11-09): el río puede llegar a lomas y bosque; ahí el relieve se allana en su cauce para que el agua no quede bajo tierra
+	var river_flat: float = 0.0
 	if y >= FishingSpotScript.river_y_start() and y <= FishingSpotScript.river_y_end() and not FishingSpotScript.ABANDONED_MILL_RECT.grow(4.0).has_point(pos_2d):
 		var riv_cx: float = FishingSpotScript.river_center_x(y)
 		var riv_hw: float = FishingSpotScript.river_half_width(y)
 		var d_riv: float = absf(x - riv_cx)
 		if d_riv < riv_hw + 20.0:
 			river_cut_h = -1.8 * (1.0 - smoothstep(riv_hw * 0.5, riv_hw + 20.0, d_riv))
+		river_flat = 1.0 - smoothstep(riv_hw + 12.0, riv_hw + 90.0, d_riv)
 
 	# 1. Cuenca baja y de orillas suaves del Lago del Oeste (x ~ -1080..-665, y ~ 75..245)
 	var lake_h: float = 0.0
@@ -585,7 +588,7 @@ static func terrain_height_px(pos_2d: Vector2) -> float:
 		var rim_s: float = smoothstep(2050.0, 2650.0, y) * 14.0
 		forest_h = ((fw1 * 11.0 + fw2 * 7.5 + 5.5) + rim_s) * fy
 
-	return (plains_h + forest_h) * outer_mask + village_edge_h + lake_h + marsh_h + river_cut_h
+	return (plains_h + forest_h) * outer_mask * (1.0 - river_flat) + village_edge_h + lake_h + marsh_h + river_cut_h
 
 
 func to_3d_flat(pos_2d: Vector2, h_px: float = 0.0) -> Vector3:
