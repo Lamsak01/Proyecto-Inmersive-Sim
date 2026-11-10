@@ -411,7 +411,7 @@ func _spawn_unemployed_tavern_guests() -> void:
 		unemployed_npcs.append(npc)
 
 func _spawn_case1_clearing_corpse() -> void:
-	var victim_pos := Vector2(138.0, -870.0)
+	var victim_pos: Vector2 = load("res://mapa/anclas.gd").mover(Vector2(138.0, -870.0)) # sigue a la pieza del claro (editor 3D)
 	var tex_victim := _load_tex("res://assests/world/village/villager_traveler.png")
 	var npc := VillageNPC.new()
 	npc.name = "NPC_Case1_Victim"

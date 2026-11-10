@@ -1,6 +1,7 @@
 @tool
 extends Node2D
 const EdificioEditor = preload("res://mapa/edificio.gd")
+const Anclas = preload("res://mapa/anclas.gd")
 
 var VillageJustice = load("res://scripts/systems/VillageJustice.gd")
 
@@ -378,7 +379,10 @@ func _construct_solid_building(
 	door_width: float = 42.0, door_offset_x: float = 0.0, title_color: Color = Color(0.96, 0.90, 0.68)
 ) -> void:
 	# Editor del mapa 3D (2026-11-10): si el usuario movió el edificio en mapa/Mundo3D.tscn, se construye en el sitio nuevo
-	center += EdificioEditor.desplazamiento(b_id)
+	var d_edif: Vector2 = EdificioEditor.desplazamiento(b_id)
+	Anclas.registrar_edificio(Rect2(center - size * 0.5, size), d_edif)
+	center += d_edif
+	Anclas.pausa += 1 # sus muros ya van desplazados; que las anclas no los muevan otra vez
 	var half := size * 0.5
 	var rect := Rect2(center - half, size)
 	var door_dir: String = "south"
@@ -455,6 +459,7 @@ func _construct_solid_building(
 	var t_lbl := _add_title_label(center + Vector2(-125, -half.y - 18.0), Vector2(250, 14), b_title, title_color, 7)
 	t_lbl.set_meta("anchor_pos", door_pos)
 	_spawn_building_door_and_window(b_id, b_title, rect, door_pos, is_south, door_width, door_dir)
+	Anclas.pausa -= 1
 
 func _spawn_building_door_and_window(
 	b_id: String,
@@ -1197,6 +1202,7 @@ func _prune_door_blocking_prop_colliders() -> void:
 				sb.queue_free()
 
 func _add_prop_collider(pos: Vector2, sz: Vector2, group_tag: String = "") -> StaticBody2D:
+	pos = Anclas.mover(pos)
 	if not is_instance_valid(entities_root) or sz.x <= 0.0 or sz.y <= 0.0:
 		return null
 	if group_tag != "tavern_upper_walls" and _is_prop_collider_blocking_passage(pos, sz):
@@ -1267,6 +1273,7 @@ func _spawn_decor_prop(tex_path: String, pos: Vector2, sc: Vector2 = Vector2.ONE
 			register_no_stand_furniture(pos, col_sz)
 
 func _add_station_area(area_name: String, pos: Vector2, radius: float, meta_tag: String) -> Area2D:
+	pos = Anclas.mover(pos, "zona", area_name)
 	var area := Area2D.new()
 	if area_name != "":
 		area.name = area_name
@@ -1665,6 +1672,10 @@ func refresh_world_stage_3d() -> void:
 		world_stage_3d.rebuild_all_3d()
 
 func _add_poly(pts: PackedVector2Array, col: Color, z_idx: int = -1, pos: Vector2 = Vector2.ZERO, parent_node: Node = null) -> Polygon2D:
+	if pos != Vector2.ZERO:
+		pos = Anclas.mover(pos)
+	else:
+		pts = Anclas.mover_puntos(pts)
 	var p := Polygon2D.new()
 	p.polygon = pts
 	p.color = col
@@ -1679,6 +1690,7 @@ func _add_rect_poly(pos: Vector2, half_sz: Vector2, col: Color, z_idx: int = -1,
 	return _add_poly(pts, col, z_idx, pos, parent_node)
 
 func _add_sprite_prop(tex: Texture2D, pos: Vector2, sc: Vector2 = Vector2.ONE, z_idx: int = -1, vis: bool = true, mod: Color = Color.WHITE) -> Sprite2D:
+	pos = Anclas.mover(pos, "dibujo", (tex.resource_path if tex.resource_path != "" else str(tex.get_meta("src_path", ""))).get_file().get_basename() if tex != null else "")
 	var s := Sprite2D.new()
 	s.texture = tex
 	s.global_position = pos
@@ -1709,6 +1721,7 @@ func _add_sprite_prop(tex: Texture2D, pos: Vector2, sc: Vector2 = Vector2.ONE, z
 	return s
 
 func _add_title_label(pos: Vector2, min_sz: Vector2, txt: String, col: Color, f_sz: int = 7, parent_node: Node = null) -> Label:
+	pos = Anclas.mover(pos + min_sz * 0.5, "letrero", txt) - min_sz * 0.5
 	var lbl := Label.new()
 	lbl.text = txt
 	lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
@@ -1861,6 +1874,7 @@ func _hint_player(txt: String, player: Node = null) -> void:
 		p.call("show_hint", txt)
 
 func _make_station_label(pos: Vector2, txt: String) -> Label:
+	pos = Anclas.mover(pos)
 	var lbl := Label.new()
 	lbl.visible = false
 	lbl.text = txt

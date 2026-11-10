@@ -169,10 +169,15 @@ func rebuild_buildings_3d() -> void:
 	for b in vm.building_footprints:
 		var b_id: String = str(b.get("id", ""))
 		var rect: Rect2 = b["rect"]
+		var door_pos: Vector2 = b["door_pos"]
+		# Editor del mapa 3D (2026-11-10): un edificio movido se construye en su sitio original (sus muebles y detalles están
+		# escritos con coordenadas fijas) y luego se traslada entero, para que todo lo de dentro vaya con él.
+		var d_edif: Vector2 = load("res://mapa/edificio.gd").desplazamiento(b_id)
+		rect.position -= d_edif
+		door_pos -= d_edif
 		var center: Vector2 = rect.get_center()
 		var sz: Vector2 = rect.size
 		var half: Vector2 = sz * 0.5
-		var door_pos: Vector2 = b["door_pos"]
 		var door_south: bool = bool(b["door_south"])
 		var style: Dictionary = _style_for_building(b_id)
 		# Altura de muro algo mayor y distinta en cada edificio (+0..10 px), salvo la taberna de 2 plantas (44 px exactos: 22 px por planta).
@@ -186,6 +191,7 @@ func rebuild_buildings_3d() -> void:
 		var b_root := Node3D.new()
 		b_root.name = "B3D_" + b_id
 		buildings_root_3d.add_child(b_root)
+		b_root.position = Vector3(d_edif.x * WORLD_SCALE, 0.0, (d_edif.y * WORLD_SCALE) / _sin_p)
 
 		# 1. Zócalo de piedra enterrado (cimentación contra posibles microdesniveles) + losa de suelo 3D y zócalo exterior
 		_add_box_2d(b_root, center, sz + Vector2(6, 6), -2.5, 2.5, m_plinth)
@@ -280,7 +286,7 @@ func rebuild_buildings_3d() -> void:
 			if str(w_entry.get("building_id", "")) == b_id:
 				if b_id in ["building_police", "building_town_hall"]:
 					break
-				var w_pos: Vector2 = w_entry.get("pos", Vector2.ZERO)
+				var w_pos: Vector2 = w_entry.get("pos", Vector2.ZERO) - d_edif # la ventana ya viene en el sitio nuevo; el edificio se traslada entero
 				var pane: Node3D = null
 				if not _is_headless:
 					var win_tex: String = "town_textures/window_square_divided.png"
@@ -397,7 +403,7 @@ func rebuild_buildings_3d() -> void:
 
 		_building_records_3d.append({
 			"id": b_id,
-			"rect": rect,
+			"rect": Rect2(rect.position + d_edif, rect.size), # dónde está de verdad (para abrir el tejado al entrar)
 			"root": b_root,
 			"roof_cap": roof_cap,
 			"loft_root": loft_root,

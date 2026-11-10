@@ -18,6 +18,9 @@ const PITCH_DEG: float = 58.0
 @export var modelo: String = ""
 @export var alto: float = 24.0
 @export var nombre_visible: String = ""
+## Si está marcada, todo lo que el juego crea alrededor de su sitio original (dibujo, zona de uso, letrero…) la sigue.
+@export var es_ancla: bool = false
+@export var radio_ancla: float = 14.0
 
 
 func _ready() -> void:
@@ -32,6 +35,15 @@ func _ready() -> void:
 		if m != null:
 			m.set_meta("vista_objeto", true)
 			add_child(m)
+	if get_child_count() == 0 or modelo.is_empty():
+		var bola := MeshInstance3D.new()
+		var sm := SphereMesh.new()
+		sm.radius = 0.12
+		sm.height = 0.24
+		bola.mesh = sm
+		bola.set_meta("vista_objeto", true)
+		bola.position = Vector3(0, 0.12, 0)
+		add_child(bola)
 	var l := Label3D.new()
 	l.set_meta("vista_objeto", true)
 	l.text = nombre_visible if not nombre_visible.is_empty() else clave

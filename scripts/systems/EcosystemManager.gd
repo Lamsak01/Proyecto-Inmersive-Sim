@@ -74,6 +74,12 @@ var boar_extinct_days: int = 0
 func setup_ecosystem(target_entities_root: Node) -> void:
 	entities_root = target_entities_root if target_entities_root else self
 	add_to_group("ecosystem_manager")
+	# Editor del mapa 3D (2026-11-10): casas de animales movibles con anclas (mapa/anclas.gd)
+	var AN = load("res://mapa/anclas.gd")
+	for par in [[burrow_positions, "madriguera"], [fox_den_positions, "guarida_zorro"], [deer_clearing_positions, "claro_ciervos"], [boar_rooting_positions, "hozadero_jabali"]]:
+		var arr: Array = par[0]
+		for i in range(arr.size()):
+			arr[i] = AN.mover(arr[i], "naturaleza", "%s_%d" % [par[1], i])
 	_spawn_distant_forest()
 	if not Engine.is_editor_hint() and WorldClock and not WorldClock.day_passed.is_connected(_on_day_passed):
 		WorldClock.day_passed.connect(_on_day_passed)
@@ -216,7 +222,9 @@ func _spawn_distant_forest() -> void:
 	_spawn_animal_pool(boar_pool, "WildBoar", WildAnimal.SpeciesType.BOAR, "Jabalí del Bosque", 7, 5, boar_rooting_positions, 55.0, 195.0, 66.0, 22.0, 24.0, 138.0, 85.0, [3, 2, "leather", 2, 0, 1, 2], tex_boar, Vector2(1.22, 1.22), 9.5)
 
 func _spawn_harvest_batch(prefix: String, positions: Array[Vector2], h_type: HarvestableNode.HarvestType, title: String, p_id: String, p_amt: int, b_id: String, b_amt: int, hp: float, r_days: int, bites: int, tex_main: Texture2D, tex_dep: Texture2D, sc: Vector2, rad: float) -> void:
+	var AN = load("res://mapa/anclas.gd")
 	for i in range(positions.size()):
+		positions[i] = AN.mover(positions[i], "naturaleza", "%s_%d" % [prefix, i])
 		# Editor del mapa (2026-11-09): nada de setas, hierbas ni árboles dentro del agua del río redibujado
 		if h_type != HarvestableNode.HarvestType.MINING and _en_cauce_del_rio(positions[i]):
 			continue
@@ -539,6 +547,7 @@ func _notify_ecological_shift() -> void:
 		player.show_hint("⚠️ La sobre-caza ha dejado el bosque sin herbívoros.")
 
 func _spawn_forest_sign(pos: Vector2, txt: String) -> void:
+	pos = load("res://mapa/anclas.gd").mover(pos, "letrero", txt)
 	var post := Polygon2D.new()
 	post.polygon = PackedVector2Array([
 		Vector2(-2, -10), Vector2(2, -10), Vector2(2, 4), Vector2(-2, 4)
