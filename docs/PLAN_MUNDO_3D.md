@@ -1,0 +1,222 @@
+# Plan: pasar el mundo a 3D de verdad (física, alturas, agua)
+
+> **Decisión del usuario (2026-11-10):** el juego deja de calcularse sobre un tablero plano. Quiere exploración vertical,
+> profundidades, cuevas, lagos y **nadar y bucear** (habrá casos con pistas en el río y el lago). Quiere hacerlo **ya**,
+> antes de que el juego crezca. No volver a proponer quedarse en 2D ni «trucos de capas» como solución final.
+>
+> **Estado:** plan escrito, **pendiente de aprobación del usuario**. No se ha tocado código de la transición.
+> Autor: Claude Code (portátil). Cualquier agente que siga: lee este documento entero antes de tocar nada y apunta
+> cada paso en el **Registro** (§10).
+
+---
+
+## 1. Cómo está hecho hoy (comprobado en el código el 2026-11-10)
+
+- **Lo que se ve es 3D; lo que se calcula es 2D.** El jugador (`Player.gd`) y los vecinos (`VillageNPCBase.gd`) son
+  `CharacterBody2D`. Andan, chocan, se ven y se oyen sobre un mapa plano en píxeles. `WorldStage3D` (≈11.400 líneas
+  en `scripts/visuals/`) construye una maqueta 3D encima y copia las posiciones 2D a muñecos 3D en cada fotograma.
+  En todo el proyecto no hay ni un `CharacterBody3D`.
+- **El editor del mapa sí es 3D** (`mapa/Mundo3D.tscn`, desde el 2026-11-09/10). Lo que se mueve allí se traduce al mapa 2D
+  con las «anclas» (`mapa/anclas.gd`). El río todavía se edita en el editor 2D (`mapa/EditorMapa.tscn`).
+- **Pisos y sótanos son «capas»:** `elevation_level` (−1 sótano/alcantarillas, 0 calle, +1 piso alto), con 146 usos en 27
+  archivos. Dos sitios en el mismo (x, y) a distinta altura se distinguen solo por ese número.
+- **⚠ El 3D está estirado a propósito.** `WorldStageBase3D.to_3d()`: x = px·0,02; z = px·0,02 / sin 58° (×1,18);
+  altura = px·0,02 / cos 58° (×1,89). Se hizo para que la cámara inclinada cuadrara con el mapa 2D. Los muñecos usan escala
+  igual en los tres ejes (`STAGE_K = 0,40`). Con física real hay que decidir qué hacer con esto (§5, paso 0).
+- **Tamaño:** 171 scripts y unas 87.000 líneas. Lo físico está concentrado; las posiciones de mapa (`Vector2`, 5.284 usos
+  en 107 archivos) están por todas partes.
+
+## 2. Idea central: «cuerpo en 3D, cerebro en el mapa»
+
+Reescribir 87.000 líneas para cambiar `Vector2` por `Vector3` rompería el juego durante semanas. No hace falta:
+
+- **Todo lo físico pasa a 3D:** moverse, chocar, gravedad, saltar, caer, escaleras, nadar, rayos de vista y de oído,
+  golpes, flechas, puertas, muebles y agua. La autoridad sobre «dónde está y qué toca» es el cuerpo 3D.
+- **El cerebro sigue leyendo coordenadas de mapa** (x, z del mundo, en píxeles de mapa como hoy) más una **altura real**.
+  Horarios, relaciones, economía, crímenes, casos, diálogos, guardado y paneles no cambian. Es como un GPS: el vecino
+  sigue pensando «voy a la panadería (412, 54)», pero quien anda y sube escaleras es el cuerpo 3D.
+- **Cómo se consigue con poco código:** un solo componente nuevo, `scripts/fisica/Cuerpo3D.gd`, que cuelga de cada actor
+  (jugador, vecino, animal). Lleva un `CharacterBody3D` dentro del escenario 3D, hace `move_and_slide()` en 3D y, después
+  de cada paso, copia (x, z) → `global_position` del nodo 2D y la altura → una variable `altura`. Los 1.060 usos de
+  `global_position` siguen funcionando sin tocarlos. El nodo 2D se queda como «ficha» invisible sin colisiones propias.
+- **Una sola conversión, en un solo sitio:** `scripts/fisica/Mapa3D.gd` (estático): `a_3d(pos_mapa, altura)`,
+  `a_mapa(v3)`, `distancia(a, b)` con altura. Hoy hay conversiones repartidas (`to_3d`, `to_3d_flat`, `_a_mapa_2d`,
+  `terrain_height_px`, anclas); al final todas llaman a esta.
+- **Las capas desaparecen poco a poco:** `elevation_level` pasa a calcularse a partir de la altura real (por ejemplo,
+  debajo del suelo = −1). Así los 146 usos siguen funcionando mientras se sustituyen por `distancia()` con altura.
+
+## 3. Inventario completo de lo que depende del plano («que no se olvide nada»)
+
+Marca ☑ cuando esté pasado a 3D y probado. Archivos comprobados con `grep` el 2026-11-10.
+
+| # | Pieza | Hoy (2D) | Archivos | Paso |
+|---|---|---|---|---|
+| 1 | Jugador: andar, correr, rodar, sigilo, saltar | `CharacterBody2D` + `move_and_slide` | `Player.gd`, `PlayerMovementController.gd` | 1 |
+| 2 | Choques con edificios, muros, puertas, muebles | `StaticBody2D` generados | `VillageManagerBase.gd` (513, 567, 1263), `VillageWorldBuilder.gd`, `VillageClub.gd`, `VillageUnderworld.gd` | 1 |
+| 3 | Choques con árboles, rocas y decorado del editor | casco convexo 2D de la malla 3D | `WorldStageTerrain3D.gd` (≈1556), `WorldStageProps3D.gd` | 1 |
+| 4 | Suelo y desniveles | `terrain_height_px` solo visual | `WorldStageBase3D.gd`, `WorldStageTerrain3D.gd` | 1 |
+| 5 | Colisión del río y del lago | `StaticBody2D` (`river_col_body`, `_build_water_collision`) | `VillageWorldBuilder.gd` (659), `FishingSpot.gd` (382) | 3 |
+| 6 | Escaleras, pisos altos, sótanos, alcantarillas | `elevation_level` + escaleras «de botón» | 27 archivos (ver §1); `VillageTavern.use_stairs`, `VillageHousing.interact_home_stairs`, `VillageUnderworld.gd` | 2 |
+| 7 | Vecinos: movimiento y rutas | `CharacterBody2D`, `_move_towards_point`, `_avoid_outdoor_buildings`, `_route_internal_*`, cruces del río | `VillageNPC*.gd`, `VillageManagerBase.gd` | 4 |
+| 8 | Vecinos: separación, empujar fuera de muebles, puertas | `sanitize_npc_separation_pos`, `push_out_of_furniture`, `get_doorway_clearance_nudge`, `_enforce_npc_personal_space` | `VillageManagerBase.gd`, `VillageNPCSocial.gd` | 4 |
+| 9 | Animales, mascotas, ganado, caballo, carro, enemigos | `CharacterBody2D` / `Area2D` | `WildAnimal.gd`, `DomesticPet.gd`, `LivestockAnimal.gd`, `PlayerHorse.gd`, `PlayerCart.gd`, `Raider.gd`, `DummyEnemy.gd`, `MillKidnapper.gd`, `EnemyAI.gd`, `scenes/npc.gd` | 4 |
+| 10 | Navegación de enemigos | `NavigationAgent2D`, región de navegación 2D en tiempo real | `EnemyAI.gd`, `World.gd` | 4 |
+| 11 | Vista (línea de visión) y conos | `intersect_ray` 2D, `VisionCone2D` | `EnemyAI.gd`, `DetectionArea.gd`, `VisionCone2D.gd`, recuerdos visuales de vecinos | 5 |
+| 12 | Oído y ruido (sigilo) | rayos 2D de oclusión | `AudioManager.gd` | 5 |
+| 13 | Golpes, cuerpo a cuerpo, empujar, bloquear | `Hitbox`/`Hurtbox` `Area2D` | `Hitbox.gd`, `Hurtbox.gd`, `PlayerCombatController.gd`, `CombatFeel.gd` | 5 |
+| 14 | Flechas y disparos | `ArrowProjectile` 2D | `ArrowProjectile.gd` | 5 |
+| 15 | Interactuar ([E], objetivo bajo la mira) | `Area2D` + proyección | `InteractionSelector.gd`, `interact_area.gd`, `WorldInteractableProp.gd`, `Crosshair2D.gd` | 5 |
+| 16 | Objetos del mundo (cosechar, romper, recoger, pescar, huertos, gallinero, campamento) | `Area2D`/`StaticBody2D` | `HarvestableNode.gd`, `DestructibleObject.gd`, `FishingSpot.gd`, `FarmPlot.gd`, `ChickenCoop.gd`, `CampSite.gd`, `WeaponPickup.gd`, `VillageCulture.gd` | 5 |
+| 17 | Ratón en el mundo | `get_global_mouse_position` (14 usos, 13 archivos) | combate, selector, vecinos (letrero) | 5 |
+| 18 | Huellas y manchas de sangre | posiciones 2D | `update_entity_blood_footprints` (`VillageManager*`) | 5 |
+| 19 | Mapa pequeño, mapa grande, escena del crimen del detective | dibujan desde (x, y) | `valley_map`, `DetectiveUI.gd` | 6 (siguen con (x, z)) |
+| 20 | Guardar y cargar | posiciones `Vector2` + `elevation_level` | `GameManager.gd` y los `to_save_dict` | cada paso (versión 4 en el paso 2) |
+| 21 | Editor del mapa y anclas | 3D → 2D con `_a_mapa_2d` y `anclas.gd` | `mapa/*.gd`, `WorldStageTerrain3D._cargar_decoracion_editor` | 0 y 6 |
+| 22 | Río en el editor 2D | `mapa/EditorMapa.tscn`, `rio_forma.gd` | `mapa/` | 6 |
+| 23 | Vista 2D, vista cenital 3D y mapa 2D de fondo | `use_3d_characters`, F9, `TileMapLayer`, `Parallax2D` | `World.tscn`, `World.gd`, `WorldStage3D.gd`, `CharacterAvatar3D.gd` | 6 (decide el usuario, §7) |
+| 24 | Pruebas automáticas | colocan actores con `Vector2` y miran capas | `tools/tests/verify_all.gd` (7.513 líneas) y las demás | cada paso |
+| 25 | Rendimiento | física 2D barata; 44 vecinos | — | cada paso (medir, §6) |
+
+## 4. Reglas de la transición (para cualquier agente)
+
+1. **Rama propia:** todo se hace en la rama `mundo-3d`. `main` sigue jugable. Se mezcla a `main` solo al cerrar un paso con
+   todas sus pruebas en verde, con permiso del usuario. Antes de empezar: etiqueta `antes-de-mundo-3d` en `main`.
+2. **Nada de funciones nuevas** (casos, sistemas, mapa) en `main` mientras dure, salvo arreglos urgentes: si no, la mezcla se
+   complica. Antigravity no debe tocar el movimiento ni la física mientras tanto.
+3. **Un paso cada vez**, y cada paso deja el juego jugable de principio a fin.
+4. **Código mínimo y en un solo sitio:** toda conversión mapa ↔ 3D va por `Mapa3D.gd`; toda física de actor por `Cuerpo3D.gd`.
+   Al pasar una pieza, se **borra** su versión 2D en el mismo paso (nada de dos caminos vivos a la vez, salvo lo indicado).
+5. **Formas de choque sencillas:** cajas y cápsulas generadas una vez al construir el mundo, no mallas exactas (rendimiento).
+6. **La partida guardada del usuario no se pierde:** cada cambio de formato sube `version` en `GameManager.save_game` y
+   `load_game` convierte las partidas viejas.
+7. **El mapa editado por el usuario no se pierde:** cualquier cambio de escala convierte `mapa/Mundo3D.tscn` con una
+   herramienta y hace copia antes (`mapa/Mundo3D.antes-3d.tscn`).
+8. **Al cerrar cada paso:** pruebas de §6, capturas, entrada en el Registro (§10), `CHANGELOG.md`, `docs/HANDOFF.md`,
+   diario de `GameVault/06_Diario/` y commit.
+
+## 5. Pasos
+
+Cada paso: qué se hace, cuándo está terminado y cómo volver atrás. «Volver atrás» siempre es posible con git
+(`git checkout antes-paso-N`), porque cada paso empieza con su etiqueta.
+
+### Paso 0 — Preparación (sin cambios visibles)
+- Rama `mundo-3d` y etiqueta `antes-de-mundo-3d`.
+- **Medidas de referencia** guardadas en el Registro: `perf_zonas.gd`, `verify_all.gd`, `atascos_vecinos.gd -- 6`,
+  `guardado_largo.gd` y capturas fijas de 6 sitios en 1.ª persona (plaza, río, bosque, molino, mansión, interior con piso alto).
+- **Decidir la escala** (con capturas al usuario):
+  - Opción A, recomendada: el mundo 3D **se queda como se ve hoy**; las pruebas de física trabajan en ese espacio. Solo
+    cambia la fórmula para pasar de mapa a 3D, que queda en un solo sitio. El estiramiento norte-sur (×1,18) se apunta para
+    las distancias del cerebro (`Mapa3D.distancia` lo corrige). No se mueve nada del mapa del usuario.
+  - Opción B: volver el mundo uniforme (1 unidad = 1 m). Más limpio, pero cambia proporciones de casas y obliga a convertir el
+    mapa editado. Solo si las capturas muestran casas deformadas.
+- Crear `Mapa3D.gd` y hacer que `to_3d`, `to_3d_flat`, `_a_mapa_2d` y las anclas lo usen (mismo resultado, número a número).
+- Prueba nueva `tools/tests/fisica_3d.gd` (vacía al principio; cada paso le añade lo suyo).
+- **Terminado cuando:** juego idéntico (capturas iguales), `verify_all` en verde y medidas guardadas.
+
+### Paso 1 — El protagonista en 3D
+- `Cuerpo3D.gd` para el jugador: cápsula 3D, gravedad, saltar de verdad, caer, subir peldaños y rampas.
+- **Mundo sólido en 3D:** cajas de choque para paredes, puertas (abiertas/cerradas/atrancadas), muebles, árboles, rocas y
+  decorado del editor, generadas desde lo que ya construye `WorldStage3D`. El suelo con desniveles es sólido.
+- Se borran los choques 2D que ya no hacen falta para el jugador (siguen los que usan los vecinos hasta el paso 4).
+- La 1.ª persona sigue al cuerpo 3D (cámara a la altura de los ojos de verdad).
+- **Terminado cuando:** puedes recorrer todo el pueblo, entrar en casas, cruzar puentes y saltar sin atravesar nada ni
+  quedarte atascado; los vecinos te siguen viendo y hablando igual; `verify_all` en verde; rendimiento no peor que la referencia.
+- **Riesgo:** atascarse en esquinas o puertas estrechas. Se prueba con un recorrido automático por todas las puertas.
+
+### Paso 2 — Alturas de verdad: pisos, sótanos y caídas
+- Escaleras de verdad en lugar de «capas de botón»; pisos altos y sótanos con suelo físico.
+- `elevation_level` pasa a calcularse desde la altura real (compatibilidad); los testigos y el oído usan altura.
+- Daño por caída (lo decide el usuario: cuánto).
+- Guardado versión 4: se guarda la altura; las partidas viejas se convierten.
+- Deja preparado el sitio para **cuevas**: un lugar bajo el suelo con su entrada, igual que un sótano grande.
+- **Terminado cuando:** subes y bajas a pie en taberna, casas y alcantarillas; los vecinos de abajo no «ven» lo de arriba;
+  guardar/cargar arriba y abajo funciona; pruebas en verde.
+
+### Paso 3 — Agua: nadar y bucear
+- Volúmenes de agua 3D para el río y el lago (desde la forma del río que ya existe).
+- Nadar en superficie (más lento, gasta aguante), bucear (cámara bajo el agua, aire limitado, ahogarse), salir por la orilla.
+- **Pistas en el fondo:** objetos que solo se encuentran buceando (preparado para los casos; el usuario decide cuáles).
+- Se borran las colisiones 2D del río y del lago.
+- **Terminado cuando:** se puede cruzar el río nadando, bucear en el lago y recoger un objeto del fondo; pruebas en verde.
+
+### Paso 4 — Vecinos y animales en 3D
+- Vecinos, animales, caballo, carro y enemigos con `Cuerpo3D.gd`. Sus rutas siguen saliendo del cerebro, pero el
+  movimiento, las escaleras y los choques son 3D. Navegación 3D (malla de caminos) donde haga falta (enemigos, pisos).
+- Se borran `sanitize_npc_separation_pos`, `push_out_of_furniture` y los choques 2D que sustituye la física 3D.
+- **Riesgo alto: atascos y rendimiento** (44 vecinos con física 3D). Se mide en cada sub-bloque; la simulación de los
+  lejanos («a ratos») se mantiene.
+- **Terminado cuando:** 0 atascos en `atascos_vecinos.gd -- 6`, vida social de 60 días (`social_sim.gd`) sin cambios
+  raros, rendimiento no peor que la referencia, `verify_all` en verde.
+
+### Paso 5 — Sentidos, combate e interacción en 3D
+- Vista con rayos 3D (una pared o un piso tapan de verdad), oído con oclusión 3D, conos de visión.
+- Golpes, empujones, bloqueo, flechas y balas en 3D (se puede disparar hacia arriba o abajo).
+- Interacción con lo que está bajo la mira en 3D; recoger, cosechar, pescar, romper; huellas y sangre con altura.
+- **Terminado cuando:** sigilo, combate, robo, testigos y el Caso I se comportan como antes (pruebas de bloques de crimen
+  y detective de `verify_all` en verde).
+
+### Paso 6 — Limpieza final
+- Borrar el tablero 2D sobrante: `TileMapLayer`, fondo `Parallax2D`, colisiones 2D, modo 2D de personajes y, si el usuario
+  lo decide, la vista cenital (§7).
+- Río y lago editables en el editor 3D (`mapa/Mundo3D.tscn`); retirar el editor 2D del río.
+- Mapas y escena del crimen leyendo (x, z).
+- Documentación al día (`HANDOFF.md`, `CONTROLES.md`, este plan cerrado) y ronda completa de pruebas.
+
+## 6. Pruebas de cada paso (y cuánto tardan)
+
+| Prueba | Para qué | Tiempo |
+|---|---|---|
+| `verify_all.gd` | todo el juego | ~15 min |
+| `fisica_3d.gd` (nueva) | lo físico de cada paso: recorrido por todas las puertas, escaleras, agua | ~3–5 min |
+| `atascos_vecinos.gd -- 6` | vecinos atascados | ~5 min |
+| `guardado_largo.gd` | guardar/cargar 7 días | ~5 min |
+| `social_sim.gd` | vida social 60 días (pasos 4–5) | ~5 min |
+| `perf_zonas.gd` (con ventana) | rendimiento por zonas | ~5 min |
+| capturas fijas (con ventana) | que se ve igual o mejor | ~3 min |
+
+## 7. Decisiones que tiene que tomar el usuario (preguntar en su paso, no antes)
+
+1. **Escala** (paso 0): opción A (como se ve hoy, recomendada) o B (uniforme).
+2. **Vista desde arriba** (paso 6): ¿se mantiene la cámara cenital 3D (F9) o el juego es solo en 1.ª persona?
+3. **Daño por caída** (paso 2): cuánto y desde qué altura.
+4. **Aire bajo el agua** (paso 3): cuánto dura y qué pasa al ahogarse (desmayo o muerte).
+5. **Cuevas** (después del paso 2): dónde y cuántas; es diseño de mapa, no de esta transición.
+
+## 8. Riesgos y cómo se evitan
+
+| Riesgo | Qué se nota | Cómo se evita |
+|---|---|---|
+| Se rompe todo a medias | juego injugable | rama `mundo-3d`, un paso cada vez, etiqueta antes de cada paso |
+| Atascos en puertas y esquinas | jugador o vecinos bloqueados | cajas de choque sencillas, recorrido automático por todas las puertas, prueba de atascos |
+| Más lento | menos fps | medir en cada paso contra la referencia; formas simples; vecinos lejanos «a ratos» |
+| Partidas guardadas inservibles | no carga | versión de guardado + conversión, probada con `guardado_largo` |
+| Mapa editado por el usuario descolocado | casas movidas fuera de sitio | opción A de escala; si no, herramienta de conversión con copia |
+| Pruebas viejas que ya no valen | falsos fallos | se adaptan en el mismo paso, explicando por qué en el Registro |
+| Dos sistemas vivos a la vez | errores raros | se borra lo 2D en el mismo paso en que se sustituye |
+| Cambio de agente a mitad | trabajo duplicado o perdido | este documento + Registro al día al terminar cada bloque |
+
+## 9. Estimación de tiempo y de coste
+
+Contado en **sesiones de trabajo como la del 2026-11-10** (unas 4–6 horas de Claude Code trabajando, con pruebas).
+
+| Paso | Sesiones | Notas |
+|---|---|---|
+| 0 Preparación | 0,5–1 | sobre todo medir y decidir la escala |
+| 1 Protagonista 3D | 2–3 | lo más visible; generar todo el mundo sólido |
+| 2 Alturas | 1,5–2,5 | escaleras, pisos, sótanos, guardado v4 |
+| 3 Agua | 1–1,5 | nadar, bucear, pistas en el fondo |
+| 4 Vecinos y animales | 3–4 | el más arriesgado (atascos, rendimiento) |
+| 5 Sentidos y combate | 2–3 | muchas piezas pequeñas |
+| 6 Limpieza | 1–1,5 | borrar lo 2D, río en el editor 3D |
+| **Total** | **11–17 sesiones** | con imprevistos, más cerca de 17 |
+
+**Tokens (aproximado):** una sesión larga como la de hoy ronda **15–30 millones de tokens leídos** (la mayoría, contexto
+repetido que se cobra más barato por caché) y **0,2–0,4 millones escritos**. Para toda la transición:
+**unos 170–500 millones leídos y 3–6 millones escritos.** Depende mucho de cuántas pruebas largas y capturas haga falta repetir.
+Es una estimación: se apuntará el gasto real de cada paso en el Registro para corregirla.
+
+## 10. Registro (rellenar al terminar cada bloque: fecha, agente, qué, pruebas, commit)
+
+| Fecha | Agente | Paso / bloque | Qué se hizo | Pruebas | Commit |
+|---|---|---|---|---|---|
+| 2026-11-10 | Claude Code (portátil) | Plan | Inventario y plan escritos; pendiente de aprobación | — | — |
