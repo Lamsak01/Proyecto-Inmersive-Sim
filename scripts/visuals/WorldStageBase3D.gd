@@ -479,7 +479,31 @@ static func _village_terrace_height_px(pos_2d: Vector2) -> float:
 
 static func _river_bank_terrace_height_px(y: float) -> float:
 	var sample_x: float = FishingSpotScript.river_center_x(y) + FishingSpotScript.river_half_width(y) + 18.0
-	return _village_terrace_height_px(Vector2(sample_x, clampf(y, -825.0, 650.0)))
+	# Editor del mapa (2026-11-09): la cota del agua sale del suelo real junto al río (antes, de las terrazas del pueblo con
+	# «y» recortada, y el río dibujado más al norte quedaba levantado sobre un terraplén)
+	var h_der: float = terrain_height_px(Vector2(sample_x, y)) - _river_cut_px(Vector2(sample_x, y))
+	if y >= -825.0 and y <= 650.0:
+		return h_der # dentro del pueblo, como siempre (orilla este)
+	# Fuera del pueblo el agua no puede quedar por encima de la orilla más baja
+	var cx: float = FishingSpotScript.river_center_x(y)
+	var hw: float = FishingSpotScript.river_half_width(y)
+	var h_min: float = h_der
+	for off in [-18.0, -30.0, 30.0]:
+		var sx: float = cx + (hw + absf(off)) * signf(off)
+		h_min = minf(h_min, terrain_height_px(Vector2(sx, y)) - _river_cut_px(Vector2(sx, y)))
+	return h_min
+
+
+## Parte del hundimiento del cauce en un punto (para no contarla al medir la orilla).
+static func _river_cut_px(pos_2d: Vector2) -> float:
+	var y: float = pos_2d.y
+	if y < FishingSpotScript.river_y_start() or y > FishingSpotScript.river_y_end() or FishingSpotScript.ABANDONED_MILL_RECT.grow(4.0).has_point(pos_2d):
+		return 0.0
+	var riv_hw: float = FishingSpotScript.river_half_width(y)
+	var d_riv: float = absf(pos_2d.x - FishingSpotScript.river_center_x(y))
+	if d_riv >= riv_hw + 20.0:
+		return 0.0
+	return -1.8 * (1.0 - smoothstep(riv_hw * 0.5, riv_hw + 20.0, d_riv))
 
 
 static func surface_elevation_offset_px(pos_2d: Vector2) -> float:
