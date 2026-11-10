@@ -1,5 +1,6 @@
 @tool
 extends RefCounted
+const _AN_SITIOS = preload("res://mapa/anclas.gd") # plan de sitios: sitios al aire libre siguen a lo movido
 
 ## Bloque P3: Hijos secretos, romances prohibidos y vida familiar (10 mecánicas).
 ## 1) Embarazo fruto de una infidelidad (el marido cree que es suyo mientras la aventura siga en secreto).
@@ -419,8 +420,8 @@ static func send_lovers_to_mirador(vm) -> int:
 		var a = by_key.get(str(rp["a"]), null)
 		var b = by_key.get(str(rp["b"]), null)
 		if a != null and b != null and not a.is_dead and not b.is_dead:
-			a.start_errand("mirador_escape", MIRADOR_POS + Vector2(-8, 0))
-			b.start_errand("mirador_escape", MIRADOR_POS + Vector2(8, 0))
+			a.start_errand("mirador_escape", _AN_SITIOS.mover(MIRADOR_POS + Vector2(-8, 0)))
+			b.start_errand("mirador_escape", _AN_SITIOS.mover(MIRADOR_POS + Vector2(8, 0)))
 			rp["at_mirador"] = true
 			sent += 1
 	return sent

@@ -1,5 +1,6 @@
 @tool
 extends RefCounted
+const _AN_SITIOS = preload("res://mapa/anclas.gd") # plan de sitios: sitios al aire libre siguen a lo movido
 
 ## Bloque P5: Presentarte a Alcalde, leyes y política (10 mecánicas).
 ## 1) Presentarte como candidato en el Ayuntamiento y ganar las elecciones.
@@ -297,7 +298,7 @@ static func _press_twice(vm, tag: String) -> bool:
 	return false
 
 static func try_interact(vm, player: Node2D, pos: Vector2) -> bool:
-	var desk: Vector2 = VillageCivic.hall_spots()["desk"]
+	var desk: Vector2 = _AN_SITIOS.mover(VillageCivic.hall_spots()["desk"])
 	if pos.distance_to(desk) > 36.0:
 		return false
 	var ts: Dictionary = ensure_state(vm)

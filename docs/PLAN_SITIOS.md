@@ -28,7 +28,7 @@ usaba puntos fijos del mapa original. Sondeo `tools/tests/sondeo_edificios_movid
    `_church_altar_pos`, `_hospital_bed_pos`, `_jail_cell_pos`, pozos…): **no se traducen en sitio**; usar
    `vm.sitio(vm._x)` donde se asignan a un vecino o se comparan. Y `VillagePlaces`: `VillagePlaces` (parque, bancos de la plaza, mirador, biblioteca, taberna, terraza), asientos de
    póker de la taberna y del restaurante.
-3. [ ] **Trabajos al aire libre:** campos, pesca, leña, patrullas de la guardia, recados.
+3. [x] **Trabajos al aire libre** (hecho 2026-11-10, ver «Cómo está hecho (paso 3)»): campos, pesca, leña, patrullas de la guardia, recados.
 4. [ ] **Caso I:** pistas, claro, molino, puente viejo, zapato, bandeja del informe (`VillageCase1`, `VillageManager`).
 5. [ ] **Partidas guardadas:** guardar «edificio + sitio» y no solo el punto, para que una partida vieja siga bien tras
    mover cosas. Base para la plantilla de edificio.
@@ -83,6 +83,34 @@ usaba puntos fijos del mapa original. Sondeo `tools/tests/sondeo_edificios_movid
 - Puntos del Caso I escritos a mano (archivo de la comisaría (934, 180) y (856, 107), puente viejo…): paso 4.
 - Construcción del terreno (`WorldStageTerrain3D`, `WorldStageBase3D`): no se toca; dibuja el mapa original.
 
+## Cómo está hecho (paso 3)
+- Fuera de los edificios lo que se mueve son las **anclas** del editor 3D: Objetos marcados como ancla y piezas de
+  Decorado. `Anclas.mover` ya las tiene en cuenta, así que basta con pasar por `mover` cada punto fijo escrito a mano
+  en el momento de usarlo. Si allí no hay nada movido, `mover` deja el punto igual.
+- Traducidos al usarlos:
+  - jornales de `VillageWork` (granja, rancho, cantera y leñadores: `day_job_pos`) y el lavadero (ir a lavar y la
+    charla de después);
+  - puestos del mercado (`work_position` del día) y trabajo en la avanzada;
+  - puerta de las incursiones y caravanas de rutas (salida, llegada e ida);
+  - contrabandista (campamento, carro, compraventa y redada) y callejón del perista;
+  - mirador de la pareja que se escapa, paseos nocturnos (`NIGHT_STROLL_SPOTS`) y paseo suelto (`IDLE_STROLL_SPOTS`);
+  - sitios del ayuntamiento (alcalde, urna y mesa del despacho);
+  - cama de urgencias del hospital (718, 136), morgue (745, 174), denuncia a la comisaría y raíces del cazador
+    aficionado.
+- Ya iban bien:
+  - guardia y alguacil: su ronda es un paseo alrededor de su puesto, que ya se traduce en `setup_npc`;
+  - pesca: el pescador sale de `trade_configs` y el río se edita aparte;
+  - árboles y vetas: son nodos del editor 3D;
+  - pozos y tablón: `mapa/objeto.gd`;
+  - la trampilla del club: `VillageClub.TRAPDOOR_POS` ya se pone al día sola.
+- **Sin tocar, a propósito:**
+  - los objetos que se crean con posición (arcas del ayuntamiento y libro de cuentas en `VillageCollections`), porque
+    `_anclas_repaso_final` ya mueve `WorldInteractableProp` y traducirlos aquí los movería dos veces si se crean al
+    arrancar;
+  - la salida del mapa de los que se van (`exit_pos`), que es el borde del mapa.
+- No hay sondeo propio. El sondeo de edificios sigue dando 54/60. Lo del aire libre se comprobó sin errores con
+  `atascos_vecinos.gd -- 3` (0 atascos).
+
 ## Registro de lo hecho
 - 2026-11-10 (portátil): sondeo creado; resultado 0/60. Plan escrito.
 - 2026-11-10 (portátil): paso 1. Sondeo: **54/60 siguen al edificio**; los 6 restantes son puestos al aire libre (plaza:
@@ -106,3 +134,4 @@ usaba puntos fijos del mapa original. Sondeo `tools/tests/sondeo_edificios_movid
   - los cruces del río (Wolfgang, Albrecht).
 
   Apuntado en FALLOS_VISIBLES.
+- 2026-11-10 (portátil): **paso 3 hecho** (ver arriba). Arranque sin errores; 3 h de juego sin errores ni atascos.

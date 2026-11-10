@@ -1,5 +1,6 @@
 @tool
 extends RefCounted
+const _AN_SITIOS = preload("res://mapa/anclas.gd") # plan de sitios: sitios al aire libre siguen a lo movido
 
 ## V5d: jornaleros y lavadero.
 ## - Jornaleros: cada mañana (7 h) los dueños de la granja, el rancho, la cantera y el leñador contratan a vecinos sin
@@ -97,7 +98,7 @@ static func hire(vm) -> int:
 			var n = pool.pop_front()
 			if randf() >= accepts(n):
 				continue
-			_assign(vm, n, key, spots[idx % spots.size()])
+			_assign(vm, n, key, _AN_SITIOS.mover(spots[idx % spots.size()])) # plan de sitios: sigue al campo movido
 			idx += 1
 			free -= 1
 			budget -= 1
@@ -215,16 +216,18 @@ static func after_load(vm) -> void:
 
 # ---------------------------------------------------------------- lavadero
 static func wash_spot(_vm, npc, default_spot: Vector2) -> Vector2:
-	if npc.global_position.distance_to(LAVADERO_POS) < 700.0 and randf() < LAVADERO_CHANCE:
-		return LAVADERO_POS + Vector2(randf_range(-10, 10), 12)
+	var lav: Vector2 = _AN_SITIOS.mover(LAVADERO_POS)
+	if npc.global_position.distance_to(lav) < 700.0 and randf() < LAVADERO_CHANCE:
+		return lav + Vector2(randf_range(-10, 10), 12)
 	return default_spot
 
 ## Al terminar de lavarse en el lavadero, charla con quien esté allí.
 static func on_washed(vm, n) -> void:
-	if n.global_position.distance_to(LAVADERO_POS) > LAVADERO_GOSSIP_RADIUS:
+	var lav: Vector2 = _AN_SITIOS.mover(LAVADERO_POS)
+	if n.global_position.distance_to(lav) > LAVADERO_GOSSIP_RADIUS:
 		return
 	for o in VillageNeeds.living(vm):
-		if o != n and o.global_position.distance_to(LAVADERO_POS) <= LAVADERO_GOSSIP_RADIUS:
+		if o != n and o.global_position.distance_to(lav) <= LAVADERO_GOSSIP_RADIUS:
 			n.modify_npc_relationship(o, 1, "Coincidimos en el lavadero", true)
 			var r: Dictionary = vm.VillageSocialLife.spread_gossip(vm, n, o)
 			if not r.is_empty():

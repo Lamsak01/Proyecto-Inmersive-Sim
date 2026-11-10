@@ -1,5 +1,6 @@
 @tool
 extends RefCounted
+const _AN_SITIOS = preload("res://mapa/anclas.gd") # plan de sitios: sitios al aire libre siguen a lo movido
 
 ## Economía y necesidades ampliadas (bloques E, `docs/PLAN_ECONOMIA_NECESIDADES.md`).
 ## - E1: higiene de vecinos y jugador; los vecinos caminan a lavarse (encargo «wash»).
@@ -178,7 +179,7 @@ static func night_stroll_spot(vm, npc, step: int = 0) -> Vector2:
 		var spr: Sprite2D = sl.get("sprite")
 		if is_instance_valid(spr):
 			return spr.global_position + Vector2(float((h_idx % 3) - 1) * 14.0, 16.0)
-	return NIGHT_STROLL_SPOTS[h_idx % NIGHT_STROLL_SPOTS.size()] + Vector2(float((h_idx % 5) - 2) * 8.0, float(((h_idx / 5) % 3) - 1) * 8.0)
+	return _AN_SITIOS.mover(NIGHT_STROLL_SPOTS[h_idx % NIGHT_STROLL_SPOTS.size()] + Vector2(float((h_idx % 5) - 2) * 8.0, float(((h_idx / 5) % 3) - 1) * 8.0))
 
 # ---------------------------------------------------------------- E5 vicios
 

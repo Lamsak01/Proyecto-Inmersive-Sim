@@ -1,5 +1,6 @@
 @tool
 extends RefCounted
+const _AN_SITIOS = preload("res://mapa/anclas.gd") # plan de sitios: sitios al aire libre siguen a lo movido
 
 ## V5b: edificios del pueblo en los solares (nombres provisionales, en docs/APORTES_CREATIVOS.md).
 ## - Ayuntamiento (solar n4): allí se vota y se guardan las arcas. El día de elecciones los vecinos van EN PERSONA a
@@ -118,11 +119,11 @@ static func on_hour(vm, hour: int) -> void:
 	if hour == MAYOR_OFFICE_HOUR and WorldClock != null and WorldClock.has_method("get_weekday") and int(WorldClock.get_weekday()) == 5:
 		var mayor = vm.VillageTown.mayor_of(vm)
 		if mayor != null and VillageNeeds.is_free(mayor):
-			mayor.start_errand("mayor_office", hall_spots()["mayor"])
+			mayor.start_errand("mayor_office", _AN_SITIOS.mover(hall_spots()["mayor"]))
 
 static func _send_voters(vm, hour: int) -> void:
 	var voted: Array = vm.town_state.get("voted", [])
-	var ballot: Vector2 = hall_spots()["ballot"]
+	var ballot: Vector2 = _AN_SITIOS.mover(hall_spots()["ballot"])
 	for n in VillageNeeds.living(vm):
 		if n.get_person_key() in voted or not VillageNeeds.is_free(n) or (n.person_profile != null and int(n.person_profile.age) < 16):
 			continue

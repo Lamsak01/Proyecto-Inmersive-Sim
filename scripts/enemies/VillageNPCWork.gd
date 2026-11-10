@@ -476,7 +476,7 @@ func _execute_dynamic_activity(delta: float) -> void:
 				var base_ang: float = float(absi(npc_name.hash()) % 360) * (TAU / 360.0) + randf_range(-0.85, 0.85)
 				_wander_offset = Vector2.RIGHT.rotated(base_ang) * randf_range(12.0, radius) if is_idle_stroller else Vector2.RIGHT.rotated(base_ang) * randf_range(1.5 if is_indoor_authority else 6.5, radius)
 				if is_idle_stroller and randf() < 0.45:
-					set_meta("stroll_anchor", IDLE_STROLL_SPOTS[randi() % IDLE_STROLL_SPOTS.size()])
+					set_meta("stroll_anchor", load("res://mapa/anclas.gd").mover(IDLE_STROLL_SPOTS[randi() % IDLE_STROLL_SPOTS.size()])) # plan de sitios
 				elif is_idle_stroller and has_meta("stroll_anchor") and randf() < 0.30:
 					remove_meta("stroll_anchor")
 			var anchor: Vector2 = get_meta("day_job_pos") if has_meta("day_job_pos") else (get_meta("stroll_anchor") if (trade_role == TradeRole.UNEMPLOYED and has_meta("stroll_anchor")) else work_position) # V5d: jornalero en el campo o paseo por el pueblo
@@ -847,7 +847,7 @@ func _process_amateur_survival_hunting(delta: float) -> void:
 
 	# Si tras 18s no logra encontrar o alcanzar animales, desentierra raíces y bayas amargas para no morir de hambre
 	if prey == null or _amateur_forage_timer >= 20.0:
-		var fallback_spot := Vector2(88, 785)
+		var fallback_spot: Vector2 = _AN_SITIOS.mover(Vector2(88, 785))
 		if global_position.distance_to(fallback_spot) > 22.0 and _amateur_forage_timer < 18.0:
 			_move_towards_point(fallback_spot, 48.0, delta)
 			return

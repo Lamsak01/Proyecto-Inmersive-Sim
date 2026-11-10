@@ -1212,7 +1212,7 @@ static func raid_on_hour(vm, hour: int) -> void:
 		return
 	if hour == RAID_GATHER_HOUR:
 		for n in raid_defenders(vm):
-			n.start_errand("raid_defend", RAID_GATE_POS + Vector2(randf_range(-40.0, 40.0), randf_range(-30.0, 30.0)))
+			n.start_errand("raid_defend", _AN_SITIOS.mover(RAID_GATE_POS + Vector2(randf_range(-40.0, 40.0), randf_range(-30.0, 30.0))))
 			n._spawn_floating_text("🛡️", Color(1.0, 0.85, 0.5), -30.0)
 	elif hour >= RAID_ATTACK_HOUR and not bool(raid.get("attack_started", false)):
 		# Regla «todo es físico»: el asalto lo deciden los atacantes que aparecen de verdad (RaidController).
@@ -1604,7 +1604,7 @@ static func spawn_trade_caravan(vm, route_id: String, at_plaza: bool = false, si
 	if int(vm.merchant_suspension_days.get(route_id, 0)) > 0:
 		return null
 	var existing = get_route_caravan_npc(vm, route_id)
-	var start_pos: Vector2 = CARAVAN_PLAZA_POS if at_plaza else RAID_GATE_POS
+	var start_pos: Vector2 = _AN_SITIOS.mover(CARAVAN_PLAZA_POS if at_plaza else RAID_GATE_POS)
 	if existing != null and is_instance_valid(existing):
 		if at_plaza:
 			existing.global_position = CARAVAN_PLAZA_POS
@@ -1669,8 +1669,8 @@ static func update_caravan_merchant_ai(vm, merchant, delta: float) -> void:
 		merchant._merchant_leaving = true
 		merchant.set_meta("at_plaza", false)
 		merchant.current_activity = VillageNPC.ActivityState.WORKING
-		merchant._move_towards_point(RAID_GATE_POS, 78.0, delta)
-		if merchant.global_position.distance_to(RAID_GATE_POS) <= 18.0:
+		merchant._move_towards_point(_AN_SITIOS.mover(RAID_GATE_POS), 78.0, delta)
+		if merchant.global_position.distance_to(_AN_SITIOS.mover(RAID_GATE_POS)) <= 18.0:
 			despawn_trade_caravan(vm, route_id)
 		return
 	merchant._merchant_leaving = false
@@ -2142,11 +2142,12 @@ static func open_market(vm) -> int:
 			cands.append(n)
 	if cands.is_empty():
 		return 0
-	cands.sort_custom(func(a, b): return a.work_position.distance_to(MARKET_SPOTS[0]) > b.work_position.distance_to(MARKET_SPOTS[0]))
+	var m0: Vector2 = _AN_SITIOS.mover(MARKET_SPOTS[0])
+	cands.sort_custom(func(a, b): return a.work_position.distance_to(m0) > b.work_position.distance_to(m0))
 	var sellers: Dictionary = {}
 	for i in range(mini(cands.size(), MARKET_SPOTS.size())):
 		var n = cands[i]
-		var spot: Vector2 = MARKET_SPOTS[i]
+		var spot: Vector2 = _AN_SITIOS.mover(MARKET_SPOTS[i]) # el dibujo del puesto (_add_*) ya se traduce solo
 		sellers[n.get_person_key()] = {"x": n.work_position.x, "y": n.work_position.y, "spot": i}
 		n.work_position = spot
 		n.add_thought("Hoy monto puesto en el mercado (+3)", 3.0)
@@ -2217,7 +2218,7 @@ static func _outpost_on_hour(vm, hour: int) -> void:
 			continue
 		if hour >= 8 and hour < 17:
 			if sn.errand_kind == "" and VillageNeeds.is_free(sn):
-				var spot: Vector2 = OUTPOST_WORK_SPOTS[i % OUTPOST_WORK_SPOTS.size()]
+				var spot: Vector2 = _AN_SITIOS.mover(OUTPOST_WORK_SPOTS[i % OUTPOST_WORK_SPOTS.size()])
 				sn.start_errand("outpost_work", spot)
 		elif sn.errand_kind == "outpost_work":
 			sn.end_errand()

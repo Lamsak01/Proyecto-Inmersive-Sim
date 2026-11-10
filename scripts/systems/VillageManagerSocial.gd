@@ -532,7 +532,7 @@ func is_position_near_water_source(world_pos: Vector2, max_meters: float = 2.0) 
 	if Rect2(Vector2(-1910, 165), Vector2(710, 320)).grow(max_meters * 16.0).has_point(world_pos):
 		return true
 	# Arroyo / Fuente del Lavadero del pueblo
-	if world_pos.distance_squared_to(VillageWork.LAVADERO_POS) <= max_well_dist * max_well_dist:
+	if world_pos.distance_squared_to(sitio(VillageWork.LAVADERO_POS)) <= max_well_dist * max_well_dist:
 		return true
 	# Lavabo quirúrgico junto a la Cama de Urgencias del Hospital
 	if world_pos.distance_squared_to(sitio(_hospital_bed_pos)) <= max_well_dist * max_well_dist:

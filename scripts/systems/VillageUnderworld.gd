@@ -1,5 +1,6 @@
 @tool
 extends RefCounted
+const _AN_SITIOS = preload("res://mapa/anclas.gd") # plan de sitios: sitios al aire libre siguen a lo movido
 
 ## Bloque P7: Mercado negro, contrabando y bajos fondos (10 mecánicas).
 ## 1) Perista nocturno tras la taberna (21:00–04:00) o contacto clandestino una vez descubierto.
@@ -755,11 +756,11 @@ static func spawn_smuggler_caravan(vm, at_camp: bool = true):
 	var existing = get_active_smuggler_npc(vm)
 	if existing != null:
 		if at_camp:
-			existing.global_position = SMUGGLER_CAMP_POS + Vector2(-24.0, 4.0)
+			existing.global_position = _AN_SITIOS.mover(SMUGGLER_CAMP_POS + Vector2(-24.0, 4.0))
 			existing.set_meta("smuggler_state", "camped")
 		return existing
 	var parent_node: Node = vm.entities_root if ("entities_root" in vm and is_instance_valid(vm.entities_root)) else (vm.get_parent() if vm.get_parent() != null else vm)
-	var start_pos: Vector2 = (SMUGGLER_CAMP_POS + Vector2(-24.0, 4.0)) if at_camp else SMUGGLER_BORDER_POS
+	var start_pos: Vector2 = _AN_SITIOS.mover((SMUGGLER_CAMP_POS + Vector2(-24.0, 4.0)) if at_camp else SMUGGLER_BORDER_POS)
 	var smuggler := VillageNPC.new()
 	smuggler.name = "SmugglerCaravanMerchant"
 	smuggler.npc_name = "El Encapuchado"
@@ -777,7 +778,7 @@ static func spawn_smuggler_caravan(vm, at_camp: bool = true):
 	smuggler.add_to_group("smuggler_caravan_npc")
 	if get_active_smuggler_cart(vm) == null:
 		var cart := SmugglerCampCart.new(vm)
-		cart.global_position = SMUGGLER_CAMP_POS
+		cart.global_position = _AN_SITIOS.mover(SMUGGLER_CAMP_POS)
 		parent_node.add_child(cart)
 	return smuggler
 
@@ -824,7 +825,7 @@ static func update_smuggler_merchant_ai(vm, merchant, delta: float) -> void:
 		if merchant.global_position.distance_to(SMUGGLER_BORDER_POS) < 28.0:
 			despawn_smuggler_caravan(vm)
 		return
-	var camp_spot: Vector2 = SMUGGLER_CAMP_POS + Vector2(-24.0, 4.0)
+	var camp_spot: Vector2 = _AN_SITIOS.mover(SMUGGLER_CAMP_POS + Vector2(-24.0, 4.0))
 	merchant._merchant_leaving = false
 	merchant.current_activity = VillageNPC.ActivityState.WORKING
 	merchant._move_towards_point(camp_spot, 68.0, delta)
@@ -865,7 +866,7 @@ static func caravan_buy(vm, inv, require_double_e: bool = true, actor = null) ->
 		return false
 	var st: Dictionary = state(vm)
 	var sm = get_active_smuggler_npc(vm)
-	var trade_pos: Vector2 = SMUGGLER_CAMP_POS
+	var trade_pos: Vector2 = _AN_SITIOS.mover(SMUGGLER_CAMP_POS)
 	if actor != null and is_instance_valid(actor) and actor is Node2D:
 		trade_pos = (actor as Node2D).global_position
 	if inv == null or int(inv.gold) < 25 or not is_caravan_here(st) or int(st.get("caravan_batches_left", 2)) <= 0:
@@ -889,7 +890,7 @@ static func caravan_sell(vm, inv, actor = null) -> bool:
 		return false
 	var st: Dictionary = state(vm)
 	var sm = get_active_smuggler_npc(vm)
-	var trade_pos: Vector2 = SMUGGLER_CAMP_POS
+	var trade_pos: Vector2 = _AN_SITIOS.mover(SMUGGLER_CAMP_POS)
 	if actor != null and is_instance_valid(actor) and actor is Node2D:
 		trade_pos = (actor as Node2D).global_position
 	if get_item_count(vm, "dusk_dust") <= 0 or int(st.get("caravan_gold", 0)) < 35 or not is_caravan_here(st):
@@ -921,7 +922,7 @@ static func send_guards_to_bust_caravan(vm, reporting_guard = null) -> int:
 		if int(n.trade_role) in [int(VillageNPC.TradeRole.GUARD), int(VillageNPC.TradeRole.SHERIFF)] and not n.is_downed:
 			chosen.append(n)
 	for g in chosen:
-		g.start_errand("smuggler_bust", SMUGGLER_CAMP_POS)
+		g.start_errand("smuggler_bust", _AN_SITIOS.mover(SMUGGLER_CAMP_POS))
 	return chosen.size()
 
 static func on_guard_bust_arrived(vm, guard_npc = null) -> void:
@@ -1006,12 +1007,12 @@ static func fence_on_hour(vm, h: int) -> void:
 			return
 		if f.errand_kind != "" or f.rite_pos != Vector2.ZERO:
 			return # otro recado o rito en marcha: esta noche no sale
-		f.start_errand("fence_alley", FENCE_ALLEY_POS)
+		f.start_errand("fence_alley", _AN_SITIOS.mover(FENCE_ALLEY_POS))
 	elif f.errand_kind == "fence_alley":
 		f.end_errand()
 
 static func is_in_alley(npc) -> bool:
-	return npc != null and is_instance_valid(npc) and npc.errand_kind == "fence_alley" and npc.global_position.distance_to(FENCE_ALLEY_POS) <= 30.0
+	return npc != null and is_instance_valid(npc) and npc.errand_kind == "fence_alley" and npc.global_position.distance_to(_AN_SITIOS.mover(FENCE_ALLEY_POS)) <= 30.0
 
 ## Letrero de [E]: en el callejón, quien no lo conoce solo ve una figura encapuchada.
 static func alley_interact_label(vm, npc) -> String:

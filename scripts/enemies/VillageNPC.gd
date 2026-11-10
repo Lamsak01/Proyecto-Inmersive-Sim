@@ -745,7 +745,7 @@ func revive_from_downed(rescuer: Node, used_surgical_kit: bool = false) -> void:
 		health_comp.blood_changed.emit(health_comp.current_blood, health_comp.max_blood)
 		health_comp.health_changed.emit(health_comp.current_health, health_comp.max_health)
 	if not used_surgical_kit:
-		global_position = Vector2(718, 136)
+		global_position = _AN_SITIOS.mover(Vector2(718, 136))
 	_set_sprite_pose(0.0)
 	add_thought("Me trasladaron a urgencias (+25)", 25.0)
 	if rescuer and rescuer.is_in_group("player"):
