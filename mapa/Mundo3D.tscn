@@ -10193,7 +10193,7 @@ mesh = SubResource("CylinderMesh_2o07a")
 [node name="Cilindro_229" type="Node3D" parent="Decorado/Zona_0_-2" unique_id=1027055816]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.9137573, 0.37882352, -12.433257)
 metadata/pos_original = Vector2(145.68787, -527.2)
-metadata/radio = 13.145007610321045
+metadata/radio = 13.145007610321043
 
 [node name="@MeshInstance3D@4960" type="MeshInstance3D" parent="Decorado/Zona_0_-2/Cilindro_229" unique_id=116505382]
 material_override = SubResource("StandardMaterial3D_hlqdu")
@@ -11294,7 +11294,7 @@ mesh = SubResource("CylinderMesh_as0i2")
 [node name="Cilindro_283" type="Node3D" parent="Decorado/Zona_0_0" unique_id=795497625]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.0985959, 0.091822565, 0.25470254)
 metadata/pos_original = Vector2(104.929794, 10.8)
-metadata/radio = 13.401947498321533
+metadata/radio = 13.401947498321531
 
 [node name="@MeshInstance3D@5209" type="MeshInstance3D" parent="Decorado/Zona_0_0/Cilindro_283" unique_id=445921413]
 material_override = SubResource("StandardMaterial3D_hlqdu")
@@ -11465,7 +11465,7 @@ mesh = SubResource("CylinderMesh_wpcm4")
 [node name="Caja_289" type="Node3D" parent="Decorado/Zona_0_0" unique_id=284975001]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.1328558, 0.0283062, 2.8111613)
 metadata/pos_original = Vector2(56.642788, 119.2)
-metadata/radio = 13.935545444488525
+metadata/radio = 13.935545444488524
 
 [node name="@MeshInstance3D@5238" type="MeshInstance3D" parent="Decorado/Zona_0_0/Caja_289" unique_id=1734143193]
 transform = Transform3D(0.99939084, 0, -0.034899857, 0, 1, 0, 0.034899857, 0, 0.99939084, 0, 0, 0)
@@ -11583,7 +11583,7 @@ mesh = SubResource("CylinderMesh_ua3oe")
 [node name="Caja_293" type="Node3D" parent="Decorado/Zona_0_0" unique_id=1787444511]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.3008971, 0.0283062, 3.5186682)
 metadata/pos_original = Vector2(65.04485, 149.2)
-metadata/radio = 12.788547992706299
+metadata/radio = 12.7885479927063
 
 [node name="@MeshInstance3D@5258" type="MeshInstance3D" parent="Decorado/Zona_0_0/Caja_293" unique_id=749367443]
 transform = Transform3D(0.5591932, 0, 0.82903737, 0, 1, 0, -0.82903737, 0, 0.5591932, 0, 0, 0)
@@ -11695,7 +11695,7 @@ mesh = SubResource("CylinderMesh_pddox")
 [node name="Cilindro_297" type="Node3D" parent="Decorado/Zona_0_0" unique_id=1086319062]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.0532383, 0.08508021, 5.207252)
 metadata/pos_original = Vector2(52.661915, 220.8)
-metadata/radio = 13.128293514251709
+metadata/radio = 13.128293514251707
 
 [node name="@MeshInstance3D@5277" type="MeshInstance3D" parent="Decorado/Zona_0_0/Cilindro_297" unique_id=1011015100]
 material_override = SubResource("StandardMaterial3D_hlqdu")
@@ -11842,7 +11842,7 @@ mesh = SubResource("CylinderMesh_04is1")
 [node name="Cilindro_302" type="Node3D" parent="Decorado/Zona_0_0" unique_id=1600380868]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.7060134, 0.07270384, 6.0326767)
 metadata/pos_original = Vector2(135.30067, 255.8)
-metadata/radio = 12.522650241851807
+metadata/radio = 12.522650241851808
 
 [node name="@MeshInstance3D@5302" type="MeshInstance3D" parent="Decorado/Zona_0_0/Cilindro_302" unique_id=531797875]
 material_override = SubResource("StandardMaterial3D_hlqdu")
@@ -11866,7 +11866,7 @@ mesh = SubResource("CylinderMesh_e1tco")
 [node name="Caja_303" type="Node3D" parent="Decorado/Zona_0_0" unique_id=1628326018]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.6689342, -0.014742955, 6.3486967)
 metadata/pos_original = Vector2(83.44671, 269.2)
-metadata/radio = 13.228132724761963
+metadata/radio = 13.228132724761965
 
 [node name="@MeshInstance3D@5306" type="MeshInstance3D" parent="Decorado/Zona_0_0/Caja_303" unique_id=771851300]
 transform = Transform3D(0.3090166, 0, -0.95105666, 0, 1, 0, 0.95105666, 0, 0.3090166, 0, 0, 0)
@@ -11931,7 +11931,7 @@ mesh = SubResource("CylinderMesh_67lsi")
 [node name="Cilindro_305" type="Node3D" parent="Decorado/Zona_0_0" unique_id=1096500097]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.9635642, 0.008694453, 6.622266)
 metadata/pos_original = Vector2(98.17821, 280.8)
-metadata/radio = 12.579540729522705
+metadata/radio = 12.579540729522703
 
 [node name="@MeshInstance3D@5317" type="MeshInstance3D" parent="Decorado/Zona_0_0/Cilindro_305" unique_id=1644512881]
 material_override = SubResource("StandardMaterial3D_hlqdu")
@@ -11984,7 +11984,7 @@ mesh = SubResource("CylinderMesh_sq0hl")
 [node name="Caja_307" type="Node3D" parent="Decorado/Zona_0_0" unique_id=1073472941]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.2440605, -0.0050613973, 7.056204)
 metadata/pos_original = Vector2(112.203026, 299.2)
-metadata/radio = 14.118330478668213
+metadata/radio = 14.118330478668211
 
 [node name="@MeshInstance3D@5326" type="MeshInstance3D" parent="Decorado/Zona_0_0/Caja_307" unique_id=1034461840]
 transform = Transform3D(0.9702956, 0, -0.24192232, 0, 1, 0, 0.24192232, 0, 0.9702956, 0, 0, 0)
@@ -13208,7 +13208,7 @@ mesh = SubResource("CylinderMesh_3lb5q")
 [node name="Cilindro_319" type="Node3D" parent="Decorado/Zona_0_1" unique_id=85907298]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.5078757, 0.060253233, 11.456897)
 metadata/pos_original = Vector2(125.39378, 485.8)
-metadata/radio = 11.702571153640747
+metadata/radio = 11.702571153640749
 
 [node name="@MeshInstance3D@5372" type="MeshInstance3D" parent="Decorado/Zona_0_1/Cilindro_319" unique_id=1099386446]
 material_override = SubResource("StandardMaterial3D_hlqdu")
@@ -13247,7 +13247,7 @@ mesh = SubResource("BoxMesh_5w50c")
 [node name="Caja_321" type="Node3D" parent="Decorado/Zona_0_1" unique_id=1440000910]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 3.7697167, -0.041515756, 12.169121)
 metadata/pos_original = Vector2(188.48584, 516)
-metadata/radio = 13.697611331939697
+metadata/radio = 13.697611331939695
 
 [node name="@MeshInstance3D@5378" type="MeshInstance3D" parent="Decorado/Zona_0_1/Caja_321" unique_id=1668930595]
 transform = Transform3D(-0.6691322, 0, -0.74314344, 0, 1, 0, 0.74314344, 0, -0.6691322, 0, 0, 0)
@@ -13413,7 +13413,7 @@ mesh = SubResource("CylinderMesh_35ehl")
 [node name="Cilindro_329" type="Node3D" parent="Decorado/Zona_0_1" unique_id=1474080413]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.0372336, 0.10311128, 15.135934)
 metadata/pos_original = Vector2(101.86168, 641.8)
-metadata/radio = 11.918795347213745
+metadata/radio = 11.918795347213743
 
 [node name="@MeshInstance3D@5404" type="MeshInstance3D" parent="Decorado/Zona_0_1/Cilindro_329" unique_id=132503673]
 material_override = SubResource("StandardMaterial3D_hlqdu")
@@ -13521,7 +13521,7 @@ mesh = SubResource("BoxMesh_0nhfc")
 [node name="Cilindro_334" type="Node3D" parent="Decorado/Zona_0_1" unique_id=678171055]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.8771582, 0.12132635, 17.09337)
 metadata/pos_original = Vector2(143.85791, 724.8)
-metadata/radio = 11.383012294769287
+metadata/radio = 11.383012294769289
 
 [node name="@MeshInstance3D@5421" type="MeshInstance3D" parent="Decorado/Zona_0_1/Cilindro_334" unique_id=589138914]
 material_override = SubResource("StandardMaterial3D_hlqdu")
@@ -14943,7 +14943,7 @@ mesh = SubResource("CylinderMesh_08yv8")
 [node name="Cilindro_242" type="Node3D" parent="Decorado/Zona_0_-1" unique_id=407954556]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 3.6789463, 0.16956577, -7.056204)
 metadata/pos_original = Vector2(183.94731, -299.2)
-metadata/radio = 11.811734914779663
+metadata/radio = 11.811734914779665
 
 [node name="@MeshInstance3D@5008" type="MeshInstance3D" parent="Decorado/Zona_0_-1/Cilindro_242" unique_id=1802732663]
 material_override = SubResource("StandardMaterial3D_hlqdu")
@@ -14996,7 +14996,7 @@ mesh = SubResource("CylinderMesh_m5lqv")
 [node name="Cilindro_244" type="Node3D" parent="Decorado/Zona_0_-1" unique_id=2142908136]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 3.60505, 0.15495546, -6.7024503)
 metadata/pos_original = Vector2(180.2525, -284.2)
-metadata/radio = 11.353121519088745
+metadata/radio = 11.353121519088743
 
 [node name="@MeshInstance3D@5017" type="MeshInstance3D" parent="Decorado/Zona_0_-1/Cilindro_244" unique_id=1104294604]
 material_override = SubResource("StandardMaterial3D_hlqdu")
@@ -15020,7 +15020,7 @@ mesh = SubResource("CylinderMesh_5bhh7")
 [node name="Caja_245" type="Node3D" parent="Decorado/Zona_0_-1" unique_id=1002020421]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.62215, 0.056110855, -6.38643)
 metadata/pos_original = Vector2(131.1075, -270.8)
-metadata/radio = 14.123307704925537
+metadata/radio = 14.123307704925535
 
 [node name="@MeshInstance3D@5021" type="MeshInstance3D" parent="Decorado/Zona_0_-1/Caja_245" unique_id=646470114]
 transform = Transform3D(0.8090169, 0, -0.5877854, 0, 1, 0, 0.5877854, 0, 0.8090169, 0, 0, 0)
@@ -15114,7 +15114,7 @@ mesh = SubResource("CylinderMesh_cmnka")
 [node name="Cilindro_248" type="Node3D" parent="Decorado/Zona_0_-1" unique_id=8841050]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 3.6956556, 0.11326293, -5.994943)
 metadata/pos_original = Vector2(184.78278, -254.20001)
-metadata/radio = 12.571089267730713
+metadata/radio = 12.571089267730711
 
 [node name="@MeshInstance3D@5037" type="MeshInstance3D" parent="Decorado/Zona_0_-1/Cilindro_248" unique_id=144632806]
 material_override = SubResource("StandardMaterial3D_hlqdu")
@@ -15256,7 +15256,7 @@ mesh = SubResource("CylinderMesh_3217k")
 [node name="Caja_253" type="Node3D" parent="Decorado/Zona_0_-1" unique_id=328633863]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.8531744, 0.0283062, -4.971416)
 metadata/pos_original = Vector2(92.65872, -210.79999)
-metadata/radio = 12.900671
+metadata/radio = 12.900671000000001
 
 [node name="@MeshInstance3D@5061" type="MeshInstance3D" parent="Decorado/Zona_0_-1/Caja_253" unique_id=138314118]
 transform = Transform3D(0.1736484, 0, 0.9848077, 0, 1, 0, -0.9848077, 0, 0.1736484, 0, 0, 0)
@@ -16652,7 +16652,7 @@ mesh = SubResource("BoxMesh_ddv0i")
 [node name="Cilindro_211" type="Node3D" parent="Decorado/Zona_0_-3" unique_id=1825516277]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.8690746, 0.43927607, -19.06024)
 metadata/pos_original = Vector2(93.45373, -808.2)
-metadata/radio = 12.987982273101807
+metadata/radio = 12.987982273101808
 
 [node name="@MeshInstance3D@4902" type="MeshInstance3D" parent="Decorado/Zona_0_-3/Cilindro_211" unique_id=340355733]
 material_override = SubResource("StandardMaterial3D_hlqdu")
@@ -16941,7 +16941,7 @@ mesh = SubResource("BoxMesh_8gl3d")
 [node name="Cilindro_339" type="Node3D" parent="Decorado/Zona_0_2" unique_id=1035287648]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.8937165, 0.08649974, 20.772406)
 metadata/pos_original = Vector2(94.68582, 880.7999)
-metadata/radio = 11.348130464553833
+metadata/radio = 11.348130464553831
 
 [node name="@MeshInstance3D@5437" type="MeshInstance3D" parent="Decorado/Zona_0_2/Cilindro_339" unique_id=1393667214]
 material_override = SubResource("StandardMaterial3D_hlqdu")
@@ -18767,5 +18767,258 @@ pos_original = Vector2(-320, 2020)
 modelo = "nature/kenney/mushroom_red.glb"
 alto = 8.0
 nombre_visible = "WildMushroom_21 (158)"
+es_ancla = true
+radio_ancla = 12.0
+
+[node name="WildHerb_19_(159)" type="Node3D" parent="Objetos" unique_id=1501202738]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 14.8, 0.36762553, 32.545322)
+script = ExtResource("29_bojho")
+clave = "ancla_159"
+pos_original = Vector2(740, 1380)
+modelo = "nature/Plant_4.obj"
+alto = 8.0
+nombre_visible = "WildHerb_19 (159)"
+es_ancla = true
+radio_ancla = 12.0
+
+[node name="WildMushroom_0_(160)" type="Node3D" parent="Objetos" unique_id=1042321240]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.8, -0.09946458, 24.055239)
+script = ExtResource("29_bojho")
+clave = "ancla_160"
+pos_original = Vector2(-40, 1020)
+modelo = "nature/kenney/mushroom_red.glb"
+alto = 8.0
+nombre_visible = "WildMushroom_0 (160)"
+es_ancla = true
+radio_ancla = 12.0
+
+[node name="WildMushroom_1_(161)" type="Node3D" parent="Objetos" unique_id=536516790]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.4, -0.0022481838, 24.52691)
+script = ExtResource("29_bojho")
+clave = "ancla_161"
+pos_original = Vector2(120, 1040)
+modelo = "nature/kenney/mushroom_red.glb"
+alto = 8.0
+nombre_visible = "WildMushroom_1 (161)"
+es_ancla = true
+radio_ancla = 12.0
+
+[node name="WildMushroom_2_(162)" type="Node3D" parent="Objetos" unique_id=990117391]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 5.8, 0.39924526, 25.470253)
+script = ExtResource("29_bojho")
+clave = "ancla_162"
+pos_original = Vector2(290, 1080)
+modelo = "nature/kenney/mushroom_red.glb"
+alto = 8.0
+nombre_visible = "WildMushroom_2 (162)"
+es_ancla = true
+radio_ancla = 12.0
+
+[node name="WildMushroom_3_(163)" type="Node3D" parent="Objetos" unique_id=1191410399]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 8.8, 0.5524414, 26.413597)
+script = ExtResource("29_bojho")
+clave = "ancla_163"
+pos_original = Vector2(440, 1120)
+modelo = "nature/kenney/mushroom_red.glb"
+alto = 8.0
+nombre_visible = "WildMushroom_3 (163)"
+es_ancla = true
+radio_ancla = 12.0
+
+[node name="WildMushroom_4_(164)" type="Node3D" parent="Objetos" unique_id=1260073962]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.4, 0.007825534, 27.82861)
+script = ExtResource("29_bojho")
+clave = "ancla_164"
+pos_original = Vector2(-20, 1180)
+modelo = "nature/kenney/mushroom_red.glb"
+alto = 8.0
+nombre_visible = "WildMushroom_4 (164)"
+es_ancla = true
+radio_ancla = 12.0
+
+[node name="WildMushroom_5_(165)" type="Node3D" parent="Objetos" unique_id=167302999]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 3.2, 0.100917004, 28.064445)
+script = ExtResource("29_bojho")
+clave = "ancla_165"
+pos_original = Vector2(160, 1190)
+modelo = "nature/kenney/mushroom_red.glb"
+alto = 8.0
+nombre_visible = "WildMushroom_5 (165)"
+es_ancla = true
+radio_ancla = 12.0
+
+[node name="WildMushroom_6_(166)" type="Node3D" parent="Objetos" unique_id=1951509603]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 7, 0.45716253, 28.771954)
+script = ExtResource("29_bojho")
+clave = "ancla_166"
+pos_original = Vector2(350, 1220)
+modelo = "nature/kenney/mushroom_red.glb"
+alto = 8.0
+nombre_visible = "WildMushroom_6 (166)"
+es_ancla = true
+radio_ancla = 12.0
+
+[node name="WildMushroom_7_(167)" type="Node3D" parent="Objetos" unique_id=1072146757]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.2, -0.06424029, 34.43201)
+script = ExtResource("29_bojho")
+clave = "ancla_167"
+pos_original = Vector2(60, 1460)
+modelo = "nature/kenney/mushroom_red.glb"
+alto = 8.0
+nombre_visible = "WildMushroom_7 (167)"
+es_ancla = true
+radio_ancla = 12.0
+
+[node name="WildMushroom_8_(168)" type="Node3D" parent="Objetos" unique_id=1690593993]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 4.2, 0.29893485, 35.611187)
+script = ExtResource("29_bojho")
+clave = "ancla_168"
+pos_original = Vector2(210, 1510)
+modelo = "nature/kenney/mushroom_red.glb"
+alto = 8.0
+nombre_visible = "WildMushroom_8 (168)"
+es_ancla = true
+radio_ancla = 12.0
+
+[node name="WildMushroom_9_(169)" type="Node3D" parent="Objetos" unique_id=154760366]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 8.4, 0.22070618, 36.790367)
+script = ExtResource("29_bojho")
+clave = "ancla_169"
+pos_original = Vector2(420, 1560)
+modelo = "nature/kenney/mushroom_red.glb"
+alto = 8.0
+nombre_visible = "WildMushroom_9 (169)"
+es_ancla = true
+radio_ancla = 12.0
+
+[node name="WildMushroom_10_(170)" type="Node3D" parent="Objetos" unique_id=2100729796]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.6, 0.30866855, 41.50708)
+script = ExtResource("29_bojho")
+clave = "ancla_170"
+pos_original = Vector2(-80, 1760)
+modelo = "nature/kenney/mushroom_red.glb"
+alto = 8.0
+nombre_visible = "WildMushroom_10 (170)"
+es_ancla = true
+radio_ancla = 12.0
+
+[node name="WildMushroom_11_(171)" type="Node3D" parent="Objetos" unique_id=955360193]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.8, 0.25193176, 42.686256)
+script = ExtResource("29_bojho")
+clave = "ancla_171"
+pos_original = Vector2(140, 1810)
+modelo = "nature/kenney/mushroom_red.glb"
+alto = 8.0
+nombre_visible = "WildMushroom_11 (171)"
+es_ancla = true
+radio_ancla = 12.0
+
+[node name="WildMushroom_12_(172)" type="Node3D" parent="Objetos" unique_id=1304924742]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 7.2, 0.021521505, 43.393764)
+script = ExtResource("29_bojho")
+clave = "ancla_172"
+pos_original = Vector2(360, 1840)
+modelo = "nature/kenney/mushroom_red.glb"
+alto = 8.0
+nombre_visible = "WildMushroom_12 (172)"
+es_ancla = true
+radio_ancla = 12.0
+
+[node name="WildMushroom_13_(173)" type="Node3D" parent="Objetos" unique_id=1840489935]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 4.4, -0.06793488, 48.58215)
+script = ExtResource("29_bojho")
+clave = "ancla_173"
+pos_original = Vector2(220, 2060)
+modelo = "nature/kenney/mushroom_red.glb"
+alto = 8.0
+nombre_visible = "WildMushroom_13 (173)"
+es_ancla = true
+radio_ancla = 12.0
+
+[node name="WildMushroom_14_(174)" type="Node3D" parent="Objetos" unique_id=223907371]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -18.8, 0.6886742, 33.96034)
+script = ExtResource("29_bojho")
+clave = "ancla_174"
+pos_original = Vector2(-940, 1440)
+modelo = "nature/kenney/mushroom_red.glb"
+alto = 8.0
+nombre_visible = "WildMushroom_14 (174)"
+es_ancla = true
+radio_ancla = 12.0
+
+[node name="WildMushroom_15_(175)" type="Node3D" parent="Objetos" unique_id=1775750261]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -15.2, 0.609857, 35.139515)
+script = ExtResource("29_bojho")
+clave = "ancla_175"
+pos_original = Vector2(-760, 1490)
+modelo = "nature/kenney/mushroom_red.glb"
+alto = 8.0
+nombre_visible = "WildMushroom_15 (175)"
+es_ancla = true
+radio_ancla = 12.0
+
+[node name="WildMushroom_16_(176)" type="Node3D" parent="Objetos" unique_id=1021106059]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -11.6, 0.014939373, 36.318695)
+script = ExtResource("29_bojho")
+clave = "ancla_176"
+pos_original = Vector2(-580, 1540)
+modelo = "nature/kenney/mushroom_red.glb"
+alto = 8.0
+nombre_visible = "WildMushroom_16 (176)"
+es_ancla = true
+radio_ancla = 12.0
+
+[node name="WildMushroom_17_(177)" type="Node3D" parent="Objetos" unique_id=1663735880]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -8.8, 0.19990857, 38.20538)
+script = ExtResource("29_bojho")
+clave = "ancla_177"
+pos_original = Vector2(-440, 1620)
+modelo = "nature/kenney/mushroom_red.glb"
+alto = 8.0
+nombre_visible = "WildMushroom_17 (177)"
+es_ancla = true
+radio_ancla = 12.0
+
+[node name="WildMushroom_18_(178)" type="Node3D" parent="Objetos" unique_id=129794214]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -16.4, 0.23295258, 42.21459)
+script = ExtResource("29_bojho")
+clave = "ancla_178"
+pos_original = Vector2(-820, 1790)
+modelo = "nature/kenney/mushroom_red.glb"
+alto = 8.0
+nombre_visible = "WildMushroom_18 (178)"
+es_ancla = true
+radio_ancla = 12.0
+
+[node name="WildMushroom_19_(179)" type="Node3D" parent="Objetos" unique_id=2147468366]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -12.8, 0.38642457, 43.393764)
+script = ExtResource("29_bojho")
+clave = "ancla_179"
+pos_original = Vector2(-640, 1840)
+modelo = "nature/kenney/mushroom_red.glb"
+alto = 8.0
+nombre_visible = "WildMushroom_19 (179)"
+es_ancla = true
+radio_ancla = 12.0
+
+[node name="WildMushroom_20_(180)" type="Node3D" parent="Objetos" unique_id=1232011956]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -9.2, 0.5823312, 44.572945)
+script = ExtResource("29_bojho")
+clave = "ancla_180"
+pos_original = Vector2(-460, 1890)
+modelo = "nature/kenney/mushroom_red.glb"
+alto = 8.0
+nombre_visible = "WildMushroom_20 (180)"
+es_ancla = true
+radio_ancla = 12.0
+
+[node name="WildMushroom_21_(181)" type="Node3D" parent="Objetos" unique_id=1251309532]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -6.4, 0.695223, 47.63881)
+script = ExtResource("29_bojho")
+clave = "ancla_181"
+pos_original = Vector2(-320, 2020)
+modelo = "nature/kenney/mushroom_red.glb"
+alto = 8.0
+nombre_visible = "WildMushroom_21 (181)"
 es_ancla = true
 radio_ancla = 12.0
