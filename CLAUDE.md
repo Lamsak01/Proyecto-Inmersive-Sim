@@ -10,6 +10,8 @@ Immersive sim 2D en pixel art hecho con Godot 4.7.2 (GDScript). El usuario no pr
 
 ## Antes de trabajar
 
+- **Editor del mapa (2026-11-09):** si el usuario quiere editar el mapa, lee antes `docs/PLAN_EDITOR_MAPA.md`, sobre todo «Cómo explicárselo al usuario»: no conoce Godot, guíale paso a paso.
+
 **Directivas por papel (valen en cualquier ordenador):** Claude Code lee `docs/DIRECTIVAS_CLAUDE.md`; Antigravity lee `docs/DIRECTIVAS_ANTIGRAVITY.md`. Las pruebas automáticas no ven los fallos visibles: mira capturas y `docs/FALLOS_VISIBLES.md`.
 
 0. Si eres un agente nuevo (Antigravity u otro), empieza por `docs/PROMPT_SIGUIENTE_AGENTE.md`. Si ya trabajaste aquí, lee antes `docs/NOTA_PARA_OTRO_AGENTE.md`.

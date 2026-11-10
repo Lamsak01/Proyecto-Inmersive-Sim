@@ -26,3 +26,20 @@ ordenador principal**: pregúntale cuáles antes de las piezas nuevas (árboles,
    «árboles que se solapan en el bosque».
 4. Lo que queda escrito a mano para el río original (el molino, el puente viejo, el zapato del Caso I junto al puente)
    sigue sus posiciones fijas: si el usuario mueve mucho el río, revisar el Caso I.
+
+## Cómo explicárselo al usuario (OBLIGATORIO, pedido por él el 2026-11-09)
+El usuario no programa y **no conoce Godot**. Le costó entender el resumen del portátil. En el ordenador principal:
+1. **Un solo paso por mensaje.** Di exactamente qué tiene que hacer (qué tecla, dónde hacer clic) y espera a que diga
+   «hecho» antes del siguiente. Nada de listas largas.
+2. **Di dónde está cada cosa en la pantalla** con palabras de sitio: «arriba a la izquierda», «la lista de la
+   derecha». No des por sabido qué es «Inspector», «nodo» o «escena»: explícalo con una comparación la primera vez
+   (p. ej. «la lista de la izquierda es como las carpetas del mapa: Rio, Cruces…»).
+3. **Antes de empezar, comprueba tú** que todo funciona: `git pull`, que existe `mapa/EditorMapa.tscn` y que el juego
+   arranca. Si algo falla, arréglalo tú; no le pidas al usuario que lo arregle.
+4. **Primera sesión, en este orden:** (a) abrir Godot y el proyecto; (b) abrir el mapa (doble clic en «EditorMapa»
+   dentro de la carpeta «mapa», abajo a la izquierda); (c) moverse por el mapa (rueda del ratón = acercar/alejar,
+   botón central o espacio + arrastrar = desplazarse); (d) elegir un punto del río y arrastrarlo; (e) guardar
+   (Ctrl+S) y jugar (F5) para ver el cambio. Celebra que lo haya hecho y pregunta si quiere seguir.
+5. **Si se pierde:** pídele una captura de pantalla y guíale desde lo que ve.
+6. **Si rompe el río:** Ctrl+Z, o rehaz el original con `tools/crear_editor_mapa.gd -- forzar`. Tranquilízale: nada se
+   pierde, todo está guardado en GitHub.
