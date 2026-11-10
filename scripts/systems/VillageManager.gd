@@ -1532,6 +1532,8 @@ func _anclas_repaso_final() -> void:
 		var f: String = String(c.get_script().resource_path).get_file()
 		if not (f in clases):
 			continue
+		if c.is_in_group("club_world") or String(c.name).begins_with("Sewer"):
+			continue # bajo tierra y sus trampillas ya se colocan solos (VillageClub / VillageUnderworld)
 		var p0: Vector2 = (c as Node2D).global_position
 		var a_obj: Dictionary = AN.buscar(p0)
 		var p1: Vector2 = AN.mover(p0, "objeto", f.get_basename() + ":" + String(c.name))

@@ -139,7 +139,7 @@ const FENCE_RUMORS: Array[String] = [
 ## - `ladder_pos`: Escalerilla física para subir de vuelta a esa trampilla de la calle.
 ## - `chest_pos`: Cofre de contrabando físico (1 vez al día por cámara).
 const SEWER_Y: float = 63.0
-const SEWER_LOCATIONS: Dictionary = {
+const SEWER_LOCATIONS_BASE: Dictionary = {
 	"cistern": {
 		"title": "Cisterna Vieja bajo la Plaza",
 		"pos": Vector2(518.0, 26.0),
@@ -171,6 +171,10 @@ const SEWER_LOCATIONS: Dictionary = {
 		"loot_item": "steel_ingot"
 	}
 }
+## Editor del mapa 3D (2026-11-10): build_sewers_world() rellena esto con las trampillas donde estén en la calle (siguen a
+## las anclas) y la red de túneles desplazada lo que el usuario la movió (pieza «bajo_alcantarillas» de «BajoTierra»).
+static var SEWER_LOCATIONS: Dictionary = SEWER_LOCATIONS_BASE.duplicate(true)
+static var desp_red: Vector2 = Vector2.ZERO
 
 static func fenceable_item(inv) -> String:
 	if inv == null:
@@ -454,9 +458,19 @@ static func build_sewers_world(vm) -> void:
 				if is_instance_valid(old_n):
 					old_n.queue_free()
 
+	var AN = load("res://mapa/anclas.gd")
+	desp_red = load("res://mapa/edificio.gd").desplazamiento("bajo_alcantarillas")
+	SEWER_LOCATIONS = SEWER_LOCATIONS_BASE.duplicate(true)
+	for k in SEWER_LOCATIONS.keys():
+		var dl: Dictionary = SEWER_LOCATIONS[k]
+		dl["pos"] = AN.mover(dl["pos"])
+		for f in ["chamber_center", "tunnel_pos", "ladder_pos", "chest_pos"]:
+			dl[f] = (dl[f] as Vector2) + desp_red
+
 	# 1. Red subterránea de 3 cámaras conectadas por galerías al sur del mapa (x = 205..635, y = 1480..1560)
 	var net_root := Node2D.new()
 	net_root.name = "SewersNetwork2D"
+	net_root.position = desp_red # paredes y suelos con sus números de siempre, desplazados juntos
 	net_root.add_to_group("sewer_network_2d")
 	vm.entities_root.add_child(net_root)
 
@@ -482,7 +496,7 @@ static func build_sewers_world(vm) -> void:
 	add_rect_2d.call(Vector2(420.0, SEWER_Y), Vector2(480.0, 120.0), Color(0.08, 0.10, 0.09, 0.96))
 	# Suelos de piedra y canal de aguas turbias de las 3 cámaras
 	for loc_id in ["flooded_vault", "smuggler_tunnel", "cistern"]:
-		var c: Vector2 = SEWER_LOCATIONS[loc_id]["chamber_center"]
+		var c: Vector2 = SEWER_LOCATIONS_BASE[loc_id]["chamber_center"]
 		add_rect_2d.call(c, Vector2(110.0, 80.0), Color(0.24, 0.28, 0.26))
 		add_rect_2d.call(c + Vector2(0.0, -8.0), Vector2(104.0, 52.0), Color(0.32, 0.36, 0.34))
 		add_rect_2d.call(c + Vector2(0.0, 26.0), Vector2(106.0, 18.0), Color(0.12, 0.40, 0.32, 0.92))

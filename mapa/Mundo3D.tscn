@@ -10956,7 +10956,7 @@ script = ExtResource("4_l6ly0")
 clave = "building_restaurant#0|Chair_1|-233|-165"
 pos_original = Vector2(-233.44772, -165.35614)
 local_original = Vector3(-2.3189545, 0.075483195, -1.2819116)
-giro_original = 107.99997919483651
+giro_original = 107.99997919483653
 modelo = "props/Chair_1.gltf"
 tam3 = Vector3(0.12, 0.32080358, 0.14150141)
 
@@ -10986,7 +10986,7 @@ script = ExtResource("4_l6ly0")
 clave = "building_restaurant#0|Chair_1|-193|-165"
 pos_original = Vector2(-192.55228, -165.35614)
 local_original = Vector3(-1.5010457, 0.075483195, -1.2819116)
-giro_original = -107.99997919483651
+giro_original = -107.99997919483653
 modelo = "props/Chair_1.gltf"
 tam3 = Vector3(0.12, 0.32080358, 0.14150141)
 
@@ -21792,3 +21792,13 @@ alto = 8.0
 nombre_visible = "WildMushroom_21 (181)"
 es_ancla = true
 radio_ancla = 12.0
+
+[node name="BajoTierra" type="Node3D" parent="." unique_id=1845255703]
+visible = false
+
+[node name="Alcantarillas" type="Node3D" parent="BajoTierra" unique_id=1460957937]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 8.4, 0.09057984, 1.4857647)
+script = ExtResource("3_jgq7j")
+id_edificio = "bajo_alcantarillas"
+centro_original = Vector2(420, 63)
+origen_3d = Vector3(8.4, 0.09057984, 1.4857647)

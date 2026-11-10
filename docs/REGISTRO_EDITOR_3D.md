@@ -50,11 +50,25 @@ mover una pista del claro y el molino mueve sus zonas de uso y el interior 3D de
 - Si se cambia el código de un interior, las claves pueden cambiar: volver a ejecutar la herramienta (solo añade
   carpetas «Muebles» que falten; para rehacer una, bórrala antes en Godot).
 
+## Bajo tierra (hecho el 2026-11-10, sesión 2)
+- Carpeta **«BajoTierra»** en Mundo3D (oculta; se ve con el ojo) con la pieza «Alcantarillas» (`mapa/edificio.gd`, id
+  `bajo_alcantarillas`, foto `mapa/edificios_vista/bajo_alcantarillas.scn`; `tools/hornear_bajo_tierra.gd`). Moverla mueve
+  toda la red: cámaras, pasillos, paredes, escalerillas y cofres (`VillageUnderworld.desp_red`; `SEWER_LOCATIONS` es ahora
+  `static var` rellenada en `build_sewers_world` a partir de `SEWER_LOCATIONS_BASE`). Solo se mueve, no gira.
+- Las trampillas de la calle siguen a sus anclas y al salir del túnel se aparece en la trampilla movida.
+- El club de pelea va con la taberna (`VillageClub.build_world`: trampilla, sótano y escalerilla con el movimiento/giro de
+  la taberna; `TRAPDOOR_POS`, `CLUB_CENTER`, `LADDER_POS` son `static var`). El sótano no gira.
+- `_anclas_repaso_final` ya no toca lo de bajo tierra ni sus trampillas (se colocan solos).
+- Probado: red movida 100 px → escalerillas y cofres +100 px, trampillas en su sitio.
+- Fotos: los archivos de `edificios_vista/comun/` y `decorado_comun/` se nombran ahora por su contenido (`_huella`), para
+  que volver a hornear no cambie archivos que otras fotos usan. Si Godot estaba abierto al rehacer las fotos, enseña
+  texturas cruzadas hasta reiniciarlo (Proyecto → Recargar proyecto actual). La foto de `house_family_lot_m4` es de la
+  primera tanda (ese solar no se construyó al rehacerlas) y puede salir con texturas cambiadas.
+
 ## Lo que falta (en orden)
 1. ~~Girar~~ (hecho, arriba). Pendiente menor: los muebles 2D sueltos que no pasan por `_add_*` no giran su colisión.
 2. ~~Interiores pieza a pieza~~ (hecho, arriba).
-3. **Bajo tierra**: las trampillas siguen a sus anclas, pero los túneles 3D de las alcantarillas y el club clandestino
-   se dibujan desde datos fijos y no se mueven. Tampoco las mascotas de casa (van con su dueño).
+3. ~~Bajo tierra~~ (hecho, arriba). Las mascotas de casa van con su dueño.
    (Hecho el 2026-11-10: huertos, gallinero, animales de granja con su corral, campamento, muro débil, cajas, carro y
    caballo siguen a sus anclas mediante `VillageManager._anclas_repaso_final()`.)
 4. **Lógica** (después, decisión del usuario): rutas y puestos de trabajo de los vecinos, caminos del mapa pequeño y del suelo

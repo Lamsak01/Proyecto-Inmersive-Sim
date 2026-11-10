@@ -127,6 +127,19 @@ func _ext(r: Resource, tipo: String) -> void:
 		return
 	_hechos[r.get_instance_id()] = true
 	_n += 1
-	var path := COMUN + "%s_%d.res" % [tipo, _n]
+	var path := COMUN + "%s_%s.res" % [tipo, _huella(r)]
 	if ResourceSaver.save(r, path, ResourceSaver.FLAG_COMPRESS) == OK:
 		r.take_over_path(path)
+
+
+## Nombre según el contenido: volver a hornear no cambia el contenido de un archivo que otra foto ya usa (2026-11-10).
+func _huella(r: Resource) -> String:
+	if r is ImageTexture:
+		var img: Image = (r as ImageTexture).get_image()
+		return "%x" % hash([img.get_size(), img.get_format(), img.get_data().hash()])
+	if r is ArrayMesh:
+		var partes: Array = []
+		for i in range((r as ArrayMesh).get_surface_count()):
+			partes.append(var_to_bytes((r as ArrayMesh).surface_get_arrays(i)).hash())
+		return "%x" % hash(partes)
+	return "%x" % r.get_instance_id()

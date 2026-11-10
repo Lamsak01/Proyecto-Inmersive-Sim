@@ -62,7 +62,8 @@ static func _leer_escena() -> Dictionary:
 	var st: SceneState = (load(ESCENA) as PackedScene).get_state()
 	var sin_p: float = sin(deg_to_rad(PITCH_DEG))
 	for i in range(st.get_node_count()):
-		if not str(st.get_node_path(i)).begins_with("./Edificios/"):
+		var ruta := str(st.get_node_path(i))
+		if not ((ruta.begins_with("./Edificios/") or ruta.begins_with("./BajoTierra/")) and ruta.count("/") == 2):
 			continue
 		var id := ""
 		var centro := Vector2.ZERO

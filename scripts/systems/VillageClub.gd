@@ -13,10 +13,15 @@ const VillageHousing = preload("res://scripts/systems/VillageHousing.gd")
 const VillageUnderworld = preload("res://scripts/systems/VillageUnderworld.gd")
 const TraitCatalog = preload("res://scripts/data/TraitCatalog.gd")
 
-const TRAPDOOR_POS: Vector2 = Vector2(516.0, -286.0) # cuarto trasero de escalera y bodega de la taberna (planta 0)
-const CLUB_CENTER: Vector2 = Vector2(434.0, -224.0) # sótano directamente bajo la taberna (nivel -1, misma huella X/Y)
+const TRAPDOOR_POS_BASE: Vector2 = Vector2(516.0, -286.0) # cuarto trasero de escalera y bodega de la taberna (planta 0)
+const CLUB_CENTER_BASE: Vector2 = Vector2(434.0, -224.0) # sótano directamente bajo la taberna (nivel -1, misma huella X/Y)
 const CLUB_SIZE: Vector2 = Vector2(240.0, 136.0)
-const LADDER_POS: Vector2 = Vector2(516.0, -276.0) # escalerilla justo debajo de la trampilla (516, -286)
+const LADDER_POS_BASE: Vector2 = Vector2(516.0, -276.0) # escalerilla justo debajo de la trampilla (516, -286)
+## Editor del mapa 3D (2026-11-10): el club va con la taberna. Si el usuario la mueve o la gira, build_world() recoloca
+## la trampilla, el sótano y la escalerilla (el sótano no gira, solo su sitio).
+static var TRAPDOOR_POS: Vector2 = TRAPDOOR_POS_BASE
+static var CLUB_CENTER: Vector2 = CLUB_CENTER_BASE
+static var LADDER_POS: Vector2 = LADDER_POS_BASE
 const RING_RADIUS: float = 40.0
 const SEAT_RADIUS: float = 56.0
 const OPEN_FROM: int = 21
@@ -547,6 +552,13 @@ static func build_world(vm) -> void:
 	if vm == null or not ("entities_root" in vm) or not is_instance_valid(vm.entities_root):
 		return
 	var PropScript = load("res://scripts/obstacles/WorldInteractableProp.gd")
+	var AN = load("res://mapa/anclas.gd")
+	var ED = load("res://mapa/edificio.gd")
+	var g_tab: float = ED.giro("building_tavern")
+	var a_tab := {"c": (load("res://scripts/systems/VillageTavern.gd").RECT as Rect2).get_center(), "d": ED.desplazamiento("building_tavern"), "g": g_tab, "m": AN.matriz(g_tab)}
+	TRAPDOOR_POS = AN.aplicar(a_tab, TRAPDOOR_POS_BASE)
+	CLUB_CENTER = AN.aplicar(a_tab, CLUB_CENTER_BASE)
+	LADDER_POS = AN.aplicar(a_tab, LADDER_POS_BASE)
 	if vm.is_inside_tree():
 		for old_n in vm.get_tree().get_nodes_in_group("club_world"):
 			if is_instance_valid(old_n):

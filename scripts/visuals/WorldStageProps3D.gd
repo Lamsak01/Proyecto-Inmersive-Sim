@@ -114,10 +114,13 @@ func _build_sewers_3d() -> void:
 	var sy: float = VillageUnderworldScript.SEWER_Y
 	# Losa oscura de roca subterránea para cubrir el entorno exterior alrededor de la red de túneles bajo el pueblo (y = SEWER_Y)
 	_add_box_2d(sewers_root_3d, Vector2(420.0, sy), Vector2(720.0, 320.0), 1.2, 0.8, m_bedrock)
+	# Editor del mapa 3D: la red entera se desplaza lo que el usuario la movió (VillageUnderworld.desp_red)
+	var d_red: Vector2 = VillageUnderworldScript.desp_red
+	sewers_root_3d.position = Vector3(d_red.x * WORLD_SCALE, 0.0, (d_red.y * WORLD_SCALE) / _sin_p)
 
 	# 3 cámaras conectadas bajo el centro del pueblo: Bóveda Inundada (260, SEWER_Y), Pasadizo del Contrabandista (420, SEWER_Y) y Cisterna (580, SEWER_Y)
 	for loc_id in ["flooded_vault", "smuggler_tunnel", "cistern"]:
-		var def: Dictionary = VillageUnderworldScript.SEWER_LOCATIONS[loc_id]
+		var def: Dictionary = VillageUnderworldScript.SEWER_LOCATIONS_BASE[loc_id]
 		var ch_p: Vector2 = def["chamber_center"]
 		var lad_p: Vector2 = def["ladder_pos"]
 		var chs_p: Vector2 = def["chest_pos"]
