@@ -128,21 +128,21 @@ func _process(delta: float) -> void:
 				player.global_position = player.global_position.move_toward(follow_pos, 96.0 * delta)
 			if "velocity" in player:
 				player.velocity = Vector2.ZERO
-			if escorting_officer.global_position.distance_to(_jail_cell_pos) <= 26.0 or player.global_position.distance_to(_jail_cell_pos) <= 24.0 or _escort_elapsed_timer >= 9.5:
+			if escorting_officer.global_position.distance_to(sitio(_jail_cell_pos)) <= 26.0 or player.global_position.distance_to(sitio(_jail_cell_pos)) <= 24.0 or _escort_elapsed_timer >= 9.5:
 				complete_police_escort_to_jail(player)
 		else:
-			var nav_wp: Vector2 = get_navigation_waypoint(player.global_position, _jail_cell_pos, player)
+			var nav_wp: Vector2 = get_navigation_waypoint(player.global_position, sitio(_jail_cell_pos), player)
 			player.global_position = player.global_position.move_toward(nav_wp, 84.0 * delta)
-			if player.global_position.distance_to(_jail_cell_pos) <= 24.0 or _escort_elapsed_timer >= 9.5:
+			if player.global_position.distance_to(sitio(_jail_cell_pos)) <= 24.0 or _escort_elapsed_timer >= 9.5:
 				complete_police_escort_to_jail(player)
 
 	# Si el jugador está cumpliendo condena dentro de la celda de la cárcel, mantenerlo dentro y descontar el tiempo mínimo en celda
 	if player_in_jail and player:
 		if jail_mandatory_stay_timer > 0.0:
 			jail_mandatory_stay_timer = maxf(0.0, jail_mandatory_stay_timer - real_delta)
-		var cell_rect := Rect2(_jail_cell_pos - Vector2(22, 16), Vector2(44, 32))
+		var cell_rect := Rect2(sitio(_jail_cell_pos) - Vector2(22, 16), Vector2(44, 32))
 		if not cell_rect.has_point(player.global_position):
-			player.global_position = _jail_cell_pos
+			player.global_position = sitio(_jail_cell_pos)
 
 	# Paso 2: Rastreo realista de entrada/salida a edificios por testigos
 	_sighting_check_timer -= delta
@@ -614,17 +614,17 @@ func interact(player: Node2D) -> void:
 		return
 
 	# 3. Morgue Forense
-	if pos.distance_squared_to(_morgue_table_positions[1]) <= 36.0 * 36.0:
+	if pos.distance_squared_to(sitio(_morgue_table_positions[1])) <= 36.0 * 36.0:
 		_open_morgue_autopsy_ui()
 		return
 
 	# 3b. Capilla del Alba y Cementerio Parroquial
-	if pos.distance_squared_to(_church_altar_pos) <= 34.0 * 34.0 or pos.distance_squared_to(_cemetery_gate_pos) <= 34.0 * 34.0 or Rect2(Vector2(822, 260), Vector2(268, 168)).has_point(pos):
+	if pos.distance_squared_to(sitio(_church_altar_pos)) <= 34.0 * 34.0 or pos.distance_squared_to(sitio(_cemetery_gate_pos)) <= 34.0 * 34.0 or Rect2(Vector2(822, 260), Vector2(268, 168)).has_point(_AN_SITIOS.desmover(pos)):
 		_open_church_registry_ui()
 		return
 
 	# 4. Cama de Urgencias del Hospital
-	if pos.distance_squared_to(_hospital_bed_pos) <= 28.0 * 28.0:
+	if pos.distance_squared_to(sitio(_hospital_bed_pos)) <= 28.0 * 28.0:
 		_use_hospital_emergency_bed(player)
 		return
 
@@ -640,7 +640,7 @@ func interact(player: Node2D) -> void:
 			Color(0.95, 0.88, 0.68)
 		)
 		return
-	if player_in_jail or pos.distance_squared_to(_jail_cell_pos) <= 32.0 * 32.0:
+	if player_in_jail or pos.distance_squared_to(sitio(_jail_cell_pos)) <= 32.0 * 32.0:
 		_police_confront_cooldown = 0.0
 		trigger_police_confrontation(null)
 		return
@@ -736,12 +736,12 @@ func interact(player: Node2D) -> void:
 		)
 		return
 
-	var d_bed: float = pos.distance_squared_to(_tavern_bed_pos)
-	var d_games: float = pos.distance_squared_to(_tavern_games_pos)
-	var d_pool: float = pos.distance_squared_to(_tavern_pool_pos)
+	var d_bed: float = pos.distance_squared_to(sitio(_tavern_bed_pos))
+	var d_games: float = pos.distance_squared_to(sitio(_tavern_games_pos))
+	var d_pool: float = pos.distance_squared_to(sitio(_tavern_pool_pos))
 	var d_well: float = _get_nearest_well_dist_sq(pos)
 	var comp_on: bool = _compost_sprite == null or _compost_sprite.visible
-	var d_comp: float = pos.distance_squared_to(_compost_pos) if comp_on else INF
+	var d_comp: float = pos.distance_squared_to(sitio(_compost_pos)) if comp_on else INF
 
 	if d_pool <= d_games and d_pool <= d_bed and d_pool <= 32.0 * 32.0:
 		_use_tavern_games_table(3)
@@ -1038,12 +1038,13 @@ func _process_daily_map_edge_arrivals() -> void:
 			role_key,
 			str(cfg.get("title", "Artesano")) + " (Recién Llegado)",
 			cfg.get("tex", null),
-			cfg.get("work_pos", Vector2(440, 44)),
-			cfg.get("bed1_pos", _tavern_bed_pos),
+			cfg.get("work_pos", sitio(Vector2(440, 44))),
+			cfg.get("bed1_pos", sitio(_tavern_bed_pos)),
 			inh_st,
-			cfg.get("table_pos", _tavern_social_pos),
+			cfg.get("table_pos", sitio(_tavern_social_pos)),
 			str(cfg.get("family_id", "none")),
-			str(cfg.get("family_name", "Gremio"))
+			str(cfg.get("family_name", "Gremio")),
+			true # trade_configs ya está traducido (plan de sitios)
 		)
 		trade_npcs[role_key] = new_art
 		arrivals_today_count += 1
@@ -1540,6 +1541,11 @@ func _sitios_repaso(AN) -> void:
 				cfg[campo] = AN.mover(cfg[campo])
 	for n in get_tree().get_nodes_in_group("village_npcs"):
 		sitios_traducir_npc(n)
+	# Pozos: ya en su sitio actual (mapa/objeto.gd), la lista de pozos los repite en coordenadas originales
+	if _well_positions.size() >= 3:
+		_well_positions[0] = _well_pos
+		_well_positions[1] = _tavern_well_pos
+		_well_positions[2] = _plaza_well_pos
 
 
 ## Traduce una vez los sitios de un vecino creado con coordenadas del mapa original.

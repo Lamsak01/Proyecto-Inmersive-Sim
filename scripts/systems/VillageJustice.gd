@@ -1,5 +1,6 @@
 @tool
 extends RefCounted
+const _AN_SITIOS = preload("res://mapa/anclas.gd") # plan de sitios: zonas fijas siguen a lo movido
 
 ## Justicia: investigaciones del Comisario y del Inquisidor Real, interrogatorios, veredictos y juicio público.
 ## Extraído de VillageManager.gd: cada función recibe al VillageManager como primer parámetro (`vm`).
@@ -508,7 +509,7 @@ static func update_royal_investigator_ai(vm: VillageManager, inv_npc: VillageNPC
 					vm.active_royal_investigation["stage"] = "MORGUE"
 					vm.active_royal_investigation["stage_timer"] = 0.0
 		"MORGUE":
-			var m_pos: Vector2 = vm._morgue_table_positions[1]
+			var m_pos: Vector2 = vm.sitio(vm._morgue_table_positions[1])
 			if inv_npc.global_position.distance_to(m_pos) > 26.0:
 				inv_npc._stop_crafting_bar()
 				inv_npc._move_towards_point(m_pos, 62.0, delta)
@@ -691,7 +692,7 @@ static func update_sheriff_investigator_ai(vm: VillageManager, sheriff: VillageN
 					vm.active_sheriff_investigation["stage_timer"] = 0.0
 			return true
 		"MORGUE":
-			var m_pos: Vector2 = vm._morgue_table_positions[1]
+			var m_pos: Vector2 = vm.sitio(vm._morgue_table_positions[1])
 			if sheriff.global_position.distance_to(m_pos) > 26.0:
 				sheriff._stop_crafting_bar()
 				sheriff._move_towards_point(m_pos, 62.0, delta)
@@ -751,7 +752,7 @@ static func update_sheriff_investigator_ai(vm: VillageManager, sheriff: VillageN
 
 static func _process_inquisitor_field_recon(vm: VillageManager, inv_npc: VillageNPC, delta: float, done_cnt: int, max_cnt: int, days_inv: int) -> void:
 	var c_pos: Vector2 = _get_investigation_crime_pos(vm)
-	var recon_pts: Array[Vector2] = [c_pos, vm._morgue_table_positions[1], Vector2(886, 126), Vector2(465, 36)]
+	var recon_pts: Array[Vector2] = [c_pos, vm.sitio(vm._morgue_table_positions[1]), vm.sitio(Vector2(886, 126)), vm.sitio(Vector2(465, 36))]
 	var r_idx: int = int(vm.active_royal_investigation.get("recon_spot_idx", 0)) % recon_pts.size()
 	var target_pt: Vector2 = recon_pts[r_idx]
 	if inv_npc.global_position.distance_to(target_pt) > 22.0:
@@ -1743,7 +1744,7 @@ static func process_npc_jail_step(vm: VillageManager, npc: VillageNPC, delta: fl
 				vm.set_jail_cell_gate_locked(true)
 				npc._spawn_floating_text("🔒⛓️ Encerrado en el calabozo (%dh)" % int(rec.get("hours_left", 24)), Color(0.75, 0.85, 1.0), -40.0)
 		else:
-			if not CELL_RECT.has_point(npc.global_position):
+			if not CELL_RECT.has_point(_AN_SITIOS.desmover(npc.global_position)):
 				npc.global_position = my_cell_pos
 			npc.velocity = Vector2.ZERO
 			vm.set_jail_cell_gate_locked(true)
@@ -1778,7 +1779,7 @@ static func release_npc(vm: VillageManager, key: String, mode: String = "served"
 		vm.set_jail_cell_gate_locked(false)
 	var npc: VillageNPC = vm._get_npcs_by_person_key().get(key, null)
 	if npc != null and is_instance_valid(npc) and not npc.is_dead:
-		if CELL_RECT.has_point(npc.global_position) or npc.global_position.distance_to(CELL_POS) <= 32.0:
+		if CELL_RECT.has_point(_AN_SITIOS.desmover(npc.global_position)) or _AN_SITIOS.desmover(npc.global_position).distance_to(CELL_POS) <= 32.0:
 			npc.global_position = CELL_OUTSIDE_POS
 		npc.velocity = Vector2.ZERO
 		match mode:

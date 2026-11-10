@@ -23,13 +23,16 @@ func _on_hour_passed(_day: int, _new_hour: int = 0) -> void:
 		corpse_rot_hours += 1.0
 
 ## Las posiciones que recibe están en coordenadas del mapa ORIGINAL: aquí se traducen a su sitio actual (plan de sitios,
-## docs/PLAN_SITIOS.md). Al cargar partida, from_save_dict pone después los sitios guardados.
-func setup_npc(tex: Texture2D, p_work_pos: Vector2, p_bed_pos: Vector2, initial_stock: Dictionary = {}, p_home_table_pos: Vector2 = Vector2.ZERO, p_family_id: String = "none", p_family_name: String = "Independiente") -> void:
+## docs/PLAN_SITIOS.md). Con p_ya_actuales = true vienen ya traducidas (copiadas de otro vecino o de trade_configs) y no
+## se tocan. tavern_social_pos viene siempre de vm._tavern_social_pos (original) y se traduce siempre.
+## Al cargar partida, from_save_dict pone después los sitios guardados.
+func setup_npc(tex: Texture2D, p_work_pos: Vector2, p_bed_pos: Vector2, initial_stock: Dictionary = {}, p_home_table_pos: Vector2 = Vector2.ZERO, p_family_id: String = "none", p_family_name: String = "Independiente", p_ya_actuales: bool = false) -> void:
 	var AN = load("res://mapa/anclas.gd")
 	var tr := func(q: Vector2) -> Vector2: return q if q == Vector2.ZERO else AN.mover(q)
-	work_position = tr.call(p_work_pos)
-	bed_position = tr.call(p_bed_pos)
-	home_table_pos = tr.call(p_home_table_pos) if p_home_table_pos != Vector2.ZERO else bed_position + Vector2(0, 18)
+	var tr_in: Callable = (func(q: Vector2) -> Vector2: return q) if p_ya_actuales else tr
+	work_position = tr_in.call(p_work_pos)
+	bed_position = tr_in.call(p_bed_pos)
+	home_table_pos = tr_in.call(p_home_table_pos) if p_home_table_pos != Vector2.ZERO else bed_position + Vector2(0, 18)
 	if not has_meta("sitios_ok"):
 		tavern_social_pos = tr.call(tavern_social_pos)
 	set_meta("sitios_ok", true)
@@ -322,7 +325,7 @@ func _process_duties(delta: float) -> bool:
 	if vm_escort and vm_escort.VillageJustice.process_npc_jail_step(vm_escort, self, delta):
 		return true
 	if vm_escort and bool(vm_escort.get("player_being_escorted_to_jail")) and vm_escort.get("escorting_officer") == self:
-		var jail_target: Vector2 = vm_escort.get("_jail_cell_pos") if "_jail_cell_pos" in vm_escort else Vector2(886, 172)
+		var jail_target: Vector2 = vm_escort.sitio(vm_escort.get("_jail_cell_pos") if "_jail_cell_pos" in vm_escort else Vector2(886, 172))
 		_move_towards_point(jail_target, 64.0, delta)
 		_finish_frame_movement(delta)
 		return true

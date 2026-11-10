@@ -149,7 +149,7 @@ static func spawn_child(vm, mother, father, age: int = 0):
 	var tex: Texture2D = vm._load_tex("res://assests/world/village/villager_traveler.png")
 	var bed: Vector2 = mother.bed_position + Vector2(16, 6 + 6 * children_of_family(vm, mother.family_id).size())
 	var kid = vm._spawn_generated_newcomer("NPC_Child_", VillageNPC.TradeRole.CHILD, VillageNPC.TradeRole.CHILD, "Criatura del valle",
-		tex, mother.home_table_pos, bed, {}, mother.home_table_pos, mother.family_id, mother.family_name)
+		tex, mother.home_table_pos, bed, {}, mother.home_table_pos, mother.family_id, mother.family_name, true)
 	if age == 0:
 		while vm.social_event_log.size() > log_size:
 			vm.social_event_log.pop_back() # No «llegó al valle»: ha nacido aquí

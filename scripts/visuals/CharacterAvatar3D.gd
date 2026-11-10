@@ -1,4 +1,5 @@
 extends Node2D
+const _AN_SITIOS = preload("res://mapa/anclas.gd") # plan de sitios: zonas fijas siguen a lo movido
 
 ## Puente de Renderizado 3D en Vivo para Jugador y Vecinos — Fase 1 (Transición 3D)
 ## Envuelve un `CharacterRig3D` dentro de un `SubViewport` transparente por personaje (desactivado automáticamente
@@ -306,7 +307,7 @@ func _process_in_stage(delta: float) -> void:
 		if vm_elev_chk != null and "elevation_level" in target_entity:
 			var pl_el: int = int(vm_elev_chk.player_elevation_level)
 			var ent_el: int = int(target_entity.get("elevation_level"))
-			if pl_el == 1 and ent_el == 0 and preload("res://scripts/systems/VillageTavern.gd").RECT.grow(6.0).has_point(target_entity.global_position):
+			if pl_el == 1 and ent_el == 0 and preload("res://scripts/systems/VillageTavern.gd").RECT.grow(6.0).has_point(_AN_SITIOS.desmover(target_entity.global_position)):
 				show = false
 		if show:
 			show = _is_entity_near_camera()

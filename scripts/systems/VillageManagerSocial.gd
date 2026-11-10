@@ -106,7 +106,8 @@ func _spawn_generated_newcomer(
 	stock: Dictionary,
 	table_pos: Vector2,
 	fam_id: String,
-	fam_name: String
+	fam_name: String,
+	ya_actuales: bool = false # plan de sitios: true si los sitios ya están traducidos (hijos, trade_configs)
 ) -> VillageNPC:
 	_rehire_counter += 1
 	var counts: Vector2i = _count_living_genders()
@@ -125,7 +126,7 @@ func _spawn_generated_newcomer(
 	new_npc.tavern_social_pos = _tavern_social_pos
 	new_npc.person_profile = prof
 	entities_root.add_child(new_npc)
-	new_npc.setup_npc(tex, work_pos, bed_pos, stock, table_pos, fam_id, fam_name)
+	new_npc.setup_npc(tex, work_pos, bed_pos, stock, table_pos, fam_id, fam_name, ya_actuales)
 	new_npc.global_position = _get_map_edge_arrival_pos(_rehire_counter)
 	record_social_event("arrival", new_npc, null, "%s llegó al valle (%s)" % [new_npc.npc_name, role_label])
 	return new_npc
@@ -277,8 +278,8 @@ func _mark_morgue_case_resolved(victim_name: String, resolution_note: String = "
 func get_cemetery_burial_target_pos() -> Vector2:
 	var next_idx: int = buried_graves.size()
 	if next_idx >= 0 and next_idx < _cemetery_grave_positions.size():
-		return _cemetery_grave_positions[next_idx]
-	return _cemetery_burial_pos
+		return sitio(_cemetery_grave_positions[next_idx])
+	return sitio(_cemetery_burial_pos)
 
 ## B3.4: Devuelve la posición de la tumba de un difunto en el cementerio (o la puerta del cementerio si aún está en la morgue).
 
@@ -288,9 +289,9 @@ func get_grave_pos_for_victim(victim_name_str: String) -> Vector2:
 		if typeof(rec) == TYPE_DICTIONARY and str(rec.get("victim_name", "")).strip_edges() == clean:
 			var g_idx: int = int(rec.get("grave_index", -1))
 			if g_idx >= 0 and g_idx < _cemetery_grave_positions.size():
-				return _cemetery_grave_positions[g_idx] + Vector2(0, 10)
-			return _cemetery_burial_pos
-	return _cemetery_gate_pos
+				return sitio(_cemetery_grave_positions[g_idx] + Vector2(0, 10))
+			return sitio(_cemetery_burial_pos)
+	return sitio(_cemetery_gate_pos)
 
 func _refresh_morgue_table_sprites() -> void:
 	for i in range(_morgue_corpse_sprites.size()):
@@ -304,7 +305,7 @@ func _refresh_morgue_table_sprites() -> void:
 				c_node.corpse_on_ground = false
 				c_node.corpse_in_morgue = true
 				c_node.corpse_buried = false
-				c_node.global_position = _morgue_table_positions[i]
+				c_node.global_position = sitio(_morgue_table_positions[i])
 				if c_node.sprite:
 					c_node.sprite.visible = false
 				c_node._set_area_col_disabled(c_node.interact_area, false)
@@ -340,6 +341,7 @@ func _spawn_physical_grave_marker(grave_idx: int, rec: Dictionary) -> void:
 		g_pos = _cemetery_grave_positions[grave_idx]
 	else:
 		g_pos = Vector2(844.0 + float(grave_idx % 6) * 26.0, 282.0 + float(int(float(grave_idx) / 6.0) % 3) * 28.0)
+	g_pos = sitio(g_pos) # plan de sitios: la tumba sigue al cementerio movido
 
 	var grave_node := Node2D.new()
 	grave_node.name = "GraveMarker_%d" % (grave_idx + 1)
@@ -422,7 +424,7 @@ func _spawn_case1_clearing_corpse() -> void:
 	npc.set_meta("scripted_case_id", DetectiveCaseData.CASE_01_ID)
 	npc.set_meta("scripted_case_zones", true)
 	entities_root.add_child(npc)
-	npc.setup_npc(tex_victim, victim_pos, victim_pos, {}, _tavern_social_pos, "none", "Vecina del Valle")
+	npc.setup_npc(tex_victim, victim_pos, victim_pos, {}, sitio(_tavern_social_pos), "none", "Vecina del Valle", true) # victim_pos ya va traducido
 	if npc.person_profile != null:
 		npc.person_profile.gender = "F"
 		npc.person_profile.age = 26
@@ -533,7 +535,7 @@ func is_position_near_water_source(world_pos: Vector2, max_meters: float = 2.0) 
 	if world_pos.distance_squared_to(VillageWork.LAVADERO_POS) <= max_well_dist * max_well_dist:
 		return true
 	# Lavabo quirúrgico junto a la Cama de Urgencias del Hospital
-	if world_pos.distance_squared_to(_hospital_bed_pos) <= max_well_dist * max_well_dist:
+	if world_pos.distance_squared_to(sitio(_hospital_bed_pos)) <= max_well_dist * max_well_dist:
 		return true
 	# Cauce del río de norte a sur y arroyo del bosque norte
 	if world_pos.y >= FishingSpot.river_y_start() and world_pos.y <= FishingSpot.river_y_end():
@@ -552,9 +554,9 @@ func is_position_near_water_source(world_pos: Vector2, max_meters: float = 2.0) 
 func get_hangout_spots() -> Array:
 	var spots: Array = []
 	if not is_building_door_blocked("tavern"):
-		spots.append({"id": "tavern", "pos": _tavern_social_pos + Vector2(0, 14), "kind": "tavern", "label": "la Taberna"})
+		spots.append({"id": "tavern", "pos": sitio(_tavern_social_pos + Vector2(0, 14)), "kind": "tavern", "label": "la Taberna"})
 	spots.append({"id": "plaza_well", "pos": _plaza_well_pos + Vector2(0, 24), "kind": "well", "label": "el Pozo de la Plaza"})
-	spots.append({"id": "plaza_bench", "pos": Vector2(468, 54), "kind": "bench", "label": "el Rincón de la Plaza"})
+	spots.append({"id": "plaza_bench", "pos": sitio(Vector2(468, 54)), "kind": "bench", "label": "el Rincón de la Plaza"})
 	spots.append({"id": "plaza_board", "pos": _notice_board_pos + Vector2(0, 26), "kind": "plaza", "label": "la Plaza Central"})
 	spots.append({"id": "farm_well", "pos": _well_pos + Vector2(0, 24), "kind": "well", "label": "el Pozo de la Granja"})
 	spots.append_array(VillagePlaces.hangout_spots()) # V5c

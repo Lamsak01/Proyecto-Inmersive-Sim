@@ -1,5 +1,6 @@
 @tool
 extends "res://scripts/visuals/WorldStageTerrain3D.gd"
+const _AN_SITIOS = preload("res://mapa/anclas.gd") # plan de sitios: zonas fijas siguen a lo movido
 
 ## Escenario 3D principal: ciclo de vida, cámara en 1.ª persona y vista superior, brazos/armas 3D, HUD y cutaway.
 
@@ -950,7 +951,7 @@ func _update_fp_camera_transform() -> void:
 		var tav_eye_h: float = VillageTavern.elevation_height_for(pl_pos, int(vm.player_elevation_level))
 		if tav_eye_h > 3.0:
 			eye_h += (tav_eye_h - 2.95)
-		if int(vm.player_elevation_level) == 1 and VillageTavern.RECT.grow(8.0).has_point(pl_pos):
+		if int(vm.player_elevation_level) == 1 and VillageTavern.RECT.grow(8.0).has_point(_AN_SITIOS.desmover(pl_pos)):
 			eye_h = minf(eye_h, 54.5)
 		elif vm.has_method("_is_pos_inside_any_building") and bool(vm.call("_is_pos_inside_any_building", pl_pos)):
 			eye_h = minf(eye_h, 23.5)

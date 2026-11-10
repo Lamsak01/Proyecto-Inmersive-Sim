@@ -1,5 +1,6 @@
 @tool
 extends RefCounted
+const _AN_SITIOS = preload("res://mapa/anclas.gd") # plan de sitios: zonas fijas siguen a lo movido
 
 ## R1 (crimen interno, 2026-11-06): el restaurante de aire italiano de película de cine negro. Nombre provisional
 ## «Trattoria Il Corvo» (anotado en docs/APORTES_CREATIVOS.md). Un local GRANDE con varias salas de verdad:
@@ -282,7 +283,7 @@ static func is_serving(vm) -> bool:
 		return false
 	if vm.has_method("is_trade_sabotaged") and bool(vm.call("is_trade_sabotaged", int(VillageNPC.TradeRole.RESTAURATEUR))):
 		return false
-	return room_of(c.global_position) != ""
+	return room_of(_AN_SITIOS.desmover(c.global_position)) != ""
 
 static func has_food(vm) -> bool:
 	var c = cook(vm)
@@ -301,31 +302,36 @@ static func indoor_seats() -> Array[Vector2]:
 			continue # mesa de la familia del cocinero
 		out.append(DINING_TABLES[i] + Vector2(-14.5, 0.0))
 		out.append(DINING_TABLES[i] + Vector2(14.5, 0.0))
-	return out
+	var act: Array[Vector2] = [] # plan de sitios: en su sitio actual (sigue al restaurante movido)
+	act.assign(_AN_SITIOS.mover_lista("restaurante_comedor", out))
+	return act
 
 static func terrace_seats() -> Array[Vector2]:
 	var out: Array[Vector2] = []
 	for t in TERRACE_TABLES:
 		out.append(t + Vector2(-12.5, 0.0))
 		out.append(t + Vector2(12.5, 0.0))
-	return out
+	var act: Array[Vector2] = []
+	act.assign(_AN_SITIOS.mover_lista("restaurante_terraza", out))
+	return act
 
 static func seats() -> Array[Vector2]:
 	var out: Array[Vector2] = indoor_seats()
 	out.append_array(terrace_seats())
 	return out
 
+## Recibe y devuelve sitios actuales.
 static func table_center_for_seat(seat: Vector2) -> Vector2:
-	for t in TERRACE_TABLES:
+	for t in _AN_SITIOS.mover_lista("restaurante_mesas_terraza", TERRACE_TABLES):
 		if seat.distance_to(t) <= 18.0:
 			return t
-	for t in DINING_TABLES:
+	for t in _AN_SITIOS.mover_lista("restaurante_mesas", DINING_TABLES):
 		if seat.distance_to(t) <= 20.0:
 			return t
-	return RECT.get_center()
+	return _AN_SITIOS.mover(RECT.get_center())
 
 static func is_at_seat(pos: Vector2) -> bool:
-	if not RECT.grow(6.0).has_point(pos) and not TERRACE.grow(10.0).has_point(pos):
+	if not RECT.grow(6.0).has_point(_AN_SITIOS.desmover(pos)) and not TERRACE.grow(10.0).has_point(_AN_SITIOS.desmover(pos)):
 		return false
 	for s in seats():
 		if pos.distance_to(s) <= 6.5:
@@ -490,7 +496,7 @@ static func tick(vm, delta: float) -> void:
 				var tc: Vector2 = table_center_for_seat(snapped)
 				if tc.distance_to(snapped) > 1.0:
 					n.facing_direction = (tc - snapped).normalized()
-				if TERRACE.grow(10.0).has_point(snapped):
+				if TERRACE.grow(10.0).has_point(_AN_SITIOS.desmover(snapped)):
 					seated_terrace.append(n)
 	if is_open_hours and seated_terrace.is_empty():
 		on_hour(vm, cur_h)
@@ -516,7 +522,7 @@ static func serve_meal(vm, npc) -> bool:
 		npc.personal_gold -= price
 		c.personal_gold += price
 		var dname: String = str(SimpleInventory.CATALOG.get(dish, {}).get("name", dish))
-		var where: String = "en la terraza" if TERRACE.grow(14.0).has_point(npc.global_position) else "en el comedor"
+		var where: String = "en la terraza" if TERRACE.grow(14.0).has_point(_AN_SITIOS.desmover(npc.global_position)) else "en el comedor"
 		vm.set_meta("restaurant_meals", int(vm.get_meta("restaurant_meals", 0)) + 1) # para la sonda
 		npc.add_thought("Comió %s en la casa de comidas (-%d Oro, +8)" % [dname, price], 8.0)
 		npc._spawn_floating_text("🍲 %s %s (-%d Oro)" % [dname, where, price], Color(1.0, 0.82, 0.55), -32.0)

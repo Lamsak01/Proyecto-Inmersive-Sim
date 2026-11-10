@@ -4,6 +4,11 @@ Cambios del juego, del más nuevo al más antiguo. Añade una entrada al cerrar 
 El detalle técnico está en `docs/HANDOFF.md` (sección 7) y el historial completo en `git log`. Lo anterior a B0.1 está en `AUDIT_LOG.md` y `SESSION_CONTEXT_LOG.md`.
 
 
+## 2026-11-10 — Taberna, restaurante, iglesia y comisaría siguen a su edificio movido (Claude Code, portátil)
+- Si mueves la taberna, el restaurante, la iglesia, el hospital o la comisaría en el editor del mapa 3D, los vecinos se sientan en las sillas nuevas, el camarero hace su ronda donde están las mesas, el cura da misa en el altar nuevo y la celda, la morgue y las escaleras funcionan en el sitio nuevo. También el parque, la biblioteca y los otros sitios de ocio, si se mueven.
+- Arreglado: los que llegan a mitad de partida (contratados, hijos, oficios vacantes) podían acabar con la casa desplazada el doble.
+- Aviso: hay un atasco que ya existía en un paso estrecho de la plaza; queda apuntado.
+
 ## 2026-11-10 — Los vecinos siguen a sus casas movidas (Claude Code, portátil)
 - Si mueves o giras una casa, una tienda o sus muebles en el editor del mapa 3D, sus vecinos duermen, comen y trabajan en el sitio nuevo (antes iban al hueco viejo). Prueba: 54 de 60 sitios siguen al edificio; los 6 restantes están al aire libre y van en el siguiente paso. Plan y registro: `docs/PLAN_SITIOS.md`.
 - Aviso: la partida de prueba del Caso I falla desde antes de este cambio (el jugador no llega al claro); queda apuntado.

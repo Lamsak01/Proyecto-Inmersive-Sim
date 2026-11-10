@@ -1032,7 +1032,7 @@ static func tavern_rumor(vm, npc, force: bool = false) -> String:
 	if not force and not (h >= 19 or h < 1):
 		return ""
 	var pl = VillageNeeds.player_of(vm)
-	if pl == null or pl.global_position.distance_to(vm._tavern_social_pos) > 140.0:
+	if pl == null or pl.global_position.distance_to(vm.sitio(vm._tavern_social_pos)) > 140.0:
 		return ""
 	if is_fence(vm, npc) or int(npc.trade_role) in [int(VillageNPC.TradeRole.SHERIFF), int(VillageNPC.TradeRole.GUARD), int(VillageNPC.TradeRole.PRIEST), int(VillageNPC.TradeRole.CHILD)]:
 		return ""

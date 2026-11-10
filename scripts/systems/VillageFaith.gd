@@ -186,7 +186,7 @@ static func call_to_rite(vm) -> int:
 			continue
 		if not wants_attend(n, week) or not can_join(n):
 			continue
-		var spot: Vector2 = (vm._church_altar_pos + Vector2(0, -18)) if is_priest(n) else _pew_spot(vm, idx)
+		var spot: Vector2 = vm.sitio(vm._church_altar_pos + Vector2(0, -18)) if is_priest(n) else _pew_spot(vm, idx)
 		if not is_priest(n):
 			idx += 1
 		n.join_rite(spot)
@@ -256,7 +256,7 @@ static func finish_rite(vm) -> Dictionary:
 			res["sermon"] = worst.npc_name
 	# El jugador
 	var pl = vm.get_tree().get_first_node_in_group("player") if vm.is_inside_tree() else null
-	var player_here: bool = pl is Node2D and (pl as Node2D).global_position.distance_to(vm._church_altar_pos) <= PLAYER_RADIUS
+	var player_here: bool = pl is Node2D and (pl as Node2D).global_position.distance_to(vm.sitio(vm._church_altar_pos)) <= PLAYER_RADIUS
 	res["player"] = player_here
 	if player_here:
 		for m in att:

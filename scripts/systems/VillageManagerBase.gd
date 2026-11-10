@@ -1,5 +1,6 @@
 @tool
 extends Node2D
+const _AN_SITIOS = preload("res://mapa/anclas.gd") # plan de sitios: zonas fijas siguen a lo movido
 const EdificioEditor = preload("res://mapa/edificio.gd")
 const Anclas = preload("res://mapa/anclas.gd")
 
@@ -724,7 +725,18 @@ func get_navigation_waypoint(from_pos: Vector2, to_pos: Vector2, agent: Node2D =
 	# PASADA 3: Navegación exterior esquivando edificios intermedios
 	return _avoid_outdoor_buildings(from_pos, to_pos, "")
 
+## Plan de sitios: los tabiques y pasos interiores están escritos en el mapa original. Se calcula allí y se devuelve el
+## paso en su sitio actual (sigue al edificio movido o girado en el editor 3D).
 func _route_internal_building_partitions(b_id: String, from_pos: Vector2, target_pos: Vector2, agent: Node2D = null) -> Vector2:
+	if b_id == "building_tavern":
+		return VillageTavern.route(from_pos, target_pos, agent, self) # ya traduce por su cuenta
+	var o_from: Vector2 = _AN_SITIOS.desmover(from_pos)
+	var o_to: Vector2 = _AN_SITIOS.desmover(target_pos)
+	var r: Vector2 = _route_internal_original(b_id, o_from, o_to, agent)
+	return target_pos if r == o_to else _AN_SITIOS.mover(r)
+
+
+func _route_internal_original(b_id: String, from_pos: Vector2, target_pos: Vector2, agent: Node2D = null) -> Vector2:
 	match b_id:
 		"building_tavern":
 			return VillageTavern.route(from_pos, target_pos, agent, self)
@@ -893,10 +905,11 @@ func _slide_or_stay(prev_pos: Vector2, candidate_pos: Vector2, elev: int, allow_
 func sanitize_npc_separation_pos(prev_pos: Vector2, candidate_pos: Vector2, elev: int = 0, allow_slide: bool = true) -> Vector2:
 	if elev == 1:
 		var r_up: Rect2 = VillageTavern.RECT.grow(-13.0)
-		return Vector2(
-			clampf(candidate_pos.x, r_up.position.x, r_up.end.x),
-			clampf(candidate_pos.y, r_up.position.y, r_up.end.y)
-		)
+		var c_orig: Vector2 = _AN_SITIOS.desmover(candidate_pos) # plan de sitios: el piso de arriba sigue a la taberna
+		return _AN_SITIOS.mover(Vector2(
+			clampf(c_orig.x, r_up.position.x, r_up.end.x),
+			clampf(c_orig.y, r_up.position.y, r_up.end.y)
+		))
 	if elev != 0:
 		return candidate_pos
 	if FishingSpot.is_point_in_river_water(candidate_pos, 4.0):
@@ -1241,7 +1254,7 @@ func _add_prop_collider(pos: Vector2, sz: Vector2, group_tag: String = "") -> St
 	if group_tag != "tavern_upper_walls" and _is_prop_collider_blocking_passage(pos, sz):
 		return null
 	var tag: String = group_tag
-	if tag == "" and VillageTavern.RECT.has_point(pos):
+	if tag == "" and VillageTavern.RECT.has_point(_AN_SITIOS.desmover(pos)):
 		tag = "tavern_floor0_walls"
 	var sb := StaticBody2D.new()
 	sb.name = "PropCollider"
@@ -1405,7 +1418,7 @@ func set_player_elevation_level(new_level: int) -> void:
 func check_elevation_exit(player: Node2D) -> void:
 	if VillageUnderworld.is_player_in_sewers(self) or VillageClub.is_player_in_club(self):
 		return
-	if player != null and player_elevation_level == 1 and VillageTavern.RECT.grow(14.0).has_point(player.global_position):
+	if player != null and player_elevation_level == 1 and VillageTavern.RECT.grow(14.0).has_point(_AN_SITIOS.desmover(player.global_position)):
 		return
 	if player_elevation_level != 0 and player != null and _elevation_anchor != Vector2.INF and player.global_position.distance_to(_elevation_anchor) > ELEVATION_LEAVE_DIST:
 		set_player_elevation_level(0)
@@ -1754,7 +1767,7 @@ func _add_sprite_prop(tex: Texture2D, pos: Vector2, sc: Vector2 = Vector2.ONE, z
 			"morgue_table.png":
 				_add_prop_collider(p0, Vector2(10.0, 14.0))
 			"tavern_bed.png", "hospital_bed.png":
-				var b_tag: String = "tavern_upper_walls" if VillageTavern.RECT.has_point(pos) else ""
+				var b_tag: String = "tavern_upper_walls" if VillageTavern.RECT.has_point(_AN_SITIOS.desmover(pos)) else ""
 				_add_prop_collider(p0, Vector2(10.0, 14.0), b_tag)
 	return s
 

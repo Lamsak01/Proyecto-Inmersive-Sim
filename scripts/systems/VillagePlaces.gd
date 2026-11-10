@@ -28,7 +28,19 @@ const CHAT_REL: int = 2
 const FRICTION_REL: int = -40 # Por debajo de esto, coincidir es incómodo
 const GOSSIP_CHANCE: float = 0.5
 
+## Plan de sitios, paso 2: los sitios de ocio están escritos en el mapa original; se entregan ya en su sitio actual
+## (si el usuario movió la taberna, el parque o un banco en el editor del mapa 3D).
+static func _actual(p: Dictionary) -> Dictionary:
+	if p.is_empty():
+		return p
+	var q: Dictionary = p.duplicate()
+	q["pos"] = preload("res://mapa/anclas.gd").mover(p["pos"])
+	return q
+
 static func place(id: String) -> Dictionary:
+	return _actual(_place_original(id))
+
+static func _place_original(id: String) -> Dictionary:
 	if id == "tavern_poker":
 		return {"id": "tavern_poker", "kind": "tavern", "pos": Vector2(518.0, -178.0), "label": "la mesa de póker de El Jabalí Dorado", "text": "🃏 Jugando al póker en la taberna", "indoor": true}
 	if id == "tavern_hall":
@@ -100,7 +112,7 @@ static func build_world(vm) -> void:
 static func hangout_spots() -> Array:
 	var out: Array = []
 	for p in PLACES:
-		out.append({"id": p["id"], "pos": p["pos"], "kind": p["kind"], "label": p["label"]})
+		out.append({"id": p["id"], "pos": preload("res://mapa/anclas.gd").mover(p["pos"]), "kind": p["kind"], "label": p["label"]})
 	return out
 
 # ---------------------------------------------------------------- ocio
@@ -143,7 +155,7 @@ static func pick_place(n) -> Dictionary:
 	for p in PLACES:
 		if is_raining() and not bool(p.get("indoor", false)):
 			continue
-		var s: float = -n.global_position.distance_to(p["pos"]) / 120.0 + randf_range(0.0, 2.5)
+		var s: float = -n.global_position.distance_to(preload("res://mapa/anclas.gd").mover(p["pos"])) / 120.0 + randf_range(0.0, 2.5)
 		if str(p["kind"]) == "library":
 			s += 1.2 if curious else -0.8
 		if str(p["kind"]) == "overlook" and (romantic or (n.person_profile != null and "Melancólico" in n.person_profile.personality)):
@@ -151,7 +163,7 @@ static func pick_place(n) -> Dictionary:
 		if s > best_s:
 			best_s = s
 			best = p
-	return best
+	return _actual(best)
 
 static func on_hour(vm, hour: int) -> void:
 	var now: int = VillageNeeds.total_hours()

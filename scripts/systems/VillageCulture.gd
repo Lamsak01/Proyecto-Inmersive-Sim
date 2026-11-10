@@ -1,5 +1,6 @@
 @tool
 extends RefCounted
+const _AN_SITIOS = preload("res://mapa/anclas.gd") # plan de sitios: zonas fijas siguen a lo movido
 
 ## V5e: biblioteca, escuela, mercado semanal y arreglos del Taller de Reparaciones.
 ## - Biblioteca (solar n5): un sitio de ocio bajo techo (VillagePlaces). Va más quien es curioso; con lluvia es casi
@@ -895,7 +896,7 @@ static func is_cart_near_player(vm, max_dist: float = 60.0) -> bool:
 	return (pl.global_position as Vector2).distance_to(c_pos) < max_dist
 
 static func is_cart_in_safe_place(vm, pos: Vector2) -> bool:
-	if RANCH_CORRAL_RECT.has_point(pos):
+	if RANCH_CORRAL_RECT.has_point(_AN_SITIOS.desmover(pos)):
 		return true
 	if vm != null and "VillageHousing" in vm and vm.VillageHousing != null:
 		for lid in vm.VillageHousing.player_lots(vm, true):

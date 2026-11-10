@@ -82,7 +82,7 @@ static func target_pos(vm, job: Dictionary) -> Vector2:
 		"grave":
 			var gi: int = int(job.get("grave_index", -1))
 			if gi >= 0 and gi < vm._cemetery_grave_positions.size():
-				return vm._cemetery_grave_positions[gi] + Vector2(0, 10)
+				return vm.sitio(vm._cemetery_grave_positions[gi] + Vector2(0, 10))
 	return Vector2.ZERO
 
 # ------------------------------------------------------------------ reloj

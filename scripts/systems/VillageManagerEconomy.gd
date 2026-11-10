@@ -333,7 +333,7 @@ func _use_hospital_emergency_bed(player: Node2D) -> void:
 		if inv:
 			inv.add_gold(-10)
 			pay_into(role_npc(int(VillageNPC.TradeRole.DOCTOR)), 10) # Regla 1: cobra el médico (o las arcas)
-	player.global_position = _hospital_bed_pos
+	player.global_position = sitio(_hospital_bed_pos)
 	if "velocity" in player:
 		player.velocity = Vector2.ZERO
 	if health:
@@ -583,7 +583,7 @@ func consume_village_meal_for_npc(npc: VillageNPC) -> bool:
 		return false
 
 	var p_key: String = npc.family_id if (npc.family_id != "none" and npc.family_id != "") else npc.npc_name
-	var near_tavern: bool = VillageTavern.RECT.grow(8.0).has_point(npc.global_position)
+	var near_tavern: bool = VillageTavern.RECT.grow(8.0).has_point(_AN_SITIOS.desmover(npc.global_position))
 
 	# 1º PRIORIDAD: Si está en su casa/cuartel (no en la Taberna) y su despensa doméstica (`house_pantry`) tiene suministros, cocina en casa gratis
 	var cur_pantry: int = int(house_pantry.get(p_key, 0))
@@ -1006,7 +1006,7 @@ func _on_business_action_3(player: Node2D) -> void:
 	pay_into(candidate, 30) # Regla 1: la prima de contratación es para el encargado (o las arcas si llega uno nuevo)
 
 	if candidate != null:
-		candidate.promote_to_trade(_active_business_role as VillageNPC.TradeRole, str(cfg.get("title", "Artesano")), cfg.get("work_pos", biz.get("stall_pos", Vector2.ZERO)), get_trade_stock_dict(_active_business_role), cfg.get("tex", null), cfg.get("bed1_pos", Vector2.ZERO), cfg.get("table_pos", Vector2.ZERO), str(cfg.get("family_id", "none")), str(cfg.get("family_name", "Gremio")))
+		candidate.promote_to_trade(_active_business_role as VillageNPC.TradeRole, str(cfg.get("title", "Artesano")), cfg.get("work_pos", sitio(biz.get("stall_pos", Vector2.ZERO))), get_trade_stock_dict(_active_business_role), cfg.get("tex", null), cfg.get("bed1_pos", Vector2.ZERO), cfg.get("table_pos", Vector2.ZERO), str(cfg.get("family_id", "none")), str(cfg.get("family_name", "Gremio")))
 		trade_npcs[_active_business_role] = candidate
 		if family_npcs.get(_active_business_role) == candidate:
 			family_npcs.erase(_active_business_role)
@@ -1019,12 +1019,13 @@ func _on_business_action_3(player: Node2D) -> void:
 			_active_business_role as VillageNPC.TradeRole,
 			str(cfg.get("title", "Encargado")) + " (Contratado)",
 			cfg.get("tex", null),
-			cfg.get("work_pos", biz.get("stall_pos", Vector2.ZERO)),
-			cfg.get("bed1_pos", _tavern_bed_pos),
+			cfg.get("work_pos", sitio(biz.get("stall_pos", Vector2.ZERO))),
+			cfg.get("bed1_pos", sitio(_tavern_bed_pos)),
 			get_trade_stock_dict(_active_business_role),
-			cfg.get("table_pos", _tavern_social_pos),
+			cfg.get("table_pos", sitio(_tavern_social_pos)),
 			str(cfg.get("family_id", "none")),
-			str(cfg.get("family_name", "Gremio"))
+			str(cfg.get("family_name", "Gremio")),
+			true # trade_configs ya está traducido (plan de sitios)
 		)
 		trade_npcs[_active_business_role] = hired_npc
 		_msg_player(player, "🤝🚶 ¡Contrataste a %s (Novato 35%%)! Ya viene caminando desde el borde del mapa (-30 Oro)" % hired_npc.npc_name, Color.SPRING_GREEN, -46.0)

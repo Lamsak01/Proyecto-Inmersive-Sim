@@ -16,6 +16,7 @@ extends RefCounted
 const TraitCatalog = preload("res://scripts/data/TraitCatalog.gd")
 const PersonProfile = preload("res://scripts/data/PersonProfile.gd")
 const VillageNeeds = preload("res://scripts/systems/VillageNeeds.gd")
+const _AN_SITIOS = preload("res://mapa/anclas.gd") # plan de sitios: el reservado sigue al restaurante movido
 const VillageChronicle = preload("res://scripts/systems/VillageChronicle.gd")
 const VillageRestaurant = preload("res://scripts/systems/VillageRestaurant.gd")
 const VillageLoans = preload("res://scripts/systems/VillageLoans.gd")
@@ -521,7 +522,7 @@ static func _update_band(vm) -> void:
 # ------------------------------------------------------------------ 3. Reuniones nocturnas en el reservado
 static func seat_pos(i: int, total: int) -> Vector2:
 	var a: float = TAU * float(i) / float(maxi(1, total)) - PI * 0.5
-	return VillageRestaurant.BACKROOM_TABLE + Vector2(cos(a) * SEAT_RADIUS_X, sin(a) * SEAT_RADIUS_Y)
+	return _AN_SITIOS.mover(VillageRestaurant.BACKROOM_TABLE + Vector2(cos(a) * SEAT_RADIUS_X, sin(a) * SEAT_RADIUS_Y))
 
 static func plan_meeting(vm, night: int = -1) -> void:
 	if not active(vm):
@@ -554,15 +555,16 @@ static func has_unwanted_witness_near(vm):
 	for n in VillageNeeds.living(vm):
 		if n.is_sleeping or n.is_incapacitated() or not n.is_conscious() or int(n.elevation_level) != 0:
 			continue
+		var np: Vector2 = _AN_SITIOS.desmover(n.global_position) # se compara en el mapa original
 		if int(n.trade_role) in [int(VillageNPC.TradeRole.GUARD), int(VillageNPC.TradeRole.SHERIFF), int(VillageNPC.TradeRole.ROYAL_INVESTIGATOR)]:
 			if is_guard_bribed(vm, n):
 				continue # R3: el guardia untado mira para otro lado
-			if n.global_position.distance_to(table) <= GUARD_NEAR_PX or rest_rect.has_point(n.global_position):
+			if np.distance_to(table) <= GUARD_NEAR_PX or rest_rect.has_point(np):
 				return n
 			continue
 		if is_member(vm, n) or int(n.trade_role) == int(VillageNPC.TradeRole.RESTAURATEUR):
 			continue
-		if back_rect.has_point(n.global_position) or n.global_position.distance_to(table) <= STRANGER_NEAR_PX:
+		if back_rect.has_point(np) or np.distance_to(table) <= STRANGER_NEAR_PX:
 			return n
 	return null
 
@@ -627,7 +629,7 @@ static func finish_meeting(vm) -> void:
 		var m = by_key.get(str(k), null)
 		if m == null or not is_instance_valid(m) or m.is_dead:
 			continue
-		if VillageRestaurant.room_of(m.global_position) == "reservado" or m.global_position.distance_to(VillageRestaurant.BACKROOM_TABLE) <= 32.0:
+		if VillageRestaurant.room_of(_AN_SITIOS.desmover(m.global_position)) == "reservado" or m.global_position.distance_to(_AN_SITIOS.mover(VillageRestaurant.BACKROOM_TABLE)) <= 32.0:
 			in_room.append(m)
 		if m.errand_kind == "familia_meet":
 			m.end_errand()
@@ -1069,7 +1071,7 @@ static func tick(vm) -> void:
 			continue
 		if m.errand_kind != "familia_meet" and _can_attend(m):
 			m.start_errand("familia_meet", seat_pos(i, keys.size()))
-		if VillageRestaurant.room_of(m.global_position) == "reservado" or m.global_position.distance_to(VillageRestaurant.BACKROOM_TABLE) <= 28.0:
+		if VillageRestaurant.room_of(_AN_SITIOS.desmover(m.global_position)) == "reservado" or m.global_position.distance_to(_AN_SITIOS.mover(VillageRestaurant.BACKROOM_TABLE)) <= 28.0:
 			in_backroom += 1
 	if in_backroom >= 2:
 		st["meeting_status"] = "meeting"
@@ -1102,7 +1104,7 @@ static func try_eavesdrop_meeting(vm, player = null) -> bool:
 		return false
 	if int(vm.player_elevation_level) != 0:
 		return false
-	var dist: float = player.global_position.distance_to(VillageRestaurant.BACKROOM_TABLE)
+	var dist: float = player.global_position.distance_to(_AN_SITIOS.mover(VillageRestaurant.BACKROOM_TABLE))
 	if dist > EAVESDROP_RADIUS:
 		return false
 	var st: Dictionary = state(vm)

@@ -1,4 +1,5 @@
 extends CharacterBody2D
+const _AN_SITIOS = preload("res://mapa/anclas.gd") # plan de sitios: zonas fijas siguen a lo movido
 const _CombatFeel = preload("res://scripts/systems/combat/CombatFeel.gd") # C7: sonidos de golpe
 
 @export var dialogue_manager: Node
@@ -438,7 +439,7 @@ func is_near_water_source(max_meters: float = 2.0) -> bool:
 	if vm and vm.has_method("is_position_near_water_source"):
 		if bool(vm.call("is_position_near_water_source", global_position, max_meters)):
 			return true
-	if FROG_MARSH_RECT.grow(max_meters * 16.0).has_point(global_position):
+	if FROG_MARSH_RECT.grow(max_meters * 16.0).has_point(_AN_SITIOS.desmover(global_position)):
 		return true
 	return false
 
@@ -516,7 +517,7 @@ func _process(delta: float) -> void:
 func _check_environmental_sickness() -> void:
 	if not health_comp or health_comp.current_health <= 0.0:
 		return
-	if FROG_MARSH_RECT.has_point(global_position):
+	if FROG_MARSH_RECT.has_point(_AN_SITIOS.desmover(global_position)):
 		var prev_swamp: float = health_comp.swamp_sickness
 		health_comp.add_swamp_or_miasma_exposure(1.6, "Humedad de la Ciénaga de las Ranas")
 		if prev_swamp < 25.0 and health_comp.swamp_sickness >= 25.0:

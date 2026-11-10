@@ -37,6 +37,26 @@ func _initialize() -> void:
 		for campo in ["bed_position", "home_table_pos", "work_position"]:
 			var pv: Vector2 = n.get(campo)
 			volcado[str(n.get("npc_name")) + "." + campo] = [pv.x, pv.y]
+	# Paso 2 del plan de sitios: zonas fijas, asientos y sitios de ocio (prefijo «z.»). Los de dentro de un edificio
+	# deben moverse D; los de fuera (parque, plaza, lago) se quedan.
+	var VT = load("res://scripts/systems/VillageTavern.gd")
+	var VR = load("res://scripts/systems/VillageRestaurant.gd")
+	var VP = load("res://scripts/systems/VillagePlaces.gd")
+	var zonas := {
+		"z.taberna_asiento": VT.dining_seats()[0], "z.taberna_poker": VT.poker_seats()[0],
+		"z.taberna_mesa": VT.table_center_for_seat(VT.dining_seats()[0]),
+		"z.restaurante_asiento": VR.seats()[0], "z.restaurante_terraza": VR.terrace_seats()[0],
+		"z.altar": vm.sitio(vm._church_altar_pos), "z.celda": vm.sitio(vm._jail_cell_pos),
+		"z.hospital": vm.sitio(vm._hospital_bed_pos), "z.tumba": vm.get_cemetery_burial_target_pos(),
+		"z.taberna_ocio": vm.get_hangout_spots()[0]["pos"],
+	}
+	for pid in ["park_lawn", "plaza_benches", "lake_view", "library"]:
+		zonas["z.sitio_" + pid] = VP.place(pid).get("pos", Vector2.ZERO)
+	for k in zonas.keys():
+		volcado[k] = [zonas[k].x, zonas[k].y]
+	var asiento: Vector2 = VT.dining_seats()[0]
+	print("SONDEO zonas: asiento de taberna reconocido=%s, en la taberna=%s, asiento del restaurante=%s" % [
+		VT.is_at_seat(asiento), VT.RECT.has_point(load("res://mapa/anclas.gd").desmover(asiento)), VR.is_at_seat(VR.seats()[0])])
 	var tag := "quieto" if D == Vector2.ZERO else "movido"
 	var f := FileAccess.open("user://sondeo_%s.json" % tag, FileAccess.WRITE)
 	f.store_string(JSON.stringify(volcado))

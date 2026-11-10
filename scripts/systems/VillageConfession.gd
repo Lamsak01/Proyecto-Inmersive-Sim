@@ -89,7 +89,7 @@ static func on_hour(vm, hour: int) -> void:
 		if sin_entry.is_empty() or (st["priest_secrets"] as Dictionary).has(n.get_person_key()):
 			continue
 		if randf() < 0.45:
-			n.start_errand("confess", vm._church_altar_pos + Vector2(-16, -18))
+			n.start_errand("confess", vm.sitio(vm._church_altar_pos + Vector2(-16, -18)))
 
 static func on_errand_arrived(vm, npc) -> void:
 	if npc.errand_kind != "confess":
@@ -122,7 +122,7 @@ static func perform_confession(vm, npc) -> Dictionary:
 		st["penances"][key] = {"sinner_key": key, "sinner_name": npc.npc_name, "kind": "donate" if int(npc.personal_gold) >= 15 else "apologize", "day": today()}
 	# P4.2: ¿Está el jugador espiando cerca en sigilo?
 	var pl = VillageNeeds.player_of(vm)
-	if pl is Node2D and (pl as Node2D).global_position.distance_to(vm._church_altar_pos) <= EAVESDROP_RADIUS:
+	if pl is Node2D and (pl as Node2D).global_position.distance_to(vm.sitio(vm._church_altar_pos)) <= EAVESDROP_RADIUS:
 		var in_stealth: bool = pl.has_method("is_stealthing") and bool(pl.call("is_stealthing"))
 		if in_stealth or not vm.has_line_of_sight(priest.global_position, (pl as Node2D).global_position):
 			_player_learns_confessed_sin(vm, st["priest_secrets"][key], "espiando en el confesionario")
@@ -312,7 +312,7 @@ static func add_dialogue_choices(vm, npc, diag: Dictionary, ch_arr: Array) -> vo
 		opts.append({"label": "⛪🙏 Aconsejarle que haga penitencia para volver a la capilla", "next": "END", "action": "faith_urge_penance:" + key})
 	if not vm.VillageFaith.is_priest(npc) and not (st["priest_secrets"] as Dictionary).has(key) and not find_sin_of(vm, npc).is_empty():
 		var priest_chk = vm.VillageFaith.priest_of(vm)
-		if priest_chk == null or priest_chk.is_sleeping or priest_chk.global_position.distance_to(vm._church_altar_pos) > 85.0:
+		if priest_chk == null or priest_chk.is_sleeping or priest_chk.global_position.distance_to(vm.sitio(vm._church_altar_pos)) > 85.0:
 			opts.append({"label": "🎭⛪ Hacerte pasar por el confesor con el hábito para oír su pecado y cobrarle penitencia", "next": "END", "action": "faith_impersonate_priest:" + key})
 	# Tanda 4 (16): Fingir un milagro en el altar
 	if int(st.get("last_miracle_day", -99)) != today():
@@ -414,7 +414,7 @@ static func on_player_action(vm, npc, action_id: String, inv) -> void:
 		var priest_p = vm.VillageFaith.priest_of(vm)
 		var pl_f = npc._get_player()
 		var stl_f: int = int(pl_f.call("get_skill_level", "stealth")) if pl_f != null and pl_f.has_method("get_skill_level") else 0
-		if priest_p != null and not priest_p.is_sleeping and priest_p.global_position.distance_to(vm._church_altar_pos) <= 85.0 and stl_f < 2:
+		if priest_p != null and not priest_p.is_sleeping and priest_p.global_position.distance_to(vm.sitio(vm._church_altar_pos)) <= 85.0 and stl_f < 2:
 			vm.VillageFaith.add_rep(vm, "believers", -8)
 			priest_p.modify_affinity(-15)
 			npc._spawn_floating_text("😠⛪ «¡No eres el sacerdote! ¡Un impostor en el confesionario!»", Color.ORANGE_RED, -46.0)
@@ -442,7 +442,7 @@ static func on_player_action(vm, npc, action_id: String, inv) -> void:
 		var priest_m = vm.VillageFaith.priest_of(vm)
 		var pl_m = npc._get_player()
 		var stl_m: int = int(pl_m.call("get_skill_level", "stealth")) if pl_m != null and pl_m.has_method("get_skill_level") else 0
-		if priest_m != null and not priest_m.is_sleeping and not bool(st.get("priest_corrupted", false)) and priest_m.global_position.distance_to(vm._church_altar_pos) <= 75.0 and stl_m < 2:
+		if priest_m != null and not priest_m.is_sleeping and not bool(st.get("priest_corrupted", false)) and priest_m.global_position.distance_to(vm.sitio(vm._church_altar_pos)) <= 75.0 and stl_m < 2:
 			vm.VillageFaith.add_rep(vm, "believers", -10)
 			priest_m.modify_affinity(-15)
 			npc._spawn_floating_text("😠🕯️ «¡Sacrilegio! ¡Eso es fósforo de botica, no un milagro!»", Color.ORANGE_RED, -46.0)

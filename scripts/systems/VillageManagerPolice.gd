@@ -352,7 +352,7 @@ func complete_police_escort_to_jail(player: Node2D) -> void:
 			active_royal_investigation["stage"] = "INITIAL_PLAYER_INTERVIEW"
 			active_royal_investigation["stage_timer"] = 0.0
 	if player:
-		player.global_position = _jail_cell_pos
+		player.global_position = sitio(_jail_cell_pos)
 		if "velocity" in player:
 			player.velocity = Vector2.ZERO
 		_msg_player(player, "🔒⛓️ Encerrado en la Celda (%ds de estancia antes de usar el camastro)" % int(JAIL_MANDATORY_STAY_SECONDS), Color.SKY_BLUE, -46.0)

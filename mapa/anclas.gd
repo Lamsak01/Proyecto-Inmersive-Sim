@@ -161,3 +161,39 @@ static func mover_puntos(pts: PackedVector2Array) -> PackedVector2Array:
 	for q in pts:
 		out.append(aplicar(a, q))
 	return out
+
+
+## Plan de sitios, paso 2 (Claude Code, 2026-11-10): lo contrario de mover. Un punto del mundo ACTUAL (un vecino, el
+## jugador) → dónde estaría en el mapa ORIGINAL. Sirve para comparar con zonas y puntos fijos escritos en el código
+## (p. ej. «¿está dentro de la taberna?» con VillageTavern.RECT) sin tener que traducir cada zona.
+static func desmover(p: Vector2) -> Vector2:
+	if not _leidas:
+		_leer()
+	for a in _anclas:
+		var m: Transform2D = a["m"]
+		var c: Vector2 = a["c"]
+		var d: Vector2 = a["d"]
+		var q: Vector2 = c + m.affine_inverse().basis_xform(p - c - d)
+		if a.has("rect"):
+			if (a["rect"] as Rect2).has_point(q):
+				return q
+		elif q.distance_to(a["centro"]) <= float(a["radio"]):
+			return q
+	return p
+
+
+static var _cache_listas: Dictionary = {} # clave -> [version, Array]
+
+## Lista de puntos originales → actuales, guardada mientras no cambien las anclas (asientos que se miran a menudo).
+static func mover_lista(clave: String, lista: Array) -> Array:
+	if not _leidas:
+		_leer()
+	var ver: int = _anclas.size() * 1000 + _muebles.size()
+	var c = _cache_listas.get(clave)
+	if c != null and int(c[0]) == ver and (c[1] as Array).size() == lista.size():
+		return c[1]
+	var out: Array = []
+	for q in lista:
+		out.append(mover(q))
+	_cache_listas[clave] = [ver, out]
+	return out

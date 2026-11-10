@@ -41,3 +41,10 @@
 - `tools/tests/partida_caso1.gd` pasa de 25/25 (2026-11-09) a 7/25. El paseo al claro se queda en (213, -796) y todo lo
   que va detrás falla. Pasa igual sin los cambios del plan de sitios: viene de los cambios del mapa (río redibujado,
   árboles y troncos sólidos del editor 3D). Mirar qué tapa el camino al claro.
+
+## 2026-11-10 — Atasco en la plaza cerca de (399, 100) (detectado por Claude Code)
+- En `atascos_vecinos.gd`, Dr. Valen, Elena o Aldric se quedan trabados unos segundos en un paso estrecho de la plaza
+  cerca de (399, 100), y otros en los cruces del río (Wolfgang, Albrecht en (185, -255) y (44, -448)). Salen o no
+  según la velocidad del ordenador, porque la elección de asiento usa el reloj real. Ya pasaba antes del plan de sitios.
+  Mirar qué estrecha ese paso (pozo de la plaza, bancos o algo pintado con el editor).
+
