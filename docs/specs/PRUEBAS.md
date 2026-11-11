@@ -31,7 +31,7 @@ timeout 540 flatpak run org.godotengine.Godot --headless --path . --fixed-fps 60
 
 - Las pruebas automáticas **no ven los fallos visibles**: mira las fotos de verdad y pregúntate «¿esto lo encontraría un
   jugador?». Un sistema que existe pero el jugador no puede encontrar cuenta como fallo.
-- Fotos de referencia del mundo 3D en `docs/capturas_mundo3d/`; fotos de arreglos en `docs/capturas_arreglos/`
+- Fotos de referencia del mundo 3D en `docs/capturas_mundo3d/` (mapa ×5: `referencia_x5/`); fotos de arreglos en `docs/capturas_arreglos/`
   (`AAAA-MM-DD_tema_antes/despues.png`); capturas del usuario en `docs/capturas_usuario/AAAA-MM-DD/`.
 - Avisos amarillos del editor solo los ve el usuario: pídele captura con archivo y línea.
 - Nunca `pkill`/`pgrep -f` con un patrón que aparezca en tu propio comando; no cierres el editor del usuario.

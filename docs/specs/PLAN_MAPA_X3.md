@@ -85,5 +85,8 @@ Coste total estimado: **2–3 sesiones de trabajo** (unas 12–18 horas), más l
 - Arreglo encontrado por el camino: las copias 3D de paredes de un vecino (p. ej. el agua, que para él es muro) frenaban
   al protagonista → cada cuerpo choca solo con sus propias copias (`Cuerpo3D.CAPA_MUROS_*`).
 - Paso 4: `tools/repoblar_bosque.gd -- 3 26`: 699 árboles nuevos junto a los 233 (sin río, edificios ni solapes).
-- Pendiente al escribir esto: física 3D (quedaban río y vecino a la cama alta), Caso I a pie, atascos, rendimiento, fotos
-  de referencia nuevas, pasar a `main`.
+- Después: interiores 3D con coordenadas fijas (posada, comisaría, trattoria) por las anclas (`mover_posiciones`); objetos
+  pegados a un edificio vuelven con él (`estirar_mapa_objetos.py`, 79); pistas del Caso I comparadas en el mapa original;
+  cama alta sin traducir dos veces; copias de paredes por cuerpo. Resultados: física 0 fallos, puertas 29/29, atascos 3 h = 0,
+  Caso I a pie 24/25 → 25/25 (zapato por su sitio real), rendimiento plaza 21 / río 24 / bosque 23 fps (la lógica de los
+  vecinos manda, no el 3D). Fotos de referencia nuevas: `docs/capturas_mundo3d/referencia_x5/`.
