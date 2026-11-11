@@ -6,6 +6,24 @@
 
 ---
 
+## Paso 4a — Vecinos por la escalera de la posada (2026-11-10, Claude Code, portátil)
+
+**Qué cambia en el juego:** casi nada; se comprobó que los vecinos ya subían y bajaban la escalera andando y ganando
+altura poco a poco. Arreglo pequeño: cambiaban de planta un poco antes del último peldaño y daban un escalón de
+golpe de ~24 cm al pisar la galería; ahora cambian al pisarlo (queda un paso normal de ~15 cm).
+
+**Por qué:** primer trozo del paso 4 aprobado por el usuario (escalera → cuerpo 3D de los cercanos → animales →
+quitar empujones viejos).
+
+**Archivos:**
+- `scripts/systems/VillageTavern.gd`: `STAIRS_END_TOL` (3 px; antes 10 px fijos en `_route_original`).
+- `tools/tests/fisica_3d.gd`: prueba del paso 4a (un vecino va a una cama de arriba andando).
+
+**Cómo se probó:** fisica_3d ✅ (sube a la cama, pisa el suelo alto, cambio de altura máximo por fotograma 1,44 px) ·
+atascos_vecinos 6 h: 0 atascos.
+
+**Cómo deshacerlo:** `git revert` de este commit.
+
 ## Paso 3a — Nadar en el río y en el lago (2026-11-10, Claude Code, portátil)
 
 **Qué cambia en el juego:** el agua ya no es una pared: puedes meterte en el río y en el lago. Cerca de la orilla

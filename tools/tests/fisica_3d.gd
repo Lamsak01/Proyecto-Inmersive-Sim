@@ -24,6 +24,7 @@ func _initialize() -> void:
 	await _paso2b_bajo_tierra()
 	await _paso2c_caidas()
 	await _paso3_nadar()
+	await _paso4_vecino_sube()
 	print("FISICA 3D: %s (%d fallos)" % ["PASSED" if _fallos == 0 else "FAILED", _fallos])
 	quit(1 if _fallos > 0 else 0)
 
@@ -304,6 +305,44 @@ func _paso3_nadar() -> void:
 	pl.global_position = Anclas.mover(Vector2(454.0, -100.0))
 	await _andar(pl, mc, Vector2.ZERO, 0.0, 0.3)
 	mc.set_physics_process(true)
+
+
+## Paso 4a: un vecino que va a una cama de arriba sube la escalera de la posada andando y su altura crece poco a poco.
+func _paso4_vecino_sube() -> void:
+	var vm = get_first_node_in_group("village_manager")
+	var VillageTavern = load("res://scripts/systems/VillageTavern.gd")
+	var Suelo = load("res://scripts/fisica/Suelo.gd")
+	var n = null
+	for v in vm.VillageNeeds.living(vm):
+		if v.is_conscious() and not v.is_hostile:
+			n = v
+			break
+	_ok(n != null, "4: hay un vecino para la prueba")
+	if n == null:
+		return
+	n.set_physics_process(false)
+	n.set_process(false)
+	n.global_position = Anclas.mover(VillageTavern.STAIRS_BOTTOM_POS + Vector2(-14.0, -4.0))
+	vm.set_npc_elevation_level(n, 0)
+	var cama: Vector2 = Anclas.mover(VillageTavern.GUEST_BEDS[0])
+	var h_antes: float = Suelo.altura_px(n.global_position, 0, vm)
+	var salto_max: float = 0.0
+	var h_max: float = h_antes
+	for i in range(1200):
+		n._move_towards_point(cama, 45.0, 1.0 / 60.0)
+		n._finish_frame_movement(1.0 / 60.0)
+		await physics_frame
+		var h: float = Suelo.altura_px(n.global_position, int(n.elevation_level), vm)
+		salto_max = maxf(salto_max, absf(h - h_antes))
+		h_max = maxf(h_max, h)
+		h_antes = h
+		if n.global_position.distance_to(cama) < 8.0:
+			break
+	_ok(int(n.elevation_level) == 1 and n.global_position.distance_to(cama) < 8.0, "4: el vecino sube andando hasta la cama de arriba (piso %d, %s)" % [int(n.elevation_level), str(n.global_position.round())])
+	_ok(absf(h_antes - VillageTavern.FLOOR_1_SURFACE_H) < 0.5, "4: y pisa el suelo alto (%.1f px)" % h_antes)
+	_ok(salto_max < 2.0, "4: su altura sube poco a poco, sin saltos de golpe (mayor cambio %.2f px)" % salto_max)
+	n.set_physics_process(true)
+	n.set_process(true)
 
 
 ## La «y» de un tramo del río en el pueblo que se puede cruzar en línea recta (sin puente ni rocas). NAN si no hay.

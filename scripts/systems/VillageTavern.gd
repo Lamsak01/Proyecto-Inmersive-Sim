@@ -73,6 +73,8 @@ const STAIRS_BOTTOM_POS: Vector2 = Vector2(576.0, -284.0)  # Pie de la escalera 
 const STAIRS_TOP_POS: Vector2 = Vector2(576.0, -202.0)     # Desembarco de la escalera en Planta +1 (galería alta)
 const STAIRS_PROP_POS: Vector2 = Vector2(576.0, -244.0)    # Punto medio de la rampa de la escalera
 const STAIRS_RAMP_RECT: Rect2 = Rect2(Vector2(563.0, -292.0), Vector2(28.0, 96.0))
+## Paso a 3D, paso 4a: un vecino cambia de planta solo al pisar el último peldaño (antes a 10 px: daba un escalón de golpe).
+const STAIRS_END_TOL: float = 3.0
 ## Paso a 3D, paso 2: hueco de la escalera en la Planta +1 (ahí no hay suelo alto, solo la rampa): de la barandilla oeste
 ## (x 558) al muro este y del tope norte (y -298) al desembarco. Y borde sur del suelo alto (la barandilla está en y -168).
 const STAIRS_WELL_RECT: Rect2 = Rect2(Vector2(558.0, -298.0), Vector2(50.0, 102.0))
@@ -502,7 +504,7 @@ static func _route_original(from_pos: Vector2, target_pos: Vector2, agent: Node2
 	if from_elev == 0 and to_elev == 1:
 		if not STAIRS_RAMP_RECT.has_point(from_pos) and from_pos.distance_to(STAIRS_BOTTOM_POS) > 12.0:
 			return route_floor_0(from_pos, STAIRS_BOTTOM_POS)
-		if from_pos.distance_to(STAIRS_TOP_POS) > 10.0:
+		if from_pos.distance_to(STAIRS_TOP_POS) > STAIRS_END_TOL:
 			return STAIRS_TOP_POS
 		if agent != null and vm != null and vm.has_method("set_npc_elevation_level"):
 			vm.call("set_npc_elevation_level", agent, 1)
@@ -512,7 +514,7 @@ static func _route_original(from_pos: Vector2, target_pos: Vector2, agent: Node2
 	if from_elev == 1 and to_elev == 0:
 		if not STAIRS_RAMP_RECT.has_point(from_pos) and from_pos.distance_to(STAIRS_TOP_POS) > 12.0:
 			return route_floor_1(from_pos, STAIRS_TOP_POS)
-		if from_pos.distance_to(STAIRS_BOTTOM_POS) > 10.0:
+		if from_pos.distance_to(STAIRS_BOTTOM_POS) > STAIRS_END_TOL:
 			return STAIRS_BOTTOM_POS
 		if agent != null and vm != null and vm.has_method("set_npc_elevation_level"):
 			vm.call("set_npc_elevation_level", agent, 0)
