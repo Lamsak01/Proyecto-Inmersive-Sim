@@ -154,9 +154,20 @@ func _apply_tint_recursive(node: Node, col: Color) -> void:
 		_apply_tint_recursive(ch, col)
 
 
+const LOD_LEJOS_PX: float = 240.0
+var _lod_delta_acum: float = 0.0
+
 func _process(delta: float) -> void:
 	if _disabled or not is_instance_valid(_entity):
 		return
+	# Rendimiento (noche del 2026-11-11): un animal lejos del protagonista (> LOD_LEJOS_PX) se pone al día 1 de cada 3
+	# fotogramas; el tiempo saltado se acumula para que su animación y su giro no vayan más lentos.
+	_lod_delta_acum += delta
+	var pl := get_tree().get_first_node_in_group("player") as Node2D
+	if pl != null and _entity.global_position.distance_squared_to(pl.global_position) > LOD_LEJOS_PX * LOD_LEJOS_PX and (Engine.get_process_frames() + get_instance_id()) % 3 != 0:
+		return
+	delta = _lod_delta_acum
+	_lod_delta_acum = 0.0
 	if _holder == null or not is_instance_valid(_holder) or _holder.is_queued_for_deletion():
 		_holder = null
 		if not _attach_to_stage():

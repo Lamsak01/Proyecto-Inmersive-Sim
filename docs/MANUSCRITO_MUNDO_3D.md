@@ -6,6 +6,28 @@
 
 ---
 
+## Rendimiento (noche del 2026-11-11, Claude Code, portátil)
+
+**Qué cambia en el juego:** va más fluido donde más costaba (plaza 20 → 25 fps, río 18 → 21; el resto igual o algo
+mejor), sin cambiar nada visible.
+
+**Qué pesaba y qué se hizo:**
+- `scripts/visuals/WorldStageBase3D.gd`: `terrain_height_px` guarda el relieve ya calculado por celdas de 4 px
+  (`RELIEVE_CELDA_PX`, `_relieve_cache`); el cálculo de verdad está en `_terrain_height_px_calc`. Se olvida al cargar
+  otro río (`olvidar_relieve`, llamado desde `FishingSpot` al poner el río del editor).
+- `scripts/visuals/CharacterAvatar3D.gd` y `AnimalModel3D.gd`: a más de `LOD_LEJOS_PX` (240 px) del protagonista se
+  ponen al día 1 de cada 3 fotogramas, acumulando el tiempo saltado para que sus animaciones no vayan más lentas.
+- `scripts/fisica/Cuerpo3D.gd`: los vecinos repasan las paredes de alrededor 1 de cada 3 pasos; los cuerpos de
+  contacto se reparten 1 de cada 2 y los cuerpos completos 1 de cada 6 (`CuerposDelPueblo3D` lo tiene en cuenta
+  para su red de seguridad).
+
+**Lo que queda por hacer (apuntado para el usuario):** la lógica de los vecinos cercanos (~30 ms en la plaza) es lo
+que más pesa; después, el dibujo (sombras del sol: en Ajustes se pueden quitar). Medidas en el Registro del plan.
+
+**Cómo se probó:** `perf_zonas.gd` y `perf_fisica.gd` antes y después (con ventana), fisica_3d ✅, puertas_3d, verify_all.
+
+**Cómo deshacerlo:** `git revert` de este commit.
+
 ## Paso 3b — Bucear (noche del 2026-11-11, Claude Code, portátil)
 
 **Qué cambia en el juego:** nadando, la tecla de agacharse te hunde: buceas por el fondo del río o del lago, con la

@@ -4,6 +4,9 @@ Cambios del juego, del más nuevo al más antiguo. Añade una entrada al cerrar 
 El detalle técnico está en `docs/HANDOFF.md` (sección 7) y el historial completo en `git log`. Lo anterior a B0.1 está en `AUDIT_LOG.md` y `SESSION_CONTEXT_LOG.md`.
 
 
+## 2026-11-11 (noche) — Más fluido (Claude Code, portátil; rama `mundo-3d`)
+- Plaza 20 → 25 fps, río 18 → 21: el relieve del terreno se recuerda en vez de recalcularse, y los vecinos y animales lejanos se ponen al día menos a menudo.
+
 ## 2026-11-11 (noche) — Paso a 3D: bucear (Claude Code, portátil; rama `mundo-3d`)
 - Nadando, agacharse te hunde: buceas por el fondo con 30 s de aire (barra 🫧); sin aire pierdes vida hasta morir. Vista verde-azul bajo el agua.
 

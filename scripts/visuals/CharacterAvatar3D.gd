@@ -318,6 +318,13 @@ func _process_in_stage(delta: float) -> void:
 		return
 	rig_3d.process_mode = Node.PROCESS_MODE_INHERIT
 	_holder.visible = true
+	# Rendimiento (noche del 2026-11-11): un muñeco lejano (> LOD_LEJOS_PX del protagonista) se pone al día 1 de cada 3
+	# fotogramas; se ve pequeño y no se nota. El tiempo que se salta se acumula para que su animación no vaya más lenta.
+	_lod_delta_acum += delta
+	if not is_player_avatar and _lejos_del_prota() and (Engine.get_process_frames() + get_instance_id()) % 3 != 0:
+		return
+	delta = _lod_delta_acum
+	_lod_delta_acum = 0.0
 	var cos_p_eff: float = 1.0 if fp_on else float(_stage.get("_cos_p"))
 	_holder.scale = Vector3(STAGE_K, STAGE_K / maxf(0.1, cos_p_eff), STAGE_K)
 	_sync_holder_position()
@@ -353,6 +360,14 @@ func _process_in_stage(delta: float) -> void:
 func _read_stealth() -> bool:
 	var m_ctrl = target_entity.get_node_or_null("PlayerMovementController")
 	return m_ctrl != null and bool(m_ctrl.get("is_stealthing"))
+
+
+const LOD_LEJOS_PX: float = 240.0
+var _lod_delta_acum: float = 0.0
+
+func _lejos_del_prota() -> bool:
+	var pl := target_entity.get_tree().get_first_node_in_group("player") as Node2D
+	return pl != null and target_entity.global_position.distance_squared_to(pl.global_position) > LOD_LEJOS_PX * LOD_LEJOS_PX
 
 
 func _is_entity_near_camera() -> bool:

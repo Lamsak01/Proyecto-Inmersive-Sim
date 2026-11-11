@@ -211,6 +211,12 @@ para metros (gravedad 9,8, márgenes de choque) y hoy una persona mide menos de 
   y detective de `verify_all` en verde).
 
 ### Paso 6 — Limpieza final
+- **Estado (noche del 2026-11-11):** la vista desde arriba se queda (decisión del usuario), así que el mapa 2D de fondo
+  y la vista 2D siguen. Los vecinos lejanos siguen andando por el mapa (híbrido), así que sus recolocaciones a mano
+  (`sanitize_npc_separation_pos`, `push_out_of_furniture`) y los choques 2D siguen haciendo falta. Lo que ya no se usa
+  se ha ido borrando en cada paso (losa del suelo, manos de cilindros, listas a mano de sitios por piso, rama muerta
+  del «vigía»). Queda para cuando TODOS los vecinos y animales tengan cuerpo completo: borrar las recolocaciones, el
+  modo 2D de personajes y el río del editor 2D.
 - Borrar el tablero 2D sobrante: `TileMapLayer`, fondo `Parallax2D`, colisiones 2D, modo 2D de personajes y, si el usuario
   lo decide, la vista cenital (§7).
 - Río y lago editables en el editor 3D (`mapa/Mundo3D.tscn`); retirar el editor 2D del río.
@@ -298,6 +304,7 @@ Es una estimación: se apuntará el gasto real de cada paso en el Registro para 
 | 2026-11-11 (noche) | Claude Code (portátil) | Opción B, trozo 1 | Vecinos cercanos (≤150 px, hasta 24) con cuerpo 3D completo (`CuerposDelPueblo3D`, `Cuerpo3D` para cualquier actor): chocan con paredes, muebles, puertas y agua, suben escaleras y cambian de piso solos; sin recolocaciones a mano; chocan contigo, no entre sí; dormidos/sentados sin cuerpo; lo de su destino no les estorba; red de seguridad si se atascan. Fuera la losa del suelo (el cuerpo no baja de su altura); las copias de paredes se van con el cuerpo | fisica_3d ✅ · puertas_3d 29/29 · verify_all ✅ · atascos 6 h: 0 · atascos cena con cocinero y protagonista en la posada: 0 | (este commit) |
 | 2026-11-11 (noche) | Claude Code (portátil) | Paso 2e | Piso alto (26 px ≈ 2,75 m) y sótano (−30 px) de tu casa con altura de verdad; con [E] el cuerpo va al suelo nuevo sin caer ni daño; suelo de madera del altillo (visible en 1.ª persona o arriba) y sala de piedra del sótano con techo de roca. La altura de la Planta +1 de la posada ya solo vale dentro de la posada | fisica_3d ✅ (4 comprobaciones con una casa de prueba) | (este commit) |
 | 2026-11-11 (noche) | Claude Code (portátil) | Paso 3b | Bucear: nadando, agacharse te hunde al fondo; 30 s de aire (barra 🫧); sin aire, 8 de vida por segundo hasta morir (decisión del usuario); al subir o salir, el aire vuelve; en 1.ª persona la vista bajo el agua es verde-azul y turbia | fisica_3d ✅ (4 comprobaciones en el lago) | (este commit) |
+| 2026-11-11 (noche) | Claude Code (portátil) | Rendimiento | Medido con la CPU ya a 2,9 GHz (el freno de ayer desapareció). Antes de tocar nada esta noche (`perf_zonas`, 1.ª persona): afueras 31, plaza 20, río 23→18, bosque 34, molino 38, mansión 40 fps; en la plaza, 50 ms por fotograma (lógica 43, física 16). Lo que más pesaba: el relieve del terreno (`terrain_height_px`) calculado cientos de veces por fotograma (cuerpos, muñecos, animales, vista), los 43 muñecos de vecinos y los 54 modelos de animales al día cada fotograma, y los cuerpos de los vecinos repasando las paredes cada paso. Hecho: memoria del relieve por celdas de 4 px (`olvidar_relieve` al cambiar el río), muñecos y animales a más de 240 px 1 de cada 3 fotogramas, paredes de los vecinos 1 de cada 3 pasos, cuerpos de contacto 1 de cada 2, reparto de cuerpos 1 de cada 6. Después: afueras 31, plaza 25, río 21, bosque 35, molino 40, mansión 43 fps (plaza 40 ms: lógica 30, física 13). Lo que queda: la lógica de los vecinos cercanos (≈30 ms) y el dibujo (GPU 17–26 ms en plaza y río, sombras) | perf_zonas, perf_fisica (con ventana) · fisica_3d ✅ · puertas_3d · verify_all | (este commit) |
 
 ### Medidas de referencia (antes del paso 1, portátil, 2026-11-10)
 - **fps en 1.ª persona** (`perf_zonas.gd`): afueras 33, plaza 29, río 23, bosque 38, molino 40, mansión 43.

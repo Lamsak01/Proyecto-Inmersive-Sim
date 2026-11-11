@@ -55,7 +55,7 @@ func cuantos() -> int:
 func _atascado(n: Node2D) -> bool:
 	var v: float = (n.get("velocity") as Vector2).length()
 	var antes: Vector2 = _ultima_pos.get(n, n.global_position)
-	var dt: float = get_physics_process_delta_time()
+	var dt: float = get_physics_process_delta_time() * 6.0 # se llama 1 de cada 6 pasos
 	_ultima_pos[n] = n.global_position
 	if v > 5.0 and n.global_position.distance_to(antes) < v * dt * 0.25:
 		_parado_s[n] = float(_parado_s.get(n, 0.0)) + dt

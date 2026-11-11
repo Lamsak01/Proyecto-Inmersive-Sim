@@ -570,7 +570,26 @@ static func surface_elevation_offset_px(pos_2d: Vector2) -> float:
 	return 0.15
 
 
+## Relieve del terreno en un punto, con memoria por celdas de RELIEVE_CELDA_PX (rendimiento, noche del 2026-11-11): se
+## preguntaba cientos de veces por fotograma (cuerpos, muñecos, animales, vista) y cada cálculo recorre el río, el lago,
+## la ciénaga, las terrazas y los caminos. El terreno no cambia salvo al cargar otro río (`olvidar_relieve`).
+const RELIEVE_CELDA_PX: float = 4.0
+static var _relieve_cache: Dictionary = {}
+
 static func terrain_height_px(pos_2d: Vector2) -> float:
+	var celda := Vector2i(floori(pos_2d.x / RELIEVE_CELDA_PX), floori(pos_2d.y / RELIEVE_CELDA_PX))
+	var h = _relieve_cache.get(celda)
+	if h == null:
+		h = _terrain_height_px_calc((Vector2(celda) + Vector2(0.5, 0.5)) * RELIEVE_CELDA_PX)
+		_relieve_cache[celda] = h
+	return h
+
+
+static func olvidar_relieve() -> void:
+	_relieve_cache.clear()
+
+
+static func _terrain_height_px_calc(pos_2d: Vector2) -> float:
 	var x: float = pos_2d.x
 	var y: float = pos_2d.y
 

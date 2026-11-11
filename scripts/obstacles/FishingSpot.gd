@@ -99,6 +99,7 @@ static func _cargar_mapa() -> void:
 	if d.is_empty() or (d["pts"] as Array).size() < 2:
 		return
 	_rio = d
+	load("res://scripts/visuals/WorldStageBase3D.gd").olvidar_relieve() # el relieve se allana en el cauce: su memoria ya no vale
 	if not (d["cruces"] as Array).is_empty():
 		_cruces.assign(d["cruces"])
 	_rio_propio = not es_rio_original(d)

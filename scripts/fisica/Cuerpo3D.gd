@@ -209,15 +209,17 @@ func _preparar() -> void:
 		_forma.disabled = CuerposCercanos3D.tamano_de_pie(actor) == Vector2.ZERO
 	var p := actor.global_position
 	_suelo_y = _altura_suelo(p, false)
-	if is_instance_valid(_choques) and _choques.is_inside_tree():
+	# Rendimiento: un vecino repasa las paredes de alrededor 1 de cada 3 pasos (las paredes no se mueven; las puertas
+	# tardan un par de fotogramas más en contar); el protagonista, cada paso.
+	if is_instance_valid(_choques) and _choques.is_inside_tree() and (es_prota or (Engine.get_physics_frames() + get_instance_id()) % 3 == 0):
 		var excluir: Array[RID] = [actor.get_rid()]
 		# Bajo tierra (capa −1) no cuentan los choques de los pisos de la posada de encima
 		var mascara: int = _mascara_2d if _nivel() == -1 else _mascara_2d | Suelo.CAPA_PISOS
 		_choques.excluir_destino = destino_actor
 		_choques.actualizar(actor.get_world_2d().direct_space_state, p, mascara, excluir, _calle_y)
-	if is_instance_valid(_cercanos) and _cercanos.is_inside_tree():
+	if is_instance_valid(_cercanos) and _cercanos.is_inside_tree() and Engine.get_physics_frames() % 2 == 0:
 		_cercanos.actualizar(p, _vm())
-	if is_instance_valid(_pueblo) and _pueblo.is_inside_tree():
+	if is_instance_valid(_pueblo) and _pueblo.is_inside_tree() and Engine.get_physics_frames() % 6 == 0:
 		_pueblo.actualizar(p)
 
 
