@@ -40,7 +40,7 @@
 | Sitios de los vecinos (la lógica sigue al mapa) | `PLAN_SITIOS.md` |
 | Combate | `PLAN_COMBATE.md` |
 | Secta (solo con orden del usuario) | `PLAN_SECTA.md` |
-| Misiones secundarias, rasgos, edificios, lore provisional | `MISIONES.md`, `RASGOS_BORRADOR.md`, `BOCETOS_EDIFICIOS.md`, `APORTES_CREATIVOS.md` |
+| Misiones secundarias, rasgos, edificios, lore provisional | `MISIONES.md`, `RASGOS_BORRADOR.md`, `BOCETOS_EDIFICIOS.md`, `BOCETO_EDIFICIOS_ANTIGUOS.md` (2026-11-11), `APORTES_CREATIVOS.md` |
 
 ## Otros documentos vivos (`docs/`)
 `ESTADO_ACTUAL.md` (léelo al empezar), `FALLOS_VISIBLES.md`, `CONTROLES.md`, `VISION_Y_FUTURO.md` (ideas),
