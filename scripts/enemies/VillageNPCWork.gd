@@ -417,7 +417,7 @@ func _consume_pocket_meal_if_any() -> bool:
 func _check_npc_environmental_sickness() -> void:
 	if not health_comp or is_dead:
 		return
-	if Rect2(-2020.0, 110.0, 920.0, 450.0).has_point(global_position):
+	if Rect2(-2020.0, 110.0, 920.0, 450.0).has_point(_AN_SITIOS.desmover(global_position)): # ciénaga, en el mapa original
 		health_comp.add_swamp_or_miasma_exposure(1.4, "Humedad de la Ciénaga de las Ranas")
 	for n in get_tree().get_nodes_in_group("village_npcs"):
 		if n == self or not is_instance_valid(n) or not (n is Node2D):

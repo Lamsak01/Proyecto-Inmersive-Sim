@@ -2489,7 +2489,7 @@ func _initialize() -> void:
 		vm.evict_npc_to_vagrant_camp(n5)
 	var v5b_in: int = v5b_n.filter(func(x): return x.in_shelter).size()
 	assert(v5b_in == 4 and not v5b_n[4].in_shelter and v5b_n[4].is_vagrant_camper, "V5b: The shelter takes four; the fifth sleeps outdoors")
-	assert(v5b_n[0].bed_position in vc.shelter_beds(), "V5b: Sheltered people sleep in the shelter beds")
+	assert(v5b_n[0].bed_position in vm.sitios(vc.shelter_beds()), "V5b: Sheltered people sleep in the shelter beds")
 	for i5 in range(v5b_n.size()):
 		var n5 = v5b_n[i5]
 		n5.in_shelter = false

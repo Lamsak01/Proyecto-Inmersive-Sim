@@ -507,7 +507,7 @@ func _process(delta: float) -> void:
 		if _hit_flash_timer <= 0.0 and anim:
 			anim.modulate = Color(1.0, 0.72, 0.72) if bloodstained_timer > 0.0 else Color.WHITE
 	if health_comp and health_comp.current_health > 0.0:
-		if velocity.length_squared() > 9.0 and health_comp.is_resting_in_bed and global_position.distance_to(Vector2(718, 136)) > 26.0:
+		if velocity.length_squared() > 9.0 and health_comp.is_resting_in_bed and _AN_SITIOS.desmover(global_position).distance_to(Vector2(718, 136)) > 26.0:
 			health_comp.is_resting_in_bed = false
 		_env_sickness_timer += delta
 		if _env_sickness_timer >= 2.0:

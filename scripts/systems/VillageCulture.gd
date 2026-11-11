@@ -2036,11 +2036,12 @@ static func on_read(vm, n) -> void:
 static func try_interact(vm, player, pos: Vector2) -> bool:
 	if _try_outpost_interact(vm, player, pos):
 		return true
-	if pos.distance_to(TINKER_TERMINAL_POS) <= 26.0 or pos.distance_to(POLICE_TERMINAL_POS) <= 26.0 or (VillageLots.lot(vm, "n4").get("kind", "") == "town_hall" and pos.distance_to(TOWN_HALL_TERMINAL_POS) <= 26.0):
+	var o: Vector2 = _AN_SITIOS.desmover(pos) # los sitios fijos de abajo están escritos en el mapa original
+	if o.distance_to(TINKER_TERMINAL_POS) <= 26.0 or o.distance_to(POLICE_TERMINAL_POS) <= 26.0 or (VillageLots.lot(vm, "n4").get("kind", "") == "town_hall" and o.distance_to(TOWN_HALL_TERMINAL_POS) <= 26.0):
 		var term_node: Node = vm.get_tree().get_first_node_in_group("tinker_terminal") if vm.is_inside_tree() else null
 		open_terminal_menu(vm, term_node, player)
 		return true
-	if pos.distance_to(TINKER_GRID_PANEL_POS) <= 26.0:
+	if o.distance_to(TINKER_GRID_PANEL_POS) <= 26.0:
 		var panel_node: Node = vm.get_tree().get_first_node_in_group("tinker_grid_panel") if vm.is_inside_tree() else null
 		open_grid_panel_menu(vm, panel_node, player)
 		return true
@@ -2073,7 +2074,8 @@ static func try_interact(vm, player, pos: Vector2) -> bool:
 static func _try_outpost_interact(vm, player, pos: Vector2) -> bool:
 	if vm == null or player == null or (vm.has_method("is_demo_mode") and bool(vm.call("is_demo_mode"))):
 		return false
-	if pos.distance_to(OUTPOST_GATE_POS) > 46.0 and pos.distance_to(OUTPOST_CENTER) > 58.0:
+	var o: Vector2 = _AN_SITIOS.desmover(pos) # el puesto está escrito en el mapa original
+	if o.distance_to(OUTPOST_GATE_POS) > 46.0 and o.distance_to(OUTPOST_CENTER) > 58.0:
 		return false
 	var inv = player.get("inventory")
 	var op: Dictionary = outpost_state(vm)

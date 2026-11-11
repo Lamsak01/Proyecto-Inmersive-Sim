@@ -1487,9 +1487,9 @@ func reconcile_npc_registries_after_load() -> void:
 	for n in get_tree().get_nodes_in_group("village_npcs"):
 		if n is VillageNPC:
 			var v := n as VillageNPC
-			v.tavern_social_pos = _tavern_social_pos
-			if v.home_table_pos.distance_to(Vector2(376.0, -184.0)) < 2.0:
-				v.home_table_pos = _tavern_social_pos
+			v.tavern_social_pos = sitio(_tavern_social_pos) # los vecinos guardan sitios del mundo
+			if v.home_table_pos.distance_to(sitio(Vector2(376.0, -184.0))) < 2.0:
+				v.home_table_pos = sitio(_tavern_social_pos)
 			if v.trade_role == VillageNPC.TradeRole.ROYAL_INVESTIGATOR and not v.is_dead and not str(v.name).begins_with("NPC_Royal_Investigator_Corpse_"):
 				_royal_investigator_npc = v
 			elif v.trade_role == VillageNPC.TradeRole.TRAVELING_MERCHANT and not v.is_dead and not str(v.name).begins_with("NPC_Merchant_Corpse_"):

@@ -1108,7 +1108,7 @@ func get_activity_description() -> String:
 		return "🔍👑 Investigando Asesinato Real" + sick_tag
 	if trade_role == TradeRole.TRAVELING_MERCHANT:
 		return ("🧳👑 Regresando a las Tierras Reales" if _merchant_leaving else "⚖️👑 Comerciando con Salvoconducto Real") + sick_tag
-	if health_comp and (health_comp.fever >= 45.0 or health_comp.food_poisoning >= 50.0 or health_comp.swamp_sickness >= 50.0) and global_position.distance_to(Vector2(718, 136)) <= 32.0:
+	if health_comp and (health_comp.fever >= 45.0 or health_comp.food_poisoning >= 50.0 or health_comp.swamp_sickness >= 50.0) and _AN_SITIOS.desmover(global_position).distance_to(Vector2(718, 136)) <= 32.0:
 		return "🏥 Ingresado en el Hospital tratándose la Fiebre/Infección" + sick_tag
 	match current_activity:
 		ActivityState.SLEEPING:

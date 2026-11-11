@@ -276,7 +276,7 @@ func _tick_frame_upkeep(delta: float) -> void:
 		_process_pending_social_reply(delta)
 	if is_conscious():
 		_update_visual_memory(delta)
-	if health_comp and velocity.length_squared() > 9.0 and health_comp.is_resting_in_bed and global_position.distance_to(Vector2(718, 136)) > 26.0 and global_position.distance_to(bed_position) > 20.0:
+	if health_comp and velocity.length_squared() > 9.0 and health_comp.is_resting_in_bed and _AN_SITIOS.desmover(global_position).distance_to(Vector2(718, 136)) > 26.0 and global_position.distance_to(bed_position) > 20.0:
 		health_comp.is_resting_in_bed = false
 	if not is_instance_valid(_cached_dm) and get_tree().current_scene:
 		_cached_dm = get_tree().current_scene.get_node_or_null("Systems/dialogue_manager")
@@ -403,7 +403,7 @@ func _process_hostile_combat(delta: float) -> void:
 				return
 		# Los civiles nunca entran a la Comisaría / Celda (`Rect2(832, 92, 166, 108)`) para seguir golpeando al jugador
 		var police_station_rect := Rect2(832, 92, 166, 108)
-		if police_station_rect.has_point(player.global_position) or police_station_rect.has_point(global_position):
+		if police_station_rect.has_point(_AN_SITIOS.desmover(player.global_position)) or police_station_rect.has_point(_AN_SITIOS.desmover(global_position)):
 			_clear_combat_hostility(false)
 			velocity = Vector2.ZERO
 			return
