@@ -4,10 +4,11 @@
 > profundidades, cuevas, lagos y **nadar y bucear** (habrá casos con pistas en el río y el lago). Quiere hacerlo **ya**,
 > antes de que el juego crezca. No volver a proponer quedarse en 2D ni «trucos de capas» como solución final.
 >
-> **Estado (2026-11-10):** plan aprobado por el usuario. **Pasos 0, 0b, 1, 2a–2c, 3a, 4 y 5a hechos** en la rama `mundo-3d` (mundo 3D
-> uniforme y en metros; cuerpo 3D; posada de dos plantas; club y alcantarillas bajo tierra; daño por caída; nadar; cuerpos
-> de contacto de vecinos y animales; vista con alturas). Aplazados por el usuario: 2d (guardado v4), 2e (casa) y 3b–3c
-> (bucear). El paso 4 se hizo como opción A (la B, cuerpos completos y caminos 3D, queda pendiente). Paso 5 hecho. Siguiente: paso 6 (limpieza) o lo aplazado (2e casa, 3b bucear, 4 opción B), según el usuario.
+> **Estado (2026-11-12): conversión terminada y en `main`** (etiqueta `fin-paso-a-3d`, con permiso del usuario). Pasos 0–6
+> hechos: mundo en metros, cuerpo 3D del protagonista, posada de dos plantas, club y alcantarillas bajo tierra, daño
+> por caída, nadar y bucear, cuerpos completos de vecinos, animales, bandidos y enemigos cercanos (híbrido), vista, oído,
+> golpes y [E] con alturas, piso alto y sótano de tu casa, rendimiento, y fuera el modo 2D antiguo. Quedan: borrar los
+> dibujos 2D ocultos del mapa (limpieza larga) y las pistas en el fondo del agua (cuando el usuario decida).
 > Autor: Claude Code (portátil). Cualquier agente que siga: lee este documento entero antes de tocar nada y apunta
 > cada paso en el **Registro** (§10).
 
