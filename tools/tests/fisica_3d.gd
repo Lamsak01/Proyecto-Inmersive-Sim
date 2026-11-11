@@ -5,6 +5,7 @@ extends SceneTree
 ## Termina con «FISICA 3D: PASSED» o «FAILED».
 
 const Mapa3D = preload("res://scripts/fisica/Mapa3D.gd")
+const Anclas = preload("res://mapa/anclas.gd")
 var _fallos: int = 0
 
 
@@ -19,6 +20,7 @@ func _initialize() -> void:
 	await _paso0b_vista_de_arriba()
 	await _paso0_escenario()
 	await _paso1_cuerpo()
+	await _paso2_pisos()
 	print("FISICA 3D: %s (%d fallos)" % ["PASSED" if _fallos == 0 else "FAILED", _fallos])
 	quit(1 if _fallos > 0 else 0)
 
@@ -155,6 +157,63 @@ func _paso1_cuerpo() -> void:
 	await _andar(pl, mc, Vector2.ZERO, 0.0, 0.1)
 	_ok(Mapa3D.a_mapa(c.global_position).distance_to(lejos) < 1.0, "1: el cuerpo sigue al protagonista cuando lo cambian de sitio")
 	mc.set_physics_process(true)
+
+
+## Paso 2: en la posada se sube y se baja la escalera andando; el piso sale de la altura del cuerpo; los choques de un
+## piso no estorban en el otro.
+func _paso2_pisos() -> void:
+	var pl = get_first_node_in_group("player")
+	var vm = get_first_node_in_group("village_manager")
+	var mc = pl.get_node("PlayerMovementController")
+	mc.set_physics_process(false)
+	var VillageTavern = load("res://scripts/systems/VillageTavern.gd") # tras montar el pueblo (usa los autoloads)
+	var arriba_px: float = VillageTavern.FLOOR_1_SURFACE_H
+	var abajo_px: float = VillageTavern.FLOOR_0_SURFACE_H
+	# Abajo, al pie de la escalera
+	vm.set_player_elevation_level(0)
+	pl.global_position = Anclas.mover(VillageTavern.STAIRS_BOTTOM_POS + Vector2(0, -4))
+	await _andar(pl, mc, Vector2.ZERO, 0.0, 0.3)
+	_ok(absf(mc.altura_pies_px() - abajo_px) < 0.5, "2: al pie de la escalera pisa la Planta 0 (%.1f px)" % mc.altura_pies_px())
+	await _andar(pl, mc, Vector2.DOWN, 100.0, 1.0) # sube la rampa (hacia el sur) hasta la galería
+	_ok(int(vm.player_elevation_level) == 1, "2: subiendo la escalera andando llega a la Planta +1 (piso %d)" % int(vm.player_elevation_level))
+	_ok(absf(mc.altura_pies_px() - arriba_px) < 0.5, "2: y pisa el suelo alto (%.1f px; %.1f esperado)" % [mc.altura_pies_px(), arriba_px])
+	await _andar(pl, mc, Vector2.LEFT, 100.0, 1.2) # por la galería hacia el oeste
+	_ok(int(vm.player_elevation_level) == 1 and absf(mc.altura_pies_px() - arriba_px) < 0.5, "2: anda por la galería sin caerse (" + str(pl.global_position.round()) + ")")
+	await _andar(pl, mc, Vector2.DOWN, 100.0, 1.0) # contra la barandilla sur
+	_ok(Anclas.desmover(pl.global_position).y < VillageTavern.GALLERY_EDGE_Y and int(vm.player_elevation_level) == 1, "2: la barandilla de la galería lo para (" + str(pl.global_position.round()) + ")")
+	# Bajar: vuelve al desembarco y baja la rampa hacia el norte
+	pl.global_position = Anclas.mover(VillageTavern.STAIRS_TOP_POS + Vector2(0, 4))
+	await _andar(pl, mc, Vector2.ZERO, 0.0, 0.2)
+	await _andar(pl, mc, Vector2.UP, 100.0, 1.4)
+	_ok(int(vm.player_elevation_level) == 0 and absf(mc.altura_pies_px() - abajo_px) < 0.5, "2: bajando la escalera vuelve a la Planta 0 (piso %d, %.1f px)" % [int(vm.player_elevation_level), mc.altura_pies_px()])
+	# Abajo, la barandilla de arriba no estorba: quieto justo debajo de ella (en un hueco sin muebles), no lo empuja
+	var bajo_barandilla: Vector2 = _hueco_bajo_barandilla(pl, VillageTavern)
+	_ok(bajo_barandilla != Vector2.INF, "2: hay un hueco libre en la Planta 0 bajo la barandilla de arriba")
+	pl.global_position = bajo_barandilla
+	await _andar(pl, mc, Vector2.ZERO, 0.0, 0.3)
+	_ok(pl.global_position.distance_to(bajo_barandilla) < 0.5 and int(vm.player_elevation_level) == 0, "2: en la Planta 0 la barandilla de arriba no estorba (" + str(pl.global_position.round()) + ")")
+	mc.set_physics_process(true)
+
+
+## Un punto bajo la barandilla sur de la galería donde en la Planta 0 no hay nada (solo la barandilla de arriba).
+func _hueco_bajo_barandilla(pl, VillageTavern) -> Vector2:
+	var q := PhysicsShapeQueryParameters2D.new()
+	var circulo := CircleShape2D.new()
+	circulo.radius = 8.0
+	q.shape = circulo
+	q.collision_mask = 0xFFFFFFFF
+	q.exclude = [pl.get_rid()]
+	var r: Rect2 = VillageTavern.RECT
+	for x in range(int(r.position.x) + 20, int(r.end.x) - 20, 4):
+		var p: Vector2 = Anclas.mover(Vector2(float(x), -168.0))
+		q.transform = Transform2D(0.0, p)
+		var solo_arriba := true
+		for h in pl.get_world_2d().direct_space_state.intersect_shape(q, 16):
+			if not (h["collider"] as Node).is_in_group("tavern_upper_walls"):
+				solo_arriba = false
+		if solo_arriba:
+			return p
+	return Vector2.INF
 
 
 func _andar(pl, mc, dir: Vector2, vel: float, segundos: float) -> void:

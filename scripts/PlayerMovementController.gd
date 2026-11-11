@@ -66,6 +66,10 @@ func is_jumping() -> bool:
 func get_jump_height() -> float:
 	return _cuerpo.altura_sobre_suelo_px() if is_instance_valid(_cuerpo) else 0.0
 
+## Altura de los pies sobre el relieve (px de altura): suelo que pisa (tarima, Planta +1, escalera…) + salto.
+func altura_pies_px() -> float:
+	return _cuerpo.altura_pies_px() if is_instance_valid(_cuerpo) else 0.0
+
 ## Corta un salto en curso y deja al protagonista en el suelo (pruebas, cinemáticas).
 func parar_salto() -> void:
 	if is_instance_valid(_cuerpo):

@@ -10,6 +10,7 @@ extends RefCounted
 const VillageNeeds = preload("res://scripts/systems/VillageNeeds.gd")
 const VillageChronicle = preload("res://scripts/systems/VillageChronicle.gd")
 const VillageHousing = preload("res://scripts/systems/VillageHousing.gd")
+const Suelo = preload("res://scripts/fisica/Suelo.gd")
 const VillageUnderworld = preload("res://scripts/systems/VillageUnderworld.gd")
 const TraitCatalog = preload("res://scripts/data/TraitCatalog.gd")
 
@@ -633,11 +634,11 @@ static func sync_club_visibility(vm) -> void:
 		var on_floor0: bool = (int(vm.player_elevation_level) == 0)
 		for w0 in vm.get_tree().get_nodes_in_group("tavern_floor0_walls"):
 			if w0 is StaticBody2D and is_instance_valid(w0):
-				(w0 as StaticBody2D).collision_layer = 1 if on_floor0 else 0
+				(w0 as StaticBody2D).collision_layer = Suelo.capa(on_floor0)
 		var on_floor1: bool = (int(vm.player_elevation_level) == 1)
 		for w1 in vm.get_tree().get_nodes_in_group("tavern_upper_walls"):
 			if w1 is StaticBody2D and is_instance_valid(w1):
-				(w1 as StaticBody2D).collision_layer = 1 if on_floor1 else 0
+				(w1 as StaticBody2D).collision_layer = Suelo.capa(on_floor1)
 
 static func fighter_key_at(vm, slot: String) -> String:
 	var f: Array = state(vm).get("fighters", [])

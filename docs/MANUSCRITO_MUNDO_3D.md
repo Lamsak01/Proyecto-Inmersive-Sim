@@ -6,6 +6,41 @@
 
 ---
 
+## Paso 2a — La posada con dos plantas de verdad (2026-11-10, Claude Code, portátil)
+
+**Qué cambia en el juego:** en la posada, al subir la escalera andando estás de verdad más alto (3,3 m); el piso (Planta 0
+o +1) sale de la altura de tu cuerpo, no de una raya en el mapa. Abajo no estorban las barandillas y tabiques de arriba
+y arriba no estorban los muebles de abajo. La cámara en 1.ª persona y tu muñeco van donde está tu cuerpo 3D. La [E] de la
+escalera sigue funcionando (te lleva arriba o abajo de golpe).
+
+**Por qué:** primer trozo del paso 2 (alturas de verdad). Antes los pisos eran «capas» que se cambiaban al cruzar una
+raya a mitad de la escalera.
+
+**Cómo funciona (para personas):**
+- La posada dice qué suelos hay en cada punto (Planta 0; en el hueco de la escalera, la rampa; en el resto, también la
+  Planta +1). El cuerpo pisa el más alto al que llega subiendo como mucho un peldaño (45 cm); si no, cae al de abajo.
+- Los choques de un solo piso llevan siempre una marca (capa 20 del mapa), aunque estén «apagados» para el mapa porque
+  estás en el otro piso. El cuerpo 3D los ve todos y los levanta solo a la altura de su piso.
+- Sótanos, club de peleas, alcantarillas y los pisos de tu casa siguen siendo «capas» (trozos 2b y 2e).
+
+**Archivos:**
+- `scripts/systems/VillageTavern.gd`: nuevos `floor_heights_at`, `STAIRS_WELL_RECT` (hueco de la escalera),
+  `GALLERY_EDGE_Y`, `FLOOR_0_SURFACE_H`, `FLOOR_1_SURFACE_H`. **Quitado** de `tick` el cambio de piso del protagonista por
+  posición (y la «seguridad» que lo bajaba si salía del suelo alto): ahora lo hace el cuerpo.
+- `scripts/fisica/Suelo.gd`: `pisos_en`, `elegir`, `nivel_de`, `capa`, `piso_de_choque`, `CAPA_PISOS`.
+- `scripts/fisica/Cuerpo3D.gd`: elige el suelo por altura, avisa del piso al pueblo, `altura_pies_px`; los muros se
+  levantan desde el suelo de abajo (`_calle_y`).
+- `scripts/fisica/ChoquesCercanos3D.gd`: altura de cada copia según su piso (`_banda`); los muros normales suben 9 m.
+- `VillageManagerBase.gd`, `VillageClub.gd`: los choques de un piso usan `Suelo.capa(...)` al crearse y al cambiar de piso.
+- `PlayerMovementController.gd` y `Player.gd`: `altura_pies_px` / `get_altura_pies_px`.
+- `CharacterAvatar3D.gd` y `WorldStage3D.gd`: el muñeco del protagonista y los ojos en 1.ª persona van sobre el cuerpo 3D
+  (sin cuerpo aún, como antes). En la posada el techo de la cámara es el de dos plantas en los dos pisos.
+- `tools/tests/fisica_3d.gd`: prueba del paso 2.
+
+**Cómo se probó:** fisica_3d ✅ · puertas_3d ✅ 29/29 · verify_all ✅.
+
+**Cómo deshacerlo:** `git revert` de este commit, o volver a la etiqueta `antes-paso-2`.
+
 ## Paso 1b — Recorrido por todas las puertas y cierre del paso 1 (2026-11-10, Claude Code, portátil)
 
 **Qué cambia en el juego:** nada; son comprobaciones.

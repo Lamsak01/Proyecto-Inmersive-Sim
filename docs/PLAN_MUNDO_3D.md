@@ -166,6 +166,8 @@ para metros (gravedad 9,8, márgenes de choque) y hoy una persona mide menos de 
 - Deja preparado el sitio para **cuevas**: un lugar bajo el suelo con su entrada, igual que un sótano grande.
 - **Terminado cuando:** subes y bajas a pie en taberna, casas y alcantarillas; los vecinos de abajo no «ven» lo de arriba;
   guardar/cargar arriba y abajo funciona; pruebas en verde.
+- **Trozos (2026-11-10):** 2a posada con dos plantas de verdad (hecho) · 2b sótanos, club y alcantarillas de verdad bajo
+  tierra · 2c caídas y daño por caída (el usuario decide cuánto) · 2d guardado versión 4 · 2e piso alto y sótano de tu casa.
 
 ### Paso 3 — Agua: nadar y bucear
 - Volúmenes de agua 3D para el río y el lago (desde la forma del río que ya existe).
@@ -259,7 +261,9 @@ Es una estimación: se apuntará el gasto real de cada paso en el Registro para 
 | 2026-11-10 | Claude Code (portátil) | Paso 0b | Escala uniforme en metros: `Mapa3D` (ESCALA 0,056, ALTO, K = 2,8, vista de arriba a 62,08° con imagen estirada); escenario, luces, niebla, texturas, partículas y muñecos ajustados; mapa del usuario convertido (`tools/convertir_escala_0b.py`, copia `mapa/Mundo3D.antes-3d.tscn`); fotos de edificios rehechas; arreglo de vecinos encimados en las puertas | fisica_3d ✅ 12/12 (vista de arriba cuadra: 0,14 px) · sondeo 29/29 ✅ · río ✅ · pincel ✅ · verify_all ✅ (falló 2 veces por la puerta; tras el arreglo ✅) · atascos 0 en 6 h ✅ · fps igual que la versión anterior medida a la vez · fotos nuevas en `referencia_paso0b` (desde arriba: 9,9 % distinto, casi igual) | (este commit) |
 | 2026-11-10 | Claude Code (portátil) | Paso 1a | Cuerpo 3D del protagonista: `fisica/Cuerpo3D.gd` (cápsula 1,74 m, gravedad, salto), `fisica/ChoquesCercanos3D.gd` (copias 3D de los choques del mapa cercanos), `fisica/Suelo.gd` (altura del suelo, sacada de `CharacterAvatar3D`); el mando del jugador mueve el cuerpo 3D; salto viejo en píxeles fuera. Etiqueta `antes-paso-1` | fisica_3d ✅ (puerta de la taberna, muro, salto 1,14 m, aterrizaje, cambio de sitio) · verify_all ✅ | (este commit) |
 | 2026-11-10 | Claude Code (portátil) | Paso 1b | Prueba nueva `tools/tests/puertas_3d.gd` (entrar y salir andando por todas las puertas); `capturas_fijas` dice dónde queda el protagonista; fotos `referencia_paso1` | puertas_3d ✅ 29/29 · atascos 0 en 6 h ✅ · fps igual que en el paso 0b (portátil aún lento: 8/5/5/7/8/8) · el cuerpo cuesta ~1 ms por paso · fotos: 5 de 7 iguales (≤ 1 %); plaza distinta porque el protagonista ya no se queda metido 4 px en un puesto | (este commit) |
-, portátil, 2026-11-10)
+| 2026-11-10 | Claude Code (portátil) | Paso 2a | Posada con dos plantas de verdad: el cuerpo pisa el suelo que tiene debajo según su altura (Planta 0, rampa de la escalera, Planta +1) y de ahí sale el piso; choques de un solo piso levantados solo en su piso (capa 20 del mapa); cámara y muñeco sobre el cuerpo 3D; fuera el cambio de piso por posición en `VillageTavern.tick`. Etiqueta `antes-paso-2` | fisica_3d ✅ (sube y baja la escalera andando, galería, barandilla, la barandilla no estorba abajo) · puertas_3d ✅ 29/29 · verify_all ✅ | (este commit) |
+
+### Medidas de referencia (antes del paso 1, portátil, 2026-11-10)
 - **fps en 1.ª persona** (`perf_zonas.gd`): afueras 33, plaza 29, río 23, bosque 38, molino 40, mansión 43.
 - **Vecinos atascados** (`atascos_vecinos.gd -- 6`): 0 en 6 h. **Guardado largo:** PASSED, +1,6 MB del día 2 al 7.
 - **Edificios movidos** (`sondeo_edificios_movidos.gd -- movido`): 29/29; sitios de vecinos 54 bien, 0 viejos, 6 al aire libre.

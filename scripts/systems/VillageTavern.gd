@@ -73,6 +73,12 @@ const STAIRS_BOTTOM_POS: Vector2 = Vector2(576.0, -284.0)  # Pie de la escalera 
 const STAIRS_TOP_POS: Vector2 = Vector2(576.0, -202.0)     # Desembarco de la escalera en Planta +1 (galería alta)
 const STAIRS_PROP_POS: Vector2 = Vector2(576.0, -244.0)    # Punto medio de la rampa de la escalera
 const STAIRS_RAMP_RECT: Rect2 = Rect2(Vector2(563.0, -292.0), Vector2(28.0, 96.0))
+## Paso a 3D, paso 2: hueco de la escalera en la Planta +1 (ahí no hay suelo alto, solo la rampa): de la barandilla oeste
+## (x 558) al muro este y del tope norte (y -298) al desembarco. Y borde sur del suelo alto (la barandilla está en y -168).
+const STAIRS_WELL_RECT: Rect2 = Rect2(Vector2(558.0, -298.0), Vector2(50.0, 102.0))
+const GALLERY_EDGE_Y: float = -166.0
+const FLOOR_0_SURFACE_H: float = 2.95                 ## altura de la tarima de la Planta 0 (px sobre el relieve)
+const FLOOR_1_SURFACE_H: float = FLOOR_1_H + 0.55     ## altura del suelo de la Planta +1
 
 ## 6 Mesas del Gran Salón Comedor (Planta 0) con 2 sillas cada una (12 plazas sentadas, todas visibles frente al muro sur)
 const DINING_TABLES: Array = [
@@ -171,6 +177,8 @@ static func setup_world(vm) -> void:
 			var sb_w: Node = vm.entities_root.get_child(vm.entities_root.get_child_count() - 1)
 			sb_w.add_to_group("tavern_floor0_2d")
 			sb_w.add_to_group("tavern_floor0_walls")
+			if sb_w is StaticBody2D:
+				(sb_w as StaticBody2D).collision_layer = load("res://scripts/fisica/Suelo.gd").capa(int(vm.player_elevation_level) == 0)
 
 	# Mostrador largo de Marta y pasa-platos del camarero
 	vm._add_rect_poly(BAR_COUNTER_POS, BAR_COUNTER_SIZE * 0.5, Color(0.42, 0.25, 0.12, 0.98), -1).add_to_group("tavern_floor0_2d")
@@ -522,6 +530,21 @@ static func elevation_height_for(pos: Vector2, elev_level: int) -> float:
 		return 2.95
 	return 0.0
 
+## Paso a 3D, paso 2: los suelos que hay en `pos` dentro de la posada, en px de altura sobre el relieve y de abajo
+## arriba: la tarima de la Planta 0, la rampa de la escalera (en su hueco) o el suelo de la Planta +1. Fuera, ninguno.
+static func floor_heights_at(pos: Vector2) -> Array[float]:
+	pos = _AN_SITIOS.desmover(pos)
+	var out: Array[float] = []
+	if not RECT.grow(2.0).has_point(pos):
+		return out
+	out.append(FLOOR_0_SURFACE_H)
+	if STAIRS_WELL_RECT.has_point(pos):
+		var t: float = clampf((pos.y - STAIRS_BOTTOM_POS.y) / (STAIRS_TOP_POS.y - STAIRS_BOTTOM_POS.y), 0.0, 1.0)
+		out.append(lerpf(FLOOR_0_SURFACE_H, FLOOR_1_SURFACE_H, t))
+	elif pos.y <= GALLERY_EDGE_Y:
+		out.append(FLOOR_1_SURFACE_H)
+	return out
+
 ## Interacción con la escalera [E] para el jugador (subir al Piso +1 o bajar al Salón Planta 0).
 static func stairs_label(vm) -> String:
 	if vm != null and int(vm.player_elevation_level) == 1:
@@ -750,17 +773,7 @@ static var _club_rumor_cooldown: float = 9.0
 static func tick(vm, delta: float) -> void:
 	if vm == null:
 		return
-	var pl = vm.VillageNeeds.player_of(vm)
-	if pl != null and is_instance_valid(pl):
-		if STAIRS_RAMP_RECT.has_point(_AN_SITIOS.desmover(pl.global_position)):
-			if int(vm.player_elevation_level) == 0 and _AN_SITIOS.desmover(pl.global_position).y >= -244.0:
-				vm.set_player_elevation_level(1)
-			elif int(vm.player_elevation_level) == 1 and _AN_SITIOS.desmover(pl.global_position).y < -244.0:
-				vm.set_player_elevation_level(0)
-		elif int(vm.player_elevation_level) == 1 and RECT.grow(24.0).has_point(_AN_SITIOS.desmover(pl.global_position)):
-			# Seguridad: nadie queda flotando en el aire fuera del forjado de Planta +1 (y <= -166)
-			if _AN_SITIOS.desmover(pl.global_position).y > -165.0 or not RECT.grow(2.0).has_point(_AN_SITIOS.desmover(pl.global_position)):
-				vm.set_player_elevation_level(0)
+	# El piso del protagonista (Planta 0 o +1) ya no se decide aquí: lo da la altura de su cuerpo 3D (paso a 3D, paso 2).
 	# 1. Mantener la capa vertical (`elevation_level = 1`) de los vecinos que duermen en las camas del Piso +1,
 	#    y orientar a Marta (detrás de la barra) y a los jugadores de póker/comensales sentados hacia su mesa.
 	if is_instance_valid(vm._innkeeper_npc) and not vm._innkeeper_npc.is_dead:

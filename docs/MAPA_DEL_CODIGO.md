@@ -37,7 +37,7 @@
   igual en todas direcciones desde el paso 0b). Lo usan el juego, el editor del mapa y las herramientas.
 - `Cuerpo3D.gd` [~150] — el cuerpo 3D del protagonista (paso 1): anda, choca, cae y salta en 3D y escribe su sitio en el mapa.
 - `ChoquesCercanos3D.gd` [~150] — copias 3D, levantadas como muros, de los choques del mapa que hay cerca de un cuerpo.
-- `Suelo.gd` [~30] — a qué altura está el suelo en un punto (tarimas, plaza, puentes, planta alta de la taberna).
+- `Suelo.gd` [~75] — a qué altura está el suelo en un punto (tarimas, plaza, puentes); dónde hay varios suelos (posada) y cuál pisa el cuerpo; de qué piso es cada choque.
 
 ## Lo que se ve en 3D — `scripts/visuals/`
 - `WorldStageBase3D.gd` [~1.000] ⚠ — base del escenario: relieve del suelo, materiales, cajas y cilindros 3D.

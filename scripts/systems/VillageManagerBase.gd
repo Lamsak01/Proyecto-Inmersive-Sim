@@ -3,6 +3,7 @@ extends Node2D
 const _AN_SITIOS = preload("res://mapa/anclas.gd") # plan de sitios: zonas fijas siguen a lo movido
 const EdificioEditor = preload("res://mapa/edificio.gd")
 const Anclas = preload("res://mapa/anclas.gd")
+const Suelo = preload("res://scripts/fisica/Suelo.gd")
 
 ## Plan de sitios (docs/PLAN_SITIOS.md): traduce un punto escrito en coordenadas del mapa ORIGINAL a su sitio actual
 ## (edificio, mueble u objeto movido en el editor del mapa 3D). Úsalo una sola vez, donde se escribe el número fijo.
@@ -1263,7 +1264,9 @@ func _add_prop_collider(pos: Vector2, sz: Vector2, group_tag: String = "") -> St
 	var sb := StaticBody2D.new()
 	sb.name = "PropCollider"
 	sb.global_position = pos
-	sb.collision_layer = 1 if tag != "tavern_upper_walls" else (1 if int(player_elevation_level) == 1 else 0)
+	sb.collision_layer = 1
+	if tag == "tavern_upper_walls" or tag == "tavern_floor0_walls": # de un solo piso (paso a 3D, paso 2)
+		sb.collision_layer = Suelo.capa(int(player_elevation_level) == (1 if tag == "tavern_upper_walls" else 0))
 	sb.collision_mask = 0
 	sb.add_to_group("prop_collider")
 	if tag != "":

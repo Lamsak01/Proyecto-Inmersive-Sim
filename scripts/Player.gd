@@ -893,6 +893,14 @@ func is_jumping() -> bool:
 		move_ctrl = get_node_or_null("PlayerMovementController")
 	return move_ctrl != null and move_ctrl.has_method("is_jumping") and bool(move_ctrl.call("is_jumping"))
 
+## Paso a 3D: altura de los pies sobre el relieve (px de altura), según su cuerpo 3D. -1 si aún no tiene cuerpo.
+func get_altura_pies_px() -> float:
+	if not move_ctrl:
+		move_ctrl = get_node_or_null("PlayerMovementController")
+	if move_ctrl and move_ctrl.has_method("altura_pies_px") and is_instance_valid(move_ctrl.get("_cuerpo")):
+		return float(move_ctrl.call("altura_pies_px"))
+	return -1.0
+
 func get_jump_height() -> float:
 	if not move_ctrl:
 		move_ctrl = get_node_or_null("PlayerMovementController")
