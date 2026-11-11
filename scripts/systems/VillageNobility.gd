@@ -114,7 +114,7 @@ static func spawn_households(vm) -> Array:
 			var spec: Dictionary = h["members"][i]
 			var n = vm._spawn_generated_newcomer("NPC_Noble_", noble_role(), noble_role(), str(spec["label"]), tex,
 				study_pos(id), bl[i % bl.size()], {}, table_pos(id), str(h["family"]), str(h["name"]))
-			n.global_position = bl[i % bl.size()] - Vector2(0, 14 * _m(id)) # Ya viven aquí: aparecen en casa
+			n.global_position = vm.sitio(bl[i % bl.size()] - Vector2(0, 14 * _m(id))) # Ya viven aquí: aparecen en casa
 			n.personal_gold = randi_range(int(spec["gold"].x), int(spec["gold"].y))
 			if n.person_profile != null:
 				n.person_profile.age = randi_range(int(spec["age"].x), int(spec["age"].y))

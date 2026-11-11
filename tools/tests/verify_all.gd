@@ -2735,7 +2735,7 @@ func _initialize() -> void:
 	vno.spawn_households(vm)
 	assert(vno.nobles(vm).size() == 5 and vno.lord_of(vm) != null, "V6: The lord's family and the rentiers live in the valley")
 	var v6_lord = vno.lord_of(vm)
-	assert(vno.is_noble(v6_lord) and v6_lord.family_id == vno.MANSION_FAMILY and v6_lord.bed_position in vno.beds("f1"), "V6: The lord lives and sleeps in the mansion (fam=%s bed=%s)" % [v6_lord.family_id, str(v6_lord.bed_position)])
+	assert(vno.is_noble(v6_lord) and v6_lord.family_id == vno.MANSION_FAMILY and v6_lord.bed_position in vm.sitios(vno.beds("f1")), "V6: The lord lives and sleeps in the mansion (fam=%s bed=%s)" % [v6_lord.family_id, str(v6_lord.bed_position)])
 	assert(v6_lord.person_profile != null and str(v6_lord.person_profile.partner_id) != "", "V6: The lord is married")
 	# Rentas
 	var v6_fr: int = vt.role_of("farmer")
@@ -5433,7 +5433,7 @@ func _initialize() -> void:
 	b5_ts["mayor"] = "player"
 	b5_ts["treasury"] = 100
 	b5_ts["player_embezzle_risk"] = 0
-	var b5_cof: Vector2 = vm.VillageCivic.hall_spots()["coffers"]
+	var b5_cof: Vector2 = M(vm.VillageCivic.hall_spots()["coffers"])
 	p70_pl.global_position = b5_cof
 	var b5_wit = null
 	for b5_n in vm.VillageNeeds.living(vm):
@@ -5443,7 +5443,7 @@ func _initialize() -> void:
 	var b5_wit_pos: Vector2 = b5_wit.global_position
 	var b5_wit_slp: bool = b5_wit.is_sleeping
 	var b5_wit_lvl: int = int(b5_wit.elevation_level)
-	b5_wit.global_position = vm.VillageCivic.hall_spots()["mayor"] # dentro del ayuntamiento, con vista al cofre
+	b5_wit.global_position = M(vm.VillageCivic.hall_spots()["mayor"]) # dentro del ayuntamiento, con vista al cofre
 	b5_wit.is_sleeping = false
 	b5_wit.elevation_level = int(vm.player_elevation_level)
 	var b5_take: int = b5_col.embezzle(vm, p70_pl)
@@ -5753,7 +5753,7 @@ func _initialize() -> void:
 	assert(bp4_lot != "", "P4.0a: Player has a primary lot")
 	vl.lot(vm, bp4_lot)["status"] = "built"
 	vho.sync_home_props(vm)
-	var bp4_table_pos: Vector2 = vho.home_prop_pos(vm, bp4_lot, "home_table")
+	var bp4_table_pos: Vector2 = M(vho.home_prop_pos(vm, bp4_lot, "home_table"))
 	var bp4_table_prop = vm.entities_root.get_node_or_null("HomeTable_" + bp4_lot)
 	assert(bp4_table_prop != null and is_instance_valid(bp4_table_prop), "P4.0b: HomeTable prop spawned in player house")
 
