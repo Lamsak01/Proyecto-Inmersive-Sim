@@ -3086,7 +3086,7 @@ func _initialize() -> void:
 		vk_q = vmi._spawn_one(vm, vmi.SETTLER_KINDS[0], 0)
 		vm.trade_npcs[vt.role_of("quarry")] = vk_q
 	vt.fix_quarry_post(vm)
-	assert(vk_q.work_position.distance_to(M(vt.yard_pos("w1"))) < 1.0 and vt.yard_pos("w1").x > vl.building_center("w1").x, "K1: The quarryman works out on the rock")
+	assert(vk_q.work_position.distance_to(vl.anexo(vm, "w1", vt.yard_pos("w1"))) < 1.0 and vt.yard_pos("w1").x > vl.building_center("w1").x, "K1: The quarryman works out on the rock")
 	var vk_stock: Dictionary = vk_q.shop_stock.duplicate()
 	var vk_g: int = vk_q.personal_gold
 	vk_q.shop_stock["stone"] = 5

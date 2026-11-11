@@ -109,3 +109,15 @@ mover una pista del claro y el molino mueve sus zonas de uso y el interior 3D de
 - `tools/esparcir_arboles.gd -- <px> [x1,y1,x2,y2]` quita de «Vegetacion/Arboles» los árboles con el tronco a menos de
   esos px de otro ya conservado (solo dentro del rectángulo; sin él, todo el mapa). Pasado una vez con 24 px en el bosque
   del Caso I (19 quitados). Si Godot tenía Mundo3D abierto: recargar la escena sin guardar.
+
+## Mapa ×5 (2026-11-11/12)
+- Las escenas `mapa/Mundo3D.tscn` y `mapa/EditorMapa.tscn` se convirtieron con `tools/estirar_mapa.py` y
+  `estirar_mapa_objetos.py` (copias `*.antes-x5.tscn`). Las piezas siguen la regla de las anclas: edificio a E·centro con
+  su tamaño (`mapa/edificio.gd`: `d = ahora − centro·E`), objetos igual (`mapa/objeto.gd` devuelve el número fijo y el
+  ancla lo lleva), campo abierto ×E.
+- Editor: la maqueta «Vista» de Mundo3D y la «Referencia» de EditorMapa (`mapa/mundo3d.gd`, `mapa/referencia.gd`) estiran
+  la referencia del mapa original (caminos, lago, suelo, plantas de los edificios); `rio.gd` dibuja cada paso alargado
+  hasta las orillas como hace el juego (no sale rojo sin motivo); rangos de «ancho» del río (hasta 400) y «largo» de
+  los cruces (hasta 400) ampliados.
+- Guía del usuario reescrita: `docs/EDITOR_MAPA_GUIA.md` (Mundo3D + EditorMapa, medidas ×5).
+

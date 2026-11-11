@@ -46,21 +46,36 @@ func _construir() -> void:
 		var parsed = JSON.parse_string(FileAccess.get_file_as_string(REFERENCIA))
 		if parsed is Dictionary:
 			ref = parsed
+	# Mapa ×E: la referencia está en el mapa original; el campo abierto se estira E veces y los edificios van a E·centro
+	var E: float = Mapa3D.E
 	_suelo(vista)
 	_rio(vista)
-	_poligonos(vista, ref.get("caminos", []), Color(0.62, 0.52, 0.38), 0.35)
+	_poligonos(vista, _escalar_polis(ref.get("caminos", []), E), Color(0.62, 0.52, 0.38), 0.35)
 	if ref.get("lago", []) is Array and (ref["lago"] as Array).size() > 2:
-		_poligonos(vista, [ref["lago"]], Color(0.20, 0.45, 0.75), 0.6, true)
+		_poligonos(vista, [FS.lake_outline_world()], Color(0.20, 0.45, 0.75), 0.6, true)
 	var ed := get_node_or_null("Edificios")
 	if ed == null or ed.get_child_count() == 0:
 		_edificios(vista, ref.get("edificios", [])) # cajas, solo hasta que existan las fotos de los edificios
-	for t in ref.get("arboles", []):
-		_cono(vista, Vector2(t[0], t[1]), 9.0, 46.0, Color(0.18, 0.45, 0.20))
-	for r in ref.get("rocas", []):
-		_cono(vista, Vector2(r[0], r[1]), 7.0, 8.0, Color(0.5, 0.5, 0.5))
+	var veg := get_node_or_null("Vegetacion")
+	if veg == null or veg.get_child_count() == 0: # con la vegetación en la escena no hacen falta los conos de la referencia
+		for t in ref.get("arboles", []):
+			_cono(vista, Vector2(t[0], t[1]) * E, 9.0, 46.0, Color(0.18, 0.45, 0.20))
+		for r in ref.get("rocas", []):
+			_cono(vista, Vector2(r[0], r[1]) * E, 7.0, 8.0, Color(0.5, 0.5, 0.5))
 	var luz := DirectionalLight3D.new()
 	luz.rotation_degrees = Vector3(-50, 35, 0)
 	vista.add_child(luz)
+
+
+## Polígonos de la referencia (mapa original) estirados E veces.
+func _escalar_polis(lista: Array, E: float) -> Array:
+	var out: Array = []
+	for poly in lista:
+		var q: Array = []
+		for p in poly:
+			q.append([float(p[0]) * E, float(p[1]) * E])
+		out.append(q)
+	return out
 
 
 func _mat(c: Color, vertex: bool = false) -> StandardMaterial3D:
@@ -73,10 +88,11 @@ func _mat(c: Color, vertex: bool = false) -> StandardMaterial3D:
 
 ## Suelo con el mismo relieve que el juego, con choque para poder soltar modelos encima.
 func _suelo(vista: Node3D) -> void:
-	var x0 := -2400.0
-	var x1 := 2800.0
-	var y0 := -2000.0
-	var y1 := maxf(2700.0, FS.river_y_end() + 200.0)
+	var E: float = Mapa3D.E
+	var x0 := -2400.0 * E
+	var x1 := 2800.0 * E
+	var y0 := -2000.0 * E
+	var y1 := maxf(2700.0 * E, FS.river_y_end() + 200.0)
 	var nx := int((x1 - x0) / PASO_SUELO) + 1
 	var ny := int((y1 - y0) / PASO_SUELO) + 1
 	var st := SurfaceTool.new()
@@ -160,7 +176,7 @@ func _edificios(vista: Node3D, lista: Array) -> void:
 		var r: Array = e.get("r", [])
 		if r.size() < 4:
 			continue
-		var centro := Vector2(r[0] + r[2] * 0.5, r[1] + r[3] * 0.5)
+		var centro := Vector2(r[0] + r[2] * 0.5, r[1] + r[3] * 0.5) * Mapa3D.E # mapa ×E: el edificio va a E·centro con su tamaño
 		var alto := 40.0
 		var base := WB.terrain_height_px(centro)
 		var caja := MeshInstance3D.new()

@@ -26,35 +26,40 @@ func _cargar() -> Dictionary:
 	return _ref
 
 
+## Plantas de los edificios en el mundo actual (mapa ×E: E·centro con su tamaño).
 func edificios() -> Array:
+	var E: float = load("res://scripts/fisica/Mapa3D.gd").E
 	var out: Array = []
 	for e in _cargar().get("edificios", []):
 		var r: Array = e["r"]
-		out.append({"id": e["id"], "nombre": e["nombre"], "rect": Rect2(r[0], r[1], r[2], r[3])})
+		var r0 := Rect2(r[0], r[1], r[2], r[3])
+		out.append({"id": e["id"], "nombre": e["nombre"], "rect": Rect2(r0.get_center() * E - r0.size * 0.5, r0.size)})
 	return out
 
 
 func _draw() -> void:
 	var d := _cargar()
+	# Mapa ×E: la referencia está en el mapa original; el campo abierto se estira E veces y cada edificio va a E·centro
+	var E: float = load("res://scripts/fisica/Mapa3D.gd").E
 	# Suelo del mundo (la zona que tiene terreno 3D)
-	draw_rect(Rect2(Vector2(-3450, -1850), Vector2(6500, 5100)), Color(0.33, 0.42, 0.26), true)
+	draw_rect(Rect2(Vector2(-3450, -1850) * E, Vector2(6500, 5100) * E), Color(0.33, 0.42, 0.26), true)
 	for c in d.get("caminos", []):
 		var poly := PackedVector2Array()
 		for p in c:
-			poly.append(Vector2(p[0], p[1]))
+			poly.append(Vector2(p[0], p[1]) * E)
 		draw_colored_polygon(poly, Color(0.62, 0.53, 0.38, 0.9))
 	var lago := PackedVector2Array()
 	for p in d.get("lago", []):
-		lago.append(Vector2(p[0], p[1]))
+		lago.append(Vector2(p[0], p[1]) * E)
 	if lago.size() >= 3:
 		draw_colored_polygon(lago, Color(0.20, 0.50, 0.80, 0.8))
 	if mostrar_arboles:
 		for p in d.get("arboles", []):
-			draw_circle(Vector2(p[0], p[1]), 9.0, Color(0.12, 0.30, 0.12))
+			draw_circle(Vector2(p[0], p[1]) * E, 9.0, Color(0.12, 0.30, 0.12))
 		for p in d.get("rocas", []):
-			draw_circle(Vector2(p[0], p[1]), 6.0, Color(0.55, 0.55, 0.55))
+			draw_circle(Vector2(p[0], p[1]) * E, 6.0, Color(0.55, 0.55, 0.55))
 	var font := ThemeDB.fallback_font
-	for e in edificios():
+	for e in edificios(): # ya en el mundo actual
 		var r: Rect2 = e["rect"]
 		draw_rect(r, Color(0.55, 0.30, 0.22, 0.95), true)
 		draw_rect(r, Color(0.15, 0.08, 0.05), false, 1.5)

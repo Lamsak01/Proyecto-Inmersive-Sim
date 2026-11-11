@@ -20,7 +20,7 @@ enum Tipo { VADO, PASARELA_DE_MADERA, PUENTE_DE_PIEDRA, TRONCO_CAIDO }
 		ancho = v
 		_avisar()
 ## Largo del paso (de una orilla a la otra). Que sobresalga un poco del agua.
-@export_range(20.0, 160.0, 1.0) var largo: float = 72.0:
+@export_range(20.0, 400.0, 1.0) var largo: float = 72.0:
 	set(v):
 		largo = v
 		_avisar()

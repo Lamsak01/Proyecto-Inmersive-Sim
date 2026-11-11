@@ -68,7 +68,10 @@ func _draw() -> void:
 	# Puentes y vados
 	for c in d["cruces"]:
 		var cp: Vector2 = c["pos"]
-		var r := Rect2(cp - Vector2(c["half_w"], c["half_h"]), Vector2(c["half_w"], c["half_h"]) * 2.0)
+		var bk0: Vector2 = orillas.call(cp.y)
+		# El juego alarga cada paso hasta las orillas (FishingSpot); aquí se dibuja igual para que no salga rojo sin motivo
+		var hw: float = maxf(float(c["half_w"]), (bk0.y - bk0.x) * 0.5 + 8.0)
+		var r := Rect2(cp - Vector2(hw, c["half_h"]), Vector2(hw, c["half_h"]) * 2.0)
 		var col := Color(0.55, 0.38, 0.20, 0.9) if c["kind"] != "ford" else Color(0.70, 0.65, 0.50, 0.8)
 		draw_rect(r, col, true)
 		draw_rect(r, Color(0.2, 0.12, 0.05), false, 1.5)
