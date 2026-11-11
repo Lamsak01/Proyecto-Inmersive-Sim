@@ -8,6 +8,7 @@
 [ext_resource type="ArrayMesh" path="res://mapa/edificios/comun/malla_24ce080.res" id="6_to57x"]
 [ext_resource type="ArrayMesh" path="res://mapa/edificios/comun/malla_6a1aca38.res" id="7_0cft7"]
 [ext_resource type="Script" path="res://mapa/mueble.gd" id="8_sxk1g"]
+[ext_resource type="Script" path="res://mapa/marca.gd" id="9_04r7j"]
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_e8uky"]
 albedo_color = Color(0.649, 0.63100004, 0.6085, 1)
@@ -343,3 +344,45 @@ modelo = "props/Chair_1.gltf"
 tam3 = Vector3(0.336, 0.89825004, 0.336)
 
 [node name="Marcas" type="Node3D" parent="." unique_id=1695520015]
+
+[node name="trabajo" type="Marker3D" parent="Marcas" unique_id=379228339]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.512001, 0, -1.5680008)
+gizmo_extents = 0.5
+script = ExtResource("9_04r7j")
+id_marca = "trabajo"
+
+[node name="trabajo_familiar" type="Marker3D" parent="Marcas" unique_id=1368898276]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.0080032, 0, -0.7840004)
+gizmo_extents = 0.5
+script = ExtResource("9_04r7j")
+id_marca = "trabajo_familiar"
+
+[node name="cama_1" type="Marker3D" parent="Marcas" unique_id=568550581]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2.3519974, 0, 1.4559975)
+gizmo_extents = 0.5
+script = ExtResource("9_04r7j")
+id_marca = "cama_1"
+
+[node name="cama_2" type="Marker3D" parent="Marcas" unique_id=881693591]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.3519974, 0, 1.4559975)
+gizmo_extents = 0.5
+script = ExtResource("9_04r7j")
+id_marca = "cama_2"
+
+[node name="mesa" type="Marker3D" parent="Marcas" unique_id=485211301]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 1.567997)
+gizmo_extents = 0.5
+script = ExtResource("9_04r7j")
+id_marca = "mesa"
+
+[node name="puesto" type="Marker3D" parent="Marcas" unique_id=105508185]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.512001, 0, -0.95199966)
+gizmo_extents = 0.5
+script = ExtResource("9_04r7j")
+id_marca = "puesto"
+
+[node name="cofre" type="Marker3D" parent="Marcas" unique_id=456930647]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.3519974, 0, -1.4560013)
+gizmo_extents = 0.5
+script = ExtResource("9_04r7j")
+id_marca = "cofre"

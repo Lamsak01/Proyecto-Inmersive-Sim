@@ -8,19 +8,21 @@ toca el código del mundo** (la que hizo este avance; el usuario lo confirmó el
 mientras dure. Paso 0 hecho (inventario). **Paso 1 en curso.**
 
 ## b) Último avance completado
-- 2026-11-11: paso 1, primera tanda. Los 29 edificios fijos son escenas (`mapa/edificios/<id>.tscn`: Muros, Interior,
-  PisoAlto, Tejado, Muebles, Marcas) y el juego las carga donde esté su pieza de Mundo3D. Borrado su código de dibujo
-  (`WorldStageBuildings3D.gd` 2.720 → 540 líneas), sus fotos viejas y `tools/hornear_edificios.gd`. Partes móviles por
-  etiqueta (`scripts/visuals/PartesEdificio3D.gd`). Herramienta: `tools/convertir_edificios.gd`.
-- Medido: inventario «dobles» 885 → 0, «quieto» 697 → 609; puertas 29/29; sondeo 29/29; 51 fotos antes/después iguales
-  salvo la textura de los muros corrida unos centímetros.
-- Detalle para quien siga: `docs/specs/REGISTRO_EDITOR_3D.md`, sección «Edificios como escenas».
+- 2026-11-11: paso 1, segunda tanda. Los sitios de las 5 familias fundadoras (9 edificios: 4 tiendas, 4 casas y la
+  botica) son **marcas** en su escena (`mapa/marca.gd`, grupo «Marcas»: `trabajo`, `trabajo_familiar`, `cama_1`,
+  `cama_2`, `mesa`, `puesto`, `cofre`). `VillageWorldBuilder` las lee con `Marca.sitio(id_edificio, marca)` y sus
+  números están borrados. Herramienta que las creó: `tools/marcar_edificios.gd` (no pisa marcas que ya existan).
+- `Marca.sitio` devuelve el sitio en el mapa ORIGINAL (centro original del edificio + posición local): es lo que
+  esperan las funciones `_add_*` y `setup_npc`, que lo traducen con las anclas. Cambiará al quitar las anclas (paso 4).
+- Medido: 173 sitios (vecinos, fichas de oficio, puestos, cofres) idénticos antes y después; sondeo 29/29, viejos 0.
+- Antes (primera tanda): los 29 edificios fijos son escenas; detalle en `docs/specs/REGISTRO_EDITOR_3D.md`.
 
 ## c) Siguiente paso técnico inmediato
 Seguir el paso 1, en este orden:
-1. **Marcas para la lógica** (grupo «Marcas» de cada escena, `Marker3D` con `id_marca`): camas, mesas y puestos de
-   trabajo de cada casa y tienda (`VillageWorldBuilder`), luego posada, casa de comidas, hospital, comisaría… El código
-   lee la marca en vez de su número y el número se borra en el mismo cambio. Empezar por casas y tiendas (lo más simple).
+1. **Más marcas**: oficios en solares (`VillageTrades` + `VillageLots.shop_house_layout`, que comparte la posada de
+   `VillageCivic`; ojo: cantero, granjero, ganadero y leñador trabajan fuera del edificio), luego posada, casa de
+   comidas, hospital, comisaría, iglesia. Ampliar `tools/marcar_edificios.gd`, leer la marca y borrar el número en el
+   mismo cambio. Después, las paredes invisibles de camas, mesas y mostradores (hoy números junto a cada edificio).
 2. **Capilla**: 14 muebles salen fuera del edificio (fallo visible); están así también en su escena: recolocarlos.
 3. **Casas de recién llegados**: una escena base y fuera el dibujo por código que queda.
 4. **Planta y puerta desde la escena** (tamaño y lado de la puerta como propiedades de la pieza, no números del código).

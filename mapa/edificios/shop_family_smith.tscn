@@ -8,6 +8,7 @@
 [ext_resource type="ArrayMesh" path="res://mapa/edificios/comun/malla_60cd4493.res" id="6_rc2oi"]
 [ext_resource type="ArrayMesh" path="res://mapa/edificios/comun/malla_bb09cedb.res" id="7_5isli"]
 [ext_resource type="Script" path="res://mapa/mueble.gd" id="8_anq6e"]
+[ext_resource type="Script" path="res://mapa/marca.gd" id="9_eckyp"]
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_pgrgb"]
 albedo_color = Color(0.3, 0.2, 0.12, 1)
@@ -184,3 +185,27 @@ modelo = "props/Workbench.gltf"
 tam3 = Vector3(1.344, 0.89825004, 0.588)
 
 [node name="Marcas" type="Node3D" parent="." unique_id=526654123]
+
+[node name="trabajo" type="Marker3D" parent="Marcas" unique_id=594838814]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -0.33600044)
+gizmo_extents = 0.5
+script = ExtResource("9_eckyp")
+id_marca = "trabajo"
+
+[node name="trabajo_familiar" type="Marker3D" parent="Marcas" unique_id=524377857]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.3440018, 0, -0.33600044)
+gizmo_extents = 0.5
+script = ExtResource("9_eckyp")
+id_marca = "trabajo_familiar"
+
+[node name="puesto" type="Marker3D" parent="Marcas" unique_id=879106829]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -0.8959999)
+gizmo_extents = 0.5
+script = ExtResource("9_eckyp")
+id_marca = "puesto"
+
+[node name="cofre" type="Marker3D" parent="Marcas" unique_id=380766458]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.1279984, 0, -1.1199999)
+gizmo_extents = 0.5
+script = ExtResource("9_eckyp")
+id_marca = "cofre"

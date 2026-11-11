@@ -7,6 +7,7 @@
 [ext_resource type="ArrayMesh" path="res://mapa/edificios/comun/malla_e329bbda.res" id="5_w33fh"]
 [ext_resource type="ArrayMesh" path="res://mapa/edificios/comun/malla_6b9b915.res" id="6_dh3n5"]
 [ext_resource type="Script" path="res://mapa/mueble.gd" id="7_6rwcd"]
+[ext_resource type="Script" path="res://mapa/marca.gd" id="8_0gksr"]
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_pgrgb"]
 albedo_color = Color(0.3, 0.2, 0.12, 1)
@@ -171,3 +172,27 @@ modelo = "props/Barrel_Apples.gltf"
 tam3 = Vector3(0.504, 1.0039265, 0.504)
 
 [node name="Marcas" type="Node3D" parent="." unique_id=817886697]
+
+[node name="trabajo" type="Marker3D" parent="Marcas" unique_id=517248565]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0.44800186)
+gizmo_extents = 0.5
+script = ExtResource("8_0gksr")
+id_marca = "trabajo"
+
+[node name="trabajo_familiar" type="Marker3D" parent="Marcas" unique_id=36439723]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.3439941, 0, 0.44800186)
+gizmo_extents = 0.5
+script = ExtResource("8_0gksr")
+id_marca = "trabajo_familiar"
+
+[node name="puesto" type="Marker3D" parent="Marcas" unique_id=1128558969]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 1.0080032)
+gizmo_extents = 0.5
+script = ExtResource("8_0gksr")
+id_marca = "puesto"
+
+[node name="cofre" type="Marker3D" parent="Marcas" unique_id=1525970055]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.128006, 0, 1.1200027)
+gizmo_extents = 0.5
+script = ExtResource("8_0gksr")
+id_marca = "cofre"

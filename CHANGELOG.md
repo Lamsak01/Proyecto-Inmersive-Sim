@@ -4,6 +4,11 @@ Cambios del juego, del más nuevo al más antiguo. Añade una entrada al cerrar 
 El historial completo está en `git log`. Lo anterior al 2026-11-09 está en `docs/archivo/CHANGELOG_hasta_2026-11-08.md`.
 
 
+## 2026-11-11 — Paso 1, segunda tanda: los sitios de las familias fundadoras son marcas (Claude Code)
+- Las 5 familias de oficio fundadoras (herrero, carnicero, carpintero, pescadero y botica: 9 edificios) tienen en su escena, grupo «Marcas», 39 marcas (`mapa/marca.gd`): `trabajo`, `trabajo_familiar`, `cama_1`, `cama_2`, `mesa`, `puesto` y `cofre`. Las creó `tools/marcar_edificios.gd` copiando dónde estaba cada sitio.
+- `VillageWorldBuilder` lee esas marcas (`Marca.sitio`) y se borraron los números que decían esos sitios. Los 173 sitios de vecinos, puestos y cofres quedan idénticos (comparado antes y después); sondeo de edificios movidos 29/29, sitios bien 54, viejos 0.
+- No se nota jugando. Pendiente: marcas de los oficios en solares, posada, casa de comidas, hospital, comisaría; paredes invisibles de los muebles.
+
 ## 2026-11-11 — Paso 1, primera tanda: los 29 edificios fijos son escenas propias (Claude Code)
 - Cada edificio fijo (posada, casa de comidas, hospital, comisaría, iglesia, molino, tiendas, casas de oficio…) es ahora una escena, `mapa/edificios/<id>.tscn`, con sus grupos Muros, Interior, PisoAlto, Tejado, Muebles y Marcas en metros respecto al edificio. El juego la carga donde esté su pieza del editor; jugando se ve igual (51 fotos de antes y después comparadas a ojo).
 - Borrado el código que los dibujaba con números (`WorldStageBuildings3D.gd`: de 2.720 a 540 líneas); queda solo el dibujo genérico de las casas de recién llegados y de lo que se levante en un solar. Borradas las «fotos» viejas de esos 29 edificios y `tools/hornear_edificios.gd` (la sustituye `tools/convertir_edificios.gd`).

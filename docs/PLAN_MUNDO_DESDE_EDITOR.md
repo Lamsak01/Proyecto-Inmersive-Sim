@@ -44,7 +44,8 @@ moviendo piezas, no con un factor.
    del código. Da la cifra exacta de lo que falta y será la vara de medir de los pasos siguientes. *Jugable: sin cambios.*
 1. 🔶 (2026-11-11, en curso) Hecho: los 29 edificios fijos son escenas (`mapa/edificios/<id>.tscn`, creadas con
    `tools/convertir_edificios.gd`) y el juego las carga; su código de dibujo está borrado; «dobles» del inventario 885 → 0.
-   Falta: marcas para la lógica (camas, mesas, puestos, salas: `VillageTavern`, `VillageRestaurant`, `VillageWorldBuilder`…),
+   Hecho también: marcas de las 5 familias fundadoras (`mapa/marca.gd`, `tools/marcar_edificios.gd`).
+   Falta: el resto de marcas para la lógica (camas, mesas, puestos, salas: `VillageTavern`, `VillageRestaurant`, `VillageWorldBuilder`…),
    muebles de la capilla, casas de recién llegados con escena base, y planta/puerta leídas de la escena. Era:
    **Edificios completos en el editor**, por grupos (casas → oficios → públicos: iglesia, ayuntamiento, escuela…): muros,
    puerta, muebles, camas, mesas y puestos de trabajo como marcas dentro de cada edificio; el código las lee en vez de sus

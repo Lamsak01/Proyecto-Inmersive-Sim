@@ -1,5 +1,6 @@
 @tool
 extends RefCounted
+const Marca = preload("res://mapa/marca.gd")
 
 ## Construcción inicial del pueblo (caminos, edificios y mobiliario). Extraído de VillageManager.gd:
 ## cada función recibe al VillageManager como primer parámetro (`vm`) y solo se ejecuta al montar el mundo.
@@ -170,23 +171,20 @@ static func _spawn_five_family_houses_and_trades(vm: VillageManager) -> void:
 		var hc: Vector2 = cfg["house_center"]
 		var fam_id: String = str(cfg["family_id"])
 
-		var shop_door_s: bool = bool(cfg.get("shop_door_south", true))
-		var work_pos: Vector2 = sc + (Vector2(0, -6) if shop_door_s else Vector2(0, 8))
-		var bed1_pos: Vector2 = hc + Vector2(-30, -18)
-		var bed2_pos: Vector2 = hc + Vector2(30, -18)
-		var table_pos: Vector2 = hc + Vector2(0, -2)
-		var kin_work_pos: Vector2 = sc + (Vector2(-24, -6) if shop_door_s else Vector2(-24, 8))
+		# Dónde trabaja, duerme y come la familia lo dicen las marcas de sus edificios (mapa/marca.gd), no números aquí
+		var shop_id: String = ("mixed_" if is_mixed else "shop_") + fam_id
+		var house_id: String = ("mixed_" if is_mixed else "house_") + fam_id
+		var work_pos: Vector2 = Marca.sitio(shop_id, Marca.TRABAJO)
+		var kin_work_pos: Vector2 = Marca.sitio(shop_id, Marca.TRABAJO_FAMILIAR)
+		var bed1_pos: Vector2 = Marca.sitio(house_id, Marca.CAMA_1)
+		var bed2_pos: Vector2 = Marca.sitio(house_id, Marca.CAMA_2)
+		var table_pos: Vector2 = Marca.sitio(house_id, Marca.MESA)
 
 		if is_mixed:
-			work_pos = sc + Vector2(-27, -28)
-			bed1_pos = sc + Vector2(-42, 26)
-			bed2_pos = sc + Vector2(42, 26)
-			table_pos = sc + Vector2(0, 28)
-			kin_work_pos = sc + Vector2(18, -14)
-			_build_mixed_shop_house_visuals(vm, sc, str(cfg["shop_title"]), tex_bed, tex_stall, bed1_pos, bed2_pos, table_pos, work_pos, fam_id, int(role_key))
+			_build_mixed_shop_house_visuals(vm, sc, str(cfg["shop_title"]), tex_bed, tex_stall, bed1_pos, bed2_pos, table_pos, fam_id, int(role_key))
 		else:
 			var is_smithy: bool = (role_key == VillageNPC.TradeRole.BLACKSMITH)
-			_build_enclosed_shop_visuals(vm, sc, str(cfg["shop_title"]), tex_stall, work_pos, bool(cfg["shop_door_south"]), is_smithy, fam_id, int(role_key))
+			_build_enclosed_shop_visuals(vm, sc, str(cfg["shop_title"]), tex_stall, bool(cfg["shop_door_south"]), is_smithy, fam_id, int(role_key))
 			_build_residential_house_visuals(vm, hc, str(cfg["house_title"]), tex_bed, bed1_pos, bed2_pos, table_pos, fam_id)
 
 		cfg["work_pos"] = work_pos
@@ -217,7 +215,7 @@ static func _spawn_five_family_houses_and_trades(vm: VillageManager) -> void:
 		kin_npc.setup_npc(tex_family, kin_work_pos, bed2_pos, {}, table_pos, fam_id, str(cfg["family_name"]))
 		vm.family_npcs[role_key] = kin_npc
 
-static func _build_enclosed_shop_visuals(vm: VillageManager, sc: Vector2, shop_title: String, tex_stall: Texture2D, work_pos: Vector2, door_on_south: bool, is_blacksmith: bool, fam_id: String, role_id: int = -1) -> void:
+static func _build_enclosed_shop_visuals(vm: VillageManager, sc: Vector2, shop_title: String, tex_stall: Texture2D, door_on_south: bool, is_blacksmith: bool, fam_id: String, role_id: int = -1) -> void:
 	var floor_p: String = "res://assests/world/village/floor_stone_forge.png" if is_blacksmith else "res://assests/world/village/floor_wood_planks.png"
 	var wall_h_p: String = "res://assests/world/village/wall_stone_h.png" if is_blacksmith else "res://assests/world/village/wall_timber_h.png"
 	var wall_v_p: String = "res://assests/world/village/wall_stone_v.png" if is_blacksmith else "res://assests/world/village/wall_timber_v.png"
@@ -227,13 +225,13 @@ static func _build_enclosed_shop_visuals(vm: VillageManager, sc: Vector2, shop_t
 		floor_p, wall_h_p, wall_v_p, 40.0, 0.0,
 		Color(1.0, 0.88, 0.52) if is_blacksmith else Color(0.95, 0.90, 0.68)
 	)
-	var stall_pos: Vector2 = work_pos + (Vector2(0, -10) if door_on_south else Vector2(0, 10))
+	var stall_pos: Vector2 = Marca.sitio("shop_" + fam_id, Marca.PUESTO)
 	var stall := vm._add_sprite_prop(tex_stall, stall_pos, Vector2(1.32, 1.32), -1)
 	if role_id >= 0:
 		vm._register_shop_business_stall(role_id, shop_title, fam_id, stall.global_position, stall)
 	vm.register_no_stand_furniture(stall_pos, Vector2(18.0, 8.5))
 
-	vm._spawn_house_chest(sc + (Vector2(38, -20) if door_on_south else Vector2(38, 20)), "Cofre de " + shop_title, fam_id)
+	vm._spawn_house_chest(Marca.sitio("shop_" + fam_id, Marca.COFRE), "Cofre de " + shop_title, fam_id)
 	if is_blacksmith:
 		vm._spawn_decor_prop("res://assests/Comprados/Epic RPG World - Village(interiors) V1.3/assets/furniture_and_props_sprites/fireplace_0.png", sc + Vector2(-36, -16), Vector2(0.32, 0.32))
 		vm._spawn_decor_prop("res://assests/Comprados/Epic RPG World - Village(interiors) V1.3/assets/furniture_and_props_sprites/stand-1_part5.png", sc + Vector2(26, -12), Vector2(0.65, 0.65))
@@ -251,9 +249,9 @@ static func _build_residential_house_visuals(vm: VillageManager, hc: Vector2, ho
 		vm._add_sprite_prop(tex_bed, b_pos, Vector2(1.12, 1.12), -1)
 
 	vm._spawn_decor_prop("res://assests/Comprados/Epic RPG World - Village(interiors) V1.3/assets/furniture_and_props_sprites/table_chairs_1.png", table_pos, Vector2(0.45, 0.45))
-	vm._spawn_house_chest(hc + Vector2(0, -24), "Cofre Familiar (" + house_title + ")", fam_id)
+	vm._spawn_house_chest(Marca.sitio("house_" + fam_id, Marca.COFRE), "Cofre Familiar (" + house_title + ")", fam_id)
 
-static func _build_mixed_shop_house_visuals(vm: VillageManager, center: Vector2, title: String, tex_bed: Texture2D, tex_stall: Texture2D, bed1_pos: Vector2, bed2_pos: Vector2, table_pos: Vector2, work_pos: Vector2, fam_id: String, role_id: int = -1) -> void:
+static func _build_mixed_shop_house_visuals(vm: VillageManager, center: Vector2, title: String, tex_bed: Texture2D, tex_stall: Texture2D, bed1_pos: Vector2, bed2_pos: Vector2, table_pos: Vector2, fam_id: String, role_id: int = -1) -> void:
 	vm._construct_solid_building(
 		"mixed_" + fam_id, title, center, Vector2(128, 96), false,
 		"res://assests/world/village/floor_wood_planks.png",
@@ -265,7 +263,7 @@ static func _build_mixed_shop_house_visuals(vm: VillageManager, center: Vector2,
 	vm._add_solid_wall_segment(center + Vector2(-42, 4), Vector2(40, 6), tex_wall_h)
 	vm._add_solid_wall_segment(center + Vector2(42, 4), Vector2(40, 6), tex_wall_h)
 
-	var stall_pos: Vector2 = center + Vector2(-27, -17)
+	var stall_pos: Vector2 = Marca.sitio("mixed_" + fam_id, Marca.PUESTO)
 	var stall := vm._add_sprite_prop(tex_stall, stall_pos, Vector2(1.3, 1.3), -1)
 	if role_id >= 0:
 		vm._register_shop_business_stall(role_id, title, fam_id, stall.global_position, stall)
@@ -281,7 +279,7 @@ static func _build_mixed_shop_house_visuals(vm: VillageManager, center: Vector2,
 		vm._add_prop_collider(b_pos, Vector2(12.0, 17.0))
 
 	vm._spawn_decor_prop("res://assests/Comprados/Epic RPG World - Village(interiors) V1.3/assets/furniture_and_props_sprites/table_chairs_1.png", table_pos, Vector2(0.45, 0.45))
-	vm._spawn_house_chest(center + Vector2(42, -26), "Cofre de la Botica Raíz Verde", fam_id)
+	vm._spawn_house_chest(Marca.sitio("mixed_" + fam_id, Marca.COFRE), "Cofre de la Botica Raíz Verde", fam_id)
 
 # PASO 1: 🏥 HOSPITAL DE URGENCIAS Y ⚰️ MORGUE FORENSE (`Vector2(745, 148)`)
 static func _spawn_hospital_and_morgue(vm: VillageManager) -> void:
