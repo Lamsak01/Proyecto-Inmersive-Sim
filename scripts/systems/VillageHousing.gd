@@ -50,6 +50,11 @@ const JUVENILE_DAYS: int = 3
 const ADULT_ANIMAL_DAYS: int = 6
 const PRODUCT_COOLDOWN_DAYS: int = 2
 const RANCH_PEN_RECT: Rect2 = Rect2(Vector2(310.0, 404.0), Vector2(100.0, 134.0))
+
+## El corral del rancho en el mundo: el rectángulo de arriba está en el mapa original y sigue al rancho (anclas).
+static func ranch_pen_rect_mundo() -> Rect2:
+	var AN = load("res://mapa/anclas.gd")
+	return AN.rect_con(AN.buscar(RANCH_PEN_RECT.get_center()), RANCH_PEN_RECT)
 const CATERING_COST_PER_GUEST: int = 4
 const TABLE_SEAT_DIST: float = 14.0
 const GATHERING_PLAYER_RADIUS: float = 90.0
@@ -625,6 +630,7 @@ static func move_coop_to_lot(vm, lot_id: String = "") -> bool:
 static func _player_pen_rect(vm) -> Rect2:
 	var coop_pos: Vector2 = Vector2(-198.0, -21.0)
 	if vm != null:
+		coop_pos = vm.sitio(coop_pos)
 		var c_lot: String = str(state(vm).get("coop_lot", ""))
 		if c_lot != "" and str(VillageLots.lot(vm, c_lot).get("payer", "")) == "player" and str(VillageLots.lot(vm, c_lot).get("status", "")) == "built":
 			coop_pos = vm.sitio(coop_pos_for_lot(vm, c_lot))
@@ -655,7 +661,7 @@ static func sync_livestock(vm) -> void:
 			var node_r: Node2D = LivestockAnimalScript.new()
 			vm.entities_root.add_child(node_r)
 			ranch_nodes.append(node_r)
-		ranch_nodes[i].call("configure_from_entry", vm, "ranch", i, r_herd[i], RANCH_PEN_RECT)
+		ranch_nodes[i].call("configure_from_entry", vm, "ranch", i, r_herd[i], ranch_pen_rect_mundo())
 	while ranch_nodes.size() > r_herd.size():
 		var ex_r: Node2D = ranch_nodes.pop_back()
 		if ex_r != null and is_instance_valid(ex_r):

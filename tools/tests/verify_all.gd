@@ -4800,7 +4800,7 @@ func _initialize() -> void:
 	assert(fis4_r_nodes.size() == 2, "FIS4.1a: ranch_livestock node count (2) matches ranch_herd.size()")
 	for rn_f4 in fis4_r_nodes:
 		var rn_pos: Vector2 = (rn_f4 as Node2D).global_position
-		assert(vho.RANCH_PEN_RECT.grow(2.0).has_point(rn_pos), "FIS4.1b: Ranch animal at %s is inside RANCH_PEN_RECT" % str(rn_pos))
+		assert(vho.ranch_pen_rect_mundo().grow(2.0).has_point(rn_pos), "FIS4.1b: Ranch animal at %s is inside RANCH_PEN_RECT" % str(rn_pos))
 	(vho.state(vm)["ranch_herd"] as Array).append({"species": "sheep", "stage": "adult", "age_days": 6})
 	vho.sync_livestock(vm)
 	assert(root.get_tree().get_nodes_in_group("ranch_livestock").size() == 3, "FIS4.1c: Adding to ranch_herd spawns a 3rd live ranch_livestock node")
