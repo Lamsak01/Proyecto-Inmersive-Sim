@@ -2605,8 +2605,8 @@ func _initialize() -> void:
 	assert(v5d_lav > 20 and v5d_lav < 120, "V5d: Some people wash at the laundry (%d/200)" % v5d_lav)
 	var v5d_other = v5b_people[0]
 	var v5d_op: Vector2 = v5d_other.global_position
-	v5d_worker.global_position = vw.LAVADERO_POS
-	v5d_other.global_position = vw.LAVADERO_POS + Vector2(10, 0)
+	v5d_worker.global_position = M(vw.LAVADERO_POS)
+	v5d_other.global_position = M(vw.LAVADERO_POS) + Vector2(10, 0)
 	var v5d_r0: int = v5d_worker.get_relationship_with_npc(v5d_other.get_person_key())
 	vw.on_washed(vm, v5d_worker)
 	assert(v5d_worker.get_relationship_with_npc(v5d_other.get_person_key()) != v5d_r0 or v5d_r0 >= 100, "V5d: People who meet at the laundry chat")
