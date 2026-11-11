@@ -708,18 +708,9 @@ func _build_npc_appearance_cfg() -> Dictionary:
 		24: # TEACHER
 			tunic_col = Color(0.28, 0.34, 0.48)
 			offhand_k = "book"
-		25: # FRONTIER_SCOUT (Roldán, Vigía del Oeste)
-			outfit_kind = "ranger"
-			tunic_col = Color(0.24, 0.36, 0.22)
-			pants_col = Color(0.22, 0.19, 0.16)
-			has_cape = true
-			cape_col = Color(0.20, 0.28, 0.18)
-			chest_tier = 1
-			has_beard = true
-			hair_style = "parted"
-			hair_col = Color(0.62, 0.62, 0.66)
-			weapon_k = "sword"
-			offhand_k = "none"
+		25: # RESTAURATEUR (cocinero): delantal y cucharón; en los fogones remueve la olla, no da hachazos (2026-11-10)
+			has_apron = true
+			weapon_k = "ladle"
 		_:
 			var fallback_tunics: Array[Color] = [
 				Color(0.34, 0.50, 0.42),
@@ -741,7 +732,7 @@ func _build_npc_appearance_cfg() -> Dictionary:
 
 	var hr_now: int = int(WorldClock.current_hour) if WorldClock != null else 12
 	var is_working_now: bool = bool(target_entity.get("_is_actively_crafting")) or (int(target_entity.get("current_activity")) == 0 and hr_now >= 6 and hr_now < 20 and target_entity.get("is_strolling_outside") != true)
-	var is_guard_role: bool = role_id in [9, 10, 12, 25]
+	var is_guard_role: bool = role_id in [9, 10, 12]
 	if not is_working_now and not is_guard_role and not bool(target_entity.get("is_hostile")):
 		weapon_k = "none"
 	if offhand_k == "book" and not (is_working_now and target_entity.global_position.distance_to(target_entity.get("work_position")) <= 70.0):

@@ -4,6 +4,9 @@ Cambios del juego, del más nuevo al más antiguo. Añade una entrada al cerrar 
 El detalle técnico está en `docs/HANDOFF.md` (sección 7) y el historial completo en `git log`. Lo anterior a B0.1 está en `AUDIT_LOG.md` y `SESSION_CONTEXT_LOG.md`.
 
 
+## 2026-11-10 — Arreglos de la partida del usuario, 3: el cocinero (Claude Code, portátil; rama `mundo-3d`)
+- El cocinero salía vestido de vigía con espada y daba hachazos sobre la olla (un número de oficio equivocado). Ahora lleva delantal y remueve la olla.
+
 ## 2026-11-10 — Arreglos de la partida del usuario, 2: agacharse en el agua (Claude Code, portátil; rama `mundo-3d`)
 - En el agua ya no te agachas (la cámara se hundía bajo la superficie). Hasta que haya buceo.
 

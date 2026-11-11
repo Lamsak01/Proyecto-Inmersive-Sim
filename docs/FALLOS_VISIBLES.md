@@ -8,7 +8,7 @@
 - [ ] **(2026-11-10, partida del usuario tras el paso a 3D; orden aprobado por él, aún sin arreglar: «aún no resuelvas nada»)**
   1. ✅ (2026-11-10) **La pizarra de la escuela tapa la puerta** · 1.ª persona, 14:00 (`docs/capturas_usuario/2026-11-10/1_escuela_pizarra_tapa_puerta.png`). *(Estaba en la pared de la puerta por un signo al revés; ahora en la pared de enfrente, y los pupitres en medio, en 3D y en el mapa. Foto: `docs/capturas_arreglos/2026-11-10_escuela_pizarra_despues.png`.)*
   2. ✅ (2026-11-10) **Agacharse dentro del agua hunde la cámara bajo la superficie** (se ve todo oscuro) · río, 20:51 (`5_agachado_en_el_agua.png`). *(En el agua ya no te agachas: la tecla avisa «En el agua no puedes agacharte» y, si entras agachado, te incorporas. Hasta que haya buceo.)*
-  3. **El cocinero cocina con la espada en alto** (pose de ataque sobre el caldero) · restaurante, 19:33 (`4_cocinar_con_espada.png`).
+  3. ✅ (2026-11-10) **El cocinero cocina con la espada en alto** (pose de ataque sobre el caldero) · restaurante, 19:33 (`4_cocinar_con_espada.png`). *(El dibujo del cocinero usaba por error el traje de un «vigía» con espada que no existe como oficio; ahora lleva delantal y cucharón y en los fogones remueve la olla. Foto: `docs/capturas_arreglos/2026-11-10_cocinero_sin_espada_despues.png`.)*
   4. **Los bandidos huyen atravesando la pared** tras quitarles vida · cabaña del bosque, 00:32 (`6_bandidos_huyen_por_la_pared.png`).
   5. **Vecino atascado corriendo en el sitio en la puerta de la cocina** · restaurante, 19:08 (`3_restaurante_vecino_atascado.png`).
   6. **Los cuartos de la Planta +1 de la posada son minúsculos** (5 cuartos de 2,7 m) · 14:56 (`2_posada_cuartos_minusculos.png`). Propuesta: 3 cuartos más amplios.

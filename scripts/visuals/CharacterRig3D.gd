@@ -985,8 +985,8 @@ func _pick_clip() -> Array:
 			match _weapon_id:
 				"scythe", "sickle", "hoe":
 					return ["harvest", 1.0]
-				"bucket", "watering_can":
-					return ["water", 1.0]
+				"bucket", "watering_can", "ladle":
+					return ["water", 1.0] # el cocinero: remover y verter
 				"book", "mug", "bag":
 					return ["kneel_fix", 1.0]
 			return ["chop", 1.0]
