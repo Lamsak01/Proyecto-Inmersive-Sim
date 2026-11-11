@@ -233,7 +233,7 @@ static func _sync_kidnappers(vm, st: Dictionary) -> void:
 			continue
 		var kd = MillKidnapperScript.new()
 		vm.entities_root.add_child(kd)
-		kd.setup_kidnapper(str(k), str(MILL_KIDNAPPERS[k]["label"]), MILL_KIDNAPPERS[k]["pos"])
+		kd.setup_kidnapper(str(k), str(MILL_KIDNAPPERS[k]["label"]), load("res://mapa/anclas.gd").mover(MILL_KIDNAPPERS[k]["pos"])) # siguen al molino (mapa ×E)
 		kd.name = node_name
 		kd.gone.connect(func(_r, outcome: String): _on_kidnapper_gone(vm, str(k), outcome))
 

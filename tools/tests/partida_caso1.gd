@@ -26,8 +26,9 @@ func _has_note_with_source(det_ui: Node, source_key: String) -> bool:
 			return true
 	return false
 
-func _walk_to_waypoints(pl: CharacterBody2D, stage: Node, waypoints: Array[Vector2], arrive_dist: float = 8.0, max_frames_per_seg: int = 1200) -> bool:
-	for wp in waypoints:
+func _walk_to_waypoints(pl: CharacterBody2D, stage: Node, waypoints: Array[Vector2], arrive_dist: float = 8.0, max_frames_per_seg: int = 6000) -> bool:
+	for wp0 in waypoints:
+		var wp: Vector2 = load("res://mapa/anclas.gd").mover(wp0) # los puntos de paso están en el mapa original (mapa ×E)
 		var frames: int = 0
 		var stuck_count: int = 0
 		var side_sign: float = 1.0
@@ -74,6 +75,7 @@ func _walk_to_waypoints(pl: CharacterBody2D, stage: Node, waypoints: Array[Vecto
 	return true
 
 func _aim_and_press_e(pl: CharacterBody2D, stage: Node, look_target: Vector2, pitch: float = -0.24, want_substr: String = "") -> Dictionary:
+	look_target = load("res://mapa/anclas.gd").mover(look_target) # mapa original → mundo (mapa ×E)
 	var dir: Vector2 = look_target - pl.global_position
 	if dir.length_squared() > 0.001 and stage != null:
 		stage.set("fp_yaw", dir.angle())
@@ -185,7 +187,7 @@ func _initialize() -> void:
 	if ui_root != null and ui_root.has_method("close_controls_panel"):
 		ui_root.call("close_controls_panel")
 	var letter_closed_ok: bool = letter_panel != null and not letter_panel.visible
-	_record("A1_carta_inicio_afueras", start_pos.distance_to(Vector2(-1180.0, 50.0)) < 35.0 and letter_open_ok and letter_closed_ok,
+	_record("A1_carta_inicio_afueras", start_pos.distance_to(load("res://mapa/anclas.gd").mover(Vector2(-1180.0, 50.0))) < 35.0 and letter_open_ok and letter_closed_ok,
 		"pos=%s carta_abierta=%s cerrada_con_E=%s" % [str(start_pos.round()), str(letter_open_ok), str(letter_closed_ok)])
 
 	# Caminar a pie desde las afueras (-1180, 50) hasta el Claro del arroyo (138, -854)
@@ -267,7 +269,7 @@ func _initialize() -> void:
 
 	# Entrar al Molino Viejo por la puerta sur (188, -1014)
 	await _walk_to_waypoints(pl, stage, [Vector2(188.0, -996.0)], 4.0)
-	var d_mill: Dictionary = vm.call("_find_nearest_door", Vector2(188.0, -1014.0), 20.0)
+	var d_mill: Dictionary = vm.call("_find_nearest_door", load("res://mapa/anclas.gd").mover(Vector2(188.0, -1014.0)), 20.0)
 	if not bool(d_mill.get("is_open", false)):
 		await _aim_and_press_e(pl, stage, Vector2(188.0, -1014.0), -0.05, "puerta")
 	var walked_mill_in: bool = await _walk_to_waypoints(pl, stage, [Vector2(188.0, -1035.0), Vector2(154.0, -1061.0)], 5.0)
