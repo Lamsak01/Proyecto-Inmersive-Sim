@@ -566,8 +566,10 @@ func _populate_building_interior_3d(b_root: Node3D, b_id: String, rect: Rect2, d
 			mover_posiciones = true
 			_build_tavern_floor_0_3d(b_root, wall_h, m_wall, m_trim, m_wood, m_dark_wood, m_iron, m_gold)
 			mover_posiciones = false
-		"building_hospital":
+		"building_hospital": # escrito en coordenadas fijas del mapa original: sigue al edificio por las anclas
+			mover_posiciones = true
 			_build_hospital_and_morgue_3d(b_root, rect, wall_h, m_wall, m_trim, m_wood, m_dark_wood, m_iron, m_gold)
+			mover_posiciones = false
 		"building_police":
 			mover_posiciones = true
 			_build_police_station_3d(b_root, rect, wall_h, m_wall, m_trim, m_wood, m_dark_wood, m_iron, m_gold)
@@ -622,7 +624,7 @@ func _populate_building_interior_3d(b_root: Node3D, b_id: String, rect: Rect2, d
 			_build_bed_3d(b_root, c + Vector2(36, 26), m_wood, m_bed, m_pillow)
 			_add_model_2d(b_root, "props/Table_Large.gltf", c + Vector2(0, 24), 2.0, Vector2(18.0, 12.0), 7.0)
 			# Bloque FIS2 (§2.1): Terminal Lógica Electromecánica física sobre una mesa dentro del taller (TINKER_TERMINAL_POS)
-			var t_pos: Vector2 = VillageCulture.TINKER_TERMINAL_POS
+			var t_pos: Vector2 = AnclasScript.mover(VillageCulture.TINKER_TERMINAL_POS) # número fijo del mapa: al mundo
 			var m_copper := _mat("tinker_copper", Color(0.84, 0.48, 0.22), 0.35, 0.78)
 			var m_screen := _mat("tinker_screen", Color(0.14, 0.96, 0.34), 0.2, 0.0, Color(0.10, 0.92, 0.28), 3.1)
 			var m_card := _mat("tinker_card", Color(0.92, 0.86, 0.70), 0.85, 0.0)
@@ -642,7 +644,7 @@ func _populate_building_interior_3d(b_root: Node3D, b_id: String, rect: Rect2, d
 				term_lt.omni_range = 2.0 * Mapa3D.K
 				b_root.add_child(term_lt)
 			# Bloque FIS2 (§2.2): Cuadro Eléctrico físico en la pared exterior norte del taller (TINKER_GRID_PANEL_POS)
-			var gp_pos: Vector2 = VillageCulture.TINKER_GRID_PANEL_POS
+			var gp_pos: Vector2 = AnclasScript.mover(VillageCulture.TINKER_GRID_PANEL_POS)
 			_add_cyl_2d(b_root, gp_pos + Vector2(5.5, 0.0), 1.2, 2.0, 34.0, m_iron, 1.2, 8) # Tubo de acometida vertical
 			_add_box_2d(b_root, gp_pos + Vector2(0, 1.5), Vector2(16.0, 7.0), 22.0, 16.0, m_iron) # Armario metálico en el muro norte
 			_add_box_2d(b_root, gp_pos + Vector2(0, 3.0), Vector2(13.6, 5.5), 23.5, 13.0, m_dark_wood) # Placa aislante
@@ -656,7 +658,7 @@ func _populate_building_interior_3d(b_root: Node3D, b_id: String, rect: Rect2, d
 		"building_mansion", "building_manor":
 			# Mansión señorial (f1) o Casa solariega (f2): estudio con escritorio, salón y alcoba
 			var nob_lot: String = "f1" if b_id == "building_mansion" else "f2"
-			var study_p: Vector2 = load("res://scripts/systems/VillageNobility.gd").study_pos(nob_lot)
+			var study_p: Vector2 = AnclasScript.mover(load("res://scripts/systems/VillageNobility.gd").study_pos(nob_lot)) # número fijo del mapa: al mundo
 			if _add_model_2d(b_root, "props/Workbench.gltf", study_p, 2.0, Vector2(22.0, 11.0), 8.2) == null:
 				_add_box_2d(b_root, study_p, Vector2(22.0, 11.0), 2.0, 8.2, m_dark_wood)
 			var study_ch_p: Vector2 = study_p + Vector2(0, -11.5)
@@ -672,7 +674,7 @@ func _populate_building_interior_3d(b_root: Node3D, b_id: String, rect: Rect2, d
 				_add_box_2d(b_root, desk_p, Vector2(26.0, 13.0), 2.0, 8.2, m_dark_wood)
 			_add_model_2d(b_root, "props/Cabinet.gltf", c + Vector2(-42, 6), 2.0, Vector2(16.0, 10.0), 12.0)
 			_add_model_2d(b_root, "props/Bookcase_2.gltf", c + Vector2(36, 6), 2.0, Vector2(18.0, 9.0), 15.0)
-			var th_term_p: Vector2 = VillageCulture.TOWN_HALL_TERMINAL_POS
+			var th_term_p: Vector2 = AnclasScript.mover(VillageCulture.TOWN_HALL_TERMINAL_POS)
 			if _add_model_2d(b_root, "props/Table_Large.gltf", th_term_p, 2.0, Vector2(20.0, 12.0), 8.0) == null:
 				_add_box_2d(b_root, th_term_p, Vector2(20.0, 12.0), 2.0, 8.0, m_dark_wood)
 			_add_green_crt_terminal_3d(b_root, th_term_p, 10.0, false)
@@ -2434,23 +2436,23 @@ func _build_abandoned_mill_3d(
 
 	# B) Huecos oscuros de tablas podridas y TABLAS DEL SUELO ROTAS O LEVANTADAS
 	for gap_d in [
-		[Vector2(178.0, -1066.0), Vector2(14.0, 6.5), 4.0],
-		[Vector2(194.0, -1052.0), Vector2(12.0, 5.8), -7.0],
-		[Vector2(172.0, -1042.0), Vector2(11.0, 5.2), 11.0],
-		[Vector2(188.0, -1078.0), Vector2(15.0, 6.2), -3.0],
-		[Vector2(204.0, -1068.0), Vector2(10.5, 5.0), 9.0],
+		[AnclasScript.mover(Vector2(178.0, -1066.0)), Vector2(14.0, 6.5), 4.0],
+		[AnclasScript.mover(Vector2(194.0, -1052.0)), Vector2(12.0, 5.8), -7.0],
+		[AnclasScript.mover(Vector2(172.0, -1042.0)), Vector2(11.0, 5.2), 11.0],
+		[AnclasScript.mover(Vector2(188.0, -1078.0)), Vector2(15.0, 6.2), -3.0],
+		[AnclasScript.mover(Vector2(204.0, -1068.0)), Vector2(10.5, 5.0), 9.0],
 	]:
 		_add_box_2d(b_root, gap_d[0], gap_d[1], 2.01, 0.10, m_floor_gap, float(gap_d[2]))
 
 	for plank_d in [
-		[Vector2(176.0, -1065.0), Vector2(13.0, 2.4), 2.35, 0.45, 16.0, 0.16, -0.08],
-		[Vector2(182.0, -1067.5), Vector2(10.5, 2.2), 2.28, 0.42, -24.0, -0.14, 0.10],
-		[Vector2(193.0, -1051.0), Vector2(12.5, 2.5), 2.40, 0.45, -12.0, 0.18, 0.06],
-		[Vector2(197.0, -1054.0), Vector2(9.5, 2.1), 2.25, 0.40, 28.0, -0.15, -0.09],
-		[Vector2(171.0, -1041.0), Vector2(11.5, 2.3), 2.32, 0.42, 9.0, 0.15, 0.08],
-		[Vector2(186.0, -1077.0), Vector2(14.0, 2.6), 2.45, 0.48, -19.0, 0.20, -0.07],
-		[Vector2(203.0, -1067.0), Vector2(11.0, 2.3), 2.36, 0.44, 22.0, -0.17, 0.09],
-		[Vector2(165.0, -1056.0), Vector2(10.0, 2.2), 2.26, 0.40, -31.0, 0.12, -0.11],
+		[AnclasScript.mover(Vector2(176.0, -1065.0)), Vector2(13.0, 2.4), 2.35, 0.45, 16.0, 0.16, -0.08],
+		[AnclasScript.mover(Vector2(182.0, -1067.5)), Vector2(10.5, 2.2), 2.28, 0.42, -24.0, -0.14, 0.10],
+		[AnclasScript.mover(Vector2(193.0, -1051.0)), Vector2(12.5, 2.5), 2.40, 0.45, -12.0, 0.18, 0.06],
+		[AnclasScript.mover(Vector2(197.0, -1054.0)), Vector2(9.5, 2.1), 2.25, 0.40, 28.0, -0.15, -0.09],
+		[AnclasScript.mover(Vector2(171.0, -1041.0)), Vector2(11.5, 2.3), 2.32, 0.42, 9.0, 0.15, 0.08],
+		[AnclasScript.mover(Vector2(186.0, -1077.0)), Vector2(14.0, 2.6), 2.45, 0.48, -19.0, 0.20, -0.07],
+		[AnclasScript.mover(Vector2(203.0, -1067.0)), Vector2(11.0, 2.3), 2.36, 0.44, 22.0, -0.17, 0.09],
+		[AnclasScript.mover(Vector2(165.0, -1056.0)), Vector2(10.0, 2.2), 2.26, 0.40, -31.0, 0.12, -0.11],
 	]:
 		var pm := _add_box_2d(b_root, plank_d[0], plank_d[1], float(plank_d[2]), float(plank_d[3]), m_splinter_wood, float(plank_d[4]))
 		pm.rotation.x += float(plank_d[5])
@@ -2458,72 +2460,72 @@ func _build_abandoned_mill_3d(
 
 	# C) Capas de POLVO grisáceo, tierra seca y manchas de arcilla roja arrastrada en el suelo
 	for dust_p in [
-		[Vector2(185.0, -1082.0), Vector2(26.0, 14.0), 12.0],
-		[Vector2(176.0, -1058.0), Vector2(22.0, 13.0), -18.0],
-		[Vector2(202.0, -1064.0), Vector2(20.0, 12.0), 25.0],
-		[Vector2(164.0, -1068.0), Vector2(18.0, 11.0), -9.0],
-		[Vector2(214.0, -1034.0), Vector2(16.0, 10.0), 14.0],
+		[AnclasScript.mover(Vector2(185.0, -1082.0)), Vector2(26.0, 14.0), 12.0],
+		[AnclasScript.mover(Vector2(176.0, -1058.0)), Vector2(22.0, 13.0), -18.0],
+		[AnclasScript.mover(Vector2(202.0, -1064.0)), Vector2(20.0, 12.0), 25.0],
+		[AnclasScript.mover(Vector2(164.0, -1068.0)), Vector2(18.0, 11.0), -9.0],
+		[AnclasScript.mover(Vector2(214.0, -1034.0)), Vector2(16.0, 10.0), 14.0],
 	]:
 		_add_box_2d(b_root, dust_p[0], dust_p[1], 2.02, 0.09, m_dust_pile, float(dust_p[2]))
 
 	for mud_step in [
-		[Vector2(186.0, -1020.0), Vector2(16.0, 10.0), 8.0],
-		[Vector2(191.0, -1033.0), Vector2(12.0, 8.0), -15.0],
-		[Vector2(204.0, -1045.0), Vector2(9.5, 6.8), 22.0],
+		[AnclasScript.mover(Vector2(186.0, -1020.0)), Vector2(16.0, 10.0), 8.0],
+		[AnclasScript.mover(Vector2(191.0, -1033.0)), Vector2(12.0, 8.0), -15.0],
+		[AnclasScript.mover(Vector2(204.0, -1045.0)), Vector2(9.5, 6.8), 22.0],
 	]:
 		_add_box_2d(b_root, mud_step[0], mud_step[1], 2.03, 0.12, m_red_clay_stain, float(mud_step[2]))
 
 	# D) MUEBLES VOLCADOS (estantería caída contra el muro norte, taburete volcado, barril roto tumbado y silla volcada junto a la mesa)
-	# 1. Estantería / alacena de madera podrida volcada de costado al pie del muro norte (`Vector2(186, -1093)`)
-	var fallen_shelf_p := Vector2(186.0, -1093.0)
+	# 1. Estantería / alacena de madera podrida volcada de costado al pie del muro norte (`AnclasScript.mover(Vector2(186.0, -1093.0))`)
+	var fallen_shelf_p := AnclasScript.mover(Vector2(186.0, -1093.0))
 	var fs_body := _add_box_2d(b_root, fallen_shelf_p, Vector2(20.0, 7.5), 2.2, 6.2, m_rotten_wood, -14.0)
 	fs_body.rotation.z = 0.22
 	for fs_bar in [-6.0, 0.0, 6.0]:
 		_add_box_2d(b_root, fallen_shelf_p + Vector2(fs_bar, 0.5), Vector2(1.4, 7.8), 2.4, 6.4, m_splinter_wood, -14.0)
-	# 2. Taburete / silla vieja volcada en el suelo (`Vector2(170, -1060)`)
-	var fallen_stool_p := Vector2(170.0, -1060.0)
+	# 2. Taburete / silla vieja volcada en el suelo (`AnclasScript.mover(Vector2(170.0, -1060.0))`)
+	var fallen_stool_p := AnclasScript.mover(Vector2(170.0, -1060.0))
 	var st_seat := _add_box_2d(b_root, fallen_stool_p, Vector2(5.2, 5.2), 2.6, 1.2, m_splinter_wood, 34.0)
 	st_seat.rotation.x = 1.15
 	for st_leg in [Vector2(-1.8, -1.5), Vector2(1.8, -1.5), Vector2(-1.8, 1.5), Vector2(1.8, 1.5)]:
 		var lg := _add_box_2d(b_root, fallen_stool_p + st_leg + Vector2(1.6, 1.8), Vector2(0.9, 4.6), 2.2, 0.9, m_rotten_wood, 34.0)
 		lg.rotation.x = 0.18
-	# 3. Tonel / barril viejo de harina tumbado y desfondado junto a las muelas (`Vector2(160, -1076)`)
-	var fallen_barrel := _add_cyl_2d(b_root, Vector2(160.0, -1076.0), 4.2, 3.8, 8.5, m_rotten_wood, 3.8, 10)
+	# 3. Tonel / barril viejo de harina tumbado y desfondado junto a las muelas (`AnclasScript.mover(Vector2(160.0, -1076.0))`)
+	var fallen_barrel := _add_cyl_2d(b_root, AnclasScript.mover(Vector2(160.0, -1076.0)), 4.2, 3.8, 8.5, m_rotten_wood, 3.8, 10)
 	fallen_barrel.rotation.z = 1.42
 	fallen_barrel.rotation.y = 0.35
-	_add_box_2d(b_root, Vector2(165.5, -1075.0), Vector2(9.0, 7.0), 2.03, 0.12, m_dust_pile, 18.0)
+	_add_box_2d(b_root, AnclasScript.mover(Vector2(165.5, -1075.0)), Vector2(9.0, 7.0), 2.03, 0.12, m_dust_pile, 18.0)
 
 	# E) MADERAS CAÍDAS Y VIGAS DERRUMBADAS (en el suelo, apoyadas en las paredes y colgando del techo roto)
-	var beam_1 := _add_box_2d(b_root, Vector2(177.0, -1075.0), Vector2(30.0, 2.8), 3.4, 2.2, m_rotten_wood, 26.0)
+	var beam_1 := _add_box_2d(b_root, AnclasScript.mover(Vector2(177.0, -1075.0)), Vector2(30.0, 2.8), 3.4, 2.2, m_rotten_wood, 26.0)
 	beam_1.rotation.z = 0.11
-	var beam_2 := _add_box_2d(b_root, Vector2(201.0, -1073.0), Vector2(28.0, 2.6), 3.2, 2.1, m_splinter_wood, -32.0)
+	var beam_2 := _add_box_2d(b_root, AnclasScript.mover(Vector2(201.0, -1073.0)), Vector2(28.0, 2.6), 3.2, 2.1, m_splinter_wood, -32.0)
 	beam_2.rotation.z = -0.10
 	_add_box_2d(b_root, Vector2(c.x - 20.0, c.y - 10.0), Vector2(44.0, 2.8), wall_h - 4.2, 2.6, m_rotten_wood, 14.0)
 	_add_box_2d(b_root, Vector2(c.x + 18.0, c.y + 6.0), Vector2(40.0, 2.8), wall_h - 3.6, 2.6, m_rotten_wood, -11.0)
-	_add_box_2d(b_root, Vector2(166.0, -1072.0), Vector2(19.0, 2.2), 2.15, 1.4, m_rotten_wood, 41.0)
-	_add_box_2d(b_root, Vector2(202.0, -1080.0), Vector2(17.0, 2.2), 2.15, 1.4, m_splinter_wood, -36.0)
+	_add_box_2d(b_root, AnclasScript.mover(Vector2(166.0, -1072.0)), Vector2(19.0, 2.2), 2.15, 1.4, m_rotten_wood, 41.0)
+	_add_box_2d(b_root, AnclasScript.mover(Vector2(202.0, -1080.0)), Vector2(17.0, 2.2), 2.15, 1.4, m_splinter_wood, -36.0)
 	_add_box_2d(b_root, Vector2(rect.end.x - 11.0, c.y - 4.0), Vector2(18.0, 2.6), 2.15, 1.8, m_rotten_wood, 32.0)
 
 	# F) TELARAÑAS 3D (filamentos radiales y cruzados en esquinas altas, boquete, vigas y bajo la mesa + velos translúcidos en los rincones)
 	for web_thread in [
 		# Rincón del boquete norte y viga rota superior
-		[Vector2(172.0, -1096.0), Vector2(18.0, 0.24), 20.5, 0.24, 18.0, 0.22],
-		[Vector2(174.0, -1094.0), Vector2(16.0, 0.22), 19.2, 0.22, 34.0, 0.28],
-		[Vector2(176.0, -1092.0), Vector2(14.0, 0.22), 18.0, 0.22, -22.0, -0.18],
-		[Vector2(196.0, -1096.0), Vector2(17.0, 0.24), 20.2, 0.24, -19.0, -0.22],
-		[Vector2(194.0, -1094.0), Vector2(15.0, 0.22), 18.8, 0.22, -36.0, -0.26],
+		[AnclasScript.mover(Vector2(172.0, -1096.0)), Vector2(18.0, 0.24), 20.5, 0.24, 18.0, 0.22],
+		[AnclasScript.mover(Vector2(174.0, -1094.0)), Vector2(16.0, 0.22), 19.2, 0.22, 34.0, 0.28],
+		[AnclasScript.mover(Vector2(176.0, -1092.0)), Vector2(14.0, 0.22), 18.0, 0.22, -22.0, -0.18],
+		[AnclasScript.mover(Vector2(196.0, -1096.0)), Vector2(17.0, 0.24), 20.2, 0.24, -19.0, -0.22],
+		[AnclasScript.mover(Vector2(194.0, -1094.0)), Vector2(15.0, 0.22), 18.8, 0.22, -36.0, -0.26],
 		# Esquina noroeste sobre el pajar
-		[Vector2(138.0, -1096.0), Vector2(22.0, 0.24), 21.5, 0.24, -38.0, 0.16],
-		[Vector2(140.0, -1093.0), Vector2(19.0, 0.22), 19.8, 0.22, -24.0, 0.22],
-		[Vector2(142.0, -1095.0), Vector2(16.0, 0.22), 20.6, 0.22, 42.0, -0.14],
+		[AnclasScript.mover(Vector2(138.0, -1096.0)), Vector2(22.0, 0.24), 21.5, 0.24, -38.0, 0.16],
+		[AnclasScript.mover(Vector2(140.0, -1093.0)), Vector2(19.0, 0.22), 19.8, 0.22, -24.0, 0.22],
+		[AnclasScript.mover(Vector2(142.0, -1095.0)), Vector2(16.0, 0.22), 20.6, 0.22, 42.0, -0.14],
 		# Esquina noreste junto al hogar viejo
-		[Vector2(234.0, -1096.0), Vector2(22.0, 0.24), 21.5, 0.24, 38.0, -0.16],
-		[Vector2(232.0, -1093.0), Vector2(19.0, 0.22), 19.8, 0.22, 24.0, -0.22],
-		[Vector2(230.0, -1095.0), Vector2(16.0, 0.22), 20.6, 0.22, -42.0, 0.14],
+		[AnclasScript.mover(Vector2(234.0, -1096.0)), Vector2(22.0, 0.24), 21.5, 0.24, 38.0, -0.16],
+		[AnclasScript.mover(Vector2(232.0, -1093.0)), Vector2(19.0, 0.22), 19.8, 0.22, 24.0, -0.22],
+		[AnclasScript.mover(Vector2(230.0, -1095.0)), Vector2(16.0, 0.22), 20.6, 0.22, -42.0, 0.14],
 		# Bajo la mesa del papel y rincón del muro este
-		[Vector2(218.0, -1055.0), Vector2(14.0, 0.22), 6.8, 0.22, 16.0, 0.24],
-		[Vector2(222.0, -1053.0), Vector2(12.0, 0.22), 5.6, 0.22, -28.0, -0.20],
-		[Vector2(236.0, -1050.0), Vector2(16.0, 0.24), 10.5, 0.24, 32.0, 0.26],
+		[AnclasScript.mover(Vector2(218.0, -1055.0)), Vector2(14.0, 0.22), 6.8, 0.22, 16.0, 0.24],
+		[AnclasScript.mover(Vector2(222.0, -1053.0)), Vector2(12.0, 0.22), 5.6, 0.22, -28.0, -0.20],
+		[AnclasScript.mover(Vector2(236.0, -1050.0)), Vector2(16.0, 0.24), 10.5, 0.24, 32.0, 0.26],
 	]:
 		var wt_mi := _add_box_2d(b_root, web_thread[0], web_thread[1], float(web_thread[2]), float(web_thread[3]), m_cobweb_thread, float(web_thread[4]))
 		wt_mi.rotation.z = float(web_thread[5])
@@ -2532,14 +2534,14 @@ func _build_abandoned_mill_3d(
 	st_webs.begin(Mesh.PRIMITIVE_TRIANGLES)
 	var web_triangles: Array = [
 		# Esquina noroeste alta sobre el pajar
-		[to_3d(Vector2(130.0, -1102.0), 24.5), to_3d(Vector2(154.0, -1102.0), 24.0), to_3d(Vector2(130.0, -1080.0), 17.5)],
+		[to_3d(AnclasScript.mover(Vector2(130.0, -1102.0)), 24.5), to_3d(AnclasScript.mover(Vector2(154.0, -1102.0)), 24.0), to_3d(AnclasScript.mover(Vector2(130.0, -1080.0)), 17.5)],
 		# Esquina noreste alta junto a la campana del hogar
-		[to_3d(Vector2(214.0, -1102.0), 24.0), to_3d(Vector2(246.0, -1102.0), 24.5), to_3d(Vector2(246.0, -1080.0), 17.5)],
+		[to_3d(AnclasScript.mover(Vector2(214.0, -1102.0)), 24.0), to_3d(Vector2(246.0, -1102.0), 24.5), to_3d(Vector2(246.0, -1080.0), 17.5)],
 		# Rincón del boquete norte (velo tenue de telaraña en el borde superior)
-		[to_3d(Vector2(164.0, -1100.0), 23.5), to_3d(Vector2(178.0, -1100.0), 23.0), to_3d(Vector2(168.0, -1090.0), 17.5)],
-		[to_3d(Vector2(190.0, -1100.0), 23.0), to_3d(Vector2(204.0, -1100.0), 23.5), to_3d(Vector2(198.0, -1090.0), 17.5)],
+		[to_3d(AnclasScript.mover(Vector2(164.0, -1100.0)), 23.5), to_3d(AnclasScript.mover(Vector2(178.0, -1100.0)), 23.0), to_3d(AnclasScript.mover(Vector2(168.0, -1090.0)), 17.5)],
+		[to_3d(AnclasScript.mover(Vector2(190.0, -1100.0)), 23.0), to_3d(AnclasScript.mover(Vector2(204.0, -1100.0)), 23.5), to_3d(AnclasScript.mover(Vector2(198.0, -1090.0)), 17.5)],
 		# Bajo el tablero de la mesa vieja
-		[to_3d(Vector2(208.0, -1056.0), 8.1), to_3d(Vector2(226.0, -1056.0), 8.1), to_3d(Vector2(224.0, -1050.0), 3.2)],
+		[to_3d(AnclasScript.mover(Vector2(208.0, -1056.0)), 8.1), to_3d(AnclasScript.mover(Vector2(226.0, -1056.0)), 8.1), to_3d(AnclasScript.mover(Vector2(224.0, -1050.0)), 3.2)],
 	]
 	for wt in web_triangles:
 		st_webs.set_normal(Vector3.UP)
@@ -2551,11 +2553,11 @@ func _build_abandoned_mill_3d(
 	b_root.add_child(web_mi)
 
 	# ==========================================================================
-	# 0b) PUNTO 4 (CASO I): SÓTANO DEL MOLINO CON REJA DE HIERRO AL CANAL DE LA RUEDA (`Vector2(138, -1061)`)
+	# 0b) PUNTO 4 (CASO I): SÓTANO DEL MOLINO CON REJA DE HIERRO AL CANAL DE LA RUEDA (`AnclasScript.mover(Vector2(138.0, -1061.0))`)
 	# ==========================================================================
 	# Foso escalonado de piedra húmeda bajo el lado oeste del molino que comunica con el canal de la rueda:
 	# incluye barrotes de hierro con marcas claras de palanca/forcejeo y un trozo de tela del familiar enganchado.
-	var cellar_pos := Vector2(139.0, -1061.0)
+	var cellar_pos := AnclasScript.mover(Vector2(139.0, -1061.0))
 	var m_cellar_water := _mat("mill_cellar_water", Color(0.10, 0.18, 0.22), 0.18, 0.25)
 	var m_pry_mark := _mat("mill_grate_pry_scrape", Color(0.74, 0.77, 0.82), 0.32, 0.88)
 	var m_kin_cloth := _mat("mill_kin_torn_cloth", Color(0.22, 0.46, 0.68), 0.88, 0.0, Color(0.08, 0.18, 0.28), 0.35, "town_textures/roof_thatch_center.png", "", 0.85)
@@ -2611,9 +2613,9 @@ func _build_abandoned_mill_3d(
 	_add_cyl_2d(b_root, Vector2(rect.position.x + 13.5, c.y - 14.0), 5.5, 5.0, 2.8, m_mill_stone, 5.5, 12)
 
 	# ==========================================================================
-	# 1) PAJAR CON PAJA SECA (Esquina Noroeste: `Vector2(152, -1084)`)
+	# 1) PAJAR CON PAJA SECA (Esquina Noroeste: `AnclasScript.mover(Vector2(152.0, -1084.0))`)
 	# ==========================================================================
-	var straw_pos := Vector2(152.0, -1084.0)
+	var straw_pos := AnclasScript.mover(Vector2(152.0, -1084.0))
 	_register_furniture_rect("MillHayloft", straw_pos, Vector2(28.0, 20.0))
 	# Bordillo de tablas viejas rotas del pajar y montículo de paja seca vieja y aplastada
 	_add_box_2d(b_root, straw_pos + Vector2(0.0, 10.5), Vector2(30.0, 2.2), 2.0, 4.2, m_rotten_wood, 3.0)
@@ -2632,9 +2634,9 @@ func _build_abandoned_mill_3d(
 		_add_box_2d(b_root, straw_pos + (st_b[0] as Vector2), st_b[1], float(st_b[2]), 1.1, m_dry_straw, float(st_b[3]))
 
 	# ==========================================================================
-	# 2) HOGAR VIEJO CON CENIZA DE CARBÓN (Esquina Noreste: `Vector2(224, -1086)`)
+	# 2) HOGAR VIEJO CON CENIZA DE CARBÓN (Esquina Noreste: `AnclasScript.mover(Vector2(224.0, -1086.0))`)
 	# ==========================================================================
-	var hearth_pos := Vector2(224.0, -1086.0)
+	var hearth_pos := AnclasScript.mover(Vector2(224.0, -1086.0))
 	_register_furniture_rect("MillOldHearth", hearth_pos, Vector2(26.0, 16.0))
 	_add_box_2d(b_root, hearth_pos, Vector2(28.0, 18.0), 2.0, 2.2, m_mill_stone)
 	_add_box_2d(b_root, hearth_pos + Vector2(-11.5, -1.0), Vector2(4.5, 15.0), 4.2, 12.5, m_soot_stone)
@@ -2653,9 +2655,9 @@ func _build_abandoned_mill_3d(
 	_add_cyl_2d(b_root, hearth_pos + Vector2(-16.0, 2.5), 2.9, 6.8, 1.0, m_coal_chunk, 2.9, 10)
 
 	# ==========================================================================
-	# 3) CORDEL DE CÁÑAMO ENCERADO (Suroeste: `Vector2(150, -1040)`)
+	# 3) CORDEL DE CÁÑAMO ENCERADO (Suroeste: `AnclasScript.mover(Vector2(150.0, -1040.0))`)
 	# ==========================================================================
-	var cord_pos := Vector2(150.0, -1040.0)
+	var cord_pos := AnclasScript.mover(Vector2(150.0, -1040.0))
 	_register_furniture_rect("MillHempCord", cord_pos, Vector2(20.0, 14.0))
 	_add_box_2d(b_root, cord_pos, Vector2(22.0, 14.0), 2.0, 6.8, m_rotten_wood)
 	_add_box_2d(b_root, cord_pos, Vector2(23.2, 15.2), 8.4, 1.0, m_splinter_wood)
@@ -2669,9 +2671,9 @@ func _build_abandoned_mill_3d(
 	_add_box_2d(b_root, cord_pos + Vector2(9.0, 3.4), Vector2(2.4, 1.4), 9.4, 0.8, m_dark_wood, -28.0)
 
 	# ==========================================================================
-	# 4) MESA CON PAPEL («Lista de nombres — texto pendiente del autor») (`Vector2(218, -1050)`)
+	# 4) MESA CON PAPEL («Lista de nombres — texto pendiente del autor») (`AnclasScript.mover(Vector2(218.0, -1050.0))`)
 	# ==========================================================================
-	var table_pos := Vector2(218.0, -1050.0)
+	var table_pos := AnclasScript.mover(Vector2(218.0, -1050.0))
 	_register_furniture_rect("MillPaperTable", table_pos, Vector2(24.0, 15.0))
 	# Mesa rústica de tablones viejos y oscuros (en vez de mueble brillante nuevo)
 	_add_box_2d(b_root, table_pos, Vector2(24.0, 15.0), 8.2, 1.3, m_rotten_wood)

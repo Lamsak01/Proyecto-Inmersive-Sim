@@ -1238,7 +1238,8 @@ func _spawn_house_chest(pos: Vector2, chest_title: String, fam_id: String) -> vo
 	_add_station_area("", pos, 15.0, "house_chest")
 	var lbl := _make_station_label(pos + Vector2(-115, -24), "🔓 %s [E: Forzar Cerradura (Usa Sigilo [C])]" % chest_title)
 	entities_root.add_child(lbl)
-	house_chests.append({"pos": pos, "sprite": spr, "label": lbl, "title": chest_title, "family_id": fam_id, "looted_day": -1})
+	# El sitio del cofre se guarda en el mundo, como su dibujo (mapa ×E)
+	house_chests.append({"pos": Anclas.mover(pos), "sprite": spr, "label": lbl, "title": chest_title, "family_id": fam_id, "looted_day": -1})
 
 func _is_prop_collider_blocking_passage(pos: Vector2, sz: Vector2) -> bool:
 	var prop_rect := Rect2(pos - sz * 0.5, sz)

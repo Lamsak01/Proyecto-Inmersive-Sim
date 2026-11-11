@@ -264,6 +264,7 @@ func _add_floodlight_tower_3d(parent: Node3D, pos_2d: Vector2, target_2d: Vector
 	})
 
 func _build_epoch_props_3d(m_bulb_warm: Material, m_bulb_voltaic: Material) -> void:
+	mover_posiciones = true # generador, cables y terminales están escritos en el mapa original: siguen a sus edificios
 	var m_cable := _mat("epoch_thick_cable", Color(0.08, 0.09, 0.11), 0.72, 0.25)
 	var m_insul := _mat("epoch_insulator", Color(0.76, 0.78, 0.74), 0.35, 0.10)
 	var m_gen_iron := _mat("epoch_gen_iron", Color(0.18, 0.21, 0.22), 0.48, 0.78)
@@ -318,6 +319,7 @@ func _build_epoch_props_3d(m_bulb_warm: Material, m_bulb_voltaic: Material) -> v
 	# 4. Focos en poste de madera en la Comisaría y en el Puesto del Paso (se apagan si se sabotea la red eléctrica)
 	_add_floodlight_tower_3d(streetlights_root_3d, Vector2(994.0, 96.0), Vector2(915.0, 62.0), m_bulb_warm, m_bulb_voltaic)
 	_add_floodlight_tower_3d(streetlights_root_3d, Vector2(1538.0, 18.0), Vector2(1506.0, 50.0), m_bulb_warm, m_bulb_voltaic)
+	mover_posiciones = false
 
 func _build_streetlights_3d() -> void:
 	_clear_children(streetlights_root_3d)
