@@ -367,7 +367,7 @@ func _paso2e_casa() -> void:
 	st["payer"] = "player"
 	st["status"] = "built"
 	st["upgrades"] = {"upper_floor": true, "hidden_cellar": true}
-	var centro: Vector2 = VillageLots.lot_def(id)["center"]
+	var centro: Vector2 = Anclas.mover(VillageLots.lot_def(id)["center"]) # la casa está en su sitio del mundo (mapa ×E)
 	_ok(Suelo.altura_px(centro, 1, vm) == Suelo.ALTILLO_CASA_PX, "2e: el piso alto de tu casa está a %.0f px de altura" % Suelo.altura_px(centro, 1, vm))
 	_ok(Suelo.altura_px(centro, -1, vm) == Suelo.PROFUNDIDAD_SOTANO_PX, "2e: y el sótano, bajo tierra (%.0f px)" % Suelo.altura_px(centro, -1, vm))
 	mc.set_physics_process(false)
