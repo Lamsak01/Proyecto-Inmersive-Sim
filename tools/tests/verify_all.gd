@@ -4592,9 +4592,9 @@ func _initialize() -> void:
 	var fis2_rects: Dictionary = {}
 	for bf_fis2 in vm.building_footprints:
 		fis2_rects[str(bf_fis2.get("id", ""))] = bf_fis2.get("rect", Rect2())
-	assert((fis2_rects.get("building_mansion", Rect2()) as Rect2).has_point((vun.HEIST_TARGETS[0] as Dictionary)["pos"]), "FIS2.3a: Sello de Lacre Noble is inside the Mansion")
-	assert((fis2_rects.get("building_church", Rect2()) as Rect2).has_point((vun.HEIST_TARGETS[1] as Dictionary)["pos"]), "FIS2.3b: Cáliz de Plata de la Capilla is inside the Chapel")
-	assert((fis2_rects.get("building_town_hall", Rect2()) as Rect2).has_point((vun.HEIST_TARGETS[2] as Dictionary)["pos"]), "FIS2.3c: Libro Mayor de los Gremios is inside the Town Hall")
+	assert((fis2_rects.get("building_mansion", Rect2()) as Rect2).has_point(M((vun.HEIST_TARGETS[0] as Dictionary)["pos"])), "FIS2.3a: Sello de Lacre Noble is inside the Mansion")
+	assert((fis2_rects.get("building_church", Rect2()) as Rect2).has_point(M((vun.HEIST_TARGETS[1] as Dictionary)["pos"])), "FIS2.3b: Cáliz de Plata de la Capilla is inside the Chapel")
+	assert((fis2_rects.get("building_town_hall", Rect2()) as Rect2).has_point(M((vun.HEIST_TARGETS[2] as Dictionary)["pos"])), "FIS2.3c: Libro Mayor de los Gremios is inside the Town Hall")
 	var fis2_uw_bak: Dictionary = vun.state(vm).duplicate(true)
 	var fis2_hr_bak: int = int(t5_wc.current_hour)
 	vun.state(vm)["active_heist"] = {}
