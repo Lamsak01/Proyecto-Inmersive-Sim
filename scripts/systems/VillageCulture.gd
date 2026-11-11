@@ -2044,7 +2044,7 @@ static func try_interact(vm, player, pos: Vector2) -> bool:
 		var panel_node: Node = vm.get_tree().get_first_node_in_group("tinker_grid_panel") if vm.is_inside_tree() else null
 		open_grid_panel_menu(vm, panel_node, player)
 		return true
-	if VillageLots.lot(vm, LIBRARY_LOT).get("kind", "") != "library" or pos.distance_to(reading_spot()) > 36.0:
+	if VillageLots.lot(vm, LIBRARY_LOT).get("kind", "") != "library" or pos.distance_to(vm.sitio(reading_spot())) > 36.0:
 		return false
 	var st: Dictionary = state(vm)
 	var day: int = int(WorldClock.current_day) if WorldClock else 0

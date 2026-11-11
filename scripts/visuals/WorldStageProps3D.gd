@@ -457,6 +457,7 @@ func _sync_home_props_3d() -> void:
 	root.name = "HomeProps3D"
 	stage_root_3d.add_child(root)
 	_home_props_3d = root
+	mover_posiciones = true # los muebles de la casa están escritos en el mapa original: siguen a la casa
 
 	var m_oak: StandardMaterial3D = _mat("hp_oak", Color(0.46, 0.30, 0.16), 0.85, 0.05)
 	var m_dark: StandardMaterial3D = _mat("hp_dark", Color(0.14, 0.10, 0.06), 0.95, 0.0)
@@ -530,6 +531,7 @@ func _sync_home_props_3d() -> void:
 				_add_box_2d(root, sc_pos + Vector2(-4.8, -0.4), Vector2(3.8, 3.6), 9.8, 2.4, m_herb) # Mercancía expuesta 1
 				if int(ps.get("stock", 0)) >= 2:
 					_add_box_2d(root, sc_pos + Vector2(-1.2, 0.4), Vector2(3.6, 3.4), 9.8, 2.2, m_gold) # Mercancía expuesta 2
+	mover_posiciones = false
 
 ## Paso a 3D, paso 2b: techo de roca justo bajo la calle sobre una sala subterránea (dentro de `raiz`, que ya está
 ## bajada Suelo.PROFUNDIDAD_SOTANO_PX). Solo se ve en 1.ª persona: desde arriba taparía la sala.

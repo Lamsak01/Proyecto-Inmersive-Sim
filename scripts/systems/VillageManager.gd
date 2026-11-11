@@ -1513,7 +1513,7 @@ func reconcile_npc_registries_after_load() -> void:
 			elif v.trade_role == VillageNPC.TradeRole.NOBLE and not v.is_dead:
 				var n_lot: String = "f1" if v.family_id == "family_vane" else ("f2" if v.family_id == "family_solis" else "")
 				if n_lot != "":
-					v.work_position = VillageNobility.study_pos(n_lot)
+					v.work_position = sitio(VillageNobility.study_pos(n_lot))
 			elif v.trade_role == VillageNPC.TradeRole.UNEMPLOYED and not v.is_dead:
 				unemployed_npcs.append(v)
 			elif v.trade_role == VillageNPC.TradeRole.INNKEEPER and not v.is_dead:

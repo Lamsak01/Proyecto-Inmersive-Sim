@@ -2074,7 +2074,7 @@ func _build_library_3d(b_root: Node3D, rect: Rect2, door_south: bool, wall_h: fl
 	b_root.add_child(candle_lt)
 
 	# 4. Gran Mesa Central de Lectura (`VillageCulture.reading_spot()`) con sillas, códices abiertos, candelabro y atril
-	var read_p: Vector2 = VillageCulture.reading_spot()
+	var read_p: Vector2 = AnclasScript.mover(VillageCulture.reading_spot()) # número fijo del mapa: al mundo
 	if _add_model_2d(b_root, "props/Table_Large.gltf", read_p, 2.0, Vector2(22.0, 12.5), 7.6) == null:
 		_add_box_2d(b_root, read_p, Vector2(22.0, 12.5), 2.0, 7.6, m_dark_wood)
 	for r_ch in [read_p + Vector2(-15.0, 0.0), read_p + Vector2(15.0, 0.0), read_p + Vector2(-5.5, -10.5 * m_dir), read_p + Vector2(5.5, -10.5 * m_dir)]:
