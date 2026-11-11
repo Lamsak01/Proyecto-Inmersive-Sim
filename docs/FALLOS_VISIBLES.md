@@ -21,8 +21,8 @@
 - [x] ✅ (2026-11-10) **Controles que se pisan** (varias acciones en la misma tecla) · (2026-11-09). *(Plan aprobado por el usuario: los trucos de tiempo y el modo pruebas piden Ctrl (Ctrl+T, Ctrl+F1–F4, Ctrl+F7, Ctrl+º) y no salen en la ayuda; + y − solo hacen zoom; fuera F6, F8 y F10 repetidas. Ver `docs/CONTROLES.md`.)*
 - [ ] **El Caso I empieza a la vez que llega el jugador**: no hay tiempo para entender qué pasa ni adónde ir · inicio de la demo (2026-11-09).
 - [x] ✅ (2026-11-09) **El día pasaba demasiado deprisa** · ahora un día de juego dura 18 min reales (antes 6).
-- [ ] *(No prioritario, más adelante)* **Cuartos de la posada sin puertas ni muebles** y **camas demasiado pequeñas** · 18:54
-  (`docs/capturas_usuario/2026-11-08/4_cuartos_sin_puertas.png`).
+- [x] ✅ (2026-11-11) **Cuartos de la posada sin puertas ni muebles** y **camas demasiado pequeñas** · 18:54
+  (`docs/capturas_usuario/2026-11-08/4_cuartos_sin_puertas.png`). *(Los 3 cuartos tienen hoja de puerta de madera que se abre sola al acercarse alguien y se cierra al irse (solo se ve, no choca); las 6 camas son de adulto (0,9 × 1,8 m) con mesilla y alfombra. Las camas de las demás casas siguen pequeñas: se agrandan al rehacer cada edificio. Fotos: `docs/capturas_arreglos/2026-11-11_posada_*_despues.png`.)*
 - [x] ✅ (2026-11-09) **El campamento inicial está en medio del pueblo** (tienda, hoguera y tronco pegados a las casas); las texturas
   se aprietan entre sí · 1.ª persona, de noche. *(Retirado el campamento y huerto del pueblo en modo demo; el jugador empieza en las afueras, en el camino de entrada al valle `Vector2(-920, 50)`, con la pantalla de la carta de contratación al inicio).*
 - [ ] **Todo está demasiado comprimido** (petición grande del usuario): pueblo, campamento, lago, bosque y llanura

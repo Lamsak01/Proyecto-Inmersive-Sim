@@ -4,6 +4,9 @@ Cambios del juego, del más nuevo al más antiguo. Añade una entrada al cerrar 
 El historial completo está en `git log`. Lo anterior al 2026-11-09 está en `docs/archivo/CHANGELOG_hasta_2026-11-08.md`.
 
 
+## 2026-11-11 — Posada: puertas en los cuartos y camas de adulto (Claude Code, portátil; `main`)
+- Los 3 cuartos de la planta alta tienen puerta de madera que se abre al acercarte y se cierra al irte; las 6 camas miden lo que una cama de verdad.
+
 ## 2026-11-11 — Reorganización del repositorio y nuevo reparto de trabajo (Claude Code, portátil; `main`)
 - Claude Code pasa a programar; Gemini/Antigravity queda como especialista y auditor bajo demanda. Nuevo `CLAUDE.md` maestro
   (también `GEMINI.md` y `AGENTS.md`), `docs/ESTADO_ACTUAL.md` (45 líneas máx.) sustituye a los traspasos largos,

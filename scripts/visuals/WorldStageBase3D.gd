@@ -80,6 +80,7 @@ var _current_building_id: String = ""
 var _current_building_floor: int = 0
 var _morgue_body_nodes_3d: Array[Node3D] = []
 var _jail_gate_pivot_3d: Node3D = null
+var _puertas_interiores = preload("res://scripts/visuals/PuertasInteriores3D.gd").new() # hojas de los cuartos de la posada
 var _streetlight_nodes_3d: Array[Dictionary] = []
 var _floodlight_nodes_3d: Array[Dictionary] = []
 var _last_buried_count: int = -1

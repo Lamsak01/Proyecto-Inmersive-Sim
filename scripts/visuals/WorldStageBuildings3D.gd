@@ -153,6 +153,7 @@ func rebuild_buildings_3d() -> void:
 	_current_building_id = ""
 	_current_building_floor = 0
 	_door_nodes_3d.clear()
+	_puertas_interiores.limpiar()
 	_window_nodes_3d.clear()
 	_chest_nodes_3d.clear()
 	_morgue_body_nodes_3d.clear()
@@ -472,6 +473,8 @@ func _merge_building_meshes() -> void:
 		excl[rn] = true
 	if _jail_gate_pivot_3d != null:
 		excl[_jail_gate_pivot_3d] = true
+	for pv in _puertas_interiores.pivotes():
+		excl[pv] = true
 	for rec in _building_records_3d:
 		var sub: Array = [rec["roof_cap"], rec["loft_root"]]
 		var ex_b: Dictionary = excl.duplicate()
@@ -949,16 +952,31 @@ func _build_restaurant_3d(b_root: Node3D, wall_h: float, m_wall: Material, m_tri
 	# Sendero desde el camino del este
 	_add_box_2d(b_root, R.PATH_RECT.get_center(), R.PATH_RECT.size, 0.0, 0.8, m_terr)
 
+const CAMA_VIEJA_PX: Vector2 = Vector2(15.0, 21.0) ## camas de las casas antiguas (0,8 × 1,2 m; se agrandan al rehacer cada edificio)
+const CAMA_REAL_PX: Vector2 = Vector2(16.0, 32.0)  ## cama de adulto: 0,9 × 1,8 m
+
 func _build_bed_3d(parent: Node3D, pos_2d: Vector2, m_frame: Material, m_blanket: Material, m_pillow: Material) -> void:
 	_build_bed_3d_at_h(parent, pos_2d, 2.0, m_frame, m_blanket, m_pillow)
 
-func _build_bed_3d_at_h(parent: Node3D, pos_2d: Vector2, base_h: float, m_frame: Material, m_blanket: Material, m_pillow: Material) -> void:
-	var bed := _add_model_2d(parent, "props/Bed_Twin1.gltf", pos_2d, base_h, Vector2(15.0, 21.0), 8.5)
+func _build_bed_3d_at_h(parent: Node3D, pos_2d: Vector2, base_h: float, m_frame: Material, m_blanket: Material, m_pillow: Material, tam: Vector2 = CAMA_VIEJA_PX) -> void:
+	var alto: float = 8.5 * tam.x / CAMA_VIEJA_PX.x
+	var bed := _add_model_2d(parent, "props/Bed_Twin1.gltf", pos_2d, base_h, tam, alto)
 	if bed != null:
 		return
-	_add_box_2d(parent, pos_2d, Vector2(15.0, 21.0), base_h, 4.5, m_frame)
-	_add_box_2d(parent, pos_2d + Vector2(0, 2.0), Vector2(13.5, 15.0), base_h + 4.5, 2.0, m_blanket)
-	_add_box_2d(parent, pos_2d + Vector2(0, -6.5), Vector2(11.0, 4.5), base_h + 4.5, 2.2, m_pillow)
+	_add_box_2d(parent, pos_2d, tam, base_h, alto * 0.53, m_frame)
+	_add_box_2d(parent, pos_2d + Vector2(0, tam.y * 0.1), tam - Vector2(1.5, 6.0), base_h + alto * 0.53, 2.0, m_blanket)
+	_add_box_2d(parent, pos_2d + Vector2(0, -tam.y * 0.31), Vector2(tam.x - 4.0, 4.5), base_h + alto * 0.53, 2.2, m_pillow)
+
+## Hoja de puerta de un cuarto (posada): gira sobre su bisagra en `(x_bisagra, y)`; la abre `PuertasInteriores3D` al acercarse alguien.
+func _puerta_de_cuarto_3d(parent: Node3D, x_bisagra: float, y: float, ancho: float, base_h: float, m_hoja: Material, m_tirador: Material) -> void:
+	var pivote := Node3D.new()
+	pivote.name = "PuertaCuarto_%d" % roundi(x_bisagra)
+	pivote.position = to_3d(Vector2(x_bisagra, y), base_h)
+	parent.add_child(pivote)
+	var alto: float = 22.0
+	_add_door_part(pivote, ancho * 0.5, alto * 0.5, 0.0, ancho, alto, 2.0, m_hoja)
+	_add_door_part(pivote, ancho - 3.0, alto * 0.45, 0.0, 1.6, 1.6, 3.4, m_tirador)
+	_puertas_interiores.anadir(pivote, Vector2(x_bisagra + ancho * 0.5, y), 1)
 
 ## Paso 3: Planta Baja (Planta 0) de la Gran Taberna «El Jabalí Dorado» (Salón-Comedor, Barra-Cocina, Casino con Póker y Mesa de Billar real 3D, Escalera al Piso +1 y Bodega con Trampilla del Club).
 func _build_tavern_floor_0_3d(b_root: Node3D, _wall_h: float, m_wall: Material, m_trim: Material, m_wood: Material, m_dark_wood: Material, m_iron: Material, m_gold: Material) -> void:
@@ -1262,6 +1280,7 @@ func _build_tavern_floor_1_3d(loft_root: Node3D, _wall_h: float, m_wall: Materia
 		_add_box_2d(loft_root, Vector2(dx + d_hw, -216.0), Vector2(2.4, 5.6), h1, ih1, m_trim)
 		_add_box_2d(loft_root, Vector2(dx, -216.0), Vector2(d_hw * 2.0 + 2.4, 5.8), h1 + 22.2, 2.2, m_trim)
 		_add_box_2d(loft_root, Vector2(dx, -216.0), Vector2(d_hw * 2.0, 5.0), h1 + 24.4, ih1 - 24.4, m_wall)
+		_puerta_de_cuarto_3d(loft_root, dx - d_hw + 1.0, -216.0, d_hw * 2.0 - 2.0, h1, m_dark_wood, m_trim)
 		cur_x = dx + d_hw
 	if 558.0 - cur_x > 1.0:
 		_add_box_2d(loft_root, Vector2((cur_x + 558.0) * 0.5, -216.0), Vector2(558.0 - cur_x, 5.0), h1, ih1, m_wall)
@@ -1276,13 +1295,14 @@ func _build_tavern_floor_1_3d(loft_root: Node3D, _wall_h: float, m_wall: Materia
 	_restaurant_light(loft_root, Vector2(346.0, T.HALLWAY_Y), h1 + 25.0, Color(1.0, 0.82, 0.52), 1.0, 2.8, false)
 	_restaurant_light(loft_root, Vector2(488.0, T.HALLWAY_Y), h1 + 25.0, Color(1.0, 0.82, 0.52), 1.0, 2.8, false)
 
-	# 4. Las 6 camas reales en Planta +1 (con mesillas, cofres y alfombras a los pies)
+	# 4. Las 6 camas de la Planta +1 a tamaño real (2026-11-11, el usuario las vio diminutas: 0,9 × 1,8 m), con mesilla
+	# a la cabecera, alfombra a los pies y cofre
 	for bi in range(T.ALL_UPPER_BEDS.size()):
 		var bp: Vector2 = T.ALL_UPPER_BEDS[bi]
 		var blanket_mat: Material = m_bed_gold if bi == 0 else m_bed_red
-		_build_bed_3d_at_h(loft_root, bp, h1, m_wood, blanket_mat, m_pillow)
-		_add_model_2d(loft_root, "props/Nightstand_Shelf.gltf", bp + Vector2(0.0, -16.0), h1, Vector2(7.0, 6.0), 7.5)
-		_add_box_2d(loft_root, bp + Vector2(0.0, 14.0), Vector2(16.0, 10.0), h1 + 0.1, 0.3, m_rug)
+		_build_bed_3d_at_h(loft_root, bp, h1, m_wood, blanket_mat, m_pillow, CAMA_REAL_PX)
+		_add_model_2d(loft_root, "props/Nightstand_Shelf.gltf", bp + Vector2(0.0, -CAMA_REAL_PX.y * 0.5 - 5.0), h1, Vector2(7.0, 6.0), 7.5)
+		_add_box_2d(loft_root, bp + Vector2(0.0, CAMA_REAL_PX.y * 0.5 + 6.0), Vector2(16.0, 10.0), h1 + 0.1, 0.3, m_rug)
 	_add_model_2d(loft_root, "props/Chest_Wood.gltf", Vector2(520.0, -288.0), h1, Vector2(12.0, 8.0), 6.8)
 
 # ==============================================================================
