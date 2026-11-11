@@ -547,7 +547,7 @@ static func superficie_rio_px(y: float) -> float:
 ## Parte del hundimiento del cauce en un punto (para no contarla al medir la orilla).
 static func _river_cut_px(pos_2d: Vector2) -> float:
 	var y: float = pos_2d.y
-	if y < FishingSpotScript.river_y_start() or y > FishingSpotScript.river_y_end() or FishingSpotScript.ABANDONED_MILL_RECT.grow(4.0).has_point(pos_2d):
+	if y < FishingSpotScript.river_y_start() or y > FishingSpotScript.river_y_end() or FishingSpotScript.ABANDONED_MILL_RECT.grow(4.0).has_point(AnclasScript.desmover(pos_2d)):
 		return 0.0
 	var riv_hw: float = FishingSpotScript.river_half_width(y)
 	var d_riv: float = absf(pos_2d.x - FishingSpotScript.river_center_x(y))
