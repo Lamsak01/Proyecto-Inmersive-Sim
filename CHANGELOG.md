@@ -4,6 +4,10 @@ Cambios del juego, del más nuevo al más antiguo. Añade una entrada al cerrar 
 El detalle técnico está en `docs/HANDOFF.md` (sección 7) y el historial completo en `git log`. Lo anterior a B0.1 está en `AUDIT_LOG.md` y `SESSION_CONTEXT_LOG.md`.
 
 
+## 2026-11-10 — Paso a 3D de verdad: paso 4b, ya no atraviesas a los vecinos (Claude Code, portátil; rama `mundo-3d`)
+- Los vecinos cercanos tienen un cuerpo de contacto: chocas con ellos. Dormidos o caídos no estorban.
+- Decisión del usuario: esto ahora; más adelante cuerpos completos que choquen con paredes y busquen caminos en 3D.
+
 ## 2026-11-10 — Paso a 3D de verdad: paso 4a, vecinos por la escalera (Claude Code, portátil; rama `mundo-3d`)
 - Comprobado que los vecinos suben y bajan la escalera de la posada andando; quitado un escalón de golpe al llegar arriba.
 

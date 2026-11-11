@@ -6,6 +6,28 @@
 
 ---
 
+## Paso 4b — Ya no se atraviesa a los vecinos (2026-11-10, Claude Code, portátil)
+
+**Qué cambia en el juego:** antes el protagonista atravesaba a los vecinos (salvo si peleaban con él). Ahora los
+vecinos que tiene cerca (unos 6 m) tienen un cuerpo 3D «de contacto»: chocas con ellos como con una persona. Un
+vecino dormido, muerto o en el suelo no tiene cuerpo (se pasa por encima). El cuerpo va a la altura del suelo del
+vecino, así uno que está en la planta de arriba no estorba abajo. Los vecinos siguen andando por sus rutas como antes.
+
+**Decisión del usuario:** opción A ahora (cuerpo de contacto), opción B más adelante (cuerpo completo que choca con
+paredes y buscador de caminos 3D). Apuntada en el plan.
+
+**Archivos:**
+- `scripts/fisica/CuerposVecinos3D.gd` (nuevo): hasta 16 cuerpos (cápsulas que se mueven solas) que se reparten entre
+  los vecinos cercanos cada paso y siguen su sitio del mapa.
+- `scripts/fisica/Cuerpo3D.gd`: crea `CuerposVecinos3D` y lo pone al día en cada paso; `vecinos()`.
+- `scripts/fisica/ChoquesCercanos3D.gd`: ya no copia el círculo 2D de los vecinos (lo tenían solo los que peleaban).
+- `tools/tests/fisica_3d.gd`: prueba del paso 4b.
+
+**Cómo se probó:** fisica_3d ✅ (sin nadie pasa; con un vecino delante choca; dormido se pasa) · puertas_3d 29/29 ·
+verify_all ✅. Los vecinos no cambian su forma de andar, así que no se repitió la prueba de atascos.
+
+**Cómo deshacerlo:** `git revert` de este commit.
+
 ## Paso 4a — Vecinos por la escalera de la posada (2026-11-10, Claude Code, portátil)
 
 **Qué cambia en el juego:** casi nada; se comprobó que los vecinos ya subían y bajaban la escalera andando y ganando

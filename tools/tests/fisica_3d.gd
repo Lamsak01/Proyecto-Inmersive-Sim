@@ -25,6 +25,7 @@ func _initialize() -> void:
 	await _paso2c_caidas()
 	await _paso3_nadar()
 	await _paso4_vecino_sube()
+	await _paso4b_contacto()
 	print("FISICA 3D: %s (%d fallos)" % ["PASSED" if _fallos == 0 else "FAILED", _fallos])
 	quit(1 if _fallos > 0 else 0)
 
@@ -341,6 +342,48 @@ func _paso4_vecino_sube() -> void:
 	_ok(int(n.elevation_level) == 1 and n.global_position.distance_to(cama) < 8.0, "4: el vecino sube andando hasta la cama de arriba (piso %d, %s)" % [int(n.elevation_level), str(n.global_position.round())])
 	_ok(absf(h_antes - VillageTavern.FLOOR_1_SURFACE_H) < 0.5, "4: y pisa el suelo alto (%.1f px)" % h_antes)
 	_ok(salto_max < 2.0, "4: su altura sube poco a poco, sin saltos de golpe (mayor cambio %.2f px)" % salto_max)
+	n.set_physics_process(true)
+	n.set_process(true)
+
+
+## Paso 4b: ya no se atraviesa a un vecino despierto (cuerpo de contacto); a uno dormido sí.
+func _paso4b_contacto() -> void:
+	var pl = get_first_node_in_group("player")
+	var vm = get_first_node_in_group("village_manager")
+	var mc = pl.get_node("PlayerMovementController")
+	var VillageTavern = load("res://scripts/systems/VillageTavern.gd")
+	mc.set_physics_process(false)
+	vm.set_player_elevation_level(0)
+	var n = null
+	for v in vm.VillageNeeds.living(vm):
+		if v.is_conscious() and not v.is_hostile and not v.is_sleeping:
+			n = v
+			break
+	if n == null:
+		_ok(false, "4b: hay un vecino despierto para la prueba")
+		return
+	n.set_physics_process(false)
+	n.set_process(false)
+	var inicio: Vector2 = Anclas.mover(VillageTavern.DOOR_POS) + Vector2(-20, 80)
+	# Sin nadie delante, el protagonista pasa
+	n.global_position = inicio + Vector2(0, 400)
+	pl.global_position = inicio
+	await _andar(pl, mc, Vector2.RIGHT, 100.0, 0.8)
+	var libre: bool = pl.global_position.x > inicio.x + 45.0
+	_ok(libre, "4b: sin nadie delante anda sin chocar (%s)" % str(pl.global_position.round()))
+	# Con un vecino delante, choca con él
+	pl.global_position = inicio
+	n.global_position = inicio + Vector2(30, 0)
+	await _andar(pl, mc, Vector2.ZERO, 0.0, 0.1)
+	_ok(mc.cuerpo().vecinos().tiene_cuerpo(n), "4b: el vecino cercano tiene cuerpo de contacto")
+	await _andar(pl, mc, Vector2.RIGHT, 100.0, 0.8)
+	_ok(pl.global_position.x < n.global_position.x - 5.0, "4b: no se le atraviesa (protagonista en x %.0f, vecino en x %.0f)" % [pl.global_position.x, n.global_position.x])
+	# Dormido (o caído) no tiene cuerpo: se pasa
+	pl.global_position = inicio
+	n.is_sleeping = true
+	await _andar(pl, mc, Vector2.RIGHT, 100.0, 0.8)
+	_ok(pl.global_position.x > inicio.x + 45.0, "4b: a un vecino dormido no se le choca (%s)" % str(pl.global_position.round()))
+	n.is_sleeping = false
 	n.set_physics_process(true)
 	n.set_process(true)
 
