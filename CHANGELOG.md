@@ -6,6 +6,7 @@ El historial completo está en `git log`. Lo anterior al 2026-11-09 está en `do
 
 ## 2026-11-11 — Mapa ×5 (Claude Code, portátil; rama `mapa-x5`)
 - El valle es cinco veces más grande: pueblo, campamento, lago, bosque y llanura separados; río el doble de ancho; bosques repoblados. Las partidas guardadas anteriores no valen (partida nueva). Rendimiento en el portátil: plaza 21 fps, río 24, bosque 23.
+- Partida del usuario (2.ª tanda): los puentes y vados abarcan el río de orilla a orilla (los vecinos ya no se amontonan en la orilla); el lago con el contorno redondeado, su zona de pesca y su muelle en la orilla de verdad.
 - Partida del usuario: los muebles 2D (chimeneas, barriles, piano…) seguían sobre la hierba en los sitios antiguos y Sora dormía donde estaba la sastrería; ahora todo sigue a su edificio y los oficios de los recién llegados se reparten con las fichas ya traducidas. Mascotas, terminales, verja de la celda y ribera de pesca también.
 - Repaso de sitios fijos que seguían en el mapa antiguo: pozos, tablón, solares, camas del albergue, de El Candil y de las casas nuevas, arcas y libro del ayuntamiento, casa del jugador (mostrador, clientes, dependiente, Toby, gallinero, mesa de las cenas, piso alto y sótano), biblioteca, estudio de los señores, celda de la comisaría, caravana, contrabandista, cámara fría, lavadero, carro, objetivo del golpe, terminales del taller, cama del hospital y ciénaga. Las pruebas colocan a los vecinos a distancias (no en sitios fijos).
 
