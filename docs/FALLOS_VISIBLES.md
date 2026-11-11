@@ -5,6 +5,13 @@
 > Formato: `- [ ] Qué se ve mal · dónde · cuándo (hora del juego, 2D/3D/primera persona)`.
 
 ## Pendientes
+- [ ] **Partida del usuario con el mapa ×5 (2026-11-12, vista desde arriba; capturas en `docs/capturas_usuario/2026-11-12/`)**
+  1. **El lago se ve como un bloque**: bordes rectos y esquinas de polígono, orilla norte en línea recta, el muelle en medio del agua lejos de la orilla, y un cuadradito de tierra con una roca y una planta pegado al borde · lago, 09:39 (`01_lago_x5.png`). *(El contorno del lago se estiró ×5 sin suavizar y el muelle y el punto de pesca no siguieron a la orilla.)*
+  2. **Camino principal convertido en una franja gigante** de tierra recta, sin forma de camino · lago, 09:39 (`01_lago_x5.png`) y una **calle de un píxel de ancho, recta y larguísima** · afueras, 14:17 (`03_camino_rio_puente.png`).
+  3. **Mancha marrón enorme en la hierba** (parche de tierra estirado ×5) y una **losa de piedra suelta en el campo** con un vecino picando encima · junto a la posada, 13:56 (`02_mancha_y_losa.png`). *(El parche de tierra del suelo creció con el mapa; la losa es seguramente el patio de un oficio que quedó sin su edificio al lado.)*
+  4. **Sombra del edificio desproporcionada** (se alarga muchísimo) · 13:56 (`02_mancha_y_losa.png`).
+  5. **El puente de madera no cruza el río** (queda cruzado a medias, flotando) y un **grupo de vecinos apelotonados en la orilla** junto a él; una tabla fina suelta más abajo y farolas/postes minúsculos dispersos · río, 14:17 (`03_camino_rio_puente.png`).
+  6. **La vista desde arriba enseña muy poco**: con el mapa ×5 cada pantalla es casi solo hierba; haría falta alejar la cámara o un zoom mayor.
 - [x] ✅ (2026-11-10/11) **Partida del usuario tras el paso a 3D: los 7 puntos, resueltos en su orden**
   1. ✅ (2026-11-10) **La pizarra de la escuela tapa la puerta** · 1.ª persona, 14:00 (`docs/capturas_usuario/2026-11-10/1_escuela_pizarra_tapa_puerta.png`). *(Estaba en la pared de la puerta por un signo al revés; ahora en la pared de enfrente, y los pupitres en medio, en 3D y en el mapa. Foto: `docs/capturas_arreglos/2026-11-10_escuela_pizarra_despues.png`.)*
   2. ✅ (2026-11-10) **Agacharse dentro del agua hunde la cámara bajo la superficie** (se ve todo oscuro) · río, 20:51 (`5_agachado_en_el_agua.png`). *(En el agua ya no te agachas: la tecla avisa «En el agua no puedes agacharte» y, si entras agachado, te incorporas. Hasta que haya buceo.)*
