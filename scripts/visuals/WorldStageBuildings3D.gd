@@ -1249,7 +1249,7 @@ func _build_tavern_floor_1_3d(loft_root: Node3D, _wall_h: float, m_wall: Materia
 	for by in [-284.0, -246.0, -208.0]:
 		_add_box_2d(loft_root, Vector2(558.0, by), Vector2(2.0, 2.0), h1, 7.2, m_trim)
 
-	# 3. Tabique completo del pasillo de los 5 dormitorios (y = -216.0, x = 264..558) con sus 5 huecos de puerta enmarcados y muro superior continuo
+	# 3. Tabique completo del pasillo de los 3 cuartos (y = -216.0, x = 264..558) con sus huecos de puerta enmarcados y muro superior continuo
 	var d_hw: float = T.BEDROOM_DOOR_HALF_W
 	var cur_x: float = 264.0
 	for dx_v in T.BEDROOM_DOORS_X:
@@ -1266,7 +1266,7 @@ func _build_tavern_floor_1_3d(loft_root: Node3D, _wall_h: float, m_wall: Materia
 	if 558.0 - cur_x > 1.0:
 		_add_box_2d(loft_root, Vector2((cur_x + 558.0) * 0.5, -216.0), Vector2(558.0 - cur_x, 5.0), h1, ih1, m_wall)
 
-	# Tabiques divisorios completos entre los 5 cuartos de huéspedes (y = -314..-216), alineados con T.BEDROOM_PARTITIONS_X
+	# Tabiques divisorios completos entre los cuartos (y = -314..-216), alineados con T.BEDROOM_PARTITIONS_X
 	for part_x_v in T.BEDROOM_PARTITIONS_X:
 		var part_x: float = float(part_x_v)
 		_add_box_2d(loft_root, Vector2(part_x, -265.0), Vector2(4.8, 99.0), h1, ih1, m_wall)

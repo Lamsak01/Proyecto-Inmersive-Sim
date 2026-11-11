@@ -10,7 +10,7 @@ const _AN_SITIOS = preload("res://mapa/anclas.gd") # plan de sitios: zonas fijas
 ##     3. `casino` (Sala de Póker con 4 sillas donde juegan los vecinos y Mesa de Billar 3D de verdad con troneras, bolas y tacos).
 ##     4. `escalera_bodega` (Vestíbulo con la gran escalera de madera al Piso +1 y la trampilla al Club de Peleas del Sótano -1).
 ##   - Planta +1 (`elevation_level = 1`, altura 3D `+22.0 px`):
-##     - Galería / pasillo alto con barandilla de madera asomada al salón y 5 cuartos de huéspedes con camas reales:
+##     - Galería / pasillo alto con barandilla de madera asomada al salón y 3 cuartos (dueños, huéspedes y el tuyo) con 6 camas reales:
 ##       Cuarto de Marta (`342, -252`), Aposento Real de Alistair (`400, -252`), Cuartos de Huéspedes (`435, -252`,
 ##       `468, -252`, `502, -252`) y Habitación de Alquiler del Jugador (`538, -252`).
 ## - Oficio `TradeRole.WAITER` (Camarero): se ocupa como cualquier vacante en `trade_configs`; camina entre las mesas
@@ -107,23 +107,25 @@ const POKER_CHAIRS: Array[Vector2] = [
 	Vector2(518.0, -162.0),
 ]
 
-## Planta +1: 5 Cuartos de Huéspedes en el ala norte (`y = -316..-216`) + Galería alta (`y = -216..-168`)
+## Planta +1: 3 cuartos en el ala norte (`y = -316..-216`) + Galería alta (`y = -216..-168`). 2026-11-11 (el usuario los
+## vio minúsculos: eran 5, dos de solo 2 m): el de los dueños (x 264..376, Marta y Alistair), el de huéspedes (376..492,
+## 3 camas) y el tuyo (492..558). Mismas 6 camas, en la misma fila (y -252).
 const HALLWAY_Y: float = -200.0
 const BEDROOM_WALL_Y: float = -216.0
-const MARTA_BED_POS: Vector2 = Vector2(342.0, -252.0)
-const ALISTAIR_BED_POS: Vector2 = Vector2(400.0, -252.0)
-const GUEST_BEDS: Array = [Vector2(435.0, -252.0), Vector2(468.0, -252.0), Vector2(502.0, -252.0)]
-const PLAYER_BED_POS: Vector2 = Vector2(538.0, -252.0)
+const MARTA_BED_POS: Vector2 = Vector2(300.0, -252.0)
+const ALISTAIR_BED_POS: Vector2 = Vector2(340.0, -252.0)
+const GUEST_BEDS: Array = [Vector2(400.0, -252.0), Vector2(434.0, -252.0), Vector2(468.0, -252.0)]
+const PLAYER_BED_POS: Vector2 = Vector2(525.0, -252.0)
 const ALL_UPPER_BEDS: Array = [
-	Vector2(342.0, -252.0),
+	Vector2(300.0, -252.0),
+	Vector2(340.0, -252.0),
 	Vector2(400.0, -252.0),
-	Vector2(435.0, -252.0),
+	Vector2(434.0, -252.0),
 	Vector2(468.0, -252.0),
-	Vector2(502.0, -252.0),
-	Vector2(538.0, -252.0),
+	Vector2(525.0, -252.0),
 ]
-const BEDROOM_DOORS_X: Array = [342.0, 394.0, 451.0, 502.0, 539.0]
-const BEDROOM_PARTITIONS_X: Array = [370.0, 418.0, 484.0, 520.0, 558.0]
+const BEDROOM_DOORS_X: Array = [318.0, 434.0, 525.0]
+const BEDROOM_PARTITIONS_X: Array = [376.0, 492.0, 558.0]
 const BEDROOM_DOOR_HALF_W: float = 10.0
 
 const POKER_CALLOUTS: Array[String] = [
@@ -241,7 +243,7 @@ static func setup_world(vm) -> void:
 		var sy: float = lerpf(STAIRS_BOTTOM_POS.y, STAIRS_TOP_POS.y, float(step_i) / 7.0)
 		vm._add_rect_poly(Vector2(STAIRS_BOTTOM_POS.x, sy), Vector2(12.0, 2.5), Color(0.48, 0.31, 0.16, 0.95), -1).add_to_group("tavern_floor0_2d")
 
-	# 3b. Barandillas sólidas y tabiques de los cuartos en Planta +1 ("tavern_upper_walls")
+	# 3b. Barandillas sólidas y tabiques de los 3 cuartos en Planta +1 ("tavern_upper_walls")
 	# Paso a 3D, paso 2c: las barandillas son bajas (grupo «barandilla»): se pueden saltar… y caer al salón.
 	for bar in [[Vector2(434.0, -168.0), Vector2(348.0, 6.0)], # Barandilla sur de la galería alta
 			[Vector2(558.0, -261.0), Vector2(6.0, 110.0)],     # Barandilla oeste del hueco de escalera
@@ -271,7 +273,7 @@ static func setup_world(vm) -> void:
 	vm._tavern_bed_label = vm._make_station_label(PLAYER_BED_POS + Vector2(-115.0, -28.0), "🛌 Cama de Posada (Piso +1) [E: Dormir hasta 06:00 (-8 Oro)]")
 	vm.entities_root.add_child(vm._tavern_bed_label)
 
-	vm._spawn_house_chest(Vector2(312.0, -256.0), "Cofre de la Posada El Jabalí", FAMILY_ID)
+	vm._spawn_house_chest(Vector2(365.0, -300.0), "Cofre de la Posada El Jabalí", FAMILY_ID) # rincón del cuarto de los dueños (2026-11-11: chocaba con la cama de Marta)
 
 	# 5. Marta, la Tabernera y Chef, detrás del mostrador
 	var marta := VillageNPC.new()
@@ -463,16 +465,12 @@ static func route_floor_0(from_pos: Vector2, target_pos: Vector2) -> Vector2:
 	var sx: float = p.x + 12.0 if nr.get_center().x < p.x else p.x - 12.0
 	return Vector2(sx if absf(from_pos.y - p.y) > 10.0 else nx, p.y)
 
+## La puerta del cuarto en el que está `pos` (o del que le toca por su x): dueños, huéspedes o el tuyo.
 static func _bedroom_door_x_for(pos: Vector2) -> float:
-	if pos.x < 374.0:
-		return 342.0
-	if pos.x < 418.0:
-		return 400.0
-	if pos.x < 484.0:
-		return 451.0
-	if pos.x < 520.0:
-		return 502.0
-	return 538.0
+	for i in range(BEDROOM_PARTITIONS_X.size()):
+		if pos.x < float(BEDROOM_PARTITIONS_X[i]):
+			return float(BEDROOM_DOORS_X[i])
+	return float(BEDROOM_DOORS_X.back())
 
 static func route_floor_1(from_pos: Vector2, target_pos: Vector2) -> Vector2:
 	var in_room_from: bool = from_pos.y < BEDROOM_WALL_Y - 3.0 and from_pos.x < 558.0

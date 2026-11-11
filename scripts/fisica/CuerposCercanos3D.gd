@@ -38,7 +38,7 @@ func actualizar(centro: Vector2, vm: Node) -> void:
 	for n in cerca:
 		siguen[n] = true
 	for n in _de_quien.keys():
-		if not siguen.has(n):
+		if not is_instance_valid(n) or not siguen.has(n): # (un bandido muerto o huido desaparece del árbol)
 			_soltar(n)
 	for n in cerca:
 		var c: AnimatableBody3D = _de_quien.get(n)
@@ -132,8 +132,8 @@ func _coger() -> AnimatableBody3D:
 	return c
 
 
-## Ya no está cerca (o se ha dormido, caído…): su cuerpo queda libre y apagado.
-func _soltar(n: Node) -> void:
+## Ya no está cerca (o se ha dormido, caído, o ya no existe): su cuerpo queda libre y apagado.
+func _soltar(n) -> void:
 	var c: AnimatableBody3D = _de_quien[n]
 	_de_quien.erase(n)
 	(c.get_child(0) as CollisionShape3D).disabled = true

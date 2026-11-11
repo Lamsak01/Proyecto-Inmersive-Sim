@@ -6,6 +6,13 @@
 
 ---
 
+## Arreglo 2026-11-11 — Cuerpos de contacto de quien desaparece (Claude Code, portátil)
+
+**Qué pasaba:** si un bandido (o cualquiera con cuerpo de contacto, paso 4b–4c) moría o huía cerca del protagonista y
+desaparecía del juego, su cuerpo quedaba apuntado y cada fotograma saltaba un error al intentar soltarlo (2.154 errores
+en una prueba). **Arreglo:** `CuerposCercanos3D.actualizar` suelta también a quien ya no existe; `_soltar` acepta
+cualquier cosa. Visto en `verify_all` tras el arreglo de los bandidos.
+
 ## Paso 5d — Con [E] se llega a lo que está a tu altura (2026-11-10, Claude Code, portátil)
 
 **Qué cambia en el juego:** lo que puedes usar o con quien puedes hablar con [E] se decide por altura (los pies a menos

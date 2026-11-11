@@ -18,7 +18,7 @@ const VillageWork = preload("res://scripts/systems/VillageWork.gd")
 const TraitCatalog = preload("res://scripts/data/TraitCatalog.gd")
 
 const POP_CAP: int = 100
-const TAVERN_GUEST_BEDS: Array = [Vector2(435, -252), Vector2(468, -252), Vector2(502, -252)]
+const TAVERN_GUEST_BEDS: Array = preload("res://scripts/systems/VillageTavern.gd").GUEST_BEDS # en un solo sitio
 const TAVERN_DAY_SPOTS: Array = [
 	Vector2(440, 44), Vector2(495, 44), Vector2(465, 58),
 	Vector2(304, 280), Vector2(236, 268), Vector2(360, 280),
