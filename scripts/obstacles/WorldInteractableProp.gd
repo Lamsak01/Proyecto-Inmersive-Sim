@@ -137,7 +137,7 @@ func _ready() -> void:
 
 func _process(_delta: float) -> void:
 	if is_instance_valid(visual_2d):
-		var show_2d: bool = not CharacterAvatar3DScript.use_3d_characters
+		var show_2d: bool = false # (ya no hay modo 2D)
 		if show_2d and vm != null:
 			if prop_kind in ["sewer_ladder", "sewer_chest"]:
 				show_2d = VillageUnderworld.is_player_in_sewers(vm)
@@ -162,7 +162,7 @@ func _rebuild_visual_and_area() -> void:
 	visual_2d = Node2D.new()
 	visual_2d.name = "Visual2D"
 	visual_2d.z_index = 1
-	visual_2d.visible = not CharacterAvatar3DScript.use_3d_characters
+	visual_2d.visible = false
 	visual_2d.set_meta("flat_2d_building_visual", true)
 	add_child(visual_2d)
 

@@ -83,7 +83,6 @@ var _jail_gate_pivot_3d: Node3D = null
 var _streetlight_nodes_3d: Array[Dictionary] = []
 var _floodlight_nodes_3d: Array[Dictionary] = []
 var _last_buried_count: int = -1
-var _last_use_3d: bool = true
 var _cutaway_accum: float = 0.0
 var nature_root_3d: Node3D = null
 var _nature_accum: float = 10.0

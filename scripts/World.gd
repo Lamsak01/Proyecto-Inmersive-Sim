@@ -32,58 +32,6 @@ func _ready() -> void:
 			ambient_modulate.color = WorldClock.get_ambient_color()
 			WorldClock.time_updated.connect(_on_world_time_updated)
 
-	# 2. Ajustar fondo de hierba al tamaño real del valle (-920..1000 x -340..1300) con margen de cámara
-	# (Evita generar 81 millones de píxeles en mosaico que saturan la GPU integrada de laptops)
-	var parallax := get_node_or_null("Environment/Parallax2D") as Parallax2D
-	if parallax:
-		parallax.repeat_size = Vector2.ZERO
-	var grass_rect := get_node_or_null("Environment/Parallax2D/TextureRect") as TextureRect
-	if grass_rect:
-		grass_rect.offset_left = -2250.0
-		grass_rect.offset_top = -950.0
-		grass_rect.offset_right = 1650.0
-		grass_rect.offset_bottom = 2250.0
-		var sh_2d := Shader.new()
-		sh_2d.code = """
-shader_type canvas_item;
-
-float h2(vec2 p) {
-	p = fract(p * vec2(234.17, 567.89));
-	p += dot(p, p + 34.56);
-	return fract(p.x * p.y);
-}
-
-float n2(vec2 p) {
-	vec2 i = floor(p);
-	vec2 f = fract(p);
-	f = f * f * (3.0 - 2.0 * f);
-	return mix(
-		mix(h2(i), h2(i + vec2(1.0, 0.0)), f.x),
-		mix(h2(i + vec2(0.0, 1.0)), h2(i + vec2(1.0, 1.0)), f.x),
-		f.y
-	);
-}
-
-void fragment() {
-	vec2 px = UV * vec2(3900.0, 3200.0);
-	float macro = n2(px * 0.008);
-	float meso = n2(px * 0.032 + vec2(5.4, 2.7));
-	float micro = n2(px * 0.14 + vec2(macro, meso) * 3.0);
-	float blade = n2(px * 0.48 + vec2(meso, macro) * 5.0);
-	vec3 c_light = vec3(0.35, 0.54, 0.25);
-	vec3 c_mid = vec3(0.28, 0.46, 0.20);
-	vec3 c_dark = vec3(0.22, 0.38, 0.16);
-	vec3 c_earth = vec3(0.38, 0.32, 0.22);
-	vec3 col = mix(c_light, c_mid, smoothstep(0.25, 0.75, macro * 0.65 + meso * 0.35));
-	col = mix(col, c_dark, smoothstep(0.55, 0.88, meso * 0.6 + micro * 0.4) * 0.55);
-	col = mix(col, c_earth, smoothstep(0.74, 0.92, macro * 0.5 + meso * 0.5) * 0.35);
-	col *= mix(0.91, 1.09, micro * 0.5 + blade * 0.5);
-	COLOR = vec4(col, 1.0);
-}
-"""
-		var sm_2d := ShaderMaterial.new()
-		sm_2d.shader = sh_2d
-		grass_rect.material = sm_2d
 	var obs_small := get_node_or_null("Environment/Obstacles Small") as TileMapLayer
 	if obs_small:
 		obs_small.clear()

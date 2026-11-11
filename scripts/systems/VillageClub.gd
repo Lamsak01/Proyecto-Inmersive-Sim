@@ -618,19 +618,18 @@ static func sync_club_visibility(vm) -> void:
 	if vm == null or not ("entities_root" in vm) or not is_instance_valid(vm.entities_root):
 		return
 	var in_club: bool = is_player_in_club(vm)
-	var use_3d: bool = load("res://scripts/visuals/CharacterAvatar3D.gd").use_3d_characters
 	var root: Node2D = vm.entities_root.get_node_or_null("FightClub2D") as Node2D
 	if is_instance_valid(root):
 		var vis: Node2D = root.get_node_or_null("FightClubVisual2D") as Node2D
 		if is_instance_valid(vis):
-			vis.visible = in_club and not use_3d
+			vis.visible = false # dibujo plano del club: ya solo existe en 3D
 		var body: StaticBody2D = root.get_node_or_null("FightClubWallsBody") as StaticBody2D
 		if is_instance_valid(body):
 			body.collision_layer = 1 if in_club else 0
 	if vm.is_inside_tree():
 		for n0 in vm.get_tree().get_nodes_in_group("tavern_floor0_2d"):
 			if n0 is CanvasItem and is_instance_valid(n0):
-				(n0 as CanvasItem).visible = not in_club and not use_3d
+				(n0 as CanvasItem).visible = false
 		var on_floor0: bool = (int(vm.player_elevation_level) == 0)
 		for w0 in vm.get_tree().get_nodes_in_group("tavern_floor0_walls"):
 			if w0 is StaticBody2D and is_instance_valid(w0):

@@ -578,12 +578,11 @@ static func sync_sewer_visibility(vm) -> void:
 	if vm == null or not ("entities_root" in vm) or not is_instance_valid(vm.entities_root):
 		return
 	var in_sewers: bool = is_player_in_sewers(vm)
-	var use_3d: bool = load("res://scripts/visuals/CharacterAvatar3D.gd").use_3d_characters
 	var net_root: Node2D = vm.entities_root.get_node_or_null("SewersNetwork2D") as Node2D
 	if is_instance_valid(net_root):
 		var vis_2d: Node2D = net_root.get_node_or_null("SewersVisual2D") as Node2D
 		if is_instance_valid(vis_2d):
-			vis_2d.visible = in_sewers and not use_3d
+			vis_2d.visible = false # dibujo plano de las alcantarillas: ya solo existen en 3D
 		var walls_body: StaticBody2D = net_root.get_node_or_null("SewerTunnelWallsBody") as StaticBody2D
 		if is_instance_valid(walls_body):
 			walls_body.collision_layer = 1 if in_sewers else 0

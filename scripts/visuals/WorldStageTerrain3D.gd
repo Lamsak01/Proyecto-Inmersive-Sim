@@ -335,7 +335,6 @@ func _scan_nature_sources() -> void:
 func _sync_nature_3d(only_update: bool) -> void:
 	if nature_root_3d == null:
 		return
-	var use_3d: bool = CharacterAvatar3DScript.use_3d_characters
 	var alive_ids: Dictionary = {}
 	for src in _nature_sources:
 		var n_v = src["node"]
@@ -359,7 +358,7 @@ func _sync_nature_3d(only_update: bool) -> void:
 		_set_vis3d(rec.get("stump"), n.is_visible_in_tree() and depleted)
 		var spr = src.get("sprite")
 		if spr is CanvasItem and is_instance_valid(spr):
-			(spr as CanvasItem).self_modulate.a = 0.0 if use_3d else 1.0
+			(spr as CanvasItem).self_modulate.a = 0.0
 	if only_update:
 		_flush_batches()
 		return

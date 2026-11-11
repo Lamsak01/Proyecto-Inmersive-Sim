@@ -861,7 +861,6 @@ func _collect_camp_sprites(n: Node) -> void:
 func _sync_props_3d(only_update: bool) -> void:
 	if nature_root_3d == null:
 		return
-	var use_3d: bool = CharacterAvatar3DScript.use_3d_characters
 	var alive: Dictionary = {}
 	for src in _prop_sources:
 		var spr_v = src["sprite"]
@@ -893,10 +892,10 @@ func _sync_props_3d(only_update: bool) -> void:
 		var r3 = rec.get("root")
 		if r3 is Node3D and is_instance_valid(r3):
 			(r3 as Node3D).visible = spr.is_visible_in_tree() and spr.texture != null
-		spr.self_modulate.a = 0.0 if use_3d else 1.0
+		spr.self_modulate.a = 0.0
 	for ci in _extra_hidden_2d:
 		if is_instance_valid(ci):
-			(ci as CanvasItem).self_modulate.a = 0.0 if use_3d else 1.0
+			(ci as CanvasItem).self_modulate.a = 0.0
 	_sync_player_house_3d()
 	_sync_coop_3d()
 	_sync_sabotage_fx_3d()
@@ -1213,11 +1212,12 @@ func _build_crop_3d(root: Node3D, pos: Vector2, tex_name: String) -> void:
 
 ## Oculta las tiras planas 2D de muros/puertas/suelos cuando el 3D está activo (usando `self_modulate.a`
 ## en lugar de `.visible`, de modo que ningún test de estado de puertas o ventanas se vea afectado).
-func _sync_2d_flat_visuals(use_3d: bool) -> void:
+## Esconde los dibujos planos del mapa que ya tienen versión 3D (pinos, rocas, objetos, fachadas). Desde 2026-11-12 ya no
+## hay modo 2D al que volver: se esconden siempre.
+func _sync_2d_flat_visuals() -> void:
 	if vm == null or not is_instance_valid(vm.entities_root):
 		return
-	var target_a: float = 0.0 if use_3d else 1.0
-	# Pinos, rocas y objetos quietos con versión 3D: se esconden en 3D y vuelven al pasar a 2D (F10).
+	var target_a: float = 0.0
 	for src in _nature_sources + _prop_sources:
 		var spr_n = src.get("sprite")
 		if spr_n is CanvasItem and is_instance_valid(spr_n):

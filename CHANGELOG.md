@@ -4,6 +4,9 @@ Cambios del juego, del más nuevo al más antiguo. Añade una entrada al cerrar 
 El detalle técnico está en `docs/HANDOFF.md` (sección 7) y el historial completo en `git log`. Lo anterior a B0.1 está en `AUDIT_LOG.md` y `SESSION_CONTEXT_LOG.md`.
 
 
+## 2026-11-12 — Limpieza: fuera el modo 2D antiguo (Claude Code, portátil; rama `mundo-3d`)
+- Ya no existe el tablero plano de baldosas y sprites ([F9] sin Mayús); la vista desde arriba en 3D y la 1.ª persona siguen igual.
+
 ## 2026-11-12 — Paso a 3D: sitios en el fondo del agua (Claude Code, portátil; rama `mundo-3d`)
 - Preparado para pistas en el fondo del río o del lago: solo se alcanzan buceando. Falta decidir cuáles.
 

@@ -71,13 +71,12 @@ func _process(delta: float) -> void:
 		_holder = null
 		if not _attach():
 			return
-	var use_3d: bool = CharacterAvatar3DScript.use_3d_characters
-	if use_3d != _sprite_hidden:
+	if not _sprite_hidden:
 		var spr = _entity.get("sprite")
 		if spr is CanvasItem and is_instance_valid(spr):
-			(spr as CanvasItem).self_modulate.a = 0.0 if use_3d else 1.0
-		_sprite_hidden = use_3d
-	_holder.visible = use_3d and _entity.is_visible_in_tree()
+			(spr as CanvasItem).self_modulate.a = 0.0
+		_sprite_hidden = true
+	_holder.visible = _entity.is_visible_in_tree()
 	if not _holder.visible:
 		return
 	_holder.position = _stage.call("to_3d", _entity.global_position + Vector2(0.0, CharacterAvatar3DScript.FOOT_OFFSET_PX), 0.0)

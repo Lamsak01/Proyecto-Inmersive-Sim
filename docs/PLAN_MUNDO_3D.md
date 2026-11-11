@@ -212,8 +212,7 @@ para metros (gravedad 9,8, márgenes de choque) y hoy una persona mide menos de 
   y detective de `verify_all` en verde).
 
 ### Paso 6 — Limpieza final
-- **Estado (noche del 2026-11-11):** la vista desde arriba se queda (decisión del usuario), así que el mapa 2D de fondo
-  y la vista 2D siguen. Los vecinos lejanos siguen andando por el mapa (híbrido), así que sus recolocaciones a mano
+- **Estado (2026-11-12):** la vista desde arriba en 3D se queda y el modo 2D antiguo se quitó (decisión del usuario). Los vecinos lejanos siguen andando por el mapa (híbrido), así que sus recolocaciones a mano
   (`sanitize_npc_separation_pos`, `push_out_of_furniture`) y los choques 2D siguen haciendo falta. Lo que ya no se usa
   se ha ido borrando en cada paso (losa del suelo, manos de cilindros, listas a mano de sitios por piso, rama muerta
   del «vigía»). Queda para cuando TODOS los vecinos y animales tengan cuerpo completo: borrar las recolocaciones, el
@@ -308,6 +307,7 @@ Es una estimación: se apuntará el gasto real de cada paso en el Registro para 
 | 2026-11-11 (noche) | Claude Code (portátil) | Rendimiento | Medido con la CPU ya a 2,9 GHz (el freno de ayer desapareció). Antes de tocar nada esta noche (`perf_zonas`, 1.ª persona): afueras 31, plaza 20, río 23→18, bosque 34, molino 38, mansión 40 fps; en la plaza, 50 ms por fotograma (lógica 43, física 16). Lo que más pesaba: el relieve del terreno (`terrain_height_px`) calculado cientos de veces por fotograma (cuerpos, muñecos, animales, vista), los 43 muñecos de vecinos y los 54 modelos de animales al día cada fotograma, y los cuerpos de los vecinos repasando las paredes cada paso. Hecho: memoria del relieve por celdas de 4 px (`olvidar_relieve` al cambiar el río), muñecos y animales a más de 240 px 1 de cada 3 fotogramas, paredes de los vecinos 1 de cada 3 pasos, cuerpos de contacto 1 de cada 2, reparto de cuerpos 1 de cada 6. Después: afueras 31, plaza 25, río 21, bosque 35, molino 40, mansión 43 fps (plaza 40 ms: lógica 30, física 13). Lo que queda: la lógica de los vecinos cercanos (≈30 ms) y el dibujo (GPU 17–26 ms en plaza y río, sombras) | perf_zonas, perf_fisica (con ventana) · fisica_3d ✅ · puertas_3d · verify_all | (este commit) |
 | 2026-11-12 | Claude Code (portátil) | Opción B, trozo 2 | Animales grandes, mascotas grandes, bandidos y enemigos cercanos con cuerpo 3D completo (`AndarMapa.paso` en sus guiones; `CuerposDelPueblo3D` reparte a 5 grupos, solo a quien está de pie y es grande) | fisica_3d ✅ (ciervo con cuerpo parado por la pared) · puertas_3d 29/29 · verify_all ✅ · atascos 6 h: 0 · cena posada: 0 | (este commit) |
 | 2026-11-12 | Claude Code (portátil) | Paso 3c | Mecanismo de sitios en el fondo del agua (`marcar_bajo_el_agua`): solo salen con [E] buceando. Las pistas concretas, cuando el usuario decida | fisica_3d ✅ | (este commit) |
+| 2026-11-12 | Claude Code (portátil) | Paso 6, trozo 1 | Fuera el modo 2D antiguo (decisión del usuario): `use_3d_characters` y sus 32 ramas, la tecla [F9] sin Mayús, el fondo Parallax2D. Se quedan las capas de baldosas (choques y navegación) y los dibujos 2D ocultos del mapa (siguiente trozo) | fisica_3d ✅ · puertas_3d 29/29 · verify_all · fotos fijas | (este commit) |
 
 ### Medidas de referencia (antes del paso 1, portátil, 2026-11-10)
 - **fps en 1.ª persona** (`perf_zonas.gd`): afueras 33, plaza 29, río 23, bosque 38, molino 40, mansión 43.

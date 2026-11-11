@@ -50,7 +50,7 @@ allí también. Esc, F11, Ctrl, Alt e Intro son fijas y no se pueden asignar.
 | Tecla | Qué hace |
 |---|---|
 | F5 / F12 | Guardar / cargar partida |
-| F9 | Cámara 2D / 3D (con Mayús: visor de personajes 3D) |
+| F9 | Solo con Mayús: visor de personajes 3D (el modo 2D antiguo se quitó el 2026-11-12) |
 | F11 | Pantalla completa (también en el menú principal; se recuerda) |
 
 ## Trucos para probar (con Ctrl, para que no salten en una partida normal)

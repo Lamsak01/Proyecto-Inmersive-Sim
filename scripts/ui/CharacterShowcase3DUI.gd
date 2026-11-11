@@ -221,18 +221,6 @@ func _unhandled_input(event: InputEvent) -> void:
 		if Teclas.es(event, "camara") and event.shift_pressed:
 			toggle_panel()
 			get_viewport().set_input_as_handled()
-		elif Teclas.es(event, "camara") and not event.shift_pressed:
-			var vm = get_tree().get_first_node_in_group("village_manager")
-			var st3d = vm.get("world_stage_3d") if vm != null else null
-			if st3d != null and st3d.get("first_person_active") == true:
-				st3d.call("set_first_person", false)
-			CharacterAvatar3DScript.use_3d_characters = not CharacterAvatar3DScript.use_3d_characters
-			var p = get_tree().get_first_node_in_group("player")
-			if p and p.has_method("show_hint"):
-				var mode_txt := "Mundo, Edificios y Personajes 3D ACTIVADOS" if CharacterAvatar3DScript.use_3d_characters else "Mapa y Sprites 2D Clásicos ACTIVADOS"
-				p.call("show_hint", "🎥 [F9] %s ([P] 1.ª Persona · [Mayús+F9] Visor 3D)" % mode_txt)
-			_update_status_text()
-			get_viewport().set_input_as_handled()
 		elif visible and event.keycode == KEY_ESCAPE:
 			visible = false
 			if sub_viewport:
@@ -280,14 +268,6 @@ func _build_ui() -> void:
 	title_lbl.add_theme_color_override("font_color", Color(1.0, 0.90, 0.55))
 	title_lbl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	header.add_child(title_lbl)
-
-	var toggle_live_btn := Button.new()
-	toggle_live_btn.text = "🎥 Alternar 3D/2D en Partida [F9]"
-	toggle_live_btn.pressed.connect(func():
-		CharacterAvatar3DScript.use_3d_characters = not CharacterAvatar3DScript.use_3d_characters
-		_update_status_text()
-	)
-	header.add_child(toggle_live_btn)
 
 	var close_btn := Button.new()
 	close_btn.text = "✖ Cerrar [Esc]"
@@ -566,7 +546,7 @@ func _update_status_text() -> void:
 	if not status_lbl:
 		return
 	var preset_title: String = str(ARCHETYPE_PRESETS[_current_preset_idx]["title"])
-	var mode_str: String = "ACTIVO en el mapa (pulsa [F9] para volver a Sprites 2D)" if CharacterAvatar3DScript.use_3d_characters else "PAUSADO en el mapa (mostrando Sprites 2D originales; pulsa [F10] para activar 3D)"
+	var mode_str: String = "ACTIVO en el mapa"
 	status_lbl.text = "Arquetipo: %s | Arma: %s | Animación: %s | Estado en partida: %s" % [
 		preset_title,
 		str(_custom_cfg.get("weapon", "none")),

@@ -382,9 +382,6 @@ func _physics_process(_delta: float) -> void:
 	_place_behind_leader(p)
 
 
-func _process(_delta: float) -> void:
-	if sprite != null and is_instance_valid(sprite):
-		sprite.visible = not CharacterAvatar3DScript.use_3d_characters
 
 
 func _unhandled_input(event: InputEvent) -> void:

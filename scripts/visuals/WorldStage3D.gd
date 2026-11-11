@@ -178,7 +178,7 @@ func setup_stage(village_manager: Node2D) -> void:
 	_build_sewers_3d()
 	_build_streetlights_3d()
 	rebuild_all_3d()
-	_sync_2d_flat_visuals(CharacterAvatar3DScript.use_3d_characters)
+	_sync_2d_flat_visuals()
 
 
 func rebuild_all_3d() -> void:
@@ -188,7 +188,7 @@ func rebuild_all_3d() -> void:
 	rebuild_lots_3d()
 	rebuild_outpost_3d()
 	rebuild_graves_3d()
-	_sync_2d_flat_visuals(CharacterAvatar3DScript.use_3d_characters)
+	_sync_2d_flat_visuals()
 
 
 # ==============================================================================
@@ -292,10 +292,6 @@ func toggle_first_person() -> bool:
 
 func set_first_person(enable: bool) -> void:
 	if enable:
-		if not CharacterAvatar3DScript.use_3d_characters:
-			CharacterAvatar3DScript.use_3d_characters = true
-			_last_use_3d = true
-			_sync_2d_flat_visuals(true)
 		first_person_active = true
 		fp_pitch = 0.0
 		_fp_shake_timer = 0.0
@@ -359,7 +355,7 @@ func set_first_person(enable: bool) -> void:
 		_update_roof_cutaways_and_lighting()
 		var pl2 := get_tree().get_first_node_in_group("player") as Node2D if is_inside_tree() else null
 		if is_instance_valid(pl2) and pl2.has_method("show_hint"):
-			pl2.call("show_hint", "🎥 [P] Vista superior 2.5D restaurada ([F9] alterna 3D/2D)")
+			pl2.call("show_hint", "🎥 [P] Vista desde arriba")
 
 func rotate_first_person_view(delta_x_px: float, delta_y_px: float = 0.0) -> void:
 	var sens: float = FP_MOUSE_SENS * float(Ajustes.get_valor("sensibilidad")) # Ajustes → Juego
@@ -951,7 +947,7 @@ func _input(event: InputEvent) -> void:
 func _update_fp_hud() -> void:
 	if fp_hud_layer == null:
 		return
-	if not first_person_active or not CharacterAvatar3DScript.use_3d_characters:
+	if not first_person_active:
 		fp_hud_layer.visible = false
 		return
 	var ui_blocked: bool = _is_ui_blocking_fp()
@@ -1011,18 +1007,6 @@ func _process(delta: float) -> void:
 	if _is_headless or vm == null:
 		return
 
-	var use_3d: bool = CharacterAvatar3DScript.use_3d_characters
-	if not use_3d and first_person_active:
-		set_first_person(false)
-	if use_3d != _last_use_3d:
-		_last_use_3d = use_3d
-		_sync_2d_flat_visuals(use_3d)
-
-	if is_instance_valid(stage_sprite):
-		stage_sprite.visible = use_3d
-	if not use_3d:
-		return
-
 	if first_person_active and not _is_ui_blocking_fp():
 		var arrow_turn := Vector2(
 			float(Input.is_key_pressed(KEY_RIGHT)) - float(Input.is_key_pressed(KEY_LEFT)),
@@ -1046,7 +1030,7 @@ func _process(delta: float) -> void:
 	if _nature_scan_accum >= 4.0:
 		_nature_scan_accum = 0.0
 		_scan_nature_sources()
-		_sync_2d_flat_visuals(use_3d)
+		_sync_2d_flat_visuals()
 	if perf_on: _pt = _perf_add("nature_scan_4s", _pt)
 	_nature_accum += delta
 	if _nature_accum >= 0.5:

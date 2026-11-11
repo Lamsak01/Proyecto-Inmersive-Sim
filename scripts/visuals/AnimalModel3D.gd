@@ -172,9 +172,8 @@ func _process(delta: float) -> void:
 		_holder = null
 		if not _attach_to_stage():
 			return
-	var use_3d: bool = CharacterAvatar3DScript.use_3d_characters
-	_set_sprite_hidden(use_3d)
-	var show: bool = use_3d and _entity.is_visible_in_tree() and _near_camera()
+	_set_sprite_hidden(true)
+	var show: bool = _entity.is_visible_in_tree() and _near_camera()
 	_holder.visible = show
 	if _anim != null:
 		_anim.active = show

@@ -6,6 +6,30 @@
 
 ---
 
+## Paso 6, trozo 1 — Fuera el modo 2D antiguo (2026-11-12, Claude Code, portátil; decisión del usuario)
+
+**Qué cambia en el juego:** ya no se puede volver al tablero plano de baldosas y sprites (antes [F9] sin Mayús lo
+alternaba con el 3D). La vista desde arriba en 3D y la 1.ª persona siguen igual. Se quitó también el fondo verde de
+hierba 2D (Parallax2D), que ya no se veía.
+
+**Qué se borró:**
+- `CharacterAvatar3D.use_3d_characters` y todas sus ramas (32 sitios): muñecos, animales, bandidos, carreta, arma
+  dibujada en 2D, club, alcantarillas, objetos del mundo, fachadas planas; ahora los dibujos 2D de todo eso se ocultan
+  siempre (`_apply_2d_vs_3d_visibility`, `_sync_2d_flat_visuals` sin parámetro).
+- `CharacterShowcase3DUI`: la tecla [F9] sin Mayús y el botón «Alternar 3D/2D».
+- `scenes/World.tscn`: el nodo `Parallax2D` y su textura; `scripts/World.gd`: su ajuste y su efecto.
+- `docs/CONTROLES.md`: F9 solo con Mayús (visor de personajes).
+
+**Qué se queda a propósito:** las tres capas de baldosas (`Floor`, `Obstacles Small/Large`): llevan los choques y la
+navegación de los enemigos (`nav_source`), y ya no se dibujan (capa 2D tapada). Y los dibujos 2D del mapa (polígonos y
+sprites de muebles, suelos de las salas…): se crean y se ocultan; borrarlos es un trabajo largo por archivos (posada,
+restaurante, cultura…) y no cambia nada visible. Apuntado como siguiente trozo de la limpieza.
+
+**Cómo se probó:** fisica_3d ✅ · puertas_3d 29/29 · verify_all ✅ · fotos fijas iguales que antes de quitarlo (mismas
+diferencias con la referencia: 40 % plaza por las manos nuevas, 35 % desde arriba por los vecinos).
+
+**Cómo deshacerlo:** `git revert` de este commit.
+
 ## Paso 3c — Sitios en el fondo del agua (2026-11-12, Claude Code, portátil)
 
 **Qué cambia en el juego:** nada todavía a la vista: queda preparado el mecanismo para las pistas de los casos que el

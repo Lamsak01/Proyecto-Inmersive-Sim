@@ -4,11 +4,10 @@ const _AN_SITIOS = preload("res://mapa/anclas.gd") # plan de sitios: zonas fijas
 ## Puente de Renderizado 3D en Vivo para Jugador y Vecinos — Fase 1 (Transición 3D)
 ## Envuelve un `CharacterRig3D` dentro de un `SubViewport` transparente por personaje (desactivado automáticamente
 ## fuera de cámara o en modo headless para mantener 0 ms de sobrecarga en tests y 100 vecinos).
-## Permite alternar en caliente con [F10] entre las nuevas Maquetas 3D Articuladas y los Sprites 2D originales.
+## Desde 2026-11-12 (limpieza del paso a 3D, decisión del usuario) ya no hay modo 2D: los sprites del mapa se ocultan siempre.
 
 const CharacterRig3DScript = preload("res://scripts/visuals/CharacterRig3D.gd")
 
-static var use_3d_characters: bool = true
 const AVATAR_RES: int = 64
 const Mapa3D = preload("res://scripts/fisica/Mapa3D.gd")
 const Suelo = preload("res://scripts/fisica/Suelo.gd")
@@ -24,7 +23,6 @@ var dir_light: DirectionalLight3D = null
 var _appearance_dirty: bool = true
 var _appearance_sync_timer: float = 0.0
 var _last_equipped_sig: String = ""
-var _last_was_3d: bool = true
 
 # --- Modo «dentro del escenario» (2026-11-05): el muñeco 3D vive en el mismo mundo 3D que los edificios ---
 # Así le tapan las paredes, proyecta sombra y le ilumina el sol y las farolas, en vez de pegarse encima como una pegatina.
@@ -249,15 +247,6 @@ func _process(delta: float) -> void:
 		_process_in_stage(delta)
 		return
 
-	if _last_was_3d != use_3d_characters:
-		_last_was_3d = use_3d_characters
-		_apply_2d_vs_3d_visibility()
-
-	if not use_3d_characters:
-		if sub_viewport:
-			sub_viewport.render_target_update_mode = SubViewport.UPDATE_DISABLED
-		return
-
 	# Al volver de 2D a 3D (F10), reactivar el SubViewport del jugador: antes se quedaba congelado y parecía que
 	# sus animaciones dejaban de funcionar.
 	if sub_viewport and is_player_avatar:
@@ -293,11 +282,8 @@ func _process_in_stage(delta: float) -> void:
 		if not _attach_to_stage():
 			return
 		_sync_appearance_now()
-	if _last_was_3d != use_3d_characters:
-		_last_was_3d = use_3d_characters
-		_apply_2d_vs_3d_visibility()
 	var fp_on: bool = _stage != null and _stage.get("first_person_active") == true
-	var show := use_3d_characters and target_entity.is_visible_in_tree()
+	var show := target_entity.is_visible_in_tree()
 	if is_player_avatar and fp_on:
 		show = false
 	elif show and not is_player_avatar:
@@ -384,26 +370,27 @@ func _is_entity_near_camera() -> bool:
 	var half_ext: Vector2 = (vp.get_visible_rect().size / zoom_val) * 0.55 + Vector2(90.0, 90.0)
 	return absf(target_entity.global_position.x - center.x) <= half_ext.x and absf(target_entity.global_position.y - center.y) <= half_ext.y
 
+## Esconde los dibujos 2D del personaje (el muñeco 3D los sustituye); en 1.ª persona también el del protagonista.
 func _apply_2d_vs_3d_visibility() -> void:
 	var fp_on: bool = _stage != null and _stage.get("first_person_active") == true
 	if display_sprite:
-		display_sprite.visible = use_3d_characters and not (is_player_avatar and fp_on)
+		display_sprite.visible = not (is_player_avatar and fp_on)
 	if not is_instance_valid(target_entity):
 		return
 	if is_player_avatar:
 		var anim_2d := target_entity.get_node_or_null("Animations") as CanvasItem
 		if anim_2d:
-			anim_2d.self_modulate.a = 0.0 if use_3d_characters else 1.0
+			anim_2d.self_modulate.a = 0.0
 		var armor_ov := target_entity.get_node_or_null("ArmorPlaceholderOverlay") as CanvasItem
 		if armor_ov:
-			armor_ov.modulate.a = 0.0 if use_3d_characters else 1.0
+			armor_ov.modulate.a = 0.0
 		var c_ctrl := target_entity.get_node_or_null("PlayerCombatController")
 		if c_ctrl and "weapon_sprite" in c_ctrl and c_ctrl.weapon_sprite is CanvasItem:
-			(c_ctrl.weapon_sprite as CanvasItem).self_modulate.a = 0.0 if use_3d_characters else 1.0
+			(c_ctrl.weapon_sprite as CanvasItem).self_modulate.a = 0.0
 	else:
 		var spr_2d = target_entity.get("sprite")
 		if spr_2d is CanvasItem:
-			(spr_2d as CanvasItem).self_modulate.a = 0.0 if use_3d_characters else 1.0
+			(spr_2d as CanvasItem).self_modulate.a = 0.0
 
 func _check_and_sync_appearance() -> void:
 	var sig: String = _compute_equipment_signature()
