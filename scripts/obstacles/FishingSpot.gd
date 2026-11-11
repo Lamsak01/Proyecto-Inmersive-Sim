@@ -103,6 +103,10 @@ static func _cargar_mapa() -> void:
 	if not (d["cruces"] as Array).is_empty():
 		_cruces.assign(d["cruces"])
 	_rio_propio = not es_rio_original(d)
+	# Un puente o vado abarca siempre el agua de orilla a orilla, aunque el editor guarde un largo más corto (río ensanchado)
+	for cr in _cruces:
+		var b: Vector2 = river_banks_at(float((cr["pos"] as Vector2).y))
+		cr["half_w"] = maxf(float(cr["half_w"]), (b.y - b.x) * 0.5 + 8.0)
 
 static func es_rio_original(d: Dictionary) -> bool:
 	var pts: Array = d["pts"]
