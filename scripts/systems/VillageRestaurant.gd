@@ -535,9 +535,9 @@ static func cook_cold_room_trip(npc, rec: Dictionary, delta: float) -> bool:
 		return false
 	if npc.has_meta("cold_room_fetched"):
 		return false
-	if npc.global_position.distance_to(COLD_SHELF) > 10.0:
+	if npc.global_position.distance_to(_AN_SITIOS.mover(COLD_SHELF)) > 10.0:
 		npc._update_craft_bar_visual(0.3, "🥩 A la cámara fría a por carne", Color(0.6, 0.85, 1.0, 0.9))
-		npc._move_towards_point(COLD_SHELF, 46.0, delta)
+		npc._move_towards_point(_AN_SITIOS.mover(COLD_SHELF), 46.0, delta)
 		return true
 	npc.velocity = Vector2.ZERO
 	npc.set_meta("cold_room_fetched", true)

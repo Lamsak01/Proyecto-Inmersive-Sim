@@ -1516,7 +1516,7 @@ static func is_route_caravan_at_plaza(vm, route_id: String) -> bool:
 	var m = get_route_caravan_npc(vm, route_id)
 	if m == null or not is_instance_valid(m) or m.is_dead or m.is_downed or m._merchant_leaving:
 		return false
-	return bool(m.get_meta("at_plaza", false)) or m.global_position.distance_to(CARAVAN_PLAZA_POS) <= 45.0
+	return bool(m.get_meta("at_plaza", false)) or m.global_position.distance_to(_AN_SITIOS.mover(CARAVAN_PLAZA_POS)) <= 45.0
 
 static func get_mule_shipment_label(vm, route_id: String) -> String:
 	var routes: Dictionary = trade_routes_of(vm)
@@ -1611,12 +1611,12 @@ static func spawn_trade_caravan(vm, route_id: String, at_plaza: bool = false, si
 	var start_pos: Vector2 = _AN_SITIOS.mover(CARAVAN_PLAZA_POS if at_plaza else RAID_GATE_POS)
 	if existing != null and is_instance_valid(existing):
 		if at_plaza:
-			existing.global_position = CARAVAN_PLAZA_POS
+			existing.global_position = _AN_SITIOS.mover(CARAVAN_PLAZA_POS)
 			existing.set_meta("at_plaza", true)
 			existing._merchant_leaving = false
 			var ex_mule = get_route_caravan_mule(vm, route_id)
 			if ex_mule != null and is_instance_valid(ex_mule):
-				ex_mule.global_position = CARAVAN_PLAZA_POS + Vector2(22.0, 4.0)
+				ex_mule.global_position = _AN_SITIOS.mover(CARAVAN_PLAZA_POS) + Vector2(22.0, 4.0)
 			process_caravan_route_exchange(vm, route_id)
 		return existing
 	var r: Dictionary = routes[route_id]
@@ -1679,8 +1679,8 @@ static func update_caravan_merchant_ai(vm, merchant, delta: float) -> void:
 		return
 	merchant._merchant_leaving = false
 	merchant.current_activity = VillageNPC.ActivityState.WORKING
-	merchant._move_towards_point(CARAVAN_PLAZA_POS, 78.0, delta)
-	if merchant.global_position.distance_to(CARAVAN_PLAZA_POS) <= 22.0 and not bool(merchant.get_meta("at_plaza", false)):
+	merchant._move_towards_point(_AN_SITIOS.mover(CARAVAN_PLAZA_POS), 78.0, delta)
+	if merchant.global_position.distance_to(_AN_SITIOS.mover(CARAVAN_PLAZA_POS)) <= 22.0 and not bool(merchant.get_meta("at_plaza", false)):
 		merchant.set_meta("at_plaza", true)
 		process_caravan_route_exchange(vm, route_id)
 
@@ -1710,7 +1710,7 @@ static func caravans_on_hour(vm, hour: int) -> void:
 			var m = get_route_caravan_npc(vm, rid)
 			if m == null:
 				spawn_trade_caravan(vm, rid, true, true)
-			elif not bool(m.get_meta("at_plaza", false)) and m.global_position.distance_to(CARAVAN_PLAZA_POS) <= 45.0:
+			elif not bool(m.get_meta("at_plaza", false)) and m.global_position.distance_to(_AN_SITIOS.mover(CARAVAN_PLAZA_POS)) <= 45.0:
 				m.set_meta("at_plaza", true)
 				process_caravan_route_exchange(vm, rid)
 		elif hour == 16:

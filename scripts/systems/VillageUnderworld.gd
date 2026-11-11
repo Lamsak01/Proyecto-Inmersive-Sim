@@ -823,8 +823,8 @@ static func update_smuggler_merchant_ai(vm, merchant, delta: float) -> void:
 	if st_mode == "leaving":
 		merchant._merchant_leaving = true
 		merchant.current_activity = VillageNPC.ActivityState.WORKING
-		merchant._move_towards_point(SMUGGLER_BORDER_POS, 68.0, delta)
-		if merchant.global_position.distance_to(SMUGGLER_BORDER_POS) < 28.0:
+		merchant._move_towards_point(_AN_SITIOS.mover(SMUGGLER_BORDER_POS), 68.0, delta)
+		if merchant.global_position.distance_to(_AN_SITIOS.mover(SMUGGLER_BORDER_POS)) < 28.0:
 			despawn_smuggler_caravan(vm)
 		return
 	var camp_spot: Vector2 = _AN_SITIOS.mover(SMUGGLER_CAMP_POS + Vector2(-24.0, 4.0))
