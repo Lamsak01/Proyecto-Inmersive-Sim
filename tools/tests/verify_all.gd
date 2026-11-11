@@ -2644,7 +2644,7 @@ func _initialize() -> void:
 	vm.shop_businesses[v5e_role]["sabotaged_days"] = 0
 	v5e_s.personal_gold = 30
 	var v5e_tr0: int = int(vm.town_state.get("treasury", 0))
-	assert(vcu.open_market(vm) >= 1 and v5e_s.work_position in vcu.MARKET_SPOTS, "V5e: A seller with surplus sets up in the plaza")
+	assert(vcu.open_market(vm) >= 1 and v5e_s.work_position in vm.sitios(vcu.MARKET_SPOTS), "V5e: A seller with surplus sets up in the plaza")
 	assert(v5e_s.personal_gold == 30 - vcu.MARKET_STALL_FEE and int(vm.town_state.get("treasury", 0)) >= v5e_tr0 + vcu.MARKET_STALL_FEE, "V5e arcas: Each market seller pays the stall fee from their pocket into the treasury")
 	var v5e_b = v5b_people[0]
 	var v5e_bg: int = v5e_b.personal_gold
