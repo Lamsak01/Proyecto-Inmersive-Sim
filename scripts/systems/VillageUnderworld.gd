@@ -1440,7 +1440,7 @@ static func on_player_action(vm, npc, action_id: String, inv) -> void:
 	elif action_id == "underworld_take_heist":
 		var idx: int = int(st.get("heists_done", 0)) % HEIST_TARGETS.size()
 		var t: Dictionary = HEIST_TARGETS[idx]
-		var p: Vector2 = t["pos"]
+		var p: Vector2 = _AN_SITIOS.mover(t["pos"]) # se guarda ya en el mundo (mapa ×E, edificio movido)
 		st["active_heist"] = {"id": str(t["id"]), "label": str(t["label"]), "pos_x": p.x, "pos_y": p.y, "reward": int(t["reward"]), "stolen": false}
 		sync_heist_visuals(vm)
 		npc._spawn_floating_text("🕶️💎 «Un coleccionista paga 55 de oro por %s. Tráemelo tú: ve allí de noche y que nadie te vea.»" % str(t["label"]), Color.GOLD, -46.0)

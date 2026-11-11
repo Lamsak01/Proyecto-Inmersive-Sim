@@ -4608,7 +4608,7 @@ func _initialize() -> void:
 	assert(str(fis2_heist_node.call("get_interact_label", p70_pl)).begins_with("Robar "), "FIS2.3f: Heist target prop has [E] Robar ... label")
 	t5_wc.current_hour = 23
 	p70_pl.global_position = M(Vector2(-5000.0, -5000.0))
-	var fis2_caliz_pos: Vector2 = (vun.HEIST_TARGETS[1] as Dictionary)["pos"]
+	var fis2_caliz_pos: Vector2 = M((vun.HEIST_TARGETS[1] as Dictionary)["pos"])
 	var fis2_stole: bool = vun.try_interact(vm, p70_pl, fis2_caliz_pos)
 	assert(fis2_stole and bool(vun.state(vm)["active_heist"].get("stolen", false)), "FIS2.3g: Interacting with heist target at night steals the object")
 	assert(root.get_tree().get_nodes_in_group("heist_target_prop").size() == 0, "FIS2.3h: Stolen heist target prop disappears from the world")
@@ -6882,11 +6882,11 @@ func _initialize() -> void:
 	b3_hs["player_animals"] = [{"species": "sheep", "stage": "adult", "age_days": 8, "power": 2, "fed_day": b3_vh.today()}]
 	b3_vh.sync_livestock(vm)
 	assert(b3_vh.move_toby_to_lot(vm, b3_lot), "B3.2: Player with a built house can relocate Toby and his feeder to their lot")
-	var b3_expected_toby_pos: Vector2 = b3_vh.toby_pos_for_lot(vm, b3_lot)
+	var b3_expected_toby_pos: Vector2 = M(b3_vh.toby_pos_for_lot(vm, b3_lot))
 	assert(b3_toby != null and b3_toby.home_position.distance_to(b3_expected_toby_pos) < 1.0 and b3_bed != null and b3_bed.global_position.distance_to(b3_expected_toby_pos) < 1.0, "B3.3: Toby's home_position and PetBed_Toby move to the player's lot")
 	# 3. Trasladar el gallinero y animales mueve PlayerChickenCoop y los animales de player_livestock al corral del solar
 	assert(b3_vh.move_coop_to_lot(vm, b3_lot), "B3.4: Player with a built house can relocate the chicken coop and livestock to their lot")
-	var b3_expected_coop_pos: Vector2 = b3_vh.coop_pos_for_lot(vm, b3_lot)
+	var b3_expected_coop_pos: Vector2 = M(b3_vh.coop_pos_for_lot(vm, b3_lot))
 	assert(b3_coop != null and b3_coop.global_position.distance_to(b3_expected_coop_pos) < 1.0 and b3_coop.get("coop_built") == true, "B3.5: ChickenCoop moves to the player's lot and is active")
 	var b3_pen: Rect2 = b3_vh._player_pen_rect(vm)
 	var b3_pl_livestock: Array = get_nodes_in_group("player_livestock")
