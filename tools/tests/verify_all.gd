@@ -2630,8 +2630,8 @@ func _initialize() -> void:
 	if v5e_pl != null:
 		vcu.state(vm)["player_read_day"] = -1
 		var v5e_rd: int = int(vcu.state(vm)["readings"])
-		assert(vcu.try_interact(vm, v5e_pl, vcu.reading_spot()) and int(vcu.state(vm)["readings"]) == v5e_rd + 1, "V5e: The player reads at the library")
-		vcu.try_interact(vm, v5e_pl, vcu.reading_spot())
+		assert(vcu.try_interact(vm, v5e_pl, M(vcu.reading_spot())) and int(vcu.state(vm)["readings"]) == v5e_rd + 1, "V5e: The player reads at the library")
+		vcu.try_interact(vm, v5e_pl, M(vcu.reading_spot()))
 		assert(int(vcu.state(vm)["readings"]) == v5e_rd + 1, "V5e: Only once a day")
 	# Mercado: quien tiene género de sobra baja a la plaza y vuelve a su tienda al cerrar
 	var v5e_s = v5b_people[2]
