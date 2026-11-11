@@ -768,6 +768,10 @@ static func hack_terminal(vm, subsystem: String, inv, force_outcome: int = 0) ->
 
 const HORSE_DEFAULT_POS: Vector2 = Vector2(360, 470) # junto al Rancho del Sur
 const CART_DEFAULT_POS: Vector2 = Vector2(385, 470) # junto al Rancho del Sur, al lado del caballo
+
+## Sitio del carro recién comprado, en el mundo (el número fijo de arriba está en el mapa original).
+static func cart_default_pos() -> Vector2:
+	return _AN_SITIOS.mover(CART_DEFAULT_POS)
 const CART_THEFT_CHANCE: float = 0.12
 const RANCH_CORRAL_RECT: Rect2 = Rect2(310, 400, 87, 140)
 const PlayerHorseScript = preload("res://scripts/obstacles/PlayerHorse.gd")
@@ -836,7 +840,7 @@ static func sync_player_cart(vm) -> Node:
 		return null
 	var m: Dictionary = mounts_state(vm)
 	var mode: String = str(m.get("cart_mode", "parked"))
-	var pos := Vector2(float(m.get("cart_x", CART_DEFAULT_POS.x)), float(m.get("cart_y", CART_DEFAULT_POS.y)))
+	var pos := Vector2(float(m.get("cart_x", cart_default_pos().x)), float(m.get("cart_y", cart_default_pos().y)))
 	if mode == "parked":
 		pos = outside_of_buildings(vm, pos)
 		m["cart_x"] = pos.x
@@ -869,9 +873,9 @@ static func mounts_state(vm) -> Dictionary:
 		if not m.has(k):
 			m[k] = false
 	if not m.has("cart_x"):
-		m["cart_x"] = CART_DEFAULT_POS.x
+		m["cart_x"] = cart_default_pos().x
 	if not m.has("cart_y"):
-		m["cart_y"] = CART_DEFAULT_POS.y
+		m["cart_y"] = cart_default_pos().y
 	if not m.has("cart_mode"):
 		m["cart_mode"] = "parked"
 	if not (m.get("cart_cargo", null) is Dictionary):
@@ -892,7 +896,7 @@ static func is_cart_near_player(vm, max_dist: float = 60.0) -> bool:
 		return false
 	var cart = vm.get_tree().get_first_node_in_group("player_cart") if vm.is_inside_tree() else null
 	var m: Dictionary = mounts_state(vm)
-	var c_pos: Vector2 = cart.global_position if (cart != null and is_instance_valid(cart)) else Vector2(float(m.get("cart_x", CART_DEFAULT_POS.x)), float(m.get("cart_y", CART_DEFAULT_POS.y)))
+	var c_pos: Vector2 = cart.global_position if (cart != null and is_instance_valid(cart)) else Vector2(float(m.get("cart_x", cart_default_pos().x)), float(m.get("cart_y", cart_default_pos().y)))
 	return (pl.global_position as Vector2).distance_to(c_pos) < max_dist
 
 static func is_cart_in_safe_place(vm, pos: Vector2) -> bool:
@@ -917,7 +921,7 @@ static func cart_night_theft(vm, chance: float = CART_THEFT_CHANCE) -> int:
 		m["cart_y"] = cart.global_position.y
 	if str(m.get("cart_mode", "parked")) != "parked":
 		return 0
-	var cart_pos := Vector2(float(m.get("cart_x", CART_DEFAULT_POS.x)), float(m.get("cart_y", CART_DEFAULT_POS.y)))
+	var cart_pos := Vector2(float(m.get("cart_x", cart_default_pos().x)), float(m.get("cart_y", cart_default_pos().y)))
 	if is_cart_in_safe_place(vm, cart_pos):
 		return 0
 	var cargo: Dictionary = m.get("cart_cargo", {})
@@ -990,8 +994,8 @@ static func buy_mount(vm, kind: String, seller, inv) -> bool:
 		inv.add_gold(-CART_COST)
 		seller.personal_gold += CART_COST
 		m["has_cart"] = true
-		m["cart_x"] = CART_DEFAULT_POS.x
-		m["cart_y"] = CART_DEFAULT_POS.y
+		m["cart_x"] = cart_default_pos().x
+		m["cart_y"] = cart_default_pos().y
 		m["cart_mode"] = "parked"
 		if not (m.get("cart_cargo", null) is Dictionary):
 			m["cart_cargo"] = {}

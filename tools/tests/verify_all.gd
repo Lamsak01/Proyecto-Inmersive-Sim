@@ -5283,7 +5283,7 @@ func _initialize() -> void:
 	# 1. Comprar la carreta crea un nodo del grupo player_cart en CART_DEFAULT_POS
 	vcu_pj.on_player_action(vm, p70_a, "culture_buy_cart", p70_inv)
 	var bp2_cart = get_first_node_in_group("player_cart")
-	assert(bp2_cart != null and bp2_cart.global_position.distance_to(vcu_pj.CART_DEFAULT_POS) < 0.5, "P2.1: Buying the cart creates a node in group player_cart at CART_DEFAULT_POS")
+	assert(bp2_cart != null and bp2_cart.global_position.distance_to(M(vcu_pj.CART_DEFAULT_POS)) < 0.5, "P2.1: Buying the cart creates a node in group player_cart at CART_DEFAULT_POS")
 
 	# 2. Meter 41 troncos en la caja: entran 40, queda 1 en la mochila
 	p70_inv.add_item("wood", 41)
