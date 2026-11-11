@@ -518,6 +518,12 @@ static func _river_bank_terrace_height_px(y: float) -> float:
 	return maxf(h_min, terrain_height_px(Vector2(cx, y)) + 1.4)
 
 
+## Altura (px, sin relieve) de la lámina de agua del río a la altura `y` del mapa: un poco por encima de la orilla. La
+## usan el dibujo del río y el agua de juego (scripts/fisica/Agua.gd).
+static func superficie_rio_px(y: float) -> float:
+	return _river_bank_terrace_height_px(y) + 0.34
+
+
 ## Parte del hundimiento del cauce en un punto (para no contarla al medir la orilla).
 static func _river_cut_px(pos_2d: Vector2) -> float:
 	var y: float = pos_2d.y

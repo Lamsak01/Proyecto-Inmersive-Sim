@@ -10,6 +10,8 @@ extends Node3D
 ## solo.
 ## Paso 2: los choques de un solo piso (Suelo.piso_de_choque) se levantan solo a la altura de su piso; así en la posada
 ## los tabiques de abajo no estorban arriba y las barandillas de arriba no estorban abajo.
+## Paso 3: el agua del río y del lago (grupo «agua_2d») no se copia: el cuerpo 3D entra en ella (vadea o nada). Para los
+## vecinos, que aún andan por el mapa, sigue siendo un muro.
 ## Paso 2c: las barandillas (Suelo.es_barandilla) llegan a la cintura: se pueden saltar.
 
 const Mapa3D = preload("res://scripts/fisica/Mapa3D.gd")
@@ -46,6 +48,8 @@ func actualizar(espacio: PhysicsDirectSpaceState2D, centro: Vector2, mascara: in
 	_consulta.exclude = excluir
 	var vistos := {}
 	for r in espacio.intersect_shape(_consulta, MAX_CHOQUES):
+		if r["collider"] is Node and (r["collider"] as Node).is_in_group("agua_2d"):
+			continue
 		var rid: RID = r["rid"]
 		var idx: int = int(r["shape"])
 		var clave := "%d:%d" % [rid.get_id(), idx]

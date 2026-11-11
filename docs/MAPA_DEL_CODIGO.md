@@ -10,7 +10,7 @@
 
 | Carpeta | Qué hay | Tamaño |
 |---|---|---|
-| `scripts/fisica/` | **Nuevo (paso a 3D).** Todo lo físico del mundo 3D: conversión mapa ↔ 3D, cuerpo 3D del protagonista, choques y suelo | 4 archivos |
+| `scripts/fisica/` | **Nuevo (paso a 3D).** Todo lo físico del mundo 3D: conversión mapa ↔ 3D, cuerpo 3D del protagonista, choques y suelo | 5 archivos |
 | `scripts/` (sueltos) | El protagonista: moverse, pelear, el mundo principal | 4 archivos, ~2.800 líneas |
 | `scripts/enemies/` | Los vecinos (cerebro, trabajo, vida social, policía, diálogos), animales salvajes, mascotas, asaltantes | 12, ~10.100 |
 | `scripts/systems/` | Las reglas del pueblo: reloj, guardado, economía, casas, crimen, justicia, fe, familia, taberna… | 58, ~38.600 |
@@ -28,16 +28,17 @@
 
 ## El protagonista — `scripts/`
 - `Player.gd` [1.143] ⚠ — el jugador: vida, inventario, caballo, interacción, guardar su estado.
-- `PlayerMovementController.gd` [394] — andar, correr, rodar, saltar, sigilo. Desde el paso 1 no mueve al jugador él mismo: se lo pasa a su cuerpo 3D (`fisica/Cuerpo3D.gd`).
+- `PlayerMovementController.gd` [431] — andar, correr, rodar, saltar, sigilo. Desde el paso 1 no mueve al jugador él mismo: se lo pasa a su cuerpo 3D (`fisica/Cuerpo3D.gd`).
 - `PlayerCombatController.gd` [1.013] ⚠ — atacar, parar, empujar, apuntar.
 - `World.gd` [279] — monta el pueblo al empezar la partida, zoom, filtro de color retro.
 
 ## Física y mundo 3D — `scripts/fisica/` (nuevo)
 - `Mapa3D.gd` [~55] — **el único sitio** que pasa una posición del mapa a 3D y al revés, en metros (1 unidad = 1 m,
   igual en todas direcciones desde el paso 0b). Lo usan el juego, el editor del mapa y las herramientas.
-- `Cuerpo3D.gd` [~150] — el cuerpo 3D del protagonista (paso 1): anda, choca, cae y salta en 3D y escribe su sitio en el mapa.
-- `ChoquesCercanos3D.gd` [~150] — copias 3D, levantadas como muros, de los choques del mapa que hay cerca de un cuerpo.
-- `Suelo.gd` [~75] — a qué altura está el suelo en un punto (tarimas, plaza, puentes); dónde hay varios suelos (posada) y cuál pisa el cuerpo; de qué piso es cada choque.
+- `Cuerpo3D.gd` [~250] — el cuerpo 3D del protagonista: anda, choca, cae, salta, se hace daño al caer, vadea y nada; escribe su sitio en el mapa.
+- `ChoquesCercanos3D.gd` [~175] — copias 3D, levantadas como muros, de los choques del mapa que hay cerca de un cuerpo.
+- `Agua.gd` [~55] — dónde hay agua (río y lago), a qué altura está su superficie y cuánto cubre en cada punto.
+- `Suelo.gd` [~90] — a qué altura está el suelo en un punto (tarimas, plaza, puentes); dónde hay varios suelos (posada) y cuál pisa el cuerpo; de qué piso es cada choque.
 
 ## Lo que se ve en 3D — `scripts/visuals/`
 - `WorldStageBase3D.gd` [~1.000] ⚠ — base del escenario: relieve del suelo, materiales, cajas y cilindros 3D.

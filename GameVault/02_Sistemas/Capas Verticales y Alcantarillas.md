@@ -20,6 +20,7 @@ fuente: "Biblia §9.6"
 - Ver [[Terminales Lógicas Electromecánicas]].
 
 ## Notas de diseño
+- 2026-11-10 (Claude Code, paso a 3D 3a): el río y el lago ya no son pared: el protagonista vadea en la orilla y nada donde no hace pie (lento, sin correr ni saltar, gasta aguante), flota con la cabeza fuera y caer al agua honda no duele. Río del pueblo hondo en el centro, arroyo del norte casi se vadea, lago hondo. Bucear y las pistas en el fondo, pendientes (3b–3c). Los vecinos aún no entran al agua.
 - 2026-11-10 (Claude Code, paso a 3D 2a–2b): la posada tiene dos plantas de verdad (subes la escalera andando y tu piso sale de tu altura) y el club de peleas y las alcantarillas están de verdad unos 3 m bajo tierra (techo de roca en 1.ª persona). El sótano y el piso alto de tu casa siguen siendo capas (pendiente, paso 2e).
 - 2026-11-05 (decisión del usuario): bajar o subir por una rejilla a la vista de un guardia es sospechoso (sube la búsqueda). Oveja = alpaca y gallina de piezas, provisional hasta una pasada de arte.
 - 2026-11-05 (Claude Code): el sótano de tu casa y las alcantarillas comparten el nivel -1, pero ya se distinguen: solo estás en las alcantarillas si entraste por ellas (así no sale la escalerilla en tu sótano ni se ven las alcantarillas en 3D).

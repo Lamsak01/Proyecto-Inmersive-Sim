@@ -4,6 +4,10 @@ Cambios del juego, del más nuevo al más antiguo. Añade una entrada al cerrar 
 El detalle técnico está en `docs/HANDOFF.md` (sección 7) y el historial completo en `git log`. Lo anterior a B0.1 está en `AUDIT_LOG.md` y `SESSION_CONTEXT_LOG.md`.
 
 
+## 2026-11-10 — Paso a 3D de verdad: paso 3a, nadar (Claude Code, portátil; rama `mundo-3d`)
+- El río y el lago ya no son una pared: vadeas en la orilla y nadas donde no haces pie (lento, sin correr ni saltar, gasta aguante).
+- Flotas con la cabeza fuera y sales por la otra orilla; caer al agua honda no duele. Los vecinos aún no entran al agua.
+
 ## 2026-11-10 — Paso a 3D de verdad: paso 2c, daño por caída (Claude Code, portátil; rama `mundo-3d`)
 - Decisión del usuario: realista. Desde 3 m duele, a 8 m mata, y la caída hiere una parte del cuerpo (sobre todo piernas).
 - Preparado para mejoras futuras que reduzcan el daño por caída. Barandillas de la posada a la cintura.
@@ -19,7 +23,7 @@ El detalle técnico está en `docs/HANDOFF.md` (sección 7) y el historial compl
 - Prueba nueva: el protagonista entra y sale andando por las 29 puertas del pueblo; todas bien. Vecinos atascados: 0.
 - Fluidez igual que antes del cuerpo 3D. Paso 1 terminado; falta que el usuario lo juegue un rato.
 
-, el protagonista tiene cuerpo 3D (Claude Code, portátil; rama `mundo-3d`)
+## 2026-11-10 — Paso a 3D de verdad: paso 1a, el protagonista tiene cuerpo 3D (Claude Code, portátil; rama `mundo-3d`)
 - El protagonista anda, choca, cae y salta con un cuerpo 3D de verdad; el resto del juego sigue viéndolo en el mapa como siempre.
 - Las paredes del pueblo no se rehacen: se copian en 3D las que hay cerca. El salto usa gravedad 3D (~1,1 m).
 

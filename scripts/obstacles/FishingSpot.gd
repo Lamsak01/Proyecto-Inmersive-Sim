@@ -381,6 +381,7 @@ func _build_water_collision() -> void:
 		return
 	var body := StaticBody2D.new()
 	body.name = "LakeWaterBody"
+	body.add_to_group("agua_2d") # el protagonista (cuerpo 3D) entra en el agua; los vecinos no (paso a 3D, paso 3)
 	body.collision_layer = 1
 	body.collision_mask = 0
 	var col_poly := CollisionPolygon2D.new()

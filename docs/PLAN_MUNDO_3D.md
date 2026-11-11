@@ -4,9 +4,9 @@
 > profundidades, cuevas, lagos y **nadar y bucear** (habrá casos con pistas en el río y el lago). Quiere hacerlo **ya**,
 > antes de que el juego crezca. No volver a proponer quedarse en 2D ni «trucos de capas» como solución final.
 >
-> **Estado (2026-11-10):** plan aprobado por el usuario. **Pasos 0, 0b y 1 hechos** en la rama `mundo-3d` (mundo 3D uniforme
-> y en metros, opción B del usuario; el protagonista anda con cuerpo 3D). Falta que el usuario juegue un rato con el
-> protagonista nuevo antes del paso 2 (alturas de verdad).
+> **Estado (2026-11-10):** plan aprobado por el usuario. **Pasos 0, 0b, 1, 2a–2c y 3a hechos** en la rama `mundo-3d` (mundo 3D
+> uniforme y en metros; cuerpo 3D; posada de dos plantas; club y alcantarillas bajo tierra; daño por caída; nadar).
+> Aplazados por el usuario: 2d (guardado v4) y 2e (casa). Siguiente: 3b bucear (falta su decisión sobre el aire).
 > Autor: Claude Code (portátil). Cualquier agente que siga: lee este documento entero antes de tocar nada y apunta
 > cada paso en el **Registro** (§10).
 
@@ -174,6 +174,8 @@ para metros (gravedad 9,8, márgenes de choque) y hoy una persona mide menos de 
 - Nadar en superficie (más lento, gasta aguante), bucear (cámara bajo el agua, aire limitado, ahogarse), salir por la orilla.
 - **Pistas en el fondo:** objetos que solo se encuentran buceando (preparado para los casos; el usuario decide cuáles).
 - Se borran las colisiones 2D del río y del lago.
+- **Trozos:** 3a nadar en superficie (hecho) · 3b bucear (aire, ahogarse; falta decisión del usuario) · 3c pistas en el fondo.
+  Los choques 2D del agua se quedan hasta el paso 4: el cuerpo 3D ya no los copia, pero frenan a los vecinos.
 - **Terminado cuando:** se puede cruzar el río nadando, bucear en el lago y recoger un objeto del fondo; pruebas en verde.
 
 ### Paso 4 — Vecinos y animales en 3D
@@ -263,7 +265,8 @@ Es una estimación: se apuntará el gasto real de cada paso en el Registro para 
 | 2026-11-10 | Claude Code (portátil) | Paso 1b | Prueba nueva `tools/tests/puertas_3d.gd` (entrar y salir andando por todas las puertas); `capturas_fijas` dice dónde queda el protagonista; fotos `referencia_paso1` | puertas_3d ✅ 29/29 · atascos 0 en 6 h ✅ · fps igual que en el paso 0b (portátil aún lento: 8/5/5/7/8/8) · el cuerpo cuesta ~1 ms por paso · fotos: 5 de 7 iguales (≤ 1 %); plaza distinta porque el protagonista ya no se queda metido 4 px en un puesto | (este commit) |
 | 2026-11-10 | Claude Code (portátil) | Paso 2a | Posada con dos plantas de verdad: el cuerpo pisa el suelo que tiene debajo según su altura (Planta 0, rampa de la escalera, Planta +1) y de ahí sale el piso; choques de un solo piso levantados solo en su piso (capa 20 del mapa); cámara y muñeco sobre el cuerpo 3D; fuera el cambio de piso por posición en `VillageTavern.tick`. Etiqueta `antes-paso-2` | fisica_3d ✅ (sube y baja la escalera andando, galería, barandilla, la barandilla no estorba abajo) · puertas_3d ✅ 29/29 · verify_all ✅ | (este commit) |
 | 2026-11-10 | Claude Code (portátil) | Paso 2b | Club de peleas y alcantarillas de verdad bajo tierra (3,2 m, `Suelo.PROFUNDIDAD_SOTANO_PX`): el cuerpo, los muñecos y el dibujo 3D bajan; techo de roca en 1.ª persona; `VillageUnderworld.zona_alcantarillas`; arreglado que la cámara tomara «bajo tierra» por «sin cuerpo» | fisica_3d ✅ (baja y sube por la reja, anda por el túnel) · fotos en 1.ª persona revisadas (`docs/capturas_mundo3d/paso2b/`) · verify_all ✅ | (este commit) |
-| 2026-11-10 | Claude Code (portátil) | Paso 2c | Daño por caída «realista» (decisión del usuario): desde 3 m (~9 %) hasta mortal a 8 m; hiere una parte del cuerpo (piernas sobre todo; desde 5 m las dos piernas; en caídas grandes también tronco y cabeza) con el sistema médico que ya había; `Player.reduccion_dano_caida` para mejoras futuras; barandillas de la posada a la cintura | fisica_3d ✅ (tabla de daño, caída de 4 m: −27 y herida, salto normal sin daño, mejora del 50 %) · verify_all ✅ | (este commit) |
+| 2026-11-10 | Claude Code (portátil) | Paso 2c | Daño por caída «realista» (decisión del usuario): desde 3 m (~9 %) hasta mortal a 8 m; hiere una parte del cuerpo (piernas sobre todo; desde 5 m las dos piernas; en caídas grandes también tronco y cabeza) con el sistema médico que ya había; `Player.reduccion_dano_caida` para mejoras futuras; barandillas de la posada a la cintura | fisica_3d ✅ (tabla de daño, caída de 4 m: −27 y herida, salto normal sin daño, mejora del 50 %) · verify_all ✅ | 38695e2c |
+| 2026-11-10 | Claude Code (portátil) | Paso 3a | Nadar: el río y el lago ya no son pared para el protagonista; vadea cerca de la orilla, nada donde no hace pie (más lento, sin correr ni saltar, gasta aguante), flota con la cabeza fuera y sale por la otra orilla; caer al agua honda no duele. Hondura de juego (`Agua.gd`): río del pueblo 2,2 m en el centro, arroyo 0,6 m, lago 3,5 m | fisica_3d ✅ (cruza un tramo del río nadando, flota en el lago, no salta nadando) · puertas_3d 29/29 · verify_all ✅ | (este commit) |
 
 ### Medidas de referencia (antes del paso 1, portátil, 2026-11-10)
 - **fps en 1.ª persona** (`perf_zonas.gd`): afueras 33, plaza 29, río 23, bosque 38, molino 40, mansión 43.

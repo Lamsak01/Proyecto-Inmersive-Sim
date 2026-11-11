@@ -912,8 +912,8 @@ func _build_river_and_arroyo_3d(
 		var y_nxt: float = minf(y_end_riv, y_cur + step_y)
 		var b0: Vector2 = FishingSpotScript.river_banks_at(y_cur)
 		var b1: Vector2 = FishingSpotScript.river_banks_at(y_nxt)
-		var h0: float = _river_bank_terrace_height_px(y_cur) + 0.34
-		var h1: float = _river_bank_terrace_height_px(y_nxt) + 0.34
+		var h0: float = superficie_rio_px(y_cur)
+		var h1: float = superficie_rio_px(y_nxt)
 		var wl0: Vector3 = to_3d_flat(Vector2(b0.x - 1.5, y_cur), h0)
 		var wr0: Vector3 = to_3d_flat(Vector2(b0.y + 1.5, y_cur), h0)
 		var wl1: Vector3 = to_3d_flat(Vector2(b1.x - 1.5, y_nxt), h1)

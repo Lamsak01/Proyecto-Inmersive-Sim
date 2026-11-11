@@ -660,6 +660,7 @@ static func _spawn_river_arroyo_and_abandoned_mill(vm: VillageManager) -> void:
 	river_col_body.name = "RiverWaterCollisionBody"
 	river_col_body.collision_layer = 1
 	river_col_body.collision_mask = 0
+	river_col_body.add_to_group("agua_2d") # el protagonista (cuerpo 3D) entra en el agua; los vecinos no (paso a 3D, paso 3)
 	for seg in wet_segments:
 		var seg_l := PackedVector2Array()
 		var seg_r := PackedVector2Array()

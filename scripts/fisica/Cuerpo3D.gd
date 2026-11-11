@@ -11,11 +11,14 @@ extends CharacterBody3D
 ##   escalera andando) y avisa al pueblo de en qué piso está (`player_elevation_level`, que sigue usando el resto del juego).
 ##   Al club de peleas y a las alcantarillas (de verdad bajo tierra desde el paso 2b) y a los pisos de tu casa se sigue
 ##   llegando con [E].
+## - Paso 3: en el río y el lago (scripts/fisica/Agua.gd) pisa el fondo si hace pie; si no, flota con la cabeza fuera
+##   (nada). Caer al agua honda no hace daño.
 ## - Paso 2c: si cae desde 3 m o más, se hace daño al aterrizar (sobre todo en las piernas); a 8 m, mortal.
 
 const Mapa3D = preload("res://scripts/fisica/Mapa3D.gd")
 const Suelo = preload("res://scripts/fisica/Suelo.gd")
 const ChoquesCercanos3D = preload("res://scripts/fisica/ChoquesCercanos3D.gd")
+const Agua = preload("res://scripts/fisica/Agua.gd")
 const WorldStageBase3D = preload("res://scripts/visuals/WorldStageBase3D.gd")
 
 const RADIO_M: float = 0.28        ## lo que ocupa el protagonista visto desde arriba (5 px del mapa)
@@ -27,6 +30,11 @@ const PELDANO_M: float = 0.45      ## lo más alto que sube andando de un suelo 
 const CAIDA_DUELE_M: float = 3.0
 const CAIDA_MORTAL_M: float = 8.0
 const CAIDA_CERO_M: float = 2.5    ## donde empezaría la recta del daño (así a 3 m ya quita algo)
+## Agua (paso 3)
+const FLOTA_M: float = 1.35        ## nadando, los pies van esto bajo la superficie (la cabeza queda fuera)
+const VADEA_M: float = 0.3         ## desde esta hondura ya se anda por el agua (más despacio)
+const CAIDA_AGUA_SIN_DANO_M: float = 1.5 ## caer en agua así de honda no hace daño
+enum EnAgua { SECO, VADEANDO, NADANDO }
 
 var actor: CharacterBody2D = null
 var _mascara_2d: int = 0
@@ -37,6 +45,7 @@ var _calle_y: float = 0.0          ## suelo de abajo (calle o Planta 0): desde a
 var _ultima_pos_mapa: Vector2 = Vector2.INF
 var _movido_en_este_paso: bool = false
 var _cima_y: float = NAN           ## lo más alto que ha estado desde que dejó el suelo (NAN: está en el suelo)
+var en_agua: int = EnAgua.SECO     ## seco, vadeando o nadando (lo mira el mando del protagonista)
 
 
 ## Crea el cuerpo de `p_actor` dentro de `padre` (el escenario 3D; sin él, cualquier nodo del árbol).
@@ -94,6 +103,8 @@ func mover(vel_mapa: Vector2, delta: float) -> void:
 
 ## Salta con `impulso` (m/s hacia arriba) si está en el suelo. Devuelve si saltó.
 func saltar(impulso: float) -> bool:
+	if en_agua == EnAgua.NADANDO:
+		return false
 	if not is_on_floor() and global_position.y > _suelo_y + 0.05:
 		return false
 	velocity.y = impulso
@@ -171,6 +182,10 @@ func _altura_suelo(p: Vector2, de_golpe: bool) -> float:
 	var nivel := _nivel()
 	var relieve: float = WorldStageBase3D.terrain_height_px(p)
 	var pisos: Array[float] = Suelo.pisos_en(p) if nivel != -1 else ([] as Array[float])
+	en_agua = EnAgua.SECO
+	if pisos.is_empty() and nivel == 0 and Agua.en_agua(p):
+		_calle_y = Mapa3D.a_3d(p, relieve).y
+		return _suelo_en_agua(p)
 	if pisos.is_empty():
 		var suelo_y: float = Mapa3D.a_3d(p, relieve + Suelo.altura_px(p, nivel, vm)).y
 		# Bajo tierra (club, alcantarillas) los muros se levantan desde su propio suelo
@@ -197,10 +212,25 @@ func _vigilar_caida() -> void:
 		return
 	var caida_m: float = _cima_y - global_position.y
 	_cima_y = NAN
+	if Agua.hondura_m(actor.global_position) >= CAIDA_AGUA_SIN_DANO_M:
+		return # el agua honda frena la caída
 	var hc = actor.get("health_comp")
 	var dano: float = dano_por_caida(caida_m, float(hc.max_health) if hc != null else 100.0)
 	if dano > 0.0 and actor.has_method("recibir_dano_caida"):
 		actor.call("recibir_dano_caida", dano, caida_m)
+
+
+## En el agua: el fondo si hace pie; si no, flotando con la cabeza fuera.
+func _suelo_en_agua(p: Vector2) -> float:
+	var sup: float = Agua.superficie_y(p)
+	var hondura: float = Agua.hondura_m(p)
+	var flota: float = sup - FLOTA_M
+	var fondo: float = sup - hondura
+	if fondo < flota:
+		en_agua = EnAgua.NADANDO
+		return flota
+	en_agua = EnAgua.VADEANDO if hondura >= VADEA_M else EnAgua.SECO
+	return fondo
 
 
 func _saltar_a(p: Vector2) -> void:

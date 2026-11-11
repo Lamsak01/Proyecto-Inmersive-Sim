@@ -6,6 +6,36 @@
 
 ---
 
+## Paso 3a — Nadar en el río y en el lago (2026-11-10, Claude Code, portátil)
+
+**Qué cambia en el juego:** el agua ya no es una pared: puedes meterte en el río y en el lago. Cerca de la orilla
+vadeas (el agua te cubre las piernas y vas algo más lento); donde no haces pie, nadas: vas a menos de la mitad de
+velocidad, no puedes correr ni saltar y gastas aguante; si se te acaba, casi no avanzas. Flotas con la cabeza fuera
+y sales andando por la otra orilla. El centro del río del pueblo no se hace pie; el arroyo del bosque norte casi
+se vadea; el lago es hondo lejos de la orilla. Caer al agua honda (1,5 m o más) no hace daño. Los vecinos siguen
+sin meterse en el agua (para ellos el río sigue siendo una pared; se cambiará en el paso 4).
+
+**Por qué:** primer trozo del paso 3 (orden del usuario: «sigue para nadar y bucear»). Bucear va en el 3b.
+
+**Archivos:**
+- `scripts/fisica/Agua.gd` (nuevo): dónde hay agua, a qué altura está su superficie (la misma lámina que se dibuja)
+  y cuánto cubre en cada punto (`hondura_m`; el fondo aún no se dibuja).
+- `scripts/fisica/Cuerpo3D.gd`: en el agua el suelo del cuerpo es el fondo o, si es hondo, la altura a la que flota
+  (`_suelo_en_agua`, `FLOTA_M`); estado `en_agua` (seco / vadeando / nadando); nadando no salta; caer al agua honda
+  no duele.
+- `scripts/PlayerMovementController.gd`: `estado_agua` y `_freno_agua` (más lento y gasta aguante al nadar; sin correr).
+- `scripts/fisica/ChoquesCercanos3D.gd`: no copia los choques del agua (grupo «agua_2d»), así el cuerpo 3D entra.
+- `scripts/systems/VillageWorldBuilder.gd` y `scripts/obstacles/FishingSpot.gd`: los choques del río y del lago van en
+  el grupo «agua_2d» (siguen ahí para los vecinos).
+- `scripts/visuals/WorldStageBase3D.gd`: `superficie_rio_px` (la altura del agua del río, ahora en un solo sitio);
+  `WorldStageTerrain3D.gd` la usa al dibujar el río.
+- `tools/tests/fisica_3d.gd`: prueba del paso 3 (busca un tramo de río sin puente ni rocas y lo cruza nadando; flota
+  en el lago con la cabeza fuera; nadando no se salta).
+
+**Cómo se probó:** fisica_3d ✅ · puertas_3d 29/29 · verify_all ✅.
+
+**Cómo deshacerlo:** `git revert` de este commit.
+
 ## Paso 2c — Daño por caída (2026-11-10, Claude Code, portátil)
 
 **Qué cambia en el juego:** si caes desde 3 m o más te haces daño al aterrizar: a 3 m, un 9 % de la vida; a 4 m, un 27 %;

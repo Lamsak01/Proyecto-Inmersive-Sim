@@ -23,6 +23,7 @@ func _initialize() -> void:
 	await _paso2_pisos()
 	await _paso2b_bajo_tierra()
 	await _paso2c_caidas()
+	await _paso3_nadar()
 	print("FISICA 3D: %s (%d fallos)" % ["PASSED" if _fallos == 0 else "FAILED", _fallos])
 	quit(1 if _fallos > 0 else 0)
 
@@ -259,6 +260,70 @@ func _paso2c_caidas() -> void:
 	pl.reduccion_dano_caida = 0.0
 	hc.current_health = hc.max_health
 	mc.set_physics_process(true)
+
+
+## Paso 3: se cruza el río nadando (en el centro no se hace pie) y se flota en el lago con la cabeza fuera.
+func _paso3_nadar() -> void:
+	var pl = get_first_node_in_group("player")
+	var vm = get_first_node_in_group("village_manager")
+	var mc = pl.get_node("PlayerMovementController")
+	var Agua = load("res://scripts/fisica/Agua.gd")
+	var Cuerpo3D = load("res://scripts/fisica/Cuerpo3D.gd")
+	var FishingSpot = load("res://scripts/obstacles/FishingSpot.gd")
+	mc.set_physics_process(false)
+	vm.set_player_elevation_level(0)
+	var c: CharacterBody3D = mc.cuerpo()
+	# Un tramo del río en el pueblo sin puente ni rocas: de la orilla oeste a la este
+	var y_rio: float = _tramo_de_rio_libre(pl, FishingSpot)
+	_ok(not is_nan(y_rio), "3: hay un tramo de río sin puente ni rocas para cruzar")
+	if is_nan(y_rio):
+		return
+	var orillas: Vector2 = FishingSpot.river_banks_at(y_rio)
+	pl.global_position = Vector2(orillas.x - 14.0, y_rio)
+	await _andar(pl, mc, Vector2.ZERO, 0.0, 0.3)
+	var aguante_antes: float = pl.stamina_comp.current_stamina if "stamina_comp" in pl else 0.0
+	var nado: bool = false
+	for _i in range(5 * 60):
+		pl.velocity = Vector2.RIGHT * 120.0 * (mc.AGUA_NADO_MULT if mc.estado_agua() == Cuerpo3D.EnAgua.NADANDO else 1.0)
+		mc._mover()
+		await physics_frame
+		if mc.estado_agua() == Cuerpo3D.EnAgua.NADANDO:
+			nado = true
+			if absf(c.global_position.y - (Agua.superficie_y(pl.global_position) - Cuerpo3D.FLOTA_M)) > 0.1:
+				break
+		if pl.global_position.x > orillas.y + 12.0:
+			break
+	_ok(nado, "3: en el centro del río no se hace pie: nada (hondo %.1f m)" % Agua.hondura_m(Vector2(FishingSpot.river_center_x(y_rio), y_rio)))
+	_ok(pl.global_position.x > orillas.y + 8.0 and mc.estado_agua() == Cuerpo3D.EnAgua.SECO, "3: cruza el río nadando y sale por la otra orilla (" + str(pl.global_position.round()) + ")")
+	# En el lago: flota con la cabeza fuera
+	pl.global_position = Vector2(-880.0, 160.0)
+	await _andar(pl, mc, Vector2.ZERO, 0.0, 0.5)
+	var cabeza: float = c.global_position.y + 1.74 - Agua.superficie_y(pl.global_position)
+	_ok(mc.estado_agua() == Cuerpo3D.EnAgua.NADANDO and cabeza > 0.2 and cabeza < 0.6, "3: en el lago flota con la cabeza fuera (%.2f m sobre el agua)" % cabeza)
+	_ok(not pl.start_jump(), "3: nadando no se puede saltar")
+	pl.global_position = Anclas.mover(Vector2(454.0, -100.0))
+	await _andar(pl, mc, Vector2.ZERO, 0.0, 0.3)
+	mc.set_physics_process(true)
+
+
+## La «y» de un tramo del río en el pueblo que se puede cruzar en línea recta (sin puente ni rocas). NAN si no hay.
+func _tramo_de_rio_libre(pl, FishingSpot) -> float:
+	var espacio: PhysicsDirectSpaceState2D = pl.get_world_2d().direct_space_state
+	var agua: Array[RID] = [pl.get_rid()]
+	for n in get_nodes_in_group("agua_2d"):
+		agua.append((n as CollisionObject2D).get_rid())
+	for y in range(-150, 300, 10):
+		var o: Vector2 = FishingSpot.river_banks_at(float(y))
+		if FishingSpot.is_in_river_crossing(Vector2((o.x + o.y) * 0.5, float(y)), 25.0) or o.y - o.x < 40.0:
+			continue
+		var libre := true
+		for dy in [-6.0, 0.0, 6.0]: # un pasillo del ancho del cuerpo
+			var q := PhysicsRayQueryParameters2D.create(Vector2(o.x - 16.0, y + dy), Vector2(o.y + 16.0, y + dy), 1, agua)
+			if not espacio.intersect_ray(q).is_empty():
+				libre = false
+		if libre:
+			return float(y)
+	return NAN
 
 
 ## Un punto bajo la barandilla sur de la galería donde en la Planta 0 no hay nada (solo la barandilla de arriba).

@@ -10,6 +10,12 @@ const Mapa3D = preload("res://scripts/fisica/Mapa3D.gd")
 const MOUNT_SPEED_MULT: float = 1.45
 const CART_HAND_SPEED_MULT: float = 0.55
 const CART_HORSE_SPEED_MULT: float = 0.80
+## Agua (paso a 3D, paso 3): vadeando vas más despacio; nadando, más aún, sin correr y gastando aguante (sin aguante, a
+## duras penas).
+const AGUA_VADEO_MULT: float = 0.7
+const AGUA_NADO_MULT: float = 0.45
+const AGUA_NADO_AGOTADO_MULT: float = 0.2
+const NADO_COSTE_POR_SEG: float = 6.0
 @export var sprint_speed: float = 200.0
 @export var stealth_speed: float = 60.0
 @export var acceleration: float = 1400.0
@@ -322,7 +328,7 @@ func _handle_input(delta: float) -> void:
 
 	var c_sw = player.get_node_or_null("PlayerCombatController")
 	var aiming_gun: bool = c_sw != null and bool(c_sw.get("is_aiming_firearm"))
-	var wants_sprint = is_sprint_pressed and not is_stealthing and not pulling_hand and not aiming_gun and input != Vector2.ZERO
+	var wants_sprint = is_sprint_pressed and not is_stealthing and not pulling_hand and not aiming_gun and input != Vector2.ZERO and estado_agua() != Cuerpo3D.EnAgua.NADANDO
 	if wants_sprint and c_sw != null and int(c_sw.get("reload_step")) > 0 and c_sw.has_method("cancel_reload"):
 		c_sw.call("cancel_reload", "Correr")
 	if is_instance_valid(stamina_comp):
@@ -363,6 +369,8 @@ func _handle_input(delta: float) -> void:
 	elif bool(player.get("is_pulling_cart")):
 		current_speed *= CART_HAND_SPEED_MULT
 
+	current_speed *= _freno_agua(input != Vector2.ZERO, delta)
+
 	# C7: mientras golpeas, apuntas con arma de fuego o recargas andas más despacio
 	if c_sw != null and float(c_sw.get("attack_timer")) > 0.0:
 		current_speed *= float(c_sw.get("swing_move_mult"))
@@ -384,6 +392,21 @@ func _handle_input(delta: float) -> void:
 	else:
 		player.velocity = player.velocity.move_toward(Vector2.ZERO, friction * delta)
 		_play_idle()
+
+## Seco, vadeando o nadando (Cuerpo3D.EnAgua).
+func estado_agua() -> int:
+	return int(_cuerpo.en_agua) if is_instance_valid(_cuerpo) else Cuerpo3D.EnAgua.SECO
+
+## Cuánto frena el agua (paso a 3D, paso 3). Nadando y moviéndote gastas aguante.
+func _freno_agua(moviendose: bool, delta: float) -> float:
+	match estado_agua():
+		Cuerpo3D.EnAgua.VADEANDO:
+			return AGUA_VADEO_MULT
+		Cuerpo3D.EnAgua.NADANDO:
+			if not moviendose or not is_instance_valid(stamina_comp):
+				return AGUA_NADO_MULT
+			return AGUA_NADO_MULT if stamina_comp.use_stamina(NADO_COSTE_POR_SEG * delta) else AGUA_NADO_AGOTADO_MULT
+	return 1.0
 
 func _update_visual_state() -> void:
 	var target_alpha := 0.6 if is_stealthing else 1.0
