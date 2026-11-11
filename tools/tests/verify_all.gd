@@ -6453,7 +6453,7 @@ func _initialize() -> void:
 	assert(r1_w.distance_to(M(r1_rs.BASE) + Vector2(183, 135)) < 3.0, "R1.4: From the dining room to the cold room you first head to the kitchen pass (%s)" % str(r1_w))
 	r1_w = vm.get_navigation_waypoint(M(r1_rs.BASE) + Vector2(235, 126), M(r1_rs.COLD_SHELF), null)
 	assert(r1_w.distance_to(M(r1_rs.BASE) + Vector2(235, 92)) < 3.0, "R1.5: From the kitchen you head to the cold room door (%s)" % str(r1_w))
-	r1_w = vm.get_navigation_waypoint(r1_rs.COLD_SHELF, M(r1_rs.BASE) + Vector2(130, 266), null)
+	r1_w = vm.get_navigation_waypoint(M(r1_rs.COLD_SHELF), M(r1_rs.BASE) + Vector2(130, 266), null)
 	assert(r1_w.distance_to(M(r1_rs.BASE) + Vector2(235, 68)) < 3.0, "R1.6: Leaving the cold room you go back through its door (%s)" % str(r1_w))
 	var r1_rt: int = int(c72_n.TradeRole.RESTAURATEUR)
 	assert(vm.trade_configs.has(r1_rt) and vm.shop_businesses.has(r1_rt), "R1.7: The cook's post exists (vacant until someone comes)")
