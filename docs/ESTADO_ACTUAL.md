@@ -21,8 +21,7 @@ Fallos visibles pendientes de la partida del usuario (`docs/FALLOS_VISIBLES.md`)
   persona, agua con movimiento, modo 2D borrado, rendimiento (plaza ~25 fps en el portátil).
 
 ## c) Siguiente paso técnico inmediato
-Ninguno en marcha: esperar al usuario. Candidatos: pistas en el fondo del agua (mecanismo listo, faltan cuáles), rehacer edificios antiguos uno a uno, mapa 3× más grande.
+Ninguno en marcha: esperar al usuario. Candidatos: rehacer edificios antiguos uno a uno, mapa 3× más grande.
 
 ## d) Bloqueos activos
-- Pistas en el fondo del agua: mecanismo listo; el usuario decide cuáles.
 - Prueba `verify_all.gd`, sección «S2: un testigo convierte la infidelidad en chisme»: falla al azar (repetir si falla).

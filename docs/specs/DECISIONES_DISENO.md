@@ -43,4 +43,5 @@
 - Controles: todas las teclas en `docs/CONTROLES.md`; trucos de tiempo y modo pruebas con Ctrl.
 - **Caso I con un día de margen** (2026-11-11): el día 1 llegas y conoces el pueblo; el caso estalla el día 2 al amanecer.
 - **Los sapos de la Llanura Salvaje se descartan**: sus puestos los ocupan bandidos (2026-11-11).
-- Pendientes de decisión del usuario: qué pistas van al fondo del agua; dónde habrá cuevas.
+- **Pistas en el fondo del agua** (2026-11-11): el mecanismo queda listo pero **no se usa en el Caso I**; será para otros casos.
+- Pendiente de decisión del usuario: dónde habrá cuevas.
