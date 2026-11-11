@@ -388,7 +388,11 @@ static func pick_poker_seat_for(vm, npc) -> Vector2:
 
 # ------------------------------------------------------------------ navegación entre salas y entre pisos (Planta 0 y Planta +1)
 static func is_upper_floor_target(pos: Vector2) -> bool:
-	pos = _AN_SITIOS.desmover(pos) # plan de sitios: se compara en el mapa original
+	return es_cama_alta_original(_AN_SITIOS.desmover(pos)) # plan de sitios: se compara en el mapa original
+
+
+## Lo mismo con un punto YA en el mapa original (dentro de `_route_original`; traducirlo dos veces lo estropea con el mapa ×E).
+static func es_cama_alta_original(pos: Vector2) -> bool:
 	if not RECT.grow(6.0).has_point(pos):
 		return false
 	for b in ALL_UPPER_BEDS:
@@ -496,7 +500,7 @@ static func _route_original(from_pos: Vector2, target_pos: Vector2, agent: Node2
 	var from_elev: int = 0
 	if agent != null and "elevation_level" in agent:
 		from_elev = int(agent.elevation_level)
-	var to_elev: int = 1 if is_upper_floor_target(target_pos) else 0
+	var to_elev: int = 1 if es_cama_alta_original(target_pos) else 0 # target_pos ya está en el mapa original
 
 	# Subir de Planta 0 a Planta +1 por la escalera
 	if from_elev == 0 and to_elev == 1:

@@ -266,7 +266,7 @@ func _nivel_de(a: Area2D, tgt: Node, nivel_prota: int) -> int:
 		return int(tgt.get("elevation_level"))
 	var pos: Vector2 = Anclas.desmover(a.global_position)
 	if a.has_meta("village_station") and VillageTavern.RECT.has_point(pos):
-		return 1 if VillageTavern.is_upper_floor_target(pos) else 0
+		return 1 if VillageTavern.es_cama_alta_original(pos) else 0 # pos ya está en el mapa original
 	return nivel_prota
 
 

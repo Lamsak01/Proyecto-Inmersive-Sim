@@ -100,6 +100,7 @@ func _crear_copia(rid: RID, idx: int) -> StaticBody3D:
 	if forma == null:
 		return null
 	var cuerpo := StaticBody3D.new()
+	cuerpo.collision_layer = 4 if cruza_agua else 8 # Cuerpo3D.CAPA_MUROS_PROTA / CAPA_MUROS_VECINO: cada cuerpo choca solo con sus copias
 	cuerpo.set_meta("banda", banda)
 	var cs := CollisionShape3D.new()
 	cs.shape = forma

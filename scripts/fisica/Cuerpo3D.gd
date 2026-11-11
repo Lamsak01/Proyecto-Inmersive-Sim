@@ -45,6 +45,8 @@ const VADEA_M: float = 0.3         ## desde esta hondura ya se anda por el agua 
 const CAIDA_AGUA_SIN_DANO_M: float = 1.5 ## caer en agua así de honda no hace daño
 const APARTA_PX_S: float = 40.0    ## a lo que aparta a quien tiene delante al andar contra él (píxeles del mapa por segundo)
 const CAPA_PROTA: int = 1          ## capa 3D del cuerpo del protagonista
+const CAPA_MUROS_PROTA: int = 4    ## copias de paredes del protagonista: solo le frenan a él (mapa ×5, 2026-11-11: un
+const CAPA_MUROS_VECINO: int = 8   ##   vecino copia el agua como muro y eso frenaba al protagonista en la orilla)
 const CAPA_VECINO: int = 2         ## capa 3D de los cuerpos de los vecinos (no chocan entre sí; sí con el protagonista)
 const MASCARA_MUROS_2D: int = 1    ## con qué choca en el mapa un vecino (paredes, muebles, puertas, agua)
 const RADIO_CHOQUES_VECINO_PX: float = 48.0 ## un vecino copia solo las paredes que tiene al lado
@@ -95,7 +97,7 @@ func _ready() -> void:
 	safe_margin = 0.01
 	process_physics_priority = 100 # después de quien lo mueve: así sabe si ese paso ya se movió
 	collision_layer = CAPA_PROTA if es_prota else CAPA_VECINO
-	collision_mask = (CAPA_PROTA | CAPA_VECINO) if es_prota else CAPA_PROTA
+	collision_mask = (CAPA_PROTA | CAPA_VECINO | CAPA_MUROS_PROTA) if es_prota else (CAPA_PROTA | CAPA_MUROS_VECINO)
 	_choques = ChoquesCercanos3D.new()
 	get_parent().add_child.call_deferred(_choques)
 	if es_prota:

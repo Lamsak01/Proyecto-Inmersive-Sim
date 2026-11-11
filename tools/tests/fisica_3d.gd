@@ -338,7 +338,7 @@ func _paso3_nadar() -> void:
 	hc3.current_health = hc3.max_health
 	# Paso 3c: un sitio marcado «bajo el agua» en el fondo del lago solo sale con [E] buceando
 	var sel = pl.interaction_selector
-	var fondo_area: Area2D = vm.marcar_bajo_el_agua(vm._add_station_area("PruebaFondoLago", pl.global_position, 20.0, "notice_board"))
+	var fondo_area: Area2D = vm.marcar_bajo_el_agua(vm._add_station_area("PruebaFondoLago", Anclas.desmover(pl.global_position), 20.0, "notice_board")) # _add_station_area traduce del mapa original (mapa ×E)
 	await physics_frame
 	await physics_frame
 	sel.refresh()
