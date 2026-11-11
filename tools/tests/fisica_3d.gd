@@ -29,6 +29,7 @@ func _initialize() -> void:
 	await _paso4c_animales()
 	await _paso5_vista()
 	_paso5b_oido()
+	await _paso5c_golpes()
 	print("FISICA 3D: %s (%d fallos)" % ["PASSED" if _fallos == 0 else "FAILED", _fallos])
 	quit(1 if _fallos > 0 else 0)
 
@@ -474,6 +475,58 @@ func _paso5b_oido() -> void:
 	_ok(vm.oye(bajo_galeria, 0, borde_galeria, 1) == 0.35, "5b: a través del suelo de la galería llega a un tercio")
 	_ok(vm.oye(salon, 0, salon, -1) == 0.1, "5b: de la calle a bajo tierra casi no llega")
 	root.get_node("AudioManager").emit_noise(salon, 160.0, 0, "combat") # con vecinos en varios pisos: no debe fallar
+
+
+## Paso 5c: golpes por altura de los pies; flechas con altura (plana da, muy alta pasa por encima, hacia abajo se clava).
+func _paso5c_golpes() -> void:
+	var vm = get_first_node_in_group("village_manager")
+	var pl = get_first_node_in_group("player")
+	var VillageTavern = load("res://scripts/systems/VillageTavern.gd")
+	var borde_galeria: Vector2 = Anclas.mover(Vector2(440.0, VillageTavern.GALLERY_EDGE_Y - 6.0))
+	var salon: Vector2 = Anclas.mover(Vector2(440.0, VillageTavern.GALLERY_EDGE_Y + 16.0))
+	var pie: Vector2 = Anclas.mover(VillageTavern.STAIRS_BOTTOM_POS + Vector2(0, 10))
+	_ok(not vm.alcanza(salon, 0, borde_galeria, 1), "5c: desde el salón no se golpea a quien está en la galería")
+	_ok(vm.alcanza(pie, 0, pie + Vector2(0, 12), 0), "5c: en la escalera sí se golpea a quien va unos peldaños más arriba")
+	var ciervo = null
+	for a in get_nodes_in_group("wild_animals"):
+		if int(a.species) == 1 and a.is_alive_in_ecosystem():
+			ciervo = a
+			break
+	if ciervo == null:
+		_ok(false, "5c: hay un ciervo para probar las flechas")
+		return
+	ciervo.set_physics_process(false)
+	var sitio: Vector2 = Anclas.mover(VillageTavern.DOOR_POS) + Vector2(-20.0, 80.0)
+	vm.set_player_elevation_level(0)
+	pl.global_position = sitio
+	ciervo.global_position = sitio + Vector2(60.0, 0.0)
+	await physics_frame
+	var vida: float = ciervo.current_hp
+	await _flechazo(pl, sitio, 0.0)
+	_ok(ciervo.current_hp < vida, "5c: una flecha plana a 60 px da al ciervo")
+	vida = ciervo.current_hp
+	await _flechazo(pl, sitio, 0.6)
+	_ok(ciervo.current_hp == vida, "5c: apuntando muy arriba pasa por encima")
+	var f = await _flechazo(pl, sitio, -0.6)
+	_ok(ciervo.current_hp == vida and f._is_grounded, "5c: apuntando al suelo se clava antes de llegar")
+	ciervo.set_physics_process(true)
+
+
+## Dispara una flecha desde `desde` hacia el este con la `pendiente` dada y espera a que acabe su vuelo.
+func _flechazo(pl, desde: Vector2, pendiente: float):
+	var f = load("res://scripts/systems/combat/ArrowProjectile.gd").new()
+	f.global_position = desde + Vector2(12.0, 0.0)
+	f.direction = Vector2.RIGHT
+	f.max_range = 120.0
+	f.speed = 300.0
+	f.shooter = pl
+	f.pendiente = pendiente
+	f.damage_data = load("res://scripts/systems/combat/DamageData.gd").new()
+	f.damage_data.amount = 5.0
+	root.add_child(f)
+	for _i in range(40):
+		await physics_frame
+	return f
 
 
 ## ¿Hay algún vecino o animal (con cuerpo de contacto, paso 4b–4c) dentro de `zona`?

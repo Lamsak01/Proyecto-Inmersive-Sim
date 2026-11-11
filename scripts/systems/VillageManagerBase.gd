@@ -637,6 +637,10 @@ func ve(a: Vector2, nivel_a: int, b: Vector2, nivel_b: int) -> bool:
 func oye(a: Vector2, nivel_a: int, b: Vector2, nivel_b: int) -> float:
 	return Vista.oye(self, a, nivel_a, b, nivel_b)
 
+## Paso 5c: ¿quien está en `a` (piso `nivel_a`) llega a golpear a quien está en `b` (piso `nivel_b`)? Por altura de los pies.
+func alcanza(a: Vector2, nivel_a: int, b: Vector2, nivel_b: int) -> bool:
+	return Vista.alcanza(self, a, nivel_a, b, nivel_b)
+
 ## Navegación inteligente por pasillos de puertas y tabiques internos (sin atascos ni giros contra muros)
 
 func get_navigation_waypoint(from_pos: Vector2, to_pos: Vector2, agent: Node2D = null) -> Vector2:

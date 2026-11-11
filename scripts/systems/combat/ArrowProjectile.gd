@@ -4,6 +4,13 @@ class_name ArrowProjectile
 ## Proyectil de Flecha con Caída Balística y Escala Proporcionada — Fase 3.4
 ## Vuela describiendo un arco parabólico con sombra en el suelo, tiene alcance limitado
 ## y al perder fuerza cae y se clava en la tierra en lugar de volar infinitamente.
+## Paso a 3D, paso 5c (2026-11-10): vuela con altura de verdad. Sale a la altura del pecho de quien dispara y, si es el
+## protagonista en 1.ª persona, con la pendiente hacia donde mira (arriba o abajo). Solo hiere a quien esté a esa altura;
+## si baja hasta el suelo se clava (la bala desaparece), y un suelo alto (la galería de la posada) la para.
+
+const Vista = preload("res://scripts/fisica/Vista.gd")
+const Mapa3D = preload("res://scripts/fisica/Mapa3D.gd")
+const WorldStageBase3D = preload("res://scripts/visuals/WorldStageBase3D.gd")
 
 var direction: Vector2 = Vector2.RIGHT
 var speed: float = 300.0
@@ -12,6 +19,11 @@ var damage_data: DamageData = null
 var shooter: Node = null
 var is_bullet: bool = false
 
+var altura_px: float = NAN     ## altura actual (px de altura, con relieve); si nadie la pone, la del pecho de quien dispara
+var pendiente: float = NAN     ## px de altura que sube por cada px que avanza; si nadie la pone, hacia donde mira el protagonista
+var _nivel: int = 0            ## piso de quien dispara (para saber qué suelo hay debajo)
+var _origen: Vector2 = Vector2.ZERO
+var _altura_origen: float = 0.0
 var _traveled_dist: float = 0.0
 var _is_grounded: bool = false
 var _arrow_sprite: Sprite2D = null
@@ -26,6 +38,7 @@ func _ready() -> void:
 	collision_layer = 0
 	collision_mask = 5 # Capas 1 (entorno/obstáculos) y 3 (hurtboxes de enemigos/animales)
 	rotation = direction.angle()
+	_preparar_altura()
 
 	_col_shape = CollisionShape2D.new()
 	var rect := RectangleShape2D.new()
@@ -70,6 +83,13 @@ func _physics_process(delta: float) -> void:
 
 	global_position += direction * step
 	_traveled_dist += step
+	altura_px += pendiente * step
+	if _toca_suelo():
+		if is_bullet:
+			queue_free()
+		else:
+			_stick_in_ground()
+		return
 
 	# Arco parabólico visual (solo para flechas)
 	if _arrow_sprite and not is_bullet:
@@ -85,6 +105,38 @@ func _physics_process(delta: float) -> void:
 			queue_free()
 		else:
 			_stick_in_ground()
+
+## Altura y pendiente de salida (paso 5c).
+func _preparar_altura() -> void:
+	var vm = get_tree().get_first_node_in_group("village_manager")
+	var es_prota: bool = is_instance_valid(shooter) and shooter.is_in_group("player")
+	if es_prota and vm != null:
+		_nivel = int(vm.get("player_elevation_level"))
+	elif is_instance_valid(shooter) and "elevation_level" in shooter:
+		_nivel = int(shooter.get("elevation_level"))
+	if is_nan(altura_px):
+		altura_px = Vista.altura_ojos(global_position, _nivel, vm) - 2.0 # el pecho
+	if is_nan(pendiente):
+		pendiente = tan(WorldStageBase3D.fp_pitch) * Mapa3D.ESCALA / Mapa3D.ALTO if es_prota else 0.0
+	_origen = global_position
+	_altura_origen = altura_px
+
+
+## ¿Ha bajado hasta el suelo o ha chocado con un suelo alto?
+func _toca_suelo() -> bool:
+	var vm = get_tree().get_first_node_in_group("village_manager")
+	return altura_px <= Vista.altura_pies(global_position, _nivel, vm) or Vista.tapa_un_suelo(_origen, _altura_origen, global_position, altura_px)
+
+
+## ¿Está `n` (vecino, animal, enemigo) a la altura a la que va la flecha?
+func _a_su_altura(n: Node) -> bool:
+	if not (n is Node2D):
+		return true
+	var vm = get_tree().get_first_node_in_group("village_manager")
+	var nivel: int = int(n.get("elevation_level")) if "elevation_level" in n else _nivel
+	var pies: float = Vista.altura_pies((n as Node2D).global_position, nivel, vm)
+	return altura_px >= pies - 2.0 and altura_px <= pies + Vista.ALTO_CUERPO_PX
+
 
 func _stick_in_ground() -> void:
 	_is_grounded = true
@@ -106,7 +158,7 @@ func _stick_in_ground() -> void:
 func _on_area_entered(area: Area2D) -> void:
 	if _is_grounded or area.get_parent() == shooter:
 		return
-	if area is Hurtbox and damage_data:
+	if area is Hurtbox and damage_data and _a_su_altura(area.get_parent()):
 		damage_data.is_ranged_projectile = true
 		damage_data.shot_distance_px = _traveled_dist
 		_is_grounded = true
@@ -128,6 +180,8 @@ func _on_body_entered(body: Node2D) -> void:
 	if _is_grounded or body == shooter:
 		return
 	if (body.is_in_group("wild_animals") or body.is_in_group("destructible")) and body.has_method("take_damage") and damage_data:
+		if body.is_in_group("wild_animals") and not _a_su_altura(body):
+			return
 		damage_data.is_ranged_projectile = true
 		damage_data.shot_distance_px = _traveled_dist
 		_is_grounded = true

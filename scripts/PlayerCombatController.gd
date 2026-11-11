@@ -361,8 +361,8 @@ func shove() -> bool:
 			if t == player or not (t is Node2D) or not is_instance_valid(t) or t.get("is_dead") == true:
 				continue
 			var t_elev_v = t.get("elevation_level")
-			if t_elev_v != null and int(t_elev_v) != pl_elev_shove:
-				continue
+			if vm_shove != null and not vm_shove.alcanza(player.global_position, pl_elev_shove, (t as Node2D).global_position, int(t_elev_v) if t_elev_v != null else 0):
+				continue # paso a 3D, paso 5c: por altura de los pies, no por piso
 			var to_t: Vector2 = (t as Node2D).global_position - player.global_position
 			if to_t.length() > SHOVE_RANGE or (to_t.length_squared() > 1.0 and to_t.normalized().dot(current_aim_dir) < 0.3):
 				continue
@@ -937,10 +937,10 @@ func _on_hitbox_entered(area: Area2D) -> void:
 	if area is Hurtbox:
 		var target_entity: Node = area.get_parent() if area.get_parent() else area
 		var vm_hb = get_tree().get_first_node_in_group("village_manager")
-		if vm_hb != null and target_entity != null:
+		if vm_hb != null and target_entity is Node2D:
 			var t_elev_hb = target_entity.get("elevation_level")
-			if t_elev_hb != null and int(t_elev_hb) != int(vm_hb.get("player_elevation_level")):
-				return
+			if not vm_hb.alcanza(player.global_position, int(vm_hb.get("player_elevation_level")), (target_entity as Node2D).global_position, int(t_elev_hb) if t_elev_hb != null else 0):
+				return # paso a 3D, paso 5c: por altura de los pies, no por piso
 		if target_entity in _swing_hit_targets:
 			return
 		_swing_hit_targets.append(target_entity)

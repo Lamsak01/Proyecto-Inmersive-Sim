@@ -6,6 +6,28 @@
 
 ---
 
+## Paso 5c — Golpes, flechas y balas con altura (2026-11-10, Claude Code, portátil)
+
+**Qué cambia en el juego:** tus golpes y empujones alcanzan a quien tenga los pies a menos de ~1,3 m de los tuyos
+(en la escalera de la posada sí; a quien está en la galería desde el salón, no); antes era «mismo piso». Las flechas
+y las balas vuelan con altura: salen del pecho y, en 1.ª persona, con la pendiente hacia donde miras (arriba o abajo).
+Solo hieren a quien esté a esa altura; si bajan hasta el suelo, la flecha se clava y la bala desaparece; un suelo alto
+(la galería) las para. Antes volaban planas y herían a cualquiera que cruzaran, aunque estuviera en otro piso.
+
+**Archivos:**
+- `scripts/fisica/Vista.gd`: `alcanza` (golpes por altura de los pies), `altura_pies` (lo usa también `altura_ojos`),
+  `tapa_un_suelo` ahora es pública (la usan las flechas); constantes `ALCANCE_VERTICAL_PX` y `ALTO_CUERPO_PX`.
+- `scripts/systems/VillageManagerBase.gd`: `alcanza(...)` (atajo, como `ve` y `oye`).
+- `scripts/PlayerCombatController.gd`: el empujón y el golpe usan `vm.alcanza` en vez de comparar pisos.
+- `scripts/systems/combat/ArrowProjectile.gd`: `altura_px` y `pendiente` (si nadie las pone, el pecho de quien dispara y
+  la mirada del protagonista); `_preparar_altura`, `_toca_suelo`, `_a_su_altura`.
+- `tools/tests/fisica_3d.gd`: prueba del paso 5c (5 comprobaciones; las flechas, contra un ciervo).
+- Sin tocar: los disparos de la policía son instantáneos (sin proyectil) y ya dependen de que te vean (5a).
+
+**Cómo se probó:** fisica_3d ✅ · puertas_3d 29/29 · verify_all ✅.
+
+**Cómo deshacerlo:** `git revert` de este commit.
+
 ## Paso 5b — El oído con alturas (2026-11-10, Claude Code, portátil)
 
 **Qué cambia en el juego:** un ruido (golpe, grito, disparo) ya llega a los vecinos de otro piso, más flojo: a través
