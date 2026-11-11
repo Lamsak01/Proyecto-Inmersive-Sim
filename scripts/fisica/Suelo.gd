@@ -18,6 +18,7 @@ const VillageTavern = preload("res://scripts/systems/VillageTavern.gd")
 const VillageRestaurant = preload("res://scripts/systems/VillageRestaurant.gd")
 const VillageHousing = preload("res://scripts/systems/VillageHousing.gd")
 const WorldStageBase3D = preload("res://scripts/visuals/WorldStageBase3D.gd")
+const Anclas = preload("res://mapa/anclas.gd")
 
 const TARIMA_EDIFICIO_PX: float = 2.65 ## suelo de madera dentro de los edificios
 const TARIMA_TERRAZA_PX: float = 1.8  ## terraza del restaurante
@@ -43,7 +44,7 @@ static func altura_px(pos: Vector2, nivel: int, vm: Node) -> float:
 		return 0.0
 	if vm != null and vm.has_method("_is_pos_inside_any_building") and bool(vm.call("_is_pos_inside_any_building", pos)):
 		return TARIMA_EDIFICIO_PX
-	if VillageRestaurant.TERRACE.grow(6.0).has_point(pos):
+	if VillageRestaurant.TERRACE.grow(6.0).has_point(Anclas.desmover(pos)):
 		return TARIMA_TERRAZA_PX
 	return WorldStageBase3D.surface_elevation_offset_px(pos)
 

@@ -29779,7 +29779,7 @@ position = Vector2(-1844, -126)
 y_sort_enabled = true
 
 [node name="PlayerGood" type="CharacterBody2D" parent="Entities" unique_id=2143824581 node_paths=PackedStringArray("dialogue_manager", "hint_label")]
-position = Vector2(-1180, 50)
+position = Vector2(-5900, 250)
 collision_layer = 2
 collision_mask = 5
 script = ExtResource("2_d1c63")
@@ -29833,7 +29833,7 @@ position = Vector2(1, -13)
 shape = SubResource("CapsuleShape2D_rvslj")
 
 [node name="Guia" type="CharacterBody2D" parent="Entities" unique_id=909967902 node_paths=PackedStringArray("dialogue_manager", "enemy_ai") groups=["interactable"]]
-position = Vector2(-1808, 12)
+position = Vector2(-9040, 60)
 script = ExtResource("13_i4b1j")
 dialogue_manager = NodePath("../../Systems/dialogue_manager")
 enemy_ai = NodePath("EnemyAI")
@@ -29889,16 +29889,16 @@ script = ExtResource("26_health")
 max_health = 50.0
 
 [node name="DummyEnemy" parent="Entities" unique_id=1713658462 instance=ExtResource("25_jgbtq")]
-position = Vector2(-1490, -260)
+position = Vector2(-7450, -1300)
 
 [node name="FastEnemy" parent="Entities" unique_id=138097458 instance=ExtResource("30_fast")]
-position = Vector2(-1620, -230)
+position = Vector2(-8100, -1150)
 
 [node name="BanditEnemy" parent="Entities" unique_id=1572768814 instance=ExtResource("30_fast")]
-position = Vector2(-1460, 260)
+position = Vector2(-7300, 1300)
 
 [node name="BanditEnemy2" parent="Entities" unique_id=1135446713 instance=ExtResource("30_fast")]
-position = Vector2(-1640, 320)
+position = Vector2(-8200, 1600)
 
 [node name="UI" type="CanvasLayer" parent="." unique_id=1423720545]
 metadata/_edit_lock_ = true

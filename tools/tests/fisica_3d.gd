@@ -308,7 +308,7 @@ func _paso3_nadar() -> void:
 	_ok(nado, "3: en el centro del río no se hace pie: nada (hondo %.1f m)" % Agua.hondura_m(Vector2(FishingSpot.river_center_x(y_rio), y_rio)))
 	_ok(pl.global_position.x > orillas.y + 8.0 and mc.estado_agua() == Cuerpo3D.EnAgua.SECO, "3: cruza el río nadando y sale por la otra orilla (" + str(pl.global_position.round()) + ")")
 	# En el lago: flota con la cabeza fuera
-	pl.global_position = Vector2(-880.0, 160.0)
+	pl.global_position = Anclas.mover(Vector2(-880.0, 160.0))
 	await _andar(pl, mc, Vector2.ZERO, 0.0, 0.5)
 	var cabeza: float = c.global_position.y + 1.74 - Agua.superficie_y(pl.global_position)
 	_ok(mc.estado_agua() == Cuerpo3D.EnAgua.NADANDO and cabeza > 0.2 and cabeza < 0.6, "3: en el lago flota con la cabeza fuera (%.2f m sobre el agua)" % cabeza)

@@ -29,7 +29,9 @@ func _initialize() -> void:
 		nuevos[str(b["id"])] = b["rect"]
 	var movidos := 0
 	for id in viejos.keys():
-		if nuevos.has(id) and (nuevos[id] as Rect2).position.distance_to((viejos[id] as Rect2).position + D) < 2.0:
+		var viejo: Rect2 = viejos[id]
+		var E: float = load("res://scripts/fisica/Mapa3D.gd").E # mapa ×E: el edificio va a E veces su centro, con su tamaño
+		if nuevos.has(id) and (nuevos[id] as Rect2).position.distance_to(viejo.position + viejo.get_center() * (E - 1.0) + D) < 2.0:
 			movidos += 1
 	print("SONDEO edificios movidos bien: %d de %d" % [movidos, viejos.size()])
 	var volcado := {}

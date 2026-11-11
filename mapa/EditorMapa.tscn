@@ -17,188 +17,188 @@ script = ExtResource("2_yptke")
 script = ExtResource("3_0oeyp")
 
 [node name="Punto01" type="Marker2D" parent="Rio" unique_id=533674198]
-position = Vector2(92, -1908)
+position = Vector2(460, -9540)
 gizmo_extents = 16.0
 script = ExtResource("4_jynba")
-ancho = 54.0
+ancho = 108
 
 [node name="Punto02" type="Marker2D" parent="Rio" unique_id=19252448]
-position = Vector2(-65, -1585)
+position = Vector2(-325, -7925)
 gizmo_extents = 16.0
 script = ExtResource("4_jynba")
-ancho = 73.5
+ancho = 147
 
 [node name="Punto03" type="Marker2D" parent="Rio" unique_id=1079082980]
-position = Vector2(99, -1183)
+position = Vector2(495, -5915)
 gizmo_extents = 16.0
 script = ExtResource("4_jynba")
-ancho = 49.5
+ancho = 99
 
 [node name="Punto04" type="Marker2D" parent="Rio" unique_id=1618147064]
-position = Vector2(98, -952)
+position = Vector2(490, -4760)
 gizmo_extents = 21.0
 script = ExtResource("4_jynba")
-ancho = 32.0
+ancho = 64
 
 [node name="Punto05" type="Marker2D" parent="Rio" unique_id=501928513]
-position = Vector2(82, -785)
+position = Vector2(410, -3925)
 gizmo_extents = 16.0
 script = ExtResource("4_jynba")
-ancho = 24.0
+ancho = 48
 
 [node name="Punto06" type="Marker2D" parent="Rio" unique_id=680298460]
-position = Vector2(88, -700)
+position = Vector2(440, -3500)
 gizmo_extents = 16.0
 script = ExtResource("4_jynba")
-ancho = 44.0
+ancho = 88
 
 [node name="Punto07" type="Marker2D" parent="Rio" unique_id=836426338]
-position = Vector2(174, -615)
+position = Vector2(870, -3075)
 gizmo_extents = 16.0
 script = ExtResource("4_jynba")
-ancho = 32.0
+ancho = 64
 
 [node name="Punto08" type="Marker2D" parent="Rio" unique_id=595209816]
-position = Vector2(182, -510)
+position = Vector2(910, -2550)
 gizmo_extents = 16.0
 script = ExtResource("4_jynba")
-ancho = 66.0
+ancho = 132
 
 [node name="Punto09" type="Marker2D" parent="Rio" unique_id=1424787665]
-position = Vector2(76, -430)
+position = Vector2(380, -2150)
 gizmo_extents = 16.0
 script = ExtResource("4_jynba")
-ancho = 60.5
+ancho = 121
 
 [node name="Punto10" type="Marker2D" parent="Rio" unique_id=1021542473]
-position = Vector2(96, -351)
+position = Vector2(480, -1755)
 gizmo_extents = 16.0
 script = ExtResource("4_jynba")
-ancho = 63.5
+ancho = 127
 
 [node name="Punto11" type="Marker2D" parent="Rio" unique_id=1043346708]
-position = Vector2(158, -295)
+position = Vector2(790, -1475)
 gizmo_extents = 16.0
 script = ExtResource("4_jynba")
-ancho = 51.5
+ancho = 103
 
 [node name="Punto12" type="Marker2D" parent="Rio" unique_id=130535477]
-position = Vector2(135, -217)
+position = Vector2(675, -1085)
 gizmo_extents = 16.0
 script = ExtResource("4_jynba")
-ancho = 68.5
+ancho = 137
 
 [node name="Punto13" type="Marker2D" parent="Rio" unique_id=516284945]
-position = Vector2(164, -138)
+position = Vector2(820, -690)
 gizmo_extents = 16.0
 script = ExtResource("4_jynba")
-ancho = 55.0
+ancho = 110
 
 [node name="Punto14" type="Marker2D" parent="Rio" unique_id=1325417568]
-position = Vector2(150, -58)
+position = Vector2(750, -290)
 gizmo_extents = 16.0
 script = ExtResource("4_jynba")
-ancho = 62.0
+ancho = 124
 
 [node name="Punto15" type="Marker2D" parent="Rio" unique_id=1550426035]
-position = Vector2(130, 15)
+position = Vector2(650, 75)
 gizmo_extents = 16.0
 script = ExtResource("4_jynba")
-ancho = 74.5
+ancho = 149
 
 [node name="Punto16" type="Marker2D" parent="Rio" unique_id=1991060837]
-position = Vector2(126, 50)
+position = Vector2(630, 250)
 gizmo_extents = 16.0
 script = ExtResource("4_jynba")
-ancho = 69.5
+ancho = 139
 
 [node name="Punto17" type="Marker2D" parent="Rio" unique_id=910993348]
-position = Vector2(110, 105)
+position = Vector2(550, 525)
 gizmo_extents = 16.0
 script = ExtResource("4_jynba")
-ancho = 69.5
+ancho = 139
 
 [node name="Punto18" type="Marker2D" parent="Rio" unique_id=2139687980]
-position = Vector2(72, 169)
+position = Vector2(360, 845)
 gizmo_extents = 16.0
 script = ExtResource("4_jynba")
-ancho = 41.0
+ancho = 82
 
 [node name="Punto19" type="Marker2D" parent="Rio" unique_id=1774429526]
-position = Vector2(96, 242)
+position = Vector2(480, 1210)
 gizmo_extents = 16.0
 script = ExtResource("4_jynba")
-ancho = 72.5
+ancho = 145
 
 [node name="Punto20" type="Marker2D" parent="Rio" unique_id=933822213]
-position = Vector2(136, 301)
+position = Vector2(680, 1505)
 gizmo_extents = 16.0
 script = ExtResource("4_jynba")
-ancho = 41.5
+ancho = 83
 
 [node name="Punto21" type="Marker2D" parent="Rio" unique_id=745588035]
-position = Vector2(152, 372)
+position = Vector2(760, 1860)
 gizmo_extents = 16.0
 script = ExtResource("4_jynba")
-ancho = 61.5
+ancho = 123
 
 [node name="Punto22" type="Marker2D" parent="Rio" unique_id=231996731]
-position = Vector2(167, 451)
+position = Vector2(835, 2255)
 gizmo_extents = 16.0
 script = ExtResource("4_jynba")
-ancho = 42.0
+ancho = 84
 
 [node name="Punto23" type="Marker2D" parent="Rio" unique_id=1824813919]
-position = Vector2(138, 584)
+position = Vector2(690, 2920)
 gizmo_extents = 16.0
 script = ExtResource("4_jynba")
-ancho = 53.5
+ancho = 107
 
 [node name="Punto24" type="Marker2D" parent="Rio" unique_id=722005379]
-position = Vector2(69, 907)
+position = Vector2(345, 4535)
 gizmo_extents = 16.0
 script = ExtResource("4_jynba")
-ancho = 45.0
+ancho = 90
 
 [node name="Punto25" type="Marker2D" parent="Rio" unique_id=676319090]
-position = Vector2(80, 1352)
+position = Vector2(400, 6760)
 gizmo_extents = 16.0
 script = ExtResource("4_jynba")
-ancho = 52.5
+ancho = 105
 
 [node name="Punto26" type="Marker2D" parent="Rio" unique_id=1897681197]
-position = Vector2(-30, 1654)
+position = Vector2(-150, 8270)
 gizmo_extents = 16.0
 script = ExtResource("4_jynba")
-ancho = 41.5
+ancho = 83
 
 [node name="Punto27" type="Marker2D" parent="Rio" unique_id=1913803370]
-position = Vector2(220, 2110)
+position = Vector2(1100, 10550)
 gizmo_extents = 16.0
 script = ExtResource("4_jynba")
-ancho = 47.0
+ancho = 94
 
 [node name="Punto28" type="Marker2D" parent="Rio" unique_id=678592362]
-position = Vector2(23, 3288)
+position = Vector2(115, 16440)
 gizmo_extents = 16.0
 script = ExtResource("4_jynba")
-ancho = 53.0
+ancho = 106
 
 [node name="Cruces" type="Node2D" parent="." unique_id=274995269]
 
 [node name="VadodelClaro" type="Marker2D" parent="Cruces" unique_id=10280723]
-position = Vector2(92, -879)
+position = Vector2(460, -4395)
 gizmo_extents = 14.0
 script = ExtResource("5_uvtoi")
 nombre = "Vado del Claro"
 tipo = 0
-ancho = 36.0
+ancho = 72
 largo = 52.0
 altura_arco = 0.35
 id_interno = "ford_clearing"
 
 [node name="PasareladelArroyoNorte" type="Marker2D" parent="Cruces" unique_id=776862957]
-position = Vector2(96, -351)
+position = Vector2(480, -1755)
 gizmo_extents = 14.0
 script = ExtResource("5_uvtoi")
 nombre = "Pasarela del Arroyo Norte"
@@ -206,44 +206,44 @@ largo = 84.0
 id_interno = "bridge_north"
 
 [node name="PuenteViejo" type="Marker2D" parent="Cruces" unique_id=1480164495]
-position = Vector2(126, 50)
+position = Vector2(630, 250)
 gizmo_extents = 14.0
 script = ExtResource("5_uvtoi")
 nombre = "Puente Viejo"
 tipo = 2
-ancho = 42.0
+ancho = 84
 largo = 157.0
 altura_arco = 2.4
 id_interno = "old_bridge"
 
 [node name="PuentedelosCampos" type="Marker2D" parent="Cruces" unique_id=2033614118]
-position = Vector2(152, 372)
+position = Vector2(760, 1860)
 gizmo_extents = 14.0
 script = ExtResource("5_uvtoi")
 nombre = "Puente de los Campos"
-ancho = 34.0
+ancho = 68
 largo = 140.0
 altura_arco = 1.2
 id_interno = "south_fields_bridge"
 
 [node name="VadodelBosque" type="Marker2D" parent="Cruces" unique_id=48774385]
-position = Vector2(99, 771)
+position = Vector2(495, 3855)
 gizmo_extents = 14.0
 script = ExtResource("5_uvtoi")
 nombre = "Vado del Bosque"
 tipo = 0
-ancho = 38.0
+ancho = 76
 largo = 76.0
 altura_arco = 0.35
 id_interno = "forest_ford"
 
 [node name="TroncoCaido" type="Marker2D" parent="Cruces" unique_id=771203455]
-position = Vector2(204, 2040)
+position = Vector2(1020, 10200)
 gizmo_extents = 14.0
 script = ExtResource("5_uvtoi")
 nombre = "Tronco caído"
 tipo = 3
-ancho = 40.0
+ancho = 80
 largo = 72.0
 altura_arco = 0.0
 id_interno = "fallen_log_bridge"

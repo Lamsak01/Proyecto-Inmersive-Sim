@@ -38,7 +38,7 @@ func start(p_vm: Node, kind: String, strength: int, militia_bonus: int) -> int:
 	for i in range(total):
 		var r = RaiderScript.new()
 		parent.add_child(r)
-		r.setup(r_kind, SPAWN_POS + Vector2(float(i) * 16.0, float(i % 3) * 14.0 - 14.0), hp_mult)
+		r.setup(r_kind, load("res://mapa/anclas.gd").mover(SPAWN_POS) + Vector2(float(i) * 16.0, float(i % 3) * 14.0 - 14.0), hp_mult)
 		r.gone.connect(_on_raider_gone)
 		raiders.append(r)
 	return total

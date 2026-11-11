@@ -43,6 +43,10 @@ func _ready() -> void:
 			if src_id == 13 or (cell.x >= -6 and cell.y >= 8) or (cell.x <= -20 and cell.y >= 8):
 				obs_large.erase_cell(cell)
 		obs_large.add_to_group("ranch_fence_2d")
+		_estirar_baldosas(obs_large)
+	var suelo_2d := get_node_or_null("Environment/Floor") as TileMapLayer
+	if suelo_2d:
+		_estirar_baldosas(suelo_2d)
 
 	# Ajustar zoom inicial de la cámara para ver un área más amplia y cómoda en pantalla completa
 	if not in_editor:
@@ -59,11 +63,12 @@ func _ready() -> void:
 		var nav_poly = NavigationPolygon.new()
 		nav_poly.agent_radius = 16.0 # Approximate enemy radius
 		
+		var E_mapa: float = load("res://scripts/fisica/Mapa3D.gd").E # mapa ×E
 		var outline = PackedVector2Array([
-			Vector2(-1250, -650),
-			Vector2(1350, -650),
-			Vector2(1350, 1550),
-			Vector2(-1250, 1550)
+			Vector2(-1250, -650) * E_mapa,
+			Vector2(1350, -650) * E_mapa,
+			Vector2(1350, 1550) * E_mapa,
+			Vector2(-1250, 1550) * E_mapa
 		])
 		nav_poly.vertices = outline
 		nav_poly.add_polygon(PackedInt32Array([0, 1, 2, 3]))
@@ -152,10 +157,25 @@ func _draw_weather_overlay() -> void:
 	elif w_mode == 2: # FOG
 		_weather_canvas.draw_rect(Rect2(Vector2.ZERO, sz), Color(0.76, 0.82, 0.86, 0.07), true)
 
+## Mapa ×E (2026-11-11): las baldosas antiguas (vallas del rancho y choques) están pintadas en el mapa original; cada
+## celda se recoloca por las anclas (las vallas del corral van juntas como grupo compacto).
+func _estirar_baldosas(capa: TileMapLayer) -> void:
+	var AN = load("res://mapa/anclas.gd")
+	if AN.E == 1.0:
+		return
+	var datos: Array = []
+	for c in capa.get_used_cells():
+		datos.append([c, capa.get_cell_source_id(c), capa.get_cell_atlas_coords(c), capa.get_cell_alternative_tile(c)])
+	capa.clear()
+	for d in datos:
+		var nueva: Vector2i = capa.local_to_map(capa.to_local(AN.mover(capa.to_global(capa.map_to_local(d[0])))))
+		capa.set_cell(nueva, d[1], d[2], d[3])
+
+
 func _spawn_player_garden(entities_root: Node) -> void:
 	var is_demo: bool = (GameManager == null) or (GameManager.has_method("is_demo_mode") and bool(GameManager.call("is_demo_mode")))
 	# A. Huerto de 3x3 parcelas (retirado a las afueras lejanas; oculto en modo demo)
-	var start_pos := Vector2(-1915, -60)
+	var start_pos: Vector2 = load("res://mapa/anclas.gd").mover(Vector2(-1915, -60)) # mapa ×E
 	var spacing := 24.0
 	var idx := 0
 	for row in range(3):

@@ -567,6 +567,8 @@ func _spawn_building_door_and_window(
 	})
 
 func _add_solid_wall_segment(pos: Vector2, sz: Vector2, tex: Texture2D, blocks_vision: bool = true) -> void:
+	var ancla: Dictionary = Anclas.buscar(pos) # mapa ×E (2026-11-11): los tabiques escritos a mano siguen a su edificio
+	pos = Anclas.aplicar(ancla, pos)
 	var sb := StaticBody2D.new()
 	sb.global_position = pos
 	sb.collision_layer = 1
@@ -577,6 +579,7 @@ func _add_solid_wall_segment(pos: Vector2, sz: Vector2, tex: Texture2D, blocks_v
 	rect.size = sz
 	col.shape = rect
 	sb.add_child(col)
+	Anclas.girar_choque(ancla, sb, sz)
 
 	if blocks_vision:
 		_wall_occluder_rects.append(Rect2(pos - sz * 0.5, sz))

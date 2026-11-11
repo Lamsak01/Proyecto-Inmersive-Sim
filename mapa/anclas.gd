@@ -179,7 +179,7 @@ static func _componer(a: Dictionary, f: Dictionary) -> Dictionary:
 ## Punto original → mundo actual según el ancla `a` ({}: campo abierto, se estira E veces).
 static func aplicar(a: Dictionary, p: Vector2) -> Vector2:
 	if a.is_empty():
-		return p * E
+		return p if pausa > 0 else p * E # en pausa (edificio en construcción) el punto ya está en el mundo
 	var c: Vector2 = a["c"]
 	return c * E + a["d"] + (a["m"] as Transform2D).basis_xform(p - c)
 
@@ -187,7 +187,7 @@ static func aplicar(a: Dictionary, p: Vector2) -> Vector2:
 ## Rectángulo que sigue al ancla a (si gira, el rectángulo recto que lo contiene). Sin ancla, estirado E veces.
 static func rect_con(a: Dictionary, r: Rect2) -> Rect2:
 	if a.is_empty():
-		return Rect2(r.position * E, r.size * E)
+		return r if pausa > 0 else Rect2(r.position * E, r.size * E)
 	var out := Rect2(aplicar(a, r.position), Vector2.ZERO)
 	for q in [r.end, Vector2(r.end.x, r.position.y), Vector2(r.position.x, r.end.y)]:
 		out = out.expand(aplicar(a, q))
@@ -259,7 +259,44 @@ static func desmover(p: Vector2) -> Vector2:
 				mejor = q
 		if mejor != Vector2.INF:
 			return mejor
-	return p / E
+	return _fuera_de_piezas(p / E)
+
+
+## Campo abierto encogido E veces. Si ese punto cae dentro de la planta original de una pieza (en el mundo estirado
+## alrededor de cada pieza queda hueco que, encogido, se solapa con ella), se saca al borde más cercano: así «¿está en
+## la taberna?», los suelos altos y las salas solo dicen que sí cuando de verdad se está dentro.
+static func _fuera_de_piezas(q: Vector2) -> Vector2:
+	if E == 1.0:
+		return q
+	for _vuelta in range(3):
+		var tocada: Dictionary = {}
+		for a in _rej.get(_celda(q), []):
+			if _abarca(a, q, true):
+				tocada = a
+				break
+		if tocada.is_empty():
+			return q
+		if tocada.has("rect"):
+			var r: Rect2 = (tocada["cerca"] if tocada.has("cerca") else tocada["rect"]) as Rect2
+			r = r.grow(1.0)
+			var dl: float = q.x - r.position.x
+			var dr: float = r.end.x - q.x
+			var du: float = q.y - r.position.y
+			var dd: float = r.end.y - q.y
+			var m: float = minf(minf(dl, dr), minf(du, dd))
+			if m == dl:
+				q.x = r.position.x
+			elif m == dr:
+				q.x = r.end.x
+			elif m == du:
+				q.y = r.position.y
+			else:
+				q.y = r.end.y
+		else:
+			var c: Vector2 = tocada["centro"]
+			var dir: Vector2 = (q - c).normalized() if q.distance_squared_to(c) > 0.01 else Vector2.RIGHT
+			q = c + dir * (float(tocada["radio"]) + 1.0)
+	return q
 
 
 static var _cache_listas: Dictionary = {} # clave -> [version, Array]

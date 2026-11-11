@@ -19,7 +19,8 @@ const MUELLE_LAGO: Rect2 = Rect2(Vector2(-703.0, 94.0), Vector2(38.0, 22.0)) ## 
 
 
 static func en_lago(pos: Vector2) -> bool:
-	return Geometry2D.is_point_in_polygon(pos, PackedVector2Array(FishingSpot.LAKE_WATER_WORLD)) and not MUELLE_LAGO.has_point(pos)
+	var o: Vector2 = pos / Mapa3D.E # el lago está escrito en el mapa original (mapa ×E)
+	return Geometry2D.is_point_in_polygon(o, PackedVector2Array(FishingSpot.LAKE_WATER_WORLD)) and not MUELLE_LAGO.has_point(o)
 
 
 static func en_rio(pos: Vector2) -> bool:
@@ -40,7 +41,7 @@ static func superficie_y(pos: Vector2) -> float:
 ## Cuánta agua hay en `pos` (metros de la superficie al fondo). 0 fuera del agua.
 static func hondura_m(pos: Vector2) -> float:
 	if en_lago(pos):
-		var poli := PackedVector2Array(FishingSpot.LAKE_WATER_WORLD)
+		var poli := PackedVector2Array(FishingSpot.LAKE_WATER_WORLD) * Transform2D(0.0, Vector2.ONE * Mapa3D.E, 0.0, Vector2.ZERO) # mapa ×E
 		var a_orilla: float = INF
 		for i in range(poli.size()):
 			var cerca: Vector2 = Geometry2D.get_closest_point_to_segment(pos, poli[i], poli[(i + 1) % poli.size()])

@@ -24,7 +24,15 @@ func _initialize() -> void:
 	for r in T3.CALLES_PRINCIPALES + lots.ROADS:
 		if not (r is Rect2):
 			continue
-		var rr := r as Rect2
+		var rr0 := r as Rect2
+		# Mapa ×E: las calles se alargan E veces y se ensanchan (el doble a ×5), como el río
+		var E: float = Mapa3D.E
+		var ancho_x: float = 1.0 + (E - 1.0) * 0.25
+		var rr := Rect2(rr0.position * E, rr0.size * E) if rr0.size.x >= rr0.size.y else Rect2(rr0.position * E, rr0.size * E)
+		if rr0.size.x >= rr0.size.y:
+			rr = Rect2(Vector2(rr.position.x, rr.get_center().y - rr0.size.y * ancho_x * 0.5), Vector2(rr.size.x, rr0.size.y * ancho_x))
+		else:
+			rr = Rect2(Vector2(rr.get_center().x - rr0.size.x * ancho_x * 0.5, rr.position.y), Vector2(rr0.size.x * ancho_x, rr.size.y))
 		var cen := rr.get_center()
 		var t := Node3D.new()
 		t.set_script(load("res://mapa/camino.gd"))
