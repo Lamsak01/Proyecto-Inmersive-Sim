@@ -3829,11 +3829,11 @@ func _initialize() -> void:
 	p70_c.personal_gold = 10
 	vho.on_player_action(vm, p70_c, "housing_hire_clerk", p70_inv)
 	assert(str(vho.state(vm)["player_shop"]["clerk_key"]) == p70_c.get_person_key(), "PG.2d: Hiring unemployed neighbor sets shop clerk")
-	p70_c.global_position = vho.player_shop_clerk_pos(vm)
+	p70_c.global_position = M(vho.player_shop_clerk_pos(vm))
 	p70_a.personal_gold = 45
 	p70_b.personal_gold = 45
-	p70_a.global_position = vho.player_shop_customer_pos(vm)
-	p70_b.global_position = vho.player_shop_customer_pos(vm)
+	p70_a.global_position = M(vho.player_shop_customer_pos(vm))
+	p70_b.global_position = M(vho.player_shop_customer_pos(vm))
 	vho.on_customer_arrived(vm, p70_a)
 	vho.on_customer_arrived(vm, p70_b)
 	vho.daily(vm)
@@ -5213,7 +5213,7 @@ func _initialize() -> void:
 
 	# 2. Sin dependiente presente tras el mostrador no hay ventas; en horario comercial el dependiente camina al mostrador
 	p70_b.personal_gold = 50
-	p70_b.global_position = vho.player_shop_customer_pos(vm)
+	p70_b.global_position = M(vho.player_shop_customer_pos(vm))
 	vho.daily(vm)
 	assert(not vho.on_customer_arrived(vm, p70_b) and int(vho.state(vm)["player_shop"]["stock"]) == 6 and int(vho.state(vm)["player_shop"]["till_gold"]) == 0 and p70_b.personal_gold == 50, "P1.2a: Without a clerk present behind the counter, the shop makes no sales")
 	p70_c.trade_role = 0 # UNEMPLOYED
@@ -5226,11 +5226,11 @@ func _initialize() -> void:
 	assert(not vho.on_customer_arrived(vm, p70_b) and int(vho.state(vm)["player_shop"]["stock"]) == 6, "P1.2c: While clerk is still far from the counter, no sales occur")
 
 	# 3. Clientes de verdad: con el dependiente detrás del mostrador, un vecino con oro se acerca y paga de su bolsillo a la caja
-	p70_c.global_position = vho.player_shop_clerk_pos(vm)
+	p70_c.global_position = M(vho.player_shop_clerk_pos(vm))
 	assert(vho.is_player_shop_clerk_present(vm), "P1.3a: Clerk is now physically behind the shop counter")
 	var bp1_price: int = int(vho.SHOP_ITEM_PRICES["bread"])
-	p70_b.start_errand("player_shop_buy", vho.player_shop_customer_pos(vm))
-	p70_b.global_position = vho.player_shop_customer_pos(vm)
+	p70_b.start_errand("player_shop_buy", M(vho.player_shop_customer_pos(vm)))
+	p70_b.global_position = M(vho.player_shop_customer_pos(vm))
 	vm.VillageNeeds.tick(vm)
 	assert(p70_b.personal_gold == 50 - bp1_price and int(vho.state(vm)["player_shop"]["till_gold"]) == bp1_price and int(vho.state(vm)["player_shop"]["stock"]) == 5, "P1.3b: Customer arriving at counter buys 1 unit and pays from their own pocket into the till (zero-sum)")
 
