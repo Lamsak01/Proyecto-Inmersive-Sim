@@ -142,7 +142,7 @@ func _initialize() -> void:
 	assert(pre_gold > 0 and casimir.carries_royal_safe_conduct, "Casimir should still have his gold and Royal Safe Conduct")
 	vm.register_npc_death_and_corpse(casimir, casimir.death_world_pos, casimir.last_hit_weapon_name, true, "Jugador", 0.5)
 	assert(casimir.corpse_in_morgue and not casimir.corpse_buried, "Casimir should be in the Morgue and not buried")
-	assert(casimir.global_position == vm._morgue_table_positions[0], "Casimir should be placed physically on Morgue Table #1")
+	assert(casimir.global_position == M(vm._morgue_table_positions[0]), "Casimir should be placed physically on Morgue Table #1")
 
 	# Simulate 48 hours passing while investigation is still active -> Corpse MUST remain in Morgue!
 	for d_pass in range(2, 5):
