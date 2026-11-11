@@ -6504,7 +6504,7 @@ func _initialize() -> void:
 	r1b_c.workshop_materials["raw_meat"] = 1
 	var r1b_rec: Dictionary = {"input": "raw_meat", "output": "braised_meat"}
 	assert(r1_rs.cook_cold_room_trip(r1b_c, r1b_rec, 0.1), "R1b.6: Before the stew the cook heads to the cold room")
-	r1b_c.global_position = r1_rs.COLD_SHELF
+	r1b_c.global_position = M(r1_rs.COLD_SHELF)
 	assert(not r1_rs.cook_cold_room_trip(r1b_c, r1b_rec, 0.1) and r1b_c.has_meta("cold_room_fetched") and not r1_rs.cook_cold_room_trip(r1b_c, r1b_rec, 0.1), "R1b.7: He takes the meat and goes back to the stove")
 	r1b_c.remove_meta("cold_room_fetched")
 	r1b_c.shop_stock = r1b_cstock
