@@ -633,6 +633,10 @@ func has_line_of_sight(from_pos: Vector2, to_pos: Vector2) -> bool:
 func ve(a: Vector2, nivel_a: int, b: Vector2, nivel_b: int) -> bool:
 	return Vista.ve(self, a, nivel_a, b, nivel_b)
 
+## Paso 5b: cuánto (0..1) de un ruido en `a` (piso `nivel_a`) llega a `b` (piso `nivel_b`) por suelos y tierra.
+func oye(a: Vector2, nivel_a: int, b: Vector2, nivel_b: int) -> float:
+	return Vista.oye(self, a, nivel_a, b, nivel_b)
+
 ## Navegación inteligente por pasillos de puertas y tabiques internos (sin atascos ni giros contra muros)
 
 func get_navigation_waypoint(from_pos: Vector2, to_pos: Vector2, agent: Node2D = null) -> Vector2:

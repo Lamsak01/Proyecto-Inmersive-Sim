@@ -8,7 +8,8 @@ extends Node3D
 ## - El cuerpo 3D del protagonista choca con ellos; si alguien anda hacia él, lo aparta un poco.
 ## - Tienen cuerpo (decisión del usuario): vecinos, bandidos y enemigos, jabalíes, ciervos y el ganado grande. Los
 ##   pequeños (conejos, zorros, mascotas, gallinas y crías) se siguen atravesando. Tu caballo no: va contigo.
-## - No tienen cuerpo los dormidos, muertos o caídos (se puede pasar por encima).
+## - No tienen cuerpo los dormidos, muertos, caídos o sentados (se puede pasar por encima; la silla sí estorba).
+## - Si el protagonista anda contra alguien, lo aparta poco a poco (Cuerpo3D._apartar): cada cuerpo sabe de quién es.
 ## - Más adelante (opción B) los vecinos tendrán su propio cuerpo completo y un buscador de caminos 3D.
 
 const Mapa3D = preload("res://scripts/fisica/Mapa3D.gd")
@@ -46,6 +47,7 @@ func actualizar(centro: Vector2, vm: Node) -> void:
 			if c == null:
 				break
 			_de_quien[n] = c
+			c.set_meta("quien", n)
 		_colocar(c, n, vm)
 
 
@@ -60,7 +62,9 @@ func tiene_cuerpo(n: Node) -> bool:
 
 ## Tamaño (radio, alto en m) del cuerpo de `n`, o Vector2.ZERO si no debe tenerlo (pequeño, dormido, muerto, caído).
 static func tamano(n: Node) -> Vector2:
-	if _si(n, "is_dead") or _si(n, "is_downed") or _si(n, "is_sleeping"):
+	if _si(n, "is_dead") or _si(n, "is_downed") or _si(n, "is_sleeping") or _si(n, "is_at_poker_table"):
+		return Vector2.ZERO
+	if n.has_method("_is_seated_on_furniture") and bool(n.call("_is_seated_on_furniture", (n as Node2D).global_position)):
 		return Vector2.ZERO
 	if n.is_in_group("wild_animals"):
 		var vivo: bool = n.has_method("is_alive_in_ecosystem") and bool(n.call("is_alive_in_ecosystem"))

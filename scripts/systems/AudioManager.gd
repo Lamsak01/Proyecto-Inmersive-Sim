@@ -34,7 +34,8 @@ func play_sound_at(stream: AudioStream, global_pos: Vector2, pitch_variance: flo
 func emit_noise(origin: Vector2, base_radius: float, elevation: int = -999, kind: String = "combat") -> void:
 	"""
 	Emite un evento puntual de ruido en el mundo (ej. golpes fuertes, gritos de dolor, disparos o romper muros).
-	Lanza raycast de oclusión hacia los enemigos y hacia los vecinos despiertos en la misma planta dentro de base_radius.
+	Lanza raycast de oclusión hacia los enemigos y hacia los vecinos despiertos dentro de base_radius. Paso a 3D, paso 5b:
+	a los vecinos de otro piso les llega menos (vm.oye: suelos y tierra), ya no nada.
 	"""
 	var base_radius_sq = base_radius * base_radius
 	var enemies = get_tree().get_nodes_in_group("enemies")
@@ -62,13 +63,13 @@ func emit_noise(origin: Vector2, base_radius: float, elevation: int = -999, kind
 			continue
 		if n.get("is_dead") == true or n.get("is_downed") == true or n.get("is_sleeping") == true or n.get("is_stunned_flag") == true:
 			continue
-		if int(n.get("elevation_level")) != src_elev:
-			continue
 		var d2: float = (n as Node2D).global_position.distance_squared_to(origin)
 		if d2 > base_radius_sq or d2 < 4.0:
 			continue
 		var sp = (n as Node2D).get_world_2d().direct_space_state
 		var eff_r: float = calculate_effective_hearing_range(base_radius, origin, (n as Node2D).global_position, sp)
+		if vm != null:
+			eff_r *= vm.oye(origin, src_elev, (n as Node2D).global_position, int(n.get("elevation_level")))
 		if d2 <= eff_r * eff_r:
 			n.call("on_noise_heard", origin, base_radius, kind, src_elev)
 

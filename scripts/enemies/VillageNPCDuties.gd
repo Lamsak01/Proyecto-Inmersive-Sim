@@ -47,14 +47,12 @@ func _process_police_duty(delta: float) -> bool:
 
 ## B1 (C7 fase 4d): reacción física al ruido de golpes fuertes, gritos de dolor o disparos.
 ## Los guardias despiertos acuden a mirar o intervenir; los vecinos pacíficos huyen o se asoman a distancia,
-## y solo cuentan como testigos (`known_by` / `sighting_log`) si tienen línea de visión en la misma planta.
+## y solo cuentan como testigos (`known_by` / `sighting_log`) si lo ven (paredes, puertas y suelos: Vista.gd).
 
 func on_noise_heard(origin: Vector2, _radius: float = 160.0, _kind: String = "combat", src_elev: int = 0) -> void:
 	if is_dead or is_downed or is_sleeping or is_stunned_flag or sedated_timer > 0.0 or is_at_poker_table or get_meta("club_bout", false) == true:
 		return
 	if is_in_live_fight() or is_busy_with_player() or is_busy_with_emergency():
-		return
-	if elevation_level != src_elev:
 		return
 	if is_hostile:
 		if trade_role in [TradeRole.SHERIFF, TradeRole.GUARD, TradeRole.ROYAL_INVESTIGATOR]:
@@ -79,12 +77,10 @@ func on_noise_heard(origin: Vector2, _radius: float = 160.0, _kind: String = "co
 	_try_log_combat_witness()
 
 func can_witness_combat_at(pos: Vector2, target_elev: int = 0) -> bool:
-	if not is_conscious() or elevation_level != target_elev:
+	if not is_conscious():
 		return false
 	var vm = _get_vm()
-	if vm != null and vm.has_method("has_line_of_sight"):
-		return bool(vm.call("has_line_of_sight", global_position, pos))
-	return true
+	return vm == null or bool(vm.ve(global_position, elevation_level, pos, target_elev))
 
 func _try_log_combat_witness() -> bool:
 	if _noise_witness_logged:

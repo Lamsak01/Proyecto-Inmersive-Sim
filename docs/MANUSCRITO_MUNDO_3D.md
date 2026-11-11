@@ -6,6 +6,31 @@
 
 ---
 
+## Paso 5b — El oído con alturas (2026-11-10, Claude Code, portátil)
+
+**Qué cambia en el juego:** un ruido (golpe, grito, disparo) ya llega a los vecinos de otro piso, más flojo: a través
+de un suelo se oye a un tercio (como a través de una pared); por la galería abierta de la posada, entero; entre la
+calle y el club o las alcantarillas, casi nada (un décimo). Antes en otro piso no se oía nada. Y los testigos de un ruido
+solo cuentan como testigos si lo ven de verdad (Vista.gd), ya no «si están en el mismo piso».
+
+**Archivos:**
+- `scripts/fisica/Vista.gd`: `oye(vm, a, nivel_a, b, nivel_b)` → cuánto llega (1, un tercio o un décimo).
+- `scripts/systems/VillageManagerBase.gd`: `oye(...)` (atajo, como `ve`).
+- `scripts/systems/AudioManager.gd`: ya no salta a los vecinos de otro piso; multiplica su alcance por `vm.oye`.
+- `scripts/enemies/VillageNPCDuties.gd`: `on_noise_heard` ya no descarta por piso (lo decide AudioManager);
+  `can_witness_combat_at` usa `vm.ve`.
+- `tools/tests/fisica_3d.gd`: prueba del paso 5b.
+
+**Arreglo de paso (cuerpos de contacto, 4b–4c):** la prueba de las puertas falló en la carnicería: un vecino parado
+dentro te cerraba el paso del todo. Ahora, andando contra alguien con cuerpo, lo apartas poco a poco hacia el lado en
+que ya está (`Cuerpo3D._apartar`, 40 px/s, respetando paredes y muebles con `sanitize_npc_separation_pos`; cada cuerpo
+guarda de quién es en su meta «quien»), y los sentados (mesa de póker o silla) no tienen cuerpo: la silla ya estorba.
+La prueba del río elige un tramo sin vecinos ni animales cerca (`_alguien_en`): un ciervo en la orilla la hacía fallar.
+
+**Cómo se probó:** fisica_3d ✅ · puertas_3d 29/29 · verify_all ✅.
+
+**Cómo deshacerlo:** `git revert` de este commit.
+
 ## Paso 5a — La vista con alturas de verdad (2026-11-10, Claude Code, portátil)
 
 **Qué cambia en el juego:** quién te ve (testigos, guardias y policías, y los testigos de una pelea) ya se decide con

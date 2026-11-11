@@ -28,6 +28,7 @@ func _initialize() -> void:
 	await _paso4b_contacto()
 	await _paso4c_animales()
 	await _paso5_vista()
+	_paso5b_oido()
 	print("FISICA 3D: %s (%d fallos)" % ["PASSED" if _fallos == 0 else "FAILED", _fallos])
 	quit(1 if _fallos > 0 else 0)
 
@@ -462,6 +463,28 @@ func _paso5_vista() -> void:
 	n.set_physics_process(true)
 
 
+## Paso 5b: el oído con alturas. Por la galería abierta se oye entero; a través del suelo, a un tercio; bajo tierra, casi nada.
+func _paso5b_oido() -> void:
+	var vm = get_first_node_in_group("village_manager")
+	var VillageTavern = load("res://scripts/systems/VillageTavern.gd")
+	var borde_galeria: Vector2 = Anclas.mover(Vector2(440.0, VillageTavern.GALLERY_EDGE_Y - 6.0))
+	var salon: Vector2 = Anclas.mover(Vector2(440.0, VillageTavern.GALLERY_EDGE_Y + 16.0))
+	var bajo_galeria: Vector2 = Anclas.mover(Vector2(440.0, VillageTavern.GALLERY_EDGE_Y - 30.0))
+	_ok(vm.oye(salon, 0, borde_galeria, 1) == 1.0, "5b: un ruido en el salón llega entero al borde de la galería")
+	_ok(vm.oye(bajo_galeria, 0, borde_galeria, 1) == 0.35, "5b: a través del suelo de la galería llega a un tercio")
+	_ok(vm.oye(salon, 0, salon, -1) == 0.1, "5b: de la calle a bajo tierra casi no llega")
+	root.get_node("AudioManager").emit_noise(salon, 160.0, 0, "combat") # con vecinos en varios pisos: no debe fallar
+
+
+## ¿Hay algún vecino o animal (con cuerpo de contacto, paso 4b–4c) dentro de `zona`?
+func _alguien_en(zona: Rect2) -> bool:
+	for g in load("res://scripts/fisica/CuerposCercanos3D.gd").GRUPOS:
+		for n in get_nodes_in_group(g):
+			if n is Node2D and zona.has_point((n as Node2D).global_position):
+				return true
+	return false
+
+
 ## La «y» de un tramo del río en el pueblo que se puede cruzar en línea recta (sin puente ni rocas). NAN si no hay.
 func _tramo_de_rio_libre(pl, FishingSpot) -> float:
 	var espacio: PhysicsDirectSpaceState2D = pl.get_world_2d().direct_space_state
@@ -472,7 +495,7 @@ func _tramo_de_rio_libre(pl, FishingSpot) -> float:
 		var o: Vector2 = FishingSpot.river_banks_at(float(y))
 		if FishingSpot.is_in_river_crossing(Vector2((o.x + o.y) * 0.5, float(y)), 25.0) or o.y - o.x < 40.0:
 			continue
-		var libre := true
+		var libre := not _alguien_en(Rect2(o.x - 20.0, y - 14.0, o.y - o.x + 40.0, 28.0))
 		for dy in [-6.0, 0.0, 6.0]: # un pasillo del ancho del cuerpo
 			var q := PhysicsRayQueryParameters2D.create(Vector2(o.x - 16.0, y + dy), Vector2(o.y + 16.0, y + dy), 1, agua)
 			if not espacio.intersect_ray(q).is_empty():

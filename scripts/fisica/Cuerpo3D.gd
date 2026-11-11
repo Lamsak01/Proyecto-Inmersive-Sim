@@ -14,7 +14,7 @@ extends CharacterBody3D
 ## - Paso 3: en el río y el lago (scripts/fisica/Agua.gd) pisa el fondo si hace pie; si no, flota con la cabeza fuera
 ##   (nada). Caer al agua honda no hace daño.
 ## - Paso 4b–4c: los vecinos, bandidos y animales grandes que tiene cerca tienen un cuerpo «de contacto»
-##   (CuerposCercanos3D): ya no se les atraviesa.
+##   (CuerposCercanos3D): ya no se les atraviesa; andando contra ellos se les aparta poco a poco.
 ## - Paso 2c: si cae desde 3 m o más, se hace daño al aterrizar (sobre todo en las piernas); a 8 m, mortal.
 
 const Mapa3D = preload("res://scripts/fisica/Mapa3D.gd")
@@ -37,6 +37,7 @@ const CAIDA_CERO_M: float = 2.5    ## donde empezaría la recta del daño (así 
 const FLOTA_M: float = 1.35        ## nadando, los pies van esto bajo la superficie (la cabeza queda fuera)
 const VADEA_M: float = 0.3         ## desde esta hondura ya se anda por el agua (más despacio)
 const CAIDA_AGUA_SIN_DANO_M: float = 1.5 ## caer en agua así de honda no hace daño
+const APARTA_PX_S: float = 40.0    ## a lo que aparta a quien tiene delante al andar contra él (píxeles del mapa por segundo)
 enum EnAgua { SECO, VADEANDO, NADANDO }
 
 var actor: CharacterBody2D = null
@@ -100,6 +101,8 @@ func mover(vel_mapa: Vector2, delta: float) -> void:
 	if not is_on_floor() or velocity.y > 0.0:
 		velocity.y -= GRAVEDAD * delta
 	move_and_slide()
+	if vel_mapa != Vector2.ZERO:
+		_apartar(vel_mapa, delta)
 	if global_position.y < _suelo_y - 2.0: # nunca por debajo del suelo (por si la losa llega tarde)
 		_saltar_a(actor.global_position)
 	_vigilar_caida()
@@ -214,6 +217,24 @@ func _altura_suelo(p: Vector2, de_golpe: bool) -> float:
 		if n != nivel and vm != null and vm.has_method("set_player_elevation_level"):
 			vm.call("set_player_elevation_level", n)
 	return Mapa3D.a_3d(p, relieve + h).y
+
+
+## Andando contra alguien con cuerpo de contacto (paso 4b), lo aparta hacia el lado en que ya está, poco a poco.
+func _apartar(vel_mapa: Vector2, delta: float) -> void:
+	for i in range(get_slide_collision_count()):
+		var con := get_slide_collision(i).get_collider()
+		var quien = con.get_meta("quien") if con != null and con.has_meta("quien") else null
+		if not (quien is Node2D) or not is_instance_valid(quien):
+			continue
+		var lado: Vector2 = quien.global_position - actor.global_position
+		lado -= vel_mapa.normalized() * lado.dot(vel_mapa.normalized())
+		if lado.length_squared() < 0.01:
+			lado = vel_mapa.orthogonal()
+		var destino: Vector2 = quien.global_position + lado.normalized() * APARTA_PX_S * delta
+		var vm := _vm()
+		if vm != null and vm.has_method("sanitize_npc_separation_pos") and "elevation_level" in quien:
+			destino = vm.call("sanitize_npc_separation_pos", quien.global_position, destino, int(quien.elevation_level))
+		quien.global_position = destino
 
 
 ## En el aire apunta lo más alto que llega; al tocar suelo, si cayó desde muy alto, se hace daño.
