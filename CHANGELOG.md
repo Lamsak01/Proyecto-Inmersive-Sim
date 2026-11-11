@@ -4,6 +4,9 @@ Cambios del juego, del más nuevo al más antiguo. Añade una entrada al cerrar 
 El historial completo está en `git log`. Lo anterior al 2026-11-09 está en `docs/archivo/CHANGELOG_hasta_2026-11-08.md`.
 
 
+## 2026-11-11 — Animales con vida propia en modo demo (Claude Code, portátil; `main`)
+- Ciervos, conejos, zorros y jabalíes ya no se quedan clavados junto al nido: cada uno pasta por su rincón, va a beber al río, descansa y huye de ti. Caza y cría siguen en pausa en la demo.
+
 ## 2026-11-11 — Césped sin dibujo repetido (Claude Code, portátil; `main`)
 - La hierba tiene manchas irregulares (seca y espesa) y briznas de cerca; de lejos se funde. Sin cuadrícula ni rombos.
 

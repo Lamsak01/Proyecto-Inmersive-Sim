@@ -21,6 +21,7 @@ enum AnimalState {
 
 const MAX_MEALS: int = 2
 const AnimalModel3DScript = preload("res://scripts/visuals/AnimalModel3D.gd")
+const VidaAnimal = preload("res://scripts/enemies/VidaAnimal.gd") # vida tranquila en modo demo (2026-11-11)
 
 @export var species: SpeciesType = SpeciesType.DEER
 @export var animal_name: String = "Venado del Valle"
@@ -49,6 +50,7 @@ var respawn_on_day: int = -1
 
 # Simulación de Vida, Saciedad (0..2), Día de Reserva y Reproducción
 var state: AnimalState = AnimalState.GRAZE
+var vida: Dictionary = {} ## estado de la vida tranquila (VidaAnimal): modo, querencia, meta, sed
 var meals_eaten: int = 0
 var fed_today: bool = false
 var has_reserve_day: bool = false
@@ -227,7 +229,7 @@ func _physics_process(delta: float) -> void:
 	if state == AnimalState.CARCASS or state == AnimalState.BUTCHERED:
 		return
 	if GameManager != null and GameManager.has_method("is_demo_mode") and GameManager.is_demo_mode():
-		velocity = Vector2.ZERO
+		_vida_tranquila(delta)
 		return
 
 	if attack_cooldown > 0.0:
@@ -291,6 +293,31 @@ func _physics_process(delta: float) -> void:
 				velocity += away * ((min_r - d) / min_r) * push_spd
 		AndarMapa.paso(self, delta) # con cuerpo 3D si está cerca del protagonista
 		_update_sprite_motion(delta)
+
+## Modo demo (2026-11-11): la simulación completa está en pausa, pero el animal pasta por su rincón, bebe, descansa y
+## huye del protagonista (antes se quedaba clavado junto a su nido).
+func _vida_tranquila(delta: float) -> void:
+	if state == AnimalState.IN_BURROW:
+		_process_in_burrow(delta)
+		return
+	if not is_instance_valid(_cached_player):
+		_cached_player = get_tree().get_first_node_in_group("player") as Node2D
+	_ai_tick_timer -= delta
+	if _ai_tick_timer <= 0.0:
+		_ai_tick_timer = 0.3
+		_check_threats()
+	if state == AnimalState.FLEE:
+		_process_flee(delta)
+	else:
+		state = AnimalState.GRAZE # cualquier estado de la simulación completa se ignora aquí
+		VidaAnimal.paso(self, delta)
+	var lejos: bool = is_instance_valid(_cached_player) and global_position.distance_squared_to(_cached_player.global_position) > 500.0 * 500.0
+	if lejos:
+		global_position += velocity * delta
+	else:
+		AndarMapa.paso(self, delta)
+		_update_sprite_motion(delta)
+
 
 func _update_sprite_motion(delta: float) -> void:
 	if not sprite:

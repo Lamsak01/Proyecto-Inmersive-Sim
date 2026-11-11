@@ -65,7 +65,7 @@
 - `VillageNPCWork.gd` [946] ⚠ — trabajo, oficios, heridas.
 - `VillageNPCDuties.gd` [992] ⚠ — policía, investigar, buscar desaparecidos.
 - `NPCDialogue.gd` [1.385] ⚠ — menús de diálogo con el jugador.
-- `WildAnimal.gd` [1.294] ⚠, `DomesticPet.gd` [627], `Raider.gd`, `DummyEnemy.gd`, `MillKidnapper.gd`, `DetectionArea.gd`.
+- `WildAnimal.gd` [1.320] ⚠, `VidaAnimal.gd` [~100] (vida tranquila en modo demo: pastar, beber, descansar), `DomesticPet.gd` [627], `Raider.gd`, `DummyEnemy.gd` (bandidos de la llanura), `MillKidnapper.gd`, `DetectionArea.gd`.
 
 ## Las reglas del pueblo — `scripts/systems/` (por temas)
 - **Base del pueblo:** `VillageManagerBase.gd` [1.962] ⚠ (sitios, rutas, choques de vecinos), `VillageManager.gd` [1.583] ⚠,

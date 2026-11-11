@@ -86,13 +86,17 @@ func setup_ecosystem(target_entities_root: Node) -> void:
 	if not Engine.is_editor_hint() and GameManager != null and GameManager.has_method("is_demo_mode"):
 		_on_demo_mode_changed(GameManager.is_demo_mode())
 
+## Modo demo (2026-11-11): los animales siguen moviéndose (vida tranquila de `VidaAnimal`: pastar, beber, descansar,
+## huir); lo que se para es la simulación completa (caza, cría, asaltos), que el propio animal salta en ese modo.
 func _on_demo_mode_changed(enabled: bool) -> void:
 	for pool in [rabbit_pool, deer_pool, fox_pool, boar_pool]:
 		for a in pool:
 			if is_instance_valid(a):
+				a.velocity = Vector2.ZERO
 				if enabled:
-					a.velocity = Vector2.ZERO
-				a.set_physics_process(not enabled)
+					a.vida.clear()
+				else:
+					a.state = WildAnimal.AnimalState.GRAZE
 
 func _load_tex(res_path: String) -> Texture2D:
 	if ResourceLoader.exists(res_path):

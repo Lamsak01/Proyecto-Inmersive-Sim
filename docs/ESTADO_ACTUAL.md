@@ -9,7 +9,8 @@ Fallos visibles pendientes de la partida del usuario (`docs/FALLOS_VISIBLES.md`)
 3. ✅ Los sapos de la Llanura Salvaje son ahora bandidos (hecho).
 4. ✅ Caso I con un día de margen (hecho).
 5. ✅ Césped sin dibujo repetido (hecho).
-6. **Siguiente:** animales con vida propia · 7. Sala de peleas en las alcantarillas.
+6. ✅ Animales con vida propia en modo demo (hecho).
+7. **Siguiente:** sala de peleas clandestinas en las alcantarillas.
 
 ## b) Último avance completado
 - 2026-11-11: reorganización del repositorio (nuevo `CLAUDE.md`, `docs/specs/`, `docs/archivo/`, filtros de IA).
@@ -18,7 +19,7 @@ Fallos visibles pendientes de la partida del usuario (`docs/FALLOS_VISIBLES.md`)
   persona, agua con movimiento, modo 2D borrado, rendimiento (plaza ~25 fps en el portátil).
 
 ## c) Siguiente paso técnico inmediato
-Animales con vida propia: estados pastar / beber en el río / descansar / huir del jugador en `WildAnimal.gd`, sin ir todos juntos.
+Alcantarillas: sala de peleas básica (ring, bancos, apostador) en `VillageUnderworld`/`WorldStageProps3D` (zona bajo tierra).
 
 ## d) Bloqueos activos
 - Pistas en el fondo del agua: mecanismo listo; el usuario decide cuáles.
