@@ -103,3 +103,6 @@
 desde arriba),
 `menu_probe.gd`, `atascos_vecinos.gd`, `guardado_largo.gd`, `social_sim.gd`, `names_check.gd`, `dialogue_coverage.gd`,
 `perf_*.gd` (rendimiento). Cómo lanzarlas: `docs/HANDOFF.md` §3 y `docs/PLAN_MUNDO_3D.md` §6.
+
+## Herramientas del mapa — `tools/`
+`hornear_*.gd` (pasan al mapa editable lo que colocaba el código), `esparcir_arboles.gd` (quita árboles con el tronco pegado a otro, por zonas), `crear_editor_mapa.gd`, `screenshot_3d.gd`.

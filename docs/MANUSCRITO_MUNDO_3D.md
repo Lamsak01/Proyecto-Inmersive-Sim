@@ -6,6 +6,21 @@
 
 ---
 
+## Fallo visible: árboles metidos unos dentro de otros en el bosque del Caso I (2026-11-12, Claude Code, portátil)
+
+**Qué pasaba:** en el bosque del claro había 86 árboles y 13 pares con los troncos a menos de 20 px (1,1 m); el más
+cercano a 9 px. Los árboles del juego salen del mapa editable (`mapa/Mundo3D.tscn` → Vegetacion/Arboles, horneados el
+2026-11-10), no de la lista del código, así que tocar la lista del código no cambiaba nada en el juego.
+
+**Qué se hizo:** herramienta nueva `tools/esparcir_arboles.gd` (una función = una tarea: leer la escena, saltar los
+árboles con el tronco a menos de `sep` px de otro ya conservado, guardar). Se pasó una vez sobre el rectángulo del
+bosque del Caso I con 24 px: 19 árboles quitados. Con 20 px apenas se notaba; con 28 px (33 quitados) el molino asomaba
+desde el claro, y la historia lo quiere escondido.
+
+**Cómo se probó:** `fisica_3d.gd` ✅ (0 fallos); fotos fijas del claro antes/después (`docs/capturas_arreglos/`).
+
+**Cómo deshacerlo:** revertir el commit (el mapa editable vuelve a tener los 86 árboles).
+
 ## Paso 6, trozo 1 — Fuera el modo 2D antiguo (2026-11-12, Claude Code, portátil; decisión del usuario)
 
 **Qué cambia en el juego:** ya no se puede volver al tablero plano de baldosas y sprites (antes [F9] sin Mayús lo

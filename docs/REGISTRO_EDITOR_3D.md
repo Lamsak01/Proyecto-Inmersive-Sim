@@ -104,3 +104,8 @@ mover una pista del claro y el molino mueve sus zonas de uso y el interior 3D de
 - `mapa/Mundo3D.tscn` se convirtió con `tools/convertir_escala_0b.py` (copia: `mapa/Mundo3D.antes-3d.tscn`). Todo sigue
   en el mismo sitio del pueblo; en 3D el pueblo es ~15 % más corto de norte a sur y todo es ×2,8 más grande (metros).
 - Si Godot tenía Mundo3D abierto: cerrar la pestaña **sin guardar** y volver a abrirla.
+
+## Árboles separados en el bosque del Caso I (2026-11-12)
+- `tools/esparcir_arboles.gd -- <px> [x1,y1,x2,y2]` quita de «Vegetacion/Arboles» los árboles con el tronco a menos de
+  esos px de otro ya conservado (solo dentro del rectángulo; sin él, todo el mapa). Pasado una vez con 24 px en el bosque
+  del Caso I (19 quitados). Si Godot tenía Mundo3D abierto: recargar la escena sin guardar.

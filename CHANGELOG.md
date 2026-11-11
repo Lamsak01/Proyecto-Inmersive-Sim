@@ -4,6 +4,9 @@ Cambios del juego, del más nuevo al más antiguo. Añade una entrada al cerrar 
 El detalle técnico está en `docs/HANDOFF.md` (sección 7) y el historial completo en `git log`. Lo anterior a B0.1 está en `AUDIT_LOG.md` y `SESSION_CONTEXT_LOG.md`.
 
 
+## 2026-11-12 — Bosque del Caso I: árboles separados (Claude Code, portátil; rama `mundo-3d`)
+- En el bosque del claro ya no hay árboles metidos unos dentro de otros: se quitaron 19 que tenían el tronco pegado a otro. El molino sigue escondido entre los árboles.
+
 ## 2026-11-12 — Limpieza: fuera el modo 2D antiguo (Claude Code, portátil; rama `mundo-3d`)
 - Ya no existe el tablero plano de baldosas y sprites ([F9] sin Mayús); la vista desde arriba en 3D y la 1.ª persona siguen igual.
 

@@ -5694,23 +5694,11 @@ script = ExtResource("2_rotgg")
 modelo = "nature/Willow_1.obj"
 alto = 44.84
 
-[node name="CommonTree_4_1" type="Node3D" parent="Vegetacion/Arboles" unique_id=1859697378]
-transform = Transform3D(0.98162717, 0, 0.19080904, 0, 1, 0, -0.19080904, 0, 0.98162717, 3.08, 0.9616559, -49.168)
-script = ExtResource("2_rotgg")
-modelo = "nature/CommonTree_4.obj"
-alto = 49.78
-
 [node name="PineTree_2_6" type="Node3D" parent="Vegetacion/Arboles" unique_id=79459008]
 transform = Transform3D(0.4383711, 0, 0.89879405, 0, 1, 0, -0.89879405, 0, 0.4383711, 3.808, 0.89605665, -50.288)
 script = ExtResource("2_rotgg")
 modelo = "nature/PineTree_2.obj"
 alto = 54.72
-
-[node name="PineTree_3_4" type="Node3D" parent="Vegetacion/Arboles" unique_id=2059175072]
-transform = Transform3D(-0.45399013, 0, 0.8910067, 0, 1, 0, -0.8910067, 0, -0.45399013, 3.192, 0.93172866, -51.407997)
-script = ExtResource("2_rotgg")
-modelo = "nature/PineTree_3.obj"
-alto = 59.66
 
 [node name="Willow_2_3" type="Node3D" parent="Vegetacion/Arboles" unique_id=2009213932]
 transform = Transform3D(-0.9848078, 0, 0.17364812, 0, 1, 0, -0.17364812, 0, -0.9848078, 3.864, 0.9234834, -52.528)
@@ -5772,12 +5760,6 @@ script = ExtResource("2_rotgg")
 modelo = "nature/PineTree_2.obj"
 alto = 39.9
 
-[node name="PineTree_3_6" type="Node3D" parent="Vegetacion/Arboles" unique_id=36745741]
-transform = Transform3D(0.8386708, 0, 0.54463875, 0, 1, 0, -0.54463875, 0, 0.8386708, 2.352, 0.95589525, -41.328)
-script = ExtResource("2_rotgg")
-modelo = "nature/PineTree_3.obj"
-alto = 44.84
-
 [node name="Willow_2_4" type="Node3D" parent="Vegetacion/Arboles" unique_id=657526244]
 transform = Transform3D(0.0697573, 0, 0.997564, 0, 1, 0, -0.997564, 0, 0.0697573, 0.896, 0.9616559, -42.671997)
 script = ExtResource("2_rotgg")
@@ -5795,12 +5777,6 @@ transform = Transform3D(-0.97814757, 0, -0.20791183, 0, 1, 0, 0.20791183, 0, -0.
 script = ExtResource("2_rotgg")
 modelo = "nature/PineTree_1.obj"
 alto = 59.66
-
-[node name="PineTree_2_9" type="Node3D" parent="Vegetacion/Arboles" unique_id=1519183448]
-transform = Transform3D(-0.42261857, 0, -0.90630764, 0, 1, 0, 0.90630764, 0, -0.42261857, 2.184, 0.9616559, -46.368004)
-script = ExtResource("2_rotgg")
-modelo = "nature/PineTree_2.obj"
-alto = 39.9
 
 [node name="PineTree_3_7" type="Node3D" parent="Vegetacion/Arboles" unique_id=149615147]
 transform = Transform3D(0.46947086, 0, -0.882948, 0, 1, 0, 0.882948, 0, 0.46947086, 0.784, 0.8863406, -47.712)
@@ -5844,12 +5820,6 @@ script = ExtResource("2_rotgg")
 modelo = "nature/PineTree_2.obj"
 alto = 49.78
 
-[node name="PineTree_3_8" type="Node3D" parent="Vegetacion/Arboles" unique_id=596972663]
-transform = Transform3D(0.62932014, 0, -0.77714616, 0, 1, 0, 0.77714616, 0, 0.62932014, 2.128, 0.9616559, -56.56)
-script = ExtResource("2_rotgg")
-modelo = "nature/PineTree_3.obj"
-alto = 54.72
-
 [node name="Willow_2_5" type="Node3D" parent="Vegetacion/Arboles" unique_id=1620045474]
 transform = Transform3D(0.99939084, 0, 0.034898743, 0, 1, 0, -0.034898743, 0, 0.99939084, 0.896, 0.04405758, -58.016003)
 script = ExtResource("2_rotgg")
@@ -5867,12 +5837,6 @@ transform = Transform3D(-0.3090154, 0, 0.951057, 0, 1, 0, -0.951057, 0, -0.30901
 script = ExtResource("2_rotgg")
 modelo = "nature/PineTree_1.obj"
 alto = 44.84
-
-[node name="PineTree_2_11" type="Node3D" parent="Vegetacion/Arboles" unique_id=559502749]
-transform = Transform3D(-0.9455185, 0, 0.3255684, 0, 1, 0, -0.3255684, 0, -0.9455185, 2.128, 0.9616559, -62.72)
-script = ExtResource("2_rotgg")
-modelo = "nature/PineTree_2.obj"
-alto = 49.78
 
 [node name="PineTree_3_9" type="Node3D" parent="Vegetacion/Arboles" unique_id=133464438]
 transform = Transform3D(-0.8290369, 0, -0.55919385, 0, 1, 0, 0.55919385, 0, -0.8290369, 1.344, 0.23182847, -64.4)
@@ -6096,12 +6060,6 @@ script = ExtResource("2_rotgg")
 modelo = "nature/PineTree_3.obj"
 alto = 59.66
 
-[node name="CommonTree_3_7" type="Node3D" parent="Vegetacion/Arboles" unique_id=1949363144]
-transform = Transform3D(0.3746044, 0, 0.92718476, 0, 1, 0, -0.92718476, 0, 0.3746044, 4.144, 0.9189192, -52.975998)
-script = ExtResource("2_rotgg")
-modelo = "nature/CommonTree_3.obj"
-alto = 44.84
-
 [node name="PineTree_1_22" type="Node3D" parent="Vegetacion/Arboles" unique_id=2125572985]
 transform = Transform3D(-0.5150348, 0, 0.8571693, 0, 1, 0, -0.8571693, 0, -0.5150348, 6.944, 0.8568553, -52.752)
 script = ExtResource("2_rotgg")
@@ -6120,23 +6078,11 @@ script = ExtResource("2_rotgg")
 modelo = "nature/CommonTree_4.obj"
 alto = 59.66
 
-[node name="PineTree_2_18" type="Node3D" parent="Vegetacion/Arboles" unique_id=2016550575]
-transform = Transform3D(0.17364864, 0, -0.98480767, 0, 1, 0, 0.98480767, 0, 0.17364864, 9.408, 0.9616559, -52.079998)
-script = ExtResource("2_rotgg")
-modelo = "nature/PineTree_2.obj"
-alto = 39.9
-
 [node name="PineTree_3_16" type="Node3D" parent="Vegetacion/Arboles" unique_id=836155530]
 transform = Transform3D(0.89100736, 0, -0.4539888, 0, 1, 0, 0.4539888, 0, 0.89100736, 8.96, 0.9616559, -53.087997)
 script = ExtResource("2_rotgg")
 modelo = "nature/PineTree_3.obj"
 alto = 44.84
-
-[node name="Willow_2_9" type="Node3D" parent="Vegetacion/Arboles" unique_id=1146486152]
-transform = Transform3D(0.8987959, 0, 0.4383673, 0, 1, 0, -0.4383673, 0, 0.8987959, 9.744, 0.9616559, -54.096)
-script = ExtResource("2_rotgg")
-modelo = "nature/Willow_2.obj"
-alto = 49.78
 
 [node name="PineTree_1_23" type="Node3D" parent="Vegetacion/Arboles" unique_id=848010252]
 transform = Transform3D(-0.66912955, 0, 0.74314576, 0, 1, 0, -0.74314576, 0, -0.66912955, 5.488, 0.8606854, -42.783997)
@@ -6204,23 +6150,11 @@ script = ExtResource("2_rotgg")
 modelo = "nature/PineTree_4.obj"
 alto = 39.9
 
-[node name="PineTree_1_25" type="Node3D" parent="Vegetacion/Arboles" unique_id=87323110]
-transform = Transform3D(0.6691302, 0, 0.7431452, 0, 1, 0, -0.7431452, 0, 0.6691302, 9.744, 0.9616559, -46.368004)
-script = ExtResource("2_rotgg")
-modelo = "nature/PineTree_1.obj"
-alto = 44.84
-
 [node name="PineTree_2_20" type="Node3D" parent="Vegetacion/Arboles" unique_id=1913375851]
 transform = Transform3D(-0.19081096, 0, 0.9816268, 0, 1, 0, -0.9816268, 0, -0.19081096, 10.304, 0.9616559, -47.488)
 script = ExtResource("2_rotgg")
 modelo = "nature/PineTree_2.obj"
 alto = 49.78
-
-[node name="PineTree_3_19" type="Node3D" parent="Vegetacion/Arboles" unique_id=2091823278]
-transform = Transform3D(-0.8987922, 0, 0.4383749, 0, 1, 0, -0.4383749, 0, -0.8987922, 9.856, 0.9616559, -48.608)
-script = ExtResource("2_rotgg")
-modelo = "nature/PineTree_3.obj"
-alto = 54.72
 
 [node name="PineTree_4_14" type="Node3D" parent="Vegetacion/Arboles" unique_id=1346525190]
 transform = Transform3D(-0.8910078, 0, -0.45398805, 0, 1, 0, 0.45398805, 0, -0.8910078, 10.416, 0.9616559, -49.728004)
@@ -6228,23 +6162,11 @@ script = ExtResource("2_rotgg")
 modelo = "nature/PineTree_4.obj"
 alto = 59.66
 
-[node name="CommonTree_3_9" type="Node3D" parent="Vegetacion/Arboles" unique_id=1210194108]
-transform = Transform3D(-0.17364947, 0, -0.98480755, 0, 1, 0, 0.98480755, 0, -0.17364947, 9.744, 0.9616559, -50.848)
-script = ExtResource("2_rotgg")
-modelo = "nature/CommonTree_3.obj"
-alto = 39.9
-
 [node name="PineTree_1_26" type="Node3D" parent="Vegetacion/Arboles" unique_id=440521904]
 transform = Transform3D(0.68199843, 0, -0.73135364, 0, 1, 0, 0.73135364, 0, 0.68199843, 10.528, 0.9616559, -52.191998)
 script = ExtResource("2_rotgg")
 modelo = "nature/PineTree_1.obj"
 alto = 44.84
-
-[node name="Willow_1_12" type="Node3D" parent="Vegetacion/Arboles" unique_id=362946339]
-transform = Transform3D(0.99452174, 0, 0.10453001, 0, 1, 0, -0.10453001, 0, 0.99452174, 10.192, 0.9616559, -53.535995)
-script = ExtResource("2_rotgg")
-modelo = "nature/Willow_1.obj"
-alto = 49.78
 
 [node name="CommonTree_4_9" type="Node3D" parent="Vegetacion/Arboles" unique_id=213354047]
 transform = Transform3D(0.5150355, 0, 0.85716885, 0, 1, 0, -0.85716885, 0, 0.5150355, 10.976, 0.9616559, -54.88)
@@ -6252,35 +6174,17 @@ script = ExtResource("2_rotgg")
 modelo = "nature/CommonTree_4.obj"
 alto = 54.72
 
-[node name="PineTree_2_21" type="Node3D" parent="Vegetacion/Arboles" unique_id=1694888102]
-transform = Transform3D(-0.37460363, 0, 0.92718506, 0, 1, 0, -0.92718506, 0, -0.37460363, 11.424, 0.9616559, -41.888)
-script = ExtResource("2_rotgg")
-modelo = "nature/PineTree_2.obj"
-alto = 59.66
-
 [node name="PineTree_3_20" type="Node3D" parent="Vegetacion/Arboles" unique_id=938124653]
 transform = Transform3D(-0.9659254, 0, 0.25882074, 0, 1, 0, -0.25882074, 0, -0.9659254, 12.208, 0.9616559, -43.455997)
 script = ExtResource("2_rotgg")
 modelo = "nature/PineTree_3.obj"
 alto = 39.9
 
-[node name="Willow_2_11" type="Node3D" parent="Vegetacion/Arboles" unique_id=767110984]
-transform = Transform3D(-0.78801095, 0, -0.6156612, 0, 1, 0, 0.6156612, 0, -0.78801095, 11.312, 0.9616559, -45.024002)
-script = ExtResource("2_rotgg")
-modelo = "nature/Willow_2.obj"
-alto = 44.84
-
 [node name="PineTree_4_15" type="Node3D" parent="Vegetacion/Arboles" unique_id=662942421]
 transform = Transform3D(0.017453512, 0, -0.99984765, 0, 1, 0, 0.99984765, 0, 0.017453512, 12.432, 0.9616559, -46.48)
 script = ExtResource("2_rotgg")
 modelo = "nature/PineTree_4.obj"
 alto = 49.78
-
-[node name="PineTree_1_27" type="Node3D" parent="Vegetacion/Arboles" unique_id=261878491]
-transform = Transform3D(0.8090185, 0, -0.5877832, 0, 1, 0, 0.5877832, 0, 0.8090185, 11.536, 0.9616559, -47.936)
-script = ExtResource("2_rotgg")
-modelo = "nature/PineTree_1.obj"
-alto = 54.72
 
 [node name="PineTree_2_22" type="Node3D" parent="Vegetacion/Arboles" unique_id=316313640]
 transform = Transform3D(0.9563058, 0, 0.2923682, 0, 1, 0, -0.2923682, 0, 0.9563058, 12.544, 0.9616559, -49.392)
@@ -6300,12 +6204,6 @@ script = ExtResource("2_rotgg")
 modelo = "nature/PineTree_4.obj"
 alto = 44.84
 
-[node name="CommonTree_3_10" type="Node3D" parent="Vegetacion/Arboles" unique_id=1514548730]
-transform = Transform3D(-0.9975641, 0, 0.069755815, 0, 1, 0, -0.069755815, 0, -0.9975641, 11.872, 0.9616559, -53.984)
-script = ExtResource("2_rotgg")
-modelo = "nature/CommonTree_3.obj"
-alto = 49.78
-
 [node name="PineTree_1_28" type="Node3D" parent="Vegetacion/Arboles" unique_id=1017618200]
 transform = Transform3D(-0.6560575, 0, -0.754711, 0, 1, 0, 0.754711, 0, -0.6560575, 12.992, 0.9616559, -55.328003)
 script = ExtResource("2_rotgg")
@@ -6323,12 +6221,6 @@ transform = Transform3D(0.9063067, 0, -0.42262068, 0, 1, 0, 0.42262068, 0, 0.906
 script = ExtResource("2_rotgg")
 modelo = "nature/CommonTree_4.obj"
 alto = 39.9
-
-[node name="PineTree_2_23" type="Node3D" parent="Vegetacion/Arboles" unique_id=998147349]
-transform = Transform3D(0.88294816, 0, 0.46947047, 0, 1, 0, -0.46947047, 0, 0.88294816, 13.664, 0.9616559, -46.592003)
-script = ExtResource("2_rotgg")
-modelo = "nature/PineTree_2.obj"
-alto = 44.84
 
 [node name="PineTree_3_22" type="Node3D" parent="Vegetacion/Arboles" unique_id=1483635880]
 transform = Transform3D(0.15643425, 0, 0.98768836, 0, 1, 0, -0.98768836, 0, 0.15643425, 14.896, 0.9616559, -48.384003)
@@ -6485,12 +6377,6 @@ transform = Transform3D(0.30902344, 0, 0.9510544, 0, 1, 0, -0.9510544, 0, 0.3090
 script = ExtResource("2_rotgg")
 modelo = "nature/PineTree_1.obj"
 alto = 59.66
-
-[node name="PineTree_2_28" type="Node3D" parent="Vegetacion/Arboles" unique_id=1663027061]
-transform = Transform3D(-0.5735783, 0, 0.81915075, 0, 1, 0, -0.81915075, 0, -0.5735783, 12.208, 0.9563793, -65.184)
-script = ExtResource("2_rotgg")
-modelo = "nature/PineTree_2.obj"
-alto = 39.9
 
 [node name="Talable_1" type="Node3D" parent="Vegetacion/Arboles" unique_id=1994038665]
 transform = Transform3D(-0.4999999, 0, -0.86602545, 0, 1, 0, 0.86602545, 0, -0.4999999, -60.48, 2.5437393, 47.04)
