@@ -6620,7 +6620,7 @@ func _initialize() -> void:
 	r2_fam.plan_meeting(vm)
 	r2_fam.on_hour(vm, 23)
 	assert(r2_fam.is_meeting_now(vm) and r2_boss.errand_kind == "familia_meet" and r2_rec1.errand_kind == "familia_meet", "R2.10: At the chosen night hour members are called to the reservado")
-	assert(r1_rs.room_of(r2_boss.errand_pos) == "reservado" and r1_rs.room_of(r2_rec1.errand_pos) == "reservado", "R2.11: Every seat target is inside the Trattoria back room")
+	assert(r1_rs.room_of(D(r2_boss.errand_pos)) == "reservado" and r1_rs.room_of(D(r2_rec1.errand_pos)) == "reservado", "R2.11: Every seat target is inside the Trattoria back room")
 	var r2_wp: Vector2 = vm.get_navigation_waypoint(M(r1_rs.BASE) + Vector2(130, 136), r2_boss.errand_pos, r2_boss)
 	assert(r2_wp.distance_to(M(r1_rs.BASE) + Vector2(42, 92)) < 3.0, "R2.12: Members route through the back-room door from the dining hall")
 	var r2_cline: String = r2_fam.cook_line(vm)
@@ -7515,3 +7515,8 @@ func _initialize() -> void:
 ## Mapa ×E (2026-11-11): las posiciones escritas a mano en esta prueba están en el mapa original.
 func M(p: Vector2) -> Vector2:
 	return load("res://mapa/anclas.gd").mover(p)
+
+
+## Del mundo al mapa original (para funciones que esperan coordenadas fijas, como room_of)
+func D(p: Vector2) -> Vector2:
+	return load("res://mapa/anclas.gd").desmover(p)
