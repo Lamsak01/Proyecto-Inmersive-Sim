@@ -3,16 +3,12 @@
 > Última actualización: 2026-11-12, Claude Code, portátil. Historial: `CHANGELOG.md` y `git log`.
 
 ## a) Tarea activa
-Fallos visibles pendientes de la partida del usuario (`docs/FALLOS_VISIBLES.md`), en el orden aprobado:
-1. ✅ Bosque del Caso I: árboles separados (hecho).
-2. ✅ Posada: puertas en los 3 cuartos y camas de adulto (hecho).
-3. ✅ Los sapos de la Llanura Salvaje son ahora bandidos (hecho).
-4. ✅ Caso I con un día de margen (hecho).
-5. ✅ Césped sin dibujo repetido (hecho).
-6. ✅ Animales con vida propia en modo demo (hecho).
-7. ✅ Reñidero en las alcantarillas (decorado; las peleas reales siguen bajo la posada).
-
-**Mapa ×5 terminado y en `main`** (2026-11-12 de madrugada; registro en `docs/specs/PLAN_MAPA_X3.md` §8): todas las pruebas en verde (juego entero, física, puertas 29/29, Caso I a pie 25/25, atascos 3 h = 0). Siguiente bloque: los 11 edificios antiguos con huella ×2 (`BOCETO_EDIFICIOS_ANTIGUOS.md`), planificados con el usuario.
+**El usuario va a trabajar con el editor del mapa** (quiere mover edificios y distancias a mano): guía al día en
+`docs/EDITOR_MAPA_GUIA.md`; editor ajustado al mapa ×5 (maqueta, referencia, río); sondeo de edificios movidos 29/29.
+Fallos de su partida ×5 (`docs/FALLOS_VISIBLES.md`): arreglados el lago, el puente y los vecinos en la orilla, la mancha y la
+losa, los dibujos 2D y 3D en sitios viejos y Sora. Quedan: caminos (franja gigante / calle estrecha: decidir anchos con el
+usuario), sombra larga de los edificios, y la vista desde arriba enseña poco (zoom). Aviso menor: al mover la biblioteca en
+el editor, sus sillas y la mesa se solapan (aviso amarillo, no rompe nada).
 
 ## b) Último avance completado
 - 2026-11-11/12: mapa ×5 con el mecanismo de estiramiento por anclas y repaso de ~45 sitios fijos que seguían en el mapa antiguo (pozos, camas, celda, carro, corral, tienda del jugador…); antes, los 6 puntos del plan del día (posada, bandidos, Caso I día 2, césped, animales, reñidero) y la reorganización del repositorio.
