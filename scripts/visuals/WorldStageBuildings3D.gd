@@ -568,10 +568,11 @@ func _populate_building_interior_3d(b_root: Node3D, b_id: String, rect: Rect2, d
 		"building_abandoned_mill":
 			_build_abandoned_mill_3d(b_root, rect, wall_h, m_wall, m_trim, m_wood, m_dark_wood, m_iron, m_gold)
 		"building_school":
+			# La pizarra en la pared de enfrente de la puerta y los pupitres en medio (2026-11-10: tapaba la puerta)
 			var m_dir2: float = -1.0 if door_south else 1.0
-			for p in [Vector2(-30, 6), Vector2(0, 6), Vector2(30, 6), Vector2(-30, 26), Vector2(0, 26), Vector2(30, 26)]:
-				_add_model_2d(b_root, "props/Bench.gltf", c + Vector2(p.x, p.y * m_dir2), 2.0, Vector2(16.0, 9.0), 6.5)
-			_add_box_2d(b_root, c + Vector2(0, -26.0 * m_dir2), Vector2(54.0, 4.0), 8.0, 14.0, _mat("chalkboard", Color(0.14, 0.28, 0.18), 0.9, 0.0))
+			for p in [Vector2(-30, -8), Vector2(0, -8), Vector2(30, -8), Vector2(-30, 12), Vector2(0, 12), Vector2(30, 12)]:
+				_add_model_2d(b_root, "props/Bench.gltf", c + Vector2(p.x, -p.y * m_dir2), 2.0, Vector2(16.0, 9.0), 6.5)
+			_add_box_2d(b_root, c + Vector2(0, 26.0 * m_dir2), Vector2(54.0, 4.0), 8.0, 14.0, _mat("chalkboard", Color(0.14, 0.28, 0.18), 0.9, 0.0))
 		"shop_family_smith":
 			# Fragua encendida, yunque real sobre tronco, piedra de afilar, soporte de armas y mostrador
 			_register_furniture_rect("Forge", c + Vector2(-38, -16), Vector2(20.0, 16.0))

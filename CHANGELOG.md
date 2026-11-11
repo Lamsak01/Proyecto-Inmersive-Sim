@@ -4,6 +4,9 @@ Cambios del juego, del más nuevo al más antiguo. Añade una entrada al cerrar 
 El detalle técnico está en `docs/HANDOFF.md` (sección 7) y el historial completo en `git log`. Lo anterior a B0.1 está en `AUDIT_LOG.md` y `SESSION_CONTEXT_LOG.md`.
 
 
+## 2026-11-10 — Arreglos de la partida del usuario, 1: la pizarra de la escuela (Claude Code, portátil; rama `mundo-3d`)
+- La pizarra estaba pegada a la puerta; ahora está en la pared de enfrente, con los pupitres en medio.
+
 ## 2026-11-10 — Paso a 3D de verdad: paso 5d, con [E] llegas a lo que está a tu altura (Claude Code, portátil; rama `mundo-3d`)
 - En la escalera hablas con quien va unos peldaños más arriba; desde el salón no llegas a la galería ni a las camas de arriba.
 
