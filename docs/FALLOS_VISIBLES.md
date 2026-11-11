@@ -5,6 +5,17 @@
 > Formato: `- [ ] Qué se ve mal · dónde · cuándo (hora del juego, 2D/3D/primera persona)`.
 
 ## Pendientes
+- [ ] **Segunda partida del usuario con el mapa ×5 (1.ª persona, lunes 09:00–15:17; capturas `docs/capturas_usuario/2026-11-12/1p_*.png`)**.
+  Sospecha común de 2–6 y 10 (sin comprobar): piezas que se estiraron ×5 una a una o se quedaron en el sitio antiguo en vez de ir con su grupo o edificio.
+  1. **Línea blanca transparente que sale del molino** y sube en diagonal hacia el cielo · bosque del molino, 12:53 (`1p_09_molino_linea_blanca.png`). Sospecha: arroyo o agua del molino con la altura del mapa antiguo. En esa foto el minimapa sale vacío.
+  2. **Muebles de la iglesia al aire libre**: altar, atril, taburete con cálices, cama, mesa y silla sobre la hierba junto al río, sin edificio · 10:24 (`1p_05_iglesia_muebles_fuera.png`).
+  3. **Tejado flotando sin postes** encima del lavadero (pila de piedra, barril y cubo) · 10:36 (`1p_06_lavadero_tejado_flotante.png`).
+  4. **Árbol metido dentro de una casa** (sale por la fachada) y rayitas blancas en la pared; macetas y un palo negro pegados a la casa · 10:46 (`1p_07_arbol_dentro_casa.png`).
+  5. **Restos sueltos por el campo**: palos negros altos con macetas de arbusto, losas de piedra, pilares, rejilla de madera sobre el camino · 09:06–10:10 (`1p_01`, `1p_02`, `1p_04`).
+  6. **Cementerio desperdigado**: tumbas, trozos de verja verde, pilares blancos y tramos de muro muy separados por el prado · 10:00 (`1p_11_cementerio_desperdigado.png`).
+  7. **Casas en miniatura por dentro**: paredes casi pegadas al jugador, armario, dos mesas y cama sin sitio para moverse · 15:17 (`1p_10_casa_miniatura.png`). Va con «Los edificios antiguos son diminutos y feos» (más abajo).
+  8. **Mucho vacío**: caminos larguísimos y plaza enorme casi vacía, con zorros paseando · 09:06 y 11:00 (`1p_01`, `1p_08_plaza_vacia_zorros.png`). Depende de si el usuario se queda con ×5.
+  9. Menor: en la taberna, los conos verdes de las mesas parecen demasiado grandes · 09:46 (`1p_03_taberna_interior.png`).
 - [ ] **Partida del usuario con el mapa ×5 (2026-11-12, vista desde arriba; capturas en `docs/capturas_usuario/2026-11-12/`)**
   1. ✅ (2026-11-12) **El lago se ve como un bloque**: bordes rectos y esquinas de polígono, orilla norte en línea recta, el muelle en medio del agua lejos de la orilla, y un cuadradito de tierra con una roca y una planta pegado al borde · lago, 09:39 (`01_lago_x5.png`). *(Contorno redondeado; el nodo del lago (pesca, choque) y el muelle, también el horneado en la escena, en la orilla este del agua; la cuenca del relieve sigue el contorno, así la orilla que se ve es la de nadar. Foto: `docs/capturas_arreglos/2026-11-12_lago_muelle_despues.png`. El cuadradito de tierra es el final del sendero del lago estirado: va con los caminos, punto 2.)*
   2. **Camino principal convertido en una franja gigante** de tierra recta, sin forma de camino · lago, 09:39 (`01_lago_x5.png`) y una **calle de un píxel de ancho, recta y larguísima** · afueras, 14:17 (`03_camino_rio_puente.png`).
