@@ -77,6 +77,35 @@ static func _today() -> int:
 	return int(WorldClock.current_day) if WorldClock else 1
 
 
+## Un día de margen (decisión del usuario, 2026-11-11): el día 1 llegas y conoces el pueblo; el caso estalla el día 2.
+const DIA_DE_MARGEN: int = 1
+const AVISO_AMANECER: String = "🔔 Al amanecer, un pastor ha encontrado a una mujer muerta junto al arroyo, al norte del pueblo. El alguacil Vane te espera allí."
+
+static func empezado() -> bool:
+	return _today() >= 1 + DIA_DE_MARGEN
+
+
+## El cuerpo del claro existe desde el principio (así se guarda y carga como un vecino más), pero hasta que empieza el
+## caso está escondido: ni se ve, ni se examina, ni lo descubre nadie.
+static func mostrar_cuerpo(vm, visible: bool) -> void:
+	var cuerpo = vm.entities_root.get_node_or_null("NPC_Case1_Victim")
+	if cuerpo == null:
+		return
+	cuerpo.visible = visible
+	cuerpo.corpse_on_ground = visible
+	cuerpo._set_area_col_disabled(cuerpo.interact_area, not visible)
+
+
+static func _avisar_inicio(vm, st: Dictionary) -> void:
+	if st.get("aviso_dado") == true:
+		return
+	st["aviso_dado"] = true
+	var jugador = vm.get_tree().get_first_node_in_group("player")
+	if jugador != null and jugador.has_method("show_hint"):
+		jugador.call("show_hint", AVISO_AMANECER)
+	vm._msg_player(jugador, "🔔 Han encontrado un cuerpo junto al arroyo del norte", Color(0.95, 0.80, 0.55))
+
+
 # ---------------------------------------------------------------- reparto de papeles
 static func _assign_roles(vm) -> void:
 	var st: Dictionary = state(vm)
@@ -158,10 +187,16 @@ static func cabinet_pos() -> Vector2:
 static func sync(vm) -> void:
 	if vm == null or not vm.is_inside_tree():
 		return
+	if not empezado():
+		mostrar_cuerpo(vm, false)
+		return
 	_assign_roles(vm)
 	var st: Dictionary = state(vm)
 	if (st["roles"] as Dictionary).is_empty():
 		return
+	mostrar_cuerpo(vm, true)
+	if int(WorldClock.current_hour) >= 6: # el aviso llega al amanecer, no a medianoche mientras duermes
+		_avisar_inicio(vm, st)
 	# Áreas de [E] (se crean una vez por sesión)
 	if vm.get_node_or_null("Case1CabinetArea") == null:
 		vm._add_station_area("Case1CabinetArea", cabinet_pos(), 20.0, "case1_forced_cabinet")

@@ -810,7 +810,7 @@ func _setup_hiring_letter_panel_ui() -> void:
 
 	var body_lbl := _make_lbl(
 		vbox,
-		"«Carta de contratación — texto pendiente del autor»",
+		"«Al investigador forastero:\n\nUna lavandera del valle lleva días sin aparecer y la denuncia duerme en un cajón de la comisaría. Le pagamos el viaje para que mire donde otros no quieren mirar.\n\nLlegue hoy, tome un cuarto en la posada El Jabalí Dorado y conozca el pueblo. Mañana al amanecer, preséntese ante el alguacil mayor Vane.»\n\n(Texto provisional)",
 		18,
 		Color(0.149, 0.129, 0.106, 1.0),
 		true,

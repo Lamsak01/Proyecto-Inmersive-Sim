@@ -4,6 +4,9 @@ Cambios del juego, del más nuevo al más antiguo. Añade una entrada al cerrar 
 El historial completo está en `git log`. Lo anterior al 2026-11-09 está en `docs/archivo/CHANGELOG_hasta_2026-11-08.md`.
 
 
+## 2026-11-11 — Caso I con un día de margen (Claude Code, portátil; `main`)
+- El día 1 llegas, lees la carta (texto provisional) y conoces el pueblo; el caso estalla el día 2 al amanecer con un aviso en pantalla. Los forasteros del molino cuentan sus días desde entonces.
+
 ## 2026-11-11 — Llanura Salvaje: los sapos son ahora bandidos (Claude Code, portátil; `main`)
 - Los 4 enemigos de la llanura y la ciénaga son bandidos (muñeco 3D de asaltante, botín de chatarra y oro); el letrero de la ciénaga avisa de ellos. Arreglado además que los bandidos quedaban enterrados en terreno alto.
 

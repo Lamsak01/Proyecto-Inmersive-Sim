@@ -41,4 +41,6 @@
 - El jugador empieza en las afueras, en el camino de entrada al valle; el campamento inicial ya no está en el pueblo.
 - Posada: 3 cuartos en la planta +1 (dueños, huéspedes con 3 camas, el del jugador) (2026-11-11).
 - Controles: todas las teclas en `docs/CONTROLES.md`; trucos de tiempo y modo pruebas con Ctrl.
-- Pendientes de decisión del usuario: cuándo empieza el Caso I; qué pistas van al fondo del agua; dónde habrá cuevas.
+- **Caso I con un día de margen** (2026-11-11): el día 1 llegas y conoces el pueblo; el caso estalla el día 2 al amanecer.
+- **Los sapos de la Llanura Salvaje se descartan**: sus puestos los ocupan bandidos (2026-11-11).
+- Pendientes de decisión del usuario: qué pistas van al fondo del agua; dónde habrá cuevas.

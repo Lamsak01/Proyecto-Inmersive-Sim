@@ -157,6 +157,11 @@ func _initialize() -> void:
 		gm.call("set_demo_mode", true)
 
 	var vm = root.find_child("VillageManager", true, false)
+	# Día de margen (2026-11-11): el caso empieza el día 2; la partida de prueba arranca ya en ese día
+	var reloj: Node = root.get_node_or_null("WorldClock")
+	if reloj != null:
+		reloj.set("current_day", 2)
+	load("res://scripts/systems/VillageCase1.gd").sync(vm)
 	var pl = get_first_node_in_group("player") as CharacterBody2D
 	var ui_root = get_first_node_in_group("game_ui")
 	var det_ui = ui_root.get("detective_ui") if ui_root != null else null

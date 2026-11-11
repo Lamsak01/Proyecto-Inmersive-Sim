@@ -444,6 +444,7 @@ func _spawn_case1_clearing_corpse() -> void:
 		npc._set_sprite_pose(90.0, Color(0.68, 0.54, 0.54, 0.96))
 		npc.sprite.z_index = -1
 		npc.sprite.visible = true
+	VillageCase1.mostrar_cuerpo(self, VillageCase1.empezado()) # día de margen: el día 1 el cuerpo aún no está
 
 func _spawn_domestic_pets() -> void:
 	var is_demo: bool = (GameManager == null) or (GameManager.has_method("is_demo_mode") and bool(GameManager.call("is_demo_mode")))

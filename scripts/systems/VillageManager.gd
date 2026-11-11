@@ -713,6 +713,9 @@ func interact(player: Node2D) -> void:
 		)
 		return
 	if pos.distance_squared_to(FishingSpot.CASE1_CLEARING_POS) <= 28.0 * 28.0:
+		if not VillageCase1.empezado(): # día de margen: todavía no ha pasado nada aquí
+			_msg_player(player, "🌲 Un recodo tranquilo del arroyo. Nada llama la atención… por ahora.", Color(0.84, 0.72, 0.54))
+			return
 		_record_case_clue(
 			player,
 			"🌲 Orilla del arroyo",
