@@ -5,6 +5,8 @@ const _CombatFeel = preload("res://scripts/systems/combat/CombatFeel.gd") # C7 f
 ## camino del este al atardecer y avanzan hacia la plaza. Pelean con guardias, vecinos con arrojo y el jugador; se
 ## les puede herir con cualquier arma (Hurtbox). Huyen malheridos. Si uno llega a la plaza, saquea.
 ## Lo coordina RaidController: él decide cuándo se ha ganado o perdido el asalto.
+## 2026-11-10: se mueven con física (chocan con paredes y muebles, capa 1); si huyendo se quedan parados contra un
+## muro HUIDA_ATASCO_S segundos, se dan por huidos (antes atravesaban las paredes).
 
 const AnimalModel3DScript = preload("res://scripts/visuals/AnimalModel3D.gd")
 const BanditModel3DScript = preload("res://scripts/visuals/BanditModel3D.gd")
@@ -42,6 +44,8 @@ var hit_mass: float:
 		return 2.5 if kind == "boar" else 1.1
 var stagger_timer: float = 0.0
 var _done: bool = false
+var _huida_parada: float = 0.0 ## segundos seguidos sin avanzar mientras huye
+const HUIDA_ATASCO_S: float = 2.0
 
 
 func setup(p_kind: String, pos: Vector2, hp_mult: float = 1.0) -> void:
@@ -52,7 +56,7 @@ func setup(p_kind: String, pos: Vector2, hp_mult: float = 1.0) -> void:
 	add_to_group("raiders")
 	motion_mode = CharacterBody2D.MOTION_MODE_FLOATING
 	collision_layer = 0
-	collision_mask = 0
+	collision_mask = 1 # paredes y muebles
 	if kind == "boar":
 		max_hp = 34.0 * hp_mult
 		speed = 74.0
@@ -82,6 +86,11 @@ func setup(p_kind: String, pos: Vector2, hp_mult: float = 1.0) -> void:
 	hb.add_child(col)
 	hb.hit_received.connect(take_damage)
 	add_child(hb)
+	var cuerpo := CollisionShape2D.new() # el cuerpo con el que choca contra paredes y muebles (la Hurtbox solo recibe golpes)
+	var forma := CircleShape2D.new()
+	forma.radius = 6.0
+	cuerpo.shape = forma
+	add_child(cuerpo)
 	if kind == "boar":
 		var m = AnimalModel3DScript.attach(self, "animals/animated/Wolf.glb", 14.0, 8.0)
 		if m != null:
@@ -164,8 +173,11 @@ func _physics_process(delta: float) -> void:
 	attack_anim = maxf(0.0, attack_anim - delta * 2.5)
 	if fleeing:
 		_windup_t = 0.0
+		var antes: Vector2 = global_position
 		_move_to(Vector2(flee_x, global_position.y), speed * 1.2, delta)
-		if global_position.x >= flee_x - 4.0:
+		var paso_min: float = speed * 1.2 * delta * 0.25 # menos de un cuarto del paso esperado: está contra algo
+		_huida_parada = _huida_parada + delta if global_position.distance_to(antes) < paso_min else 0.0
+		if global_position.x >= flee_x - 4.0 or _huida_parada >= HUIDA_ATASCO_S:
 			_finish("fled")
 			queue_free()
 		return
@@ -225,14 +237,14 @@ func _physics_process(delta: float) -> void:
 		queue_free()
 
 
-func _move_to(p: Vector2, spd: float, delta: float) -> void:
+func _move_to(p: Vector2, spd: float, _delta: float) -> void:
 	var dir: Vector2 = p - global_position
 	if dir.length() < 1.0:
 		velocity = Vector2.ZERO
 		return
 	velocity = dir.normalized() * spd
 	facing = velocity.normalized()
-	global_position += velocity * delta
+	move_and_slide() # choca con paredes y muebles
 	if sprite:
 		sprite.flip_h = velocity.x > 0.0
 

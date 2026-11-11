@@ -31,6 +31,7 @@ func _initialize() -> void:
 	_paso5b_oido()
 	await _paso5c_golpes()
 	await _paso5d_alcance()
+	await _arreglo_bandido_pared()
 	print("FISICA 3D: %s (%d fallos)" % ["PASSED" if _fallos == 0 else "FAILED", _fallos])
 	quit(1 if _fallos > 0 else 0)
 
@@ -139,6 +140,8 @@ func _paso1_cuerpo() -> void:
 		return
 	var fuera: Vector2 = vm.get_door_outward_dir(puerta)
 	var rect: Rect2 = puerta["building_rect"]
+	_despejar(puerta["pos"], 40.0) # un vecino parado en el umbral (con cuerpo de contacto) hacía fallar la prueba a ratos
+	vm._set_door_state(puerta, true, false, true)
 	pl.global_position = puerta["pos"] + fuera * 30.0
 	await _andar(pl, mc, -fuera, 120.0, 1.6)
 	_ok(rect.has_point(pl.global_position), "1: cruza la puerta de la taberna y entra (" + str(pl.global_position.round()) + ")")
@@ -556,6 +559,30 @@ func _paso5d_alcance() -> void:
 	n.set_physics_process(true)
 
 
+## Arreglo 2026-11-10 (fallo visto por el usuario): un bandido que huye ya no atraviesa las paredes; si se queda
+## atascado contra un muro, se da por huido.
+func _arreglo_bandido_pared() -> void:
+	var pl = get_first_node_in_group("player")
+	var VillageTavern = load("res://scripts/systems/VillageTavern.gd")
+	var r = load("res://scripts/enemies/Raider.gd").new()
+	var dentro: Vector2 = Anclas.mover(Vector2(500.0, VillageTavern.GALLERY_EDGE_Y + 16.0)) # salón; la pared este está en x 608
+	var pared_x: float = Anclas.mover(Vector2(VillageTavern.RECT.end.x, dentro.y)).x
+	r.setup("bandit", dentro, 1.0)
+	pl.get_parent().add_child(r)
+	r.fleeing = true
+	r.target = null
+	var max_x: float = dentro.x
+	for _i in range(300): # ~1,4 s hasta la pared + 2 s atascado
+		await physics_frame
+		if not is_instance_valid(r):
+			break
+		max_x = maxf(max_x, r.global_position.x)
+	_ok(max_x < pared_x + 2.0, "arreglo: un bandido huyendo no atraviesa la pared de la posada (llega a x %.0f; pared en %.0f)" % [max_x, pared_x])
+	_ok(not is_instance_valid(r), "arreglo: atascado contra el muro, se da por huido y desaparece")
+	if is_instance_valid(r):
+		r.queue_free()
+
+
 ## Dispara una flecha desde `desde` hacia el este con la `pendiente` dada y espera a que acabe su vuelo.
 func _flechazo(pl, desde: Vector2, pendiente: float):
 	var f = load("res://scripts/systems/combat/ArrowProjectile.gd").new()
@@ -571,6 +598,14 @@ func _flechazo(pl, desde: Vector2, pendiente: float):
 	for _i in range(40):
 		await physics_frame
 	return f
+
+
+## Aparta (300 px al sur) a los vecinos y animales que estén a menos de `radio` de `pos`, para que no estorben a la prueba.
+func _despejar(pos: Vector2, radio: float) -> void:
+	for g in load("res://scripts/fisica/CuerposCercanos3D.gd").GRUPOS:
+		for n in get_nodes_in_group(g):
+			if n is Node2D and (n as Node2D).global_position.distance_to(pos) < radio:
+				(n as Node2D).global_position += Vector2(0.0, 300.0)
 
 
 ## ¿Hay algún vecino o animal (con cuerpo de contacto, paso 4b–4c) dentro de `zona`?
