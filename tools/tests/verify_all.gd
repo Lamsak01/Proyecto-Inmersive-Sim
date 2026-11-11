@@ -68,7 +68,7 @@ func _initialize() -> void:
 	assert(hc.has_fresh_combat_wounds_or_makeshift(), "Makeshift bandage must be detectable by investigators")
 
 	# 2. Test Blood Puddle & Directional Footprints
-	var test_puddle_pos := Vector2(465, 60)
+	var test_puddle_pos := M(Vector2(465, 60))
 	vm.spawn_blood_puddle(test_puddle_pos, "Víctima Test")
 	player.global_position = test_puddle_pos
 	vm.update_entity_blood_footprints(player, 0.1)
@@ -83,7 +83,7 @@ func _initialize() -> void:
 	# 3. Test Inquisitor Alistair's Own Bed & Witness-Chain Investigation
 	vm._spawn_royal_investigator()
 	assert(vm._royal_investigator_npc != null, "Royal Investigator should spawn")
-	assert(vm._royal_investigator_npc.bed_position == Vector2(400, -252), "Alistair must sleep in his own Inn bed Vector2(400, -252), not Sheriff Vane's bed!")
+	assert(vm._royal_investigator_npc.bed_position == M(Vector2(400, -252)), "Alistair must sleep in his own Inn bed M(Vector2(400, -252)), not Sheriff Vane's bed!")
 
 	# 4. Test Sequential Doctor Wound-by-Wound Treatment
 	var doc_npc = null
@@ -111,7 +111,7 @@ func _initialize() -> void:
 	var smith = vm._find_npc_by_name("Thoran")
 	var carpenter = vm._find_npc_by_name("Bram")
 	if smith and carpenter:
-		player.global_position = Vector2(-500, -500) # Player far away, unseen by anyone
+		player.global_position = M(Vector2(-500, -500)) # Player far away, unseen by anyone
 		vm.start_sheriff_investigation(smith, test_puddle_pos, "Cuchillo", carpenter.npc_name)
 		var q: Array = vm.active_sheriff_investigation.get("interview_queue", [])
 		assert(q.size() == 1 and str(q[0]) == carpenter.npc_name, "Sheriff must start interview queue with corpse reporter (Bram), not Player! Queue: " + str(q))
@@ -125,7 +125,7 @@ func _initialize() -> void:
 	vm._check_weekly_merchant_arrival(3, true, true)
 	var casimir = vm._active_traveling_merchant
 	assert(casimir != null and not casimir.is_dead, "Maese Casimir should be spawned")
-	casimir.global_position = Vector2(-750, -180) # Remote spot away from witnesses
+	casimir.global_position = M(Vector2(-750, -180)) # Remote spot away from witnesses
 	casimir.last_hit_by_player = true
 	casimir.last_hit_weapon_name = "Corte de Espada"
 	casimir._confirm_true_death()
@@ -175,7 +175,7 @@ func _initialize() -> void:
 	var pw_id: int = int(p_hc_w.wounds[0]["id"])
 	assert(not bool(p_hc_w.wounds[0].get("clean", false)), "Fresh wound starts uncleaned")
 
-	# Move player within 1.5m (24 px) of the Tavern Back Well (`Vector2(440, -306)`)
+	# Move player within 1.5m (24 px) of the Tavern Back Well (`M(Vector2(440, -306))`)
 	player.global_position = vm._tavern_well_pos + Vector2(0, 20)
 	assert(player.is_near_water_source(2.0), "Player at 20px (~1.25m) from Tavern Well must be detected as <=2m from water source")
 	var water_before: int = p_inv.get_count("clean_water")
@@ -189,10 +189,10 @@ func _initialize() -> void:
 	assert(bool(p_hc_w.wounds[0].get("clean", false)), "Wound must be clean after washing near Tavern Well")
 	assert(p_inv.get_count("clean_water") == water_before, "Washing within <=2m of a water source must NOT consume inventory clean_water!")
 
-	# Now move player far from any water source (`Vector2(100, -250)`) and dirty the wound again
+	# Now move player far from any water source (`M(Vector2(100, -250))`) and dirty the wound again
 	# 2026-11-10: el usuario redibujó el río y (100, -250) quedó junto a la orilla: se busca un sitio seco de verdad.
-	var dry_pos := Vector2(100, -250)
-	for cand in [Vector2(100, -250), Vector2(-300, -250), Vector2(600, -400), Vector2(-600, 300), Vector2(900, 500)]:
+	var dry_pos := M(Vector2(100, -250))
+	for cand in [M(Vector2(100, -250)), M(Vector2(-300, -250)), M(Vector2(600, -400)), M(Vector2(-600, 300)), M(Vector2(900, 500))]:
 		player.global_position = cand
 		if not player.is_near_water_source(2.0):
 			dry_pos = cand
@@ -228,13 +228,13 @@ func _initialize() -> void:
 	vm.wanted_level = 0
 	vm.bounty_gold = 0
 	vm.active_sheriff_investigation.clear()
-	victim_npc.global_position = Vector2(445, 44)
-	witness_npc.global_position = Vector2(455, 44) # 10px from body
-	sheriff_npc.global_position = Vector2(520, 44) # 65px away in Plaza
+	victim_npc.global_position = M(Vector2(445, 44))
+	witness_npc.global_position = M(Vector2(455, 44)) # 10px from body
+	sheriff_npc.global_position = M(Vector2(520, 44)) # 65px away in Plaza
 	# Determinismo: apartar a cualquier otro NPC (p.ej. guardias en patrulla) del testigo/cuerpo para que Vane sea la única autoridad cercana
 	for n_far in get_nodes_in_group("village_npcs"):
 		if n_far != victim_npc and n_far != witness_npc and n_far != sheriff_npc and n_far.global_position.distance_to(witness_npc.global_position) < 140.0:
-			n_far.global_position = Vector2(950, 160)
+			n_far.global_position = M(Vector2(950, 160))
 	victim_npc.last_hit_by_player = false
 	victim_npc.last_hit_weapon_name = "Cuchillo"
 	victim_npc._confirm_true_death()
@@ -310,9 +310,9 @@ func _initialize() -> void:
 	lyra_npc._reporting_corpse_target = null
 	lyra_npc._corpse_report_phase = 0
 	lyra_npc._corpse_report_timer = 0.0
-	corpse_a.global_position = Vector2(390, 44)
-	corpse_b.global_position = Vector2(398, 44)
-	lyra_npc.global_position = Vector2(394, 44)
+	corpse_a.global_position = M(Vector2(390, 44))
+	corpse_b.global_position = M(Vector2(398, 44))
+	lyra_npc.global_position = M(Vector2(394, 44))
 	corpse_a._confirm_true_death()
 	corpse_b._confirm_true_death()
 	# Simulate both corpses scanning every frame while Lyra is examining one of them!
@@ -481,7 +481,7 @@ func _initialize() -> void:
 	tomas_npc.corpse_reported = false
 	tomas_npc.corpse_in_morgue = false
 	# Suppose Elena is killed far away in the forest and Tomás is at home at 22:00
-	elena_npc.global_position = Vector2(140, 620)
+	elena_npc.global_position = M(Vector2(140, 620))
 	elena_npc._confirm_true_death()
 	assert(doc_npc.person_profile.romance_status == "widowed" and doc_npc.person_profile.partner_id == "", "B0.8: When Elena dies, Dr. Valen must become widowed!")
 	tomas_npc.global_position = tomas_npc.home_table_pos
@@ -496,8 +496,8 @@ func _initialize() -> void:
 		tomas_npc._process_family_missing_search(0.1)
 	assert(tomas_npc._missing_kin_phase == 2, "After 8s searching the empty shop, Tomás must advance to Phase 2 (walk to police)!")
 	# Move Tomás to Sheriff Vane at Police Station and explain for 10.0s
-	sheriff_npc.global_position = Vector2(886, 132)
-	tomas_npc.global_position = Vector2(880, 132)
+	sheriff_npc.global_position = M(Vector2(886, 132))
+	tomas_npc.global_position = M(Vector2(880, 132))
 	for p_i in range(110):
 		tomas_npc._process_family_missing_search(0.1)
 	assert(tomas_npc._searching_missing_kin == null and sheriff_npc._patrol_search_target_npc == elena_npc and sheriff_npc._patrol_search_timer > 0.0, "After 10s explaining disappearance to police, Sheriff Vane must launch an active missing-person search patrol!")
@@ -544,7 +544,7 @@ func _initialize() -> void:
 	smith_npc.corpse_on_ground = false
 	smith_npc.corpse_reported = false
 	smith_npc.personal_gold = 50
-	smith_npc.global_position = Vector2(220, 320)
+	smith_npc.global_position = M(Vector2(220, 320))
 	smith_npc.apply_sleeping_draught(35.0)
 	garrick_npc.is_dead = false
 	garrick_npc.is_downed = false
@@ -553,16 +553,16 @@ func _initialize() -> void:
 	garrick_npc.is_sleeping = false
 	garrick_npc.npc_relationships["Thoran"] = -35
 	smith_npc.npc_relationships["Garrick"] = -35
-	garrick_npc.global_position = Vector2(232, 320)
+	garrick_npc.global_position = M(Vector2(232, 320))
 	# Case 18a: While Player is watching nearby (at 240, 320), Garrick must NOT attempt to steal!
-	player.global_position = Vector2(240, 320)
+	player.global_position = M(Vector2(240, 320))
 	var started_watched: bool = smith_npc.begin_unconscious_neighbor_reaction(garrick_npc)
 	assert(not started_watched and smith_npc._unconscious_ignored_by.has("Garrick") and smith_npc.personal_gold == 50, "Opportunist rival Garrick must NOT steal when a witness is watching!")
 	# Case 18b: Move Player and all other witnesses far away, clear ignore flag, and let Garrick find Thoran alone
-	player.global_position = Vector2(1200, 1200)
+	player.global_position = M(Vector2(1200, 1200))
 	for other_w in root.get_tree().get_nodes_in_group("village_npcs"):
 		if other_w != smith_npc and other_w != garrick_npc:
-			other_w.global_position = Vector2(950, 150)
+			other_w.global_position = M(Vector2(950, 150))
 	smith_npc._unconscious_ignored_by.clear()
 	var started_unseen: bool = smith_npc.begin_unconscious_neighbor_reaction(garrick_npc)
 	assert(started_unseen and garrick_npc._unconscious_react_mode == "opportunist_steal", "When no one is watching, rival Garrick must start 'opportunist_steal' on unconscious Thoran!")
@@ -578,7 +578,7 @@ func _initialize() -> void:
 	bram2_npc.is_sleeping = false
 	bram2_npc.npc_relationships["Thoran"] = 45
 	smith_npc.npc_relationships["Bram"] = 45
-	bram2_npc.global_position = Vector2(228, 320)
+	bram2_npc.global_position = M(Vector2(228, 320))
 	var started_friend: bool = smith_npc.begin_unconscious_neighbor_reaction(bram2_npc)
 	assert(started_friend and bram2_npc._unconscious_react_mode == "friend_rescue", "Friend Bram must start 'friend_rescue' when finding unconscious Thoran!")
 	for fr_i in range(45):
@@ -653,8 +653,8 @@ func _initialize() -> void:
 	bram2_npc.sedated_timer = 0.0
 	bram2_npc._npc_social_event_cooldown = 0.0
 	bram2_npc._pending_social_reply_timer = 0.0
-	smith_npc.global_position = Vector2(300, 300)
-	bram2_npc.global_position = Vector2(316, 300)
+	smith_npc.global_position = M(Vector2(300, 300))
+	bram2_npc.global_position = M(Vector2(316, 300))
 	var rel_before_conv: int = smith_npc.get_relationship_with_npc("bram")
 	smith_npc._trigger_dynamic_npc_social_interaction(bram2_npc)
 	assert(smith_npc.last_social_line_spoken != "", "Initiator Thoran must speak a real opening phrase in Turn 1!")
@@ -828,7 +828,7 @@ func _initialize() -> void:
 	for n4 in vm.get_tree().get_nodes_in_group("village_npcs"):
 		if int(n4.trade_role) in [9, 10]:  # SHERIFF, GUARD
 			police4.append(n4)
-			n4.global_position = Vector2(-4000, -4000)
+			n4.global_position = M(Vector2(-4000, -4000))
 	var prepare_fight = func(tension_v: int, day_v: int) -> void:
 		sd4.active_scenes.clear()
 		sd4.pair_metrics.clear()
@@ -846,8 +846,8 @@ func _initialize() -> void:
 			fv._reacting_unconscious_target = null
 			fv.clear_hangout()
 			fv.end_live_fight()
-		f_a.global_position = Vector2(300, 300)
-		f_b.global_position = Vector2(330, 300)
+		f_a.global_position = M(Vector2(300, 300))
+		f_b.global_position = M(Vector2(330, 300))
 		wc_speed.current_day = day_v
 		vm._fight_scan_timer = 0.0
 	var old_chance4 = sd4.dials["live_fight_daily_chance"]
@@ -879,7 +879,7 @@ func _initialize() -> void:
 	f_a.health_comp.current_health = f_a.health_comp.get_effective_max_health()
 	# Un guardia a 140 px o menos separa a los vecinos antes de que haya heridas
 	prepare_fight.call(45, int(wc_speed.current_day) + 20)
-	police4[0].global_position = Vector2(315, 400)
+	police4[0].global_position = M(Vector2(315, 400))
 	police4[0].is_sleeping = false
 	vm._try_start_live_fight()
 	assert(vm._live_fights.size() == 1 and vm._live_fights[0]["guard"] == police4[0], "B4.2: Nearby guard must be assigned")
@@ -1845,7 +1845,7 @@ func _initialize() -> void:
 	vdes.on_player_action(vm, d_y, "desire_warn:%d" % int(d_m2["id"]))
 	assert(str(d_m2["outcome"]) == "foiled", "D5: Warning the victim stops the plan")
 	var d_mur: Dictionary = vdes.create(vm, "murder", d_h, d_tk, d_v.npc_name, "", false)
-	d_v.global_position = Vector2(-9000, -9000)
+	d_v.global_position = M(Vector2(-9000, -9000))
 	assert(vdes.try_commit_murder(vm, d_mur, d_h, d_v) and d_v.is_dead and vdes.killer_of(vm, d_v.npc_name) == d_h.npc_name, "D5: The plan can end in murder")
 	var d_case: Dictionary = load("res://scripts/systems/VillageJustice.gd")._build_investigation_case_dict(vm, d_v, d_v.global_position, "Puñalada", "", 5, false)
 	assert(int(d_case["suspects"][d_h.npc_name]["score"]) >= 40, "D5: The investigation points at the real killer")
@@ -1925,7 +1925,7 @@ func _initialize() -> void:
 	assert(g_a.rite_pos != Vector2.ZERO and g_priest.rite_pos != Vector2.ZERO and g_sk.rite_pos == Vector2.ZERO, "G2: Believers and the priest go to the rite; skeptics stay home")
 	assert(g_a._get_social_target_pos() == g_a.rite_pos and not g_a._is_mandatory_work_hours(), "G2: They really walk to the chapel")
 	g_b.leave_rite()
-	g_b.global_position = Vector2(-9000, -8000)
+	g_b.global_position = M(Vector2(-9000, -8000))
 	g_a.global_position = g_a.rite_pos
 	g_priest.global_position = g_priest.rite_pos
 	var g_pk: String = g_priest.get_person_key()
@@ -2372,7 +2372,7 @@ func _initialize() -> void:
 	var v4_wp: Vector2 = vl.site_work_pos("n1")
 	v4_carp.is_sleeping = false
 	v4_carp.current_activity = 0
-	v4_carp.global_position = Vector2(585, 148) # En su taller, lejos de la obra
+	v4_carp.global_position = M(Vector2(585, 148)) # En su taller, lejos de la obra
 	for _h4 in range(10):
 		vl.on_hour(vm, 10)
 	assert(v4_carp.work_position == v4_wp and float(vl.lot(vm, "n1")["progress"]) == 0.0, "V4: The work only advances with the carpenter on site")
@@ -2578,7 +2578,7 @@ func _initialize() -> void:
 	vw._assign(vm, v5d_worker, "farmer", vw.PLACES["farmer"]["spots"][0])
 	assert(v5d_worker.has_meta("day_job") and vm.work_state["jobs"].has(v5d_worker.get_person_key()), "V5d: The laborer is hired")
 	var v5d_wheat: int = int(v5d_master.shop_stock.get("wheat", 0))
-	v5d_worker.global_position = Vector2(400, 0) # Lejos del campo: esa hora no cuenta
+	v5d_worker.global_position = M(Vector2(400, 0)) # Lejos del campo: esa hora no cuenta
 	v5d_worker.current_activity = 0
 	v5d_worker.is_sleeping = false
 	vw._count_hour(vm)
@@ -2600,7 +2600,7 @@ func _initialize() -> void:
 	# Lavadero
 	var v5d_lav: int = 0
 	for _i5 in range(200):
-		if vw.wash_spot(vm, v5d_worker, Vector2(412, 70)).distance_to(vw.LAVADERO_POS) < 30.0:
+		if vw.wash_spot(vm, v5d_worker, M(Vector2(412, 70))).distance_to(M(vw.LAVADERO_POS)) < 30.0:
 			v5d_lav += 1
 	assert(v5d_lav > 20 and v5d_lav < 120, "V5d: Some people wash at the laundry (%d/200)" % v5d_lav)
 	var v5d_other = v5b_people[0]
@@ -3341,9 +3341,9 @@ func _initialize() -> void:
 	assert(bool(vfo.state(vm)["planted"][p70_a.npc_name]["debunked"]) and int(p2_case["suspects"][p70_c.npc_name]["score"]) < 30, "P2: Debunking planted clue clears framed suspect")
 	# Tanda 1 (1-5): lejía en escena, sobornar autopsia, póliza de seguro, trucar hora de muerte y limpiador nocturno
 	p2_case["suspects"]["Jugador"] = {"score": 40}
-	vm.spawn_blood_puddle(Vector2(-3500, -3500), p70_a.npc_name)
+	vm.spawn_blood_puddle(M(Vector2(-3500, -3500)), p70_a.npc_name)
 	var t1_puddles_before: int = vm.blood_puddles.size()
-	assert(vfo.bleach_crime_scene(vm, p70_pl, p70_inv, Vector2(-3500, -3500)) and vm.blood_puddles.size() < t1_puddles_before and int(p2_case["suspects"]["Jugador"]["score"]) == 20, "Tanda 1.1: Bleaching crime scene removes blood puddle and lowers player suspicion")
+	assert(vfo.bleach_crime_scene(vm, p70_pl, p70_inv, M(Vector2(-3500, -3500))) and vm.blood_puddles.size() < t1_puddles_before and int(p2_case["suspects"]["Jugador"]["score"]) == 20, "Tanda 1.1: Bleaching crime scene removes blood puddle and lowers player suspicion")
 	var t1_doc = vm.trade_npcs.get(8, p70_a) # 8 = DOCTOR
 	var t1_doc_aff_bak: int = t1_doc.affinity
 	var t1_doc_gold_bak: int = t1_doc.personal_gold
@@ -3363,7 +3363,7 @@ func _initialize() -> void:
 	var t1_b_score1: int = int(p2_case["suspects"][p70_b.npc_name]["score"])
 	vfo.on_player_action(vm, t1_doc, "forensic_check_rigor:" + p70_a.npc_name, p70_inv)
 	assert(bool(vfo.state(vm)["tampered_time"][p70_a.npc_name]["examined"]) and int(p2_case["suspects"][p70_b.npc_name]["score"]) == t1_b_score1 + 25, "Tanda 1.4: Checking rigor mortis uncovers tampered death time and raises killer suspicion")
-	vm.spawn_blood_puddle(Vector2(-3400, -3400), p70_a.npc_name)
+	vm.spawn_blood_puddle(M(Vector2(-3400, -3400)), p70_a.npc_name)
 	p2_case["suspects"]["Jugador"]["score"] = 30
 	var t1_fence_g0: int = p70_c.personal_gold
 	vfo.on_player_action(vm, p70_c, "forensic_hire_cleaner", p70_inv)
@@ -3472,7 +3472,7 @@ func _initialize() -> void:
 	var t3_priest = vm.VillageFaith.priest_of(vm)
 	var t3_ppos_bak: Vector2 = t3_priest.global_position if t3_priest != null else Vector2.ZERO
 	if t3_priest != null:
-		t3_priest.global_position = vm._church_altar_pos + Vector2(300, 0)
+		t3_priest.global_position = M(vm._church_altar_pos + Vector2(300, 0))
 	vcf.on_player_action(vm, p70_c, "faith_impersonate_priest:" + p70_c.get_person_key(), p70_inv)
 	if t3_priest != null:
 		t3_priest.global_position = t3_ppos_bak
@@ -3500,7 +3500,7 @@ func _initialize() -> void:
 	# Tanda 4 (16): Fingir un milagro en el altar
 	var t4_bel_rep0: int = vm.VillageFaith.rep_of(vm, "believers")
 	if t3_priest != null:
-		t3_priest.global_position = vm._church_altar_pos + Vector2(300, 0)
+		t3_priest.global_position = M(vm._church_altar_pos + Vector2(300, 0))
 	vcf.on_player_action(vm, p70_a, "faith_stage_miracle", p70_inv)
 	if t3_priest != null:
 		t3_priest.global_position = t3_ppos_bak
@@ -4260,7 +4260,7 @@ func _initialize() -> void:
 	# 91. Bloque PN — Niveles verticales por capas (elevation_level) y Alcantarillas con localizaciones nuevas
 	# ==========================================================================
 	assert(vm.are_on_same_elevation(0, 0) and not vm.are_on_same_elevation(-1, 0) and vm.distance_on_same_level(Vector2.ZERO, -1, Vector2.ONE, 0) == INF, "PN.1a: Elevation helper functions isolate distances across different vertical layers")
-	var pn_pos: Vector2 = Vector2(465.0, 48.0)
+	var pn_pos: Vector2 = M(Vector2(465.0, 48.0))
 	p70_a.is_dead = false
 	p70_a.is_downed = false
 	p70_a.is_sleeping = false
@@ -4292,14 +4292,14 @@ func _initialize() -> void:
 	var pn_pl = vm.VillageNeeds.player_of(vm)
 	var pn_pl_pos0: Vector2 = pn_pl.global_position if pn_pl != null else Vector2.ZERO
 	if pn_pl != null:
-		pn_pl.global_position = vm.VillageLots.lot_def(pn_lot)["center"] + Vector2(400.0, 0.0)
+		pn_pl.global_position = M(vm.VillageLots.lot_def(pn_lot)["center"] + Vector2(400.0, 0.0))
 		vho.on_player_action(vm, p70_a, "housing_change_level:1", p70_inv)
 		assert(vm.player_elevation_level == 0, "PN.1f0: Changing floor away from your house is refused")
 		pn_pl.global_position = vm.VillageLots.lot_def(pn_lot)["center"]
 	vho.on_player_action(vm, p70_a, "housing_change_level:1", p70_inv)
 	assert(vm.player_elevation_level == 1, "PN.1f: housing_change_level:1 moves player to vertical layer +1")
 	if pn_pl != null:
-		pn_pl.global_position = vm.VillageLots.lot_def(pn_lot)["center"] + Vector2(0.0, 150.0)
+		pn_pl.global_position = M(vm.VillageLots.lot_def(pn_lot)["center"] + Vector2(0.0, 150.0))
 		vm.check_elevation_exit(pn_pl)
 		assert(vm.player_elevation_level == 0, "PN.1f2: Walking out of the house returns the player to street level (neighbors can witness again)")
 		pn_pl.global_position = vm.VillageLots.lot_def(pn_lot)["center"]
@@ -4607,7 +4607,7 @@ func _initialize() -> void:
 	var fis2_heist_node: Node2D = fis2_heist_props[0] as Node2D
 	assert(str(fis2_heist_node.call("get_interact_label", p70_pl)).begins_with("Robar "), "FIS2.3f: Heist target prop has [E] Robar ... label")
 	t5_wc.current_hour = 23
-	p70_pl.global_position = Vector2(-5000.0, -5000.0)
+	p70_pl.global_position = M(Vector2(-5000.0, -5000.0))
 	var fis2_caliz_pos: Vector2 = (vun.HEIST_TARGETS[1] as Dictionary)["pos"]
 	var fis2_stole: bool = vun.try_interact(vm, p70_pl, fis2_caliz_pos)
 	assert(fis2_stole and bool(vun.state(vm)["active_heist"].get("stolen", false)), "FIS2.3g: Interacting with heist target at night steals the object")
@@ -4631,7 +4631,7 @@ func _initialize() -> void:
 	for n_f3 in root.get_tree().get_nodes_in_group("village_npcs"):
 		if n_f3 is Node2D:
 			fis3_npc_pos_bak[n_f3] = (n_f3 as Node2D).global_position
-			(n_f3 as Node2D).global_position = Vector2(-6000.0, -6000.0)
+			(n_f3 as Node2D).global_position = M(Vector2(-6000.0, -6000.0))
 
 	# FIS3.1: Existen las 3 trampillas en la calle, las 3 escalerillas abajo, los 3 cofres abajo y el cuerpo de muros físicos
 	var fis3_grates: Array = root.get_tree().get_nodes_in_group("sewer_grate")
@@ -4745,7 +4745,7 @@ func _initialize() -> void:
 	assert(vm.player_elevation_level == -1 and vun.is_player_in_sewers(vm) and vm.wanted_level == 1, "FIS3.8d: Entering sewer grate in view of a guard still lowers player into sewers and raises wanted_level by 1")
 	fis3_ladder_cist.call("interact", p70_pl)
 	assert(vm.player_elevation_level == 0 and not vun.is_player_in_sewers(vm) and vm.wanted_level == 2, "FIS3.8e: Exiting sewer ladder in view of a guard raises wanted_level by 1")
-	fis3_guard.global_position = Vector2(-6000.0, -6000.0)
+	fis3_guard.global_position = M(Vector2(-6000.0, -6000.0))
 	fis3_guard.is_dead = fis3_g_dead_bak
 	fis3_guard.is_downed = fis3_g_down_bak
 	fis3_guard.is_sleeping = fis3_g_sleep_bak
@@ -5126,8 +5126,8 @@ func _initialize() -> void:
 	c1_cctrl.parry_cooldown_timer = 0.0
 
 	# 5. El golpe enemigo entra tras su aviso (~0,4 s), no al instante
-	p70_pl.global_position = Vector2(300, 300)
-	c1_npc.global_position = Vector2(312, 300) # dentro del rango cuerpo a cuerpo (<= 30 px)
+	p70_pl.global_position = M(Vector2(300, 300))
+	c1_npc.global_position = M(Vector2(312, 300)) # dentro del rango cuerpo a cuerpo (<= 30 px)
 	c1_npc.is_hostile = true
 	c1_npc._civilian_hostile_timer = 10.0
 	c1_npc._attack_timer = 0.0
@@ -5218,7 +5218,7 @@ func _initialize() -> void:
 	assert(not vho.on_customer_arrived(vm, p70_b) and int(vho.state(vm)["player_shop"]["stock"]) == 6 and int(vho.state(vm)["player_shop"]["till_gold"]) == 0 and p70_b.personal_gold == 50, "P1.2a: Without a clerk present behind the counter, the shop makes no sales")
 	p70_c.trade_role = 0 # UNEMPLOYED
 	p70_c.personal_gold = 10
-	p70_c.global_position = Vector2(500, 100) # Lejos del mostrador
+	p70_c.global_position = M(Vector2(500, 100)) # Lejos del mostrador
 	t5_wc.current_hour = 10
 	vho.on_player_action(vm, p70_c, "housing_hire_clerk", p70_inv)
 	vho.on_hour(vm, 10)
@@ -5291,7 +5291,7 @@ func _initialize() -> void:
 	assert(bp2_added == 40 and int(bp2_cart.call("get_cargo_total")) == 40 and p70_inv.get_count("wood") == 1, "P2.2: Putting 41 logs into the cart cargo box stores 40 and leaves 1 in the backpack")
 
 	# 3. Aparcada lejos de casa con carga y forzando el robo (probabilidad 1): el ladrón es el vecino más pobre y el total de objetos (carreta + ladrón) no cambia
-	bp2_cart.global_position = Vector2(520, -120) # En la calle, lejos del rancho y de solares del jugador
+	bp2_cart.global_position = M(Vector2(520, -120)) # En la calle, lejos del rancho y de solares del jugador
 	var bp2_poorest = null
 	for n_bp2 in vm.VillageNeeds.living(vm):
 		if int(n_bp2.trade_role) != int(load("res://scripts/enemies/VillageNPC.gd").TradeRole.CHILD) and not vm.VillageNeeds.is_outsider(n_bp2):
@@ -5555,7 +5555,7 @@ func _initialize() -> void:
 			bp3_guard_positions[n_g] = n_g.global_position
 			if bp3_guard == null:
 				bp3_guard = n_g
-			n_g.global_position = Vector2(-500.0, 500.0)
+			n_g.global_position = M(Vector2(-500.0, 500.0))
 	p70_inv.gold = 100
 	var bp3_d0: int = vun.get_item_count(vm, "dusk_dust")
 	bp3_smug_cart.buy_area.interact(p70_pl) # Primera pulsación E (confirmación)
@@ -5568,7 +5568,7 @@ func _initialize() -> void:
 	bp3_guard.is_downed = false
 	bp3_guard.is_stunned_flag = false
 	bp3_guard.sedated_timer = 0.0
-	bp3_guard.global_position = vun.SMUGGLER_CAMP_POS + Vector2(40.0, 0.0)
+	bp3_guard.global_position = M(vun.SMUGGLER_CAMP_POS + Vector2(40.0, 0.0))
 	var bp3_w0: int = int(vm.wanted_level)
 	bp3_smug_cart.sell_area.interact(p70_pl)
 	assert(p70_inv.gold == 110 and int(vm.wanted_level) > bp3_w0 and int(bp3_ust.get("caravan_busted_day", -99)) == 4, "P3.4e: Selling with an awake guard within 160 px raises wanted_level and sets caravan_busted_day")
@@ -6088,7 +6088,7 @@ func _initialize() -> void:
 	b4_adults[0].set_meta("club_bout", true)
 	# 3. Cobro pendiente y cena convocada (con la mesa en una posición con decimales)
 	b4_vcol.pending(vm).append({"kind": "rent", "role": -1, "amount": 7, "since": 21, "b4_mark": true})
-	b4_hs["gathering"] = {"kind": "dinner", "place": "home", "start_day": 21, "start_hour": 20, "guests": [b4_adults[2].get_person_key()], "table_pos": Vector2(321.5, -45.25), "dispatched": false, "arrived": []}
+	b4_hs["gathering"] = {"kind": "dinner", "place": "home", "start_day": 21, "start_hour": 20, "guests": [b4_adults[2].get_person_key()], "table_pos": M(Vector2(321.5, -45.25)), "dispatched": false, "arrived": []}
 	# 4. Prótesis sencilla en el brazo y 30 de oro en el escondite
 	b4_vil.amputations_of(vm).erase("player")
 	b4_vil.amputate(vm, "player", "left_arm", "prueba B4")
@@ -6116,7 +6116,7 @@ func _initialize() -> void:
 		if bool(e_b4.get("b4_mark", false)):
 			b4_col_ok = true
 	var b4_hs2: Dictionary = vho.state(vm)
-	assert(b4_col_ok and vho.has_active_gathering(vm) and b4_hs2["gathering"].get("table_pos", null) is Vector2 and (b4_hs2["gathering"]["table_pos"] as Vector2).is_equal_approx(Vector2(321.5, -45.25)), "B4.3: The pending collection and the dinner (with its table position as a real position) survive loading")
+	assert(b4_col_ok and vho.has_active_gathering(vm) and b4_hs2["gathering"].get("table_pos", null) is Vector2 and (b4_hs2["gathering"]["table_pos"] as Vector2).is_equal_approx(M(Vector2(321.5, -45.25))), "B4.3: The pending collection and the dinner (with its table position as a real position) survive loading")
 	assert(is_equal_approx(b4_phc.get_region_ratio("left_arm"), 0.5) and b4_vil.prosthetic_quality(vm, "player") == "basic" and int(b4_hs2.get("stash_gold", 0)) == 30, "B4.4: The basic prosthetic stays at 50% and the stash keeps 30 gold")
 	# Restaurar
 	b4_nj.jobs(vm).clear()
@@ -6149,7 +6149,7 @@ func _initialize() -> void:
 	if c7_st != null:
 		c7_st.current_stamina = c7_st.max_stamina
 	var c7_ppos: Vector2 = p70_pl.global_position
-	p70_pl.global_position = Vector2(-1600.0, 1400.0) # lejos de todos: el golpe al aire no puede dar a nadie
+	p70_pl.global_position = M(Vector2(-1600.0, 1400.0)) # lejos de todos: el golpe al aire no puede dar a nadie
 	p70_pl.equip_weapon(p70_pl.sword_weapon)
 	c7_cc.attack_timer = 0.0
 	c7_cc.attack()
@@ -6214,7 +6214,7 @@ func _initialize() -> void:
 	# ==========================================================================
 	var c73_ppos: Vector2 = p70_pl.global_position
 	var c73_wbak = p70_pl.equipped_weapon
-	p70_pl.global_position = Vector2(-1600.0, 1400.0) # lejos de todos: golpes al aire
+	p70_pl.global_position = M(Vector2(-1600.0, 1400.0)) # lejos de todos: golpes al aire
 	p70_pl.equip_weapon(p70_pl.sword_weapon)
 	await create_timer(0.7).timeout
 	c7_cc.attack_timer = 0.0
@@ -6392,8 +6392,8 @@ func _initialize() -> void:
 		c75_guard.elevation_level = 0
 		c72_n.elevation_level = 0
 		# 2026-11-10: el usuario movió una casa junto a (330, 420) en el editor 3D; se busca un llano sin edificios cerca.
-		var b1_base := Vector2(330, 420)
-		for b1_c in [Vector2(330, 420), Vector2(-300, 250), Vector2(600, 600), Vector2(-700, -300), Vector2(1200, 300)]:
+		var b1_base := M(Vector2(330, 420))
+		for b1_c in [M(Vector2(330, 420)), M(Vector2(-300, 250)), M(Vector2(600, 600)), M(Vector2(-700, -300)), M(Vector2(1200, 300))]:
 			var b1_zone := Rect2(b1_c - Vector2(70, 40), Vector2(140, 80))
 			var b1_free := true
 			for b1_b in vm.building_footprints:
@@ -6449,12 +6449,12 @@ func _initialize() -> void:
 			assert(not (b_r1["rect"] as Rect2).intersects(r1_fp["rect"]), "R1.2: The restaurant doesn't overlap %s" % str(b_r1["title"]))
 	assert(r1_rs.ROOMS.size() == 6 and r1_rs.room_of(r1_rs.STOVE_POS) == "cocina" and r1_rs.room_of(r1_rs.COLD_SHELF) == "camara" and r1_rs.room_of(r1_rs.BACKROOM_TABLE) == "reservado", "R1.3: Dining room, kitchen, cold room, cellar, owner's room and back room")
 	# Por dentro se cruza por los pasos: del comedor a la cámara se pasa por la cocina
-	var r1_w: Vector2 = vm.get_navigation_waypoint(r1_rs.BASE + Vector2(80, 136), r1_rs.COLD_SHELF, null)
-	assert(r1_w.distance_to(r1_rs.BASE + Vector2(183, 135)) < 3.0, "R1.4: From the dining room to the cold room you first head to the kitchen pass (%s)" % str(r1_w))
-	r1_w = vm.get_navigation_waypoint(r1_rs.BASE + Vector2(235, 126), r1_rs.COLD_SHELF, null)
-	assert(r1_w.distance_to(r1_rs.BASE + Vector2(235, 92)) < 3.0, "R1.5: From the kitchen you head to the cold room door (%s)" % str(r1_w))
-	r1_w = vm.get_navigation_waypoint(r1_rs.COLD_SHELF, r1_rs.BASE + Vector2(130, 266), null)
-	assert(r1_w.distance_to(r1_rs.BASE + Vector2(235, 68)) < 3.0, "R1.6: Leaving the cold room you go back through its door (%s)" % str(r1_w))
+	var r1_w: Vector2 = vm.get_navigation_waypoint(M(r1_rs.BASE + Vector2(80, 136)), r1_rs.COLD_SHELF, null)
+	assert(r1_w.distance_to(M(r1_rs.BASE + Vector2(183, 135))) < 3.0, "R1.4: From the dining room to the cold room you first head to the kitchen pass (%s)" % str(r1_w))
+	r1_w = vm.get_navigation_waypoint(M(r1_rs.BASE + Vector2(235, 126)), r1_rs.COLD_SHELF, null)
+	assert(r1_w.distance_to(M(r1_rs.BASE + Vector2(235, 92))) < 3.0, "R1.5: From the kitchen you head to the cold room door (%s)" % str(r1_w))
+	r1_w = vm.get_navigation_waypoint(r1_rs.COLD_SHELF, M(r1_rs.BASE + Vector2(130, 266)), null)
+	assert(r1_w.distance_to(M(r1_rs.BASE + Vector2(235, 68))) < 3.0, "R1.6: Leaving the cold room you go back through its door (%s)" % str(r1_w))
 	var r1_rt: int = int(c72_n.TradeRole.RESTAURATEUR)
 	assert(vm.trade_configs.has(r1_rt) and vm.shop_businesses.has(r1_rt), "R1.7: The cook's post exists (vacant until someone comes)")
 	var r1_inv = load("res://scripts/systems/SimpleInventory.gd")
@@ -6608,7 +6608,7 @@ func _initialize() -> void:
 	# 4. De noche se reúnen en el reservado de la Trattoria (y el cocinero suelta una pista si le preguntan)
 	for sv_r2 in r2_saved_npcs:
 		var n_sv = sv_r2["npc"]
-		n_sv.global_position = Vector2(300, 900)
+		n_sv.global_position = M(Vector2(300, 900))
 		n_sv.is_sleeping = false
 	for m_r2 in [r2_boss, r2_rec1, r2_rec2]:
 		m_r2.sick_level = 0
@@ -6621,13 +6621,13 @@ func _initialize() -> void:
 	r2_fam.on_hour(vm, 23)
 	assert(r2_fam.is_meeting_now(vm) and r2_boss.errand_kind == "familia_meet" and r2_rec1.errand_kind == "familia_meet", "R2.10: At the chosen night hour members are called to the reservado")
 	assert(r1_rs.room_of(r2_boss.errand_pos) == "reservado" and r1_rs.room_of(r2_rec1.errand_pos) == "reservado", "R2.11: Every seat target is inside the Trattoria back room")
-	var r2_wp: Vector2 = vm.get_navigation_waypoint(r1_rs.BASE + Vector2(130, 136), r2_boss.errand_pos, r2_boss)
-	assert(r2_wp.distance_to(r1_rs.BASE + Vector2(42, 92)) < 3.0, "R2.12: Members route through the back-room door from the dining hall")
+	var r2_wp: Vector2 = vm.get_navigation_waypoint(M(r1_rs.BASE + Vector2(130, 136)), r2_boss.errand_pos, r2_boss)
+	assert(r2_wp.distance_to(M(r1_rs.BASE + Vector2(42, 92))) < 3.0, "R2.12: Members route through the back-room door from the dining hall")
 	var r2_cline: String = r2_fam.cook_line(vm)
 	assert(r2_cline.find("puerta cerrada") != -1, "R2.13: The cook drops a hint when they are dining behind closed doors")
 	# 5. Si un guardia se acerca al reservado, abortan y lo dejan para otra noche
 	r2_guard.is_sleeping = false
-	r2_guard.global_position = r1_rs.BACKROOM_TABLE + Vector2(18, 0)
+	r2_guard.global_position = M(r1_rs.BACKROOM_TABLE + Vector2(18, 0))
 	r2_fam.tick(vm)
 	assert(str(r2_fam.state(vm).get("meeting_status", "")) == "aborted" and r2_fam.state(vm).get("postponed") == true and r2_boss.errand_kind == "", "R2.14: Spotting a guard near the back room aborts the meeting for another night")
 	# 6. Guardar y cargar conserva jefe, miembros y rechazos
@@ -6650,10 +6650,10 @@ func _initialize() -> void:
 	# ==========================================================================
 	# 1. Cobro de «tranquilidad»: aborta si hay un guardia cerca, puede fallar con espera/rumor, y si acepta es suma cero
 	r2_cook.personal_gold = 60
-	r2_cook.global_position = Vector2(600, 400)
-	r2_guard.global_position = Vector2(620, 400)
+	r2_cook.global_position = M(Vector2(600, 400))
+	r2_guard.global_position = M(Vector2(620, 400))
 	assert(r2_fam.resolve_protection(vm, r2_rec1, r2_cook, 0.01) == "aborted_guard" and r2_cook.personal_gold == 60, "R3.1: Collector does not demand protection with an unbribed guard watching")
-	r2_guard.global_position = Vector2(200, 900)
+	r2_guard.global_position = M(Vector2(200, 900))
 	assert(r2_fam.resolve_protection(vm, r2_rec1, r2_cook, 0.99) == "refused" and r2_cook.personal_gold == 60 and not r2_fam.can_target_merchant(vm, r2_cook), "R3.2: Refusing protection leaves gold untouched and puts merchant on cooldown")
 	r2_fam.state(vm)["protection_cooldown"].clear()
 	var r3_boss_g0: int = r2_boss.personal_gold
@@ -6675,13 +6675,13 @@ func _initialize() -> void:
 	# 3. Comprar el silencio de un guardia poco honrado: suma cero y hace la vista gorda de noche en el reservado
 	r2_guard.person_profile.personality.clear()
 	r2_guard.person_profile.personality.append_array(["Codicioso", "Pragmático"])
-	r2_guard.global_position = Vector2(700, 400)
+	r2_guard.global_position = M(Vector2(700, 400))
 	var r3_boss_g2: int = r2_boss.personal_gold
 	var r3_guard_g0: int = r2_guard.personal_gold
 	assert(r2_fam.can_bribe_guard(vm, r2_guard), "R3.9: Unscrupulous guard is eligible for a bribe")
 	assert(r2_fam.try_bribe_guard(vm, r2_rec1, r2_guard, 0.01) == "bribed" and r2_fam.is_guard_bribed(vm, r2_guard), "R3.10: Guard accepts the bribe")
 	assert(r2_boss.personal_gold == r3_boss_g2 - r2_fam.BRIBE_AMOUNT and r2_guard.personal_gold == r3_guard_g0 + r2_fam.BRIBE_AMOUNT, "R3.11: Guard bribe is strictly zero-sum")
-	r2_guard.global_position = r1_rs.BACKROOM_TABLE + Vector2(18, 0)
+	r2_guard.global_position = M(r1_rs.BACKROOM_TABLE + Vector2(18, 0))
 	assert(r2_fam.has_unwanted_witness_near(vm) == null, "R3.12: Bribed guard looks the other way and does not abort the back-room meeting")
 	print("Block R3 (La Familia Discrete Businesses: Zero-Sum Protection, Back-Room Loans & Guard Bribes) OK")
 	# ==========================================================================
@@ -6694,7 +6694,7 @@ func _initialize() -> void:
 	var r4_cook_aff0: int = r2_cook.affinity
 	var r4_sher_aff0: int = r2_sheriff.affinity
 	# 1. Espiar en el reservado durante una reunión nocturna: descubre al jefe, suma prueba y revela el próximo objetivo
-	r2_guard.global_position = Vector2(300, 900)
+	r2_guard.global_position = M(Vector2(300, 900))
 	r2_cook.personal_gold = 75
 	r2_fam.state(vm)["protected_shops"].clear()
 	r2_fam.state(vm)["protection_cooldown"].clear()
@@ -6704,7 +6704,7 @@ func _initialize() -> void:
 	r2_fam.state(vm)["player_knows_boss"] = false
 	r2_fam.state(vm)["player_evidence"] = 0
 	r2_fam.state(vm)["last_eavesdrop_night"] = -99
-	p70_pl.global_position = r1_rs.BACKROOM_TABLE + Vector2(0, 52)
+	p70_pl.global_position = M(r1_rs.BACKROOM_TABLE + Vector2(0, 52))
 	assert(r2_fam.try_eavesdrop_meeting(vm, p70_pl), "R4.1: Player near the reservado during a night meeting overhears La Familia")
 	assert(r2_fam.is_boss_known_to_player(vm) and int(r2_fam.state(vm)["player_evidence"]) == 1 and str(r2_fam.state(vm)["known_target"]) == r2_cook.get_person_key(), "R4.2: Eavesdropping reveals the boss, adds evidence and identifies the next target")
 	# 2. Avisar a la víctima antes del cobro: queda prevenida, sube afinidad con la víctima y molesta al jefe
@@ -6718,7 +6718,7 @@ func _initialize() -> void:
 	var r4_target = vm._get_npcs_by_person_key().get(str(r2_fam.state(vm)["player_job_target"]), null)
 	assert(r4_target != null, "R4.6: Assigned target exists")
 	r4_target.personal_gold = 65
-	r4_target.global_position = Vector2(520, 380)
+	r4_target.global_position = M(Vector2(520, 380))
 	p70_pl.global_position = r4_target.global_position + Vector2(18, 0)
 	p70_inv.gold = 20
 	assert(r2_fam.on_player_action(vm, r4_target, "familia_player_extort", p70_inv, 0.01), "R4.7: Player collects the protection fee in person")
@@ -6784,8 +6784,8 @@ func _initialize() -> void:
 	var b2_bounty0: int = int(vm.bounty_gold)
 	b2_vj.inmates(vm).clear()
 	# 1. Pillar a un vecino en un encargo nocturno con un guardia lo arresta y lo encamina a la celda
-	b2_culprit.global_position = Vector2(760, 220)
-	var b2_fake_job: Dictionary = {"id": 999, "type": "sabotage", "agent_key": b2_culprit.get_person_key(), "agent_name": b2_culprit.npc_name, "target_pos": Vector2(760, 220), "status": "going", "paid_by_player": false}
+	b2_culprit.global_position = M(Vector2(760, 220))
+	var b2_fake_job: Dictionary = {"id": 999, "type": "sabotage", "agent_key": b2_culprit.get_person_key(), "agent_name": b2_culprit.npc_name, "target_pos": M(Vector2(760, 220)), "status": "going", "paid_by_player": false}
 	b2_nj.caught(vm, b2_fake_job, b2_guard, 0.0)
 	assert(b2_vj.is_npc_jailed(vm, b2_culprit), "B2.1: Guard catching an NPC on a night job arrests them")
 	assert("calabozo" in b2_culprit.get_activity_description(), "B2.2: Arrested NPC activity description shows jail status")
@@ -6819,8 +6819,8 @@ func _initialize() -> void:
 	var b2_pl_pos_bak: Vector2 = p70_pl.global_position
 	p70_pl.global_position = b2_vj.CELL_OUTSIDE_POS
 	p70_inv.add_item("lockpick", 2)
-	b2_guard.global_position = Vector2(200, 900)
-	b2_sheriff.global_position = Vector2(200, 900)
+	b2_guard.global_position = M(Vector2(200, 900))
+	b2_sheriff.global_position = M(Vector2(200, 900))
 	assert(b2_vj.help_npc_escape(vm, b2_culprit, p70_inv, 0.05) in ["escaped", "escaped_seen"], "B2.10: Player with lockpick can break an inmate out of the cell")
 	assert(not b2_vj.is_npc_jailed(vm, b2_culprit), "B2.11: Broken-out inmate is no longer jailed")
 	# Restaurar estado tras B2
@@ -6852,24 +6852,24 @@ func _initialize() -> void:
 	# se crea aquí igual que en VillageManagerSocial._spawn_domestic_pets para poder probar el traslado.
 	if b3_vh.find_toby(vm) == null:
 		var b3_pet_s = load("res://scripts/enemies/DomesticPet.gd")
-		vm._spawn_pet_bed_and_bowl(Vector2(-1825, -82), b3_pet_s.PetType.DOG, "Toby")
+		vm._spawn_pet_bed_and_bowl(M(Vector2(-1825, -82)), b3_pet_s.PetType.DOG, "Toby")
 		var b3_new_toby = b3_pet_s.new()
 		b3_new_toby.name = "Pet_Toby"
 		b3_new_toby.pet_type = b3_pet_s.PetType.DOG
 		b3_new_toby.pet_name = "Toby"
 		b3_new_toby.owner_label = "Granja del Jugador"
 		b3_new_toby.family_id = "player_farm"
-		b3_new_toby.home_position = Vector2(-1825, -82)
-		b3_new_toby.global_position = Vector2(-1825, -82)
+		b3_new_toby.home_position = M(Vector2(-1825, -82))
+		b3_new_toby.global_position = M(Vector2(-1825, -82))
 		b3_new_toby.is_guard_dog = true
 		vm.entities_root.add_child(b3_new_toby)
 		vm.domestic_pets.append(b3_new_toby)
 	var b3_toby = b3_vh.find_toby(vm)
 	var b3_bed: Node2D = vm.entities_root.get_node_or_null("PetBed_Toby") as Node2D
 	var b3_coop: Node2D = get_first_node_in_group("chicken_coop") as Node2D
-	var b3_toby_pos0: Vector2 = b3_toby.global_position if b3_toby != null else Vector2(128, 126)
-	var b3_toby_home0: Vector2 = b3_toby.home_position if b3_toby != null else Vector2(128, 126)
-	var b3_coop_pos0: Vector2 = b3_coop.global_position if b3_coop != null else Vector2(-198, -21)
+	var b3_toby_pos0: Vector2 = b3_toby.global_position if b3_toby != null else M(Vector2(128, 126))
+	var b3_toby_home0: Vector2 = b3_toby.home_position if b3_toby != null else M(Vector2(128, 126))
+	var b3_coop_pos0: Vector2 = b3_coop.global_position if b3_coop != null else M(Vector2(-198, -21))
 	var b3_coop_built0: bool = b3_coop.get("coop_built") == true if b3_coop != null else false
 	# 1. Sin casa construida no se puede trasladar a Toby ni el gallinero
 	b3_vl.lot(vm, b3_lot)["status"] = "empty"
@@ -6927,9 +6927,9 @@ func _initialize() -> void:
 	b4_wc.current_weather = b4_wc.WeatherType.FOG
 	vm.VillageCulture.state(vm)["grid"]["lamps"] = true
 	vm.VillageCulture.state(vm)["grid"]["all"] = true
-	var b4_dark_pos := Vector2(-2450, 1820)
+	var b4_dark_pos := M(Vector2(-2450, 1820))
 	var b4_lamp_spr: Sprite2D = vm.streetlights[0].get("sprite") if not vm.streetlights.is_empty() else null
-	var b4_lamp_pos: Vector2 = b4_lamp_spr.global_position if is_instance_valid(b4_lamp_spr) else Vector2(495, 118)
+	var b4_lamp_pos: Vector2 = b4_lamp_spr.global_position if is_instance_valid(b4_lamp_spr) else M(Vector2(495, 118))
 	var b4_vis_dark: float = vm.get_ambient_vision_multiplier_at(b4_dark_pos, p70_pl)
 	var b4_vis_lamp: float = vm.get_ambient_vision_multiplier_at(b4_lamp_pos, p70_pl)
 	assert(b4_vis_dark < 0.45 and b4_vis_lamp >= 0.90, "B4.2: Dawn fog cuts neighbor vision range in the dark (%0.2f) except near lit streetlamps (%0.2f)" % [b4_vis_dark, b4_vis_lamp])
@@ -7000,8 +7000,8 @@ func _initialize() -> void:
 	var b5_rel_ab0: int = b5_a.get_relationship_with_npc(b5_b.get_person_key())
 	var b5_rel_ba0: int = b5_b.get_relationship_with_npc(b5_a.get_person_key())
 	# 1. Cruce a < 80 px con odio <= -50 lanza bocadillo corto (1.5 s) y los aparta
-	b5_a.global_position = Vector2(460.0, 90.0)
-	b5_b.global_position = Vector2(500.0, 90.0)
+	b5_a.global_position = M(Vector2(460.0, 90.0))
+	b5_b.global_position = M(Vector2(500.0, 90.0))
 	b5_a.npc_relationships[b5_b.get_person_key()] = -65
 	var b5_crossed: bool = vm.VillageSocialLife._try_street_contempt_encounter(vm, b5_a, b5_b, true)
 	assert(b5_crossed and b5_a.last_short_bubble_text != "" and is_equal_approx(b5_a.last_short_bubble_duration, 1.5), "B5.1: Neighbors with hatred <= -50 crossing within 80 px emit a 1.5s contempt bubble and step aside")
@@ -7099,7 +7099,7 @@ func _initialize() -> void:
 	if b7_mctrl != null:
 		b7_mctrl.is_stealthing = false
 	# Colocar al jugador dentro de la taberna y comprobar que en vista normal el tejado se abre (cutaway)
-	p70_pl.global_position = Vector2(420.0, -210.0)
+	p70_pl.global_position = M(Vector2(420.0, -210.0))
 	b7_stage._update_roof_cutaways_and_lighting()
 	var b7_tavern_roof: Node3D = null
 	for rec_b7 in b7_stage._building_records_3d:
@@ -7388,22 +7388,22 @@ func _initialize() -> void:
 	# Verify tavern doorway double-lane and no threshold oscillation when exiting to north/east destinations
 	for tx in [440.0, 448.0, 454.0, 462.5, 468.0]:
 		for ty in [-142.0, -133.0, -131.5, -124.0]:
-			var wp_exit: Vector2 = vm.get_navigation_waypoint(Vector2(tx, ty), Vector2(570.0, -456.0), null)
+			var wp_exit: Vector2 = vm.get_navigation_waypoint(Vector2(tx, ty), M(Vector2(570.0, -456.0)), null)
 			assert(wp_exit.y > -150.0, "Tavern doorway exit must never route an exiting villager back inside to casino/north rooms! Got wp=" + str(wp_exit) + " from (" + str(tx) + "," + str(ty) + ")")
-	var wp_out_lane: Vector2 = vm.get_navigation_waypoint(Vector2(454.0, -140.0), Vector2(454.0, -60.0), null)
-	var wp_in_lane: Vector2 = vm.get_navigation_waypoint(Vector2(454.0, -100.0), Vector2(420.0, -198.0), null)
+	var wp_out_lane: Vector2 = vm.get_navigation_waypoint(M(Vector2(454.0, -140.0)), M(Vector2(454.0, -60.0)), null)
+	var wp_in_lane: Vector2 = vm.get_navigation_waypoint(M(Vector2(454.0, -100.0)), M(Vector2(420.0, -198.0)), null)
 	assert(wp_out_lane.x < 450.0 and wp_in_lane.x > 458.0, "Tavern doorway must separate exiting lane (<450) and entering lane (>458)! Got out=" + str(wp_out_lane) + " in=" + str(wp_in_lane))
 	var door_lane_issues: Array = vm.check_all_building_doors_and_lanes()
 	assert(door_lane_issues.is_empty(), "All building doors must be >=2-person wide with registered direction and unobstructed dual lanes! Found: " + str(door_lane_issues))
 	# Verify East and West door dual-lane routing works identically to North/South
-	var east_test_b: Dictionary = {"id": "test_east_b", "rect": Rect2(Vector2(2200.0, 2200.0), Vector2(100.0, 80.0)), "door_pos": Vector2(2300.0, 2240.0), "door_south": false, "door_dir": "east", "door_width": 40.0}
-	var west_test_b: Dictionary = {"id": "test_west_b", "rect": Rect2(Vector2(2500.0, 2200.0), Vector2(100.0, 80.0)), "door_pos": Vector2(2500.0, 2240.0), "door_south": false, "door_dir": "west", "door_width": 40.0}
+	var east_test_b: Dictionary = {"id": "test_east_b", "rect": Rect2(M(Vector2(2200.0, 2200.0)), Vector2(100.0, 80.0)), "door_pos": M(Vector2(2300.0, 2240.0)), "door_south": false, "door_dir": "east", "door_width": 40.0}
+	var west_test_b: Dictionary = {"id": "test_west_b", "rect": Rect2(M(Vector2(2500.0, 2200.0)), Vector2(100.0, 80.0)), "door_pos": M(Vector2(2500.0, 2240.0)), "door_south": false, "door_dir": "west", "door_width": 40.0}
 	vm.building_footprints.append(east_test_b)
 	vm.building_footprints.append(west_test_b)
-	var wp_east_out: Vector2 = vm.get_navigation_waypoint(Vector2(2290.0, 2247.5), Vector2(2360.0, 2240.0), null)
-	var wp_east_in: Vector2 = vm.get_navigation_waypoint(Vector2(2330.0, 2240.0), Vector2(2250.0, 2240.0), null)
-	var wp_west_out: Vector2 = vm.get_navigation_waypoint(Vector2(2510.0, 2232.5), Vector2(2440.0, 2240.0), null)
-	var wp_west_in: Vector2 = vm.get_navigation_waypoint(Vector2(2470.0, 2240.0), Vector2(2550.0, 2240.0), null)
+	var wp_east_out: Vector2 = vm.get_navigation_waypoint(M(Vector2(2290.0, 2247.5)), M(Vector2(2360.0, 2240.0)), null)
+	var wp_east_in: Vector2 = vm.get_navigation_waypoint(M(Vector2(2330.0, 2240.0)), M(Vector2(2250.0, 2240.0)), null)
+	var wp_west_out: Vector2 = vm.get_navigation_waypoint(M(Vector2(2510.0, 2232.5)), M(Vector2(2440.0, 2240.0)), null)
+	var wp_west_in: Vector2 = vm.get_navigation_waypoint(M(Vector2(2470.0, 2240.0)), M(Vector2(2550.0, 2240.0)), null)
 	vm.building_footprints.erase(east_test_b)
 	vm.building_footprints.erase(west_test_b)
 	assert(wp_east_out.y > 2244.0 and wp_east_in.y < 2236.0, "East-facing door must separate exiting lane (+Y) and entering lane (-Y)! Got out=" + str(wp_east_out) + " in=" + str(wp_east_in))
@@ -7482,13 +7482,13 @@ func _initialize() -> void:
 	var ov_b = overlap_test_npcs[1]
 	var saved_ov_a_pos: Vector2 = ov_a.global_position
 	var saved_ov_b_pos: Vector2 = ov_b.global_position
-	# Caso 1: dos vecinos metidos uno dentro del otro en el camino norte-sur de la plaza (Vector2(455, 25)) yendo al mismo punto
-	ov_a.global_position = Vector2(455.0, 25.0)
-	ov_b.global_position = Vector2(455.2, 25.1)
+	# Caso 1: dos vecinos metidos uno dentro del otro en el camino norte-sur de la plaza (M(Vector2(455, 25))) yendo al mismo punto
+	ov_a.global_position = M(Vector2(455.0, 25.0))
+	ov_b.global_position = M(Vector2(455.2, 25.1))
 	for _step_ov in range(30):
-		ov_a._move_towards_point(Vector2(455.0, 44.0), 44.0, 0.05)
+		ov_a._move_towards_point(M(Vector2(455.0, 44.0)), 44.0, 0.05)
 		ov_a._finish_frame_movement(0.05, true)
-		ov_b._move_towards_point(Vector2(455.0, 44.0), 44.0, 0.05)
+		ov_b._move_towards_point(M(Vector2(455.0, 44.0)), 44.0, 0.05)
 		ov_b._finish_frame_movement(0.05, true)
 	var sep_ab: float = ov_a.global_position.distance_to(ov_b.global_position)
 	assert(sep_ab >= 14.0, "Two overlapping NPCs in the plaza must separate to >= 14 px! Got dist=" + str(sep_ab))
@@ -7510,3 +7510,8 @@ func _initialize() -> void:
 
 	print("ALL RIMWORLD MEDICAL, FOOTPRINTS, 3-PHASE CORPSE REPORT, MULTI-CORPSE FIX, RPG INTERROGATION, PUBLIC TRIAL, DYNAMIC RELATIONSHIPS, MISSING FAMILY SEARCH, SOCIAL GLOSSARY & UNCONSCIOUS REACTION TESTS PASSED!")
 	quit(0)
+
+
+## Mapa ×E (2026-11-11): las posiciones escritas a mano en esta prueba están en el mapa original.
+func M(p: Vector2) -> Vector2:
+	return load("res://mapa/anclas.gd").mover(p)
