@@ -85,6 +85,9 @@ var _hit_flash_timer: float = 0.0
 ## Modo pruebas del jugador (Ctrl+º): empieza apagado y no se guarda en la partida.
 signal test_mode_changed(active: bool)
 var test_mode_active: bool = false
+## Paso a 3D, paso 2c: cuánto daño por caída te ahorras (0 = todo el daño, 1 = nada). Lo subirán mejoras futuras
+## (botas, saber caer…); decisión del usuario 2026-11-10.
+var reduccion_dano_caida: float = 0.0
 
 func set_test_mode(active: bool) -> void:
 	if test_mode_active == active:
@@ -935,6 +938,18 @@ func get_noise_multiplier() -> float:
 		if move_ctrl.is_sprinting:
 			return 1.8 * weather_mult
 	return 1.0 * weather_mult
+
+## Paso a 3D, paso 2c: te caes desde `caida_m` metros y el golpe vale `cantidad` de vida (lo calcula el cuerpo 3D al
+## aterrizar). Hiere sobre todo las piernas (HealthComponent.take_fall_damage).
+func recibir_dano_caida(cantidad: float, caida_m: float) -> void:
+	cantidad *= 1.0 - clampf(reduccion_dano_caida, 0.0, 1.0)
+	if cantidad < 0.5 or health_comp == null:
+		return
+	var hp_antes: float = health_comp.current_health
+	health_comp.take_fall_damage(cantidad, caida_m)
+	var perdida: float = maxf(0.0, hp_antes - health_comp.current_health)
+	if perdida > 0.1:
+		_spawn_floating_text("💥 Caída: -%d HP" % maxi(1, int(round(perdida))), Color(1.0, 0.45, 0.30), -38.0)
 
 func take_damage(data: DamageData) -> void:
 	var vm: Node = get_tree().get_first_node_in_group("village_manager")

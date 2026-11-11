@@ -240,9 +240,13 @@ static func setup_world(vm) -> void:
 		vm._add_rect_poly(Vector2(STAIRS_BOTTOM_POS.x, sy), Vector2(12.0, 2.5), Color(0.48, 0.31, 0.16, 0.95), -1).add_to_group("tavern_floor0_2d")
 
 	# 3b. Barandillas sólidas y tabiques de los cuartos en Planta +1 ("tavern_upper_walls")
-	vm._add_prop_collider(Vector2(434.0, -168.0), Vector2(348.0, 6.0), "tavern_upper_walls") # Barandilla sur de la galería alta
-	vm._add_prop_collider(Vector2(558.0, -261.0), Vector2(6.0, 110.0), "tavern_upper_walls") # Barandilla oeste del hueco de escalera
-	vm._add_prop_collider(Vector2(582.0, -298.0), Vector2(48.0, 6.0), "tavern_upper_walls")  # Tope norte del hueco de escalera en Planta +1
+	# Paso a 3D, paso 2c: las barandillas son bajas (grupo «barandilla»): se pueden saltar… y caer al salón.
+	for bar in [[Vector2(434.0, -168.0), Vector2(348.0, 6.0)], # Barandilla sur de la galería alta
+			[Vector2(558.0, -261.0), Vector2(6.0, 110.0)],     # Barandilla oeste del hueco de escalera
+			[Vector2(582.0, -298.0), Vector2(48.0, 6.0)]]:     # Tope norte del hueco de escalera en Planta +1
+		var sb_bar: StaticBody2D = vm._add_prop_collider(bar[0], bar[1], "tavern_upper_walls")
+		if sb_bar != null:
+			sb_bar.add_to_group("barandilla")
 	var cur_ux: float = 264.0
 	for dx in BEDROOM_DOORS_X:
 		var a_ux: float = float(dx) - BEDROOM_DOOR_HALF_W

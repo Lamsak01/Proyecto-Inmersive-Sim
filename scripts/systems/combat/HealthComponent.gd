@@ -437,7 +437,8 @@ func _tick_anatomical_recovery(dt: float) -> void:
 	if changed:
 		anatomy_changed.emit()
 
-func take_damage(data: DamageData) -> void:
+## `zona`: si no va vacía, la parte del cuerpo herida (si no, se elige según desde dónde llega el golpe).
+func take_damage(data: DamageData, zona: String = "") -> void:
 	if _is_player_test_mode():
 		current_health = max_health
 		health_changed.emit(current_health, max_health)
@@ -447,7 +448,7 @@ func take_damage(data: DamageData) -> void:
 
 	_last_bullet_stopped_by_chestplate = false
 	_last_bullet_glanced_by_helmet = false
-	var chosen_region: String = _pick_hit_region(data)
+	var chosen_region: String = zona if zona != "" else _pick_hit_region(data)
 	var w_tag_low: String = str(data.weapon_tag).to_lower() if data != null else ""
 	var is_bullet_hit: bool = (data != null and data.is_firearm_bullet) or ("pistola" in w_tag_low or "disparo" in w_tag_low or "bala" in w_tag_low or "arcabuz" in w_tag_low or "fusil" in w_tag_low or "cartucho" in w_tag_low)
 
@@ -534,6 +535,36 @@ func take_damage(data: DamageData) -> void:
 	buildup *= clampf(1.0 - armor_bleed_resistance, 0.10, 1.0)
 	if buildup > 0.0:
 		add_bleed_buildup(buildup * 0.16, final_damage)
+
+## Paso a 3D, paso 2c (2026-11-10): golpe por caída desde `caida_m` metros. Sobre todo en las piernas; en caídas
+## grandes también tronco y cabeza, y desde 5 m se lastiman las dos piernas. No se esquiva ni se para.
+const CAIDA_DOS_PIERNAS_M: float = 5.0
+
+func take_fall_damage(cantidad: float, caida_m: float) -> void:
+	var d := DamageData.new()
+	d.amount = cantidad
+	d.type = CombatConstants.DamageType.BLUNT
+	d.weapon_tag = "Caída de %.1f m" % caida_m
+	var zona: String = _zona_de_caida(caida_m)
+	take_damage(d, zona)
+	if caida_m >= CAIDA_DOS_PIERNAS_M and current_health > 0.0 and zona.ends_with("_leg"):
+		var otra: String = "right_leg" if zona == "left_leg" else "left_leg"
+		var d2 := d.copy()
+		d2.amount = cantidad * 0.5
+		_inflict_anatomical_wound(d2, d2.amount, otra) # la otra pierna: solo la herida, la vida ya bajó
+
+func _zona_de_caida(caida_m: float) -> String:
+	var grande: float = clampf((caida_m - 3.0) / 5.0, 0.0, 1.0) # 0 a 3 m, 1 a 8 m
+	var w: Dictionary = {"left_leg": 4.0, "right_leg": 4.0, "torso": 0.6 + 2.0 * grande, "left_arm": 0.5, "right_arm": 0.5, "head": 0.1 + 1.2 * grande}
+	var total: float = 0.0
+	for r_id in w:
+		total += float(w[r_id])
+	var tirada: float = randf() * total
+	for r_id in w:
+		tirada -= float(w[r_id])
+		if tirada <= 0.0:
+			return r_id
+	return "left_leg"
 
 ## C7 fase 4a: la zona herida depende de desde dónde llega el golpe. Pesos por zona para este golpe:
 ## - Atacantes bajos (animales, mascotas, jabalíes): sobre todo piernas.

@@ -167,7 +167,7 @@ para metros (gravedad 9,8, márgenes de choque) y hoy una persona mide menos de 
 - **Terminado cuando:** subes y bajas a pie en taberna, casas y alcantarillas; los vecinos de abajo no «ven» lo de arriba;
   guardar/cargar arriba y abajo funciona; pruebas en verde.
 - **Trozos (2026-11-10):** 2a posada con dos plantas de verdad (hecho) · 2b club y alcantarillas de verdad bajo
-  tierra (hecho) · 2c caídas y daño por caída (el usuario decide cuánto) · 2d guardado versión 4 · 2e piso alto y sótano de tu casa.
+  tierra (hecho) · 2c caídas y daño por caída (hecho: «realista») · 2d guardado versión 4 · 2e piso alto y sótano de tu casa.
 
 ### Paso 3 — Agua: nadar y bucear
 - Volúmenes de agua 3D para el río y el lago (desde la forma del río que ya existe).
@@ -215,7 +215,7 @@ para metros (gravedad 9,8, márgenes de choque) y hoy una persona mide menos de 
 
 1. **Escala** (paso 0): ~~A o B~~ → **B, uniforme** (usuario, 2026-11-10). Ver paso 0b.
 2. **Vista desde arriba** (paso 6): ¿se mantiene la cámara cenital 3D (F9) o el juego es solo en 1.ª persona?
-3. **Daño por caída** (paso 2): cuánto y desde qué altura.
+3. **Daño por caída** (paso 2): ~~cuánto~~ → **realista** (usuario, 2026-11-10): duele desde 3 m, mata a 8 m; además hiere partes del cuerpo (piernas sobre todo); habrá mejoras que lo reduzcan.
 4. **Aire bajo el agua** (paso 3): cuánto dura y qué pasa al ahogarse (desmayo o muerte).
 5. **Cuevas** (después del paso 2): dónde y cuántas; es diseño de mapa, no de esta transición.
 
@@ -263,6 +263,7 @@ Es una estimación: se apuntará el gasto real de cada paso en el Registro para 
 | 2026-11-10 | Claude Code (portátil) | Paso 1b | Prueba nueva `tools/tests/puertas_3d.gd` (entrar y salir andando por todas las puertas); `capturas_fijas` dice dónde queda el protagonista; fotos `referencia_paso1` | puertas_3d ✅ 29/29 · atascos 0 en 6 h ✅ · fps igual que en el paso 0b (portátil aún lento: 8/5/5/7/8/8) · el cuerpo cuesta ~1 ms por paso · fotos: 5 de 7 iguales (≤ 1 %); plaza distinta porque el protagonista ya no se queda metido 4 px en un puesto | (este commit) |
 | 2026-11-10 | Claude Code (portátil) | Paso 2a | Posada con dos plantas de verdad: el cuerpo pisa el suelo que tiene debajo según su altura (Planta 0, rampa de la escalera, Planta +1) y de ahí sale el piso; choques de un solo piso levantados solo en su piso (capa 20 del mapa); cámara y muñeco sobre el cuerpo 3D; fuera el cambio de piso por posición en `VillageTavern.tick`. Etiqueta `antes-paso-2` | fisica_3d ✅ (sube y baja la escalera andando, galería, barandilla, la barandilla no estorba abajo) · puertas_3d ✅ 29/29 · verify_all ✅ | (este commit) |
 | 2026-11-10 | Claude Code (portátil) | Paso 2b | Club de peleas y alcantarillas de verdad bajo tierra (3,2 m, `Suelo.PROFUNDIDAD_SOTANO_PX`): el cuerpo, los muñecos y el dibujo 3D bajan; techo de roca en 1.ª persona; `VillageUnderworld.zona_alcantarillas`; arreglado que la cámara tomara «bajo tierra» por «sin cuerpo» | fisica_3d ✅ (baja y sube por la reja, anda por el túnel) · fotos en 1.ª persona revisadas (`docs/capturas_mundo3d/paso2b/`) · verify_all ✅ | (este commit) |
+| 2026-11-10 | Claude Code (portátil) | Paso 2c | Daño por caída «realista» (decisión del usuario): desde 3 m (~9 %) hasta mortal a 8 m; hiere una parte del cuerpo (piernas sobre todo; desde 5 m las dos piernas; en caídas grandes también tronco y cabeza) con el sistema médico que ya había; `Player.reduccion_dano_caida` para mejoras futuras; barandillas de la posada a la cintura | fisica_3d ✅ (tabla de daño, caída de 4 m: −27 y herida, salto normal sin daño, mejora del 50 %) · verify_all ✅ | (este commit) |
 
 ### Medidas de referencia (antes del paso 1, portátil, 2026-11-10)
 - **fps en 1.ª persona** (`perf_zonas.gd`): afueras 33, plaza 29, río 23, bosque 38, molino 40, mansión 43.

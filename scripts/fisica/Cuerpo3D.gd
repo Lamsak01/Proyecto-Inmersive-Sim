@@ -11,6 +11,7 @@ extends CharacterBody3D
 ##   escalera andando) y avisa al pueblo de en qué piso está (`player_elevation_level`, que sigue usando el resto del juego).
 ##   Al club de peleas y a las alcantarillas (de verdad bajo tierra desde el paso 2b) y a los pisos de tu casa se sigue
 ##   llegando con [E].
+## - Paso 2c: si cae desde 3 m o más, se hace daño al aterrizar (sobre todo en las piernas); a 8 m, mortal.
 
 const Mapa3D = preload("res://scripts/fisica/Mapa3D.gd")
 const Suelo = preload("res://scripts/fisica/Suelo.gd")
@@ -22,6 +23,10 @@ const ALTO_M: float = 1.74
 const GRAVEDAD: float = 14.8       ## m/s²; con el impulso del salto da ~1,2 m al aire libre, como antes
 const LOSA_M: Vector3 = Vector3(3.0, 0.5, 3.0)
 const PELDANO_M: float = 0.45      ## lo más alto que sube andando de un suelo a otro (escalones, rampa)
+## Daño por caída (paso 2c, decisión del usuario: «realista»): desde 3 m duele (~9 % de la vida) y a 8 m mata.
+const CAIDA_DUELE_M: float = 3.0
+const CAIDA_MORTAL_M: float = 8.0
+const CAIDA_CERO_M: float = 2.5    ## donde empezaría la recta del daño (así a 3 m ya quita algo)
 
 var actor: CharacterBody2D = null
 var _mascara_2d: int = 0
@@ -31,6 +36,7 @@ var _suelo_y: float = 0.0
 var _calle_y: float = 0.0          ## suelo de abajo (calle o Planta 0): desde ahí se levantan los muros
 var _ultima_pos_mapa: Vector2 = Vector2.INF
 var _movido_en_este_paso: bool = false
+var _cima_y: float = NAN           ## lo más alto que ha estado desde que dejó el suelo (NAN: está en el suelo)
 
 
 ## Crea el cuerpo de `p_actor` dentro de `padre` (el escenario 3D; sin él, cualquier nodo del árbol).
@@ -81,6 +87,7 @@ func mover(vel_mapa: Vector2, delta: float) -> void:
 	move_and_slide()
 	if global_position.y < _suelo_y - 2.0: # nunca por debajo del suelo (por si la losa llega tarde)
 		_saltar_a(actor.global_position)
+	_vigilar_caida()
 	_volcar_al_mapa()
 	_movido_en_este_paso = true
 
@@ -110,8 +117,16 @@ func altura_pies_px() -> float:
 
 ## Lo deja en el suelo, quieto en vertical.
 func aterrizar() -> void:
+	_cima_y = NAN
 	velocity.y = 0.0
 	global_position.y = _suelo_y
+
+
+## Vida que quita caer `caida_m` metros a quien tiene `vida_max`.
+static func dano_por_caida(caida_m: float, vida_max: float) -> float:
+	if caida_m < CAIDA_DUELE_M:
+		return 0.0
+	return vida_max * clampf((caida_m - CAIDA_CERO_M) / (CAIDA_MORTAL_M - CAIDA_CERO_M), 0.0, 1.0)
 
 
 func choques_copiados() -> int:
@@ -173,11 +188,27 @@ func _altura_suelo(p: Vector2, de_golpe: bool) -> float:
 	return Mapa3D.a_3d(p, relieve + h).y
 
 
+## En el aire apunta lo más alto que llega; al tocar suelo, si cayó desde muy alto, se hace daño.
+func _vigilar_caida() -> void:
+	if not is_on_floor():
+		_cima_y = global_position.y if is_nan(_cima_y) else maxf(_cima_y, global_position.y)
+		return
+	if is_nan(_cima_y):
+		return
+	var caida_m: float = _cima_y - global_position.y
+	_cima_y = NAN
+	var hc = actor.get("health_comp")
+	var dano: float = dano_por_caida(caida_m, float(hc.max_health) if hc != null else 100.0)
+	if dano > 0.0 and actor.has_method("recibir_dano_caida"):
+		actor.call("recibir_dano_caida", dano, caida_m)
+
+
 func _saltar_a(p: Vector2) -> void:
 	_suelo_y = _altura_suelo(p, true)
 	var b := Mapa3D.a_3d(p)
 	global_position = Vector3(b.x, _suelo_y, b.z)
 	velocity = Vector3.ZERO
+	_cima_y = NAN # cambiar de sitio a mano (escalera con [E], cama…) no es caerse
 	_ultima_pos_mapa = p
 
 

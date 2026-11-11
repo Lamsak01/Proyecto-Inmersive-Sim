@@ -22,6 +22,7 @@ func _initialize() -> void:
 	await _paso1_cuerpo()
 	await _paso2_pisos()
 	await _paso2b_bajo_tierra()
+	await _paso2c_caidas()
 	print("FISICA 3D: %s (%d fallos)" % ["PASSED" if _fallos == 0 else "FAILED", _fallos])
 	quit(1 if _fallos > 0 else 0)
 
@@ -215,6 +216,48 @@ func _paso2b_bajo_tierra() -> void:
 	Red.exit_sewers_to_surface(vm)
 	await _andar(pl, mc, Vector2.ZERO, 0.0, 0.5)
 	_ok(int(vm.player_elevation_level) == 0 and mc.altura_pies_px() > -1.0, "2b: al salir por la reja vuelve a la calle (%.1f px)" % mc.altura_pies_px())
+	mc.set_physics_process(true)
+
+
+## Paso 2c: daño por caída «realista» (decisión del usuario): nada por debajo de 3 m, mortal a 8 m; las mejoras lo
+## reducen; caer desde 4 m hace daño y hiere una parte del cuerpo; un salto normal, no.
+func _paso2c_caidas() -> void:
+	var pl = get_first_node_in_group("player")
+	var vm = get_first_node_in_group("village_manager")
+	var mc = pl.get_node("PlayerMovementController")
+	var Cuerpo3D = load("res://scripts/fisica/Cuerpo3D.gd")
+	var VillageTavern = load("res://scripts/systems/VillageTavern.gd")
+	_ok(Cuerpo3D.dano_por_caida(2.9, 100.0) == 0.0, "2c: caer 2,9 m no hace daño")
+	_ok(absf(Cuerpo3D.dano_por_caida(3.0, 100.0) - 9.1) < 0.5, "2c: caer 3 m quita ~9 de 100 (%.1f)" % Cuerpo3D.dano_por_caida(3.0, 100.0))
+	_ok(Cuerpo3D.dano_por_caida(8.0, 100.0) >= 100.0, "2c: caer 8 m mata")
+	# Caer 4 m al aire libre (como bajar de un saliente): se hace daño y hiere una parte del cuerpo
+	mc.set_physics_process(false)
+	var hc = pl.health_comp
+	hc.current_health = hc.max_health
+	var heridas_antes: int = hc.wounds.size()
+	vm.set_player_elevation_level(0)
+	pl.global_position = Anclas.mover(VillageTavern.DOOR_POS) + Vector2(0, 80)
+	await _andar(pl, mc, Vector2.ZERO, 0.0, 0.3)
+	var c: CharacterBody3D = mc.cuerpo()
+	c.global_position.y += 4.0
+	await _andar(pl, mc, Vector2.ZERO, 0.0, 1.5)
+	var perdida: float = hc.max_health - hc.current_health
+	var esperada: float = Cuerpo3D.dano_por_caida(4.0, hc.max_health)
+	_ok(absf(perdida - esperada) < 3.0, "2c: cae 4 m y se hace daño (-%.0f; ~%.0f esperado)" % [perdida, esperada])
+	var zona: String = str(hc.wounds.back().get("region", "")) if hc.wounds.size() > heridas_antes else ""
+	_ok(zona != "", "2c: la caída deja una herida en una parte del cuerpo (%s, %s)" % [zona, str(hc.wounds.back().get("name", "")) if zona != "" else ""])
+	# Un salto normal no hace daño
+	hc.current_health = hc.max_health
+	pl.start_jump()
+	await _andar(pl, mc, Vector2.ZERO, 0.0, 1.2)
+	_ok(hc.current_health == hc.max_health, "2c: un salto normal no hace daño")
+	# Con una mejora que quita la mitad, la misma caída hace la mitad
+	pl.reduccion_dano_caida = 0.5
+	hc.current_health = hc.max_health
+	pl.recibir_dano_caida(20.0, 4.0)
+	_ok(absf((hc.max_health - hc.current_health) - 10.0) < 1.5, "2c: con una mejora del 50 %% el daño se reduce a la mitad (-%.1f)" % (hc.max_health - hc.current_health))
+	pl.reduccion_dano_caida = 0.0
+	hc.current_health = hc.max_health
 	mc.set_physics_process(true)
 
 

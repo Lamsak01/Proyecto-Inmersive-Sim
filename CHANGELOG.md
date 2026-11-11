@@ -4,6 +4,10 @@ Cambios del juego, del más nuevo al más antiguo. Añade una entrada al cerrar 
 El detalle técnico está en `docs/HANDOFF.md` (sección 7) y el historial completo en `git log`. Lo anterior a B0.1 está en `AUDIT_LOG.md` y `SESSION_CONTEXT_LOG.md`.
 
 
+## 2026-11-10 — Paso a 3D de verdad: paso 2c, daño por caída (Claude Code, portátil; rama `mundo-3d`)
+- Decisión del usuario: realista. Desde 3 m duele, a 8 m mata, y la caída hiere una parte del cuerpo (sobre todo piernas).
+- Preparado para mejoras futuras que reduzcan el daño por caída. Barandillas de la posada a la cintura.
+
 ## 2026-11-10 — Paso a 3D de verdad: paso 2b, club y alcantarillas bajo tierra (Claude Code, portátil; rama `mundo-3d`)
 - El club de peleas y las alcantarillas están de verdad unos 3 m bajo la calle; en 1.ª persona hay techo de roca.
 

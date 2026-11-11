@@ -6,6 +6,28 @@
 
 ---
 
+## Paso 2c — Daño por caída (2026-11-10, Claude Code, portátil)
+
+**Qué cambia en el juego:** si caes desde 3 m o más te haces daño al aterrizar: a 3 m, un 9 % de la vida; a 4 m, un 27 %;
+a 8 m, mueres. Además la caída deja una herida en una parte del cuerpo (moratón o fractura), casi siempre en las
+piernas; desde 5 m, en las dos; en caídas grandes puede ser el tronco o la cabeza. Un salto normal no hace daño. Las
+barandillas de la posada ahora llegan a la cintura (dentro de casa el salto es bajo, así que no se pueden saltar).
+
+**Decisión del usuario:** «realista»; las caídas hieren partes del cuerpo; más adelante habrá mejoras que quiten daño.
+
+**Archivos:**
+- `scripts/fisica/Cuerpo3D.gd`: `_vigilar_caida` (apunta lo más alto que llega en el aire y al tocar suelo calcula la
+  caída; cambiar de sitio a mano no cuenta), `dano_por_caida`, constantes `CAIDA_*`.
+- `scripts/systems/combat/HealthComponent.gd`: `take_fall_damage` y `_zona_de_caida`; `take_damage` acepta la zona herida.
+- `scripts/Player.gd`: `recibir_dano_caida` y `reduccion_dano_caida` (0 = todo el daño, 1 = nada; para mejoras futuras).
+- `scripts/systems/VillageTavern.gd`: las tres barandillas van en el grupo «barandilla»; `Suelo.es_barandilla`;
+  `ChoquesCercanos3D.ALTO_BARANDILLA_M` (cada copia guarda su «banda» de altura).
+- `tools/tests/fisica_3d.gd`: prueba del paso 2c.
+
+**Cómo se probó:** fisica_3d ✅ · verify_all ✅.
+
+**Cómo deshacerlo:** `git revert` de este commit.
+
 ## Paso 2b — Club de peleas y alcantarillas de verdad bajo tierra (2026-11-10, Claude Code, portátil)
 
 **Qué cambia en el juego:** al bajar por la trampilla del club o por una reja de alcantarilla estás de verdad unos 3,2 m

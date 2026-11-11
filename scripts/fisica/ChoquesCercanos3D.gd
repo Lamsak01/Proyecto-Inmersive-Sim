@@ -10,6 +10,7 @@ extends Node3D
 ## solo.
 ## Paso 2: los choques de un solo piso (Suelo.piso_de_choque) se levantan solo a la altura de su piso; así en la posada
 ## los tabiques de abajo no estorban arriba y las barandillas de arriba no estorban abajo.
+## Paso 2c: las barandillas (Suelo.es_barandilla) llegan a la cintura: se pueden saltar.
 
 const Mapa3D = preload("res://scripts/fisica/Mapa3D.gd")
 const Suelo = preload("res://scripts/fisica/Suelo.gd")
@@ -20,6 +21,7 @@ const MAX_CHOQUES: int = 256
 const BAJO_SUELO_M: float = 1.0    ## los muros empiezan este trozo por debajo del suelo de la calle…
 const ALTO_MURO_M: float = 9.0     ## …y suben hasta aquí (dos plantas; no se puede saltar por encima, igual que antes)
 const ALTO_PISO_M: float = 4.0     ## lo que sube un choque de la Planta +1 desde su suelo
+const ALTO_BARANDILLA_M: float = 1.0 ## las barandillas: a la cintura (se pueden saltar)
 const SEGMENTOS_CIRCULO: int = 12
 
 var _copias: Dictionary = {}       ## clave «rid:forma» → StaticBody3D
@@ -66,12 +68,15 @@ func cuantas() -> int:
 
 
 func _crear_copia(rid: RID, idx: int) -> StaticBody3D:
-	var piso: int = Suelo.piso_de_choque(instance_from_id(PhysicsServer2D.body_get_object_instance_id(rid)))
-	var forma := _forma_3d(PhysicsServer2D.body_get_shape(rid, idx), _banda(piso).y)
+	var nodo: Object = instance_from_id(PhysicsServer2D.body_get_object_instance_id(rid))
+	var banda: Vector2 = _banda(Suelo.piso_de_choque(nodo))
+	if Suelo.es_barandilla(nodo):
+		banda.y = ALTO_BARANDILLA_M + 0.05
+	var forma := _forma_3d(PhysicsServer2D.body_get_shape(rid, idx), banda.y)
 	if forma == null:
 		return null
 	var cuerpo := StaticBody3D.new()
-	cuerpo.set_meta("piso", piso)
+	cuerpo.set_meta("banda", banda)
 	var cs := CollisionShape3D.new()
 	cs.shape = forma
 	cuerpo.add_child(cs)
@@ -84,7 +89,7 @@ func _colocar(copia: StaticBody3D, rid: RID, idx: int, calle_y: float) -> void:
 	var t2: Transform2D = (PhysicsServer2D.body_get_state(rid, PhysicsServer2D.BODY_STATE_TRANSFORM) as Transform2D) \
 		* PhysicsServer2D.body_get_shape_transform(rid, idx)
 	var o3 := Mapa3D.a_3d(t2.origin)
-	o3.y = calle_y + _banda(int(copia.get_meta("piso"))).x
+	o3.y = calle_y + (copia.get_meta("banda") as Vector2).x
 	var x3 := Mapa3D.dir_a_3d(t2.x)
 	var z3 := Mapa3D.dir_a_3d(t2.y)
 	var t3 := Transform3D(Basis(x3, Vector3.UP, z3), o3)

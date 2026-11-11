@@ -76,6 +76,11 @@ static func capa(activo: bool) -> int:
 	return (1 if activo else 0) | CAPA_PISOS
 
 
+## ¿Es una barandilla (baja, se puede saltar por encima)?
+static func es_barandilla(n: Object) -> bool:
+	return n is Node and (n as Node).is_in_group("barandilla")
+
+
 ## De qué piso es un choque del mapa (0, +1 o PISO_TODOS).
 static func piso_de_choque(n: Object) -> int:
 	if n is Node:
