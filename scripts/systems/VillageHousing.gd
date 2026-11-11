@@ -384,7 +384,7 @@ static func on_hour(vm, hour: int) -> void:
 	if clerk != null and not clerk.is_downed and not clerk.is_sleeping and clerk.is_conscious() and clerk.rite_pos == Vector2.ZERO and not clerk.is_in_live_fight() and not clerk.is_busy_with_player():
 		if "VillageWork" in vm and vm.VillageWork != null:
 			vm.VillageWork._release(clerk)
-		var c_spot: Vector2 = player_shop_clerk_pos(vm)
+		var c_spot: Vector2 = vm.sitio(player_shop_clerk_pos(vm)) # destino en el mundo
 		if clerk.errand_kind != "player_shop_clerk":
 			clerk.start_errand("player_shop_clerk", c_spot)
 		else:
@@ -1552,7 +1552,7 @@ static func on_player_action(vm, npc, action_id: String, inv) -> void:
 			vm.VillageWork._release(npc)
 		var cur_h: int = int(WorldClock.current_hour) if WorldClock != null else 10
 		if is_player_shop_open_hour(cur_h) and not npc.is_dead and not npc.is_downed and not npc.is_sleeping:
-			npc.start_errand("player_shop_clerk", player_shop_clerk_pos(vm))
+			npc.start_errand("player_shop_clerk", vm.sitio(player_shop_clerk_pos(vm)))
 		npc.modify_affinity(12)
 		npc.add_thought("Tengo trabajo atendiendo el mostrador del Bazar del Forastero (+8)", 8.0)
 		VillageChronicle.add(vm, "player_shop_clerk", "Contrataste a %s como dependiente de tu negocio" % npc.npc_name, true)

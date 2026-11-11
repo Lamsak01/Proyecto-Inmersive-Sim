@@ -5222,7 +5222,7 @@ func _initialize() -> void:
 	t5_wc.current_hour = 10
 	vho.on_player_action(vm, p70_c, "housing_hire_clerk", p70_inv)
 	vho.on_hour(vm, 10)
-	assert(p70_c.errand_kind == "player_shop_clerk" and p70_c.errand_pos.distance_to(vho.player_shop_clerk_pos(vm)) <= 1.0, "P1.2b: During business hours, hired clerk walks to behind the player shop counter")
+	assert(p70_c.errand_kind == "player_shop_clerk" and p70_c.errand_pos.distance_to(M(vho.player_shop_clerk_pos(vm))) <= 1.0, "P1.2b: During business hours, hired clerk walks to behind the player shop counter")
 	assert(not vho.on_customer_arrived(vm, p70_b) and int(vho.state(vm)["player_shop"]["stock"]) == 6, "P1.2c: While clerk is still far from the counter, no sales occur")
 
 	# 3. Clientes de verdad: con el dependiente detrás del mostrador, un vecino con oro se acerca y paga de su bolsillo a la caja

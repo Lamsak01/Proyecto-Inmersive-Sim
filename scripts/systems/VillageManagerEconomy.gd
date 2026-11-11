@@ -1006,7 +1006,7 @@ func _on_business_action_3(player: Node2D) -> void:
 	pay_into(candidate, 30) # Regla 1: la prima de contratación es para el encargado (o las arcas si llega uno nuevo)
 
 	if candidate != null:
-		candidate.promote_to_trade(_active_business_role as VillageNPC.TradeRole, str(cfg.get("title", "Artesano")), cfg.get("work_pos", sitio(biz.get("stall_pos", Vector2.ZERO))), get_trade_stock_dict(_active_business_role), cfg.get("tex", null), cfg.get("bed1_pos", Vector2.ZERO), cfg.get("table_pos", Vector2.ZERO), str(cfg.get("family_id", "none")), str(cfg.get("family_name", "Gremio")))
+		candidate.promote_to_trade(_active_business_role as VillageNPC.TradeRole, str(cfg.get("title", "Artesano")), cfg.get("work_pos", biz.get("stall_pos", Vector2.ZERO)), get_trade_stock_dict(_active_business_role), cfg.get("tex", null), cfg.get("bed1_pos", Vector2.ZERO), cfg.get("table_pos", Vector2.ZERO), str(cfg.get("family_id", "none")), str(cfg.get("family_name", "Gremio")))
 		trade_npcs[_active_business_role] = candidate
 		if family_npcs.get(_active_business_role) == candidate:
 			family_npcs.erase(_active_business_role)
@@ -1019,7 +1019,7 @@ func _on_business_action_3(player: Node2D) -> void:
 			_active_business_role as VillageNPC.TradeRole,
 			str(cfg.get("title", "Encargado")) + " (Contratado)",
 			cfg.get("tex", null),
-			cfg.get("work_pos", sitio(biz.get("stall_pos", Vector2.ZERO))),
+			cfg.get("work_pos", biz.get("stall_pos", Vector2.ZERO)),
 			cfg.get("bed1_pos", sitio(_tavern_bed_pos)),
 			get_trade_stock_dict(_active_business_role),
 			cfg.get("table_pos", sitio(_tavern_social_pos)),

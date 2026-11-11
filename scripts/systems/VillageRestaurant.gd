@@ -106,7 +106,7 @@ static func build(vm) -> void:
 	_build_furniture(vm)
 	_build_terrace(vm)
 	var stall: Sprite2D = vm._add_sprite_prop(vm._load_tex(PROPS + "storage_countertop_0.png"), COUNTER_POS, Vector2(0.55, 0.55), -1)
-	vm._register_shop_business_stall(int(VillageNPC.TradeRole.RESTAURATEUR), TITLE, FAMILY_ID, COUNTER_POS, stall)
+	vm._register_shop_business_stall(int(VillageNPC.TradeRole.RESTAURATEUR), TITLE, FAMILY_ID, _AN_SITIOS.mover(COUNTER_POS), stall) # el puesto se guarda en el mundo
 	vm._spawn_house_chest(OWNER_CHEST, "Cofre de " + TITLE, FAMILY_ID)
 
 ## Tabiques con sus pasos (huecos de GAP px). Muros de piedra, igual que el exterior.
