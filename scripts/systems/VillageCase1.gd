@@ -204,7 +204,10 @@ static func sync(vm) -> void:
 		vm.register_no_stand_furniture(cabinet_pos(), Vector2(16.0, 9.0))
 	var page_pos: Vector2 = relative_page_pos(vm)
 	if page_pos != Vector2.INF and vm.get_node_or_null("Case1RelativePageArea") == null:
-		vm._add_station_area("Case1RelativePageArea", load("res://mapa/anclas.gd").desmover(page_pos), 18.0, "case1_relative_page") # page_pos ya es del mundo; la zona se crea desde el mapa original
+		var AN_h = load("res://mapa/anclas.gd") # page_pos ya es del mundo: anclas en pausa para no moverlo otra vez
+		AN_h.pausa += 1
+		vm._add_station_area("Case1RelativePageArea", page_pos, 18.0, "case1_relative_page")
+		AN_h.pausa -= 1
 		st["page_pos"] = [page_pos.x, page_pos.y]
 	if vm.get_node_or_null("Case1ReportArea") == null:
 		vm._add_station_area("Case1ReportArea", REPORT_POS, 20.0, "case1_report_desk")

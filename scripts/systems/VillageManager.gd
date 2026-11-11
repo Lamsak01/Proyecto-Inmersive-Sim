@@ -529,6 +529,9 @@ func interact(player: Node2D) -> void:
 	var c1_cand0: Dictionary = c1_sel0.call("selected") if (c1_sel0 != null and c1_sel0.has_method("selected")) else {}
 	if str(c1_cand0.get("station", "")).begins_with("case1_") and VillageCase1.try_interact(self, player, pos, str(c1_cand0.get("station", ""))):
 		return
+	if str(c1_cand0.get("station", "")) == "old_bridge_left_shoe": # el zapato del Puente Viejo manda sobre lo que haya cerca
+		_anotar_zapato_puente(player)
+		return
 
 	# 0. ¿Está cerca de una Puerta (`building_doors`) o Ventana (`building_windows`)?
 	var best_door: Dictionary = _find_nearest_door(pos, 24.0)
@@ -729,17 +732,8 @@ func interact(player: Node2D) -> void:
 		return
 	# El zapato está donde lo puso VillageWorldBuilder (junto al cruce del río del editor): se mira su zona de verdad
 	var shoe_area: Node2D = entities_root.get_node_or_null("OldBridgeVictimShoeArea") as Node2D
-	var bridge_shoe_pos: Vector2 = shoe_area.global_position if shoe_area != null else sitio(Vector2(FishingSpot.river_center_x(FishingSpot.OLD_BRIDGE_POS.y) - 10.0, FishingSpot.OLD_BRIDGE_POS.y - 12.0))
-	if pos.distance_squared_to(bridge_shoe_pos) <= 26.0 * 26.0:
-		_record_case_clue(
-			player,
-			"👞 Zapato",
-			"👞 Un zapato izquierdo de mujer, de cuero marrón con la hebilla de latón torcida, volcado de costado junto al pretil norte del puente.",
-			"Puente Viejo: zapato izquierdo de cuero con la hebilla torcida caído junto al pretil.",
-			"Pista: Zapato en el puente",
-			"clue_old_bridge_left_shoe",
-			Color(0.92, 0.82, 0.64)
-		)
+	if shoe_area != null and pos.distance_squared_to(shoe_area.global_position) <= 26.0 * 26.0:
+		_anotar_zapato_puente(player)
 		return
 
 	var d_bed: float = pos.distance_squared_to(sitio(_tavern_bed_pos))
@@ -759,6 +753,19 @@ func interact(player: Node2D) -> void:
 		_use_water_well(player)
 	elif d_comp <= 26.0 * 26.0:
 		_use_compost_bin(player)
+
+
+## Punto 6 del Caso I: el zapato izquierdo de la víctima en el Puente Viejo.
+func _anotar_zapato_puente(player: Node2D) -> void:
+	_record_case_clue(
+		player,
+		"👞 Zapato",
+		"👞 Un zapato izquierdo de mujer, de cuero marrón con la hebilla de latón torcida, volcado de costado junto al pretil norte del puente.",
+		"Puente Viejo: zapato izquierdo de cuero con la hebilla torcida caído junto al pretil.",
+		"Pista: Zapato en el puente",
+		"clue_old_bridge_left_shoe",
+		Color(0.92, 0.82, 0.64)
+	)
 
 
 func _record_case_clue(
