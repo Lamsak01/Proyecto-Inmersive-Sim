@@ -3472,7 +3472,7 @@ func _initialize() -> void:
 	var t3_priest = vm.VillageFaith.priest_of(vm)
 	var t3_ppos_bak: Vector2 = t3_priest.global_position if t3_priest != null else Vector2.ZERO
 	if t3_priest != null:
-		t3_priest.global_position = M(vm._church_altar_pos + Vector2(300, 0))
+		t3_priest.global_position = M(vm._church_altar_pos) + Vector2(300, 0)
 	vcf.on_player_action(vm, p70_c, "faith_impersonate_priest:" + p70_c.get_person_key(), p70_inv)
 	if t3_priest != null:
 		t3_priest.global_position = t3_ppos_bak
@@ -3500,7 +3500,7 @@ func _initialize() -> void:
 	# Tanda 4 (16): Fingir un milagro en el altar
 	var t4_bel_rep0: int = vm.VillageFaith.rep_of(vm, "believers")
 	if t3_priest != null:
-		t3_priest.global_position = M(vm._church_altar_pos + Vector2(300, 0))
+		t3_priest.global_position = M(vm._church_altar_pos) + Vector2(300, 0)
 	vcf.on_player_action(vm, p70_a, "faith_stage_miracle", p70_inv)
 	if t3_priest != null:
 		t3_priest.global_position = t3_ppos_bak
@@ -5568,7 +5568,7 @@ func _initialize() -> void:
 	bp3_guard.is_downed = false
 	bp3_guard.is_stunned_flag = false
 	bp3_guard.sedated_timer = 0.0
-	bp3_guard.global_position = M(vun.SMUGGLER_CAMP_POS + Vector2(40.0, 0.0))
+	bp3_guard.global_position = M(vun.SMUGGLER_CAMP_POS) + Vector2(40.0, 0.0)
 	var bp3_w0: int = int(vm.wanted_level)
 	bp3_smug_cart.sell_area.interact(p70_pl)
 	assert(p70_inv.gold == 110 and int(vm.wanted_level) > bp3_w0 and int(bp3_ust.get("caravan_busted_day", -99)) == 4, "P3.4e: Selling with an awake guard within 160 px raises wanted_level and sets caravan_busted_day")
@@ -6449,12 +6449,12 @@ func _initialize() -> void:
 			assert(not (b_r1["rect"] as Rect2).intersects(r1_fp["rect"]), "R1.2: The restaurant doesn't overlap %s" % str(b_r1["title"]))
 	assert(r1_rs.ROOMS.size() == 6 and r1_rs.room_of(r1_rs.STOVE_POS) == "cocina" and r1_rs.room_of(r1_rs.COLD_SHELF) == "camara" and r1_rs.room_of(r1_rs.BACKROOM_TABLE) == "reservado", "R1.3: Dining room, kitchen, cold room, cellar, owner's room and back room")
 	# Por dentro se cruza por los pasos: del comedor a la cámara se pasa por la cocina
-	var r1_w: Vector2 = vm.get_navigation_waypoint(M(r1_rs.BASE + Vector2(80, 136)), r1_rs.COLD_SHELF, null)
-	assert(r1_w.distance_to(M(r1_rs.BASE + Vector2(183, 135))) < 3.0, "R1.4: From the dining room to the cold room you first head to the kitchen pass (%s)" % str(r1_w))
-	r1_w = vm.get_navigation_waypoint(M(r1_rs.BASE + Vector2(235, 126)), r1_rs.COLD_SHELF, null)
-	assert(r1_w.distance_to(M(r1_rs.BASE + Vector2(235, 92))) < 3.0, "R1.5: From the kitchen you head to the cold room door (%s)" % str(r1_w))
-	r1_w = vm.get_navigation_waypoint(r1_rs.COLD_SHELF, M(r1_rs.BASE + Vector2(130, 266)), null)
-	assert(r1_w.distance_to(M(r1_rs.BASE + Vector2(235, 68))) < 3.0, "R1.6: Leaving the cold room you go back through its door (%s)" % str(r1_w))
+	var r1_w: Vector2 = vm.get_navigation_waypoint(M(r1_rs.BASE) + Vector2(80, 136), r1_rs.COLD_SHELF, null)
+	assert(r1_w.distance_to(M(r1_rs.BASE) + Vector2(183, 135)) < 3.0, "R1.4: From the dining room to the cold room you first head to the kitchen pass (%s)" % str(r1_w))
+	r1_w = vm.get_navigation_waypoint(M(r1_rs.BASE) + Vector2(235, 126), r1_rs.COLD_SHELF, null)
+	assert(r1_w.distance_to(M(r1_rs.BASE) + Vector2(235, 92)) < 3.0, "R1.5: From the kitchen you head to the cold room door (%s)" % str(r1_w))
+	r1_w = vm.get_navigation_waypoint(r1_rs.COLD_SHELF, M(r1_rs.BASE) + Vector2(130, 266), null)
+	assert(r1_w.distance_to(M(r1_rs.BASE) + Vector2(235, 68)) < 3.0, "R1.6: Leaving the cold room you go back through its door (%s)" % str(r1_w))
 	var r1_rt: int = int(c72_n.TradeRole.RESTAURATEUR)
 	assert(vm.trade_configs.has(r1_rt) and vm.shop_businesses.has(r1_rt), "R1.7: The cook's post exists (vacant until someone comes)")
 	var r1_inv = load("res://scripts/systems/SimpleInventory.gd")
@@ -6621,13 +6621,13 @@ func _initialize() -> void:
 	r2_fam.on_hour(vm, 23)
 	assert(r2_fam.is_meeting_now(vm) and r2_boss.errand_kind == "familia_meet" and r2_rec1.errand_kind == "familia_meet", "R2.10: At the chosen night hour members are called to the reservado")
 	assert(r1_rs.room_of(r2_boss.errand_pos) == "reservado" and r1_rs.room_of(r2_rec1.errand_pos) == "reservado", "R2.11: Every seat target is inside the Trattoria back room")
-	var r2_wp: Vector2 = vm.get_navigation_waypoint(M(r1_rs.BASE + Vector2(130, 136)), r2_boss.errand_pos, r2_boss)
-	assert(r2_wp.distance_to(M(r1_rs.BASE + Vector2(42, 92))) < 3.0, "R2.12: Members route through the back-room door from the dining hall")
+	var r2_wp: Vector2 = vm.get_navigation_waypoint(M(r1_rs.BASE) + Vector2(130, 136), r2_boss.errand_pos, r2_boss)
+	assert(r2_wp.distance_to(M(r1_rs.BASE) + Vector2(42, 92)) < 3.0, "R2.12: Members route through the back-room door from the dining hall")
 	var r2_cline: String = r2_fam.cook_line(vm)
 	assert(r2_cline.find("puerta cerrada") != -1, "R2.13: The cook drops a hint when they are dining behind closed doors")
 	# 5. Si un guardia se acerca al reservado, abortan y lo dejan para otra noche
 	r2_guard.is_sleeping = false
-	r2_guard.global_position = M(r1_rs.BACKROOM_TABLE + Vector2(18, 0))
+	r2_guard.global_position = M(r1_rs.BACKROOM_TABLE) + Vector2(18, 0)
 	r2_fam.tick(vm)
 	assert(str(r2_fam.state(vm).get("meeting_status", "")) == "aborted" and r2_fam.state(vm).get("postponed") == true and r2_boss.errand_kind == "", "R2.14: Spotting a guard near the back room aborts the meeting for another night")
 	# 6. Guardar y cargar conserva jefe, miembros y rechazos
@@ -6681,7 +6681,7 @@ func _initialize() -> void:
 	assert(r2_fam.can_bribe_guard(vm, r2_guard), "R3.9: Unscrupulous guard is eligible for a bribe")
 	assert(r2_fam.try_bribe_guard(vm, r2_rec1, r2_guard, 0.01) == "bribed" and r2_fam.is_guard_bribed(vm, r2_guard), "R3.10: Guard accepts the bribe")
 	assert(r2_boss.personal_gold == r3_boss_g2 - r2_fam.BRIBE_AMOUNT and r2_guard.personal_gold == r3_guard_g0 + r2_fam.BRIBE_AMOUNT, "R3.11: Guard bribe is strictly zero-sum")
-	r2_guard.global_position = M(r1_rs.BACKROOM_TABLE + Vector2(18, 0))
+	r2_guard.global_position = M(r1_rs.BACKROOM_TABLE) + Vector2(18, 0)
 	assert(r2_fam.has_unwanted_witness_near(vm) == null, "R3.12: Bribed guard looks the other way and does not abort the back-room meeting")
 	print("Block R3 (La Familia Discrete Businesses: Zero-Sum Protection, Back-Room Loans & Guard Bribes) OK")
 	# ==========================================================================
@@ -6704,7 +6704,7 @@ func _initialize() -> void:
 	r2_fam.state(vm)["player_knows_boss"] = false
 	r2_fam.state(vm)["player_evidence"] = 0
 	r2_fam.state(vm)["last_eavesdrop_night"] = -99
-	p70_pl.global_position = M(r1_rs.BACKROOM_TABLE + Vector2(0, 52))
+	p70_pl.global_position = M(r1_rs.BACKROOM_TABLE) + Vector2(0, 52)
 	assert(r2_fam.try_eavesdrop_meeting(vm, p70_pl), "R4.1: Player near the reservado during a night meeting overhears La Familia")
 	assert(r2_fam.is_boss_known_to_player(vm) and int(r2_fam.state(vm)["player_evidence"]) == 1 and str(r2_fam.state(vm)["known_target"]) == r2_cook.get_person_key(), "R4.2: Eavesdropping reveals the boss, adds evidence and identifies the next target")
 	# 2. Avisar a la víctima antes del cobro: queda prevenida, sube afinidad con la víctima y molesta al jefe
