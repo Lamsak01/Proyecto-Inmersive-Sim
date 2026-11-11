@@ -262,8 +262,10 @@ void fragment() {
 	vec3 g_a = texture(tex_grass, uv_a).rgb;
 	vec3 g_b = texture(tex_grass, uv_b).rgb;
 	vec3 g_mid = mix(g_a, g_b, rot_mix);
-	// Eliminar por completo cualquier borde periódico de baldosa en laderas vistas de lejos
-	g_mid = mix(vec3(0.78), g_mid, 0.22);
+	// Detalle de la textura: más de cerca (se ven las briznas), menos de lejos (ni baldosas ni hormigueo)
+	float dist_cam = length(v_world_pos - CAMERA_POSITION_WORLD);
+	float detalle = mix(0.46, 0.20, smoothstep(6.0, 40.0, dist_cam));
+	g_mid = mix(vec3(0.78), g_mid, detalle);
 
 	vec3 g_over = mix(vec3(0.78), texture(tex_overlay, g_rot(w_uv + warp * 0.8, 1.12) * 1.95 + vec2(0.37, 0.61)).rgb, 0.24);
 	vec3 d_tex = mix(vec3(0.75), texture(tex_dirt, g_rot(w_uv + warp * 0.6, 0.33) * 1.75).rgb, 0.32);
@@ -275,6 +277,13 @@ void fragment() {
 
 	float b_mix = smoothstep(0.25, 0.75, macro * 0.65 + meso * 0.35);
 	vec3 meadow_tint = mix(tint_primary, tint_secondary, b_mix);
+	// Césped sin dibujo repetido (usuario, 2026-11-07; hecho 2026-11-11): manchas grandes e irregulares de hierba seca
+	// (amarillenta) y de hierba espesa (más oscura), con bordes rotos por el ruido fino
+	float mancha = g_noise(w_uv * 0.075 + vec2(41.3, 17.7)) * 0.6 + g_noise(w_uv * 0.21 + vec2(8.9, 27.1)) * 0.4;
+	float seca = smoothstep(0.56, 0.72, mancha + (micro - 0.5) * 0.10);
+	float espesa = smoothstep(0.42, 0.26, mancha + (micro - 0.5) * 0.10);
+	meadow_tint = mix(meadow_tint, meadow_tint * vec3(1.30, 1.16, 0.62) + vec3(0.10, 0.07, 0.0), seca * 0.9);
+	meadow_tint = mix(meadow_tint, meadow_tint * vec3(0.74, 0.88, 0.72), espesa * 0.7);
 	float eff_dirt_b = dirt_blend;
 	vec3 eff_earth = tint_earth;
 	if (use_vertex_biomes > 0.5) {
@@ -289,7 +298,9 @@ void fragment() {
 	}
 	vec3 base_grass = mix(meadow_tint * 0.88, g_mid * 1.18 * meadow_tint, 0.48);
 	base_grass = mix(base_grass, g_over * meadow_tint * 1.08, 0.22);
-	base_grass *= mix(0.90, 1.10, micro * 0.55 + blade * 0.45);
+	// Briznas y calvas pequeñas de cerca (se funden de lejos para que no hormiguee)
+	float contraste = mix(0.20, 0.08, smoothstep(6.0, 40.0, dist_cam));
+	base_grass *= mix(1.0 - contraste, 1.0 + contraste, micro * 0.45 + blade * 0.55);
 
 	// Calvas naturales de tierra húmeda, orillas y laderas empinadas
 	float earth_mask = smoothstep(0.68 - eff_dirt_b * 0.42, 0.88, macro * 0.60 + meso * 0.40);

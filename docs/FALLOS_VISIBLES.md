@@ -38,9 +38,7 @@
   taberna, biblioteca). *(✅ 2026-11-08: rehechos en 3D y 1.ª persona los 6 edificios del Caso I — comisaría y calabozo, morgue/hospital, taberna, biblioteca, botica del alquimista y capilla — con salas separadas coherentes, mobiliario 3D sin solapes ni objetos flotantes, iluminación interior y techos sin Z-fighting; capturas antes/después en `docs/capturas_arreglos/interiores/`)*.
 - [ ] **Todas las casas comparten la misma puerta**, que a veces no pega con la fachada · 1.ª persona. *(✅ 2026-11-08: puertas 3D propias en los edificios del Caso I rehechas en madera oscura gastada y hierro oxidado acorde a la época tecnofeudal, con una pequeña cruz pintada desvaída en el hospital y sin carteles ni colores chillones; alfombras gastadas sin franjas amarillas en biblioteca, botica y capilla)*.
 - [ ] **Alcantarillas vacías** (2026-11-07): son un pasillo con 3 cofres sueltos; no se ve el sitio de las peleas clandestinas que se supone que está ahí.
-- [ ] **(BAJA PRIORIDAD: el usuario lo tolera por ahora) Césped con dibujo repetido** (2026-11-07 21:13, captura, 3D):
-  la cuadrícula pasó a ser un dibujo de rombos que se repite por todo el suelo; no es natural y no le gusta. Arreglarlo
-  más adelante con una hierba sin patrón visible (manchas irregulares, variación de tono).
+- [x] ✅ (2026-11-11) **Césped con dibujo repetido** (2026-11-07 21:13, captura, 3D): la cuadrícula pasó a ser un dibujo de rombos que se repite por todo el suelo. *(Ahora la hierba lleva manchas grandes e irregulares de hierba seca (amarillenta) y espesa (más oscura) con bordes rotos, briznas visibles de cerca y fundido de lejos para que no hormiguee; sin patrón que se repita. Foto: `docs/capturas_arreglos/2026-11-11_cesped_manchas_despues.png`.)*
 
 > Al arreglar uno, márcalo con ✅ aquí; de vez en cuando los ✅ se pasan a `docs/archivo/FALLOS_ARREGLADOS.md`.
 
