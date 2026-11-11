@@ -1,0 +1,173 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://mapa/edificio.gd" id="1_5i1yl"]
+[ext_resource type="Texture2D" path="res://mapa/edificios/comun/tex_afb3fc1a.res" id="2_4k6ht"]
+[ext_resource type="Texture2D" path="res://mapa/edificios/comun/tex_130c46c8.res" id="3_xqp8s"]
+[ext_resource type="Texture2D" path="res://mapa/edificios/comun/tex_20471217.res" id="4_1rfhf"]
+[ext_resource type="ArrayMesh" path="res://mapa/edificios/comun/malla_79c69133.res" id="5_l8kvu"]
+[ext_resource type="ArrayMesh" path="res://mapa/edificios/comun/malla_a1da1ff7.res" id="6_jnckn"]
+[ext_resource type="Script" path="res://mapa/mueble.gd" id="7_emw8w"]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_pgrgb"]
+albedo_color = Color(0.3, 0.2, 0.12, 1)
+roughness = 0.9
+texture_filter = 2
+
+[sub_resource type="BoxMesh" id="BoxMesh_b6rlg"]
+size = Vector3(1.97568, 2.8997624, 0.1512)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_8uvo4"]
+transparency = 2
+alpha_scissor_threshold = 0.5
+alpha_antialiasing_mode = 0
+albedo_texture = ExtResource("2_4k6ht")
+roughness = 0.9
+texture_filter = 2
+
+[sub_resource type="QuadMesh" id="QuadMesh_wf5cw"]
+size = Vector2(2.016, 2.9589412)
+
+[sub_resource type="QuadMesh" id="QuadMesh_6pw0p"]
+size = Vector2(2.016, 2.9589412)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_8l4yg"]
+albedo_color = Color(0.22, 0.24, 0.28, 1)
+metallic = 0.75
+roughness = 0.45
+texture_filter = 2
+
+[sub_resource type="BoxMesh" id="BoxMesh_ovcmo"]
+size = Vector3(0.14559999, 0.29589412, 0.17920001)
+
+[sub_resource type="BoxMesh" id="BoxMesh_7h6gn"]
+size = Vector3(0.71344, 1.2427553, 0.44855997)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_a8hok"]
+transparency = 2
+alpha_scissor_threshold = 0.5
+alpha_antialiasing_mode = 0
+albedo_texture = ExtResource("3_xqp8s")
+roughness = 0.9
+texture_filter = 2
+
+[sub_resource type="QuadMesh" id="QuadMesh_ld3uw"]
+size = Vector2(0.728, 1.2681177)
+
+[sub_resource type="QuadMesh" id="QuadMesh_4g8ge"]
+size = Vector2(0.728, 1.2681177)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_vppy2"]
+albedo_color = Color(0.721, 0.658, 0.6085, 1)
+albedo_texture = ExtResource("4_1rfhf")
+metallic = 0.02
+roughness = 0.88
+uv1_scale = Vector3(0.27857143, 0.27857143, 0.27857143)
+uv1_triplanar = true
+texture_filter = 2
+
+[sub_resource type="BoxMesh" id="BoxMesh_oacpb"]
+size = Vector3(0.672, 0.8665471, 0.5208)
+
+[node name="shop_family_butcher" type="Node3D" unique_id=789771975]
+script = ExtResource("1_5i1yl")
+id_edificio = "shop_family_butcher"
+centro_original = Vector2(585, -36)
+
+[node name="Muros" type="Node3D" parent="." unique_id=757063644]
+
+[node name="Puerta" type="Node3D" parent="Muros" unique_id=1178401165]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.0079956, 0.21135294, 2.1279998)
+metadata/rol = "puerta"
+
+[node name="@Node3D@6592" type="Node3D" parent="Muros/Puerta" unique_id=1130304150]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.008, 1.4794706, 0)
+
+[node name="@MeshInstance3D@6591" type="MeshInstance3D" parent="Muros/Puerta/@Node3D@6592" unique_id=772749001]
+material_override = SubResource("StandardMaterial3D_pgrgb")
+mesh = SubResource("BoxMesh_b6rlg")
+
+[node name="Face" type="MeshInstance3D" parent="Muros/Puerta/@Node3D@6592" unique_id=1227575926]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0.085999995)
+material_override = SubResource("StandardMaterial3D_8uvo4")
+mesh = SubResource("QuadMesh_wf5cw")
+
+[node name="FaceBack" type="MeshInstance3D" parent="Muros/Puerta/@Node3D@6592" unique_id=2045012254]
+transform = Transform3D(-1, 0, -8.742278e-08, 0, 1, 0, 8.742278e-08, 0, -1, 0, 0, -0.085999995)
+material_override = SubResource("StandardMaterial3D_8uvo4")
+mesh = SubResource("QuadMesh_6pw0p")
+
+[node name="@MeshInstance3D@6593" type="MeshInstance3D" parent="Muros/Puerta" unique_id=193579914]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.792, 1.4202918, 0)
+visible = false
+material_override = SubResource("StandardMaterial3D_8l4yg")
+mesh = SubResource("BoxMesh_ovcmo")
+metadata/rol = "candado"
+
+[node name="@Node3D@6595" type="Node3D" parent="Muros" unique_id=924674578]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2.128006, 1.6908236, 2.1279998)
+metadata/rol = "cristal"
+
+[node name="@MeshInstance3D@6594" type="MeshInstance3D" parent="Muros/@Node3D@6595" unique_id=63299226]
+material_override = SubResource("StandardMaterial3D_pgrgb")
+mesh = SubResource("BoxMesh_7h6gn")
+
+[node name="Face" type="MeshInstance3D" parent="Muros/@Node3D@6595" unique_id=551996468]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0.2512)
+material_override = SubResource("StandardMaterial3D_a8hok")
+mesh = SubResource("QuadMesh_ld3uw")
+
+[node name="FaceBack" type="MeshInstance3D" parent="Muros/@Node3D@6595" unique_id=109603543]
+transform = Transform3D(-1, 0, -8.742278e-08, 0, 1, 0, 8.742278e-08, 0, -1, 0, 0, -0.2512)
+material_override = SubResource("StandardMaterial3D_a8hok")
+mesh = SubResource("QuadMesh_4g8ge")
+
+[node name="@MeshInstance3D@6596" type="MeshInstance3D" parent="Muros" unique_id=1385433895]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2.128006, 1.7013912, 2.1279998)
+visible = false
+material_override = SubResource("StandardMaterial3D_vppy2")
+mesh = SubResource("BoxMesh_oacpb")
+metadata/rol = "postigo"
+
+[node name="Juntado" type="MeshInstance3D" parent="Muros" unique_id=910630072]
+mesh = ExtResource("5_l8kvu")
+
+[node name="Interior" type="Node3D" parent="." unique_id=2136316154]
+
+[node name="PisoAlto" type="Node3D" parent="." unique_id=1624807686]
+visible = false
+
+[node name="Tejado" type="Node3D" parent="." unique_id=1227788557]
+
+[node name="Juntado" type="MeshInstance3D" parent="Tejado" unique_id=395174078]
+mesh = ExtResource("6_jnckn")
+
+[node name="Muebles" type="Node3D" parent="." unique_id=1965361885]
+
+[node name="Workbench" type="Node3D" parent="Muebles" unique_id=818863357]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.21135294, -0.7840004)
+script = ExtResource("7_emw8w")
+clave = "shop_family_butcher#0|Workbench|2925|-194"
+pos_original = Vector2(585, -50.000008)
+local_original = Vector3(0, 0.21135294, -0.7840004)
+modelo = "props/Workbench.gltf"
+tam3 = Vector3(1.344, 0.89825004, 0.588)
+
+[node name="Cabinet" type="Node3D" parent="Muebles" unique_id=683409209]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.5680084, 0.21135294, -0.7840004)
+script = ExtResource("7_emw8w")
+clave = "shop_family_butcher#0|Cabinet|2897|-194"
+pos_original = Vector2(556.9999, -50.000008)
+local_original = Vector3(-1.5680084, 0.21135294, -0.7840004)
+modelo = "props/Cabinet.gltf"
+tam3 = Vector3(0.784, 1.3737942, 0.56)
+
+[node name="Barrel_Apples" type="Node3D" parent="Muebles" unique_id=1138112200]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.2319946, 0.21135294, -0.7840004)
+script = ExtResource("7_emw8w")
+clave = "shop_family_butcher#0|Barrel_Apples|2947|-194"
+pos_original = Vector2(606.9999, -50.000008)
+local_original = Vector3(1.2319946, 0.21135294, -0.7840004)
+modelo = "props/Barrel_Apples.gltf"
+tam3 = Vector3(0.504, 1.0039265, 0.504)
+
+[node name="Marcas" type="Node3D" parent="." unique_id=1515958521]

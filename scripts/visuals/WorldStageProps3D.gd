@@ -393,8 +393,8 @@ func _sync_dynamic_props_3d() -> void:
 	# 5. Reja corredera de la celda de la Comisaría (cerrada en x=889.5; abierta se desliza tras la reja fija en x=867.5)
 	if is_instance_valid(_jail_gate_pivot_3d):
 		var gate_locked: bool = is_instance_valid(vm._jail_cell_gate_col) and not vm._jail_cell_gate_col.disabled
-		_jail_gate_pivot_3d.rotation_degrees.y = 0.0
-		_jail_gate_pivot_3d.position = to_3d(Vector2(889.5 if gate_locked else 867.5, 152.2), 2.0)
+		var recorrido: float = 0.0 if gate_locked else REJA_CELDA_RECORRIDO_PX
+		_jail_gate_pivot_3d.position = _reja_celda_cerrada + Vector3.LEFT * recorrido * WORLD_SCALE
 
 	# 6. Visibilidad de las alcantarillas y del club del sótano (-1): al bajar bajo el pueblo, ocultar superficie 3D para ver las galerías limpias igual que en 2D
 	var in_sewers: bool = VillageUnderworldScript.is_player_in_sewers(vm)

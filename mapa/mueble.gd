@@ -2,12 +2,14 @@
 extends Node3D
 const Mapa3D = preload("res://scripts/fisica/Mapa3D.gd")
 
-## Mueble de un edificio en el editor del mapa 3D (mapa/Mundo3D.tscn → «Edificios» → <edificio> → «Muebles»), 2026-11-10.
+## Mueble de un edificio en el editor del mapa 3D (grupo «Muebles» de la escena de su edificio, mapa/edificios/<id>.tscn;
+## en las casas de recién llegados, «Edificios» → <casa> → «Muebles» de mapa/Mundo3D.tscn), 2026-11-10.
 ## Muévelo o gíralo (eje vertical) con el ratón: el juego lo pone ahí, y lo que el juego crea donde estaba (su pared
 ## invisible, su zona de uso…) le sigue. Como está dentro de su edificio, si mueves el edificio el mueble va con él.
 
 const AssetLib = preload("res://scripts/visuals/AssetLibrary3D.gd")
 const ESCENA := "res://mapa/Mundo3D.tscn"
+const CARPETA := "Muebles" ## grupo que contiene los muebles de un edificio
 
 ## Nombre interno del mueble en el juego (no lo cambies).
 @export var clave: String = ""
@@ -19,6 +21,8 @@ const ESCENA := "res://mapa/Mundo3D.tscn"
 @export var modelo: String = ""
 @export var tam3: Vector3 = Vector3.ZERO
 @export var alto3: float = -1.0
+## Planta en la que está (0 = baja, 1 = alta).
+@export var piso: int = 0
 
 
 func _ready() -> void:
@@ -56,10 +60,15 @@ static func _leer() -> void:
 	_leido = true
 	if not ResourceLoader.exists(ESCENA):
 		return
-	var st: SceneState = (load(ESCENA) as PackedScene).get_state()
+	_leer_estado((load(ESCENA) as PackedScene).get_state()) # casas de recién llegados: sus muebles cuelgan del valle
+	for propia: PackedScene in load("res://mapa/edificio.gd").escenas().values():
+		_leer_estado(propia.get_state())
+
+
+## Apunta los muebles de una escena (el valle o la de un edificio) que el usuario movió o giró.
+static func _leer_estado(st: SceneState) -> void:
 	for i in range(st.get_node_count()):
-		var ruta := str(st.get_node_path(i))
-		if not (ruta.begins_with("./Edificios/") and "/Muebles" in ruta):
+		if not (CARPETA + "/") in str(st.get_node_path(i)):
 			continue
 		var k := ""
 		var orig := Vector2.ZERO

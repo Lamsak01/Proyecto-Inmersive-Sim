@@ -3,6 +3,9 @@ extends "res://scripts/visuals/WorldStageProps3D.gd"
 
 ## Edificios sólidos 3D, estilos de fachada/tejado, interiores, taberna (2 plantas), trattoria y solares.
 
+const Partes = preload("res://scripts/visuals/PartesEdificio3D.gd")
+const EdificioEditor = preload("res://mapa/edificio.gd")
+
 # ==============================================================================
 # 2. EDIFICIOS SÓLIDOS, INTERIORES, PUERTAS, VENTANAS, ALTILLOS (+1) Y CUTAWAY
 # ==============================================================================
@@ -171,11 +174,15 @@ func rebuild_buildings_3d() -> void:
 
 	for b in vm.building_footprints:
 		var b_id: String = str(b.get("id", ""))
+		var propia: PackedScene = null if edificios_por_codigo else EdificioEditor.escena(b_id)
+		if propia != null:
+			_poner_edificio_de_escena(b, propia)
+			continue
 		var rect: Rect2 = b["rect"]
 		var door_pos: Vector2 = b["door_pos"]
 		# Editor del mapa 3D (2026-11-10): un edificio movido se construye en su sitio original (sus muebles y detalles están
 		# escritos con coordenadas fijas) y luego se traslada entero, para que todo lo de dentro vaya con él.
-		var d_edif: Vector2 = load("res://mapa/edificio.gd").desplazamiento(b_id)
+		var d_edif: Vector2 = EdificioEditor.desplazamiento(b_id)
 		var g_edif: float = float(b.get("giro", 0.0)) # girado de 90 en 90: se construye sin girar y luego se gira entero
 		var rect_real: Rect2 = rect
 		rect.position -= d_edif
@@ -205,10 +212,14 @@ func rebuild_buildings_3d() -> void:
 			var giro_b := Basis(Vector3.UP, deg_to_rad(g_edif))
 			b_root.transform = Transform3D(giro_b, b_root.position + piv - giro_b * piv)
 
+		# Estructura fija de cada edificio (docs/PLAN_MUNDO_DESDE_EDITOR.md, regla 1): Muros, Interior, PisoAlto y Tejado
+		var muros := _grupo_3d(b_root, Partes.MUROS)
+		var interior := _grupo_3d(b_root, Partes.INTERIOR)
+
 		# 1. Zócalo de piedra enterrado (cimentación contra posibles microdesniveles) + losa de suelo 3D y zócalo exterior
-		_add_box_2d(b_root, center, sz + Vector2(6, 6), -2.5, 2.5, m_plinth)
-		_add_box_2d(b_root, center, sz + Vector2(4, 4), 0.0, 1.5, m_trim)
-		_add_box_2d(b_root, center, sz - Vector2(2, 2), 1.5, 1.0, m_floor)
+		_add_box_2d(muros, center, sz + Vector2(6, 6), -2.5, 2.5, m_plinth)
+		_add_box_2d(muros, center, sz + Vector2(4, 4), 0.0, 1.5, m_trim)
+		_add_box_2d(muros, center, sz - Vector2(2, 2), 1.5, 1.0, m_floor)
 
 		# 2. Muros perimetrales 3D con hueco de puerta y dintel superior
 		var wall_t: float = 6.5
@@ -221,32 +232,32 @@ func rebuild_buildings_3d() -> void:
 		# Muro izquierdo y derecho + pilares de esquina (en el molino viejo abandonado, el muro oeste tiene el hueco enrejado del sótano al canal de la rueda y el este/norte tienen boquetes)
 		if b_id == "building_abandoned_mill":
 			# Muro oeste con vano inferior para la reja del sótano que da al canal de la rueda (y = -1072..-1050)
-			_add_box_2d(b_root, Vector2(rect.position.x, rect.position.y + 17.0), Vector2(wall_t, 34.0), 2.0, wall_h, m_wall)
-			_add_box_2d(b_root, Vector2(rect.position.x, rect.end.y - 18.0), Vector2(wall_t, 36.0), 2.0, wall_h, m_wall)
-			_add_box_2d(b_root, Vector2(rect.position.x, center.y - 1.0), Vector2(wall_t, 24.0), 12.8, wall_h - 10.8, m_wall)
+			_add_box_2d(muros, Vector2(rect.position.x, rect.position.y + 17.0), Vector2(wall_t, 34.0), 2.0, wall_h, m_wall)
+			_add_box_2d(muros, Vector2(rect.position.x, rect.end.y - 18.0), Vector2(wall_t, 36.0), 2.0, wall_h, m_wall)
+			_add_box_2d(muros, Vector2(rect.position.x, center.y - 1.0), Vector2(wall_t, 24.0), 12.8, wall_h - 10.8, m_wall)
 			# Muro este con boquete de piedras derrumbadas en la mitad norte
-			_add_box_2d(b_root, Vector2(rect.end.x, rect.position.y + 14.0), Vector2(wall_t, 28.0), 2.0, wall_h, m_wall)
-			_add_box_2d(b_root, Vector2(rect.end.x, rect.end.y - 22.0), Vector2(wall_t, 44.0), 2.0, wall_h, m_wall)
-			_add_box_2d(b_root, Vector2(rect.end.x, rect.position.y + 38.0), Vector2(wall_t, 20.0), 2.0, 9.5, m_wall)
+			_add_box_2d(muros, Vector2(rect.end.x, rect.position.y + 14.0), Vector2(wall_t, 28.0), 2.0, wall_h, m_wall)
+			_add_box_2d(muros, Vector2(rect.end.x, rect.end.y - 22.0), Vector2(wall_t, 44.0), 2.0, wall_h, m_wall)
+			_add_box_2d(muros, Vector2(rect.end.x, rect.position.y + 38.0), Vector2(wall_t, 20.0), 2.0, 9.5, m_wall)
 		else:
-			_add_box_2d(b_root, Vector2(rect.position.x, center.y), Vector2(wall_t, sz.y), 2.0, wall_h, m_wall)
-			_add_box_2d(b_root, Vector2(rect.end.x, center.y), Vector2(wall_t, sz.y), 2.0, wall_h, m_wall)
+			_add_box_2d(muros, Vector2(rect.position.x, center.y), Vector2(wall_t, sz.y), 2.0, wall_h, m_wall)
+			_add_box_2d(muros, Vector2(rect.end.x, center.y), Vector2(wall_t, sz.y), 2.0, wall_h, m_wall)
 		for c_pt in [rect.position, Vector2(rect.end.x, rect.position.y), rect.end, Vector2(rect.position.x, rect.end.y)]:
-			_add_box_2d(b_root, c_pt, Vector2(wall_t + 2.0, wall_t + 2.0), 2.0, wall_h + 1.0, m_trim)
+			_add_box_2d(muros, c_pt, Vector2(wall_t + 2.0, wall_t + 2.0), 2.0, wall_h + 1.0, m_trim)
 
 		# Muro cerrado (opuesto a la puerta): si es el muro sur (más cercano a la cámara), se rebaja al abrir el tejado (Cutaway)
 		var closed_y: float = (center.y - half.y) if door_south else (center.y + half.y)
 		if b_id == "building_abandoned_mill":
 			# Muro norte del molino viejo con gran boquete irregular en el centro-oeste (entre el pajar y el hogar)
-			_add_box_2d(b_root, Vector2(rect.position.x + 25.0, closed_y), Vector2(46.0, wall_t), 2.0, wall_h, m_wall)
-			_add_box_2d(b_root, Vector2(rect.end.x - 27.0, closed_y), Vector2(50.0, wall_t), 2.0, wall_h, m_wall)
-			_add_box_2d(b_root, Vector2(center.x - 2.0, closed_y), Vector2(28.0, wall_t), 2.0, 7.2, m_wall)
-			_add_box_2d(b_root, Vector2(center.x - 11.0, closed_y), Vector2(8.0, wall_t), 9.2, 6.5, m_wall)
-			_add_box_2d(b_root, Vector2(center.x + 8.0, closed_y), Vector2(7.0, wall_t), 9.2, 5.0, m_wall)
+			_add_box_2d(muros, Vector2(rect.position.x + 25.0, closed_y), Vector2(46.0, wall_t), 2.0, wall_h, m_wall)
+			_add_box_2d(muros, Vector2(rect.end.x - 27.0, closed_y), Vector2(50.0, wall_t), 2.0, wall_h, m_wall)
+			_add_box_2d(muros, Vector2(center.x - 2.0, closed_y), Vector2(28.0, wall_t), 2.0, 7.2, m_wall)
+			_add_box_2d(muros, Vector2(center.x - 11.0, closed_y), Vector2(8.0, wall_t), 9.2, 6.5, m_wall)
+			_add_box_2d(muros, Vector2(center.x + 8.0, closed_y), Vector2(7.0, wall_t), 9.2, 5.0, m_wall)
 		elif door_south:
-			_add_box_2d(b_root, Vector2(center.x, closed_y), Vector2(maxf(8.0, sz.x - wall_t), wall_t), 2.0, wall_h, m_wall)
+			_add_box_2d(muros, Vector2(center.x, closed_y), Vector2(maxf(8.0, sz.x - wall_t), wall_t), 2.0, wall_h, m_wall)
 		else:
-			_add_box_2d(b_root, Vector2(center.x, closed_y), Vector2(maxf(8.0, sz.x - wall_t), wall_t), 2.0, 9.0, m_wall)
+			_add_box_2d(muros, Vector2(center.x, closed_y), Vector2(maxf(8.0, sz.x - wall_t), wall_t), 2.0, 9.0, m_wall)
 
 		# Muro de la fachada con hueco de puerta + dintel sobre la puerta
 		var door_y: float = door_pos.y
@@ -254,31 +265,32 @@ func rebuild_buildings_3d() -> void:
 		var door_right_x: float = door_pos.x + door_w * 0.5
 		var left_w: float = maxf(6.0, door_left_x - (rect.position.x + wall_t * 0.5))
 		var right_w: float = maxf(6.0, (rect.end.x - wall_t * 0.5) - door_right_x)
-		_add_box_2d(b_root, Vector2(rect.position.x + wall_t * 0.5 + left_w * 0.5, door_y), Vector2(left_w, wall_t), 2.0, wall_h, m_wall)
-		_add_box_2d(b_root, Vector2(rect.end.x - wall_t * 0.5 - right_w * 0.5, door_y), Vector2(right_w, wall_t), 2.0, wall_h, m_wall)
+		_add_box_2d(muros, Vector2(rect.position.x + wall_t * 0.5 + left_w * 0.5, door_y), Vector2(left_w, wall_t), 2.0, wall_h, m_wall)
+		_add_box_2d(muros, Vector2(rect.end.x - wall_t * 0.5 - right_w * 0.5, door_y), Vector2(right_w, wall_t), 2.0, wall_h, m_wall)
 		# Jambas y dintel de la puerta
-		_add_box_2d(b_root, Vector2(door_left_x, door_y), Vector2(3.5, wall_t + 2.0), 2.0, wall_h, m_trim)
-		_add_box_2d(b_root, Vector2(door_right_x, door_y), Vector2(3.5, wall_t + 2.0), 2.0, wall_h, m_trim)
+		_add_box_2d(muros, Vector2(door_left_x, door_y), Vector2(3.5, wall_t + 2.0), 2.0, wall_h, m_trim)
+		_add_box_2d(muros, Vector2(door_right_x, door_y), Vector2(3.5, wall_t + 2.0), 2.0, wall_h, m_trim)
 		var lintel_mat: Material = m_wall if b_id == "building_restaurant" else m_trim
 		if b_id == "building_tavern":
-			_add_box_2d(b_root, Vector2(door_pos.x, door_y), Vector2(door_w + 4.0, wall_t + 1.5), 25.0, 3.5, m_trim)
-			_add_box_2d(b_root, Vector2(door_pos.x, door_y), Vector2(door_w + 2.0, wall_t), 28.5, wall_h - 26.5, m_wall)
+			_add_box_2d(muros, Vector2(door_pos.x, door_y), Vector2(door_w + 4.0, wall_t + 1.5), 25.0, 3.5, m_trim)
+			_add_box_2d(muros, Vector2(door_pos.x, door_y), Vector2(door_w + 2.0, wall_t), 28.5, wall_h - 26.5, m_wall)
 			# Cinta de vigas de entreplanta exterior (h = 34.0) y ventanas del piso superior en la fachada de 2 plantas
-			_add_box_2d(b_root, Vector2(center.x, rect.position.y), Vector2(sz.x + 2.5, wall_t + 1.8), 33.2, 2.4, m_trim)
-			_add_box_2d(b_root, Vector2(center.x, rect.end.y), Vector2(sz.x + 2.5, wall_t + 1.8), 33.2, 2.4, m_trim)
-			_add_box_2d(b_root, Vector2(rect.position.x, center.y), Vector2(wall_t + 1.8, sz.y + 2.5), 33.2, 2.4, m_trim)
-			_add_box_2d(b_root, Vector2(rect.end.x, center.y), Vector2(wall_t + 1.8, sz.y + 2.5), 33.2, 2.4, m_trim)
+			_add_box_2d(muros, Vector2(center.x, rect.position.y), Vector2(sz.x + 2.5, wall_t + 1.8), 33.2, 2.4, m_trim)
+			_add_box_2d(muros, Vector2(center.x, rect.end.y), Vector2(sz.x + 2.5, wall_t + 1.8), 33.2, 2.4, m_trim)
+			_add_box_2d(muros, Vector2(rect.position.x, center.y), Vector2(wall_t + 1.8, sz.y + 2.5), 33.2, 2.4, m_trim)
+			_add_box_2d(muros, Vector2(rect.end.x, center.y), Vector2(wall_t + 1.8, sz.y + 2.5), 33.2, 2.4, m_trim)
 		else:
-			_add_box_2d(b_root, Vector2(door_pos.x, door_y), Vector2(door_w + 4.0, wall_t + 1.5), 2.0 + wall_h * 0.72, wall_h * 0.28, lintel_mat)
+			_add_box_2d(muros, Vector2(door_pos.x, door_y), Vector2(door_w + 4.0, wall_t + 1.5), 2.0 + wall_h * 0.72, wall_h * 0.28, lintel_mat)
 
 		# 3. Puerta abatible 3D sincronizada con `vm.building_doors` (diseño propio por edificio acorde a la fachada)
 		for d_entry in vm.building_doors:
 			if str(d_entry.get("building_id", "")) == b_id:
 				var hinge_pos := Vector2(door_left_x + 2.0, door_y)
 				var pivot := Node3D.new()
-				pivot.name = "DoorPivot_" + b_id
+				pivot.name = "Puerta"
+				pivot.set_meta(Partes.ROL, Partes.PUERTA)
 				pivot.position = to_3d(hinge_pos, 2.0)
-				b_root.add_child(pivot)
+				muros.add_child(pivot)
 				var leaf_w: float = maxf(18.0, door_w - 4.0)
 				var leaf_h: float = 23.0 if b_id == "building_tavern" else (wall_h * 0.70)
 				if not _is_headless:
@@ -289,8 +301,8 @@ func rebuild_buildings_3d() -> void:
 				lock_badge.mesh = lb_bm
 				lock_badge.material_override = m_iron
 				lock_badge.position = Vector3((leaf_w - 4.0) * WORLD_SCALE, Mapa3D.alto_a_3d(leaf_h * 0.48), 0.0)
+				lock_badge.set_meta(Partes.ROL, Partes.CANDADO)
 				pivot.add_child(lock_badge)
-				_door_nodes_3d.append({"entry": d_entry, "pivot": pivot, "lock_badge": lock_badge, "door_south": door_south})
 				break
 
 		# 4. Ventana 3D con postigos sincronizada con `vm.building_windows`
@@ -312,11 +324,12 @@ func rebuild_buildings_3d() -> void:
 						win_tex = "town_textures/window_tall_divided.png"
 					pane = _make_texture_panel(13.0, 12.0, wall_t + 2.4, _panel_mat("win_" + b_id, win_tex, false))
 					pane.position = to_3d(w_pos, 10.0 + 6.0)
-					b_root.add_child(pane)
+					muros.add_child(pane)
 				else:
-					pane = _add_box_2d(b_root, w_pos, Vector2(11.0, wall_t + 2.4), 12.0, 8.0, m_glass)
-				var shutter := _add_box_2d(b_root, w_pos, Vector2(12.0, wall_t + 2.8), 12.0, 8.2, m_dark_wood)
-				_window_nodes_3d.append({"entry": w_entry, "pane": pane, "shutter": shutter})
+					pane = _add_box_2d(muros, w_pos, Vector2(11.0, wall_t + 2.4), 12.0, 8.0, m_glass)
+				var shutter := _add_box_2d(muros, w_pos, Vector2(12.0, wall_t + 2.8), 12.0, 8.2, m_dark_wood)
+				pane.set_meta(Partes.ROL, Partes.CRISTAL)
+				shutter.set_meta(Partes.ROL, Partes.POSTIGO)
 				break
 
 		# §3b.3: Barrotes de hierro y planchas remachadas en ventanas bajas de comisaría y ayuntamiento
@@ -326,28 +339,26 @@ func rebuild_buildings_3d() -> void:
 				var wx_low: float = center.x + side_s * (half.x * 0.58)
 				var wy_low: float = door_y
 				# Plancha superior e inferior remachada + 4 barrotes verticales en fachada
-				_add_box_2d(b_root, Vector2(wx_low, wy_low), Vector2(16.0, wall_t + 2.8), 8.5, 2.2, m_rivet)
-				_add_box_2d(b_root, Vector2(wx_low, wy_low), Vector2(16.0, wall_t + 2.8), 18.2, 2.2, m_rivet)
-				_add_box_2d(b_root, Vector2(wx_low, wy_low), Vector2(14.5, wall_t + 1.8), 10.5, 8.0, _mat("epoch_dark_win", Color(0.08, 0.10, 0.12), 0.7, 0.2))
+				_add_box_2d(muros, Vector2(wx_low, wy_low), Vector2(16.0, wall_t + 2.8), 8.5, 2.2, m_rivet)
+				_add_box_2d(muros, Vector2(wx_low, wy_low), Vector2(16.0, wall_t + 2.8), 18.2, 2.2, m_rivet)
+				_add_box_2d(muros, Vector2(wx_low, wy_low), Vector2(14.5, wall_t + 1.8), 10.5, 8.0, _mat("epoch_dark_win", Color(0.08, 0.10, 0.12), 0.7, 0.2))
 				for bx_i in [-5.4, -1.8, 1.8, 5.4]:
-					_add_cyl_2d(b_root, Vector2(wx_low + bx_i, wy_low), 0.55, 8.5, 11.8, m_iron, 0.55, 6)
+					_add_cyl_2d(muros, Vector2(wx_low + bx_i, wy_low), 0.55, 8.5, 11.8, m_iron, 0.55, 6)
 				# Ventana baja blindada con plancha remachada en muros laterales
 				var sx_wall: float = rect.position.x if side_s < 0.0 else rect.end.x
-				_add_box_2d(b_root, Vector2(sx_wall, center.y), Vector2(wall_t + 2.6, 16.0), 9.0, 10.0, m_rivet)
+				_add_box_2d(muros, Vector2(sx_wall, center.y), Vector2(wall_t + 2.6, 16.0), 9.0, 10.0, m_rivet)
 				for ry_i in [-5.5, 0.0, 5.5]:
-					_add_cyl_2d(b_root, Vector2(sx_wall, center.y + ry_i), 0.55, 8.5, 11.0, m_iron, 0.55, 6)
+					_add_cyl_2d(muros, Vector2(sx_wall, center.y + ry_i), 0.55, 8.5, 11.0, m_iron, 0.55, 6)
 
 		# 5. Mobiliario interior 3D específico de cada edificio
 		_current_building_id = b_id
 		_current_building_floor = 0
 		_muebles_activos = true
-		_populate_building_interior_3d(b_root, b_id, rect, door_south, wall_h, m_wall, m_trim, m_wood, m_dark_wood, m_iron, m_gold)
+		_populate_building_interior_3d(interior, b_id, rect, door_south, wall_h, m_wall, m_trim, m_wood, m_dark_wood, m_iron, m_gold)
 
 		# 6. Altillo / Primer Piso (+1) 3D (exclusivo de la taberna de 2 plantas)
-		var loft_root := Node3D.new()
-		loft_root.name = "Loft3D_" + b_id
+		var loft_root := _grupo_3d(b_root, Partes.PISO_ALTO)
 		loft_root.visible = false
-		b_root.add_child(loft_root)
 		_current_building_floor = 1
 		if b_id == "building_tavern":
 			mover_posiciones = true
@@ -359,9 +370,7 @@ func rebuild_buildings_3d() -> void:
 
 		# 7. Tejado a dos aguas con alero (se retira en modo Cutaway). Cada edificio varía según su id:
 		#    orientación de la cumbrera, altura, ala más baja en los edificios anchos, porche sobre la puerta y chimenea.
-		var roof_cap := Node3D.new()
-		roof_cap.name = "RoofCap_" + b_id
-		b_root.add_child(roof_cap)
+		var roof_cap := _grupo_3d(b_root, Partes.TEJADO)
 		# B7: Forjado/techo de tablas justo sobre la coronación de los muros (2.0 + wall_h + 0.08) para evitar Z-fighting (parpadeo) con paredes y tabiques
 		if b_id == "building_abandoned_mill":
 			# Techo del molino viejo con boquete de tablas hundidas en el centro-norte dejando ver los cabrios rotos y el exterior
@@ -400,15 +409,15 @@ func rebuild_buildings_3d() -> void:
 			_add_box_2d(roof_cap, Vector2(center.x, closed_y), Vector2(maxf(8.0, sz.x - wall_t), wall_t), 11.05, wall_h - 9.05, m_wall)
 			_add_box_2d(roof_cap, Vector2(center.x, rect.end.y), Vector2(sz.x + 2.0, 3.0), 2.0 + wall_h + 0.08, 2.5, m_trim)
 		else:
-			_add_box_2d(b_root, Vector2(center.x, rect.end.y), Vector2(sz.x + 2.0, 3.0), 2.0 + wall_h + 0.08, 2.5, m_trim)
-		_add_box_2d(b_root, Vector2(center.x, rect.position.y), Vector2(sz.x + 2.0, 3.0), 2.0 + wall_h + 0.08, 2.5, m_trim)
+			_add_box_2d(muros, Vector2(center.x, rect.end.y), Vector2(sz.x + 2.0, 3.0), 2.0 + wall_h + 0.08, 2.5, m_trim)
+		_add_box_2d(muros, Vector2(center.x, rect.position.y), Vector2(sz.x + 2.0, 3.0), 2.0 + wall_h + 0.08, 2.5, m_trim)
 		# Porche sobre la puerta en tiendas y casas (tejadillo inclinado sobre dos postes)
 		if (hv % 3) != 0 and not (b_id in ["building_church", "building_police", "building_hospital", "building_abandoned_mill"]):
 			var porch_dir: float = 1.0 if door_south else -1.0
 			var porch_c := Vector2(door_pos.x, door_y + porch_dir * 9.0)
-			_add_box_2d(b_root, porch_c, Vector2(door_w + 16.0, 18.0), wall_h * 0.70, 2.5, m_roof)
+			_add_box_2d(muros, porch_c, Vector2(door_w + 16.0, 18.0), wall_h * 0.70, 2.5, m_roof)
 			for px in [-1.0, 1.0]:
-				_add_box_2d(b_root, Vector2(door_pos.x + px * (door_w * 0.5 + 6.0), door_y + porch_dir * 16.0), Vector2(2.5, 2.5), 2.0, wall_h * 0.70 - 2.0, m_trim)
+				_add_box_2d(muros, Vector2(door_pos.x + px * (door_w * 0.5 + 6.0), door_y + porch_dir * 16.0), Vector2(2.5, 2.5), 2.0, wall_h * 0.70 - 2.0, m_trim)
 		# Chimenea sobre la cumbrera
 		if b_id != "building_abandoned_mill":
 			var ch_off := Vector2(half.x * (0.30 if (hv % 2) == 0 else -0.30), -half.y * 0.15)
@@ -419,15 +428,9 @@ func rebuild_buildings_3d() -> void:
 			_add_box_2d(roof_cap, tower_c, Vector2(26.0, 22.0), roof_base_h, rh + 22.0, m_wall)
 			_add_pyramid_2d(roof_cap, tower_c, Vector2(32.0, 28.0), roof_base_h + rh + 22.0, 34.0, m_roof)
 
-		_building_records_3d.append({
-			"id": b_id,
-			"rect": rect_real, # dónde está de verdad (para abrir el tejado al entrar)
-			"root": b_root,
-			"roof_cap": roof_cap,
-			"loft_root": loft_root,
-		})
-
-	_merge_building_meshes()
+		_registrar_edificio_3d(b_root, b_id, rect_real, door_south)
+		if juntar_edificios:
+			_juntar_edificio(b_root)
 
 	# Cofres domésticos 3D sincronizados con `vm.house_chests`
 	for ch in vm.house_chests:
@@ -446,7 +449,9 @@ func rebuild_buildings_3d() -> void:
 					parent_node = rec["loft_root"]
 				break
 		var ch_root := Node3D.new()
+		ch_root.set_meta(Partes.ROL, Partes.COFRE)
 		parent_node.add_child(ch_root)
+		ch_root.global_transform = Transform3D.IDENTITY # el cofre viene en coordenadas del mundo, cuelgue de quien cuelgue
 		_add_model_2d(ch_root, "props/Chest_Wood.gltf", c_pos, base_h, Vector2(12.0, 8.5), 7.5)
 		var lid := _add_box_2d(ch_root, c_pos, Vector2(11.4, 7.8), base_h + 5.5, 1.8, m_gold)
 		_chest_nodes_3d.append({"entry": ch, "lid": lid})
@@ -454,37 +459,104 @@ func rebuild_buildings_3d() -> void:
 	_current_building_floor = 0
 	check_furniture_overlaps(true)
 
-## Rendimiento: junta en una sola malla por material las piezas quietas de cada edificio (muros, suelos, muebles).
-## Quedan aparte y se siguen moviendo: puertas, ventanas y postigos, cuerpos de la morgue, reja del calabozo, el tejado
-## (que se abre) y el altillo (que aparece), estos dos juntados cada uno por su lado.
-func _merge_building_meshes() -> void:
+## Edificio con escena propia (mapa/edificios/<id>.tscn): se cuelga tal cual, en el sitio y con el giro de su planta.
+func _poner_edificio_de_escena(b: Dictionary, propia: PackedScene) -> void:
+	var b_id: String = str(b["id"])
+	var rect: Rect2 = b["rect"]
+	var raiz: Node3D = propia.instantiate()
+	raiz.name = "B3D_" + b_id
+	buildings_root_3d.add_child(raiz)
+	raiz.transform = Transform3D(Basis(Vector3.UP, deg_to_rad(float(b.get("giro", 0.0)))), to_3d(rect.get_center()))
+	_poner_muebles_de_escena(raiz, b_id)
+	_registrar_edificio_3d(raiz, b_id, rect, bool(b.get("door_south_orig", b["door_south"])))
+
+
+## Dibuja el modelo de cada pieza del grupo «Muebles» (mapa/mueble.gd) donde la dejó el usuario y los junta en una
+## malla. Los de la planta alta pasan al grupo «PisoAlto», para esconderse con él.
+func _poner_muebles_de_escena(raiz: Node3D, b_id: String) -> void:
+	var muebles: Node3D = raiz.get_node_or_null(Partes.MUEBLES)
+	if muebles == null:
+		return
+	var altos: Node3D = _grupo_3d(raiz.get_node(Partes.PISO_ALTO) as Node3D, Partes.MUEBLES)
+	_current_building_id = b_id
+	for pieza: Node in muebles.get_children():
+		var mueble := pieza as Node3D
+		var modelo: String = String(mueble.get("modelo"))
+		var tam3: Vector3 = mueble.get("tam3")
+		_current_building_floor = int(mueble.get("piso"))
+		if _current_building_floor > 0:
+			mueble.reparent(altos, false)
+		_register_furniture_rect(modelo.get_file().get_basename(), Mapa3D.a_mapa(mueble.global_position), Mapa3D.a_mapa(tam3), mueble.global_rotation_degrees.y)
+		if _is_headless or not AssetLib.has_curated_assets():
+			continue
+		var dibujo: Node3D = AssetLib.instantiate_model(modelo, tam3, float(mueble.get("alto3")), true, true)
+		if dibujo != null:
+			mueble.add_child(dibujo)
+	_current_building_id = ""
+	_current_building_floor = 0
+	if not _is_headless:
+		_merge_meshes_under(muebles, {})
+		_merge_meshes_under(altos, {})
+
+
+## Apunta un edificio ya montado (por código o desde su escena) y sus partes móviles, que reconoce por su etiqueta.
+func _registrar_edificio_3d(raiz: Node3D, b_id: String, rect_real: Rect2, door_south: bool) -> void:
+	_building_records_3d.append({
+		"id": b_id,
+		"rect": rect_real, # dónde está de verdad (para abrir el tejado al entrar)
+		"root": raiz,
+		"roof_cap": raiz.get_node_or_null(Partes.TEJADO),
+		"loft_root": raiz.get_node_or_null(Partes.PISO_ALTO),
+	})
+	for parte: Node in Partes.con_rol(raiz):
+		match String(parte.get_meta(Partes.ROL)):
+			Partes.PUERTA:
+				var entrada: Dictionary = _entrada_del_edificio(vm.building_doors, b_id)
+				if not entrada.is_empty():
+					_door_nodes_3d.append({"entry": entrada, "pivot": parte, "lock_badge": Partes.hijo_con_rol(parte, Partes.CANDADO), "door_south": door_south})
+			Partes.POSTIGO:
+				var ventana: Dictionary = _entrada_del_edificio(vm.building_windows, b_id)
+				if not ventana.is_empty():
+					_window_nodes_3d.append({"entry": ventana, "shutter": parte})
+			Partes.LUZ_NOCHE:
+				_restaurant_night_nodes.append(parte)
+			Partes.CUERPO_MORGUE:
+				_morgue_body_nodes_3d.append(parte as Node3D)
+			Partes.REJA_CELDA:
+				_jail_gate_pivot_3d = parte as Node3D
+				_reja_celda_cerrada = _jail_gate_pivot_3d.position
+			Partes.BOMBILLA_CUADRO:
+				_grid_panel_bulb_3d = parte as MeshInstance3D
+			Partes.PUERTA_CUARTO:
+				if parte.has_meta(Partes.HUECO): # solo en la escena guardada: el hueco va en metros respecto al edificio
+					var hueco: Vector3 = raiz.global_transform * (parte.get_meta(Partes.HUECO) as Vector3)
+					_puertas_interiores.anadir(parte as Node3D, Mapa3D.a_mapa(hueco), int(parte.get_meta(Partes.NIVEL, 0)))
+
+
+## La puerta o la ventana (de las listas del pueblo) que pertenece a ese edificio; {} si no tiene.
+func _entrada_del_edificio(lista: Array, b_id: String) -> Dictionary:
+	for entrada: Dictionary in lista:
+		if str(entrada.get("building_id", "")) == b_id:
+			return entrada
+	return {}
+
+
+## Rendimiento: junta en una sola malla por material las piezas quietas de cada grupo del edificio (muros, interior,
+## piso alto y tejado, cada uno por su lado porque se esconden por separado). Lo etiquetado se sigue moviendo aparte.
+func _juntar_edificio(raiz: Node3D) -> void:
 	if _is_headless:
 		return
-	var excl: Dictionary = {}
-	for d in _door_nodes_3d:
-		for k in ["pivot", "lock_badge"]:
-			if d.get(k) is Node:
-				excl[d[k]] = true
-	for w in _window_nodes_3d:
-		for k in ["pane", "shutter"]:
-			if w.get(k) is Node:
-				excl[w[k]] = true
-	for mb in _morgue_body_nodes_3d:
-		excl[mb] = true
-	for rn in _restaurant_night_nodes: # R1: bombillas de la terraza (se encienden y apagan)
-		excl[rn] = true
-	if _jail_gate_pivot_3d != null:
-		excl[_jail_gate_pivot_3d] = true
-	for pv in _puertas_interiores.pivotes():
-		excl[pv] = true
-	for rec in _building_records_3d:
-		var sub: Array = [rec["roof_cap"], rec["loft_root"]]
-		var ex_b: Dictionary = excl.duplicate()
-		for sn in sub:
-			ex_b[sn] = true
-		_merge_meshes_under(rec["root"], ex_b)
-		for sn in sub:
-			_merge_meshes_under(sn, excl)
+	for grupo: Node in raiz.get_children():
+		if grupo is Node3D:
+			_merge_meshes_under(grupo as Node3D, {})
+
+
+## Nodo vacío con nombre fijo, hijo de `padre` (los grupos de un edificio).
+func _grupo_3d(padre: Node3D, nombre: String) -> Node3D:
+	var grupo := Node3D.new()
+	grupo.name = nombre
+	padre.add_child(grupo)
+	return grupo
 
 func _merge_meshes_under(root: Node3D, excl: Dictionary) -> void:
 	var found: Array = []
@@ -533,7 +605,7 @@ func _merge_mesh_list(root: Node3D, found: Array) -> void:
 
 func _collect_merge_meshes(n: Node, root: Node, excl: Dictionary, out: Array) -> void:
 	for c in n.get_children():
-		if excl.has(c):
+		if excl.has(c) or c.has_meta(Partes.ROL): # lo etiquetado (puertas, postigos, luces de noche…) se mueve: no se junta
 			continue
 		if c is Node3D and not (c as Node3D).visible:
 			continue
@@ -652,9 +724,7 @@ func _populate_building_interior_3d(b_root: Node3D, b_id: String, rect: Rect2, d
 			_add_cyl_2d(b_root, gp_pos + Vector2(4.4, 5.2), 2.2, 25.0, 11.5, m_copper, 2.2, 8) # Bobina der
 			for sx in [-2.6, 0.0, 2.6]:
 				_add_box_2d(b_root, gp_pos + Vector2(sx, 6.2), Vector2(1.5, 3.5), 27.0, 6.5, m_gold) # 3 palancas seccionadoras
-			if is_instance_valid(_grid_panel_bulb_3d):
-				_grid_panel_bulb_3d.queue_free()
-			_grid_panel_bulb_3d = _add_cyl_2d(buildings_root_3d, gp_pos + Vector2(0, 4.5), 2.6, 38.0, 4.5, m_screen, 2.0, 8)
+			_add_cyl_2d(b_root, gp_pos + Vector2(0, 4.5), 2.6, 38.0, 4.5, m_screen, 2.0, 8).set_meta(Partes.ROL, Partes.BOMBILLA_CUADRO)
 		"building_mansion", "building_manor":
 			# Mansión señorial (f1) o Casa solariega (f2): estudio con escritorio, salón y alcoba
 			var nob_lot: String = "f1" if b_id == "building_mansion" else "f2"
@@ -753,7 +823,7 @@ func _restaurant_light(parent: Node3D, pos_2d: Vector2, h_px: float, col: Color,
 	lt.shadow_enabled = false
 	parent.add_child(lt)
 	if night_only:
-		_restaurant_night_nodes.append(lt)
+		lt.set_meta(Partes.ROL, Partes.LUZ_NOCHE)
 
 ## Mesa con mantel de cuadros, vela en botella y dos sillas.
 func _restaurant_table_3d(parent: Node3D, p: Vector2, m_wood: Material, round_top: bool) -> void:
@@ -950,7 +1020,7 @@ func _build_restaurant_3d(b_root: Node3D, wall_h: float, m_wall: Material, m_tri
 				var tk: float = float(k) / 6.0
 				var sag: float = 4.0 * sin(tk * PI)
 				var bulb := _add_cyl_2d(b_root, a2.lerp(b2, tk), 0.9, 29.0 - sag, 1.6, m_bulb, 0.9, 6)
-				_restaurant_night_nodes.append(bulb)
+				bulb.set_meta(Partes.ROL, Partes.LUZ_NOCHE)
 	_restaurant_light(b_root, R.BASE + Vector2(60, 216), 26.0, Color(1.0, 0.80, 0.46), 0.9, 2.4, true)
 	_restaurant_light(b_root, R.BASE + Vector2(210, 216), 26.0, Color(1.0, 0.80, 0.46), 0.9, 2.4, true)
 	# Toldo verde sobre la puerta y faroles
@@ -986,7 +1056,9 @@ func _puerta_de_cuarto_3d(parent: Node3D, x_bisagra: float, y: float, ancho: flo
 	var alto: float = 22.0
 	_add_door_part(pivote, ancho * 0.5, alto * 0.5, 0.0, ancho, alto, 2.0, m_hoja)
 	_add_door_part(pivote, ancho - 3.0, alto * 0.45, 0.0, 1.6, 1.6, 3.4, m_tirador)
-	_puertas_interiores.anadir(pivote, Vector2(x_bisagra + ancho * 0.5, y), 1)
+	pivote.set_meta(Partes.ROL, Partes.PUERTA_CUARTO)
+	pivote.set_meta(Partes.HUECO_PX, Vector2(x_bisagra + ancho * 0.5, y))
+	pivote.set_meta(Partes.NIVEL, 1)
 
 ## Paso 3: Planta Baja (Planta 0) de la Gran Taberna «El Jabalí Dorado» (Salón-Comedor, Barra-Cocina, Casino con Póker y Mesa de Billar real 3D, Escalera al Piso +1 y Bodega con Trampilla del Club).
 func _build_tavern_floor_0_3d(b_root: Node3D, _wall_h: float, m_wall: Material, m_trim: Material, m_wood: Material, m_dark_wood: Material, m_iron: Material, m_gold: Material) -> void:
@@ -1502,7 +1574,8 @@ func _build_police_station_3d(b_root: Node3D, _rect: Rect2, wall_h: float, m_wal
 
 	# 2b. Puerta corredera de reja de hierro oscuro con cerradura y llave en Vector2(902, 152) (pivote en 889.5, 152; ancho 24.5)
 	_jail_gate_pivot_3d = Node3D.new()
-	_jail_gate_pivot_3d.name = "JailGatePivot3D"
+	_jail_gate_pivot_3d.name = "RejaCelda"
+	_jail_gate_pivot_3d.set_meta(Partes.ROL, Partes.REJA_CELDA)
 	_jail_gate_pivot_3d.position = to_3d(Vector2(889.5, 152.0), 2.0)
 	b_root.add_child(_jail_gate_pivot_3d)
 	var gate_h: float = ih * 0.78
@@ -1719,7 +1792,7 @@ func _build_hospital_and_morgue_3d(b_root: Node3D, _rect: Rect2, wall_h: float, 
 		_add_box_2d(body_n, mp + Vector2(0.0, 0.8), Vector2(9.2, 16.8), 8.5, 3.6, m_shroud)
 		_add_box_2d(body_n, mp + Vector2(0.0, -6.2), Vector2(5.2, 5.0), 8.5, 4.4, m_shroud)
 		_add_box_2d(body_n, mp + Vector2(0.0, 7.8), Vector2(6.6, 2.4), 8.5, 4.2, m_shroud)
-		_morgue_body_nodes_3d.append(body_n)
+		body_n.set_meta(Partes.ROL, Partes.CUERPO_MORGUE)
 
 	# 6. Equipamiento forense perimetral de la Morgue (sin invadir los pasillos de paso x=723.5 y x=766.5)
 	# Cámaras frigoríficas mortuorias de acero empotradas en el muro oeste (x = 681, y = 174)

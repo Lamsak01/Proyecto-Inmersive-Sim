@@ -56,6 +56,10 @@ var decorado_grabado: Array = []
 ## Muebles de los edificios en mapa/Mundo3D.tscn → «Edificios» → <edificio> → «Muebles» (mapa/mueble.gd), 2026-11-10.
 ## grabar_muebles (tools/hornear_edificios.gd): se anotan y no se dibujan, para que las fotos de los edificios salgan vacías.
 static var grabar_muebles: bool = false
+## Conversión de edificios a escenas (tools/convertir_edificios.gd): se construyen todos por código, aunque ya tengan
+## escena, y sin juntar sus mallas (la herramienta las junta después de pasarlas a coordenadas del edificio).
+static var edificios_por_codigo: bool = false
+static var juntar_edificios: bool = true
 var muebles_grabados: Array = []
 var _muebles_activos: bool = false # solo mientras se amuebla un edificio (no los cofres, que ya van por anclas)
 var _muebles_claves: Dictionary = {}
@@ -89,6 +93,8 @@ var _current_building_id: String = ""
 var _current_building_floor: int = 0
 var _morgue_body_nodes_3d: Array[Node3D] = []
 var _jail_gate_pivot_3d: Node3D = null
+var _reja_celda_cerrada: Vector3 = Vector3.ZERO ## sitio de la reja cerrada, respecto a su edificio
+const REJA_CELDA_RECORRIDO_PX: float = 22.0     ## lo que se desliza hacia el oeste al abrirse
 var _puertas_interiores = preload("res://scripts/visuals/PuertasInteriores3D.gd").new() # hojas de los cuartos de la posada
 var _streetlight_nodes_3d: Array[Dictionary] = []
 var _floodlight_nodes_3d: Array[Dictionary] = []
@@ -901,7 +907,9 @@ func _add_model_2d(parent: Node3D, rel_path: String, center_2d: Vector2, bottom_
 				if grabar_muebles:
 					muebles_grabados.append({"id": _current_building_id, "piso": _current_building_floor, "clave": clave_m, "modelo": rel_path,
 						"pos": center_2d, "p3": to_3d(center_2d, bottom_h_px), "giro": rot_y_deg, "tam3": size_3d(sz_2d, height_px)})
-					return null
+					var anotado := Node3D.new() # vacío pero no nulo: quien llama no debe dibujar su mueble de cajas de repuesto
+					parent.add_child(anotado)
+					return anotado
 				var aj: Array = load("res://mapa/mueble.gd").ajuste(clave_m)
 				if not aj.is_empty():
 					center_2d += aj[0]
