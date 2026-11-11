@@ -350,7 +350,9 @@ func rebuild_buildings_3d() -> void:
 		b_root.add_child(loft_root)
 		_current_building_floor = 1
 		if b_id == "building_tavern":
+			mover_posiciones = true
 			_build_tavern_floor_1_3d(loft_root, wall_h, m_wall, m_trim, m_wood, m_dark_wood, m_iron, m_gold)
+			mover_posiciones = false
 		_muebles_activos = false
 		_current_building_id = ""
 		_current_building_floor = 0
@@ -556,14 +558,20 @@ func _populate_building_interior_3d(b_root: Node3D, b_id: String, rect: Rect2, d
 	var m_ember := _mat("forge_ember", Color(1.0, 0.42, 0.12), 0.4, 0.0, Color(1.0, 0.38, 0.08), 2.2)
 
 	match b_id:
-		"building_restaurant":
+		"building_restaurant": # escrito en coordenadas fijas del mapa original: sigue al edificio por las anclas
+			mover_posiciones = true
 			_build_restaurant_3d(b_root, wall_h, m_wall, m_trim, m_wood, m_dark_wood, m_iron, m_gold)
+			mover_posiciones = false
 		"building_tavern":
+			mover_posiciones = true
 			_build_tavern_floor_0_3d(b_root, wall_h, m_wall, m_trim, m_wood, m_dark_wood, m_iron, m_gold)
+			mover_posiciones = false
 		"building_hospital":
 			_build_hospital_and_morgue_3d(b_root, rect, wall_h, m_wall, m_trim, m_wood, m_dark_wood, m_iron, m_gold)
 		"building_police":
+			mover_posiciones = true
 			_build_police_station_3d(b_root, rect, wall_h, m_wall, m_trim, m_wood, m_dark_wood, m_iron, m_gold)
+			mover_posiciones = false
 		"building_church":
 			_build_church_chapel_3d(b_root, rect, wall_h, m_wall, m_trim, m_wood, m_dark_wood, m_iron, m_gold)
 		"building_library":

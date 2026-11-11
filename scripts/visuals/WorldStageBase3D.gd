@@ -25,6 +25,9 @@ const AnclasScript = preload("res://mapa/anclas.gd")
 ## terreno es el mapa original estirado y no sigue a las piezas movidas (como hasta ahora). Lo que viene del editor o de
 ## nodos del juego ya está en el mundo actual y se añade con esto apagado.
 static var estirar_terreno: bool = false
+## Interiores escritos con coordenadas fijas del mapa original (posada, comisaría, trattoria): con esto encendido, cada
+## punto que llega a `to_3d` pasa por las anclas (sigue a su edificio, estirado y movido).
+static var mover_posiciones: bool = false
 const Mapa3D = preload("res://scripts/fisica/Mapa3D.gd")
 
 const WORLD_SCALE: float = Mapa3D.ESCALA
@@ -707,11 +710,15 @@ static func _terrain_height_px_calc(pos_2d: Vector2) -> float:
 
 ## Mapa → 3D sin relieve del suelo.
 func to_3d_flat(pos_2d: Vector2, h_px: float = 0.0) -> Vector3:
+	if mover_posiciones:
+		pos_2d = AnclasScript.mover(pos_2d)
 	return Mapa3D.a_3d(pos_2d, h_px)
 
 
 ## Mapa → 3D sobre el relieve del suelo (por debajo de −40 px se entiende «bajo tierra» y no se suma el relieve).
 func to_3d(pos_2d: Vector2, h_px: float = 0.0) -> Vector3:
+	if mover_posiciones:
+		pos_2d = AnclasScript.mover(pos_2d)
 	return Mapa3D.a_3d(pos_2d, h_px + (terrain_height_px(pos_2d) if h_px > -40.0 else 0.0))
 
 
