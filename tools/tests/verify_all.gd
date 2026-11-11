@@ -4242,7 +4242,7 @@ func _initialize() -> void:
 	p70_inv.gold = 50
 	var pm_pl_pos_ship: Vector2 = pm_pl.global_position if pm_pl != null else Vector2.ZERO
 	if pm_pl != null:
-		pm_pl.global_position = vcu_pj.CART_DEFAULT_POS + Vector2(12, 0)
+		pm_pl.global_position = M(vcu_pj.CART_DEFAULT_POS) + Vector2(12, 0)
 	assert(vcu_pj.send_player_shipment(vm, "river_port", p70_inv) and p70_inv.gold == 62, "PM.1c: Cargo cart within 60 px increases player shipment payout from 8 to 12 gold from route balance")
 	vcu_pj.despawn_trade_caravan(vm, "river_port")
 	if pm_pl != null:
@@ -4575,8 +4575,8 @@ func _initialize() -> void:
 	p70_a.is_dead = false
 	p70_a.is_downed = false
 	p70_a.is_sleeping = false
-	p70_a.global_position = vcu_pj.TINKER_TERMINAL_POS + Vector2(24.0, 0.0)
-	p70_pl.global_position = vcu_pj.TINKER_TERMINAL_POS + Vector2(0.0, 12.0)
+	p70_a.global_position = M(vcu_pj.TINKER_TERMINAL_POS) + Vector2(24.0, 0.0)
+	p70_pl.global_position = M(vcu_pj.TINKER_TERMINAL_POS) + Vector2(0.0, 12.0)
 	vm.set_player_elevation_level(0)
 	vcu_pj.terminal_state(vm)["last_hack_day"] = -99
 	var fis2_hack_res: Dictionary = vcu_pj.hack_terminal(vm, "census_ledger", 0)
@@ -5307,14 +5307,14 @@ func _initialize() -> void:
 	bp2_poorest.remove_pocket_item("wood", 10)
 
 	# 4. Tirando de ella a pie, la velocidad es ×0,55
-	bp2_cart.global_position = vcu_pj.CART_DEFAULT_POS
+	bp2_cart.global_position = M(vcu_pj.CART_DEFAULT_POS)
 	p70_pl.set("is_mounted", false)
 	p70_pl.set("is_pulling_cart", false)
 	p70_pl.set("is_cart_hitched", false)
 	p70_pl.is_weak = false
 	c1_mctrl.is_stealthing = false
 	c1_mctrl.is_sprinting = false
-	p70_pl.global_position = vcu_pj.CART_DEFAULT_POS + Vector2(0, -12)
+	p70_pl.global_position = M(vcu_pj.CART_DEFAULT_POS) + Vector2(0, -12)
 	c1_mctrl._handle_input(0.016)
 	var bp2_spd0: float = float(c1_mctrl.current_speed)
 	bp2_cart.call("interact", p70_pl)
@@ -5346,7 +5346,7 @@ func _initialize() -> void:
 	for b5b_b in vm.building_footprints:
 		var b5b_r = b5b_b.get("rect", null)
 		if b5b_r is Rect2:
-			assert(not (b5b_r as Rect2).has_point(b5b_vun.FENCE_ALLEY_POS), "P5b.0b: Alley spot is outside every building")
+			assert(not (b5b_r as Rect2).has_point(M(b5b_vun.FENCE_ALLEY_POS)), "P5b.0b: Alley spot is outside every building")
 	var b5b_pos_bak: Vector2 = b5b_f.global_position
 	var b5b_known_bak = b5b_vun.state(vm).get("known_fence", false)
 	b5b_f.end_errand()
@@ -5360,7 +5360,7 @@ func _initialize() -> void:
 	assert(b5b_f.errand_kind == "", "P5b.1c: At 3:00 the fence leaves the alley")
 	# 2. En el callejón y sin conocerlo: «figura encapuchada»
 	b5b_vun.fence_on_hour(vm, 22)
-	b5b_f.global_position = b5b_vun.FENCE_ALLEY_POS
+	b5b_f.global_position = M(b5b_vun.FENCE_ALLEY_POS)
 	b5b_vun.state(vm)["known_fence"] = false
 	assert(b5b_vun.alley_interact_label(vm, b5b_f) == "Hablar con la figura encapuchada", "P5b.2: Hooded figure label while the fence is unknown")
 	# 3. Un vecino honrado nunca suelta un rumor, aunque se fuerce
@@ -5545,9 +5545,9 @@ func _initialize() -> void:
 	vun.on_hour(vm, 22)
 	var bp3_smug_npc = vun.get_active_smuggler_npc(vm)
 	var bp3_smug_cart = vun.get_active_smuggler_cart(vm)
-	assert(bp3_smug_npc != null and bp3_smug_cart != null and bp3_smug_cart.global_position.distance_to(vun.SMUGGLER_CAMP_POS) < 5.0, "P3.4a: At 22:00 on contraband night, smuggler and cart appear at SMUGGLER_CAMP_POS")
+	assert(bp3_smug_npc != null and bp3_smug_cart != null and bp3_smug_cart.global_position.distance_to(M(vun.SMUGGLER_CAMP_POS)) < 5.0, "P3.4a: At 22:00 on contraband night, smuggler and cart appear at SMUGGLER_CAMP_POS")
 	# Alejar guardias temporalmente para probar compra/venta limpia en el carro (con doble E)
-	p70_pl.global_position = vun.SMUGGLER_CAMP_POS
+	p70_pl.global_position = M(vun.SMUGGLER_CAMP_POS)
 	var bp3_guard = null
 	var bp3_guard_positions: Dictionary = {}
 	for n_g in vm.get_tree().get_nodes_in_group("village_npcs"):
@@ -6485,7 +6485,7 @@ func _initialize() -> void:
 	vm.trade_npcs[r1_rt] = r1b_c
 	r1b_c.is_sleeping = false
 	r1b_c.current_activity = r1b_c.ActivityState.WORKING
-	r1b_c.global_position = r1_rs.STOVE_POS
+	r1b_c.global_position = M(r1_rs.STOVE_POS)
 	r1b_c.shop_stock = {"braised_meat": 1, "pasta_dish": 0}
 	t5_wc.current_hour = 20
 	r1b_d.personal_gold = 100
@@ -6790,7 +6790,7 @@ func _initialize() -> void:
 	assert(b2_vj.is_npc_jailed(vm, b2_culprit), "B2.1: Guard catching an NPC on a night job arrests them")
 	assert("calabozo" in b2_culprit.get_activity_description(), "B2.2: Arrested NPC activity description shows jail status")
 	# 2. Al llegar a la celda queda encerrado tras la reja y el diálogo muestra opciones de visita/fuga
-	b2_culprit.global_position = b2_vj.CELL_POS
+	b2_culprit.global_position = M(b2_vj.CELL_POS)
 	assert(b2_vj.process_npc_jail_step(vm, b2_culprit, 0.1), "B2.3: Jail step takes control of the inmate's routine")
 	assert(str(b2_vj.get_inmate_record(vm, b2_culprit).get("status", "")) == "jailed", "B2.4: Reaching the cell transitions inmate to jailed status")
 	var b2_aff_diag: int = b2_culprit.affinity
@@ -6804,7 +6804,7 @@ func _initialize() -> void:
 	assert(not b2_vj.is_npc_jailed(vm, b2_culprit), "B2.6: Inmate is released automatically when hours_left reaches 0")
 	# 4. Pagar su fianza al comisario o guardia suma el oro a las arcas municipales (suma cero) y lo libera
 	b2_vj.arrest_npc(vm, b2_culprit, b2_sheriff, "robo nocturno", 24, 30)
-	b2_culprit.global_position = b2_vj.CELL_POS
+	b2_culprit.global_position = M(b2_vj.CELL_POS)
 	b2_vj.process_npc_jail_step(vm, b2_culprit, 0.1)
 	var b2_diag_sheriff: Dictionary = b2_sheriff._inject_character_lore_into_dialogue(b2_sheriff._build_dialogue())
 	assert(b2_diag_sheriff.has("jail_bail_confirm_" + b2_culprit.get_person_key()), "B2.7: Sheriff dialogue offers jail_bail_confirm while there are inmates")
@@ -6814,10 +6814,10 @@ func _initialize() -> void:
 	assert(not b2_vj.is_npc_jailed(vm, b2_culprit) and int(p70_inv.gold) == 70 and int(vm.VillageTown.state(vm)["treasury"]) == 80 and b2_culprit.affinity > b2_aff0, "B2.9: Bail payment is strictly zero-sum into municipal treasury, frees the inmate and raises affinity")
 	# 5. Forzar la cerradura para sacarlo: si un guardia está cerca y mira, te buscan por complicidad; sin testigos sale agradecido
 	b2_vj.arrest_npc(vm, b2_culprit, b2_guard, "sabotaje nocturno", 24, 30)
-	b2_culprit.global_position = b2_vj.CELL_POS
+	b2_culprit.global_position = M(b2_vj.CELL_POS)
 	b2_vj.process_npc_jail_step(vm, b2_culprit, 0.1)
 	var b2_pl_pos_bak: Vector2 = p70_pl.global_position
-	p70_pl.global_position = b2_vj.CELL_OUTSIDE_POS
+	p70_pl.global_position = M(b2_vj.CELL_OUTSIDE_POS)
 	p70_inv.add_item("lockpick", 2)
 	b2_guard.global_position = M(Vector2(200, 900))
 	b2_sheriff.global_position = M(Vector2(200, 900))

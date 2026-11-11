@@ -1650,6 +1650,13 @@ const CELL_RECT: Rect2 = Rect2(864.0, 156.0, 44.0, 32.0)
 const CELL_GATE_POS: Vector2 = Vector2(902.0, 152.0)
 const CELL_OUTSIDE_POS: Vector2 = Vector2(910.0, 148.0)
 
+## Celda y su puerta en el mundo (los números fijos de arriba están en el mapa original).
+static func cell_pos() -> Vector2:
+	return _AN_SITIOS.mover(CELL_POS)
+
+static func cell_outside_pos() -> Vector2:
+	return _AN_SITIOS.mover(CELL_OUTSIDE_POS)
+
 static func _now_total_hours() -> int:
 	if WorldClock == null:
 		return 12
@@ -1699,7 +1706,7 @@ static func arrest_npc(vm: VillageManager, npc: VillageNPC, officer: VillageNPC 
 	npc.is_sleeping = false
 	npc.sedated_timer = 0.0
 	npc.elevation_level = 0
-	var already_at_cell: bool = npc.global_position.distance_to(CELL_POS) <= 28.0
+	var already_at_cell: bool = npc.global_position.distance_to(cell_pos()) <= 28.0
 	inmates(vm)[key] = {
 		"key": key,
 		"name": npc.npc_name,
@@ -1711,7 +1718,7 @@ static func arrest_npc(vm: VillageManager, npc: VillageNPC, officer: VillageNPC 
 		"last_escape_fail_hour": -99,
 	}
 	if already_at_cell:
-		npc.global_position = CELL_POS
+		npc.global_position = cell_pos()
 		npc.velocity = Vector2.ZERO
 	vm.set_jail_cell_gate_locked(true)
 	if officer != null and is_instance_valid(officer):
@@ -1733,7 +1740,7 @@ static func process_npc_jail_step(vm: VillageManager, npc: VillageNPC, delta: fl
 		npc.elevation_level = 0
 		npc._stop_crafting_bar()
 		var cell_off := Vector2(float((absi(k.hash()) % 3) - 1) * 14.0, float((absi(k.hash() / 3) % 2) * 2 - 1) * 6.0)
-		var my_cell_pos: Vector2 = CELL_POS + cell_off
+		var my_cell_pos: Vector2 = cell_pos() + cell_off
 		if str(rec.get("status", "escorting")) == "escorting":
 			if npc.global_position.distance_to(my_cell_pos) > 22.0:
 				npc._move_towards_point(my_cell_pos, 66.0, delta)
@@ -1754,15 +1761,15 @@ static func process_npc_jail_step(vm: VillageManager, npc: VillageNPC, delta: fl
 		for inm_k in map.keys():
 			var rec_o: Dictionary = map[inm_k]
 			if str(rec_o.get("status", "")) == "escorting" and str(rec_o.get("officer_key", "")) == k:
-				if npc.global_position.distance_to(CELL_POS) > 26.0:
-					npc._move_towards_point(CELL_POS, 68.0, delta)
+				if npc.global_position.distance_to(cell_pos()) > 26.0:
+					npc._move_towards_point(cell_pos(), 68.0, delta)
 					npc._finish_frame_movement(delta)
 					return true
 				else:
 					var pris = vm._get_npcs_by_person_key().get(str(inm_k), null)
-					if pris != null and is_instance_valid(pris) and pris.global_position.distance_to(CELL_POS) <= 42.0:
+					if pris != null and is_instance_valid(pris) and pris.global_position.distance_to(cell_pos()) <= 42.0:
 						rec_o["status"] = "jailed"
-						pris.global_position = CELL_POS
+						pris.global_position = cell_pos()
 						pris.velocity = Vector2.ZERO
 						vm.set_jail_cell_gate_locked(true)
 	return false
@@ -1780,7 +1787,7 @@ static func release_npc(vm: VillageManager, key: String, mode: String = "served"
 	var npc: VillageNPC = vm._get_npcs_by_person_key().get(key, null)
 	if npc != null and is_instance_valid(npc) and not npc.is_dead:
 		if CELL_RECT.has_point(_AN_SITIOS.desmover(npc.global_position)) or _AN_SITIOS.desmover(npc.global_position).distance_to(CELL_POS) <= 32.0:
-			npc.global_position = CELL_OUTSIDE_POS
+			npc.global_position = cell_outside_pos()
 		npc.velocity = Vector2.ZERO
 		match mode:
 			"bailed":
@@ -1819,7 +1826,7 @@ static func after_load(vm: VillageManager) -> void:
 			var rec: Dictionary = map[k]
 			var n: VillageNPC = by_key.get(str(k), null)
 			if n != null and is_instance_valid(n) and not n.is_dead and str(rec.get("status", "")) == "jailed":
-				n.global_position = CELL_POS
+				n.global_position = cell_pos()
 
 static func pay_npc_bail(vm: VillageManager, officer: VillageNPC, key: String, inv) -> bool:
 	if vm == null or inv == null:
