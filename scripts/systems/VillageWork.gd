@@ -217,7 +217,8 @@ static func after_load(vm) -> void:
 # ---------------------------------------------------------------- lavadero
 static func wash_spot(_vm, npc, default_spot: Vector2) -> Vector2:
 	var lav: Vector2 = _AN_SITIOS.mover(LAVADERO_POS)
-	if npc.global_position.distance_to(lav) < 700.0 and randf() < LAVADERO_CHANCE:
+	# La cercanía se mide en el mapa original: con el mapa ×E el alcance crece con él
+	if _AN_SITIOS.desmover(npc.global_position).distance_to(LAVADERO_POS) < 700.0 and randf() < LAVADERO_CHANCE:
 		return lav + Vector2(randf_range(-10, 10), 12)
 	return default_spot
 
