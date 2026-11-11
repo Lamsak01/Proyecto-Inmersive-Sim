@@ -68,3 +68,22 @@ Coste total estimado: **2–3 sesiones de trabajo** (unas 12–18 horas), más l
 - ¿Río ×1,5 de ancho (propuesto) o igual?
 - ¿Día de 18 min o 24 min tras probar el mapa grande?
 - Los 4 hogares nuevos para las casas libres: ¿qué oficios? (propuesta: cantero de la cantera, familia de leñadores, costurera viuda con hijo, pastor del rancho).
+
+## 8. Registro de lo hecho (2026-11-11, Claude Code, portátil; rama `mapa-x5`)
+- **Decisión del usuario: ×5** (no ×3). El número vive en `Mapa3D.E`; `tools/estirar_mapa.py` convierte las escenas con él.
+- Paso 1 (E = 1, idéntico): mecanismo en `mapa/anclas.gd` (`aplicar` estira el campo abierto; cada pieza va a E·c + d con
+  su tamaño; `desmover` al revés; índice por celdas; grupos compactos `GRUPOS` (campamento, cementerio, claro, corral);
+  la red de alcantarillas es una pieza (BajoTierra); con E = 1 manda la primera ancla registrada, como siempre).
+  Sondeo 54/60 y 29/29, física, puertas y fotos idénticas.
+- Paso 2 (E = 5): `estirar_mapa.py` (1.320 cambios en Mundo3D, río ×5 y ancho ×2, bandidos ×5; copias `*.antes-x5.tscn`),
+  caminos rehechos (`hornear_caminos` con E: largo ×5, ancho ×2), relieve en `p / E`, malla del suelo con límites ×5 y
+  paso ×2, zonas del terreno ×5 (plaza, parque, cementerio, lago, ciénaga), baldosas antiguas de choque recolocadas por
+  las anclas (`World._estirar_baldosas`), tabiques escritos a mano por las anclas (`_add_solid_wall_segment`), en pausa de
+  construcción las anclas no estiran, `desmover` saca del hueco original de las piezas (`_fuera_de_piezas`), mapa del valle
+  y minimapa ×E, sonda de edificios con E, prueba del Caso I y fotos fijas por las anclas, secuestradores del molino por
+  las anclas, lago en `p / E`.
+- Arreglo encontrado por el camino: las copias 3D de paredes de un vecino (p. ej. el agua, que para él es muro) frenaban
+  al protagonista → cada cuerpo choca solo con sus propias copias (`Cuerpo3D.CAPA_MUROS_*`).
+- Paso 4: `tools/repoblar_bosque.gd -- 3 26`: 699 árboles nuevos junto a los 233 (sin río, edificios ni solapes).
+- Pendiente al escribir esto: física 3D (quedaban río y vecino a la cama alta), Caso I a pie, atascos, rendimiento, fotos
+  de referencia nuevas, pasar a `main`.
